@@ -41,7 +41,7 @@
 			<elementname>UAVOFrSkySPortBridge</elementname>
 			<elementname>FlightStats</elementname>
 		</elementnames>
-	</field> 
+	</field>
 	<field name="Running" units="bool" type="enum">
 		<elementnames>
 			<elementname>System</elementname>

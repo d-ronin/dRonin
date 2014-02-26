@@ -27,6 +27,7 @@
 #define CONFIGMODULEWIDGET_H
 
 #include "ui_modules.h"
+#include "ui_modules_osd.h"
 
 #include "uavobjectwidgetutils/configtaskwidget.h"
 #include "extensionsystem/pluginmanager.h"
@@ -35,6 +36,7 @@
 
 namespace Ui {
     class Modules;
+    class ModulesOsd;
 }
 
 class ConfigModuleWidget: public ConfigTaskWidget
@@ -72,6 +74,7 @@ private:
     static QString falseString;
 
     Ui::Modules *ui;
+    Ui::ModulesOsd *ui_osd;
 
 protected:
     void resizeEvent(QResizeEvent *event);
