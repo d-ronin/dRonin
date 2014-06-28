@@ -32,6 +32,7 @@
 #include "configinputwidget.h"
 #include "configoutputwidget.h"
 #include "configstabilizationwidget.h"
+#include "configosdwidget.h"
 #include "configmodulewidget.h"
 #include "configautotunewidget.h"
 #include "configcamerastabilizationwidget.h"

@@ -49,10 +49,6 @@ ConfigModuleWidget::ConfigModuleWidget(QWidget *parent) : ConfigTaskWidget(paren
     ui = new Ui::Modules();
     ui->setupUi(this);
 
-    // set up OSD UI
-    ui_osd = new Ui::ModulesOsd();
-    ui_osd->setupUi(ui->widget_Osd);
-
     connect(this, SIGNAL(autoPilotConnected()), this, SLOT(recheckTabs()));
 
     // Populate UAVO strings
@@ -422,7 +418,6 @@ ConfigModuleWidget::ConfigModuleWidget(QWidget *parent) : ConfigTaskWidget(paren
 ConfigModuleWidget::~ConfigModuleWidget()
 {
     delete ui;
-    delete ui_osd;
 }
 
 void ConfigModuleWidget::resizeEvent(QResizeEvent *event)
