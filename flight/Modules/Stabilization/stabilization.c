@@ -342,11 +342,7 @@ static void stabilizationTask(void* parameters)
 
 		// Get throttle for Throttle PID Attenuation
 		if (use_tpa)
-		{
 			ManualControlCommandThrottleGet(&throttle);
-			// scale to 0.0 .. 1.0 range
-			throttle = (throttle + 1.0f) / 2;
-		}
 
 		//Run the selected stabilization algorithm on each axis:
 		for(uint8_t i=0; i< MAX_AXES; i++)
