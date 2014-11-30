@@ -119,9 +119,6 @@ bool lowThrottleZeroIntegral;
 float vbar_decay = 0.991f;
 float gyro_alpha = 0.6;
 struct pid pids[PID_MAX];
-float tpa_threshold[MAX_AXES];
-float tpa_attenuation[MAX_AXES];
-bool use_tpa;
 
 volatile bool gyro_filter_updated = false;
 
@@ -196,8 +193,6 @@ static void stabilizationTask(void* parameters)
 	float *actuatorDesiredAxis = &actuatorDesired.Roll;
 	float *rateDesiredAxis = &rateDesired.Roll;
 	float horizonRateFraction = 0.0f;
-	float pidScale = 1.0f;
-	float throttle = 1.0f;
 
 	// Force refresh of all settings immediately before entering main task loop
 	SettingsUpdatedCb(NULL, NULL, NULL, 0);
@@ -339,10 +334,6 @@ static void stabilizationTask(void* parameters)
 		// A flag to track which stabilization mode each axis is in
 		static uint8_t previous_mode[MAX_AXES] = {255,255,255};
 		bool error = false;
-
-		// Get throttle for Throttle PID Attenuation
-		if (use_tpa)
-			ManualControlCommandThrottleGet(&throttle);
 
 		//Run the selected stabilization algorithm on each axis:
 		for(uint8_t i=0; i< MAX_AXES; i++)
@@ -680,7 +671,7 @@ static void stabilizationTask(void* parameters)
 									rateDesiredAxis[YAW] = pid_apply(&pids[PID_ATT_YAW], axis_lock_accum[YAW], dT);
 									rateDesiredAxis[YAW] = bound_sym(rateDesiredAxis[YAW], settings.MaximumRate[YAW]);
 
-									actuatorDesiredAxis[YAW] = pid_apply_setpoint(&pids[PID_RATE_YAW],  rateDesiredAxis[YAW],  gyro_filtered[YAW], dT, pidScale);
+									actuatorDesiredAxis[YAW] = pid_apply_setpoint(&pids[PID_RATE_YAW],  rateDesiredAxis[YAW],  gyro_filtered[YAW], dT);
 									actuatorDesiredAxis[YAW] = bound_sym(actuatorDesiredAxis[YAW],1.0f);
 
 									// Reset coordinated-flight integral
