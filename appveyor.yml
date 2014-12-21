@@ -6,5 +6,4 @@ install:
   - set PATH=%PATH%;%QTDIR%\bin;C:\MinGW\bin
   - cmd: cinst wget -x86
   - cmd: cinst 7zip.commandline -x86
-  - mingw32-make qt_sdk_install
   - mingw32-make arm_sdk_install
