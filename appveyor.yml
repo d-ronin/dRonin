@@ -3,7 +3,7 @@
 environment:
 
 install:
-  - "SET PATH=C:\MinGW\bin;%PATH%"
-  - "make qt_sdk_install"
+  - set PATH=C:\MinGW;%PATH%
+  - mingw32-make qt_sdk_install
 
 build:
