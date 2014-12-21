@@ -3,7 +3,10 @@
 os: unstable
 install:
   - set QTDIR=C:\Qt\Qt5.3.2\5.3\mingw482_32
-  - set PATH=%PATH%;%QTDIR%\bin;C:\MinGW\bin
+  - set PATH=%PATH%;%QTDIR%\bin
   - cmd: cinst wget -x86
   - cmd: cinst 7zip.commandline -x86
-  - mingw32-make arm_sdk_install
+  - cinst mingw-get
+  - set PATH=%PATH%;C:\MinGW\msys\1.0\bin;C:\MinGW\bin
+  - mingw-get install mingw-developer-toolkit
+  - bash mingw32-make arm_sdk_install
