@@ -2,5 +2,13 @@
 
 
 install:
-  - set PATH=C:\MinGW;%PATH%
-  - mingw32-make qt_sdk_install
+   - ps: |
+        # Install MinGW.
+        $url = "http://sourceforge.net/projects/mingw-w64/files/"
+        $url += "Toolchains%20targetting%20Win64/Personal%20Builds/"
+        $url += "mingw-builds/4.9.0/threads-win32/seh/"
+        $url += "x86_64-4.9.0-release-win32-seh-rt_v3-rev2.7z/download"
+        Invoke-WebRequest -UserAgent wget -Uri $url -OutFile mingw.7z
+        &7z x -oC:\ mingw.7z > $null
+    - set PATH=%PATH%;C:\mingw64\bin
+    - mingw32-make qt_sdk_install
