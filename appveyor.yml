@@ -1,9 +1,6 @@
 # Appveyor build configuration for Tau Labs by shred
 
-environment:
 
 install:
   - set PATH=C:\MinGW;%PATH%
   - mingw32-make qt_sdk_install
-
-build:
