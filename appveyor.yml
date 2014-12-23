@@ -1,10 +1,10 @@
 # Appveyor build configuration for Tau Labs by shred
 
-os: unstable
+os: MinGW
 install:
-  - set QTDIR=C:\Qt\Qt5.3.2\5.3\mingw482_32
-  - set PATH=%PATH%;%QTDIR%\bin
+  - set QTDIR=C:\Qt\Qt5.4
+  - set PATH=%PATH%;%QTDIR%\bin:C:\Qt\Tools\mingw491_32
   - cmd: cinst wget -x86
   - cmd: cinst 7zip.commandline -x86
 #  - mingw32-make arm_sdk_install
-  - dir C:\Qt
+  - mingw32-make gcs
