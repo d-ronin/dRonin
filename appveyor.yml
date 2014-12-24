@@ -3,9 +3,8 @@
 os: MinGW
 install:
   - set QTDIR=C:\Qt\5.4
-  - set PATH=%PATH%;%QTDIR%\bin;C:\Qt\Tools\mingw491_32\bin;C:\MinGW\bin
+  - set PATH=%PATH%;%QTDIR%\mingw491_32\bin;C:\Qt\Tools\mingw491_32\bin;C:\MinGW\bin
   - cmd: cinst wget -x86
   - cmd: cinst 7zip.commandline -x86
 #  - mingw32-make arm_sdk_install
-#  - mingw32-make gcs
-  - dir C:\Qt\5.4\
+  - mingw32-make -j2 gcs
