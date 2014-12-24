@@ -7,4 +7,4 @@ install:
   - cmd: cinst wget -x86
   - cmd: cinst 7zip.commandline -x86
 #  - mingw32-make arm_sdk_install
-  - mingw32-make -j2 gcs
+  - mingw32-make -j4 gcs
