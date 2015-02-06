@@ -18,7 +18,7 @@ popd
 
 # Copy SDL files
 echo "Copying SDL"
-cp -r "/Library/Frameworks/SDL.framework" "${APP}/Contents/Frameworks/"
+cp -r "$HOME/SDL/SDL.framework" "${APP}/Contents/Frameworks/"
 
 # these are optional
 echo "Changing package identification of SDL"
