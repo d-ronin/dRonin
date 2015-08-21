@@ -52,8 +52,9 @@ float bound_min_max(float val, float min, float max);
 float circular_modulus_deg(float err);
 float circular_modulus_rad(float err);
 
-//! Approximation an exponential scale curve
+//! Approximation of common exponential curves.
 float expo3(float x, int32_t g);
+float expoM(float input, float exponent, int32_t amount);
 
 float interpolate_value(const float fraction, const float beginVal,
 			const float endVal);
