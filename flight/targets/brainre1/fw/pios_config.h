@@ -1,11 +1,12 @@
 /**
  ******************************************************************************
- * @addtogroup TauLabsTargets Tau Labs Targets
+ * @addtogroup dRonin Targets
  * @{
- * @addtogroup BrainFPV FC support files
+ * @addtogroup BrainRE1 support files
  * @{
  *
  * @file       pios_config.h
+ * @author     dRonin, http://dRonin.org/, Copyright (C) 2016
  * @author     Tau Labs, http://taulabs.org, Copyright (C) 2012-2013
  * @brief      Board specific options that modify PiOS capabilities
  * @see        The GNU Public License (GPL) Version 3
@@ -25,6 +26,10 @@
  * You should have received a copy of the GNU General Public License along
  * with this program; if not, write to the Free Software Foundation, Inc.,
  * 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
+ *
+ * Additional note on redistribution: The copyright and license notices above
+ * must be maintained in each individual source file that is a derivative work
+ * of this source file; otherwise redistribution is prohibited.
  */
 
 #ifndef PIOS_CONFIG_H
@@ -54,33 +59,27 @@
 #define PIOS_INCLUDE_EXTI
 #define PIOS_INCLUDE_RTC
 #define PIOS_INCLUDE_WDG
-#define PIOS_INCLUDE_FASTHEAP
 #define PIOS_INCLUDE_HPWM
 #define PIOS_INCLUDE_FRSKY_RSSI
 
 /* Select the sensors to include */
-#define PIOS_INCLUDE_MS5611
-#define PIOS_MPU6050_ACCEL
-#define PIOS_INCLUDE_MPU9250_BRAIN
-#define PIOS_INCLUDE_HMC5883
-#define PIOS_INCLUDE_HMC5983_I2C
+#define PIOS_INCLUDE_BMI160
 #define PIOS_INCLUDE_ETASV3
-#define PIOS_I2C_ETASV3_ADAPTER pios_i2c_flexi_id
+#define PIOS_I2C_ETASV3_ADAPTER pios_i2c_external_id
 
+#define FLASH_FREERTOS
 /* Com systems to include */
 #define PIOS_INCLUDE_COM
 #define PIOS_INCLUDE_COM_TELEM
 #define PIOS_INCLUDE_TELEMETRY_RF
 #define PIOS_INCLUDE_COM_FLEXI
 #define PIOS_INCLUDE_MAVLINK
+#define PIOS_INCLUDE_MSP_BRIDGE
 #define PIOS_INCLUDE_HOTT
 #define PIOS_INCLUDE_FRSKY_SENSOR_HUB
 #define PIOS_INCLUDE_SESSION_MANAGEMENT
 #define PIOS_INCLUDE_LIGHTTELEMETRY
-#define PIOS_INCLUDE_PICOC
 #define PIOS_INCLUDE_FRSKY_SPORT_TELEMETRY
-#define PIOS_INCLUDE_OPENLOG
-#define PIOS_INCLUDE_STORM32BGC
 
 #define PIOS_INCLUDE_GPS
 #define PIOS_INCLUDE_GPS_NMEA_PARSER
@@ -90,10 +89,10 @@
 /* Supported receiver interfaces */
 #define PIOS_INCLUDE_RCVR
 #define PIOS_INCLUDE_DSM
-#define PIOS_INCLUDE_HSUM
 #define PIOS_INCLUDE_SBUS
 #define PIOS_INCLUDE_PPM
 #define PIOS_INCLUDE_PWM
+#define PIOS_INCLUDE_HSUM
 #define PIOS_INCLUDE_GCSRCVR
 
 #define PIOS_INCLUDE_FLASH
@@ -101,15 +100,15 @@
 #define PIOS_INCLUDE_FLASH_JEDEC
 #define PIOS_INCLUDE_FLASH_INTERNAL
 
+/* RE1 specific drivers */
+#define PIOS_INCLUDE_RE1_FPGA
+
 /* OSD stuff */
-#define PIOS_VIDEO_TIM4_COUNTER
-#define PIOS_INCLUDE_VIDEO
-#define PIOS_VIDEO_SPLITBUFFER /* Brain uses 2 1-bit/pixel buffers */
+#define PIOS_INCLUDE_VIDEO_QUADSPI
+#define PIOS_VIDEO_BITS_PER_PIXEL 2
+#define PIOS_VIDEO_QUADSPI_Y_OFFSET 3
 #define MODULE_FLIGHTSTATS_BUILTIN
 #define PIOS_INCLUDE_DEBUG_CONSOLE
-
-/* Other Interfaces */
-//#define PIOS_INCLUDE_I2C_ESC
 
 /* Flags that alter behaviors - mostly to lower resources for CC */
 #define PIOS_INCLUDE_INITCALL           /* Include init call structures */
@@ -134,7 +133,7 @@
  *
  * IDLE_COUNTS_PER_SEC_AT_NO_LOAD = (uint32_t)((double)idleCounter / xTickCount * 1000 + 0.5)
  *
- * This has to be redone every time the toolchain, toolchain flags or RTOS
+ * This has to be redone every time the toolchain, toolchain flags or FreeRTOS
  * configuration like number of task priorities or similar changes.
  * A change in the cpu load calculation or the idle task handler will invalidate this as well.
  */

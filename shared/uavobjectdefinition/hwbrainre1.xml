@@ -1,0 +1,83 @@
+<xml>
+	<object name="HwBrainRE1" singleinstance="true" settings="true" category="HardwareSettings">
+	<description>Selection of optional hardware configurations.</description>
+
+	<field name="RxPort" units="function" type="enum" elements="1" parent="HwShared.PortTypes"  defaultvalue="Disabled">
+	<options>
+		<option>Disabled</option>
+		<option>PPM</option>
+		<option>S.Bus</option>
+		<option>S.Bus Non Inverted</option>
+		<option>DSM</option>
+		<option>HoTT SUMD</option>
+		<option>HoTT SUMH</option>
+	</options>
+	</field>
+
+	<field name="SerialPort" units="function" type="enum" elements="1" parent="HwShared.PortTypes" defaultvalue="Disabled">
+		<options>
+			<option>Disabled</option>
+			<option>Telemetry</option>
+			<option>GPS</option>
+			<option>DebugConsole</option>
+			<option>ComBridge</option>
+			<option>OpenLog</option>
+			<option>MSP</option>
+			<option>Storm32Bgc</option>
+			<option>HoTT Telemetry</option>
+			<option>LighttelemetryTx</option>
+			<option>MavLinkTX</option>
+			<option>MavLinkTX_GPS_RX</option>
+		</options>
+	</field>
+
+	<field name="MultiPort" units="function" type="enum" elements="1" parent="HwShared.PortTypes" defaultvalue="Disabled">
+		<options>
+			<option>Disabled</option>
+			<option>PWM</option>
+			<option>Telemetry</option>
+			<option>GPS</option>
+			<option>DebugConsole</option>
+			<option>ComBridge</option>
+			<option>OpenLog</option>
+			<option>MSP</option>
+			<option>Storm32Bgc</option>
+			<option>HoTT Telemetry</option>
+			<option>LighttelemetryTx</option>
+			<option>MavLinkTX</option>
+			<option>MavLinkTX_GPS_RX</option>
+			<option>FrSKY Sensor Hub</option>
+			<option>FrSKY SPort Telemetry</option>
+		</options>
+	</field>
+
+	<field name="DSMxMode" units="mode" type="enum" elements="1" parent="HwShared.DSMxMode" defaultvalue="Autodetect"/>
+
+	<field name="USB_HIDPort" units="function" type="enum" elements="1" parent="HwShared.USB_HIDPort" defaultvalue="USBTelemetry"/>
+	<field name="USB_VCPPort" units="function" type="enum" elements="1" parent="HwShared.USB_VCPPort" defaultvalue="Disabled"/>
+
+	<field name="DSMxBind" units=""  type="uint8"  elements="1" defaultvalue="0"/>
+	
+	<field name="NumberOfLEDs" units="" type="uint16" elements="1" defaultvalue="0" limits="%BE:0:1024"/>
+	<field name="LEDColor" units="" type="uint8" elements="3" defaultvalue="255,0,0"/>
+
+	<field name="IRProtocol" units="function" type="enum" elements="1" defaultvalue="Disabled">
+		<options>
+			<option>Disabled</option>
+			<option>ILap</option>
+			<option>Trackmate</option>
+		</options>
+	</field>
+
+	<field name="IRIDTrackmate" units="" type="uint16" elements="1" defaultvalue="0" limits="%BE:0:9999"/>
+	<field name="IRIDILap" units="" type="uint32" elements="1" defaultvalue="0" limits="%BE:0:9999999"/>
+	<field name="FailsafeBuzzer" units="function" type="enum" elements="1" options="Disabled,Enabled" defaultvalue="Disabled"/>
+
+	<field name="HWRevision" units="" type="uint8" elements="1" defaultvalue="0"/>
+
+	<access gcs="readwrite" flight="readwrite"/>
+	<telemetrygcs acked="true" updatemode="onchange" period="0"/>
+	<telemetryflight acked="true" updatemode="onchange" period="0"/>
+	<logging updatemode="manual" period="0"/>
+	</object>
+</xml>

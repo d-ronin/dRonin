@@ -74,8 +74,10 @@ SRC	+=	$(PIOS_DEVLIB)/pios_usbhook.c
 SRC	+=	$(PIOS_DEVLIB)/pios_wdg.c
 SRC	+=	$(PIOS_DEVLIB)/startup.c
 SRC	+=	$(PIOS_DEVLIB)/vectors_stm32f4xx.c
+ifndef LINKER_SCRIPTS_BL
 LINKER_SCRIPTS_BL	 =	$(PIOS_DEVLIB)/link_STM32F4xx_BL_memory.ld \
 						$(PIOS_DEVLIB)/link_STM32F4xx_sections.ld
+endif
 
 ## PIOS Hardware (Common)
 SRC += $(PIOSCOMMON)/pios_delay.c

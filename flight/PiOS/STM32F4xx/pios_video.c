@@ -517,4 +517,21 @@ void PIOS_Video_SetYOffset(int8_t y_offset_in)
 	y_offset = y_offset_in;
 }
 
+/**
+*  Set the x scale
+*/
+void PIOS_Video_SetXScale(uint8_t pal_x_scale, uint8_t ntsc_xscale)
+{
+	// Not supported by this driver
+	return;
+}
+
+/**
+*  Set the 3D mode configuration
+*/
+void PIOS_Video_Set3DConfig(enum pios_video_3d_mode mode, uint8_t right_eye_x_shift)
+{
+	// Not supported by this driver
+	return;
+}
 #endif /* PIOS_INCLUDE_VIDEO */
