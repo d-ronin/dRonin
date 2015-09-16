@@ -3,13 +3,13 @@
 # Information about dmg generation: http://stackoverflow.com/questions/96882/how-do-i-create-a-nice-looking-dmg-for-mac-os-x-using-command-line-tools
 
 # the following environment variables must be set
-: ${ROOT_DIR?} ${BUILD_DIR?} ${PACKAGE_LBL?} ${PACKAGE_DIR?} ${FW_DIR?}
+: ${ROOT_DIR?} ${BUILD_DIR?} ${PACKAGE_LBL?} ${PACKAGE_DIR?} ${FW_DIR?} ${DMG_LBL?}
 
 # more variables
 APP_NAME="dRonin GCS.app"
 APP_PATH="${BUILD_DIR}/ground/gcs/bin/"
 TEMP_FILE="${PACKAGE_DIR}/dRonin-temp.dmg.sparseimage"
-OUT_FILE="${PACKAGE_DIR}/dRonin-${PACKAGE_LBL}.dmg"
+OUT_FILE="${PACKAGE_DIR}/${DMG_LBL}.dmg"
 ICON_FILE="${ROOT_DIR}/package/dronin.png"
 VOL_NAME="dRonin"
 
