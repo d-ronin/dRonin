@@ -18,24 +18,6 @@ include $(ROOT_DIR)/make/$(OSFAMILY).mk
 # include the tools makefile
 include $(ROOT_DIR)/make/tools.mk
 
-# make sure this isn't being run as root, not relevant for windows
-ifndef WINDOWS
-  # Deal with unreasonable requests
-  # See: http://xkcd.com/149/
-  ifeq ($(MAKECMDGOALS),me a sandwich)
-    ifeq ($(shell whoami),root)
-      $(error Okay)
-    else
-      $(error What? Make it yourself)
-    endif
-  endif
-
-  # Seriously though, you shouldn't ever run this as root
-  ifeq ($(shell whoami),root)
-    $(error You should not be running this as root)
-  endif
-endif
-
 # Function for converting an absolute path to one relative
 # to the top of the source tree.
 toprel = $(subst $(realpath $(ROOT_DIR))/,,$(abspath $(1)))
