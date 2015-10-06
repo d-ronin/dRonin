@@ -2,6 +2,8 @@
 Implements the uavtalk protocol.
 
 Copyright (C) 2014-2015 Tau Labs, http://taulabs.org
+Copyright (C) 2015 dRonin, http://dronin.org
+
 Licensed under the GNU LGPL version 2.1 or any later version (see COPYING.LESSER)
 
 

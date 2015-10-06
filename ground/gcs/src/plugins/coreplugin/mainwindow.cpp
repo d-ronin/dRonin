@@ -804,9 +804,9 @@ void MainWindow::registerDefaultActions()
 
     // About GCS Action
 #ifdef Q_OS_MAC
-    tmpaction = new QAction(QIcon(Constants::ICON_TAULABS), tr("About &Tau Labs GCS"), this); // it's convention not to add dots to the about menu
+    tmpaction = new QAction(QIcon(Constants::ICON_TAULABS), tr("About &dRonin GCS"), this); // it's convention not to add dots to the about menu
 #else
-    tmpaction = new QAction(QIcon(Constants::ICON_TAULABS), tr("About &Tau Labs GCS..."), this);
+    tmpaction = new QAction(QIcon(Constants::ICON_TAULABS), tr("About &dRonin GCS..."), this);
 #endif
     cmd = am->registerAction(tmpaction, Constants::ABOUT_TAULABSGCS, m_globalContext);
     mhelp->addAction(cmd, Constants::G_HELP_ABOUT);

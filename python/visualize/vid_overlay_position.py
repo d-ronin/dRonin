@@ -99,9 +99,9 @@ def video_overlay(pa,ned,pos_des,output_filename):
 def main():
         import sys, os
         sys.path.insert(1, os.path.dirname(sys.path[0]))
-        from taulabs import telemetry
+        from dronin import telemetry
         uavo_list = telemetry.get_telemetry_by_args()
-        from taulabs.uavo import UAVO_PositionActual, UAVO_NEDPosition, UAVO_PathDesired
+        from dronin.uavo import UAVO_PositionActual, UAVO_NEDPosition, UAVO_PathDesired
 
         pa = uavo_list.as_numpy_array(UAVO_PositionActual)
         ned = uavo_list.as_numpy_array(UAVO_NEDPosition)

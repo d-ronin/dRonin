@@ -68,7 +68,7 @@
 
 enum { OptionIndent = 4, DescriptionIndent = 24 };
 
-static const char *appNameC = "Tau Labs GCS";
+static const char *appNameC = "dRonin GCS";
 static const char *corePluginNameC = "Core";
 static const char *fixedOptionsC =
 " [OPTION]... [FILE]...\n"
@@ -173,7 +173,7 @@ static inline QString prepareRemoteArgument(const QString &a)
     return a;
 }
 
-// Send the arguments to an already running instance of Tau Labs GCS
+// Send the arguments to an already running instance of GCS
 static bool sendArguments(SharedTools::QtSingleApplication &app, const QStringList &arguments)
 {
     if (!arguments.empty()) {
@@ -206,7 +206,7 @@ static inline QStringList getPluginPaths()
     pluginPath += QLatin1Char('/');
     pluginPath += QLatin1String(GCS_LIBRARY_BASENAME);
     pluginPath += QLatin1Char('/');
-    pluginPath += QLatin1String("taulabs");
+    pluginPath += QLatin1String("dronin");
     pluginPath += QLatin1Char('/');
     pluginPath += QLatin1String("plugins");
     rc.push_back(pluginPath);
@@ -221,7 +221,7 @@ static inline QStringList getPluginPaths()
 #ifdef Q_OS_MAC
 #  define SHARE_PATH "/../Resources"
 #else
-#  define SHARE_PATH "/../share/taulabs"
+#  define SHARE_PATH "/../share/dronin"
 #endif
 
 static void overrideSettings(QSettings &settings, int argc, char **argv){
@@ -287,7 +287,7 @@ int main(int argc, char **argv)
     // component.
     dirName = dirName.replace(QRegularExpression("[^A-Za-z0-9.]+"), "_");
 
-    dirName = QDir::tempPath() + QDir::separator() + "taulabsgcs_" + dirName;
+    dirName = QDir::tempPath() + QDir::separator() + "drgcs_" + dirName;
     QDir().mkdir(dirName);
     new CrashReporter::Handler(dirName, true, "crashreporterapp");
 #endif
@@ -303,7 +303,7 @@ int main(int argc, char **argv)
     {
         // keep this in sync with the MainWindow ctor in coreplugin/mainwindow.cpp
         QSettings settings(XmlConfig::XmlSettingsFormat, QSettings::UserScope,
-                           QLatin1String("TauLabs"), QLatin1String("TauLabs_config"));
+                           QLatin1String("dRonin"), QLatin1String("dRonin_config"));
 
         overrideSettings(settings, argc, argv);
         locale = settings.value("General/OverrideLanguage", locale).toString();

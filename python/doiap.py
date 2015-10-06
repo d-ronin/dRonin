@@ -1,7 +1,7 @@
 #!/usr/bin/python -B
 
 import sys, time
-from taulabs import telemetry
+from dronin import telemetry
 
 def main():
     t = telemetry.get_telemetry_by_args(service_in_iter=False, iter_blocks=False)
@@ -9,7 +9,7 @@ def main():
 
     magic_value=1122
 
-    from taulabs.uavo import UAVO_FirmwareIAPObj
+    from dronin.uavo import UAVO_FirmwareIAPObj
 
     t.request_object(UAVO_FirmwareIAPObj)
 

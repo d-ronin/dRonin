@@ -55,7 +55,7 @@ VersionDialog::VersionDialog(QWidget *parent)
     // application icon isn't used when the size of the dialog is fixed (at least not on X11/GNOME)
     setWindowIcon(QIcon(":/core/images/taulabs_logo_32.png"));
 
-    setWindowTitle(tr("About Tau Labs GCS"));
+    setWindowTitle(tr("About dRonin GCS"));
     setWindowFlags(windowFlags() & ~Qt::WindowContextHelpButtonHint);
     QGridLayout *layout = new QGridLayout(this);
     layout->setSizeConstraint(QLayout::SetFixedSize);
@@ -92,7 +92,7 @@ VersionDialog::VersionDialog(QWidget *parent)
      }
      uavoHashStr = tr("UAVO hash %1<br/>").arg(gcsUavoHashStr.left(8));
  #endif
-     const QString version_name = tr("<h3><center>Tau Labs GCS<center></h3>"
+     const QString version_name = tr("<h3><center>DRonin GCS<center></h3>"
                                      "<h4><center>%1: %2</center></h4>").arg(versionName, versionHash);
      const QString version_description = tr(
         "Based on Qt %1 (%2 bit)<br/>"

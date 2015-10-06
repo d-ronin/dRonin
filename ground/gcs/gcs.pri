@@ -57,7 +57,7 @@ isEmpty(GCS_BUILD_TREE) {
 }
 GCS_APP_PATH = $$GCS_BUILD_TREE/bin
 macx {
-    GCS_APP_TARGET   = "Tau Labs GCS"
+    GCS_APP_TARGET   = "dRonin GCS"
     GCS_LIBRARY_PATH = $$GCS_APP_PATH/$${GCS_APP_TARGET}.app/Contents/Plugins
     GCS_PLUGIN_PATH  = $$GCS_LIBRARY_PATH
     GCS_LIBEXEC_PATH = $$GCS_APP_PATH/$${GCS_APP_TARGET}.app/Contents/Resources
@@ -70,16 +70,16 @@ macx {
 } else {
     win32 {
         contains(TEMPLATE, vc.*)|contains(TEMPLATE_PREFIX, vc):vcproj = 1
-        GCS_APP_TARGET   = taulabsgcs
+        GCS_APP_TARGET   = drgcs
     } else {
-        GCS_APP_WRAPPER  = taulabsgcs
-        GCS_APP_TARGET   = taulabsgcs.bin
+        GCS_APP_WRAPPER  = drgcs
+        GCS_APP_TARGET   = drgcs.bin
     }
-    GCS_LIBRARY_PATH = $$GCS_BUILD_TREE/$$GCS_LIBRARY_BASENAME/taulabs
+    GCS_LIBRARY_PATH = $$GCS_BUILD_TREE/$$GCS_LIBRARY_BASENAME/dronin
     GCS_PLUGIN_PATH  = $$GCS_LIBRARY_PATH/plugins
     GCS_LIBEXEC_PATH = $$GCS_APP_PATH # FIXME
-    GCS_DATA_PATH    = $$GCS_BUILD_TREE/share/taulabs
-    GCS_DATA_BASENAME = share/taulabs
+    GCS_DATA_PATH    = $$GCS_BUILD_TREE/share/dronin
+    GCS_DATA_BASENAME = share/dronin
     GCS_DOC_PATH     = $$GCS_BUILD_TREE/share/doc
     !isEqual(GCS_SOURCE_TREE, $$GCS_BUILD_TREE):copydata = 1
 }

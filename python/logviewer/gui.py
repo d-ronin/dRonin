@@ -99,8 +99,8 @@ class Window(QtGui.QDialog):
         uavo_list = self.uavo_list
         uavo_defs = self.uavo_defs
 
-        import taulabs
-        uavo_classes = [(t[0], t[1]) for t in taulabs.uavo.__dict__.iteritems() if 'UAVO_' in t[0]]
+        import dronin
+        uavo_classes = [(t[0], t[1]) for t in dronin.uavo.__dict__.iteritems() if 'UAVO_' in t[0]]
         globals().update(uavo_classes)
 
         pos = uavo_list.as_numpy_array(UAVO_PositionActual)

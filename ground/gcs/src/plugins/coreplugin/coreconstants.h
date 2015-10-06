@@ -33,12 +33,12 @@
 namespace Core {
 namespace Constants {
 
-const char * const GCS_NAME              = "Tau Labs GCS";
-const char * const GCS_AUTHOR            = "Tau Labs";
+const char * const GCS_NAME              = "dRonin GCS";
+const char * const GCS_AUTHOR            = "dRonin";
 const char t []                          = __DATE__;
 const char * const GCS_YEAR              = t + 7;
 
-const char * const GCS_HELP              = "http://github.com/TauLabs";
+const char * const GCS_HELP              = "http://dronin.org";
 #ifdef GCS_REVISION
 const char * const GCS_REVISION_STR      = GCS_REVISION;
 const char * const UAVOSHA1_STR          = UAVO_HASH_STR;
