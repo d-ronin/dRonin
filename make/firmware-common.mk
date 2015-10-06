@@ -1,3 +1,6 @@
+FLOATABI ?= soft
+UAVOBJLIB := $(BUILD_DIR)/uavobjects_arm$(FLOATABI)fp/libuavobject.a
+
 ifneq ($(NO_AUTO_UAVO),YES)
 
 # Common UAVOs to all targets:
@@ -98,7 +101,9 @@ endif # !NO_AUTO_UAVO
 # Define programs and commands.
 REMOVE  = rm -f
 
+ifeq ($(BUILD_UAVO), YES)
 SRC += $(foreach UAVOBJSRCFILE,$(UAVOBJSRCFILENAMES),$(OPUAVSYNTHDIR)/$(UAVOBJSRCFILE).c )
+endif
 
 CFLAGS += $(foreach UAVOBJSRCFILE,$(UAVOBJSRCFILENAMES),-DUAVOBJ_INIT_$(UAVOBJSRCFILE) )
 
@@ -123,7 +128,7 @@ build: hex bin lss sym
 endif
 
 # Link: create ELF output file from object files.
-$(eval $(call LINK_TEMPLATE, $(OUTDIR)/$(TARGET).elf, $(ALLOBJ)))
+$(eval $(call LINK_TEMPLATE, $(OUTDIR)/$(TARGET).elf, $(ALLOBJ) $(LIBS)))
 
 # Assemble: create object files from assembler source files.
 $(foreach src, $(ASRC), $(eval $(call ASSEMBLE_TEMPLATE, $(src))))

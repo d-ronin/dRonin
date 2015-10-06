@@ -9,7 +9,7 @@ include $(CURDIR)/make/system-id.mk
 
 # configure some directories that are relative to wherever ROOT_DIR is located
 TOOLS_DIR := $(ROOT_DIR)/tools
-BUILD_DIR := $(ROOT_DIR)/build
+export BUILD_DIR := $(ROOT_DIR)/build
 DL_DIR := $(ROOT_DIR)/downloads
 
 # import macros that are OS specific
@@ -217,8 +217,6 @@ help:
 	@echo "   [UAVObjects]"
 	@echo "     uavobjects           - Generate source files from the UAVObject definition XML files"
 	@echo "     uavobjects_test      - parse xml-files - check for valid, duplicate ObjId's, ... "
-	@echo "     uavobjects_<group>   - Generate source files from a subset of the UAVObject definition XML files"
-	@echo "                            supported groups are ($(UAVOBJ_TARGETS))"
 	@echo
 	@echo "   [Package]"
 	@echo "     package              - Executes a make all_clean and then generates a complete package build for"
@@ -236,7 +234,7 @@ help:
 	@echo
 
 .PHONY: all
-all: uavobjects all_ground all_flight
+all: all_ground all_flight
 
 .PHONY: all_clean
 all_clean:
@@ -270,7 +268,7 @@ endif
 endif
 
 .PHONY: gcs
-gcs:  uavobjects_gcs
+gcs:  uavobjects
 	$(V1) mkdir -p $(BUILD_DIR)/ground/$@
 	$(V1) ( cd $(BUILD_DIR)/ground/$@ && \
 	  PYTHON=$(PYTHON) $(QMAKE) $(ROOT_DIR)/ground/gcs/gcs.pro -spec $(QT_SPEC) -r CONFIG+="$(GCS_BUILD_CONF) $(GCS_SILENT)" $(GCS_QMAKE_OPTS) && \
@@ -306,22 +304,16 @@ uavobjgenerator:
 	  $(MAKE) --no-print-directory -w ; \
 	)
 
-UAVOBJ_TARGETS := gcs flight matlab java wireshark
-.PHONY:uavobjects
-uavobjects:  $(addprefix uavobjects_, $(UAVOBJ_TARGETS))
-
 UAVOBJ_XML_DIR := $(ROOT_DIR)/shared/uavobjectdefinition
 UAVOBJ_OUT_DIR := $(BUILD_DIR)/uavobject-synthetics
 
-$(UAVOBJ_OUT_DIR):
-	$(V1) mkdir -p $@
-
-uavobjects_%: $(UAVOBJ_OUT_DIR) uavobjgenerator
+uavobjects: uavobjgenerator
+	$(V1) mkdir -p $(UAVOBJ_OUT_DIR)
 	$(V1) ( cd $(UAVOBJ_OUT_DIR) && \
-	  $(UAVOBJGENERATOR) -$* $(UAVOBJ_XML_DIR) $(ROOT_DIR) ; \
+	  $(UAVOBJGENERATOR) $(UAVOBJ_XML_DIR) $(ROOT_DIR) ; \
 	)
 
-uavobjects_test: $(UAVOBJ_OUT_DIR) uavobjgenerator
+uavobjects_test: uavobjgenerator
 	$(V1) $(UAVOBJGENERATOR) -v -none $(UAVOBJ_XML_DIR) $(ROOT_DIR)
 
 uavobjects_clean:
@@ -339,7 +331,7 @@ $(MATLAB_OUT_DIR):
 	$(V1) mkdir -p $@
 
 FORCE:
-$(MATLAB_OUT_DIR)/LogConvert.m: $(MATLAB_OUT_DIR) uavobjects_matlab FORCE
+$(MATLAB_OUT_DIR)/LogConvert.m: $(MATLAB_OUT_DIR) uavobjects FORCE
 	$(V1) $(PYTHON) $(ROOT_DIR)/make/scripts/version-info.py \
 		--path=$(ROOT_DIR) \
 		--template=$(BUILD_DIR)/uavobject-synthetics/matlab/LogConvert.m.pass1 \
@@ -347,7 +339,7 @@ $(MATLAB_OUT_DIR)/LogConvert.m: $(MATLAB_OUT_DIR) uavobjects_matlab FORCE
 		--uavodir=$(ROOT_DIR)/shared/uavobjectdefinition
 
 .PHONY: matlab
-matlab: uavobjects_matlab $(MATLAB_OUT_DIR)/LogConvert.m
+matlab: uavobjects $(MATLAB_OUT_DIR)/LogConvert.m
 
 ################################
 #
@@ -466,8 +458,8 @@ $$(UAVO_COLLECTION_DIR)/$(1)/uavohash: $$(UAVO_COLLECTION_DIR)/$(1)/uavo-xml
 # Generate the java uavobjects for this UAVO collection
 $$(UAVO_COLLECTION_DIR)/$(1)/java-build/java: $$(UAVO_COLLECTION_DIR)/$(1)/uavohash uavobjgenerator
 	$$(V0) @echo " UAVOJAVA  $(1)   " $$$$(cat $$(UAVO_COLLECTION_DIR)/$(1)/uavohash)
-	$$(V1) mkdir -p $$@
 	$$(V1) ( \
+		mkdir -p $$(UAVO_COLLECTION_DIR)/$(1)/java-build && \
 		cd $$(UAVO_COLLECTION_DIR)/$(1)/java-build && \
 		$$(UAVOBJGENERATOR) -java $$(UAVO_COLLECTION_DIR)/$(1)/uavo-xml/shared/uavobjectdefinition $$(ROOT_DIR) ; \
 	)
@@ -573,7 +565,7 @@ define SIM_TEMPLATE
 sim_$(4): TARGET=sim_$(4)
 sim_$(4): OUTDIR=$(BUILD_DIR)/$$(TARGET)
 sim_$(4): BOARD_ROOT_DIR=$(ROOT_DIR)/flight/targets/$(1)
-sim_$(4): uavobjects_flight
+sim_$(4): uavobjects
 	$(V1) mkdir -p $$(OUTDIR)/dep
 	$(V1) cd $$(BOARD_ROOT_DIR)/fw && \
 		$$(MAKE) --no-print-directory \
@@ -621,7 +613,7 @@ fw_$(1): fw_$(1)_tlfw
 fw_$(1)_%: TARGET=fw_$(1)
 fw_$(1)_%: OUTDIR=$(BUILD_DIR)/$$(TARGET)
 fw_$(1)_%: BOARD_ROOT_DIR=$(ROOT_DIR)/flight/targets/$(1)
-fw_$(1)_%: uavobjects_flight
+fw_$(1)_%: uavobjects_armsoftfp uavobjects_armhardfp
 	$(V1) mkdir -p $$(OUTDIR)/dep
 	$(V1) cd $$(BOARD_ROOT_DIR)/fw && \
 		$$(MAKE) -r --no-print-directory \
@@ -821,6 +813,56 @@ endif
 ifneq ($(word 2,$(MAKECMDGOALS)),)
 export ENABLE_MSG_EXTRA := yes
 endif
+
+uavobjects_armsoftfp: TARGET=uavobjects_armsoftfp
+uavobjects_armsoftfp: OUTDIR=$(BUILD_DIR)/$(TARGET)
+uavobjects_armsoftfp: uavobjects
+	$(V1) mkdir -p $(OUTDIR)/dep
+	$(V1) cd $(ROOT_DIR)/flight/uavobjectlib && \
+		$(MAKE) -r --no-print-directory \
+		TCHAIN_PREFIX="$(ARM_SDK_PREFIX)" \
+		REMOVE_CMD="$(RM)" \
+		\
+		MAKE_INC_DIR=$(MAKE_INC_DIR) \
+		ROOT_DIR=$(ROOT_DIR) \
+		TARGET=$(TARGET) \
+		OUTDIR=$(OUTDIR) \
+		\
+		PIOS=$(PIOS) \
+		FLIGHTLIB=$(FLIGHTLIB) \
+		OPMODULEDIR=$(OPMODULEDIR) \
+		OPUAVOBJ=$(OPUAVOBJ) \
+		OPUAVTALK=$(OPUAVTALK) \
+		DOXYGENDIR=$(DOXYGENDIR) \
+		OPUAVSYNTHDIR=$(OPUAVSYNTHDIR) \
+		SHAREDAPIDIR=$(SHAREDAPIDIR) \
+		\
+		$@
+
+uavobjects_armhardfp: TARGET=uavobjects_armhardfp
+uavobjects_armhardfp: OUTDIR=$(BUILD_DIR)/$(TARGET)
+uavobjects_armhardfp: uavobjects
+	$(V1) mkdir -p $(OUTDIR)/dep
+	$(V1) cd $(ROOT_DIR)/flight/uavobjectlib && \
+		$(MAKE) -r --no-print-directory \
+		TCHAIN_PREFIX="$(ARM_SDK_PREFIX)" \
+		REMOVE_CMD="$(RM)" \
+		\
+		MAKE_INC_DIR=$(MAKE_INC_DIR) \
+		ROOT_DIR=$(ROOT_DIR) \
+		TARGET=$(TARGET) \
+		OUTDIR=$(OUTDIR) \
+		\
+		PIOS=$(PIOS) \
+		FLIGHTLIB=$(FLIGHTLIB) \
+		OPMODULEDIR=$(OPMODULEDIR) \
+		OPUAVOBJ=$(OPUAVOBJ) \
+		OPUAVTALK=$(OPUAVTALK) \
+		DOXYGENDIR=$(DOXYGENDIR) \
+		OPUAVSYNTHDIR=$(OPUAVSYNTHDIR) \
+		SHAREDAPIDIR=$(SHAREDAPIDIR) \
+		\
+		$@
 
 # $(1) = Canonical board name all in lower case (e.g. coptercontrol)
 define BOARD_PHONY_TEMPLATE
