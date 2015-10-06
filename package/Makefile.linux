@@ -13,8 +13,7 @@ endef
 VERNUM				:= 0.1.0
 VERSION_FULL		:= $(VERNUM)-$(PACKAGE_LBL)
 
-FLIGHT_FW			:= coptercontrol sparky sparky2 sparkybgc revomini pipxtreme quanton flyingf3 naze32 aq32
-
+FLIGHT_FW		:= coptercontrol sparky sparky2 sparkybgc revomini pipxtreme quanton flyingf3 naze32 aq32 brain
 DEB_BUILD_DIR		:= $(ROOT_DIR)/debian
 
 SED_DATE_STRG		= $(shell date -R)
