@@ -346,6 +346,7 @@ enum usb_cdc_notification {
 #define USB_VENDOR_ID_CLAYLOGIC    0x20A0
 #define USB_VENDOR_ID_OPENPILOT    USB_VENDOR_ID_CLAYLOGIC
 #define USB_VENDOR_ID_TAULABS      USB_VENDOR_ID_CLAYLOGIC
+#define USB_VENDOR_ID_DRONIN       USB_VENDOR_ID_CLAYLOGIC
 
 /*
  * These USB Product IDs are allocated along with the purchase
@@ -366,6 +367,9 @@ enum usb_product_ids {
 	/* Tau Labs Boards */
 	USB_PRODUCT_ID_FREEDOM        = 0x41d0,
 	USB_PRODUCT_ID_SPARKY         = USB_PRODUCT_ID_FREEDOM,
+
+	/* d-Ronin / custom boards */
+	USB_PRODUCT_ID_MOTOLAB       = 0x41d1,
 
 	/* ST Eval Boards */
 	USB_PRODUCT_ID_DISCOVERYF4    = USB_PRODUCT_ID_SPARE,
