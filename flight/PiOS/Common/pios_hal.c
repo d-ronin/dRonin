@@ -341,6 +341,7 @@ static void PIOS_HAL_ConfigureHSUM(const struct pios_usart_cfg *usart_hsum_cfg,
  * @param[out] i2c_id ID of I2C peripheral if operated in I2C mode
  * @param[in] i2c_Cfg Adapter configuration/registers for I2C mode
  * @param[in] ppm_cfg Configuration/registers for PPM mode
+ * @param[in] pwm_cfg Configuration/registers for PWM mode
  * @param[in] led_id LED to blink when there's panics
  * @param[in] usart_dsm_hsum_cfg usart configuration for DSM/HSUM modes
  * @param[in] dsm_cfg DSM configuration for this port
@@ -355,6 +356,7 @@ void PIOS_HAL_ConfigurePort(HwSharedPortTypesOptions port_type,
 	uint32_t *i2c_id,
 	const struct pios_i2c_adapter_cfg *i2c_cfg,
 	const struct pios_ppm_cfg *ppm_cfg,
+	const struct pios_pwm_cfg *pwm_cfg,
 	uint32_t led_id,
 /* TODO: future work to factor most of these away */
 	const struct pios_usart_cfg *usart_dsm_hsum_cfg,
@@ -368,7 +370,7 @@ void PIOS_HAL_ConfigurePort(HwSharedPortTypesOptions port_type,
 	uintptr_t port_driver_id;
 	uintptr_t *target=NULL, *target2=NULL;;
 
-        switch (port_type) {
+    switch (port_type) {
 		case HWSHARED_PORTTYPES_I2C:
 #if defined(PIOS_INCLUDE_I2C)
 			if (i2c_id && i2c_cfg) {
@@ -394,6 +396,22 @@ void PIOS_HAL_ConfigurePort(HwSharedPortTypesOptions port_type,
 				PIOS_HAL_SetReceiver(MANUALCONTROLSETTINGS_CHANNELGROUPS_PPM, ppm_rcvr_id);
 			}
 #endif  /* PIOS_INCLUDE_PPM */
+			break;
+
+		case HWSHARED_PORTTYPES_PWM:
+#if defined(PIOS_INCLUDE_PWM)
+			if (pwm_cfg) { 
+				uintptr_t pwm_id;
+				PIOS_PWM_Init(&pwm_id, pwm_cfg);
+
+				uintptr_t pwm_rcvr_id;
+				if (PIOS_RCVR_Init(&pwm_rcvr_id, &pios_pwm_rcvr_driver, pwm_id)) {
+					PIOS_Assert(0);
+				}
+
+				PIOS_HAL_SetReceiver(MANUALCONTROLSETTINGS_CHANNELGROUPS_PWM, pwm_rcvr_id);
+			}
+#endif  /* PIOS_INCLUDE_PWM */
 			break;
 
 		case HWSHARED_PORTTYPES_DISABLED:
@@ -512,7 +530,7 @@ void PIOS_HAL_ConfigurePort(HwSharedPortTypesOptions port_type,
                 GPIO_Init(sbus_cfg->inv.gpio, (GPIO_InitTypeDef*)&sbus_cfg->inv.init);
                 GPIO_WriteBit(sbus_cfg->inv.gpio, sbus_cfg->inv.init.GPIO_Pin, sbus_cfg->gpio_inv_disable);
         }
-
+		
 	PIOS_HAL_SetTarget(target, port_driver_id);
 	PIOS_HAL_SetTarget(target2, port_driver_id);
 }
