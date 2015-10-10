@@ -1082,3 +1082,13 @@ astyle_flight: ASTYLE_OPTIONS := --suffix=none --lineend=linux --mode=c --align-
 astyle_flight:
 	$(V1) $(ASTYLE) $(ASTYLE_OPTIONS) $(FILE)
 
+ifneq ($(strip $(filter uncrustify_flight,$(MAKECMDGOALS))),)
+  ifeq ($(FILE),)
+    $(error pass files to uncrustify by adding FILE=<file> to the make command line)
+  endif
+endif
+
+.PHONY: uncrustify_flight
+uncrustify_flight: UNCRUSTIFY_OPTIONS := -c uncrustify.cfg --replace
+uncrustify_flight:
+	$(V1) $(UNCRUSTIFY) $(UNCRUSTIFY_OPTIONS) $(FILE)
