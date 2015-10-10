@@ -153,6 +153,10 @@ uintptr_t pios_com_debug_id;
 #define PIOS_COM_FRSKYSPORT_RX_BUF_LEN 16
 #endif
 
+#ifndef PIOS_COM_OPENLOG_TX_BUF_LEN
+#define PIOS_COM_OPENLOG_TX_BUF_LEN 256
+#endif
+
 #ifndef PIOS_COM_RFM22B_RF_RX_BUF_LEN
 #define PIOS_COM_RFM22B_RF_RX_BUF_LEN 512
 #endif
@@ -524,6 +528,14 @@ void PIOS_HAL_ConfigurePort(HwSharedPortTypesOptions port_type,
 			target = &pios_com_picoc_id;
 #endif /* PIOS_INCLUDE_PICOC */
 			break;
+	    case HWSHARED_PORTTYPES_OPENLOG:
+#if defined(PIOS_INCLUDE_OPENLOG)
+		    PIOS_HAL_ConfigureCom(usart_port_cfg, 0, PIOS_COM_OPENLOG_TX_BUF_LEN, com_driver, &port_driver_id);
+		    target = &pios_com_logging_id;
+			PIOS_COM_ChangeBaud(port_driver_id, 115200);
+#endif /* PIOS_INCLUDE_OPENLOG */
+		break;
+
         } /* port_type */
 
         if (port_type != HWSHARED_PORTTYPES_SBUS && sbus_toggle) {
