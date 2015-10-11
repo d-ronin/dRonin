@@ -29,8 +29,12 @@
 
 UAVOBJSRCFILENAMES =
 UAVOBJSRCFILENAMES += acceldesired
+UAVOBJSRCFILENAMES += flightstats
+UAVOBJSRCFILENAMES += flightstatssettings
 UAVOBJSRCFILENAMES += geofencesettings
 UAVOBJSRCFILENAMES += groundpathfollowersettings
+UAVOBJSRCFILENAMES += loggingsettings
+UAVOBJSRCFILENAMES += loggingstats
 UAVOBJSRCFILENAMES += hwaq32
 UAVOBJSRCFILENAMES += altitudeholdstate
 UAVOBJSRCFILENAMES += hottsettings

@@ -32,6 +32,7 @@
 #include <pios_rfm22b_rcvr_priv.h>
 #include <pios_hsum_priv.h>
 
+#include <loggingsettings.h>
 #include <manualcontrolsettings.h>
 
 #include <sanitycheck.h>
@@ -151,6 +152,10 @@ uintptr_t pios_com_debug_id;
 
 #ifndef PIOS_COM_FRSKYSPORT_RX_BUF_LEN
 #define PIOS_COM_FRSKYSPORT_RX_BUF_LEN 16
+#endif
+
+#ifndef PIOS_COM_OPENLOG_TX_BUF_LEN
+#define PIOS_COM_OPENLOG_TX_BUF_LEN 256
 #endif
 
 #ifndef PIOS_COM_RFM22B_RF_RX_BUF_LEN
@@ -349,6 +354,7 @@ static void PIOS_HAL_ConfigureHSUM(const struct pios_usart_cfg *usart_hsum_cfg,
  * @param[in] sbus_rcvr_cfg usart configuration for SBUS modes
  * @param[in] sbus_cfg SBUS configuration for this port
  * @param[in] sbus_toggle Whether there is SBUS inverters to touch on this port
+ * @param[in] log_dest Log file destination, SPIFlash or OpenLog
  */
 void PIOS_HAL_ConfigurePort(HwSharedPortTypesOptions port_type,
 	const struct pios_usart_cfg *usart_port_cfg, 
@@ -364,8 +370,8 @@ void PIOS_HAL_ConfigurePort(HwSharedPortTypesOptions port_type,
 	HwSharedDSMxModeOptions dsm_mode,
 	const struct pios_usart_cfg *sbus_rcvr_cfg,
 	const struct pios_sbus_cfg *sbus_cfg,
-	bool sbus_toggle
-	)
+	bool sbus_toggle,
+	LoggingSettingsLogDestinationOptions log_dest)
 {
 	uintptr_t port_driver_id;
 	uintptr_t *target=NULL, *target2=NULL;;
@@ -524,6 +530,16 @@ void PIOS_HAL_ConfigurePort(HwSharedPortTypesOptions port_type,
 			target = &pios_com_picoc_id;
 #endif /* PIOS_INCLUDE_PICOC */
 			break;
+	    case HWSHARED_PORTTYPES_OPENLOG:
+#if defined(PIOS_INCLUDE_OPENLOG)
+		    if (log_dest == LOGGINGSETTINGS_LOGDESTINATION_OPENLOG) {
+			    PIOS_HAL_ConfigureCom(usart_port_cfg, 0, PIOS_COM_OPENLOG_TX_BUF_LEN, com_driver, &port_driver_id);
+		        target = &pios_com_logging_id;
+			    PIOS_COM_ChangeBaud(port_driver_id, 115200);
+			}
+#endif /* PIOS_INCLUDE_OPENLOG */
+		break;
+
         } /* port_type */
 
         if (port_type != HWSHARED_PORTTYPES_SBUS && sbus_toggle) {

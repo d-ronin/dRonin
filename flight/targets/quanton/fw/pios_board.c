@@ -41,6 +41,7 @@
 #include <openpilot.h>
 #include <uavobjectsinit.h>
 #include "hwquanton.h"
+#include "loggingsettings.h"
 #include "manualcontrolsettings.h"
 #include "modulesettings.h"
 
@@ -405,6 +406,7 @@ void PIOS_Board_Init(void) {
 
 	HwQuantonInitialize();
 	ModuleSettingsInitialize();
+	LoggingSettingsInitialize();	
 
 #if defined(PIOS_INCLUDE_RTC)
 	/* Initialize the real-time clock and its associated tick */
@@ -1431,7 +1433,7 @@ void PIOS_Board_Init(void) {
 	}
 #endif
 
-#if defined(PIOS_INCLUDE_FLASH)
+#if defined(PIOS_INCLUDE_FLASH) && defined(PIOS_INCLUDE_FLASH_JEDEC)
 	if ( PIOS_STREAMFS_Init(&streamfs_id, &streamfs_settings, FLASH_PARTITION_LABEL_LOG) != 0)
 		panic(8);
 

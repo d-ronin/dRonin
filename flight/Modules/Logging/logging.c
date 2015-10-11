@@ -116,8 +116,7 @@ int32_t LoggingInitialize(void)
 		return -1;
 
 	LoggingStatsInitialize();
-	LoggingSettingsInitialize();
-
+	
 	// Initialise UAVTalk
 	uavTalkCon = UAVTalkInitialize(&send_data);
 
@@ -150,10 +149,13 @@ static void loggingTask(void *parameters)
 {
 	bool armed = false;
 	bool write_open = false;
-	bool read_open = false;
 	bool first_run = true;
+
+#if !defined(PIOS_INCLUDE_OPENLOG)
+	bool read_open = false;
 	int32_t read_sector = 0;
 	uint8_t read_data[LOGGINGSTATS_FILESECTOR_NUMELEM];
+#endif
 
 	//PIOS_STREAMFS_Format(streamfs_id);
 
@@ -169,10 +171,14 @@ static void loggingTask(void *parameters)
 	LoggingStatsData loggingData;
 	LoggingStatsGet(&loggingData);
 	loggingData.BytesLogged = 0;
+	
+#if !defined(PIOS_INCLUDE_OPENLOG)
 	loggingData.MinFileId = PIOS_STREAMFS_MinFileId(streamfs_id);
 	loggingData.MaxFileId = PIOS_STREAMFS_MaxFileId(streamfs_id);
+#endif
 
 	if (settings.LogBehavior == LOGGINGSETTINGS_LOGBEHAVIOR_LOGONSTART) {
+#if !defined(PIOS_INCLUDE_OPENLOG)
 		if (PIOS_STREAMFS_OpenWrite(streamfs_id) != 0) {
 			loggingData.Operation = LOGGINGSTATS_OPERATION_ERROR;
 			write_open = false;
@@ -181,6 +187,11 @@ static void loggingTask(void *parameters)
 			write_open = true;
 			first_run = true;
 		}
+#else
+		loggingData.Operation = LOGGINGSTATS_OPERATION_LOGGING;
+		write_open = true;
+		first_run = true;
+#endif
 	} else {
 		loggingData.Operation = LOGGINGSTATS_OPERATION_IDLE;
 	}
@@ -225,6 +236,10 @@ static void loggingTask(void *parameters)
 				loggingData.Operation = LOGGINGSTATS_OPERATION_LOGGING;
 				armed = true;
 				LoggingStatsSet(&loggingData);
+#if defined(PIOS_INCLUDE_OPENLOG)
+	            write_open = true;
+	            first_run = true;
+#endif
 			} else if (flightStatus.Armed == FLIGHTSTATUS_ARMED_DISARMED && armed) {
 				loggingData.Operation = LOGGINGSTATS_OPERATION_IDLE;
 				armed = false;
@@ -232,7 +247,7 @@ static void loggingTask(void *parameters)
 			}
 		}
 
-
+#if !defined(PIOS_INCLUDE_OPENLOG)
 		// If currently downloading a log, close the file
 		if (loggingData.Operation == LOGGINGSTATS_OPERATION_LOGGING && read_open) {
 			PIOS_STREAMFS_Close(streamfs_id);
@@ -255,6 +270,7 @@ static void loggingTask(void *parameters)
 			LoggingStatsSet(&loggingData);
 			write_open = false;
 		}
+#endif
 
 		switch (loggingData.Operation) {
 		case LOGGINGSTATS_OPERATION_LOGGING:
@@ -335,6 +351,7 @@ static void loggingTask(void *parameters)
 
 			break;
 
+#if !defined(PIOS_INCLUDE_OPENLOG)
 		case LOGGINGSTATS_OPERATION_DOWNLOAD:
 			if (!read_open) {
 				// Start reading
@@ -380,10 +397,9 @@ static void loggingTask(void *parameters)
 				}
 				read_sector = loggingData.FileSectorNum;
 			}
+#endif
 			LoggingStatsSet(&loggingData);
-
 		}
-
 		i++;
 	}
 }

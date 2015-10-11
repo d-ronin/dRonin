@@ -42,6 +42,7 @@
 #include <openpilot.h>
 #include <uavobjectsinit.h>
 #include "hwaq32.h"
+#include "loggingsettings.h"
 #include "manualcontrolsettings.h"
 #include "modulesettings.h"
 
@@ -161,6 +162,7 @@ static const struct pios_ms5611_cfg pios_ms5611_cfg = {
 
 bool external_mag_fail;
 
+uintptr_t pios_com_logging_id;
 uintptr_t pios_uavo_settings_fs_id;
 uintptr_t pios_waypoints_settings_fs_id;
 uintptr_t pios_internal_adc_id;
@@ -252,6 +254,7 @@ void PIOS_Board_Init(void) {
 
     HwAQ32Initialize();
     ModuleSettingsInitialize();
+	LoggingSettingsInitialize();
 
 #if defined(PIOS_INCLUDE_RTC)
     /* Initialize the real-time clock and its associated tick */
@@ -385,6 +388,9 @@ void PIOS_Board_Init(void) {
     HwAQ32DSMxModeOptions hw_DSMxMode;
     HwAQ32DSMxModeGet(&hw_DSMxMode);
 
+	LoggingSettingsLogDestinationOptions logDestination;
+	LoggingSettingsLogDestinationGet(&logDestination);
+	
     /* UART1 Port */
     uint8_t hw_uart1;
     HwAQ32Uart1Get(&hw_uart1);
@@ -402,7 +408,8 @@ void PIOS_Board_Init(void) {
             0,                                   // dsm_mode
             NULL,                                // sbus_rcvr_cfg
             NULL,                                // sbus_cfg    
-            false);                              // sbus_toggle
+            false,                               // sbus_toggle
+			logDestination);                     // log_dest
 
     /* UART2 Port */
     uint8_t hw_uart2;
@@ -421,7 +428,8 @@ void PIOS_Board_Init(void) {
             0,                                   // dsm_mode
             NULL,                                // sbus_rcvr_cfg
             NULL,                                // sbus_cfg    
-            false);                              // sbus_toggle
+            false,                               // sbus_toggle
+			logDestination);                     // log_dest
 
 	/* UART3 Port */
     uint8_t hw_uart3;
@@ -440,7 +448,8 @@ void PIOS_Board_Init(void) {
             0,                                   // dsm_mode
             &pios_usart3_sbus_cfg,               // sbus_rcvr_cfg
             &pios_usart3_sbus_aux_cfg,           // sbus_cfg                
-            true);                               // sbus_toggle
+            true,                                // sbus_toggle
+			logDestination);                     // log_dest
 			
 	if (hw_uart3 == HWAQ32_UART3_FRSKYSENSORHUB)
 	{
@@ -465,7 +474,8 @@ void PIOS_Board_Init(void) {
             hw_DSMxMode,                         // dsm_mode
             NULL,                                // sbus_rcvr_cfg
             NULL,                                // sbus_cfg    
-            false);                              // sbus_toggle
+            false,                               // sbus_toggle
+			logDestination);                     // log_dest
 
     /* UART6 Port */
     uint8_t hw_uart6;
@@ -484,7 +494,8 @@ void PIOS_Board_Init(void) {
             hw_DSMxMode,                         // dsm_mode
             NULL,                                // sbus_rcvr_cfg
             NULL,                                // sbus_cfg    
-            false);                              // sbus_toggle
+            false,                               // sbus_toggle
+			logDestination);                     // log_dest
 
     /* Configure the rcvr port */
     PIOS_HAL_ConfigurePort(hw_rcvrport,          // port type protocol
@@ -500,7 +511,8 @@ void PIOS_Board_Init(void) {
             0,                                   // dsm_mode
             NULL,                                // sbus_rcvr_cfg
             NULL,                                // sbus_cfg    
-            false);                              // sbus_toggle
+            false,                               // sbus_toggle
+			logDestination);                     // log_dest
 
 #if defined(PIOS_INCLUDE_GCSRCVR)
     GCSReceiverInitialize();
@@ -708,6 +720,12 @@ void PIOS_Board_Init(void) {
         break;
     }
 #endif
+
+#if defined(PIOS_INCLUDE_FLASH) && defined(PIOS_INCLUDE_FLASH_JEDEC)  // Example only, to be deleted before merging
+	if (logDestination == LOGGINGSETTINGS_LOGDESTINATION_SPIFLASH) {  // Example only, to be deleted before merging
+		// SPI Flash logging intialization goes here.....             // Example only, to be deleted before merging
+	}                                                                 // Example only, to be deleted before merging
+#endif	/* PIOS_INCLUDE_FLASH */                                      // Example only, to be deleted before merging
 
     /* Make sure we have at least one telemetry link configured or else fail initialization */
     PIOS_Assert(pios_com_telem_serial_id || pios_com_telem_usb_id);
