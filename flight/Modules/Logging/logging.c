@@ -116,8 +116,7 @@ int32_t LoggingInitialize(void)
 		return -1;
 
 	LoggingStatsInitialize();
-	LoggingSettingsInitialize();
-
+	
 	// Initialise UAVTalk
 	uavTalkCon = UAVTalkInitialize(&send_data);
 

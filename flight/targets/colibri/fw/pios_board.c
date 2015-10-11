@@ -41,6 +41,7 @@
 #include <openpilot.h>
 #include <uavobjectsinit.h>
 #include "hwcolibri.h"
+#include "loggingsettings.h"
 #include "manualcontrolsettings.h"
 #include "modulesettings.h"
 
@@ -432,7 +433,8 @@ void PIOS_Board_Init(void)
 
 	HwColibriInitialize();
 	ModuleSettingsInitialize();
-
+	LoggingSettingsInitialize();
+	
 #if defined(PIOS_INCLUDE_RTC)
 	/* Initialize the real-time clock and its associated tick */
 	PIOS_RTC_Init(&pios_rtc_main_cfg);
