@@ -398,16 +398,16 @@ void PIOS_Board_Init(void)
 	uint8_t hw_rcvrport;
 	HwSparkyRcvrPortGet(&hw_rcvrport);
 	PIOS_HAL_ConfigurePort(hw_rcvrport,
-			NULL,        /* XXX TODO: fix as part of DSM refactor */
-			&pios_usart_com_driver,
-			NULL, NULL,
-			&pios_ppm_cfg,
-			NULL,
-			PIOS_LED_ALARM,
-			&pios_rcvr_dsm_hsum_cfg,
-			&pios_rcvr_dsm_aux_cfg,
-			hw_DSMxMode, &pios_rcvr_sbus_cfg,
-			&pios_rcvr_sbus_aux_cfg, false);
+												 NULL,        /* XXX TODO: fix as part of DSM refactor */
+												 &pios_usart_com_driver,
+												 NULL, NULL,
+												 &pios_ppm_cfg,
+												 NULL,
+												 PIOS_LED_ALARM,
+												 &pios_rcvr_dsm_hsum_cfg,
+												 &pios_rcvr_dsm_aux_cfg,
+												 hw_DSMxMode, &pios_rcvr_sbus_cfg,
+												 &pios_rcvr_sbus_aux_cfg, false);
 
 #if defined(PIOS_INCLUDE_GCSRCVR)
 	GCSReceiverInitialize();
