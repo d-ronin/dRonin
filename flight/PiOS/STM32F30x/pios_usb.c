@@ -223,7 +223,8 @@ bool PIOS_USB_CableConnected(uintptr_t id)
 	if (usb_dev->cfg->vsense.gpio != NULL)
 		return GPIO_ReadInputDataBit(usb_dev->cfg->vsense.gpio, usb_dev->cfg->vsense.init.GPIO_Pin) == Bit_SET;
 
-	return sof_seen_since_reset;
+	//return sof_seen_since_reset;
+	return true;
 }
 
 /**
