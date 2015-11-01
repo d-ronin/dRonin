@@ -342,3 +342,9 @@ plugin_boards_aeroquad.subdir = boards_aeroquad
 plugin_boards_aeroquad.depends = plugin_coreplugin
 plugin_boards_aeroquad.depends = plugin_uavobjects
 SUBDIRS += plugin_boards_aeroquad
+
+# Brotronics
+plugin_boards_brotronics.subdir = boards_brotronics
+plugin_boards_brotronics.depends = plugin_coreplugin
+plugin_boards_brotronics.depends = plugin_uavobjects
+SUBDIRS += plugin_boards_brotronics
