@@ -8,7 +8,8 @@ SUBDIRS   = \
     utils \
     tlmapcontrol \
     qwt \
-    libcrashreporter-qt
+    libcrashreporter-qt \
+    quazip
 SDL {
 SUBDIRS += sdlgamepad
 }
