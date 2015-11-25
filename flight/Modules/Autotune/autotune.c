@@ -108,7 +108,7 @@ int32_t AutotuneStart(void)
 MODULE_INITCALL(AutotuneInitialize, AutotuneStart)
 
 static void UpdateSystemIdent(const float *X, const float *noise,
-		float dT_s) {
+		float dT_s, uint32_t predicts) {
 	SystemIdentData relay;
 	relay.Beta[SYSTEMIDENT_BETA_ROLL]    = X[6];
 	relay.Beta[SYSTEMIDENT_BETA_PITCH]   = X[7];
@@ -123,6 +123,8 @@ static void UpdateSystemIdent(const float *X, const float *noise,
 		relay.Noise[SYSTEMIDENT_NOISE_YAW]   = noise[2];
 	}
 	relay.Period = dT_s * 1000.0f;
+
+	relay.NumAfPredicts = predicts;
 	SystemIdentSet(&relay);
 }
 
@@ -168,7 +170,7 @@ static void AutotuneTask(void *parameters)
 {
 	enum AUTOTUNE_STATE state = AT_INIT;
 
-	uint32_t lastUpdateTime = PIOS_Thread_Systime();
+	uint32_t last_update_time = PIOS_Thread_Systime();
 
 	float X[AF_NUMX] = {0};
 	float P[AF_NUMP] = {0};
@@ -186,12 +188,14 @@ static void AutotuneTask(void *parameters)
 		// 1. get from queue
 		// 2. based on whether it is flightstatus or manualcontrol
 
-		uint32_t diffTime;
+		uint32_t diff_time;
 
 		const uint32_t PREPARE_TIME = 2000;
 		const uint32_t MEASURE_TIME = 60000;
 
-		bool doingIdent = false;
+		static uint32_t update_counter = 0;
+
+		bool doing_ident = false;
 
 		FlightStatusData flightStatus;
 		FlightStatusGet(&flightStatus);
@@ -210,39 +214,42 @@ static void AutotuneTask(void *parameters)
 		switch(state) {
 			case AT_INIT:
 
-				lastUpdateTime = PIOS_Thread_Systime();
+				last_update_time = PIOS_Thread_Systime();
 
 				// Only start when armed and flying
 				if (flightStatus.Armed == FLIGHTSTATUS_ARMED_ARMED && throttle > 0) {
 
 					af_init(X,P);
 
-					UpdateSystemIdent(X, NULL, 0.0f);
+					UpdateSystemIdent(X, NULL, 0.0f, 0);
 
 					state = AT_START;
+
 				}
 				break;
 
 			case AT_START:
 
-				diffTime = PIOS_Thread_Systime() - lastUpdateTime;
+				diff_time = PIOS_Thread_Systime() - last_update_time;
 
 				// Spend the first block of time in normal rate mode to get airborne
-				if (diffTime > PREPARE_TIME) {
+				if (diff_time > PREPARE_TIME) {
 					state = AT_RUN;
-					lastUpdateTime = PIOS_Thread_Systime();
+					last_update_time = PIOS_Thread_Systime();
 				}
 
 
 				last_time = PIOS_DELAY_GetRaw();
 
+				update_counter = 0;
+
 				break;
 
 			case AT_RUN:
 
-				diffTime = PIOS_Thread_Systime() - lastUpdateTime;
+				diff_time = PIOS_Thread_Systime() - last_update_time;
 
-				doingIdent = true;
+				doing_ident = true;
 
 				// Update the system identification, but only when throttle is applied
 				// so bad values don't result when landing
@@ -265,12 +272,16 @@ static void AutotuneTask(void *parameters)
 						noise[i] = NOISE_ALPHA * noise[i] + (1-NOISE_ALPHA) * (y[i] - X[i]) * (y[i] - X[i]);
 					}
 
-					UpdateSystemIdent(X, noise, dT_s);
+					// Update uavo every 256 cycles to avoid
+					// telemetry spam
+					if (!((update_counter++) & 0xff)) {
+						UpdateSystemIdent(X, noise, dT_s, update_counter);
+					}
 				}
 
-				if (diffTime > MEASURE_TIME) { // Move on to next state
+				if (diff_time > MEASURE_TIME) { // Move on to next state
 					state = AT_FINISHED;
-					lastUpdateTime = PIOS_Thread_Systime();
+					last_update_time = PIOS_Thread_Systime();
 				}
 
 				last_time = PIOS_DELAY_GetRaw();
@@ -279,7 +290,9 @@ static void AutotuneTask(void *parameters)
 
 			case AT_FINISHED:
 
-				// Wait until disarmed and landed before updating the settings
+				// Wait until disarmed and landed before saving the settings
+
+				UpdateSystemIdent(X, noise, 0, update_counter);
 				if (flightStatus.Armed == FLIGHTSTATUS_ARMED_DISARMED && throttle <= 0)
 					state = AT_SET;
 
@@ -301,7 +314,7 @@ static void AutotuneTask(void *parameters)
 		}
 
 		// Update based on manual controls
-		UpdateStabilizationDesired(doingIdent);
+		UpdateStabilizationDesired(doing_ident);
 
 		PIOS_Thread_Sleep(DT_MS);
 	}
