@@ -469,7 +469,6 @@ void PIOS_Board_Init(void) {
 	RCC_ClearFlag(); // The flags cleared after use
 
 	/* Initialize UAVObject libraries */
-	EventDispatcherInitialize();
 	UAVObjInitialize();
 
 	HwBrainInitialize();

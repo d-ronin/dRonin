@@ -79,6 +79,8 @@ bool Naze::queryCapabilities(BoardCapabilities capability)
         return false;
     case BOARD_CAPABILITIES_RADIO:
         return false;
+    case BOARD_CAPABILITIES_OSD:
+        return false;
     }
     return false;
 }

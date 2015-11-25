@@ -37,6 +37,7 @@
 			<elementname>UAVOHoTTBridge</elementname>
 			<elementname>UAVOFrSKYSensorHubBridge</elementname>
 			<elementname>PicoC</elementname>
+			<elementname>OnScreenDisplay</elementname>
 			<elementname>Logging</elementname>
 			<elementname>UAVOFrSkySPortBridge</elementname>
 			<elementname>FlightStats</elementname>
@@ -78,6 +79,7 @@
 			<elementname>UAVOHoTTBridge</elementname>
 			<elementname>UAVOFrSKYSBridge</elementname>
 			<elementname>PicoC</elementname>
+			<elementname>OnScreenDisplay</elementname>
 			<elementname>Logging</elementname>
 			<elementname>UAVOFrSkySPortBridge</elementname>
 			<elementname>FlightStats</elementname>
@@ -123,6 +125,7 @@
 			<elementname>UAVOHoTTBridge</elementname>
 			<elementname>UAVOFrSKYSensorHubBridge</elementname>
 			<elementname>PicoC</elementname>
+			<elementname>OnScreenDisplay</elementname>
 			<elementname>Logging</elementname>
 			<elementname>UAVOFrSkySPortBridge</elementname>
 			<elementname>FlightStats</elementname>

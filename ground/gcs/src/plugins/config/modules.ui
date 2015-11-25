@@ -209,6 +209,16 @@
         </widget>
        </item>
        <item>
+         <widget class="QCheckBox" name="cbLogging">
+           <property name="toolTip">
+             <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Select to enable logging to on-board flash memory.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+           </property>
+           <property name="text">
+             <string>Logging</string>
+           </property>
+         </widget>
+       </item>
+       <item>
         <widget class="QCheckBox" name="cbUAVOMSPBridge">
          <property name="toolTip">
           <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;This enables the UAVOMSPBridge module, which allows the Multiwii Serial Protocol to be used.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
@@ -222,6 +232,16 @@
         <widget class="QCheckBox" name="cbTxPid">
          <property name="toolTip">
           <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;The TxPID module allows settings to be tuned in-flight using the transmitter.  See the TxPID configuration tab for more information and to enable this module.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+         </property>
+         <property name="text">
+          <string>TxPID</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QCheckBox" name="cbOnScreenDisplay">
+         <property name="toolTip">
+          <string></string>
          </property>
          <property name="text">
           <string>TxPID</string>
