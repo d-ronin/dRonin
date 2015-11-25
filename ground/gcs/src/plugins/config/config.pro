@@ -45,6 +45,7 @@ HEADERS += calibration.h \
     textbubbleslider.h \
     vehicletrim.h \
     configmodulewidget.h \
+    configosdwidget.h \
     convertmwrate.h \
     expocurve.h
 
@@ -78,6 +79,7 @@ SOURCES += calibration.cpp \
     textbubbleslider.cpp \
     vehicletrim.cpp \
     configmodulewidget.cpp \
+    configosdwidget.cpp \
     convertmwrate.cpp \
     expocurve.cpp
 
@@ -96,7 +98,10 @@ FORMS += airframe.ui \
     autotune.ui \
     hwfieldselector.ui \
     modules.ui \
+    osd.ui \
+    osdpage.ui \
     convertmwrate.ui
+
 RESOURCES += configgadget.qrc
 
 
