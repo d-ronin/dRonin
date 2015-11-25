@@ -166,10 +166,6 @@ tlfw: $(OUTDIR)/$(TARGET).tlfw
 # Display sizes of sections.
 $(eval $(call SIZE_TEMPLATE, $(OUTDIR)/$(TARGET).elf))
 
-# Generate Doxygen documents
-docs:
-	doxygen  $(DOXYGENDIR)/doxygen.cfg
-
 # Install: install binary file with prefix/suffix into install directory
 install: $(OUTDIR)/$(TARGET).tlfw
 ifneq ($(INSTALL_DIR),)

@@ -564,7 +564,7 @@ FLIGHTLIB     := $(ROOT_DIR)/flight/Libraries
 OPMODULEDIR   := $(ROOT_DIR)/flight/Modules
 OPUAVOBJ      := $(ROOT_DIR)/flight/UAVObjects
 OPUAVTALK     := $(ROOT_DIR)/flight/UAVTalk
-DOXYGENDIR    := $(ROOT_DIR)/flight/Doc/Doxygen
+DOXYGENDIR    := $(ROOT_DIR)/Doxygen
 SHAREDAPIDIR  := $(ROOT_DIR)/shared/api
 OPUAVSYNTHDIR := $(BUILD_DIR)/uavobject-synthetics/flight
 
@@ -1102,3 +1102,29 @@ endif
 uncrustify_flight: UNCRUSTIFY_OPTIONS := -c make/uncrustify.cfg --replace
 uncrustify_flight:
 	$(V1) $(UNCRUSTIFY) $(UNCRUSTIFY_OPTIONS) $(FILE)
+
+##############################
+#
+# Doxygen Documentation
+#
+##############################
+
+DOCS_TARGETS := flight ground
+
+DOCS_BUILD_TARGETS := $(addprefix docs_, $(DOCS_TARGETS))
+DOCS_CLEAN_TARGETS := $(addsuffix _clean, $(DOCS_BUILD_TARGETS))
+
+.PHONY: docs docs_clean $(DOCS_BUILD_TARGETS) $(DOCS_CLEAN_TARGETS)
+
+docs: $(DOCS_BUILD_TARGETS)
+
+docs_clean: $(DOCS_CLEAN_TARGETS)
+
+$(DOCS_BUILD_TARGETS): docs_%: $(BUILD_DIR) uavobjects
+	$(V0) @echo "DOXYGEN     $*"
+	$(V1) mkdir -p $(BUILD_DIR)/docs/$*
+	$(V1) doxygen  $(DOXYGENDIR)/$*_doxygen.cfg
+
+$(DOCS_CLEAN_TARGETS): docs_%_clean:
+	$(V0) @echo " CLEAN      $(call toprel,$(BUILD_DIR)/docs/$*)"
+	$(V1) [ ! -d "$(BUILD_DIR)/docs/$*" ] || $(RM) -r "$(BUILD_DIR)/docs/$*"
