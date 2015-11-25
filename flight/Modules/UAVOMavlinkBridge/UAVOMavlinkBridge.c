@@ -120,18 +120,20 @@ static int32_t uavoMavlinkBridgeInitialize(void) {
 	if (mavlink_port
 			&& (module_state[MODULESETTINGS_ADMINSTATE_UAVOMAVLINKBRIDGE]
 					== MODULESETTINGS_ADMINSTATE_ENABLED)) {
-		module_enabled = true;
 		updateSettings();
 
 		mav_msg = PIOS_malloc(sizeof(*mav_msg));
+		stream_ticks = PIOS_malloc_no_dma(MAXSTREAMS);
 
-		stream_ticks = PIOS_malloc(MAXSTREAMS);
-		for (int x = 0; x < MAXSTREAMS; ++x) {
-			stream_ticks[x] = (TASK_RATE_HZ / mav_rates[x]);
+		if (mav_msg && stream_ticks) {
+			for (int x = 0; x < MAXSTREAMS; ++x) {
+				stream_ticks[x] = (TASK_RATE_HZ / mav_rates[x]);
+			}
+
+			module_enabled = true;
 		}
-	} else {
-		module_enabled = false;
 	}
+
 	return 0;
 }
 MODULE_INITCALL( uavoMavlinkBridgeInitialize, uavoMavlinkBridgeStart)
