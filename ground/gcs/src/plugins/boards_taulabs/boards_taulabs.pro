@@ -11,16 +11,12 @@ OTHER_FILES += TauLabs.json
 HEADERS += \
     taulabsplugin.h \
     sparky.h \
-    sparkybgc.h \
-    sparkybgcconfiguration.h \
     sparky2.h \
     taulink.h
 
 SOURCES += \
     taulabsplugin.cpp \
     sparky.cpp \
-    sparkybgc.cpp \
-    sparkybgcconfiguration.cpp \
     sparky2.cpp \
     taulink.cpp
 
@@ -28,4 +24,3 @@ RESOURCES += \
     taulabs.qrc
 
 FORMS += \
-    sparkybgcconfiguration.ui
