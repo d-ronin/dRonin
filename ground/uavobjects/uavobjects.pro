@@ -59,7 +59,7 @@ win32 {
     uavobjects.commands += ../../shared/uavobjectdefinition ../.. &&
 
     uavobjects.commands += cd ../ground/gcs &&
-    uavobjects.commands += $(QMAKE) ../../../ground/gcs/gcs.pro
+    uavobjects.commands += $(QMAKE) gcs.pro
     uavobjects.commands += -spec $$SPEC CONFIG+=$${BUILD_CONFIG} -r $$addNewline()
 }
 

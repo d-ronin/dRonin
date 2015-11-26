@@ -378,6 +378,9 @@ ConfigModuleWidget::ConfigModuleWidget(QWidget *parent) : ConfigTaskWidget(paren
     ui->cbAutotune->setProperty(trueString.toLatin1(), "Enabled");
     ui->cbAutotune->setProperty(falseString.toLatin1(), "Disabled");
 
+    ui->cbLogging->setProperty(trueString.toLatin1(), "Enabled");
+    ui->cbLogging->setProperty(falseString.toLatin1(), "Disabled");
+
     ui->gb_measureVoltage->setProperty(trueString.toLatin1(), "Enabled");
     ui->gb_measureVoltage->setProperty(falseString.toLatin1(), "Disabled");
 
