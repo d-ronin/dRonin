@@ -28,7 +28,6 @@
 #include "taulabsplugin.h"
 #include "sparky.h"
 #include "sparky2.h"
-#include "sparkybgc.h"
 #include "taulink.h"
 
 
@@ -60,9 +59,6 @@ void TauLabsPlugin::extensionsInitialized()
 
     Sparky2* sparky2 = new Sparky2();
     addAutoReleasedObject(sparky2);
-
-    SparkyBGC* sparkybgc = new SparkyBGC();
-    addAutoReleasedObject(sparkybgc);
 
     TauLink* taulink = new TauLink();
     addAutoReleasedObject(taulink);

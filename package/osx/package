@@ -35,7 +35,6 @@ cp "${FW_DIR}/fw_coptercontrol-${PACKAGE_LBL}.tlfw" "/Volumes/${VOL_NAME}/Firmwa
 cp "${FW_DIR}/fw_revomini-${PACKAGE_LBL}.tlfw" "/Volumes/${VOL_NAME}/Firmware"
 cp "${FW_DIR}/fw_pipxtreme-${PACKAGE_LBL}.tlfw" "/Volumes/${VOL_NAME}/Firmware"
 cp "${FW_DIR}/fw_sparky-${PACKAGE_LBL}.tlfw" "/Volumes/${VOL_NAME}/Firmware"
-cp "${FW_DIR}/fw_sparkybgc-${PACKAGE_LBL}.tlfw" "/Volumes/${VOL_NAME}/Firmware"
 cp "${FW_DIR}/fw_sparky2-${PACKAGE_LBL}.tlfw" "/Volumes/${VOL_NAME}/Firmware"
 cp "${FW_DIR}/fw_naze32-${PACKAGE_LBL}.tlfw" "/Volumes/${VOL_NAME}/Firmware"
 cp "${FW_DIR}/fw_aq32-${PACKAGE_LBL}.tlfw" "/Volumes/${VOL_NAME}/Firmware"
