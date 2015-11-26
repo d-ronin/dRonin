@@ -40,6 +40,9 @@ void AlarmsClearAll();
 int32_t AlarmsHasWarnings();
 int32_t AlarmsHasErrors();
 int32_t AlarmsHasCritical();
+int32_t AlarmString(SystemAlarmsData alarm, char *buf, size_t buflen,
+		    bool blink, uint8_t *state);
+const char *AlarmBootReason(uint8_t reason);
 
 #endif // ALARMS_H
 
