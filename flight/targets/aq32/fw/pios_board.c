@@ -252,6 +252,7 @@ void PIOS_Board_Init(void) {
 
     HwAQ32Initialize();
     ModuleSettingsInitialize();
+	
 #if defined(PIOS_INCLUDE_RTC)
     /* Initialize the real-time clock and its associated tick */
     PIOS_RTC_Init(&pios_rtc_main_cfg);
@@ -390,6 +391,7 @@ void PIOS_Board_Init(void) {
 
     PIOS_HAL_ConfigurePort(hw_uart1,             // port type protocol
             &pios_usart1_cfg,                    // usart_port_cfg
+            &pios_usart1_cfg,                    // frsky usart_port_cfg
             &pios_usart_com_driver,              // com_driver
             NULL,                                // i2c_id
             NULL,                                // i2c_cfg
@@ -409,6 +411,7 @@ void PIOS_Board_Init(void) {
 
     PIOS_HAL_ConfigurePort(hw_uart2,             // port type protocol
             &pios_usart2_cfg,                    // usart_port_cfg
+            &pios_usart2_cfg,                    // frsky usart_port_cfg
             &pios_usart_com_driver,              // com_driver
             NULL,                                // i2c_id
             NULL,                                // i2c_cfg
@@ -428,6 +431,7 @@ void PIOS_Board_Init(void) {
 
     PIOS_HAL_ConfigurePort(hw_uart3,             // port type protocol
             &pios_usart3_cfg,                    // usart_port_cfg
+            &pios_usart3_cfg,                    // frsky usart_port_cfg
             &pios_usart_com_driver,              // com_driver
             NULL,                                // i2c_id 
             NULL,                                // i2c_cfg
@@ -453,6 +457,7 @@ void PIOS_Board_Init(void) {
 
     PIOS_HAL_ConfigurePort(hw_uart4,             // port type protocol
             &pios_usart4_cfg,                    // usart_port_cfg
+            &pios_usart4_cfg,                    // frsky usart_port_cfg
             &pios_usart_com_driver,              // com_driver
             NULL,                                // i2c_id
             NULL,                                // i2c_cfg
@@ -472,6 +477,7 @@ void PIOS_Board_Init(void) {
 
     PIOS_HAL_ConfigurePort(hw_uart6,             // port type protocol
             &pios_usart6_cfg,                    // usart_port_cfg
+            &pios_usart6_cfg,                    // frsky usart_port_cfg
             &pios_usart_com_driver,              // com_driver
             NULL,                                // i2c_id
             NULL,                                // i2c_cfg
@@ -488,6 +494,7 @@ void PIOS_Board_Init(void) {
     /* Configure the rcvr port */
     PIOS_HAL_ConfigurePort(hw_rcvrport,          // port type protocol
             NULL,                                // usart_port_cfg
+            NULL,                                // frsky usart_port_cfg
             NULL,                                // com_driver
             NULL,                                // i2c_id
             NULL,                                // i2c_cfg
