@@ -29,7 +29,7 @@
 #include <QtEndian>
 #include <QDebug>
 
-UAVObjectField::UAVObjectField(const QString& name, const QString& units, FieldType type, quint32 numElements, const QStringList& options, const QList<int>& indices, const QString &limits)
+UAVObjectField::UAVObjectField(const QString& name, const QString& units, FieldType type, quint32 numElements, const QStringList& options, const QList<int>& indices, const QString &limits, const QString &description)
 {
     QStringList elementNames;
     // Set element names
@@ -38,16 +38,16 @@ UAVObjectField::UAVObjectField(const QString& name, const QString& units, FieldT
         elementNames.append(QString("%1").arg(n));
     }
     // Initialize
-    constructorInitialize(name, units, type, elementNames, options, indices, limits);
+    constructorInitialize(name, units, type, elementNames, options, indices, limits, description);
 
 }
 
-UAVObjectField::UAVObjectField(const QString& name, const QString& units, FieldType type, const QStringList& elementNames, const QStringList& options, const QList<int>& indices, const QString &limits)
+UAVObjectField::UAVObjectField(const QString& name, const QString& units, FieldType type, const QStringList& elementNames, const QStringList& options, const QList<int>& indices, const QString &limits, const QString &description)
 {
-    constructorInitialize(name, units, type, elementNames, options, indices, limits);
+    constructorInitialize(name, units, type, elementNames, options, indices, limits, description);
 }
 
-void UAVObjectField::constructorInitialize(const QString& name, const QString& units, FieldType type, const QStringList& elementNames, const QStringList& options, const QList<int>& indices, const QString &limits)
+void UAVObjectField::constructorInitialize(const QString& name, const QString& units, FieldType type, const QStringList& elementNames, const QStringList& options, const QList<int>& indices, const QString &limits, const QString &description)
 {
     // Copy params
     this->name = name;
@@ -60,6 +60,7 @@ void UAVObjectField::constructorInitialize(const QString& name, const QString& u
     this->data = NULL;
     this->obj = NULL;
     this->elementNames = elementNames;
+    this->description = description;
     // Set field size
     switch (type)
     {
@@ -1054,3 +1055,7 @@ void UAVObjectField::setDouble(double value, quint32 index)
     setValue(QVariant(value), index);
 }
 
+QString UAVObjectField::getDescription()
+{
+    return description;
+}
