@@ -42,7 +42,8 @@
 			<elementname>UAVOFrSkySPortBridge</elementname>
 			<elementname>FlightStats</elementname>
 		</elementnames>
-	</field>
+		<description>The remaining free space in each task's stack. Disabled tasks will show 0 bytes free.</description>
+	</field> 
 	<field name="Running" units="bool" type="enum">
 		<elementnames>
 			<elementname>System</elementname>
@@ -88,6 +89,7 @@
 			<option>False</option>
 			<option>True</option>
 		</options>
+		<description>The run state of each task.</description>
 	</field>
 	<field name="RunningTime" units="%" type="uint8">
 		<elementnames>
@@ -130,6 +132,7 @@
 			<elementname>UAVOFrSkySPortBridge</elementname>
 			<elementname>FlightStats</elementname>
 		</elementnames>
+		<description>The percentage of CPU time used by each task.</description>
 	</field> 
 	<access gcs="readwrite" flight="readwrite"/>
 	<telemetrygcs acked="true" updatemode="onchange" period="0"/>
