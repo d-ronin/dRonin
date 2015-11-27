@@ -1,6 +1,7 @@
 #
-# Project: TauLabs
+# Project: dRonin
 # NSIS configuration file for TauLabs GCS
+# dRonin, http://dronin.org, Copyright (c) 2015
 # Tau Labs, http://taulabs.org, Copyright (C) 2012-2013
 # The OpenPilot Team, http://www.openpilot.org, Copyright (C) 2010-2012.
 #
@@ -43,17 +44,17 @@
   !define AEROSIMRC_TREE "..\..\build\ground\AeroSIM-RC"
 
   ; Default installation folder
-  InstallDir "$PROGRAMFILES\TauLabs"
+  InstallDir "$PROGRAMFILES\dRonin"
 
   ; Get installation folder from registry if available
-  InstallDirRegKey HKLM "Software\TauLabs" "Install Location"
+  InstallDirRegKey HKLM "Software\dRonin" "Install Location"
 
 ;--------------------------------
 ; Version information
 
   ; Program name and installer file
-  !define PRODUCT_NAME "TauLabs GCS"
-  !define INSTALLER_NAME "TauLabs GCS Installer"
+  !define PRODUCT_NAME "dRonin GCS"
+  !define INSTALLER_NAME "dRonin GCS Installer"
 
   ; Read automatically generated version info
 ; !define PACKAGE_LBL "${DATE}-${TAG_OR_HASH8}"
@@ -63,7 +64,7 @@
 ; !define PRODUCT_VERSION "0.0.0.0"
 ; !define FILE_VERSION "${TAG_OR_BRANCH}:${HASH8} ${DATETIME}"
 ; !define BUILD_DESCRIPTION "${TAG_OR_BRANCH}:${HASH8} built using ${ORIGIN} as origin, committed ${DATETIME} as ${HASH}"
-  !include "${GCS_BUILD_TREE}\taulabs.nsh"
+  !include "${GCS_BUILD_TREE}\dronin.nsh"
 
   Name "${PRODUCT_NAME}"
   OutFile "${PACKAGE_DIR}\${OUT_FILE}"
@@ -72,8 +73,8 @@
   VIAddVersionKey "ProductName" "${INSTALLER_NAME}"
   VIAddVersionKey "FileVersion" "${FILE_VERSION}"
   VIAddVersionKey "Comments" "${INSTALLER_NAME}. ${BUILD_DESCRIPTION}"
-  VIAddVersionKey "CompanyName" "TauLabs, http://taulabs.org"
-  VIAddVersionKey "LegalCopyright" "© 2012-2013 Tau Labs, 2010-2012 The OpenPilot Team"
+  VIAddVersionKey "CompanyName" "dRonin, http://dRonin.org"
+  VIAddVersionKey "LegalCopyright" "© 2015 dRonin, 2012-2013 Tau Labs, 2010-2012 The OpenPilot Team"
   VIAddVersionKey "FileDescription" "${INSTALLER_NAME}"
 
 ;--------------------------------
@@ -94,9 +95,9 @@
 ;--------------------------------
 ; Branding
 
-  BrandingText "© 2012-2013 Tau Labs, http://taulabs.org. 2010-2012 The OpenPilot Team, http://www.openpilot.org"
+  BrandingText "© 2015 dRonin http://dRonin.org"
 
-  !define MUI_ICON "${NSIS_DATA_TREE}\resources\taulabs.ico"
+  !define MUI_ICON "${NSIS_DATA_TREE}\resources\dronin.ico"
   !define MUI_HEADERIMAGE
   !define MUI_HEADERIMAGE_BITMAP "${NSIS_DATA_TREE}\resources\header.bmp"
   !define MUI_HEADERIMAGE_BITMAP_NOSTRETCH
@@ -110,14 +111,13 @@
 
   ; Remember the installer language
   !define MUI_LANGDLL_REGISTRY_ROOT "HKCU" 
-  !define MUI_LANGDLL_REGISTRY_KEY "Software\TauLabs" 
+  !define MUI_LANGDLL_REGISTRY_KEY "Software\dRonin" 
   !define MUI_LANGDLL_REGISTRY_VALUENAME "Installer Language"
   !define MUI_LANGDLL_ALWAYSSHOW
 
 ;--------------------------------
 ; Settings for MUI_PAGE_FINISH
   !define MUI_FINISHPAGE_RUN
-  !define MUI_FINISHPAGE_SHOWREADME "$INSTDIR\HISTORY.txt"
   !define MUI_FINISHPAGE_RUN_FUNCTION "RunApplication"
 
 ;--------------------------------
@@ -159,47 +159,46 @@ Section "Core files" InSecCore
   SetOutPath "$INSTDIR\bin"
   File /r "${GCS_BUILD_TREE}\bin\*"
   SetOutPath "$INSTDIR"
-  File "${PROJECT_ROOT}\HISTORY.txt"
 SectionEnd
 
 ; Copy GCS plugins
 Section "-Plugins" InSecPlugins
   SectionIn RO
-  SetOutPath "$INSTDIR\lib\taulabs\plugins"
-  File /r "${GCS_BUILD_TREE}\lib\taulabs\plugins\*.dll"
-  File /r "${GCS_BUILD_TREE}\lib\taulabs\plugins\*.pluginspec"
+  SetOutPath "$INSTDIR\lib\dronin\plugins"
+  File /r "${GCS_BUILD_TREE}\lib\dronin\plugins\*.dll"
+  File /r "${GCS_BUILD_TREE}\lib\dronin\plugins\*.pluginspec"
 SectionEnd
 
 ; Copy GCS resources
 Section "-Resources" InSecResources
-  SetOutPath "$INSTDIR\share\taulabs\default_configurations"
-  File /r "${GCS_BUILD_TREE}\share\taulabs\default_configurations\*"
-  SetOutPath "$INSTDIR\share\taulabs\stylesheets"
-  File /r "${GCS_BUILD_TREE}\share\taulabs\stylesheets\*"
-  SetOutPath "$INSTDIR\share\taulabs\diagrams"
-  File /r "${GCS_BUILD_TREE}\share\taulabs\diagrams\*"
-  SetOutPath "$INSTDIR\share\taulabs\dials"
-  File /r "${GCS_BUILD_TREE}\share\taulabs\dials\*"
-  SetOutPath "$INSTDIR\share\taulabs\mapicons"
-  File /r "${GCS_BUILD_TREE}\share\taulabs\mapicons\*"
-  SetOutPath "$INSTDIR\share\taulabs\models"
-  File /r "${GCS_BUILD_TREE}\share\taulabs\models\*"
-  SetOutPath "$INSTDIR\share\taulabs\pfd"
-  File /r "${GCS_BUILD_TREE}\share\taulabs\pfd\*"
+  SetOutPath "$INSTDIR\share\dronin\default_configurations"
+  File /r "${GCS_BUILD_TREE}\share\dronin\default_configurations\*"
+  SetOutPath "$INSTDIR\share\dronin\stylesheets"
+  File /r "${GCS_BUILD_TREE}\share\dronin\stylesheets\*"
+  SetOutPath "$INSTDIR\share\dronin\diagrams"
+  File /r "${GCS_BUILD_TREE}\share\dronin\diagrams\*"
+  SetOutPath "$INSTDIR\share\dronin\dials"
+  File /r "${GCS_BUILD_TREE}\share\dronin\dials\*"
+  SetOutPath "$INSTDIR\share\dronin\mapicons"
+  File /r "${GCS_BUILD_TREE}\share\dronin\mapicons\*"
+  SetOutPath "$INSTDIR\share\dronin\models"
+  File /r "${GCS_BUILD_TREE}\share\dronin\models\*"
+  SetOutPath "$INSTDIR\share\dronin\pfd"
+  File /r "${GCS_BUILD_TREE}\share\dronin\pfd\*"
 SectionEnd
 
 ; Copy Notify plugin sound files
 Section "-Sound files" InSecSounds
-  SetOutPath "$INSTDIR\share\taulabs\sounds"
-  File /r "${GCS_BUILD_TREE}\share\taulabs\sounds\*"
+  SetOutPath "$INSTDIR\share\dronin\sounds"
+  File /r "${GCS_BUILD_TREE}\share\dronin\sounds\*"
 SectionEnd
 
 ; Copy localization files
 ; Disabled until GCS source is stable and properly localized
 Section "-Localization" InSecLocalization
-  SetOutPath "$INSTDIR\share\taulabs\translations"
-; File /r "${GCS_BUILD_TREE}\share\taulabs\translations\taulabs_*.qm"
-  File /r "${GCS_BUILD_TREE}\share\taulabs\translations\qt_*.qm"
+  SetOutPath "$INSTDIR\share\dronin\translations"
+; File /r "${GCS_BUILD_TREE}\share\dronin\translations\dronin_*.qm"
+  File /r "${GCS_BUILD_TREE}\share\dronin\translations\qt_*.qm"
 SectionEnd
 
 ; Copy firmware files
@@ -229,7 +228,7 @@ SectionEnd
 ; Copy driver files
 Section "-Drivers" InSecDrivers
   SetOutPath "$INSTDIR\drivers"
-  File "${PROJECT_ROOT}\flight\Project\Windows USB\TauLabs-CDC.inf"
+  File "${PROJECT_ROOT}\flight\Project\Windows USB\dRonin-CDC.inf"
 SectionEnd
 
 ; Preinstall OpenPilot CDC driver
@@ -253,29 +252,27 @@ SectionEnd
 Section "Shortcuts" InSecShortcuts
   ; Create desktop and start menu shortcuts
   SetOutPath "$INSTDIR"
-  CreateDirectory "$SMPROGRAMS\Tau Labs"
-  CreateShortCut "$SMPROGRAMS\Tau Labs\Tau Labs GCS.lnk" "$INSTDIR\bin\taulabsgcs.exe" \
-	"" "$INSTDIR\bin\taulabsgcs.exe" 0 "" "" "${PRODUCT_NAME} ${PRODUCT_VERSION}. ${BUILD_DESCRIPTION}"
-  CreateShortCut "$SMPROGRAMS\Tau Labs\Tau Labs GCS (clean configuration).lnk" "$INSTDIR\bin\taulabsgcs.exe" \
-	"-clean-config" "$INSTDIR\bin\taulabsgcs.exe" 0 "" "" "${PRODUCT_NAME} ${PRODUCT_VERSION}. ${BUILD_DESCRIPTION}"
-  CreateShortCut "$SMPROGRAMS\Tau Labs\Tau Labs ChangeLog.lnk" "$INSTDIR\HISTORY.txt" \
-	"" "$INSTDIR\bin\taulabsgcs.exe" 0
-  CreateShortCut "$SMPROGRAMS\Tau Labs\Tau Labs Website.lnk" "http://taulabs.org" \
-	"" "$INSTDIR\bin\taulabsgcs.exe" 0
-  CreateShortCut "$DESKTOP\Tau Labs GCS.lnk" "$INSTDIR\bin\taulabsgcs.exe" \
-  	"" "$INSTDIR\bin\taulabsgcs.exe" 0 "" "" "${PRODUCT_NAME} ${PRODUCT_VERSION}. ${BUILD_DESCRIPTION}"
-  CreateShortCut "$SMPROGRAMS\Tau Labs\Uninstall.lnk" "$INSTDIR\Uninstall.exe" "" "$INSTDIR\Uninstall.exe" 0
+  CreateDirectory "$SMPROGRAMS\dRonin"
+  CreateShortCut "$SMPROGRAMS\dRonin\dRonin GCS.lnk" "$INSTDIR\bin\droningcs.exe" \
+	"" "$INSTDIR\bin\droningcs.exe" 0 "" "" "${PRODUCT_NAME} ${PRODUCT_VERSION}. ${BUILD_DESCRIPTION}"
+  CreateShortCut "$SMPROGRAMS\dRonin\dRonin GCS (clean configuration).lnk" "$INSTDIR\bin\droningcs.exe" \
+	"-clean-config" "$INSTDIR\bin\droningcs.exe" 0 "" "" "${PRODUCT_NAME} ${PRODUCT_VERSION}. ${BUILD_DESCRIPTION}"
+  CreateShortCut "$SMPROGRAMS\dRonin\dRonin Website.lnk" "http://dronin.org" \
+	"" "$INSTDIR\bin\droningcs.exe" 0
+  CreateShortCut "$DESKTOP\dRonin GCS.lnk" "$INSTDIR\bin\droningcs.exe" \
+  	"" "$INSTDIR\bin\droningcs.exe" 0 "" "" "${PRODUCT_NAME} ${PRODUCT_VERSION}. ${BUILD_DESCRIPTION}"
+  CreateShortCut "$SMPROGRAMS\dRonin\Uninstall.lnk" "$INSTDIR\Uninstall.exe" "" "$INSTDIR\Uninstall.exe" 0
 SectionEnd
 
 Section ; create uninstall info
   ; Write the installation path into the registry
-  WriteRegStr HKCU "Software\TauLabs" "Install Location" $INSTDIR
+  WriteRegStr HKCU "Software\dRonin" "Install Location" $INSTDIR
 
   ; Write the uninstall keys for Windows
-  WriteRegStr HKCU "Software\Microsoft\Windows\CurrentVersion\Uninstall\TauLabs" "DisplayName" "Tau Labs GCS"
-  WriteRegStr HKCU "Software\Microsoft\Windows\CurrentVersion\Uninstall\TauLabs" "UninstallString" '"$INSTDIR\Uninstall.exe"'
-  WriteRegDWORD HKCU "Software\Microsoft\Windows\CurrentVersion\Uninstall\TauLabs" "NoModify" 1
-  WriteRegDWORD HKCU "Software\Microsoft\Windows\CurrentVersion\Uninstall\TauLabs" "NoRepair" 1
+  WriteRegStr HKCU "Software\Microsoft\Windows\CurrentVersion\Uninstall\dRonin" "DisplayName" "Tau Labs GCS"
+  WriteRegStr HKCU "Software\Microsoft\Windows\CurrentVersion\Uninstall\dRonin" "UninstallString" '"$INSTDIR\Uninstall.exe"'
+  WriteRegDWORD HKCU "Software\Microsoft\Windows\CurrentVersion\Uninstall\dRonin" "NoModify" 1
+  WriteRegDWORD HKCU "Software\Microsoft\Windows\CurrentVersion\Uninstall\dRonin" "NoRepair" 1
 
   ; Create uninstaller
   WriteUninstaller "$INSTDIR\Uninstall.exe"
@@ -311,7 +308,7 @@ FunctionEnd
 ;--------------------------------
 ; Uninstaller sections
 
-Section "un.Tau Labs GCS" UnSecProgram
+Section "un.dRonin GCS" UnSecProgram
   ; Remove installed files and/or directories
   RMDir /r /rebootok "$INSTDIR\bin"
   RMDir /r /rebootok "$INSTDIR\lib"
@@ -320,41 +317,40 @@ Section "un.Tau Labs GCS" UnSecProgram
   RMDir /r /rebootok "$INSTDIR\utilities"
   RMDir /r /rebootok "$INSTDIR\drivers"
   RMDir /r /rebootok "$INSTDIR\misc"
-  Delete /rebootok "$INSTDIR\HISTORY.txt"
   Delete /rebootok "$INSTDIR\Uninstall.exe"
 
   ; Remove directory
   RMDir /rebootok "$INSTDIR"
 
   ; Remove registry keys
-  DeleteRegKey HKCU "Software\Microsoft\Windows\CurrentVersion\Uninstall\TauLabs"
-  DeleteRegKey HKCU "Software\TauLabs"
+  DeleteRegKey HKCU "Software\Microsoft\Windows\CurrentVersion\Uninstall\dRonin"
+  DeleteRegKey HKCU "Software\dRonin"
 
   ; Remove shortcuts, if any
   SetShellVarContext all
-  Delete /rebootok "$DESKTOP\Tau Labs GCS.lnk"
-  Delete /rebootok "$SMPROGRAMS\Tau Labs\*"
-  RMDir /rebootok "$SMPROGRAMS\Tau Labs"
+  Delete /rebootok "$DESKTOP\dRonin GCS.lnk"
+  Delete /rebootok "$SMPROGRAMS\dRonin\*"
+  RMDir /rebootok "$SMPROGRAMS\dRonin"
 SectionEnd
 
 Section "un.Maps cache" UnSecCache
   ; Remove maps cache
   SetShellVarContext current
-  RMDir /r /rebootok "$APPDATA\TauLabs\mapscache"
+  RMDir /r /rebootok "$APPDATA\dRonin\mapscache"
 SectionEnd
 
 Section /o "un.Configuration" UnSecConfig
   ; Remove configuration
   SetShellVarContext current
-  Delete /rebootok "$APPDATA\TauLabs\TauLabs*.db"
-  Delete /rebootok "$APPDATA\TauLabs\TauLabs*.xml"
-  Delete /rebootok "$APPDATA\TauLabs\TauLabs*.ini"
+  Delete /rebootok "$APPDATA\dRonin\dRonin*.db"
+  Delete /rebootok "$APPDATA\dRonin\dRonin*.xml"
+  Delete /rebootok "$APPDATA\dRonin\dRonin*.ini"
 SectionEnd
 
 Section "-un.Profile" UnSecProfile
-  ; Remove TauLabs user profile subdirectory if empty
+  ; Remove dRonin user profile subdirectory if empty
   SetShellVarContext current
-  RMDir "$APPDATA\TauLabs"
+  RMDir "$APPDATA\dRonin"
 SectionEnd
 
 ;--------------------------------
@@ -381,6 +377,6 @@ FunctionEnd
 
 Function RunApplication
 
-  Exec '"$INSTDIR\bin\taulabsgcs.exe"'
+  Exec '"$INSTDIR\bin\drgcs.exe"'
 
 FunctionEnd

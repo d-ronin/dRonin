@@ -19,12 +19,12 @@ HEADERS += customsplash.h
 LIBS *= -l$$qtLibraryName(ExtensionSystem) -l$$qtLibraryName(Aggregation)
 
 win32 {
-    RC_FILE = taulabs.rc
+    RC_FILE = dronin.rc
     target.path = /bin
     INSTALLS += target
 } else:macx {
     LIBS += -framework CoreFoundation
-#    ICON = taulabs.icns
+    ICON = dronin.icns
     QMAKE_INFO_PLIST = Info.plist
     FILETYPES.files = profile.icns prifile.icns
     FILETYPES.path = Contents/Resources
@@ -34,7 +34,7 @@ win32 {
     INSTALLS    += target
 }
 
-OTHER_FILES += taulabs.rc
+OTHER_FILES += dronin.rc
 
 OTHER_FILES += qtcreator.rc \
     $$PWD/app_version.h.in
