@@ -10,7 +10,7 @@ APP_NAME="dRonin GCS.app"
 APP_PATH="${BUILD_DIR}/ground/gcs/bin/"
 TEMP_FILE="${PACKAGE_DIR}/dRonin-temp.dmg.sparseimage"
 OUT_FILE="${PACKAGE_DIR}/dRonin-${PACKAGE_LBL}.dmg"
-ICON_FILE="${ROOT_DIR}/package/linux/taulabs.png"
+ICON_FILE="${ROOT_DIR}/package/dronin.png"
 VOL_NAME="dRonin"
 
 # prepare the stage
