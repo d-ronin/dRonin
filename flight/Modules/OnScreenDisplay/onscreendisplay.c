@@ -127,6 +127,7 @@ static void onScreenDisplayTask(void *parameters);
 #define TASK_PRIORITY    PIOS_THREAD_PRIO_LOW
 #define UPDATE_PERIOD    100
 #define BLINK_INTERVAL_FRAMES 12
+#define BOOT_DISPLAY_TIME_MS (10*1000)
 
 const char METRIC_DIST_UNIT_LONG[] = "km";
 const char METRIC_DIST_UNIT_SHORT[] = "m";
@@ -700,83 +701,30 @@ void draw_flight_mode(int x, int y, int xs, int ys, int va, int ha, int flags, i
 	}
 }
 
-const uint8_t ALL_ALRARMS[] = {SYSTEMALARMS_ALARM_OUTOFMEMORY,
-								SYSTEMALARMS_ALARM_CPUOVERLOAD,
-								SYSTEMALARMS_ALARM_STACKOVERFLOW,
-								SYSTEMALARMS_ALARM_SYSTEMCONFIGURATION,
-								SYSTEMALARMS_ALARM_EVENTSYSTEM,
-//								SYSTEMALARMS_ALARM_TELEMETRY,
-								SYSTEMALARMS_ALARM_MANUALCONTROL,
-								SYSTEMALARMS_ALARM_ACTUATOR,
-								SYSTEMALARMS_ALARM_ATTITUDE,
-								SYSTEMALARMS_ALARM_SENSORS,
-								SYSTEMALARMS_ALARM_STABILIZATION,
-								SYSTEMALARMS_ALARM_PATHFOLLOWER,
-								SYSTEMALARMS_ALARM_PATHPLANNER,
-								SYSTEMALARMS_ALARM_BATTERY,
-								SYSTEMALARMS_ALARM_FLIGHTTIME,
-								SYSTEMALARMS_ALARM_I2C,
-								SYSTEMALARMS_ALARM_GPS,
-								SYSTEMALARMS_ALARM_ALTITUDEHOLD,
-								SYSTEMALARMS_ALARM_BOOTFAULT};
-
-const char * ALL_ALRARM_NAMES[] = {"MEMORY",
-									"CPU",
-									"STACK",
-									"CONFIG",
-									"EVENT",
-//									"TELEMETRY",
-									"MANUAL",
-									"ACTUATOR",
-									"ATTITUDE",
-									"SENSORS",
-									"STAB",
-									"PATH-F",
-									"PATH-P",
-									"BATTERY",
-									"TIME",
-									"I2C",
-									"GPS",
-									"A-HOLD",
-									"BOOT"};
-
 void draw_alarms(int x, int y, int xs, int ys, int va, int ha, int flags, int font)
 {
-	uint8_t str_pos = 0;
-	uint8_t this_len;
-	char temp[100]  = { 0 };
+	char buf[100]  = { 0 };
 	SystemAlarmsData alarm;
+	int pos = 0;
 
 	SystemAlarmsGet(&alarm);
 
-	for (uint8_t pos = 0; pos < sizeof(ALL_ALRARMS); pos++)
-	{
-		if ((alarm.Alarm[ALL_ALRARMS[pos]] == SYSTEMALARMS_ALARM_WARNING) ||
-			(alarm.Alarm[ALL_ALRARMS[pos]] == SYSTEMALARMS_ALARM_ERROR) ||
-			(alarm.Alarm[ALL_ALRARMS[pos]] == SYSTEMALARMS_ALARM_CRITICAL)){
-			this_len = strlen(ALL_ALRARM_NAMES[pos]);
-			if (str_pos + this_len + 2 >= sizeof(temp))
-				break;
-
-			if ((alarm.Alarm[ALL_ALRARMS[pos]] != SYSTEMALARMS_ALARM_WARNING) && !blink){
-				// for alarms, we blink
-				this_len += 1;
-				while (this_len > 0){
-					temp[str_pos++] = ' ';
-					this_len--;
-				}
-				continue;
-			}
-
-			memcpy((void*)&temp[str_pos], (void*)ALL_ALRARM_NAMES[pos], this_len);
-			str_pos += this_len;
-			temp[str_pos] = ' ';
-			str_pos += 1;
-		}
+	// Boot alarm for a bit.
+	if (PIOS_Thread_Systime() < BOOT_DISPLAY_TIME_MS) {
+		const char *boot_reason = AlarmBootReason(alarm.RebootCause);
+		strncpy((char*)buf, boot_reason, sizeof(buf));
+		buf[strlen(boot_reason)] = '\0';
+		pos = strlen(boot_reason);
+		buf[pos++] = ' ';
+		return;
 	}
-	if (str_pos > 0){
-		temp[str_pos] = '\0';
-		write_string(temp, x, y, xs, ys, va, ha, flags, font);
+
+	uint8_t state;
+	int32_t len = AlarmString(alarm, &buf[pos], sizeof(buf) - pos, blink, &state);
+
+	if (len > 0) {
+		buf[pos] = '\0';
+		write_string(buf, x, y, xs, ys, va, ha, flags, font);
 	}
 }
 
