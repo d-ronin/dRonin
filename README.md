@@ -8,6 +8,7 @@ Presently supported targets include:
 
 - OpenPilot Revolution
 - AeroQuad32
+- [BrainFPV](http://brainfpv.com/)
 - Quanton
 - Sparky
 - Sparky2
