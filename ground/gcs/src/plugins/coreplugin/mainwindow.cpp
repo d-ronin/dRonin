@@ -386,7 +386,7 @@ void MainWindow::loadStyleSheet(QString name) {
 #else
     directory.cdUp();
     directory.cd("share");
-    directory.cd("taulabs");
+    directory.cd("dronin");
 #endif
     directory.cd("stylesheets");
 #ifdef Q_OS_MAC
