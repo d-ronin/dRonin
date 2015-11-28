@@ -92,7 +92,7 @@ VersionDialog::VersionDialog(QWidget *parent)
      }
      uavoHashStr = tr("UAVO hash %1<br/>").arg(gcsUavoHashStr.left(8));
  #endif
-     const QString version_name = tr("<h3><center>DRonin GCS<center></h3>"
+     const QString version_name = tr("<h3><center>dRonin GCS<center></h3>"
                                      "<h4><center>%1: %2</center></h4>").arg(versionName, versionHash);
      const QString version_description = tr(
         "Based on Qt %1 (%2 bit)<br/>"
