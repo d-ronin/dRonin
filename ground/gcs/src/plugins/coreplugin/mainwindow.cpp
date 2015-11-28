@@ -327,7 +327,7 @@ void MainWindow::extensionsInitialized()
 #else
             directory.cdUp();
             directory.cd("share");
-            directory.cd("taulabs");
+            directory.cd("dronin");
 #endif
             directory.cd("default_configurations");
 
