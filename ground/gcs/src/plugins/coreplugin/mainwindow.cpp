@@ -132,9 +132,9 @@ MainWindow::MainWindow() :
 {
     // keep this in sync with main() in app/main.cpp
     m_settings = new QSettings(XmlConfig::XmlSettingsFormat, QSettings::UserScope,
-                             QLatin1String("TauLabs"), QLatin1String("TauLabs_config.autosave"), this);
+                             QLatin1String("dRonin"), QLatin1String("dRonin_config.autosave"), this);
     m_settingsDatabase = new SettingsDatabase(QFileInfo(m_settings->fileName()).path(),
-                                            QLatin1String("TauLabs_config"),
+                                            QLatin1String("dRonin_config"),
                                             this);
 
     // Copy original settings file to working settings. Do this in scope so that
@@ -142,7 +142,7 @@ MainWindow::MainWindow() :
     // since the QSettings being used are copies of the original file.
     {
         QSettings originalSettings(XmlConfig::XmlSettingsFormat, QSettings::UserScope,
-                                   QLatin1String("TauLabs"), QLatin1String("TauLabs_config"), this);
+                                   QLatin1String("dRonin"), QLatin1String("dRonin_config"), this);
 
         // There is no copy constructor for QSettings, so we have to do it manually
         m_settings->clear();
@@ -256,7 +256,7 @@ MainWindow::~MainWindow()
     // of corruption since the QSettings are saved (almost) atomically.
     {
         QSettings originalSettings(XmlConfig::XmlSettingsFormat, QSettings::UserScope,
-                                   QLatin1String("TauLabs"), QLatin1String("TauLabs_config"), this);
+                                   QLatin1String("dRonin"), QLatin1String("dRonin_config"), this);
 
         // There is no copy constructor for QSettings, so we have to do it manually
         originalSettings.clear();
@@ -1340,7 +1340,7 @@ void MainWindow::deleteSettings()
 
     // Clear the on-disk settings
     QSettings originalSettings(XmlConfig::XmlSettingsFormat, QSettings::UserScope,
-                               QLatin1String("TauLabs"), QLatin1String("TauLabs_config"), this);
+                               QLatin1String("dRonin"), QLatin1String("dRonin_config"), this);
     originalSettings.clear();
     originalSettings.sync();
 
