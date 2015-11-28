@@ -269,7 +269,7 @@ Section ; create uninstall info
   WriteRegStr HKCU "Software\dRonin" "Install Location" $INSTDIR
 
   ; Write the uninstall keys for Windows
-  WriteRegStr HKCU "Software\Microsoft\Windows\CurrentVersion\Uninstall\dRonin" "DisplayName" "Tau Labs GCS"
+  WriteRegStr HKCU "Software\Microsoft\Windows\CurrentVersion\Uninstall\dRonin" "DisplayName" "dRonin GCS"
   WriteRegStr HKCU "Software\Microsoft\Windows\CurrentVersion\Uninstall\dRonin" "UninstallString" '"$INSTDIR\Uninstall.exe"'
   WriteRegDWORD HKCU "Software\Microsoft\Windows\CurrentVersion\Uninstall\dRonin" "NoModify" 1
   WriteRegDWORD HKCU "Software\Microsoft\Windows\CurrentVersion\Uninstall\dRonin" "NoRepair" 1
