@@ -253,14 +253,14 @@ Section "Shortcuts" InSecShortcuts
   ; Create desktop and start menu shortcuts
   SetOutPath "$INSTDIR"
   CreateDirectory "$SMPROGRAMS\dRonin"
-  CreateShortCut "$SMPROGRAMS\dRonin\dRonin GCS.lnk" "$INSTDIR\bin\droningcs.exe" \
-	"" "$INSTDIR\bin\droningcs.exe" 0 "" "" "${PRODUCT_NAME} ${PRODUCT_VERSION}. ${BUILD_DESCRIPTION}"
-  CreateShortCut "$SMPROGRAMS\dRonin\dRonin GCS (clean configuration).lnk" "$INSTDIR\bin\droningcs.exe" \
-	"-clean-config" "$INSTDIR\bin\droningcs.exe" 0 "" "" "${PRODUCT_NAME} ${PRODUCT_VERSION}. ${BUILD_DESCRIPTION}"
+  CreateShortCut "$SMPROGRAMS\dRonin\dRonin GCS.lnk" "$INSTDIR\bin\drgcs.exe" \
+	"" "$INSTDIR\bin\drgcs.exe" 0 "" "" "${PRODUCT_NAME} ${PRODUCT_VERSION}. ${BUILD_DESCRIPTION}"
+  CreateShortCut "$SMPROGRAMS\dRonin\dRonin GCS (clean configuration).lnk" "$INSTDIR\bin\drgcs.exe" \
+	"-clean-config" "$INSTDIR\bin\drgcs.exe" 0 "" "" "${PRODUCT_NAME} ${PRODUCT_VERSION}. ${BUILD_DESCRIPTION}"
   CreateShortCut "$SMPROGRAMS\dRonin\dRonin Website.lnk" "http://dronin.org" \
-	"" "$INSTDIR\bin\droningcs.exe" 0
-  CreateShortCut "$DESKTOP\dRonin GCS.lnk" "$INSTDIR\bin\droningcs.exe" \
-  	"" "$INSTDIR\bin\droningcs.exe" 0 "" "" "${PRODUCT_NAME} ${PRODUCT_VERSION}. ${BUILD_DESCRIPTION}"
+	"" "$INSTDIR\bin\drgcs.exe" 0
+  CreateShortCut "$DESKTOP\dRonin GCS.lnk" "$INSTDIR\bin\drgcs.exe" \
+  	"" "$INSTDIR\bin\drgcs.exe" 0 "" "" "${PRODUCT_NAME} ${PRODUCT_VERSION}. ${BUILD_DESCRIPTION}"
   CreateShortCut "$SMPROGRAMS\dRonin\Uninstall.lnk" "$INSTDIR\Uninstall.exe" "" "$INSTDIR\Uninstall.exe" 0
 SectionEnd
 
