@@ -159,7 +159,7 @@ MainWindow::MainWindow() :
     QCoreApplication::setApplicationName(QLatin1String(Core::Constants::GCS_NAME));
     QCoreApplication::setApplicationVersion(QLatin1String(Core::Constants::GCS_VERSION_LONG));
     QCoreApplication::setOrganizationName(QLatin1String(Core::Constants::GCS_AUTHOR));
-    QCoreApplication::setOrganizationDomain(QLatin1String("taulabs.org"));
+    QCoreApplication::setOrganizationDomain(QLatin1String("dronin.org"));
     QSettings::setDefaultFormat(XmlConfig::XmlSettingsFormat);
     QString baseName = QApplication::style()->objectName();
 
