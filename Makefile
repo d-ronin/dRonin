@@ -270,13 +270,6 @@ else
 	  MAKEFLAGS= jom $(JOM_OPTIONS); \
 	)
 endif
-# Workaround for qmake bug that prevents copying the application icon
-ifneq (,$(filter $(UNAME), Darwin))
-	$(V1) ( cd $(BUILD_DIR)/ground/gcs/src/app && \
-	  $(MAKE) ../../bin/Tau\ Labs\ GCS.app/Contents/Resources/taulabs.icns && \
-	  $(MAKE) ../../bin/Tau\ Labs\ GCS.app/Contents/Info.plist ; \
-	)
-endif
 
 .PHONY: gcs_clean
 gcs_clean:

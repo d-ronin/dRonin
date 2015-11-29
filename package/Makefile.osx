@@ -2,12 +2,12 @@
 # MacOSX-specific packaging
 #
 
-APP_NAME="Tau Labs GCS.app"
+APP_NAME="dRonin GCS.app"
 APP_PATH="${BUILD_DIR}/ground/gcs/bin/"
-TEMP_FILE="${PACKAGE_DIR}/TauLabs-temp.dmg.sparseimage"
-OUT_FILE="${PACKAGE_DIR}/TauLabs-${PACKAGE_LBL}.dmg"
-ICON_FILE="${ROOT_DIR}/package/linux/taulabs.png"
-VOL_NAME="Tau Labs"
+TEMP_FILE="${PACKAGE_DIR}/dRonin-temp.dmg.sparseimage"
+OUT_FILE="${PACKAGE_DIR}/dRonin-${PACKAGE_LBL}.dmg"
+ICON_FILE="${ROOT_DIR}/linux/dronin.png"
+VOL_NAME="dRonin"
 
 # calls macdeployqt and bundles the extra libraries into .app
 standalone: gcs

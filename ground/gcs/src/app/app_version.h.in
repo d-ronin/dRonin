@@ -44,7 +44,7 @@ namespace Constants {
 #define IDE_VERSION_RELEASE $$replace(QTCREATOR_VERSION, "^\\d+\\.\\d+\\.(\\d+)(-.*)?$", \\1)
 
 const char * const GCS_VERSION_LONG      = IDE_VERSION_STR;
-const char * const GCS_AUTHOR            = \"Tau Labs\";
+const char * const GCS_AUTHOR            = \"dRonin\";
 const char * const GCS_YEAR              = \"2015\";
 
 #ifdef IDE_VERSION_DESCRIPTION

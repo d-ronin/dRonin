@@ -98,7 +98,7 @@ QString PathUtils::GetStoragePath()
 {
     // This routine works with "/" as the standard:
     // Work out where the settings are stored on the machine
-    QSettings set(XmlConfig::XmlSettingsFormat, QSettings::UserScope,QLatin1String("TauLabs"), QLatin1String("TauLabs_config"));
+    QSettings set(XmlConfig::XmlSettingsFormat, QSettings::UserScope,QLatin1String("dRonin"), QLatin1String("dRonin_config"));
     QFileInfo f(set.fileName());
     QDir dir(f.absoluteDir());
 

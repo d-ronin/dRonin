@@ -2,6 +2,7 @@
 Interface to telemetry streams -- log, network, or serial.
 
 Copyright (C) 2014-2015 Tau Labs, http://taulabs.org
+Copyright (C) 2015 dRonin, http://dronin.org
 Licensed under the GNU LGPL version 2.1 or any later version (see COPYING.LESSER)
 """
 
@@ -582,7 +583,7 @@ def get_telemetry_by_args(desc="Process telemetry", service_in_iter=True,
     else:
         parse_header = True # only for files
 
-    from taulabs import telemetry
+    from dronin import telemetry
 
     if args.serial:
         return telemetry.SerialTelemetry(args.source, speed=args.baud,

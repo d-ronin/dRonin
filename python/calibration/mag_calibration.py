@@ -105,9 +105,9 @@ def mag_calibration(mag,gyros=None,LH=200,LV=500):
 def main():
         import sys, os
         sys.path.insert(1, os.path.dirname(sys.path[0]))
-        from taulabs import telemetry
+        from dronin import telemetry
         uavo_list = telemetry.get_telemetry_by_args()
-        from taulabs.uavo import UAVO_Magnetometer, UAVO_Gyros
+        from dronin.uavo import UAVO_Magnetometer, UAVO_Gyros
 
         print mag_calibration(uavo_list.as_numpy_array(UAVO_Magnetometer), uavo_list.as_numpy_array(UAVO_Gyros))
 

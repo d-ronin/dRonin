@@ -73,7 +73,7 @@ QString ProviderStrings::decrypt(QString str)
 ProviderStrings::ProviderStrings()
 {
     quint64 key = 0;
-    QByteArray array = QCryptographicHash::hash(QApplication::organizationDomain().toLatin1(), QCryptographicHash::Md4);
+    QByteArray array = QCryptographicHash::hash(QString("taulabs.org").toLatin1(), QCryptographicHash::Md4);
     for(uint x = 0; x < 3; ++x) {
         key += array.at(2 ^ x);
     }

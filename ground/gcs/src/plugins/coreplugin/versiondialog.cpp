@@ -55,7 +55,7 @@ VersionDialog::VersionDialog(QWidget *parent)
     // application icon isn't used when the size of the dialog is fixed (at least not on X11/GNOME)
     setWindowIcon(QIcon(":/core/images/taulabs_logo_32.png"));
 
-    setWindowTitle(tr("About Tau Labs GCS"));
+    setWindowTitle(tr("About dRonin GCS"));
     setWindowFlags(windowFlags() & ~Qt::WindowContextHelpButtonHint);
     QGridLayout *layout = new QGridLayout(this);
     layout->setSizeConstraint(QLayout::SetFixedSize);
@@ -92,7 +92,7 @@ VersionDialog::VersionDialog(QWidget *parent)
      }
      uavoHashStr = tr("UAVO hash %1<br/>").arg(gcsUavoHashStr.left(8));
  #endif
-     const QString version_name = tr("<h3><center>Tau Labs GCS<center></h3>"
+     const QString version_name = tr("<h3><center>dRonin GCS<center></h3>"
                                      "<h4><center>%1: %2</center></h4>").arg(versionName, versionHash);
      const QString version_description = tr(
         "Based on Qt %1 (%2 bit)<br/>"
@@ -106,10 +106,10 @@ VersionDialog::VersionDialog(QWidget *parent)
                      QLatin1String(__DATE__), QLatin1String(__TIME__), ideRev, uavoHashStr);
 
      QString copyright = tr(
-        "Copyright 2012-%1 %2, 2010-2012 OpenPilot. All rights reserved.<br/>"
+        "Copyright 2015 %1, 2012-2015 Tau Labs, 2010-2012 OpenPilot. All rights reserved.<br/>"
         "<br/>"
-         "Between 2010 and 2012, a significant part of this application was designed "
-         "and implemented within the OpenPilot project.<br/>"
+         "Between 2010 and 2015, a significant part of this application was designed "
+         "and implemented within the OpenPilot and Tau Labs projects.<br/>"
          "This work was further based on work from the Nokia Corporation for Qt Creator.<br/>"
          "<br/>"
          "<small>This program is free software; you can redistribute it and/or modify"
@@ -118,7 +118,7 @@ VersionDialog::VersionDialog(QWidget *parent)
          "(at your option) any later version.<br/><br/>"
         "The program is provided AS IS with NO WARRANTY OF ANY KIND, "
         "INCLUDING THE WARRANTY OF DESIGN, MERCHANTABILITY AND FITNESS FOR A "
-        "PARTICULAR PURPOSE.</small><br/>").arg(QLatin1String(GCS_YEAR), (QLatin1String(GCS_AUTHOR)));
+        "PARTICULAR PURPOSE.</small><br/>").arg(QLatin1String(GCS_AUTHOR));
 
     QLabel *versionNameLabel = new QLabel(version_name);
     QLabel *versionDescription = new QLabel(version_description);
