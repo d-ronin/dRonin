@@ -45,7 +45,6 @@ HITLGadget::~HITLGadget()
 void HITLGadget::loadConfiguration(IUAVGadgetConfiguration* config)
 {
     HITLConfiguration *m = qobject_cast<HITLConfiguration*>(config);
-    // IL2 <-- Is this still necessary? [KDS]
 	emit changeConfiguration();
 	m_widget->setSettingParameters(m->Settings());
 }

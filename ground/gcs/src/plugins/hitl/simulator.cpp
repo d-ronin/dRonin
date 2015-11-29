@@ -268,15 +268,9 @@ void Simulator::setupUAVObjects()
     // Most simulators use the flight controller's ActuatorDesired UAVO
     // for control output...
     if (settings.simulatorId == "FG"  ||
-             settings.simulatorId == "IL2" ||
              settings.simulatorId == "X-Plane")
     {
         setupInputObject(actDesired, settings.minOutputPeriod);
-    }
-    else if(settings.simulatorId == "ASimRC")
-    {
-        //...however, AeroSimRC uses the servo PWM output (i.e. ActuatorCommand)
-        setupInputObject(actCommand, settings.minOutputPeriod);
     }
 
     if (settings.gcsReceiverEnabled) {

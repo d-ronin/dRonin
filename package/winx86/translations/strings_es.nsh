@@ -34,7 +34,6 @@
   LangString DESC_InSecUtilities ${LANG_SPANISH} "OpenPilot utilities (Matlab log parser)."
   LangString DESC_InSecDrivers ${LANG_SPANISH} "OpenPilot hardware driver files (optional OpenPilot CDC driver)."
   LangString DESC_InSecInstallDrivers ${LANG_SPANISH} "Optional OpenPilot CDC driver (virtual USB COM port)."
-  LangString DESC_InSecAeroSimRC ${LANG_SPANISH} "AeroSimRC plugin files with sample configuration."
   LangString DESC_InSecShortcuts ${LANG_SPANISH} "Instalar accesos directos de la aplicación (menú inicio y escritorio)."
 
 ;--------------------------------
