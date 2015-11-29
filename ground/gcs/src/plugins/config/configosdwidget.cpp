@@ -345,10 +345,10 @@ void ConfigOsdWidget::handle_button_3_2()
 void ConfigOsdWidget::setCustomText()
 {
     const QString text = ui->le_custom_text->displayText();
-    int n_string = text.size();
+    unsigned int n_string = text.size();
 
-    for (int i=0; i<OnScreenDisplaySettings::CUSTOMTEXT_NUMELEM; i++){
-        if (i < n_string){
+    for (unsigned int i = 0; i < OnScreenDisplaySettings::CUSTOMTEXT_NUMELEM; ++i) {
+        if (i < n_string) {
             osdSettingsObj->setCustomText(i, (quint8)(text.data()[i].toLatin1()));
         } else {
             osdSettingsObj->setCustomText(i, 0);
@@ -360,7 +360,7 @@ void ConfigOsdWidget::getCustomText()
 {
     char text[OnScreenDisplaySettings::CUSTOMTEXT_NUMELEM];
 
-    for (int i=0; i<OnScreenDisplaySettings::CUSTOMTEXT_NUMELEM; i++){
+    for (unsigned int i = 0; i < OnScreenDisplaySettings::CUSTOMTEXT_NUMELEM; ++i) {
         text[i] =  osdSettingsObj->getCustomText(i);
     }
     QString q_text = QString::fromLatin1(text, OnScreenDisplaySettings::CUSTOMTEXT_NUMELEM);
