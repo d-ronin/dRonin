@@ -8,7 +8,7 @@
  * @{
  * @addtogroup Boards_BrainFPV BrainFPV boards support Plugin
  * @{
- * @brief Plugin to support boards by BrainFPV
+ * @brief Plugin to support boards by BrainFPV LLC
  *****************************************************************************/
 /*
  * This program is free software; you can redistribute it and/or modify

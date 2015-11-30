@@ -5,9 +5,9 @@
  *
  * @addtogroup GCSPlugins GCS Plugins
  * @{
- * @addtogroup Boards_TauLabsPlugin Tau Labs boards support Plugin
+ * @addtogroup Boards_BrainFPV BrainFPV boards support Plugin
  * @{
- * @brief Plugin to support boards by the Tau Labs project
+ * @brief Plugin to support boards by BrainFPV LLC
  *****************************************************************************/
 /*
  * This program is free software; you can redistribute it and/or modify
