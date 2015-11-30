@@ -41,7 +41,6 @@
   !define GCS_BUILD_TREE "..\..\build\ground\gcs"
   !define UAVO_SYNTH_TREE "..\..\build\uavobject-synthetics"
   !define MATLAB_TREE "..\..\build\matlab"
-  !define AEROSIMRC_TREE "..\..\build\ground\AeroSIM-RC"
 
   ; Default installation folder
   InstallDir "$PROGRAMFILES\dRonin"
@@ -244,12 +243,6 @@ Section "CDC driver" InSecInstallDrivers
   ExecWait '"$PLUGINSDIR\dpinst.exe" /lm /path "$INSTDIR\drivers"'
 SectionEnd
 
-; AeroSimRC plugin files
-Section "AeroSimRC plugin" InSecAeroSimRC
-  SetOutPath "$INSTDIR\misc\AeroSIM-RC"
-  File /r "${AEROSIMRC_TREE}\*"
-SectionEnd
-
 Section "Shortcuts" InSecShortcuts
   ; Create desktop and start menu shortcuts
   SetOutPath "$INSTDIR"
@@ -292,7 +285,6 @@ SectionEnd
     !insertmacro MUI_DESCRIPTION_TEXT ${InSecUtilities} $(DESC_InSecUtilities)
     !insertmacro MUI_DESCRIPTION_TEXT ${InSecDrivers} $(DESC_InSecDrivers)
     !insertmacro MUI_DESCRIPTION_TEXT ${InSecInstallDrivers} $(DESC_InSecInstallDrivers)
-    !insertmacro MUI_DESCRIPTION_TEXT ${InSecAeroSimRC} $(DESC_InSecAeroSimRC)
     !insertmacro MUI_DESCRIPTION_TEXT ${InSecShortcuts} $(DESC_InSecShortcuts)
   !insertmacro MUI_FUNCTION_DESCRIPTION_END
 

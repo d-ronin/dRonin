@@ -14,9 +14,7 @@ HEADERS += hitlplugin.h \
     hitlgadget.h \
     hitlnoisegeneration.h \
     simulator.h \
-    aerosimrcsimulator.h \
     fgsimulator.h \
-    il2simulator.h \
     xplanesimulator.h
 SOURCES += hitlplugin.cpp \
     hitlwidget.cpp \
@@ -26,9 +24,7 @@ SOURCES += hitlplugin.cpp \
     hitlgadget.cpp \
     hitlnoisegeneration.cpp \
     simulator.cpp \
-    aerosimrcsimulator.cpp \
     fgsimulator.cpp \
-    il2simulator.cpp \
     xplanesimulator.cpp
 OTHER_FILES += hitl.pluginspec \
                 hitl.json
