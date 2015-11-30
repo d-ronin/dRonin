@@ -28,7 +28,6 @@
 
 #include "stmplugin.h"
 #include "flyingf3.h"
-#include "flyingf4.h"
 #include "discoveryf4.h"
 #include <QtPlugin>
 
@@ -58,9 +57,6 @@ void StmPlugin::extensionsInitialized()
      */
     FlyingF3* flyingf3 = new FlyingF3();
     addAutoReleasedObject(flyingf3);
-
-    FlyingF4* flyingf4 = new FlyingF4();
-    addAutoReleasedObject(flyingf4);
 
     DiscoveryF4* discoveryf4 = new DiscoveryF4();
     addAutoReleasedObject(discoveryf4);
