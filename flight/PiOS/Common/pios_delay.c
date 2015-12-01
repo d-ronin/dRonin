@@ -173,16 +173,26 @@ uint32_t PIOS_DELAY_GetRaw()
 }
 
 /**
- * @brief Compare to raw times to and convert to us 
+ * @brief Subtract raw time from now and convert to us 
  * @return A microsecond value
  */
 uint32_t PIOS_DELAY_DiffuS(uint32_t raw)
 {
 	/* turn on access to the DWT registers */
 	CoreDebug->DEMCR |= CoreDebug_DEMCR_TRCENA_Msk;
-	uint32_t diff = DWT->CYCCNT - raw;
+
+	return PIOS_DELAY_DiffuS2(raw, DWT->CYCCNT);
+}
+
+/**
+ * @brief Subrtact two raw times and convert to us.
+ * @return Interval between raw times in microseconds
+ */
+uint32_t PIOS_DELAY_DiffuS2(uint32_t raw, uint32_t later) {
+	uint32_t diff = later - raw;
 	return diff / us_ticks;
 }
+
 
 #endif
 

@@ -105,8 +105,14 @@ uint32_t PIOS_DELAY_GetRaw()
 
 uint32_t PIOS_DELAY_DiffuS(uint32_t ref)
 {
-	uint32_t diff_clock = clock() - ref;
-	uint32_t diff_us = diff_clock; // (CLOCKS_PER_SEC / 1000);
-	return diff_us;
+	return PIOS_DELAY_DiffuS2(ref, clock());
 }
+
+uint32_t PIOS_DELAY_DiffuS2(uint32_t raw, uint32_t later) {
+	uint32_t diff = later - raw;
+	return diff;
+}
+
+
+
 #endif
