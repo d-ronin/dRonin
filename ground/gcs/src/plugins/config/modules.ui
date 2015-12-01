@@ -239,16 +239,6 @@
         </widget>
        </item>
        <item>
-        <widget class="QCheckBox" name="cbOnScreenDisplay">
-         <property name="toolTip">
-          <string></string>
-         </property>
-         <property name="text">
-          <string>TxPID</string>
-         </property>
-        </widget>
-       </item>
-       <item>
         <spacer name="verticalSpacer_4">
          <property name="orientation">
           <enum>Qt::Vertical</enum>
