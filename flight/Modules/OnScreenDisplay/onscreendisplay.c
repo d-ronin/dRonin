@@ -1549,19 +1549,6 @@ int render_stats()
 	return y_pos;
 }
 
-
-static void OnScreenSettingsUpdatedCb(UAVObjEvent * ev)
-{
-	osd_settings_updated = true;
-}
-
-
-static void OnScreenPageUpdatedCb(UAVObjEvent * ev)
-{
-	osd_page_updated = true;
-}
-
-
 /**
  * Start the osd module
  */
@@ -1620,13 +1607,13 @@ int32_t OnScreenDisplayInitialize(void)
 	OnScreenDisplayPageSettings4Initialize();
 
 	/* Register callbacks for modified settings */
-	OnScreenDisplaySettingsConnectCallback(OnScreenSettingsUpdatedCb);
+	OnScreenDisplaySettingsConnectCallbackCtx(UAVObjCbSetFlag, &osd_settings_updated);
 
 	/* Register callbacks for modified pages */
-	OnScreenDisplayPageSettingsConnectCallback(OnScreenPageUpdatedCb);
-	OnScreenDisplayPageSettings2ConnectCallback(OnScreenPageUpdatedCb);
-	OnScreenDisplayPageSettings3ConnectCallback(OnScreenPageUpdatedCb);
-	OnScreenDisplayPageSettings4ConnectCallback(OnScreenPageUpdatedCb);
+	OnScreenDisplayPageSettingsConnectCallbackCtx(UAVObjCbSetFlag, &osd_page_updated);
+	OnScreenDisplayPageSettings2ConnectCallbackCtx(UAVObjCbSetFlag, &osd_page_updated);
+	OnScreenDisplayPageSettings3ConnectCallbackCtx(UAVObjCbSetFlag, &osd_page_updated);
+	OnScreenDisplayPageSettings4ConnectCallbackCtx(UAVObjCbSetFlag, &osd_page_updated);
 
 	return 0;
 }
