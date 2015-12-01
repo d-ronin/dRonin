@@ -77,7 +77,7 @@ static void af_predict(float X[AF_NUMX], float P[AF_NUMP], const float u_in[3], 
 static void af_init(float X[AF_NUMX], float P[AF_NUMP]);
 
 #ifndef AT_QUEUE_NUMELEM
-#define AT_QUEUE_NUMELEM 10
+#define AT_QUEUE_NUMELEM 14
 #endif
 
 /**
