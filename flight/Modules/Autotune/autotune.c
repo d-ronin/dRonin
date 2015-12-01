@@ -55,7 +55,7 @@
 #define AF_NUMP 43
 
 // Private types
-enum AUTOTUNE_STATE {AT_INIT, AT_START, AT_RUN, AT_FINISHED};
+enum AUTOTUNE_STATE { AT_INIT, AT_START, AT_RUN, AT_FINISHED, AT_WAITING };
 
 struct at_queued_data {
 	float y[3];	/* Gyro measurements */
@@ -371,6 +371,10 @@ static void AutotuneTask(void *parameters)
 				// Wait until disarmed and landed before saving the settings
 
 				UpdateSystemIdent(X, noise, 0, update_counter, at_points_spilled);
+
+				state = AT_WAITING;	// Fall through
+
+			case AT_WAITING:
 
 				// TODO do this unconditionally on disarm,
 				// no matter what mode we're in.
