@@ -233,11 +233,7 @@ SRC += $(PIOSCOMMON)/pios_queue.c
 SRC += $(FLIGHTLIB)/fifo_buffer.c
 SRC += $(FLIGHTLIB)/taskmonitor.c
 SRC += $(FLIGHTLIB)/sanitycheck.c
-ifeq ($(NAVIGATION), YES)
-SRC += $(STATEESTIMATIONLIB)/ccc.c
-SRC += $(STATEESTIMATIONLIB)/premerlani_gps.c
-SRC += $(STATEESTIMATIONLIB)/premerlani_dcm.c
-endif
+SRC += $(FLIGHTLIB)/circqueue.c
 SRC += $(MATHLIB)/coordinate_conversions.c
 SRC += $(MATHLIB)/misc_math.c
 SRC += $(MATHLIB)/pid.c
