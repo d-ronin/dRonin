@@ -45,6 +45,8 @@
 #include <pios_board_info.h>
 #include "pios_thread.h"
 
+#include "circqueue.h"
+
 // Private constants
 #define STACK_SIZE_BYTES 1504
 #define TASK_PRIORITY PIOS_THREAD_PRIO_NORMAL
@@ -53,16 +55,30 @@
 #define AF_NUMP 43
 
 // Private types
-enum AUTOTUNE_STATE {AT_INIT, AT_START, AT_RUN, AT_FINISHED, AT_SET};
+enum AUTOTUNE_STATE {AT_INIT, AT_START, AT_RUN, AT_FINISHED};
+
+struct at_queued_data {
+	float y[3];	/* Gyro measurements */
+	float u[3];	/* Actuator desired */
+
+	uint32_t raw_time;	/* From PIOS_DELAY_GetRaw() */
+};
 
 // Private variables
 static struct pios_thread *taskHandle;
 static bool module_enabled;
 
+static circ_queue_t at_queue;
+static volatile uint32_t at_points_spilled;
+
 // Private functions
 static void AutotuneTask(void *parameters);
 static void af_predict(float X[AF_NUMX], float P[AF_NUMP], const float u_in[3], const float gyro[3], const float dT_s);
 static void af_init(float X[AF_NUMX], float P[AF_NUMP]);
+
+#ifndef AT_QUEUE_NUMELEM
+#define AT_QUEUE_NUMELEM 10
+#endif
 
 /**
  * Initialise the module, called on startup
@@ -84,6 +100,12 @@ int32_t AutotuneInitialize(void)
 
 	if (module_enabled) {
 		SystemIdentInitialize();
+
+		at_queue = circ_queue_new(sizeof(struct at_queued_data),
+				AT_QUEUE_NUMELEM);
+
+		if (!at_queue)
+			module_enabled = false;
 	}
 
 	return 0;
@@ -107,8 +129,47 @@ int32_t AutotuneStart(void)
 
 MODULE_INITCALL(AutotuneInitialize, AutotuneStart)
 
+static void at_new_gyro_data(UAVObjEvent * ev, void *ctx, void *obj, int len) {
+	(void) ev; (void) ctx;
+
+	static bool last_sample_unpushed = 0;
+
+	GyrosData *g = obj;
+
+	PIOS_Assert(len == sizeof(*g));
+
+	if (last_sample_unpushed) {
+		/* Last time we were unable to advance the write pointer.
+		 * Try again, last chance! */
+		if (circ_queue_advance_write(at_queue)) {
+			at_points_spilled++;
+		}
+	}
+
+	struct at_queued_data *q_item = circ_queue_cur_write_pos(at_queue);
+
+	q_item->raw_time = PIOS_DELAY_GetRaw();
+
+	q_item->y[0] = g->x;
+	q_item->y[1] = g->y;
+	q_item->y[2] = g->z;
+
+	ActuatorDesiredData actuators;
+	ActuatorDesiredGet(&actuators);
+
+	q_item->u[0] = actuators.Roll;
+	q_item->u[1] = actuators.Pitch;
+	q_item->u[2] = actuators.Yaw;
+
+	if (circ_queue_advance_write(at_queue) != 0) {
+		last_sample_unpushed = true;
+	} else {
+		last_sample_unpushed = false;
+	}
+}
+
 static void UpdateSystemIdent(const float *X, const float *noise,
-		float dT_s, uint32_t predicts) {
+		float dT_s, uint32_t predicts, uint32_t spills) {
 	SystemIdentData relay;
 	relay.Beta[SYSTEMIDENT_BETA_ROLL]    = X[6];
 	relay.Beta[SYSTEMIDENT_BETA_PITCH]   = X[7];
@@ -117,6 +178,7 @@ static void UpdateSystemIdent(const float *X, const float *noise,
 	relay.Bias[SYSTEMIDENT_BIAS_PITCH]   = X[11];
 	relay.Bias[SYSTEMIDENT_BIAS_YAW]     = X[12];
 	relay.Tau                            = X[9];
+
 	if (noise) {
 		relay.Noise[SYSTEMIDENT_NOISE_ROLL]  = noise[0];
 		relay.Noise[SYSTEMIDENT_NOISE_PITCH] = noise[1];
@@ -125,6 +187,8 @@ static void UpdateSystemIdent(const float *X, const float *noise,
 	relay.Period = dT_s * 1000.0f;
 
 	relay.NumAfPredicts = predicts;
+	relay.NumSpilledPts = spills;
+
 	SystemIdentSet(&relay);
 }
 
@@ -163,6 +227,8 @@ static void UpdateStabilizationDesired(bool doingIdent) {
 	StabilizationDesiredSet(&stabDesired);
 }
 
+#define MAX_PTS_PER_CYCLE 4
+
 /**
  * Module thread, should not return.
  */
@@ -179,14 +245,12 @@ static void AutotuneTask(void *parameters)
 	af_init(X,P);
 
 	uint32_t last_time = 0.0f;
-	const uint32_t DT_MS = 3;
+	const uint32_t YIELD_MS = 3;
+
+	GyrosConnectCallback(at_new_gyro_data);
 
 	while(1) {
-
 		PIOS_WDG_UpdateFlag(PIOS_WDG_AUTOTUNE);
-		// TODO:
-		// 1. get from queue
-		// 2. based on whether it is flightstatus or manualcontrol
 
 		uint32_t diff_time;
 
@@ -196,6 +260,7 @@ static void AutotuneTask(void *parameters)
 		static uint32_t update_counter = 0;
 
 		bool doing_ident = false;
+		bool can_sleep = true;
 
 		FlightStatusData flightStatus;
 		FlightStatusGet(&flightStatus);
@@ -207,25 +272,21 @@ static void AutotuneTask(void *parameters)
 			continue;
 		}
 
-		float throttle;
-
-		ManualControlCommandThrottleGet(&throttle);
-				
 		switch(state) {
 			case AT_INIT:
-
 				last_update_time = PIOS_Thread_Systime();
 
 				// Only start when armed and flying
-				if (flightStatus.Armed == FLIGHTSTATUS_ARMED_ARMED && throttle > 0) {
+				if (flightStatus.Armed == FLIGHTSTATUS_ARMED_ARMED) {
 
 					af_init(X,P);
 
-					UpdateSystemIdent(X, NULL, 0.0f, 0);
+					UpdateSystemIdent(X, NULL, 0.0f, 0, 0);
 
 					state = AT_START;
 
 				}
+
 				break;
 
 			case AT_START:
@@ -234,14 +295,22 @@ static void AutotuneTask(void *parameters)
 
 				// Spend the first block of time in normal rate mode to get airborne
 				if (diff_time > PREPARE_TIME) {
+					/* Drain the queue of all current data */
+					while (circ_queue_read_pos(at_queue)) {
+						circ_queue_read_completed(at_queue);
+					}
+
+					/* And reset the point spill counter */
+
+					update_counter = 0;
+					at_points_spilled = 0;
+
 					state = AT_RUN;
 					last_update_time = PIOS_Thread_Systime();
+
+					last_time = PIOS_DELAY_GetRaw();
 				}
 
-
-				last_time = PIOS_DELAY_GetRaw();
-
-				update_counter = 0;
 
 				break;
 
@@ -250,33 +319,42 @@ static void AutotuneTask(void *parameters)
 				diff_time = PIOS_Thread_Systime() - last_update_time;
 
 				doing_ident = true;
+				can_sleep = false;
 
-				// Update the system identification, but only when throttle is applied
-				// so bad values don't result when landing
-				if (throttle > 0) {
-					float y[3];
-					GyrosxGet(y+0);
-					GyrosyGet(y+1);
-					GyroszGet(y+2);
+				for (int i=0; i<MAX_PTS_PER_CYCLE; i++) {
+					struct at_queued_data *pt;
 
-					float u[3];
-					ActuatorDesiredRollGet(u+0);
-					ActuatorDesiredPitchGet(u+1);
-					ActuatorDesiredYawGet(u+2);
+					/* Grab an autotune point */
+					pt = circ_queue_read_pos(at_queue);
 
-					float dT_s = PIOS_DELAY_DiffuS(last_time) * 1.0e-6f;
-
-					af_predict(X,P,u,y, DT_MS * 0.001f);
-					for (uint32_t i = 0; i < 3; i++) {
-						const float NOISE_ALPHA = 0.9997f;  // 10 second time constant at 300 Hz
-						noise[i] = NOISE_ALPHA * noise[i] + (1-NOISE_ALPHA) * (y[i] - X[i]) * (y[i] - X[i]);
+					if (!pt) {
+						/* We've drained the buffer
+						 * fully.  Yay! */
+						can_sleep = true;
+						break;
 					}
+
+					/* calculate time between successive
+					 * points */
+
+					float dT_s = PIOS_DELAY_DiffuS2(last_time,
+							pt->raw_time) * 1.0e-6f;
+
+					af_predict(X, P, pt->u, pt->y, dT_s);
 
 					// Update uavo every 256 cycles to avoid
 					// telemetry spam
 					if (!((update_counter++) & 0xff)) {
-						UpdateSystemIdent(X, noise, dT_s, update_counter);
+						UpdateSystemIdent(X, noise, dT_s, update_counter, at_points_spilled);
 					}
+
+					for (uint32_t i = 0; i < 3; i++) {
+						const float NOISE_ALPHA = 0.9997f;  // 10 second time constant at 300 Hz
+						noise[i] = NOISE_ALPHA * noise[i] + (1-NOISE_ALPHA) * (pt->y[i] - X[i]) * (pt->y[i] - X[i]);
+					}
+
+					/* Free the buffer containing an AT point */
+					circ_queue_read_completed(at_queue);
 				}
 
 				if (diff_time > MEASURE_TIME) { // Move on to next state
@@ -292,20 +370,15 @@ static void AutotuneTask(void *parameters)
 
 				// Wait until disarmed and landed before saving the settings
 
-				UpdateSystemIdent(X, noise, 0, update_counter);
-				if (flightStatus.Armed == FLIGHTSTATUS_ARMED_DISARMED && throttle <= 0)
-					state = AT_SET;
+				UpdateSystemIdent(X, noise, 0, update_counter, at_points_spilled);
 
-				break;
-
-			case AT_SET:
-				// If at some point we want to store the settings at the end of
-				// autotune, that can be done here. However, that will await further
-				// testing.
-
-				// Save the settings locally. Note this is done after disarming.
-				UAVObjSave(SystemIdentHandle(), 0);
-				state = AT_INIT;
+				// TODO do this unconditionally on disarm,
+				// no matter what mode we're in.
+				if (flightStatus.Armed == FLIGHTSTATUS_ARMED_DISARMED) {
+					// Save the settings locally. 
+					UAVObjSave(SystemIdentHandle(), 0);
+					state = AT_INIT;
+				}
 				break;
 
 			default:
@@ -316,7 +389,9 @@ static void AutotuneTask(void *parameters)
 		// Update based on manual controls
 		UpdateStabilizationDesired(doing_ident);
 
-		PIOS_Thread_Sleep(DT_MS);
+		if (can_sleep) {
+			PIOS_Thread_Sleep(YIELD_MS);
+		}
 	}
 }
 
@@ -328,17 +403,8 @@ static void AutotuneTask(void *parameters)
  * @param[in] the current control inputs (roll, pitch, yaw)
  * @param[in] the gyro measurements
  */
-/**
- * Prediction step for EKF on control inputs to quad that
- * learns the system properties
- * @param X the current state estimate which is updated in place
- * @param P the current covariance matrix, updated in place
- * @param[in] the current control inputs (roll, pitch, yaw)
- * @param[in] the gyro measurements
- */
 __attribute__((always_inline)) static inline void af_predict(float X[AF_NUMX], float P[AF_NUMP], const float u_in[3], const float gyro[3], const float dT_s)
 {
-
 	const float Ts = dT_s;
 	const float Tsq = Ts * Ts;
 	const float Tsq3 = Tsq * Ts;
@@ -522,8 +588,8 @@ __attribute__((always_inline)) static inline void af_predict(float X[AF_NUMX], f
 	// apply limits to some of the state variables
 	if (X[9] > -1.5f)
 	    X[9] = -1.5f;
-	if (X[9] < -5.0f)
-	    X[9] = -5.0f;
+	if (X[9] < -5.5f)		/* 4ms */
+	    X[9] = -5.5f;
 	if (X[10] > 0.5f)
 	    X[10] = 0.5f;
 	if (X[10] < -0.5f)
