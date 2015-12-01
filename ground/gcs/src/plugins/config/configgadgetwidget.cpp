@@ -125,6 +125,12 @@ ConfigGadgetWidget::ConfigGadgetWidget(QWidget *parent) : QWidget(parent)
     qwd = new ConfigTxPIDWidget(this);
     ftw->insertTab(ConfigGadgetWidget::txpid, qwd, *icon, QString("TxPID"));
 
+    icon = new QIcon();
+    icon->addFile(":/configgadget/images/osd_normal.png", QSize(), QIcon::Normal, QIcon::Off);
+    icon->addFile(":/configgadget/images/osd_selected.png", QSize(), QIcon::Selected, QIcon::Off);
+    qwd = new ConfigOsdWidget(this);
+    ftw->insertTab(ConfigGadgetWidget::osd, qwd, *icon, QString("OSD"));
+
     ftw->setCurrentIndex(ConfigGadgetWidget::hardware);
     // *********************
     // Listen to autopilot connection events
