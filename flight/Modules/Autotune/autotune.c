@@ -295,6 +295,8 @@ static void AutotuneTask(void *parameters)
 
 				// Spend the first block of time in normal rate mode to get airborne
 				if (diff_time > PREPARE_TIME) {
+					last_time = PIOS_DELAY_GetRaw();
+
 					/* Drain the queue of all current data */
 					while (circ_queue_read_pos(at_queue)) {
 						circ_queue_read_completed(at_queue);
@@ -307,8 +309,6 @@ static void AutotuneTask(void *parameters)
 
 					state = AT_RUN;
 					last_update_time = PIOS_Thread_Systime();
-
-					last_time = PIOS_DELAY_GetRaw();
 				}
 
 
@@ -340,6 +340,14 @@ static void AutotuneTask(void *parameters)
 					float dT_s = PIOS_DELAY_DiffuS2(last_time,
 							pt->raw_time) * 1.0e-6f;
 
+					/* This is for the first point, but
+					 * also if we have extended drops */
+					if (dT_s > 0.010f) {
+						dT_s = 0.010f;
+					}
+
+					last_time = pt->raw_time;
+
 					af_predict(X, P, pt->u, pt->y, dT_s);
 
 					// Update uavo every 256 cycles to avoid
@@ -361,8 +369,6 @@ static void AutotuneTask(void *parameters)
 					state = AT_FINISHED;
 					last_update_time = PIOS_Thread_Systime();
 				}
-
-				last_time = PIOS_DELAY_GetRaw();
 
 				break;
 
