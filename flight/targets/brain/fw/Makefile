@@ -312,7 +312,7 @@ CFLAGS += -ffunction-sections -fdata-sections
 CFLAGS += -Wdouble-promotion
 
 CFLAGS += -Wall
-#CFLAGS += -Werror
+CFLAGS += -Werror
 CFLAGS += -Wa,-adhlns=$(addprefix $(OUTDIR)/, $(notdir $(addsuffix .lst, $(basename $<))))
 # Compiler flags to generate dependency files:
 CFLAGS += -MD -MP -MF $(OUTDIR)/dep/$(@F).d
