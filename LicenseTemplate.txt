@@ -1,7 +1,7 @@
 /**
  ******************************************************************************
  * @file       %FILENAME%
- * @author     dRonin, Copyright (C) 2015
+ * @author     dRonin, http://dRonin.org/, Copyright (C) 2015
  * @addtogroup [Group]
  * @{
  * @addtogroup %CLASS%

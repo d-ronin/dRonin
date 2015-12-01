@@ -6,8 +6,9 @@
  * @{
  *
  * @file       autotune.c
- * @author     The OpenPilot Team, http://www.openpilot.org Copyright (C) 2012.
+ * @author     dRonin, http://dRonin.org, Copyright (C) 2015
  * @author     Tau Labs, http://taulabs.org, Copyright (C) 2013-2014
+ * @author     The OpenPilot Team, http://www.openpilot.org Copyright (C) 2012.
  * @brief      State machine to run autotuning. Low level work done by @ref
  *             StabilizationModule 
  *
