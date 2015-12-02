@@ -472,7 +472,8 @@ CFLAGS += -mapcs-frame
 CFLAGS += -fomit-frame-pointer
 
 CFLAGS += -Wall
-CFLAGS += -Werror
+CFLAGS += -fstack-usage
+#CFLAGS += -Werror
 CFLAGS += -ffunction-sections -fdata-sections
 CFLAGS += -Wdouble-promotion
 CFLAGS += -Wa,-adhlns=$(addprefix $(OUTDIR)/, $(notdir $(addsuffix .lst, $(basename $<))))
