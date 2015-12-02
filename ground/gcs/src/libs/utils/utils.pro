@@ -58,7 +58,7 @@ SOURCES += reloadpromptutils.cpp \
     mytabwidget.cpp \
     svgimageprovider.cpp \
     phpbb.cpp \
-    foruminteractionform.cpp
+    autotuneshareform.cpp
 
 SOURCES += xmlconfig.cpp
 
@@ -115,7 +115,7 @@ HEADERS += utils_global.h \
     mytabwidget.h \
     svgimageprovider.h \
     phpbb.h \
-    foruminteractionform.h
+    autotuneshareform.h
 
 
 HEADERS += xmlconfig.h
@@ -125,6 +125,6 @@ FORMS += filewizardpage.ui \
     newclasswidget.ui \
     submiteditorwidget.ui \
     checkablemessagebox.ui \
-    foruminteractionform.ui
+    autotuneshareform.ui
 
 RESOURCES += utils.qrc

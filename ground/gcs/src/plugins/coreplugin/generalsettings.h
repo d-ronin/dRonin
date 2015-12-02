@@ -65,15 +65,23 @@ public:
     void readSettings(QSettings* qs);
     void saveSettings(QSettings* qs);
     bool useExpertMode() const;
-    QString getForumUser() const;
-    QString getForumPassword() const;
-    void setForumUser(QString);
-    void setForumPassword(QString);
     QNetworkProxy getNetworkProxy();
     void setObservations(QString value);
-    void setAircraftDescription(QString value);
     QString getObservations();
-    QString getAircraftDescription();
+    void setVehicleType(QString type);
+    QString getVehicleType();
+    void setBoardType(QString type);
+    QString getBoardType();
+    void setWeight(int weight);
+    int getWeight();
+    void setVehicleSize(int spacing);
+    int getVehicleSize();
+    void setBatteryCells(int cells);
+    int getBatteryCells();
+    void setMotors(QString motors);
+    QString getMotors();
+    void setESCs(QString escs);
+    QString getESCs();
 signals:
     void generalSettingsChanged();
 private slots:
@@ -101,10 +109,14 @@ private:
     QString m_proxyHostname;
     QString m_proxyUser;
     QString m_proxyPassword;
-    QString m_forumUser;
-    QString m_forumPassword;
     QString m_observations;
-    QString m_aircraft;
+    QString m_vehicle;
+    QString m_board;
+    int m_weight;
+    int m_size;
+    int m_cells;
+    QString m_motors;
+    QString m_escs;
     bool m_useSessionManaging;
 };
 } // namespace Internal
