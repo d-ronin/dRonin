@@ -33,13 +33,13 @@ struct circ_queue {
 	 */
 
 	/* This is declared as a uint32_t for alignment reasons. */
-	uint32_t contents[];		/**< Contents of the circula queue */
+	uint32_t contents[];		/**< Contents of the circular queue */
 };
 
 /** Allocate a new circular queue.
  * @param[in] elem_size The size of each element, as obtained from sizeof().
  * @param[in] num_elem The number of elements in the queue.  The capacity is
- * one less than this (it may not be completely filled.
+ * one less than this (it may not be completely filled).
  * @returns The handle to the circular queue.
  */
 circ_queue_t circ_queue_new(uint16_t elem_size, uint16_t num_elem) {
@@ -141,7 +141,7 @@ void circ_queue_read_completed(circ_queue_t q) {
 
 	/* If this is being called, the queue had better not be empty--
 	 * we're supposed to finish consuming this element after a prior call
-	 * to circ_queue_read_pos
+	 * to circ_queue_read_pos.
 	 */
 	PIOS_Assert(read_tail != q->write_head);
 
