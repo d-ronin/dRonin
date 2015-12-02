@@ -170,3 +170,29 @@ TEST_F(CircQueueTest, CircQueueFillUp) {
 
   EXPECT_FALSE(pos);
 }
+
+TEST_F(CircQueueTest, CircQueueSpin) {
+  circ_queue_t q = circ_queue_new(sizeof(int), 99);
+
+  int write_val=10, read_val=10;
+
+  for (int stride=80; stride<99; stride++) {
+    for (int i=0; i<120; i++) {
+      for (int j=0; j<stride; j++) {
+	int *writepos = (int *)circ_queue_cur_write_pos(q);
+	*writepos = write_val++;
+	int ret = circ_queue_advance_write(q);
+	EXPECT_FALSE(ret);
+      }
+
+      for (int j=0; j<stride; j++) {
+	int *readpos = (int *) circ_queue_read_pos(q);
+	ASSERT_TRUE(readpos);
+	EXPECT_EQ(*readpos, read_val);
+	read_val++;
+
+	circ_queue_read_completed(q);
+      }
+    }
+  }
+}
