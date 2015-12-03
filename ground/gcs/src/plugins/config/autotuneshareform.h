@@ -65,7 +65,7 @@ public:
     QString getESCs();
     void setProps(QString props);
     QString getProps();
-    void disableProgress(bool disabled);
+    void hideProgress(bool hide);
     void disableClipboard(bool disabled);
     void disableDatabase(bool disabled);
 

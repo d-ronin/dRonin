@@ -35,6 +35,8 @@ AutotuneShareForm::AutotuneShareForm(QWidget *parent) :
     ui(new Ui::AutotuneShareForm)
 {
     ui->setupUi(this);
+    // progress bar is hidden by default
+    hideProgress(true);
     connect(ui->btnClipboard, SIGNAL(clicked()), this, SLOT(onClipboardClicked()));
     connect(ui->btnDatabase, SIGNAL(clicked()), this, SLOT(onDatabaseClick()));
 }
@@ -158,27 +160,12 @@ void AutotuneShareForm::disableBoardType(bool disable)
     ui->acBoard->setDisabled(disable);
 }
 
-void AutotuneShareForm::disableProgress(bool disabled)
+void AutotuneShareForm::hideProgress(bool hide)
 {
-    if (!disabled) {
-        if (!findChild<QProgressBar*>("progress")) {
-            QDialogButtonBox *btnBar = findChild<QDialogButtonBox*>("btnBar");
-            // take the button out
-            if (btnBar)
-                ui->mainLayout->removeWidget(btnBar);
-            QProgressBar *progress = new QProgressBar();
-            progress->setObjectName("progress");
-            ui->mainLayout->addWidget(progress);
-            // and put it below the progress, so that nothing shifts
-            if (btnBar)
-                ui->mainLayout->addWidget(btnBar);
-        }
-    }
-    else {
-        QProgressBar *progress = findChild<QProgressBar*>("progress");
-        if (progress)
-            ui->mainLayout->removeWidget(progress);
-    }
+    if(hide)
+        ui->progress->hide();
+    else
+        ui->progress->show();
 }
 
 void AutotuneShareForm::setProgress(qint64 value, qint64 total)

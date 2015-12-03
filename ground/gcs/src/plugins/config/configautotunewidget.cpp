@@ -162,7 +162,7 @@ void ConfigAutotuneWidget::onShareToDatabase()
     // save data for next time the form is used
     saveUserData();
 
-    autotuneShareForm->disableProgress(false);
+    autotuneShareForm->hideProgress(false);
     autotuneShareForm->setProgress(0, 0);
 
     QJsonDocument json = getResultsJson();
@@ -184,6 +184,8 @@ void ConfigAutotuneWidget::onShareToDatabaseComplete(QNetworkReply *reply)
     disconnect(reply, SIGNAL(uploadProgress(qint64,qint64)), autotuneShareForm, SLOT(setProgress(qint64,qint64)));
     if(reply->error() != QNetworkReply::NoError) {
         qWarning() << "[ConfigAutotuneWidget::onShareToDatabaseComplete]HTTP Error: " << reply->errorString();
+        autotuneShareForm->hideProgress(true);
+        autotuneShareForm->disableDatabase(false);
         QMessageBox msgBox;
         msgBox.setText("An error occured!");
         msgBox.setInformativeText("Your results could not be shared to the database. Please try again later.");
@@ -192,8 +194,6 @@ void ConfigAutotuneWidget::onShareToDatabaseComplete(QNetworkReply *reply)
                                .arg(reply->errorString()));
         msgBox.setIcon(QMessageBox::Icon::Critical);
         msgBox.exec();
-        autotuneShareForm->setProgress(0, 0);
-        autotuneShareForm->disableDatabase(false);
     }
     else {
         autotuneShareForm->setProgress(100, 100);
