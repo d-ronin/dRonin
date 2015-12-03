@@ -1,5 +1,5 @@
 include(../../gcs.pri)
-QT       += core gui
+QT       += core gui network
 
 greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 
@@ -7,7 +7,7 @@ TARGET = crashreporterapp
 TEMPLATE = app
 DESTDIR = $$GCS_APP_PATH
 
-include(../libs/utils/utils.pri)
+#include(../libs/utils/utils.pri)
 
 SOURCES += main.cpp\
         mainwindow.cpp
