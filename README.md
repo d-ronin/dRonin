@@ -18,6 +18,6 @@ dRonin' is production ready and released under the GPL.
 
 ### Limited Support
 
-- DiscoveryF3 and DiscoveryF4 evaluation boards from ST Micro (informal support only)
+- DiscoveryF3 evaluation boards from ST Micro (informal support only)
 - Naze32 (non-navigation functionality)
 - OpenPilot CC3D (non-navigation functionality)
