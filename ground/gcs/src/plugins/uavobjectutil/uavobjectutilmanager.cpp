@@ -705,8 +705,9 @@ bool UAVObjectUtilManager::descriptionToStructure(QByteArray desc, deviceDescrip
        struc.uavoHash.clear();
        struc.uavoHash=desc.mid(60,20);
 
-       // The git tag format used for releases is yyyymmdd
-       QRegularExpression certifiedPattern("^20[0-9]{6}$");
+       // The git tag format used for releases is Release-yyyymmdd, optionally with a suffix
+       // .[0-9] to allow multiple tags on the same day e.g. if a bug is discovered immediately
+       QRegularExpression certifiedPattern("^Release-20[0-9]{6}(\\.[0-9])?$");
        if (certifiedPattern.match(struc.gitTag).hasMatch())
            struc.certified = true;
        else
