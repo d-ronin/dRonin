@@ -32,11 +32,10 @@
 #include <QDebug>
 #include <QDateTime>
 #include <QFileDialog>
-#include "utils/phpbb.h"
 #include <QMessageBox>
+#include <QtNetwork/QtNetwork>
 
-#define FORUM_SHARING_FORUM 26
-#define FORUM_SHARING_THREAD 830
+const QString MainWindow::postUrl = QString("http://dronin-autotown.appspot.com/storeCrash");
 
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
@@ -53,7 +52,6 @@ MainWindow::MainWindow(QWidget *parent) :
     connect(ui->pb_CancelSend, SIGNAL(clicked(bool)), this, SLOT(onCancelSend()));
     connect(ui->pb_OK, SIGNAL(clicked(bool)), this, SLOT(onOkSend()));
     connect(ui->pb_SendReport, SIGNAL(clicked(bool)), this, SLOT(onSendReport()));
-
 }
 
 MainWindow::~MainWindow()
@@ -90,32 +88,46 @@ void MainWindow::onOkSend()
 void MainWindow::onSendReport()
 {
     ui->stackedWidget->setCurrentIndex(2);
-    Utils::PHPBB php("http://forum.taulabs.org", this);
-    if (!php.login(ui->le_Username->text(), ui->le_Password->text())) {
-       QMessageBox::warning(this, tr("Forum login"), tr("Forum login failed, probably wrong username or password"));
-       ui->stackedWidget->setCurrentIndex(1);
-       return;
-    }
-    QList<Utils::PHPBB::fileAttachment> list;
-    Utils::PHPBB::fileAttachment fileAttach;
-    fileAttach.fileComment = "Crash Report";
+
+    // give some time to make sure the dump is written
+    // sometimes get 0 length without a wait here
+    QThread::msleep(500);
+
     QFile file(dumpFile);
     file.open(QIODevice::ReadOnly);
-    fileAttach.fileData = file.readAll();
-    fileAttach.fileName = QFileInfo(file).fileName();
-    QString idTxt = QFileInfo(file).absolutePath();
-    idTxt = idTxt.split("/").last();
-    fileAttach.fileTypeSpec = "application/vnd.tcpdump.pcap";
-    list.append(fileAttach);
-    connect(&php, SIGNAL(uploadProgress(qint64,qint64)), SLOT(onUploadProgress(qint64,qint64)));
-    if(php.postReply(FORUM_SHARING_FORUM, FORUM_SHARING_THREAD, "",  "Crash report for " + idTxt + "\n" + ui->te_Description->toPlainText(), list)) {
-        QMessageBox::information(this, tr("Crash report sent"), tr("Thank you!"));
-        ui->stackedWidget->setCurrentIndex(0);
-        this->close();
-    } else {
+    QByteArray dumpData = file.readAll();
+
+    QJsonObject json;
+    json["dataVersion"] = 1;
+    json["dump"] = QString(dumpData.toBase64());
+    json["comment"] = ui->te_Description->toPlainText();
+    json["directory"] = QFileInfo(file).absolutePath().split("/").last();
+
+    QUrl url(postUrl);
+    QNetworkRequest request(url);
+    request.setHeader(QNetworkRequest::ContentTypeHeader, "application/json; charset=utf-8");
+    QNetworkAccessManager *manager = new QNetworkAccessManager(this);
+
+    connect(manager, SIGNAL(finished(QNetworkReply*)), this, SLOT(onSendFinished(QNetworkReply*)));
+
+    QNetworkReply *reply = manager->post(request, QJsonDocument(json).toJson());
+
+    connect(reply, SIGNAL(uploadProgress(qint64,qint64)), this, SLOT(onUploadProgress(qint64,qint64)));
+}
+
+void MainWindow::onSendFinished(QNetworkReply *reply)
+{
+    if(reply->error() != QNetworkReply::NoError) {
+        qWarning() << "[MainWindow::onSendFinished]HTTP Error: " << reply->errorString();
         QMessageBox::warning(this, tr("Could not send the crash report"), tr("Ooops, something went wrong"));
         ui->stackedWidget->setCurrentIndex(0);
     }
+    else {
+        QMessageBox::information(this, tr("Crash report sent"), tr("Thank you!"));
+        ui->stackedWidget->setCurrentIndex(0);
+        this->close();
+    }
+    reply->deleteLater();
 }
 
 void MainWindow::onCancelSend()

@@ -29,6 +29,7 @@
 
 #include <QMainWindow>
 #include <QFile>
+#include <QtNetwork/QNetworkReply>
 
 namespace Ui {
 class MainWindow;
@@ -46,6 +47,8 @@ public:
 private:
     Ui::MainWindow *ui;
     QString dumpFile;
+    static const QString postUrl;
+
 private slots:
     void onShowReport();
     void onSaveReport();
@@ -53,6 +56,7 @@ private slots:
     void onSendReport();
     void onCancelSend();
     void onUploadProgress(qint64, qint64);
+    void onSendFinished(QNetworkReply* reply);
 };
 
 #endif // MAINWINDOW_H
