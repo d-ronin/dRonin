@@ -38,19 +38,20 @@
 #include <QDesktopServices>
 #include <QUrl>
 #include <QList>
+#include <QMessageBox>
+#include <QClipboard>
+#include <QtNetwork/QNetworkAccessManager>
+#include <QtNetwork/QNetworkRequest>
 #include "systemident.h"
 #include "stabilizationsettings.h"
 #include "modulesettings.h"
 #include "systemsettings.h"
 #include "coreplugin/generalsettings.h"
-#include "utils/phpbb.h"
 #include "extensionsystem/pluginmanager.h"
 #include "coreplugin/iboardtype.h"
-#include <QMessageBox>
-#include <QClipboard>
 
 
-const QString ConfigAutotuneWidget::databaseUrl = QString("http://");
+const QString ConfigAutotuneWidget::databaseUrl = QString("http://dronin-autotown.appspot.com/storeTune");
 
 
 ConfigAutotuneWidget::ConfigAutotuneWidget(QWidget *parent) :
@@ -116,7 +117,7 @@ void ConfigAutotuneWidget::saveStabilization()
 
 void ConfigAutotuneWidget::onShareData()
 {
-    autotuneShareForm = new Utils::AutotuneShareForm(this);
+    autotuneShareForm = new AutotuneShareForm(this);
     connect(autotuneShareForm, SIGNAL(finished(int)), this, SLOT(onShareFinished(int)));
     connect(autotuneShareForm, SIGNAL(ClipboardRequest()), this, SLOT(onShareToClipboard()));
     connect(autotuneShareForm, SIGNAL(DatabaseRequest()), this, SLOT(onShareToDatabase()));
@@ -159,18 +160,45 @@ void ConfigAutotuneWidget::onShareFinished(int value)
 
 void ConfigAutotuneWidget::onShareToDatabase()
 {
+    autotuneShareForm->disableDatabase(true);
     // save data for next time the form is used
     saveUserData();
 
+    autotuneShareForm->disableProgress(false);
+    autotuneShareForm->setProgress(20);
+
     QJsonDocument json = getResultsJson();
 
-    autotuneShareForm->disableProgress(false);
-    autotuneShareForm->setProgress(0);
-    // TODO: send this somewhere
-    Q_UNUSED(json);
+    QUrl url(databaseUrl);
+    QNetworkRequest request(url);
+    request.setHeader(QNetworkRequest::ContentTypeHeader, "application/json; charset=utf-8");
+    QNetworkAccessManager *manager = new QNetworkAccessManager(this);
 
-    // TODO: show progress?
-    autotuneShareForm->setProgress(100);
+    connect(manager, SIGNAL(finished(QNetworkReply*)),
+                this, SLOT(onShareToDatabaseComplete(QNetworkReply*)));
+
+    manager->post(request, json.toJson());
+}
+
+void ConfigAutotuneWidget::onShareToDatabaseComplete(QNetworkReply *reply)
+{
+    if(reply->error() != QNetworkReply::NoError) {
+        qWarning() << "[ConfigAutotuneWidget::onShareToDatabaseComplete]HTTP Error: " << reply->errorString();
+        QMessageBox msgBox;
+        msgBox.setText("An error occured!");
+        msgBox.setInformativeText("Your results could not be shared to the database. Please try again later.");
+        msgBox.setDetailedText(QString("URL: %1\nReply: %2\n")
+                               .arg(reply->url().toString())
+                               .arg(reply->errorString()));
+        msgBox.setIcon(QMessageBox::Icon::Critical);
+        msgBox.exec();
+        autotuneShareForm->setProgress(0);
+        autotuneShareForm->disableDatabase(false);
+    }
+    else {
+        autotuneShareForm->setProgress(100);
+        // database share button remains disabled, no need to send twice
+    }
 }
 
 void ConfigAutotuneWidget::onShareToClipboard()

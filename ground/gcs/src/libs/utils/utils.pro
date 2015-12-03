@@ -57,8 +57,7 @@ SOURCES += reloadpromptutils.cpp \
     mytabbedstackwidget.cpp \
     mytabwidget.cpp \
     svgimageprovider.cpp \
-    phpbb.cpp \
-    autotuneshareform.cpp
+    phpbb.cpp
 
 SOURCES += xmlconfig.cpp
 
@@ -114,8 +113,7 @@ HEADERS += utils_global.h \
     mytabbedstackwidget.h \
     mytabwidget.h \
     svgimageprovider.h \
-    phpbb.h \
-    autotuneshareform.h
+    phpbb.h
 
 
 HEADERS += xmlconfig.h
@@ -124,7 +122,6 @@ FORMS += filewizardpage.ui \
     projectintropage.ui \
     newclasswidget.ui \
     submiteditorwidget.ui \
-    checkablemessagebox.ui \
-    autotuneshareform.ui
+    checkablemessagebox.ui
 
 RESOURCES += utils.qrc

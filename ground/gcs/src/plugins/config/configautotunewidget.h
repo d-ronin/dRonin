@@ -37,7 +37,8 @@
 #include "systemident.h"
 #include <QWidget>
 #include <QTimer>
-#include "utils/autotuneshareform.h"
+#include <QtNetwork/QNetworkReply>
+#include "autotuneshareform.h"
 
 class ConfigAutotuneWidget : public ConfigTaskWidget
 {
@@ -49,7 +50,7 @@ private:
     Ui_AutotuneWidget *m_autotune;
     StabilizationSettings::DataFields stabSettings;
     UAVObjectUtilManager* utilMngr;
-    Utils::AutotuneShareForm *autotuneShareForm;
+    AutotuneShareForm *autotuneShareForm;
 
     bool approveSettings(SystemIdent::DataFields systemIdentData);
     QJsonDocument getResultsJson();
@@ -71,6 +72,7 @@ private slots:
     void onShareToDatabase();
     void onShareToClipboard();
     void onShareFinished(int value);
+    void onShareToDatabaseComplete(QNetworkReply *reply);
 };
 
 #endif // CONFIGAUTOTUNE_H

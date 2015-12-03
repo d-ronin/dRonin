@@ -3,9 +3,9 @@
  * @file       autotuneshareform.h
  * @author     dRonin, http://dronin.org, Copyright (C) 2015
  * @author     Tau Labs, http://taulabs.org, Copyright (C) 2014
- * @addtogroup Utils
+ * @addtogroup GCSPlugins GCS Plugins
  * @{
- * @addtogroup AutotuneShareForm
+ * @addtogroup ConfigPlugin Config Plugin
  * @{
  * @brief Utility to present a form to the user where he can input his
  * aircraft details
@@ -31,15 +31,12 @@
 
 #include <QDialog>
 #include <QComboBox>
-#include "utils_global.h"
 
 namespace Ui {
 class AutotuneShareForm;
 }
 
-namespace Utils {
-
-class QTCREATOR_UTILS_EXPORT AutotuneShareForm : public QDialog
+class AutotuneShareForm : public QDialog
 {
     Q_OBJECT
 
@@ -67,6 +64,8 @@ public:
     QString getESCs();
     void setProgress(int value);
     void disableProgress(bool disabled);
+    void disableClipboard(bool disabled);
+    void disableDatabase(bool disabled);
 
 signals:
     void ClipboardRequest();
@@ -81,5 +80,4 @@ private:
     void replaceItems(QComboBox* cb, const QStringList &items);
 };
 
-}
 #endif // AUTOTUNESHAREFORM_H

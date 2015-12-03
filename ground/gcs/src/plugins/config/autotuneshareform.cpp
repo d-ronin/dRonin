@@ -3,9 +3,9 @@
  * @file       autotuneshareform.h
  * @author     dRonin, http://dronin.org, Copyright (C) 2015
  * @author     Tau Labs, http://taulabs.org, Copyright (C) 2014
- * @addtogroup Utils
+ * @addtogroup GCSPlugins GCS Plugins
  * @{
- * @addtogroup AutotuneShareForm
+ * @addtogroup ConfigPlugin Config Plugin
  * @{
  * @brief Utility to present a form to the user where he can input his
  * aircraft details
@@ -28,8 +28,6 @@
 
 #include "autotuneshareform.h"
 #include "ui_autotuneshareform.h"
-
-namespace Utils {
 
 AutotuneShareForm::AutotuneShareForm(QWidget *parent) :
     QDialog(parent),
@@ -159,6 +157,16 @@ void AutotuneShareForm::disableProgress(bool disabled)
     ui->progressBar->setDisabled(disabled);
 }
 
+void AutotuneShareForm::disableClipboard(bool disabled)
+{
+    ui->btnClipboard->setDisabled(disabled);
+}
+
+void AutotuneShareForm::disableDatabase(bool disabled)
+{
+    ui->btnDatabase->setDisabled(disabled);
+}
+
 void AutotuneShareForm::onClipboardClicked()
 {
     emit ClipboardRequest();
@@ -167,6 +175,4 @@ void AutotuneShareForm::onClipboardClicked()
 void AutotuneShareForm::onDatabaseClick()
 {
     emit DatabaseRequest();
-}
-
 }
