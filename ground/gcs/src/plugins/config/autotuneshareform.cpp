@@ -28,6 +28,7 @@
 
 #include "autotuneshareform.h"
 #include "ui_autotuneshareform.h"
+#include <QDebug>
 
 AutotuneShareForm::AutotuneShareForm(QWidget *parent) :
     QDialog(parent),
@@ -137,6 +138,16 @@ QString AutotuneShareForm::getESCs()
     return ui->acEscs->text();
 }
 
+void AutotuneShareForm::setProps(QString props)
+{
+    ui->acProps->setText(props);
+}
+
+QString AutotuneShareForm::getProps()
+{
+    return ui->acProps->text();
+}
+
 void AutotuneShareForm::disableVehicleType(bool disable)
 {
     ui->acType->setDisabled(disable);
@@ -147,14 +158,36 @@ void AutotuneShareForm::disableBoardType(bool disable)
     ui->acBoard->setDisabled(disable);
 }
 
-void AutotuneShareForm::setProgress(int value)
-{
-    ui->progressBar->setValue(value);
-}
-
 void AutotuneShareForm::disableProgress(bool disabled)
 {
-    ui->progressBar->setDisabled(disabled);
+    if (!disabled) {
+        if (!findChild<QProgressBar*>("progress")) {
+            QDialogButtonBox *btnBar = findChild<QDialogButtonBox*>("btnBar");
+            // take the button out
+            if (btnBar)
+                ui->mainLayout->removeWidget(btnBar);
+            QProgressBar *progress = new QProgressBar();
+            progress->setObjectName("progress");
+            ui->mainLayout->addWidget(progress);
+            // and put it below the progress, so that nothing shifts
+            if (btnBar)
+                ui->mainLayout->addWidget(btnBar);
+        }
+    }
+    else {
+        QProgressBar *progress = findChild<QProgressBar*>("progress");
+        if (progress)
+            ui->mainLayout->removeWidget(progress);
+    }
+}
+
+void AutotuneShareForm::setProgress(qint64 value, qint64 total)
+{
+    QProgressBar *progress = findChild<QProgressBar*>("progress");
+    if (progress) {
+        progress->setMaximum(total);
+        progress->setValue(value);
+    }
 }
 
 void AutotuneShareForm::disableClipboard(bool disabled)

@@ -53,7 +53,6 @@
 
 const QString ConfigAutotuneWidget::databaseUrl = QString("http://dronin-autotown.appspot.com/storeTune");
 
-
 ConfigAutotuneWidget::ConfigAutotuneWidget(QWidget *parent) :
     ConfigTaskWidget(parent)
 {
@@ -117,8 +116,8 @@ void ConfigAutotuneWidget::saveStabilization()
 
 void ConfigAutotuneWidget::onShareData()
 {
-    autotuneShareForm = new AutotuneShareForm(this);
-    connect(autotuneShareForm, SIGNAL(finished(int)), this, SLOT(onShareFinished(int)));
+    autotuneShareForm = new AutotuneShareForm();
+    connect(autotuneShareForm, SIGNAL(finished()), this, SLOT(onShareFinished()));
     connect(autotuneShareForm, SIGNAL(ClipboardRequest()), this, SLOT(onShareToClipboard()));
     connect(autotuneShareForm, SIGNAL(DatabaseRequest()), this, SLOT(onShareToDatabase()));
 
@@ -152,9 +151,8 @@ void ConfigAutotuneWidget::onShareData()
     autotuneShareForm->activateWindow();
 }
 
-void ConfigAutotuneWidget::onShareFinished(int value)
+void ConfigAutotuneWidget::onShareFinished()
 {
-    Q_UNUSED(value);
     autotuneShareForm->deleteLater();
 }
 
@@ -165,7 +163,7 @@ void ConfigAutotuneWidget::onShareToDatabase()
     saveUserData();
 
     autotuneShareForm->disableProgress(false);
-    autotuneShareForm->setProgress(20);
+    autotuneShareForm->setProgress(0, 0);
 
     QJsonDocument json = getResultsJson();
 
@@ -177,11 +175,13 @@ void ConfigAutotuneWidget::onShareToDatabase()
     connect(manager, SIGNAL(finished(QNetworkReply*)),
                 this, SLOT(onShareToDatabaseComplete(QNetworkReply*)));
 
-    manager->post(request, json.toJson());
+    QNetworkReply *reply = manager->post(request, json.toJson());
+    connect(reply, SIGNAL(uploadProgress(qint64,qint64)), autotuneShareForm, SLOT(setProgress(qint64,qint64)));
 }
 
 void ConfigAutotuneWidget::onShareToDatabaseComplete(QNetworkReply *reply)
 {
+    disconnect(reply, SIGNAL(uploadProgress(qint64,qint64)), autotuneShareForm, SLOT(setProgress(qint64,qint64)));
     if(reply->error() != QNetworkReply::NoError) {
         qWarning() << "[ConfigAutotuneWidget::onShareToDatabaseComplete]HTTP Error: " << reply->errorString();
         QMessageBox msgBox;
@@ -192,13 +192,14 @@ void ConfigAutotuneWidget::onShareToDatabaseComplete(QNetworkReply *reply)
                                .arg(reply->errorString()));
         msgBox.setIcon(QMessageBox::Icon::Critical);
         msgBox.exec();
-        autotuneShareForm->setProgress(0);
+        autotuneShareForm->setProgress(0, 0);
         autotuneShareForm->disableDatabase(false);
     }
     else {
-        autotuneShareForm->setProgress(100);
+        autotuneShareForm->setProgress(100, 100);
         // database share button remains disabled, no need to send twice
     }
+    reply->deleteLater();
 }
 
 void ConfigAutotuneWidget::onShareToClipboard()
@@ -225,6 +226,7 @@ void ConfigAutotuneWidget::loadUserData()
     autotuneShareForm->setBatteryCells(settings->getBatteryCells());
     autotuneShareForm->setMotors(settings->getMotors());
     autotuneShareForm->setESCs(settings->getESCs());
+    autotuneShareForm->setProps(settings->getProps());
 }
 
 void ConfigAutotuneWidget::saveUserData()
@@ -239,6 +241,7 @@ void ConfigAutotuneWidget::saveUserData()
     settings->setBatteryCells(autotuneShareForm->getBatteryCells());
     settings->setMotors(autotuneShareForm->getMotors());
     settings->setESCs(autotuneShareForm->getESCs());
+    settings->setProps(autotuneShareForm->getProps());
 }
 
 /**
@@ -420,10 +423,6 @@ QString ConfigAutotuneWidget::getResultsPlainText()
 {
     deviceDescriptorStruct firmware;
     utilMngr->getBoardDescriptionStruct(firmware);
-    Core::IBoardType* board = utilMngr->getBoardType();
-    QString boardName;
-    if (board)
-        boardName = board->shortName();
 
     SystemSettings *sysSettings = SystemSettings::GetInstance(getObjectManager());
     UAVObjectField *afTypeField = sysSettings->getField("AirframeType");
@@ -438,15 +437,16 @@ QString ConfigAutotuneWidget::getResultsPlainText()
                 "Firmware tag:\t\t%1\n"
                 "Firmware commit:\t%2\n"
                 "Firmware date:\t\t%3\n\n"
-                "Aircraft description:\n"
+                "Vehicle description:\n"
                 "Type:\t\t\t%4\n"
                 "Weight (AUW):\t%5 g\n"
                 "Size:\t\t\t%6\n"
                 "Battery:\t\t%7S\n"
                 "Motors:\t\t\t%8\n"
-                "ESCs:\t\t\t%9\n\n"
-                "Observations:\n%10\n\n")
-            .arg(boardName) // 0
+                "ESCs:\t\t\t%9\n"
+                "Propellers:\t\t%10\n\n"
+                "Observations:\n%11\n\n")
+            .arg(autotuneShareForm->getBoardType()) // 0
             .arg(firmware.gitTag) // 1
             .arg(firmware.gitHash.left(7)) // 2
             .arg(firmware.gitDate + " UTC") // 3
@@ -456,7 +456,8 @@ QString ConfigAutotuneWidget::getResultsPlainText()
             .arg(autotuneShareForm->getBatteryCells()) // 7
             .arg(autotuneShareForm->getMotors()) // 8
             .arg(autotuneShareForm->getESCs()) // 9
-            .arg(autotuneShareForm->getObservations()); // 10
+            .arg(autotuneShareForm->getProps()) // 10
+            .arg(autotuneShareForm->getObservations()); // 11
     QString message1 = tr(
                 "Measured properties:\n"
                 "\t\tGain\t\tBias\t\tNoise\n"
@@ -504,17 +505,13 @@ QJsonDocument ConfigAutotuneWidget::getResultsJson()
 {
     deviceDescriptorStruct firmware;
     utilMngr->getBoardDescriptionStruct(firmware);
-    Core::IBoardType* board = utilMngr->getBoardType();
-    QString boardName;
-    if (board)
-        boardName = board->shortName();
 
     QJsonObject json;
     json["dataVersion"] = 1;
     json["uniqueId"] = QString(utilMngr->getBoardCPUSerial().toHex());
 
     QJsonObject vehicle, fw;
-    fw["board"] = boardName;
+    fw["board"] = autotuneShareForm->getBoardType();
     fw["tag"] = firmware.gitTag;
     fw["commit"] = firmware.gitHash;
     QDateTime fwDate = QDateTime::fromString(firmware.gitDate, "yyyyMMdd hh:mm");
@@ -534,6 +531,7 @@ QJsonDocument ConfigAutotuneWidget::getResultsJson()
     vehicle["batteryCells"] = autotuneShareForm->getBatteryCells();
     vehicle["esc"] = autotuneShareForm->getESCs();
     vehicle["motor"] = autotuneShareForm->getMotors();
+    vehicle["props"] = autotuneShareForm->getProps();
     json["vehicle"] = vehicle;
 
     json["userObservations"] = autotuneShareForm->getObservations();

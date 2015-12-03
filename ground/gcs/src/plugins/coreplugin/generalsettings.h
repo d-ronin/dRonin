@@ -82,6 +82,8 @@ public:
     QString getMotors();
     void setESCs(QString escs);
     QString getESCs();
+    void setProps(QString props);
+    QString getProps();
 signals:
     void generalSettingsChanged();
 private slots:
@@ -117,6 +119,7 @@ private:
     int m_cells;
     QString m_motors;
     QString m_escs;
+    QString m_props;
     bool m_useSessionManaging;
 };
 } // namespace Internal

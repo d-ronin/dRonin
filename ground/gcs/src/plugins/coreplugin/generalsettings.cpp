@@ -197,6 +197,7 @@ void GeneralSettings::readSettings(QSettings* qs)
     m_cells = qs->value(QLatin1String("cells"), 0).toInt();
     m_motors = qs->value(QLatin1String("motors"), "").toString();
     m_escs = qs->value(QLatin1String("escs"), "").toString();
+    m_props = qs->value(QLatin1String("props"), "").toString();
     qs->endGroup();
     emit generalSettingsChanged();
 }
@@ -230,6 +231,7 @@ void GeneralSettings::saveSettings(QSettings* qs)
     qs->setValue(QLatin1String("cells"), m_cells);
     qs->setValue(QLatin1String("motors"), m_motors);
     qs->setValue(QLatin1String("escs"), m_escs);
+    qs->setValue(QLatin1String("props"), m_props);
     qs->endGroup();
 }
 
@@ -374,6 +376,14 @@ void GeneralSettings::setESCs(QString escs) {
 
 QString GeneralSettings::getESCs() {
     return m_escs;
+}
+
+void GeneralSettings::setProps(QString props) {
+    m_props = props;
+}
+
+QString GeneralSettings::getProps() {
+    return m_props;
 }
 
 void GeneralSettings::slotAutoConnect(int value)

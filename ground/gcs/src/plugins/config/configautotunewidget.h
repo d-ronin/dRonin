@@ -71,7 +71,7 @@ private slots:
     void onShareData();
     void onShareToDatabase();
     void onShareToClipboard();
-    void onShareFinished(int value);
+    void onShareFinished();
     void onShareToDatabaseComplete(QNetworkReply *reply);
 };
 
