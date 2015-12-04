@@ -407,38 +407,6 @@ gtest_clean:
 	$(V1) [ ! -d "$(GTEST_DIR)" ] || $(RM) -rf "$(GTEST_DIR)"
 
 
-# Set up astyle tools
-ASTYLE_DIR := $(TOOLS_DIR)/astyle
-ASTYLE_BUILD_DIR := $(DL_DIR)/astyle
-
-.PHONY: astyle_install
-astyle_install: | $(DL_DIR) $(TOOLS_DIR)
-astyle_install: ASTYLE_URL := https://svn.code.sf.net/p/astyle/code/trunk/AStyle
-astyle_install: ASTYLE_REV := 376
-astyle_install: ASTYLE_OPTIONS := prefix=$(ASTYLE_DIR)
-astyle_install: astyle_clean
-        # download the source
-	$(V0) @echo " DOWNLOAD     $(ASTYLE_URL) @ $(ASTYLE_REV)"
-	$(V1) svn export -q "$(ASTYLE_URL)" -r $(ASTYLE_REV) "$(ASTYLE_BUILD_DIR)"
-
-        # build and install
-	$(V0) @echo " BUILD        $(ASTYLE_DIR)"
-	$(V1) mkdir -p "$(ASTYLE_DIR)"
-	$(V1) ( \
-	  $(MAKE) -C $(ASTYLE_BUILD_DIR)/build/gcc $(ASTYLE_OPTIONS) ; \
-	  $(MAKE) -C $(ASTYLE_BUILD_DIR)/build/gcc $(ASTYLE_OPTIONS) install ; \
-	)
-
-        # delete the extracted source when we're done
-	$(V1) [ ! -d "$(ASTYLE_BUILD_DIR)" ] || $(RM) -r "$(ASTYLE_BUILD_DIR)"
-
-.PHONY: astyle_clean
-astyle_clean:
-	$(V0) @echo " CLEAN        $(ASTYLE_DIR)"
-	$(V1) [ ! -d "$(ASTYLE_DIR)" ] || $(RM) -r "$(ASTYLE_DIR)"
-	$(V0) @echo " CLEAN        $(ASTYLE_BUILD_DIR)"
-	$(V1) [ ! -d "$(ASTYLE_BUILD_DIR)" ] || $(RM) -r "$(ASTYLE_BUILD_DIR)"
-
 # Set up uncrustify tools
 UNCRUSTIFY_DIR := $(TOOLS_DIR)/uncrustify-0.61
 UNCRUSTIFY_BUILD_DIR := $(DL_DIR)/uncrustify
