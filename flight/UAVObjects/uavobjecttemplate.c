@@ -67,6 +67,30 @@ int32_t $(NAME)Initialize(void)
 	}
 }
 
+static void $(NAME)SetDefaultsImpl(UAVObjHandle obj, uint16_t instId) {
+	// Initialize object fields to their default values
+	$(NAME)Data data = {};
+
+$(INITFIELDS)
+	UAVObjSetInstanceData(obj, instId, &data);
+}
+
+static void $(NAME)SetMetadataDefaults(UAVObjHandle obj) {
+	// Initialize object metadata to their default values
+	UAVObjMetadata metadata;
+	metadata.flags =
+		$(FLIGHTACCESS) << UAVOBJ_ACCESS_SHIFT |
+		$(GCSACCESS) << UAVOBJ_GCS_ACCESS_SHIFT |
+		$(FLIGHTTELEM_ACKED) << UAVOBJ_TELEMETRY_ACKED_SHIFT |
+		$(GCSTELEM_ACKED) << UAVOBJ_GCS_TELEMETRY_ACKED_SHIFT |
+		$(FLIGHTTELEM_UPDATEMODE) << UAVOBJ_TELEMETRY_UPDATE_MODE_SHIFT |
+		$(GCSTELEM_UPDATEMODE) << UAVOBJ_GCS_TELEMETRY_UPDATE_MODE_SHIFT;
+	metadata.telemetryUpdatePeriod = $(FLIGHTTELEM_UPDATEPERIOD);
+	metadata.gcsTelemetryUpdatePeriod = $(GCSTELEM_UPDATEPERIOD);
+	metadata.loggingUpdatePeriod = $(LOGGING_UPDATEPERIOD);
+	UAVObjSetMetadata(obj, &metadata);
+}
+
 /**
  * Initialize object fields and metadata with the default values.
  * If a default value is not specified the object fields
@@ -74,28 +98,10 @@ int32_t $(NAME)Initialize(void)
  */
 void $(NAME)SetDefaults(UAVObjHandle obj, uint16_t instId)
 {
-	$(NAME)Data data;
+	$(NAME)SetDefaultsImpl(obj, instId);
 
-	// Initialize object fields to their default values
-	UAVObjGetInstanceData(obj, instId, &data);
-	memset(&data, 0, sizeof($(NAME)Data));
-$(INITFIELDS)
-	UAVObjSetInstanceData(obj, instId, &data);
-
-	// Initialize object metadata to their default values
 	if (instId == 0) {
-		UAVObjMetadata metadata;
-		metadata.flags =
-			$(FLIGHTACCESS) << UAVOBJ_ACCESS_SHIFT |
-			$(GCSACCESS) << UAVOBJ_GCS_ACCESS_SHIFT |
-			$(FLIGHTTELEM_ACKED) << UAVOBJ_TELEMETRY_ACKED_SHIFT |
-			$(GCSTELEM_ACKED) << UAVOBJ_GCS_TELEMETRY_ACKED_SHIFT |
-			$(FLIGHTTELEM_UPDATEMODE) << UAVOBJ_TELEMETRY_UPDATE_MODE_SHIFT |
-			$(GCSTELEM_UPDATEMODE) << UAVOBJ_GCS_TELEMETRY_UPDATE_MODE_SHIFT;
-		metadata.telemetryUpdatePeriod = $(FLIGHTTELEM_UPDATEPERIOD);
-		metadata.gcsTelemetryUpdatePeriod = $(GCSTELEM_UPDATEPERIOD);
-		metadata.loggingUpdatePeriod = $(LOGGING_UPDATEPERIOD);
-		UAVObjSetMetadata(obj, &metadata);
+		$(NAME)SetMetadataDefaults(obj);
 	}
 }
 
