@@ -437,7 +437,6 @@ void PIOS_Board_Init(void) {
 	uint8_t hw_mpu6000_dlpf;
 	HwCopterControlMPU6000DLPFGet(&hw_mpu6000_dlpf);
 	enum pios_mpu60x0_filter mpu6000_dlpf = \
-	    (hw_mpu6000_dlpf == HWCOPTERCONTROL_MPU6000DLPF_256) ? PIOS_MPU60X0_LOWPASS_256_HZ : \
 	    (hw_mpu6000_dlpf == HWCOPTERCONTROL_MPU6000DLPF_188) ? PIOS_MPU60X0_LOWPASS_188_HZ : \
 	    (hw_mpu6000_dlpf == HWCOPTERCONTROL_MPU6000DLPF_98) ? PIOS_MPU60X0_LOWPASS_98_HZ : \
 	    (hw_mpu6000_dlpf == HWCOPTERCONTROL_MPU6000DLPF_42) ? PIOS_MPU60X0_LOWPASS_42_HZ : \
@@ -452,12 +451,7 @@ void PIOS_Board_Init(void) {
 	uint16_t mpu6000_samplerate = \
 	    (hw_mpu6000_samplerate == HWCOPTERCONTROL_MPU6000RATE_200) ? 200 : \
 	    (hw_mpu6000_samplerate == HWCOPTERCONTROL_MPU6000RATE_333) ? 333 : \
-	    (hw_mpu6000_samplerate == HWCOPTERCONTROL_MPU6000RATE_500) ? 500 : \
-	    (hw_mpu6000_samplerate == HWCOPTERCONTROL_MPU6000RATE_666) ? 666 : \
-	    (hw_mpu6000_samplerate == HWCOPTERCONTROL_MPU6000RATE_1000) ? 1000 : \
-	    (hw_mpu6000_samplerate == HWCOPTERCONTROL_MPU6000RATE_2000) ? 2000 : \
-	    (hw_mpu6000_samplerate == HWCOPTERCONTROL_MPU6000RATE_4000) ? 4000 : \
-	    (hw_mpu6000_samplerate == HWCOPTERCONTROL_MPU6000RATE_8000) ? 8000 : \
+	    (hw_mpu6000_samplerate == HWCOPTERCONTROL_MPU6000RATE_500) ? 500 : 
 	    pios_mpu6000_cfg.default_samplerate;
 	PIOS_MPU6000_SetSampleRate(mpu6000_samplerate);
 
