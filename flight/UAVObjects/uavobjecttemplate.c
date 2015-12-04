@@ -33,6 +33,10 @@
  * You should have received a copy of the GNU General Public License along
  * with this program; if not, write to the Free Software Foundation, Inc.,
  * 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
+ *
+ * Additional note on redistribution: The copyright and license notices above
+ * must be maintained in each individual source file that is a derivative work
+ * of this source file; otherwise redistribution is prohibited.
  */
 
 #include <string.h>
@@ -68,6 +72,30 @@ int32_t $(NAME)Initialize(void)
 	}
 }
 
+static void $(NAME)SetDefaultsImpl(UAVObjHandle obj, uint16_t instId) {
+	// Initialize object fields to their default values
+	$(NAME)Data data = {};
+
+$(INITFIELDS)
+	UAVObjSetInstanceData(obj, instId, &data);
+}
+
+static void $(NAME)SetMetadataDefaults(UAVObjHandle obj) {
+	// Initialize object metadata to their default values
+	UAVObjMetadata metadata;
+	metadata.flags =
+		$(FLIGHTACCESS) << UAVOBJ_ACCESS_SHIFT |
+		$(GCSACCESS) << UAVOBJ_GCS_ACCESS_SHIFT |
+		$(FLIGHTTELEM_ACKED) << UAVOBJ_TELEMETRY_ACKED_SHIFT |
+		$(GCSTELEM_ACKED) << UAVOBJ_GCS_TELEMETRY_ACKED_SHIFT |
+		$(FLIGHTTELEM_UPDATEMODE) << UAVOBJ_TELEMETRY_UPDATE_MODE_SHIFT |
+		$(GCSTELEM_UPDATEMODE) << UAVOBJ_GCS_TELEMETRY_UPDATE_MODE_SHIFT;
+	metadata.telemetryUpdatePeriod = $(FLIGHTTELEM_UPDATEPERIOD);
+	metadata.gcsTelemetryUpdatePeriod = $(GCSTELEM_UPDATEPERIOD);
+	metadata.loggingUpdatePeriod = $(LOGGING_UPDATEPERIOD);
+	UAVObjSetMetadata(obj, &metadata);
+}
+
 /**
  * Initialize object fields and metadata with the default values.
  * If a default value is not specified the object fields
@@ -75,28 +103,10 @@ int32_t $(NAME)Initialize(void)
  */
 void $(NAME)SetDefaults(UAVObjHandle obj, uint16_t instId)
 {
-	$(NAME)Data data;
+	$(NAME)SetDefaultsImpl(obj, instId);
 
-	// Initialize object fields to their default values
-	UAVObjGetInstanceData(obj, instId, &data);
-	memset(&data, 0, sizeof($(NAME)Data));
-$(INITFIELDS)
-	UAVObjSetInstanceData(obj, instId, &data);
-
-	// Initialize object metadata to their default values
 	if (instId == 0) {
-		UAVObjMetadata metadata;
-		metadata.flags =
-			$(FLIGHTACCESS) << UAVOBJ_ACCESS_SHIFT |
-			$(GCSACCESS) << UAVOBJ_GCS_ACCESS_SHIFT |
-			$(FLIGHTTELEM_ACKED) << UAVOBJ_TELEMETRY_ACKED_SHIFT |
-			$(GCSTELEM_ACKED) << UAVOBJ_GCS_TELEMETRY_ACKED_SHIFT |
-			$(FLIGHTTELEM_UPDATEMODE) << UAVOBJ_TELEMETRY_UPDATE_MODE_SHIFT |
-			$(GCSTELEM_UPDATEMODE) << UAVOBJ_GCS_TELEMETRY_UPDATE_MODE_SHIFT;
-		metadata.telemetryUpdatePeriod = $(FLIGHTTELEM_UPDATEPERIOD);
-		metadata.gcsTelemetryUpdatePeriod = $(GCSTELEM_UPDATEPERIOD);
-		metadata.loggingUpdatePeriod = $(LOGGING_UPDATEPERIOD);
-		UAVObjSetMetadata(obj, &metadata);
+		$(NAME)SetMetadataDefaults(obj);
 	}
 }
 
