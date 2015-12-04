@@ -46,6 +46,7 @@
 #define PIOS_MPU9250_MAX_DOWNSAMPLE 2
 
 #define MPU9250_WHOAMI_ID       0x71
+#define MPU6500_WHOAMI_ID       0x70
 
 #ifdef PIOS_MPU9250_SPI_HIGH_SPEED
 #define MPU9250_SPI_HIGH_SPEED              PIOS_MPU9250_SPI_HIGH_SPEED
@@ -352,8 +353,16 @@ static int32_t PIOS_MPU9250_Config(struct pios_mpu9250_cfg const *cfg)
 	PIOS_DELAY_WaitmS(50);
 
 	uint8_t id = PIOS_MPU9250_ReadReg(PIOS_MPU60X0_WHOAMI);
-	if (id != MPU9250_WHOAMI_ID)
-		return -2;
+	switch (id) {
+		case MPU9250_WHOAMI_ID:
+			break;
+		case MPU6500_WHOAMI_ID:
+			if (dev->cfg->use_magnetometer)
+				return -2;
+			break;
+		default:
+			return -3;
+	}
 
 	// power management config
 	PIOS_MPU9250_WriteReg(PIOS_MPU60X0_PWR_MGMT_REG, PIOS_MPU60X0_PWRMGMT_PLL_X_CLK);
@@ -363,7 +372,7 @@ static int32_t PIOS_MPU9250_Config(struct pios_mpu9250_cfg const *cfg)
 
 	if (dev->cfg->use_magnetometer)
 		if (PIOS_MPU9250_Mag_Config() != 0)
-			return -3;
+			return -4;
 
 	// Digital low-pass filter and scale
 	// set this before sample rate else sample rate calculation will fail
@@ -372,7 +381,7 @@ static int32_t PIOS_MPU9250_Config(struct pios_mpu9250_cfg const *cfg)
 
 	// Sample rate
 	if (PIOS_MPU9250_SetSampleRate(cfg->default_samplerate) != 0)
-		return -4;
+		return -5;
 
 	// Set the gyro scale
 	PIOS_MPU9250_SetGyroRange(PIOS_MPU60X0_SCALE_500_DEG);
@@ -437,12 +446,14 @@ int32_t PIOS_MPU9250_SPI_Init(uint32_t spi_id, uint32_t slave_num, const struct 
 int32_t PIOS_MPU9250_Test(void)
 {
 	uint8_t id = PIOS_MPU9250_ReadReg(PIOS_MPU60X0_WHOAMI);
-	if (id != MPU9250_WHOAMI_ID)
+	if ((id != MPU9250_WHOAMI_ID) && (id != MPU6500_WHOAMI_ID))
 		return 1;
 
-	id = PIOS_MPU9250_Mag_ReadReg(AK8963_WHOAMI_REG);
-	if (id != AK8963_WHOAMI_ID)
-		return -2;
+	if (dev->cfg->use_magnetometer) {
+		id = PIOS_MPU9250_Mag_ReadReg(AK8963_WHOAMI_REG);
+		if (id != AK8963_WHOAMI_ID)
+			return -2;
+	}
 
 	return 0;
 }
