@@ -58,7 +58,12 @@ export V1    := $(AT)
 else ifeq ($(V), 1)
 endif
 
+
+FW_FILES :=
+GITVERSION := $(shell git describe --always --dirty --abbrev=9)
+
 ALL_BOARDS :=
+
 include $(ROOT_DIR)/flight/targets/*/target-defs.mk
 
 # OpenPilot GCS build configuration (debug | release)
@@ -606,6 +611,8 @@ define FW_TEMPLATE
 $(1): fw_$(1)_tlfw
 fw_$(1): fw_$(1)_tlfw
 
+FW_FILES += $(BUILD_DIR)/fw_$(1)/fw_$(1).tlfw
+
 fw_$(1)_%: TARGET=fw_$(1)
 fw_$(1)_%: OUTDIR=$(BUILD_DIR)/$$(TARGET)
 fw_$(1)_%: BOARD_ROOT_DIR=$(ROOT_DIR)/flight/targets/$(1)
@@ -642,6 +649,8 @@ endef
 define BL_TEMPLATE
 .PHONY: bl_$(1)
 bl_$(1): bl_$(1)_bin
+
+FW_FILES += $(BUILD_DIR)/bl_$(1)/bl_$(1).bin
 
 bl_$(1)_%: TARGET=bl_$(1)
 bl_$(1)_%: OUTDIR=$(BUILD_DIR)/$$(TARGET)
@@ -685,6 +694,8 @@ endef
 define BU_TEMPLATE
 .PHONY: bu_$(1)
 bu_$(1): bu_$(1)_tlfw
+
+FW_FILES += $(BUILD_DIR)/bu_$(1)/bu_$(1).tlfw
 
 bu_$(1)_%: TARGET=bu_$(1)
 bu_$(1)_%: OUTDIR=$(BUILD_DIR)/$$(TARGET)
@@ -730,6 +741,8 @@ endef
 define EF_TEMPLATE
 .PHONY: ef_$(1)
 ef_$(1): ef_$(1)_bin ef_$(1)_hex
+
+FW_FILES += $(BUILD_DIR)/ef_$(1)/ef_$(1).bin
 
 ef_$(1)_%: TARGET=ef_$(1)
 ef_$(1)_%: OUTDIR=$(BUILD_DIR)/$$(TARGET)
@@ -1000,6 +1013,12 @@ $(PACKAGE_TARGETS):
 .PHONY: package_resources
 package_resources:
 	$(V1) cd package && $(MAKE) --no-print-directory tlfw_resource
+
+.PHONY: package_flight
+package_flight: $(BUILD_DIR)/flight-$(GITVERSION).zip
+
+$(BUILD_DIR)/flight-$(GITVERSION).zip: all_flight
+	zip -j $@ $(FW_FILES) $^
 
 ##############################
 #
