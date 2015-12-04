@@ -2,7 +2,7 @@
 .DEFAULT_GOAL := help
 
 WHEREAMI := $(dir $(lastword $(MAKEFILE_LIST)))
-ROOT_DIR := $(realpath $(WHEREAMI)/ )
+export ROOT_DIR := $(realpath $(WHEREAMI)/ )
 
 # import macros common to all supported build systems
 include $(ROOT_DIR)/make/system-id.mk
@@ -540,15 +540,15 @@ uavo-collections_clean:
 
 # Define some pointers to the various important pieces of the flight code
 # to prevent these being repeated in every sub makefile
-MAKE_INC_DIR  := $(ROOT_DIR)/make
-PIOS          := $(ROOT_DIR)/flight/PiOS
-FLIGHTLIB     := $(ROOT_DIR)/flight/Libraries
-OPMODULEDIR   := $(ROOT_DIR)/flight/Modules
-OPUAVOBJ      := $(ROOT_DIR)/flight/UAVObjects
-OPUAVTALK     := $(ROOT_DIR)/flight/UAVTalk
-DOXYGENDIR    := $(ROOT_DIR)/Doxygen
-SHAREDAPIDIR  := $(ROOT_DIR)/shared/api
-OPUAVSYNTHDIR := $(BUILD_DIR)/uavobject-synthetics/flight
+export MAKE_INC_DIR  := $(ROOT_DIR)/make
+export PIOS          := $(ROOT_DIR)/flight/PiOS
+export FLIGHTLIB     := $(ROOT_DIR)/flight/Libraries
+export OPMODULEDIR   := $(ROOT_DIR)/flight/Modules
+export OPUAVOBJ      := $(ROOT_DIR)/flight/UAVObjects
+export OPUAVTALK     := $(ROOT_DIR)/flight/UAVTalk
+export DOXYGENDIR    := $(ROOT_DIR)/Doxygen
+export SHAREDAPIDIR  := $(ROOT_DIR)/shared/api
+export OPUAVSYNTHDIR := $(BUILD_DIR)/uavobject-synthetics/flight
 
 # $(1) = Canonical board name all in lower case (e.g. coptercontrol)
 # $(2) = Unused
@@ -564,6 +564,8 @@ simulation: sim_posix
 sim_posix_revolution: sim_posix
 
 define SIM_TEMPLATE
+
+.PHONY: sim_$(4)
 sim_$(4): TARGET=sim_$(4)
 sim_$(4): OUTDIR=$(BUILD_DIR)/$$(TARGET)
 sim_$(4): BOARD_ROOT_DIR=$(ROOT_DIR)/flight/targets/$(1)
@@ -578,7 +580,6 @@ sim_$(4): uavobjects
 		TCHAIN_PREFIX="" \
 		REMOVE_CMD="$(RM)" \
 		\
-		MAKE_INC_DIR=$(MAKE_INC_DIR) \
 		ROOT_DIR=$(ROOT_DIR) \
 		BOARD_ROOT_DIR=$$(BOARD_ROOT_DIR) \
 		BOARD_INFO_DIR=$$(BOARD_ROOT_DIR)/board-info \
@@ -586,13 +587,6 @@ sim_$(4): uavobjects
 		OUTDIR=$$(OUTDIR) \
 		\
 		PIOS=$(PIOS).$(4) \
-		FLIGHTLIB=$(FLIGHTLIB) \
-		OPMODULEDIR=$(OPMODULEDIR) \
-		OPUAVOBJ=$(OPUAVOBJ) \
-		OPUAVTALK=$(OPUAVTALK) \
-		DOXYGENDIR=$(DOXYGENDIR) \
-		OPUAVSYNTHDIR=$(OPUAVSYNTHDIR) \
-		SHAREDAPIDIR=$(SHAREDAPIDIR) \
 		\
 		$$*
 
@@ -625,21 +619,11 @@ fw_$(1)_%: uavobjects_armsoftfp uavobjects_armhardfp
 		TCHAIN_PREFIX="$(ARM_SDK_PREFIX)" \
 		REMOVE_CMD="$(RM)" OOCD_EXE="$(OPENOCD)" \
 		\
-		MAKE_INC_DIR=$(MAKE_INC_DIR) \
 		ROOT_DIR=$(ROOT_DIR) \
 		BOARD_ROOT_DIR=$$(BOARD_ROOT_DIR) \
 		BOARD_INFO_DIR=$$(BOARD_ROOT_DIR)/board-info \
 		TARGET=$$(TARGET) \
 		OUTDIR=$$(OUTDIR) \
-		\
-		PIOS=$(PIOS) \
-		FLIGHTLIB=$(FLIGHTLIB) \
-		OPMODULEDIR=$(OPMODULEDIR) \
-		OPUAVOBJ=$(OPUAVOBJ) \
-		OPUAVTALK=$(OPUAVTALK) \
-		DOXYGENDIR=$(DOXYGENDIR) \
-		OPUAVSYNTHDIR=$(OPUAVSYNTHDIR) \
-		SHAREDAPIDIR=$(SHAREDAPIDIR) \
 		\
 		$$*
 
@@ -676,19 +660,14 @@ bl_$(1)_%:
 		TCHAIN_PREFIX="$(ARM_SDK_PREFIX)" \
 		REMOVE_CMD="$(RM)" OOCD_EXE="$(OPENOCD)" \
 		\
-		MAKE_INC_DIR=$(MAKE_INC_DIR) \
 		ROOT_DIR=$(ROOT_DIR) \
 		BOARD_ROOT_DIR=$$(BOARD_ROOT_DIR) \
 		BOARD_INFO_DIR=$$(BOARD_ROOT_DIR)/board-info \
 		TARGET=$$(TARGET) \
 		OUTDIR=$$(OUTDIR) \
-		\
-		PIOS=$(PIOS) \
-		FLIGHTLIB=$(FLIGHTLIB) \
 		BLCOMMONDIR=$$(BLCOMMONDIR) \
 		BLARCHDIR=$$(BLARCHDIR) \
 		BLBOARDDIR=$$(BLBOARDDIR) \
-		DOXYGENDIR=$(DOXYGENDIR) \
 		\
 		$$*
 
@@ -740,15 +719,11 @@ bu_$(1)_%: bl_$(1)_bin
 		TCHAIN_PREFIX="$(ARM_SDK_PREFIX)" \
 		REMOVE_CMD="$(RM)" OOCD_EXE="$(OPENOCD)" \
 		\
-		MAKE_INC_DIR=$(MAKE_INC_DIR) \
 		ROOT_DIR=$(ROOT_DIR) \
 		BOARD_ROOT_DIR=$$(BOARD_ROOT_DIR) \
 		BOARD_INFO_DIR=$$(BOARD_ROOT_DIR)/board-info \
 		TARGET=$$(TARGET) \
 		OUTDIR=$$(OUTDIR) \
-		\
-		PIOS=$(PIOS) \
-		FLIGHTLIB=$(FLIGHTLIB) \
 		BUCOMMONDIR=$$(BUCOMMONDIR) \
 		BUARCHDIR=$$(BUARCHDIR) \
 		BUBOARDDIR=$$(BUBOARDDIR) \
@@ -787,7 +762,6 @@ ef_$(1)_%: $(if filter(no,$(4)),fw_$(1)_tlfw,bl_$(1)_bin fw_$(1)_tlfw)
 		REMOVE_CMD="$(RM)" OOCD_EXE="$(OPENOCD)" \
 		DFU_CMD="$(DFUUTIL_DIR)/bin/dfu-util" \
 		\
-		MAKE_INC_DIR=$(MAKE_INC_DIR) \
 		ROOT_DIR=$(ROOT_DIR) \
 		BOARD_ROOT_DIR=$$(BOARD_ROOT_DIR) \
 		BOARD_INFO_DIR=$$(BOARD_ROOT_DIR)/board-info \
@@ -836,17 +810,9 @@ uavobjects_%: uavobjects
 		TCHAIN_PREFIX="$(ARM_SDK_PREFIX)" \
 		REMOVE_CMD="$(RM)" \
 		\
-		MAKE_INC_DIR=$(MAKE_INC_DIR) \
 		ROOT_DIR=$(ROOT_DIR) \
 		TARGET=$(TARGET) \
 		OUTDIR=$(OUTDIR) \
-		\
-		FLIGHTLIB=$(FLIGHTLIB) \
-		PIOS=$(PIOS) \
-		OPUAVOBJ=$(OPUAVOBJ) \
-		OPUAVTALK=$(OPUAVTALK) \
-		DOXYGENDIR=$(DOXYGENDIR) \
-		OPUAVSYNTHDIR=$(OPUAVSYNTHDIR) \
 		\
 		$@
 
@@ -979,7 +945,7 @@ all_ut_clean:
 
 # $(1) = Unit test name
 define UT_TEMPLATE
-.PHONY: ut_$(1)
+.PHONY: ut_$(1) ut_$(1)_run
 ut_$(1): ut_$(1)_run
 ut_$(1)_gcov: | ut_$(1)_xml
 
@@ -995,19 +961,11 @@ ut_$(1)_%: $$(UT_OUT_DIR)
 		TCHAIN_PREFIX="" \
 		REMOVE_CMD="$(RM)" \
 		\
-		MAKE_INC_DIR=$(MAKE_INC_DIR) \
 		ROOT_DIR=$(ROOT_DIR) \
 		BOARD_ROOT_DIR=$$(BOARD_ROOT_DIR) \
 		BOARD_INFO_DIR=$$(BOARD_ROOT_DIR)/board-info \
 		TARGET=$$(TARGET) \
 		OUTDIR=$$(OUTDIR) \
-		\
-		PIOS=$(PIOS) \
-		OPUAVOBJ=$(OPUAVOBJ) \
-		OPUAVTALK=$(OPUAVTALK) \
-		OPMODULEDIR=$(OPMODULEDIR) \
-		FLIGHTLIB=$(FLIGHTLIB) \
-		SHAREDAPIDIR=$(SHAREDAPIDIR) \
 		\
 		GTEST_DIR=$(GTEST_DIR) \
 		\
