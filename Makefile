@@ -172,9 +172,6 @@ help:
 	@echo "                            supported boards are ($(BU_BOARDS))"
 	@echo "     bu_<board>_clean     - Remove bootloader updater for <board>"
 	@echo
-	@echo "   [Unbrick a board]"
-	@echo "     unbrick_<board>      - Use the STM32's built in boot ROM to write a bootloader to <board>"
-	@echo "                            supported boards are ($(BL_BOARDS))"
 	@echo "   [Unit tests]"
 	@echo "     ut_<test>            - Build unit test <test>"
 	@echo "     ut_<test>_tap        - Run test and capture TAP output into a file"
@@ -673,22 +670,6 @@ bl_$(1)_%:
 		BLBOARDDIR=$$(BLBOARDDIR) \
 		\
 		$$*
-
-.PHONY: unbrick_$(1)
-unbrick_$(1): TARGET=bl_$(1)
-unbrick_$(1): OUTDIR=$(BUILD_DIR)/$$(TARGET)
-unbrick_$(1): bl_$(1)_hex
-$(if $(filter-out undefined,$(origin UNBRICK_TTY)),
-	$(V0) @echo " UNBRICK    $(1) via $$(UNBRICK_TTY)"
-	$(V1) $(STM32FLASH_DIR)/stm32flash \
-		-w $$(OUTDIR)/bl_$(1).hex \
-		-g 0x0 \
-		$$(UNBRICK_TTY)
-,
-	$(V0) @echo
-	$(V0) @echo "ERROR: You must specify UNBRICK_TTY=<serial-device> to use for unbricking."
-	$(V0) @echo "       eg. $$(MAKE) $$@ UNBRICK_TTY=/dev/ttyUSB0"
-)
 
 .PHONY: bl_$(1)_clean
 bl_$(1)_clean: TARGET=bl_$(1)
