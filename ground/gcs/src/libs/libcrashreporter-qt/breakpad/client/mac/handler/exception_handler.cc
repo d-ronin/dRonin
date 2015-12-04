@@ -632,7 +632,12 @@ bool ExceptionHandler::InstallHandler() {
     struct sigaction sa;
     memset(&sa, 0, sizeof(sa));
     sigemptyset(&sa.sa_mask);
+    /* Mask further badness during execution of handler.  Which is kinda
+     * naughty.  But stuff may be happening in other threads. */
     sigaddset(&sa.sa_mask, SIGABRT);
+    sigaddset(&sa.sa_mask, SIGSEGV);
+    sigaddset(&sa.sa_mask, SIGBUS);
+    sigaddset(&sa.sa_mask, SIGILL);
     sa.sa_sigaction = ExceptionHandler::SignalHandler;
     sa.sa_flags = SA_SIGINFO;
 
@@ -640,7 +645,20 @@ bool ExceptionHandler::InstallHandler() {
     if (sigaction(SIGABRT, &sa, old.get()) == -1) {
       return false;
     }
-    old_handler_.swap(old);
+    old_ABRT_handler_.swap(old);
+    if (sigaction(SIGSEGV, &sa, old.get()) == -1) {
+      return false;
+    }
+    old_SEGV_handler_.swap(old);
+    if (sigaction(SIGBUS, &sa, old.get()) == -1) {
+      return false;
+    }
+    old_BUS_handler_.swap(old);
+    if (sigaction(SIGILL, &sa, old.get()) == -1) {
+      return false;
+    }
+    old_ILL_handler_.swap(old);
+
     gProtectedData.handler = this;
 #if USE_PROTECTED_ALLOCATIONS
     assert(((size_t)(gProtectedData.protected_buffer) & PAGE_MASK) == 0);
@@ -685,17 +703,34 @@ bool ExceptionHandler::InstallHandler() {
 bool ExceptionHandler::UninstallHandler(bool in_exception) {
   kern_return_t result = KERN_SUCCESS;
 
-  if (old_handler_.get()) {
-    sigaction(SIGABRT, old_handler_.get(), NULL);
+  if (old_ABRT_handler_.get()) {
+    sigaction(SIGABRT, old_ABRT_handler_.get(), NULL);
+    old_ABRT_handler_.reset();
+  }
+
+  if (old_SEGV_handler_.get()) {
+    sigaction(SIGSEGV, old_SEGV_handler_.get(), NULL);
+    old_SEGV_handler_.reset();
+  }
+
+  if (old_BUS_handler_.get()) {
+    sigaction(SIGBUS, old_BUS_handler_.get(), NULL);
+    old_BUS_handler_.reset();
+  }
+
+  if (old_ILL_handler_.get()) {
+    sigaction(SIGILL, old_ILL_handler_.get(), NULL);
+    old_ILL_handler_.reset();
+  }
+
+  if (installed_exception_handler_) {
 #if USE_PROTECTED_ALLOCATIONS
     mprotect(gProtectedData.protected_buffer, PAGE_SIZE,
         PROT_READ | PROT_WRITE);
 #endif
-    old_handler_.reset();
-    gProtectedData.handler = NULL;
-  }
 
-  if (installed_exception_handler_) {
+    gProtectedData.handler = NULL;
+
     mach_port_t current_task = mach_task_self();
 
     // Restore the previous ports
