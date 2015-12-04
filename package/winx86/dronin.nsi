@@ -1,6 +1,6 @@
 #
 # Project: dRonin
-# NSIS configuration file for TauLabs GCS
+# NSIS configuration file for GCS
 # dRonin, http://dronin.org, Copyright (c) 2015
 # Tau Labs, http://taulabs.org, Copyright (C) 2012-2013
 # The OpenPilot Team, http://www.openpilot.org, Copyright (C) 2010-2012.
@@ -56,13 +56,6 @@
   !define INSTALLER_NAME "dRonin GCS Installer"
 
   ; Read automatically generated version info
-; !define PACKAGE_LBL "${DATE}-${TAG_OR_HASH8}"
-; !define PACKAGE_DIR "..\..\build\package-$${PACKAGE_LBL}"
-; !define OUT_FILE "TauLabs-$${PACKAGE_LBL}-install.exe"
-; !define FIRMWARE_DIR "firmware-$${PACKAGE_LBL}"
-; !define PRODUCT_VERSION "0.0.0.0"
-; !define FILE_VERSION "${TAG_OR_BRANCH}:${HASH8} ${DATETIME}"
-; !define BUILD_DESCRIPTION "${TAG_OR_BRANCH}:${HASH8} built using ${ORIGIN} as origin, committed ${DATETIME} as ${HASH}"
   !include "${GCS_BUILD_TREE}\dronin.nsh"
 
   Name "${PRODUCT_NAME}"
