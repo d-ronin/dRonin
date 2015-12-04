@@ -1,8 +1,8 @@
-# dRonin'
+# dRonin
 
-dRonin' is an autopilot/flight controller firmware for controllers in the OpenPilot/Tau Labs family.  It's aimed at a variety of use cases: acro/racing, autonomous flight, and vehicle research.
+dRonin is an autopilot/flight controller firmware for controllers in the OpenPilot/Tau Labs family.  It's aimed at a variety of use cases: acro/racing, autonomous flight, and vehicle research.
 
-dRonin' is production ready and released under the GPL.
+dRonin is production ready and released under the GPL.
 
 ## Supported Targets
 
@@ -13,8 +13,8 @@ dRonin' is production ready and released under the GPL.
 - OpenPilot Revolution
 - Quantec Quanton
 - Tau Labs Sparky
-- Tau Labs Sparky2
-- Team Black Sheep Colibri / Gemini hexcopter
+- [Tau Labs Sparky2](https://github.com/TauLabs/TauLabs/wiki/Sparky2)
+- [Team Black Sheep Colibri / Gemini hexcopter](http://team-blacksheep.com/products/prod:gemini)
 
 ### Limited Support
 
