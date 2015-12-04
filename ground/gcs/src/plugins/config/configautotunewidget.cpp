@@ -187,8 +187,8 @@ void ConfigAutotuneWidget::onShareToDatabaseComplete(QNetworkReply *reply)
         autotuneShareForm->hideProgress(true);
         autotuneShareForm->disableDatabase(false);
         QMessageBox msgBox;
-        msgBox.setText("An error occured!");
-        msgBox.setInformativeText("Your results could not be shared to the database. Please try again later.");
+        msgBox.setText(tr("An error occured!"));
+        msgBox.setInformativeText(tr("Your results could not be shared to the database. Please try again later."));
         msgBox.setDetailedText(QString("URL: %1\nReply: %2\n")
                                .arg(reply->url().toString())
                                .arg(reply->errorString()));
