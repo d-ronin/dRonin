@@ -48,6 +48,10 @@ private:
     Ui::MainWindow *ui;
     QString dumpFile;
     static const QString postUrl;
+    static const QString gitCommit;
+    static const QString gitBranch;
+    static const bool gitDirty;
+    static const QString gitTag;
 
 private slots:
     void onShowReport();

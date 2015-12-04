@@ -36,6 +36,10 @@
 #include <QtNetwork/QtNetwork>
 
 const QString MainWindow::postUrl = QString("http://dronin-autotown.appspot.com/storeCrash");
+const QString MainWindow::gitCommit = QString(GIT_COMMIT);
+const QString MainWindow::gitBranch = QString(GIT_BRANCH);
+const bool MainWindow::gitDirty = GIT_DIRTY;
+const QString MainWindow::gitTag = QString(GIT_TAG);
 
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
@@ -89,10 +93,6 @@ void MainWindow::onSendReport()
 {
     ui->stackedWidget->setCurrentIndex(2);
 
-    // give some time to make sure the dump is written
-    // sometimes get 0 length without a wait here
-    QThread::msleep(500);
-
     QFile file(dumpFile);
     file.open(QIODevice::ReadOnly);
     QByteArray dumpData = file.readAll();
@@ -102,6 +102,11 @@ void MainWindow::onSendReport()
     json["dump"] = QString(dumpData.toBase64());
     json["comment"] = ui->te_Description->toPlainText();
     json["directory"] = QFileInfo(file).absolutePath().split("/").last();
+    // version info
+    json["gitCommit"] = gitCommit;
+    json["gitBranch"] = gitBranch;
+    json["gitDirty"] = gitDirty;
+    json["gitTag"] = gitTag;
 
     QUrl url(postUrl);
     QNetworkRequest request(url);
