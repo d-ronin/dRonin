@@ -52,8 +52,8 @@
 #include "systemident.h"
 #include "stabilizationdesired.h"
 #include "stabilizationsettings.h"
-#include "trimangles.h"
-#include "trimanglessettings.h"
+#include "subtrim.h"
+#include "subtrimsettings.h"
 
 // Math libraries
 #include "coordinate_conversions.h"
@@ -107,7 +107,7 @@ enum {
 static struct pios_thread *taskHandle;
 static MWRateSettingsData mwrate_settings;
 static StabilizationSettingsData settings;
-static TrimAnglesData trimAngles;
+static SubTrimData subTrim;
 static struct pios_queue *queue;
 float axis_lock_accum[3] = {0,0,0};
 uint8_t max_axis_lock = 0;
@@ -143,7 +143,7 @@ int32_t StabilizationStart()
 	// Connect settings callback
 	MWRateSettingsConnectCallback(SettingsUpdatedCb);
 	StabilizationSettingsConnectCallback(SettingsUpdatedCb);
-	TrimAnglesSettingsConnectCallback(SettingsUpdatedCb);
+	SubTrimSettingsConnectCallback(SettingsUpdatedCb);
 
 	// Start main task
 	taskHandle = PIOS_Thread_Create(stabilizationTask, "Stabilization", STACK_SIZE_BYTES, NULL, TASK_PRIORITY);
@@ -161,8 +161,8 @@ int32_t StabilizationInitialize()
 	StabilizationSettingsInitialize();
 	MWRateSettingsInitialize();
 	ActuatorDesiredInitialize();
-	TrimAnglesInitialize();
-	TrimAnglesSettingsInitialize();
+	SubTrimInitialize();
+	SubTrimSettingsInitialize();
 #if defined(RATEDESIRED_DIAGNOSTICS)
 	RateDesiredInitialize();
 #endif
@@ -269,13 +269,13 @@ static void stabilizationTask(void* parameters)
 		
 		// Mux in level trim values, and saturate the trimmed attitude setpoint.
 		trimmedAttitudeSetpoint.Roll = bound_min_max(
-			stabDesired.Roll + trimAngles.Roll,
-			-settings.RollMax + trimAngles.Roll,
-			 settings.RollMax + trimAngles.Roll);
+			stabDesired.Roll + subTrim.Roll,
+			-settings.RollMax + subTrim.Roll,
+			 settings.RollMax + subTrim.Roll);
 		trimmedAttitudeSetpoint.Pitch = bound_min_max(
-			stabDesired.Pitch + trimAngles.Pitch,
-			-settings.PitchMax + trimAngles.Pitch,
-			 settings.PitchMax + trimAngles.Pitch);
+			stabDesired.Pitch + subTrim.Pitch,
+			-settings.PitchMax + subTrim.Pitch,
+			 settings.PitchMax + subTrim.Pitch);
 		trimmedAttitudeSetpoint.Yaw = stabDesired.Yaw;
 
 		// For horizon mode we need to compute the desire attitude from an unscaled value and apply the
@@ -283,16 +283,16 @@ static void stabilizationTask(void* parameters)
 		horizonRateFraction = 0.0f;
 		if (stabDesired.StabilizationMode[ROLL] == STABILIZATIONDESIRED_STABILIZATIONMODE_HORIZON) {
 			trimmedAttitudeSetpoint.Roll = bound_min_max(
-				stabDesired.Roll * settings.RollMax + trimAngles.Roll,
-				-settings.RollMax + trimAngles.Roll,
-				 settings.RollMax + trimAngles.Roll);
+				stabDesired.Roll * settings.RollMax + subTrim.Roll,
+				-settings.RollMax + subTrim.Roll,
+				 settings.RollMax + subTrim.Roll);
 			horizonRateFraction = fabsf(stabDesired.Roll);
 		}
 		if (stabDesired.StabilizationMode[PITCH] == STABILIZATIONDESIRED_STABILIZATIONMODE_HORIZON) {
 			trimmedAttitudeSetpoint.Pitch = bound_min_max(
-				stabDesired.Pitch * settings.PitchMax + trimAngles.Pitch,
-				-settings.PitchMax + trimAngles.Pitch,
-				 settings.PitchMax + trimAngles.Pitch);
+				stabDesired.Pitch * settings.PitchMax + subTrim.Pitch,
+				-settings.PitchMax + subTrim.Pitch,
+				 settings.PitchMax + subTrim.Pitch);
 			horizonRateFraction = MAX(horizonRateFraction, fabsf(stabDesired.Pitch));
 		}
 		if (stabDesired.StabilizationMode[YAW] == STABILIZATIONDESIRED_STABILIZATIONMODE_HORIZON) {
@@ -302,10 +302,10 @@ static void stabilizationTask(void* parameters)
 
 		// For weak leveling mode the attitude setpoint is the trim value (drifts back towards "0")
 		if (stabDesired.StabilizationMode[ROLL] == STABILIZATIONDESIRED_STABILIZATIONMODE_WEAKLEVELING) {
-			trimmedAttitudeSetpoint.Roll = trimAngles.Roll;
+			trimmedAttitudeSetpoint.Roll = subTrim.Roll;
 		}
 		if (stabDesired.StabilizationMode[PITCH] == STABILIZATIONDESIRED_STABILIZATIONMODE_WEAKLEVELING) {
-			trimmedAttitudeSetpoint.Pitch = trimAngles.Pitch;
+			trimmedAttitudeSetpoint.Pitch = subTrim.Pitch;
 		}
 		if (stabDesired.StabilizationMode[YAW] == STABILIZATIONDESIRED_STABILIZATIONMODE_WEAKLEVELING) {
 			trimmedAttitudeSetpoint.Yaw = 0;
@@ -962,18 +962,18 @@ static void SettingsUpdatedCb(UAVObjEvent * ev, void *ctx, void *obj, int len)
 {
 	(void) ctx; (void) obj; (void) len;
 
-	if (ev == NULL || ev->obj == TrimAnglesSettingsHandle())
+	if (ev == NULL || ev->obj == SubTrimSettingsHandle())
 	{
-		TrimAnglesSettingsData trimAnglesSettings;
+		SubTrimSettingsData subTrimSettings;
 
-		TrimAnglesGet(&trimAngles);
-		TrimAnglesSettingsGet(&trimAnglesSettings);
+		SubTrimGet(&subTrim);
+		SubTrimSettingsGet(&subTrimSettings);
 
 		// Set the trim angles
-		trimAngles.Roll = trimAnglesSettings.Roll;
-		trimAngles.Pitch = trimAnglesSettings.Pitch;
+		subTrim.Roll = subTrimSettings.Roll;
+		subTrim.Pitch = subTrimSettings.Pitch;
 
-		TrimAnglesSet(&trimAngles);
+		SubTrimSet(&subTrim);
 	}
 
 	if (ev == NULL || ev->obj == StabilizationSettingsHandle())

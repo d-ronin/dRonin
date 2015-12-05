@@ -1,5 +1,5 @@
 <xml>
-    <object name="TrimAngles" singleinstance="true" settings="false">
+    <object name="SubTrim" singleinstance="true" settings="false">
         <description>The trim angle required for the UAV to fly straight and level.</description>
         <field name="Roll" units="degrees" type="float" elements="1"/>
         <field name="Pitch" units="degrees" type="float" elements="1"/>
