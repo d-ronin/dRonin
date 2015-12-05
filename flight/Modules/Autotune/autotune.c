@@ -47,6 +47,7 @@
 #include "pios_thread.h"
 
 #include "circqueue.h"
+#include "misc_math.h"
 
 // Private constants
 #define STACK_SIZE_BYTES 1504
@@ -429,13 +430,13 @@ __attribute__((always_inline)) static inline void af_predict(float X[AF_NUMX], f
 	float u1 = X[3];           // scaled roll torque 
 	float u2 = X[4];           // scaled pitch torque
 	float u3 = X[5];           // scaled yaw torque
-	const float e_b1 = expf(X[6]);   // roll torque scale
+	const float e_b1 = expapprox(X[6]);   // roll torque scale
 	const float b1 = X[6];
-	const float e_b2 = expf(X[7]);   // pitch torque scale
+	const float e_b2 = expapprox(X[7]);   // pitch torque scale
 	const float b2 = X[7];
-	const float e_b3 = expf(X[8]);   // yaw torque scale
+	const float e_b3 = expapprox(X[8]);   // yaw torque scale
 	const float b3 = X[8];
-	const float e_tau = expf(X[9]); // time response of the motors
+	const float e_tau = expapprox(X[9]); // time response of the motors
 	const float tau = X[9];
 	const float bias1 = X[10];        // bias in the roll torque
 	const float bias2 = X[11];       // bias in the pitch torque
