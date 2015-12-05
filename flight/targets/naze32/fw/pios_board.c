@@ -492,6 +492,7 @@ void PIOS_Board_Init(void) {
 		case HWNAZE_RCVRPORT_PPM:
 		case HWNAZE_RCVRPORT_PPMPWM:
 		case HWNAZE_RCVRPORT_PPMSERIAL:
+		case HWNAZE_RCVRPORT_SERIAL:
 			PIOS_Servo_Init(&pios_servo_cfg);
 			break;
 		case HWNAZE_RCVRPORT_PPMOUTPUTS:
