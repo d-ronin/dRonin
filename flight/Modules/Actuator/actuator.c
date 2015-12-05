@@ -353,7 +353,7 @@ static void actuator_task(void* parameters)
 				if (status[ct] > 0) {
 					// Apply curve fitting, mapping the input to the propeller output.
 					status[ct] = actuatorSettings.MotorInputOutputCurveFit[ACTUATORSETTINGS_MOTORINPUTOUTPUTCURVEFIT_A] *
-						powf(status[ct], actuatorSettings.MotorInputOutputCurveFit[ACTUATORSETTINGS_MOTORINPUTOUTPUTCURVEFIT_B]);
+						powapprox(status[ct], actuatorSettings.MotorInputOutputCurveFit[ACTUATORSETTINGS_MOTORINPUTOUTPUTCURVEFIT_B]);
 				} else {
 					status[ct] = 0;
 				}

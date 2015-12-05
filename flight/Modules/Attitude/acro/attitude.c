@@ -581,19 +581,26 @@ static void updateTemperatureComp(float temperature, float *temp_bias)
 		temp_accum = 0;
 		temp_counter = 0;
 
-		// Compute a third order polynomial for each chanel after each 500 samples
-		temp_bias[0] = sensorSettings.XGyroTempCoeff[0] + 
-		               sensorSettings.XGyroTempCoeff[1] * t + 
-		               sensorSettings.XGyroTempCoeff[2] * powf(t,2) + 
-		               sensorSettings.XGyroTempCoeff[3] * powf(t,3);
-		temp_bias[1] = sensorSettings.YGyroTempCoeff[0] + 
-		               sensorSettings.YGyroTempCoeff[1] * t + 
-		               sensorSettings.YGyroTempCoeff[2] * powf(t,2) + 
-		               sensorSettings.YGyroTempCoeff[3] * powf(t,3);
+		// Compute a third order polynomial for each channel after each 500 samples
+#if 0
+		for reference :
 		temp_bias[2] = sensorSettings.ZGyroTempCoeff[0] + 
 		               sensorSettings.ZGyroTempCoeff[1] * t + 
 		               sensorSettings.ZGyroTempCoeff[2] * powf(t,2) + 
 		               sensorSettings.ZGyroTempCoeff[3] * powf(t,3);
+#endif
+		temp_bias[0] = sensorSettings.XGyroTempCoeff[0] + 
+		               t * (sensorSettings.XGyroTempCoeff[1] + 
+		               t * (sensorSettings.XGyroTempCoeff[2] + 
+		               t * sensorSettings.XGyroTempCoeff[3]));
+		temp_bias[1] = sensorSettings.YGyroTempCoeff[0] + 
+		               t * (sensorSettings.YGyroTempCoeff[1] + 
+		               t * (sensorSettings.YGyroTempCoeff[2] + 
+		               t * sensorSettings.YGyroTempCoeff[3]));
+		temp_bias[2] = sensorSettings.ZGyroTempCoeff[0] + 
+		               t * (sensorSettings.ZGyroTempCoeff[1] + 
+		               t * (sensorSettings.ZGyroTempCoeff[2] + 
+		               t * sensorSettings.ZGyroTempCoeff[3]));
 	}
 }
 
