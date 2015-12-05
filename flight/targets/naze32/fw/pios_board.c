@@ -396,6 +396,7 @@ void PIOS_Board_Init(void) {
 #endif	/* PIOS_INCLUDE_PWM */
 		break;
 	case HWNAZE_RCVRPORT_PPMSERIAL:
+	case HWNAZE_RCVRPORT_SERIAL:
 		{
 			uint8_t hw_rcvrserial;
 			HwNazeRcvrSerialGet(&hw_rcvrserial);
@@ -420,7 +421,10 @@ void PIOS_Board_Init(void) {
 					false);                              // sbus_toggle
 		}
 
-		// Fall through to set up PPM.
+		if (hw_rcvrport == HWNAZE_RCVRPORT_SERIAL)
+			break;
+		
+		// Else fall through to set up PPM.
 
 	case HWNAZE_RCVRPORT_PPM:
 	case HWNAZE_RCVRPORT_PPMOUTPUTS:
@@ -488,6 +492,7 @@ void PIOS_Board_Init(void) {
 		case HWNAZE_RCVRPORT_PPM:
 		case HWNAZE_RCVRPORT_PPMPWM:
 		case HWNAZE_RCVRPORT_PPMSERIAL:
+		case HWNAZE_RCVRPORT_SERIAL:
 			PIOS_Servo_Init(&pios_servo_cfg);
 			break;
 		case HWNAZE_RCVRPORT_PPMOUTPUTS:
