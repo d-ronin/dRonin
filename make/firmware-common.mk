@@ -63,6 +63,11 @@ UAVOBJSRCFILENAMES += txpidsettings
 UAVOBJSRCFILENAMES += ubloxinfo
 UAVOBJSRCFILENAMES += velocityactual
 
+UAVOBJSRCFILENAMES += helicopterairframesettings
+UAVOBJSRCFILENAMES += multirotorairframesettings
+UAVOBJSRCFILENAMES += fixedwingairframesettings
+UAVOBJSRCFILENAMES += groundvehicleplatformsettings
+
 ifeq ($(UAVO_NAV),YES)
 UAVOBJSRCFILENAMES += airspeedsettings
 UAVOBJSRCFILENAMES += altitudeholddesired
