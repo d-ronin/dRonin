@@ -121,6 +121,12 @@ static inline bool IS_NOT_FINITE(float x) {
  * Contact: Paul Mineiro <paul@mineiro.com>                            *
  *=====================================================================*/
 
+#ifdef __cplusplus
+#define cast_uint32_t static_cast<uint32_t>
+#else
+#define cast_uint32_t (uint32_t)
+#endif
+
 static inline float 
 fastlog2 (float x)
 {
@@ -140,7 +146,7 @@ fastpow2 (float p)
 	float offset = (p < 0) ? 1.0f : 0.0f;
 	int w = p;
 	float z = p - w + offset;
-	union { uint32_t i; float f; } v = { (1 << 23) * (p + 121.2740838f + 27.7280233f / (4.84252568f - z) - 1.49012907f * z) };
+	union { uint32_t i; float f; } v = { cast_uint32_t ((1 << 23) * (p + 121.2740838f + 27.7280233f / (4.84252568f - z) - 1.49012907f * z)) };
 
 	return v.f;
 }
