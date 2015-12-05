@@ -111,7 +111,7 @@ QStringList RevoMini::getSupportedProtocols()
 
 QPixmap RevoMini::getBoardPicture()
 {
-    return QPixmap();
+    return QPixmap(":/openpilot/images/revomini.png");
 }
 
 QString RevoMini::getHwUAVO()
