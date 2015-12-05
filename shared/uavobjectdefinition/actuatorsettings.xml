@@ -23,8 +23,8 @@
             <description>When enabled, the motors will spin at the ChannelNeutral command when armed with zero throttle.</description>
         </field>
 
-        <field name="MotorInputOutputCurveFit" units="-" type="float" elementnames="A,B" defaultvalue="1,1">
-            <description>Actuator mapping of input in [-1,1] to output on [-1,1], using power equation of type a*x^b.</description>
+        <field name="MotorInputOutputCurveFit" units="-" type="float" elements="1" defaultvalue="1">
+            <description>Actuator mapping of input in [-1,1] to output on [-1,1], using power equation of type x^value.</description>
         </field>
 
         <access gcs="readwrite" flight="readwrite"/>
