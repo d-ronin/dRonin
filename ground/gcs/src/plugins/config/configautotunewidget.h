@@ -2,6 +2,7 @@
  ******************************************************************************
  *
  * @file       configautotunewidget.h
+ * @author     dRonin, http://dronin.org, Copyright (C) 2015
  * @author     The OpenPilot Team, http://www.openpilot.org Copyright (C) 2012.
  * @addtogroup GCSPlugins GCS Plugins
  * @{
@@ -36,7 +37,8 @@
 #include "systemident.h"
 #include <QWidget>
 #include <QTimer>
-#include "utils/foruminteractionform.h"
+#include <QtNetwork/QNetworkReply>
+#include "autotuneshareform.h"
 
 class ConfigAutotuneWidget : public ConfigTaskWidget
 {
@@ -48,9 +50,16 @@ private:
     Ui_AutotuneWidget *m_autotune;
     StabilizationSettings::DataFields stabSettings;
     UAVObjectUtilManager* utilMngr;
+    AutotuneShareForm *autotuneShareForm;
 
     bool approveSettings(SystemIdent::DataFields systemIdentData);
-    Utils::ForumInteractionForm *forumInteractionForm;
+    QJsonDocument getResultsJson();
+    QString getResultsPlainText();
+    void saveUserData();
+    void loadUserData();
+
+    static const QString databaseUrl;
+
 signals:
 
 public slots:
@@ -60,7 +69,10 @@ private slots:
     void recomputeStabilization();
     void saveStabilization();
     void onShareData();
-    void onForumInteractionSet(int value);
+    void onShareToDatabase();
+    void onShareToClipboard();
+    void onShareFinished();
+    void onShareToDatabaseComplete(QNetworkReply *reply);
 };
 
 #endif // CONFIGAUTOTUNE_H

@@ -4,6 +4,7 @@ DEFINES += CONFIG_LIBRARY
 DEFINES += QWT_DLL
 
 QT += svg
+QT += network
 
 include(config_dependencies.pri)
 LIBS *= -l$$qtLibraryName(Qwt)
@@ -47,7 +48,8 @@ HEADERS += calibration.h \
     configmodulewidget.h \
     configosdwidget.h \
     convertmwrate.h \
-    expocurve.h
+    expocurve.h \
+    autotuneshareform.h
 
 SOURCES += calibration.cpp \
     configplugin.cpp \
@@ -81,7 +83,8 @@ SOURCES += calibration.cpp \
     configmodulewidget.cpp \
     configosdwidget.cpp \
     convertmwrate.cpp \
-    expocurve.cpp
+    expocurve.cpp \
+    autotuneshareform.cpp
 
 FORMS += airframe.ui \
     ccpm.ui \
@@ -100,7 +103,9 @@ FORMS += airframe.ui \
     modules.ui \
     convertmwrate.ui \
     osd.ui \
-    osdpage.ui
+    osdpage.ui \
+    autotuneshareform.ui
+
 RESOURCES += configgadget.qrc
 
 

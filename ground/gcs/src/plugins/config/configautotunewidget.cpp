@@ -1,3 +1,30 @@
+/**
+ ******************************************************************************
+ *
+ * @file       configautotunewidget.cpp
+ * @author     dRonin, http://dronin.org, Copyright (C) 2015
+ * @author     The OpenPilot Team, http://www.openpilot.org Copyright (C) 2012.
+ * @addtogroup GCSPlugins GCS Plugins
+ * @{
+ * @addtogroup ConfigPlugin Config Plugin
+ * @{
+ * @brief The Configuration Gadget used to adjust or recalculate autotuning
+ *****************************************************************************/
+/*
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful, but
+ * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
+ * or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License
+ * for more details.
+ *
+ * You should have received a copy of the GNU General Public License along
+ * with this program; if not, write to the Free Software Foundation, Inc.,
+ * 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
+ */
 
 #include "configautotunewidget.h"
 
@@ -11,16 +38,20 @@
 #include <QDesktopServices>
 #include <QUrl>
 #include <QList>
+#include <QMessageBox>
+#include <QClipboard>
+#include <QtNetwork/QNetworkAccessManager>
+#include <QtNetwork/QNetworkRequest>
 #include "systemident.h"
 #include "stabilizationsettings.h"
 #include "modulesettings.h"
+#include "systemsettings.h"
 #include "coreplugin/generalsettings.h"
-#include "utils/phpbb.h"
 #include "extensionsystem/pluginmanager.h"
-#include <QMessageBox>
+#include "coreplugin/iboardtype.h"
 
-#define FORUM_SHARING_FORUM     27
-#define FORUM_SHARING_THREAD    268
+
+const QString ConfigAutotuneWidget::databaseUrl = QString("http://dronin-autotown.appspot.com/storeTune");
 
 ConfigAutotuneWidget::ConfigAutotuneWidget(QWidget *parent) :
     ConfigTaskWidget(parent)
@@ -85,127 +116,132 @@ void ConfigAutotuneWidget::saveStabilization()
 
 void ConfigAutotuneWidget::onShareData()
 {
-    forumInteractionForm = new Utils::ForumInteractionForm(this);
-    connect(forumInteractionForm, SIGNAL(finished(int)), this, SLOT(onForumInteractionSet(int)));
-    ExtensionSystem::PluginManager *pm=ExtensionSystem::PluginManager::instance();
-    Core::Internal::GeneralSettings * settings=pm->getObject<Core::Internal::GeneralSettings>();
-    if (!settings->getForumPassword().isEmpty()) {
-       forumInteractionForm->setPassword(settings->getForumPassword());
-       forumInteractionForm->setUserName(settings->getForumUser());
+    autotuneShareForm = new AutotuneShareForm();
+    connect(autotuneShareForm, SIGNAL(finished()), this, SLOT(onShareFinished()));
+    connect(autotuneShareForm, SIGNAL(ClipboardRequest()), this, SLOT(onShareToClipboard()));
+    connect(autotuneShareForm, SIGNAL(DatabaseRequest()), this, SLOT(onShareToDatabase()));
+
+    QString currentFrameType;
+    SystemSettings *sysSettings = SystemSettings::GetInstance(getObjectManager());
+    if(sysSettings) {
+        UAVObjectField *frameType = sysSettings->getField("AirframeType");
+        if(frameType) {
+            autotuneShareForm->setVehicleTypeOptions(frameType->getOptions());
+            currentFrameType = frameType->getValue().toString();
+        }
     }
-    forumInteractionForm->setObservations(settings->getObservations());
-    forumInteractionForm->setAircraftDescription(settings->getAircraftDescription());
-    forumInteractionForm->show();
-    forumInteractionForm->raise();
-    forumInteractionForm->activateWindow();
+    // would be nice to set board type dropdown too but too hard to get a list (for now)
+
+    // fetch last shared data
+    loadUserData();
+
+    // we will overwrite some things though
+    Core::IBoardType *board = utilMngr->getBoardType();
+    if(board) {
+        autotuneShareForm->setBoardType(board->shortName());
+        autotuneShareForm->disableBoardType(true);
+    }
+    if(!currentFrameType.isNull()) {
+        autotuneShareForm->setVehicleType(currentFrameType);
+        autotuneShareForm->disableVehicleType(true);
+    }
+
+    autotuneShareForm->show();
+    autotuneShareForm->raise();
+    autotuneShareForm->activateWindow();
 }
 
-void ConfigAutotuneWidget::onForumInteractionSet(int value)
+void ConfigAutotuneWidget::onShareFinished()
 {
-    if (!value) {
-        forumInteractionForm->deleteLater();
-        return;
-    }
-    ExtensionSystem::PluginManager *pm=ExtensionSystem::PluginManager::instance();
-    Core::Internal::GeneralSettings * settings=pm->getObject<Core::Internal::GeneralSettings>();
-    if (forumInteractionForm->getSaveCredentials()) {
-        settings->setForumPassword(forumInteractionForm->getPassword());
-        settings->setForumUser(forumInteractionForm->getUserName());
-    } else {
-        settings->setForumPassword("");
-        settings->setForumUser("");
-    }
-    settings->setObservations(forumInteractionForm->getObservations());
-    settings->setAircraftDescription(forumInteractionForm->getAircraftDescription());
-    Utils::PHPBB php("http://forum.taulabs.org", this);
-    if (!php.login(forumInteractionForm->getUserName(), forumInteractionForm->getPassword())) {
-       QMessageBox::warning(this, tr("Forum login"), tr("Forum login failed, probably wrong username or password"));
-       forumInteractionForm->deleteLater();
-       return;
-    }
+    autotuneShareForm->deleteLater();
+}
 
-    deviceDescriptorStruct firmware;
-    utilMngr->getBoardDescriptionStruct(firmware);
-    Core::IBoardType* board = utilMngr->getBoardType();
-    QString boardName;
-    if (board)
-        boardName = board->shortName();
+void ConfigAutotuneWidget::onShareToDatabase()
+{
+    autotuneShareForm->disableDatabase(true);
+    // save data for next time the form is used
+    saveUserData();
 
-    QString message0 = tr(
-                "[b]Flight controller[/b]: %13\n"
-                "[b]Firmware tag[/b]: %14\n"
-                "[b]Firmware commit[/b]: [url=http://github.com/TauLabs/TauLabs/commit/%15]%15[/url]\n"
-                "[b]Firmware date[/b]: %16\n\n\n"
-                "[b]Aircraft description[/b]: %0\n\n\n"
-                "[b]Observations[/b]: %1\n\n\n"
-                "[b]Measured properties[/b]"
-                "[table][tr][td][/td]"
-                "[td][b]Gain[/b][/td]"
-                "[td][b]Bias[/b][/td]"
-                "[td][b]Tau(s)[/b][/td]"
-                "[td][b]Noise[/b][/td][/tr]"
-                "[tr][td][b]Roll[/b][/td]"
-                "[td]%2[/td]"
-                "[td]%3[/td]"
-                "[td]%4[/td]"
-                "[td]%5[/td][/tr]"
-                "[tr][td][b]Pitch[/b][/td]"
-                "[td]%6[/td]"
-                "[td]%7[/td]"
-                "[td]%8[/td]"
-                "[td]%9[/td][/tr][/table]"
-                "[b]\n\nTuning aggressiveness [/b]"
-                "[table][tr][td][b]Damping[/b][/td]"
-                "[td]%10[/td][/tr]"
-                "[tr][td][b]Noise sensitivity[/b][/td]"
-                "[td]%11[/td][/tr]"
-                "[tr][td][b]Natural frequency[/b][/td]"
-                "[td]%12[/td][/tr][/table]")
-            .arg(forumInteractionForm->getAircraftDescription()).arg(forumInteractionForm->getObservations())
-            .arg(m_autotune->measuredRollGain->text()).arg(m_autotune->measuredRollBias->text())
-            .arg(m_autotune->rollTau->text()).arg(m_autotune->measuredRollNoise->text())
-            .arg(m_autotune->measuredPitchGain->text()).arg(m_autotune->measuredPitchBias->text())
-            .arg(m_autotune->pitchTau->text()).arg(m_autotune->measuredPitchNoise->text())
-            .arg(m_autotune->lblDamp->text()).arg(m_autotune->lblNoise->text())
-            .arg(m_autotune->wn->text())
-            .arg(boardName)
-            .arg(firmware.gitTag)
-            .arg(firmware.gitHash.left(7))
-            .arg(firmware.gitDate);
-    QString message1 = tr(
-                "[b]\n\nComputed Values[/b]"
-                "[table][tr][td][/td]"
-                "[td][b]RateKp[/b][/td]"
-                "[td][b]RateKi[/b][/td]"
-                "[td][b]RateKd[/b][/td][/tr]"
-                "[tr][td][b]Roll[/b][/td]"
-                "[td]%1[/td]"
-                "[td]%2[/td]"
-                "[td]%3[/td][/tr]"
-                "[tr][td][b]Pitch[/b][/td]"
-                "[td]%4[/td]"
-                "[td]%5[/td]"
-                "[td]%6[/td][/tr]"
-                "[tr][td][b]Outer Kp[/b][/td]"
-                "[td]%7[/td]"
-                "[td]-[/td]"
-                "[td]-[/td][/tr]"
-                "[tr][td][b]Derivative cutoff[/b][/td]"
-                "[td]%8[/td]"
-                "[td]-[/td]"
-                "[td]-[/td][/tr][/table]"
-                "\n\n")
-            .arg(m_autotune->rollRateKp->text()).arg(m_autotune->rollRateKi->text()).arg(m_autotune->rollRateKd->text())
-            .arg(m_autotune->pitchRateKp->text()).arg(m_autotune->pitchRateKi->text()).arg(m_autotune->pitchRateKd->text())
-            .arg(m_autotune->lblOuterKp->text()).arg(m_autotune->derivativeCutoff->text());
+    autotuneShareForm->hideProgress(false);
+    autotuneShareForm->setProgress(0, 0);
 
-    QString message = message0 + message1;
-    if(php.postReply(FORUM_SHARING_FORUM, FORUM_SHARING_THREAD, "Autotune Results", message)) {
-        QMessageBox::information(this, tr("Autotune results sharing"), tr("Thank you for sharing your results"));
-    } else {
-        QMessageBox::warning(this, tr("Autotune results sharing"), tr("Ooops, something went wrong, your results were not shared"));
+    QJsonDocument json = getResultsJson();
+
+    QUrl url(databaseUrl);
+    QNetworkRequest request(url);
+    request.setHeader(QNetworkRequest::ContentTypeHeader, "application/json; charset=utf-8");
+    QNetworkAccessManager *manager = new QNetworkAccessManager(this);
+
+    connect(manager, SIGNAL(finished(QNetworkReply*)),
+                this, SLOT(onShareToDatabaseComplete(QNetworkReply*)));
+
+    QNetworkReply *reply = manager->post(request, json.toJson());
+    connect(reply, SIGNAL(uploadProgress(qint64,qint64)), autotuneShareForm, SLOT(setProgress(qint64,qint64)));
+}
+
+void ConfigAutotuneWidget::onShareToDatabaseComplete(QNetworkReply *reply)
+{
+    disconnect(reply, SIGNAL(uploadProgress(qint64,qint64)), autotuneShareForm, SLOT(setProgress(qint64,qint64)));
+    if(reply->error() != QNetworkReply::NoError) {
+        qWarning() << "[ConfigAutotuneWidget::onShareToDatabaseComplete]HTTP Error: " << reply->errorString();
+        autotuneShareForm->hideProgress(true);
+        autotuneShareForm->disableDatabase(false);
+        QMessageBox msgBox;
+        msgBox.setText(tr("An error occured!"));
+        msgBox.setInformativeText(tr("Your results could not be shared to the database. Please try again later."));
+        msgBox.setDetailedText(QString("URL: %1\nReply: %2\n")
+                               .arg(reply->url().toString())
+                               .arg(reply->errorString()));
+        msgBox.setIcon(QMessageBox::Icon::Critical);
+        msgBox.exec();
     }
-    forumInteractionForm->deleteLater();
+    else {
+        autotuneShareForm->setProgress(100, 100);
+        // database share button remains disabled, no need to send twice
+    }
+    reply->deleteLater();
+}
+
+void ConfigAutotuneWidget::onShareToClipboard()
+{
+    // save data for next time the form is used
+    saveUserData();
+
+    QString message = getResultsPlainText();
+
+    QClipboard *clipboard = QApplication::clipboard();
+    clipboard->setText(message);
+}
+
+void ConfigAutotuneWidget::loadUserData()
+{
+    ExtensionSystem::PluginManager *pm = ExtensionSystem::PluginManager::instance();
+    Core::Internal::GeneralSettings *settings = pm->getObject<Core::Internal::GeneralSettings>();
+
+    autotuneShareForm->setObservations(settings->getObservations());
+    autotuneShareForm->setVehicleType(settings->getVehicleType());
+    autotuneShareForm->setBoardType(settings->getBoardType());
+    autotuneShareForm->setWeight(settings->getWeight());
+    autotuneShareForm->setVehicleSize(settings->getVehicleSize());
+    autotuneShareForm->setBatteryCells(settings->getBatteryCells());
+    autotuneShareForm->setMotors(settings->getMotors());
+    autotuneShareForm->setESCs(settings->getESCs());
+    autotuneShareForm->setProps(settings->getProps());
+}
+
+void ConfigAutotuneWidget::saveUserData()
+{
+    ExtensionSystem::PluginManager *pm = ExtensionSystem::PluginManager::instance();
+    Core::Internal::GeneralSettings *settings = pm->getObject<Core::Internal::GeneralSettings>();
+    settings->setObservations(autotuneShareForm->getObservations());
+    settings->setVehicleType(autotuneShareForm->getVehicleType());
+    settings->setBoardType(autotuneShareForm->getBoardType());
+    settings->setWeight(autotuneShareForm->getWeight());
+    settings->setVehicleSize(autotuneShareForm->getVehicleSize());
+    settings->setBatteryCells(autotuneShareForm->getBatteryCells());
+    settings->setMotors(autotuneShareForm->getMotors());
+    settings->setESCs(autotuneShareForm->getESCs());
+    settings->setProps(autotuneShareForm->getProps());
 }
 
 /**
@@ -377,4 +413,166 @@ void ConfigAutotuneWidget::updateObjectsFromWidgets()
          m_autotune->enableAutoTune->isChecked() ? ModuleSettings::ADMINSTATE_ENABLED : ModuleSettings::ADMINSTATE_DISABLED;
     moduleSettings->setData(moduleSettingsData);
     ConfigTaskWidget::updateObjectsFromWidgets();
+}
+
+/**
+ * @brief ConfigAutotuneWidget::generateResultsPlainText
+ * @return
+ */
+QString ConfigAutotuneWidget::getResultsPlainText()
+{
+    deviceDescriptorStruct firmware;
+    utilMngr->getBoardDescriptionStruct(firmware);
+
+    SystemSettings *sysSettings = SystemSettings::GetInstance(getObjectManager());
+    UAVObjectField *afTypeField = sysSettings->getField("AirframeType");
+    QString afType;
+    if(afTypeField) {
+        QStringList vehicleTypes = afTypeField->getOptions();
+        afType = vehicleTypes[sysSettings->getAirframeType()];
+    }
+
+    QString message0 = tr(
+                "Flight controller:\t%0\n"
+                "Firmware tag:\t\t%1\n"
+                "Firmware commit:\t%2\n"
+                "Firmware date:\t\t%3\n\n"
+                "Vehicle description:\n"
+                "Type:\t\t\t%4\n"
+                "Weight (AUW):\t%5 g\n"
+                "Size:\t\t\t%6\n"
+                "Battery:\t\t%7S\n"
+                "Motors:\t\t\t%8\n"
+                "ESCs:\t\t\t%9\n"
+                "Propellers:\t\t%10\n\n"
+                "Observations:\n%11\n\n")
+            .arg(autotuneShareForm->getBoardType()) // 0
+            .arg(firmware.gitTag) // 1
+            .arg(firmware.gitHash.left(7)) // 2
+            .arg(firmware.gitDate + " UTC") // 3
+            .arg(afType) // 4
+            .arg(autotuneShareForm->getWeight()) // 5
+            .arg(autotuneShareForm->getVehicleSize()) // 6
+            .arg(autotuneShareForm->getBatteryCells()) // 7
+            .arg(autotuneShareForm->getMotors()) // 8
+            .arg(autotuneShareForm->getESCs()) // 9
+            .arg(autotuneShareForm->getProps()) // 10
+            .arg(autotuneShareForm->getObservations()); // 11
+    QString message1 = tr(
+                "Measured properties:\n"
+                "\t\tGain\t\tBias\t\tNoise\n"
+                "Roll:\t%0\t\t%1\t%2\n"
+                "Pitch:\t%3\t\t%4\t%5\n"
+                "Tau:\t%6 ms\n\n"
+                "Tuning aggressiveness:\n"
+                "Damping:\t\t\t%7\n"
+                "Noise sensitivity:\t%8\n"
+                "Natural frequency:\t%9\n\n")
+            .arg(m_autotune->measuredRollGain->text()) // 0
+            .arg(m_autotune->measuredRollBias->text()) // 1
+            .arg(m_autotune->measuredRollNoise->text()) // 2
+            .arg(m_autotune->measuredPitchGain->text()) // 3
+            .arg(m_autotune->measuredPitchBias->text()) // 4
+            .arg(m_autotune->measuredPitchNoise->text()) // 5
+            .arg(m_autotune->rollTau->text().toDouble()*1000.0) // 6
+            .arg(m_autotune->lblDamp->text()) // 7
+            .arg(m_autotune->lblNoise->text()) // 8
+            .arg(m_autotune->wn->text()); // 9
+    QString message2 = tr(
+                "Computed values:\n"
+                "\t\t\tRateKp\t\tRateKi\t\tRateKd\n"
+                "Roll:\t\t%0\t%1\t%2\n"
+                "Pitch:\t\t%3\t%4\t%5\n"
+                "Outer Kp:\t%6\t\t-\t\t\t-\n"
+                "Derivative cutoff:\t%7")
+            .arg(m_autotune->rollRateKp->text()) // 0
+            .arg(m_autotune->rollRateKi->text()) // 1
+            .arg(m_autotune->rollRateKd->text()) // 2
+            .arg(m_autotune->pitchRateKp->text()) // 3
+            .arg(m_autotune->pitchRateKi->text()) // 4
+            .arg(m_autotune->pitchRateKd->text()) // 5
+            .arg(m_autotune->lblOuterKp->text()) // 6
+            .arg(m_autotune->derivativeCutoff->text()); // 7
+
+    return message0 + message1 + message2;
+}
+
+/**
+ * @brief ConfigAutotuneWidget::generateResultsJson
+ * @return QJsonDocument containing autotune result data
+ */
+QJsonDocument ConfigAutotuneWidget::getResultsJson()
+{
+    deviceDescriptorStruct firmware;
+    utilMngr->getBoardDescriptionStruct(firmware);
+
+    QJsonObject json;
+    json["dataVersion"] = 1;
+    json["uniqueId"] = QString(utilMngr->getBoardCPUSerial().toHex());
+
+    QJsonObject vehicle, fw;
+    fw["board"] = autotuneShareForm->getBoardType();
+    fw["tag"] = firmware.gitTag;
+    fw["commit"] = firmware.gitHash;
+    QDateTime fwDate = QDateTime::fromString(firmware.gitDate, "yyyyMMdd hh:mm");
+    fwDate.setTimeSpec(Qt::UTC); // this makes it append a Z to the string indicating UTC
+    fw["date"] = fwDate.toString(Qt::ISODate);
+    vehicle["firmware"] = fw;
+    SystemSettings *sysSettings = SystemSettings::GetInstance(getObjectManager());
+    UAVObjectField *afTypeField = sysSettings->getField("AirframeType");
+    QString afType;
+    if(afTypeField) {
+        QStringList vehicleTypes = afTypeField->getOptions();
+        afType = vehicleTypes[sysSettings->getAirframeType()];
+    }
+    vehicle["type"] = afType;
+    vehicle["size"] = autotuneShareForm->getVehicleSize();
+    vehicle["weight"] = autotuneShareForm->getWeight();
+    vehicle["batteryCells"] = autotuneShareForm->getBatteryCells();
+    vehicle["esc"] = autotuneShareForm->getESCs();
+    vehicle["motor"] = autotuneShareForm->getMotors();
+    vehicle["props"] = autotuneShareForm->getProps();
+    json["vehicle"] = vehicle;
+
+    json["userObservations"] = autotuneShareForm->getObservations();
+
+
+    QJsonObject identification;
+    // this stuff should be stored in an array so we can iterate :/
+    QJsonObject roll_ident;
+    roll_ident["gain"] = m_autotune->measuredRollGain->text().toDouble();
+    roll_ident["bias"] = m_autotune->measuredRollBias->text().toDouble();
+    roll_ident["noise"] = m_autotune->measuredRollNoise->text().toDouble();
+    identification["roll"] = roll_ident;
+    QJsonObject pitch_ident;
+    pitch_ident["gain"] = m_autotune->measuredPitchGain->text().toDouble();
+    pitch_ident["bias"] = m_autotune->measuredPitchBias->text().toDouble();
+    pitch_ident["noise"] = m_autotune->measuredPitchNoise->text().toDouble();
+    identification["pitch"] = pitch_ident;
+    identification["tau"] = m_autotune->rollTau->text().toDouble();
+    json["identification"] = identification;
+
+    QJsonObject tuning, parameters, computed;
+    parameters["damping"] = m_autotune->lblDamp->text().toDouble();
+    parameters["noiseSensitivity"] = m_autotune->lblNoise->text().toDouble();
+    tuning["parameters"] = parameters;
+    computed["naturalFrequency"] = m_autotune->wn->text().toDouble();
+    computed["derivativeCutoff"] = m_autotune->derivativeCutoff->text().toDouble();
+    QJsonObject gains;
+    QJsonObject roll_gain, pitch_gain, outer_gain;
+    roll_gain["kp"] = m_autotune->rollRateKp->text().toDouble();
+    roll_gain["ki"] = m_autotune->rollRateKi->text().toDouble();
+    roll_gain["kd"] = m_autotune->rollRateKd->text().toDouble();
+    gains["roll"] = roll_gain;
+    pitch_gain["kp"] = m_autotune->pitchRateKp->text().toDouble();
+    pitch_gain["ki"] = m_autotune->pitchRateKi->text().toDouble();
+    pitch_gain["kd"] = m_autotune->pitchRateKd->text().toDouble();
+    gains["pitch"] = pitch_gain;
+    outer_gain["kp"] = m_autotune->lblOuterKp->text().toDouble();
+    gains["outer"] = outer_gain;
+    computed["gains"] = gains;
+    tuning["computed"] = computed;
+    json["tuning"] = tuning;
+
+    return QJsonDocument(json);
 }

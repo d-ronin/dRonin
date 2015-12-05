@@ -36,5 +36,7 @@
         <file>images/modules_selected.png</file>
         <file>images/osd_normal.png</file>
         <file>images/osd_selected.png</file>
+        <file>images/ic_cloud_upload_48px.svg</file>
+        <file>images/ic_content_paste_48px.svg</file>
     </qresource>
 </RCC>

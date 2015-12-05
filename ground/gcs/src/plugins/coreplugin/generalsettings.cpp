@@ -189,10 +189,15 @@ void GeneralSettings::readSettings(QSettings* qs)
     m_proxyHostname = qs->value(QLatin1String("proxyhostname"),m_proxyHostname).toString();
     m_proxyUser = qs->value(QLatin1String("proxyuser"),m_proxyUser).toString();
     m_proxyPassword = qs->value(QLatin1String("proxypassword"),m_proxyPassword).toString();
-    m_forumUser = qs->value(QLatin1String("forumuser"),m_forumUser).toString();
-    m_forumPassword = qs->value(QLatin1String("forumpassword"),m_forumPassword).toString();
-    m_aircraft = qs->value(QLatin1String("aircraft"),m_aircraft).toString();
-    m_observations = qs->value(QLatin1String("observations"),m_observations).toString();
+    m_observations = qs->value(QLatin1String("observations"), "").toString();
+    m_vehicle = qs->value(QLatin1String("vehicle"), "").toString();
+    m_board = qs->value(QLatin1String("board"), "").toString();
+    m_weight = qs->value(QLatin1String("weight"), 0).toInt();
+    m_size = qs->value(QLatin1String("size"), 0).toInt();
+    m_cells = qs->value(QLatin1String("cells"), 0).toInt();
+    m_motors = qs->value(QLatin1String("motors"), "").toString();
+    m_escs = qs->value(QLatin1String("escs"), "").toString();
+    m_props = qs->value(QLatin1String("props"), "").toString();
     qs->endGroup();
     emit generalSettingsChanged();
 }
@@ -218,10 +223,15 @@ void GeneralSettings::saveSettings(QSettings* qs)
     qs->setValue(QLatin1String("proxyhostname"), m_proxyHostname);
     qs->setValue(QLatin1String("proxyuser"), m_proxyUser);
     qs->setValue(QLatin1String("proxypassword"), m_proxyPassword);
-    qs->setValue(QLatin1String("forumuser"), m_forumUser);
-    qs->setValue(QLatin1String("forumpassword"), m_forumPassword);
     qs->setValue(QLatin1String("observations"), m_observations);
-    qs->setValue(QLatin1String("aircraft"), m_aircraft);
+    qs->setValue(QLatin1String("vehicle"), m_vehicle);
+    qs->setValue(QLatin1String("board"), m_board);
+    qs->setValue(QLatin1String("weight"), m_weight);
+    qs->setValue(QLatin1String("size"), m_size);
+    qs->setValue(QLatin1String("cells"), m_cells);
+    qs->setValue(QLatin1String("motors"), m_motors);
+    qs->setValue(QLatin1String("escs"), m_escs);
+    qs->setValue(QLatin1String("props"), m_props);
     qs->endGroup();
 }
 
@@ -292,26 +302,6 @@ bool GeneralSettings::useExpertMode() const
     return m_useExpertMode;
 }
 
-QString GeneralSettings::getForumUser() const
-{
-    return m_forumUser;
-}
-
-QString GeneralSettings::getForumPassword() const
-{
-    return m_forumPassword;
-}
-
-void GeneralSettings::setForumUser(QString value)
-{
-    m_forumUser = value;
-}
-
-void GeneralSettings::setForumPassword(QString value)
-{
-    m_forumPassword = value;
-}
-
 QNetworkProxy GeneralSettings::getNetworkProxy()
 {
     return QNetworkProxy((QNetworkProxy::ProxyType)m_proxyType, m_proxyHostname, m_proxyPort, m_proxyUser, m_proxyPassword);
@@ -322,9 +312,9 @@ void GeneralSettings::setObservations(QString value)
     m_observations = value;
 }
 
-void GeneralSettings::setAircraftDescription(QString value)
+void GeneralSettings::setVehicleType(QString value)
 {
-    m_aircraft = value;
+    m_vehicle = value;
 }
 
 QString GeneralSettings::getObservations()
@@ -332,9 +322,68 @@ QString GeneralSettings::getObservations()
     return m_observations;
 }
 
-QString GeneralSettings::getAircraftDescription()
+QString GeneralSettings::getVehicleType()
 {
-    return m_aircraft;
+    return m_vehicle;
+}
+
+void GeneralSettings::setBoardType(QString type)
+{
+    m_board = type;
+}
+
+QString GeneralSettings::getBoardType()
+{
+    return m_board;
+}
+
+void GeneralSettings::setWeight(int weight)
+{
+    m_weight = weight;
+}
+
+int GeneralSettings::getWeight() {
+    return m_weight;
+}
+
+void GeneralSettings::setVehicleSize(int size) {
+    m_size = size;
+}
+
+int GeneralSettings::getVehicleSize() {
+    return m_size;
+}
+
+void GeneralSettings::setBatteryCells(int cells) {
+    m_cells = cells;
+}
+
+int GeneralSettings::getBatteryCells() {
+    return m_cells;
+}
+
+void GeneralSettings::setMotors(QString motors) {
+    m_motors = motors;
+}
+
+QString GeneralSettings::getMotors() {
+    return m_motors;
+}
+
+void GeneralSettings::setESCs(QString escs) {
+    m_escs = escs;
+}
+
+QString GeneralSettings::getESCs() {
+    return m_escs;
+}
+
+void GeneralSettings::setProps(QString props) {
+    m_props = props;
+}
+
+QString GeneralSettings::getProps() {
+    return m_props;
 }
 
 void GeneralSettings::slotAutoConnect(int value)
