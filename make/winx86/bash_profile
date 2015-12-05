@@ -1,7 +1,7 @@
 # bashrc for TauLabs development on Windows
 # Michael Lyle - 2015
 
-QT_VERSION_FULL=5.5.1
+QT_VERSION_FULL=5.5.0
 QT_VERSION=`echo "$QT_VERSION_FULL" | cut -d '.' -f1-2`
 QT_BASEDIR="/C/Qt"
 
