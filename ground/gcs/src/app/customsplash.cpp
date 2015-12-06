@@ -41,7 +41,7 @@
 * @param f window flags.
 */
 CustomSplash::CustomSplash(const QPixmap &pixmap, Qt::WindowFlags f):
-    QSplashScreen(pixmap,f),m_progress(0),m_progress_bar_color(QColor(13, 125, 102, 255)),message_number(0)
+    QSplashScreen(pixmap,f),m_progress(0),m_progress_bar_color(QColor(217, 118, 0, 255)),message_number(0)
 {
     QPixmap original_scaled = pixmap.scaledToHeight(180, Qt::SmoothTransformation);
     QPixmap pix(500,180);
