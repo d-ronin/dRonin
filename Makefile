@@ -758,20 +758,36 @@ bu_$(1)_clean:
 endef
 
 # $(1) = Canonical board name all in lower case (e.g. coptercontrol)
+# $(2) = Friendly board name
+# $(3) = Short board name
+# $(4) = BL for bootloader or NOBL for no bootloader
 define EF_TEMPLATE
 .PHONY: ef_$(1)
-ef_$(1): ef_$(1)_bin
+ef_$(1): ef_$(1)_bin ef_$(1)_hex
 
 ef_$(1)_%: TARGET=ef_$(1)
 ef_$(1)_%: OUTDIR=$(BUILD_DIR)/$$(TARGET)
 ef_$(1)_%: BOARD_ROOT_DIR=$(ROOT_DIR)/flight/targets/$(1)
-ef_$(1)_%: bl_$(1)_bin fw_$(1)_tlfw
+$(eval $(call EF_TEMPLATE_$(4),$(1),$(2),$(3)))
+
+.PHONY: ef_$(1)_clean
+ef_$(1)_clean: TARGET=ef_$(1)
+ef_$(1)_clean: OUTDIR=$(BUILD_DIR)/$$(TARGET)
+ef_$(1)_clean:
+	$(V0) @echo " CLEAN      $$@"
+	$(V1) [ ! -d "$$(OUTDIR)" ] || $(RM) -r "$$(OUTDIR)"
+endef
+
+# $(1) = Canonical board name all in lower case (e.g. coptercontrol)
+define EF_TEMPLATE_NOBL
+ef_$(1)_%: fw_$(1)_tlfw
 	$(V1) mkdir -p $$(OUTDIR)/dep
 	$(V1) cd $(ROOT_DIR)/flight/targets/EntireFlash && \
 		$$(MAKE) -r --no-print-directory \
 		BOARD_NAME=$(1) \
 		BOARD_SHORT_NAME=$(3) \
 		BUILD_TYPE=ef \
+		INCLUDE_BOOTLOADER=no \
 		TCHAIN_PREFIX="$(ARM_SDK_PREFIX)" \
 		REMOVE_CMD="$(RM)" OOCD_EXE="$(OPENOCD)" \
 		DFU_CMD="$(DFUUTIL_DIR)/bin/dfu-util" \
@@ -784,13 +800,30 @@ ef_$(1)_%: bl_$(1)_bin fw_$(1)_tlfw
 		OUTDIR=$$(OUTDIR) \
 		\
 		$$*
+endef
 
-.PHONY: ef_$(1)_clean
-ef_$(1)_clean: TARGET=ef_$(1)
-ef_$(1)_clean: OUTDIR=$(BUILD_DIR)/$$(TARGET)
-ef_$(1)_clean:
-	$(V0) @echo " CLEAN      $$@"
-	$(V1) [ ! -d "$$(OUTDIR)" ] || $(RM) -r "$$(OUTDIR)"
+# $(1) = Canonical board name all in lower case (e.g. coptercontrol)
+define EF_TEMPLATE_BL
+ef_$(1)_%: bl_$(1)_bin fw_$(1)_tlfw
+	$(V1) mkdir -p $$(OUTDIR)/dep
+	$(V1) cd $(ROOT_DIR)/flight/targets/EntireFlash && \
+		$$(MAKE) -r --no-print-directory \
+		BOARD_NAME=$(1) \
+		BOARD_SHORT_NAME=$(3) \
+		BUILD_TYPE=ef \
+		INCLUDE_BOOTLOADER=yes \
+		TCHAIN_PREFIX="$(ARM_SDK_PREFIX)" \
+		REMOVE_CMD="$(RM)" OOCD_EXE="$(OPENOCD)" \
+		DFU_CMD="$(DFUUTIL_DIR)/bin/dfu-util" \
+		\
+		MAKE_INC_DIR=$(MAKE_INC_DIR) \
+		ROOT_DIR=$(ROOT_DIR) \
+		BOARD_ROOT_DIR=$$(BOARD_ROOT_DIR) \
+		BOARD_INFO_DIR=$$(BOARD_ROOT_DIR)/board-info \
+		TARGET=$$(TARGET) \
+		OUTDIR=$$(OUTDIR) \
+		\
+		$$*
 endef
 
 # When building any of the "all_*" targets, tell all sub makefiles to display
@@ -863,11 +896,14 @@ all_$(1)_clean: $$(addsuffix _clean, $$(filter bu_$(1), $$(BU_TARGETS)))
 all_$(1)_clean: $$(addsuffix _clean, $$(filter ef_$(1), $$(EF_TARGETS)))
 endef
 
-# Start out assuming that we'll build fw, bl and bu for all boards
-FW_BOARDS  := $(ALL_BOARDS)
-BL_BOARDS  := $(filter-out naze32, $(ALL_BOARDS))
-BU_BOARDS  := $(BL_BOARDS)
-EF_BOARDS  := $(filter-out naze32, $(ALL_BOARDS))
+# Some boards don't use the bootloader
+NOBL_BOARDS    := naze32
+FW_BOARDS      := $(ALL_BOARDS)
+BL_BOARDS      := $(filter-out $(NOBL_BOARDS), $(ALL_BOARDS))
+BU_BOARDS      := $(BL_BOARDS)
+EF_BOARDS_NOBL := $(NOBL_BOARDS)
+EF_BOARDS_BL   := $(BL_BOARDS)
+EF_BOARDS      := $(EF_BOARDS_BL) $(EF_BOARDS_NOBL)
 
 # Sim targets are different for each host OS
 ifeq ($(UNAME), Linux)
@@ -923,7 +959,8 @@ $(foreach board, $(FW_BOARDS), $(eval $(call FW_TEMPLATE,$(board),$($(board)_fri
 $(foreach board, $(BL_BOARDS), $(eval $(call BL_TEMPLATE,$(board),$($(board)_cpuarch),$($(board)_short))))
 
 # Expand the entire-flash rules
-$(foreach board, $(EF_BOARDS), $(eval $(call EF_TEMPLATE,$(board),$($(board)_friendly),$($(board)_short))))
+$(foreach board, $(EF_BOARDS_BL), $(eval $(call EF_TEMPLATE,$(board),$($(board)_friendly),$($(board)_short),BL)))
+$(foreach board, $(EF_BOARDS_NOBL), $(eval $(call EF_TEMPLATE,$(board),$($(board)_friendly),$($(board)_short),NOBL)))
 
 # Expand the available simulator rules
 $(eval $(call SIM_TEMPLATE,simulation,Simulation,'sim ',posix,elf))
