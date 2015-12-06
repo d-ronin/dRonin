@@ -44,13 +44,12 @@ FW_BIN := $(ROOT_DIR)/build/fw_$(BOARD_NAME)/fw_$(BOARD_NAME).bin
 FWINFO_BIN := $(FW_BIN).firmwareinfo.bin
 INCLUDE_BOOTLOADER ?= yes
 
-ifeq ($(INCLUDE_BOOTLOADER),yes)
-BL_BIN := $(ROOT_DIR)/build/bl_$(BOARD_NAME)/bl_$(BOARD_NAME).bin
-FW_PRE_PAD := $(shell echo $$[$(FW_BANK_BASE)-$(BL_BANK_BASE)-$(BL_BANK_SIZE)])
-else
-# no bootloader for this board
+ifeq ($(INCLUDE_BOOTLOADER),no)
 BL_BIN :=
 FW_PRE_PAD := $(shell echo $$[$(FW_BANK_BASE)-$(EF_BANK_BASE)])
+else
+BL_BIN := $(ROOT_DIR)/build/bl_$(BOARD_NAME)/bl_$(BOARD_NAME).bin
+FW_PRE_PAD := $(shell echo $$[$(FW_BANK_BASE)-$(BL_BANK_BASE)-$(BL_BANK_SIZE)])
 endif # INCLUDE_BOOTLOADER
 
 # force this target as FW_PRE_PAD could have been changed without us knowing
