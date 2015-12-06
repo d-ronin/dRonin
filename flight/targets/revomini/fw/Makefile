@@ -66,6 +66,9 @@ OPTMODULES += PicoC
 OPTMODULES += UAVOFrSKYSPortBridge
 OPTMODULES += Geofence
 OPTMODULES += ComUsbBridge
+OPTMODULES += UAVOMSPBridge
+OPTMODULES += Logging
+OPTMODULES += FlightStats
 
 # Paths
 OPUAVTALKINC = $(OPUAVTALK)/inc
@@ -122,6 +125,7 @@ SRC += $(FLIGHTLIB)/WorldMagModel.c
 SRC += $(FLIGHTLIB)/insgps14state.c
 SRC += $(FLIGHTLIB)/taskmonitor.c
 SRC += $(FLIGHTLIB)/sanitycheck.c
+SRC += $(FLIGHTLIB)/timeutils.c
 SRC += $(FLIGHTLIB)/frsky_packing.c
 SRC += $(FLIGHTLIB)/circqueue.c
 SRC += $(MATHLIB)/coordinate_conversions.c
@@ -175,6 +179,7 @@ SRC += $(PIOSCOMMON)/pios_semaphore.c
 SRC += $(PIOSCOMMON)/pios_mutex.c
 SRC += $(PIOSCOMMON)/pios_thread.c
 SRC += $(PIOSCOMMON)/pios_queue.c
+SRC += $(PIOSCOMMON)/pios_streamfs.c
 SRC += $(PIOSCOMMON)/pios_hal.c
 
 

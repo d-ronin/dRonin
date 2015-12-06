@@ -164,6 +164,22 @@ uintptr_t pios_com_debug_id;
 uintptr_t pios_internal_adc_id = 0;
 uintptr_t pios_uavo_settings_fs_id;
 uintptr_t pios_waypoints_settings_fs_id;
+uintptr_t pios_com_spiflash_logging_id;
+
+uintptr_t streamfs_id;
+
+/**
+ * Indicate a target-specific error code when a component fails to initialize
+ * 1 pulse - flash chip
+ * 2 pulses - MPU6000
+ * 4 pulses - MS5611
+ * 6 pulses - magnetometer
+ * 8 pulses - streamfs
+ * 9 pulses - logging
+ */
+static void panic(int32_t code) {
+	PIOS_HAL_Panic(PIOS_LED_ALARM, code);
+}
 
 /**
  * PIOS_Board_Init()
@@ -198,7 +214,8 @@ void PIOS_Board_Init(void) {
 
 #if defined(PIOS_INCLUDE_FLASH)
 	/* Inititialize all flash drivers */
-	PIOS_Flash_Jedec_Init(&pios_external_flash_id, pios_spi_telem_flash_id, 1, &flash_m25p_cfg);
+	if(PIOS_Flash_Jedec_Init(&pios_external_flash_id, pios_spi_telem_flash_id, 1, &flash_m25p_cfg) != 0)
+		panic(1);
 	PIOS_Flash_Internal_Init(&pios_internal_flash_id, &flash_internal_cfg);
 
 	/* Register the partition table */
@@ -208,8 +225,10 @@ void PIOS_Board_Init(void) {
 	PIOS_FLASH_register_partition_table(flash_partition_table, num_partitions);
 
 	/* Mount all filesystems */
-	PIOS_FLASHFS_Logfs_Init(&pios_uavo_settings_fs_id, &flashfs_settings_cfg, FLASH_PARTITION_LABEL_SETTINGS);
-	PIOS_FLASHFS_Logfs_Init(&pios_waypoints_settings_fs_id, &flashfs_waypoints_cfg, FLASH_PARTITION_LABEL_WAYPOINTS);
+	if(PIOS_FLASHFS_Logfs_Init(&pios_uavo_settings_fs_id, &flashfs_settings_cfg, FLASH_PARTITION_LABEL_SETTINGS) != 0)
+		panic(1);
+	if(PIOS_FLASHFS_Logfs_Init(&pios_waypoints_settings_fs_id, &flashfs_waypoints_cfg, FLASH_PARTITION_LABEL_WAYPOINTS) != 0)
+		panic(1);
 
 #endif	/* PIOS_INCLUDE_FLASH */
 
@@ -491,15 +510,22 @@ void PIOS_Board_Init(void) {
 #endif
 
 #if defined(PIOS_INCLUDE_HMC5883)
-	PIOS_HMC5883_Init(PIOS_I2C_MAIN_ADAPTER, &pios_hmc5883_cfg);
+	if(PIOS_HMC5883_Init(PIOS_I2C_MAIN_ADAPTER, &pios_hmc5883_cfg) != 0)
+		panic(6);
+	if (PIOS_HMC5883_Test() != 0)
+		panic(6);
 #endif
 	
 #if defined(PIOS_INCLUDE_MS5611)
-	PIOS_MS5611_Init(&pios_ms5611_cfg, pios_i2c_mag_pressure_adapter_id);
+	if (PIOS_MS5611_Init(&pios_ms5611_cfg, pios_i2c_mag_pressure_adapter_id) != 0)
+		panic(4);
+	if (PIOS_MS5611_Test() != 0)
+		panic(4);
 #endif
 
 #if defined(PIOS_INCLUDE_MPU6000)
-	PIOS_MPU6000_Init(pios_spi_gyro_id,0, &pios_mpu6000_cfg);
+	if (PIOS_MPU6000_Init(pios_spi_gyro_id,0, &pios_mpu6000_cfg) != 0)
+		panic(2);
 
 	// To be safe map from UAVO enum to driver enum
 	uint8_t hw_gyro_range;
@@ -564,6 +590,18 @@ void PIOS_Board_Init(void) {
 	    pios_mpu6000_cfg.default_samplerate;
 	PIOS_MPU6000_SetSampleRate(mpu6000_samplerate);
 #endif
+
+#if defined(PIOS_INCLUDE_FLASH) && defined(PIOS_INCLUDE_FLASH_JEDEC)
+	if (PIOS_STREAMFS_Init(&streamfs_id, &streamfs_settings, FLASH_PARTITION_LABEL_LOG) != 0)
+		panic(8);
+		
+	const uint32_t LOG_BUF_LEN = 256;
+	uint8_t *log_rx_buffer = PIOS_malloc(LOG_BUF_LEN);
+	uint8_t *log_tx_buffer = PIOS_malloc(LOG_BUF_LEN);
+	if (PIOS_COM_Init(&pios_com_spiflash_logging_id, &pios_streamfs_com_driver, streamfs_id,
+		log_rx_buffer, LOG_BUF_LEN, log_tx_buffer, LOG_BUF_LEN) != 0)
+		panic(9);
+#endif	/* PIOS_INCLUDE_FLASH */
 
 }
 
