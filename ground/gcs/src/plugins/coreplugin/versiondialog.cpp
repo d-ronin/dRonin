@@ -53,7 +53,7 @@ VersionDialog::VersionDialog(QWidget *parent)
 {
     // We need to set the window icon explicitly here since for some reason the
     // application icon isn't used when the size of the dialog is fixed (at least not on X11/GNOME)
-    setWindowIcon(QIcon(":/core/images/dronin_logo_32.png"));
+    setWindowIcon(QIcon(":/core/gcs_logo_32"));
 
     setWindowTitle(tr("About dRonin GCS"));
     setWindowFlags(windowFlags() & ~Qt::WindowContextHelpButtonHint);
@@ -136,7 +136,7 @@ VersionDialog::VersionDialog(QWidget *parent)
     connect(buttonBox , SIGNAL(rejected()), this, SLOT(reject()));
 
     QLabel *logoLabel = new QLabel;
-    logoLabel->setPixmap(QPixmap(QLatin1String(":/core/images/dronin_logo_128.png")));
+    logoLabel->setPixmap(QPixmap(QLatin1String(":/core/gcs_logo_128")));
 
     QLabel *copyRightLabel = new QLabel(copyright);
     copyRightLabel->setWordWrap(true);

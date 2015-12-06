@@ -309,7 +309,7 @@ int main(int argc, char **argv)
     QTranslator translator;
     QTranslator qtTranslator;
 
-    QPixmap pixmap(":/images/resources/gcs_splash.png");
+    QPixmap pixmap(":/images/gcs_splashscreen.png");
     CustomSplash splash(pixmap);
     splash.show();
 
