@@ -897,8 +897,8 @@ all_$(1)_clean: $$(addsuffix _clean, $$(filter ef_$(1), $$(EF_TARGETS)))
 endef
 
 # Some boards don't use the bootloader
-NOBL_BOARDS    := naze32
 FW_BOARDS      := $(ALL_BOARDS)
+NOBL_BOARDS    := $(strip $(foreach BOARD, $(ALL_BOARDS),$(if $(filter no,$($(BOARD)_bootloader)),$(BOARD))))
 BL_BOARDS      := $(filter-out $(NOBL_BOARDS), $(ALL_BOARDS))
 BU_BOARDS      := $(BL_BOARDS)
 EF_BOARDS_NOBL := $(NOBL_BOARDS)
