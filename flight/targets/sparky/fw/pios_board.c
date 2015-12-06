@@ -142,7 +142,7 @@ static const struct pios_exti_cfg pios_exti_mpu9150_cfg __exti_config = {
 
 static struct pios_mpu60x0_cfg pios_mpu9150_cfg = {
 	.exti_cfg = &pios_exti_mpu9150_cfg,
-	.default_samplerate = 444,
+	.default_samplerate = 500,
 	.interrupt_cfg = PIOS_MPU60X0_INT_CLR_ANYRD,
 	.interrupt_en = PIOS_MPU60X0_INTEN_DATA_RDY,
 	.User_ctl = 0,

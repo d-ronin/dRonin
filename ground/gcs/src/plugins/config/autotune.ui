@@ -835,7 +835,7 @@ p, li { white-space: pre-wrap; }
                 <item row="0" column="0">
                  <widget class="QPushButton" name="shareDataPB">
                   <property name="text">
-                   <string>Share Data on the forum</string>
+                   <string>Share Results</string>
                   </property>
                   <property name="icon">
                    <iconset resource="configgadget.qrc">
