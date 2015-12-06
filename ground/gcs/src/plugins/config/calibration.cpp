@@ -44,7 +44,7 @@
 #include "homelocation.h"
 #include "magnetometer.h"
 #include "sensorsettings.h"
-#include "trimanglessettings.h"
+#include "subtrimsettings.h"
 #include "flighttelemetrystats.h"
 
 #include <Eigen/Core>
@@ -990,9 +990,9 @@ bool Calibration::storeLevelingMeasurement(UAVObject *obj) {
         attitudeSettings->updated();
 
         // After recomputing the level for a frame, zero the trim settings
-        TrimAnglesSettings *trimSettings = TrimAnglesSettings::GetInstance(getObjectManager());
+        SubTrimSettings *trimSettings = SubTrimSettings::GetInstance(getObjectManager());
         Q_ASSERT(trimSettings);
-        TrimAnglesSettings::DataFields trim = trimSettings->getData();
+        SubTrimSettings::DataFields trim = trimSettings->getData();
         trim.Pitch = 0;
         trim.Roll = 0;
         trimSettings->setData(trim);
