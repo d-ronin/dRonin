@@ -758,20 +758,24 @@ bu_$(1)_clean:
 endef
 
 # $(1) = Canonical board name all in lower case (e.g. coptercontrol)
+# $(2) = Friendly board name
+# $(3) = Short board name
+# $(4) = yes for bootloader, no for no bootloader
 define EF_TEMPLATE
 .PHONY: ef_$(1)
-ef_$(1): ef_$(1)_bin
+ef_$(1): ef_$(1)_bin ef_$(1)_hex
 
 ef_$(1)_%: TARGET=ef_$(1)
 ef_$(1)_%: OUTDIR=$(BUILD_DIR)/$$(TARGET)
 ef_$(1)_%: BOARD_ROOT_DIR=$(ROOT_DIR)/flight/targets/$(1)
-ef_$(1)_%: bl_$(1)_bin fw_$(1)_tlfw
+ef_$(1)_%: $(if filter(no,$(4)),fw_$(1)_tlfw,bl_$(1)_bin fw_$(1)_tlfw)
 	$(V1) mkdir -p $$(OUTDIR)/dep
 	$(V1) cd $(ROOT_DIR)/flight/targets/EntireFlash && \
 		$$(MAKE) -r --no-print-directory \
 		BOARD_NAME=$(1) \
 		BOARD_SHORT_NAME=$(3) \
 		BUILD_TYPE=ef \
+		INCLUDE_BOOTLOADER=$(4) \
 		TCHAIN_PREFIX="$(ARM_SDK_PREFIX)" \
 		REMOVE_CMD="$(RM)" OOCD_EXE="$(OPENOCD)" \
 		DFU_CMD="$(DFUUTIL_DIR)/bin/dfu-util" \
@@ -863,11 +867,12 @@ all_$(1)_clean: $$(addsuffix _clean, $$(filter bu_$(1), $$(BU_TARGETS)))
 all_$(1)_clean: $$(addsuffix _clean, $$(filter ef_$(1), $$(EF_TARGETS)))
 endef
 
-# Start out assuming that we'll build fw, bl and bu for all boards
-FW_BOARDS  := $(ALL_BOARDS)
-BL_BOARDS  := $(filter-out naze32, $(ALL_BOARDS))
-BU_BOARDS  := $(BL_BOARDS)
-EF_BOARDS  := $(filter-out naze32, $(ALL_BOARDS))
+# Some boards don't use the bootloader
+FW_BOARDS      := $(ALL_BOARDS)
+NOBL_BOARDS    := $(strip $(foreach BOARD, $(ALL_BOARDS),$(if $(filter no,$($(BOARD)_bootloader)),$(BOARD))))
+BL_BOARDS      := $(filter-out $(NOBL_BOARDS), $(ALL_BOARDS))
+BU_BOARDS      := $(BL_BOARDS)
+EF_BOARDS      := $(ALL_BOARDS)
 
 # Sim targets are different for each host OS
 ifeq ($(UNAME), Linux)
@@ -923,7 +928,7 @@ $(foreach board, $(FW_BOARDS), $(eval $(call FW_TEMPLATE,$(board),$($(board)_fri
 $(foreach board, $(BL_BOARDS), $(eval $(call BL_TEMPLATE,$(board),$($(board)_cpuarch),$($(board)_short))))
 
 # Expand the entire-flash rules
-$(foreach board, $(EF_BOARDS), $(eval $(call EF_TEMPLATE,$(board),$($(board)_friendly),$($(board)_short))))
+$(foreach board, $(EF_BOARDS), $(eval $(call EF_TEMPLATE,$(board),$($(board)_friendly),$($(board)_short),$($(board)_bootloader))))
 
 # Expand the available simulator rules
 $(eval $(call SIM_TEMPLATE,simulation,Simulation,'sim ',posix,elf))

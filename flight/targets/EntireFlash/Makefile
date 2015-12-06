@@ -38,13 +38,21 @@ FORCE:
 
 .PHONY: bin
 bin: $(OUTDIR)/$(TARGET).bin
+hex: $(OUTDIR)/$(TARGET).hex
 
-BL_BIN := $(ROOT_DIR)/build/bl_$(BOARD_NAME)/bl_$(BOARD_NAME).bin
 FW_BIN := $(ROOT_DIR)/build/fw_$(BOARD_NAME)/fw_$(BOARD_NAME).bin
 FWINFO_BIN := $(FW_BIN).firmwareinfo.bin
+INCLUDE_BOOTLOADER ?= yes
+
+ifeq ($(INCLUDE_BOOTLOADER),no)
+BL_BIN :=
+FW_PRE_PAD := $(shell echo $$[$(FW_BANK_BASE)-$(EF_BANK_BASE)])
+else
+BL_BIN := $(ROOT_DIR)/build/bl_$(BOARD_NAME)/bl_$(BOARD_NAME).bin
+FW_PRE_PAD := $(shell echo $$[$(FW_BANK_BASE)-$(BL_BANK_BASE)-$(BL_BANK_SIZE)])
+endif # INCLUDE_BOOTLOADER
 
 # force this target as FW_PRE_PAD could have been changed without us knowing
-FW_PRE_PAD := $(shell echo $$[$(FW_BANK_BASE)-$(BL_BANK_BASE)-$(BL_BANK_SIZE)])
 $(OUTDIR)/$(TARGET).fw_pre.pad: FORCE
 	$(V0) @echo $(MSG_PADDING) $(call toprel, $@)
 	$(V1) dd if=/dev/zero count=$(FW_PRE_PAD) bs=1 2> /dev/null | LC_CTYPE=c tr '\000' '\377' > $@ && [ $${PIPESTATUS[0]} -eq "0" ]
@@ -60,6 +68,11 @@ $(OUTDIR)/$(TARGET).fw_post.pad: FORCE
 $(OUTDIR)/$(TARGET).bin: $(BL_BIN) $(FW_BIN) $(OUTDIR)/$(TARGET).fw_pre.pad $(OUTDIR)/$(TARGET).fw_post.pad FORCE
 	$(V0) @echo $(MSG_FLASH_IMG) $(call toprel, $@)
 	$(V1) cat $(BL_BIN) $(OUTDIR)/$(TARGET).fw_pre.pad $(FW_BIN) $(FWINFO_BIN) $(OUTDIR)/$(TARGET).fw_post.pad $(FWINFO_BIN) > $@
+
+$(OUTDIR)/$(TARGET).hex: $(OUTDIR)/$(TARGET).bin
+	$(V0) @echo $(MSG_FLASH_IMG) $(call toprel, $@)
+	$(V1) $(OBJCOPY) --change-addresses=$(EF_BANK_BASE) -I binary -O ihex $^ $@
+
 
 .PHONY: dfu
 dfu: $(OUTDIR)/$(TARGET).bin
