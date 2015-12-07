@@ -3,6 +3,7 @@
  *
  * @file       uavobjectgeneratorgcs.h
  * @author     The OpenPilot Team, http://www.openpilot.org Copyright (C) 2010.
+ * @author     dRonin, http://dronin.org Copyright (C) 2015
  * @brief      produce gcs code for uavobjects
  *
  * @see        The GNU Public License (GPL) Version 3

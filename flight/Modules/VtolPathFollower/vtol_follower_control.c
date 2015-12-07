@@ -7,6 +7,7 @@
  *
  * @file       vtol_follower_control.c
  * @author     Tau Labs, http://taulabs.org, Copyright (C) 2013-2014
+ * @author     dRonin, http://dronin.org Copyright (C) 2015
  * @brief      Control algorithms for the vtol follower
  *****************************************************************************/
 /*

@@ -5,6 +5,7 @@
  *
  * @file       alarms.h
  * @author     The OpenPilot Team, http://www.openpilot.org Copyright (C) 2010.
+ * @author     dRonin, http://dronin.org Copyright (C) 2015
  * @brief      Include file of the alarm library
  * @see        The GNU Public License (GPL) Version 3
  *

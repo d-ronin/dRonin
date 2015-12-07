@@ -7,6 +7,7 @@
  *
  * @file       vtol_follower_priv.h
  * @author     Tau Labs, http://taulabs.org, Copyright (C) 2013-2014
+ * @author     dRonin, http://dronin.org Copyright (C) 2015
  * @brief      Includes for the internal methods
  *****************************************************************************/
 /*
