@@ -155,7 +155,7 @@ MainWindow::MainWindow() :
 
     setWindowTitle(QLatin1String(Core::Constants::GCS_NAME));
     if (!Utils::HostOsInfo::isMacHost())
-        QApplication::setWindowIcon(QIcon(Core::Constants::ICON_TAULABS));
+        QApplication::setWindowIcon(QIcon(Core::Constants::ICON_TAULABS_SM));
     QCoreApplication::setApplicationName(QLatin1String(Core::Constants::GCS_NAME));
     QCoreApplication::setApplicationVersion(QLatin1String(Core::Constants::GCS_VERSION_LONG));
     QCoreApplication::setOrganizationName(QLatin1String(Core::Constants::GCS_AUTHOR));

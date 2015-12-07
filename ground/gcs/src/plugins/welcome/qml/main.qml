@@ -46,12 +46,13 @@ Rectangle {
 
             Image {
                 x: -55
+                smooth: false
                 antialiasing: true
-                sourceSize.height: 235
-                sourceSize.width: 234
+                sourceSize.height: 223
+                sourceSize.width: 223
                 source: "images/welcome-logo.png"
                 anchors.verticalCenter: parent.verticalCenter
-                anchors.verticalCenterOffset: -16 //it looks better aligned to icons grid
+                anchors.verticalCenterOffset: -1 //it looks better aligned to icons grid
 
                 //hide the logo on the very small screen to fit the buttons
                 visible: parent.availableWidth > width + parent.spacing + buttons.width + wizard.width
