@@ -2,6 +2,7 @@
 # Project: OpenPilot
 # NSIS header file for OpenPilot GCS
 # The OpenPilot Team, http://www.openpilot.org, Copyright (C) 2010-2011.
+# dRonin, http://dronin.org Copyright (C) 2015
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by

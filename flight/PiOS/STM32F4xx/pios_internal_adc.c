@@ -9,6 +9,7 @@
  * @author     The OpenPilot Team, http://www.openpilot.org Copyright (C) 2012.
  * @author     Michael Smith Copyright (C) 2011.
  * @author     Tau Labs, http://taulabs.org, Copyright (C) 2012-2014
+ * @author     dRonin, http://dronin.org Copyright (C) 2015
  * @brief      STM32F4xx Internal ADC PIOS interface
  * @see        The GNU Public License (GPL) Version 3
  *****************************************************************************/

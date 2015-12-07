@@ -8,6 +8,7 @@
  * @file       firmwareiap.c
  * @author     The OpenPilot Team, http://www.openpilot.org Copyright (C) 2010.
  * @author     Tau Labs, http://taulabs.org, Copyright (C) 2014
+ * @author     dRonin, http://dronin.org Copyright (C) 2015
  * @brief      In Application Programming module to support firmware upgrades by
  *             providing a means to enter the bootloader.
  *

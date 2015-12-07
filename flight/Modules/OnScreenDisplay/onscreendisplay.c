@@ -7,6 +7,7 @@
  * @{
  *
  * @file       onscreendisplay.c
+ * @author     dRonin, http://dronin.org Copyright (C) 2015
  * @author     Tau Labs, http://taulabs.org, Copyright (C) 2013-2014
  * @author     The OpenPilot Team, http://www.openpilot.org Copyright (C) 2010-2014.
  * @brief      OSD gen module, handles OSD draw. Parts from CL-OSD and SUPEROSD projects

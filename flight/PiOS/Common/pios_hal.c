@@ -2,6 +2,7 @@
  ******************************************************************************
  * @file       pios_hal.c
  * @author     Tau Labs, http://taulabs.org, Copyright (C) 2015
+ * @author     dRonin, http://dronin.org Copyright (C) 2015
  * @addtogroup PIOS PIOS Core hardware abstraction layer
  * @{
  * @addtogroup PIOS_HAL Hardware abstraction layer files

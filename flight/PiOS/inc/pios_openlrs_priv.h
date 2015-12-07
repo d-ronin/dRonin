@@ -8,6 +8,7 @@
 *
 * @file       pios_openlrs_priv.h
 * @author     Tau Labs, http://taulabs.org, Copyright (C) 2015
+* @author     dRonin, http://dronin.org Copyright (C) 2015
 * @brief      Implements an OpenLRS driver for the RFM22B
 * @see        The GNU Public License (GPL) Version 3
 *

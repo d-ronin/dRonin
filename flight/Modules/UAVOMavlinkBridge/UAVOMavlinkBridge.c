@@ -7,6 +7,7 @@
  *
  * @file       UAVOMavlinkBridge.c
  * @author     Tau Labs, http://taulabs.org, Copyright (C) 2013-2014
+ * @author     dRonin, http://dronin.org Copyright (C) 2015
  * @brief      Bridges selected UAVObjects to Mavlink
  * @see        The GNU Public License (GPL) Version 3
  *

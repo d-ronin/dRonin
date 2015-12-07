@@ -8,6 +8,7 @@
  * @file       RadioComBridge.c
  * @author     The OpenPilot Team, http://www.openpilot.org Copyright (C) 2012.
  * @author     Tau Labs, http://taulabs.org, Copyright (C) 2013-2014
+ * @author     dRonin, http://dronin.org Copyright (C) 2015
  * @brief      Bridges from RFM22b comm channel to another PIOS_COM channel
  *             has the ability to hook and process UAVO packets for the radio
  *             board (e.g. TauLink)

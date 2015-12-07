@@ -8,6 +8,7 @@
  *
  * @file       pios_settings.h
  * @author     The OpenPilot Team, http://www.openpilot.org Copyright (C) 2010.
+ * @author     dRonin, http://dronin.org Copyright (C) 2015
  * @brief      Settings functions header 
  * @see        The GNU Public License (GPL) Version 3
  *

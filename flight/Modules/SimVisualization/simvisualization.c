@@ -6,6 +6,7 @@
  * @{
  * @file       visualization.c
  * @author     Tau Labs, http://taulabs.org, Copyright (C) 2013-2014
+ * @author     dRonin, http://dronin.org Copyright (C) 2015
  * @brief      Sends the state of the UAV out a UDP port to be visualized in a
  *             standalone application
  *****************************************************************************/

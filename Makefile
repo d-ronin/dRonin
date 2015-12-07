@@ -1,4 +1,4 @@
-# Makefile for Taulabs project
+# Makefile for dRonin project
 .DEFAULT_GOAL := help
 
 WHEREAMI := $(dir $(lastword $(MAKEFILE_LIST)))

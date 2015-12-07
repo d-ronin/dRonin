@@ -6,6 +6,7 @@
  * @file       paths.c
  * @author     Tau Labs, http://taulabs.org, Copyright (C) 2012-2014
  * @author     The OpenPilot Team, http://www.openpilot.org Copyright (C) 2012.
+ * @author     dRonin, http://dronin.org Copyright (C) 2015
  * @brief      Path calculation library with common API
  *
  * Paths are represented by the structure @ref PathDesired and also take in
