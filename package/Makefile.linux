@@ -25,16 +25,10 @@ SED_SCRIPT			= s|<VERSION>|$(VERSION_FULL)|;s|<DATE>|$(SED_DATE_STRG)|;s|<AUTHOR
 
 DEB_CFG_CMN		:= $(ROOT_DIR)/package/linux/deb_common
 DEB_CFG_CMN_FILES	:= $(shell ls $(DEB_CFG_CMN))
-DEB_CFG_I386_DIR	:= $(ROOT_DIR)/package/linux/deb_i386
-DEB_CFG_I386_FILES	:= $(shell ls $(DEB_CFG_I386_DIR))
 DEB_CFG_AMD64_DIR	:= $(ROOT_DIR)/package/linux/deb_amd64
 DEB_CFG_AMD64_FILES	:= $(shell ls $(DEB_CFG_AMD64_DIR))
 DEB_MACHINE_DIR		:= $(DEB_CFG_AMD64_DIR)
 DEB_MACHINE_FILES	:= $(DEB_CFG_AMD64_FILES)
-ifneq ($(MACHINE_TYPE), x86_64)
- DEB_MACHINE_DIR	:= $(DEB_CFG_I386_DIR)
- DEB_MACHINE_FILES	:= $(DEB_CFG_I386_FILES)
-endif
 ALL_DEB_FILES  = $(foreach f, $(DEB_CFG_CMN_FILES), $(DEB_BUILD_DIR)/$(f))
 ALL_DEB_FILES += $(foreach f, $(DEB_MACHINE_FILES), $(DEB_BUILD_DIR)/$(f))
 
@@ -58,7 +52,7 @@ standalone: | gcs
 	$(V1)find $(QT_PLUGINS_DIR)/../qml/QtQuick/ -name '*.so'	| xargs -I '{}' ldd '{}'| sed -e '/^[^\t]/ d; s/^\t\(.* => \)\?\([^ ]*\) (.*/\2/g' \
 	| grep "Qt5" | grep -v "build/ground" | sort | uniq | xargs -I '{}' cp -v -f '{}' $(BUILD_DIR)/ground/gcs/lib/dronin 
 	@echo Searching and copying used Qt5 libraries
-	$(V1) find $(BUILD_DIR)/ground/gcs/bin/drgcs.bin $(BUILD_DIR)/ground/gcs/lib/dronin/plugins/TauLabs/*.so -exec ldd {} \; \
+	$(V1) find $(BUILD_DIR)/ground/gcs/bin/drgcs.bin $(BUILD_DIR)/ground/gcs/lib/dronin/plugins/dronin/*.so -exec ldd {} \; \
 	| sed -e '/^[^\t]/ d; s/^\t\(.* => \)\?\([^ ]*\) (.*/\2/g'| grep "Qt5" | grep -v "build/ground" | sort | uniq | xargs -I '{}' cp -v -f '{}' $(BUILD_DIR)/ground/gcs/lib/dronin
 	@echo Copying qt.conf file
 	$(V1) cp -v $(ROOT_DIR)/package/linux/qt.conf $(BUILD_DIR)/ground/gcs/bin/
