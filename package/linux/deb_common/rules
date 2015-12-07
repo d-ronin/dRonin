@@ -32,21 +32,21 @@ install:
 	dh_installdirs
 	dh_installudev --priority=45
 	# Add here commands to install the package into debian/<packagename>
-	cp -arp <BIN_ROOT>/bin   <TARGET_ROOT>/taulabs/usr/local/TauLabs
-	cp -arp <BIN_ROOT>/lib   <TARGET_ROOT>/taulabs/usr/local/TauLabs
-	cp -arp <BIN_ROOT>/share <TARGET_ROOT>/taulabs/usr/local/TauLabs
-	cp -arp <PROJECT_ROOT>/package/linux/taulabs.desktop <TARGET_ROOT>/taulabs/usr/share/applications
-	cp -arp <PROJECT_ROOT>/package/linux/taulabs.png <TARGET_ROOT>/taulabs/usr/share/pixmaps
-	cp -arp <PROJECT_ROOT>/package/linux/taulabs_menu.png <TARGET_ROOT>/taulabs/usr/share/pixmaps
-	cp -arp <PROJECT_ROOT>/package/linux/taulabs_menu.menu <TARGET_ROOT>/taulabs/etc/xdg/menus/applications-merged
-	cp -arp <PROJECT_ROOT>/package/linux/taulabs_menu.directory debian/taulabs/usr/share/desktop-directories
-	ln -s /usr/local/TauLabs/bin/taulabsgcs <TARGET_ROOT>/taulabs/usr/bin/taulabsgcs
-	rm -rf <TARGET_ROOT>/taulabs/usr/local/TauLabs/share/taulabs/sounds/sounds
-	rm -rf <TARGET_ROOT>/taulabs/usr/local/TauLabs/share/taulabs/pfd/pfd
-	rm -rf <TARGET_ROOT>/taulabs/usr/local/TauLabs/share/taulabs/models/models
-	rm -rf <TARGET_ROOT>/taulabs/usr/local/TauLabs/share/taulabs/mapicons/mapicons
-	rm -rf <TARGET_ROOT>/taulabs/usr/local/TauLabs/share/taulabs/dials/dials
-	rm -rf <TARGET_ROOT>/taulabs/usr/local/TauLabs/share/taulabs/diagrams/diagrams
+	cp -arp <BIN_ROOT>/bin   <TARGET_ROOT>/dronin/usr/local/dRonin
+	cp -arp <BIN_ROOT>/lib   <TARGET_ROOT>/dronin/usr/local/dRonin
+	cp -arp <BIN_ROOT>/share <TARGET_ROOT>/dronin/usr/local/dRonin
+	cp -arp <PROJECT_ROOT>/package/linux/dronin.desktop <TARGET_ROOT>/dronin/usr/share/applications
+	cp -arp <PROJECT_ROOT>/package/linux/dronin.png <TARGET_ROOT>/dronin/usr/share/pixmaps
+	cp -arp <PROJECT_ROOT>/package/linux/dronin_menu.png <TARGET_ROOT>/dronin/usr/share/pixmaps
+	cp -arp <PROJECT_ROOT>/package/linux/dronin_menu.menu <TARGET_ROOT>/dronin/etc/xdg/menus/applications-merged
+	cp -arp <PROJECT_ROOT>/package/linux/dronin_menu.directory debian/dronin/usr/share/desktop-directories
+	ln -s /usr/local/dRonin/bin/droningcs <TARGET_ROOT>/dronin/usr/bin/droningcs
+	rm -rf <TARGET_ROOT>/dronin/usr/local/dRonin/share/dronin/sounds/sounds
+	rm -rf <TARGET_ROOT>/dronin/usr/local/dRonin/share/dronin/pfd/pfd
+	rm -rf <TARGET_ROOT>/dronin/usr/local/dRonin/share/dronin/models/models
+	rm -rf <TARGET_ROOT>/dronin/usr/local/dRonin/share/dronin/mapicons/mapicons
+	rm -rf <TARGET_ROOT>/dronin/usr/local/dRonin/share/dronin/dials/dials
+	rm -rf <TARGET_ROOT>/dronin/usr/local/dRonin/share/dronin/diagrams/diagrams
 
 
 # Build architecture-independent files here.
@@ -66,7 +66,7 @@ binary-arch: install
 	dh_compress
 	dh_fixperms
 	dh_installdeb
-	dh_shlibdeps -l/usr/local/TauLabs/lib/taulabs --dpkg-shlibdeps-params="--ignore-missing-info -v"
+	dh_shlibdeps -l/usr/local/dRonin/lib/dRonin --dpkg-shlibdeps-params="--ignore-missing-info -v"
 	dh_gencontrol
 	dh_md5sums
 	dh_builddeb

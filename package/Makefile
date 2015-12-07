@@ -74,7 +74,7 @@ FW_TARGETS_TOOLS  := $(addprefix fw_, $(FW_BOARDS))
 BL_TARGETS        := $(addprefix bl_, $(BL_BOARDS))
 BU_TARGETS        := $(addprefix bu_, $(BU_BOARDS))
 
-GCS_PACKAGE_NAME:= taulabsgcs_$(PLATFORM)_$(PLATFORM_NAME)-$(PACKAGE_LBL)
+GCS_PACKAGE_NAME:= dronin_$(PLATFORM)_$(PLATFORM_NAME)-$(PACKAGE_LBL)
 GCS_PACKAGE_ROOT := $(GCS_PACKAGE_NAME)
 
 help:
