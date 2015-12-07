@@ -7,7 +7,7 @@
  *
  * @file       logging.c
  * @author     Tau Labs, http://taulabs.org, Copyright (C) 2014
- # @author     dRonin, http://dronin.org Copyright (C) 2015
+ * @author     dRonin, http://dronin.org Copyright (C) 2015
  * @brief      Forward a set of UAVObjects when updated out a PIOS_COM port
  * @see        The GNU Public License (GPL) Version 3
  *
