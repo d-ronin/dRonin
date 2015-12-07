@@ -7,6 +7,7 @@
  *
  * @file       logging.c
  * @author     Tau Labs, http://taulabs.org, Copyright (C) 2014
+ * @author     dRonin, http://dronin.org Copyright (C) 2015
  * @brief      Forward a set of UAVObjects when updated out a PIOS_COM port
  * @see        The GNU Public License (GPL) Version 3
  *
@@ -246,6 +247,8 @@ static void loggingTask(void *parameters)
 				}
 
 				PIOS_STREAMFS_Format(streamfs_id);
+				loggingData.MinFileId = PIOS_STREAMFS_MinFileId(streamfs_id);
+				loggingData.MaxFileId = PIOS_STREAMFS_MaxFileId(streamfs_id);
 			}
 #endif /* defined(PIOS_INCLUDE_FLASH) && defined(PIOS_INCLUDE_FLASH_JEDEC) */
 			loggingData.Operation = LOGGINGSTATS_OPERATION_IDLE;
@@ -436,34 +439,34 @@ static void obj_updated_callback(UAVObjEvent * ev, void* cb_ctx, void *uavo_data
 */
 uint16_t get_minimum_logging_period()
 {
-	uint16_t max_freq = 5;
+	uint16_t min_period = 200;
+
 	switch (settings.MaxLogRate) {
 		case LOGGINGSETTINGS_MAXLOGRATE_5:
-			max_freq = 5;
+			min_period = 200;
 			break;
 		case LOGGINGSETTINGS_MAXLOGRATE_10:
-			max_freq = 10;
+			min_period = 1000;
 			break;
 		case LOGGINGSETTINGS_MAXLOGRATE_25:
-			max_freq = 25;
+			min_period = 40;
 			break;
 		case LOGGINGSETTINGS_MAXLOGRATE_50:
-			max_freq = 50;
+			min_period = 20;
 			break;
 		case LOGGINGSETTINGS_MAXLOGRATE_100:
-			max_freq = 100;
+			min_period = 10;
 			break;
 		case LOGGINGSETTINGS_MAXLOGRATE_250:
-			max_freq = 250;
+			min_period = 4;
 			break;
 		case LOGGINGSETTINGS_MAXLOGRATE_500:
-			max_freq = 500;
+			min_period = 2;
 			break;
 		case LOGGINGSETTINGS_MAXLOGRATE_1000:
-			max_freq = 1000;
+			min_period = 1;
 			break;
 	}
-	uint16_t min_period = 1000 / max_freq;
 	return min_period;
 }
 
@@ -511,6 +514,9 @@ static void register_object(UAVObjHandle obj)
 static void register_default_profile()
 {
 	uint16_t min_period = get_minimum_logging_period();
+
+	// For the default profile, we limit things to 100Hz (for now)
+	min_period = MAX(min_period, 100);
 
 	// Objects for which we log all changes
 	UAVObjConnectCallback(FlightStatusHandle(), obj_updated_callback, NULL, EV_UPDATED | EV_UNPACKED);
