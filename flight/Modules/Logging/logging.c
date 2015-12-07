@@ -172,7 +172,7 @@ static void loggingTask(void *parameters)
 
 	// Connect callbacks for UAVOs being logged on change
 	FlightStatusConnectCallbackCtx(UAVObjCbSetFlag, &flightstatus_updated);
-	if (SystemIdentActiveHandle())
+	if (SystemIdentHandle())
 		SystemIdentConnectCallbackCtx(UAVObjCbSetFlag, &systemident_updated);
 	if (WaypointActiveHandle())
 		WaypointActiveConnectCallbackCtx(UAVObjCbSetFlag, &waypoint_updated);
@@ -334,7 +334,7 @@ static void loggingTask(void *parameters)
 				flightstatus_updated = false;
 			}
 			
-			if (systemident_updated && SystemIdentActiveHandle()){
+			if (systemident_updated && SystemIdentHandle()){
 				UAVTalkSendObjectTimestamped(uavTalkCon, SystemIdentHandle(), 0, false, 0);
 				systemident_updated = false;
 			}
