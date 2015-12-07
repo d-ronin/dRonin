@@ -11,7 +11,6 @@ DESTDIR = $$GCS_APP_PATH
 macx {
 DESTDIR = $$GCS_BIN_PATH
 }
-include(../libs/utils/utils.pri)
 
 SOURCES += main.cpp\
         mainwindow.cpp
