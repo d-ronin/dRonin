@@ -2,6 +2,7 @@
  ******************************************************************************
  *
  * @file       flightlogdownload.cpp
+ * @author     dRonin, http://dronin.org Copyright (C) 2015
  * @author     Tau Labs, http://taulabs.org, Copyright (C) 2014
  * @see        The GNU Public License (GPL) Version 3
  * @brief      Import/Export Plugin
@@ -57,7 +58,7 @@ FlightLogDownload::FlightLogDownload(QWidget *parent) :
     connect(ui->saveButton, SIGNAL(clicked()), this, SLOT(startDownload()));
 
     // Create default file name
-    QString fileName = tr("TauLabs-%0.tll").arg(QDateTime::currentDateTime().toString("yyyy-MM-dd_hh-mm-ss"));
+	QString fileName = tr("dRonin-%0.drlog").arg(QDateTime::currentDateTime().toString("yyyy-MM-dd_hh-mm-ss"));
     ui->fileName->setText(QDir::current().relativeFilePath(fileName));
 
     // Get the current status
@@ -74,7 +75,7 @@ FlightLogDownload::~FlightLogDownload()
 void FlightLogDownload::getFilename()
 {
     QString fileName = QFileDialog::getSaveFileName(this, tr("Save log as..."),
-                                       tr("TauLabs-%0.tll").arg(QDateTime::currentDateTime().toString("yyyy-MM-dd_hh-mm-ss")),
+									   tr("dRonin-%0.drlog").arg(QDateTime::currentDateTime().toString("yyyy-MM-dd_hh-mm-ss")),
                                        tr("Log (*.tll)"));
     if (!fileName.isEmpty())
         ui->fileName->setText(fileName);
