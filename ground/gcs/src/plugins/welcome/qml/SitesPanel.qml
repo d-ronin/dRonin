@@ -9,7 +9,7 @@ Item {
 
     Text {
         id: header
-        text: "Tau Labs Links"
+        text: "dRonin Links"
         width: parent.width
         color: "#44515c"
         font {
@@ -20,11 +20,10 @@ Item {
 
     ListModel {
         id: sitesModel
-        ListElement { title: "Tau Labs Home"; link: "http://taulabs.org" }
-        ListElement { title: "Tau Labs Wiki"; link: "https://github.com/TauLabs/TauLabs/wiki" }
-        ListElement { title: "Tau Labs Forums"; link: "https://groups.google.com/forum/#!forum/phoenixpilot" }
-        ListElement { title: "Tau Labs Code"; link: "https://github.com/TauLabs/TauLabs" }
-        ListElement { title: "Tau Labs Issues"; link: "https://github.com/TauLabs/TauLabs/issues" }
+        ListElement { title: "dRonin Home"; link: "http://dronin.org" }
+        ListElement { title: "dRonin Wiki"; link: "https://github.com/d-ronin/dRonin/wiki" }
+        ListElement { title: "dRonin Code"; link: "https://github.com/d-ronin/dRoni" }
+        ListElement { title: "dRonin Issues"; link: "https://github.com/d-ronin/dRoni/issues" }
     }
 
     ListView {

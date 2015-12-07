@@ -30,7 +30,6 @@
         <file>qml/images/bttn-vehwizard-off.png</file>
         <file>qml/images/wizard-off.png</file>
         <file>qml/images/wizard-on.png</file>
-        <file>qml/ForumNewsPanel.qml</file>
         <file>qml/GitHubNewsPanel.qml</file>
     </qresource>
 </RCC>
