@@ -1,11 +1,7 @@
 ###############################################################################
 # @file       Makefile
 # @author     Tau Labs, http://taulabs.org, Copyright (C) 2013-2015
-# @addtogroup 
-# @{
-# @addtogroup 
-# @{
-# @brief Makefile to build UAVObject code for acbro board.
+# @brief Makefile to build UAVObject code for lux board.
 ###############################################################################
 #
 # This program is free software; you can redistribute it and/or modify
@@ -29,6 +25,6 @@
 UAVOBJSRCFILENAMES =
 UAVOBJSRCFILENAMES += acceldesired
 UAVOBJSRCFILENAMES += geofencesettings
-UAVOBJSRCFILENAMES += hwacbro
+UAVOBJSRCFILENAMES += hwlux
 UAVOBJSRCFILENAMES += altitudeholdstate
 UAVOBJSRCFILENAMES += hottsettings
