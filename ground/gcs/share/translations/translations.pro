@@ -1,4 +1,4 @@
-include(../../../gcs.pri)
+include(../../gcs.pri)
 
 LANGUAGES = de es fr ru zh_CN
 

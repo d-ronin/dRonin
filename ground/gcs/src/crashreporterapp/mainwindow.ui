@@ -37,8 +37,8 @@
    <string>Oopps!</string>
   </property>
   <property name="windowIcon">
-   <iconset resource="resources.qrc">
-    <normaloff>:/app/dronin.ico</normaloff>:/app/dronin.ico</iconset>
+   <iconset>
+    <normaloff>../../../../branding/gcs.ico</normaloff>../../../../branding/gcs.ico</iconset>
   </property>
   <widget class="QWidget" name="centralWidget">
    <layout class="QVBoxLayout" name="verticalLayout">
@@ -197,8 +197,6 @@ p, li { white-space: pre-wrap; }
   </widget>
  </widget>
  <layoutdefault spacing="6" margin="11"/>
- <resources>
-  <include location="resources.qrc"/>
- </resources>
+ <resources/>
  <connections/>
 </ui>
