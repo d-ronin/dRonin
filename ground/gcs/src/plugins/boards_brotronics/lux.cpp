@@ -1,7 +1,7 @@
 /**
  ******************************************************************************
  *
- * @file       acbro.cpp
+ * @file       lux.cpp
  * @author     Tau Labs, http://taulabs.org, Copyright (C) 2015
  *
  * @addtogroup GCSPlugins GCS Plugins
@@ -26,19 +26,19 @@
  * 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
  */
 
-#include "acbro.h"
+#include "lux.h"
 
 #include <uavobjectmanager.h>
 #include "uavobjectutil/uavobjectutilmanager.h"
 #include <extensionsystem/pluginmanager.h>
 
-#include "hwacbro.h"
+#include "hwlux.h"
 
 /**
- * @brief AcBro:AcBro
- *  This is the AcBro board definition
+ * @brief Lux:Lux
+ *  This is the Lux board definition
  */
-AcBro::AcBro(void)
+Lux::Lux(void)
 {
     // Initialize our USB Structure definition here:
     USBInfo board;
@@ -53,23 +53,23 @@ AcBro::AcBro(void)
     channelBanks[0] = QVector<int> () << 1 << 2 << 3 << 4; // T3
 }
 
-AcBro::~AcBro()
+Lux::~Lux()
 {
 
 }
 
-QString AcBro::shortName()
+QString Lux::shortName()
 {
-    return QString("AcBro");
+    return QString("Lux");
 }
 
-QString AcBro::boardDescription()
+QString Lux::boardDescription()
 {
-    return QString("Brotronics AcBro hardware by ReadError.");
+    return QString("Lumenier Lux hardware by ReadError.");
 }
 
 //! Return which capabilities this board has
-bool AcBro::queryCapabilities(BoardCapabilities capability)
+bool Lux::queryCapabilities(BoardCapabilities capability)
 {
     switch(capability) {
     case BOARD_CAPABILITIES_GYROS:
@@ -90,28 +90,28 @@ bool AcBro::queryCapabilities(BoardCapabilities capability)
 
 
 /**
- * @brief AcBro::getSupportedProtocols
+ * @brief Lux::getSupportedProtocols
  *  TODO: this is just a stub, we'll need to extend this a lot with multi protocol support
  * @return
  */
-QStringList AcBro::getSupportedProtocols()
+QStringList Lux::getSupportedProtocols()
 {
 
     return QStringList("uavtalk");
 }
 
-QPixmap AcBro::getBoardPicture()
+QPixmap Lux::getBoardPicture()
 {
-    return QPixmap(":/brotronics/images/acbro.png");
+    return QPixmap(":/brotronics/images/lux.png");
 }
 
-QString AcBro::getHwUAVO()
+QString Lux::getHwUAVO()
 {
-    return "HwAcBro";
+    return "HwLux";
 }
 
 //! Determine if this board supports configuring the receiver
-bool AcBro::isInputConfigurationSupported()
+bool Lux::isInputConfigurationSupported()
 {
     return false;
 }
@@ -122,95 +122,95 @@ bool AcBro::isInputConfigurationSupported()
  * @param port_num which input port to configure (board specific numbering)
  * @return true if successfully configured or false otherwise
  */
-bool AcBro::setInputOnPort(enum InputType type, int port_num)
+bool Lux::setInputOnPort(enum InputType type, int port_num)
 {
     if (port_num != 0)
         return false;
 
     ExtensionSystem::PluginManager *pm = ExtensionSystem::PluginManager::instance();
     UAVObjectManager *uavoManager = pm->getObject<UAVObjectManager>();
-    HwAcBro *hwAcBro = HwAcBro::GetInstance(uavoManager);
-    Q_ASSERT(hwAcBro);
-    if (!hwAcBro)
+    HwLux *hwLux = HwLux::GetInstance(uavoManager);
+    Q_ASSERT(hwLux);
+    if (!hwLux)
         return false;
 
-    HwAcBro::DataFields settings = hwAcBro->getData();
+    HwLux::DataFields settings = hwLux->getData();
 
     switch(type) {
     case INPUT_TYPE_PPM:
-        settings.RcvrPort = HwAcBro::RCVRPORT_PPM;
+        settings.RcvrPort = HwLux::RCVRPORT_PPM;
         break;
     case INPUT_TYPE_SBUS:
-        settings.RcvrPort = HwAcBro::RCVRPORT_SBUS;
+        settings.RcvrPort = HwLux::RCVRPORT_SBUS;
         break;
     case INPUT_TYPE_DSM:
-        settings.RcvrPort = HwAcBro::RCVRPORT_DSM;
+        settings.RcvrPort = HwLux::RCVRPORT_DSM;
         break;
     case INPUT_TYPE_HOTTSUMD:
-        settings.RcvrPort = HwAcBro::RCVRPORT_HOTTSUMD;
+        settings.RcvrPort = HwLux::RCVRPORT_HOTTSUMD;
         break;
     default:
         return false;
     }
 
     // Apply these changes
-    hwAcBro->setData(settings);
+    hwLux->setData(settings);
 
     return true;
 }
 
 /**
- * @brief AcBro::getInputOnPort fetch the currently selected input type
+ * @brief Lux::getInputOnPort fetch the currently selected input type
  * @param port_num the port number to query (must be zero)
  * @return the selected input type
  */
-enum Core::IBoardType::InputType AcBro::getInputOnPort(int port_num)
+enum Core::IBoardType::InputType Lux::getInputOnPort(int port_num)
 {
     if (port_num != 0)
         return INPUT_TYPE_UNKNOWN;
 
     ExtensionSystem::PluginManager *pm = ExtensionSystem::PluginManager::instance();
     UAVObjectManager *uavoManager = pm->getObject<UAVObjectManager>();
-    HwAcBro *hwAcBro = HwAcBro::GetInstance(uavoManager);
-    Q_ASSERT(hwAcBro);
-    if (!hwAcBro)
+    HwLux *hwLux = HwLux::GetInstance(uavoManager);
+    Q_ASSERT(hwLux);
+    if (!hwLux)
         return INPUT_TYPE_UNKNOWN;
 
-    HwAcBro::DataFields settings = hwAcBro->getData();
+    HwLux::DataFields settings = hwLux->getData();
 
     switch(settings.RcvrPort) {
-    case HwAcBro::RCVRPORT_PPM:
+    case HwLux::RCVRPORT_PPM:
         return INPUT_TYPE_PPM;
-    case HwAcBro::RCVRPORT_SBUS:
+    case HwLux::RCVRPORT_SBUS:
         return INPUT_TYPE_SBUS;
-    case HwAcBro::RCVRPORT_DSM:
+    case HwLux::RCVRPORT_DSM:
         return INPUT_TYPE_DSM;
-    case HwAcBro::RCVRPORT_HOTTSUMD:
+    case HwLux::RCVRPORT_HOTTSUMD:
         return INPUT_TYPE_HOTTSUMD;
     default:
         return INPUT_TYPE_UNKNOWN;
     }
 }
 
-int AcBro::queryMaxGyroRate()
+int Lux::queryMaxGyroRate()
 {
     ExtensionSystem::PluginManager *pm = ExtensionSystem::PluginManager::instance();
     UAVObjectManager *uavoManager = pm->getObject<UAVObjectManager>();
-    HwAcBro *hwAcBro = HwAcBro::GetInstance(uavoManager);
-    Q_ASSERT(hwAcBro);
-    if (!hwAcBro)
+    HwLux *hwLux = HwLux::GetInstance(uavoManager);
+    Q_ASSERT(hwLux);
+    if (!hwLux)
         return 0;
 
-    HwAcBro::DataFields settings = hwAcBro->getData();
+    HwLux::DataFields settings = hwLux->getData();
 
     switch(settings.GyroRange) {
-    case HwAcBro::GYRORANGE_250:
+    case HwLux::GYRORANGE_250:
         return 250;
-    case HwAcBro::GYRORANGE_500:
+    case HwLux::GYRORANGE_500:
         return 500;
-    case HwAcBro::GYRORANGE_1000:
+    case HwLux::GYRORANGE_1000:
         return 1000;
-    case HwAcBro::GYRORANGE_2000:
+    case HwLux::GYRORANGE_2000:
         return 2000;
     default:
         return 500;

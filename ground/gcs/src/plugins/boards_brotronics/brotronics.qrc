@@ -1,5 +1,5 @@
 <RCC>
     <qresource prefix="/brotronics">
-        <file>images/acbro.png</file>
+        <file>images/lux.png</file>
     </qresource>
 </RCC>

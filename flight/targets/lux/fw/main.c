@@ -1,11 +1,9 @@
 /**
  ******************************************************************************
- * @addtogroup TauLabsTargets Tau Labs Targets
- * @{
- * @addtogroup acbro Tau Labs acbro support files
+ * @addtogroup Lumenier Lux support files
  * @{
  *
- * @file       acbro.c 
+ * @file       lux.c 
  * @author     Tau Labs, http://taulabs.org, Copyright (C) 2012-2014
  * @brief      Start FreeRTOS and the Modules.
  * @see        The GNU Public License (GPL) Version 3
@@ -122,7 +120,6 @@ initTask(void *parameters)
 }
 
 /**
- * @}
  * @}
  */
 
