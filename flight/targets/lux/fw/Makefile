@@ -32,8 +32,9 @@ DEBUG ?= NO
 ERASE_FLASH ?= NO
 
 # List of modules to include
-MODULES = Sensors
-MODULES += Attitude
+#MODULES = Sensors
+#MODULES += Attitude
+MODULES += Attitude/acro
 MODULES += Actuator
 MODULES += ManualControl
 MODULES += Stabilization
@@ -46,8 +47,8 @@ OPTMODULES += Autotune
 OPTMODULES += TxPID
 #OPTMODULES += GenericI2CSensor
 #OPTMODULES += AltitudeHold
-OPTMODULES += PathPlanner
-OPTMODULES += VtolPathFollower
+#OPTMODULES += PathPlanner
+#OPTMODULES += VtolPathFollower
 #OPTMODULES += FixedWingPathFollower
 OPTMODULES += VibrationAnalysis
 OPTMODULES += UAVOMavlinkBridge
@@ -55,7 +56,7 @@ OPTMODULES += UAVOMSPBridge
 OPTMODULES += UAVOLighttelemetryBridge 
 OPTMODULES += Battery
 OPTMODULES += ComUsbBridge
-OPTMODULES += Airspeed/revolution
+#OPTMODULES += Airspeed/revolution
 OPTMODULES += UAVOHoTTBridge
 OPTMODULES += UAVOFrSKYSensorHubBridge
 OPTMODULES += UAVOFrSKYSPortBridge
@@ -324,7 +325,5 @@ LDFLAGS += -Wl,--fatal-warnings
 LDFLAGS += -T memory.ld $(addprefix -T,$(LINKER_SCRIPTS_APP))
 
 include ./UAVObjects.inc
-
-UAVO_NAV = YES
 
 include $(MAKE_INC_DIR)/firmware-common.mk
