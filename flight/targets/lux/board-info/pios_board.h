@@ -1,13 +1,11 @@
 /**
  ******************************************************************************
- * @addtogroup TauLabsTargets Tau Labs Targets
- * @{
- * @addtogroup acbro Tau Labs acbro support files
+ * @addtogroup lux Lumenier Lux support files
  * @{
  *
- * @file       STM32F30x_acbro.c 
+ * @file       STM32F30x_lux.c 
  * @author     Tau Labs, http://taulabs.org, Copyright (C) 2012-2013
- * @brief      Board header file for acbro board.
+ * @brief      Board header file for lux board.
  * @see        The GNU Public License (GPL) Version 3
  * 
  *****************************************************************************/
@@ -28,8 +26,8 @@
  */
 
 
-#ifndef STM32F30X_acbro_H_
-#define STM32F30X_acbro_H_
+#ifndef STM32F30X_lux_H_
+#define STM32F30X_lux_H_
 
 #include <stdbool.h>
 
@@ -238,10 +236,9 @@ extern uintptr_t pios_internal_adc_id;
 //-------------------------
 #define PIOS_USB_ENABLED				1 /* Should remove all references to this */
 
-#endif /* STM32F30X_acbro_H_ */
+#endif /* STM32F30X_lux_H_ */
 
 
 /**
- * @}
  * @}
  */

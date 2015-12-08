@@ -5,7 +5,7 @@
 # @{
 # @addtogroup
 # @{
-# @brief Makefile to build firmware for acbro.
+# @brief Makefile to build firmware for Lux.
 ###############################################################################
 #
 # This program is free software; you can redistribute it and/or modify

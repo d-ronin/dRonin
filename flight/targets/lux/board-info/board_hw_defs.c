@@ -1,15 +1,13 @@
 /**
  ******************************************************************************
- * @addtogroup TauLabsTargets Tau Labs Targets
- * @{
- * @addtogroup acbro Tau Labs acbro support files
+ * @addtogroup lux Lumenier Lux support files
  * @{
  *
  * @file       board_hw_defs.c 
  * @author     The OpenPilot Team, http://www.openpilot.org Copyright (C) 2011.
  * @author     Tau Labs, http://taulabs.org, Copyright (C) 2012-2014
  * @brief      Defines board specific static initializers for hardware for the
- *             acbro board.
+ *             lux board.
  * @see        The GNU Public License (GPL) Version 3
  * 
  *****************************************************************************/
@@ -1132,8 +1130,8 @@ static struct pios_internal_adc_cfg internal_adc_cfg = {
 	.half_flag = DMA1_IT_HT1,
 	.full_flag = DMA1_IT_TC1,
 	.oversampling = 32,
-	.number_of_used_pins = 3,
-	.adc_pins = (struct adc_pin[]){
+	.adc_pin_count = 3,
+	.adc_pins = {
 		{GPIOC,GPIO_Pin_0,ADC_Channel_6,true},
 		{GPIOC,GPIO_Pin_1,ADC_Channel_7,false},
 		{GPIOC,GPIO_Pin_2,ADC_Channel_8,false},

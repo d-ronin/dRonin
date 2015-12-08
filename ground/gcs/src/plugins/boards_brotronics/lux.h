@@ -1,7 +1,7 @@
 /**
  ******************************************************************************
  *
- * @file       acbro.h
+ * @file       lux.h
  * @author     Tau Labs, http://taulabs.org, Copyright (C) 2015
  *
  * @addtogroup GCSPlugins GCS Plugins
@@ -25,18 +25,18 @@
  * with this program; if not, write to the Free Software Foundation, Inc.,
  * 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
  */
-#ifndef ACBRO_H
-#define ACBRO_H
+#ifndef LUX_H
+#define LUX_H
 
 #include <coreplugin/iboardtype.h>
 
 class IBoardType;
 
-class AcBro : public Core::IBoardType
+class Lux : public Core::IBoardType
 {
 public:
-    AcBro();
-    virtual ~AcBro();
+    Lux();
+    virtual ~Lux();
 
     virtual QString shortName();
     virtual QString boardDescription();
@@ -71,4 +71,4 @@ public:
 };
 
 
-#endif // ACBRO_H
+#endif // LUX_H

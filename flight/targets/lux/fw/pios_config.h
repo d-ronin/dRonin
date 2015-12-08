@@ -1,8 +1,6 @@
 /**
  ******************************************************************************
- * @addtogroup TauLabsTargets Tau Labs Targets
- * @{
- * @addtogroup acbro Tau Labs acbro support files
+ * @addtogroup lux Lumenier Lux support files
  * @{
  *
  * @file       pios_config.h 
@@ -136,6 +134,5 @@
 
 #endif /* PIOS_CONFIG_H */
 /**
- * @}
  * @}
  */
