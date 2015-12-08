@@ -9,6 +9,7 @@
  * @file       pios_delay.c
  * @author     Michael Smith Copyright (C) 2012
  * @author     Tau Labs, http://taulabs.org, Copyright (C) 2012-2013
+ * @author     dRonin, http://dronin.org Copyright (C) 2015
  * @brief      Delay Functions 
  *                 - Provides a micro-second granular delay using the CPU
  *                   cycle counter.

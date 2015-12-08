@@ -6,6 +6,7 @@
  * @file       alarms.c
  * @author     The OpenPilot Team, http://www.openpilot.org Copyright (C) 2010.
  * @author     Tau Labs, http://taulabs.org, Copyright (C) 2014
+ * @author     dRonin, http://dronin.org Copyright (C) 2015
  * @brief      Library for setting and clearing system alarms
  * @see        The GNU Public License (GPL) Version 3
  *

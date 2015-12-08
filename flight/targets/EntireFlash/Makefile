@@ -2,6 +2,7 @@
 # Makefile for Entire Flash (EF) images
 #
 # The OpenPilot Team, http://www.openpilot.org, Copyright (C) 2012.
+# dRonin, http://dronin.org Copyright (C) 2015
 #
 #
 # This program is free software; you can redistribute it and/or modify

@@ -3,6 +3,7 @@
  *
  * @file       main.cpp
  * @author     The OpenPilot Team, http://www.openpilot.org Copyright (C) 2010.
+ * @author     dRonin, http://dronin.org Copyright (C) 2015
  * @brief      UAVObjectGenerator main.
  *
  * @see        The GNU Public License (GPL) Version 3

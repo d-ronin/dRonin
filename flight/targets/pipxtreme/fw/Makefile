@@ -6,6 +6,7 @@
  #
  # The OpenPilot Team, http://www.openpilot.org, Copyright (C) 2009.
  # Tau Labs, http://taulabs.org, Copyright (C) 2013-2014
+ # dRonin, http://dronin.org Copyright (C) 2015
  #
  # 
  # This program is free software; you can redistribute it and/or modify

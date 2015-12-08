@@ -3,6 +3,7 @@
  *
  * @file       uavobjectparser.h
  * @author     The OpenPilot Team, http://www.openpilot.org Copyright (C) 2010.
+ * @author     dRonin, http://dronin.org Copyright (C) 2015
  * @brief      Parses XML files and extracts object information.
  *
  * @see        The GNU Public License (GPL) Version 3

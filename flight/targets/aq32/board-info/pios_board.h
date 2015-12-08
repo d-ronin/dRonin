@@ -7,6 +7,7 @@
  *
  * @file       STM32F4xx_Aq32.c
  * @author     Tau Labs, http://taulabs.org, Copyright (C) 2012-2013
+ * @author     dRonin, http://dronin.org Copyright (C) 2015
  * @brief      Board specific defines for AQ32
  * @see        The GNU Public License (GPL) Version 3
  *

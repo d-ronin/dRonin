@@ -7,6 +7,7 @@
  *
  * @file       board_hw_defs.c 
  * @author     Tau Labs, http://taulabs.org, Copyright (C) 2012-2014
+ * @author     dRonin, http://dronin.org Copyright (C) 2015
  * @brief      Defines board specific static initializers for hardware for the
  *             Colibri board.
  * @see        The GNU Public License (GPL) Version 3

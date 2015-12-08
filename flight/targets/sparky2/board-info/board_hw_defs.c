@@ -7,6 +7,7 @@
  *
  * @file       pios_board.c 
  * @author     Tau Labs, http://taulabs.org, Copyright (C) 2012-2015
+ * @author     dRonin, http://dronin.org Copyright (C) 2015
  * @brief      Board specific hardware configuration file
  * @see        The GNU Public License (GPL) Version 3
  *

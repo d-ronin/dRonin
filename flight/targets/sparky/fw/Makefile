@@ -1,6 +1,7 @@
 ###############################################################################
 # @file       Makefile
 # @author     Tau Labs, http://taulabs.org, Copyright (C) 2013-2014
+# @author     dRonin, http://dronin.org Copyright (C) 2015
 # @addtogroup
 # @{
 # @addtogroup
