@@ -52,11 +52,8 @@
 #include "pios_queue.h"
  
 // Private constants
-#define STACK_SIZE_BYTES 580
+#define STACK_SIZE_BYTES 616
 #define TASK_PRIORITY PIOS_THREAD_PRIO_HIGH
-
-#define SENSOR_PERIOD 4
-#define GYRO_NEUTRAL 1665
 
 // Private types
 enum complimentary_filter_status {
