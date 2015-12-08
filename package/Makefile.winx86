@@ -10,8 +10,8 @@ NSIS_TEMPLATE := $(NSIS_DIR)/dronin.tpl
 NSIS_HEADER   := $(BUILD_DIR)/ground/gcs/dronin.nsh
 
 standalone: gcs
-	$(V1) windeployqt -printsupport -concurrent -gui -opengl -xml -quick -quickwidgets -test -script -sql -serialport -multimedia -multimediawidgets --list relative --qmldir $(ROOT_DIR)/build/ground/gcs/share/dronin/welcome $(ROOT_DIR)/build/ground/gcs/bin/drgcs.exe 
-	$(V1) windeployqt -printsupport -concurrent -gui -opengl -xml -quick -quickwidgets -test -script -sql -serialport -multimedia -multimediawidgets --qmldir $(ROOT_DIR)/build/ground/gcs/share/dronin/welcome $(ROOT_DIR)/build/ground/gcs/bin/drgcs.exe 
+	$(V1) windeployqt -printsupport -concurrent -gui -opengl -xml -quick -quickwidgets -test -script -sql -serialport -multimedia -multimediawidgets --list relative --qmldir $(ROOT_DIR)/build/ground/gcs/share/welcome $(ROOT_DIR)/build/ground/gcs/bin/drgcs.exe 
+	$(V1) windeployqt -printsupport -concurrent -gui -opengl -xml -quick -quickwidgets -test -script -sql -serialport -multimedia -multimediawidgets --qmldir $(ROOT_DIR)/build/ground/gcs/share/welcome $(ROOT_DIR)/build/ground/gcs/bin/drgcs.exe 
 
 win_package: standalone package_flight package_matlab
 	$(V1) mkdir -p "$(dir $(NSIS_HEADER))"
