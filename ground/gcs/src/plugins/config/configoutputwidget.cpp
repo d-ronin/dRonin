@@ -49,6 +49,9 @@
 #include <extensionsystem/pluginmanager.h>
 #include <coreplugin/generalsettings.h>
 
+SignalSingleton* SignalSingleton::p_instance = 0;
+
+
 ConfigOutputWidget::ConfigOutputWidget(QWidget *parent) : ConfigTaskWidget(parent),wasItMe(false)
 {
     m_config = new Ui_OutputWidget();
@@ -134,11 +137,14 @@ ConfigOutputWidget::ConfigOutputWidget(QWidget *parent) : ConfigTaskWidget(paren
 
     UAVObjectManager *objManager = pm->getObject<UAVObjectManager>();
     UAVObject* obj = objManager->getObject(QString("ActuatorCommand"));
-    if(UAVObject::GetGcsTelemetryUpdateMode(obj->getMetadata()) == UAVObject::UPDATEMODE_ONCHANGE)
+    if(UAVObject::GetGcsTelemetryUpdateMode(obj->getMetadata()) == UAVObject::UPDATEMODE_ONCHANGE) {
         this->setEnabled(false);
-    connect(obj,SIGNAL(objectUpdated(UAVObject*)),this,SLOT(disableIfNotMe(UAVObject*)));
-    connect(SystemSettings::GetInstance(objManager), SIGNAL(objectUpdated(UAVObject*)),this,SLOT(assignOutputChannels(UAVObject*)));
+    }
 
+    connect(obj, SIGNAL(objectUpdated(UAVObject*)), this, SLOT(disableIfNotMe(UAVObject*)));
+
+    SignalSingleton *signalSingleton = SignalSingleton::getInstance();
+    connect(signalSingleton, SIGNAL(outputChannelsUpdated()), this, SLOT(assignOutputChannels()));
 
     refreshWidgetsValues();
 }
@@ -232,18 +238,12 @@ OutputChannelForm* ConfigOutputWidget::getOutputChannelForm(const int index) con
 
 /**
  * @brief ConfigOutputWidget::assignOutputChannels Sets the output channel form text and min/max values
- * @param actuatorSettings UAVO input
  */
-void ConfigOutputWidget::assignOutputChannels(UAVObject *obj)
+void ConfigOutputWidget::assignOutputChannels()
 {
-    Q_UNUSED(obj);
-
     // Get UAVO
     ActuatorSettings *actuatorSettings = ActuatorSettings::GetInstance(getObjectManager());
     ActuatorSettings::DataFields actuatorSettingsData = actuatorSettings->getData();
-
-    // Get channel descriptions
-    QStringList ChannelDesc = ConfigVehicleTypeWidget::getChannelDescriptions();
 
     // Find all output forms in the tab, and set the text and min/max values
     QList<OutputChannelForm*> outputChannelForms = findChildren<OutputChannelForm*>();
@@ -418,9 +418,6 @@ void ConfigOutputWidget::refreshWidgetsValues(UAVObject * obj)
     ActuatorSettings *actuatorSettings = ActuatorSettings::GetInstance(getObjectManager());
     Q_ASSERT(actuatorSettings);
     ActuatorSettings::DataFields actuatorSettingsData = actuatorSettings->getData();
-
-    // Fill output forms
-    assignOutputChannels(actuatorSettings);
 
     // Get the SpinWhileArmed setting
     m_config->spinningArmed->setChecked(actuatorSettingsData.MotorsSpinWhileArmed == ActuatorSettings::MOTORSSPINWHILEARMED_TRUE);
