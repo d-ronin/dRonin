@@ -27,7 +27,7 @@
  */
 
 #include "brotronicsplugin.h"
-#include "acbro.h"
+#include "lux.h"
 #include <QtPlugin>
 
 
@@ -54,8 +54,8 @@ void BrotronicsPlugin::extensionsInitialized()
      * Create the board objects here.
      *
      */
-    AcBro* acbro = new AcBro();
-    addAutoReleasedObject(acbro);
+    Lux* lux = new Lux();
+    addAutoReleasedObject(lux);
 
 }
 

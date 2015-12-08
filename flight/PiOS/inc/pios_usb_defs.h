@@ -368,14 +368,16 @@ enum usb_product_ids {
 	USB_PRODUCT_ID_FREEDOM        = 0x41d0,
 	USB_PRODUCT_ID_SPARKY         = USB_PRODUCT_ID_FREEDOM,
 
-    /* BrainFPV Boards */
+	/* BrainFPV Boards */
 	USB_PRODUCT_ID_BRAIN          = 0x4242,
+
+	/* BroTronics boards */
+	USB_PRODUCT_ID_LUX            = 0x42a0,
 
 	/* ST Eval Boards */
 	USB_PRODUCT_ID_DISCOVERYF4    = USB_PRODUCT_ID_SPARE,
 	USB_PRODUCT_ID_FLYINGF3       = USB_PRODUCT_ID_SPARE,
 	USB_PRODUCT_ID_FLYINGF4       = USB_PRODUCT_ID_SPARE,
-	USB_PRODUCT_ID_ACBRO          = USB_PRODUCT_ID_SPARE,
 } __attribute__((packed));
 
 enum usb_op_board_ids {

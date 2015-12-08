@@ -1,8 +1,6 @@
 /**
  ******************************************************************************
- * @addtogroup TauLabsBootloader Tau Labs Bootloaders
- * @{
- * @addtogroup acbroBL Tau Labs acbro bootloader
+ * @addtogroup luxBL Lumenier Lux bootloader
  * @{
  *
  * @file       pios_config.h 

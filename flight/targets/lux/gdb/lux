@@ -1,4 +1,4 @@
 define connect
 	target remote localhost:3333
-	file ./build/bl_acbro/bl_acbro.elf
+	file ./build/fw_lux/fw_lux.elf
 end

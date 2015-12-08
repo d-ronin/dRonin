@@ -8,11 +8,11 @@ OTHER_FILES += Brotronics.pluginspec
 
 HEADERS += \
     brotronicsplugin.h \
-    acbro.h
+    lux.h
 
 SOURCES += \
     brotronicsplugin.cpp \
-    acbro.cpp
+    lux.cpp
 
 RESOURCES += \
     brotronics.qrc

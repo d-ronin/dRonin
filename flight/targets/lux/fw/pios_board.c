@@ -2,7 +2,7 @@
  ******************************************************************************
  * @addtogroup TauLabsTargets Tau Labs Targets
  * @{
- * @addtogroup acbro Tau Labs acbro support files
+ * @addtogroup lux Tau Labs lux support files
  * @{
  *
  * @file       pios_board.c
@@ -41,7 +41,7 @@
 #include <pios_hal.h>
 #include <openpilot.h>
 #include <uavobjectsinit.h>
-#include "hwacbro.h"
+#include "hwlux.h"
 #include "manualcontrolsettings.h"
 #include "modulesettings.h"
 
@@ -182,7 +182,7 @@ void PIOS_Board_Init(void)
 	PIOS_RESET_Clear(); // Clear the RCC reset flags after use.
 
 	/* Initialize the hardware UAVOs */
-	HwAcBroInitialize();
+	HwLuxInitialize();
 	ModuleSettingsInitialize();
 
 #if defined(PIOS_INCLUDE_RTC)
@@ -216,7 +216,7 @@ void PIOS_Board_Init(void)
 		AlarmsClear(SYSTEMALARMS_ALARM_BOOTFAULT);
 	} else {
 		/* Too many failed boot attempts, force hw config to defaults */
-		HwAcBroSetDefaults(HwAcBroHandle(), 0);
+		HwLuxSetDefaults(HwLuxHandle(), 0);
 		ModuleSettingsSetDefaults(ModuleSettingsHandle(), 0);
 		AlarmsSet(SYSTEMALARMS_ALARM_BOOTFAULT, SYSTEMALARMS_ALARM_CRITICAL);
 	}
@@ -249,11 +249,11 @@ void PIOS_Board_Init(void)
 
 	uint8_t hw_usb_vcpport;
 	/* Configure the USB VCP port */
-	HwAcBroUSB_VCPPortGet(&hw_usb_vcpport);
+	HwLuxUSB_VCPPortGet(&hw_usb_vcpport);
 
 	if (!usb_cdc_present) {
 		/* Force VCP port function to disabled if we haven't advertised VCP in our USB descriptor */
-		hw_usb_vcpport = HWACBRO_USB_VCPPORT_DISABLED;
+		hw_usb_vcpport = HWLUX_USB_VCPPORT_DISABLED;
 	}
 
 	PIOS_HAL_ConfigureCDC(hw_usb_vcpport, pios_usb_id, &pios_usb_cdc_cfg);
@@ -262,11 +262,11 @@ void PIOS_Board_Init(void)
 #if defined(PIOS_INCLUDE_USB_HID)
 	/* Configure the usb HID port */
 	uint8_t hw_usb_hidport;
-	HwAcBroUSB_HIDPortGet(&hw_usb_hidport);
+	HwLuxUSB_HIDPortGet(&hw_usb_hidport);
 
 	if (!usb_hid_present) {
 		/* Force HID port function to disabled if we haven't advertised HID in our USB descriptor */
-		hw_usb_hidport = HWACBRO_USB_HIDPORT_DISABLED;
+		hw_usb_hidport = HWLUX_USB_HIDPORT_DISABLED;
 	}
 
 	PIOS_HAL_ConfigureHID(hw_usb_hidport, pios_usb_id, &pios_usb_hid_cfg);
@@ -275,12 +275,12 @@ void PIOS_Board_Init(void)
 #endif	/* PIOS_INCLUDE_USB */
 
 	/* Configure the IO ports */
-	HwAcBroDSMxModeOptions hw_DSMxMode;
-	HwAcBroDSMxModeGet(&hw_DSMxMode);
+	HwLuxDSMxModeOptions hw_DSMxMode;
+	HwLuxDSMxModeGet(&hw_DSMxMode);
 
 	/* Configure main USART port */
 	uint8_t hw_mainport;
-	HwAcBroMainPortGet(&hw_mainport);
+	HwLuxMainPortGet(&hw_mainport);
 	PIOS_HAL_ConfigurePort(hw_mainport, // port_type
                          &pios_main_usart_cfg, // usart_port_cfg
                          &pios_main_usart_cfg, // usart_frsk_port_cfg
@@ -299,7 +299,7 @@ void PIOS_Board_Init(void)
 
 	/* Configure FlexiPort */
 	uint8_t hw_flexiport;
-	HwAcBroFlexiPortGet(&hw_flexiport);
+	HwLuxFlexiPortGet(&hw_flexiport);
   PIOS_HAL_ConfigurePort(hw_flexiport, // port_type
                          &pios_flexi_usart_cfg, // usart_port_cfg
                          &pios_flexi_usart_cfg, // usart_frsk_port_cfg
@@ -318,7 +318,7 @@ void PIOS_Board_Init(void)
 
 	/* Configure the rcvr port */
 	uint8_t hw_rcvrport;
-	HwAcBroRcvrPortGet(&hw_rcvrport);
+	HwLuxRcvrPortGet(&hw_rcvrport);
   PIOS_HAL_ConfigurePort(hw_rcvrport, // port_type
                          NULL, // usart_port_cfg /* XXX TODO: fix as part of DSM refactor */
                          NULL, // usart_frsk_port_cfg
@@ -350,10 +350,10 @@ void PIOS_Board_Init(void)
 	uint8_t number_of_pwm_outputs;
 	uint8_t number_of_adc_ports = 3;
 	bool use_pwm_in;
-	HwAcBroOutPortGet(&hw_outport);
+	HwLuxOutPortGet(&hw_outport);
 
 	switch (hw_outport) {
-	case HWACBRO_OUTPORT_PWM4:
+	case HWLUX_OUTPORT_PWM4:
 		number_of_pwm_outputs = 4;
 		number_of_adc_ports = 3;
 		use_pwm_in = false;
@@ -373,7 +373,7 @@ void PIOS_Board_Init(void)
 
 #if defined(PIOS_INCLUDE_ADC)
 	if (number_of_adc_ports > 0) {
-		internal_adc_cfg.number_of_used_pins = number_of_adc_ports;
+		internal_adc_cfg.adc_pin_count = number_of_adc_ports;
 		uint32_t internal_adc_id;
 		if (PIOS_INTERNAL_ADC_Init(&internal_adc_id, &internal_adc_cfg) < 0)
 			PIOS_Assert(0);
@@ -404,77 +404,77 @@ void PIOS_Board_Init(void)
 
     // To be safe map from UAVO enum to driver enum
     uint8_t hw_gyro_range;
-    HwAcBroGyroRangeGet(&hw_gyro_range);
+    HwLuxGyroRangeGet(&hw_gyro_range);
     switch(hw_gyro_range) {
-        case HWACBRO_GYRORANGE_250:
+        case HWLUX_GYRORANGE_250:
             PIOS_MPU9250_SetGyroRange(PIOS_MPU60X0_SCALE_250_DEG);
             break;
-        case HWACBRO_GYRORANGE_500:
+        case HWLUX_GYRORANGE_500:
             PIOS_MPU9250_SetGyroRange(PIOS_MPU60X0_SCALE_500_DEG);
             break;
-        case HWACBRO_GYRORANGE_1000:
+        case HWLUX_GYRORANGE_1000:
             PIOS_MPU9250_SetGyroRange(PIOS_MPU60X0_SCALE_1000_DEG);
             break;
-        case HWACBRO_GYRORANGE_2000:
+        case HWLUX_GYRORANGE_2000:
             PIOS_MPU9250_SetGyroRange(PIOS_MPU60X0_SCALE_2000_DEG);
             break;
     }
 
     uint8_t hw_accel_range;
-    HwAcBroAccelRangeGet(&hw_accel_range);
+    HwLuxAccelRangeGet(&hw_accel_range);
     switch(hw_accel_range) {
-        case HWACBRO_ACCELRANGE_2G:
+        case HWLUX_ACCELRANGE_2G:
             PIOS_MPU9250_SetAccelRange(PIOS_MPU60X0_ACCEL_2G);
             break;
-        case HWACBRO_ACCELRANGE_4G:
+        case HWLUX_ACCELRANGE_4G:
             PIOS_MPU9250_SetAccelRange(PIOS_MPU60X0_ACCEL_4G);
             break;
-        case HWACBRO_ACCELRANGE_8G:
+        case HWLUX_ACCELRANGE_8G:
             PIOS_MPU9250_SetAccelRange(PIOS_MPU60X0_ACCEL_8G);
             break;
-        case HWACBRO_ACCELRANGE_16G:
+        case HWLUX_ACCELRANGE_16G:
             PIOS_MPU9250_SetAccelRange(PIOS_MPU60X0_ACCEL_16G);
             break;
     }
 
     // the filter has to be set before rate else divisor calculation will fail
     uint8_t hw_mpu9250_dlpf;
-    HwAcBroMPU9250GyroLPFGet(&hw_mpu9250_dlpf);
+    HwLuxMPU9250GyroLPFGet(&hw_mpu9250_dlpf);
     enum pios_mpu9250_gyro_filter mpu9250_gyro_lpf = \
-        (hw_mpu9250_dlpf == HWACBRO_MPU9250GYROLPF_256) ? PIOS_MPU9250_GYRO_LOWPASS_250_HZ : \
-        (hw_mpu9250_dlpf == HWACBRO_MPU9250GYROLPF_250) ? PIOS_MPU9250_GYRO_LOWPASS_250_HZ : \
-        (hw_mpu9250_dlpf == HWACBRO_MPU9250GYROLPF_184) ? PIOS_MPU9250_GYRO_LOWPASS_184_HZ : \
-        (hw_mpu9250_dlpf == HWACBRO_MPU9250GYROLPF_92) ? PIOS_MPU9250_GYRO_LOWPASS_92_HZ : \
-        (hw_mpu9250_dlpf == HWACBRO_MPU9250GYROLPF_41) ? PIOS_MPU9250_GYRO_LOWPASS_41_HZ : \
-        (hw_mpu9250_dlpf == HWACBRO_MPU9250GYROLPF_20) ? PIOS_MPU9250_GYRO_LOWPASS_20_HZ : \
-        (hw_mpu9250_dlpf == HWACBRO_MPU9250GYROLPF_10) ? PIOS_MPU9250_GYRO_LOWPASS_10_HZ : \
-        (hw_mpu9250_dlpf == HWACBRO_MPU9250GYROLPF_5) ? PIOS_MPU9250_GYRO_LOWPASS_5_HZ : \
+        (hw_mpu9250_dlpf == HWLUX_MPU9250GYROLPF_256) ? PIOS_MPU9250_GYRO_LOWPASS_250_HZ : \
+        (hw_mpu9250_dlpf == HWLUX_MPU9250GYROLPF_250) ? PIOS_MPU9250_GYRO_LOWPASS_250_HZ : \
+        (hw_mpu9250_dlpf == HWLUX_MPU9250GYROLPF_184) ? PIOS_MPU9250_GYRO_LOWPASS_184_HZ : \
+        (hw_mpu9250_dlpf == HWLUX_MPU9250GYROLPF_92) ? PIOS_MPU9250_GYRO_LOWPASS_92_HZ : \
+        (hw_mpu9250_dlpf == HWLUX_MPU9250GYROLPF_41) ? PIOS_MPU9250_GYRO_LOWPASS_41_HZ : \
+        (hw_mpu9250_dlpf == HWLUX_MPU9250GYROLPF_20) ? PIOS_MPU9250_GYRO_LOWPASS_20_HZ : \
+        (hw_mpu9250_dlpf == HWLUX_MPU9250GYROLPF_10) ? PIOS_MPU9250_GYRO_LOWPASS_10_HZ : \
+        (hw_mpu9250_dlpf == HWLUX_MPU9250GYROLPF_5) ? PIOS_MPU9250_GYRO_LOWPASS_5_HZ : \
         pios_mpu9250_cfg.default_gyro_filter;
     PIOS_MPU9250_SetGyroLPF(mpu9250_gyro_lpf);
 
-    HwAcBroMPU9250AccelLPFGet(&hw_mpu9250_dlpf);
+    HwLuxMPU9250AccelLPFGet(&hw_mpu9250_dlpf);
     enum pios_mpu9250_accel_filter mpu9250_accel_lpf = \
-        (hw_mpu9250_dlpf == HWACBRO_MPU9250ACCELLPF_460) ? PIOS_MPU9250_ACCEL_LOWPASS_460_HZ : \
-        (hw_mpu9250_dlpf == HWACBRO_MPU9250ACCELLPF_184) ? PIOS_MPU9250_ACCEL_LOWPASS_184_HZ : \
-        (hw_mpu9250_dlpf == HWACBRO_MPU9250ACCELLPF_92) ? PIOS_MPU9250_ACCEL_LOWPASS_92_HZ : \
-        (hw_mpu9250_dlpf == HWACBRO_MPU9250ACCELLPF_41) ? PIOS_MPU9250_ACCEL_LOWPASS_41_HZ : \
-        (hw_mpu9250_dlpf == HWACBRO_MPU9250ACCELLPF_20) ? PIOS_MPU9250_ACCEL_LOWPASS_20_HZ : \
-        (hw_mpu9250_dlpf == HWACBRO_MPU9250ACCELLPF_10) ? PIOS_MPU9250_ACCEL_LOWPASS_10_HZ : \
-        (hw_mpu9250_dlpf == HWACBRO_MPU9250ACCELLPF_5) ? PIOS_MPU9250_ACCEL_LOWPASS_5_HZ : \
+        (hw_mpu9250_dlpf == HWLUX_MPU9250ACCELLPF_460) ? PIOS_MPU9250_ACCEL_LOWPASS_460_HZ : \
+        (hw_mpu9250_dlpf == HWLUX_MPU9250ACCELLPF_184) ? PIOS_MPU9250_ACCEL_LOWPASS_184_HZ : \
+        (hw_mpu9250_dlpf == HWLUX_MPU9250ACCELLPF_92) ? PIOS_MPU9250_ACCEL_LOWPASS_92_HZ : \
+        (hw_mpu9250_dlpf == HWLUX_MPU9250ACCELLPF_41) ? PIOS_MPU9250_ACCEL_LOWPASS_41_HZ : \
+        (hw_mpu9250_dlpf == HWLUX_MPU9250ACCELLPF_20) ? PIOS_MPU9250_ACCEL_LOWPASS_20_HZ : \
+        (hw_mpu9250_dlpf == HWLUX_MPU9250ACCELLPF_10) ? PIOS_MPU9250_ACCEL_LOWPASS_10_HZ : \
+        (hw_mpu9250_dlpf == HWLUX_MPU9250ACCELLPF_5) ? PIOS_MPU9250_ACCEL_LOWPASS_5_HZ : \
         pios_mpu9250_cfg.default_accel_filter;
     PIOS_MPU9250_SetAccelLPF(mpu9250_accel_lpf);
 
     uint8_t hw_mpu9250_samplerate;
-    HwAcBroMPU9250RateGet(&hw_mpu9250_samplerate);
+    HwLuxMPU9250RateGet(&hw_mpu9250_samplerate);
     uint16_t mpu9250_samplerate = \
-        (hw_mpu9250_samplerate == HWACBRO_MPU9250RATE_200) ? 200 : \
-        (hw_mpu9250_samplerate == HWACBRO_MPU9250RATE_250) ? 250 : \
-        (hw_mpu9250_samplerate == HWACBRO_MPU9250RATE_333) ? 333 : \
-        (hw_mpu9250_samplerate == HWACBRO_MPU9250RATE_500) ? 500 : \
-        (hw_mpu9250_samplerate == HWACBRO_MPU9250RATE_1000) ? 1000 : \
-        (hw_mpu9250_samplerate == HWACBRO_MPU9250RATE_2000) ? 2000 : \
-        (hw_mpu9250_samplerate == HWACBRO_MPU9250RATE_4000) ? 4000 : \
-        (hw_mpu9250_samplerate == HWACBRO_MPU9250RATE_8000) ? 8000 : \
+        (hw_mpu9250_samplerate == HWLUX_MPU9250RATE_200) ? 200 : \
+        (hw_mpu9250_samplerate == HWLUX_MPU9250RATE_250) ? 250 : \
+        (hw_mpu9250_samplerate == HWLUX_MPU9250RATE_333) ? 333 : \
+        (hw_mpu9250_samplerate == HWLUX_MPU9250RATE_500) ? 500 : \
+        (hw_mpu9250_samplerate == HWLUX_MPU9250RATE_1000) ? 1000 : \
+        (hw_mpu9250_samplerate == HWLUX_MPU9250RATE_2000) ? 2000 : \
+        (hw_mpu9250_samplerate == HWLUX_MPU9250RATE_4000) ? 4000 : \
+        (hw_mpu9250_samplerate == HWLUX_MPU9250RATE_8000) ? 8000 : \
         pios_mpu9250_cfg.default_samplerate;
     PIOS_MPU9250_SetSampleRate(mpu9250_samplerate);
 #endif /* PIOS_INCLUDE_MPU9250_SPI */

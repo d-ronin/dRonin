@@ -1,16 +1,13 @@
 /**
  ******************************************************************************
- * @addtogroup TauLabsBootloader Tau Labs Bootloaders
- * @{
- * @addtogroup acbroBL Tau Labs acbro bootloader
+ * @addtogroup lux Lumenier Lux support files
  * @{
  *
  * @file       pios_usb_board_data.h
- * @author     The OpenPilot Team, http://www.openpilot.org Copyright (C) 2010.
  * @author     Tau Labs, http://taulabs.org, Copyright (C) 2012-2013
- * @brief      Board specific USB definitions
+ * @brief      Defines for board specific usb information
  * @see        The GNU Public License (GPL) Version 3
- *
+ * 
  *****************************************************************************/
 /*
  * This program is free software; you can redistribute it and/or modify
@@ -31,33 +28,18 @@
 #ifndef PIOS_USB_BOARD_DATA_H
 #define PIOS_USB_BOARD_DATA_H
 
+#define PIOS_USB_BOARD_CDC_DATA_LENGTH 64
+#define PIOS_USB_BOARD_CDC_MGMT_LENGTH 32
 #define PIOS_USB_BOARD_HID_DATA_LENGTH 64
 
-#define PIOS_USB_BOARD_EP_NUM 2
+#define PIOS_USB_BOARD_EP_NUM 4
 
-#include "pios_usb_defs.h" 	/* struct usb_* */
-
-/*
- * Use same VID/PID as Freedom.
- */
+#include "pios_usb_defs.h" 	/* USB_* macros */
 
 #define PIOS_USB_BOARD_VENDOR_ID USB_VENDOR_ID_CLAYLOGIC
-#define PIOS_USB_BOARD_PRODUCT_ID USB_PRODUCT_ID_ACBRO
-#define PIOS_USB_BOARD_DEVICE_VER USB_OP_DEVICE_VER(0, USB_OP_BOARD_MODE_BL)
-#define PIOS_USB_BOARD_SN_SUFFIX "+BL"
+#define PIOS_USB_BOARD_PRODUCT_ID USB_PRODUCT_ID_LUX
 
-/*
- * The bootloader uses a simplified report structure
- *   BL: <REPORT_ID><DATA>...<DATA>
- *   FW: <REPORT_ID><LENGTH><DATA>...<DATA>
- * This define changes the behaviour in pios_usb_hid.c
- */
-#define PIOS_USB_BOARD_BL_HID_HAS_NO_LENGTH_BYTE
+#define PIOS_USB_BOARD_DEVICE_VER USB_OP_DEVICE_VER(0, USB_OP_BOARD_MODE_FW)
+#define PIOS_USB_BOARD_SN_SUFFIX "+FW"
 
 #endif	/* PIOS_USB_BOARD_DATA_H */
-
-/**
- * @}
- * @}
- */
-
