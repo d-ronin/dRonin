@@ -31,17 +31,19 @@
 #error "pios_thread.c requires PIOS_INCLUDE_FREERTOS or PIOS_INCLUDE_CHIBIOS"
 #endif
 
+// portTICK_RATE_MS is in [ms/tick].
+// See http://sourceforge.net/tracker/?func=detail&aid=3498382&group_id=111543&atid=659636
+// This is used on both FreeRTOS and ChibiOS because the equivalent ChibiOS macro rolls over
+// at 4295 seconds (although it can be more accurate for some tick rates, it's irrelevant for 1000 Hz)
+#define MS2TICKS(m) ((m) / (portTICK_RATE_MS))
+#define TICKS2MS(t) ((t) * (portTICK_RATE_MS))
+
 #if defined(PIOS_INCLUDE_FREERTOS)
 
 #include "FreeRTOS.h"
 #include "task.h"
 #include "queue.h"
 #include "semphr.h"
-
-// portTICK_RATE_MS is in [ms/tick].
-// See http://sourceforge.net/tracker/?func=detail&aid=3498382&group_id=111543&atid=659636
-#define TICKS2MS(t) ((t) * (portTICK_RATE_MS))
-#define MS2TICKS(m) ((m) / (portTICK_RATE_MS))
 
 /**
  *
@@ -204,6 +206,8 @@ void PIOS_Thread_Scheduler_Resume(void)
 #elif defined(PIOS_INCLUDE_CHIBIOS)
 
 #define ST2MS(n) (((((n) - 1UL) * 1000UL) / CH_FREQUENCY) + 1UL)
+// This is to provide compatibility with FreeRTOS macros, Chibi macros roll over at 4295 seconds
+#define portTICK_RATE_MS ((uint32_t) 1000UL / CH_FREQUENCY)
 
 /**
  * Compute size that is at rounded up to the nearest
@@ -318,7 +322,7 @@ void PIOS_Thread_Delete(struct pios_thread *threadp)
  */
 uint32_t PIOS_Thread_Systime(void)
 {
-	return (uint32_t)ST2MS(chTimeNow());
+	return (uint32_t)TICKS2MS(chTimeNow());
 }
 
 /**
