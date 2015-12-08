@@ -5,14 +5,19 @@ CCACHE :=
 
 ifeq ($(FLIGHT_BUILD_CONF), debug)
 export DEBUG:=YES
-CCACHE := $(shell which ccache)
 else ifeq ($(FLIGHT_BUILD_CONF), default)
 # In the default case, keep the old "DEBUG"  variable handling
-CCACHE := $(shell which ccache)
 else ifeq ($(FLIGHT_BUILD_CONF), release)
 export DEBUG:=NO
 else
 $(error Only debug, release, or default allowed for FLIGHT_BUILD_CONF)
+endif
+
+ifneq ($(OS), Windows_NT)
+ifneq ($(FLIGHT_BUILD_CONF), release)
+# Only use ccache if we are not on windows, and this is not a release build
+CCACHE := $(shell which ccache)
+endif
 endif
 
 # Define toolchain component names.
