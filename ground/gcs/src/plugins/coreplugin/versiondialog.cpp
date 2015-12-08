@@ -106,7 +106,7 @@ VersionDialog::VersionDialog(QWidget *parent)
                      QLatin1String(__DATE__), QLatin1String(__TIME__), ideRev, uavoHashStr);
 
      QString copyright = tr(
- -       "Copyright %0 %1, 2012-2015 Tau Labs, 2010-2012 OpenPilot. All rights reserved.<br/>"
+         "Copyright %0 %1, 2012-2015 Tau Labs, 2010-2012 OpenPilot. All rights reserved.<br/>"
          "<br/>"
          "Between 2010 and 2012, a significant part of this application was designed "
          "and implemented within the OpenPilot project.<br/>"
