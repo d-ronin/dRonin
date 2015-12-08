@@ -7,6 +7,7 @@
  *
  * @file       logging.c
  * @author     Tau Labs, http://taulabs.org, Copyright (C) 2014
+ * @author     dRonin, http://dronin.org Copyright (C) 2015
  * @brief      Forward a set of UAVObjects when updated out a PIOS_COM port
  * @see        The GNU Public License (GPL) Version 3
  *
@@ -50,6 +51,7 @@
 #include "magnetometer.h"
 #include "manualcontrolcommand.h"
 #include "positionactual.h"
+#include "systemident.h"
 #include "loggingsettings.h"
 #include "loggingstats.h"
 #include "velocityactual.h"
@@ -69,6 +71,7 @@ static struct pios_thread *loggingTaskHandle;
 static bool module_enabled;
 static volatile LoggingSettingsData settings;
 static bool flightstatus_updated = false;
+static bool systemident_updated = false;
 static bool waypoint_updated = false;
 
 // Private functions
@@ -169,6 +172,8 @@ static void loggingTask(void *parameters)
 
 	// Connect callbacks for UAVOs being logged on change
 	FlightStatusConnectCallbackCtx(UAVObjCbSetFlag, &flightstatus_updated);
+	if (SystemIdentHandle())
+		SystemIdentConnectCallbackCtx(UAVObjCbSetFlag, &systemident_updated);
 	if (WaypointActiveHandle())
 		WaypointActiveConnectCallbackCtx(UAVObjCbSetFlag, &waypoint_updated);
 
@@ -317,6 +322,7 @@ static void loggingTask(void *parameters)
 
 				// Trigger logging for objects that are logged on change
 				flightstatus_updated = true;
+				systemident_updated = true;
 				waypoint_updated = true;
 
 				first_run = false;
@@ -327,7 +333,12 @@ static void loggingTask(void *parameters)
 				UAVTalkSendObjectTimestamped(uavTalkCon, FlightStatusHandle(), 0, false, 0);
 				flightstatus_updated = false;
 			}
-
+			
+			if (systemident_updated && SystemIdentHandle()){
+				UAVTalkSendObjectTimestamped(uavTalkCon, SystemIdentHandle(), 0, false, 0);
+				systemident_updated = false;
+			}
+			
 			if (waypoint_updated && WaypointActiveHandle()){
 				UAVTalkSendObjectTimestamped(uavTalkCon, WaypointActiveHandle(), 0, false, 0);
 				waypoint_updated = false;
