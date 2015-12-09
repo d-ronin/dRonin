@@ -125,9 +125,6 @@ ConfigAttitudeWidget::ConfigAttitudeWidget(QWidget *parent) :
         m_ui->cbCalibrateMags->setEnabled(false);
     }
 
-    // Must connect the graphs to the calibration object to see the calibration results
-    calibration.configureTempCurves(m_ui->xGyroTemp, m_ui->yGyroTemp, m_ui->zGyroTemp);
-
     // Connect the signals
     connect(m_ui->yawOrientationStart, SIGNAL(clicked()), &calibration, SLOT(doStartOrientation()));
     connect(m_ui->levelingStart, SIGNAL(clicked()), &calibration, SLOT(doStartNoBiasLeveling()));
@@ -137,17 +134,10 @@ ConfigAttitudeWidget::ConfigAttitudeWidget(QWidget *parent) :
     connect(m_ui->sixPointCancel, SIGNAL(clicked()), &calibration, SLOT(doCancelSixPoint()));
     connect(m_ui->cbCalibrateAccels, SIGNAL(clicked()), this, SLOT(configureSixPoint()));
     connect(m_ui->cbCalibrateMags, SIGNAL(clicked()), this, SLOT(configureSixPoint()));
-    connect(m_ui->startTempCal, SIGNAL(clicked()), &calibration, SLOT(doStartTempCal()));
-    connect(m_ui->acceptTempCal, SIGNAL(clicked()), &calibration, SLOT(doAcceptTempCal()));
-    connect(m_ui->cancelTempCal, SIGNAL(clicked()), &calibration, SLOT(doCancelTempCalPoint()));
-    connect(m_ui->tempCalRange, SIGNAL(valueChanged(int)), &calibration, SLOT(setTempCalRange(int)));
-    calibration.setTempCalRange(m_ui->tempCalRange->value());
 
     // Let calibration update the UI
     connect(&calibration, SIGNAL(yawOrientationProgressChanged(int)), m_ui->pb_yawCalibration, SLOT(setValue(int)));
     connect(&calibration, SIGNAL(levelingProgressChanged(int)), m_ui->accelBiasProgress, SLOT(setValue(int)));
-    connect(&calibration, SIGNAL(tempCalProgressChanged(int)), m_ui->tempCalProgress, SLOT(setValue(int)));
-    connect(&calibration, SIGNAL(showTempCalMessage(QString)), m_ui->tempCalMessage, SLOT(setText(QString)));
     connect(&calibration, SIGNAL(sixPointProgressChanged(int)), m_ui->sixPointProgress, SLOT(setValue(int)));
     connect(&calibration, SIGNAL(showSixPointMessage(QString)), m_ui->sixPointCalibInstructions, SLOT(setText(QString)));
     connect(&calibration, SIGNAL(updatePlane(int)), this, SLOT(displayPlane(int)));
@@ -159,9 +149,6 @@ ConfigAttitudeWidget::ConfigAttitudeWidget(QWidget *parent) :
     connect(&calibration, SIGNAL(toggleControls(bool)), m_ui->yawOrientationStart, SLOT(setEnabled(bool)));
     connect(&calibration, SIGNAL(toggleControls(bool)), m_ui->levelingStart, SLOT(setEnabled(bool)));
     connect(&calibration, SIGNAL(toggleControls(bool)), m_ui->levelingAndBiasStart, SLOT(setEnabled(bool)));
-    connect(&calibration, SIGNAL(toggleControls(bool)), m_ui->startTempCal, SLOT(setEnabled(bool)));
-    connect(&calibration, SIGNAL(toggleControls(bool)), m_ui->acceptTempCal, SLOT(setDisabled(bool)));
-    connect(&calibration, SIGNAL(toggleControls(bool)), m_ui->cancelTempCal, SLOT(setDisabled(bool)));
 
     // Let the calibration gadget mark the tab as dirty, i.e. having unsaved data.
     connect(&calibration, SIGNAL(calibrationCompleted()), this, SLOT(do_SetDirty()));
