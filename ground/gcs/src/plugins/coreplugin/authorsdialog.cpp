@@ -4,6 +4,7 @@
  * @file       authorsdialog.cpp
  * @author     The OpenPilot Team, http://www.openpilot.org Copyright (C) 2010.
  *             Parts by Nokia Corporation (qt-info@nokia.com) Copyright (C) 2009.
+ * @author     dRonin, http://dronin.org Copyright (C) 2015
  * @addtogroup GCSPlugins GCS Plugins
  * @{
  * @addtogroup CorePlugin Core Plugin
@@ -52,7 +53,7 @@ AuthorsDialog::AuthorsDialog(QWidget *parent)
 {
     // We need to set the window icon explicitly here since for some reason the
     // application icon isn't used when the size of the dialog is fixed (at least not on X11/GNOME)
-    setWindowIcon(QIcon(":/core/images/taulabs_logo_32.png"));
+    setWindowIcon(QIcon(":/core/gcs_logo_32"));
 
     setWindowTitle(tr("About Tau Labs Authors"));
     setWindowFlags(windowFlags() & ~Qt::WindowContextHelpButtonHint);
@@ -86,7 +87,7 @@ AuthorsDialog::AuthorsDialog(QWidget *parent)
     connect(buttonBox , SIGNAL(rejected()), this, SLOT(reject()));
 
     QLabel *logoLabel = new QLabel;
-    logoLabel->setPixmap(QPixmap(QLatin1String(":/core/images/taulabs_logo_128.png")));
+    logoLabel->setPixmap(QPixmap(QLatin1String(":/core/gcs_logo_128")));
     layout->addWidget(logoLabel ,     0, 0, 1, 1);
     layout->addWidget(copyRightLabel, 0, 1, 2, 4);
     layout->addWidget(creditsArea,    3, 0, 2, 5);

@@ -7,6 +7,7 @@
  *
  * @file       pios_board.h 
  * @author     Tau Labs, http://taulabs.org, Copyright (C) 2012-2015
+ * @author     dRonin, http://dronin.org Copyright (C) 2015
  * @brief      Board specific defines
  * @see        The GNU Public License (GPL) Version 3
  * 
@@ -241,28 +242,9 @@ extern uint32_t pios_packet_handler;
 
 //-------------------------
 // ADC
-// PIOS_ADC_PinGet(0) = Current sensor
-// PIOS_ADC_PinGet(1) = Voltage sensor
-// PIOS_ADC_PinGet(4) = VREF
-// PIOS_ADC_PinGet(5) = Temperature sensor
 //-------------------------
-#define PIOS_DMA_PIN_CONFIG                                                                 \
-{                                                                                           \
-	{GPIOC, GPIO_Pin_3,     ADC_Channel_13},                                                \
-	{GPIOC, GPIO_Pin_2,     ADC_Channel_12},                                                \
-	{NULL,  0,              ADC_Channel_Vrefint},           /* Voltage reference */         \
-	{NULL,  0,              ADC_Channel_TempSensor},        /* Temperature sensor */        \
-	{GPIOC, GPIO_Pin_2,     ADC_Channel_12}  \
-}
-
-/* we have to do all this to satisfy the PIOS_ADC_MAX_SAMPLES define in pios_adc.h */
-/* which is annoying because this then determines the rate at which we generate buffer turnover events */
-/* the objective here is to get enough buffer space to support 100Hz averaging rate */
-#define PIOS_ADC_NUM_CHANNELS           4
 #define PIOS_ADC_MAX_OVERSAMPLING       2
-#define PIOS_ADC_USE_ADC2               0
-
-#define VREF_PLUS			3.3
+#define VREF_PLUS                     3.3
 
 //-------------------------
 // USB

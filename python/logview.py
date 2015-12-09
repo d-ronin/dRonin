@@ -1,7 +1,7 @@
 #!/usr/bin/python -B
 
 import sys
-from taulabs import telemetry
+from dronin import telemetry
 
 def main():
     uavo_list = telemetry.get_telemetry_by_args()

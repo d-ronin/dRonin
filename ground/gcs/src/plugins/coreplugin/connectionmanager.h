@@ -4,6 +4,7 @@
  * @file       connectionmanager.h
  * @author     The OpenPilot Team, http://www.openpilot.org Copyright (C) 2010.
  *             Parts by Nokia Corporation (qt-info@nokia.com) Copyright (C) 2009.
+ * @author     dRonin, http://dronin.org Copyright (C) 2015
  * @addtogroup GCSPlugins GCS Plugins
  * @{
  * @addtogroup CorePlugin Core Plugin
@@ -115,6 +116,7 @@ signals:
     void deviceAboutToDisconnect();
     void deviceDisconnected();
     void availableDevicesChanged(const QLinkedList<Core::DevListItem> devices);
+    void connectDeviceFailed(DevListItem *device);
 
 public slots:
     void telemetryConnected();
@@ -132,6 +134,7 @@ private slots:
     void connectionsCallBack(); //used to call devChange after all the plugins are loaded
     void reconnectSlot();
     void reconnectCheckSlot();
+    void onConnectDeviceFailed(DevListItem *device);
 
 protected:
     QComboBox *m_availableDevList;

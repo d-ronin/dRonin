@@ -7,6 +7,7 @@
  *
  * @file       STM32F4xx_Aq32.c
  * @author     Tau Labs, http://taulabs.org, Copyright (C) 2012-2013
+ * @author     dRonin, http://dronin.org Copyright (C) 2015
  * @brief      Board specific defines for AQ32
  * @see        The GNU Public License (GPL) Version 3
  *
@@ -222,24 +223,7 @@ extern uintptr_t pios_com_debug_id;
 // ADC
 //-------------------------
 #define PIOS_ADC_SUB_DRIVER_MAX_INSTANCES       3
-
-//-------------------------
-#define PIOS_DMA_PIN_CONFIG                                                                   \
-{                                                                                             \
-	{ GPIOC, GPIO_Pin_0,     ADC_Channel_10 },                /* Internal Voltage Monitor */  \
-	{ GPIOC, GPIO_Pin_4,     ADC_Channel_14 },                /* External Voltage Monitor */  \
-	{ GPIOC, GPIO_Pin_5,     ADC_Channel_15 },                /* External Current Monitor */  \
-	{ NULL,  0,              ADC_Channel_Vrefint },           /* Voltage reference */         \
-	{ NULL,  0,              ADC_Channel_TempSensor },        /* Temperature sensor */        \
-}
-
-/* we have to do all this to satisfy the PIOS_ADC_MAX_SAMPLES define in pios_internal_adc.h */
-/* which is annoying because this then determines the rate at which we generate buffer turnover events */
-/* the objective here is to get enough buffer space to support 100Hz averaging rate */
-#define PIOS_ADC_NUM_CHANNELS           5
 #define PIOS_ADC_MAX_OVERSAMPLING       2
-#define PIOS_ADC_USE_ADC2               0
-
 #define VREF_PLUS			3.3
 
 //-------------------------

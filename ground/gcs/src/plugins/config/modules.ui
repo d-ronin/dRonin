@@ -105,16 +105,6 @@
         </widget>
        </item>
        <item>
-        <widget class="QCheckBox" name="cbOveroSync">
-         <property name="toolTip">
-          <string>Select to enable synchronization to an Overo module</string>
-         </property>
-         <property name="text">
-          <string>Overo Sync (only for boards with Gumstix)</string>
-         </property>
-        </widget>
-       </item>
-       <item>
         <widget class="QCheckBox" name="cbVibrationAnalysis">
          <property name="text">
           <string>Vibration Analysis</string>
@@ -207,6 +197,16 @@
           <string>FrSky S.PORT Telemetry</string>
          </property>
         </widget>
+       </item>
+       <item>
+         <widget class="QCheckBox" name="cbLogging">
+           <property name="toolTip">
+             <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Select to enable logging to on-board flash memory.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+           </property>
+           <property name="text">
+             <string>Logging</string>
+           </property>
+         </widget>
        </item>
        <item>
         <widget class="QCheckBox" name="cbUAVOMSPBridge">
@@ -1061,8 +1061,8 @@
            <rect>
             <x>0</x>
             <y>0</y>
-            <width>328</width>
-            <height>589</height>
+            <width>339</width>
+            <height>594</height>
            </rect>
           </property>
           <layout class="QGridLayout" name="gridLayout">

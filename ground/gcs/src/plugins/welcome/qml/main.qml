@@ -7,13 +7,25 @@ Rectangle {
     gradient: Gradient {
         GradientStop {
             position: 0
-            color: "#333333"
+            color: "#ffffff"
+        }
+
+        GradientStop {
+            position: 0.03
+            color: "#ffffff"
         }
 
         GradientStop {
             position: 1
-            color: "#232323"
+            color: "#b9b9b9"
         }
+
+        GradientStop {
+            position: 0.927
+            color: "#d2d2d2"
+        }
+
+
     }
 
     Column {
@@ -33,12 +45,14 @@ Rectangle {
             spacing: 16
 
             Image {
-                x: -56
-                sourceSize.height: 235
-                sourceSize.width: 234
+                x: -55
+                smooth: false
+                antialiasing: true
+                sourceSize.height: 223
+                sourceSize.width: 223
                 source: "images/welcome-logo.png"
                 anchors.verticalCenter: parent.verticalCenter
-                anchors.verticalCenterOffset: -2 //it looks better aligned to icons grid
+                anchors.verticalCenterOffset: -1 //it looks better aligned to icons grid
 
                 //hide the logo on the very small screen to fit the buttons
                 visible: parent.availableWidth > width + parent.spacing + buttons.width + wizard.width

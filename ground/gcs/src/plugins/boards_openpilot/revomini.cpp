@@ -3,6 +3,7 @@
  *
  * @file       revomini.cpp
  * @author     Tau Labs, http://taulabs.org, Copyright (C) 2013
+ * @author     dRonin, http://dronin.org Copyright (C) 2015
  *
  * @addtogroup GCSPlugins GCS Plugins
  * @{
@@ -91,6 +92,8 @@ bool RevoMini::queryCapabilities(BoardCapabilities capability)
         return true;
     case BOARD_CAPABILITIES_RADIO:
         return true;
+    case BOARD_CAPABILITIES_OSD:
+        return false;
     }
     return false;
 }
@@ -109,7 +112,7 @@ QStringList RevoMini::getSupportedProtocols()
 
 QPixmap RevoMini::getBoardPicture()
 {
-    return QPixmap();
+    return QPixmap(":/openpilot/images/revomini.png");
 }
 
 QString RevoMini::getHwUAVO()

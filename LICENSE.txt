@@ -1,3 +1,21 @@
+See the headers of individual files to see their licenses.  The following
+is a summary.
+
+Flight and GCS code are licensed under the GPLv3, except for components
+from outside projects as noted.
+
+The python API code in the python/dronin subtree is licensed under the
+LPGLv2.1 or any late version.
+
+Artwork and documentation are licensed CC-BY-SAv3.  Hardware files are
+generally licensed under a CC license as noted in the individual subtree.
+
+This project was forked from Tau Labs, which in turn was forked from
+OpenPilot.  The legacy licensing text from past projects is below for
+reference.
+
+-------
+
 
 The OpenPilot code is licensed under the GPLv3, there are a few minor exceptions to this so please see the headers of all source code for copyright and license information.
 

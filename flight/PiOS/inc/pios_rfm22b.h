@@ -9,6 +9,7 @@
  * @file       pios_rfm22b.h
  * @author     The OpenPilot Team, http://www.openpilot.org Copyright (C) 2012.
  * @author     Tau Labs, http://taulabs.org, Copyright (C) 2013 - 2014
+ * @author     dRonin, http://dronin.org Copyright (C) 2015
  * @brief      RFM22B functions header.
  * @see        The GNU Public License (GPL) Version 3
  *
@@ -86,7 +87,8 @@ struct rfm22b_stats {
 /* Public Functions */
 extern int32_t PIOS_RFM22B_Init(uint32_t * rfb22b_id, uint32_t spi_id,
 				uint32_t slave_num,
-				const struct pios_rfm22b_cfg *cfg);
+				const struct pios_rfm22b_cfg *cfg,
+				HwSharedRfBandOptions band);
 extern void PIOS_RFM22B_Reinit(uint32_t rfb22b_id);
 extern void PIOS_RFM22B_SetTxPower(uint32_t rfm22b_id,
 				   enum rfm22b_tx_power tx_pwr);

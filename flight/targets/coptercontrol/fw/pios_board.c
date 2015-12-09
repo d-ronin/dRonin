@@ -8,6 +8,7 @@
  * @file       pios_board.c
  * @author     The OpenPilot Team, http://www.openpilot.org Copyright (C) 2011.
  * @author     Tau Labs, http://taulabs.org, Copyright (C) 2012-2014
+ * @author     dRonin, http://dronin.org Copyright (C) 2015
  * @brief      The board specific initialization routines
  * @see        The GNU Public License (GPL) Version 3
  * 
@@ -248,27 +249,46 @@ void PIOS_Board_Init(void) {
 	uint8_t hw_mainport;
 	HwCopterControlMainPortGet(&hw_mainport);
 
-	PIOS_HAL_ConfigurePort(hw_mainport, &pios_usart_generic_main_cfg,
-			&pios_usart_com_driver, NULL, NULL, NULL, NULL,
-			0,
-			&pios_usart_dsm_hsum_main_cfg, &pios_dsm_main_cfg,
-			hw_DSMxMode, &pios_usart_sbus_main_cfg, &pios_sbus_cfg,
-			true);
+	PIOS_HAL_ConfigurePort(hw_mainport,          // port type protocol
+			&pios_usart_generic_main_cfg,        // usart_port_cfg
+			&pios_usart_generic_main_cfg,        // frsky usart_port_cfg
+			&pios_usart_com_driver,              // com_driver
+			NULL,                                // i2c_id
+			NULL,                                // i2c_cfg
+			NULL,                                // ppm_cfg
+			NULL,                                // pwm_cfg
+			0,                                   // led_id
+			&pios_usart_dsm_hsum_main_cfg,       // usart_dsm_hsum_cfg
+			&pios_dsm_main_cfg,                  // dsm_cfg
+			hw_DSMxMode,                         // dsm_mode
+			&pios_usart_sbus_main_cfg,           // sbus_rcvr_cfg
+			&pios_sbus_cfg,                      // sbus_cfg
+			true);                               // sbus_toggle
 
 	/* Configure the flexi port */
 	uint8_t hw_flexiport;
 	HwCopterControlFlexiPortGet(&hw_flexiport);
 
-	PIOS_HAL_ConfigurePort(hw_flexiport, &pios_usart_generic_flexi_cfg,
-			&pios_usart_com_driver,
+	PIOS_HAL_ConfigurePort(hw_flexiport,         // port type protocol
+			&pios_usart_generic_flexi_cfg,       // usart_port_cfg
+			&pios_usart_generic_flexi_cfg,       // frsky usart_port_cfg
+			&pios_usart_com_driver,              // com_driver
 #ifdef PIOS_INCLUDE_I2C
-			&pios_i2c_flexi_adapter_id, &pios_i2c_flexi_adapter_cfg,
+			&pios_i2c_flexi_adapter_id,          // i2c_id
+			&pios_i2c_flexi_adapter_cfg,         // i2c_cfg
 #else
-			NULL, NULL,
+			NULL,                                // i2c_id
+			NULL,                                // i2c_cfg
 #endif
-			NULL, NULL, 0,
-			&pios_usart_dsm_hsum_flexi_cfg, &pios_dsm_flexi_cfg,
-			hw_DSMxMode, NULL, NULL, true);
+			NULL,                                // ppm_cfg
+			NULL,                                // pwm_cfg
+			0,                                   // led_id
+			&pios_usart_dsm_hsum_flexi_cfg,      // usart_dsm_hsum_cfg
+			&pios_dsm_flexi_cfg,                 // dsm_cfg
+			hw_DSMxMode,                         // dsm_mode
+			NULL,                                // sbus_rcvr_cfg
+			NULL,                                // sbus_cfg 
+			true);                               // sbus_toggle
 
 	/* Configure the rcvr port */
 	uint8_t hw_rcvrport;
@@ -418,7 +438,6 @@ void PIOS_Board_Init(void) {
 	uint8_t hw_mpu6000_dlpf;
 	HwCopterControlMPU6000DLPFGet(&hw_mpu6000_dlpf);
 	enum pios_mpu60x0_filter mpu6000_dlpf = \
-	    (hw_mpu6000_dlpf == HWCOPTERCONTROL_MPU6000DLPF_256) ? PIOS_MPU60X0_LOWPASS_256_HZ : \
 	    (hw_mpu6000_dlpf == HWCOPTERCONTROL_MPU6000DLPF_188) ? PIOS_MPU60X0_LOWPASS_188_HZ : \
 	    (hw_mpu6000_dlpf == HWCOPTERCONTROL_MPU6000DLPF_98) ? PIOS_MPU60X0_LOWPASS_98_HZ : \
 	    (hw_mpu6000_dlpf == HWCOPTERCONTROL_MPU6000DLPF_42) ? PIOS_MPU60X0_LOWPASS_42_HZ : \
@@ -433,12 +452,7 @@ void PIOS_Board_Init(void) {
 	uint16_t mpu6000_samplerate = \
 	    (hw_mpu6000_samplerate == HWCOPTERCONTROL_MPU6000RATE_200) ? 200 : \
 	    (hw_mpu6000_samplerate == HWCOPTERCONTROL_MPU6000RATE_333) ? 333 : \
-	    (hw_mpu6000_samplerate == HWCOPTERCONTROL_MPU6000RATE_500) ? 500 : \
-	    (hw_mpu6000_samplerate == HWCOPTERCONTROL_MPU6000RATE_666) ? 666 : \
-	    (hw_mpu6000_samplerate == HWCOPTERCONTROL_MPU6000RATE_1000) ? 1000 : \
-	    (hw_mpu6000_samplerate == HWCOPTERCONTROL_MPU6000RATE_2000) ? 2000 : \
-	    (hw_mpu6000_samplerate == HWCOPTERCONTROL_MPU6000RATE_4000) ? 4000 : \
-	    (hw_mpu6000_samplerate == HWCOPTERCONTROL_MPU6000RATE_8000) ? 8000 : \
+	    (hw_mpu6000_samplerate == HWCOPTERCONTROL_MPU6000RATE_500) ? 500 : 
 	    pios_mpu6000_cfg.default_samplerate;
 	PIOS_MPU6000_SetSampleRate(mpu6000_samplerate);
 

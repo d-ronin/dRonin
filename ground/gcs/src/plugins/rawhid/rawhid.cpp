@@ -4,6 +4,7 @@
  * @file       rawhid.cpp
  * @author     The OpenPilot Team, http://www.openpilot.org Copyright (C) 2010.
  * @author     Tau Labs, http://taulabs.org, Copyright (C) 2012-2014
+ * @author     dRonin, http://dronin.org Copyright (C) 2015
  * @addtogroup GCSPlugins GCS Plugins
  * @{
  * @addtogroup RawHIDPlugin Raw HID Plugin
@@ -344,6 +345,7 @@ bool RawHID::open(OpenMode mode)
         m_writeThread->start();
     } else {
         qDebug() << "Failed to open USB device";
+        return false;
     }
 
     return QIODevice::open(mode);

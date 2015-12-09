@@ -3,6 +3,7 @@
  *
  * @file       hitlplugin.cpp
  * @author     The OpenPilot Team, http://www.openpilot.org Copyright (C) 2010.
+ * @author     dRonin, http://dronin.org Copyright (C) 2015
  *
  * @addtogroup GCSPlugins GCS Plugins
  * @{
@@ -30,9 +31,7 @@
 #include <QtPlugin>
 #include <QStringList>
 #include <extensionsystem/pluginmanager.h>
-#include "aerosimrcsimulator.h"
 #include "fgsimulator.h"
-#include "il2simulator.h"
 #include "xplanesimulator.h"
 
 QList<SimulatorCreator* > HITLPlugin::typeSimulators;
@@ -55,9 +54,7 @@ bool HITLPlugin::initialize(const QStringList& args, QString *errMsg)
 
    addAutoReleasedObject(mf);
 
-   addSimulator(new AeroSimRCSimulatorCreator("ASimRC", "AeroSimRC"));
    addSimulator(new FGSimulatorCreator("FG","FlightGear"));
-   addSimulator(new IL2SimulatorCreator("IL2","IL2"));
    addSimulator(new XplaneSimulatorCreator("X-Plane","X-Plane"));
 
    return true;

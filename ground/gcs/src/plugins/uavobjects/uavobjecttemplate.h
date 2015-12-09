@@ -3,6 +3,7 @@
  *
  * @file       $(NAMELC).h
  * @author     The OpenPilot Team, http://www.openpilot.org Copyright (C) 2010.
+ * @author     dRonin, http://dronin.org Copyright (C) 2015
  * @see        The GNU Public License (GPL) Version 3
  * @addtogroup GCSPlugins GCS Plugins
  * @{
@@ -70,6 +71,7 @@ $(DATAFIELDINFO)
     static const bool ISSINGLEINST = $(ISSINGLEINST);
     static const bool ISSETTINGS = $(ISSETTINGS);
     static const quint32 NUMBYTES = $(NUMBYTES);
+    static const QHash<QString, QString> FIELD_DESCRIPTIONS;
 
     // Functions
     $(NAME)();

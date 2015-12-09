@@ -4,6 +4,7 @@
  * @file       uavobjectutilmanager.cpp
  * @author     The OpenPilot Team, http://www.openpilot.org Copyright (C) 2010.
  * @author     Tau Labs, http://taulabs.org, Copyright (C) 2013
+ * @author     dRonin, http://dronin.org Copyright (C) 2015
  * @see        The GNU Public License (GPL) Version 3
  * @addtogroup GCSPlugins GCS Plugins
  * @{
@@ -705,8 +706,9 @@ bool UAVObjectUtilManager::descriptionToStructure(QByteArray desc, deviceDescrip
        struc.uavoHash.clear();
        struc.uavoHash=desc.mid(60,20);
 
-       // The git tag format used for releases is yyyymmdd
-       QRegularExpression certifiedPattern("^20[0-9]{6}$");
+       // The git tag format used for releases is Release-yyyymmdd, optionally with a suffix
+       // .[0-9] to allow multiple tags on the same day e.g. if a bug is discovered immediately
+       QRegularExpression certifiedPattern("^Release-20[0-9]{6}(\\.[0-9])?$");
        if (certifiedPattern.match(struc.gitTag).hasMatch())
            struc.certified = true;
        else

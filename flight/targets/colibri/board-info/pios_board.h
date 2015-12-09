@@ -7,6 +7,7 @@
  *
  * @file       STM32F4xx_Colibri.c 
  * @author     Tau Labs, http://taulabs.org, Copyright (C) 2012-2014
+ * @author     dRonin, http://dronin.org Copyright (C) 2015
  * @brief      Board specific defines for Colibri
  * @see        The GNU Public License (GPL) Version 3
  * 
@@ -224,23 +225,8 @@ extern uintptr_t pios_com_debug_id;
 // ADC
 //-------------------------
 #define PIOS_ADC_SUB_DRIVER_MAX_INSTANCES       3
-
-// PIOS_ADC_PinGet(0) = IN7
-// PIOS_ADC_PinGet(1) = IN8
-//-------------------------
 #define PIOS_DMA_PIN_CONFIG                                                                   \
-{                                                                                             \
-	{ GPIOA, GPIO_Pin_0,     ADC_Channel_0 },                                                 \
-	{ GPIOA, GPIO_Pin_1,     ADC_Channel_1 },                                                 \
-	{ NULL,  0,              ADC_Channel_Vrefint },           /* Voltage reference */         \
-	{ NULL,  0,              ADC_Channel_TempSensor },        /* Temperature sensor */        \
-	{ NULL,  0,              ADC_Channel_TempSensor },        /* Temperature sensor */        \
-}
 
-/* we have to do all this to satisfy the PIOS_ADC_MAX_SAMPLES define in pios_adc.h */
-/* which is annoying because this then determines the rate at which we generate buffer turnover events */
-/* the objective here is to get enough buffer space to support 100Hz averaging rate */
-#define PIOS_ADC_NUM_CHANNELS           5
 #define PIOS_ADC_MAX_OVERSAMPLING       2
 #define PIOS_ADC_USE_ADC2               0
 

@@ -8,6 +8,7 @@
  * @file       pios_internal_adc.c
  * @author     The OpenPilot Team, http://www.openpilot.org Copyright (C) 2012.
  * @author     Tau Labs, http://taulabs.org, Copyright (C) 2013
+ * @author     dRonin, http://dronin.org Copyright (C) 2015
  * @brief      Analog to Digital conversion routines
  * @see        The GNU Public License (GPL) Version 3
  *****************************************************************************/
@@ -30,6 +31,8 @@
 #include "pios.h"
 #include <pios_internal_adc_priv.h>
 #include "pios_queue.h"
+
+#define PIOS_ADC_MAX_SAMPLES ((((PIOS_ADC_NUM_CHANNELS + PIOS_ADC_USE_ADC2) >> PIOS_ADC_USE_ADC2) << PIOS_ADC_USE_ADC2)* PIOS_ADC_MAX_OVERSAMPLING * 2)
 
 #if defined(PIOS_INCLUDE_FREERTOS)
 #include "FreeRTOS.h"

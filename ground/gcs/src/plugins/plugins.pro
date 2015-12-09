@@ -233,15 +233,6 @@ plugin_uavobjectutil.depends = plugin_coreplugin
 plugin_uavobjectutil.depends += plugin_uavobjects
 SUBDIRS += plugin_uavobjectutil
 
-# OSG Earth View plugin
-OSG {
-    plugin_osgearthview.subdir = osgearthview
-    plugin_osgearthview.depends = plugin_coreplugin
-    plugin_osgearthview.depends += plugin_uavobjects
-    plugin_osgearthview.depends += plugin_uavobjectwidgetutils
-    SUBDIRS += plugin_osgearthview
-}
-
 # Magic Waypoint gadget
 !LIGHTWEIGHT_GCS {
 plugin_magicwaypoint.subdir = magicwaypoint
@@ -331,6 +322,14 @@ plugin_boards_tbs.depends = plugin_uavobjects
 plugin_boards_tbs.depends = plugin_uavobjectutil
 plugin_boards_tbs.depends += plugin_uavobjectwidgetutils
 SUBDIRS += plugin_boards_tbs
+
+# BrainFPV LLC
+plugin_boards_brainfpv.subdir = boards_brainfpv
+plugin_boards_brainfpv.depends = plugin_coreplugin
+plugin_boards_brainfpv.depends = plugin_uavobjects
+plugin_boards_brainfpv.depends = plugin_uavobjectutil
+plugin_boards_brainfpv.depends += plugin_uavobjectwidgetutils
+SUBDIRS += plugin_boards_brainfpv
 
 # STM boards
 plugin_boards_stm.subdir = boards_stm

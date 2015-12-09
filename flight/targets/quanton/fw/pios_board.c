@@ -7,6 +7,7 @@
  *
  * @file       pios_board.c
  * @author     Tau Labs, http://taulabs.org, Copyright (C) 2012-2014
+ * @author     dRonin, http://dronin.org Copyright (C) 2015
  * @brief      The board specific initialization routines
  * @see        The GNU Public License (GPL) Version 3
  * 
@@ -369,6 +370,7 @@ void PIOS_Board_Init(void) {
 
 	PIOS_HAL_ConfigurePort(hw_uart1,             // port type protocol
 			&pios_usart1_cfg,                    // usart_port_cfg
+			&pios_usart1_cfg,                    // frsky usart_port_cfg
 			&pios_usart_com_driver,              // com_driver
 			&pios_i2c_usart1_adapter_id,         // i2c_id
 			&pios_i2c_usart1_adapter_cfg,        // i2c_cfg
@@ -388,6 +390,7 @@ void PIOS_Board_Init(void) {
 
 	PIOS_HAL_ConfigurePort(hw_uart2,             // port type protocol
 			&pios_usart2_cfg,                    // usart_port_cfg
+			&pios_usart2_cfg,                    // frsky usart_port_cfg
 			&pios_usart_com_driver,              // com_driver
 			NULL,                                // i2c_id
 			NULL,                                // i2c_cfg
@@ -407,6 +410,7 @@ void PIOS_Board_Init(void) {
 
 	PIOS_HAL_ConfigurePort(hw_uart3,             // port type protocol
 			&pios_usart3_cfg,                    // usart_port_cfg
+			&pios_usart3_cfg,                    // frsky usart_port_cfg
 			&pios_usart_com_driver,              // com_driver
 			&pios_i2c_usart3_adapter_id,         // i2c_id
 			&pios_i2c_usart3_adapter_cfg,        // i2c_cfg
@@ -426,6 +430,7 @@ void PIOS_Board_Init(void) {
 
 	PIOS_HAL_ConfigurePort(hw_uart4,             // port type protocol
 			&pios_usart4_cfg,                    // usart_port_cfg
+			&pios_usart4_cfg,                    // frsky usart_port_cfg
 			&pios_usart_com_driver,              // com_driver
 			NULL,                                // i2c_id
 			NULL,                                // i2c_cfg
@@ -445,6 +450,7 @@ void PIOS_Board_Init(void) {
 
 	PIOS_HAL_ConfigurePort(hw_uart5,             // port type protocol
 			&pios_usart5_cfg,                    // usart_port_cfg
+			&pios_usart5_cfg,                    // frsky usart_port_cfg
 			&pios_usart_com_driver,              // com_driver
 			NULL,                                // i2c_id
 			NULL,                                // i2c_cfg
@@ -469,6 +475,7 @@ void PIOS_Board_Init(void) {
 	case HWQUANTON_RCVRPORT_PWM:
 		PIOS_HAL_ConfigurePort(HWSHARED_PORTTYPES_PWM,  // port type protocol
 				NULL,                                   // usart_port_cfg
+				NULL,                                   // frsky usart_port_cfg
 				NULL,                                   // com_driver
 				NULL,                                   // i2c_id
 				NULL,                                   // i2c_cfg
@@ -486,6 +493,7 @@ void PIOS_Board_Init(void) {
 	case HWQUANTON_RCVRPORT_PWMADC:
 		PIOS_HAL_ConfigurePort(HWSHARED_PORTTYPES_PWM,  // port type protocol
 				NULL,                                   // usart_port_cfg
+				NULL,                                   // frsky usart_port_cfg
 				NULL,                                   // com_driver
 				NULL,                                   // i2c_id
 				NULL,                                   // i2c_cfg
@@ -506,6 +514,7 @@ void PIOS_Board_Init(void) {
 	case HWQUANTON_RCVRPORT_PPMOUTPUTSADC:
 		PIOS_HAL_ConfigurePort(HWSHARED_PORTTYPES_PPM,  // port type protocol
 				NULL,                                   // usart_port_cfg
+				NULL,                                   // frsky usart_port_cfg
 				NULL,                                   // com_driver
 				NULL,                                   // i2c_id
 				NULL,                                   // i2c_cfg
@@ -523,6 +532,7 @@ void PIOS_Board_Init(void) {
 	case HWQUANTON_RCVRPORT_PPMPWM:
 		PIOS_HAL_ConfigurePort(HWSHARED_PORTTYPES_PPM,  // port type protocol
 				NULL,                                   // usart_port_cfg
+				NULL,                                   // frsky usart_port_cfg
 				NULL,                                   // com_driver
 				NULL,                                   // i2c_id
 				NULL,                                   // i2c_cfg
@@ -538,6 +548,7 @@ void PIOS_Board_Init(void) {
 
 		PIOS_HAL_ConfigurePort(HWSHARED_PORTTYPES_PWM,  // port type protocol
 				NULL,                                   // usart_port_cfg
+				NULL,                                   // frsky usart_port_cfg
 				NULL,                                   // com_driver
 				NULL,                                   // i2c_id
 				NULL,                                   // i2c_cfg
@@ -555,6 +566,7 @@ void PIOS_Board_Init(void) {
 	case HWQUANTON_RCVRPORT_PPMPWMADC:
 		PIOS_HAL_ConfigurePort(HWSHARED_PORTTYPES_PPM,  // port type protocol
 				NULL,                                   // usart_port_cfg
+				NULL,                                   // frsky usart_port_cfg
 				NULL,                                   // com_driver
 				NULL,                                   // i2c_id
 				NULL,                                   // i2c_cfg
@@ -570,6 +582,7 @@ void PIOS_Board_Init(void) {
 
 		PIOS_HAL_ConfigurePort(HWSHARED_PORTTYPES_PWM,  // port type protocol
 				NULL,                                   // usart_port_cfg
+				NULL,                                   // frsky usart_port_cfg
 				NULL,                                   // com_driver
 				NULL,                                   // i2c_id
 				NULL,                                   // i2c_cfg

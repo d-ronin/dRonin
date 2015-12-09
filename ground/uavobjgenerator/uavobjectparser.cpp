@@ -4,6 +4,7 @@
  * @file       uavobjectparser.cpp
  * @author     The OpenPilot Team, http://www.openpilot.org Copyright (C) 2010.
  * @author     Tau Labs, http://taulabs.org, Copyright (C) 2015
+ * @author     dRonin, http://dronin.org Copyright (C) 2015
  *
  * @brief      Parses XML files and extracts object information.
  *
@@ -811,6 +812,16 @@ QString UAVObjectParser::processObjectFields(QDomNode& childNode, ObjectInfo* in
     else{
         field->limitValues=elemAttr.nodeValue();
     }
+
+    // Look for description string (for UI usage)
+    QDomNode node = childNode.firstChildElement("description");
+    if (!node.isNull()) {
+        QDomNode description = node.firstChild();
+        if (!description.isNull() && description.isText() && !description.nodeValue().isEmpty()) {
+            field->description = description.nodeValue().trimmed();
+        }
+    }
+
     // Add field to object
     info->fields.append(field);
     // Done

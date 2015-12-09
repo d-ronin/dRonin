@@ -2,6 +2,7 @@
  ******************************************************************************
  *
  * @file       generalsettings.h
+ * @author     dRonin, http://dronin.org Copyright (C) 2015
  * @author     Tau Labs, http://taulabs.org, Copyright (C) 2014
  * @author     The OpenPilot Team, http://www.openpilot.org Copyright (C) 2010.
  *             Parts by Nokia Corporation (qt-info@nokia.com) Copyright (C) 2009.
@@ -65,15 +66,25 @@ public:
     void readSettings(QSettings* qs);
     void saveSettings(QSettings* qs);
     bool useExpertMode() const;
-    QString getForumUser() const;
-    QString getForumPassword() const;
-    void setForumUser(QString);
-    void setForumPassword(QString);
     QNetworkProxy getNetworkProxy();
     void setObservations(QString value);
-    void setAircraftDescription(QString value);
     QString getObservations();
-    QString getAircraftDescription();
+    void setVehicleType(QString type);
+    QString getVehicleType();
+    void setBoardType(QString type);
+    QString getBoardType();
+    void setWeight(int weight);
+    int getWeight();
+    void setVehicleSize(int spacing);
+    int getVehicleSize();
+    void setBatteryCells(int cells);
+    int getBatteryCells();
+    void setMotors(QString motors);
+    QString getMotors();
+    void setESCs(QString escs);
+    QString getESCs();
+    void setProps(QString props);
+    QString getProps();
 signals:
     void generalSettingsChanged();
 private slots:
@@ -101,10 +112,15 @@ private:
     QString m_proxyHostname;
     QString m_proxyUser;
     QString m_proxyPassword;
-    QString m_forumUser;
-    QString m_forumPassword;
     QString m_observations;
-    QString m_aircraft;
+    QString m_vehicle;
+    QString m_board;
+    int m_weight;
+    int m_size;
+    int m_cells;
+    QString m_motors;
+    QString m_escs;
+    QString m_props;
     bool m_useSessionManaging;
 };
 } // namespace Internal

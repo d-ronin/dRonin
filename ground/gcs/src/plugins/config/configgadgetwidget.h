@@ -3,6 +3,7 @@
  *
  * @file       configgadgetwidget.h
  * @author     The OpenPilot Team, http://www.openpilot.org Copyright (C) 2010.
+ * @author     dRonin, http://dronin.org Copyright (C) 2015
  * @addtogroup GCSPlugins GCS Plugins
  * @{
  * @addtogroup ConfigPlugin Config Plugin
@@ -48,7 +49,7 @@ class ConfigGadgetWidget: public QWidget
 public:
     ConfigGadgetWidget(QWidget *parent = 0);
     ~ConfigGadgetWidget();
-    enum widgetTabs {hardware=0, aircraft, input, output, sensors, stabilization, modules, camerastabilization, txpid, autotune};
+    enum widgetTabs {hardware=0, aircraft, input, output, sensors, stabilization, modules, camerastabilization, txpid, autotune, osd};
     void startInputWizard();
 
 public slots:

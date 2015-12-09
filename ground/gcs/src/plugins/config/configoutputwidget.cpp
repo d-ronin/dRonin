@@ -3,6 +3,7 @@
  *
  * @file       configoutputwidget.cpp
  * @author     E. Lafargue & The OpenPilot Team, http://www.openpilot.org Copyright (C) 2010.
+ * @author     dRonin, http://dronin.org Copyright (C) 2015
  * @addtogroup GCSPlugins GCS Plugins
  * @{
  * @addtogroup ConfigPlugin Config Plugin
@@ -342,7 +343,6 @@ void ConfigOutputWidget::startESCCalibration()
     mbox.setText(QString(tr("Starting ESC calibration.<br/><b>Please remove all propellers and disconnect battery from ESCs.</b>")));
     mbox.setStandardButtons(QMessageBox::Ok | QMessageBox::Cancel);
     mbox.setDefaultButton(QMessageBox::Cancel);
-    QMessageBox::StandardButton butt;
     
     if (mbox.exec() != QMessageBox::Ok) return;
 

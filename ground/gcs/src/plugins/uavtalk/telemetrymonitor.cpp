@@ -4,6 +4,7 @@
  * @file       telemetrymonitor.cpp
  * @author     The OpenPilot Team, http://www.openpilot.org Copyright (C) 2010.
  * @author     Tau Labs, http://taulabs.org, Copyright (C) 2014
+ * @author     dRonin, http://dronin.org Copyright (C) 2015
  * @addtogroup GCSPlugins GCS Plugins
  * @{
  * @addtogroup UAVTalkPlugin UAVTalk Plugin
@@ -130,7 +131,7 @@ void TelemetryMonitor::startRetrievingObjects()
     TELEMETRYMONITOR_QXTLOG_DEBUG(QString("%0 connectionStatus changed to CON_RETRIEVING_OBJECT").arg(Q_FUNC_INFO));
     connectionStatus = CON_RETRIEVING_OBJECTS;
     // Get all objects, add metaobjects, settings and data objects with OnChange update mode to the queue
-    queue.empty();
+    queue.clear();
     retries = 0;
     objectRetrieveTimeout->start(OBJECT_RETRIEVE_TIMEOUT);
     foreach(UAVObjectManager::ObjectMap map, objMngr->getObjects().values())
@@ -298,7 +299,7 @@ void TelemetryMonitor::transactionCompleted(UAVObject* obj, bool success)
     else
     {
         TELEMETRYMONITOR_QXTLOG_DEBUG(QString("%0 connection lost while retrieving objects, stopped object retrievel").arg(Q_FUNC_INFO));
-        queue.empty();
+        queue.clear();
         objectRetrieveTimeout->stop();
         sessionRetrieveTimeout->stop();
         sessionInitialRetrieveTimeout->stop();
@@ -411,7 +412,7 @@ void TelemetryMonitor::sessionObjUnpackedCB(UAVObject *obj)
 
 void TelemetryMonitor::objectRetrieveTimeoutCB()
 {
-    queue.empty();
+    queue.clear();
 }
 
 void TelemetryMonitor::sessionInitialRetrieveTimeoutCB()

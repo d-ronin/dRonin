@@ -3,6 +3,7 @@
  *
  * @file       colibri.cpp
  * @author     Tau Labs, http://taulabs.org, Copyright (C) 2013-2014
+ * @author     dRonin, http://dronin.org Copyright (C) 2015
  *
  * @addtogroup GCSPlugins GCS Plugins
  * @{
@@ -85,6 +86,8 @@ bool Colibri::queryCapabilities(BoardCapabilities capability)
     case BOARD_CAPABILITIES_BAROS:
         return true;
     case BOARD_CAPABILITIES_RADIO:
+        return false;
+    case BOARD_CAPABILITIES_OSD:
         return false;
     }
     return false;

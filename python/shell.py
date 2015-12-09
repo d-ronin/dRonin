@@ -1,6 +1,6 @@
 #!/usr/bin/python -B
 
-from taulabs import telemetry, uavo
+from dronin import telemetry, uavo
 
 #-------------------------------------------------------------------------------
 def main():
@@ -12,7 +12,7 @@ def main():
     # Build a new module that will make up the global namespace for the
     # interactive shell.  This allows us to restrict what the ipython shell sees.
     import imp
-    user_module = imp.new_module('taulabs_env')
+    user_module = imp.new_module('dronin_env')
     user_module.__dict__.update({
             'operator'  : __import__('operator'),
             'base_time' : base_time,

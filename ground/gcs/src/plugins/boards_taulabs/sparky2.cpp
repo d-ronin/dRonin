@@ -2,6 +2,7 @@
  ******************************************************************************
  * @file       sparky2.cpp
  * @author     Tau Labs, http://taulabs.org, Copyright (C) 2013
+ * @author     dRonin, http://dronin.org Copyright (C) 2015
  *
  * @addtogroup GCSPlugins GCS Plugins
  * @{
@@ -101,6 +102,8 @@ bool Sparky2::queryCapabilities(BoardCapabilities capability)
         return true;
     case BOARD_CAPABILITIES_RADIO:
         return true;
+    case BOARD_CAPABILITIES_OSD:
+        return false;
     }
     return false;
 }

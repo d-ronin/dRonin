@@ -34,7 +34,6 @@
   LangString DESC_InSecUtilities ${LANG_TRADCHINESE} "OpenPilot utilities (Matlab log parser)."
   LangString DESC_InSecDrivers ${LANG_TRADCHINESE} "OpenPilot hardware driver files (optional OpenPilot CDC driver)."
   LangString DESC_InSecInstallDrivers ${LANG_TRADCHINESE} "Optional OpenPilot CDC driver (virtual USB COM port)."
-  LangString DESC_InSecAeroSimRC ${LANG_TRADCHINESE} "AeroSimRC plugin files with sample configuration."
   LangString DESC_InSecShortcuts ${LANG_TRADCHINESE} "安装开始菜单的快捷方式."
 
 ;--------------------------------

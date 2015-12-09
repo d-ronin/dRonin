@@ -2,6 +2,7 @@
  ******************************************************************************
  * @file       customsplash.cpp
  * @author     Tau Labs, http://taulabs.org, Copyright (C) 2013
+ * @author     dRonin, http://dronin.org Copyright (C) 2015
  * @addtogroup app
  * @{
  * @addtogroup CustomSplash
@@ -30,9 +31,9 @@
 #include <QCoreApplication>
 #include <QDebug>
 
-#define PROGRESS_BAR_WIDTH  100
+#define PROGRESS_BAR_WIDTH  150
 #define PROGRESS_BAR_HEIGHT 12
-#define TEXT_BACKGROUND_WIDTH  480
+#define TEXT_BACKGROUND_WIDTH  496
 #define TEXT_BACKGROUND_HEIGHT 20
 
 /**
@@ -41,9 +42,9 @@
 * @param f window flags.
 */
 CustomSplash::CustomSplash(const QPixmap &pixmap, Qt::WindowFlags f):
-    QSplashScreen(pixmap,f),m_progress(0),m_progress_bar_color(QColor(13, 125, 102, 255)),message_number(0)
+    QSplashScreen(pixmap,f),m_progress(0),m_progress_bar_color(QColor(217, 118, 0, 255)),message_number(0)
 {
-    QPixmap original_scaled = pixmap.scaledToHeight(180);
+    QPixmap original_scaled = pixmap.scaledToHeight(180, Qt::SmoothTransformation);
     QPixmap pix(500,180);
     pix.fill(QColor(255,0,0,0));
     QPainter p(&pix);
@@ -58,6 +59,7 @@ CustomSplash::CustomSplash(const QPixmap &pixmap, Qt::WindowFlags f):
 
 void CustomSplash::drawContents(QPainter *painter)
 {
+    painter->setRenderHints(QPainter::Antialiasing | QPainter::TextAntialiasing | QPainter::SmoothPixmapTransform);
     painter->setBrush(QBrush(QColor(222, 222, 222, 200)));
     painter->drawRoundedRect(QRect(this->rect().center().x()-PROGRESS_BAR_WIDTH/2,this->rect().bottom()-PROGRESS_BAR_HEIGHT-30,PROGRESS_BAR_WIDTH,PROGRESS_BAR_HEIGHT), 5,5);
     painter->drawRoundedRect(QRect(this->rect().center().x()-TEXT_BACKGROUND_WIDTH/2,this->rect().bottom()-2-TEXT_BACKGROUND_HEIGHT,TEXT_BACKGROUND_WIDTH,TEXT_BACKGROUND_HEIGHT), 5,5);

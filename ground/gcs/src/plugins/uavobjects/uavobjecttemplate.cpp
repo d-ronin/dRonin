@@ -3,6 +3,7 @@
  *
  * @file       $(NAMELC).cpp
  * @author     The OpenPilot Team, http://www.openpilot.org Copyright (C) 2010.
+ * @author     dRonin, http://dronin.org Copyright (C) 2015
  * @see        The GNU Public License (GPL) Version 3
  * @addtogroup GCSPlugins GCS Plugins
  * @{
@@ -36,6 +37,8 @@
 const QString $(NAME)::NAME = QString("$(NAME)");
 const QString $(NAME)::DESCRIPTION = QString("$(DESCRIPTION)");
 const QString $(NAME)::CATEGORY = QString("$(CATEGORY)");
+const QHash<QString, QString> $(NAME)::FIELD_DESCRIPTIONS{
+$(FIELDDESCRIPTIONS_STRINGS)};
 
 /**
  * Constructor

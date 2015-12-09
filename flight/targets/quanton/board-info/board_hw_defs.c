@@ -7,6 +7,7 @@
  *
  * @file       board_hw_defs.c 
  * @author     Tau Labs, http://taulabs.org, Copyright (C) 2012-2014
+ * @author     dRonin, http://dronin.org Copyright (C) 2015
  * @brief      Defines board specific static initializers for hardware for the
  *             Quanton board.
  * @see        The GNU Public License (GPL) Version 3
@@ -2255,6 +2256,13 @@ struct pios_internal_adc_cfg pios_adc_cfg = {
 	},
 	.half_flag = DMA_IT_HTIF4,
 	.full_flag = DMA_IT_TCIF4,
+	.adc_pins = {                                                                                 \
+		{ GPIOA, GPIO_Pin_0,     ADC_Channel_0 },                                                 \
+		{ GPIOA, GPIO_Pin_1,     ADC_Channel_1 },                                                 \
+		{ NULL,  0,              ADC_Channel_Vrefint },           /* Voltage reference */         \
+		{ NULL,  0,              ADC_Channel_TempSensor },        /* Temperature sensor */        \
+	},
+	.adc_pin_count = 4
 };
 
 void PIOS_ADC_DMA_irq_handler(void)

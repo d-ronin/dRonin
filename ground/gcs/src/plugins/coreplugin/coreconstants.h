@@ -5,6 +5,7 @@
  * @author     The OpenPilot Team, http://www.openpilot.org Copyright (C) 2010.
  *             Parts by Nokia Corporation (qt-info@nokia.com) Copyright (C) 2009.
  * @author     Tau Labs, http://taulabs.org Copyright (C) 2012-2013
+ * @author     dRonin, http://dronin.org Copyright (C) 2015
  * @addtogroup GCSPlugins GCS Plugins
  * @{
  * @addtogroup CorePlugin Core Plugin
@@ -33,12 +34,12 @@
 namespace Core {
 namespace Constants {
 
-const char * const GCS_NAME              = "Tau Labs GCS";
-const char * const GCS_AUTHOR            = "Tau Labs";
+const char * const GCS_NAME              = GCS_PROJECT_BRANDING_PRETTY " GCS";
+const char * const GCS_AUTHOR            = GCS_PROJECT_BRANDING_PRETTY;
 const char t []                          = __DATE__;
 const char * const GCS_YEAR              = t + 7;
 
-const char * const GCS_HELP              = "http://github.com/TauLabs";
+const char * const GCS_HELP              = GCS_PROJECT_BRANDING_HELP;
 #ifdef GCS_REVISION
 const char * const GCS_REVISION_STR      = GCS_REVISION;
 const char * const UAVOSHA1_STR          = UAVO_HASH_STR;
@@ -135,7 +136,7 @@ const char * const GO_FORWARD            = "GCS.GoForward";
 const char * const GOTOPREVIOUSGROUP     = "GCS.GotoPreviousTabGroup";
 const char * const GOTONEXTGROUP         = "GCS.GotoNextTabGroup";
 const char * const WINDOWSLIST           = "GCS.WindowsList";
-const char * const ABOUT_TAULABSGCS      = "GCS.AboutTauLabsGCS";
+const char * const ABOUT_GCS             = "GCS.AboutGCS";
 const char * const ABOUT_PLUGINS         = "GCS.AboutPlugins";
 const char * const ABOUT_AUTHORS         = "GCS.AboutAuthors";
 const char * const ABOUT_QT              = "GCS.AboutQt";
@@ -218,7 +219,7 @@ const char * const ICON_PLUGIN           = ":/core/images/pluginicon.png";
 const char * const ICON_EXIT             = ":/core/images/exiticon.png";
 const char * const ICON_OPTIONS          = ":/core/images/optionsicon.png";
 const char * const ICON_HELP             = ":/core/images/helpicon.png";
-const char * const ICON_TAULABS          = ":/core/images/taulabs_logo_128.png";
+const char * const ICON_GCS              = ":/core/gcs_logo_128";
 
 // wizard kind
 const char * const WIZARD_TYPE_FILE      = "GCS::WizardType::File";

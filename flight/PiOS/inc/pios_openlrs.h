@@ -8,6 +8,7 @@
 *
 * @file       pios_openlrs.h
 * @author     Tau Labs, http://taulabs.org, Copyright (C) 2015
+* @author     dRonin, http://dronin.org Copyright (C) 2015
 * @brief      Implements an OpenLRS driver for the RFM22B
 * @see        The GNU Public License (GPL) Version 3
 *
@@ -31,6 +32,8 @@
 #ifndef PIOS_OPENLRS_H
 #define PIOS_OPENLRS_H
 
+#include <hwshared.h>
+
 /* Global Types */
 struct pios_openlrs_cfg {
   const struct pios_spi_cfg *spi_cfg; /* Pointer to SPI interface configuration */
@@ -39,7 +42,9 @@ struct pios_openlrs_cfg {
 };
 
 extern int32_t PIOS_OpenLRS_Init(uintptr_t * openlrs_id, uint32_t spi_id,
-        uint32_t slave_num, const struct pios_openlrs_cfg *cfg);
+		uint32_t slave_num, const struct pios_openlrs_cfg *cfg, 
+		HwSharedRfBandOptions rf_band);
+
 extern void PIOS_OpenLRS_RegisterRcvr(uintptr_t openlrs_id, uintptr_t rfm22b_rcvr_id);
 extern uint8_t PIOS_OpenLRS_RSSI_Get(void);
 #endif /* PIOS_OPENLRS_H */

@@ -2,6 +2,7 @@
  ******************************************************************************
  * @file       vehicletrim.cpp
  * @author     Tau Labs, http://taulabs.org, Copyright (C) 2013-2014
+ * @author     dRonin, http://dronin.org Copyright (C) 2015
  * @brief      Gui-less support class for vehicle trimming
  *****************************************************************************/
 /*
@@ -27,7 +28,7 @@
 #include "actuatorsettings.h"
 #include "stabilizationdesired.h"
 #include "flightstatus.h"
-#include "trimanglessettings.h"
+#include "subtrimsettings.h"
 #include "systemalarms.h"
 
 
@@ -51,9 +52,9 @@ VehicleTrim::autopilotLevelBiasMessages VehicleTrim::setAutopilotBias()
     FlightStatus *flightStatus = FlightStatus::GetInstance(getObjectManager());
     StabilizationDesired *stabilizationDesired = StabilizationDesired::GetInstance(getObjectManager());
 
-    // Get TrimAnglesSettings UAVO
-    TrimAnglesSettings *trimAnglesSettings = TrimAnglesSettings::GetInstance(getObjectManager());
-    TrimAnglesSettings::DataFields trimAnglesSettingsData = trimAnglesSettings->getData();
+    // Get SubTrimSettings UAVO
+    SubTrimSettings *subTrimSettings = SubTrimSettings::GetInstance(getObjectManager());
+    SubTrimSettings::DataFields subTrimSettingsData = subTrimSettings->getData();
 
     // Check that the receiver is present
     if (systemAlarms->getAlarm_ManualControl()  != SystemAlarms::ALARM_OK){
@@ -81,10 +82,10 @@ VehicleTrim::autopilotLevelBiasMessages VehicleTrim::setAutopilotBias()
     }
 
     // Increment the current pitch and roll settings by what the pilot is requesting
-    trimAnglesSettingsData.Roll += stabilizationDesired->getRoll();
-    trimAnglesSettingsData.Pitch += stabilizationDesired->getPitch();
-    trimAnglesSettings->setData(trimAnglesSettingsData);
-    trimAnglesSettings->updated();
+    subTrimSettingsData.Roll += stabilizationDesired->getRoll();
+    subTrimSettingsData.Pitch += stabilizationDesired->getPitch();
+    subTrimSettings->setData(subTrimSettingsData);
+    subTrimSettings->updated();
 
     // Inform GUI that trim function has successfully completed
     emit trimCompleted();

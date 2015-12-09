@@ -8,6 +8,7 @@
  * @file       pios_board.c
  * @author     The OpenPilot Team, http://www.openpilot.org Copyright (C) 2011.
  * @author     Tau Labs, http://taulabs.org, Copyright (C) 2012-2015
+ * @author     dRonin, http://dronin.org Copyright (C) 2015
  * @brief      The board specific initialization routines
  * @see        The GNU Public License (GPL) Version 3
  * 
@@ -328,21 +329,41 @@ void PIOS_Board_Init(void) {
 	uint8_t hw_mainport;
 	HwRevoMiniMainPortGet(&hw_mainport);
 
-	PIOS_HAL_ConfigurePort(hw_mainport, &pios_usart_main_cfg,
-			&pios_usart_com_driver, NULL, NULL, NULL, NULL, PIOS_LED_ALARM,
-			&pios_usart_dsm_hsum_main_cfg, &pios_dsm_main_cfg,
-			hw_DSMxMode >= HWREVOMINI_DSMXMODE_BIND3PULSES ? HWREVOMINI_DSMXMODE_AUTODETECT : hw_DSMxMode /* No bind on main port */, &pios_usart_sbus_main_cfg,
-			&pios_sbus_cfg, true);
+	PIOS_HAL_ConfigurePort(hw_mainport,          // port type protocol
+			&pios_usart_main_cfg,                // usart_port_cfg
+			&pios_usart_main_cfg,                // frsky usart_port_cfg
+			&pios_usart_com_driver,              // com_driver 
+			NULL,                                // i2c_id
+			NULL,                                // i2c_cfg
+			NULL,                                // ppm_cfg
+			NULL,                                // pwm_cfg
+			PIOS_LED_ALARM,                      // led_id
+			&pios_usart_dsm_hsum_main_cfg,       // usart_dsm_hsum_cfg
+			&pios_dsm_main_cfg,                  // dsm_cfg
+			hw_DSMxMode >= HWREVOMINI_DSMXMODE_BIND3PULSES ? HWREVOMINI_DSMXMODE_AUTODETECT : hw_DSMxMode /* No bind on main port */, 
+			&pios_usart_sbus_main_cfg,           // sbus_rcvr_cfg
+			&pios_sbus_cfg,                      // sbus_cfg 
+			true);                               // sbus_toggle
 
 	/* Configure FlexiPort */
 	uint8_t hw_flexiport;
 	HwRevoMiniFlexiPortGet(&hw_flexiport);
 
-	PIOS_HAL_ConfigurePort(hw_flexiport, &pios_usart_flexi_cfg,
-			&pios_usart_com_driver, &pios_i2c_flexiport_adapter_id,
-			&pios_i2c_flexiport_adapter_cfg, NULL, NULL, PIOS_LED_ALARM,
-			&pios_usart_dsm_hsum_flexi_cfg, &pios_dsm_flexi_cfg,
-			hw_DSMxMode, NULL, NULL, false);
+	PIOS_HAL_ConfigurePort(hw_flexiport,         // port type protocol 
+			&pios_usart_flexi_cfg,               // usart_port_cfg
+			&pios_usart_flexi_cfg,               // frsky usart_port_cfg
+			&pios_usart_com_driver,              // com_driver
+			&pios_i2c_flexiport_adapter_id,      // i2c_id
+			&pios_i2c_flexiport_adapter_cfg,     // i2c_cfg
+			NULL,                                // ppm_cfg
+			NULL,                                // pwm_cfg
+			PIOS_LED_ALARM,                      // led_id
+			&pios_usart_dsm_hsum_flexi_cfg,      // usart_dsm_hsum_cfg
+			&pios_dsm_flexi_cfg,                 // dsm_cfg
+			hw_DSMxMode,                         // dsm_mode
+			NULL,                                // sbus_rcvr_cfg
+			NULL,                                // sbus_cfg    
+			false);                              // sbus_toggle
 
 	HwRevoMiniData hwRevoMini;
 	HwRevoMiniGet(&hwRevoMini);
@@ -354,6 +375,7 @@ void PIOS_Board_Init(void) {
 	PIOS_HAL_ConfigureRFM22B(hwRevoMini.Radio,
 			bdinfo->board_type, bdinfo->board_rev,
 			hwRevoMini.MaxRfPower, hwRevoMini.MaxRfSpeed,
+			hwRevoMini.RfBand,
 			openlrs_cfg, rfm22b_cfg, hwRevoMini.MinChannel,
 			hwRevoMini.MaxChannel, hwRevoMini.CoordID, 1);
 #endif /* PIOS_INCLUDE_RFM22B */

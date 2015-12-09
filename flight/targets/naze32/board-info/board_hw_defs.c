@@ -8,6 +8,7 @@
  * @file       board_hw_defs.c 
  * @author     The OpenPilot Team, http://www.openpilot.org Copyright (C) 2011.
  * @author     Tau Labs, http://taulabs.org, Copyright (C) 2012-2015
+ * @author     dRonin, http://dronin.org Copyright (C) 2015
  * @brief      Defines board specific static initializers for hardware for the 
  *             Naze32 family of boards.
  * @see        The GNU Public License (GPL) Version 3
@@ -257,9 +258,9 @@ static const struct pios_internal_adc_cfg internal_adc_cfg = {
 			},
 		}
 	},
-	.number_of_used_pins = 4, // this is the max number, can be reduced at runtime (due to port config)
+	.adc_pin_count = 4, // this is the max number, can be reduced at runtime (due to port config)
 	.adc_dev_master = ADC1,
-	.adc_pins = (struct adc_pin[]){
+	.adc_pins = {
 		{GPIOA, GPIO_Pin_4, ADC_Channel_4, true},  // VBat
 		{GPIOA, GPIO_Pin_5, ADC_Channel_5, true},  // ADC Pad
 		{GPIOA, GPIO_Pin_1, ADC_Channel_1, true},  // RC IN 2

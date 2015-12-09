@@ -3,6 +3,7 @@
  ******************************************************************************
  * @file       expocurve.h
  * @author     Tau Labs, http://taulabs.org, Copyright (C) 2012-2015
+ * @author     dRonin, http://dronin.org Copyright (C) 2015
  * @addtogroup GCSPlugins GCS Plugins
  * @{
  * @addtogroup ConfigPlugin Config Plugin
@@ -30,7 +31,9 @@
 
 
 #include <QWidget>
-#define QWT_DLL
+#ifndef QWT_DLL
+    #define QWT_DLL
+#endif
 #include "qwt/src/qwt.h"
 #include "qwt/src/qwt_plot.h"
 #include "qwt/src/qwt_plot_curve.h"

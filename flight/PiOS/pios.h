@@ -6,6 +6,7 @@
  * @file       pios.h
  * @author     The OpenPilot Team, http://www.openpilot.org Copyright (C) 2010.
  * @author     Tau Labs, http://taulabs.org, Copyright (C) 2012-2014
+ * @author     dRonin, http://dronin.org Copyright (C) 2015
  * @brief      Main PiOS header to include all the compiled in PiOS options
  *
  * @see        The GNU Public License (GPL) Version 3
@@ -78,7 +79,6 @@
 #include <pios_adc.h>
 #include <pios_internal_adc.h>
 #include <pios_servo.h>
-#include <pios_brushless.h>
 #include <pios_rtc.h>
 #include <pios_i2c.h>
 #include <pios_can.h>
@@ -137,6 +137,9 @@
 #endif
 #if defined(PIOS_INCLUDE_MPU9150)
 #include <pios_mpu9150.h>
+#endif
+#if defined(PIOS_INCLUDE_MPU9250_BRAIN)
+#include <pios_mpu9250_brain.h>
 #endif
 #if defined(PIOS_INCLUDE_MPU6000)
 #include <pios_mpu6000.h>

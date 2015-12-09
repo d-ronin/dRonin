@@ -2,6 +2,7 @@
  ******************************************************************************
  * @file       calibration.cpp
  * @author     Tau Labs, http://taulabs.org, Copyright (C) 2013
+ * @author     dRonin, http://dronin.org Copyright (C) 2015
  * @brief      Gui-less support class for calibration
  * @see        The GNU Public License (GPL) Version 3
  *
@@ -44,7 +45,7 @@
 #include "homelocation.h"
 #include "magnetometer.h"
 #include "sensorsettings.h"
-#include "trimanglessettings.h"
+#include "subtrimsettings.h"
 #include "flighttelemetrystats.h"
 
 #include <Eigen/Core>
@@ -990,9 +991,9 @@ bool Calibration::storeLevelingMeasurement(UAVObject *obj) {
         attitudeSettings->updated();
 
         // After recomputing the level for a frame, zero the trim settings
-        TrimAnglesSettings *trimSettings = TrimAnglesSettings::GetInstance(getObjectManager());
+        SubTrimSettings *trimSettings = SubTrimSettings::GetInstance(getObjectManager());
         Q_ASSERT(trimSettings);
-        TrimAnglesSettings::DataFields trim = trimSettings->getData();
+        SubTrimSettings::DataFields trim = trimSettings->getData();
         trim.Pitch = 0;
         trim.Roll = 0;
         trimSettings->setData(trim);

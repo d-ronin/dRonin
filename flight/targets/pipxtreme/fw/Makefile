@@ -6,6 +6,7 @@
  #
  # The OpenPilot Team, http://www.openpilot.org, Copyright (C) 2009.
  # Tau Labs, http://taulabs.org, Copyright (C) 2013-2014
+ # dRonin, http://dronin.org Copyright (C) 2015
  #
  # 
  # This program is free software; you can redistribute it and/or modify
@@ -174,6 +175,7 @@ SRC += $(FLIGHTLIB)/rscode/rs.c
 SRC += $(FLIGHTLIB)/rscode/berlekamp.c
 SRC += $(FLIGHTLIB)/rscode/galois.c
 SRC += $(FLIGHTLIB)/frsky_packing.c
+SRC += $(FLIGHTLIB)/circqueue.c
 SRC += $(MATHLIB)/misc_math.c
 
 ## CMSIS for STM32

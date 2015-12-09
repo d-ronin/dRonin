@@ -8,3 +8,6 @@ naze32_cpuarch := f1
 # Short name of this board (used to display board name in parallel builds)
 # Should be exactly 4 characters long.
 naze32_short := 'naze'
+
+# Whether the board uses the bootloader or not (some use the ST bootloader in ROM)
+naze32_bootloader := no

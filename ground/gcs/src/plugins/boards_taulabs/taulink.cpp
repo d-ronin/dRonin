@@ -2,6 +2,7 @@
  ******************************************************************************
  * @file       taulink.cpp
  * @author     Tau Labs, http://taulabs.org, Copyright (C) 2014
+ * @author     dRonin, http://dronin.org Copyright (C) 2015
  *
  * @addtogroup GCSPlugins GCS Plugins
  * @{
@@ -81,6 +82,8 @@ bool TauLink::queryCapabilities(BoardCapabilities capability)
         return false;
     case BOARD_CAPABILITIES_RADIO:
         return true;
+    case BOARD_CAPABILITIES_OSD:
+        return false;
     }
     return false;
 }

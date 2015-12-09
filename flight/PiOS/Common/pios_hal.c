@@ -2,6 +2,7 @@
  ******************************************************************************
  * @file       pios_hal.c
  * @author     Tau Labs, http://taulabs.org, Copyright (C) 2015
+ * @author     dRonin, http://dronin.org Copyright (C) 2015
  * @addtogroup PIOS PIOS Core hardware abstraction layer
  * @{
  * @addtogroup PIOS_HAL Hardware abstraction layer files
@@ -352,7 +353,8 @@ static void PIOS_HAL_ConfigureHSUM(const struct pios_usart_cfg *usart_hsum_cfg,
  * greatly decrease in size.
  *
  * @param[in] port_type protocol to speak on this port
- * @param[in] usart_port_cfg serial configuration for most modes on this
+ * @param[in] usart_port_cfg serial configuration for most modes on this port
+ * @param[in] usart_frsky_port_cfg serial configuration for frsky telem on this port (F3 only)
  * @param[in] com_driver communications driver for serial on this port
  * @param[out] i2c_id ID of I2C peripheral if operated in I2C mode
  * @param[in] i2c_Cfg Adapter configuration/registers for I2C mode
@@ -368,6 +370,7 @@ static void PIOS_HAL_ConfigureHSUM(const struct pios_usart_cfg *usart_hsum_cfg,
  */
 void PIOS_HAL_ConfigurePort(HwSharedPortTypesOptions port_type,
 		const struct pios_usart_cfg *usart_port_cfg,
+		const struct pios_usart_cfg *usart_frsky_port_cfg,
 		const struct pios_com_driver *com_driver,
 		uint32_t *i2c_id,
 		const struct pios_i2c_adapter_cfg *i2c_cfg,
@@ -523,13 +526,13 @@ void PIOS_HAL_ConfigurePort(HwSharedPortTypesOptions port_type,
 		break;
 	case HWSHARED_PORTTYPES_FRSKYSENSORHUB:
 #if defined(PIOS_INCLUDE_FRSKY_SENSOR_HUB)
-		PIOS_HAL_ConfigureCom(usart_port_cfg, 0, PIOS_COM_FRSKYSENSORHUB_TX_BUF_LEN, com_driver, &port_driver_id);
+		PIOS_HAL_ConfigureCom(usart_frsky_port_cfg, 0, PIOS_COM_FRSKYSENSORHUB_TX_BUF_LEN, com_driver, &port_driver_id);
 		target = &pios_com_frsky_sensor_hub_id;
 #endif /* PIOS_INCLUDE_FRSKY_SENSOR_HUB */
 		break;
 	case HWSHARED_PORTTYPES_FRSKYSPORTTELEMETRY:
 #if defined(PIOS_INCLUDE_FRSKY_SPORT_TELEMETRY)
-		PIOS_HAL_ConfigureCom(usart_port_cfg, PIOS_COM_FRSKYSPORT_RX_BUF_LEN, PIOS_COM_FRSKYSPORT_TX_BUF_LEN, com_driver, &port_driver_id);
+		PIOS_HAL_ConfigureCom(usart_frsky_port_cfg, PIOS_COM_FRSKYSPORT_RX_BUF_LEN, PIOS_COM_FRSKYSPORT_TX_BUF_LEN, com_driver, &port_driver_id);
 		target = &pios_com_frsky_sport_id;
 #endif /* PIOS_INCLUDE_FRSKY_SPORT_TELEMETRY */
 		break;
@@ -699,6 +702,7 @@ void PIOS_HAL_ConfigureRFM22B(HwSharedRadioPortOptions radio_type,
 		uint8_t board_type, uint8_t board_rev,
 		HwSharedMaxRfPowerOptions max_power,
 		HwSharedMaxRfSpeedOptions max_speed,
+		HwSharedRfBandOptions rf_band,
 		const struct pios_openlrs_cfg *openlrs_cfg,
 		const struct pios_rfm22b_cfg *rfm22b_cfg,
 		uint8_t min_chan, uint8_t max_chan, uint32_t coord_id,
@@ -720,7 +724,7 @@ void PIOS_HAL_ConfigureRFM22B(HwSharedRadioPortOptions radio_type,
 #if defined(PIOS_INCLUDE_OPENLRS_RCVR)
 		uintptr_t openlrs_id;
 
-		PIOS_OpenLRS_Init(&openlrs_id, PIOS_RFM22_SPI_PORT, 0, openlrs_cfg);
+		PIOS_OpenLRS_Init(&openlrs_id, PIOS_RFM22_SPI_PORT, 0, openlrs_cfg, rf_band);
 
 		{
 			uintptr_t rfm22brcvr_id;
@@ -736,7 +740,7 @@ void PIOS_HAL_ConfigureRFM22B(HwSharedRadioPortOptions radio_type,
 			max_power == HWSHARED_MAXRFPOWER_0) {
 		// When radio disabled, it is ok for init to fail. This allows
 		// boards without populating this component.
-		if (PIOS_RFM22B_Init(&pios_rfm22b_id, PIOS_RFM22_SPI_PORT, rfm22b_cfg->slave_num, rfm22b_cfg) == 0) {
+		if (PIOS_RFM22B_Init(&pios_rfm22b_id, PIOS_RFM22_SPI_PORT, rfm22b_cfg->slave_num, rfm22b_cfg, rf_band) == 0) {
 			PIOS_RFM22B_SetTxPower(pios_rfm22b_id, RFM22_tx_pwr_txpow_0);
 			rfm22bstatus.DeviceID = PIOS_RFM22B_DeviceID(pios_rfm22b_id);
 			rfm22bstatus.BoardRevision = PIOS_RFM22B_ModuleVersion(pios_rfm22b_id);
@@ -754,7 +758,7 @@ void PIOS_HAL_ConfigureRFM22B(HwSharedRadioPortOptions radio_type,
 		// Sparky2 can only receive PPM only
 
 		/* Configure the RFM22B device. */
-		if (PIOS_RFM22B_Init(&pios_rfm22b_id, PIOS_RFM22_SPI_PORT, rfm22b_cfg->slave_num, rfm22b_cfg)) {
+		if (PIOS_RFM22B_Init(&pios_rfm22b_id, PIOS_RFM22_SPI_PORT, rfm22b_cfg->slave_num, rfm22b_cfg, rf_band)) {
 			PIOS_Assert(0);
 		}
 

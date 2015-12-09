@@ -8,6 +8,7 @@
  * @file       pios_board.c
  * @author     The OpenPilot Team, http://www.openpilot.org Copyright (C) 2011.
  * @author     Tau Labs, http://taulabs.org, Copyright (C) 2012-2015
+ * @author     dRonin, http://dronin.org Copyright (C) 2015
  * @brief      The board specific initialization routines
  * @see        The GNU Public License (GPL) Version 3
  * 
@@ -396,23 +397,35 @@ void PIOS_Board_Init(void) {
 #endif	/* PIOS_INCLUDE_PWM */
 		break;
 	case HWNAZE_RCVRPORT_PPMSERIAL:
+	case HWNAZE_RCVRPORT_SERIAL:
 		{
 			uint8_t hw_rcvrserial;
 			HwNazeRcvrSerialGet(&hw_rcvrserial);
+			
 			HwNazeDSMxModeOptions hw_DSMxMode;
 			HwNazeDSMxModeGet(&hw_DSMxMode);
-			PIOS_HAL_ConfigurePort(hw_rcvrserial, 
-					&pios_usart_rcvrserial_cfg,
-					&pios_usart_com_driver,
-					NULL, NULL, NULL, NULL,
-					PIOS_LED_ALARM,
-					&pios_usart_dsm_hsum_rcvrserial_cfg,
-					&pios_dsm_rcvrserial_cfg,
-					hw_DSMxMode,
-					NULL, NULL, false);
+			
+			PIOS_HAL_ConfigurePort(hw_rcvrserial,        // port type protocol
+					&pios_usart_rcvrserial_cfg,          // usart_port_cfg
+					&pios_usart_rcvrserial_cfg,          // frsky usart_port_cfg
+					&pios_usart_com_driver,              // com_driver
+					NULL,                                // i2c_id
+					NULL,                                // i2c_cfg
+					NULL,                                // ppm_cfg
+					NULL,                                // pwm_cfg
+					PIOS_LED_ALARM,                      // led_id
+					&pios_usart_dsm_hsum_rcvrserial_cfg, // usart_dsm_hsum_cfg
+					&pios_dsm_rcvrserial_cfg,            // dsm_cfg
+					hw_DSMxMode,                         // dsm_mode
+					NULL,                                // sbus_rcvr_cfg
+					NULL,                                // sbus_cfg
+					false);                              // sbus_toggle
 		}
 
-		// Fall through to set up PPM.
+		if (hw_rcvrport == HWNAZE_RCVRPORT_SERIAL)
+			break;
+		
+		// Else fall through to set up PPM.
 
 	case HWNAZE_RCVRPORT_PPM:
 	case HWNAZE_RCVRPORT_PPMOUTPUTS:
@@ -480,6 +493,7 @@ void PIOS_Board_Init(void) {
 		case HWNAZE_RCVRPORT_PPM:
 		case HWNAZE_RCVRPORT_PPMPWM:
 		case HWNAZE_RCVRPORT_PPMSERIAL:
+		case HWNAZE_RCVRPORT_SERIAL:
 			PIOS_Servo_Init(&pios_servo_cfg);
 			break;
 		case HWNAZE_RCVRPORT_PPMOUTPUTS:

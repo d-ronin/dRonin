@@ -7,6 +7,7 @@
  *
  * @file       pios_board.c 
  * @author     Tau Labs, http://taulabs.org, Copyright (C) 2012-2015
+ * @author     dRonin, http://dronin.org Copyright (C) 2015
  * @brief      Board initialization file
  * @see        The GNU Public License (GPL) Version 3
  * 
@@ -154,30 +155,135 @@ static void panic(int32_t code) {
 void set_vtx_channel(HwSparky2VTX_ChOptions channel)
 {
 	uint8_t chan = 0;
+	uint8_t band = 0xFF; // Set to "A" band
+
 	switch (channel) {
-	case HWSPARKY2_VTX_CH_1:
+	case HWSPARKY2_VTX_CH_BOSCAMACH15725:
 		chan = 0;
-		break;
-	case HWSPARKY2_VTX_CH_2:
+		band = 0;
+	case HWSPARKY2_VTX_CH_BOSCAMACH25745:
 		chan = 1;
+		band = 0;
 		break;
-	case HWSPARKY2_VTX_CH_3:
+	case HWSPARKY2_VTX_CH_BOSCAMACH35765:
 		chan = 2;
+		band = 0;
 		break;
-	case HWSPARKY2_VTX_CH_4:
+	case HWSPARKY2_VTX_CH_BOSCAMACH45785:
 		chan = 3;
+		band = 0;
 		break;
-	case HWSPARKY2_VTX_CH_5:
+	case HWSPARKY2_VTX_CH_BOSCAMACH55805:
 		chan = 4;
+		band = 0;
 		break;
-	case HWSPARKY2_VTX_CH_6:
+	case HWSPARKY2_VTX_CH_BOSCAMACH65825:
 		chan = 5;
+		band = 0;
 		break;
-	case HWSPARKY2_VTX_CH_7:
+	case HWSPARKY2_VTX_CH_BOSCAMACH75845:
 		chan = 6;
+		band = 0;
 		break;
-	case HWSPARKY2_VTX_CH_8:
+	case HWSPARKY2_VTX_CH_BOSCAMACH85865:
 		chan = 7;
+		band = 0;
+		break;
+	case HWSPARKY2_VTX_CH_BOSCAMBCH15733:
+		chan = 0;
+		band = 1;
+		break;
+	case HWSPARKY2_VTX_CH_BOSCAMBCH25752:
+		chan = 1;
+		band = 1;
+		break;
+	case HWSPARKY2_VTX_CH_BOSCAMBCH35771:
+		chan = 2;
+		band = 1;
+		break;
+	case HWSPARKY2_VTX_CH_BOSCAMBCH45790:
+		chan = 3;
+		band = 1;
+		break;
+	case HWSPARKY2_VTX_CH_BOSCAMBCH55809:
+		chan = 4;
+		band = 1;
+		break;
+	case HWSPARKY2_VTX_CH_BOSCAMBCH65828:
+		chan = 5;
+		band = 1;
+		break;
+	case HWSPARKY2_VTX_CH_BOSCAMBCH75847:
+		chan = 6;
+		band = 1;
+		break;
+	case HWSPARKY2_VTX_CH_BOSCAMBCH85866:
+		chan = 7;
+		band = 1;
+		break;
+	case HWSPARKY2_VTX_CH_BOSCAMECH15705:
+		chan = 0;
+		band = 2;
+		break;
+	case HWSPARKY2_VTX_CH_BOSCAMECH25685:
+		chan = 1;
+		band = 2;
+		break;
+	case HWSPARKY2_VTX_CH_BOSCAMECH35665:
+		chan = 2;
+		band = 2;
+		break;
+	case HWSPARKY2_VTX_CH_BOSCAMECH45645:
+		chan = 3;
+		band = 2;
+		break;
+	case HWSPARKY2_VTX_CH_BOSCAMECH55885:
+		chan = 4;
+		band = 2;
+		break;
+	case HWSPARKY2_VTX_CH_BOSCAMECH65905:
+		chan = 5;
+		band = 2;
+		break;
+	case HWSPARKY2_VTX_CH_BOSCAMECH75925:
+		chan = 6;
+		band = 2;
+		break;
+	case HWSPARKY2_VTX_CH_BOSCAMECH85945:
+		chan = 7;
+		band = 2;
+		break;
+	case HWSPARKY2_VTX_CH_AIRWAVECH15740:
+		chan = 0;
+		band = 3;
+		break;
+	case HWSPARKY2_VTX_CH_AIRWAVECH25760:
+		chan = 1;
+		band = 3;
+		break;
+	case HWSPARKY2_VTX_CH_AIRWAVECH35780:
+		chan = 2;
+		band = 3;
+		break;
+	case HWSPARKY2_VTX_CH_AIRWAVECH45800:
+		chan = 3;
+		band = 3;
+		break;
+	case HWSPARKY2_VTX_CH_AIRWAVECH55820:
+		chan = 4;
+		band = 3;
+		break;
+	case HWSPARKY2_VTX_CH_AIRWAVECH65840:
+		chan = 5;
+		band = 3;
+		break;
+	case HWSPARKY2_VTX_CH_AIRWAVECH75860:
+		chan = 6;
+		band = 3;
+		break;
+	case HWSPARKY2_VTX_CH_AIRWAVECH85860:
+		chan = 7;
+		band = 3;
 		break;
 	}
 
@@ -210,6 +316,23 @@ void set_vtx_channel(HwSparky2VTX_ChOptions channel)
 		GPIO_SetBits(GPIOB, GPIO_Pin_12);
 	} else {
 		GPIO_ResetBits(GPIOB, GPIO_Pin_12);
+	}
+
+	GPIO_InitStructure.GPIO_Pin = GPIO_Pin_9;
+	GPIO_Init(GPIOA, &GPIO_InitStructure);
+	GPIO_InitStructure.GPIO_Pin = GPIO_Pin_10;
+	GPIO_Init(GPIOA, &GPIO_InitStructure);
+
+	if (band & 0x01) {
+		GPIO_SetBits(GPIOA, GPIO_Pin_9);
+	} else {
+		GPIO_ResetBits(GPIOA, GPIO_Pin_9);
+	}
+
+	if (band & 0x02) {
+		GPIO_SetBits(GPIOA, GPIO_Pin_10);
+	} else {
+		GPIO_ResetBits(GPIOA, GPIO_Pin_10);
 	}
 }
 
@@ -434,23 +557,41 @@ void PIOS_Board_Init(void) {
 	uint8_t hw_mainport;
 	HwSparky2MainPortGet(&hw_mainport);
 
-	PIOS_HAL_ConfigurePort(hw_mainport, &pios_usart_main_cfg,
-			&pios_usart_com_driver, NULL, NULL, NULL, NULL,
-			PIOS_LED_ALARM,
-			&pios_usart_dsm_hsum_main_cfg, &pios_dsm_main_cfg,
-			hw_DSMxMode, NULL, NULL, false);
+	PIOS_HAL_ConfigurePort(hw_mainport,          // port type protocol
+			&pios_usart_main_cfg,                // usart_port_cfg
+			&pios_usart_main_cfg,                // frsky usart_port_cfg
+			&pios_usart_com_driver,              // com_driver 
+			NULL,                                // i2c_id 
+			NULL,                                // i2c_cfg 
+			NULL,                                // i2c_cfg 
+			NULL,                                // pwm_cfg
+			PIOS_LED_ALARM,                      // led_id
+			&pios_usart_dsm_hsum_main_cfg,       // usart_dsm_hsum_cfg 
+			&pios_dsm_main_cfg,                  // dsm_cfg
+			hw_DSMxMode,                         // dsm_mode 
+			NULL,                                // sbus_rcvr_cfg 
+			NULL,                                // sbus_cfg 
+			false);                              // sbus_toggle
 
 	/* Configure FlexiPort */
 	uint8_t hw_flexiport;
 	HwSparky2FlexiPortGet(&hw_flexiport);
 
-	PIOS_HAL_ConfigurePort(hw_flexiport, &pios_usart_flexi_cfg,
-			&pios_usart_com_driver,
-			&pios_i2c_flexiport_adapter_id,
-			&pios_i2c_flexiport_adapter_cfg, NULL, NULL,
-			PIOS_LED_ALARM,
-			&pios_usart_dsm_hsum_flexi_cfg, &pios_dsm_flexi_cfg,
-			hw_DSMxMode, NULL, NULL, false);
+	PIOS_HAL_ConfigurePort(hw_flexiport,         // port type protocol
+			&pios_usart_flexi_cfg,               // usart_port_cfg
+			&pios_usart_flexi_cfg,               // frsky usart_port_cfg
+			&pios_usart_com_driver,              // com_driver
+			&pios_i2c_flexiport_adapter_id,      // i2c_id
+			&pios_i2c_flexiport_adapter_cfg,     // i2c_cfg 
+			NULL,                                // i2c_cfg 
+			NULL,                                // pwm_cfg
+			PIOS_LED_ALARM,                      // led_id
+			&pios_usart_dsm_hsum_flexi_cfg,      // usart_dsm_hsum_cfg
+			&pios_dsm_flexi_cfg,                 // dsm_cfg
+			hw_DSMxMode,                         // dsm_mode 
+			NULL,                                // sbus_rcvr_cfg 
+			NULL,                                // sbus_cfg 
+			false);                              // sbus_toggle
 
 #if defined(PIOS_INCLUDE_RFM22B)
 	HwSparky2Data hwSparky2;
@@ -463,6 +604,7 @@ void PIOS_Board_Init(void) {
 	PIOS_HAL_ConfigureRFM22B(hwSparky2.Radio,
 			bdinfo->board_type, bdinfo->board_rev,
 			hwSparky2.MaxRfPower, hwSparky2.MaxRfSpeed,
+			hwSparky2.RfBand,
 			openlrs_cfg, rfm22b_cfg,
 			hwSparky2.MinChannel, hwSparky2.MaxChannel,
 			hwSparky2.CoordID, 1);
@@ -477,17 +619,21 @@ void PIOS_Board_Init(void) {
 		hw_DSMxMode = HWSPARKY2_DSMXMODE_AUTODETECT; /* Do not try to bind through XOR */
 	}
 
-	PIOS_HAL_ConfigurePort(hw_rcvrport,
-			NULL, /* XXX TODO: fix as part of DSM refactor */
-			&pios_usart_com_driver,
-			NULL, NULL,
-			&pios_ppm_cfg,
-			NULL,
-			PIOS_LED_ALARM,
-			&pios_usart_dsm_hsum_rcvr_cfg,
-			&pios_dsm_rcvr_cfg,
-			hw_DSMxMode, get_sbus_rcvr_cfg(bdinfo->board_rev),
-			&pios_sbus_cfg, get_sbus_toggle(bdinfo->board_rev));
+	PIOS_HAL_ConfigurePort(hw_rcvrport,           // port type protocol
+			NULL,                                 // usart_port_cfg
+			NULL,                                 // frsky usart_port_cfg
+			&pios_usart_com_driver,               // com_driver
+			NULL,                                 // i2c_id
+			NULL,                                 // i2c_cfg
+			&pios_ppm_cfg,                        // ppm_cfg
+			NULL,                                 // pwm_cfg
+			PIOS_LED_ALARM,                       // led_id
+			&pios_usart_dsm_hsum_rcvr_cfg,        // usart_dsm_hsum_cfg
+			&pios_dsm_rcvr_cfg,                   // dsm_cfg
+			hw_DSMxMode,                          // dsm_mode
+			get_sbus_rcvr_cfg(bdinfo->board_rev), // sbus_rcvr_cfg
+			&pios_sbus_cfg,                       // sbus_cfg
+			get_sbus_toggle(bdinfo->board_rev));  // sbus_toggle
 
 #if defined(PIOS_INCLUDE_GCSRCVR)
 	GCSReceiverInitialize();

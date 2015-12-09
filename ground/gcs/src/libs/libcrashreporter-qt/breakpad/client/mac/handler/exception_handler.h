@@ -266,9 +266,12 @@ class ExceptionHandler {
   // True, if we're using the mutext to indicate when mindump writing occurs
   bool use_minidump_write_mutex_;
 
-  // Old signal handler for SIGABRT. Used to be able to restore it when
+  // Old signal handlers. Used to be able to restore it when
   // uninstalling.
-  scoped_ptr<struct sigaction> old_handler_;
+  scoped_ptr<struct sigaction> old_ABRT_handler_;
+  scoped_ptr<struct sigaction> old_SEGV_handler_;
+  scoped_ptr<struct sigaction> old_BUS_handler_;
+  scoped_ptr<struct sigaction> old_ILL_handler_;
 
 #if !TARGET_OS_IPHONE
   // Client for out-of-process dump generation.

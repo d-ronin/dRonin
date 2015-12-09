@@ -7,6 +7,7 @@
  *
  * @file       board_hw_defs.c 
  * @author     Tau Labs, http://taulabs.org, Copyright (C) 2012-2013
+ * @author     dRonin, http://dronin.org Copyright (C) 2015
  * @brief      Defines board specific static initializers for hardware for the
  *             flying f3 board.
  * @see        The GNU Public License (GPL) Version 3
@@ -2744,8 +2745,11 @@ static const struct pios_internal_adc_cfg internal_adc_cfg_rcflyer_shield = {
 	.oversampling = 32,
 	.adc_dev_master = ADC1,
 	.adc_dev_slave = ADC2,
-	.number_of_used_pins = 2,
-	.adc_pins = (struct adc_pin[]){{GPIOC,GPIO_Pin_3,ADC_Channel_9,true},{GPIOC,GPIO_Pin_4,ADC_Channel_5,false},},
+	.adc_pin_count = 2,
+	.adc_pins = {
+		{GPIOC,GPIO_Pin_3,ADC_Channel_9,true},
+		{GPIOC,GPIO_Pin_4,ADC_Channel_5,false},
+	},
 };
 #endif //PIOS_INCLUDE_ADC
 

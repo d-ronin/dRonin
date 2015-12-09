@@ -19,7 +19,6 @@ include(../../taulabslibrary.pri)
 
 SOURCES += reloadpromptutils.cpp \
     settingsutils.cpp \
-    filesearch.cpp \
     pathchooser.cpp \
     pathlisteditor.cpp \
     filewizardpage.cpp \
@@ -57,9 +56,7 @@ SOURCES += reloadpromptutils.cpp \
     homelocationutil.cpp \
     mytabbedstackwidget.cpp \
     mytabwidget.cpp \
-    svgimageprovider.cpp \
-    phpbb.cpp \
-    foruminteractionform.cpp
+    svgimageprovider.cpp
 
 SOURCES += xmlconfig.cpp
 
@@ -74,7 +71,6 @@ else:SOURCES += consoleprocess_unix.cpp
 HEADERS += utils_global.h \
     reloadpromptutils.h \
     settingsutils.h \
-    filesearch.h \
     listutils.h \
     pathchooser.h \
     pathlisteditor.h \
@@ -115,9 +111,7 @@ HEADERS += utils_global.h \
     homelocationutil.h \
     mytabbedstackwidget.h \
     mytabwidget.h \
-    svgimageprovider.h \
-    phpbb.h \
-    foruminteractionform.h
+    svgimageprovider.h
 
 
 HEADERS += xmlconfig.h
@@ -126,7 +120,6 @@ FORMS += filewizardpage.ui \
     projectintropage.ui \
     newclasswidget.ui \
     submiteditorwidget.ui \
-    checkablemessagebox.ui \
-    foruminteractionform.ui
+    checkablemessagebox.ui
 
 RESOURCES += utils.qrc

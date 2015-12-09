@@ -4,6 +4,7 @@
  * @file       versiondialog.cpp
  * @author     The OpenPilot Team, http://www.openpilot.org Copyright (C) 2010.
  *             Parts by Nokia Corporation (qt-info@nokia.com) Copyright (C) 2009.
+ * @author     dRonin, http://dronin.org Copyright (C) 2015
  * @addtogroup GCSPlugins GCS Plugins
  * @{
  * @addtogroup CorePlugin Core Plugin
@@ -53,9 +54,9 @@ VersionDialog::VersionDialog(QWidget *parent)
 {
     // We need to set the window icon explicitly here since for some reason the
     // application icon isn't used when the size of the dialog is fixed (at least not on X11/GNOME)
-    setWindowIcon(QIcon(":/core/images/taulabs_logo_32.png"));
+    setWindowIcon(QIcon(":/core/gcs_logo_32"));
 
-    setWindowTitle(tr("About Tau Labs GCS"));
+    setWindowTitle(tr("About " GCS_PROJECT_BRANDING_PRETTY " GCS"));
     setWindowFlags(windowFlags() & ~Qt::WindowContextHelpButtonHint);
     QGridLayout *layout = new QGridLayout(this);
     layout->setSizeConstraint(QLayout::SetFixedSize);
@@ -92,7 +93,7 @@ VersionDialog::VersionDialog(QWidget *parent)
      }
      uavoHashStr = tr("UAVO hash %1<br/>").arg(gcsUavoHashStr.left(8));
  #endif
-     const QString version_name = tr("<h3><center>Tau Labs GCS<center></h3>"
+     const QString version_name = tr("<h3><center>" GCS_PROJECT_BRANDING_PRETTY "GCS<center></h3>"
                                      "<h4><center>%1: %2</center></h4>").arg(versionName, versionHash);
      const QString version_description = tr(
         "Based on Qt %1 (%2 bit)<br/>"
@@ -106,8 +107,8 @@ VersionDialog::VersionDialog(QWidget *parent)
                      QLatin1String(__DATE__), QLatin1String(__TIME__), ideRev, uavoHashStr);
 
      QString copyright = tr(
-        "Copyright 2012-%1 %2, 2010-2012 OpenPilot. All rights reserved.<br/>"
-        "<br/>"
+         "Copyright %0 %1, 2012-2015 Tau Labs, 2010-2012 OpenPilot. All rights reserved.<br/>"
+         "<br/>"
          "Between 2010 and 2012, a significant part of this application was designed "
          "and implemented within the OpenPilot project.<br/>"
          "This work was further based on work from the Nokia Corporation for Qt Creator.<br/>"
@@ -136,7 +137,7 @@ VersionDialog::VersionDialog(QWidget *parent)
     connect(buttonBox , SIGNAL(rejected()), this, SLOT(reject()));
 
     QLabel *logoLabel = new QLabel;
-    logoLabel->setPixmap(QPixmap(QLatin1String(":/core/images/taulabs_logo_128.png")));
+    logoLabel->setPixmap(QPixmap(QLatin1String(":/core/gcs_logo_128")));
 
     QLabel *copyRightLabel = new QLabel(copyright);
     copyRightLabel->setWordWrap(true);

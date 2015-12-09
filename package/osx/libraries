@@ -16,6 +16,13 @@ pushd "${QT_SDK_BIN_PATH}"
 
 popd
 
+# For some reasom this symlink is still wrong..
+CWD=`pwd`
+cd "${APP}/Contents/Resources/qml/QtQuick/XmlListModel/"
+rm libqmlxmllistmodelplugin.dylib
+ln -s ../../../../Plugins/quick/libqmlxmllistmodelplugin.dylib
+cd ${CWD}
+
 # Copy SDL files
 echo "Copying SDL"
 cp -r "/Library/Frameworks/SDL.framework" "${APP}/Contents/Frameworks/"
