@@ -107,8 +107,6 @@ ground_package_common: | standalone
 	$(V1) cp -v -R $(BUILD_DIR)/ground/gcs/bin $(PACKAGE_DIR)/$(GCS_PACKAGE_NAME)
 	$(V1) cp -v -R $(BUILD_DIR)/ground/gcs/share $(PACKAGE_DIR)/$(GCS_PACKAGE_NAME)
 	$(V1) cp -v -R $(BUILD_DIR)/ground/gcs/lib $(PACKAGE_DIR)/$(GCS_PACKAGE_NAME)
-	$(V1) cp -v $(ROOT_DIR)/HISTORY.txt $(PACKAGE_DIR)/$(GCS_PACKAGE_NAME)
-	$(V1) cp -v $(ROOT_DIR)/KNOWN_ISSUES.txt $(PACKAGE_DIR)/$(GCS_PACKAGE_NAME)
 	$(V1) cp -v $(ROOT_DIR)/CREDITS.txt $(PACKAGE_DIR)/$(GCS_PACKAGE_NAME)
 	$(V1) cp -v $(ROOT_DIR)/LICENSE.txt $(PACKAGE_DIR)/$(GCS_PACKAGE_NAME)
 	$(V1) find $(PACKAGE_DIR)/$(GCS_PACKAGE_NAME) -type f -name "*Makefile" -exec rm -f {} \;
