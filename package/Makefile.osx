@@ -16,7 +16,7 @@ standalone:
 	"${ROOT_DIR}/package/osx/libraries" ${APP_PATH}/${APP_NAME_OSX}
 
 # puts the files into a dmg
-dmg: standalone package_matlab
+dmg: standalone package_matlab extract_firmware
 	ROOT_DIR="$(ROOT_DIR)" \
 	BUILD_DIR="$(BUILD_DIR)" \
 	PACKAGE_LBL="$(PACKAGE_LBL)" \

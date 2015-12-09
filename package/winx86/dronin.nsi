@@ -195,10 +195,8 @@ SectionEnd
 
 ; Copy firmware files
 Section "Firmware" InSecFirmware
-; SetOutPath "$INSTDIR\firmware\${FIRMWARE_DIR}"
-; File /r "${PACKAGE_DIR}\${FIRMWARE_DIR}\*"
   SetOutPath "$INSTDIR\firmware"
-  File "${PACKAGE_DIR}\${FIRMWARE_DIR}\*.*"
+  File "${PACKAGE_DIR}\firmware\*.*"
 SectionEnd
 
 ; Copy utility files

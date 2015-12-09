@@ -10,6 +10,7 @@ APP_NAME="dRonin GCS.app"
 APP_PATH="${BUILD_DIR}/ground/gcs/bin/"
 TEMP_FILE="${PACKAGE_DIR}/dRonin-temp.dmg.sparseimage"
 OUT_FILE="${PACKAGE_DIR}/${DMG_LBL}.dmg"
+FW_DIR="${PACKAGE_DIR}/firmware"
 ICON_FILE="${ROOT_DIR}/package/dronin.png"
 VOL_NAME="dRonin"
 
@@ -27,7 +28,7 @@ device=$(hdiutil attach  "${TEMP_FILE}" | \
 mkdir "/Volumes/${VOL_NAME}/Firmware"
 mkdir "/Volumes/${VOL_NAME}/Utilities"
 cp -r "${APP_PATH}/${APP_NAME}" "/Volumes/${VOL_NAME}"
-#cp -rp "${FW_DIR}"/* "/Volumes/${VOL_NAME}/Firmware"
+cp -rp "${FW_DIR}"/* "/Volumes/${VOL_NAME}/Firmware"
 
 cp "${BUILD_DIR}/matlab/LogConvert.m" "/Volumes/${VOL_NAME}/Utilities/LogConvert-${PACKAGE_LBL}.m"
 

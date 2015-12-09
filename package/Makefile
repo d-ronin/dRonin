@@ -55,18 +55,8 @@ GCS_PACKAGE_NAME:= dronin_$(PLATFORM)_$(PLATFORM_NAME)-$(PACKAGE_LBL)
 GCS_PACKAGE_ROOT := $(GCS_PACKAGE_NAME)
 
 help:
-	@echo
-	@echo "   This Makefile is known to work on Linux and Mac in a standard shell environment."
-	@echo "   It also works on Windows by following the instructions in ../make/winx86/README.txt."
-	@echo
-	@echo "   Here is a summary of the available targets:"
-	@echo
-	@echo "   [Packaging]"
-	@echo "     package_installer		- Builds a Tau Labs software installer"
-	@echo "     package_all_compress   - Same as the targets above but compresses the package"	
-	@echo
-	@echo "   Notes:"
-	@echo "     - packages will be placed in $(PACKAGE_DIR)"
+	@echo "   This Makefile is intended to be executed by the toplevel makefile"
+	@echo " Type make help in the top of the dRonin tree for help."
 	@echo
 
 matlab: 
@@ -80,13 +70,18 @@ package_ground: | ground_package
 
 package_installer: | installer_package
 
-package_all: package_ground package_matlab
+package_all: package_ground package_matlab extract_firmware
+
+extract_firmware: $(FLIGHTPKGNAME)
+	mkdir -p "$(PACKAGE_DIR)"/firmware
+	unzip "$(FLIGHTPKGNAME)" -d "$(PACKAGE_DIR)"/firmware
 
 package_info:
 	$(shell $(VERSION_CMD) --uavodir=$(ROOT_DIR)/shared/uavobjectdefinition --template=$(ROOT_DIR)/make/templates/packageversioninfo.json --outfile=$(PACKAGE_DIR)/packageversioninfo.json)
 
-.PHONY: help uavobjects
+.PHONY: help
 .PHONY: package_ground package_matlab package_all package_installer package_info
+.PHONY: extract_firmware
 
 ground_package: ground_package_os_specific
 	@echo $@ starting
