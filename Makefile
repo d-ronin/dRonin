@@ -220,7 +220,7 @@ help:
 	@echo
 
 .PHONY: all
-all: all_ground all_flight
+all: all_ground all_flight matlab
 
 .PHONY: all_clean
 all_clean:
