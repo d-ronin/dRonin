@@ -4,7 +4,7 @@ On 8th December 2015, 17 members of the active community voted to elect the firs
 
 Those voted in were: hshred, icee, tracernz.
 
-They will now servce the project for a 6 month period.
+They will now serve the project for a 6 month period.
 
 Executive Team's Role
 =====================
