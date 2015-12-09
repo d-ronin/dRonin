@@ -198,17 +198,7 @@ Section "Firmware" InSecFirmware
 ; SetOutPath "$INSTDIR\firmware\${FIRMWARE_DIR}"
 ; File /r "${PACKAGE_DIR}\${FIRMWARE_DIR}\*"
   SetOutPath "$INSTDIR\firmware"
-  File "${PACKAGE_DIR}\${FIRMWARE_DIR}\fw_coptercontrol-${PACKAGE_LBL}.tlfw"
-  File "${PACKAGE_DIR}\${FIRMWARE_DIR}\fw_pipxtreme-${PACKAGE_LBL}.tlfw"
-  File "${PACKAGE_DIR}\${FIRMWARE_DIR}\fw_flyingf3-${PACKAGE_LBL}.tlfw"
-  File "${PACKAGE_DIR}\${FIRMWARE_DIR}\fw_quanton-${PACKAGE_LBL}.tlfw"
-  File "${PACKAGE_DIR}\${FIRMWARE_DIR}\fw_colibri-${PACKAGE_LBL}.tlfw"
-  File "${PACKAGE_DIR}\${FIRMWARE_DIR}\fw_sparky-${PACKAGE_LBL}.tlfw"
-  File "${PACKAGE_DIR}\${FIRMWARE_DIR}\fw_sparky2-${PACKAGE_LBL}.tlfw"
-  File "${PACKAGE_DIR}\${FIRMWARE_DIR}\fw_revomini-${PACKAGE_LBL}.tlfw"
-  File "${PACKAGE_DIR}\${FIRMWARE_DIR}\fw_naze32-${PACKAGE_LBL}.tlfw"
-  File "${PACKAGE_DIR}\${FIRMWARE_DIR}\fw_aq32-${PACKAGE_LBL}.tlfw"
-  File "${PACKAGE_DIR}\${FIRMWARE_DIR}\fw_brain-${PACKAGE_LBL}.tlfw"
+  File "${PACKAGE_DIR}\${FIRMWARE_DIR}\*.*"
 SectionEnd
 
 ; Copy utility files

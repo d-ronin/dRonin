@@ -30,10 +30,7 @@ else
 PACKAGE_LBL  := $(shell $(VERSION_CMD) --format=\$${DATE}-\$${TAG_OR_HASH8}\$${DIRTY})
 endif
 PACKAGE_DIR  := $(BUILD_DIR)/package-$(PACKAGE_LBL)
-FW_DIR       := $(PACKAGE_DIR)/firmware-$(PACKAGE_LBL)
 ML_DIR	     := $(PACKAGE_DIR)/matlab-$(PACKAGE_LBL)
-BL_DIR       := $(FW_DIR)/bootloaders
-BU_DIR       := $(FW_DIR)/bootloader-updaters
 
 MACHINE_TYPE := $(shell uname -m)
 ifeq ($(MACHINE_TYPE), x86_64)
@@ -59,20 +56,6 @@ CLEAN_FLIGHT := YES
 endif
 
 USE_MSVC ?= NO
-
-# Set up targets
-ALL_BOARDS        := coptercontrol pipxtreme revomini sparky sparky2 quanton colibri flyingf3 aq32 naze32 brain
-ALL_BOARDS_BU     := coptercontrol pipxtreme revomini sparky sparky2 quanton colibri flyingf3 aq32 brain
-
-FW_BOARDS  := $(ALL_BOARDS)
-BL_BOARDS  := $(filter-out naze32, $(ALL_BOARDS))
-BU_BOARDS  := $(ALL_BOARDS_BU)
-EF_BOARDS  := $(filter-out naze32, $(ALL_BOARDS))
-
-FW_TARGETS        := $(addprefix fw_, $(FW_BOARDS))
-FW_TARGETS_TOOLS  := $(addprefix fw_, $(FW_BOARDS))
-BL_TARGETS        := $(addprefix bl_, $(BL_BOARDS))
-BU_TARGETS        := $(addprefix bu_, $(BU_BOARDS))
 
 GCS_PACKAGE_NAME:= dronin_$(PLATFORM)_$(PLATFORM_NAME)-$(PACKAGE_LBL)
 GCS_PACKAGE_ROOT := $(GCS_PACKAGE_NAME)
@@ -136,39 +119,24 @@ endif
 .PHONY: $(1)
 endef
 
-# Firmware
-$(eval $(call INSTALL_TEMPLATE,all_fw,uavobjects,$(FW_DIR),,$(PACKAGE_LBL),,,$(FW_TARGETS),install))
-
-# Bootloaders (change 'install' to 'bin' if you don't want to install bootloaders)
-$(eval $(call INSTALL_TEMPLATE,all_bl,uavobjects,$(BL_DIR),,$(PACKAGE_LBL),,,$(BL_TARGETS),install))
-
-# Bootloader updaters
-$(eval $(call INSTALL_TEMPLATE,all_bu,all_bl,$(BU_DIR),,$(PACKAGE_LBL),,,$(BU_TARGETS),install))
-
 # Order-only dependencies
-package_flight: | all_fw all_bu
-
 package_matlab: | matlab
 
 package_ground: | ground_package
 
 package_installer: | installer_package
 
-package_all: package_flight package_ground package_matlab
+package_all: package_ground package_matlab
 
 package_info:
 	$(shell $(VERSION_CMD) --uavodir=$(ROOT_DIR)/shared/uavobjectdefinition --template=$(ROOT_DIR)/make/templates/packageversioninfo.json --outfile=$(PACKAGE_DIR)/packageversioninfo.json)
 
 .PHONY: help uavobjects all_clean 
-.PHONY: package_ground package_flight package_matlab package_all package_installer package_info
+.PHONY: package_ground package_matlab package_all package_installer package_info
 
-# tlfw_resource must be generated before the ground package,
-# and it depends on flight firmware images
 ground_package: ground_package_os_specific
 	@echo $@ starting
 	$(V1)cd $(PACKAGE_DIR)/$(GCS_PACKAGE_ROOT) && find . \( -type f -o -type l \) -print > $(PACKAGE_DIR)/$(GCS_PACKAGE_ROOT)/filelist.lst
-
-tlfw_resource: | all_fw all_bu
 
 # Decide on a verbosity level based on the V= parameter
 export AT := @
@@ -186,30 +154,7 @@ ifneq ($(V),1)
 MAKEFLAGS += --no-print-directory
 endif
 
-# Platform-dependent stuff
-
-toprel = $(subst $(realpath $(ROOT_DIR))/,,$(abspath $(1)))
-TLFW_FILES := $(foreach fw_targ, $(FW_TARGETS), $(call toprel, $(BUILD_DIR)/$(fw_targ)/$(fw_targ).tlfw))
-TLFW_FILES += $(foreach bu_targ, $(BU_TARGETS), $(call toprel, $(BUILD_DIR)/$(bu_targ)/$(bu_targ).tlfw))
-TLFW_CONTENTS := \
-<!DOCTYPE RCC><RCC version="1.0"> \
- <qresource> \
-     $(foreach fw_file, $(TLFW_FILES), <file>$(fw_file)</file>) \
- </qresource> \
-</RCC>
-
-.PHONY: tlfw_resource
-tlfw_resource:
-	@echo Generating TLFW resource file $(call toprel, $(BUILD_DIR)/ground/$@)
-	$(V1) mkdir -p $(BUILD_DIR)/ground/$@
-	$(V1) mkdir -p $(BUILD_DIR)/ground/$@/build
-	$(V1) echo '$(TLFW_CONTENTS)' > $(BUILD_DIR)/ground/$@/tlfw_resource.qrc
-	$(V1) $(foreach fw_targ, $(FW_TARGETS), mkdir -p $(BUILD_DIR)/ground/$@/build/$(fw_targ);)
-	$(V1) $(foreach bu_targ, $(BU_TARGETS), mkdir -p $(BUILD_DIR)/ground/$@/build/$(bu_targ);)
-	$(V1) $(foreach fw_targ, $(FW_TARGETS), cp $(BUILD_DIR)/$(fw_targ)/$(fw_targ).tlfw $(BUILD_DIR)/ground/$@/build/$(fw_targ)/;)
-	$(V1) $(foreach bu_targ, $(BU_TARGETS), cp $(BUILD_DIR)/$(bu_targ)/$(bu_targ).tlfw $(BUILD_DIR)/ground/$@/build/$(bu_targ)/;)
-
-ground_package_common: | tlfw_resource standalone
+ground_package_common: | standalone
 	@echo $@ starting
 	$(V1) mkdir -p $(PACKAGE_DIR)/$(GCS_PACKAGE_NAME)/bin
 	$(V1) mkdir -p $(PACKAGE_DIR)/$(GCS_PACKAGE_NAME)/share

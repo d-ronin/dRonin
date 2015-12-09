@@ -221,16 +221,6 @@ $(eval $(call SIZE_TEMPLATE, $(OUTDIR)/$(TARGET).elf))
 docs:
 	doxygen  $(DOXYGENDIR)/doxygen.cfg
 
-# Install: install binary file with prefix/suffix into install directory
-install: $(OUTDIR)/$(TARGET).bin
-ifneq ($(INSTALL_DIR),)
-	@echo $(MSG_INSTALLING) $(call toprel, $<)
-	$(V1) mkdir -p $(INSTALL_DIR)
-	$(V1) $(INSTALL) $< $(INSTALL_DIR)/$(INSTALL_PFX)$(TARGET)$(INSTALL_SFX).bin
-else
-	$(error INSTALL_DIR must be specified for $@)
-endif
-
 # Create output files directory
 # all known MS Windows OS define the ComSpec environment variable
 ifdef ComSpec
@@ -245,6 +235,3 @@ ifdef ComSpec
 else
 -include $(shell mkdir -p $(OUTDIR) 2>/dev/null) $(shell mkdir $(OUTDIR)/dep 2>/dev/null) $(wildcard $(OUTDIR)/dep/*)
 endif
-
-# Listing of phony targets.
-.PHONY : install
