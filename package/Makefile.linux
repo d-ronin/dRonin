@@ -12,8 +12,6 @@ endef
 # package or not.  Otherwise, the user has to uninstall first.
 VERSION_FULL		:= $(PACKAGE_LBL)-1
 
-FLIGHT_FW			:= coptercontrol sparky sparky2 revomini pipxtreme quanton flyingf3 naze32 aq32
-
 DEB_BUILD_DIR		:= $(BUILD_DIR)/debian
 
 SED_AUTHOR_NAME		= $(shell git config user.name)
@@ -85,12 +83,11 @@ gcs: uavobjects
 
 package_ground_compress: package_ground
 	$(V1) tar -cvJf $(PACKAGE_DIR)/$(GCS_PACKAGE_NAME).tar.xz -C $(PACKAGE_DIR) $(GCS_PACKAGE_NAME)
-package_flight_compress: package_flight
-	$(V1) tar -cvJf $(PACKAGE_DIR)/firmware-$(PACKAGE_LBL).tar.xz -C $(FW_DIR) .
+
 package_matlab_compress: package_matlab
 	$(V1) tar -cvJf $(PACKAGE_DIR)/matlab-$(PACKAGE_LBL).tar.xz -C $(ML_DIR) .
 package_all_compress: package_all
 	$(V1) tar -cvJf $(BUILD_DIR)/$(PACKAGE_LBL).tar.xz --exclude='*.tar.xz' -C $(PACKAGE_DIR) .
 
 .PHONY: standalone installer_package deb_build $(DEB_BUILD_DIR) gcs
-.PHONY: package_ground_compress package_flight_compress package_matlab_compress
+.PHONY: package_ground_compress package_matlab_compress
