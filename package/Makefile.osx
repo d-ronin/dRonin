@@ -12,7 +12,7 @@ VOL_NAME="dRonin"
 GCS_PACKAGE_ROOT := $(GCS_PACKAGE_NAME)/$(APP_NAME_OSX)
 
 # calls macdeployqt and bundles the extra libraries into .app
-standalone: gcs
+standalone: 
 	"${ROOT_DIR}/package/osx/libraries" ${APP_PATH}/${APP_NAME_OSX}
 
 # puts the files into a dmg
@@ -24,9 +24,6 @@ dmg: standalone package_matlab
 	PACKAGE_DIR="$(PACKAGE_DIR)" \
 	FW_DIR="$(FW_DIR)" \
 	"$(ROOT_DIR)/package/osx/package"
-
-gcs: uavobjects
-	$(V1) $(MAKE) -C $(ROOT_DIR) GCS_BUILD_CONF=release $@
 
 installer_package: | dmg
 
@@ -44,5 +41,5 @@ package_matlab_compress: package_matlab
 package_all_compress: package_all
 	$(V1)cd $(PACKAGE_DIR)/../ && $(ZIP_DIR)/zip.exe -r --exclude=*.zip $(BUILD_DIR)/$(PACKAGE_LBL) $(PACKAGE_DIR)
 
-.PHONY: standalone installer_package  gcs
+.PHONY: standalone installer_package
 .PHONY: package_ground_compress package_matlab_compress

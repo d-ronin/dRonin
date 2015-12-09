@@ -207,12 +207,8 @@ help:
 	@echo
 	@echo "   [Packaging]"
 	@echo "     package_flight       - Build and package the dRonin flight firmware only"
-	@echo "     package_ground       - Build and package the dRonin ground software only"
-	@echo "     package_matlab       - Build and package the dRonin matlab script only"
-	@echo "     package_all          - Build and package all dRonin firmware and software"
+	@echo "     package_all_compress - Build and package all dRonin firmware and software"
 	@echo "     package_installer    - Builds a Tau Labs software installer"
-	@echo "     package_info         - Creates a file with the package information"
-	@echo "     package_XXXX_compress - Same as the targets above but compresses the package"	
 	@echo
 	@echo "   Notes:"
 	@echo "     - packages will be placed in $(PACKAGE_DIR)"
@@ -554,6 +550,7 @@ export OPUAVTALK     := $(ROOT_DIR)/flight/UAVTalk
 export DOXYGENDIR    := $(ROOT_DIR)/Doxygen
 export SHAREDAPIDIR  := $(ROOT_DIR)/shared/api
 export OPUAVSYNTHDIR := $(BUILD_DIR)/uavobject-synthetics/flight
+export FLIGHTPKGNAME := $(BUILD_DIR)/flight-$(GITVERSION).zip
 
 # $(1) = Canonical board name all in lower case (e.g. coptercontrol)
 # $(2) = Unused
@@ -1004,20 +1001,15 @@ endif
 # Packaging components
 #
 ##############################
-PACKAGE_TARGETS = package_ground package_installer package_matlab package_all standalone package_info
-PACKAGE_TARGETS += package_ground_compress package_matlab_compress package_all_compress
+PACKAGE_TARGETS = package_installer package_all_compress
 .PHONY: $(PACKAGE_TARGETS)
 $(PACKAGE_TARGETS):
 	$(V1) cd package && $(MAKE) --no-print-directory $@
 	
-.PHONY: package_resources
-package_resources:
-	$(V1) cd package && $(MAKE) --no-print-directory tlfw_resource
-
 .PHONY: package_flight
 package_flight: $(BUILD_DIR)/flight-$(GITVERSION).zip
 
-$(BUILD_DIR)/flight-$(GITVERSION).zip: all_flight
+$(FLIGHTPKGNAME): all_flight
 	zip -j $@ $(FW_FILES) $^
 
 ##############################
