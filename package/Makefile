@@ -1,12 +1,6 @@
 # Set up a default goal
 .DEFAULT_GOAL := help
 
-# Tried the best to support parallel (-j) builds. But since this Makefile
-# uses other Makefiles to build few targets which in turn have similar
-# dependencies on uavobjects and other generated files, it is difficult
-# to support parallel builds perfectly. But at least it was tested with
-# -j (unlimited job number) on Windows and Linux.
-
 # Locate the root of the tree
 WHEREAMI := $(dir $(lastword $(MAKEFILE_LIST)))
 ROOT_DIR := $(realpath $(WHEREAMI)/../)
@@ -68,56 +62,16 @@ help:
 	@echo "   Here is a summary of the available targets:"
 	@echo
 	@echo "   [Packaging]"
-	@echo "     package_flight 			- Build and package the Tau Labs flight firmware only"
-	@echo "     package_ground 			- Build and package the Tau Labs ground software only"
-	@echo "     package_matlab 			- Build and package the Tau Labs matlab script only"
-	@echo "     package_all    			- Build and package all Tau Labs firmware and software"
 	@echo "     package_installer		- Builds a Tau Labs software installer"
-	@echo "     package_info    		- Creates a file with the package information"
-	@echo "     package_XXXX_compress   - Same as the targets above but compresses the package"	
+	@echo "     package_all_compress   - Same as the targets above but compresses the package"	
 	@echo
 	@echo "   Notes:"
 	@echo "     - packages will be placed in $(PACKAGE_DIR)"
 	@echo
-	@echo "     - the build directory will be removed first on every run unless"
-	@echo "       CLEAN_BUILD=NO is defined. It means no clean before build."
-	@echo "       This usually is safe."
-	@echo
 
-# Clean and build uavobjects since all parts depend on them
-uavobjects:
-	$(V1) $(MAKE) -C $(ROOT_DIR) $@
-
-matlab: uavobjects
-	$(V1) $(MAKE) -C $(ROOT_DIR) $@
+matlab: 
 	$(V1)mkdir -p $(ML_DIR)
-	$(V1)mv $(BUILD_DIR)/matlab/*.* $(ML_DIR)
-	$(V1)rm -rf $(BUILD_DIR)/matlab
-all_clean:
-ifneq ($(CLEAN_GROUND), NO)
-	$(V1) $(MAKE) -C $(ROOT_DIR) $@
-endif
-
-# Install template:
-#   $1 = target
-#   $2 = dependencies
-#   $3 = install directory (must be defined)
-#   $4 = installed file name prefix (optional)
-#   $5 = installed file name suffix (optional)
-#   $6 = extra make options (for instance, USE_SPEKTRUM=YES)
-#   $7 = optional 'clean' string to clean target before rebuild
-#   $8 = list of targets to install (without _install suffix)
-#   $9 = inner make target (usually install, but can be other to just build)
-define INSTALL_TEMPLATE
-$(1): $(2)
-ifeq ($(7),clean)
-ifneq ($$(CLEAN_FLIGHT), NO)
-	$$(V1) +$(MAKE) -C $(ROOT_DIR) $(6) $(addsuffix _$(7), $(8))
-endif
-endif
-	$$(V1) +$(MAKE) -C $(ROOT_DIR) INSTALL_DIR=$(3) INSTALL_PFX=$(4) INSTALL_SFX=_$(5) $(6) $(addsuffix _$(9), $(8))
-.PHONY: $(1)
-endef
+	$(V1)cp -rp $(BUILD_DIR)/matlab/*.* $(ML_DIR)
 
 # Order-only dependencies
 package_matlab: | matlab
@@ -131,7 +85,7 @@ package_all: package_ground package_matlab
 package_info:
 	$(shell $(VERSION_CMD) --uavodir=$(ROOT_DIR)/shared/uavobjectdefinition --template=$(ROOT_DIR)/make/templates/packageversioninfo.json --outfile=$(PACKAGE_DIR)/packageversioninfo.json)
 
-.PHONY: help uavobjects all_clean 
+.PHONY: help uavobjects
 .PHONY: package_ground package_matlab package_all package_installer package_info
 
 ground_package: ground_package_os_specific
@@ -148,10 +102,6 @@ else ifeq ($(V), 0)
 export V0    := $(AT)
 export V1    := $(AT)
 else ifeq ($(V), 1)
-endif
-
-ifneq ($(V),1)
-MAKEFLAGS += --no-print-directory
 endif
 
 ground_package_common: | standalone
