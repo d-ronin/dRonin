@@ -89,7 +89,7 @@ Rectangle {
                 }
 
                 WelcomePageButton {
-                    baseIconName: "hitl"
+                    baseIconName: "advanced"
                     label: "Advanced"
                     onClicked: welcomePlugin.openPage("Advanced")
                 }
