@@ -13,7 +13,7 @@ standalone:
 	$(V1) windeployqt -printsupport -concurrent -gui -opengl -xml -quick -quickwidgets -test -script -sql -serialport -multimedia -multimediawidgets --list relative --qmldir $(ROOT_DIR)/build/ground/gcs/share/welcome $(ROOT_DIR)/build/ground/gcs/bin/drgcs.exe 
 	$(V1) windeployqt -printsupport -concurrent -gui -opengl -xml -quick -quickwidgets -test -script -sql -serialport -multimedia -multimediawidgets --qmldir $(ROOT_DIR)/build/ground/gcs/share/welcome $(ROOT_DIR)/build/ground/gcs/bin/drgcs.exe 
 
-installer_package: standalone package_matlab
+installer_package: standalone package_matlab extract_firmware
 	$(V1) mkdir -p "$(dir $(NSIS_HEADER))"
 	$(VERSION_CMD) --template="$(NSIS_TEMPLATE)" --outfile="$(NSIS_HEADER)" PACKAGE_LBL="$(PACKAGE_LBL)"
 	$(V1) echo "Building Windows installer, please wait..."

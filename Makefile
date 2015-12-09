@@ -997,11 +997,11 @@ endif
 ##############################
 PACKAGE_TARGETS = package_installer package_all_compress
 .PHONY: $(PACKAGE_TARGETS)
-$(PACKAGE_TARGETS):
+$(PACKAGE_TARGETS): 
 	$(V1) cd package && $(MAKE) --no-print-directory $@
 	
 .PHONY: package_flight
-package_flight: $(BUILD_DIR)/flight-$(GITVERSION).zip
+package_flight: $(FLIGHTPKGNAME)
 
 $(FLIGHTPKGNAME): all_flight
 	zip -j $@ $(FW_FILES) $^
