@@ -2,7 +2,10 @@ Governance
 ==========
 On 8th December 2015, 17 members of the active community voted to elect the first dRonin Executive Committee.
 
-Those voted in were: hshred, icee, tracernz.
+Those voted in were: 
+* Martin Luessi (hshred)
+* Michael Lyle (icee)
+* Michael Corcoran (tracernz)
 
 They will now serve the project for a 6 month period.
 
