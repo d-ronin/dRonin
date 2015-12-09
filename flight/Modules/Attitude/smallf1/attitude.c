@@ -80,7 +80,6 @@ static void updateAttitude(AccelsData *, GyrosData *);
 static void settingsUpdatedCb(UAVObjEvent * objEv, void *ctx, void *obj, int len);
 static void update_accels(struct pios_sensor_accel_data *accels, AccelsData * accelsData);
 static void update_gyros(struct pios_sensor_gyro_data *gyros, GyrosData * gyrosData);
-static void updateTemperatureComp(float temperature, float *temp_bias);
 
 //! Compute the mean gyro accumulated and assign the bias
 static void accumulate_gyro_compute();
@@ -344,22 +343,10 @@ static void update_accels(struct pios_sensor_accel_data *accels, AccelsData * ac
  */
 static void update_gyros(struct pios_sensor_gyro_data *gyros, GyrosData * gyrosData)
 {
-	static float gyro_temp_bias[3] = {0,0,0};
-
 	// Scale the gyros
 	float gyros_out[3] = {gyros->x * sensorSettings.GyroScale[0],
 	                      gyros->y * sensorSettings.GyroScale[1],
 	                      gyros->z * sensorSettings.GyroScale[2]};
-
-	// Update the bias due to the temperature
-	updateTemperatureComp(gyrosData->temperature, gyro_temp_bias);
-
-	// Apply temperature bias correction before the rotation
-	if (bias_correct_gyro) {
-		gyros_out[0] -= gyro_temp_bias[0];
-		gyros_out[1] -= gyro_temp_bias[1];
-		gyros_out[2] -= gyro_temp_bias[2];
-	}
 
 	// When computing the bias accumulate samples
 	accumulate_gyro(gyros_out);
@@ -557,47 +544,6 @@ static void updateAttitude(AccelsData * accelsData, GyrosData * gyrosData)
 	Quaternion2RPY(&attitudeActual.q1,&attitudeActual.Roll);
 	
 	AttitudeActualSet(&attitudeActual);
-}
-
-/**
- * Compute the bias expected from temperature variation for each gyro
- * channel
- */
-static void updateTemperatureComp(float temperature, float *temp_bias)
-{
-	static int temp_counter = 0;
-	static float temp_accum = 0;
-
-	static const float TEMP_MIN = -10;
-	static const float TEMP_MAX = 60;
-
-	if (temperature < TEMP_MIN)
-		temperature = TEMP_MIN;
-	if (temperature > TEMP_MAX)
-		temperature = TEMP_MAX;
-
-	if (temp_counter < 500) {
-		temp_accum += temperature;
-		temp_counter ++;
-	} else {
-		float t = temp_accum / temp_counter;
-		temp_accum = 0;
-		temp_counter = 0;
-
-		// Compute a third order polynomial for each chanel after each 500 samples
-		temp_bias[0] = sensorSettings.XGyroTempCoeff[0] + 
-		               sensorSettings.XGyroTempCoeff[1] * t + 
-		               sensorSettings.XGyroTempCoeff[2] * powf(t,2) + 
-		               sensorSettings.XGyroTempCoeff[3] * powf(t,3);
-		temp_bias[1] = sensorSettings.YGyroTempCoeff[0] + 
-		               sensorSettings.YGyroTempCoeff[1] * t + 
-		               sensorSettings.YGyroTempCoeff[2] * powf(t,2) + 
-		               sensorSettings.YGyroTempCoeff[3] * powf(t,3);
-		temp_bias[2] = sensorSettings.ZGyroTempCoeff[0] + 
-		               sensorSettings.ZGyroTempCoeff[1] * t + 
-		               sensorSettings.ZGyroTempCoeff[2] * powf(t,2) + 
-		               sensorSettings.ZGyroTempCoeff[3] * powf(t,3);
-	}
 }
 
 static void settingsUpdatedCb(UAVObjEvent * objEv, void *ctx, void *obj, int len) {

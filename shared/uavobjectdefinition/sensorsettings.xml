@@ -4,9 +4,6 @@
         <field name="AccelBias" units="m/s^2" type="float" elementnames="X,Y,Z" defaultvalue="0"/>
         <field name="AccelScale" units="[-]" type="float" elementnames="X,Y,Z" defaultvalue="1"/>
         <field name="GyroScale" units="-" type="float" elementnames="X,Y,Z" defaultvalue="1"/>
-        <field name="XGyroTempCoeff" units="(deg/s)/deg" type="float" elementnames="1,T,T2,T3" defaultvalue="0"/>
-        <field name="YGyroTempCoeff" units="(deg/s)/deg" type="float" elementnames="1,T,T2,T3" defaultvalue="0"/>
-        <field name="ZGyroTempCoeff" units="(deg/s)/deg" type="float" elementnames="1,T,T2,T3" defaultvalue="0"/>
         <field name="MagBias" units="mGau" type="float" elementnames="X,Y,Z" defaultvalue="0,0,0"/>
         <field name="MagScale" units="gain" type="float" elementnames="X,Y,Z" defaultvalue="1"/>
         <field name="ZAccelOffset" units="m/s^2" type="float" elements="1" defaultvalue="0"/>

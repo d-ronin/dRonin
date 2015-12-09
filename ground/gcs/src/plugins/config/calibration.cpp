@@ -378,23 +378,6 @@ void Calibration::dataUpdated(UAVObject * obj) {
             }
         }
         break;
-    case GYRO_TEMP_CAL:
-        if (storeTempCalMeasurement(obj)) {
-            // Disconnect and reset data and metadata
-            connectSensor(GYRO, false);
-            resetSensorCalibrationToOriginalValues();
-            setMetadata(originalMetaData);
-
-            calibration_state = IDLE;
-            emit toggleControls(true);
-
-            int ret = computeTempCal();
-            if (ret == CALIBRATION_SUCCESS) {
-                emit showTempCalMessage(tr("Temperature compensation calibration succeeded"));
-            } else {
-                emit showTempCalMessage(tr("Temperature compensation calibration succeeded"));
-            }
-        }
     }
 
 }
@@ -449,12 +432,6 @@ void Calibration::timeout()
         calibration_state = IDLE;
         emit showSixPointMessage(tr("Six point data collection timed out"));
         emit sixPointProgressChanged(0);
-        break;
-    case GYRO_TEMP_CAL:
-        connectSensor(GYRO, false);
-        calibration_state = IDLE;
-        emit showTempCalMessage(tr("Temperature calibration timed out"));
-        emit tempCalProgressChanged(0);
         break;
     }
 
@@ -519,7 +496,6 @@ void Calibration::doStartLeveling() {
     gyro_accum_x.clear();
     gyro_accum_y.clear();
     gyro_accum_z.clear();
-    gyro_accum_temp.clear();
 
     // Disable gyro bias correction to see raw data
     AttitudeSettings *attitudeSettings = AttitudeSettings::GetInstance(getObjectManager());
@@ -718,112 +694,6 @@ void Calibration::doSaveSixPointPosition()
 }
 
 /**
- * Start collecting gyro calibration data
- */
-void Calibration::doStartTempCal()
-{
-    gyro_accum_x.clear();
-    gyro_accum_y.clear();
-    gyro_accum_z.clear();
-    gyro_accum_temp.clear();
-
-    // Disable gyro sensor bias correction to see raw data
-    AttitudeSettings *attitudeSettings = AttitudeSettings::GetInstance(getObjectManager());
-    Q_ASSERT(attitudeSettings);
-    AttitudeSettings::DataFields attitudeSettingsData = attitudeSettings->getData();
-    attitudeSettingsData.BiasCorrectGyro = AttitudeSettings::BIASCORRECTGYRO_FALSE;
-
-    attitudeSettings->setData(attitudeSettingsData);
-    attitudeSettings->updated();
-
-    // compute board rotation matrix
-    double rpy[3] = { attitudeSettingsData.BoardRotation[AttitudeSettings::BOARDROTATION_ROLL] * DEG2RAD / 100.0,
-                      attitudeSettingsData.BoardRotation[AttitudeSettings::BOARDROTATION_PITCH] * DEG2RAD / 100.0,
-                      attitudeSettingsData.BoardRotation[AttitudeSettings::BOARDROTATION_YAW] * DEG2RAD / 100.0};
-    Euler2R(rpy, boardRotationMatrix);
-
-    calibration_state = GYRO_TEMP_CAL;
-
-    // Set up the data rates
-    slowDataUpdates();
-    connectSensor(GYRO, true);
-
-    emit toggleControls(false);
-    emit showTempCalMessage(tr("Leave board flat and very still while it changes temperature"));
-    emit tempCalProgressChanged(0);
-
-    // Set up timeout timer
-    timer.setSingleShot(true);
-    timer.start(1800000);
-    connect(&timer,SIGNAL(timeout()),this,SLOT(timeout()));
-}
-
-/**
- * @brief Calibration::doCancelTempCalPoint Abort the temperature calibration
- */
-void Calibration::doAcceptTempCal()
-{
-    if (calibration_state == GYRO_TEMP_CAL) {
-        qDebug() << "Accepting";
-        // Disconnect sensor and reset UAVO update rates
-        connectSensor(GYRO, false);
-        setMetadata(originalMetaData);
-
-        calibration_state = IDLE;
-        emit showTempCalMessage(tr("Temperature calibration accepted"));
-        emit tempCalProgressChanged(0);
-        emit toggleControls(true);
-
-        timer.stop();
-        disconnect(&timer,SIGNAL(timeout()),this,SLOT(timeout()));
-
-        computeTempCal();
-    }
-}
-
-/**
- * @brief Calibration::doCancelTempCalPoint Abort the temperature calibration
- */
-void Calibration::doCancelTempCalPoint()
-{
-    if (calibration_state == GYRO_TEMP_CAL) {
-        qDebug() << "Canceling";
-        // Disconnect sensor and reset UAVO update rates
-        connectSensor(GYRO, false);
-        setMetadata(originalMetaData);
-
-        // Reenable gyro bias correction
-        AttitudeSettings *attitudeSettings = AttitudeSettings::GetInstance(getObjectManager());
-        Q_ASSERT(attitudeSettings);
-        AttitudeSettings::DataFields attitudeSettingsData = attitudeSettings->getData();
-        attitudeSettings->setData(attitudeSettingsData);
-        attitudeSettings->updated();
-        Thread::usleep(100000); // Sleep 100ms to make sure the new settings values are sent
-
-        // Reset all sensor values
-        resetSensorCalibrationToOriginalValues();
-
-        calibration_state = IDLE;
-        emit showTempCalMessage(tr("Temperature calibration timed out"));
-        emit tempCalProgressChanged(0);
-        emit toggleControls(true);
-
-        timer.stop();
-        disconnect(&timer,SIGNAL(timeout()),this,SLOT(timeout()));
-    }
-}
-
-/**
- * @brief Calibration::setTempCalRange Set the range for calibration
- * @param r The number of degrees that must be spanned for calibration
- * to terminate
- */
-void Calibration::setTempCalRange(int r)
-{
-    MIN_TEMPERATURE_RANGE = r;
-}
-
-/**
  * @brief Calibration::storeYawOrientationMeasurement Store an accelerometer
  * measurement.
  * @return true if enough data is collected
@@ -902,7 +772,6 @@ bool Calibration::storeLevelingMeasurement(UAVObject *obj) {
         gyro_accum_x.append(gyrosData.x);
         gyro_accum_y.append(gyrosData.y);
         gyro_accum_z.append(gyrosData.z);
-        gyro_accum_temp.append(gyrosData.temperature);
     }
 
     // update the progress indicator
@@ -916,7 +785,6 @@ bool Calibration::storeLevelingMeasurement(UAVObject *obj) {
         float x_gyro_bias = listMean(gyro_accum_x);
         float y_gyro_bias = listMean(gyro_accum_y);
         float z_gyro_bias = listMean(gyro_accum_z);
-        float temp = listMean(gyro_accum_temp);
 
         // Get the existing attitude settings
         AttitudeSettings::DataFields attitudeSettingsData = AttitudeSettings::GetInstance(getObjectManager())->getData();
@@ -967,19 +835,6 @@ bool Calibration::storeLevelingMeasurement(UAVObject *obj) {
         double gyro_body[3] = {x_gyro_bias, y_gyro_bias, z_gyro_bias};
         rotate_vector(Rsb, gyro_body, gyro_sensor, false);
 
-        // Store these new biases, accounting for any temperature coefficients
-        sensorSettingsData.XGyroTempCoeff[0] = gyro_sensor[0] -
-                temp * sensorSettingsData.XGyroTempCoeff[1] -
-                pow(temp,2) * sensorSettingsData.XGyroTempCoeff[2] -
-                pow(temp,3) * sensorSettingsData.XGyroTempCoeff[3];
-        sensorSettingsData.YGyroTempCoeff[0] = gyro_sensor[1] -
-                temp * sensorSettingsData.YGyroTempCoeff[1] -
-                pow(temp,2) * sensorSettingsData.YGyroTempCoeff[2] -
-                pow(temp,3) * sensorSettingsData.YGyroTempCoeff[3];
-        sensorSettingsData.ZGyroTempCoeff[0] = gyro_sensor[2] -
-                temp * sensorSettingsData.ZGyroTempCoeff[1] -
-                pow(temp,2) * sensorSettingsData.ZGyroTempCoeff[2] -
-                pow(temp,3) * sensorSettingsData.ZGyroTempCoeff[3];
         SensorSettings::GetInstance(getObjectManager())->setData(sensorSettingsData);
 
         // We offset the gyro bias by current bias to help precision
@@ -1100,194 +955,6 @@ void Calibration::configureTempCurves(TempCompCurve *x,
     xCurve = x;
     yCurve = y;
     zCurve = z;
-}
-
-/**
-  * Grab a sample of gyro data with the temperautre
-  * @return true If enough data is averaged at this position
-  */
-bool Calibration::storeTempCalMeasurement(UAVObject * obj)
-{
-    if (obj->getObjID() == Gyros::OBJID) {
-        Gyros *gyros = Gyros::GetInstance(getObjectManager());
-        Q_ASSERT(gyros);
-        Gyros::DataFields gyrosData = gyros->getData();
-        double gyros_body[3] = {gyrosData.x, gyrosData.y, gyrosData.z};
-        double gyros_sensor[3];
-        rotate_vector(boardRotationMatrix, gyros_body, gyros_sensor, false);
-        gyro_accum_x.append(gyros_sensor[0]);
-        gyro_accum_y.append(gyros_sensor[1]);
-        gyro_accum_z.append(gyros_sensor[2]);
-        gyro_accum_temp.append(gyrosData.temperature);
-    }
-
-    double range = listMax(gyro_accum_temp) - listMin(gyro_accum_temp);
-    emit tempCalProgressChanged((float) range / MIN_TEMPERATURE_RANGE * 100);
-
-    if ((gyro_accum_temp.size() % 10) == 0) {
-        updateTempCompCalibrationDisplay();
-    }
-
-    // If enough data is collected, average it for this position
-    if(range >= MIN_TEMPERATURE_RANGE) {
-        return true;
-    }
-
-    return false;
-}
-
-/**
- * @brief Calibration::updateTempCompCalibrationDisplay
- */
-void Calibration::updateTempCompCalibrationDisplay()
-{
-    unsigned int n_samples = gyro_accum_temp.size();
-
-    // Construct the matrix of temperature.
-    Eigen::Matrix<double, Eigen::Dynamic, 4> X(n_samples, 4);
-
-    // And the matrix of gyro samples.
-    Eigen::Matrix<double, Eigen::Dynamic, 3> Y(n_samples, 3);
-
-    for (unsigned i = 0; i < n_samples; ++i) {
-        X(i,0) = 1;
-        X(i,1) = gyro_accum_temp[i];
-        X(i,2) = pow(gyro_accum_temp[i],2);
-        X(i,3) = pow(gyro_accum_temp[i],3);
-        Y(i,0) = gyro_accum_x[i];
-        Y(i,1) = gyro_accum_y[i];
-        Y(i,2) = gyro_accum_z[i];
-    }
-
-    // Solve Y = X * B
-
-    Eigen::Matrix<double, 4, 3> result;
-    // Use the cholesky-based Penrose pseudoinverse method.
-    (X.transpose() * X).ldlt().solve(X.transpose()*Y, &result);
-
-    QList<double> xCoeffs, yCoeffs, zCoeffs;
-    xCoeffs.clear();
-    xCoeffs.append(result(0,0));
-    xCoeffs.append(result(1,0));
-    xCoeffs.append(result(2,0));
-    xCoeffs.append(result(3,0));
-    yCoeffs.clear();
-    yCoeffs.append(result(0,1));
-    yCoeffs.append(result(1,1));
-    yCoeffs.append(result(2,1));
-    yCoeffs.append(result(3,1));
-    zCoeffs.clear();
-    zCoeffs.append(result(0,2));
-    zCoeffs.append(result(1,2));
-    zCoeffs.append(result(2,2));
-    zCoeffs.append(result(3,2));
-
-    if (xCurve != NULL)
-        xCurve->plotData(gyro_accum_temp, gyro_accum_x, xCoeffs);
-    if (yCurve != NULL)
-        yCurve->plotData(gyro_accum_temp, gyro_accum_y, yCoeffs);
-    if (zCurve != NULL)
-        zCurve->plotData(gyro_accum_temp, gyro_accum_z, zCoeffs);
-
-}
-
-/**
- * @brief Calibration::tempCalProgressChanged Compute a polynominal fit to all
- * of the temperature data and each gyro channel
- * @return
- */
-int Calibration::computeTempCal()
-{
-    timer.stop();
-    disconnect(&timer,SIGNAL(timeout()),this,SLOT(timeout()));
-
-    // Reenable gyro bias correction
-    AttitudeSettings *attitudeSettings = AttitudeSettings::GetInstance(getObjectManager());
-    Q_ASSERT(attitudeSettings);
-    AttitudeSettings::DataFields attitudeSettingsData = attitudeSettings->getData();
-    attitudeSettingsData.BiasCorrectGyro = AttitudeSettings::BIASCORRECTGYRO_TRUE;
-    attitudeSettings->setData(attitudeSettingsData);
-    attitudeSettings->updated();
-
-    unsigned int n_samples = gyro_accum_temp.size();
-
-    // Construct the matrix of temperature.
-    Eigen::Matrix<double, Eigen::Dynamic, 4> X(n_samples, 4);
-
-    // And the matrix of gyro samples.
-    Eigen::Matrix<double, Eigen::Dynamic, 3> Y(n_samples, 3);
-
-    for (unsigned i = 0; i < n_samples; ++i) {
-        X(i,0) = 1;
-        X(i,1) = gyro_accum_temp[i];
-        X(i,2) = pow(gyro_accum_temp[i],2);
-        X(i,3) = pow(gyro_accum_temp[i],3);
-        Y(i,0) = gyro_accum_x[i];
-        Y(i,1) = gyro_accum_y[i];
-        Y(i,2) = gyro_accum_z[i];
-    }
-
-    // Solve Y = X * B
-
-    Eigen::Matrix<double, 4, 3> result;
-    // Use the cholesky-based Penrose pseudoinverse method.
-    (X.transpose() * X).ldlt().solve(X.transpose()*Y, &result);
-
-    //qDebug() << "Solution" << result;
-    qDebug() << "Solution: ";
-    qDebug() << "[" << result(0,0) << " " << result(0,1) << " " << result(0,2) << "]";
-    qDebug() << "[" << result(1,0) << " " << result(1,1) << " " << result(1,2) << "]";
-    qDebug() << "[" << result(2,0) << " " << result(2,1) << " " << result(2,2) << "]";
-    qDebug() << "[" << result(3,0) << " " << result(3,1) << " " << result(3,2) << "]";
-
-    // Store the results
-    SensorSettings * sensorSettings = SensorSettings::GetInstance(getObjectManager());
-    Q_ASSERT(sensorSettings);
-    SensorSettings::DataFields sensorSettingsData = sensorSettings->getData();
-    sensorSettingsData.XGyroTempCoeff[0] = result(0,0);
-    sensorSettingsData.XGyroTempCoeff[1] = result(1,0);
-    sensorSettingsData.XGyroTempCoeff[2] = result(2,0);
-    sensorSettingsData.XGyroTempCoeff[3] = result(3,0);
-    sensorSettingsData.YGyroTempCoeff[0] = result(0,1);
-    sensorSettingsData.YGyroTempCoeff[1] = result(1,1);
-    sensorSettingsData.YGyroTempCoeff[2] = result(2,1);
-    sensorSettingsData.YGyroTempCoeff[3] = result(3,1);
-    sensorSettingsData.ZGyroTempCoeff[0] = result(0,2);
-    sensorSettingsData.ZGyroTempCoeff[1] = result(1,2);
-    sensorSettingsData.ZGyroTempCoeff[2] = result(2,2);
-    sensorSettingsData.ZGyroTempCoeff[3] = result(3,2);
-    sensorSettings->setData(sensorSettingsData);
-
-    QList<double> xCoeffs, yCoeffs, zCoeffs;
-    xCoeffs.clear();
-    xCoeffs.append(result(0,0));
-    xCoeffs.append(result(1,0));
-    xCoeffs.append(result(2,0));
-    xCoeffs.append(result(3,0));
-    yCoeffs.clear();
-    yCoeffs.append(result(0,1));
-    yCoeffs.append(result(1,1));
-    yCoeffs.append(result(2,1));
-    yCoeffs.append(result(3,1));
-    zCoeffs.clear();
-    zCoeffs.append(result(0,2));
-    zCoeffs.append(result(1,2));
-    zCoeffs.append(result(2,2));
-    zCoeffs.append(result(3,2));
-
-    if (xCurve != NULL)
-        xCurve->plotData(gyro_accum_temp, gyro_accum_x, xCoeffs);
-    if (yCurve != NULL)
-        yCurve->plotData(gyro_accum_temp, gyro_accum_y, yCoeffs);
-    if (zCurve != NULL)
-        zCurve->plotData(gyro_accum_temp, gyro_accum_z, zCoeffs);
-
-    emit tempCalProgressChanged(0);
-
-    // Inform the system that the calibration process has completed
-    emit calibrationCompleted();
-
-    return CALIBRATION_SUCCESS;
 }
 
 /**

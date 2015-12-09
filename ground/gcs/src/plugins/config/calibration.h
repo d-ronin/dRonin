@@ -62,8 +62,7 @@ private:
         SIX_POINT_WAIT3, SIX_POINT_COLLECT3,
         SIX_POINT_WAIT4, SIX_POINT_COLLECT4,
         SIX_POINT_WAIT5, SIX_POINT_COLLECT5,
-        SIX_POINT_WAIT6, SIX_POINT_COLLECT6,
-        GYRO_TEMP_CAL
+        SIX_POINT_WAIT6, SIX_POINT_COLLECT6
     } calibration_state;
 
 public slots:
@@ -85,15 +84,6 @@ public slots:
     //! Indicates UAV is in a position to collect data during 6pt calibration
     void doSaveSixPointPosition();
 
-    //! Start collecting gyro temp calibration data
-    void doStartTempCal();
-
-    //! Accept gyro temp calibration data
-    void doAcceptTempCal();
-
-    //! Cancels the temperature calibration routine
-    void doCancelTempCalPoint();
-
     //! Set up the curves
     void configureTempCurves(TempCompCurve *x, TempCompCurve *y, TempCompCurve *z);
 
@@ -103,10 +93,6 @@ private slots:
 
     //! Data collection timed out
     void timeout();
-
-public slots:
-    //! Set temperature calibration range
-    void setTempCalRange(int r);
 
 signals:
     //! Indicate whether the calibration is busy
@@ -137,12 +123,6 @@ signals:
 
     //! Indicate what the progress is for six point collection
     void sixPointProgressChanged(int);
-
-    //! Show an instruction or message from temperature calibration
-    void showTempCalMessage(QString message);
-
-    //! Indicate what the progress is for temperature calibration
-    void tempCalProgressChanged(int);
 
     //! Indicate that a calibration process has successfully completed and the results saved to UAVO
     void calibrationCompleted();
@@ -189,7 +169,6 @@ private:
     QList<double> gyro_accum_x;
     QList<double> gyro_accum_y;
     QList<double> gyro_accum_z;
-    QList<double> gyro_accum_temp;
     QList<double> accel_accum_x;
     QList<double> accel_accum_y;
     QList<double> accel_accum_z;
@@ -206,7 +185,6 @@ private:
     static const int NUM_SENSOR_UPDATES_SIX_POINT = 100;
     static const int SENSOR_UPDATE_PERIOD = 20;
     static const int NON_SENSOR_UPDATE_PERIOD = 0;
-    double MIN_TEMPERATURE_RANGE;
 
     double boardRotationMatrix[3][3];
     double initialAccelsScale[3];
@@ -256,16 +234,6 @@ protected:
 
     //! Reset sensor settings to pre-calibration values
     void resetSensorCalibrationToOriginalValues();
-
-    //! Store a sample for temperature compensation
-    bool storeTempCalMeasurement(UAVObject *obj);
-
-    //! Compute temperature compensation factors
-    int computeTempCal();
-
-    //! Update the graphs with the temperature compensation
-    void updateTempCompCalibrationDisplay();
-
 };
 
 #endif // CALIBRATION_H

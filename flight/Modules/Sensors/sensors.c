@@ -93,8 +93,6 @@ static void update_rangefinder(struct pios_sensor_rangefinder_data *rangefinder)
 static void mag_calibration_prelemari(MagnetometerData *mag);
 static void mag_calibration_fix_length(MagnetometerData *mag);
 
-static void updateTemperatureComp(float temperature, float *temp_bias);
-
 // Private variables
 static struct pios_thread *sensorsTaskHandle;
 static INSSettingsData insSettings;
@@ -108,10 +106,6 @@ static float mag_scale[3] = {0,0,0};
 static float accel_bias[3] = {0,0,0};
 static float accel_scale[3] = {0,0,0};
 static float gyro_scale[3] = {0,0,0};
-static float gyro_coeff_x[4] = {0,0,0,0};
-static float gyro_coeff_y[4] = {0,0,0,0};
-static float gyro_coeff_z[4] = {0,0,0,0};
-static float gyro_temp_bias[3] = {0,0,0};
 static float z_accel_offset = 0;
 static float Rsb[3][3] = {{0}}; //! Rotation matrix that transforms from the body frame to the sensor board frame
 static int8_t rotate = 0;
@@ -365,16 +359,6 @@ static void update_gyros(struct pios_sensor_gyro_data *gyros)
 	GyrosData gyrosData;
 	gyrosData.temperature = gyros->temperature;
 
-	// Update the bias due to the temperature
-	updateTemperatureComp(gyrosData.temperature, gyro_temp_bias);
-
-	// Apply temperature bias correction before the rotation
-	if (bias_correct_gyro) {
-		gyros_out[0] -= gyro_temp_bias[0];
-		gyros_out[1] -= gyro_temp_bias[1];
-		gyros_out[2] -= gyro_temp_bias[2];
-	}
-
 	if (rotate) {
 		float gyros[3];
 		rot_mult(Rsb, gyros_out, gyros, true);
@@ -516,40 +500,6 @@ static void update_rangefinder(struct pios_sensor_rangefinder_data *rangefinder)
 #endif /* PIOS_INCLUDE_RANGEFINDER */
 
 /**
- * Compute the bias expected from temperature variation for each gyro
- * channel
- */
-static void updateTemperatureComp(float temperature, float *temp_bias)
-{
-	static int temp_counter = -1;
-	static float temp_accum = 0;
-	static const float TEMP_MIN = -10;
-	static const float TEMP_MAX = 60;
-
-	if (temperature < TEMP_MIN)
-		temperature = TEMP_MIN;
-	if (temperature > TEMP_MAX)
-		temperature = TEMP_MAX;
-
-	if (temp_counter < 500) {
-		temp_accum += temperature;
-		temp_counter ++;
-	} else {
-		float t = temp_accum / temp_counter;
-		temp_accum = 0;
-		temp_counter = 0;
-
-		// Compute a third order polynomial for each chanel after each 500 samples
-		temp_bias[0] = gyro_coeff_x[0] + gyro_coeff_x[1] * t + 
-		               gyro_coeff_x[2] * powf(t,2) + gyro_coeff_x[3] * powf(t,3);
-		temp_bias[1] = gyro_coeff_y[0] + gyro_coeff_y[1] * t + 
-		               gyro_coeff_y[2] * powf(t,2) + gyro_coeff_y[3] * powf(t,3);
-		temp_bias[2] = gyro_coeff_z[0] + gyro_coeff_z[1] * t + 
-		               gyro_coeff_z[2] * powf(t,2) + gyro_coeff_z[3] * powf(t,3);
-	}
-}
-
-/**
  * Perform an update of the @ref MagBias based on
  * Magnetometer Offset Cancellation: Theory and Implementation, 
  * revisited William Premerlani, October 14, 2011
@@ -681,18 +631,6 @@ static void settingsUpdatedCb(UAVObjEvent * objEv, void *ctx, void *obj, int len
 	gyro_scale[0] = sensorSettings.GyroScale[SENSORSETTINGS_GYROSCALE_X];
 	gyro_scale[1] = sensorSettings.GyroScale[SENSORSETTINGS_GYROSCALE_Y];
 	gyro_scale[2] = sensorSettings.GyroScale[SENSORSETTINGS_GYROSCALE_Z];
-	gyro_coeff_x[0] =  sensorSettings.XGyroTempCoeff[0];
-	gyro_coeff_x[1] =  sensorSettings.XGyroTempCoeff[1];
-	gyro_coeff_x[2] =  sensorSettings.XGyroTempCoeff[2];
-	gyro_coeff_x[3] =  sensorSettings.XGyroTempCoeff[3];
-	gyro_coeff_y[0] =  sensorSettings.YGyroTempCoeff[0];
-	gyro_coeff_y[1] =  sensorSettings.YGyroTempCoeff[1];
-	gyro_coeff_y[2] =  sensorSettings.YGyroTempCoeff[2];
-	gyro_coeff_y[3] =  sensorSettings.YGyroTempCoeff[3];
-	gyro_coeff_z[0] =  sensorSettings.ZGyroTempCoeff[0];
-	gyro_coeff_z[1] =  sensorSettings.ZGyroTempCoeff[1];
-	gyro_coeff_z[2] =  sensorSettings.ZGyroTempCoeff[2];
-	gyro_coeff_z[3] =  sensorSettings.ZGyroTempCoeff[3];
 	z_accel_offset  =  sensorSettings.ZAccelOffset;
 
 	// Zero out any adaptive tracking
