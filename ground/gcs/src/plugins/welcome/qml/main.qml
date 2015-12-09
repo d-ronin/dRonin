@@ -89,9 +89,9 @@ Rectangle {
                 }
 
                 WelcomePageButton {
-                    baseIconName: "hitl"
-                    label: "HITL"
-                    onClicked: welcomePlugin.openPage("HITL")
+                    baseIconName: "advanced"
+                    label: "Advanced"
+                    onClicked: welcomePlugin.openPage("Advanced")
                 }
 
                 WelcomePageButton {

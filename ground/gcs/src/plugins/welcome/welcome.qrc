@@ -16,8 +16,6 @@
         <file>qml/images/config-off.png</file>
         <file>qml/images/firmware-on.png</file>
         <file>qml/images/firmware-off.png</file>
-        <file>qml/images/hitl-on.png</file>
-        <file>qml/images/hitl-off.png</file>
         <file>qml/images/planner-on.png</file>
         <file>qml/images/planner-off.png</file>
         <file>qml/images/scopes-on.png</file>
@@ -31,5 +29,7 @@
         <file>qml/images/wizard-off.png</file>
         <file>qml/images/wizard-on.png</file>
         <file>qml/GitHubNewsPanel.qml</file>
+        <file>qml/images/advanced-off.png</file>
+        <file>qml/images/advanced-on.png</file>
     </qresource>
 </RCC>
