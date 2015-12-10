@@ -7,4 +7,4 @@ lux_cpuarch := f3
 
 # Short name of this board (used to display board name in parallel builds)
 # Should be exactly 4 characters long.
-lux_short := 'llux'
+lux_short := 'lux '
