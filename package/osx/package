@@ -6,7 +6,8 @@
 : ${ROOT_DIR?} ${BUILD_DIR?} ${PACKAGE_LBL?} ${PACKAGE_DIR?} ${FW_DIR?} ${DMG_LBL?}
 
 # more variables
-APP_NAME="dRonin GCS.app"
+APP_NAME_IN="dRonin-GCS.app"
+APP_NAME_OUT="dRonin GCS.app"
 APP_PATH="${BUILD_DIR}/ground/gcs/bin/"
 TEMP_FILE="${PACKAGE_DIR}/dRonin-temp.dmg.sparseimage"
 OUT_FILE="${PACKAGE_DIR}/${DMG_LBL}.dmg"
@@ -27,7 +28,7 @@ device=$(hdiutil attach  "${TEMP_FILE}" | \
 # packaging goes here
 mkdir "/Volumes/${VOL_NAME}/Firmware"
 mkdir "/Volumes/${VOL_NAME}/Utilities"
-cp -r "${APP_PATH}/${APP_NAME}" "/Volumes/${VOL_NAME}"
+cp -r "${APP_PATH}/${APP_NAME_IN}" "/Volumes/${VOL_NAME}/${APP_NAME_OUT}"
 cp -rp "${FW_DIR}"/* "/Volumes/${VOL_NAME}/Firmware"
 
 cp "${BUILD_DIR}/matlab/LogConvert.m" "/Volumes/${VOL_NAME}/Utilities/LogConvert-${PACKAGE_LBL}.m"

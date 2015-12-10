@@ -2,7 +2,7 @@
 # MacOSX-specific packaging
 #
 
-APP_NAME_OSX="dRonin GCS.app"
+APP_NAME_OSX="dRonin-GCS.app"
 APP_PATH="${BUILD_DIR}/ground/gcs/bin/"
 TEMP_FILE="${PACKAGE_DIR}/dRonin-temp.dmg.sparseimage"
 OUT_FILE="${PACKAGE_DIR}/dRonin-${PACKAGE_LBL}.dmg"
