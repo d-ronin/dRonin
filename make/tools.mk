@@ -484,6 +484,24 @@ libkml_clean:
 	$(V0) @echo " CLEAN        $(LIBKML_BUILD_DIR)"
 	$(V1) [ ! -d "$(LIBKML_BUILD_DIR)" ] || $(RM) -rf "$(LIBKML_BUILD_DIR)"
 
+# ZIP download URL
+zip_install: ZIP_URL  := ftp://ftp.info-zip.org/pub/infozip/src/zip30.tgz
+
+zip_install: ZIP_FILE := $(notdir $(ZIP_URL))
+
+ZIP_DIR = $(TOOLS_DIR)/zip30
+
+# order-only prereq on directory existance:
+zip_install : | $(DL_DIR) $(TOOLS_DIR)
+zip_install: zip_clean
+	$(V1) curl -L -k -o "$(DL_DIR)/$(ZIP_FILE)" "$(ZIP_URL)"
+	$(V1) cd "$(TOOLS_DIR)" && tar xzf "$(DL_DIR)/$(ZIP_FILE)"
+	$(V1) cd "$(ZIP_DIR)" && make -f unix/Makefile generic_gcc
+
+.PHONY: zip_clean
+zip_clean:
+	$(V1) [ ! -d "$(ZIP_DIR)" ] || $(RM) -rf $(ZIP_DIR)
+
 ##############################
 #
 # Set up paths to tools
@@ -505,6 +523,12 @@ else
   endif
   # not installed, hope it's in the path...
   ARM_SDK_PREFIX ?= arm-none-eabi-
+endif
+
+ifeq ($(shell [ -d "$(ZIP_DIR)" ] && echo "exists"), exists)
+  ZIP := $(ZIP_DIR)/zip
+else
+  ZIP := zip
 endif
 
 ifeq ($(shell [ -d "$(OPENOCD_DIR)" ] && echo "exists"), exists)
@@ -561,23 +585,3 @@ endif
 .PHONY: openssl_clean
 openssl_clean:
 	$(V1) [ ! -d "$(OPENSSL_DIR)" ] || $(RM) -rf $(OPENSSL_DIR)
-
-# ZIP download URL
-ifdef WINDOWS
-  zip_install: ZIP_URL  := http://stahlworks.com/dev/zip.exe
-
-zip_install: ZIP_FILE := $(notdir $(ZIP_URL))
-ZIP_DIR = $(TOOLS_DIR)/zip
-# order-only prereq on directory existance:
-zip_install : | $(DL_DIR) $(TOOLS_DIR)
-zip_install: zip_clean
-	$(V1) mkdir -p "$(ZIP_DIR)"
-	$(V1) curl -L -k -o "$(ZIP_DIR)/$(ZIP_FILE)" "$(ZIP_URL)"
-else
-zip_install:
-	$(V1) $(error THIS IS A WINDOWS ONLY TARGET)
-endif
-
-.PHONY: zip_clean
-zip_clean:
-	$(V1) [ ! -d "$(ZIP_DIR)" ] || $(RM) -rf $(ZIP_DIR)
