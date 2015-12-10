@@ -346,6 +346,7 @@ enum usb_cdc_notification {
 #define USB_VENDOR_ID_CLAYLOGIC    0x20A0
 #define USB_VENDOR_ID_OPENPILOT    USB_VENDOR_ID_CLAYLOGIC
 #define USB_VENDOR_ID_TAULABS      USB_VENDOR_ID_CLAYLOGIC
+#define USB_VENDOR_ID_PIDCODES     0x1209
 
 /*
  * These USB Product IDs are allocated along with the purchase
@@ -364,20 +365,25 @@ enum usb_product_ids {
 	USB_PRODUCT_ID_SPARE          = 0x4195,
 
 	/* Tau Labs Boards */
-	USB_PRODUCT_ID_FREEDOM        = 0x41d0,
-	USB_PRODUCT_ID_SPARKY         = USB_PRODUCT_ID_FREEDOM,
+	USB_PRODUCT_ID_SPARKY         = 0x41d0,
 
 	/* BrainFPV Boards */
 	USB_PRODUCT_ID_BRAIN          = 0x4242,
-
-	/* BroTronics boards */
-	USB_PRODUCT_ID_LUX            = 0x42a0,
 
 	/* ST Eval Boards */
 	USB_PRODUCT_ID_DISCOVERYF4    = USB_PRODUCT_ID_SPARE,
 	USB_PRODUCT_ID_FLYINGF3       = USB_PRODUCT_ID_SPARE,
 	USB_PRODUCT_ID_FLYINGF4       = USB_PRODUCT_ID_SPARE,
 } __attribute__((packed));
+
+/*
+ * These USB Product ids come from pidcodes.github.com , for use with
+ * FOSS software stacks like this one.
+ */
+enum usb_product_ids_pidcodes {
+	/* BroTronics boards */
+	USB_PRODUCT_ID_LUX            = 0xf3fc,
+} __attibute__((packed));
 
 enum usb_op_board_ids {
 	/* OpenPilot Boards */
