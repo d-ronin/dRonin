@@ -976,7 +976,7 @@ static const struct pios_tim_channel pios_tim_servoport_v02_pins[] = {
  */
 #include <pios_servo_priv.h>
 
-struct pios_servo_cfg pios_servo_cfg = {
+static const struct pios_servo_cfg pios_servo_cfg = {
 	.tim_oc_init = {
 		.TIM_OCMode = TIM_OCMode_PWM1,
 		.TIM_OutputState = TIM_OutputState_Enable,
@@ -1068,7 +1068,7 @@ static const struct pios_tim_channel pios_tim_rcvrport_pwm[] = {
  */
 #if defined(PIOS_INCLUDE_PWM)
 
-static struct pios_pwm_cfg pios_pwm_cfg = {
+static const struct pios_pwm_cfg pios_pwm_cfg = {
 	.tim_ic_init = {
 		.TIM_ICPolarity = TIM_ICPolarity_Rising,
 		.TIM_ICSelection = TIM_ICSelection_DirectTI,
@@ -1104,7 +1104,7 @@ static const struct pios_ppm_cfg pios_ppm_cfg = {
 #include "pios_adc_priv.h"
 #include "pios_internal_adc_priv.h"
 
-static struct pios_internal_adc_cfg internal_adc_cfg = {
+static const struct pios_internal_adc_cfg internal_adc_cfg = {
 	.dma = {
 		.irq = {
 			.flags   = (DMA1_FLAG_TC1 | DMA1_FLAG_TE1 | DMA1_FLAG_HT1 | DMA1_FLAG_GL1),

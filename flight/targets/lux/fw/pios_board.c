@@ -341,25 +341,8 @@ void PIOS_Board_Init(void)
 	pios_rcvr_group_map[MANUALCONTROLSETTINGS_CHANNELGROUPS_GCS] = pios_gcsrcvr_rcvr_id;
 #endif	/* PIOS_INCLUDE_GCSRCVR */
 
-	uint8_t hw_outport;
-	uint8_t number_of_pwm_outputs;
-	uint8_t number_of_adc_ports = 3;
-	bool use_pwm_in;
-	HwLuxOutPortGet(&hw_outport);
-
-	switch (hw_outport) {
-	case HWLUX_OUTPORT_PWM4:
-		number_of_pwm_outputs = 4;
-		number_of_adc_ports = 3;
-		use_pwm_in = false;
-		break;
-	default:
-		PIOS_Assert(0);
-		break;
-	}
 #ifndef PIOS_DEBUG_ENABLE_DEBUG_PINS
 #ifdef PIOS_INCLUDE_SERVO
-	pios_servo_cfg.num_channels = number_of_pwm_outputs;
 	PIOS_Servo_Init(&pios_servo_cfg);
 #endif
 #else
@@ -367,28 +350,11 @@ void PIOS_Board_Init(void)
 #endif
 
 #if defined(PIOS_INCLUDE_ADC)
-	if (number_of_adc_ports > 0) {
-		internal_adc_cfg.adc_pin_count = number_of_adc_ports;
-		uint32_t internal_adc_id;
-		if (PIOS_INTERNAL_ADC_Init(&internal_adc_id, &internal_adc_cfg) < 0)
-			PIOS_Assert(0);
-		PIOS_ADC_Init(&pios_internal_adc_id, &pios_internal_adc_driver, internal_adc_id);
-	}
+	uint32_t internal_adc_id;
+	if (PIOS_INTERNAL_ADC_Init(&internal_adc_id, &internal_adc_cfg) < 0)
+		PIOS_Assert(0);
+	PIOS_ADC_Init(&pios_internal_adc_id, &pios_internal_adc_driver, internal_adc_id);
 #endif /* PIOS_INCLUDE_ADC */
-#if defined(PIOS_INCLUDE_PWM)
-	if (use_pwm_in > 0) {
-		if (number_of_adc_ports > 0)
-			pios_pwm_cfg.channels = &pios_tim_rcvrport_pwm[1];
-		uintptr_t pios_pwm_id;
-		PIOS_PWM_Init(&pios_pwm_id, &pios_pwm_cfg);
-
-		uintptr_t pios_pwm_rcvr_id;
-		if (PIOS_RCVR_Init(&pios_pwm_rcvr_id, &pios_pwm_rcvr_driver, pios_pwm_id)) {
-			PIOS_Assert(0);
-		}
-		pios_rcvr_group_map[MANUALCONTROLSETTINGS_CHANNELGROUPS_PWM] = pios_pwm_rcvr_id;
-	}
-#endif	/* PIOS_INCLUDE_PWM */
 	PIOS_WDG_Clear();
 	PIOS_DELAY_WaitmS(200);
 	PIOS_WDG_Clear();
