@@ -1,5 +1,4 @@
-﻿﻿# NSIS header file for GCS
-# dRonin, http://dronin.org, Copyright (C) 2015
+﻿# dRonin, http://dronin.org, Copyright (C) 2015
 # The OpenPilot Team, http://www.openpilot.org, Copyright (C) 2010-2011.
 #
 # This program is free software; you can redistribute it and/or modify

@@ -157,40 +157,40 @@ SectionEnd
 Section "-Plugins" InSecPlugins
   SectionIn RO
   SetOutPath "$INSTDIR\lib\dronin\plugins"
-  File /r "${GCS_BUILD_TREE}\lib\dronin\plugins\*.dll"
-  File /r "${GCS_BUILD_TREE}\lib\dronin\plugins\*.pluginspec"
+  File /r "${GCS_BUILD_TREE}\lib\dr\plugins\*.dll"
+  File /r "${GCS_BUILD_TREE}\lib\dr\plugins\*.pluginspec"
 SectionEnd
 
 ; Copy GCS resources
 Section "-Resources" InSecResources
-  SetOutPath "$INSTDIR\share\dronin\default_configurations"
-  File /r "${GCS_BUILD_TREE}\share\dronin\default_configurations\*"
-  SetOutPath "$INSTDIR\share\dronin\stylesheets"
-  File /r "${GCS_BUILD_TREE}\share\dronin\stylesheets\*"
-  SetOutPath "$INSTDIR\share\dronin\diagrams"
-  File /r "${GCS_BUILD_TREE}\share\dronin\diagrams\*"
-  SetOutPath "$INSTDIR\share\dronin\dials"
-  File /r "${GCS_BUILD_TREE}\share\dronin\dials\*"
-  SetOutPath "$INSTDIR\share\dronin\mapicons"
-  File /r "${GCS_BUILD_TREE}\share\dronin\mapicons\*"
-  SetOutPath "$INSTDIR\share\dronin\models"
-  File /r "${GCS_BUILD_TREE}\share\dronin\models\*"
-  SetOutPath "$INSTDIR\share\dronin\pfd"
-  File /r "${GCS_BUILD_TREE}\share\dronin\pfd\*"
+  SetOutPath "$INSTDIR\share\default_configurations"
+  File /r "${GCS_BUILD_TREE}\share\default_configurations\*"
+  SetOutPath "$INSTDIR\share\stylesheets"
+  File /r "${GCS_BUILD_TREE}\share\stylesheets\*"
+  SetOutPath "$INSTDIR\share\diagrams"
+  File /r "${GCS_BUILD_TREE}\share\diagrams\*"
+  SetOutPath "$INSTDIR\share\dials"
+  File /r "${GCS_BUILD_TREE}\share\dials\*"
+  SetOutPath "$INSTDIR\share\mapicons"
+  File /r "${GCS_BUILD_TREE}\share\mapicons\*"
+  SetOutPath "$INSTDIR\share\models"
+  File /r "${GCS_BUILD_TREE}\share\models\*"
+  SetOutPath "$INSTDIR\share\pfd"
+  File /r "${GCS_BUILD_TREE}\share\pfd\*"
 SectionEnd
 
 ; Copy Notify plugin sound files
 Section "-Sound files" InSecSounds
-  SetOutPath "$INSTDIR\share\dronin\sounds"
-  File /r "${GCS_BUILD_TREE}\share\dronin\sounds\*"
+  SetOutPath "$INSTDIR\share\sounds"
+  File /r "${GCS_BUILD_TREE}\share\sounds\*"
 SectionEnd
 
 ; Copy localization files
 ; Disabled until GCS source is stable and properly localized
 Section "-Localization" InSecLocalization
-  SetOutPath "$INSTDIR\share\dronin\translations"
-; File /r "${GCS_BUILD_TREE}\share\dronin\translations\dronin_*.qm"
-  File /r "${GCS_BUILD_TREE}\share\dronin\translations\qt_*.qm"
+  SetOutPath "$INSTDIR\share\translations"
+  ;File /r "${GCS_BUILD_TREE}\share\translations\dronin_*.qm"
+  File /r "${GCS_BUILD_TREE}\share\translations\qt_*.qm"
 SectionEnd
 
 ; Copy firmware files
