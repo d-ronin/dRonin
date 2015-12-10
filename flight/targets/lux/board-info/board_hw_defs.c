@@ -1104,11 +1104,6 @@ static const struct pios_ppm_cfg pios_ppm_cfg = {
 #include "pios_adc_priv.h"
 #include "pios_internal_adc_priv.h"
 
-/**
- * ADC0 : PC0 ADC1_IN2
- * ADC1 : PC1 ADC2_IN1
- * ADC2 : PC2 ADC2_IN4 (disabled by default and should have external resistor)
- */
 static struct pios_internal_adc_cfg internal_adc_cfg = {
 	.dma = {
 		.irq = {
@@ -1167,16 +1162,6 @@ static const struct pios_usb_cfg pios_usb_main_cfg = {
 	},
 	.vsense = {
 	           .gpio = NULL
-	    /*
-		.gpio = GPIOB,
-		.init = {
-			.GPIO_Pin   = GPIO_Pin_3,
-			.GPIO_Speed = GPIO_Speed_2MHz,
-			.GPIO_Mode  = GPIO_Mode_IN,
-			.GPIO_OType = GPIO_OType_OD,
-			.GPIO_PuPd  = GPIO_PuPd_DOWN,
-		},
-		*/
 	}	
 };
 
