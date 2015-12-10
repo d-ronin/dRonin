@@ -609,7 +609,7 @@ quint32 ConfigOutputWidget::timerStringToFreq(QString str) const {
 
 void ConfigOutputWidget::openHelp()
 {
-    QDesktopServices::openUrl( QUrl("https://github.com/TauLabs/TauLabs/wiki/OnlineHelp:-Output-Configuration", QUrl::StrictMode) );
+    QDesktopServices::openUrl( QUrl("https://github.com/d-ronin/dRonin/wiki/OnlineHelp:-Output-Configuration", QUrl::StrictMode) );
 }
 
 void ConfigOutputWidget::stopTests()
