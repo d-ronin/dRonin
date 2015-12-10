@@ -23,7 +23,7 @@ win32 {
     INSTALLS += target
 } else:macx {
     LIBS += -framework CoreFoundation
-    ICON =
+    ICON = $$BRANDING_PATH/gcs_app.icns
     QMAKE_INFO_PLIST = $$BRANDING_PATH/Info.plist
     FILETYPES.files = profile.icns prifile.icns
     FILETYPES.path = Contents/Resources

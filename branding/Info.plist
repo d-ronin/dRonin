@@ -34,16 +34,14 @@
 	</array>
 	<key>CFBundleGetInfoString</key>
 	<string>dRonin GCS; Copyright dRonin</string>
-<!--
 	<key>CFBundleIconFile</key>
         <string>gcs_app.icns</string>
--->
 	<key>CFBundlePackageType</key>
 	<string>APPL</string>
 	<key>CFBundleSignature</key>
 	<string>????</string>
 	<key>CFBundleExecutable</key>
-	<string></string>
+	<string>dRonin-GCS</string>
 	<key>CFBundleIdentifier</key>
 	<string>org.dronin.gcs</string>
 	<key>CFBundleVersion</key>
