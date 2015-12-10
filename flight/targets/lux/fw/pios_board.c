@@ -108,13 +108,8 @@ uintptr_t pios_can_id;
 
 /**
  * Indicate a target-specific error code when a component fails to initialize
- * 1 pulse - MPU9150 - no irq
- * 2 pulses - MPU9150 - failed configuration or task starting
- * 3 pulses - internal I2C bus locked
- * 4 pulses - external I2C bus locked
- * 5 pulses - flash
- * 6 pulses - CAN
- * 11 pulses - external HMC5883 failed
+ * 2 pulses - sensors - failed configuration or task starting
+ * 5 pulses - internal flash
  */
 void panic(int32_t code)
 {
