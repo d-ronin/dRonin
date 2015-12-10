@@ -335,7 +335,7 @@ void ConfigInputWidget::resizeEvent(QResizeEvent *event)
 
 void ConfigInputWidget::openHelp()
 {
-    QDesktopServices::openUrl( QUrl("https://github.com/TauLabs/TauLabs/wiki/OnlineHelp:-Input-Configuration", QUrl::StrictMode) );
+    QDesktopServices::openUrl( QUrl("https://github.com/d-ronin/dRonin/wiki/OnlineHelp:-Input-Configuration", QUrl::StrictMode) );
 }
 
 void ConfigInputWidget::goToWizard()
