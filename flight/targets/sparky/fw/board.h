@@ -20,14 +20,13 @@
 #include "pios_chibios_transition_priv.h"
 
 /*
- * Setup for STMicroelectronics STM32F3-Discovery board.
+ * Setup for Sparky flight controller
  */
 
 /*
  * Board identifier.
  */
-#define BOARD_ST_STM32F3_DISCOVERY
-#define BOARD_NAME                  "STMicroelectronics STM32F3-Discovery"
+#define BOARD_NAME                  "Tau Labs Sparky"
 
 /*
  * Board oscillators-related settings.

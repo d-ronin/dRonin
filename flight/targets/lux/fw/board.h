@@ -20,14 +20,13 @@
 #include "pios_chibios_transition_priv.h"
 
 /*
- * Setup for STMicroelectronics STM32F3-Discovery board.
+ * Setup for Lux board.
  */
 
 /*
  * Board identifier.
  */
-#define BOARD_ST_STM32F3_DISCOVERY
-#define BOARD_NAME                  "STMicroelectronics STM32F3-Discovery"
+#define BOARD_NAME                  "Lumenier Lux"
 
 /*
  * Board oscillators-related settings.
