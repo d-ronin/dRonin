@@ -406,7 +406,6 @@ gtest_clean:
 	$(V0) @echo " CLEAN        $(GTEST_DIR)"
 	$(V1) [ ! -d "$(GTEST_DIR)" ] || $(RM) -rf "$(GTEST_DIR)"
 
-
 # Set up astyle tools
 ASTYLE_DIR := $(TOOLS_DIR)/astyle
 ASTYLE_BUILD_DIR := $(DL_DIR)/astyle
@@ -525,10 +524,6 @@ libkml_clean:
 
 ifeq ($(shell [ -d "$(QT_SDK_DIR)" ] && echo "exists"), exists)
   QMAKE = $(QT_SDK_QMAKE_PATH)
-ifdef WINDOWS
-  # Windows needs to be told where to find Qt libraries
-  export PATH := $(QT_SDK_DIR)/5.5/mingw492_32/bin:$(PATH)
-endif
 else
   # not installed, hope it's in the path...
   QMAKE = qmake
@@ -538,7 +533,7 @@ ifeq ($(shell [ -d "$(ARM_SDK_DIR)" ] && echo "exists"), exists)
   ARM_SDK_PREFIX := $(ARM_SDK_DIR)/bin/arm-none-eabi-
 else
   ifneq ($(MAKECMDGOALS),arm_sdk_install)
-    $(info **WARNING** ARM-SDK not in $(ARM_SDK_DIR)  Please run 'make arm_sdk_install')
+    $(error **WARNING** ARM-SDK not in $(ARM_SDK_DIR)  Please run 'make arm_sdk_install')
   endif
   # not installed, hope it's in the path...
   ARM_SDK_PREFIX ?= arm-none-eabi-
