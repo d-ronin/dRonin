@@ -495,8 +495,12 @@ ZIP_DIR = $(TOOLS_DIR)/zip30
 zip_install : | $(DL_DIR) $(TOOLS_DIR)
 zip_install: zip_clean
 	$(V1) curl -L -k -o "$(DL_DIR)/$(ZIP_FILE)" "$(ZIP_URL)"
-	$(V1) cd "$(TOOLS_DIR)" && tar xzf "$(DL_DIR)/$(ZIP_FILE)"
-	$(V1) cd "$(ZIP_DIR)" && make -f unix/Makefile generic_gcc
+	$(V1) tar --force-local -C $(TOOLS_DIR) -xzf "$(DL_DIR)/$(ZIP_FILE)"
+ifneq ($(OSFAMILY), windows)
+	$(V1) cd "$(ZIP_DIR)" && $(MAKE) -f unix/Makefile generic_gcc
+else
+	$(V1) cd "$(ZIP_DIR)" && $(MAKE) -f win32/makefile.gcc
+endif
 
 .PHONY: zip_clean
 zip_clean:
