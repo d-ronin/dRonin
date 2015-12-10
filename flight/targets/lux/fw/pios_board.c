@@ -402,8 +402,6 @@ void PIOS_Board_Init(void)
     uint8_t hw_mpu9250_dlpf;
     HwLuxMPU9250GyroLPFGet(&hw_mpu9250_dlpf);
     enum pios_mpu9250_gyro_filter mpu9250_gyro_lpf = \
-        (hw_mpu9250_dlpf == HWLUX_MPU9250GYROLPF_256) ? PIOS_MPU9250_GYRO_LOWPASS_250_HZ : \
-        (hw_mpu9250_dlpf == HWLUX_MPU9250GYROLPF_250) ? PIOS_MPU9250_GYRO_LOWPASS_250_HZ : \
         (hw_mpu9250_dlpf == HWLUX_MPU9250GYROLPF_184) ? PIOS_MPU9250_GYRO_LOWPASS_184_HZ : \
         (hw_mpu9250_dlpf == HWLUX_MPU9250GYROLPF_92) ? PIOS_MPU9250_GYRO_LOWPASS_92_HZ : \
         (hw_mpu9250_dlpf == HWLUX_MPU9250GYROLPF_41) ? PIOS_MPU9250_GYRO_LOWPASS_41_HZ : \
@@ -432,10 +430,7 @@ void PIOS_Board_Init(void)
         (hw_mpu9250_samplerate == HWLUX_MPU9250RATE_250) ? 250 : \
         (hw_mpu9250_samplerate == HWLUX_MPU9250RATE_333) ? 333 : \
         (hw_mpu9250_samplerate == HWLUX_MPU9250RATE_500) ? 500 : \
-        (hw_mpu9250_samplerate == HWLUX_MPU9250RATE_1000) ? 1000 : \
-        (hw_mpu9250_samplerate == HWLUX_MPU9250RATE_2000) ? 2000 : \
-        (hw_mpu9250_samplerate == HWLUX_MPU9250RATE_4000) ? 4000 : \
-        (hw_mpu9250_samplerate == HWLUX_MPU9250RATE_8000) ? 8000 : \
+        (hw_mpu9250_samplerate == HWLUX_MPU9250RATE_1000) ? 1000 :
         pios_mpu9250_cfg.default_samplerate;
     PIOS_MPU9250_SetSampleRate(mpu9250_samplerate);
 #endif /* PIOS_INCLUDE_MPU9250_SPI */
