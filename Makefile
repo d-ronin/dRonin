@@ -2,7 +2,7 @@
 .DEFAULT_GOAL := help
 
 WHEREAMI := $(dir $(lastword $(MAKEFILE_LIST)))
-ROOT_DIR := $(realpath $(WHEREAMI)/ )
+export ROOT_DIR := $(realpath $(WHEREAMI)/ )
 
 # import macros common to all supported build systems
 include $(ROOT_DIR)/make/system-id.mk
@@ -58,7 +58,12 @@ export V1    := $(AT)
 else ifeq ($(V), 1)
 endif
 
+
+FW_FILES :=
+GITVERSION := $(shell git describe --always --dirty --abbrev=9)
+
 ALL_BOARDS :=
+
 include $(ROOT_DIR)/flight/targets/*/target-defs.mk
 
 # OpenPilot GCS build configuration (debug | release)
@@ -172,9 +177,6 @@ help:
 	@echo "                            supported boards are ($(BU_BOARDS))"
 	@echo "     bu_<board>_clean     - Remove bootloader updater for <board>"
 	@echo
-	@echo "   [Unbrick a board]"
-	@echo "     unbrick_<board>      - Use the STM32's built in boot ROM to write a bootloader to <board>"
-	@echo "                            supported boards are ($(BL_BOARDS))"
 	@echo "   [Unit tests]"
 	@echo "     ut_<test>            - Build unit test <test>"
 	@echo "     ut_<test>_tap        - Run test and capture TAP output into a file"
@@ -203,10 +205,13 @@ help:
 	@echo "     uavobjects           - Generate source files from the UAVObject definition XML files"
 	@echo "     uavobjects_test      - parse xml-files - check for valid, duplicate ObjId's, ... "
 	@echo
-	@echo "   [Package]"
-	@echo "     package              - Executes a make all_clean and then generates a complete package build for"
-	@echo "     standalone           - Executes a make all_clean and compiles a package without packaging"
-	@echo "                            the GCS and all target board firmwares."
+	@echo "   [Packaging]"
+	@echo "     package_flight       - Build and package the dRonin flight firmware only"
+	@echo "     package_all_compress - Build and package all dRonin firmware and software"
+	@echo "     package_installer    - Builds a Tau Labs software installer"
+	@echo
+	@echo "   Notes:"
+	@echo "     - packages will be placed in $(PACKAGE_DIR)"
 	@echo
 	@echo "   [Misc]"
 	@echo "     astyle_flight FILE=<name>   - Executes the astyle code formatter to reformat"
@@ -221,7 +226,7 @@ help:
 	@echo
 
 .PHONY: all
-all: all_ground all_flight
+all: all_ground all_flight matlab
 
 .PHONY: all_clean
 all_clean:
@@ -536,15 +541,16 @@ uavo-collections_clean:
 
 # Define some pointers to the various important pieces of the flight code
 # to prevent these being repeated in every sub makefile
-MAKE_INC_DIR  := $(ROOT_DIR)/make
-PIOS          := $(ROOT_DIR)/flight/PiOS
-FLIGHTLIB     := $(ROOT_DIR)/flight/Libraries
-OPMODULEDIR   := $(ROOT_DIR)/flight/Modules
-OPUAVOBJ      := $(ROOT_DIR)/flight/UAVObjects
-OPUAVTALK     := $(ROOT_DIR)/flight/UAVTalk
-DOXYGENDIR    := $(ROOT_DIR)/Doxygen
-SHAREDAPIDIR  := $(ROOT_DIR)/shared/api
-OPUAVSYNTHDIR := $(BUILD_DIR)/uavobject-synthetics/flight
+export MAKE_INC_DIR  := $(ROOT_DIR)/make
+export PIOS          := $(ROOT_DIR)/flight/PiOS
+export FLIGHTLIB     := $(ROOT_DIR)/flight/Libraries
+export OPMODULEDIR   := $(ROOT_DIR)/flight/Modules
+export OPUAVOBJ      := $(ROOT_DIR)/flight/UAVObjects
+export OPUAVTALK     := $(ROOT_DIR)/flight/UAVTalk
+export DOXYGENDIR    := $(ROOT_DIR)/Doxygen
+export SHAREDAPIDIR  := $(ROOT_DIR)/shared/api
+export OPUAVSYNTHDIR := $(BUILD_DIR)/uavobject-synthetics/flight
+export FLIGHTPKGNAME := $(BUILD_DIR)/flight-$(GITVERSION).zip
 
 # $(1) = Canonical board name all in lower case (e.g. coptercontrol)
 # $(2) = Unused
@@ -560,6 +566,8 @@ simulation: sim_posix
 sim_posix_revolution: sim_posix
 
 define SIM_TEMPLATE
+
+.PHONY: sim_$(4)
 sim_$(4): TARGET=sim_$(4)
 sim_$(4): OUTDIR=$(BUILD_DIR)/$$(TARGET)
 sim_$(4): BOARD_ROOT_DIR=$(ROOT_DIR)/flight/targets/$(1)
@@ -574,7 +582,6 @@ sim_$(4): uavobjects
 		TCHAIN_PREFIX="" \
 		REMOVE_CMD="$(RM)" \
 		\
-		MAKE_INC_DIR=$(MAKE_INC_DIR) \
 		ROOT_DIR=$(ROOT_DIR) \
 		BOARD_ROOT_DIR=$$(BOARD_ROOT_DIR) \
 		BOARD_INFO_DIR=$$(BOARD_ROOT_DIR)/board-info \
@@ -582,13 +589,6 @@ sim_$(4): uavobjects
 		OUTDIR=$$(OUTDIR) \
 		\
 		PIOS=$(PIOS).$(4) \
-		FLIGHTLIB=$(FLIGHTLIB) \
-		OPMODULEDIR=$(OPMODULEDIR) \
-		OPUAVOBJ=$(OPUAVOBJ) \
-		OPUAVTALK=$(OPUAVTALK) \
-		DOXYGENDIR=$(DOXYGENDIR) \
-		OPUAVSYNTHDIR=$(OPUAVSYNTHDIR) \
-		SHAREDAPIDIR=$(SHAREDAPIDIR) \
 		\
 		$$*
 
@@ -608,6 +608,8 @@ define FW_TEMPLATE
 $(1): fw_$(1)_tlfw
 fw_$(1): fw_$(1)_tlfw
 
+FW_FILES += $(BUILD_DIR)/fw_$(1)/fw_$(1).tlfw
+
 fw_$(1)_%: TARGET=fw_$(1)
 fw_$(1)_%: OUTDIR=$(BUILD_DIR)/$$(TARGET)
 fw_$(1)_%: BOARD_ROOT_DIR=$(ROOT_DIR)/flight/targets/$(1)
@@ -621,21 +623,11 @@ fw_$(1)_%: uavobjects_armsoftfp uavobjects_armhardfp
 		TCHAIN_PREFIX="$(ARM_SDK_PREFIX)" \
 		REMOVE_CMD="$(RM)" OOCD_EXE="$(OPENOCD)" \
 		\
-		MAKE_INC_DIR=$(MAKE_INC_DIR) \
 		ROOT_DIR=$(ROOT_DIR) \
 		BOARD_ROOT_DIR=$$(BOARD_ROOT_DIR) \
 		BOARD_INFO_DIR=$$(BOARD_ROOT_DIR)/board-info \
 		TARGET=$$(TARGET) \
 		OUTDIR=$$(OUTDIR) \
-		\
-		PIOS=$(PIOS) \
-		FLIGHTLIB=$(FLIGHTLIB) \
-		OPMODULEDIR=$(OPMODULEDIR) \
-		OPUAVOBJ=$(OPUAVOBJ) \
-		OPUAVTALK=$(OPUAVTALK) \
-		DOXYGENDIR=$(DOXYGENDIR) \
-		OPUAVSYNTHDIR=$(OPUAVSYNTHDIR) \
-		SHAREDAPIDIR=$(SHAREDAPIDIR) \
 		\
 		$$*
 
@@ -655,6 +647,8 @@ define BL_TEMPLATE
 .PHONY: bl_$(1)
 bl_$(1): bl_$(1)_bin
 
+FW_FILES += $(BUILD_DIR)/bl_$(1)/bl_$(1).bin
+
 bl_$(1)_%: TARGET=bl_$(1)
 bl_$(1)_%: OUTDIR=$(BUILD_DIR)/$$(TARGET)
 bl_$(1)_%: BOARD_ROOT_DIR=$(ROOT_DIR)/flight/targets/$(1)
@@ -672,37 +666,16 @@ bl_$(1)_%:
 		TCHAIN_PREFIX="$(ARM_SDK_PREFIX)" \
 		REMOVE_CMD="$(RM)" OOCD_EXE="$(OPENOCD)" \
 		\
-		MAKE_INC_DIR=$(MAKE_INC_DIR) \
 		ROOT_DIR=$(ROOT_DIR) \
 		BOARD_ROOT_DIR=$$(BOARD_ROOT_DIR) \
 		BOARD_INFO_DIR=$$(BOARD_ROOT_DIR)/board-info \
 		TARGET=$$(TARGET) \
 		OUTDIR=$$(OUTDIR) \
-		\
-		PIOS=$(PIOS) \
-		FLIGHTLIB=$(FLIGHTLIB) \
 		BLCOMMONDIR=$$(BLCOMMONDIR) \
 		BLARCHDIR=$$(BLARCHDIR) \
 		BLBOARDDIR=$$(BLBOARDDIR) \
-		DOXYGENDIR=$(DOXYGENDIR) \
 		\
 		$$*
-
-.PHONY: unbrick_$(1)
-unbrick_$(1): TARGET=bl_$(1)
-unbrick_$(1): OUTDIR=$(BUILD_DIR)/$$(TARGET)
-unbrick_$(1): bl_$(1)_hex
-$(if $(filter-out undefined,$(origin UNBRICK_TTY)),
-	$(V0) @echo " UNBRICK    $(1) via $$(UNBRICK_TTY)"
-	$(V1) $(STM32FLASH_DIR)/stm32flash \
-		-w $$(OUTDIR)/bl_$(1).hex \
-		-g 0x0 \
-		$$(UNBRICK_TTY)
-,
-	$(V0) @echo
-	$(V0) @echo "ERROR: You must specify UNBRICK_TTY=<serial-device> to use for unbricking."
-	$(V0) @echo "       eg. $$(MAKE) $$@ UNBRICK_TTY=/dev/ttyUSB0"
-)
 
 .PHONY: bl_$(1)_clean
 bl_$(1)_clean: TARGET=bl_$(1)
@@ -718,6 +691,8 @@ endef
 define BU_TEMPLATE
 .PHONY: bu_$(1)
 bu_$(1): bu_$(1)_tlfw
+
+FW_FILES += $(BUILD_DIR)/bu_$(1)/bu_$(1).tlfw
 
 bu_$(1)_%: TARGET=bu_$(1)
 bu_$(1)_%: OUTDIR=$(BUILD_DIR)/$$(TARGET)
@@ -736,15 +711,11 @@ bu_$(1)_%: bl_$(1)_bin
 		TCHAIN_PREFIX="$(ARM_SDK_PREFIX)" \
 		REMOVE_CMD="$(RM)" OOCD_EXE="$(OPENOCD)" \
 		\
-		MAKE_INC_DIR=$(MAKE_INC_DIR) \
 		ROOT_DIR=$(ROOT_DIR) \
 		BOARD_ROOT_DIR=$$(BOARD_ROOT_DIR) \
 		BOARD_INFO_DIR=$$(BOARD_ROOT_DIR)/board-info \
 		TARGET=$$(TARGET) \
 		OUTDIR=$$(OUTDIR) \
-		\
-		PIOS=$(PIOS) \
-		FLIGHTLIB=$(FLIGHTLIB) \
 		BUCOMMONDIR=$$(BUCOMMONDIR) \
 		BUARCHDIR=$$(BUARCHDIR) \
 		BUBOARDDIR=$$(BUBOARDDIR) \
@@ -768,6 +739,8 @@ define EF_TEMPLATE
 .PHONY: ef_$(1)
 ef_$(1): ef_$(1)_bin ef_$(1)_hex
 
+FW_FILES += $(BUILD_DIR)/ef_$(1)/ef_$(1).bin
+
 ef_$(1)_%: TARGET=ef_$(1)
 ef_$(1)_%: OUTDIR=$(BUILD_DIR)/$$(TARGET)
 ef_$(1)_%: BOARD_ROOT_DIR=$(ROOT_DIR)/flight/targets/$(1)
@@ -783,7 +756,6 @@ ef_$(1)_%: $(if filter(no,$(4)),fw_$(1)_tlfw,bl_$(1)_bin fw_$(1)_tlfw)
 		REMOVE_CMD="$(RM)" OOCD_EXE="$(OPENOCD)" \
 		DFU_CMD="$(DFUUTIL_DIR)/bin/dfu-util" \
 		\
-		MAKE_INC_DIR=$(MAKE_INC_DIR) \
 		ROOT_DIR=$(ROOT_DIR) \
 		BOARD_ROOT_DIR=$$(BOARD_ROOT_DIR) \
 		BOARD_INFO_DIR=$$(BOARD_ROOT_DIR)/board-info \
@@ -832,17 +804,9 @@ uavobjects_%: uavobjects
 		TCHAIN_PREFIX="$(ARM_SDK_PREFIX)" \
 		REMOVE_CMD="$(RM)" \
 		\
-		MAKE_INC_DIR=$(MAKE_INC_DIR) \
 		ROOT_DIR=$(ROOT_DIR) \
 		TARGET=$(TARGET) \
 		OUTDIR=$(OUTDIR) \
-		\
-		FLIGHTLIB=$(FLIGHTLIB) \
-		PIOS=$(PIOS) \
-		OPUAVOBJ=$(OPUAVOBJ) \
-		OPUAVTALK=$(OPUAVTALK) \
-		DOXYGENDIR=$(DOXYGENDIR) \
-		OPUAVSYNTHDIR=$(OPUAVSYNTHDIR) \
 		\
 		$@
 
@@ -975,7 +939,7 @@ all_ut_clean:
 
 # $(1) = Unit test name
 define UT_TEMPLATE
-.PHONY: ut_$(1)
+.PHONY: ut_$(1) ut_$(1)_run
 ut_$(1): ut_$(1)_run
 ut_$(1)_gcov: | ut_$(1)_xml
 
@@ -991,19 +955,11 @@ ut_$(1)_%: $$(UT_OUT_DIR)
 		TCHAIN_PREFIX="" \
 		REMOVE_CMD="$(RM)" \
 		\
-		MAKE_INC_DIR=$(MAKE_INC_DIR) \
 		ROOT_DIR=$(ROOT_DIR) \
 		BOARD_ROOT_DIR=$$(BOARD_ROOT_DIR) \
 		BOARD_INFO_DIR=$$(BOARD_ROOT_DIR)/board-info \
 		TARGET=$$(TARGET) \
 		OUTDIR=$$(OUTDIR) \
-		\
-		PIOS=$(PIOS) \
-		OPUAVOBJ=$(OPUAVOBJ) \
-		OPUAVTALK=$(OPUAVTALK) \
-		OPMODULEDIR=$(OPMODULEDIR) \
-		FLIGHTLIB=$(FLIGHTLIB) \
-		SHAREDAPIDIR=$(SHAREDAPIDIR) \
 		\
 		GTEST_DIR=$(GTEST_DIR) \
 		\
@@ -1045,18 +1001,16 @@ endif
 # Packaging components
 #
 ##############################
-
-.PHONY: package
-package:
-	$(V1) cd $@ && $(MAKE) --no-print-directory $@
-
-.PHONY: standalone
-standalone:
+PACKAGE_TARGETS = package_installer package_all_compress
+.PHONY: $(PACKAGE_TARGETS)
+$(PACKAGE_TARGETS): 
 	$(V1) cd package && $(MAKE) --no-print-directory $@
+	
+.PHONY: package_flight
+package_flight: $(FLIGHTPKGNAME)
 
-.PHONY: package_resources
-package_resources:
-	$(V1) cd package && $(MAKE) --no-print-directory tlfw_resource
+$(FLIGHTPKGNAME): all_flight
+	zip -j $@ $(FW_FILES) $^
 
 ##############################
 #

@@ -1,0 +1,16 @@
+Source: dronin
+Section: unknown
+Priority: extra
+Maintainer: <AUTHOR>
+Build-Depends: debhelper (>= 7.0.50~)
+Standards-Version: 3.8.4
+Homepage: http://dronin.org
+Vcs-Git: git://github.com/d-ronin/dRonin.git
+Vcs-Browser: https://github.com/d-ronin/dRonin/commits/next 
+
+Package: dronin
+Architecture: amd64
+Depends: ${shlibs:Depends}, ${misc:Depends}
+Description: dRonin GCS
+ The dRonin project ground control station.
+ A program that allows you to change settings on compatible flight controllers, create flightpaths, view controller data, create and upload picoC scripts, replay logged data, etc...

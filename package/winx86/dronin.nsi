@@ -1,6 +1,6 @@
 #
 # Project: dRonin
-# NSIS configuration file for TauLabs GCS
+# NSIS configuration file for GCS
 # dRonin, http://dronin.org, Copyright (c) 2015
 # Tau Labs, http://taulabs.org, Copyright (C) 2012-2013
 # The OpenPilot Team, http://www.openpilot.org, Copyright (C) 2010-2012.
@@ -56,13 +56,6 @@
   !define INSTALLER_NAME "dRonin GCS Installer"
 
   ; Read automatically generated version info
-; !define PACKAGE_LBL "${DATE}-${TAG_OR_HASH8}"
-; !define PACKAGE_DIR "..\..\build\package-$${PACKAGE_LBL}"
-; !define OUT_FILE "TauLabs-$${PACKAGE_LBL}-install.exe"
-; !define FIRMWARE_DIR "firmware-$${PACKAGE_LBL}"
-; !define PRODUCT_VERSION "0.0.0.0"
-; !define FILE_VERSION "${TAG_OR_BRANCH}:${HASH8} ${DATETIME}"
-; !define BUILD_DESCRIPTION "${TAG_OR_BRANCH}:${HASH8} built using ${ORIGIN} as origin, committed ${DATETIME} as ${HASH}"
   !include "${GCS_BUILD_TREE}\dronin.nsh"
 
   Name "${PRODUCT_NAME}"
@@ -164,58 +157,46 @@ SectionEnd
 Section "-Plugins" InSecPlugins
   SectionIn RO
   SetOutPath "$INSTDIR\lib\dronin\plugins"
-  File /r "${GCS_BUILD_TREE}\lib\dronin\plugins\*.dll"
-  File /r "${GCS_BUILD_TREE}\lib\dronin\plugins\*.pluginspec"
+  File /r "${GCS_BUILD_TREE}\lib\dr\plugins\*.dll"
+  File /r "${GCS_BUILD_TREE}\lib\dr\plugins\*.pluginspec"
 SectionEnd
 
 ; Copy GCS resources
 Section "-Resources" InSecResources
-  SetOutPath "$INSTDIR\share\dronin\default_configurations"
-  File /r "${GCS_BUILD_TREE}\share\dronin\default_configurations\*"
-  SetOutPath "$INSTDIR\share\dronin\stylesheets"
-  File /r "${GCS_BUILD_TREE}\share\dronin\stylesheets\*"
-  SetOutPath "$INSTDIR\share\dronin\diagrams"
-  File /r "${GCS_BUILD_TREE}\share\dronin\diagrams\*"
-  SetOutPath "$INSTDIR\share\dronin\dials"
-  File /r "${GCS_BUILD_TREE}\share\dronin\dials\*"
-  SetOutPath "$INSTDIR\share\dronin\mapicons"
-  File /r "${GCS_BUILD_TREE}\share\dronin\mapicons\*"
-  SetOutPath "$INSTDIR\share\dronin\models"
-  File /r "${GCS_BUILD_TREE}\share\dronin\models\*"
-  SetOutPath "$INSTDIR\share\dronin\pfd"
-  File /r "${GCS_BUILD_TREE}\share\dronin\pfd\*"
+  SetOutPath "$INSTDIR\share\default_configurations"
+  File /r "${GCS_BUILD_TREE}\share\default_configurations\*"
+  SetOutPath "$INSTDIR\share\stylesheets"
+  File /r "${GCS_BUILD_TREE}\share\stylesheets\*"
+  SetOutPath "$INSTDIR\share\diagrams"
+  File /r "${GCS_BUILD_TREE}\share\diagrams\*"
+  SetOutPath "$INSTDIR\share\dials"
+  File /r "${GCS_BUILD_TREE}\share\dials\*"
+  SetOutPath "$INSTDIR\share\mapicons"
+  File /r "${GCS_BUILD_TREE}\share\mapicons\*"
+  SetOutPath "$INSTDIR\share\models"
+  File /r "${GCS_BUILD_TREE}\share\models\*"
+  SetOutPath "$INSTDIR\share\pfd"
+  File /r "${GCS_BUILD_TREE}\share\pfd\*"
 SectionEnd
 
 ; Copy Notify plugin sound files
 Section "-Sound files" InSecSounds
-  SetOutPath "$INSTDIR\share\dronin\sounds"
-  File /r "${GCS_BUILD_TREE}\share\dronin\sounds\*"
+  SetOutPath "$INSTDIR\share\sounds"
+  File /r "${GCS_BUILD_TREE}\share\sounds\*"
 SectionEnd
 
 ; Copy localization files
 ; Disabled until GCS source is stable and properly localized
 Section "-Localization" InSecLocalization
-  SetOutPath "$INSTDIR\share\dronin\translations"
-; File /r "${GCS_BUILD_TREE}\share\dronin\translations\dronin_*.qm"
-  File /r "${GCS_BUILD_TREE}\share\dronin\translations\qt_*.qm"
+  SetOutPath "$INSTDIR\share\translations"
+  ;File /r "${GCS_BUILD_TREE}\share\translations\dronin_*.qm"
+  File /r "${GCS_BUILD_TREE}\share\translations\qt_*.qm"
 SectionEnd
 
 ; Copy firmware files
 Section "Firmware" InSecFirmware
-; SetOutPath "$INSTDIR\firmware\${FIRMWARE_DIR}"
-; File /r "${PACKAGE_DIR}\${FIRMWARE_DIR}\*"
   SetOutPath "$INSTDIR\firmware"
-  File "${PACKAGE_DIR}\${FIRMWARE_DIR}\fw_coptercontrol-${PACKAGE_LBL}.tlfw"
-  File "${PACKAGE_DIR}\${FIRMWARE_DIR}\fw_pipxtreme-${PACKAGE_LBL}.tlfw"
-  File "${PACKAGE_DIR}\${FIRMWARE_DIR}\fw_flyingf3-${PACKAGE_LBL}.tlfw"
-  File "${PACKAGE_DIR}\${FIRMWARE_DIR}\fw_quanton-${PACKAGE_LBL}.tlfw"
-  File "${PACKAGE_DIR}\${FIRMWARE_DIR}\fw_colibri-${PACKAGE_LBL}.tlfw"
-  File "${PACKAGE_DIR}\${FIRMWARE_DIR}\fw_sparky-${PACKAGE_LBL}.tlfw"
-  File "${PACKAGE_DIR}\${FIRMWARE_DIR}\fw_sparky2-${PACKAGE_LBL}.tlfw"
-  File "${PACKAGE_DIR}\${FIRMWARE_DIR}\fw_revomini-${PACKAGE_LBL}.tlfw"
-  File "${PACKAGE_DIR}\${FIRMWARE_DIR}\fw_naze32-${PACKAGE_LBL}.tlfw"
-  File "${PACKAGE_DIR}\${FIRMWARE_DIR}\fw_aq32-${PACKAGE_LBL}.tlfw"
-  File "${PACKAGE_DIR}\${FIRMWARE_DIR}\fw_brain-${PACKAGE_LBL}.tlfw"
+  File "${PACKAGE_DIR}\firmware\*.*"
 SectionEnd
 
 ; Copy utility files

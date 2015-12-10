@@ -1,6 +1,4 @@
-﻿#
-# Project: OpenPilot
-# NSIS header file for OpenPilot GCS
+﻿# dRonin, http://dronin.org, Copyright (C) 2015
 # The OpenPilot Team, http://www.openpilot.org, Copyright (C) 2010-2011.
 #
 # This program is free software; you can redistribute it and/or modify
@@ -30,15 +28,15 @@
   LangString DESC_InSecResources ${LANG_ENGLISH} "GCS resources (diagrams, dials, mapicons, 3d-models, PFD)."
   LangString DESC_InSecSounds ${LANG_ENGLISH} "GCS sound files (used for audible event notifications)."
   LangString DESC_InSecLocalization ${LANG_ENGLISH} "GCS localization (for supported languages)."
-  LangString DESC_InSecFirmware ${LANG_ENGLISH} "OpenPilot firmware binaries."
-  LangString DESC_InSecUtilities ${LANG_ENGLISH} "OpenPilot utilities (Matlab log parser)."
-  LangString DESC_InSecDrivers ${LANG_ENGLISH} "OpenPilot hardware driver files (optional OpenPilot CDC driver)."
-  LangString DESC_InSecInstallDrivers ${LANG_ENGLISH} "Optional OpenPilot CDC driver (virtual USB COM port)."
+  LangString DESC_InSecFirmware ${LANG_ENGLISH} "Firmware binaries."
+  LangString DESC_InSecUtilities ${LANG_ENGLISH} "Utilities (Matlab log parser)."
+  LangString DESC_InSecDrivers ${LANG_ENGLISH} "Hardware driver files (optional CDC driver)."
+  LangString DESC_InSecInstallDrivers ${LANG_ENGLISH} "Optional CDC driver (virtual USB COM port)."
   LangString DESC_InSecShortcuts ${LANG_ENGLISH} "Install application start menu shortcuts."
 
 ;--------------------------------
 ; Uninstaller section descriptions
 
-  LangString DESC_UnSecProgram ${LANG_ENGLISH} "OpenPilot GCS application and all components."
-  LangString DESC_UnSecCache ${LANG_ENGLISH} "OpenPilot GCS cached maps data."
-  LangString DESC_UnSecConfig ${LANG_ENGLISH} "OpenPilot GCS configuration files."
+  LangString DESC_UnSecProgram ${LANG_ENGLISH} "GCS application and all components."
+  LangString DESC_UnSecCache ${LANG_ENGLISH} "GCS cached maps data."
+  LangString DESC_UnSecConfig ${LANG_ENGLISH} "GCS configuration files."

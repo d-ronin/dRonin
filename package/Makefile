@@ -1,12 +1,6 @@
 # Set up a default goal
 .DEFAULT_GOAL := help
 
-# Tried the best to support parallel (-j) builds. But since this Makefile
-# uses other Makefiles to build few targets which in turn have similar
-# dependencies on uavobjects and other generated files, it is difficult
-# to support parallel builds perfectly. But at least it was tested with
-# -j (unlimited job number) on Windows and Linux.
-
 # Locate the root of the tree
 WHEREAMI := $(dir $(lastword $(MAKEFILE_LIST)))
 ROOT_DIR := $(realpath $(WHEREAMI)/../)
@@ -15,7 +9,6 @@ ROOT_DIR := $(realpath $(WHEREAMI)/../)
 include $(ROOT_DIR)/make/system-id.mk
 
 TOOLS_DIR := $(ROOT_DIR)/tools
-BUILD_DIR := $(ROOT_DIR)/build
 
 # include the tools makefile
 include $(ROOT_DIR)/make/tools.mk
@@ -31,10 +24,22 @@ else
 PACKAGE_LBL  := $(shell $(VERSION_CMD) --format=\$${DATE}-\$${TAG_OR_HASH8}\$${DIRTY})
 endif
 PACKAGE_DIR  := $(BUILD_DIR)/package-$(PACKAGE_LBL)
-FW_DIR       := $(PACKAGE_DIR)/firmware-$(PACKAGE_LBL)
-BL_DIR       := $(FW_DIR)/bootloaders
-BU_DIR       := $(FW_DIR)/bootloader-updaters
+ML_DIR	     := $(PACKAGE_DIR)/matlab-$(PACKAGE_LBL)
 
+MACHINE_TYPE := $(shell uname -m)
+ifeq ($(MACHINE_TYPE), x86_64)
+PLATFORM_NAME:=amd64
+else
+PLATFORM_NAME:=i386
+endif
+PLATFORM := winx86
+UNAME := $(shell uname)
+ifeq ($(UNAME), Linux)
+  PLATFORM := linux
+endif
+ifeq ($(UNAME), Darwin)
+  PLATFORM := osx
+endif
 # Clean build options (recommended for package testing only)
 ifeq ($(CLEAN_BUILD), NO)
 CLEAN_GROUND := NO
@@ -46,96 +51,41 @@ endif
 
 USE_MSVC ?= NO
 
-# Set up targets
-ALL_BOARDS        := coptercontrol pipxtreme revomini sparky sparky2 quanton colibri flyingf3 aq32 naze32 brain
-ALL_BOARDS_BU     := coptercontrol pipxtreme
-
-FW_BOARDS  := $(ALL_BOARDS)
-BL_BOARDS  := $(filter-out naze32, $(ALL_BOARDS))
-BU_BOARDS  := $(ALL_BOARDS_BU)
-EF_BOARDS  := $(filter-out naze32, $(ALL_BOARDS))
-
-FW_TARGETS        := $(addprefix fw_, $(FW_BOARDS))
-FW_TARGETS_TOOLS  := $(addprefix fw_, $(FW_BOARDS))
-BL_TARGETS        := $(addprefix bl_, $(BL_BOARDS))
-BU_TARGETS        := $(addprefix bu_, $(BU_BOARDS))
+GCS_PACKAGE_NAME:= dronin_$(PLATFORM)_$(PLATFORM_NAME)-$(PACKAGE_LBL)
+GCS_PACKAGE_ROOT := $(GCS_PACKAGE_NAME)
 
 help:
-	@echo
-	@echo "   This Makefile is known to work on Linux and Mac in a standard shell environment."
-	@echo "   It also works on Windows by following the instructions in ../make/winx86/README.txt."
-	@echo
-	@echo "   Here is a summary of the available targets:"
-	@echo
-	@echo "   [Packaging]"
-	@echo "     package        - Build and package the OpenPilot distributable"
-	@echo "     package_flight - Build and package the OpenPilot flight firmware only"
-	@echo
-	@echo "   Notes:"
-	@echo "     - package will be placed in $(PACKAGE_DIR)"
-	@echo
-	@echo "     - the build directory will be removed first on every run unless"
-	@echo "       CLEAN_BUILD=NO is defined. It means no clean before build."
-	@echo "       This usually is safe."
+	@echo "   This Makefile is intended to be executed by the toplevel makefile"
+	@echo " Type make help in the top of the dRonin tree for help."
 	@echo
 
-uavobjects: 
-	$(V1) $(MAKE) -C $(ROOT_DIR) $@
-
-matlab: uavobjects
-	$(V1) $(MAKE) -C $(ROOT_DIR) $@
-
-all_clean:
-ifneq ($(CLEAN_GROUND), NO)
-	$(V1) $(MAKE) -C $(ROOT_DIR) $@
-endif
-
-# Install template:
-#   $1 = target
-#   $2 = dependencies
-#   $3 = install directory (must be defined)
-#   $4 = installed file name prefix (optional)
-#   $5 = installed file name suffix (optional)
-#   $6 = extra make options (for instance, USE_SPEKTRUM=YES)
-#   $7 = optional 'clean' string to clean target before rebuild
-#   $8 = list of targets to install (without _install suffix)
-#   $9 = inner make target (usually install, but can be other to just build)
-define INSTALL_TEMPLATE
-$(1): $(2)
-ifeq ($(7),clean)
-ifneq ($$(CLEAN_FLIGHT), NO)
-	$$(V1) +$(MAKE) -C $(ROOT_DIR) $(6) $(addsuffix _$(7), $(8))
-endif
-endif
-	$$(V1) +$(MAKE) -C $(ROOT_DIR) INSTALL_DIR=$(3) INSTALL_PFX=$(4) INSTALL_SFX=$(5) $(6) $(addsuffix _$(9), $(8))
-.PHONY: $(1)
-endef
-
-# Firmware
-$(eval $(call INSTALL_TEMPLATE,all_fw,uavobjects,$(FW_DIR),,-$(PACKAGE_LBL),,,$(FW_TARGETS),install))
-
-# Bootloaders (change 'install' to 'bin' if you don't want to install bootloaders)
-$(eval $(call INSTALL_TEMPLATE,all_bl,uavobjects,$(BL_DIR),,-$(PACKAGE_LBL),,,$(BL_TARGETS),install))
-
-# Bootloader updaters
-$(eval $(call INSTALL_TEMPLATE,all_bu,all_bl,$(BU_DIR),,-$(PACKAGE_LBL),,,$(BU_TARGETS),install))
+matlab: 
+	$(V1)mkdir -p $(ML_DIR)
+	$(V1)cp -rp $(BUILD_DIR)/matlab/*.* $(ML_DIR)
 
 # Order-only dependencies
-package_flight: | all_fw all_bu
-
 package_matlab: | matlab
 
 package_ground: | ground_package
 
-package: | package_flight package_ground package_matlab
+package_installer: | installer_package
 
-.PHONY: help uavobjects all_clean package_flight package_ground package
+package_all: package_ground package_matlab extract_firmware
 
-# tlfw_resource must be generated before the ground package,
-# and it depends on flight firmware images
-ground_package: | tlfw_resource
+extract_firmware: $(FLIGHTPKGNAME)
+	mkdir -p "$(PACKAGE_DIR)"/firmware
+	unzip "$(FLIGHTPKGNAME)" -d "$(PACKAGE_DIR)"/firmware
 
-tlfw_resource: | all_fw
+package_info:
+	$(shell $(VERSION_CMD) --uavodir=$(ROOT_DIR)/shared/uavobjectdefinition --template=$(ROOT_DIR)/make/templates/packageversioninfo.json --outfile=$(PACKAGE_DIR)/packageversioninfo.json)
+
+.PHONY: help
+.PHONY: package_ground package_matlab package_all package_installer package_info
+.PHONY: extract_firmware
+
+ground_package: ground_package_os_specific
+	@echo $@ starting
+	$(V1)cd $(PACKAGE_DIR)/$(GCS_PACKAGE_ROOT) && find . \( -type f -o -type l \) -print > $(PACKAGE_DIR)/$(GCS_PACKAGE_ROOT)/filelist.lst
 
 # Decide on a verbosity level based on the V= parameter
 export AT := @
@@ -149,36 +99,19 @@ export V1    := $(AT)
 else ifeq ($(V), 1)
 endif
 
-ifneq ($(V),1)
-MAKEFLAGS += --no-print-directory
-endif
-
-# Platform-dependent stuff
-PLATFORM := winx86
-UNAME := $(shell uname)
-ifeq ($(UNAME), Linux)
-  PLATFORM := linux
-endif
-ifeq ($(UNAME), Darwin)
-  PLATFORM := osx
-endif
-
-toprel = $(subst $(realpath $(ROOT_DIR))/,,$(abspath $(1)))
-TLFW_FILES := $(foreach fw_targ, $(FW_TARGETS), $(call toprel, $(BUILD_DIR)/$(fw_targ)/$(fw_targ).tlfw))
-TLFW_CONTENTS := \
-<!DOCTYPE RCC><RCC version="1.0"> \
- <qresource> \
-     $(foreach fw_file, $(TLFW_FILES), <file>$(fw_file)</file>) \
- </qresource> \
-</RCC>
-
-.PHONY: tlfw_resource
-tlfw_resource:
-	@echo Generating TLFW resource file $(call toprel, $(BUILD_DIR)/ground/$@)
-	$(V1) mkdir -p $(BUILD_DIR)/ground/$@
-	$(V1) mkdir -p $(BUILD_DIR)/ground/$@/build
-	$(V1) echo '$(TLFW_CONTENTS)' > $(BUILD_DIR)/ground/$@/tlfw_resource.qrc
-	$(V1) $(foreach fw_targ, $(FW_TARGETS), mkdir -p $(BUILD_DIR)/ground/$@/build/$(fw_targ);)
-	$(V1)$(foreach fw_targ, $(FW_TARGETS), cp $(BUILD_DIR)/$(fw_targ)/$(fw_targ).tlfw $(BUILD_DIR)/ground/$@/build/$(fw_targ)/;)
+ground_package_common: | standalone
+	@echo $@ starting
+	$(V1) mkdir -p $(PACKAGE_DIR)/$(GCS_PACKAGE_NAME)/bin
+	$(V1) mkdir -p $(PACKAGE_DIR)/$(GCS_PACKAGE_NAME)/share
+	$(V1) mkdir -p $(PACKAGE_DIR)/$(GCS_PACKAGE_NAME)/lib
+	$(V1) cp -v -R $(BUILD_DIR)/ground/gcs/bin $(PACKAGE_DIR)/$(GCS_PACKAGE_NAME)
+	$(V1) cp -v -R $(BUILD_DIR)/ground/gcs/share $(PACKAGE_DIR)/$(GCS_PACKAGE_NAME)
+	$(V1) cp -v -R $(BUILD_DIR)/ground/gcs/lib $(PACKAGE_DIR)/$(GCS_PACKAGE_NAME)
+	$(V1) cp -v $(ROOT_DIR)/CREDITS.txt $(PACKAGE_DIR)/$(GCS_PACKAGE_NAME)
+	$(V1) cp -v $(ROOT_DIR)/LICENSE.txt $(PACKAGE_DIR)/$(GCS_PACKAGE_NAME)
+	$(V1) find $(PACKAGE_DIR)/$(GCS_PACKAGE_NAME) -type f -name "*Makefile" -exec rm -f {} \;
+	$(V1) find $(PACKAGE_DIR)/$(GCS_PACKAGE_NAME) -type f -name "*qmake.cache" -exec rm -f {} \;
+	$(V1) find $(PACKAGE_DIR)/$(GCS_PACKAGE_NAME) -type f -name "*udp_test" -exec rm -f {} \;
+	$(V1) find $(PACKAGE_DIR)/$(GCS_PACKAGE_NAME) -type f -name "*gcsversioninfo.h" -exec rm -f {} \;
 
 include $(WHEREAMI)/Makefile.$(PLATFORM)

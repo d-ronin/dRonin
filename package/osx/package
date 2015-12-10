@@ -3,13 +3,14 @@
 # Information about dmg generation: http://stackoverflow.com/questions/96882/how-do-i-create-a-nice-looking-dmg-for-mac-os-x-using-command-line-tools
 
 # the following environment variables must be set
-: ${ROOT_DIR?} ${BUILD_DIR?} ${PACKAGE_LBL?} ${PACKAGE_DIR?} ${FW_DIR?}
+: ${ROOT_DIR?} ${BUILD_DIR?} ${PACKAGE_LBL?} ${PACKAGE_DIR?} ${FW_DIR?} ${DMG_LBL?}
 
 # more variables
 APP_NAME="dRonin GCS.app"
 APP_PATH="${BUILD_DIR}/ground/gcs/bin/"
 TEMP_FILE="${PACKAGE_DIR}/dRonin-temp.dmg.sparseimage"
-OUT_FILE="${PACKAGE_DIR}/dRonin-${PACKAGE_LBL}.dmg"
+OUT_FILE="${PACKAGE_DIR}/${DMG_LBL}.dmg"
+FW_DIR="${PACKAGE_DIR}/firmware"
 ICON_FILE="${ROOT_DIR}/package/dronin.png"
 VOL_NAME="dRonin"
 
@@ -27,17 +28,7 @@ device=$(hdiutil attach  "${TEMP_FILE}" | \
 mkdir "/Volumes/${VOL_NAME}/Firmware"
 mkdir "/Volumes/${VOL_NAME}/Utilities"
 cp -r "${APP_PATH}/${APP_NAME}" "/Volumes/${VOL_NAME}"
-cp "${FW_DIR}/fw_quanton-${PACKAGE_LBL}.tlfw" "/Volumes/${VOL_NAME}/Firmware"
-cp "${FW_DIR}/fw_colibri-${PACKAGE_LBL}.tlfw" "/Volumes/${VOL_NAME}/Firmware"
-cp "${FW_DIR}/fw_flyingf3-${PACKAGE_LBL}.tlfw" "/Volumes/${VOL_NAME}/Firmware"
-cp "${FW_DIR}/fw_coptercontrol-${PACKAGE_LBL}.tlfw" "/Volumes/${VOL_NAME}/Firmware"
-cp "${FW_DIR}/fw_revomini-${PACKAGE_LBL}.tlfw" "/Volumes/${VOL_NAME}/Firmware"
-cp "${FW_DIR}/fw_pipxtreme-${PACKAGE_LBL}.tlfw" "/Volumes/${VOL_NAME}/Firmware"
-cp "${FW_DIR}/fw_sparky-${PACKAGE_LBL}.tlfw" "/Volumes/${VOL_NAME}/Firmware"
-cp "${FW_DIR}/fw_sparky2-${PACKAGE_LBL}.tlfw" "/Volumes/${VOL_NAME}/Firmware"
-cp "${FW_DIR}/fw_naze32-${PACKAGE_LBL}.tlfw" "/Volumes/${VOL_NAME}/Firmware"
-cp "${FW_DIR}/fw_aq32-${PACKAGE_LBL}.tlfw" "/Volumes/${VOL_NAME}/Firmware"
-cp "${FW_DIR}/fw_brain-${PACKAGE_LBL}.tlfw" "/Volumes/${VOL_NAME}/Firmware"
+cp -rp "${FW_DIR}"/* "/Volumes/${VOL_NAME}/Firmware"
 
 cp "${BUILD_DIR}/matlab/LogConvert.m" "/Volumes/${VOL_NAME}/Utilities/LogConvert-${PACKAGE_LBL}.m"
 

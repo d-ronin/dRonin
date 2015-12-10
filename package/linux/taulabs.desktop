@@ -1,0 +1,12 @@
+[Desktop Entry]
+Version=0.1.0
+Encoding=UTF-8
+Name=dRonin GCS
+Exec=drgcs
+TryExec=drgcs
+Comment=Configure, Tune, Diagnose, Track, & Upgrade FW for dRonin flight controllers
+Terminal=false
+Categories=dRoninMenu;Qt;Other;
+Icon=dronin
+Type=Application
+MimeType=application/dRonin.snapshot;
