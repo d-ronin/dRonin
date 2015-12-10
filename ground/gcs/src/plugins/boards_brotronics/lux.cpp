@@ -42,8 +42,8 @@ Lux::Lux(void)
 {
     // Initialize our USB Structure definition here:
     USBInfo board;
-    board.vendorID = 0x20A0;
-    board.productID = 0x4195;
+    board.vendorID = 0x1209;
+    board.productID = 0xf3fc;	/* F3 Flight Controller ;) */
     setUSBInfo(board);
 
     boardType = 0xCA;
