@@ -127,7 +127,7 @@ static inline bool IS_NOT_FINITE(float x) {
 #define cast_uint32_t (uint32_t)
 #endif
 
-static inline float 
+static inline float
 fastlog2 (float x)
 {
 	union { float f; uint32_t i; } vx = { x };
@@ -136,7 +136,7 @@ fastlog2 (float x)
 	y *= 1.0f / (1 << 23);
 
 	return y - 124.22551499f
-		- 1.498030302f * mx.f 
+		- 1.498030302f * mx.f
 		- 1.72587999f / (0.3520887068f + mx.f);
 }
 
