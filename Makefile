@@ -1008,7 +1008,7 @@ $(PACKAGE_TARGETS):
 package_flight: $(FLIGHTPKGNAME)
 
 $(FLIGHTPKGNAME): all_flight
-	zip -j $@ $(FW_FILES) $^
+	$(ZIP) -j $@ $(FW_FILES) $^
 
 ##############################
 #
