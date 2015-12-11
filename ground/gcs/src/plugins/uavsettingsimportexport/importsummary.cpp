@@ -61,7 +61,7 @@ ImportSummaryDialog::~ImportSummaryDialog()
   */
 void ImportSummaryDialog::openHelp()
 {
-    QDesktopServices::openUrl( QUrl("https://github.com/TauLabs/TauLabs/wiki/OnlineHelp:-UAV-Settings-import-export", QUrl::StrictMode) );
+    QDesktopServices::openUrl( QUrl("https://github.com/d-ronin/dRonin/wiki/OnlineHelp:-UAV-Settings-import-export", QUrl::StrictMode) );
 }
 
 /*
