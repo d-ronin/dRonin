@@ -127,7 +127,6 @@ help:
 	@echo "     dfuutil_install      - Install the dfu-util tool for unbricking F4-based boards"
 	@echo "     android_sdk_install  - Install the Android SDK tools"
 	@echo "     gtest_install        - Install the google unit test suite"
-	@echo "     astyle_install       - Install the astyle code formatter (deprecated)"
 	@echo "     uncrustify_install   - Install the uncrustify code formatter"
 	@echo "     openssl_install      - Install the openssl libraries on windows machines"	
 	@echo
@@ -214,8 +213,6 @@ help:
 	@echo "     - packages will be placed in $(PACKAGE_DIR)"
 	@echo
 	@echo "   [Misc]"
-	@echo "     astyle_flight FILE=<name>   - Executes the astyle code formatter to reformat"
-	@echo "                                   a c source file (deprecated)"
 	@echo "     uncrustify_flight FILE=<name> - Executes uncrustify to reformat a c source"
 	@echo "                                     file according to the flight code style"
 	@echo
@@ -1014,20 +1011,9 @@ $(FLIGHTPKGNAME): all_flight
 
 ##############################
 #
-# AStyle
+# uncrustify 
 #
 ##############################
-
-ifneq ($(strip $(filter astyle_flight,$(MAKECMDGOALS))),)
-  ifeq ($(FILE),)
-    $(error pass files to astyle by adding FILE=<file> to the make command line)
-  endif
-endif
-
-.PHONY: astyle_flight
-astyle_flight: ASTYLE_OPTIONS := --suffix=none --lineend=linux --mode=c --align-pointer=name --align-reference=name --indent=tab=4 --style=linux --pad-oper --pad-header --unpad-paren
-astyle_flight:
-	$(V1) $(ASTYLE) $(ASTYLE_OPTIONS) $(FILE)
 
 ifneq ($(strip $(filter uncrustify_flight,$(MAKECMDGOALS))),)
   ifeq ($(FILE),)
