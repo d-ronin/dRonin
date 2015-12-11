@@ -24,6 +24,9 @@ Item {
         ListElement { title: "dRonin Wiki"; link: "https://github.com/d-ronin/dRonin/wiki" }
         ListElement { title: "dRonin Code"; link: "https://github.com/d-ronin/dRoni" }
         ListElement { title: "dRonin Issues"; link: "https://github.com/d-ronin/dRoni/issues" }
+        ListElement { title: "dRonin Facebook"; link: "https://www.facebook.com/flydRonin" }
+        ListElement { title: "dRonin Twitter"; link: "https://twitter.com/flydRonin" }
+        ListElement { title: "dRonin Instagram"; link: "https://www.instagram.com/flydronin/" }
     }
 
     ListView {
