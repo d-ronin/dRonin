@@ -122,6 +122,7 @@ help:
 	@echo "     qt_sdk_install       - Install the Qt tools"
 	@echo "     arm_sdk_install      - Install the GNU ARM gcc toolchain"
 	@echo "     openocd_install      - Install the OpenOCD SWD/JTAG daemon"
+	@echo "     zip_install          - Install Info-Zip compression tool"
 	@echo "        \$$OPENOCD_FTDI     - Set to no in order not to install legacy FTDI support for OpenOCD."
 	@echo "     stm32flash_install   - Install the stm32flash tool for unbricking boards"
 	@echo "     dfuutil_install      - Install the dfu-util tool for unbricking F4-based boards"
@@ -1007,7 +1008,7 @@ $(PACKAGE_TARGETS):
 package_flight: $(FLIGHTPKGNAME)
 
 $(FLIGHTPKGNAME): all_flight
-	zip -j $@ $(FW_FILES) $^
+	$(ZIP) -j $@ $(FW_FILES) $^
 
 ##############################
 #
