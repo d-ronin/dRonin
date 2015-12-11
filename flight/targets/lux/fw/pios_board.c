@@ -273,6 +273,7 @@ void PIOS_Board_Init(void)
 	HwLuxDSMxModeOptions hw_DSMxMode;
 	HwLuxDSMxModeGet(&hw_DSMxMode);
 
+	/* This unconditionally configures PPM.  */
 	/* Configure main USART port */
 	uint8_t hw_mainport;
 	HwLuxMainPortGet(&hw_mainport);
@@ -320,7 +321,7 @@ void PIOS_Board_Init(void)
 			&pios_usart_com_driver, // com_driver
 			NULL, // i2c_id
 			NULL, // i2c_cfg
-			NULL, // ppm_cfg
+			&pios_ppm_cfg, // ppm_cfg
 			NULL, // pwm_cfg
 			PIOS_LED_ALARM, // led_id
 			&pios_rcvr_dsm_hsum_cfg, // usart_dsm_hsum_cfg
