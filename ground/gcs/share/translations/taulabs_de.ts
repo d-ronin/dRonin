@@ -1347,7 +1347,7 @@ Grund: %3</translation>
     </message>
     <message>
         <location line="+8"/>
-        <source>https://github.com/TauLabs/TauLabs/commits/next.atom</source>
+        <source>https://github.com/d-ronin/dRonin/commits/next.atom</source>
         <extracomment>Add localized feed here only if one exists</extracomment>
         <translation type="unfinished"></translation>
     </message>
