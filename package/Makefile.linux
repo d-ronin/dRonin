@@ -5,7 +5,7 @@
 define CP_DEB_FILES_TEMPLATE
 .PHONY: $(2)/$(1)
 $(2)/$(1): $(3)/$(1) $(DEB_BUILD_DIR)
-	$(V1)cp -a $$< $$@
+	$(V1)cp -a $$< $(2)/$(subst _package,dronin,$(1))
 endef
 
 # Update this number for every formal release.  The Deb packaging system relies on this to know to update a
@@ -19,44 +19,50 @@ SED_AUTHOR_EMAIL	= $(shell git config user.email)
 SED_AUTHOR			= $(SED_AUTHOR_NAME) <$(SED_AUTHOR_EMAIL)>
 SED_DATE_STRG		= $(shell date -R)
 SED_BIN_ROOT		= $(PACKAGE_DIR)/$(GCS_PACKAGE_NAME)
-SED_SCRIPT			= s|<VERSION>|$(VERSION_FULL)|;s|<DATE>|$(SED_DATE_STRG)|;s|<AUTHOR>|$(SED_AUTHOR)|;s|<BIN_ROOT>|$(SED_BIN_ROOT)|;s|<PROJECT_ROOT>|$(ROOT_DIR)|;s|<TARGET_ROOT>|$(DEB_BUILD_DIR)|g
-
-DEB_CFG_CMN		:= $(ROOT_DIR)/package/linux/deb_common
-DEB_CFG_CMN_FILES	:= $(shell ls $(DEB_CFG_CMN))
-DEB_CFG_AMD64_DIR	:= $(ROOT_DIR)/package/linux/deb_amd64
-DEB_CFG_AMD64_FILES	:= $(shell ls $(DEB_CFG_AMD64_DIR))
-DEB_MACHINE_DIR		:= $(DEB_CFG_AMD64_DIR)
-DEB_MACHINE_FILES	:= $(DEB_CFG_AMD64_FILES)
-ALL_DEB_FILES  = $(foreach f, $(DEB_CFG_CMN_FILES), $(DEB_BUILD_DIR)/$(f))
-ALL_DEB_FILES += $(foreach f, $(DEB_MACHINE_FILES), $(DEB_BUILD_DIR)/$(f))
+SED_SCRIPT			= s|<ARCHITECTURE>|$(PLATFORM_NAME)|;s|<VERSION>|$(VERSION_FULL)|;s|<DATE>|$(SED_DATE_STRG)|;s|<AUTHOR>|$(SED_AUTHOR)|;s|<BIN_ROOT>|$(SED_BIN_ROOT)|;s|<PROJECT_ROOT>|$(ROOT_DIR)|;s|<TARGET_ROOT>|$(DEB_BUILD_DIR)|g
+SED_SUBSTITUTE		= $(shell sed -e '/./!d;s/\([^ ]*\)=\(.*\)/\s|<\1>|\2|g;/' $(ROOT_DIR)/branding/linux_packaging.dict)
+SED_SUBSTITUTE		+= $(SED_SCRIPT)
+DEB_CFG				:= $(ROOT_DIR)/package/linux/deb
+DEB_CFG_FILES		:= $(shell ls $(DEB_CFG))
+DEB_ASSETS			:= $(ROOT_DIR)/package/linux/assets
+DEB_ASSETS_FILES	:= $(shell ls $(DEB_ASSETS))
+ALL_DEB_FILES  = $(foreach f, $(DEB_CFG_FILES), $(DEB_BUILD_DIR)/$(f))
+ALL_DEB_FILES += $(foreach f, $(DEB_ASSETS_FILES), $(DEB_BUILD_DIR)/$(f))
 
 QT_PLUGINS_USED		:= imageformats platforms sqldrivers xcbglintegrations
 
-standalone: | extract_firmware
+standalone: | gcs extract_firmware
 	@echo $@ starting
 	@echo Copying Qt5 plugins libraries
-	$(V1) mkdir -p "$(BUILD_DIR)/ground/gcs/lib/dronin/qtplugins"
-	$(V1) cp -v -R $(QT_PLUGINS_DIR)/imageformats $(BUILD_DIR)/ground/gcs/lib/dronin/qtplugins/
-	$(V1) cp -v -R $(QT_PLUGINS_DIR)/platforms $(BUILD_DIR)/ground/gcs/lib/dronin/qtplugins/
-	$(V1) mkdir -p "$(BUILD_DIR)/ground/gcs/lib/dronin/qtplugins/sqldrivers"
-	$(V1) cp -v -R $(QT_PLUGINS_DIR)/sqldrivers/libqsqlite.so $(BUILD_DIR)/ground/gcs/lib/dronin/qtplugins/sqldrivers
-	$(V1) cp -v -R $(QT_PLUGINS_DIR)/xcbglintegrations $(BUILD_DIR)/ground/gcs/lib/dronin/qtplugins/
-	$(V1) mkdir -p "$(BUILD_DIR)/ground/gcs/lib/dronin/qml"
-	$(V1) cp -v -R $(QT_PLUGINS_DIR)/../qml/QtQuick.2 $(BUILD_DIR)/ground/gcs/lib/dronin/qml/
-	$(V1) cp -v -R $(QT_PLUGINS_DIR)/../qml/QtQuick $(BUILD_DIR)/ground/gcs/lib/dronin/qml/
+	$(V1) mkdir -p "$(BUILD_DIR)/ground/gcs/lib/dr/qtplugins"
+	$(V1) cp -v -R $(QT_PLUGINS_DIR)/imageformats $(BUILD_DIR)/ground/gcs/lib/dr/qtplugins/
+	$(V1) cp -v -R $(QT_PLUGINS_DIR)/platforms $(BUILD_DIR)/ground/gcs/lib/dr/qtplugins/
+	$(V1) mkdir -p "$(BUILD_DIR)/ground/gcs/lib/dr/qtplugins/sqldrivers"
+	$(V1) cp -v -R $(QT_PLUGINS_DIR)/sqldrivers/libqsqlite.so $(BUILD_DIR)/ground/gcs/lib/dr/qtplugins/sqldrivers
+	$(V1) cp -v -R $(QT_PLUGINS_DIR)/xcbglintegrations $(BUILD_DIR)/ground/gcs/lib/dr/qtplugins/
+	$(V1) mkdir -p "$(BUILD_DIR)/ground/gcs/lib/dr/qml"
+	$(V1) cp -v -R $(QT_PLUGINS_DIR)/../qml/QtQuick.2 $(BUILD_DIR)/ground/gcs/lib/dr/qml/
+	$(V1) cp -v -R $(QT_PLUGINS_DIR)/../qml/QtQuick $(BUILD_DIR)/ground/gcs/lib/dr/qml/
 	@echo Copying platform libraries dependencies
 	$(V1) find $(QT_PLUGINS_DIR)/platforms/ -name '*.so'	| xargs -I '{}' ldd '{}'| sed -e '/^[^\t]/ d; s/^\t\(.* => \)\?\([^ ]*\) (.*/\2/g' \
-	| grep "Qt5" | grep -v "build/ground" | sort | uniq | xargs -I '{}' cp -v -f '{}' $(BUILD_DIR)/ground/gcs/lib/dronin 
+	| grep "Qt5" | grep -v "build/ground" | sort | uniq | xargs -I '{}' cp -v -f '{}' $(BUILD_DIR)/ground/gcs/lib/dr 
 	$(V1)find $(QT_PLUGINS_DIR)/../qml/QtQuick/ -name '*.so'	| xargs -I '{}' ldd '{}'| sed -e '/^[^\t]/ d; s/^\t\(.* => \)\?\([^ ]*\) (.*/\2/g' \
-	| grep "Qt5" | grep -v "build/ground" | sort | uniq | xargs -I '{}' cp -v -f '{}' $(BUILD_DIR)/ground/gcs/lib/dronin 
+	| grep "Qt5" | grep -v "build/ground" | sort | uniq | xargs -I '{}' cp -v -f '{}' $(BUILD_DIR)/ground/gcs/lib/dr
 	@echo Searching and copying used Qt5 libraries
-	$(V1) find $(BUILD_DIR)/ground/gcs/bin/drgcs.bin $(BUILD_DIR)/ground/gcs/lib/dronin/plugins/dronin/*.so -exec ldd {} \; \
-	| sed -e '/^[^\t]/ d; s/^\t\(.* => \)\?\([^ ]*\) (.*/\2/g'| grep "Qt5" | grep -v "build/ground" | sort | uniq | xargs -I '{}' cp -v -f '{}' $(BUILD_DIR)/ground/gcs/lib/dronin
+	$(V1) find $(BUILD_DIR)/ground/gcs/bin/drgcs.bin $(BUILD_DIR)/ground/gcs/lib/dr/plugins/TauLabs/*.so -exec ldd {} \; \
+	| sed -e '/^[^\t]/ d; s/^\t\(.* => \)\?\([^ ]*\) (.*/\2/g'| grep "Qt5" | grep -v "build/ground" | sort | uniq | xargs -I '{}' cp -v -f '{}' $(BUILD_DIR)/ground/gcs/lib/dr
 	@echo Copying qt.conf file
-	$(V1) cp -v $(ROOT_DIR)/package/linux/qt.conf $(BUILD_DIR)/ground/gcs/bin/
+	$(V1) cp -v $(ROOT_DIR)/package/linux/assets/qt.conf $(BUILD_DIR)/ground/gcs/bin/
+	$(V1) sed -i -e "$(SED_SUBSTITUTE)" $(BUILD_DIR)/ground/gcs/bin/qt.conf
+
+.PHONY: gcs
+gcs:
+	@echo "Linux Package Make of GCS."
+	$(V1) $(MAKE) -C $(ROOT_DIR) GCS_BUILD_CONF=release $@
 
 ground_package_os_specific: ground_package_common
-	$(V1) cp -v $(ROOT_DIR)/package/linux/drgcs $(PACKAGE_DIR)/$(GCS_PACKAGE_NAME)
+	$(V1) cp -v $(ROOT_DIR)/package/linux/assets/exec $(PACKAGE_DIR)/$(GCS_PACKAGE_NAME)/drgcs
+	$(V1) sed -i -e "$(SED_SUBSTITUTE)" $(PACKAGE_DIR)/$(GCS_PACKAGE_NAME)/drgcs
 
 installer_package: deb_build ground_package
 	@echo $@ starting
@@ -67,13 +73,13 @@ installer_package: deb_build ground_package
 
 deb_build: | $(DEB_BUILD_DIR) $(ALL_DEB_FILES)
 	@echo $@ starting
-	$(V1) find $(DEB_BUILD_DIR) -maxdepth 1 -type f | xargs sed -i -e "$(SED_SCRIPT)"
+	$(V1) find $(DEB_BUILD_DIR)  -maxdepth 1 -type f | xargs sed -i -e "$(SED_SUBSTITUTE)"
 
 $(DEB_BUILD_DIR): 
 	@echo $@ starting
 	$(V1) mkdir -p $(DEB_BUILD_DIR)
-$(foreach cpfile, $(DEB_CFG_CMN_FILES), $(eval $(call CP_DEB_FILES_TEMPLATE,$(cpfile),$(DEB_BUILD_DIR),$(DEB_CFG_CMN))))
-$(foreach cpfile, $(DEB_MACHINE_FILES), $(eval $(call CP_DEB_FILES_TEMPLATE,$(cpfile),$(DEB_BUILD_DIR),$(DEB_MACHINE_DIR))))
+$(foreach cpfile, $(DEB_CFG_FILES), $(eval $(call CP_DEB_FILES_TEMPLATE,$(cpfile),$(DEB_BUILD_DIR),$(DEB_CFG))))
+$(foreach cpfile, $(DEB_ASSETS_FILES), $(eval $(call CP_DEB_FILES_TEMPLATE,$(cpfile),$(DEB_BUILD_DIR),$(DEB_ASSETS))))
 
 .PHONY: ground_package linux_deb_package deb_build $(DEB_BUILD_DIR)
 

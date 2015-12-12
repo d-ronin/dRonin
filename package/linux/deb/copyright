@@ -4,15 +4,15 @@ This work was packaged for Debian by:
 
 It was downloaded from:
 
-    https://github.com/TauLabs/TauLabs/releases
+    <BRANDING_PACKAGE_COPYRIGHT_DOWNLOADED_FROM>
 
 Upstream Author(s):
 
-    Copyright (C) 2015 taulabs.org <board@omniloco.com>
+    Copyright (C) 2015 <BRANDING_PACKAGE_HOME_PAGE> <<BRANDING_PACKAGE_COPYRIGHT_EMAIL>>
 
 Copyright:
 
-    Copyright (C) 2015 taulabs.org <board@omniloco.com>
+    Copyright (C) 2015 <BRANDING_PACKAGE_HOME_PAGE> <<BRANDING_PACKAGE_COPYRIGHT_EMAIL>>
 
 License:
 
@@ -31,7 +31,7 @@ License:
 
 The Debian packaging is:
 
-    Copyright (C) 2015 taulabs.org <board@omniloco.com>
+    Copyright (C) 2015 <BRANDING_PACKAGE_HOME_PAGE> <<BRANDING_PACKAGE_COPYRIGHT_EMAIL>>
 
 # Please chose a license for your packaging work. If the program you package
 # uses a mainstream license, using the same license is the safest choice.

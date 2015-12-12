@@ -2,5 +2,5 @@ etc/xdg/menus/applications-merged
 usr/share/applications
 usr/share/pixmaps
 usr/share/desktop-directories
-usr/local/dRonin/firmware
+usr/local/<BRANDING_PACKAGE_PRETTY>/firmware
 usr/bin

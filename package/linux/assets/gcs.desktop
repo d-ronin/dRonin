@@ -1,0 +1,12 @@
+[Desktop Entry]
+Version=0.1.0
+Encoding=UTF-8
+Name=<BRANDING_PACKAGE_PRETTY> GCS
+Exec=<BRANDING_PACKAGE_EXEC>
+TryExec=<BRANDING_PACKAGE_EXEC>
+Comment=Configure, Tune, Diagnose, Track, & Upgrade FW for <BRANDING_PACKAGE_PRETTY> flight controllers
+Terminal=false
+Categories=<BRANDING_PACKAGE_PRETTY>Menu;Qt;Other;
+Icon=<BRANDING_PACKAGE_SOURCE>
+Type=Application
+MimeType=application/<BRANDING_PACKAGE_PRETTY>.snapshot;

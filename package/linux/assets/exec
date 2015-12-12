@@ -32,6 +32,6 @@ fi
 bindir=`dirname "$me"`
 bindir=${bindir}/bin
 libdir=`cd "${bindir}/../lib" ; pwd`
-LD_LIBRARY_PATH="${libdir}/dronin:${LD_LIBRARY_PATH}"
+LD_LIBRARY_PATH="${libdir}/<BRANDING_PACKAGE_LIB>:${LD_LIBRARY_PATH}"
 export LD_LIBRARY_PATH
-exec "${bindir}/drgcs.bin" ${1+"$@"}
+exec "${bindir}/<BRANDING_PACKAGE_EXEC>.bin" ${1+"$@"}
