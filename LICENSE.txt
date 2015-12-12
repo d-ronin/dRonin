@@ -25,9 +25,9 @@ Hardware files are generally licensed under a Creative Commons license as noted 
 the individual subtree. Not all items are under the same license and you must check
 the files for each individual hardware design. Please note that some of the legacy
 hardware files are licensed under the non-commercial use Creative Commons BY-NC-SA v3
-license. You can find these hardware files at
+license. You can find these hardware files at:
 https://github.com/d-ronin/dRonin/tree/next/flight/targets under the board/hw
-directory. For example, you can find the OpenNaze rev4 hardware design at
+directory. For example, you can find the OpenNaze rev4 hardware design at:
 https://github.com/d-ronin/dRonin/tree/next/flight/targets/naze32/hw
 
 Some files are licensed under 3-clause BSD licenses. The full text of these 
@@ -36,7 +36,7 @@ the repository for the keyword "Redistributions". The full source code of
 dRonin can be found at https://github.com/d-ronin/dRonin and is part of its
 documentation, and must be provided in the form of a link to the repository
 in all distributions and redistributions of dRonin, in accordance with the
-3-clause BSD. For more informationa about this license, visit
+3-clause BSD. For more information about this license, visit:
 https://opensource.org/licenses/BSD-3-Clause
 
 This project was forked from Tau Labs, which in turn was forked from OpenPilot.
