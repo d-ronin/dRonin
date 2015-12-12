@@ -122,12 +122,12 @@ help:
 	@echo "     qt_sdk_install       - Install the Qt tools"
 	@echo "     arm_sdk_install      - Install the GNU ARM gcc toolchain"
 	@echo "     openocd_install      - Install the OpenOCD SWD/JTAG daemon"
+	@echo "     zip_install          - Install Info-Zip compression tool"
 	@echo "        \$$OPENOCD_FTDI     - Set to no in order not to install legacy FTDI support for OpenOCD."
 	@echo "     stm32flash_install   - Install the stm32flash tool for unbricking boards"
 	@echo "     dfuutil_install      - Install the dfu-util tool for unbricking F4-based boards"
 	@echo "     android_sdk_install  - Install the Android SDK tools"
 	@echo "     gtest_install        - Install the google unit test suite"
-	@echo "     astyle_install       - Install the astyle code formatter (deprecated)"
 	@echo "     uncrustify_install   - Install the uncrustify code formatter"
 	@echo "     openssl_install      - Install the openssl libraries on windows machines"	
 	@echo
@@ -214,8 +214,6 @@ help:
 	@echo "     - packages will be placed in $(PACKAGE_DIR)"
 	@echo
 	@echo "   [Misc]"
-	@echo "     astyle_flight FILE=<name>   - Executes the astyle code formatter to reformat"
-	@echo "                                   a c source file (deprecated)"
 	@echo "     uncrustify_flight FILE=<name> - Executes uncrustify to reformat a c source"
 	@echo "                                     file according to the flight code style"
 	@echo
@@ -1010,24 +1008,13 @@ $(PACKAGE_TARGETS):
 package_flight: $(FLIGHTPKGNAME)
 
 $(FLIGHTPKGNAME): all_flight
-	zip -j $@ $(FW_FILES) $^
+	$(ZIP) -j $@ $(FW_FILES) $^
 
 ##############################
 #
-# AStyle
+# uncrustify 
 #
 ##############################
-
-ifneq ($(strip $(filter astyle_flight,$(MAKECMDGOALS))),)
-  ifeq ($(FILE),)
-    $(error pass files to astyle by adding FILE=<file> to the make command line)
-  endif
-endif
-
-.PHONY: astyle_flight
-astyle_flight: ASTYLE_OPTIONS := --suffix=none --lineend=linux --mode=c --align-pointer=name --align-reference=name --indent=tab=4 --style=linux --pad-oper --pad-header --unpad-paren
-astyle_flight:
-	$(V1) $(ASTYLE) $(ASTYLE_OPTIONS) $(FILE)
 
 ifneq ($(strip $(filter uncrustify_flight,$(MAKECMDGOALS))),)
   ifeq ($(FILE),)

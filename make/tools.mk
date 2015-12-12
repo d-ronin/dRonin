@@ -406,39 +406,6 @@ gtest_clean:
 	$(V0) @echo " CLEAN        $(GTEST_DIR)"
 	$(V1) [ ! -d "$(GTEST_DIR)" ] || $(RM) -rf "$(GTEST_DIR)"
 
-
-# Set up astyle tools
-ASTYLE_DIR := $(TOOLS_DIR)/astyle
-ASTYLE_BUILD_DIR := $(DL_DIR)/astyle
-
-.PHONY: astyle_install
-astyle_install: | $(DL_DIR) $(TOOLS_DIR)
-astyle_install: ASTYLE_URL := https://svn.code.sf.net/p/astyle/code/trunk/AStyle
-astyle_install: ASTYLE_REV := 376
-astyle_install: ASTYLE_OPTIONS := prefix=$(ASTYLE_DIR)
-astyle_install: astyle_clean
-        # download the source
-	$(V0) @echo " DOWNLOAD     $(ASTYLE_URL) @ $(ASTYLE_REV)"
-	$(V1) svn export -q "$(ASTYLE_URL)" -r $(ASTYLE_REV) "$(ASTYLE_BUILD_DIR)"
-
-        # build and install
-	$(V0) @echo " BUILD        $(ASTYLE_DIR)"
-	$(V1) mkdir -p "$(ASTYLE_DIR)"
-	$(V1) ( \
-	  $(MAKE) -C $(ASTYLE_BUILD_DIR)/build/gcc $(ASTYLE_OPTIONS) ; \
-	  $(MAKE) -C $(ASTYLE_BUILD_DIR)/build/gcc $(ASTYLE_OPTIONS) install ; \
-	)
-
-        # delete the extracted source when we're done
-	$(V1) [ ! -d "$(ASTYLE_BUILD_DIR)" ] || $(RM) -r "$(ASTYLE_BUILD_DIR)"
-
-.PHONY: astyle_clean
-astyle_clean:
-	$(V0) @echo " CLEAN        $(ASTYLE_DIR)"
-	$(V1) [ ! -d "$(ASTYLE_DIR)" ] || $(RM) -r "$(ASTYLE_DIR)"
-	$(V0) @echo " CLEAN        $(ASTYLE_BUILD_DIR)"
-	$(V1) [ ! -d "$(ASTYLE_BUILD_DIR)" ] || $(RM) -r "$(ASTYLE_BUILD_DIR)"
-
 # Set up uncrustify tools
 UNCRUSTIFY_DIR := $(TOOLS_DIR)/uncrustify-0.61
 UNCRUSTIFY_BUILD_DIR := $(DL_DIR)/uncrustify
@@ -517,6 +484,28 @@ libkml_clean:
 	$(V0) @echo " CLEAN        $(LIBKML_BUILD_DIR)"
 	$(V1) [ ! -d "$(LIBKML_BUILD_DIR)" ] || $(RM) -rf "$(LIBKML_BUILD_DIR)"
 
+# ZIP download URL
+zip_install: ZIP_URL  := ftp://ftp.info-zip.org/pub/infozip/src/zip30.tgz
+
+zip_install: ZIP_FILE := $(notdir $(ZIP_URL))
+
+ZIP_DIR = $(TOOLS_DIR)/zip30
+
+# order-only prereq on directory existance:
+zip_install : | $(DL_DIR) $(TOOLS_DIR)
+zip_install: zip_clean
+	$(V1) curl -L -k -o "$(DL_DIR)/$(ZIP_FILE)" "$(ZIP_URL)"
+	$(V1) tar --force-local -C $(TOOLS_DIR) -xzf "$(DL_DIR)/$(ZIP_FILE)"
+ifneq ($(OSFAMILY), windows)
+	$(V1) cd "$(ZIP_DIR)" && $(MAKE) -f unix/Makefile generic_gcc
+else
+	$(V1) cd "$(ZIP_DIR)" && $(MAKE) -f win32/makefile.gcc
+endif
+
+.PHONY: zip_clean
+zip_clean:
+	$(V1) [ ! -d "$(ZIP_DIR)" ] || $(RM) -rf $(ZIP_DIR)
+
 ##############################
 #
 # Set up paths to tools
@@ -525,10 +514,6 @@ libkml_clean:
 
 ifeq ($(shell [ -d "$(QT_SDK_DIR)" ] && echo "exists"), exists)
   QMAKE = $(QT_SDK_QMAKE_PATH)
-ifdef WINDOWS
-  # Windows needs to be told where to find Qt libraries
-  export PATH := $(QT_SDK_DIR)/5.5/mingw492_32/bin:$(PATH)
-endif
 else
   # not installed, hope it's in the path...
   QMAKE = qmake
@@ -538,10 +523,16 @@ ifeq ($(shell [ -d "$(ARM_SDK_DIR)" ] && echo "exists"), exists)
   ARM_SDK_PREFIX := $(ARM_SDK_DIR)/bin/arm-none-eabi-
 else
   ifneq ($(MAKECMDGOALS),arm_sdk_install)
-    $(info **WARNING** ARM-SDK not in $(ARM_SDK_DIR)  Please run 'make arm_sdk_install')
+    $(error **WARNING** ARM-SDK not in $(ARM_SDK_DIR)  Please run 'make arm_sdk_install')
   endif
   # not installed, hope it's in the path...
   ARM_SDK_PREFIX ?= arm-none-eabi-
+endif
+
+ifeq ($(shell [ -d "$(ZIP_DIR)" ] && echo "exists"), exists)
+  export ZIP := $(ZIP_DIR)/zip
+else
+  export ZIP := zip
 endif
 
 ifeq ($(shell [ -d "$(OPENOCD_DIR)" ] && echo "exists"), exists)
@@ -598,23 +589,3 @@ endif
 .PHONY: openssl_clean
 openssl_clean:
 	$(V1) [ ! -d "$(OPENSSL_DIR)" ] || $(RM) -rf $(OPENSSL_DIR)
-
-# ZIP download URL
-ifdef WINDOWS
-  zip_install: ZIP_URL  := http://stahlworks.com/dev/zip.exe
-
-zip_install: ZIP_FILE := $(notdir $(ZIP_URL))
-ZIP_DIR = $(TOOLS_DIR)/zip
-# order-only prereq on directory existance:
-zip_install : | $(DL_DIR) $(TOOLS_DIR)
-zip_install: zip_clean
-	$(V1) mkdir -p "$(ZIP_DIR)"
-	$(V1) curl -L -k -o "$(ZIP_DIR)/$(ZIP_FILE)" "$(ZIP_URL)"
-else
-zip_install:
-	$(V1) $(error THIS IS A WINDOWS ONLY TARGET)
-endif
-
-.PHONY: zip_clean
-zip_clean:
-	$(V1) [ ! -d "$(ZIP_DIR)" ] || $(RM) -rf $(ZIP_DIR)

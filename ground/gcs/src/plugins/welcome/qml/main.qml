@@ -46,6 +46,7 @@ Rectangle {
 
             Image {
                 x: -55
+                width: 223
                 smooth: false
                 antialiasing: true
                 sourceSize.height: 223
@@ -103,6 +104,10 @@ Rectangle {
 
             WelcomePageButton {
                 id: wizard
+                width: 233
+                height: 233
+                scale: 0.97
+                anchors.verticalCenterOffset: -3
                 anchors.verticalCenter: parent.verticalCenter
                 baseIconName: "wizard"
                 onClicked: welcomePlugin.triggerAction("SetupWizardPlugin.ShowSetupWizard")

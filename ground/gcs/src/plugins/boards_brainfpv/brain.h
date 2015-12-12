@@ -62,12 +62,6 @@ public:
      */
     virtual enum InputType getInputOnPort(int port_num = 0);
 
-    /**
-     * @brief getConnectionDiagram get the connection diagram for this board
-     * @return a string with the name of the resource for this board diagram
-     */
-    virtual QString getConnectionDiagram() { return ":/taulabs/images/sparky-connection-diagram.svg"; }
-
     virtual int queryMaxGyroRate();
     QWidget * getBoardConfiguration(QWidget *parent, bool connected);
 };
