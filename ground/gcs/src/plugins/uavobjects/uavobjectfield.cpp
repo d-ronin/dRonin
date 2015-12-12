@@ -115,10 +115,10 @@ void UAVObjectField::limitsInitialize(const QString &limits)
         return;
     QStringList stringPerElement=limits.split(",");
     quint32 index=0;
-    foreach (QString str, stringPerElement) {
+    foreach (const QString &str, stringPerElement) {
         QStringList ruleList=str.split(";");
         QList<LimitStruct> limitList;
-        foreach(QString rule,ruleList)
+        foreach(const QString &rule,ruleList)
         {
             QString _str=rule.trimmed();
             if(_str.isEmpty())
@@ -150,7 +150,7 @@ void UAVObjectField::limitsInitialize(const QString &limits)
                 else
                     qDebug()<<"limits parsing failed (invalid property) on UAVObjectField"<<name;
                 valuesPerElement.removeAt(0);
-                foreach(QString _value,valuesPerElement)
+                foreach(const QString &_value,valuesPerElement)
                 {
                     QString value=_value.trimmed();
                     switch (type)
@@ -203,7 +203,7 @@ bool UAVObjectField::isWithinLimits(QVariant var,quint32 index, int board)
     if(!elementLimits.keys().contains(index))
         return true;
 
-    foreach(LimitStruct struc,elementLimits.value(index))
+    foreach(const LimitStruct &struc,elementLimits.value(index))
     {
         if((struc.board!=board) && board!=0 && struc.board!=0)
             continue;
@@ -215,7 +215,7 @@ bool UAVObjectField::isWithinLimits(QVariant var,quint32 index, int board)
             case INT8:
             case INT16:
             case INT32:
-                foreach (QVariant vars, struc.values) {
+                foreach (const QVariant &vars, struc.values) {
                     if(var.toInt()==vars.toInt())
                         return true;
                 }
@@ -225,7 +225,7 @@ bool UAVObjectField::isWithinLimits(QVariant var,quint32 index, int board)
             case UINT16:
             case UINT32:
             case BITFIELD:
-                foreach (QVariant vars, struc.values) {
+                foreach (const QVariant &vars, struc.values) {
                     if(var.toUInt()==vars.toUInt())
                         return true;
                 }
@@ -233,14 +233,14 @@ bool UAVObjectField::isWithinLimits(QVariant var,quint32 index, int board)
                 break;
             case ENUM:
             case STRING:
-                foreach (QVariant vars, struc.values) {
+                foreach (const QVariant &vars, struc.values) {
                     if(var.toString()==vars.toString())
                         return true;
                 }
                 return false;
                 break;
             case FLOAT32:
-                foreach (QVariant vars, struc.values) {
+                foreach (const QVariant &vars, struc.values) {
                     if(var.toFloat()==vars.toFloat())
                         return true;
                 }
@@ -256,7 +256,7 @@ bool UAVObjectField::isWithinLimits(QVariant var,quint32 index, int board)
             case INT8:
             case INT16:
             case INT32:
-                foreach (QVariant vars, struc.values) {
+                foreach (const QVariant &vars, struc.values) {
                     if(var.toInt()==vars.toInt())
                         return false;
                 }
@@ -266,7 +266,7 @@ bool UAVObjectField::isWithinLimits(QVariant var,quint32 index, int board)
             case UINT16:
             case UINT32:
             case BITFIELD:
-                foreach (QVariant vars, struc.values) {
+                foreach (const QVariant &vars, struc.values) {
                     if(var.toUInt()==vars.toUInt())
                         return false;
                 }
@@ -274,14 +274,14 @@ bool UAVObjectField::isWithinLimits(QVariant var,quint32 index, int board)
                 break;
             case ENUM:
             case STRING:
-                foreach (QVariant vars, struc.values) {
+                foreach (const QVariant &vars, struc.values) {
                     if(var.toString()==vars.toString())
                         return false;
                 }
                 return true;
                 break;
             case FLOAT32:
-                foreach (QVariant vars, struc.values) {
+                foreach (const QVariant &vars, struc.values) {
                     if(var.toFloat()==vars.toFloat())
                         return false;
                 }
@@ -421,7 +421,7 @@ QVariant UAVObjectField::getMaxLimit(quint32 index,int board)
 {
     if(!elementLimits.keys().contains(index))
         return QVariant();
-    foreach(LimitStruct struc,elementLimits.value(index))
+    foreach(const LimitStruct &struc,elementLimits.value(index))
     {
         if((struc.board!=board) && board!=0 && struc.board!=0)
             continue;
