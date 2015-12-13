@@ -57,14 +57,6 @@ public:
      *       is relevant.
      */
     struct USBInfo {
-        USBInfo() : 
-            UsagePage(0),
-            Usage(0),
-            bootloaderMode(0),
-            runningMode(0),
-            bcdDevice(0)
-        {}
-
         QString serialNumber;
         QString manufacturer;
         QString product;
