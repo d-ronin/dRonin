@@ -3,10 +3,10 @@
 <Menu>
   <Name>Applications</Name>
   <Menu>
-    <Name>Tau Labs</Name>
-    <Directory>taulabs_menu.directory</Directory>
+    <Name><BRANDING_PACKAGE_PRETTY></Name>
+    <Directory><BRANDING_PACKAGE_SOURCE>_menu.directory</Directory>
     <Include>
-        <Category>TauLabsMenu</Category>
+        <Category><BRANDING_PACKAGE_PRETTY>Menu</Category>
     </Include>
-  </Menu> <!-- End Tau Labs Menu-->
+  </Menu> <!-- End Menu-->
 </Menu>

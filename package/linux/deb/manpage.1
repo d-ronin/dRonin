@@ -2,7 +2,7 @@
 .\" First parameter, NAME, should be all caps
 .\" Second parameter, SECTION, should be 1-8, maybe w/ subsection
 .\" other parameters are allowed: see man(7), man(1)
-.TH TAULABS-GCS 1
+.TH <BRANDING_PACKAGE_MAN_NAME> 1
 .\" Please adjust this date whenever revising the manpage.
 .\"
 .\" Some roff macros, for reference:
@@ -16,46 +16,47 @@
 .\" .sp <n>    insert n+1 empty lines
 .\" for manpage-specific macros, see man(7)
 .SH NAME
-taulabsgcs \- The Ground Control Station Software from the Tau Labs project
+<BRANDING_PACKAGE_EXEC> \- The Ground Control Station Software from the Tau Labs project
 .SH SYNOPSIS
-.B taulabsgcs
-.RI [ options ] " file" ...
+.B <BRANDING_PACKAGE_EXEC>
+.RI [ options ] config_file
 .SH DESCRIPTION
 This manual page documents briefly the
-.B taulabsgcs
+.B <BRANDING_PACKAGE_EXEC>
 commands.
 .PP
 .\" TeX users may be more comfortable with the \fB<whatever>\fP and
 .\" \fI<whatever>\fP escape sequences to invode bold face and italics,
 .\" respectively.
-\fBtaulabsgcs\fP is a program that allows you to change settings on compatible flight controllers,
+\fB<BRANDING_PACKAGE_EXEC>\fP is a program that allows you to change settings on compatible flight controllers,
 create flightpaths, view controller data, create and upload picoC scripts, replay logged data, etc...
 .SH OPTIONS
 .TP
-.B \-help
+.B \--help
 Show summary of options.
 .TP
-.B \-version
-Show version of program.
+.B \--version
+Show version of program application and plugins.
 .TP
-.B \-client
-Attempt to connect to already running instance.
+.B \--override setting=value
+Overrides a configuration setting.
 .TP
-.B \-clean-config
-Delete all existing configuration settings.
+.B \--reset-config
+Resets the configuration settings file to defaults.
 .TP
-.B \-exit-after-config
-Exit GCS after manipulating configuration settings.
+.B \--no-load plugin_name
+Skips loading of the plugin
 .TP
-.B \-D key=value
-Override configuration settings e.g.: -D General/OverrideLanguage=de.
+.B \--plugin-option option_name=option_value
+Passes an option to the plugin.
 .TP
-.B \-configfile=value
-Default configuration file to load if settings file is empty.
+.B \--test plugin_name
+Runs tests on the plugin (Requires compiling with -D WITH_TESTS).
 .TP
-.B \-noload <plugin>
-Do not load <plugin>.
+.B \config_file (optional)
+Loads the configuration file instead of the default one.
+.TP
 .SH AUTHOR
-taulabsgcs was written by taulabs.org.
+<BRANDING_PACKAGE_EXEC> was written by <BRANDING_PACKAGE_HOME_PAGE>.
 .PP
-This manual page was written by taulabs.org <board@omniloco.org>.
+This manual page was written by <BRANDING_PACKAGE_HOME_PAGE> <<BRANDING_PACKAGE_COPYRIGHT_EMAIL>>.
