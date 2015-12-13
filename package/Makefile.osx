@@ -35,11 +35,11 @@ ground_package_os_specific: | standalone
 .PHONY: gcs ground_package osx_package
 
 package_ground_compress: package_ground
-	$(V1)cd $(PACKAGE_DIR) && $(ZIP) -9 -r $(PACKAGE_DIR)/$(GCS_PACKAGE_NAME) $(GCS_PACKAGE_NAME)
+	$(V1)cd $(PACKAGE_DIR) && $(ZIPBIN) -9 -r $(PACKAGE_DIR)/$(GCS_PACKAGE_NAME) $(GCS_PACKAGE_NAME)
 package_matlab_compress: package_matlab
-	$(V1)cd $(PACKAGE_DIR) && $(ZIP) -9 -r $(PACKAGE_DIR)/matlab-$(PACKAGE_LBL) $(ML_DIR)
+	$(V1)cd $(PACKAGE_DIR) && $(ZIPBIN) -9 -r $(PACKAGE_DIR)/matlab-$(PACKAGE_LBL) $(ML_DIR)
 package_all_compress: package_all
-	$(V1)cd $(PACKAGE_DIR)/../ && $(ZIP)  -9 -r --exclude=*.zip $(BUILD_DIR)/$(PACKAGE_LBL) $(PACKAGE_DIR)
+	$(V1)cd $(PACKAGE_DIR)/../ && $(ZIPBIN)  -9 -r --exclude=*.zip $(BUILD_DIR)/$(PACKAGE_LBL) $(PACKAGE_DIR)
 
 .PHONY: standalone installer_package
 .PHONY: package_ground_compress package_matlab_compress
