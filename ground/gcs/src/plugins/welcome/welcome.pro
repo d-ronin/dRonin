@@ -12,7 +12,6 @@ HEADERS += welcomeplugin.h \
 SOURCES += welcomeplugin.cpp \
     welcomemode.cpp \
 
-RESOURCES += welcome.qrc
 DEFINES += WELCOME_LIBRARY
 OTHER_FILES += Welcome.pluginspec \
     welcome.json
