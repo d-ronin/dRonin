@@ -38,6 +38,7 @@
 #include <utils/styledbar.h>
 #include <utils/welcomemodetreewidget.h>
 #include <utils/iwelcomepage.h>
+#include <utils/pathutils.h>
 
 #include <QDesktopServices>
 
@@ -76,7 +77,8 @@ WelcomeMode::WelcomeMode() :
     m_d->quickView = new QQuickView;
     m_d->quickView->setResizeMode(QQuickView::SizeRootObjectToView);
     m_d->quickView->engine()->rootContext()->setContextProperty("welcomePlugin", this);
-    m_d->quickView->setSource(QUrl("qrc:/welcome/qml/main.qml"));
+    QString fn = Utils::PathUtils().InsertDataPath(QString("%%DATAPATH%%/welcome/main.qml"));
+    m_d->quickView->setSource(QUrl::fromLocalFile(fn));
     m_container = NULL;
 }
 
