@@ -530,9 +530,9 @@ else
 endif
 
 ifeq ($(shell [ -d "$(ZIP_DIR)" ] && echo "exists"), exists)
-  export ZIP := $(ZIP_DIR)/zip
+  export ZIPBIN := $(ZIP_DIR)/zip
 else
-  export ZIP := zip
+  export ZIPBIN := zip
 endif
 
 ifeq ($(shell [ -d "$(OPENOCD_DIR)" ] && echo "exists"), exists)
