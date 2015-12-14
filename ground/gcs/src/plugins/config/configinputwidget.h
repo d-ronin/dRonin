@@ -33,6 +33,7 @@
 #include <QRadioButton>
 #include <QWidget>
 #include <QSvgRenderer>
+#include <QTime>
 #include <QGraphicsSvgItem>
 
 #include "ui_input.h"
@@ -92,6 +93,8 @@ private:
         QList<QPointer<QWidget> > extraWidgets;
         txMode transmitterMode;
         txType transmitterType;
+        QTime intervalTimer;
+        bool manualControlDataDirty;
 
         enum failsafeDetection failsafeDetection;
         struct channelsStruct
@@ -102,12 +105,10 @@ private:
             }
             int group;
             int number;
-        }lastChannel;
+        } lastChannel;
         channelsStruct currentChannel;
         QList<channelsStruct> usedChannels;
         bool channelDetected;
-        QEventLoop * loop;
-        bool skipflag;
 
         int currentChannelNum;
         QList<int> heliChannelOrder;

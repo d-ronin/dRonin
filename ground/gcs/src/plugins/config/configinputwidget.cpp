@@ -56,7 +56,7 @@
 #define STICK_MIN_MOVE -8
 #define STICK_MAX_MOVE 8
 
-ConfigInputWidget::ConfigInputWidget(QWidget *parent) : ConfigTaskWidget(parent),wizardStep(wizardNone),transmitterType(heli),loop(NULL),skipflag(false)
+ConfigInputWidget::ConfigInputWidget(QWidget *parent) : ConfigTaskWidget(parent),wizardStep(wizardNone),transmitterType(heli),manualControlDataDirty(false)
 {
     manualCommandObj = ManualControlCommand::GetInstance(getObjectManager());
     manualSettingsObj = ManualControlSettings::GetInstance(getObjectManager());
@@ -589,16 +589,10 @@ void ConfigInputWidget::wizardSetUpStep(enum wizardSteps step)
         manualSettingsData=manualSettingsObj->getData();
         for(quint8 i=0;i<ManualControlSettings::CHANNELMAX_NUMELEM;++i)
         {
-            // Preserve the inverted status
-            if(manualSettingsData.ChannelMin[i] <= manualSettingsData.ChannelMax[i]) {
-                manualSettingsData.ChannelMin[i]=manualSettingsData.ChannelNeutral[i];
-                manualSettingsData.ChannelMax[i]=manualSettingsData.ChannelNeutral[i];
-            } else {
-                // Make this detect as still inverted
-                manualSettingsData.ChannelMin[i]=manualSettingsData.ChannelNeutral[i] + 1;
-                manualSettingsData.ChannelMax[i]=manualSettingsData.ChannelNeutral[i];
-            }
+	    manualSettingsData.ChannelMin[i]=manualSettingsData.ChannelNeutral[i];
+	    manualSettingsData.ChannelMax[i]=manualSettingsData.ChannelNeutral[i];
         }
+        manualSettingsObj->setData(manualSettingsData);
         connect(manualCommandObj, SIGNAL(objectUpdated(UAVObject*)), this, SLOT(identifyLimits()));
         connect(manualCommandObj, SIGNAL(objectUpdated(UAVObject*)), this, SLOT(moveSticks()));
         connect(accessoryDesiredObj0, SIGNAL(objectUpdated(UAVObject*)), this, SLOT(moveSticks()));
@@ -955,22 +949,21 @@ void ConfigInputWidget::identifyControls()
 
 void ConfigInputWidget::identifyLimits()
 {
-    manualCommandData=manualCommandObj->getData();
+    if (!manualControlDataDirty) {
+	// Defer saves to ManualControlSettings
+	intervalTimer.start();
+    }
+
     for(quint8 i=0;i<ManualControlSettings::CHANNELMAX_NUMELEM;++i)
     {
-        if(manualSettingsData.ChannelMin[i] <= manualSettingsData.ChannelMax[i]) {
-            // Non inverted channel
-            if(manualSettingsData.ChannelMin[i]>manualCommandData.Channel[i])
-                manualSettingsData.ChannelMin[i]=manualCommandData.Channel[i];
-            if(manualSettingsData.ChannelMax[i]<manualCommandData.Channel[i])
-                manualSettingsData.ChannelMax[i]=manualCommandData.Channel[i];
-        } else {
-            // Inverted channel
-            if(manualSettingsData.ChannelMax[i]>manualCommandData.Channel[i])
-                manualSettingsData.ChannelMax[i]=manualCommandData.Channel[i];
-            if(manualSettingsData.ChannelMin[i]<manualCommandData.Channel[i])
-                manualSettingsData.ChannelMin[i]=manualCommandData.Channel[i];
-        }
+	if(((uint16_t)manualSettingsData.ChannelMin[i])>manualCommandData.Channel[i]) {
+	    manualSettingsData.ChannelMin[i]=manualCommandData.Channel[i];
+            manualControlDataDirty=true;
+	}
+	if(((uint16_t)manualSettingsData.ChannelMax[i])<manualCommandData.Channel[i]) {
+	    manualSettingsData.ChannelMax[i]=manualCommandData.Channel[i];
+            manualControlDataDirty=true;
+	}
 
         if (i == ManualControlSettings::CHANNELNEUTRAL_THROTTLE) {
             // Keep the throttle neutral position near the minimum value so that
@@ -980,8 +973,14 @@ void ConfigInputWidget::identifyLimits()
                     (manualSettingsData.ChannelMax[i] - manualSettingsData.ChannelMin[i]) * THROTTLE_NEUTRAL_FRACTION;
         }
     }
-    manualSettingsObj->setData(manualSettingsData);
+
+    // Inhibit excessive stores of manualControlSettings
+    if (manualControlDataDirty && (intervalTimer.elapsed() > 400)) {
+	manualSettingsObj->setData(manualSettingsData);
+	manualControlDataDirty = false;
+    }
 }
+
 void ConfigInputWidget::setMoveFromCommand(int command)
 {
     if(command==ManualControlSettings::CHANNELNUMBER_ROLL)
