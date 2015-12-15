@@ -34,11 +34,19 @@
 
 namespace Utils {
 
-QString PathUtils::settingsFilename = "";
+PathUtils * Utils::PathUtils::instance = 0;
 
 PathUtils::PathUtils()
 {
 
+}
+
+PathUtils * PathUtils::getInstance()
+{
+    if(!instance) {
+        instance = new PathUtils();
+    }
+    return instance;
 }
 
 /**

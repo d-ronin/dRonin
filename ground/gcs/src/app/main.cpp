@@ -285,10 +285,10 @@ int main(int argc, char **argv)
         }
         else {
             bool temp;
-            if(QFileInfo(Utils::PathUtils().getLocalSettingsFilePath(temp)).exists())
-                settings = new QSettings(Utils::PathUtils().getLocalSettingsFilePath(temp), XmlConfig::XmlSettingsFormat);
+            if(QFileInfo(Utils::PathUtils::getInstance()->getLocalSettingsFilePath(temp)).exists())
+                settings = new QSettings(Utils::PathUtils::getInstance()->getLocalSettingsFilePath(temp), XmlConfig::XmlSettingsFormat);
             else
-                settings = new QSettings(Utils::PathUtils().getGlobalSettingsFilePath(), XmlConfig::XmlSettingsFormat);
+                settings = new QSettings(Utils::PathUtils::getInstance()->getGlobalSettingsFilePath(), XmlConfig::XmlSettingsFormat);
         }
         if(settings->status() != QSettings::NoError) {
             displayError(QString("Error parsing the configuration file:%0").arg(settings->fileName()));
@@ -326,7 +326,7 @@ int main(int argc, char **argv)
 
     // Load
     ExtensionSystem::PluginManager pluginManager;
-    Utils::PathUtils().setSettingsFilename(settingsFilename);
+    Utils::PathUtils::getInstance()->setSettingsFilename(settingsFilename);
     pluginManager.setFileExtension(QLatin1String("pluginspec"));
 
     const QStringList pluginPaths = getPluginPaths();
