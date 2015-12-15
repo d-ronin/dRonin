@@ -253,9 +253,9 @@ MainWindow::~MainWindow()
     // Copy working settings back to original settings file. Do this in scope so that
     // we are guaranteed that the originalSettings file is closed. This minimizes the risk
     // of corruption since the QSettings are saved (almost) atomically.
-    {
-        QSettings originalSettings(Utils::PathUtils().getSettingsFilename(), XmlConfig::XmlSettingsFormat, this);
 
+    if(!m_dontSaveSettings){
+        QSettings originalSettings(Utils::PathUtils().getSettingsFilename(), XmlConfig::XmlSettingsFormat, this);
         // There is no copy constructor for QSettings, so we have to do it manually
         originalSettings.clear();
         QStringList keys = m_settings->allKeys();
@@ -302,17 +302,8 @@ void MainWindow::extensionsInitialized()
 
     QSettings* qs = m_settings;
     QSettings * settings;
-    QString commandLine;
+    bool usePortableSettings = false;
     if ( ! qs->allKeys().count() ){
-        foreach(QString str,qApp->arguments())
-        {
-            if(str.contains("configfile"))
-            {
-                qDebug()<<"ass";
-                commandLine=str.split("=").at(1);
-                qDebug()<<commandLine;
-            }
-        }
         QDir directory(QCoreApplication::applicationDirPath());
 #ifdef Q_OS_MAC
             directory.cdUp();
@@ -326,31 +317,31 @@ void MainWindow::extensionsInitialized()
             qDebug() << "Looking for default config files in: " + directory.absolutePath();
         bool showDialog=true;
         QString filename;
-        if(!commandLine.isEmpty())
-        {
-            if(QFile::exists(directory.absolutePath()+QDir::separator()+commandLine))
-            {
-                filename=directory.absolutePath()+QDir::separator()+commandLine;
-                emit splashMessages(tr("Loading configuration from command line"));
-                qDebug()<<"Load configuration from command line";
-                settings=new QSettings(filename, XmlConfig::XmlSettingsFormat);
-                showDialog=false;
-            }
-        }
         if(showDialog)
         {
-            importSettings * dialog=new importSettings(this);
+            importSettings * dialog = new importSettings(this);
             dialog->loadFiles(directory.absolutePath());
             dialog->exec();
-            filename=dialog->choosenConfig();
-            settings=new QSettings(filename, XmlConfig::XmlSettingsFormat);
+            filename = dialog->choosenConfig(usePortableSettings);
+            settings = new QSettings(filename, XmlConfig::XmlSettingsFormat);
             delete dialog;
         }
-        qs=settings;
+        qs = settings;
         emit splashMessages(QString(tr("Loading default configuration from %1")).arg(filename));
         qDebug() << "Load default config from resource "<<filename;
     }
     qs->beginGroup("General");
+    if(usePortableSettings) {
+        bool writable;
+        Utils::PathUtils().getLocalSettingsFilePath(writable);
+        if(!writable) {
+            QMessageBox::warning(this, tr("Settings directory no writable"), tr("Reverting to global settings"));
+        }
+        else {
+            m_generalSettings->setUsePortableSettings(true);
+            Utils::PathUtils().useLocalSettings();
+        }
+    }
     m_config_description=qs->value("Description","none").toString();
     m_config_details=qs->value("Details","none").toString();
     m_config_stylesheet=qs->value("StyleSheet","none").toString();
