@@ -147,7 +147,7 @@ QWidget *GeneralSettings::createPage(QWidget *parent)
     m_page->userLE->setText(m_proxyUser);
     m_page->passwordLE->setText(m_proxyPassword);
     bool temp;
-    m_usePortableSettings = (Utils::PathUtils().getSettingsFilename() == Utils::PathUtils().getLocalSettingsFilePath(temp));
+    m_usePortableSettings = (Utils::PathUtils::getInstance()->getSettingsFilename() == Utils::PathUtils::getInstance()->getLocalSettingsFilePath(temp));
     m_page->cb_usePortableSettings->setChecked(m_usePortableSettings);
     connect(m_page->resetButton, SIGNAL(clicked()),
             this, SLOT(resetInterfaceColor()));
@@ -175,27 +175,27 @@ void GeneralSettings::apply()
     QNetworkProxy::setApplicationProxy (getNetworkProxy());
     if(!m_usePortableSettings && m_page->cb_usePortableSettings->isChecked()) {
         bool writable;
-        Utils::PathUtils().getLocalSettingsFilePath(writable);
+        Utils::PathUtils::getInstance()->getLocalSettingsFilePath(writable);
         if(!writable) {
             QMessageBox::warning(NULL, tr("Settings directory no writable"), tr("Reverting to global settings"));
             m_usePortableSettings = false;
         }
         else {
-            if(QFileInfo(Utils::PathUtils().getLocalSettingsFilePath(writable) + "_bkp").exists()) {
-                QFile::remove(Utils::PathUtils().getLocalSettingsFilePath(writable));
-                QFile::rename(Utils::PathUtils().getLocalSettingsFilePath(writable) + "_bkp", Utils::PathUtils().getLocalSettingsFilePath(writable));
+            if(QFileInfo(Utils::PathUtils::getInstance()->getLocalSettingsFilePath(writable) + "_bkp").exists()) {
+                QFile::remove(Utils::PathUtils::getInstance()->getLocalSettingsFilePath(writable));
+                QFile::rename(Utils::PathUtils::getInstance()->getLocalSettingsFilePath(writable) + "_bkp", Utils::PathUtils::getInstance()->getLocalSettingsFilePath(writable));
             }
-            QFile::rename(Utils::PathUtils().getGlobalSettingsFilePath(), Utils::PathUtils().getGlobalSettingsFilePath() + "_bkp");
+            QFile::rename(Utils::PathUtils::getInstance()->getGlobalSettingsFilePath(), Utils::PathUtils::getInstance()->getGlobalSettingsFilePath() + "_bkp");
             m_dontSaveOnce = true;
         }
     }
     else if(m_usePortableSettings && !m_page->cb_usePortableSettings->isChecked()) {
         bool writable;
-        if(QFileInfo(Utils::PathUtils().getGlobalSettingsFilePath() + "_bkp").exists()) {
-            QFile::remove(Utils::PathUtils().getGlobalSettingsFilePath());
-            QFile::rename(Utils::PathUtils().getGlobalSettingsFilePath() + "_bkp", Utils::PathUtils().getGlobalSettingsFilePath());
+        if(QFileInfo(Utils::PathUtils::getInstance()->getGlobalSettingsFilePath() + "_bkp").exists()) {
+            QFile::remove(Utils::PathUtils::getInstance()->getGlobalSettingsFilePath());
+            QFile::rename(Utils::PathUtils::getInstance()->getGlobalSettingsFilePath() + "_bkp", Utils::PathUtils::getInstance()->getGlobalSettingsFilePath());
         }
-        QFile::rename(Utils::PathUtils().getLocalSettingsFilePath(writable), Utils::PathUtils().getLocalSettingsFilePath(writable) + "_bkp");
+        QFile::rename(Utils::PathUtils::getInstance()->getLocalSettingsFilePath(writable), Utils::PathUtils::getInstance()->getLocalSettingsFilePath(writable) + "_bkp");
         m_dontSaveOnce = true;
     }
     m_usePortableSettings = m_page->cb_usePortableSettings->isChecked();
