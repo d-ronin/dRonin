@@ -50,6 +50,10 @@ public:
     QString InsertStoragePath(QString path);
     QString getSettingsFilename();
     void setSettingsFilename(QString filename);
+    QString getLocalSettingsFilePath(bool &writable);
+    QString getGlobalSettingsFilePath();
+    void useGlobalSettings();
+    bool useLocalSettings();
 private:
     static QString settingsFilename;
 };
