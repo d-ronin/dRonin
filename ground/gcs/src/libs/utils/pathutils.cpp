@@ -154,4 +154,35 @@ void PathUtils::setSettingsFilename(QString filename)
     PathUtils::settingsFilename = filename;
 }
 
+QString PathUtils::getLocalSettingsFilePath(bool &writable)
+{
+    QDir settingsDir(qApp->applicationDirPath());
+    settingsDir.cdUp();
+    writable = QFileInfo(settingsDir.absolutePath()).isWritable();
+    if(!writable)
+        return QString();
+    settingsDir.mkdir("settings");
+    settingsDir.cd("settings");
+    return settingsDir.absolutePath() + QDir::separator() + QLatin1String(GCS_PROJECT_BRANDING "_config");
+}
+
+QString PathUtils::getGlobalSettingsFilePath()
+{
+    return QSettings(XmlConfig::XmlSettingsFormat, QSettings::UserScope,
+              QLatin1String(GCS_PROJECT_BRANDING), QLatin1String(GCS_PROJECT_BRANDING "_config")).fileName();
+}
+
+void PathUtils::useGlobalSettings()
+{
+    setSettingsFilename(getGlobalSettingsFilePath());
+}
+
+bool PathUtils::useLocalSettings()
+{
+    bool result;
+    QString name = getLocalSettingsFilePath(result);
+    setSettingsFilename(name);
+    return result;
+}
+
 }
