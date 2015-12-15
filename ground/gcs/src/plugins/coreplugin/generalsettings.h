@@ -85,6 +85,9 @@ public:
     QString getESCs();
     void setProps(QString props);
     QString getProps();
+    bool getUsePortableSettings() const;
+    void setUsePortableSettings(bool usePortableSettings);
+
 signals:
     void generalSettingsChanged();
 private slots:
@@ -122,6 +125,8 @@ private:
     QString m_escs;
     QString m_props;
     bool m_useSessionManaging;
+    bool m_usePortableSettings;
+    bool m_dontSaveOnce;
 };
 } // namespace Internal
 } // namespace Core
