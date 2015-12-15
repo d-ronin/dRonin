@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>373</width>
-    <height>167</height>
+    <width>401</width>
+    <height>237</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -30,6 +30,23 @@ Please choose from one of the default configurations</string>
    </item>
    <item>
     <widget class="QComboBox" name="cbConfigs"/>
+   </item>
+   <item>
+    <widget class="QCheckBox" name="cb_usePortableSettings">
+     <property name="text">
+      <string>Use portable settings</string>
+     </property>
+    </widget>
+   </item>
+   <item>
+    <widget class="QLabel" name="label_2">
+     <property name="text">
+      <string> (settings will be stored on the same directory as the application - requires write permissions to the application directory)</string>
+     </property>
+     <property name="wordWrap">
+      <bool>true</bool>
+     </property>
+    </widget>
    </item>
    <item>
     <widget class="QLabel" name="lblDetails">
