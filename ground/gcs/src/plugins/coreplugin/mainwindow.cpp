@@ -141,7 +141,7 @@ MainWindow::MainWindow() :
     // we are guaranteed that the originalSettings file is closed. This prevents corruption
     // since the QSettings being used are copies of the original file.
     {   
-        QSettings originalSettings(Utils::PathUtils().getSettingsFilename(), XmlConfig::XmlSettingsFormat, this);
+        QSettings originalSettings(Utils::PathUtils::getInstance()->getSettingsFilename(), XmlConfig::XmlSettingsFormat, this);
 
         // There is no copy constructor for QSettings, so we have to do it manually
         m_settings->clear();
@@ -255,7 +255,7 @@ MainWindow::~MainWindow()
     // of corruption since the QSettings are saved (almost) atomically.
 
     if(!m_dontSaveSettings){
-        QSettings originalSettings(Utils::PathUtils().getSettingsFilename(), XmlConfig::XmlSettingsFormat, this);
+        QSettings originalSettings(Utils::PathUtils::getInstance()->getSettingsFilename(), XmlConfig::XmlSettingsFormat, this);
         // There is no copy constructor for QSettings, so we have to do it manually
         originalSettings.clear();
         QStringList keys = m_settings->allKeys();
@@ -333,13 +333,13 @@ void MainWindow::extensionsInitialized()
     qs->beginGroup("General");
     if(usePortableSettings) {
         bool writable;
-        Utils::PathUtils().getLocalSettingsFilePath(writable);
+        Utils::PathUtils::getInstance()->getLocalSettingsFilePath(writable);
         if(!writable) {
             QMessageBox::warning(this, tr("Settings directory no writable"), tr("Reverting to global settings"));
         }
         else {
             m_generalSettings->setUsePortableSettings(true);
-            Utils::PathUtils().useLocalSettings();
+            Utils::PathUtils::getInstance()->useLocalSettings();
         }
     }
     m_config_description=qs->value("Description","none").toString();
@@ -1285,7 +1285,7 @@ void MainWindow::deleteSettings()
     m_settings->sync();
 
     // Clear the on-disk settings
-    QSettings originalSettings(Utils::PathUtils().getSettingsFilename(), XmlConfig::XmlSettingsFormat, this);
+    QSettings originalSettings(Utils::PathUtils::getInstance()->getSettingsFilename(), XmlConfig::XmlSettingsFormat, this);
     originalSettings.clear();
     originalSettings.sync();
 

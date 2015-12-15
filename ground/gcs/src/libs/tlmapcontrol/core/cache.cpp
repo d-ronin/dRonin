@@ -55,7 +55,7 @@ namespace core {
     {
         if(cache.isNull()|cache.isEmpty())
         {
-            cache= Utils::PathUtils().GetStoragePath()+"mapscache"+QDir::separator();
+            cache= Utils::PathUtils::getInstance()->GetStoragePath()+"mapscache"+QDir::separator();
             setCacheLocation(cache);
         }
     }

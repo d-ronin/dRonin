@@ -40,7 +40,7 @@ namespace Utils {
 class QTCREATOR_UTILS_EXPORT PathUtils
 {
 public:
-    PathUtils();
+    static PathUtils * getInstance();
     QString GetDataPath();
     QString RemoveDataPath(QString path);
     QString InsertDataPath(QString path);
@@ -55,7 +55,9 @@ public:
     void useGlobalSettings();
     bool useLocalSettings();
 private:
-    static QString settingsFilename;
+    QString settingsFilename;
+    PathUtils();
+    static Utils::PathUtils *instance;
 };
 
 }

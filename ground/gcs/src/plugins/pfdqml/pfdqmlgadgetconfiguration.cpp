@@ -28,7 +28,7 @@ PfdQmlGadgetConfiguration::PfdQmlGadgetConfiguration(QString classId, QSettings 
     //if a saved configuration exists load it
     if(qSettings != 0) {
         m_qmlFile = qSettings->value("qmlFile").toString();
-        m_qmlFile=Utils::PathUtils().InsertDataPath(m_qmlFile);
+        m_qmlFile=Utils::PathUtils::getInstance()->InsertDataPath(m_qmlFile);
 
         foreach (const QString &key, qSettings->childKeys()) {
             m_settings.insert(key, qSettings->value(key));
@@ -54,6 +54,6 @@ IUAVGadgetConfiguration *PfdQmlGadgetConfiguration::clone()
  *
  */
 void PfdQmlGadgetConfiguration::saveConfig(QSettings* qSettings) const {
-    QString qmlFile = Utils::PathUtils().RemoveDataPath(m_qmlFile);
+    QString qmlFile = Utils::PathUtils::getInstance()->RemoveDataPath(m_qmlFile);
     qSettings->setValue("qmlFile", qmlFile);
 }
