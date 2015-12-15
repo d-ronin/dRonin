@@ -737,7 +737,7 @@ define EF_TEMPLATE
 .PHONY: ef_$(1)
 ef_$(1): ef_$(1)_bin ef_$(1)_hex
 
-FW_FILES += $(BUILD_DIR)/ef_$(1)/ef_$(1).bin
+FW_FILES += $(BUILD_DIR)/ef_$(1)/ef_$(1).hex
 
 ef_$(1)_%: TARGET=ef_$(1)
 ef_$(1)_%: OUTDIR=$(BUILD_DIR)/$$(TARGET)
