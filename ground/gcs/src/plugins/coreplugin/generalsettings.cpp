@@ -185,6 +185,10 @@ void GeneralSettings::apply()
                 QFile::remove(Utils::PathUtils::getInstance()->getLocalSettingsFilePath(writable));
                 QFile::rename(Utils::PathUtils::getInstance()->getLocalSettingsFilePath(writable) + "_bkp", Utils::PathUtils::getInstance()->getLocalSettingsFilePath(writable));
             }
+            else if(!QFileInfo(Utils::PathUtils::getInstance()->getLocalSettingsFilePath(writable)).exists()) {
+                QDir().mkpath(QFileInfo(Utils::PathUtils::getInstance()->getLocalSettingsFilePath(writable)).absolutePath());
+                QFile::copy(Utils::PathUtils::getInstance()->getGlobalSettingsFilePath(), Utils::PathUtils::getInstance()->getLocalSettingsFilePath(writable));
+            }
             QFile::rename(Utils::PathUtils::getInstance()->getGlobalSettingsFilePath(), Utils::PathUtils::getInstance()->getGlobalSettingsFilePath() + "_bkp");
             m_dontSaveOnce = true;
         }
@@ -194,6 +198,10 @@ void GeneralSettings::apply()
         if(QFileInfo(Utils::PathUtils::getInstance()->getGlobalSettingsFilePath() + "_bkp").exists()) {
             QFile::remove(Utils::PathUtils::getInstance()->getGlobalSettingsFilePath());
             QFile::rename(Utils::PathUtils::getInstance()->getGlobalSettingsFilePath() + "_bkp", Utils::PathUtils::getInstance()->getGlobalSettingsFilePath());
+        }
+        if(!QFileInfo(Utils::PathUtils::getInstance()->getGlobalSettingsFilePath()).exists()) {
+            QDir().mkpath(QFileInfo(Utils::PathUtils::getInstance()->getGlobalSettingsFilePath()).absolutePath());
+            QFile::copy(Utils::PathUtils::getInstance()->getLocalSettingsFilePath(writable), Utils::PathUtils::getInstance()->getGlobalSettingsFilePath());
         }
         QFile::rename(Utils::PathUtils::getInstance()->getLocalSettingsFilePath(writable), Utils::PathUtils::getInstance()->getLocalSettingsFilePath(writable) + "_bkp");
         m_dontSaveOnce = true;
