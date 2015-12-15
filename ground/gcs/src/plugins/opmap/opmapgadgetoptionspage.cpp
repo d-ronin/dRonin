@@ -162,7 +162,7 @@ void OPMapGadgetOptionsPage::on_pushButtonCacheDefaults_clicked()
     m_page->accessModeComboBox->setCurrentIndex(index);
 
     m_page->checkBoxUseMemoryCache->setChecked(true);
-    m_page->lineEditCacheLocation->setPath(Utils::PathUtils().GetStoragePath() + "mapscache" + QDir::separator());
+    m_page->lineEditCacheLocation->setPath(Utils::PathUtils::getInstance()->GetStoragePath() + "mapscache" + QDir::separator());
 
 }
 

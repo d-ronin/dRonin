@@ -77,7 +77,7 @@ WelcomeMode::WelcomeMode() :
     m_d->quickView = new QQuickView;
     m_d->quickView->setResizeMode(QQuickView::SizeRootObjectToView);
     m_d->quickView->engine()->rootContext()->setContextProperty("welcomePlugin", this);
-    QString fn = Utils::PathUtils().InsertDataPath(QString("%%DATAPATH%%/welcome/main.qml"));
+    QString fn = Utils::PathUtils::getInstance()->InsertDataPath(QString("%%DATAPATH%%/welcome/main.qml"));
     m_d->quickView->setSource(QUrl::fromLocalFile(fn));
     m_container = NULL;
 }
