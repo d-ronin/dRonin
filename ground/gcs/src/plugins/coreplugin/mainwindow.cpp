@@ -287,11 +287,6 @@ bool MainWindow::init(QString *errorMessage)
     return true;
 }
 
-void MainWindow::modeChanged(Core::IMode */*mode*/)
-{
-
-}
-
 void MainWindow::extensionsInitialized()
 {
 
