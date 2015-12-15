@@ -33,12 +33,14 @@
 #include <utils/stylehelper.h>
 #include <utils/qtcolorbutton.h>
 #include <utils/consoleprocess.h>
+#include <utils/pathutils.h>
 #include <coreplugin/icore.h>
 #include <QMessageBox>
 #include <QtCore/QDir>
 #include <QtCore/QLibraryInfo>
 #include <QtCore/QSettings>
 #include <QDialog>
+#include <QFile>
 #include "ui_generalsettings.h"
 
 using namespace Utils;
@@ -53,7 +55,9 @@ GeneralSettings::GeneralSettings():
     m_dialog(0),
     m_proxyType(QNetworkProxy::NoProxy),
     m_proxyPort(0),
-    m_useSessionManaging(true)
+    m_useSessionManaging(true),
+    m_usePortableSettings(false),
+    m_dontSaveOnce(false)
 {
 }
 
@@ -115,11 +119,11 @@ void GeneralSettings::fillLanguageBox() const
 
 void GeneralSettings::fillProxyTypesBox() const
 {
-    m_page->proxyTypeCB->addItem("No Proxy", 2);
-    m_page->proxyTypeCB->addItem("Socks5Proxy", 1);
-    m_page->proxyTypeCB->addItem("HttpProxy", 3);
-    m_page->proxyTypeCB->addItem("HttpCachingProxy", 4);
-    m_page->proxyTypeCB->addItem("FtpCachingProxy", 5);
+    m_page->proxyTypeCB->addItem("No Proxy", (int)QNetworkProxy::NoProxy);
+    m_page->proxyTypeCB->addItem("Socks5Proxy", (int)QNetworkProxy::Socks5Proxy);
+    m_page->proxyTypeCB->addItem("HttpProxy", (int)QNetworkProxy::HttpProxy);
+    m_page->proxyTypeCB->addItem("HttpCachingProxy", (int)QNetworkProxy::HttpCachingProxy);
+    m_page->proxyTypeCB->addItem("FtpCachingProxy", (int)QNetworkProxy::FtpCachingProxy);
 }
 
 QWidget *GeneralSettings::createPage(QWidget *parent)
@@ -142,9 +146,11 @@ QWidget *GeneralSettings::createPage(QWidget *parent)
     m_page->hostNameLE->setText(m_proxyHostname);
     m_page->userLE->setText(m_proxyUser);
     m_page->passwordLE->setText(m_proxyPassword);
+    bool temp;
+    m_usePortableSettings = (Utils::PathUtils().getSettingsFilename() == Utils::PathUtils().getLocalSettingsFilePath(temp));
+    m_page->cb_usePortableSettings->setChecked(m_usePortableSettings);
     connect(m_page->resetButton, SIGNAL(clicked()),
             this, SLOT(resetInterfaceColor()));
-
     return w;
 }
 
@@ -161,12 +167,38 @@ void GeneralSettings::apply()
     m_useSessionManaging = m_page->cbSessionMessaging->isChecked();
     m_autoConnect = m_page->checkAutoConnect->isChecked();
     m_autoSelect = m_page->checkAutoSelect->isChecked();
-    m_proxyType = m_page->proxyTypeCB->itemData(m_page->proxyTypeCB->currentIndex()).toInt();
+    m_proxyType = m_page->proxyTypeCB->currentData().toInt();
     m_proxyPort = m_page->portLE->text().toInt();
     m_proxyHostname = m_page->hostNameLE->text();
     m_proxyUser = m_page->userLE->text();
     m_proxyPassword = m_page->passwordLE->text();
     QNetworkProxy::setApplicationProxy (getNetworkProxy());
+    if(!m_usePortableSettings && m_page->cb_usePortableSettings->isChecked()) {
+        bool writable;
+        Utils::PathUtils().getLocalSettingsFilePath(writable);
+        if(!writable) {
+            QMessageBox::warning(NULL, tr("Settings directory no writable"), tr("Reverting to global settings"));
+            m_usePortableSettings = false;
+        }
+        else {
+            if(QFileInfo(Utils::PathUtils().getLocalSettingsFilePath(writable) + "_bkp").exists()) {
+                QFile::remove(Utils::PathUtils().getLocalSettingsFilePath(writable));
+                QFile::rename(Utils::PathUtils().getLocalSettingsFilePath(writable) + "_bkp", Utils::PathUtils().getLocalSettingsFilePath(writable));
+            }
+            QFile::rename(Utils::PathUtils().getGlobalSettingsFilePath(), Utils::PathUtils().getGlobalSettingsFilePath() + "_bkp");
+            m_dontSaveOnce = true;
+        }
+    }
+    else if(m_usePortableSettings && !m_page->cb_usePortableSettings->isChecked()) {
+        bool writable;
+        if(QFileInfo(Utils::PathUtils().getGlobalSettingsFilePath() + "_bkp").exists()) {
+            QFile::remove(Utils::PathUtils().getGlobalSettingsFilePath());
+            QFile::rename(Utils::PathUtils().getGlobalSettingsFilePath() + "_bkp", Utils::PathUtils().getGlobalSettingsFilePath());
+        }
+        QFile::rename(Utils::PathUtils().getLocalSettingsFilePath(writable), Utils::PathUtils().getLocalSettingsFilePath(writable) + "_bkp");
+        m_dontSaveOnce = true;
+    }
+    m_usePortableSettings = m_page->cb_usePortableSettings->isChecked();
     emit generalSettingsChanged();
 }
 
@@ -272,10 +304,20 @@ void GeneralSettings::setLanguage(const QString &locale)
         m_language = locale;
     }
 }
+bool GeneralSettings::getUsePortableSettings() const
+{
+    return m_usePortableSettings;
+}
+
+void GeneralSettings::setUsePortableSettings(bool usePortableSettings)
+{
+    m_usePortableSettings = usePortableSettings;
+}
+
 
 bool GeneralSettings::saveSettingsOnExit() const
 {
-    return m_saveSettingsOnExit;
+    return m_saveSettingsOnExit && !m_dontSaveOnce;
 }
 
 bool GeneralSettings::autoConnect() const
