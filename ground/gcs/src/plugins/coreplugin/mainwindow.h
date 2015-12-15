@@ -163,7 +163,6 @@ private slots:
     void updateFocusWidget(QWidget *old, QWidget *now);
     void destroyVersionDialog();
     void destroyAuthorsDialog();
-    void modeChanged(Core::IMode *mode);
     void showUavGadgetMenus(bool show, bool hasSplitter);
     void applyTabBarSettings(QTabWidget::TabPosition pos, bool movable);
     void showHelp();
