@@ -22,7 +22,7 @@ public:
     ~importSettings();
     
     void loadFiles(QString path);
-    QString choosenConfig();
+    QString choosenConfig(bool &usePortableSettings);
 private:
     Ui::importSettings *ui;
     QMap<int,fileInfo*> configList;
