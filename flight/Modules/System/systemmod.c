@@ -110,6 +110,8 @@ static uint32_t idleCounterClear;
 static struct pios_thread *systemTaskHandle;
 static struct pios_queue *objectPersistenceQueue;
 
+static volatile bool config_check_needed;
+
 // Private functions
 static void systemPeriodicCb(UAVObjEvent *ev, void *ctx, void *obj_data, int len);
 static void objectUpdatedCb(UAVObjEvent * ev, void *ctx, void *obj, int len);
@@ -280,6 +282,13 @@ static void systemPeriodicCb(UAVObjEvent *ev, void *ctx, void *obj_data, int len
 	// Update the modem status, if present
 	updateRfm22bStats();
 
+#ifndef NO_SENSORS
+	if (config_check_needed) {
+		configuration_check();
+		config_check_needed = false;
+	}
+#endif
+
 #ifndef PIPXTREME
 	// Update the system statistics
 	updateStats();
@@ -434,7 +443,7 @@ static void objectUpdatedCb(UAVObjEvent * ev, void *ctx, void *obj_data, int len
 static void configurationUpdatedCb(UAVObjEvent * ev, void *ctx, void *obj, int len)
 {
 	(void) ev; (void) ctx; (void) obj; (void) len;
-	configuration_check();
+	config_check_needed = true;
 }
 #endif
 
