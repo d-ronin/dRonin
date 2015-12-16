@@ -1245,7 +1245,6 @@ const char * pid_strings[] = {"P    ",
 
 void pidrate_menu(void)
 {
-	const float limits_low[] = {0.f, 0.f, 0.f, 0.f};
 	const float limits_high[] = {.01f, .02f, .01f, 1.f};
 	const float increments[] = {1e-4f, 1e-4f, 1e-6f, 1e-2f};
 	
@@ -1273,15 +1272,16 @@ void pidrate_menu(void)
 		for (int j = 0; j < 4; j++) {
 			sprintf(tmp_str, "%s %s: %0.6f", axis_strings[i], pid_strings[j], (double)pid_arr[j]);
 			write_string(tmp_str, MENU_LINE_X, y_pos, 0, 0, TEXT_VA_TOP, TEXT_HA_LEFT, 0, MENU_FONT);
-			draw_hscale(180, GRAPHICS_RIGHT - 5, y_pos + 2, limits_low[j], limits_high[j], pid_arr[j]);
+			float h_lim = ceilf(pid_arr[j] / limits_high[j]) * limits_high[j];
+			draw_hscale(180, GRAPHICS_RIGHT - 5, y_pos + 2, 0.f, h_lim, pid_arr[j]);
 			if (my_state == current_state) {
 				draw_selected_icon(MENU_LINE_X - 4, y_pos + 4);
 				if (current_event == FSM_EVENT_RIGHT) {
-					pid_arr[j] = MIN(pid_arr[j] + increments[j], limits_high[j]);
+					pid_arr[j] = pid_arr[j] + increments[j];
 					data_changed = true;
 				}
 				if (current_event == FSM_EVENT_LEFT) {
-					pid_arr[j] = MAX(pid_arr[j] - increments[j], limits_low[j]);
+					pid_arr[j] = MAX(0.f, pid_arr[j] - increments[j]);
 					data_changed = true;
 				}
 				if (data_changed) {
@@ -1322,7 +1322,6 @@ const char * pid_strings_att[] = {"P    ",
 								  "I-Lim"};
 void pidatt_menu(void)
 {
-	const float limits_low[] = {0.f, 0.f, 0.f};
 	const float limits_high[] = {20.f, 20.f, 100.f};
 	const float increments[] = {0.1f, 0.1f, 1.f};
 
@@ -1350,15 +1349,16 @@ void pidatt_menu(void)
 		for (int j = 0; j < 3; j++) {
 			sprintf(tmp_str, "%s %s: %2.1f", axis_strings[i], pid_strings_att[j], (double)pid_arr[j]);
 			write_string(tmp_str, MENU_LINE_X, y_pos, 0, 0, TEXT_VA_TOP, TEXT_HA_LEFT, 0, MENU_FONT);
-			draw_hscale(170, GRAPHICS_RIGHT - 5, y_pos + 2, limits_low[j], limits_high[j], pid_arr[j]);
+			float h_lim = ceilf(pid_arr[j] / limits_high[j]) * limits_high[j];
+			draw_hscale(170, GRAPHICS_RIGHT - 5, y_pos + 2, 0.f, h_lim, pid_arr[j]);
 			if (my_state == current_state) {
 				draw_selected_icon(MENU_LINE_X - 4, y_pos + 4);
 				if (current_event == FSM_EVENT_RIGHT) {
-					pid_arr[j] = MIN(pid_arr[j] + increments[j], limits_high[j]);
+					pid_arr[j] = pid_arr[j] + increments[j];
 					data_changed = true;
 				}
 				if (current_event == FSM_EVENT_LEFT) {
-					pid_arr[j] = MAX(pid_arr[j] - increments[j], limits_low[j]);
+					pid_arr[j] = MAX(0.f, pid_arr[j] - increments[j]);
 					data_changed = true;
 				}
 				if (data_changed) {
