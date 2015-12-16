@@ -63,10 +63,6 @@ int32_t configuration_check()
 {
 	SystemAlarmsConfigErrorOptions error_code = SYSTEMALARMS_CONFIGERROR_NONE;
 	
-	// Get board type
-	const struct pios_board_info * bdinfo = &pios_board_info_blob;	
-	bool coptercontrol = bdinfo->board_type == 0x04;
-
 	// For when modules are not running we should explicitly check the objects are
 	// valid
 	if (ManualControlSettingsHandle() == NULL ||
@@ -101,7 +97,6 @@ int32_t configuration_check()
 	uint8_t modes[MANUALCONTROLSETTINGS_FLIGHTMODEPOSITION_NUMELEM];
 	ManualControlSettingsFlightModeNumberGet(&num_modes);
 	ManualControlSettingsFlightModePositionGet(modes);
-	
 
 	for(uint32_t i = 0; i < num_modes; i++) {
 		switch(modes[i]) {
@@ -133,38 +128,24 @@ int32_t configuration_check()
 					error_code = SYSTEMALARMS_CONFIGERROR_AUTOTUNE;
 				break;
 			case MANUALCONTROLSETTINGS_FLIGHTMODEPOSITION_ALTITUDEHOLD:
-				if (coptercontrol)
+				if ( !TaskMonitorQueryRunning(TASKINFO_RUNNING_ALTITUDEHOLD) )
 					error_code = SYSTEMALARMS_CONFIGERROR_ALTITUDEHOLD;
-				else {
-					if ( !TaskMonitorQueryRunning(TASKINFO_RUNNING_ALTITUDEHOLD) )
-						error_code = SYSTEMALARMS_CONFIGERROR_ALTITUDEHOLD;
-				}
 				break;
 			case MANUALCONTROLSETTINGS_FLIGHTMODEPOSITION_POSITIONHOLD:
 			case MANUALCONTROLSETTINGS_FLIGHTMODEPOSITION_RETURNTOHOME:
-				if (coptercontrol) {
+				if (!TaskMonitorQueryRunning(TASKINFO_RUNNING_PATHFOLLOWER)) {
 					error_code = SYSTEMALARMS_CONFIGERROR_PATHPLANNER;
-				}
-				else {
-					if (!TaskMonitorQueryRunning(TASKINFO_RUNNING_PATHFOLLOWER)) {
-						error_code = SYSTEMALARMS_CONFIGERROR_PATHPLANNER;
-					} else {
-						error_code = check_safe_autonomous();
-					}
+				} else {
+					error_code = check_safe_autonomous();
 				}
 				break;
 			case MANUALCONTROLSETTINGS_FLIGHTMODEPOSITION_PATHPLANNER:
 			case MANUALCONTROLSETTINGS_FLIGHTMODEPOSITION_TABLETCONTROL:
-				if (coptercontrol) {
+				if (!TaskMonitorQueryRunning(TASKINFO_RUNNING_PATHFOLLOWER) ||
+					!TaskMonitorQueryRunning(TASKINFO_RUNNING_PATHPLANNER)) {
 					error_code = SYSTEMALARMS_CONFIGERROR_PATHPLANNER;
-				}
-				else {
-					if (!TaskMonitorQueryRunning(TASKINFO_RUNNING_PATHFOLLOWER) ||
-						!TaskMonitorQueryRunning(TASKINFO_RUNNING_PATHPLANNER)) {
-						error_code = SYSTEMALARMS_CONFIGERROR_PATHPLANNER;
-					} else {
-						error_code = check_safe_autonomous();
-					}
+				} else {
+					error_code = check_safe_autonomous();
 				}
 				break;
 			default:
