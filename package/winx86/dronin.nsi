@@ -156,7 +156,7 @@ SectionEnd
 ; Copy GCS plugins
 Section "-Plugins" InSecPlugins
   SectionIn RO
-  SetOutPath "$INSTDIR\lib\dronin\plugins"
+  SetOutPath "$INSTDIR\lib\plugins"
   File /r "${GCS_BUILD_TREE}\lib\dr\plugins\*.dll"
   File /r "${GCS_BUILD_TREE}\lib\dr\plugins\*.pluginspec"
 SectionEnd
