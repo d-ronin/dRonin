@@ -555,7 +555,6 @@ void PIOS_Board_Init(void) {
 		PIOS_Assert(0);
 	}
 
-	//hw_usb_vcpport = HWBRAIN_USB_VCPPORT_DISABLED;
 	switch (hw_usb_vcpport) {
 	case HWBRAIN_USB_VCPPORT_DISABLED:
 		break;
@@ -623,7 +622,6 @@ void PIOS_Board_Init(void) {
 		PIOS_Assert(0);
 	}
 
-	hw_usb_hidport = HWBRAIN_USB_HIDPORT_USBTELEMETRY;
 	switch (hw_usb_hidport) {
 	case HWBRAIN_USB_HIDPORT_DISABLED:
 		break;
