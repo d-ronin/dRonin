@@ -74,7 +74,7 @@ package_all: package_ground package_matlab extract_firmware
 
 extract_firmware: $(FLIGHTPKGNAME)
 	mkdir -p "$(PACKAGE_DIR)"/firmware
-	unzip -f "$(FLIGHTPKGNAME)" -d "$(PACKAGE_DIR)"/firmware
+	unzip -u "$(FLIGHTPKGNAME)" -d "$(PACKAGE_DIR)"/firmware
 
 package_info:
 	$(shell $(VERSION_CMD) --uavodir=$(ROOT_DIR)/shared/uavobjectdefinition --template=$(ROOT_DIR)/make/templates/packageversioninfo.json --outfile=$(PACKAGE_DIR)/packageversioninfo.json)
