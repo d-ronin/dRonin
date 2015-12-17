@@ -165,7 +165,7 @@ static inline QStringList getPluginPaths()
 #ifdef Q_OS_MAC
 #  define SHARE_PATH "/../Resources"
 #else
-#  define SHARE_PATH "/../share/dronin"
+#  define SHARE_PATH "/../share"
 #endif
 
 static void overrideSettings(QCommandLineParser &parser, QSettings *settings){
