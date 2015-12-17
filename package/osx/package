@@ -24,7 +24,6 @@ hdiutil create -size 500M -type SPARSE -volname "${VOL_NAME}" -fs HFS+ "${TEMP_F
 device=$(hdiutil attach  "${TEMP_FILE}" | \
          egrep '^/dev/' | sed 1q | awk '{print $1}')
 
-
 # packaging goes here
 mkdir "/Volumes/${VOL_NAME}/Firmware"
 mkdir "/Volumes/${VOL_NAME}/Utilities"
@@ -32,8 +31,7 @@ cp -r "${APP_PATH}/${APP_NAME_IN}" "/Volumes/${VOL_NAME}/${APP_NAME_OUT}"
 cp -rp "${FW_DIR}"/* "/Volumes/${VOL_NAME}/Firmware"
 
 cp "${BUILD_DIR}/matlab/LogConvert.m" "/Volumes/${VOL_NAME}/Utilities/LogConvert-${PACKAGE_LBL}.m"
-
-cp "${ROOT_DIR}/HISTORY.txt" "/Volumes/${VOL_NAME}"
+cp "${ROOT_DIR}/LICENSE.txt" "/Volumes/${VOL_NAME}"
 
 echo "Changing mounted folder icons"
 # Set the icon for the mounted DMG.
@@ -48,21 +46,17 @@ echo '
      tell disk "'${VOL_NAME}'"
            open
            set current view of container window to icon view
-           set toolbar visible of container window to false
-           set statusbar visible of container window to false
+#           set toolbar visible of container window to false
+#           set statusbar visible of container window to false
            set the bounds of container window to {400, 100, 935, 430}
            set theViewOptions to the icon view options of container window
            set arrangement of theViewOptions to not arranged
-           set icon size of theViewOptions to 72
+           set icon size of theViewOptions to 90
 #           set background picture of theViewOptions to file ".background:'${backgroundPictureName}'"
            make new alias file at container window to POSIX file "/Applications" with properties {name:"Applications"}
 #           set position of item "'${APP_NAME}'" of container window to {100, 75}
 #           set position of item "Applications" of container window to {350, 75}
 #           set position of item "Firmware" of container window to {100, 250}
-#           set position of item "HISTORY.txt" of container window to {350, 250}
-#           
-#           close #Workaround for... 
-#           open  #... Snow Leopard bug
 
            update without registering applications
            delay 5
