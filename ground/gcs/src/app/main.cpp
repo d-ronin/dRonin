@@ -140,6 +140,34 @@ static inline QString msgCoreLoadFailure(const QString &why)
     return QCoreApplication::translate("Application", "Failed to load core: %1").arg(why);
 }
 
+static inline QStringList getPluginPaths()
+{
+    QStringList rc;
+    // Figure out root:  Up one from 'bin'
+    QDir rootDir = QApplication::applicationDirPath();
+    rootDir.cdUp();
+    const QString rootDirPath = rootDir.canonicalPath();
+    // 1) "plugins" (Win/Linux)
+    QString pluginPath = rootDirPath;
+    pluginPath += QLatin1Char('/');
+    pluginPath += QLatin1String(GCS_LIBRARY_BASENAME);
+    pluginPath += QLatin1Char('/');
+    pluginPath += QLatin1String("plugins");
+    rc.push_back(pluginPath);
+    // 2) "PlugIns" (OS X)
+    pluginPath = rootDirPath;
+    pluginPath += QLatin1Char('/');
+    pluginPath += QLatin1String("Plugins");
+    rc.push_back(pluginPath);
+    return rc;
+}
+
+#ifdef Q_OS_MAC
+#  define SHARE_PATH "/../Resources"
+#else
+#  define SHARE_PATH "/../share"
+#endif
+
 static void overrideSettings(QCommandLineParser &parser, QSettings *settings){
     QMap<QString, QString> settingOptions;
     // Options like -DMy/setting=test
@@ -206,7 +234,7 @@ int main(int argc, char **argv)
 
     // Must be done before any QSettings class is created
     QSettings::setPath(XmlConfig::XmlSettingsFormat, QSettings::SystemScope,
-            QCoreApplication::applicationDirPath()+QLatin1String(GCS_DATA_PATH));
+            QCoreApplication::applicationDirPath()+QLatin1String(SHARE_PATH));
 
     QCommandLineParser parser;
     parser.setApplicationDescription(GCS_PROJECT_BRANDING_PRETTY " GCS");
@@ -269,7 +297,7 @@ int main(int argc, char **argv)
         qApp->processEvents();
     }
     const QString &gcsTranslationsPath = QCoreApplication::applicationDirPath()
-                                   + QLatin1String(GCS_DATA_PATH "/translations");
+                                   + QLatin1String(SHARE_PATH "/translations");
     if (translator.load(QLatin1String("gcs_") + locale, gcsTranslationsPath)) {
         const QString &qtTrPath = QLibraryInfo::location(QLibraryInfo::TranslationsPath);
         const QString &qtTrFile = QLatin1String("qt_") + locale;
@@ -288,7 +316,8 @@ int main(int argc, char **argv)
     Utils::PathUtils().setSettingsFilename(settingsFilename);
     pluginManager.setFileExtension(QLatin1String("pluginspec"));
 
-    pluginManager.setPluginPaths(QStringList() << GCS_PLUGIN_PATH);
+    const QStringList pluginPaths = getPluginPaths();
+    pluginManager.setPluginPaths(pluginPaths);
 
     splash.showMessage("Parsing command line options",Qt::AlignCenter | Qt::AlignBottom,Qt::black);
     qApp->processEvents();
@@ -313,7 +342,7 @@ int main(int argc, char **argv)
         qApp->processEvents();
     }
     if (!coreplugin) {
-        const QString reason = QCoreApplication::translate("Application", "Could not find 'Core.pluginspec' in %1").arg(GCS_PLUGIN_PATH);
+        const QString reason = QCoreApplication::translate("Application", "Could not find 'Core.pluginspec' in %1").arg(pluginPaths.join(QLatin1String(",")));
         displayError(msgCoreLoadFailure(reason));
         return 1;
     }

@@ -156,7 +156,7 @@ SectionEnd
 ; Copy GCS plugins
 Section "-Plugins" InSecPlugins
   SectionIn RO
-  SetOutPath "$INSTDIR\lib\dronin\plugins"
+  SetOutPath "$INSTDIR\lib\plugins"
   File /r "${GCS_BUILD_TREE}\lib\dr\plugins\*.dll"
   File /r "${GCS_BUILD_TREE}\lib\dr\plugins\*.pluginspec"
 SectionEnd
@@ -177,6 +177,8 @@ Section "-Resources" InSecResources
   File /r "${GCS_BUILD_TREE}\share\models\*"
   SetOutPath "$INSTDIR\share\pfd"
   File /r "${GCS_BUILD_TREE}\share\pfd\*"
+  SetOutPath "$INSTDIR\share\welcome"
+  File /r "${GCS_BUILD_TREE}\share\welcome\*"
 SectionEnd
 
 ; Copy Notify plugin sound files
