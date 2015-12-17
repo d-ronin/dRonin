@@ -370,6 +370,9 @@ int main(int argc, char **argv)
     }
 
     QObject::connect(&pluginManager,SIGNAL(splashMessages(QString)),&splash,SLOT(showMessage(const QString)));
+    QObject::connect(&pluginManager,SIGNAL(hideSplash()),&splash,SLOT(hide()));
+    QObject::connect(&pluginManager,SIGNAL(showSplash()),&splash,SLOT(show()));
+
     pluginManager.loadPlugins();
     {
         QStringList errors;
