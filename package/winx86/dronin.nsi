@@ -37,9 +37,8 @@
 
   ; Tree root locations (relative to this script location)
   !define NSIS_DATA_TREE "."
-  !define GCS_BUILD_TREE "..\..\build\ground\gcs"
-  !define UAVO_SYNTH_TREE "..\..\build\uavobject-synthetics"
-  !define MATLAB_TREE "..\..\build\matlab"
+  !define GCS_BUILD_TREE "${PROJECT_ROOT}"
+  !define BRANDING_TREE "${SOURCE_ROOT}\branding"
 
   ; Default installation folder
   InstallDir "$PROGRAMFILES\dRonin"
@@ -55,7 +54,7 @@
   !define INSTALLER_NAME "dRonin GCS Installer"
 
   ; Read automatically generated version info
-  !include "${GCS_BUILD_TREE}\dronin.nsh"
+  !include "${PROJECT_ROOT}\dronin.nsh"
 
   Name "${PRODUCT_NAME}"
   OutFile "${PACKAGE_DIR}\${OUT_FILE}"
@@ -88,13 +87,13 @@
 
   BrandingText "© 2015 dRonin http://dRonin.org"
 
-  !define MUI_ICON "${NSIS_DATA_TREE}\resources\dronin.ico"
+  !define MUI_ICON "${BRANDING_TREE}\gcs.ico"
   !define MUI_HEADERIMAGE
-  !define MUI_HEADERIMAGE_BITMAP "${NSIS_DATA_TREE}\resources\header.bmp"
+  !define MUI_HEADERIMAGE_BITMAP "${BRANDING_TREE}\win_package_header.bmp"
   !define MUI_HEADERIMAGE_BITMAP_NOSTRETCH
-  !define MUI_WELCOMEFINISHPAGE_BITMAP "${NSIS_DATA_TREE}\resources\welcome.bmp"
+  !define MUI_WELCOMEFINISHPAGE_BITMAP "${BRANDING_TREE}\win_package_welcome.bmp"
   !define MUI_WELCOMEFINISHPAGE_BITMAP_NOSTRETCH
-  !define MUI_UNWELCOMEFINISHPAGE_BITMAP "${NSIS_DATA_TREE}\resources\welcome.bmp"
+  !define MUI_UNWELCOMEFINISHPAGE_BITMAP "${BRANDING_TREE}\win_package_welcome.bmp"
   !define MUI_UNWELCOMEFINISHPAGE_BITMAP_NOSTRETCH
 
 ;--------------------------------
