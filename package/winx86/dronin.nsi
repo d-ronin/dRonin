@@ -36,7 +36,6 @@
 ; Paths
 
   ; Tree root locations (relative to this script location)
-  !define PROJECT_ROOT   "..\.."
   !define NSIS_DATA_TREE "."
   !define BUILD_TREE "..\..\build"
   !define GCS_BUILD_TREE "..\..\build\ground\gcs"
@@ -199,19 +198,13 @@ SectionEnd
 ; Copy firmware files
 Section "Firmware" InSecFirmware
   SetOutPath "$INSTDIR\firmware"
-  File "${PACKAGE_DIR}\firmware\*.*"
-SectionEnd
-
-; Copy utility files
-Section "-Utilities" InSecUtilities
-  SetOutPath "$INSTDIR\utilities"
-  File "/oname=LogConvert-${PACKAGE_LBL}.m" "${MATLAB_TREE}\LogConvert.m"
+  File "${FIRMWARE_DIR}\*.*"
 SectionEnd
 
 ; Copy driver files
 Section "-Drivers" InSecDrivers
   SetOutPath "$INSTDIR\drivers"
-  File "${PROJECT_ROOT}\flight\Project\Windows USB\dRonin-CDC.inf"
+  File "${SOURCE_ROOT}\flight\Project\Windows USB\dRonin-CDC.inf"
 SectionEnd
 
 ; Preinstall OpenPilot CDC driver
