@@ -1,15 +1,21 @@
 dRonin Software Licenses
 ========================
 
-<!--- Note that LICENSE.txt and LICENSE.rtf are generated from this file
-manually, with pandoc.  pandoc -s LICENSE.md -o LICENSE.rtf and
-pandoc -s LICENSE.md -o LICENSE.txt are the commands -->
 dRonin is open-source software. The full source code of dRonin can be
 found at: <https://github.com/d-ronin/dRonin>
 
 Most of the dRonin code is licensed under the GPLv3. There are a few
 minor exceptions to this, so please see the headers of all source code
 for copyright and license information.
+
+**THERE IS NO WARRANTY FOR THE PROGRAM, TO THE EXTENT PERMITTED BY
+APPLICABLE LAW. EXCEPT WHEN OTHERWISE STATED IN WRITING THE COPYRIGHT
+HOLDERS AND/OR OTHER PARTIES PROVIDE THE PROGRAM “AS IS” WITHOUT
+WARRANTY OF ANY KIND, EITHER EXPRESSED OR IMPLIED, INCLUDING, BUT NOT
+LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A
+PARTICULAR PURPOSE. THE ENTIRE RISK AS TO THE QUALITY AND PERFORMANCE OF
+THE PROGRAM IS WITH YOU. SHOULD THE PROGRAM PROVE DEFECTIVE, YOU ASSUME
+THE COST OF ALL NECESSARY SERVICING, REPAIR OR CORRECTION.**
 
 The full text of the various licences used in the project can be found
 here:
