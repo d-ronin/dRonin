@@ -1013,7 +1013,7 @@ endif
 # Packaging components
 #
 ##############################
-PACKAGE_TARGETS = package_installer package_all_compress
+PACKAGE_TARGETS = package_installer package_all_compress package_ground
 .PHONY: $(PACKAGE_TARGETS)
 $(PACKAGE_TARGETS): 
 	$(V1) cd package && $(MAKE) --no-print-directory $@
