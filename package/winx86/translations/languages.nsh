@@ -1,6 +1,7 @@
 ﻿#
-# Project: OpenPilot
-# NSIS header file for OpenPilot GCS
+# Project: dRonin
+# NSIS header file for dRonin
+# dRonin, http://dronin.org, Copyright (C) 2015
 # The OpenPilot Team, http://www.openpilot.org, Copyright (C) 2010-2011.
 #
 # This program is free software; you can redistribute it and/or modify
@@ -28,7 +29,7 @@
 ;--------------------------------
 ; Translated license files
 
-  LicenseLangString LicenseFile ${LANG_ENGLISH} "licenses\GPLv3_en.rtf"
+  LicenseLangString LicenseFile ${LANG_ENGLISH} "${PROJECT_ROOT}/LICENSE.rtf"
 
 ;--------------------------------
 ; Translated strings
