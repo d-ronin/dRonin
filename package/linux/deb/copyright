@@ -29,18 +29,10 @@ License:
     59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
     see "/usr/share/common-licenses/GPL-3".
 
+    This program contains software and images under other (GPL compatible)
+    licenses.  Please see LICENSE.txt as included in the package for details
+    on these licenses.
+
 The Debian packaging is:
 
-    Copyright (C) 2015 <BRANDING_PACKAGE_HOME_PAGE> <<BRANDING_PACKAGE_COPYRIGHT_EMAIL>>
-
-# Please chose a license for your packaging work. If the program you package
-# uses a mainstream license, using the same license is the safest choice.
-# Please avoid to pick license terms that are more restrictive than the
-# packaged work, as it may make Debian's contributions unacceptable upstream.
-# If you just want it to be GPL version 3, leave the following lines in.
-
-and is licensed under the GPL version 3,
-see "/usr/share/common-licenses/GPL-3".
-
-# Please also look if there are files or directories which have a
-# different copyright/license attached and list them here.
+    Copyright (C) 2015 <BRANDING_PACKAGE_HOME_PAGE> <<BRANDING_PACKAGE_COPYRIGHT_EMAIL>> and is licensed under the GPL version 3, see "/usr/share/common-licenses/GPL-3".
