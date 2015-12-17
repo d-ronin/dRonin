@@ -7,7 +7,7 @@ NSIS_OPTS     := /V3
 NSIS_DIR      := $(ROOT_DIR)/package/winx86
 NSIS_SCRIPT   := $(NSIS_DIR)/dronin.nsi
 NSIS_TEMPLATE := $(NSIS_DIR)/dronin.tpl
-NSIS_HEADER   := $(BUILD_DIR)/ground/gcs/dronin.nsh
+NSIS_HEADER   := $(PACKAGE_DIR)/$(GCS_PACKAGE_NAME)/dronin.nsh
 
 standalone: gcs
 	$(V1) windeployqt -printsupport -concurrent -gui -opengl -xml -quick -quickwidgets -test -script -sql -serialport -multimedia -multimediawidgets --list relative --qmldir $(ROOT_DIR)/build/ground/gcs/share/welcome $(ROOT_DIR)/build/ground/gcs/bin/drgcs.exe 
@@ -19,7 +19,7 @@ installer_package: package_ground extract_firmware
 	$(V1) echo "Building Windows installer, please wait..."
 	$(V1) echo "If you have a script error in line 1 - use Unicode NSIS 2.46+"
 	$(V1) echo "  http://www.scratchpaper.com"
-	$(NSIS_CMD) $(NSIS_OPTS) $(NSIS_SCRIPT) /DPROJECT_ROOT=$(PACKAGE_DIR)/$(GCS_PACKAGE_NAME) /DFIRMWARE_DIR=$(PACKAGE_DIR)/firmware /DSOURCE_ROOT=$(ROOT_DIR)
+	$(NSIS_CMD) /DPROJECT_ROOT=$(PACKAGE_DIR)/$(GCS_PACKAGE_NAME) /DFIRMWARE_DIR=$(PACKAGE_DIR)/firmware /DSOURCE_ROOT=$(ROOT_DIR) $(NSIS_SCRIPT)  $(NSIS_OPTS)
 
 ground_package_os_specific: ground_package_common
 	@echo $@ starting
