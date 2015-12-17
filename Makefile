@@ -1,4 +1,4 @@
-# Makefile for Taulabs project
+# Makefile for dRonin project
 .DEFAULT_GOAL := help
 
 WHEREAMI := $(dir $(lastword $(MAKEFILE_LIST)))
@@ -208,7 +208,7 @@ help:
 	@echo "   [Packaging]"
 	@echo "     package_flight       - Build and package the dRonin flight firmware only"
 	@echo "     package_all_compress - Build and package all dRonin firmware and software"
-	@echo "     package_installer    - Builds a Tau Labs software installer"
+	@echo "     package_installer    - Builds a dRonin software installer"
 	@echo
 	@echo "   Notes:"
 	@echo "     - packages will be placed in $(PACKAGE_DIR)"
