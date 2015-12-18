@@ -89,7 +89,7 @@ package_ground_compress: package_ground
 package_matlab_compress: package_matlab
 	$(V1) tar -cvJf $(PACKAGE_DIR)/matlab-$(PACKAGE_LBL).tar.xz -C $(ML_DIR) .
 package_all_compress: package_all
-	$(V1) tar -cvJf $(BUILD_DIR)/$(PACKAGE_LBL).tar.xz --exclude='*.tar.xz' -C $(PACKAGE_DIR) .
+	$(V1) tar -cvJf $(BUILD_DIR)/$(PACKAGE_LBL).tar.xz --exclude='*.tar.xz' -C $(PACKAGE_DIR)/.. $(basename $(PACKAGE_DIR))
 
 .PHONY: standalone installer_package deb_build $(DEB_BUILD_DIR)
 .PHONY: package_ground_compress package_matlab_compress

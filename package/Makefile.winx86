@@ -38,7 +38,7 @@ package_ground_compress: package_ground
 package_matlab_compress: package_matlab
 	$(V1)cd $(PACKAGE_DIR) && $(ZIPBIN) -r $(PACKAGE_DIR)/matlab-$(PACKAGE_LBL) $(ML_DIR)
 package_all_compress: package_all
-	$(V1)cd $(PACKAGE_DIR)/../ && $(ZIPBIN) -r --exclude=*.zip $(BUILD_DIR)/$(PACKAGE_LBL) $(PACKAGE_DIR)
+	$(V1)cd $(PACKAGE_DIR)/../ && $(ZIPBIN) -r --exclude=*.zip $(BUILD_DIR)/$(PACKAGE_LBL) $(basename $(PACKAGE_DIR))
 
 .PHONY: standalone
 .PHONY: package_ground_compress package_matlab_compress
