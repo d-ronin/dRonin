@@ -2,7 +2,7 @@
  ******************************************************************************
  * @addtogroup TauLabsTargets Tau Labs Targets
  * @{
- * @addtogroup RevoMini OpenPilot RevoMini support files
+ * @addtogroup Revolution OpenPilot Revolution support files
  * @{
  *
  * @file       pios_usb_board_data.h

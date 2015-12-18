@@ -2,7 +2,7 @@
  ******************************************************************************
  * @addtogroup TauLabsTargets Tau Labs Targets
  * @{
- * @addtogroup RevoMini OpenPilot RevoMini support files
+ * @addtogroup Revolution OpenPilot Revolution support files
  * @{
  *
  * @file       pios_board.c
@@ -42,7 +42,7 @@
 #include <pios_hal.h>
 #include <openpilot.h>
 #include <uavobjectsinit.h>
-#include "hwrevomini.h"
+#include "hwrevolution.h"
 #include "manualcontrolsettings.h"
 #include "modulesettings.h"
 #include <rfm22bstatus.h>
@@ -247,7 +247,7 @@ void PIOS_Board_Init(void) {
 	PIOS_RESET_Clear(); // Clear the RCC reset flags after use.
 
 	/* Initialize the hardware UAVOs */
-	HwRevoMiniInitialize();
+	HwRevolutionInitialize();
 	ModuleSettingsInitialize();
 
 #if defined(PIOS_INCLUDE_RTC)
@@ -281,7 +281,7 @@ void PIOS_Board_Init(void) {
 		AlarmsClear(SYSTEMALARMS_ALARM_BOOTFAULT);
 	} else {
 		/* Too many failed boot attempts, force hw config to defaults */
-		HwRevoMiniSetDefaults(HwRevoMiniHandle(), 0);
+		HwRevolutionSetDefaults(HwRevolutionHandle(), 0);
 		ModuleSettingsSetDefaults(ModuleSettingsHandle(),0);
 		AlarmsSet(SYSTEMALARMS_ALARM_BOOTFAULT, SYSTEMALARMS_ALARM_CRITICAL);
 	}
@@ -316,7 +316,7 @@ void PIOS_Board_Init(void) {
 #if defined(PIOS_INCLUDE_USB_CDC)
 	uint8_t hw_usb_vcpport;
 	/* Configure the USB VCP port */
-	HwRevoMiniUSB_VCPPortGet(&hw_usb_vcpport);
+	HwRevolutionUSB_VCPPortGet(&hw_usb_vcpport);
 
 	PIOS_HAL_ConfigureCDC(hw_usb_vcpport,
 			pios_usb_id, &pios_usb_cdc_cfg);
@@ -325,11 +325,11 @@ void PIOS_Board_Init(void) {
 #if defined(PIOS_INCLUDE_USB_HID)
 	/* Configure the usb HID port */
 	uint8_t hw_usb_hidport;
-	HwRevoMiniUSB_HIDPortGet(&hw_usb_hidport);
+	HwRevolutionUSB_HIDPortGet(&hw_usb_hidport);
 
 	if (!usb_hid_present) {
 		/* Force HID port function to disabled if we haven't advertised HID in our USB descriptor */
-		hw_usb_hidport = HWREVOMINI_USB_HIDPORT_DISABLED;
+		hw_usb_hidport = HWREVOLUTION_USB_HIDPORT_DISABLED;
 	}
 
 	PIOS_HAL_ConfigureHID(hw_usb_hidport, pios_usb_id, &pios_usb_hid_cfg);
@@ -341,12 +341,12 @@ void PIOS_Board_Init(void) {
 #endif	/* PIOS_INCLUDE_USB */
 
 	/* Configure IO ports */
-	HwRevoMiniDSMxModeOptions hw_DSMxMode;
-	HwRevoMiniDSMxModeGet(&hw_DSMxMode);
+	HwRevolutionDSMxModeOptions hw_DSMxMode;
+	HwRevolutionDSMxModeGet(&hw_DSMxMode);
 	
 	/* Configure main USART port */
 	uint8_t hw_mainport;
-	HwRevoMiniMainPortGet(&hw_mainport);
+	HwRevolutionMainPortGet(&hw_mainport);
 
 	PIOS_HAL_ConfigurePort(hw_mainport,          // port type protocol
 			&pios_usart_main_cfg,                // usart_port_cfg
@@ -359,14 +359,14 @@ void PIOS_Board_Init(void) {
 			PIOS_LED_ALARM,                      // led_id
 			&pios_usart_dsm_hsum_main_cfg,       // usart_dsm_hsum_cfg
 			&pios_dsm_main_cfg,                  // dsm_cfg
-			hw_DSMxMode >= HWREVOMINI_DSMXMODE_BIND3PULSES ? HWREVOMINI_DSMXMODE_AUTODETECT : hw_DSMxMode /* No bind on main port */, 
+			hw_DSMxMode >= HWREVOLUTION_DSMXMODE_BIND3PULSES ? HWREVOLUTION_DSMXMODE_AUTODETECT : hw_DSMxMode /* No bind on main port */, 
 			&pios_usart_sbus_main_cfg,           // sbus_rcvr_cfg
 			&pios_sbus_cfg,                      // sbus_cfg 
 			true);                               // sbus_toggle
 
 	/* Configure FlexiPort */
 	uint8_t hw_flexiport;
-	HwRevoMiniFlexiPortGet(&hw_flexiport);
+	HwRevolutionFlexiPortGet(&hw_flexiport);
 
 	PIOS_HAL_ConfigurePort(hw_flexiport,         // port type protocol 
 			&pios_usart_flexi_cfg,               // usart_port_cfg
@@ -384,8 +384,8 @@ void PIOS_Board_Init(void) {
 			NULL,                                // sbus_cfg    
 			false);                              // sbus_toggle
 
-	HwRevoMiniData hwRevoMini;
-	HwRevoMiniGet(&hwRevoMini);
+	HwRevolutionData hwRevoMini;
+	HwRevolutionGet(&hwRevoMini);
 
 #ifdef PIOS_INCLUDE_RFM22B
 	const struct pios_openlrs_cfg *openlrs_cfg = PIOS_BOARD_HW_DEFS_GetOpenLRSCfg(bdinfo->board_rev);
@@ -401,12 +401,12 @@ void PIOS_Board_Init(void) {
 
 	/* Configure the receiver port*/
 	uint8_t hw_rcvrport;
-	HwRevoMiniRcvrPortGet(&hw_rcvrport);
+	HwRevolutionRcvrPortGet(&hw_rcvrport);
 	//   
 	switch (hw_rcvrport){
-		case HWREVOMINI_RCVRPORT_DISABLED:
+		case HWREVOLUTION_RCVRPORT_DISABLED:
 			break;
-		case HWREVOMINI_RCVRPORT_PWM:
+		case HWREVOLUTION_RCVRPORT_PWM:
 #if defined(PIOS_INCLUDE_PWM)
 		{
 			/* Set up the receiver port.  Later this should be optional */
@@ -421,7 +421,7 @@ void PIOS_Board_Init(void) {
 		}
 #endif	/* PIOS_INCLUDE_PWM */
 			break;
-		case HWREVOMINI_RCVRPORT_PPMPWM:
+		case HWREVOLUTION_RCVRPORT_PPMPWM:
 		/* This is a combination of PPM and PWM inputs */
 #if defined(PIOS_INCLUDE_PPM)
 		{
@@ -448,8 +448,8 @@ void PIOS_Board_Init(void) {
 		}
 #endif	/* PIOS_INCLUDE_PWM */
 			break;
-		case HWREVOMINI_RCVRPORT_PPM:
-		case HWREVOMINI_RCVRPORT_PPMOUTPUTS:
+		case HWREVOLUTION_RCVRPORT_PPM:
+		case HWREVOLUTION_RCVRPORT_PPMOUTPUTS:
 #if defined(PIOS_INCLUDE_PPM)
 		{
 			uintptr_t pios_ppm_id;
@@ -462,7 +462,7 @@ void PIOS_Board_Init(void) {
 			pios_rcvr_group_map[MANUALCONTROLSETTINGS_CHANNELGROUPS_PPM] = pios_ppm_rcvr_id;
 		}
 #endif	/* PIOS_INCLUDE_PPM */
-		case HWREVOMINI_RCVRPORT_OUTPUTS:
+		case HWREVOLUTION_RCVRPORT_OUTPUTS:
 		
 			break;
 	}
@@ -481,14 +481,14 @@ void PIOS_Board_Init(void) {
 
 #ifndef PIOS_DEBUG_ENABLE_DEBUG_PINS
 	switch (hw_rcvrport) {
-		case HWREVOMINI_RCVRPORT_DISABLED:
-		case HWREVOMINI_RCVRPORT_PWM:
-		case HWREVOMINI_RCVRPORT_PPM:
+		case HWREVOLUTION_RCVRPORT_DISABLED:
+		case HWREVOLUTION_RCVRPORT_PWM:
+		case HWREVOLUTION_RCVRPORT_PPM:
 			/* Set up the servo outputs */
 			PIOS_Servo_Init(&pios_servo_cfg);
 			break;
-		case HWREVOMINI_RCVRPORT_PPMOUTPUTS:
-		case HWREVOMINI_RCVRPORT_OUTPUTS:
+		case HWREVOLUTION_RCVRPORT_PPMOUTPUTS:
+		case HWREVOLUTION_RCVRPORT_OUTPUTS:
 			//PIOS_Servo_Init(&pios_servo_rcvr_cfg);
 			//TODO: Prepare the configurations on board_hw_defs and handle here:
 			PIOS_Servo_Init(&pios_servo_cfg);
@@ -535,64 +535,64 @@ void PIOS_Board_Init(void) {
 
 	// To be safe map from UAVO enum to driver enum
 	uint8_t hw_gyro_range;
-	HwRevoMiniGyroRangeGet(&hw_gyro_range);
+	HwRevolutionGyroRangeGet(&hw_gyro_range);
 	switch(hw_gyro_range) {
-		case HWREVOMINI_GYRORANGE_250:
+		case HWREVOLUTION_GYRORANGE_250:
 			PIOS_MPU6000_SetGyroRange(PIOS_MPU60X0_SCALE_250_DEG);
 			break;
-		case HWREVOMINI_GYRORANGE_500:
+		case HWREVOLUTION_GYRORANGE_500:
 			PIOS_MPU6000_SetGyroRange(PIOS_MPU60X0_SCALE_500_DEG);
 			break;
-		case HWREVOMINI_GYRORANGE_1000:
+		case HWREVOLUTION_GYRORANGE_1000:
 			PIOS_MPU6000_SetGyroRange(PIOS_MPU60X0_SCALE_1000_DEG);
 			break;
-		case HWREVOMINI_GYRORANGE_2000:
+		case HWREVOLUTION_GYRORANGE_2000:
 			PIOS_MPU6000_SetGyroRange(PIOS_MPU60X0_SCALE_2000_DEG);
 			break;
 	}
 
 	uint8_t hw_accel_range;
-	HwRevoMiniAccelRangeGet(&hw_accel_range);
+	HwRevolutionAccelRangeGet(&hw_accel_range);
 	switch(hw_accel_range) {
-		case HWREVOMINI_ACCELRANGE_2G:
+		case HWREVOLUTION_ACCELRANGE_2G:
 			PIOS_MPU6000_SetAccelRange(PIOS_MPU60X0_ACCEL_2G);
 			break;
-		case HWREVOMINI_ACCELRANGE_4G:
+		case HWREVOLUTION_ACCELRANGE_4G:
 			PIOS_MPU6000_SetAccelRange(PIOS_MPU60X0_ACCEL_4G);
 			break;
-		case HWREVOMINI_ACCELRANGE_8G:
+		case HWREVOLUTION_ACCELRANGE_8G:
 			PIOS_MPU6000_SetAccelRange(PIOS_MPU60X0_ACCEL_8G);
 			break;
-		case HWREVOMINI_ACCELRANGE_16G:
+		case HWREVOLUTION_ACCELRANGE_16G:
 			PIOS_MPU6000_SetAccelRange(PIOS_MPU60X0_ACCEL_16G);
 			break;
 	}
 
 	// the filter has to be set before rate else divisor calculation will fail
 	uint8_t hw_mpu6000_dlpf;
-	HwRevoMiniMPU6000DLPFGet(&hw_mpu6000_dlpf);
+	HwRevolutionMPU6000DLPFGet(&hw_mpu6000_dlpf);
 	enum pios_mpu60x0_filter mpu6000_dlpf = \
-	    (hw_mpu6000_dlpf == HWREVOMINI_MPU6000DLPF_256) ? PIOS_MPU60X0_LOWPASS_256_HZ : \
-	    (hw_mpu6000_dlpf == HWREVOMINI_MPU6000DLPF_188) ? PIOS_MPU60X0_LOWPASS_188_HZ : \
-	    (hw_mpu6000_dlpf == HWREVOMINI_MPU6000DLPF_98) ? PIOS_MPU60X0_LOWPASS_98_HZ : \
-	    (hw_mpu6000_dlpf == HWREVOMINI_MPU6000DLPF_42) ? PIOS_MPU60X0_LOWPASS_42_HZ : \
-	    (hw_mpu6000_dlpf == HWREVOMINI_MPU6000DLPF_20) ? PIOS_MPU60X0_LOWPASS_20_HZ : \
-	    (hw_mpu6000_dlpf == HWREVOMINI_MPU6000DLPF_10) ? PIOS_MPU60X0_LOWPASS_10_HZ : \
-	    (hw_mpu6000_dlpf == HWREVOMINI_MPU6000DLPF_5) ? PIOS_MPU60X0_LOWPASS_5_HZ : \
+	    (hw_mpu6000_dlpf == HWREVOLUTION_MPU6000DLPF_256) ? PIOS_MPU60X0_LOWPASS_256_HZ : \
+	    (hw_mpu6000_dlpf == HWREVOLUTION_MPU6000DLPF_188) ? PIOS_MPU60X0_LOWPASS_188_HZ : \
+	    (hw_mpu6000_dlpf == HWREVOLUTION_MPU6000DLPF_98) ? PIOS_MPU60X0_LOWPASS_98_HZ : \
+	    (hw_mpu6000_dlpf == HWREVOLUTION_MPU6000DLPF_42) ? PIOS_MPU60X0_LOWPASS_42_HZ : \
+	    (hw_mpu6000_dlpf == HWREVOLUTION_MPU6000DLPF_20) ? PIOS_MPU60X0_LOWPASS_20_HZ : \
+	    (hw_mpu6000_dlpf == HWREVOLUTION_MPU6000DLPF_10) ? PIOS_MPU60X0_LOWPASS_10_HZ : \
+	    (hw_mpu6000_dlpf == HWREVOLUTION_MPU6000DLPF_5) ? PIOS_MPU60X0_LOWPASS_5_HZ : \
 	    pios_mpu6000_cfg.default_filter;
 	PIOS_MPU6000_SetLPF(mpu6000_dlpf);
 
 	uint8_t hw_mpu6000_samplerate;
-	HwRevoMiniMPU6000RateGet(&hw_mpu6000_samplerate);
+	HwRevolutionMPU6000RateGet(&hw_mpu6000_samplerate);
 	uint16_t mpu6000_samplerate = \
-	    (hw_mpu6000_samplerate == HWREVOMINI_MPU6000RATE_200) ? 200 : \
-	    (hw_mpu6000_samplerate == HWREVOMINI_MPU6000RATE_333) ? 333 : \
-	    (hw_mpu6000_samplerate == HWREVOMINI_MPU6000RATE_500) ? 500 : \
-	    (hw_mpu6000_samplerate == HWREVOMINI_MPU6000RATE_666) ? 666 : \
-	    (hw_mpu6000_samplerate == HWREVOMINI_MPU6000RATE_1000) ? 1000 : \
-	    (hw_mpu6000_samplerate == HWREVOMINI_MPU6000RATE_2000) ? 2000 : \
-	    (hw_mpu6000_samplerate == HWREVOMINI_MPU6000RATE_4000) ? 4000 : \
-	    (hw_mpu6000_samplerate == HWREVOMINI_MPU6000RATE_8000) ? 8000 : \
+	    (hw_mpu6000_samplerate == HWREVOLUTION_MPU6000RATE_200) ? 200 : \
+	    (hw_mpu6000_samplerate == HWREVOLUTION_MPU6000RATE_333) ? 333 : \
+	    (hw_mpu6000_samplerate == HWREVOLUTION_MPU6000RATE_500) ? 500 : \
+	    (hw_mpu6000_samplerate == HWREVOLUTION_MPU6000RATE_666) ? 666 : \
+	    (hw_mpu6000_samplerate == HWREVOLUTION_MPU6000RATE_1000) ? 1000 : \
+	    (hw_mpu6000_samplerate == HWREVOLUTION_MPU6000RATE_2000) ? 2000 : \
+	    (hw_mpu6000_samplerate == HWREVOLUTION_MPU6000RATE_4000) ? 4000 : \
+	    (hw_mpu6000_samplerate == HWREVOLUTION_MPU6000RATE_8000) ? 8000 : \
 	    pios_mpu6000_cfg.default_samplerate;
 	PIOS_MPU6000_SetSampleRate(mpu6000_samplerate);
 #endif

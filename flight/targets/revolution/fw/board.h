@@ -20,14 +20,14 @@
 #include "pios_chibios_transition_priv.h"
 
 /*
- * Setup for STMicroelectronics STM32F4 (revomini)
+ * Setup for STMicroelectronics STM32F4 (revolution)
  */
 
 /*
  * Board identifier.
  */
-#define BOARD_REVOMINI
-#define BOARD_NAME                  "revomini flight control"
+#define BOARD_REVOLUTION
+#define BOARD_NAME                  "revolution flight control"
 
 
 /*
