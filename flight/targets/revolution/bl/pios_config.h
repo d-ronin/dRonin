@@ -2,7 +2,7 @@
  ******************************************************************************
  * @addtogroup TauLabsBootloader Tau Labs Bootloaders
  * @{
- * @addtogroup RevoMiniBL RevoMini bootloader
+ * @addtogroup RevolutionBL Revolution bootloader
  * @{
  *
  * @file       op_dfu.h 

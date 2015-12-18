@@ -2,7 +2,7 @@
  ******************************************************************************
  * @addtogroup TauLabsBootloader Tau Labs Bootloaders
  * @{
- * @addtogroup RevoMiniBL RevoMini bootloader
+ * @addtogroup RevolutionBL Revolution bootloader
  * @{
  *
  * @file       pios_usb_board_data.h
