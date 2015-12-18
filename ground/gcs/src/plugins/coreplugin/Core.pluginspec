@@ -8,5 +8,8 @@
     	<argument name="Example argument" parameter="example parameter">
 	Example argument description
     	</argument>
+        <argument name="crashme" parameter="crashme">
+    Used to crash the application so the crashreporter can be tested
+        </argument>
     </argumentList>
 </plugin>
