@@ -2,7 +2,7 @@
  ******************************************************************************
  * @addtogroup TauLabsTargets Tau Labs Targets
  * @{
- * @addtogroup RevoMini OpenPilot RevoMini support files
+ * @addtogroup Revolution OpenPilot Revolution support files
  * @{
  *
  * @file       revolution.c 

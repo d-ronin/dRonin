@@ -7,7 +7,7 @@
 # @{
 # @addtogroup 
 # @{
-# @brief Makefile to build firmware for the RevoMini board.
+# @brief Makefile to build firmware for the Revolution board.
 ###############################################################################
 #
 # This program is free software; you can redistribute it and/or modify
