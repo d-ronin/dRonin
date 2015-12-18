@@ -1,7 +1,7 @@
 /**
  ******************************************************************************
  *
- * @file       revomini.h
+ * @file       revolution.h
  * @author     Tau Labs, http://taulabs.org, Copyright (C) 2013
  *
  * @addtogroup GCSPlugins GCS Plugins
@@ -25,20 +25,20 @@
  * with this program; if not, write to the Free Software Foundation, Inc.,
  * 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
  */
-#ifndef REVOMINI_H
-#define REVOMINI_H
+#ifndef REVOLUTION_H
+#define REVOLUTION_H
 
-#include "hwrevomini.h"
+#include "hwrevolution.h"
 #include <coreplugin/iboardtype.h>
 #include <uavobjectutil/uavobjectutilmanager.h>
 
 class IBoardType;
 
-class RevoMini : public Core::IBoardType
+class Revolution : public Core::IBoardType
 {
 public:
-    RevoMini();
-    virtual ~RevoMini();
+    Revolution();
+    virtual ~Revolution();
 
     virtual QString shortName();
     virtual QString boardDescription();
@@ -46,7 +46,7 @@ public:
     virtual QStringList getSupportedProtocols();
     virtual QPixmap getBoardPicture();
     virtual QString getHwUAVO();
-    HwRevoMini * getSettings();
+    HwRevolution * getSettings();
 
     //! Determine if this board supports configuring the receiver
     virtual bool isInputConfigurationSupported();
@@ -94,4 +94,4 @@ private:
 };
 
 
-#endif // REVOMINI_H
+#endif // REVOLUTION_H
