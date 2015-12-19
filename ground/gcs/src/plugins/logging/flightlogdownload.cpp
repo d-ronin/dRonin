@@ -76,7 +76,7 @@ void FlightLogDownload::getFilename()
 {
     QString fileName = QFileDialog::getSaveFileName(this, tr("Save log as..."),
 									   tr("dRonin-%0.drlog").arg(QDateTime::currentDateTime().toString("yyyy-MM-dd_hh-mm-ss")),
-                                       tr("Log (*.tll)"));
+                                       tr("Log (*.drlog)"));
     if (!fileName.isEmpty())
         ui->fileName->setText(fileName);
 }
