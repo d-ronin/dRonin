@@ -40,7 +40,6 @@
 #include "generalsettings.h"
 #include "messagemanager.h"
 #include "modemanager.h"
-#include "mimedatabase.h"
 #include "plugindialog.h"
 #include "shortcutsettings.h"
 #include "uavgadgetmanager.h"
@@ -54,14 +53,11 @@
 #include "iconfigurableplugin.h"
 #include <QStyleFactory>
 #include "manhattanstyle.h"
-#include "rightpane.h"
 #include "settingsdialog.h"
 #include "threadmanager.h"
 #include "uniqueidmanager.h"
-#include "variablemanager.h"
 #include "versiondialog.h"
 
-#include <coreplugin/settingsdatabase.h>
 #include <extensionsystem/pluginmanager.h>
 #include "dialogs/iwizard.h"
 #include <utils/hostosinfo.h>
@@ -108,12 +104,10 @@ MainWindow::MainWindow() :
     m_additionalContexts(m_globalContext),
     m_dontSaveSettings(false),
     m_actionManager(new ActionManagerPrivate(this)),
-    m_variableManager(new VariableManager(this)),
     m_threadManager(new ThreadManager(this)),
     m_modeManager(0),
     m_connectionManager(0),
     m_boardManager(0),
-    m_mimeDatabase(new MimeDatabase),
     m_versionDialog(0),
     m_authorsDialog(0),
     m_activeContext(0),
@@ -135,8 +129,6 @@ MainWindow::MainWindow() :
 {
     // keep this in sync with main() in app/main.cpp
     m_settings = new QSettings(QDir::tempPath() + QDir::separator() + GCS_PROJECT_BRANDING + QDir::separator() + "config_autosave", XmlConfig::XmlSettingsFormat, this);
-    m_settingsDatabase = new SettingsDatabase(QFileInfo(m_settings->fileName()).path(),
-                  QLatin1String(GCS_PROJECT_BRANDING "_config"), this);
     // Copy original settings file to working settings. Do this in scope so that
     // we are guaranteed that the originalSettings file is closed. This prevents corruption
     // since the QSettings being used are copies of the original file.
@@ -276,8 +268,6 @@ MainWindow::~MainWindow()
 
     delete m_modeManager;
     m_modeManager = 0;
-    delete m_mimeDatabase;
-    m_mimeDatabase = 0;
 }
 
 bool MainWindow::init(QString *errorMessage)
@@ -918,11 +908,6 @@ QSettings *MainWindow::settings(QSettings::Scope scope) const
         return m_globalSettings;
 }
 
-VariableManager *MainWindow::variableManager() const
-{
-     return m_variableManager;
-}
-
 ThreadManager *MainWindow::threadManager() const
 {
      return m_threadManager;
@@ -952,11 +937,6 @@ UAVGadgetInstanceManager *MainWindow::uavGadgetInstanceManager() const
 ModeManager *MainWindow::modeManager() const
 {
     return m_modeManager;
-}
-
-MimeDatabase *MainWindow::mimeDatabase() const
-{
-    return m_mimeDatabase;
 }
 
 GeneralSettings * MainWindow::generalSettings() const
