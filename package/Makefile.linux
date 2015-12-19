@@ -31,7 +31,7 @@ ALL_DEB_FILES += $(foreach f, $(DEB_ASSETS_FILES), $(DEB_BUILD_DIR)/$(f))
 
 QT_PLUGINS_USED		:= imageformats platforms sqldrivers xcbglintegrations
 
-standalone: | gcs extract_firmware
+standalone: | extract_firmware
 	@echo $@ starting
 	@echo Copying Qt5 plugins libraries
 	$(V1) mkdir -p "$(BUILD_DIR)/ground/gcs/lib/dr/qtplugins"
@@ -54,11 +54,6 @@ standalone: | gcs extract_firmware
 	@echo Copying qt.conf file
 	$(V1) cp -v $(ROOT_DIR)/package/linux/assets/qt.conf $(BUILD_DIR)/ground/gcs/bin/
 	$(V1) sed -i -e "$(SED_SUBSTITUTE)" $(BUILD_DIR)/ground/gcs/bin/qt.conf
-
-.PHONY: gcs
-gcs:
-	@echo "Linux Package Make of GCS."
-	$(V1) $(MAKE) -C $(ROOT_DIR) GCS_BUILD_CONF=release $@
 
 ground_package_os_specific: ground_package_common
 	$(V1) cp -v $(ROOT_DIR)/package/linux/assets/exec $(PACKAGE_DIR)/$(GCS_PACKAGE_NAME)/drgcs
