@@ -60,7 +60,7 @@ SetupWizard::SetupWizard(QWidget *parent) : QWizard(parent), VehicleConfiguratio
     m_vehicleType(VEHICLE_UNKNOWN), m_inputType(Core::IBoardType::INPUT_TYPE_UNKNOWN), m_escType(ESC_UNKNOWN),
     m_calibrationPerformed(false), m_restartNeeded(false), m_connectionManager(0)
 {
-    setWindowTitle(tr("Tau Labs Setup Wizard"));
+    setWindowTitle(tr("dRonin Setup Wizard"));
     setOption(QWizard::IndependentPages, false);
     for (quint16 i = 0; i < ActuatorSettings::CHANNELMAX_NUMELEM; i++) {
         m_actuatorSettings << actuatorChannelSettings();
