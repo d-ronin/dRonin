@@ -79,7 +79,7 @@ static uint32_t throttle_accumulator;
 
 // Private functions
 static void AutotuneTask(void *parameters);
-static void af_predict(float X[AF_NUMX], float P[AF_NUMP], const float u_in[3], const float gyro[3], const float dT_s);
+static void af_predict(float X[AF_NUMX], float P[AF_NUMP], const float u_in[3], const float gyro[3], const float dT_s, const float t_in);
 static void af_init(float X[AF_NUMX], float P[AF_NUMP]);
 
 #ifndef AT_QUEUE_NUMELEM
@@ -377,7 +377,7 @@ static void AutotuneTask(void *parameters)
 
 					last_time = pt->raw_time;
 
-					af_predict(X, P, pt->u, pt->y, dT_s);
+					af_predict(X, P, pt->u, pt->y, dT_s, pt->t);
 
 					for (uint32_t i = 0; i < 3; i++) {
 						const float NOISE_ALPHA = 0.9997f;  // 10 second time constant at 300 Hz
@@ -440,7 +440,7 @@ static void AutotuneTask(void *parameters)
  * @param[in] the current control inputs (roll, pitch, yaw)
  * @param[in] the gyro measurements
  */
-__attribute__((always_inline)) static inline void af_predict(float X[AF_NUMX], float P[AF_NUMP], const float u_in[3], const float gyro[3], const float dT_s)
+__attribute__((always_inline)) static inline void af_predict(float X[AF_NUMX], float P[AF_NUMP], const float u_in[3], const float gyro[3], const float dT_s, const float t_in)
 {
 	const float Ts = dT_s;
 	const float Tsq = Ts * Ts;
@@ -468,9 +468,9 @@ __attribute__((always_inline)) static inline void af_predict(float X[AF_NUMX], f
 	const float bias3 = X[12];       // bias in the yaw torque
 
 	// inputs to the system (roll, pitch, yaw)
-	const float u1_in = u_in[0];
-	const float u2_in = u_in[1];
-	const float u3_in = u_in[2];
+	const float u1_in = 4*t_in*u_in[0];
+	const float u2_in = 4*t_in*u_in[1];
+	const float u3_in = 4*t_in*u_in[2];
 
 	// measurements from gyro
 	const float gyro_x = gyro[0];
@@ -490,10 +490,10 @@ __attribute__((always_inline)) static inline void af_predict(float X[AF_NUMX], f
 	/**** filter parameters ****/
 	const float q_w = 1e-4f;
 	const float q_ud = 1e-4f;
-	const float q_B = 1e-5f;
-	const float q_tau = 1e-5f;
+	const float q_B = 1e-6f;
+	const float q_tau = 1e-6f;
 	const float q_bias = 1e-19f;
-	const float s_a = 3000.0f;  // expected gyro noise
+	const float s_a = 15.0f; // expected gyro measurment noise
 
 	const float Q[AF_NUMX] = {q_w, q_w, q_w, q_ud, q_ud, q_ud, q_B, q_B, q_B, q_tau, q_bias, q_bias, q_bias};
 
