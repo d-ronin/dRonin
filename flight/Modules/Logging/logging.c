@@ -57,6 +57,8 @@
 #include "magnetometer.h"
 #include "manualcontrolcommand.h"
 #include "positionactual.h"
+#include "systemalarms.h"
+#include "systemident.h"
 #include "velocityactual.h"
 #include "waypointactive.h"
 
@@ -82,6 +84,7 @@ static struct pios_recursive_mutex *mutex;
 // Private functions
 static void    loggingTask(void *parameters);
 static int32_t send_data(uint8_t *data, int32_t length);
+static uint16_t get_minimum_logging_period();
 static void unregister_object(UAVObjHandle obj);
 static void register_object(UAVObjHandle obj);
 static void register_default_profile();
@@ -181,7 +184,7 @@ static void loggingTask(void *parameters)
 
 	bool armed = false;
 	uint32_t now = PIOS_Thread_Systime();
-	
+
 #if defined(PIOS_INCLUDE_FLASH) && defined(PIOS_INCLUDE_FLASH_JEDEC)
 	bool write_open = false;
 	bool read_open = false;
@@ -437,7 +440,7 @@ static void obj_updated_callback(UAVObjEvent * ev, void* cb_ctx, void *uavo_data
 /**
  * Get the minimum logging period in milliseconds
 */
-uint16_t get_minimum_logging_period()
+static uint16_t get_minimum_logging_period()
 {
 	uint16_t min_period = 200;
 
@@ -446,7 +449,7 @@ uint16_t get_minimum_logging_period()
 			min_period = 200;
 			break;
 		case LOGGINGSETTINGS_MAXLOGRATE_10:
-			min_period = 1000;
+			min_period = 100;
 			break;
 		case LOGGINGSETTINGS_MAXLOGRATE_25:
 			min_period = 40;
@@ -513,15 +516,18 @@ static void register_object(UAVObjHandle obj)
  */
 static void register_default_profile()
 {
-	uint16_t min_period = get_minimum_logging_period();
-
 	// For the default profile, we limit things to 100Hz (for now)
-	min_period = MAX(min_period, 100);
+	uint16_t min_period = MAX(get_minimum_logging_period(), 10);
 
 	// Objects for which we log all changes
 	UAVObjConnectCallback(FlightStatusHandle(), obj_updated_callback, NULL, EV_UPDATED | EV_UNPACKED);
+	UAVObjConnectCallback(SystemAlarmsHandle(), obj_updated_callback, NULL, EV_UPDATED | EV_UNPACKED);
 	if (WaypointActiveHandle()) {
 		UAVObjConnectCallback(WaypointActiveHandle(), obj_updated_callback, NULL, EV_UPDATED | EV_UNPACKED);
+	}
+
+	if (SystemIdentHandle()){
+		UAVObjConnectCallback(SystemIdentHandle(), obj_updated_callback, NULL, EV_UPDATED | EV_UNPACKED);
 	}
 
 	// Log fast
@@ -529,10 +535,10 @@ static void register_default_profile()
 	UAVObjConnectCallbackThrottled(GyrosHandle(), obj_updated_callback, NULL, EV_UPDATED | EV_UNPACKED, min_period);
 
 	// Log a bit slower
-	UAVObjConnectCallbackThrottled(AttitudeActualHandle(), obj_updated_callback, NULL, EV_UPDATED | EV_UNPACKED, 2 * min_period);
-	UAVObjConnectCallbackThrottled(MagnetometerHandle(), obj_updated_callback, NULL, EV_UPDATED | EV_UNPACKED, 2 * min_period);
-	UAVObjConnectCallbackThrottled(ManualControlCommandHandle(), obj_updated_callback, NULL, EV_UPDATED | EV_UNPACKED, 2 * min_period);
-	UAVObjConnectCallbackThrottled(ActuatorCommandHandle(), obj_updated_callback, NULL, EV_UPDATED | EV_UNPACKED, 2 * min_period);
+	UAVObjConnectCallbackThrottled(AttitudeActualHandle(), obj_updated_callback, NULL, EV_UPDATED | EV_UNPACKED, 5 * min_period);
+	UAVObjConnectCallbackThrottled(MagnetometerHandle(), obj_updated_callback, NULL, EV_UPDATED | EV_UNPACKED, 5 * min_period);
+	UAVObjConnectCallbackThrottled(ManualControlCommandHandle(), obj_updated_callback, NULL, EV_UPDATED | EV_UNPACKED, 5 * min_period);
+	UAVObjConnectCallbackThrottled(ActuatorCommandHandle(), obj_updated_callback, NULL, EV_UPDATED | EV_UNPACKED, 5 * min_period);
 
 	// Log slow
 	if (FlightBatteryStateHandle()) {
