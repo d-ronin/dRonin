@@ -194,6 +194,8 @@ void ConfigGadgetWidget::deferredLoader()
 
 void ConfigGadgetWidget::paintEvent(QPaintEvent *event)
 {
+    (void) event;
+
     if (chunk < 12) {
 	// jumpstart loading.
         deferredLoader();
