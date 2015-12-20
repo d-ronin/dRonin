@@ -122,8 +122,8 @@ extern uint32_t pios_i2c_flexi_adapter_id;
 //
 // See also pios_board.c
 //-------------------------
-extern uintptr_t pios_com_telem_rf_id;
-#define PIOS_COM_TELEM_RF               (pios_com_telem_rf_id)
+extern uintptr_t pios_com_telem_serial_id;
+#define PIOS_COM_TELEM_RF               (pios_com_telem_serial_id)
 
 #if defined(PIOS_INCLUDE_GPS)
 extern uintptr_t pios_com_gps_id;
