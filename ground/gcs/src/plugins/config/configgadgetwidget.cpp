@@ -66,7 +66,7 @@ ConfigGadgetWidget::ConfigGadgetWidget(QWidget *parent) : QWidget(parent)
     help = 0;
     chunk = 0;
 
-    QTimer::singleShot(3000, this, SLOT(deferredLoader()));
+    QTimer::singleShot(500, this, SLOT(deferredLoader()));
 }
 
 void ConfigGadgetWidget::deferredLoader()
@@ -96,7 +96,7 @@ void ConfigGadgetWidget::deferredLoader()
     ftw->insertTab(ConfigGadgetWidget::aircraft, qwd, *icon, QString("Vehicle"));
     break;
 
-    	case 3:
+        case 3:
     icon = new QIcon();
     icon->addFile(":/configgadget/images/input_normal.png", QSize(), QIcon::Normal, QIcon::Off);
     icon->addFile(":/configgadget/images/input_selected.png", QSize(), QIcon::Selected, QIcon::Off);
