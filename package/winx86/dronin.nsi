@@ -232,7 +232,7 @@ Section "Shortcuts" InSecShortcuts
   CreateShortCut "$SMPROGRAMS\dRonin\dRonin GCS.lnk" "$INSTDIR\bin\drgcs.exe" \
 	"" "$INSTDIR\bin\drgcs.exe" 0 "" "" "${PRODUCT_NAME} ${PRODUCT_VERSION}. ${BUILD_DESCRIPTION}"
   CreateShortCut "$SMPROGRAMS\dRonin\dRonin GCS (clean configuration).lnk" "$INSTDIR\bin\drgcs.exe" \
-	"-clean-config" "$INSTDIR\bin\drgcs.exe" 0 "" "" "${PRODUCT_NAME} ${PRODUCT_VERSION}. ${BUILD_DESCRIPTION}"
+	"-r" "$INSTDIR\bin\drgcs.exe" 0 "" "" "${PRODUCT_NAME} ${PRODUCT_VERSION}. ${BUILD_DESCRIPTION}"
   CreateShortCut "$SMPROGRAMS\dRonin\dRonin Website.lnk" "http://dronin.org" \
 	"" "$INSTDIR\bin\drgcs.exe" 0
   CreateShortCut "$DESKTOP\dRonin GCS.lnk" "$INSTDIR\bin\drgcs.exe" \
