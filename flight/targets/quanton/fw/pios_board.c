@@ -159,7 +159,6 @@ static const struct pios_mpu60x0_cfg pios_mpu6000_cfg = {
 };
 #endif /* PIOS_INCLUDE_MPU6000 */
 
-uintptr_t pios_com_telem_rf_id;
 uintptr_t pios_com_openlog_logging_id;
 uintptr_t pios_com_spiflash_logging_id;
 uintptr_t pios_uavo_settings_fs_id;
@@ -833,7 +832,7 @@ void PIOS_Board_Init(void) {
 	GPIO_ResetBits(GPIOA, GPIO_Pin_4);
 
 	/* Make sure we have at least one telemetry link configured or else fail initialization */
-	PIOS_Assert(pios_com_telem_rf_id || pios_com_telem_usb_id);
+	PIOS_Assert(pios_com_telem_serial_id || pios_com_telem_usb_id);
 }
 
 /**
