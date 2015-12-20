@@ -48,7 +48,7 @@
 #include <QTextEdit>
 #include <QVBoxLayout>
 #include <QPushButton>
-
+#include <QTimer>
 
 
 ConfigGadgetWidget::ConfigGadgetWidget(QWidget *parent) : QWidget(parent)
@@ -63,76 +63,113 @@ ConfigGadgetWidget::ConfigGadgetWidget(QWidget *parent) : QWidget(parent)
     layout->addWidget(ftw);
     setLayout(layout);
 
-    // *********************
+    help = 0;
+    chunk = 0;
+
+    QTimer::singleShot(500, this, SLOT(deferredLoader()));
+}
+
+void ConfigGadgetWidget::deferredLoader()
+{
+    QIcon *icon;
     QWidget *qwd;
 
-    QIcon *icon = new QIcon();
+    switch (chunk) {
+	case 0:
+    // *********************
+    icon = new QIcon();
     icon->addFile(":/configgadget/images/hardware_normal.png", QSize(), QIcon::Normal, QIcon::Off);
     icon->addFile(":/configgadget/images/hardware_selected.png", QSize(), QIcon::Selected, QIcon::Off);
     qwd = new DefaultHwSettingsWidget(this, false);
     ftw->insertTab(ConfigGadgetWidget::hardware, qwd, *icon, QString("Board"));
+    break;
 
+	case 1:
+    ftw->setCurrentIndex(ConfigGadgetWidget::hardware);
+    break;
+
+	case 2:
     icon = new QIcon();
     icon->addFile(":/configgadget/images/vehicle_normal.png", QSize(), QIcon::Normal, QIcon::Off);
     icon->addFile(":/configgadget/images/vehicle_selected.png", QSize(), QIcon::Selected, QIcon::Off);
     qwd = new ConfigVehicleTypeWidget(this);
     ftw->insertTab(ConfigGadgetWidget::aircraft, qwd, *icon, QString("Vehicle"));
+    break;
 
+        case 3:
     icon = new QIcon();
     icon->addFile(":/configgadget/images/input_normal.png", QSize(), QIcon::Normal, QIcon::Off);
     icon->addFile(":/configgadget/images/input_selected.png", QSize(), QIcon::Selected, QIcon::Off);
     qwd = new ConfigInputWidget(this);
     ftw->insertTab(ConfigGadgetWidget::input, qwd, *icon, QString("Input"));
+    break;
 
+	case 4:
     icon = new QIcon();
     icon->addFile(":/configgadget/images/output_normal.png", QSize(), QIcon::Normal, QIcon::Off);
     icon->addFile(":/configgadget/images/output_selected.png", QSize(), QIcon::Selected, QIcon::Off);
     qwd = new ConfigOutputWidget(this);
     ftw->insertTab(ConfigGadgetWidget::output, qwd, *icon, QString("Output"));
+    break;
 
+	case 5:
     icon = new QIcon();
     icon->addFile(":/configgadget/images/ins_normal.png", QSize(), QIcon::Normal, QIcon::Off);
     icon->addFile(":/configgadget/images/ins_selected.png", QSize(), QIcon::Selected, QIcon::Off);
     qwd = new ConfigAttitudeWidget(this);
     ftw->insertTab(ConfigGadgetWidget::sensors, qwd, *icon, QString("Attitude"));
+    break;
 
+	case 6:
     icon = new QIcon();
     icon->addFile(":/configgadget/images/stabilization_normal.png", QSize(), QIcon::Normal, QIcon::Off);
     icon->addFile(":/configgadget/images/stabilization_selected.png", QSize(), QIcon::Selected, QIcon::Off);
     qwd = new ConfigStabilizationWidget(this);
     ftw->insertTab(ConfigGadgetWidget::stabilization, qwd, *icon, QString("Stabilization"));
+    break;
 
+	case 7:
     icon = new QIcon();
     icon->addFile(":/configgadget/images/modules_normal.png", QSize(), QIcon::Normal, QIcon::Off);
     icon->addFile(":/configgadget/images/modules_selected.png", QSize(), QIcon::Selected, QIcon::Off);
     qwd = new ConfigModuleWidget(this);
     ftw->insertTab(ConfigGadgetWidget::modules, qwd, *icon, QString("Modules"));
+    break;
 
+	case 8:
     icon = new QIcon();
     icon->addFile(":/configgadget/images/autotune_normal.png", QSize(), QIcon::Normal, QIcon::Off);
     icon->addFile(":/configgadget/images/autotune_selected.png", QSize(), QIcon::Selected, QIcon::Off);
     qwd = new ConfigAutotuneWidget(this);
     ftw->insertTab(ConfigGadgetWidget::autotune, qwd, *icon, QString("Autotune"));
+    break;
 
+	case 9:
     icon = new QIcon();
     icon->addFile(":/configgadget/images/camstab_normal.png", QSize(), QIcon::Normal, QIcon::Off);
     icon->addFile(":/configgadget/images/camstab_selected.png", QSize(), QIcon::Selected, QIcon::Off);
     qwd = new ConfigCameraStabilizationWidget(this);
     ftw->insertTab(ConfigGadgetWidget::camerastabilization, qwd, *icon, QString("Camera Stab"));
+    break;
 
+	case 10:
     icon = new QIcon();
     icon->addFile(":/configgadget/images/txpid_normal.png", QSize(), QIcon::Normal, QIcon::Off);
     icon->addFile(":/configgadget/images/txpid_selected.png", QSize(), QIcon::Selected, QIcon::Off);
     qwd = new ConfigTxPIDWidget(this);
     ftw->insertTab(ConfigGadgetWidget::txpid, qwd, *icon, QString("TxPID"));
+    break;
 
+	case 11:
     icon = new QIcon();
     icon->addFile(":/configgadget/images/osd_normal.png", QSize(), QIcon::Normal, QIcon::Off);
     icon->addFile(":/configgadget/images/osd_selected.png", QSize(), QIcon::Selected, QIcon::Off);
     qwd = new ConfigOsdWidget(this);
     ftw->insertTab(ConfigGadgetWidget::osd, qwd, *icon, QString("OSD"));
+    break;
 
-    ftw->setCurrentIndex(ConfigGadgetWidget::hardware);
+        case 12:
+	default:
     // *********************
     // Listen to autopilot connection events
 
@@ -146,8 +183,24 @@ ConfigGadgetWidget::ConfigGadgetWidget(QWidget *parent) : QWidget(parent)
         onAutopilotConnect();    
     }
 
-    help = 0;
     connect(ftw,SIGNAL(currentAboutToShow(int,bool*)),this,SLOT(tabAboutToChange(int,bool*)));//,Qt::BlockingQueuedConnection);
+    return;
+    }
+
+    chunk++;
+
+    QTimer::singleShot(0, this, SLOT(deferredLoader()));
+}
+
+void ConfigGadgetWidget::paintEvent(QPaintEvent *event)
+{
+    (void) event;
+
+    if (chunk < 12) {
+	// jumpstart loading.
+        deferredLoader();
+        deferredLoader();
+    }
 }
 
 ConfigGadgetWidget::~ConfigGadgetWidget()

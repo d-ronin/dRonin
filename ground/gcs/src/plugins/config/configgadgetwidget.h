@@ -45,6 +45,7 @@ class ConfigGadgetWidget: public QWidget
 {
     Q_OBJECT
     QTextBrowser* help;
+    int chunk;
 
 public:
     ConfigGadgetWidget(QWidget *parent = 0);
@@ -56,6 +57,7 @@ public slots:
     void onAutopilotConnect();
     void onAutopilotDisconnect();
     void tabAboutToChange(int i,bool *);
+    void deferredLoader();
 
 signals:
     void autopilotConnected();
@@ -63,6 +65,7 @@ signals:
 
 protected:
         void resizeEvent(QResizeEvent * event);
+        void paintEvent(QPaintEvent * event);
         MyTabbedStackWidget *ftw;
 };
 
