@@ -34,6 +34,7 @@
 #include <QFileDialog>
 #include <QMessageBox>
 #include <QtNetwork/QtNetwork>
+#include <QSysInfo>
 
 const QString MainWindow::postUrl = QString("http://dronin-autotown.appspot.com/storeCrash");
 const QString MainWindow::gitCommit = QString(GIT_COMMIT);
@@ -107,6 +108,10 @@ void MainWindow::onSendReport()
     json["gitBranch"] = gitBranch;
     json["gitDirty"] = gitDirty;
     json["gitTag"] = gitTag;
+
+    json["currentOS"] = QSysInfo::prettyProductName();
+    json["currentArch"] = QSysInfo::currentCpuArchitecture();
+    json["buildInfo"] = QSysInfo::buildAbi();
 
     QUrl url(postUrl);
     QNetworkRequest request(url);

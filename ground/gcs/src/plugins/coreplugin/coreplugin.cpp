@@ -26,13 +26,11 @@
  * with this program; if not, write to the Free Software Foundation, Inc., 
  * 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
  */
-
 #include "coreplugin.h"
 #include "coreimpl.h"
 #include "mainwindow.h"
 #include <QtPlugin>
 #include <extensionsystem/pluginmanager.h>
-
 #include <QtCore/QtPlugin>
 
 using namespace Core::Internal;
@@ -52,7 +50,12 @@ CorePlugin::~CorePlugin()
 
 bool CorePlugin::initialize(const QStringList &arguments, QString *errorMessage)
 {
-    Q_UNUSED(arguments)
+    if(arguments.contains("crashme")) {
+        if((arguments.length() > 1) && (arguments.at(arguments.indexOf("crashme") + 1) == "yes")) {
+            QString *s = 0;
+            s->append("crash");
+        }
+    }
     const bool success = m_mainWindow->init(errorMessage);
     if (success) {
         // nothing right now

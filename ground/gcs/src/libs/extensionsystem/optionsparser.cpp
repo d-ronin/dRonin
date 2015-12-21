@@ -80,13 +80,20 @@ void OptionsParser::checkForPluginOption(QStringList pluginOptions)
 {
     foreach (QString option, pluginOptions) {
         QString simplified = option.simplified().replace(" ", "");
-        if(!simplified.contains("=") || (simplified.split("=").length() != 2)) {
-            m_errorStrings.append(QCoreApplication::translate(("PluginManager"),
-                    "Wrong plugin options syntax: %0").arg(option));
-            continue;
+        QString argument;
+        QString value;
+        if(option.contains("=")) {
+            if(simplified.split("=").length() != 2) {
+                m_errorStrings.append(QCoreApplication::translate(("PluginManager"),
+                        "Wrong plugin options syntax: %0").arg(option));
+                continue;
+            }
+            argument = simplified.split("=").at(0);
+            value = simplified.split("=").at(1);
         }
-        QString argument = simplified.split("=").at(0);
-        QString value = simplified.split("=").at(1);
+        else {
+            argument = option;
+        }
         bool requiresParameter;
         PluginSpec *spec = m_pmPrivate->pluginForOption(argument, &requiresParameter);
         if (!spec) {
@@ -95,7 +102,8 @@ void OptionsParser::checkForPluginOption(QStringList pluginOptions)
             continue;
         }
         spec->addArgument(argument);
-        spec->addArgument(value);
+        if(!value.isEmpty())
+            spec->addArgument(value);
     }
     return;
 }

@@ -90,8 +90,8 @@ macx {
     !isEqual(GCS_SOURCE_TREE, $$GCS_BUILD_TREE):copydata = 1
 }
 GCS_VERSION_INFO_FILE = $$GCS_BUILD_TREE/gcsversioninfo.h
-DEFINES += 'GCS_VERSION_INFO_FILE=\'\"$$GCS_VERSION_INFO_FILE\"\''
-DEFINES += 'GCS_DATA_BASENAME=\'\"$$GCS_DATA_BASENAME\"\''
+DEFINES += 'GCS_VERSION_INFO_FILE=\\\"$$GCS_VERSION_INFO_FILE\\\"'
+DEFINES += 'GCS_DATA_BASENAME=\\\"$$GCS_DATA_BASENAME\\\"'
 # Include path to shared API directory
 INCLUDEPATH *= \
     $$GCS_SOURCE_TREE/../../shared/api

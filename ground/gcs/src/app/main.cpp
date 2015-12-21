@@ -330,7 +330,7 @@ int main(int argc, char **argv)
 
     splash.showMessage("Parsing command line options",Qt::AlignCenter | Qt::AlignBottom,Qt::black);
     qApp->processEvents();
-    QStringList parsingErrors = pluginManager.parseOptions(QStringList(), parser.values(doTestsOption), parser.values(noLoadOption));
+    QStringList parsingErrors = pluginManager.parseOptions(parser.values(pluginOption), parser.values(doTestsOption), parser.values(noLoadOption));
     if(!parsingErrors.isEmpty()) {
         displayError("Plugin options parsing failed with the following errors:");
         foreach (QString str, parsingErrors) {
