@@ -72,7 +72,7 @@ static void createPathLogo();
 
 static bool module_enabled;
 
-static bool pathplanner_config_dirty;
+static volatile bool pathplanner_config_dirty;
 
 //! Store which waypoint has actually been pushed into PathDesired
 static int32_t active_waypoint = -1;
