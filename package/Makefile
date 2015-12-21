@@ -59,13 +59,7 @@ help:
 	@echo " Type make help in the top of the dRonin tree for help."
 	@echo
 
-matlab: 
-	$(V1)mkdir -p $(ML_DIR)
-	$(V1)cp -rp $(BUILD_DIR)/matlab/*.* $(ML_DIR)
-
 # Order-only dependencies
-package_matlab: | matlab
-
 package_ground: | ground_package
 
 package_installer: | installer_package
@@ -82,6 +76,13 @@ package_info:
 .PHONY: help
 .PHONY: package_ground package_matlab package_all package_installer package_info
 .PHONY: extract_firmware
+
+package_matlab: | matlab
+	$(V1)mkdir -p $(ML_DIR)
+	$(V1)cp -rp $(BUILD_DIR)/matlab/*.* $(ML_DIR)
+
+matlab: 
+	$(V1) $(MAKE) -C $(ROOT_DIR) $@
 
 ground_package: ground_package_os_specific
 	@echo $@ starting
