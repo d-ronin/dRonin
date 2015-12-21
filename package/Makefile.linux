@@ -55,7 +55,14 @@ standalone: | extract_firmware
 	$(V1) cp -v $(ROOT_DIR)/package/linux/assets/qt.conf $(BUILD_DIR)/ground/gcs/bin/
 	$(V1) sed -i -e "$(SED_SUBSTITUTE)" $(BUILD_DIR)/ground/gcs/bin/qt.conf
 
+ifeq ($(EXPORT_SYMBOLS), YES)
+	$(V1) $(MAKE) -C $(ROOT_DIR) GCS_BUILD_CONF=debug $@
+else
+endif
 ground_package_os_specific: ground_package_common
+ifeq ($(EXPORT_SYMBOLS), YES)
+	$(V1) $(ROOT_DIR)/package/linux_extract_debug_symbols.sh $(DUMP_SYMBOLS_TOOL) $(PACKAGE_DIR)/$(GCS_PACKAGE_NAME)
+endif
 	$(V1) cp -v $(ROOT_DIR)/package/linux/assets/exec $(PACKAGE_DIR)/$(GCS_PACKAGE_NAME)/drgcs
 	$(V1) sed -i -e "$(SED_SUBSTITUTE)" $(PACKAGE_DIR)/$(GCS_PACKAGE_NAME)/drgcs
 
@@ -78,6 +85,9 @@ $(foreach cpfile, $(DEB_ASSETS_FILES), $(eval $(call CP_DEB_FILES_TEMPLATE,$(cpf
 
 .PHONY: ground_package linux_deb_package deb_build $(DEB_BUILD_DIR)
 
+ifeq ($(EXPORT_SYMBOLS),YES)
+	$(V1) tar -cvJf $(PACKAGE_DIR)/$(GCS_PACKAGE_NAME)_symbols.tar.xz -C $(PACKAGE_DIR) $(GCS_PACKAGE_NAME)_symbols
+endif
 package_all_compress: package_all
 	$(V1) tar -cvJf $(BUILD_DIR)/dronin-$(PACKAGE_LBL).tar.xz --exclude='*.tar.xz' -C $(PACKAGE_DIR)/.. $(notdir $(PACKAGE_DIR))
 
