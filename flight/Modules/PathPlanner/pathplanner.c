@@ -63,13 +63,16 @@ static void advanceWaypoint();
 static void activateWaypoint(int idx);
 
 static void pathPlannerTask(void *parameters);
-static void settingsUpdated(UAVObjEvent * ev, void *ctx, void *obj, int len);
+static void process_pp_settings();
+
 static void waypointsUpdated(UAVObjEvent * ev, void *ctx, void *obj, int len);
 static void pathStatusUpdated(UAVObjEvent * ev, void *ctx, void *obj, int len);
 static void createPathBox();
 static void createPathLogo();
 
 static bool module_enabled;
+
+static volatile bool pathplanner_config_dirty;
 
 //! Store which waypoint has actually been pushed into PathDesired
 static int32_t active_waypoint = -1;
@@ -138,26 +141,33 @@ static void pathPlannerTask(void *parameters)
 		AlarmsSet(SYSTEMALARMS_ALARM_PATHPLANNER, SYSTEMALARMS_ALARM_CRITICAL);
 		PIOS_Thread_Sleep(1000);
 	}
+
 	AlarmsClear(SYSTEMALARMS_ALARM_PATHPLANNER);
 
-	PathPlannerSettingsConnectCallback(settingsUpdated);
-	settingsUpdated(NULL, NULL, NULL, 0);
+	PathPlannerSettingsConnectCallbackCtx(UAVObjCbSetFlag,
+			&pathplanner_config_dirty);
+	pathplanner_config_dirty = true;
 
 	WaypointConnectCallback(waypointsUpdated);
 	WaypointActiveConnectCallback(waypointsUpdated);
-
-	PathStatusConnectCallback(pathStatusUpdated);
 
 	FlightStatusData flightStatus;
 
 	// Main thread loop
 	bool pathplanner_active = false;
 
+	// TODO: This is janky.
+	PathStatusConnectCallback(pathStatusUpdated);
 	pathStatusUpdated(NULL, NULL, NULL, 0);
 	path_completed = false;
 
 	while (1)
 	{
+		if (pathplanner_config_dirty) {
+			process_pp_settings();
+
+			pathplanner_config_dirty = false;
+		}
 
 		// Make sure when flight mode toggles, to immediately update the path
 		UAVObjEvent ev;
@@ -419,8 +429,7 @@ static void activateWaypoint(int idx)
 	AlarmsClear(SYSTEMALARMS_ALARM_PATHPLANNER);
 }
 
-static void settingsUpdated(UAVObjEvent * ev, void *ctx, void *obj, int len) {
-	(void) ev; (void) ctx; (void) obj; (void) len;
+static void process_pp_settings() {
 	uint8_t preprogrammedPath = pathPlannerSettings.PreprogrammedPath;
 	int32_t retval = 0;
 	bool    operation = false;
