@@ -1013,7 +1013,8 @@ endif
 # Packaging components
 #
 ##############################
-PACKAGE_TARGETS = package_installer package_all_compress package_ground
+PACKAGE_TARGETS = package_installer package_ground package_matlab
+PACKAGE_TARGETS += package_ground_compress package_matlab_compress
 .PHONY: $(PACKAGE_TARGETS)
 $(PACKAGE_TARGETS): 
 	$(V1) cd package && $(MAKE) --no-print-directory $@
