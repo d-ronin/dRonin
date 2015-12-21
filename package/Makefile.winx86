@@ -29,13 +29,28 @@ ifeq ($(USE_MSVC), YES)
 	$(V1)cp -v "$(VCREDIST)/msvcp120.dll" $(PACKAGE_DIR)/$(GCS_PACKAGE_NAME)/bin
 	$(V1)cp -v "$(VCREDIST)/msvcr120.dll" $(PACKAGE_DIR)/$(GCS_PACKAGE_NAME)/bin
 	$(V1)cp -v "$(VCREDIST)/vccorlib120.dll" $(PACKAGE_DIR)/$(GCS_PACKAGE_NAME)/bin
+ifeq ($(EXPORT_SYMBOLS),YES)
+	$(V1) $(ROOT_DIR)/package/windows_extract_debug_symbols.sh $(DUMP_SYMBOLS_TOOL) $(PACKAGE_DIR)/$(GCS_PACKAGE_NAME)
 endif
+endif
+	$(V1)find $(PACKAGE_DIR)/$(GCS_PACKAGE_NAME) -type f -name "*.pdb" -exec rm -f {} \;
+	$(V1)find $(PACKAGE_DIR)/$(GCS_PACKAGE_NAME) -type f -name "*.sym" -exec rm -f {} \;
 	$(V1)find $(PACKAGE_DIR)/$(GCS_PACKAGE_NAME) -type f -name "*.lib" -exec rm -f {} \;
 	$(V1)find $(PACKAGE_DIR)/$(GCS_PACKAGE_NAME) -type f -name "*.exp" -exec rm -f {} \;
 
 gcs:
+ifeq ($(EXPORT_SYMBOLS), YES)
+	$(V1) $(MAKE) -C $(ROOT_DIR) GCS_QMAKE_OPTS="CONFIG+=RELEASE_WITH_SYMBOLS" GCS_BUILD_CONF=release $@
+else
 	$(V1) $(MAKE) -C $(ROOT_DIR) GCS_BUILD_CONF=release $@
-
+endif
+package_ground_compress: package_ground
+	$(V1)cd $(PACKAGE_DIR) && $(ZIPBIN) -r $(GCS_PACKAGE_NAME) $(GCS_PACKAGE_NAME)
+ifeq ($(EXPORT_SYMBOLS),YES)
+	$(V1)cd $(PACKAGE_DIR) && $(ZIPBIN) -r $(GCS_PACKAGE_NAME)_symbols $(GCS_PACKAGE_NAME)_symbols
+endif
+package_matlab_compress: package_matlab
+	$(V1)cd $(PACKAGE_DIR) && $(ZIPBIN) -r matlab-$(PACKAGE_LBL) matlab-$(PACKAGE_LBL)
 package_all_compress: package_all
 	$(V1)cd $(PACKAGE_DIR)/../ && $(ZIPBIN) -r --exclude=*.zip $(BUILD_DIR)/dronin-$(PACKAGE_LBL) $(notdir $(PACKAGE_DIR))
 
