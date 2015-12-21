@@ -177,7 +177,7 @@ void GeneralSettings::apply()
         bool writable;
         Utils::PathUtils::getInstance()->getLocalSettingsFilePath(writable);
         if(!writable) {
-            QMessageBox::warning(NULL, tr("Settings directory no writable"), tr("Reverting to global settings"));
+            QMessageBox::warning(NULL, tr(SETTINGS_DIR_NOT_WRITABLE_MSG1), tr(SETTINGS_DIR_NOT_WRITABLE_MSG2));
             m_usePortableSettings = false;
         }
         else {

@@ -33,7 +33,7 @@
 
 namespace Utils {
 
-PathUtils * Utils::PathUtils::instance = 0;
+PathUtils * Utils::PathUtils::instance = NULL;
 
 PathUtils::PathUtils()
 {
@@ -189,8 +189,10 @@ bool PathUtils::useLocalSettings()
 {
     bool result;
     QString name = getLocalSettingsFilePath(result);
+    if(!result)
+        return false;
     setSettingsFilename(name);
-    return result;
+    return true;
 }
 
 }

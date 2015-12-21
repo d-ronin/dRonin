@@ -35,6 +35,9 @@
 #include <QtWidgets/QApplication>
 #include <QSettings>
 
+#define SETTINGS_DIR_NOT_WRITABLE_MSG1 "Settings directory no writable"
+#define SETTINGS_DIR_NOT_WRITABLE_MSG2 "Reverting to global settings"
+
 namespace Utils {
 
 class QTCREATOR_UTILS_EXPORT PathUtils
