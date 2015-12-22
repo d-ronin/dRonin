@@ -71,6 +71,10 @@
 #define PLATFORM_NAME           "STM32F401 High Performance with DSP and FPU"
 #define STM32F4XX
 
+#elif defined(STM32F446xx)
+#define PLATFORM_NAME           "STM32F446 High Performance with DSP and FPU"
+#define STM32F4XX
+
 #elif defined(STM32F2XX)
 #define PLATFORM_NAME           "STM32F2xx High Performance"
 
@@ -214,6 +218,26 @@
 #define STM32_PCLK2_MAX         84000000
 #define STM32_SPII2S_MAX        42000000
 #endif /* STM32F40_41xxx */
+
+#if defined(STM32F446xx) || defined(__DOXYGEN__)
+#define STM32_SYSCLK_MAX        180000000
+#define STM32_HSECLK_MAX        26000000
+#define STM32_HSECLK_BYP_MAX    50000000
+#define STM32_HSECLK_MIN        4000000
+#define STM32_HSECLK_BYP_MIN    1000000
+#define STM32_LSECLK_MAX        32768
+#define STM32_LSECLK_BYP_MAX    1000000
+#define STM32_LSECLK_MIN        32768
+#define STM32_PLLIN_MAX         2100000
+#define STM32_PLLIN_MIN         950000
+#define STM32_PLLVCO_MAX        432000000
+#define STM32_PLLVCO_MIN        192000000
+#define STM32_PLLOUT_MAX        168000000
+#define STM32_PLLOUT_MIN        24000000
+#define STM32_PCLK1_MAX         42000000
+#define STM32_PCLK2_MAX         84000000
+#define STM32_SPII2S_MAX        42000000
+#endif /* STM32F446xx */
 
 #if defined(STM32F2XX)
 #define STM32_SYSCLK_MAX        120000000
@@ -1390,7 +1414,7 @@
 
 /* Calculating VOS settings, it is different for each sub-platform.*/
 #if defined(STM32F429_439xx) || defined(STM32F427_437xx) ||                 \
-    defined(__DOXYGEN__)
+	defined(STM32F446xx) || defined(__DOXYGEN__)
 #if STM32_SYSCLK <= 120000000
 #define STM32_VOS                   STM32_VOS_SCALE3
 #define STM32_OVERDRIVE_REQUIRED    FALSE

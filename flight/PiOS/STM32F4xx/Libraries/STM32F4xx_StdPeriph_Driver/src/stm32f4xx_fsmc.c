@@ -31,6 +31,7 @@
   ******************************************************************************
   */
 
+#if defined(STM32F40_41xxx)
 /* Includes ------------------------------------------------------------------*/
 #include "stm32f4xx_fsmc.h"
 #include "stm32f4xx_rcc.h"
@@ -1099,5 +1100,7 @@ void FSMC_ClearITPendingBit(uint32_t FSMC_Bank, uint32_t FSMC_IT)
 /**
   * @}
   */
+
+#endif /* defined(STM32F40_41xxx) */
 
 /************************ (C) COPYRIGHT STMicroelectronics *****END OF FILE****/
