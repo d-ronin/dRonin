@@ -117,7 +117,7 @@ void ConfigAutotuneWidget::saveStabilization()
 void ConfigAutotuneWidget::onShareData()
 {
     autotuneShareForm = new AutotuneShareForm();
-    connect(autotuneShareForm, SIGNAL(finished()), this, SLOT(onShareFinished()));
+    autotuneShareForm->setAttribute(Qt::WA_DeleteOnClose, true);
     connect(autotuneShareForm, SIGNAL(ClipboardRequest()), this, SLOT(onShareToClipboard()));
     connect(autotuneShareForm, SIGNAL(DatabaseRequest()), this, SLOT(onShareToDatabase()));
 
@@ -149,11 +149,6 @@ void ConfigAutotuneWidget::onShareData()
     autotuneShareForm->show();
     autotuneShareForm->raise();
     autotuneShareForm->activateWindow();
-}
-
-void ConfigAutotuneWidget::onShareFinished()
-{
-    autotuneShareForm->deleteLater();
 }
 
 void ConfigAutotuneWidget::onShareToDatabase()
