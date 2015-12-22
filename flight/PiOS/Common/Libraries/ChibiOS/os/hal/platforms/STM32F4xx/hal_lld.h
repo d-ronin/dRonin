@@ -232,11 +232,11 @@
 #define STM32_PLLIN_MIN         950000
 #define STM32_PLLVCO_MAX        432000000
 #define STM32_PLLVCO_MIN        192000000
-#define STM32_PLLOUT_MAX        168000000
+#define STM32_PLLOUT_MAX        180000000
 #define STM32_PLLOUT_MIN        24000000
-#define STM32_PCLK1_MAX         42000000
-#define STM32_PCLK2_MAX         84000000
-#define STM32_SPII2S_MAX        42000000
+#define STM32_PCLK1_MAX         45000000
+#define STM32_PCLK2_MAX         90000000
+#define STM32_SPII2S_MAX        45000000
 #endif /* STM32F446xx */
 
 #if defined(STM32F2XX)
