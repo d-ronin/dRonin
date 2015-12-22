@@ -226,7 +226,7 @@ static const struct flashfs_logfs_cfg flashfs_waypoints_cfg = {
 #include "pios_streamfs_priv.h"
 const struct streamfs_cfg streamfs_settings = {
 	.fs_magic      = 0x89abceef,
-	.arena_size    = 0x00001000, /* 64 KB */
+	.arena_size    = 0x00001000, /* 4 KB */
 	.write_size    = 0x00000100, /* 256 bytes */
 };
 
