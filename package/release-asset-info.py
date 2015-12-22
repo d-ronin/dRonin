@@ -9,10 +9,10 @@ import json
 #-------------------------------------------------------------------------------
 USAGE = "%(prog)s [-r <release_id> [-f]]"
 DESC  = """
-  Display/fix-up the 'label' names for downloadable assets attached to a Tau Labs release.\
+  Display/fix-up the 'label' names for downloadable assets attached to a release.\
 """
 
-TAULABS_API_BASE = "https://api.github.com/repos/Taulabs/Taulabs"
+TAULABS_API_BASE = "https://api.github.com/repos/d-ronin/dRonin"
 
 #-------------------------------------------------------------------------------
 def main():
@@ -72,16 +72,18 @@ def main():
         name = asset['name']
         if name.endswith('.apk'):
             label = "Android"
-        elif name.endswith('_linux_amd64.tar.xz'):
-            label = "Linux 64-bit"
         elif name.endswith('_linux_i686.tar.xz'):
             label = "Linux 32-bit"
-        elif name.endswith('_win32.exe'):
+        elif name.endswith('.tar.xz'):
+            label = "Linux 64-bit portable"
+        elif name.endswith('.deb'):
+            label = "Linux 64-bit Debian-style package"
+        elif name.endswith('.zip'):
             label = "Windows (portable)"
         elif name.endswith('-install.exe'):
             label = "Windows (installer)"
         elif name.endswith('.dmg'):
-            label = "OSX"
+            label = "Mac OS X"
         else:
             label = name
         asset['new_label'] = label
