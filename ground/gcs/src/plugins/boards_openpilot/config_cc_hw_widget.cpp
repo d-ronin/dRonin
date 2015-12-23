@@ -2,6 +2,7 @@
  ******************************************************************************
  *
  * @file       configtelemetrywidget.h
+ * @author     dRonin, http://dRonin.org/, Copyright (C) 2015
  * @author     The OpenPilot Team, http://www.openpilot.org Copyright (C) 2010.
  * @addtogroup GCSPlugins GCS Plugins
  * @{

@@ -6,6 +6,7 @@
  * @{
  *
  * @file       vtol_follower_fsm.c
+ * @author     dRonin, http://dRonin.org/, Copyright (C) 2015
  * @author     Tau Labs, http://taulabs.org, Copyright (C) 2013-2014
  * @brief      FSMs for VTOL path navigation
  *

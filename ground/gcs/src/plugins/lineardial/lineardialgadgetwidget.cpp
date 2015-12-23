@@ -2,6 +2,7 @@
  ******************************************************************************
  *
  * @file       lineardialgadgetwidget.cpp
+ * @author     dRonin, http://dRonin.org/, Copyright (C) 2015
  * @author     Edouard Lafargue Copyright (C) 2010.
  * @addtogroup GCSPlugins GCS Plugins
  * @{

@@ -2,6 +2,7 @@
  ******************************************************************************
  *
  * @file       pios.h  
+ * @author     dRonin, http://dRonin.org/, Copyright (C) 2015
  * @author     The OpenPilot Team, http://www.openpilot.org Copyright (C) 2010.
  * @author     Tau Labs, http://taulabs.org, Copyright (C) 2013-2014
  * @brief      Main PiOS header. 
