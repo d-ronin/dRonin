@@ -38,6 +38,7 @@
   ; Tree root locations (relative to this script location)
   !define PROJECT_ROOT   "..\.."
   !define NSIS_DATA_TREE "."
+  !define BUILD_TREE "..\..\build"
   !define GCS_BUILD_TREE "..\..\build\ground\gcs"
   !define UAVO_SYNTH_TREE "..\..\build\uavobject-synthetics"
   !define MATLAB_TREE "..\..\build\matlab"
@@ -59,7 +60,7 @@
   !include "${GCS_BUILD_TREE}\dronin.nsh"
 
   Name "${PRODUCT_NAME}"
-  OutFile "${PACKAGE_DIR}\${OUT_FILE}"
+  OutFile "${BUILD_TREE}\${OUT_FILE}"
 
   VIProductVersion ${PRODUCT_VERSION}
   VIAddVersionKey "ProductName" "${INSTALLER_NAME}"
