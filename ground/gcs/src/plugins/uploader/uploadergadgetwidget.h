@@ -47,14 +47,7 @@ typedef enum { STATUSICON_OK, STATUSICON_RUNNING, STATUSICON_FAIL, STATUSICON_IN
 class UPLOADER_EXPORT UploaderGadgetWidget : public QWidget
 {
     Q_OBJECT
-    struct deviceInfo
-    {
-        QPointer<Core::IBoardType> board;
-        QString bl_version;
-        QString max_code_size;
-        QString cpu_serial;
-        QString hw_revision;
-    };
+
     struct partitionStruc
     {
         QByteArray partitionData;
@@ -74,6 +67,7 @@ signals:
     void uploadFinish(bool);
     void uploadProgress(UploaderStatus, QVariant);
     void autoUpdateSignal(UploaderStatus, QVariant);
+    void newBoardSeen(deviceInfo board, deviceDescriptorStruct device);
 private slots:
     void onAutopilotConnect();
     void onAutopilotDisconnect();
