@@ -79,7 +79,7 @@ $(foreach cpfile, $(DEB_ASSETS_FILES), $(eval $(call CP_DEB_FILES_TEMPLATE,$(cpf
 .PHONY: ground_package linux_deb_package deb_build $(DEB_BUILD_DIR)
 
 package_all_compress: package_all
-	$(V1) tar -cvJf $(BUILD_DIR)/$(PACKAGE_LBL).tar.xz --exclude='*.tar.xz' -C $(PACKAGE_DIR)/.. $(notdir $(PACKAGE_DIR))
+	$(V1) tar -cvJf $(BUILD_DIR)/dronin-$(PACKAGE_LBL).tar.xz --exclude='*.tar.xz' -C $(PACKAGE_DIR)/.. $(notdir $(PACKAGE_DIR))
 
 .PHONY: standalone installer_package deb_build $(DEB_BUILD_DIR)
 .PHONY: package_ground_compress package_matlab_compress

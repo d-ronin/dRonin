@@ -34,7 +34,7 @@ endif
 	$(V1)find $(PACKAGE_DIR)/$(GCS_PACKAGE_NAME) -type f -name "*.exp" -exec rm -f {} \;
 
 package_all_compress: package_all
-	$(V1)cd $(PACKAGE_DIR)/../ && $(ZIPBIN) -r --exclude=*.zip $(BUILD_DIR)/$(PACKAGE_LBL) $(notdir $(PACKAGE_DIR))
+	$(V1)cd $(PACKAGE_DIR)/../ && $(ZIPBIN) -r --exclude=*.zip $(BUILD_DIR)/dronin-$(PACKAGE_LBL) $(notdir $(PACKAGE_DIR))
 
 .PHONY: standalone
 .PHONY: package_ground_compress package_matlab_compress
