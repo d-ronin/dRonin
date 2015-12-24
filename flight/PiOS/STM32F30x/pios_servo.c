@@ -200,7 +200,7 @@ void PIOS_Servo_SetMode(const uint16_t * speeds, const enum pwm_mode *pwm_mode, 
 * \param[in] Position Servo position in microseconds
 */
 #if defined(PIOS_INCLUDE_HPWM)
-void PIOS_Servo_Set(uint8_t servo, float position)
+void PIOS_Servo_Set(uint8_t servo, float position, float max)
 {
 	/* Make sure servo exists */
 	if (!servo_cfg || servo >= servo_cfg->num_channels) {
@@ -226,7 +226,18 @@ void PIOS_Servo_Set(uint8_t servo, float position)
 
 	/* stop the timer in OneShot (Synchronous) mode */
 	if (output_channel_mode[servo] == SYNC_PWM_TRUE) {
-		TIM_Cmd(chan->timer, DISABLE);
+		/* But only if we have counted sufficiently high.
+		 * Ensure a dead time of 2% + 10 us, e.g. 15us for 250us
+		 * long pulses, 50 us for 2000us long pulses
+		 */
+		max = max * 1.02f + 10;
+
+		// Convert to timer counts.
+		max *= us_to_count;
+
+		if (TIM_GetCounter(chan->timer) > max) {
+			TIM_Cmd(chan->timer, DISABLE);
+		}
 	}
 
 	/* Update the position */
