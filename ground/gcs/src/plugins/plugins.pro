@@ -346,4 +346,6 @@ SUBDIRS += plugin_boards_aeroquad
 # Usage Statistics plugin
 plugin_usagestatsgadget.subdir = usagestatsgadget
 plugin_usagestatsgadget.depends = plugin_coreplugin
+plugin_usagestatsgadget.depends += plugin_uploader
+plugin_usagestatsgadget.depends += plugin_uavobjectutil
 SUBDIRS += plugin_usagestatsgadget
