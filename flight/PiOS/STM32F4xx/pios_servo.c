@@ -197,6 +197,7 @@ void PIOS_Servo_SetMode(const uint16_t * speeds, const enum pwm_mode *pwm_mode, 
 * Set servo position for HPWM
 * \param[in] Servo Servo number (0-num_channels)
 * \param[in] Position Servo position in microseconds
+* \param[in] max Maximum pulse length in us for oneshot
 */
 #if defined(PIOS_INCLUDE_HPWM)
 void PIOS_Servo_Set(uint8_t servo, float position, float max)
@@ -236,6 +237,8 @@ void PIOS_Servo_Set(uint8_t servo, float position, float max)
 
 		if (TIM_GetCounter(chan->timer) > max) {
 			TIM_Cmd(chan->timer, DISABLE);
+		} else {
+			return;
 		}
 	}
 
