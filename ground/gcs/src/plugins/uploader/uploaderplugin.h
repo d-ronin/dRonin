@@ -65,7 +65,5 @@ public:
    void shutdown();
 private:
    UploaderGadgetFactory *mf;
-private slots:
-   void testStuff();
 };
 #endif // UPLOADERPLUGIN_H
