@@ -232,7 +232,7 @@ QByteArray UsageStatsPlugin::processJson() {
     QJsonArray boardArray;
     foreach (boardLog board, boardLogList) {
         QJsonObject b;
-        b["time"] = board.time.toString();
+        b["time"] = board.time.toUTC().toString("yyyy-MM-ddThh:mm:ss.zzzZ");
         b["name"] = board.board.board.data()->getBoardNameFromID(board.device.boardID());
         b["uavoHash"] = QString(board.device.uavoHash.toHex());
         b["ID"] = board.device.boardID();
@@ -248,7 +248,7 @@ QByteArray UsageStatsPlugin::processJson() {
     QJsonArray widgetArray;
     foreach (widgetActionInfo w, widgetLogList) {
         QJsonObject j;
-        j["time"] = w.time.toString();
+        j["time"] = w.time.toUTC().toString("yyyy-MM-ddThh:mm:ss.zzzZ");
         j["className"] = w.className;
         j["objectName"] = w.objectName;
         j["parentName"] = w.parentName;
