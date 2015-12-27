@@ -81,7 +81,7 @@ private:
     ExtensionSystem::PluginManager *pluginManager;
     QList<boardLog> boardLogList;
     QList<widgetActionInfo> widgetLogList;
-    QByteArray processJson(QString ip);
+    QByteArray processJson();
     QString externalIP;
     QNetworkAccessManager netMngr;
     QEventLoop *loop;

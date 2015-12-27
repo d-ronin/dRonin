@@ -101,19 +101,11 @@ bool UsageStatsPlugin::coreAboutToClose()
 {
     if(!sendUsageStats)
         return true;
-    QString externalIP;
-    if(sendPrivateData) {
-        QNetworkReply *reply = netMngr.get(QNetworkRequest(QUrl("http://icanhazip.com")));
-        QTimer::singleShot(10000, loop, SLOT(quit()));
-        loop->exec();
-        externalIP = QString(reply->readAll()).simplified();
-        qDebug() << externalIP;
-    }
     QTimer::singleShot(10000, loop, SLOT(quit()));
     QUrl url("http://dronin-autotown.appspot.com/usageStats");
     QNetworkRequest request(url);
     request.setHeader(QNetworkRequest::ContentTypeHeader, "application/json; charset=utf-8");
-    netMngr.post(request, processJson(externalIP));
+    netMngr.post(request, processJson());
     loop->exec();
     return true;
 }
@@ -229,12 +221,12 @@ void UsageStatsPlugin::onTabCurrentChanged(int value)
     widgetLogList.append(info);
 }
 
-QByteArray UsageStatsPlugin::processJson(QString ip){
+QByteArray UsageStatsPlugin::processJson() {
     QJsonObject json;
-    if(!ip.isEmpty())
-        json["IP"] = ip;
+    if(sendPrivateData)
+        json["shareIP"] = "true";
     else
-        json["IP"] = "PRIVATE";
+        json["shareIP"] = "false";
     json["gcs_version"] =  QLatin1String(Core::Constants::GCS_VERSION_LONG);
     json["gcs_revision"] =  QLatin1String(Core::Constants::GCS_REVISION_PRETTY_STR);
     QJsonArray boardArray;
@@ -250,9 +242,6 @@ QByteArray UsageStatsPlugin::processJson(QString ip){
         b["gitTag"] = board.device.gitTag;
         if(sendPrivateData)
             b["CPU"] = board.board.cpu_serial;
-        else
-            b["CPU"] = "PRIVATE";
-
         boardArray.append(b);
     }
     json["boardsSeen"] = boardArray;
