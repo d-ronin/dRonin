@@ -31,7 +31,7 @@ ALL_DEB_FILES += $(foreach f, $(DEB_ASSETS_FILES), $(DEB_BUILD_DIR)/$(f))
 
 QT_PLUGINS_USED		:= imageformats platforms sqldrivers xcbglintegrations
 
-standalone: | extract_firmware
+standalone: | $(STANDALONE_DEPENDENCIES)
 	@echo $@ starting
 	@echo Copying Qt5 plugins libraries
 	$(V1) mkdir -p "$(BUILD_DIR)/ground/gcs/lib/dr/qtplugins"
@@ -55,10 +55,15 @@ standalone: | extract_firmware
 	$(V1) cp -v $(ROOT_DIR)/package/linux/assets/qt.conf $(BUILD_DIR)/ground/gcs/bin/
 	$(V1) sed -i -e "$(SED_SUBSTITUTE)" $(BUILD_DIR)/ground/gcs/bin/qt.conf
 
+.PHONY: gcs
+gcs:
+	@echo "Linux Package Make of GCS."
 ifeq ($(EXPORT_SYMBOLS), YES)
 	$(V1) $(MAKE) -C $(ROOT_DIR) GCS_BUILD_CONF=debug $@
 else
+	$(V1) $(MAKE) -C $(ROOT_DIR) GCS_BUILD_CONF=release $@
 endif
+
 ground_package_os_specific: ground_package_common
 ifeq ($(EXPORT_SYMBOLS), YES)
 	$(V1) $(ROOT_DIR)/package/linux_extract_debug_symbols.sh $(DUMP_SYMBOLS_TOOL) $(PACKAGE_DIR)/$(GCS_PACKAGE_NAME)
@@ -69,8 +74,8 @@ endif
 installer_package: deb_build ground_package
 	@echo $@ starting
 	$(V1) cd $(BUILD_DIR) && dpkg-buildpackage -b -us -uc
-	$(V1) mv $(ROOT_DIR)/dronin_$(VERSION_FULL)_$(PLATFORM_NAME).deb $(BUILD_DIR)
-	$(V1) mv $(ROOT_DIR)/dronin_$(VERSION_FULL)_$(PLATFORM_NAME).changes $(BUILD_DIR)
+	$(V1) mv $(ROOT_DIR)/dronin_$(VERSION_FULL)_$(PLATFORM_NAME).deb $(PACKAGE_DIR)
+	$(V1) mv $(ROOT_DIR)/dronin_$(VERSION_FULL)_$(PLATFORM_NAME).changes $(PACKAGE_DIR)
 	$(V1) rm -rf $(DEB_BUILD_DIR)
 
 deb_build: | $(DEB_BUILD_DIR) $(ALL_DEB_FILES)
@@ -85,11 +90,14 @@ $(foreach cpfile, $(DEB_ASSETS_FILES), $(eval $(call CP_DEB_FILES_TEMPLATE,$(cpf
 
 .PHONY: ground_package linux_deb_package deb_build $(DEB_BUILD_DIR)
 
+package_ground_compress: package_ground
 ifeq ($(EXPORT_SYMBOLS),YES)
 	$(V1) tar -cvJf $(PACKAGE_DIR)/$(GCS_PACKAGE_NAME)_symbols.tar.xz -C $(PACKAGE_DIR) $(GCS_PACKAGE_NAME)_symbols
 endif
+	$(V1) tar -cvJf $(PACKAGE_DIR)/$(GCS_PACKAGE_NAME).tar.xz -C $(PACKAGE_DIR) $(GCS_PACKAGE_NAME)
+
 package_all_compress: package_all
 	$(V1) tar -cvJf $(BUILD_DIR)/dronin-$(PACKAGE_LBL).tar.xz --exclude='*.tar.xz' -C $(PACKAGE_DIR)/.. $(notdir $(PACKAGE_DIR))
 
 .PHONY: standalone installer_package deb_build $(DEB_BUILD_DIR)
-.PHONY: package_ground_compress package_matlab_compress
+.PHONY: package_ground_compress

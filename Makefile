@@ -3,7 +3,7 @@
 
 WHEREAMI := $(dir $(lastword $(MAKEFILE_LIST)))
 export ROOT_DIR := $(realpath $(WHEREAMI)/ )
-
+export BUILD_ALL_DEPENDENCIES := $(BUILD_ALL_DEPENDENCIES)
 # import macros common to all supported build systems
 include $(ROOT_DIR)/make/system-id.mk
 
@@ -548,7 +548,6 @@ export OPUAVTALK     := $(ROOT_DIR)/flight/UAVTalk
 export DOXYGENDIR    := $(ROOT_DIR)/Doxygen
 export SHAREDAPIDIR  := $(ROOT_DIR)/shared/api
 export OPUAVSYNTHDIR := $(BUILD_DIR)/uavobject-synthetics/flight
-export FLIGHTPKGNAME := $(BUILD_DIR)/flight-$(GITVERSION).zip
 
 # $(1) = Canonical board name all in lower case (e.g. coptercontrol)
 # $(2) = Unused
@@ -1008,22 +1007,17 @@ ifneq ($(strip $(filter all_ut_run,$(MAKECMDGOALS))),)
 $(info *NOTE*     Parallel make disabled by all_ut_run target so we have sane console output)
 endif
 
+export FW_FILES := $(FW_FILES)
 ##############################
 #
 # Packaging components
 #
 ##############################
-PACKAGE_TARGETS = package_installer package_ground package_matlab
-PACKAGE_TARGETS += package_ground_compress package_matlab_compress
+PACKAGE_TARGETS = package_installer package_ground package_flight  package_all
+PACKAGE_TARGETS += package_ground_compress package_all_compress
 .PHONY: $(PACKAGE_TARGETS)
 $(PACKAGE_TARGETS): 
 	$(V1) cd package && $(MAKE) --no-print-directory $@
-	
-.PHONY: package_flight
-package_flight: $(FLIGHTPKGNAME)
-
-$(FLIGHTPKGNAME): all_flight
-	$(ZIPBIN) -j $@ $(FW_FILES)
 
 ##############################
 #
