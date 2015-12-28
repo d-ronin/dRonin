@@ -1,7 +1,7 @@
 QT += network
 TEMPLATE = lib
 TARGET = UsageStats
-include(../../taulabsgcsplugin.pri)
+DEFINES += USAGESTATS_LIBRARY
 include(usagestats_dependencies.pri)
 HEADERS += \
     usagestatsplugin.h \
@@ -9,7 +9,7 @@ HEADERS += \
 SOURCES += \
     usagestatsplugin.cpp \
     usagestatsoptionpage.cpp
-DEFINES += USAGESTATS_LIBRARY
+
 OTHER_FILES += UsageStats.pluginspec \
     UsageStats.json
 
