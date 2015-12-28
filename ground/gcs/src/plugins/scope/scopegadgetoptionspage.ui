@@ -742,7 +742,7 @@
                   <item row="0" column="0">
                    <widget class="QLabel" name="label_24">
                     <property name="text">
-                     <string>Sampling frequency:</string>
+                     <string>Sampling rate:</string>
                     </property>
                    </widget>
                   </item>
