@@ -43,6 +43,7 @@
 #include "coreplugin/coreconstants.h"
 #include <QTimer>
 #include <QScrollBar>
+#include <QSysInfo>
 #include "usagestatsoptionpage.h"
 
 UsageStatsPlugin::UsageStatsPlugin(): sendUsageStats(true), sendPrivateData(true)
@@ -229,6 +230,9 @@ QByteArray UsageStatsPlugin::processJson() {
         json["shareIP"] = "false";
     json["gcs_version"] =  QLatin1String(Core::Constants::GCS_VERSION_LONG);
     json["gcs_revision"] =  QLatin1String(Core::Constants::GCS_REVISION_PRETTY_STR);
+    json["currentOS"] = QSysInfo::prettyProductName();
+    json["currentArch"] = QSysInfo::currentCpuArchitecture();
+    json["buildInfo"] = QSysInfo::buildAbi();
     QJsonArray boardArray;
     foreach (boardLog board, boardLogList) {
         QJsonObject b;
