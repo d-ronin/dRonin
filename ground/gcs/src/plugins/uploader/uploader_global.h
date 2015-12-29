@@ -30,10 +30,22 @@
 #define UPLOADER_GLOBAL_H
 
 #include <QtCore/qglobal.h>
+#include <QPointer>
+#include <coreplugin/boardmanager.h>
+
 namespace uploader
 {
 typedef enum { WAITING_CONNECT, WAITING_DISCONNECT, FAILURE, FAILURE_FILENOTFOUND, LOADING_FW, SUCCESS, DISCONNECTED, BOOTING, HALTING, RESCUING, BL_FROM_HALT, BL_FROM_RESCUE, CONNECTED_TO_TELEMETRY, UPLOADING_FW, UPLOADING_DESC, DOWNLOADING_PARTITION, UPLOADING_PARTITION, DOWNLOADING_PARTITION_BUNDLE, UPLOADING_PARTITION_BUNDLE} UploaderStatus;
 }
+struct deviceInfo
+{
+    QPointer<Core::IBoardType> board;
+    QString bl_version;
+    QString max_code_size;
+    QString cpu_serial;
+    QString hw_revision;
+};
+
 #if defined(UPLOADER_LIBRARY)
 #  define UPLOADER_EXPORT Q_DECL_EXPORT
 #else

@@ -350,6 +350,7 @@ void UploaderGadgetWidget::onAutopilotReady()
     deviceDescriptorStruct device;
     if(utilMngr->getBoardDescriptionStruct(device))
         FirmwareOnDeviceUpdate(device, QString::number(utilMngr->getFirmwareCRC(), 16));
+    emit newBoardSeen(board, device);
 }
 
 /**

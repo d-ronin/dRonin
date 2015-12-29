@@ -280,6 +280,13 @@ plugin_sysalarmsmessaging.depends += plugin_uavobjects
 plugin_sysalarmsmessaging.depends += plugin_uavtalk
 SUBDIRS += plugin_sysalarmsmessaging
 
+# Usage Statistics plugin
+plugin_usagestatsgadget.subdir = usagestatsgadget
+plugin_usagestatsgadget.depends = plugin_coreplugin
+plugin_usagestatsgadget.depends += plugin_uploader
+plugin_usagestatsgadget.depends += plugin_uavobjectutil
+SUBDIRS += plugin_usagestatsgadget
+
 ############################
 #  Board plugins
 # Those plugins define supported board models: each board manufacturer

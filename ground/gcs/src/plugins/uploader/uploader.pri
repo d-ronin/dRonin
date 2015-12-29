@@ -1,3 +1,3 @@
-include(uploaderng_dependencies.pri)
+include(uploader_dependencies.pri)
 
-LIBS *= -l$$qtLibraryName(Uploaderng)
+LIBS *= -l$$qtLibraryName(Uploader)

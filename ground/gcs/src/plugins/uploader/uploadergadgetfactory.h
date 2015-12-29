@@ -30,6 +30,7 @@
 
 #include <coreplugin/iuavgadgetfactory.h>
 #include "uploader_global.h"
+#include "uavobjectutil/devicedescriptorstruct.h"
 
 namespace Core {
 class IUAVGadget;
@@ -55,6 +56,7 @@ private:
 signals:
     void autoUpdateSignal(UploaderStatus ,QVariant);
     void autoUpdate();
+    void newBoardSeen(deviceInfo board, deviceDescriptorStruct device);
 };
 
 }
