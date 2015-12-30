@@ -512,6 +512,7 @@ void PIOS_Board_Init(void) {
 		switch(hw_rcvrport) {
 		case HWNAZE_RCVRPORT_PPM:
 		case HWNAZE_RCVRPORT_PPMSERIAL:
+		case HWNAZE_RCVRPORT_SERIAL:
 			number_of_adc_pins += 2; // rcvr port pins also available
 			break;
 		default:
