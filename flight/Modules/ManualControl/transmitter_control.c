@@ -671,6 +671,7 @@ static void process_transmitter_events(ManualControlCommandData * cmd, ManualCon
 		                       flight_mode == FLIGHTSTATUS_FLIGHTMODE_POSITIONHOLD ||
 		                       flight_mode == FLIGHTSTATUS_FLIGHTMODE_RETURNTOHOME ||
 		                       flight_mode == FLIGHTSTATUS_FLIGHTMODE_PATHPLANNER  ||
+		                       flight_mode == FLIGHTSTATUS_FLIGHTMODE_ALTITUDEHOLD  ||
 		                       flight_mode == FLIGHTSTATUS_FLIGHTMODE_TABLETCONTROL;
 		bool check_throttle = settings->ArmTimeoutAutonomous == MANUALCONTROLSETTINGS_ARMTIMEOUTAUTONOMOUS_ENABLED ||
 			!autonomous_mode;
