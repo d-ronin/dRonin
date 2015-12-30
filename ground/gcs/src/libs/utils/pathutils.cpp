@@ -2,6 +2,7 @@
  ******************************************************************************
  *
  * @file       pathutils.cpp
+ * @author     dRonin, http://dRonin.org/, Copyright (C) 2015
  * @author     The OpenPilot Team, http://www.openpilot.org Copyright (C) 2010.
  * @brief      Utilities to find the location of openpilot GCS files:
  *             - Plugins Share directory path

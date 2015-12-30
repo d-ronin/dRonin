@@ -3,6 +3,7 @@
  *
  * @file       importexportgadgetwidget.cpp
  * @author     The OpenPilot Team, http://www.openpilot.org Copyright (C) 2010.
+ * @author     dRonin, http://dRonin.org/, Copyright (C) 2015
  * @see        The GNU Public License (GPL) Version 3
  * @brief      Widget for Import/Export Plugin
  * @addtogroup GCSPlugins GCS Plugins
