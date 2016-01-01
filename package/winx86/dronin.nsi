@@ -201,12 +201,14 @@ SectionEnd
 
 ; Copy driver files
 Section "-Drivers" InSecDrivers
+IfSilent +3
   SetOutPath "$INSTDIR\drivers"
   File "${SOURCE_ROOT}\flight\Project\Windows USB\dRonin-CDC.inf"
 SectionEnd
 
 ; Preinstall OpenPilot CDC driver
 Section "CDC driver" InSecInstallDrivers
+IfSilent +9
   InitPluginsDir
   SetOutPath "$PLUGINSDIR"
   ${If} ${RunningX64}
