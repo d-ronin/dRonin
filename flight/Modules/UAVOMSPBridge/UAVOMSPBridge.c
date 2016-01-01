@@ -98,7 +98,7 @@ typedef enum {
 	MSP_BOX_LAST,
 } msp_box_t;
 
-static struct {
+const static struct {
 	msp_box_t mode;
 	uint8_t mwboxid;
 	FlightStatusFlightModeOptions tlmode;
