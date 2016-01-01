@@ -29,7 +29,7 @@
 ;--------------------------------
 ; Translated license files
 
-  LicenseLangString LicenseFile ${LANG_ENGLISH} "${PROJECT_ROOT}/LICENSE.rtf"
+  LicenseLangString LicenseFile ${LANG_ENGLISH} "${SOURCE_ROOT}/LICENSE.rtf"
 
 ;--------------------------------
 ; Translated strings
