@@ -62,14 +62,23 @@
 #include "pios_frsky_rssi.h"
 #endif /* PIOS_INCLUDE_FRSKY_RSSI */
 
+// This is how far "left" you have to deflect for "yaw left" arming, etc.
 #define ARMED_THRESHOLD    0.50f
+
 //safe band to allow a bit of calibration error or trim offset (in microseconds)
+//these specify how far outside the "permitted range" throttle and other channels
+//can go.  e.g. if range is 1000..2000us, throttles under 900us or over 2100us
+//result in failsafe.
 #define CONNECTION_OFFSET_THROTTLE 100
 #define CONNECTION_OFFSET          250
 
 #define RCVR_ACTIVITY_MONITOR_CHANNELS_PER_GROUP 12
 #define RCVR_ACTIVITY_MONITOR_MIN_RANGE 10
 
+/* All channels must have at least this many counts on each side of neutral.
+ * (Except throttle which must have this many on the positive side).  This is
+ * to prevent situations where a partial calibration results in spurious
+ * arming, etc. */
 #define MIN_MEANINGFUL_RANGE 40
 
 struct rcvr_activity_fsm {
@@ -77,7 +86,6 @@ struct rcvr_activity_fsm {
 	uint16_t prev[RCVR_ACTIVITY_MONITOR_CHANNELS_PER_GROUP];
 	uint8_t sample_count;
 };
-
 
 // Private variables
 static ManualControlCommandData   cmd;
