@@ -1573,17 +1573,17 @@
           <enableVbo>false</enableVbo>
         </data>
       </Gaui__PCT__20330X>
-      <Gemini>
+      <Quadx>
         <configInfo>
           <locked>false</locked>
           <version>0.0.0</version>
         </configInfo>
         <data>
-          <acFilename>%%DATAPATH%%models/multi/gemini/TBS-GEMINI-Black.3DS</acFilename>
+          <acFilename>%%DATAPATH%%models/multi/test_quad/test_quad_X.3ds</acFilename>
           <bgFilename>%%DATAPATH%%models/backgrounds/default_background.png</bgFilename>
           <enableVbo>false</enableVbo>
         </data>
-      </Gemini>
+      </Quadx>
       <Helicopter__PCT__20-__PCT__20TRex__PCT__20450>
         <configInfo>
           <locked>false</locked>
@@ -2279,7 +2279,7 @@
             <side0>
               <classId>ModelViewGadget</classId>
               <gadget>
-                <activeConfiguration>Gemini</activeConfiguration>
+                <activeConfiguration>Quadx</activeConfiguration>
               </gadget>
               <type>uavGadget</type>
             </side0>
