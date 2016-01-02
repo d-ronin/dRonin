@@ -90,14 +90,6 @@ int32_t GeofenceInitialize(void)
 		GeoFenceSettingsConnectCallback(settingsUpdated);
 		settingsUpdated(NULL, NULL, NULL, 0);
 
-		// Schedule periodic task to check position
-		UAVObjEvent ev = {
-			.obj = PositionActualHandle(),
-			.instId = 0,
-			.event = 0,
-		};
-		EventPeriodicCallbackCreate(&ev, checkPosition, SAMPLE_PERIOD_MS);
-
 		return 0;
 	}
 
@@ -107,6 +99,18 @@ int32_t GeofenceInitialize(void)
 /* stub: module has no module thread */
 int32_t GeofenceStart(void)
 {
+	if (geofenceSettings == NULL) {
+		return -1;
+	}
+
+	// Schedule periodic task to check position
+	UAVObjEvent ev = {
+		.obj = PositionActualHandle(),
+		.instId = 0,
+		.event = 0,
+	};
+	EventPeriodicCallbackCreate(&ev, checkPosition, SAMPLE_PERIOD_MS);
+
 	return 0;
 }
 
