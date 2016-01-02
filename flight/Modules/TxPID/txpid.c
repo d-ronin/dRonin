@@ -84,7 +84,6 @@ struct txpid_struct {
 
 // Private variables
 static struct txpid_struct *txpid_data;
-static bool module_enabled;
 
 // Private functions
 static void updatePIDs(UAVObjEvent* ev, void *ctx, void *obj, int len);
@@ -98,31 +97,26 @@ static float scale(float val, float inMin, float inMax, float outMin, float outM
 int32_t TxPIDInitialize(void)
 {
 #ifdef MODULE_TxPID_BUILTIN
-	module_enabled = true;
+	if 1 {
 #else
 	uint8_t module_state[MODULESETTINGS_ADMINSTATE_NUMELEM];
 	ModuleSettingsAdminStateGet(module_state);
 	if (module_state[MODULESETTINGS_ADMINSTATE_TXPID] == MODULESETTINGS_ADMINSTATE_ENABLED) {
-		module_enabled = true;
-	} else {
-		module_enabled = false;
-		return -1;
-	}
 #endif
 
-	txpid_data = PIOS_malloc(sizeof(*txpid_data));
+		txpid_data = PIOS_malloc(sizeof(*txpid_data));
 
-	if (txpid_data != NULL) {
-		memset(txpid_data, 0x00, sizeof(*txpid_data));
+		if (txpid_data != NULL) {
+			memset(txpid_data, 0x00, sizeof(*txpid_data));
+
+			TxPIDSettingsInitialize();
+			AccessoryDesiredInitialize();
+
+			return 0;
+		}
 	}
-	else {
-		return -1;
-	}
 
-	TxPIDSettingsInitialize();
-	AccessoryDesiredInitialize();
-
-	return 0;
+	return -1;
 }
 
 /**
@@ -131,7 +125,7 @@ int32_t TxPIDInitialize(void)
  */
 static int32_t TxPIDStart(void)
 {
-	if (!module_enabled) {
+	if (txpid_data == NULL) {
 		return -1;
 	}
 
