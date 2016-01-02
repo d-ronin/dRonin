@@ -96,14 +96,19 @@ static float scale(float val, float inMin, float inMax, float outMin, float outM
  */
 int32_t TxPIDInitialize(void)
 {
+	bool module_enabled = false;
+
 #ifdef MODULE_TxPID_BUILTIN
-	if 1 {
+	module_enabled = true;
 #else
 	uint8_t module_state[MODULESETTINGS_ADMINSTATE_NUMELEM];
 	ModuleSettingsAdminStateGet(module_state);
 	if (module_state[MODULESETTINGS_ADMINSTATE_TXPID] == MODULESETTINGS_ADMINSTATE_ENABLED) {
+		module_enabled = true;
+	}
 #endif
 
+	if (module_enabled) {
 		txpid_data = PIOS_malloc(sizeof(*txpid_data));
 
 		if (txpid_data != NULL) {
