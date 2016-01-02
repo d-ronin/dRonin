@@ -93,14 +93,14 @@ static bool tablet_info_updated = false;
 #endif /* CAMERASTAB_POI_MODE */
 
 // Private variables
-static bool module_enabled;
+
 /**
  * Initialise the module, called on startup
  * \returns 0 on success or -1 if initialisation failed
  */
 int32_t CameraStabInitialize(void)
 {
-	module_enabled = false;
+	bool module_enabled = false;
 
 #ifdef MODULE_CameraStab_BUILTIN
 	module_enabled = true;

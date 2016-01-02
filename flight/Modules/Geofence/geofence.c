@@ -53,7 +53,6 @@ static void settingsUpdated(UAVObjEvent* ev, void *ctx, void *obj, int len);
 static void checkPosition(UAVObjEvent* ev, void *ctx, void *obj, int len);
 
 // Private variables
-static bool module_enabled;
 static GeoFenceSettingsData *geofenceSettings;
 
 /**
@@ -62,7 +61,7 @@ static GeoFenceSettingsData *geofenceSettings;
  */
 int32_t GeofenceInitialize(void)
 {
-	module_enabled = false;
+	bool module_enabled = false;
 
 #ifdef MODULE_Geofence_BUILTIN
 	module_enabled = true;
