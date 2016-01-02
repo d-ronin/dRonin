@@ -93,14 +93,14 @@ static bool tablet_info_updated = false;
 #endif /* CAMERASTAB_POI_MODE */
 
 // Private variables
-static bool module_enabled;
+
 /**
  * Initialise the module, called on startup
  * \returns 0 on success or -1 if initialisation failed
  */
 int32_t CameraStabInitialize(void)
 {
-	module_enabled = false;
+	bool module_enabled = false;
 
 #ifdef MODULE_CameraStab_BUILTIN
 	module_enabled = true;
@@ -139,13 +139,6 @@ int32_t CameraStabInitialize(void)
 		TabletInfoConnectCallback(tablet_info_flag_update);
 #endif /* CAMERASTAB_POI_MODE */
 
-		UAVObjEvent ev = {
-			.obj = AttitudeActualHandle(),
-			.instId = 0,
-			.event = 0,
-		};
-		EventPeriodicCallbackCreate(&ev, attitudeUpdated, SAMPLE_PERIOD_MS);
-
 		return 0;
 	}
 
@@ -155,6 +148,18 @@ int32_t CameraStabInitialize(void)
 /* stub: module has no module thread */
 int32_t CameraStabStart(void)
 {
+	if (csd == NULL) {
+		return -1;
+	}
+
+	// Schedule periodic task to process attitude
+	UAVObjEvent ev = {
+		.obj = AttitudeActualHandle(),
+		.instId = 0,
+		.event = 0,
+	};
+	EventPeriodicCallbackCreate(&ev, attitudeUpdated, SAMPLE_PERIOD_MS);
+
 	return 0;
 }
 

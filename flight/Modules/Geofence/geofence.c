@@ -53,7 +53,6 @@ static void settingsUpdated(UAVObjEvent* ev, void *ctx, void *obj, int len);
 static void checkPosition(UAVObjEvent* ev, void *ctx, void *obj, int len);
 
 // Private variables
-static bool module_enabled;
 static GeoFenceSettingsData *geofenceSettings;
 
 /**
@@ -62,7 +61,7 @@ static GeoFenceSettingsData *geofenceSettings;
  */
 int32_t GeofenceInitialize(void)
 {
-	module_enabled = false;
+	bool module_enabled = false;
 
 #ifdef MODULE_Geofence_BUILTIN
 	module_enabled = true;
@@ -90,14 +89,6 @@ int32_t GeofenceInitialize(void)
 		GeoFenceSettingsConnectCallback(settingsUpdated);
 		settingsUpdated(NULL, NULL, NULL, 0);
 
-		// Schedule periodic task to check position
-		UAVObjEvent ev = {
-			.obj = PositionActualHandle(),
-			.instId = 0,
-			.event = 0,
-		};
-		EventPeriodicCallbackCreate(&ev, checkPosition, SAMPLE_PERIOD_MS);
-
 		return 0;
 	}
 
@@ -107,6 +98,18 @@ int32_t GeofenceInitialize(void)
 /* stub: module has no module thread */
 int32_t GeofenceStart(void)
 {
+	if (geofenceSettings == NULL) {
+		return -1;
+	}
+
+	// Schedule periodic task to check position
+	UAVObjEvent ev = {
+		.obj = PositionActualHandle(),
+		.instId = 0,
+		.event = 0,
+	};
+	EventPeriodicCallbackCreate(&ev, checkPosition, SAMPLE_PERIOD_MS);
+
 	return 0;
 }
 
