@@ -56,50 +56,6 @@ p, li { white-space: pre-wrap; }
    <item>
     <layout class="QHBoxLayout" name="horizontalLayout">
      <item>
-      <widget class="QToolButton" name="defaultESCButton">
-       <property name="font">
-        <font>
-         <pointsize>10</pointsize>
-        </font>
-       </property>
-       <property name="toolTip">
-        <string>Standard ESC 50Hz</string>
-       </property>
-       <property name="styleSheet">
-        <string notr="true">QToolButton { border: none }</string>
-       </property>
-       <property name="text">
-        <string>Standard ESC</string>
-       </property>
-       <property name="icon">
-        <iconset resource="../wizardResources.qrc">
-         <normaloff>:/setupwizard/resources/bttn-ESC-up.png</normaloff>
-         <normalon>:/setupwizard/resources/bttn-ESC-down.png</normalon>:/setupwizard/resources/bttn-ESC-up.png</iconset>
-       </property>
-       <property name="iconSize">
-        <size>
-         <width>200</width>
-         <height>100</height>
-        </size>
-       </property>
-       <property name="checkable">
-        <bool>true</bool>
-       </property>
-       <property name="checked">
-        <bool>false</bool>
-       </property>
-       <property name="autoExclusive">
-        <bool>true</bool>
-       </property>
-       <property name="toolButtonStyle">
-        <enum>Qt::ToolButtonTextUnderIcon</enum>
-       </property>
-       <property name="autoRaise">
-        <bool>true</bool>
-       </property>
-      </widget>
-     </item>
-     <item>
       <widget class="QToolButton" name="rapidESCButton">
        <property name="font">
         <font>
@@ -107,13 +63,13 @@ p, li { white-space: pre-wrap; }
         </font>
        </property>
        <property name="toolTip">
-        <string>Turbo PWM ESC 400Hz</string>
+        <string>Modern ESC 400Hz PWM</string>
        </property>
        <property name="styleSheet">
         <string notr="true">QToolButton { border: none }</string>
        </property>
        <property name="text">
-        <string>Turbo PWM</string>
+        <string>400Hz PWM</string>
        </property>
        <property name="icon">
         <iconset resource="../wizardResources.qrc">
@@ -154,7 +110,7 @@ p, li { white-space: pre-wrap; }
         </font>
        </property>
        <property name="toolTip">
-        <string>Turbo PWM ESC 400Hz</string>
+        <string>OneShot Synchronous PWM</string>
        </property>
        <property name="styleSheet">
         <string notr="true">QToolButton { border: none }</string>
