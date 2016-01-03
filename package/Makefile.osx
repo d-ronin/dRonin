@@ -11,17 +11,18 @@ VOL_NAME="dRonin"
 GCS_PACKAGE_ROOT := $(GCS_PACKAGE_NAME)/$(APP_NAME_OSX)
 
 # calls macdeployqt and bundles the extra libraries into .app
-standalone: 
+standalone: $(STANDALONE_DEPENDENCIES)
 	"${ROOT_DIR}/package/osx/libraries" ${APP_PATH}/${APP_NAME_OSX}
 
 # puts the files into a dmg
-dmg: standalone package_matlab extract_firmware
+dmg: ground_package extract_firmware matlab
 	ROOT_DIR="$(ROOT_DIR)" \
 	BUILD_DIR="$(BUILD_DIR)" \
 	PACKAGE_LBL="$(PACKAGE_LBL)" \
 	DMG_LBL="$(GCS_PACKAGE_NAME)" \
 	PACKAGE_DIR="$(PACKAGE_DIR)" \
-	FW_DIR="$(FW_DIR)" \
+	GCS_PACKAGE_DIR="$(PACKAGE_DIR)/$(GCS_PACKAGE_NAME)" \
+	FW_DIR="$(PACKAGE_DIR)/firmware_$(PACKAGE_LBL)" \
 	"$(ROOT_DIR)/package/osx/package"
 
 installer_package: | dmg
@@ -31,10 +32,31 @@ ground_package_os_specific: | standalone
 	$(V1) rm -r -f $(PACKAGE_DIR)/$(GCS_PACKAGE_ROOT)
 	$(V1) mkdir -p $(PACKAGE_DIR)/$(GCS_PACKAGE_NAME)
 	$(V1) cp -v -R $(BUILD_DIR)/ground/gcs/bin/$(APP_NAME_OSX) $(PACKAGE_DIR)/$(GCS_PACKAGE_NAME)
+ifeq ($(EXPORT_SYMBOLS), YES)
+	$(V1) $(ROOT_DIR)/package/osx_extract_debug_symbols.sh $(DUMP_SYMBOLS_TOOL) $(PACKAGE_DIR)/$(GCS_PACKAGE_NAME)
+endif
 .PHONY: gcs ground_package osx_package
 
+.PHONY: package_ground_compress
+package_ground_compress: package_ground
+	$(V1)cd $(PACKAGE_DIR) && $(ZIPBIN) -9 -r $(GCS_PACKAGE_NAME) $(GCS_PACKAGE_NAME)
+ifeq ($(EXPORT_SYMBOLS),YES)
+	$(V1)cd $(PACKAGE_DIR) && $(ZIPBIN) -9 -r $(GCS_PACKAGE_NAME)_symbols $(GCS_PACKAGE_NAME)_symbols
+endif
+
 package_all_compress: package_all
-	$(V1)cd $(PACKAGE_DIR)/../ && $(ZIPBIN)  -9 -r --exclude=*.zip $(BUILD_DIR)/$(PACKAGE_LBL) $(PACKAGE_DIR)
+	$(V1)cd $(PACKAGE_DIR)/../ && $(ZIPBIN) -9 -r --exclude=*.zip $(BUILD_DIR)/dronin-$(PACKAGE_LBL) $(notdir $(PACKAGE_DIR))
 
 .PHONY: standalone installer_package
-.PHONY: package_ground_compress package_matlab_compress
+.PHONY: package_ground_compress
+
+gcs:
+	@echo "OSX Package Make of GCS."
+ifeq ($(EXPORT_SYMBOLS), YES)
+	$(V1) $(MAKE) -C $(ROOT_DIR) GCS_QMAKE_OPTS="CONFIG+=RELEASE_WITH_SYMBOLS" GCS_BUILD_CONF=debug $@
+else
+	$(V1) $(MAKE) -C $(ROOT_DIR) GCS_BUILD_CONF=release $@
+endif
+
+matlab:
+	$(V1) $(MAKE) -C $(ROOT_DIR) $@
