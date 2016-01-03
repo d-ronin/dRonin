@@ -29,6 +29,8 @@
 #include "uavobject.h"
 #include <QtEndian>
 #include <QDebug>
+#include <QJsonArray>
+#include <QJsonValue>
 
 // Constants
 #define UAVOBJ_ACCESS_SHIFT 0
@@ -244,6 +246,37 @@ QList<UAVObjectField*> UAVObject::getFields()
 {
     QMutexLocker locker(mutex);
     return fields;
+}
+
+/**
+ * Get the JSON representation of the object
+ */
+QJsonObject UAVObject::getJsonRepresentation() {
+    QMutexLocker locker(mutex);
+
+    QJsonObject obj, fieldMap;
+
+    obj["id"] = static_cast <qint64> (getObjID());
+    obj["name"] = getName();
+
+    foreach (UAVObjectField* field, fields) {
+        quint32 nelem = field->getNumElements();
+
+        if (nelem > 1) {
+            QVariantList vals;
+            for (unsigned int n = 0; n < nelem; ++n) {
+                vals.append(field->getValue(n));
+            }
+
+            fieldMap[field->getName()] = QJsonArray::fromVariantList(vals);
+        } else {
+            fieldMap[field->getName()] = QJsonValue::fromVariant(field->getValue(0));
+        }
+    }
+
+    obj["fields"] = fieldMap;
+
+    return obj;
 }
 
 /**
