@@ -549,7 +549,7 @@ QJsonDocument ConfigAutotuneWidget::getResultsJson()
 
     QJsonObject tuning, parameters, computed;
     parameters["damping"] = m_autotune->lblDamp->text().toDouble();
-    parameters["noiseSensitivity"] = m_autotune->lblNoise->text().toDouble();
+    parameters["noiseSensitivity"] = m_autotune->lblNoise->text().split(" ").at(0).toDouble();
     tuning["parameters"] = parameters;
     computed["naturalFrequency"] = m_autotune->wn->text().toDouble();
     computed["derivativeCutoff"] = m_autotune->derivativeCutoff->text().toDouble();
