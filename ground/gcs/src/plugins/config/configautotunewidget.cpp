@@ -162,6 +162,11 @@ void ConfigAutotuneWidget::onShareToDatabase()
 
     QJsonDocument json = getResultsJson();
 
+#if 0
+    QString jsonString = json.toJson(QJsonDocument::Indented);
+    qDebug() << jsonString;
+#endif
+
     QUrl url(databaseUrl);
     QNetworkRequest request(url);
     request.setHeader(QNetworkRequest::ContentTypeHeader, "application/json; charset=utf-8");
@@ -501,6 +506,8 @@ QJsonDocument ConfigAutotuneWidget::getResultsJson()
     deviceDescriptorStruct firmware;
     utilMngr->getBoardDescriptionStruct(firmware);
 
+    QJsonObject rawSettings;
+
     QJsonObject json;
     json["dataVersion"] = 1;
     json["uniqueId"] = QString(utilMngr->getBoardCPUSerial().toHex());
@@ -513,6 +520,7 @@ QJsonDocument ConfigAutotuneWidget::getResultsJson()
     fwDate.setTimeSpec(Qt::UTC); // this makes it append a Z to the string indicating UTC
     fw["date"] = fwDate.toString(Qt::ISODate);
     vehicle["firmware"] = fw;
+
     SystemSettings *sysSettings = SystemSettings::GetInstance(getObjectManager());
     UAVObjectField *afTypeField = sysSettings->getField("AirframeType");
     QString afType;
@@ -520,6 +528,18 @@ QJsonDocument ConfigAutotuneWidget::getResultsJson()
         QStringList vehicleTypes = afTypeField->getOptions();
         afType = vehicleTypes[sysSettings->getAirframeType()];
     }
+
+    rawSettings[sysSettings->getName()] = sysSettings->getJsonRepresentation();
+
+    ActuatorSettings *actSettings = ActuatorSettings::GetInstance(getObjectManager());
+    rawSettings[actSettings->getName()] = actSettings->getJsonRepresentation();
+
+    StabilizationSettings *stabSettings = StabilizationSettings::GetInstance(getObjectManager());
+    rawSettings[stabSettings->getName()] = stabSettings->getJsonRepresentation();
+
+    SystemIdent *systemIdent = SystemIdent::GetInstance(getObjectManager());
+    rawSettings[systemIdent->getName()] = systemIdent->getJsonRepresentation();
+
     vehicle["type"] = afType;
     vehicle["size"] = autotuneShareForm->getVehicleSize();
     vehicle["weight"] = autotuneShareForm->getWeight();
@@ -530,7 +550,6 @@ QJsonDocument ConfigAutotuneWidget::getResultsJson()
     json["vehicle"] = vehicle;
 
     json["userObservations"] = autotuneShareForm->getObservations();
-
 
     QJsonObject identification;
     // this stuff should be stored in an array so we can iterate :/
@@ -575,6 +594,8 @@ QJsonDocument ConfigAutotuneWidget::getResultsJson()
     computed["gains"] = gains;
     tuning["computed"] = computed;
     json["tuning"] = tuning;
+
+    json["rawSettings"] = rawSettings;
 
     return QJsonDocument(json);
 }
