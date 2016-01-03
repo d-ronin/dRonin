@@ -544,15 +544,22 @@ QJsonDocument ConfigAutotuneWidget::getResultsJson()
     pitch_ident["bias"] = m_autotune->measuredPitchBias->text().toDouble();
     pitch_ident["noise"] = m_autotune->measuredPitchNoise->text().toDouble();
     identification["pitch"] = pitch_ident;
+    QJsonObject yaw_ident;
+    yaw_ident["gain"] = m_autotune->measuredYawGain->text().toDouble();
+    yaw_ident["bias"] = m_autotune->measuredYawBias->text().toDouble();
+    yaw_ident["noise"] = m_autotune->measuredYawNoise->text().toDouble();
+    identification["yaw"] = yaw_ident;
+
     identification["tau"] = m_autotune->rollTau->text().toDouble();
     json["identification"] = identification;
 
-    QJsonObject tuning, parameters, computed;
+    QJsonObject tuning, parameters, computed, misc;
     parameters["damping"] = m_autotune->lblDamp->text().toDouble();
     parameters["noiseSensitivity"] = m_autotune->lblNoise->text().split(" ").at(0).toDouble();
     tuning["parameters"] = parameters;
     computed["naturalFrequency"] = m_autotune->wn->text().toDouble();
     computed["derivativeCutoff"] = m_autotune->derivativeCutoff->text().toDouble();
+
     QJsonObject gains;
     QJsonObject roll_gain, pitch_gain, outer_gain;
     roll_gain["kp"] = m_autotune->rollRateKp->text().toDouble();
