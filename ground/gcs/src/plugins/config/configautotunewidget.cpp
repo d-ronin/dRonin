@@ -163,11 +163,6 @@ void ConfigAutotuneWidget::onShareToDatabase()
 
     QJsonDocument json = getResultsJson();
 
-#if 0
-    QString jsonString = json.toJson(QJsonDocument::Indented);
-    qDebug() << jsonString;
-#endif
-
     QUrl url(databaseUrl);
     QNetworkRequest request(url);
     request.setHeader(QNetworkRequest::ContentTypeHeader, "application/json; charset=utf-8");
@@ -592,7 +587,13 @@ QJsonDocument ConfigAutotuneWidget::getResultsJson()
 
     QJsonObject tuning, parameters, computed, misc;
     parameters["damping"] = m_autotune->lblDamp->text().toDouble();
-    parameters["noiseSensitivity"] = m_autotune->lblNoise->text().split(" ").at(0).toDouble();
+
+    QStringList noiseSens =  m_autotune->lblNoise->text().split(" ");
+
+    if (!noiseSens.isEmpty()) {
+        parameters["noiseSensitivity"] = noiseSens.first().toDouble();
+    }
+
     tuning["parameters"] = parameters;
     computed["naturalFrequency"] = m_autotune->wn->text().toDouble();
     computed["derivativeCutoff"] = m_autotune->derivativeCutoff->text().toDouble();
