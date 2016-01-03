@@ -58,13 +58,14 @@ MyTabbedStackWidget::MyTabbedStackWidget(QWidget *parent, bool isVertical, bool 
     }
 
     if (m_iconAbove && m_vertical) {
-        m_listWidget->setFixedWidth(80); // this should be computed instead
+        m_listWidget->setFixedWidth(90); // this should be computed instead
         m_listWidget->setWrapping(false);
     }
 
     toplevelLayout->setSpacing(0);
     toplevelLayout->setContentsMargins(0, 0, 0, 0);
-    m_listWidget->setContentsMargins(0, 0, 0, 0);
+    m_listWidget->setContentsMargins(2, 0, 2, 0);
+    m_listWidget->setSizeAdjustPolicy(QAbstractScrollArea::AdjustToContents);
     m_listWidget->setSpacing(0);
     m_listWidget->setViewMode(QListView::IconMode);
     m_stackWidget->setContentsMargins(0, 0, 0, 0);
@@ -81,6 +82,11 @@ void MyTabbedStackWidget::insertTab(const int index, QWidget *tab, const QIcon &
     item->setFlags(Qt::ItemIsEnabled | Qt::ItemIsSelectable);
     item->setTextAlignment(Qt::AlignHCenter | Qt::AlignBottom);
     item->setToolTip(label);
+
+    if (m_vertical) {
+        item->setSizeHint(QSize(85, 85));
+    }
+
     m_listWidget->insertItem(index, item);
 }
 
