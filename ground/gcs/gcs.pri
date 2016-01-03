@@ -21,8 +21,10 @@ defineReplace(qtLibraryName) {
    LIBRARY_NAME = $$1
    CONFIG(debug, debug|release) {
       !debug_and_release|build_pass {
+         !RELEASE_WITH_SYMBOLS {
           mac:RET = $$member(LIBRARY_NAME, 0)_debug
-              else:win32:RET = $$member(LIBRARY_NAME, 0)d
+          }
+          win32:RET = $$member(LIBRARY_NAME, 0)d
       }
    }
    isEmpty(RET):RET = $$LIBRARY_NAME
@@ -44,6 +46,9 @@ isEmpty(GCS_LIBRARY_BASENAME) {
     GCS_LIBRARY_BASENAME = lib
 }
 
+RELEASE_WITH_SYMBOLS {
+DEFINES += RELEASE_WITH_SYMBOLS
+}
 DEFINES += GCS_LIBRARY_BASENAME=\\\"$$GCS_LIBRARY_BASENAME\\\"
 
 equals(TEST, 1) {
