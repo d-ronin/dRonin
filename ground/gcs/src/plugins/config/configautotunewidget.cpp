@@ -42,9 +42,10 @@
 #include <QClipboard>
 #include <QtNetwork/QNetworkAccessManager>
 #include <QtNetwork/QNetworkRequest>
-#include "systemident.h"
 #include "stabilizationsettings.h"
 #include "modulesettings.h"
+#include "sensorsettings.h"
+#include "systemident.h"
 #include "systemsettings.h"
 #include "coreplugin/generalsettings.h"
 #include "extensionsystem/pluginmanager.h"
@@ -539,6 +540,23 @@ QJsonDocument ConfigAutotuneWidget::getResultsJson()
 
     SystemIdent *systemIdent = SystemIdent::GetInstance(getObjectManager());
     rawSettings[systemIdent->getName()] = systemIdent->getJsonRepresentation();
+
+    SensorSettings *senSettings = SensorSettings::GetInstance(getObjectManager());
+    rawSettings[senSettings->getName()] = senSettings->getJsonRepresentation();
+
+    // Query the board plugin for the connected board to get the specific
+    // hw settings object
+    ExtensionSystem::PluginManager *pm = ExtensionSystem::PluginManager::instance();
+    if (pm != NULL) {
+        UAVObjectUtilManager* uavoUtilManager = pm->getObject<UAVObjectUtilManager>();
+        Core::IBoardType* board = uavoUtilManager->getBoardType();
+        if (board != NULL) {
+            QString hwSettingsName = board->getHwUAVO();
+
+            UAVObject *hwSettings = getObjectManager()->getObject(hwSettingsName);
+            rawSettings[hwSettings->getName()] = hwSettings->getJsonRepresentation();
+        }
+    }
 
     vehicle["type"] = afType;
     vehicle["size"] = autotuneShareForm->getVehicleSize();
