@@ -56,6 +56,10 @@
 #define STICK_MIN_MOVE -8
 #define STICK_MAX_MOVE 8
 
+#define MIN_SANE_CHANNEL_VALUE 50
+#define MAX_SANE_CHANNEL_VALUE 10000
+#define MIN_SANE_RANGE 125
+
 ConfigInputWidget::ConfigInputWidget(QWidget *parent) : ConfigTaskWidget(parent),wizardStep(wizardNone),transmitterType(heli),loop(NULL),skipflag(false)
 {
     manualCommandObj = ManualControlCommand::GetInstance(getObjectManager());
@@ -584,8 +588,7 @@ void ConfigInputWidget::wizardSetUpStep(enum wizardSteps step)
         accessoryDesiredObj1 = AccessoryDesired::GetInstance(getObjectManager(),1);
         accessoryDesiredObj2 = AccessoryDesired::GetInstance(getObjectManager(),2);
         setTxMovement(nothing);
-        m_config->wzText->setText(QString(tr("Please move all controls <b>(including switches)</b> to their maximum extents in all directions.")));
-        //m_config->wzText->setText(QString(tr("Please move all controls to their maximum extents on both directions and press next when ready.")));
+        m_config->wzText->setText(QString(tr("Please move all controls <b>(including switches)</b> to their maximum extents in all directions.  (You may continue when all controls have moved)")));
         fastMdata();
         manualSettingsData=manualSettingsObj->getData();
         for(quint8 i=0;i<ManualControlSettings::CHANNELMAX_NUMELEM;++i)
@@ -966,8 +969,8 @@ void ConfigInputWidget::identifyLimits()
     for(quint8 i=0;i<ManualControlSettings::CHANNELMAX_NUMELEM;++i)
     {
         // Don't mess up the range based on failsafe, etc.
-        if ((manualCommandData.Channel[i] > 50) &&
-                (manualCommandData.Channel[i] < 10000)) {
+        if ((manualCommandData.Channel[i] > MIN_SANE_CHANNEL_VALUE) &&
+                (manualCommandData.Channel[i] < MAX_SANE_CHANNEL_VALUE)) {
 
             if(manualSettingsData.ChannelMin[i] <= manualSettingsData.ChannelMax[i]) {
                 // Non inverted channel
@@ -990,7 +993,7 @@ void ConfigInputWidget::identifyLimits()
             int diff = manualSettingsData.ChannelMax[i] -
                 manualSettingsData.ChannelMin[i];
 
-            if (abs(diff) < 125) {
+            if (abs(diff) < MIN_SANE_RANGE) {
                 allSane = false;
             }
         }
