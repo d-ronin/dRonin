@@ -65,10 +65,8 @@ bool OutputPage::validatePage()
         // This is safe to do even if they are wrong. Normal ESCS
         // ignore oneshot.
         setOneshotTimings();
-    } else if (ui->rapidESCButton->isChecked()) {
-        getWizard()->setESCType(SetupWizard::ESC_RAPID);
     } else {
-        getWizard()->setESCType(SetupWizard::ESC_LEGACY);
+        getWizard()->setESCType(SetupWizard::ESC_RAPID);
     }
 
     return true;
