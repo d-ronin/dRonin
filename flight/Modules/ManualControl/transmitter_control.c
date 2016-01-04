@@ -62,19 +62,30 @@
 #include "pios_frsky_rssi.h"
 #endif /* PIOS_INCLUDE_FRSKY_RSSI */
 
+// This is how far "left" you have to deflect for "yaw left" arming, etc.
 #define ARMED_THRESHOLD    0.50f
+
 //safe band to allow a bit of calibration error or trim offset (in microseconds)
+//these specify how far outside the "permitted range" throttle and other channels
+//can go.  e.g. if range is 1000..2000us, throttles under 900us or over 2100us
+//result in failsafe.
 #define CONNECTION_OFFSET_THROTTLE 100
 #define CONNECTION_OFFSET          250
 
 #define RCVR_ACTIVITY_MONITOR_CHANNELS_PER_GROUP 12
 #define RCVR_ACTIVITY_MONITOR_MIN_RANGE 10
+
+/* All channels must have at least this many counts on each side of neutral.
+ * (Except throttle which must have this many on the positive side).  This is
+ * to prevent situations where a partial calibration results in spurious
+ * arming, etc. */
+#define MIN_MEANINGFUL_RANGE 40
+
 struct rcvr_activity_fsm {
 	ManualControlSettingsChannelGroupsOptions group;
 	uint16_t prev[RCVR_ACTIVITY_MONITOR_CHANNELS_PER_GROUP];
 	uint8_t sample_count;
 };
-
 
 // Private variables
 static ManualControlCommandData   cmd;
@@ -95,9 +106,9 @@ static void altitude_hold_desired(ManualControlCommandData * cmd, bool flightMod
 static void set_flight_mode();
 static void process_transmitter_events(ManualControlCommandData * cmd, ManualControlSettingsData * settings, bool valid);
 static void set_manual_control_error(SystemAlarmsManualControlOptions errorCode);
-static float scaleChannel(int16_t value, int16_t max, int16_t min, int16_t neutral);
+static float scaleChannel(int n, int16_t value);
+static bool validInputRange(int n, uint16_t value, uint16_t offset);
 static uint32_t timeDifferenceMs(uint32_t start_time, uint32_t end_time);
-static bool validInputRange(int16_t min, int16_t max, uint16_t value, uint16_t offset);
 static void applyDeadband(float *value, float deadband);
 static void resetRcvrActivity(struct rcvr_activity_fsm * fsm);
 static bool updateRcvrActivity(struct rcvr_activity_fsm * fsm);
@@ -258,8 +269,8 @@ int32_t transmitter_control_update()
 			valid_input_detected = false;
 			validChannel[n] = false;
 		} else {
-			scaledChannel[n] = scaleChannel(cmd.Channel[n], settings.ChannelMax[n],	settings.ChannelMin[n], settings.ChannelNeutral[n]);
-			validChannel[n] = validInputRange(settings.ChannelMin[n], settings.ChannelMax[n], cmd.Channel[n], CONNECTION_OFFSET);
+			scaledChannel[n] = scaleChannel(n, cmd.Channel[n]);
+			validChannel[n] = validInputRange(n, cmd.Channel[n], CONNECTION_OFFSET);
 		}
 	}
 
@@ -1143,8 +1154,12 @@ static void set_loiter_command(ManualControlCommandData *cmd)
 /**
  * Convert channel from servo pulse duration (microseconds) to scaled -1/+1 range.
  */
-static float scaleChannel(int16_t value, int16_t max, int16_t min, int16_t neutral)
+static float scaleChannel(int n, int16_t value)
 {
+	int16_t min = settings.ChannelMin[n];
+	int16_t max = settings.ChannelMax[n];
+	int16_t neutral = settings.ChannelNeutral[n];
+
 	float valueScaled;
 
 	// Scale
@@ -1182,15 +1197,36 @@ static uint32_t timeDifferenceMs(uint32_t start_time, uint32_t end_time) {
  * @brief Determine if the manual input value is within acceptable limits
  * @returns return TRUE if so, otherwise return FALSE
  */
-bool validInputRange(int16_t min, int16_t max, uint16_t value, uint16_t offset)
+bool validInputRange(int n, uint16_t value, uint16_t offset)
 {
-	if (min > max)
-	{
+	int16_t min = settings.ChannelMin[n];
+	int16_t max = settings.ChannelMax[n];
+	int16_t neutral = settings.ChannelNeutral[n];
+	int16_t range;
+
+	if (min > max) {
 		int16_t tmp = min;
 		min = max;
 		max = tmp;
 	}
-	return (value >= min - offset && value <= max + offset);
+
+	if ((neutral > max) || (neutral < min)) {
+		return false;
+	}
+
+	if (n == MANUALCONTROLSETTINGS_CHANNELGROUPS_THROTTLE) {
+		/* Pick just the one that results in the "positive" side of
+		 * the throttle scale */
+		range = max - neutral;
+	} else {
+		range = MIN(max - neutral, neutral - min);
+	}
+
+	if (range < MIN_MEANINGFUL_RANGE) {
+		return false;
+	}
+
+	return (value >= (min - offset) && value <= (max + offset));
 }
 
 /**
@@ -1199,7 +1235,7 @@ bool validInputRange(int16_t min, int16_t max, uint16_t value, uint16_t offset)
 static void applyDeadband(float *value, float deadband)
 {
 	if (deadband < 0.0001f) return; /* ignore tiny deadband value */
-	if (deadband >= 1) return;	/* reject nonsensical db values */
+	if (deadband >= 0.85f) return;	/* reject nonsensical db values */
 
 	if (fabsf(*value) < deadband) {
 		*value = 0.0f;
