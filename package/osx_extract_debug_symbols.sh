@@ -40,8 +40,7 @@ else
   echo dump_syms tool not found
   exit 1
 fi
-echo "xxx"
-interesting_files=$(cd ${SOURCE_DIR} && gfind . -executable -type f -not -path "./dRonin-GCS.app/Contents/Resources/*" )
+interesting_files=$(cd ${SOURCE_DIR} && find . -perm -0111 -type f -not -path "./dRonin-GCS.app/Contents/Resources/*" )
 for file in $interesting_files; do
     generateSymbols $file
 done
