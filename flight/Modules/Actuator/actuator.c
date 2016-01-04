@@ -562,15 +562,16 @@ static bool set_channel(uint8_t mixer_channel, float value)
 			}
 		}
 		PIOS_Servo_Set(mixer_channel,
-					buzzOn ? actuatorSettings.ChannelMax[mixer_channel] : actuatorSettings.ChannelMin[mixer_channel]);
+					buzzOn ? actuatorSettings.ChannelMax[mixer_channel] : actuatorSettings.ChannelMin[mixer_channel],
+					actuatorSettings.ChannelMax[mixer_channel]);
 		return true;
 	}
 	case ACTUATORSETTINGS_CHANNELTYPE_PWM:
 #if defined(PIOS_INCLUDE_HPWM)
 		// The HPWM method will convert from us to the appropriate settings
-		PIOS_Servo_Set(mixer_channel, value);
+		PIOS_Servo_Set(mixer_channel, value, actuatorSettings.ChannelMax[mixer_channel]);
 #else
-		PIOS_Servo_Set(mixer_channel, value);
+		PIOS_Servo_Set(mixer_channel, value, actuatorSettings.ChannelMax[mixer_channel]);
 #endif
 		return true;
 	default:
