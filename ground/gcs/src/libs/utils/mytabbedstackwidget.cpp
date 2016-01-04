@@ -2,6 +2,7 @@
  ******************************************************************************
  *
  * @file       mytabbedstackwidget.cpp
+ * @author     dRonin, http://dRonin.org/, Copyright (C) 2016
  * @author     The OpenPilot Team, http://www.openpilot.org Copyright (C) 2010.
  *             Parts by Nokia Corporation (qt-info@nokia.com) Copyright (C) 2009.
  * @brief
@@ -67,7 +68,7 @@ MyTabbedStackWidget::MyTabbedStackWidget(QWidget *parent, bool isVertical, bool 
     toplevelLayout->setContentsMargins(0, 0, 0, 0);
     m_listWidget->setContentsMargins(0, 0, 4, 0);
     m_listWidget->setSizeAdjustPolicy(QAbstractScrollArea::AdjustToContents);
-    m_listWidget->setSpacing(2);
+    m_listWidget->setSpacing(4);
     m_listWidget->setViewMode(QListView::IconMode);
     m_stackWidget->setContentsMargins(0, 0, 0, 0);
     setLayout(toplevelLayout);
@@ -85,7 +86,7 @@ void MyTabbedStackWidget::insertTab(const int index, QWidget *tab, const QIcon &
     item->setToolTip(label);
 
     if (m_vertical) {
-        item->setSizeHint(QSize(85, 80));
+        item->setSizeHint(QSize(85, 82));
     }
 
     m_listWidget->insertItem(index, item);
