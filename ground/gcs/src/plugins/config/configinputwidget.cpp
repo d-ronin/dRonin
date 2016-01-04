@@ -56,6 +56,10 @@
 #define STICK_MIN_MOVE -8
 #define STICK_MAX_MOVE 8
 
+#define MIN_SANE_CHANNEL_VALUE 50
+#define MAX_SANE_CHANNEL_VALUE 10000
+#define MIN_SANE_RANGE 125
+
 ConfigInputWidget::ConfigInputWidget(QWidget *parent) : ConfigTaskWidget(parent),wizardStep(wizardNone),transmitterType(heli),loop(NULL),skipflag(false)
 {
     manualCommandObj = ManualControlCommand::GetInstance(getObjectManager());
@@ -584,7 +588,7 @@ void ConfigInputWidget::wizardSetUpStep(enum wizardSteps step)
         accessoryDesiredObj1 = AccessoryDesired::GetInstance(getObjectManager(),1);
         accessoryDesiredObj2 = AccessoryDesired::GetInstance(getObjectManager(),2);
         setTxMovement(nothing);
-        m_config->wzText->setText(QString(tr("Please move all controls to their maximum extents on both directions and press next when ready.")));
+        m_config->wzText->setText(QString(tr("Please move all controls <b>(including switches)</b> to their maximum extents in all directions.  (You may continue when all controls have moved)")));
         fastMdata();
         manualSettingsData=manualSettingsObj->getData();
         for(quint8 i=0;i<ManualControlSettings::CHANNELMAX_NUMELEM;++i)
@@ -602,6 +606,9 @@ void ConfigInputWidget::wizardSetUpStep(enum wizardSteps step)
         connect(manualCommandObj, SIGNAL(objectUpdated(UAVObject*)), this, SLOT(identifyLimits()));
         connect(manualCommandObj, SIGNAL(objectUpdated(UAVObject*)), this, SLOT(moveSticks()));
         connect(accessoryDesiredObj0, SIGNAL(objectUpdated(UAVObject*)), this, SLOT(moveSticks()));
+
+        // Disable next.  When range on all channels is sufficient, enable it
+        m_config->wzNext->setEnabled(false);
     }
         break;
     case wizardIdentifyInverted:
@@ -955,21 +962,40 @@ void ConfigInputWidget::identifyControls()
 
 void ConfigInputWidget::identifyLimits()
 {
+    bool allSane=true;
+
     manualCommandData=manualCommandObj->getData();
+
     for(quint8 i=0;i<ManualControlSettings::CHANNELMAX_NUMELEM;++i)
     {
-        if(manualSettingsData.ChannelMin[i] <= manualSettingsData.ChannelMax[i]) {
-            // Non inverted channel
-            if(manualSettingsData.ChannelMin[i]>manualCommandData.Channel[i])
-                manualSettingsData.ChannelMin[i]=manualCommandData.Channel[i];
-            if(manualSettingsData.ChannelMax[i]<manualCommandData.Channel[i])
-                manualSettingsData.ChannelMax[i]=manualCommandData.Channel[i];
-        } else {
-            // Inverted channel
-            if(manualSettingsData.ChannelMax[i]>manualCommandData.Channel[i])
-                manualSettingsData.ChannelMax[i]=manualCommandData.Channel[i];
-            if(manualSettingsData.ChannelMin[i]<manualCommandData.Channel[i])
-                manualSettingsData.ChannelMin[i]=manualCommandData.Channel[i];
+        // Don't mess up the range based on failsafe, etc.
+        if ((manualCommandData.Channel[i] > MIN_SANE_CHANNEL_VALUE) &&
+                (manualCommandData.Channel[i] < MAX_SANE_CHANNEL_VALUE)) {
+
+            if(manualSettingsData.ChannelMin[i] <= manualSettingsData.ChannelMax[i]) {
+                // Non inverted channel
+                if(manualSettingsData.ChannelMin[i]>manualCommandData.Channel[i])
+                    manualSettingsData.ChannelMin[i]=manualCommandData.Channel[i];
+                if(manualSettingsData.ChannelMax[i]<manualCommandData.Channel[i])
+                    manualSettingsData.ChannelMax[i]=manualCommandData.Channel[i];
+            } else {
+                // Inverted channel
+                if(manualSettingsData.ChannelMax[i]>manualCommandData.Channel[i])
+                    manualSettingsData.ChannelMax[i]=manualCommandData.Channel[i];
+                if(manualSettingsData.ChannelMin[i]<manualCommandData.Channel[i])
+                    manualSettingsData.ChannelMin[i]=manualCommandData.Channel[i];
+            }
+        }
+
+        // If this is a used channel, make sure we get a valid range.
+        if (manualSettingsData.ChannelGroups[i] !=
+                ManualControlSettings::CHANNELGROUPS_NONE) {
+            int diff = manualSettingsData.ChannelMax[i] -
+                manualSettingsData.ChannelMin[i];
+
+            if (abs(diff) < MIN_SANE_RANGE) {
+                allSane = false;
+            }
         }
 
         if (i == ManualControlSettings::CHANNELNEUTRAL_THROTTLE) {
@@ -980,7 +1006,13 @@ void ConfigInputWidget::identifyLimits()
                     (manualSettingsData.ChannelMax[i] - manualSettingsData.ChannelMin[i]) * THROTTLE_NEUTRAL_FRACTION;
         }
     }
+
     manualSettingsObj->setData(manualSettingsData);
+
+    if (allSane) {
+        m_config->wzText->setText(QString(tr("Please move all controls <b>(including switches)</b> to their maximum extents in all directions.  You may press next when finished.")));
+        m_config->wzNext->setEnabled(true);
+    }
 }
 void ConfigInputWidget::setMoveFromCommand(int command)
 {
