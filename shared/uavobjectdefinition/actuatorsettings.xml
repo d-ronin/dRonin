@@ -1,7 +1,7 @@
 <xml>
     <object name="ActuatorSettings" singleinstance="true" settings="true">
         <description>Settings for the @ref ActuatorModule that controls the channel assignments for the mixer based on AircraftType</description>
-        <field name="TimerUpdateFreq" units="Hz" type="uint16" elements="6" defaultvalue="400">
+        <field name="TimerUpdateFreq" units="Hz" type="uint16" elements="6" defaultvalue="50">
             <description>The frequency of the PWM signal output to the actuator. 0 specifies synchronous PWM.</description>
         </field>
         <field name="TimerPwmResolution" units="" type="enum" elements="6" options="1MHz,12MHz" defaultvalue="1MHz">
