@@ -42,9 +42,10 @@
 #include <QClipboard>
 #include <QtNetwork/QNetworkAccessManager>
 #include <QtNetwork/QNetworkRequest>
-#include "systemident.h"
 #include "stabilizationsettings.h"
 #include "modulesettings.h"
+#include "sensorsettings.h"
+#include "systemident.h"
 #include "systemsettings.h"
 #include "coreplugin/generalsettings.h"
 #include "extensionsystem/pluginmanager.h"
@@ -501,6 +502,8 @@ QJsonDocument ConfigAutotuneWidget::getResultsJson()
     deviceDescriptorStruct firmware;
     utilMngr->getBoardDescriptionStruct(firmware);
 
+    QJsonObject rawSettings;
+
     QJsonObject json;
     json["dataVersion"] = 1;
     json["uniqueId"] = QString(utilMngr->getBoardCPUSerial().toHex());
@@ -513,6 +516,7 @@ QJsonDocument ConfigAutotuneWidget::getResultsJson()
     fwDate.setTimeSpec(Qt::UTC); // this makes it append a Z to the string indicating UTC
     fw["date"] = fwDate.toString(Qt::ISODate);
     vehicle["firmware"] = fw;
+
     SystemSettings *sysSettings = SystemSettings::GetInstance(getObjectManager());
     UAVObjectField *afTypeField = sysSettings->getField("AirframeType");
     QString afType;
@@ -520,6 +524,35 @@ QJsonDocument ConfigAutotuneWidget::getResultsJson()
         QStringList vehicleTypes = afTypeField->getOptions();
         afType = vehicleTypes[sysSettings->getAirframeType()];
     }
+
+    rawSettings[sysSettings->getName()] = sysSettings->getJsonRepresentation();
+
+    ActuatorSettings *actSettings = ActuatorSettings::GetInstance(getObjectManager());
+    rawSettings[actSettings->getName()] = actSettings->getJsonRepresentation();
+
+    StabilizationSettings *stabSettings = StabilizationSettings::GetInstance(getObjectManager());
+    rawSettings[stabSettings->getName()] = stabSettings->getJsonRepresentation();
+
+    SystemIdent *systemIdent = SystemIdent::GetInstance(getObjectManager());
+    rawSettings[systemIdent->getName()] = systemIdent->getJsonRepresentation();
+
+    SensorSettings *senSettings = SensorSettings::GetInstance(getObjectManager());
+    rawSettings[senSettings->getName()] = senSettings->getJsonRepresentation();
+
+    // Query the board plugin for the connected board to get the specific
+    // hw settings object
+    ExtensionSystem::PluginManager *pm = ExtensionSystem::PluginManager::instance();
+    if (pm != NULL) {
+        UAVObjectUtilManager* uavoUtilManager = pm->getObject<UAVObjectUtilManager>();
+        Core::IBoardType* board = uavoUtilManager->getBoardType();
+        if (board != NULL) {
+            QString hwSettingsName = board->getHwUAVO();
+
+            UAVObject *hwSettings = getObjectManager()->getObject(hwSettingsName);
+            rawSettings[hwSettings->getName()] = hwSettings->getJsonRepresentation();
+        }
+    }
+
     vehicle["type"] = afType;
     vehicle["size"] = autotuneShareForm->getVehicleSize();
     vehicle["weight"] = autotuneShareForm->getWeight();
@@ -530,7 +563,6 @@ QJsonDocument ConfigAutotuneWidget::getResultsJson()
     json["vehicle"] = vehicle;
 
     json["userObservations"] = autotuneShareForm->getObservations();
-
 
     QJsonObject identification;
     // this stuff should be stored in an array so we can iterate :/
@@ -544,15 +576,28 @@ QJsonDocument ConfigAutotuneWidget::getResultsJson()
     pitch_ident["bias"] = m_autotune->measuredPitchBias->text().toDouble();
     pitch_ident["noise"] = m_autotune->measuredPitchNoise->text().toDouble();
     identification["pitch"] = pitch_ident;
+    QJsonObject yaw_ident;
+    yaw_ident["gain"] = m_autotune->measuredYawGain->text().toDouble();
+    yaw_ident["bias"] = m_autotune->measuredYawBias->text().toDouble();
+    yaw_ident["noise"] = m_autotune->measuredYawNoise->text().toDouble();
+    identification["yaw"] = yaw_ident;
+
     identification["tau"] = m_autotune->rollTau->text().toDouble();
     json["identification"] = identification;
 
-    QJsonObject tuning, parameters, computed;
+    QJsonObject tuning, parameters, computed, misc;
     parameters["damping"] = m_autotune->lblDamp->text().toDouble();
-    parameters["noiseSensitivity"] = m_autotune->lblNoise->text().toDouble();
+
+    QStringList noiseSens =  m_autotune->lblNoise->text().split(" ");
+
+    if (!noiseSens.isEmpty()) {
+        parameters["noiseSensitivity"] = noiseSens.first().toDouble();
+    }
+
     tuning["parameters"] = parameters;
     computed["naturalFrequency"] = m_autotune->wn->text().toDouble();
     computed["derivativeCutoff"] = m_autotune->derivativeCutoff->text().toDouble();
+
     QJsonObject gains;
     QJsonObject roll_gain, pitch_gain, outer_gain;
     roll_gain["kp"] = m_autotune->rollRateKp->text().toDouble();
@@ -568,6 +613,8 @@ QJsonDocument ConfigAutotuneWidget::getResultsJson()
     computed["gains"] = gains;
     tuning["computed"] = computed;
     json["tuning"] = tuning;
+
+    json["rawSettings"] = rawSettings;
 
     return QJsonDocument(json);
 }

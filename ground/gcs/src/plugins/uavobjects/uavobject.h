@@ -31,6 +31,7 @@
 
 #include "uavobjects_global.h"
 #include <QtGlobal>
+#include <QJsonObject>
 #include <QObject>
 #include <QMutex>
 #include <QMutexLocker>
@@ -128,6 +129,7 @@ public:
     QString toString();
     QString toStringBrief();
     QString toStringData();
+    QJsonObject getJsonRepresentation();
     void emitTransactionCompleted(bool success);
     void emitTransactionCompleted(bool success, bool nacked);
     void emitNewInstance(UAVObject *);

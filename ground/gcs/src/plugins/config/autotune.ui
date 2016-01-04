@@ -78,26 +78,26 @@
              <string>&lt;!DOCTYPE HTML PUBLIC &quot;-//W3C//DTD HTML 4.0//EN&quot; &quot;http://www.w3.org/TR/REC-html40/strict.dtd&quot;&gt;
 &lt;html&gt;&lt;head&gt;&lt;meta name=&quot;qrichtext&quot; content=&quot;1&quot; /&gt;&lt;style type=&quot;text/css&quot;&gt;
 p, li { white-space: pre-wrap; }
-&lt;/style&gt;&lt;/head&gt;&lt;body style=&quot; font-family:'MS Shell Dlg 2'; font-size:8.25pt; font-weight:400; font-style:normal;&quot;&gt;
+&lt;/style&gt;&lt;/head&gt;&lt;body style=&quot; font-family:'.Helvetica Neue DeskInterface'; font-size:13pt; font-weight:400; font-style:normal;&quot;&gt;
 &lt;p align=&quot;center&quot; style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:'Lucida Grande'; font-size:20pt; font-weight:600; color:#ff0000;&quot;&gt;WARNING:&lt;/span&gt;&lt;/p&gt;
-&lt;p style=&quot;-qt-paragraph-type:empty; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px; font-family:'Lucida Grande'; font-size:13pt;&quot;&gt;&lt;br /&gt;&lt;/p&gt;
-&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:'Lucida Grande'; font-size:13pt;&quot;&gt;This is an advanced plugin for the GCS that is going to make your UAV twitch automatically, so test in a large open area and be cautious of the values that it creates.&lt;br /&gt;&lt;br /&gt;Please read and understand all of the following steps for autotuning before attempting an autotune.&lt;br /&gt;&lt;/span&gt;&lt;/p&gt;
-&lt;ol style=&quot;margin-top: 0px; margin-bottom: 0px; margin-left: 0px; margin-right: 0px; -qt-list-indent: 1;&quot;&gt;&lt;li style=&quot; font-family:'Lucida Grande'; font-size:13pt;&quot; style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;Go to https://vimeo.com/104806460 and watch the autotuning tutorial.&lt;/li&gt;
-&lt;p style=&quot;-qt-paragraph-type:empty; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:1; text-indent:0px; font-family:'Lucida Grande'; font-size:13pt;&quot;&gt;&lt;br /&gt;&lt;/p&gt;
-&lt;li style=&quot; font-family:'Lucida Grande'; font-size:13pt;&quot; style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;On the &lt;span style=&quot; font-style:italic;&quot;&gt;Input configuration &lt;/span&gt;page, &lt;span style=&quot; font-style:italic;&quot;&gt;Flight Mode Switch Settings tab&lt;/span&gt;, set one of your flight modes to &amp;quot;Autotune&amp;quot;.&lt;/li&gt;
-&lt;p style=&quot;-qt-paragraph-type:empty; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:1; text-indent:0px; font-family:'Lucida Grande'; font-size:13pt;&quot;&gt;&lt;br /&gt;&lt;/p&gt;
-&lt;li style=&quot; font-family:'Lucida Grande'; font-size:13pt;&quot; style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;Click the &lt;span style=&quot; font-style:italic;&quot;&gt;Enable Autotune Module&lt;/span&gt; checkbox below this text, click S&lt;span style=&quot; font-style:italic;&quot;&gt;ave,&lt;/span&gt; and reboot the flight controller.&lt;br /&gt;&lt;/li&gt;
-&lt;li style=&quot; font-family:'Lucida Grande'; font-size:13pt;&quot; style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;Take off, and when stable, change flight mode to autotune. Focus on keeping the UAV in the air while it's twitching.&lt;/li&gt;
-&lt;ol type=&quot;a&quot; style=&quot;margin-top: 0px; margin-bottom: 0px; margin-left: 0px; margin-right: 0px; -qt-list-indent: 2;&quot;&gt;&lt;li style=&quot; font-family:'Lucida Grande'; font-size:13pt;&quot; style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;In the first few seconds, nothing will happen...&lt;/li&gt;
-&lt;li style=&quot; font-family:'Lucida Grande'; font-size:13pt;&quot; style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;The the UAV will start twitching for approximately 60 seconds. It will continue to respond to your inputs, and moving the sticks won't negatively affect the tune.&lt;/li&gt;
-&lt;li style=&quot; font-family:'Lucida Grande'; font-size:13pt;&quot; style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;When the twitching stops, the tuning phase is completed.&lt;/li&gt;&lt;/ol&gt;
-&lt;p style=&quot;-qt-paragraph-type:empty; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:1; text-indent:0px; font-family:'Lucida Grande'; font-size:13pt;&quot;&gt;&lt;br /&gt;&lt;/p&gt;
-&lt;li style=&quot; font-family:'Lucida Grande'; font-size:13pt;&quot; style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;Land and disarm leaving the Autotune mode enabled. At this point, the settings are saved. Power down the UAV, unless it is connected to GCS via bluetooth.&lt;br /&gt;&lt;/li&gt;
-&lt;li style=&quot; font-family:'Lucida Grande'; font-size:13pt;&quot; style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;Connect to GCS and check the values on the &lt;span style=&quot; font-style:italic;&quot;&gt;Autotune Setup&lt;/span&gt; page against the values on the &lt;span style=&quot; font-style:italic;&quot;&gt;Stabilization&lt;/span&gt; page. If they are vastly different, this is an indication to be wary, and indicates that a subsequent autotune should be run to get more accurate values. &lt;span style=&quot; font-weight:600;&quot;&gt;For extreme values a prompt will ask if you want to continue. Check your settings carefully in this case.&lt;/span&gt;&lt;br /&gt;&lt;/li&gt;
-&lt;li style=&quot; font-family:'Lucida Grande'; font-size:13pt;&quot; style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;Adjust the values as necessary with the &lt;span style=&quot; font-style:italic;&quot;&gt;Damping&lt;/span&gt; and &lt;span style=&quot; font-style:italic;&quot;&gt;Noise sensitivity&lt;/span&gt; sliders until they appear to be reasonable. When satisfied, click the &lt;span style=&quot; font-style:italic;&quot;&gt;Apply Computed Values&lt;/span&gt; button at the bottom right.&lt;br /&gt;&lt;/li&gt;
-&lt;li style=&quot; font-family:'Lucida Grande'; font-size:13pt;&quot; style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;Return to the &lt;span style=&quot; font-style:italic;&quot;&gt;Stabilization&lt;/span&gt; page and click &lt;span style=&quot; font-style:italic;&quot;&gt;apply&lt;/span&gt; to enable the new settings. The &lt;span style=&quot; font-style:italic;&quot;&gt;save&lt;/span&gt; button must also be pressed if the flight controller is to be powered down prior to the next flight.&lt;br /&gt;&lt;/li&gt;
-&lt;li style=&quot; font-family:'Lucida Grande'; font-size:13pt;&quot; style=&quot; margin-top:0px; margin-bottom:12px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;Ensure that a normal flight mode (not Autotune) is selected prior to the nexn flight.  If Autotune is left as the active mode, it is likely that the flight controller will not arm.&lt;/li&gt;
-&lt;li style=&quot; font-family:'Lucida Grande'; font-size:13pt;&quot; style=&quot; margin-top:0px; margin-bottom:12px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;If the UAV performs well, then the process is complete.  If it does not, the &lt;span style=&quot; font-style:italic;&quot;&gt;Dampin&lt;/span&gt;g and &lt;span style=&quot; font-style:italic;&quot;&gt;Noise sensitivity&lt;/span&gt; sliders may be adjusted, settings reapplied, saved and tested again.&lt;/li&gt;&lt;/ol&gt;&lt;/body&gt;&lt;/html&gt;</string>
+&lt;p style=&quot;-qt-paragraph-type:empty; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px; font-family:'Lucida Grande';&quot;&gt;&lt;br /&gt;&lt;/p&gt;
+&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:'Lucida Grande';&quot;&gt;This is an advanced plugin for the GCS that is going to make your UAV twitch automatically, so test in a large open area and be cautious of the values that it creates.&lt;br /&gt;&lt;br /&gt;Please read and understand all of the following steps for autotuning before attempting an autotune.&lt;br /&gt;&lt;/span&gt;&lt;/p&gt;
+&lt;ol style=&quot;margin-top: 0px; margin-bottom: 0px; margin-left: 0px; margin-right: 0px; -qt-list-indent: 1;&quot;&gt;&lt;li style=&quot; font-family:'Lucida Grande';&quot; style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;Go to https://vimeo.com/104806460 and watch the autotuning tutorial.&lt;/li&gt;
+&lt;p style=&quot;-qt-paragraph-type:empty; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:1; text-indent:0px; font-family:'Lucida Grande';&quot;&gt;&lt;br /&gt;&lt;/p&gt;
+&lt;li style=&quot; font-family:'Lucida Grande';&quot; style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;On the &lt;span style=&quot; font-style:italic;&quot;&gt;Input configuration &lt;/span&gt;page, &lt;span style=&quot; font-style:italic;&quot;&gt;Flight Mode Switch Settings tab&lt;/span&gt;, set one of your flight modes to &amp;quot;Autotune&amp;quot;.&lt;/li&gt;
+&lt;p style=&quot;-qt-paragraph-type:empty; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:1; text-indent:0px; font-family:'Lucida Grande';&quot;&gt;&lt;br /&gt;&lt;/p&gt;
+&lt;li style=&quot; font-family:'Lucida Grande';&quot; style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;Click the &lt;span style=&quot; font-style:italic;&quot;&gt;Enable Autotune Module&lt;/span&gt; checkbox below this text, click S&lt;span style=&quot; font-style:italic;&quot;&gt;ave,&lt;/span&gt; and reboot the flight controller.&lt;br /&gt;&lt;/li&gt;
+&lt;li style=&quot; font-family:'Lucida Grande';&quot; style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;Take off, and when stable, change flight mode to autotune. Focus on keeping the UAV in the air while it's twitching.&lt;/li&gt;
+&lt;ol type=&quot;a&quot; style=&quot;margin-top: 0px; margin-bottom: 0px; margin-left: 0px; margin-right: 0px; -qt-list-indent: 2;&quot;&gt;&lt;li style=&quot; font-family:'Lucida Grande';&quot; style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;In the first few seconds, nothing will happen...&lt;/li&gt;
+&lt;li style=&quot; font-family:'Lucida Grande';&quot; style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;The the UAV will start twitching for approximately 60 seconds. It will continue to respond to your inputs, and moving the sticks won't negatively affect the tune.&lt;/li&gt;
+&lt;li style=&quot; font-family:'Lucida Grande';&quot; style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;When the twitching stops, the tuning phase is completed.&lt;/li&gt;&lt;/ol&gt;
+&lt;p style=&quot;-qt-paragraph-type:empty; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:1; text-indent:0px; font-family:'Lucida Grande';&quot;&gt;&lt;br /&gt;&lt;/p&gt;
+&lt;li style=&quot; font-family:'Lucida Grande';&quot; style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;Land and disarm leaving the Autotune mode enabled. At this point, the settings are saved. Power down the UAV, unless it is connected to GCS via bluetooth.&lt;br /&gt;&lt;/li&gt;
+&lt;li style=&quot; font-family:'Lucida Grande';&quot; style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;Connect to GCS and check the values on the &lt;span style=&quot; font-style:italic;&quot;&gt;Autotune Setup&lt;/span&gt; page against the values on the &lt;span style=&quot; font-style:italic;&quot;&gt;Stabilization&lt;/span&gt; page. If they are vastly different, this is an indication to be wary, and indicates that a subsequent autotune should be run to get more accurate values. &lt;span style=&quot; font-weight:600;&quot;&gt;For extreme values a prompt will ask if you want to continue. Check your settings carefully in this case.&lt;/span&gt;&lt;br /&gt;&lt;/li&gt;
+&lt;li style=&quot; font-family:'Lucida Grande';&quot; style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;Adjust the values as necessary with the &lt;span style=&quot; font-style:italic;&quot;&gt;Damping&lt;/span&gt; and &lt;span style=&quot; font-style:italic;&quot;&gt;Noise sensitivity&lt;/span&gt; sliders until they appear to be reasonable. When satisfied, click the &lt;span style=&quot; font-style:italic;&quot;&gt;Apply Computed Values&lt;/span&gt; button at the bottom right.&lt;br /&gt;&lt;/li&gt;
+&lt;li style=&quot; font-family:'Lucida Grande';&quot; style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;Return to the &lt;span style=&quot; font-style:italic;&quot;&gt;Stabilization&lt;/span&gt; page and click &lt;span style=&quot; font-style:italic;&quot;&gt;apply&lt;/span&gt; to enable the new settings. The &lt;span style=&quot; font-style:italic;&quot;&gt;save&lt;/span&gt; button must also be pressed if the flight controller is to be powered down prior to the next flight.&lt;br /&gt;&lt;/li&gt;
+&lt;li style=&quot; font-family:'Lucida Grande';&quot; style=&quot; margin-top:0px; margin-bottom:12px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;Ensure that a normal flight mode (not Autotune) is selected prior to the nexn flight.  If Autotune is left as the active mode, it is likely that the flight controller will not arm.&lt;/li&gt;
+&lt;li style=&quot; font-family:'Lucida Grande';&quot; style=&quot; margin-top:0px; margin-bottom:12px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;If the UAV performs well, then the process is complete.  If it does not, the &lt;span style=&quot; font-style:italic;&quot;&gt;Dampin&lt;/span&gt;g and &lt;span style=&quot; font-style:italic;&quot;&gt;Noise sensitivity&lt;/span&gt; sliders may be adjusted, settings reapplied, saved and tested again.&lt;/li&gt;&lt;/ol&gt;&lt;/body&gt;&lt;/html&gt;</string>
             </property>
            </widget>
           </item>
@@ -317,7 +317,7 @@ p, li { white-space: pre-wrap; }
             <x>0</x>
             <y>0</y>
             <width>808</width>
-            <height>707</height>
+            <height>710</height>
            </rect>
           </property>
           <property name="sizePolicy">
@@ -383,6 +383,34 @@ p, li { white-space: pre-wrap; }
               <string>Measured Properties</string>
              </property>
              <layout class="QGridLayout" name="gridLayout">
+              <item row="0" column="1">
+               <widget class="QLabel" name="label_6">
+                <property name="text">
+                 <string>Gain</string>
+                </property>
+               </widget>
+              </item>
+              <item row="0" column="2">
+               <widget class="QLabel" name="label_7">
+                <property name="text">
+                 <string>Bias</string>
+                </property>
+               </widget>
+              </item>
+              <item row="0" column="3">
+               <widget class="QLabel" name="label_14">
+                <property name="text">
+                 <string>Tau (s)</string>
+                </property>
+               </widget>
+              </item>
+              <item row="0" column="4">
+               <widget class="QLabel" name="label_16">
+                <property name="text">
+                 <string>Noise</string>
+                </property>
+               </widget>
+              </item>
               <item row="1" column="0">
                <widget class="QLabel" name="label_3">
                 <property name="text">
@@ -424,54 +452,6 @@ p, li { white-space: pre-wrap; }
                 </property>
                </widget>
               </item>
-              <item row="0" column="1">
-               <widget class="QLabel" name="label_6">
-                <property name="text">
-                 <string>Gain</string>
-                </property>
-               </widget>
-              </item>
-              <item row="3" column="0">
-               <widget class="QLabel" name="label_8">
-                <property name="text">
-                 <string>Pitch</string>
-                </property>
-               </widget>
-              </item>
-              <item row="3" column="1">
-               <widget class="QLabel" name="measuredPitchGain">
-                <property name="text">
-                 <string>0</string>
-                </property>
-                <property name="alignment">
-                 <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
-                </property>
-                <property name="objrelation" stdset="0">
-                 <stringlist>
-                  <string>objname:SystemIdent</string>
-                  <string>fieldname:Beta</string>
-                  <string>element:Pitch</string>
-                 </stringlist>
-                </property>
-               </widget>
-              </item>
-              <item row="3" column="2">
-               <widget class="QLabel" name="measuredPitchBias">
-                <property name="text">
-                 <string>0</string>
-                </property>
-                <property name="alignment">
-                 <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
-                </property>
-                <property name="objrelation" stdset="0">
-                 <stringlist>
-                  <string>objname:SystemIdent</string>
-                  <string>fieldname:Bias</string>
-                  <string>element:Pitch</string>
-                 </stringlist>
-                </property>
-               </widget>
-              </item>
               <item row="1" column="3">
                <widget class="QLabel" name="rollTau">
                 <property name="text">
@@ -479,37 +459,6 @@ p, li { white-space: pre-wrap; }
                 </property>
                 <property name="alignment">
                  <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
-                </property>
-               </widget>
-              </item>
-              <item row="0" column="2">
-               <widget class="QLabel" name="label_7">
-                <property name="text">
-                 <string>Bias</string>
-                </property>
-               </widget>
-              </item>
-              <item row="3" column="3">
-               <widget class="QLabel" name="pitchTau">
-                <property name="text">
-                 <string>0</string>
-                </property>
-                <property name="alignment">
-                 <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
-                </property>
-               </widget>
-              </item>
-              <item row="0" column="3">
-               <widget class="QLabel" name="label_14">
-                <property name="text">
-                 <string>Tau (s)</string>
-                </property>
-               </widget>
-              </item>
-              <item row="0" column="4">
-               <widget class="QLabel" name="label_16">
-                <property name="text">
-                 <string>Noise</string>
                 </property>
                </widget>
               </item>
@@ -530,7 +479,58 @@ p, li { white-space: pre-wrap; }
                 </property>
                </widget>
               </item>
-              <item row="3" column="4">
+              <item row="2" column="0">
+               <widget class="QLabel" name="label_8">
+                <property name="text">
+                 <string>Pitch</string>
+                </property>
+               </widget>
+              </item>
+              <item row="2" column="1">
+               <widget class="QLabel" name="measuredPitchGain">
+                <property name="text">
+                 <string>0</string>
+                </property>
+                <property name="alignment">
+                 <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
+                </property>
+                <property name="objrelation" stdset="0">
+                 <stringlist>
+                  <string>objname:SystemIdent</string>
+                  <string>fieldname:Beta</string>
+                  <string>element:Pitch</string>
+                 </stringlist>
+                </property>
+               </widget>
+              </item>
+              <item row="2" column="2">
+               <widget class="QLabel" name="measuredPitchBias">
+                <property name="text">
+                 <string>0</string>
+                </property>
+                <property name="alignment">
+                 <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
+                </property>
+                <property name="objrelation" stdset="0">
+                 <stringlist>
+                  <string>objname:SystemIdent</string>
+                  <string>fieldname:Bias</string>
+                  <string>element:Pitch</string>
+                 </stringlist>
+                </property>
+               </widget>
+              </item>
+              <item row="2" column="3">
+               <widget class="QLabel" name="pitchTau">
+                <property name="text">
+                 <string>0</string>
+                </property>
+                <property name="alignment">
+                 <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
+                </property>
+               </widget>
+              </item>
+              <item row="2" column="4">
                <widget class="QLabel" name="measuredPitchNoise">
                 <property name="text">
                  <string>0</string>
@@ -547,7 +547,84 @@ p, li { white-space: pre-wrap; }
                 </property>
                </widget>
               </item>
+              <item row="3" column="0">
+               <widget class="QLabel" name="label_17">
+                <property name="text">
+                 <string>Yaw</string>
+                </property>
+               </widget>
+              </item>
+              <item row="3" column="1">
+               <widget class="QLabel" name="measuredYawGain">
+                <property name="text">
+                 <string>0</string>
+                </property>
+                <property name="alignment">
+                 <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
+                </property>
+                <property name="objrelation" stdset="0">
+                 <stringlist>
+                  <string>objname:SystemIdent</string>
+                  <string>fieldname:Beta</string>
+                  <string>element:Yaw</string>
+                 </stringlist>
+                </property>
+               </widget>
+              </item>
+              <item row="3" column="2">
+               <widget class="QLabel" name="measuredYawBias">
+                <property name="text">
+                 <string>0</string>
+                </property>
+                <property name="alignment">
+                 <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
+                </property>
+                <property name="objrelation" stdset="0">
+                 <stringlist>
+                  <string>objname:SystemIdent</string>
+                  <string>fieldname:Bias</string>
+                  <string>element:Yaw</string>
+                 </stringlist>
+                </property>
+               </widget>
+              </item>
+              <item row="3" column="4">
+               <widget class="QLabel" name="measuredYawNoise">
+                <property name="text">
+                 <string>0</string>
+                </property>
+                <property name="alignment">
+                 <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
+                </property>
+                <property name="objrelation" stdset="0">
+                 <stringlist>
+                  <string>objname:SystemIdent</string>
+                  <string>fieldname:Noise</string>
+                  <string>element:Yaw</string>
+                 </stringlist>
+                </property>
+               </widget>
+              </item>
              </layout>
+             <zorder>label_3</zorder>
+             <zorder>measuredRollGain</zorder>
+             <zorder>measuredRollBias</zorder>
+             <zorder>label_6</zorder>
+             <zorder>label_8</zorder>
+             <zorder>measuredPitchGain</zorder>
+             <zorder>measuredPitchBias</zorder>
+             <zorder>rollTau</zorder>
+             <zorder>label_7</zorder>
+             <zorder>pitchTau</zorder>
+             <zorder>label_14</zorder>
+             <zorder>label_16</zorder>
+             <zorder>measuredPitchNoise</zorder>
+             <zorder>measuredRollNoise</zorder>
+             <zorder>label_17</zorder>
+             <zorder>measuredYawGain</zorder>
+             <zorder>measuredYawBias</zorder>
+             <zorder>measuredYawNoise</zorder>
+             <zorder>groupBox</zorder>
             </widget>
            </item>
            <item>
@@ -569,10 +646,10 @@ p, li { white-space: pre-wrap; }
                 </property>
                </widget>
               </item>
-              <item row="2" column="2">
-               <widget class="QLabel" name="lblNoise">
+              <item row="2" column="0">
+               <widget class="QLabel" name="label">
                 <property name="text">
-                 <string>1.0</string>
+                 <string>Noise sensitivity</string>
                 </property>
                </widget>
               </item>
@@ -595,6 +672,13 @@ p, li { white-space: pre-wrap; }
                 </property>
                </widget>
               </item>
+              <item row="3" column="1">
+               <widget class="QLabel" name="wn">
+                <property name="text">
+                 <string/>
+                </property>
+               </widget>
+              </item>
               <item row="1" column="1">
                <widget class="QSlider" name="rateDamp">
                 <property name="minimum">
@@ -611,10 +695,10 @@ p, li { white-space: pre-wrap; }
                 </property>
                </widget>
               </item>
-              <item row="2" column="0">
-               <widget class="QLabel" name="label">
+              <item row="3" column="0">
+               <widget class="QLabel" name="label_2">
                 <property name="text">
-                 <string>Noise sensitivity</string>
+                 <string>Natural frequency</string>
                 </property>
                </widget>
               </item>
@@ -625,17 +709,10 @@ p, li { white-space: pre-wrap; }
                 </property>
                </widget>
               </item>
-              <item row="3" column="0">
-               <widget class="QLabel" name="label_2">
+              <item row="2" column="2">
+               <widget class="QLabel" name="lblNoise">
                 <property name="text">
-                 <string>Natural frequency</string>
-                </property>
-               </widget>
-              </item>
-              <item row="3" column="1">
-               <widget class="QLabel" name="wn">
-                <property name="text">
-                 <string/>
+                 <string>1.0</string>
                 </property>
                </widget>
               </item>
@@ -669,120 +746,214 @@ p, li { white-space: pre-wrap; }
              <property name="title">
               <string>Computed Values</string>
              </property>
-             <layout class="QGridLayout" name="gridLayout_3">
-              <item row="0" column="2">
-               <widget class="QLabel" name="label_9">
-                <property name="text">
-                 <string>RateKi</string>
-                </property>
-               </widget>
-              </item>
-              <item row="5" column="0">
-               <widget class="QLabel" name="label_18">
-                <property name="text">
-                 <string>Derivative cutoff</string>
-                </property>
-               </widget>
-              </item>
-              <item row="1" column="2">
-               <widget class="QLabel" name="rollRateKi">
-                <property name="text">
-                 <string>0</string>
-                </property>
-               </widget>
-              </item>
-              <item row="2" column="1">
-               <widget class="QLabel" name="pitchRateKp">
-                <property name="text">
-                 <string>0</string>
-                </property>
-               </widget>
-              </item>
-              <item row="3" column="0">
-               <widget class="QLabel" name="label_19">
-                <property name="text">
-                 <string/>
-                </property>
-               </widget>
-              </item>
-              <item row="5" column="1">
-               <widget class="QLabel" name="derivativeCutoff">
-                <property name="text">
-                 <string>0</string>
-                </property>
-               </widget>
-              </item>
-              <item row="1" column="0">
-               <widget class="QLabel" name="label_4">
-                <property name="text">
-                 <string>Roll</string>
-                </property>
-               </widget>
-              </item>
-              <item row="2" column="3">
-               <widget class="QLabel" name="pitchRateKd">
-                <property name="text">
-                 <string>0</string>
-                </property>
-               </widget>
-              </item>
-              <item row="2" column="2">
-               <widget class="QLabel" name="pitchRateKi">
-                <property name="text">
-                 <string>0</string>
-                </property>
-               </widget>
-              </item>
-              <item row="0" column="3">
-               <widget class="QLabel" name="label_10">
-                <property name="text">
-                 <string>RateKd</string>
-                </property>
-               </widget>
-              </item>
-              <item row="1" column="3">
-               <widget class="QLabel" name="rollRateKd">
-                <property name="text">
-                 <string>0</string>
-                </property>
-               </widget>
-              </item>
-              <item row="2" column="0">
-               <widget class="QLabel" name="label_12">
-                <property name="text">
-                 <string>Pitch</string>
-                </property>
-               </widget>
-              </item>
-              <item row="0" column="1">
-               <widget class="QLabel" name="label_5">
-                <property name="text">
-                 <string>RateKp</string>
-                </property>
-               </widget>
-              </item>
-              <item row="1" column="1">
-               <widget class="QLabel" name="rollRateKp">
-                <property name="text">
-                 <string>0</string>
-                </property>
-               </widget>
-              </item>
-              <item row="4" column="0">
-               <widget class="QLabel" name="label_15">
-                <property name="text">
-                 <string>Outer Kp</string>
-                </property>
-               </widget>
-              </item>
-              <item row="4" column="1">
-               <widget class="QLabel" name="lblOuterKp">
-                <property name="text">
-                 <string>0</string>
-                </property>
-               </widget>
-              </item>
-             </layout>
+             <widget class="QLabel" name="label_9">
+              <property name="geometry">
+               <rect>
+                <x>397</x>
+                <y>33</y>
+                <width>41</width>
+                <height>16</height>
+               </rect>
+              </property>
+              <property name="text">
+               <string>RateKi</string>
+              </property>
+             </widget>
+             <widget class="QLabel" name="label_18">
+              <property name="geometry">
+               <rect>
+                <x>15</x>
+                <y>159</y>
+                <width>100</width>
+                <height>16</height>
+               </rect>
+              </property>
+              <property name="text">
+               <string>Derivative cutoff</string>
+              </property>
+             </widget>
+             <widget class="QLabel" name="rollRateKi">
+              <property name="geometry">
+               <rect>
+                <x>397</x>
+                <y>59</y>
+                <width>16</width>
+                <height>16</height>
+               </rect>
+              </property>
+              <property name="text">
+               <string>0</string>
+              </property>
+             </widget>
+             <widget class="QLabel" name="pitchRateKp">
+              <property name="geometry">
+               <rect>
+                <x>206</x>
+                <y>83</y>
+                <width>16</width>
+                <height>16</height>
+               </rect>
+              </property>
+              <property name="text">
+               <string>0</string>
+              </property>
+             </widget>
+             <widget class="QLabel" name="label_19">
+              <property name="geometry">
+               <rect>
+                <x>15</x>
+                <y>107</y>
+                <width>16</width>
+                <height>16</height>
+               </rect>
+              </property>
+              <property name="text">
+               <string/>
+              </property>
+             </widget>
+             <widget class="QLabel" name="derivativeCutoff">
+              <property name="geometry">
+               <rect>
+                <x>206</x>
+                <y>159</y>
+                <width>16</width>
+                <height>16</height>
+               </rect>
+              </property>
+              <property name="text">
+               <string>0</string>
+              </property>
+             </widget>
+             <widget class="QLabel" name="label_4">
+              <property name="geometry">
+               <rect>
+                <x>15</x>
+                <y>59</y>
+                <width>24</width>
+                <height>16</height>
+               </rect>
+              </property>
+              <property name="text">
+               <string>Roll</string>
+              </property>
+             </widget>
+             <widget class="QLabel" name="pitchRateKd">
+              <property name="geometry">
+               <rect>
+                <x>588</x>
+                <y>83</y>
+                <width>16</width>
+                <height>16</height>
+               </rect>
+              </property>
+              <property name="text">
+               <string>0</string>
+              </property>
+             </widget>
+             <widget class="QLabel" name="pitchRateKi">
+              <property name="geometry">
+               <rect>
+                <x>397</x>
+                <y>83</y>
+                <width>16</width>
+                <height>16</height>
+               </rect>
+              </property>
+              <property name="text">
+               <string>0</string>
+              </property>
+             </widget>
+             <widget class="QLabel" name="label_10">
+              <property name="geometry">
+               <rect>
+                <x>588</x>
+                <y>33</y>
+                <width>46</width>
+                <height>16</height>
+               </rect>
+              </property>
+              <property name="text">
+               <string>RateKd</string>
+              </property>
+             </widget>
+             <widget class="QLabel" name="rollRateKd">
+              <property name="geometry">
+               <rect>
+                <x>588</x>
+                <y>59</y>
+                <width>16</width>
+                <height>16</height>
+               </rect>
+              </property>
+              <property name="text">
+               <string>0</string>
+              </property>
+             </widget>
+             <widget class="QLabel" name="label_12">
+              <property name="geometry">
+               <rect>
+                <x>15</x>
+                <y>83</y>
+                <width>32</width>
+                <height>16</height>
+               </rect>
+              </property>
+              <property name="text">
+               <string>Pitch</string>
+              </property>
+             </widget>
+             <widget class="QLabel" name="label_5">
+              <property name="geometry">
+               <rect>
+                <x>206</x>
+                <y>33</y>
+                <width>46</width>
+                <height>16</height>
+               </rect>
+              </property>
+              <property name="text">
+               <string>RateKp</string>
+              </property>
+             </widget>
+             <widget class="QLabel" name="rollRateKp">
+              <property name="geometry">
+               <rect>
+                <x>206</x>
+                <y>59</y>
+                <width>16</width>
+                <height>16</height>
+               </rect>
+              </property>
+              <property name="text">
+               <string>0</string>
+              </property>
+             </widget>
+             <widget class="QLabel" name="label_15">
+              <property name="geometry">
+               <rect>
+                <x>15</x>
+                <y>133</y>
+                <width>56</width>
+                <height>16</height>
+               </rect>
+              </property>
+              <property name="text">
+               <string>Outer Kp</string>
+              </property>
+             </widget>
+             <widget class="QLabel" name="lblOuterKp">
+              <property name="geometry">
+               <rect>
+                <x>206</x>
+                <y>133</y>
+                <width>16</width>
+                <height>16</height>
+               </rect>
+              </property>
+              <property name="text">
+               <string>0</string>
+              </property>
+             </widget>
             </widget>
            </item>
            <item>

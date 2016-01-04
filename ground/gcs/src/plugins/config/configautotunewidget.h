@@ -33,6 +33,7 @@
 #include "extensionsystem/pluginmanager.h"
 #include "uavobjectmanager.h"
 #include "uavobject.h"
+#include "actuatorsettings.h"
 #include "stabilizationsettings.h"
 #include "systemident.h"
 #include <QWidget>
