@@ -19,7 +19,7 @@ dmg: ground_package extract_firmware matlab
 	ROOT_DIR="$(ROOT_DIR)" \
 	BUILD_DIR="$(BUILD_DIR)" \
 	PACKAGE_LBL="$(PACKAGE_LBL)" \
-	DMG_LBL="$(GCS_PACKAGE_NAME)" \
+	DMG_LBL="dRonin_$(PLATFORM)_$(PLATFORM_NAME)-$(PACKAGE_LBL)" \
 	PACKAGE_DIR="$(PACKAGE_DIR)" \
 	GCS_PACKAGE_DIR="$(PACKAGE_DIR)/$(GCS_PACKAGE_NAME)" \
 	FW_DIR="$(PACKAGE_DIR)/firmware_$(PACKAGE_LBL)" \
