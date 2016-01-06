@@ -46,7 +46,7 @@ win32 {
     uavobjects.commands += popd $$addNewline()
 
     uavobjects.commands += pushd $$targetPath(../../ground/gcs) &&
-    uavobjects.commands += $(QMAKE) -spec $$SPEC CONFIG+=$${BUILD_CONFIG} -r
+    uavobjects.commands += $(QMAKE) -spec $$SPEC CONFIG+=$${BUILD_CONFIG} CONFIG+=$${RELEASE_WITH_SYMBOLS} -r
     uavobjects.commands +=   $$targetPath(../../../ground/gcs/)gcs.pro &&
     uavobjects.commands += popd $$addNewline()
 }

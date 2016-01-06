@@ -17,7 +17,6 @@
 !define PACKAGE_LBL "${PACKAGE_LBL}"
 !define PACKAGE_DIR "..\..\build\package-$${PACKAGE_LBL}"
 !define OUT_FILE "dRonin-$${PACKAGE_LBL}-install.exe"
-!define FIRMWARE_DIR "firmware-$${PACKAGE_LBL}"
 
 ; Installer version info
 !define PRODUCT_VERSION "0.0.0.0"

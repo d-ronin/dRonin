@@ -36,12 +36,9 @@
 ; Paths
 
   ; Tree root locations (relative to this script location)
-  !define PROJECT_ROOT   "..\.."
   !define NSIS_DATA_TREE "."
-  !define BUILD_TREE "..\..\build"
-  !define GCS_BUILD_TREE "..\..\build\ground\gcs"
-  !define UAVO_SYNTH_TREE "..\..\build\uavobject-synthetics"
-  !define MATLAB_TREE "..\..\build\matlab"
+  !define GCS_BUILD_TREE "${PROJECT_ROOT}"
+  !define BRANDING_TREE "${SOURCE_ROOT}\branding"
 
   ; Default installation folder
   InstallDir "$PROGRAMFILES\dRonin"
@@ -57,10 +54,10 @@
   !define INSTALLER_NAME "dRonin GCS Installer"
 
   ; Read automatically generated version info
-  !include "${GCS_BUILD_TREE}\dronin.nsh"
+  !include "${PROJECT_ROOT}\dronin.nsh"
 
   Name "${PRODUCT_NAME}"
-  OutFile "${BUILD_TREE}\${OUT_FILE}"
+  OutFile "${PACKAGE_DIR}\${OUT_FILE}"
 
   VIProductVersion ${PRODUCT_VERSION}
   VIAddVersionKey "ProductName" "${INSTALLER_NAME}"
@@ -90,13 +87,13 @@
 
   BrandingText "© 2015 dRonin http://dRonin.org"
 
-  !define MUI_ICON "${NSIS_DATA_TREE}\resources\dronin.ico"
+  !define MUI_ICON "${BRANDING_TREE}\gcs.ico"
   !define MUI_HEADERIMAGE
-  !define MUI_HEADERIMAGE_BITMAP "${NSIS_DATA_TREE}\resources\header.bmp"
+  !define MUI_HEADERIMAGE_BITMAP "${BRANDING_TREE}\win_package_header.bmp"
   !define MUI_HEADERIMAGE_BITMAP_NOSTRETCH
-  !define MUI_WELCOMEFINISHPAGE_BITMAP "${NSIS_DATA_TREE}\resources\welcome.bmp"
+  !define MUI_WELCOMEFINISHPAGE_BITMAP "${BRANDING_TREE}\win_package_welcome.bmp"
   !define MUI_WELCOMEFINISHPAGE_BITMAP_NOSTRETCH
-  !define MUI_UNWELCOMEFINISHPAGE_BITMAP "${NSIS_DATA_TREE}\resources\welcome.bmp"
+  !define MUI_UNWELCOMEFINISHPAGE_BITMAP "${BRANDING_TREE}\win_package_welcome.bmp"
   !define MUI_UNWELCOMEFINISHPAGE_BITMAP_NOSTRETCH
 
 ;--------------------------------
@@ -199,23 +196,19 @@ SectionEnd
 ; Copy firmware files
 Section "Firmware" InSecFirmware
   SetOutPath "$INSTDIR\firmware"
-  File "${PACKAGE_DIR}\firmware\*.*"
-SectionEnd
-
-; Copy utility files
-Section "-Utilities" InSecUtilities
-  SetOutPath "$INSTDIR\utilities"
-  File "/oname=LogConvert-${PACKAGE_LBL}.m" "${MATLAB_TREE}\LogConvert.m"
+  File "${FIRMWARE_DIR}\*.*"
 SectionEnd
 
 ; Copy driver files
 Section "-Drivers" InSecDrivers
+IfSilent +3
   SetOutPath "$INSTDIR\drivers"
-  File "${PROJECT_ROOT}\flight\Project\Windows USB\dRonin-CDC.inf"
+  File "${SOURCE_ROOT}\flight\Project\Windows USB\dRonin-CDC.inf"
 SectionEnd
 
 ; Preinstall OpenPilot CDC driver
 Section "CDC driver" InSecInstallDrivers
+IfSilent +9
   InitPluginsDir
   SetOutPath "$PLUGINSDIR"
   ${If} ${RunningX64}
