@@ -43,6 +43,7 @@
 
 #include "accels.h"
 #include "actuatorcommand.h"
+#include "actuatordesired.h"
 #include "airspeedactual.h"
 #include "attitudeactual.h"
 #include "baroaltitude.h"
@@ -57,6 +58,7 @@
 #include "magnetometer.h"
 #include "manualcontrolcommand.h"
 #include "positionactual.h"
+#include "stabilizationdesired.h"
 #include "systemalarms.h"
 #include "systemident.h"
 #include "velocityactual.h"
@@ -544,7 +546,8 @@ static void register_default_profile()
 	UAVObjConnectCallbackThrottled(AttitudeActualHandle(), obj_updated_callback, NULL, EV_UPDATED | EV_UNPACKED, 5 * min_period);
 	UAVObjConnectCallbackThrottled(MagnetometerHandle(), obj_updated_callback, NULL, EV_UPDATED | EV_UNPACKED, 5 * min_period);
 	UAVObjConnectCallbackThrottled(ManualControlCommandHandle(), obj_updated_callback, NULL, EV_UPDATED | EV_UNPACKED, 5 * min_period);
-	UAVObjConnectCallbackThrottled(ActuatorCommandHandle(), obj_updated_callback, NULL, EV_UPDATED | EV_UNPACKED, 5 * min_period);
+	UAVObjConnectCallbackThrottled(ActuatorDesiredHandle(), obj_updated_callback, NULL, EV_UPDATED | EV_UNPACKED, 5 * min_period);
+	UAVObjConnectCallbackThrottled(StabilizationDesiredHandle(), obj_updated_callback, NULL, EV_UPDATED | EV_UNPACKED, 5 * min_period);
 
 	// Log slow
 	if (FlightBatteryStateHandle()) {
