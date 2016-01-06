@@ -624,7 +624,6 @@ p, li { white-space: pre-wrap; }
              <zorder>measuredYawGain</zorder>
              <zorder>measuredYawBias</zorder>
              <zorder>measuredYawNoise</zorder>
-             <zorder>groupBox</zorder>
             </widget>
            </item>
            <item>
@@ -730,7 +729,7 @@ p, li { white-space: pre-wrap; }
              <property name="sizeHint" stdset="0">
               <size>
                <width>20</width>
-               <height>10</height>
+               <height>6</height>
               </size>
              </property>
             </spacer>
@@ -746,214 +745,126 @@ p, li { white-space: pre-wrap; }
              <property name="title">
               <string>Computed Values</string>
              </property>
-             <widget class="QLabel" name="label_9">
-              <property name="geometry">
-               <rect>
-                <x>397</x>
-                <y>33</y>
-                <width>41</width>
-                <height>16</height>
-               </rect>
-              </property>
-              <property name="text">
-               <string>RateKi</string>
-              </property>
-             </widget>
-             <widget class="QLabel" name="label_18">
-              <property name="geometry">
-               <rect>
-                <x>15</x>
-                <y>159</y>
-                <width>100</width>
-                <height>16</height>
-               </rect>
-              </property>
-              <property name="text">
-               <string>Derivative cutoff</string>
-              </property>
-             </widget>
-             <widget class="QLabel" name="rollRateKi">
-              <property name="geometry">
-               <rect>
-                <x>397</x>
-                <y>59</y>
-                <width>16</width>
-                <height>16</height>
-               </rect>
-              </property>
-              <property name="text">
-               <string>0</string>
-              </property>
-             </widget>
-             <widget class="QLabel" name="pitchRateKp">
-              <property name="geometry">
-               <rect>
-                <x>206</x>
-                <y>83</y>
-                <width>16</width>
-                <height>16</height>
-               </rect>
-              </property>
-              <property name="text">
-               <string>0</string>
-              </property>
-             </widget>
-             <widget class="QLabel" name="label_19">
-              <property name="geometry">
-               <rect>
-                <x>15</x>
-                <y>107</y>
-                <width>16</width>
-                <height>16</height>
-               </rect>
-              </property>
-              <property name="text">
-               <string/>
-              </property>
-             </widget>
-             <widget class="QLabel" name="derivativeCutoff">
-              <property name="geometry">
-               <rect>
-                <x>206</x>
-                <y>159</y>
-                <width>16</width>
-                <height>16</height>
-               </rect>
-              </property>
-              <property name="text">
-               <string>0</string>
-              </property>
-             </widget>
-             <widget class="QLabel" name="label_4">
-              <property name="geometry">
-               <rect>
-                <x>15</x>
-                <y>59</y>
-                <width>24</width>
-                <height>16</height>
-               </rect>
-              </property>
-              <property name="text">
-               <string>Roll</string>
-              </property>
-             </widget>
-             <widget class="QLabel" name="pitchRateKd">
-              <property name="geometry">
-               <rect>
-                <x>588</x>
-                <y>83</y>
-                <width>16</width>
-                <height>16</height>
-               </rect>
-              </property>
-              <property name="text">
-               <string>0</string>
-              </property>
-             </widget>
-             <widget class="QLabel" name="pitchRateKi">
-              <property name="geometry">
-               <rect>
-                <x>397</x>
-                <y>83</y>
-                <width>16</width>
-                <height>16</height>
-               </rect>
-              </property>
-              <property name="text">
-               <string>0</string>
-              </property>
-             </widget>
-             <widget class="QLabel" name="label_10">
-              <property name="geometry">
-               <rect>
-                <x>588</x>
-                <y>33</y>
-                <width>46</width>
-                <height>16</height>
-               </rect>
-              </property>
-              <property name="text">
-               <string>RateKd</string>
-              </property>
-             </widget>
-             <widget class="QLabel" name="rollRateKd">
-              <property name="geometry">
-               <rect>
-                <x>588</x>
-                <y>59</y>
-                <width>16</width>
-                <height>16</height>
-               </rect>
-              </property>
-              <property name="text">
-               <string>0</string>
-              </property>
-             </widget>
-             <widget class="QLabel" name="label_12">
-              <property name="geometry">
-               <rect>
-                <x>15</x>
-                <y>83</y>
-                <width>32</width>
-                <height>16</height>
-               </rect>
-              </property>
-              <property name="text">
-               <string>Pitch</string>
-              </property>
-             </widget>
-             <widget class="QLabel" name="label_5">
-              <property name="geometry">
-               <rect>
-                <x>206</x>
-                <y>33</y>
-                <width>46</width>
-                <height>16</height>
-               </rect>
-              </property>
-              <property name="text">
-               <string>RateKp</string>
-              </property>
-             </widget>
-             <widget class="QLabel" name="rollRateKp">
-              <property name="geometry">
-               <rect>
-                <x>206</x>
-                <y>59</y>
-                <width>16</width>
-                <height>16</height>
-               </rect>
-              </property>
-              <property name="text">
-               <string>0</string>
-              </property>
-             </widget>
-             <widget class="QLabel" name="label_15">
-              <property name="geometry">
-               <rect>
-                <x>15</x>
-                <y>133</y>
-                <width>56</width>
-                <height>16</height>
-               </rect>
-              </property>
-              <property name="text">
-               <string>Outer Kp</string>
-              </property>
-             </widget>
-             <widget class="QLabel" name="lblOuterKp">
-              <property name="geometry">
-               <rect>
-                <x>206</x>
-                <y>133</y>
-                <width>16</width>
-                <height>16</height>
-               </rect>
-              </property>
-              <property name="text">
-               <string>0</string>
-              </property>
-             </widget>
+             <layout class="QGridLayout" name="gridLayout_3">
+              <item row="0" column="1">
+               <widget class="QLabel" name="label_5">
+                <property name="text">
+                 <string>RateKp</string>
+                </property>
+               </widget>
+              </item>
+              <item row="0" column="2">
+               <widget class="QLabel" name="label_9">
+                <property name="text">
+                 <string>RateKi</string>
+                </property>
+               </widget>
+              </item>
+              <item row="0" column="3">
+               <widget class="QLabel" name="label_10">
+                <property name="text">
+                 <string>RateKd</string>
+                </property>
+               </widget>
+              </item>
+              <item row="1" column="0">
+               <widget class="QLabel" name="label_4">
+                <property name="text">
+                 <string>Roll</string>
+                </property>
+               </widget>
+              </item>
+              <item row="1" column="1">
+               <widget class="QLabel" name="rollRateKp">
+                <property name="text">
+                 <string>0</string>
+                </property>
+               </widget>
+              </item>
+              <item row="1" column="2">
+               <widget class="QLabel" name="rollRateKi">
+                <property name="text">
+                 <string>0</string>
+                </property>
+               </widget>
+              </item>
+              <item row="1" column="3">
+               <widget class="QLabel" name="rollRateKd">
+                <property name="text">
+                 <string>0</string>
+                </property>
+               </widget>
+              </item>
+              <item row="2" column="0">
+               <widget class="QLabel" name="label_12">
+                <property name="text">
+                 <string>Pitch</string>
+                </property>
+               </widget>
+              </item>
+              <item row="2" column="1">
+               <widget class="QLabel" name="pitchRateKp">
+                <property name="text">
+                 <string>0</string>
+                </property>
+               </widget>
+              </item>
+              <item row="2" column="2">
+               <widget class="QLabel" name="pitchRateKi">
+                <property name="text">
+                 <string>0</string>
+                </property>
+               </widget>
+              </item>
+              <item row="2" column="3">
+               <widget class="QLabel" name="pitchRateKd">
+                <property name="text">
+                 <string>0</string>
+                </property>
+               </widget>
+              </item>
+              <item row="3" column="0">
+               <widget class="QLabel" name="label_19">
+                <property name="maximumSize">
+                 <size>
+                  <width>16777215</width>
+                  <height>6</height>
+                 </size>
+                </property>
+                <property name="text">
+                 <string/>
+                </property>
+               </widget>
+              </item>
+              <item row="4" column="0">
+               <widget class="QLabel" name="label_15">
+                <property name="text">
+                 <string>Outer Kp</string>
+                </property>
+               </widget>
+              </item>
+              <item row="4" column="1">
+               <widget class="QLabel" name="lblOuterKp">
+                <property name="text">
+                 <string>0</string>
+                </property>
+               </widget>
+              </item>
+              <item row="5" column="0">
+               <widget class="QLabel" name="label_18">
+                <property name="text">
+                 <string>Derivative cutoff</string>
+                </property>
+               </widget>
+              </item>
+              <item row="5" column="1">
+               <widget class="QLabel" name="derivativeCutoff">
+                <property name="text">
+                 <string>0</string>
+                </property>
+               </widget>
+              </item>
+             </layout>
             </widget>
            </item>
            <item>
