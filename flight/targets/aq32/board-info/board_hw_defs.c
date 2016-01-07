@@ -751,9 +751,7 @@ static const struct pios_dsm_cfg pios_usart6_dsm_aux_cfg = {
 #endif	/* PIOS_INCLUDE_DSM */
 
 #if defined(PIOS_INCLUDE_SBUS)
-/*
- * S.Bus USART
- */
+
 #include <pios_sbus_priv.h>
 
 static const struct pios_sbus_cfg pios_usart3_sbus_aux_cfg = {
