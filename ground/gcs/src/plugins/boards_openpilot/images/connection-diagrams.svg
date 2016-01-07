@@ -5299,7 +5299,7 @@
        style="display:inline">
       <g
          transform="translate(-17.131942,-13.548786)"
-         id="controller-revomini"
+         id="controller-revolution"
          inkscape:label="#controller">
         <image
            xlink:href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAgAAABcCAYAAABTEPRqAAAABHNCSVQICAgIfAhkiAAAAydJREFU SInN1kuIV3UUB/DPGf8jhmVYkxNRiwpbBGGSMSRGNW1CJdEw3NWmVYGFYVmLHsta9JpqUbkpmuiF aS8oJCMjDYUQQnSSiYIeOiTZa5z01+KeO3Pn//8PtQnmwuX+fud873n/zvkppahfnI+fUXBBKUWT 2cJHyZwOwI34usHsAOxL4gszAYawCr1dAQ07OgA9/uWZDYBW2/4UHsn1CYh073+04b8ZGRELcBeu xt/4AkOllHE4U2eqC3ZjDtyThFGswEr8mbSbW6oM7sGbpZTPUuXnGMRl09LdSPlYSljdzgxsTeZh zG0HPJ3McdzQXtX3JXMCayfpyVyP0ziJdU2pgSuwF/PwKl5uBHIEnuoSpPp9uIXzsGuGVIzOpnpY hDtxJX7CS6WUPTWoH0dMd28C19UObEnix7gcz+f+rRqwHPdjaRJuSsChbsd/Lb5MwJb2bM5v2LB9 WjYTsAgP4dME7ehQkcC5OJ6gZT0RsToiNkXEpVBKOYnvMwRXwXuJHsYZqpZY27IcrlHVYMEfDeZw s+QG8D6+w348gFYpZVb0hw5ARKyJiE8iYjM6ktVnaqBs7darn1Udg04VEXELbpX9cRogIvrwHH7A k01A3WmfUaV7LS6eJiEi1mEDXi+lbOvwCj+qKvuJ9GCFajztwxuRLs30lMDdbcTrsUbV+Ya7lVzd N7sGiqrcduEgs2terMK1XfiP167t0L0NLq6TtSS/j6lmRf2MwcJEH28PWh2o+u+JiPggIg5GxIsR cU4tZmND54nG+gB656gax++qQ7wer+A2XIjRDp3p1faUMtSKiKW4BF+VUkZSbW9+/6KaEUV1uudh MX5L2kpYampO/qKavJONrNa5DO/gW9X0edQs6g+Tl5yI6FeV/AJsK6UcxaQXg6YGelG5urF2YD6O JeM1bE7AGM5q4XaciyOllA2pbjzVL2zJfozdETGgmjo7SykHavs+TPEjDRtO4d7ahr0NwzbhDvya +yXwbgJ2N+rh7aQ92GNqNhxrxOeb/Pb3YGduBiPi7FzXh2iE6jJ1OEUeNXWFPoa+WudFqpvX6WQe wkApxT8athIE2BWsmgAAAABJRU5ErkJggg== "
@@ -5309,7 +5309,7 @@
            id="image10745-4" />
         <g
            id="g8076"
-           inkscape:label="#controller-revomini">
+           inkscape:label="#controller-revolution">
           <path
              id="path10151-2-3"
              d="m 530.25061,73.31614 9.00763,0 0,25.796734 22.41432,0 0,-25.796734 9.55228,0 -20.46617,-19.904887 z"

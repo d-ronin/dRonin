@@ -1,5 +1,5 @@
 <xml>
-	<object name="HwRevoMini" singleinstance="true" settings="true" category="HardwareSettings">
+	<object name="HwRevolution" singleinstance="true" settings="true" category="HardwareSettings">
 		<description>Selection of optional hardware configurations.</description>
 
 		<field name="RcvrPort" units="function" type="enum" elements="1" defaultvalue="PWM">

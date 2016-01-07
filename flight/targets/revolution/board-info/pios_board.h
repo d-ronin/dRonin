@@ -2,10 +2,10 @@
  ******************************************************************************
  * @addtogroup TauLabsTargets Tau Labs Targets
  * @{
- * @addtogroup RevoMini OpenPilot RevoMini support files
+ * @addtogroup Revolution OpenPilot Revolution support files
  * @{
  *
- * @file       STM32F4xx_RevoMini.h 
+ * @file       STM32F4xx_Revolution.h 
  * @author     The OpenPilot Team, http://www.openpilot.org Copyright (C) 2011.
  * @author     Tau Labs, http://taulabs.org, Copyright (C) 2012-2013
  * @author     dRonin, http://dronin.org Copyright (C) 2015

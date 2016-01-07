@@ -13,13 +13,13 @@ HEADERS += \
     openpilotplugin.h \
     cc3d.h \
     config_cc_hw_widget.h \
-    revomini.h 
+    revolution.h 
 
 SOURCES += \
     openpilotplugin.cpp \
     cc3d.cpp \
     config_cc_hw_widget.cpp \
-    revomini.cpp 
+    revolution.cpp 
 
 RESOURCES += \
     openpilot.qrc \
