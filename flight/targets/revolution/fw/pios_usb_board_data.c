@@ -1,16 +1,16 @@
 /**
  ******************************************************************************
- * @addtogroup TauLabsBootloader Tau Labs Bootloaders
+ * @addtogroup TauLabsTargets Tau Labs Targets
  * @{
- * @addtogroup RevoMiniBL RevoMini bootloader
+ * @addtogroup Revolution OpenPilot Revolution support files
  * @{
  *
- * @file       pios_usb_board_data.c
- * @author     The OpenPilot Team, http://www.openpilot.org Copyright (C) 2010.
+ * @file       pios_usb_board_data.c 
+ * @author     The OpenPilot Team, http://www.openpilot.org Copyright (C) 2011.
  * @author     Tau Labs, http://taulabs.org, Copyright (C) 2012-2013
- * @brief      Board specific USB definitions
+ * @brief      Board specific USB specifications
  * @see        The GNU Public License (GPL) Version 3
- *
+ * 
  *****************************************************************************/
 /*
  * This program is free software; you can redistribute it and/or modify

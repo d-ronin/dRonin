@@ -28,7 +28,7 @@
 
 #include "openpilotplugin.h"
 #include "coptercontrol.h"
-#include "revomini.h"
+#include "revolution.h"
 #include <QtPlugin>
 
 
@@ -58,8 +58,8 @@ void OpenPilotPlugin::extensionsInitialized()
     CopterControl* cc3d = new CopterControl();
     addAutoReleasedObject(cc3d);
 
-    RevoMini* rmini = new RevoMini();
-    addAutoReleasedObject(rmini);
+    Revolution* revo = new Revolution();
+    addAutoReleasedObject(revo);
 
 }
 
