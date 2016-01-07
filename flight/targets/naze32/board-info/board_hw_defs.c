@@ -757,7 +757,7 @@ static const struct pios_usart_cfg pios_usart_rcvrserial_cfg = {
 	},
 };
 
-static const struct pios_usart_cfg pios_usart_dsm_rcvrserial_cfg = {
+static const struct pios_usart_cfg pios_usart_dsm_hsum_rcvrserial_cfg = {
 	.regs  = USART2,
 	.init = {
 		.USART_BaudRate            = 115200,
