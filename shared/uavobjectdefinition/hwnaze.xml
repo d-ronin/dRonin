@@ -14,6 +14,8 @@
 				<option>DSM</option>
 				<option>FrSKY Sensor Hub</option>
 				<option>GPS</option>
+				<option>HoTT SUMD</option>
+				<option>HoTT SUMH</option>
 				<option>LighttelemetryTx</option>
 				<option>MavLinkTX</option>
 				<option>MSP</option>
