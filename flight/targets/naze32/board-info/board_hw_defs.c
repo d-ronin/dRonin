@@ -757,7 +757,7 @@ static const struct pios_usart_cfg pios_usart_rcvrserial_cfg = {
 	},
 };
 
-static const struct pios_usart_cfg pios_usart_dsm_hsum_rcvrserial_cfg = {
+static const struct pios_usart_cfg pios_usart_dsm_rcvrserial_cfg = {
 	.regs  = USART2,
 	.init = {
 		.USART_BaudRate            = 115200,
@@ -807,6 +807,42 @@ static const struct pios_dsm_cfg pios_dsm_rcvrserial_cfg = {
 	},
 };
 #endif
+
+#if defined(PIOS_INCLUDE_SBUS)
+/*
+ * S.Bus USART
+ */
+#include <pios_sbus_priv.h>
+
+static const struct pios_usart_cfg pios_usart_sbus_non_inverted_rcvrserial_cfg = {
+	.regs = USART2,
+	.init = {
+		.USART_BaudRate            = 100000,
+		.USART_WordLength          = USART_WordLength_8b,
+		.USART_Parity              = USART_Parity_Even,
+		.USART_StopBits            = USART_StopBits_2,
+		.USART_HardwareFlowControl = USART_HardwareFlowControl_None,
+		.USART_Mode                = USART_Mode_Rx,
+	},
+	.irq = {
+		.init = {
+			.NVIC_IRQChannel                   = USART2_IRQn,
+			.NVIC_IRQChannelPreemptionPriority = PIOS_IRQ_PRIO_MID,
+			.NVIC_IRQChannelSubPriority        = 0,
+			.NVIC_IRQChannelCmd                = ENABLE,
+		  },
+	},
+	.rx   = {
+		.gpio = GPIOA,
+		.init = {
+			.GPIO_Pin   = GPIO_Pin_3,
+			.GPIO_Speed = GPIO_Speed_2MHz,
+			.GPIO_Mode  = GPIO_Mode_IPU,
+		},
+	},
+};
+
+#endif	/* PIOS_INCLUDE_SBUS */
 
 #endif  /* PIOS_INCLUDE_USART */
 

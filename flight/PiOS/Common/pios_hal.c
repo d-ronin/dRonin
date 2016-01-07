@@ -178,6 +178,10 @@ uintptr_t pios_com_debug_id;
 #define PIOS_COM_RFM22B_RF_TX_BUF_LEN 512
 #endif
 
+static const struct pios_sbus_cfg sbus_null_cfg = {
+/* No hardware inverter for Sbus Non Inverted Mode */
+};
+	
 /**
  * @brief Flash a blink code.
  * @param[in] led_id The LED to blink
@@ -366,7 +370,7 @@ static void PIOS_HAL_ConfigureHSUM(const struct pios_usart_cfg *usart_hsum_cfg,
  * @param[in] dsm_mode Mode in which to operate DSM driver; encapsulates binding
  * @param[in] sbus_rcvr_cfg usart configuration for SBUS modes
  * @param[in] sbus_cfg SBUS configuration for this port
- * @param[in] sbus_toggle Whether there is SBUS inverters to touch on this port
+ * @param[in] sbus_non_inverted_rcvr_cfg usart configuration for non-inverted SBUS modes
  */
 void PIOS_HAL_ConfigurePort(HwSharedPortTypesOptions port_type,
 		const struct pios_usart_cfg *usart_port_cfg,
@@ -383,7 +387,7 @@ void PIOS_HAL_ConfigurePort(HwSharedPortTypesOptions port_type,
 		HwSharedDSMxModeOptions dsm_mode,
 		const struct pios_usart_cfg *sbus_rcvr_cfg,
 		const struct pios_sbus_cfg *sbus_cfg,
-		bool sbus_toggle)
+		const struct pios_usart_cfg *sbus_non_inverted_rcvr_cfg)
 {
 	uintptr_t port_driver_id;
 	uintptr_t *target = NULL, *target2 = NULL;;
@@ -451,13 +455,33 @@ void PIOS_HAL_ConfigurePort(HwSharedPortTypesOptions port_type,
 		break;
 	case HWSHARED_PORTTYPES_SBUS:
 #if defined(PIOS_INCLUDE_SBUS) && defined(PIOS_INCLUDE_USART)
-		if (sbus_cfg && sbus_rcvr_cfg) {
+		if (sbus_rcvr_cfg) {
 			uintptr_t usart_sbus_id;
 			if (PIOS_USART_Init(&usart_sbus_id, sbus_rcvr_cfg)) {
 				PIOS_Assert(0);
 			}
 			uintptr_t sbus_id;
 			if (PIOS_SBus_Init(&sbus_id, sbus_cfg, com_driver, usart_sbus_id)) {
+				PIOS_Assert(0);
+			}
+			uintptr_t sbus_rcvr_id;
+			if (PIOS_RCVR_Init(&sbus_rcvr_id, &pios_sbus_rcvr_driver, sbus_id)) {
+				PIOS_Assert(0);
+			}
+			PIOS_HAL_SetReceiver(MANUALCONTROLSETTINGS_CHANNELGROUPS_SBUS, sbus_rcvr_id);
+			pios_rcvr_group_map[MANUALCONTROLSETTINGS_CHANNELGROUPS_SBUS] = sbus_rcvr_id;
+		}
+		#endif  /* PIOS_INCLUDE_SBUS */
+		break;
+	case HWSHARED_PORTTYPES_SBUSNONINVERTED:
+#if defined(PIOS_INCLUDE_SBUS) && defined(PIOS_INCLUDE_USART)
+		if (sbus_non_inverted_rcvr_cfg) {
+			uintptr_t usart_sbus_id;
+			if (PIOS_USART_Init(&usart_sbus_id, sbus_non_inverted_rcvr_cfg)) {
+				PIOS_Assert(0);
+			}
+			uintptr_t sbus_id;
+			if (PIOS_SBus_Init(&sbus_id, &sbus_null_cfg, com_driver, usart_sbus_id)) {
 				PIOS_Assert(0);
 			}
 			uintptr_t sbus_rcvr_id;
@@ -558,11 +582,11 @@ void PIOS_HAL_ConfigurePort(HwSharedPortTypesOptions port_type,
 
 	} /* port_type */
 
-	if (port_type != HWSHARED_PORTTYPES_SBUS && sbus_toggle) {
+	if ((port_type != HWSHARED_PORTTYPES_SBUS) && (sbus_cfg != NULL)) {
 		GPIO_Init(sbus_cfg->inv.gpio, (GPIO_InitTypeDef*)&sbus_cfg->inv.init);
-		GPIO_WriteBit(sbus_cfg->inv.gpio, sbus_cfg->inv.init.GPIO_Pin, sbus_cfg->gpio_inv_disable);
+		GPIO_WriteBit(sbus_cfg->inv.gpio, sbus_cfg->inv.init.GPIO_Pin, sbus_cfg->gpio_inv_disable);			
 	}
-
+	
 	PIOS_HAL_SetTarget(target, port_driver_id);
 	PIOS_HAL_SetTarget(target2, port_driver_id);
 }

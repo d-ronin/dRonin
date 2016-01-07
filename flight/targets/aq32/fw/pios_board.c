@@ -404,7 +404,7 @@ void PIOS_Board_Init(void) {
             0,                                   // dsm_mode
             NULL,                                // sbus_rcvr_cfg
             NULL,                                // sbus_cfg    
-            false);                              // sbus_toggle
+            NULL);                               // sbus_non_inverted_rcvr_cfg
 
     /* UART2 Port */
     uint8_t hw_uart2;
@@ -424,7 +424,7 @@ void PIOS_Board_Init(void) {
             0,                                   // dsm_mode
             NULL,                                // sbus_rcvr_cfg
             NULL,                                // sbus_cfg    
-            false);                              // sbus_toggle
+            NULL);                               // sbus_non_inverted_rcvr_cfg
 
     /* UART3 Port */
     uint8_t hw_uart3;
@@ -444,7 +444,7 @@ void PIOS_Board_Init(void) {
             0,                                   // dsm_mode
             &pios_usart3_sbus_cfg,               // sbus_rcvr_cfg
             &pios_usart3_sbus_aux_cfg,           // sbus_cfg                
-            true);                               // sbus_toggle
+            &pios_usart3_sbus_cfg);              // sbus_non_inverted_rcvr_cfg
             
     if (hw_uart3 == HWAQ32_UART3_FRSKYSENSORHUB)
     {
@@ -470,7 +470,7 @@ void PIOS_Board_Init(void) {
             hw_DSMxMode,                         // dsm_mode
             NULL,                                // sbus_rcvr_cfg
             NULL,                                // sbus_cfg    
-            false);                              // sbus_toggle
+            &pios_usart4_sbus_cfg);              // sbus_non_inverted_rcvr_cfg
 
     /* UART6 Port */
     uint8_t hw_uart6;
@@ -490,7 +490,7 @@ void PIOS_Board_Init(void) {
             hw_DSMxMode,                         // dsm_mode
             NULL,                                // sbus_rcvr_cfg
             NULL,                                // sbus_cfg    
-            false);                              // sbus_toggle
+            &pios_usart6_sbus_cfg);              // sbus_non_inverted_rcvr_cfg
 
     /* Configure the rcvr port */
     PIOS_HAL_ConfigurePort(hw_rcvrport,          // port type protocol
@@ -507,7 +507,7 @@ void PIOS_Board_Init(void) {
             0,                                   // dsm_mode
             NULL,                                // sbus_rcvr_cfg
             NULL,                                // sbus_cfg    
-            false);                              // sbus_toggle
+            NULL);                               // sbus_non_inverted_rcvr_cfg
 
 #if defined(PIOS_INCLUDE_GCSRCVR)
     GCSReceiverInitialize();

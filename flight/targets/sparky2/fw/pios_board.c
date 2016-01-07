@@ -571,7 +571,7 @@ void PIOS_Board_Init(void) {
 			hw_DSMxMode,                         // dsm_mode 
 			NULL,                                // sbus_rcvr_cfg 
 			NULL,                                // sbus_cfg 
-			false);                              // sbus_toggle
+			NULL);                               // sbus_non_inverted_rcvr_cfg
 
 	/* Configure FlexiPort */
 	uint8_t hw_flexiport;
@@ -591,7 +591,7 @@ void PIOS_Board_Init(void) {
 			hw_DSMxMode,                         // dsm_mode 
 			NULL,                                // sbus_rcvr_cfg 
 			NULL,                                // sbus_cfg 
-			false);                              // sbus_toggle
+			NULL);                               // sbus_non_inverted_rcvr_cfg
 
 #if defined(PIOS_INCLUDE_RFM22B)
 	HwSparky2Data hwSparky2;
@@ -633,7 +633,7 @@ void PIOS_Board_Init(void) {
 			hw_DSMxMode,                          // dsm_mode
 			get_sbus_rcvr_cfg(bdinfo->board_rev), // sbus_rcvr_cfg
 			&pios_sbus_cfg,                       // sbus_cfg
-			get_sbus_toggle(bdinfo->board_rev));  // sbus_toggle
+			NULL);                                // sbus_non_inverted_rcvr_cfg
 
 #if defined(PIOS_INCLUDE_GCSRCVR)
 	GCSReceiverInitialize();

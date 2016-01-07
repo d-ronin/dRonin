@@ -381,7 +381,7 @@ void PIOS_Board_Init(void) {
 			hw_DSMxMode,                         // dsm_mode
 			NULL,                                // sbus_rcvr_cfg
 			NULL,                                // sbus_cfg
-			false);                              // sbus_toggle
+			NULL);                               // sbus_non_inverted_rcvr_cfg
 
 	/* UART2 Port */
 	uint8_t hw_uart2;
@@ -401,7 +401,7 @@ void PIOS_Board_Init(void) {
 			hw_DSMxMode,                         // dsm_mode
 			&pios_usart2_sbus_cfg,               // sbus_rcvr_cfg
 			&pios_usart2_sbus_aux_cfg,           // sbus_cfg
-			true);                               // sbus_toggle
+			NULL);                               // sbus_non_inverted_rcvr_cfg
 
 	/* UART3 Port */
 	uint8_t hw_uart3;
@@ -421,7 +421,7 @@ void PIOS_Board_Init(void) {
 			hw_DSMxMode,                         // dsm_mode
 			NULL,                                // sbus_rcvr_cfg
 			NULL,                                // sbus_cfg
-			false);                              // sbus_toggle
+			NULL);                               // sbus_non_inverted_rcvr_cfg
 
 	/* UART4 Port */
 	uint8_t hw_uart4;
@@ -441,7 +441,7 @@ void PIOS_Board_Init(void) {
 			hw_DSMxMode,                         // dsm_mode
 			NULL,                                // sbus_rcvr_cfg
 			NULL,                                // sbus_cfg
-			false);                              // sbus_toggle
+			NULL);                               // sbus_non_inverted_rcvr_cfg
 
 	/* UART5 Port */
 	uint8_t hw_uart5;
@@ -461,7 +461,7 @@ void PIOS_Board_Init(void) {
 			hw_DSMxMode,                         // dsm_mode
 			NULL,                                // sbus_rcvr_cfg
 			NULL,                                // sbus_cfg
-			false);                              // sbus_toggle
+			NULL);                               // sbus_non_inverted_rcvr_cfg
 
 	/* Configure the rcvr port */
 	uint8_t hw_rcvrport;
@@ -486,7 +486,7 @@ void PIOS_Board_Init(void) {
 				0,                                      // dsm_mode
 				NULL,                                   // sbus_rcvr_cfg
 				NULL,                                   // sbus_cfg    
-				false);                                 // sbus_toggle
+				NULL);                                  // sbus_non_inverted_rcvr_cfg
 		break;
 
 	case HWQUANTON_RCVRPORT_PWMADC:
@@ -504,7 +504,7 @@ void PIOS_Board_Init(void) {
 				0,                                      // dsm_mode
 				NULL,                                   // sbus_rcvr_cfg
 				NULL,                                   // sbus_cfg    
-				false);                                 // sbus_toggle
+				NULL);                                  // sbus_non_inverted_rcvr_cfg
 		break;
 
 	case HWQUANTON_RCVRPORT_PPM:
@@ -525,7 +525,7 @@ void PIOS_Board_Init(void) {
 				0,                                      // dsm_mode
 				NULL,                                   // sbus_rcvr_cfg
 				NULL,                                   // sbus_cfg    
-				false);                                 // sbus_toggle
+				NULL);                                  // sbus_non_inverted_rcvr_cfg
 		break;
 
 	case HWQUANTON_RCVRPORT_PPMPWM:
@@ -543,7 +543,7 @@ void PIOS_Board_Init(void) {
 				0,                                      // dsm_mode
 				NULL,                                   // sbus_rcvr_cfg
 				NULL,                                   // sbus_cfg    
-				false);                                 // sbus_toggle
+				NULL);                                  // sbus_non_inverted_rcvr_cfg
 
 		PIOS_HAL_ConfigurePort(HWSHARED_PORTTYPES_PWM,  // port type protocol
 				NULL,                                   // usart_port_cfg
@@ -559,7 +559,7 @@ void PIOS_Board_Init(void) {
 				0,                                      // dsm_mode
 				NULL,                                   // sbus_rcvr_cfg
 				NULL,                                   // sbus_cfg    
-				false);                                 // sbus_toggle
+				NULL);                                  // sbus_non_inverted_rcvr_cfg
 		break;
 
 	case HWQUANTON_RCVRPORT_PPMPWMADC:
@@ -577,7 +577,7 @@ void PIOS_Board_Init(void) {
 				0,                                      // dsm_mode
 				NULL,                                   // sbus_rcvr_cfg
 				NULL,                                   // sbus_cfg    
-				false);                                 // sbus_toggle
+				NULL);                                  // sbus_non_inverted_rcvr_cfg
 
 		PIOS_HAL_ConfigurePort(HWSHARED_PORTTYPES_PWM,  // port type protocol
 				NULL,                                   // usart_port_cfg
@@ -593,7 +593,7 @@ void PIOS_Board_Init(void) {
 				0,                                      // dsm_mode
 				NULL,                                   // sbus_rcvr_cfg
 				NULL,                                   // sbus_cfg    
-				false);                                 // sbus_toggle
+				NULL);                                  // sbus_non_inverted_rcvr_cfg
 		break;
 	}
 
