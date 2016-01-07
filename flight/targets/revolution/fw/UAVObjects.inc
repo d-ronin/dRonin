@@ -6,7 +6,7 @@
 # @{
 # @addtogroup 
 # @{
-# @brief Makefile to build UAVObject code for RevoMini board.
+# @brief Makefile to build UAVObject code for Revolution board.
 ###############################################################################
 #
 # This program is free software; you can redistribute it and/or modify
@@ -31,7 +31,7 @@ UAVOBJSRCFILENAMES += acceldesired
 UAVOBJSRCFILENAMES += geofencesettings
 UAVOBJSRCFILENAMES += groundpathfollowersettings
 UAVOBJSRCFILENAMES += rfm22breceiver
-UAVOBJSRCFILENAMES += hwrevomini
+UAVOBJSRCFILENAMES += hwrevolution
 UAVOBJSRCFILENAMES += altitudeholdstate
 UAVOBJSRCFILENAMES += hottsettings
 UAVOBJSRCFILENAMES += picocsettings
