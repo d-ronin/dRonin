@@ -184,10 +184,6 @@ uintptr_t pios_com_debug_id;
 #define PIOS_COM_RFM22B_RF_TX_BUF_LEN 640
 #endif
 
-static const struct pios_sbus_cfg sbus_null_cfg = {
-/* No hardware inverter for Sbus Non Inverted Mode */
-};
-
 /**
  * @brief Flash a blink code.
  * @param[in] led_id The LED to blink
@@ -374,12 +370,10 @@ static void PIOS_HAL_ConfigureHSUM(const struct pios_usart_cfg *usart_hsum_cfg,
  * @param[in] usart_dsm_hsum_cfg usart configuration for DSM/HSUM modes
  * @param[in] dsm_cfg DSM configuration for this port
  * @param[in] dsm_mode Mode in which to operate DSM driver; encapsulates binding
- * @param[in] sbus_rcvr_cfg usart configuration for SBUS modes
  * @param[in] sbus_cfg SBUS configuration for this port
- * @param[in] sbus_non_inverted_rcvr_cfg usart configuration for non-inverted SBUS modes
  */
 void PIOS_HAL_ConfigurePort(HwSharedPortTypesOptions port_type,
-		const struct pios_usart_cfg *usart_port_cfg,
+		struct pios_usart_cfg *usart_port_cfg,
 		const struct pios_usart_cfg *usart_frsky_port_cfg,
 		const struct pios_com_driver *com_driver,
 		uint32_t *i2c_id,
@@ -391,12 +385,29 @@ void PIOS_HAL_ConfigurePort(HwSharedPortTypesOptions port_type,
 		const struct pios_usart_cfg *usart_dsm_hsum_cfg,
 		const struct pios_dsm_cfg *dsm_cfg,
 		HwSharedDSMxModeOptions dsm_mode,
-		const struct pios_usart_cfg *sbus_rcvr_cfg,
-		const struct pios_sbus_cfg *sbus_cfg,
-		const struct pios_usart_cfg *sbus_non_inverted_rcvr_cfg)
+		const struct pios_sbus_cfg *sbus_cfg)
 {
+#if defined(PIOS_INCLUDE_SBUS)
+	struct pios_usart_cfg *pios_hal_usart_temp_cfg;
+#endif
 	uintptr_t port_driver_id;
 	uintptr_t *target = NULL, *target2 = NULL;;
+
+	// If there is a hardware inerter for this port
+	if (sbus_cfg != NULL) {
+		// Enable inverter gpio clock
+		if (sbus_cfg->gpio_clk_func != NULL)
+			(*sbus_cfg->gpio_clk_func)(sbus_cfg->gpio_clk_periph, ENABLE);
+
+		// Initialize hardware inverter GPIO pin
+		GPIO_Init(sbus_cfg->inv.gpio, (GPIO_InitTypeDef*)(&sbus_cfg->inv.init);
+
+		// Enable Inverter for Sbus
+		if (port_type) == HWSHARED_PORTTYPES_SBUS)
+			GPIO_WriteBit(sbus_cfg->inv.gpio, sbus_cfg->inv.init.GPIO_Pin, sbus_cfg->gpio_inv_enable);
+		else
+			GPIO_WriteBit(sbus_cfg->inv.gpio, sbus_cfg->inv.init.GPIO_Pin, sbus_cfg->gpio_inv_disable);
+	}
 
 	switch (port_type) {
 	case HWSHARED_PORTTYPES_I2C:
@@ -413,6 +424,7 @@ void PIOS_HAL_ConfigurePort(HwSharedPortTypesOptions port_type,
 		}
 #endif  /* PIOS_INCLUDE_I2C */
 		break;
+
 	case HWSHARED_PORTTYPES_PPM:
 #if defined(PIOS_INCLUDE_PPM)
 		if (ppm_cfg) {
@@ -447,14 +459,17 @@ void PIOS_HAL_ConfigurePort(HwSharedPortTypesOptions port_type,
 
 	case HWSHARED_PORTTYPES_DISABLED:
 		break;
+
 	case HWSHARED_PORTTYPES_TELEMETRY:
 		PIOS_HAL_ConfigureCom(usart_port_cfg, PIOS_COM_TELEM_RF_RX_BUF_LEN, PIOS_COM_TELEM_RF_TX_BUF_LEN, com_driver, &port_driver_id);
 		target = &pios_com_telem_serial_id;
 		break;
+
 	case HWSHARED_PORTTYPES_GPS:
 		PIOS_HAL_ConfigureCom(usart_port_cfg, PIOS_COM_GPS_RX_BUF_LEN, PIOS_COM_GPS_TX_BUF_LEN, com_driver, &port_driver_id);
 		target = &pios_com_gps_id;
 		break;
+
 	case HWSHARED_PORTTYPES_DSM:
 #if defined(PIOS_INCLUDE_DSM)
 		if (dsm_cfg && usart_dsm_hsum_cfg) {
@@ -462,35 +477,31 @@ void PIOS_HAL_ConfigurePort(HwSharedPortTypesOptions port_type,
 		}
 #endif  /* PIOS_INCLUDE_DSM */
 		break;
+
 	case HWSHARED_PORTTYPES_SBUS:
-#if defined(PIOS_INCLUDE_SBUS) && defined(PIOS_INCLUDE_USART)
-		if (sbus_rcvr_cfg) {
-			uintptr_t usart_sbus_id;
-			if (PIOS_USART_Init(&usart_sbus_id, sbus_rcvr_cfg)) {
-				PIOS_Assert(0);
-			}
-			uintptr_t sbus_id;
-			if (PIOS_SBus_Init(&sbus_id, sbus_cfg, com_driver, usart_sbus_id)) {
-				PIOS_Assert(0);
-			}
-			uintptr_t sbus_rcvr_id;
-			if (PIOS_RCVR_Init(&sbus_rcvr_id, &pios_sbus_rcvr_driver, sbus_id)) {
-				PIOS_Assert(0);
-			}
-			PIOS_HAL_SetReceiver(MANUALCONTROLSETTINGS_CHANNELGROUPS_SBUS, sbus_rcvr_id);
-			pios_rcvr_group_map[MANUALCONTROLSETTINGS_CHANNELGROUPS_SBUS] = sbus_rcvr_id;
-		}
-		#endif  /* PIOS_INCLUDE_SBUS */
-		break;
 	case HWSHARED_PORTTYPES_SBUSNONINVERTED:
 #if defined(PIOS_INCLUDE_SBUS) && defined(PIOS_INCLUDE_USART)
-		if (sbus_non_inverted_rcvr_cfg) {
+		if (usart_port_cfg) {
+			pios_hal_usart_temp_cfg = usart_port_cfg;
+
+			// Sbus modifications to basic usart port configuration
+			pios_hal_usart_temp_cfg->init.USART_BaudRate = 100000;
+			pios_hal_usart_temp_cfg->init.USART_Parity   = USART_Parity_Even;
+			pios_hal_usart_temp_cfg->init.USART_StopBits = USART_StopBits_2;
+			pios_hal_usart_temp_cfg->init.USART_         = USART_Mode_Rx;
+
+			// rx_invert only used by F3 targets
+			if (port_type == HWSHARED_PORTTYPES_SBUS)
+				pios_hal_usart_temp_cfg->rx_invert = true;
+			else
+				pios_hal_usart_temp_cfg-> rx_invert = false;
+
 			uintptr_t usart_sbus_id;
-			if (PIOS_USART_Init(&usart_sbus_id, sbus_non_inverted_rcvr_cfg)) {
+			if (PIOS_USART_Init(&usart_sbus_id, pios_hal_usart_temp_cfg)) {
 				PIOS_Assert(0);
 			}
 			uintptr_t sbus_id;
-			if (PIOS_SBus_Init(&sbus_id, &sbus_null_cfg, com_driver, usart_sbus_id)) {
+			if (PIOS_SBus_Init(&sbus_id, com_driver, usart_sbus_id)) {
 				PIOS_Assert(0);
 			}
 			uintptr_t sbus_rcvr_id;
@@ -502,6 +513,7 @@ void PIOS_HAL_ConfigurePort(HwSharedPortTypesOptions port_type,
 		}
 #endif  /* PIOS_INCLUDE_SBUS */
 		break;
+
 	case HWSHARED_PORTTYPES_HOTTSUMD:
 	case HWSHARED_PORTTYPES_HOTTSUMH:
 #if defined(PIOS_INCLUDE_HSUM)
@@ -522,28 +534,33 @@ void PIOS_HAL_ConfigurePort(HwSharedPortTypesOptions port_type,
 		}
 #endif  /* PIOS_INCLUDE_HSUM */
 		break;
+
 	case HWSHARED_PORTTYPES_DEBUGCONSOLE:
 #if defined(PIOS_INCLUDE_DEBUG_CONSOLE)
 		PIOS_HAL_ConfigureCom(usart_port_cfg, 0, PIOS_COM_DEBUGCONSOLE_TX_BUF_LEN, com_driver, &port_driver_id);
 		target = &pios_com_debug_id;
 #endif  /* PIOS_INCLUDE_DEBUG_CONSOLE */
 		break;
+
 	case HWSHARED_PORTTYPES_COMBRIDGE:
 		PIOS_HAL_ConfigureCom(usart_port_cfg, PIOS_COM_BRIDGE_RX_BUF_LEN, PIOS_COM_BRIDGE_TX_BUF_LEN, com_driver, &port_driver_id);
 		target = &pios_com_bridge_id;
 		break;
+
 	case HWSHARED_PORTTYPES_MAVLINKTX:
 #if defined(PIOS_INCLUDE_MAVLINK)
 		PIOS_HAL_ConfigureCom(usart_port_cfg, 0, PIOS_COM_MAVLINK_TX_BUF_LEN, com_driver, &port_driver_id);
 		target = &pios_com_mavlink_id;
 #endif          /* PIOS_INCLUDE_MAVLINK */
 		break;
+
 	case HWSHARED_PORTTYPES_MSP:
 #if defined(PIOS_INCLUDE_MSP_BRIDGE)
 		PIOS_HAL_ConfigureCom(usart_port_cfg, PIOS_COM_MSP_RX_BUF_LEN, PIOS_COM_MSP_TX_BUF_LEN, com_driver, &port_driver_id);
 		target = &pios_com_msp_id;
 #endif
 		break;
+
 	case HWSHARED_PORTTYPES_MAVLINKTX_GPS_RX:
 #if defined(PIOS_INCLUDE_MAVLINK)
 		PIOS_HAL_ConfigureCom(usart_port_cfg, PIOS_COM_GPS_RX_BUF_LEN, PIOS_COM_MAVLINK_TX_BUF_LEN, com_driver, &port_driver_id);
@@ -551,36 +568,42 @@ void PIOS_HAL_ConfigurePort(HwSharedPortTypesOptions port_type,
 		target2 = &pios_com_gps_id;
 #endif          /* PIOS_INCLUDE_MAVLINK */
 		break;
+
 	case HWSHARED_PORTTYPES_HOTTTELEMETRY:
 #if defined(PIOS_INCLUDE_HOTT)
 		PIOS_HAL_ConfigureCom(usart_port_cfg, PIOS_COM_HOTT_RX_BUF_LEN, PIOS_COM_HOTT_TX_BUF_LEN, com_driver, &port_driver_id);
 		target = &pios_com_hott_id;
 #endif /* PIOS_INCLUDE_HOTT */
 		break;
+
 	case HWSHARED_PORTTYPES_FRSKYSENSORHUB:
 #if defined(PIOS_INCLUDE_FRSKY_SENSOR_HUB)
 		PIOS_HAL_ConfigureCom(usart_frsky_port_cfg, 0, PIOS_COM_FRSKYSENSORHUB_TX_BUF_LEN, com_driver, &port_driver_id);
 		target = &pios_com_frsky_sensor_hub_id;
 #endif /* PIOS_INCLUDE_FRSKY_SENSOR_HUB */
 		break;
+
 	case HWSHARED_PORTTYPES_FRSKYSPORTTELEMETRY:
 #if defined(PIOS_INCLUDE_FRSKY_SPORT_TELEMETRY)
 		PIOS_HAL_ConfigureCom(usart_frsky_port_cfg, PIOS_COM_FRSKYSPORT_RX_BUF_LEN, PIOS_COM_FRSKYSPORT_TX_BUF_LEN, com_driver, &port_driver_id);
 		target = &pios_com_frsky_sport_id;
 #endif /* PIOS_INCLUDE_FRSKY_SPORT_TELEMETRY */
 		break;
+
 	case HWSHARED_PORTTYPES_LIGHTTELEMETRYTX:
 #if defined(PIOS_INCLUDE_LIGHTTELEMETRY)
 		PIOS_HAL_ConfigureCom(usart_port_cfg, 0, PIOS_COM_LIGHTTELEMETRY_TX_BUF_LEN, com_driver, &port_driver_id);
 		target = &pios_com_lighttelemetry_id;
 #endif
 		break;
+
 	case HWSHARED_PORTTYPES_PICOC:
 #if defined(PIOS_INCLUDE_PICOC)
 		PIOS_HAL_ConfigureCom(usart_port_cfg, PIOS_COM_PICOC_RX_BUF_LEN, PIOS_COM_PICOC_TX_BUF_LEN, com_driver, &port_driver_id);
 		target = &pios_com_picoc_id;
 #endif /* PIOS_INCLUDE_PICOC */
 		break;
+
 	    case HWSHARED_PORTTYPES_OPENLOG:
 #if defined(PIOS_INCLUDE_OPENLOG)
 			PIOS_HAL_ConfigureCom(usart_port_cfg, 0, PIOS_COM_OPENLOG_TX_BUF_LEN, com_driver, &port_driver_id);
@@ -589,11 +612,6 @@ void PIOS_HAL_ConfigurePort(HwSharedPortTypesOptions port_type,
 		break;
 
 	} /* port_type */
-
-	if ((port_type != HWSHARED_PORTTYPES_SBUS) && (sbus_cfg != NULL)) {
-		GPIO_Init(sbus_cfg->inv.gpio, (GPIO_InitTypeDef*)&sbus_cfg->inv.init);
-		GPIO_WriteBit(sbus_cfg->inv.gpio, sbus_cfg->inv.init.GPIO_Pin, sbus_cfg->gpio_inv_disable);
-	}
 
 	PIOS_HAL_SetTarget(target, port_driver_id);
 	PIOS_HAL_SetTarget(target2, port_driver_id);

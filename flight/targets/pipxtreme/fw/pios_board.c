@@ -168,9 +168,7 @@ void PIOS_Board_Init(void)
 			NULL,                                // usart_dsm_hsum_cfg
 			NULL,                                // dsm_cfg
 			0,                                   // dsm_mode
-			NULL,                                // sbus_rcvr_cfg
-			NULL,                                // sbus_cfg
-			NULL);                               // sbus_non_inverted_rcvr_cfg
+			NULL);                               // sbus_cfg
 
 	ModuleSettingsInitialize();
 	ModuleSettingsData moduleSettings;

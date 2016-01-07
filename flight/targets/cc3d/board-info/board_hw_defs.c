@@ -775,7 +775,7 @@ static const struct pios_tim_channel pios_tim_servoport_rcvrport_pins[] = {
 
 #include "pios_usart_priv.h"
 
-static const struct pios_usart_cfg pios_usart_generic_main_cfg = {
+static struct pios_usart_cfg pios_usart_generic_main_cfg = {
 	.regs  = USART1,
 	.init = {
 		.USART_BaudRate            = 57600,
@@ -811,7 +811,7 @@ static const struct pios_usart_cfg pios_usart_generic_main_cfg = {
 	},
 };
 
-static const struct pios_usart_cfg pios_usart_generic_flexi_cfg = {
+static struct pios_usart_cfg pios_usart_generic_flexi_cfg = {
 	.regs  = USART3,
 	.init = {
 		.USART_BaudRate            = 57600,
@@ -966,46 +966,7 @@ static const struct pios_usart_cfg pios_usart_dsm_hsum_flexi_cfg = {
 
 
 #if defined(PIOS_INCLUDE_SBUS)
-/*
- * S.Bus USART
- */
 #include <pios_sbus_priv.h>
-
-static const struct pios_usart_cfg pios_usart_sbus_main_cfg = {
-	.regs = USART1,
-	.init = {
-		.USART_BaudRate            = 100000,
-		.USART_WordLength          = USART_WordLength_8b,
-		.USART_Parity              = USART_Parity_Even,
-		.USART_StopBits            = USART_StopBits_2,
-		.USART_HardwareFlowControl = USART_HardwareFlowControl_None,
-		.USART_Mode                = USART_Mode_Rx,
-	},
-	.irq = {
-		.init = {
-			.NVIC_IRQChannel                   = USART1_IRQn,
-			.NVIC_IRQChannelPreemptionPriority = PIOS_IRQ_PRIO_HIGH,
-			.NVIC_IRQChannelSubPriority        = 0,
-			.NVIC_IRQChannelCmd                = ENABLE,
-		  },
-	},
-	.rx = {
-		.gpio = GPIOA,
-		.init = {
-			.GPIO_Pin   = GPIO_Pin_10,
-			.GPIO_Speed = GPIO_Speed_2MHz,
-			.GPIO_Mode  = GPIO_Mode_IPU,
-		},
-	},
-	.tx = {
-		.gpio = GPIOA,
-		.init = {
-			.GPIO_Pin   = GPIO_Pin_9,
-			.GPIO_Speed = GPIO_Speed_2MHz,
-			.GPIO_Mode  = GPIO_Mode_IN_FLOATING,
-		},
-	},
-};
 
 static const struct pios_sbus_cfg pios_sbus_cfg = {
 	/* Inverter configuration */
