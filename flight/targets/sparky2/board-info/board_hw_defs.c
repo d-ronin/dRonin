@@ -784,7 +784,7 @@ bool get_external_flash(uint32_t board_revision)
 /*
  * MAIN USART
  */
-static const struct pios_usart_cfg pios_usart_main_cfg = {
+static struct pios_usart_cfg pios_usart_main_cfg = {
 	.regs = USART1,
 	.remap = GPIO_AF_USART1,
 	.init = {
@@ -831,16 +831,16 @@ static const struct pios_usart_cfg pios_usart_main_cfg = {
 /*
  * S.Bus USART
  */
-static const struct pios_usart_cfg pios_usart_sbus_rcvr_pc7_cfg = {
+static struct pios_usart_cfg pios_usart_rcvr_pc7_cfg = {
 	.regs = USART6,
 	.remap = GPIO_AF_USART6,
 	.init = {
-		.USART_BaudRate            = 100000,
-		.USART_WordLength          = USART_WordLength_8b,
-		.USART_Parity              = USART_Parity_Even,
-		.USART_StopBits            = USART_StopBits_2,
+		.USART_BaudRate = 57600,
+		.USART_WordLength = USART_WordLength_8b,
+		.USART_Parity = USART_Parity_No,
+		.USART_StopBits = USART_StopBits_1,
 		.USART_HardwareFlowControl = USART_HardwareFlowControl_None,
-		.USART_Mode                = USART_Mode_Rx,
+		.USART_Mode = USART_Mode_Rx | USART_Mode_Tx,
 	},
 	.irq = {
 		.init = {
@@ -862,16 +862,16 @@ static const struct pios_usart_cfg pios_usart_sbus_rcvr_pc7_cfg = {
 	},
 };
 
-static const struct pios_usart_cfg pios_usart_sbus_rcvr_pd2_cfg = {
+static struct pios_usart_cfg pios_usart_rcvr_pd2_cfg = {
 	.regs = UART5,
 	.remap = GPIO_AF_UART5,
 	.init = {
-		.USART_BaudRate            = 100000,
-		.USART_WordLength          = USART_WordLength_8b,
-		.USART_Parity              = USART_Parity_Even,
-		.USART_StopBits            = USART_StopBits_2,
+		.USART_BaudRate = 57600,
+		.USART_WordLength = USART_WordLength_8b,
+		.USART_Parity = USART_Parity_No,
+		.USART_StopBits = USART_StopBits_1,
 		.USART_HardwareFlowControl = USART_HardwareFlowControl_None,
-		.USART_Mode                = USART_Mode_Rx,
+		.USART_Mode = USART_Mode_Rx | USART_Mode_Tx,
 	},
 	.irq = {
 		.init = {
@@ -893,16 +893,16 @@ static const struct pios_usart_cfg pios_usart_sbus_rcvr_pd2_cfg = {
 	},
 };
 
-//! Get the SBUS configuration
-const struct pios_usart_cfg * get_sbus_rcvr_cfg(uint32_t board_revision)
+// Get the receiver port uart configuration
+struct pios_usart_cfg * get_rcvr_uart_cfg(uint32_t board_revision)
 {
 	switch(board_revision) {
 	case SPARKY2_V2_0:
-		return &pios_usart_sbus_rcvr_pc7_cfg;
+		return &pios_usart_rcvr_pc7_cfg;
 	case BRUSHEDSPARKY_V0_1:
-		return &pios_usart_sbus_rcvr_pc7_cfg;
+		return &pios_usart_rcvr_pc7_cfg;
 	case BRUSHEDSPARKY_V0_2:
-		return &pios_usart_sbus_rcvr_pd2_cfg;
+		return &pios_usart_rcvr_pd2_cfg;
 	}
 
 	PIOS_Assert(0);
@@ -927,7 +927,7 @@ static const struct pios_sbus_cfg pios_sbus_cfg = {
 	.gpio_inv_disable = Bit_RESET,
 };
 
-const struct pios_sbus_cfg * get_sbus_toggle(uint32_t board_revision)
+const struct pios_sbus_cfg * get_sbus_cfg(uint32_t board_revision)
 {
 	switch(board_revision) {
 	case SPARKY2_V2_0:
@@ -945,7 +945,7 @@ const struct pios_sbus_cfg * get_sbus_toggle(uint32_t board_revision)
 /*
  * FLEXI PORT
  */
-static const struct pios_usart_cfg pios_usart_flexi_cfg = {
+static struct pios_usart_cfg pios_usart_flexi_cfg = {
 	.regs = USART3,
 	.remap = GPIO_AF_USART3,
 	.init = {
@@ -1020,7 +1020,6 @@ static const struct pios_dsm_cfg pios_dsm_flexi_cfg = {
 		},
 	},
 };
-
 
 // Because of the inverter on the main port this will not
 // work.  Notice the mode is set to IN to maintain API

@@ -564,10 +564,8 @@ void PIOS_Board_Init(void) {
 			&pios_usart_dsm_hsum_main_cfg,       // usart_dsm_hsum_cfg 
 			&pios_dsm_main_cfg,                  // dsm_cfg
 			hw_DSMxMode,                         // dsm_mode 
-			NULL,                                // sbus_rcvr_cfg 
-			NULL,                                // sbus_cfg 
-			NULL);                               // sbus_non_inverted_rcvr_cfg
-
+			NULL);                               // sbus_cfg 
+			
 	/* Configure FlexiPort */
 	uint8_t hw_flexiport;
 	HwSparky2FlexiPortGet(&hw_flexiport);
@@ -584,10 +582,8 @@ void PIOS_Board_Init(void) {
 			&pios_usart_dsm_hsum_flexi_cfg,      // usart_dsm_hsum_cfg
 			&pios_dsm_flexi_cfg,                 // dsm_cfg
 			hw_DSMxMode,                         // dsm_mode 
-			NULL,                                // sbus_rcvr_cfg 
-			NULL,                                // sbus_cfg 
-			NULL);                               // sbus_non_inverted_rcvr_cfg
-
+			NULL);                               // sbus_cfg 
+			
 #if defined(PIOS_INCLUDE_RFM22B)
 	HwSparky2Data hwSparky2;
 	HwSparky2Get(&hwSparky2);
@@ -615,7 +611,7 @@ void PIOS_Board_Init(void) {
 	}
 
 	PIOS_HAL_ConfigurePort(hw_rcvrport,           // port type protocol
-			NULL,                                 // usart_port_cfg
+			get_rcvr_uart_cfg(bdinfo->board_rev), // usart_port_cfg
 			NULL,                                 // frsky usart_port_cfg
 			&pios_usart_com_driver,               // com_driver
 			NULL,                                 // i2c_id
@@ -626,10 +622,8 @@ void PIOS_Board_Init(void) {
 			&pios_usart_dsm_hsum_rcvr_cfg,        // usart_dsm_hsum_cfg
 			&pios_dsm_rcvr_cfg,                   // dsm_cfg
 			hw_DSMxMode,                          // dsm_mode
-			get_sbus_rcvr_cfg(bdinfo->board_rev), // sbus_rcvr_cfg
-			&pios_sbus_cfg,                       // sbus_cfg
-			NULL);                                // sbus_non_inverted_rcvr_cfg
-
+			get_sbus_cfg(bdinfo->board_rev));     // sbus_cfg
+			
 #if defined(PIOS_INCLUDE_GCSRCVR)
 	GCSReceiverInitialize();
 	uintptr_t pios_gcsrcvr_id;

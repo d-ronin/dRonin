@@ -409,10 +409,8 @@ void PIOS_Board_Init(void) {
             NULL,                                // usart_dsm_hsum_cfg
             NULL,                                // dsm_cfg
             0,                                   // dsm_mode
-            NULL,                                // sbus_rcvr_cfg
-            NULL,                                // sbus_cfg    
-            NULL);                               // sbus_non_inverted_rcvr_cfg
-
+            NULL);                               // sbus_cfg    
+    
     /* UART2 Port */
     uint8_t hw_uart2;
     HwAQ32Uart2Get(&hw_uart2);
@@ -429,10 +427,8 @@ void PIOS_Board_Init(void) {
             NULL,                                // usart_dsm_hsum_cfg
             NULL,                                // dsm_cfg
             0,                                   // dsm_mode
-            NULL,                                // sbus_rcvr_cfg
-            NULL,                                // sbus_cfg    
-            NULL);                               // sbus_non_inverted_rcvr_cfg
-
+            NULL);                               // sbus_cfg    
+            
     /* UART3 Port */
     uint8_t hw_uart3;
     HwAQ32Uart3Get(&hw_uart3);
@@ -449,9 +445,7 @@ void PIOS_Board_Init(void) {
             &pios_usart3_dsm_hsum_cfg,           // usart_dsm_hsum_cfg
             NULL,                                // dsm_cfg
             0,                                   // dsm_mode
-            &pios_usart3_sbus_cfg,               // sbus_rcvr_cfg
-            &pios_usart3_sbus_aux_cfg,           // sbus_cfg                
-            &pios_usart3_sbus_cfg);              // sbus_non_inverted_rcvr_cfg
+            &pios_usart3_sbus_aux_cfg);          // sbus_cfg                
             
     if (hw_uart3 == HWAQ32_UART3_FRSKYSENSORHUB)
     {
@@ -475,10 +469,8 @@ void PIOS_Board_Init(void) {
             &pios_usart4_dsm_hsum_cfg,           // usart_dsm_hsum_cfg
             &pios_usart4_dsm_aux_cfg,            // dsm_cfg
             hw_DSMxMode,                         // dsm_mode
-            NULL,                                // sbus_rcvr_cfg
-            NULL,                                // sbus_cfg    
-            &pios_usart4_sbus_cfg);              // sbus_non_inverted_rcvr_cfg
-
+            NULL);                               // sbus_cfg    
+            
     /* UART6 Port */
     uint8_t hw_uart6;
     HwAQ32Uart6Get(&hw_uart6);
@@ -495,10 +487,8 @@ void PIOS_Board_Init(void) {
             &pios_usart6_dsm_hsum_cfg,           // usart_dsm_hsum_cfg
             &pios_usart6_dsm_aux_cfg,            // dsm_cfg
             hw_DSMxMode,                         // dsm_mode
-            NULL,                                // sbus_rcvr_cfg
-            NULL,                                // sbus_cfg    
-            &pios_usart6_sbus_cfg);              // sbus_non_inverted_rcvr_cfg
-
+            NULL);                               // sbus_cfg    
+            
     /* Configure the rcvr port */
     PIOS_HAL_ConfigurePort(hw_rcvrport,          // port type protocol
             NULL,                                // usart_port_cfg
@@ -512,10 +502,8 @@ void PIOS_Board_Init(void) {
             NULL,                                // usart_dsm_hsum_cfg
             NULL,                                // dsm_cfg
             0,                                   // dsm_mode
-            NULL,                                // sbus_rcvr_cfg
-            NULL,                                // sbus_cfg    
-            NULL);                               // sbus_non_inverted_rcvr_cfg
-
+            NULL);                               // sbus_cfg    
+            
 #if defined(PIOS_INCLUDE_GCSRCVR)
     GCSReceiverInitialize();
     uintptr_t pios_gcsrcvr_id;

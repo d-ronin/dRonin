@@ -397,10 +397,8 @@ void PIOS_Board_Init(void)
 	        &pios_main_dsm_hsum_cfg,             // usart_dsm_hsum_cfg
 	        &pios_main_dsm_aux_cfg,              // dsm_cfg
 	        hw_DSMxMode,                         // dsm_mode
-	        &pios_main_sbus_cfg,                 // sbus_rcvr_cfg
-	        &pios_main_sbus_aux_cfg,             // sbus_cfg  
-	        &pios_main_sbus_non_inverted_cfg);   // sbus_non_inverted_rcvr_cfg
-
+	        NULL);                               // sbus_cfg  
+	        
 	/* Configure FlexiPort */
 	uint8_t hw_flexiport;
 	HwSparkyFlexiPortGet(&hw_flexiport);
@@ -417,16 +415,14 @@ void PIOS_Board_Init(void)
 	        &pios_flexi_dsm_hsum_cfg,            // usart_dsm_hsum_cfg 
 	        &pios_flexi_dsm_aux_cfg,             // dsm_cfg
 	        hw_DSMxMode,                         // dsm_mode
-	        &pios_flexi_sbus_cfg,                // sbus_rcvr_cfg
-	        &pios_flexi_sbus_aux_cfg,            // sbus_cfg 
-	        &pios_flexi_sbus_non_inverted_cfg);  // sbus_non_inverted_rcvr_cfg
-
+	        NULL);                               // sbus_cfg 
+	        
 	/* Configure the rcvr port */
 	uint8_t hw_rcvrport;
 	HwSparkyRcvrPortGet(&hw_rcvrport);
 	
 	PIOS_HAL_ConfigurePort(hw_rcvrport,          // port type protocol
-	        NULL,                                // usart_port_cfg
+	        &pios_rcvr_usart_cfg,                // usart_port_cfg
 	        NULL,                                // frsky usart_port_cfg
 	        &pios_usart_com_driver,              // com_driver
 	        NULL,                                // i2c_id 
@@ -437,10 +433,8 @@ void PIOS_Board_Init(void)
 	        &pios_rcvr_dsm_hsum_cfg,             // usart_dsm_hsum_cfg
 	        &pios_rcvr_dsm_aux_cfg,              // dsm_cfg
 	        hw_DSMxMode,                         // dsm_mode
-	        &pios_rcvr_sbus_cfg,                 // sbus_rcvr_cfg
-	        &pios_rcvr_sbus_aux_cfg,             // sbus_cfg 
-	        &pios_rcvr_sbus_non_inverted_cfg);   // sbus_non_inverted_rcvr_cfg
-
+	        NULL);                               // sbus_cfg 
+	        
 #if defined(PIOS_INCLUDE_GCSRCVR)
 	GCSReceiverInitialize();
 	uintptr_t pios_gcsrcvr_id;
