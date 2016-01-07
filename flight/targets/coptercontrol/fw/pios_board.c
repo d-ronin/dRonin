@@ -260,10 +260,8 @@ void PIOS_Board_Init(void) {
 			&pios_usart_dsm_hsum_main_cfg,       // usart_dsm_hsum_cfg
 			&pios_dsm_main_cfg,                  // dsm_cfg
 			hw_DSMxMode,                         // dsm_mode
-			&pios_usart_sbus_main_cfg,           // sbus_rcvr_cfg
-			&pios_sbus_cfg,                      // sbus_cfg
-			NULL);                               // sbus_non_inverted_rcvr_cfg
-
+			&pios_sbus_cfg);                     // sbus_cfg
+			
 	/* Configure the flexi port */
 	uint8_t hw_flexiport;
 	HwCopterControlFlexiPortGet(&hw_flexiport);
@@ -285,10 +283,8 @@ void PIOS_Board_Init(void) {
 			&pios_usart_dsm_hsum_flexi_cfg,      // usart_dsm_hsum_cfg
 			&pios_dsm_flexi_cfg,                 // dsm_cfg
 			hw_DSMxMode,                         // dsm_mode
-			NULL,                                // sbus_rcvr_cfg
-			NULL,                                // sbus_cfg 
-			NULL);                               // sbus_non_inverted_rcvr_cfg
-
+			NULL);                               // sbus_cfg 
+			
 	/* Configure the rcvr port */
 	uint8_t hw_rcvrport;
 	HwCopterControlRcvrPortGet(&hw_rcvrport);

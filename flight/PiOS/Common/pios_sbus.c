@@ -65,7 +65,6 @@ struct pios_sbus_state {
 
 struct pios_sbus_dev {
 	enum pios_sbus_dev_magic magic;
-	const struct pios_sbus_cfg *cfg;
 	struct pios_sbus_state state;
 };
 
@@ -106,7 +105,6 @@ static void PIOS_SBus_ResetState(struct pios_sbus_state *state)
 
 /* Initialise S.Bus receiver interface */
 int32_t PIOS_SBus_Init(uintptr_t *sbus_id,
-		       const struct pios_sbus_cfg *cfg,
 		       const struct pios_com_driver *driver,
 		       uintptr_t lower_id)
 {
@@ -117,25 +115,12 @@ int32_t PIOS_SBus_Init(uintptr_t *sbus_id,
 	struct pios_sbus_dev *sbus_dev;
 
 	sbus_dev = (struct pios_sbus_dev *)PIOS_SBus_Alloc();
-	if (!sbus_dev) goto out_fail;
-
-	/* Bind the configuration to the device instance */
-	sbus_dev->cfg = cfg;
+	if (!sbus_dev) return -1;
 
 	PIOS_SBus_ResetState(&(sbus_dev->state));
 
 	*sbus_id = (uintptr_t)sbus_dev;
 
-	/* Enable inverter clock and enable the inverter */
-	if (cfg->gpio_clk_func != NULL)
-		(*cfg->gpio_clk_func)(cfg->gpio_clk_periph, ENABLE);
-	if (cfg->inv.gpio != NULL)
-	{
-		GPIO_Init(cfg->inv.gpio, (GPIO_InitTypeDef*)&cfg->inv.init);
-		GPIO_WriteBit(cfg->inv.gpio, cfg->inv.init.GPIO_Pin, cfg->gpio_inv_enable);
-	}
-
-	/* Set comm driver callback */
 	(driver->bind_rx_cb)(lower_id, PIOS_SBus_RxInCallback, *sbus_id);
 
 	if (!PIOS_RTC_RegisterTickCallback(PIOS_SBus_Supervisor, *sbus_id)) {
@@ -143,9 +128,6 @@ int32_t PIOS_SBus_Init(uintptr_t *sbus_id,
 	}
 
 	return 0;
-
-out_fail:
-	return -1;
 }
 
 /**

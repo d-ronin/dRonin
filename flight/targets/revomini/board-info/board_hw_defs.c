@@ -642,7 +642,7 @@ const struct pios_flash_partition * PIOS_BOARD_HW_DEFS_GetPartitionTable (uint32
 /*
  * MAIN USART
  */
-static const struct pios_usart_cfg pios_usart_main_cfg = {
+static struct pios_usart_cfg pios_usart_main_cfg = {
 	.regs = USART1,
 	.remap = GPIO_AF_USART1,
 	.init = {
@@ -685,45 +685,7 @@ static const struct pios_usart_cfg pios_usart_main_cfg = {
 #endif /* PIOS_INCLUDE_COM_TELEM */
 
 #include <pios_sbus_priv.h>
-#if defined(PIOS_INCLUDE_SBUS)
-/*
- * S.Bus USART
- */
-static const struct pios_usart_cfg pios_usart_sbus_main_cfg = {
-	.regs = USART1,
-	.remap = GPIO_AF_USART1,
-	.init = {
-		.USART_BaudRate            = 100000,
-		.USART_WordLength          = USART_WordLength_8b,
-		.USART_Parity              = USART_Parity_Even,
-		.USART_StopBits            = USART_StopBits_2,
-		.USART_HardwareFlowControl = USART_HardwareFlowControl_None,
-		.USART_Mode                = USART_Mode_Rx,
-	},
-	.irq = {
-		.init = {
-			.NVIC_IRQChannel                   = USART1_IRQn,
-			.NVIC_IRQChannelPreemptionPriority = PIOS_IRQ_PRIO_HIGH,
-			.NVIC_IRQChannelSubPriority        = 0,
-			.NVIC_IRQChannelCmd                = ENABLE,
-		  },
-	},
-	.rx = {
-		.gpio = GPIOA,
-		.init = {
-			.GPIO_Pin   = GPIO_Pin_10,
-			.GPIO_Speed = GPIO_Speed_2MHz,
-			.GPIO_Mode  = GPIO_Mode_AF,
-			.GPIO_OType = GPIO_OType_PP,
-			.GPIO_PuPd  = GPIO_PuPd_UP
-		},
-		.pin_source = GPIO_PinSource10,
-	},
-};
-
-#endif	/* PIOS_INCLUDE_SBUS */
-
-// Need this defined regardless to be able to turn it off
+// Need this defined regardless to be able to turn sbus hardware inverter off
 static const struct pios_sbus_cfg pios_sbus_cfg = {
 	/* Inverter configuration */
 	.inv = {
@@ -747,7 +709,7 @@ static const struct pios_sbus_cfg pios_sbus_cfg = {
 /*
  * FLEXI PORT
  */
-static const struct pios_usart_cfg pios_usart_flexi_cfg = {
+static struct pios_usart_cfg pios_usart_flexi_cfg = {
 	.regs = USART3,
 	.remap = GPIO_AF_USART3,
 	.init = {
