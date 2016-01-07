@@ -357,7 +357,7 @@ void PIOS_Board_Init(void) {
 			hw_DSMxMode >= HWREVOLUTION_DSMXMODE_BIND3PULSES ? HWREVOLUTION_DSMXMODE_AUTODETECT : hw_DSMxMode /* No bind on main port */, 
 			&pios_usart_sbus_main_cfg,           // sbus_rcvr_cfg
 			&pios_sbus_cfg,                      // sbus_cfg 
-			true);                               // sbus_toggle
+			NULL);                               // sbus_non_inverted_rcvr_cfg
 
 	/* Configure FlexiPort */
 	uint8_t hw_flexiport;
@@ -377,7 +377,7 @@ void PIOS_Board_Init(void) {
 			hw_DSMxMode,                         // dsm_mode
 			NULL,                                // sbus_rcvr_cfg
 			NULL,                                // sbus_cfg    
-			false);                              // sbus_toggle
+			NULL);                               // sbus_non_inverted_rcvr_cfg
 
 	HwRevolutionData hwRevoMini;
 	HwRevolutionGet(&hwRevoMini);

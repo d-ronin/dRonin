@@ -170,7 +170,7 @@ void PIOS_Board_Init(void)
 			0,                                   // dsm_mode
 			NULL,                                // sbus_rcvr_cfg
 			NULL,                                // sbus_cfg
-			false);                              // sbus_toggle
+			NULL);                               // sbus_non_inverted_rcvr_cfg
 
 	ModuleSettingsInitialize();
 	ModuleSettingsData moduleSettings;

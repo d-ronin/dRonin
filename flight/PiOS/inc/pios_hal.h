@@ -57,7 +57,7 @@ void PIOS_HAL_ConfigurePort(HwSharedPortTypesOptions port_type,
 		HwSharedDSMxModeOptions dsm_mode,
 		const struct pios_usart_cfg *sbus_rcvr_cfg,
 		const struct pios_sbus_cfg *sbus_cfg,
-		bool sbus_toggle);
+		const struct pios_usart_cfg *sbus_non_inverted_rcvr_cfg);
 
 void PIOS_HAL_ConfigureCDC(HwSharedUSB_VCPPortOptions port_type,
 		uintptr_t usb_id,
