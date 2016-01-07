@@ -396,9 +396,9 @@ void PIOS_Board_Init(void)
 	        &pios_main_dsm_hsum_cfg,             // usart_dsm_hsum_cfg
 	        &pios_main_dsm_aux_cfg,              // dsm_cfg
 	        hw_DSMxMode,                         // dsm_mode
-	        NULL,                                // sbus_rcvr_cfg
-	        NULL,                                // sbus_cfg  
-	        false);                              // sbus_toggle
+	        &pios_main_sbus_cfg,                 // sbus_rcvr_cfg
+	        &pios_main_sbus_aux_cfg,             // sbus_cfg  
+	        &pios_main_sbus_non_inverted_cfg);   // sbus_non_inverted_rcvr_cfg
 
 	/* Configure FlexiPort */
 	uint8_t hw_flexiport;
@@ -416,9 +416,9 @@ void PIOS_Board_Init(void)
 	        &pios_flexi_dsm_hsum_cfg,            // usart_dsm_hsum_cfg 
 	        &pios_flexi_dsm_aux_cfg,             // dsm_cfg
 	        hw_DSMxMode,                         // dsm_mode
-	        NULL,                                // sbus_rcvr_cfg
-	        NULL,                                // sbus_cfg 
-	        false);                              // sbus_toggle
+	        &pios_flexi_sbus_cfg,                // sbus_rcvr_cfg
+	        &pios_flexi_sbus_aux_cfg,            // sbus_cfg 
+	        &pios_flexi_sbus_non_inverted_cfg);  // sbus_non_inverted_rcvr_cfg
 
 	/* Configure the rcvr port */
 	uint8_t hw_rcvrport;
@@ -438,7 +438,7 @@ void PIOS_Board_Init(void)
 	        hw_DSMxMode,                         // dsm_mode
 	        &pios_rcvr_sbus_cfg,                 // sbus_rcvr_cfg
 	        &pios_rcvr_sbus_aux_cfg,             // sbus_cfg 
-	        false);                              // sbus_toggle
+	        &pios_rcvr_sbus_non_inverted_cfg);   // sbus_non_inverted_rcvr_cfg
 
 #if defined(PIOS_INCLUDE_GCSRCVR)
 	GCSReceiverInitialize();
@@ -477,7 +477,7 @@ void PIOS_Board_Init(void)
 		use_pwm_in = true;
 		number_of_adc_ports = 0;
 		break;
-	case HWSPARKY_OUTPORT_PWM7PWM_IN2ADC:
+	case HWSPARKY_OUTPORT_PWM72ADCPWM_IN:
 		number_of_pwm_outputs = 7;
 		use_pwm_in = true;
 		number_of_adc_ports = 2;

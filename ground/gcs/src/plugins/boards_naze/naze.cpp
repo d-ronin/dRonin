@@ -164,14 +164,13 @@ bool Naze::setInputOnPort(enum InputType type, int port_num)
     case INPUT_TYPE_PPM:
         settings.RcvrPort = HwNaze::RCVRPORT_PPM;
         break;
-    case INPUT_TYPE_DSM:
-        settings.RcvrPort = HwNaze::RCVRPORT_PPMSERIAL;
-        settings.RcvrSerial = HwNaze::RCVRSERIAL_DSM;
-        break;
-    case INPUT_TYPE_HOTTSUMD:
-        settings.RcvrPort = HwNaze::RCVRPORT_PPMSERIAL;
-        settings.RcvrSerial = HwNaze::RCVRSERIAL_HOTTSUMD;
-        break;
+	case INPUT_TYPE_DSM:
+		settings.RcvrPort = HwNaze::RCVRPORT_SERIAL;
+		settings.RcvrSerial = HwNaze::RCVRSERIAL_DSM;
+		break;
+	case INPUT_TYPE_SBUSNONINVERTED:
+		settings.RcvrPort = HwNaze::RCVRPORT_SERIAL;
+		settings.RcvrSerial = HwNaze::RCVRSERIAL_SBUSNONINVERTED;
     default:
         return false;
     }
@@ -208,8 +207,8 @@ enum Core::IBoardType::InputType Naze::getInputOnPort(int port_num)
         switch(settings.RcvrSerial) {
         case HwNaze::RCVRSERIAL_DSM:
             return INPUT_TYPE_DSM;
-        case HwNaze::RCVRSERIAL_HOTTSUMD:
-            return INPUT_TYPE_HOTTSUMD;
+		case HwNaze::RCVRSERIAL_SBUSNONINVERTED:
+			return INPUT_TYPE_SBUSNONINVERTED;
         default:
             // can still use PPM
             return INPUT_TYPE_PPM;
