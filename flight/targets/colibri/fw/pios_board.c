@@ -855,8 +855,7 @@ void PIOS_Board_Init(void)
 			}
 			uintptr_t pios_sbus_id;
 			if (PIOS_SBus_Init
-			    (&pios_sbus_id, &pios_usart2_sbus_aux_cfg,
-			     &pios_usart_com_driver, pios_usart_sbus_id)) {
+			    (&pios_sbus_id, &pios_usart_com_driver, pios_usart_sbus_id)) {
 				PIOS_Assert(0);
 			}
 			uintptr_t pios_sbus_rcvr_id;
@@ -976,11 +975,13 @@ void PIOS_Board_Init(void)
 		break;
 	}
 
-	if (hw_uart2 != HWCOLIBRI_UART2_SBUS) {
-		GPIO_Init(pios_usart2_sbus_aux_cfg.inv.gpio, (GPIO_InitTypeDef*)&pios_usart2_sbus_aux_cfg.inv.init);
+	GPIO_Init(pios_usart2_sbus_aux_cfg.inv.gpio, (GPIO_InitTypeDef*)&pios_usart2_sbus_aux_cfg.inv.init);
+		
+	if (hw_uart2 != HWCOLIBRI_UART2_SBUS)
 		GPIO_WriteBit(pios_usart2_sbus_aux_cfg.inv.gpio, pios_usart2_sbus_aux_cfg.inv.init.GPIO_Pin, pios_usart2_sbus_aux_cfg.gpio_inv_disable);
-	}
-
+	else
+		GPIO_WriteBit(pios_usart2_sbus_aux_cfg.inv.gpio, pios_usart2_sbus_aux_cfg.inv.init.GPIO_Pin, pios_usart2_sbus_aux_cfg.gpio_inv_enable);
+	
 	/* UART3 Port */
 	uint8_t hw_uart3;
 	HwColibriUart3Get(&hw_uart3);

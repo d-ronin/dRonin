@@ -676,7 +676,7 @@ void PIOS_Board_Init(void) {
 			PIOS_Assert(0);
 		}
 		uintptr_t pios_sbus_id;
-		if (PIOS_SBus_Init(&pios_sbus_id, &pios_mainport_sbus_aux_cfg, &pios_usart_com_driver, pios_usart_sbus_id)) {
+		if (PIOS_SBus_Init(&pios_sbus_id, &pios_usart_com_driver, pios_usart_sbus_id)) {
 			PIOS_Assert(0);
 		}
 		uintptr_t pios_sbus_rcvr_id;
@@ -769,10 +769,12 @@ void PIOS_Board_Init(void) {
 		break;
 	}
 
-	if (hw_mainport != HWBRAIN_MAINPORT_SBUS) {
-		GPIO_Init(pios_mainport_sbus_aux_cfg.inv.gpio, (GPIO_InitTypeDef*)&pios_mainport_sbus_aux_cfg.inv.init);
+	GPIO_Init(pios_mainport_sbus_aux_cfg.inv.gpio, (GPIO_InitTypeDef*)&pios_mainport_sbus_aux_cfg.inv.init);
+		
+	if (hw_mainport != HWBRAIN_MAINPORT_SBUS)
 		GPIO_WriteBit(pios_mainport_sbus_aux_cfg.inv.gpio, pios_mainport_sbus_aux_cfg.inv.init.GPIO_Pin, pios_mainport_sbus_aux_cfg.gpio_inv_disable);
-	}
+	else
+		GPIO_WriteBit(pios_mainport_sbus_aux_cfg.inv.gpio, pios_mainport_sbus_aux_cfg.inv.init.GPIO_Pin, pios_mainport_sbus_aux_cfg.gpio_inv_enable);
 
 	/* Flx Port */
 	uint8_t hw_flxport;
