@@ -1438,10 +1438,9 @@ void ConfigInputWidget::moveSticks()
         m_txFlightMode->setTransform(m_txFlightModeCOrig, false);
         break;
     case 2:
+    default:
         m_txFlightMode->setElementId("flightModeRight");
         m_txFlightMode->setTransform(m_txFlightModeROrig, false);
-        break;
-    default:
         break;
     }
     switch(scaleSwitchChannel(ManualControlSettings::CHANNELMIN_ARMING, 2))
