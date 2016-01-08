@@ -154,8 +154,8 @@ extern uintptr_t pios_com_mavlink_id;
 //-------------------------
 // Reciever HSUM input
 //-------------------------
-#define PIOS_HSUM_MAX_DEVS              2
-#define PIOS_HSUM_NUM_INPUTS            32
+#define PIOS_HSUM_MAX_DEVS				2
+#define PIOS_HSUM_NUM_INPUTS			32
 
 //-------------------------
 // Receiver S.Bus input

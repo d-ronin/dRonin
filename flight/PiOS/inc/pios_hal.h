@@ -43,7 +43,7 @@ void PIOS_HAL_ConfigureCom(const struct pios_usart_cfg *usart_port_cfg,
 void PIOS_HAL_Panic(uint32_t led_id, int32_t code);
 
 void PIOS_HAL_ConfigurePort(HwSharedPortTypesOptions port_type,
-		struct pios_usart_cfg *usart_port_cfg,
+		const struct pios_usart_cfg *usart_port_cfg,
 		const struct pios_usart_cfg *usart_frsky_port_cfg,
 		const struct pios_com_driver *com_driver,
 		uint32_t *i2c_id,

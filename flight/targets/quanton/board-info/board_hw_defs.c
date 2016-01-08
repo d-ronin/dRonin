@@ -999,7 +999,7 @@ static const struct pios_sbus_cfg pios_usart2_sbus_aux_cfg = {
 
 #endif	/* PIOS_INCLUDE_SBUS */
 
-static struct pios_usart_cfg pios_usart1_cfg = {
+static const struct pios_usart_cfg pios_usart1_cfg = {
 	.regs = USART1,
 	.remap = GPIO_AF_USART1,
 	.init = {
@@ -1042,7 +1042,7 @@ static struct pios_usart_cfg pios_usart1_cfg = {
 	},
 };
 
-static struct pios_usart_cfg pios_usart2_cfg = {
+static const struct pios_usart_cfg pios_usart2_cfg = {
 	.regs = USART2,
 	.remap = GPIO_AF_USART2,
 	.init = {
@@ -1085,7 +1085,7 @@ static struct pios_usart_cfg pios_usart2_cfg = {
 	},
 };
 
-static struct pios_usart_cfg pios_usart3_cfg = {
+static const struct pios_usart_cfg pios_usart3_cfg = {
 	.regs = USART3,
 	.remap = GPIO_AF_USART3,
 	.init = {
@@ -1128,7 +1128,7 @@ static struct pios_usart_cfg pios_usart3_cfg = {
 	},
 };
 
-static struct pios_usart_cfg pios_usart4_cfg = {
+static const struct pios_usart_cfg pios_usart4_cfg = {
 	.regs = UART4,
 	.remap = GPIO_AF_UART4,
 	.init = {
@@ -1171,7 +1171,7 @@ static struct pios_usart_cfg pios_usart4_cfg = {
 	},
 };
 
-static struct pios_usart_cfg pios_usart5_cfg = {
+static const struct pios_usart_cfg pios_usart5_cfg = {
 	.regs = UART5,
 	.remap = GPIO_AF_UART5,
 	.init = {

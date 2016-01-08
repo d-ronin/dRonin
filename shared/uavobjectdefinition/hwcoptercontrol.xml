@@ -2,9 +2,56 @@
 	<object name="HwCopterControl" singleinstance="true" settings="true" category="HardwareSettings">
 		<description>Selection of optional hardware configurations.</description>
 
-		<field name="RcvrPort" units="function" type="enum" elements="1" options="Disabled,PWM,PPM,PPM on pin 8,PPM+PWM,PPM+Outputs,Outputs" defaultvalue="PWM"/>
-		<field name="MainPort" units="function" type="enum" elements="1" options="Disabled,Telemetry,GPS,S.Bus,DSM,DebugConsole,ComBridge, MavLinkTX, MavLinkTX_GPS_RX, MSP, FrSKY Sensor Hub, LighttelemetryTx,HoTT SUMD,HoTT SUMH" parent="HwShared.PortTypes" defaultvalue="Disabled"/>
-		<field name="FlexiPort" units="function" type="enum" elements="1" options="Disabled,Telemetry,GPS,I2C,DSM,DebugConsole,ComBridge, MavLinkTX, FrSKY Sensor Hub, MSP, LighttelemetryTx,HoTT SUMD,HoTT SUMH" parent="HwShared.PortTypes" defaultvalue="Disabled"/>
+		<field name="RcvrPort" units="function" type="enum" elements="1" defaultvalue="PWM">
+			<options>
+				<option>Disabled</option>
+				<option>Outputs</option>
+				<option>PPM</option>
+				<option>PPM on pin 8</option>
+				<option>PPM+Outputs</option>
+				<option>PPM+PWM</option>
+				<option>PWM</option>
+			</options>
+		</field>
+
+		<field name="MainPort" units="function" type="enum" elements="1" parent="HwShared.PortTypes" defaultvalue="Disabled">
+			<options>
+				<option>Disabled</option>
+				<option>ComBridge</option>
+				<option>DebugConsole</option>
+				<option>DSM</option>
+				<option>FrSKY Sensor Hub</option>
+				<option>GPS</option>
+				<option>HoTT SUMD</option>
+				<option>HoTT SUMH</option>
+				<option>LighttelemetryTx</option>
+				<option>MavLinkTX</option>
+				<option>MavLinkTX_GPS_RX</option>
+				<option>MSP</option>
+				<option>S.Bus</option>
+				<option>S.Bus Non Inverted</option>
+				<option>Telemetry</option>
+			</options>
+		</field>
+
+		<field name="FlexiPort" units="function" type="enum" elements="1" parent="HwShared.PortTypes" defaultvalue="Disabled">
+			<options>
+				<option>Disabled</option>
+				<option>ComBridge</option>
+				<option>DebugConsole</option>
+				<option>DSM</option>
+				<option>FrSKY Sensor Hub</option>
+				<option>GPS</option>
+				<option>HoTT SUMD</option>
+				<option>HoTT SUMH</option>
+				<option>I2C</option>
+				<option>LighttelemetryTx</option>
+				<option>MavLinkTX</option>
+				<option>MSP</option>
+				<option>S.Bus Non Inverted</option>
+				<option>Telemetry</option>
+			</options>
+		</field>
 
 		<field name="USB_HIDPort" units="function" type="enum" elements="1" parent="HwShared.USB_HIDPort" defaultvalue="USBTelemetry"/>
 		<field name="USB_VCPPort" units="function" type="enum" elements="1" parent="HwShared.USB_VCPPort" defaultvalue="Disabled"/>
