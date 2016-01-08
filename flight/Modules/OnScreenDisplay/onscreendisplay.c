@@ -1294,11 +1294,10 @@ void render_user_page(OnScreenDisplayPageSettingsData * page)
 	// Home distance (will be -1 if enabled but GPS is not enabled)
 	if (home_dist >= 0)
 	{
-		tmp = home_dist * convert_distance;
-		if (tmp < convert_distance_divider)
-			sprintf(tmp_str, "%d%s", (int)tmp, dist_unit_short);
+		if (home_dist < convert_distance_divider)
+			sprintf(tmp_str, "%d%s", (int) home_dist, dist_unit_short);
 		else {
-			sprintf(tmp_str, "%0.2f%s", (double)(tmp / convert_distance_divider), dist_unit_long);
+			sprintf(tmp_str, "%0.2f%s", (double)(home_dist / convert_distance_divider), dist_unit_long);
 		}
 		if (page->HomeDistanceShowIcon) {
 			draw_image(page->HomeDistancePosX, page->HomeDistancePosY - image_home.height / 2, &image_home);
