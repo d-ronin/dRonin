@@ -998,13 +998,26 @@ void ConfigInputWidget::identifyLimits()
             }
         }
 
-        if (i == ManualControlSettings::CHANNELNEUTRAL_THROTTLE) {
+	switch (i) {
+	    case ManualControlSettings::CHANNELNUMBER_THROTTLE:
             // Keep the throttle neutral position near the minimum value so that
             // the stick visualization keeps working consistently (it expects this
             // ratio between + and - range.
             manualSettingsData.ChannelNeutral[i] = manualSettingsData.ChannelMin[i] +
                     (manualSettingsData.ChannelMax[i] - manualSettingsData.ChannelMin[i]) * THROTTLE_NEUTRAL_FRACTION;
-        }
+	    break;
+
+	    case ManualControlSettings::CHANNELNUMBER_ARMING:
+	    case ManualControlSettings::CHANNELGROUPS_FLIGHTMODE:
+	    // Keep switches near the middle.
+	    manualSettingsData.ChannelNeutral[i] =
+                (manualSettingsData.ChannelMax[i] +
+                manualSettingsData.ChannelMin[i]) / 2;
+	    break;
+
+	    default:
+	    break;
+	}
     }
 
     manualSettingsObj->setData(manualSettingsData);
