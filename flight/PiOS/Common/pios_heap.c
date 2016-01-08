@@ -253,7 +253,6 @@ void PIOS_heap_increase_size(size_t bytes)
  * Right now it returns failure always.
  */
 void *_sbrk(int incr) {
-	PIOS_Assert(0);
 	return (void *) -1;
 }
 
