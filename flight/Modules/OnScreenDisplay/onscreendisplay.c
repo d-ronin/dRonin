@@ -992,14 +992,13 @@ void draw_map_uav_center(int width_px, int height_px, int width_m, int height_m,
 void introGraphics(int16_t x, int16_t y)
 {
 	/* logo */
-	draw_image(x - image_brain.width, y - image_brain.height / 2, &image_brain);
-	draw_image(x + 50, y - image_tau.height / 2, &image_tau);
+	draw_image(x - image_brainfpv.width - 10, y - image_brainfpv.height / 2, &image_brainfpv);
+	draw_image(x + 10, y - image_dronin.height / 2, &image_dronin);
 }
 
 void introText(int16_t x, int16_t y)
 {
-	write_string("Brain FPV Flight Controller", x, y - 10, 0, 0, TEXT_VA_TOP, TEXT_HA_CENTER, 0, 3);
-	write_string("Tau Labs", x, y + 10, 0, 0, TEXT_VA_TOP, TEXT_HA_CENTER, 0, 3);
+	write_string("dRonin", x, y, 0, 0, TEXT_VA_TOP, TEXT_HA_CENTER, 0, 3);
 }
 
 void printFWVersion(int16_t x, int16_t y)
@@ -1619,12 +1618,12 @@ static void onScreenDisplayTask(__attribute__((unused)) void *parameters)
 			clearGraphics();
 			if (PIOS_Video_GetType() == VIDEO_TYPE_NTSC) {
 				introGraphics(GRAPHICS_RIGHT / 2, GRAPHICS_BOTTOM / 2 - 20);
-				introText(GRAPHICS_RIGHT / 2, GRAPHICS_BOTTOM - 70);
+				introText(GRAPHICS_RIGHT / 2, GRAPHICS_BOTTOM - 60);
 				showVideoType(GRAPHICS_RIGHT / 2, GRAPHICS_BOTTOM - 45);
 				printFWVersion(GRAPHICS_RIGHT / 2, GRAPHICS_BOTTOM - 20);
 			} else {
 				introGraphics(GRAPHICS_RIGHT / 2, GRAPHICS_BOTTOM / 2 - 30);
-				introText(GRAPHICS_RIGHT / 2, GRAPHICS_BOTTOM - 90);
+				introText(GRAPHICS_RIGHT / 2, GRAPHICS_BOTTOM - 80);
 				showVideoType(GRAPHICS_RIGHT / 2, GRAPHICS_BOTTOM - 60);
 				printFWVersion(GRAPHICS_RIGHT / 2, GRAPHICS_BOTTOM - 35);
 			}
