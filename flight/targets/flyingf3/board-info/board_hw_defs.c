@@ -1192,11 +1192,6 @@ static const struct pios_usart_cfg pios_usart1_sbus_cfg = {
 	},
 };
 
-static const struct pios_sbus_cfg pios_usart1_sbus_aux_cfg = {
-	/* No inverter configuration, f3 uart subsystem already does this for us */
-};
-
-
 static const struct pios_usart_cfg pios_usart2_sbus_cfg = {
 	.regs = USART2,
 	.remap = GPIO_AF_7,
@@ -1229,11 +1224,6 @@ static const struct pios_usart_cfg pios_usart2_sbus_cfg = {
 		.pin_source = GPIO_PinSource6,
 	},
 };
-
-static const struct pios_sbus_cfg pios_usart2_sbus_aux_cfg = {
-	/* No inverter configuration, f3 uart subsystem already does this for us */
-};
-
 
 static const struct pios_usart_cfg pios_usart3_sbus_cfg = {
 	.regs = USART3,
@@ -1268,11 +1258,6 @@ static const struct pios_usart_cfg pios_usart3_sbus_cfg = {
 	},
 };
 
-static const struct pios_sbus_cfg pios_usart3_sbus_aux_cfg = {
-	/* No inverter configuration, f3 uart subsystem already does this for us */
-};
-
-
 static const struct pios_usart_cfg pios_usart4_sbus_cfg = {
 	.regs = UART4,
 	.remap = GPIO_AF_5,
@@ -1306,11 +1291,6 @@ static const struct pios_usart_cfg pios_usart4_sbus_cfg = {
 	},
 };
 
-static const struct pios_sbus_cfg pios_usart4_sbus_aux_cfg = {
-	/* No inverter configuration, f3 uart subsystem already does this for us */
-};
-
-
 static const struct pios_usart_cfg pios_usart5_sbus_cfg = {
 	.regs = UART5,
 	.remap = GPIO_AF_5,
@@ -1342,10 +1322,6 @@ static const struct pios_usart_cfg pios_usart5_sbus_cfg = {
 		},
 		.pin_source = GPIO_PinSource2,
 	},
-};
-
-static const struct pios_sbus_cfg pios_usart5_sbus_aux_cfg = {
-	/* No inverter configuration, f3 uart subsystem already does this for us */
 };
 
 #endif	/* PIOS_INCLUDE_SBUS */
