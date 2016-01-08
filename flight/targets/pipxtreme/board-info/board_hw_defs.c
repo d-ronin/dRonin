@@ -474,7 +474,7 @@ static const struct pios_tim_channel pios_tim_ppm_flexi_port = {
 /*
  * SERIAL USART
  */
-static struct pios_usart_cfg pios_usart_serial_cfg =
+static const struct pios_usart_cfg pios_usart_serial_cfg =
 {
 	.regs = USART1,
 	.init =

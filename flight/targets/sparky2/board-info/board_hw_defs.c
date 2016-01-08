@@ -784,7 +784,7 @@ bool get_external_flash(uint32_t board_revision)
 /*
  * MAIN USART
  */
-static struct pios_usart_cfg pios_usart_main_cfg = {
+static const struct pios_usart_cfg pios_usart_main_cfg = {
 	.regs = USART1,
 	.remap = GPIO_AF_USART1,
 	.init = {
@@ -831,7 +831,7 @@ static struct pios_usart_cfg pios_usart_main_cfg = {
 /*
  * S.Bus USART
  */
-static struct pios_usart_cfg pios_usart_rcvr_pc7_cfg = {
+static const struct pios_usart_cfg pios_usart_rcvr_pc7_cfg = {
 	.regs = USART6,
 	.remap = GPIO_AF_USART6,
 	.init = {
@@ -862,7 +862,7 @@ static struct pios_usart_cfg pios_usart_rcvr_pc7_cfg = {
 	},
 };
 
-static struct pios_usart_cfg pios_usart_rcvr_pd2_cfg = {
+static const struct pios_usart_cfg pios_usart_rcvr_pd2_cfg = {
 	.regs = UART5,
 	.remap = GPIO_AF_UART5,
 	.init = {
@@ -894,7 +894,7 @@ static struct pios_usart_cfg pios_usart_rcvr_pd2_cfg = {
 };
 
 // Get the receiver port uart configuration
-struct pios_usart_cfg * get_rcvr_uart_cfg(uint32_t board_revision)
+const struct pios_usart_cfg * get_rcvr_uart_cfg(uint32_t board_revision)
 {
 	switch(board_revision) {
 	case SPARKY2_V2_0:
@@ -945,7 +945,7 @@ const struct pios_sbus_cfg * get_sbus_cfg(uint32_t board_revision)
 /*
  * FLEXI PORT
  */
-static struct pios_usart_cfg pios_usart_flexi_cfg = {
+static const struct pios_usart_cfg pios_usart_flexi_cfg = {
 	.regs = USART3,
 	.remap = GPIO_AF_USART3,
 	.init = {

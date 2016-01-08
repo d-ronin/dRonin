@@ -368,7 +368,7 @@ static void PIOS_HAL_ConfigureHSUM(const struct pios_usart_cfg *usart_hsum_cfg,
  * @param[in] sbus_cfg SBUS configuration for this port
  */
 void PIOS_HAL_ConfigurePort(HwSharedPortTypesOptions port_type,
-		struct pios_usart_cfg *usart_port_cfg,
+		const struct pios_usart_cfg *usart_port_cfg,
 		const struct pios_usart_cfg *usart_frsky_port_cfg,
 		const struct pios_com_driver *com_driver,
 		uint32_t *i2c_id,
@@ -383,7 +383,7 @@ void PIOS_HAL_ConfigurePort(HwSharedPortTypesOptions port_type,
 		const struct pios_sbus_cfg *sbus_cfg)
 {
 #if defined(PIOS_INCLUDE_SBUS)	
-	struct pios_usart_cfg *pios_hal_usart_temp_cfg;
+	struct pios_usart_cfg pios_hal_usart_temp_cfg;
 #endif
 	
 	uintptr_t port_driver_id;
@@ -478,22 +478,22 @@ void PIOS_HAL_ConfigurePort(HwSharedPortTypesOptions port_type,
 	case HWSHARED_PORTTYPES_SBUSNONINVERTED:
 #if defined(PIOS_INCLUDE_SBUS) && defined(PIOS_INCLUDE_USART)
 		if (usart_port_cfg) {			
-			pios_hal_usart_temp_cfg = usart_port_cfg;
+			pios_hal_usart_temp_cfg = *usart_port_cfg;
 			
 			// Sbus modifications to basic usart port configuration
-			pios_hal_usart_temp_cfg->init.USART_BaudRate = 100000;
-			pios_hal_usart_temp_cfg->init.USART_Parity   = USART_Parity_Even;
-			pios_hal_usart_temp_cfg->init.USART_StopBits = USART_StopBits_2;
-			pios_hal_usart_temp_cfg->init.USART_Mode     = USART_Mode_Rx;
+			pios_hal_usart_temp_cfg.init.USART_BaudRate = 100000;
+			pios_hal_usart_temp_cfg.init.USART_Parity   = USART_Parity_Even;
+			pios_hal_usart_temp_cfg.init.USART_StopBits = USART_StopBits_2;
+			pios_hal_usart_temp_cfg.init.USART_Mode     = USART_Mode_Rx;
 			
 			// rx_invert only used by F3 targets
 			if (port_type == HWSHARED_PORTTYPES_SBUS)
-				pios_hal_usart_temp_cfg->rx_invert = true;
+				pios_hal_usart_temp_cfg.rx_invert = true;
 			else
-				pios_hal_usart_temp_cfg->rx_invert = false;
+				pios_hal_usart_temp_cfg.rx_invert = false;
 			
 			uintptr_t usart_sbus_id;
-			if (PIOS_USART_Init(&usart_sbus_id, pios_hal_usart_temp_cfg)) {
+			if (PIOS_USART_Init(&usart_sbus_id, &pios_hal_usart_temp_cfg)) {
 				PIOS_Assert(0);
 			}
 			uintptr_t sbus_id;
