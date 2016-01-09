@@ -600,11 +600,11 @@ void ConfigInputWidget::wizardSetUpStep(enum wizardSteps step)
         {
             // Preserve the inverted status
             if(manualSettingsData.ChannelMin[i] <= manualSettingsData.ChannelMax[i]) {
-                manualSettingsData.ChannelMin[i]=manualSettingsData.ChannelNeutral[i] - INITIAL_OFFSET;
-                manualSettingsData.ChannelMax[i]=manualSettingsData.ChannelNeutral[i] + INITIAL_OFFSET;
+                manualSettingsData.ChannelMin[i] = manualSettingsData.ChannelNeutral[i] - INITIAL_OFFSET;
+                manualSettingsData.ChannelMax[i] = manualSettingsData.ChannelNeutral[i] + INITIAL_OFFSET;
             } else {
-                manualSettingsData.ChannelMin[i]=manualSettingsData.ChannelNeutral[i] + INITIAL_OFFSET;
-                manualSettingsData.ChannelMax[i]=manualSettingsData.ChannelNeutral[i] - INITIAL_OFFSET;
+                manualSettingsData.ChannelMin[i] = manualSettingsData.ChannelNeutral[i] + INITIAL_OFFSET;
+                manualSettingsData.ChannelMax[i] = manualSettingsData.ChannelNeutral[i] - INITIAL_OFFSET;
             }
         }
         connect(manualCommandObj, SIGNAL(objectUpdated(UAVObject*)), this, SLOT(identifyLimits()));
