@@ -635,7 +635,7 @@ static const struct pios_usart_cfg pios_main_usart_sport_cfg = {
 };
 #endif /* PIOS_INCLUDE_FRSKY_SPORT_TELEMETRY */
 
-static struct pios_usart_cfg pios_flexi_usart_cfg = {
+static const struct pios_usart_cfg pios_flexi_usart_cfg = {
 	.regs = USART1,
 	.remap = GPIO_AF_7,
 	.init = {
@@ -678,7 +678,7 @@ static struct pios_usart_cfg pios_flexi_usart_cfg = {
 	},
 };
 
-static struct pios_usart_cfg pios_main_usart_cfg = {
+static const struct pios_usart_cfg pios_main_usart_cfg = {
 	.regs = USART3,
 	.remap = GPIO_AF_7,
 	.init = {
@@ -721,7 +721,7 @@ static struct pios_usart_cfg pios_main_usart_cfg = {
 	},
 };
 
-static struct pios_usart_cfg pios_rcvr_usart_cfg = {
+static const struct pios_usart_cfg pios_rcvr_usart_cfg = {
 	.regs = USART2,
 	.remap = GPIO_AF_7,
 	.rx_invert = true,

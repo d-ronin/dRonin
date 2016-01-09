@@ -775,7 +775,7 @@ static const struct pios_tim_channel pios_tim_servoport_rcvrport_pins[] = {
 
 #include "pios_usart_priv.h"
 
-static struct pios_usart_cfg pios_usart_generic_main_cfg = {
+static const struct pios_usart_cfg pios_usart_generic_main_cfg = {
 	.regs  = USART1,
 	.init = {
 		.USART_BaudRate            = 57600,
@@ -811,7 +811,7 @@ static struct pios_usart_cfg pios_usart_generic_main_cfg = {
 	},
 };
 
-static struct pios_usart_cfg pios_usart_generic_flexi_cfg = {
+static const struct pios_usart_cfg pios_usart_generic_flexi_cfg = {
 	.regs  = USART3,
 	.init = {
 		.USART_BaudRate            = 57600,
