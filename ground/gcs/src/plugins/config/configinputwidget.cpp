@@ -60,6 +60,11 @@
 #define MAX_SANE_CHANNEL_VALUE 10000
 #define MIN_SANE_RANGE 125
 
+// Should exceed "MIN_MEANINGFUL_RANGE" in transmitter_control.c (40)
+// Needed to avoid failsafe during input wizard which confounds the stick
+// movements.   Also, life the universe and everything.
+#define INITIAL_OFFSET 42
+
 ConfigInputWidget::ConfigInputWidget(QWidget *parent) : ConfigTaskWidget(parent),wizardStep(wizardNone),transmitterType(heli),loop(NULL),skipflag(false)
 {
     manualCommandObj = ManualControlCommand::GetInstance(getObjectManager());
@@ -595,12 +600,11 @@ void ConfigInputWidget::wizardSetUpStep(enum wizardSteps step)
         {
             // Preserve the inverted status
             if(manualSettingsData.ChannelMin[i] <= manualSettingsData.ChannelMax[i]) {
-                manualSettingsData.ChannelMin[i]=manualSettingsData.ChannelNeutral[i];
-                manualSettingsData.ChannelMax[i]=manualSettingsData.ChannelNeutral[i];
+                manualSettingsData.ChannelMin[i] = manualSettingsData.ChannelNeutral[i] - INITIAL_OFFSET;
+                manualSettingsData.ChannelMax[i] = manualSettingsData.ChannelNeutral[i] + INITIAL_OFFSET;
             } else {
-                // Make this detect as still inverted
-                manualSettingsData.ChannelMin[i]=manualSettingsData.ChannelNeutral[i] + 1;
-                manualSettingsData.ChannelMax[i]=manualSettingsData.ChannelNeutral[i];
+                manualSettingsData.ChannelMin[i] = manualSettingsData.ChannelNeutral[i] + INITIAL_OFFSET;
+                manualSettingsData.ChannelMax[i] = manualSettingsData.ChannelNeutral[i] - INITIAL_OFFSET;
             }
         }
         connect(manualCommandObj, SIGNAL(objectUpdated(UAVObject*)), this, SLOT(identifyLimits()));
@@ -998,13 +1002,26 @@ void ConfigInputWidget::identifyLimits()
             }
         }
 
-        if (i == ManualControlSettings::CHANNELNEUTRAL_THROTTLE) {
+	switch (i) {
+	    case ManualControlSettings::CHANNELNUMBER_THROTTLE:
             // Keep the throttle neutral position near the minimum value so that
             // the stick visualization keeps working consistently (it expects this
             // ratio between + and - range.
             manualSettingsData.ChannelNeutral[i] = manualSettingsData.ChannelMin[i] +
                     (manualSettingsData.ChannelMax[i] - manualSettingsData.ChannelMin[i]) * THROTTLE_NEUTRAL_FRACTION;
-        }
+	    break;
+
+	    case ManualControlSettings::CHANNELNUMBER_ARMING:
+	    case ManualControlSettings::CHANNELGROUPS_FLIGHTMODE:
+	    // Keep switches near the middle.
+	    manualSettingsData.ChannelNeutral[i] =
+                (manualSettingsData.ChannelMax[i] +
+                manualSettingsData.ChannelMin[i]) / 2;
+	    break;
+
+	    default:
+	    break;
+	}
     }
 
     manualSettingsObj->setData(manualSettingsData);
@@ -1425,10 +1442,9 @@ void ConfigInputWidget::moveSticks()
         m_txFlightMode->setTransform(m_txFlightModeCOrig, false);
         break;
     case 2:
+    default:
         m_txFlightMode->setElementId("flightModeRight");
         m_txFlightMode->setTransform(m_txFlightModeROrig, false);
-        break;
-    default:
         break;
     }
     switch(scaleSwitchChannel(ManualControlSettings::CHANNELMIN_ARMING, 2))
