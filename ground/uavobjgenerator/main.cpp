@@ -81,7 +81,7 @@ int main(int argc, char *argv[])
 {
     QCoreApplication a(argc, argv);
 
-    cout << "- Tau Labs UAVObject Generator -" << endl;
+    cout << "- dRonin UAVObject Generator -" << endl;
 
     QString inputpath;
     QString templatepath;
