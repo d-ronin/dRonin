@@ -113,7 +113,7 @@ QString Lux::getHwUAVO()
 //! Determine if this board supports configuring the receiver
 bool Lux::isInputConfigurationSupported()
 {
-    return false;
+    return true;
 }
 
 /**
