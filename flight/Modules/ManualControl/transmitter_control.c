@@ -697,12 +697,7 @@ static void process_transmitter_events(ManualControlCommandData * cmd, ManualCon
  		}
 
   		bool disarm = disarming_position(cmd, settings) && valid;
-		if (disarm && (settings->Arming == MANUALCONTROLSETTINGS_ARMING_SWITCH ||
-				settings->Arming == MANUALCONTROLSETTINGS_ARMING_SWITCHDELAY ||
-				settings->Arming == MANUALCONTROLSETTINGS_ARMING_SWITCHTHROTTLE ||
-				settings->Arming == MANUALCONTROLSETTINGS_ARMING_SWITCHTHROTTLEDELAY)) {
-			arm_state = ARM_STATE_DISARMED;
-		} else if (disarm) {
+		if (disarm) {
 			armedDisarmStart = lastSysTime;
 			arm_state = ARM_STATE_DISARMING;
 		}
@@ -716,6 +711,14 @@ static void process_transmitter_events(ManualControlCommandData * cmd, ManualCon
 			(settings->DisarmTime == MANUALCONTROLSETTINGS_DISARMTIME_500) ? 500 : \
 			(settings->DisarmTime == MANUALCONTROLSETTINGS_DISARMTIME_1000) ? 1000 : \
 			(settings->DisarmTime == MANUALCONTROLSETTINGS_DISARMTIME_2000) ? 2000 : 1000;
+
+		if (settings->Arming == MANUALCONTROLSETTINGS_ARMING_SWITCH ||
+				settings->Arming == MANUALCONTROLSETTINGS_ARMING_SWITCHDELAY ||
+				settings->Arming == MANUALCONTROLSETTINGS_ARMING_SWITCHTHROTTLE ||
+				settings->Arming == MANUALCONTROLSETTINGS_ARMING_SWITCHTHROTTLEDELAY) {
+			disarm_time = 100;
+		}
+
   		if (disarm && timeDifferenceMs(armedDisarmStart, lastSysTime) > disarm_time) {
 			arm_state = ARM_STATE_DISARMED_STILL_HOLDING;
   		} else if (!disarm) {
