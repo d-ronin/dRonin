@@ -286,7 +286,7 @@ static uint16_t PIOS_SBus_RxInCallback(uintptr_t context,
  * RTC timer is running at 625Hz (1.6ms).
  *
  * Data receive function must clear the receive_timer to confirm new
- * data reception. If no new data received in 100ms, we must call the
+ * data reception. If no new data received in 48ms, we must call the
  * failsafe function which clears all channels.
  */
 static void PIOS_SBus_Supervisor(uintptr_t sbus_id)
@@ -305,8 +305,8 @@ static void PIOS_SBus_Supervisor(uintptr_t sbus_id)
 		state->receive_timer = 0;
 	}
 
-	/* activate failsafe if no frames have arrived in 102.4ms */
-	if (++state->failsafe_timer > 64) {
+	/* activate failsafe if no frames have arrived in 48ms */
+	if (++state->failsafe_timer > 30) {
 		PIOS_SBus_ResetChannels(state);
 		state->failsafe_timer = 0;
 	}
