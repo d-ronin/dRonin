@@ -129,6 +129,7 @@ static void onScreenDisplayTask(void *parameters);
 #define UPDATE_PERIOD    100
 #define BLINK_INTERVAL_FRAMES 12
 #define BOOT_DISPLAY_TIME_MS (10*1000)
+#define STATS_DELAY_MS 1500
 
 const char METRIC_DIST_UNIT_LONG[] = "km";
 const char METRIC_DIST_UNIT_SHORT[] = "m";
@@ -1580,6 +1581,7 @@ static void onScreenDisplayTask(__attribute__((unused)) void *parameters)
 	OnScreenDisplayPageSettingsData osd_page_settings;
 
 	uint32_t now;
+	uint32_t show_stats_start = 0;
 	uint32_t show_stats_until = 0;
 	uint8_t arm_status;
 	uint8_t last_arm_status = FLIGHTSTATUS_ARMED_DISARMED;
@@ -1711,24 +1713,24 @@ static void onScreenDisplayTask(__attribute__((unused)) void *parameters)
 							show_stats_until = 0;
 							break;
 						case ONSCREENDISPLAYSETTINGS_STATSDISPLAYDURATION_10S:
-							show_stats_until = now + 10 * 1000;
+							show_stats_until = now + 10 * 1000 + STATS_DELAY_MS;
 							break;
 						case ONSCREENDISPLAYSETTINGS_STATSDISPLAYDURATION_20S:
-							show_stats_until = now + 20 * 1000;
+							show_stats_until = now + 20 * 1000 + STATS_DELAY_MS;
 							break;
 						case ONSCREENDISPLAYSETTINGS_STATSDISPLAYDURATION_30S:
-							show_stats_until = now + 30 * 1000;
+							show_stats_until = now + 30 * 1000 + STATS_DELAY_MS;
 							break;
 					}
 					page_when_stats_enabled = current_page;
-					current_page = ONSCREENDISPLAYSETTINGS_PAGECONFIG_STATISTICS;
+					show_stats_start = now + STATS_DELAY_MS;
 				} else {
 					if (show_stats_until > now){
 						if (frame_counter % 5 == 0 && current_page != page_when_stats_enabled){
 							// toggling the page switch gets rid of the stats display
 							show_stats_until = 0;
 						}
-						else {
+						else if (now >= show_stats_start){
 							current_page = ONSCREENDISPLAYSETTINGS_PAGECONFIG_STATISTICS;
 						}
 					}
