@@ -57,6 +57,7 @@ enum pios_sbus_dev_magic {
 struct pios_sbus_state {
 	uint16_t channel_data[PIOS_SBUS_NUM_INPUTS];
 	uint8_t received_data[SBUS_FRAME_LENGTH - 2];
+	uint8_t receive_timer;
 	uint8_t failsafe_timer;
 	uint8_t byte_count;
 };
@@ -97,6 +98,7 @@ static void PIOS_SBus_ResetChannels(struct pios_sbus_state *state)
 static void PIOS_SBus_ResetState(struct pios_sbus_state *state)
 {
 	state->failsafe_timer = 0;
+	state->receive_timer = 0;
 	state->byte_count = 0;
 	PIOS_SBus_ResetChannels(state);
 }
@@ -263,6 +265,8 @@ static uint16_t PIOS_SBus_RxInCallback(uintptr_t context,
 		PIOS_SBus_UpdateState(state, buf[i]);
 	}
 
+	state->receive_timer = 0;
+
 	/* Always signal that we can accept another frame */
 	if (headroom)
 		*headroom = SBUS_FRAME_LENGTH;
@@ -293,6 +297,13 @@ static void PIOS_SBus_Supervisor(uintptr_t sbus_id)
 	PIOS_Assert(valid);
 
 	struct pios_sbus_state *state = &(sbus_dev->state);
+
+	/* An appropriate gap of at least 3.2ms causes us to go back to
+	 * expecting start of frame. */
+	if (++state->receive_timer > 2) {
+		state->byte_count = 0;
+		state->receive_timer = 0;
+	}
 
 	/* activate failsafe if no frames have arrived in 102.4ms */
 	if (++state->failsafe_timer > 64) {
