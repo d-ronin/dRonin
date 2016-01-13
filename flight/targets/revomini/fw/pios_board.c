@@ -325,14 +325,12 @@ void PIOS_Board_Init(void) {
 
 	PIOS_HAL_ConfigurePort(hw_mainport,          // port type protocol
 			&pios_usart_main_cfg,                // usart_port_cfg
-			&pios_usart_main_cfg,                // frsky usart_port_cfg
 			&pios_usart_com_driver,              // com_driver 
 			NULL,                                // i2c_id
 			NULL,                                // i2c_cfg
 			NULL,                                // ppm_cfg
 			NULL,                                // pwm_cfg
 			PIOS_LED_ALARM,                      // led_id
-			&pios_usart_dsm_hsum_main_cfg,       // usart_dsm_hsum_cfg
 			&pios_dsm_main_cfg,                  // dsm_cfg
 			hw_DSMxMode >= HWREVOMINI_DSMXMODE_BIND3PULSES ? HWREVOMINI_DSMXMODE_AUTODETECT : hw_DSMxMode /* No bind on main port */, 
 			&pios_sbus_cfg);                     // sbus_cfg 
@@ -343,18 +341,16 @@ void PIOS_Board_Init(void) {
 
 	PIOS_HAL_ConfigurePort(hw_flexiport,         // port type protocol 
 			&pios_usart_flexi_cfg,               // usart_port_cfg
-			&pios_usart_flexi_cfg,               // frsky usart_port_cfg
 			&pios_usart_com_driver,              // com_driver
 			&pios_i2c_flexiport_adapter_id,      // i2c_id
 			&pios_i2c_flexiport_adapter_cfg,     // i2c_cfg
 			NULL,                                // ppm_cfg
 			NULL,                                // pwm_cfg
 			PIOS_LED_ALARM,                      // led_id
-			&pios_usart_dsm_hsum_flexi_cfg,      // usart_dsm_hsum_cfg
 			&pios_dsm_flexi_cfg,                 // dsm_cfg
 			hw_DSMxMode,                         // dsm_mode
 			NULL);                               // sbus_cfg    
-
+			
 	HwRevoMiniData hwRevoMini;
 	HwRevoMiniGet(&hwRevoMini);
 
