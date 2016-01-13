@@ -399,14 +399,12 @@ void PIOS_Board_Init(void) {
 
     PIOS_HAL_ConfigurePort(hw_uart1,             // port type protocol
             &pios_usart1_cfg,                    // usart_port_cfg
-            &pios_usart1_cfg,                    // frsky usart_port_cfg
             &pios_usart_com_driver,              // com_driver
             NULL,                                // i2c_id
             NULL,                                // i2c_cfg
             NULL,                                // ppm_cfg
             NULL,                                // pwm_cfg
             PIOS_LED_ALARM,                      // led_id
-            NULL,                                // usart_dsm_hsum_cfg
             NULL,                                // dsm_cfg
             0,                                   // dsm_mode
             NULL);                               // sbus_cfg    
@@ -417,14 +415,12 @@ void PIOS_Board_Init(void) {
 
     PIOS_HAL_ConfigurePort(hw_uart2,             // port type protocol
             &pios_usart2_cfg,                    // usart_port_cfg
-            &pios_usart2_cfg,                    // frsky usart_port_cfg
             &pios_usart_com_driver,              // com_driver
             NULL,                                // i2c_id
             NULL,                                // i2c_cfg
             NULL,                                // ppm_cfg
             NULL,                                // pwm_cfg
             PIOS_LED_ALARM,                      // led_id
-            NULL,                                // usart_dsm_hsum_cfg
             NULL,                                // dsm_cfg
             0,                                   // dsm_mode
             NULL);                               // sbus_cfg    
@@ -435,14 +431,12 @@ void PIOS_Board_Init(void) {
 
     PIOS_HAL_ConfigurePort(hw_uart3,             // port type protocol
             &pios_usart3_cfg,                    // usart_port_cfg
-            &pios_usart3_cfg,                    // frsky usart_port_cfg
             &pios_usart_com_driver,              // com_driver
             NULL,                                // i2c_id 
             NULL,                                // i2c_cfg
             NULL,                                // ppm_cfg
             NULL,                                // pwm_cfg
             PIOS_LED_ALARM,                      // led_id
-            &pios_usart3_dsm_hsum_cfg,           // usart_dsm_hsum_cfg
             NULL,                                // dsm_cfg
             0,                                   // dsm_mode
             &pios_usart3_sbus_aux_cfg);          // sbus_cfg                
@@ -459,14 +453,12 @@ void PIOS_Board_Init(void) {
 
     PIOS_HAL_ConfigurePort(hw_uart4,             // port type protocol
             &pios_usart4_cfg,                    // usart_port_cfg
-            &pios_usart4_cfg,                    // frsky usart_port_cfg
             &pios_usart_com_driver,              // com_driver
             NULL,                                // i2c_id
             NULL,                                // i2c_cfg
             NULL,                                // ppm_cfg
             NULL,                                // pwm_cfg
             PIOS_LED_ALARM,                      // led_id
-            &pios_usart4_dsm_hsum_cfg,           // usart_dsm_hsum_cfg
             &pios_usart4_dsm_aux_cfg,            // dsm_cfg
             hw_DSMxMode,                         // dsm_mode
             NULL);                               // sbus_cfg    
@@ -477,14 +469,12 @@ void PIOS_Board_Init(void) {
 
     PIOS_HAL_ConfigurePort(hw_uart6,             // port type protocol
             &pios_usart6_cfg,                    // usart_port_cfg
-            &pios_usart6_cfg,                    // frsky usart_port_cfg
             &pios_usart_com_driver,              // com_driver
             NULL,                                // i2c_id
             NULL,                                // i2c_cfg
             NULL,                                // ppm_cfg
             NULL,                                // pwm_cfg
             PIOS_LED_ALARM,                      // led_id
-            &pios_usart6_dsm_hsum_cfg,           // usart_dsm_hsum_cfg
             &pios_usart6_dsm_aux_cfg,            // dsm_cfg
             hw_DSMxMode,                         // dsm_mode
             NULL);                               // sbus_cfg    
@@ -492,14 +482,12 @@ void PIOS_Board_Init(void) {
     /* Configure the rcvr port */
     PIOS_HAL_ConfigurePort(hw_rcvrport,          // port type protocol
             NULL,                                // usart_port_cfg
-            NULL,                                // frsky usart_port_cfg
             NULL,                                // com_driver
             NULL,                                // i2c_id
             NULL,                                // i2c_cfg
             &pios_ppm_cfg,                       // ppm_cfg
             &pios_pwm_cfg,                       // pwm_cfg
             PIOS_LED_ALARM,                      // led_id
-            NULL,                                // usart_dsm_hsum_cfg
             NULL,                                // dsm_cfg
             0,                                   // dsm_mode
             NULL);                               // sbus_cfg    
