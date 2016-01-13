@@ -828,7 +828,6 @@ static const struct pios_tim_clock_cfg tim_17_cfg = {
 	3:  TIM3_CH3 (PC8)
 	4:  TIM3_CH4 (PC9)
  */
-// FIXME timer channels
 static const struct pios_tim_channel pios_tim_servoport_v01_pins[] = {
 	{ // Ch1
 		.timer = TIM3,
@@ -1006,7 +1005,6 @@ static const struct pios_servo_cfg pios_servo_cfg = {
  * 	INPUTS
 	1:  TIM2_CH4  (PA3)
  */
-// FIXME timer chans
 static const struct pios_tim_channel pios_tim_rcvrport_ppm[] = {
 	{
 		.timer = TIM1,
@@ -1043,49 +1041,15 @@ static const struct pios_tim_channel pios_tim_rcvrport_pwm[] = {
 			.pin_source = GPIO_PinSource8,
 		},
 	},
-	/*
-	{ // Ch8 TIM17_CH1 (PA7)
-		.timer = TIM17,
-		.timer_chan = TIM_Channel_1,
-		.remap = GPIO_AF_1,
-		.pin = {
-			.gpio = GPIOA,
-			.init = {
-				.GPIO_Pin = GPIO_Pin_7,
-				.GPIO_Speed = GPIO_Speed_2MHz,
-				.GPIO_Mode  = GPIO_Mode_AF,
-				.GPIO_OType = GPIO_OType_PP,
-				.GPIO_PuPd  = GPIO_PuPd_UP
-			},
-			.pin_source = GPIO_PinSource7,
-		},
-	},
-	*/
 };
 
 #endif
-/*
- * PWM Inputs
- */
-#if defined(PIOS_INCLUDE_PWM)
 
-static const struct pios_pwm_cfg pios_pwm_cfg = {
-	.tim_ic_init = {
-		.TIM_ICPolarity = TIM_ICPolarity_Rising,
-		.TIM_ICSelection = TIM_ICSelection_DirectTI,
-		.TIM_ICPrescaler = TIM_ICPSC_DIV1,
-		.TIM_ICFilter = 0x0,
-	},
-	.channels = pios_tim_rcvrport_pwm,
-	.num_channels = 1,
-};
-#endif
 /*
  * PPM Input
  */
 #if defined(PIOS_INCLUDE_PPM)
 #include <pios_ppm_priv.h>
-// FIXME timer chan (ppm)
 static const struct pios_ppm_cfg pios_ppm_cfg = {
 	.tim_ic_init = {
 		.TIM_ICPolarity = TIM_ICPolarity_Rising,
