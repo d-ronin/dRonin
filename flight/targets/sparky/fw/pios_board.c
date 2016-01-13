@@ -385,14 +385,12 @@ void PIOS_Board_Init(void)
 	
 	PIOS_HAL_ConfigurePort(hw_mainport,          // port type protocol
 	        &pios_main_usart_cfg,                // usart_port_cfg
-	        &pios_main_usart_sport_cfg,          // frsky usart_port_cfg
 	        &pios_usart_com_driver,              // com_driver
 	        NULL,                                // i2c_id
 	        NULL,                                // i2c_cfg 
 	        NULL,                                // ppm_cfg
 	        NULL,                                // pwm_cfg
 	        PIOS_LED_ALARM,                      // led_id
-	        &pios_main_dsm_hsum_cfg,             // usart_dsm_hsum_cfg
 	        &pios_main_dsm_aux_cfg,              // dsm_cfg
 	        hw_DSMxMode,                         // dsm_mode
 	        NULL);                               // sbus_cfg
@@ -403,14 +401,12 @@ void PIOS_Board_Init(void)
 	
 	PIOS_HAL_ConfigurePort(hw_flexiport,         // port type protocol
 	        &pios_flexi_usart_cfg,               // usart_port_cfg
-	        &pios_flexi_usart_sport_cfg,         // frsky usart_port_cfg
 	        &pios_usart_com_driver,              // com_driver
 	        &pios_i2c_flexi_id,                  // i2c_id
 	        &pios_i2c_flexi_cfg,                 // i2c_cfg 
 	        NULL,                                // ppm_cfg
 	        NULL,                                // pwm_cfg
 	        PIOS_LED_ALARM,                      // led_id
-	        &pios_flexi_dsm_hsum_cfg,            // usart_dsm_hsum_cfg 
 	        &pios_flexi_dsm_aux_cfg,             // dsm_cfg
 	        hw_DSMxMode,                         // dsm_mode
 	        NULL);                               // sbus_cfg
@@ -420,15 +416,13 @@ void PIOS_Board_Init(void)
 	HwSparkyRcvrPortGet(&hw_rcvrport);
 	
 	PIOS_HAL_ConfigurePort(hw_rcvrport,          // port type protocol
-	        &pios_rcvr_usart_cfg,                // usart_port_cfg
-	        NULL,                                // frsky usart_port_cfg
+	        NULL,                                // usart_port_cfg
 	        &pios_usart_com_driver,              // com_driver
 	        NULL,                                // i2c_id 
 	        NULL,                                // i2c_cfg
 	        &pios_ppm_cfg,                       // ppm_cfg
 	        NULL,                                // pwm_cfg
 	        PIOS_LED_ALARM,                      // led_id
-	        &pios_rcvr_dsm_hsum_cfg,             // usart_dsm_hsum_cfg
 	        &pios_rcvr_dsm_aux_cfg,              // dsm_cfg
 	        hw_DSMxMode,                         // dsm_mode
 	        NULL);                 ,             // sbus_cfg

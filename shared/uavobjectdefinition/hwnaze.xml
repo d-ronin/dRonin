@@ -2,9 +2,25 @@
 	<object name="HwNaze" singleinstance="true" settings="true" category="HardwareSettings">
 		<description>Selection of optional hardware configurations.</description>
 
-		<field name="MainPort" units="function" type="enum" elements="1" options="Telemetry,MSP" defaultvalue="Telemetry"/>
+		<field name="MainPort" units="function" type="enum" elements="1" parent="HwShared.PortTypes" defaultvalue="Telemetry">
+			<options>
+				<option>MSP</option>
+				<option>Telemetry</option>
+			</options>
+		</field>
 
-		<field name="RcvrPort" units="function" type="enum" elements="1" options="Disabled,PPM,PPM+Outputs,PPM+PWM,PPM+Serial,PWM,Outputs,Serial" defaultvalue="PPM"/>
+		<field name="RcvrPort" units="function" type="enum" elements="1" defaultvalue="PPM">
+			<options>
+				<option>Disabled</option>
+				<option>Outputs</option>
+				<option>PPM</option>
+				<option>PPM+Outputs</option>
+				<option>PPM+PWM</option>
+				<option>PPM+Serial</option>
+				<option>PWM</option>
+				<option>Serial</option>
+			</options>
+		</field>
 
 		<field name="RcvrSerial" units="function" type="enum" elements="1" parent="HwShared.PortTypes" defaultvalue="Disabled">
 			<options>

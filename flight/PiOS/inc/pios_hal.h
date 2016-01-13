@@ -36,7 +36,7 @@ extern uintptr_t pios_rcvr_group_map[];
 
 #endif
 
-void PIOS_HAL_ConfigureCom(const struct pios_usart_cfg *usart_port_cfg,
+void PIOS_HAL_ConfigureCom(const struct pios_usart_cfg *usart_port_cfg, struct pios_usart_params *usart_port_params,
 		size_t rx_buf_len, size_t tx_buf_len,
 		const struct pios_com_driver *com_driver, uintptr_t *com_id);
 
@@ -44,7 +44,6 @@ void PIOS_HAL_Panic(uint32_t led_id, int32_t code);
 
 void PIOS_HAL_ConfigurePort(HwSharedPortTypesOptions port_type,
 		const struct pios_usart_cfg *usart_port_cfg,
-		const struct pios_usart_cfg *usart_frsky_port_cfg,
 		const struct pios_com_driver *com_driver,
 		uint32_t *i2c_id,
 		const struct pios_i2c_adapter_cfg *i2c_cfg,
@@ -52,7 +51,6 @@ void PIOS_HAL_ConfigurePort(HwSharedPortTypesOptions port_type,
 		const struct pios_pwm_cfg *pwm_cfg,
 		uint32_t led_id,
 		/* TODO: future work to factor most of these away */
-		const struct pios_usart_cfg *usart_dsm_hsum_cfg,
 		const struct pios_dsm_cfg *dsm_cfg,
 		HwSharedDSMxModeOptions dsm_mode,
 		const struct pios_sbus_cfg *sbus_cfg);
