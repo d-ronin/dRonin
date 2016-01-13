@@ -3,6 +3,7 @@
  *
  * @file       lux.h
  * @author     Tau Labs, http://taulabs.org, Copyright (C) 2015
+ * @author     dRonin, http://dRonin.org/, Copyright (C) 2016
  *
  * @addtogroup GCSPlugins GCS Plugins
  * @{

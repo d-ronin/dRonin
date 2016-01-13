@@ -5,6 +5,7 @@
  *
  * @file       STM32F30x_lux.c 
  * @author     Tau Labs, http://taulabs.org, Copyright (C) 2012-2013
+ * @author     dRonin, http://dRonin.org/, Copyright (C) 2016
  * @brief      Board header file for lux board.
  * @see        The GNU Public License (GPL) Version 3
  * 

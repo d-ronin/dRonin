@@ -8,6 +8,7 @@
  *
  * @file       pios_mpu9250.c
  * @author     Tau Labs, http://taulabs.org, Copyright (C) 2014
+ * @author     dRonin, http://dRonin.org/, Copyright (C) 2016
  * @brief      MPU9250 9-axis gyro accel and mag chip
  * @see        The GNU Public License (GPL) Version 3
  *

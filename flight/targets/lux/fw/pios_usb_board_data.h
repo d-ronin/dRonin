@@ -5,6 +5,7 @@
  *
  * @file       pios_usb_board_data.h
  * @author     Tau Labs, http://taulabs.org, Copyright (C) 2012-2013
+ * @author     dRonin, http://dRonin.org/, Copyright (C) 2016
  * @brief      Defines for board specific usb information
  * @see        The GNU Public License (GPL) Version 3
  * 

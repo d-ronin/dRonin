@@ -6,6 +6,7 @@
  * @file       pios_config.h 
  * @author     The OpenPilot Team, http://www.openpilot.org Copyright (C) 2010.
  * @author     Tau Labs, http://taulabs.org, Copyright (C) 2012-2013
+ * @author     dRonin, http://dRonin.org/, Copyright (C) 2016
  * @brief      Board specific bootloader configuration file for PiOS
  * @see        The GNU Public License (GPL) Version 3
  *
