@@ -84,6 +84,10 @@ private:
 
         bool growing;
         bool reverse[ManualControlSettings::CHANNELNEUTRAL_NUMELEM];
+
+        int minSeen[ManualControlSettings::CHANNELNEUTRAL_NUMELEM];
+        int maxSeen[ManualControlSettings::CHANNELNEUTRAL_NUMELEM];
+
         txMovements currentMovement;
         int movePos;
         void setTxMovement(txMovements movement);
