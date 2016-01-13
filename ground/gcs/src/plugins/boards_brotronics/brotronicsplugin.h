@@ -1,12 +1,15 @@
 /**
  ******************************************************************************
- * @file       %FILENAME%
+ *
+ * @file       brotronicsplugin.h
+ * @author     Tau Labs, http://taulabs.org, Copyright (C) 2015
  * @author     dRonin, http://dRonin.org/, Copyright (C) 2016
- * @addtogroup [Group]
+ *
+ * @addtogroup GCSPlugins GCS Plugins
  * @{
- * @addtogroup %CLASS%
+ * @addtogroup Boards_Brotronics Brotronics boards support Plugin
  * @{
- * @brief [Brief]
+ * @brief Plugin to support Brotronics boards
  *****************************************************************************/
 /*
  * This program is free software; you can redistribute it and/or modify
@@ -23,3 +26,24 @@
  * with this program; if not, write to the Free Software Foundation, Inc.,
  * 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
  */
+#ifndef BROTRONICSPLUGIN_H
+#define BROTRONICSPLUGIN_H
+
+#include <extensionsystem/iplugin.h>
+
+class BrotronicsPlugin : public ExtensionSystem::IPlugin
+{
+    Q_OBJECT
+    Q_PLUGIN_METADATA(IID "TauLabs.plugins.Brotronics" FILE "Brotronics.json")
+
+public:
+   BrotronicsPlugin();
+   ~BrotronicsPlugin();
+
+   void extensionsInitialized();
+   bool initialize(const QStringList & arguments, QString * errorString);
+   void shutdown();
+
+};
+
+#endif // BROTRONICSPLUGIN_H

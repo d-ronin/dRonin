@@ -2,7 +2,7 @@
 # @file       Makefile
 # @author     The OpenPilot Team, http://www.openpilot.org, Copyright (C) 2009.
 # @author     Tau Labs, http://taulabs.org, Copyright (C) 2013-2015
-# @author     dRonin, http://dronin.org Copyright (C) 2015
+# @author     dRonin, http://dronin.org Copyright (C) 2015-2016
 # @addtogroup 
 # @{
 # @addtogroup 
@@ -113,7 +113,7 @@ ifeq ($(USE_BATTERY), YES)
 OPTMODULES += Battery
 endif
 # List of mandatory modules to include
-MODULES += Attitude/smallf1
+MODULES += Attitude/acro
 MODULES += Stabilization Actuator ManualControl FirmwareIAP
 # Telemetry must be last to grab the optional modules (why?)
 MODULES += Telemetry

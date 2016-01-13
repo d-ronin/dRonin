@@ -1,0 +1,6 @@
+<RCC>
+    <qresource prefix="/brotronics">
+        <file>images/lux.png</file>
+        <file>images/lux-connection-diagram.svg</file>
+    </qresource>
+</RCC>

@@ -1,12 +1,15 @@
 /**
  ******************************************************************************
- * @file       %FILENAME%
+ *
+ * @file       brotronicsplugin.cpp
+ * @author     Tau Labs, http://taulabs.org, Copyright (C) 2015
  * @author     dRonin, http://dRonin.org/, Copyright (C) 2016
- * @addtogroup [Group]
+ *
+ * @addtogroup GCSPlugins GCS Plugins
  * @{
- * @addtogroup %CLASS%
+ * @addtogroup Boards_Brotronics Brotronics boards support Plugin
  * @{
- * @brief [Brief]
+ * @brief Plugin to support Brotronics boards
  *****************************************************************************/
 /*
  * This program is free software; you can redistribute it and/or modify
@@ -23,3 +26,41 @@
  * with this program; if not, write to the Free Software Foundation, Inc.,
  * 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
  */
+
+#include "brotronicsplugin.h"
+#include "lux.h"
+#include <QtPlugin>
+
+
+BrotronicsPlugin::BrotronicsPlugin()
+{
+   // Do nothing
+}
+
+BrotronicsPlugin::~BrotronicsPlugin()
+{
+   // Do nothing
+}
+
+bool BrotronicsPlugin::initialize(const QStringList& args, QString *errMsg)
+{
+   Q_UNUSED(args);
+   Q_UNUSED(errMsg);
+   return true;
+}
+
+void BrotronicsPlugin::extensionsInitialized()
+{
+    /**
+     * Create the board objects here.
+     *
+     */
+    Lux* lux = new Lux();
+    addAutoReleasedObject(lux);
+
+}
+
+void BrotronicsPlugin::shutdown()
+{
+}
+

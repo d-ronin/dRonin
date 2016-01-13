@@ -14,7 +14,7 @@
  * @file       attitude.c
  * @author     The OpenPilot Team, http://www.openpilot.org Copyright (C) 2010.
  * @author     Tau Labs, http://taulabs.org, Copyright (C) 2013-2015
- * @author     dRonin, http://dronin.org Copyright (C) 2015
+ * @author     dRonin, http://dronin.org Copyright (C) 2015-2016
  * @brief      Update attitude for F1 targets
  *
  * @see        The GNU Public License (GPL) Version 3
@@ -52,11 +52,8 @@
 #include "pios_queue.h"
  
 // Private constants
-#define STACK_SIZE_BYTES 580
+#define STACK_SIZE_BYTES 616
 #define TASK_PRIORITY PIOS_THREAD_PRIO_HIGH
-
-#define SENSOR_PERIOD 4
-#define GYRO_NEUTRAL 1665
 
 // Private types
 enum complimentary_filter_status {

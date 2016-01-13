@@ -20,13 +20,13 @@
 #include "pios_chibios_transition_priv.h"
 
 /*
- * Setup for Sparky flight controller
+ * Setup for Lux board.
  */
 
 /*
  * Board identifier.
  */
-#define BOARD_NAME                  "Tau Labs Sparky"
+#define BOARD_NAME                  "Lumenier Lux"
 
 /*
  * Board oscillators-related settings.
