@@ -168,8 +168,13 @@ void PIOS_Servo_SetMode(const uint16_t * speeds, const enum pwm_mode *pwm_mode, 
 				// These timers cannot be used here.
 				return;
 			} else if (chan->timer==TIM2 || chan->timer==TIM3 || chan->timer==TIM4) {
-				//those timers run at double APB1 speed if APB1 prescaler is != 1 which is usually the case
-				TIM_TimeBaseStructure.TIM_Prescaler = (PIOS_PERIPHERAL_APB1_CLOCK / clk_rate * 2) - 1;
+				if (PIOS_PERIPHERAL_APB1_CLOCK == PIOS_SYSCLK) {
+					TIM_TimeBaseStructure.TIM_Prescaler = (PIOS_PERIPHERAL_APB1_CLOCK / clk_rate) - 1;
+				}
+				else {
+					//those timers run at double APB1 speed if APB1 prescaler is != 1 which is usually the case
+					TIM_TimeBaseStructure.TIM_Prescaler = (PIOS_PERIPHERAL_APB1_CLOCK / clk_rate * 2) - 1;
+				}
 			} else {
 				TIM_TimeBaseStructure.TIM_Prescaler = (PIOS_PERIPHERAL_APB2_CLOCK / clk_rate) - 1;
 			}
