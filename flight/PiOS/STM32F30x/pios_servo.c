@@ -45,10 +45,6 @@ enum SYNC_PWM {SYNC_PWM_FALSE, SYNC_PWM_TRUE};
 static enum SYNC_PWM *output_channel_mode;
 #endif
 
-/* Private constant definitions */
-#define PWM_MODE_1MHZ_RATE   1000000
-#define PWM_MODE_12MHZ_RATE  12000000
-
 /**
 * Initialise Servos
 */
@@ -151,7 +147,10 @@ void PIOS_Servo_SetMode(const uint16_t * speeds, const enum pwm_mode *pwm_mode, 
 				clk_rate = PWM_MODE_1MHZ_RATE; // Default output timer frequency in hertz
 			} else if (pwm_mode[set] == PWM_MODE_12MHZ) {
 				clk_rate = PWM_MODE_12MHZ_RATE; // Default output timer frequency in hertz
+			} else if (pwm_mode[set] == PWM_MODE_24MHZ) {
+				clk_rate = PWM_MODE_24MHZ_RATE;
 			}
+			PIOS_Assert(clk_rate != 0); // avoid div by zero below
 
 			if (speeds[set] == 0) {
 				// Use a maximally long period because we don't want pulses actually repeating
@@ -174,6 +173,8 @@ void PIOS_Servo_SetMode(const uint16_t * speeds, const enum pwm_mode *pwm_mode, 
 			} else {
 				TIM_TimeBaseStructure.TIM_Prescaler = (PIOS_PERIPHERAL_APB2_CLOCK / clk_rate) - 1;
 			}
+			if (TIM_TimeBaseStructure.TIM_Prescaler < 1)
+				TIM_TimeBaseStructure.TIM_Prescaler = 1;
 
 			// Configure this timer appropriately.
 			TIM_TimeBaseInit(chan->timer, &TIM_TimeBaseStructure);	
@@ -221,6 +222,9 @@ void PIOS_Servo_Set(uint8_t servo, float position, float max)
 		break;
 	case PWM_MODE_12MHZ:
 		us_to_count = PWM_MODE_12MHZ_RATE / 1000000;
+		break;
+	case PWM_MODE_24MHZ:
+		us_to_count = PWM_MODE_24MHZ_RATE / 1000000;
 		break;
 	}
 	position = position * us_to_count;
