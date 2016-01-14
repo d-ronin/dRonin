@@ -69,3 +69,10 @@ SUBSYSTEM=="usb", ATTRS{idVendor}=="15ba", ATTRS{idProduct}=="0004", MODE="0664"
 
 # AeroQuad AQ32 flight controller board
 SUBSYSTEM=="usb", ATTRS{idVendor}=="20a0", ATTRS{idProduct}=="4284", MODE="0664", GROUP="plugdev"
+
+#
+# Lumenier
+# 
+
+# Lumenier LUX flight controller
+SUBSYSTEM=="usb", ATTRS{idVendor}=="1209", ATTRS{idProduct}=="f3fc", MODE="0664", GROUP="plugdev"
