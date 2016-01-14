@@ -719,6 +719,8 @@ void ConfigInputWidget::wizardTearDownStep(enum wizardSteps step)
         for(unsigned int i=0;i<ManualControlCommand::CHANNEL_NUMELEM;++i)
         {
             manualSettingsData.ChannelNeutral[i] = manualCommandData.Channel[i];
+            minSeen[i] = manualCommandData.Channel[i];
+            maxSeen[i] = manualCommandData.Channel[i];
         }
 
         // If user skipped flight mode then force the number of flight modes to 1
@@ -972,34 +974,18 @@ void ConfigInputWidget::identifyLimits()
 
     for(quint8 i=0;i<ManualControlSettings::CHANNELMAX_NUMELEM;++i)
     {
+        uint16_t channelVal = manualCommandData.Channel[i];
+
         // Don't mess up the range based on failsafe, etc.
-        if ((manualCommandData.Channel[i] > MIN_SANE_CHANNEL_VALUE) &&
-                (manualCommandData.Channel[i] < MAX_SANE_CHANNEL_VALUE)) {
+        if ((channelVal > MIN_SANE_CHANNEL_VALUE) &&
+                (channelVal < MAX_SANE_CHANNEL_VALUE)) {
+	    if (channelVal < minSeen[i]) {
+		minSeen[i] = channelVal;
+	    }
 
-            if(manualSettingsData.ChannelMin[i] <= manualSettingsData.ChannelMax[i]) {
-                // Non inverted channel
-                if(manualSettingsData.ChannelMin[i]>manualCommandData.Channel[i])
-                    manualSettingsData.ChannelMin[i]=manualCommandData.Channel[i];
-                if(manualSettingsData.ChannelMax[i]<manualCommandData.Channel[i])
-                    manualSettingsData.ChannelMax[i]=manualCommandData.Channel[i];
-            } else {
-                // Inverted channel
-                if(manualSettingsData.ChannelMax[i]>manualCommandData.Channel[i])
-                    manualSettingsData.ChannelMax[i]=manualCommandData.Channel[i];
-                if(manualSettingsData.ChannelMin[i]<manualCommandData.Channel[i])
-                    manualSettingsData.ChannelMin[i]=manualCommandData.Channel[i];
-            }
-        }
-
-        // If this is a used channel, make sure we get a valid range.
-        if (manualSettingsData.ChannelGroups[i] !=
-                ManualControlSettings::CHANNELGROUPS_NONE) {
-            int diff = manualSettingsData.ChannelMax[i] -
-                manualSettingsData.ChannelMin[i];
-
-            if (abs(diff) < MIN_SANE_RANGE) {
-                allSane = false;
-            }
+	    if (channelVal > maxSeen[i]) {
+		maxSeen[i] = channelVal;
+	    }
         }
 
 	switch (i) {
@@ -1007,21 +993,70 @@ void ConfigInputWidget::identifyLimits()
             // Keep the throttle neutral position near the minimum value so that
             // the stick visualization keeps working consistently (it expects this
             // ratio between + and - range.
-            manualSettingsData.ChannelNeutral[i] = manualSettingsData.ChannelMin[i] +
-                    (manualSettingsData.ChannelMax[i] - manualSettingsData.ChannelMin[i]) * THROTTLE_NEUTRAL_FRACTION;
+
+            // Preserve channel inversion.  Currently no channels will be
+            // inverted at this time but input wizard may detect this in the
+            // future.
+            if (manualSettingsData.ChannelMin[i] <= manualSettingsData.ChannelMax[i]) {
+                manualSettingsData.ChannelNeutral[i] = minSeen[i] +
+                        (maxSeen[i] - minSeen[i]) * THROTTLE_NEUTRAL_FRACTION;
+            } else {
+                manualSettingsData.ChannelNeutral[i] = minSeen[i] +
+                        (maxSeen[i] - minSeen[i]) * (1.0f-THROTTLE_NEUTRAL_FRACTION);
+            }
+
 	    break;
 
 	    case ManualControlSettings::CHANNELNUMBER_ARMING:
 	    case ManualControlSettings::CHANNELGROUPS_FLIGHTMODE:
 	    // Keep switches near the middle.
-	    manualSettingsData.ChannelNeutral[i] =
-                (manualSettingsData.ChannelMax[i] +
-                manualSettingsData.ChannelMin[i]) / 2;
+	    manualSettingsData.ChannelNeutral[i] = (maxSeen[i] + minSeen[i]) / 2;
 	    break;
 
 	    default:
 	    break;
 	}
+
+        if(manualSettingsData.ChannelMin[i] <= manualSettingsData.ChannelMax[i]) {
+            // Non inverted channel
+
+            // Always update the throttle based on the low part of the range.
+            // Otherwise, if the low part of the range will be "wider" than what
+            // we initially created-- either because of movement in minimum
+            // observed or the neutral value--- update it. 
+            //
+            // This tolerates cases when channels we recalculate neutral for--
+            // switches, throttle-- are not initially centered.
+            if ((i == ManualControlSettings::CHANNELNUMBER_THROTTLE) || 
+                        ((manualSettingsData.ChannelNeutral[i] - minSeen[i]) > INITIAL_OFFSET)) {
+                manualSettingsData.ChannelMin[i] = minSeen[i];
+            }
+
+            if ((maxSeen[i] - manualSettingsData.ChannelNeutral[i]) > INITIAL_OFFSET) {
+                manualSettingsData.ChannelMax[i] = maxSeen[i];
+            }
+        } else {
+            // Inverted channel
+
+            if ((i == ManualControlSettings::CHANNELNUMBER_THROTTLE) || 
+                        ((maxSeen[i] - manualSettingsData.ChannelNeutral[i]) > INITIAL_OFFSET)) {
+                manualSettingsData.ChannelMin[i] = maxSeen[i];
+            }
+
+            if ((manualSettingsData.ChannelNeutral[i] - minSeen[i]) > INITIAL_OFFSET) {
+                manualSettingsData.ChannelMax[i] = minSeen[i];
+            }
+        }
+
+        // If this is a used channel, make sure we get a valid range.
+        if (manualSettingsData.ChannelGroups[i] !=
+                ManualControlSettings::CHANNELGROUPS_NONE) {
+            int diff = maxSeen[i] - minSeen[i];
+
+            if (diff < MIN_SANE_RANGE) {
+                allSane = false;
+            }
+        }
     }
 
     manualSettingsObj->setData(manualSettingsData);
