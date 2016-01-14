@@ -453,16 +453,23 @@ void PIOS_HAL_ConfigurePort(HwSharedPortTypesOptions port_type,
 	
 	case HWSHARED_PORTTYPES_FRSKYSENSORHUB:
 #if defined(PIOS_INCLUDE_FRSKY_SENSOR_HUB)
-		usart_port_params.rx_invert   = true;
-		usart_port_params.tx_invert   = true;
-		usart_port_params.single_wire = true;
+		//usart_port_params.init.USART_BaudRate            = 57600;
+		//usart_port_params.init.USART_WordLength          = USART_WordLength_8b;
+		//usart_port_params.init.USART_Parity              = USART_Parity_No;
+		//usart_port_params.init.USART_StopBits            = USART_StopBits_1;
+		//usart_port_params.init.USART_HardwareFlowControl = USART_HardwareFlowControl_None;
+		usart_port_params.init.USART_Mode                  = USART_Mode_Tx;
+
+		//usart_port_params.rx_invert   = false;
+		usart_port_params.tx_invert     = true;
+		//usart_port_params.single_wire = false;
 
 		PIOS_HAL_ConfigureCom(usart_port_cfg, &usart_port_params, 0, PIOS_COM_FRSKYSENSORHUB_TX_BUF_LEN, com_driver, &port_driver_id);
 		target = &pios_com_frsky_sensor_hub_id;
 #endif /* PIOS_INCLUDE_FRSKY_SENSOR_HUB */
 		break;
 
-		case HWSHARED_PORTTYPES_FRSKYSPORTTELEMETRY:
+	case HWSHARED_PORTTYPES_FRSKYSPORTTELEMETRY:
 #if defined(PIOS_INCLUDE_FRSKY_SPORT_TELEMETRY)
 		usart_port_params.rx_invert   = true;
 		usart_port_params.tx_invert   = true;
@@ -473,7 +480,7 @@ void PIOS_HAL_ConfigurePort(HwSharedPortTypesOptions port_type,
 #endif /* PIOS_INCLUDE_FRSKY_SPORT_TELEMETRY */
 		break;
 
-		case HWSHARED_PORTTYPES_GPS:
+	case HWSHARED_PORTTYPES_GPS:
 		PIOS_HAL_ConfigureCom(usart_port_cfg, &usart_port_params, PIOS_COM_GPS_RX_BUF_LEN, PIOS_COM_GPS_TX_BUF_LEN, com_driver, &port_driver_id);
 		target = &pios_com_gps_id;
 		break;
@@ -513,7 +520,7 @@ void PIOS_HAL_ConfigurePort(HwSharedPortTypesOptions port_type,
 #endif /* PIOS_INCLUDE_HOTT */
 		break;
 		
-		case HWSHARED_PORTTYPES_I2C:
+	case HWSHARED_PORTTYPES_I2C:
 #if defined(PIOS_INCLUDE_I2C)
 		AlarmsSet(SYSTEMALARMS_ALARM_I2C, SYSTEMALARMS_ALARM_OK);
 		
