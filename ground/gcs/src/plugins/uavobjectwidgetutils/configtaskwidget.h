@@ -182,7 +182,6 @@ private:
     QList <objectToWidget*> objOfInterest;
     ExtensionSystem::PluginManager *pm;
     UAVObjectManager *objManager;
-    UAVObjectUtilManager* utilMngr;
     smartSaveButton *smartsave;
     QMap<UAVObject *,bool> objectUpdates;
     QMap<int,QList<objectToWidget*> *> defaultReloadGroups;
@@ -211,6 +210,7 @@ protected:
     void checkWidgetsLimits(QWidget *widget, UAVObjectField *field, int index, bool hasLimits, QVariant value, double scale);
     virtual QVariant getVariantFromWidget(QWidget *widget, double scale);
     virtual bool setWidgetFromVariant(QWidget *widget,QVariant value,double scale);
+    UAVObjectUtilManager* utilMngr;
 };
 
 #endif // CONFIGTASKWIDGET_H
