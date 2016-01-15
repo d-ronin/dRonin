@@ -50,7 +50,7 @@
 #include <extensionsystem/pluginmanager.h>
 #include <coreplugin/generalsettings.h>
 
-ConfigOutputWidget::ConfigOutputWidget(QWidget *parent) : ConfigTaskWidget(parent),wasItMe(false)
+ConfigOutputWidget::ConfigOutputWidget(QWidget *parent) : ConfigTaskWidget(parent)
 {
     m_config = new Ui_OutputWidget();
     m_config->setupUi(this);
@@ -108,7 +108,6 @@ ConfigOutputWidget::ConfigOutputWidget(QWidget *parent) : ConfigTaskWidget(paren
     resList << m_config->cb_outputResolution1 << m_config->cb_outputResolution2 << m_config->cb_outputResolution3
                << m_config->cb_outputResolution4 << m_config->cb_outputResolution5 << m_config->cb_outputResolution6;
 
-
     // Get the list of output resolutions and assign to the resolution dropdowns
     ActuatorSettings *actuatorSettings = ActuatorSettings::GetInstance(getObjectManager());
     Q_ASSERT(actuatorSettings);
@@ -137,12 +136,12 @@ ConfigOutputWidget::ConfigOutputWidget(QWidget *parent) : ConfigTaskWidget(paren
     UAVObject* obj = objManager->getObject(QString("ActuatorCommand"));
     if(UAVObject::GetGcsTelemetryUpdateMode(obj->getMetadata()) == UAVObject::UPDATEMODE_ONCHANGE)
         this->setEnabled(false);
-    connect(obj,SIGNAL(objectUpdated(UAVObject*)),this,SLOT(disableIfNotMe(UAVObject*)));
     connect(SystemSettings::GetInstance(objManager), SIGNAL(objectUpdated(UAVObject*)),this,SLOT(assignOutputChannels(UAVObject*)));
 
 
     refreshWidgetsValues();
 }
+
 void ConfigOutputWidget::enableControls(bool enable)
 {
     ConfigTaskWidget::enableControls(enable);
@@ -156,7 +155,6 @@ ConfigOutputWidget::~ConfigOutputWidget()
 {
    // Do nothing
 }
-
 
 // ************************************
 
@@ -190,7 +188,6 @@ void ConfigOutputWidget::runChannelTests(bool state)
         int retval = mbox.exec();
         if(retval != QMessageBox::Yes) {
             state = false;
-            qDebug() << "Cancelled";
             m_config->channelOutTest->setChecked(false);
             return;
         }
@@ -200,7 +197,6 @@ void ConfigOutputWidget::runChannelTests(bool state)
     UAVObject::Metadata mdata = obj->getMetadata();
     if (state)
     {
-        wasItMe=true;
         accInitialData = mdata;
         UAVObject::SetFlightAccess(mdata, UAVObject::ACCESS_READONLY);
         UAVObject::SetFlightTelemetryUpdateMode(mdata, UAVObject::UPDATEMODE_ONCHANGE);
@@ -210,7 +206,6 @@ void ConfigOutputWidget::runChannelTests(bool state)
     }
     else
     {
-        wasItMe=false;
         mdata = accInitialData; // Restore metadata
     }
     obj->setMetadata(mdata);
