@@ -139,3 +139,20 @@ int AQ32::queryMaxGyroRate()
         return 500;
     }
 }
+
+QStringList AQ32::getAdcNames()
+{
+    ExtensionSystem::PluginManager *pm = ExtensionSystem::PluginManager::instance();
+    UAVObjectManager *uavoManager = pm->getObject<UAVObjectManager>();
+    HwAQ32 *hwAQ32 = HwAQ32::GetInstance(uavoManager);
+    Q_ASSERT(hwAQ32);
+    if (!hwAQ32)
+        return QStringList();
+
+    HwAQ32::DataFields settings = hwAQ32->getData();
+    if (settings.ADCInputs == HwAQ32::ADCINPUTS_ENABLED) {
+        return QStringList() << "BM" << "Analog ADC2" << "Analog ADC4";
+    }
+
+    return QStringList() << "Disabled" << "Disabled" << "Disabled";
+}
