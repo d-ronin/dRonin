@@ -79,7 +79,7 @@ SECTIONS
     .bss (NOLOAD) :
     {
         _sbss = . ;
-        *(.bss .bss.*)
+        *(SORT_BY_ALIGNMENT(.bss*))
         *(COMMON)
     } > SRAM
 

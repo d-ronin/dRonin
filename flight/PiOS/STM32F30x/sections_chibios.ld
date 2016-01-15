@@ -205,13 +205,11 @@ SECTIONS
         PROVIDE(_edata = .);
     } > ram AT > flash
 
-    .bss :
+    .bss (NOLOAD) :
     {
         . = ALIGN(4);
         PROVIDE(_bss_start = .);
-        *(.bss)
-        . = ALIGN(4);
-        *(.bss.*)
+	*(SORT_BY_ALIGNMENT(.bss*))
         . = ALIGN(4);
         *(COMMON)
         . = ALIGN(4);
