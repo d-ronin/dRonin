@@ -217,3 +217,8 @@ int Lux::queryMaxGyroRate()
         return 500;
     }
 }
+
+QStringList Lux::getAdcNames()
+{
+    return QStringList() << "VBAT" << "Current" << "RSSI";
+}

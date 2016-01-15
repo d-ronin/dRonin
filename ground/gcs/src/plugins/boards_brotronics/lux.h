@@ -69,6 +69,8 @@ public:
     */
     virtual QString getConnectionDiagram() { return ":/brotronics/images/lux-connection-diagram.svg"; }
 
+    virtual QStringList getAdcNames();
+
 };
 
 
