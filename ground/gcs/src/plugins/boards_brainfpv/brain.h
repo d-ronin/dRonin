@@ -64,6 +64,7 @@ public:
 
     virtual int queryMaxGyroRate();
     QWidget * getBoardConfiguration(QWidget *parent, bool connected);
+    virtual QStringList getAdcNames();
 };
 
 
