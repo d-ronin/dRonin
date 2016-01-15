@@ -254,3 +254,8 @@ QWidget * Brain::getBoardConfiguration(QWidget *parent, bool connected)
     Q_UNUSED(connected);
     return new BrainConfiguration(parent);
 }
+
+QStringList Brain::getAdcNames()
+{
+    return QStringList() << "Sen ADC0" << "Sen ADC1" << "Sen ADC2";
+}
