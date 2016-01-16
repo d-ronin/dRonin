@@ -110,14 +110,19 @@ extern uintptr_t streamfs_id;
  */
 int32_t LoggingInitialize(void)
 {
+#ifdef PIOS_COM_OPENLOG
 	if (PIOS_COM_OPENLOG) {
 		logging_com_id = PIOS_COM_OPENLOG;
 		destination_spi_flash = false;
 	}
-	else if (PIOS_COM_SPIFLASH) {
+#endif
+
+#ifdef PIOS_COM_SPIFLASH
+	if ((!logging_com_id) && PIOS_COM_SPIFLASH) {
 		logging_com_id = PIOS_COM_SPIFLASH;
 		destination_spi_flash = true;
 	}
+#endif
 		
 #ifdef MODULE_Logging_BUILTIN
 	module_enabled = true;
