@@ -148,6 +148,9 @@ public:
     void forceConnectedState();
 
     void setNotMandatory(QString object);
+
+    static QMap<int, QString> outputChannelDescription;
+
 public slots:
     void onAutopilotDisconnect();
     void onAutopilotConnect();
