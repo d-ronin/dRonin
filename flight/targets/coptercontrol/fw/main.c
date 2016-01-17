@@ -47,7 +47,7 @@ extern void PIOS_Board_Init(void);
 extern void Stack_Change(void);
 
 /**
-* Tau Labs Main function:
+* dRonin Main function:
 *
 * Initialize PiOS<BR>
 * Create the "System" task (SystemModInitializein Modules/System/systemmod.c) <BR>
