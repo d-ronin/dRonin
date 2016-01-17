@@ -36,7 +36,7 @@ class UAVOCollection(dict):
         import subprocess
         import tarfile
         from cStringIO import StringIO
-        # Get the directory where the Tau Labs code is located
+        # Get the directory where the code is located
         tl_dir = op.join(op.dirname(__file__), "..", "..")
         #
         # Grab the exact uavo definition files from the git repo using the header's git hash

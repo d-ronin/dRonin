@@ -1,12 +1,12 @@
 The files in this subdirectory are utility scripts and an API to interact with
-the Tau Labs flight controller software stack.
+the dRonin flight controller software stack.
 
-Unlike most of the rest of the Tau Labs software, these files are licensed
+Unlike most of the rest of the dRonin software, these files are licensed
 under the GNU Lesser General Public License, version 2.1 or later.
 
 ------------------------------------------------------------------------------
 
-Tau Labs Python API and Utilities
+dRonin Python API and Utilities
 Copyright (C) 2014-2015 Tau Labs, http://taulabs.org
 Copyright (C) 2015 dRonin, http://dronin.org
 

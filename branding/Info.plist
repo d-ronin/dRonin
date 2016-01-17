@@ -23,8 +23,7 @@
 			<string>Editor</string>
 			<key>CFBundleTypeExtensions</key>
 			<array>
-				<string>tllf</string>
-				<string>oplf</string>
+				<string>drlog</string>
 			</array>
 			<key>CFBundleTypeName</key>
 			<string>dRonin log file</string>
