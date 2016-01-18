@@ -674,6 +674,9 @@ void draw_flight_mode(int x, int y, int xs, int ys, int va, int ha, int flags, i
 		case FLIGHTSTATUS_FLIGHTMODE_PATHPLANNER:
 			write_string("PLAN", x, y, xs, ys, va, ha, flags, font);
 			break;
+		case FLIGHTSTATUS_FLIGHTMODE_FAILSAFE:
+			write_string("FAIL", x, y, xs, ys, va, ha, flags, font);
+			break;
 		case FLIGHTSTATUS_FLIGHTMODE_TABLETCONTROL:
 			TabletInfoTabletModeDesiredGet(&mode);
 			switch (mode) {

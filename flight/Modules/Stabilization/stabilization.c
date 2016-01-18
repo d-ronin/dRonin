@@ -258,6 +258,8 @@ static void stabilizationTask(void* parameters)
 		AttitudeActualGet(&attitudeActual);
 		GyrosGet(&gyrosData);
 		ActuatorDesiredGet(&actuatorDesired);
+		actuatorDesired.Throttle = stabDesired.Throttle;
+
 #if defined(RATEDESIRED_DIAGNOSTICS)
 		RateDesiredGet(&rateDesired);
 #endif
@@ -338,14 +340,41 @@ static void stabilizationTask(void* parameters)
 		//Run the selected stabilization algorithm on each axis:
 		for(uint8_t i=0; i< MAX_AXES; i++)
 		{
+			// XXX TODO: Factor this body out into function.
+			
+			uint8_t mode = stabDesired.StabilizationMode[i];
+			float raw_input = (&stabDesired.Roll)[i];
+
+			if (mode == STABILIZATIONDESIRED_STABILIZATIONMODE_FAILSAFE) {
+				switch (i) {
+					case 0: /* Roll */
+						mode = STABILIZATIONDESIRED_STABILIZATIONMODE_ATTITUDE;
+						raw_input = -10;
+						break;
+					case 1:
+					default:
+						mode = STABILIZATIONDESIRED_STABILIZATIONMODE_ATTITUDE;
+						raw_input = 0;
+						break;
+					case 2:
+						mode = STABILIZATIONDESIRED_STABILIZATIONMODE_RATE;
+						raw_input = -5;
+						break;
+				}
+			}
+
+
 			// Check whether this axis mode needs to be reinitialized
-			bool reinit = (stabDesired.StabilizationMode[i] != previous_mode[i]);
-			// The unscaled input (-1,1)
-			float *raw_input = &stabDesired.Roll;
-			previous_mode[i] = stabDesired.StabilizationMode[i];
+			bool reinit = (mode != previous_mode[i]);
+			previous_mode[i] = mode;
+
 			// Apply the selected control law
 			switch(stabDesired.StabilizationMode[i])
 			{
+				case STABILIZATIONDESIRED_STABILIZATIONMODE_FAILSAFE:
+					PIOS_Assert(0); /* Shouldn't happen, per above */
+					break;
+					
 				case STABILIZATIONDESIRED_STABILIZATIONMODE_RATE:
 					if(reinit)
 						pids[PID_GROUP_RATE + i].iAccumulator = 0;
@@ -366,21 +395,21 @@ static void stabilizationTask(void* parameters)
 							pids[PID_GROUP_RATE + i].iAccumulator = 0;
 
 					// The factor for gyro suppression / mixing raw stick input into the output; scaled by raw stick input
-					float factor = fabsf(raw_input[i]) * settings.AcroInsanityFactor / 100;
+					float factor = fabsf(raw_input) * settings.AcroInsanityFactor / 100;
 
 					// Store to rate desired variable for storing to UAVO
-					rateDesiredAxis[i] = bound_sym(raw_input[i] * settings.ManualRate[i], settings.ManualRate[i]);
+					rateDesiredAxis[i] = bound_sym(raw_input * settings.ManualRate[i], settings.ManualRate[i]);
 
 					// Zero integral for aggressive maneuvers, like it is done for MWRate
 					if ((i < 2 && fabsf(gyro_filtered[i]) > 150.0f) ||
-											(i == 0 && fabsf(raw_input[i]) > 0.2f)) {
+											(i == 0 && fabsf(raw_input) > 0.2f)) {
 							pids[PID_GROUP_RATE + i].iAccumulator = 0;
 							pids[PID_GROUP_RATE + i].i = 0;
 							}
 
 					// Compute the inner loop
 					actuatorDesiredAxis[i] = pid_apply_setpoint(&pids[PID_GROUP_RATE + i], rateDesiredAxis[i], gyro_filtered[i], dT);
-					actuatorDesiredAxis[i] = factor * raw_input[i] + (1.0f - factor) * actuatorDesiredAxis[i];
+					actuatorDesiredAxis[i] = factor * raw_input + (1.0f - factor) * actuatorDesiredAxis[i];
 					actuatorDesiredAxis[i] = bound_sym(actuatorDesiredAxis[i], 1.0f);
 
 					break;
@@ -460,7 +489,7 @@ static void stabilizationTask(void* parameters)
 					// Compute the outer loop for the attitude control
 					float rateDesiredAttitude = pid_apply(&pids[PID_GROUP_ATT + i], local_attitude_error[i], dT);
 					// Compute the desire rate for a rate control
-					float rateDesiredRate = raw_input[i] * settings.ManualRate[i];
+					float rateDesiredRate = raw_input * settings.ManualRate[i];
 
 					// Blend from one rate to another. The maximum of all stick positions is used for the
 					// amount so that when one axis goes completely to rate the other one does too. This
@@ -490,12 +519,10 @@ static void stabilizationTask(void* parameters)
 						you get started.
 					*/
 
-					// The unscaled input (-1,1) - note in MW this is from (-500,500)
-					float *raw_input = &stabDesired.Roll;
 
 					// dynamic PIDs are scaled both by throttle and stick position
 					float scale = (i == 0 || i == 1) ? mwrate_settings.RollPitchRate : mwrate_settings.YawRate;
-					float pid_scale = (100.0f - scale * fabsf(raw_input[i])) / 100.0f;
+					float pid_scale = (100.0f - scale * fabsf(raw_input)) / 100.0f;
 					float dynP8 = pids[PID_GROUP_MWR + i].p * pid_scale;
 					float dynD8 = pids[PID_GROUP_MWR + i].d * pid_scale;
 					// these terms are used by the integral loop this proportional term is scaled by throttle (this is different than MW
@@ -515,14 +542,14 @@ static void stabilizationTask(void* parameters)
 
 					// Zero integral for aggressive maneuvers
  					if ((i < 2 && fabsf(gyro_filtered[i]) > 150.0f) ||
- 					    (i == 0 && fabsf(raw_input[i]) > 0.2f)) {
+ 					    (i == 0 && fabsf(raw_input) > 0.2f)) {
 						mw_pid.iAccumulator = 0;
 						mw_pid.i = 0;
 					}
 
 					// Apply controller as if we want zero change, then add stick input afterwards
-					actuatorDesiredAxis[i] = pid_apply_setpoint(&mw_pid,  raw_input[i] / cfgP8,  gyro_filtered[i], dT);
-					actuatorDesiredAxis[i] += raw_input[i];             // apply input
+					actuatorDesiredAxis[i] = pid_apply_setpoint(&mw_pid,  raw_input / cfgP8,  gyro_filtered[i], dT);
+					actuatorDesiredAxis[i] += raw_input;             // apply input
 					actuatorDesiredAxis[i] -= dynP8 * gyro_filtered[i]; // apply Kp term
 					actuatorDesiredAxis[i] = bound_sym(actuatorDesiredAxis[i],1.0f);
 
@@ -760,7 +787,6 @@ static void stabilizationTask(void* parameters)
 
 		// Save dT
 		actuatorDesired.UpdateTime = dT * 1000;
-		actuatorDesired.Throttle = stabDesired.Throttle;
 
 		if(flightStatus.FlightMode != FLIGHTSTATUS_FLIGHTMODE_MANUAL) {
 			ActuatorDesiredSet(&actuatorDesired);
