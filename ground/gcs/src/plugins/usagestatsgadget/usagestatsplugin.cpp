@@ -25,6 +25,7 @@
  * 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
  */
 #include "usagestatsplugin.h"
+#include <QCryptographicHash>
 #include <QDebug>
 #include <QtPlugin>
 #include <QStringList>
@@ -245,7 +246,7 @@ QByteArray UsageStatsPlugin::processJson() {
         b["gitHash"] = board.device.gitHash;
         b["gitTag"] = board.device.gitTag;
         if(sendPrivateData)
-            b["CPU"] = board.board.cpu_serial;
+            b["UUID"] = QString(QCryptographicHash::hash(QByteArray::fromHex(board.board.cpu_serial.toUtf8()), QCryptographicHash::Sha256).toHex());
         boardArray.append(b);
     }
     json["boardsSeen"] = boardArray;
