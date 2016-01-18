@@ -623,6 +623,11 @@ void ConfigOutputWidget::openHelp()
     QDesktopServices::openUrl( QUrl("https://github.com/d-ronin/dRonin/wiki/OnlineHelp:-Output-Configuration", QUrl::StrictMode) );
 }
 
+void ConfigOutputWidget::tabSwitchingAway()
+{
+    stopTests();
+}
+
 void ConfigOutputWidget::stopTests()
 {
     if (m_config->channelOutTest->isChecked()) {
