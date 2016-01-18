@@ -81,7 +81,7 @@ QIODevice* LoggingConnection::openDevice(IDevice *deviceName)
     if (logFile.isOpen()){
         logFile.close();
     }
-    QString fileName = QFileDialog::getOpenFileName(NULL, tr("Open file"), QString(""), tr("dRonin Log (*.drlog)"));
+    QString fileName = QFileDialog::getOpenFileName(NULL, tr("Open file"), QString(""), tr("dRonin Log Files (*.drlog *.tll)"));
     if (!fileName.isNull()) {
         startReplay(fileName);
         return &logFile;

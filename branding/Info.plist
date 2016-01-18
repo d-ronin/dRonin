@@ -24,6 +24,7 @@
 			<key>CFBundleTypeExtensions</key>
 			<array>
 				<string>drlog</string>
+				<string>tll</string>
 			</array>
 			<key>CFBundleTypeName</key>
 			<string>dRonin log file</string>
