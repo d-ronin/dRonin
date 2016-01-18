@@ -28,6 +28,7 @@
 
 #include "configautotunewidget.h"
 
+#include <QCryptographicHash>
 #include <QDebug>
 #include <QStringList>
 #include <QWidget>
@@ -506,7 +507,7 @@ QJsonDocument ConfigAutotuneWidget::getResultsJson()
 
     QJsonObject json;
     json["dataVersion"] = 1;
-    json["uniqueId"] = QString(utilMngr->getBoardCPUSerial().toHex());
+    json["uniqueId"] = QString(QCryptographicHash::hash(utilMngr->getBoardCPUSerial(), QCryptographicHash::Sha256).toHex());
 
     QJsonObject vehicle, fw;
     fw["board"] = autotuneShareForm->getBoardType();
