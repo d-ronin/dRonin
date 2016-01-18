@@ -131,7 +131,7 @@ int32_t transmitter_control_initialize()
 	ManualControlSettingsInitialize();
 
 	// Both the gimbal and coptercontrol do not support loitering
-#if !defined(SMALLF1) && !defined(GIMBAL)
+#if !defined(SMALLF1)
 	LoiterCommandInitialize();
 #endif
 
@@ -1054,7 +1054,7 @@ static void update_stabilization_desired(ManualControlCommandData * cmd, ManualC
 	StabilizationDesiredSet(&stabilization);
 }
 
-#if !defined(SMALLF1) && !defined(GIMBAL)
+#if !defined(SMALLF1)
 
 /**
  * @brief Update the altitude desired to current altitude when
@@ -1163,7 +1163,7 @@ static void set_loiter_command(ManualControlCommandData *cmd)
 	set_manual_control_error(SYSTEMALARMS_MANUALCONTROL_PATHFOLLOWER);
 }
 
-#endif /* !defined(SMALLF1) && !defined(GIMBAL) */
+#endif /* !defined(SMALLF1) */
 
 /**
  * Convert channel from servo pulse duration (microseconds) to scaled -1/+1 range.
