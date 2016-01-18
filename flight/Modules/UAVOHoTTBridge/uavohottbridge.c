@@ -621,6 +621,7 @@ void update_telemetrydata () {
 	const char *txt_returntohome = "ReturnToHome";
 	const char *txt_pathplanner = "PathPlanner";
 	const char *txt_tabletcontrol = "TabletCtrl";
+	const char *txt_failsafe = "Failsafe";
 	const char *txt_disarmed = "Disarmed";
 	const char *txt_arming = "Arming";
 	const char *txt_armed = "Armed";
@@ -665,6 +666,9 @@ void update_telemetrydata () {
 			break;
 		case FLIGHTSTATUS_FLIGHTMODE_TABLETCONTROL:
 			txt_flightmode = txt_tabletcontrol;
+			break;
+		case FLIGHTSTATUS_FLIGHTMODE_FAILSAFE:
+			txt_flightmode = txt_failsafe;
 			break;
 		default:
 			txt_flightmode = txt_unknown;

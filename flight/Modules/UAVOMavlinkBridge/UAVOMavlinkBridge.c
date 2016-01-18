@@ -446,6 +446,8 @@ static void uavoMavlinkBridgeTask(void *parameters) {
 				case FLIGHTSTATUS_FLIGHTMODE_POSITIONHOLD:
 					custom_mode = CUSTOM_MODE_POSH;
 					break;
+				case FLIGHTSTATUS_FLIGHTMODE_FAILSAFE:
+					/* (make it clear we're in charge) */
 				case FLIGHTSTATUS_FLIGHTMODE_PATHPLANNER:
 					custom_mode = CUSTOM_MODE_AUTO;
 					break;
