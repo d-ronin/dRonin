@@ -280,7 +280,7 @@ void PIOS_Board_Init(void)
 	HwLuxMainPortGet(&hw_mainport);
 	PIOS_HAL_ConfigurePort(hw_mainport, // port_type
                          &pios_main_usart_cfg, // usart_port_cfg
-                         &pios_main_usart_cfg, // usart_frsk_port_cfg
+                         &pios_main_usart_sport_cfg, // usart_frsk_port_cfg
                          &pios_usart_com_driver, // com_driver
                          NULL, // i2c_id
                          NULL, // i2c_cfg
@@ -299,7 +299,7 @@ void PIOS_Board_Init(void)
 	HwLuxFlexiPortGet(&hw_flexiport);
 	PIOS_HAL_ConfigurePort(hw_flexiport, // port_type
 			&pios_flexi_usart_cfg, // usart_port_cfg
-			&pios_flexi_usart_cfg, // usart_frsk_port_cfg
+			&pios_flexi_usart_sport_cfg, // usart_frsk_port_cfg
 			&pios_usart_com_driver, // com_driver
 			NULL, // i2c_id
 			NULL, // i2c_cfg
