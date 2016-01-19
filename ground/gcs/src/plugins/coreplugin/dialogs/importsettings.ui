@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>373</width>
-    <height>167</height>
+    <height>204</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -35,6 +35,16 @@ Please choose from one of the default configurations</string>
     <widget class="QLabel" name="lblDetails">
      <property name="text">
       <string>TextLabel</string>
+     </property>
+    </widget>
+   </item>
+   <item>
+    <widget class="QLabel" name="lblSharing">
+     <property name="text">
+      <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Note: This application will send usage statistics to the project maintainers. This feature can be disabled under Options -&amp;gt; Usage Statistics.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+     </property>
+     <property name="wordWrap">
+      <bool>true</bool>
      </property>
     </widget>
    </item>
