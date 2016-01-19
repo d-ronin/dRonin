@@ -55,7 +55,7 @@ UsageStatsPlugin::UsageStatsPlugin(): sendUsageStats(true), sendPrivateData(true
 
 UsageStatsPlugin::~UsageStatsPlugin()
 {
-
+    Core::ICore::instance()->saveSettings(this);
 }
 
 void UsageStatsPlugin::readConfig(QSettings *qSettings, Core::UAVConfigInfo *configInfo)
@@ -134,6 +134,7 @@ void UsageStatsPlugin::updateSettings()
         searchForWidgets(mw, sendUsageStats);
         }
     }
+    Core::ICore::instance()->saveSettings(this);
 }
 
 void UsageStatsPlugin::addNewBoardSeen(deviceInfo board, deviceDescriptorStruct device)
