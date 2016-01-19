@@ -731,7 +731,14 @@ static void process_transmitter_events(ManualControlCommandData * cmd, ManualCon
 		}
 
   		if (disarm && timeDifferenceMs(armedDisarmStart, lastSysTime) > disarm_time) {
-			arm_state = ARM_STATE_DISARMED_STILL_HOLDING;
+			if (settings->Arming == MANUALCONTROLSETTINGS_ARMING_SWITCH ||
+					settings->Arming == MANUALCONTROLSETTINGS_ARMING_SWITCHDELAY ||
+					settings->Arming == MANUALCONTROLSETTINGS_ARMING_SWITCHTHROTTLE ||
+					settings->Arming == MANUALCONTROLSETTINGS_ARMING_SWITCHTHROTTLEDELAY) {
+				arm_state = ARM_STATE_DISARMED;
+			} else {
+				arm_state = ARM_STATE_DISARMED_STILL_HOLDING;
+			}
   		} else if (!disarm) {
   			arm_state = ARM_STATE_ARMED;
   		}
