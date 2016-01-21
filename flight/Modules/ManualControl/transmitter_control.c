@@ -278,7 +278,7 @@ int32_t transmitter_control_update()
 	bool valid_input_detected = true;
 
 	// Read channel values in us
-	for (uint8_t n = 0; 
+	for (uint8_t n = 0;
 	     n < MANUALCONTROLSETTINGS_CHANNELGROUPS_NUMELEM && n < MANUALCONTROLCOMMAND_CHANNEL_NUMELEM;
 	     ++n) {
 		extern uintptr_t pios_rcvr_group_map[];
@@ -331,7 +331,7 @@ int32_t transmitter_control_update()
 		cmd.Connected = MANUALCONTROLCOMMAND_CONNECTED_FALSE;
 		ManualControlCommandSet(&cmd);
 
-		// Need to do this here since we don't process armed status.  Since this shouldn't happen in flight (changed config) 
+		// Need to do this here since we don't process armed status.  Since this shouldn't happen in flight (changed config)
 		// immediately disarm
 		pending_control_event = CONTROL_EVENTS_DISARM;
 
@@ -385,7 +385,7 @@ int32_t transmitter_control_update()
 		cmd.Pitch          = scaledChannel[MANUALCONTROLSETTINGS_CHANNELGROUPS_PITCH];
 		cmd.Yaw            = scaledChannel[MANUALCONTROLSETTINGS_CHANNELGROUPS_YAW];
 		cmd.Throttle       = scaledChannel[MANUALCONTROLSETTINGS_CHANNELGROUPS_THROTTLE];
-		cmd.ArmSwitch      = scaledChannel[MANUALCONTROLSETTINGS_CHANNELGROUPS_ARMING] > 0 ? 
+		cmd.ArmSwitch      = scaledChannel[MANUALCONTROLSETTINGS_CHANNELGROUPS_ARMING] > 0 ?
 		                     MANUALCONTROLCOMMAND_ARMSWITCH_ARMED : MANUALCONTROLCOMMAND_ARMSWITCH_DISARMED;
 		flight_mode_value  = scaledChannel[MANUALCONTROLSETTINGS_CHANNELGROUPS_FLIGHTMODE];
 
@@ -401,24 +401,24 @@ int32_t transmitter_control_update()
 		   cmd.Channel[MANUALCONTROLSETTINGS_CHANNELGROUPS_COLLECTIVE] != (uint16_t) PIOS_RCVR_TIMEOUT) {
 			cmd.Collective = scaledChannel[MANUALCONTROLSETTINGS_CHANNELGROUPS_COLLECTIVE];
 		}
-		   
+
 		AccessoryDesiredData accessory;
 		// Set Accessory 0
-		if (settings.ChannelGroups[MANUALCONTROLSETTINGS_CHANNELGROUPS_ACCESSORY0] != 
+		if (settings.ChannelGroups[MANUALCONTROLSETTINGS_CHANNELGROUPS_ACCESSORY0] !=
 			MANUALCONTROLSETTINGS_CHANNELGROUPS_NONE) {
 			accessory.AccessoryVal = scaledChannel[MANUALCONTROLSETTINGS_CHANNELGROUPS_ACCESSORY0];
 			if(AccessoryDesiredInstSet(0, &accessory) != 0) //These are allocated later and that allocation might fail
 				set_manual_control_error(SYSTEMALARMS_MANUALCONTROL_ACCESSORY);
 		}
 		// Set Accessory 1
-		if (settings.ChannelGroups[MANUALCONTROLSETTINGS_CHANNELGROUPS_ACCESSORY1] != 
+		if (settings.ChannelGroups[MANUALCONTROLSETTINGS_CHANNELGROUPS_ACCESSORY1] !=
 			MANUALCONTROLSETTINGS_CHANNELGROUPS_NONE) {
 			accessory.AccessoryVal = scaledChannel[MANUALCONTROLSETTINGS_CHANNELGROUPS_ACCESSORY1];
 			if(AccessoryDesiredInstSet(1, &accessory) != 0) //These are allocated later and that allocation might fail
 				set_manual_control_error(SYSTEMALARMS_MANUALCONTROL_ACCESSORY);
 		}
 		// Set Accessory 2
-		if (settings.ChannelGroups[MANUALCONTROLSETTINGS_CHANNELGROUPS_ACCESSORY2] != 
+		if (settings.ChannelGroups[MANUALCONTROLSETTINGS_CHANNELGROUPS_ACCESSORY2] !=
 			MANUALCONTROLSETTINGS_CHANNELGROUPS_NONE) {
 			accessory.AccessoryVal = scaledChannel[MANUALCONTROLSETTINGS_CHANNELGROUPS_ACCESSORY2];
 			if(AccessoryDesiredInstSet(2, &accessory) != 0) //These are allocated later and that allocation might fail
@@ -431,7 +431,7 @@ int32_t transmitter_control_update()
 	// is processed in the _update method instead of _select method so the state system is always
 	// evalulated, even if not detected.
 	process_transmitter_events(&cmd, &settings, valid_input_detected);
-	
+
 	// Update cmd object
 	ManualControlCommandSet(&cmd);
 
@@ -717,7 +717,7 @@ static void process_transmitter_events(ManualControlCommandData * cmd, ManualCon
 		// Determine whether to disarm when throttle is low
 		uint8_t flight_mode;
 		FlightStatusFlightModeGet(&flight_mode);
-		bool autonomous_mode = 
+		bool autonomous_mode =
 		                       flight_mode == FLIGHTSTATUS_FLIGHTMODE_POSITIONHOLD ||
 		                       flight_mode == FLIGHTSTATUS_FLIGHTMODE_RETURNTOHOME ||
 		                       flight_mode == FLIGHTSTATUS_FLIGHTMODE_PATHPLANNER  ||
@@ -854,7 +854,7 @@ static bool updateRcvrActivityCompare(uintptr_t rcvr_id, struct rcvr_activity_fs
 	     channel++) {
 		uint16_t delta;
 		uint16_t prev = fsm->prev[channel - 1];   // Subtract 1 because channels are 1 indexed
-		uint16_t curr = PIOS_RCVR_Read(rcvr_id, channel); 
+		uint16_t curr = PIOS_RCVR_Read(rcvr_id, channel);
 		if (curr > prev) {
 			delta = curr - prev;
 		} else {
@@ -867,7 +867,7 @@ static bool updateRcvrActivityCompare(uintptr_t rcvr_id, struct rcvr_activity_fs
 
 			/* Don't assume manualcontrolsettings and receiveractivity are in the same order. */
 			switch (fsm->group) {
-			case MANUALCONTROLSETTINGS_CHANNELGROUPS_PWM: 
+			case MANUALCONTROLSETTINGS_CHANNELGROUPS_PWM:
 				group = RECEIVERACTIVITY_ACTIVEGROUP_PWM;
 				break;
 			case MANUALCONTROLSETTINGS_CHANNELGROUPS_PPM:
@@ -890,6 +890,9 @@ static bool updateRcvrActivityCompare(uintptr_t rcvr_id, struct rcvr_activity_fs
 				break;
 			case MANUALCONTROLSETTINGS_CHANNELGROUPS_HOTTSUM:
 				group = RECEIVERACTIVITY_ACTIVEGROUP_HOTTSUM;
+				break;
+			case MANUALCONTROLSETTINGS_CHANNELGROUPS_SRXL:
+				group = RECEIVERACTIVITY_ACTIVEGROUP_SRXL;
 				break;
 			default:
 				set_manual_control_error(SYSTEMALARMS_MANUALCONTROL_UNDEFINED);
@@ -945,7 +948,7 @@ group_completed:
 			fsm->group = 0;
 		}
 		if (pios_rcvr_group_map[fsm->group]) {
-			/* 
+			/*
 			 * Found an active group, take a sample here to avoid an
 			 * extra 20ms delay in the main thread so we can speed up
 			 * this algorithm.
@@ -1123,7 +1126,7 @@ static void altitude_hold_desired(ManualControlCommandData * cmd, bool flightMod
 	}
 
 	const float MIN_CLIMB_RATE = 0.01f;
-	
+
 	AltitudeHoldDesiredData altitudeHoldDesired;
 	AltitudeHoldDesiredGet(&altitudeHoldDesired);
 
@@ -1133,7 +1136,7 @@ static void altitude_hold_desired(ManualControlCommandData * cmd, bool flightMod
 	altitudeHoldDesired.Roll = cmd->Roll * stabSettings.RollMax;
 	altitudeHoldDesired.Pitch = cmd->Pitch * stabSettings.PitchMax;
 	altitudeHoldDesired.Yaw = cmd->Yaw * stabSettings.ManualRate[STABILIZATIONSETTINGS_MANUALRATE_YAW];
-	
+
 	float current_down;
 	PositionActualDownGet(&current_down);
 
