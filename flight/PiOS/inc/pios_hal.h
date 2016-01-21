@@ -17,6 +17,23 @@
 #include <pios_openlrs_priv.h>
 #endif /* PIOS_INCLUDE_RFM22B */
 
+/**
+ * @ brief LED panic codes for hardware failure
+ */
+enum pios_hal_panic {
+	// start at 2, so that panic codes are obvious to user
+	PIOS_HAL_PANIC_IMU  = 2,
+	PIOS_HAL_PANIC_MAG,
+	PIOS_HAL_PANIC_BARO,
+	PIOS_HAL_PANIC_FLASH,
+	PIOS_HAL_PANIC_FILESYS,
+	PIOS_HAL_PANIC_I2C_INT,
+	PIOS_HAL_PANIC_I2C_EXT,
+	PIOS_HAL_PANIC_SPI,
+	PIOS_HAL_PANIC_CAN,
+	PIOS_HAL_PANIC_ADC,
+};
+
 /* One slot per selectable receiver group.
  *  eg. PWM, PPM, GCS, SPEKTRUM1, SPEKTRUM2, SBUS
  * NOTE: No slot in this map for NONE.
@@ -40,7 +57,7 @@ void PIOS_HAL_ConfigureCom(const struct pios_usart_cfg *usart_port_cfg, struct p
 		size_t rx_buf_len, size_t tx_buf_len,
 		const struct pios_com_driver *com_driver, uintptr_t *com_id);
 
-void PIOS_HAL_Panic(uint32_t led_id, int32_t code);
+void PIOS_HAL_Panic(uint32_t led_id, enum pios_hal_panic code);
 
 void PIOS_HAL_ConfigurePort(HwSharedPortTypesOptions port_type,
 		const struct pios_usart_cfg *usart_port_cfg,
