@@ -168,29 +168,6 @@ uintptr_t pios_waypoints_settings_fs_id;
 uintptr_t pios_internal_adc_id;
 
 /**
- * Indicate a target-specific error code when a component fails to initialize
- *  1 pulse:  Flash   - PIOS_Flash_Internal_Init failed
- *  2 pulses: Flash   - PIOS_FLASHFS_Logfs_Init failed (settings)
- *  3 pulses: Flash   - PIOS_FLASHFS_Logfs_Init failed (waypoints)
- *  4 pulse:  MPU6000 - PIOS_MPU6000_Init failed
- *  5 pulses: MPU6000 - PIOS_MPU6000_Test failed
- *  6 pulses: HMC5883 - PIOS_HMC5883_Init failed (internal)
- *  7 pulses: HMC5883 - PIOS_HMC5883_Test failed (internal)
- *  8 pulses: I2C     - Internal I2C bus locked
- *  9 Not Used
- * 10 Not Used
- * 11 Not Used
- * 12 pulses: MS5611  - PIOS_MS5611_Init failed
- * 13 pulses: MS5611  - PIOS_MS5611_Test failed
- * 14 pulses: ADC     - PIOS_INTERNAL_ADC_Init failed
- * 15 pulses: ADC     - PIOS_ADC_Init failed
- */
-
-void panic(int32_t code) {
-    PIOS_HAL_Panic(PIOS_LED_ALARM, code);
-}
-
-/**
  * PIOS_Board_Init()
  * initializes all the core subsystems on this specific hardware
  * called from System/openpilot.c
@@ -219,7 +196,7 @@ void PIOS_Board_Init(void) {
 #if defined(PIOS_INCLUDE_FLASH)
     /* Initialize all flash drivers */
     if (PIOS_Flash_Internal_Init(&pios_internal_flash_id, &flash_internal_cfg) != 0)
-        panic(1);
+        PIOS_HAL_Panic(PIOS_LED_ALARM, PIOS_HAL_PANIC_FLASH);
 
     /* Register the partition table */
     const struct pios_flash_partition * flash_partition_table;
@@ -229,9 +206,9 @@ void PIOS_Board_Init(void) {
 
     /* Mount all filesystems */
     if (PIOS_FLASHFS_Logfs_Init(&pios_uavo_settings_fs_id, &flashfs_settings_cfg, FLASH_PARTITION_LABEL_SETTINGS) != 0)
-        panic(2);
+        PIOS_HAL_Panic(PIOS_LED_ALARM, PIOS_HAL_PANIC_FILESYS);
     if (PIOS_FLASHFS_Logfs_Init(&pios_waypoints_settings_fs_id, &flashfs_waypoints_cfg, FLASH_PARTITION_LABEL_WAYPOINTS) != 0)
-        panic(3);
+        PIOS_HAL_Panic(PIOS_LED_ALARM, PIOS_HAL_PANIC_FILESYS);
 #endif    /* PIOS_INCLUDE_FLASH */
 
     /* Initialize the task monitor library */
@@ -245,7 +222,7 @@ void PIOS_Board_Init(void) {
 
     HwAQ32Initialize();
     ModuleSettingsInitialize();
-	
+
 #if defined(PIOS_INCLUDE_RTC)
     /* Initialize the real-time clock and its associated tick */
     PIOS_RTC_Init(&pios_rtc_main_cfg);
@@ -259,20 +236,20 @@ void PIOS_Board_Init(void) {
     }
 
     /* Set up pulse timers */
-    
+
     // Timers used for inputs (4)
     PIOS_TIM_InitClock(&tim_4_cfg);
-    
+
     // Timers used for outputs (2, 3, 8)
     PIOS_TIM_InitClock(&tim_2_cfg);
     PIOS_TIM_InitClock(&tim_3_cfg);
     PIOS_TIM_InitClock(&tim_8_cfg);
-    
+
     // Timers used for inputs or outputs (1)
     // Configure TIM_Period (ARR) accordingly
-    
+
     PIOS_TIM_InitClock(&tim_1_cfg);
-    
+
     uint8_t hw_rcvrport;
     HwAQ32RcvrPortGet(&hw_rcvrport);
 
@@ -284,7 +261,7 @@ void PIOS_Board_Init(void) {
     case HWAQ32_RCVRPORT_PWM:
         TIM1->ARR = 0xFFFF;  // Timer 1 configured for PWM inputs
         break;
-    }    
+    }
 
     /* IAP System Setup */
     PIOS_IAP_Init();
@@ -353,7 +330,7 @@ void PIOS_Board_Init(void) {
     }
 
     PIOS_HAL_ConfigureHID(hw_usb_hidport, pios_usb_id, &pios_usb_hid_cfg);
-    
+
 #endif    /* PIOS_INCLUDE_USB_HID */
 
     if (usb_hid_present || usb_cdc_present) {
@@ -362,13 +339,13 @@ void PIOS_Board_Init(void) {
 
     /* Issue USB Disconnect Pulse */
     PIOS_WDG_Clear();
-    
+
     GPIO_ResetBits(pios_usb_main_cfg.disconnect.gpio, pios_usb_main_cfg.disconnect.init.GPIO_Pin);
-        
+
     PIOS_DELAY_WaitmS(200);
-        
+
     GPIO_SetBits(pios_usb_main_cfg.disconnect.gpio, pios_usb_main_cfg.disconnect.init.GPIO_Pin);
-    
+
     PIOS_WDG_Clear();
 #endif    /* PIOS_INCLUDE_USB */
 
@@ -428,7 +405,7 @@ void PIOS_Board_Init(void) {
     PIOS_HAL_ConfigurePort(hw_uart3,             // port type protocol
             &pios_usart3_cfg,                    // usart_port_cfg
             &pios_usart_com_driver,              // com_driver
-            NULL,                                // i2c_id 
+            NULL,                                // i2c_id
             NULL,                                // i2c_cfg
             NULL,                                // ppm_cfg
             NULL,                                // pwm_cfg
@@ -436,13 +413,13 @@ void PIOS_Board_Init(void) {
             NULL,                                // dsm_cfg
             0,                                   // dsm_mode
             &pios_usart3_sbus_aux_cfg);          // sbus_cfg
-            
+
     if (hw_uart3 == HWAQ32_UART3_FRSKYSENSORHUB)
     {
         GPIO_Init(pios_usart3_sbus_aux_cfg.inv.gpio, (GPIO_InitTypeDef*)&pios_usart3_sbus_aux_cfg.inv.init);
         GPIO_WriteBit(pios_usart3_sbus_aux_cfg.inv.gpio, pios_usart3_sbus_aux_cfg.inv.init.GPIO_Pin, pios_usart3_sbus_aux_cfg.gpio_inv_enable);
     }
-           
+
     /* UART4 Port */
     uint8_t hw_uart4;
     HwAQ32Uart4Get(&hw_uart4);
@@ -524,9 +501,9 @@ void PIOS_Board_Init(void) {
 
 #if defined(PIOS_INCLUDE_MPU6000)
     if (PIOS_MPU6000_Init(pios_spi_internal_id, 0, &pios_mpu6000_cfg) != 0)
-        panic(4);
+        PIOS_HAL_Panic(PIOS_LED_ALARM, PIOS_HAL_PANIC_IMU);
     if (PIOS_MPU6000_Test() != 0)
-        panic(5);
+        PIOS_HAL_Panic(PIOS_LED_ALARM, PIOS_HAL_PANIC_IMU);
 
     // To be safe map from UAVO enum to driver enum
     uint8_t hw_gyro_range;
@@ -599,7 +576,7 @@ void PIOS_Board_Init(void) {
 
     uint8_t Magnetometer;
     HwAQ32MagnetometerGet(&Magnetometer);
-    
+
     external_mag_fail = false;
 
     if (Magnetometer == HWAQ32_MAGNETOMETER_EXTERNAL)
@@ -619,7 +596,7 @@ void PIOS_Board_Init(void) {
         if (PIOS_HMC5883_Init(pios_i2c_external_id, &pios_hmc5883_external_cfg) == 0) {
             if (PIOS_HMC5883_Test() == 0) {
                 // External mag configuration was successful
-                
+
                 // setup sensor orientation
                 uint8_t ExtMagOrientation;
                 HwAQ32ExtMagOrientationGet(&ExtMagOrientation);
@@ -646,9 +623,9 @@ void PIOS_Board_Init(void) {
     if (Magnetometer == HWAQ32_MAGNETOMETER_INTERNAL)
     {
         if (PIOS_HMC5883_Init(pios_i2c_internal_id, &pios_hmc5883_internal_cfg) != 0)
-            panic(6);
+            PIOS_HAL_Panic(PIOS_LED_ALARM, PIOS_HAL_PANIC_MAG);
         if (PIOS_HMC5883_Test() != 0)
-            panic(7);
+            PIOS_HAL_Panic(PIOS_LED_ALARM, PIOS_HAL_PANIC_MAG);
     }
 
 #endif
@@ -658,9 +635,9 @@ void PIOS_Board_Init(void) {
 
 #if defined(PIOS_INCLUDE_MS5611)
     if (PIOS_MS5611_Init(&pios_ms5611_cfg, pios_i2c_internal_id) != 0)
-        panic(12);
+        PIOS_HAL_Panic(PIOS_LED_ALARM, PIOS_HAL_PANIC_BARO);
     if (PIOS_MS5611_Test() != 0)
-        panic(13);
+        PIOS_HAL_Panic(PIOS_LED_ALARM, PIOS_HAL_PANIC_BARO);
 #endif
 
     //I2C is slow, sensor init as well, reset watchdog to prevent reset here
@@ -687,11 +664,11 @@ void PIOS_Board_Init(void) {
 
             if (PIOS_INTERNAL_ADC_Init(&internal_adc_id, &pios_adc_cfg) < 0) {
                 PIOS_Assert(0);
-                    panic(14);
+                    PIOS_HAL_Panic(PIOS_LED_ALARM, PIOS_HAL_PANIC_ADC);
             }
 
             if (PIOS_ADC_Init(&pios_internal_adc_id, &pios_internal_adc_driver, internal_adc_id) < 0)
-                panic(15);
+                PIOS_HAL_Panic(PIOS_LED_ALARM, PIOS_HAL_PANIC_ADC);
         }
         break;
     }
