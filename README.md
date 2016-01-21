@@ -12,6 +12,7 @@ See [dronin.org](http://dronin.org) for more details.
 
 - [AeroQuad32](http://aeroquad.com/showwiki.php?title=AeroQuad32-Flight-Control-Board-v2)
 - [BrainFPV](http://brainfpv.com/)
+- [Lumenier Lux](http://www.getfpv.com/lumenier-lux-flight-controller.html)
 - OpenPilot Revolution
 - Quantec Quanton
 - Tau Labs Sparky
