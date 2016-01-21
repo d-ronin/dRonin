@@ -228,6 +228,8 @@ public:
 
     static QString getBoardNameFromID(int id);
 
+    virtual QStringList getAdcNames() { return QStringList(); }
+
 signals:
 
 protected:

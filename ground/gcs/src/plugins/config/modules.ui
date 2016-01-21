@@ -199,14 +199,14 @@
         </widget>
        </item>
        <item>
-         <widget class="QCheckBox" name="cbLogging">
-           <property name="toolTip">
-             <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Select to enable logging to on-board flash memory.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-           </property>
-           <property name="text">
-             <string>Logging</string>
-           </property>
-         </widget>
+        <widget class="QCheckBox" name="cbLogging">
+         <property name="toolTip">
+          <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Select to enable logging to on-board flash memory.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+         </property>
+         <property name="text">
+          <string>Logging</string>
+         </property>
+        </widget>
        </item>
        <item>
         <widget class="QCheckBox" name="cbUAVOMSPBridge">
@@ -565,7 +565,11 @@
            </widget>
           </item>
           <item row="1" column="1">
-           <widget class="QComboBox" name="cbVoltagePin"/>
+           <widget class="QComboBox" name="cbVoltagePin">
+            <property name="toolTip">
+             <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Select an ADC pin to measure the voltage. Pins not available with the current board configuration are labelled &amp;quot;Disabled&amp;quot;. These pins may be enabled by settings on the &amp;quot;Hardware&amp;quot; tab. Pins labelled &amp;quot;N/A&amp;quot; are not available due to the board hardware design.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+            </property>
+           </widget>
           </item>
          </layout>
         </widget>
@@ -656,7 +660,11 @@
            </widget>
           </item>
           <item row="4" column="1">
-           <widget class="QComboBox" name="cbCurrentPin"/>
+           <widget class="QComboBox" name="cbCurrentPin">
+            <property name="toolTip">
+             <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Select an ADC pin to measure the current. Pins not available with the current board configuration are labelled &amp;quot;Disabled&amp;quot;. These pins may be enabled by settings on the &amp;quot;Hardware&amp;quot; tab. Pins labelled &amp;quot;N/A&amp;quot; are not available due to the board hardware design.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+            </property>
+           </widget>
           </item>
           <item row="7" column="0">
            <widget class="QLabel" name="label_33">
