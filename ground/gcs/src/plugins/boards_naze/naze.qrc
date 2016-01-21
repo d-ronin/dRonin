@@ -1,5 +1,5 @@
 <RCC>
     <qresource prefix="/naze">
-        <file>images/open_naze.png</file>
+        <file>images/nazev6.png</file>
     </qresource>
 </RCC>

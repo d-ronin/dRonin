@@ -1,7 +1,7 @@
 /**
  ******************************************************************************
  *
- * @file       open_naze.cpp
+ * @file       naze.cpp
  * @author     Tau Labs, http://taulabs.org, Copyright (C) 2013
  * @author     dRonin, http://dronin.org Copyright (C) 2015
  *
@@ -100,7 +100,7 @@ QStringList Naze::getSupportedProtocols()
 
 QPixmap Naze::getBoardPicture()
 {
-    return QPixmap(":/naze/images/open_naze.png");
+    return QPixmap(":/naze/images/nazev6.png");
 }
 
 QString Naze::getHwUAVO()
