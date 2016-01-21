@@ -55,7 +55,7 @@ static void initTask(void *parameters);
 extern void InitModules(void);
 
 /**
- * Tau Labs Main function:
+ * dRonin Main function:
  *
  * Initialize PiOS<BR>
  * Create the "System" task (SystemModInitializein Modules/System/systemmod.c) <BR>
