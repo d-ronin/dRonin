@@ -130,7 +130,7 @@ public class Logging extends ObjectManagerActivity {
 
 			@Override
 			public boolean accept(File dir, String filename) {
-				return filename.contains(".opl") || filename.contains(".tll");
+				return filename.contains(".drlog") || filename.contains(".tll");
 			}
 		});
 

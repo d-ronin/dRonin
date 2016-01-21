@@ -597,7 +597,7 @@ static void writeHeader()
 	const struct pios_board_info * bdinfo = &pios_board_info_blob;
 
 	// Header
-	#define LOG_HEADER "Tau Labs git hash:\n"
+	#define LOG_HEADER "dRonin git hash:\n"
 	send_data((uint8_t *)LOG_HEADER, strlen(LOG_HEADER));
 
 	// Commit tag name

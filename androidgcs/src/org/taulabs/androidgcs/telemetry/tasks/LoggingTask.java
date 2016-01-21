@@ -160,7 +160,7 @@ public class LoggingTask implements ITelemTask {
 
 		Date d = new Date();
 		String date = (new SimpleDateFormat("yyyyMMdd_hhmmss")).format(d);
-		String fileName = "log_" + date + ".tll";
+		String fileName = "log_" + date + ".drlog";
 
 		file = new File(logDirectory, fileName);
 		if (DEBUG) Log.d(TAG, "Trying for file: " + file.getAbsolutePath());
