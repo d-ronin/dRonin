@@ -71,6 +71,14 @@ public:
 
     virtual QStringList getAdcNames();
 
+    /**
+     * @brief getBoardConfiguration
+     * @param parent Parent object
+     * @param connected Unused
+     * @return Configuration widget handle or NULL on failure
+     */
+    QWidget *getBoardConfiguration(QWidget *parent, bool connected);
+
 };
 
 

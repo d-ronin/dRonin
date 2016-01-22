@@ -34,6 +34,7 @@
 #include <extensionsystem/pluginmanager.h>
 
 #include "hwlux.h"
+#include "luxconfiguration.h"
 
 /**
  * @brief Lux:Lux
@@ -221,4 +222,10 @@ int Lux::queryMaxGyroRate()
 QStringList Lux::getAdcNames()
 {
     return QStringList() << "VBAT" << "Current" << "RSSI";
+}
+
+QWidget *Lux::getBoardConfiguration(QWidget *parent, bool connected)
+{
+    Q_UNUSED(connected);
+    return new LuxConfiguration(parent);
 }
