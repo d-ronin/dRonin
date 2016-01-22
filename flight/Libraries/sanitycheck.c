@@ -197,10 +197,10 @@ static int32_t check_stabilization_settings(int index, bool multirotor)
 			return SYSTEMALARMS_CONFIGERROR_NONE;
 	}
 
-	// For multirotors verify that nothing is set to "none"
+	// For multirotors verify that nothing is set to "none" or "manual"
 	if (multirotor) {
 		for(uint32_t i = 0; i < NELEMENTS(modes); i++) {
-			if (modes[i] == MANUALCONTROLSETTINGS_STABILIZATION1SETTINGS_NONE)
+			if (modes[i] == MANUALCONTROLSETTINGS_STABILIZATION1SETTINGS_NONE || modes[i] == MANUALCONTROLSETTINGS_STABILIZATION1SETTINGS_MANUAL)
 				return SYSTEMALARMS_CONFIGERROR_MULTIROTOR;
 
 			// If this axis allows enabling an autotune behavior without the module

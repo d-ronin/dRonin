@@ -103,6 +103,7 @@ VehicleTrim::actuatorTrimMessages VehicleTrim::setTrimActuators()
 {
     SystemAlarms *systemAlarms = SystemAlarms::GetInstance(getObjectManager());
     FlightStatus *flightStatus = FlightStatus::GetInstance(getObjectManager());
+    StabilizationDesired *stabilizationDesired = StabilizationDesired::GetInstance(getObjectManager());
 
     // Get ActuatorCommand UAVO
     ActuatorCommand *actuatorCommand = ActuatorCommand::GetInstance(getObjectManager());
@@ -117,8 +118,12 @@ VehicleTrim::actuatorTrimMessages VehicleTrim::setTrimActuators()
         return ACTUATOR_TRIM_FAILED_DUE_TO_MISSING_RECEIVER;
     }
 
-    // Check that vehicle is in manual mode
-    if (flightStatus->getFlightMode() != FlightStatus::FLIGHTMODE_MANUAL){
+    // Ensure that vehicle is in full manual mode
+    if (flightStatus->getFlightMode() != FlightStatus::FLIGHTMODE_MANUAL ||
+            stabilizationDesired->getStabilizationMode_Roll() != StabilizationDesired::STABILIZATIONMODE_MANUAL ||
+            stabilizationDesired->getStabilizationMode_Pitch() != StabilizationDesired::STABILIZATIONMODE_MANUAL ||
+            stabilizationDesired->getStabilizationMode_Yaw() != StabilizationDesired::STABILIZATIONMODE_MANUAL)
+    {
         return ACTUATOR_TRIM_FAILED_DUE_TO_FLIGHTMODE;
     }
 

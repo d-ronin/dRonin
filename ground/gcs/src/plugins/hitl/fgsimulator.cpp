@@ -141,29 +141,16 @@ void FGSimulator::transmitUpdate()
 {
     ActuatorDesired::DataFields actData;
     FlightStatus::DataFields flightStatusData = flightStatus->getData();
-    ManualControlCommand::DataFields manCtrlData = manCtrlCommand->getData();
     float ailerons = -1;
     float elevator = -1;
     float rudder = -1;
     float throttle = -1;
 
-    if(flightStatusData.FlightMode == FlightStatus::FLIGHTMODE_MANUAL)
-    {
-        // Read joystick input
-        if(flightStatusData.Armed == FlightStatus::ARMED_ARMED)
-        {
-            // Note: Pitch sign is reversed in FG ?
-            ailerons = manCtrlData.Roll;
-            elevator = -manCtrlData.Pitch;
-            rudder = manCtrlData.Yaw;
-            throttle = manCtrlData.Throttle;
-        }
-    }
-    else
-    {
-        // Read ActuatorDesired from autopilot
-        actData = actDesired->getData();
+	// Read ActuatorDesired from autopilot
+	actData = actDesired->getData();
 
+	if(flightStatusData.Armed == FlightStatus::ARMED_ARMED)
+	{
         ailerons = actData.Roll;
         elevator = -actData.Pitch;
         rudder = actData.Yaw;
