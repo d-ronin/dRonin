@@ -410,7 +410,6 @@ static void uavoMavlinkBridgeTask(void *parameters) {
 			uint8_t custom_mode = CUSTOM_MODE_STAB;
 
 			switch (flightStatus.FlightMode) {
-				case FLIGHTSTATUS_FLIGHTMODE_MANUAL:
 				case FLIGHTSTATUS_FLIGHTMODE_MWRATE:
 				case FLIGHTSTATUS_FLIGHTMODE_VIRTUALBAR:
 				case FLIGHTSTATUS_FLIGHTMODE_HORIZON:

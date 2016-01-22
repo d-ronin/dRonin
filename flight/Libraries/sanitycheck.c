@@ -101,11 +101,6 @@ int32_t configuration_check()
 
 	for(uint32_t i = 0; i < num_modes; i++) {
 		switch(modes[i]) {
-			case MANUALCONTROLSETTINGS_FLIGHTMODEPOSITION_MANUAL:
-				if (multirotor) {
-					error_code = SYSTEMALARMS_CONFIGERROR_STABILIZATION;
-				}
-				break;
 			case MANUALCONTROLSETTINGS_FLIGHTMODEPOSITION_ACRO:
 			case MANUALCONTROLSETTINGS_FLIGHTMODEPOSITION_ACROPLUS:
 			case MANUALCONTROLSETTINGS_FLIGHTMODEPOSITION_LEVELING:
@@ -197,10 +192,10 @@ static int32_t check_stabilization_settings(int index, bool multirotor)
 			return SYSTEMALARMS_CONFIGERROR_NONE;
 	}
 
-	// For multirotors verify that nothing is set to "none"
+	// For multirotors verify that nothing is set to "none" or "manual"
 	if (multirotor) {
 		for(uint32_t i = 0; i < NELEMENTS(modes); i++) {
-			if (modes[i] == MANUALCONTROLSETTINGS_STABILIZATION1SETTINGS_NONE)
+			if (modes[i] == MANUALCONTROLSETTINGS_STABILIZATION1SETTINGS_NONE || modes[i] == MANUALCONTROLSETTINGS_STABILIZATION1SETTINGS_MANUAL)
 				return SYSTEMALARMS_CONFIGERROR_MULTIROTOR;
 
 			// If this axis allows enabling an autotune behavior without the module
@@ -244,7 +239,6 @@ static int32_t check_safe_to_arm()
 	// Only arm in traditional modes where pilot has control
 	if (flightStatus.Armed != FLIGHTSTATUS_ARMED_ARMED) {
 		switch (flightStatus.FlightMode) {
-			case FLIGHTSTATUS_FLIGHTMODE_MANUAL:
 			case FLIGHTSTATUS_FLIGHTMODE_ACRO:
 			case FLIGHTSTATUS_FLIGHTMODE_ACROPLUS:
 			case FLIGHTSTATUS_FLIGHTMODE_LEVELING:

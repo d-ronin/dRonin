@@ -1090,7 +1090,6 @@ void flightmode_menu(void)
 	char tmp_str[100] = {0};
 	bool data_changed = false;
 	const char* fmode_strings[] = {
-		[MANUALCONTROLSETTINGS_FLIGHTMODEPOSITION_MANUAL] = "Manual",
 		[MANUALCONTROLSETTINGS_FLIGHTMODEPOSITION_ACRO] = "Acro",
 		[MANUALCONTROLSETTINGS_FLIGHTMODEPOSITION_ACROPLUS] = "AcroPlus",
 		[MANUALCONTROLSETTINGS_FLIGHTMODEPOSITION_LEVELING] = "Leveling",

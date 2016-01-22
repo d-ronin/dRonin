@@ -320,8 +320,6 @@ static void send_LTM_Sframe()
 	// 12: Circle, 13: RTH, 14: FollowMe, 15: LAND, 16:FlybyWireA, 17: FlybywireB, 18: Cruise, 19: Unknown
 
 	switch (fdata.FlightMode) {
-	case FLIGHTSTATUS_FLIGHTMODE_MANUAL:
-		lt_flightmode = 0; break;
 	case FLIGHTSTATUS_FLIGHTMODE_STABILIZED1:
 		lt_flightmode = 5; break;
 	case FLIGHTSTATUS_FLIGHTMODE_STABILIZED2:

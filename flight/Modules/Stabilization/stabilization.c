@@ -346,6 +346,10 @@ static void stabilizationTask(void* parameters)
 			// Apply the selected control law
 			switch(stabDesired.StabilizationMode[i])
 			{
+				case STABILIZATIONDESIRED_STABILIZATIONMODE_MANUAL:
+					actuatorDesiredAxis[i] = stabDesiredAxis[i];
+					break;
+
 				case STABILIZATIONDESIRED_STABILIZATIONMODE_RATE:
 					if(reinit)
 						pids[PID_GROUP_RATE + i].iAccumulator = 0;
@@ -762,13 +766,7 @@ static void stabilizationTask(void* parameters)
 		actuatorDesired.UpdateTime = dT * 1000;
 		actuatorDesired.Throttle = stabDesired.Throttle;
 
-		if(flightStatus.FlightMode != FLIGHTSTATUS_FLIGHTMODE_MANUAL) {
-			ActuatorDesiredSet(&actuatorDesired);
-		} else {
-			// Force all axes to reinitialize when engaged
-			for(uint8_t i=0; i< MAX_AXES; i++)
-				previous_mode[i] = 255;
-		}
+		ActuatorDesiredSet(&actuatorDesired);
 
 		if(flightStatus.Armed != FLIGHTSTATUS_ARMED_ARMED ||
 		   (lowThrottleZeroIntegral && stabDesired.Throttle < 0))

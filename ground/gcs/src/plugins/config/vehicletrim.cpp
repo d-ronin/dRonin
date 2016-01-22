@@ -102,7 +102,7 @@ VehicleTrim::autopilotLevelBiasMessages VehicleTrim::setAutopilotBias()
 VehicleTrim::actuatorTrimMessages VehicleTrim::setTrimActuators()
 {
     SystemAlarms *systemAlarms = SystemAlarms::GetInstance(getObjectManager());
-    FlightStatus *flightStatus = FlightStatus::GetInstance(getObjectManager());
+    StabilizationDesired *stabilizationDesired = StabilizationDesired::GetInstance(getObjectManager());
 
     // Get ActuatorCommand UAVO
     ActuatorCommand *actuatorCommand = ActuatorCommand::GetInstance(getObjectManager());
@@ -117,10 +117,13 @@ VehicleTrim::actuatorTrimMessages VehicleTrim::setTrimActuators()
         return ACTUATOR_TRIM_FAILED_DUE_TO_MISSING_RECEIVER;
     }
 
-    // Check that vehicle is in manual mode
-    if (flightStatus->getFlightMode() != FlightStatus::FLIGHTMODE_MANUAL){
+    // Check that vehicle is in full manual mode
+	if (stabilizationDesired->getStabilizationMode_Roll() != StabilizationDesired::STABILIZATIONMODE_MANUAL ||
+			stabilizationDesired->getStabilizationMode_Pitch() != StabilizationDesired::STABILIZATIONMODE_MANUAL ||
+			stabilizationDesired->getStabilizationMode_Yaw() != StabilizationDesired::STABILIZATIONMODE_MANUAL)
+	{
         return ACTUATOR_TRIM_FAILED_DUE_TO_FLIGHTMODE;
-    }
+	}
 
     // Iterate over output channel descriptions
     QStringList channelDescriptions = ConfigVehicleTypeWidget::getChannelDescriptions();

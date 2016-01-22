@@ -603,7 +603,6 @@ void update_telemetrydata () {
 
 	// statusline
 	const char *txt_unknown = "unknown";
-	const char *txt_manual = "Manual";
 	const char *txt_acro = "Acro";
 	const char *txt_leveling = "Leveling";
 	const char *txt_virtualbar = "Virtualbar";
@@ -622,9 +621,6 @@ void update_telemetrydata () {
 
 	const char *txt_flightmode;
 	switch (telestate->FlightStatus.FlightMode) {
-		case FLIGHTSTATUS_FLIGHTMODE_MANUAL:
-			txt_flightmode = txt_manual;
-			break;
 		case FLIGHTSTATUS_FLIGHTMODE_ACRO:
 			txt_flightmode = txt_acro;
 			break;
