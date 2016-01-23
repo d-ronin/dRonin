@@ -2773,11 +2773,12 @@ static const struct pios_internal_adc_cfg internal_adc_cfg_bmp85 = {
 	.half_flag = DMA1_IT_HT1,
 	.full_flag = DMA1_IT_TC1,
 	.oversampling = 32,
-	.adc_pin_count = 3,
+	.adc_pin_count = 4,
 	.adc_pins = {
 		{GPIOC,GPIO_Pin_0,ADC_Channel_6,true},
 		{GPIOC,GPIO_Pin_1,ADC_Channel_7,false},
 		{GPIOC,GPIO_Pin_2,ADC_Channel_8,false},
+		{GPIOC,GPIO_Pin_3,ADC_Channel_9,false},
 	},
 	.adc_dev_master = ADC1,
 	.adc_dev_slave = ADC2,
