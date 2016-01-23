@@ -2,13 +2,13 @@
  ******************************************************************************
  * @addtogroup TauLabsTargets Tau Labs Targets
  * @{
- * @addtogroup CopterControl OpenPilot coptercontrol support files
+ * @addtogroup CC3D OpenPilot coptercontrol 3D support files
  * @{
  *
  * @file       pios_board.c
  * @author     The OpenPilot Team, http://www.openpilot.org Copyright (C) 2011.
  * @author     Tau Labs, http://taulabs.org, Copyright (C) 2012-2014
- * @author     dRonin, http://dronin.org Copyright (C) 2015
+ * @author     dRonin, http://dronin.org Copyright (C) 2015-2016
  * @brief      The board specific initialization routines
  * @see        The GNU Public License (GPL) Version 3
  * 
@@ -107,14 +107,8 @@ void PIOS_Board_Init(void) {
 	/* Delay system */
 	PIOS_DELAY_Init();
 
-	const struct pios_board_info * bdinfo = &pios_board_info_blob;
-
-	if (bdinfo->board_rev != BOARD_REVISION_CC3D) {
-		/* Reject.. go back to bootloader */
-	}
-
 #if defined(PIOS_INCLUDE_LED)
-	const struct pios_led_cfg * led_cfg = PIOS_BOARD_HW_DEFS_GetLedCfg(bdinfo->board_rev);
+	const struct pios_led_cfg *led_cfg = PIOS_BOARD_HW_DEFS_GetLedCfg(0);
 	PIOS_Assert(led_cfg);
 	PIOS_LED_Init(led_cfg);
 #endif	/* PIOS_INCLUDE_LED */
@@ -134,7 +128,7 @@ void PIOS_Board_Init(void) {
 	/* Register the partition table */
 	const struct pios_flash_partition * flash_partition_table;
 	uint32_t num_partitions;
-	flash_partition_table = PIOS_BOARD_HW_DEFS_GetPartitionTable(bdinfo->board_rev, &num_partitions);
+	flash_partition_table = PIOS_BOARD_HW_DEFS_GetPartitionTable(0, &num_partitions);
 	PIOS_FLASH_register_partition_table(flash_partition_table, num_partitions);
 
 	/* Mount all filesystems */

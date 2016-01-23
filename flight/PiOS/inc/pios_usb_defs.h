@@ -358,7 +358,7 @@ enum usb_cdc_notification {
 enum usb_product_ids {
 	/* OpenPilot Boards */
 	USB_PRODUCT_ID_OPENPILOT_MAIN = 0x415A,
-	USB_PRODUCT_ID_COPTERCONTROL  = 0x415B,
+	USB_PRODUCT_ID_CC3D           = 0x415B,
 	USB_PRODUCT_ID_PIPXTREME      = 0x415C,
 	USB_PRODUCT_ID_SPARE2         = 0x415D,
 	USB_PRODUCT_ID_REVOLUTION     = 0x415E,

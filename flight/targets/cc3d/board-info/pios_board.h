@@ -2,7 +2,7 @@
  ******************************************************************************
  * @addtogroup TauLabsTargets Tau Labs Targets
  * @{
- * @addtogroup CopterControl OpenPilot coptercontrol support files
+ * @addtogroup CC3D OpenPilot coptercontrol 3D support files
  * @{
  *
  * @file       STM32103CB_CC_Rev1.h 

@@ -2,13 +2,13 @@
  ******************************************************************************
  * @addtogroup TauLabsTargets Tau Labs Targets
  * @{
- * @addtogroup CopterControl OpenPilot coptercontrol support files
+ * @addtogroup CC3D OpenPilot coptercontrol 3D support files
  * @{
  *
  * @file       pios_config.h 
  * @author     The OpenPilot Team, http://www.openpilot.org Copyright (C) 2011.
  * @author     Tau Labs, http://taulabs.org, Copyright (C) 2012-2014
- * @author     dRonin, http://dronin.org Copyright (C) 2015
+ * @author     dRonin, http://dronin.org Copyright (C) 2015-2016
  * @brief      Board specific options that modify PiOS capabilities
  * @see        The GNU Public License (GPL) Version 3
  * 
@@ -33,13 +33,9 @@
 #define PIOS_CONFIG_H
 
 /* Enable/Disable PiOS Modules */
-#define PIOS_INCLUDE_ADC
 #define PIOS_INCLUDE_DELAY
 #if defined(USE_I2C)
 #define PIOS_INCLUDE_I2C
-#endif
-#if defined(USE_PCF8591)
-#define PIOS_INCLUDE_PCF8591
 #endif
 #define PIOS_INCLUDE_IRQ
 #define PIOS_INCLUDE_LED
@@ -83,7 +79,6 @@
 #define PIOS_INCLUDE_WDG
 #define PIOS_INCLUDE_BL_HELPER
 
-#define PIOS_INCLUDE_ADXL345
 #define PIOS_INCLUDE_MPU6000
 #define PIOS_MPU6000_ACCEL
 
