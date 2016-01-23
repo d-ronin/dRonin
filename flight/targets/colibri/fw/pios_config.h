@@ -7,6 +7,7 @@
  *
  * @file       pios_config.h 
  * @author     Tau Labs, http://taulabs.org, Copyright (C) 2012-2015
+ * @author     dRonin, http://dronin.org, Copyright (C) 2016
  * @brief      Board specific options that modify PiOS capabilities
  * @see        The GNU Public License (GPL) Version 3
  * 
@@ -119,7 +120,7 @@
  *
  * IDLE_COUNTS_PER_SEC_AT_NO_LOAD = (uint32_t)((double)idleCounter / xTickCount * 1000 + 0.5)
  *
- * This has to be redone every time the toolchain, toolchain flags or FreeRTOS
+ * This has to be redone every time the toolchain, toolchain flags or RTOS
  * configuration like number of task priorities or similar changes.
  * A change in the cpu load calculation or the idle task handler will invalidate this as well.
  */
