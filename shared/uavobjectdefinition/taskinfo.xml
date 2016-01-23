@@ -21,7 +21,6 @@
 			<elementname>FlightPlan</elementname>
 			<elementname>Com2UsbBridge</elementname>
 			<elementname>Usb2ComBridge</elementname>
-			<elementname>OveroSync</elementname>
 			<elementname>ModemRx</elementname>
 			<elementname>ModemTx</elementname>
 			<elementname>ModemStat</elementname>
@@ -64,7 +63,6 @@
 			<elementname>FlightPlan</elementname>
 			<elementname>Com2UsbBridge</elementname>
 			<elementname>Usb2ComBridge</elementname>
-			<elementname>OveroSync</elementname>
 			<elementname>ModemRx</elementname>
 			<elementname>ModemTx</elementname>
 			<elementname>ModemStat</elementname>
@@ -111,7 +109,6 @@
 			<elementname>FlightPlan</elementname>
 			<elementname>Com2UsbBridge</elementname>
 			<elementname>Usb2ComBridge</elementname>
-			<elementname>OveroSync</elementname>
 			<elementname>ModemRx</elementname>
 			<elementname>ModemTx</elementname>
 			<elementname>ModemStat</elementname>
