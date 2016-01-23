@@ -30,6 +30,8 @@
 #include <QWidget>
 #include <QLineEdit>
 #include "uavsettingsimportexport/uavsettingsimportexportfactory.h"
+#include <coreplugin/connectionmanager.h>
+#include <coreplugin/icore.h>
 
 /**
  * Constructor
@@ -487,6 +489,9 @@ void ConfigTaskWidget::enableControls(bool enable)
     foreach (QPushButton * button, reloadButtonList) {
         button->setEnabled(enable);
     }
+    foreach (QPushButton * button, rebootButtonList) {
+        button->setEnabled(enable);
+    }
 }
 /**
  * @brief ConfigTaskWidget::forceShadowUpdates
@@ -785,6 +790,8 @@ void ConfigTaskWidget::autoLoadWidgets()
                         uiRelation.buttonType=default_button;
                     else if(value=="help")
                         uiRelation.buttonType=help_button;
+                    else if(value=="reboot")
+                        uiRelation.buttonType=reboot_button;
                 }
                 else if(prop== "buttongroup")
                 {
@@ -825,6 +832,11 @@ void ConfigTaskWidget::autoLoadWidgets()
                     button=qobject_cast<QPushButton *>(widget);
                     if(button)
                         addHelpButton(button,uiRelation.url);
+                    break;
+                case reboot_button:
+                    button=qobject_cast<QPushButton *>(widget);
+                    if(button)
+                        addRebootButton(button);
                     break;
 
                 default:
@@ -902,6 +914,16 @@ void ConfigTaskWidget::addReloadButton(QPushButton *button, int buttonGroup)
     connect(button,SIGNAL(clicked()),this,SLOT(reloadButtonClicked()));
 }
 /**
+ * Adds a button to reboot board
+ * @param button pointer to the reload button
+ * @param buttongroup number of the group
+ */
+void ConfigTaskWidget::addRebootButton(QPushButton *button)
+{
+    rebootButtonList.append(button);
+    connect(button, SIGNAL(clicked()), this, SLOT(rebootButtonClicked()));
+}
+/**
  * Called when a default button is clicked
  */
 void ConfigTaskWidget::defaultButtonClicked()
@@ -917,6 +939,55 @@ void ConfigTaskWidget::defaultButtonClicked()
         setWidgetFromField(oTw->widget,temp->getField(oTw->field->getName()),oTw->index,oTw->scale,oTw->isLimited);
     }
 }
+void ConfigTaskWidget::rebootButtonClicked()
+{
+    QPushButton *button = qobject_cast<QPushButton *>(sender());
+    button->setEnabled(false);
+    button->setIcon(QIcon(":/uploader/images/system-run.svg"));
+
+    FirmwareIAPObj *iapObj = dynamic_cast<FirmwareIAPObj *>(getObjectManager()->getObject(FirmwareIAPObj::NAME));
+    Core::ConnectionManager *conMngr = Core::ICore::instance()->connectionManager();
+
+    if(!conMngr->isConnected() || !iapObj->getIsPresentOnHardware()) {
+        button->setEnabled(true);
+        button->setIcon(QIcon(":/uploader/images/error.svg"));
+        return;
+    }
+    QEventLoop loop;
+    QTimer timeout;
+    timeout.setSingleShot(true);
+    iapObj->setBoardRevision(0);
+    iapObj->setBoardType(0);
+    connect(&timeout, SIGNAL(timeout()), &loop, SLOT(quit()));
+    connect(iapObj, SIGNAL(transactionCompleted(UAVObject*,bool)), &loop, SLOT(quit()));
+    int magicValue = 1122;
+    int magicStep = 1111;
+    for(int i = 0; i < 3; ++i)
+    {
+        //Firmware IAP module specifies that the timing between iap commands must be
+        //between 500 and 5000ms
+        timeout.start(600);
+        loop.exec();
+        iapObj->setCommand(magicValue);
+        magicValue += magicStep;
+        if(magicValue == 3344)
+            magicValue = 4455;
+        iapObj->updated();
+        timeout.start(1000);
+        loop.exec();
+        if(!timeout.isActive())
+        {
+            button->setEnabled(true);
+            button->setIcon(QIcon(":/uploader/images/error.svg"));
+            return;
+        }
+        timeout.stop();
+    }
+    button->setEnabled(true);
+    button->setIcon(QIcon(":/uploader/images/dialog-apply.svg"));
+    conMngr->disconnectDevice();
+}
+
 /**
  * Called when a reload button is clicked
  */
