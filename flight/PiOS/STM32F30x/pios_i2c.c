@@ -9,6 +9,7 @@
  * @file       pios_i2c.c
  * @author     The OpenPilot Team, http://www.openpilot.org Copyright (C) 2012.
  * @author     Tau Labs, http://taulabs.org, Copyright (C) 2012-2014
+ * @author     dRonin, http://dronin.org, Copyright (C) 2016
  * @brief      I2C Enable/Disable routines
  * @see        The GNU Public License (GPL) Version 3
  *
@@ -34,13 +35,9 @@
 
 #if defined(PIOS_INCLUDE_I2C)
 
-#if defined(PIOS_INCLUDE_FREERTOS)
-#include "FreeRTOS.h"
-#endif /* defined(PIOS_INCLUDE_FREERTOS) */
-
-#if defined(PIOS_INCLUDE_FREERTOS) || defined(PIOS_INCLUDE_CHIBIOS)
+#if defined(PIOS_INCLUDE_CHIBIOS)
 #define USE_RTOS
-#endif /* defined(PIOS_INCLUDE_FREERTOS) || defined(PIOS_INCLUDE_CHIBIOS) */
+#endif /* defined(PIOS_INCLUDE_CHIBIOS) */
 
 #include <pios_i2c_priv.h>
 
@@ -435,7 +432,7 @@ static bool PIOS_I2C_validate(struct pios_i2c_adapter *i2c_adapter)
 	return (i2c_adapter->magic == PIOS_I2C_DEV_MAGIC);
 }
 
-#if (defined(PIOS_INCLUDE_FREERTOS) || defined(PIOS_INCLUDE_CHIBIOS)) && 0
+#if defined(PIOS_INCLUDE_CHIBIOS) && 0
 static struct pios_i2c_dev *PIOS_I2C_alloc(void)
 {
 	struct pios_i2c_dev *i2c_adapter;
@@ -639,10 +636,6 @@ void PIOS_I2C_EV_IRQ_Handler(uint32_t i2c_id)
 		i2c_adapter_inject_event(i2c_adapter, I2C_EVENT_STOP, &woken);
 	}
 
-#if defined(PIOS_INCLUDE_FREERTOS)
-	portEND_SWITCHING_ISR(woken ? pdTRUE : pdFALSE);
-#endif /* defined(PIOS_INCLUDE_FREERTOS) */
-
 #if defined(PIOS_INCLUDE_CHIBIOS)
 	CH_IRQ_EPILOGUE();
 #endif /* defined(PIOS_INCLUDE_CHIBIOS) */
@@ -717,10 +710,6 @@ void PIOS_I2C_ER_IRQ_Handler(uint32_t i2c_id)
 	/* Fail hard on any errors for now */
 	bool woken = false;
 	i2c_adapter_inject_event(i2c_adapter, I2C_EVENT_BUS_ERROR, &woken);
-
-#if defined(PIOS_INCLUDE_FREERTOS)
-	portEND_SWITCHING_ISR(woken ? pdTRUE : pdFALSE);
-#endif /* defined(PIOS_INCLUDE_FREERTOS) */
 
 #if defined(PIOS_INCLUDE_CHIBIOS)
 	CH_IRQ_EPILOGUE();

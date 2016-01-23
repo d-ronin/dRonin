@@ -10,6 +10,7 @@
  * @file       pios_exti.c
  * @author     The OpenPilot Team, http://www.openpilot.org Copyright (C) 2010.
  * @author     Tau Labs, http://taulabs.org, Copyright (C) 2012-2014
+ * @author     dRonin, http://dronin.org, Copyright (C) 2016
  * @brief      External Interrupt Handlers
  * @see        The GNU Public License (GPL) Version 3
  *
@@ -34,10 +35,6 @@
 #include "pios.h"
 
 #if defined(PIOS_INCLUDE_EXTI)
-
-#if defined(PIOS_INCLUDE_FREERTOS)
-#include "FreeRTOS.h"
-#endif /* defined(PIOS_INCLUDE_FREERTOS) */
 
 /* Map EXTI line to full config */
 #define EXTI_MAX_LINES 16
@@ -170,20 +167,11 @@ static bool PIOS_EXTI_generic_irq_handler(uint8_t line_index)
 }
 
 /* Bind Interrupt Handlers */
-
-#if defined(PIOS_INCLUDE_FREERTOS)
-#define PIOS_EXTI_HANDLE_LINE(line, woken)			\
-	if (EXTI_GetITStatus(EXTI_Line##line) != RESET) {	\
-		EXTI_ClearITPendingBit(EXTI_Line##line);	\
-		woken = PIOS_EXTI_generic_irq_handler(line) ? pdTRUE : woken; \
-	}
-#else
-#define PIOS_EXTI_HANDLE_LINE(line, woken)			\
+#define PIOS_EXTI_HANDLE_LINE(line)			\
 	if (EXTI_GetITStatus(EXTI_Line##line) != RESET) {	\
 		EXTI_ClearITPendingBit(EXTI_Line##line);	\
 		PIOS_EXTI_generic_irq_handler(line);		\
 	}
-#endif
 
 static void PIOS_EXTI_0_irq_handler (void)
 {
@@ -191,17 +179,7 @@ static void PIOS_EXTI_0_irq_handler (void)
 	CH_IRQ_PROLOGUE();
 #endif /* defined(PIOS_INCLUDE_CHIBIOS) */
 
-#if defined(PIOS_INCLUDE_FREERTOS)
-	portBASE_TYPE xHigherPriorityTaskWoken = pdFALSE;
-#else
-	bool xHigherPriorityTaskWoken;
-#endif
-	PIOS_EXTI_HANDLE_LINE(0, xHigherPriorityTaskWoken);
-#if defined(PIOS_INCLUDE_FREERTOS)
-	portEND_SWITCHING_ISR(xHigherPriorityTaskWoken);
-#else
-	(void)xHigherPriorityTaskWoken;
-#endif
+	PIOS_EXTI_HANDLE_LINE(0);
 
 #if defined(PIOS_INCLUDE_CHIBIOS)
 	CH_IRQ_EPILOGUE();
@@ -215,17 +193,7 @@ static void PIOS_EXTI_1_irq_handler (void)
 	CH_IRQ_PROLOGUE();
 #endif /* defined(PIOS_INCLUDE_CHIBIOS) */
 
-#if defined(PIOS_INCLUDE_FREERTOS)
-	portBASE_TYPE xHigherPriorityTaskWoken = pdFALSE;
-#else
-	bool xHigherPriorityTaskWoken;
-#endif
-	PIOS_EXTI_HANDLE_LINE(1, xHigherPriorityTaskWoken);
-#if defined(PIOS_INCLUDE_FREERTOS)
-	portEND_SWITCHING_ISR(xHigherPriorityTaskWoken);
-#else
-	(void)xHigherPriorityTaskWoken;
-#endif
+	PIOS_EXTI_HANDLE_LINE(1);
 
 #if defined(PIOS_INCLUDE_CHIBIOS)
 	CH_IRQ_EPILOGUE();
@@ -239,17 +207,7 @@ static void PIOS_EXTI_2_irq_handler (void)
 	CH_IRQ_PROLOGUE();
 #endif /* defined(PIOS_INCLUDE_CHIBIOS) */
 
-#if defined(PIOS_INCLUDE_FREERTOS)
-	portBASE_TYPE xHigherPriorityTaskWoken = pdFALSE;
-#else
-	bool xHigherPriorityTaskWoken;
-#endif
-	PIOS_EXTI_HANDLE_LINE(2, xHigherPriorityTaskWoken);
-#if defined(PIOS_INCLUDE_FREERTOS)
-	portEND_SWITCHING_ISR(xHigherPriorityTaskWoken);
-#else
-	(void)xHigherPriorityTaskWoken;
-#endif
+	PIOS_EXTI_HANDLE_LINE(2);
 
 #if defined(PIOS_INCLUDE_CHIBIOS)
 	CH_IRQ_EPILOGUE();
@@ -263,17 +221,7 @@ static void PIOS_EXTI_3_irq_handler (void)
 	CH_IRQ_PROLOGUE();
 #endif /* defined(PIOS_INCLUDE_CHIBIOS) */
 
-#if defined(PIOS_INCLUDE_FREERTOS)
-	portBASE_TYPE xHigherPriorityTaskWoken = pdFALSE;
-#else
-	bool xHigherPriorityTaskWoken;
-#endif
-	PIOS_EXTI_HANDLE_LINE(3, xHigherPriorityTaskWoken);
-#if defined(PIOS_INCLUDE_FREERTOS)
-	portEND_SWITCHING_ISR(xHigherPriorityTaskWoken);
-#else
-	(void)xHigherPriorityTaskWoken;
-#endif
+	PIOS_EXTI_HANDLE_LINE(3);
 
 #if defined(PIOS_INCLUDE_CHIBIOS)
 	CH_IRQ_EPILOGUE();
@@ -287,17 +235,7 @@ static void PIOS_EXTI_4_irq_handler (void)
 	CH_IRQ_PROLOGUE();
 #endif /* defined(PIOS_INCLUDE_CHIBIOS) */
 
-#if defined(PIOS_INCLUDE_FREERTOS)
-	portBASE_TYPE xHigherPriorityTaskWoken = pdFALSE;
-#else
-	bool xHigherPriorityTaskWoken;
-#endif
-	PIOS_EXTI_HANDLE_LINE(4, xHigherPriorityTaskWoken);
-#if defined(PIOS_INCLUDE_FREERTOS)
-	portEND_SWITCHING_ISR(xHigherPriorityTaskWoken);
-#else
-	(void)xHigherPriorityTaskWoken;
-#endif
+	PIOS_EXTI_HANDLE_LINE(4);
 
 #if defined(PIOS_INCLUDE_CHIBIOS)
 	CH_IRQ_EPILOGUE();
@@ -311,21 +249,11 @@ static void PIOS_EXTI_9_5_irq_handler (void)
 	CH_IRQ_PROLOGUE();
 #endif /* defined(PIOS_INCLUDE_CHIBIOS) */
 
-#if defined(PIOS_INCLUDE_FREERTOS)
-	portBASE_TYPE xHigherPriorityTaskWoken = pdFALSE;
-#else
-	bool xHigherPriorityTaskWoken;
-#endif
-	PIOS_EXTI_HANDLE_LINE(5, xHigherPriorityTaskWoken);
-	PIOS_EXTI_HANDLE_LINE(6, xHigherPriorityTaskWoken);
-	PIOS_EXTI_HANDLE_LINE(7, xHigherPriorityTaskWoken);
-	PIOS_EXTI_HANDLE_LINE(8, xHigherPriorityTaskWoken);
-	PIOS_EXTI_HANDLE_LINE(9, xHigherPriorityTaskWoken);
-#if defined(PIOS_INCLUDE_FREERTOS)
-	portEND_SWITCHING_ISR(xHigherPriorityTaskWoken);
-#else
-	(void)xHigherPriorityTaskWoken;
-#endif
+	PIOS_EXTI_HANDLE_LINE(5);
+	PIOS_EXTI_HANDLE_LINE(6);
+	PIOS_EXTI_HANDLE_LINE(7);
+	PIOS_EXTI_HANDLE_LINE(8);
+	PIOS_EXTI_HANDLE_LINE(9);
 
 #if defined(PIOS_INCLUDE_CHIBIOS)
 	CH_IRQ_EPILOGUE();
@@ -339,22 +267,12 @@ static void PIOS_EXTI_15_10_irq_handler (void)
 	CH_IRQ_PROLOGUE();
 #endif /* defined(PIOS_INCLUDE_CHIBIOS) */
 
-#if defined(PIOS_INCLUDE_FREERTOS)
-	portBASE_TYPE xHigherPriorityTaskWoken = pdFALSE;
-#else
-	bool xHigherPriorityTaskWoken;
-#endif
-	PIOS_EXTI_HANDLE_LINE(10, xHigherPriorityTaskWoken);
-	PIOS_EXTI_HANDLE_LINE(11, xHigherPriorityTaskWoken);
-	PIOS_EXTI_HANDLE_LINE(12, xHigherPriorityTaskWoken);
-	PIOS_EXTI_HANDLE_LINE(13, xHigherPriorityTaskWoken);
-	PIOS_EXTI_HANDLE_LINE(14, xHigherPriorityTaskWoken);
-	PIOS_EXTI_HANDLE_LINE(15, xHigherPriorityTaskWoken);
-#if defined(PIOS_INCLUDE_FREERTOS)
-	portEND_SWITCHING_ISR(xHigherPriorityTaskWoken);
-#else
-	(void)xHigherPriorityTaskWoken;
-#endif
+	PIOS_EXTI_HANDLE_LINE(10);
+	PIOS_EXTI_HANDLE_LINE(11);
+	PIOS_EXTI_HANDLE_LINE(12);
+	PIOS_EXTI_HANDLE_LINE(13);
+	PIOS_EXTI_HANDLE_LINE(14);
+	PIOS_EXTI_HANDLE_LINE(15);
 
 #if defined(PIOS_INCLUDE_CHIBIOS)
 	CH_IRQ_EPILOGUE();
