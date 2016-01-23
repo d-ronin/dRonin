@@ -422,10 +422,11 @@ int32_t transmitter_control_select(bool reset_controller)
 	uint8_t flightMode;
 	FlightStatusFlightModeGet(&flightMode);
 
-	// Depending on the mode update the Stabilization
-	static uint8_t lastFlightMode = 0;
+	// Depending on the mode update the Stabilization object
+	static uint8_t lastFlightMode = FLIGHTSTATUS_FLIGHTMODE_MANUAL;
 
 	switch(flightMode) {
+	case FLIGHTSTATUS_FLIGHTMODE_MANUAL:
 	case FLIGHTSTATUS_FLIGHTMODE_ACRO:
 	case FLIGHTSTATUS_FLIGHTMODE_ACROPLUS:      
 	case FLIGHTSTATUS_FLIGHTMODE_LEVELING:
@@ -925,6 +926,11 @@ static void update_stabilization_desired(ManualControlCommandData * cmd, ManualC
 	StabilizationSettingsData stabSettings;
 	StabilizationSettingsGet(&stabSettings);
 
+	const uint8_t MANUAL_SETTINGS[3] = {
+	                                    STABILIZATIONDESIRED_STABILIZATIONMODE_MANUAL,
+	                                    STABILIZATIONDESIRED_STABILIZATIONMODE_MANUAL,
+	                                    STABILIZATIONDESIRED_STABILIZATIONMODE_MANUAL };
+
 	const uint8_t RATE_SETTINGS[3] = {  STABILIZATIONDESIRED_STABILIZATIONMODE_RATE,
 	                                    STABILIZATIONDESIRED_STABILIZATIONMODE_RATE,
 	                                    STABILIZATIONDESIRED_STABILIZATIONMODE_AXISLOCK};
@@ -958,6 +964,9 @@ static void update_stabilization_desired(ManualControlCommandData * cmd, ManualC
 
 	FlightStatusFlightModeGet(&flightMode);
 	switch(flightMode) {
+		case FLIGHTSTATUS_FLIGHTMODE_MANUAL:
+			stab_settings = MANUAL_SETTINGS;
+			break;
 		case FLIGHTSTATUS_FLIGHTMODE_ACRO:
 			stab_settings = RATE_SETTINGS;
 			break;

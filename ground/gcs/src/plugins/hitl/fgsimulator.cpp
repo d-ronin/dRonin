@@ -140,6 +140,7 @@ void FGSimulator::processReadyRead()
 void FGSimulator::transmitUpdate()
 {
     ActuatorDesired::DataFields actData;
+    FlightStatus::DataFields flightStatusData = flightStatus->getData();
     float ailerons = -1;
     float elevator = -1;
     float rudder = -1;
@@ -148,10 +149,13 @@ void FGSimulator::transmitUpdate()
 	// Read ActuatorDesired from autopilot
 	actData = actDesired->getData();
 
-	ailerons = actData.Roll;
-	elevator = -actData.Pitch;
-	rudder = actData.Yaw;
-	throttle = actData.Throttle;
+	if(flightStatusData.Armed == FlightStatus::ARMED_ARMED)
+	{
+        ailerons = actData.Roll;
+        elevator = -actData.Pitch;
+        rudder = actData.Yaw;
+        throttle = actData.Throttle;
+    }
 
     int allowableDifference = 10;
 

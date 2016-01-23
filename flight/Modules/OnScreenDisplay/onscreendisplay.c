@@ -626,6 +626,9 @@ void draw_flight_mode(int x, int y, int xs, int ys, int va, int ha, int flags, i
 
 	switch (mode)
 	{
+		case FLIGHTSTATUS_FLIGHTMODE_MANUAL:
+			write_string("MAN", x, y, xs, ys, va, ha, flags, font);
+			break;
 		case FLIGHTSTATUS_FLIGHTMODE_ACRO:
 			write_string("ACRO", x, y, xs, ys, va, ha, flags, font);
 			break;

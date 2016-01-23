@@ -6,6 +6,7 @@
 		<!-- Note these enumerated values should be the same as ManualControlSettings -->
 		<field name="FlightMode" units="" type="enum" elements="1">
 			 <options>
+				<option>Manual</option>
 				<option>Acro</option>
 				<option>Leveling</option>
 				<option>MWRate</option>
