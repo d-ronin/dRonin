@@ -9,13 +9,14 @@
  * @file       pios_spi.c
  * @author     The OpenPilot Team, http://www.openpilot.org Copyright (C) 2012.
  * @author     Tau Labs, http://taulabs.org, Copyright (C) 2013
+ * @author     dRonin, http://dronin.org, Copyright (C) 2016
  * @brief      Hardware Abstraction Layer for SPI ports of STM32
  * @see        The GNU Public License (GPL) Version 3
  * @notes
  *
  * Note that additional chip select lines can be easily added by using
  * the remaining free GPIOs of the core module. Shared SPI ports should be
- * arbitrated with (FreeRTOS based) Mutexes to avoid collisions!
+ * arbitrated with Mutexes to avoid collisions!
  *
  *****************************************************************************/
 /*

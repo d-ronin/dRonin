@@ -45,15 +45,3 @@ SRC				+=	$(addprefix $(USBOTGLIB)/src/,$(USBOTGLIB_SRC))
 USBDEVLIB			=	$(PIOS_DEVLIB)/Libraries/STM32_USB_Device_Library
 EXTRAINCDIRS			+=	$(USBDEVLIB)/Core/inc
 SRC				+=	$(wildcard $(USBDEVLIB)/Core/src/*.c)
-
-#
-# FreeRTOS
-#
-# If the application has included the generic FreeRTOS support, then add in
-# the device-specific pieces of the code.
-#
-ifneq ($(FREERTOS_DIR),)
-FREERTOS_PORTDIR	:=	$(PIOS_DEVLIB)/Libraries/FreeRTOS/Source
-EXTRAINCDIRS		+=	$(FREERTOS_PORTDIR)/portable/GCC/ARM_CM4F
-SRC					+=	$(wildcard $(FREERTOS_PORTDIR)/portable/GCC/ARM_CM4F/*.c)
-endif

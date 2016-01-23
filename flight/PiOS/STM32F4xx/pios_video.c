@@ -9,6 +9,7 @@
  * @file       pios_video.c
  * @author     Tau Labs, http://taulabs.org, Copyright (C) 2013-2014
  * @author     The OpenPilot Team, http://www.openpilot.org Copyright (C) 2010-2014.
+ * @author     dRonin, http://dronin.org, Copyright (C) 2016
  * @brief      OSD gen module, handles OSD draw. Parts from CL-OSD and SUPEROSD projects
  * @see        The GNU Public License (GPL) Version 3
  *
@@ -32,10 +33,6 @@
 #include "pios_config.h"
 
 #if defined(PIOS_INCLUDE_VIDEO)
-
-#if defined(PIOS_INCLUDE_FREERTOS)
-#include "FreeRTOS.h"
-#endif /* defined(PIOS_INCLUDE_FREERTOS) */
 
 #include "pios.h"
 #include "pios_video.h"
@@ -179,10 +176,6 @@ bool PIOS_Vsync_ISR()
 	// Set the number of lines to wait until we start clocking out pixels
 	dev_cfg->line_counter->CNT = 0xffff - (pios_video_type_cfg_act->graphics_line_start + y_offset);
 	TIM_Cmd(dev_cfg->line_counter, ENABLE);
-#if defined(PIOS_INCLUDE_FREERTOS)
-	/* Yield From ISR if needed */
-	portEND_SWITCHING_ISR(woken == true ? pdTRUE : pdFALSE);
-#endif
 	return woken;
 }
 

@@ -8,6 +8,7 @@
  *
  * @file       pios_can.c
  * @author     Tau Labs, http://taulabs.org, Copyright (C) 2013-2014
+ * @author     dRonin, http://dronin.org, Copyright (C) 2016
  * @brief      PiOS CAN interface header
  * @see        The GNU Public License (GPL) Version 3
  *
@@ -32,10 +33,6 @@
 #include "pios.h"
 
 #if defined(PIOS_INCLUDE_CAN)
-
-#if defined(PIOS_INCLUDE_FREERTOS)
-#include "FreeRTOS.h"
-#endif /* defined(PIOS_INCLUDE_FREERTOS) */
 
 #include "pios_can_priv.h"
 
@@ -385,10 +382,6 @@ static void PIOS_CAN_RxGeneric(void)
 	} else {
 		rx_need_yield = process_received_message(RxMessage);
 	}
-
-#if defined(PIOS_INCLUDE_FREERTOS)
-	portEND_SWITCHING_ISR(rx_need_yield ? pdTRUE : pdFALSE);
-#endif /* defined(PIOS_INCLUDE_FREERTOS) */
 }
 
 /**
@@ -422,10 +415,6 @@ static void PIOS_CAN_TxGeneric(void)
 
 		// TODO: deal with failure to send and keep the message to retransmit
 	}
-	
-#if defined(PIOS_INCLUDE_FREERTOS)
-	portEND_SWITCHING_ISR(tx_need_yield ? pdTRUE : pdFALSE);
-#endif /* defined(PIOS_INCLUDE_FREERTOS) */
 }
 
 

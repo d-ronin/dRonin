@@ -9,6 +9,7 @@
  * @file       pios_usart.c
  * @author     The OpenPilot Team, http://www.openpilot.org Copyright (C) 2012.
  * @author     Tau Labs, http://taulabs.org, Copyright (C) 2012-2014
+ * @author     dRonin, http://dronin.org, Copyright (C) 2016
  * @brief      USART commands. Inits USARTs, controls USARTs & Interupt handlers. (STM32 dependent)
  * @see        The GNU Public License (GPL) Version 3
  *
@@ -37,10 +38,6 @@
 #include "pios.h"
 
 #if defined(PIOS_INCLUDE_USART)
-
-#if defined(PIOS_INCLUDE_FREERTOS)
-#include "FreeRTOS.h"
-#endif /* defined(PIOS_INCLUDE_FREERTOS) */
 
 #include <pios_usart_priv.h>
 
@@ -378,10 +375,6 @@ static void PIOS_USART_generic_irq_handler(uintptr_t usart_id)
 			USART_ITConfig(usart_dev->cfg->regs, USART_IT_TXE, DISABLE);
 		}
 	}
-	
-#if defined(PIOS_INCLUDE_FREERTOS)
-	portEND_SWITCHING_ISR((rx_need_yield || tx_need_yield) ? pdTRUE : pdFALSE);
-#endif	/* defined(PIOS_INCLUDE_FREERTOS) */
 }
 
 #endif
