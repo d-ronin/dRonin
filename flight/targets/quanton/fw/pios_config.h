@@ -71,7 +71,7 @@
 #define PIOS_INCLUDE_OPTICALFLOW
 #define PIOS_INCLUDE_RANGEFINDER
 #define PIOS_INCLUDE_PX4FLOW
-#define FLASH_FREERTOS
+
 /* Com systems to include */
 #define PIOS_INCLUDE_COM
 #define PIOS_INCLUDE_COM_TELEM

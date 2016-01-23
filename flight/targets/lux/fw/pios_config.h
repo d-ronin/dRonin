@@ -58,7 +58,6 @@
 /* Select the sensors to include */
 #define PIOS_INCLUDE_MPU9250_SPI
 #define PIOS_MPU6000_ACCEL
-#define FLASH_FREERTOS
 
 /* Com systems to include */
 #define PIOS_INCLUDE_COM
@@ -112,7 +111,7 @@
  *
  * IDLE_COUNTS_PER_SEC_AT_NO_LOAD = (uint32_t)((double)idleCounter / xTickCount * 1000 + 0.5)
  *
- * This has to be redone every time the toolchain, toolchain flags or FreeRTOS
+ * This has to be redone every time the toolchain, toolchain flags or RTOS
  * configuration like number of task priorities or similar changes.
  * A change in the cpu load calculation or the idle task handler will invalidate this as well.
  */
