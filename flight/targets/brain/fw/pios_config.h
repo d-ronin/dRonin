@@ -67,7 +67,6 @@
 #define PIOS_INCLUDE_ETASV3
 #define PIOS_I2C_ETASV3_ADAPTER pios_i2c_flexi_id
 
-#define FLASH_FREERTOS
 /* Com systems to include */
 #define PIOS_INCLUDE_COM
 #define PIOS_INCLUDE_COM_TELEM

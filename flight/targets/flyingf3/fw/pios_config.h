@@ -68,7 +68,7 @@
 #define PIOS_INCLUDE_MPXV5004
 #define PIOS_INCLUDE_MPXV7002
 #define PIOS_INCLUDE_BMP085
-#define FLASH_FREERTOS
+
 /* Com systems to include */
 #define PIOS_INCLUDE_COM
 #define PIOS_INCLUDE_COM_TELEM
