@@ -2,7 +2,7 @@
  ******************************************************************************
  * @addtogroup TauLabsBootloader Tau Labs Bootloaders
  * @{
- * @addtogroup CopterControlBL CopterControl bootloader
+ * @addtogroup CC3DBL CopterControl 3D bootloader
  * @{
  *
  * @file       pios_config.h 

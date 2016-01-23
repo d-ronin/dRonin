@@ -2,7 +2,7 @@
  ******************************************************************************
  * @addtogroup TauLabsBootloader Tau Labs Bootloaders
  * @{
- * @addtogroup CopterControlBL CopterControl bootloader
+ * @addtogroup CC3DBL CopterControl 3D bootloader
  * @{
  *
  * @file       pios_board.c
@@ -60,11 +60,9 @@ void PIOS_Board_Init(void)
 
 	/* Initialize the PiOS library */
 	PIOS_GPIO_Init();
-
-	const struct pios_board_info * bdinfo = &pios_board_info_blob;
 	
 #if defined(PIOS_INCLUDE_LED)
-	const struct pios_led_cfg * led_cfg = PIOS_BOARD_HW_DEFS_GetLedCfg(bdinfo->board_rev);
+	const struct pios_led_cfg * led_cfg = PIOS_BOARD_HW_DEFS_GetLedCfg(0);
 	PIOS_Assert(led_cfg);
 	PIOS_LED_Init(led_cfg);
 #endif	/* PIOS_INCLUDE_LED */

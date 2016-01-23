@@ -45,35 +45,8 @@ ConfigCCHWWidget::ConfigCCHWWidget(QWidget *parent) : ConfigTaskWidget(parent)
     m_CC_HW_Widget = new Ui_CC_HW_Widget();
     m_CC_HW_Widget->setupUi(this);
 
-    ExtensionSystem::PluginManager *pm=ExtensionSystem::PluginManager::instance();
-    Core::Internal::GeneralSettings * settings=pm->getObject<Core::Internal::GeneralSettings>();
-    if(!settings->useExpertMode())
-        m_CC_HW_Widget->saveTelemetryToRAM->setVisible(false);
+    m_CC_HW_Widget->label_2->setPixmap(QPixmap(":/openpilot/images/cc3d-top.svg"));
 
-
-    UAVObjectUtilManager* utilMngr = pm->getObject<UAVObjectUtilManager>();
-    int id = utilMngr->getBoardModel();
-
-    switch (id) {
-    case 0x0101:
-        m_CC_HW_Widget->label_2->setPixmap(QPixmap(":/uploader/images/deviceID-0101.svg"));
-        break;
-    case 0x0301:
-        m_CC_HW_Widget->label_2->setPixmap(QPixmap(":/uploader/images/deviceID-0301.svg"));
-        break;
-    case 0x0401:
-        m_CC_HW_Widget->label_2->setPixmap(QPixmap(":/configgadget/images/coptercontrol.svg"));
-        break;
-    case 0x0402:
-        m_CC_HW_Widget->label_2->setPixmap(QPixmap(":/configgadget/images/coptercontrol.svg"));
-        break;
-    case 0x0201:
-        m_CC_HW_Widget->label_2->setPixmap(QPixmap(":/uploader/images/deviceID-0201.svg"));
-        break;
-    default:
-        m_CC_HW_Widget->label_2->setPixmap(QPixmap(":/configgadget/images/coptercontrol.svg"));
-        break;
-    }
     addApplySaveButtons(m_CC_HW_Widget->saveTelemetryToRAM,m_CC_HW_Widget->saveTelemetryToSD);
     addUAVObjectToWidgetRelation("HwCopterControl","FlexiPort",m_CC_HW_Widget->cbFlexi);
     addUAVObjectToWidgetRelation("HwCopterControl","MainPort",m_CC_HW_Widget->cbTele);

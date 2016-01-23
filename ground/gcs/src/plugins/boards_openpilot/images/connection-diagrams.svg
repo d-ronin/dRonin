@@ -14,7 +14,7 @@
    height="525.51001"
    width="1078.6002"
    version="1.1"
-   inkscape:version="0.48.5 r10040"
+   inkscape:version="0.48.4 r9939"
    sodipodi:docname="connection-diagrams.svg">
   <sodipodi:namedview
      pagecolor="#ffffff"
@@ -25,16 +25,16 @@
      guidetolerance="10"
      inkscape:pageopacity="0"
      inkscape:pageshadow="2"
-     inkscape:window-width="1440"
-     inkscape:window-height="803"
+     inkscape:window-width="2495"
+     inkscape:window-height="1416"
      id="namedview4616"
      showgrid="false"
      inkscape:zoom="2.21"
-     inkscape:cx="152.22499"
-     inkscape:cy="346.37639"
-     inkscape:window-x="17"
-     inkscape:window-y="0"
-     inkscape:window-maximized="0"
+     inkscape:cx="500.64128"
+     inkscape:cy="252.71123"
+     inkscape:window-x="65"
+     inkscape:window-y="24"
+     inkscape:window-maximized="1"
      inkscape:current-layer="background"
      fit-margin-top="15"
      fit-margin-left="15"
@@ -6882,7 +6882,7 @@
          id="path9983" />
     </g>
     <g
-       id="controller-coptercontrol"
+       id="controller-cc3d"
        inkscape:label="#controller"
        transform="translate(-16.970563,-19.79899)">
       <rect

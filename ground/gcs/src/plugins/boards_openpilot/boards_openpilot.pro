@@ -11,13 +11,13 @@ OTHER_FILES += OpenPilot.pluginspec \
 
 HEADERS += \
     openpilotplugin.h \
-    coptercontrol.h \
+    cc3d.h \
     config_cc_hw_widget.h \
     revomini.h 
 
 SOURCES += \
     openpilotplugin.cpp \
-    coptercontrol.cpp \
+    cc3d.cpp \
     config_cc_hw_widget.cpp \
     revomini.cpp 
 

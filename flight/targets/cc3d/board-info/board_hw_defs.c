@@ -2,13 +2,13 @@
  ******************************************************************************
  * @addtogroup TauLabsTargets Tau Labs Targets
  * @{
- * @addtogroup CopterControl OpenPilot coptercontrol support files
+ * @addtogroup CC3D OpenPilot coptercontrol 3D support files
  * @{
  *
  * @file       board_hw_defs.c 
  * @author     The OpenPilot Team, http://www.openpilot.org Copyright (C) 2011.
  * @author     Tau Labs, http://taulabs.org, Copyright (C) 2012-2013
- * @author     dRonin, http://dronin.org Copyright (C) 2015
+ * @author     dRonin, http://dronin.org Copyright (C) 2015-2016
  * @brief      Defines board specific static initializers for hardware for the 
  *             CopterControl board.
  * @see        The GNU Public License (GPL) Version 3
@@ -32,9 +32,6 @@
 #include <pios_config.h>
 #include <pios_board_info.h>
 
-#define BOARD_REVISION_CC   1
-#define BOARD_REVISION_CC3D 2
-
 #if defined(PIOS_INCLUDE_LED)
 
 #include <pios_led_priv.h>
@@ -52,17 +49,15 @@ static const struct pios_led pios_leds_cc3d[] = {
 	},
 };
 
-static const struct pios_led_cfg pios_led_cfg_cc3d = {
+const struct pios_led_cfg pios_led_cfg_cc3d = {
 	.leds     = pios_leds_cc3d,
 	.num_leds = NELEMENTS(pios_leds_cc3d),
 };
 
 const struct pios_led_cfg * PIOS_BOARD_HW_DEFS_GetLedCfg (uint32_t board_revision)
 {
-	switch (board_revision) {
-	case BOARD_REVISION_CC3D:	return &pios_led_cfg_cc3d;
-	default:			return NULL;
-	}
+	(void)board_revision;
+	return &pios_led_cfg_cc3d;
 }
 
 #endif	/* PIOS_INCLUDE_LED */
@@ -422,68 +417,18 @@ static const struct pios_flash_partition pios_flash_partition_table_m25p16[] = {
 #endif	/* PIOS_INCLUDE_FLASH_JEDEC */
 };
 
-const struct pios_flash_partition * PIOS_BOARD_HW_DEFS_GetPartitionTable (uint32_t board_revision, uint32_t * num_partitions)
+const struct pios_flash_partition *PIOS_BOARD_HW_DEFS_GetPartitionTable(uint32_t board_revision, uint32_t *num_partitions)
 {
+	(void)board_revision;
 	PIOS_Assert(num_partitions);
 
-	switch (board_revision) {
-	case BOARD_REVISION_CC3D:
-		*num_partitions = NELEMENTS(pios_flash_partition_table_m25p16);
-		return pios_flash_partition_table_m25p16;
-	default:
-		break;
-	}
+	*num_partitions = NELEMENTS(pios_flash_partition_table_m25p16);
+	return pios_flash_partition_table_m25p16;
 
 	return NULL;
 }
 
 #endif	/* PIOS_INCLUDE_FLASH */
-
-/*
- * ADC system
- */
-#if defined(PIOS_INCLUDE_ADC)
-#include "pios_internal_adc_priv.h"
-extern void PIOS_ADC_handler(void);
-
-void DMA1_Channel1_IRQHandler() __attribute__ ((alias("PIOS_ADC_handler")));
-// Remap the ADC DMA handler to this one
-static const struct pios_internal_adc_cfg internal_adc_cfg = {
-	.dma = {
-		.ahb_clk  = RCC_AHBPeriph_DMA1,
-		.irq = {
-			.flags   = (DMA1_FLAG_TC1 | DMA1_FLAG_TE1 | DMA1_FLAG_HT1 | DMA1_FLAG_GL1),
-			.init    = {
-				.NVIC_IRQChannel                   = DMA1_Channel1_IRQn,
-				.NVIC_IRQChannelPreemptionPriority = PIOS_IRQ_PRIO_HIGH,
-				.NVIC_IRQChannelSubPriority        = 0,
-				.NVIC_IRQChannelCmd                = ENABLE,
-			},
-		},
-		.rx = {
-			.channel = DMA1_Channel1,
-			.init    = {
-				.DMA_PeripheralBaseAddr = (uint32_t) & ADC1->DR,
-				.DMA_DIR                = DMA_DIR_PeripheralSRC,
-				.DMA_PeripheralInc      = DMA_PeripheralInc_Disable,
-				.DMA_MemoryInc          = DMA_MemoryInc_Enable,
-				.DMA_PeripheralDataSize = DMA_PeripheralDataSize_Word,
-				.DMA_MemoryDataSize     = DMA_MemoryDataSize_Word,
-				.DMA_Mode               = DMA_Mode_Circular,
-				.DMA_Priority           = DMA_Priority_High,
-				.DMA_M2M                = DMA_M2M_Disable,
-			},
-		}
-	}, 
-	.half_flag = DMA1_IT_HT1,
-	.full_flag = DMA1_IT_TC1,
-	.oversampling = ((PIOS_ADC_RATE / 1000.0f) * PIOS_INTERNAL_ADC_UPDATE_RATE),
-};
-
-void PIOS_ADC_handler() {
-	PIOS_INTERNAL_ADC_DMA_Handler();
-}
-#endif
 
 #include "pios_tim_priv.h"
 
@@ -1127,7 +1072,7 @@ void PIOS_RTC_IRQ_Handler (void)
  */
 #include <pios_servo_priv.h>
 
-const struct pios_servo_cfg pios_servo_cfg = {
+struct pios_servo_cfg pios_servo_cfg = {
 	.tim_oc_init = {
 		.TIM_OCMode = TIM_OCMode_PWM1,
 		.TIM_OutputState = TIM_OutputState_Enable,
@@ -1222,17 +1167,6 @@ const struct pios_pwm_cfg pios_pwm_with_ppm_cfg = {
 #endif
 
 #if defined(PIOS_INCLUDE_I2C)
-
-#if defined(PIOS_INCLUDE_PCF8591)
-#include "pios_pcf8591_adc_priv.h"
-static const struct pios_pcf8591_adc_cfg pios_8591_cfg = {
-		.i2c_address = PIOS_PCF8591_DEFAULT_ADDRESS,
-		.use_auto_increment = false,
-		.enable_dac = false,
-		.adc_input_type = PIOS_PCF8591_ADC_SINGLE_ENDED,
-
-};
-#endif
 
 #include <pios_i2c_priv.h>
 
