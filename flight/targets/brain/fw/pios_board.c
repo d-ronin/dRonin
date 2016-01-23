@@ -2,7 +2,7 @@
  ******************************************************************************
  * @addtogroup TauLabsTargets Tau Labs Targets
  * @{
- * @addtogroup FlyingF4 FlyingF4 support files
+ * @addtogroup BrainFPV FC support files
  * @{
  *
  * @file       pios_board.c
