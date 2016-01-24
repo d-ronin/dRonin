@@ -178,6 +178,7 @@ static int32_t connectObj(UAVObjHandle obj_handle, struct pios_queue *queue,
 			uint16_t interval);
 static int32_t disconnectObj(UAVObjHandle obj_handle, struct pios_queue *queue,
 			UAVObjEventCallback cb, void *cbCtx);
+static int32_t cleanupSettingsObjs(void);
 
 // Private variables
 static struct UAVOData * uavo_list;
@@ -229,6 +230,10 @@ int32_t UAVObjInitialize()
 	mutex = PIOS_Recursive_Mutex_Create();
 	if (mutex == NULL)
 		return -1;
+
+	// Clean up old settings objects
+	cleanupSettingsObjs();
+
 	// Done
 	return 0;
 }
@@ -2177,6 +2182,42 @@ void UAVObjRegisterNewInstanceCB(new_uavo_instance_cb_t callback)
 {
 	newUavObjInstanceCB = callback;
 }
+
+static int32_t cleanupSettingsObjs(void)
+{
+	extern uint32_t __uavobj_settings_register_start[], __uavobj_settings_register_end[];
+	uint32_t slot = 1;
+	uint32_t curr_obj_id, curr_obj_inst_id;
+	int32_t res = 0;
+	do {
+		res = PIOS_FLASHFS_ObjIdAtSlot(pios_uavo_settings_fs_id, slot++, 
+					&curr_obj_id, &curr_obj_inst_id) == 0;
+
+		if (res == -3) {
+			// empty slot, ignore it
+			res = 0;
+			continue;
+		}
+		
+		bool found = false;
+		for (uint32_t *obj_id = __uavobj_settings_register_start; 
+					obj_id < __uavobj_settings_register_end; obj_id++) {
+			if (*obj_id == curr_obj_id) {
+				found = true;
+				break;
+			}
+		}
+
+		if (!found) {
+			// didn't find it, old object
+			PIOS_FLASHFS_ObjDelete(pios_uavo_settings_fs_id, curr_obj_id, curr_obj_inst_id);
+		}
+	} while (res == 0);
+
+	return 0;
+}
+
+
 /**
  * @}
  * @}

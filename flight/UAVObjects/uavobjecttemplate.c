@@ -39,6 +39,8 @@
 #include "uavobjectmanager.h"
 #include "$(NAMELC).h"
 
+UAVOBJ_SETTINGS_REGISTER($(NAMEUC)_OBJID)
+
 // Private variables
 static UAVObjHandle handle = NULL;
 
