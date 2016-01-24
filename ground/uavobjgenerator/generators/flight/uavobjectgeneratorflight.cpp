@@ -3,7 +3,7 @@
  *
  * @file       uavobjectgeneratorflight.cpp
  * @author     The OpenPilot Team, http://www.openpilot.org Copyright (C) 2010.
- * @author     dRonin, http://dronin.org Copyright (C) 2015
+ * @author     dRonin, http://dronin.org Copyright (C) 2015-2016
  * @brief      produce flight code for uavobjects
  *
  * @see        The GNU Public License (GPL) Version 3
@@ -23,6 +23,10 @@
  * You should have received a copy of the GNU General Public License along
  * with this program; if not, write to the Free Software Foundation, Inc.,
  * 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
+ *
+ * Additional note on redistribution: The copyright and license notices above
+ * must be maintained in each individual source file that is a derivative work
+ * of this source file; otherwise redistribution is prohibited.
  */
 
 #include "uavobjectgeneratorflight.h"
@@ -55,9 +59,7 @@ bool UAVObjectGeneratorFlight::generate(UAVObjectParser* parser,QString template
     for (int objidx = 0; objidx < parser->getNumObjects(); ++objidx) {
         ObjectInfo* info=parser->getObjectByIndex(objidx);
         process_object(info);
-        flightObjInit.append("#ifdef UAVOBJ_INIT_" + info->namelc +"\r\n");
         flightObjInit.append("    " + info->name + "Initialize();\r\n");
-        flightObjInit.append("#endif\r\n");
         objInc.append("#include \"" + info->namelc + ".h\"\r\n");
 	objFileNames.append(" " + info->namelc);
 	objNames.append(" " + info->name);

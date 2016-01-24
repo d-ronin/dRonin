@@ -24,6 +24,9 @@
 # with this program; if not, write to the Free Software Foundation, Inc.,
 # 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 #
+# Additional note on redistribution: The copyright and license notices above
+# must be maintained in each individual source file that is a derivative work
+# of this source file; otherwise redistribution is prohibited.
 
 include $(MAKE_INC_DIR)/firmware-defs.mk
 include $(BOARD_INFO_DIR)/board-info.mk
@@ -508,5 +511,4 @@ LDFLAGS += -Wl,--fatal-warnings
 LDFLAGS += -T$(LINKERSCRIPTPATH)/link_$(BOARD)_memory.ld
 LDFLAGS += -T$(LINKERSCRIPTPATH)/link_$(BOARD)_sections.ld
 
-include ./UAVObjects.inc
 include $(MAKE_INC_DIR)/firmware-common.mk

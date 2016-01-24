@@ -6,7 +6,7 @@
 #
 # The OpenPilot Team, http://www.openpilot.org, Copyright (C) 2009.
 # Tau Labs, http://taulabs.org, Copyright (C) 2013-2014
-# dRonin, http://dronin.org Copyright (C) 2015
+# dRonin, http://dronin.org Copyright (C) 2015-2016
 #
 #
 # This program is free software; you can redistribute it and/or modify
@@ -22,6 +22,10 @@
 # You should have received a copy of the GNU General Public License along
 # with this program; if not, write to the Free Software Foundation, Inc.,
 # 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
+# 
+# Additional note on redistribution: The copyright and license notices above
+# must be maintained in each individual source file that is a derivative work
+# of this source file; otherwise redistribution is prohibited.
 #####
 
 # Default target.
@@ -140,7 +144,6 @@ SRC += board.c
 SRC += $(FLIGHTLIB)/alarms.c
 SRC += $(OPUAVTALK)/uavtalk.c
 SRC += $(OPUAVOBJ)/uavobjectmanager.c
-SRC += $(OPUAVSYNTHDIR)/uavobjectsinit.c
 
 ## Libraries for flight calculations
 SRC += $(FLIGHTLIB)/fifo_buffer.c
@@ -370,11 +373,7 @@ getmodname = $(firstword $(subst /, ,$1))
 
 MOD_GEN := $(foreach MOD,$(MODULES) $(OPTMODULES),$(call getmodname,$(MOD)))
 
-include ./UAVObjects.inc
-
 BUILD_FWFILES=NO
-UAVO_NAV = YES
-BUILD_UAVO = YES
-
+BUILD_UAVO=YES
 
 include $(MAKE_INC_DIR)/firmware-common.mk
