@@ -115,7 +115,7 @@ initTask(void *parameters)
 	PIOS_Board_Init();
 
 #ifdef ERASE_FLASH
-	PIOS_Flash_Jedec_EraseChip();
+	PIOS_FLASHFS_Format(pios_uavo_settings_fs_id);
 #if defined(PIOS_LED_HEARTBEAT)
 	PIOS_LED_Off(PIOS_LED_HEARTBEAT);
 #endif	/* PIOS_LED_HEARTBEAT */
