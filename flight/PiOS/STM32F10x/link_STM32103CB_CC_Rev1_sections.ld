@@ -24,6 +24,18 @@ SECTIONS
         *(.rodata .rodata* .gnu.linkonce.r.*)
     } > FLASH
 
+    /* 
+     * Register of settings UAVObjects. 
+     */
+    .settingsuavobjs :
+    {
+        . = ALIGN(4);
+        __uavobj_settings_register_start = .;
+        KEEP(*(.settingsuavobjs))
+        . = ALIGN(4);
+        __uavobj_settings_register_end   = .;
+    } >FLASH
+
     /* module sections */
     .initcallmodule.init :
     {

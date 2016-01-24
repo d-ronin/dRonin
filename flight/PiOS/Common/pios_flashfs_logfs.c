@@ -835,6 +835,36 @@ static int8_t logfs_append_to_log (struct logfs_state *logfs, uint32_t obj_id, u
 	return 0;
 }
 
+int32_t logfs_get_slot_obj_id(struct logfs_state *logfs, uint16_t slot, uint32_t *obj_id, uint32_t *obj_inst_id)
+{
+	PIOS_Assert(slot);
+
+	/* First slot in the arena is reserved for arena header */
+	if (slot == 0 || slot >= (logfs->cfg->arena_size / logfs->cfg->slot_size))
+		return -1;
+
+	uintptr_t slot_addr = logfs_get_addr(logfs, logfs->active_arena_id, slot);
+	struct slot_header slot_hdr;
+
+	if (PIOS_FLASH_read_data(logfs->partition_id,
+					slot_addr,
+					(uint8_t *)&slot_hdr,
+					sizeof(slot_hdr)) != 0) {
+		return -2;
+	}
+	if (slot_hdr.state == SLOT_STATE_OBSOLETE) {
+		/* empty slot */
+		return -3;
+	} else if (slot_hdr.state != SLOT_STATE_ACTIVE) {
+		/* invalid slot */
+		return -4;
+	}
+
+	*obj_id = slot_hdr.obj_id;
+	*obj_inst_id = slot_hdr.obj_inst_id;
+	return 0;
+}
+
 
 /**********************************
  *
@@ -1091,6 +1121,53 @@ int32_t PIOS_FLASHFS_Format(uintptr_t fs_id)
 	}
 
 	/* Chip erased and log remounted successfully */
+	rc = 0;
+
+out_end_trans:
+	PIOS_FLASH_end_transaction(logfs->partition_id);
+
+out_exit:
+	return rc;
+}
+
+/**
+ * @brief Delete one instance of an object from the filesystem
+ * @param[in] fs_id The filesystem to use for this action
+ * @param[in] slot The slot to retrieve
+ * @param[out] obj_id Where to save the obj_id
+ * @param[out] obj_inst_id Where to save the obj_inst_id
+ * @return 0 if success or error code
+ * @retval -1 if fs_id is not a valid filesystem instance
+ * @retval -2 if failed to start transaction
+ * @retval -3 if slot is empty
+ * @retval -4 if invalid slot
+ */
+int32_t PIOS_FLASHFS_ObjIdAtSlot(uintptr_t fs_id, uint16_t slot, uint32_t *obj_id, uint32_t *obj_inst_id)
+{
+	int8_t rc;
+
+	struct logfs_state *logfs = (struct logfs_state *)fs_id;
+
+	if (!PIOS_FLASHFS_Logfs_validate(logfs)) {
+		rc = -1;
+		goto out_exit;
+	}
+
+	if (PIOS_FLASH_start_transaction(logfs->partition_id) != 0) {
+		rc = -2;
+		goto out_exit;
+	}
+
+	int32_t res = logfs_get_slot_obj_id(logfs, slot, obj_id, obj_inst_id);
+	if (res == -3) {
+		// slot empty
+		rc = -3;
+	} else if (res != 0) {
+		rc = -4;
+		goto out_end_trans;
+	}
+
+	/* Object successfully deleted from the log */
 	rc = 0;
 
 out_end_trans:
