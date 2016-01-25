@@ -1224,11 +1224,14 @@ bool validInputRange(int n, uint16_t value, uint16_t offset)
 	int16_t max = settings.ChannelMax[n];
 	int16_t neutral = settings.ChannelNeutral[n];
 	int16_t range;
+	bool inverted = false;
 
 	if (min > max) {
 		int16_t tmp = min;
 		min = max;
 		max = tmp;
+
+		inverted = true;
 	}
 
 	if ((neutral > max) || (neutral < min)) {
@@ -1238,7 +1241,11 @@ bool validInputRange(int n, uint16_t value, uint16_t offset)
 	if (n == MANUALCONTROLSETTINGS_CHANNELGROUPS_THROTTLE) {
 		/* Pick just the one that results in the "positive" side of
 		 * the throttle scale */
-		range = max - neutral;
+		if (inverted) {
+			range = neutral - min;
+		} else {
+			range = max - neutral;
+		}
 	} else {
 		range = MIN(max - neutral, neutral - min);
 	}
