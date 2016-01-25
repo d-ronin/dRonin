@@ -59,9 +59,9 @@
 enum AUTOTUNE_STATE { AT_INIT, AT_START, AT_RUN, AT_FINISHED, AT_WAITING };
 
 struct at_queued_data {
-	float y[3];	/* Gyro measurements */
-	float u[3];	/* Actuator desired */
-	float t;	/* Throttle desired */
+	float y[3];		/* Gyro measurements */
+	float u[3];		/* Actuator desired */
+	float throttle;	/* Throttle desired */
 
 	uint32_t raw_time;	/* From PIOS_DELAY_GetRaw() */
 };
@@ -165,7 +165,7 @@ static void at_new_gyro_data(UAVObjEvent * ev, void *ctx, void *obj, int len) {
 	q_item->u[1] = actuators.Pitch;
 	q_item->u[2] = actuators.Yaw;
 
-	q_item->t = actuators.Throttle;
+	q_item->throttle = actuators.Throttle;
 
 	if (circ_queue_advance_write(at_queue) != 0) {
 		last_sample_unpushed = true;
@@ -176,28 +176,28 @@ static void at_new_gyro_data(UAVObjEvent * ev, void *ctx, void *obj, int len) {
 
 static void UpdateSystemIdent(const float *X, const float *noise,
 		float dT_s, uint32_t predicts, uint32_t spills, float hover_throttle) {
-	SystemIdentData relay;
-	relay.Beta[SYSTEMIDENT_BETA_ROLL]    = X[6];
-	relay.Beta[SYSTEMIDENT_BETA_PITCH]   = X[7];
-	relay.Beta[SYSTEMIDENT_BETA_YAW]     = X[8];
-	relay.Bias[SYSTEMIDENT_BIAS_ROLL]    = X[10];
-	relay.Bias[SYSTEMIDENT_BIAS_PITCH]   = X[11];
-	relay.Bias[SYSTEMIDENT_BIAS_YAW]     = X[12];
-	relay.Tau                            = X[9];
+	SystemIdentData system_ident;
+	system_ident.Beta[SYSTEMIDENT_BETA_ROLL]    = X[6];
+	system_ident.Beta[SYSTEMIDENT_BETA_PITCH]   = X[7];
+	system_ident.Beta[SYSTEMIDENT_BETA_YAW]     = X[8];
+	system_ident.Bias[SYSTEMIDENT_BIAS_ROLL]    = X[10];
+	system_ident.Bias[SYSTEMIDENT_BIAS_PITCH]   = X[11];
+	system_ident.Bias[SYSTEMIDENT_BIAS_YAW]     = X[12];
+	system_ident.Tau                            = X[9];
 
 	if (noise) {
-		relay.Noise[SYSTEMIDENT_NOISE_ROLL]  = noise[0];
-		relay.Noise[SYSTEMIDENT_NOISE_PITCH] = noise[1];
-		relay.Noise[SYSTEMIDENT_NOISE_YAW]   = noise[2];
+		system_ident.Noise[SYSTEMIDENT_NOISE_ROLL]  = noise[0];
+		system_ident.Noise[SYSTEMIDENT_NOISE_PITCH] = noise[1];
+		system_ident.Noise[SYSTEMIDENT_NOISE_YAW]   = noise[2];
 	}
-	relay.Period = dT_s * 1000.0f;
+	system_ident.Period = dT_s * 1000.0f;
 
-	relay.NumAfPredicts = predicts;
-	relay.NumSpilledPts = spills;
+	system_ident.NumAfPredicts = predicts;
+	system_ident.NumSpilledPts = spills;
 
-	relay.HoverThrottle = hover_throttle;
+	system_ident.HoverThrottle = hover_throttle;
 
-	SystemIdentSet(&relay);
+	SystemIdentSet(&system_ident);
 }
 
 static void UpdateStabilizationDesired(bool doingIdent) {
@@ -354,7 +354,7 @@ static void AutotuneTask(void *parameters)
 					 * also if we have extended drops */
 					if (dT_s > 0.010f) {
 						dT_s = 0.010f;
-						hover_throttle = pt->t;
+						hover_throttle = pt->throttle;
 					}
 
 					last_time = pt->raw_time;
@@ -367,7 +367,7 @@ static void AutotuneTask(void *parameters)
 					}
 
 					const float THROTTLE_ALPHA = 0.9997f;  // 10 second time constant at 300 Hz
-					hover_throttle = THROTTLE_ALPHA * hover_throttle + (1-THROTTLE_ALPHA) * pt->t;
+					hover_throttle = THROTTLE_ALPHA * hover_throttle + (1-THROTTLE_ALPHA) * pt->throttle;
 
 					// Update uavo every 256 cycles to avoid
 					// telemetry spam
