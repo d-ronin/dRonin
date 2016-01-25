@@ -32,7 +32,6 @@ include $(BOARD_INFO_DIR)/board-info.mk
 # @groupbrief Set developer code and compile options
 # @optbrief Set to YES to compile for debugging
 DEBUG ?= NO
-ERASE_FLASH ?= NO
 
 # @endgroup Compile Options
 # List of modules to include
@@ -111,10 +110,6 @@ SRC += $(OPUAVOBJ)/uavobjectmanager.c
 ifeq ($(DEBUG),YES)
 SRC += $(DEBUG_CM3_DIR)/dcc_stdio.c
 SRC += $(DEBUG_CM3_DIR)/cm3_fault_handlers.c
-endif
-
-ifeq ($(ERASE_FLASH), YES)
-CDEFS += -DERASE_FLASH
 endif
 
 SRC += $(FLIGHTLIB)/paths.c

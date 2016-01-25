@@ -142,6 +142,11 @@ void PIOS_Board_Init(void) {
 
 #if defined(ERASE_FLASH)
 	PIOS_FLASHFS_Format(pios_uavo_settings_fs_id);
+#if defined(PIOS_LED_HEARTBEAT)
+	PIOS_LED_Off(PIOS_LED_HEARTBEAT);
+#endif /* PIOS_LED_HEARTBEAT */
+
+	while (1) ;
 #endif
 
 	/* Initialize the task monitor library */

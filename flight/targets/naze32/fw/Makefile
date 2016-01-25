@@ -43,9 +43,6 @@ DIAG_TASKS ?= NO
 #Or just turn on all the above diagnostics. WARNING: This consumes massive amounts of memory.
 ALL_DIGNOSTICS ?=NO
 
-# @optbrief Set to YES to build a FW version that will erase all flash memory
-ERASE_FLASH ?= NO
-
 # @optbrief Set to YES to use the Servo output pins for debugging via scope or logic analyser
 ENABLE_DEBUG_PINS ?= NO
 
@@ -373,9 +370,6 @@ CDEFS += -DPIOS_ENABLE_DEBUG_PINS
 endif
 ifeq ($(ENABLE_DEBUG_CONSOLE), YES)
 CDEFS += -DPIOS_INCLUDE_DEBUG_CONSOLE
-endif
-ifeq ($(ERASE_FLASH), YES)
-CDEFS += -DERASE_FLASH
 endif
 
 ifneq ($(USE_GPS), NO)

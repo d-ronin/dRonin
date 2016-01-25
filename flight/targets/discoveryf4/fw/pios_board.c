@@ -110,11 +110,9 @@ void panic(int32_t code) {
 	PIOS_RTC_Init(&pios_rtc_main_cfg);
 #endif
 
-#ifndef ERASE_FLASH
 	/* Initialize watchdog as early as possible to catch faults during init */
 #ifndef DEBUG
 	//PIOS_WDG_Init();
-#endif
 #endif
 
 	/* Check for repeated boot failures */
