@@ -146,11 +146,11 @@ void FGSimulator::transmitUpdate()
     float rudder = -1;
     float throttle = -1;
 
-	// Read ActuatorDesired from autopilot
-	actData = actDesired->getData();
+    // Read ActuatorDesired from autopilot
+    actData = actDesired->getData();
 
-	if(flightStatusData.Armed == FlightStatus::ARMED_ARMED)
-	{
+    if(flightStatusData.Armed == FlightStatus::ARMED_ARMED)
+    {
         ailerons = actData.Roll;
         elevator = -actData.Pitch;
         rudder = actData.Yaw;
