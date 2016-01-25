@@ -61,6 +61,7 @@ enum AUTOTUNE_STATE { AT_INIT, AT_START, AT_RUN, AT_FINISHED, AT_WAITING };
 struct at_queued_data {
 	float y[3];	/* Gyro measurements */
 	float u[3];	/* Actuator desired */
+	float t;	/* Throttle desired */
 
 	uint32_t raw_time;	/* From PIOS_DELAY_GetRaw() */
 };
@@ -71,6 +72,8 @@ static bool module_enabled;
 
 static circ_queue_t at_queue;
 static volatile uint32_t at_points_spilled;
+
+static float hover_throttle;
 
 // Private functions
 static void AutotuneTask(void *parameters);
@@ -162,6 +165,8 @@ static void at_new_gyro_data(UAVObjEvent * ev, void *ctx, void *obj, int len) {
 	q_item->u[1] = actuators.Pitch;
 	q_item->u[2] = actuators.Yaw;
 
+	q_item->t = actuators.Throttle;
+
 	if (circ_queue_advance_write(at_queue) != 0) {
 		last_sample_unpushed = true;
 	} else {
@@ -170,7 +175,7 @@ static void at_new_gyro_data(UAVObjEvent * ev, void *ctx, void *obj, int len) {
 }
 
 static void UpdateSystemIdent(const float *X, const float *noise,
-		float dT_s, uint32_t predicts, uint32_t spills) {
+		float dT_s, uint32_t predicts, uint32_t spills, float hover_throttle) {
 	SystemIdentData relay;
 	relay.Beta[SYSTEMIDENT_BETA_ROLL]    = X[6];
 	relay.Beta[SYSTEMIDENT_BETA_PITCH]   = X[7];
@@ -189,6 +194,8 @@ static void UpdateSystemIdent(const float *X, const float *noise,
 
 	relay.NumAfPredicts = predicts;
 	relay.NumSpilledPts = spills;
+
+	relay.HoverThrottle = hover_throttle;
 
 	SystemIdentSet(&relay);
 }
@@ -282,7 +289,7 @@ static void AutotuneTask(void *parameters)
 
 					af_init(X,P);
 
-					UpdateSystemIdent(X, NULL, 0.0f, 0, 0);
+					UpdateSystemIdent(X, NULL, 0.0f, 0, 0, 0);
 
 					state = AT_START;
 
@@ -307,6 +314,8 @@ static void AutotuneTask(void *parameters)
 
 					update_counter = 0;
 					at_points_spilled = 0;
+					
+					hover_throttle = 0;
 
 					state = AT_RUN;
 					last_update_time = PIOS_Thread_Systime();
@@ -345,21 +354,25 @@ static void AutotuneTask(void *parameters)
 					 * also if we have extended drops */
 					if (dT_s > 0.010f) {
 						dT_s = 0.010f;
+						hover_throttle = pt->t;
 					}
 
 					last_time = pt->raw_time;
 
 					af_predict(X, P, pt->u, pt->y, dT_s);
 
-					// Update uavo every 256 cycles to avoid
-					// telemetry spam
-					if (!((update_counter++) & 0xff)) {
-						UpdateSystemIdent(X, noise, dT_s, update_counter, at_points_spilled);
-					}
-
 					for (uint32_t i = 0; i < 3; i++) {
 						const float NOISE_ALPHA = 0.9997f;  // 10 second time constant at 300 Hz
 						noise[i] = NOISE_ALPHA * noise[i] + (1-NOISE_ALPHA) * (pt->y[i] - X[i]) * (pt->y[i] - X[i]);
+					}
+
+					const float THROTTLE_ALPHA = 0.9997f;  // 10 second time constant at 300 Hz
+					hover_throttle = THROTTLE_ALPHA * hover_throttle + (1-THROTTLE_ALPHA) * pt->t;
+
+					// Update uavo every 256 cycles to avoid
+					// telemetry spam
+					if (!((update_counter++) & 0xff)) {
+						UpdateSystemIdent(X, noise, dT_s, update_counter, at_points_spilled, hover_throttle);
 					}
 
 					/* Free the buffer containing an AT point */
@@ -377,7 +390,7 @@ static void AutotuneTask(void *parameters)
 
 				// Wait until disarmed and landed before saving the settings
 
-				UpdateSystemIdent(X, noise, 0, update_counter, at_points_spilled);
+				UpdateSystemIdent(X, noise, 0, update_counter, at_points_spilled, hover_throttle);
 
 				state = AT_WAITING;	// Fall through
 
