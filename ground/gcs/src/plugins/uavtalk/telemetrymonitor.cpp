@@ -253,9 +253,6 @@ void TelemetryMonitor::retrieveNextObject()
             TELEMETRYMONITOR_QXTLOG_DEBUG(QString("%0 connectionStatus set to CON_CONNECTED_MANAGED( %1 )").arg(Q_FUNC_INFO).arg(connectionStatus));
             connectionStatus = CON_CONNECTED_UNMANAGED;
         }
-        //restart periodic updates on the FC
-        sessionObj->setObjectOfInterestIndex(0xFF);
-        sessionObj->updated();
         foreach (UAVDataObject * uavo, delayedUpdate) {
             uavo->setIsPresentOnHardware(true);
         }
@@ -356,8 +353,6 @@ void TelemetryMonitor::sessionObjUnpackedCB(UAVObject *obj)
     case CON_INITIALIZING:
         if(sessions.contains(sessionObj->getSessionID()) && (sessions.value(sessionObj->getSessionID()).count() == sessionObj->getNumberOfObjects()))
         {
-            sessionObj->setObjectOfInterestIndex(0xFE);
-            sessionObj->updated();
             sessionID = sessionObj->getSessionID();
             numberOfObjects = sessionObj->getNumberOfObjects();
             TELEMETRYMONITOR_QXTLOG_DEBUG(QString("%0 status:%1 session already known startRetrievingObjects").arg(Q_FUNC_INFO).arg(connectionStatus));

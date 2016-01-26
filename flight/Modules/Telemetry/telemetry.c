@@ -59,14 +59,11 @@
 // Private variables
 static struct pios_queue *queue;
 
-static struct pios_thread *telemetryTxTaskHandle;
-static struct pios_thread *telemetryRxTaskHandle;
 static uint32_t txErrors;
 static uint32_t txRetries;
 static uint32_t timeOfLastObjectUpdate;
 static UAVTalkConnection uavTalkCon;
-static bool pausePeriodicUpdates;
-static uint32_t pausePeriodicUpdatesTime;
+
 // Private functions
 static void telemetryTxTask(void *parameters);
 static void telemetryRxTask(void *parameters);
@@ -82,7 +79,6 @@ static uintptr_t getComPort();
 static void session_managing_updated(UAVObjEvent * ev, void *ctx, void *obj,
 		int len);
 static void update_object_instances(uint32_t obj_id, uint32_t inst_id);
-static void check_pause_periodic_updates_timeout();
 
 /**
  * Initialise the telemetry module
@@ -101,6 +97,9 @@ int32_t TelemetryStart(void)
 	// Listen to objects of interest
 	GCSTelemetryStatsConnectQueue(queue);
     
+	struct pios_thread *telemetryTxTaskHandle;
+	struct pios_thread *telemetryRxTaskHandle;
+
 	// Start telemetry tasks
 	telemetryTxTaskHandle = PIOS_Thread_Create(telemetryTxTask, "TelTx", STACK_SIZE_BYTES, NULL, TASK_PRIORITY_TX);
 	telemetryRxTaskHandle = PIOS_Thread_Create(telemetryRxTask, "TelRx", STACK_SIZE_BYTES, NULL, TASK_PRIORITY_RX);
@@ -275,16 +274,9 @@ static void processObjEvent(UAVObjEvent * ev)
 		if (ev->event == EV_UPDATED || ev->event == EV_UPDATED_MANUAL ||
 				((ev->event == EV_UPDATED_PERIODIC) && (updateMode != UPDATEMODE_THROTTLED))) {
 			// Send update to GCS (with retries)
-			if (pausePeriodicUpdates) {
-				check_pause_periodic_updates_timeout();
-			}
 			while (retries < MAX_RETRIES && success == -1) {
-				if ((ev->obj !=FlightTelemetryStatsHandle()) && (ev->event == EV_UPDATED_PERIODIC) && pausePeriodicUpdates) {
-					success = 0;
-				} else {
-					success = UAVTalkSendObject(uavTalkCon, ev->obj, ev->instId, UAVObjGetTelemetryAcked(
-										&metadata), REQ_TIMEOUT_MS);                                                    // call blocks until ack is received or timeout
-				}
+				success = UAVTalkSendObject(uavTalkCon, ev->obj, ev->instId, UAVObjGetTelemetryAcked(&metadata), REQ_TIMEOUT_MS);	// call blocks until ack is received or timeout
+
 				++retries;
 			}
 			// Update stats
@@ -309,17 +301,8 @@ static void processObjEvent(UAVObjEvent * ev)
 			int32_t eventMask = getEventMask(ev->obj, queue);
 
 			if (eventMask & EV_UPDATED_THROTTLED_DIRTY) { // If EV_UPDATED_THROTTLED_DIRTY flag is set then send the data like normal.
-				// Send update to GCS (with retries)
-				if (pausePeriodicUpdates) {
-					check_pause_periodic_updates_timeout();
-				}
 				while (retries < MAX_RETRIES && success == -1) {
-					if (pausePeriodicUpdates) {
-						success = 0;
-					} else {
-						success = UAVTalkSendObject(uavTalkCon, ev->obj, ev->instId, UAVObjGetTelemetryAcked(
-											&metadata), REQ_TIMEOUT_MS);                                                    // call blocks until ack is received or timeout
-					}
+					success = UAVTalkSendObject(uavTalkCon, ev->obj, ev->instId, UAVObjGetTelemetryAcked(&metadata), REQ_TIMEOUT_MS);
 					++retries;
 				}
 				// Update stats
@@ -371,7 +354,6 @@ static void telemetryTxTask(void *parameters)
  */
 static void telemetryRxTask(void *parameters)
 {
-
 	// Task loop
 	while (1) {
 		uintptr_t inputPort = getComPort();
@@ -581,13 +563,6 @@ static void session_managing_updated(UAVObjEvent * ev, void *ctx, void *obj, int
 			sessionManaging.ObjectInstances = 0;
 			sessionManaging.NumberOfObjects = UAVObjCount();
 			sessionManaging.ObjectOfInterestIndex = 0;
-			pausePeriodicUpdates = true;
-			pausePeriodicUpdatesTime = PIOS_Thread_Systime();
-		} else if (sessionManaging.ObjectOfInterestIndex == 0xFF) {
-			pausePeriodicUpdates = false;
-		} else if (sessionManaging.ObjectOfInterestIndex == 0xFE) {
-			pausePeriodicUpdates = true;
-			pausePeriodicUpdatesTime = PIOS_Thread_Systime();
 		} else {
 			uint8_t index = sessionManaging.ObjectOfInterestIndex;
 			sessionManaging.ObjectID = UAVObjIDByIndex(index);
@@ -613,20 +588,6 @@ static void update_object_instances(uint32_t obj_id, uint32_t inst_id)
 	SessionManagingSet(&sessionManaging);
 }
 
-/**
- * Checks the periodic updates pause timeout
- * This is called from the uavobjectmanager
- * \param[in] obj_id The id of the object which had a new instance created
- * \param[in] inst_id the instance ID that was created
- */
-static void check_pause_periodic_updates_timeout()
-{
-	uint32_t timeNow;
-	timeNow = PIOS_Thread_Systime();
-	if ((timeNow - pausePeriodicUpdatesTime) > PAUSE_PERIODIC_UPDATE_TIMEOUT) {
-		pausePeriodicUpdates = false;
-	}
-}
 /**
   * @}
   * @}
