@@ -1277,7 +1277,6 @@ uploader::UploaderStatus UploaderGadgetWidget::getUploaderStatus() const
  */
 void UploaderGadgetWidget::setUploaderStatus(const uploader::UploaderStatus &value)
 {
-    qDebug()<< "STATUS="<<value;
     uploaderStatus = value;
     switch (uploaderStatus) {
     case uploader::DISCONNECTED:
