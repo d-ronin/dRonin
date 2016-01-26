@@ -72,7 +72,7 @@ void printPortInfo(struct udev_device *dev)
 
 void USBMonitor::deviceEventReceived() {
 
-    qDebug() << "Device event";
+    USB_MON_QXTLOG_DEBUG("Device event");
     struct udev_device *dev;
 
     dev = udev_monitor_receive_device(this->monitor);
