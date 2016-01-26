@@ -32,6 +32,7 @@ install:
 	dh_installdirs
 	dh_installudev --priority=45
 	# Add here commands to install the package into debian/<packagename>
+	cp -arp <FIRMWARE_ROOT>/*  <TARGET_ROOT>/<BRANDING_PACKAGE_SOURCE>/usr/local/<BRANDING_PACKAGE_PRETTY>/firmware
 	cp -arp <BIN_ROOT>/lib   <TARGET_ROOT>/<BRANDING_PACKAGE_SOURCE>/usr/local/<BRANDING_PACKAGE_PRETTY>
 	cp -arp <BIN_ROOT>/share <TARGET_ROOT>/<BRANDING_PACKAGE_SOURCE>/usr/local/<BRANDING_PACKAGE_PRETTY>
 	cp -arp <BIN_ROOT>/bin   <TARGET_ROOT>/<BRANDING_PACKAGE_SOURCE>/usr/local/<BRANDING_PACKAGE_PRETTY>
