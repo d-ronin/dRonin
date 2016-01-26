@@ -29,7 +29,7 @@
 
 #include <QApplication>
 
-#define TL_DFU_DEBUG
+//#define TL_DFU_DEBUG
 #ifdef TL_DFU_DEBUG
 #define TL_DFU_QXTLOG_DEBUG(...) qDebug()<<__VA_ARGS__
 #else  // TL_DFU_DEBUG
@@ -106,7 +106,7 @@ bool DFUObject::StartUpload(qint32 const & numberOfBytes, dfu_partition_label co
 bool DFUObject::UploadData(qint32 const & numberOfBytes, QByteArray  & data)
 {
     messagePackets msg = CalculatePadding(numberOfBytes);
-    TL_DFU_DEBUG(QString("Start Uploading:%0 4byte packets").arg(msg.numberOfPackets));
+    TL_DFU_QXTLOG_DEBUG(QString("Start Uploading:%0 4byte packets").arg(msg.numberOfPackets));
     bl_messages message;
     message.flags_command = BL_MSG_WRITE_CONT;
     int packetsize;
@@ -152,7 +152,7 @@ QByteArray DFUObject::DownloadDescriptionAsByteArray(int const & numberOfChars)
   */
 bool DFUObject::DownloadPartitionThreaded(QByteArray *firmwareArray, dfu_partition_label partition, int size)
 {
-    qDebug()<<"DOWNLOAD PARTITION- SETTING DOWNLOAD CONFIG PARTITION="<<partition<<" SIZE:"<<size;
+    TL_DFU_QXTLOG_DEBUG("DOWNLOAD PARTITION- SETTING DOWNLOAD CONFIG PARTITION=", partition, " SIZE:", size);
     if (isRunning())
         return false;
     threadJob.requestedOperation = ThreadJobStruc::Download;
@@ -185,14 +185,14 @@ void DFUObject::run()
     tl_dfu::Status uploadStatus;
     switch (threadJob.requestedOperation) {
     case ThreadJobStruc::Download:
-        qDebug()<<"DOWNLOAD THREAD STARTED";
+        TL_DFU_QXTLOG_DEBUG("DOWNLOAD THREAD STARTED");
         downloadResult = DownloadPartition(threadJob.requestStorage, threadJob.requestSize, threadJob.requestTransferType);
-        qDebug()<<"DOWNLOAD FINISHED";
+        TL_DFU_QXTLOG_DEBUG("DOWNLOAD FINISHED");
         emit downloadFinished(downloadResult);
         break;
     case ThreadJobStruc::Upload:
         uploadStatus = UploadPartition(*threadJob.requestStorage,threadJob.requestTransferType);
-        qDebug()<<"UPLOAD FINISHED";
+        TL_DFU_QXTLOG_DEBUG("UPLOAD FINISHED");
         emit uploadFinished(uploadStatus);
         break;
     default:
@@ -220,6 +220,7 @@ bool DFUObject::DownloadPartition(QByteArray *fw, qint32 const & numberOfBytes, 
     message.v.xfer_start.label = partition;
 
     int result = SendData(message);
+    Q_UNUSED(result);
 
     TL_DFU_QXTLOG_DEBUG(QString("StartDownload %0 Last Packet Size %1 Bytes sent %2").arg(msg.numberOfPackets).arg(msg.lastPacketCount).arg(result));
     float percentage;
@@ -252,7 +253,7 @@ bool DFUObject::DownloadPartition(QByteArray *fw, qint32 const & numberOfBytes, 
             size = 14 * 4;
         fw->append((char*)message.v.xfer_cont.data, size);
     }
-    qDebug()<<"STATUS="<<StatusRequest();
+    TL_DFU_QXTLOG_DEBUG("STATUS=", StatusRequest());
     return true;
 }
 
@@ -324,10 +325,11 @@ tl_dfu::Status DFUObject::StatusRequest()
     bl_messages message;
     message.flags_command = BL_MSG_STATUS_REQ;
     int result = SendData(message);
+    Q_UNUSED(result);
 
     TL_DFU_QXTLOG_DEBUG(QString("StatusRequest:%0 bytes sent").arg(result));
     result = ReceiveData(message);
-    qDebug()<< result;//TODO CHECK LENGHT
+    TL_DFU_QXTLOG_DEBUG(result);//TODO CHECK LENGHT
     TL_DFU_QXTLOG_DEBUG(QString("StatusRequest:%0 bytes received").arg(result));
     if(message.flags_command == BL_MSG_STATUS_REP)
     {
@@ -388,9 +390,9 @@ device DFUObject::findCapabilities()
             for(int partition = 0;partition < 10;++partition)
                 TL_DFU_QXTLOG_DEBUG(QString("Partition %0 Size %1").arg(partition).arg(currentDevice.PartitionSizes.at(partition)));
             currentDevice.PartitionSizes.resize(currentDevice.PartitionSizes.indexOf(0));
-        }
-        else
+        } else {
             TL_DFU_QXTLOG_DEBUG("No partition found, probably using old bootloader");
+        }
     }
     return currentDevice;
 }
@@ -632,7 +634,7 @@ quint32 DFUObject::CRCFromQBArray(QByteArray array, quint32 Size)
     // If the size is greater than the provided code then
     // pad the end with 0xFF
     if ((int) Size > array.length()) {
-        qDebug() << "Padding";
+        TL_DFU_QXTLOG_DEBUG("Padding");
         quint32 pad = Size - array.length();
         array.append( QByteArray(pad, 255) );
     }

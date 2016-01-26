@@ -29,10 +29,3 @@ FORMS += \
 
 RESOURCES += \
     uploader.qrc
-
-exists(../../../../../build/ground/tlfw_resource/tlfw_resource.qrc ) {
-    RESOURCES += ../../../../../build/ground/tlfw_resource/tlfw_resource.qrc
-} else {
-    message("tlfw_resource.qrc not found.  Automatically firmware updates disabled.")
-}
-
