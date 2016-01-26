@@ -155,7 +155,13 @@ ConfigCcpmWidget::ConfigCcpmWidget(QWidget *parent) : VehicleConfig(parent)
              QString::fromUtf8("Coax 2 Servo 90º")  <<
              QString::fromUtf8("Custom - User Angles") << QString::fromUtf8("Custom - Advanced Settings");
     m_ccpm->ccpmType->addItems(Types);
-    m_ccpm->ccpmType->setCurrentIndex(m_ccpm->ccpmType->count() - 1);
+
+    // set default swashplate config to CCPM 3 Servo 120 degrees
+    // need to set the index for the dropdown list and update the UI config using that index
+    m_ccpm->ccpmType->setCurrentIndex(m_ccpm->ccpmType->findText(QString::fromUtf8("CCPM 3 Servo 120º")));
+    GUIConfigDataUnion config = GetConfigData();
+    config.heli.SwashplateType = m_ccpm->ccpmType->count() - m_ccpm->ccpmType->currentIndex()-1;
+    SetConfigData(config);
 
     refreshAirframeWidgetsValues(SystemSettings::AIRFRAMETYPE_HELICP);
 
