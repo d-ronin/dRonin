@@ -130,13 +130,9 @@ ConfigCcpmWidget::ConfigCcpmWidget(QWidget *parent) : VehicleConfig(parent)
 
     }
 
-    //initialize our two mixer curves
+    //initialize our throttle mixer curve
     // mixercurve defaults to mixercurve_throttle
     m_ccpm->ThrottleCurve->initLinearCurve(5, 1.0, 0.0);
-
-    // tell mixercurve this is a pitch curve
-    m_ccpm->PitchCurve->setMixerType(MixerCurve::MIXERCURVE_OTHER);
-    m_ccpm->PitchCurve->initLinearCurve(5, 1.0, -1.0);
 
     //initialize channel names
     m_ccpm->ccpmEngineChannel->addItems(channelNames);
@@ -162,6 +158,13 @@ ConfigCcpmWidget::ConfigCcpmWidget(QWidget *parent) : VehicleConfig(parent)
     m_ccpm->ccpmType->setCurrentIndex(m_ccpm->ccpmType->count() - 1);
 
     refreshAirframeWidgetsValues(SystemSettings::AIRFRAMETYPE_HELICP);
+
+    //initialize our collective mixer curve
+    // refreshAirframeWidgetsValues triggers a whole cascade of curve-related calls
+    // need set the collective curve info after this point to make it stick
+    // tell mixercurve this is a pitch curve
+    m_ccpm->PitchCurve->setMixerType(MixerCurve::MIXERCURVE_OTHER);
+    m_ccpm->PitchCurve->initLinearCurve(5, 1.0, -1.0);
 
     UpdateType();
 
