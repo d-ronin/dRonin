@@ -59,14 +59,6 @@
 // Private variables
 static struct pios_queue *queue;
 
-#if defined(PIOS_TELEM_PRIORITY_QUEUE)
-static struct pios_queue *priorityQueue;
-static struct pios_thread *telemetryTxPriTaskHandle;
-static void telemetryTxPriTask(void *parameters);
-#else
-#define priorityQueue queue
-#endif
-
 static struct pios_thread *telemetryTxTaskHandle;
 static struct pios_thread *telemetryRxTaskHandle;
 static uint32_t txErrors;
@@ -105,11 +97,10 @@ int32_t TelemetryStart(void)
 	// Create periodic event that will be used to update the telemetry stats
 	UAVObjEvent ev;
 	memset(&ev, 0, sizeof(UAVObjEvent));
-	EventPeriodicQueueCreate(&ev, priorityQueue, STATS_UPDATE_PERIOD_MS);
 
 	// Listen to objects of interest
-	GCSTelemetryStatsConnectQueue(priorityQueue);
-
+	GCSTelemetryStatsConnectQueue(queue);
+    
 	// Start telemetry tasks
 	telemetryTxTaskHandle = PIOS_Thread_Create(telemetryTxTask, "TelTx", STACK_SIZE_BYTES, NULL, TASK_PRIORITY_TX);
 	telemetryRxTaskHandle = PIOS_Thread_Create(telemetryRxTask, "TelRx", STACK_SIZE_BYTES, NULL, TASK_PRIORITY_RX);
@@ -134,10 +125,10 @@ int32_t TelemetryInitialize(void)
 
 	// Create object queues
 	queue = PIOS_Queue_Create(MAX_QUEUE_SIZE, sizeof(UAVObjEvent));
-#if defined(PIOS_TELEM_PRIORITY_QUEUE)
-	priorityQueue = PIOS_Queue_Create(MAX_QUEUE_SIZE, sizeof(UAVObjEvent));
-#endif
 
+	// Update telemetry settings
+	updateSettings();
+    
 	// Initialise UAVTalk
 	uavTalkCon = UAVTalkInitialize(&transmitData);
 
@@ -161,7 +152,7 @@ static void registerObject(UAVObjHandle obj)
 {
 	if (UAVObjIsMetaobject(obj)) {
 		/* Only connect change notifications for meta objects.  No periodic updates */
-		UAVObjConnectQueue(obj, priorityQueue, EV_MASK_ALL_UPDATES);
+		UAVObjConnectQueue(obj, queue, EV_MASK_ALL_UPDATES);
 		return;
 	} else {
 		UAVObjMetadata metadata;
@@ -215,14 +206,14 @@ static void updateObject(UAVObjHandle obj, int32_t eventType)
 		setUpdatePeriod(obj, metadata.telemetryUpdatePeriod);
 		// Connect queue
 		eventMask = EV_UPDATED_PERIODIC | EV_UPDATED_MANUAL | EV_UPDATE_REQ;
-		UAVObjConnectQueue(obj, priorityQueue, eventMask);
+		UAVObjConnectQueue(obj, queue, eventMask);
 		break;
 	case UPDATEMODE_ONCHANGE:
 		// Set update period
 		setUpdatePeriod(obj, 0);
 		// Connect queue
 		eventMask = EV_UPDATED | EV_UPDATED_MANUAL | EV_UPDATE_REQ;
-		UAVObjConnectQueue(obj, priorityQueue, eventMask);
+		UAVObjConnectQueue(obj, queue, eventMask);
 		break;
 	case UPDATEMODE_THROTTLED:
 		if ((eventType == EV_UPDATED_PERIODIC) || (eventType == EV_NONE)) {
@@ -232,7 +223,7 @@ static void updateObject(UAVObjHandle obj, int32_t eventType)
 			if (eventType == EV_NONE)
 				setUpdatePeriod(obj, metadata.telemetryUpdatePeriod);
 		} else {
-			eventMask = getEventMask(obj, priorityQueue);
+			eventMask = getEventMask(obj, queue);
 			if (eventMask & EV_UPDATED_PERIODIC) {
 				// If periodic flag is already set then we have previously sent an update during
 				// the timeout period and this update would be missed, so set the dirty flag.
@@ -245,14 +236,14 @@ static void updateObject(UAVObjHandle obj, int32_t eventType)
 				eventMask = EV_UPDATED_PERIODIC | EV_UPDATED | EV_UPDATED_MANUAL | EV_UPDATE_REQ;
 			}
 		}
-		UAVObjConnectQueue(obj, priorityQueue, eventMask);
+		UAVObjConnectQueue(obj, queue, eventMask);
 		break;
 	case UPDATEMODE_MANUAL:
 		// Set update period
 		setUpdatePeriod(obj, 0);
 		// Connect queue
 		eventMask = EV_UPDATED_MANUAL | EV_UPDATE_REQ;
-		UAVObjConnectQueue(obj, priorityQueue, eventMask);
+		UAVObjConnectQueue(obj, queue, eventMask);
 		break;
 	}
 }
@@ -315,7 +306,7 @@ static void processObjEvent(UAVObjEvent * ev)
 		} else if (ev->event == EV_UPDATED_PERIODIC && updateMode == UPDATEMODE_THROTTLED) {
 
 			// Get the event mask
-			int32_t eventMask = getEventMask(ev->obj, priorityQueue);
+			int32_t eventMask = getEventMask(ev->obj, queue);
 
 			if (eventMask & EV_UPDATED_THROTTLED_DIRTY) { // If EV_UPDATED_THROTTLED_DIRTY flag is set then send the data like normal.
 				// Send update to GCS (with retries)
@@ -374,25 +365,6 @@ static void telemetryTxTask(void *parameters)
 		}
 	}
 }
-
-/**
- * Telemetry transmit task, high priority
- */
-#if defined(PIOS_TELEM_PRIORITY_QUEUE)
-static void telemetryTxPriTask(void *parameters)
-{
-	UAVObjEvent ev;
-
-	// Loop forever
-	while (1) {
-		// Wait for queue message
-		if (PIOS_Queue_Receive(priorityQueue, &ev, PIOS_QUEUE_TIMEOUT_MAX) == true) {
-			// Process event
-			processObjEvent(&ev);
-		}
-	}
-}
-#endif
 
 /**
  * Telemetry transmit task. Processes queue events and periodic updates.
