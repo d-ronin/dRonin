@@ -44,7 +44,7 @@
 
 using namespace tl_dfu;
 
-DFUObject::DFUObject()
+DFUObject::DFUObject() : m_hidHandle(NULL)
 {
     qRegisterMetaType<tl_dfu::Status>("TL_DFU::Status");
 }
