@@ -44,15 +44,14 @@
 
 using namespace tl_dfu;
 
-DFUObject::DFUObject() : open(false)
+DFUObject::DFUObject()
 {
     qRegisterMetaType<tl_dfu::Status>("TL_DFU::Status");
 }
 
 DFUObject::~DFUObject()
 {
-    if (open)
-        hid_close(m_hidHandle);
+    CloseBootloaderComs();
 }
 
 /**
@@ -411,10 +410,9 @@ device DFUObject::findCapabilities()
 bool DFUObject::OpenBootloaderComs(USBPortInfo port)
 {
     // If device was unplugged the previous coms are
-    // not closed. We must close it before openning
+    // not closed. We must close it before opening
     // a new one.
-    if (open)
-        CloseBootloaderComs();
+    CloseBootloaderComs();
 
     QEventLoop m_eventloop;
     QTimer::singleShot(200,&m_eventloop, SLOT(quit()));
@@ -429,22 +427,21 @@ bool DFUObject::OpenBootloaderComs(USBPortInfo port)
         if(!EnterDFU())
         {
             TL_DFU_QXTLOG_DEBUG(QString("Could not process enterDFU command"));
-            hid_close(m_hidHandle);
+            CloseBootloaderComs();
             return false;
         }
         if(StatusRequest() != tl_dfu::DFUidle)
         {
             TL_DFU_QXTLOG_DEBUG(QString("Status different that DFUidle after enterDFU command"));
-            hid_close(m_hidHandle);
+            CloseBootloaderComs();
             return false;
         }
 
-        open = true;
         return true;
     } else
     {
         TL_DFU_QXTLOG_DEBUG(QString("Could not open USB port"));
-        hid_close(m_hidHandle);
+        CloseBootloaderComs();
         return false;
     }
     return false;
@@ -455,9 +452,11 @@ bool DFUObject::OpenBootloaderComs(USBPortInfo port)
   */
 void DFUObject::CloseBootloaderComs()
 {
-    hid_close(m_hidHandle);
-    m_hidHandle = NULL;
-    open = false;
+    if (m_hidHandle) {
+        hid_close(m_hidHandle);
+
+        m_hidHandle = NULL;
+    }
 }
 
 /**
