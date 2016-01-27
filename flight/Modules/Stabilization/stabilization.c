@@ -346,10 +346,6 @@ static void stabilizationTask(void* parameters)
 			// Apply the selected control law
 			switch(stabDesired.StabilizationMode[i])
 			{
-				case STABILIZATIONDESIRED_STABILIZATIONMODE_MANUAL:
-					actuatorDesiredAxis[i] = stabDesiredAxis[i];
-					break;
-
 				case STABILIZATIONDESIRED_STABILIZATIONMODE_RATE:
 					if(reinit)
 						pids[PID_GROUP_RATE + i].iAccumulator = 0;
@@ -746,7 +742,10 @@ static void stabilizationTask(void* parameters)
 					actuatorDesiredAxis[i] = bound_sym(actuatorDesiredAxis[i],1.0f);
 
 					break;
-				case STABILIZATIONDESIRED_STABILIZATIONMODE_NONE:
+				case STABILIZATIONDESIRED_STABILIZATIONMODE_DISABLED:
+					actuatorDesiredAxis[i] = 0.0;
+					break;
+				case STABILIZATIONDESIRED_STABILIZATIONMODE_MANUAL:
 					actuatorDesiredAxis[i] = bound_sym(stabDesiredAxis[i],1.0f);
 					break;
 				default:
