@@ -149,7 +149,8 @@ void FGSimulator::transmitUpdate()
     // Read ActuatorDesired from autopilot
     actData = actDesired->getData();
 
-    if(flightStatusData.Armed == FlightStatus::ARMED_ARMED)
+    // if we're in any mode other than manual, or if we're in manual and we're armed, update outputs from ActuatorDesired
+    if(flightStatus->getFlightMode() != FlightStatus::FLIGHTMODE_MANUAL || flightStatusData.Armed == FlightStatus::ARMED_ARMED)
     {
         ailerons = actData.Roll;
         elevator = -actData.Pitch;
