@@ -361,7 +361,7 @@ bool Revolution::bindRadio(quint32 id, quint32 baud_rate, float rf_power,
     return true;
 }
 
-QStringList RevoMini::getAdcNames()
+QStringList Revolution::getAdcNames()
 {
     return QStringList() << "Pwr Sen Pin 3" << "Pwr Sen Pin 4";
 }
