@@ -7,6 +7,7 @@
 				<option>Disabled</option>
 				<option>PPM</option>
 				<option>S.Bus</option>
+				<option>S.Bus Non Inverted</option>
 				<option>DSM</option>
 				<option>HoTT SUMD</option>
 				<option>HoTT SUMH</option>
@@ -22,6 +23,7 @@
 				<option>GPS</option>
 				<option>I2C</option>
 				<option>S.Bus</option>
+				<option>S.Bus Non Inverted</option>
 				<option>DSM</option>
 				<option>MavLinkTX</option>
 				<option>MavLinkTX_GPS_RX</option>
@@ -41,6 +43,7 @@
 				<option>ComBridge</option>
 				<option>GPS</option>
 				<option>S.Bus</option>
+				<option>S.Bus Non Inverted</option>
 				<option>DSM</option>
 				<option>MavLinkTX</option>
 				<option>MavLinkTX_GPS_RX</option>
