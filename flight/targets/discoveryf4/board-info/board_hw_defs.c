@@ -383,14 +383,6 @@ const struct pios_flash_partition * PIOS_BOARD_HW_DEFS_GetPartitionTable (uint32
 static const struct pios_usart_cfg pios_usart3_cfg = {
 	.regs = USART3,
 	.remap = GPIO_AF_USART3,
-	.init = {
-		.USART_BaudRate = 57600,
-		.USART_WordLength = USART_WordLength_8b,
-		.USART_Parity = USART_Parity_No,
-		.USART_StopBits = USART_StopBits_1,
-		.USART_HardwareFlowControl = USART_HardwareFlowControl_None,
-		.USART_Mode = USART_Mode_Rx | USART_Mode_Tx,
-	},
 	.irq = {
 		.init = {
 			.NVIC_IRQChannel = USART3_IRQn,

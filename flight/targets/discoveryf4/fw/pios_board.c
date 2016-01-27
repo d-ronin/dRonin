@@ -198,19 +198,15 @@ void panic(int32_t code) {
 
     PIOS_HAL_ConfigurePort(hw_mainport,          // port type protocol
             &pios_usart3_cfg,                    // usart_port_cfg
-            &pios_usart3_cfg,                    // frsky usart_port_cfg
             &pios_usart_com_driver,              // com_driver
             NULL,                                // i2c_id
             NULL,                                // i2c_cfg
             NULL,                                // ppm_cfg
             NULL,                                // pwm_cfg
             PIOS_LED_ALARM,                      // led_id
-            NULL,                                // usart_dsm_hsum_cfg
             NULL,                                // dsm_cfg
             0,                                   // dsm_mode
-            NULL,                                // sbus_rcvr_cfg
-            NULL,                                // sbus_cfg    
-            false);                              // sbus_toggle
+            NULL);                               // sbus_cfg
 
 #if defined(PIOS_INCLUDE_GCSRCVR)
 	GCSReceiverInitialize();
