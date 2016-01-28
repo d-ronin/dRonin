@@ -570,6 +570,9 @@ void simple_artificial_horizon(float roll, float pitch, int16_t x, int16_t y, in
 	int16_t pp_y2;
 
 	float camera_tilt;
+
+	int pitch_step_offset;
+
 	StabilizationSettingsCameraTiltGet(&camera_tilt);
 
 	width /= 2;
@@ -580,51 +583,71 @@ void simple_artificial_horizon(float roll, float pitch, int16_t x, int16_t y, in
 
 	pitch += camera_tilt;
 
-	// roll to pitch transformation
-	pp_x        = x + width * ((sin_roll * pitch) / (float)max_pitch);
-	pp_y        = y + height * ((cos_roll * pitch) / (float)max_pitch);
+	pitch_step_offset = pitch / PITCH_STEP;
 
-	// main horizon
+	/* how many degrees the "lines" are offset from their ideal pos
+	 * since we need both, don't do fmodf.. */
+	float modulo_pitch = pitch - pitch_step_offset * 10.0f;
+
+	// roll to pitch transformation
+	pp_x        = x + width * ((sin_roll * modulo_pitch) / (float)max_pitch);
+	pp_y        = y + height * ((cos_roll * modulo_pitch) / (float)max_pitch);
+
 	d_x = cos_roll * width / 2;
 	d_y = sin_roll * height / 2;
-	write_line_outlined(pp_x - d_x, pp_y + d_y, pp_x - d_x / 3, pp_y + d_y / 3, 2, 2, 0, 1);
-	write_line_outlined(pp_x + d_x / 3, pp_y - d_y / 3, pp_x + d_x, pp_y - d_y, 2, 2, 0, 1);
 
-	// 10 degree steps
 	d_x = 3 * d_x / 4;
 	d_y = 3 * d_y / 4;
 	d_x2 = 3 * d_x / 4;
 	d_y2 = 3 * d_y / 4;
 
-	d_x_10 = width * sin_roll * 10.f / (float)max_pitch;
-	d_y_10 = height * cos_roll * 10.f / (float)max_pitch;
+	d_x_10 = width * sin_roll * PITCH_STEP / (float)max_pitch;
+	d_y_10 = height * cos_roll * PITCH_STEP / (float)max_pitch;
+
 	d_x_2 = d_x_10 / 6;
 	d_y_2 = d_y_10 / 6;
 
-	for (int i = 1; i<=n_pitch_steps; i++) {
-		sprintf(tmp_str, "%d", i * PITCH_STEP);
+	for (int i = (-max_pitch / 10)-1; i<(max_pitch/10)+1; i++) {
+		int angle = (pitch_step_offset + i);
+
+		if (angle < -n_pitch_steps) continue;
+		if (angle > n_pitch_steps) continue;
+
+		angle *= PITCH_STEP;
+
+		/* Wraparound */
+		if (angle > 90) {
+			angle = 180 - angle;
+		} else if (angle < -90) {
+			angle = -180 - angle;
+		}
 
 		pp_x2 = pp_x - i * d_x_10;
 		pp_y2 = pp_y - i * d_y_10;
 
-		write_line_outlined(pp_x2 - d_x2, pp_y2 + d_y2, pp_x2 + d_x2, pp_y2 - d_y2, 2, 2, 0, 1);
-		write_line_outlined(pp_x2 - d_x2, pp_y2 + d_y2, pp_x2 - d_x2 + d_x_2, pp_y2 + d_y2 + d_y_2, 2, 2, 0, 1);
-		write_line_outlined(pp_x2 + d_x2, pp_y2 - d_y2, pp_x2 + d_x2 + d_x_2, pp_y2 - d_y2 + d_y_2, 2, 2, 0, 1);
+		sprintf(tmp_str, "%d", angle);
 
-		write_string(tmp_str, pp_x2 - d_x - 4, pp_y2 + d_y, 0, 0, TEXT_VA_MIDDLE, TEXT_HA_CENTER, 0, 1);
-		write_string(tmp_str, pp_x2 + d_x + 4, pp_y2 - d_y, 0, 0, TEXT_VA_MIDDLE, TEXT_HA_CENTER, 0, 1);
+		if (angle < 0) {
+			write_line_outlined_dashed(pp_x2 - d_x2, pp_y2 + d_y2, pp_x2 + d_x2, pp_y2 - d_y2, 2, 2, 0, 1, 5);
+			write_line_outlined(pp_x2 - d_x2, pp_y2 + d_y2, pp_x2 - d_x2 - d_x_2, pp_y2 + d_y2 - d_y_2, 2, 2, 0, 1);
+			write_line_outlined(pp_x2 + d_x2, pp_y2 - d_y2, pp_x2 + d_x2 - d_x_2, pp_y2 - d_y2 - d_y_2, 2, 2, 0, 1);
 
-		pp_x2 = pp_x + i * d_x_10;
-		pp_y2 = pp_y + i * d_y_10;
+			write_string(tmp_str, pp_x2 - d_x - 4, pp_y2 + d_y, 0, 0, TEXT_VA_MIDDLE, TEXT_HA_CENTER, 0, 1);
+			write_string(tmp_str, pp_x2 + d_x + 4, pp_y2 - d_y, 0, 0, TEXT_VA_MIDDLE, TEXT_HA_CENTER, 0, 1);
+		} else if (angle > 0) {
+			write_line_outlined_dashed(pp_x2 - d_x2, pp_y2 + d_y2, pp_x2 + d_x2, pp_y2 - d_y2, 2, 2, 0, 1, 5);
+			write_line_outlined(pp_x2 - d_x2, pp_y2 + d_y2, pp_x2 - d_x2 - d_x_2, pp_y2 + d_y2 - d_y_2, 2, 2, 0, 1);
+			write_line_outlined(pp_x2 + d_x2, pp_y2 - d_y2, pp_x2 + d_x2 - d_x_2, pp_y2 - d_y2 - d_y_2, 2, 2, 0, 1);
 
-		write_line_outlined_dashed(pp_x2 - d_x2, pp_y2 + d_y2, pp_x2 + d_x2, pp_y2 - d_y2, 2, 2, 0, 1, 5);
-		write_line_outlined(pp_x2 - d_x2, pp_y2 + d_y2, pp_x2 - d_x2 - d_x_2, pp_y2 + d_y2 - d_y_2, 2, 2, 0, 1);
-		write_line_outlined(pp_x2 + d_x2, pp_y2 - d_y2, pp_x2 + d_x2 - d_x_2, pp_y2 - d_y2 - d_y_2, 2, 2, 0, 1);
-
-		write_string(tmp_str, pp_x2 - d_x - 4, pp_y2 + d_y, 0, 0, TEXT_VA_MIDDLE, TEXT_HA_CENTER, 0, 1);
-		write_string(tmp_str, pp_x2 + d_x + 4, pp_y2 - d_y, 0, 0, TEXT_VA_MIDDLE, TEXT_HA_CENTER, 0, 1);
+			write_string(tmp_str, pp_x2 - d_x - 4, pp_y2 + d_y, 0, 0, TEXT_VA_MIDDLE, TEXT_HA_CENTER, 0, 1);
+			write_string(tmp_str, pp_x2 + d_x + 4, pp_y2 - d_y, 0, 0, TEXT_VA_MIDDLE, TEXT_HA_CENTER, 0, 1);
+		} else {
+			write_line_outlined(pp_x2 - d_x, pp_y2 + d_y, pp_x2 - d_x / 3, pp_y2 + d_y / 3, 2, 2, 0, 1);
+			write_line_outlined(pp_x2 + d_x / 3, pp_y2 - d_y / 3, pp_x2 + d_x, pp_y2 - d_y, 2, 2, 0, 1);
+		}
 	}
 
+	/* Force the plane onto the screen... meh.  Should not be necessary */
 	if (camera_tilt > max_pitch) {
 		camera_tilt = max_pitch;
 	}
