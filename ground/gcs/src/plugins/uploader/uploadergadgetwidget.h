@@ -95,7 +95,6 @@ private slots:
     void onPartitionsBundleSave();
     void onPartitionsBundleFlash();
     void onBootButtonClick();
-    void onBootingTimout();
     void onAutoUpdateCount(int i);
     void openHelp();
     void onResetButtonClick();
@@ -135,7 +134,6 @@ private:
     uploader::UploaderStatus previousStatus;
     QByteArray tempArray;
     bool lastUploadResult;
-    QTimer bootTimeoutTimer;
 };
 }
 #endif // UPLOADERGADGETWIDGET_H
