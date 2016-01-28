@@ -7,7 +7,7 @@
  * @{
  *
  * @file       onscreendisplay.c
- * @author     dRonin, http://dronin.org Copyright (C) 2015
+ * @author     dRonin, http://dronin.org Copyright (C) 2015-2016
  * @author     Tau Labs, http://taulabs.org, Copyright (C) 2013-2014
  * @author     The OpenPilot Team, http://www.openpilot.org Copyright (C) 2010-2014.
  * @brief      OSD gen module, handles OSD draw. Parts from CL-OSD and SUPEROSD projects
@@ -92,6 +92,7 @@
 #include "homelocation.h"
 #include "manualcontrolcommand.h"
 #include "modulesettings.h"
+#include "stabilizationsettings.h"
 #include "stateestimation.h"
 #include "systemalarms.h"
 #include "systemstats.h"
@@ -551,8 +552,8 @@ void hud_draw_linear_compass(int v, int home_dir, int range, int width, int x, i
 #define CENTER_WING       7
 #define CENTER_RUDDER     5
 #define PITCH_STEP       10
-void simple_artifical_horizon(float roll, float pitch, int16_t x, int16_t y, int16_t width, int16_t height,
-							  int8_t max_pitch, uint8_t n_pitch_steps)
+void simple_artificial_horizon(float roll, float pitch, int16_t x, int16_t y, int16_t width, int16_t height,
+		int8_t max_pitch, uint8_t n_pitch_steps, bool center_mark)
 {
 	float sin_roll;
 	float cos_roll;
@@ -567,20 +568,26 @@ void simple_artifical_horizon(float roll, float pitch, int16_t x, int16_t y, int
 	int16_t pp_x2;
 	int16_t pp_y2;
 
+	float camera_tilt;
+	StabilizationSettingsCameraTiltGet(&camera_tilt);
+
+	width /= 2;
+	height /= 2;
 
 	sin_roll    = sinf(roll * (float)(M_PI / 180));
 	cos_roll    = cosf(roll * (float)(M_PI / 180));
 
+	pitch += camera_tilt;
+
 	// roll to pitch transformation
-	pp_x        = x * (1 + (sin_roll * pitch) / (float)max_pitch);
-	pp_y        = y * (1 + (cos_roll * pitch) / (float)max_pitch);
+	pp_x        = x + width * ((sin_roll * pitch) / (float)max_pitch);
+	pp_y        = y + height * ((cos_roll * pitch) / (float)max_pitch);
 
 	// main horizon
 	d_x = cos_roll * width / 2;
-	d_y = sin_roll * width / 2;
+	d_y = sin_roll * height / 2;
 	write_line_outlined(pp_x - d_x, pp_y + d_y, pp_x - d_x / 3, pp_y + d_y / 3, 2, 2, 0, 1);
 	write_line_outlined(pp_x + d_x / 3, pp_y - d_y / 3, pp_x + d_x, pp_y - d_y, 2, 2, 0, 1);
-
 
 	// 10 degree steps
 	d_x = 3 * d_x / 4;
@@ -588,8 +595,8 @@ void simple_artifical_horizon(float roll, float pitch, int16_t x, int16_t y, int
 	d_x2 = 3 * d_x / 4;
 	d_y2 = 3 * d_y / 4;
 
-	d_x_10 = x * sin_roll * 10.f / (float)max_pitch;
-	d_y_10 = y * cos_roll * 10.f / (float)max_pitch;
+	d_x_10 = width * sin_roll * 10.f / (float)max_pitch;
+	d_y_10 = height * cos_roll * 10.f / (float)max_pitch;
 	d_x_2 = d_x_10 / 6;
 	d_y_2 = d_y_10 / 6;
 
@@ -597,7 +604,7 @@ void simple_artifical_horizon(float roll, float pitch, int16_t x, int16_t y, int
 		sprintf(tmp_str, "%d", i * PITCH_STEP);
 
 		pp_x2 = pp_x - i * d_x_10;
-		pp_y2 = pp_y - i * d_y_10;;
+		pp_y2 = pp_y - i * d_y_10;
 
 		write_line_outlined(pp_x2 - d_x2, pp_y2 + d_y2, pp_x2 + d_x2, pp_y2 - d_y2, 2, 2, 0, 1);
 		write_line_outlined(pp_x2 - d_x2, pp_y2 + d_y2, pp_x2 - d_x2 + d_x_2, pp_y2 + d_y2 + d_y_2, 2, 2, 0, 1);
@@ -607,8 +614,7 @@ void simple_artifical_horizon(float roll, float pitch, int16_t x, int16_t y, int
 		write_string(tmp_str, pp_x2 + d_x + 4, pp_y2 - d_y, 0, 0, TEXT_VA_MIDDLE, TEXT_HA_CENTER, 0, 1);
 
 		pp_x2 = pp_x + i * d_x_10;
-		pp_y2 = pp_y + i * d_y_10;;
-
+		pp_y2 = pp_y + i * d_y_10;
 
 		write_line_outlined_dashed(pp_x2 - d_x2, pp_y2 + d_y2, pp_x2 + d_x2, pp_y2 - d_y2, 2, 2, 0, 1, 5);
 		write_line_outlined(pp_x2 - d_x2, pp_y2 + d_y2, pp_x2 - d_x2 - d_x_2, pp_y2 + d_y2 - d_y_2, 2, 2, 0, 1);
@@ -617,6 +623,21 @@ void simple_artifical_horizon(float roll, float pitch, int16_t x, int16_t y, int
 		write_string(tmp_str, pp_x2 - d_x - 4, pp_y2 + d_y, 0, 0, TEXT_VA_MIDDLE, TEXT_HA_CENTER, 0, 1);
 		write_string(tmp_str, pp_x2 + d_x + 4, pp_y2 - d_y, 0, 0, TEXT_VA_MIDDLE, TEXT_HA_CENTER, 0, 1);
 	}
+
+	if (camera_tilt > max_pitch) {
+		camera_tilt = max_pitch;
+	}
+
+	camera_tilt /= max_pitch;
+	camera_tilt *= height;
+
+	// Center mark
+	if (center_mark) {
+		write_line_outlined(GRAPHICS_X_MIDDLE - CENTER_WING - CENTER_BODY, GRAPHICS_Y_MIDDLE + camera_tilt, GRAPHICS_X_MIDDLE - CENTER_BODY, GRAPHICS_Y_MIDDLE + camera_tilt, 2, 0, 0, 1);
+		write_line_outlined(GRAPHICS_X_MIDDLE + 1 + CENTER_BODY, GRAPHICS_Y_MIDDLE + camera_tilt, GRAPHICS_X_MIDDLE + 1 + CENTER_BODY + CENTER_WING, GRAPHICS_Y_MIDDLE + camera_tilt, 0, 2, 0, 1);
+		write_line_outlined(GRAPHICS_X_MIDDLE, GRAPHICS_Y_MIDDLE - CENTER_RUDDER - CENTER_BODY + camera_tilt, GRAPHICS_X_MIDDLE, GRAPHICS_Y_MIDDLE - CENTER_BODY + camera_tilt, 2, 0, 0, 1);
+	}
+
 }
 
 void draw_flight_mode(int x, int y, int xs, int ys, int va, int ha, int flags, int font)
@@ -1138,14 +1159,7 @@ void render_user_page(OnScreenDisplayPageSettingsData * page)
 	if (page->ArtificialHorizon) {
 		AttitudeActualRollGet(&tmp);
 		AttitudeActualPitchGet(&tmp1);
-		simple_artifical_horizon(tmp, tmp1, GRAPHICS_X_MIDDLE, GRAPHICS_Y_MIDDLE, 150, 150, page->ArtificialHorizonMaxPitch, page->ArtificialHorizonPitchSteps);
-	}
-
-	// Center mark
-	if (page->CenterMark) {
-		write_line_outlined(GRAPHICS_X_MIDDLE - CENTER_WING - CENTER_BODY, GRAPHICS_Y_MIDDLE, GRAPHICS_X_MIDDLE - CENTER_BODY, GRAPHICS_Y_MIDDLE, 2, 0, 0, 1);
-		write_line_outlined(GRAPHICS_X_MIDDLE + 1 + CENTER_BODY, GRAPHICS_Y_MIDDLE, GRAPHICS_X_MIDDLE + 1 + CENTER_BODY + CENTER_WING, GRAPHICS_Y_MIDDLE, 0, 2, 0, 1);
-		write_line_outlined(GRAPHICS_X_MIDDLE, GRAPHICS_Y_MIDDLE - CENTER_RUDDER - CENTER_BODY, GRAPHICS_X_MIDDLE, GRAPHICS_Y_MIDDLE - CENTER_BODY, 2, 0, 0, 1);
+		simple_artificial_horizon(tmp, tmp1, GRAPHICS_X_MIDDLE, GRAPHICS_Y_MIDDLE, GRAPHICS_BOTTOM * 0.8f, GRAPHICS_RIGHT * 0.8f, page->ArtificialHorizonMaxPitch, page->ArtificialHorizonPitchSteps, page->CenterMark);
 	}
 
 	// Battery
