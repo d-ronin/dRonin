@@ -3,6 +3,10 @@ uavobjects_armsoftfp: $(OUTDIR)/libuavobject.a
 uavobjects_armhardfp: FLOATABI = -mfloat-abi=hard
 uavobjects_armhardfp: $(OUTDIR)/libuavobject.a
 
+# make the build output a bit nicer
+BUILD_TYPE = fw
+BOARD_SHORT_NAME = uavo
+
 include $(MAKE_INC_DIR)/firmware-defs.mk
 
 OPUAVTALKINC = $(OPUAVTALK)/inc
