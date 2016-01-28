@@ -1101,7 +1101,9 @@ QString UploaderGadgetWidget::LoadFirmwareFileDialog(QString boardName)
     QString fileName = QFileDialog::getOpenFileName(this,
                                                     tr("Select firmware file"),
                                                     fwDirectoryStr,
-                                                    tr("Firmware Files (*.opfw *.tlfw *.bin)"),
+                                                    tr("Firmware (fw_*.tlfw);;"
+                                                       "Bootloader Update (bu_*.tlfw);;"
+                                                       "All (*.tlfw *.opfw *.bin)"),
                                                     &selectedFilter,
                                                     options);
     return fileName;
