@@ -127,10 +127,6 @@ UploaderGadgetWidget::UploaderGadgetWidget(QWidget *parent):QWidget(parent),
             break;
         }
     }
-
-    bootTimeoutTimer.setInterval(3000);
-    bootTimeoutTimer.setSingleShot(true);
-    connect(&bootTimeoutTimer, SIGNAL(timeout()), this, SLOT(onBootingTimout()));
 }
 
 /**
@@ -327,7 +323,6 @@ void UploaderGadgetWidget::FirmwareLoadedUpdate(QByteArray firmwareArray)
 void UploaderGadgetWidget::onAutopilotConnect()
 {
     telemetryConnected = true;
-    bootTimeoutTimer.stop();
     CheckAutopilotReady();
 }
 
@@ -458,10 +453,9 @@ void UploaderGadgetWidget::onBootloaderDetected()
     switch (uploaderStatus) {
     case uploader::BL_FROM_HALT:
     case uploader::BL_FROM_RESCUE:
-    case uploader::BOOTING:
-	return;
+        return;
     default:
-	break;
+        break;
     }
 
     foreach(int vendorID, brdMgr->getKnownVendorIDs()) {
@@ -479,14 +473,15 @@ void UploaderGadgetWidget::onBootloaderDetected()
     }
     if(dfu.OpenBootloaderComs(devices.first()))
     {
-	switch (uploaderStatus) {
-	case uploader::HALTING:
-	case uploader::RESCUING:
-	    break;
-	default:
+        switch (uploaderStatus) {
+        case uploader::HALTING:
+        case uploader::RESCUING:
+            break;
+        default:
             dfu.JumpToApp(false);
-	    return;
-	}
+            dfu.CloseBootloaderComs();
+            return;
+        }
 
         tl_dfu::device dev = dfu.findCapabilities();
 
@@ -585,8 +580,7 @@ void UploaderGadgetWidget::onBootloaderRemoved()
     DeviceInformationClear();
     FirmwareOnDeviceClear(true);
     PartitionBrowserClear();
-    if(getUploaderStatus() != uploader::BOOTING)
-        setUploaderStatus(uploader::DISCONNECTED);
+    setUploaderStatus(uploader::DISCONNECTED);
     dfu.disconnect();
 }
 
@@ -884,20 +878,9 @@ void UploaderGadgetWidget::onBootButtonClick()
 {
     if(!CheckInBootloaderState())
         return;
-    setUploaderStatus(uploader::BOOTING);
-    bootTimeoutTimer.start();
     bool safeboot = (sender() == m_widget->safeBootButton);
     dfu.JumpToApp(safeboot);
     dfu.CloseBootloaderComs();
-}
-
-/**
- * @brief slot called by the boot timeout timer
- */
-void UploaderGadgetWidget::onBootingTimout()
-{
-    if(getUploaderStatus() == uploader::BOOTING)
-        setUploaderStatus(uploader::DISCONNECTED);
 }
 
 /**
@@ -1171,7 +1154,7 @@ void UploaderGadgetWidget::onResetButtonClick()
     if(!telMngr->isConnected() || !firmwareIap->getIsPresentOnHardware())
         return;
     previousStatus = getUploaderStatus();
-    setUploaderStatus(uploader::HALTING);
+    setUploaderStatus(uploader::BOOTING);
     QEventLoop loop;
     QTimer timeout;
     timeout.setSingleShot(true);
@@ -1205,12 +1188,10 @@ void UploaderGadgetWidget::onResetButtonClick()
     }
     if(conMngr->getCurrentDevice().connection->shortName() == "USB")
     {
-        setUploaderStatus(uploader::BOOTING);
         conMngr->disconnectDevice();
         timeout.start(200);
         loop.exec();
         conMngr->suspendPolling();
-        bootTimeoutTimer.start();
     }
     else
     {
