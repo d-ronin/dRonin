@@ -444,7 +444,7 @@ void PIOS_Board_Init(void) {
 			hw_DSMxMode,                         // dsm_mode
 			&pios_mainport_sbus_cfg,             // sbus_rcvr_cfg
 			&pios_mainport_sbus_aux_cfg,         // sbus_cfg
-			false);                              // sbus_toggle
+			true);                               // sbus_toggle
 
 	if (hw_mainport != HWBRAIN_MAINPORT_SBUS) {
 		GPIO_Init(pios_mainport_sbus_aux_cfg.inv.gpio, (GPIO_InitTypeDef*)&pios_mainport_sbus_aux_cfg.inv.init);
