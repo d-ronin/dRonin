@@ -31,7 +31,6 @@ include $(BOARD_INFO_DIR)/board-info.mk
 # Set developer code and compile options
 # Set to YES for debugging
 DEBUG ?= NO
-ERASE_FLASH ?= NO
 EMBED_BL_UPDATE ?= NO
 
 # List of modules to include
@@ -118,10 +117,6 @@ SRC += $(OPUAVOBJ)/uavobjectmanager.c
 ifeq ($(DEBUG),YES)
 SRC += $(DEBUG_CM3_DIR)/dcc_stdio.c
 SRC += $(DEBUG_CM3_DIR)/cm3_fault_handlers.c
-endif
-
-ifeq ($(ERASE_FLASH), YES)
-CDEFS += -DERASE_FLASH
 endif
 
 ifeq ($(EMBED_BL_UPDATE), YES)

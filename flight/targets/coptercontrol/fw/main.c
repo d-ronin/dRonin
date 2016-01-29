@@ -47,7 +47,7 @@ extern void PIOS_Board_Init(void);
 extern void Stack_Change(void);
 
 /**
-* Tau Labs Main function:
+* dRonin Main function:
 *
 * Initialize PiOS<BR>
 * Create the "System" task (SystemModInitializein Modules/System/systemmod.c) <BR>
@@ -69,13 +69,6 @@ int main()
 	 * */
 	PIOS_Board_Init();
 	PIOS_WDG_Clear();
-#ifdef ERASE_FLASH
-	PIOS_Flash_Jedec_EraseChip();
-#if defined(PIOS_LED_HEARTBEAT)
-	PIOS_LED_Off(PIOS_LED_HEARTBEAT);
-#endif	/* PIOS_LED_HEARTBEAT */
-	while (1) ;
-#endif
 
 	/* Initialize modules */
 	MODULE_INITIALISE_ALL(PIOS_WDG_Clear);

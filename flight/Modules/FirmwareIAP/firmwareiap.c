@@ -67,6 +67,7 @@ const uint32_t    iap_time_3_high_end = 5000;
 // Private variables
 static uint8_t reset_count = 0;
 static uint32_t lastResetSysTime;
+static uint8_t board_rev = 0;
 
 // Private functions
 static void FirmwareIAPCallback(UAVObjEvent* ev, void *ctx, void *obj, int len);
@@ -96,13 +97,16 @@ int32_t FirmwareIAPInitialize()
 	
 	const struct pios_board_info * bdinfo = &pios_board_info_blob;
 
+	if (!board_rev)
+		board_rev = bdinfo->board_rev;
+
 	FirmwareIAPObjData data;
 	FirmwareIAPObjGet(&data);
 
 	data.BoardType= bdinfo->board_type;
 	PIOS_BL_HELPER_FLASH_Read_Description(data.Description,FIRMWAREIAPOBJ_DESCRIPTION_NUMELEM);
 	PIOS_SYS_SerialNumberGetBinary(data.CPUSerial);
-	data.BoardRevision= bdinfo->board_rev;
+	data.BoardRevision = board_rev;
 	data.crc = PIOS_BL_HELPER_CRC_Memory_Calc();
 	FirmwareIAPObjSet( &data );
 	if(bdinfo->magic==PIOS_BOARD_INFO_BLOB_MAGIC) FirmwareIAPObjConnectCallback( &FirmwareIAPCallback );
@@ -244,6 +248,16 @@ static void resetTask(UAVObjEvent * ev, void *ctx, void *obj, int len)
 		lastResetSysTime = PIOS_Thread_Systime();
 			PIOS_SYS_Reset();
 	}
+}
+
+int32_t FirmwareIAPStart()
+{
+	return 0;
+};
+
+void FirmwareIAPSetBoardRev(uint8_t rev)
+{
+	board_rev = rev;
 }
 
 /**

@@ -1,6 +1,3 @@
-# -------------------------------------------------
-# Project created by QtCreator 2010-03-21T20:44:17
-# -------------------------------------------------
 QT += xml
 QT -= gui
 
@@ -9,6 +6,11 @@ macx {
 }
 
 cache()
+
+# Unfortunately this is ineffective on OSX, due to
+# https://bugreports.qt.io/browse/QTBUG-39417
+# Should use it once upstream defect resolved
+QMAKE_CXX=$(CCACHE_BIN) g++
 
 TARGET = uavobjgenerator
 CONFIG += console

@@ -1,15 +1,12 @@
 /**
  ******************************************************************************
- * @addtogroup PIOS PIOS Core hardware abstraction layer
+ * @file       luxconfiguration.cpp
+ * @author     dRonin, http://dRonin.org/, Copyright (C) 2016
+ * @addtogroup GCSPlugins GCS Plugins
  * @{
- * @addtogroup   PIOS_OVERO Overo Functions
+ * @addtogroup Boards_Brotronics Brotronics boards support Plugin
  * @{
- *
- * @file       pios_overo_priv.h
- * @author     The OpenPilot Team, http://www.openpilot.org Copyright (C) 2012.
- * @brief      Overo functions header.
- * @see        The GNU Public License (GPL) Version 3
- *
+ * @brief Plugin to support Brotronics boards
  *****************************************************************************/
 /*
  * This program is free software; you can redistribute it and/or modify
@@ -27,32 +24,29 @@
  * 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
  */
 
-#ifndef PIOS_OVERO_PRIV_H
-#define PIOS_OVERO_PRIV_H
+#include "smartsavebutton.h"
+#include "luxconfiguration.h"
+#include "ui_luxconfiguration.h"
 
-#include <pios.h>
-#include <pios_stm32.h>
+#include "hwlux.h"
 
-extern const struct pios_com_driver pios_overo_com_driver;
+LuxConfiguration::LuxConfiguration(QWidget *parent) :
+    ConfigTaskWidget(parent),
+    ui(new Ui::LuxConfiguration)
+{
+    ui->setupUi(this);
+    
+    // Load UAVObjects to widget relations from UI file
+    // using objrelation dynamic property
+    autoLoadWidgets();
 
-struct pios_overo_cfg {
-	SPI_TypeDef *regs;
-	uint32_t remap;				/* GPIO_Remap_* or GPIO_AF_* */
-	SPI_InitTypeDef init;
-	bool use_crc;
-	struct stm32_dma dma;
-	struct stm32_gpio sclk;
-	struct stm32_gpio miso;
-	struct stm32_gpio mosi;
-	uint32_t slave_count;
-	struct stm32_gpio ssel[];
-};
+    enableControls(true);
+    populateWidgets();
+    refreshWidgetsValues();
+    forceConnectedState();
+}
 
-extern int32_t PIOS_OVERO_Init(uintptr_t * overo_id, const struct pios_overo_cfg * cfg);
-
-#endif /* PIOS_OVERO_H */
-
-/**
- * @}
- * @}
- */
+LuxConfiguration::~LuxConfiguration()
+{
+    delete ui;
+}

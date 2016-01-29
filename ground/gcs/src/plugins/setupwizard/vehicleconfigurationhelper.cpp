@@ -223,7 +223,7 @@ void VehicleConfigurationHelper::applyActuatorConfiguration()
             data.TimerUpdateFreq[0] = updateFrequency;
             data.TimerUpdateFreq[1] = updateFrequency;
             data.TimerPwmResolution[0] = resolution;
-            data.TimerPwmResolution[1] = resolution;
+            data.MotorsSpinWhileArmed = ActuatorSettings::MOTORSSPINWHILEARMED_TRUE;
             break;
         case VehicleConfigurationSource::MULTI_ROTOR_QUAD_X:
         case VehicleConfigurationSource::MULTI_ROTOR_QUAD_PLUS:
@@ -233,6 +233,7 @@ void VehicleConfigurationHelper::applyActuatorConfiguration()
             data.TimerPwmResolution[0] = resolution;
             data.TimerPwmResolution[1] = resolution;
             data.TimerPwmResolution[2] = resolution;
+            data.MotorsSpinWhileArmed = ActuatorSettings::MOTORSSPINWHILEARMED_TRUE;
             break;
         case VehicleConfigurationSource::MULTI_ROTOR_HEXA:
         case VehicleConfigurationSource::MULTI_ROTOR_HEXA_COAX_Y:
@@ -249,6 +250,7 @@ void VehicleConfigurationHelper::applyActuatorConfiguration()
             data.TimerPwmResolution[1] = resolution;
             data.TimerPwmResolution[2] = resolution;
             data.TimerPwmResolution[3] = resolution;
+            data.MotorsSpinWhileArmed = ActuatorSettings::MOTORSSPINWHILEARMED_TRUE;
             break;
         default:
             break;

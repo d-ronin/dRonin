@@ -31,7 +31,6 @@ include $(BOARD_INFO_DIR)/board-info.mk
 # Set developer code and compile options
 # Set to YES for debugging
 DEBUG ?= NO
-ERASE_FLASH ?= NO
 
 # List of modules to include
 MODULES = Sensors
@@ -102,10 +101,6 @@ SRC += $(DEBUG_CM3_DIR)/dcc_stdio.c
 SRC += $(DEBUG_CM3_DIR)/cm3_fault_handlers.c
 endif
 
-ifeq ($(ERASE_FLASH), YES)
-CDEFS += -DERASE_FLASH
-endif
-
 SRC += $(FLIGHTLIB)/paths.c
 SRC += $(FLIGHTLIB)/fifo_buffer.c
 SRC += $(FLIGHTLIB)/WorldMagModel.c
@@ -149,6 +144,7 @@ SRC += $(PIOSCOMMON)/pios_mutex.c
 SRC += $(PIOSCOMMON)/pios_thread.c
 SRC += $(PIOSCOMMON)/pios_queue.c
 SRC += $(PIOSCOMMON)/pios_streamfs.c
+SRC += $(PIOSCOMMON)/pios_hal.c
 
 # List C++ source files here.
 # use file-extension .cpp for C++-files (not .C)

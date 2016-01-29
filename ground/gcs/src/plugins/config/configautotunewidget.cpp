@@ -53,6 +53,14 @@
 #include "coreplugin/iboardtype.h"
 
 
+//#define CONF_ATUNE_DEBUG
+#ifdef CONF_ATUNE_DEBUG
+#define CONF_ATUNE_QXTLOG_DEBUG(...) qDebug()<<__VA_ARGS__
+#else  // CONF_ATUNE_DEBUG
+#define CONF_ATUNE_QXTLOG_DEBUG(...)
+#endif	// CONF_ATUNE_DEBUG
+
+
 const QString ConfigAutotuneWidget::databaseUrl = QString("http://dronin-autotown.appspot.com/storeTune");
 
 ConfigAutotuneWidget::ConfigAutotuneWidget(QWidget *parent) :
@@ -334,9 +342,9 @@ void ConfigAutotuneWidget::recomputeStabilization()
     const double a = ((tau+tau_d) / tau / tau_d - 2 * damp * wn) / 20.0;
     const double b = ((tau+tau_d) / tau / tau_d - 2 * damp * wn - a);
 
-    qDebug() << "ghf: " << ghf;
-    qDebug() << "wn: " << wn << "tau_d: " << tau_d;
-    qDebug() << "a: " << a << " b: " << b;
+    CONF_ATUNE_QXTLOG_DEBUG("ghf: ", ghf);
+    CONF_ATUNE_QXTLOG_DEBUG("wn: ", wn, "tau_d: ", tau_d);
+    CONF_ATUNE_QXTLOG_DEBUG("a: ", a, " b: ", b);
 
     // Calculate the gain for the outer loop by approximating the
     // inner loop as a single order lpf. Set the outer loop to be

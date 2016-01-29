@@ -74,6 +74,15 @@ void PIOS_Board_Init(void) {
 
 	/* Mount all filesystems */
 	PIOS_FLASHFS_Logfs_Init(&pios_uavo_settings_fs_id, &flashfs_internal_settings_cfg, FLASH_PARTITION_LABEL_SETTINGS);
+
+#ifdef ERASE_FLASH
+	PIOS_FLASHFS_Format(pios_uavo_settings_fs_id);
+#if defined(PIOS_LED_HEARTBEAT)
+	PIOS_LED_Off(PIOS_LED_HEARTBEAT);
+#endif /* PIOS_LED_HEARTBEAT */
+	while (1) ;
+#endif
+
 #endif	/* PIOS_INCLUDE_FLASH && PIOS_INCLUDE_LOGFS_SETTINGS */
 
 	/* Initialize the task monitor library */

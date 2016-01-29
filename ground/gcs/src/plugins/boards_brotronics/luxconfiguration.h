@@ -1,15 +1,12 @@
 /**
  ******************************************************************************
- * @addtogroup PIOS PIOS Core hardware abstraction layer
+ * @file       luxconfiguration.h
+ * @author     dRonin, http://dRonin.org/, Copyright (C) 2016
+ * @addtogroup GCSPlugins GCS Plugins
  * @{
- * @addtogroup   PIOS_OVERO Overo Functions
+ * @addtogroup Boards_Brotronics Brotronics boards support Plugin
  * @{
- *
- * @file       pios_overo.h
- * @author     The OpenPilot Team, http://www.openpilot.org Copyright (C) 2012.
- * @brief      Overo functions header.
- * @see        The GNU Public License (GPL) Version 3
- *
+ * @brief Plugin to support Brotronics boards
  *****************************************************************************/
 /*
  * This program is free software; you can redistribute it and/or modify
@@ -27,18 +24,29 @@
  * 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
  */
 
-#ifndef PIOS_OVERO_H
-#define PIOS_OVERO_H
 
-extern void PIOS_OVERO_DMA_irq_handler(uintptr_t overo_id);
-extern int32_t PIOS_OVERO_GetPacketCount(uintptr_t overo_id);
-extern int32_t PIOS_OVERO_GetWrittenBytes(uintptr_t overo_id);
-extern int32_t PIOS_OVERO_Enable(uintptr_t overo_id);
-extern int32_t PIOS_OVERO_Disable(uintptr_t overo_id);
+#ifndef LUXCONFIGURATION_H
+#define LUXCONFIGURATION_H
 
-#endif /* PIOS_OVERO_H */
+#include <QPixmap>
+#include "configtaskwidget.h"
 
-/**
- * @}
- * @}
- */
+namespace Ui {
+class LuxConfiguration;
+}
+
+class LuxConfiguration : public ConfigTaskWidget
+{
+    Q_OBJECT
+    
+public:
+    explicit LuxConfiguration(QWidget *parent = 0);
+    ~LuxConfiguration();
+
+private:
+    Ui::LuxConfiguration *ui;
+
+    QPixmap img;
+};
+
+#endif // LUXCONFIGURATION_H

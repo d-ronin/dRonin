@@ -83,7 +83,6 @@
 #include <pios_i2c.h>
 #include <pios_can.h>
 #include <pios_spi.h>
-#include <pios_overo.h>
 #include <pios_ppm.h>
 #include <pios_pwm.h>
 #include <pios_rcvr.h>

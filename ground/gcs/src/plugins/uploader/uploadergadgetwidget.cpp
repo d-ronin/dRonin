@@ -204,7 +204,7 @@ void UploaderGadgetWidget::DeviceInformationUpdate(deviceInfo board)
         return;
     currentBoard = board;
     m_widget->boardName_lbl->setText(board.board->boardDescription());
-    m_widget->devID_lbl->setText(QString::number(board.board->getBoardType(), 16));
+    m_widget->devName_lbl->setText(board.board->getBoardNameFromID(board.board->getBoardType() << 8));
     m_widget->hwRev_lbl->setText(board.hw_revision);
     m_widget->blVer_lbl->setText(board.bl_version);
     m_widget->maxCode_lbl->setText(board.max_code_size);
@@ -268,6 +268,7 @@ void UploaderGadgetWidget::FirmwareLoadedUpdate(QByteArray firmwareArray)
         m_widget->userDefined_LD_lbl->setVisible(false);
         return;
     }
+    setStatusInfo(tr("File loaded successfully"), uploader::STATUSICON_INFO);
     m_widget->builtForLD_lbl->setText(Core::IBoardType::getBoardNameFromID(firmware.boardID()));
     bool ok;
     currentBoard.max_code_size.toLong(&ok);
@@ -1100,7 +1101,9 @@ QString UploaderGadgetWidget::LoadFirmwareFileDialog(QString boardName)
     QString fileName = QFileDialog::getOpenFileName(this,
                                                     tr("Select firmware file"),
                                                     fwDirectoryStr,
-                                                    tr("Firmware Files (*.opfw *.tlfw *.bin)"),
+                                                    tr("Firmware (fw_*.tlfw);;"
+                                                       "Bootloader Update (bu_*.tlfw);;"
+                                                       "All (*.tlfw *.opfw *.bin)"),
                                                     &selectedFilter,
                                                     options);
     return fileName;
@@ -1277,7 +1280,6 @@ uploader::UploaderStatus UploaderGadgetWidget::getUploaderStatus() const
  */
 void UploaderGadgetWidget::setUploaderStatus(const uploader::UploaderStatus &value)
 {
-    qDebug()<< "STATUS="<<value;
     uploaderStatus = value;
     switch (uploaderStatus) {
     case uploader::DISCONNECTED:

@@ -500,12 +500,12 @@ class FileTelemetry(TelemetryBase):
 
         if parse_header:
             # Check the header signature
-            #    First line is "Tau Labs git hash:"
+            #    First line is "dRonin git hash:" or "Tau Labs git hash:"
             #    Second line is the actual git hash
             #    Third line is the UAVO hash
             #    Fourth line is "##"
             sig = self.f.readline()
-            if sig != 'Tau Labs git hash:\n':
+            if (sig != 'dRonin git hash:\n') and (sig != 'Tau Labs git hash:\n'):
                 print "Source file does not have a recognized header signature"
                 print '|' + sig + '|'
                 raise IOError("no header signature")

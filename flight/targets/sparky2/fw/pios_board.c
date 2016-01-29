@@ -427,10 +427,6 @@ void PIOS_Board_Init(void) {
 	}
 #endif /* PIOS_INCLUDE_FLASH_JEDEC */
 
-#if defined(ERASE_FLASH)
-	PIOS_FLASHFS_Format(pios_uavo_settings_fs_id);
-#endif
-
 #endif	/* PIOS_INCLUDE_FLASH */
 
 	/* Initialize UAVObject libraries */
@@ -444,14 +440,12 @@ void PIOS_Board_Init(void) {
 	PIOS_RTC_Init(&pios_rtc_main_cfg);
 #endif
 
-#ifndef ERASE_FLASH
 	/* Initialize watchdog as early as possible to catch faults during init
 	 * but do it only if there is no debugger connected
 	 */
 	if ((CoreDebug->DHCSR & CoreDebug_DHCSR_C_DEBUGEN_Msk) == 0) {
 		PIOS_WDG_Init();
 	}
-#endif
 
 	/* Initialize the alarms library. Reads RCC reset flags */
 	AlarmsInitialize();
@@ -683,9 +677,6 @@ void PIOS_Board_Init(void) {
 	uint32_t internal_adc_id;
 	PIOS_INTERNAL_ADC_Init(&internal_adc_id, &pios_adc_cfg);
 	PIOS_ADC_Init(&pios_internal_adc_id, &pios_internal_adc_driver, internal_adc_id);
- 
-        // configure the pullup for PA8 (inhibit pullups from current/sonar shared pin)
-        GPIO_Init(pios_current_sonar_pin.gpio, &pios_current_sonar_pin.init);
 #endif
 
 #if defined(PIOS_INCLUDE_MS5611)

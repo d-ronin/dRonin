@@ -54,7 +54,7 @@ static struct pios_thread *initTaskHandle;
 static void initTask(void *parameters);
 
 /**
- * Tau Labs Main function:
+ * dRonin Main function:
  *
  * Initialize PiOS<BR>
  * Create the "System" task (SystemModInitializein Modules/System/systemmod.c) <BR>

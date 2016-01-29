@@ -570,7 +570,7 @@
                  <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;The number of +/- 10 degree steps to show&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
                 </property>
                 <property name="maximum">
-                 <number>6</number>
+                 <number>9</number>
                 </property>
                </widget>
               </item>
