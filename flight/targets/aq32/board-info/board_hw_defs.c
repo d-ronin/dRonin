@@ -751,9 +751,7 @@ static const struct pios_dsm_cfg pios_usart6_dsm_aux_cfg = {
 #endif	/* PIOS_INCLUDE_DSM */
 
 #if defined(PIOS_INCLUDE_SBUS)
-/*
- * S.Bus USART
- */
+
 #include <pios_sbus_priv.h>
 
 static const struct pios_sbus_cfg pios_usart3_sbus_aux_cfg = {
@@ -770,70 +768,6 @@ static const struct pios_sbus_cfg pios_usart3_sbus_aux_cfg = {
 	},
 	.gpio_inv_enable = Bit_SET,
 	.gpio_inv_disable = Bit_RESET,
-};
-
-static const struct pios_usart_cfg pios_usart4_sbus_cfg = {
-	.regs = UART4,
-	.remap = GPIO_AF_UART4,
-	.init = {
-		.USART_BaudRate            = 100000,
-		.USART_WordLength          = USART_WordLength_8b,
-		.USART_Parity              = USART_Parity_Even,
-		.USART_StopBits            = USART_StopBits_2,
-		.USART_HardwareFlowControl = USART_HardwareFlowControl_None,
-		.USART_Mode                = USART_Mode_Rx,
-	},
-	.irq = {
-		.init = {
-			.NVIC_IRQChannel                   = UART4_IRQn,
-			.NVIC_IRQChannelPreemptionPriority = PIOS_IRQ_PRIO_MID,
-			.NVIC_IRQChannelSubPriority        = 0,
-			.NVIC_IRQChannelCmd                = ENABLE,
-		  },
-	},
-	.rx = {
-		.gpio = GPIOA,
-		.init = {
-			.GPIO_Pin   = GPIO_Pin_1,
-			.GPIO_Speed = GPIO_Speed_2MHz,
-			.GPIO_Mode  = GPIO_Mode_AF,
-			.GPIO_OType = GPIO_OType_PP,
-			.GPIO_PuPd  = GPIO_PuPd_UP
-		},
-		.pin_source = GPIO_PinSource9,
-	},
-};
-
-static const struct pios_usart_cfg pios_usart6_sbus_cfg = {
-	.regs = USART6,
-	.remap = GPIO_AF_USART6,
-	.init = {
-		.USART_BaudRate            = 100000,
-		.USART_WordLength          = USART_WordLength_8b,
-		.USART_Parity              = USART_Parity_Even,
-		.USART_StopBits            = USART_StopBits_2,
-		.USART_HardwareFlowControl = USART_HardwareFlowControl_None,
-		.USART_Mode                = USART_Mode_Rx,
-	},
-	.irq = {
-		.init = {
-			.NVIC_IRQChannel                   = USART6_IRQn,
-			.NVIC_IRQChannelPreemptionPriority = PIOS_IRQ_PRIO_MID,
-			.NVIC_IRQChannelSubPriority        = 0,
-			.NVIC_IRQChannelCmd                = ENABLE,
-		  },
-	},
-	.rx = {
-		.gpio = GPIOC,
-		.init = {
-			.GPIO_Pin   = GPIO_Pin_7,
-			.GPIO_Speed = GPIO_Speed_2MHz,
-			.GPIO_Mode  = GPIO_Mode_AF,
-			.GPIO_OType = GPIO_OType_PP,
-			.GPIO_PuPd  = GPIO_PuPd_UP
-		},
-		.pin_source = GPIO_PinSource9,
-	},
 };
 
 #endif	/* PIOS_INCLUDE_SBUS */
