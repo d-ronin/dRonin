@@ -349,6 +349,9 @@ static void stabilizationTask(void* parameters)
 			float raw_input = (&stabDesired.Roll)[i];
 
 			if (mode == STABILIZATIONDESIRED_STABILIZATIONMODE_FAILSAFE) {
+				actuatorDesired.Throttle = -1.0f;
+
+
 				switch (i) {
 					case 0: /* Roll */
 						mode = STABILIZATIONDESIRED_STABILIZATIONMODE_ATTITUDE;
@@ -372,7 +375,7 @@ static void stabilizationTask(void* parameters)
 			previous_mode[i] = mode;
 
 			// Apply the selected control law
-			switch(stabDesired.StabilizationMode[i])
+			switch(mode)
 			{
 				case STABILIZATIONDESIRED_STABILIZATIONMODE_FAILSAFE:
 					PIOS_Assert(0); /* Shouldn't happen, per above */
