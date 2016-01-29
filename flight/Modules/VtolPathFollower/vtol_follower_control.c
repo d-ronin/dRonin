@@ -52,6 +52,7 @@
 #include "velocitydesired.h"
 #include "velocityactual.h"
 #include "vtolpathfollowersettings.h"
+#include "systemsettings.h"
 
 // Private variables
 static VtolPathFollowerSettingsData guidanceSettings;
@@ -401,7 +402,7 @@ static float vtol_follower_control_altitude(float downCommand) {
 	altitudeHoldState.AngleGain = 1.0f;
 
 	if (altitudeHoldSettings.AttitudeComp > 0) {
-		// Throttle desired is at this point the mount desired in the up direction, we can
+		// Thrust desired is at this point the mount desired in the up direction, we can
 		// account for the attitude if desired
 		AttitudeActualData attitudeActual;
 		AttitudeActualGet(&attitudeActual);
@@ -426,7 +427,7 @@ static float vtol_follower_control_altitude(float downCommand) {
 		altitudeHoldState.AngleGain = 1.0f / fraction;
 	}
 
-	altitudeHoldState.Throttle = downCommand;
+	altitudeHoldState.Thrust = downCommand;
 	AltitudeHoldStateSet(&altitudeHoldState);
 
 	return downCommand;
@@ -457,6 +458,12 @@ int32_t vtol_follower_control_attitude(float dT, const float *att_adj)
 	StabilizationSettingsData stabSet;
 	StabilizationSettingsGet(&stabSet);
 
+	SystemSettingsData system_settings;
+	SystemSettingsGet( &system_settings );
+
+	ManualControlCommandData manual_control_command;
+	ManualControlCommandGet( &manual_control_command );
+
 	float northCommand = accelDesired.North;
 	float eastCommand = accelDesired.East;
 
@@ -481,11 +488,11 @@ int32_t vtol_follower_control_attitude(float dT, const float *att_adj)
 
 	// Calculate the throttle setting or use pass through from transmitter
 	if (guidanceSettings.ThrottleControl == VTOLPATHFOLLOWERSETTINGS_THROTTLECONTROL_FALSE) {
-		ManualControlCommandThrottleGet(&stabDesired.Throttle);
+		stabDesired.Thrust = (system_settings.AirframeType == SYSTEMSETTINGS_AIRFRAMETYPE_HELICP) ? manual_control_command.Collective : manual_control_command.Throttle;
 	} else {
 		float downCommand = vtol_follower_control_altitude(accelDesired.Down);
 
-		stabDesired.Throttle = bound_min_max(downCommand, 0, 1);
+		stabDesired.Thrust = bound_min_max(downCommand, 0, 1);
 	}
 	
 	// Various ways to control the yaw that are essentially manual passthrough. However, because we do not have a fine
@@ -493,19 +500,16 @@ int32_t vtol_follower_control_attitude(float dT, const float *att_adj)
 	switch(guidanceSettings.YawMode) {
 	case VTOLPATHFOLLOWERSETTINGS_YAWMODE_RATE:
 		/* This is awkward.  This allows the transmitter to control the yaw while flying navigation */
-		ManualControlCommandYawGet(&yaw);
-		stabDesired.Yaw = stabSet.ManualRate[STABILIZATIONSETTINGS_MANUALRATE_YAW] * yaw;
+		stabDesired.Yaw = stabSet.ManualRate[STABILIZATIONSETTINGS_MANUALRATE_YAW] * manual_control_command.Yaw;
 		stabDesired.StabilizationMode[STABILIZATIONDESIRED_STABILIZATIONMODE_YAW] = STABILIZATIONDESIRED_STABILIZATIONMODE_RATE;
 		break;
 	case VTOLPATHFOLLOWERSETTINGS_YAWMODE_AXISLOCK:
-		ManualControlCommandYawGet(&yaw);
-		stabDesired.Yaw = stabSet.ManualRate[STABILIZATIONSETTINGS_MANUALRATE_YAW] * yaw;
+		stabDesired.Yaw = stabSet.ManualRate[STABILIZATIONSETTINGS_MANUALRATE_YAW] * manual_control_command.Yaw;
 		stabDesired.StabilizationMode[STABILIZATIONDESIRED_STABILIZATIONMODE_YAW] = STABILIZATIONDESIRED_STABILIZATIONMODE_AXISLOCK;
 		break;
 	case VTOLPATHFOLLOWERSETTINGS_YAWMODE_ATTITUDE:
 	{
-		ManualControlCommandYawGet(&yaw);
-		stabDesired.Yaw = stabSet.YawMax * yaw;
+		stabDesired.Yaw = stabSet.YawMax * manual_control_command.Yaw;
 		stabDesired.StabilizationMode[STABILIZATIONDESIRED_STABILIZATIONMODE_YAW] = STABILIZATIONDESIRED_STABILIZATIONMODE_ATTITUDE;
 	}
 		break;
@@ -589,7 +593,7 @@ bool vtol_follower_control_loiter(float dT, float *hold_pos, float *att_adj,
 		// Inverted because we want units in "Down" frame
 		// Doubled to recenter to 1 to -1 scale from 0-1.
 		// loiter_deadband clips appropriately.
-		down_cmd = loiter_deadband(1 - (cmd.Throttle * 2),
+		down_cmd = loiter_deadband(1 - (cmd.Thrust * 2),
 				altitudeHoldSettings.Deadband / 100.0f,
 				altitudeHoldSettings.Expo);
 	}

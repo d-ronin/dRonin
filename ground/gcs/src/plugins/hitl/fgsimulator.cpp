@@ -162,7 +162,7 @@ void FGSimulator::transmitUpdate()
         ailerons = actData.Roll;
         elevator = -actData.Pitch;
         rudder = actData.Yaw;
-        throttle = actData.Throttle;
+        throttle = actData.Thrust;
     }
 
     int allowableDifference = 10;
@@ -204,7 +204,7 @@ void FGSimulator::transmitUpdate()
         actData.Roll = ailerons;
         actData.Pitch = -elevator;
         actData.Yaw = rudder;
-        actData.Throttle = throttle;
+        actData.Thrust = throttle;
         actDesired->setData(actData);
     }
 }

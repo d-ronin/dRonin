@@ -81,7 +81,7 @@ int32_t geofence_control_select(bool reset_controller)
 
 	if (!geofence_armed_when_enabled) {
 		/* disable stabilization so outputs do not move when system was not armed */
-		stabilization_desired.Throttle = -1;
+		stabilization_desired.Thrust = -1;
 		stabilization_desired.Roll  = 0;
 		stabilization_desired.Pitch = 0;
 		stabilization_desired.Yaw   = 0;
@@ -91,7 +91,7 @@ int32_t geofence_control_select(bool reset_controller)
 	} else {
 		/* Pick default values that will roughly cause a plane to circle down and */
 		/* a quad to fall straight down */
-		stabilization_desired.Throttle = -1;
+		stabilization_desired.Thrust = -1;
 		stabilization_desired.Roll = -10;
 		stabilization_desired.Pitch = 0;
 		stabilization_desired.Yaw = -5;

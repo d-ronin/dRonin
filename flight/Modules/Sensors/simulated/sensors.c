@@ -336,7 +336,7 @@ static void simulateModelQuadcopter()
 	ActuatorDesiredData actuatorDesired;
 	ActuatorDesiredGet(&actuatorDesired);
 
-	float thrust = (flightStatus.Armed == FLIGHTSTATUS_ARMED_ARMED) ? actuatorDesired.Throttle * MAX_THRUST : 0;
+	float thrust = (flightStatus.Armed == FLIGHTSTATUS_ARMED_ARMED) ? actuatorDesired.Thrust * MAX_THRUST : 0;
 	if (thrust < 0)
 		thrust = 0;
 	
@@ -577,7 +577,7 @@ static void simulateModelAirplane()
 	ActuatorDesiredData actuatorDesired;
 	ActuatorDesiredGet(&actuatorDesired);
 	
-	float thrust = (flightStatus.Armed == FLIGHTSTATUS_ARMED_ARMED) ? actuatorDesired.Throttle * MAX_THRUST : 0;
+	float thrust = (flightStatus.Armed == FLIGHTSTATUS_ARMED_ARMED) ? actuatorDesired.Thrust * MAX_THRUST : 0;
 	if (thrust < 0)
 		thrust = 0;
 	
@@ -869,7 +869,7 @@ static void simulateModelCar()
 	ActuatorDesiredData actuatorDesired;
 	ActuatorDesiredGet(&actuatorDesired);
 	
-	float thrust = (flightStatus.Armed == FLIGHTSTATUS_ARMED_ARMED) ? actuatorDesired.Throttle * MAX_THRUST : 0;
+	float thrust = (flightStatus.Armed == FLIGHTSTATUS_ARMED_ARMED) ? actuatorDesired.Thrust * MAX_THRUST : 0;
 	if (thrust < 0)
 		thrust = 0;
 	
