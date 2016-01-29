@@ -91,6 +91,7 @@
 //#define PIOS_INCLUDE_LIGHTTELEMETRY
 #define PIOS_INCLUDE_PICOC
 #define PIOS_INCLUDE_FRSKY_SPORT_TELEMETRY
+#define PIOS_INCLUDE_OPENLOG
 
 /* Supported receiver interfaces */
 #define PIOS_INCLUDE_RCVR
