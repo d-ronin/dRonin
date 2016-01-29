@@ -387,7 +387,7 @@ static void msp_send_comp_gps(struct msp_bridge *m)
 	
 	deltaY *= cosf((float)homeData.Latitude * 1e-7f * (float)DEG2RAD);  // Latitude compression correction
 	
-	data.comp_gps.distance_to_home  = (uint16_t)(sqrt(deltaX * deltaX + deltaY * deltaY) * 1e-4);  // meters
+	data.comp_gps.distance_to_home  = (uint16_t)(sqrtf(deltaX * deltaX + deltaY * deltaY) * 1e-4f);  // meters
 	
 	if ((deltaLon == 0) && (deltaLat == 0))
 		data.comp_gps.direction_to_home = 0;
