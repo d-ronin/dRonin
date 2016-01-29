@@ -159,7 +159,7 @@ static void altitudeHoldTask(void *parameters)
 
 			if (flight_mode == FLIGHTSTATUS_FLIGHTMODE_ALTITUDEHOLD && !engaged) {
 				// Copy the current throttle as a starting point for integral
-				StabilizationDesiredThrottleGet(&velocity_pid.iAccumulator);
+				StabilizationDesiredThrustGet(&velocity_pid.iAccumulator);
 				engaged = true;
 
 				// Make sure this uses a valid AltitudeHoldDesired. No delay is really required here
@@ -214,7 +214,7 @@ static void altitudeHoldTask(void *parameters)
 			altitudeHoldState.AngleGain = 1.0f;
 
 			if (altitudeHoldSettings.AttitudeComp > 0) {
-				// Throttle desired is at this point the mount desired in the up direction, we can
+				// Thrust desired is at this point the mount desired in the up direction, we can
 				// account for the attitude if desired
 				AttitudeActualData attitudeActual;
 				AttitudeActualGet(&attitudeActual);
@@ -239,11 +239,11 @@ static void altitudeHoldTask(void *parameters)
 				altitudeHoldState.AngleGain = 1.0f / fraction;
 			}
 
-			altitudeHoldState.Throttle = throttle_desired;
+			altitudeHoldState.Thrust = throttle_desired;
 			AltitudeHoldStateSet(&altitudeHoldState);
 
 			StabilizationDesiredGet(&stabilizationDesired);
-			stabilizationDesired.Throttle = bound_min_max(throttle_desired, min_throttle, 1.0f);
+			stabilizationDesired.Thrust = bound_min_max(throttle_desired, min_throttle, 1.0f);
 
 			if (landing) {
 				stabilizationDesired.StabilizationMode[STABILIZATIONDESIRED_STABILIZATIONMODE_ROLL] = STABILIZATIONDESIRED_STABILIZATIONMODE_ATTITUDE;

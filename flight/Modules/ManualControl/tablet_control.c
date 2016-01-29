@@ -100,7 +100,7 @@ int32_t tablet_control_select(bool reset_controller)
 			LoiterCommandData loiterCommand;
 			loiterCommand.Pitch = 0;
 			loiterCommand.Roll = 0;
-			loiterCommand.Throttle = 0.5f;
+			loiterCommand.Thrust = 0.5f;
 			loiterCommand.Frame = LOITERCOMMAND_FRAME_BODY;
 			LoiterCommandSet(&loiterCommand);
 
