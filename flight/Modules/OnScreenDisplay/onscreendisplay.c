@@ -554,96 +554,88 @@ void hud_draw_linear_compass(int v, int home_dir, int range, int width, int x, i
 #define CENTER_RUDDER     5
 #define PITCH_STEP       10
 void simple_artificial_horizon(float roll, float pitch, int16_t x, int16_t y, int16_t width, int16_t height,
-		int8_t max_pitch, uint8_t n_pitch_steps, bool center_mark)
+		int8_t max_pitch, uint8_t n_pitch_steps, bool show_horizon, bool center_mark)
 {
-	float sin_roll;
-	float cos_roll;
-	int16_t d_x, d_x2; // delta x
-	int16_t d_y, d_y2; // delta y
-	char tmp_str[5];
-
-	int16_t pp_x; // pitch point x
-	int16_t pp_y; // pitch point y
-	int16_t d_x_10, d_y_10, d_x_2, d_y_2;
-
-	int16_t pp_x2;
-	int16_t pp_y2;
-
 	float camera_tilt;
-
-	int pitch_step_offset;
 
 	StabilizationSettingsCameraTiltGet(&camera_tilt);
 
 	width /= 2;
 	height /= 2;
 
-	sin_roll    = sinf(roll * (float)(M_PI / 180));
-	cos_roll    = cosf(roll * (float)(M_PI / 180));
-
 	pitch += camera_tilt;
 
-	pitch_step_offset = pitch / PITCH_STEP;
+	if (show_horizon) {
+		float sin_roll = sinf(roll * (float)(M_PI / 180));
+		float cos_roll = cosf(roll * (float)(M_PI / 180));
 
-	/* how many degrees the "lines" are offset from their ideal pos
-	 * since we need both, don't do fmodf.. */
-	float modulo_pitch = pitch - pitch_step_offset * 10.0f;
+		int pitch_step_offset = pitch / PITCH_STEP;
 
-	// roll to pitch transformation
-	pp_x        = x + width * ((sin_roll * modulo_pitch) / (float)max_pitch);
-	pp_y        = y + height * ((cos_roll * modulo_pitch) / (float)max_pitch);
+		/* how many degrees the "lines" are offset from their ideal pos
+		 * since we need both, don't do fmodf.. */
+		float modulo_pitch = pitch - pitch_step_offset * 10.0f;
 
-	d_x = cos_roll * width / 2;
-	d_y = sin_roll * height / 2;
+		// roll to pitch transformation
+		int16_t pp_x = x + width * ((sin_roll * modulo_pitch) / (float)max_pitch);
+		int16_t pp_y = y + height * ((cos_roll * modulo_pitch) / (float)max_pitch);
 
-	d_x = 3 * d_x / 4;
-	d_y = 3 * d_y / 4;
-	d_x2 = 3 * d_x / 4;
-	d_y2 = 3 * d_y / 4;
+		int16_t d_x, d_x2; // delta x
+		int16_t d_y, d_y2; // delta y
 
-	d_x_10 = width * sin_roll * PITCH_STEP / (float)max_pitch;
-	d_y_10 = height * cos_roll * PITCH_STEP / (float)max_pitch;
+		d_x = cos_roll * width / 2;
+		d_y = sin_roll * height / 2;
 
-	d_x_2 = d_x_10 / 6;
-	d_y_2 = d_y_10 / 6;
+		d_x = 3 * d_x / 4;
+		d_y = 3 * d_y / 4;
+		d_x2 = 3 * d_x / 4;
+		d_y2 = 3 * d_y / 4;
 
-	for (int i = (-max_pitch / 10)-1; i<(max_pitch/10)+1; i++) {
-		int angle = (pitch_step_offset + i);
+		int16_t d_x_10 = width * sin_roll * PITCH_STEP / (float)max_pitch;
+		int16_t d_y_10 = height * cos_roll * PITCH_STEP / (float)max_pitch;
 
-		if (angle < -n_pitch_steps) continue;
-		if (angle > n_pitch_steps) continue;
+		int16_t d_x_2 = d_x_10 / 6;
+		int16_t d_y_2 = d_y_10 / 6;
 
-		angle *= PITCH_STEP;
+		for (int i = (-max_pitch / 10)-1; i<(max_pitch/10)+1; i++) {
+			int angle = (pitch_step_offset + i);
 
-		/* Wraparound */
-		if (angle > 90) {
-			angle = 180 - angle;
-		} else if (angle < -90) {
-			angle = -180 - angle;
-		}
+			if (angle < -n_pitch_steps) continue;
+			if (angle > n_pitch_steps) continue;
 
-		pp_x2 = pp_x - i * d_x_10;
-		pp_y2 = pp_y - i * d_y_10;
+			angle *= PITCH_STEP;
 
-		sprintf(tmp_str, "%d", angle);
+			/* Wraparound */
+			if (angle > 90) {
+				angle = 180 - angle;
+			} else if (angle < -90) {
+				angle = -180 - angle;
+			}
 
-		if (angle < 0) {
-			write_line_outlined_dashed(pp_x2 - d_x2, pp_y2 + d_y2, pp_x2 + d_x2, pp_y2 - d_y2, 2, 2, 0, 1, 5);
-			write_line_outlined(pp_x2 - d_x2, pp_y2 + d_y2, pp_x2 - d_x2 - d_x_2, pp_y2 + d_y2 - d_y_2, 2, 2, 0, 1);
-			write_line_outlined(pp_x2 + d_x2, pp_y2 - d_y2, pp_x2 + d_x2 - d_x_2, pp_y2 - d_y2 - d_y_2, 2, 2, 0, 1);
+			int16_t pp_x2 = pp_x - i * d_x_10;
+			int16_t pp_y2 = pp_y - i * d_y_10;
 
-			write_string(tmp_str, pp_x2 - d_x - 4, pp_y2 + d_y, 0, 0, TEXT_VA_MIDDLE, TEXT_HA_CENTER, 0, 1);
-			write_string(tmp_str, pp_x2 + d_x + 4, pp_y2 - d_y, 0, 0, TEXT_VA_MIDDLE, TEXT_HA_CENTER, 0, 1);
-		} else if (angle > 0) {
-			write_line_outlined(pp_x2 - d_x2, pp_y2 + d_y2, pp_x2 + d_x2, pp_y2 - d_y2, 2, 2, 0, 1);
-			write_line_outlined(pp_x2 - d_x2, pp_y2 + d_y2, pp_x2 - d_x2 + d_x_2, pp_y2 + d_y2 + d_y_2, 2, 2, 0, 1);
-			write_line_outlined(pp_x2 + d_x2, pp_y2 - d_y2, pp_x2 + d_x2 + d_x_2, pp_y2 - d_y2 + d_y_2, 2, 2, 0, 1);
+			char tmp_str[5];
 
-			write_string(tmp_str, pp_x2 - d_x - 4, pp_y2 + d_y, 0, 0, TEXT_VA_MIDDLE, TEXT_HA_CENTER, 0, 1);
-			write_string(tmp_str, pp_x2 + d_x + 4, pp_y2 - d_y, 0, 0, TEXT_VA_MIDDLE, TEXT_HA_CENTER, 0, 1);
-		} else {
-			write_line_outlined(pp_x2 - d_x, pp_y2 + d_y, pp_x2 - d_x / 3, pp_y2 + d_y / 3, 2, 2, 0, 1);
-			write_line_outlined(pp_x2 + d_x / 3, pp_y2 - d_y / 3, pp_x2 + d_x, pp_y2 - d_y, 2, 2, 0, 1);
+			sprintf(tmp_str, "%d", angle);
+
+			if (angle < 0) {
+				write_line_outlined_dashed(pp_x2 - d_x2, pp_y2 + d_y2, pp_x2 + d_x2, pp_y2 - d_y2, 2, 2, 0, 1, 5);
+				write_line_outlined(pp_x2 - d_x2, pp_y2 + d_y2, pp_x2 - d_x2 - d_x_2, pp_y2 + d_y2 - d_y_2, 2, 2, 0, 1);
+				write_line_outlined(pp_x2 + d_x2, pp_y2 - d_y2, pp_x2 + d_x2 - d_x_2, pp_y2 - d_y2 - d_y_2, 2, 2, 0, 1);
+
+				write_string(tmp_str, pp_x2 - d_x - 4, pp_y2 + d_y, 0, 0, TEXT_VA_MIDDLE, TEXT_HA_CENTER, 0, 1);
+				write_string(tmp_str, pp_x2 + d_x + 4, pp_y2 - d_y, 0, 0, TEXT_VA_MIDDLE, TEXT_HA_CENTER, 0, 1);
+			} else if (angle > 0) {
+				write_line_outlined(pp_x2 - d_x2, pp_y2 + d_y2, pp_x2 + d_x2, pp_y2 - d_y2, 2, 2, 0, 1);
+				write_line_outlined(pp_x2 - d_x2, pp_y2 + d_y2, pp_x2 - d_x2 + d_x_2, pp_y2 + d_y2 + d_y_2, 2, 2, 0, 1);
+				write_line_outlined(pp_x2 + d_x2, pp_y2 - d_y2, pp_x2 + d_x2 + d_x_2, pp_y2 - d_y2 + d_y_2, 2, 2, 0, 1);
+
+				write_string(tmp_str, pp_x2 - d_x - 4, pp_y2 + d_y, 0, 0, TEXT_VA_MIDDLE, TEXT_HA_CENTER, 0, 1);
+				write_string(tmp_str, pp_x2 + d_x + 4, pp_y2 - d_y, 0, 0, TEXT_VA_MIDDLE, TEXT_HA_CENTER, 0, 1);
+			} else {
+				write_line_outlined(pp_x2 - d_x, pp_y2 + d_y, pp_x2 - d_x / 3, pp_y2 + d_y / 3, 2, 2, 0, 1);
+				write_line_outlined(pp_x2 + d_x / 3, pp_y2 - d_y / 3, pp_x2 + d_x, pp_y2 - d_y, 2, 2, 0, 1);
+			}
 		}
 	}
 
@@ -1187,11 +1179,11 @@ void render_user_page(OnScreenDisplayPageSettingsData * page)
 	}
 
 	// Artificial Horizon
-	if (page->ArtificialHorizon) {
+	if (page->ArtificialHorizon || page->CenterMark) {
 		AttitudeActualRollGet(&tmp);
 		AttitudeActualPitchGet(&tmp1);
 		simple_artificial_horizon(tmp, tmp1, GRAPHICS_X_MIDDLE, GRAPHICS_Y_MIDDLE, GRAPHICS_BOTTOM * 0.8f, GRAPHICS_RIGHT * 0.8f,
-				page->ArtificialHorizonMaxPitch, page->ArtificialHorizonPitchSteps, page->CenterMark);
+				page->ArtificialHorizonMaxPitch, page->ArtificialHorizonPitchSteps, page->ArtificialHorizon, page->CenterMark);
 	}
 
 	// Battery
