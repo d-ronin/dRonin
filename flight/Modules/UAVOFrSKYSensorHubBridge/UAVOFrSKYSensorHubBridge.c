@@ -400,6 +400,9 @@ static void uavoFrSKYSensorHubBridgeTask(void *parameters)
 			// As long as there is no voltage for each cell
 			// all cells will have the same voltage.
 			// Receiver will know number of cells.
+			if(batState.DetectedCellCount)
+				batSettings.NbCells = batState.DetectedCellCount;
+
 			if (batSettings.NbCells > 0) {
 				float cell_v = voltage / batSettings.NbCells;
 				for(uint8_t i = 0; i < batSettings.NbCells; ++i) {

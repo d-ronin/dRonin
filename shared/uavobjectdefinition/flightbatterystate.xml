@@ -1,7 +1,8 @@
 <xml>
     <object name="FlightBatteryState" singleinstance="true" settings="false">
         <description>Battery status information.</description> 
-        <field name="Voltage" units="V" type="float" elements="1" defaultvalue="0.0"/>
+	<field name="Voltage" units="V" type="float" elements="1" defaultvalue="0.0"/>
+	<field name="DetectedCellCount" units=""  type="uint8"  elements="1" defaultvalue="0"/>
 	<field name="Current" units="A" type="float"  elements="1" defaultvalue="0.0"/>
 	<field name="BoardSupplyVoltage" units="V" type="float" elements="1" defaultvalue="0.0"/>
 	<field name="PeakCurrent" units="A" type="float"  elements="1" defaultvalue="0.0"/>

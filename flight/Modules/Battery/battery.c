@@ -50,6 +50,7 @@ static struct pios_thread *batteryTaskHandle;
 static int8_t voltageADCPin = -1; //ADC pin for voltage
 static int8_t currentADCPin = -1; //ADC pin for current
 static bool battery_settings_updated;
+static bool cells_calculated;
 
 // ****************
 // Private functions
@@ -100,6 +101,7 @@ static void batteryTask(void * parameters)
 	const float dT = SAMPLE_PERIOD_MS / 1000.0f;
 
 	battery_settings_updated = true;
+	cells_calculated = false;
 
 	// Main task loop
 	uint32_t lastSysTime;
@@ -133,6 +135,7 @@ static void batteryTask(void * parameters)
 		if (voltageADCPin >= 0) {
 			float adc_voltage = (float)PIOS_ADC_GetChannelVolt(voltageADCPin);
 			float scaled_voltage = 0.0f;
+			static unsigned cells;
 
 			// A negative result indicates an error (PIOS_ADC_GetChannelVolt returns negative on error)
 			if(adc_voltage < 0.0f)
@@ -149,14 +152,21 @@ static void batteryTask(void * parameters)
 					scaled_voltage = 0.0f;
 					adc_offset_invalid = true;
 				}
+				else if(scaled_voltage > 3.0f && !cells_calculated && (batterySettings.MaxCellVoltage > 0)){
+					cells_calculated = true;
+					cells = ((scaled_voltage / batterySettings.MaxCellVoltage) + 1);
+					flightBatteryData.DetectedCellCount = cells;
+				}
+				else if(!cells_calculated)
+					cells = 1;
 			}
 
 			flightBatteryData.Voltage = scaled_voltage;
 
 			// generate alarms and warnings
-			if (flightBatteryData.Voltage < batterySettings.VoltageThresholds[FLIGHTBATTERYSETTINGS_VOLTAGETHRESHOLDS_ALARM])
+			if (flightBatteryData.Voltage < (batterySettings.VoltageThresholds[FLIGHTBATTERYSETTINGS_VOLTAGETHRESHOLDS_ALARM] * cells))
 				AlarmsSet(SYSTEMALARMS_ALARM_BATTERY, SYSTEMALARMS_ALARM_CRITICAL);
-			else if (flightBatteryData.Voltage < batterySettings.VoltageThresholds[FLIGHTBATTERYSETTINGS_VOLTAGETHRESHOLDS_WARNING])
+			else if (flightBatteryData.Voltage < (batterySettings.VoltageThresholds[FLIGHTBATTERYSETTINGS_VOLTAGETHRESHOLDS_WARNING] * cells))
 				AlarmsSet(SYSTEMALARMS_ALARM_BATTERY, SYSTEMALARMS_ALARM_WARNING);
 			else
 				AlarmsClear(SYSTEMALARMS_ALARM_BATTERY);
