@@ -6,7 +6,7 @@
  * @{
  *
  * @file       autotune.c
- * @author     dRonin, http://dRonin.org, Copyright (C) 2015
+ * @author     dRonin, http://dRonin.org, Copyright (C) 2015-2016
  * @author     Tau Labs, http://taulabs.org, Copyright (C) 2013-2014
  * @author     The OpenPilot Team, http://www.openpilot.org Copyright (C) 2012.
  * @brief      State machine to run autotuning. Low level work done by @ref
@@ -29,6 +29,10 @@
  * You should have received a copy of the GNU General Public License along
  * with this program; if not, write to the Free Software Foundation, Inc.,
  * 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
+ *
+* Additional note on redistribution: The copyright and license notices above
+* must be maintained in each individual source file that is a derivative work
+* of this source file; otherwise redistribution is prohibited.
  */
 
 #include "openpilot.h"
