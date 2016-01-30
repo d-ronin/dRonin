@@ -10,7 +10,7 @@
  * @author     Tau Labs, http://taulabs.org, Copyright (C) 2013-2014
  * @author     The OpenPilot Team, http://www.openpilot.org Copyright (C) 2012.
  * @brief      State machine to run autotuning. Low level work done by @ref
- *             StabilizationModule 
+ *             StabilizationModule
  *
  * @see        The GNU Public License (GPL) Version 3
  *
@@ -69,11 +69,9 @@ struct at_queued_data {
 // Private variables
 static struct pios_thread *taskHandle;
 static bool module_enabled;
-
 static circ_queue_t at_queue;
 static volatile uint32_t at_points_spilled;
-
-static float hover_throttle;
+static uint32_t throttle_accumulator;
 
 // Private functions
 static void AutotuneTask(void *parameters);
@@ -289,7 +287,7 @@ static void AutotuneTask(void *parameters)
 
 					af_init(X,P);
 
-					UpdateSystemIdent(X, NULL, 0.0f, 0, 0, 0);
+					UpdateSystemIdent(X, NULL, 0.0f, 0, 0, 0.0f);
 
 					state = AT_START;
 
@@ -314,8 +312,8 @@ static void AutotuneTask(void *parameters)
 
 					update_counter = 0;
 					at_points_spilled = 0;
-					
-					hover_throttle = 0;
+
+					throttle_accumulator = 0;
 
 					state = AT_RUN;
 					last_update_time = PIOS_Thread_Systime();
@@ -354,7 +352,6 @@ static void AutotuneTask(void *parameters)
 					 * also if we have extended drops */
 					if (dT_s > 0.010f) {
 						dT_s = 0.010f;
-						hover_throttle = pt->throttle;
 					}
 
 					last_time = pt->raw_time;
@@ -366,12 +363,13 @@ static void AutotuneTask(void *parameters)
 						noise[i] = NOISE_ALPHA * noise[i] + (1-NOISE_ALPHA) * (pt->y[i] - X[i]) * (pt->y[i] - X[i]);
 					}
 
-					const float THROTTLE_ALPHA = 0.9997f;  // 10 second time constant at 300 Hz
-					hover_throttle = THROTTLE_ALPHA * hover_throttle + (1-THROTTLE_ALPHA) * pt->throttle;
+					//This will work up to 8kHz with an 89% throttle position before overflow
+					throttle_accumulator += 10000 * pt->throttle;
 
 					// Update uavo every 256 cycles to avoid
 					// telemetry spam
 					if (!((update_counter++) & 0xff)) {
+						float hover_throttle = ((float)(throttle_accumulator/update_counter))/10000.0f;
 						UpdateSystemIdent(X, noise, dT_s, update_counter, at_points_spilled, hover_throttle);
 					}
 
@@ -386,10 +384,11 @@ static void AutotuneTask(void *parameters)
 
 				break;
 
-			case AT_FINISHED:
+			case AT_FINISHED: ;
 
 				// Wait until disarmed and landed before saving the settings
 
+				float hover_throttle = ((float)(throttle_accumulator/update_counter))/10000.0f;
 				UpdateSystemIdent(X, noise, 0, update_counter, at_points_spilled, hover_throttle);
 
 				state = AT_WAITING;	// Fall through
@@ -399,7 +398,7 @@ static void AutotuneTask(void *parameters)
 				// TODO do this unconditionally on disarm,
 				// no matter what mode we're in.
 				if (flightStatus.Armed == FLIGHTSTATUS_ARMED_DISARMED) {
-					// Save the settings locally. 
+					// Save the settings locally.
 					UAVObjSave(SystemIdentHandle(), 0);
 					state = AT_INIT;
 				}
@@ -439,7 +438,7 @@ __attribute__((always_inline)) static inline void af_predict(float X[AF_NUMX], f
 	float w1 = X[0];           // roll rate estimate
 	float w2 = X[1];           // pitch rate estimate
 	float w3 = X[2];           // yaw rate estimate
-	float u1 = X[3];           // scaled roll torque 
+	float u1 = X[3];           // scaled roll torque
 	float u2 = X[4];           // scaled pitch torque
 	float u3 = X[5];           // scaled yaw torque
 	const float e_b1 = expf(X[6]);   // roll torque scale
@@ -494,7 +493,7 @@ __attribute__((always_inline)) static inline void af_predict(float X[AF_NUMX], f
     const float Ts_e_tau2 = (Ts + e_tau) * (Ts + e_tau);
     const float Ts_e_tau4 = Ts_e_tau2 * Ts_e_tau2;
 
-	// covariance propagation - D is stored copy of covariance	
+	// covariance propagation - D is stored copy of covariance
 	P[0] = D[0] + Q[0] + 2*Ts*e_b1*(D[3] - D[28] - D[9]*bias1 + D[9]*u1) + Tsq*(e_b1*e_b1)*(D[4] - 2*D[29] + D[32] - 2*D[10]*bias1 + 2*D[30]*bias1 + 2*D[10]*u1 - 2*D[30]*u1 + D[11]*(bias1*bias1) + D[11]*(u1*u1) - 2*D[11]*bias1*u1);
 	P[1] = D[1] + Q[1] + 2*Ts*e_b2*(D[5] - D[33] - D[12]*bias2 + D[12]*u2) + Tsq*(e_b2*e_b2)*(D[6] - 2*D[34] + D[37] - 2*D[13]*bias2 + 2*D[35]*bias2 + 2*D[13]*u2 - 2*D[35]*u2 + D[14]*(bias2*bias2) + D[14]*(u2*u2) - 2*D[14]*bias2*u2);
 	P[2] = D[2] + Q[2] + 2*Ts*e_b3*(D[7] - D[38] - D[15]*bias3 + D[15]*u3) + Tsq*(e_b3*e_b3)*(D[8] - 2*D[39] + D[42] - 2*D[16]*bias3 + 2*D[40]*bias3 + 2*D[16]*u3 - 2*D[40]*u3 + D[17]*(bias3*bias3) + D[17]*(u3*u3) - 2*D[17]*bias3*u3);
@@ -539,7 +538,7 @@ __attribute__((always_inline)) static inline void af_predict(float X[AF_NUMX], f
 	P[41] = D[41];
 	P[42] = D[42] + Q[12];
 
-    
+
 	/********* this is the update part of the equation ***********/
 
     float S[3] = {P[0] + s_a, P[1] + s_a, P[2] + s_a};
@@ -561,7 +560,7 @@ __attribute__((always_inline)) static inline void af_predict(float X[AF_NUMX], f
 	// update the duplicate cache
 	for (uint32_t i = 0; i < AF_NUMP; i++)
         D[i] = P[i];
-    
+
 	// This is an approximation that removes some cross axis uncertainty but
 	// substantially reduces the number of calculations
 	P[0] = -D[0]*(D[0]/S[0] - 1);
