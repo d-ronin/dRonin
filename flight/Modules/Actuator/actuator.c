@@ -4,17 +4,17 @@
  * @{
  * @addtogroup ActuatorModule Actuator Module
  * @{
+ *
+ * @file       actuator.c
+ * @author     dRonin, http://dRonin.org/, Copyright (C) 2015-2016
+ * @author     Tau Labs, http://taulabs.org, Copyright (C) 2013-2015
+ * @author     The OpenPilot Team, http://www.openpilot.org Copyright (C) 2010.
+ * @brief      Actuator module. Drives the actuators (servos, motors etc).
  * @brief      Take the values in @ref ActuatorDesired and mix to set the outputs
  *
  * This module ultimately controls the outputs.  The values from @ref ActuatorDesired
  * are combined based on the values in @ref MixerSettings and then scaled by the
  * values in @ref ActuatorSettings to create the output PWM times.
- *
- * @file       actuator.c
- * @author     The OpenPilot Team, http://www.openpilot.org Copyright (C) 2010.
- * @author     Tau Labs, http://taulabs.org, Copyright (C) 2013-2015
- * @author     dRonin, http://dronin.org Copyright (C) 2015
- * @brief      Actuator module. Drives the actuators (servos, motors etc).
  *
  * @see        The GNU Public License (GPL) Version 3
  *
@@ -33,6 +33,10 @@
  * You should have received a copy of the GNU General Public License along
  * with this program; if not, write to the Free Software Foundation, Inc.,
  * 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
+ *
+ * Additional note on redistribution: The copyright and license notices above
+ * must be maintained in each individual source file that is a derivative work
+ * of this source file; otherwise redistribution is prohibited.
  */
 
 #include "openpilot.h"
