@@ -378,7 +378,7 @@ static void AutotuneTask(void *parameters)
 
 					last_time = pt->raw_time;
 
-					af_predict(X, P, pt->u, pt->y, dT_s, pt->t);
+					af_predict(X, P, pt->u, pt->y, dT_s, pt->throttle);
 
 					for (uint32_t i = 0; i < 3; i++) {
 						const float NOISE_ALPHA = 0.9997f;  // 10 second time constant at 300 Hz
