@@ -6,6 +6,8 @@
  * @{ 
  *
  * @file       picoc_library.c
+ *
+ * @author     dRonin, http://dRonin.org/, Copyright (C) 2016
  * @author     Tau Labs, http://taulabs.org, Copyright (C) 2014
  * @brief      c-interpreter module for autonomous user programmed tasks
  *             library functions for uavo communication
@@ -26,6 +28,10 @@
  * You should have received a copy of the GNU General Public License along
  * with this program; if not, write to the Free Software Foundation, Inc.,
  * 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
+ *
+ * Additional note on redistribution: The copyright and license notices above
+ * must be maintained in each individual source file that is a derivative work
+ * of this source file; otherwise redistribution is prohibited.
  */
 
 
@@ -478,6 +484,17 @@ void SystemArmed(struct ParseState *Parser, struct Value *ReturnValue, struct Va
 	ReturnValue->Val->Integer = (data.Armed == FLIGHTSTATUS_ARMED_ARMED);
 }
 
+/* int batAlarm(): returns alarm status for battery levels */
+void SystemBatAlarm(struct ParseState *Parser, struct Value *ReturnValue, struct Value **Param, int NumArgs)
+{
+	if (AlarmsGet(SYSTEMALARMS_ALARM_BATTERY) > SYSTEMALARMS_ALARM_WARNING)
+		ReturnValue->Val->Integer = 2;
+	else if(AlarmsGet(SYSTEMALARMS_ALARM_BATTERY) == SYSTEMALARMS_ALARM_WARNING)
+		ReturnValue->Val->Integer = 1;
+	else
+		ReturnValue->Val->Integer = 0;
+}
+
 /* void AccessLevelSet(int): sets the access level. Used for security in some library functions */
 void SystemAccessLevelSet(struct ParseState *Parser, struct Value *ReturnValue, struct Value **Param, int NumArgs)
 {
@@ -815,6 +832,7 @@ struct LibraryFunction PlatformLibrary_system[] =
 	{ SystemSync,			"void sync(int);" },
 	{ SystemTime,			"unsigned long time();" },
 	{ SystemArmed,			"int armed();" },
+	{ SystemBatAlarm,		"int batAlarm();" },
 	{ SystemAccessLevelSet,	"void AccessLevelSet(int);" },
 #ifdef PIOS_COM_PICOC
 	{ SystemChangeBaud,		"void ChangeBaud(unsigned long);" },
