@@ -1,14 +1,15 @@
 /**
  ******************************************************************************
  * @addtogroup TauLabsModules TauLabs Modules
- * @{ 
+ * @{
  * @addtogroup UAVOMavlinkBridge UAVO to Mavlink Bridge Module
- * @{ 
+ * @{
  *
  * @file       UAVOMavlinkBridge.c
+ * @author     dRonin, http://dRonin.org/, Copyright (C) 2015-2016
  * @author     Tau Labs, http://taulabs.org, Copyright (C) 2013-2014
- * @author     dRonin, http://dronin.org Copyright (C) 2015-2016
  * @brief      Bridges selected UAVObjects to Mavlink
+ *
  * @see        The GNU Public License (GPL) Version 3
  *
  *****************************************************************************/
