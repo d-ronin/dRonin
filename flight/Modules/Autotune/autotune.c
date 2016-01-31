@@ -30,9 +30,9 @@
  * with this program; if not, write to the Free Software Foundation, Inc.,
  * 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
  *
-* Additional note on redistribution: The copyright and license notices above
-* must be maintained in each individual source file that is a derivative work
-* of this source file; otherwise redistribution is prohibited.
+ * Additional note on redistribution: The copyright and license notices above
+ * must be maintained in each individual source file that is a derivative work
+ * of this source file; otherwise redistribution is prohibited.
  */
 
 #include "openpilot.h"
@@ -259,6 +259,8 @@ static void AutotuneTask(void *parameters)
 
 	GyrosConnectCallback(at_new_gyro_data);
 
+	bool save_needed = false;
+
 	while(1) {
 		PIOS_WDG_UpdateFlag(PIOS_WDG_AUTOTUNE);
 
@@ -275,6 +277,17 @@ static void AutotuneTask(void *parameters)
 		FlightStatusData flightStatus;
 		FlightStatusGet(&flightStatus);
 
+		if (save_needed) {
+			if (flightStatus.Armed == FLIGHTSTATUS_ARMED_DISARMED) {
+				// Save the settings locally.
+				UAVObjSave(SystemIdentHandle(), 0);
+				state = AT_INIT;
+
+				save_needed = false;
+			}
+
+		}
+
 		// Only allow this module to run when autotuning
 		if (flightStatus.FlightMode != FLIGHTSTATUS_FLIGHTMODE_AUTOTUNE) {
 			state = AT_INIT;
@@ -284,6 +297,10 @@ static void AutotuneTask(void *parameters)
 
 		switch(state) {
 			case AT_INIT:
+				// Reset save status; only save if this tune
+				// completes.
+				save_needed = false;
+
 				last_update_time = PIOS_Thread_Systime();
 
 				// Only start when armed and flying
@@ -303,7 +320,7 @@ static void AutotuneTask(void *parameters)
 
 				diff_time = PIOS_Thread_Systime() - last_update_time;
 
-				// Spend the first block of time in normal rate mode to get airborne
+				// Spend the first block of time in normal rate mode to get stabilized
 				if (diff_time > PREPARE_TIME) {
 					last_time = PIOS_DELAY_GetRaw();
 
@@ -395,17 +412,9 @@ static void AutotuneTask(void *parameters)
 				float hover_throttle = ((float)(throttle_accumulator/update_counter))/10000.0f;
 				UpdateSystemIdent(X, noise, 0, update_counter, at_points_spilled, hover_throttle);
 
+				save_needed = true;
 				state = AT_WAITING;	// Fall through
 
-			case AT_WAITING:
-
-				// TODO do this unconditionally on disarm,
-				// no matter what mode we're in.
-				if (flightStatus.Armed == FLIGHTSTATUS_ARMED_DISARMED) {
-					// Save the settings locally.
-					UAVObjSave(SystemIdentHandle(), 0);
-					state = AT_INIT;
-				}
 				break;
 
 			default:
