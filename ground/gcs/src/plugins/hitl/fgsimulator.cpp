@@ -1,15 +1,18 @@
 /**
  ******************************************************************************
- *
- * @file       flightgearbridge.cpp
- * @author     The OpenPilot Team, http://www.openpilot.org Copyright (C) 2010.
- * @author     Tau Labs, http://taulabs.org, Copyright (C) 2013
- *
  * @addtogroup GCSPlugins GCS Plugins
  * @{
  * @addtogroup HITLPlugin HITL Plugin
  * @{
+ *
+ * @file       flightgearbridge.cpp
+ * @author     dRonin, http://dRonin.org/, Copyright (C) 2015-2016
+ * @author     Tau Labs, http://taulabs.org, Copyright (C) 2013
+ * @author     The OpenPilot Team, http://www.openpilot.org Copyright (C) 2010.
  * @brief The Hardware In The Loop plugin
+ *
+ * @see        The GNU Public License (GPL) Version 3
+ *
  *****************************************************************************/
 /*
  * This program is free software; you can redistribute it and/or modify
@@ -25,6 +28,10 @@
  * You should have received a copy of the GNU General Public License along
  * with this program; if not, write to the Free Software Foundation, Inc.,
  * 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
+ *
+ * Additional note on redistribution: The copyright and license notices above
+ * must be maintained in each individual source file that is a derivative work
+ * of this source file; otherwise redistribution is prohibited.
  */
 
 #include "fgsimulator.h"
@@ -141,29 +148,17 @@ void FGSimulator::transmitUpdate()
 {
     ActuatorDesired::DataFields actData;
     FlightStatus::DataFields flightStatusData = flightStatus->getData();
-    ManualControlCommand::DataFields manCtrlData = manCtrlCommand->getData();
     float ailerons = -1;
     float elevator = -1;
     float rudder = -1;
     float throttle = -1;
 
-    if(flightStatusData.FlightMode == FlightStatus::FLIGHTMODE_MANUAL)
-    {
-        // Read joystick input
-        if(flightStatusData.Armed == FlightStatus::ARMED_ARMED)
-        {
-            // Note: Pitch sign is reversed in FG ?
-            ailerons = manCtrlData.Roll;
-            elevator = -manCtrlData.Pitch;
-            rudder = manCtrlData.Yaw;
-            throttle = manCtrlData.Throttle;
-        }
-    }
-    else
-    {
-        // Read ActuatorDesired from autopilot
-        actData = actDesired->getData();
+    // Read ActuatorDesired from autopilot
+    actData = actDesired->getData();
 
+    // if we're in any mode other than manual, or if we're in manual and we're armed, update outputs from ActuatorDesired
+    if(flightStatus->getFlightMode() != FlightStatus::FLIGHTMODE_MANUAL || flightStatusData.Armed == FlightStatus::ARMED_ARMED)
+    {
         ailerons = actData.Roll;
         elevator = -actData.Pitch;
         rudder = actData.Yaw;

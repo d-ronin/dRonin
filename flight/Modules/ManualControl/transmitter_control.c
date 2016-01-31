@@ -6,7 +6,7 @@
  * @{
  *
  * @file       transmitter_control.c
- * @author     dRonin, http://dronin.org Copyright (C) 2015
+ * @author     dRonin, http://dRonin.org/, Copyright (C) 2015-2016
  * @author     Tau Labs, http://taulabs.org, Copyright (C) 2012-2015
  * @author     The OpenPilot Team, http://www.openpilot.org Copyright (C) 2010.
  * @brief      Handles R/C link and flight mode.
@@ -28,6 +28,10 @@
  * You should have received a copy of the GNU General Public License along
  * with this program; if not, write to the Free Software Foundation, Inc.,
  * 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
+ *
+ * Additional note on redistribution: The copyright and license notices above
+ * must be maintained in each individual source file that is a derivative work
+ * of this source file; otherwise redistribution is prohibited.
  */
 
 #include "openpilot.h"
@@ -36,7 +40,6 @@
 #include "pios_thread.h"
 
 #include "accessorydesired.h"
-#include "actuatordesired.h"
 #include "altitudeholddesired.h"
 #include "altitudeholdsettings.h"
 #include "baroaltitude.h"
@@ -100,7 +103,6 @@ static enum control_events        pending_control_event;
 static bool                       settings_updated;
 
 // Private functions
-static void update_actuator_desired(ManualControlCommandData * cmd);
 static void update_stabilization_desired(ManualControlCommandData * cmd, ManualControlSettingsData * settings);
 static void altitude_hold_desired(ManualControlCommandData * cmd, bool flightModeChanged);
 static void set_flight_mode();
@@ -424,13 +426,11 @@ int32_t transmitter_control_select(bool reset_controller)
 	uint8_t flightMode;
 	FlightStatusFlightModeGet(&flightMode);
 
-	// Depending on the mode update the Stabilization or Actuator objects
+	// Depending on the mode update the Stabilization object
 	static uint8_t lastFlightMode = FLIGHTSTATUS_FLIGHTMODE_MANUAL;
 
 	switch(flightMode) {
 	case FLIGHTSTATUS_FLIGHTMODE_MANUAL:
-		update_actuator_desired(&cmd);
-		break;
 	case FLIGHTSTATUS_FLIGHTMODE_ACRO:
 	case FLIGHTSTATUS_FLIGHTMODE_ACROPLUS:      
 	case FLIGHTSTATUS_FLIGHTMODE_LEVELING:
@@ -921,18 +921,6 @@ group_completed:
 	return (activity_updated);
 }
 
-//! In manual mode directly set actuator desired
-static void update_actuator_desired(ManualControlCommandData * cmd)
-{
-	ActuatorDesiredData actuator;
-	ActuatorDesiredGet(&actuator);
-	actuator.Roll = cmd->Roll;
-	actuator.Pitch = cmd->Pitch;
-	actuator.Yaw = cmd->Yaw;
-	actuator.Throttle = (cmd->Throttle < 0) ? -1 : cmd->Throttle;
-	ActuatorDesiredSet(&actuator);
-}
-
 //! In stabilization mode, set stabilization desired
 static void update_stabilization_desired(ManualControlCommandData * cmd, ManualControlSettingsData * settings)
 {
@@ -941,6 +929,11 @@ static void update_stabilization_desired(ManualControlCommandData * cmd, ManualC
 
 	StabilizationSettingsData stabSettings;
 	StabilizationSettingsGet(&stabSettings);
+
+	const uint8_t MANUAL_SETTINGS[3] = {
+	                                    STABILIZATIONDESIRED_STABILIZATIONMODE_MANUAL,
+	                                    STABILIZATIONDESIRED_STABILIZATIONMODE_MANUAL,
+	                                    STABILIZATIONDESIRED_STABILIZATIONMODE_MANUAL };
 
 	const uint8_t RATE_SETTINGS[3] = {  STABILIZATIONDESIRED_STABILIZATIONMODE_RATE,
 	                                    STABILIZATIONDESIRED_STABILIZATIONMODE_RATE,
@@ -975,6 +968,9 @@ static void update_stabilization_desired(ManualControlCommandData * cmd, ManualC
 
 	FlightStatusFlightModeGet(&flightMode);
 	switch(flightMode) {
+		case FLIGHTSTATUS_FLIGHTMODE_MANUAL:
+			stab_settings = MANUAL_SETTINGS;
+			break;
 		case FLIGHTSTATUS_FLIGHTMODE_ACRO:
 			stab_settings = RATE_SETTINGS;
 			break;
@@ -1018,44 +1014,47 @@ static void update_stabilization_desired(ManualControlCommandData * cmd, ManualC
 	stabilization.StabilizationMode[STABILIZATIONDESIRED_STABILIZATIONMODE_PITCH] = stab_settings[1];
 	stabilization.StabilizationMode[STABILIZATIONDESIRED_STABILIZATIONMODE_YAW]   = stab_settings[2];
 
-	stabilization.Roll = (stab_settings[0] == STABILIZATIONDESIRED_STABILIZATIONMODE_NONE) ? cmd->Roll :
-	     (stab_settings[0] == STABILIZATIONDESIRED_STABILIZATIONMODE_RATE) ? expo3(cmd->Roll, stabSettings.RateExpo[STABILIZATIONSETTINGS_RATEEXPO_ROLL]) * stabSettings.ManualRate[STABILIZATIONSETTINGS_MANUALRATE_ROLL] :
-	     (stab_settings[0] == STABILIZATIONDESIRED_STABILIZATIONMODE_ACROPLUS) ? expo3(cmd->Roll, stabSettings.RateExpo[STABILIZATIONSETTINGS_RATEEXPO_ROLL]) :
-	     (stab_settings[0] == STABILIZATIONDESIRED_STABILIZATIONMODE_WEAKLEVELING) ? expo3(cmd->Roll, stabSettings.RateExpo[STABILIZATIONSETTINGS_RATEEXPO_ROLL]) * stabSettings.ManualRate[STABILIZATIONSETTINGS_MANUALRATE_ROLL]:
-	     (stab_settings[0] == STABILIZATIONDESIRED_STABILIZATIONMODE_ATTITUDE) ? expo3(cmd->Roll, stabSettings.AttitudeExpo[STABILIZATIONSETTINGS_ATTITUDEEXPO_ROLL]) * stabSettings.RollMax :
-	     (stab_settings[0] == STABILIZATIONDESIRED_STABILIZATIONMODE_AXISLOCK) ? expo3(cmd->Roll, stabSettings.RateExpo[STABILIZATIONSETTINGS_RATEEXPO_ROLL]) * stabSettings.ManualRate[STABILIZATIONSETTINGS_MANUALRATE_ROLL] :
-	     (stab_settings[0] == STABILIZATIONDESIRED_STABILIZATIONMODE_VIRTUALBAR) ? cmd->Roll :
-	     (stab_settings[0] == STABILIZATIONDESIRED_STABILIZATIONMODE_HORIZON) ? expo3(cmd->Roll, stabSettings.HorizonExpo[STABILIZATIONSETTINGS_HORIZONEXPO_ROLL]) :
-	     (stab_settings[0] == STABILIZATIONDESIRED_STABILIZATIONMODE_MWRATE) ? expo3(cmd->Roll, stabSettings.RateExpo[STABILIZATIONSETTINGS_RATEEXPO_ROLL]) :
-	     (stab_settings[0] == STABILIZATIONDESIRED_STABILIZATIONMODE_SYSTEMIDENT) ? cmd->Roll * stabSettings.RollMax :
-	     (stab_settings[0] == STABILIZATIONDESIRED_STABILIZATIONMODE_COORDINATEDFLIGHT) ? cmd->Roll :
-	     0; // this is an invalid mode
+	stabilization.Roll = (stab_settings[0] == STABILIZATIONDESIRED_STABILIZATIONMODE_DISABLED) ? 0 :
+		(stab_settings[0] == STABILIZATIONDESIRED_STABILIZATIONMODE_MANUAL) ? cmd->Roll :
+		(stab_settings[0] == STABILIZATIONDESIRED_STABILIZATIONMODE_RATE) ? expo3(cmd->Roll, stabSettings.RateExpo[STABILIZATIONSETTINGS_RATEEXPO_ROLL]) * stabSettings.ManualRate[STABILIZATIONSETTINGS_MANUALRATE_ROLL] :
+		(stab_settings[0] == STABILIZATIONDESIRED_STABILIZATIONMODE_ACROPLUS) ? expo3(cmd->Roll, stabSettings.RateExpo[STABILIZATIONSETTINGS_RATEEXPO_ROLL]) :
+		(stab_settings[0] == STABILIZATIONDESIRED_STABILIZATIONMODE_WEAKLEVELING) ? expo3(cmd->Roll, stabSettings.RateExpo[STABILIZATIONSETTINGS_RATEEXPO_ROLL]) * stabSettings.ManualRate[STABILIZATIONSETTINGS_MANUALRATE_ROLL]:
+		(stab_settings[0] == STABILIZATIONDESIRED_STABILIZATIONMODE_ATTITUDE) ? expo3(cmd->Roll, stabSettings.AttitudeExpo[STABILIZATIONSETTINGS_ATTITUDEEXPO_ROLL]) * stabSettings.RollMax :
+		(stab_settings[0] == STABILIZATIONDESIRED_STABILIZATIONMODE_AXISLOCK) ? expo3(cmd->Roll, stabSettings.RateExpo[STABILIZATIONSETTINGS_RATEEXPO_ROLL]) * stabSettings.ManualRate[STABILIZATIONSETTINGS_MANUALRATE_ROLL] :
+		(stab_settings[0] == STABILIZATIONDESIRED_STABILIZATIONMODE_VIRTUALBAR) ? cmd->Roll :
+		(stab_settings[0] == STABILIZATIONDESIRED_STABILIZATIONMODE_HORIZON) ? expo3(cmd->Roll, stabSettings.HorizonExpo[STABILIZATIONSETTINGS_HORIZONEXPO_ROLL]) :
+		(stab_settings[0] == STABILIZATIONDESIRED_STABILIZATIONMODE_MWRATE) ? expo3(cmd->Roll, stabSettings.RateExpo[STABILIZATIONSETTINGS_RATEEXPO_ROLL]) :
+		(stab_settings[0] == STABILIZATIONDESIRED_STABILIZATIONMODE_SYSTEMIDENT) ? cmd->Roll * stabSettings.RollMax :
+		(stab_settings[0] == STABILIZATIONDESIRED_STABILIZATIONMODE_COORDINATEDFLIGHT) ? cmd->Roll :
+		0; // this is an invalid mode
 
-	stabilization.Pitch = (stab_settings[1] == STABILIZATIONDESIRED_STABILIZATIONMODE_NONE) ? cmd->Pitch :
-	     (stab_settings[1] == STABILIZATIONDESIRED_STABILIZATIONMODE_RATE) ? expo3(cmd->Pitch, stabSettings.RateExpo[STABILIZATIONSETTINGS_RATEEXPO_PITCH]) * stabSettings.ManualRate[STABILIZATIONSETTINGS_MANUALRATE_PITCH] :
-	     (stab_settings[1] == STABILIZATIONDESIRED_STABILIZATIONMODE_ACROPLUS) ? expo3(cmd->Pitch, stabSettings.RateExpo[STABILIZATIONSETTINGS_RATEEXPO_PITCH]) :
-	     (stab_settings[1] == STABILIZATIONDESIRED_STABILIZATIONMODE_WEAKLEVELING) ? expo3(cmd->Pitch, stabSettings.RateExpo[STABILIZATIONSETTINGS_RATEEXPO_PITCH]) * stabSettings.ManualRate[STABILIZATIONSETTINGS_MANUALRATE_PITCH] :
-	     (stab_settings[1] == STABILIZATIONDESIRED_STABILIZATIONMODE_ATTITUDE) ? expo3(cmd->Pitch, stabSettings.AttitudeExpo[STABILIZATIONSETTINGS_ATTITUDEEXPO_PITCH]) * stabSettings.PitchMax :
-	     (stab_settings[1] == STABILIZATIONDESIRED_STABILIZATIONMODE_AXISLOCK) ? expo3(cmd->Pitch, stabSettings.RateExpo[STABILIZATIONSETTINGS_RATEEXPO_PITCH]) * stabSettings.ManualRate[STABILIZATIONSETTINGS_MANUALRATE_PITCH] :
-	     (stab_settings[1] == STABILIZATIONDESIRED_STABILIZATIONMODE_VIRTUALBAR) ? cmd->Pitch :
-	     (stab_settings[1] == STABILIZATIONDESIRED_STABILIZATIONMODE_HORIZON) ? expo3(cmd->Pitch, stabSettings.HorizonExpo[STABILIZATIONSETTINGS_HORIZONEXPO_PITCH]):
-	     (stab_settings[1] == STABILIZATIONDESIRED_STABILIZATIONMODE_MWRATE) ? expo3(cmd->Pitch, stabSettings.RateExpo[STABILIZATIONSETTINGS_RATEEXPO_PITCH]) :
-	     (stab_settings[1] == STABILIZATIONDESIRED_STABILIZATIONMODE_SYSTEMIDENT) ? cmd->Pitch * stabSettings.PitchMax :
-	     (stab_settings[1] == STABILIZATIONDESIRED_STABILIZATIONMODE_COORDINATEDFLIGHT) ? cmd->Pitch :
-	     0; // this is an invalid mode
+	stabilization.Pitch = (stab_settings[1] == STABILIZATIONDESIRED_STABILIZATIONMODE_DISABLED) ? 0 :
+		(stab_settings[1] == STABILIZATIONDESIRED_STABILIZATIONMODE_MANUAL) ? cmd->Pitch :
+		(stab_settings[1] == STABILIZATIONDESIRED_STABILIZATIONMODE_RATE) ? expo3(cmd->Pitch, stabSettings.RateExpo[STABILIZATIONSETTINGS_RATEEXPO_PITCH]) * stabSettings.ManualRate[STABILIZATIONSETTINGS_MANUALRATE_PITCH] :
+		(stab_settings[1] == STABILIZATIONDESIRED_STABILIZATIONMODE_ACROPLUS) ? expo3(cmd->Pitch, stabSettings.RateExpo[STABILIZATIONSETTINGS_RATEEXPO_PITCH]) :
+		(stab_settings[1] == STABILIZATIONDESIRED_STABILIZATIONMODE_WEAKLEVELING) ? expo3(cmd->Pitch, stabSettings.RateExpo[STABILIZATIONSETTINGS_RATEEXPO_PITCH]) * stabSettings.ManualRate[STABILIZATIONSETTINGS_MANUALRATE_PITCH] :
+		(stab_settings[1] == STABILIZATIONDESIRED_STABILIZATIONMODE_ATTITUDE) ? expo3(cmd->Pitch, stabSettings.AttitudeExpo[STABILIZATIONSETTINGS_ATTITUDEEXPO_PITCH]) * stabSettings.PitchMax :
+		(stab_settings[1] == STABILIZATIONDESIRED_STABILIZATIONMODE_AXISLOCK) ? expo3(cmd->Pitch, stabSettings.RateExpo[STABILIZATIONSETTINGS_RATEEXPO_PITCH]) * stabSettings.ManualRate[STABILIZATIONSETTINGS_MANUALRATE_PITCH] :
+		(stab_settings[1] == STABILIZATIONDESIRED_STABILIZATIONMODE_VIRTUALBAR) ? cmd->Pitch :
+		(stab_settings[1] == STABILIZATIONDESIRED_STABILIZATIONMODE_HORIZON) ? expo3(cmd->Pitch, stabSettings.HorizonExpo[STABILIZATIONSETTINGS_HORIZONEXPO_PITCH]):
+		(stab_settings[1] == STABILIZATIONDESIRED_STABILIZATIONMODE_MWRATE) ? expo3(cmd->Pitch, stabSettings.RateExpo[STABILIZATIONSETTINGS_RATEEXPO_PITCH]) :
+		(stab_settings[1] == STABILIZATIONDESIRED_STABILIZATIONMODE_SYSTEMIDENT) ? cmd->Pitch * stabSettings.PitchMax :
+		(stab_settings[1] == STABILIZATIONDESIRED_STABILIZATIONMODE_COORDINATEDFLIGHT) ? cmd->Pitch :
+		0; // this is an invalid mode
 
-	stabilization.Yaw = (stab_settings[2] == STABILIZATIONDESIRED_STABILIZATIONMODE_NONE) ? cmd->Yaw :
-	     (stab_settings[2] == STABILIZATIONDESIRED_STABILIZATIONMODE_RATE) ? expo3(cmd->Yaw, stabSettings.RateExpo[STABILIZATIONSETTINGS_RATEEXPO_YAW]) * stabSettings.ManualRate[STABILIZATIONSETTINGS_MANUALRATE_YAW] :
-	     (stab_settings[2] == STABILIZATIONDESIRED_STABILIZATIONMODE_ACROPLUS) ? expo3(cmd->Yaw, stabSettings.RateExpo[STABILIZATIONSETTINGS_RATEEXPO_YAW]) :
-	     (stab_settings[2] == STABILIZATIONDESIRED_STABILIZATIONMODE_WEAKLEVELING) ? expo3(cmd->Yaw, stabSettings.RateExpo[STABILIZATIONSETTINGS_RATEEXPO_YAW]) * stabSettings.ManualRate[STABILIZATIONSETTINGS_MANUALRATE_YAW] :
-	     (stab_settings[2] == STABILIZATIONDESIRED_STABILIZATIONMODE_ATTITUDE) ? expo3(cmd->Yaw, stabSettings.AttitudeExpo[STABILIZATIONSETTINGS_ATTITUDEEXPO_YAW]) * stabSettings.YawMax :
-	     (stab_settings[2] == STABILIZATIONDESIRED_STABILIZATIONMODE_AXISLOCK) ? expo3(cmd->Yaw, stabSettings.RateExpo[STABILIZATIONSETTINGS_RATEEXPO_YAW]) * stabSettings.ManualRate[STABILIZATIONSETTINGS_MANUALRATE_YAW] :
-	     (stab_settings[2] == STABILIZATIONDESIRED_STABILIZATIONMODE_VIRTUALBAR) ? cmd->Yaw :
-	     (stab_settings[2] == STABILIZATIONDESIRED_STABILIZATIONMODE_HORIZON) ? expo3(cmd->Yaw, stabSettings.HorizonExpo[STABILIZATIONSETTINGS_HORIZONEXPO_YAW]) :
-	     (stab_settings[2] == STABILIZATIONDESIRED_STABILIZATIONMODE_MWRATE) ? expo3(cmd->Yaw, stabSettings.RateExpo[STABILIZATIONSETTINGS_RATEEXPO_YAW]) :
-	     (stab_settings[2] == STABILIZATIONDESIRED_STABILIZATIONMODE_SYSTEMIDENT) ? cmd->Yaw * stabSettings.YawMax :
-	     (stab_settings[2] == STABILIZATIONDESIRED_STABILIZATIONMODE_COORDINATEDFLIGHT) ? cmd->Yaw :
-	     0; // this is an invalid mode
+	stabilization.Yaw = (stab_settings[2] == STABILIZATIONDESIRED_STABILIZATIONMODE_DISABLED) ? 0 :
+		(stab_settings[2] == STABILIZATIONDESIRED_STABILIZATIONMODE_MANUAL) ? cmd->Yaw :
+		(stab_settings[2] == STABILIZATIONDESIRED_STABILIZATIONMODE_RATE) ? expo3(cmd->Yaw, stabSettings.RateExpo[STABILIZATIONSETTINGS_RATEEXPO_YAW]) * stabSettings.ManualRate[STABILIZATIONSETTINGS_MANUALRATE_YAW] :
+		(stab_settings[2] == STABILIZATIONDESIRED_STABILIZATIONMODE_ACROPLUS) ? expo3(cmd->Yaw, stabSettings.RateExpo[STABILIZATIONSETTINGS_RATEEXPO_YAW]) :
+		(stab_settings[2] == STABILIZATIONDESIRED_STABILIZATIONMODE_WEAKLEVELING) ? expo3(cmd->Yaw, stabSettings.RateExpo[STABILIZATIONSETTINGS_RATEEXPO_YAW]) * stabSettings.ManualRate[STABILIZATIONSETTINGS_MANUALRATE_YAW] :
+		(stab_settings[2] == STABILIZATIONDESIRED_STABILIZATIONMODE_ATTITUDE) ? expo3(cmd->Yaw, stabSettings.AttitudeExpo[STABILIZATIONSETTINGS_ATTITUDEEXPO_YAW]) * stabSettings.YawMax :
+		(stab_settings[2] == STABILIZATIONDESIRED_STABILIZATIONMODE_AXISLOCK) ? expo3(cmd->Yaw, stabSettings.RateExpo[STABILIZATIONSETTINGS_RATEEXPO_YAW]) * stabSettings.ManualRate[STABILIZATIONSETTINGS_MANUALRATE_YAW] :
+		(stab_settings[2] == STABILIZATIONDESIRED_STABILIZATIONMODE_VIRTUALBAR) ? cmd->Yaw :
+		(stab_settings[2] == STABILIZATIONDESIRED_STABILIZATIONMODE_HORIZON) ? expo3(cmd->Yaw, stabSettings.HorizonExpo[STABILIZATIONSETTINGS_HORIZONEXPO_YAW]) :
+		(stab_settings[2] == STABILIZATIONDESIRED_STABILIZATIONMODE_MWRATE) ? expo3(cmd->Yaw, stabSettings.RateExpo[STABILIZATIONSETTINGS_RATEEXPO_YAW]) :
+		(stab_settings[2] == STABILIZATIONDESIRED_STABILIZATIONMODE_SYSTEMIDENT) ? cmd->Yaw * stabSettings.YawMax :
+		(stab_settings[2] == STABILIZATIONDESIRED_STABILIZATIONMODE_COORDINATEDFLIGHT) ? cmd->Yaw :
+		0; // this is an invalid mode
 
 	stabilization.Throttle = (cmd->Throttle < 0) ? -1 : cmd->Throttle;
 	StabilizationDesiredSet(&stabilization);

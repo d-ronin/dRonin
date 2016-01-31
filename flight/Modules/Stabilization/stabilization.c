@@ -4,19 +4,18 @@
  * @{
  * @addtogroup StabilizationModule Stabilization Module
  * @{
+ *
+ * @file       stabilization.c
+ * @author     dRonin, http://dRonin.org/, Copyright (C) 2015-2016
+ * @author     Tau Labs, http://taulabs.org, Copyright (C) 2012-2014
+ * @author     The OpenPilot Team, http://www.openpilot.org Copyright (C) 2010.
  * @brief      Control the UAV attitude to @ref StabilizationDesired
  *
  * The main control code which keeps the UAV at the attitude requested by
- * @ref StabilizationDesired.  This is done by comparing against 
+ * @ref StabilizationDesired.  This is done by comparing against
  * @ref AttitudeActual to compute the error in roll pitch and yaw then
  * then based on the mode and values in @ref StabilizationSettings computing
  * the desired outputs and placing them in @ref ActuatorDesired.
- *
- * @file       stabilization.c
- * @author     The OpenPilot Team, http://www.openpilot.org Copyright (C) 2010.
- * @author     Tau Labs, http://taulabs.org, Copyright (C) 2012-2014
- * @author     dRonin, http://dronin.org Copyright (C) 2015
- * @brief      Attitude stabilization.
  *
  * @see        The GNU Public License (GPL) Version 3
  *
@@ -35,6 +34,10 @@
  * You should have received a copy of the GNU General Public License along
  * with this program; if not, write to the Free Software Foundation, Inc.,
  * 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
+ *
+ * Additional note on redistribution: The copyright and license notices above
+ * must be maintained in each individual source file that is a derivative work
+ * of this source file; otherwise redistribution is prohibited.
  */
 
 #include "openpilot.h"
@@ -742,7 +745,10 @@ static void stabilizationTask(void* parameters)
 					actuatorDesiredAxis[i] = bound_sym(actuatorDesiredAxis[i],1.0f);
 
 					break;
-				case STABILIZATIONDESIRED_STABILIZATIONMODE_NONE:
+				case STABILIZATIONDESIRED_STABILIZATIONMODE_DISABLED:
+					actuatorDesiredAxis[i] = 0.0;
+					break;
+				case STABILIZATIONDESIRED_STABILIZATIONMODE_MANUAL:
 					actuatorDesiredAxis[i] = bound_sym(stabDesiredAxis[i],1.0f);
 					break;
 				default:
@@ -762,13 +768,7 @@ static void stabilizationTask(void* parameters)
 		actuatorDesired.UpdateTime = dT * 1000;
 		actuatorDesired.Throttle = stabDesired.Throttle;
 
-		if(flightStatus.FlightMode != FLIGHTSTATUS_FLIGHTMODE_MANUAL) {
-			ActuatorDesiredSet(&actuatorDesired);
-		} else {
-			// Force all axes to reinitialize when engaged
-			for(uint8_t i=0; i< MAX_AXES; i++)
-				previous_mode[i] = 255;
-		}
+		ActuatorDesiredSet(&actuatorDesired);
 
 		if(flightStatus.Armed != FLIGHTSTATUS_ARMED_ARMED ||
 		   (lowThrottleZeroIntegral && stabDesired.Throttle < 0))

@@ -1,9 +1,13 @@
 /**
  ******************************************************************************
+ *
  * @file       vehicletrim.cpp
+ * @author     dRonin, http://dRonin.org/, Copyright (C) 2015-2016
  * @author     Tau Labs, http://taulabs.org, Copyright (C) 2013-2014
- * @author     dRonin, http://dronin.org Copyright (C) 2015
  * @brief      Gui-less support class for vehicle trimming
+ *
+ * @see        The GNU Public License (GPL) Version 3
+ *
  *****************************************************************************/
 /*
  * This program is free software; you can redistribute it and/or modify
@@ -19,6 +23,10 @@
  * You should have received a copy of the GNU General Public License along
  * with this program; if not, write to the Free Software Foundation, Inc.,
  * 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
+ *
+ * Additional note on redistribution: The copyright and license notices above
+ * must be maintained in each individual source file that is a derivative work
+ * of this source file; otherwise redistribution is prohibited.
  */
 
 #include "vehicletrim.h"
@@ -103,6 +111,7 @@ VehicleTrim::actuatorTrimMessages VehicleTrim::setTrimActuators()
 {
     SystemAlarms *systemAlarms = SystemAlarms::GetInstance(getObjectManager());
     FlightStatus *flightStatus = FlightStatus::GetInstance(getObjectManager());
+    StabilizationDesired *stabilizationDesired = StabilizationDesired::GetInstance(getObjectManager());
 
     // Get ActuatorCommand UAVO
     ActuatorCommand *actuatorCommand = ActuatorCommand::GetInstance(getObjectManager());
@@ -117,8 +126,12 @@ VehicleTrim::actuatorTrimMessages VehicleTrim::setTrimActuators()
         return ACTUATOR_TRIM_FAILED_DUE_TO_MISSING_RECEIVER;
     }
 
-    // Check that vehicle is in manual mode
-    if (flightStatus->getFlightMode() != FlightStatus::FLIGHTMODE_MANUAL){
+    // Ensure that vehicle is in full manual mode
+    if (flightStatus->getFlightMode() != FlightStatus::FLIGHTMODE_MANUAL ||
+            stabilizationDesired->getStabilizationMode_Roll() != StabilizationDesired::STABILIZATIONMODE_MANUAL ||
+            stabilizationDesired->getStabilizationMode_Pitch() != StabilizationDesired::STABILIZATIONMODE_MANUAL ||
+            stabilizationDesired->getStabilizationMode_Yaw() != StabilizationDesired::STABILIZATIONMODE_MANUAL)
+    {
         return ACTUATOR_TRIM_FAILED_DUE_TO_FLIGHTMODE;
     }
 

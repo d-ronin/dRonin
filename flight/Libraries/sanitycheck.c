@@ -2,10 +2,12 @@
  ******************************************************************************
  * @addtogroup TauLabsLibraries Tau Labs Libraries
  * @{
+ *
  * @file       sanitycheck.c
- * @author     dRonin, http://dRonin.org/, Copyright (C) 2015
+ * @author     dRonin, http://dRonin.org/, Copyright (C) 2015-2016
  * @author     Tau Labs, http://taulabs.org, Copyright (C) 2012-2015
  * @brief      Utilities to validate a flight configuration
+ *
  * @see        The GNU Public License (GPL) Version 3
  *
  *****************************************************************************/
@@ -23,6 +25,10 @@
  * You should have received a copy of the GNU General Public License along
  * with this program; if not, write to the Free Software Foundation, Inc.,
  * 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
+ *
+ * Additional note on redistribution: The copyright and license notices above
+ * must be maintained in each individual source file that is a derivative work
+ * of this source file; otherwise redistribution is prohibited.
  */
 
 #include "openpilot.h"
@@ -197,10 +203,10 @@ static int32_t check_stabilization_settings(int index, bool multirotor)
 			return SYSTEMALARMS_CONFIGERROR_NONE;
 	}
 
-	// For multirotors verify that nothing is set to "none"
+	// For multirotors verify that nothing is set to "disabled" or "manual"
 	if (multirotor) {
 		for(uint32_t i = 0; i < NELEMENTS(modes); i++) {
-			if (modes[i] == MANUALCONTROLSETTINGS_STABILIZATION1SETTINGS_NONE)
+			if (modes[i] == MANUALCONTROLSETTINGS_STABILIZATION1SETTINGS_DISABLED || modes[i] == MANUALCONTROLSETTINGS_STABILIZATION1SETTINGS_MANUAL)
 				return SYSTEMALARMS_CONFIGERROR_MULTIROTOR;
 
 			// If this axis allows enabling an autotune behavior without the module
@@ -225,8 +231,8 @@ static int32_t check_stabilization_settings(int index, bool multirotor)
 
 
 	// Warning: This assumes that certain conditions in the XML file are met.  That 
-	// MANUALCONTROLSETTINGS_STABILIZATION1SETTINGS_NONE has the same numeric value for each channel
-	// and is the same for STABILIZATIONDESIRED_STABILIZATIONMODE_NONE
+	// MANUALCONTROLSETTINGS_STABILIZATION1SETTINGS_DISABLED has the same numeric value for each channel
+	// and is the same for STABILIZATIONDESIRED_STABILIZATIONMODE_DISABLED
 
 	return SYSTEMALARMS_CONFIGERROR_NONE;
 }
