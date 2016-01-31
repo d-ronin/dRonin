@@ -92,6 +92,7 @@ static void register_object(UAVObjHandle obj);
 static void register_default_profile();
 static void logSettings(UAVObjHandle obj);
 static void writeHeader();
+static void updateSettings();
 
 // Local variables
 static uintptr_t logging_com_id;
@@ -113,6 +114,7 @@ int32_t LoggingInitialize(void)
 	if (PIOS_COM_OPENLOG) {
 		logging_com_id = PIOS_COM_OPENLOG;
 		destination_spi_flash = false;
+		updateSettings();
 	}
 	else if (PIOS_COM_SPIFLASH) {
 		logging_com_id = PIOS_COM_SPIFLASH;
@@ -628,6 +630,26 @@ static void writeHeader()
 	}
 	tmp_str[pos++] = '\n';
 	send_data((uint8_t*)tmp_str, pos);
+}
+
+static void updateSettings()
+{
+	if (logging_com_id) {
+
+		// Retrieve settings
+		uint8_t speed;
+		ModuleSettingsOpenLogSpeedGet(&speed);
+
+		// Set port speed
+		switch (speed) {
+		case MODULESETTINGS_OPENLOGSPEED_115200:
+			PIOS_COM_ChangeBaud(logging_com_id, 115200);
+			break;
+		case MODULESETTINGS_OPENLOGSPEED_250000:
+			PIOS_COM_ChangeBaud(logging_com_id, 250000);
+			break;
+		}
+	}
 }
 
 /**

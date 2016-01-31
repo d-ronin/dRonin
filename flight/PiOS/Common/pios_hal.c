@@ -552,7 +552,6 @@ void PIOS_HAL_ConfigurePort(HwSharedPortTypesOptions port_type,
 #if defined(PIOS_INCLUDE_OPENLOG)
 			PIOS_HAL_ConfigureCom(usart_port_cfg, 0, PIOS_COM_OPENLOG_TX_BUF_LEN, com_driver, &port_driver_id);
 			target = &pios_com_openlog_logging_id;
-			PIOS_COM_ChangeBaud(port_driver_id, 115200);
 #endif /* PIOS_INCLUDE_OPENLOG */
 		break;
 
