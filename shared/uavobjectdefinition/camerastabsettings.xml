@@ -6,7 +6,7 @@
         <field name="InputRate" units="deg/s" type="uint8" elementnames="Roll,Pitch,Yaw" defaultvalue="50"/>
         <field name="OutputRange" units="deg" type="uint8" elementnames="Roll,Pitch,Yaw" defaultvalue="20"/>
         <field name="FeedForward" units="" type="uint8" elementnames="Roll,Pitch,Yaw" defaultvalue="0"/>
-        <field name="StabilizationMode" units="" type="enum" elementnames="Roll,Pitch,Yaw" options="Attitude,AxisLock" defaultvalue="Attitude"/>
+        <field name="StabilizationMode" units="" type="enum" elementnames="Roll,Pitch,Yaw" parent="SharedDefs.StabilizationMode" options="Attitude,AxisLock" defaultvalue="Attitude"/>
         <field name="MaxAxisLockRate" units="deg/s" type="float" elements="1" defaultvalue="1"/>
         <field name="AttitudeFilter" units="ms" type="uint8" elements="1" defaultvalue="0"/>
         <field name="InputFilter" units="ms" type="uint8" elements="1" defaultvalue="0"/>
