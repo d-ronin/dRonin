@@ -192,9 +192,15 @@ static void stabilizationTask(void* parameters)
 	GyrosData gyrosData;
 	FlightStatusData flightStatus;
 
-	float *stabDesiredAxis = &stabDesired.Roll;
-	float *actuatorDesiredAxis = &actuatorDesired.Roll;
-	float *rateDesiredAxis = &rateDesired.Roll;
+	// don't make assumptions about the type of these fields since we just want pointers to them
+	// could use auto if we had C++11 support
+	typeof(&stabDesired.Roll) stabDesiredAxis = &stabDesired.Roll;
+	typeof(&stabDesired.RollUnit) stabDesiredOrientationUnits = &stabDesired.RollUnit;
+
+	typeof(&actuatorDesired.Roll) actuatorDesiredAxis = &actuatorDesired.Roll;
+	typeof(&rateDesired.Roll) rateDesiredAxis = &rateDesired.Roll;
+	typeof(&settings.RollMax) stabSettingsAttitudeMax = &settings.RollMax;
+
 	float horizonRateFraction = 0.0f;
 
 	// Force refresh of all settings immediately before entering main task loop
@@ -270,7 +276,48 @@ static void stabilizationTask(void* parameters)
 			float Pitch;
 			float Yaw;
 		} trimmedAttitudeSetpoint;
-		
+
+		//Scale stabilization axes according to supplied units if necessary:
+		//Note that units defaults to ModeSpecific (e.g. no scaling) and the current implementation only scales the inputs if the units are set to Effort
+		//So everything should just work for publishers of StabilizationDesired, since they are already performing any scaling themselves, and the default behavior is to avoid additional scaling
+		for(uint8_t i=0; i< MAX_AXES; ++i)
+		{
+			switch(stabDesired.StabilizationMode[i])
+			{
+			// no scaling
+			case STABILIZATIONDESIRED_STABILIZATIONMODE_DISABLED:
+			case STABILIZATIONDESIRED_STABILIZATIONMODE_MANUAL:
+			case STABILIZATIONDESIRED_STABILIZATIONMODE_VIRTUALBAR:
+			case STABILIZATIONDESIRED_STABILIZATIONMODE_COORDINATEDFLIGHT:
+			case STABILIZATIONDESIRED_STABILIZATIONMODE_POI:
+				break;
+			// expo(rate) * manual rate
+			case STABILIZATIONDESIRED_STABILIZATIONMODE_RATE:
+			case STABILIZATIONDESIRED_STABILIZATIONMODE_WEAKLEVELING:
+			case STABILIZATIONDESIRED_STABILIZATIONMODE_AXISLOCK:
+				// if stick effort, apply expo and scale to degrees/sec
+				if (stabDesiredOrientationUnits[i] == SHAREDDEFS_ORIENTATIONUNIT_EFFORT) stabDesiredAxis[i] = expo3(stabDesiredAxis[i], settings.RateExpo[i]) * settings.ManualRate[i];
+				break;
+			// expo(rate)
+			case STABILIZATIONDESIRED_STABILIZATIONMODE_ACROPLUS:
+			case STABILIZATIONDESIRED_STABILIZATIONMODE_MWRATE:
+				if (stabDesiredOrientationUnits[i] == SHAREDDEFS_ORIENTATIONUNIT_EFFORT) stabDesiredAxis[i] = expo3(stabDesiredAxis[i], settings.RateExpo[i]);
+				break;
+			// expo(attitude) * max attitude
+			case STABILIZATIONDESIRED_STABILIZATIONMODE_ATTITUDE:
+				if (stabDesiredOrientationUnits[i] == SHAREDDEFS_ORIENTATIONUNIT_EFFORT) stabDesiredAxis[i] = expo3(stabDesiredAxis[i], settings.AttitudeExpo[i]) * stabSettingsAttitudeMax[i];
+				break;
+			// expo(horizon)
+			case STABILIZATIONDESIRED_STABILIZATIONMODE_HORIZON:
+				if (stabDesiredOrientationUnits[i] == SHAREDDEFS_ORIENTATIONUNIT_EFFORT) stabDesiredAxis[i] = expo3(stabDesiredAxis[i], settings.HorizonExpo[i]);
+				break;
+			// max attitude
+			case STABILIZATIONDESIRED_STABILIZATIONMODE_SYSTEMIDENT:
+				if (stabDesiredOrientationUnits[i] == SHAREDDEFS_ORIENTATIONUNIT_EFFORT) stabDesiredAxis[i] *= stabSettingsAttitudeMax[i];
+				break;
+			}
+		}
+
 		// Mux in level trim values, and saturate the trimmed attitude setpoint.
 		trimmedAttitudeSetpoint.Roll = bound_min_max(
 			stabDesired.Roll + subTrim.Roll,
@@ -339,7 +386,7 @@ static void stabilizationTask(void* parameters)
 		bool error = false;
 
 		//Run the selected stabilization algorithm on each axis:
-		for(uint8_t i=0; i< MAX_AXES; i++)
+		for(uint8_t i=0; i< MAX_AXES; ++i)
 		{
 			// Check whether this axis mode needs to be reinitialized
 			bool reinit = (stabDesired.StabilizationMode[i] != previous_mode[i]);
@@ -774,7 +821,7 @@ static void stabilizationTask(void* parameters)
 		   (lowThrottleZeroIntegral && stabDesired.Thrust < 0))
 		{
 			// Force all axes to reinitialize when engaged
-			for(uint8_t i=0; i< MAX_AXES; i++)
+			for(uint8_t i=0; i< MAX_AXES; ++i)
 				previous_mode[i] = 255;
 		}
 
@@ -793,11 +840,11 @@ static void stabilizationTask(void* parameters)
  */
 static void zero_pids(void)
 {
-	for(uint32_t i = 0; i < PID_MAX; i++)
+	for(uint32_t i = 0; i < PID_MAX; ++i)
 		pid_zero(&pids[i]);
 
 
-	for(uint8_t i = 0; i < 3; i++)
+	for(uint8_t i = 0; i < 3; ++i)
 		axis_lock_accum[i] = 0.0f;
 }
 
@@ -817,7 +864,7 @@ static void calculate_pids()
 	// Calculate the desired PID suppression based on thrust settings. This is
 	// similar to an algorithm used by MultiWii and empirically works well. It
 	// creates a piecewise linear suppression of PIDs versus thrust.
-	for (uint32_t i = 0; i < 3; i++) {
+	for (uint32_t i = 0; i < 3; ++i) {
 		float attenuation;
 		float threshold;
 		float scale = 1.0f;

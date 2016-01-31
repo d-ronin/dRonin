@@ -73,23 +73,28 @@ int32_t failsafe_control_select(bool reset_controller)
 		FlightStatusFlightModeSet(&flight_status);
 	}
 
-#ifdef GIMBAL
-	// Gimbals do not need failsafe
 	StabilizationDesiredData stabilization_desired;
 	StabilizationDesiredGet(&stabilization_desired);
+
+	// use mode-specific to tell stabilization that values are pre-scaled here
+	stabilization_desired.ThrustUnit = SHAREDDEFS_POSITIONUNIT_MODESPECIFIC;
+	stabilization_desired.RollUnit = SHAREDDEFS_ORIENTATIONUNIT_MODESPECIFIC;
+	stabilization_desired.PitchUnit = SHAREDDEFS_ORIENTATIONUNIT_MODESPECIFIC;
+	stabilization_desired.YawUnit = SHAREDDEFS_ORIENTATIONUNIT_MODESPECIFIC;
+#ifdef GIMBAL
+	// Gimbals do not need failsafe
+
 	stabilization_desired.Thrust = -1;
 	stabilization_desired.Roll = 0;
 	stabilization_desired.Pitch = 0;
 	stabilization_desired.Yaw = 0;
-	stabilization_desired.StabilizationMode[STABILIZATIONDESIRED_STABILIZATIONMODE_ROLL] = STABILIZATIONDESIRED_STABILIZATIONMODE_POI;
-	stabilization_desired.StabilizationMode[STABILIZATIONDESIRED_STABILIZATIONMODE_PITCH] = STABILIZATIONDESIRED_STABILIZATIONMODE_POI;
-	stabilization_desired.StabilizationMode[STABILIZATIONDESIRED_STABILIZATIONMODE_YAW] = STABILIZATIONDESIRED_STABILIZATIONMODE_AXISLOCK;
-	StabilizationDesiredSet(&stabilization_desired);
+
+	stabilization_desired.StabilizationMode.Roll = STABILIZATIONDESIRED_STABILIZATIONMODE_POI;
+	stabilization_desired.StabilizationMode.Pitch = STABILIZATIONDESIRED_STABILIZATIONMODE_POI;
+	stabilization_desired.StabilizationMode.Yaw = STABILIZATIONDESIRED_STABILIZATIONMODE_AXISLOCK;
 #else
 	// Pick default values that will roughly cause a plane to circle down
 	// and a quad to fall straight down
-	StabilizationDesiredData stabilization_desired;
-	StabilizationDesiredGet(&stabilization_desired);
 
 	if (!armed_when_enabled) {
 		/* disable stabilization so outputs do not move when system was not armed */
@@ -97,6 +102,7 @@ int32_t failsafe_control_select(bool reset_controller)
 		stabilization_desired.Roll  = 0;
 		stabilization_desired.Pitch = 0;
 		stabilization_desired.Yaw   = 0;
+
 		stabilization_desired.StabilizationMode[STABILIZATIONDESIRED_STABILIZATIONMODE_ROLL] = STABILIZATIONDESIRED_STABILIZATIONMODE_MANUAL;
 		stabilization_desired.StabilizationMode[STABILIZATIONDESIRED_STABILIZATIONMODE_PITCH] = STABILIZATIONDESIRED_STABILIZATIONMODE_MANUAL;
 		stabilization_desired.StabilizationMode[STABILIZATIONDESIRED_STABILIZATIONMODE_YAW] = STABILIZATIONDESIRED_STABILIZATIONMODE_MANUAL;
@@ -107,6 +113,7 @@ int32_t failsafe_control_select(bool reset_controller)
 		stabilization_desired.Roll = -10;
 		stabilization_desired.Pitch = 0;
 		stabilization_desired.Yaw = -5;
+
 		stabilization_desired.StabilizationMode[STABILIZATIONDESIRED_STABILIZATIONMODE_ROLL] = STABILIZATIONDESIRED_STABILIZATIONMODE_ATTITUDE;
 		stabilization_desired.StabilizationMode[STABILIZATIONDESIRED_STABILIZATIONMODE_PITCH] = STABILIZATIONDESIRED_STABILIZATIONMODE_ATTITUDE;
 		stabilization_desired.StabilizationMode[STABILIZATIONDESIRED_STABILIZATIONMODE_YAW] = STABILIZATIONDESIRED_STABILIZATIONMODE_RATE;
