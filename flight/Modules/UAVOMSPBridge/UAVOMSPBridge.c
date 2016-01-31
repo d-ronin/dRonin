@@ -394,7 +394,7 @@ static void msp_send_comp_gps(struct msp_bridge *m)
 		GPSPositionGet(&gps_data);
 		HomeLocationGet(&home_data);
 		
-		if((gps_data.Status < GPSPOSITION_STATUS_FIX2D) || (home_data.Set == FALSE))
+		if((gps_data.Status < GPSPOSITION_STATUS_FIX2D) || (home_data.Set == HOMELOCATION_SET_FALSE))
 		{
 			data.comp_gps.distance_to_home    = 0;
 			data.comp_gps.direction_to_home   = 0;
