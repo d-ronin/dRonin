@@ -2,7 +2,7 @@
 # @file       Makefile
 # @author     The OpenPilot Team, http://www.openpilot.org, Copyright (C) 2009.
 # @author     Tau Labs, http://taulabs.org, Copyright (C) 2012-2013
-# @author     dRonin, http://dronin.org Copyright (C) 2015
+# @author     dRonin, http://dronin.org Copyright (C) 2015-2016
 # @addtogroup
 # @{
 # @addtogroup
@@ -24,6 +24,9 @@
 # with this program; if not, write to the Free Software Foundation, Inc.,
 # 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 #
+# Additional note on redistribution: The copyright and license notices above
+# must be maintained in each individual source file that is a derivative work
+# of this source file; otherwise redistribution is prohibited.
 
 include $(MAKE_INC_DIR)/firmware-defs.mk
 include $(BOARD_INFO_DIR)/board-info.mk
@@ -182,9 +185,6 @@ SRC += $(PIOSCOMMON)/pios_thread.c
 SRC += $(PIOSCOMMON)/pios_queue.c
 SRC += $(PIOSCOMMON)/pios_streamfs.c
 
-include ./UAVObjects.inc
-SRC += $(UAVOBJSRC)
-
 # List C++ source files here.
 # use file-extension .cpp for C++-files (not .C)
 CPPSRC =
@@ -340,7 +340,4 @@ LDFLAGS += -Wl,--fatal-warnings
 #Linker scripts
 LDFLAGS += -T memory.ld $(addprefix -T,$(LINKER_SCRIPTS_APP))
 
-include ./UAVObjects.inc
-
-UAVO_NAV = YES
 include $(MAKE_INC_DIR)/firmware-common.mk

@@ -2,7 +2,7 @@
 # @file       Makefile
 # @author     The OpenPilot Team, http://www.openpilot.org, Copyright (C) 2009.
 # @author     Tau Labs, http://taulabs.org, Copyright (C) 2012-2014
-# @author     dRonin, http://dronin.org Copyright (C) 2015
+# @author     dRonin, http://dronin.org Copyright (C) 2015-2016
 # @addtogroup 
 # @{
 # @addtogroup
@@ -23,7 +23,10 @@
 # You should have received a copy of the GNU General Public License along
 # with this program; if not, write to the Free Software Foundation, Inc.,
 # 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
-#
+# 
+# Additional note on redistribution: The copyright and license notices above
+# must be maintained in each individual source file that is a derivative work
+# of this source file; otherwise redistribution is prohibited.
 
 include $(MAKE_INC_DIR)/firmware-defs.mk
 include $(BOARD_INFO_DIR)/board-info.mk
@@ -327,9 +330,5 @@ LDFLAGS += -Wl,--fatal-warnings
 
 #Linker scripts
 LDFLAGS += -T memory.ld $(addprefix -T,$(LINKER_SCRIPTS_APP))
-
-include ./UAVObjects.inc
-
-UAVO_NAV = YES
 
 include $(MAKE_INC_DIR)/firmware-common.mk

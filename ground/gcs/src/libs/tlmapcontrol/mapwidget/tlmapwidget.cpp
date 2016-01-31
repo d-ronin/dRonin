@@ -2,6 +2,7 @@
 ******************************************************************************
 *
 * @file       tlmapwidget.cpp
+* @author     dRonin, http://dRonin.org Copyright (C) 2016
 * @author     The OpenPilot Team, http://www.openpilot.org Copyright (C) 2012.
 * @author     Tau Labs, http://taulabs.org, Copyright (C) 2013-2014
 * @brief      The Map Widget, this is the part exposed to the user
@@ -24,6 +25,10 @@
 * You should have received a copy of the GNU General Public License along
 * with this program; if not, write to the Free Software Foundation, Inc.,
 * 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
+*
+* Additional note on redistribution: The copyright and license notices above
+* must be maintained in each individual source file that is a derivative work
+* of this source file; otherwise redistribution is prohibited.
 */
 
 #include "tlmapwidget.h"
@@ -37,7 +42,8 @@ namespace mapcontrol
     TLMapWidget::TLMapWidget(QWidget *parent, Configuration *config) : QGraphicsView(parent),
         configuration(config),UAV(0),GPS(0),Home(0),followmouse(true),
         compassRose(0),windCompass(0),showuav(false),showhome(false),
-        diagTimer(0),diagGraphItem(0),showDiag(false),overlayOpacity(1)
+        diagTimer(0),diagGraphItem(0),showDiag(false),overlayOpacity(1),
+        windspeedTxt(0)
     {
         setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Preferred);
         this->setScene(new QGraphicsScene(this));
@@ -610,7 +616,8 @@ namespace mapcontrol
         if (windspeedTxt != NULL)
             windspeedTxt->setPlainText(QString("%1%2 @ %3m/s\nsink: %4m/s").arg(windAngle_D, 3, 'f', 0, QChar(0x30)).arg(QChar(0x00B0)).arg(sqrt(pow(windVelocity_NED[0], 2) + pow(windVelocity_NED[1], 2)), 3, 'f', 1).arg(windVelocity_NED[2], 0, 'f', 1)); // 0x00B0 is unicode for the degree symbol.
 
-        windCompass->setRotation(windAngle_D);
+        if (windCompass != NULL)
+            windCompass->setRotation(windAngle_D);
     }
 
 
