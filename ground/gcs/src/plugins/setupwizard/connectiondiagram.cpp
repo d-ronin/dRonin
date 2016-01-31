@@ -84,10 +84,6 @@ void ConnectionDiagram::setupGraphicsScene()
 
         QList<QString> elementsToShow;
 
-        Core::IBoardType* type = m_configSource->getControllerType();
-        if (type != NULL)
-            elementsToShow << QString("controller-").append(type->shortName().toLower());
-
         switch (m_configSource->getVehicleType()) {
         case VehicleConfigurationSource::VEHICLE_MULTI:
             switch (m_configSource->getVehicleSubType()) {
@@ -140,6 +136,10 @@ void ConnectionDiagram::setupGraphicsScene()
         default:
             break;
         }
+
+        Core::IBoardType* type = m_configSource->getControllerType();
+        if (type != NULL)
+            elementsToShow << QString("controller-").append(type->shortName().toLower());
 
         setupGraphicsSceneItems(elementsToShow);
 
