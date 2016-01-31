@@ -178,7 +178,6 @@ CDEFS += -DARM_MATH_MATRIX_CHECK
 CDEFS += -DARM_MATH_ROUNDING
 CDEFS += -D__FPU_PRESENT=1
 CDEFS += -DUNALIGNED_SUPPORT_DISABLE
-<<<<<<< 277babbfc12e04b0b5de2a7b0d31160b3981ef29
 
 # This is not the best place for these.  Really should abstract out
 # to the board file or something
