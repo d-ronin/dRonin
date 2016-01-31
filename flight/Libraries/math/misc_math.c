@@ -115,6 +115,20 @@ float expo3(float x, int32_t g)
 }
 
 /**
+ * Approximate a configurable exponential scale curve.
+ * @param[in] input       Input to scale (from [-1,1])
+ * @param[in] exponent    The exponent passed to powf, or inverted and called recursively 
+ * @param[in] amount      Sets the exponential amount [0,100]
+ * @return  rescaled input
+ */
+float expoM(float input, float exponent, int32_t amount)
+{
+	if (input < 0)
+		return -expoM(-input, exponent, amount);
+	return (input * ((100 - amount) / 100.0f) + powf(input, exponent) * (amount / 100.0f));
+}
+
+/**
  * Interpolate values (groundspeeds, altitudes) over flight legs
  * @param[in] fraction how far we are through the leg
  * @param[in] beginVal the configured value for the beginning of the leg
