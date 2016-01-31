@@ -129,7 +129,7 @@
 
 		<!-- Note these options values should be identical to those defined in FlightMode -->
 		<field name="FlightModeNumber" units="" type="uint8" elements="1" defaultvalue="3"/>
-		<field name="FlightModePosition" units="" type="enum" elements="6" options="Manual,Acro,Leveling,MWRate,Horizon,AxisLock,VirtualBar,Stabilized1,Stabilized2,Stabilized3,Autotune,AltitudeHold,PositionHold,ReturnToHome,PathPlanner,TabletControl,AcroPlus" defaultvalue="Leveling,Leveling,Leveling,Horizon,ReturnToHome,PositionHold"/>
+		<field name="FlightModePosition" units="" type="enum" elements="6" parent="SharedDefs.FlightMode" defaultvalue="Leveling,Leveling,Leveling,Horizon,ReturnToHome,PositionHold"/>
 
 		<!-- This option prevents timing out arming when disabled and in autonomous modes.
                      It is enabled by default for additional safety to prevent flyaways -->
