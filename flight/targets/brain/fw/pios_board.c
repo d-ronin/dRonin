@@ -502,7 +502,7 @@ void PIOS_Board_Init(void) {
 		PIOS_HAL_ConfigurePort(HWSHARED_PORTTYPES_FRSKYSENSORHUB,  // port type protocol
 				NULL,                                              // usart_port_cfg
 				&pios_rxportusart_cfg,                             // frsky usart_port_cfg
-				NULL,                                              // com_driver
+				&pios_usart_com_driver,                            // com_driver
 				NULL,                                              // i2c_id
 				NULL,                                              // i2c_cfg
 				NULL,                                              // ppm_cfg
