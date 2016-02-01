@@ -625,8 +625,7 @@ static float mix_channel(int ct, ActuatorDesiredData *desired,
 
 		if (val > 0) {
 			// Apply curve fitting, mapping the input to the propeller output.
-			val = actuatorSettings.MotorInputOutputCurveFit[ACTUATORSETTINGS_MOTORINPUTOUTPUTCURVEFIT_A] *
-					powf(val, actuatorSettings.MotorInputOutputCurveFit[ACTUATORSETTINGS_MOTORINPUTOUTPUTCURVEFIT_B]);
+			val = powapprox(val, actuatorSettings.MotorInputOutputCurveFit);
 		} else {
 			// Idle throttle
 			val = 0.0f;
