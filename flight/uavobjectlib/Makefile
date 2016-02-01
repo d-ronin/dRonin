@@ -38,7 +38,7 @@ EXTRAINCDIRS  += $(APPLIBDIR)
 
 CFLAGS += -g3
 CFLAGS += -std=gnu99
-CFLAGS += -Os
+CFLAGS += -Os -fconserve-stack
 CFLAGS += -mcpu=cortex-m3
 CFLAGS += $(FLOATABI)
 
