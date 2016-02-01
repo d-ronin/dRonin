@@ -68,8 +68,8 @@ int32_t failsafe_control_select(bool reset_controller)
 
 	uint8_t flight_status;
 	FlightStatusFlightModeGet(&flight_status);
-	if (flight_status != FLIGHTSTATUS_FLIGHTMODE_STABILIZED1 || reset_controller) {
-		flight_status = FLIGHTSTATUS_FLIGHTMODE_STABILIZED1;
+	if (flight_status != FLIGHTSTATUS_FLIGHTMODE_FAILSAFE || reset_controller) {
+		flight_status = FLIGHTSTATUS_FLIGHTMODE_FAILSAFE;
 		FlightStatusFlightModeSet(&flight_status);
 	}
 
