@@ -67,6 +67,7 @@
 #define PIOS_MPU6050_ACCEL
 #define PIOS_MPU6050_SIMPLE_INIT_SEQUENCE
 #define PIOS_INCLUDE_MPU9150
+#define PIOS_INCLUDE_HMC5883
 #define FLASH_FREERTOS
 
 /* Com systems to include */
@@ -130,6 +131,8 @@
 #define CAMERASTAB_POI_MODE
 
 #define PIOS_INCLUDE_FASTHEAP
+
+#define SUPPORTS_EXTERNAL_MAG
 
 #endif /* PIOS_CONFIG_H */
 /**

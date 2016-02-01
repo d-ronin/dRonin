@@ -62,7 +62,10 @@ enum pios_mpu9150_dev_magic {
 	PIOS_MPU9150_DEV_MAGIC = 0xf212da62,
 };
 
+bool use_mpu_mag = TRUE;
+
 #define PIOS_MPU9150_MAX_DOWNSAMPLE 2
+
 struct mpu9150_dev {
 	uint32_t i2c_id;
 	uint8_t i2c_addr;
@@ -84,7 +87,7 @@ static struct mpu9150_dev * dev;
 //! Private functions
 static struct mpu9150_dev * PIOS_MPU9150_alloc(void);
 static int32_t PIOS_MPU9150_Validate(struct mpu9150_dev * dev);
-static int32_t PIOS_MPU9150_Config(struct pios_mpu60x0_cfg const * cfg);
+static int32_t PIOS_MPU9150_Config(struct pios_mpu60x0_cfg const * cfg, bool use_internal_mag);
 static int32_t PIOS_MPU9150_SetReg(uint8_t address, uint8_t buffer);
 static int32_t PIOS_MPU9150_GetReg(uint8_t address);
 static int32_t PIOS_MPU9150_ReadID();
@@ -150,7 +153,7 @@ static int32_t PIOS_MPU9150_Validate(struct mpu9150_dev * dev)
  * @brief Initialize the MPU9150 3-axis gyro sensor.
  * @return 0 for success, -1 for failure to allocate, -2 for failure to get irq
  */
-int32_t PIOS_MPU9150_Init(uint32_t i2c_id, uint8_t i2c_addr, const struct pios_mpu60x0_cfg * cfg)
+int32_t PIOS_MPU9150_Init(uint32_t i2c_id, uint8_t i2c_addr, const struct pios_mpu60x0_cfg * cfg, bool use_internal_mag)
 {
 	dev = PIOS_MPU9150_alloc();
 	if (dev == NULL)
@@ -161,7 +164,7 @@ int32_t PIOS_MPU9150_Init(uint32_t i2c_id, uint8_t i2c_addr, const struct pios_m
 	dev->cfg = cfg;
 
 	/* Configure the MPU9150 Sensor */
-	if (PIOS_MPU9150_Config(cfg) != 0)
+	if (PIOS_MPU9150_Config(cfg, use_internal_mag) != 0)
 		return -2;
 
 	/* Set up EXTI line */
@@ -180,7 +183,9 @@ int32_t PIOS_MPU9150_Init(uint32_t i2c_id, uint8_t i2c_addr, const struct pios_m
 
 	PIOS_SENSORS_Register(PIOS_SENSOR_ACCEL, dev->accel_queue);
 	PIOS_SENSORS_Register(PIOS_SENSOR_GYRO, dev->gyro_queue);
-	PIOS_SENSORS_Register(PIOS_SENSOR_MAG, dev->mag_queue);
+	
+	if (use_internal_mag)
+		PIOS_SENSORS_Register(PIOS_SENSOR_MAG, dev->mag_queue);
 
 	return 0;
 }
@@ -191,7 +196,7 @@ int32_t PIOS_MPU9150_Init(uint32_t i2c_id, uint8_t i2c_addr, const struct pios_m
  * \param[in] PIOS_MPU9150_ConfigTypeDef struct to be used to configure sensor.
 *
 */
-static int32_t PIOS_MPU9150_Config(struct pios_mpu60x0_cfg const * cfg)
+static int32_t PIOS_MPU9150_Config(struct pios_mpu60x0_cfg const * cfg, bool use_internal_mag)
 {
 	// Reset chip
 	if (PIOS_MPU9150_SetReg(PIOS_MPU60X0_PWR_MGMT_REG, PIOS_MPU60X0_PWRMGMT_IMU_RST) != 0)
@@ -236,7 +241,7 @@ static int32_t PIOS_MPU9150_Config(struct pios_mpu60x0_cfg const * cfg)
 	PIOS_MPU9150_Mag_GetReg(MPU9150_MAG_STATUS2);
 	PIOS_MPU9150_Mag_GetReg(MPU9150_MAG_XH);
 
-	if (dev->cfg->use_internal_mag == true) {
+	if (use_internal_mag) {
 		// Trigger first measurement
 		if (PIOS_MPU9150_Mag_SetReg(MPU9150_MAG_CNTR, 0x01) != 0)
 			return -1;
@@ -763,7 +768,7 @@ static void PIOS_MPU9150_Task(void *parameters)
 		PIOS_Queue_Send(dev->gyro_queue, &gyro_data, 0);
 
 		// Check for mag data ready.  Reading it clears this flag.
-		if ((dev->cfg->use_internal_mag == true) && (PIOS_MPU9150_Mag_GetReg(MPU9150_MAG_STATUS) > 0)) {
+		if ((use_mpu_mag) && (PIOS_MPU9150_Mag_GetReg(MPU9150_MAG_STATUS) > 0)) {
 			struct pios_sensor_mag_data mag_data;
 			uint8_t mpu9150_mag_buffer[6];
 			if (PIOS_MPU9150_Mag_Read(MPU9150_MAG_XH, mpu9150_mag_buffer, sizeof(mpu9150_mag_buffer)) == 0) {

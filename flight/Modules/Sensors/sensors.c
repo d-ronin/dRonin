@@ -116,7 +116,7 @@ static float z_accel_offset = 0;
 static float Rsb[3][3] = {{0}}; //! Rotation matrix that transforms from the body frame to the sensor board frame
 static int8_t rotate = 0;
 
-#if defined (AQ32)
+#if defined(SUPPORTS_EXTERNAL_MAG)
 // indicates whether the external mag works
 extern bool external_mag_fail;
 #endif
@@ -300,7 +300,7 @@ static void SensorsTask(void *parameters)
 #endif /* PIOS_INCLUDE_RANGEFINDER */
 
 		bool test_good_run = good_runs > REQUIRED_GOOD_CYCLES;
-		#if defined(AQ32)
+		#if defined(SUPPORTS_EXTERNAL_MAG)
 		test_good_run = test_good_run && !external_mag_fail;
 		#endif
 
