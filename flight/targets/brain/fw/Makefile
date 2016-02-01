@@ -3,6 +3,7 @@
 # @author     The OpenPilot Team, http://www.openpilot.org, Copyright (C) 2009.
 # @author     Tau Labs, http://taulabs.org, Copyright (C) 2012-2013
 # @author     dRonin, http://dronin.org Copyright (C) 2015-2016
+#
 # @addtogroup
 # @{
 # @addtogroup
@@ -229,7 +230,7 @@ CFLAGS += -O0
 CFLAGS += -DGENERAL_COV
 # CFLAGS += -finstrument-functions -ffixed-r10
 else
-CFLAGS += -Os
+CFLAGS += -Os -fconserve-stack
 endif
 
 

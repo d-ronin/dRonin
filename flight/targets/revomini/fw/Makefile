@@ -252,7 +252,7 @@ CFLAGS += -O0
 CFLAGS += -DGENERAL_COV
 CFLAGS += -finstrument-functions -ffixed-r10
 else
-CFLAGS += -Os
+CFLAGS += -Os -fconserve-stack
 endif
 
 # common architecture-specific flags from the device-specific library makefile

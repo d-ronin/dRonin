@@ -6,7 +6,7 @@
  #
  # The OpenPilot Team, http://www.openpilot.org, Copyright (C) 2009.
  # Tau Labs, http://taulabs.org, Copyright (C) 2013-2014
- # dRonin, http://dronin.org Copyright (C) 2015
+ # dRonin, http://dronin.org Copyright (C) 2015-2016
  #
  # 
  # This program is free software; you can redistribute it and/or modify
@@ -22,6 +22,10 @@
  # You should have received a copy of the GNU General Public License along
  # with this program; if not, write to the Free Software Foundation, Inc.,
  # 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
+ #
+ # Additional note on redistribution: The copyright and license notices above
+ # must be maintained in each individual source file that is a derivative work
+ # of this source file; otherwise redistribution is prohibited.
  #####
 
 include $(MAKE_INC_DIR)/firmware-defs.mk
@@ -288,16 +292,6 @@ EXTRA_LIBS =
 # Path to Linker-Scripts
 LINKERSCRIPTPATH = $(PIOSSTM32F10X)
 
-# Optimization level, can be [0, 1, 2, 3, s].
-# 0 = turn off optimization. s = optimize for size.
-# (Note: 3 is not always the best optimization level. See avr-libc FAQ.)
-
-ifeq ($(DEBUG),YES)
-OPT = 1
-else
-OPT = s
-endif
-
 # Output format. (can be ihex or binary or both)
 #  binary to create a load-image in raw-binary format i.e. for SAM-BA,
 #  ihex to create a load-image in Intel hex format
@@ -390,7 +384,7 @@ CFLAGS += -DDIAG_TASKS
 endif
 
 CFLAGS += -g$(DEBUGF)
-CFLAGS += -O$(OPT)
+CFLAGS += -Os -fconserve-stack
 CFLAGS += -mcpu=$(MCU)
 CFLAGS += $(CDEFS)
 CFLAGS += $(patsubst %,-I%,$(EXTRAINCDIRS)) -I.
