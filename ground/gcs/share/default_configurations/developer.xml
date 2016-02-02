@@ -4,7 +4,7 @@
     <AutoSelect>true</AutoSelect>
     <Description>Developer</Description>
     <Details>Developer mode configuration</Details>
-    <ExpertMode>true</ExpertMode>
+    <ExpertMode>false</ExpertMode>
     <OverrideLanguage>en_US</OverrideLanguage>
     <SaveSettingsOnExit>true</SaveSettingsOnExit>
     <StyleSheet>default</StyleSheet>
