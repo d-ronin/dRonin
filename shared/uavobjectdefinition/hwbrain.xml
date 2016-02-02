@@ -2,67 +2,80 @@
 	<object name="HwBrain" singleinstance="true" settings="true" category="HardwareSettings">
 		<description>Selection of optional hardware configurations.</description>
 
-		<field name="RxPort" units="function" type="enum" elements="1" options="Disabled,PWM,PPM,PPM+PWM,PPM+Outputs,Outputs,UART,PPM+UART,PPM+UART+Outputs,PPM+FrSky" defaultvalue="PWM"/>
-
-		<field name="MainPort" units="function" type="enum" elements="1"  defaultvalue="Disabled">
+		<field name="RxPort" units="function" type="enum" elements="1" defaultvalue="PWM">
 			<options>
 				<option>Disabled</option>
+				<option>Outputs</option>
+				<option>PPM</option>
+				<option>PPM+FrSky</option>
+				<option>PPM+Outputs</option>
+				<option>PPM+PWM</option>
+				<option>PPM+UART</option>
+				<option>PPM+UART+Outputs</option>
+				<option>PWM</option>
+				<option>UART</option>
+			</options>
+		</field>
+
+		<field name="MainPort" units="function" type="enum" elements="1" parent="HwShared.PortTypes" defaultvalue="Disabled">
+			<options>
+				<option>Disabled</option>
+				<option>ComBridge</option>
+				<option>DebugConsole</option>
+				<option>DSM</option>
+				<option>FrSKY Sensor Hub</option>
+				<option>FrSKY SPort Telemetry</option>
 				<option>GPS</option>
+				<option>HoTT SUMD</option>
+				<option>HoTT SUMH</option>
+				<option>HoTT Telemetry</option>
+				<option>LighttelemetryTx</option>
+				<option>MavLinkTX</option>
+				<option>MavLinkTX_GPS_RX</option>
+				<option>PicoC</option>
 				<option>S.Bus</option>
-				<option>DSM</option>
-				<option>HoTT SUMD</option>
-				<option>HoTT SUMH</option>
-				<option>HoTT Telemetry</option>
 				<option>Telemetry</option>
-				<option>DebugConsole</option>
-				<option>ComBridge</option>
-				<option>MavLinkTX</option>
-				<option>MavLinkTX_GPS_RX</option>
-				<option>FrSKY Sensor Hub</option>
-				<option>LighttelemetryTx</option>
-				<option>PicoC</option>
-				<option>FrSKY SPort Telemetry</option>
 			</options>
 		</field>
 
-		<field name="FlxPort" units="function" type="enum" elements="1"  defaultvalue="Disabled">
+		<field name="FlxPort" units="function" type="enum" elements="1" parent="HwShared.PortTypes" defaultvalue="Disabled">
 			<options>
 				<option>Disabled</option>
-                <option>I2C</option>
-				<option>GPS</option>
+				<option>ComBridge</option>
+				<option>DebugConsole</option>
 				<option>DSM</option>
+				<option>FrSKY Sensor Hub</option>
+				<option>FrSKY SPort Telemetry</option>
+				<option>GPS</option>
 				<option>HoTT SUMD</option>
 				<option>HoTT SUMH</option>
 				<option>HoTT Telemetry</option>
-				<option>Telemetry</option>
-				<option>DebugConsole</option>
-				<option>ComBridge</option>
+				<option>I2C</option>
+				<option>LighttelemetryTx</option>
 				<option>MavLinkTX</option>
 				<option>MavLinkTX_GPS_RX</option>
-				<option>FrSKY Sensor Hub</option>
-				<option>LighttelemetryTx</option>
 				<option>PicoC</option>
-				<option>FrSKY SPort Telemetry</option>
+				<option>Telemetry</option>
 			</options>
 		</field>
 
-		<field name="RxPortUsart" units="function" type="enum" elements="1"  defaultvalue="Disabled">
+		<field name="RxPortUsart" units="function" type="enum" elements="1" parent="HwShared.PortTypes" defaultvalue="Disabled">
 			<options>
 				<option>Disabled</option>
-				<option>GPS</option>
+				<option>ComBridge</option>
+				<option>DebugConsole</option>
 				<option>DSM</option>
+				<option>FrSKY Sensor Hub</option>
+				<option>FrSKY SPort Telemetry</option>
+				<option>GPS</option>
 				<option>HoTT SUMD</option>
 				<option>HoTT SUMH</option>
 				<option>HoTT Telemetry</option>
-				<option>Telemetry</option>
-				<option>DebugConsole</option>
-				<option>ComBridge</option>
+				<option>LighttelemetryTx</option>
 				<option>MavLinkTX</option>
 				<option>MavLinkTX_GPS_RX</option>
-				<option>FrSKY Sensor Hub</option>
-				<option>LighttelemetryTx</option>
 				<option>PicoC</option>
-				<option>FrSKY SPort Telemetry</option>
+				<option>Telemetry</option>
 			</options>
 		</field>
 
@@ -70,8 +83,8 @@
 	<field name="USB_VCPPort" units="function" type="enum" elements="1" options="USBTelemetry,ComBridge,DebugConsole,Disabled" defaultvalue="Disabled"/>
 
 	<field name="DSMxMode" units="mode"  type="enum"  elements="1" parent="HwShared.DSMxMode" defaultvalue="Autodetect"/>
-        <field name="GyroFullScale" units="deg/s" type="enum" elements="1" options="250,500,1000,2000" defaultvalue="2000"/>
-        <field name="AccelFullScale" units="*gravity m/s^2" type="enum" elements="1" options="2G,4G,8G,16G" defaultvalue="8G"/>
+	<field name="GyroFullScale" units="deg/s" type="enum" elements="1" options="250,500,1000,2000" defaultvalue="2000"/>
+	<field name="AccelFullScale" units="*gravity m/s^2" type="enum" elements="1" options="2G,4G,8G,16G" defaultvalue="8G"/>
 	<field name="MPU9250Rate" units="Hz" type="enum" elements="1" options="200,250,333,500,1000" defaultvalue="500"/>
 	<field name="MPU9250GyroLPF" units="Hz" type="enum" elements="1" options="184,92,41,20,10,5" defaultvalue="184"/>
 	<field name="MPU9250AccelLPF" units="Hz" type="enum" elements="1" options="460,184,92,41,20,10,5" defaultvalue="184"/>
