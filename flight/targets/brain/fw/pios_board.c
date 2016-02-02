@@ -534,6 +534,10 @@ void PIOS_Board_Init(void) {
 				false);                                 // sbus_toggle
 		break;
 
+	case HWBRAIN_RXPORT_UART:
+		use_rxport_usart = true;
+		break;
+
 	case HWBRAIN_RXPORT_PPMUART:
 	case HWBRAIN_RXPORT_PPMUARTOUTPUTS:
 		use_rxport_usart = true;
