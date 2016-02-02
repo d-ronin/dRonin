@@ -12,7 +12,7 @@
 			 <option>Outputs</option>
 		</options>
 		</field>		
-		<field name="MainPort" units="function" type="enum" elements="1"  parent="HwShared.PortTypes" defaultvalue="Telemetry">
+		<field name="MainPort" units="function" type="enum" elements="1"  parent="HwShared.PortTypes" defaultvalue="Disabled">
 			<options>
 				<option>Disabled</option>
 				<option>Telemetry</option>
