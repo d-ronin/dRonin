@@ -30,12 +30,12 @@
      id="namedview4616"
      showgrid="false"
      inkscape:zoom="2.21"
-     inkscape:cx="664.81167"
+     inkscape:cx="596.93837"
      inkscape:cy="293.55445"
      inkscape:window-x="65"
      inkscape:window-y="24"
      inkscape:window-maximized="1"
-     inkscape:current-layer="g8076"
+     inkscape:current-layer="layer1"
      fit-margin-top="15"
      fit-margin-left="15"
      fit-margin-right="15"
@@ -2735,8 +2735,8 @@
        inkscape:label="cc3d"
        style="display:inline">
       <g
-         id="controller-coptercontrol"
-         inkscape:label="#controller"
+         id="controller-cc3d"
+         inkscape:label="#controller-cc3d"
          transform="translate(-16.970563,-13.803392)">
         <rect
            id="rect9798"

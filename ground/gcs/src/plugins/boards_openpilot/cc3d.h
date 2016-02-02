@@ -32,11 +32,11 @@
 
 class IBoardType;
 
-class CopterControl : public Core::IBoardType
+class CC3D : public Core::IBoardType
 {
 public:
-    CopterControl();
-    virtual ~CopterControl();
+    CC3D();
+    virtual ~CC3D();
 
     virtual QString shortName();
     virtual QString boardDescription();

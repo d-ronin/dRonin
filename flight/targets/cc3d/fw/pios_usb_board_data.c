@@ -2,12 +2,13 @@
  ******************************************************************************
  * @addtogroup TauLabsTargets Tau Labs Targets
  * @{
- * @addtogroup CopterControl OpenPilot coptercontrol support files
+ * @addtogroup CC3D OpenPilot coptercontrol 3D support files
  * @{
  *
  * @file       pios_usb_board_data.c 
  * @author     The OpenPilot Team, http://www.openpilot.org Copyright (C) 2011.
  * @author     Tau Labs, http://taulabs.org, Copyright (C) 2012-2013
+ * @author     dRonin, http://dronin.org Copyright (C) 2016
  * @brief      Board specific USB specifications
  * @see        The GNU Public License (GPL) Version 3
  * 
@@ -33,7 +34,7 @@
 #include "pios_usbhook.h"	 /* PIOS_USBHOOK_* */
 #include "pios_usb_util.h"	 /* PIOS_USB_UTIL_AsciiToUtf8 */
 
-static const uint8_t usb_product_id[28] = {
+static const uint8_t usb_product_id[32] = {
 	sizeof(usb_product_id),
 	USB_DESC_TYPE_STRING,
 	'C', 0,
@@ -49,6 +50,8 @@ static const uint8_t usb_product_id[28] = {
 	'r', 0,
 	'o', 0,
 	'l', 0,
+	'3', 0,
+	'D', 0
 };
 
 static uint8_t usb_serial_number[2 + PIOS_SYS_SERIAL_NUM_ASCII_LEN*2 + (sizeof(PIOS_USB_BOARD_SN_SUFFIX)-1)*2] = {

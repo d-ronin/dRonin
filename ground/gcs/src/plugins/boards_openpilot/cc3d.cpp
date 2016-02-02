@@ -1,9 +1,9 @@
 /**
  ******************************************************************************
  *
- * @file       coptercontrol.cpp
+ * @file       cc3d.cpp
  * @author     Tau Labs, http://taulabs.org, Copyright (C) 2013-2014
- * @author     dRonin, http://dronin.org Copyright (C) 2015
+ * @author     dRonin, http://dronin.org Copyright (C) 2015-2016
  *
  * @addtogroup GCSPlugins GCS Plugins
  * @{
@@ -27,7 +27,7 @@
  * 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
  */
 
-#include "coptercontrol.h"
+#include "cc3d.h"
 
 #include <uavobjectmanager.h>
 #include "uavobjectutil/uavobjectutilmanager.h"
@@ -36,10 +36,10 @@
 #include "hwcoptercontrol.h"
 
 /**
- * @brief CopterControl::CopterControl
+ * @brief CC3D::CC3D
  *  This is the CopterControl (3D) board definition
  */
-CopterControl::CopterControl(void)
+CC3D::CC3D(void)
 {
     // Initialize our USB Structure definition here:
     USBInfo board;
@@ -58,13 +58,13 @@ CopterControl::CopterControl(void)
     channelBanks[3] = QVector<int> () << 6 << 9 << 10;
 }
 
-CopterControl::~CopterControl()
+CC3D::~CC3D()
 {
 
 }
 
 //! Return which capabilities this board has
-bool CopterControl::queryCapabilities(BoardCapabilities capability)
+bool CC3D::queryCapabilities(BoardCapabilities capability)
 {
     switch(capability) {
     case BOARD_CAPABILITIES_GYROS:
@@ -83,40 +83,40 @@ bool CopterControl::queryCapabilities(BoardCapabilities capability)
     return false;
 }
 
-QString CopterControl::shortName()
+QString CC3D::shortName()
 {
-    return QString("CopterControl");
+    return QString("CC3D");
 }
 
-QString CopterControl::boardDescription()
+QString CC3D::boardDescription()
 {
-    return QString("The OpenPilot project CopterControl and CopterControl 3D boards");
+    return QString("The OpenPilot project CopterControl 3D board");
 }
 
 /**
- * @brief CopterControl::getSupportedProtocols
+ * @brief CC3D::getSupportedProtocols
  *  TODO: this is just a stub, we'll need to extend this a lot with multi protocol support
  * @return
  */
-QStringList CopterControl::getSupportedProtocols()
+QStringList CC3D::getSupportedProtocols()
 {
 
     return QStringList("uavtalk");
 }
 
-QPixmap CopterControl::getBoardPicture()
+QPixmap CC3D::getBoardPicture()
 {
     return QPixmap(":/openpilot/images/cc3d.png");
 }
 
-QString CopterControl::getHwUAVO()
+QString CC3D::getHwUAVO()
 {
     return "HwCopterControl";
 }
 
 
 //! Determine if this board supports configuring the receiver
-bool CopterControl::isInputConfigurationSupported()
+bool CC3D::isInputConfigurationSupported()
 {
     return true;
 }
@@ -127,7 +127,7 @@ bool CopterControl::isInputConfigurationSupported()
  * @param port_num which input port to configure (board specific numbering)
  * @return true if successfully configured or false otherwise
  */
-bool CopterControl::setInputOnPort(enum InputType type, int port_num)
+bool CC3D::setInputOnPort(enum InputType type, int port_num)
 {
     if (port_num != 0)
         return false;
@@ -171,11 +171,11 @@ bool CopterControl::setInputOnPort(enum InputType type, int port_num)
 }
 
 /**
- * @brief CopterControl::getInputOnPort fetch the currently selected input type
+ * @brief CC3D::getInputOnPort fetch the currently selected input type
  * @param port_num the port number to query (must be zero)
  * @return the selected input type
  */
-enum Core::IBoardType::InputType CopterControl::getInputOnPort(int port_num)
+enum Core::IBoardType::InputType CC3D::getInputOnPort(int port_num)
 {
     if (port_num != 0)
         return INPUT_TYPE_UNKNOWN;
@@ -218,7 +218,7 @@ enum Core::IBoardType::InputType CopterControl::getInputOnPort(int port_num)
     return INPUT_TYPE_UNKNOWN;
 }
 
-int CopterControl::queryMaxGyroRate()
+int CC3D::queryMaxGyroRate()
 {
     ExtensionSystem::PluginManager *pm = ExtensionSystem::PluginManager::instance();
     UAVObjectManager *uavoManager = pm->getObject<UAVObjectManager>();
@@ -229,9 +229,6 @@ int CopterControl::queryMaxGyroRate()
     if (!hwCopterControl)
         return 0;
     HwCopterControl::DataFields settings = hwCopterControl->getData();
-
-    int CC_Version = (utilMngr->getBoardModel() & 0x00FF);
-    if(CC_Version == 1) return 500;
 
     switch(settings.GyroRange) {
     case HwCopterControl::GYRORANGE_250:
@@ -248,13 +245,13 @@ int CopterControl::queryMaxGyroRate()
 }
 
 /**
- * @brief CopterControl::getBoardConfiguration create the custom configuration
- * dialog for CopterControl.
+ * @brief CC3D::getBoardConfiguration create the custom configuration
+ * dialog for CC3D.
  * @param parent
  * @param connected
  * @return
  */
-QWidget * CopterControl::getBoardConfiguration(QWidget *parent, bool connected)
+QWidget * CC3D::getBoardConfiguration(QWidget *parent, bool connected)
 {
     Q_UNUSED(connected);
     return new ConfigCCHWWidget(parent);
