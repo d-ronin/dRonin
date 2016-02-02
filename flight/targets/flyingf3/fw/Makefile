@@ -215,7 +215,7 @@ LINKERSCRIPTPATH = $(PIOSSTM32F30X)
 ifeq ($(DEBUG),YES)
 CFLAGS += -O0 -ffixed-r10
 else
-CFLAGS += -Os
+CFLAGS += -Os -fconserve-stack
 endif
 
 

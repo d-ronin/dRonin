@@ -2,6 +2,8 @@
 # @file       Makefile
 # @author     The OpenPilot Team, http://www.openpilot.org, Copyright (C) 2009.
 # @author     Tau Labs, http://taulabs.org, Copyright (C) 2012-2013
+# @author     dRonin, http://dRonin.org/, Copyright (C) 2016
+#
 # @addtogroup 
 # @{
 # @addtogroup 
@@ -23,6 +25,9 @@
 # with this program; if not, write to the Free Software Foundation, Inc.,
 # 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 #
+# Additional note on redistribution: The copyright and license notices above
+# must be maintained in each individual source file that is a derivative work
+# of this source file; otherwise redistribution is prohibited.
 
 ifndef MAKE_INC_DIR
 $(error This Makefile cannot be run directly)
@@ -145,7 +150,7 @@ CFLAGS += -DSTM32F30X
 CFLAGS += -DMEM_SIZE=262144
 
 CFLAGS += -gdwarf-2
-CFLAGS += -Os
+CFLAGS += -Os -fconserve-stack
 CFLAGS += -fdata-sections -ffunction-sections
 
 CFLAGS += $(ARCHFLAGS)

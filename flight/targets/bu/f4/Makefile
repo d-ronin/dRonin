@@ -5,7 +5,7 @@
  # Makefile for OpenPilot project build PiOS and the AP.
  #
  # The OpenPilot Team, http://www.openpilot.org, Copyright (C) 2009.
- #    
+ # dRonin, http://dRonin.org/, Copyright (C) 2016
  # 
  # This program is free software; you can redistribute it and/or modify 
  # it under the terms of the GNU General Public License as published by 
@@ -20,6 +20,10 @@
  # You should have received a copy of the GNU General Public License along 
  # with this program; if not, write to the Free Software Foundation, Inc., 
  # 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
+ #
+ # Additional note on redistribution: The copyright and license notices above
+ # must be maintained in each individual source file that is a derivative work
+ # of this source file; otherwise redistribution is prohibited.
  #####
 
 ifndef MAKE_INC_DIR
@@ -111,7 +115,7 @@ ADEFS = -D__ASSEMBLY__
 # Flags for C and C++ (arm-elf-gcc/arm-elf-g++)
 
 CFLAGS += -gdwarf-2
-CFLAGS += -Os
+CFLAGS += -Os -fconserve-stack
 CFLAGS += -ffunction-sections
 
 CFLAGS += $(ARCHFLAGS) -mthumb
