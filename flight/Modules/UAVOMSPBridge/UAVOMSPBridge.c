@@ -253,10 +253,17 @@ static void msp_send_status(struct msp_bridge *m)
 	// TODO: https://github.com/TauLabs/TauLabs/blob/next/shared/uavobjectdefinition/actuatordesired.xml#L8
 	data.status.cycleTime = 0;
 	data.status.i2cErrors = 0;
-	data.status.sensors =
-		(PIOS_SENSORS_IsRegistered(PIOS_SENSOR_ACCEL) ? MSP_SENSOR_ACC : 0)
-		| (PIOS_SENSORS_IsRegistered(PIOS_SENSOR_BARO) ? MSP_SENSOR_BARO : 0)
-		| (PIOS_SENSORS_IsRegistered(PIOS_SENSOR_MAG) ? MSP_SENSOR_MAG : 0);
+	
+	GPSPositionData gpsData = {};
+	
+	if (GPSPositionHandle() != NULL)
+		GPSPositionGet(&gpsData);
+	
+	data.status.sensors = (PIOS_SENSORS_IsRegistered(PIOS_SENSOR_ACCEL) ? MSP_SENSOR_ACC  : 0) |
+		(PIOS_SENSORS_IsRegistered(PIOS_SENSOR_BARO) ? MSP_SENSOR_BARO : 0) |
+		(PIOS_SENSORS_IsRegistered(PIOS_SENSOR_MAG) ? MSP_SENSOR_MAG : 0) |
+		(gpsData.Status != GPSPOSITION_STATUS_NOGPS ? MSP_SENSOR_GPS : 0);
+	
 	data.status.flags = 0;
 	data.status.setting = 0;
 
@@ -322,12 +329,99 @@ static void msp_send_ident(struct msp_bridge *m)
 
 static void msp_send_raw_gps(struct msp_bridge *m)
 {
-	// TODO
+	union {
+		uint8_t buf[0];
+		struct {
+			uint8_t  fix;                 // 0 or 1
+			uint8_t  num_sat;
+			int32_t lat;                  // 1 / 10 000 000 deg
+			int32_t lon;                  // 1 / 10 000 000 deg
+			uint16_t alt;                 // meter
+			uint16_t speed;               // cm/s
+			int16_t ground_course;        // degree * 10
+		} __attribute__((packed)) raw_gps;
+	} data;
+	
+	GPSPositionData gps_data = {};
+	
+	if (GPSPositionHandle() != NULL)
+	{
+		GPSPositionGet(&gps_data);
+		data.raw_gps.fix           = (gps_data.Status >= GPSPOSITION_STATUS_FIX2D ? 1 : 0);  // Data will display on OSD if 2D fix or better
+		data.raw_gps.num_sat       = gps_data.Satellites;
+		data.raw_gps.lat           = gps_data.Latitude;
+		data.raw_gps.lon           = gps_data.Longitude;
+		data.raw_gps.alt           = (uint16_t)gps_data.Altitude;
+		data.raw_gps.speed         = (uint16_t)gps_data.Groundspeed;
+		data.raw_gps.ground_course = (int16_t)(gps_data.Heading * 10.0f);
+	}
+	else
+	{
+		data.raw_gps.fix           = 0;  // Data won't display on OSD
+		data.raw_gps.num_sat       = 0;
+		data.raw_gps.lat           = 0;
+		data.raw_gps.lon           = 0;
+		data.raw_gps.alt           = 0;
+		data.raw_gps.speed         = 0;
+		data.raw_gps.ground_course = 0;
+	}
+	
+	msp_send(m, MSP_RAW_GPS, data.buf, sizeof(data));
 }
 
 static void msp_send_comp_gps(struct msp_bridge *m)
 {
-	// TODO
+	union {
+		uint8_t buf[0];
+		struct {
+			uint16_t distance_to_home;     // meter
+			int16_t  direction_to_home;    // degree [-180:180]
+			uint8_t  home_position_valid;  // 0 = Invalid, Dronin MSP specific
+		} __attribute__((packed)) comp_gps;
+	} data;
+	
+	GPSPositionData gps_data   = {};
+	HomeLocationData home_data = {};
+	
+	if ((GPSPositionHandle() == NULL) || (HomeLocationHandle() == NULL))
+	{
+		data.comp_gps.distance_to_home    = 0;
+		data.comp_gps.direction_to_home   = 0;
+		data.comp_gps.home_position_valid = 0;  // Home distance and direction will not display on OSD
+	}
+	else
+	{
+		GPSPositionGet(&gps_data);
+		HomeLocationGet(&home_data);
+		
+		if((gps_data.Status < GPSPOSITION_STATUS_FIX2D) || (home_data.Set == HOMELOCATION_SET_FALSE))
+		{
+			data.comp_gps.distance_to_home    = 0;
+			data.comp_gps.direction_to_home   = 0;
+			data.comp_gps.home_position_valid = 0;  // Home distance and direction will not display on OSD
+		}
+		else
+		{
+			data.comp_gps.home_position_valid = 1;  // Home distance and direction will display on OSD
+			
+			int32_t delta_lon = (home_data.Longitude - gps_data.Longitude);  // degrees * 1e7
+			int32_t delta_lat = (home_data.Latitude  - gps_data.Latitude );  // degrees * 1e7
+	
+			float delta_y = (float)delta_lon * WGS84_RADIUS_EARTH_KM * DEG2RAD;  // KM * 1e7
+			float delta_x = (float)delta_lat * WGS84_RADIUS_EARTH_KM * DEG2RAD;  // KM * 1e7
+	
+			delta_y *= cosf((float)home_data.Latitude * 1e-7f * (float)DEG2RAD);  // Latitude compression correction
+	
+			data.comp_gps.distance_to_home  = (uint16_t)(sqrtf(delta_x * delta_x + delta_y * delta_y) * 1e-4f);  // meters
+	
+			if ((delta_lon == 0) && (delta_lat == 0))
+				data.comp_gps.direction_to_home = 0;
+			else
+				data.comp_gps.direction_to_home = (int16_t)(atan2f(delta_y, delta_x) * RAD2DEG); // degrees;
+		}			
+	}
+
+	msp_send(m, MSP_COMP_GPS, data.buf, sizeof(data));
 }
 
 static void msp_send_altitude(struct msp_bridge *m)
