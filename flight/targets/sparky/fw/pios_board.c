@@ -217,22 +217,6 @@ void PIOS_Board_Init(void)
 	PIOS_LED_Init(led_cfg);
 #endif	/* PIOS_INCLUDE_LED */
 
-	PIOS_HAL_ConfigurePort(HWSHARED_PORTTYPES_I2C,  // port type protocol
-	        NULL,                                   // usart_port_cfg
-	        NULL,                                   // frsky usart_port_cfg
-	        NULL,                                   // com_driver
-	        &pios_i2c_internal_id,                  // i2c_id
-	        &pios_i2c_internal_cfg,                 // i2c_cfg 
-	        NULL,                                   // ppm_cfg
-	        NULL,                                   // pwm_cfg
-	        PIOS_LED_ALARM,                         // led_id
-	        NULL,                                   // usart_dsm_hsum_cfg
-	        NULL,                                   // dsm_cfg
-	        0,                                      // dsm_mode
-	        NULL,                                   // sbus_rcvr_cfg
-	        NULL,                                   // sbus_cfg
-            false);                                 // sbus_toggle
-
 #if defined(PIOS_INCLUDE_CAN)
 	if (PIOS_CAN_Init(&pios_can_id, &pios_can_cfg) != 0)
 		panic(6);
@@ -376,6 +360,23 @@ void PIOS_Board_Init(void)
 #endif	/* PIOS_INCLUDE_USB */
 
 	/* Configure the IO ports */
+	
+	PIOS_HAL_ConfigurePort(HWSHARED_PORTTYPES_I2C,  // port type protocol
+	        NULL,                                   // usart_port_cfg
+	        NULL,                                   // frsky usart_port_cfg
+	        NULL,                                   // com_driver
+	        &pios_i2c_internal_id,                  // i2c_id
+	        &pios_i2c_internal_cfg,                 // i2c_cfg 
+	        NULL,                                   // ppm_cfg
+	        NULL,                                   // pwm_cfg
+	        PIOS_LED_ALARM,                         // led_id
+	        NULL,                                   // usart_dsm_hsum_cfg
+	        NULL,                                   // dsm_cfg
+	        0,                                      // dsm_mode
+	        NULL,                                   // sbus_rcvr_cfg
+	        NULL,                                   // sbus_cfg
+            false);                                 // sbus_toggle
+
 	HwSparkyDSMxModeOptions hw_DSMxMode;
 	HwSparkyDSMxModeGet(&hw_DSMxMode);
 
