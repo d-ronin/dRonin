@@ -3,6 +3,8 @@
  *
  * @file       configstabilizationwidget.h
  * @author     E. Lafargue & The OpenPilot Team, http://www.openpilot.org Copyright (C) 2010.
+ * @author     dRonin, http://dRonin.org/, Copyright (C) 2016
+ *
  * @addtogroup GCSPlugins GCS Plugins
  * @{
  * @addtogroup ConfigPlugin Config Plugin
@@ -23,6 +25,10 @@
  * You should have received a copy of the GNU General Public License along
  * with this program; if not, write to the Free Software Foundation, Inc.,
  * 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
+ *
+ * Additional note on redistribution: The copyright and license notices above
+ * must be maintained in each individual source file that is a derivative work
+ * of this source file; otherwise redistribution is prohibited.
  */
 #include "configstabilizationwidget.h"
 #include "convertmwrate.h"
@@ -50,11 +56,10 @@ ConfigStabilizationWidget::ConfigStabilizationWidget(QWidget *parent) : ConfigTa
 
     ExtensionSystem::PluginManager *pm=ExtensionSystem::PluginManager::instance();
     Core::Internal::GeneralSettings * settings=pm->getObject<Core::Internal::GeneralSettings>();
-    if(!settings->useExpertMode() || true)
-        m_stabilization->saveStabilizationToRAM_6->setVisible(false);
-    m_stabilization->saveStabilizationToRAM_6->setVisible(true);
 
-    
+    if (!settings->useExpertMode())
+        m_stabilization->saveStabilizationToRAM_6->setVisible(false);
+
 
     autoLoadWidgets();
     realtimeUpdates=new QTimer(this);

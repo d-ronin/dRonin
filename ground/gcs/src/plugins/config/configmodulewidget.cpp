@@ -76,6 +76,11 @@ ConfigModuleWidget::ConfigModuleWidget(QWidget *parent) : ConfigTaskWidget(paren
     PicoCSettings picoCSettings;
     QString picoCSettingsName = picoCSettings.getName();
 
+    ExtensionSystem::PluginManager *pm = ExtensionSystem::PluginManager::instance();
+    Core::Internal::GeneralSettings *settings = pm->getObject<Core::Internal::GeneralSettings>();
+    if (!settings->useExpertMode())
+       ui->saveRAM->setVisible(false);
+
     // Link the checkboxes
     addUAVObjectToWidgetRelation(moduleSettingsName, "AdminState", ui->cbAirspeed, ModuleSettings::ADMINSTATE_AIRSPEED);
     addUAVObjectToWidgetRelation(moduleSettingsName, "AdminState", ui->cbAltitudeHold, ModuleSettings::ADMINSTATE_ALTITUDEHOLD);
