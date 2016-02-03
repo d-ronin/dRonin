@@ -704,6 +704,16 @@ void PIOS_Board_Init(void) {
 	if (PIOS_BMP085_Test() != 0)
 		panic(5);
 #endif /* PIOS_INCLUDE_BMP085 && PIOS_INCLUDE_I2C */
+#if defined(PIOS_INCLUDE_ADC)
+		//Sanity check, this is to ensure that no one changes the adc_pins array without changing the defines
+		PIOS_Assert(internal_adc_cfg_bmp85.adc_pins[0].pin == GPIO_Pin_0);
+		PIOS_Assert(internal_adc_cfg_bmp85.adc_pins[1].pin == GPIO_Pin_1);
+		PIOS_Assert(internal_adc_cfg_bmp85.adc_pins[2].pin == GPIO_Pin_2);
+		PIOS_Assert(internal_adc_cfg_bmp85.adc_pins[3].pin == GPIO_Pin_3);
+		if (PIOS_INTERNAL_ADC_Init(&internal_adc_id, &internal_adc_cfg_bmp85) < 0)
+			PIOS_Assert(0);
+		PIOS_ADC_Init(&pios_internal_adc_id, &pios_internal_adc_driver, internal_adc_id);
+#endif /* PIOS_INCLUDE_ADC */
 		break;
 	case HWFLYINGF3_SHIELD_NONE:
 		break;
