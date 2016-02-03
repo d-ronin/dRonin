@@ -31,7 +31,7 @@
 		</field>
 
 		<!-- Telemetry Module Settings -->
-		<field name="TelemetrySpeed" units="bps" type="enum" elements="1" defaultvalue="57600">
+		<field name="TelemetrySpeed" units="bps" type="enum" elements="1" defaultvalue="Init HM-10">
 			<options>
 				<option>2400</option>
 				<option>4800</option>
@@ -40,6 +40,8 @@
 				<option>38400</option>
 				<option>57600</option>
 				<option>115200</option>
+				<option>Init HC06</option>
+				<option>Init HM10</option>
 			</options>
 		</field>
 

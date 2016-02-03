@@ -8,7 +8,7 @@
  * @file       telemetry.c
  * @author     The OpenPilot Team, http://www.openpilot.org Copyright (C) 2010.
  * @author     Tau Labs, http://taulabs.org, Copyright (C) 2012-2014
- * @author     dRonin, http://dronin.org Copyright (C) 2015
+ * @author     dRonin, http://dronin.org Copyright (C) 2015-2016
  * @brief      Telemetry module, handles telemetry and UAVObject updates
  * @see        The GNU Public License (GPL) Version 3
  *
@@ -27,6 +27,10 @@
  * You should have received a copy of the GNU General Public License along
  * with this program; if not, write to the Free Software Foundation, Inc.,
  * 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
+ *
+ * Additional note on redistribution: The copyright and license notices above
+ * must be maintained in each individual source file that is a derivative work
+ * of this source file; otherwise redistribution is prohibited.
  */
 
 #include "openpilot.h"
@@ -555,14 +559,9 @@ static void updateTelemetryStats()
 
 /**
  * Update the telemetry settings, called on startup.
- * FIXME: This should be in the TelemetrySettings object. But objects
- * have too much overhead yet. Also the telemetry has no any specific
- * settings, etc. Thus the ModuleSettings object which contains the
- * telemetry port speed is used for now.
  */
 static void updateSettings()
 {
-	
 	if (PIOS_COM_TELEM_RF) {
 		// Retrieve settings
 		uint8_t speed;
@@ -588,6 +587,9 @@ static void updateSettings()
 		case MODULESETTINGS_TELEMETRYSPEED_57600:
 			PIOS_COM_ChangeBaud(PIOS_COM_TELEM_RF, 57600);
 			break;
+		case MODULESETTINGS_TELEMETRYSPEED_INIT_HC06:
+		case MODULESETTINGS_TELEMETRYSPEED_INIT_HM10:
+			/* XXX TODO: Initialize appropriately */
 		case MODULESETTINGS_TELEMETRYSPEED_115200:
 			PIOS_COM_ChangeBaud(PIOS_COM_TELEM_RF, 115200);
 			break;
