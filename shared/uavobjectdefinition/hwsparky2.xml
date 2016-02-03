@@ -118,7 +118,7 @@
 			</options>
 		</field>
 
-		<field name="Magnetometer" units="function" type="enum" elements="1" options="Internal,ExternalI2CFlexiPort,ExternalAuxI2C" defaultvalue="Internal"/>
+		<field name="Magnetometer" units="function" type="enum" elements="1" options="Disabled,Internal,ExternalI2CFlexiPort,ExternalAuxI2C" defaultvalue="Internal"/>
 		<field name="ExtMagOrientation" units="function" type="enum" elements="1" parent="HwShared.MagOrientation" defaultvalue="Top0degCW" />
 
 		<access gcs="readwrite" flight="readwrite"/>
