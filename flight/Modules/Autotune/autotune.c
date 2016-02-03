@@ -489,12 +489,12 @@ __attribute__((always_inline)) static inline void af_predict(float X[AF_NUMX], f
     // X[6] to X[12] unchanged
 
 	/**** filter parameters ****/
-	const float q_w = 1e-4f;
-	const float q_ud = 1e-4f;
+	const float q_w = 1e-3f;
+	const float q_ud = 1e-3f;
 	const float q_B = 1e-6f;
 	const float q_tau = 1e-6f;
 	const float q_bias = 1e-19f;
-	const float s_a = 15.0f; // expected gyro measurment noise
+	const float s_a = 150.0f; // expected gyro measurment noise
 
 	const float Q[AF_NUMX] = {q_w, q_w, q_w, q_ud, q_ud, q_ud, q_B, q_B, q_B, q_tau, q_bias, q_bias, q_bias};
 
