@@ -218,6 +218,8 @@ static void actuator_task(void* parameters)
 	bool rc = false;
 
 	while (1) {
+		bool clipped = false;
+
 		if (settings_updated) {
 			settings_updated = false;
 			ActuatorSettingsGet(&actuatorSettings);
@@ -269,8 +271,6 @@ static void actuator_task(void* parameters)
 			continue;
 		}
 
-		AlarmsClear(SYSTEMALARMS_ALARM_ACTUATOR);
-
 		bool armed = flightStatus.Armed == FLIGHTSTATUS_ARMED_ARMED;
 		bool positiveThrottle = desired.Throttle >= 0.00f;
 		bool spinWhileArmed = actuatorSettings.MotorsSpinWhileArmed == ACTUATORSETTINGS_MOTORSSPINWHILEARMED_TRUE;
@@ -300,17 +300,24 @@ static void actuator_task(void* parameters)
 		float gain = 1.0f;
 		float offset = 0.0f;
 
+		/* This is a little dubious.  Scale down command ranges to
+		 * fit.  It may cause some cross-axis coupling, though
+		 * generally less than if we were to actually let it clip.
+		 */
 		if ((max_chan - min_chan) > 1.0f) {
 			gain = 1.0f / (max_chan - min_chan);
+
+			clipped = true;
 
 			max_chan *= gain;
 			min_chan *= gain;
 		}
 
+		/* Sacrifice throttle because of clipping */
 		if (max_chan > 1.0f) {
+			clipped = true;
+
 			offset = 1.0f - max_chan;
-		} else if (min_chan < 0.0f) {
-			offset = -min_chan;
 		}
 
 		for (int ct = 0; ct < MAX_MIX_ACTUATORS; ct++) {
@@ -368,8 +375,11 @@ static void actuator_task(void* parameters)
 			command.NumFailedUpdates++;
 			ActuatorCommandSet(&command);
 			AlarmsSet(SYSTEMALARMS_ALARM_ACTUATOR, SYSTEMALARMS_ALARM_CRITICAL);
+		} else if (clipped) {
+			AlarmsSet(SYSTEMALARMS_ALARM_ACTUATOR, SYSTEMALARMS_ALARM_WARNING);
+		} else {
+			AlarmsClear(SYSTEMALARMS_ALARM_ACTUATOR);
 		}
-
 	}
 }
 
