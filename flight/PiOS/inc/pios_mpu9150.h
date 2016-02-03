@@ -40,7 +40,7 @@
 #define PIOS_MPU9150_I2C_ADD_A0_HIGH      0x69
 
 /* Public Functions */
-extern int32_t PIOS_MPU9150_Init(uint32_t i2c_id, uint8_t i2c_addr, const struct pios_mpu60x0_cfg * new_cfg);
+extern int32_t PIOS_MPU9150_Init(uint32_t i2c_id, uint8_t i2c_addr, const struct pios_mpu60x0_cfg * new_cfg, bool use_internal_mag);
 extern uint8_t PIOS_MPU9150_Test();
 extern int32_t PIOS_MPU9150_Probe(uint32_t i2c_id, uint8_t i2c_addr);
 extern int32_t PIOS_MPU9150_SetGyroRange(enum pios_mpu60x0_range);

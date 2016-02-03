@@ -210,14 +210,6 @@ void PIOS_Board_Init(void) {
     PIOS_LED_Init(led_cfg);
 #endif    /* PIOS_INCLUDE_LED */
 
-#if defined(PIOS_INCLUDE_I2C)
-    if (PIOS_I2C_Init(&pios_i2c_internal_id, &pios_i2c_internal_cfg)) {
-        PIOS_DEBUG_Assert(0);
-    }
-    if (PIOS_I2C_CheckClear(pios_i2c_internal_id) != 0)
-        panic(8);
-#endif
-
 #if defined(PIOS_INCLUDE_SPI)
     if (PIOS_SPI_Init(&pios_spi_internal_id, &pios_spi_internal_cfg)) {
         PIOS_Assert(0);
@@ -381,6 +373,23 @@ void PIOS_Board_Init(void) {
 #endif    /* PIOS_INCLUDE_USB */
 
     /* Configure the IO ports */
+
+    PIOS_HAL_ConfigurePort(HWSHARED_PORTTYPES_I2C,  // port type protocol
+            NULL,                                   // usart_port_cfg
+            NULL,                                   // frsky usart_port_cfg
+            NULL,                                   // com_driver
+            &pios_i2c_internal_id,                  // i2c_id
+            &pios_i2c_internal_cfg,                 // i2c_cfg
+            NULL,                                   // ppm_cfg
+            NULL,                                   // pwm_cfg
+            PIOS_LED_ALARM,                         // led_id
+            NULL,                                   // usart_dsm_hsum_cfg
+            NULL,                                   // dsm_cfg
+            0,                                      // dsm_mode
+            NULL,                                   // sbus_rcvr_cfg
+            NULL,                                   // sbus_cfg    
+            false);                                 // sbus_toggle
+
     HwAQ32DSMxModeOptions hw_DSMxMode;
     HwAQ32DSMxModeGet(&hw_DSMxMode);
 
@@ -623,15 +632,21 @@ void PIOS_Board_Init(void) {
 
     if (Magnetometer == HWAQ32_MAGNETOMETER_EXTERNAL)
     {
-        AlarmsSet(SYSTEMALARMS_ALARM_I2C, SYSTEMALARMS_ALARM_OK);
-            
-        if (PIOS_I2C_Init(&pios_i2c_external_id, &pios_i2c_external_cfg)) {
-            PIOS_DEBUG_Assert(0);
-            AlarmsSet(SYSTEMALARMS_ALARM_I2C, SYSTEMALARMS_ALARM_CRITICAL);
-        }
-        
-        if (PIOS_I2C_CheckClear(pios_i2c_external_id) != 0)
-            AlarmsSet(SYSTEMALARMS_ALARM_I2C, SYSTEMALARMS_ALARM_CRITICAL);;
+		PIOS_HAL_ConfigurePort(HWSHARED_PORTTYPES_I2C,  // port type protocol
+				NULL,                                   // usart_port_cfg
+				NULL,                                   // frsky usart_port_cfg
+				NULL,                                   // com_driver
+				&pios_i2c_external_id,                  // i2c_id
+				&pios_i2c_external_cfg,                 // i2c_cfg
+				NULL,                                   // ppm_cfg
+				NULL,                                   // pwm_cfg
+				PIOS_LED_ALARM,                         // led_id
+				NULL,                                   // usart_dsm_hsum_cfg
+				NULL,                                   // dsm_cfg
+				0,                                      // dsm_mode
+				NULL,                                   // sbus_rcvr_cfg
+				NULL,                                   // sbus_cfg    
+				false);                                 // sbus_toggle
     
         if (PIOS_HMC5883_Init(pios_i2c_external_id, &pios_hmc5883_external_cfg) == 0) {
             if (PIOS_HMC5883_Test() == 0) {

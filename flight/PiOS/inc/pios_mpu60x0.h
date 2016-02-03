@@ -182,8 +182,9 @@ struct pios_mpu60x0_cfg {
 	uint8_t Pwr_mgmt_clk;			/* Power management and clock selection (See datasheet page 32 for more details) */
 	enum pios_mpu60x0_filter default_filter;
 	enum pios_mpu60x0_orientation orientation;
-	uint8_t use_internal_mag;		/* Flag to indicate whether or not to use the internal mag on MPU9x50 devices */
 };
+
+extern bool use_mpu_mag;
 
 #endif /* PIOS_MPU60X0_H */
 
