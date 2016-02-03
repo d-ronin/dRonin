@@ -77,17 +77,6 @@
 			</options>
 		</field>
 
-		<!-- GenericI2CSensor Module Settings -->
-		<field name="I2CVMProgramSelect" units="" type="enum" elements="1" defaultvalue="None">
-			<options>
-				<option>EndianTest</option>
-				<option>MathTest</option>
-				<option>None</option>
-				<option>OPBaroAltimeter</option>
-				<option>User</option>
-			</options>
-		</field>
-		
 		<!-- Mavlink Module Settings -->
 		<field name="MavlinkSpeed" units="bps" type="enum" elements="1" options="2400,4800,9600,19200,38400,57600,115200" defaultvalue="57600"/>
 		<field name="MSPSpeed" units="bps" type="enum" elements="1" options="2400,4800,9600,19200,38400,57600,115200" defaultvalue="115200"/>
