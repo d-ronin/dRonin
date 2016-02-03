@@ -79,4 +79,7 @@ void PIOS_HAL_ConfigureRFM22B(HwSharedRadioPortOptions radio_type,
 		int status_inst);
 #endif /* PIOS_INCLUDE_RFM22B */
 
+void PIOS_HAL_ConfigureSerialSpeed(uintptr_t com_id,
+		                HwSharedSpeedBpsOptions speed);
+
 #endif

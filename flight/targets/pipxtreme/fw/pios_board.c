@@ -174,28 +174,17 @@ void PIOS_Board_Init(void)
 			NULL,                                // sbus_cfg
 			false);                              // sbus_toggle
 
-	// Update the com baud rate.
-	uint32_t comBaud = 9600;
-	switch (hwTauLink.ComSpeed) {
-	case HWTAULINK_COMSPEED_4800:
-		comBaud = 4800;
-		break;
-	case HWTAULINK_COMSPEED_9600:
-		comBaud = 9600;
-		break;
-	case HWTAULINK_COMSPEED_19200:
-		comBaud = 19200;
-		break;
-	case HWTAULINK_COMSPEED_38400:
-		comBaud = 38400;
-		break;
-	case HWTAULINK_COMSPEED_57600:
-		comBaud = 57600;
-		break;
-	case HWTAULINK_COMSPEED_115200:
-		comBaud = 115200;
-		break;
-	}
+	ModuleSettingsInitialize();
+	ModuleSettingsData moduleSettings;
+	ModuleSettingsGet(&moduleSettings);
+
+	moduleSettings.ComUsbBridgeSpeed = hwTauLink.ComSpeed;
+	moduleSettings.TelemetrySpeed = hwTauLink.ComSpeed;
+
+	ModuleSettingsSet(&moduleSettings);
+
+	// Since we don't expose the ModuleSettings object from TauLink to the GCS
+	// we just map the baud rate from HwTauLink into this object
 
 	const struct pios_rfm22b_cfg *rfm22b_cfg = PIOS_BOARD_HW_DEFS_GetRfm22Cfg(bdinfo->board_rev);
 	PIOS_HAL_ConfigureRFM22B(hwTauLink.Radio, bdinfo->board_type,
@@ -211,6 +200,7 @@ void PIOS_Board_Init(void)
 		{
 			// Note: if the main port is also on telemetry the bluetooth
 			// port will take precedence
+
 			uintptr_t pios_usart2_id;
 			if (PIOS_USART_Init(&pios_usart2_id, &pios_usart_bluetooth_cfg)) {
 				PIOS_Assert(0);
@@ -224,19 +214,6 @@ void PIOS_Board_Init(void)
 					tx_buffer, PIOS_COM_TELEM_TX_BUF_LEN)) {
 				PIOS_Assert(0);
 			}
-
-			PIOS_COM_ChangeBaud(pios_com_telem_uart_bluetooth_id, 9600);
-
-			// Note this doesn't actually send until RTOS is running
-			PIOS_COM_SendString(pios_com_telem_uart_bluetooth_id,"AT");
-			PIOS_COM_SendString(pios_com_telem_uart_bluetooth_id,"AT+NAMETauLink");
-			PIOS_COM_SendString(pios_com_telem_uart_bluetooth_id,"AT+PIN:000000");
-			PIOS_COM_SendString(pios_com_telem_uart_bluetooth_id,"AT+MODE1");
-			PIOS_COM_SendString(pios_com_telem_uart_bluetooth_id,"AT+SHOW1");
-			PIOS_COM_SendString(pios_com_telem_uart_bluetooth_id,"AT+RESET");
-			PIOS_COM_SendString(pios_com_telem_uart_bluetooth_id,"AT+BAUD4"); // 115200
-			PIOS_COM_ChangeBaud(pios_com_telem_uart_bluetooth_id, 115200);
-			pios_com_telem_serial_id = pios_com_telem_uart_bluetooth_id;
 		}
 		break;
 		case HWTAULINK_BTPORT_COMBRIDGE:
@@ -257,36 +234,6 @@ void PIOS_Board_Init(void)
 				PIOS_Assert(0);
 			}
 
-			// Since we don't expose the ModuleSettings object from TauLink to the GCS
-			// we just map the baud rate from HwTauLink into this object
-			ModuleSettingsInitialize();
-			ModuleSettingsData moduleSettings;
-			ModuleSettingsGet(&moduleSettings);
-			switch (comBaud) {
-			case 4800:
-				moduleSettings.ComUsbBridgeSpeed = MODULESETTINGS_COMUSBBRIDGESPEED_4800;
-				break;
-			case 9600:
-				moduleSettings.ComUsbBridgeSpeed = MODULESETTINGS_COMUSBBRIDGESPEED_9600;
-				break;
-			case 19200:
-				moduleSettings.ComUsbBridgeSpeed = MODULESETTINGS_COMUSBBRIDGESPEED_19200;
-				break;
-			case 38400:
-				moduleSettings.ComUsbBridgeSpeed = MODULESETTINGS_COMUSBBRIDGESPEED_38400;
-				break;
-			case 57600:
-				moduleSettings.ComUsbBridgeSpeed = MODULESETTINGS_COMUSBBRIDGESPEED_57600;
-				break;
-			case 115200:
-				moduleSettings.ComUsbBridgeSpeed = MODULESETTINGS_COMUSBBRIDGESPEED_115200;
-				break;
-			default:
-				moduleSettings.ComUsbBridgeSpeed = MODULESETTINGS_COMUSBBRIDGESPEED_9600;
-			}
-			ModuleSettingsSet(&moduleSettings);
-
-			PIOS_COM_ChangeBaud(pios_com_telem_uart_bluetooth_id, comBaud);
 			pios_com_bridge_id = pios_com_telem_uart_bluetooth_id;
 		}
 		break;
@@ -338,10 +285,6 @@ void PIOS_Board_Init(void)
 	case HWTAULINK_PPMPORT_DISABLED:
 	default:
 		break;
-	}
-
-	if (PIOS_COM_TELEMETRY) {
-		PIOS_COM_ChangeBaud(PIOS_COM_TELEMETRY, comBaud);
 	}
 
 	/* Remap AFIO pin */

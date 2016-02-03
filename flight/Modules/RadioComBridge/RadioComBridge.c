@@ -55,9 +55,12 @@
 #include "positionactual.h"
 #include "velocityactual.h"
 #include "baroaltitude.h"
+#include "modulesettings.h"
 
 #include "pios_thread.h"
 #include "pios_queue.h"
+
+#include <pios_hal.h>
 
 // ****************
 // Private constants
@@ -116,6 +119,7 @@ static void ProcessRadioStream(UAVTalkConnection inConnectionHandle,
 static void objectPersistenceUpdatedCb(UAVObjEvent * objEv, void *ctx,
 				void *obj, int len);
 static void registerObject(UAVObjHandle obj);
+static void updateSettings();
 
 // ****************
 // Private variables
@@ -152,6 +156,7 @@ static int32_t RadioComBridgeStart(void)
 		// Configure the UAVObject callbacks
 		ObjectPersistenceConnectCallback(&objectPersistenceUpdatedCb);
 
+		updateSettings();
 		// Start the primary tasks for receiving/sending UAVTalk packets from the GCS.
 		data->telemetryTxTaskHandle = PIOS_Thread_Create(telemetryTxTask, "telemetryTxTask", STACK_SIZE_BYTES, NULL, TASK_PRIORITY);
 		data->telemetryRxTaskHandle = PIOS_Thread_Create(telemetryRxTask, "telemetryRxTask", STACK_SIZE_BYTES, NULL, TASK_PRIORITY);
@@ -176,6 +181,20 @@ static int32_t RadioComBridgeStart(void)
 	}
 
 	return -1;
+}
+
+/**
+ * Update the telemetry settings, called on startup.
+ */
+static void updateSettings()
+{
+	if (PIOS_COM_TELEMETRY) {
+		// Retrieve settings
+		uint8_t speed;
+		ModuleSettingsTelemetrySpeedGet(&speed);
+
+		PIOS_HAL_ConfigureSerialSpeed(PIOS_COM_TELEMETRY, speed);
+	}
 }
 
 /**

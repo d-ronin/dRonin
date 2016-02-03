@@ -8,6 +8,8 @@
  * @file       ComUsbBridge.c
  * @author     The OpenPilot Team, http://www.openpilot.org Copyright (C) 2011.
  * @author     Tau Labs, http://taulabs.org, Copyright (C) 2013-2014
+ * @author     dRonin, http://dRonin.org/, Copyright (C) 2016
+ *
  * @brief      Bridges selected Com Port to the USB VCP emulated serial port
  * @see        The GNU Public License (GPL) Version 3
  *
@@ -26,6 +28,10 @@
  * You should have received a copy of the GNU General Public License along
  * with this program; if not, write to the Free Software Foundation, Inc.,
  * 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
+ *
+ * Additional note on redistribution: The copyright and license notices above
+ * must be maintained in each individual source file that is a derivative work
+ * of this source file; otherwise redistribution is prohibited.
  */
 
 // ****************
@@ -34,6 +40,7 @@
 
 #include "modulesettings.h"
 #include "pios_thread.h"
+#include <pios_hal.h>
 
 #include <stdbool.h>
 
@@ -177,31 +184,7 @@ static void updateSettings()
 		uint8_t speed;
 		ModuleSettingsComUsbBridgeSpeedGet(&speed);
 
-		// Set port speed
-		switch (speed) {
-		case MODULESETTINGS_COMUSBBRIDGESPEED_2400:
-			PIOS_COM_ChangeBaud(usart_port, 2400);
-			break;
-		case MODULESETTINGS_COMUSBBRIDGESPEED_4800:
-			PIOS_COM_ChangeBaud(usart_port, 4800);
-			break;
-		case MODULESETTINGS_COMUSBBRIDGESPEED_9600:
-			PIOS_COM_ChangeBaud(usart_port, 9600);
-			break;
-		case MODULESETTINGS_COMUSBBRIDGESPEED_19200:
-			PIOS_COM_ChangeBaud(usart_port, 19200);
-			break;
-		case MODULESETTINGS_COMUSBBRIDGESPEED_38400:
-			PIOS_COM_ChangeBaud(usart_port, 38400);
-			break;
-		case MODULESETTINGS_COMUSBBRIDGESPEED_57600:
-			PIOS_COM_ChangeBaud(usart_port, 57600);
-			break;
-		case MODULESETTINGS_COMUSBBRIDGESPEED_115200:
-			PIOS_COM_ChangeBaud(usart_port, 115200);
-			break;
-		}
-
+		PIOS_HAL_ConfigureSerialSpeed(usart_port, speed);
 	}
 }
 

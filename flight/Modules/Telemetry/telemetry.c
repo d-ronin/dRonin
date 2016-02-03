@@ -41,6 +41,8 @@
 #include "pios_thread.h"
 #include "pios_queue.h"
 
+#include "pios_hal.h"
+
 // Private constants
 #define MAX_QUEUE_SIZE   TELEM_QUEUE_SIZE
 #define STACK_SIZE_BYTES PIOS_TELEM_STACK_SIZE
@@ -565,39 +567,15 @@ static void updateTelemetryStats()
  */
 static void updateSettings()
 {
+#ifndef SIM_POSIX
 	if (PIOS_COM_TELEM_RF) {
 		// Retrieve settings
 		uint8_t speed;
 		ModuleSettingsTelemetrySpeedGet(&speed);
 
-		// Set port speed
-		switch (speed) {
-		case MODULESETTINGS_TELEMETRYSPEED_2400:
-			PIOS_COM_ChangeBaud(PIOS_COM_TELEM_RF, 2400);
-			break;
-		case MODULESETTINGS_TELEMETRYSPEED_4800:
-			PIOS_COM_ChangeBaud(PIOS_COM_TELEM_RF, 4800);
-			break;
-		case MODULESETTINGS_TELEMETRYSPEED_9600:
-			PIOS_COM_ChangeBaud(PIOS_COM_TELEM_RF, 9600);
-			break;
-		case MODULESETTINGS_TELEMETRYSPEED_19200:
-			PIOS_COM_ChangeBaud(PIOS_COM_TELEM_RF, 19200);
-			break;
-		case MODULESETTINGS_TELEMETRYSPEED_38400:
-			PIOS_COM_ChangeBaud(PIOS_COM_TELEM_RF, 38400);
-			break;
-		case MODULESETTINGS_TELEMETRYSPEED_57600:
-			PIOS_COM_ChangeBaud(PIOS_COM_TELEM_RF, 57600);
-			break;
-		case MODULESETTINGS_TELEMETRYSPEED_INIT_HC06:
-		case MODULESETTINGS_TELEMETRYSPEED_INIT_HM10:
-		/* XXX TODO: Initialize appropriately */
-		case MODULESETTINGS_TELEMETRYSPEED_115200:
-			PIOS_COM_ChangeBaud(PIOS_COM_TELEM_RF, 115200);
-			break;
-		}
+		PIOS_HAL_ConfigureSerialSpeed(PIOS_COM_TELEM_RF, speed);
 	}
+#endif
 }
 
 /**
