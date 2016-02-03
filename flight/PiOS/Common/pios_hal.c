@@ -848,6 +848,9 @@ void PIOS_HAL_ConfigureRFM22B(HwSharedRadioPortOptions radio_type,
 }
 #endif /* PIOS_INCLUDE_RFM22B */
 
+/* Needs some safety margin over 500. */
+#define BT_COMMAND_DELAY 575
+
 void PIOS_HAL_ConfigureSerialSpeed(uintptr_t com_id,
 		HwSharedSpeedBpsOptions speed) {
 	switch (speed) {
@@ -875,27 +878,39 @@ void PIOS_HAL_ConfigureSerialSpeed(uintptr_t com_id,
 		case HWSHARED_SPEEDBPS_INITHM10:
 			PIOS_COM_ChangeBaud(com_id, 9600);
 
-			/* XXX TODO Need appropriate delays between these. */
-
+			/* 3.75 seconds, ouch. */
+			PIOS_Thread_Sleep(BT_COMMAND_DELAY / 2);
 			PIOS_COM_SendString(com_id,"AT+NAMEdRonin");
-			PIOS_COM_SendString(com_id,"AT+PIN:000000");
+			PIOS_Thread_Sleep(BT_COMMAND_DELAY);
+			PIOS_COM_SendString(com_id,"AT+PIN000000");
+			PIOS_Thread_Sleep(BT_COMMAND_DELAY);
 			PIOS_COM_SendString(com_id,"AT+MODE0");
+			PIOS_Thread_Sleep(BT_COMMAND_DELAY);
 			PIOS_COM_SendString(com_id,"AT+SHOW1");
+			PIOS_Thread_Sleep(BT_COMMAND_DELAY);
 			PIOS_COM_SendString(com_id,"AT+RESET");
+			PIOS_Thread_Sleep(BT_COMMAND_DELAY);
 			PIOS_COM_SendString(com_id,"AT+BAUD4"); // 115200
+			PIOS_Thread_Sleep(BT_COMMAND_DELAY);
 			PIOS_COM_ChangeBaud(com_id, 115200);
 			break;
 
 		case HWSHARED_SPEEDBPS_INITHC06:
+			/* Some modules default to 38400, some to 9600.
+			 * Best effort to work with 38400. */
+
+			/* 2.3 second init time. */
 			PIOS_COM_ChangeBaud(com_id, 38400);
 			PIOS_COM_SendString(com_id,"AT+BAUD4"); // 9600
+			PIOS_Thread_Sleep(BT_COMMAND_DELAY);
 			PIOS_COM_ChangeBaud(com_id, 9600);
 
-			/* XXX TODO Need appropriate delays between these. */
-
 			PIOS_COM_SendString(com_id,"AT+NAMEdRonin");
-			PIOS_COM_SendString(com_id,"AT+PIN:0000");
+			PIOS_Thread_Sleep(BT_COMMAND_DELAY);
+			PIOS_COM_SendString(com_id,"AT+PIN0000");
+			PIOS_Thread_Sleep(BT_COMMAND_DELAY);
 			PIOS_COM_SendString(com_id,"AT+BAUD8"); // 115200
+			PIOS_Thread_Sleep(BT_COMMAND_DELAY);
 			PIOS_COM_ChangeBaud(com_id, 115200);
 			break;
 
