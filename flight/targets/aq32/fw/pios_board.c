@@ -376,20 +376,16 @@ void PIOS_Board_Init(void) {
 
     PIOS_HAL_ConfigurePort(HWSHARED_PORTTYPES_I2C,  // port type protocol
             NULL,                                   // usart_port_cfg
-            NULL,                                   // frsky usart_port_cfg
             NULL,                                   // com_driver
             &pios_i2c_internal_id,                  // i2c_id
             &pios_i2c_internal_cfg,                 // i2c_cfg
             NULL,                                   // ppm_cfg
             NULL,                                   // pwm_cfg
             PIOS_LED_ALARM,                         // led_id
-            NULL,                                   // usart_dsm_hsum_cfg
             NULL,                                   // dsm_cfg
             0,                                      // dsm_mode
-            NULL,                                   // sbus_rcvr_cfg
-            NULL,                                   // sbus_cfg    
-            false);                                 // sbus_toggle
-
+            NULL);                                  // sbus_cfg    
+            
     HwAQ32DSMxModeOptions hw_DSMxMode;
     HwAQ32DSMxModeGet(&hw_DSMxMode);
 
@@ -610,20 +606,16 @@ void PIOS_Board_Init(void) {
     {
 		PIOS_HAL_ConfigurePort(HWSHARED_PORTTYPES_I2C,  // port type protocol
 				NULL,                                   // usart_port_cfg
-				NULL,                                   // frsky usart_port_cfg
 				NULL,                                   // com_driver
 				&pios_i2c_external_id,                  // i2c_id
 				&pios_i2c_external_cfg,                 // i2c_cfg
 				NULL,                                   // ppm_cfg
 				NULL,                                   // pwm_cfg
 				PIOS_LED_ALARM,                         // led_id
-				NULL,                                   // usart_dsm_hsum_cfg
 				NULL,                                   // dsm_cfg
 				0,                                      // dsm_mode
-				NULL,                                   // sbus_rcvr_cfg
-				NULL,                                   // sbus_cfg    
-				false);                                 // sbus_toggle
-    
+				NULL);                                  // sbus_cfg    
+				
         if (PIOS_HMC5883_Init(pios_i2c_external_id, &pios_hmc5883_external_cfg) == 0) {
             if (PIOS_HMC5883_Test() == 0) {
                 // External mag configuration was successful

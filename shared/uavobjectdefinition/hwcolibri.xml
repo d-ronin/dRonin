@@ -36,6 +36,7 @@
 				<option>MavLinkTX</option>
 				<option>MavLinkTX_GPS_RX</option>
 				<option>PicoC</option>
+				<option>S.Bus Non Inverted</option>
 				<option>Telemetry</option>
 			</options>
 		</field>
@@ -56,6 +57,7 @@
 				<option>MavLinkTX_GPS_RX</option>
 				<option>PicoC</option>
 				<option>S.Bus</option>
+				<option>S.Bus Non Inverted</option>
 				<option>Telemetry</option>
 			</options>
 		</field>
@@ -76,6 +78,7 @@
 				<option>MavLinkTX</option>
 				<option>MavLinkTX_GPS_RX</option>
 				<option>PicoC</option>
+				<option>S.Bus Non Inverted</option>
 				<option>Telemetry</option>
 			</options>
 		</field>
@@ -95,6 +98,7 @@
 				<option>MavLinkTX</option>
 				<option>MavLinkTX_GPS_RX</option>
 				<option>PicoC</option>
+				<option>S.Bus Non Inverted</option>
 				<option>Telemetry</option>
 			</options>
 		</field>

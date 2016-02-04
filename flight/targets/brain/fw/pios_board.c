@@ -432,45 +432,32 @@ void PIOS_Board_Init(void) {
 
 	PIOS_HAL_ConfigurePort(hw_mainport,          // port type protocol
 			&pios_mainport_cfg,                  // usart_port_cfg
-			&pios_mainport_cfg,                  // frsky usart_port_cfg
 			&pios_usart_com_driver,              // com_driver
 			NULL,                                // i2c_id
 			NULL,                                // i2c_cfg
 			NULL,                                // ppm_cfg
 			NULL,                                // pwm_cfg
 			PIOS_LED_ALARM,                      // led_id
-			&pios_mainport_dsm_hsum_cfg,         // usart_dsm_hsum_cfg
 			&pios_mainport_dsm_aux_cfg,          // dsm_cfg
 			hw_DSMxMode,                         // dsm_mode
-			&pios_mainport_sbus_cfg,             // sbus_rcvr_cfg
-			&pios_mainport_sbus_aux_cfg,         // sbus_cfg
-			true);                               // sbus_toggle
-
-	if (hw_mainport != HWBRAIN_MAINPORT_SBUS) {
-		GPIO_Init(pios_mainport_sbus_aux_cfg.inv.gpio, (GPIO_InitTypeDef*)&pios_mainport_sbus_aux_cfg.inv.init);
-		GPIO_WriteBit(pios_mainport_sbus_aux_cfg.inv.gpio, pios_mainport_sbus_aux_cfg.inv.init.GPIO_Pin, pios_mainport_sbus_aux_cfg.gpio_inv_disable);
-	}
-
+			&pios_mainport_sbus_aux_cfg);        // sbus_cfg
+	
 	/* Flx Port */
 	uint8_t hw_flxport;
 	HwBrainFlxPortGet(&hw_flxport);
 
 	PIOS_HAL_ConfigurePort(hw_flxport,           // port type protocol
 			&pios_flxport_cfg,                   // usart_port_cfg
-			&pios_flxport_cfg,                   // frsky usart_port_cfg
 			&pios_usart_com_driver,              // com_driver
 			&pios_i2c_flexi_id,                  // i2c_id
 			&pios_i2c_flexi_cfg,                 // i2c_cfg
 			NULL,                                // ppm_cfg
 			NULL,                                // pwm_cfg
 			PIOS_LED_ALARM,                      // led_id
-			&pios_flxport_dsm_hsum_cfg,          // usart_dsm_hsum_cfg
 			&pios_flxport_dsm_aux_cfg,           // dsm_cfg
 			hw_DSMxMode,                         // dsm_mode
-			NULL,                                // sbus_rcvr_cfg
-			NULL,                                // sbus_cfg
-			false);                              // sbus_toggle
-
+			NULL);                               // sbus_cfg
+	
 	/* Configure the rcvr port */
 	uint8_t hw_rxport;
 	HwBrainRxPortGet(&hw_rxport);
@@ -482,56 +469,44 @@ void PIOS_Board_Init(void) {
 	case HWBRAIN_RXPORT_PWM:
 		PIOS_HAL_ConfigurePort(HWSHARED_PORTTYPES_PWM,  // port type protocol
 				NULL,                                   // usart_port_cfg
-				NULL,                                   // frsky usart_port_cfg
 				NULL,                                   // com_driver
 				NULL,                                   // i2c_id
 				NULL,                                   // i2c_cfg
 				NULL,                                   // ppm_cfg
 				&pios_pwm_cfg,                          // pwm_cfg
 				PIOS_LED_ALARM,                         // led_id
-				NULL,                                   // usart_dsm_hsum_cfg
 				NULL,                                   // dsm_cfg
 				0,                                      // dsm_mode
-				NULL,                                   // sbus_rcvr_cfg
-				NULL,                                   // sbus_cfg    
-				false);                                 // sbus_toggle
+				NULL);                                  // sbus_cfg    
 		break;
 
 	case HWBRAIN_RXPORT_PPMFRSKY:
 		// special mode that enables PPM, FrSky RSSI, and Sensor Hub
 		PIOS_HAL_ConfigurePort(HWSHARED_PORTTYPES_FRSKYSENSORHUB,  // port type protocol
-				NULL,                                              // usart_port_cfg
-				&pios_rxportusart_cfg,                             // frsky usart_port_cfg
+				&pios_rxportusart_cfg,                             // usart_port_cfg
 				&pios_usart_com_driver,                            // com_driver
 				NULL,                                              // i2c_id
 				NULL,                                              // i2c_cfg
 				NULL,                                              // ppm_cfg
 				NULL,                                              // pwm_cfg
 				PIOS_LED_ALARM,                                    // led_id
-				NULL,                                              // usart_dsm_hsum_cfg
 				NULL,                                              // dsm_cfg
 				0,                                                 // dsm_mode
-				NULL,                                              // sbus_rcvr_cfg
-				NULL,                                              // sbus_cfg    
-				false);                                            // sbus_toggle
-	
+				NULL);                                             // sbus_cfg    
+				
 	case HWBRAIN_RXPORT_PPM:
 	case HWBRAIN_RXPORT_PPMOUTPUTS:
 		PIOS_HAL_ConfigurePort(HWSHARED_PORTTYPES_PPM,  // port type protocol
 				NULL,                                   // usart_port_cfg
-				NULL,                                   // frsky usart_port_cfg
 				NULL,                                   // com_driver
 				NULL,                                   // i2c_id
 				NULL,                                   // i2c_cfg
 				&pios_ppm_cfg,                          // ppm_cfg
 				NULL,                                   // pwm_cfg
 				PIOS_LED_ALARM,                         // led_id
-				NULL,                                   // usart_dsm_hsum_cfg
 				NULL,                                   // dsm_cfg
 				0,                                      // dsm_mode
-				NULL,                                   // sbus_rcvr_cfg
-				NULL,                                   // sbus_cfg    
-				false);                                 // sbus_toggle
+				NULL);                                  // sbus_cfg    
 		break;
 
 	case HWBRAIN_RXPORT_UART:
@@ -544,19 +519,15 @@ void PIOS_Board_Init(void) {
 
 		PIOS_HAL_ConfigurePort(HWSHARED_PORTTYPES_PPM,  // port type protocol
 				NULL,                                   // usart_port_cfg
-				NULL,                                   // frsky usart_port_cfg
 				NULL,                                   // com_driver
 				NULL,                                   // i2c_id
 				NULL,                                   // i2c_cfg
 				&pios_ppm_cfg,                          // ppm_cfg
 				NULL,                                   // pwm_cfg
 				PIOS_LED_ALARM,                         // led_id
-				NULL,                                   // usart_dsm_hsum_cfg
 				NULL,                                   // dsm_cfg
 				0,                                      // dsm_mode
-				NULL,                                   // sbus_rcvr_cfg
-				NULL,                                   // sbus_cfg    
-				false);                                 // sbus_toggle
+				NULL);                                  // sbus_cfg    
 		break;
 	}
 
@@ -567,19 +538,15 @@ void PIOS_Board_Init(void) {
 
 		PIOS_HAL_ConfigurePort(hw_rxportusart,       // port type protocol
 				&pios_rxportusart_cfg,               // usart_port_cfg
-				&pios_rxportusart_cfg,               // frsky usart_port_cfg
 				&pios_usart_com_driver,              // com_driver
 				NULL,                                // i2c_id
 				NULL,                                // i2c_cfg
 				NULL,                                // ppm_cfg
 				NULL,                                // pwm_cfg
 				PIOS_LED_ALARM,                      // led_id
-				&pios_rxportusart_dsm_hsum_cfg,      // usart_dsm_hsum_cfg
 				&pios_rxportusart_dsm_aux_cfg,       // dsm_cfg
 				hw_DSMxMode,                         // dsm_mode
-				NULL,                                // sbus_rcvr_cfg
-				NULL,                                // sbus_cfg
-				false);                              // sbus_toggle
+				NULL);                               // sbus_cfg
 	}
 
 #if defined(PIOS_INCLUDE_GCSRCVR)
