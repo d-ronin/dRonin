@@ -165,6 +165,7 @@ uintptr_t pios_internal_adc_id = 0;
 uintptr_t pios_uavo_settings_fs_id;
 uintptr_t pios_waypoints_settings_fs_id;
 uintptr_t pios_com_spiflash_logging_id;
+uintptr_t pios_com_openlog_logging_id;
 
 uintptr_t streamfs_id;
 
