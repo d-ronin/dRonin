@@ -439,12 +439,12 @@ void PIOS_HAL_ConfigurePort(HwSharedPortTypesOptions port_type,
 	case HWSHARED_PORTTYPES_DSM:
 #if defined(PIOS_INCLUDE_DSM)
 		if (dsm_cfg && usart_port_cfg) {
-			usart_port_params.init.USART_BaudRate              = 115200;
-			//usart_port_params.init.USART_WordLength          = USART_WordLength_8b;
-			//usart_port_params.init.USART_Parity              = USART_Parity_No;
-			//usart_port_params.init.USART_StopBits            = USART_StopBits_1;
-			//usart_port_params.init.USART_HardwareFlowControl = USART_HardwareFlowControl_None;
-			usart_port_params.init.USART_Mode                  = USART_Mode_Rx;
+			usart_port_params.init.USART_BaudRate            = 115200;
+			usart_port_params.init.USART_WordLength          = USART_WordLength_8b;
+			usart_port_params.init.USART_Parity              = USART_Parity_No;
+			usart_port_params.init.USART_StopBits            = USART_StopBits_1;
+			usart_port_params.init.USART_HardwareFlowControl = USART_HardwareFlowControl_None;
+			usart_port_params.init.USART_Mode                = USART_Mode_Rx;
 			
 			PIOS_HAL_ConfigureDSM(usart_port_cfg, &usart_port_params, dsm_cfg, com_driver, dsm_mode);
 		}
@@ -453,16 +453,16 @@ void PIOS_HAL_ConfigurePort(HwSharedPortTypesOptions port_type,
 	
 	case HWSHARED_PORTTYPES_FRSKYSENSORHUB:
 #if defined(PIOS_INCLUDE_FRSKY_SENSOR_HUB)
-		//usart_port_params.init.USART_BaudRate            = 57600;
-		//usart_port_params.init.USART_WordLength          = USART_WordLength_8b;
-		//usart_port_params.init.USART_Parity              = USART_Parity_No;
-		//usart_port_params.init.USART_StopBits            = USART_StopBits_1;
-		//usart_port_params.init.USART_HardwareFlowControl = USART_HardwareFlowControl_None;
-		usart_port_params.init.USART_Mode                  = USART_Mode_Tx;
+		usart_port_params.init.USART_BaudRate            = 57600;
+		usart_port_params.init.USART_WordLength          = USART_WordLength_8b;
+		usart_port_params.init.USART_Parity              = USART_Parity_No;
+		usart_port_params.init.USART_StopBits            = USART_StopBits_1;
+		usart_port_params.init.USART_HardwareFlowControl = USART_HardwareFlowControl_None;
+		usart_port_params.init.USART_Mode                = USART_Mode_Tx;
 
-		//usart_port_params.rx_invert   = false;
-		usart_port_params.tx_invert     = true;
-		//usart_port_params.single_wire = false;
+		usart_port_params.rx_invert   = false;
+		usart_port_params.tx_invert   = true;
+		usart_port_params.single_wire = false;
 
 		PIOS_HAL_ConfigureCom(usart_port_cfg, &usart_port_params, 0, PIOS_COM_FRSKYSENSORHUB_TX_BUF_LEN, com_driver, &port_driver_id);
 		target = &pios_com_frsky_sensor_hub_id;
@@ -489,12 +489,12 @@ void PIOS_HAL_ConfigurePort(HwSharedPortTypesOptions port_type,
 	case HWSHARED_PORTTYPES_HOTTSUMH:
 #if defined(PIOS_INCLUDE_HSUM)
 		if (usart_port_cfg) {
-			usart_port_params.init.USART_BaudRate              = 115200;
-			//usart_port_params.init.USART_WordLength          = USART_WordLength_8b;
-			//usart_port_params.init.USART_Parity              = USART_Parity_No;
-			//usart_port_params.init.USART_StopBits            = USART_StopBits_1;
-			//usart_port_params.init.USART_HardwareFlowControl = USART_HardwareFlowControl_None;
-			usart_port_params.init.USART_Mode                  = USART_Mode_Rx;
+			usart_port_params.init.USART_BaudRate            = 115200;
+			usart_port_params.init.USART_WordLength          = USART_WordLength_8b;
+			usart_port_params.init.USART_Parity              = USART_Parity_No;
+			usart_port_params.init.USART_StopBits            = USART_StopBits_1;
+			usart_port_params.init.USART_HardwareFlowControl = USART_HardwareFlowControl_None;
+			usart_port_params.init.USART_Mode                = USART_Mode_Rx;
 			
 			enum pios_hsum_proto proto;
 			switch (port_type) {
@@ -566,12 +566,12 @@ void PIOS_HAL_ConfigurePort(HwSharedPortTypesOptions port_type,
 	
 	    case HWSHARED_PORTTYPES_OPENLOG:
 #if defined(PIOS_INCLUDE_OPENLOG)
-			usart_port_params.init.USART_BaudRate              = 115200;
-			//usart_port_params.init.USART_WordLength          = USART_WordLength_8b;
-			//usart_port_params.init.USART_Parity              = USART_Parity_No;
-			//usart_port_params.init.USART_StopBits            = USART_StopBits_1;
-			//usart_port_params.init.USART_HardwareFlowControl = USART_HardwareFlowControl_None;
-			//usart_port_params.init.USART_Mode                = USART_Mode_Rx | USART_Mode_Tx;
+			usart_port_params.init.USART_BaudRate            = 115200;
+			usart_port_params.init.USART_WordLength          = USART_WordLength_8b;
+			usart_port_params.init.USART_Parity              = USART_Parity_No;
+			usart_port_params.init.USART_StopBits            = USART_StopBits_1;
+			usart_port_params.init.USART_HardwareFlowControl = USART_HardwareFlowControl_None;
+			usart_port_params.init.USART_Mode                = USART_Mode_Rx | USART_Mode_Tx;
 
 			PIOS_HAL_ConfigureCom(usart_port_cfg, &usart_port_params, 0, PIOS_COM_OPENLOG_TX_BUF_LEN, com_driver, &port_driver_id);
 			target = &pios_com_openlog_logging_id;
@@ -621,12 +621,12 @@ void PIOS_HAL_ConfigurePort(HwSharedPortTypesOptions port_type,
 	case HWSHARED_PORTTYPES_SBUSNONINVERTED:
 #if defined(PIOS_INCLUDE_SBUS) && defined(PIOS_INCLUDE_USART)
 		if (usart_port_cfg) {
-			usart_port_params.init.USART_BaudRate              = 100000;
-			//usart_port_params.init.USART_WordLength          = USART_WordLength_8b;
-			usart_port_params.init.USART_Parity                = USART_Parity_Even;
-			usart_port_params.init.USART_StopBits              = USART_StopBits_2;
-			//usart_port_params.init.USART_HardwareFlowControl = USART_HardwareFlowControl_None;
-			usart_port_params.init.USART_Mode                  = USART_Mode_Rx;
+			usart_port_params.init.USART_BaudRate            = 100000;
+			usart_port_params.init.USART_WordLength          = USART_WordLength_8b;
+			usart_port_params.init.USART_Parity              = USART_Parity_Even;
+			usart_port_params.init.USART_StopBits            = USART_StopBits_2;
+			usart_port_params.init.USART_HardwareFlowControl = USART_HardwareFlowControl_None;
+			usart_port_params.init.USART_Mode                = USART_Mode_Rx;
 			
 			if (port_type == HWSHARED_PORTTYPES_SBUS)
 				usart_port_params.rx_invert = true;			

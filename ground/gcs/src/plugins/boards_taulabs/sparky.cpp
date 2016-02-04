@@ -240,7 +240,7 @@ QStringList Sparky::getAdcNames()
 
     QStringList names;
     HwSparky::DataFields settings = hwSparky->getData();
-    if (settings.OutPort == HwSparky::OUTPORT_PWM82ADC || settings.OutPort == HwSparky::OUTPORT_PWM7PWM_IN2ADC)
+    if (settings.OutPort == HwSparky::OUTPORT_PWM82ADC || settings.OutPort == HwSparky::OUTPORT_PWM72ADCPWM_IN)
         names << "PWM10" << "PWM9" << "Disabled";
     else if (settings.OutPort == HwSparky::OUTPORT_PWM73ADC)
         names << "PWM10" << "PWM9" << "PWM8";
