@@ -364,14 +364,12 @@ void PIOS_Board_Init(void)
 	
 	PIOS_HAL_ConfigurePort(HWSHARED_PORTTYPES_I2C,  // port type protocol
 	        NULL,                                   // usart_port_cfg
-	        NULL,                                   // frsky usart_port_cfg
 	        NULL,                                   // com_driver
 	        &pios_i2c_internal_id,                  // i2c_id
 	        &pios_i2c_internal_cfg,                 // i2c_cfg 
 	        NULL,                                   // ppm_cfg
 	        NULL,                                   // pwm_cfg
 	        PIOS_LED_ALARM,                         // led_id
-	        NULL,                                   // usart_dsm_hsum_cfg
 	        NULL,                                   // dsm_cfg
 	        0,                                      // dsm_mode
 	        NULL);                                  // sbus_cfg

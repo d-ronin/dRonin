@@ -19,6 +19,7 @@
 				<option>HoTT Telemetry</option>
 				<option>LighttelemetryTx</option>
 				<option>MavLinkTX</option>
+				<option>MSP</option>
 				<option>PicoC</option>
 				<option>Telemetry</option>
 			</options>
@@ -46,6 +47,7 @@
 				<option>LighttelemetryTx</option>
 				<option>MavLinkTX</option>
 				<option>MavLinkTX_GPS_RX</option>
+				<option>MSP</option>
 				<option>OpenLog</option>
 				<option>PicoC</option>
 				<option>S.Bus</option>
@@ -69,6 +71,7 @@
 				<option>LighttelemetryTx</option>
 				<option>MavLinkTX</option>
 				<option>MavLinkTX_GPS_RX</option>
+				<option>MSP</option>
 				<option>OpenLog</option>
 				<option>PicoC</option>
 				<option>S.Bus Non Inverted</option>
@@ -91,6 +94,7 @@
 				<option>LighttelemetryTx</option>
 				<option>MavLinkTX</option>
 				<option>MavLinkTX_GPS_RX</option>
+				<option>MSP</option>
 				<option>OpenLog</option>
 				<option>PicoC</option>
 				<option>S.Bus Non Inverted</option>
