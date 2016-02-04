@@ -914,6 +914,27 @@ void PIOS_HAL_ConfigureSerialSpeed(uintptr_t com_id,
 			PIOS_COM_ChangeBaud(com_id, 115200);
 			break;
 
+		case HWSHARED_SPEEDBPS_INITHC05:
+			/* Some modules default to 38400, some to 9600.
+			 * Best effort to work with 38400. */
+
+			/* 1.7 second init time; not silence delimited */
+			PIOS_COM_ChangeBaud(com_id, 38400);
+			PIOS_COM_SendString(com_id,"AT+UART=115200,0,0\r\n"); // 9600
+			PIOS_Thread_Sleep(BT_COMMAND_DELAY);
+			PIOS_COM_ChangeBaud(com_id, 9600);
+			PIOS_COM_SendString(com_id,"AT+UART=115200,0,0\r\n"); // 9600
+			PIOS_Thread_Sleep(BT_COMMAND_DELAY);
+
+			PIOS_COM_ChangeBaud(com_id, 115200);
+
+			PIOS_COM_SendString(com_id,"AT+NAME=dRonin\r\n");
+			PIOS_Thread_Sleep(BT_COMMAND_DELAY/2);
+			PIOS_COM_SendString(com_id,"AT+PSWD=0000\r\n");
+			PIOS_Thread_Sleep(BT_COMMAND_DELAY/2);
+
+			break;
+
 		case HWSHARED_SPEEDBPS_115200:
 			PIOS_COM_ChangeBaud(com_id, 115200);
 			break;
