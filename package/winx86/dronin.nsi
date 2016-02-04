@@ -1,7 +1,7 @@
 #
 # Project: dRonin
 # NSIS configuration file for GCS
-# dRonin, http://dronin.org, Copyright (c) 2015
+# dRonin, http://dronin.org, Copyright (c) 2015-2016
 # Tau Labs, http://taulabs.org, Copyright (C) 2012-2013
 # The OpenPilot Team, http://www.openpilot.org, Copyright (C) 2010-2012.
 #
@@ -19,6 +19,9 @@
 # with this program; if not, write to the Free Software Foundation, Inc.,
 # 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 #
+# Additional note on redistribution: The copyright and license notices above
+# must be maintained in each individual source file that is a derivative work
+# of this source file; otherwise redistribution is prohibited.
 
 # This script requires Unicode NSIS 2.46 or higher:
 # http://www.scratchpaper.com/
@@ -195,28 +198,9 @@ SectionEnd
 
 ; Copy firmware files
 Section "Firmware" InSecFirmware
+  Delete "$INSTDIR\firmware\*.*"
   SetOutPath "$INSTDIR\firmware"
   File "${FIRMWARE_DIR}\*.*"
-SectionEnd
-
-; Copy driver files
-Section "-Drivers" InSecDrivers
-IfSilent +3
-  SetOutPath "$INSTDIR\drivers"
-  File "${SOURCE_ROOT}\flight\Project\Windows USB\dRonin-CDC.inf"
-SectionEnd
-
-; Preinstall OpenPilot CDC driver
-Section "CDC driver" InSecInstallDrivers
-IfSilent +9
-  InitPluginsDir
-  SetOutPath "$PLUGINSDIR"
-  ${If} ${RunningX64}
-    File "/oname=dpinst.exe" "${NSIS_DATA_TREE}\redist\dpinst_x64.exe"
-  ${Else}
-    File "/oname=dpinst.exe" "${NSIS_DATA_TREE}\redist\dpinst_x86.exe"
-  ${EndIf}
-  ExecWait '"$PLUGINSDIR\dpinst.exe" /lm /path "$INSTDIR\drivers"'
 SectionEnd
 
 Section "Shortcuts" InSecShortcuts
@@ -259,8 +243,6 @@ SectionEnd
     !insertmacro MUI_DESCRIPTION_TEXT ${InSecLocalization} $(DESC_InSecLocalization)
     !insertmacro MUI_DESCRIPTION_TEXT ${InSecFirmware} $(DESC_InSecFirmware)
     !insertmacro MUI_DESCRIPTION_TEXT ${InSecUtilities} $(DESC_InSecUtilities)
-    !insertmacro MUI_DESCRIPTION_TEXT ${InSecDrivers} $(DESC_InSecDrivers)
-    !insertmacro MUI_DESCRIPTION_TEXT ${InSecInstallDrivers} $(DESC_InSecInstallDrivers)
     !insertmacro MUI_DESCRIPTION_TEXT ${InSecShortcuts} $(DESC_InSecShortcuts)
   !insertmacro MUI_FUNCTION_DESCRIPTION_END
 
