@@ -2,7 +2,7 @@
  ******************************************************************************
  * @addtogroup TauLabsTargets Tau Labs Targets
  * @{
- * @addtogroup RevoMini OpenPilot RevoMini support files
+ * @addtogroup Revolution OpenPilot Revolution support files
  * @{
  *
  * @file       board_hw_defs.c 
@@ -10,7 +10,7 @@
  * @author     Tau Labs, http://taulabs.org, Copyright (C) 2012-2014
  * @author     dRonin, http://dronin.org Copyright (C) 2015
  * @brief      Defines board specific static initializers for hardware for the
- *             RevoMini board.
+ *             Revolution board.
  * @see        The GNU Public License (GPL) Version 3
  * 
  *****************************************************************************/
@@ -609,13 +609,22 @@ static const struct pios_flash_partition pios_flash_partition_table[] = {
 		.label        = FLASH_PARTITION_LABEL_SETTINGS,
 		.chip_desc    = &pios_flash_chip_external,
 		.first_sector = 0,
-		.last_sector  = 15,
+		.last_sector  = 5,
 		.chip_offset  = 0,
-		.size         = (15 - 0 + 1) * FLASH_SECTOR_64KB,
+		.size         = (5 - 0 + 1) * FLASH_SECTOR_64KB,
 	},
 
 	{
 		.label        = FLASH_PARTITION_LABEL_WAYPOINTS,
+		.chip_desc    = &pios_flash_chip_external,
+		.first_sector = 6,
+		.last_sector  = 10,
+		.chip_offset  = (6 * FLASH_SECTOR_64KB),
+		.size         = (10 - 6 + 1) * FLASH_SECTOR_64KB,
+	},
+
+	{
+		.label        = FLASH_PARTITION_LABEL_LOG,
 		.chip_desc    = &pios_flash_chip_external,
 		.first_sector = 16,
 		.last_sector  = 31,
@@ -623,6 +632,13 @@ static const struct pios_flash_partition pios_flash_partition_table[] = {
 		.size         = (31 - 16 + 1) * FLASH_SECTOR_64KB,
 	},
 #endif	/* PIOS_INCLUDE_FLASH_JEDEC */
+};
+
+#include "pios_streamfs_priv.h"
+const struct streamfs_cfg streamfs_settings = {
+	.fs_magic      = 0x89abceef,
+	.arena_size    = 0x00010000, /* 64 KB */
+	.write_size    = 0x00000100, /* 256 bytes */
 };
 
 const struct pios_flash_partition * PIOS_BOARD_HW_DEFS_GetPartitionTable (uint32_t board_revision, uint32_t * num_partitions)

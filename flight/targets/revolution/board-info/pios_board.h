@@ -2,10 +2,10 @@
  ******************************************************************************
  * @addtogroup TauLabsTargets Tau Labs Targets
  * @{
- * @addtogroup RevoMini OpenPilot RevoMini support files
+ * @addtogroup Revolution OpenPilot Revolution support files
  * @{
  *
- * @file       STM32F4xx_RevoMini.h 
+ * @file       STM32F4xx_Revolution.h 
  * @author     The OpenPilot Team, http://www.openpilot.org Copyright (C) 2011.
  * @author     Tau Labs, http://taulabs.org, Copyright (C) 2012-2013
  * @author     dRonin, http://dronin.org Copyright (C) 2015
@@ -121,6 +121,7 @@ extern uintptr_t pios_com_frsky_sensor_hub_id;
 extern uintptr_t pios_com_lighttelemetry_id;
 extern uintptr_t pios_com_picoc_id;
 extern uintptr_t pios_com_frsky_sport_id;
+extern uintptr_t pios_com_spiflash_logging_id;
 
 #define PIOS_COM_GPS                    (pios_com_gps_id)
 #define PIOS_COM_TELEM_USB              (pios_com_telem_usb_id)
@@ -133,6 +134,8 @@ extern uintptr_t pios_com_frsky_sport_id;
 #define PIOS_COM_LIGHTTELEMETRY         (pios_com_lighttelemetry_id)
 #define PIOS_COM_PICOC                  (pios_com_picoc_id)
 #define PIOS_COM_FRSKY_SPORT            (pios_com_frsky_sport_id)
+#define PIOS_COM_SPIFLASH               (pios_com_spiflash_logging_id)
+#define PIOS_COM_OPENLOG                (uintptr_t)(NULL)
 
 #if defined(PIOS_INCLUDE_DEBUG_CONSOLE)
 extern uintptr_t pios_com_debug_id;

@@ -1,7 +1,7 @@
 /**
  ******************************************************************************
  *
- * @file       revomini.cpp
+ * @file       revolution.cpp
  * @author     Tau Labs, http://taulabs.org, Copyright (C) 2013
  * @author     dRonin, http://dronin.org Copyright (C) 2015
  *
@@ -27,20 +27,20 @@
  * 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
  */
 
-#include "revomini.h"
+#include "revolution.h"
 #include "rfm22bstatus.h"
 
 #include <uavobjectmanager.h>
 #include "uavobjectutil/uavobjectutilmanager.h"
 #include <extensionsystem/pluginmanager.h>
 
-#include "hwrevomini.h"
+#include "hwrevolution.h"
 
 /**
- * @brief RevoMini::RevoMini
- *  This is the Revo Mini (3D) board definition
+ * @brief Revolution::Revolution
+ *  This is the Revolution board definition
  */
-RevoMini::RevoMini(void)
+Revolution::Revolution(void)
 {
     // Initialize our USB Structure definition here:
     USBInfo board;
@@ -62,24 +62,23 @@ RevoMini::RevoMini(void)
     uavoUtilManager = pm->getObject<UAVObjectUtilManager>();
 }
 
-RevoMini::~RevoMini()
+Revolution::~Revolution()
 {
 
 }
 
-
-QString RevoMini::shortName()
+QString Revolution::shortName()
 {
-    return QString("RevoMini");
+    return QString("Revolution");
 }
 
-QString RevoMini::boardDescription()
+QString Revolution::boardDescription()
 {
-    return QString("The OpenPilot project Revolution Mini boards");
+    return QString("The OpenPilot project Revolution board");
 }
 
 //! Return which capabilities this board has
-bool RevoMini::queryCapabilities(BoardCapabilities capability)
+bool Revolution::queryCapabilities(BoardCapabilities capability)
 {
     switch(capability) {
     case BOARD_CAPABILITIES_GYROS:
@@ -99,40 +98,39 @@ bool RevoMini::queryCapabilities(BoardCapabilities capability)
 }
 
 /**
- * @brief RevoMini::getSupportedProtocols
+ * @brief Revolution::getSupportedProtocols
  *  TODO: this is just a stub, we'll need to extend this a lot with multi protocol support
  * @return
  */
-QStringList RevoMini::getSupportedProtocols()
+QStringList Revolution::getSupportedProtocols()
 {
 
     return QStringList("uavtalk");
 }
 
-
-QPixmap RevoMini::getBoardPicture()
+QPixmap Revolution::getBoardPicture()
 {
-    return QPixmap(":/openpilot/images/revomini.png");
+    return QPixmap(":/openpilot/images/revolution.png");
 }
 
-QString RevoMini::getHwUAVO()
+QString Revolution::getHwUAVO()
 {
-    return "HwRevoMini";
+    return "HwRevolution";
 }
 
 //! Get the settings object
-HwRevoMini * RevoMini::getSettings()
+HwRevolution * Revolution::getSettings()
 {
     ExtensionSystem::PluginManager *pm = ExtensionSystem::PluginManager::instance();
     UAVObjectManager *uavoManager = pm->getObject<UAVObjectManager>();
 
-    HwRevoMini *hwRevoMini = HwRevoMini::GetInstance(uavoManager);
-    Q_ASSERT(hwRevoMini);
+    HwRevolution *hwRevolution = HwRevolution::GetInstance(uavoManager);
+    Q_ASSERT(hwRevolution);
 
-    return hwRevoMini;
+    return hwRevolution;
 }
 //! Determine if this board supports configuring the receiver
-bool RevoMini::isInputConfigurationSupported()
+bool Revolution::isInputConfigurationSupported()
 {
     return true;
 }
@@ -143,89 +141,89 @@ bool RevoMini::isInputConfigurationSupported()
  * @param port_num which input port to configure (board specific numbering)
  * @return true if successfully configured or false otherwise
  */
-bool RevoMini::setInputOnPort(enum InputType type, int port_num)
+bool Revolution::setInputOnPort(enum InputType type, int port_num)
 {
     if (port_num != 0)
         return false;
 
     ExtensionSystem::PluginManager *pm = ExtensionSystem::PluginManager::instance();
     UAVObjectManager *uavoManager = pm->getObject<UAVObjectManager>();
-    HwRevoMini *hwRevoMini = HwRevoMini::GetInstance(uavoManager);
-    Q_ASSERT(hwRevoMini);
-    if (!hwRevoMini)
+    HwRevolution *hwRevolution = HwRevolution::GetInstance(uavoManager);
+    Q_ASSERT(hwRevolution);
+    if (!hwRevolution)
         return false;
 
-    HwRevoMini::DataFields settings = hwRevoMini->getData();
+    HwRevolution::DataFields settings = hwRevolution->getData();
 
     // Default to serial telemetry on the serial port
-    settings.MainPort = HwRevoMini::MAINPORT_TELEMETRY;
+    settings.MainPort = HwRevolution::MAINPORT_TELEMETRY;
 
     switch(type) {
     case INPUT_TYPE_PWM:
-        settings.RcvrPort = HwRevoMini::RCVRPORT_PWM;
+        settings.RcvrPort = HwRevolution::RCVRPORT_PWM;
         break;
     case INPUT_TYPE_PPM:
-        settings.RcvrPort = HwRevoMini::RCVRPORT_PPM;
+        settings.RcvrPort = HwRevolution::RCVRPORT_PPM;
         break;
     case INPUT_TYPE_SBUS:
-        settings.FlexiPort = HwRevoMini::FLEXIPORT_TELEMETRY;
-        settings.MainPort = HwRevoMini::MAINPORT_SBUS;
+        settings.FlexiPort = HwRevolution::FLEXIPORT_TELEMETRY;
+        settings.MainPort = HwRevolution::MAINPORT_SBUS;
         break;
     case INPUT_TYPE_DSM:
-        settings.FlexiPort = HwRevoMini::FLEXIPORT_DSM;
+        settings.FlexiPort = HwRevolution::FLEXIPORT_DSM;
         break;
     case INPUT_TYPE_HOTTSUMD:
-        settings.FlexiPort = HwRevoMini::FLEXIPORT_HOTTSUMD;
+        settings.FlexiPort = HwRevolution::FLEXIPORT_HOTTSUMD;
         break;
     default:
         return false;
     }
 
     // Apply these changes
-    hwRevoMini->setData(settings);
+    hwRevolution->setData(settings);
 
     return true;
 }
 
 /**
- * @brief RevoMini::getInputOnPort fetch the currently selected input type
+ * @brief Revolution::getInputOnPort fetch the currently selected input type
  * @param port_num the port number to query (must be zero)
  * @return the selected input type
  */
-enum Core::IBoardType::InputType RevoMini::getInputOnPort(int port_num)
+enum Core::IBoardType::InputType Revolution::getInputOnPort(int port_num)
 {
     if (port_num != 0)
         return INPUT_TYPE_UNKNOWN;
 
     ExtensionSystem::PluginManager *pm = ExtensionSystem::PluginManager::instance();
     UAVObjectManager *uavoManager = pm->getObject<UAVObjectManager>();
-    HwRevoMini *hwRevoMini = HwRevoMini::GetInstance(uavoManager);
-    Q_ASSERT(hwRevoMini);
-    if (!hwRevoMini)
+    HwRevolution *hwRevolution = HwRevolution::GetInstance(uavoManager);
+    Q_ASSERT(hwRevolution);
+    if (!hwRevolution)
         return INPUT_TYPE_UNKNOWN;
 
-    HwRevoMini::DataFields settings = hwRevoMini->getData();
+    HwRevolution::DataFields settings = hwRevolution->getData();
 
     switch(settings.FlexiPort) {
-    case HwRevoMini::FLEXIPORT_DSM:
+    case HwRevolution::FLEXIPORT_DSM:
         return INPUT_TYPE_DSM;
-    case HwRevoMini::FLEXIPORT_HOTTSUMD:
+    case HwRevolution::FLEXIPORT_HOTTSUMD:
         return INPUT_TYPE_HOTTSUMD;
     default:
         break;
     }
 
     switch(settings.MainPort) {
-    case HwRevoMini::MAINPORT_SBUS:
+    case HwRevolution::MAINPORT_SBUS:
         return INPUT_TYPE_SBUS;
     default:
         break;
     }
 
     switch(settings.RcvrPort) {
-    case HwRevoMini::RCVRPORT_PPM:
+    case HwRevolution::RCVRPORT_PPM:
         return INPUT_TYPE_PPM;
-    case HwRevoMini::RCVRPORT_PWM:
+    case HwRevolution::RCVRPORT_PWM:
         return INPUT_TYPE_PWM;
     default:
         break;
@@ -234,25 +232,25 @@ enum Core::IBoardType::InputType RevoMini::getInputOnPort(int port_num)
     return INPUT_TYPE_UNKNOWN;
 }
 
-int RevoMini::queryMaxGyroRate()
+int Revolution::queryMaxGyroRate()
 {
     ExtensionSystem::PluginManager *pm = ExtensionSystem::PluginManager::instance();
     UAVObjectManager *uavoManager = pm->getObject<UAVObjectManager>();
-    HwRevoMini *hwRevoMini = HwRevoMini::GetInstance(uavoManager);
-    Q_ASSERT(hwRevoMini);
-    if (!hwRevoMini)
+    HwRevolution *hwRevolution = HwRevolution::GetInstance(uavoManager);
+    Q_ASSERT(hwRevolution);
+    if (!hwRevolution)
         return 0;
 
-    HwRevoMini::DataFields settings = hwRevoMini->getData();
+    HwRevolution::DataFields settings = hwRevolution->getData();
 
     switch(settings.GyroRange) {
-    case HwRevoMini::GYRORANGE_250:
+    case HwRevolution::GYRORANGE_250:
         return 250;
-    case HwRevoMini::GYRORANGE_500:
+    case HwRevolution::GYRORANGE_500:
         return 500;
-    case HwRevoMini::GYRORANGE_1000:
+    case HwRevolution::GYRORANGE_1000:
         return 1000;
-    case HwRevoMini::GYRORANGE_2000:
+    case HwRevolution::GYRORANGE_2000:
         return 2000;
     default:
         return 500;
@@ -264,7 +262,7 @@ int RevoMini::queryMaxGyroRate()
  * Get the RFM22b device ID this modem
  * @return RFM22B device ID or 0 if not supported
  */
-quint32 RevoMini::getRfmID()
+quint32 Revolution::getRfmID()
 {
     ExtensionSystem::PluginManager *pm = ExtensionSystem::PluginManager::instance();
     UAVObjectManager *uavoManager = pm->getObject<UAVObjectManager>();
@@ -282,31 +280,31 @@ quint32 RevoMini::getRfmID()
  * be a coordinator.
  * @return true if successful or false if not
  */
-bool RevoMini::bindRadio(quint32 id, quint32 baud_rate, float rf_power,
+bool Revolution::bindRadio(quint32 id, quint32 baud_rate, float rf_power,
                          Core::IBoardType::LinkMode linkMode, quint8 min, quint8 max)
 {
-    HwRevoMini::DataFields settings = getSettings()->getData();
+    HwRevolution::DataFields settings = getSettings()->getData();
 
     settings.CoordID = id;
 
     switch(baud_rate) {
     case 9600:
-        settings.MaxRfSpeed = HwRevoMini::MAXRFSPEED_9600;
+        settings.MaxRfSpeed = HwRevolution::MAXRFSPEED_9600;
         break;
     case 19200:
-        settings.MaxRfSpeed = HwRevoMini::MAXRFSPEED_19200;
+        settings.MaxRfSpeed = HwRevolution::MAXRFSPEED_19200;
         break;
     case 32000:
-        settings.MaxRfSpeed = HwRevoMini::MAXRFSPEED_32000;
+        settings.MaxRfSpeed = HwRevolution::MAXRFSPEED_32000;
         break;
     case 64000:
-        settings.MaxRfSpeed = HwRevoMini::MAXRFSPEED_64000;
+        settings.MaxRfSpeed = HwRevolution::MAXRFSPEED_64000;
         break;
     case 100000:
-        settings.MaxRfSpeed = HwRevoMini::MAXRFSPEED_100000;
+        settings.MaxRfSpeed = HwRevolution::MAXRFSPEED_100000;
         break;
     case 192000:
-        settings.MaxRfSpeed = HwRevoMini::MAXRFSPEED_192000;
+        settings.MaxRfSpeed = HwRevolution::MAXRFSPEED_192000;
         break;
     }
 
@@ -314,43 +312,43 @@ bool RevoMini::bindRadio(quint32 id, quint32 baud_rate, float rf_power,
     quint32 rf_power_100 = rf_power * 100;
     switch(rf_power_100) {
     case 0:
-        settings.MaxRfPower = HwRevoMini::MAXRFPOWER_0;
+        settings.MaxRfPower = HwRevolution::MAXRFPOWER_0;
         break;
     case 125:
-        settings.MaxRfPower = HwRevoMini::MAXRFPOWER_125;
+        settings.MaxRfPower = HwRevolution::MAXRFPOWER_125;
         break;
     case 160:
-        settings.MaxRfPower = HwRevoMini::MAXRFPOWER_16;
+        settings.MaxRfPower = HwRevolution::MAXRFPOWER_16;
         break;
     case 316:
-        settings.MaxRfPower = HwRevoMini::MAXRFPOWER_316;
+        settings.MaxRfPower = HwRevolution::MAXRFPOWER_316;
         break;
     case 630:
-        settings.MaxRfPower = HwRevoMini::MAXRFPOWER_63;
+        settings.MaxRfPower = HwRevolution::MAXRFPOWER_63;
         break;
     case 1260:
-        settings.MaxRfPower = HwRevoMini::MAXRFPOWER_126;
+        settings.MaxRfPower = HwRevolution::MAXRFPOWER_126;
         break;
     case 2500:
-        settings.MaxRfPower = HwRevoMini::MAXRFPOWER_25;
+        settings.MaxRfPower = HwRevolution::MAXRFPOWER_25;
         break;
     case 5000:
-        settings.MaxRfPower = HwRevoMini::MAXRFPOWER_50;
+        settings.MaxRfPower = HwRevolution::MAXRFPOWER_50;
         break;
     case 10000:
-        settings.MaxRfPower = HwRevoMini::MAXRFPOWER_100;
+        settings.MaxRfPower = HwRevolution::MAXRFPOWER_100;
         break;
     }
 
     switch(linkMode) {
     case Core::IBoardType::LINK_TELEM:
-        settings.Radio = HwRevoMini::RADIO_TELEM;
+        settings.Radio = HwRevolution::RADIO_TELEM;
         break;
     case Core::IBoardType::LINK_TELEM_PPM:
-        settings.Radio = HwRevoMini::RADIO_TELEMPPM;
+        settings.Radio = HwRevolution::RADIO_TELEMPPM;
         break;
     case Core::IBoardType::LINK_PPM:
-        settings.Radio = HwRevoMini::RADIO_PPM;
+        settings.Radio = HwRevolution::RADIO_PPM;
         break;
     }
 
@@ -363,7 +361,7 @@ bool RevoMini::bindRadio(quint32 id, quint32 baud_rate, float rf_power,
     return true;
 }
 
-QStringList RevoMini::getAdcNames()
+QStringList Revolution::getAdcNames()
 {
     return QStringList() << "Pwr Sen Pin 3" << "Pwr Sen Pin 4";
 }
