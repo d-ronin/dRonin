@@ -116,11 +116,6 @@ int32_t TelemetryStart(void)
 	TaskMonitorAdd(TASKINFO_RUNNING_TELEMETRYTX, telemetryTxTaskHandle);
 	TaskMonitorAdd(TASKINFO_RUNNING_TELEMETRYRX, telemetryRxTaskHandle);
 
-#if defined(PIOS_TELEM_PRIORITY_QUEUE)
-	telemetryTxPriTaskHandle = PIOS_Thread_Create(telemetryTxPriTask, "TelPriTx", STACK_SIZE_BYTES, NULL, TASK_PRIORITY_TXPRI);
-	TaskMonitorAdd(TASKINFO_RUNNING_TELEMETRYTXPRI, telemetryTxPriTaskHandle);
-#endif
-
 	return 0;
 }
 
@@ -142,9 +137,6 @@ int32_t TelemetryInitialize(void)
 #if defined(PIOS_TELEM_PRIORITY_QUEUE)
 	priorityQueue = PIOS_Queue_Create(MAX_QUEUE_SIZE, sizeof(UAVObjEvent));
 #endif
-
-	// Update telemetry settings
-	updateSettings();
 
 	// Initialise UAVTalk
 	uavTalkCon = UAVTalkInitialize(&transmitData);
@@ -363,6 +355,14 @@ static void processObjEvent(UAVObjEvent * ev)
  */
 static void telemetryTxTask(void *parameters)
 {
+	// Update telemetry settings
+	updateSettings();
+
+#if defined(PIOS_TELEM_PRIORITY_QUEUE)
+	telemetryTxPriTaskHandle = PIOS_Thread_Create(telemetryTxPriTask, "TelPriTx", STACK_SIZE_BYTES, NULL, TASK_PRIORITY_TXPRI);
+	TaskMonitorAdd(TASKINFO_RUNNING_TELEMETRYTXPRI, telemetryTxPriTaskHandle);
+#endif
+
 	UAVObjEvent ev;
 
 	// Loop forever

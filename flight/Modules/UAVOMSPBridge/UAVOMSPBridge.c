@@ -733,8 +733,6 @@ static int32_t uavoMSPBridgeInitialize(void)
 
 			msp->com = pios_com_msp_id;
 
-			setMSPSpeed(msp);
-
 			module_enabled = true;
 			return 0;
 		}
@@ -752,6 +750,8 @@ MODULE_INITCALL(uavoMSPBridgeInitialize, uavoMSPBridgeStart)
  */
 static void uavoMSPBridgeTask(void *parameters)
 {
+	setMSPSpeed(msp);
+
 	while (1) {
 		uint8_t b = 0;
 		uint16_t count = PIOS_COM_ReceiveBuffer(msp->com, &b, 1, PIOS_QUEUE_TIMEOUT_MAX);

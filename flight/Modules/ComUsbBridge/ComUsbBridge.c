@@ -123,10 +123,6 @@ static int32_t comUsbBridgeInitialize(void)
 	}
 #endif
 
-	if (module_enabled) {
-		updateSettings();
-	}
-
 	return 0;
 }
 MODULE_INITCALL(comUsbBridgeInitialize, comUsbBridgeStart)
@@ -157,6 +153,8 @@ static void com2UsbBridgeTask(void *parameters)
 
 static void usb2ComBridgeTask(void * parameters)
 {
+	updateSettings();
+
 	/* Handle vcp -> usart direction */
 	volatile uint32_t tx_errors = 0;
 	while (1) {
@@ -179,7 +177,6 @@ static void usb2ComBridgeTask(void * parameters)
 static void updateSettings()
 {
 	if (usart_port) {
-
 		// Retrieve settings
 		uint8_t speed;
 		ModuleSettingsComUsbBridgeSpeedGet(&speed);

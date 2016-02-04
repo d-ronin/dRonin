@@ -112,14 +112,6 @@ int32_t uavoLighttelemetryBridgeInitialize()
 		{ 
 			// Update telemetry settings
 			ltm_scheduler = 1;
-			updateSettings();
-			uint8_t speed;
-			ModuleSettingsLightTelemetrySpeedGet(&speed);
-			if (speed == MODULESETTINGS_LIGHTTELEMETRYSPEED_1200)
-				ltm_slowrate = 1;
-			else 
-				ltm_slowrate = 0;
-	
 			module_enabled = true; 
 			return 0;
 		}
@@ -154,6 +146,8 @@ MODULE_INITCALL(uavoLighttelemetryBridgeInitialize, uavoLighttelemetryBridgeStar
 
 static void uavoLighttelemetryBridgeTask(void *parameters)
 {
+	updateSettings();
+	
 	uint32_t lastSysTime;
 
 	// Main task loop
@@ -388,6 +382,11 @@ static void updateSettings()
 		ModuleSettingsLightTelemetrySpeedGet(&speed);
 
 		PIOS_HAL_ConfigureSerialSpeed(lighttelemetryPort, speed);
+
+		if (speed == MODULESETTINGS_LIGHTTELEMETRYSPEED_1200)
+			ltm_slowrate = 1;
+		else 
+			ltm_slowrate = 0;
 	}
 }
 #endif //end define lighttelemetry

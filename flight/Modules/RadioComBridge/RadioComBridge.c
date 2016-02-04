@@ -156,7 +156,6 @@ static int32_t RadioComBridgeStart(void)
 		// Configure the UAVObject callbacks
 		ObjectPersistenceConnectCallback(&objectPersistenceUpdatedCb);
 
-		updateSettings();
 		// Start the primary tasks for receiving/sending UAVTalk packets from the GCS.
 		data->telemetryTxTaskHandle = PIOS_Thread_Create(telemetryTxTask, "telemetryTxTask", STACK_SIZE_BYTES, NULL, TASK_PRIORITY);
 		data->telemetryRxTaskHandle = PIOS_Thread_Create(telemetryRxTask, "telemetryRxTask", STACK_SIZE_BYTES, NULL, TASK_PRIORITY);
@@ -306,6 +305,8 @@ static void telemetryTxTask( __attribute__ ((unused))
 			    void *parameters)
 {
 	UAVObjEvent ev;
+
+	updateSettings();
 
 	// Loop forever
 	while (1) {
