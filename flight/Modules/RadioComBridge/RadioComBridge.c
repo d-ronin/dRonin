@@ -171,7 +171,6 @@ static int32_t RadioComBridgeStart(void)
 
 		// Register the watchdog timers.
 #ifdef PIOS_INCLUDE_WDG
-		PIOS_WDG_RegisterFlag(PIOS_WDG_TELEMETRYTX);
 		PIOS_WDG_RegisterFlag(PIOS_WDG_TELEMETRYRX);
 		PIOS_WDG_RegisterFlag(PIOS_WDG_RADIOTX);
 		PIOS_WDG_RegisterFlag(PIOS_WDG_RADIORX);
@@ -307,6 +306,8 @@ static void telemetryTxTask( __attribute__ ((unused))
 	UAVObjEvent ev;
 
 	updateSettings();
+
+	PIOS_WDG_RegisterFlag(PIOS_WDG_TELEMETRYTX);
 
 	// Loop forever
 	while (1) {
