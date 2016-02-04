@@ -2,7 +2,7 @@
 Interface to telemetry streams -- log, network, or serial.
 
 Copyright (C) 2014-2015 Tau Labs, http://taulabs.org
-Copyright (C) 2015 dRonin, http://dronin.org
+Copyright (C) 2015-2016 dRonin, http://dronin.org
 Licensed under the GNU LGPL version 2.1 or any later version (see COPYING.LESSER)
 """
 
@@ -503,12 +503,22 @@ class FileTelemetry(TelemetryBase):
             #    First line is "dRonin git hash:" or "Tau Labs git hash:"
             #    Second line is the actual git hash
             #    Third line is the UAVO hash
-            #    Fourth line is "##"
-            sig = self.f.readline()
-            if (sig != 'dRonin git hash:\n') and (sig != 'Tau Labs git hash:\n'):
+            #    Fourth line is "##"a
+
+            # Scan up to 100 "lines" looking for the signature, in case
+            # there's garbage at the beginning of the log
+            found = False
+
+            for i in range(100):
+                sig = self.f.readline()
+                if sig.endswith('dRonin git hash:\n') or sig.endswith('Tau Labs git hash:\n'):
+                    found = True
+                    break;
+
+            if not found:
                 print "Source file does not have a recognized header signature"
-                print '|' + sig + '|'
                 raise IOError("no header signature")
+
             # Determine the git hash that this log file is based on
             githash = self.f.readline()[:-1]
             if githash.find(':') != -1:
