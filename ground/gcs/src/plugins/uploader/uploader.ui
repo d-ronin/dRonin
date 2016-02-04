@@ -22,7 +22,7 @@
         <bool>true</bool>
        </property>
        <property name="toolTip">
-        <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Tells the mainboard to go down&lt;/p&gt;&lt;p&gt;to bootloader mode.&lt;/p&gt;&lt;p&gt;(Only enabled if telemetry link is established trough USB)&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+        <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Tells the controller to enter&lt;/p&gt;&lt;p&gt;bootloader mode.&lt;/p&gt;&lt;p&gt;(Only enabled if telemetry link is established trough USB)&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
        </property>
        <property name="text">
         <string>Halt</string>
@@ -76,7 +76,7 @@ Rescue is possible in USB mode only.</string>
         <bool>true</bool>
        </property>
        <property name="toolTip">
-        <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Boots the system into safe mode (ie. default HwSettings)&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+        <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Boots the system into safe mode (i.e. default HwSettings)&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
        </property>
        <property name="text">
         <string>Safe Boot</string>
