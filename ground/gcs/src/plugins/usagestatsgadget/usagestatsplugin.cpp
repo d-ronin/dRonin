@@ -65,6 +65,8 @@ void UsageStatsPlugin::readConfig(QSettings *qSettings, Core::UAVConfigInfo *con
     sendUsageStats = (qSettings->value(QLatin1String("SendUsageStats"), sendUsageStats).toBool());
     sendPrivateData = (qSettings->value(QLatin1String("SendPrivateData"), sendPrivateData).toBool());
     qSettings->endGroup();
+
+    installationUUID = (qSettings->value(QLatin1String("General/InstallationUUID"), installationUUID).toString());
 }
 
 void UsageStatsPlugin::saveConfig(QSettings *qSettings, Core::UAVConfigInfo *configInfo)
@@ -235,6 +237,7 @@ QByteArray UsageStatsPlugin::processJson() {
     json["currentOS"] = QSysInfo::prettyProductName();
     json["currentArch"] = QSysInfo::currentCpuArchitecture();
     json["buildInfo"] = QSysInfo::buildAbi();
+    json["installationUUID"] = installationUUID;
     QJsonArray boardArray;
     foreach (boardLog board, boardLogList) {
         QJsonObject b;

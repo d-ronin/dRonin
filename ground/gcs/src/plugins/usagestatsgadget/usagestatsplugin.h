@@ -87,6 +87,7 @@ private:
     QEventLoop *loop;
     bool sendUsageStats;
     bool sendPrivateData;
+    QString installationUUID;
 private slots:
     void pluginsLoadEnded();
     void addNewBoardSeen(deviceInfo, deviceDescriptorStruct);
