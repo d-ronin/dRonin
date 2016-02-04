@@ -146,6 +146,7 @@ bool external_mag_fail;
 
 uintptr_t pios_internal_adc_id;
 uintptr_t pios_com_logging_id;
+uintptr_t pios_com_openlog_logging_id;
 
 uintptr_t pios_uavo_settings_fs_id;
 uintptr_t pios_waypoints_settings_fs_id;
