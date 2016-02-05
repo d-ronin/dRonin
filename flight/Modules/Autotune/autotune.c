@@ -6,7 +6,7 @@
  * @{
  *
  * @file       autotune.c
- * @author     dRonin, http://dRonin.org, Copyright (C) 2015-2016
+ * @author     dRonin, http://dRonin.org/, Copyright (C) 2015-2016
  * @author     Tau Labs, http://taulabs.org, Copyright (C) 2013-2014
  * @author     The OpenPilot Team, http://www.openpilot.org Copyright (C) 2012.
  * @brief      State machine to run autotuning. Low level work done by @ref
@@ -49,6 +49,7 @@
 #include "systemident.h"
 #include <pios_board_info.h>
 #include "pios_thread.h"
+#include "systemsettings.h"
 
 #include "circqueue.h"
 
@@ -167,7 +168,7 @@ static void at_new_gyro_data(UAVObjEvent * ev, void *ctx, void *obj, int len) {
 	q_item->u[1] = actuators.Pitch;
 	q_item->u[2] = actuators.Yaw;
 
-	q_item->throttle = actuators.Throttle;
+	q_item->throttle = actuators.Thrust;
 
 	if (circ_queue_advance_write(at_queue) != 0) {
 		last_sample_unpushed = true;
@@ -214,13 +215,15 @@ static void UpdateStabilizationDesired(bool doingIdent) {
 	StabilizationSettingsPitchMaxGet(&pitchMax);
 	StabilizationSettingsManualRateGet(manualRate);
 
-	ManualControlCommandRollGet(&stabDesired.Roll);
-	stabDesired.Roll *= rollMax;
-	ManualControlCommandPitchGet(&stabDesired.Pitch);
-	stabDesired.Pitch *= pitchMax;
+	SystemSettingsAirframeTypeOptions airframe_type;
+	SystemSettingsAirframeTypeGet(&airframe_type);
 
-	ManualControlCommandYawGet(&stabDesired.Yaw);
-	stabDesired.Yaw *= manualRate[STABILIZATIONSETTINGS_MANUALRATE_YAW];
+	ManualControlCommandData manual_control_command;
+	ManualControlCommandGet(&manual_control_command);
+
+	stabDesired.Roll = manual_control_command.Roll * rollMax;
+	stabDesired.Pitch = manual_control_command.Pitch * pitchMax;
+	stabDesired.Yaw = manual_control_command.Yaw * manualRate[STABILIZATIONSETTINGS_MANUALRATE_YAW];
 
 	if (doingIdent) {
 		stabDesired.StabilizationMode[STABILIZATIONDESIRED_STABILIZATIONMODE_ROLL]  = STABILIZATIONDESIRED_STABILIZATIONMODE_SYSTEMIDENT;
@@ -232,8 +235,7 @@ static void UpdateStabilizationDesired(bool doingIdent) {
 		stabDesired.StabilizationMode[STABILIZATIONDESIRED_STABILIZATIONMODE_YAW] = STABILIZATIONDESIRED_STABILIZATIONMODE_RATE;
 	}
 
-	ManualControlCommandThrottleGet(&stabDesired.Throttle);
-
+	stabDesired.Thrust = (airframe_type == SYSTEMSETTINGS_AIRFRAMETYPE_HELICP) ? manual_control_command.Collective : manual_control_command.Throttle;
 	StabilizationDesiredSet(&stabDesired);
 }
 
