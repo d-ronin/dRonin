@@ -25,8 +25,12 @@ cd ${CWD}
 
 # Copy SDL files
 echo "Copying SDL"
-cp -r "/Library/Frameworks/SDL.framework" "${APP}/Contents/Frameworks/"
 
+if [ -d "../tools/SDL.framework" ]; then
+	cp -r "../tools/SDL.framework" "${APP}/Contents/Frameworks/"
+else
+	cp -r "/Library/Frameworks/SDL.framework" "${APP}/Contents/Frameworks/"
+fi
 # these are optional
 echo "Changing package identification of SDL"
 install_name_tool -id \

@@ -130,6 +130,8 @@ help:
 	@echo "     gtest_install        - Install the google unit test suite"
 	@echo "     uncrustify_install   - Install the uncrustify code formatter"
 	@echo "     openssl_install      - Install the openssl libraries on windows machines"	
+	@echo "     sdl_install          - Install the SDL libraries"
+
 	@echo
 	@echo "   [Big Hammer]"
 	@echo "     all                  - Generate UAVObjects, build openpilot firmware and gcs"
