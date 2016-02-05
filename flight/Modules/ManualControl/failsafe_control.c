@@ -68,52 +68,31 @@ int32_t failsafe_control_select(bool reset_controller)
 
 	uint8_t flight_status;
 	FlightStatusFlightModeGet(&flight_status);
-	if (flight_status != FLIGHTSTATUS_FLIGHTMODE_STABILIZED1 || reset_controller) {
-		flight_status = FLIGHTSTATUS_FLIGHTMODE_STABILIZED1;
+	if (flight_status != FLIGHTSTATUS_FLIGHTMODE_FAILSAFE || reset_controller) {
+		flight_status = FLIGHTSTATUS_FLIGHTMODE_FAILSAFE;
 		FlightStatusFlightModeSet(&flight_status);
 	}
 
-#ifdef GIMBAL
-	// Gimbals do not need failsafe
-	StabilizationDesiredData stabilization_desired;
-	StabilizationDesiredGet(&stabilization_desired);
-	stabilization_desired.Throttle = -1;
-	stabilization_desired.Roll = 0;
-	stabilization_desired.Pitch = 0;
-	stabilization_desired.Yaw = 0;
-	stabilization_desired.StabilizationMode[STABILIZATIONDESIRED_STABILIZATIONMODE_ROLL] = STABILIZATIONDESIRED_STABILIZATIONMODE_POI;
-	stabilization_desired.StabilizationMode[STABILIZATIONDESIRED_STABILIZATIONMODE_PITCH] = STABILIZATIONDESIRED_STABILIZATIONMODE_POI;
-	stabilization_desired.StabilizationMode[STABILIZATIONDESIRED_STABILIZATIONMODE_YAW] = STABILIZATIONDESIRED_STABILIZATIONMODE_AXISLOCK;
-	StabilizationDesiredSet(&stabilization_desired);
-#else
-	// Pick default values that will roughly cause a plane to circle down
-	// and a quad to fall straight down
 	StabilizationDesiredData stabilization_desired;
 	StabilizationDesiredGet(&stabilization_desired);
 
+	stabilization_desired.Throttle = -1;
+	stabilization_desired.Roll  = 0;
+	stabilization_desired.Pitch = 0;
+	stabilization_desired.Yaw   = 0;
+
 	if (!armed_when_enabled) {
 		/* disable stabilization so outputs do not move when system was not armed */
-		stabilization_desired.Throttle = -1;
-		stabilization_desired.Roll  = 0;
-		stabilization_desired.Pitch = 0;
-		stabilization_desired.Yaw   = 0;
 		stabilization_desired.StabilizationMode[STABILIZATIONDESIRED_STABILIZATIONMODE_ROLL] = STABILIZATIONDESIRED_STABILIZATIONMODE_MANUAL;
 		stabilization_desired.StabilizationMode[STABILIZATIONDESIRED_STABILIZATIONMODE_PITCH] = STABILIZATIONDESIRED_STABILIZATIONMODE_MANUAL;
 		stabilization_desired.StabilizationMode[STABILIZATIONDESIRED_STABILIZATIONMODE_YAW] = STABILIZATIONDESIRED_STABILIZATIONMODE_MANUAL;
 	} else {
-		/* Pick default values that will roughly cause a plane to circle down and */
-		/* a quad to fall straight down */
-		stabilization_desired.Throttle = -1;
-		stabilization_desired.Roll = -10;
-		stabilization_desired.Pitch = 0;
-		stabilization_desired.Yaw = -5;
-		stabilization_desired.StabilizationMode[STABILIZATIONDESIRED_STABILIZATIONMODE_ROLL] = STABILIZATIONDESIRED_STABILIZATIONMODE_ATTITUDE;
-		stabilization_desired.StabilizationMode[STABILIZATIONDESIRED_STABILIZATIONMODE_PITCH] = STABILIZATIONDESIRED_STABILIZATIONMODE_ATTITUDE;
-		stabilization_desired.StabilizationMode[STABILIZATIONDESIRED_STABILIZATIONMODE_YAW] = STABILIZATIONDESIRED_STABILIZATIONMODE_RATE;
+		stabilization_desired.StabilizationMode[STABILIZATIONDESIRED_STABILIZATIONMODE_ROLL] = STABILIZATIONDESIRED_STABILIZATIONMODE_FAILSAFE;
+		stabilization_desired.StabilizationMode[STABILIZATIONDESIRED_STABILIZATIONMODE_PITCH] = STABILIZATIONDESIRED_STABILIZATIONMODE_FAILSAFE;
+		stabilization_desired.StabilizationMode[STABILIZATIONDESIRED_STABILIZATIONMODE_YAW] = STABILIZATIONDESIRED_STABILIZATIONMODE_FAILSAFE;
 	}
 
 	StabilizationDesiredSet(&stabilization_desired);
-#endif
 
 	return 0;
 }

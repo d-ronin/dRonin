@@ -7,6 +7,7 @@
  * @{
  *
  * @file       osd_menu.c
+ * @author     dRonin, http://dRonin.org/, Copyright (C) 2016
  * @author     Tau Labs, http://taulabs.org, Copyright (C) 2013-2015
  * @brief      OSD Menu
  * @see        The GNU Public License (GPL) Version 3
@@ -26,6 +27,10 @@
  * You should have received a copy of the GNU General Public License along
  * with this program; if not, write to the Free Software Foundation, Inc.,
  * 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
+ *
+ * Additional note on redistribution: The copyright and license notices above
+ * must be maintained in each individual source file that is a derivative work
+ * of this source file; otherwise redistribution is prohibited.
  */
 
 #include "osd_utils.h"
@@ -1107,7 +1112,9 @@ void flightmode_menu(void)
 		[MANUALCONTROLSETTINGS_FLIGHTMODEPOSITION_RETURNTOHOME] = "Return to Home",
 		[MANUALCONTROLSETTINGS_FLIGHTMODEPOSITION_PATHPLANNER] = "Path Planner",
 		[MANUALCONTROLSETTINGS_FLIGHTMODEPOSITION_TABLETCONTROL] = "Tablet Control",
+		[MANUALCONTROLSETTINGS_FLIGHTMODEPOSITION_FAILSAFE] = "Failsafe",
 	};
+
 	uint8_t FlightModePosition[MANUALCONTROLSETTINGS_FLIGHTMODEPOSITION_NUMELEM];
 
 	draw_menu_title("Flight Modes");

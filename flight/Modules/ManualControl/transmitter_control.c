@@ -133,7 +133,7 @@ int32_t transmitter_control_initialize()
 	ManualControlSettingsInitialize();
 
 	// Both the gimbal and coptercontrol do not support loitering
-#if !defined(SMALLF1) && !defined(GIMBAL)
+#if !defined(SMALLF1)
 	LoiterCommandInitialize();
 #endif
 
@@ -441,6 +441,7 @@ int32_t transmitter_control_select(bool reset_controller)
 	case FLIGHTSTATUS_FLIGHTMODE_STABILIZED1:
 	case FLIGHTSTATUS_FLIGHTMODE_STABILIZED2:
 	case FLIGHTSTATUS_FLIGHTMODE_STABILIZED3:
+	case FLIGHTSTATUS_FLIGHTMODE_FAILSAFE:
 		update_stabilization_desired(&cmd, &settings);
 		break;
 	case FLIGHTSTATUS_FLIGHTMODE_AUTOTUNE:
@@ -958,10 +959,13 @@ static void update_stabilization_desired(ManualControlCommandData * cmd, ManualC
 	                                    STABILIZATIONDESIRED_STABILIZATIONMODE_AXISLOCK,
 	                                    STABILIZATIONDESIRED_STABILIZATIONMODE_AXISLOCK,
 	                                    STABILIZATIONDESIRED_STABILIZATIONMODE_AXISLOCK};
-  const uint8_t ACROPLUS_SETTINGS[3] = {  STABILIZATIONDESIRED_STABILIZATIONMODE_ACROPLUS,
+	const uint8_t ACROPLUS_SETTINGS[3] = {  STABILIZATIONDESIRED_STABILIZATIONMODE_ACROPLUS,
                                           STABILIZATIONDESIRED_STABILIZATIONMODE_ACROPLUS,
                                           STABILIZATIONDESIRED_STABILIZATIONMODE_RATE};
 
+	const uint8_t FAILSAFE_SETTINGS[3] = {  STABILIZATIONDESIRED_STABILIZATIONMODE_FAILSAFE,
+                                          STABILIZATIONDESIRED_STABILIZATIONMODE_FAILSAFE,
+                                          STABILIZATIONDESIRED_STABILIZATIONMODE_RATE};
 	const uint8_t * stab_settings;
 
 	uint8_t flightMode;
@@ -991,6 +995,9 @@ static void update_stabilization_desired(ManualControlCommandData * cmd, ManualC
 			break;
 		case FLIGHTSTATUS_FLIGHTMODE_AXISLOCK:
 			stab_settings = AXISLOCK_SETTINGS;
+			break;
+		case FLIGHTSTATUS_FLIGHTMODE_FAILSAFE:
+			stab_settings = FAILSAFE_SETTINGS;
 			break;
 		case FLIGHTSTATUS_FLIGHTMODE_STABILIZED1:
 			stab_settings = settings->Stabilization1Settings;
@@ -1060,7 +1067,7 @@ static void update_stabilization_desired(ManualControlCommandData * cmd, ManualC
 	StabilizationDesiredSet(&stabilization);
 }
 
-#if !defined(SMALLF1) && !defined(GIMBAL)
+#if !defined(SMALLF1)
 
 /**
  * @brief Update the altitude desired to current altitude when
@@ -1169,7 +1176,7 @@ static void set_loiter_command(ManualControlCommandData *cmd)
 	set_manual_control_error(SYSTEMALARMS_MANUALCONTROL_PATHFOLLOWER);
 }
 
-#endif /* !defined(SMALLF1) && !defined(GIMBAL) */
+#endif /* !defined(SMALLF1) */
 
 /**
  * Convert channel from servo pulse duration (microseconds) to scaled -1/+1 range.
