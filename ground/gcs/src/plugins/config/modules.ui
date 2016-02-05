@@ -3037,7 +3037,7 @@ Apply or Save button afterwards.</string>
       </widget>
      </item>
      <item>
-      <widget class="QPushButton" name="camerastabilizationSaveRAM">
+      <widget class="QPushButton" name="saveRAM">
        <property name="minimumSize">
         <size>
          <width>0</width>

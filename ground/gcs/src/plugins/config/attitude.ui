@@ -1321,7 +1321,7 @@ new home location unless it is in indoor mode.</string>
         <string>Load default CameraStabilization settings except output channels into GCS.
 
 Loaded settings are not applied automatically. You have to click the
-Apply or Save button afterwards.</string>
+Save button afterwards.</string>
        </property>
        <property name="text">
         <string>Reset To Defaults</string>
@@ -1354,7 +1354,7 @@ from board into GCS. Useful if you have accidentally changed some
 settings.
 
 Loaded settings are not applied automatically. You have to click the
-Apply or Save button afterwards.</string>
+Save button afterwards.</string>
        </property>
        <property name="text">
         <string>Reload Board Data</string>

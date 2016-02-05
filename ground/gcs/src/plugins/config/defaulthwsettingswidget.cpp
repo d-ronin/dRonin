@@ -3,6 +3,7 @@
  * @file       DefaultHwSettingsWidget.cpp
  * @author     The OpenPilot Team, http://www.openpilot.org Copyright (C) 2010.
  * @author     Tau Labs, http://taulabs.org, Copyright (C) 2012-2013
+ * @author     dRonin, http://dRonin.org/, Copyright (C) 2016
  * @addtogroup GCSPlugins GCS Plugins
  * @{
  * @addtogroup ConfigPlugin Config Plugin
@@ -23,6 +24,10 @@
  * You should have received a copy of the GNU General Public License along
  * with this program; if not, write to the Free Software Foundation, Inc.,
  * 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
+ *
+ * Additional note on redistribution: The copyright and license notices above
+ * must be maintained in each individual source file that is a derivative work
+ * of this source file; otherwise redistribution is prohibited.
  */
 #include "defaulthwsettingswidget.h"
 #include "hwfieldselector.h"
@@ -50,6 +55,11 @@ DefaultHwSettingsWidget::DefaultHwSettingsWidget(QWidget *parent, bool autopilot
     //generic elements based on the hardware UAVO.
     fieldWidgets.clear();
 
+    ExtensionSystem::PluginManager *pm = ExtensionSystem::PluginManager::instance();
+    Core::Internal::GeneralSettings *settings = pm->getObject<Core::Internal::GeneralSettings>();
+    if (!settings->useExpertMode())
+        defaultHWSettingsWidget->applyButton->setVisible(false);
+
     bool unknown_board = true;
     if (autopilotConnected){
         addApplySaveButtons(defaultHWSettingsWidget->applyButton,defaultHWSettingsWidget->saveButton);
@@ -57,21 +67,18 @@ DefaultHwSettingsWidget::DefaultHwSettingsWidget(QWidget *parent, bool autopilot
 
         // Query the board plugin for the connected board to get the specific
         // hw settings object
-        ExtensionSystem::PluginManager *pm = ExtensionSystem::PluginManager::instance();
-        if (pm != NULL) {
-             UAVObjectUtilManager* uavoUtilManager = pm->getObject<UAVObjectUtilManager>();
-             Core::IBoardType* board = uavoUtilManager->getBoardType();
-             if (board != NULL) {
-                 QString hwSwettingsObject = board->getHwUAVO();
+        UAVObjectUtilManager* uavoUtilManager = pm->getObject<UAVObjectUtilManager>();
+        Core::IBoardType* board = uavoUtilManager->getBoardType();
+        if (board != NULL) {
+            QString hwSwettingsObject = board->getHwUAVO();
 
-                 UAVObject *obj = getObjectManager()->getObject(hwSwettingsObject);
-                 if (obj != NULL) {
-                     unknown_board = false;
-                     qDebug() << "Checking object " << obj->getName();
-                     connect(obj,SIGNAL(transactionCompleted(UAVObject*,bool)), this, SLOT(settingsUpdated(UAVObject*,bool)));
-                     obj->requestUpdate();
-                 }
-             }
+            UAVObject *obj = getObjectManager()->getObject(hwSwettingsObject);
+            if (obj != NULL) {
+                unknown_board = false;
+                qDebug() << "Checking object " << obj->getName();
+                connect(obj,SIGNAL(transactionCompleted(UAVObject*,bool)), this, SLOT(settingsUpdated(UAVObject*,bool)));
+                obj->requestUpdate();
+            }
         }
     }
 
