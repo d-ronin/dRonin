@@ -294,17 +294,6 @@ int main(int argc, char **argv)
         overrideSettings(parser, settings);
         locale = settings->value("General/OverrideLanguage", locale).toString();
 
-        //Check the Installation UUID and Generate a new one if required
-        QUuid *installationUUID = new QUuid(settings->value(QLatin1String("General/InstallationUUID"),"").toString());
-        if(installationUUID == NULL){ //Create new UUID
-            QString uuid = QUuid::createUuid().toString();
-            displayError(QString("Error parsing Installation UUID. Generated new UUID: ") + uuid);
-            settings->setValue(QLatin1String("General/InstallationUUID"), uuid);
-            settings->sync();
-        }else{ //UUID OK
-            delete installationUUID;
-        }
-
         settingsFilename = settings->fileName();
         delete settings;
     }
