@@ -13,7 +13,7 @@
  * @file       actuator.c
  * @author     The OpenPilot Team, http://www.openpilot.org Copyright (C) 2010.
  * @author     Tau Labs, http://taulabs.org, Copyright (C) 2013-2015
- * @author     dRonin, http://dronin.org Copyright (C) 2015
+ * @author     dRonin, http://dronin.org Copyright (C) 2015-2016
  * @brief      Actuator module. Drives the actuators (servos, motors etc).
  *
  * @see        The GNU Public License (GPL) Version 3
@@ -33,7 +33,13 @@
  * You should have received a copy of the GNU General Public License along
  * with this program; if not, write to the Free Software Foundation, Inc.,
  * 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
+ *
+ * Additional note on redistribution: The copyright and license notices above
+ * must be maintained in each individual source file that is a derivative work
+ * of this source file; otherwise redistribution is prohibited.
  */
+
+#include <math.h>
 
 #include "openpilot.h"
 #include "accessorydesired.h"
@@ -212,6 +218,8 @@ static void actuator_task(void* parameters)
 	bool rc = false;
 
 	while (1) {
+		bool clipped = false;
+
 		if (settings_updated) {
 			settings_updated = false;
 			ActuatorSettingsGet(&actuatorSettings);
@@ -263,8 +271,6 @@ static void actuator_task(void* parameters)
 			continue;
 		}
 
-		AlarmsClear(SYSTEMALARMS_ALARM_ACTUATOR);
-
 		bool armed = flightStatus.Armed == FLIGHTSTATUS_ARMED_ARMED;
 		bool positiveThrottle = desired.Throttle >= 0.00f;
 		bool spinWhileArmed = actuatorSettings.MotorsSpinWhileArmed == ACTUATORSETTINGS_MOTORSSPINWHILEARMED_TRUE;
@@ -279,11 +285,53 @@ static void actuator_task(void* parameters)
 
 		float * status = (float *)&mixerStatus; //access status objects as an array of floats
 
+		float min_chan = INFINITY;
+		float max_chan = -INFINITY;
+
 		for (int ct = 0; ct < MAX_MIX_ACTUATORS; ct++) {
 			status[ct] = mix_channel(ct, &desired, curve1, curve2);
 
+			if (get_mixer_type(ct) == MIXERSETTINGS_MIXER1TYPE_MOTOR) {
+				min_chan = fminf(min_chan, status[ct]);
+				max_chan = fmaxf(max_chan, status[ct]);
+			}
+		}
+
+		float gain = 1.0f;
+		float offset = 0.0f;
+
+		/* This is a little dubious.  Scale down command ranges to
+		 * fit.  It may cause some cross-axis coupling, though
+		 * generally less than if we were to actually let it clip.
+		 */
+		if ((max_chan - min_chan) > 1.0f) {
+			gain = 1.0f / (max_chan - min_chan);
+
+			clipped = true;
+
+			max_chan *= gain;
+			min_chan *= gain;
+		}
+
+		/* Sacrifice throttle because of clipping */
+		if (max_chan > 1.0f) {
+			clipped = true;
+
+			offset = 1.0f - max_chan;
+		}
+
+		for (int ct = 0; ct < MAX_MIX_ACTUATORS; ct++) {
 			// Motors have additional protection for when to be on
 			if (get_mixer_type(ct) == MIXERSETTINGS_MIXER1TYPE_MOTOR) {
+				status[ct] = status[ct] * gain + offset;
+
+				if (status[ct] > 0) {
+					// Apply curve fitting, mapping the input to the propeller output.
+					status[ct] = actuatorSettings.MotorInputOutputCurveFit[ACTUATORSETTINGS_MOTORINPUTOUTPUTCURVEFIT_A] *
+						powf(status[ct], actuatorSettings.MotorInputOutputCurveFit[ACTUATORSETTINGS_MOTORINPUTOUTPUTCURVEFIT_B]);
+				} else {
+					status[ct] = 0;
+				}
 
 				// If not armed or motors aren't meant to spin all the time
 				if (!armed ||
@@ -327,8 +375,11 @@ static void actuator_task(void* parameters)
 			command.NumFailedUpdates++;
 			ActuatorCommandSet(&command);
 			AlarmsSet(SYSTEMALARMS_ALARM_ACTUATOR, SYSTEMALARMS_ALARM_CRITICAL);
+		} else if (clipped) {
+			AlarmsSet(SYSTEMALARMS_ALARM_ACTUATOR, SYSTEMALARMS_ALARM_WARNING);
+		} else {
+			AlarmsClear(SYSTEMALARMS_ALARM_ACTUATOR);
 		}
-
 	}
 }
 
@@ -622,15 +673,6 @@ static float mix_channel(int ct, ActuatorDesiredData *desired,
 	case MIXERSETTINGS_MIXER1TYPE_MOTOR:
 		(void) 0;               // nil statement
 		float val = process_mixer(ct, curve1, curve2, desired);
-
-		if (val > 0) {
-			// Apply curve fitting, mapping the input to the propeller output.
-			val = actuatorSettings.MotorInputOutputCurveFit[ACTUATORSETTINGS_MOTORINPUTOUTPUTCURVEFIT_A] *
-					powf(val, actuatorSettings.MotorInputOutputCurveFit[ACTUATORSETTINGS_MOTORINPUTOUTPUTCURVEFIT_B]);
-		} else {
-			// Idle throttle
-			val = 0.0f;
-		}
 
 		return val;
 		break;
