@@ -247,6 +247,7 @@ extern uint32_t pios_packet_handler;
 
 //-------------------------
 // ADC
+#define PIOS_ADC_SUB_DRIVER_MAX_INSTANCES       3
 #define PIOS_ADC_MAX_OVERSAMPLING       2
 #define VREF_PLUS                     3.3
 
@@ -254,11 +255,6 @@ extern uint32_t pios_packet_handler;
 // USB
 //-------------------------
 #define PIOS_USB_ENABLED                        1 /* Should remove all references to this */
-
-//-------------------------
-// ADC
-//-------------------------
-#define PIOS_ADC_SUB_DRIVER_MAX_INSTANCES       3
 
 #endif /* STM3210E_INS_H_ */
 
