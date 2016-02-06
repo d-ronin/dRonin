@@ -58,6 +58,7 @@
 #include "stabilizationsettings.h"
 #include "subtrim.h"
 #include "subtrimsettings.h"
+#include "systemsettings.h"
 
 // Math libraries
 #include "coordinate_conversions.h"
@@ -191,6 +192,7 @@ static void stabilizationTask(void* parameters)
 	AttitudeActualData attitudeActual;
 	GyrosData gyrosData;
 	FlightStatusData flightStatus;
+	SystemSettingsAirframeTypeOptions airframe_type;
 
 	float *stabDesiredAxis = &stabDesired.Roll;
 	float *actuatorDesiredAxis = &actuatorDesired.Roll;
@@ -261,6 +263,7 @@ static void stabilizationTask(void* parameters)
 		AttitudeActualGet(&attitudeActual);
 		GyrosGet(&gyrosData);
 		ActuatorDesiredGet(&actuatorDesired);
+		SystemSettingsAirframeTypeGet(&airframe_type);
 		actuatorDesired.Thrust = stabDesired.Thrust;
 
 #if defined(RATEDESIRED_DIAGNOSTICS)
@@ -349,23 +352,44 @@ static void stabilizationTask(void* parameters)
 			float raw_input = (&stabDesired.Roll)[i];
 
 			if (mode == STABILIZATIONDESIRED_STABILIZATIONMODE_FAILSAFE) {
-				actuatorDesired.Thrust = -1.0f;
+				// helicp needs everything zeroed
+				if (airframe_type == SYSTEMSETTINGS_AIRFRAMETYPE_HELICP) {
+					actuatorDesired.Thrust = 0.0f;
+					switch (i) {
+						case 0: /* Roll */
+							mode = STABILIZATIONDESIRED_STABILIZATIONMODE_ATTITUDE;
+							raw_input = 0;
+							break;
+						case 1:
+						default:
+							mode = STABILIZATIONDESIRED_STABILIZATIONMODE_ATTITUDE;
+							raw_input = 0;
+							break;
+						case 2:
+							mode = STABILIZATIONDESIRED_STABILIZATIONMODE_RATE;
+							raw_input = 0;
+							break;
+					}
+				}
+				else
+				{
+					actuatorDesired.Thrust = -1.0f;
 
-
-				switch (i) {
-					case 0: /* Roll */
-						mode = STABILIZATIONDESIRED_STABILIZATIONMODE_ATTITUDE;
-						raw_input = -10;
-						break;
-					case 1:
-					default:
-						mode = STABILIZATIONDESIRED_STABILIZATIONMODE_ATTITUDE;
-						raw_input = 0;
-						break;
-					case 2:
-						mode = STABILIZATIONDESIRED_STABILIZATIONMODE_RATE;
-						raw_input = -5;
-						break;
+					switch (i) {
+						case 0: /* Roll */
+							mode = STABILIZATIONDESIRED_STABILIZATIONMODE_ATTITUDE;
+							raw_input = -10;
+							break;
+						case 1:
+						default:
+							mode = STABILIZATIONDESIRED_STABILIZATIONMODE_ATTITUDE;
+							raw_input = 0;
+							break;
+						case 2:
+							mode = STABILIZATIONDESIRED_STABILIZATIONMODE_RATE;
+							raw_input = -5;
+							break;
+					}
 				}
 			}
 
