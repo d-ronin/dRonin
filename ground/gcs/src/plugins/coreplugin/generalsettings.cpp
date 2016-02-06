@@ -146,8 +146,12 @@ QWidget *GeneralSettings::createPage(QWidget *parent)
     m_page->hostNameLE->setText(m_proxyHostname);
     m_page->userLE->setText(m_proxyUser);
     m_page->passwordLE->setText(m_proxyPassword);
-    bool temp;
-    m_usePortableSettings = (Utils::PathUtils::getInstance()->getSettingsFilename() == Utils::PathUtils::getInstance()->getLocalSettingsFilePath(temp));
+    bool isWritable;
+    m_usePortableSettings = (Utils::PathUtils::getInstance()->getSettingsFilename() == Utils::PathUtils::getInstance()->getLocalSettingsFilePath(isWritable));
+    if(!m_usePortableSettings && !isWritable) {
+        m_page->cb_usePortableSettings->setVisible(false);
+        m_page->lbl_PortableSettings->setVisible(false);
+    }
     m_page->cb_usePortableSettings->setChecked(m_usePortableSettings);
     connect(m_page->resetButton, SIGNAL(clicked()),
             this, SLOT(resetInterfaceColor()));
