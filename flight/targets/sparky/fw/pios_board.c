@@ -414,7 +414,7 @@ void PIOS_Board_Init(void)
 	HwSparkyRcvrPortGet(&hw_rcvrport);
 	
 	PIOS_HAL_ConfigurePort(hw_rcvrport,          // port type protocol
-	        NULL,                                // usart_port_cfg
+	        &pios_rcvr_usart_cfg,                // usart_port_cfg
 	        &pios_usart_com_driver,              // com_driver
 	        NULL,                                // i2c_id 
 	        NULL,                                // i2c_cfg
@@ -423,7 +423,7 @@ void PIOS_Board_Init(void)
 	        PIOS_LED_ALARM,                      // led_id
 	        &pios_rcvr_dsm_aux_cfg,              // dsm_cfg
 	        hw_DSMxMode,                         // dsm_mode
-	        NULL);                 ,             // sbus_cfg
+	        NULL);                               // sbus_cfg
 
 #if defined(PIOS_INCLUDE_GCSRCVR)
 	GCSReceiverInitialize();

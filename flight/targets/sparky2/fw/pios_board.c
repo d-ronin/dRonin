@@ -606,17 +606,17 @@ void PIOS_Board_Init(void) {
 		hw_DSMxMode = HWSPARKY2_DSMXMODE_AUTODETECT; /* Do not try to bind through XOR */
 	}
 
-	PIOS_HAL_ConfigurePort(hw_rcvrport,           // port type protocol
-			get_rcvr_uart_cfg(bdinfo->board_rev), // usart_port_cfg
-			&pios_usart_com_driver,               // com_driver
-			NULL,                                 // i2c_id
-			NULL,                                 // i2c_cfg
-			&pios_ppm_cfg,                        // ppm_cfg
-			NULL,                                 // pwm_cfg
-			PIOS_LED_ALARM,                       // led_id
-			&pios_dsm_rcvr_cfg,                   // dsm_cfg
-			hw_DSMxMode,                          // dsm_mode
-			get_sbus_cfg(bdinfo->board_rev));     // sbus_cfg
+	PIOS_HAL_ConfigurePort(hw_rcvrport,            // port type protocol
+			get_usart_rcvr_cfg(bdinfo->board_rev), // usart_port_cfg
+			&pios_usart_com_driver,                // com_driver
+			NULL,                                  // i2c_id
+			NULL,                                  // i2c_cfg
+			&pios_ppm_cfg,                         // ppm_cfg
+			NULL,                                  // pwm_cfg
+			PIOS_LED_ALARM,                        // led_id
+			&pios_dsm_rcvr_cfg,                    // dsm_cfg
+			hw_DSMxMode,                           // dsm_mode
+			get_sbus_cfg(bdinfo->board_rev));      // sbus_cfg
 
 #if defined(PIOS_INCLUDE_GCSRCVR)
 	GCSReceiverInitialize();

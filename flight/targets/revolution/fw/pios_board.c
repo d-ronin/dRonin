@@ -354,6 +354,7 @@ void PIOS_Board_Init(void) {
 			&pios_dsm_main_cfg,                  // dsm_cfg
 			hw_DSMxMode >= HWREVOLUTION_DSMXMODE_BIND3PULSES ? HWREVOLUTION_DSMXMODE_AUTODETECT : hw_DSMxMode /* No bind on main port */, 
 			&pios_sbus_cfg);                     // sbus_cfg
+
 	/* Configure FlexiPort */
 	uint8_t hw_flexiport;
 	HwRevolutionFlexiPortGet(&hw_flexiport);
@@ -367,8 +368,7 @@ void PIOS_Board_Init(void) {
 			NULL,                                // pwm_cfg
 			PIOS_LED_ALARM,                      // led_id
 			&pios_dsm_flexi_cfg,                 // dsm_cfg
-			hw_DSMxMode,                         // dsm_mode
-			NULL,                                // sbus_rcvr_cfg
+			hw_DSMxMode,                         // dsm_mod
 			NULL);                               // sbus_cfg
 
 	HwRevolutionData hwRevoMini;
