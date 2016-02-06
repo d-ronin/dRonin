@@ -611,3 +611,24 @@ breakpad_install: breakpad_clean
 breakpad_clean:
 	$(V0) @echo " CLEAN        $(BREAKPAD_DIR)"
 	$(V1) [ ! -d "$(BREAKPAD_DIR)" ] || $(RM) -rf $(BREAKPAD_DIR)
+
+
+.PHONY: sdl_install
+
+# SDL download URL
+SDL_DIR  := $(TOOLS_DIR)/SDL.framework
+SDL_URL  := https://www.libsdl.org/release/SDL-1.2.15.dmg
+SDL_FILE := SDL-1.2.15.dmg
+
+ifdef MACOSX
+sdl_install:
+	$(V0) @echo " DOWNLOAD $(SDL_URL) "
+	$(V1) curl -L -k -o "$(DL_DIR)/$(SDL_FILE)" "$(SDL_URL)"
+	$(V1) hdiutil attach $(DL_DIR)/$(SDL_FILE);
+	$(V1) cp -r /Volumes/SDL/SDL.framework $(TOOLS_DIR);
+	$(V1) hdiutil detach /Volumes/SDL;
+	$(V1) rm $(DL_DIR)/$(SDL_FILE);
+endif
+
+
+
