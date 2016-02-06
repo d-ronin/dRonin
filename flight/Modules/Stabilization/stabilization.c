@@ -261,7 +261,7 @@ static void stabilizationTask(void* parameters)
 		AttitudeActualGet(&attitudeActual);
 		GyrosGet(&gyrosData);
 		ActuatorDesiredGet(&actuatorDesired);
-		actuatorDesired.Throttle = stabDesired.Throttle;
+		actuatorDesired.Thrust = stabDesired.Thrust;
 
 #if defined(RATEDESIRED_DIAGNOSTICS)
 		RateDesiredGet(&rateDesired);
@@ -349,7 +349,7 @@ static void stabilizationTask(void* parameters)
 			float raw_input = (&stabDesired.Roll)[i];
 
 			if (mode == STABILIZATIONDESIRED_STABILIZATIONMODE_FAILSAFE) {
-				actuatorDesired.Throttle = -1.0f;
+				actuatorDesired.Thrust = -1.0f;
 
 
 				switch (i) {

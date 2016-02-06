@@ -93,6 +93,7 @@ struct rcvr_activity_fsm {
 // Private variables
 static ManualControlCommandData   cmd;
 static ManualControlSettingsData  settings;
+static SystemSettingsAirframeTypeOptions airframe_type;
 static uint8_t                    disconnected_count = 0;
 static uint8_t                    connected_count = 0;
 static struct rcvr_activity_fsm   activity_fsm;
@@ -103,8 +104,9 @@ static enum control_events        pending_control_event;
 static bool                       settings_updated;
 
 // Private functions
-static void update_stabilization_desired(ManualControlCommandData * manual_control_command, ManualControlSettingsData * settings);
-static void altitude_hold_desired(ManualControlCommandData * cmd, bool flightModeChanged);
+static float get_thrust_source(ManualControlCommandData *manual_control_command, SystemSettingsAirframeTypeOptions * airframe_type);
+static void update_stabilization_desired(ManualControlCommandData * manual_control_command, ManualControlSettingsData * settings, SystemSettingsAirframeTypeOptions * airframe_type);
+static void altitude_hold_desired(ManualControlCommandData * cmd, bool flightModeChanged, SystemSettingsAirframeTypeOptions * airframe_type);
 static void set_flight_mode();
 static void process_transmitter_events(ManualControlCommandData * cmd, ManualControlSettingsData * settings, bool valid);
 static void set_manual_control_error(SystemAlarmsManualControlOptions errorCode);
@@ -114,7 +116,7 @@ static uint32_t timeDifferenceMs(uint32_t start_time, uint32_t end_time);
 static void applyDeadband(float *value, float deadband);
 static void resetRcvrActivity(struct rcvr_activity_fsm * fsm);
 static bool updateRcvrActivity(struct rcvr_activity_fsm * fsm);
-static void set_loiter_command(ManualControlCommandData * cmd);
+static void set_loiter_command(ManualControlCommandData *cmd, SystemSettingsAirframeTypeOptions *airframe_type);
 
 // Exposed from manualcontrol to prevent attempts to arm when unsafe
 extern bool ok_to_arm();
@@ -157,6 +159,11 @@ int32_t transmitter_control_initialize()
 	// Main task loop
 	lastSysTime = PIOS_Thread_Systime();
 	return 0;
+}
+
+static float get_thrust_source(ManualControlCommandData *manual_control_command, SystemSettingsAirframeTypeOptions * airframe_type)
+{
+	return (*airframe_type == SYSTEMSETTINGS_AIRFRAMETYPE_HELICP) ? manual_control_command->Collective : manual_control_command->Throttle;
 }
 
 /**
@@ -423,6 +430,8 @@ int32_t transmitter_control_select(bool reset_controller)
 
 	ManualControlCommandGet(&cmd);
 
+	SystemSettingsAirframeTypeGet(&airframe_type);
+
 	uint8_t flightMode;
 	FlightStatusFlightModeGet(&flightMode);
 
@@ -432,7 +441,7 @@ int32_t transmitter_control_select(bool reset_controller)
 	switch(flightMode) {
 	case FLIGHTSTATUS_FLIGHTMODE_MANUAL:
 	case FLIGHTSTATUS_FLIGHTMODE_ACRO:
-	case FLIGHTSTATUS_FLIGHTMODE_ACROPLUS:      
+	case FLIGHTSTATUS_FLIGHTMODE_ACROPLUS:
 	case FLIGHTSTATUS_FLIGHTMODE_LEVELING:
 	case FLIGHTSTATUS_FLIGHTMODE_VIRTUALBAR:
 	case FLIGHTSTATUS_FLIGHTMODE_MWRATE:
@@ -442,17 +451,17 @@ int32_t transmitter_control_select(bool reset_controller)
 	case FLIGHTSTATUS_FLIGHTMODE_STABILIZED2:
 	case FLIGHTSTATUS_FLIGHTMODE_STABILIZED3:
 	case FLIGHTSTATUS_FLIGHTMODE_FAILSAFE:
-		update_stabilization_desired(&cmd, &settings);
+		update_stabilization_desired(&cmd, &settings, &airframe_type);
 		break;
 	case FLIGHTSTATUS_FLIGHTMODE_AUTOTUNE:
 		// Tuning takes settings directly from manualcontrolcommand.  No need to
 		// call anything else.  This just avoids errors.
 		break;
 	case FLIGHTSTATUS_FLIGHTMODE_ALTITUDEHOLD:
-		altitude_hold_desired(&cmd, lastFlightMode != flightMode);
+		altitude_hold_desired(&cmd, lastFlightMode != flightMode, &airframe_type);
 		break;
 	case FLIGHTSTATUS_FLIGHTMODE_POSITIONHOLD:
-		set_loiter_command(&cmd);
+		set_loiter_command(&cmd, &airframe_type);
 	case FLIGHTSTATUS_FLIGHTMODE_RETURNTOHOME:
 		// The path planner module processes data here
 		break;
@@ -923,16 +932,13 @@ group_completed:
 }
 
 //! In stabilization mode, set stabilization desired
-static void update_stabilization_desired(ManualControlCommandData * manual_control_command, ManualControlSettingsData * settings)
+static void update_stabilization_desired(ManualControlCommandData * manual_control_command, ManualControlSettingsData * settings, SystemSettingsAirframeTypeOptions * airframe_type)
 {
 	StabilizationDesiredData stabilization;
 	StabilizationDesiredGet(&stabilization);
 
 	StabilizationSettingsData stabSettings;
 	StabilizationSettingsGet(&stabSettings);
-
-	SystemSettingsAirframeTypeOptions airframe_type;
-	SystemSettingsAirframeTypeGet(&airframe_type);
 
 	const uint8_t MANUAL_SETTINGS[3] = {
 	                                    STABILIZATIONDESIRED_STABILIZATIONMODE_MANUAL,
@@ -1065,7 +1071,7 @@ static void update_stabilization_desired(ManualControlCommandData * manual_contr
 		(stab_settings[2] == STABILIZATIONDESIRED_STABILIZATIONMODE_COORDINATEDFLIGHT) ? manual_control_command->Yaw :
 		0; // this is an invalid mode
 
-	float const thrust_source = (airframe_type == SYSTEMSETTINGS_AIRFRAMETYPE_HELICP) ? manual_control_command->Collective : manual_control_command->Throttle;
+	float const thrust_source = get_thrust_source(manual_control_command, airframe_type);
 	stabilization.Thrust = (thrust_source < 0) ? -1 : thrust_source;
 	StabilizationDesiredSet(&stabilization);
 }
@@ -1077,7 +1083,7 @@ static void update_stabilization_desired(ManualControlCommandData * manual_contr
  * enabled and enable altitude mode for stabilization
  * @todo: Need compile flag to exclude this from copter control
  */
-static void altitude_hold_desired(ManualControlCommandData * cmd, bool flightModeChanged)
+static void altitude_hold_desired(ManualControlCommandData * cmd, bool flightModeChanged, SystemSettingsAirframeTypeOptions * airframe_type)
 {
 	if (AltitudeHoldDesiredHandle() == NULL) {
 		set_manual_control_error(SYSTEMALARMS_MANUALCONTROL_ALTITUDEHOLD);
@@ -1124,17 +1130,19 @@ static void altitude_hold_desired(ManualControlCommandData * cmd, bool flightMod
 		const float DEADBAND_LOW = 0.50f -
 			(altitude_hold_deadband / 2.0f) * 0.01f;
 
+		float const thrust_source = get_thrust_source(cmd, airframe_type);
+
 		float climb_rate = 0.0f;
-		if (cmd->Throttle > DEADBAND_HIGH) {
-			climb_rate = expo3((cmd->Throttle - DEADBAND_HIGH) / (1.0f - DEADBAND_HIGH), altitude_hold_expo) *
+		if (thrust_source > DEADBAND_HIGH) {
+			climb_rate = expo3((thrust_source - DEADBAND_HIGH) / (1.0f - DEADBAND_HIGH), altitude_hold_expo) *
 		                         altitude_hold_maxclimbrate;
-		} else if (cmd->Throttle < DEADBAND_LOW && altitude_hold_maxdescentrate > MIN_CLIMB_RATE) {
-			climb_rate = ((cmd->Throttle < 0) ? DEADBAND_LOW : DEADBAND_LOW - cmd->Throttle) / DEADBAND_LOW;
+		} else if (thrust_source < DEADBAND_LOW && altitude_hold_maxdescentrate > MIN_CLIMB_RATE) {
+			climb_rate = ((thrust_source < 0) ? DEADBAND_LOW : DEADBAND_LOW - thrust_source) / DEADBAND_LOW;
 			climb_rate = -expo3(climb_rate, altitude_hold_expo) * altitude_hold_maxdescentrate;
 		}
 
 		// When throttle is negative tell the module that we are in landing mode
-		altitudeHoldDesired.Land = (cmd->Throttle < 0) ? ALTITUDEHOLDDESIRED_LAND_TRUE : ALTITUDEHOLDDESIRED_LAND_FALSE;
+		altitudeHoldDesired.Land = (thrust_source < 0) ? ALTITUDEHOLDDESIRED_LAND_TRUE : ALTITUDEHOLDDESIRED_LAND_FALSE;
 
 		// If more than MIN_CLIMB_RATE enter vario mode
 		if (fabsf(climb_rate) > MIN_CLIMB_RATE) {
@@ -1153,14 +1161,14 @@ static void altitude_hold_desired(ManualControlCommandData * cmd, bool flightMod
 }
 
 
-static void set_loiter_command(ManualControlCommandData *cmd)
+static void set_loiter_command(ManualControlCommandData *cmd, SystemSettingsAirframeTypeOptions *airframe_type)
 {
 	LoiterCommandData loiterCommand;
 
 	loiterCommand.Pitch = cmd->Pitch;
 	loiterCommand.Roll = cmd->Roll;
 
-	loiterCommand.Thrust = cmd->Throttle;
+	loiterCommand.Thrust = get_thrust_source(cmd, airframe_type);
 
 	loiterCommand.Frame = LOITERCOMMAND_FRAME_BODY;
 
@@ -1169,12 +1177,12 @@ static void set_loiter_command(ManualControlCommandData *cmd)
 
 #else /* For boards that do not support navigation set error if these modes are selected */
 
-static void altitude_hold_desired(ManualControlCommandData * cmd, bool flightModeChanged)
+static void altitude_hold_desired(ManualControlCommandData * cmd, bool flightModeChanged, SystemSettingsAirframeTypeOptions * airframe_type)
 {
 	set_manual_control_error(SYSTEMALARMS_MANUALCONTROL_ALTITUDEHOLD);
 }
 
-static void set_loiter_command(ManualControlCommandData *cmd)
+static void set_loiter_command(ManualControlCommandData *cmd, SystemSettingsAirframeTypeOptions *airframe_type)
 {
 	set_manual_control_error(SYSTEMALARMS_MANUALCONTROL_PATHFOLLOWER);
 }
