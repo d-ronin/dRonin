@@ -104,7 +104,7 @@ static enum control_events        pending_control_event;
 static bool                       settings_updated;
 
 // Private functions
-static float get_thrust_source(ManualControlCommandData *manual_control_command, SystemSettingsAirframeTypeOptions * airframe_type);
+static float get_thrust_source(ManualControlCommandData *manual_control_command, SystemSettingsAirframeTypeOptions * airframe_type, bool normalize_positive);
 static void update_stabilization_desired(ManualControlCommandData * manual_control_command, ManualControlSettingsData * settings, SystemSettingsAirframeTypeOptions * airframe_type);
 static void altitude_hold_desired(ManualControlCommandData * cmd, bool flightModeChanged, SystemSettingsAirframeTypeOptions * airframe_type);
 static void set_flight_mode();
@@ -161,9 +161,14 @@ int32_t transmitter_control_initialize()
 	return 0;
 }
 
-static float get_thrust_source(ManualControlCommandData *manual_control_command, SystemSettingsAirframeTypeOptions * airframe_type)
+static float get_thrust_source(ManualControlCommandData *manual_control_command, SystemSettingsAirframeTypeOptions * airframe_type, bool normalize_positive)
 {
-	return (*airframe_type == SYSTEMSETTINGS_AIRFRAMETYPE_HELICP) ? manual_control_command->Collective : manual_control_command->Throttle;
+	float const thrust = (*airframe_type == SYSTEMSETTINGS_AIRFRAMETYPE_HELICP) ? manual_control_command->Collective : manual_control_command->Throttle;
+
+	// only valid for helicp, normalizes collective from [-1,1] to [0,1] for things like althold and loiter that are expecting to see a [0,1] command from throttle
+	if( normalize_positive && *airframe_type == SYSTEMSETTINGS_AIRFRAMETYPE_HELICP ) return (thrust + 1.0f)/2.0f;
+
+	return thrust;
 }
 
 /**
@@ -1071,7 +1076,10 @@ static void update_stabilization_desired(ManualControlCommandData * manual_contr
 		(stab_settings[2] == STABILIZATIONDESIRED_STABILIZATIONMODE_COORDINATEDFLIGHT) ? manual_control_command->Yaw :
 		0; // this is an invalid mode
 
-	stabilization.Thrust = get_thrust_source(manual_control_command, airframe_type);
+	// get thrust source; normalize_positive = false since we just want to pass the value through
+	stabilization.Thrust = get_thrust_source(manual_control_command, airframe_type, false);
+
+	// for non-helicp, negative thrust is a special flag to stop the motors
 	if( *airframe_type != SYSTEMSETTINGS_AIRFRAMETYPE_HELICP && stabilization.Thrust < 0 ) stabilization.Thrust = -1;
 	StabilizationDesiredSet(&stabilization);
 }
@@ -1130,7 +1138,7 @@ static void altitude_hold_desired(ManualControlCommandData * cmd, bool flightMod
 		const float DEADBAND_LOW = 0.50f -
 			(altitude_hold_deadband / 2.0f) * 0.01f;
 
-		float const thrust_source = get_thrust_source(cmd, airframe_type);
+		float const thrust_source = get_thrust_source(cmd, airframe_type, true);
 
 		float climb_rate = 0.0f;
 		if (thrust_source > DEADBAND_HIGH) {
@@ -1168,7 +1176,7 @@ static void set_loiter_command(ManualControlCommandData *cmd, SystemSettingsAirf
 	loiterCommand.Pitch = cmd->Pitch;
 	loiterCommand.Roll = cmd->Roll;
 
-	loiterCommand.Thrust = get_thrust_source(cmd, airframe_type);
+	loiterCommand.Thrust = get_thrust_source(cmd, airframe_type, true);
 
 	loiterCommand.Frame = LOITERCOMMAND_FRAME_BODY;
 
