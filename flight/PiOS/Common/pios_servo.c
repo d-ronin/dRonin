@@ -8,7 +8,8 @@
  *
  * @file       pios_servo.c
  * @author     The OpenPilot Team, http://www.openpilot.org Copyright (C) 2012.
- * @author     Tau Labs, http://taulabs.org, Copyright (C) 2012-2015
+ * @author     Tau Labs, http://taulabs.org, Copyright (C) 2014-2015
+ * @author     dRonin, http://dRonin.org, Copyright (C) 2016
  * @brief      RC Servo routines (STM32 dependent)
  * @see        The GNU Public License (GPL) Version 3
  *
@@ -27,6 +28,10 @@
  * You should have received a copy of the GNU General Public License along
  * with this program; if not, write to the Free Software Foundation, Inc.,
  * 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
+ *
+ * Additional note on redistribution: The copyright and license notices above
+ * must be maintained in each individual source file that is a derivative work
+ * of this source file; otherwise redistribution is prohibited.
  */
 
 /* Project Includes */
@@ -156,7 +161,11 @@ void PIOS_Servo_SetMode(const uint16_t * speeds, const enum pwm_mode *pwm_mode, 
 			if (speeds[set] == 0) {
 				// Use a maximally long period because we don't want pulses actually repeating
 				// without new data arriving.
+#ifdef STM32F10X_MD
+				TIM_TimeBaseStructure.TIM_Period = 0xFFFF;
+#else
 				TIM_TimeBaseStructure.TIM_Period = 0xFFFFFFFF;
+#endif
 
 			} else {
 				// Note: this can be extended with a new PWM mode that is lower resolution
@@ -164,7 +173,28 @@ void PIOS_Servo_SetMode(const uint16_t * speeds, const enum pwm_mode *pwm_mode, 
 				TIM_TimeBaseStructure.TIM_Period = (clk_rate / speeds[set]) - 1;
 			}
 
-			/* Choose the correct prescaler value for the APB to which the timer is attached */
+			/* Choose the correct prescaler value for the APB the timer is attached */
+#if defined(STM32F10X_MD)
+			// "The timer clock frequencies are automatically fixed by hardware. There are two cases:
+			//    1. if the APB prescaler is 1, the timer clock frequencies are set to the same frequency as
+			//    that of the APB domain to which the timers are connected.
+			//    2. otherwise, they are set to twice (*2) the frequency of the APB domain to which the
+			//    timers are connected."
+			if (chan->timer==TIM6 || chan->timer==TIM7) {
+				// These timers cannot be used here.
+				return;
+			} else if (chan->timer==TIM1 || chan->timer==TIM8) {
+				if (PIOS_PERIPHERAL_APB2_CLOCK == PIOS_SYSCLK)
+					TIM_TimeBaseStructure.TIM_Prescaler = (PIOS_PERIPHERAL_APB2_CLOCK / clk_rate) - 1;
+				else
+					TIM_TimeBaseStructure.TIM_Prescaler = ((PIOS_PERIPHERAL_APB2_CLOCK*2) / clk_rate) - 1;
+			} else {
+				if (PIOS_PERIPHERAL_APB1_CLOCK == PIOS_SYSCLK)
+					TIM_TimeBaseStructure.TIM_Prescaler = (PIOS_PERIPHERAL_APB1_CLOCK / clk_rate) - 1;
+				else
+					TIM_TimeBaseStructure.TIM_Prescaler = ((PIOS_PERIPHERAL_APB1_CLOCK*2) / clk_rate) - 1;
+			}
+#elif defined(STM32F30X) /* F3 */
 			if (chan->timer==TIM6 || chan->timer==TIM7) {
 				// These timers cannot be used here.
 				return;
@@ -174,6 +204,18 @@ void PIOS_Servo_SetMode(const uint16_t * speeds, const enum pwm_mode *pwm_mode, 
 			} else {
 				TIM_TimeBaseStructure.TIM_Prescaler = (PIOS_PERIPHERAL_APB2_CLOCK / clk_rate) - 1;
 			}
+#elif defined(STM32F40_41xxx) /*  F4 */
+			if (chan->timer==TIM6 || chan->timer==TIM7) {
+				// These timers cannot be used here.
+				return;
+			} else if (chan->timer==TIM1 || chan->timer==TIM8 || chan->timer==TIM9 || chan->timer==TIM10 || chan->timer==TIM11 ) {
+				TIM_TimeBaseStructure.TIM_Prescaler = (PIOS_PERIPHERAL_APB2_CLOCK / clk_rate) - 1;
+			} else {
+				TIM_TimeBaseStructure.TIM_Prescaler = (PIOS_PERIPHERAL_APB1_CLOCK / clk_rate) - 1;
+			}
+#else
+#error Unsupported microcontroller
+#endif
 
 			// Configure this timer appropriately.
 			TIM_TimeBaseInit(chan->timer, &TIM_TimeBaseStructure);	
@@ -320,4 +362,3 @@ void PIOS_Servo_Update()
 }
 
 #endif /* PIOS_INCLUDE_HPWM */
-

@@ -113,6 +113,7 @@ SRC += $(PIOSCOMMON)/pios_mutex.c
 SRC += $(PIOSCOMMON)/pios_thread.c
 SRC += $(PIOSCOMMON)/pios_queue.c
 SRC += $(PIOSCOMMON)/pios_hal.c
+SRC += $(PIOSCOMMON)/pios_servo.c
 
 # List any extra directories to look for include files here.
 #    Each directory must be seperated by a space.
