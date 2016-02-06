@@ -59,6 +59,7 @@
 #include "subtrim.h"
 #include "subtrimsettings.h"
 #include "systemsettings.h"
+#include "manualcontrolcommand.h"
 
 // Math libraries
 #include "coordinate_conversions.h"
@@ -131,6 +132,17 @@ static void stabilizationTask(void* parameters);
 static void zero_pids(void);
 static void calculate_pids(void);
 static void SettingsUpdatedCb(UAVObjEvent * objEv, void *ctx, void *obj, int len);
+static float get_throttle(StabilizationDesiredData *stabilization_desired, SystemSettingsAirframeTypeOptions *airframe_type);
+
+static float get_throttle(StabilizationDesiredData *stabilization_desired, SystemSettingsAirframeTypeOptions *airframe_type)
+{
+	if (*airframe_type == SYSTEMSETTINGS_AIRFRAMETYPE_HELICP) {
+		float heli_throttle;
+		ManualControlCommandThrottleGet( &heli_throttle );
+		return heli_throttle;
+	}
+	return stabilization_desired->Thrust;
+}
 
 /**
  * Module initialization
@@ -168,12 +180,14 @@ int32_t StabilizationInitialize()
 	ActuatorDesiredInitialize();
 	SubTrimInitialize();
 	SubTrimSettingsInitialize();
+	ManualControlCommandInitialize();
 #if defined(RATEDESIRED_DIAGNOSTICS)
 	RateDesiredInitialize();
 #endif
 
 	return 0;
 }
+
 
 MODULE_INITCALL(StabilizationInitialize, StabilizationStart);
 
@@ -825,7 +839,7 @@ static void stabilizationTask(void* parameters)
 		ActuatorDesiredSet(&actuatorDesired);
 
 		if(flightStatus.Armed != FLIGHTSTATUS_ARMED_ARMED ||
-		   (lowThrottleZeroIntegral && stabDesired.Thrust < 0))
+		   (lowThrottleZeroIntegral && get_throttle(&stabDesired, &airframe_type) < 0))
 		{
 			// Force all axes to reinitialize when engaged
 			for(uint8_t i=0; i< MAX_AXES; i++)
