@@ -286,10 +286,10 @@ static void actuator_task(void* parameters)
 		}
 
 		bool armed = flightStatus.Armed == FLIGHTSTATUS_ARMED_ARMED;
-		bool positiveThrottle = desired.Thrust >= 0.00f;
 		bool spinWhileArmed = actuatorSettings.MotorsSpinWhileArmed == ACTUATORSETTINGS_MOTORSSPINWHILEARMED_TRUE;
 
 		float const throttle_source = (airframe_type == SYSTEMSETTINGS_AIRFRAMETYPE_HELICP) ? manual_control_command.Throttle : desired.Thrust;
+		bool positiveThrottle = throttle_source >= 0.00f;
 
 		float curve1 = throt_curve(throttle_source, mixerSettings.ThrottleCurve1, MIXERSETTINGS_THROTTLECURVE1_NUMELEM);
 
