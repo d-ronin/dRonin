@@ -45,6 +45,7 @@ QWidget *UsageStatsOptionPage::createPage(QWidget *parent)
     m_page->setupUi(w);
     m_page->cb_AllowSending->setChecked(m_config->getSendUsageStats());
     m_page->cb_AllowPrivate->setChecked(m_config->getSendPrivateData());
+    m_page->label_UUID->setText(QString("UUID: ")+m_config->getInstallationUUID());
     return w;
 }
 

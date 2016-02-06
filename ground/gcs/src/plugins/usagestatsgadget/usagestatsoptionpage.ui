@@ -14,6 +14,16 @@
    <string>Form</string>
   </property>
   <layout class="QGridLayout" name="gridLayout">
+   <item row="1" column="0">
+    <widget class="QLabel" name="label_AllowPrivate">
+     <property name="text">
+      <string>Allow sending private data (IP, FC CPU numbers):</string>
+     </property>
+     <property name="wordWrap">
+      <bool>true</bool>
+     </property>
+    </widget>
+   </item>
    <item row="0" column="1">
     <widget class="QCheckBox" name="cb_AllowSending">
      <property name="sizePolicy">
@@ -59,13 +69,10 @@
      </property>
     </widget>
    </item>
-   <item row="1" column="0">
-    <widget class="QLabel" name="label_AllowPrivate">
+   <item row="2" column="0">
+    <widget class="QLabel" name="label_UUID">
      <property name="text">
-      <string>Allow sending private data (IP, FC CPU numbers):</string>
-     </property>
-     <property name="wordWrap">
-      <bool>true</bool>
+      <string>&lt;UUID&gt;</string>
      </property>
     </widget>
    </item>

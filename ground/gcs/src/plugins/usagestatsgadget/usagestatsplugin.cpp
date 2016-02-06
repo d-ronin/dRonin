@@ -47,7 +47,7 @@
 #include <QSysInfo>
 #include "usagestatsoptionpage.h"
 
-UsageStatsPlugin::UsageStatsPlugin(): sendUsageStats(true), sendPrivateData(true)
+UsageStatsPlugin::UsageStatsPlugin(): sendUsageStats(true), sendPrivateData(true), installationUUID("")
 {
     loop = new QEventLoop(this);
     connect(&netMngr, SIGNAL(finished(QNetworkReply*)), loop, SLOT(quit()));
@@ -64,6 +64,14 @@ void UsageStatsPlugin::readConfig(QSettings *qSettings, Core::UAVConfigInfo *con
     qSettings->beginGroup(QLatin1String("UsageStatistics"));
     sendUsageStats = (qSettings->value(QLatin1String("SendUsageStats"), sendUsageStats).toBool());
     sendPrivateData = (qSettings->value(QLatin1String("SendPrivateData"), sendPrivateData).toBool());
+
+    //Check the Installation UUID and Generate a new one if required
+    installationUUID = QUuid(qSettings->value(QLatin1String("InstallationUUID"),"").toString());
+    if(installationUUID.isNull()){ //Create new UUID
+        installationUUID = QUuid::createUuid();
+        qSettings->setValue(QLatin1String("InstallationUUID"), installationUUID.toString());
+    }
+
     qSettings->endGroup();
 }
 
@@ -235,6 +243,10 @@ QByteArray UsageStatsPlugin::processJson() {
     json["currentOS"] = QSysInfo::prettyProductName();
     json["currentArch"] = QSysInfo::currentCpuArchitecture();
     json["buildInfo"] = QSysInfo::buildAbi();
+
+    if(!installationUUID.isNull())
+        json["installationUUID"] = installationUUID.toString().remove(QRegExp("[{}]*"));
+
     QJsonArray boardArray;
     foreach (boardLog board, boardLogList) {
         QJsonObject b;
@@ -299,6 +311,10 @@ void UsageStatsPlugin::setSendUsageStats(bool value)
 }
 
 
+QString UsageStatsPlugin::getInstallationUUID() const
+{
+    return installationUUID.toString().remove(QRegExp("[{}]*"));
+}
 
 AppCloseHook::AppCloseHook(UsageStatsPlugin *parent) : Core::ICoreListener(parent), m_parent(parent)
 {

@@ -38,6 +38,7 @@
 #include <QNetworkReply>
 #include <QNetworkAccessManager>
 #include <QEventLoop>
+#include <QUuid>
 
 using namespace uploader;
 struct boardLog
@@ -75,6 +76,8 @@ public:
 
     bool getSendPrivateData() const;
     void setSendPrivateData(bool value);
+
+    QString getInstallationUUID() const;
 public slots:
     void updateSettings();
 private:
@@ -87,6 +90,7 @@ private:
     QEventLoop *loop;
     bool sendUsageStats;
     bool sendPrivateData;
+    QUuid installationUUID;
 private slots:
     void pluginsLoadEnded();
     void addNewBoardSeen(deviceInfo, deviceDescriptorStruct);
