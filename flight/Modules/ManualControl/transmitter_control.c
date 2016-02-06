@@ -1071,8 +1071,8 @@ static void update_stabilization_desired(ManualControlCommandData * manual_contr
 		(stab_settings[2] == STABILIZATIONDESIRED_STABILIZATIONMODE_COORDINATEDFLIGHT) ? manual_control_command->Yaw :
 		0; // this is an invalid mode
 
-	float const thrust_source = get_thrust_source(manual_control_command, airframe_type);
-	stabilization.Thrust = (thrust_source < 0) ? -1 : thrust_source;
+	stabilization.Thrust = get_thrust_source(manual_control_command, airframe_type);
+	if( *airframe_type != SYSTEMSETTINGS_AIRFRAMETYPE_HELICP && stabilization.Thrust < 0 ) stabilization.Thrust = -1;
 	StabilizationDesiredSet(&stabilization);
 }
 
