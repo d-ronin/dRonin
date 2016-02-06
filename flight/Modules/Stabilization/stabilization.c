@@ -834,7 +834,6 @@ static void stabilizationTask(void* parameters)
 
 		// Save dT
 		actuatorDesired.UpdateTime = dT * 1000;
-		actuatorDesired.Thrust = stabDesired.Thrust;
 
 		ActuatorDesiredSet(&actuatorDesired);
 

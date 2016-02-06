@@ -288,7 +288,16 @@ static void actuator_task(void* parameters)
 		bool armed = flightStatus.Armed == FLIGHTSTATUS_ARMED_ARMED;
 		bool spinWhileArmed = actuatorSettings.MotorsSpinWhileArmed == ACTUATORSETTINGS_MOTORSSPINWHILEARMED_TRUE;
 
-		float const throttle_source = (airframe_type == SYSTEMSETTINGS_AIRFRAMETYPE_HELICP) ? manual_control_command.Throttle : desired.Thrust;
+		float throttle_source = -1;
+		// as long as we're not a heli in failsafe mode, we should set throttle from the manual throttle value
+		// if we're not a heli, set it from the thrust value
+		if (airframe_type == SYSTEMSETTINGS_AIRFRAMETYPE_HELICP) {
+			if (flightStatus.FlightMode != FLIGHTSTATUS_FLIGHTMODE_FAILSAFE) {
+				throttle_source = manual_control_command.Throttle;
+			}
+		}
+		else throttle_source = desired.Thrust;
+
 		bool positiveThrottle = throttle_source >= 0.00f;
 
 		float curve1 = throt_curve(throttle_source, mixerSettings.ThrottleCurve1, MIXERSETTINGS_THROTTLECURVE1_NUMELEM);
