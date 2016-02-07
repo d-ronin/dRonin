@@ -143,7 +143,7 @@ int32_t StabilizationStart()
 	// Listen for updates.
 	//	AttitudeActualConnectQueue(queue);
 	GyrosConnectQueue(queue);
-	
+
 	// Connect settings callback
 	MWRateSettingsConnectCallback(SettingsUpdatedCb);
 	StabilizationSettingsConnectCallback(SettingsUpdatedCb);
@@ -182,9 +182,9 @@ MODULE_INITCALL(StabilizationInitialize, StabilizationStart);
 static void stabilizationTask(void* parameters)
 {
 	UAVObjEvent ev;
-	
+
 	uint32_t timeval = PIOS_DELAY_GetRaw();
-	
+
 	ActuatorDesiredData actuatorDesired;
 	StabilizationDesiredData stabDesired;
 	RateDesiredData rateDesired;
@@ -199,7 +199,7 @@ static void stabilizationTask(void* parameters)
 
 	// Force refresh of all settings immediately before entering main task loop
 	SettingsUpdatedCb(NULL, NULL, NULL, 0);
-	
+
 	// Settings for system identification
 	uint32_t iteration = 0;
 	const uint32_t SYSTEM_IDENT_PERIOD = 75;
@@ -213,19 +213,19 @@ static void stabilizationTask(void* parameters)
 		iteration++;
 
 		PIOS_WDG_UpdateFlag(PIOS_WDG_STABILIZATION);
-		
+
 		// Wait until the AttitudeRaw object is updated, if a timeout then go to failsafe
 		if (PIOS_Queue_Receive(queue, &ev, FAILSAFE_TIMEOUT_MS) != true)
 		{
 			AlarmsSet(SYSTEMALARMS_ALARM_STABILIZATION,SYSTEMALARMS_ALARM_WARNING);
 			continue;
 		}
-		
+
 		calculate_pids();
 
 		float dT = PIOS_DELAY_DiffuS(timeval) * 1.0e-6f;
 		timeval = PIOS_DELAY_GetRaw();
-		
+
 		// exponential moving averaging (EMA) of dT to reduce jitter; ~200points
 		// to have more or less equivalent noise reduction to a normal N point moving averaging:  alpha = 2 / (N + 1)
 		// run it only at the beginning for the first samples, to reduce CPU load, and the value should converge to a constant value
@@ -272,7 +272,7 @@ static void stabilizationTask(void* parameters)
 			float Pitch;
 			float Yaw;
 		} trimmedAttitudeSetpoint;
-		
+
 		// Mux in level trim values, and saturate the trimmed attitude setpoint.
 		trimmedAttitudeSetpoint.Roll = bound_min_max(
 			stabDesired.Roll + subTrim.Roll,
@@ -327,7 +327,7 @@ static void stabilizationTask(void* parameters)
 		local_attitude_error[0] = trimmedAttitudeSetpoint.Roll - attitudeActual.Roll;
 		local_attitude_error[1] = trimmedAttitudeSetpoint.Pitch - attitudeActual.Pitch;
 		local_attitude_error[2] = trimmedAttitudeSetpoint.Yaw - attitudeActual.Yaw;
-		
+
 		// Wrap yaw error to [-180,180]
 		local_attitude_error[2] = circular_modulus_deg(local_attitude_error[2]);
 
@@ -344,7 +344,7 @@ static void stabilizationTask(void* parameters)
 		for(uint8_t i=0; i< MAX_AXES; i++)
 		{
 			// XXX TODO: Factor this body out into function.
-			
+
 			uint8_t mode = stabDesired.StabilizationMode[i];
 			float raw_input = (&stabDesired.Roll)[i];
 
@@ -380,7 +380,7 @@ static void stabilizationTask(void* parameters)
 				case STABILIZATIONDESIRED_STABILIZATIONMODE_FAILSAFE:
 					PIOS_Assert(0); /* Shouldn't happen, per above */
 					break;
-					
+
 				case STABILIZATIONDESIRED_STABILIZATIONMODE_RATE:
 					if(reinit)
 						pids[PID_GROUP_RATE + i].iAccumulator = 0;
@@ -532,7 +532,7 @@ static void stabilizationTask(void* parameters)
 					float dynP8 = pids[PID_GROUP_MWR + i].p * pid_scale;
 					float dynD8 = pids[PID_GROUP_MWR + i].d * pid_scale;
 					// these terms are used by the integral loop this proportional term is scaled by throttle (this is different than MW
-					// that does not apply scale 
+					// that does not apply scale
 					float cfgP8 = pids[PID_GROUP_MWR + i].p;
 					float cfgI8 = pids[PID_GROUP_MWR + i].i;
 
@@ -582,9 +582,9 @@ static void stabilizationTask(void* parameters)
 						SystemIdentGet(&systemIdent);
 
 						const float SCALE_BIAS = 7.1f;
-						float roll_scale = expf(SCALE_BIAS - systemIdent.Beta[SYSTEMIDENT_BETA_ROLL]);
-						float pitch_scale = expf(SCALE_BIAS - systemIdent.Beta[SYSTEMIDENT_BETA_PITCH]);
-						float yaw_scale = expf(SCALE_BIAS - systemIdent.Beta[SYSTEMIDENT_BETA_YAW]);
+						float roll_scale = expapprox(SCALE_BIAS - systemIdent.Beta[SYSTEMIDENT_BETA_ROLL]);
+						float pitch_scale = expapprox(SCALE_BIAS - systemIdent.Beta[SYSTEMIDENT_BETA_PITCH]);
+						float yaw_scale = expapprox(SCALE_BIAS - systemIdent.Beta[SYSTEMIDENT_BETA_YAW]);
 
 						if (roll_scale > 0.25f)
 							roll_scale = 0.25f;
@@ -653,7 +653,7 @@ static void stabilizationTask(void* parameters)
 						// Compute the inner loop only for yaw
 						actuatorDesiredAxis[i] = pid_apply_setpoint(&pids[PID_GROUP_RATE + i],  rateDesiredAxis[i],  gyro_filtered[i], dT);
 						actuatorDesiredAxis[i] += ident_offsets[i];
-						actuatorDesiredAxis[i] = bound_sym(actuatorDesiredAxis[i],1.0f);						
+						actuatorDesiredAxis[i] = bound_sym(actuatorDesiredAxis[i],1.0f);
 					}
 
 					break;
@@ -1037,4 +1037,3 @@ static void SettingsUpdatedCb(UAVObjEvent * ev, void *ctx, void *obj, int len)
  * @}
  * @}
  */
-
