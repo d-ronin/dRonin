@@ -599,7 +599,7 @@ def get_telemetry_by_args(desc="Process telemetry", service_in_iter=True,
         return telemetry.SerialTelemetry(args.source, speed=args.baud,
                 service_in_iter=service_in_iter, iter_blocks=iter_blocks)
 
-    if args.baud is not None:
+    if args.baud != "115200":
         parser.print_help()
         raise ValueError("Baud rates only apply to serial ports")
 
