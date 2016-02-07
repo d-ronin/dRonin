@@ -1311,6 +1311,19 @@ bool ConfigTaskWidget::setWidgetFromField(QWidget * widget,UAVObjectField * fiel
 {
     if(!widget || !field)
         return false;
+
+    // use UAVO field description as tooltip if the widget doesn't already have one
+    if (!widget->toolTip().length()) {
+        QString desc = field->getDescription().trimmed();
+        if (desc.length()) {
+            // insert html tags to make this rich text so Qt will take care of wrapping
+            desc.prepend("<span style='font-style: normal'>");
+            desc.remove("@Ref", Qt::CaseInsensitive);
+            desc.append("</span>");
+        }
+        widget->setToolTip(desc);
+    }
+
     if(QComboBox * cb=qobject_cast<QComboBox *>(widget))
     {
         if(cb->count()==0)
