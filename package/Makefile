@@ -123,13 +123,10 @@ ground_package_common: standalone
 	$(V1) find $(PACKAGE_DIR)/$(GCS_PACKAGE_NAME) -type f -name "*udp_test" -exec rm -f {} \;
 	$(V1) find $(PACKAGE_DIR)/$(GCS_PACKAGE_NAME) -type f -name "*gcsversioninfo.h" -exec rm -f {} \;
 
-all_flight:
-	$(V1) $(MAKE) -C $(ROOT_DIR) $@
-
 .PHONY: package_flight
 package_flight: $(FLIGHTPKGNAME)
 
-$(FLIGHTPKGNAME): all_flight $(PACKAGE_DIR)
+$(FLIGHTPKGNAME): $(PACKAGE_DIR)
 	$(ZIPBIN) -j $@ $(FW_FILES)
 
 include $(WHEREAMI)/Makefile.$(PLATFORM)
