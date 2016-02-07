@@ -1314,7 +1314,7 @@ bool ConfigTaskWidget::setWidgetFromField(QWidget * widget,UAVObjectField * fiel
 
     // use UAVO field description as tooltip if the widget doesn't already have one
     if (!widget->toolTip().length()) {
-        QString desc = field->getDescription().trimmed();
+        QString desc = field->getDescription().trimmed().toHtmlEscaped();
         if (desc.length()) {
             // insert html tags to make this rich text so Qt will take care of wrapping
             desc.prepend("<span style='font-style: normal'>");

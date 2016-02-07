@@ -113,10 +113,8 @@ public:
     QVariant data(int column = 1) const;
     QString description() { return m_description; }
     void setDescription(QString d) {
-        if(d.trimmed().isEmpty()) {
-            m_description = QString();
-        }
-        else {
+        d = d.trimmed().toHtmlEscaped();
+        if(!d.isEmpty()) {
             // insert html tags to make this rich text so Qt will take care of wrapping
             d.prepend("<span style='font-style: normal'>");
             d.remove("@Ref", Qt::CaseInsensitive);
