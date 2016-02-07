@@ -892,7 +892,7 @@ all_sim: $(SIM_BOARDS)
 all_sim_clean: $(addsuffix _clean, $(SIM_BOARDS))
 
 .PHONY: all_flight all_flight_clean
-all_flight:       all_fw all_bl all_bu all_ef all_sim
+all_flight:       all_bu all_ef all_sim
 all_flight_clean: all_fw_clean all_bl_clean all_bu_clean all_ef_clean all_sim_clean
 
 # Expand the groups of targets for each board
