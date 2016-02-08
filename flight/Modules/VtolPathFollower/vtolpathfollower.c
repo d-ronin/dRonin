@@ -160,7 +160,8 @@ static void vtolPathFollowerTask(void *parameters)
 			(systemSettings.AirframeType != SYSTEMSETTINGS_AIRFRAMETYPE_OCTOV) &&
 			(systemSettings.AirframeType != SYSTEMSETTINGS_AIRFRAMETYPE_OCTOCOAXP) &&
 			(systemSettings.AirframeType != SYSTEMSETTINGS_AIRFRAMETYPE_OCTOCOAXX) &&
-			(systemSettings.AirframeType != SYSTEMSETTINGS_AIRFRAMETYPE_TRI) )
+			(systemSettings.AirframeType != SYSTEMSETTINGS_AIRFRAMETYPE_TRI) &&
+			(systemSettings.AirframeType != SYSTEMSETTINGS_AIRFRAMETYPE_HELICP) )
 		{
 			// This should be a critical alarm since the system will not attempt to
 			// control in this situation.
