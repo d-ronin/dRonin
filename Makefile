@@ -892,7 +892,7 @@ all_sim: $(SIM_BOARDS)
 all_sim_clean: $(addsuffix _clean, $(SIM_BOARDS))
 
 .PHONY: all_flight all_flight_clean
-all_flight:       all_bu all_ef all_sim
+all_flight:       all_fw all_bl all_bu all_ef all_sim
 all_flight_clean: all_fw_clean all_bl_clean all_bu_clean all_ef_clean all_sim_clean
 
 # Expand the groups of targets for each board
@@ -1015,11 +1015,13 @@ export FW_FILES := $(FW_FILES)
 # Packaging components
 #
 ##############################
-PACKAGE_TARGETS = package_installer package_ground package_flight  package_all
+PACKAGE_TARGETS = package_installer package_ground package_flight package_all
 PACKAGE_TARGETS += package_ground_compress package_all_compress
 .PHONY: $(PACKAGE_TARGETS)
 $(PACKAGE_TARGETS): 
 	$(V1) cd package && $(MAKE) --no-print-directory $@
+
+package_flight: all_flight
 
 ##############################
 #
