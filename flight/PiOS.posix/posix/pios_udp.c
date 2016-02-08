@@ -113,13 +113,6 @@ void PIOS_UDP_RxThread(void * udp_dev_n)
 			if (udp_dev->rx_in_cb) {
 			  (void) (udp_dev->rx_in_cb)(udp_dev->rx_in_context, udp_dev->rx_buffer, received, NULL, &rx_need_yield);
 			}
-
-#if defined(PIOS_INCLUDE_FREERTOS)
-			if (rx_need_yield) {
-				taskYIELD();
-			}
-#endif	/* PIOS_INCLUDE_FREERTOS */
-
 		}
 
 

@@ -94,7 +94,6 @@ MAVLINKINC = $(FLIGHTLIB)/mavlink/v1.0/common
 
 SRC = 
 # optional component libraries
-#include $(PIOSCOMMONLIB)/FreeRTOS/library.mk
 include $(APPLIBDIR)/ChibiOS/library.mk
 include $(FLIGHTLIB)/CMSIS3/DSP_Lib/library.mk
 
@@ -140,7 +139,6 @@ SRC += $(RSCODE)/galois.c
 SRC += $(RSCODE)/rs.c
 
 ## PIOS Hardware (STM32F4xx)
-#include $(PIOS)/STM32F4xx/library_fw.mk
 include $(PIOS)/STM32F4xx/library_chibios.mk
 
 ## PIOS Hardware (Common)

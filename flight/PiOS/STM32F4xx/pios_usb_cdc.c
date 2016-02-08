@@ -35,10 +35,6 @@
 
 #if defined(PIOS_INCLUDE_USB_CDC)
 
-#if defined(PIOS_INCLUDE_FREERTOS)
-#include "FreeRTOS.h"
-#endif /* defined(PIOS_INCLUDE_FREERTOS) */
-
 #include "pios_usb.h"
 #include "pios_usb_cdc_priv.h"
 #include "pios_usb_board_data.h" /* PIOS_BOARD_*_DATA_LENGTH */
@@ -215,10 +211,6 @@ static bool PIOS_USB_CDC_SendData(struct pios_usb_cdc_dev * usb_cdc_dev)
 	PIOS_USBHOOK_EndpointTx(usb_cdc_dev->cfg->data_tx_ep,
 				usb_cdc_dev->tx_packet_buffer,
 				bytes_to_tx);
-
-#if defined(PIOS_INCLUDE_FREERTOS)
-	portEND_SWITCHING_ISR(need_yield ? pdTRUE : pdFALSE);
-#endif	/* defined(PIOS_INCLUDE_FREERTOS) */
 
 	return true;
 }
@@ -634,10 +626,6 @@ static bool PIOS_USB_CDC_DATA_EP_OUT_Callback(uintptr_t usb_cdc_id, uint8_t epnu
 		usb_cdc_dev->rx_active = false;
 		rc = false;
 	}
-
-#if defined(PIOS_INCLUDE_FREERTOS)
-	portEND_SWITCHING_ISR(need_yield ? pdTRUE : pdFALSE);
-#endif	/* defined(PIOS_INCLUDE_FREERTOS) */
 
 	return rc;
 }

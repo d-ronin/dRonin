@@ -33,10 +33,6 @@
 
 #if defined(PIOS_INCLUDE_CAN)
 
-#if defined(PIOS_INCLUDE_FREERTOS)
-#include "FreeRTOS.h"
-#endif /* defined(PIOS_INCLUDE_FREERTOS) */
-
 #include "pios_can_priv.h"
 
 /* Provide a COM driver */
@@ -377,18 +373,15 @@ static void PIOS_CAN_RxGeneric(void)
 	CanRxMsg RxMessage;
 	CAN_Receive(CAN1, CAN_FIFO1, &RxMessage);
 
-	bool rx_need_yield = false;
 	if (RxMessage.StdId == CAN_COM_ID) {
+		// TODO: remove this need_yield/woken pattern when f1 is on chibios
+		bool rx_need_yield;
 		if (can_dev->rx_in_cb) {
 			(void) (can_dev->rx_in_cb)(can_dev->rx_in_context, RxMessage.Data, RxMessage.DLC, NULL, &rx_need_yield);
 		}
 	} else {
-		rx_need_yield = process_received_message(RxMessage);
+		process_received_message(RxMessage);
 	}
-
-#if defined(PIOS_INCLUDE_FREERTOS)
-	portEND_SWITCHING_ISR(rx_need_yield ? pdTRUE : pdFALSE);
-#endif /* defined(PIOS_INCLUDE_FREERTOS) */
 }
 
 /**
@@ -422,10 +415,6 @@ static void PIOS_CAN_TxGeneric(void)
 
 		// TODO: deal with failure to send and keep the message to retransmit
 	}
-	
-#if defined(PIOS_INCLUDE_FREERTOS)
-	portEND_SWITCHING_ISR(tx_need_yield ? pdTRUE : pdFALSE);
-#endif /* defined(PIOS_INCLUDE_FREERTOS) */
 }
 
 

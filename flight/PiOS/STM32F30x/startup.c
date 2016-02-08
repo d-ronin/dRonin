@@ -117,11 +117,6 @@ HANDLER(BusFault_Handler);
 HANDLER(UsageFault_Handler);
 HANDLER(DebugMon_Handler);
 
-/* these vectors point directly to the relevant FreeRTOS functions if they are defined */
-HANDLER(vPortSVCHandler);
-HANDLER(xPortPendSVHandler);
-HANDLER(xPortSysTickHandler);
-
 /** CortexM3 vector table */
 struct cm3_vectors cpu_vectors __attribute((section(".cpu_vectors"))) = {
 		.initial_stack = &irq_stack[sizeof(irq_stack)],
@@ -136,11 +131,11 @@ struct cm3_vectors cpu_vectors __attribute((section(".cpu_vectors"))) = {
 				0,
 				0,
 				0,
-				vPortSVCHandler,
+				0,
 				DebugMon_Handler,
 				0,
-				xPortPendSVHandler,
-				xPortSysTickHandler,
+				0,
+				0,
 		}
 };
 

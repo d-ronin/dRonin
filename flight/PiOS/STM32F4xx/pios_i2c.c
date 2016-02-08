@@ -34,10 +34,6 @@
 
 #if defined(PIOS_INCLUDE_I2C)
 
-#if defined(PIOS_INCLUDE_FREERTOS)
-#include "FreeRTOS.h"
-#endif /* defined(PIOS_INCLUDE_FREERTOS) */
-
 #include <pios_i2c_priv.h>
 
 static void i2c_adapter_inject_event(struct pios_i2c_adapter *i2c_adapter, enum i2c_adapter_event event, bool *woken);
@@ -956,10 +952,6 @@ void PIOS_I2C_EV_IRQ_Handler(uint32_t i2c_id)
 		break;
 	}
 
-#if defined(PIOS_INCLUDE_FREERTOS)
-	portEND_SWITCHING_ISR(woken ? pdTRUE : pdFALSE);
-#endif /* defined(PIOS_INCLUDE_FREERTOS) */
-
 #if defined(PIOS_INCLUDE_CHIBIOS)
 	CH_IRQ_EPILOGUE();
 #endif /* defined(PIOS_INCLUDE_CHIBIOS) */
@@ -1009,10 +1001,6 @@ void PIOS_I2C_ER_IRQ_Handler(uint32_t i2c_id)
 		/* Fail hard on any errors for now */
 		i2c_adapter_inject_event(i2c_adapter, I2C_EVENT_BUS_ERROR, &woken);
 	}
-
-#if defined(PIOS_INCLUDE_FREERTOS)
-	portEND_SWITCHING_ISR(woken ? pdTRUE : pdFALSE);
-#endif /* defined(PIOS_INCLUDE_FREERTOS) */
 
 #if defined(PIOS_INCLUDE_CHIBIOS)
 	CH_IRQ_EPILOGUE();

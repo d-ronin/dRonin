@@ -62,7 +62,7 @@ struct pios_gcsrcvr_dev {
 
 static struct pios_gcsrcvr_dev *global_gcsrcvr_dev;
 
-#if defined(PIOS_INCLUDE_FREERTOS)
+#if defined(PIOS_INCLUDE_CHIBIOS)
 static struct pios_gcsrcvr_dev *PIOS_gcsrcvr_alloc(void)
 {
 	struct pios_gcsrcvr_dev * gcsrcvr_dev;
