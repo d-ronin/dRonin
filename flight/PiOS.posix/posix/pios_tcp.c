@@ -142,13 +142,6 @@ static void PIOS_TCP_RxTask(void *tcp_dev_n)
 
 				tcp_dev->rx_in_cb(tcp_dev->rx_in_context, (uint8_t*)incoming_buffer, result, NULL, &rx_need_yield);
 
-	#if defined(PIOS_INCLUDE_FREERTOS)
-				// Not sure about this
-				if (rx_need_yield) {
-					taskYIELD();
-				}
-	#endif	/* PIOS_INCLUDE_FREERTOS */
-
 			}
 
 			if (result == 0) {
@@ -290,12 +283,6 @@ static void PIOS_TCP_TxStart(uintptr_t tcp_id, uint16_t tx_bytes_avail)
 				}
 			}
 			tx_bytes_avail -= length;
-#if defined(PIOS_INCLUDE_FREERTOS)
-			// Not sure about this
-			if (tx_need_yield) {
-				taskYIELD();
-			}
-#endif	/* PIOS_INCLUDE_FREERTOS */
 		}
 	}
 }
