@@ -39,7 +39,7 @@ QmlViewGadgetConfiguration::QmlViewGadgetConfiguration(QString classId, QSetting
     //if a saved configuration exists load it
     if(qSettings != 0) {
         QString dialFile = qSettings->value("dialFile").toString();
-        m_defaultDial=Utils::PathUtils().InsertDataPath(dialFile);
+        m_defaultDial=Utils::PathUtils::getInstance()->InsertDataPath(dialFile);
     }
 }
 
@@ -59,6 +59,6 @@ IUAVGadgetConfiguration *QmlViewGadgetConfiguration::clone()
  *
  */
 void QmlViewGadgetConfiguration::saveConfig(QSettings* qSettings) const {
-    QString dialFile = Utils::PathUtils().RemoveDataPath(m_defaultDial);
+    QString dialFile = Utils::PathUtils::getInstance()->RemoveDataPath(m_defaultDial);
     qSettings->setValue("dialFile", dialFile);
 }
