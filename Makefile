@@ -1015,11 +1015,13 @@ export FW_FILES := $(FW_FILES)
 # Packaging components
 #
 ##############################
-PACKAGE_TARGETS = package_installer package_ground package_flight  package_all
+PACKAGE_TARGETS = package_installer package_ground package_flight package_all
 PACKAGE_TARGETS += package_ground_compress package_all_compress
 .PHONY: $(PACKAGE_TARGETS)
 $(PACKAGE_TARGETS): 
 	$(V1) cd package && $(MAKE) --no-print-directory $@
+
+package_flight: all_flight
 
 ##############################
 #
