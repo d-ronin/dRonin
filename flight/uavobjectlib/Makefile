@@ -4,8 +4,17 @@ uavobjects_armhardfp: FLOATABI = -mfloat-abi=hard
 uavobjects_armhardfp: $(OUTDIR)/libuavobject.a
 
 # make the build output a bit nicer
-BUILD_TYPE = fw
-BOARD_SHORT_NAME = uavo
+BUILD_TYPE = uv
+
+BOARD_SHORT_NAME=unkn
+
+ifneq ($(strip $(filter uavobjects_armsoftfp,$(MAKECMDGOALS))),)
+BOARD_SHORT_NAME=soft
+endif
+
+ifneq ($(strip $(filter uavobjects_armhardfp,$(MAKECMDGOALS))),)
+BOARD_SHORT_NAME=hard
+endif
 
 include $(MAKE_INC_DIR)/firmware-defs.mk
 

@@ -40,9 +40,9 @@ endif
 
 # Add a board designator to the terse message text
 ifeq ($(ENABLE_MSG_EXTRA),yes)
-	MSG_EXTRA := [$(BUILD_TYPE)|$(BOARD_SHORT_NAME)]
+	MSG_EXTRA = [$(BUILD_TYPE)|$(BOARD_SHORT_NAME)]
 else
-	MSG_BOARD :=
+	MSG_EXTRA :=
 endif
 
 # Define Messages
