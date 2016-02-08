@@ -873,7 +873,7 @@ void PIOS_HAL_ConfigureSerialSpeed(uintptr_t com_id,
 			PIOS_COM_ChangeBaud(com_id, 38400);
 			break;
 		case HWSHARED_SPEEDBPS_57600:
-			PIOS_COM_ChangeBaud(com_id, 115200);
+			PIOS_COM_ChangeBaud(com_id, 57600);
 			break;
 		case HWSHARED_SPEEDBPS_INITHM10:
 			PIOS_COM_ChangeBaud(com_id, 9600);
