@@ -57,7 +57,7 @@ static struct wdg_configuration {
  *
  * For the STM32 nominal clock rate is 32 khz, but for the maximum clock rate of
  * 60 khz and a prescaler of 4 yields a clock rate of 15 khz.  The delay that is
- * set in the watchdog assumes the nominal clock rate, but the delay for FreeRTOS
+ * set in the watchdog assumes the nominal clock rate, but the delay for RTOS
  * to use is 75% of the minimal delay.
  *
  * @returns Maximum recommended delay between updates based on PIOS_WATCHDOG_TIMEOUT constant

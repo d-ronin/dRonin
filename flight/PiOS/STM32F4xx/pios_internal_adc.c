@@ -48,10 +48,6 @@
 
 #if defined(PIOS_INCLUDE_ADC)
 
-#if defined(PIOS_INCLUDE_FREERTOS)
-#include "FreeRTOS.h"
-#endif /* defined(PIOS_INCLUDE_FREERTOS) */
-
 #include "pios_queue.h"
 
 // Private types
@@ -62,7 +58,7 @@ enum pios_adc_dev_magic {
 struct pios_internal_adc_dev {
 	const struct pios_internal_adc_cfg * cfg;
 	ADCCallback callback_function;
-#if defined(PIOS_INCLUDE_FREERTOS) || defined(PIOS_INCLUDE_CHIBIOS)
+#if defined(PIOS_INCLUDE_CHIBIOS)
 	struct pios_queue *data_queue;
 #endif
 	volatile int16_t *valid_data_buffer;
@@ -281,7 +277,7 @@ int32_t PIOS_INTERNAL_ADC_Init(uint32_t * internal_adc_id, const struct pios_int
 
 
 
-#if defined(PIOS_INCLUDE_FREERTOS) || defined(PIOS_INCLUDE_CHIBIOS)
+#if defined(PIOS_INCLUDE_CHIBIOS)
 	pios_adc_dev->data_queue = NULL;
 #endif
 
@@ -419,12 +415,11 @@ void accumulate(uint16_t *buffer, uint32_t count)
 		}
 	}
 	
-#if defined(PIOS_INCLUDE_FREERTOS) || defined(PIOS_INCLUDE_CHIBIOS)
+#if defined(PIOS_INCLUDE_CHIBIOS)
 	// XXX should do something with this
 	if (pios_adc_dev->data_queue) {
 //		bool woken = false;
 //		PIOS_Queue_Send_FromISR(adc_dev->data_queue, pios_adc_dev->downsampled_buffer, &woken);
-//		portEND_SWITCHING_ISR(woken ? pdTRUE : pdFALSE);
 	}
 
 #endif

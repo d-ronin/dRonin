@@ -33,10 +33,6 @@
 
 #if defined(PIOS_INCLUDE_VIDEO)
 
-#if defined(PIOS_INCLUDE_FREERTOS)
-#include "FreeRTOS.h"
-#endif /* defined(PIOS_INCLUDE_FREERTOS) */
-
 #include "pios.h"
 #include "pios_video.h"
 #include "pios_semaphore.h"
@@ -179,10 +175,6 @@ bool PIOS_Vsync_ISR()
 	// Set the number of lines to wait until we start clocking out pixels
 	dev_cfg->line_counter->CNT = 0xffff - (pios_video_type_cfg_act->graphics_line_start + y_offset);
 	TIM_Cmd(dev_cfg->line_counter, ENABLE);
-#if defined(PIOS_INCLUDE_FREERTOS)
-	/* Yield From ISR if needed */
-	portEND_SWITCHING_ISR(woken == true ? pdTRUE : pdFALSE);
-#endif
 	return woken;
 }
 

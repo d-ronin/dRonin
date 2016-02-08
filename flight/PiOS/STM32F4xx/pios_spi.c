@@ -15,7 +15,7 @@
  *
  * Note that additional chip select lines can be easily added by using
  * the remaining free GPIOs of the core module. Shared SPI ports should be
- * arbitrated with (FreeRTOS based) Mutexes to avoid collisions!
+ * arbitrated with Mutexes to avoid collisions!
  *
  *****************************************************************************/
 /*
