@@ -736,7 +736,7 @@ endef
 # $(4) = yes for bootloader, no for no bootloader
 define EF_TEMPLATE
 .PHONY: ef_$(1)
-ef_$(1): ef_$(1)_bin ef_$(1)_hex
+ef_$(1): ef_$(1)_hex
 
 FW_FILES += $(BUILD_DIR)/ef_$(1)/ef_$(1).hex
 
