@@ -7,7 +7,7 @@
  *
  * @file       logging.c
  * @author     Tau Labs, http://taulabs.org, Copyright (C) 2014
- * @author     dRonin, http://dronin.org Copyright (C) 2015
+ * @author     dRonin, http://dronin.org Copyright (C) 2015-2016
  * @brief      Forward a set of UAVObjects when updated out a PIOS_COM port
  * @see        The GNU Public License (GPL) Version 3
  *
@@ -26,6 +26,10 @@
  * You should have received a copy of the GNU General Public License along
  * with this program; if not, write to the Free Software Foundation, Inc.,
  * 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
+ *
+ * Additional note on redistribution: The copyright and license notices above
+ * must be maintained in each individual source file that is a derivative work
+ * of this source file; otherwise redistribution is prohibited.
  */
 
 #include "openpilot.h"
@@ -111,15 +115,20 @@ extern uintptr_t streamfs_id;
  */
 int32_t LoggingInitialize(void)
 {
+#ifdef PIOS_COM_OPENLOG
 	if (PIOS_COM_OPENLOG) {
 		logging_com_id = PIOS_COM_OPENLOG;
 		destination_spi_flash = false;
 		updateSettings();
 	}
-	else if (PIOS_COM_SPIFLASH) {
+#endif
+
+#ifdef PIOS_COM_SPIFLASH
+	if ((!logging_com_id) && PIOS_COM_SPIFLASH) {
 		logging_com_id = PIOS_COM_SPIFLASH;
 		destination_spi_flash = true;
 	}
+#endif
 		
 #ifdef MODULE_Logging_BUILTIN
 	module_enabled = true;
@@ -546,7 +555,11 @@ static void register_default_profile()
 
 	// Log a bit slower
 	UAVObjConnectCallbackThrottled(AttitudeActualHandle(), obj_updated_callback, NULL, EV_UPDATED | EV_UNPACKED, 5 * min_period);
-	UAVObjConnectCallbackThrottled(MagnetometerHandle(), obj_updated_callback, NULL, EV_UPDATED | EV_UNPACKED, 5 * min_period);
+
+	if (MagnetometerHandle()) {
+		UAVObjConnectCallbackThrottled(MagnetometerHandle(), obj_updated_callback, NULL, EV_UPDATED | EV_UNPACKED, 5 * min_period);
+	}
+
 	UAVObjConnectCallbackThrottled(ManualControlCommandHandle(), obj_updated_callback, NULL, EV_UPDATED | EV_UNPACKED, 5 * min_period);
 	UAVObjConnectCallbackThrottled(ActuatorDesiredHandle(), obj_updated_callback, NULL, EV_UPDATED | EV_UNPACKED, 5 * min_period);
 	UAVObjConnectCallbackThrottled(StabilizationDesiredHandle(), obj_updated_callback, NULL, EV_UPDATED | EV_UNPACKED, 5 * min_period);
