@@ -34,11 +34,6 @@
 #include "systemmod.h"
 #include "pios_thread.h"
 
-#if defined(PIOS_INCLUDE_FREERTOS)
-#include "FreeRTOS.h"
-#include "task.h"
-#endif /* defined(PIOS_INCLUDE_FREERTOS) */
-
 /* Prototype of PIOS_Board_Init() function */
 extern void PIOS_Board_Init(void);
 extern void Stack_Change(void);
@@ -56,7 +51,7 @@ static void initTask(void *parameters);
 *
 * Initialize PiOS<BR>
 * Create the "System" task (SystemModInitializein Modules/System/systemmod.c) <BR>
-* Start FreeRTOS Scheduler (vTaskStartScheduler)<BR>
+* Start the RTOS Scheduler<BR>
 * If something goes wrong, blink LED1 and LED2 every 100ms
 *
 */
@@ -66,36 +61,21 @@ int main()
 	/* Any new initialization functions should be added in OpenPilotInit() */
 	PIOS_heap_initialize_blocks();  
 
-#if defined(PIOS_INCLUDE_CHIBIOS)
 	halInit();
 	chSysInit();
 
 	boardInit();
-#endif /* defined(PIOS_INCLUDE_CHIBIOS) */
 
 	/* Brings up System using CMSIS functions, enables the LEDs. */
 	PIOS_SYS_Init();
 	
-	/* For Sparky2 we use a FreeRTOS task to bring up the system so we can */
-	/* always rely on FreeRTOS primitive */	
+	/* For Sparky2 we use an RTOS task to bring up the system so we can */
+	/* always rely on an RTOS primitive */	
 	initTaskHandle = PIOS_Thread_Create(initTask, "init", INIT_TASK_STACK, NULL, INIT_TASK_PRIORITY);
 	PIOS_Assert(initTaskHandle != NULL);
-	
-#if defined(PIOS_INCLUDE_FREERTOS)
-	/* Start the FreeRTOS scheduler */
-	vTaskStartScheduler();
 
-	/* If all is well we will never reach here as the scheduler will now be running. */
-	/* Do some PIOS_LED_HEARTBEAT to user that something bad just happened */
-	PIOS_LED_Off(PIOS_LED_HEARTBEAT); \
-	for(;;) { \
-		PIOS_LED_Toggle(PIOS_LED_HEARTBEAT); \
-		PIOS_DELAY_WaitmS(100); \
-	};
-#elif defined(PIOS_INCLUDE_CHIBIOS)
 	while(1)
 		PIOS_Thread_Sleep(PIOS_THREAD_TIMEOUT_MAX);
-#endif /* defined(PIOS_INCLUDE_CHIBIOS) */
 
 	return 0;
 }
