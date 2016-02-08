@@ -848,8 +848,8 @@ void PIOS_HAL_ConfigureRFM22B(HwSharedRadioPortOptions radio_type,
 }
 #endif /* PIOS_INCLUDE_RFM22B */
 
-/* Needs some safety margin over 500. */
-#define BT_COMMAND_DELAY 575
+/* Needs some safety margin over 1000. */
+#define BT_COMMAND_DELAY 1100
 
 void PIOS_HAL_ConfigureSerialSpeed(uintptr_t com_id,
 		HwSharedSpeedBpsOptions speed) {
@@ -878,7 +878,7 @@ void PIOS_HAL_ConfigureSerialSpeed(uintptr_t com_id,
 		case HWSHARED_SPEEDBPS_INITHM10:
 			PIOS_COM_ChangeBaud(com_id, 9600);
 
-			/* 3.75 seconds, ouch. */
+			/* 8 seconds, ouch. */
 			PIOS_Thread_Sleep(BT_COMMAND_DELAY / 2);
 			PIOS_COM_SendString(com_id,"AT+NAMEdRonin");
 			PIOS_Thread_Sleep(BT_COMMAND_DELAY);
@@ -899,32 +899,34 @@ void PIOS_HAL_ConfigureSerialSpeed(uintptr_t com_id,
 			/* Some modules default to 38400, some to 9600.
 			 * Best effort to work with 38400. */
 
-			/* 2.3 second init time. */
+			/* ~4.5 second init time. */
 			PIOS_COM_ChangeBaud(com_id, 38400);
-			PIOS_COM_SendString(com_id,"AT+BAUD4"); // 9600
+			PIOS_COM_SendString(com_id,"AT+BAUD8"); // 115200
 			PIOS_Thread_Sleep(BT_COMMAND_DELAY);
-			PIOS_COM_ChangeBaud(com_id, 9600);
 
+			PIOS_COM_ChangeBaud(com_id, 9600);
+			PIOS_COM_SendString(com_id,"AT+BAUD8"); 
+			PIOS_Thread_Sleep(BT_COMMAND_DELAY);
+
+			PIOS_COM_ChangeBaud(com_id, 115200); 
 			PIOS_COM_SendString(com_id,"AT+NAMEdRonin");
 			PIOS_Thread_Sleep(BT_COMMAND_DELAY);
 			PIOS_COM_SendString(com_id,"AT+PIN0000");
 			PIOS_Thread_Sleep(BT_COMMAND_DELAY);
-			PIOS_COM_SendString(com_id,"AT+BAUD8"); // 115200
-			PIOS_Thread_Sleep(BT_COMMAND_DELAY);
-			PIOS_COM_ChangeBaud(com_id, 115200);
 			break;
 
 		case HWSHARED_SPEEDBPS_INITHC05:
 			/* Some modules default to 38400, some to 9600.
 			 * Best effort to work with 38400. */
 
-			/* 1.7 second init time; not silence delimited */
+			/* Not silence delimited; but usually requires you to
+			 * push a button at magical timing */
 			PIOS_COM_ChangeBaud(com_id, 38400);
 			PIOS_COM_SendString(com_id,"AT+UART=115200,0,0\r\n"); // 9600
-			PIOS_Thread_Sleep(BT_COMMAND_DELAY);
+			PIOS_Thread_Sleep(BT_COMMAND_DELAY/2);
 			PIOS_COM_ChangeBaud(com_id, 9600);
 			PIOS_COM_SendString(com_id,"AT+UART=115200,0,0\r\n"); // 9600
-			PIOS_Thread_Sleep(BT_COMMAND_DELAY);
+			PIOS_Thread_Sleep(BT_COMMAND_DELAY/2);
 
 			PIOS_COM_ChangeBaud(com_id, 115200);
 
