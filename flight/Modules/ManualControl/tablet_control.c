@@ -6,8 +6,8 @@
  * @{
  *
  * @file       tablet_control.c
+ * @author     dRonin, http://dRonin.org/, Copyright (C) 2015-2016
  * @author     Tau Labs, http://taulabs.org, Copyright (C) 2013-2015
- * @author     dRonin, http://dronin.org Copyright (C) 2015
  * @brief      Use tablet for control source
  *
  * @see        The GNU Public License (GPL) Version 3
@@ -27,6 +27,10 @@
  * You should have received a copy of the GNU General Public License along
  * with this program; if not, write to the Free Software Foundation, Inc.,
  * 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
+ *
+ * Additional note on redistribution: The copyright and license notices above
+ * must be maintained in each individual source file that is a derivative work
+ * of this source file; otherwise redistribution is prohibited.
  */
 
 #include "openpilot.h"
@@ -100,7 +104,7 @@ int32_t tablet_control_select(bool reset_controller)
 			LoiterCommandData loiterCommand;
 			loiterCommand.Pitch = 0;
 			loiterCommand.Roll = 0;
-			loiterCommand.Throttle = 0.5f;
+			loiterCommand.Thrust = 0.5f;
 			loiterCommand.Frame = LOITERCOMMAND_FRAME_BODY;
 			LoiterCommandSet(&loiterCommand);
 

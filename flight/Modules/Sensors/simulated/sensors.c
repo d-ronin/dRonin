@@ -6,8 +6,9 @@
  * @{
  *
  * @file       sensors.c
- * @author     The OpenPilot Team, http://www.openpilot.org Copyright (C) 2010.
+ * @author     dRonin, http://dRonin.org/, Copyright (C) 2015-2016
  * @author     Tau Labs, http://taulabs.org, Copyright (C) 2013-2014
+ * @author     The OpenPilot Team, http://www.openpilot.org Copyright (C) 2010.
  * @brief      Update available sensors registered with @ref PIOS_Sensors
  *
  * @see        The GNU Public License (GPL) Version 3
@@ -27,6 +28,10 @@
  * You should have received a copy of the GNU General Public License along
  * with this program; if not, write to the Free Software Foundation, Inc.,
  * 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
+ *
+ * Additional note on redistribution: The copyright and license notices above
+ * must be maintained in each individual source file that is a derivative work
+ * of this source file; otherwise redistribution is prohibited.
  */
 
 #include "pios.h"
@@ -336,7 +341,7 @@ static void simulateModelQuadcopter()
 	ActuatorDesiredData actuatorDesired;
 	ActuatorDesiredGet(&actuatorDesired);
 
-	float thrust = (flightStatus.Armed == FLIGHTSTATUS_ARMED_ARMED) ? actuatorDesired.Throttle * MAX_THRUST : 0;
+	float thrust = (flightStatus.Armed == FLIGHTSTATUS_ARMED_ARMED) ? actuatorDesired.Thrust * MAX_THRUST : 0;
 	if (thrust < 0)
 		thrust = 0;
 	
@@ -577,7 +582,7 @@ static void simulateModelAirplane()
 	ActuatorDesiredData actuatorDesired;
 	ActuatorDesiredGet(&actuatorDesired);
 	
-	float thrust = (flightStatus.Armed == FLIGHTSTATUS_ARMED_ARMED) ? actuatorDesired.Throttle * MAX_THRUST : 0;
+	float thrust = (flightStatus.Armed == FLIGHTSTATUS_ARMED_ARMED) ? actuatorDesired.Thrust * MAX_THRUST : 0;
 	if (thrust < 0)
 		thrust = 0;
 	
@@ -869,7 +874,7 @@ static void simulateModelCar()
 	ActuatorDesiredData actuatorDesired;
 	ActuatorDesiredGet(&actuatorDesired);
 	
-	float thrust = (flightStatus.Armed == FLIGHTSTATUS_ARMED_ARMED) ? actuatorDesired.Throttle * MAX_THRUST : 0;
+	float thrust = (flightStatus.Armed == FLIGHTSTATUS_ARMED_ARMED) ? actuatorDesired.Thrust * MAX_THRUST : 0;
 	if (thrust < 0)
 		thrust = 0;
 	

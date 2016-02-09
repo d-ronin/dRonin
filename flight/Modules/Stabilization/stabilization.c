@@ -58,6 +58,8 @@
 #include "stabilizationsettings.h"
 #include "subtrim.h"
 #include "subtrimsettings.h"
+#include "systemsettings.h"
+#include "manualcontrolcommand.h"
 
 // Math libraries
 #include "coordinate_conversions.h"
@@ -130,6 +132,17 @@ static void stabilizationTask(void* parameters);
 static void zero_pids(void);
 static void calculate_pids(void);
 static void SettingsUpdatedCb(UAVObjEvent * objEv, void *ctx, void *obj, int len);
+static float get_throttle(StabilizationDesiredData *stabilization_desired, SystemSettingsAirframeTypeOptions *airframe_type);
+
+static float get_throttle(StabilizationDesiredData *stabilization_desired, SystemSettingsAirframeTypeOptions *airframe_type)
+{
+	if (*airframe_type == SYSTEMSETTINGS_AIRFRAMETYPE_HELICP) {
+		float heli_throttle;
+		ManualControlCommandThrottleGet( &heli_throttle );
+		return heli_throttle;
+	}
+	return stabilization_desired->Thrust;
+}
 
 /**
  * Module initialization
@@ -167,12 +180,14 @@ int32_t StabilizationInitialize()
 	ActuatorDesiredInitialize();
 	SubTrimInitialize();
 	SubTrimSettingsInitialize();
+	ManualControlCommandInitialize();
 #if defined(RATEDESIRED_DIAGNOSTICS)
 	RateDesiredInitialize();
 #endif
 
 	return 0;
 }
+
 
 MODULE_INITCALL(StabilizationInitialize, StabilizationStart);
 
@@ -191,6 +206,7 @@ static void stabilizationTask(void* parameters)
 	AttitudeActualData attitudeActual;
 	GyrosData gyrosData;
 	FlightStatusData flightStatus;
+	SystemSettingsAirframeTypeOptions airframe_type;
 
 	float *stabDesiredAxis = &stabDesired.Roll;
 	float *actuatorDesiredAxis = &actuatorDesired.Roll;
@@ -261,7 +277,8 @@ static void stabilizationTask(void* parameters)
 		AttitudeActualGet(&attitudeActual);
 		GyrosGet(&gyrosData);
 		ActuatorDesiredGet(&actuatorDesired);
-		actuatorDesired.Throttle = stabDesired.Throttle;
+		SystemSettingsAirframeTypeGet(&airframe_type);
+		actuatorDesired.Thrust = stabDesired.Thrust;
 
 #if defined(RATEDESIRED_DIAGNOSTICS)
 		RateDesiredGet(&rateDesired);
@@ -349,23 +366,44 @@ static void stabilizationTask(void* parameters)
 			float raw_input = (&stabDesired.Roll)[i];
 
 			if (mode == STABILIZATIONDESIRED_STABILIZATIONMODE_FAILSAFE) {
-				actuatorDesired.Throttle = -1.0f;
+				// helicp needs everything zeroed
+				if (airframe_type == SYSTEMSETTINGS_AIRFRAMETYPE_HELICP) {
+					actuatorDesired.Thrust = 0.0f;
+					switch (i) {
+						case 0: /* Roll */
+							mode = STABILIZATIONDESIRED_STABILIZATIONMODE_ATTITUDE;
+							raw_input = 0;
+							break;
+						case 1:
+						default:
+							mode = STABILIZATIONDESIRED_STABILIZATIONMODE_ATTITUDE;
+							raw_input = 0;
+							break;
+						case 2:
+							mode = STABILIZATIONDESIRED_STABILIZATIONMODE_RATE;
+							raw_input = 0;
+							break;
+					}
+				}
+				else
+				{
+					actuatorDesired.Thrust = -1.0f;
 
-
-				switch (i) {
-					case 0: /* Roll */
-						mode = STABILIZATIONDESIRED_STABILIZATIONMODE_ATTITUDE;
-						raw_input = -10;
-						break;
-					case 1:
-					default:
-						mode = STABILIZATIONDESIRED_STABILIZATIONMODE_ATTITUDE;
-						raw_input = 0;
-						break;
-					case 2:
-						mode = STABILIZATIONDESIRED_STABILIZATIONMODE_RATE;
-						raw_input = -5;
-						break;
+					switch (i) {
+						case 0: /* Roll */
+							mode = STABILIZATIONDESIRED_STABILIZATIONMODE_ATTITUDE;
+							raw_input = -10;
+							break;
+						case 1:
+						default:
+							mode = STABILIZATIONDESIRED_STABILIZATIONMODE_ATTITUDE;
+							raw_input = 0;
+							break;
+						case 2:
+							mode = STABILIZATIONDESIRED_STABILIZATIONMODE_RATE;
+							raw_input = -5;
+							break;
+					}
 				}
 			}
 
@@ -526,12 +564,12 @@ static void stabilizationTask(void* parameters)
 					*/
 
 
-					// dynamic PIDs are scaled both by throttle and stick position
+					// dynamic PIDs are scaled both by thrust and stick position
 					float scale = (i == 0 || i == 1) ? mwrate_settings.RollPitchRate : mwrate_settings.YawRate;
 					float pid_scale = (100.0f - scale * fabsf(raw_input)) / 100.0f;
 					float dynP8 = pids[PID_GROUP_MWR + i].p * pid_scale;
 					float dynD8 = pids[PID_GROUP_MWR + i].d * pid_scale;
-					// these terms are used by the integral loop this proportional term is scaled by throttle (this is different than MW
+					// these terms are used by the integral loop this proportional term is scaled by thrust (this is different than MW
 					// that does not apply scale 
 					float cfgP8 = pids[PID_GROUP_MWR + i].p;
 					float cfgI8 = pids[PID_GROUP_MWR + i].i;
@@ -800,7 +838,7 @@ static void stabilizationTask(void* parameters)
 		ActuatorDesiredSet(&actuatorDesired);
 
 		if(flightStatus.Armed != FLIGHTSTATUS_ARMED_ARMED ||
-		   (lowThrottleZeroIntegral && stabDesired.Throttle < 0))
+		   (lowThrottleZeroIntegral && get_throttle(&stabDesired, &airframe_type) < 0))
 		{
 			// Force all axes to reinitialize when engaged
 			for(uint8_t i=0; i< MAX_AXES; i++)
@@ -839,13 +877,13 @@ static void calculate_pids()
 	float pitch_scale = 1.0f;
 	float yaw_scale = 1.0f;
 
-	// Fetch the current throttle settings
-	float throttle;
-	StabilizationDesiredThrottleGet(&throttle);
+	// Fetch the current thrust settings
+	float thrust;
+	StabilizationDesiredThrustGet(&thrust);
 
-	// Calculate the desired PID suppression based on throttle settings. This is
+	// Calculate the desired PID suppression based on thrust settings. This is
 	// similar to an algorithm used by MultiWii and empirically works well. It
-	// creates a piecewise linear suppression of PIDs versus throttle.
+	// creates a piecewise linear suppression of PIDs versus thrust.
 	for (uint32_t i = 0; i < 3; i++) {
 		float attenuation;
 		float threshold;
@@ -867,12 +905,12 @@ static void calculate_pids()
 		}
 
 		// Ensure everything is in a valid range to keep scale well behaved
-		if (throttle > 0 && throttle < 1.0f &&
+		if (thrust > 0 && thrust < 1.0f &&
 			attenuation > 0 && attenuation < 0.9f &&
 			threshold > 0 && threshold < 1) {
 
-			if (throttle > threshold)
-				scale = 1.0f - attenuation * (throttle - threshold) / (1.0f - threshold);
+			if (thrust > threshold)
+				scale = 1.0f - attenuation * (thrust - threshold) / (1.0f - threshold);
 		}
 
 		switch(i) {
@@ -1021,7 +1059,7 @@ static void SettingsUpdatedCb(UAVObjEvent * ev, void *ctx, void *obj, int len)
 		weak_leveling_kp = settings.WeakLevelingKp;
 		weak_leveling_max = settings.MaxWeakLevelingRate;
 
-		// Whether to zero the PID integrals while throttle is low
+		// Whether to zero the PID integrals while thrust is low
 		lowThrottleZeroIntegral = settings.LowThrottleZeroIntegral == STABILIZATIONSETTINGS_LOWTHROTTLEZEROINTEGRAL_TRUE;
 
 		gyro_filter_updated = true;

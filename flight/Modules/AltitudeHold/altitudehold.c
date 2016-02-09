@@ -6,6 +6,7 @@
  * @{
  *
  * @file       altitudehold.c
+ * @author     dRonin, http://dRonin.org/, Copyright (C) 2015-2016
  * @author     Tau Labs, http://taulabs.org, Copyright (C) 2012-2014
  * @brief      This module runs an EKF to estimate altitude from just a barometric
  *             sensor and controls throttle to hold a fixed altitude
@@ -27,6 +28,10 @@
  * You should have received a copy of the GNU General Public License along
  * with this program; if not, write to the Free Software Foundation, Inc.,
  * 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
+ *
+ * Additional note on redistribution: The copyright and license notices above
+ * must be maintained in each individual source file that is a derivative work
+ * of this source file; otherwise redistribution is prohibited.
  */
 
 /**
@@ -159,7 +164,7 @@ static void altitudeHoldTask(void *parameters)
 
 			if (flight_mode == FLIGHTSTATUS_FLIGHTMODE_ALTITUDEHOLD && !engaged) {
 				// Copy the current throttle as a starting point for integral
-				StabilizationDesiredThrottleGet(&velocity_pid.iAccumulator);
+				StabilizationDesiredThrustGet(&velocity_pid.iAccumulator);
 				engaged = true;
 
 				// Make sure this uses a valid AltitudeHoldDesired. No delay is really required here
@@ -214,7 +219,7 @@ static void altitudeHoldTask(void *parameters)
 			altitudeHoldState.AngleGain = 1.0f;
 
 			if (altitudeHoldSettings.AttitudeComp > 0) {
-				// Throttle desired is at this point the mount desired in the up direction, we can
+				// Thrust desired is at this point the mount desired in the up direction, we can
 				// account for the attitude if desired
 				AttitudeActualData attitudeActual;
 				AttitudeActualGet(&attitudeActual);
@@ -239,11 +244,11 @@ static void altitudeHoldTask(void *parameters)
 				altitudeHoldState.AngleGain = 1.0f / fraction;
 			}
 
-			altitudeHoldState.Throttle = throttle_desired;
+			altitudeHoldState.Thrust = throttle_desired;
 			AltitudeHoldStateSet(&altitudeHoldState);
 
 			StabilizationDesiredGet(&stabilizationDesired);
-			stabilizationDesired.Throttle = bound_min_max(throttle_desired, min_throttle, 1.0f);
+			stabilizationDesired.Thrust = bound_min_max(throttle_desired, min_throttle, 1.0f);
 
 			if (landing) {
 				stabilizationDesired.StabilizationMode[STABILIZATIONDESIRED_STABILIZATIONMODE_ROLL] = STABILIZATIONDESIRED_STABILIZATIONMODE_ATTITUDE;

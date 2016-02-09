@@ -4,17 +4,17 @@
  * @{
  * @addtogroup ActuatorModule Actuator Module
  * @{
+ *
+ * @file       actuator.c
+ * @author     dRonin, http://dRonin.org/, Copyright (C) 2015-2016
+ * @author     Tau Labs, http://taulabs.org, Copyright (C) 2013-2015
+ * @author     The OpenPilot Team, http://www.openpilot.org Copyright (C) 2010.
+ * @brief      Actuator module. Drives the actuators (servos, motors etc).
  * @brief      Take the values in @ref ActuatorDesired and mix to set the outputs
  *
  * This module ultimately controls the outputs.  The values from @ref ActuatorDesired
  * are combined based on the values in @ref MixerSettings and then scaled by the
  * values in @ref ActuatorSettings to create the output PWM times.
- *
- * @file       actuator.c
- * @author     The OpenPilot Team, http://www.openpilot.org Copyright (C) 2010.
- * @author     Tau Labs, http://taulabs.org, Copyright (C) 2013-2015
- * @author     dRonin, http://dronin.org Copyright (C) 2015-2016
- * @brief      Actuator module. Drives the actuators (servos, motors etc).
  *
  * @see        The GNU Public License (GPL) Version 3
  *
@@ -146,13 +146,18 @@ int32_t ActuatorInitialize()
 }
 MODULE_INITCALL(ActuatorInitialize, ActuatorStart);
 
-static float get_curve2_source(ActuatorDesiredData *desired, MixerSettingsCurve2SourceOptions source)
+static float get_curve2_source(ActuatorDesiredData *desired, SystemSettingsAirframeTypeOptions airframe_type, MixerSettingsCurve2SourceOptions source)
 {
 	float tmp;
 
 	switch (source) {
 	case MIXERSETTINGS_CURVE2SOURCE_THROTTLE:
-		return desired->Throttle;
+		if(airframe_type == SYSTEMSETTINGS_AIRFRAMETYPE_HELICP)
+		{
+			ManualControlCommandThrottleGet(&tmp);
+			return tmp;
+		}
+		return desired->Thrust;
 		break;
 	case MIXERSETTINGS_CURVE2SOURCE_ROLL:
 		return desired->Roll;
@@ -164,6 +169,10 @@ static float get_curve2_source(ActuatorDesiredData *desired, MixerSettingsCurve2
 		return desired->Yaw;
 		break;
 	case MIXERSETTINGS_CURVE2SOURCE_COLLECTIVE:
+		if (airframe_type == SYSTEMSETTINGS_AIRFRAMETYPE_HELICP)
+		{
+			return desired->Thrust;
+		}
 		ManualControlCommandCollectiveGet(&tmp);
 		return tmp;
 		break;
@@ -208,6 +217,9 @@ static void actuator_task(void* parameters)
 	ActuatorDesiredData desired;
 	MixerStatusData mixerStatus;
 	FlightStatusData flightStatus;
+	ManualControlCommandData manual_control_command;
+
+	SystemSettingsAirframeTypeOptions airframe_type;
 
 	/* Read initial values of ActuatorSettings */
 	settings_updated = true;
@@ -225,6 +237,7 @@ static void actuator_task(void* parameters)
 			ActuatorSettingsGet(&actuatorSettings);
 			actuator_update_rate_if_changed(false);
 			MixerSettingsGet(&mixerSettings);
+			SystemSettingsAirframeTypeGet(&airframe_type);
 		}
 
 		if (rc != true) {
@@ -255,6 +268,7 @@ static void actuator_task(void* parameters)
 		FlightStatusGet(&flightStatus);
 		ActuatorDesiredGet(&desired);
 		ActuatorCommandGet(&command);
+		ManualControlCommandGet(&manual_control_command);
 
 #if defined(MIXERSTATUS_DIAGNOSTICS)
 		MixerStatusGet(&mixerStatus);
@@ -272,14 +286,25 @@ static void actuator_task(void* parameters)
 		}
 
 		bool armed = flightStatus.Armed == FLIGHTSTATUS_ARMED_ARMED;
-		bool positiveThrottle = desired.Throttle >= 0.00f;
 		bool spinWhileArmed = actuatorSettings.MotorsSpinWhileArmed == ACTUATORSETTINGS_MOTORSSPINWHILEARMED_TRUE;
 
-		float curve1 = throt_curve(desired.Throttle, mixerSettings.ThrottleCurve1, MIXERSETTINGS_THROTTLECURVE1_NUMELEM);
+		float throttle_source = -1;
+		// as long as we're not a heli in failsafe mode, we should set throttle from the manual throttle value
+		// if we're not a heli, set it from the thrust value
+		if (airframe_type == SYSTEMSETTINGS_AIRFRAMETYPE_HELICP) {
+			if (flightStatus.FlightMode != FLIGHTSTATUS_FLIGHTMODE_FAILSAFE) {
+				throttle_source = manual_control_command.Throttle;
+			}
+		}
+		else throttle_source = desired.Thrust;
+
+		bool positiveThrottle = throttle_source >= 0.00f;
+
+		float curve1 = throt_curve(throttle_source, mixerSettings.ThrottleCurve1, MIXERSETTINGS_THROTTLECURVE1_NUMELEM);
 
 		//The source for the secondary curve is selectable
 		float curve2 = collective_curve(
-				get_curve2_source(&desired, mixerSettings.Curve2Source),
+				get_curve2_source(&desired, airframe_type, mixerSettings.Curve2Source),
 				mixerSettings.ThrottleCurve2,
 				MIXERSETTINGS_THROTTLECURVE2_NUMELEM);
 

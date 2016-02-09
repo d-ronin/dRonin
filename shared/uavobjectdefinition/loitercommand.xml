@@ -3,7 +3,7 @@
 		<description>Requested movement while in loiter mode</description>
 		<field name="Pitch" units="" type="float" elements="1"/>
 		<field name="Roll" units="" type="float" elements="1"/>
-		<field name="Throttle" units="" type="float" elements="1"/>
+		<field name="Thrust" units="" type="float" elements="1"/>
 		<field name="Frame" units="" type="enum" elements="1" options="Body,Earth" default="Body"/>
 		<access gcs="readwrite" flight="readwrite"/>
 		<telemetrygcs acked="false" updatemode="manual" period="0"/>

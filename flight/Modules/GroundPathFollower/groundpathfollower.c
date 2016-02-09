@@ -6,11 +6,13 @@
  * @{
  *
  * @file       groundpathfollower.c
- * @author     The OpenPilot Team, http://www.openpilot.org Copyright (C) 2012.
+ * @author     dRonin, http://dRonin.org/, Copyright (C) 2015-2016
  * @author     Tau Labs, http://taulabs.org, Copyright (C) 2013-2014
- * @author     dRonin, http://dronin.org Copyright (C) 2015
+ * @author     The OpenPilot Team, http://www.openpilot.org Copyright (C) 2012.
  * @brief      Perform the path segment requested by @ref PathDesired
-
+ *
+ * @see        The GNU Public License (GPL) Version 3
+ *
  *****************************************************************************/
 /*
  * This program is free software; you can redistribute it and/or modify
@@ -26,6 +28,10 @@
  * You should have received a copy of the GNU General Public License along
  * with this program; if not, write to the Free Software Foundation, Inc.,
  * 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
+ *
+ * Additional note on redistribution: The copyright and license notices above
+ * must be maintained in each individual source file that is a derivative work
+ * of this source file; otherwise redistribution is prohibited.
  */
 
 /**
@@ -234,7 +240,7 @@ static void groundPathFollowerTask(void *parameters)
 				// Track throttle before engaging this mode.  Cheap system ident
 				StabilizationDesiredData stabDesired;
 				StabilizationDesiredGet(&stabDesired);
-				throttleOffset = stabDesired.Throttle;
+				throttleOffset = stabDesired.Thrust;
 
 				break;
 		}
@@ -392,7 +398,7 @@ static void updateGroundDesiredAttitude()
 	// Calculate direction from velocityDesired and set stabDesired.Yaw
 	stabDesired.Yaw = atan2f( velocityDesired.East, velocityDesired.North ) * RAD2DEG;
 
-	// Calculate throttle and set stabDesired.Throttle
+	// Calculate throttle and set stabDesired.Thrust
 	float velDesired = sqrtf(powf(velocityDesired.East,2) + powf(velocityDesired.North,2));
 	float velActual = sqrtf(powf(eastVel,2) + powf(northVel,2));
 	ManualControlCommandData manualControlData;
@@ -400,24 +406,24 @@ static void updateGroundDesiredAttitude()
 	switch (guidanceSettings.ThrottleControl) {
 		case GROUNDPATHFOLLOWERSETTINGS_THROTTLECONTROL_MANUAL:
 		{
-			stabDesired.Throttle = manualControlData.Throttle;
+			stabDesired.Thrust = manualControlData.Throttle;
 			break;
 		}
 		case GROUNDPATHFOLLOWERSETTINGS_THROTTLECONTROL_PROPORTIONAL:
 		{
 			float velRatio = velDesired / guidanceSettings.HorizontalVelMax;
-			stabDesired.Throttle = guidanceSettings.MaxThrottle * velRatio;
+			stabDesired.Thrust = guidanceSettings.MaxThrottle * velRatio;
 			if (guidanceSettings.ManualOverride == GROUNDPATHFOLLOWERSETTINGS_MANUALOVERRIDE_TRUE) {
-				stabDesired.Throttle = stabDesired.Throttle * manualControlData.Throttle;
+				stabDesired.Thrust = stabDesired.Thrust * manualControlData.Throttle;
 			}
 			break;
 		}
 		case GROUNDPATHFOLLOWERSETTINGS_THROTTLECONTROL_AUTO:
 		{
 			float velError = velDesired - velActual;
-			stabDesired.Throttle = pid_apply(&ground_pids[VELOCITY], velError, dT) + velDesired * guidanceSettings.VelocityFeedforward;
+			stabDesired.Thrust = pid_apply(&ground_pids[VELOCITY], velError, dT) + velDesired * guidanceSettings.VelocityFeedforward;
 			if (guidanceSettings.ManualOverride == GROUNDPATHFOLLOWERSETTINGS_MANUALOVERRIDE_TRUE) {
-				stabDesired.Throttle = stabDesired.Throttle * manualControlData.Throttle;
+				stabDesired.Thrust = stabDesired.Thrust * manualControlData.Throttle;
 			}
 			break;
 		}
@@ -429,7 +435,7 @@ static void updateGroundDesiredAttitude()
 	}
 
 	// Limit throttle as per settings
-	stabDesired.Throttle = bound_min_max(stabDesired.Throttle, 0, guidanceSettings.MaxThrottle);
+	stabDesired.Thrust = bound_min_max(stabDesired.Thrust, 0, guidanceSettings.MaxThrottle);
 
 	// Set StabilizationDesired object
 	stabDesired.StabilizationMode[STABILIZATIONDESIRED_STABILIZATIONMODE_ROLL] = STABILIZATIONDESIRED_STABILIZATIONMODE_ATTITUDE;

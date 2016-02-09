@@ -1,14 +1,15 @@
 /**
  ******************************************************************************
  * @addtogroup TauLabsModules TauLabs Modules
- * @{ 
+ * @{
  * @addtogroup UAVOMavlinkBridge UAVO to Mavlink Bridge Module
- * @{ 
+ * @{
  *
  * @file       UAVOMavlinkBridge.c
+ * @author     dRonin, http://dRonin.org/, Copyright (C) 2015-2016
  * @author     Tau Labs, http://taulabs.org, Copyright (C) 2013-2014
- * @author     dRonin, http://dronin.org Copyright (C) 2015-2016
  * @brief      Bridges selected UAVObjects to Mavlink
+ *
  * @see        The GNU Public License (GPL) Version 3
  *
  *****************************************************************************/
@@ -399,7 +400,7 @@ static void uavoMavlinkBridgeTask(void *parameters) {
 					// heading Current heading in degrees, in compass units (0..360, 0=north)
 					heading,
 					// throttle Current throttle setting in integer percent, 0 to 100
-					actDesired.Throttle * 100,
+					actDesired.Thrust * 100,
 					// alt Current altitude (MSL), in meters
 					altitude,
 					// climb Current climb rate in meters/second
