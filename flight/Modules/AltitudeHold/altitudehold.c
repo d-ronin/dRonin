@@ -173,6 +173,7 @@ static void altitudeHoldTask(void *parameters)
 			timeout = engaged ? dt_ms : 100;
 
 			continue;
+
 		} else if (ev.obj == AltitudeHoldSettingsHandle()) {
 			AltitudeHoldSettingsGet(&altitudeHoldSettings);
 
