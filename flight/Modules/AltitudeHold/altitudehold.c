@@ -150,8 +150,8 @@ static void altitudeHoldTask(void *parameters)
 
 	// Main task loop
 	const uint32_t dt_ms = 20;
-	const float dt_s = dt_ms * 0.001f;
 	uint32_t timeout = dt_ms;
+	uint32_t timeval = PIOS_DELAY_GetRaw();
 
 	while (1) {
 		if (PIOS_Queue_Receive(queue, &ev, timeout) != true) {
@@ -165,6 +165,7 @@ static void altitudeHoldTask(void *parameters)
 				// Copy the current throttle as a starting point for integral
 				StabilizationDesiredThrustGet(&velocity_pid.iAccumulator);
 				engaged = true;
+				timeval = PIOS_DELAY_GetRaw();
 
 			} else if (flight_mode != FLIGHTSTATUS_FLIGHTMODE_ALTITUDEHOLD)
 				engaged = false;
@@ -202,11 +203,13 @@ static void altitudeHoldTask(void *parameters)
 			altitude_error = altitudeHoldDesired.Altitude - position_z;
 
 			// Velocity desired is from the outer controller plus the set point
+			float dT = PIOS_DELAY_DiffuS(timeval) * 1.0e-6f;
+			timeval = PIOS_DELAY_GetRaw();
 			float velocity_desired = altitude_error * altitudeHoldSettings.PositionKp + altitudeHoldDesired.ClimbRate;
 			float throttle_desired = pid_apply_antiwindup(&velocity_pid, 
 			                    velocity_desired - velocity_z,
 			                    min_throttle, 1.0f, // positive limits since this is throttle
-			                    dt_s);
+			                    dT);
 
 			AltitudeHoldStateData altitudeHoldState;
 			altitudeHoldState.VelocityDesired = velocity_desired;
