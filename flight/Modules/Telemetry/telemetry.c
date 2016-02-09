@@ -406,7 +406,7 @@ static void telemetryRxTask(void *parameters)
 
 		if (inputPort) {
 			// Block until data are available
-			uint8_t serial_data[1];
+			uint8_t serial_data[16];
 			uint16_t bytes_to_process;
 
 			bytes_to_process = PIOS_COM_ReceiveBuffer(inputPort, serial_data, sizeof(serial_data), 500);
@@ -416,7 +416,7 @@ static void telemetryRxTask(void *parameters)
 				}
 			}
 		} else {
-			PIOS_Thread_Sleep(5);
+			PIOS_Thread_Sleep(3);
 		}
 	}
 }

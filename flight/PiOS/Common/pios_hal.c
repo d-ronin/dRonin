@@ -177,11 +177,11 @@ uintptr_t pios_com_debug_id;
 #endif
 
 #ifndef PIOS_COM_RFM22B_RF_RX_BUF_LEN
-#define PIOS_COM_RFM22B_RF_RX_BUF_LEN 512
+#define PIOS_COM_RFM22B_RF_RX_BUF_LEN 640
 #endif
 
 #ifndef PIOS_COM_RFM22B_RF_TX_BUF_LEN
-#define PIOS_COM_RFM22B_RF_TX_BUF_LEN 512
+#define PIOS_COM_RFM22B_RF_TX_BUF_LEN 640
 #endif
 
 /**
