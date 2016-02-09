@@ -64,12 +64,10 @@ void UsageStatsPlugin::readConfig(QSettings *qSettings, Core::UAVConfigInfo *con
     qSettings->beginGroup(QLatin1String("UsageStatistics"));
     sendUsageStats = (qSettings->value(QLatin1String("SendUsageStats"), sendUsageStats).toBool());
     sendPrivateData = (qSettings->value(QLatin1String("SendPrivateData"), sendPrivateData).toBool());
-
     //Check the Installation UUID and Generate a new one if required
     installationUUID = QUuid(qSettings->value(QLatin1String("InstallationUUID"),"").toString());
     if(installationUUID.isNull()){ //Create new UUID
         installationUUID = QUuid::createUuid();
-        qSettings->setValue(QLatin1String("InstallationUUID"), installationUUID.toString());
     }
 
     qSettings->endGroup();
@@ -81,6 +79,8 @@ void UsageStatsPlugin::saveConfig(QSettings *qSettings, Core::UAVConfigInfo *con
     qSettings->beginGroup(QLatin1String("UsageStatistics"));
     qSettings->setValue(QLatin1String("SendUsageStats"), sendUsageStats);
     qSettings->setValue(QLatin1String("SendPrivateData"), sendPrivateData);
+    qSettings->setValue(QLatin1String("InstallationUUID"), installationUUID.toString());
+
     qSettings->endGroup();
 }
 
