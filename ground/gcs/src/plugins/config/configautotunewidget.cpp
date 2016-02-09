@@ -92,8 +92,12 @@ ConfigAutotuneWidget::ConfigAutotuneWidget(QWidget *parent) :
     connect(m_autotune->useComputedValues, SIGNAL(pressed()), this, SLOT(saveStabilization()));
 
     connect(m_autotune->shareDataPB, SIGNAL(pressed()),this, SLOT(onShareData()));
+    connect(m_autotune->btnResetSliders, SIGNAL(pressed()), this, SLOT(resetSliders()));
 
     setNotMandatory(systemIdent->getName());
+
+    // force defaults in-case somebody tries to change them in UI and forgets to update this func
+    resetSliders();
 }
 
 /**
@@ -392,8 +396,8 @@ void ConfigAutotuneWidget::recomputeStabilization()
     m_autotune->rollTau->setText(QString::number(tau,'g',3));
     m_autotune->pitchTau->setText(QString::number(tau,'g',3));
     m_autotune->wn->setText(QString::number(wn / 2 / M_PI, 'f', 1));
-    m_autotune->lblDamp->setText(QString::number(damp, 'g', 2));
-    m_autotune->lblNoise->setText(QString::number(ghf * 100, 'g', 2) + " %");
+    m_autotune->lblDamp->setText(QString::number(damp, 'f', 2));
+    m_autotune->lblNoise->setText(QString::number(ghf * 100, 'f', 1) + " %");
 
 }
 
@@ -626,4 +630,10 @@ QJsonDocument ConfigAutotuneWidget::getResultsJson()
     json["rawSettings"] = rawSettings;
 
     return QJsonDocument(json);
+}
+
+void ConfigAutotuneWidget::resetSliders()
+{
+    m_autotune->rateDamp->setValue(110);
+    m_autotune->rateNoise->setValue(10);
 }
