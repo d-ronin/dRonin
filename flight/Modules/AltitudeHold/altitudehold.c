@@ -147,6 +147,7 @@ static void altitudeHoldTask(void *parameters)
 	// Main task loop
 	const uint32_t dt_ms = 20;
 	uint32_t timeout = dt_ms;
+	uint32_t timeval = PIOS_DELAY_GetRaw();
 
 	while (1) {
 		if (PIOS_Queue_Receive(queue, &ev, timeout) != true) {
@@ -160,7 +161,7 @@ static void altitudeHoldTask(void *parameters)
 				// Copy the current throttle as a starting point for integral
 				StabilizationDesiredThrottleGet(&velocity_pid.iAccumulator);
 				engaged = true;
-				uint32_t timeval = PIOS_DELAY_GetRaw();
+				timeval = PIOS_DELAY_GetRaw();
 
 			} else if (flight_mode != FLIGHTSTATUS_FLIGHTMODE_ALTITUDEHOLD)
 				engaged = false;
