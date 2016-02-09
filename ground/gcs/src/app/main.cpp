@@ -60,7 +60,6 @@
 #include <QBitmap>
 #include <QCommandLineParser>
 #include <QCommandLineOption>
-#include <QUuid>
 
 #include "libcrashreporter-qt/libcrashreporter-handler/Handler.h"
 
@@ -293,7 +292,6 @@ int main(int argc, char **argv)
         }
         overrideSettings(parser, settings);
         locale = settings->value("General/OverrideLanguage", locale).toString();
-
         settingsFilename = settings->fileName();
         delete settings;
     }
