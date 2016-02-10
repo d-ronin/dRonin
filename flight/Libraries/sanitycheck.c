@@ -242,6 +242,10 @@ static int32_t check_stabilization_settings(int index, bool multirotor)
  * If the system is disarmed, look for a variety of conditions that
  * make it unsafe to arm (that might not be dangerous to engage once
  * flying).
+ *
+ * Note this does not check every possible situation that prevents
+ * arming.  In particular, transmitter_control checks for failsafe and
+ * ranges and switch arming configuration to allow/prevent arming.
  */
 static int32_t check_safe_to_arm()
 {
