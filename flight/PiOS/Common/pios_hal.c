@@ -851,6 +851,8 @@ void PIOS_HAL_ConfigureRFM22B(HwSharedRadioPortOptions radio_type,
 /* Needs some safety margin over 1000. */
 #define BT_COMMAND_DELAY 1100
 
+#define BT_COMMAND_QDELAY 350
+
 void PIOS_HAL_ConfigureSerialSpeed(uintptr_t com_id,
 		HwSharedSpeedBpsOptions speed) {
 	switch (speed) {
@@ -878,21 +880,20 @@ void PIOS_HAL_ConfigureSerialSpeed(uintptr_t com_id,
 		case HWSHARED_SPEEDBPS_INITHM10:
 			PIOS_COM_ChangeBaud(com_id, 9600);
 
-			/* 8 seconds, ouch. */
-			PIOS_Thread_Sleep(BT_COMMAND_DELAY / 2);
-			PIOS_COM_SendString(com_id,"AT+NAMEdRonin");
-			PIOS_Thread_Sleep(BT_COMMAND_DELAY);
-			PIOS_COM_SendString(com_id,"AT+PIN000000");
-			PIOS_Thread_Sleep(BT_COMMAND_DELAY);
-			PIOS_COM_SendString(com_id,"AT+MODE0");
-			PIOS_Thread_Sleep(BT_COMMAND_DELAY);
-			PIOS_COM_SendString(com_id,"AT+SHOW1");
-			PIOS_Thread_Sleep(BT_COMMAND_DELAY);
-			PIOS_COM_SendString(com_id,"AT+RESET");
-			PIOS_Thread_Sleep(BT_COMMAND_DELAY);
 			PIOS_COM_SendString(com_id,"AT+BAUD4"); // 115200
-			PIOS_Thread_Sleep(BT_COMMAND_DELAY);
+			PIOS_Thread_Sleep(BT_COMMAND_QDELAY);
+
 			PIOS_COM_ChangeBaud(com_id, 115200);
+
+			PIOS_Thread_Sleep(BT_COMMAND_QDELAY);
+			PIOS_COM_SendString(com_id,"AT+NAMEdRonin");
+			PIOS_Thread_Sleep(BT_COMMAND_QDELAY);
+			PIOS_COM_SendString(com_id,"AT+PASS000000");
+			PIOS_Thread_Sleep(BT_COMMAND_QDELAY);
+			PIOS_COM_SendString(com_id,"AT+POWE3");
+			PIOS_Thread_Sleep(BT_COMMAND_QDELAY);
+			PIOS_COM_SendString(com_id,"AT+RESET");
+			PIOS_Thread_Sleep(BT_COMMAND_QDELAY);
 			break;
 
 		case HWSHARED_SPEEDBPS_INITHC06:
