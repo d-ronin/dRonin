@@ -43,9 +43,11 @@
 #include <QClipboard>
 #include <QtNetwork/QNetworkAccessManager>
 #include <QtNetwork/QNetworkRequest>
-#include "stabilizationsettings.h"
+#include "manualcontrolsettings.h"
+#include "mixersettings.h"
 #include "modulesettings.h"
 #include "sensorsettings.h"
+#include "stabilizationsettings.h"
 #include "systemident.h"
 #include "systemsettings.h"
 #include "coreplugin/generalsettings.h"
@@ -547,6 +549,12 @@ QJsonDocument ConfigAutotuneWidget::getResultsJson()
 
     SensorSettings *senSettings = SensorSettings::GetInstance(getObjectManager());
     rawSettings[senSettings->getName()] = senSettings->getJsonRepresentation();
+
+    ManualControlSettings *manSettings = ManualControlSettings::GetInstance(getObjectManager());
+    rawSettings[manSettings->getName()] = manSettings->getJsonRepresentation();
+
+    MixerSettings *mixSettings = MixerSettings::GetInstance(getObjectManager());
+    rawSettings[mixSettings->getName()] = mixSettings->getJsonRepresentation();
 
     // Query the board plugin for the connected board to get the specific
     // hw settings object
