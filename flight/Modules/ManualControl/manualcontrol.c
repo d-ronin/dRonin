@@ -289,6 +289,14 @@ bool ok_to_arm(void)
 		}
 	}
 
+	uint8_t flight_mode;
+	FlightStatusFlightModeGet(&flight_mode);
+
+	if (flight_mode == FLIGHTSTATUS_FLIGHTMODE_FAILSAFE) {
+		/* Separately mask FAILSAFE arming here. */
+		return false;
+	}
+
 	return true;
 }
 
