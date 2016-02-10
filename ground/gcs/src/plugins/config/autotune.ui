@@ -591,7 +591,7 @@ p, li { white-space: pre-wrap; }
               <item row="1" column="2">
                <widget class="QLabel" name="lblDamp">
                 <property name="text">
-                 <string>1.1</string>
+                 <string>1.10</string>
                 </property>
                </widget>
               </item>
@@ -661,7 +661,14 @@ p, li { white-space: pre-wrap; }
               <item row="2" column="2">
                <widget class="QLabel" name="lblNoise">
                 <property name="text">
-                 <string>1.0</string>
+                 <string>1.0 %</string>
+                </property>
+               </widget>
+              </item>
+              <item row="3" column="2">
+               <widget class="QPushButton" name="btnResetSliders">
+                <property name="text">
+                 <string>Reset Sliders</string>
                 </property>
                </widget>
               </item>

@@ -66,6 +66,7 @@ signals:
 public slots:
     void refreshWidgetsValues(UAVObject *obj);
     void updateObjectsFromWidgets();
+    void resetSliders();
 private slots:
     void recomputeStabilization();
     void saveStabilization();
