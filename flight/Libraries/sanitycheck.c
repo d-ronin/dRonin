@@ -264,6 +264,13 @@ static int32_t check_safe_to_arm()
 			case FLIGHTSTATUS_FLIGHTMODE_STABILIZED3:
 			case FLIGHTSTATUS_FLIGHTMODE_ALTITUDEHOLD:
 				break;
+
+			case FLIGHTSTATUS_FLIGHTMODE_FAILSAFE:
+				/* for failsafe, we don't want to prevent
+				 * arming here because it makes an ugly looking
+				 * GCS config error.
+				 */
+				break;
 			default:
 				// Any mode not specifically allowed prevents arming
 				return SYSTEMALARMS_CONFIGERROR_UNSAFETOARM;
