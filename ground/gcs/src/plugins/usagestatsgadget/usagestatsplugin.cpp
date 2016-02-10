@@ -66,7 +66,7 @@ void UsageStatsPlugin::readConfig(QSettings *qSettings, Core::UAVConfigInfo *con
     sendPrivateData = (qSettings->value(QLatin1String("SendPrivateData"), sendPrivateData).toBool());
     //Check the Installation UUID and Generate a new one if required
     installationUUID = QUuid(qSettings->value(QLatin1String("InstallationUUID"), "").toString());
-    if(installationUUID.isNull()) { //Create new UUID
+    if (installationUUID.isNull()) { //Create new UUID
         installationUUID = QUuid::createUuid();
     }
 
@@ -244,7 +244,7 @@ QByteArray UsageStatsPlugin::processJson() {
     json["currentArch"] = QSysInfo::currentCpuArchitecture();
     json["buildInfo"] = QSysInfo::buildAbi();
 
-    if(!installationUUID.isNull())
+    if (!installationUUID.isNull())
         json["installationUUID"] = getInstallationUUID();
 
     QJsonArray boardArray;
