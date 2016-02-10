@@ -31,7 +31,6 @@
 
 #include <QDialog>
 #include <QComboBox>
-#include <QProgressBar>
 
 namespace Ui {
 class AutotuneShareForm;
@@ -65,9 +64,7 @@ public:
     QString getESCs();
     void setProps(QString props);
     QString getProps();
-    void hideProgress(bool hide);
     void disableClipboard(bool disabled);
-    void disableDatabase(bool disabled);
 
 signals:
     void ClipboardRequest();
@@ -75,8 +72,7 @@ signals:
 
 public slots:
     void onClipboardClicked();
-    void onDatabaseClick();
-    void setProgress(qint64 value, qint64 total);
+    void onFinished(int code);
 
 private:
     Ui::AutotuneShareForm *ui;

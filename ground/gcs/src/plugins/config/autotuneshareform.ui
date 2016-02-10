@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>449</width>
-    <height>488</height>
+    <height>420</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -236,33 +236,6 @@
     </widget>
    </item>
    <item>
-    <widget class="QCommandLinkButton" name="btnDatabase">
-     <property name="toolTip">
-      <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Send the results to the dRonin autotune results database. This is used to assess trends. A unique device ID is sent with this data.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-     </property>
-     <property name="text">
-      <string>Send to Database</string>
-     </property>
-     <property name="icon">
-      <iconset resource="configgadget.qrc">
-       <normaloff>:/configgadget/images/ic_cloud_upload_48px.svg</normaloff>:/configgadget/images/ic_cloud_upload_48px.svg</iconset>
-     </property>
-     <property name="autoDefault">
-      <bool>false</bool>
-     </property>
-    </widget>
-   </item>
-   <item>
-    <widget class="QProgressBar" name="progress">
-     <property name="value">
-      <number>0</number>
-     </property>
-     <property name="textVisible">
-      <bool>true</bool>
-     </property>
-    </widget>
-   </item>
-   <item>
     <spacer name="verticalSpacer">
      <property name="orientation">
       <enum>Qt::Vertical</enum>
@@ -276,11 +249,37 @@
     </spacer>
    </item>
    <item>
-    <widget class="QDialogButtonBox" name="btnBar">
-     <property name="standardButtons">
-      <set>QDialogButtonBox::Close</set>
+    <layout class="QHBoxLayout" name="horizontalLayout">
+     <property name="topMargin">
+      <number>0</number>
      </property>
-    </widget>
+     <property name="bottomMargin">
+      <number>0</number>
+     </property>
+     <item>
+      <widget class="QCheckBox" name="cbDatabase">
+       <property name="text">
+        <string>Send to database</string>
+       </property>
+       <property name="checked">
+        <bool>true</bool>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QDialogButtonBox" name="btnBar">
+       <property name="sizePolicy">
+        <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+         <horstretch>0</horstretch>
+         <verstretch>0</verstretch>
+        </sizepolicy>
+       </property>
+       <property name="standardButtons">
+        <set>QDialogButtonBox::Close</set>
+       </property>
+      </widget>
+     </item>
+    </layout>
    </item>
   </layout>
  </widget>
@@ -293,8 +292,6 @@
   <tabstop>acMotors</tabstop>
   <tabstop>acEscs</tabstop>
   <tabstop>teObservations</tabstop>
-  <tabstop>btnClipboard</tabstop>
-  <tabstop>btnDatabase</tabstop>
   <tabstop>otherInfoTab</tabstop>
  </tabstops>
  <resources>

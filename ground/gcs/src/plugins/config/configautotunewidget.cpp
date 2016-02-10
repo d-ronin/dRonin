@@ -169,12 +169,8 @@ void ConfigAutotuneWidget::onShareData()
 
 void ConfigAutotuneWidget::onShareToDatabase()
 {
-    autotuneShareForm->disableDatabase(true);
     // save data for next time the form is used
     saveUserData();
-
-    autotuneShareForm->hideProgress(false);
-    autotuneShareForm->setProgress(0, 0);
 
     QJsonDocument json = getResultsJson();
 
@@ -187,16 +183,12 @@ void ConfigAutotuneWidget::onShareToDatabase()
                 this, SLOT(onShareToDatabaseComplete(QNetworkReply*)));
 
     QNetworkReply *reply = manager->post(request, json.toJson());
-    connect(reply, SIGNAL(uploadProgress(qint64,qint64)), autotuneShareForm, SLOT(setProgress(qint64,qint64)));
 }
 
 void ConfigAutotuneWidget::onShareToDatabaseComplete(QNetworkReply *reply)
 {
-    disconnect(reply, SIGNAL(uploadProgress(qint64,qint64)), autotuneShareForm, SLOT(setProgress(qint64,qint64)));
     if(reply->error() != QNetworkReply::NoError) {
         qWarning() << "[ConfigAutotuneWidget::onShareToDatabaseComplete]HTTP Error: " << reply->errorString();
-        autotuneShareForm->hideProgress(true);
-        autotuneShareForm->disableDatabase(false);
         QMessageBox msgBox;
         msgBox.setText(tr("An error occured!"));
         msgBox.setInformativeText(tr("Your results could not be shared to the database. Please try again later."));
@@ -206,10 +198,7 @@ void ConfigAutotuneWidget::onShareToDatabaseComplete(QNetworkReply *reply)
         msgBox.setIcon(QMessageBox::Icon::Critical);
         msgBox.exec();
     }
-    else {
-        autotuneShareForm->setProgress(100, 100);
-        // database share button remains disabled, no need to send twice
-    }
+
     reply->deleteLater();
 }
 

@@ -1,7 +1,7 @@
 /**
  ******************************************************************************
  * @file       autotuneshareform.h
- * @author     dRonin, http://dronin.org, Copyright (C) 2015
+ * @author     dRonin, http://dronin.org, Copyright (C) 2015-2016
  * @author     Tau Labs, http://taulabs.org, Copyright (C) 2014
  * @addtogroup GCSPlugins GCS Plugins
  * @{
@@ -24,6 +24,10 @@
  * You should have received a copy of the GNU General Public License along
  * with this program; if not, write to the Free Software Foundation, Inc.,
  * 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
+ *
+ * Additional note on redistribution: The copyright and license notices above
+ * must be maintained in each individual source file that is a derivative work
+ * of this source file; otherwise redistribution is prohibited.
  */
 
 #include "autotuneshareform.h"
@@ -35,10 +39,9 @@ AutotuneShareForm::AutotuneShareForm(QWidget *parent) :
     ui(new Ui::AutotuneShareForm)
 {
     ui->setupUi(this);
-    // progress bar is hidden by default
-    hideProgress(true);
+
     connect(ui->btnClipboard, SIGNAL(clicked()), this, SLOT(onClipboardClicked()));
-    connect(ui->btnDatabase, SIGNAL(clicked()), this, SLOT(onDatabaseClick()));
+    connect(this, SIGNAL(finished(int)), this, SLOT(onFinished(int)));
 }
 
 AutotuneShareForm::~AutotuneShareForm()
@@ -160,31 +163,9 @@ void AutotuneShareForm::disableBoardType(bool disable)
     ui->acBoard->setDisabled(disable);
 }
 
-void AutotuneShareForm::hideProgress(bool hide)
-{
-    if(hide)
-        ui->progress->hide();
-    else
-        ui->progress->show();
-}
-
-void AutotuneShareForm::setProgress(qint64 value, qint64 total)
-{
-    QProgressBar *progress = findChild<QProgressBar*>("progress");
-    if (progress) {
-        progress->setMaximum(total);
-        progress->setValue(value);
-    }
-}
-
 void AutotuneShareForm::disableClipboard(bool disabled)
 {
     ui->btnClipboard->setDisabled(disabled);
-}
-
-void AutotuneShareForm::disableDatabase(bool disabled)
-{
-    ui->btnDatabase->setDisabled(disabled);
 }
 
 void AutotuneShareForm::onClipboardClicked()
@@ -192,7 +173,13 @@ void AutotuneShareForm::onClipboardClicked()
     emit ClipboardRequest();
 }
 
-void AutotuneShareForm::onDatabaseClick()
+void AutotuneShareForm::onFinished(int status)
 {
+    (void) status;
+
+    if (!ui->cbDatabase->isChecked()) {
+        return;
+    }
+
     emit DatabaseRequest();
 }
