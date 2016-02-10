@@ -8,7 +8,7 @@
  * @file       RadioComBridge.c
  * @author     The OpenPilot Team, http://www.openpilot.org Copyright (C) 2012.
  * @author     Tau Labs, http://taulabs.org, Copyright (C) 2013-2014
- * @author     dRonin, http://dronin.org Copyright (C) 2015
+ * @author     dRonin, http://dronin.org Copyright (C) 2015-2016
  * @brief      Bridges from RFM22b comm channel to another PIOS_COM channel
  *             has the ability to hook and process UAVO packets for the radio
  *             board (e.g. TauLink)
@@ -28,7 +28,11 @@
  *
  * You should have received a copy of the GNU General Public License along
  * with this program; if not, write to the Free Software Foundation, Inc.,
- * 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
+ * 59 Temple Place, Suite 330, Boston, MA 02111-1307 USAa
+ *
+ * Additional note on redistribution: The copyright and license notices above
+ * must be maintained in each individual source file that is a derivative work
+ * of this source file; otherwise redistribution is prohibited.
  */
 
 // ****************
@@ -51,9 +55,12 @@
 #include "positionactual.h"
 #include "velocityactual.h"
 #include "baroaltitude.h"
+#include "modulesettings.h"
 
 #include "pios_thread.h"
 #include "pios_queue.h"
+
+#include <pios_hal.h>
 
 // ****************
 // Private constants
@@ -64,7 +71,6 @@
 #define RETRY_TIMEOUT_MS  20
 #define EVENT_QUEUE_SIZE  10
 #define MAX_PORT_DELAY    200
-#define SERIAL_RX_BUF_LEN 100
 #define PPM_INPUT_TIMEOUT 100
 
 // ****************
@@ -77,7 +83,6 @@ typedef struct {
 	struct pios_thread *radioTxTaskHandle;
 	struct pios_thread *radioRxTaskHandle;
 	struct pios_thread *PPMInputTaskHandle;
-	struct pios_thread *serialRxTaskHandle;
 
 	// The UAVTalk connection on the com side.
 	UAVTalkConnection telemUAVTalkCon;
@@ -87,18 +92,12 @@ typedef struct {
 	struct pios_queue *uavtalkEventQueue;
 	struct pios_queue *radioEventQueue;
 
-	// The raw serial Rx buffer
-	uint8_t serialRxBuf[SERIAL_RX_BUF_LEN];
-
 	// Error statistics.
 	uint32_t telemetryTxRetries;
 	uint32_t radioTxRetries;
 
 	// Is this modem the coordinator
 	bool isCoordinator;
-
-	// Should we parse UAVTalk?
-	bool parseUAVTalk;
 } RadioComBridgeData;
 
 // ****************
@@ -106,7 +105,6 @@ typedef struct {
 
 static void telemetryTxTask(void *parameters);
 static void telemetryRxTask(void *parameters);
-static void serialRxTask(void *parameters);
 static void radioTxTask(void *parameters);
 static void radioRxTask(void *parameters);
 static void PPMInputTask(void *parameters);
@@ -121,6 +119,7 @@ static void ProcessRadioStream(UAVTalkConnection inConnectionHandle,
 static void objectPersistenceUpdatedCb(UAVObjEvent * objEv, void *ctx,
 				void *obj, int len);
 static void registerObject(UAVObjHandle obj);
+static void updateSettings();
 
 // ****************
 // Private variables
@@ -137,9 +136,6 @@ static int32_t RadioComBridgeStart(void)
 	if (data) {
 		// Check if this is the coordinator modem
 		data->isCoordinator = PIOS_RFM22B_IsCoordinator(PIOS_COM_RFM22B);
-
-		// Parse UAVTalk out of the link
-		data->parseUAVTalk = true;
 
 		// Configure our UAVObjects for updates.
 		UAVObjConnectQueue(UAVObjGetByID(RFM22BSTATUS_OBJID), data->uavtalkEventQueue,
@@ -170,19 +166,11 @@ static int32_t RadioComBridgeStart(void)
 			PIOS_WDG_RegisterFlag(PIOS_WDG_PPMINPUT);
 #endif
 		}
-		if (!data->parseUAVTalk) {
-			// If the user wants raw serial communication, we need to spawn another thread to handle it.
-			data->serialRxTaskHandle = PIOS_Thread_Create(serialRxTask, "serialRxTask", STACK_SIZE_BYTES, NULL, TASK_PRIORITY);
-#ifdef PIOS_INCLUDE_WDG
-			PIOS_WDG_RegisterFlag(PIOS_WDG_SERIALRX);
-#endif
-		}
 		data->radioTxTaskHandle = PIOS_Thread_Create(radioTxTask, "radioTxTask", STACK_SIZE_BYTES, NULL, TASK_PRIORITY);
 		data->radioRxTaskHandle = PIOS_Thread_Create(radioRxTask, "radioRxTask", STACK_SIZE_BYTES, NULL, TASK_PRIORITY);
 
 		// Register the watchdog timers.
 #ifdef PIOS_INCLUDE_WDG
-		PIOS_WDG_RegisterFlag(PIOS_WDG_TELEMETRYTX);
 		PIOS_WDG_RegisterFlag(PIOS_WDG_TELEMETRYRX);
 		PIOS_WDG_RegisterFlag(PIOS_WDG_RADIOTX);
 		PIOS_WDG_RegisterFlag(PIOS_WDG_RADIORX);
@@ -191,6 +179,20 @@ static int32_t RadioComBridgeStart(void)
 	}
 
 	return -1;
+}
+
+/**
+ * Update the telemetry settings, called on startup.
+ */
+static void updateSettings()
+{
+	if (PIOS_COM_TELEMETRY) {
+		// Retrieve settings
+		uint8_t speed;
+		ModuleSettingsTelemetrySpeedGet(&speed);
+
+		PIOS_HAL_ConfigureSerialSpeed(PIOS_COM_TELEMETRY, speed);
+	}
 }
 
 /**
@@ -223,8 +225,6 @@ static int32_t RadioComBridgeInitialize(void)
 	// Initialize the statistics.
 	data->telemetryTxRetries = 0;
 	data->radioTxRetries = 0;
-
-	data->parseUAVTalk = true;
 
 	return 0;
 }
@@ -304,6 +304,10 @@ static void telemetryTxTask( __attribute__ ((unused))
 			    void *parameters)
 {
 	UAVObjEvent ev;
+
+	updateSettings();
+
+	PIOS_WDG_RegisterFlag(PIOS_WDG_TELEMETRYTX);
 
 	// Loop forever
 	while (1) {
@@ -387,41 +391,23 @@ static void radioRxTask( __attribute__ ((unused))
 		PIOS_WDG_UpdateFlag(PIOS_WDG_RADIORX);
 #endif
 		if (PIOS_COM_RFM22B) {
-			uint8_t serial_data[1];
+			uint8_t serial_data[32];
 			uint16_t bytes_to_process =
 			    PIOS_COM_ReceiveBuffer(PIOS_COM_RFM22B,
 						   serial_data,
 						   sizeof(serial_data),
 						   MAX_PORT_DELAY);
 			if (bytes_to_process > 0) {
-				if (data->parseUAVTalk) {
-					// Pass the data through the UAVTalk parser.
-					for (uint8_t i = 0;
-					     i < bytes_to_process; i++) {
-						ProcessRadioStream(data->
-								   radioUAVTalkCon,
-								   data->
-								   telemUAVTalkCon,
-								   serial_data
-								   [i]);
-					}
-				} else if (PIOS_COM_TELEMETRY) {
-					// Send the data straight to the telemetry port.
-					// Following call can fail with -2 error code (buffer full) or -3 error code (could not acquire send mutex)
-					// It is the caller responsibility to retry in such cases...
-					int32_t ret = -2;
-					uint8_t count = 5;
-					while (count-- > 0 && ret < -1) {
-						ret =
-						    PIOS_COM_SendBufferNonBlocking
-						    (PIOS_COM_TELEMETRY,
-						     serial_data,
-						     bytes_to_process);
-					}
+				// Pass the data through the UAVTalk parser.
+				for (uint8_t i = 0;
+				     i < bytes_to_process; i++) {
+					ProcessRadioStream(data->radioUAVTalkCon,
+							   data->telemUAVTalkCon,
+							   serial_data[i]);
 				}
 			}
 		} else {
-			PIOS_Thread_Sleep(5);
+			PIOS_Thread_Sleep(3);
 		}
 	}
 }
@@ -436,8 +422,7 @@ static void telemetryRxTask( __attribute__ ((unused))
 {
 	// Task loop
 	while (1) {
-		uint32_t inputPort =
-		    data->parseUAVTalk ? PIOS_COM_TELEMETRY : 0;
+		uint32_t inputPort = PIOS_COM_TELEMETRY;
 #ifdef PIOS_INCLUDE_WDG
 		PIOS_WDG_UpdateFlag(PIOS_WDG_TELEMETRYRX);
 #endif
@@ -448,7 +433,7 @@ static void telemetryRxTask( __attribute__ ((unused))
 		}
 #endif /* PIOS_INCLUDE_USB */
 		if (inputPort) {
-			uint8_t serial_data[1];
+			uint8_t serial_data[32];
 			uint16_t bytes_to_process =
 			    PIOS_COM_ReceiveBuffer(inputPort, serial_data,
 						   sizeof(serial_data),
@@ -499,49 +484,6 @@ static void PPMInputTask( __attribute__ ((unused))
 }
 
 /**
- * @brief Receive raw serial data from the USB/COM port.
- *
- * @param[in] parameters  The task parameters
- */
-static void serialRxTask( __attribute__ ((unused))
-			 void *parameters)
-{
-	// Task loop
-	while (1) {
-		uint32_t inputPort = PIOS_COM_TELEMETRY;
-#ifdef PIOS_INCLUDE_WDG
-		PIOS_WDG_UpdateFlag(PIOS_WDG_SERIALRX);
-#endif
-		if (inputPort && PIOS_COM_RFM22B) {
-			// Receive some data.
-			uint16_t bytes_to_process =
-			    PIOS_COM_ReceiveBuffer(inputPort,
-						   data->serialRxBuf,
-						   sizeof(data->
-							  serialRxBuf),
-						   MAX_PORT_DELAY);
-
-			if (bytes_to_process > 0) {
-				// Send the data over the radio link.
-				// Following call can fail with -2 error code (buffer full) or -3 error code (could not acquire send mutex)
-				// It is the caller responsibility to retry in such cases...
-				int32_t ret = -2;
-				uint8_t count = 5;
-				while (count-- > 0 && ret < -1) {
-					ret =
-					    PIOS_COM_SendBufferNonBlocking
-					    (PIOS_COM_RFM22B,
-					     data->serialRxBuf,
-					     bytes_to_process);
-				}
-			}
-		} else {
-			PIOS_Thread_Sleep(5);
-		}
-	}
-}
-
-/**
  * @brief Transmit data buffer to the com port.
  *
  * @param[in] buf Data buffer to send
@@ -552,7 +494,7 @@ static void serialRxTask( __attribute__ ((unused))
 static int32_t UAVTalkSendHandler(uint8_t * buf, int32_t length)
 {
 	int32_t ret;
-	uint32_t outputPort = data->parseUAVTalk ? PIOS_COM_TELEMETRY : 0;
+	uint32_t outputPort = PIOS_COM_TELEMETRY;
 
 #if defined(PIOS_INCLUDE_USB)
 	// Determine output port (USB takes priority over telemetry port)
@@ -560,6 +502,7 @@ static int32_t UAVTalkSendHandler(uint8_t * buf, int32_t length)
 		outputPort = PIOS_COM_TELEM_USB;
 	}
 #endif /* PIOS_INCLUDE_USB */
+
 	if (outputPort) {
 		// Following call can fail with -2 error code (buffer full) or -3 error code (could not acquire send mutex)
 		// It is the caller responsibility to retry in such cases...
@@ -586,9 +529,6 @@ static int32_t UAVTalkSendHandler(uint8_t * buf, int32_t length)
  */
 static int32_t RadioSendHandler(uint8_t * buf, int32_t length)
 {
-	if (!data->parseUAVTalk) {
-		return length;
-	}
 	uint32_t outputPort = PIOS_COM_RFM22B;
 
 	// Don't send any data unless the radio port is available.

@@ -2,12 +2,14 @@
  ******************************************************************************
  * @addtogroup TauLabsModules Tau Labs Modules
  * @{ 
- * @addtogroup GSPModule GPS Module
+ * @addtogroup GPSModule GPS Module
  * @{ 
  *
  * @file       GPS.c
  * @author     The OpenPilot Team, http://www.openpilot.org Copyright (C) 2010.
  * @author     Tau Labs, http://taulabs.org, Copyright (C) 2013-2014
+ * @author     dRonin, http://dRonin.org/, Copyright (C) 2016
+ *
  * @brief      GPS module, handles UBX and NMEA streams from GPS
  * @see        The GNU Public License (GPL) Version 3
  *
@@ -26,6 +28,10 @@
  * You should have received a copy of the GNU General Public License along
  * with this program; if not, write to the Free Software Foundation, Inc.,
  * 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
+ *
+ * Additional note on redistribution: The copyright and license notices above
+ * must be maintained in each individual source file that is a derivative work
+ * of this source file; otherwise redistribution is prohibited.
  */
 
 // ****************
@@ -45,6 +51,8 @@
 #include "NMEA.h"
 #include "UBX.h"
 #include "ubx_cfg.h"
+
+#include <pios_hal.h>
 
 #if defined(PIOS_GPS_PROVIDES_AIRSPEED)
 #include "gps_airspeed.h"
@@ -325,32 +333,7 @@ static void updateSettings()
 		ModuleSettingsGPSSpeedGet(&speed);
 
 		// Set port speed
-		switch (speed) {
-		case MODULESETTINGS_GPSSPEED_2400:
-			PIOS_COM_ChangeBaud(gpsPort, 2400);
-			break;
-		case MODULESETTINGS_GPSSPEED_4800:
-			PIOS_COM_ChangeBaud(gpsPort, 4800);
-			break;
-		case MODULESETTINGS_GPSSPEED_9600:
-			PIOS_COM_ChangeBaud(gpsPort, 9600);
-			break;
-		case MODULESETTINGS_GPSSPEED_19200:
-			PIOS_COM_ChangeBaud(gpsPort, 19200);
-			break;
-		case MODULESETTINGS_GPSSPEED_38400:
-			PIOS_COM_ChangeBaud(gpsPort, 38400);
-			break;
-		case MODULESETTINGS_GPSSPEED_57600:
-			PIOS_COM_ChangeBaud(gpsPort, 57600);
-			break;
-		case MODULESETTINGS_GPSSPEED_115200:
-			PIOS_COM_ChangeBaud(gpsPort, 115200);
-			break;
-		case MODULESETTINGS_GPSSPEED_230400:
-			PIOS_COM_ChangeBaud(gpsPort, 230400);
-			break;
-		}
+		PIOS_HAL_ConfigureSerialSpeed(gpsPort, speed);
 	}
 }
 

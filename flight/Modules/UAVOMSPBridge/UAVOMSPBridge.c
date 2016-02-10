@@ -7,7 +7,7 @@
  *
  * @file       uavomspbridge.c
  * @author     Tau Labs, http://taulabs.org, Copyright (C) 2015
- * @author     dRonin, http://dronin.org Copyright (C) 2015
+ * @author     dRonin, http://dronin.org Copyright (C) 2015-2016
  * @brief      Bridges selected UAVObjects to MSP for MWOSD and the like.
  *
  * @see        The GNU Public License (GPL) Version 3
@@ -27,6 +27,10 @@
  * You should have received a copy of the GNU General Public License along
  * with this program; if not, write to the Free Software Foundation, Inc.,
  * 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
+ *
+ * Additional note on redistribution: The copyright and license notices above
+ * must be maintained in each individual source file that is a derivative work
+ * of this source file; otherwise redistribution is prohibited.
  */
 
 #include "openpilot.h"
@@ -54,6 +58,8 @@
 #include "flightbatterystate.h"
 #include "gpsposition.h"
 #include "modulesettings.h"
+
+#include <pios_hal.h>
 
 #if defined(PIOS_INCLUDE_MSP_BRIDGE)
 
@@ -705,29 +711,7 @@ static void setMSPSpeed(struct msp_bridge *m)
 		uint8_t speed;
 		ModuleSettingsMSPSpeedGet(&speed);
 
-		switch (speed) {
-		case MODULESETTINGS_MSPSPEED_2400:
-			PIOS_COM_ChangeBaud(m->com, 2400);
-			break;
-		case MODULESETTINGS_MSPSPEED_4800:
-			PIOS_COM_ChangeBaud(m->com, 4800);
-			break;
-		case MODULESETTINGS_MSPSPEED_9600:
-			PIOS_COM_ChangeBaud(m->com, 9600);
-			break;
-		case MODULESETTINGS_MSPSPEED_19200:
-			PIOS_COM_ChangeBaud(m->com, 19200);
-			break;
-		case MODULESETTINGS_MSPSPEED_38400:
-			PIOS_COM_ChangeBaud(m->com, 38400);
-			break;
-		case MODULESETTINGS_MSPSPEED_57600:
-			PIOS_COM_ChangeBaud(m->com, 57600);
-			break;
-		case MODULESETTINGS_MSPSPEED_115200:
-			PIOS_COM_ChangeBaud(m->com, 115200);
-			break;
-		}
+		PIOS_HAL_ConfigureSerialSpeed(m->com, speed);
 	}
 }
 
@@ -749,8 +733,6 @@ static int32_t uavoMSPBridgeInitialize(void)
 
 			msp->com = pios_com_msp_id;
 
-			setMSPSpeed(msp);
-
 			module_enabled = true;
 			return 0;
 		}
@@ -768,6 +750,8 @@ MODULE_INITCALL(uavoMSPBridgeInitialize, uavoMSPBridgeStart)
  */
 static void uavoMSPBridgeTask(void *parameters)
 {
+	setMSPSpeed(msp);
+
 	while (1) {
 		uint8_t b = 0;
 		uint16_t count = PIOS_COM_ReceiveBuffer(msp->com, &b, 1, PIOS_QUEUE_TIMEOUT_MAX);

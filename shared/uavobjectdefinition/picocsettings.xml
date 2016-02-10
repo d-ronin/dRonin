@@ -20,7 +20,7 @@
 				<option>File</option>
 			</options>
 		</field>
-		<field name="ComSpeed" units="bps" type="enum" elements="1" defaultvalue="115200">
+		<field name="ComSpeed" units="bps" type="enum" parent="HwShared.SpeedBps" elements="1" defaultvalue="115200">
 			<options>
 				<option>2400</option>
 				<option>4800</option>

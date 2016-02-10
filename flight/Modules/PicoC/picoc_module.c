@@ -7,6 +7,8 @@
  *
  * @file       picoc_module.c
  * @author     Tau Labs, http://taulabs.org, Copyright (C) 2014
+ * @author     dRonin, http://dRonin.org/, Copyright (C) 2016
+ *
  * @brief      c-interpreter module for autonomous user programmed tasks
  *             picoc module task
  * @see        The GNU Public License (GPL) Version 3
@@ -26,6 +28,10 @@
  * You should have received a copy of the GNU General Public License along
  * with this program; if not, write to the Free Software Foundation, Inc.,
  * 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
+ *
+ * Additional note on redistribution: The copyright and license notices above
+ * must be maintained in each individual source file that is a derivative work
+ * of this source file; otherwise redistribution is prohibited.
  */
 
 
@@ -40,6 +46,8 @@
 #include "flightstatus.h"
 #include "modulesettings.h"
 #include "pios_thread.h"
+
+#include <pios_hal.h>
 
 // Global variables
 extern uintptr_t pios_waypoints_settings_fs_id;	/* use the waypoint filesystem */
@@ -292,30 +300,7 @@ static void updateSettings()
 {
 	// if there is a com port, setup its speed.
 	if (picocPort) {
-		// set port speed
-		switch (picocsettings.ComSpeed) {
-		case PICOCSETTINGS_COMSPEED_2400:
-			PIOS_COM_ChangeBaud(picocPort, 2400);
-			break;
-		case PICOCSETTINGS_COMSPEED_4800:
-			PIOS_COM_ChangeBaud(picocPort, 4800);
-			break;
-		case PICOCSETTINGS_COMSPEED_9600:
-			PIOS_COM_ChangeBaud(picocPort, 9600);
-			break;
-		case PICOCSETTINGS_COMSPEED_19200:
-			PIOS_COM_ChangeBaud(picocPort, 19200);
-			break;
-		case PICOCSETTINGS_COMSPEED_38400:
-			PIOS_COM_ChangeBaud(picocPort, 38400);
-			break;
-		case PICOCSETTINGS_COMSPEED_57600:
-			PIOS_COM_ChangeBaud(picocPort, 57600);
-			break;
-		case PICOCSETTINGS_COMSPEED_115200:
-			PIOS_COM_ChangeBaud(picocPort, 115200);
-			break;
-		}
+		PIOS_HAL_ConfigureSerialSpeed(picocPort, picocsettings.ComSpeed);
 	}
 }
 

@@ -208,17 +208,19 @@ static void loggingTask(void *parameters)
 	// Get settings automatically for now on
 	LoggingSettingsConnectCopy(&settings);
 
-
 	LoggingStatsGet(&loggingData);
 	loggingData.BytesLogged = 0;
 	
 #if defined(PIOS_INCLUDE_FLASH) && defined(PIOS_INCLUDE_FLASH_JEDEC)
-	if (destination_spi_flash)
-	{
+	if (destination_spi_flash) {
 		loggingData.MinFileId = PIOS_STREAMFS_MinFileId(streamfs_id);
 		loggingData.MaxFileId = PIOS_STREAMFS_MaxFileId(streamfs_id);
 	}
 #endif
+
+	if (!destination_spi_flash) {
+		updateSettings();
+	}
 
 	if (settings.LogBehavior == LOGGINGSETTINGS_LOGBEHAVIOR_LOGONSTART) {
 		loggingData.Operation = LOGGINGSTATS_OPERATION_INITIALIZING;

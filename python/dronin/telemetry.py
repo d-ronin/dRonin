@@ -576,6 +576,7 @@ def get_telemetry_by_args(desc="Process telemetry", service_in_iter=True,
     parser.add_argument("-b", "--baudrate",
                         action  = "store",
                         dest    = "baud",
+                        default = "115200",
                         help    = "baud rate for serial communications")
 
     parser.add_argument("source",
