@@ -242,6 +242,10 @@ static int32_t check_stabilization_settings(int index, bool multirotor)
  * If the system is disarmed, look for a variety of conditions that
  * make it unsafe to arm (that might not be dangerous to engage once
  * flying).
+ *
+ * Note this does not check every possible situation that prevents
+ * arming.  In particular, transmitter_control checks for failsafe and
+ * ranges and switch arming configuration to allow/prevent arming.
  */
 static int32_t check_safe_to_arm()
 {
@@ -263,6 +267,13 @@ static int32_t check_safe_to_arm()
 			case FLIGHTSTATUS_FLIGHTMODE_STABILIZED2:
 			case FLIGHTSTATUS_FLIGHTMODE_STABILIZED3:
 			case FLIGHTSTATUS_FLIGHTMODE_ALTITUDEHOLD:
+				break;
+
+			case FLIGHTSTATUS_FLIGHTMODE_FAILSAFE:
+				/* for failsafe, we don't want to prevent
+				 * arming here because it makes an ugly looking
+				 * GCS config error.
+				 */
 				break;
 			default:
 				// Any mode not specifically allowed prevents arming
