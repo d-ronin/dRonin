@@ -48,7 +48,6 @@
 #define STACK_SIZE_BYTES PIOS_TELEM_STACK_SIZE
 #define TASK_PRIORITY_RX PIOS_THREAD_PRIO_NORMAL
 #define TASK_PRIORITY_TX PIOS_THREAD_PRIO_NORMAL
-#define TASK_PRIORITY_TXPRI PIOS_THREAD_PRIO_NORMAL
 #define REQ_TIMEOUT_MS 250
 #define MAX_RETRIES 2
 #define STATS_UPDATE_PERIOD_MS 4000
@@ -331,11 +330,6 @@ static void telemetryTxTask(void *parameters)
 {
 	// Update telemetry settings
 	updateSettings();
-
-#if defined(PIOS_TELEM_PRIORITY_QUEUE)
-	telemetryTxPriTaskHandle = PIOS_Thread_Create(telemetryTxPriTask, "TelPriTx", STACK_SIZE_BYTES, NULL, TASK_PRIORITY_TXPRI);
-	TaskMonitorAdd(TASKINFO_RUNNING_TELEMETRYTXPRI, telemetryTxPriTaskHandle);
-#endif
 
 	UAVObjEvent ev;
 
