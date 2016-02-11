@@ -4,7 +4,7 @@
  * @file       configgadgetwidget.cpp
  * @author     E. Lafargue & The OpenPilot Team, http://www.openpilot.org Copyright (C) 2010.
  * @author     Tau Labs, http://taulabs.org, Copyright (C) 2013-2014
- * @author     dRonin, http://dronin.org Copyright (C) 2015
+ * @author     dRonin, http://dronin.org Copyright (C) 2015-2016
  * @addtogroup GCSPlugins GCS Plugins
  * @{
  * @addtogroup ConfigPlugin Config Plugin
@@ -25,6 +25,10 @@
  * You should have received a copy of the GNU General Public License along
  * with this program; if not, write to the Free Software Foundation, Inc.,
  * 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
+ *
+ * Additional note on redistribution: The copyright and license notices above
+ * must be maintained in each individual source file that is a derivative work
+ * of this source file; otherwise redistribution is prohibited.
  */
 
 #include "configgadgetwidget.h"
@@ -166,6 +170,8 @@ void ConfigGadgetWidget::deferredLoader()
     icon->addFile(":/configgadget/images/osd_selected.png", QSize(), QIcon::Selected, QIcon::Off);
     qwd = new ConfigOsdWidget(this);
     ftw->insertTab(ConfigGadgetWidget::osd, qwd, *icon, QString("OSD"));
+    // Hide OSD if not applicable, else show
+    ftw->setHidden(ConfigGadgetWidget::osd, true);
     break;
 
         case 12:
@@ -241,6 +247,8 @@ void ConfigGadgetWidget::onAutopilotConnect() {
     QIcon* icon;
     QWidget* qwd;
 
+    bool hasOSD = true;
+
     qDebug()<<"ConfigGadgetWidget onAutopilotConnect";
     // First of all, check what Board type we are talking to, and
     // if necessary, remove/add tabs in the config gadget:
@@ -261,12 +269,14 @@ void ConfigGadgetWidget::onAutopilotConnect() {
             QLabel *txt = new QLabel(this);
             txt->setText(tr("Board detected, but of unknown type. This could be because either your GCS or firmware is out of date."));
             qwd = txt;
-        }
-        else {
+        } else {
             qwd = board->getBoardConfiguration();
             if (qwd == NULL) {
                 qwd = new DefaultHwSettingsWidget(this, true);
-            } else {
+            }
+
+            if (!board->queryCapabilities(Core::IBoardType::BOARD_CAPABILITIES_OSD)) {
+                hasOSD = false;
             }
         }
 
@@ -282,6 +292,10 @@ void ConfigGadgetWidget::onAutopilotConnect() {
     qwd = new ConfigAttitudeWidget(this);
     ftw->insertTab(ConfigGadgetWidget::sensors, qwd, *icon, QString("Attitude"));
     ftw->setCurrentIndex(lastTabIndex);
+
+    // Hide OSD if not applicable, else show
+    ftw->setHidden(ConfigGadgetWidget::osd, !hasOSD);
+
     emit autopilotConnected();
 }
 
