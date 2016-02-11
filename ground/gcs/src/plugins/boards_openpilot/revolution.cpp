@@ -179,6 +179,9 @@ bool Revolution::setInputOnPort(enum InputType type, int port_num)
     case INPUT_TYPE_HOTTSUMD:
         settings.FlexiPort = HwRevolution::FLEXIPORT_HOTTSUMD;
         break;
+    case INPUT_TYPE_HOTTSUMH:
+        settings.MainPort = HwRevolution::MAINPORT_HOTTSUMH;
+        break;
     default:
         return false;
     }
@@ -213,6 +216,8 @@ enum Core::IBoardType::InputType Revolution::getInputOnPort(int port_num)
         return INPUT_TYPE_DSM;
     case HwRevolution::FLEXIPORT_HOTTSUMD:
         return INPUT_TYPE_HOTTSUMD;
+    case HwRevolution::FLXPORT_HOTTSUMH:
+        return INPUT_TYPE_HOTTSUMH;
     default:
         break;
     }
@@ -220,12 +225,23 @@ enum Core::IBoardType::InputType Revolution::getInputOnPort(int port_num)
     switch(settings.MainPort) {
     case HwRevolution::MAINPORT_SBUS:
         return INPUT_TYPE_SBUS;
+    case HwRevolution::MAINPORT_DSM:
+        return INPUT_TYPE_DSM;
+    case HwRevolution::MAINPORT_HOTTSUMD:
+        return INPUT_TYPE_HOTTSUMD;
+    case HwRevolution::MAINPORT_HOTTSUMH:
+        return INPUT_TYPE_HOTTSUMH;
     default:
         break;
     }
 
     switch(settings.RxPort) {
     case HwRevolution::RXPORT_PPM:
+    case HwRevolution::RXPORT_PPMPWM:
+    case HwRevolution::RXPORT_PPMOUTPUTS:
+    case HwRevolution::RXPORT_PPMUART:
+    case HwRevolution::RXPORT_PPMUARTOUTPUTS:
+    case HwRevolution::RXPORT_PPMFRSKY:
         return INPUT_TYPE_PPM;
     case HwRevolution::RXPORT_PWM:
         return INPUT_TYPE_PWM;
@@ -257,7 +273,7 @@ int Revolution::queryMaxGyroRate()
     case HwRevolution::GYRORANGE_2000:
         return 2000;
     default:
-        return 500;
+        return 2000;
     }
 }
 
