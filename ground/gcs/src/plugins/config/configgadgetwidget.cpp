@@ -69,6 +69,7 @@ ConfigGadgetWidget::ConfigGadgetWidget(QWidget *parent) : QWidget(parent)
 
     help = 0;
     chunk = 0;
+    lastTabIndex = ConfigGadgetWidget::hardware;
 
     QTimer::singleShot(500, this, SLOT(deferredLoader()));
 }
@@ -228,6 +229,8 @@ void ConfigGadgetWidget::resizeEvent(QResizeEvent *event)
 }
 
 void ConfigGadgetWidget::onAutopilotDisconnect() {
+    lastTabIndex = ftw->currentIndex();
+
     ftw->setCurrentIndex(ConfigGadgetWidget::hardware);
     ftw->removeTab(ConfigGadgetWidget::hardware);
 
@@ -236,7 +239,6 @@ void ConfigGadgetWidget::onAutopilotDisconnect() {
     icon->addFile(":/configgadget/images/hardware_selected.png", QSize(), QIcon::Selected, QIcon::Off);
     QWidget *qwd = new DefaultHwSettingsWidget(this, false);
     ftw->insertTab(ConfigGadgetWidget::hardware, qwd, *icon, QString("Hardware"));
-    lastTabIndex = ftw->currentIndex();
     ftw->setCurrentIndex(ConfigGadgetWidget::hardware);
 
     emit autopilotDisconnected();
@@ -248,6 +250,12 @@ void ConfigGadgetWidget::onAutopilotConnect() {
     QWidget* qwd;
 
     bool hasOSD = true;
+
+    int index = ftw->currentIndex();
+
+    if (index != ConfigGadgetWidget::hardware) {
+        lastTabIndex = index;
+    }
 
     qDebug()<<"ConfigGadgetWidget onAutopilotConnect";
     // First of all, check what Board type we are talking to, and
@@ -291,10 +299,11 @@ void ConfigGadgetWidget::onAutopilotConnect() {
     icon->addFile(":/configgadget/images/ins_selected.png", QSize(), QIcon::Selected, QIcon::Off);
     qwd = new ConfigAttitudeWidget(this);
     ftw->insertTab(ConfigGadgetWidget::sensors, qwd, *icon, QString("Attitude"));
-    ftw->setCurrentIndex(lastTabIndex);
 
     // Hide OSD if not applicable, else show
     ftw->setHidden(ConfigGadgetWidget::osd, !hasOSD);
+
+    ftw->setCurrentIndex(lastTabIndex);
 
     emit autopilotConnected();
 }
