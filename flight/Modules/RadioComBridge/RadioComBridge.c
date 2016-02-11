@@ -139,15 +139,15 @@ static int32_t RadioComBridgeStart(void)
 
 		// Configure our UAVObjects for updates.
 		UAVObjConnectQueue(UAVObjGetByID(RFM22BSTATUS_OBJID), data->uavtalkEventQueue,
-				   EV_UPDATED | EV_UPDATED_MANUAL | EV_UPDATE_REQ);
+				   EV_UPDATED | EV_UPDATED_MANUAL);
 		UAVObjConnectQueue(UAVObjGetByID(OBJECTPERSISTENCE_OBJID), data->uavtalkEventQueue,
 				   EV_UPDATED | EV_UPDATED_MANUAL);
 		if (data->isCoordinator) {
 			UAVObjConnectQueue(UAVObjGetByID(RFM22BRECEIVER_OBJID), data->radioEventQueue,
-					   EV_UPDATED | EV_UPDATED_MANUAL | EV_UPDATE_REQ);
+					   EV_UPDATED | EV_UPDATED_MANUAL);
 		} else {
 			UAVObjConnectQueue(UAVObjGetByID(RFM22BRECEIVER_OBJID), data->uavtalkEventQueue,
-					   EV_UPDATED | EV_UPDATED_MANUAL | EV_UPDATE_REQ);
+					   EV_UPDATED | EV_UPDATED_MANUAL);
 		}
 
 		if (data->isCoordinator) {
@@ -250,7 +250,7 @@ static void registerObject(UAVObjHandle obj)
 	UAVObjGetMetadata(obj, &metadata);
 
 	EventPeriodicQueueCreate(&ev, data->uavtalkEventQueue, metadata.telemetryUpdatePeriod);
-	UAVObjConnectQueue(obj, data->uavtalkEventQueue, EV_UPDATED_PERIODIC | EV_UPDATED_MANUAL | EV_UPDATE_REQ);
+	UAVObjConnectQueue(obj, data->uavtalkEventQueue, EV_UPDATED_PERIODIC | EV_UPDATED_MANUAL);
 }
 
 /**
@@ -354,8 +354,7 @@ static void radioTxTask( __attribute__ ((unused))
 
 		// Wait for queue message
 		if (PIOS_Queue_Receive(data->radioEventQueue, &ev, 20)) {
-			if ((ev.event == EV_UPDATED)
-			    || (ev.event == EV_UPDATE_REQ)) {
+			if (ev.event == EV_UPDATED) {
 				// Send update (with retries)
 				int32_t ret = -1;
 				uint32_t retries = 0;

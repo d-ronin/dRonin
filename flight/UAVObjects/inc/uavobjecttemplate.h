@@ -89,10 +89,6 @@ static inline int32_t $(NAME)ConnectCopy(volatile $(NAME)Data *dataOut) {
 
 static inline uint16_t $(NAME)CreateInstance() { return UAVObjCreateInstance($(NAME)Handle(), &$(NAME)SetDefaults); }
 
-static inline void $(NAME)RequestUpdate() { UAVObjRequestUpdate($(NAME)Handle()); }
-
-static inline void $(NAME)RequestInstUpdate(uint16_t instId) { UAVObjRequestInstanceUpdate($(NAME)Handle(), instId); }
-
 static inline void $(NAME)Updated() { UAVObjUpdated($(NAME)Handle()); }
 
 static inline void $(NAME)InstUpdated(uint16_t instId) { UAVObjInstanceUpdated($(NAME)Handle(), instId); }

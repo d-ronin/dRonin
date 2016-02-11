@@ -1620,31 +1620,6 @@ int32_t UAVObjDisconnectCallback(UAVObjHandle obj_handle, UAVObjEventCallback cb
 }
 
 /**
- * Request an update of the object's data from the GCS. The call will not wait for the response, a EV_UPDATED event
- * will be generated as soon as the object is updated.
- * \param[in] obj The object handle
- */
-void UAVObjRequestUpdate(UAVObjHandle obj_handle)
-{
-	UAVObjRequestInstanceUpdate(obj_handle, UAVOBJ_ALL_INSTANCES);
-}
-
-/**
- * Request an update of the object's data from the GCS. The call will not wait for the response, a EV_UPDATED event
- * will be generated as soon as the object is updated.
- * \param[in] obj The object handle
- * \param[in] instId Object instance ID to update
- */
-void UAVObjRequestInstanceUpdate(UAVObjHandle obj_handle, uint16_t instId)
-{
-	PIOS_Assert(obj_handle);
-	PIOS_Recursive_Mutex_Lock(mutex, PIOS_MUTEX_TIMEOUT_MAX);
-	sendEvent((struct UAVOBase *) obj_handle, instId, EV_UPDATE_REQ,
-		NULL, 0);
-	PIOS_Recursive_Mutex_Unlock(mutex);
-}
-
-/**
  * Send the object's data to the GCS (triggers a EV_UPDATED_MANUAL event on this object).
  * \param[in] obj The object handle
  */
