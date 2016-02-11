@@ -9,7 +9,7 @@
 		<field name="StabilizationMode" units="" type="enum" elementnames="Roll,Pitch,Yaw" options="Manual,Rate,Attitude,AxisLock,WeakLeveling,VirtualBar,Horizon,MWRate,SystemIdent,POI,CoordinatedFlight,AcroPlus,Disabled,Failsafe"/>
 		<access gcs="readwrite" flight="readwrite"/>
 		<telemetrygcs acked="false" updatemode="manual" period="0"/>
-		<telemetryflight acked="false" updatemode="periodic" period="1000"/>
+		<telemetryflight acked="false" updatemode="throttled" period="1000"/>
 		<logging updatemode="periodic" period="500"/>
 	</object>
 </xml>

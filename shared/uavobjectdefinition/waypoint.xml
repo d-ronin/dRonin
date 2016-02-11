@@ -26,7 +26,8 @@
 		<field name="ModeParameters" units="" type="float" elements="1" default="0"/>
 		<access gcs="readwrite" flight="readwrite"/>
 		<telemetrygcs acked="true" updatemode="manual" period="0"/>
-		<telemetryflight acked="true" updatemode="periodic" period="4000"/>
+		<!-- previously acked.. not anymore.  Way too intrusive to send all waypoints at 4 second intervals and then demand acknowledgements for each -->
+		<telemetryflight acked="false" updatemode="periodic" period="10000"/>
 		<logging updatemode="periodic" period="1000"/>
 	</object>
 </xml>
