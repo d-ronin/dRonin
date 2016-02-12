@@ -1,6 +1,7 @@
 /*
     ChibiOS/RT - Copyright (C) 2006,2007,2008,2009,2010,
                  2011,2012,2013 Giovanni Di Sirio.
+		 (C) 2016 dRonin
 
     This file is part of ChibiOS/RT.
 
@@ -33,7 +34,13 @@
 #include "ch.h"
 #include "hal.h"
 
+#if defined(_WIN32) || defined(WIN32) || defined(__MINGW32__)
+#include "ucontext/winucontext.h"
+#include "ucontext/winucontext.c"
+#else
 #include <ucontext.h>
+#endif
+
 #include <unistd.h>
 #include <sys/select.h>
 

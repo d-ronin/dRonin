@@ -26,8 +26,6 @@
 #define _HAL_LLD_H_
 
 #include <sys/types.h>
-#include <sys/socket.h>
-#include <netdb.h>
 
 /*===========================================================================*/
 /* Driver constants.                                                         */

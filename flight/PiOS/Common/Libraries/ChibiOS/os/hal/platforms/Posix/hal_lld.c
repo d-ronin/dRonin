@@ -25,7 +25,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <sys/time.h>
-#include <sys/times.h>
 #include <unistd.h>
 #include <signal.h>
 
@@ -87,16 +86,21 @@ void hal_lld_init(void) {
 }
 
 halrtcnt_t hal_lld_get_counter_value(void) {
+#if 0
   struct tms temp;
 
   times(&temp);
 
   return temp.tms_utime;
+#endif
+
+  return clock();
 }
 
 halclock_t hal_lld_get_counter_frequency(void) {
 
-	return sysconf(_SC_CLK_TCK);
+//	return sysconf(_SC_CLK_TCK);
+	return CLOCKS_PER_SEC;
 }
 
 /** @} */
