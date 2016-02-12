@@ -1,4 +1,4 @@
-#!/usr/bin/python -B
+#!/usr/bin/env python
 
 import argparse
 import errno

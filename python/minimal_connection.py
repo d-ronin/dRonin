@@ -1,4 +1,4 @@
-#!/usr/bin/python -B
+#!/usr/bin/env python
 
 # Insert the parent directory into the module import search path.
 import os
