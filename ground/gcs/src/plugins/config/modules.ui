@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>448</width>
-    <height>697</height>
+    <height>828</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -20,7 +20,7 @@
       <enum>QTabWidget::Rounded</enum>
      </property>
      <property name="currentIndex">
-      <number>0</number>
+      <number>2</number>
      </property>
      <property name="tabsClosable">
       <bool>false</bool>
@@ -487,18 +487,18 @@
              <double>1000.000000000000000</double>
             </property>
             <property name="singleStep">
-             <double>0.000010000000000</double>
+             <double>0.010000000000000</double>
             </property>
            </widget>
           </item>
-          <item row="4" column="0">
+          <item row="6" column="0">
            <widget class="QLabel" name="label_11">
             <property name="text">
              <string>Low voltage alarm:</string>
             </property>
            </widget>
           </item>
-          <item row="4" column="1">
+          <item row="6" column="1">
            <widget class="QDoubleSpinBox" name="sb_lowVoltageAlarm">
             <property name="suffix">
              <string>V</string>
@@ -511,14 +511,14 @@
             </property>
            </widget>
           </item>
-          <item row="5" column="0">
+          <item row="7" column="0">
            <widget class="QLabel" name="label_12">
             <property name="text">
              <string>Low voltage warning:</string>
             </property>
            </widget>
           </item>
-          <item row="5" column="1">
+          <item row="7" column="1">
            <widget class="QDoubleSpinBox" name="sb_lowVoltageWarning">
             <property name="suffix">
              <string>V</string>
@@ -531,14 +531,14 @@
             </property>
            </widget>
           </item>
-          <item row="3" column="0">
+          <item row="5" column="0">
            <widget class="QLabel" name="label_31">
             <property name="text">
              <string>Calibration offset:</string>
             </property>
            </widget>
           </item>
-          <item row="3" column="1">
+          <item row="5" column="1">
            <widget class="QDoubleSpinBox" name="sb_voltageOffSet">
             <property name="suffix">
              <string>V</string>
@@ -568,6 +568,20 @@
            <widget class="QComboBox" name="cbVoltagePin">
             <property name="toolTip">
              <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Select an ADC pin to measure the voltage. Pins not available with the current board configuration are labeled &amp;quot;Disabled&amp;quot;. These pins may be enabled by settings on the &amp;quot;Hardware&amp;quot; tab. Pins labeled &amp;quot;N/A&amp;quot; are not available due to the board hardware design.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+            </property>
+           </widget>
+          </item>
+          <item row="3" column="1">
+           <widget class="QLabel" name="label_5">
+            <property name="text">
+             <string>or</string>
+            </property>
+           </widget>
+          </item>
+          <item row="4" column="1">
+           <widget class="QDoubleSpinBox" name="sb_voltageRatio">
+            <property name="suffix">
+             <string>:1 ratio</string>
             </property>
            </widget>
           </item>
@@ -1069,8 +1083,8 @@
            <rect>
             <x>0</x>
             <y>0</y>
-            <width>339</width>
-            <height>594</height>
+            <width>353</width>
+            <height>864</height>
            </rect>
           </property>
           <layout class="QGridLayout" name="gridLayout">
