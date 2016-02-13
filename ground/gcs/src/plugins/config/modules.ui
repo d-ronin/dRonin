@@ -501,7 +501,7 @@
           <item row="6" column="1">
            <widget class="QDoubleSpinBox" name="sb_lowVoltageAlarm">
             <property name="suffix">
-             <string>V</string>
+             <string> V</string>
             </property>
             <property name="singleStep">
              <double>0.100000000000000</double>
@@ -521,7 +521,7 @@
           <item row="7" column="1">
            <widget class="QDoubleSpinBox" name="sb_lowVoltageWarning">
             <property name="suffix">
-             <string>V</string>
+             <string> V</string>
             </property>
             <property name="singleStep">
              <double>0.100000000000000</double>
@@ -541,7 +541,7 @@
           <item row="5" column="1">
            <widget class="QDoubleSpinBox" name="sb_voltageOffSet">
             <property name="suffix">
-             <string>V</string>
+             <string> V</string>
             </property>
             <property name="decimals">
              <number>4</number>
@@ -650,7 +650,7 @@
           <item row="6" column="1">
            <widget class="QDoubleSpinBox" name="sb_currentOffSet">
             <property name="suffix">
-             <string>A</string>
+             <string> A</string>
             </property>
             <property name="decimals">
              <number>4</number>
@@ -700,7 +700,7 @@
              <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Raise an alarm when the remaining flight time (calculated based on battery capacity and current consumed) is below this threshold. Set to 0s to disable.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
             </property>
             <property name="suffix">
-             <string>s</string>
+             <string> s</string>
             </property>
             <property name="maximum">
              <number>255</number>
@@ -713,7 +713,7 @@
              <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Issue a warning when the remaining flight time (calculated based on battery capacity and current consumed) is below this threshold. Set to 0s to disable.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
             </property>
             <property name="suffix">
-             <string>s</string>
+             <string> s</string>
             </property>
             <property name="maximum">
              <number>255</number>
@@ -1083,7 +1083,7 @@
            <rect>
             <x>0</x>
             <y>0</y>
-            <width>353</width>
+            <width>376</width>
             <height>864</height>
            </rect>
           </property>
