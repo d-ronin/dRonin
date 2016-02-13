@@ -286,7 +286,8 @@ static void actuator_task(void* parameters)
 		}
 
 		bool armed = flightStatus.Armed == FLIGHTSTATUS_ARMED_ARMED;
-		bool spinWhileArmed = actuatorSettings.MotorsSpinWhileArmed == ACTUATORSETTINGS_MOTORSSPINWHILEARMED_TRUE;
+		bool spin_while_armed = actuatorSettings.MotorsSpinWhileArmed == ACTUATORSETTINGS_MOTORSSPINWHILEARMED_TRUE;
+		bool stabilize_always = false;
 
 		float throttle_source = -1;
 		// as long as we're not a heli in failsafe mode, we should set throttle from the manual throttle value
@@ -295,10 +296,11 @@ static void actuator_task(void* parameters)
 			if (flightStatus.FlightMode != FLIGHTSTATUS_FLIGHTMODE_FAILSAFE) {
 				throttle_source = manual_control_command.Throttle;
 			}
+		} else {
+			throttle_source = desired.Thrust;
 		}
-		else throttle_source = desired.Thrust;
 
-		bool positiveThrottle = throttle_source >= 0.00f;
+		bool pos_throttle = throttle_source >= 0.00f;
 
 		float curve1 = throt_curve(throttle_source, mixerSettings.ThrottleCurve1, MIXERSETTINGS_THROTTLECURVE1_NUMELEM);
 
@@ -343,29 +345,32 @@ static void actuator_task(void* parameters)
 			clipped = true;
 
 			offset = 1.0f - max_chan;
+		} else if (min_chan < 0.0f) {
+			/* Low power stabilization--- how much power are we
+			 * willing to add??? */
 		}
 
 		for (int ct = 0; ct < MAX_MIX_ACTUATORS; ct++) {
 			// Motors have additional protection for when to be on
 			if (get_mixer_type(ct) == MIXERSETTINGS_MIXER1TYPE_MOTOR) {
-				status[ct] = status[ct] * gain + offset;
-
-				if (status[ct] > 0) {
-					// Apply curve fitting, mapping the input to the propeller output.
-					status[ct] = powapprox(status[ct], actuatorSettings.MotorInputOutputCurveFit);
-				} else {
-					status[ct] = 0;
-				}
-
-				// If not armed or motors aren't meant to spin all the time
-				if (!armed ||
-						(!spinWhileArmed && !positiveThrottle)) {
+				if (!armed) {
 					status[ct] = -1;  //force min throttle
+				} else if ((!pos_throttle) && (!stabilize_always)) {
+					if (!spin_while_armed) {
+						status[ct] = -1;
+					} else {
+						status[ct] = 0;
+					}
+				} else {
+					status[ct] = status[ct] * gain + offset;
+
+					if (status[ct] > 0) {
+						// Apply curve fitting, mapping the input to the propeller output.
+						status[ct] = powapprox(status[ct], actuatorSettings.MotorInputOutputCurveFit);
+					} else {
+						status[ct] = 0;
+					}
 				}
-				// If armed meant to keep spinning,
-				else if ((spinWhileArmed && !positiveThrottle) ||
-						(status[ct] < 0) )
-					status[ct] = 0;
 			}
 
 			command.Channel[ct] = scale_channel(status[ct], ct);
