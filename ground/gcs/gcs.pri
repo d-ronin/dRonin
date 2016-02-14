@@ -140,7 +140,7 @@ linux-g++* {
     QMAKE_LFLAGS += -Wl,--allow-shlib-undefined -Wl,--no-undefined
 
     # Enable -Werror on Linux, should do this for all platforms once warnings are all eliminated
-    QMAKE_CXXFLAGS_WARN_ON += -Werror
+    QMAKE_CXXFLAGS_WARN_ON += -Werror -Wno-deprecated-declarations
 }
 
 win32 {
