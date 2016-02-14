@@ -1228,6 +1228,16 @@ channel value for each flight mode.</string>
                   </property>
                  </widget>
                 </item>
+                <item row="2" column="0">
+                 <widget class="QLabel" name="lblMultiwii">
+                  <property name="text">
+                   <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-size:12pt; font-weight:600; color:#ff0000;&quot;&gt;Note:&lt;/span&gt;&lt;span style=&quot; font-size:12pt;&quot;&gt; Multiwii flight mode is deprecated, it will be &lt;/span&gt;&lt;span style=&quot; font-size:12pt; font-weight:600;&quot;&gt;removed&lt;/span&gt;&lt;span style=&quot; font-size:12pt;&quot;&gt; in a future release! Consider Acro+ instead.&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                  </property>
+                  <property name="wordWrap">
+                   <bool>true</bool>
+                  </property>
+                 </widget>
+                </item>
                </layout>
               </item>
               <item row="2" column="1">
@@ -1395,7 +1405,7 @@ channel value for each flight mode.</string>
             <x>0</x>
             <y>0</y>
             <width>838</width>
-            <height>737</height>
+            <height>794</height>
            </rect>
           </property>
           <layout class="QVBoxLayout" name="verticalLayout_2">
@@ -1699,6 +1709,7 @@ Applies and Saves all settings to SD</string>
   <tabstop>saveRCInputToSD</tabstop>
  </tabstops>
  <resources>
+  <include location="../coreplugin/core.qrc"/>
   <include location="../coreplugin/core.qrc"/>
  </resources>
  <connections/>
