@@ -131,6 +131,10 @@ ConfigModuleWidget::ConfigModuleWidget(QWidget *parent) : ConfigTaskWidget(paren
     addUAVObjectToWidgetRelation(batteryStateName, "ConsumedEnergy", ui->le_liveConsumedEnergy);
     addUAVObjectToWidgetRelation(batteryStateName, "EstimatedFlightTime", ui->le_liveEstimatedFlightTime);
 
+    // connect the voltage ratio and factor boxes so they update each other when edited
+    connect(ui->sb_voltageRatio, SIGNAL(valueChanged(double)), this, SLOT(updateVoltageRatio(double)));
+    connect(ui->sb_voltageFactor, SIGNAL(valueChanged(double)), this, SLOT(updateVoltageFactor(double)));
+
     addUAVObjectToWidgetRelation(vibrationAnalysisSettingsName, "SampleRate", ui->sb_sampleRate);
     addUAVObjectToWidgetRelation(vibrationAnalysisSettingsName, "FFTWindowSize", ui->cb_windowSize);
 
@@ -751,6 +755,16 @@ void ConfigModuleWidget::refreshAdcNames(void)
         if (i < ui->cbCurrentPin->count())
             ui->cbCurrentPin->setItemText(i, name);
     }
+}
+
+void ConfigModuleWidget::updateVoltageRatio(double value)
+{
+    ui->sb_voltageFactor->setValue(1000.0 / value);
+}
+
+void ConfigModuleWidget::updateVoltageFactor(double value)
+{
+    ui->sb_voltageRatio->setValue(1000.0 / value);
 }
 
 /**

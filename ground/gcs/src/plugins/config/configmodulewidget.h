@@ -52,6 +52,8 @@ private slots:
     void toggleVibrationTest();
     void toggleBatteryMonitoringPin();
     void toggleBatteryMonitoringGb();
+    void updateVoltageRatio(double value);
+    void updateVoltageFactor(double value);
 
     void recheckTabs();
     void objectUpdated(UAVObject * obj, bool success);
