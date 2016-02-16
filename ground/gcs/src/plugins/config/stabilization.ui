@@ -25739,7 +25739,7 @@ border-radius: 5;</string>
        <item>
         <widget class="QLabel" name="label_3">
          <property name="text">
-          <string>This mode attempts to replicate the feel of the control loop used in MultiWii / baseflight. The units are different for the settings, but you can use the calculate button below to translate from one system to the other. To use this, you use a Stabilization# flight mode with the roll and pitch (optionally yaw) axes set to MWRate (selected in the input configuration page).</string>
+          <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;This mode attempts to replicate the feel of the control loop used in MultiWii / baseflight. The units are different for the settings, but you can use the calculate button below to translate from one system to the other. To use this, you use a Stabilization# flight mode with the roll and pitch (optionally yaw) axes set to MWRate (selected in the input configuration page).&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-size:14pt; font-weight:600; color:#ff0000;&quot;&gt;Note:&lt;/span&gt;&lt;span style=&quot; font-size:14pt;&quot;&gt; Multiwii flight mode is deprecated, it will be &lt;/span&gt;&lt;span style=&quot; font-size:14pt; font-weight:600;&quot;&gt;removed&lt;/span&gt;&lt;span style=&quot; font-size:14pt;&quot;&gt; in a future release! Consider Acro+ instead.&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
          </property>
          <property name="wordWrap">
           <bool>true</bool>
