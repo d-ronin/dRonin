@@ -44,6 +44,11 @@ struct pios_servo_cfg {
 	uint8_t num_channels;
 };
 
+/* Private constant definitions */
+#define PWM_MODE_1MHZ_RATE   1000000
+#define PWM_MODE_12MHZ_RATE  12000000
+#define PWM_MODE_24MHZ_RATE  24000000
+
 extern int32_t PIOS_Servo_Init(const struct pios_servo_cfg * cfg);
 
 #endif /* PIOS_SERVO_PRIV_H */

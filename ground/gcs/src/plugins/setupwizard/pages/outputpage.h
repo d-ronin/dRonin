@@ -44,7 +44,7 @@ public:
     bool validatePage();
 
 private:
-    void setOneshotTimings();
+    void setOneshotTimings(uint minPulse);
     Ui::OutputPage *ui;
 };
 
