@@ -42,15 +42,7 @@
 #include <unistd.h>
 #include <sys/types.h>
 #include <errno.h>
-
-/* We need a list of TCP devices */
-
-#define PIOS_TCP_MAX_DEV 16
-static int8_t pios_tcp_num_devices = 0;
-
-static pios_tcp_dev pios_tcp_devices[PIOS_TCP_MAX_DEV];
-
-
+#include <fcntl.h>
 
 /* Provide a COM driver */
 static void PIOS_TCP_ChangeBaud(uintptr_t udp_id, uint32_t baud);
@@ -68,16 +60,9 @@ const struct pios_com_driver pios_tcp_com_driver = {
 };
 
 
-static pios_tcp_dev * find_tcp_dev_by_id(uint8_t tcp)
+static pios_tcp_dev * find_tcp_dev_by_id(uintptr_t tcp)
 {
-	if (tcp >= pios_tcp_num_devices) {
-		/* Undefined UDP port for this board (see pios_board.c) */
-		PIOS_Assert(0);
-		return NULL;
-	}
-	
-	/* Get a handle for the device configuration */
-	return &(pios_tcp_devices[tcp]);
+	return (pios_tcp_dev *) tcp;
 }
 
 /**
@@ -179,11 +164,8 @@ static void PIOS_TCP_RxTask(void *tcp_dev_n)
 struct pios_thread *tcpRxTaskHandle;
 int32_t PIOS_TCP_Init(uintptr_t *tcp_id, const struct pios_tcp_cfg * cfg)
 {
-	
-	pios_tcp_dev *tcp_dev = &pios_tcp_devices[pios_tcp_num_devices];
-	
-	pios_tcp_num_devices++;
-	
+	pios_tcp_dev *tcp_dev = malloc(sizeof(pios_tcp_dev));
+
 	/* initialize */
 	tcp_dev->rx_in_cb = NULL;
 	tcp_dev->tx_out_cb = NULL;
@@ -192,7 +174,11 @@ int32_t PIOS_TCP_Init(uintptr_t *tcp_id, const struct pios_tcp_cfg * cfg)
 	/* assign socket */
 	tcp_dev->socket = socket(PF_INET, SOCK_STREAM, IPPROTO_TCP);
 
-	int optval=1;
+#if defined(_WIN32) || defined(WIN32) || defined(__MINGW32__)
+	char optval = 1;
+#else
+	int optval = 1;
+#endif
 
         /* Allow reuse of address if you restart. */
         setsockopt(tcp_dev->socket, SOL_SOCKET, SO_REUSEADDR, &optval, sizeof(optval));
@@ -235,9 +221,9 @@ int32_t PIOS_TCP_Init(uintptr_t *tcp_id, const struct pios_tcp_cfg * cfg)
 	tcpRxTaskHandle = PIOS_Thread_Create(
 			PIOS_TCP_RxTask, "pios_tcp_rx", PIOS_THREAD_STACK_SIZE_MIN, tcp_dev, PIOS_THREAD_PRIO_HIGHEST);
 	
-	printf("tcp dev %i - socket %i opened - result %i\n", pios_tcp_num_devices - 1, tcp_dev->socket, res);
+	printf("tcp dev %p - socket %i opened - result %i\n", tcp_dev, tcp_dev->socket, res);
 	
-	*tcp_id = pios_tcp_num_devices - 1;
+	*tcp_id = (uintptr_t) tcp_dev;
 	
 	return res;
 }
