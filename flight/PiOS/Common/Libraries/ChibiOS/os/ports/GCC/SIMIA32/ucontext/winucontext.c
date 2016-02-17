@@ -1,6 +1,7 @@
 /*
  *      win32/64-ucontext: Unix ucontext_t operations on Windows platforms
  *      Copyright(C) 2007-2014 Panagiotis E. Hadjidoukas
+ *      Copyright(C) 2016 dRonin
  *
  *      Contact Email: phadjido@gmail.com, xdoukas@ceid.upatras.gr
  *
@@ -63,11 +64,11 @@ int makecontext(ucontext_t *ucp, void (*func)(), int argc, ...)
 
 	/* Set the instruction and the stack pointer */
 #if defined(_X86_)
-	ucp->uc_mcontext.Eip = (unsigned long long) func;
-	ucp->uc_mcontext.Esp = (unsigned long long) (sp - 4);
+	ucp->uc_mcontext.Eip = (uintptr_t) func;
+	ucp->uc_mcontext.Esp = (uintptr_t) (sp - 4);
 #else
-	ucp->uc_mcontext.Rip = (unsigned long long) func;
-	ucp->uc_mcontext.Rsp = (unsigned long long) (sp - 40);
+	ucp->uc_mcontext.Rip = (uintptr_t) func;
+	ucp->uc_mcontext.Rsp = (uintptr_t) (sp - 40);
 #endif
 	/* Save/Restore the full machine context */
 	ucp->uc_mcontext.ContextFlags = CONTEXT_FULL;

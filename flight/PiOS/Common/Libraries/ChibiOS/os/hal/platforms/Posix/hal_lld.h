@@ -41,7 +41,7 @@
  */
 #define PLATFORM_NAME   "Linux"
 
-#define SOCKET int
+#define HALSOCKET int
 #define INVALID_SOCKET -1
 
 /*===========================================================================*/

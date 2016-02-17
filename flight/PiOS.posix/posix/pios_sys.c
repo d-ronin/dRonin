@@ -9,6 +9,7 @@
  * @file       pios_sys.c  
  * @author     The OpenPilot Team, http://www.openpilot.org Copyright (C) 2010.
  * 	        Parts by Thorsten Klose (tk@midibox.org) (tk@midibox.org)
+ * @author     dRonin, http://dRonin.org/, Copyright (C) 2016
  * @brief      Sets up basic STM32 system hardware, functions are called from Main.
  * @see        The GNU Public License (GPL) Version 3
  *
@@ -27,6 +28,10 @@
  * You should have received a copy of the GNU General Public License along 
  * with this program; if not, write to the Free Software Foundation, Inc., 
  * 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
+ *
+ * Additional note on redistribution: The copyright and license notices above
+ * must be maintained in each individual source file that is a derivative work
+ * of this source file; otherwise redistribution is prohibited.
  */
 
 /* Project Includes */
@@ -75,6 +80,8 @@ void PIOS_SYS_Args(int argc, char *argv[]) {
 #include <stdlib.h>		/* printf */
 #include <signal.h>		/* sigaction */
 #include <fenv.h>		/* PE_* */
+
+#if !(defined(_WIN32) || defined(WIN32) || defined(__MINGW32__))
 static void sigint_handler(int signum, siginfo_t *siginfo, void *ucontext)
 {
 	printf("\nSIGINT received.  Shutting down\n");
@@ -86,9 +93,11 @@ static void sigfpe_handler(int signum, siginfo_t *siginfo, void *ucontext)
 	printf("\nSIGFPE received.  OMG!  Math Bug!  Run again with gdb to find your mistake.\n");
 	exit(0);
 }
+#endif
 
 void PIOS_SYS_Init(void)
 {
+#if !(defined(_WIN32) || defined(WIN32) || defined(__MINGW32__))
 	struct sigaction sa_int = {
 		.sa_sigaction = sigint_handler,
 		.sa_flags = SA_SIGINFO,
@@ -117,6 +126,7 @@ void PIOS_SYS_Init(void)
 		exit(1);
 #endif
 	}
+#endif
 }
 
 /**

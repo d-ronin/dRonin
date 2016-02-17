@@ -112,9 +112,9 @@ typedef struct {
   uint8_t                   ob[SERIAL_BUFFERS_SIZE];                        \
   /* End of the mandatory fields.*/                                         \
   /* Listen socket for simulated serial port.*/                             \
-  SOCKET                    com_listen;                                     \
+  HAL_SOCKET                com_listen;                                     \
   /* Data socket for simulated serial port.*/                               \
-  SOCKET                    com_data;                                       \
+  HAL_SOCKET                com_data;                                       \
   /* Port readable name.*/                                                  \
   const char                *com_name;
 
