@@ -1263,7 +1263,7 @@ void render_user_page(OnScreenDisplayPageSettingsData * page)
 		AccelsData accelsData;
 		AccelsGet(&accelsData);
 		// apply low pass filter to reduce noise bias
-		static AccelsData accelsDataAcc = {};
+		static AccelsData accelsDataAcc = { 0 };
 
 		accelsDataAcc.x = 0.8f * accelsDataAcc.x + 0.2f * accelsData.x;
 		accelsDataAcc.y = 0.8f * accelsDataAcc.y + 0.2f * accelsData.y;
