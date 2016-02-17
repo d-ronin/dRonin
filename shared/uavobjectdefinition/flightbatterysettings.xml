@@ -6,12 +6,12 @@
         <field name="VoltagePin" units="" type="enum" elements="1" options="ADC0,ADC1,ADC2,ADC3,ADC4,ADC5,ADC6,ADC7,ADC8,NONE" defaultvalue="ADC1"/>
 
         <field name="NbCells" units=""  type="uint8"  elements="1" defaultvalue="3"/>
-        <field name="MaxCellVoltage" units="V" type="float" elements="1" defaultvalue="0">
-            <description>Used for auto-detecting battery voltage. 0 disables the auto-detection. Standard value for lipos should be 4.3V</description>
+        <field name="MaxCellVoltage" units="V" type="float" elements="1" defaultvalue="4.2">
+            <description>Used for auto-detecting battery voltage. 0 disables the auto-detection. Default value for lipos should be 4.2V</description>
         </field>
         <field name="Capacity" units="mAh"  type="uint32"  elements="1" defaultvalue="2200"/>
 
-        <field name="VoltageThresholds" units="V"  type="float" elementnames="Warning, Alarm" defaultvalue="9.8, 9.2"/>
+        <field name="VoltageThresholds" units="V"  type="float" elementnames="Warning, Alarm" defaultvalue="3.5, 3.3"/>
           
         <field name="SensorCalibrationFactor" units="mV/U" type="float" elementnames="Voltage, Current" defaultvalue="63.69, 36.60"/>
         <field name="SensorCalibrationOffset" units="" type="float" elementnames="Voltage, Current" defaultvalue="0, 0"/>

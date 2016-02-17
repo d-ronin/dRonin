@@ -157,7 +157,7 @@ static void batteryTask(void * parameters)
 				}
 				else if(scaled_voltage > 3.0f && !cells_calculated && (batterySettings.MaxCellVoltage > 0)){
 					cells_calculated = true;
-					cells = ((scaled_voltage / batterySettings.MaxCellVoltage) + 1);
+					cells = ((scaled_voltage / batterySettings.MaxCellVoltage) + 0.9f);
 					flightBatteryData.DetectedCellCount = cells;
 				}
 				else if(!cells_calculated)
