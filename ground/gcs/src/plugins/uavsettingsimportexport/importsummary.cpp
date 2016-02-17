@@ -27,17 +27,21 @@
  * 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
  */
 
-// for Paramterized slots
-#include <QSignalMapper>
-
 // for XML object
 #include <QDomDocument>
 #include <QXmlQuery>
 
+// for Parameterized slots
+#include <QSignalMapper>
 #include "importsummary.h"
 
 #define UAV_SETIMPEXP_APPLY 1
 #define UAV_SETIMPEXP_SAVE 2
+
+enum UAVSettingsAction{
+    apply = 1,
+    save = 2
+};
 
 ImportSummaryDialog::ImportSummaryDialog( QWidget *parent) :
     QDialog(parent),
@@ -64,10 +68,20 @@ ImportSummaryDialog::ImportSummaryDialog( QWidget *parent) :
    connect(ui->btnSaveToFlash, SIGNAL(clicked()), signalMapper, SLOT(map()));
    connect(ui->btnApply, SIGNAL(clicked()), signalMapper, SLOT(map()));
 
-   signalMapper->setMapping(ui->btnSaveToFlash, UAV_SETIMPEXP_SAVE);
-   signalMapper->setMapping(ui->btnApply, UAV_SETIMPEXP_APPLY);
+   signalMapper->setMapping(ui->btnSaveToFlash, UAVSettingsAction::save);
+   signalMapper->setMapping(ui->btnApply, UAVSettingsAction::apply);
 
    connect(signalMapper, SIGNAL(mapped(int)), this, SLOT(doTheApplySaving(int)));
+
+   // Connect the Select All/None buttons
+   signalMapper = new QSignalMapper (this);
+
+   connect(ui->btnSelectAll, SIGNAL(clicked()), signalMapper, SLOT(map()));
+   connect(ui->btnSelectNone, SIGNAL(clicked()), signalMapper, SLOT(map()));
+   signalMapper->setMapping(ui->btnSelectAll, 1);
+   signalMapper->setMapping(ui->btnSelectNone, 0);
+
+   connect(signalMapper, SIGNAL(mapped(int)), this, SLOT(setCheckedState(int)));
 
    // Connect the help button
    connect(ui->helpButton, SIGNAL(clicked()), this, SLOT(openHelp()));
@@ -127,6 +141,18 @@ void ImportSummaryDialog::addLine(QString uavObjectName, QString text, bool stat
 
 
 /*
+  Sets or unsets every UAVObjet in the list
+  */
+void ImportSummaryDialog::setCheckedState(int state)
+{
+    for(int i = 0; i < ui->importSummaryList->rowCount(); i++) {
+        QCheckBox *box = dynamic_cast<QCheckBox*>(ui->importSummaryList->cellWidget(i, 0));
+        if(box->isEnabled())
+            box->setChecked((state == 1 ? true : false));
+    }
+}
+
+/*
   Apply or saves every checked UAVObjet in the list to Flash
   */
 void ImportSummaryDialog::doTheApplySaving(int op)
@@ -148,6 +174,11 @@ void ImportSummaryDialog::doTheApplySaving(int op)
     }
     if(itemCount==0)
         return;
+
+    ui->btnApply->setEnabled(false);
+    ui->btnSaveToFlash->setEnabled(false);
+    ui->closeButton->setEnabled(false);
+
     ui->progressBar->setMaximum(itemCount+1);
     ui->progressBar->setValue(1);
     for(int i=0; i < ui->importSummaryList->rowCount(); i++) {
@@ -156,7 +187,7 @@ void ImportSummaryDialog::doTheApplySaving(int op)
         if (box->isChecked()) {
             UAVObject* importedObj = importedObjects->getObject(uavObjectName);
 
-            if(op & UAV_SETIMPEXP_APPLY) {
+            if(op & UAVSettingsAction::apply) {
                 UAVObject* boardObj = boardObjManager->getObject(uavObjectName);
 
                 quint8* data = new quint8[importedObj->getNumBytes()];
@@ -167,7 +198,7 @@ void ImportSummaryDialog::doTheApplySaving(int op)
                 boardObj->updated();
             }
 
-            if(op & UAV_SETIMPEXP_SAVE) {
+            if(op & UAVSettingsAction::save) {
                 utilManager->saveObjectToFlash(importedObj);
             }
 
@@ -175,11 +206,6 @@ void ImportSummaryDialog::doTheApplySaving(int op)
             this->repaint();
         }
     }
-
-    ui->btnApply->setEnabled(false);
-    ui->btnSaveToFlash->setEnabled(false);
-    ui->closeButton->setEnabled(false);
-
 }
 
 

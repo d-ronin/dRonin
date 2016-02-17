@@ -66,6 +66,7 @@ public slots:
 
 private slots:
     void doTheApplySaving(int op);
+    void setCheckedState(int state);
     void openHelp();
 
 };
