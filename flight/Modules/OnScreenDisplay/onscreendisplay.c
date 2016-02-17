@@ -37,12 +37,6 @@
 // ****************
 
 // #define DEBUG_TIMING
-// #define DEBUG_ALARMS
-// #define DEBUG_TELEMETRY
-// #define DEBUG_BLACK_WHITE
-// #define DEBUG_STUFF
-#define SIMULATE_DATA
-#define TEMP_GPS_STATUS_WORKAROUND
 
 // static assert
 #define ASSERT_CONCAT_(a, b) a ## b
@@ -119,8 +113,6 @@ extern uint8_t PIOS_Board_Revision(void);
 
 extern uint8_t *draw_buffer_level;
 extern uint8_t *draw_buffer_mask;
-extern uint8_t *disp_buffer_level;
-extern uint8_t *disp_buffer_mask;
 
 // ****************
 // Private functions
@@ -131,7 +123,6 @@ static void onScreenDisplayTask(void *parameters);
 #define LONG_TIME        0xffff
 #define STACK_SIZE_BYTES 2048
 #define TASK_PRIORITY    PIOS_THREAD_PRIO_LOW
-#define UPDATE_PERIOD    100
 #define BLINK_INTERVAL_FRAMES 12
 #define BOOT_DISPLAY_TIME_MS (10*1000)
 #define STATS_DELAY_MS 1500
@@ -196,14 +187,12 @@ const char * dist_unit_long = METRIC_DIST_UNIT_LONG;
 const char * dist_unit_short = METRIC_DIST_UNIT_SHORT;
 const char * speed_unit = METRIC_SPEED_UNIT;
 const char digits[16] = "0123456789abcdef";
-char mgrs_str[20] = {0};
 
 float home_baro_altitude = 0;
 static volatile bool osd_settings_updated = true;
 static volatile bool osd_page_updated = true;
 static OnScreenDisplaySettingsData osd_settings;
 static bool blink;
-static AccelsData accelsDataAcc;
 //                     small, normal, large
 const int SIZE_TO_FONT[3] = {2, 0, 3};
 
@@ -1091,8 +1080,6 @@ void showVideoType(int16_t x, int16_t y)
 	}
 }
 
-const char * HOME_LABELS[] = {"", "Home: "};
-
 void render_user_page(OnScreenDisplayPageSettingsData * page)
 {
 	char tmp_str[100] = { 0 };
@@ -1185,7 +1172,7 @@ void render_user_page(OnScreenDisplayPageSettingsData * page)
 					SIZE_TO_FONT[page->ArmStatusFont]);
 	}
 
-	// Artificial Horizon
+	// Artificial Horizon (and centermark)
 	if (page->ArtificialHorizon || page->CenterMark) {
 		AttitudeActualRollGet(&tmp);
 		AttitudeActualPitchGet(&tmp1);
@@ -1276,6 +1263,8 @@ void render_user_page(OnScreenDisplayPageSettingsData * page)
 		AccelsData accelsData;
 		AccelsGet(&accelsData);
 		// apply low pass filter to reduce noise bias
+		static AccelsData accelsDataAcc = { 0 };
+
 		accelsDataAcc.x = 0.8f * accelsDataAcc.x + 0.2f * accelsData.x;
 		accelsDataAcc.y = 0.8f * accelsDataAcc.y + 0.2f * accelsData.y;
 		accelsDataAcc.z = 0.8f * accelsDataAcc.z + 0.2f * accelsData.z;
@@ -1332,6 +1321,8 @@ void render_user_page(OnScreenDisplayPageSettingsData * page)
 
 		// MGRS location
 		if (page->GpsMgrs) {
+			static char mgrs_str[20] = {0};
+
 			if (frame_counter % 5 == 0) {
 				// the conversion to MGRS is computationally expensive, so we update it a bit slower
 				tmp_int1 = Convert_Geodetic_To_MGRS((double)gps_data.Latitude * (double)DEG2RAD / 10000000.0,
@@ -1642,9 +1633,6 @@ static void onScreenDisplayTask(__attribute__((unused)) void *parameters)
 
 	OnScreenDisplaySettingsGet(&osd_settings);
 	home_baro_altitude = 0.;
-
-	// clear accels data accumulator
-	memset(&accelsDataAcc, 0, sizeof(AccelsData));
 
 	// blank
 	while (PIOS_Thread_Systime() <= BLANK_TIME) {
