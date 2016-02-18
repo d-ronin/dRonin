@@ -65,6 +65,24 @@ static pios_tcp_dev * find_tcp_dev_by_id(uintptr_t tcp)
 	return (pios_tcp_dev *) tcp;
 }
 
+static int set_nonblock(int sock) {
+#if defined(_WIN32) || defined(WIN32) || defined(__MINGW32__)
+	unsigned long flag = 1;
+	if (!ioctlsocket(sock, FIONBIO, &flag)) {
+		return 0;
+	}
+#else
+	int flags;
+	if ((flags = fcntl(tcp_dev->socket, F_GETFL, 0)) != -1) {
+		if (fcntl(tcp_dev->socket, F_SETFL, flags | O_NONBLOCK) != -1) {
+			return 0;
+		}
+	}
+#endif
+
+	return -1;
+}
+
 /**
  * RxTask
  */
@@ -102,15 +120,9 @@ static void PIOS_TCP_RxTask(void *tcp_dev_n)
 			close(tcp_dev->socket);
 			exit(EXIT_FAILURE);
 		}
+
+		set_nonblock(tcp_dev->socket_connection);
 		
-		/* Set socket nonblocking. */
-	    int flags;
-	    if ((flags = fcntl(tcp_dev->socket_connection, F_GETFL, 0)) == -1) {
-	    }
-	    if (fcntl(tcp_dev->socket_connection, F_SETFL, flags | O_NONBLOCK) == -1) {
-	    }
-
-
 		fprintf(stderr, "Connection accepted\n");
 
 		while (1) {
@@ -147,11 +159,6 @@ static void PIOS_TCP_RxTask(void *tcp_dev_n)
 			}
 		}
 		
-		if (shutdown(tcp_dev->socket_connection, SHUT_RDWR) == -1) {
-			//perror("can not shutdown socket");
-			//close(tcp_dev->socket_connection);
-			//exit(EXIT_FAILURE);
-		}
 		close(tcp_dev->socket_connection);
 		tcp_dev->socket_connection = 0;
 	}
@@ -194,10 +201,10 @@ int32_t PIOS_TCP_Init(uintptr_t *tcp_id, const struct pios_tcp_cfg * cfg)
 	tcp_dev->server.sin_port = htons(tcp_dev->cfg->port);
 
 	/* set socket options */
-    int value = 1;
-    if (setsockopt(tcp_dev->socket, SOL_SOCKET, SO_REUSEADDR, (char*)&value, sizeof(value)) == -1) {
+	int value = 1;
+	if (setsockopt(tcp_dev->socket, SOL_SOCKET, SO_REUSEADDR, (char*)&value, sizeof(value)) == -1) {
 
-    }
+	}
 
 	int res= bind(tcp_dev->socket, (struct sockaddr*)&tcp_dev->server, sizeof(tcp_dev->server));
 	if (res == -1) {
@@ -212,11 +219,7 @@ int32_t PIOS_TCP_Init(uintptr_t *tcp_id, const struct pios_tcp_cfg * cfg)
 	}
 	
 	/* Set socket nonblocking. */
-    int flags;
-    if ((flags = fcntl(tcp_dev->socket, F_GETFL, 0)) == -1) {
-    }
-    if (fcntl(tcp_dev->socket, F_SETFL, flags | O_NONBLOCK) == -1) {
-    }
+	set_nonblock(tcp_dev->socket);
 
 	tcpRxTaskHandle = PIOS_Thread_Create(
 			PIOS_TCP_RxTask, "pios_tcp_rx", PIOS_THREAD_STACK_SIZE_MIN, tcp_dev, PIOS_THREAD_PRIO_HIGHEST);
