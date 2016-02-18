@@ -115,13 +115,6 @@
       </widget>
      </item>
      <item>
-      <widget class="QPushButton" name="btnApply">
-       <property name="text">
-        <string>Apply</string>
-       </property>
-      </widget>
-     </item>
-     <item>
       <widget class="QPushButton" name="btnSaveToFlash">
        <property name="toolTip">
         <string>Save all settings checked above to persistent board storage,
