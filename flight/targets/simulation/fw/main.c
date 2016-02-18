@@ -30,6 +30,10 @@
  */
 
 /* OpenPilot Includes */
+#if defined(_WIN32) || defined(WIN32) || defined(__MINGW32__)
+#include <winsock2.h>
+#endif
+
 #include "openpilot.h"
 #include "uavobjectsinit.h"
 #include "systemmod.h"
@@ -56,13 +60,14 @@ static void initTask(void *parameters);
  * If something goes wrong, blink LED1 and LED2 every 100ms
  *
  */
-#if defined(SIM_POSIX)
 int main(int argc, char *argv[]) {
-	PIOS_SYS_Args(argc, argv);
-#else
-int main()
-{
+#if defined(_WIN32) || defined(WIN32) || defined(__MINGW32__)
+	WSADATA wsaData;
+	WSAStartup(MAKEWORD(2, 2), &wsaData);
 #endif
+
+	PIOS_SYS_Args(argc, argv);
+
 	/* NOTE: Do NOT modify the following start-up sequence */
 	/* Any new initialization functions should be added in OpenPilotInit() */
 	PIOS_heap_initialize_blocks();

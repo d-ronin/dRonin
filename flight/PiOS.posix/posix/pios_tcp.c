@@ -208,13 +208,13 @@ int32_t PIOS_TCP_Init(uintptr_t *tcp_id, const struct pios_tcp_cfg * cfg)
 
 	int res= bind(tcp_dev->socket, (struct sockaddr*)&tcp_dev->server, sizeof(tcp_dev->server));
 	if (res == -1) {
-		perror("Binding socket failed\n");
+		perror("Binding socket failed");
 		exit(EXIT_FAILURE);
 	}
 	
 	res = listen(tcp_dev->socket, 10);
 	if (res == -1) {
-		perror("Socket listen failed\n");
+		perror("Socket listen failed");
 		exit(EXIT_FAILURE);
 	}
 	

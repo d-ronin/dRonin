@@ -63,7 +63,7 @@ void PIOS_Flash_Posix_Destroy(uintptr_t chip_id)
 
 	fclose(flash_dev->flash_file);
 
-	free(flash_dev);
+	PIOS_free(flash_dev);
 }
 
 /**********************************
@@ -105,14 +105,12 @@ static int32_t PIOS_Flash_Posix_EraseSector(uintptr_t chip_id, uint32_t chip_sec
 		assert(0);
 	}
 
-	unsigned char * buf = PIOS_malloc(flash_dev->cfg->size_of_sector);
-	assert (buf);
+	unsigned char buf[flash_dev->cfg->size_of_sector];
+
 	memset((void *)buf, 0xFF, flash_dev->cfg->size_of_sector);
 
 	size_t s;
 	s = fwrite (buf, 1, flash_dev->cfg->size_of_sector, flash_dev->flash_file);
-
-	free(buf);
 
 	assert (s == flash_dev->cfg->size_of_sector);
 

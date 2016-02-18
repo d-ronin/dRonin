@@ -42,7 +42,10 @@
 #define PLATFORM_NAME   "Linux"
 
 #define HALSOCKET int
+
+#if !(defined(_WIN32) || defined(WIN32) || defined(__MINGW32__))
 #define INVALID_SOCKET -1
+#endif
 
 /*===========================================================================*/
 /* Driver pre-compile time settings.                                         */
