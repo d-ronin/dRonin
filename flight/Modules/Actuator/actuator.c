@@ -210,7 +210,6 @@ static float get_curve2_source(ActuatorDesiredData *desired, SystemSettingsAirfr
  */
 static void actuator_task(void* parameters)
 {
-	uint32_t lastSysTime;
 	float dT = 0.0f;
 
 	ActuatorCommandData command;
@@ -225,7 +224,7 @@ static void actuator_task(void* parameters)
 	settings_updated = true;
 
 	// Main task loop
-	lastSysTime = PIOS_Thread_Systime();
+	uint32_t last_systime = PIOS_Thread_Systime();
 
 	bool rc = false;
 
@@ -260,10 +259,10 @@ static void actuator_task(void* parameters)
 		}
 
 		// Check how long since last update
-		uint32_t thisSysTime = PIOS_Thread_Systime();
-		if (thisSysTime > lastSysTime) // reuse dt in case of wraparound
-			dT = (thisSysTime - lastSysTime) / 1000.0f;
-		lastSysTime = thisSysTime;
+		uint32_t this_systime = PIOS_Thread_Systime();
+		if (this_systime > last_systime) // reuse dt in case of wraparound
+			dT = (this_systime - last_systime) / 1000.0f;
+		last_systime = this_systime;
 
 		FlightStatusGet(&flightStatus);
 		ActuatorDesiredGet(&desired);
@@ -287,7 +286,6 @@ static void actuator_task(void* parameters)
 
 		bool armed = flightStatus.Armed == FLIGHTSTATUS_ARMED_ARMED;
 		bool spin_while_armed = actuatorSettings.MotorsSpinWhileArmed == ACTUATORSETTINGS_MOTORSSPINWHILEARMED_TRUE;
-		bool stabilize_always = false;
 
 		float throttle_source = -1;
 		// as long as we're not a heli in failsafe mode, we should set throttle from the manual throttle value
@@ -300,7 +298,26 @@ static void actuator_task(void* parameters)
 			throttle_source = desired.Thrust;
 		}
 
-		bool pos_throttle = throttle_source >= 0.00f;
+		bool stabilize_now = throttle_source >= 0.00f;
+
+		static uint32_t last_pos_throttle_time = 0;
+
+		if (stabilize_now) {
+			if (actuatorSettings.LowPowerStabilizationMaxTime) {
+				last_pos_throttle_time = this_systime;
+			}
+
+			// Could consider stabilizing on a positive arming edge,
+			// but this seems problematic.
+		} else if (last_pos_throttle_time) {
+			// XXX TODO: Need better / safer timer logic.
+			if ((this_systime - last_pos_throttle_time) >
+					1000.0f * actuatorSettings.LowPowerStabilizationMaxTime) {
+				stabilize_now = true;
+			} else {
+				last_pos_throttle_time = 0;
+			}
+		}
 
 		float curve1 = throt_curve(throttle_source, mixerSettings.ThrottleCurve1, MIXERSETTINGS_THROTTLECURVE1_NUMELEM);
 
@@ -355,7 +372,7 @@ static void actuator_task(void* parameters)
 			if (get_mixer_type(ct) == MIXERSETTINGS_MIXER1TYPE_MOTOR) {
 				if (!armed) {
 					status[ct] = -1;  //force min throttle
-				} else if ((!pos_throttle) && (!stabilize_always)) {
+				} else if (!stabilize_now) {
 					if (!spin_while_armed) {
 						status[ct] = -1;
 					} else {
