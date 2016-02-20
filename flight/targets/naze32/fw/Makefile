@@ -168,7 +168,6 @@ SRC += $(PIOSSTM32F10X)/pios_led.c
 SRC += $(PIOSSTM32F10X)/pios_usart.c
 SRC += $(PIOSSTM32F10X)/pios_irq.c
 SRC += $(PIOSSTM32F10X)/pios_internal_adc_light.c
-SRC += $(PIOSSTM32F10X)/pios_servo.c
 SRC += $(PIOSSTM32F10X)/pios_i2c_alt.c
 SRC += $(PIOSSTM32F10X)/pios_spi.c
 SRC += $(PIOSSTM32F10X)/pios_ppm.c

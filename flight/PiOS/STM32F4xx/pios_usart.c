@@ -220,7 +220,7 @@ int32_t PIOS_USART_Init(uintptr_t * usart_id, const struct pios_usart_cfg * cfg,
 		GPIO_Init(usart_dev->cfg->tx.gpio, (GPIO_InitTypeDef *)&usart_dev->cfg->tx.init);
 
 	/* Enable single wire mode if requested */
-	if (usart_dev->cfg->single_wire == true)
+	if (params->single_wire == true)
 		USART_HalfDuplexCmd(usart_dev->cfg->regs, ENABLE);
 	else
 		USART_HalfDuplexCmd(usart_dev->cfg->regs, DISABLE);
