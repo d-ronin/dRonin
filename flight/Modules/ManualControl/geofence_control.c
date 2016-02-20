@@ -42,6 +42,7 @@
 #include "geofencesettings.h"
 #include "stabilizationdesired.h"
 #include "systemalarms.h"
+#include "systemsettings.h"
 
 //! Initialize the geofence controller
 int32_t geofence_control_initialize()
@@ -74,30 +75,28 @@ int32_t geofence_control_select(bool reset_controller)
 		FlightStatusFlightModeSet(&flight_status);
 	}
 
+	SystemSettingsAirframeTypeOptions airframe_type;
+	SystemSettingsAirframeTypeGet(&airframe_type);
+
 	// Pick default values that will roughly cause a plane to circle down
 	// and a quad to fall straight down
 	StabilizationDesiredData stabilization_desired;
 	StabilizationDesiredGet(&stabilization_desired);
+	StabilizationDesiredGet(&stabilization_desired);
+	stabilization_desired.Thrust = (airframe_type == SYSTEMSETTINGS_AIRFRAMETYPE_HELICP) ? 0 : -1;
+	stabilization_desired.Roll = 0;
+	stabilization_desired.Pitch = 0;
+	stabilization_desired.Yaw   = 0;
 
 	if (!geofence_armed_when_enabled) {
 		/* disable stabilization so outputs do not move when system was not armed */
-		stabilization_desired.Thrust = -1;
-		stabilization_desired.Roll  = 0;
-		stabilization_desired.Pitch = 0;
-		stabilization_desired.Yaw   = 0;
-		stabilization_desired.StabilizationMode[STABILIZATIONDESIRED_STABILIZATIONMODE_ROLL] = STABILIZATIONDESIRED_STABILIZATIONMODE_MANUAL;
-		stabilization_desired.StabilizationMode[STABILIZATIONDESIRED_STABILIZATIONMODE_PITCH] = STABILIZATIONDESIRED_STABILIZATIONMODE_MANUAL;
-		stabilization_desired.StabilizationMode[STABILIZATIONDESIRED_STABILIZATIONMODE_YAW] = STABILIZATIONDESIRED_STABILIZATIONMODE_MANUAL;
+		stabilization_desired.StabilizationMode[STABILIZATIONDESIRED_STABILIZATIONMODE_ROLL] = STABILIZATIONDESIRED_STABILIZATIONMODE_DISABLED;
+		stabilization_desired.StabilizationMode[STABILIZATIONDESIRED_STABILIZATIONMODE_PITCH] = STABILIZATIONDESIRED_STABILIZATIONMODE_DISABLED;
+		stabilization_desired.StabilizationMode[STABILIZATIONDESIRED_STABILIZATIONMODE_YAW] = STABILIZATIONDESIRED_STABILIZATIONMODE_DISABLED;
 	} else {
-		/* Pick default values that will roughly cause a plane to circle down and */
-		/* a quad to fall straight down */
-		stabilization_desired.Thrust = -1;
-		stabilization_desired.Roll = -10;
-		stabilization_desired.Pitch = 0;
-		stabilization_desired.Yaw = -5;
-		stabilization_desired.StabilizationMode[STABILIZATIONDESIRED_STABILIZATIONMODE_ROLL] = STABILIZATIONDESIRED_STABILIZATIONMODE_ATTITUDE;
-		stabilization_desired.StabilizationMode[STABILIZATIONDESIRED_STABILIZATIONMODE_PITCH] = STABILIZATIONDESIRED_STABILIZATIONMODE_ATTITUDE;
-		stabilization_desired.StabilizationMode[STABILIZATIONDESIRED_STABILIZATIONMODE_YAW] = STABILIZATIONDESIRED_STABILIZATIONMODE_RATE;
+		stabilization_desired.StabilizationMode[STABILIZATIONDESIRED_STABILIZATIONMODE_ROLL] = STABILIZATIONDESIRED_STABILIZATIONMODE_FAILSAFE;
+		stabilization_desired.StabilizationMode[STABILIZATIONDESIRED_STABILIZATIONMODE_PITCH] = STABILIZATIONDESIRED_STABILIZATIONMODE_FAILSAFE;
+		stabilization_desired.StabilizationMode[STABILIZATIONDESIRED_STABILIZATIONMODE_YAW] = STABILIZATIONDESIRED_STABILIZATIONMODE_FAILSAFE;
 	}
 
 	StabilizationDesiredSet(&stabilization_desired);
