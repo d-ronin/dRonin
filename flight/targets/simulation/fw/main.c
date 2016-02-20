@@ -61,6 +61,8 @@ static void initTask(void *parameters);
  *
  */
 int main(int argc, char *argv[]) {
+	setvbuf(stdout, NULL, _IONBF, 1);
+	printf("Beginning simulation environment\n");
 #if defined(_WIN32) || defined(WIN32) || defined(__MINGW32__)
 	WSADATA wsaData;
 	WSAStartup(MAKEWORD(2, 2), &wsaData);
@@ -82,12 +84,12 @@ int main(int argc, char *argv[]) {
 	/* Brings up System using CMSIS functions, enables the LEDs. */
 	PIOS_SYS_Init();
 
-	/* For Revolution we use an RTOS task to bring up the system so we can */
-	/* always rely on an RTOS primitive */
 	initTaskHandle = PIOS_Thread_Create(initTask, "init", INIT_TASK_STACK, NULL, INIT_TASK_PRIORITY);
 	PIOS_Assert(initTaskHandle != NULL);
 
 	PIOS_Thread_Sleep(PIOS_THREAD_TIMEOUT_MAX);
+
+	printf("Reached end of main\n");
 
 	return 0;
 }
@@ -101,11 +103,14 @@ MODULE_INITSYSTEM_DECLS;
  */
 void initTask(void *parameters)
 {
+	printf("Initialization task running\n");
 	/* board driver init */
 	PIOS_Board_Init();
 
 	/* Initialize modules */
 	MODULE_INITIALISE_ALL(PIOS_WDG_Clear);
+
+	printf("Initialization task completed\n");
 
 	/* terminate this task */
 	PIOS_Thread_Delete(NULL);

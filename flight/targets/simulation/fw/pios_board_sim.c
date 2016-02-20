@@ -135,7 +135,7 @@ void PIOS_Board_Init(void) {
 
 		if (retval != 0) {
 			fprintf(stderr, "Unable to initialize flash posix simulator: %d\n", retval);
-			exit(0);
+			exit(1);
 		}
 		
 	}
@@ -237,6 +237,8 @@ void PIOS_Board_Init(void) {
 	PIOS_SENSORS_Register(PIOS_SENSOR_GYRO, (struct pios_queue*)1);
 	PIOS_SENSORS_Register(PIOS_SENSOR_MAG, (struct pios_queue*)1);
 	PIOS_SENSORS_Register(PIOS_SENSOR_BARO, (struct pios_queue*)1);
+
+	printf("Completed PIOS_Board_Init\n");
 }
 
 /**
