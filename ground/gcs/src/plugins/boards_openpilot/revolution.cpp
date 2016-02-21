@@ -216,7 +216,7 @@ enum Core::IBoardType::InputType Revolution::getInputOnPort(int port_num)
         return INPUT_TYPE_DSM;
     case HwRevolution::FLEXIPORT_HOTTSUMD:
         return INPUT_TYPE_HOTTSUMD;
-    case HwRevolution::FLXPORT_HOTTSUMH:
+    case HwRevolution::FLEXIPORT_HOTTSUMH:
         return INPUT_TYPE_HOTTSUMH;
     default:
         break;
