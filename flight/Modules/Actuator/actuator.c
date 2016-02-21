@@ -298,7 +298,7 @@ static void actuator_task(void* parameters)
 			throttle_source = desired.Thrust;
 		}
 
-		bool stabilize_now = throttle_source >= 0.00f;
+		bool stabilize_now = throttle_source >= 0.0f;
 
 		static uint32_t last_pos_throttle_time = 0;
 
@@ -314,6 +314,7 @@ static void actuator_task(void* parameters)
 			if ((this_systime - last_pos_throttle_time) >
 					1000.0f * actuatorSettings.LowPowerStabilizationMaxTime) {
 				stabilize_now = true;
+				throttle_source = 0.0f;
 			} else {
 				last_pos_throttle_time = 0;
 			}
@@ -363,8 +364,8 @@ static void actuator_task(void* parameters)
 
 			offset = 1.0f - max_chan;
 		} else if (min_chan < 0.0f) {
-			/* Low power stabilization--- how much power are we
-			 * willing to add??? */
+			/* Low-side clip management-- how much power are we
+			 * willing to add??? XXX TODO */
 		}
 
 		for (int ct = 0; ct < MAX_MIX_ACTUATORS; ct++) {
