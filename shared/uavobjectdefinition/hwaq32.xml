@@ -3,25 +3,25 @@
 		<description>Selection of optional hardware configurations.</description>
 
 		<field name="RcvrPort" units="function" type="enum" elements="1" parent="HwShared.PortTypes"  defaultvalue="Disabled">
-		<options>
-			<option>Disabled</option>
-			<option>PPM</option>
-			<option>PWM</option>
-		</options>
+			<options>
+				<option>Disabled</option>
+				<option>PPM</option>
+				<option>PWM</option>
+			</options>
 		</field>
 
 		<field name="Uart1" units="function" type="enum" elements="1" parent="HwShared.PortTypes" defaultvalue="Disabled">
 			<options>
 				<option>Disabled</option>
-				<option>Telemetry</option>
 				<option>DebugConsole</option>
+				<option>FrSKY Sensor Hub</option>
+				<option>FrSKY SPort Telemetry</option>
+				<option>HoTT Telemetry</option>
+				<option>LighttelemetryTx</option>
 				<option>MavLinkTX</option>
 				<option>MSP</option>
-				<option>HoTT Telemetry</option>
-				<option>FrSKY Sensor Hub</option>
-				<option>LighttelemetryTx</option>
 				<option>PicoC</option>
-				<option>FrSKY SPort Telemetry</option>
+				<option>Telemetry</option>
 			</options>
 		</field>
 
@@ -36,66 +36,69 @@
 		<field name="Uart3" units="function" type="enum" elements="1" parent="HwShared.PortTypes" defaultvalue="Disabled">
 			<options>
 				<option>Disabled</option>
-				<option>Telemetry</option>
-				<option>GPS</option>
-				<option>S.Bus</option>
-				<option>DebugConsole</option>
 				<option>ComBridge</option>
-				<option>MavLinkTX</option>
-				<option>MavLinkTX_GPS_RX</option>
-				<option>MSP</option>
+				<option>DebugConsole</option>
+				<option>FrSKY Sensor Hub</option>
+				<option>FrSKY SPort Telemetry</option>
+				<option>GPS</option>
 				<option>HoTT SUMD</option>
 				<option>HoTT SUMH</option>
 				<option>HoTT Telemetry</option>
-				<option>FrSKY Sensor Hub</option>
 				<option>LighttelemetryTx</option>
-				<option>PicoC</option>
-				<option>FrSKY SPort Telemetry</option>
+				<option>MavLinkTX</option>
+				<option>MavLinkTX_GPS_RX</option>
+				<option>MSP</option>
 				<option>OpenLog</option>
+				<option>PicoC</option>
+				<option>S.Bus</option>
+				<option>S.Bus Non Inverted</option>
+				<option>Telemetry</option>
 			</options>
 		</field>
 
 		<field name="Uart4" units="function" type="enum" elements="1" parent="HwShared.PortTypes" defaultvalue="Disabled">
 			<options>
 				<option>Disabled</option>
-				<option>Telemetry</option>
-				<option>GPS</option>
-				<option>DSM</option>
-				<option>DebugConsole</option>
 				<option>ComBridge</option>
-				<option>MavLinkTX</option>
-				<option>MavLinkTX_GPS_RX</option>
-				<option>MSP</option>
+				<option>DebugConsole</option>
+				<option>DSM</option>
+				<option>FrSKY Sensor Hub</option>
+				<option>FrSKY SPort Telemetry</option>
+				<option>GPS</option>
 				<option>HoTT SUMD</option>
 				<option>HoTT SUMH</option>
 				<option>HoTT Telemetry</option>
-				<option>FrSKY Sensor Hub</option>
 				<option>LighttelemetryTx</option>
-				<option>PicoC</option>
-				<option>FrSKY SPort Telemetry</option>
+				<option>MavLinkTX</option>
+				<option>MavLinkTX_GPS_RX</option>
+				<option>MSP</option>
 				<option>OpenLog</option>
+				<option>PicoC</option>
+				<option>S.Bus Non Inverted</option>
+				<option>Telemetry</option>
 			</options>
 		</field>
 
 		<field name="Uart6" units="function" type="enum" elements="1" parent="HwShared.PortTypes" defaultvalue="Disabled">
 			<options>
 				<option>Disabled</option>
-				<option>Telemetry</option>
-				<option>GPS</option>
-				<option>DSM</option>
-				<option>DebugConsole</option>
 				<option>ComBridge</option>
-				<option>MavLinkTX</option>
-				<option>MavLinkTX_GPS_RX</option>
-				<option>MSP</option>
+				<option>DebugConsole</option>
+				<option>DSM</option>
+				<option>FrSKY Sensor Hub</option>
+				<option>FrSKY SPort Telemetry</option>
+				<option>GPS</option>
 				<option>HoTT SUMD</option>
 				<option>HoTT SUMH</option>
 				<option>HoTT Telemetry</option>
-				<option>FrSKY Sensor Hub</option>
 				<option>LighttelemetryTx</option>
-				<option>PicoC</option>
-				<option>FrSKY SPort Telemetry</option>
+				<option>MavLinkTX</option>
+				<option>MavLinkTX_GPS_RX</option>
+				<option>MSP</option>
 				<option>OpenLog</option>
+				<option>PicoC</option>
+				<option>S.Bus Non Inverted</option>
+				<option>Telemetry</option>
 			</options>
 		</field>
 

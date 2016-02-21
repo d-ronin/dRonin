@@ -347,7 +347,7 @@ void PIOS_Board_Init(void) {
 	}
 
 	PIOS_HAL_ConfigureCDC(hw_usb_vcpport, pios_usb_id, &pios_usb_cdc_cfg);
-	
+
 #endif /* PIOS_INCLUDE_USB_CDC */
 
 #if defined(PIOS_INCLUDE_USB_HID)
@@ -361,7 +361,7 @@ void PIOS_Board_Init(void) {
 	}
 
 	PIOS_HAL_ConfigureHID(hw_usb_hidport, pios_usb_id, &pios_usb_hid_cfg);
-	
+
 #endif /* PIOS_INCLUDE_USB_HID */
 
 	if (usb_hid_present || usb_cdc_present) {
@@ -379,19 +379,15 @@ void PIOS_Board_Init(void) {
 
 	PIOS_HAL_ConfigurePort(hw_uart1,             // port type protocol
 			&pios_usart1_cfg,                    // usart_port_cfg
-			&pios_usart1_cfg,                    // frsky usart_port_cfg
 			&pios_usart_com_driver,              // com_driver
 			&pios_i2c_usart1_adapter_id,         // i2c_id
 			&pios_i2c_usart1_adapter_cfg,        // i2c_cfg
 			NULL,                                // ppm_cfg
 			NULL,                                // pwm_cfg
 			PIOS_LED_ALARM,                      // led_id
-			&pios_usart1_dsm_hsum_cfg,           // usart_dsm_hsum_cfg
 			&pios_usart1_dsm_aux_cfg,            // dsm_cfg
 			hw_DSMxMode,                         // dsm_mode
-			NULL,                                // sbus_rcvr_cfg
-			NULL,                                // sbus_cfg
-			false);                              // sbus_toggle
+			NULL);                               // sbus_cfg
 
 	/* UART2 Port */
 	uint8_t hw_uart2;
@@ -399,24 +395,15 @@ void PIOS_Board_Init(void) {
 
 	PIOS_HAL_ConfigurePort(hw_uart2,             // port type protocol
 			&pios_usart2_cfg,                    // usart_port_cfg
-			&pios_usart2_cfg,                    // frsky usart_port_cfg
 			&pios_usart_com_driver,              // com_driver
 			NULL,                                // i2c_id
 			NULL,                                // i2c_cfg
 			NULL,                                // ppm_cfg
 			NULL,                                // pwm_cfg
 			PIOS_LED_ALARM,                      // led_id
-			&pios_usart2_dsm_hsum_cfg,           // usart_dsm_hsum_cfg
 			&pios_usart2_dsm_aux_cfg,            // dsm_cfg
 			hw_DSMxMode,                         // dsm_mode
-			&pios_usart2_sbus_cfg,               // sbus_rcvr_cfg
-			&pios_usart2_sbus_aux_cfg,           // sbus_cfg
-			true);                               // sbus_toggle
-
-	if (hw_uart2 != HWCOLIBRI_UART2_SBUS) {
-		GPIO_Init(pios_usart2_sbus_aux_cfg.inv.gpio, (GPIO_InitTypeDef*)&pios_usart2_sbus_aux_cfg.inv.init);
-		GPIO_WriteBit(pios_usart2_sbus_aux_cfg.inv.gpio, pios_usart2_sbus_aux_cfg.inv.init.GPIO_Pin, pios_usart2_sbus_aux_cfg.gpio_inv_disable);
-	}
+			&pios_usart2_sbus_aux_cfg);          // sbus_cfg
 
 	/* UART3 Port */
 	uint8_t hw_uart3;
@@ -424,19 +411,15 @@ void PIOS_Board_Init(void) {
 
 	PIOS_HAL_ConfigurePort(hw_uart3,             // port type protocol
 			&pios_usart3_cfg,                    // usart_port_cfg
-			&pios_usart3_cfg,                    // frsky usart_port_cfg
 			&pios_usart_com_driver,              // com_driver
 			&pios_i2c_usart3_adapter_id,         // i2c_id
 			&pios_i2c_usart3_adapter_cfg,        // i2c_cfg
 			NULL,                                // ppm_cfg
 			NULL,                                // pwm_cfg
 			PIOS_LED_ALARM,                      // led_id
-			&pios_usart3_dsm_hsum_cfg,           // usart_dsm_hsum_cfg
 			&pios_usart3_dsm_aux_cfg,            // dsm_cfg
 			hw_DSMxMode,                         // dsm_mode
-			NULL,                                // sbus_rcvr_cfg
-			NULL,                                // sbus_cfg
-			false);                              // sbus_toggle
+			NULL);                               // sbus_cfg
 
 	/* UART4 Port */
 	uint8_t hw_uart4;
@@ -444,19 +427,15 @@ void PIOS_Board_Init(void) {
 
 	PIOS_HAL_ConfigurePort(hw_uart4,             // port type protocol
 			&pios_usart4_cfg,                    // usart_port_cfg
-			&pios_usart4_cfg,                    // frsky usart_port_cfg
 			&pios_usart_com_driver,              // com_driver
 			NULL,                                // i2c_id
 			NULL,                                // i2c_cfg
 			NULL,                                // ppm_cfg
 			NULL,                                // pwm_cfg
 			PIOS_LED_ALARM,                      // led_id
-			&pios_usart4_dsm_hsum_cfg,           // usart_dsm_hsum_cfg
 			&pios_usart4_dsm_aux_cfg,            // dsm_cfg
 			hw_DSMxMode,                         // dsm_mode
-			NULL,                                // sbus_rcvr_cfg
-			NULL,                                // sbus_cfg
-			false);                              // sbus_toggle
+			NULL);                               // sbus_cfg
 
 	/* Configure the rcvr port */
 	uint8_t hw_rcvrport;
@@ -465,41 +444,33 @@ void PIOS_Board_Init(void) {
 	switch (hw_rcvrport) {
 	case HWCOLIBRI_RCVRPORT_DISABLED:
 		break;
-	
+
 	case HWCOLIBRI_RCVRPORT_PWM:
 		PIOS_HAL_ConfigurePort(HWSHARED_PORTTYPES_PWM,  // port type protocol
 				NULL,                                   // usart_port_cfg
-				NULL,                                   // frsky usart_port_cfg
 				NULL,                                   // com_driver
 				NULL,                                   // i2c_id
 				NULL,                                   // i2c_cfg
 				NULL,                                   // ppm_cfg
 				&pios_pwm_cfg,                          // pwm_cfg
 				PIOS_LED_ALARM,                         // led_id
-				NULL,                                   // usart_dsm_hsum_cfg
 				NULL,                                   // dsm_cfg
 				0,                                      // dsm_mode
-				NULL,                                   // sbus_rcvr_cfg
-				NULL,                                   // sbus_cfg    
-				false);                                 // sbus_toggle
+				NULL);                                  // sbus_cfg
 		break;
 
 	case HWCOLIBRI_RCVRPORT_PWMADC:
 		PIOS_HAL_ConfigurePort(HWSHARED_PORTTYPES_PWM,  // port type protocol
 				NULL,                                   // usart_port_cfg
-				NULL,                                   // frsky usart_port_cfg
 				NULL,                                   // com_driver
 				NULL,                                   // i2c_id
 				NULL,                                   // i2c_cfg
 				NULL,                                   // ppm_cfg
 				&pios_pwm_with_adc_cfg,                 // pwm_cfg
 				PIOS_LED_ALARM,                         // led_id
-				NULL,                                   // usart_dsm_hsum_cfg
 				NULL,                                   // dsm_cfg
 				0,                                      // dsm_mode
-				NULL,                                   // sbus_rcvr_cfg
-				NULL,                                   // sbus_cfg    
-				false);                                 // sbus_toggle
+				NULL);                                  // sbus_cfg
 		break;
 
 	case HWCOLIBRI_RCVRPORT_PPM:
@@ -508,87 +479,67 @@ void PIOS_Board_Init(void) {
 	case HWCOLIBRI_RCVRPORT_PPMOUTPUTSADC:
 		PIOS_HAL_ConfigurePort(HWSHARED_PORTTYPES_PPM,  // port type protocol
 				NULL,                                   // usart_port_cfg
-				NULL,                                   // frsky usart_port_cfg
 				NULL,                                   // com_driver
 				NULL,                                   // i2c_id
 				NULL,                                   // i2c_cfg
 				&pios_ppm_cfg,                          // ppm_cfg
 				NULL,                                   // pwm_cfg
 				PIOS_LED_ALARM,                         // led_id
-				NULL,                                   // usart_dsm_hsum_cfg
 				NULL,                                   // dsm_cfg
 				0,                                      // dsm_mode
-				NULL,                                   // sbus_rcvr_cfg
-				NULL,                                   // sbus_cfg    
-				false);                                 // sbus_toggle
+				NULL);                                  // sbus_cfg
 		break;
 
 	case HWCOLIBRI_RCVRPORT_PPMPWM:
 		PIOS_HAL_ConfigurePort(HWSHARED_PORTTYPES_PPM,  // port type protocol
 				NULL,                                   // usart_port_cfg
-				NULL,                                   // frsky usart_port_cfg
 				NULL,                                   // com_driver
 				NULL,                                   // i2c_id
 				NULL,                                   // i2c_cfg
 				&pios_ppm_cfg,                          // ppm_cfg
 				NULL,                                   // pwm_cfg
 				PIOS_LED_ALARM,                         // led_id
-				NULL,                                   // usart_dsm_hsum_cfg
 				NULL,                                   // dsm_cfg
 				0,                                      // dsm_mode
-				NULL,                                   // sbus_rcvr_cfg
-				NULL,                                   // sbus_cfg    
-				false);                                 // sbus_toggle
+				NULL);                                  // sbus_cfg
 
 		PIOS_HAL_ConfigurePort(HWSHARED_PORTTYPES_PWM,  // port type protocol
 				NULL,                                   // usart_port_cfg
-				NULL,                                   // frsky usart_port_cfg
 				NULL,                                   // com_driver
 				NULL,                                   // i2c_id
 				NULL,                                   // i2c_cfg
 				NULL,                                   // ppm_cfg
 				&pios_pwm_with_ppm_cfg,                 // pwm_cfg
 				PIOS_LED_ALARM,                         // led_id
-				NULL,                                   // usart_dsm_hsum_cfg
 				NULL,                                   // dsm_cfg
 				0,                                      // dsm_mode
-				NULL,                                   // sbus_rcvr_cfg
-				NULL,                                   // sbus_cfg    
-				false);                                 // sbus_toggle
+				NULL);                                  // sbus_cfg
 		break;
 
 	case HWCOLIBRI_RCVRPORT_PPMPWMADC:
 		PIOS_HAL_ConfigurePort(HWSHARED_PORTTYPES_PPM,  // port type protocol
 				NULL,                                   // usart_port_cfg
-				NULL,                                   // frsky usart_port_cfg
 				NULL,                                   // com_driver
 				NULL,                                   // i2c_id
 				NULL,                                   // i2c_cfg
 				&pios_ppm_cfg,                          // ppm_cfg
 				NULL,                                   // pwm_cfg
 				PIOS_LED_ALARM,                         // led_id
-				NULL,                                   // usart_dsm_hsum_cfg
 				NULL,                                   // dsm_cfg
 				0,                                      // dsm_mode
-				NULL,                                   // sbus_rcvr_cfg
-				NULL,                                   // sbus_cfg    
-				false);                                 // sbus_toggle
+				NULL);                                  // sbus_cfg
 
 		PIOS_HAL_ConfigurePort(HWSHARED_PORTTYPES_PWM,  // port type protocol
 				NULL,                                   // usart_port_cfg
-				NULL,                                   // frsky usart_port_cfg
 				NULL,                                   // com_driver
 				NULL,                                   // i2c_id
 				NULL,                                   // i2c_cfg
 				NULL,                                   // ppm_cfg
 				&pios_pwm_with_ppm_with_adc_cfg,        // pwm_cfg
 				PIOS_LED_ALARM,                         // led_id
-				NULL,                                   // usart_dsm_hsum_cfg
 				NULL,                                   // dsm_cfg
 				0,                                      // dsm_mode
-				NULL,                                   // sbus_rcvr_cfg
-				NULL,                                   // sbus_cfg    
-				false);                                 // sbus_toggle
+				NULL);                                  // sbus_cfg
 		break;
 	}
 
@@ -742,8 +693,8 @@ void PIOS_Board_Init(void) {
 				AlarmsSet(SYSTEMALARMS_ALARM_I2C, SYSTEMALARMS_ALARM_CRITICAL);
 			if (PIOS_HMC5883_Test() != 0)
 				AlarmsSet(SYSTEMALARMS_ALARM_I2C, SYSTEMALARMS_ALARM_CRITICAL);
-		}	
-		
+		}
+
 		if (Magnetometer == HWCOLIBRI_MAGNETOMETER_EXTERNALI2CUART3) {
 				// init sensor
 				if (PIOS_HMC5883_Init(pios_i2c_usart3_adapter_id, &pios_hmc5883_external_cfg) != 0)
@@ -751,9 +702,9 @@ void PIOS_Board_Init(void) {
 				if (PIOS_HMC5883_Test() != 0)
 					AlarmsSet(SYSTEMALARMS_ALARM_I2C, SYSTEMALARMS_ALARM_CRITICAL);
 			}
-		
-		if (Magnetometer == HWCOLIBRI_MAGNETOMETER_EXTERNALI2CUART1 || 
-		    Magnetometer == HWCOLIBRI_MAGNETOMETER_EXTERNALI2CUART3) 
+
+		if (Magnetometer == HWCOLIBRI_MAGNETOMETER_EXTERNALI2CUART1 ||
+		    Magnetometer == HWCOLIBRI_MAGNETOMETER_EXTERNALI2CUART3)
 		{
 			// setup sensor orientation
 			uint8_t ExtMagOrientation;

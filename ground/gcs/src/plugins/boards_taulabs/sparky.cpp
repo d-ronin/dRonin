@@ -148,8 +148,11 @@ bool Sparky::setInputOnPort(enum InputType type, int port_num)
         settings.RcvrPort = HwSparky::RCVRPORT_PPM;
         break;
     case INPUT_TYPE_SBUS:
-        settings.RcvrPort = HwSparky::RCVRPORT_SBUS;
+	    settings.RcvrPort = HwSparky::RCVRPORT_SBUS;
         break;
+	case INPUT_TYPE_SBUSNONINVERTED:
+		settings.RcvrPort = HwSparky::RCVRPORT_SBUSNONINVERTED;
+		break;
     case INPUT_TYPE_DSM:
         settings.RcvrPort = HwSparky::RCVRPORT_DSM;
         break;
@@ -189,8 +192,10 @@ enum Core::IBoardType::InputType Sparky::getInputOnPort(int port_num)
     case HwSparky::RCVRPORT_PPM:
         return INPUT_TYPE_PPM;
     case HwSparky::RCVRPORT_SBUS:
-        return INPUT_TYPE_SBUS;
-    case HwSparky::RCVRPORT_DSM:
+	    return INPUT_TYPE_SBUS;
+    case HwSparky::RCVRPORT_SBUSNONINVERTED:
+		return INPUT_TYPE_SBUSNONINVERTED;
+	case HwSparky::RCVRPORT_DSM:
         return INPUT_TYPE_DSM;
     case HwSparky::RCVRPORT_HOTTSUMD:
         return INPUT_TYPE_HOTTSUMD;
@@ -235,7 +240,7 @@ QStringList Sparky::getAdcNames()
 
     QStringList names;
     HwSparky::DataFields settings = hwSparky->getData();
-    if (settings.OutPort == HwSparky::OUTPORT_PWM82ADC || settings.OutPort == HwSparky::OUTPORT_PWM7PWM_IN2ADC)
+    if (settings.OutPort == HwSparky::OUTPORT_PWM82ADC || settings.OutPort == HwSparky::OUTPORT_PWM72ADCPWM_IN)
         names << "PWM10" << "PWM9" << "Disabled";
     else if (settings.OutPort == HwSparky::OUTPORT_PWM73ADC)
         names << "PWM10" << "PWM9" << "PWM8";

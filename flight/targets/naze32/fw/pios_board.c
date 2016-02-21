@@ -353,24 +353,24 @@ void PIOS_Board_Init(void) {
 		AlarmsSet(SYSTEMALARMS_ALARM_BOOTFAULT, SYSTEMALARMS_ALARM_CRITICAL);
 	}
 
+#if (defined(PIOS_INCLUDE_TELEMETRY) || defined(PIOS_INCLUDE_MSP_BRIDGE)) && defined(PIOS_INCLUDE_USART) && defined(PIOS_INCLUDE_COM)
 
 	/* UART1 Port */
-#if (defined(PIOS_INCLUDE_TELEMETRY) || defined(PIOS_INCLUDE_MSP_BRIDGE)) && defined(PIOS_INCLUDE_USART) && defined(PIOS_INCLUDE_COM)
 	uint8_t hw_mainport;
 	HwNazeMainPortGet(&hw_mainport);
 
-	switch (hw_mainport) {
-	case HWNAZE_MAINPORT_TELEMETRY:
-#if defined(PIOS_INCLUDE_TELEMETRY)
-		PIOS_HAL_ConfigureCom(&pios_usart_main_cfg, PIOS_COM_TELEM_RF_RX_BUF_LEN, PIOS_COM_TELEM_RF_TX_BUF_LEN, &pios_usart_com_driver, &pios_com_telem_serial_id);
-#endif /* PIOS_INCLUDE_TELEMETRY */
-		break;
-	case HWNAZE_MAINPORT_MSP:
-#if defined(PIOS_INCLUDE_MSP_BRIDGE)
-		PIOS_HAL_ConfigureCom(&pios_usart_main_cfg, PIOS_COM_TELEM_RF_RX_BUF_LEN, PIOS_COM_TELEM_RF_TX_BUF_LEN, &pios_usart_com_driver, &pios_com_msp_id);
-#endif /* PIOS_INCLUDE_MSP_BRIDGE */
-		break;
-	}
+	PIOS_HAL_ConfigurePort(hw_mainport,          // port type protocol
+			&pios_usart_main_cfg,                // usart_port_cfg
+			&pios_usart_com_driver,              // com_driver
+			NULL,                                // i2c_id
+			NULL,                                // i2c_cfg
+			NULL,                                // ppm_cfg
+			NULL,                                // pwm_cfg
+			PIOS_LED_ALARM,                      // led_id
+			NULL,                                // dsm_cfg
+			0,                                   // dsm_mode
+			NULL);                               // sbus_cfg
+
 #endif /* PIOS_INCLUDE_TELEMETRY || PIOS_INCLUDE_MSP_BRIDGE */
 
 	/* Configure the rcvr port */
@@ -378,22 +378,24 @@ void PIOS_Board_Init(void) {
 	HwNazeRcvrPortGet(&hw_rcvrport);
 
 	switch (hw_rcvrport) {
+
 	case HWNAZE_RCVRPORT_DISABLED:
 		break;
-	case HWNAZE_RCVRPORT_PWM:
-#if defined(PIOS_INCLUDE_PWM)
-		{
-			uintptr_t pios_pwm_id;
-			PIOS_PWM_Init(&pios_pwm_id, &pios_pwm_cfg);
 
-			uintptr_t pios_pwm_rcvr_id;
-			if (PIOS_RCVR_Init(&pios_pwm_rcvr_id, &pios_pwm_rcvr_driver, pios_pwm_id)) {
-				PIOS_Assert(0);
-			}
-			pios_rcvr_group_map[MANUALCONTROLSETTINGS_CHANNELGROUPS_PWM] = pios_pwm_rcvr_id;
-		}
-#endif	/* PIOS_INCLUDE_PWM */
+	case HWNAZE_RCVRPORT_PWM:
+		PIOS_HAL_ConfigurePort(HWSHARED_PORTTYPES_PWM,  // port type protocol
+				NULL,                                   // usart_port_cfg
+				NULL,                                   // com_driver
+				NULL,                                   // i2c_id
+				NULL,                                   // i2c_cfg
+				NULL,                                   // ppm_cfg
+				&pios_pwm_cfg,                          // pwm_cfg
+				PIOS_LED_ALARM,                         // led_id
+				NULL,                                   // dsm_cfg
+				0,                                      // dsm_mode
+				NULL);                                  // sbus_cfg
 		break;
+
 	case HWNAZE_RCVRPORT_PPMSERIAL:
 	case HWNAZE_RCVRPORT_SERIAL:
 		{
@@ -405,19 +407,15 @@ void PIOS_Board_Init(void) {
 			
 			PIOS_HAL_ConfigurePort(hw_rcvrserial,        // port type protocol
 					&pios_usart_rcvrserial_cfg,          // usart_port_cfg
-					&pios_usart_rcvrserial_cfg,          // frsky usart_port_cfg
 					&pios_usart_com_driver,              // com_driver
 					NULL,                                // i2c_id
 					NULL,                                // i2c_cfg
 					NULL,                                // ppm_cfg
 					NULL,                                // pwm_cfg
 					PIOS_LED_ALARM,                      // led_id
-					&pios_usart_dsm_hsum_rcvrserial_cfg, // usart_dsm_hsum_cfg
 					&pios_dsm_rcvrserial_cfg,            // dsm_cfg
 					hw_DSMxMode,                         // dsm_mode
-					NULL,                                // sbus_rcvr_cfg
-					NULL,                                // sbus_cfg
-					false);                              // sbus_toggle
+					NULL);                               // sbus_cfg
 		}
 
 		if (hw_rcvrport == HWNAZE_RCVRPORT_SERIAL)
@@ -427,45 +425,43 @@ void PIOS_Board_Init(void) {
 
 	case HWNAZE_RCVRPORT_PPM:
 	case HWNAZE_RCVRPORT_PPMOUTPUTS:
-#if defined(PIOS_INCLUDE_PPM)
-		{
-			uintptr_t pios_ppm_id;
-			PIOS_PPM_Init(&pios_ppm_id, &pios_ppm_cfg);
-
-			uintptr_t pios_ppm_rcvr_id;
-			if (PIOS_RCVR_Init(&pios_ppm_rcvr_id, &pios_ppm_rcvr_driver, pios_ppm_id)) {
-				PIOS_Assert(0);
-			}
-			pios_rcvr_group_map[MANUALCONTROLSETTINGS_CHANNELGROUPS_PPM] = pios_ppm_rcvr_id;
-		}
-#endif	/* PIOS_INCLUDE_PPM */
+		PIOS_HAL_ConfigurePort(HWSHARED_PORTTYPES_PPM,  // port type protocol
+				NULL,                                   // usart_port_cfg
+				NULL,                                   // com_driver
+				NULL,                                   // i2c_id
+				NULL,                                   // i2c_cfg
+				&pios_ppm_cfg,                          // ppm_cfg
+				NULL,                                   // pwm_cfg
+				PIOS_LED_ALARM,                         // led_id
+				NULL,                                   // dsm_cfg
+				0,                                      // dsm_mode
+				NULL);                                  // sbus_cfg
 		break;
+
 	case HWNAZE_RCVRPORT_PPMPWM:
-		/* This is a combination of PPM and PWM inputs */
-#if defined(PIOS_INCLUDE_PPM)
-		{
-			uintptr_t pios_ppm_id;
-			PIOS_PPM_Init(&pios_ppm_id, &pios_ppm_cfg);
+		PIOS_HAL_ConfigurePort(HWSHARED_PORTTYPES_PPM,  // port type protocol
+				NULL,                                   // usart_port_cfg
+				NULL,                                   // com_driver
+				NULL,                                   // i2c_id
+				NULL,                                   // i2c_cfg
+				&pios_ppm_cfg,                          // ppm_cfg
+				NULL,                                   // pwm_cfg
+				PIOS_LED_ALARM,                         // led_id
+				NULL,                                   // dsm_cfg
+				0,                                      // dsm_mode
+				NULL);                                  // sbus_cfg
 
-			uintptr_t pios_ppm_rcvr_id;
-			if (PIOS_RCVR_Init(&pios_ppm_rcvr_id, &pios_ppm_rcvr_driver, pios_ppm_id)) {
-				PIOS_Assert(0);
-			}
-			pios_rcvr_group_map[MANUALCONTROLSETTINGS_CHANNELGROUPS_PPM] = pios_ppm_rcvr_id;
-		}
-#endif	/* PIOS_INCLUDE_PPM */
-#if defined(PIOS_INCLUDE_PWM)
-		{
-			uintptr_t pios_pwm_id;
-			PIOS_PWM_Init(&pios_pwm_id, &pios_pwm_with_ppm_cfg);
-
-			uintptr_t pios_pwm_rcvr_id;
-			if (PIOS_RCVR_Init(&pios_pwm_rcvr_id, &pios_pwm_rcvr_driver, pios_pwm_id)) {
-				PIOS_Assert(0);
-			}
-			pios_rcvr_group_map[MANUALCONTROLSETTINGS_CHANNELGROUPS_PWM] = pios_pwm_rcvr_id;
-		}
-#endif	/* PIOS_INCLUDE_PWM */
+		PIOS_HAL_ConfigurePort(HWSHARED_PORTTYPES_PWM,  // port type protocol
+				NULL,                                   // usart_port_cfg
+				NULL,                                   // com_driver
+				NULL,                                   // i2c_id
+				NULL,                                   // i2c_cfg
+				NULL,                                   // ppm_cfg
+				&pios_pwm_with_ppm_cfg,                 // pwm_cfg
+				PIOS_LED_ALARM,                         // led_id
+				NULL,                                   // dsm_cfg
+				0,                                      // dsm_mode
+				NULL);                                  // sbus_cfg
 		break;
 	}
 

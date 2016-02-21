@@ -187,7 +187,7 @@ static void PIOS_USART_6_irq_handler (void)
 /**
 * Initialise a single USART device
 */
-int32_t PIOS_USART_Init(uintptr_t * usart_id, const struct pios_usart_cfg * cfg)
+int32_t PIOS_USART_Init(uintptr_t * usart_id, const struct pios_usart_cfg * cfg, struct pios_usart_params * params)
 {
 	PIOS_DEBUG_Assert(usart_id);
 	PIOS_DEBUG_Assert(cfg);
@@ -220,13 +220,13 @@ int32_t PIOS_USART_Init(uintptr_t * usart_id, const struct pios_usart_cfg * cfg)
 		GPIO_Init(usart_dev->cfg->tx.gpio, (GPIO_InitTypeDef *)&usart_dev->cfg->tx.init);
 
 	/* Enable single wire mode if requested */
-	if (usart_dev->cfg->single_wire == true)
+	if (params->single_wire == true)
 		USART_HalfDuplexCmd(usart_dev->cfg->regs, ENABLE);
 	else
 		USART_HalfDuplexCmd(usart_dev->cfg->regs, DISABLE);
 
 	/* Configure the USART */
-	USART_Init(usart_dev->cfg->regs, (USART_InitTypeDef *)&usart_dev->cfg->init);
+	USART_Init(usart_dev->cfg->regs, (USART_InitTypeDef *)&params->init);
 
 	*usart_id = (uintptr_t)usart_dev;
 
@@ -299,11 +299,15 @@ static void PIOS_USART_ChangeBaud(uintptr_t usart_id, uint32_t baud)
 
 	USART_InitTypeDef USART_InitStructure;
 
-	/* Start with a copy of the default configuration for the peripheral */
-	USART_InitStructure = usart_dev->cfg->init;
-
 	/* Adjust the baud rate */
 	USART_InitStructure.USART_BaudRate = baud;
+
+	/* Get current parameters */
+	USART_InitStructure.USART_WordLength          = usart_dev->cfg->regs->CR1 &  (uint32_t)USART_CR1_M;
+	USART_InitStructure.USART_Parity              = usart_dev->cfg->regs->CR1 & ((uint32_t)USART_CR1_PCE  | (uint32_t)USART_CR1_PS);
+	USART_InitStructure.USART_StopBits            = usart_dev->cfg->regs->CR2 &  (uint32_t)USART_CR2_STOP;
+	USART_InitStructure.USART_HardwareFlowControl = usart_dev->cfg->regs->CR3 & ((uint32_t)USART_CR3_CTSE | (uint32_t)USART_CR3_RTSE);
+	USART_InitStructure.USART_Mode                = usart_dev->cfg->regs->CR1 & ((uint32_t)USART_CR1_TE   | (uint32_t)USART_CR1_RE) ;
 
 	/* Write back the new configuration */
 	USART_Init(usart_dev->cfg->regs, &USART_InitStructure);

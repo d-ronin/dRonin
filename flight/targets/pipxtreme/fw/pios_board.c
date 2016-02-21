@@ -158,19 +158,15 @@ void PIOS_Board_Init(void)
 
 	PIOS_HAL_ConfigurePort(hwTauLink.MainPort,   // port type protocol
 			&pios_usart_serial_cfg,              // usart_port_cfg
-			&pios_usart_serial_cfg,              // frsky usart_port_cfg
 			&pios_usart_com_driver,              // com_driver
 			NULL,                                // i2c_id
 			NULL,                                // i2c_cfg
 			NULL,                                // ppm_cfg
 			NULL,                                // pwm_cfg
 			PIOS_LED_ALARM,                      // led_id
-			NULL,                                // usart_dsm_hsum_cfg
 			NULL,                                // dsm_cfg
 			0,                                   // dsm_mode
-			NULL,                                // sbus_rcvr_cfg
-			NULL,                                // sbus_cfg
-			false);                              // sbus_toggle
+			NULL);                               // sbus_cfg
 
 	ModuleSettingsInitialize();
 	ModuleSettingsData moduleSettings;
@@ -193,6 +189,18 @@ void PIOS_Board_Init(void)
 
 	if (bdinfo->board_rev == TAULINK_VERSION_MODULE) {
 		// Configure the main serial port function
+
+		static struct pios_usart_params pios_usart_bluetooth_params = {
+			.init =	{
+				.USART_BaudRate = 9600,
+				.USART_WordLength = USART_WordLength_8b,
+				.USART_Parity = USART_Parity_No,
+				.USART_StopBits = USART_StopBits_1,
+				.USART_HardwareFlowControl = USART_HardwareFlowControl_None,
+				.USART_Mode = USART_Mode_Rx | USART_Mode_Tx,
+			},
+		};
+
 		switch (hwTauLink.BTPort) {
 		case HWTAULINK_BTPORT_TELEMETRY:
 		{
@@ -200,7 +208,7 @@ void PIOS_Board_Init(void)
 			// port will take precedence
 
 			uintptr_t pios_usart2_id;
-			if (PIOS_USART_Init(&pios_usart2_id, &pios_usart_bluetooth_cfg)) {
+			if (PIOS_USART_Init(&pios_usart2_id, &pios_usart_bluetooth_cfg, &pios_usart_bluetooth_params)) {
 				PIOS_Assert(0);
 			}
 			uint8_t *rx_buffer = (uint8_t *)PIOS_malloc(PIOS_COM_TELEM_RX_BUF_LEN);
@@ -219,7 +227,7 @@ void PIOS_Board_Init(void)
 			// Note: if the main port is also on telemetry the bluetooth
 			// port will take precedence
 			uintptr_t pios_usart2_id;
-			if (PIOS_USART_Init(&pios_usart2_id, &pios_usart_bluetooth_cfg)) {
+			if (PIOS_USART_Init(&pios_usart2_id, &pios_usart_bluetooth_cfg, &pios_usart_bluetooth_params)) {
 				PIOS_Assert(0);
 			}
 			uint8_t *rx_buffer = (uint8_t *)PIOS_malloc(PIOS_COM_TELEM_RX_BUF_LEN);
@@ -241,6 +249,18 @@ void PIOS_Board_Init(void)
 	}
 
 	// Configure the flexi port
+
+	static struct pios_usart_params pios_usart_sport_params = {
+		.init = {
+			.USART_BaudRate            = 57600,
+			.USART_WordLength          = USART_WordLength_8b,
+			.USART_Parity              = USART_Parity_No,
+			.USART_StopBits            = USART_StopBits_1,
+			.USART_HardwareFlowControl = USART_HardwareFlowControl_None,
+			.USART_Mode                = USART_Mode_Tx,
+		},
+	};
+
 	switch (hwTauLink.PPMPort) {
 	case HWTAULINK_PPMPORT_PPM:
 	{
@@ -258,14 +278,14 @@ void PIOS_Board_Init(void)
 	}
 	case HWTAULINK_PPMPORT_SPORT:
 #if defined(PIOS_INCLUDE_TARANIS_SPORT)
-		PIOS_HAL_ConfigureCom(&pios_usart_sport_cfg, 0, PIOS_COM_FRSKYSPORT_TX_BUF_LEN, &pios_usart_com_driver,
+		PIOS_HAL_ConfigureCom(&pios_usart_sport_cfg, &pios_usart_sport_params, 0, PIOS_COM_FRSKYSPORT_TX_BUF_LEN, &pios_usart_com_driver,
 				&pios_com_frsky_sport_id);
 #endif /* PIOS_INCLUDE_TARANIS_SPORT */
 		break;
 	case HWTAULINK_PPMPORT_PPMSPORT:
 	{
 #if defined(PIOS_INCLUDE_TARANIS_SPORT)
-		PIOS_HAL_ConfigureCom(&pios_usart_sport_cfg, 0, PIOS_COM_FRSKYSPORT_TX_BUF_LEN, &pios_usart_com_driver,
+		PIOS_HAL_ConfigureCom(&pios_usart_sport_cfg, &pios_usart_sport_params, 0, PIOS_COM_FRSKYSPORT_TX_BUF_LEN, &pios_usart_com_driver,
 				&pios_com_frsky_sport_id);
 #endif /* PIOS_INCLUDE_TARANIS_SPORT */
 #if defined(PIOS_INCLUDE_PPM)

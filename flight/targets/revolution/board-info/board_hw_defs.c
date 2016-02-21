@@ -661,14 +661,6 @@ const struct pios_flash_partition * PIOS_BOARD_HW_DEFS_GetPartitionTable (uint32
 static const struct pios_usart_cfg pios_usart_main_cfg = {
 	.regs = USART1,
 	.remap = GPIO_AF_USART1,
-	.init = {
-		.USART_BaudRate = 57600,
-		.USART_WordLength = USART_WordLength_8b,
-		.USART_Parity = USART_Parity_No,
-		.USART_StopBits = USART_StopBits_1,
-		.USART_HardwareFlowControl = USART_HardwareFlowControl_None,
-		.USART_Mode = USART_Mode_Rx | USART_Mode_Tx,
-	},
 	.irq = {
 		.init = {
 			.NVIC_IRQChannel = USART1_IRQn,
@@ -701,45 +693,8 @@ static const struct pios_usart_cfg pios_usart_main_cfg = {
 #endif /* PIOS_INCLUDE_COM_TELEM */
 
 #include <pios_sbus_priv.h>
-#if defined(PIOS_INCLUDE_SBUS)
-/*
- * S.Bus USART
- */
-static const struct pios_usart_cfg pios_usart_sbus_main_cfg = {
-	.regs = USART1,
-	.remap = GPIO_AF_USART1,
-	.init = {
-		.USART_BaudRate            = 100000,
-		.USART_WordLength          = USART_WordLength_8b,
-		.USART_Parity              = USART_Parity_Even,
-		.USART_StopBits            = USART_StopBits_2,
-		.USART_HardwareFlowControl = USART_HardwareFlowControl_None,
-		.USART_Mode                = USART_Mode_Rx,
-	},
-	.irq = {
-		.init = {
-			.NVIC_IRQChannel                   = USART1_IRQn,
-			.NVIC_IRQChannelPreemptionPriority = PIOS_IRQ_PRIO_HIGH,
-			.NVIC_IRQChannelSubPriority        = 0,
-			.NVIC_IRQChannelCmd                = ENABLE,
-		  },
-	},
-	.rx = {
-		.gpio = GPIOA,
-		.init = {
-			.GPIO_Pin   = GPIO_Pin_10,
-			.GPIO_Speed = GPIO_Speed_2MHz,
-			.GPIO_Mode  = GPIO_Mode_AF,
-			.GPIO_OType = GPIO_OType_PP,
-			.GPIO_PuPd  = GPIO_PuPd_UP
-		},
-		.pin_source = GPIO_PinSource10,
-	},
-};
 
-#endif	/* PIOS_INCLUDE_SBUS */
-
-// Need this defined regardless to be able to turn it off
+// Need this defined regardless to be able to hardware sbus inverter off
 static const struct pios_sbus_cfg pios_sbus_cfg = {
 	/* Inverter configuration */
 	.inv = {
@@ -752,7 +707,7 @@ static const struct pios_sbus_cfg pios_sbus_cfg = {
 			.GPIO_PuPd  = GPIO_PuPd_UP
 		},
 	},
-	.gpio_inv_enable = Bit_SET,
+	.gpio_inv_enable  = Bit_SET,
 	.gpio_inv_disable = Bit_RESET,
 	.gpio_clk_func    = RCC_AHB1PeriphClockCmd,
 	.gpio_clk_periph  = RCC_AHB1Periph_GPIOC,
@@ -766,15 +721,6 @@ static const struct pios_sbus_cfg pios_sbus_cfg = {
 static const struct pios_usart_cfg pios_usart_flexi_cfg = {
 	.regs = USART3,
 	.remap = GPIO_AF_USART3,
-	.init = {
-		.USART_BaudRate = 57600,
-		.USART_WordLength = USART_WordLength_8b,
-		.USART_Parity = USART_Parity_No,
-		.USART_StopBits = USART_StopBits_1,
-		.USART_HardwareFlowControl =
-		USART_HardwareFlowControl_None,
-		.USART_Mode = USART_Mode_Rx | USART_Mode_Tx,
-	},
 	.irq = {
 		.init = {
 			.NVIC_IRQChannel = USART3_IRQn,
@@ -843,102 +789,6 @@ static const struct pios_dsm_cfg pios_dsm_flexi_cfg = {
 };
 
 #endif	/* PIOS_INCLUDE_DSM */
-
-#if defined(PIOS_INCLUDE_HSUM)
-/*
- * Graupner HoTT SUMD/SUMH USART
- */
-#include <pios_hsum_priv.h>
-
-#endif	/* PIOS_INCLUDE_HSUM */
-
-#if (defined(PIOS_INCLUDE_DSM) || defined(PIOS_INCLUDE_HSUM))
-/*
- * Spektrum/JR DSM or Graupner HoTT SUMD/SUMH USART
- */
-
-static const struct pios_usart_cfg pios_usart_dsm_hsum_main_cfg = {
-	.regs = USART1,
-	.remap = GPIO_AF_USART1,
-	.init = {
-		.USART_BaudRate            = 115200,
-		.USART_WordLength          = USART_WordLength_8b,
-		.USART_Parity              = USART_Parity_No,
-		.USART_StopBits            = USART_StopBits_1,
-		.USART_HardwareFlowControl = USART_HardwareFlowControl_None,
-		.USART_Mode                = USART_Mode_Rx,
-	},
-	.irq = {
-		.init = {
-			.NVIC_IRQChannel = USART1_IRQn,
-			.NVIC_IRQChannelPreemptionPriority = PIOS_IRQ_PRIO_HIGH,
-			.NVIC_IRQChannelSubPriority        = 0,
-			.NVIC_IRQChannelCmd                = ENABLE,
-		},
-	},
-	.rx = {
-		.gpio = GPIOA,
-		.init = {
-			.GPIO_Pin   = GPIO_Pin_10,
-			.GPIO_Speed = GPIO_Speed_2MHz,
-			.GPIO_Mode  = GPIO_Mode_AF,
-			.GPIO_OType = GPIO_OType_PP,
-			.GPIO_PuPd  = GPIO_PuPd_UP
-		},
-	},
-	.tx = {
-		.gpio = GPIOA,
-		.init = {
-			.GPIO_Pin   = GPIO_Pin_9,
-			.GPIO_Speed = GPIO_Speed_2MHz,
-			.GPIO_Mode  = GPIO_Mode_AF,
-			.GPIO_OType = GPIO_OType_PP,
-			.GPIO_PuPd  = GPIO_PuPd_UP
-		},
-	},
-};
-
-static const struct pios_usart_cfg pios_usart_dsm_hsum_flexi_cfg = {
-	.regs = USART3,
-	.remap = GPIO_AF_USART3,
-	.init = {
-		.USART_BaudRate            = 115200,
-		.USART_WordLength          = USART_WordLength_8b,
-		.USART_Parity              = USART_Parity_No,
-		.USART_StopBits            = USART_StopBits_1,
-		.USART_HardwareFlowControl = USART_HardwareFlowControl_None,
-		.USART_Mode                = USART_Mode_Rx,
-	},
-	.irq = {
-		.init = {
-			.NVIC_IRQChannel                   = USART3_IRQn,
-			.NVIC_IRQChannelPreemptionPriority = PIOS_IRQ_PRIO_HIGH,
-			.NVIC_IRQChannelSubPriority        = 0,
-			.NVIC_IRQChannelCmd                = ENABLE,
-		},
-	},
-	.rx = {
-		.gpio = GPIOB,
-		.init = {
-			.GPIO_Pin   = GPIO_Pin_11,
-			.GPIO_Speed = GPIO_Speed_2MHz,
-			.GPIO_Mode  = GPIO_Mode_AF,
-			.GPIO_OType = GPIO_OType_PP,
-			.GPIO_PuPd  = GPIO_PuPd_UP
-		},
-	},
-	.tx = {
-		.gpio = GPIOB,
-		.init = {
-			.GPIO_Pin   = GPIO_Pin_10,
-			.GPIO_Speed = GPIO_Speed_2MHz,
-			.GPIO_Mode  = GPIO_Mode_AF,
-			.GPIO_OType = GPIO_OType_PP,
-			.GPIO_PuPd  = GPIO_PuPd_UP
-		},
-	},
-};
-#endif	/* PIOS_INCLUDE_DSM || PIOS_INCLUDE_HSUM */
 
 #if defined(PIOS_INCLUDE_COM)
 

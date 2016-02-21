@@ -187,6 +187,7 @@ SRC += $(PIOSSTM32F10X)/pios_flash_internal.c
 SRC += $(PIOSCOMMON)/pios_delay.c
 SRC += $(PIOSCOMMON)/pios_crc.c
 SRC += $(PIOSCOMMON)/pios_dsm.c
+SRC += $(PIOSCOMMON)/pios_sbus.c
 SRC += $(PIOSCOMMON)/pios_flashfs_logfs.c
 SRC += $(PIOSCOMMON)/pios_flash_jedec.c
 SRC += $(PIOSCOMMON)/pios_ms5611.c
@@ -208,7 +209,6 @@ SRC += $(PIOSCOMMON)/pios_hal.c
 SRC += $(PIOSCOMMON)/pios_servo.c
 
 SRC += $(PIOSCOMMON)/pios_board_info.c
-
 
 ## Libraries for flight calculations
 SRC += $(FLIGHTLIB)/fifo_buffer.c
