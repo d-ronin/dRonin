@@ -118,6 +118,7 @@ extern uintptr_t pios_com_lighttelemetry_id;
 extern uintptr_t pios_com_picoc_id;
 extern uintptr_t pios_com_frsky_sport_id;
 extern uintptr_t pios_com_openlog_logging_id;
+extern uintptr_t pios_com_storm32bgc_id;
 
 #define PIOS_COM_GPS                    (pios_com_gps_id)
 #define PIOS_COM_TELEM_USB              (pios_com_telem_usb_id)
@@ -132,6 +133,7 @@ extern uintptr_t pios_com_openlog_logging_id;
 #define PIOS_COM_FRSKY_SPORT            (pios_com_frsky_sport_id)
 #define PIOS_COM_OPENLOG                (pios_com_openlog_logging_id)
 #define PIOS_COM_SPIFLASH               (uintptr_t)(NULL)              // No SPI Flash on AQ32 Hardware
+#define PIOS_COM_STORM32BGC				(pios_com_storm32bgc_id)
 
 #if defined(PIOS_INCLUDE_DEBUG_CONSOLE)
 extern uintptr_t pios_com_debug_id;

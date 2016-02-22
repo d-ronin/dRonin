@@ -81,6 +81,10 @@ uintptr_t pios_com_lighttelemetry_id;
 uintptr_t pios_com_picoc_id;
 #endif
 
+#if defined(PIOS_INCLUDE_STORM32BGC)
+uintptr_t pios_com_storm32bgc_id;
+#endif
+
 #if defined(PIOS_INCLUDE_USB_HID) || defined(PIOS_INCLUDE_USB_CDC)
 uintptr_t pios_com_telem_usb_id;
 #endif
@@ -182,6 +186,14 @@ uintptr_t pios_com_debug_id;
 
 #ifndef PIOS_COM_RFM22B_RF_TX_BUF_LEN
 #define PIOS_COM_RFM22B_RF_TX_BUF_LEN 640
+#endif
+
+#ifndef PIOS_COM_STORM32BGC_RX_BUF_LEN
+#define PIOS_COM_STORM32BGC_RX_BUF_LEN 32
+#endif
+
+#ifndef PIOS_COM_STORM32BGC_TX_BUF_LEN
+#define PIOS_COM_STORM32BGC_TX_BUF_LEN 32
 #endif
 
 /**
@@ -647,6 +659,15 @@ void PIOS_HAL_ConfigurePort(HwSharedPortTypesOptions port_type,
 			pios_rcvr_group_map[MANUALCONTROLSETTINGS_CHANNELGROUPS_SBUS] = sbus_rcvr_id;
 		}
 #endif  /* PIOS_INCLUDE_SBUS */
+		break;
+
+	case HWSHARED_PORTTYPES_STORM32BGC:
+#if defined(PIOS_INCLUDE_STORM32BGC)
+		usart_port_params.init.USART_BaudRate = 115200;
+
+		PIOS_HAL_ConfigureCom(usart_port_cfg, &usart_port_params, PIOS_COM_STORM32BGC_RX_BUF_LEN, PIOS_COM_STORM32BGC_TX_BUF_LEN, com_driver, &port_driver_id);
+		target = &pios_com_storm32bgc_id;
+#endif  /* PIOS_INCLUDE_STORM32BGC */
 		break;
 
 	case HWSHARED_PORTTYPES_TELEMETRY:
