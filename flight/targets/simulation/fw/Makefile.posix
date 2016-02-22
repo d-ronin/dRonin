@@ -103,7 +103,6 @@ OPTMODULES += Geofence
 
 # To run simulation instead of connect to SITL
 MODULES += Sensors/simulated
-MODULES += SimVisualization 
 
 MODULES += Telemetry
 
