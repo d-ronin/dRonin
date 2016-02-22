@@ -4,6 +4,7 @@
  * @file       uavobjectbrowserwidget.cpp
  * @author     The OpenPilot Team, http://www.openpilot.org Copyright (C) 2010.
  * @author     Tau Labs, http://taulabs.org, Copyright (C) 2013
+ * @author     dRonin, http://dRonin.org, Copyright (C) 2016
  * @addtogroup GCSPlugins GCS Plugins
  * @{
  * @addtogroup UAVObjectBrowserPlugin UAVObject Browser Plugin
@@ -24,7 +25,12 @@
  * You should have received a copy of the GNU General Public License along
  * with this program; if not, write to the Free Software Foundation, Inc.,
  * 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
+ *
+ * Additional note on redistribution: The copyright and license notices above
+ * must be maintained in each individual source file that is a derivative work
+ * of this source file; otherwise redistribution is prohibited.
  */
+
 #include "uavobjectbrowserwidget.h"
 #include "uavobjecttreemodel.h"
 #include "browseritemdelegate.h"
@@ -663,9 +669,9 @@ void UAVOBrowserTreeView::updateTimerPeriod(unsigned int val)
     else
     {
         // If the UAVO has a very fast data rate, then don't go the full speed.
-        if (val < 100)
+        if (val < 125)
         {
-            val = 100- powf((100-val),0.914); //This drives the throttled speed exponentially toward 30Hz.
+            val = 125; // Don't try to draw the browser faster than 8Hz.
         }
         m_updateViewTimer.start(val);
     }

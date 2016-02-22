@@ -63,11 +63,8 @@ bool BrowserItemDelegate::eventFilter(QObject *object, QEvent *event)
             return true;
         }
     }
-    else
-    {
-        return QStyledItemDelegate::eventFilter( object, event );
-    }
-    return false;
+
+    return QStyledItemDelegate::eventFilter( object, event );
 }
 
 void BrowserItemDelegate::setEditorData(QWidget *editor,
