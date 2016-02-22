@@ -1,0 +1,15 @@
+A collection of utilities for QML
+
+Contents:
+
+*** JSONListModel
+
+A QML ListModel for JSON data.
+Features:
+  - API matching with XMLListModel, for ease of use
+  - file-based and string-based data
+  - Automatic model roles from JSON element properties
+  - Complex JSON document handling with JSONPath, XPath for JSON (http://goessner.net/articles/JsonPath/)
+  - Advanced querying and filtering expressions
+ 
+ 
