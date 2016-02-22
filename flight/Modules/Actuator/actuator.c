@@ -62,7 +62,7 @@
 #if defined(PIOS_ACTUATOR_STACK_SIZE)
 #define STACK_SIZE_BYTES PIOS_ACTUATOR_STACK_SIZE
 #else
-#define STACK_SIZE_BYTES 1312
+#define STACK_SIZE_BYTES 1336
 #endif
 
 #define TASK_PRIORITY PIOS_THREAD_PRIO_HIGHEST
@@ -310,7 +310,6 @@ static void actuator_task(void* parameters)
 			// Could consider stabilizing on a positive arming edge,
 			// but this seems problematic.
 		} else if (last_pos_throttle_time) {
-			// XXX TODO: Need better / safer timer logic.
 			if ((this_systime - last_pos_throttle_time) >
 					1000.0f * actuatorSettings.LowPowerStabilizationMaxTime) {
 				stabilize_now = true;
@@ -332,6 +331,8 @@ static void actuator_task(void* parameters)
 
 		float min_chan = INFINITY;
 		float max_chan = -INFINITY;
+		float neg_clip = 0;
+		int num_motors = 0;
 
 		for (int ct = 0; ct < MAX_MIX_ACTUATORS; ct++) {
 			status[ct] = mix_channel(ct, &desired, curve1, curve2);
@@ -339,6 +340,12 @@ static void actuator_task(void* parameters)
 			if (get_mixer_type(ct) == MIXERSETTINGS_MIXER1TYPE_MOTOR) {
 				min_chan = fminf(min_chan, status[ct]);
 				max_chan = fmaxf(max_chan, status[ct]);
+
+				if (status[ct] < 0.0f) {
+					neg_clip += status[ct];
+				}
+
+				num_motors++;
 			}
 		}
 
@@ -364,8 +371,29 @@ static void actuator_task(void* parameters)
 
 			offset = 1.0f - max_chan;
 		} else if (min_chan < 0.0f) {
+			clipped = true;
+
 			/* Low-side clip management-- how much power are we
-			 * willing to add??? XXX TODO */
+			 * willing to add??? */
+
+			neg_clip /= num_motors;
+
+			/* neg_clip is now the amount of throttle "already added." by
+			 * clipping...
+			 *
+			 * Find the "highest possible value" of offset.
+			 * if neg_clip is -15%, and maxpoweradd is 10%, we need to add
+			 * -5% to all motors.
+			 * if neg_clip is 5%, and maxpoweradd is 10%, we can add up to
+			 * 5% to all motors to further fix clipping.
+			 */
+			offset = neg_clip + actuatorSettings.LowPowerStabilizationMaxPowerAdd;
+
+			/* Add the lesser of--
+			 * A) the amount the lowest channel is out of range.
+			 * B) the above calculated offset.
+			 */
+			offset = MIN(-min_chan, offset);
 		}
 
 		for (int ct = 0; ct < MAX_MIX_ACTUATORS; ct++) {
