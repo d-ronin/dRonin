@@ -15,35 +15,7 @@
   </property>
   <layout class="QVBoxLayout" name="verticalLayout">
    <item>
-    <layout class="QHBoxLayout" name="horizontalLayout">
-     <item>
-      <widget class="QPushButton" name="haltButton">
-       <property name="enabled">
-        <bool>true</bool>
-       </property>
-       <property name="toolTip">
-        <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Tells the controller to enter&lt;/p&gt;&lt;p&gt;bootloader mode.&lt;/p&gt;&lt;p&gt;(Only enabled if telemetry link is established trough USB)&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-       </property>
-       <property name="text">
-        <string>Halt</string>
-       </property>
-      </widget>
-     </item>
-     <item>
-      <widget class="QPushButton" name="resetButton">
-       <property name="enabled">
-        <bool>true</bool>
-       </property>
-       <property name="toolTip">
-        <string>Reset the system.
-(Only enabled if telemetry link is established, either
-through serial or USB)</string>
-       </property>
-       <property name="text">
-        <string>Reset</string>
-       </property>
-      </widget>
-     </item>
+    <layout class="QHBoxLayout" name="bootloaderButtons">
      <item>
       <widget class="QPushButton" name="rescueButton">
        <property name="toolTip">
@@ -54,6 +26,16 @@ Rescue is possible in USB mode only.</string>
        </property>
        <property name="text">
         <string>Rescue</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QPushButton" name="openButton">
+       <property name="toolTip">
+        <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Opens a file containing the firmware you wish to flash&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+       </property>
+       <property name="text">
+        <string>Open File</string>
        </property>
       </widget>
      </item>
@@ -76,20 +58,10 @@ Rescue is possible in USB mode only.</string>
         <bool>true</bool>
        </property>
        <property name="toolTip">
-        <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Boots the system into safe mode (i.e. default HwSettings)&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+        <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Boots the system into safe mode (i.e. default hardware/port and module settings)&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
        </property>
        <property name="text">
         <string>Safe Boot</string>
-       </property>
-      </widget>
-     </item>
-     <item>
-      <widget class="QPushButton" name="openButton">
-       <property name="toolTip">
-        <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Opens a file containing the firmware you wish to flash&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-       </property>
-       <property name="text">
-        <string>Open File</string>
        </property>
       </widget>
      </item>
@@ -100,6 +72,46 @@ Rescue is possible in USB mode only.</string>
        </property>
        <property name="text">
         <string>Flash</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QPushButton" name="haltButton">
+       <property name="enabled">
+        <bool>true</bool>
+       </property>
+       <property name="maximumSize">
+        <size>
+         <width>16777215</width>
+         <height>25</height>
+        </size>
+       </property>
+       <property name="toolTip">
+        <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Tells the controller to enter bootloader mode.&lt;/p&gt;&lt;p&gt;(Only enabled if telemetry link is established)&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+       </property>
+       <property name="text">
+        <string>Enter Bootloader</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QPushButton" name="resetButton">
+       <property name="enabled">
+        <bool>true</bool>
+       </property>
+       <property name="maximumSize">
+        <size>
+         <width>16777215</width>
+         <height>25</height>
+        </size>
+       </property>
+       <property name="toolTip">
+        <string>Reset the system.
+(Only enabled if telemetry link is established, either
+through serial or USB)</string>
+       </property>
+       <property name="text">
+        <string>Reboot</string>
        </property>
       </widget>
      </item>
@@ -139,11 +151,15 @@ Rescue is possible in USB mode only.</string>
     </layout>
    </item>
    <item>
-    <widget class="QProgressBar" name="progressBar">
-     <property name="value">
-      <number>0</number>
-     </property>
-    </widget>
+    <layout class="QHBoxLayout" name="horizontalLayout_7">
+     <item>
+      <widget class="QProgressBar" name="progressBar">
+       <property name="value">
+        <number>0</number>
+       </property>
+      </widget>
+     </item>
+    </layout>
    </item>
    <item>
     <layout class="QHBoxLayout" name="horizontalLayout_2">
@@ -258,6 +274,12 @@ Rescue is possible in USB mode only.</string>
                 <layout class="QHBoxLayout" name="horizontalLayout_3">
                  <item>
                   <widget class="QGroupBox" name="dataGB">
+                   <property name="maximumSize">
+                    <size>
+                     <width>300</width>
+                     <height>16777215</height>
+                    </size>
+                   </property>
                    <property name="title">
                     <string>Data</string>
                    </property>
@@ -342,14 +364,14 @@ Rescue is possible in USB mode only.</string>
                     <item>
                      <widget class="QLabel" name="gyroCap_lbl">
                       <property name="text">
-                       <string>Gyroscopes</string>
+                       <string>Gyroscope</string>
                       </property>
                      </widget>
                     </item>
                     <item>
                      <widget class="QLabel" name="accCap_lbl">
                       <property name="text">
-                       <string>Accelerometers</string>
+                       <string>Accelerometer</string>
                       </property>
                      </widget>
                     </item>
@@ -371,6 +393,13 @@ Rescue is possible in USB mode only.</string>
                      <widget class="QLabel" name="radioCap_lbl">
                       <property name="text">
                        <string>Radio</string>
+                      </property>
+                     </widget>
+                    </item>
+                    <item>
+                     <widget class="QLabel" name="osdCap_lbl">
+                      <property name="text">
+                       <string>On Screen Display</string>
                       </property>
                      </widget>
                     </item>
@@ -408,6 +437,12 @@ Rescue is possible in USB mode only.</string>
          <layout class="QHBoxLayout" name="horizontalLayout_4">
           <item>
            <widget class="QGroupBox" name="groupBox">
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Fixed" vsizetype="Preferred">
+              <horstretch>0</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
+            </property>
             <property name="title">
              <string>Info</string>
             </property>
@@ -664,6 +699,12 @@ Rescue is possible in USB mode only.</string>
           </item>
           <item>
            <widget class="QGroupBox" name="partitionBrowserGB">
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Fixed" vsizetype="Preferred">
+              <horstretch>0</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
+            </property>
             <property name="title">
              <string>Partition Browser</string>
             </property>
@@ -676,9 +717,15 @@ Rescue is possible in USB mode only.</string>
                  <verstretch>0</verstretch>
                 </sizepolicy>
                </property>
+               <property name="minimumSize">
+                <size>
+                 <width>210</width>
+                 <height>0</height>
+                </size>
+               </property>
                <property name="maximumSize">
                 <size>
-                 <width>190</width>
+                 <width>210</width>
                  <height>16777215</height>
                 </size>
                </property>
@@ -688,6 +735,15 @@ Rescue is possible in USB mode only.</string>
                <property name="editTriggers">
                 <set>QAbstractItemView::NoEditTriggers</set>
                </property>
+               <attribute name="horizontalHeaderDefaultSectionSize">
+                <number>90</number>
+               </attribute>
+               <attribute name="horizontalHeaderMinimumSectionSize">
+                <number>90</number>
+               </attribute>
+               <attribute name="horizontalHeaderStretchLastSection">
+                <bool>true</bool>
+               </attribute>
                <attribute name="verticalHeaderVisible">
                 <bool>false</bool>
                </attribute>
@@ -729,6 +785,7 @@ Rescue is possible in USB mode only.</string>
   </layout>
  </widget>
  <resources>
+  <include location="../coreplugin/core.qrc"/>
   <include location="../coreplugin/core.qrc"/>
  </resources>
  <connections/>

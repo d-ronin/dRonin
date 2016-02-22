@@ -51,6 +51,14 @@ UploaderGadgetWidget::UploaderGadgetWidget(QWidget *parent):QWidget(parent),
     m_widget->partitionBrowserTW->setSelectionMode(QAbstractItemView::SingleSelection);
     m_widget->partitionBrowserTW->setSelectionBehavior(QAbstractItemView::SelectRows);
 
+    // these widgets will be set to retain their position in the layout even when hidden
+    QList<QWidget *> hideable = {m_widget->progressBar, m_widget->resetButton, m_widget->haltButton};
+    foreach (QWidget *widget, hideable) {
+        QSizePolicy sp = widget->sizePolicy();
+        sp.setRetainSizeWhenHidden(true);
+        widget->setSizePolicy(sp);
+    }
+
     //Setup partition manager actions
     QAction *action = new QAction("Save to file",this);
     connect(action, SIGNAL(triggered()), this, SLOT(onPartitionSave()));
@@ -213,6 +221,7 @@ void UploaderGadgetWidget::DeviceInformationUpdate(deviceInfo board)
     m_widget->gyroCap_lbl->setVisible(board.board->queryCapabilities(Core::IBoardType::BOARD_CAPABILITIES_GYROS));
     m_widget->magCap_lbl->setVisible(board.board->queryCapabilities(Core::IBoardType::BOARD_CAPABILITIES_MAGS));
     m_widget->radioCap_lbl->setVisible(board.board->queryCapabilities(Core::IBoardType::BOARD_CAPABILITIES_RADIO));
+    m_widget->osdCap_lbl->setVisible(board.board->queryCapabilities(Core::IBoardType::BOARD_CAPABILITIES_OSD));
     m_widget->deviceInformationMainLayout->setVisible(true);
     m_widget->deviceInformationNoInfo->setVisible(false);
     m_widget->boardPic->setPixmap(board.board->getBoardPicture().scaled(200, 200, Qt::KeepAspectRatio, Qt::SmoothTransformation));
@@ -1283,76 +1292,59 @@ void UploaderGadgetWidget::setUploaderStatus(const uploader::UploaderStatus &val
     uploaderStatus = value;
     switch (uploaderStatus) {
     case uploader::DISCONNECTED:
-        m_widget->rescueButton->setVisible(true);
-        m_widget->openButton->setVisible(true);
         m_widget->haltButton->setVisible(false);
-        m_widget->bootButton->setVisible(false);
-        m_widget->safeBootButton->setVisible(false);
         m_widget->resetButton->setVisible(false);
-        m_widget->flashButton->setVisible(false);
-
-        m_widget->rescueButton->setEnabled(true);
-        m_widget->openButton->setEnabled(true);
-        m_widget->haltButton->setEnabled(true);
-        m_widget->bootButton->setEnabled(true);
-        m_widget->safeBootButton->setEnabled(true);
-        m_widget->resetButton->setEnabled(true);
-        m_widget->flashButton->setEnabled(true);
-        m_widget->partitionBrowserTW->setContextMenuPolicy(Qt::NoContextMenu);
-        break;
-    case uploader::HALTING:
-        m_widget->rescueButton->setVisible(false);
-        m_widget->openButton->setVisible(true);
-        m_widget->haltButton->setVisible(true);
-        m_widget->bootButton->setVisible(false);
-        m_widget->safeBootButton->setVisible(false);
-        m_widget->resetButton->setVisible(false);
-        m_widget->flashButton->setVisible(false);
+        m_widget->progressBar->setVisible(false);
 
         m_widget->rescueButton->setEnabled(true);
         m_widget->openButton->setEnabled(true);
         m_widget->haltButton->setEnabled(false);
-        m_widget->bootButton->setEnabled(true);
-        m_widget->safeBootButton->setEnabled(true);
-        m_widget->resetButton->setEnabled(true);
-        m_widget->flashButton->setEnabled(true);
+        m_widget->bootButton->setEnabled(false);
+        m_widget->safeBootButton->setEnabled(false);
+        m_widget->resetButton->setEnabled(false);
+        m_widget->flashButton->setEnabled(false);
         m_widget->partitionBrowserTW->setContextMenuPolicy(Qt::NoContextMenu);
         break;
-    case uploader::RESCUING:
-        m_widget->rescueButton->setVisible(true);
-        m_widget->openButton->setVisible(true);
+    case uploader::HALTING:
         m_widget->haltButton->setVisible(false);
-        m_widget->bootButton->setVisible(false);
-        m_widget->safeBootButton->setVisible(false);
         m_widget->resetButton->setVisible(false);
-        m_widget->flashButton->setVisible(false);
+        m_widget->progressBar->setVisible(false);
 
         m_widget->rescueButton->setEnabled(false);
         m_widget->openButton->setEnabled(true);
-        m_widget->haltButton->setEnabled(true);
-        m_widget->bootButton->setEnabled(true);
-        m_widget->safeBootButton->setEnabled(true);
-        m_widget->resetButton->setEnabled(true);
-        m_widget->flashButton->setEnabled(true);
+        m_widget->haltButton->setEnabled(false);
+        m_widget->bootButton->setEnabled(false);
+        m_widget->safeBootButton->setEnabled(false);
+        m_widget->resetButton->setEnabled(false);
+        m_widget->flashButton->setEnabled(false);
+        m_widget->partitionBrowserTW->setContextMenuPolicy(Qt::NoContextMenu);
+        break;
+    case uploader::RESCUING:
+        m_widget->haltButton->setVisible(false);
+        m_widget->resetButton->setVisible(false);
+        m_widget->progressBar->setVisible(true);
+
+        m_widget->rescueButton->setEnabled(false);
+        m_widget->openButton->setEnabled(true);
+        m_widget->haltButton->setEnabled(false);
+        m_widget->bootButton->setEnabled(false);
+        m_widget->safeBootButton->setEnabled(false);
+        m_widget->resetButton->setEnabled(false);
+        m_widget->flashButton->setEnabled(false);
         m_widget->partitionBrowserTW->setContextMenuPolicy(Qt::NoContextMenu);
         break;
     case uploader::BL_FROM_HALT:
     case uploader::BL_FROM_RESCUE:
-        m_widget->rescueButton->setVisible(false);
-        m_widget->openButton->setVisible(true);
         m_widget->haltButton->setVisible(false);
-        m_widget->bootButton->setVisible(true);
-        m_widget->safeBootButton->setVisible(true);
         m_widget->resetButton->setVisible(false);
-        m_widget->flashButton->setVisible(true);
+        m_widget->progressBar->setVisible(false);
 
-
-        m_widget->rescueButton->setEnabled(true);
+        m_widget->rescueButton->setEnabled(false);
         m_widget->openButton->setEnabled(true);
-        m_widget->haltButton->setEnabled(true);
+        m_widget->haltButton->setEnabled(false);
         m_widget->bootButton->setEnabled(true);
         m_widget->safeBootButton->setEnabled(true);
-        m_widget->resetButton->setEnabled(true);
+        m_widget->resetButton->setEnabled(false);
         if(!loadedFile.isEmpty())
             m_widget->flashButton->setEnabled(true);
         else
@@ -1360,21 +1352,17 @@ void UploaderGadgetWidget::setUploaderStatus(const uploader::UploaderStatus &val
         m_widget->partitionBrowserTW->setContextMenuPolicy(Qt::ActionsContextMenu);
         break;
     case uploader::CONNECTED_TO_TELEMETRY:
-        m_widget->rescueButton->setVisible(false);
-        m_widget->openButton->setVisible(true);
         m_widget->haltButton->setVisible(true);
-        m_widget->bootButton->setVisible(false);
-        m_widget->safeBootButton->setVisible(false);
         m_widget->resetButton->setVisible(true);
-        m_widget->flashButton->setVisible(false);
+        m_widget->progressBar->setVisible(false);
 
-        m_widget->rescueButton->setEnabled(true);
+        m_widget->rescueButton->setEnabled(false);
         m_widget->openButton->setEnabled(true);
         m_widget->haltButton->setEnabled(true);
-        m_widget->bootButton->setEnabled(true);
-        m_widget->safeBootButton->setEnabled(true);
+        m_widget->bootButton->setEnabled(false);
+        m_widget->safeBootButton->setEnabled(false);
         m_widget->resetButton->setEnabled(true);
-        m_widget->flashButton->setEnabled(true);
+        m_widget->flashButton->setEnabled(false);
         m_widget->partitionBrowserTW->setContextMenuPolicy(Qt::NoContextMenu);
         break;
     case uploader::UPLOADING_FW:
@@ -1383,17 +1371,13 @@ void UploaderGadgetWidget::setUploaderStatus(const uploader::UploaderStatus &val
     case uploader::UPLOADING_PARTITION:
     case uploader::DOWNLOADING_PARTITION_BUNDLE:
     case uploader::UPLOADING_PARTITION_BUNDLE:
-        m_widget->rescueButton->setVisible(false);
-        m_widget->openButton->setVisible(true);
         m_widget->haltButton->setVisible(false);
-        m_widget->bootButton->setVisible(true);
-        m_widget->safeBootButton->setVisible(true);
         m_widget->resetButton->setVisible(false);
-        m_widget->flashButton->setVisible(true);
+        m_widget->progressBar->setVisible(true);
 
-        m_widget->rescueButton->setEnabled(true);
+        m_widget->rescueButton->setEnabled(false);
         m_widget->openButton->setEnabled(false);
-        m_widget->haltButton->setEnabled(true);
+        m_widget->haltButton->setEnabled(false);
         m_widget->bootButton->setEnabled(false);
         m_widget->safeBootButton->setEnabled(false);
         m_widget->resetButton->setEnabled(false);
@@ -1401,13 +1385,9 @@ void UploaderGadgetWidget::setUploaderStatus(const uploader::UploaderStatus &val
         m_widget->partitionBrowserTW->setContextMenuPolicy(Qt::NoContextMenu);
         break;
     case uploader::BOOTING:
-        m_widget->rescueButton->setVisible(false);
-        m_widget->openButton->setVisible(true);
         m_widget->haltButton->setVisible(false);
-        m_widget->bootButton->setVisible(true);
-        m_widget->safeBootButton->setVisible(true);
         m_widget->resetButton->setVisible(false);
-        m_widget->flashButton->setVisible(true);
+        m_widget->progressBar->setVisible(false);
 
         m_widget->rescueButton->setEnabled(false);
         m_widget->openButton->setEnabled(false);

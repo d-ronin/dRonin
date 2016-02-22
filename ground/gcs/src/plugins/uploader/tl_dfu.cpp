@@ -211,7 +211,7 @@ void DFUObject::run()
 bool DFUObject::DownloadPartition(QByteArray *fw, qint32 const & numberOfBytes, dfu_partition_label const & partition)
 {
     EnterDFU();
-    emit operationProgress(QString("%0 partition download").arg(partitionStringFromLabel(partition)), -1);
+    emit operationProgress(QString("Downloading %0 partition...").arg(partitionStringFromLabel(partition)), -1);
     messagePackets msg = CalculatePadding(numberOfBytes);
     bl_messages message;
     message.flags_command = BL_MSG_READ_START;
@@ -539,7 +539,7 @@ tl_dfu::Status DFUObject::UploadPartition(QByteArray &sourceArray, dfu_partition
     if(ret != tl_dfu::uploading)
         return ret;
 
-    emit operationProgress(QString(tr("Uploading %0")).arg(partitionStringFromLabel(partition)), -1);
+    emit operationProgress(QString(tr("Uploading %0 partition...")).arg(partitionStringFromLabel(partition)), -1);
 
     if( !UploadData(sourceArray.length(),sourceArray) )
     {
