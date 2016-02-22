@@ -285,6 +285,10 @@ void ConfigGadgetWidget::onAutopilotConnect() {
 
             if (!board->queryCapabilities(Core::IBoardType::BOARD_CAPABILITIES_OSD)) {
                 hasOSD = false;
+
+                if (lastTabIndex == ConfigGadgetWidget::osd) {
+                    lastTabIndex = ConfigGadgetWidget::hardware;
+                }
             }
         }
 
