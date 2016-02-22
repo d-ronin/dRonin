@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 
+# Proof of concept example of using the logfs api.
 from dronin.logfs import LogFSImport
 
 githash='Release-20160120.3'

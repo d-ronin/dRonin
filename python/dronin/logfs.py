@@ -40,15 +40,18 @@ class LogFSImport(dict):
         prev_state_good = False
         in_good_arena = False
 
+        obj_offsets = {}
+
         while pos + slot_size < len(contents):
-            #check if we're in a sane state
+            # check if we're in a sane state
 
             # assumption: arena sizes are power of 2, at least 2048 bytes
             if (pos & 0x7ff) == 0:
                 magic,arena_state = arena_header.unpack_from(contents, pos)
 
                 if magic == config_arena_magic:
-                    # let's assume this is good.
+                    # let's assume this is good.  the slot is in the right place to
+                    # actually be an arena header, and it has the right magic.
 
                     # print "Found probable arena at %x, state=%08x" % (pos, arena_state)
 
@@ -68,18 +71,26 @@ class LogFSImport(dict):
 
             if state == slot_states['ACTIVE']:
                 if in_good_arena:
-                    # print "  slot state=%08x, objid=%08x, instid=%04x, size=%d"%(state, obj_id, inst_id, size)
-
-                    uavo_key = '{0:08x}'.format(obj_id)
-
-                    obj = uavo_defs.get(uavo_key)
-
-                    if obj is not None:
-                        objInstance = obj.from_bytes(contents, 0, None, offset=pos + slot_header.size)
-
-                        self[obj._name] = objInstance
+                    obj_offsets[(obj_id, inst_id)] = pos + slot_header.size
 
                 prev_state_good = True
 
             pos += slot_size
+
+        # We do this in two passes; A) so we can try and guess a good version from the
+        # set of IDs if it is not known in the future, B) to unpack all at once
+
+        for id_tup,offset in obj_offsets.iteritems():
+            obj_id, inst_id = id_tup
+
+            uavo_key = '{0:08x}'.format(obj_id)
+
+            obj = uavo_defs.get(uavo_key)
+
+            if obj is not None:
+                # print "  slot state=%08x, objid=%08x, instid=%04x, size=%d"%(state, obj_id, inst_id, size)
+
+                objInstance = obj.from_bytes(contents, 0, None, offset=offset)
+
+                self[obj._name] = objInstance
 
