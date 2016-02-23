@@ -36,7 +36,7 @@ class ConsolePlugin : public ExtensionSystem::IPlugin
 {
 public:
     Q_OBJECT
-    Q_PLUGIN_METADATA(IID "org.dronin.plugins.Console" FILE "ConsoleGadget.json")
+    Q_PLUGIN_METADATA(IID "org.dronin.plugins.Console")
 
     ConsolePlugin();
     ~ConsolePlugin();

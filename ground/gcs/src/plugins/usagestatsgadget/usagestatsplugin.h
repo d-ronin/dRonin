@@ -60,7 +60,7 @@ typedef struct widgetActionInfoType {
 
 class UsageStatsPlugin :  public Core::IConfigurablePlugin {
     Q_OBJECT
-    Q_PLUGIN_METADATA(IID "org.dronin.plugins.UsageStats" FILE "UsageStats.json")
+    Q_PLUGIN_METADATA(IID "org.dronin.plugins.UsageStats")
 
 public:
     UsageStatsPlugin();

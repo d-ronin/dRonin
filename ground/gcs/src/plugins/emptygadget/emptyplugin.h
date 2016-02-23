@@ -35,7 +35,7 @@ class EmptyGadgetFactory;
 class EmptyPlugin : public ExtensionSystem::IPlugin
 {
     Q_OBJECT
-    Q_PLUGIN_METADATA(IID "org.dronin.plugins.EmptyGadget" FILE "EmptyGadget.json")
+    Q_PLUGIN_METADATA(IID "org.dronin.plugins.EmptyGadget")
 
 public:
         EmptyPlugin();

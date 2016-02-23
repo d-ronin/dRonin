@@ -34,7 +34,7 @@
 class BrotronicsPlugin : public ExtensionSystem::IPlugin
 {
     Q_OBJECT
-    Q_PLUGIN_METADATA(IID "org.dronin.plugins.Brotronics" FILE "Brotronics.json")
+    Q_PLUGIN_METADATA(IID "org.dronin.plugins.Brotronics")
 
 public:
    BrotronicsPlugin();

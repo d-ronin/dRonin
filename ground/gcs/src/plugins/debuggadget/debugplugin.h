@@ -34,7 +34,7 @@ class DebugGadgetFactory;
 
 class DebugPlugin : public ExtensionSystem::IPlugin {
     Q_OBJECT
-    Q_PLUGIN_METADATA(IID "org.dronin.plugins.Debug" FILE "DebugGadget.json")
+    Q_PLUGIN_METADATA(IID "org.dronin.plugins.Debug")
 
 public:
     DebugPlugin();

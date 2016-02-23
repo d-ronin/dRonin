@@ -40,7 +40,7 @@
 class TauLinkPlugin : public ExtensionSystem::IPlugin
 {
     Q_OBJECT
-    Q_PLUGIN_METADATA(IID "org.dronin.plugins.TauLink" FILE "TauLinkGadget.json")
+    Q_PLUGIN_METADATA(IID "org.dronin.plugins.TauLink")
 
 public:
     TauLinkPlugin();

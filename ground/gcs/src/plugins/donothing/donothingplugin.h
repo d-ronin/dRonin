@@ -32,7 +32,7 @@
 class DoNothingPlugin : public ExtensionSystem::IPlugin 
 {
     Q_OBJECT
-    Q_PLUGIN_METADATA(IID "org.dronin.plugins.DoNothing" FILE "DoNothingGadget.json")
+    Q_PLUGIN_METADATA(IID "org.dronin.plugins.DoNothing")
 public: 
    DoNothingPlugin(); 
    ~DoNothingPlugin(); 

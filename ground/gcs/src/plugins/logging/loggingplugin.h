@@ -114,7 +114,7 @@ private:
 class LoggingPlugin : public ExtensionSystem::IPlugin
 {
     Q_OBJECT
-    Q_PLUGIN_METADATA(IID "org.dronin.plugins.LoggingGadget" FILE "LoggingGadget.json")
+    Q_PLUGIN_METADATA(IID "org.dronin.plugins.LoggingGadget")
 
 public:
     LoggingPlugin();
