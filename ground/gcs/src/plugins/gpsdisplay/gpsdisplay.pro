@@ -1,7 +1,7 @@
 TEMPLATE = lib
 TARGET = GpsDisplayGadget
 QT += svg serialport
-include(../../taulabsgcsplugin.pri)
+include(../../gcsplugin.pri)
 include(../../plugins/coreplugin/coreplugin.pri)
 include(gpsdisplay_dependencies.pri)
 include(../../libs/qwt/qwt.pri)

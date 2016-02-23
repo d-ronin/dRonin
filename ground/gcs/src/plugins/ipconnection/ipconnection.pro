@@ -1,7 +1,7 @@
 TEMPLATE = lib
 QT += widgets network
 TARGET = IPconnection
-include(../../taulabsgcsplugin.pri)
+include(../../gcsplugin.pri)
 include(ipconnection_dependencies.pri)
 HEADERS += ipconnectionplugin.h \
     ipconnection_global.h \

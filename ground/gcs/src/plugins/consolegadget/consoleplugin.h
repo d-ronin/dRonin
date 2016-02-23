@@ -35,13 +35,16 @@ class ConsoleGadgetFactory;
 class ConsolePlugin : public ExtensionSystem::IPlugin
 {
 public:
-        ConsolePlugin();
-   ~ConsolePlugin();
+    Q_OBJECT
+    Q_PLUGIN_METADATA(IID "org.dronin.plugins.Console" FILE "ConsoleGadget.json")
 
-   void extensionsInitialized();
-   bool initialize(const QStringList & arguments, QString * errorString);
-   void shutdown();
+    ConsolePlugin();
+    ~ConsolePlugin();
+
+    void extensionsInitialized();
+    bool initialize(const QStringList & arguments, QString * errorString);
+    void shutdown();
 private:
-   ConsoleGadgetFactory *mf;
+    ConsoleGadgetFactory *mf;
 };
 #endif /* CONSOLEPLUGIN_H_ */

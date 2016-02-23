@@ -4,7 +4,7 @@ QT += svg
 QT += qml
 QT += quick
 
-include(../../taulabsgcsplugin.pri)
+include(../../gcsplugin.pri)
 include(../../plugins/coreplugin/coreplugin.pri)
 include(qmlview_dependencies.pri)
 

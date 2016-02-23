@@ -34,7 +34,7 @@
 
 class RfmBindWizardPlugin : public ExtensionSystem::IPlugin {
     Q_OBJECT
-    Q_PLUGIN_METADATA(IID "TauLabs.plugins.RfmBindWizard" FILE "RfmBindWizard.json")
+    Q_PLUGIN_METADATA(IID "org.dronin.plugins.RfmBindWizard" FILE "RfmBindWizard.json")
 public:
     RfmBindWizardPlugin();
     ~RfmBindWizardPlugin();

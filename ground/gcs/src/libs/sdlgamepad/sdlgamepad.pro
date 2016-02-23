@@ -22,7 +22,7 @@ TEMPLATE     = lib
 TARGET      = sdlgamepad
 DEFINES     += SDLGAMEPAD_LIBRARY
 
-include(../../taulabslibrary.pri)
+include(../../gcslibrary.pri)
 
 SOURCES     += sdlgamepad.cpp
 HEADERS     += sdlgamepad.h \

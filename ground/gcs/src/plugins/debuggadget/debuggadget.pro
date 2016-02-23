@@ -2,7 +2,7 @@ TEMPLATE = lib
 TARGET = DebugGadget
 QT += widgets
 
-include(../../taulabsgcsplugin.pri)
+include(../../gcsplugin.pri)
 include(../../plugins/coreplugin/coreplugin.pri)
 
 HEADERS += debugplugin.h \

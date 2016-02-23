@@ -1,7 +1,7 @@
 TEMPLATE = lib
 TARGET = SystemHealthGadget
 QT += svg
-include(../../taulabsgcsplugin.pri)
+include(../../gcsplugin.pri)
 include(../../plugins/coreplugin/coreplugin.pri)
 include(systemhealth_dependencies.pri)
 HEADERS += systemhealthplugin.h

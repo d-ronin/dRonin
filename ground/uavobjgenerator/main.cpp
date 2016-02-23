@@ -59,7 +59,7 @@ void usage() {
     cout << "\t-h             this help" << endl;
     cout << "\t-v             verbose" << endl;
     cout << "\tinput_path     path to UAVObject definition (.xml) files." << endl;
-    cout << "\ttemplate_path  path to the root of the Tau Labs source tree." << endl;
+    cout << "\ttemplate_path  path to the root of the source tree." << endl;
     cout << "\tUAVObjXY       name of a specific UAVObject to be built." << endl;
     cout << "\tIf any specific UAVObjects are given only these will be built." << endl;
     cout << "\tIf no UAVObject is specified -> all are built." << endl;

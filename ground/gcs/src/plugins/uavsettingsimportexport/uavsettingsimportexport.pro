@@ -5,7 +5,7 @@ QT += widgets
 QT += xmlpatterns
 TARGET = UAVSettingsImportExport
 DEFINES += UAVSETTINGSIMPORTEXPORT_LIBRARY
-include(../../taulabsgcsplugin.pri)
+include(../../gcsplugin.pri)
 include(uavsettingsimportexport_dependencies.pri)
 
 HEADERS += uavsettingsimportexport.h \

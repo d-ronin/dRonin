@@ -17,7 +17,7 @@
    <item>
     <widget class="QLabel" name="label_8">
      <property name="text">
-      <string>This will attempt to convert from the PID settings on a MultiWii / baseflight system to the analog settings for Tau Labs. Please note, that these values will be approximate. The derivative, especially, might be too high due to differences in the systems.</string>
+      <string>This will attempt to convert from the PID settings on a MultiWii / baseflight system to the analog settings for dRonin. Please note, that these values will be approximate. The derivative, especially, might be too high due to differences in the systems.</string>
      </property>
      <property name="wordWrap">
       <bool>true</bool>

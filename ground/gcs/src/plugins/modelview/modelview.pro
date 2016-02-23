@@ -1,7 +1,7 @@
 TEMPLATE = lib
 TARGET = ModelViewGadget
 
-include(../../taulabsgcsplugin.pri)
+include(../../gcsplugin.pri)
 include(../../plugins/coreplugin/coreplugin.pri)
 include(../../libs/glc_lib/glc_lib.pri)
 include(modelview_dependencies.pri)

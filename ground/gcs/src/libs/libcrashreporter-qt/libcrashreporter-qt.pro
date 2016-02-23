@@ -1,7 +1,7 @@
 TEMPLATE = lib
 CONFIG += staticlib
 TARGET = crashreporter
-include(../../taulabslibrary.pri)
+include(../../gcslibrary.pri)
 CONFIG -= c++11
 SOURCES += libcrashreporter-handler/Handler.cpp
 HEADERS += libcrashreporter-handler/Handler.h

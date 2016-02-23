@@ -55,7 +55,7 @@ AuthorsDialog::AuthorsDialog(QWidget *parent)
     // application icon isn't used when the size of the dialog is fixed (at least not on X11/GNOME)
     setWindowIcon(QIcon(":/core/gcs_logo_32"));
 
-    setWindowTitle(tr("About Tau Labs Authors"));
+    setWindowTitle(tr("About GCS Authors"));
     setWindowFlags(windowFlags() & ~Qt::WindowContextHelpButtonHint);
     QGridLayout *layout = new QGridLayout(this);
     layout->setSizeConstraint(QLayout::SetFixedSize);

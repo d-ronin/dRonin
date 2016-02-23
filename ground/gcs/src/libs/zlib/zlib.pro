@@ -4,7 +4,7 @@ QT -= gui
 !win32:VERSION = 1.0.0
 DEFINES += ZLIB_LIBRARY
 
-include(../../taulabslibrary.pri)
+include(../../gcslibrary.pri)
 
 DEFINES += QT_MAKEDLL
 

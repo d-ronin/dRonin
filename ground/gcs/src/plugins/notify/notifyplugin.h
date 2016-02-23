@@ -53,7 +53,7 @@ typedef struct {
 class SoundNotifyPlugin : public Core::IConfigurablePlugin
 {
     Q_OBJECT
-    Q_PLUGIN_METADATA(IID "TauLabs.plugins.NotifyPlugin" FILE "NotifyPlugin.json")
+    Q_PLUGIN_METADATA(IID "org.dronin.plugins.NotifyPlugin" FILE "NotifyPlugin.json")
 public:
     SoundNotifyPlugin();
     ~SoundNotifyPlugin();

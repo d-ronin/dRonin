@@ -33,7 +33,7 @@
 class StmPlugin : public ExtensionSystem::IPlugin
 {
     Q_OBJECT
-    Q_PLUGIN_METADATA(IID "TauLabs.plugins.Stm" FILE "Stm.json")
+    Q_PLUGIN_METADATA(IID "org.dronin.plugins.Stm" FILE "Stm.json")
 
 public:
    StmPlugin();

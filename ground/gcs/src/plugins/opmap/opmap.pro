@@ -1,7 +1,7 @@
 QT += xml
 TEMPLATE = lib
 TARGET = OPMapGadget
-include(../../taulabsgcsplugin.pri)
+include(../../gcsplugin.pri)
 include(../../plugins/coreplugin/coreplugin.pri)
 include(../../libs/tlmapcontrol/tlmapcontrol.pri)
 include(../../plugins/uavobjects/uavobjects.pri)

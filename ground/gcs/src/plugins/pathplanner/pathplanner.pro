@@ -3,7 +3,7 @@ QT+=widgets
 TEMPLATE = lib
 TARGET = PathPlanner
 
-include(../../taulabsgcsplugin.pri) 
+include(../../gcsplugin.pri) 
 include(../../plugins/coreplugin/coreplugin.pri) 
 include(../../plugins/uavobjects/uavobjects.pri)
 
