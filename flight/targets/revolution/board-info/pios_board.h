@@ -5,7 +5,7 @@
  * @addtogroup Revolution OpenPilot Revolution support files
  * @{
  *
- * @file       STM32F4xx_Revolution.h 
+ * @file       STM32F4xx_Revolution.h
  * @author     The OpenPilot Team, http://www.openpilot.org Copyright (C) 2011.
  * @author     Tau Labs, http://taulabs.org, Copyright (C) 2012-2013
  * @author     dRonin, http://dronin.org Copyright (C) 2015
@@ -27,6 +27,10 @@
  * You should have received a copy of the GNU General Public License along
  * with this program; if not, write to the Free Software Foundation, Inc.,
  * 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
+ *
+ * Additional note on redistribution: The copyright and license notices above
+ * must be maintained in each individual source file that is a derivative work
+ * of this source file; otherwise redistribution is prohibited.
  */
 
 
@@ -248,6 +252,7 @@ extern uint32_t pios_packet_handler;
 
 //-------------------------
 // ADC
+#define PIOS_ADC_SUB_DRIVER_MAX_INSTANCES       3
 #define PIOS_ADC_MAX_OVERSAMPLING       2
 #define VREF_PLUS                     3.3
 
@@ -255,11 +260,6 @@ extern uint32_t pios_packet_handler;
 // USB
 //-------------------------
 #define PIOS_USB_ENABLED                        1 /* Should remove all references to this */
-
-//-------------------------
-// ADC
-//-------------------------
-#define PIOS_ADC_SUB_DRIVER_MAX_INSTANCES       3
 
 #endif /* STM3210E_INS_H_ */
 
