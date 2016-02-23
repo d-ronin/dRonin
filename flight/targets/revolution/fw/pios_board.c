@@ -432,7 +432,6 @@ void PIOS_Board_Init(void) {
 		break;
 
 	case HWREVOLUTION_RXPORT_PPMUART:
-	case HWREVOLUTION_RXPORT_PPMUARTOUTPUTS:
 		use_rxport_usart = true;
 
 		PIOS_HAL_ConfigurePort(HWSHARED_PORTTYPES_PPM,  // port type protocol
@@ -493,11 +492,6 @@ void PIOS_Board_Init(void) {
 	case HWREVOLUTION_RXPORT_PPMOUTPUTS:
 #ifdef PIOS_INCLUDE_SERVO
 		PIOS_Servo_Init(&pios_servo_rcvr_ppm_cfg);
-#endif
-		break;
-	case HWREVOLUTION_RXPORT_PPMUARTOUTPUTS:
-#ifdef PIOS_INCLUDE_SERVO
-		PIOS_Servo_Init(&pios_servo_rcvr_ppm_uart_out_cfg);
 #endif
 		break;
 	case HWREVOLUTION_RXPORT_PPMFRSKY:

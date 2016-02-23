@@ -11,7 +11,6 @@
 				<option>PPM+Outputs</option>
 				<option>PPM+PWM</option>
 				<option>PPM+UART</option>
-				<option>PPM+UART+Outputs</option>
 				<option>PWM</option>
 				<option>UART</option>
 			</options>
@@ -66,21 +65,24 @@
 		<field name="RxPortUsart" units="function" type="enum" elements="1" parent="HwShared.PortTypes" defaultvalue="Disabled">
 			<options>
 				<option>Disabled</option>
-				<option>Telemetry</option>
-				<option>GPS</option>
-				<option>DSM</option>
-				<option>DebugConsole</option>
 				<option>ComBridge</option>
-				<option>MavLinkTX</option>
-				<option>MavLinkTX_GPS_RX</option>
+				<option>DebugConsole</option>
+				<option>DSM</option>
+				<option>FrSKY Sensor Hub</option>
+				<option>FrSKY SPort Telemetry</option>
+				<option>GPS</option>
 				<option>HoTT SUMD</option>
 				<option>HoTT SUMH</option>
 				<option>HoTT Telemetry</option>
-				<option>FrSKY Sensor Hub</option>
 				<option>LighttelemetryTx</option>
-				<option>PicoC</option>
-				<option>FrSKY SPort Telemetry</option>
+				<option>MavLinkTX</option>
+				<option>MavLinkTX_GPS_RX</option>
 				<option>MSP</option>
+				<option>OpenLog</option>
+				<option>PicoC</option>
+				<option>S.Bus</option>
+				<option>S.Bus Non Inverted</option>
+				<option>Telemetry</option>
 			</options>
 		</field>
 
