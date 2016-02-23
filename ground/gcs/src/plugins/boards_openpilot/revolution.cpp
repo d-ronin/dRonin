@@ -57,10 +57,12 @@ Revolution::Revolution(void)
 
     // Define the bank of channels that are connected to a given timer
     channelBanks.resize(6);
-    channelBanks[0] = QVector<int> () << 1 << 2;
-    channelBanks[1] = QVector<int> () << 3;
-    channelBanks[2] = QVector<int> () << 4;
-    channelBanks[3] = QVector<int> () << 5 << 6;
+    channelBanks[0] = QVector<int> () << 1 << 2;             //Tim3
+    channelBanks[1] = QVector<int> () << 3;                  //Tim9
+    channelBanks[2] = QVector<int> () << 4;                  //Tim2
+    channelBanks[3] = QVector<int> () << 5 << 6;             //Tim5
+    channelBanks[4] = QVector<int> () << 7 << 12;            //Tim12
+    channelBanks[5] = QVector<int> () << 8 << 9 << 10 << 11; //Tim8
 
     ExtensionSystem::PluginManager *pm = ExtensionSystem::PluginManager::instance();
     uavoUtilManager = pm->getObject<UAVObjectUtilManager>();
@@ -159,9 +161,6 @@ bool Revolution::setInputOnPort(enum InputType type, int port_num)
 
     HwRevolution::DataFields settings = hwRevolution->getData();
 
-    // Default to serial telemetry on the serial port
-    settings.MainPort = HwRevolution::MAINPORT_TELEMETRY;
-
     switch(type) {
     case INPUT_TYPE_PWM:
         settings.RxPort = HwRevolution::RXPORT_PWM;
@@ -170,17 +169,16 @@ bool Revolution::setInputOnPort(enum InputType type, int port_num)
         settings.RxPort = HwRevolution::RXPORT_PPM;
         break;
     case INPUT_TYPE_SBUS:
-        settings.FlexiPort = HwRevolution::FLEXIPORT_TELEMETRY;
         settings.MainPort = HwRevolution::MAINPORT_SBUS;
         break;
-    case INPUT_TYPE_DSM:
-        settings.FlexiPort = HwRevolution::FLEXIPORT_DSM;
+    case INPUT_TYPE_HOTTSUMH:
+        settings.FlexiPort = HwRevolution::FLEXIPORT_HOTTSUMH;
         break;
     case INPUT_TYPE_HOTTSUMD:
         settings.FlexiPort = HwRevolution::FLEXIPORT_HOTTSUMD;
         break;
-    case INPUT_TYPE_HOTTSUMH:
-        settings.MainPort = HwRevolution::MAINPORT_HOTTSUMH;
+    case INPUT_TYPE_DSM:
+        settings.FlexiPort = HwRevolution::FLEXIPORT_DSM;
         break;
     default:
         return false;
@@ -225,8 +223,6 @@ enum Core::IBoardType::InputType Revolution::getInputOnPort(int port_num)
     switch(settings.MainPort) {
     case HwRevolution::MAINPORT_SBUS:
         return INPUT_TYPE_SBUS;
-    case HwRevolution::MAINPORT_DSM:
-        return INPUT_TYPE_DSM;
     case HwRevolution::MAINPORT_HOTTSUMD:
         return INPUT_TYPE_HOTTSUMD;
     case HwRevolution::MAINPORT_HOTTSUMH:
@@ -240,7 +236,6 @@ enum Core::IBoardType::InputType Revolution::getInputOnPort(int port_num)
     case HwRevolution::RXPORT_PPMPWM:
     case HwRevolution::RXPORT_PPMOUTPUTS:
     case HwRevolution::RXPORT_PPMUART:
-    case HwRevolution::RXPORT_PPMUARTOUTPUTS:
     case HwRevolution::RXPORT_PPMFRSKY:
         return INPUT_TYPE_PPM;
     case HwRevolution::RXPORT_PWM:
