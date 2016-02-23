@@ -392,7 +392,7 @@ void LoggingPlugin::toggleLogging()
     {
 
         QString fileName = QFileDialog::getSaveFileName(NULL, tr("Start Log"),
-                                    QDir::homePath() + QDir::separator() + tr("TauLabs-%0.drlog").arg(QDateTime::currentDateTime().toString("yyyy-MM-dd_hh-mm-ss")),
+                                    QDir::homePath() + QDir::separator() + tr("dRonin-%0.drlog").arg(QDateTime::currentDateTime().toString("yyyy-MM-dd_hh-mm-ss")),
                                     tr("dRonin Log (*.drlog)"));
         if (fileName.isEmpty())
             return;
