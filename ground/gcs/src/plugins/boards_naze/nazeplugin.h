@@ -33,7 +33,7 @@
 class NazePlugin : public ExtensionSystem::IPlugin
 {
     Q_OBJECT
-    Q_PLUGIN_METADATA(IID "TauLabs.plugins.Naze" FILE "Naze.json")
+    Q_PLUGIN_METADATA(IID "org.dronin.plugins.Naze" FILE "Naze.json")
 
 public:
    NazePlugin();
