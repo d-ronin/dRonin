@@ -18,7 +18,18 @@ Item {
         anchors.left: parent.left
         anchors.top: parent.top
         anchors.bottom: parent.bottom
-        width: parent.width*0.6
+        width: parent.width * 0.5
+        anchors.margins: 32
+
+        onClicked: welcomePlugin.openUrl(url)
+    }
+
+    AutoTunePanel {
+        id: autoTunePanel
+        anchors.left: gitHubNewsPanel.right
+        anchors.top: parent.top
+        anchors.bottom: parent.bottom
+        width: parent.width * 0.25
         anchors.margins: 32
 
         onClicked: welcomePlugin.openUrl(url)
@@ -28,15 +39,15 @@ Item {
     Rectangle {
         id: separator
         width: 1
-        height: parent.height*0.7
+        height: parent.height * 0.7
         anchors.verticalCenter: parent.verticalCenter
-        anchors.left: gitHubNewsPanel.right
+        anchors.left: autoTunePanel.right
         anchors.margins: 16
         color: "#A0A0A0"
     }
     SitesPanel {
         transformOrigin: Item.Center
-        anchors.left: gitHubNewsPanel.right
+        anchors.left: autoTunePanel.right
         anchors.right: parent.right
         anchors.top: parent.top
         anchors.bottom: parent.bottom
