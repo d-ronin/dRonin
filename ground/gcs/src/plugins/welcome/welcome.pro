@@ -3,7 +3,7 @@ TARGET = Welcome
 QT += network qml quick
 CONFIG += plugin
 
-include(../../taulabsgcsplugin.pri)
+include(../../gcsplugin.pri)
 include(welcome_dependencies.pri)
 
 HEADERS += welcomeplugin.h \

@@ -2,7 +2,7 @@ TEMPLATE = lib
 TARGET = ExtensionSystem
 QT += widgets
 DEFINES += EXTENSIONSYSTEM_LIBRARY
-include(../../taulabslibrary.pri)
+include(../../gcslibrary.pri)
 include(extensionsystem_dependencies.pri)
 
 unix:!macx:!freebsd*:LIBS += -ldl

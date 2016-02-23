@@ -1,7 +1,7 @@
 TEMPLATE = lib
 TARGET = LineardialGadget
 QT += svg
-include(../../taulabsgcsplugin.pri)
+include(../../gcsplugin.pri)
 include(../../plugins/coreplugin/coreplugin.pri)
 include(lineardial_dependencies.pri)
 HEADERS += lineardialplugin.h

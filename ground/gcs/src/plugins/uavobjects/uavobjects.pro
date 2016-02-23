@@ -2,7 +2,7 @@ TEMPLATE = lib
 TARGET = UAVObjects
 DEFINES += UAVOBJECTS_LIBRARY
 QT += qml
-include(../../taulabsgcsplugin.pri)
+include(../../gcsplugin.pri)
 include(uavobjects_dependencies.pri)
 
 HEADERS += uavobjects_global.h \

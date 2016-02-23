@@ -15,7 +15,7 @@ DEFINES += QWT_LIBRARY
 QT += printsupport
 !win32-msvc*:QMAKE_CXXFLAGS += -Wno-sign-compare
 
-include(../../../taulabslibrary.pri)
+include(../../../gcslibrary.pri)
 include( ../qwtconfig.pri )
 
 

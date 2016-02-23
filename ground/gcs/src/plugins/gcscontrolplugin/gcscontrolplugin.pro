@@ -1,7 +1,7 @@
 TARGET = GCSControl
 TEMPLATE = lib
 
-include(../../taulabsgcsplugin.pri)
+include(../../gcsplugin.pri)
 include(../../plugins/coreplugin/coreplugin.pri)
 include(../../plugins/uavobjectutil/uavobjectutil.pri)
 

@@ -2,7 +2,7 @@ TEMPLATE = lib
 QT += multimedia
 TARGET = NotifyPlugin 
  
-include(../../taulabsgcsplugin.pri) 
+include(../../gcsplugin.pri) 
 include(../../plugins/coreplugin/coreplugin.pri) 
 include(notifyplugin_dependencies.pri)
 

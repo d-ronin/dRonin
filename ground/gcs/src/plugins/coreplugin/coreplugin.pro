@@ -7,7 +7,7 @@ QT += xml \
     network \
     svg \
     sql
-include(../../taulabsgcsplugin.pri)
+include(../../gcsplugin.pri)
 include(../../libs/utils/utils.pri)
 include(coreplugin_dependencies.pri)
 INCLUDEPATH *= dialogs \

@@ -4,7 +4,7 @@ TARGET = ScopeGadget
 DEFINES += SCOPE_LIBRARY
 DEFINES += QWT_DLL
 
-include(../../taulabsgcsplugin.pri)
+include(../../gcsplugin.pri)
 include (scope_dependencies.pri)
 HEADERS += scopeplugin.h \
     scopes2d/histogramplotdata.h \

@@ -3,7 +3,7 @@ TARGET = Serial
 QT += widgets
 QT += serialport
 
-include(../../taulabsgcsplugin.pri)
+include(../../gcsplugin.pri)
 include(serial_dependencies.pri)
 HEADERS += serialplugin.h \
             serialpluginconfiguration.h \

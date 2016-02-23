@@ -2,7 +2,7 @@ TEMPLATE = lib
 TARGET = MagicWaypoint 
 QT += svg
 
-include(../../taulabsgcsplugin.pri) 
+include(../../gcsplugin.pri) 
 include(../../plugins/coreplugin/coreplugin.pri) 
 include(../../plugins/uavobjects/uavobjects.pri)
 

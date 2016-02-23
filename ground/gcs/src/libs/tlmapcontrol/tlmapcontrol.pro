@@ -1,7 +1,7 @@
 TEMPLATE = lib
 TARGET = tlmapwidget
 DEFINES += TLMAPWIDGET_LIBRARY
-include(../../taulabslibrary.pri)
+include(../../gcslibrary.pri)
 
 SOURCES += mapwidget/mapgraphicitem.cpp \
     mapwidget/configuration.cpp \

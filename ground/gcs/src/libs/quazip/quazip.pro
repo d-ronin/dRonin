@@ -26,7 +26,7 @@ QT -= gui
 # This one handles dllimport/dllexport directives.
 DEFINES += QUAZIP_BUILD
 
-include(../../taulabslibrary.pri)
+include(../../gcslibrary.pri)
 include(../zlib/zlib.pri)
 # You'll need to define this one manually if using a build system other
 # than qmake or using QuaZIP sources directly in your project.

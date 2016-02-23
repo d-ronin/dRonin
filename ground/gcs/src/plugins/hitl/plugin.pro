@@ -3,7 +3,7 @@ TARGET = HITL
 QT += network
 QT += widgets
 
-include(../../taulabsgcsplugin.pri)
+include(../../gcsplugin.pri)
 include(hitl_dependencies.pri)
 
 HEADERS += hitlplugin.h \

@@ -1,7 +1,7 @@
 include(../gcs.pri)
 
 isEmpty(PROVIDER) {
-    PROVIDER = TauLabs
+    PROVIDER = dRonin
 }
 CONFIG       += plugin
 QT += widgets
@@ -12,7 +12,7 @@ DEPENDPATH += $$GCS_SOURCE_TREE/src/plugins
 
 # copy the plugin spec
 isEmpty(TARGET) {
-    error("taulabsgcsplugin.pri: You must provide a TARGET")
+    error("gcsplugin.pri: You must provide a TARGET")
 }
 
 defineReplace(stripOutDir) {
@@ -61,6 +61,6 @@ linux*:QMAKE_LFLAGS += $$QMAKE_LFLAGS_NOUNDEF
 !macx {
     target.path = /$$GCS_LIBRARY_BASENAME/$$GCS_PROJECT_BRANDING/plugins/$$PROVIDER
     pluginspec.files += $${TARGET}.pluginspec
-    pluginspec.path = /$$GCS_LIBRARY_BASENAME/taulabs/plugins/$$PROVIDER
+    pluginspec.path = /$$GCS_LIBRARY_BASENAME/dronin/plugins/$$PROVIDER
     INSTALLS += target pluginspec
 }

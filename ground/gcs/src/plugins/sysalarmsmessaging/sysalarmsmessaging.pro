@@ -1,7 +1,7 @@
 TEMPLATE = lib
 TARGET = SysAlarmsMessaging
 QT += svg
-include(../../taulabsgcsplugin.pri)
+include(../../gcsplugin.pri)
 include(../../plugins/coreplugin/coreplugin.pri)
 include(sysalarmsmessaging_dependencies.pri)
 HEADERS += sysalarmsmessagingplugin.h

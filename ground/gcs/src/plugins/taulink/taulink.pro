@@ -2,7 +2,7 @@ TEMPLATE = lib
 TARGET = TauLinkGadget
 DEFINES += TAULINK_LIBRARY
 QT += svg
-include(../../taulabsgcsplugin.pri)
+include(../../gcsplugin.pri)
 include(taulink_dependencies.pri)
 HEADERS += taulinkplugin.h \
     taulinkgadgetwidget.h \

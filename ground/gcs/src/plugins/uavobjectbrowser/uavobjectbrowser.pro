@@ -1,7 +1,7 @@
 TEMPLATE = lib
 QT+=widgets
 TARGET = UAVObjectBrowser
-include(../../taulabsgcsplugin.pri)
+include(../../gcsplugin.pri)
 include(uavobjectbrowser_dependencies.pri)
 HEADERS += browserplugin.h \
     uavobjectbrowserconfiguration.h \

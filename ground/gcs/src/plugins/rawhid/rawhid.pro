@@ -1,7 +1,7 @@
 TEMPLATE = lib
 TARGET = RawHID
 QT +=widgets
-include(../../taulabsgcsplugin.pri)
+include(../../gcsplugin.pri)
 include(rawhid_dependencies.pri)
 HEADERS += rawhid_global.h \
     rawhidplugin.h \

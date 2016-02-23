@@ -1,7 +1,7 @@
 TEMPLATE = lib
 TARGET = KMLExport
 QT += svg
-include(../../taulabsgcsplugin.pri)
+include(../../gcsplugin.pri)
 include(kmlexport_dependencies.pri)
 HEADERS += kmlexportplugin.h \
     kmlexport.h
