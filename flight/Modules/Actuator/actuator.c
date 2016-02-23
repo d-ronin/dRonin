@@ -310,7 +310,7 @@ static void actuator_task(void* parameters)
 			// Could consider stabilizing on a positive arming edge,
 			// but this seems problematic.
 		} else if (last_pos_throttle_time) {
-			if ((this_systime - last_pos_throttle_time) >
+			if ((this_systime - last_pos_throttle_time) <
 					1000.0f * actuatorSettings.LowPowerStabilizationMaxTime) {
 				stabilize_now = true;
 				throttle_source = 0.0f;
