@@ -111,7 +111,7 @@ static void PIOS_TCP_RxTask(void *tcp_dev_n)
 			PIOS_Thread_Scheduler_Resume();
 
 			PIOS_Thread_Sleep(1);
-		} while (tcp_dev->socket_connection == -1 && (error == EINTR || error == EAGAIN));
+		} while (tcp_dev->socket_connection == INVALID_SOCKET && (error == EINTR || error == EAGAIN));
 
 		if (tcp_dev->socket_connection < 0) {
 			int error = errno;
@@ -160,7 +160,7 @@ static void PIOS_TCP_RxTask(void *tcp_dev_n)
 		}
 		
 		close(tcp_dev->socket_connection);
-		tcp_dev->socket_connection = 0;
+		tcp_dev->socket_connection = INVALID_SOCKET;
 	}
 }
 
@@ -171,7 +171,9 @@ static void PIOS_TCP_RxTask(void *tcp_dev_n)
 struct pios_thread *tcpRxTaskHandle;
 int32_t PIOS_TCP_Init(uintptr_t *tcp_id, const struct pios_tcp_cfg * cfg)
 {
-	pios_tcp_dev *tcp_dev = malloc(sizeof(pios_tcp_dev));
+	pios_tcp_dev *tcp_dev = PIOS_malloc(sizeof(pios_tcp_dev));
+
+	memset(tcp_dev, 0, sizeof(*tcp_dev));
 
 	/* initialize */
 	tcp_dev->rx_in_cb = NULL;
@@ -180,6 +182,7 @@ int32_t PIOS_TCP_Init(uintptr_t *tcp_id, const struct pios_tcp_cfg * cfg)
 	
 	/* assign socket */
 	tcp_dev->socket = socket(PF_INET, SOCK_STREAM, IPPROTO_TCP);
+	tcp_dev->socket_connection = INVALID_SOCKET;
 
 #if defined(_WIN32) || defined(WIN32) || defined(__MINGW32__)
 	char optval = 1;
@@ -266,7 +269,7 @@ static void PIOS_TCP_TxStart(uintptr_t tcp_id, uint16_t tx_bytes_avail)
 			rem = length;
 			while (rem > 0) {
 				ssize_t len = 0;
-				if (tcp_dev->socket_connection != 0) {
+				if (tcp_dev->socket_connection != INVALID_SOCKET) {
 					len = write(tcp_dev->socket_connection, tcp_dev->tx_buffer, length);
 				}
 				if (len <= 0) {

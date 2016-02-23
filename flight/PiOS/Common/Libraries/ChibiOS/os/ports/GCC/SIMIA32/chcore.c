@@ -173,6 +173,7 @@ void port_wait_for_interrupt(void) {
  *          debug mode).
  */
 void port_halt(void) {
+  printf("port_halt invoked-- unrecoverable error\n");
   port_disable();
   exit(2);
 }
@@ -188,6 +189,7 @@ void port_halt(void) {
  * @param[in] otp       the thread to be switched out
  */
 void port_switch(Thread *ntp, Thread *otp) {
+  /* printf("context switching to %p from %p\n", ntp, otp); */
   if (swapcontext(&otp->p_ctx.uc, &ntp->p_ctx.uc) < 0)
     port_halt();
 }
