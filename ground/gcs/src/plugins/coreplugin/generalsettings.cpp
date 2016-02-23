@@ -97,7 +97,7 @@ void GeneralSettings::fillLanguageBox() const
 
     const QString creatorTrPath =
             Core::ICore::instance()->resourcePath() + QLatin1String("/translations");
-    const QStringList languageFiles = QDir(creatorTrPath).entryList(QStringList(QLatin1String("taulabs*.qm")));
+    const QStringList languageFiles = QDir(creatorTrPath).entryList(QStringList(QLatin1String("dronin*.qm")));
 
     Q_FOREACH(const QString &languageFile, languageFiles)
     {
