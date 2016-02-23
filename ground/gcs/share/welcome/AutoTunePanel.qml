@@ -1,6 +1,7 @@
 import QtQuick 2.0
 import "./JSONListModel"
 import "TimeDifference.js" as TimeDifference
+import "TitleCase.js" as TitleCase
 
 Item {
     id: container
@@ -46,7 +47,6 @@ Item {
             height: column.height + 8
 
             property string link: "http://dronin-autotown.appspot.com/at/tune/" + model.Key
-            property string city: model.City.replace(/\w\S*/g, function(txt){ return txt.charAt(0).toUpperCase() + txt.substr(1).toLowerCase(); })
             property string relDate: TimeDifference.relativeTime(Date.parse(model.Timestamp))
 
             Row {
@@ -76,10 +76,9 @@ Item {
                         }
                     }
                     Text {
-                        text: "%1 in %2, %3".arg(relDate).arg(city).arg(model.Country)
+                        text: "%1 in %2, %3".arg(relDate).arg(TitleCase.toTitleCase(model.City)).arg(model.Country)
                         font.italic: true
                         width: view.width
-                        textFormat: text.indexOf("&") > 0 ? Text.StyledText : Text.PlainText
                         elide: Text.ElideRight
                         color: mouseArea.containsMouse ? "#224d81" : "black"
                         MouseArea {

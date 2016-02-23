@@ -11,5 +11,3 @@ Features:
   - Automatic model roles from JSON element properties
   - Complex JSON document handling with JSONPath, XPath for JSON (http://goessner.net/articles/JsonPath/)
   - Advanced querying and filtering expressions
- 
- 

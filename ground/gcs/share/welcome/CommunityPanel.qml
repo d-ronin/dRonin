@@ -18,7 +18,7 @@ Item {
         anchors.left: parent.left
         anchors.top: parent.top
         anchors.bottom: parent.bottom
-        width: parent.width*0.5
+        width: parent.width * 0.5
         anchors.margins: 32
 
         onClicked: welcomePlugin.openUrl(url)
@@ -29,7 +29,7 @@ Item {
         anchors.left: gitHubNewsPanel.right
         anchors.top: parent.top
         anchors.bottom: parent.bottom
-        width: parent.width*0.25
+        width: parent.width * 0.25
         anchors.margins: 32
 
         onClicked: welcomePlugin.openUrl(url)
@@ -39,7 +39,7 @@ Item {
     Rectangle {
         id: separator
         width: 1
-        height: parent.height*0.7
+        height: parent.height * 0.7
         anchors.verticalCenter: parent.verticalCenter
         anchors.left: autoTunePanel.right
         anchors.margins: 16
