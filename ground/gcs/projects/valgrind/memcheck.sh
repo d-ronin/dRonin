@@ -8,4 +8,4 @@ valgrind \
 	--db-attach=no \
 	--gen-suppressions=no \
 	--suppressions=./ground/gcs/projects/valgrind/memcheck.sup \
-	./build/ground/gcs/bin/taulabsgcs.bin
+	./build/ground/gcs/bin/drgcs.bin

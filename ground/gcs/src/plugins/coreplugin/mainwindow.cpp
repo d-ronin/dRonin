@@ -724,7 +724,7 @@ void MainWindow::registerDefaultActions()
     //Window menu separators
     QAction *tmpaction1 = new QAction(this);
     tmpaction1->setSeparator(true);
-    cmd = am->registerAction(tmpaction1, QLatin1String("TauLabs.Window.Sep.Split"), uavGadgetManagerContext);
+    cmd = am->registerAction(tmpaction1, QLatin1String("GCS.Window.Sep.Split"), uavGadgetManagerContext);
     mwindow->addAction(cmd, Constants::G_WINDOW_HIDE_TOOLBAR);
 
     m_showToolbarsAction = new QAction(tr("Edit Gadgets Mode"), this);
@@ -736,7 +736,7 @@ void MainWindow::registerDefaultActions()
     //Window menu separators
     QAction *tmpaction2 = new QAction(this);
     tmpaction2->setSeparator(true);
-    cmd = am->registerAction(tmpaction2, QLatin1String("TauLabs.Window.Sep.Split2"), uavGadgetManagerContext);
+    cmd = am->registerAction(tmpaction2, QLatin1String("GCS.Window.Sep.Split2"), uavGadgetManagerContext);
     mwindow->addAction(cmd, Constants::G_WINDOW_SPLIT);
 
 #ifdef Q_OS_MAC
@@ -807,7 +807,7 @@ void MainWindow::registerDefaultActions()
 #ifdef Q_OS_MAC
     cmd->action()->setMenuRole(QAction::ApplicationSpecificRole);
 #endif
-    connect(tmpaction, SIGNAL(triggered()), this,  SLOT(aboutTauLabsGCS()));
+    connect(tmpaction, SIGNAL(triggered()), this,  SLOT(aboutGCS()));
 
     //Credits Action
     tmpaction = new QAction(QIcon(Constants::ICON_PLUGIN), tr("About &Authors..."), this);
@@ -817,7 +817,7 @@ void MainWindow::registerDefaultActions()
 #ifdef Q_OS_MAC
     cmd->action()->setMenuRole(QAction::ApplicationSpecificRole);
 #endif
-    connect(tmpaction, SIGNAL(triggered()), this,  SLOT(aboutTauLabsAuthors()));
+    connect(tmpaction, SIGNAL(triggered()), this,  SLOT(aboutAuthors()));
 
 
 }
@@ -1360,7 +1360,7 @@ void MainWindow::openRecentFile()
     }
 }
 
-void MainWindow::aboutTauLabsGCS()
+void MainWindow::aboutGCS()
 {
     if (!m_versionDialog) {
         m_versionDialog = new VersionDialog(this);
@@ -1378,7 +1378,7 @@ void MainWindow::destroyVersionDialog()
     }
 }
 
-void MainWindow::aboutTauLabsAuthors()
+void MainWindow::aboutAuthors()
 {
     if (!m_authorsDialog) {
         m_authorsDialog = new AuthorsDialog(this);

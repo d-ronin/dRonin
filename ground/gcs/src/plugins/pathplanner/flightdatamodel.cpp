@@ -605,7 +605,7 @@ void FlightDataModel::readFromFile(QString fileName)
     // First of all, read in the Home Location and reset it:
 
     if (root.isNull() || root.tagName() != "pathplan") {
-        showErrorDialog("Wrong file contents", "This is not a TauLabs flight plan file");
+        showErrorDialog("Wrong file contents", "This is not a valid flight plan file");
         return;
     }
 

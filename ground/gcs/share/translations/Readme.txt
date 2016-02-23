@@ -1,4 +1,4 @@
-How To add translations to Tau Labs GCS
+How To add translations to GCS
 ========================================
 
 - Coordinate over the forum to avoid duplicate work.
