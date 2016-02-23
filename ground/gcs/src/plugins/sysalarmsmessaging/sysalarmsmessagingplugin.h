@@ -46,7 +46,7 @@ class SysAlarmsMessagingPlugin
     : public ExtensionSystem::IPlugin
 {
     Q_OBJECT
-    Q_PLUGIN_METADATA(IID "org.dronin.plugins.SysAlarmsMessaging" FILE "SysAlarmsMessaging.json")
+    Q_PLUGIN_METADATA(IID "org.dronin.plugins.SysAlarmsMessaging")
 
 public:
     SysAlarmsMessagingPlugin();

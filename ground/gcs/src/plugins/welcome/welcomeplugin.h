@@ -41,7 +41,7 @@ class WelcomePlugin
   : public ExtensionSystem::IPlugin
 {
     Q_OBJECT
-    Q_PLUGIN_METADATA(IID "org.dronin.plugins.Welcome" FILE "welcome.json")
+    Q_PLUGIN_METADATA(IID "org.dronin.plugins.Welcome")
 public:
     WelcomePlugin();
     ~WelcomePlugin();
