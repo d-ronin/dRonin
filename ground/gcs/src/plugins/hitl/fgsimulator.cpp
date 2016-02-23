@@ -126,7 +126,7 @@ bool FGSimulator::setupProcess()
         emit processOutput("Start Flightgear from the command line with the following arguments: \n\n" + args + "\n\n" +
                            "You can optionally run Flightgear from a networked computer.\n" +
                            "Make sure the computer running Flightgear can can ping your local interface adapter. ie." + settings.hostAddress + "\n"
-                           "Remote computer must have the correct Tau Labs protocol installed.");
+                           "Remote computer must have the correct GCS protocol installed.");
     }
 
     udpCounterGCSsend = 0;

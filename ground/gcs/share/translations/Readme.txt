@@ -1,8 +1,8 @@
 How To add translations to GCS
 ========================================
 
-- Coordinate over the forum to avoid duplicate work.
-	forums.taulabs.org
+- Coordinate over IRC to avoid duplicate work.
+	freenode.org#dronin
 
 - Add your language to the LANGUAGES line in translations.pro.
   Don't qualify it with a country unless it is reasonable to expect

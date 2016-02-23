@@ -77,7 +77,7 @@ bool KmlExportPlugin::initialize(const QStringList& args, QString *errMsg)
 void KmlExportPlugin::exportToKML()
 {
     // Get input file
-    QString inputFileName = QFileDialog::getOpenFileName(NULL, tr("Open file"), QString(""), tr("Tau Labs Log (*.tll)"));
+    QString inputFileName = QFileDialog::getOpenFileName(NULL, tr("Open file"), QString(""), tr("dRonin Log Files (*.drlog *.tll)"));
     if (inputFileName.isEmpty())
         return;
 
