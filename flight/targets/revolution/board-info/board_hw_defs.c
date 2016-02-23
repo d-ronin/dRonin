@@ -683,6 +683,7 @@ static const struct pios_usart_cfg pios_usart_main_cfg = {
 			.GPIO_OType = GPIO_OType_PP,
 			.GPIO_PuPd  = GPIO_PuPd_UP
 		},
+		.pin_source = GPIO_PinSource10,
 	},
 	.tx = {
 		.gpio = GPIOA,
@@ -693,6 +694,7 @@ static const struct pios_usart_cfg pios_usart_main_cfg = {
 			.GPIO_OType = GPIO_OType_PP,
 			.GPIO_PuPd  = GPIO_PuPd_UP
 		},
+		.pin_source = GPIO_PinSource9,
 	},
 };
 
@@ -741,6 +743,7 @@ static const struct pios_usart_cfg pios_usart_flexi_cfg = {
 			.GPIO_OType = GPIO_OType_PP,
 			.GPIO_PuPd  = GPIO_PuPd_UP
 		},
+		.pin_source = GPIO_PinSource11,
 	},
 	.tx = {
 		.gpio = GPIOB,
@@ -751,6 +754,7 @@ static const struct pios_usart_cfg pios_usart_flexi_cfg = {
 			.GPIO_OType = GPIO_OType_PP,
 			.GPIO_PuPd  = GPIO_PuPd_UP
 		},
+		.pin_source = GPIO_PinSource10,
 	},
 };
 

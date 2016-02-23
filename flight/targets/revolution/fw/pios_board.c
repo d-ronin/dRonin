@@ -373,7 +373,7 @@ void PIOS_Board_Init(void) {
 			NULL,                                // pwm_cfg
 			PIOS_LED_ALARM,                      // led_id
 			&pios_dsm_flexi_cfg,                 // dsm_cfg
-			hw_DSMxMode,                         // dsm_mod
+			hw_DSMxMode,                         // dsm_mode
 			NULL);                               // sbus_cfg
 
 	/* Configure the receiver port*/
@@ -387,56 +387,44 @@ void PIOS_Board_Init(void) {
 	case HWREVOLUTION_RXPORT_PWM:
 		PIOS_HAL_ConfigurePort(HWSHARED_PORTTYPES_PWM,  // port type protocol
 				NULL,                                   // usart_port_cfg
-				NULL,                                   // frsky usart_port_cfg
 				NULL,                                   // com_driver
 				NULL,                                   // i2c_id
 				NULL,                                   // i2c_cfg
 				NULL,                                   // ppm_cfg
 				&pios_pwm_cfg,                          // pwm_cfg
 				PIOS_LED_ALARM,                         // led_id
-				NULL,                                   // usart_dsm_hsum_cfg
 				NULL,                                   // dsm_cfg
 				0,                                      // dsm_mode
-				NULL,                                   // sbus_rcvr_cfg
-				NULL,                                   // sbus_cfg
-				false);                                 // sbus_toggle
+				NULL);                                  // sbus_cfg
 		break;
 
 	case HWREVOLUTION_RXPORT_PPMFRSKY:
 		// special mode that enables PPM, FrSky RSSI, and Sensor Hub
 		PIOS_HAL_ConfigurePort(HWSHARED_PORTTYPES_FRSKYSENSORHUB,  // port type protocol
-				NULL,                                              // usart_port_cfg
-				&pios_rxportusart_cfg,                             // frsky usart_port_cfg
+				&pios_rxportusart_cfg,                             // usart_port_cfg
 				&pios_usart_com_driver,                            // com_driver
 				NULL,                                              // i2c_id
 				NULL,                                              // i2c_cfg
 				NULL,                                              // ppm_cfg
 				NULL,                                              // pwm_cfg
 				PIOS_LED_ALARM,                                    // led_id
-				NULL,                                              // usart_dsm_hsum_cfg
 				NULL,                                              // dsm_cfg
 				0,                                                 // dsm_mode
-				NULL,                                              // sbus_rcvr_cfg
-				NULL,                                              // sbus_cfg
-				false);                                            // sbus_toggle
+				NULL);                                             // sbus_cfg
 
 	case HWREVOLUTION_RXPORT_PPM:
 	case HWREVOLUTION_RXPORT_PPMOUTPUTS:
 		PIOS_HAL_ConfigurePort(HWSHARED_PORTTYPES_PPM,  // port type protocol
 				NULL,                                   // usart_port_cfg
-				NULL,                                   // frsky usart_port_cfg
 				NULL,                                   // com_driver
 				NULL,                                   // i2c_id
 				NULL,                                   // i2c_cfg
 				&pios_ppm_cfg,                          // ppm_cfg
 				NULL,                                   // pwm_cfg
 				PIOS_LED_ALARM,                         // led_id
-				NULL,                                   // usart_dsm_hsum_cfg
 				NULL,                                   // dsm_cfg
 				0,                                      // dsm_mode
-				NULL,                                   // sbus_rcvr_cfg
-				NULL,                                   // sbus_cfg
-				false);                                 // sbus_toggle
+				NULL);                                  // sbus_cfg
 		break;
 
 	case HWREVOLUTION_RXPORT_UART:
@@ -449,19 +437,15 @@ void PIOS_Board_Init(void) {
 
 		PIOS_HAL_ConfigurePort(HWSHARED_PORTTYPES_PPM,  // port type protocol
 				NULL,                                   // usart_port_cfg
-				NULL,                                   // frsky usart_port_cfg
 				NULL,                                   // com_driver
 				NULL,                                   // i2c_id
 				NULL,                                   // i2c_cfg
 				&pios_ppm_cfg,                          // ppm_cfg
 				NULL,                                   // pwm_cfg
 				PIOS_LED_ALARM,                         // led_id
-				NULL,                                   // usart_dsm_hsum_cfg
 				NULL,                                   // dsm_cfg
 				0,                                      // dsm_mode
-				NULL,                                   // sbus_rcvr_cfg
-				NULL,                                   // sbus_cfg
-				false);                                 // sbus_toggle
+				NULL);                                  // sbus_cfg
 		break;
 	}
 
@@ -472,19 +456,15 @@ void PIOS_Board_Init(void) {
 
 		PIOS_HAL_ConfigurePort(hw_rxportusart,       // port type protocol
 				&pios_rxportusart_cfg,               // usart_port_cfg
-				&pios_rxportusart_cfg,               // frsky usart_port_cfg
 				&pios_usart_com_driver,              // com_driver
 				NULL,                                // i2c_id
 				NULL,                                // i2c_cfg
 				NULL,                                // ppm_cfg
 				NULL,                                // pwm_cfg
 				PIOS_LED_ALARM,                      // led_id
-				&pios_rxportusart_dsm_hsum_cfg,      // usart_dsm_hsum_cfg
 				&pios_rxportusart_dsm_aux_cfg,       // dsm_cfg
 				hw_DSMxMode,                         // dsm_mode
-				NULL,                                // sbus_rcvr_cfg
-				NULL,                                // sbus_cfg
-				false);                              // sbus_toggle
+				NULL);                               // sbus_cfg
 	}
 
 #if defined(PIOS_INCLUDE_GCSRCVR)
