@@ -76,7 +76,7 @@
 #define CONNECTION_OFFSET          250
 
 #define RCVR_ACTIVITY_MONITOR_CHANNELS_PER_GROUP 12
-#define RCVR_ACTIVITY_MONITOR_MIN_RANGE 10
+#define RCVR_ACTIVITY_MONITOR_MIN_RANGE 20
 
 /* All channels must have at least this many counts on each side of neutral.
  * (Except throttle which must have this many on the positive side).  This is
