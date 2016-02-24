@@ -2,7 +2,7 @@
  ******************************************************************************
  *
  * @file       flightlogdownload.cpp
- * @author     dRonin, http://dronin.org Copyright (C) 2015
+ * @author     dRonin, http://dronin.org Copyright (C) 2015-2016
  * @author     Tau Labs, http://taulabs.org, Copyright (C) 2014
  * @see        The GNU Public License (GPL) Version 3
  * @brief      Import/Export Plugin
@@ -26,7 +26,12 @@
  * You should have received a copy of the GNU General Public License along
  * with this program; if not, write to the Free Software Foundation, Inc.,
  * 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
+ *
+ * Additional note on redistribution: The copyright and license notices above
+ * must be maintained in each individual source file that is a derivative work
+ * of this source file; otherwise redistribution is prohibited.
  */
+
 #include "flightlogdownload.h"
 #include "ui_flightlogdownload.h"
 
@@ -58,7 +63,7 @@ FlightLogDownload::FlightLogDownload(QWidget *parent) :
     connect(ui->saveButton, SIGNAL(clicked()), this, SLOT(startDownload()));
 
     // Create default file name
-	QString fileName = tr("dRonin-%0.drlog").arg(QDateTime::currentDateTime().toString("yyyy-MM-dd_hh-mm-ss"));
+    QString fileName = tr("%0/dRonin-%1.drlog").arg(QDir::homePath()).arg(QDateTime::currentDateTime().toString("yyyy-MM-dd_hh-mm-ss"));
     ui->fileName->setText(QDir::current().relativeFilePath(fileName));
 
     // Get the current status
@@ -75,8 +80,8 @@ FlightLogDownload::~FlightLogDownload()
 void FlightLogDownload::getFilename()
 {
     QString fileName = QFileDialog::getSaveFileName(this, tr("Save log as..."),
-									   tr("dRonin-%0.drlog").arg(QDateTime::currentDateTime().toString("yyyy-MM-dd_hh-mm-ss")),
-                                       tr("Log (*.drlog)"));
+	    tr("%0/dRonin-%1.drlog").arg(QDir::homePath()).arg(QDateTime::currentDateTime().toString("yyyy-MM-dd_hh-mm-ss")),
+	    tr("Log (*.drlog)"));
     if (!fileName.isEmpty())
         ui->fileName->setText(fileName);
 }

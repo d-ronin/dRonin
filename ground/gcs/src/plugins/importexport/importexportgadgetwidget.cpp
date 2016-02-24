@@ -3,7 +3,7 @@
  *
  * @file       importexportgadgetwidget.cpp
  * @author     The OpenPilot Team, http://www.openpilot.org Copyright (C) 2010.
- * @author     dRonin, http://dRonin.org/, Copyright (C) 2015
+ * @author     dRonin, http://dRonin.org/, Copyright (C) 2015-2016
  * @see        The GNU Public License (GPL) Version 3
  * @brief      Widget for Import/Export Plugin
  * @addtogroup GCSPlugins GCS Plugins
@@ -26,7 +26,12 @@
  * You should have received a copy of the GNU General Public License along
  * with this program; if not, write to the Free Software Foundation, Inc.,
  * 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
+ *
+ * Additional note on redistribution: The copyright and license notices above
+ * must be maintained in each individual source file that is a derivative work
+ * of this source file; otherwise redistribution is prohibited.
  */
+
 #include "importexportgadgetwidget.h"
 #include "ui_importexportgadgetwidget.h"
 #include "utils/xmlconfig.h"
@@ -38,10 +43,10 @@
 #include <QSettings>
 #include <QMessageBox>
 #include <QFileInfo>
-#include <QFileDialog>
 #include <QDesktopServices>
 #include <QUrl>
 #include <QDir>
+#include <QFileDialog>
 
 ImportExportGadgetWidget::ImportExportGadgetWidget(QWidget *parent) :
         QWidget(parent),
@@ -50,7 +55,7 @@ ImportExportGadgetWidget::ImportExportGadgetWidget(QWidget *parent) :
     setSizePolicy(QSizePolicy::MinimumExpanding, QSizePolicy::MinimumExpanding);
     ui->setupUi(this);
 
-	filename = "";
+    filename = QDir::homePath();
 }
 
 ImportExportGadgetWidget::~ImportExportGadgetWidget()
@@ -72,18 +77,18 @@ void ImportExportGadgetWidget::changeEvent(QEvent *e)
 
 void ImportExportGadgetWidget::on_exportButton_clicked()
 {
-	QString file = filename;
-	QString filter = tr("GCS Settings file (*.xml)");
-	file = QFileDialog::getSaveFileName(this, tr("Save GCS Settings too file .."), QFileInfo(file).absoluteFilePath(), filter).trimmed();
-	if (file.isEmpty()) {
-		return;
-	}
+    QString file = filename;
+    QString filter = tr("GCS Settings file (*.xml)");
+    file = QFileDialog::getSaveFileName(this, tr("Save GCS Settings too file .."), QFileInfo(file).absoluteFilePath(), filter).trimmed();
+    if (file.isEmpty()) {
+	return;
+    }
 
-	// Add a "XML" extension to the file in case it does not exist:
-	if (!file.toLower().endsWith(".xml"))
-        file.append(".xml");
+    // Add a "XML" extension to the file in case it does not exist:
+    if (!file.toLower().endsWith(".xml"))
+	file.append(".xml");
 
-	filename = file;
+    filename = file;
 
     qDebug() << "Export pressed! Write to file " << QFileInfo(file).absoluteFilePath();
 
@@ -149,14 +154,14 @@ void ImportExportGadgetWidget::writeError(const QString& msg) const
 
 void ImportExportGadgetWidget::on_importButton_clicked()
 {
-	QString file = filename;
-	QString filter = tr("GCS Settings file (*.xml)");
-	file = QFileDialog::getOpenFileName(this, tr("Load GCS Settings from file .."), QFileInfo(file).absoluteFilePath(), filter).trimmed();
-	if (file.isEmpty()) {
-		return;
-	}
+    QString file = filename;
+    QString filter = tr("GCS Settings file (*.xml)");
+    file = QFileDialog::getOpenFileName(this, tr("Load GCS Settings from file .."), QFileInfo(file).absoluteFilePath(), filter).trimmed();
+    if (file.isEmpty()) {
+	return;
+    }
 
-	filename = file;
+    filename = file;
 
     qDebug() << "Import pressed! Read from file " << QFileInfo(file).absoluteFilePath();
 

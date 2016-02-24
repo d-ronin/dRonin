@@ -4,7 +4,8 @@
  * @file       connectiondiagram.cpp
  * @author     The OpenPilot Team, http://www.openpilot.org Copyright (C) 2012.
  * @author     Tau Labs, http://taulabs.org, Copyright (C) 2013
- * @author     dRonin, http://dRonin.org/, Copyright (C) 2015
+ * @author     dRonin, http://dRonin.org/, Copyright (C) 2015-2016
+ *
  * @see        The GNU Public License (GPL) Version 3
  *
  * @addtogroup GCSPlugins GCS Plugins
@@ -26,6 +27,10 @@
  * You should have received a copy of the GNU General Public License along
  * with this program; if not, write to the Free Software Foundation, Inc.,
  * 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
+ *
+ * Additional note on redistribution: The copyright and license notices above
+ * must be maintained in each individual source file that is a derivative work
+ * of this source file; otherwise redistribution is prohibited.
  */
 
 #include <QDebug>
@@ -181,7 +186,7 @@ void ConnectionDiagram::on_saveButton_clicked()
     image.fill(0);
     QPainter painter(&image);
     m_scene->render(&painter);
-    QString fileName = QFileDialog::getSaveFileName(this, tr("Save File"), "", tr("Images (*.png *.xpm *.jpg)"));
+    QString fileName = QFileDialog::getSaveFileName(this, tr("Save File"), QDir::homePath(), tr("Images (*.png *.xpm *.jpg)"));
     if (!fileName.isEmpty()) {
         image.save(fileName);
     }
