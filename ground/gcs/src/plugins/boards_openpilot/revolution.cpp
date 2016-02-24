@@ -162,23 +162,23 @@ bool Revolution::setInputOnPort(enum InputType type, int port_num)
     HwRevolution::DataFields settings = hwRevolution->getData();
 
     switch(type) {
-    case INPUT_TYPE_PWM:
-        settings.RxPort = HwRevolution::RXPORT_PWM;
-        break;
     case INPUT_TYPE_PPM:
         settings.RxPort = HwRevolution::RXPORT_PPM;
+        break;
+    case INPUT_TYPE_PWM:
+        settings.RxPort = HwRevolution::RXPORT_PWM;
         break;
     case INPUT_TYPE_SBUS:
         settings.MainPort = HwRevolution::MAINPORT_SBUS;
         break;
-    case INPUT_TYPE_HOTTSUMH:
-        settings.FlexiPort = HwRevolution::FLEXIPORT_HOTTSUMH;
+    case INPUT_TYPE_DSM:
+        settings.MainPort = HwRevolution::MAINPORT_DSM;
         break;
     case INPUT_TYPE_HOTTSUMD:
-        settings.FlexiPort = HwRevolution::FLEXIPORT_HOTTSUMD;
+        settings.MainPort = HwRevolution::MAINPORT_HOTTSUMD;
         break;
-    case INPUT_TYPE_DSM:
-        settings.FlexiPort = HwRevolution::FLEXIPORT_DSM;
+    case INPUT_TYPE_HOTTSUMH:
+        settings.MainPort = HwRevolution::MAINPORT_HOTTSUMH;
         break;
     default:
         return false;
@@ -209,23 +209,25 @@ enum Core::IBoardType::InputType Revolution::getInputOnPort(int port_num)
 
     HwRevolution::DataFields settings = hwRevolution->getData();
 
+    switch(settings.MainPort) {
+    case HwRevolution::MAINPORT_SBUS:
+        return INPUT_TYPE_SBUS;
+    case HwRevolution::MAINPORT_DSM:
+        return INPUT_TYPE_DSM;
+    case HwRevolution::MAINPORT_HOTTSUMD:
+        return INPUT_TYPE_HOTTSUMD;
+    case HwRevolution::MAINPORT_HOTTSUMH:
+        return INPUT_TYPE_HOTTSUMH;
+    default:
+        break;
+    }
+
     switch(settings.FlexiPort) {
     case HwRevolution::FLEXIPORT_DSM:
         return INPUT_TYPE_DSM;
     case HwRevolution::FLEXIPORT_HOTTSUMD:
         return INPUT_TYPE_HOTTSUMD;
     case HwRevolution::FLEXIPORT_HOTTSUMH:
-        return INPUT_TYPE_HOTTSUMH;
-    default:
-        break;
-    }
-
-    switch(settings.MainPort) {
-    case HwRevolution::MAINPORT_SBUS:
-        return INPUT_TYPE_SBUS;
-    case HwRevolution::MAINPORT_HOTTSUMD:
-        return INPUT_TYPE_HOTTSUMD;
-    case HwRevolution::MAINPORT_HOTTSUMH:
         return INPUT_TYPE_HOTTSUMH;
     default:
         break;
