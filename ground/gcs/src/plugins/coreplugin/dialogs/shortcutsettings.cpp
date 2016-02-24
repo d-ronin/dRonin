@@ -2,6 +2,7 @@
  ******************************************************************************
  *
  * @file       shortcutsettings.cpp
+ * @author     dRonin, http://dRonin.org/, Copyright (C) 2016
  * @author     The OpenPilot Team, http://www.openpilot.org Copyright (C) 2010.
  *             Parts by Nokia Corporation (qt-info@nokia.com) Copyright (C) 2009.
  * @addtogroup GCSPlugins GCS Plugins
@@ -24,6 +25,10 @@
  * You should have received a copy of the GNU General Public License along 
  * with this program; if not, write to the Free Software Foundation, Inc., 
  * 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
+ *
+ * Additional note on redistribution: The copyright and license notices above
+ * must be maintained in each individual source file that is a derivative work
+ * of this source file; otherwise redistribution is prohibited.
  */
 
 #include "shortcutsettings.h"
@@ -37,11 +42,9 @@
 #include "uniqueidmanager.h"
 #include <utils/treewidgetcolumnstretcher.h>
 
-
 #include <QKeyEvent>
 #include <QShortcut>
 #include <QHeaderView>
-#include <QFileDialog>
 #include <QtDebug>
 
 Q_DECLARE_METATYPE(Core::Internal::ShortcutItem*)
@@ -95,10 +98,6 @@ QWidget *ShortcutSettings::createPage(QWidget *parent)
         this, SLOT(resetKeySequence()));
     connect(m_page->removeButton, SIGNAL(clicked()),
         this, SLOT(removeKeySequence()));
-    connect(m_page->exportButton, SIGNAL(clicked()),
-        this, SLOT(exportAction()));
-    connect(m_page->importButton, SIGNAL(clicked()),
-        this, SLOT(importAction()));
     connect(m_page->defaultButton, SIGNAL(clicked()),
         this, SLOT(defaultAction()));
 
@@ -230,29 +229,6 @@ void ShortcutSettings::removeKeySequence()
     m_page->shortcutEdit->clear();
 }
 
-void ShortcutSettings::importAction()
-{
-    UniqueIDManager *uidm = UniqueIDManager::instance();
-
-    QString fileName = QFileDialog::getOpenFileName(0, tr("Import Keyboard Mapping Scheme"),
-        ICore::instance()->resourcePath() + "/schemes/",
-        tr("Keyboard Mapping Scheme (*.kms)"));
-    if (!fileName.isEmpty()) {
-        CommandsFile cf(fileName);
-        QMap<QString, QKeySequence> mapping = cf.importCommands();
-
-        foreach (ShortcutItem *item, m_scitems) {
-            QString sid = uidm->stringForUniqueIdentifier(item->m_cmd->id());
-            if (mapping.contains(sid)) {
-                item->m_key = mapping.value(sid);
-                item->m_item->setText(2, item->m_key.toString());
-                if (item->m_item == m_page->commandList->currentItem())
-                    commandChanged(item->m_item);
-            }
-        }
-    }
-}
-
 void ShortcutSettings::defaultAction()
 {
     foreach (ShortcutItem *item, m_scitems) {
@@ -261,21 +237,6 @@ void ShortcutSettings::defaultAction()
         if (item->m_item == m_page->commandList->currentItem())
             commandChanged(item->m_item);
     }
-}
-
-void ShortcutSettings::exportAction()
-{
-#if 0
-    QString fileName = ICore::instance()->fileManager()->getSaveFileNameWithExtension(
-        tr("Export Keyboard Mapping Scheme"),
-        ICore::instance()->resourcePath() + "/schemes/",
-        tr("Keyboard Mapping Scheme (*.kms)"),
-        ".kms");
-    if (!fileName.isEmpty()) {
-        CommandsFile cf(fileName);
-        cf.exportCommands(m_scitems);
-    }
-#endif
 }
 
 void ShortcutSettings::initialize()
