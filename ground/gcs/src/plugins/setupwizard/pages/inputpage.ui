@@ -146,13 +146,13 @@ p, li { white-space: pre-wrap; }
         </font>
        </property>
        <property name="toolTip">
-        <string>Futaba S-BUS</string>
+        <string>Futaba S.Bus</string>
        </property>
        <property name="styleSheet">
         <string notr="true">QToolButton { border: none }</string>
        </property>
        <property name="text">
-        <string>Futaba</string>
+        <string>S.Bus</string>
        </property>
        <property name="icon">
         <iconset resource="../wizardResources.qrc">
@@ -193,7 +193,7 @@ p, li { white-space: pre-wrap; }
         <string notr="true">QToolButton { border: none }</string>
        </property>
        <property name="text">
-        <string>Spektrum</string>
+        <string>DSM Sat.</string>
        </property>
        <property name="icon">
         <iconset resource="../wizardResources.qrc">
@@ -234,7 +234,7 @@ p, li { white-space: pre-wrap; }
         <string notr="true">QToolButton { border: none }</string>
        </property>
        <property name="text">
-        <string>Graupner</string>
+        <string>SUMD</string>
        </property>
        <property name="icon">
         <iconset resource="../wizardResources.qrc">
