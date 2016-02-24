@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/env python
 
 import subprocess
 import json
@@ -21,6 +21,6 @@ for i in range(0, len(lines)):
 
     people[nm] = people.get(nm, 0) - (pow(2, -yearsOld/1.5))
 
-people = sorted(people, key=people.get)
+peopleSorted = sorted(people, key=people.get)
 
-print "const char credits[] = ", json.dumps(', '.join(people)), ";\n"
+print "const char credits[] = ", json.dumps(', '.join(peopleSorted)), ";\n"
