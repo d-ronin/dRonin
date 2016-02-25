@@ -249,23 +249,25 @@ void PIOS_heap_increase_size(size_t bytes)
 #endif	/* PIOS_INCLUDE_FREERTOS || defined(PIOS_INCLUDE_CHIBIOS) */
 }
 
+static uintptr_t sbrk_pool[32];
+static void *ptr = sbrk_pool;
+
 /* Provide an implementation of _sbrk for library functions.
  * Right now it returns failure always.
  */
 void *_sbrk(int incr) {
-	return (void *) -1;
-}
+	void *orig = ptr;
+	void *new = ptr + incr;
 
-/* Provide an implementation of _malloc_r for library functions.
- * Right now it thunks to PIOS_malloc_no_dma.
- */
-void *_malloc_r(void *unused, size_t s) {
-	return PIOS_malloc_no_dma(s);
-}
+	void *end = ((void *)sbrk_pool) + sizeof(sbrk_pool);
 
-/* _free_r should not be called..i. */
-void _free_r(void *unused, void *ptr) {
-	PIOS_Assert(0);
+	if (new > end) {
+		return (void *) -1;
+	}
+
+	ptr = new;
+
+	return orig;
 }
 
 /**
