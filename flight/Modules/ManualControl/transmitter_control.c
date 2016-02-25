@@ -715,9 +715,21 @@ static void process_transmitter_events(ManualControlCommandData * cmd, ManualCon
 		bool low_throttle = cmd->Throttle < 0;
 
 		// Check for arming timeout if transmitter invalid or throttle is low and checked
-		if (!valid || (low_throttle && check_throttle)) {
-			if ((settings->ArmedTimeout != 0) && (timeDifferenceMs(armedDisarmStart, lastSysTime) > settings->ArmedTimeout))
+		if (!valid) {
+			/* This is a separate armed timeout for invalid input only.
+			 * It defaults to 0 for now (in which case we still check the below
+			 * low-throttle-or-invalid-input timeout */
+			if ((settings->InvalidArmedTimeout != 0) && (timeDifferenceMs(armedDisarmStart, lastSysTime) > settings->InvalidArmedTimeout)) {
 				arm_state = ARM_STATE_DISARMED;
+				break;
+			}
+		}
+
+		if (!valid || (low_throttle && check_throttle)) {
+			if ((settings->ArmedTimeout != 0) && (timeDifferenceMs(armedDisarmStart, lastSysTime) > settings->ArmedTimeout)) {
+				arm_state = ARM_STATE_DISARMED;
+				break;
+			}
 		} else {
 			armedDisarmStart = lastSysTime;
  		}
