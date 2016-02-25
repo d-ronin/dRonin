@@ -62,9 +62,6 @@ ConfigStabilizationWidget::ConfigStabilizationWidget(QWidget *parent) : ConfigTa
 
 
     autoLoadWidgets();
-    realtimeUpdates=new QTimer(this);
-    connect(m_stabilization->realTimeUpdates_6,SIGNAL(stateChanged(int)),this,SLOT(realtimeUpdatesSlot(int)));
-    connect(realtimeUpdates,SIGNAL(timeout()),this,SLOT(apply()));
 
     connect(m_stabilization->checkBox_7,SIGNAL(stateChanged(int)),this,SLOT(linkCheckBoxes(int)));
     connect(m_stabilization->checkBox_2,SIGNAL(stateChanged(int)),this,SLOT(linkCheckBoxes(int)));
@@ -129,15 +126,6 @@ ConfigStabilizationWidget::ConfigStabilizationWidget(QWidget *parent) : ConfigTa
 ConfigStabilizationWidget::~ConfigStabilizationWidget()
 {
     // Do nothing
-}
-
-void ConfigStabilizationWidget::realtimeUpdatesSlot(int value)
-{
-    m_stabilization->realTimeUpdates_6->setCheckState((Qt::CheckState)value);
-    if(value==Qt::Checked && !realtimeUpdates->isActive())
-        realtimeUpdates->start(300);
-    else if(value==Qt::Unchecked)
-        realtimeUpdates->stop();
 }
 
 void ConfigStabilizationWidget::linkCheckBoxes(int value)

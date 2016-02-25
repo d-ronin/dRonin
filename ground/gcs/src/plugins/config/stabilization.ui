@@ -615,8 +615,8 @@
            <rect>
             <x>0</x>
             <y>0</y>
-            <width>937</width>
-            <height>820</height>
+            <width>935</width>
+            <height>807</height>
            </rect>
           </property>
           <layout class="QVBoxLayout" name="verticalLayout_12">
@@ -10498,8 +10498,8 @@ border-radius: 5;</string>
            <rect>
             <x>0</x>
             <y>0</y>
-            <width>923</width>
-            <height>996</height>
+            <width>930</width>
+            <height>1019</height>
            </rect>
           </property>
           <property name="autoFillBackground">
@@ -29361,8 +29361,8 @@ value as the Kp.</string>
            <rect>
             <x>0</x>
             <y>0</y>
-            <width>923</width>
-            <height>1521</height>
+            <width>909</width>
+            <height>1470</height>
            </rect>
           </property>
           <layout class="QVBoxLayout" name="verticalLayout_9">
@@ -34557,7 +34557,7 @@ border-radius: 5;</string>
              <item>
               <widget class="QGroupBox" name="gbAcroPlus">
                <property name="title">
-                <string>Acro+</string>
+                <string>Advanced Acro Settings</string>
                </property>
                <layout class="QGridLayout" name="gridLayout_31">
                 <item row="0" column="1">
@@ -34569,7 +34569,7 @@ border-radius: 5;</string>
                    </size>
                   </property>
                   <property name="text">
-                   <string>Insanity Factor (%)</string>
+                   <string>Acro+ Insanity Factor (%)</string>
                   </property>
                   <property name="alignment">
                    <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
@@ -37101,75 +37101,6 @@ border-radius: 5;</string>
              </item>
              <item>
               <spacer name="verticalSpacer_7">
-               <property name="orientation">
-                <enum>Qt::Vertical</enum>
-               </property>
-               <property name="sizeType">
-                <enum>QSizePolicy::Fixed</enum>
-               </property>
-               <property name="sizeHint" stdset="0">
-                <size>
-                 <width>20</width>
-                 <height>10</height>
-                </size>
-               </property>
-              </spacer>
-             </item>
-             <item>
-              <widget class="QGroupBox" name="groupBox_3">
-               <property name="sizePolicy">
-                <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
-                 <horstretch>0</horstretch>
-                 <verstretch>0</verstretch>
-                </sizepolicy>
-               </property>
-               <property name="minimumSize">
-                <size>
-                 <width>0</width>
-                 <height>60</height>
-                </size>
-               </property>
-               <property name="title">
-                <string>Real Time Updates</string>
-               </property>
-               <layout class="QVBoxLayout" name="verticalLayout_13">
-                <property name="leftMargin">
-                 <number>4</number>
-                </property>
-                <property name="rightMargin">
-                 <number>4</number>
-                </property>
-                <item>
-                 <widget class="QCheckBox" name="realTimeUpdates_6">
-                  <property name="sizePolicy">
-                   <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
-                    <horstretch>0</horstretch>
-                    <verstretch>0</verstretch>
-                   </sizepolicy>
-                  </property>
-                  <property name="minimumSize">
-                   <size>
-                    <width>136</width>
-                    <height>20</height>
-                   </size>
-                  </property>
-                  <property name="toolTip">
-                   <string>If you check this, the GCS will udpate the stabilization factors
-automatically every 300ms, which will help for fast tuning.</string>
-                  </property>
-                  <property name="styleSheet">
-                   <string notr="true"/>
-                  </property>
-                  <property name="text">
-                   <string>Update in real time</string>
-                  </property>
-                 </widget>
-                </item>
-               </layout>
-              </widget>
-             </item>
-             <item>
-              <spacer name="verticalSpacer_12">
                <property name="orientation">
                 <enum>Qt::Vertical</enum>
                </property>
@@ -41633,7 +41564,6 @@ Useful if you have accidentally changed some settings.</string>
   <tabstop>AttitudeRollILimit</tabstop>
   <tabstop>AttitudePitchILimit_2</tabstop>
   <tabstop>AttitudeYawILimit</tabstop>
-  <tabstop>realTimeUpdates_6</tabstop>
  </tabstops>
  <resources>
   <include location="../coreplugin/core.qrc"/>
