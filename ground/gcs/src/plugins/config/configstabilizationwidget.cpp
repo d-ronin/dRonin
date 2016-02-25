@@ -30,6 +30,7 @@
  * must be maintained in each individual source file that is a derivative work
  * of this source file; otherwise redistribution is prohibited.
  */
+
 #include "configstabilizationwidget.h"
 #include "convertmwrate.h"
 

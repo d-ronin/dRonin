@@ -1204,7 +1204,7 @@ Leave at 50Hz for fixed wing.</string>
                  </widget>
                 </item>
                 <item>
-                 <widget class="QDoubleSpinBox" name="motorCurveFIt">
+                 <widget class="QDoubleSpinBox" name="motorCurveFit">
                   <property name="minimum">
                    <double>0.500000000000000</double>
                   </property>
@@ -1217,12 +1217,6 @@ Leave at 50Hz for fixed wing.</string>
                   <property name="value">
                    <double>1.000000000000000</double>
                   </property>
-                   <property name="objrelation" stdset="0">
-                    <stringlist>
-                     <string>objname:ActuatorSettings</string>
-                     <string>fieldname:MotorInputOutputCurveFit</string>
-                    </stringlist>
-                   </property>
                  </widget>
                 </item>
                 <item>
