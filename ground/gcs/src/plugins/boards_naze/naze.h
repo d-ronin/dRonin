@@ -46,8 +46,8 @@ public:
     virtual QString getHwUAVO();
     virtual int queryMaxGyroRate();
     virtual bool isInputConfigurationSupported();
-    virtual bool setInputOnPort(enum InputType type, int port_num);
-    virtual enum Core::IBoardType::InputType getInputOnPort(int port_num);
+    virtual bool setInputType(enum InputType type);
+    virtual enum Core::IBoardType::InputType getInputType();
     virtual bool isUSBSupported() { return false; }
     virtual QStringList getAdcNames();
 };

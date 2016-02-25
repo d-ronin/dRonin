@@ -126,14 +126,10 @@ bool Sparky::isInputConfigurationSupported()
 /**
  * Configure the board to use a receiver input type on a port number
  * @param type the type of receiver to use
- * @param port_num which input port to configure (board specific numbering)
  * @return true if successfully configured or false otherwise
  */
-bool Sparky::setInputOnPort(enum InputType type, int port_num)
+bool Sparky::setInputType(enum InputType type)
 {
-    if (port_num != 0)
-        return false;
-
     ExtensionSystem::PluginManager *pm = ExtensionSystem::PluginManager::instance();
     UAVObjectManager *uavoManager = pm->getObject<UAVObjectManager>();
     HwSparky *hwSparky = HwSparky::GetInstance(uavoManager);
@@ -170,15 +166,11 @@ bool Sparky::setInputOnPort(enum InputType type, int port_num)
 }
 
 /**
- * @brief Sparky::getInputOnPort fetch the currently selected input type
- * @param port_num the port number to query (must be zero)
+ * @brief Sparky::getInputType fetch the currently selected input type
  * @return the selected input type
  */
-enum Core::IBoardType::InputType Sparky::getInputOnPort(int port_num)
+enum Core::IBoardType::InputType Sparky::getInputType()
 {
-    if (port_num != 0)
-        return INPUT_TYPE_UNKNOWN;
-
     ExtensionSystem::PluginManager *pm = ExtensionSystem::PluginManager::instance();
     UAVObjectManager *uavoManager = pm->getObject<UAVObjectManager>();
     HwSparky *hwSparky = HwSparky::GetInstance(uavoManager);

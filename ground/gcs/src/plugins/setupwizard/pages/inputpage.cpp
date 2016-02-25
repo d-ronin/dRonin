@@ -81,6 +81,6 @@ bool InputPage::restartNeeded(Core::IBoardType::InputType selectedType)
         return true;
 
     // Map from the enums used in SetupWizard to IBoardType
-    Core::IBoardType::InputType boardInputType = board->getInputOnPort();
+    Core::IBoardType::InputType boardInputType = board->getInputType();
     return (selectedType != boardInputType);
 }

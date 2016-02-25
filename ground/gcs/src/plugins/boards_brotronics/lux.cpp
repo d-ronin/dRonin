@@ -121,14 +121,10 @@ bool Lux::isInputConfigurationSupported()
 /**
  * Configure the board to use a receiver input type on a port number
  * @param type the type of receiver to use
- * @param port_num which input port to configure (board specific numbering)
  * @return true if successfully configured or false otherwise
  */
-bool Lux::setInputOnPort(enum InputType type, int port_num)
+bool Lux::setInputType(enum InputType type)
 {
-    if (port_num != 0)
-        return false;
-
     ExtensionSystem::PluginManager *pm = ExtensionSystem::PluginManager::instance();
     UAVObjectManager *uavoManager = pm->getObject<UAVObjectManager>();
     HwLux *hwLux = HwLux::GetInstance(uavoManager);
@@ -162,15 +158,11 @@ bool Lux::setInputOnPort(enum InputType type, int port_num)
 }
 
 /**
- * @brief Lux::getInputOnPort fetch the currently selected input type
- * @param port_num the port number to query (must be zero)
+ * @brief Lux::getInputType fetch the currently selected input type
  * @return the selected input type
  */
-enum Core::IBoardType::InputType Lux::getInputOnPort(int port_num)
+enum Core::IBoardType::InputType Lux::getInputType()
 {
-    if (port_num != 0)
-        return INPUT_TYPE_UNKNOWN;
-
     ExtensionSystem::PluginManager *pm = ExtensionSystem::PluginManager::instance();
     UAVObjectManager *uavoManager = pm->getObject<UAVObjectManager>();
     HwLux *hwLux = HwLux::GetInstance(uavoManager);
