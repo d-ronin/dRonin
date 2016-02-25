@@ -2,8 +2,11 @@
  ******************************************************************************
  *
  * @file       uavsettingsimportexportfactory.cpp
+ *
  * @author     (C) 2011 The OpenPilot Team, http://www.openpilot.org
  * @author     Tau Labs, http://taulabs.org, Copyright (C) 2014
+ * @author     dRonin, http://dRonin.org/, Copyright (C) 2016
+ *
  * @addtogroup GCSPlugins GCS Plugins
  * @{
  * @addtogroup UAVSettingsImportExport UAVSettings Import/Export Plugin
@@ -24,6 +27,10 @@
  * You should have received a copy of the GNU General Public License along
  * with this program; if not, write to the Free Software Foundation, Inc.,
  * 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
+ *
+ * Additional note on redistribution: The copyright and license notices above
+ * must be maintained in each individual source file that is a derivative work
+ * of this source file; otherwise redistribution is prohibited.
  */
 
 #include "uavsettingsimportexportfactory.h"
@@ -98,7 +105,7 @@ void UAVSettingsImportExportFactory::importUAVSettings()
     // ask for file name
     QString fileName;
     QString filters = tr("UAVObjects XML files (*.uav);; XML files (*.xml)");
-    fileName = QFileDialog::getOpenFileName(0, tr("Import UAV Settings"), "", filters);
+    fileName = QFileDialog::getOpenFileName(0, tr("Import UAV Settings"), QDir::homePath(), filters);
     if (fileName.isEmpty()) {
         return;
     }
@@ -425,7 +432,7 @@ void UAVSettingsImportExportFactory::exportUAVSettings()
     QString fileName;
     QString filters = tr("UAVObjects XML files (*.uav)");
 
-    fileName = QFileDialog::getSaveFileName(0, tr("Save UAVSettings File As"), "", filters);
+    fileName = QFileDialog::getSaveFileName(0, tr("Save UAVSettings File As"), QDir::homePath(), filters);
     if (fileName.isEmpty()) {
         return;
     }
@@ -476,7 +483,7 @@ void UAVSettingsImportExportFactory::exportUAVData()
     QString fileName;
     QString filters = tr("UAVObjects XML files (*.uav)");
 
-    fileName = QFileDialog::getSaveFileName(0, tr("Save UAVData File As"), "", filters);
+    fileName = QFileDialog::getSaveFileName(0, tr("Save UAVData File As"), QDir::homePath(), filters);
     if (fileName.isEmpty()) {
         return;
     }

@@ -2,7 +2,10 @@
  ******************************************************************************
  *
  * @file       uavsettingsimportexport.cpp
+ *
+ * @author     dRonin, http://dRonin.org/, Copyright (C) 2016
  * @author     (C) 2011 The OpenPilot Team, http://www.openpilot.org
+ *
  * @addtogroup GCSPlugins GCS Plugins
  * @{
  * @addtogroup UAVSettingsImportExport UAVSettings Import/Export Plugin
@@ -23,6 +26,10 @@
  * You should have received a copy of the GNU General Public License along 
  * with this program; if not, write to the Free Software Foundation, Inc., 
  * 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
+ *
+ * Additional note on redistribution: The copyright and license notices above
+ * must be maintained in each individual source file that is a derivative work
+ * of this source file; otherwise redistribution is prohibited.
  */
 
 #include "uavsettingsimportexport.h"
@@ -47,7 +54,6 @@
 #include <QDomDocument>
 
 // for file dialog and error messages
-#include <QFileDialog>
 #include <QMessageBox>
 
 UAVSettingsImportExportPlugin::UAVSettingsImportExportPlugin() 
