@@ -253,8 +253,19 @@ void PIOS_heap_increase_size(size_t bytes)
  * Right now it returns failure always.
  */
 void *_sbrk(int incr) {
-	PIOS_Assert(0);
 	return (void *) -1;
+}
+
+/* Provide an implementation of _malloc_r for library functions.
+ * Right now it thunks to PIOS_malloc_no_dma.
+ */
+void *_malloc_r(void *unused, size_t s) {
+	return PIOS_malloc_no_dma(s);
+}
+
+/* _free_r should not be called..i. */
+void _free_r(void *unused, void *ptr) {
+	PIOS_Assert(0);
 }
 
 /**
