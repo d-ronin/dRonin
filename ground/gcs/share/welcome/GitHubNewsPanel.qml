@@ -35,7 +35,7 @@ Item {
     XmlListModel {
         id: xmlModel
         source: "https://github.com/d-ronin/dRonin/commits/next.atom"
-        query: "/feed/entry"
+        query: "/feed/entry[not(fn:contains(title,'Merge pull request'))]"
         namespaceDeclarations: "declare namespace media=\"http://search.yahoo.com/mrss/\"; declare default element namespace \"http://www.w3.org/2005/Atom\" ;"
         XmlRole { name: "title"; query: "title/string()" }
         XmlRole { name: "author"; query: "author/name/string()" }
@@ -62,36 +62,28 @@ Item {
                         onClicked: Qt.openUrlExternally(authoruri)
                     }
                 }
-                Column
-                {
-                    Text {
-                        text: author
-                        font.italic: true
-                        width: view.width
-                        textFormat: text.indexOf("&") > 0 ? Text.StyledText : Text.PlainText
-                        elide: Text.ElideRight
-                        color: mouseArea.containsMouse ? "#224d81" : "black"
-                        MouseArea {
-                            anchors.fill: parent  //...to cover the whole image
-                            onClicked: Qt.openUrlExternally(authoruri)
-                        }
+                Text {
+                    text: author
+                    font.italic: true
+                    width: view.width * 0.15
+                    textFormat: text.indexOf("&") > 0 ? Text.StyledText : Text.PlainText
+                    elide: Text.ElideRight
+                    color: mouseArea.containsMouse ? "#224d81" : "black"
+                    MouseArea {
+                        anchors.fill: parent  //...to cover the whole image
+                        onClicked: Qt.openUrlExternally(authoruri)
                     }
-                    Text {
-                        text: title
-                        width: view.width
-                        elide: Text.ElideRight
-                        font.bold: true
-                        color: mouseArea.containsMouse ? "#224d81" : "black"
-                        MouseArea {
-                            anchors.fill: parent  //...to cover the whole image
-                            onClicked: Qt.openUrlExternally(link)
-                        }
-                    }
-
-
-
                 }
-
+                Text {
+                    text: title.trim()
+                    font.bold: true
+                    elide: Text.ElideRight
+                    color: mouseArea.containsMouse ? "#224d81" : "black"
+                    MouseArea {
+                        anchors.fill: parent  //...to cover the whole image
+                        onClicked: Qt.openUrlExternally(link)
+                    }
+                }
             }
             MouseArea {
                 id: mouseArea
