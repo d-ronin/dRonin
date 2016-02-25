@@ -689,7 +689,22 @@ void update_telemetrydata () {
 			txt_armstate = txt_unknown;
 	}
 
-	snprintf(telestate->statusline, sizeof(telestate->statusline), "%12s,%8s", txt_flightmode, txt_armstate);
+	int i=0;
+
+	for (i=0; (i < 12) && txt_flightmode[i]; i++) {
+		telestate->statusline[i] = txt_flightmode[i];
+	}
+
+	telestate->statusline[i++] = ',';
+
+	for (int j=0;
+		(j < 8) && txt_armstate[j] && (i < (sizeof(telestate->statusline)-1));
+		j++, i++) {
+
+		telestate->statusline[i] = txt_armstate[j];
+	}
+
+	telestate->statusline[i++] = 0;
 }
 
 /**

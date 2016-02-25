@@ -633,8 +633,19 @@ static void writeHeader()
 
 	// Date
 	date_from_timestamp(*(uint32_t *)(bdinfo->fw_base + bdinfo->fw_size + 8), &date_time);
-	uint8_t len = snprintf(tmp_str, STR_BUF_LEN, " %d%02d%02d\n", 1900 + date_time.year, date_time.mon + 1, date_time.mday);
-	send_data((uint8_t*)tmp_str, len);
+
+	tmp_str[0] = '2';
+	tmp_str[1] = '0';
+	tmp_str[2] = '0' + ((date_time.year / 10) % 10);
+	tmp_str[3] = '0' + (date_time.year % 10);
+	tmp_str[4] = '0' + ((date_time.mon + 1) / 10);
+	tmp_str[5] = '0' + ((date_time.mon + 1) % 10);
+	tmp_str[6] = '0' + (date_time.mday / 10);
+	tmp_str[7] = '0' + (date_time.mday % 10);
+	tmp_str[8] = '\n';
+
+	/*uint8_t len = snprintf(tmp_str, STR_BUF_LEN, " %d%02d%02d\n", 1900 + date_time.year, date_time.mon + 1, date_time.mday); */
+	send_data((uint8_t*)tmp_str, 9);
 
 	// UAVO SHA1
 	pos = 0;
