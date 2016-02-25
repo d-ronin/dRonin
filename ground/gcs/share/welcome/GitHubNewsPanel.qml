@@ -35,7 +35,7 @@ Item {
     XmlListModel {
         id: xmlModel
         source: "https://github.com/d-ronin/dRonin/commits/next.atom"
-        query: "/feed/entry"
+        query: "/feed/entry[not(fn:contains(title,'Merge pull request'))]"
         namespaceDeclarations: "declare namespace media=\"http://search.yahoo.com/mrss/\"; declare default element namespace \"http://www.w3.org/2005/Atom\" ;"
         XmlRole { name: "title"; query: "title/string()" }
         XmlRole { name: "author"; query: "author/name/string()" }
