@@ -216,12 +216,12 @@ MainWindow::MainWindow() :
 MainWindow::~MainWindow()
 {
     if (m_connectionManager)
-	{
-		m_connectionManager->disconnectDevice();
-		m_connectionManager->suspendPolling();
-	}
+    {
+        m_connectionManager->disconnectDevice();
+        m_connectionManager->suspendPolling();
+    }
 
-	hide();
+    hide();
 
     ExtensionSystem::PluginManager *pm = ExtensionSystem::PluginManager::instance();
     if (m_uavGadgetManagers.count() > 0) {
@@ -375,7 +375,7 @@ void MainWindow::extensionsInitialized()
 
     if ((currentPath.length() < 4) || currentPath.contains(".app", Qt::CaseInsensitive) ||
                 currentPath.contains("Program Files", Qt::CaseInsensitive) ||
-        	!QDir(currentPath).exists()) {
+                !QDir(currentPath).exists()) {
         QDir::setCurrent(QDir::homePath());
     }
 
