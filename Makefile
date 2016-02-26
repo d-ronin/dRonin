@@ -854,16 +854,7 @@ BL_BOARDS      := $(filter-out $(NOBL_BOARDS), $(ALL_BOARDS))
 BU_BOARDS      := $(BL_BOARDS)
 EF_BOARDS      := $(ALL_BOARDS)
 
-# Sim targets are different for each host OS
-ifeq ($(UNAME), Linux)
 SIM_BOARDS := sim_posix
-else ifeq ($(UNAME), Darwin)
-SIM_BOARDS := sim_posix
-else ifdef WINDOWS
-SIM_BOARDS := 
-else # unknown OS
-SIM_BOARDS := 
-endif
 
 # Generate the targets for whatever boards are left in each list
 FW_TARGETS := $(addprefix fw_, $(FW_BOARDS))
