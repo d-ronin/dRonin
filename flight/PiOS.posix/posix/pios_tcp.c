@@ -73,8 +73,8 @@ static int set_nonblock(int sock) {
 	}
 #else
 	int flags;
-	if ((flags = fcntl(tcp_dev->socket, F_GETFL, 0)) != -1) {
-		if (fcntl(tcp_dev->socket, F_SETFL, flags | O_NONBLOCK) != -1) {
+	if ((flags = fcntl(sock, F_GETFL, 0)) != -1) {
+		if (fcntl(sock, F_SETFL, flags | O_NONBLOCK) != -1) {
 			return 0;
 		}
 	}
