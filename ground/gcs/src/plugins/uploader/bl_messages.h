@@ -103,7 +103,6 @@ enum dfu_partition_label {
     DFU_PARTITION_SETTINGS,
     DFU_PARTITION_WAYPOINTS,
     DFU_PARTITION_LOG,
-    DFU_PARTITION_OTA,
 #ifdef _MSC_VER
 };
 #pragma pack(pop)
