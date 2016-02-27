@@ -141,7 +141,7 @@ static const struct pios_ms5611_cfg pios_ms5611_cfg = {
 #include "pios_mpu6050.h"
 //#define PIOS_MPU6050_I2C_ADDR PIOS_MPU6050_I2C_ADD_A0_HIGH
 #define PIOS_MPU6050_I2C_ADDR PIOS_MPU6050_I2C_ADD_A0_LOW
-static const struct pios_exti_cfg pios_exti_mpu6050_cfg __exti_config = {
+static const struct pios_exti_cfg pios_exti_mpu6050_cfg_pb13 __exti_config = {
 	// MPU_INT output on rev4 hardware (PB13)
 	.vector = PIOS_MPU6050_IRQHandler,
 	.line = EXTI_Line13,
@@ -171,7 +171,7 @@ static const struct pios_exti_cfg pios_exti_mpu6050_cfg __exti_config = {
 	},
 };
 
-static const struct pios_exti_cfg pios_exti_mpu6050_cfg_v5 __exti_config = {
+static const struct pios_exti_cfg pios_exti_mpu6050_cfg_pc13 __exti_config = {
 	// MPU_INT output on rev5 hardware (PC13)
 	.vector = PIOS_MPU6050_IRQHandler,
 	.line = EXTI_Line13,
@@ -202,7 +202,7 @@ static const struct pios_exti_cfg pios_exti_mpu6050_cfg_v5 __exti_config = {
 };
 
 static /*const*/ struct pios_mpu60x0_cfg pios_mpu6050_cfg = {
-	.exti_cfg = &pios_exti_mpu6050_cfg,
+	.exti_cfg = &pios_exti_mpu6050_cfg_pb13,
 	.default_samplerate = 400,
 	.interrupt_cfg = PIOS_MPU60X0_INT_CLR_ANYRD | PIOS_MPU60X0_INT_I2C_BYPASS_EN,
 	.interrupt_en = PIOS_MPU60X0_INTEN_DATA_RDY,
@@ -255,11 +255,7 @@ void PIOS_Board_Init(void) {
 	/* Delay system */
 	PIOS_DELAY_Init();
 
-	bool board_v5;
-	if (hse_value == 12000000)
- 		board_v5 = true;
-	else
-		board_v5 = false;
+	bool board_v5 = (hse_value == 12000000);
 
 	//TODO: Buzzer
 	//rev5 needs inverted beeper. 
@@ -526,9 +522,10 @@ void PIOS_Board_Init(void) {
 	GPIO_PinRemapConfig(GPIO_Remap_SWJ_JTAGDisable, ENABLE);
 
 #if defined(PIOS_INCLUDE_MPU6050)
-	if(board_v5) { 
-		// rev5 hardware use PC13 instead of PB13 for MPU_INT
-		pios_mpu6050_cfg.exti_cfg = &pios_exti_mpu6050_cfg_v5;
+	uint8_t mpu_pin;
+	HwNazeMPU6050IntPinGet(&mpu_pin);
+	if((board_v5 && mpu_pin == HWNAZE_MPU6050INTPIN_AUTO) || mpu_pin == HWNAZE_MPU6050INTPIN_PC13) {
+		pios_mpu6050_cfg.exti_cfg = &pios_exti_mpu6050_cfg_pc13;
 	}
 
 	if (PIOS_MPU6050_Init(pios_i2c_internal_id, PIOS_MPU6050_I2C_ADD_A0_LOW, &pios_mpu6050_cfg) != 0)
