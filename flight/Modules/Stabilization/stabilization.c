@@ -366,8 +366,10 @@ static void stabilizationTask(void* parameters)
 			float raw_input = (&stabDesired.Roll)[i];
 
 			if (mode == STABILIZATIONDESIRED_STABILIZATIONMODE_FAILSAFE) {
-				// helicp needs everything zeroed
-				if (airframe_type == SYSTEMSETTINGS_AIRFRAMETYPE_HELICP) {
+				// Everything except planes should drop straight down
+				if ((airframe_type != SYSTEMSETTINGS_AIRFRAMETYPE_FIXEDWING) &&
+						(airframe_type != SYSTEMSETTINGS_AIRFRAMETYPE_FIXEDWINGELEVON) &&
+						(airframe_type != SYSTEMSETTINGS_AIRFRAMETYPE_FIXEDWINGVTAIL)) {
 					actuatorDesired.Thrust = 0.0f;
 					switch (i) {
 						case 0: /* Roll */
