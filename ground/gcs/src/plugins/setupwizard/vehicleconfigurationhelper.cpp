@@ -125,7 +125,7 @@ void VehicleConfigurationHelper::applyHardwareConfiguration()
         return;
 
     Core::IBoardType::InputType newType = m_configSource->getInputType();
-    bool success = boardPlugin->setInputOnPort(newType);
+    bool success = boardPlugin->setInputType(newType);
 
     if (success) {
         UAVDataObject* hwSettings = dynamic_cast<UAVDataObject*>(

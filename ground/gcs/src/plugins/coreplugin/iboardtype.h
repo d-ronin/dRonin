@@ -175,17 +175,15 @@ public:
     /**
      * @brief Configure the board to use an receiver input type on a port number
      * @param type the type of receiver to use
-     * @param port_num which input port to configure (board specific numbering)
      * @return true if successfully configured or false otherwise
      */
-    virtual bool setInputOnPort(enum InputType /*type*/, int port_num = 0) { Q_UNUSED(port_num); return false; }
+    virtual bool setInputType(enum InputType /*type*/) { return false; }
 
     /**
-     * @brief getInputOnPort get the current input type
-     * @param port_num which input port to query (board specific numbering)
+     * @brief getInputType get the current input type
      * @return the currently selected input type
      */
-    virtual enum InputType getInputOnPort(int port_num = 0) { Q_UNUSED(port_num); return INPUT_TYPE_UNKNOWN; }
+    virtual enum InputType getInputType() { return INPUT_TYPE_UNKNOWN; }
 
     /**
      * @brief getConnectionDiagram get the connection diagram for this board
