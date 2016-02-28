@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-	package="org.taulabs.androidgcs" android:versionCode="24"
+	package="org.dronin.androidgcs" android:versionCode="24"
 	android:versionName="Phoenix">
 	<uses-sdk android:minSdkVersion="14" android:targetSdkVersion="19"/>
 
@@ -9,9 +9,9 @@
   		android:required="true"/>
 		
 	<permission
-          android:name="org.taulabs.androidgcs.permission.MAPS_RECEIVE"
+          android:name="org.dronin.androidgcs.permission.MAPS_RECEIVE"
           android:protectionLevel="signature"/>
-	<uses-permission android:name="org.taulabs.androidgcs.permission.MAPS_RECEIVE"/>
+	<uses-permission android:name="org.dronin.androidgcs.permission.MAPS_RECEIVE"/>
         	
 	<uses-permission android:name="android.permission.INTERNET" />
 	<uses-permission android:name="com.google.android.providers.gsf.permission.READ_GSERVICES"/>
@@ -78,13 +78,13 @@
 				<action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
 			</intent-filter>
 			<intent-filter>
-				<action android:name="org.taulabs.intent.action.CONNECTED" />
-				<action android:name="org.taulabs.intent.action.DISCONNECTED" />
+				<action android:name="org.dronin.intent.action.CONNECTED" />
+				<action android:name="org.dronin.intent.action.DISCONNECTED" />
 			</intent-filter>
 			<meta-data android:name="android.appwidget.provider"
 				android:resource="@xml/telemetry_widget_info" />
 		</receiver>
 
-		<service android:name="org.taulabs.androidgcs.telemetry.TelemetryService"></service>
+		<service android:name="org.dronin.androidgcs.telemetry.TelemetryService"></service>
 	</application>
 </manifest>

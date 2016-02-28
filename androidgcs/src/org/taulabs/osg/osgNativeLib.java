@@ -1,4 +1,4 @@
-package org.taulabs.osg;
+package org.dronin.osg;
 
 public class osgNativeLib {
 

@@ -21,17 +21,17 @@
  * 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
  */
 
-package org.taulabs.androidgcs.fragments;
+package org.dronin.androidgcs.fragments;
 
-import org.taulabs.androidgcs.R;
-import org.taulabs.androidgcs.views.AltitudeView;
-import org.taulabs.androidgcs.views.AttitudeView;
-import org.taulabs.androidgcs.views.BatteryView;
-import org.taulabs.androidgcs.views.FlightStatusView;
-import org.taulabs.androidgcs.views.GpsView;
-import org.taulabs.androidgcs.views.HeadingView;
-import org.taulabs.uavtalk.UAVObject;
-import org.taulabs.uavtalk.UAVObjectManager;
+import org.dronin.androidgcs.R;
+import org.dronin.androidgcs.views.AltitudeView;
+import org.dronin.androidgcs.views.AttitudeView;
+import org.dronin.androidgcs.views.BatteryView;
+import org.dronin.androidgcs.views.FlightStatusView;
+import org.dronin.androidgcs.views.GpsView;
+import org.dronin.androidgcs.views.HeadingView;
+import org.dronin.uavtalk.UAVObject;
+import org.dronin.uavtalk.UAVObjectManager;
 
 import android.app.Activity;
 import android.os.Bundle;

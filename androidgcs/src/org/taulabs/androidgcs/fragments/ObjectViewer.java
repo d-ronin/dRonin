@@ -20,12 +20,12 @@
  * with this program; if not, write to the Free Software Foundation, Inc.,
  * 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
  */
-package org.taulabs.androidgcs.fragments;
+package org.dronin.androidgcs.fragments;
 
-import org.taulabs.androidgcs.ObjectBrowser;
-import org.taulabs.androidgcs.R;
-import org.taulabs.uavtalk.UAVObject;
-import org.taulabs.uavtalk.UAVObjectManager;
+import org.dronin.androidgcs.ObjectBrowser;
+import org.dronin.androidgcs.R;
+import org.dronin.uavtalk.UAVObject;
+import org.dronin.uavtalk.UAVObjectManager;
 
 import android.os.Bundle;
 import android.util.Log;
@@ -44,9 +44,9 @@ public class ObjectViewer extends ObjectManagerFragment {
 
 	@Override
 	public void setArguments(Bundle b) {
-		objectName = b.getString("org.taulabs.androidgcs.ObjectName");
-		objectID = b.getLong("org.taulabs.androidgcs.ObjectId");
-		instID = b.getLong("org.taulabs.androidgcs.InstId");
+		objectName = b.getString("org.dronin.androidgcs.ObjectName");
+		objectID = b.getLong("org.dronin.androidgcs.ObjectId");
+		instID = b.getLong("org.dronin.androidgcs.InstId");
 	}
 
 	@Override
@@ -101,9 +101,9 @@ public class ObjectViewer extends ObjectManagerFragment {
 	public void onSaveInstanceState (Bundle outState) {
 		super.onSaveInstanceState(outState);
 		
-		outState.putString("org.taulabs.androidgcs.ObjectName", objectName);
-		outState.putLong("org.taulabs.androidgcs.ObjectId", objectID);
-		outState.putLong("org.taulabs.androidgcs.InstId", instID);
+		outState.putString("org.dronin.androidgcs.ObjectName", objectName);
+		outState.putLong("org.dronin.androidgcs.ObjectId", objectID);
+		outState.putLong("org.dronin.androidgcs.InstId", instID);
 	}
 
 	/**

@@ -22,7 +22,7 @@
  * 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
  */
 
-package org.taulabs.androidgcs.util;
+package org.dronin.androidgcs.util;
 
 public interface ObjectFieldMappable {
 	public double getValue();

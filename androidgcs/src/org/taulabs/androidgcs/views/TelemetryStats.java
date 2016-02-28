@@ -20,9 +20,9 @@
  * with this program; if not, write to the Free Software Foundation, Inc.,
  * 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
  */
-package org.taulabs.androidgcs.views;
+package org.dronin.androidgcs.views;
 
-import org.taulabs.androidgcs.R;
+import org.dronin.androidgcs.R;
 
 import android.content.Context;
 import android.graphics.Color;

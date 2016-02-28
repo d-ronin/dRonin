@@ -1,4 +1,4 @@
-package org.taulabs.androidgcs.drawer;
+package org.dronin.androidgcs.drawer;
 
 public class NavMenuSection implements NavDrawerItem {
 

@@ -1,6 +1,6 @@
-package org.taulabs.androidgcs.drawer;
+package org.dronin.androidgcs.drawer;
 
-import org.taulabs.androidgcs.R;
+import org.dronin.androidgcs.R;
 
 import android.content.Context;
 import android.view.LayoutInflater;

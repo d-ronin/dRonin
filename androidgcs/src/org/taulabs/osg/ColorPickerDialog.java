@@ -1,4 +1,4 @@
-package org.taulabs.osg;
+package org.dronin.osg;
 
 import android.app.Dialog;
 import android.content.Context;

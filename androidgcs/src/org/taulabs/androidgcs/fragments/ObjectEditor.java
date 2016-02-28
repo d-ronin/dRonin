@@ -20,17 +20,17 @@
  * with this program; if not, write to the Free Software Foundation, Inc.,
  * 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
  */
-package org.taulabs.androidgcs.fragments;
+package org.dronin.androidgcs.fragments;
 
 import java.util.List;
 import java.util.ListIterator;
 
-import org.taulabs.androidgcs.R;
-import org.taulabs.androidgcs.util.SmartSave;
-import org.taulabs.androidgcs.views.ObjectEditView;
-import org.taulabs.uavtalk.UAVObject;
-import org.taulabs.uavtalk.UAVObjectField;
-import org.taulabs.uavtalk.UAVObjectManager;
+import org.dronin.androidgcs.R;
+import org.dronin.androidgcs.util.SmartSave;
+import org.dronin.androidgcs.views.ObjectEditView;
+import org.dronin.uavtalk.UAVObject;
+import org.dronin.uavtalk.UAVObjectField;
+import org.dronin.uavtalk.UAVObjectManager;
 
 import android.os.Bundle;
 import android.util.Log;
@@ -50,10 +50,10 @@ public class ObjectEditor extends ObjectManagerFragment {
 
 	@Override
 	public void setArguments(Bundle b) {
-		objectName = b.getString("org.taulabs.androidgcs.ObjectName");
-		objectID = b.getLong("org.taulabs.androidgcs.ObjectId");
-		instID = b.getLong("org.taulabs.androidgcs.InstId");
-		updated = b.getBoolean("org.taulabs.androidgcs.updated", false);
+		objectName = b.getString("org.dronin.androidgcs.ObjectName");
+		objectID = b.getLong("org.dronin.androidgcs.ObjectId");
+		instID = b.getLong("org.dronin.androidgcs.InstId");
+		updated = b.getBoolean("org.dronin.androidgcs.updated", false);
 	}
 
 
@@ -137,10 +137,10 @@ public class ObjectEditor extends ObjectManagerFragment {
 	public void onSaveInstanceState (Bundle outState) {
 		super.onSaveInstanceState(outState);
 		
-		outState.putString("org.taulabs.androidgcs.ObjectName", objectName);
-		outState.putLong("org.taulabs.androidgcs.ObjectId", objectID);
-		outState.putLong("org.taulabs.androidgcs.InstId", instID);
-		outState.putBoolean("org.taulabs.androidgcs.updated", updated);
+		outState.putString("org.dronin.androidgcs.ObjectName", objectName);
+		outState.putLong("org.dronin.androidgcs.ObjectId", objectID);
+		outState.putLong("org.dronin.androidgcs.InstId", instID);
+		outState.putBoolean("org.dronin.androidgcs.updated", updated);
 	}
 	
 	@Override

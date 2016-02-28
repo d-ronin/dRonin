@@ -21,14 +21,14 @@
  * with this program; if not, write to the Free Software Foundation, Inc.,
  * 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
  */
-package org.taulabs.androidgcs.fragments;
+package org.dronin.androidgcs.fragments;
 
 import java.util.List;
 
-import org.taulabs.androidgcs.R;
-import org.taulabs.uavtalk.UAVObject;
-import org.taulabs.uavtalk.UAVObjectField;
-import org.taulabs.uavtalk.UAVObjectManager;
+import org.dronin.androidgcs.R;
+import org.dronin.uavtalk.UAVObject;
+import org.dronin.uavtalk.UAVObjectField;
+import org.dronin.uavtalk.UAVObjectManager;
 
 import android.os.Bundle;
 import android.util.Log;

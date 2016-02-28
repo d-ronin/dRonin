@@ -25,17 +25,17 @@
  * 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
  */
 
-package org.taulabs.uavtalk.uavobjects;
+package org.dronin.uavtalk.uavobjects;
 
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.ListIterator;
 
-import org.taulabs.uavtalk.UAVDataObject;
-import org.taulabs.uavtalk.UAVObject;
-import org.taulabs.uavtalk.UAVObjectField;
-import org.taulabs.uavtalk.UAVObjectManager;
+import org.dronin.uavtalk.UAVDataObject;
+import org.dronin.uavtalk.UAVObject;
+import org.dronin.uavtalk.UAVObjectField;
+import org.dronin.uavtalk.UAVObjectManager;
 
 /**
 Maintains the telemetry statistics from the OpenPilot flight computer.

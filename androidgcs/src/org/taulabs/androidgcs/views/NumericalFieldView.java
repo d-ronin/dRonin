@@ -1,4 +1,4 @@
-package org.taulabs.androidgcs.views;
+package org.dronin.androidgcs.views;
 /**
  ******************************************************************************
  * @file       ScrollBarView.java
@@ -25,8 +25,8 @@ package org.taulabs.androidgcs.views;
 
 import java.util.List;
 
-import org.taulabs.androidgcs.util.ObjectFieldMappable;
-import org.taulabs.uavtalk.UAVObjectField;
+import org.dronin.androidgcs.util.ObjectFieldMappable;
+import org.dronin.uavtalk.UAVObjectField;
 
 import android.content.Context;
 import android.text.Editable;

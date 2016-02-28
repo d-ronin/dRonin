@@ -21,17 +21,17 @@
  * with this program; if not, write to the Free Software Foundation, Inc.,
  * 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
  */
-package org.taulabs.androidgcs;
+package org.dronin.androidgcs;
 
 import java.io.File;
 import java.io.FilenameFilter;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.taulabs.androidgcs.drawer.NavDrawerActivityConfiguration;
-import org.taulabs.androidgcs.telemetry.TelemetryService.TelemTask;
-import org.taulabs.androidgcs.telemetry.tasks.LoggingTask;
-import org.taulabs.uavtalk.UAVObject;
+import org.dronin.androidgcs.drawer.NavDrawerActivityConfiguration;
+import org.dronin.androidgcs.telemetry.TelemetryService.TelemTask;
+import org.dronin.androidgcs.telemetry.tasks.LoggingTask;
+import org.dronin.uavtalk.UAVObject;
 
 import android.content.Intent;
 import android.net.Uri;

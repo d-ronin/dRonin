@@ -21,17 +21,17 @@
  * with this program; if not, write to the Free Software Foundation, Inc.,
  * 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
  */
-package org.taulabs.androidgcs;
+package org.dronin.androidgcs;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.ListIterator;
 
-import org.taulabs.androidgcs.drawer.NavDrawerActivityConfiguration;
-import org.taulabs.androidgcs.fragments.ObjectEditor;
-import org.taulabs.androidgcs.fragments.ObjectViewer;
-import org.taulabs.uavtalk.UAVDataObject;
-import org.taulabs.uavtalk.UAVObject;
+import org.dronin.androidgcs.drawer.NavDrawerActivityConfiguration;
+import org.dronin.androidgcs.fragments.ObjectEditor;
+import org.dronin.androidgcs.fragments.ObjectViewer;
+import org.dronin.uavtalk.UAVDataObject;
+import org.dronin.uavtalk.UAVObject;
 
 import android.app.Fragment;
 import android.app.FragmentTransaction;
@@ -76,9 +76,9 @@ public class ObjectBrowser extends ObjectManagerActivity
 		displayMode = DisplayMode.EDIT;
 		
 		Bundle b = new Bundle();
-		b.putString("org.taulabs.androidgcs.ObjectName", allObjects.get(selected_index).getName());
-		b.putLong("org.taulabs.androidgcs.ObjectId", allObjects.get(selected_index).getObjID());
-		b.putLong("org.taulabs.androidgcs.InstId", allObjects.get(selected_index).getInstID());
+		b.putString("org.dronin.androidgcs.ObjectName", allObjects.get(selected_index).getName());
+		b.putLong("org.dronin.androidgcs.ObjectId", allObjects.get(selected_index).getObjID());
+		b.putLong("org.dronin.androidgcs.InstId", allObjects.get(selected_index).getInstID());
 
 		Fragment newFrag = new ObjectEditor();
 		newFrag.setArguments(b);
@@ -96,9 +96,9 @@ public class ObjectBrowser extends ObjectManagerActivity
 	 */
 	public void viewObject(int id) {
 		Bundle b = new Bundle();
-		b.putString("org.taulabs.androidgcs.ObjectName", allObjects.get(selected_index).getName());
-		b.putLong("org.taulabs.androidgcs.ObjectId", allObjects.get(selected_index).getObjID());
-		b.putLong("org.taulabs.androidgcs.InstId", allObjects.get(selected_index).getInstID());
+		b.putString("org.dronin.androidgcs.ObjectName", allObjects.get(selected_index).getName());
+		b.putLong("org.dronin.androidgcs.ObjectId", allObjects.get(selected_index).getObjID());
+		b.putLong("org.dronin.androidgcs.InstId", allObjects.get(selected_index).getInstID());
 
 		Fragment newFrag = new ObjectViewer();
 		newFrag.setArguments(b);
@@ -127,8 +127,8 @@ public class ObjectBrowser extends ObjectManagerActivity
 		 ((CheckBox) findViewById(R.id.settingsCheck)).setChecked(prefs.getBoolean("browser_show_settings",true));
 		 
 		 if (savedInstanceState != null) {
-				displayMode = (DisplayMode) savedInstanceState.getSerializable("org.taulabs.browser.mode");
-				selected_index = savedInstanceState.getInt("org.taulabs.browser.selected");
+				displayMode = (DisplayMode) savedInstanceState.getSerializable("org.dronin.browser.mode");
+				selected_index = savedInstanceState.getInt("org.dronin.browser.selected");
 		 }
 	}
 	
@@ -249,7 +249,7 @@ public class ObjectBrowser extends ObjectManagerActivity
 	public void onSaveInstanceState (Bundle outState) {
 		super.onSaveInstanceState(outState);
 		
-		outState.putSerializable("org.taulabs.browser.mode", displayMode);
-		outState.putInt("org.taulabs.browser.selected", selected_index);
+		outState.putSerializable("org.dronin.browser.mode", displayMode);
+		outState.putInt("org.dronin.browser.selected", selected_index);
 	}
 }

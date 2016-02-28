@@ -20,7 +20,7 @@
  * with this program; if not, write to the Free Software Foundation, Inc.,
  * 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
  */
-package org.taulabs.androidgcs;
+package org.dronin.androidgcs;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -28,11 +28,11 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 
-import org.taulabs.androidgcs.drawer.NavDrawerActivityConfiguration;
-import org.taulabs.osg.ColorPickerDialog;
-import org.taulabs.osg.EGLview;
-import org.taulabs.osg.osgNativeLib;
-import org.taulabs.uavtalk.UAVObject;
+import org.dronin.androidgcs.drawer.NavDrawerActivityConfiguration;
+import org.dronin.osg.ColorPickerDialog;
+import org.dronin.osg.EGLview;
+import org.dronin.osg.osgNativeLib;
+import org.dronin.uavtalk.UAVObject;
 
 import android.annotation.SuppressLint;
 import android.app.AlertDialog;

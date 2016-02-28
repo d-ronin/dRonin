@@ -21,11 +21,11 @@
  * with this program; if not, write to the Free Software Foundation, Inc.,
  * 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
  */
-package org.taulabs.androidgcs.telemetry.tasks;
+package org.dronin.androidgcs.telemetry.tasks;
 
-import org.taulabs.uavtalk.UAVObject;
-import org.taulabs.uavtalk.UAVObjectField;
-import org.taulabs.uavtalk.UAVObjectManager;
+import org.dronin.uavtalk.UAVObject;
+import org.dronin.uavtalk.UAVObjectField;
+import org.dronin.uavtalk.UAVObjectManager;
 
 import android.content.Context;
 import android.content.SharedPreferences;
