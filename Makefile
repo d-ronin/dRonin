@@ -387,7 +387,7 @@ $(ANDROIDGCS_OUT_DIR)/bin/androidgcs-$(ANDROIDGCS_BUILD_CONF).apk: uavo-collecti
 .PHONY: androidgcs_run
 androidgcs_run: androidgcs_install
 	$(V0) @echo " AGCS RUN "
-	$(V1) $(ANDROID_ADB) shell am start -n org.taulabs.androidgcs/.HomePage
+	$(V1) $(ANDROID_ADB) shell am start -n org.dronin.androidgcs/.HomePage
 
 .PHONY: androidgcs_install
 androidgcs_install: $(ANDROIDGCS_OUT_DIR)/bin/androidgcs-$(ANDROIDGCS_BUILD_CONF).apk
@@ -475,11 +475,11 @@ $$(UAVO_COLLECTION_DIR)/$(1)/java-build/uavobjects.jar: $$(UAVO_COLLECTION_DIR)/
 		HASH=$$$$(cat $$(UAVO_COLLECTION_DIR)/$(1)/uavohash) && \
 		cd $$(UAVO_COLLECTION_DIR)/$(1)/java-build && \
 		javac -source 1.6 -target 1.6 java/*.java \
-		   $$(ROOT_DIR)/androidgcs/src/org/taulabs/uavtalk/UAVDataObject.java \
-		   $$(ROOT_DIR)/androidgcs/src/org/taulabs/uavtalk/UAVObject*.java \
-		   $$(ROOT_DIR)/androidgcs/src/org/taulabs/uavtalk/UAVMetaObject.java \
+		   $$(ROOT_DIR)/androidgcs/src/org/dronin/uavtalk/UAVDataObject.java \
+		   $$(ROOT_DIR)/androidgcs/src/org/dronin/uavtalk/UAVObject*.java \
+		   $$(ROOT_DIR)/androidgcs/src/org/dronin/uavtalk/UAVMetaObject.java \
 		   -d . && \
-		find ./org/taulabs/uavtalk/uavobjects -type f -name '*.class' > classlist.txt && \
+		find ./org/dronin/uavtalk/uavobjects -type f -name '*.class' > classlist.txt && \
 		jar cf tmp_uavobjects.jar @classlist.txt && \
 		$$(ANDROID_DX) \
 			--dex \
