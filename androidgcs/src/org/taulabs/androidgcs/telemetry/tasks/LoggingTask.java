@@ -155,7 +155,7 @@ public class LoggingTask implements ITelemTask {
 		File root = Environment.getExternalStorageDirectory();
 
 		// Make the directory if it doesn't exist
-		File logDirectory = new File(root, "/TauLabs");
+		File logDirectory = new File(root, "/dRonin");
 		logDirectory.mkdirs();
 
 		Date d = new Date();
@@ -273,7 +273,7 @@ public class LoggingTask implements ITelemTask {
 				if (VERBOSE) Log.v(TAG, "UAVO hash: " + uavoHash);
 
 				try {
-					fileStream.write(String.format("Tau Labs git hash:\n%s\n%s\n##\n", gitHash, uavoHash).getBytes());
+					fileStream.write(String.format("dRonin git hash:\n%s\n%s\n##\n", gitHash, uavoHash).getBytes());
 				} catch (IOException e) {
 					// TODO Auto-generated catch block
 					e.printStackTrace();
