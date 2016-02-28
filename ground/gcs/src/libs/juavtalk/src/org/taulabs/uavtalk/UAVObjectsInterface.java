@@ -14,45 +14,25 @@
  * 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
  */
 
-package org.taulabs.uavtalk;
+package org.dronin.uavtalk;
 
 /**
  ******************************************************************************
  *
- * @file       UAVTalkDefinitions.java
+ * @file       UAVObjectsInterface.java 
  * @author     The OpenPilot Team, http://www.openpilot.org Copyright (C) 2011.
  * @author     Tau Labs, http://taulabs.org Copyright (C) 2012-2013
- * @brief      Provide values which are used in the UAVTalk Protocol
+ * @brief      a Interface to a UAVObjects collection
  *
  ****************************************************************************
 */
-public class UAVTalkDefinitions {
-	
-	public final static byte SYNC_VAL     = 0x3C;
-	
-	public final static byte TYPE_MASK_VER = (byte)0xFC;
-	public final static byte TYPE_MASK_TYPE = (byte)0x03;
-	
-	public final static byte TYPE_VER     = 0x20;
-	public final static byte TYPE_OBJ     = (TYPE_VER | 0x00);
-	public final static byte TYPE_OBJ_REQ = (TYPE_VER | 0x01);
-	public final static byte TYPE_OBJ_ACK = (TYPE_VER | 0x02);
-	public final static byte TYPE_ACK     = (TYPE_VER | 0x03);
+public interface UAVObjectsInterface {
 
-
-	public final static String getTypeString(byte type) {
-		switch(type) {
-			case TYPE_ACK:
-				return "ack";
-			case TYPE_OBJ:
-				return "obj";
-			case TYPE_OBJ_ACK:
-				return "obj_ack";
-			case TYPE_OBJ_REQ:
-				return "obj_req";
-		}			
-		return "unknown type";
-	}
-
-
+    public void init();
+    public UAVObject[] getUAVObjectArray();
+    public UAVObject getObjectByID(int id) ;
+     
+    public UAVObject getObjectByName(String name);
+    public void printAll();
+    
 }

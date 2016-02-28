@@ -14,9 +14,9 @@
  * 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
  */
 
-package org.taulabs.uavtalk;
-import org.taulabs.uavtalk.CRC8;
-import org.taulabs.uavtalk.UAVObject;
+package org.dronin.uavtalk;
+import org.dronin.uavtalk.CRC8;
+import org.dronin.uavtalk.UAVObject;
 
 /**
  ******************************************************************************
