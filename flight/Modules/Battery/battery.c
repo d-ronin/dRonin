@@ -8,7 +8,7 @@
  * @file       battery.c
  * @author     The OpenPilot Team, http://www.openpilot.org Copyright (C) 2010.
  * @author     Tau Labs, http://taulabs.org, Copyright (C) 2013-2014
- * @author     dRonin, http://dronin.org Copyright (C) 2015
+ * @author     dRonin, http://dronin.org Copyright (C) 2016
  * @brief      Module to read the battery Voltage and Current periodically and set alarms appropriately.
  *
  * @see        The GNU Public License (GPL) Version 3
@@ -28,6 +28,10 @@
  * You should have received a copy of the GNU General Public License along
  * with this program; if not, write to the Free Software Foundation, Inc.,
  * 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
+ *
+ * Additional note on redistribution: The copyright and license notices above
+ * must be maintained in each individual source file that is a derivative work
+ * of this source file; otherwise redistribution is prohibited.
  */
 
 #include "openpilot.h"
@@ -100,6 +104,7 @@ static void batteryTask(void * parameters)
 	const float dT = SAMPLE_PERIOD_MS / 1000.0f;
 
 	battery_settings_updated = true;
+	bool cells_calculated = false;
 
 	// Main task loop
 	uint32_t lastSysTime;
@@ -133,6 +138,7 @@ static void batteryTask(void * parameters)
 		if (voltageADCPin >= 0) {
 			float adc_voltage = (float)PIOS_ADC_GetChannelVolt(voltageADCPin);
 			float scaled_voltage = 0.0f;
+			static unsigned cells;
 
 			// A negative result indicates an error (PIOS_ADC_GetChannelVolt returns negative on error)
 			if(adc_voltage < 0.0f)
@@ -149,14 +155,21 @@ static void batteryTask(void * parameters)
 					scaled_voltage = 0.0f;
 					adc_offset_invalid = true;
 				}
+				else if(scaled_voltage > 3.0f && !cells_calculated && (batterySettings.MaxCellVoltage > 0)){
+					cells_calculated = true;
+					cells = ((scaled_voltage / batterySettings.MaxCellVoltage) + 0.9f);
+					flightBatteryData.DetectedCellCount = cells;
+				}
+				else if(!cells_calculated)
+					cells = 1;
 			}
 
 			flightBatteryData.Voltage = scaled_voltage;
 
 			// generate alarms and warnings
-			if (flightBatteryData.Voltage < batterySettings.VoltageThresholds[FLIGHTBATTERYSETTINGS_VOLTAGETHRESHOLDS_ALARM])
+			if (flightBatteryData.Voltage < (batterySettings.LowVoltageLevels[FLIGHTBATTERYSETTINGS_LOWVOLTAGELEVELS_ALARM] * cells))
 				AlarmsSet(SYSTEMALARMS_ALARM_BATTERY, SYSTEMALARMS_ALARM_CRITICAL);
-			else if (flightBatteryData.Voltage < batterySettings.VoltageThresholds[FLIGHTBATTERYSETTINGS_VOLTAGETHRESHOLDS_WARNING])
+			else if (flightBatteryData.Voltage < (batterySettings.LowVoltageLevels[FLIGHTBATTERYSETTINGS_LOWVOLTAGELEVELS_WARNING] * cells))
 				AlarmsSet(SYSTEMALARMS_ALARM_BATTERY, SYSTEMALARMS_ALARM_WARNING);
 			else
 				AlarmsClear(SYSTEMALARMS_ALARM_BATTERY);
