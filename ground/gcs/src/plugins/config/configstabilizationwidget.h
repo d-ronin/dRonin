@@ -48,7 +48,6 @@ public:
 
 private:
     Ui_StabilizationWidget *m_stabilization;
-    QTimer * realtimeUpdates;
 
     struct UpdateExpoFlags {
       bool RateRoll;
@@ -66,7 +65,6 @@ private:
     } update_exp;
 
 private slots:
-    void realtimeUpdatesSlot(int);
     void linkCheckBoxes(int value);
     void processLinkedWidgets(QWidget*);
     void applyRateLimits();

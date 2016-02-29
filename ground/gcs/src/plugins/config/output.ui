@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>698</width>
-    <height>754</height>
+    <width>868</width>
+    <height>751</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -134,8 +134,8 @@
            <rect>
             <x>0</x>
             <y>0</y>
-            <width>811</width>
-            <height>654</height>
+            <width>838</width>
+            <height>650</height>
            </rect>
           </property>
           <layout class="QVBoxLayout" name="verticalLayout_3">
@@ -1106,15 +1106,23 @@ Leave at 50Hz for fixed wing.</string>
                  <number>12</number>
                 </property>
                 <item>
-                 <widget class="QCheckBox" name="spinningArmed">
+                 <widget class="QCheckBox" name="channelOutTest">
+                  <property name="enabled">
+                   <bool>true</bool>
+                  </property>
                   <property name="minimumSize">
                    <size>
-                    <width>519</width>
+                    <width>105</width>
                     <height>0</height>
                    </size>
                   </property>
+                  <property name="toolTip">
+                   <string>Move the servos using the sliders. Two important things:
+- Take extra care if the output is connected to an motor controller!
+- Will only work if the RC receiver is working (failsafe)</string>
+                  </property>
                   <property name="text">
-                   <string>Motors spin at neutral output when armed and throttle below zero (be careful)</string>
+                   <string>Test outputs</string>
                   </property>
                  </widget>
                 </item>
@@ -1130,6 +1138,19 @@ Leave at 50Hz for fixed wing.</string>
                    </size>
                   </property>
                  </spacer>
+                </item>
+                <item>
+                 <widget class="QCheckBox" name="spinningArmed">
+                  <property name="minimumSize">
+                   <size>
+                    <width>519</width>
+                    <height>0</height>
+                   </size>
+                  </property>
+                  <property name="text">
+                   <string>Motors spin at neutral output when armed and throttle below zero</string>
+                  </property>
+                 </widget>
                 </item>
                </layout>
               </item>
@@ -1176,23 +1197,28 @@ Leave at 50Hz for fixed wing.</string>
               <item>
                <layout class="QHBoxLayout" name="horizontalLayout_3">
                 <item>
-                 <widget class="QCheckBox" name="channelOutTest">
-                  <property name="enabled">
-                   <bool>true</bool>
-                  </property>
-                  <property name="minimumSize">
-                   <size>
-                    <width>105</width>
-                    <height>0</height>
-                   </size>
-                  </property>
-                  <property name="toolTip">
-                   <string>Move the servos using the sliders. Two important things:
-- Take extra care if the output is connected to an motor controller!
-- Will only work if the RC receiver is working (failsafe)</string>
-                  </property>
+                 <widget class="QLabel" name="label">
                   <property name="text">
-                   <string>Test outputs</string>
+                   <string>Motor curve fit:</string>
+                  </property>
+                 </widget>
+                </item>
+                <item>
+                 <widget class="QDoubleSpinBox" name="motorCurveFit">
+                  <property name="toolTip">
+                   <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Motor curve fit can be used for correct for nonlinearity in motor output.  If you experience oscillation at high power but are otherwise well-tuned, consider lowering motor curve fit some.  Values between 0.5 (square-root) and 1.0 (no linearization) are sensible.  This is a more rational subtitute for Throttle PID Attenutation (TPA).&lt;/p&gt;&lt;p&gt;Note that some re-tuning may be required after changing &lt;/p&gt;&lt;p&gt;this value.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                  </property>
+                  <property name="minimum">
+                   <double>0.500000000000000</double>
+                  </property>
+                  <property name="maximum">
+                   <double>1.000000000000000</double>
+                  </property>
+                  <property name="singleStep">
+                   <double>0.010000000000000</double>
+                  </property>
+                  <property name="value">
+                   <double>1.000000000000000</double>
                   </property>
                  </widget>
                 </item>

@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>965</width>
-    <height>908</height>
+    <width>1036</width>
+    <height>984</height>
    </rect>
   </property>
   <property name="sizePolicy">
@@ -615,8 +615,8 @@
            <rect>
             <x>0</x>
             <y>0</y>
-            <width>937</width>
-            <height>820</height>
+            <width>1006</width>
+            <height>883</height>
            </rect>
           </property>
           <layout class="QVBoxLayout" name="verticalLayout_12">
@@ -10498,8 +10498,8 @@ border-radius: 5;</string>
            <rect>
             <x>0</x>
             <y>0</y>
-            <width>923</width>
-            <height>996</height>
+            <width>980</width>
+            <height>1019</height>
            </rect>
           </property>
           <property name="autoFillBackground">
@@ -29361,8 +29361,8 @@ value as the Kp.</string>
            <rect>
             <x>0</x>
             <y>0</y>
-            <width>923</width>
-            <height>1521</height>
+            <width>980</width>
+            <height>1473</height>
            </rect>
           </property>
           <layout class="QVBoxLayout" name="verticalLayout_9">
@@ -32111,7 +32111,7 @@ border-radius: 5;</string>
                 </size>
                </property>
                <property name="title">
-                <string>Throttle PID attenuation</string>
+                <string>Throttle PID Attenuation (deprecated; please consider using MotorCurveFit in output settings) </string>
                </property>
                <layout class="QGridLayout" name="gridLayout_14">
                 <property name="leftMargin">
@@ -34557,10 +34557,81 @@ border-radius: 5;</string>
              <item>
               <widget class="QGroupBox" name="gbAcroPlus">
                <property name="title">
-                <string>Acro+</string>
+                <string>Advanced Acro Settings</string>
                </property>
                <layout class="QGridLayout" name="gridLayout_31">
-                <item row="0" column="1">
+                <item row="0" column="5">
+                 <spacer name="horizontalSpacer_23">
+                  <property name="orientation">
+                   <enum>Qt::Horizontal</enum>
+                  </property>
+                  <property name="sizeType">
+                   <enum>QSizePolicy::Fixed</enum>
+                  </property>
+                  <property name="sizeHint" stdset="0">
+                   <size>
+                    <width>10</width>
+                    <height>20</height>
+                   </size>
+                  </property>
+                 </spacer>
+                </item>
+                <item row="0" column="10">
+                 <widget class="QDoubleSpinBox" name="sbHungPower">
+                  <property name="sizePolicy">
+                   <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+                    <horstretch>0</horstretch>
+                    <verstretch>0</verstretch>
+                   </sizepolicy>
+                  </property>
+                  <property name="toolTip">
+                   <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;This specifies the maximum amount of power to add when stabilization needs more total power than specified by the throttle input.  This is used during HangTime and other maneuvers.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                  </property>
+                  <property name="alignment">
+                   <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+                  </property>
+                  <property name="suffix">
+                   <string>%</string>
+                  </property>
+                  <property name="decimals">
+                   <number>1</number>
+                  </property>
+                  <property name="maximum">
+                   <double>15.000000000000000</double>
+                  </property>
+                  <property name="singleStep">
+                   <double>0.500000000000000</double>
+                  </property>
+                  <property name="value">
+                   <double>0.000000000000000</double>
+                  </property>
+                  <property name="objrelation" stdset="0">
+                   <stringlist>
+                    <string>objname:ActuatorSettings</string>
+                    <string>fieldname:LowPowerStabilizationMaxPowerAdd</string>
+                    <string>scale:.01</string>
+                    <string>buttongroup:10</string>
+                   </stringlist>
+                  </property>
+                 </widget>
+                </item>
+                <item row="0" column="9">
+                 <spacer name="horizontalSpacer_25">
+                  <property name="orientation">
+                   <enum>Qt::Horizontal</enum>
+                  </property>
+                  <property name="sizeType">
+                   <enum>QSizePolicy::Fixed</enum>
+                  </property>
+                  <property name="sizeHint" stdset="0">
+                   <size>
+                    <width>10</width>
+                    <height>20</height>
+                   </size>
+                  </property>
+                 </spacer>
+                </item>
+                <item row="0" column="0">
                  <widget class="QLabel" name="lblInsanityFactor">
                   <property name="minimumSize">
                    <size>
@@ -34569,26 +34640,56 @@ border-radius: 5;</string>
                    </size>
                   </property>
                   <property name="text">
-                   <string>Insanity Factor (%)</string>
+                   <string>Acro+ Insanity Factor</string>
                   </property>
                   <property name="alignment">
                    <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
                   </property>
                  </widget>
                 </item>
-                <item row="0" column="3">
+                <item row="0" column="1">
+                 <spacer name="horizontalSpacer_21">
+                  <property name="orientation">
+                   <enum>Qt::Horizontal</enum>
+                  </property>
+                  <property name="sizeType">
+                   <enum>QSizePolicy::Fixed</enum>
+                  </property>
+                  <property name="sizeHint" stdset="0">
+                   <size>
+                    <width>10</width>
+                    <height>20</height>
+                   </size>
+                  </property>
+                 </spacer>
+                </item>
+                <item row="0" column="4">
+                 <widget class="QLabel" name="label_4">
+                  <property name="text">
+                   <string>HangTime Maximum Duration</string>
+                  </property>
+                  <property name="alignment">
+                   <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+                  </property>
+                 </widget>
+                </item>
+                <item row="0" column="8">
+                 <widget class="QLabel" name="label_5">
+                  <property name="text">
+                   <string>Maximum Power Add</string>
+                  </property>
+                  <property name="alignment">
+                   <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+                  </property>
+                 </widget>
+                </item>
+                <item row="0" column="2">
                  <widget class="QDoubleSpinBox" name="sbInsanityFactor">
                   <property name="sizePolicy">
-                   <sizepolicy hsizetype="MinimumExpanding" vsizetype="Fixed">
+                   <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
                     <horstretch>0</horstretch>
                     <verstretch>0</verstretch>
                    </sizepolicy>
-                  </property>
-                  <property name="minimumSize">
-                   <size>
-                    <width>103</width>
-                    <height>22</height>
-                   </size>
                   </property>
                   <property name="maximumSize">
                    <size>
@@ -34596,8 +34697,14 @@ border-radius: 5;</string>
                     <height>16777215</height>
                    </size>
                   </property>
+                  <property name="toolTip">
+                   <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;In the Acro+ flight mode, this selects how much effort to apply to actuators at full stick deflection (and how much gyro suppression should occur).&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                  </property>
                   <property name="alignment">
                    <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+                  </property>
+                  <property name="suffix">
+                   <string>%</string>
                   </property>
                   <property name="decimals">
                    <number>0</number>
@@ -34613,8 +34720,40 @@ border-radius: 5;</string>
                   </property>
                  </widget>
                 </item>
-                <item row="0" column="4">
-                 <spacer name="horizontalSpacer_21">
+                <item row="0" column="6">
+                 <widget class="QDoubleSpinBox" name="sbHangtime">
+                  <property name="sizePolicy">
+                   <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+                    <horstretch>0</horstretch>
+                    <verstretch>0</verstretch>
+                   </sizepolicy>
+                  </property>
+                  <property name="toolTip">
+                   <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;HangTime allows stabilization of the flight controller during brief maneuvers at zero throttle.  This specifies the maximum length of time to add power for stabilization at zero throttle.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                  </property>
+                  <property name="alignment">
+                   <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+                  </property>
+                  <property name="suffix">
+                   <string> s</string>
+                  </property>
+                  <property name="maximum">
+                   <double>4.500000000000000</double>
+                  </property>
+                  <property name="singleStep">
+                   <double>0.250000000000000</double>
+                  </property>
+                  <property name="objrelation" stdset="0">
+                   <stringlist>
+                    <string>objname:ActuatorSettings</string>
+                    <string>fieldname:LowPowerStabilizationMaxTime</string>
+                    <string>buttongroup:10</string>
+                   </stringlist>
+                  </property>
+                 </widget>
+                </item>
+                <item row="0" column="3">
+                 <spacer name="horizontalSpacer_35">
                   <property name="orientation">
                    <enum>Qt::Horizontal</enum>
                   </property>
@@ -34626,30 +34765,14 @@ border-radius: 5;</string>
                   </property>
                  </spacer>
                 </item>
-                <item row="0" column="2">
-                 <spacer name="horizontalSpacer_23">
-                  <property name="orientation">
-                   <enum>Qt::Horizontal</enum>
-                  </property>
-                  <property name="sizeType">
-                   <enum>QSizePolicy::Fixed</enum>
-                  </property>
-                  <property name="sizeHint" stdset="0">
-                   <size>
-                    <width>10</width>
-                    <height>10</height>
-                   </size>
-                  </property>
-                 </spacer>
-                </item>
-                <item row="0" column="0">
-                 <spacer name="horizontalSpacer_25">
+                <item row="0" column="7">
+                 <spacer name="horizontalSpacer_40">
                   <property name="orientation">
                    <enum>Qt::Horizontal</enum>
                   </property>
                   <property name="sizeHint" stdset="0">
                    <size>
-                    <width>40</width>
+                    <width>0</width>
                     <height>20</height>
                    </size>
                   </property>
@@ -34707,60 +34830,6 @@ border-radius: 5;</string>
                 <property name="horizontalSpacing">
                  <number>6</number>
                 </property>
-                <item row="0" column="0">
-                 <spacer name="horizontalSpacer_36">
-                  <property name="orientation">
-                   <enum>Qt::Horizontal</enum>
-                  </property>
-                  <property name="sizeType">
-                   <enum>QSizePolicy::Preferred</enum>
-                  </property>
-                  <property name="sizeHint" stdset="0">
-                   <size>
-                    <width>632</width>
-                    <height>27</height>
-                   </size>
-                  </property>
-                 </spacer>
-                </item>
-                <item row="0" column="1">
-                 <widget class="QPushButton" name="pushButton_9">
-                  <property name="sizePolicy">
-                   <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
-                    <horstretch>0</horstretch>
-                    <verstretch>0</verstretch>
-                   </sizepolicy>
-                  </property>
-                  <property name="minimumSize">
-                   <size>
-                    <width>0</width>
-                    <height>0</height>
-                   </size>
-                  </property>
-                  <property name="maximumSize">
-                   <size>
-                    <width>16777215</width>
-                    <height>16777215</height>
-                   </size>
-                  </property>
-                  <property name="toolTip">
-                   <string>Reset all values to GCS defaults</string>
-                  </property>
-                  <property name="styleSheet">
-                   <string notr="true"/>
-                  </property>
-                  <property name="text">
-                   <string>Default</string>
-                  </property>
-                  <property name="objrelation" stdset="0">
-                   <stringlist>
-                    <string>objname:StabilizationSettings</string>
-                    <string>button:default</string>
-                    <string>buttongroup:13</string>
-                   </stringlist>
-                  </property>
-                 </widget>
-                </item>
                 <item row="1" column="0" colspan="2">
                  <widget class="QGroupBox" name="groupBox_10">
                   <property name="minimumSize">
@@ -37096,72 +37165,57 @@ border-radius: 5;</string>
                   </layout>
                  </widget>
                 </item>
-               </layout>
-              </widget>
-             </item>
-             <item>
-              <spacer name="verticalSpacer_7">
-               <property name="orientation">
-                <enum>Qt::Vertical</enum>
-               </property>
-               <property name="sizeType">
-                <enum>QSizePolicy::Fixed</enum>
-               </property>
-               <property name="sizeHint" stdset="0">
-                <size>
-                 <width>20</width>
-                 <height>10</height>
-                </size>
-               </property>
-              </spacer>
-             </item>
-             <item>
-              <widget class="QGroupBox" name="groupBox_3">
-               <property name="sizePolicy">
-                <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
-                 <horstretch>0</horstretch>
-                 <verstretch>0</verstretch>
-                </sizepolicy>
-               </property>
-               <property name="minimumSize">
-                <size>
-                 <width>0</width>
-                 <height>60</height>
-                </size>
-               </property>
-               <property name="title">
-                <string>Real Time Updates</string>
-               </property>
-               <layout class="QVBoxLayout" name="verticalLayout_13">
-                <property name="leftMargin">
-                 <number>4</number>
-                </property>
-                <property name="rightMargin">
-                 <number>4</number>
-                </property>
-                <item>
-                 <widget class="QCheckBox" name="realTimeUpdates_6">
+                <item row="0" column="0">
+                 <spacer name="horizontalSpacer_36">
+                  <property name="orientation">
+                   <enum>Qt::Horizontal</enum>
+                  </property>
+                  <property name="sizeType">
+                   <enum>QSizePolicy::Preferred</enum>
+                  </property>
+                  <property name="sizeHint" stdset="0">
+                   <size>
+                    <width>632</width>
+                    <height>27</height>
+                   </size>
+                  </property>
+                 </spacer>
+                </item>
+                <item row="0" column="1">
+                 <widget class="QPushButton" name="pushButton_9">
                   <property name="sizePolicy">
-                   <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+                   <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
                     <horstretch>0</horstretch>
                     <verstretch>0</verstretch>
                    </sizepolicy>
                   </property>
                   <property name="minimumSize">
                    <size>
-                    <width>136</width>
-                    <height>20</height>
+                    <width>0</width>
+                    <height>0</height>
+                   </size>
+                  </property>
+                  <property name="maximumSize">
+                   <size>
+                    <width>16777215</width>
+                    <height>16777215</height>
                    </size>
                   </property>
                   <property name="toolTip">
-                   <string>If you check this, the GCS will udpate the stabilization factors
-automatically every 300ms, which will help for fast tuning.</string>
+                   <string>Reset all values to GCS defaults</string>
                   </property>
                   <property name="styleSheet">
                    <string notr="true"/>
                   </property>
                   <property name="text">
-                   <string>Update in real time</string>
+                   <string>Default</string>
+                  </property>
+                  <property name="objrelation" stdset="0">
+                   <stringlist>
+                    <string>objname:StabilizationSettings</string>
+                    <string>button:default</string>
+                    <string>buttongroup:13</string>
+                   </stringlist>
                   </property>
                  </widget>
                 </item>
@@ -37169,7 +37223,7 @@ automatically every 300ms, which will help for fast tuning.</string>
               </widget>
              </item>
              <item>
-              <spacer name="verticalSpacer_12">
+              <spacer name="verticalSpacer_7">
                <property name="orientation">
                 <enum>Qt::Vertical</enum>
                </property>
@@ -38301,6 +38355,22 @@ automatically every 300ms, which will help for fast tuning.</string>
                      <property name="horizontalSpacing">
                       <number>6</number>
                      </property>
+                     <item row="0" column="0">
+                      <spacer name="horizontalSpacer_65">
+                       <property name="orientation">
+                        <enum>Qt::Horizontal</enum>
+                       </property>
+                       <property name="sizeType">
+                        <enum>QSizePolicy::Preferred</enum>
+                       </property>
+                       <property name="sizeHint" stdset="0">
+                        <size>
+                         <width>632</width>
+                         <height>27</height>
+                        </size>
+                       </property>
+                      </spacer>
+                     </item>
                      <item row="1" column="0" colspan="2">
                       <widget class="QGroupBox" name="RateStabilizationGroup_20">
                        <property name="sizePolicy">
@@ -40685,22 +40755,6 @@ border-radius: 5;</string>
                        </property>
                       </widget>
                      </item>
-                     <item row="0" column="0">
-                      <spacer name="horizontalSpacer_65">
-                       <property name="orientation">
-                        <enum>Qt::Horizontal</enum>
-                       </property>
-                       <property name="sizeType">
-                        <enum>QSizePolicy::Preferred</enum>
-                       </property>
-                       <property name="sizeHint" stdset="0">
-                        <size>
-                         <width>632</width>
-                         <height>27</height>
-                        </size>
-                       </property>
-                      </spacer>
-                     </item>
                     </layout>
                    </widget>
                   </item>
@@ -41633,7 +41687,6 @@ Useful if you have accidentally changed some settings.</string>
   <tabstop>AttitudeRollILimit</tabstop>
   <tabstop>AttitudePitchILimit_2</tabstop>
   <tabstop>AttitudeYawILimit</tabstop>
-  <tabstop>realTimeUpdates_6</tabstop>
  </tabstops>
  <resources>
   <include location="../coreplugin/core.qrc"/>

@@ -3,7 +3,7 @@
  *
  * @file       configoutputwidget.cpp
  * @author     E. Lafargue & The OpenPilot Team, http://www.openpilot.org Copyright (C) 2010.
- * @author     dRonin, http://dronin.org Copyright (C) 2015
+ * @author     dRonin, http://dronin.org Copyright (C) 2015-2016
  * @addtogroup GCSPlugins GCS Plugins
  * @{
  * @addtogroup ConfigPlugin Config Plugin
@@ -24,6 +24,10 @@
  * You should have received a copy of the GNU General Public License along
  * with this program; if not, write to the Free Software Foundation, Inc.,
  * 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
+ *
+ * Additional note on redistribution: The copyright and license notices above
+ * must be maintained in each individual source file that is a derivative work
+ * of this source file; otherwise redistribution is prohibited.
  */
 
 #include "configoutputwidget.h"
@@ -165,6 +169,7 @@ void ConfigOutputWidget::enableControls(bool enable)
         m_config->channelOutTest->setChecked(false);
     m_config->channelOutTest->setEnabled(enable);
     m_config->calibrateESC->setEnabled(enable);
+    m_config->motorCurveFit->setEnabled(enable);
 }
 
 ConfigOutputWidget::~ConfigOutputWidget()
@@ -476,6 +481,8 @@ void ConfigOutputWidget::refreshWidgetsValues(UAVObject * obj)
         }
     }
 
+    m_config->motorCurveFit->setValue(actuatorSettingsData.MotorInputOutputCurveFit);
+
     // Get Channel ranges:
     QList<OutputChannelForm*> outputChannelForms = findChildren<OutputChannelForm*>();
     foreach(OutputChannelForm *outputChannelForm, outputChannelForms)
@@ -593,6 +600,8 @@ void ConfigOutputWidget::updateObjectsFromWidgets()
         actuatorSettingsData.TimerPwmResolution[3] = m_config->cb_outputResolution4->currentIndex();
         actuatorSettingsData.TimerPwmResolution[4] = m_config->cb_outputResolution5->currentIndex();
         actuatorSettingsData.TimerPwmResolution[5] = m_config->cb_outputResolution6->currentIndex();
+
+        actuatorSettingsData.MotorInputOutputCurveFit = m_config->motorCurveFit->value();
 
         if(m_config->spinningArmed->isChecked() == true)
             actuatorSettingsData.MotorsSpinWhileArmed = ActuatorSettings::MOTORSSPINWHILEARMED_TRUE;
