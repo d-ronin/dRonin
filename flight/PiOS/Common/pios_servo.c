@@ -250,15 +250,16 @@ void PIOS_Servo_PrepareForReset() {
 * \param[in] Servo Servo number (0-num_channels)
 * \param[in] Position Servo position in microseconds
 * \param[in] max Maximum pulse length in us for oneshot
+* \param[in] inverted True if channel inverted (used for reset behavior only)
 */
-void PIOS_Servo_Set(uint8_t servo, float position, float max)
+void PIOS_Servo_Set(uint8_t servo, float position, float max, bool inverted)
 {
 	/* Make sure servo exists */
 	if (!servo_cfg || servo >= servo_cfg->num_channels) {
 		return;
 	}
 
-	if (resetting) {
+	if (resetting && (!inverted)) {
 		/* If we're resetting, drive / hold pin low.  This will
 		 * allow ESCs to disarm.
 		 */
