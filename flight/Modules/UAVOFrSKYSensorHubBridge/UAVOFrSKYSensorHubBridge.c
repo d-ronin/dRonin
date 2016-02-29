@@ -6,6 +6,7 @@
  * @{ 
  *
  * @file       uavoFrSKYSensorHubBridge.c
+ * @author     dRonin, http://dRonin.org/, Copyright (C) 2016
  * @author     Tau Labs, http://taulabs.org, Copyright (C) 2014
  * @brief      Bridges selected UAVObjects to FrSKY Sensor Hub
  * @see        The GNU Public License (GPL) Version 3
@@ -25,6 +26,10 @@
  * You should have received a copy of the GNU General Public License along
  * with this program; if not, write to the Free Software Foundation, Inc.,
  * 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
+ *
+ * Additional note on redistribution: The copyright and license notices above
+ * must be maintained in each individual source file that is a derivative work
+ * of this source file; otherwise redistribution is prohibited.
  */
 
 // ****************
@@ -263,8 +268,8 @@ static void uavoFrSKYSensorHubBridgeTask(void *parameters)
 		batSettings.Capacity = 0;
 		batSettings.SensorCalibrationFactor[FLIGHTBATTERYSETTINGS_SENSORCALIBRATIONFACTOR_CURRENT] = 0;
 		batSettings.SensorCalibrationFactor[FLIGHTBATTERYSETTINGS_SENSORCALIBRATIONFACTOR_VOLTAGE] = 0;
-		batSettings.VoltageThresholds[FLIGHTBATTERYSETTINGS_VOLTAGETHRESHOLDS_WARNING] = 0;
-		batSettings.VoltageThresholds[FLIGHTBATTERYSETTINGS_VOLTAGETHRESHOLDS_ALARM] = 0;
+		batSettings.LowVoltageLevels[FLIGHTBATTERYSETTINGS_LOWVOLTAGELEVELS_WARNING] = 0;
+		batSettings.LowVoltageLevels[FLIGHTBATTERYSETTINGS_LOWVOLTAGELEVELS_ALARM] = 0;
 		batSettings.NbCells = 0;
 		batSettings.VoltagePin = FLIGHTBATTERYSETTINGS_VOLTAGEPIN_NONE;
 		batSettings.CurrentPin = FLIGHTBATTERYSETTINGS_CURRENTPIN_NONE;
@@ -400,6 +405,10 @@ static void uavoFrSKYSensorHubBridgeTask(void *parameters)
 			// As long as there is no voltage for each cell
 			// all cells will have the same voltage.
 			// Receiver will know number of cells.
+			uint8_t cellCount = batState.DetectedCellCount;
+			if(cellCount)
+				batSettings.NbCells = cellCount;
+
 			if (batSettings.NbCells > 0) {
 				float cell_v = voltage / batSettings.NbCells;
 				for(uint8_t i = 0; i < batSettings.NbCells; ++i) {
