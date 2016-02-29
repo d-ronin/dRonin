@@ -57,6 +57,7 @@
 #define PIOS_INCLUDE_WDG
 #define PIOS_INCLUDE_CAN
 #define PIOS_INCLUDE_FASTHEAP
+#define PIOS_INCLUDE_STORM32BGC
  
 /* Variables related to the RFM22B functionality */
 #define PIOS_INCLUDE_RFM22B
