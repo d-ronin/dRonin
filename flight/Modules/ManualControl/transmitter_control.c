@@ -719,7 +719,7 @@ static void process_transmitter_events(ManualControlCommandData * cmd, ManualCon
 			/* This is a separate armed timeout for invalid input only.
 			 * It defaults to 0 for now (in which case we still check the below
 			 * low-throttle-or-invalid-input timeout */
-			if ((settings->InvalidArmedTimeout != 0) && (timeDifferenceMs(armedDisarmStart, lastSysTime) > settings->InvalidArmedTimeout)) {
+			if ((settings->InvalidRXArmedTimeout != 0) && (timeDifferenceMs(armedDisarmStart, lastSysTime) > settings->InvalidRXArmedTimeout)) {
 				arm_state = ARM_STATE_DISARMED;
 				break;
 			}
