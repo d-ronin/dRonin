@@ -36,6 +36,8 @@ enum pwm_mode {PWM_MODE_1MHZ, PWM_MODE_12MHZ};
 extern void PIOS_Servo_SetMode(const uint16_t * speeds, const uint8_t *pwm_mode, uint8_t banks);
 extern void PIOS_Servo_Set(uint8_t Servo, uint16_t Position);
 
+extern void PIOS_Servo_PrepareForReset();
+
 #endif /* PIOS_SERVO_H */
 
 /**

@@ -71,4 +71,7 @@ void PIOS_Servo_Set(uint8_t Servo, uint16_t Position)
 #endif // PIOS_ENABLE_DEBUG_PINS
 }
 
+void PIOS_Servo_PrepareForReset() {
+}
+
 #endif
