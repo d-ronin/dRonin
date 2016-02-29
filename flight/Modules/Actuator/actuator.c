@@ -62,7 +62,7 @@
 #if defined(PIOS_ACTUATOR_STACK_SIZE)
 #define STACK_SIZE_BYTES PIOS_ACTUATOR_STACK_SIZE
 #else
-#define STACK_SIZE_BYTES 1312
+#define STACK_SIZE_BYTES 1336
 #endif
 
 #define TASK_PRIORITY PIOS_THREAD_PRIO_HIGHEST
@@ -210,7 +210,6 @@ static float get_curve2_source(ActuatorDesiredData *desired, SystemSettingsAirfr
  */
 static void actuator_task(void* parameters)
 {
-	uint32_t lastSysTime;
 	float dT = 0.0f;
 
 	ActuatorCommandData command;
@@ -225,7 +224,7 @@ static void actuator_task(void* parameters)
 	settings_updated = true;
 
 	// Main task loop
-	lastSysTime = PIOS_Thread_Systime();
+	uint32_t last_systime = PIOS_Thread_Systime();
 
 	bool rc = false;
 
@@ -260,10 +259,10 @@ static void actuator_task(void* parameters)
 		}
 
 		// Check how long since last update
-		uint32_t thisSysTime = PIOS_Thread_Systime();
-		if (thisSysTime > lastSysTime) // reuse dt in case of wraparound
-			dT = (thisSysTime - lastSysTime) / 1000.0f;
-		lastSysTime = thisSysTime;
+		uint32_t this_systime = PIOS_Thread_Systime();
+		if (this_systime > last_systime) // reuse dt in case of wraparound
+			dT = (this_systime - last_systime) / 1000.0f;
+		last_systime = this_systime;
 
 		FlightStatusGet(&flightStatus);
 		ActuatorDesiredGet(&desired);
@@ -286,7 +285,7 @@ static void actuator_task(void* parameters)
 		}
 
 		bool armed = flightStatus.Armed == FLIGHTSTATUS_ARMED_ARMED;
-		bool spinWhileArmed = actuatorSettings.MotorsSpinWhileArmed == ACTUATORSETTINGS_MOTORSSPINWHILEARMED_TRUE;
+		bool spin_while_armed = actuatorSettings.MotorsSpinWhileArmed == ACTUATORSETTINGS_MOTORSSPINWHILEARMED_TRUE;
 
 		float throttle_source = -1;
 		// as long as we're not a heli in failsafe mode, we should set throttle from the manual throttle value
@@ -295,10 +294,30 @@ static void actuator_task(void* parameters)
 			if (flightStatus.FlightMode != FLIGHTSTATUS_FLIGHTMODE_FAILSAFE) {
 				throttle_source = manual_control_command.Throttle;
 			}
+		} else {
+			throttle_source = desired.Thrust;
 		}
-		else throttle_source = desired.Thrust;
 
-		bool positiveThrottle = throttle_source >= 0.00f;
+		bool stabilize_now = throttle_source >= 0.0f;
+
+		static uint32_t last_pos_throttle_time = 0;
+
+		if (stabilize_now) {
+			if (actuatorSettings.LowPowerStabilizationMaxTime) {
+				last_pos_throttle_time = this_systime;
+			}
+
+			// Could consider stabilizing on a positive arming edge,
+			// but this seems problematic.
+		} else if (last_pos_throttle_time) {
+			if ((this_systime - last_pos_throttle_time) <
+					1000.0f * actuatorSettings.LowPowerStabilizationMaxTime) {
+				stabilize_now = true;
+				throttle_source = 0.0f;
+			} else {
+				last_pos_throttle_time = 0;
+			}
+		}
 
 		float curve1 = throt_curve(throttle_source, mixerSettings.ThrottleCurve1, MIXERSETTINGS_THROTTLECURVE1_NUMELEM);
 
@@ -312,6 +331,8 @@ static void actuator_task(void* parameters)
 
 		float min_chan = INFINITY;
 		float max_chan = -INFINITY;
+		float neg_clip = 0;
+		int num_motors = 0;
 
 		for (int ct = 0; ct < MAX_MIX_ACTUATORS; ct++) {
 			status[ct] = mix_channel(ct, &desired, curve1, curve2);
@@ -319,6 +340,12 @@ static void actuator_task(void* parameters)
 			if (get_mixer_type(ct) == MIXERSETTINGS_MIXER1TYPE_MOTOR) {
 				min_chan = fminf(min_chan, status[ct]);
 				max_chan = fmaxf(max_chan, status[ct]);
+
+				if (status[ct] < 0.0f) {
+					neg_clip += status[ct];
+				}
+
+				num_motors++;
 			}
 		}
 
@@ -343,29 +370,53 @@ static void actuator_task(void* parameters)
 			clipped = true;
 
 			offset = 1.0f - max_chan;
+		} else if (min_chan < 0.0f) {
+			clipped = true;
+
+			/* Low-side clip management-- how much power are we
+			 * willing to add??? */
+
+			neg_clip /= num_motors;
+
+			/* neg_clip is now the amount of throttle "already added." by
+			 * clipping...
+			 *
+			 * Find the "highest possible value" of offset.
+			 * if neg_clip is -15%, and maxpoweradd is 10%, we need to add
+			 * -5% to all motors.
+			 * if neg_clip is 5%, and maxpoweradd is 10%, we can add up to
+			 * 5% to all motors to further fix clipping.
+			 */
+			offset = neg_clip + actuatorSettings.LowPowerStabilizationMaxPowerAdd;
+
+			/* Add the lesser of--
+			 * A) the amount the lowest channel is out of range.
+			 * B) the above calculated offset.
+			 */
+			offset = MIN(-min_chan, offset);
 		}
 
 		for (int ct = 0; ct < MAX_MIX_ACTUATORS; ct++) {
 			// Motors have additional protection for when to be on
 			if (get_mixer_type(ct) == MIXERSETTINGS_MIXER1TYPE_MOTOR) {
-				status[ct] = status[ct] * gain + offset;
-
-				if (status[ct] > 0) {
-					// Apply curve fitting, mapping the input to the propeller output.
-					status[ct] = powapprox(status[ct], actuatorSettings.MotorInputOutputCurveFit);
-				} else {
-					status[ct] = 0;
-				}
-
-				// If not armed or motors aren't meant to spin all the time
-				if (!armed ||
-						(!spinWhileArmed && !positiveThrottle)) {
+				if (!armed) {
 					status[ct] = -1;  //force min throttle
+				} else if (!stabilize_now) {
+					if (!spin_while_armed) {
+						status[ct] = -1;
+					} else {
+						status[ct] = 0;
+					}
+				} else {
+					status[ct] = status[ct] * gain + offset;
+
+					if (status[ct] > 0) {
+						// Apply curve fitting, mapping the input to the propeller output.
+						status[ct] = powapprox(status[ct], actuatorSettings.MotorInputOutputCurveFit);
+					} else {
+						status[ct] = 0;
+					}
 				}
-				// If armed meant to keep spinning,
-				else if ((spinWhileArmed && !positiveThrottle) ||
-						(status[ct] < 0) )
-					status[ct] = 0;
 			}
 
 			command.Channel[ct] = scale_channel(status[ct], ct);

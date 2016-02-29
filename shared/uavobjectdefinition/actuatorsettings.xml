@@ -22,6 +22,12 @@
         <field name="MotorsSpinWhileArmed" units="" type="enum" elements="1" options="FALSE,TRUE" defaultvalue="FALSE">
             <description>When enabled, the motors will spin at the ChannelNeutral command when armed with zero throttle.</description>
         </field>
+        <field name="LowPowerStabilizationMaxPowerAdd" units="" type="float" elements="1" defaultvalue="0.07">
+            <description>Maximum power to add to ensure stabilization at low power.  Always select a value well under hover power.</description>
+        </field>
+        <field name="LowPowerStabilizationMaxTime" units="s" type="float" elements="1" defaultvalue="0">
+            <description>Maximum time in seconds to add power when at zero throttle to ensure stabilization.  Choosing 0 prevents adding power at zero throttle.</description>
+        </field>
 
         <field name="MotorInputOutputCurveFit" units="-" type="float" elements="1" defaultvalue="1">
             <description>Actuator mapping of input in [-1,1] to output on [-1,1], using power equation of type x^value.</description>
