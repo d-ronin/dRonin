@@ -5,7 +5,7 @@
  * @author     The OpenPilot Team, http://www.openpilot.org Copyright (C) 2010.
  *             Parts by Nokia Corporation (qt-info@nokia.com) Copyright (C) 2009.
  * @author     Tau Labs, http://taulabs.org Copyright (C) 2012-2013
- * @author     dRonin, http://dronin.org Copyright (C) 2015
+ * @author     dRonin, http://dronin.org Copyright (C) 2015-2016
  * @addtogroup GCSPlugins GCS Plugins
  * @{
  * @addtogroup CorePlugin Core Plugin
@@ -26,6 +26,10 @@
  * You should have received a copy of the GNU General Public License along 
  * with this program; if not, write to the Free Software Foundation, Inc., 
  * 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
+ *
+ * Additional note on redistribution: The copyright and license notices above
+ * must be maintained in each individual source file that is a derivative work
+ * of this source file; otherwise redistribution is prohibited.
  */
 
 #include "mainwindow.h"
@@ -212,12 +216,12 @@ MainWindow::MainWindow() :
 MainWindow::~MainWindow()
 {
     if (m_connectionManager)
-	{
-		m_connectionManager->disconnectDevice();
-		m_connectionManager->suspendPolling();
-	}
+    {
+        m_connectionManager->disconnectDevice();
+        m_connectionManager->suspendPolling();
+    }
 
-	hide();
+    hide();
 
     ExtensionSystem::PluginManager *pm = ExtensionSystem::PluginManager::instance();
     if (m_uavGadgetManagers.count() > 0) {
@@ -366,6 +370,15 @@ void MainWindow::extensionsInitialized()
     readSettings(qs);
     updateContext();
     emit splashMessages(tr("Preparing to open core"));
+
+    QString currentPath = QDir::currentPath();
+
+    if ((currentPath.length() < 4) || currentPath.contains(".app", Qt::CaseInsensitive) ||
+                currentPath.contains("Program Files", Qt::CaseInsensitive) ||
+                !QDir(currentPath).exists()) {
+        QDir::setCurrent(QDir::homePath());
+    }
+
     emit m_coreImpl->coreAboutToOpen();
     show();
     emit m_coreImpl->coreOpened();
