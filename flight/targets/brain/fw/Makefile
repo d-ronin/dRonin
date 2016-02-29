@@ -69,6 +69,7 @@ OPTMODULES += PicoC
 OPTMODULES += Geofence
 OPTMODULES += Logging
 OPTMODULES += OnScreenDisplay
+OPTMODULES += Storm32bgc
 
 # Paths
 OPUAVTALKINC = $(OPUAVTALK)/inc

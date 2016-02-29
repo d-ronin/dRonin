@@ -35,6 +35,7 @@
 				<option>OpenLog</option>
 				<option>PicoC</option>
 				<option>S.Bus Non Inverted</option>
+				<option>Storm32bgc</option>
 				<option>Telemetry</option>
 			</options>
 		</field>
@@ -58,6 +59,7 @@
 				<option>OpenLog</option>
 				<option>PicoC</option>
 				<option>S.Bus Non Inverted</option>
+				<option>Storm32bgc</option>
 				<option>Telemetry</option>
 			</options>
 		</field>
