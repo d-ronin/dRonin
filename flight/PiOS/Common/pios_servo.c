@@ -50,6 +50,8 @@ enum SYNC_PWM {SYNC_PWM_FALSE, SYNC_PWM_TRUE};
 static enum SYNC_PWM *output_channel_mode;
 #endif
 
+static bool resetting;
+
 /* Private constant definitions */
 #define PWM_MODE_1MHZ_RATE   1000000
 #define PWM_MODE_12MHZ_RATE  12000000
@@ -237,6 +239,13 @@ void PIOS_Servo_SetMode(const uint16_t * speeds, const enum pwm_mode *pwm_mode, 
 }
 
 /**
+ * Prepare for IAP reset.  Stop PWM, so ESCs disarm.
+ */
+void PIOS_Servo_PrepareForReset() {
+	resetting = true;
+}
+
+/**
 * Set servo position for HPWM
 * \param[in] Servo Servo number (0-num_channels)
 * \param[in] Position Servo position in microseconds
@@ -247,6 +256,13 @@ void PIOS_Servo_Set(uint8_t servo, float position, float max)
 	/* Make sure servo exists */
 	if (!servo_cfg || servo >= servo_cfg->num_channels) {
 		return;
+	}
+
+	if (resetting) {
+		/* If we're resetting, drive / hold pin low.  This will
+		 * allow ESCs to disarm.
+		 */
+		position = 0;
 	}
 
 	const struct pios_tim_channel * chan = &servo_cfg->channels[servo];
