@@ -8,7 +8,7 @@
  * @file       firmwareiap.c
  * @author     The OpenPilot Team, http://www.openpilot.org Copyright (C) 2010.
  * @author     Tau Labs, http://taulabs.org, Copyright (C) 2014
- * @author     dRonin, http://dronin.org Copyright (C) 2015
+ * @author     dRonin, http://dRonin.org/, Copyright (C) 2015-2016
  * @brief      In Application Programming module to support firmware upgrades by
  *             providing a means to enter the bootloader.
  *
@@ -29,6 +29,10 @@
  * You should have received a copy of the GNU General Public License along
  * with this program; if not, write to the Free Software Foundation, Inc.,
  * 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
+ *
+ * Additional note on redistribution: The copyright and license notices above
+ * must be maintained in each individual source file that is a derivative work
+ * of this source file; otherwise redistribution is prohibited.
  */
 #include <stdint.h>
 
@@ -38,6 +42,7 @@
 #include "firmwareiap.h"
 #include "firmwareiapobj.h"
 #include "flightstatus.h"
+#include "pios_servo.h"
 #include "pios_thread.h"
 
 // Private constants
@@ -188,6 +193,9 @@ static void FirmwareIAPCallback(UAVObjEvent* ev, void *ctx, void *obj, int len)
 					lastResetSysTime = PIOS_Thread_Systime();
 					UAVObjEvent * ev = PIOS_malloc_no_dma(sizeof(UAVObjEvent));
 					memset(ev,0,sizeof(UAVObjEvent));
+
+					PIOS_Servo_PrepareForReset(); // Stop PWM
+
 					EventPeriodicCallbackCreate(ev, resetTask, 100);
 					iap_state = IAP_STATE_RESETTING;
 				} else {
