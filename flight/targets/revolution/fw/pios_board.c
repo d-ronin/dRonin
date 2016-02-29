@@ -27,6 +27,10 @@
  * You should have received a copy of the GNU General Public License along 
  * with this program; if not, write to the Free Software Foundation, Inc., 
  * 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
+ *
+ * Additional note on redistribution: The copyright and license notices above
+ * must be maintained in each individual source file that is a derivative work
+ * of this source file; otherwise redistribution is prohibited.
  */
 
 /* Pull in the board-specific static HW definitions.
@@ -191,6 +195,7 @@ static void panic(int32_t code) {
 #include <pios_board_info.h>
 
 void PIOS_Board_Init(void) {
+	bool use_rxport_usart = false;
 
 	/* Delay system */
 	PIOS_DELAY_Init();
@@ -368,8 +373,145 @@ void PIOS_Board_Init(void) {
 			NULL,                                // pwm_cfg
 			PIOS_LED_ALARM,                      // led_id
 			&pios_dsm_flexi_cfg,                 // dsm_cfg
-			hw_DSMxMode,                         // dsm_mod
+			hw_DSMxMode,                         // dsm_mode
 			NULL);                               // sbus_cfg
+
+	/* Configure the receiver port*/
+	uint8_t hw_rxport;
+	HwRevolutionRxPortGet(&hw_rxport);
+
+	switch (hw_rxport) {
+	case HWREVOLUTION_RXPORT_DISABLED:
+		break;
+
+	case HWREVOLUTION_RXPORT_PWM:
+		PIOS_HAL_ConfigurePort(HWSHARED_PORTTYPES_PWM,  // port type protocol
+				NULL,                                   // usart_port_cfg
+				NULL,                                   // com_driver
+				NULL,                                   // i2c_id
+				NULL,                                   // i2c_cfg
+				NULL,                                   // ppm_cfg
+				&pios_pwm_cfg,                          // pwm_cfg
+				PIOS_LED_ALARM,                         // led_id
+				NULL,                                   // dsm_cfg
+				0,                                      // dsm_mode
+				NULL);                                  // sbus_cfg
+		break;
+
+	case HWREVOLUTION_RXPORT_PPMFRSKY:
+		// special mode that enables PPM, FrSky RSSI, and Sensor Hub
+		PIOS_HAL_ConfigurePort(HWSHARED_PORTTYPES_FRSKYSENSORHUB,  // port type protocol
+				&pios_rxportusart_cfg,                             // usart_port_cfg
+				&pios_usart_com_driver,                            // com_driver
+				NULL,                                              // i2c_id
+				NULL,                                              // i2c_cfg
+				NULL,                                              // ppm_cfg
+				NULL,                                              // pwm_cfg
+				PIOS_LED_ALARM,                                    // led_id
+				NULL,                                              // dsm_cfg
+				0,                                                 // dsm_mode
+				NULL);                                             // sbus_cfg
+
+	case HWREVOLUTION_RXPORT_PPM:
+	case HWREVOLUTION_RXPORT_PPMOUTPUTS:
+		PIOS_HAL_ConfigurePort(HWSHARED_PORTTYPES_PPM,  // port type protocol
+				NULL,                                   // usart_port_cfg
+				NULL,                                   // com_driver
+				NULL,                                   // i2c_id
+				NULL,                                   // i2c_cfg
+				&pios_ppm_cfg,                          // ppm_cfg
+				NULL,                                   // pwm_cfg
+				PIOS_LED_ALARM,                         // led_id
+				NULL,                                   // dsm_cfg
+				0,                                      // dsm_mode
+				NULL);                                  // sbus_cfg
+		break;
+
+	case HWREVOLUTION_RXPORT_UART:
+		use_rxport_usart = true;
+		break;
+
+	case HWREVOLUTION_RXPORT_PPMUART:
+		use_rxport_usart = true;
+
+		PIOS_HAL_ConfigurePort(HWSHARED_PORTTYPES_PPM,  // port type protocol
+				NULL,                                   // usart_port_cfg
+				NULL,                                   // com_driver
+				NULL,                                   // i2c_id
+				NULL,                                   // i2c_cfg
+				&pios_ppm_cfg,                          // ppm_cfg
+				NULL,                                   // pwm_cfg
+				PIOS_LED_ALARM,                         // led_id
+				NULL,                                   // dsm_cfg
+				0,                                      // dsm_mode
+				NULL);                                  // sbus_cfg
+		break;
+	}
+
+	/* Configure the RxPort USART */
+	if (use_rxport_usart) {
+		uint8_t hw_rxportusart;
+		HwRevolutionRxPortUsartGet(&hw_rxportusart);
+
+		PIOS_HAL_ConfigurePort(hw_rxportusart,       // port type protocol
+				&pios_rxportusart_cfg,               // usart_port_cfg
+				&pios_usart_com_driver,              // com_driver
+				NULL,                                // i2c_id
+				NULL,                                // i2c_cfg
+				NULL,                                // ppm_cfg
+				NULL,                                // pwm_cfg
+				PIOS_LED_ALARM,                      // led_id
+				&pios_rxportusart_dsm_aux_cfg,       // dsm_cfg
+				hw_DSMxMode,                         // dsm_mode
+				NULL);                               // sbus_cfg
+	}
+
+#if defined(PIOS_INCLUDE_GCSRCVR)
+	GCSReceiverInitialize();
+	uintptr_t pios_gcsrcvr_id;
+	PIOS_GCSRCVR_Init(&pios_gcsrcvr_id);
+	uintptr_t pios_gcsrcvr_rcvr_id;
+	if (PIOS_RCVR_Init(&pios_gcsrcvr_rcvr_id, &pios_gcsrcvr_rcvr_driver, pios_gcsrcvr_id)) {
+		PIOS_Assert(0);
+	}
+	pios_rcvr_group_map[MANUALCONTROLSETTINGS_CHANNELGROUPS_GCS] = pios_gcsrcvr_rcvr_id;
+#endif	/* PIOS_INCLUDE_GCSRCVR */
+
+#ifndef PIOS_DEBUG_ENABLE_DEBUG_PINS
+	switch (hw_rxport) {
+	case HWREVOLUTION_RXPORT_DISABLED:
+	case HWREVOLUTION_RXPORT_PWM:
+	case HWREVOLUTION_RXPORT_PPM:
+	case HWREVOLUTION_RXPORT_UART:
+	case HWREVOLUTION_RXPORT_PPMUART:
+	/* Set up the servo outputs */
+#ifdef PIOS_INCLUDE_SERVO
+		PIOS_Servo_Init(&pios_servo_cfg);
+#endif
+		break;
+	case HWREVOLUTION_RXPORT_PPMOUTPUTS:
+#ifdef PIOS_INCLUDE_SERVO
+		PIOS_Servo_Init(&pios_servo_rcvr_ppm_cfg);
+#endif
+		break;
+	case HWREVOLUTION_RXPORT_PPMFRSKY:
+#ifdef PIOS_INCLUDE_SERVO
+		PIOS_Servo_Init(&pios_servo_cfg);
+#endif
+#if defined(PIOS_INCLUDE_FRSKY_RSSI)
+		PIOS_FrSkyRssi_Init(&pios_frsky_rssi_cfg);
+#endif /* PIOS_INCLUDE_FRSKY_RSSI */
+		break;
+	case HWREVOLUTION_RXPORT_OUTPUTS:
+#ifdef PIOS_INCLUDE_SERVO
+		PIOS_Servo_Init(&pios_servo_rcvr_all_cfg);
+#endif
+		break;
+	}
+#else
+	PIOS_DEBUG_Init(&pios_tim_servo_all_channels, NELEMENTS(pios_tim_servo_all_channels));
+#endif
+
 
 	HwRevolutionData hwRevoMini;
 	HwRevolutionGet(&hwRevoMini);
@@ -386,105 +528,7 @@ void PIOS_Board_Init(void) {
 			hwRevoMini.MaxChannel, hwRevoMini.CoordID, 1);
 #endif /* PIOS_INCLUDE_RFM22B */
 
-	/* Configure the receiver port*/
-	uint8_t hw_rcvrport;
-	HwRevolutionRcvrPortGet(&hw_rcvrport);
-	//   
-	switch (hw_rcvrport){
-		case HWREVOLUTION_RCVRPORT_DISABLED:
-			break;
-		case HWREVOLUTION_RCVRPORT_PWM:
-#if defined(PIOS_INCLUDE_PWM)
-		{
-			/* Set up the receiver port.  Later this should be optional */
-			uintptr_t pios_pwm_id;
-			PIOS_PWM_Init(&pios_pwm_id, &pios_pwm_cfg);
-			
-			uintptr_t pios_pwm_rcvr_id;
-			if (PIOS_RCVR_Init(&pios_pwm_rcvr_id, &pios_pwm_rcvr_driver, pios_pwm_id)) {
-				PIOS_Assert(0);
-			}
-			pios_rcvr_group_map[MANUALCONTROLSETTINGS_CHANNELGROUPS_PWM] = pios_pwm_rcvr_id;
-		}
-#endif	/* PIOS_INCLUDE_PWM */
-			break;
-		case HWREVOLUTION_RCVRPORT_PPMPWM:
-		/* This is a combination of PPM and PWM inputs */
-#if defined(PIOS_INCLUDE_PPM)
-		{
-			uintptr_t pios_ppm_id;
-			PIOS_PPM_Init(&pios_ppm_id, &pios_ppm_cfg);
 
-			uintptr_t pios_ppm_rcvr_id;
-			if (PIOS_RCVR_Init(&pios_ppm_rcvr_id, &pios_ppm_rcvr_driver, pios_ppm_id)) {
-				PIOS_Assert(0);
-			}
-			pios_rcvr_group_map[MANUALCONTROLSETTINGS_CHANNELGROUPS_PPM] = pios_ppm_rcvr_id;
-		}
-#endif	/* PIOS_INCLUDE_PPM */
-#if defined(PIOS_INCLUDE_PWM)
-		{
-			uintptr_t pios_pwm_id;
-			PIOS_PWM_Init(&pios_pwm_id, &pios_pwm_with_ppm_cfg);
-
-			uintptr_t pios_pwm_rcvr_id;
-			if (PIOS_RCVR_Init(&pios_pwm_rcvr_id, &pios_pwm_rcvr_driver, pios_pwm_id)) {
-				PIOS_Assert(0);
-			}
-			pios_rcvr_group_map[MANUALCONTROLSETTINGS_CHANNELGROUPS_PWM] = pios_pwm_rcvr_id;
-		}
-#endif	/* PIOS_INCLUDE_PWM */
-			break;
-		case HWREVOLUTION_RCVRPORT_PPM:
-		case HWREVOLUTION_RCVRPORT_PPMOUTPUTS:
-#if defined(PIOS_INCLUDE_PPM)
-		{
-			uintptr_t pios_ppm_id;
-			PIOS_PPM_Init(&pios_ppm_id, &pios_ppm_cfg);
-			
-			uintptr_t pios_ppm_rcvr_id;
-			if (PIOS_RCVR_Init(&pios_ppm_rcvr_id, &pios_ppm_rcvr_driver, pios_ppm_id)) {
-				PIOS_Assert(0);
-			}
-			pios_rcvr_group_map[MANUALCONTROLSETTINGS_CHANNELGROUPS_PPM] = pios_ppm_rcvr_id;
-		}
-#endif	/* PIOS_INCLUDE_PPM */
-		case HWREVOLUTION_RCVRPORT_OUTPUTS:
-		
-			break;
-	}
-
-
-#if defined(PIOS_INCLUDE_GCSRCVR)
-	GCSReceiverInitialize();
-	uintptr_t pios_gcsrcvr_id;
-	PIOS_GCSRCVR_Init(&pios_gcsrcvr_id);
-	uintptr_t pios_gcsrcvr_rcvr_id;
-	if (PIOS_RCVR_Init(&pios_gcsrcvr_rcvr_id, &pios_gcsrcvr_rcvr_driver, pios_gcsrcvr_id)) {
-		PIOS_Assert(0);
-	}
-	pios_rcvr_group_map[MANUALCONTROLSETTINGS_CHANNELGROUPS_GCS] = pios_gcsrcvr_rcvr_id;
-#endif	/* PIOS_INCLUDE_GCSRCVR */
-
-#ifndef PIOS_DEBUG_ENABLE_DEBUG_PINS
-	switch (hw_rcvrport) {
-		case HWREVOLUTION_RCVRPORT_DISABLED:
-		case HWREVOLUTION_RCVRPORT_PWM:
-		case HWREVOLUTION_RCVRPORT_PPM:
-			/* Set up the servo outputs */
-			PIOS_Servo_Init(&pios_servo_cfg);
-			break;
-		case HWREVOLUTION_RCVRPORT_PPMOUTPUTS:
-		case HWREVOLUTION_RCVRPORT_OUTPUTS:
-			//PIOS_Servo_Init(&pios_servo_rcvr_cfg);
-			//TODO: Prepare the configurations on board_hw_defs and handle here:
-			PIOS_Servo_Init(&pios_servo_cfg);
-			break;
-	}
-#else
-	PIOS_DEBUG_Init(&pios_tim_servo_all_channels, NELEMENTS(pios_tim_servo_all_channels));
-#endif
-	
 	if (PIOS_I2C_Init(&pios_i2c_mag_pressure_adapter_id, &pios_i2c_mag_pressure_adapter_cfg)) {
 		PIOS_DEBUG_Assert(0);
 	}

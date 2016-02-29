@@ -6,6 +6,8 @@
  * @{
  *
  * @file       pios_config.h 
+ *
+ * @author     dRonin, http://dRonin.org/, Copyright (C) 2015
  * @author     The OpenPilot Team, http://www.openpilot.org Copyright (C) 2011.
  * @author     Tau Labs, http://taulabs.org, Copyright (C) 2012-2015
  * @brief      Board specific options that modify PiOS capabilities
@@ -26,6 +28,10 @@
  * You should have received a copy of the GNU General Public License along 
  * with this program; if not, write to the Free Software Foundation, Inc., 
  * 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
+ *
+ * Additional note on redistribution: The copyright and license notices above
+ * must be maintained in each individual source file that is a derivative work
+ * of this source file; otherwise redistribution is prohibited.
  */
 
 
@@ -44,6 +50,7 @@
 #define PIOS_INCLUDE_IRQ
 #define PIOS_INCLUDE_LED
 #define PIOS_INCLUDE_IAP
+#define PIOS_INCLUDE_TIM
 #define PIOS_INCLUDE_SERVO
 #define PIOS_INCLUDE_SPI
 #define PIOS_INCLUDE_SYS
@@ -57,6 +64,7 @@
 #define PIOS_INCLUDE_WDG
 #define PIOS_INCLUDE_FASTHEAP
 #define PIOS_INCLUDE_HPWM
+#define PIOS_INCLUDE_FRSKY_RSSI
 
 /* Variables related to the RFM22B functionality */
 #define PIOS_INCLUDE_RFM22B
@@ -76,11 +84,8 @@
 /* Com systems to include */
 #define PIOS_INCLUDE_COM
 #define PIOS_INCLUDE_COM_TELEM
+#define PIOS_INCLUDE_TELEMETRY_RF
 #define PIOS_INCLUDE_COM_FLEXI
-
-#define PIOS_INCLUDE_GPS
-#define PIOS_INCLUDE_GPS_NMEA_PARSER
-#define PIOS_INCLUDE_GPS_UBX_PARSER
 #define PIOS_INCLUDE_MAVLINK
 #define PIOS_INCLUDE_HOTT
 #define PIOS_INCLUDE_FRSKY_SENSOR_HUB
@@ -89,6 +94,11 @@
 #define PIOS_INCLUDE_PICOC
 #define PIOS_INCLUDE_FRSKY_SPORT_TELEMETRY_NOSINGLEWIRE
 #define PIOS_INCLUDE_OPENLOG
+
+#define PIOS_INCLUDE_GPS
+#define PIOS_INCLUDE_GPS_NMEA_PARSER
+#define PIOS_INCLUDE_GPS_UBX_PARSER
+#define PIOS_GPS_SETS_HOMELOCATION
 
 /* Supported receiver interfaces */
 #define PIOS_INCLUDE_RCVR
