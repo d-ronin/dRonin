@@ -298,7 +298,7 @@ static void actuator_task(void* parameters)
 			throttle_source = desired.Thrust;
 		}
 
-		bool stabilize_now = throttle_source >= 0.0f;
+		bool stabilize_now = throttle_source > 0.0f;
 
 		static uint32_t last_pos_throttle_time = 0;
 
