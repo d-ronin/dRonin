@@ -142,7 +142,7 @@ extern uintptr_t pios_com_storm32bgc_id;
 #define PIOS_COM_FRSKY_SPORT            (pios_com_frsky_sport_id)
 #define PIOS_COM_SPIFLASH               (pios_com_spiflash_logging_id)
 #define PIOS_COM_OPENLOG                (pios_com_openlog_logging_id)
-#define PIOS_COM_STORM32BGC				(pios_com_storm32bgc_id)
+#define PIOS_COM_STORM32BGC             (pios_com_storm32bgc_id)
 
 #if defined(PIOS_INCLUDE_DEBUG_CONSOLE)
 extern uintptr_t pios_com_debug_id;
