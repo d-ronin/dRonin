@@ -54,7 +54,6 @@
 #include "extensionsystem/pluginmanager.h"
 #include "coreplugin/iboardtype.h"
 
-
 //#define CONF_ATUNE_DEBUG
 #ifdef CONF_ATUNE_DEBUG
 #define CONF_ATUNE_QXTLOG_DEBUG(...) qDebug()<<__VA_ARGS__
@@ -65,9 +64,10 @@
 
 const QString ConfigAutotuneWidget::databaseUrl = QString("http://dronin-autotown.appspot.com/storeTune");
 
-ConfigAutotuneWidget::ConfigAutotuneWidget(QWidget *parent) :
+ConfigAutotuneWidget::ConfigAutotuneWidget(ConfigGadgetWidget *parent) :
     ConfigTaskWidget(parent)
 {
+    parentConfigWidget = parent;
     m_autotune = new Ui_AutotuneWidget();
     m_autotune->setupUi(this);
 
@@ -118,16 +118,26 @@ void ConfigAutotuneWidget::saveStabilization()
     Q_ASSERT(systemIdent);
     if(!systemIdent)
         return;
-    if (approveSettings(systemIdent->getData()) == false)
-        return;
 
     // Make sure to recompute in case the other stab settings changed since
     // the last time
     recomputeStabilization();
 
+    if (approveSettings(systemIdent->getData()) == false)
+        return;
+
     // Apply this data to the board
     stabilizationSettings->setData(stabSettings);
     stabilizationSettings->updated();
+
+    QMessageBox::information(this,tr("Tune values updated"),
+            tr("The calculated autotune values have been entered on the "
+                "stabilization settings pane and applied to RAM on the "
+	        "flight controller.  Please review and then "
+                "permanently save them.\n\n"
+                "You will now be taken to the stabilization settings pane."));
+
+    parentConfigWidget->changeTab(ConfigGadgetWidget::stabilization);
 }
 
 void ConfigAutotuneWidget::onShareData()

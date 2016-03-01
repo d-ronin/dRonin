@@ -52,6 +52,7 @@ public:
     ~ConfigGadgetWidget();
     enum widgetTabs {hardware=0, aircraft, input, output, sensors, stabilization, modules, camerastabilization, txpid, autotune, osd};
     void startInputWizard();
+    void changeTab(int i);
 
 public slots:
     void onAutopilotConnect();
