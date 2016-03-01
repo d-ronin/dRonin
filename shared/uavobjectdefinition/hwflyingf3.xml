@@ -28,10 +28,11 @@
 				<option>LighttelemetryTx</option>
 				<option>MavLinkTX</option>
 				<option>MavLinkTX_GPS_RX</option>
+				<option>OpenLog</option>
 				<option>S.Bus</option>
 				<option>S.Bus Non Inverted</option>
+				<option>Storm32bgc</option>
 				<option>Telemetry</option>
-				<option>OpenLog</option>
 			</options>
 		</field>
 
@@ -50,10 +51,11 @@
 				<option>LighttelemetryTx</option>
 				<option>MavLinkTX</option>
 				<option>MavLinkTX_GPS_RX</option>
+				<option>OpenLog</option>
 				<option>S.Bus</option>
 				<option>S.Bus Non Inverted</option>
+				<option>Storm32bgc</option>
 				<option>Telemetry</option>
-				<option>OpenLog</option>
 			</options>
 		</field>
 
@@ -72,10 +74,11 @@
 				<option>LighttelemetryTx</option>
 				<option>MavLinkTX</option>
 				<option>MavLinkTX_GPS_RX</option>
+				<option>OpenLog</option>
 				<option>S.Bus</option>
 				<option>S.Bus Non Inverted</option>
+				<option>Storm32bgc</option>
 				<option>Telemetry</option>
-				<option>OpenLog</option>
 			</options>
 		</field>
 
@@ -94,10 +97,11 @@
 				<option>LighttelemetryTx</option>
 				<option>MavLinkTX</option>
 				<option>MavLinkTX_GPS_RX</option>
+				<option>OpenLog</option>
 				<option>S.Bus</option>
 				<option>S.Bus Non Inverted</option>
+				<option>Storm32bgc</option>
 				<option>Telemetry</option>
-				<option>OpenLog</option>
 			</options>
 		</field>
 
@@ -116,10 +120,11 @@
 				<option>LighttelemetryTx</option>
 				<option>MavLinkTX</option>
 				<option>MavLinkTX_GPS_RX</option>
+				<option>OpenLog</option>
 				<option>S.Bus</option>
 				<option>S.Bus Non Inverted</option>
+				<option>Storm32bgc</option>
 				<option>Telemetry</option>
-				<option>OpenLog</option>
 			</options>
 		</field>
 

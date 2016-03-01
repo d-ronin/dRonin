@@ -32,6 +32,7 @@
 				<option>OpenLog</option>
 				<option>S.Bus</option>
 				<option>S.Bus Non Inverted</option>
+				<option>Storm32bgc</option>
 				<option>Telemetry</option>
 			</options>
 		</field>
@@ -53,6 +54,7 @@
 				<option>OpenLog</option>
 				<option>S.Bus</option>
 				<option>S.Bus Non Inverted</option>
+				<option>Storm32bgc</option>
 				<option>Telemetry</option>
 			</options>
 		</field>

@@ -146,9 +146,7 @@ static void storm32bgcTask(void *parameters)
 		float pitch_setpoint = cameraDesired.Declination;
 		float yaw_setpoint   = cameraDesired.Bearing;
 
-		uint8_t flags = 0x07;  // Set limited mode
-
-		storm32bgcData.Ack = cmd_set_angle(pitch_setpoint, 0.0f, yaw_setpoint, flags, 0x00);
+		storm32bgcData.Ack = cmd_set_angle(pitch_setpoint, 0.0f, yaw_setpoint, 0x00, 0x00);
 
 		Storm32bgcSet(&storm32bgcData);
 	}
@@ -176,7 +174,6 @@ union {
  */
 
 #define X25_INIT_CRC 0xFFFF
-#define X25_VALIDATE_CRC 0xF0B8
 
 /**
  * @brief Accumulate the X.25 CRC by adding one char at a time.
@@ -189,22 +186,12 @@ union {
  **/
 static inline void crc_accumulate(uint8_t data, uint16_t *crcAccum)
 {
-        /*Accumulate one byte of data into the CRC*/
-        uint8_t tmp;
+	/*Accumulate one byte of data into the CRC*/
+	uint8_t tmp;
 
-        tmp=data ^ (uint8_t)(*crcAccum &0xff);
-        tmp^= (tmp<<4);
-        *crcAccum = (*crcAccum>>8) ^ (tmp<<8) ^ (tmp <<3) ^ (tmp>>4);
-}
-
-/**
- * @brief Initiliaze the buffer for the X.25 CRC
- *
- * @param crcAccum the 16 bit X.25 CRC
- */
-static inline void crc_init(uint16_t* crcAccum)
-{
-        *crcAccum = X25_INIT_CRC;
+	tmp = data ^ (uint8_t)(*crcAccum &0xFF);
+	tmp ^= (tmp<<4);
+	*crcAccum = (*crcAccum>>8) ^ (tmp<<8) ^ (tmp <<3) ^ (tmp>>4);
 }
 
 /**
@@ -216,24 +203,24 @@ static inline void crc_init(uint16_t* crcAccum)
  **/
 static inline uint16_t crc_calculate(uint8_t* pBuffer, int length)
 {
-        // For a "message" of length bytes contained in the unsigned char array
-        // pointed to by pBuffer, calculate the CRC
-        // crcCalculate(unsigned char* pBuffer, int length, unsigned short* checkConst) < not needed
+	// For a "message" of length bytes contained in the unsigned char array
+	// pointed to by pBuffer, calculate the CRC
+	// crcCalculate(unsigned char* pBuffer, int length, unsigned short* checkConst) < not needed
 
-        uint16_t crcTmp;
-        uint8_t* pTmp;
-        int i;
+	uint16_t crcTmp;
+	uint8_t* pTmp;
+	int i;
 
-        pTmp=pBuffer;
+	pTmp=pBuffer;
 
-        /* init crcTmp */
-        crc_init(&crcTmp);
+	/* init crcTmp */
+	crcTmp = X25_INIT_CRC;
 
-        for (i = 0; i < length; i++){
-                crc_accumulate(*pTmp++, &crcTmp);
-        }
+	for (i = 0; i < length; i++){
+		crc_accumulate(*pTmp++, &crcTmp);
+	}
 
-        return(crcTmp);
+	return(crcTmp);
 }
 
 /**
@@ -250,50 +237,49 @@ static inline uint16_t crc_calculate(uint8_t* pBuffer, int length)
  */
 static uint8_t cmd_set_angle(float pitch, float roll, float yaw, uint8_t flags, uint8_t type)
 {
-	uint8_t position = 0;
 	uint8_t command_string[19];
 	uint8_t read_data[6] = {0,};
 	uint8_t bytes_read;
 	uint8_t ack;
 
-	command_string[position++] = 0xFA;  // Start sign
-	command_string[position++] = 0x0E;  // Length of payload
-	command_string[position++] = 0x11;  // Command byte - CMD_SETANGLE
+	command_string[0] = 0xFA;  // Start Sign
+	command_string[1] = 0x0E;  // Length of Payload
+	command_string[2] = 0x11;  // Command Byte - CMD_SETANGLE
 
 	dataFloat.value = pitch;
-	command_string[position++] = dataFloat.bytes[0];  // pitch-byte0
-	command_string[position++] = dataFloat.bytes[1];  // pitch-byte1
-	command_string[position++] = dataFloat.bytes[2];  // pitch-byte2
-	command_string[position++] = dataFloat.bytes[3];  // pitch-byte3
+	command_string[3] = dataFloat.bytes[0];  // pitch-byte0
+	command_string[4] = dataFloat.bytes[1];  // pitch-byte1
+	command_string[5] = dataFloat.bytes[2];  // pitch-byte2
+	command_string[6] = dataFloat.bytes[3];  // pitch-byte3
 
 	dataFloat.value = roll;
-	command_string[position++] = dataFloat.bytes[0];  // roll-byte0
-	command_string[position++] = dataFloat.bytes[1];  // roll-byte1
-	command_string[position++] = dataFloat.bytes[2];  // roll-byte2
-	command_string[position++] = dataFloat.bytes[3];  // roll-byte3
+	command_string[7]  = dataFloat.bytes[0];  // roll-byte0
+	command_string[8]  = dataFloat.bytes[1];  // roll-byte1
+	command_string[9]  = dataFloat.bytes[2];  // roll-byte2
+	command_string[10] = dataFloat.bytes[3];  // roll-byte3
 
 	dataFloat.value = yaw;
-	command_string[position++] = dataFloat.bytes[0];  // yaw-byte0
-	command_string[position++] = dataFloat.bytes[1];  // yaw-byte1
-	command_string[position++] = dataFloat.bytes[2];  // yaw-byte2
-	command_string[position++] = dataFloat.bytes[3];  // yaw-byte3
+	command_string[11] = dataFloat.bytes[0];  // yaw-byte0
+	command_string[12] = dataFloat.bytes[1];  // yaw-byte1
+	command_string[13] = dataFloat.bytes[2];  // yaw-byte2
+	command_string[14] = dataFloat.bytes[3];  // yaw-byte3
 
-	command_string[position++] = flags;  // flags-byte
+	command_string[15] = flags;  // flags-byte
 
-	command_string[position++] = type;   // type-byte
+	command_string[16] = type;   // type-byte
 
-	crc.value = crc_calculate(&command_string[1], 16);  // Payload Length thru Type bytes
+	crc.value = crc_calculate(&command_string[1], 16);  // Does not include Start Sign
 
-	command_string[position++] = crc.bytes[0];
-	command_string[position++] = crc.bytes[1];
+	command_string[17] = crc.bytes[0];
+	command_string[18] = crc.bytes[1];
 
-	PIOS_COM_SendBuffer(storm32bgc_com_id, &command_string[0], position);
+	PIOS_COM_SendBuffer(storm32bgc_com_id, &command_string[0], 19);
 
 	bytes_read = PIOS_COM_ReceiveBuffer(storm32bgc_com_id, read_data, 6, 500);
 
 	if (bytes_read != 0)
 	{
-		crc.value = crc_calculate(&read_data[1], 3);  // Payload Length thru Command bytes
+		crc.value = crc_calculate(&read_data[1], 3);  // Does not include Start Sign
 
 		if ((crc.bytes[0] == read_data[4]) && (crc.bytes[1] == read_data[5]))
 		{
