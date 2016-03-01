@@ -2,7 +2,7 @@
  ******************************************************************************
  *
  * @file       uavgadgetmanager.cpp
- * @author     dRonin, http://dRonin.org/, Copyright (C) 2015
+ * @author     dRonin, http://dRonin.org/, Copyright (C) 2015-2016
  * @author     The OpenPilot Team, http://www.openpilot.org Copyright (C) 2010.
  *             Parts by Nokia Corporation (qt-info@nokia.com) Copyright (C) 2009.
  * @addtogroup GCSPlugins GCS Plugins
@@ -25,6 +25,10 @@
  * You should have received a copy of the GNU General Public License along
  * with this program; if not, write to the Free Software Foundation, Inc.,
  * 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
+ *
+ * Additional note on redistribution: The copyright and license notices above
+ * must be maintained in each individual source file that is a derivative work
+ * of this source file; otherwise redistribution is prohibited.
  */
 
 #include "uavgadgetmanager.h"
@@ -131,6 +135,10 @@ void UAVGadgetManager::modeChanged(Core::IMode *mode)
 {
     if (mode != this)
         return;
+
+    if (!m_currentGadget) {
+        m_splitterOrView->view()->doReplaceGadget(0);
+    }
 
     m_currentGadget->widget()->setFocus();
     showToolbars(toolbarsShown());
