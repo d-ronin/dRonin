@@ -65,6 +65,7 @@ OPTMODULES += UAVOLighttelemetryBridge
 OPTMODULES += UAVOFrSKYSPortBridge
 OPTMODULES += Geofence
 OPTMODULES += Logging
+OPTMODULES += Storm32bgc
 
 # The following modules are disabled in the default compile
 # to save memory.
