@@ -204,7 +204,7 @@ static void updateObject(UAVObjHandle obj, int32_t eventType)
 
 		// Connect queue
 		eventMask = EV_UPDATED_PERIODIC | EV_UPDATED_MANUAL;
-		UAVObjConnectQueue(obj, queue, eventMask);
+		UAVObjConnectQueueThrottled(obj, queue, eventMask, 0);
 		break;
 	case UPDATEMODE_ONCHANGE:
 		// Set update period
@@ -212,7 +212,7 @@ static void updateObject(UAVObjHandle obj, int32_t eventType)
 
 		// Connect queue
 		eventMask = EV_UPDATED | EV_UPDATED_MANUAL;
-		UAVObjConnectQueue(obj, queue, eventMask);
+		UAVObjConnectQueueThrottled(obj, queue, eventMask, 0);
 		break;
 	case UPDATEMODE_THROTTLED:
 		setUpdatePeriod(obj, 0);
@@ -227,7 +227,7 @@ static void updateObject(UAVObjHandle obj, int32_t eventType)
 
 		// Connect queue
 		eventMask = EV_UPDATED_MANUAL;
-		UAVObjConnectQueue(obj, queue, eventMask);
+		UAVObjConnectQueueThrottled(obj, queue, eventMask, 0);
 		break;
 	}
 }
