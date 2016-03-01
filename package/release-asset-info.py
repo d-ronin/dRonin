@@ -12,7 +12,7 @@ DESC  = """
   Display/fix-up the 'label' names for downloadable assets attached to a release.\
 """
 
-TAULABS_API_BASE = "https://api.github.com/repos/d-ronin/dRonin"
+GITHUB_API_BASE = "https://api.github.com/repos/d-ronin/dRonin"
 
 #-------------------------------------------------------------------------------
 def main():
@@ -34,7 +34,7 @@ def main():
     args = parser.parse_args()
 
     # Grab all info about releases
-    releases_req = requests.get(TAULABS_API_BASE + '/releases')
+    releases_req = requests.get(GITHUB_API_BASE + '/releases')
     if releases_req.status_code != 200:
         print "Failed to enumerate valid releases"
         sys.exit(2)

@@ -50,7 +50,7 @@ standalone: $(STANDALONE_DEPENDENCIES)
 	$(V1)find $(QT_PLUGINS_DIR)/../qml/QtQuick/ -name '*.so'	| xargs -I '{}' ldd '{}'| sed -e '/^[^\t]/ d; s/^\t\(.* => \)\?\([^ ]*\) (.*/\2/g' \
 	| grep "Qt5" | grep -v "build/ground" | sort | uniq | xargs -I '{}' cp -v -f '{}' $(BUILD_DIR)/ground/gcs/lib/dr
 	@echo Searching and copying used Qt5 libraries
-	$(V1) find $(BUILD_DIR)/ground/gcs/bin/drgcs.bin $(BUILD_DIR)/ground/gcs/lib/dr/plugins/TauLabs/*.so -exec ldd {} \; \
+	$(V1) find $(BUILD_DIR)/ground/gcs/bin/drgcs.bin $(BUILD_DIR)/ground/gcs/lib/dr/plugins/dRonin/*.so -exec ldd {} \; \
 	| sed -e '/^[^\t]/ d; s/^\t\(.* => \)\?\([^ ]*\) (.*/\2/g'| grep "Qt5" | grep -v "build/ground" | sort | uniq | xargs -I '{}' cp -v -f '{}' $(BUILD_DIR)/ground/gcs/lib/dr
 	@echo Copying qt.conf file
 	$(V1) cp -v $(ROOT_DIR)/package/linux/assets/qt.conf $(BUILD_DIR)/ground/gcs/bin/
