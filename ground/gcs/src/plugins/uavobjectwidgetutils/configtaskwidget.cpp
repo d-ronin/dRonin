@@ -36,7 +36,7 @@
 /**
  * Constructor
  */
-ConfigTaskWidget::ConfigTaskWidget(QWidget *parent) : QWidget(parent),currentBoard(0),isConnected(false),allowWidgetUpdates(true),smartsave(NULL),dirty(false),outOfLimitsStyle("background-color: rgb(255, 0, 0);"),timeOut(NULL)
+ConfigTaskWidget::ConfigTaskWidget(QWidget *parent) : QWidget(parent),currentBoard(0),isConnected(false),allowWidgetUpdates(true),smartsave(NULL),dirty(false),outOfLimitsStyle("background-color: rgb(255, 180, 0);"),timeOut(NULL)
 {
     pm = ExtensionSystem::PluginManager::instance();
     objManager = pm->getObject<UAVObjectManager>();
@@ -1350,6 +1350,14 @@ void ConfigTaskWidget::checkWidgetsLimits(QWidget * widget,UAVObjectField * fiel
             widget->setProperty("styleBackup",widget->styleSheet());
         widget->setStyleSheet(outOfLimitsStyle);
         widget->setProperty("wasOverLimits",(bool)true);
+        if(!widget->property("toolTipBackup").isValid()) {
+            QString tip = widget->toolTip();
+            if (tip.length() && !tip.startsWith("<"))
+                tip = tip.prepend("<p>").append("</p>");
+            widget->setProperty("toolTipBackup", tip);
+        }
+        widget->setToolTip(widget->property("toolTipBackup").toString() +
+                           tr("<p><strong>Warning:</strong> The value of this field exceeds the recommended limits! Please double-check before flying.</p>"));
         if(QComboBox * cb=qobject_cast<QComboBox *>(widget))
         {
             if(cb->findData(value.toString())==-1)
@@ -1401,6 +1409,12 @@ void ConfigTaskWidget::checkWidgetsLimits(QWidget * widget,UAVObjectField * fiel
                 QString style=widget->property("styleBackup").toString();
                 widget->setStyleSheet(style);
             }
+
+            if(widget->property("toolTipBackup").isValid())
+                widget->setToolTip(widget->property("toolTipBackup").toString());
+            else
+                widget->setToolTip("");
+
             loadWidgetLimits(widget,field,index,hasLimits,scale);
         }
     }
