@@ -239,7 +239,7 @@ static int32_t hasSeverity(SystemAlarmsAlarmOptions severity)
     return 0;
 }
 
-static const char alarm_names[][9] = {
+static const char alarm_names[][10] = {
 	[SYSTEMALARMS_ALARM_OUTOFMEMORY] = "MEMORY",
 	[SYSTEMALARMS_ALARM_CPUOVERLOAD] = "CPU",
 	[SYSTEMALARMS_ALARM_STACKOVERFLOW] = "STACK",
@@ -263,6 +263,7 @@ static const char alarm_names[][9] = {
 	[SYSTEMALARMS_ALARM_TEMPBARO] = "TEMPBARO",
 	[SYSTEMALARMS_ALARM_GYROBIAS] = "GYROBIAS",
 	[SYSTEMALARMS_ALARM_ADC] = "ADC",
+	[SYSTEMALARMS_ALARM_GIMBAL] = "GIMBAL",
 };
 
 // If someone adds a new alarm, we'd like it added to the array above.

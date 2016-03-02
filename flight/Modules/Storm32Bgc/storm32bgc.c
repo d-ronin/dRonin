@@ -39,7 +39,6 @@
 #include "uavobjectmanager.h"
 
 #include "cameradesired.h"
-#include "storm32bgc.h"
 
 // Private constants
 #define STACK_SIZE_BYTES 512
@@ -90,8 +89,6 @@ int32_t Storm32BgcInitialize(void)
 	if (!module_enabled)
 		return -1;
 
-	Storm32bgcInitialize();
-
 	return 0;
 }
 
@@ -133,7 +130,6 @@ static void storm32bgcTask(void *parameters)
 {
 	uint32_t now = PIOS_Thread_Systime();
 
-	Storm32bgcData storm32bgcData;
 	CameraDesiredData cameraDesired;
 
 	// Loop forever
@@ -146,9 +142,19 @@ static void storm32bgcTask(void *parameters)
 		float pitch_setpoint = cameraDesired.Declination;
 		float yaw_setpoint   = cameraDesired.Bearing;
 
-		storm32bgcData.Ack = cmd_set_angle(pitch_setpoint, 0.0f, yaw_setpoint, 0x00, 0x00);
+		switch(cmd_set_angle(pitch_setpoint, 0.0f, yaw_setpoint, 0x00, 0x00)) {
 
-		Storm32bgcSet(&storm32bgcData);
+			case 0:  // No response from Storm32Bgc controller
+				AlarmsSet(SYSTEMALARMS_ALARM_GIMBAL, SYSTEMALARMS_ALARM_ERROR);
+				break;
+
+			case 1:  // Successful ACK response from Storm32Bgc controller
+				AlarmsSet(SYSTEMALARMS_ALARM_GIMBAL, SYSTEMALARMS_ALARM_OK);
+				break;
+
+			default: // Unsuccessful ACK response from Strom32Bgc controller
+				AlarmsSet(SYSTEMALARMS_ALARM_GIMBAL, SYSTEMALARMS_ALARM_WARNING);
+		}
 	}
 }
 
