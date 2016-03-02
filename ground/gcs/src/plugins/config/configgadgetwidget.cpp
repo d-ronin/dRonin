@@ -312,6 +312,11 @@ void ConfigGadgetWidget::onAutopilotConnect() {
     emit autopilotConnected();
 }
 
+void ConfigGadgetWidget::changeTab(int i)
+{
+    ftw->setCurrentIndex(i);
+}
+
 void ConfigGadgetWidget::tabAboutToChange(int i, bool * proceed)
 {
     Q_UNUSED(i);

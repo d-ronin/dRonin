@@ -40,18 +40,20 @@
 #include <QTimer>
 #include <QtNetwork/QNetworkReply>
 #include "autotuneshareform.h"
+#include "configgadgetwidget.h"
 
 class ConfigAutotuneWidget : public ConfigTaskWidget
 {
     Q_OBJECT
 public:
-    explicit ConfigAutotuneWidget(QWidget *parent = 0);
+    explicit ConfigAutotuneWidget(ConfigGadgetWidget *parent = 0);
 
 private:
     Ui_AutotuneWidget *m_autotune;
     StabilizationSettings::DataFields stabSettings;
     UAVObjectUtilManager* utilMngr;
     AutotuneShareForm *autotuneShareForm;
+    ConfigGadgetWidget *parentConfigWidget;
 
     bool approveSettings(SystemIdent::DataFields systemIdentData);
     QJsonDocument getResultsJson();
