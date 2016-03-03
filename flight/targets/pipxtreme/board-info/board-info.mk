@@ -1,7 +1,8 @@
 BOARD_TYPE          := 0x03
 BOARD_REVISION      := 0x02
-# Previous version was 0x080, 0x081 introduces forced boot from bkp registers
-BOOTLOADER_VERSION  := 0x81
+# Previous version was 0x080, 0x081 introduces forced boot from bkp registers,
+# 0x082 fixes halt (by not double-initing board) 
+BOOTLOADER_VERSION  := 0x82
 HW_TYPE             := 0x01
 
 MCU                 := cortex-m3

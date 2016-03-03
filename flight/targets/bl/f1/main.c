@@ -90,7 +90,6 @@ int main() {
 	GO_dfu = (USB_connected == true) || (User_DFU_request == true);
 
 	if (GO_dfu == true) {
-		PIOS_Board_Init();
 		if (User_DFU_request == true)
 			DeviceState = DFUidle;
 		else
