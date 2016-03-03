@@ -47,14 +47,6 @@
 
 uintptr_t pios_uavo_settings_fs_id;
 
-/**
- * Indicate a target-specific error code when a component fails to initialize
- * 1 pulse - flash chip
- */
-void panic(int32_t code) {
-    PIOS_HAL_Panic(PIOS_LED_ALARM, code);
-}
-
 #include <pios_board_info.h>
 /**
  * PIOS_Board_Init()
@@ -78,7 +70,7 @@ void panic(int32_t code) {
 #if defined(PIOS_INCLUDE_FLASH)
 	/* Inititialize all flash drivers */
 	if (PIOS_Flash_Internal_Init(&pios_internal_flash_id, &flash_internal_cfg) != 0)
-		panic(1);
+		PIOS_HAL_Panic(PIOS_LED_ALARM, PIOS_HAL_PANIC_FLASH);
 
 	/* Register the partition table */
 	const struct pios_flash_partition * flash_partition_table;
@@ -88,7 +80,7 @@ void panic(int32_t code) {
 
 	/* Mount all filesystems */
 	if (PIOS_FLASHFS_Logfs_Init(&pios_uavo_settings_fs_id, &flashfs_settings_cfg, FLASH_PARTITION_LABEL_SETTINGS) != 0)
-		panic(1);
+		PIOS_HAL_Panic(PIOS_LED_ALARM, PIOS_HAL_PANIC_FILESYS);
 #endif	/* PIOS_INCLUDE_FLASH */
 
 	/* Initialize the task monitor library */
