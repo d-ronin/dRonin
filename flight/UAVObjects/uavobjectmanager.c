@@ -8,7 +8,7 @@
  * @file       uavobjectmanager.c
  * @author     The OpenPilot Team, http://www.openpilot.org Copyright (C) 2010.
  * @author     Tau Labs, http://taulabs.org, Copyright (C) 2012-2014
- * @author     dRonin, http://dronin.org Copyright (C) 2015
+ * @author     dRonin, http://dronin.org Copyright (C) 2015-2016
  * @brief      Object manager library. This library holds a collection of all objects.
  *             It can be used by all modules/libraries to find an object reference.
  * @see        The GNU Public License (GPL) Version 3
@@ -28,6 +28,10 @@
  * You should have received a copy of the GNU General Public License along
  * with this program; if not, write to the Free Software Foundation, Inc.,
  * 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
+ *
+ * Additional note on redistribution: The copyright and license notices above
+ * must be maintained in each individual source file that is a derivative work
+ * of this source file; otherwise redistribution is prohibited.
  */
 
 #include "openpilot.h"
@@ -1613,31 +1617,6 @@ int32_t UAVObjDisconnectCallback(UAVObjHandle obj_handle, UAVObjEventCallback cb
 	res = disconnectObj(obj_handle, 0, cb, cbCtx);
 	PIOS_Recursive_Mutex_Unlock(mutex);
 	return res;
-}
-
-/**
- * Request an update of the object's data from the GCS. The call will not wait for the response, a EV_UPDATED event
- * will be generated as soon as the object is updated.
- * \param[in] obj The object handle
- */
-void UAVObjRequestUpdate(UAVObjHandle obj_handle)
-{
-	UAVObjRequestInstanceUpdate(obj_handle, UAVOBJ_ALL_INSTANCES);
-}
-
-/**
- * Request an update of the object's data from the GCS. The call will not wait for the response, a EV_UPDATED event
- * will be generated as soon as the object is updated.
- * \param[in] obj The object handle
- * \param[in] instId Object instance ID to update
- */
-void UAVObjRequestInstanceUpdate(UAVObjHandle obj_handle, uint16_t instId)
-{
-	PIOS_Assert(obj_handle);
-	PIOS_Recursive_Mutex_Lock(mutex, PIOS_MUTEX_TIMEOUT_MAX);
-	sendEvent((struct UAVOBase *) obj_handle, instId, EV_UPDATE_REQ,
-		NULL, 0);
-	PIOS_Recursive_Mutex_Unlock(mutex);
 }
 
 /**

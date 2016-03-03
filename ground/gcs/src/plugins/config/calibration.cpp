@@ -2,7 +2,7 @@
  ******************************************************************************
  * @file       calibration.cpp
  * @author     Tau Labs, http://taulabs.org, Copyright (C) 2013
- * @author     dRonin, http://dronin.org Copyright (C) 2015
+ * @author     dRonin, http://dronin.org Copyright (C) 2015-2016
  * @brief      Gui-less support class for calibration
  * @see        The GNU Public License (GPL) Version 3
  *
@@ -25,6 +25,10 @@
  * You should have received a copy of the GNU General Public License along
  * with this program; if not, write to the Free Software Foundation, Inc.,
  * 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
+ *
+ * Additional note on redistribution: The copyright and license notices above
+ * must be maintained in each individual source file that is a derivative work
+ * of this source file; otherwise redistribution is prohibited.
  */
 
 #include "calibration.h"
@@ -139,7 +143,6 @@ void Calibration::connectSensor(sensor_type sensor, bool con)
             Accels * accels = Accels::GetInstance(getObjectManager());
             Q_ASSERT(accels);
 
-            assignUpdateRate(accels, NON_SENSOR_UPDATE_PERIOD);
             disconnect(accels, SIGNAL(objectUpdated(UAVObject*)), this, SLOT(dataUpdated(UAVObject *)));
         }
             break;
@@ -149,7 +152,6 @@ void Calibration::connectSensor(sensor_type sensor, bool con)
             Magnetometer * mag = Magnetometer::GetInstance(getObjectManager());
             Q_ASSERT(mag);
 
-            assignUpdateRate(mag, NON_SENSOR_UPDATE_PERIOD);
             disconnect(mag, SIGNAL(objectUpdated(UAVObject*)), this, SLOT(dataUpdated(UAVObject *)));
         }
             break;
@@ -159,7 +161,6 @@ void Calibration::connectSensor(sensor_type sensor, bool con)
             Gyros * gyros = Gyros::GetInstance(getObjectManager());
             Q_ASSERT(gyros);
 
-            assignUpdateRate(gyros, NON_SENSOR_UPDATE_PERIOD);
             disconnect(gyros, SIGNAL(objectUpdated(UAVObject*)), this, SLOT(dataUpdated(UAVObject *)));
         }
             break;
@@ -179,7 +180,7 @@ void Calibration::assignUpdateRate(UAVObject* obj, quint32 updatePeriod)
     UAVDataObject *dobj = dynamic_cast<UAVDataObject*>(obj);
     Q_ASSERT(dobj);
     UAVObject::Metadata mdata = obj->getMetadata();
-    UAVObject::SetFlightTelemetryUpdateMode(mdata, UAVObject::UPDATEMODE_PERIODIC);
+    UAVObject::SetFlightTelemetryUpdateMode(mdata, UAVObject::UPDATEMODE_THROTTLED);
     mdata.flightTelemetryUpdatePeriod = updatePeriod;
     QEventLoop loop;
     QTimer::singleShot(META_OPERATIONS_TIMEOUT, &loop, SLOT(quit()));
@@ -187,26 +188,9 @@ void Calibration::assignUpdateRate(UAVObject* obj, quint32 updatePeriod)
     // Show the UI is blocking
     emit calibrationBusy(true);
     obj->setMetadata(mdata);
+    obj->updated();
     loop.exec();
     emit calibrationBusy(false);
-}
-
-//! Slow all the other data updates
-void Calibration::slowDataUpdates()
-{
-    // Save previous sensor states
-    originalMetaData = getObjectUtilManager()->readAllNonSettingsMetadata();
-    foreach (QString key, originalMetaData.keys()) {
-        UAVObject *obj = getObjectManager()->getObject(key);
-        Q_ASSERT(obj);
-        UAVObject::Metadata mdata = obj->getMetadata();
-        UAVObject::SetFlightTelemetryUpdateMode(mdata, UAVObject::UPDATEMODE_PERIODIC);
-        mdata.flightTelemetryUpdatePeriod = NON_SENSOR_UPDATE_PERIOD;
-        slowedDownMetaDataList.insert(key, mdata);
-    }
-    slowedDownMetaDataList.remove(FlightTelemetryStats::NAME);
-    // Set new metadata
-    setMetadata(slowedDownMetaDataList);
 }
 
 /**
@@ -481,7 +465,7 @@ void Calibration::doStartOrientation() {
     calibration_state = YAW_ORIENTATION;
 
     // Update sensor rates
-    slowDataUpdates();
+    originalMetaData = getObjectUtilManager()->readAllNonSettingsMetadata();
     connectSensor(GYRO, false);
     connectSensor(MAG, false);
     connectSensor(ACCEL, true);
@@ -532,7 +516,7 @@ void Calibration::doStartLeveling() {
     calibration_state = LEVELING;
 
     // Connect to the sensor updates and set higher rates
-    slowDataUpdates();
+    originalMetaData = getObjectUtilManager()->readAllNonSettingsMetadata();
     connectSensor(MAG, false);
     connectSensor(ACCEL, true);
     connectSensor(GYRO, true);
@@ -617,8 +601,6 @@ void Calibration::doStartSixPoint()
 
     // TODO: Document why the thread needs to wait 100ms.
     Thread::usleep(100000);
-
-    slowDataUpdates();
 
     connectSensor(ACCEL, false);
     connectSensor(GYRO, false);
@@ -745,7 +727,7 @@ void Calibration::doStartTempCal()
     calibration_state = GYRO_TEMP_CAL;
 
     // Set up the data rates
-    slowDataUpdates();
+    originalMetaData = getObjectUtilManager()->readAllNonSettingsMetadata();
     connectSensor(GYRO, true);
 
     emit toggleControls(false);

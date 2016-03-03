@@ -7,7 +7,7 @@
  * @file       uavobjectmanager.h
  * @author     The OpenPilot Team, http://www.openpilot.org Copyright (C) 2010.
  * @author     Tau Labs, http://taulabs.org, Copyright (C) 2012-2014
- * @author     dRonin, http://dronin.org Copyright (C) 2015
+ * @author     dRonin, http://dronin.org Copyright (C) 2015-2016
  * @brief      Object manager library. This library holds a collection of all objects.
  *             It can be used by all modules/libraries to find an object reference.
  * @see        The GNU Public License (GPL) Version 3
@@ -27,6 +27,10 @@
  * You should have received a copy of the GNU General Public License along
  * with this program; if not, write to the Free Software Foundation, Inc.,
  * 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
+ *
+ * Additional note on redistribution: The copyright and license notices above
+ * must be maintained in each individual source file that is a derivative work
+ * of this source file; otherwise redistribution is prohibited.
  */
 
 #ifndef UAVOBJECTMANAGER_H
@@ -92,8 +96,6 @@ typedef enum {
 	EV_UPDATED = 0x02, /** Object data updated by changing the data structure */
 	EV_UPDATED_MANUAL = 0x04, /** Object update event manually generated */
 	EV_UPDATED_PERIODIC = 0x08, /** Object update from periodic event */
-	EV_UPDATE_REQ = 0x10, /** Request to update object data */
-	EV_UPDATED_THROTTLED_DIRTY = 0x40 /** Indicates a throttled object has been updated but not sent **/
 } UAVObjEventType;
 
 /**
@@ -205,8 +207,6 @@ int32_t UAVObjConnectQueueThrottled(UAVObjHandle obj_handle, struct pios_queue *
 int32_t UAVObjConnectCallback(UAVObjHandle obj_handle, UAVObjEventCallback cb, void *cbCtx, uint8_t eventMask);
 int32_t UAVObjConnectCallbackThrottled(UAVObjHandle obj_handle, UAVObjEventCallback cb, void *cbCtx, uint8_t eventMask, uint16_t interval);
 int32_t UAVObjDisconnectCallback(UAVObjHandle obj_handle, UAVObjEventCallback cb, void *cbCtx);
-void UAVObjRequestUpdate(UAVObjHandle obj);
-void UAVObjRequestInstanceUpdate(UAVObjHandle obj_handle, uint16_t instId);
 void UAVObjUpdated(UAVObjHandle obj);
 void UAVObjInstanceUpdated(UAVObjHandle obj_handle, uint16_t instId);
 void UAVObjIterate(void (*iterator)(UAVObjHandle obj));
