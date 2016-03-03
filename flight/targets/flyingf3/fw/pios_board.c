@@ -160,18 +160,6 @@ uintptr_t pios_waypoints_settings_fs_id;
 uintptr_t pios_internal_adc_id;
 
 /**
- * Indicate a target-specific error code when a component fails to initialize
- * 1 pulse - L3GD20
- * 2 pulses - LSM303
- * 3 pulses - internal I2C bus locked
- * 4 pulses - external I2C bus locked
- * 6 pulses - CAN bus
- */
-void panic(int32_t code) {
-    PIOS_HAL_Panic(PIOS_LED_ALARM, code);
-}
-
-/**
  * PIOS_Board_Init()
  * initializes all the core subsystems on this specific hardware
  * called from System/openpilot.c
@@ -203,18 +191,18 @@ void PIOS_Board_Init(void) {
 		PIOS_DEBUG_Assert(0);
 	}
 	if (PIOS_I2C_CheckClear(pios_i2c_internal_id) != 0)
-		panic(3);
+		PIOS_HAL_Panic(PIOS_LED_ALARM, PIOS_HAL_PANIC_I2C_INT);
 
 	if (PIOS_I2C_Init(&pios_i2c_external_id, &pios_i2c_external_cfg)) {
 		PIOS_DEBUG_Assert(0);
 	}
 	if (PIOS_I2C_CheckClear(pios_i2c_external_id) != 0)
-		panic(4);
+		PIOS_HAL_Panic(PIOS_LED_ALARM, PIOS_HAL_PANIC_I2C_EXT);
 #endif
 
 #if defined(PIOS_INCLUDE_CAN)
 	if (PIOS_CAN_Init(&pios_can_id, &pios_can_cfg) != 0)
-		panic(6);
+		PIOS_HAL_Panic(PIOS_LED_ALARM, PIOS_HAL_PANIC_CAN);
 
 	uint8_t * rx_buffer = (uint8_t *) PIOS_malloc(PIOS_COM_CAN_RX_BUF_LEN);
 	uint8_t * tx_buffer = (uint8_t *) PIOS_malloc(PIOS_COM_CAN_TX_BUF_LEN);
@@ -223,7 +211,7 @@ void PIOS_Board_Init(void) {
 	if (PIOS_COM_Init(&pios_com_can_id, &pios_can_com_driver, pios_can_id,
 	                  rx_buffer, PIOS_COM_CAN_RX_BUF_LEN,
 	                  tx_buffer, PIOS_COM_CAN_TX_BUF_LEN))
-		panic(6);
+		PIOS_HAL_Panic(PIOS_LED_ALARM, PIOS_HAL_PANIC_CAN);
 
 	pios_com_bridge_id = pios_com_can_id;
 #endif
@@ -538,9 +526,9 @@ void PIOS_Board_Init(void) {
 
 #if defined(PIOS_INCLUDE_L3GD20) && defined(PIOS_INCLUDE_SPI)
 	if (PIOS_L3GD20_Init(pios_spi_internal_id, 0, &pios_l3gd20_cfg) != 0)
-		panic(1);
+		PIOS_HAL_Panic(PIOS_LED_ALARM, PIOS_HAL_PANIC_IMU);
 	if (PIOS_L3GD20_Test() != 0)
-		panic(1);
+		PIOS_HAL_Panic(PIOS_LED_ALARM, PIOS_HAL_PANIC_IMU);
 
 	uint8_t hw_l3gd20_samplerate;
 	HwFlyingF3L3GD20RateGet(&hw_l3gd20_samplerate);
@@ -584,11 +572,11 @@ void PIOS_Board_Init(void) {
 
 #if defined(PIOS_INCLUDE_LSM303) && defined(PIOS_INCLUDE_I2C)
 	if (PIOS_LSM303_Init(pios_i2c_internal_id, &pios_lsm303_cfg) != 0)
-		panic(2);
+		PIOS_HAL_Panic(PIOS_LED_ALARM, PIOS_HAL_PANIC_IMU);
 	if (PIOS_LSM303_Accel_Test() != 0)
-		panic(2);
+		PIOS_HAL_Panic(PIOS_LED_ALARM, PIOS_HAL_PANIC_IMU);
 	if (PIOS_LSM303_Mag_Test() != 0)
-		panic(2);
+		PIOS_HAL_Panic(PIOS_LED_ALARM, PIOS_HAL_PANIC_IMU);
 
 	uint8_t hw_accel_range;
 	HwFlyingF3AccelRangeGet(&hw_accel_range);
@@ -665,9 +653,9 @@ void PIOS_Board_Init(void) {
 	case HWFLYINGF3_SHIELD_BMP085:
 #if defined(PIOS_INCLUDE_BMP085) && defined(PIOS_INCLUDE_I2C)
 	if (PIOS_BMP085_Init(&pios_bmp085_cfg, pios_i2c_external_id) != 0)
-		panic(5);
+		PIOS_HAL_Panic(PIOS_LED_ALARM, PIOS_HAL_PANIC_BARO);
 	if (PIOS_BMP085_Test() != 0)
-		panic(5);
+		PIOS_HAL_Panic(PIOS_LED_ALARM, PIOS_HAL_PANIC_BARO);
 #endif /* PIOS_INCLUDE_BMP085 && PIOS_INCLUDE_I2C */
 #if defined(PIOS_INCLUDE_ADC)
 		//Sanity check, this is to ensure that no one changes the adc_pins array without changing the defines

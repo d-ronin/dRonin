@@ -169,22 +169,6 @@ uintptr_t streamfs_id;
 uintptr_t external_i2c_adapter_id = 0;
 
 /**
- * Indicate a target-specific error code when a component fails to initialize
- * 1 pulse - flash chip
- * 2 pulses - MPU6000
- * 3 pulses - HMC5883
- * 4 pulses - MS5611
- * 5 pulses - internal I2C bus locked
- * 6 pulses - uart1 I2C bus locked
- * 7 pulses - uart3 I2C bus locked
- * 8 pulses - HMC5883 on uart1 I2C
- * 9 pulses - HMC5883 on uart3 I2C
- */
-void panic(int32_t code) {
-    PIOS_HAL_Panic(PIOS_LED_ALARM, code);
-}
-
-/**
  * PIOS_Board_Init()
  * initializes all the core subsystems on this specific hardware
  * called from System/openpilot.c
@@ -210,7 +194,7 @@ void PIOS_Board_Init(void) {
 		PIOS_DEBUG_Assert(0);
 	}
 	if (PIOS_I2C_CheckClear(pios_i2c_internal_adapter_id) != 0)
-		panic(5);
+		PIOS_HAL_Panic(PIOS_LED_ALARM, PIOS_HAL_PANIC_I2C_INT);
 #endif
 
 #if defined(PIOS_INCLUDE_SPI)
@@ -226,9 +210,9 @@ void PIOS_Board_Init(void) {
 #if defined(PIOS_INCLUDE_FLASH)
 	/* Inititialize all flash drivers */
 	if (PIOS_Flash_Jedec_Init(&pios_external_flash_id, pios_spi_flash_id, 0, &flash_mx25_cfg) != 0)
-		panic(1);
+		PIOS_HAL_Panic(PIOS_LED_ALARM, PIOS_HAL_PANIC_FLASH);
 	if (PIOS_Flash_Internal_Init(&pios_internal_flash_id, &flash_internal_cfg) != 0)
-		panic(1);
+		PIOS_HAL_Panic(PIOS_LED_ALARM, PIOS_HAL_PANIC_FLASH);
 
 	/* Register the partition table */
 	const struct pios_flash_partition * flash_partition_table;
@@ -238,9 +222,9 @@ void PIOS_Board_Init(void) {
 
 	/* Mount all filesystems */
 	if (PIOS_FLASHFS_Logfs_Init(&pios_uavo_settings_fs_id, &flashfs_settings_cfg, FLASH_PARTITION_LABEL_SETTINGS) != 0)
-		panic(1);
+		PIOS_HAL_Panic(PIOS_LED_ALARM, PIOS_HAL_PANIC_FILESYS);
 	if (PIOS_FLASHFS_Logfs_Init(&pios_waypoints_settings_fs_id, &flashfs_waypoints_cfg, FLASH_PARTITION_LABEL_WAYPOINTS) != 0)
-		panic(1);
+		PIOS_HAL_Panic(PIOS_LED_ALARM, PIOS_HAL_PANIC_FILESYS);
 #endif	/* PIOS_INCLUDE_FLASH */
 
 	/* Initialize the task monitor library */
@@ -593,9 +577,9 @@ void PIOS_Board_Init(void) {
 
 #if defined(PIOS_INCLUDE_MPU6000)
 	if (PIOS_MPU6000_Init(pios_spi_gyro_accel_id, 0, &pios_mpu6000_cfg) != 0)
-		panic(2);
+		PIOS_HAL_Panic(PIOS_LED_ALARM, PIOS_HAL_PANIC_IMU);
 	if (PIOS_MPU6000_Test() != 0)
-		panic(2);
+		PIOS_HAL_Panic(PIOS_LED_ALARM, PIOS_HAL_PANIC_IMU);
 
 	// To be safe map from UAVO enum to driver enum
 	uint8_t hw_gyro_range;
@@ -669,9 +653,9 @@ void PIOS_Board_Init(void) {
 
 		if (Magnetometer == HWQUANTON_MAGNETOMETER_INTERNAL) {
 			if (PIOS_HMC5883_Init(pios_i2c_internal_adapter_id, &pios_hmc5883_internal_cfg) != 0)
-				panic(3);
+				PIOS_HAL_Panic(PIOS_LED_ALARM, PIOS_HAL_PANIC_MAG);
 			if (PIOS_HMC5883_Test() != 0)
-				panic(3);
+				PIOS_HAL_Panic(PIOS_LED_ALARM, PIOS_HAL_PANIC_MAG);
 		}
 
 		if (Magnetometer == HWQUANTON_MAGNETOMETER_EXTERNALI2CUART1) {
@@ -717,9 +701,9 @@ void PIOS_Board_Init(void) {
 
 #if defined(PIOS_INCLUDE_MS5611)
 	if (PIOS_MS5611_Init(&pios_ms5611_cfg, pios_i2c_internal_adapter_id) != 0)
-		panic(4);
+		PIOS_HAL_Panic(PIOS_LED_ALARM, PIOS_HAL_PANIC_BARO);
 	if (PIOS_MS5611_Test() != 0)
-		panic(4);
+		PIOS_HAL_Panic(PIOS_LED_ALARM, PIOS_HAL_PANIC_BARO);
 #endif
 
 	//I2C is slow, sensor init as well, reset watchdog to prevent reset here
@@ -746,14 +730,14 @@ void PIOS_Board_Init(void) {
 
 #if defined(PIOS_INCLUDE_FLASH) && defined(PIOS_INCLUDE_FLASH_JEDEC)
 	if ( PIOS_STREAMFS_Init(&streamfs_id, &streamfs_settings, FLASH_PARTITION_LABEL_LOG) != 0)
-		panic(8);
+		PIOS_HAL_Panic(PIOS_LED_ALARM, PIOS_HAL_PANIC_FILESYS);
 
 	const uint32_t LOG_BUF_LEN = 256;
 	uint8_t *log_rx_buffer = PIOS_malloc(LOG_BUF_LEN);
 	uint8_t *log_tx_buffer = PIOS_malloc(LOG_BUF_LEN);
 	if (PIOS_COM_Init(&pios_com_spiflash_logging_id, &pios_streamfs_com_driver, streamfs_id,
 	                  log_rx_buffer, LOG_BUF_LEN, log_tx_buffer, LOG_BUF_LEN) != 0)
-		panic(9);
+		PIOS_HAL_Panic(PIOS_LED_ALARM, PIOS_HAL_PANIC_FLASH);
 #endif /* PIOS_INCLUDE_FLASH */
 
 	//Set battery input pin to output, because of the voltage divider usage as input is not useful

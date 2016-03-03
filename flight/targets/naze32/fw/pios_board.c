@@ -11,28 +11,28 @@
  * @author     dRonin, http://dronin.org Copyright (C) 2015
  * @brief      The board specific initialization routines
  * @see        The GNU Public License (GPL) Version 3
- * 
+ *
  *****************************************************************************/
-/* 
- * This program is free software; you can redistribute it and/or modify 
- * it under the terms of the GNU General Public License as published by 
- * the Free Software Foundation; either version 3 of the License, or 
+/*
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 3 of the License, or
  * (at your option) any later version.
- * 
- * This program is distributed in the hope that it will be useful, but 
- * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY 
- * or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License 
+ *
+ * This program is distributed in the hope that it will be useful, but
+ * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
+ * or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License
  * for more details.
- * 
- * You should have received a copy of the GNU General Public License along 
- * with this program; if not, write to the Free Software Foundation, Inc., 
+ *
+ * You should have received a copy of the GNU General Public License along
+ * with this program; if not, write to the Free Software Foundation, Inc.,
  * 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
  */
 
 /* Pull in the board-specific static HW definitions.
  * Including .c files is a bit ugly but this allows all of
  * the HW definitions to be const and static to limit their
- * scope.  
+ * scope.
  *
  * NOTE: THIS IS THE ONLY PLACE THAT SHOULD EVER INCLUDE THIS FILE
  */
@@ -226,20 +226,6 @@ uintptr_t pios_internal_adc_id;
 extern uintptr_t pios_com_msp_id;
 #endif
 
-
-/**
- * Indicate a target-specific error code when a component fails to initialize
- * 1 pulse - MPU6050 - no irq
- * 2 pulses - MPU6050 - failed configuration or task starting
- * 3 pulses - internal I2C bus locked
- * 4 pulses - ms5611
- * 5 pulses - flash
- * 6 pulses - hmc5883l
- */
-void panic(int32_t code) {
-	PIOS_HAL_Panic(PIOS_LED_ALARM, code);
-}
-
 /**
  * PIOS_Board_Init()
  * initializes all the core subsystems on this specific hardware
@@ -258,7 +244,7 @@ void PIOS_Board_Init(void) {
 	bool board_v5 = (hse_value == 12000000);
 
 	//TODO: Buzzer
-	//rev5 needs inverted beeper. 
+	//rev5 needs inverted beeper.
 
 	//const struct pios_board_info * bdinfo = &pios_board_info_blob;
 
@@ -281,13 +267,13 @@ void PIOS_Board_Init(void) {
 		PIOS_DEBUG_Assert(0);
 	}
 	if (PIOS_I2C_CheckClear(pios_i2c_internal_id) != 0)
-		panic(3);
+		PIOS_HAL_Panic(PIOS_LED_ALARM, PIOS_HAL_PANIC_I2C_INT);
 #endif
 
 #if defined(PIOS_INCLUDE_FLASH)
 	/* Inititialize all flash drivers */
 	if (PIOS_Flash_Internal_Init(&pios_internal_flash_id, &flash_internal_cfg) != 0)
-		panic(5);
+		PIOS_HAL_Panic(PIOS_LED_ALARM, PIOS_HAL_PANIC_FLASH);
 
 	/* Register the partition table */
 	const struct pios_flash_partition * flash_partition_table;
@@ -297,7 +283,7 @@ void PIOS_Board_Init(void) {
 
 	/* Mount all filesystems */
 	if (PIOS_FLASHFS_Logfs_Init(&pios_uavo_settings_fs_id, &flashfs_internal_settings_cfg, FLASH_PARTITION_LABEL_SETTINGS) != 0)
-		panic(5);
+		PIOS_HAL_Panic(PIOS_LED_ALARM, PIOS_HAL_PANIC_FILESYS);
 
 #endif	/* PIOS_INCLUDE_FLASH */
 
@@ -397,10 +383,10 @@ void PIOS_Board_Init(void) {
 		{
 			uint8_t hw_rcvrserial;
 			HwNazeRcvrSerialGet(&hw_rcvrserial);
-			
+
 			HwNazeDSMxModeOptions hw_DSMxMode;
 			HwNazeDSMxModeGet(&hw_DSMxMode);
-			
+
 			PIOS_HAL_ConfigurePort(hw_rcvrserial,        // port type protocol
 					&pios_usart_rcvrserial_cfg,          // usart_port_cfg
 					&pios_usart_com_driver,              // com_driver
@@ -416,7 +402,7 @@ void PIOS_Board_Init(void) {
 
 		if (hw_rcvrport == HWNAZE_RCVRPORT_SERIAL)
 			break;
-		
+
 		// Else fall through to set up PPM.
 
 	case HWNAZE_RCVRPORT_PPM:
@@ -529,9 +515,9 @@ void PIOS_Board_Init(void) {
 	}
 
 	if (PIOS_MPU6050_Init(pios_i2c_internal_id, PIOS_MPU6050_I2C_ADD_A0_LOW, &pios_mpu6050_cfg) != 0)
-		panic(2);
+		PIOS_HAL_Panic(PIOS_LED_ALARM, PIOS_HAL_PANIC_IMU);
 	if (PIOS_MPU6050_Test() != 0)
-		panic(2);
+		PIOS_HAL_Panic(PIOS_LED_ALARM, PIOS_HAL_PANIC_IMU);
 
 	uint8_t hw_gyro_range;
 	HwNazeGyroRangeGet(&hw_gyro_range);
@@ -597,17 +583,17 @@ void PIOS_Board_Init(void) {
 
 #if defined(PIOS_INCLUDE_MS5611)
 	if (PIOS_MS5611_Init(&pios_ms5611_cfg, pios_i2c_internal_id) != 0)
-		panic(4);
+		PIOS_HAL_Panic(PIOS_LED_ALARM, PIOS_HAL_PANIC_BARO);
 	if (PIOS_MS5611_Test() != 0)
-		panic(4);
+		PIOS_HAL_Panic(PIOS_LED_ALARM, PIOS_HAL_PANIC_BARO);
 #endif
 
 #if defined(PIOS_INCLUDE_HMC5883)
 	//TODO: if(board_v5) { /* use PC14 instead of PB12 for MAG_DRDY (exti) */ }
 	if (PIOS_HMC5883_Init(pios_i2c_internal_id, &pios_hmc5883_cfg) != 0)
-		panic(6);
+		PIOS_HAL_Panic(PIOS_LED_ALARM, PIOS_HAL_PANIC_MAG);
         if (PIOS_HMC5883_Test() != 0)
-		panic(6);
+		PIOS_HAL_Panic(PIOS_LED_ALARM, PIOS_HAL_PANIC_MAG);
 #endif
 
 #if defined(PIOS_INCLUDE_GPIO)

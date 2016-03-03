@@ -189,7 +189,7 @@ uintptr_t pios_com_debug_id;
  * @param[in] led_id The LED to blink
  * @param[in] code Number of blinks to do in a row
  */
-void PIOS_HAL_Panic(uint32_t led_id, int32_t code) {
+void PIOS_HAL_Panic(uint32_t led_id, enum pios_hal_panic code) {
 	while (1) {
 		for (int32_t i = 0; i < code; i++) {
 			PIOS_WDG_Clear();
