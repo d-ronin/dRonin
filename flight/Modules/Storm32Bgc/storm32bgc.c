@@ -144,15 +144,18 @@ static void storm32bgcTask(void *parameters)
 
 		switch(cmd_set_angle(pitch_setpoint, 0.0f, yaw_setpoint, 0x00, 0x00)) {
 
-			case 0:  // No response from Storm32Bgc controller
+			case 0:  // No response from Storm32Bgc
 				AlarmsSet(SYSTEMALARMS_ALARM_GIMBAL, SYSTEMALARMS_ALARM_ERROR);
 				break;
 
-			case 1:  // Successful ACK response from Storm32Bgc controller
+			case 1:  // ACK response from Storm32Bgc
 				AlarmsSet(SYSTEMALARMS_ALARM_GIMBAL, SYSTEMALARMS_ALARM_OK);
 				break;
 
-			default: // Unsuccessful ACK response from Strom32Bgc controller
+			case 200: // ACK response from Storm32Bgc with CRC error
+				AlarmsSet(SYSTEMALARMS_ALARM_GIMBAL, SYSTEMALARMS_ALARM_CRITICAL);
+
+			default: // ACK response from Storm32Bgc with internal error
 				AlarmsSet(SYSTEMALARMS_ALARM_GIMBAL, SYSTEMALARMS_ALARM_WARNING);
 		}
 	}
