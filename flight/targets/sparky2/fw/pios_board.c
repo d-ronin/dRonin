@@ -142,17 +142,6 @@ uintptr_t pios_can_id;
 
 uintptr_t streamfs_id;
 
-/**
- * Indicate a target-specific error code when a component fails to initialize
- * 1 pulse - flash chip
- * 2 pulses - MPU9250
- * 4 pulses - MS5611
- * 6 pulses - external mag
- */
-static void panic(int32_t code) {
-	PIOS_HAL_Panic(PIOS_LED_ALARM, code);
-}
-
 void set_vtx_channel(HwSparky2VTX_ChOptions channel)
 {
 	uint8_t chan = 0;
@@ -406,7 +395,7 @@ void PIOS_Board_Init(void) {
 #if defined(PIOS_INCLUDE_FLASH_JEDEC)
 	if (get_external_flash(bdinfo->board_rev)) {
 		if (PIOS_Flash_Jedec_Init(&pios_external_flash_id, pios_spi_telem_flash_id, 1, &flash_m25p_cfg) != 0)
-			panic(1);
+			PIOS_HAL_Panic(PIOS_LED_ALARM, PIOS_HAL_PANIC_FLASH);
 	}
 #endif /* PIOS_INCLUDE_FLASH_JEDEC */
 
@@ -420,11 +409,11 @@ void PIOS_Board_Init(void) {
 
 	/* Mount all filesystems */
 	if (PIOS_FLASHFS_Logfs_Init(&pios_uavo_settings_fs_id, get_flashfs_settings_cfg(bdinfo->board_rev), FLASH_PARTITION_LABEL_SETTINGS))
-		panic(1);
+		PIOS_HAL_Panic(PIOS_LED_ALARM, PIOS_HAL_PANIC_FILESYS);
 #if defined(PIOS_INCLUDE_FLASH_JEDEC)
 	if (get_external_flash(bdinfo->board_rev)) {
 		if (PIOS_FLASHFS_Logfs_Init(&pios_waypoints_settings_fs_id, &flashfs_waypoints_cfg, FLASH_PARTITION_LABEL_WAYPOINTS) != 0)
-			panic(1);
+			PIOS_HAL_Panic(PIOS_LED_ALARM, PIOS_HAL_PANIC_FILESYS);
 	}
 #endif /* PIOS_INCLUDE_FLASH_JEDEC */
 
@@ -643,7 +632,7 @@ void PIOS_Board_Init(void) {
 #if defined(PIOS_INCLUDE_CAN)
 	if(get_use_can(bdinfo->board_rev)) {
 		if (PIOS_CAN_Init(&pios_can_id, &pios_can_cfg) != 0)
-			panic(6);
+			PIOS_HAL_Panic(PIOS_LED_ALARM, PIOS_HAL_PANIC_CAN);
 
 		uint8_t * rx_buffer = (uint8_t *) PIOS_malloc(PIOS_COM_CAN_RX_BUF_LEN);
 		uint8_t * tx_buffer = (uint8_t *) PIOS_malloc(PIOS_COM_CAN_TX_BUF_LEN);
@@ -652,7 +641,7 @@ void PIOS_Board_Init(void) {
 		if (PIOS_COM_Init(&pios_com_can_id, &pios_can_com_driver, pios_can_id,
 		                  rx_buffer, PIOS_COM_CAN_RX_BUF_LEN,
 		                  tx_buffer, PIOS_COM_CAN_TX_BUF_LEN))
-			panic(6);
+			PIOS_HAL_Panic(PIOS_LED_ALARM, PIOS_HAL_PANIC_CAN);
 
 		/* pios_com_bridge_id = pios_com_can_id; */
 	}
@@ -670,9 +659,9 @@ void PIOS_Board_Init(void) {
 
 #if defined(PIOS_INCLUDE_MS5611)
 	if (PIOS_MS5611_Init(&pios_ms5611_cfg, pios_i2c_mag_pressure_adapter_id) != 0)
-		panic(4);
+		PIOS_HAL_Panic(PIOS_LED_ALARM, PIOS_HAL_PANIC_BARO);
 	if (PIOS_MS5611_Test() != 0)
-		panic(4);
+		PIOS_HAL_Panic(PIOS_LED_ALARM, PIOS_HAL_PANIC_BARO);
 #endif
 
 	uint8_t Magnetometer;
@@ -684,7 +673,7 @@ void PIOS_Board_Init(void) {
 
 #if defined(PIOS_INCLUDE_MPU9250_SPI)
 	if (PIOS_MPU9250_SPI_Init(pios_spi_gyro_id, 0, &pios_mpu9250_cfg) != 0)
-		panic(2);
+		PIOS_HAL_Panic(PIOS_LED_ALARM, PIOS_HAL_PANIC_IMU);
 
 	// To be safe map from UAVO enum to driver enum
 	uint8_t hw_gyro_range;
@@ -769,14 +758,14 @@ void PIOS_Board_Init(void) {
 		if (Magnetometer == HWSPARKY2_MAGNETOMETER_EXTERNALI2CFLEXIPORT)
 		{
 			if (PIOS_HMC5883_Init(pios_i2c_flexiport_adapter_id, &pios_hmc5883_external_cfg) != 0)
-				panic(6);
+				PIOS_HAL_Panic(PIOS_LED_ALARM, PIOS_HAL_PANIC_MAG);
 			if (PIOS_HMC5883_Test() != 0)
-				panic(6);
+				PIOS_HAL_Panic(PIOS_LED_ALARM, PIOS_HAL_PANIC_MAG);
 		} else if (Magnetometer == HWSPARKY2_MAGNETOMETER_EXTERNALAUXI2C) {
 			if (PIOS_HMC5883_Init(pios_i2c_mag_pressure_adapter_id, &pios_hmc5883_external_cfg) != 0)
-				panic(6);
+				PIOS_HAL_Panic(PIOS_LED_ALARM, PIOS_HAL_PANIC_MAG);
 			if (PIOS_HMC5883_Test() != 0)
-				panic(6);
+				PIOS_HAL_Panic(PIOS_LED_ALARM, PIOS_HAL_PANIC_MAG);
 		}
 
 		if (Magnetometer != HWSPARKY2_MAGNETOMETER_INTERNAL) {
@@ -801,14 +790,14 @@ void PIOS_Board_Init(void) {
 #if defined(PIOS_INCLUDE_FLASH) && defined(PIOS_INCLUDE_FLASH_JEDEC)
 	if (get_external_flash(bdinfo->board_rev)) {
 		if ( PIOS_STREAMFS_Init(&streamfs_id, &streamfs_settings, FLASH_PARTITION_LABEL_LOG) != 0)
-			panic(8);
+			PIOS_HAL_Panic(PIOS_LED_ALARM, PIOS_HAL_PANIC_FILESYS);
 			
 		const uint32_t LOG_BUF_LEN = 256;
 		uint8_t *log_rx_buffer = PIOS_malloc(LOG_BUF_LEN);
 		uint8_t *log_tx_buffer = PIOS_malloc(LOG_BUF_LEN);
 		if (PIOS_COM_Init(&pios_com_spiflash_logging_id, &pios_streamfs_com_driver, streamfs_id,
 			log_rx_buffer, LOG_BUF_LEN, log_tx_buffer, LOG_BUF_LEN) != 0)
-			panic(9);
+			PIOS_HAL_Panic(PIOS_LED_ALARM, PIOS_HAL_PANIC_FLASH);
 	}
 #endif	/* PIOS_INCLUDE_FLASH */
 
