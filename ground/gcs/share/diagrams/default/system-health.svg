@@ -690,9 +690,9 @@
      inkscape:pageopacity="0.0"
      inkscape:pageshadow="2"
      inkscape:zoom="10.247587"
-     inkscape:cx="45.991584"
+     inkscape:cx="33.891174"
      inkscape:cy="30.836357"
-     inkscape:current-layer="foreground"
+     inkscape:current-layer="g4048"
      id="namedview3608"
      showgrid="false"
      inkscape:window-width="2495"
@@ -3930,7 +3930,7 @@
      id="g11066"
      inkscape:groupmode="layer">
     <rect
-       style="fill:#808080;fill-opacity:0.89019608;stroke:#ffffff;stroke-width:0.53149605;stroke-linejoin:round;stroke-miterlimit:4;stroke-opacity:1;stroke-dasharray:none;display:inline"
+       style="display:inline;fill:#808080;fill-opacity:0.89019608;stroke:#ffffff;stroke-width:0.53149605;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
        id="rect11068"
        width="18.153212"
        height="8.1216154"
@@ -4140,9 +4140,18 @@
   </g>
   <g
      inkscape:groupmode="layer"
-     id="layer55"
+     id="g4048"
      inkscape:label="Gimbal-Uninitialised"
-     style="display:none" />
+     style="display:none">
+    <rect
+       inkscape:label="#Gimbal-Uninitialised"
+       y="23.549982"
+       x="17.566179"
+       height="8.1216154"
+       width="18.153212"
+       id="Gimbal-Uninitialised"
+       style="display:inline;fill:#808080;fill-opacity:0.89019608;stroke:#ffffff;stroke-width:0.53149605;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1" />
+  </g>
   <g
      style="display:none"
      transform="translate(-497.66563,-344.28037)"
