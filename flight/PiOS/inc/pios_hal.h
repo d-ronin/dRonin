@@ -22,16 +22,18 @@
  */
 enum pios_hal_panic {
 	// start at 2, so that panic codes are obvious to user
-	PIOS_HAL_PANIC_IMU  = 2,
-	PIOS_HAL_PANIC_MAG,
-	PIOS_HAL_PANIC_BARO,
-	PIOS_HAL_PANIC_FLASH,
-	PIOS_HAL_PANIC_FILESYS,
-	PIOS_HAL_PANIC_I2C_INT,
-	PIOS_HAL_PANIC_I2C_EXT,
-	PIOS_HAL_PANIC_SPI,
-	PIOS_HAL_PANIC_CAN,
-	PIOS_HAL_PANIC_ADC,
+	// PLEASE ENSURE USER DOCUMENTATION IS UPDATED IF MODIFYING THIS ENUM!!
+	// avoid changing the numbers if possible as it will break docs for old releases
+	PIOS_HAL_PANIC_IMU       = 2,
+	PIOS_HAL_PANIC_MAG       = 3,
+	PIOS_HAL_PANIC_BARO      = 4,
+	PIOS_HAL_PANIC_FLASH     = 5,
+	PIOS_HAL_PANIC_FILESYS   = 6,
+	PIOS_HAL_PANIC_I2C_INT   = 7,
+	PIOS_HAL_PANIC_I2C_EXT   = 8,
+	PIOS_HAL_PANIC_SPI       = 9,
+	PIOS_HAL_PANIC_CAN       = 10,
+	PIOS_HAL_PANIC_ADC       = 11,
 };
 
 /* One slot per selectable receiver group.
