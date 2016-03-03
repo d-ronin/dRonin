@@ -674,6 +674,10 @@ quint32 DFUObject::CRCFromQBArray(QByteArray array, quint32 Size)
   */
 int DFUObject::SendData(bl_messages data)
 {
+    if (!m_hidHandle) {
+        return -1;
+    }
+
     char array[sizeof(bl_messages) + 1];
     array[0] = 0x02;
     memcpy(array + 1, &data, sizeof(bl_messages));
@@ -687,6 +691,10 @@ int DFUObject::SendData(bl_messages data)
   */
 int DFUObject::ReceiveData(bl_messages &data)
 {
+    if (!m_hidHandle) {
+        return -1;
+    }
+
     char array[sizeof(bl_messages) + 1];
     int received = hid_read_timeout(m_hidHandle, (unsigned char *) array, BUF_LEN, 10000);
     memcpy(&data, array + 1, sizeof(bl_messages));
