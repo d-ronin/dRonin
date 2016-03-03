@@ -263,7 +263,7 @@ static const char alarm_names[][10] = {
 	[SYSTEMALARMS_ALARM_TEMPBARO] = "TEMPBARO",
 	[SYSTEMALARMS_ALARM_GYROBIAS] = "GYROBIAS",
 	[SYSTEMALARMS_ALARM_ADC] = "ADC",
-	[SYSTEMALARMS_ALARM_STORM32BGC] = "STORM32BGC",
+	[SYSTEMALARMS_ALARM_GIMBAL] = "GIMBAL",
 };
 
 // If someone adds a new alarm, we'd like it added to the array above.
