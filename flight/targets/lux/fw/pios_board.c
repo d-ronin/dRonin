@@ -109,16 +109,6 @@ uintptr_t pios_can_id;
 uintptr_t pios_com_openlog_logging_id;
 
 /**
- * Indicate a target-specific error code when a component fails to initialize
- * 2 pulses - sensors - failed configuration or task starting
- * 5 pulses - internal flash
- */
-void panic(int32_t code)
-{
-	PIOS_HAL_Panic(PIOS_LED_ALARM, code);
-}
-
-/**
  * PIOS_Board_Init()
  * initializes all the core subsystems on this specific hardware
  * called from System/openpilot.c
@@ -148,7 +138,7 @@ void PIOS_Board_Init(void)
 #if defined(PIOS_INCLUDE_FLASH)
 	/* Inititialize all flash drivers */
 	if (PIOS_Flash_Internal_Init(&pios_internal_flash_id, &flash_internal_cfg) != 0)
-		panic(5);
+		PIOS_HAL_Panic(PIOS_LED_ALARM, PIOS_HAL_PANIC_FLASH);
 
 	/* Register the partition table */
 	const struct pios_flash_partition *flash_partition_table;
@@ -158,9 +148,9 @@ void PIOS_Board_Init(void)
 
 	/* Mount all filesystems */
 	if (PIOS_FLASHFS_Logfs_Init(&pios_uavo_settings_fs_id, &flashfs_internal_settings_cfg, FLASH_PARTITION_LABEL_SETTINGS) != 0)
-		panic(5);
+		PIOS_HAL_Panic(PIOS_LED_ALARM, PIOS_HAL_PANIC_FILESYS);
 	if (PIOS_FLASHFS_Logfs_Init(&pios_waypoints_settings_fs_id, &flashfs_internal_waypoints_cfg, FLASH_PARTITION_LABEL_WAYPOINTS) != 0)
-		panic(5);
+		PIOS_HAL_Panic(PIOS_LED_ALARM, PIOS_HAL_PANIC_FILESYS);
 
 #endif	/* PIOS_INCLUDE_FLASH */
 
@@ -348,7 +338,7 @@ void PIOS_Board_Init(void)
 
 #if defined(PIOS_INCLUDE_MPU9250_SPI)
     if (PIOS_MPU9250_SPI_Init(pios_spi_gyro_id, 0, &pios_mpu9250_cfg) != 0)
-        panic(2);
+        PIOS_HAL_Panic(PIOS_LED_ALARM, PIOS_HAL_PANIC_IMU);
 
     // To be safe map from UAVO enum to driver enum
     uint8_t hw_gyro_range;
