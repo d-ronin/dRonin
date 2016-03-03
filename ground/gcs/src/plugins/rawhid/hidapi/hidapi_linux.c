@@ -724,6 +724,11 @@ static void read_callback(struct libusb_transfer *transfer)
 		LOG("Unknown transfer code: %d\n", transfer->status);
 	}
 
+	if (dev->shutdown_thread) {
+		dev->cancelled = 1;
+		return;
+	}
+
 	/* Re-submit the transfer object. */
 	res = libusb_submit_transfer(transfer);
 	if (res != 0) {
