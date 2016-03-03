@@ -157,13 +157,16 @@ SectionEnd
 ; Copy GCS plugins
 Section "-Plugins" InSecPlugins
   SectionIn RO
+  RMDir /r "$INSTDIR\lib\plugins"
   SetOutPath "$INSTDIR\lib\plugins"
+
   File /r "${GCS_BUILD_TREE}\lib\dr\plugins\*.dll"
   File /r "${GCS_BUILD_TREE}\lib\dr\plugins\*.pluginspec"
 SectionEnd
 
 ; Copy GCS resources
 Section "-Resources" InSecResources
+  RMDir /r "$INSTDIR\share"
   SetOutPath "$INSTDIR\share\default_configurations"
   File /r "${GCS_BUILD_TREE}\share\default_configurations\*"
   SetOutPath "$INSTDIR\share\stylesheets"
