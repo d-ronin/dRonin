@@ -26,7 +26,7 @@
 				<elementname>TempBaro</elementname>
 				<elementname>GyroBias</elementname>
 				<elementname>ADC</elementname>
-				<elementname>Storm32Bgc</elementname>
+				<elementname>Gimbal</elementname>
 			</elementnames>
 		</field>
 		<field name="ConfigError" units="" type="enum" elements="1" defaultvalue="None">
