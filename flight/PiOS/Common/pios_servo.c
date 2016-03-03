@@ -204,7 +204,7 @@ void PIOS_Servo_SetMode(const uint16_t * speeds, const enum pwm_mode *pwm_mode, 
 			} else {
 				TIM_TimeBaseStructure.TIM_Prescaler = (PIOS_PERIPHERAL_APB2_CLOCK / clk_rate) - 1;
 			}
-#elif defined(STM32F40_41xxx) /*  F4 */
+#elif defined(STM32F40_41xxx) || defined(STM32F446xx)/*  F4 */
 			if (chan->timer==TIM6 || chan->timer==TIM7) {
 				// These timers cannot be used here.
 				return;
