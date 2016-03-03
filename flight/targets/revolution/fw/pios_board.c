@@ -174,19 +174,6 @@ uintptr_t pios_com_openlog_logging_id;
 uintptr_t streamfs_id;
 
 /**
- * Indicate a target-specific error code when a component fails to initialize
- * 1 pulse - flash chip
- * 2 pulses - MPU6000
- * 4 pulses - MS5611
- * 6 pulses - magnetometer
- * 8 pulses - streamfs
- * 9 pulses - logging
- */
-static void panic(int32_t code) {
-	PIOS_HAL_Panic(PIOS_LED_ALARM, code);
-}
-
-/**
  * PIOS_Board_Init()
  * initializes all the core subsystems on this specific hardware
  * called from System/openpilot.c
@@ -221,7 +208,7 @@ void PIOS_Board_Init(void) {
 #if defined(PIOS_INCLUDE_FLASH)
 	/* Inititialize all flash drivers */
 	if(PIOS_Flash_Jedec_Init(&pios_external_flash_id, pios_spi_telem_flash_id, 1, &flash_m25p_cfg) != 0)
-		panic(1);
+		PIOS_HAL_Panic(PIOS_LED_ALARM, PIOS_HAL_PANIC_FLASH);
 	PIOS_Flash_Internal_Init(&pios_internal_flash_id, &flash_internal_cfg);
 
 	/* Register the partition table */
@@ -232,9 +219,9 @@ void PIOS_Board_Init(void) {
 
 	/* Mount all filesystems */
 	if(PIOS_FLASHFS_Logfs_Init(&pios_uavo_settings_fs_id, &flashfs_settings_cfg, FLASH_PARTITION_LABEL_SETTINGS) != 0)
-		panic(1);
+		PIOS_HAL_Panic(PIOS_LED_ALARM, PIOS_HAL_PANIC_FILESYS);
 	if(PIOS_FLASHFS_Logfs_Init(&pios_waypoints_settings_fs_id, &flashfs_waypoints_cfg, FLASH_PARTITION_LABEL_WAYPOINTS) != 0)
-		panic(1);
+		PIOS_HAL_Panic(PIOS_LED_ALARM, PIOS_HAL_PANIC_FILESYS);
 
 #endif	/* PIOS_INCLUDE_FLASH */
 
@@ -548,21 +535,21 @@ void PIOS_Board_Init(void) {
 
 #if defined(PIOS_INCLUDE_HMC5883)
 	if(PIOS_HMC5883_Init(PIOS_I2C_MAIN_ADAPTER, &pios_hmc5883_cfg) != 0)
-		panic(6);
+		PIOS_HAL_Panic(PIOS_LED_ALARM, PIOS_HAL_PANIC_MAG);
 	if (PIOS_HMC5883_Test() != 0)
-		panic(6);
+		PIOS_HAL_Panic(PIOS_LED_ALARM, PIOS_HAL_PANIC_MAG);
 #endif
 	
 #if defined(PIOS_INCLUDE_MS5611)
 	if (PIOS_MS5611_Init(&pios_ms5611_cfg, pios_i2c_mag_pressure_adapter_id) != 0)
-		panic(4);
+		PIOS_HAL_Panic(PIOS_LED_ALARM, PIOS_HAL_PANIC_BARO);
 	if (PIOS_MS5611_Test() != 0)
-		panic(4);
+		PIOS_HAL_Panic(PIOS_LED_ALARM, PIOS_HAL_PANIC_BARO);
 #endif
 
 #if defined(PIOS_INCLUDE_MPU6000)
 	if (PIOS_MPU6000_Init(pios_spi_gyro_id,0, &pios_mpu6000_cfg) != 0)
-		panic(2);
+		PIOS_HAL_Panic(PIOS_LED_ALARM, PIOS_HAL_PANIC_IMU);
 
 	// To be safe map from UAVO enum to driver enum
 	uint8_t hw_gyro_range;
@@ -630,14 +617,14 @@ void PIOS_Board_Init(void) {
 
 #if defined(PIOS_INCLUDE_FLASH) && defined(PIOS_INCLUDE_FLASH_JEDEC)
 	if (PIOS_STREAMFS_Init(&streamfs_id, &streamfs_settings, FLASH_PARTITION_LABEL_LOG) != 0)
-		panic(8);
+		PIOS_HAL_Panic(PIOS_LED_ALARM, PIOS_HAL_PANIC_FILESYS);
 		
 	const uint32_t LOG_BUF_LEN = 256;
 	uint8_t *log_rx_buffer = PIOS_malloc(LOG_BUF_LEN);
 	uint8_t *log_tx_buffer = PIOS_malloc(LOG_BUF_LEN);
 	if (PIOS_COM_Init(&pios_com_spiflash_logging_id, &pios_streamfs_com_driver, streamfs_id,
 		log_rx_buffer, LOG_BUF_LEN, log_tx_buffer, LOG_BUF_LEN) != 0)
-		panic(9);
+		PIOS_HAL_Panic(PIOS_LED_ALARM, PIOS_HAL_PANIC_FLASH);
 #endif	/* PIOS_INCLUDE_FLASH */
 
 }
