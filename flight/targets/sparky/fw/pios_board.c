@@ -182,21 +182,6 @@ uintptr_t pios_can_id;
 uintptr_t pios_com_openlog_logging_id;
 
 /**
- * Indicate a target-specific error code when a component fails to initialize
- * 1 pulse - MPU9150 - no irq
- * 2 pulses - MPU9150 - failed configuration or task starting
- * 3 pulses - internal I2C bus locked
- * 4 pulses - external I2C bus locked
- * 5 pulses - flash
- * 6 pulses - CAN
- * 11 pulses - external HMC5883 failed
- */
-void panic(int32_t code)
-{
-	PIOS_HAL_Panic(PIOS_LED_ALARM, code);
-}
-
-/**
  * PIOS_Board_Init()
  * initializes all the core subsystems on this specific hardware
  * called from System/openpilot.c
@@ -220,7 +205,7 @@ void PIOS_Board_Init(void)
 
 #if defined(PIOS_INCLUDE_CAN)
 	if (PIOS_CAN_Init(&pios_can_id, &pios_can_cfg) != 0)
-		panic(6);
+		PIOS_HAL_Panic(PIOS_LED_ALARM, PIOS_HAL_PANIC_CAN);
 
 	uint8_t *rx_buffer = (uint8_t *) PIOS_malloc(PIOS_COM_CAN_RX_BUF_LEN);
 	uint8_t *tx_buffer = (uint8_t *) PIOS_malloc(PIOS_COM_CAN_TX_BUF_LEN);
@@ -229,7 +214,7 @@ void PIOS_Board_Init(void)
 	if (PIOS_COM_Init(&pios_com_can_id, &pios_can_com_driver, pios_can_id,
 	                  rx_buffer, PIOS_COM_CAN_RX_BUF_LEN,
 	                  tx_buffer, PIOS_COM_CAN_TX_BUF_LEN))
-		panic(6);
+		PIOS_HAL_Panic(PIOS_LED_ALARM, PIOS_HAL_PANIC_CAN);
 
 	pios_com_bridge_id = pios_com_can_id;
 #endif
@@ -237,7 +222,7 @@ void PIOS_Board_Init(void)
 #if defined(PIOS_INCLUDE_FLASH)
 	/* Inititialize all flash drivers */
 	if (PIOS_Flash_Internal_Init(&pios_internal_flash_id, &flash_internal_cfg) != 0)
-		panic(5);
+		PIOS_HAL_Panic(PIOS_LED_ALARM, PIOS_HAL_PANIC_FLASH);
 
 	/* Register the partition table */
 	const struct pios_flash_partition *flash_partition_table;
@@ -247,9 +232,9 @@ void PIOS_Board_Init(void)
 
 	/* Mount all filesystems */
 	if (PIOS_FLASHFS_Logfs_Init(&pios_uavo_settings_fs_id, &flashfs_internal_settings_cfg, FLASH_PARTITION_LABEL_SETTINGS) != 0)
-		panic(5);
+		PIOS_HAL_Panic(PIOS_LED_ALARM, PIOS_HAL_PANIC_FILESYS);
 	if (PIOS_FLASHFS_Logfs_Init(&pios_waypoints_settings_fs_id, &flashfs_internal_waypoints_cfg, FLASH_PARTITION_LABEL_WAYPOINTS) != 0)
-		panic(5);
+		PIOS_HAL_Panic(PIOS_LED_ALARM, PIOS_HAL_PANIC_FILESYS);
 
 #if defined(ERASE_FLASH)
 	PIOS_FLASHFS_Format(pios_uavo_settings_fs_id);
@@ -529,9 +514,9 @@ void PIOS_Board_Init(void)
 		int retval;
 		retval = PIOS_MPU9150_Init(pios_i2c_internal_id, PIOS_MPU9150_I2C_ADD_A0_LOW, &pios_mpu9150_cfg, use_mpu_mag);
 		if (retval == -10)
-			panic(1); // indicate missing IRQ separately
+			PIOS_HAL_Panic(PIOS_LED_ALARM, PIOS_HAL_PANIC_IMU);
 		if (retval != 0)
-			panic(2);
+			PIOS_HAL_Panic(PIOS_LED_ALARM, PIOS_HAL_PANIC_IMU);
 
 		// To be safe map from UAVO enum to driver enum
 		uint8_t hw_gyro_range;
@@ -606,9 +591,9 @@ void PIOS_Board_Init(void)
 #endif /* PIOS_INCLUDE_MPU9150 */
 	{
 		if (PIOS_MPU6050_Init(pios_i2c_internal_id, PIOS_MPU6050_I2C_ADD_A0_LOW, &pios_mpu6050_cfg) != 0)
-			panic(2);
+			PIOS_HAL_Panic(PIOS_LED_ALARM, PIOS_HAL_PANIC_IMU);
 		if (PIOS_MPU6050_Test() != 0)
-			panic(2);
+			PIOS_HAL_Panic(PIOS_LED_ALARM, PIOS_HAL_PANIC_IMU);
 
 		// To be safe map from UAVO enum to driver enum
 		uint8_t hw_gyro_range;
@@ -694,7 +679,7 @@ void PIOS_Board_Init(void)
 #if defined(PIOS_INCLUDE_MS5611)
 	PIOS_MS5611_Init(&pios_ms5611_cfg, pios_i2c_internal_id);
 	if (PIOS_MS5611_Test() != 0)
-		panic(4);
+		PIOS_HAL_Panic(PIOS_LED_ALARM, PIOS_HAL_PANIC_BARO);
 #endif
 
 #if defined(PIOS_INCLUDE_GPIO)
