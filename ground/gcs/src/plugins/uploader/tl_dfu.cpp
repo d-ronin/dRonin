@@ -319,6 +319,9 @@ int DFUObject::JumpToApp(bool safeboot)
         message.v.jump_fw.safe_word = ntohs((quint16) 0x5afe);
     else
         message.v.jump_fw.safe_word = 0x0000;
+    // older f1 bootloader assumes these bytes are zero
+    message.v.jump_fw.unused2[0] = 0;
+    message.v.jump_fw.unused2[1] = 0;
     return SendData(message);
 }
 
