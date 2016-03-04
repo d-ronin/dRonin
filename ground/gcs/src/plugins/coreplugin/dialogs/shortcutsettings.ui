@@ -65,13 +65,6 @@
       <item>
        <layout class="QHBoxLayout">
         <item>
-         <widget class="QPushButton" name="defaultButton">
-          <property name="text">
-           <string>Defaults</string>
-          </property>
-         </widget>
-        </item>
-        <item>
          <spacer>
           <property name="orientation">
            <enum>Qt::Horizontal</enum>
@@ -85,16 +78,9 @@
          </spacer>
         </item>
         <item>
-         <widget class="QPushButton" name="importButton">
+         <widget class="QPushButton" name="defaultButton">
           <property name="text">
-           <string>Import...</string>
-          </property>
-         </widget>
-        </item>
-        <item>
-         <widget class="QPushButton" name="exportButton">
-          <property name="text">
-           <string>Export...</string>
+           <string>Restore defaults</string>
           </property>
          </widget>
         </item>
