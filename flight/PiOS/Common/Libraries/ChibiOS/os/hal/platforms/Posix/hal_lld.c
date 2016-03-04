@@ -25,7 +25,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <sys/time.h>
-#include <sys/times.h>
 #include <unistd.h>
 #include <signal.h>
 
@@ -58,7 +57,12 @@ CH_IRQ_HANDLER(port_tick_signal_handler);
  * @brief Low level HAL driver initialization.
  */
 void hal_lld_init(void) {
+  // Configure an interval timer that is used for task switching and time
+  // accounting.
 
+#if defined(_WIN32) || defined(WIN32) || defined(__MINGW32__)
+
+#else
   struct sigaction sigtick = {
     .sa_handler = port_tick_signal_handler,
   };
@@ -84,19 +88,25 @@ void hal_lld_init(void) {
   /* Set-up the timer interrupt. */
   if (setitimer(PORT_TIMER_TYPE, &itimer, &oitimer) < 0)
     port_halt();
+#endif
 }
 
 halrtcnt_t hal_lld_get_counter_value(void) {
+#if 0
   struct tms temp;
 
   times(&temp);
 
   return temp.tms_utime;
+#endif
+
+  return clock();
 }
 
 halclock_t hal_lld_get_counter_frequency(void) {
 
-	return sysconf(_SC_CLK_TCK);
+//	return sysconf(_SC_CLK_TCK);
+	return CLOCKS_PER_SEC;
 }
 
 /** @} */

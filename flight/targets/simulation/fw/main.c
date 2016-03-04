@@ -30,6 +30,10 @@
  */
 
 /* OpenPilot Includes */
+#if defined(_WIN32) || defined(WIN32) || defined(__MINGW32__)
+#include <winsock2.h>
+#endif
+
 #include "openpilot.h"
 #include "uavobjectsinit.h"
 #include "systemmod.h"
@@ -56,13 +60,16 @@ static void initTask(void *parameters);
  * If something goes wrong, blink LED1 and LED2 every 100ms
  *
  */
-#if defined(SIM_POSIX)
 int main(int argc, char *argv[]) {
-	PIOS_SYS_Args(argc, argv);
-#else
-int main()
-{
+	setvbuf(stdout, NULL, _IONBF, 1);
+	printf("Beginning simulation environment\n");
+#if defined(_WIN32) || defined(WIN32) || defined(__MINGW32__)
+	WSADATA wsaData;
+	WSAStartup(MAKEWORD(2, 2), &wsaData);
 #endif
+
+	PIOS_SYS_Args(argc, argv);
+
 	/* NOTE: Do NOT modify the following start-up sequence */
 	/* Any new initialization functions should be added in OpenPilotInit() */
 	PIOS_heap_initialize_blocks();
@@ -77,12 +84,12 @@ int main()
 	/* Brings up System using CMSIS functions, enables the LEDs. */
 	PIOS_SYS_Init();
 
-	/* For Revolution we use an RTOS task to bring up the system so we can */
-	/* always rely on an RTOS primitive */
 	initTaskHandle = PIOS_Thread_Create(initTask, "init", INIT_TASK_STACK, NULL, INIT_TASK_PRIORITY);
 	PIOS_Assert(initTaskHandle != NULL);
 
 	PIOS_Thread_Sleep(PIOS_THREAD_TIMEOUT_MAX);
+
+	printf("Reached end of main\n");
 
 	return 0;
 }
@@ -96,11 +103,14 @@ MODULE_INITSYSTEM_DECLS;
  */
 void initTask(void *parameters)
 {
+	printf("Initialization task running\n");
 	/* board driver init */
 	PIOS_Board_Init();
 
 	/* Initialize modules */
 	MODULE_INITIALISE_ALL(PIOS_WDG_Clear);
+
+	printf("Initialization task completed\n");
 
 	/* terminate this task */
 	PIOS_Thread_Delete(NULL);

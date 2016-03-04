@@ -33,7 +33,12 @@
 #ifndef _CHCORE_H_
 #define _CHCORE_H_
 
+#if defined(_WIN32) || defined(WIN32) || defined(__MINGW32__)
+#include "ucontext/winucontext.h"
+#else
 #include <ucontext.h>
+#endif
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <time.h>

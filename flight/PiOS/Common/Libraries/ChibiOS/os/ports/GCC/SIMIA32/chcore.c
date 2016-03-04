@@ -1,6 +1,7 @@
 /*
     ChibiOS/RT - Copyright (C) 2006,2007,2008,2009,2010,
                  2011,2012,2013 Giovanni Di Sirio.
+		 (C) 2016 dRonin
 
     This file is part of ChibiOS/RT.
 
@@ -33,14 +34,22 @@
 #include "ch.h"
 #include "hal.h"
 
+#if defined(_WIN32) || defined(WIN32) || defined(__MINGW32__)
+#include "ucontext/winucontext.h"
+#include "ucontext/winucontext.c"
+#else
 #include <ucontext.h>
+#endif
+
 #include <unistd.h>
-#include <sys/select.h>
 
 /*===========================================================================*/
 /* Port interrupt handlers.                                                  */
 /*===========================================================================*/
 
+#if defined(_WIN32) || defined(WIN32) || defined(__MINGW32__)
+// XXX TODO port_tick_signal_handler impl
+#else 
 void port_tick_signal_handler(int signo, siginfo_t *info, void *context) {
   CH_IRQ_PROLOGUE();
 
@@ -55,6 +64,7 @@ void port_tick_signal_handler(int signo, siginfo_t *info, void *context) {
     chSchDoReschedule();
   dbg_check_unlock();
 }
+#endif
 
 /*===========================================================================*/
 /* Port exported functions.                                                  */
@@ -73,9 +83,14 @@ void port_init(void) {
  *          actions.
  */
 
+#if !(defined(_WIN32) || defined(WIN32) || defined(__MINGW32__))
 static sigset_t saved;
+#endif
 
 void port_lock(void) {
+#if defined(_WIN32) || defined(WIN32) || defined(__MINGW32__)
+  // XXX TODO port_lock implementation
+#else
   sigset_t set;
 
   if (sigemptyset(&set) < 0)
@@ -84,6 +99,7 @@ void port_lock(void) {
     port_halt();
   if (sigprocmask(SIG_BLOCK, &set, &saved) > 0)
     port_halt();
+#endif
 }
 
 /**
@@ -92,8 +108,13 @@ void port_lock(void) {
  *          actions.
  */
 void port_unlock(void) {
+
+#if defined(_WIN32) || defined(WIN32) || defined(__MINGW32__)
+  // XXX TODO port_unlock implementation
+#else
   if (sigprocmask(SIG_UNBLOCK, &saved, NULL) > 0)
     port_halt();
+#endif
 }
 
 /**
@@ -142,12 +163,6 @@ void port_enable(void) {
  *          modes.
  */
 void port_wait_for_interrupt(void) {
-#if 0
-  // Does not seem to perform well enough in context switching...
-  struct timeval tv = { .tv_sec=5 };
-
-  select(1, NULL, NULL, NULL, &tv);
-#endif
 }
 
 /**
@@ -158,6 +173,7 @@ void port_wait_for_interrupt(void) {
  *          debug mode).
  */
 void port_halt(void) {
+  printf("port_halt invoked-- unrecoverable error\n");
   port_disable();
   exit(2);
 }
@@ -173,6 +189,7 @@ void port_halt(void) {
  * @param[in] otp       the thread to be switched out
  */
 void port_switch(Thread *ntp, Thread *otp) {
+  /* printf("context switching to %p from %p\n", ntp, otp); */
   if (swapcontext(&otp->p_ctx.uc, &ntp->p_ctx.uc) < 0)
     port_halt();
 }
@@ -185,12 +202,15 @@ void port_switch(Thread *ntp, Thread *otp) {
 void _port_thread_start(void (*func)(int), int arg) {
   /* printf("starting %p - %d\n", func, arg); */
 
-  sigset_t set;
-
   chSysUnlock();
 
   /* Ensure we respond to the timer signal, because we could have been made
    * somewhere that didn't */
+
+#if (defined(_WIN32) || defined(WIN32) || defined(__MINGW32__))
+  // XXX TODO port_thread_Start implementation-ness
+#else
+  sigset_t set;
 
   if (sigemptyset(&set) < 0)
     port_halt();
@@ -198,6 +218,7 @@ void _port_thread_start(void (*func)(int), int arg) {
     port_halt();
   if (sigprocmask(SIG_UNBLOCK, &set, NULL) > 0)
     port_halt();
+#endif
 
   func(arg);
 

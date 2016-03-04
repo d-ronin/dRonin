@@ -333,7 +333,11 @@ CONLYFLAGS += $(CSTANDARD)
 LDFLAGS += $(patsubst %,-L%,$(EXTRA_LIBDIRS))
 LDFLAGS += $(patsubst %,-l%,$(EXTRA_LIBS))
 LDFLAGS += -lm
-LDFLAGS += -lc -lpthread 
+LDFLAGS += -lpthread 
+
+ifdef WINDOWS
+LDFLAGS += -lws2_32
+endif
 
 # To include simulation model
 LDFLAGS += -L$(OUTDIR) 

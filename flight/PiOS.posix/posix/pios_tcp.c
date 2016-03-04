@@ -4,6 +4,7 @@
  * @file       pios_tcp.c   
  * @author     The OpenPilot Team, http://www.openpilot.org Copyright (C) 2012.
  * @author     Tau Labs, http://taulabs.org, Copyright (C) 2014
+ * @author     dRonin, http://dRonin.org/, Copyright (C) 2016
  * @brief      TCP commands. Inits UDPs, controls UDPs & Interupt handlers.
  * @see        The GNU Public License (GPL) Version 3
  * @defgroup   PIOS_UDP UDP Functions
@@ -24,6 +25,10 @@
  * You should have received a copy of the GNU General Public License along 
  * with this program; if not, write to the Free Software Foundation, Inc., 
  * 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
+ *
+ * Additional note on redistribution: The copyright and license notices above
+ * must be maintained in each individual source file that is a derivative work
+ * of this source file; otherwise redistribution is prohibited.
  */
 
 
@@ -36,17 +41,8 @@
 #include "pios_thread.h"
 #include <unistd.h>
 #include <sys/types.h>
-#include <sys/socket.h>
 #include <errno.h>
-
-/* We need a list of TCP devices */
-
-#define PIOS_TCP_MAX_DEV 16
-static int8_t pios_tcp_num_devices = 0;
-
-static pios_tcp_dev pios_tcp_devices[PIOS_TCP_MAX_DEV];
-
-
+#include <fcntl.h>
 
 /* Provide a COM driver */
 static void PIOS_TCP_ChangeBaud(uintptr_t udp_id, uint32_t baud);
@@ -64,16 +60,27 @@ const struct pios_com_driver pios_tcp_com_driver = {
 };
 
 
-static pios_tcp_dev * find_tcp_dev_by_id(uint8_t tcp)
+static pios_tcp_dev * find_tcp_dev_by_id(uintptr_t tcp)
 {
-	if (tcp >= pios_tcp_num_devices) {
-		/* Undefined UDP port for this board (see pios_board.c) */
-		PIOS_Assert(0);
-		return NULL;
+	return (pios_tcp_dev *) tcp;
+}
+
+static int set_nonblock(int sock) {
+#if defined(_WIN32) || defined(WIN32) || defined(__MINGW32__)
+	unsigned long flag = 1;
+	if (!ioctlsocket(sock, FIONBIO, &flag)) {
+		return 0;
 	}
-	
-	/* Get a handle for the device configuration */
-	return &(pios_tcp_devices[tcp]);
+#else
+	int flags;
+	if ((flags = fcntl(sock, F_GETFL, 0)) != -1) {
+		if (fcntl(sock, F_SETFL, flags | O_NONBLOCK) != -1) {
+			return 0;
+		}
+	}
+#endif
+
+	return -1;
 }
 
 /**
@@ -104,7 +111,7 @@ static void PIOS_TCP_RxTask(void *tcp_dev_n)
 			PIOS_Thread_Scheduler_Resume();
 
 			PIOS_Thread_Sleep(1);
-		} while (tcp_dev->socket_connection == -1 && (error == EINTR || error == EAGAIN));
+		} while (tcp_dev->socket_connection == INVALID_SOCKET && (error == EINTR || error == EAGAIN));
 
 		if (tcp_dev->socket_connection < 0) {
 			int error = errno;
@@ -113,15 +120,9 @@ static void PIOS_TCP_RxTask(void *tcp_dev_n)
 			close(tcp_dev->socket);
 			exit(EXIT_FAILURE);
 		}
+
+		set_nonblock(tcp_dev->socket_connection);
 		
-		/* Set socket nonblocking. */
-	    int flags;
-	    if ((flags = fcntl(tcp_dev->socket_connection, F_GETFL, 0)) == -1) {
-	    }
-	    if (fcntl(tcp_dev->socket_connection, F_SETFL, flags | O_NONBLOCK) == -1) {
-	    }
-
-
 		fprintf(stderr, "Connection accepted\n");
 
 		while (1) {
@@ -158,13 +159,8 @@ static void PIOS_TCP_RxTask(void *tcp_dev_n)
 			}
 		}
 		
-		if (shutdown(tcp_dev->socket_connection, SHUT_RDWR) == -1) {
-			//perror("can not shutdown socket");
-			//close(tcp_dev->socket_connection);
-			//exit(EXIT_FAILURE);
-		}
 		close(tcp_dev->socket_connection);
-		tcp_dev->socket_connection = 0;
+		tcp_dev->socket_connection = INVALID_SOCKET;
 	}
 }
 
@@ -175,11 +171,10 @@ static void PIOS_TCP_RxTask(void *tcp_dev_n)
 struct pios_thread *tcpRxTaskHandle;
 int32_t PIOS_TCP_Init(uintptr_t *tcp_id, const struct pios_tcp_cfg * cfg)
 {
-	
-	pios_tcp_dev *tcp_dev = &pios_tcp_devices[pios_tcp_num_devices];
-	
-	pios_tcp_num_devices++;
-	
+	pios_tcp_dev *tcp_dev = PIOS_malloc(sizeof(pios_tcp_dev));
+
+	memset(tcp_dev, 0, sizeof(*tcp_dev));
+
 	/* initialize */
 	tcp_dev->rx_in_cb = NULL;
 	tcp_dev->tx_out_cb = NULL;
@@ -187,8 +182,13 @@ int32_t PIOS_TCP_Init(uintptr_t *tcp_id, const struct pios_tcp_cfg * cfg)
 	
 	/* assign socket */
 	tcp_dev->socket = socket(PF_INET, SOCK_STREAM, IPPROTO_TCP);
+	tcp_dev->socket_connection = INVALID_SOCKET;
 
-	int optval=1;
+#if defined(_WIN32) || defined(WIN32) || defined(__MINGW32__)
+	char optval = 1;
+#else
+	int optval = 1;
+#endif
 
         /* Allow reuse of address if you restart. */
         setsockopt(tcp_dev->socket, SOL_SOCKET, SO_REUSEADDR, &optval, sizeof(optval));
@@ -204,36 +204,32 @@ int32_t PIOS_TCP_Init(uintptr_t *tcp_id, const struct pios_tcp_cfg * cfg)
 	tcp_dev->server.sin_port = htons(tcp_dev->cfg->port);
 
 	/* set socket options */
-    int value = 1;
-    if (setsockopt(tcp_dev->socket, SOL_SOCKET, SO_REUSEADDR, (char*)&value, sizeof(value)) == -1) {
+	int value = 1;
+	if (setsockopt(tcp_dev->socket, SOL_SOCKET, SO_REUSEADDR, (char*)&value, sizeof(value)) == -1) {
 
-    }
+	}
 
 	int res= bind(tcp_dev->socket, (struct sockaddr*)&tcp_dev->server, sizeof(tcp_dev->server));
 	if (res == -1) {
-		perror("Binding socket failed\n");
+		perror("Binding socket failed");
 		exit(EXIT_FAILURE);
 	}
 	
 	res = listen(tcp_dev->socket, 10);
 	if (res == -1) {
-		perror("Socket listen failed\n");
+		perror("Socket listen failed");
 		exit(EXIT_FAILURE);
 	}
 	
 	/* Set socket nonblocking. */
-    int flags;
-    if ((flags = fcntl(tcp_dev->socket, F_GETFL, 0)) == -1) {
-    }
-    if (fcntl(tcp_dev->socket, F_SETFL, flags | O_NONBLOCK) == -1) {
-    }
+	set_nonblock(tcp_dev->socket);
 
 	tcpRxTaskHandle = PIOS_Thread_Create(
 			PIOS_TCP_RxTask, "pios_tcp_rx", PIOS_THREAD_STACK_SIZE_MIN, tcp_dev, PIOS_THREAD_PRIO_HIGHEST);
 	
-	printf("tcp dev %i - socket %i opened - result %i\n", pios_tcp_num_devices - 1, tcp_dev->socket, res);
+	printf("tcp dev %p - socket %i opened - result %i\n", tcp_dev, tcp_dev->socket, res);
 	
-	*tcp_id = pios_tcp_num_devices - 1;
+	*tcp_id = (uintptr_t) tcp_dev;
 	
 	return res;
 }
@@ -273,7 +269,7 @@ static void PIOS_TCP_TxStart(uintptr_t tcp_id, uint16_t tx_bytes_avail)
 			rem = length;
 			while (rem > 0) {
 				ssize_t len = 0;
-				if (tcp_dev->socket_connection != 0) {
+				if (tcp_dev->socket_connection != INVALID_SOCKET) {
 					len = write(tcp_dev->socket_connection, tcp_dev->tx_buffer, length);
 				}
 				if (len <= 0) {

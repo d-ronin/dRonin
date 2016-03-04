@@ -26,8 +26,6 @@
 #define _HAL_LLD_H_
 
 #include <sys/types.h>
-#include <sys/socket.h>
-#include <netdb.h>
 
 /*===========================================================================*/
 /* Driver constants.                                                         */
@@ -43,8 +41,11 @@
  */
 #define PLATFORM_NAME   "Linux"
 
-#define SOCKET int
+#define HALSOCKET int
+
+#if !(defined(_WIN32) || defined(WIN32) || defined(__MINGW32__))
 #define INVALID_SOCKET -1
+#endif
 
 /*===========================================================================*/
 /* Driver pre-compile time settings.                                         */
