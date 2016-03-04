@@ -507,6 +507,9 @@ tl_dfu::Status DFUObject::UploadPartition(QByteArray &sourceArray, dfu_partition
 {
     DFUObject::statusReport ret;
 
+    // causes f1 bl to go into DFUidle state, required for StartUpload to succeed
+    StatusRequest();
+
     TL_DFU_QXTLOG_DEBUG("Starting Firmware Upload...");
     emit operationProgress(QString("Starting upload"), -1);
     TL_DFU_QXTLOG_DEBUG(QString("Bytes Loaded=%0").arg(sourceArray.length()));
