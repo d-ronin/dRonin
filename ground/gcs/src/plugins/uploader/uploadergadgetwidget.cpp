@@ -2,8 +2,8 @@
  ******************************************************************************
  *
  * @file       uploadergadgetwidget.cpp
- * @author     Tau Labs, http://taulabs.org, Copyright (C) 2014
  * @author     dRonin, http://dronin.org Copyright (C) 2015
+ * @author     Tau Labs, http://taulabs.org, Copyright (C) 2014
  * @addtogroup GCSPlugins GCS Plugins
  * @{
  * @addtogroup  Uploader Uploader Plugin
@@ -24,6 +24,10 @@
  * You should have received a copy of the GNU General Public License along
  * with this program; if not, write to the Free Software Foundation, Inc.,
  * 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
+ *
+ * Additional note on redistribution: The copyright and license notices above
+ * must be maintained in each individual source file that is a derivative work
+ * of this source file; otherwise redistribution is prohibited.
  */
 
 #include <QFileDialog>
@@ -110,6 +114,8 @@ UploaderGadgetWidget::UploaderGadgetWidget(QWidget *parent):QWidget(parent),
     usbFilterBL = new USBSignalFilter(brdMgr->getKnownVendorIDs(),-1,-1,USBMonitor::Bootloader);
     connect(usbFilterBL, SIGNAL(deviceRemoved()), this, SLOT(onBootloaderRemoved()));
 
+    connect(usbFilterBL, SIGNAL(deviceDiscovered()), this, SLOT(onBootloaderDetected()), Qt::UniqueConnection);
+
     conMngr = Core::ICore::instance()->connectionManager();
     connect(conMngr, SIGNAL(availableDevicesChanged(QLinkedList<Core::DevListItem>)), this, SLOT(onAvailableDevicesChanged(QLinkedList<Core::DevListItem>)));
     // Check if a board is already in bootloader state when the GCS starts
@@ -121,10 +127,6 @@ UploaderGadgetWidget::UploaderGadgetWidget(QWidget *parent):QWidget(parent),
             break;
         }
     }
-
-    bootTimeoutTimer.setInterval(3000);
-    bootTimeoutTimer.setSingleShot(true);
-    connect(&bootTimeoutTimer, SIGNAL(timeout()), this, SLOT(onBootingTimout()));
 }
 
 /**
@@ -321,7 +323,6 @@ void UploaderGadgetWidget::FirmwareLoadedUpdate(QByteArray firmwareArray)
 void UploaderGadgetWidget::onAutopilotConnect()
 {
     telemetryConnected = true;
-    bootTimeoutTimer.stop();
     CheckAutopilotReady();
 }
 
@@ -447,6 +448,16 @@ void UploaderGadgetWidget::onBootloaderDetected()
 {
     Core::BoardManager* brdMgr = Core::ICore::instance()->boardManager();
     QList<USBPortInfo> devices;
+
+    // If we are already connected to a bootloader, skip
+    switch (uploaderStatus) {
+    case uploader::BL_FROM_HALT:
+    case uploader::BL_FROM_RESCUE:
+        return;
+    default:
+        break;
+    }
+
     foreach(int vendorID, brdMgr->getKnownVendorIDs()) {
         devices.append(USBMonitor::instance()->availableDevices(vendorID,-1,-1,USBMonitor::Bootloader));
     }
@@ -462,6 +473,16 @@ void UploaderGadgetWidget::onBootloaderDetected()
     }
     if(dfu.OpenBootloaderComs(devices.first()))
     {
+        switch (uploaderStatus) {
+        case uploader::HALTING:
+        case uploader::RESCUING:
+            break;
+        default:
+            dfu.JumpToApp(false);
+            dfu.CloseBootloaderComs();
+            return;
+        }
+
         tl_dfu::device dev = dfu.findCapabilities();
 
         //Bootloader has new cap extensions, query partitions and fill out browser
@@ -514,7 +535,6 @@ void UploaderGadgetWidget::onBootloaderDetected()
                 break;
             }
         }
-        usbFilterBL->disconnect(this, SLOT(onBootloaderDetected()));
         info.bl_version = QString::number(dev.BL_Version, 16);
         info.cpu_serial = "Not Available";
         info.hw_revision = QString::number(dev.HW_Rev);
@@ -538,6 +558,7 @@ void UploaderGadgetWidget::onBootloaderDetected()
         default:
             break;
         }
+
         setStatusInfo(tr("Connection to bootloader successful"), uploader::STATUSICON_OK);
         emit bootloaderDetected();
     }
@@ -554,15 +575,12 @@ void UploaderGadgetWidget::onBootloaderDetected()
  */
 void UploaderGadgetWidget::onBootloaderRemoved()
 {
-    if( (getUploaderStatus() == uploader::RESCUING) || (getUploaderStatus() == uploader::HALTING) )
-        return;
     conMngr->resumePolling();
     setStatusInfo(tr("Bootloader disconnection detected"), uploader::STATUSICON_INFO);
     DeviceInformationClear();
     FirmwareOnDeviceClear(true);
     PartitionBrowserClear();
-    if(getUploaderStatus() != uploader::BOOTING)
-        setUploaderStatus(uploader::DISCONNECTED);
+    setUploaderStatus(uploader::DISCONNECTED);
     dfu.disconnect();
 }
 
@@ -578,7 +596,6 @@ void UploaderGadgetWidget::onRescueTimer(bool start)
     {
         timer.stop();
         m_widget->progressBar->setValue(0);
-        disconnect(usbFilterBL, SIGNAL(deviceDiscovered()), this, SLOT(onBootloaderDetected()));
         disconnect(usbFilterBL, SIGNAL(deviceDiscovered()), this, SLOT(onRescueTimer()));
         rescueFinish(true);
         return;
@@ -589,7 +606,6 @@ void UploaderGadgetWidget::onRescueTimer(bool start)
         progress = 100;
         connect(&timer, SIGNAL(timeout()), this, SLOT(onRescueTimer()),Qt::UniqueConnection);
         timer.start(200);
-        connect(usbFilterBL, SIGNAL(deviceDiscovered()), this, SLOT(onBootloaderDetected()), Qt::UniqueConnection);
         connect(usbFilterBL, SIGNAL(deviceDiscovered()), this, SLOT(onRescueTimer()), Qt::UniqueConnection);
         emit rescueTimer(0);
     }
@@ -601,7 +617,6 @@ void UploaderGadgetWidget::onRescueTimer(bool start)
     m_widget->progressBar->setValue(progress);
     if(progress == 0)
     {
-        disconnect(usbFilterBL, SIGNAL(deviceDiscovered()), this, SLOT(onBootloaderDetected()));
         disconnect(usbFilterBL, SIGNAL(deviceDiscovered()), this, SLOT(onRescueTimer()));
         timer.disconnect();
         setStatusInfo(tr("Failed to detect bootloader"), uploader::STATUSICON_FAIL);
@@ -863,20 +878,9 @@ void UploaderGadgetWidget::onBootButtonClick()
 {
     if(!CheckInBootloaderState())
         return;
-    setUploaderStatus(uploader::BOOTING);
-    bootTimeoutTimer.start();
     bool safeboot = (sender() == m_widget->safeBootButton);
     dfu.JumpToApp(safeboot);
     dfu.CloseBootloaderComs();
-}
-
-/**
- * @brief slot called by the boot timeout timer
- */
-void UploaderGadgetWidget::onBootingTimout()
-{
-    if(getUploaderStatus() == uploader::BOOTING)
-        setUploaderStatus(uploader::DISCONNECTED);
 }
 
 /**
@@ -1150,7 +1154,7 @@ void UploaderGadgetWidget::onResetButtonClick()
     if(!telMngr->isConnected() || !firmwareIap->getIsPresentOnHardware())
         return;
     previousStatus = getUploaderStatus();
-    setUploaderStatus(uploader::HALTING);
+    setUploaderStatus(uploader::BOOTING);
     QEventLoop loop;
     QTimer timeout;
     timeout.setSingleShot(true);
@@ -1184,12 +1188,10 @@ void UploaderGadgetWidget::onResetButtonClick()
     }
     if(conMngr->getCurrentDevice().connection->shortName() == "USB")
     {
-        setUploaderStatus(uploader::BOOTING);
         conMngr->disconnectDevice();
         timeout.start(200);
         loop.exec();
         conMngr->suspendPolling();
-        bootTimeoutTimer.start();
     }
     else
     {

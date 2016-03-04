@@ -51,67 +51,6 @@
 
 #include "hidapi.h"
 
-#ifdef __ANDROID__
-
-/* Barrier implementation because Android/Bionic don't have pthread_barrier.
-   This implementation came from Brent Priddy and was posted on
-   StackOverflow. It is used with his permission. */
-typedef int pthread_barrierattr_t;
-typedef struct pthread_barrier {
-    pthread_mutex_t mutex;
-    pthread_cond_t cond;
-    int count;
-    int trip_count;
-} pthread_barrier_t;
-
-static int pthread_barrier_init(pthread_barrier_t *barrier, const pthread_barrierattr_t *attr, unsigned int count)
-{
-	if(count == 0) {
-		errno = EINVAL;
-		return -1;
-	}
-
-	if(pthread_mutex_init(&barrier->mutex, 0) < 0) {
-		return -1;
-	}
-	if(pthread_cond_init(&barrier->cond, 0) < 0) {
-		pthread_mutex_destroy(&barrier->mutex);
-		return -1;
-	}
-	barrier->trip_count = count;
-	barrier->count = 0;
-
-	return 0;
-}
-
-static int pthread_barrier_destroy(pthread_barrier_t *barrier)
-{
-	pthread_cond_destroy(&barrier->cond);
-	pthread_mutex_destroy(&barrier->mutex);
-	return 0;
-}
-
-static int pthread_barrier_wait(pthread_barrier_t *barrier)
-{
-	pthread_mutex_lock(&barrier->mutex);
-	++(barrier->count);
-	if(barrier->count >= barrier->trip_count)
-	{
-		barrier->count = 0;
-		pthread_cond_broadcast(&barrier->cond);
-		pthread_mutex_unlock(&barrier->mutex);
-		return 1;
-	}
-	else
-	{
-		pthread_cond_wait(&barrier->cond, &(barrier->mutex));
-		pthread_mutex_unlock(&barrier->mutex);
-		return 0;
-	}
-}
-
-#endif
-
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -166,7 +105,6 @@ struct hid_device_ {
 	pthread_t thread;
 	pthread_mutex_t mutex; /* Protects input_reports */
 	pthread_cond_t condition;
-	pthread_barrier_t barrier; /* Ensures correct startup sequence */
 	int shutdown_thread;
 	int cancelled;
 	struct libusb_transfer *transfer;
@@ -187,7 +125,6 @@ static hid_device *new_hid_device(void)
 
 	pthread_mutex_init(&dev->mutex, NULL);
 	pthread_cond_init(&dev->condition, NULL);
-	pthread_barrier_init(&dev->barrier, NULL, 2);
 
 	return dev;
 }
@@ -195,7 +132,6 @@ static hid_device *new_hid_device(void)
 static void free_hid_device(hid_device *dev)
 {
 	/* Clean up the thread objects */
-	pthread_barrier_destroy(&dev->barrier);
 	pthread_cond_destroy(&dev->condition);
 	pthread_mutex_destroy(&dev->mutex);
 
@@ -648,6 +584,7 @@ struct hid_device_info  HID_API_EXPORT *hid_enumerate(unsigned short vendor_id, 
 								/* Re-attach kernel driver if necessary. */
 								if (detached) {
 									res = libusb_attach_kernel_driver(handle, interface_num);
+                                                                        handle = NULL;
 									if (res < 0)
 										LOG("Couldn't re-attach kernel driver.\n");
 								}
@@ -656,6 +593,7 @@ struct hid_device_info  HID_API_EXPORT *hid_enumerate(unsigned short vendor_id, 
 #endif /* INVASIVE_GET_USAGE */
 
 								libusb_close(handle);
+                                                                handle = NULL;
 							}
 							/* VID/PID */
 							cur_dev->vendor_id = dev_vid;
@@ -786,6 +724,11 @@ static void read_callback(struct libusb_transfer *transfer)
 		LOG("Unknown transfer code: %d\n", transfer->status);
 	}
 
+	if (dev->shutdown_thread) {
+		dev->cancelled = 1;
+		return;
+	}
+
 	/* Re-submit the transfer object. */
 	res = libusb_submit_transfer(transfer);
 	if (res != 0) {
@@ -812,14 +755,11 @@ static void *read_thread(void *param)
 		length,
 		read_callback,
 		dev,
-		5000/*timeout*/);
+		100/*timeout*/);
 
 	/* Make the first submission. Further submissions are made
 	   from inside read_callback() */
 	libusb_submit_transfer(dev->transfer);
-
-	/* Notify the main thread that the read thread is up and running. */
-	pthread_barrier_wait(&dev->barrier);
 
 	/* Handle all the events. */
 	while (!dev->shutdown_thread) {
@@ -916,6 +856,7 @@ HID_API_EXPORT hid_device * hid_open_path(const char *path)
 							res = libusb_detach_kernel_driver(dev->device_handle, intf_desc->bInterfaceNumber);
 							if (res < 0) {
 								libusb_close(dev->device_handle);
+                                                                dev->device_handle = NULL;
 								LOG("Unable to detach Kernel Driver\n");
 								free(dev_path);
 								good_open = 0;
@@ -928,6 +869,7 @@ HID_API_EXPORT hid_device * hid_open_path(const char *path)
 							LOG("can't claim interface %d: %d\n", intf_desc->bInterfaceNumber, res);
 							free(dev_path);
 							libusb_close(dev->device_handle);
+                                                        dev->device_handle = NULL;
 							good_open = 0;
 							break;
 						}
@@ -973,10 +915,6 @@ HID_API_EXPORT hid_device * hid_open_path(const char *path)
 						}
 
 						pthread_create(&dev->thread, NULL, read_thread, dev);
-
-						/* Wait here for the read thread to be initialized. */
-						pthread_barrier_wait(&dev->barrier);
-
 					}
 					free(dev_path);
 				}
@@ -1239,7 +1177,6 @@ void HID_API_EXPORT hid_close(hid_device *dev)
 
 	/* Cause read_thread() to stop. */
 	dev->shutdown_thread = 1;
-	libusb_cancel_transfer(dev->transfer);
 
 	/* Wait for read_thread() to end. */
 	pthread_join(dev->thread, NULL);
@@ -1253,6 +1190,7 @@ void HID_API_EXPORT hid_close(hid_device *dev)
 
 	/* Close the handle */
 	libusb_close(dev->device_handle);
+        dev->device_handle = NULL;
 
 	/* Clear out the queue of received reports. */
 	pthread_mutex_lock(&dev->mutex);

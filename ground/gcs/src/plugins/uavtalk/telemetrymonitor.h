@@ -78,8 +78,8 @@ private slots:
 private:
     QList<UAVDataObject *> delayedUpdate;
     enum connectionStatusEnum {CON_DISCONNECTED, CON_INITIALIZING, CON_SESSION_INITIALIZING, CON_RETRIEVING_OBJECTS, CON_CONNECTED_UNMANAGED,CON_CONNECTED_MANAGED};
-    static const int STATS_UPDATE_PERIOD_MS = 4000;
-    static const int STATS_CONNECT_PERIOD_MS = 2000;
+    static const int STATS_UPDATE_PERIOD_MS = 1600;
+    static const int STATS_CONNECT_PERIOD_MS = 350;
     static const int CONNECTION_TIMEOUT_MS = 8000;
     connectionStatusEnum connectionStatus;
     UAVObjectManager* objMngr;

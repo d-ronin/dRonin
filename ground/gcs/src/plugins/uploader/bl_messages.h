@@ -64,7 +64,8 @@ enum bl_commands {
     BL_MSG_STATUS_REP,
     BL_MSG_WIPE_PARTITION,
 
-    BL_MSG_WRITE_START = 0x27,
+    BL_MSG_WRITE_START = 0x27, // f1 bl masks with 0b11111 so this looks like BL_MSG_WRITE_CONT there
+                               // the 6th bit ends up being start flag
 };
 
 #define BL_MSG_FLAGS_ECHO_REQ 0x80
@@ -178,8 +179,8 @@ struct msg_status_req {
 };
 
 struct msg_status_rep {
-	uint32_t unused;
-	uint8_t current_state;
+    uint32_t additional_state;
+    uint8_t current_state;
 };
 
 struct msg_wipe_partition {

@@ -86,6 +86,11 @@ class DFUObject : public QThread
         int pad;
     } messagePackets;
 
+    typedef struct statusReport {
+        quint32 additional;
+        tl_dfu::Status status;
+    } statusReport;
+
 public:
     static quint32 CRCFromQBArray(QByteArray array, quint32 Size);
     DFUObject();
@@ -124,7 +129,7 @@ private:
 
     // Service commands:
     bool EnterDFU();
-    tl_dfu::Status StatusRequest();
+    statusReport StatusRequest();
     bool EndOperation();
     int AbortOperation(void);
 
@@ -151,7 +156,6 @@ private:
     } ThreadJobStruc;
     ThreadJobStruc threadJob;
 
-    bool open;
 protected:
     void run();// Executes the upload or download operations
 };

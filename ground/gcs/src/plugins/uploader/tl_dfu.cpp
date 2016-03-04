@@ -2,6 +2,7 @@
  ******************************************************************************
  *
  * @file       tl_dfu.cpp
+ * @author     dRonin, http://dRonin.org/, Copyright (C) 2016
  * @author     Tau Labs, http://taulabs.org, Copyright (C) 2014
  * @addtogroup GCSPlugins GCS Plugins
  * @{
@@ -23,7 +24,12 @@
  * You should have received a copy of the GNU General Public License along
  * with this program; if not, write to the Free Software Foundation, Inc.,
  * 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
+ *
+ * Additional note on redistribution: The copyright and license notices above
+ * must be maintained in each individual source file that is a derivative work
+ * of this source file; otherwise redistribution is prohibited.
  */
+
 
 #include "tl_dfu.h"
 
@@ -38,15 +44,14 @@
 
 using namespace tl_dfu;
 
-DFUObject::DFUObject() : open(false)
+DFUObject::DFUObject() : m_hidHandle(NULL)
 {
     qRegisterMetaType<tl_dfu::Status>("TL_DFU::Status");
 }
 
 DFUObject::~DFUObject()
 {
-    if (open)
-        hid_close(m_hidHandle);
+    CloseBootloaderComs();
 }
 
 /**
@@ -152,7 +157,7 @@ QByteArray DFUObject::DownloadDescriptionAsByteArray(int const & numberOfChars)
   */
 bool DFUObject::DownloadPartitionThreaded(QByteArray *firmwareArray, dfu_partition_label partition, int size)
 {
-    TL_DFU_QXTLOG_DEBUG("DOWNLOAD PARTITION- SETTING DOWNLOAD CONFIG PARTITION=", partition, " SIZE:", size);
+    TL_DFU_QXTLOG_DEBUG(QString("DOWNLOAD PARTITION- SETTING DOWNLOAD CONFIG PARTITION=%1 SIZE:%2").arg(partition).arg(size));
     if (isRunning())
         return false;
     threadJob.requestedOperation = ThreadJobStruc::Download;
@@ -253,7 +258,7 @@ bool DFUObject::DownloadPartition(QByteArray *fw, qint32 const & numberOfBytes, 
             size = 14 * 4;
         fw->append((char*)message.v.xfer_cont.data, size);
     }
-    TL_DFU_QXTLOG_DEBUG("STATUS=", StatusRequest());
+    TL_DFU_QXTLOG_DEBUG(QString("STATUS=%1").arg(StatusRequest().status));
     return true;
 }
 
@@ -314,14 +319,19 @@ int DFUObject::JumpToApp(bool safeboot)
         message.v.jump_fw.safe_word = ntohs((quint16) 0x5afe);
     else
         message.v.jump_fw.safe_word = 0x0000;
+    // older f1 bootloader assumes these bytes are zero
+    message.v.jump_fw.unused2[0] = 0;
+    message.v.jump_fw.unused2[1] = 0;
     return SendData(message);
 }
 
 /**
   Requests the current bootloader status
   */
-tl_dfu::Status DFUObject::StatusRequest()
+DFUObject::statusReport DFUObject::StatusRequest()
 {
+    DFUObject::statusReport rep;
+
     bl_messages message;
     message.flags_command = BL_MSG_STATUS_REQ;
     int result = SendData(message);
@@ -331,13 +341,16 @@ tl_dfu::Status DFUObject::StatusRequest()
     result = ReceiveData(message);
     TL_DFU_QXTLOG_DEBUG(result);//TODO CHECK LENGHT
     TL_DFU_QXTLOG_DEBUG(QString("StatusRequest:%0 bytes received").arg(result));
-    if(message.flags_command == BL_MSG_STATUS_REP)
-    {
+    if(message.flags_command == BL_MSG_STATUS_REP) {
         TL_DFU_QXTLOG_DEBUG(QString("Status:%0").arg(message.v.status_rep.current_state));
-        return (tl_dfu::Status)message.v.status_rep.current_state;
+        rep.status = (tl_dfu::Status)message.v.status_rep.current_state;
+        rep.additional = (quint32)ntohl(message.v.status_rep.additional_state);
+    } else {
+        rep.status = tl_dfu::not_in_dfu;
+        rep.additional = 0;
     }
-    else
-        return tl_dfu::not_in_dfu;
+
+    return rep;
 }
 
 /**
@@ -405,10 +418,9 @@ device DFUObject::findCapabilities()
 bool DFUObject::OpenBootloaderComs(USBPortInfo port)
 {
     // If device was unplugged the previous coms are
-    // not closed. We must close it before openning
+    // not closed. We must close it before opening
     // a new one.
-    if (open)
-        CloseBootloaderComs();
+    CloseBootloaderComs();
 
     QEventLoop m_eventloop;
     QTimer::singleShot(200,&m_eventloop, SLOT(quit()));
@@ -423,22 +435,21 @@ bool DFUObject::OpenBootloaderComs(USBPortInfo port)
         if(!EnterDFU())
         {
             TL_DFU_QXTLOG_DEBUG(QString("Could not process enterDFU command"));
-            hid_close(m_hidHandle);
+            CloseBootloaderComs();
             return false;
         }
-        if(StatusRequest() != tl_dfu::DFUidle)
+        if(StatusRequest().status != tl_dfu::DFUidle)
         {
             TL_DFU_QXTLOG_DEBUG(QString("Status different that DFUidle after enterDFU command"));
-            hid_close(m_hidHandle);
+            CloseBootloaderComs();
             return false;
         }
 
-        open = true;
         return true;
     } else
     {
         TL_DFU_QXTLOG_DEBUG(QString("Could not open USB port"));
-        hid_close(m_hidHandle);
+        CloseBootloaderComs();
         return false;
     }
     return false;
@@ -449,9 +460,11 @@ bool DFUObject::OpenBootloaderComs(USBPortInfo port)
   */
 void DFUObject::CloseBootloaderComs()
 {
-    hid_close(m_hidHandle);
-    m_hidHandle = NULL;
-    open = false;
+    if (m_hidHandle) {
+        hid_close(m_hidHandle);
+
+        m_hidHandle = NULL;
+    }
 }
 
 /**
@@ -495,7 +508,10 @@ bool DFUObject::UploadPartitionThreaded(QByteArray &sourceArray,dfu_partition_la
   */
 tl_dfu::Status DFUObject::UploadPartition(QByteArray &sourceArray, dfu_partition_label partition)
 {
-    tl_dfu::Status ret;
+    DFUObject::statusReport ret;
+
+    // causes f1 bl to go into DFUidle state, required for StartUpload to succeed
+    StatusRequest();
 
     TL_DFU_QXTLOG_DEBUG("Starting Firmware Upload...");
     emit operationProgress(QString("Starting upload"), -1);
@@ -521,49 +537,55 @@ tl_dfu::Status DFUObject::UploadPartition(QByteArray &sourceArray, dfu_partition
     if( !StartUpload( sourceArray.length(), partition, crc) )
     {
         ret = StatusRequest();
-        TL_DFU_QXTLOG_DEBUG("StartUpload failed");
-        TL_DFU_QXTLOG_DEBUG(QString("StartUpload returned:").arg(StatusToString(ret)));
-        return ret;
+        qDebug() << QString("[tl_dfu] StartUpload failed, status: %1, additional: 0x%2")
+                    .arg(StatusToString(ret.status)).arg(ret.additional, 8, 16, QChar('0'));
+        return ret.status;
     }
     emit operationProgress(QString("Erasing, please wait..."), -1);
 
     TL_DFU_QXTLOG_DEBUG( "Erasing memory");
-    if( StatusRequest() == tl_dfu::abort)
+    if (StatusRequest().status == tl_dfu::abort)
     {
         TL_DFU_QXTLOG_DEBUG( "returning TL_DFU::abort");
         return tl_dfu::abort;
     }
     ret = StatusRequest();
-    TL_DFU_QXTLOG_DEBUG(QString("Erase returned:%0").arg(StatusToString(ret)));
+    TL_DFU_QXTLOG_DEBUG(QString("Erase returned:%0").arg(StatusToString(ret.status)));
 
-    if(ret != tl_dfu::uploading)
-        return ret;
+    if(ret.status != tl_dfu::uploading) {
+        qDebug() << QString("[tl_dfu] Couldn't start partition upload, status: %1, additional: 0x%2")
+                    .arg(StatusToString(ret.status)).arg(ret.additional, 8, 16, QChar('0'));
+        return ret.status;
+    }
 
     emit operationProgress(QString(tr("Uploading %0 partition...")).arg(partitionStringFromLabel(partition)), -1);
 
     if( !UploadData(sourceArray.length(),sourceArray) )
     {
         ret = StatusRequest();
-        TL_DFU_QXTLOG_DEBUG("Upload failed (upload data)");
-        TL_DFU_QXTLOG_DEBUG(QString("UploadData returned:").arg(StatusToString(ret)));
+        qDebug() << QString("[tl_dfu] UploadData failed, status: %1, additional: 0x%2")
+                    .arg(StatusToString(ret.status)).arg(ret.additional, 8, 16, QChar('0'));
 
-        return ret;
+        return ret.status;
     }
     if( !EndOperation() )
     {
         ret = StatusRequest();
-        TL_DFU_QXTLOG_DEBUG("Upload failed (EndOperation)");
-        TL_DFU_QXTLOG_DEBUG(QString("EndOperation returned:").arg(StatusToString(ret)));
+        qDebug() << QString("[tl_dfu] EndOperation failed, status: %1, additional: 0x%2")
+                    .arg(StatusToString(ret.status)).arg(ret.additional, 8, 16, QChar('0'));
 
-        return ret;
+        return ret.status;
     }
     ret = StatusRequest();
-    if(ret != tl_dfu::Last_operation_Success)
-        return ret;
+    if(ret.status != tl_dfu::Last_operation_Success) {
+        qDebug() << QString("[tl_dfu] Upload failed, status: %1, additional: 0x%2")
+                    .arg(StatusToString(ret.status)).arg(ret.additional, 8, 16, QChar('0'));
+        return ret.status;
+    }
 
-    TL_DFU_QXTLOG_DEBUG(QString("Status=%0").arg(StatusToString(ret)));
+    TL_DFU_QXTLOG_DEBUG(QString("Status=%0").arg(StatusToString(ret.status)));
     TL_DFU_QXTLOG_DEBUG("Firmware Uploading succeeded");
-    return ret;
+    return ret.status;
 }
 
 /**
@@ -669,6 +691,10 @@ quint32 DFUObject::CRCFromQBArray(QByteArray array, quint32 Size)
   */
 int DFUObject::SendData(bl_messages data)
 {
+    if (!m_hidHandle) {
+        return -1;
+    }
+
     char array[sizeof(bl_messages) + 1];
     array[0] = 0x02;
     memcpy(array + 1, &data, sizeof(bl_messages));
@@ -682,6 +708,10 @@ int DFUObject::SendData(bl_messages data)
   */
 int DFUObject::ReceiveData(bl_messages &data)
 {
+    if (!m_hidHandle) {
+        return -1;
+    }
+
     char array[sizeof(bl_messages) + 1];
     int received = hid_read_timeout(m_hidHandle, (unsigned char *) array, BUF_LEN, 10000);
     memcpy(&data, array + 1, sizeof(bl_messages));
