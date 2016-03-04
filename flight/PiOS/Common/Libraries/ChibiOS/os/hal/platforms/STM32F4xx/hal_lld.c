@@ -222,6 +222,24 @@ void stm32_clock_init(void) {
     ;
 #endif /* STM32_OVERDRIVE_REQUIRED */
 
+#if STM32_CLOCK48_PLLSAI && defined(STM32F446xx)
+  /* Configure 48MHz clock for USB */
+  // Set 48MHz clock source
+  RCC_48MHzClockSourceConfig(RCC_48MHZCLKSource_PLLSAI);
+  // Enable PLLSAI
+  RCC_PLLSAICmd(DISABLE);
+  #define RCC_PLLSAI_GET_FLAG() ((RCC->CR & (RCC_CR_PLLSAIRDY)) == (RCC_CR_PLLSAIRDY))
+  // wait for PLLSAI to be disabled
+  while (RCC_PLLSAI_GET_FLAG() != 0)
+  {}
+  RCC_PLLSAIConfig(STM32_PLLSAI_M_VALUE, STM32_PLLSAI_N_VALUE, STM32_PLLSAI_P_VALUE, STM32_PLLSAI_Q_VALUE);
+  RCC_PLLSAICmd(ENABLE);
+  // wait for PLLSAI to be enabled
+  while (RCC_PLLSAI_GET_FLAG() == 0)
+  {}
+#endif /* STM32_CLOCK48_PLLSAI && defined(STM32F446xx) */
+
+
 #if STM32_ACTIVATE_PLLI2S
   /* PLLI2S activation.*/
   RCC->PLLI2SCFGR = STM32_PLLI2SR | STM32_PLLI2SN;
