@@ -103,7 +103,7 @@
 ; Language selection dialog settings
 
   ; Remember the installer language
-  !define MUI_LANGDLL_REGISTRY_ROOT "HKCU" 
+  !define MUI_LANGDLL_REGISTRY_ROOT "HKLM" 
   !define MUI_LANGDLL_REGISTRY_KEY "Software\dRonin" 
   !define MUI_LANGDLL_REGISTRY_VALUENAME "Installer Language"
   !define MUI_LANGDLL_ALWAYSSHOW
@@ -157,13 +157,16 @@ SectionEnd
 ; Copy GCS plugins
 Section "-Plugins" InSecPlugins
   SectionIn RO
+  RMDir /r "$INSTDIR\lib\plugins"
   SetOutPath "$INSTDIR\lib\plugins"
+
   File /r "${GCS_BUILD_TREE}\lib\dr\plugins\*.dll"
   File /r "${GCS_BUILD_TREE}\lib\dr\plugins\*.pluginspec"
 SectionEnd
 
 ; Copy GCS resources
 Section "-Resources" InSecResources
+  RMDir /r "$INSTDIR\share"
   SetOutPath "$INSTDIR\share\default_configurations"
   File /r "${GCS_BUILD_TREE}\share\default_configurations\*"
   SetOutPath "$INSTDIR\share\stylesheets"
@@ -219,14 +222,19 @@ Section "Shortcuts" InSecShortcuts
 SectionEnd
 
 Section ; create uninstall info
+  ; Remove existing current-user scoped legacy keys
+  DeleteRegKey HKCU "Software\dRonin" 
+  DeleteRegKey HKCU "Software\Microsoft\Windows\CurrentVersion\Uninstall\dRonin"
+  ClearErrors
+
   ; Write the installation path into the registry
-  WriteRegStr HKCU "Software\dRonin" "Install Location" $INSTDIR
+  WriteRegStr HKLM "Software\dRonin" "Install Location" $INSTDIR
 
   ; Write the uninstall keys for Windows
-  WriteRegStr HKCU "Software\Microsoft\Windows\CurrentVersion\Uninstall\dRonin" "DisplayName" "dRonin GCS"
-  WriteRegStr HKCU "Software\Microsoft\Windows\CurrentVersion\Uninstall\dRonin" "UninstallString" '"$INSTDIR\Uninstall.exe"'
-  WriteRegDWORD HKCU "Software\Microsoft\Windows\CurrentVersion\Uninstall\dRonin" "NoModify" 1
-  WriteRegDWORD HKCU "Software\Microsoft\Windows\CurrentVersion\Uninstall\dRonin" "NoRepair" 1
+  WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\dRonin" "DisplayName" "dRonin GCS"
+  WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\dRonin" "UninstallString" '"$INSTDIR\Uninstall.exe"'
+  WriteRegDWORD HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\dRonin" "NoModify" 1
+  WriteRegDWORD HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\dRonin" "NoRepair" 1
 
   ; Create uninstaller
   WriteUninstaller "$INSTDIR\Uninstall.exe"
@@ -254,6 +262,9 @@ Function .onInit
   SetShellVarContext all
   !insertmacro MUI_LANGDLL_DISPLAY
 
+
+
+
 FunctionEnd
 
 ;--------------------------------
@@ -274,8 +285,8 @@ Section "un.dRonin GCS" UnSecProgram
   RMDir /rebootok "$INSTDIR"
 
   ; Remove registry keys
-  DeleteRegKey HKCU "Software\Microsoft\Windows\CurrentVersion\Uninstall\dRonin"
-  DeleteRegKey HKCU "Software\dRonin"
+  DeleteRegKey HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\dRonin"
+  DeleteRegKey HKLM "Software\dRonin"
 
   ; Remove shortcuts, if any
   SetShellVarContext all
