@@ -60,20 +60,12 @@ Item {
                         font.bold: true
                         elide: Text.ElideRight
                         color: mouseArea.containsMouse ? "#224d81" : "black"
-                        MouseArea {
-                            anchors.fill: parent  //...to cover the whole image
-                            onClicked: Qt.openUrlExternally(link)
-                        }
                     }
                     Text {
                         text: "Tau: %1 ms".arg(model.Tau * 1000.0)
                         width: view.width
                         elide: Text.ElideRight
                         color: mouseArea.containsMouse ? "#224d81" : "black"
-                        MouseArea {
-                            anchors.fill: parent  //...to cover the whole image
-                            onClicked: Qt.openUrlExternally(link)
-                        }
                     }
                     Text {
                         text: "%1 in %2, %3".arg(relDate).arg(TitleCase.toTitleCase(model.City)).arg(model.Country)
@@ -81,10 +73,6 @@ Item {
                         width: view.width
                         elide: Text.ElideRight
                         color: mouseArea.containsMouse ? "#224d81" : "black"
-                        MouseArea {
-                            anchors.fill: parent  //...to cover the whole image
-                            onClicked: Qt.openUrlExternally(link)
-                        }
                     }
                 }
 
@@ -93,10 +81,7 @@ Item {
                 id: mouseArea
                 anchors.fill: parent
                 hoverEnabled: true
-                onClicked: {
-                    console.log(link)
-                    container.clicked(link)
-                }
+                onClicked: Qt.openUrlExternally(link)
             }
         }
     }

@@ -20,8 +20,6 @@ Item {
         anchors.bottom: parent.bottom
         width: parent.width * 0.5
         anchors.margins: 32
-
-        onClicked: welcomePlugin.openUrl(url)
     }
 
     AutoTunePanel {
@@ -31,8 +29,6 @@ Item {
         anchors.bottom: parent.bottom
         width: parent.width * 0.25
         anchors.margins: 32
-
-        onClicked: welcomePlugin.openUrl(url)
     }
 
     //better to use image instead
@@ -52,7 +48,5 @@ Item {
         anchors.top: parent.top
         anchors.bottom: parent.bottom
         anchors.margins: 32
-
-        onClicked: welcomePlugin.openUrl(url)
     }
 }

@@ -50,6 +50,13 @@ Item {
             width: view.width
             height: column.height + 8
 
+            MouseArea {
+                id: mouseArea
+                anchors.fill: parent
+                hoverEnabled: true
+                onClicked: Qt.openUrlExternally(link)
+            }
+
             Row {
                 id: column
                 spacing: 4
@@ -83,15 +90,6 @@ Item {
                         anchors.fill: parent  //...to cover the whole image
                         onClicked: Qt.openUrlExternally(link)
                     }
-                }
-            }
-            MouseArea {
-                id: mouseArea
-                anchors.fill: parent
-                hoverEnabled: true
-                onClicked: {
-                    console.log(link)
-                    container.clicked(link)
                 }
             }
         }

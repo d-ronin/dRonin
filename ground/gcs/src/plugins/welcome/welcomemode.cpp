@@ -126,11 +126,6 @@ QList<int> WelcomeMode::context() const
     return contexts;
 }
 
-void WelcomeMode::openUrl(const QString &url)
-{
-    QDesktopServices::openUrl(QUrl(url));
-}
-
 void WelcomeMode::openPage(const QString &page)
 {
     Core::ModeManager::instance()->activateModeByWorkspaceName(page);
