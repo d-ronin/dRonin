@@ -6,7 +6,7 @@
  * @file       alarms.c
  * @author     The OpenPilot Team, http://www.openpilot.org Copyright (C) 2010.
  * @author     Tau Labs, http://taulabs.org, Copyright (C) 2014
- * @author     dRonin, http://dronin.org Copyright (C) 2015
+ * @author     dRonin, http://dronin.org Copyright (C) 2015-2016
  * @brief      Library for setting and clearing system alarms
  * @see        The GNU Public License (GPL) Version 3
  *
@@ -25,6 +25,10 @@
  * You should have received a copy of the GNU General Public License along
  * with this program; if not, write to the Free Software Foundation, Inc.,
  * 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
+ *
+ * Additional note on redistribution: The copyright and license notices above
+ * must be maintained in each individual source file that is a derivative work
+ * of this source file; otherwise redistribution is prohibited.
  */
 
 #include "openpilot.h"
@@ -244,7 +248,7 @@ static const char alarm_names[][10] = {
 	[SYSTEMALARMS_ALARM_CPUOVERLOAD] = "CPU",
 	[SYSTEMALARMS_ALARM_STACKOVERFLOW] = "STACK",
 	[SYSTEMALARMS_ALARM_SYSTEMCONFIGURATION] = "CONFIG",
-	[SYSTEMALARMS_ALARM_EVENTSYSTEM] = "EVENT",
+	[SYSTEMALARMS_ALARM_EVENTSYSTEM] = {0}, // XXX TODO Temporarily ignored
 	[SYSTEMALARMS_ALARM_TELEMETRY] = {0}, // ignored
 	[SYSTEMALARMS_ALARM_MANUALCONTROL] = "MANUAL",
 	[SYSTEMALARMS_ALARM_ACTUATOR] = "ACTUATOR",
