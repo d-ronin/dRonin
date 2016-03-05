@@ -39,6 +39,7 @@
 #include "fileutils.h"
 #include "coreplugin/icore.h"
 #include "rawhid/rawhidplugin.h"
+#include "../../../../../build/ground/gcs/gcsversioninfo.h"
 
 using namespace uploader;
 
@@ -485,7 +486,25 @@ void UploaderGadgetWidget::onBootloaderDetected()
             deviceDescriptorStruct descStructure;
             if(!UAVObjectUtilManager::descriptionToStructure(description, descStructure))
                 break;
+//#ifdef RELEASE_BUILD
+            const QString gcsRev(GCS_REVISION);
+            if (gcsRev.contains(':')) {
+                QString gcsShort = gcsRev.mid(gcsRev.indexOf(':') + 1, 8);
+                qDebug() << gcsShort << descStructure.gitHash;
+                if (gcsShort != descStructure.gitHash) {
+                    QMessageBox msgBox;
+                    msgBox.setText(tr("The firmware version on your board does not match this version of GCS."));
+                    msgBox.setInformativeText(tr("Do you want to upgrade the firmware to a comptable version?"));
+                    msgBox.setDetailedText(QString("Firmware git hash: %1\nGCS git hash: %2").arg(descStructure.gitHash).arg(gcsShort));
+                    msgBox.setStandardButtons(QMessageBox::Yes | QMessageBox::No);
+                    msgBox.setDefaultButton(QMessageBox::Yes);
+                    if (msgBox.exec() == QMessageBox::Yes)
+                        break;
+                }
+            }
+//#endif
         }
+        // fall through to default
         default:
             dfu.JumpToApp(false);
             dfu.CloseBootloaderComs();
@@ -559,6 +578,7 @@ void UploaderGadgetWidget::onBootloaderDetected()
         case uploader::HALTING:
             setUploaderStatus(uploader::BL_FROM_HALT);
             break;
+        case uploader::DISCONNECTED:
         case uploader::RESCUING:
             setUploaderStatus(uploader::BL_FROM_RESCUE);
             break;
