@@ -105,6 +105,9 @@ static void batteryTask(void * parameters)
 
 	battery_settings_updated = true;
 	bool cells_calculated = false;
+	unsigned cells;
+	FlightBatterySettingsNbCellsGet((uint8_t*)&cells);
+	
 
 	// Main task loop
 	uint32_t lastSysTime;
@@ -140,7 +143,6 @@ static void batteryTask(void * parameters)
 		if (voltageADCPin >= 0) {
 			float adc_voltage = (float)PIOS_ADC_GetChannelVolt(voltageADCPin);
 			float scaled_voltage = 0.0f;
-			unsigned cells = batterySettings.NbCells;
 
 			// A negative result indicates an error (PIOS_ADC_GetChannelVolt returns negative on error)
 			if(adc_voltage < 0.0f)
