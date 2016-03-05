@@ -6,6 +6,8 @@ QT += testlib
 include(uploader_dependencies.pri)
 include(../../libs/glc_lib/glc_lib.pri)
 
+CONFIG(release, debug|release):DEFINES += FIRMWARE_RELEASE_CONFIG
+
 INCLUDEPATH *= ../../libs/glc_lib
 HEADERS += uploadergadget.h \
     uploadergadgetfactory.h \
