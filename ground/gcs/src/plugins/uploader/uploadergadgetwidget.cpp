@@ -474,17 +474,23 @@ void UploaderGadgetWidget::onBootloaderDetected()
     }
     if(dfu.OpenBootloaderComs(devices.first()))
     {
+        tl_dfu::device dev = dfu.findCapabilities();
         switch (uploaderStatus) {
         case uploader::HALTING:
         case uploader::RESCUING:
             break;
+        case uploader::DISCONNECTED:
+        {
+            QByteArray description = dfu.DownloadDescriptionAsByteArray(dev.SizeOfDesc);
+            deviceDescriptorStruct descStructure;
+            if(!UAVObjectUtilManager::descriptionToStructure(description, descStructure))
+                break;
+        }
         default:
             dfu.JumpToApp(false);
             dfu.CloseBootloaderComs();
             return;
         }
-
-        tl_dfu::device dev = dfu.findCapabilities();
 
         //Bootloader has new cap extensions, query partitions and fill out browser
         if(dev.CapExt)
