@@ -36,7 +36,7 @@ Item {
 
     JSONListModel {
         id: jsonModel
-        source: "http://dronin-autotown.appspot.com/api/recentTunes"
+        source: "http://dronin-autotown.appspot.com/api/recentTunes?limit=10"
         query: "$[*]"
     }
 
