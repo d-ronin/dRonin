@@ -8,7 +8,7 @@
 # @{
 # @addtogroup 
 # @{
-# @brief Makefile to build bootloader for STM32F4 boards
+# @brief Makefile to build bootupgrader for STM32F1 boards
 ###############################################################################
 #
 # This program is free software; you can redistribute it and/or modify
@@ -53,8 +53,7 @@ SRC += $(BLCOMMONDIR)/bl_xfer.c
 SRC += $(BLBOARDDIR)/pios_board.c
 SRC += $(BLBOARDDIR)/pios_usb_board_data.c
 
-## PIOS Hardware (STM32F4xx)
-PIOS_DEVLIB			:=	$(PIOS)/STM32F4xx
+PIOS_DEVLIB			:=	$(PIOS)/STM32F10x
 include $(PIOS_DEVLIB)/library.mk
 SRC	+=	$(PIOS_DEVLIB)/pios_bl_helper.c
 SRC	+=	$(PIOS_DEVLIB)/pios_exti.c
@@ -74,8 +73,9 @@ SRC	+=	$(PIOS_DEVLIB)/pios_usbhook.c
 SRC	+=	$(PIOS_DEVLIB)/pios_wdg.c
 SRC	+=	$(PIOS_DEVLIB)/startup.c
 SRC	+=	$(PIOS_DEVLIB)/vectors_stm32f4xx.c
-LINKER_SCRIPTS_BL	 =	$(PIOS_DEVLIB)/link_STM32F4xx_BL_memory.ld \
-						$(PIOS_DEVLIB)/link_STM32F4xx_sections.ld
+
+LINKER_SCRIPTS_BL = $(PIOS_DEVLIB)/link_STM32103CB_CC_Rev1_sections.ld
+LINKER_SCRIPTS_BL += $(PIOS_DEVLIB)/link_STM32103CB_CC_Rev1_memory.ld
 
 ## PIOS Hardware (Common)
 SRC += $(PIOSCOMMON)/pios_delay.c
@@ -88,7 +88,6 @@ SRC += $(PIOSCOMMON)/pios_flash.c
 SRC += $(PIOSCOMMON)/pios_flash_jedec.c
 SRC += $(PIOSCOMMON)/pios_heap.c
 SRC += $(PIOSCOMMON)/pios_semaphore.c
-
 
 # List any extra directories to look for include files here.
 #    Each directory must be seperated by a space.
@@ -134,7 +133,7 @@ ADEFS = -D__ASSEMBLY__
 #    -adhlns...: create assembler listing
 #
 # Flags for C and C++ (arm-elf-gcc/arm-elf-g++)
-CFLAGS += -D$(STM32_TYPE)
+#CFLAGS += -D$(STM32_TYPE)
 
 CFLAGS += -gdwarf-2
 CFLAGS += -Os -fconserve-stack
