@@ -58,6 +58,8 @@ private slots:
 
     void recheckTabs();
     void objectUpdated(UAVObject * obj, bool success);
+    void autoCellDetectionToggled(bool checked);
+    void maxCellVoltageChanged(double value);
 
 private:
     QVariant getVariantFromWidget(QWidget * widget, double scale);
