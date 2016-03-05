@@ -423,6 +423,7 @@ void UploaderGadgetWidget::onFlashButtonClick()
     setStatusInfo("",uploader::STATUSICON_RUNNING);
     previousStatus = uploaderStatus;
     setUploaderStatus(uploader::UPLOADING_FW);
+    onStatusUpdate(QString("Starting upload..."), 0); // set progress bar to 0 while erasing
     connect(&dfu, SIGNAL(operationProgress(QString,int)), this, SLOT(onStatusUpdate(QString, int)));
     connect(&dfu, SIGNAL(uploadFinished(tl_dfu::Status)), this, SLOT(onUploadFinish(tl_dfu::Status)));
     dfu.UploadPartitionThreaded(loadedFile, DFU_PARTITION_FW, currentBoard.max_code_size.toInt());
@@ -685,6 +686,12 @@ void UploaderGadgetWidget::onUploadFinish(Status stat)
         {
             setStatusInfo(tr("Firmware and firmware metadata upload success"), uploader::STATUSICON_OK);
             lastUploadResult = true;
+            // uploaded succeeded so we can assume the loaded file is on the board
+            deviceDescriptorStruct descStructure;
+            if (UAVObjectUtilManager::descriptionToStructure(tempArray, descStructure)) {
+                quint32 crc = dfu.CRCFromQBArray(loadedFile, currentBoard.max_code_size.toLong());
+                FirmwareOnDeviceUpdate(descStructure, QString::number(crc));
+            }
             emit uploadFinish(true);
         }
         else
