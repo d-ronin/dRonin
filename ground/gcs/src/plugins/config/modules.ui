@@ -20,7 +20,7 @@
       <enum>QTabWidget::Rounded</enum>
      </property>
      <property name="currentIndex">
-      <number>2</number>
+      <number>0</number>
      </property>
      <property name="tabsClosable">
       <bool>false</bool>
@@ -387,57 +387,144 @@
       </attribute>
       <layout class="QVBoxLayout" name="verticalLayout_7">
        <item>
-        <layout class="QFormLayout" name="formLayout_6">
-         <property name="fieldGrowthPolicy">
-          <enum>QFormLayout::ExpandingFieldsGrow</enum>
+        <widget class="QGroupBox" name="gbBatteryData">
+         <property name="title">
+          <string>Battery Data</string>
          </property>
-         <item row="0" column="0">
-          <widget class="QLabel" name="label_6">
-           <property name="sizePolicy">
-            <sizepolicy hsizetype="Minimum" vsizetype="Preferred">
-             <horstretch>0</horstretch>
-             <verstretch>0</verstretch>
-            </sizepolicy>
-           </property>
-           <property name="text">
-            <string>Number of cells:</string>
-           </property>
-          </widget>
-         </item>
-         <item row="0" column="1">
-          <widget class="QSpinBox" name="sb_numBatteryCells">
-           <property name="minimum">
-            <number>1</number>
-           </property>
-          </widget>
-         </item>
-         <item row="1" column="0">
-          <widget class="QLabel" name="label_2">
-           <property name="text">
-            <string>Capacity:</string>
-           </property>
-          </widget>
-         </item>
-         <item row="1" column="1">
-          <widget class="QSpinBox" name="sb_batteryCapacity">
-           <property name="suffix">
-            <string>mAhr</string>
-           </property>
-           <property name="minimum">
-            <number>1</number>
-           </property>
-           <property name="maximum">
-            <number>1000000</number>
-           </property>
-           <property name="singleStep">
-            <number>100</number>
-           </property>
-           <property name="value">
-            <number>2000</number>
-           </property>
-          </widget>
-         </item>
-        </layout>
+         <layout class="QVBoxLayout" name="verticalLayout_5">
+          <item>
+           <widget class="QGroupBox" name="gbAutoCellDetection">
+            <property name="enabled">
+             <bool>true</bool>
+            </property>
+            <property name="title">
+             <string>Automatic cell count detection</string>
+            </property>
+            <property name="checkable">
+             <bool>true</bool>
+            </property>
+            <property name="checked">
+             <bool>false</bool>
+            </property>
+            <layout class="QFormLayout" name="formLayout_6">
+             <item row="0" column="0">
+              <widget class="QLabel" name="lblMaxCellVoltage">
+               <property name="text">
+                <string>Max voltage per cell:</string>
+               </property>
+              </widget>
+             </item>
+             <item row="0" column="1">
+              <widget class="QDoubleSpinBox" name="sbMaxCellVoltage">
+               <property name="enabled">
+                <bool>false</bool>
+               </property>
+               <property name="suffix">
+                <string> V</string>
+               </property>
+               <property name="singleStep">
+                <double>0.050000000000000</double>
+               </property>
+               <property name="value">
+                <double>0.000000000000000</double>
+               </property>
+              </widget>
+             </item>
+             <item row="1" column="0">
+              <widget class="QLabel" name="lblLiveCellCount">
+               <property name="text">
+                <string>Live detected cell count:</string>
+               </property>
+              </widget>
+             </item>
+             <item row="1" column="1">
+              <widget class="QLineEdit" name="leLiveCellCount">
+               <property name="readOnly">
+                <bool>true</bool>
+               </property>
+              </widget>
+             </item>
+            </layout>
+           </widget>
+          </item>
+          <item>
+           <widget class="QFrame" name="frame">
+            <property name="minimumSize">
+             <size>
+              <width>0</width>
+              <height>0</height>
+             </size>
+            </property>
+            <property name="frameShape">
+             <enum>QFrame::StyledPanel</enum>
+            </property>
+            <property name="frameShadow">
+             <enum>QFrame::Raised</enum>
+            </property>
+            <layout class="QFormLayout" name="formLayout_9">
+             <item row="2" column="1">
+              <widget class="QSpinBox" name="sb_batteryCapacity">
+               <property name="enabled">
+                <bool>false</bool>
+               </property>
+               <property name="suffix">
+                <string>mAhr</string>
+               </property>
+               <property name="minimum">
+                <number>1</number>
+               </property>
+               <property name="maximum">
+                <number>1000000</number>
+               </property>
+               <property name="singleStep">
+                <number>100</number>
+               </property>
+               <property name="value">
+                <number>2000</number>
+               </property>
+              </widget>
+             </item>
+             <item row="1" column="0">
+              <widget class="QLabel" name="lblNumBatteryCells">
+               <property name="enabled">
+                <bool>true</bool>
+               </property>
+               <property name="sizePolicy">
+                <sizepolicy hsizetype="Minimum" vsizetype="Preferred">
+                 <horstretch>0</horstretch>
+                 <verstretch>0</verstretch>
+                </sizepolicy>
+               </property>
+               <property name="text">
+                <string>Number of cells:</string>
+               </property>
+              </widget>
+             </item>
+             <item row="2" column="0">
+              <widget class="QLabel" name="lblBatteryCapacity">
+               <property name="enabled">
+                <bool>true</bool>
+               </property>
+               <property name="text">
+                <string>Capacity:</string>
+               </property>
+              </widget>
+             </item>
+             <item row="1" column="1">
+              <widget class="QSpinBox" name="sb_numBatteryCells">
+               <property name="enabled">
+                <bool>false</bool>
+               </property>
+               <property name="minimum">
+                <number>1</number>
+               </property>
+              </widget>
+             </item>
+            </layout>
+           </widget>
+          </item>
+         </layout>
+        </widget>
        </item>
        <item>
         <widget class="QGroupBox" name="gb_measureVoltage">
@@ -491,14 +578,14 @@
             </property>
            </widget>
           </item>
-          <item row="6" column="0">
+          <item row="8" column="0">
            <widget class="QLabel" name="label_11">
             <property name="text">
-             <string>Low voltage alarm:</string>
+             <string>Low cell voltage alarm:</string>
             </property>
            </widget>
           </item>
-          <item row="6" column="1">
+          <item row="8" column="1">
            <widget class="QDoubleSpinBox" name="sb_lowVoltageAlarm">
             <property name="suffix">
              <string> V</string>
@@ -507,18 +594,18 @@
              <double>0.100000000000000</double>
             </property>
             <property name="value">
-             <double>10.400000000000000</double>
+             <double>3.300000000000000</double>
             </property>
            </widget>
           </item>
-          <item row="7" column="0">
+          <item row="9" column="0">
            <widget class="QLabel" name="label_12">
             <property name="text">
-             <string>Low voltage warning:</string>
+             <string>Low cell voltage warning:</string>
             </property>
            </widget>
           </item>
-          <item row="7" column="1">
+          <item row="9" column="1">
            <widget class="QDoubleSpinBox" name="sb_lowVoltageWarning">
             <property name="suffix">
              <string> V</string>
@@ -527,7 +614,7 @@
              <double>0.100000000000000</double>
             </property>
             <property name="value">
-             <double>10.150000000000000</double>
+             <double>3.500000000000000</double>
             </property>
            </widget>
           </item>
@@ -1083,8 +1170,8 @@
            <rect>
             <x>0</x>
             <y>0</y>
-            <width>376</width>
-            <height>864</height>
+            <width>392</width>
+            <height>714</height>
            </rect>
           </property>
           <layout class="QGridLayout" name="gridLayout">
