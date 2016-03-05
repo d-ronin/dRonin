@@ -475,7 +475,7 @@ void Calibration::doStartOrientation() {
 
     // Set up timeout timer
     timer.setSingleShot(true);
-    timer.start(5000 + (NUM_SENSOR_UPDATES_YAW_ORIENTATION * SENSOR_UPDATE_PERIOD));
+    timer.start(8000 + (NUM_SENSOR_UPDATES_YAW_ORIENTATION * SENSOR_UPDATE_PERIOD));
     connect(&timer,SIGNAL(timeout()),this,SLOT(timeout()));
 }
 
@@ -526,7 +526,7 @@ void Calibration::doStartLeveling() {
 
     // Set up timeout timer
     timer.setSingleShot(true);
-    timer.start(5000 + (NUM_SENSOR_UPDATES_LEVELING * SENSOR_UPDATE_PERIOD));
+    timer.start(8000 + (NUM_SENSOR_UPDATES_LEVELING * SENSOR_UPDATE_PERIOD));
     connect(&timer,SIGNAL(timeout()),this,SLOT(timeout()));
 }
 
@@ -695,7 +695,7 @@ void Calibration::doSaveSixPointPosition()
 
     // Set up timeout timer
     timer.setSingleShot(true);
-    timer.start(5000 + (NUM_SENSOR_UPDATES_SIX_POINT * SENSOR_UPDATE_PERIOD));
+    timer.start(8000 + (NUM_SENSOR_UPDATES_SIX_POINT * SENSOR_UPDATE_PERIOD));
     connect(&timer,SIGNAL(timeout()),this,SLOT(timeout()));
 }
 

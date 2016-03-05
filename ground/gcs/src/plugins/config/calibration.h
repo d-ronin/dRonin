@@ -201,7 +201,7 @@ private:
     static const int NUM_SENSOR_UPDATES_LEVELING = 300;
     static const int NUM_SENSOR_UPDATES_YAW_ORIENTATION = 300;
     static const int NUM_SENSOR_UPDATES_SIX_POINT = 100;
-    static const int SENSOR_UPDATE_PERIOD = 20;
+    static const int SENSOR_UPDATE_PERIOD = 25;
     static const int NON_SENSOR_UPDATE_PERIOD = 0;
     double MIN_TEMPERATURE_RANGE;
 
