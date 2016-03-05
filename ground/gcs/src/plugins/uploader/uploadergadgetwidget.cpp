@@ -360,7 +360,7 @@ void UploaderGadgetWidget::onAutopilotReady()
     DeviceInformationUpdate(board);
     deviceDescriptorStruct device;
     if(utilMngr->getBoardDescriptionStruct(device))
-        FirmwareOnDeviceUpdate(device, QString::number(utilMngr->getFirmwareCRC(), 16));
+        FirmwareOnDeviceUpdate(device, QString::number(utilMngr->getFirmwareCRC()));
     emit newBoardSeen(board, device);
 }
 
