@@ -300,6 +300,7 @@ int32_t PIOS_I2C_Transfer(uint32_t i2c_id, const struct pios_i2c_txn txn_list[],
     }
 
     state->busy = true; 
+    state->subaddress_sent = false;
  
     PIOS_DEBUG_Assert(!(i2c_adapter->cfg->regs->CR2 & I2C_IT_EVT));
     PIOS_DEBUG_Assert(!(i2c_adapter->cfg->regs->CR1 & 0x0100));
@@ -377,7 +378,7 @@ void PIOS_I2C_EV_IRQ_Handler(uint32_t i2c_id)
         I2C_AcknowledgeConfig(i2c_adapter->cfg->regs, ENABLE);    //make sure ACK is on
         state->index = 0;              //reset the index
         if ((state->dir == I2C_Direction_Receiver) && (state->subaddress_sent || 0xFF == state->reg)) {       //we have sent the subaddr
-            state->subaddress_sent = 1;        //make sure this is set in case of no subaddress, so following code runs correctly
+            state->subaddress_sent = true;        //make sure this is set in case of no subaddress, so following code runs correctly
             if (state->bytes == 2)
                 i2c_adapter->cfg->regs->CR1 |= 0x0800;    //set the POS bit so NACK applied to the final byte in the two byte read
             I2C_Send7bitAddress(i2c_adapter->cfg->regs, state->addr, I2C_Direction_Receiver);   //send the address and set hardware mode
