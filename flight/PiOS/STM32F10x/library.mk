@@ -32,6 +32,6 @@ SRC					+=	$(wildcard $(PERIPHLIB)/src/*.c)
 #
 # ST USB Device library
 #
-USBDEVLIB			=	$(PIOS_DEVLIB)/Libraries/STM32_USB_Device_Library
-EXTRAINCDIRS			+=	$(USBDEVLIB)/Core/inc
-SRC				+=	$(wildcard $(USBDEVLIB)/Core/src/*.c)
+USBDEVLIB			=	$(PIOS_DEVLIB)/Libraries/STM32_USB-FS-Device_Driver
+EXTRAINCDIRS			+=	$(USBDEVLIB)/inc
+SRC				+=	$(wildcard $(USBDEVLIB)/src/*.c)

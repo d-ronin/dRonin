@@ -71,11 +71,13 @@ SRC	+=	$(PIOS_DEVLIB)/pios_usb_cdc.c
 SRC	+=	$(PIOS_DEVLIB)/pios_usb_hid.c
 SRC	+=	$(PIOS_DEVLIB)/pios_usbhook.c
 SRC	+=	$(PIOS_DEVLIB)/pios_wdg.c
-SRC	+=	$(PIOS_DEVLIB)/startup.c
-SRC	+=	$(PIOS_DEVLIB)/vectors_stm32f4xx.c
+#SRC	+=	$(PIOS_DEVLIB)/startup.c
+ASRC = $(PIOS_DEVLIB)/startup_stm32f10x_$(MODEL)$(MODEL_SUFFIX).S
 
-LINKER_SCRIPTS_BL = $(PIOS_DEVLIB)/link_STM32103CB_CC_Rev1_sections.ld
-LINKER_SCRIPTS_BL += $(PIOS_DEVLIB)/link_STM32103CB_CC_Rev1_memory.ld
+#SRC	+=	$(PIOS_DEVLIB)/vectors_stm32f4xx.c
+
+LINKER_SCRIPTS_BL = $(PIOS_DEVLIB)/link_STM32103CB_CC_Rev1_memory.ld
+LINKER_SCRIPTS_BL += $(PIOS_DEVLIB)/link_STM32103CB_CC_Rev1_sections.ld
 
 ## PIOS Hardware (Common)
 SRC += $(PIOSCOMMON)/pios_delay.c
@@ -152,6 +154,10 @@ CFLAGS += -Werror
 CFLAGS += -Wa,-adhlns=$(addprefix $(OUTDIR)/, $(notdir $(addsuffix .lst, $(basename $<))))
 # Compiler flags to generate dependency files:
 CFLAGS += -MD -MP -MF $(OUTDIR)/dep/$(@F).d
+
+CFLAGS += -DPIOS_INCLUDE_FLASH
+CFLAGS += -DPIOS_INCLUDE_FLASH_JEDEC
+CFLAGS += -DPIOS_INCLUDE_FLASH_INTERNAL
 
 # flags only for C
 CONLYFLAGS += -std=gnu99
