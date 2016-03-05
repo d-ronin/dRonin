@@ -67,6 +67,7 @@ OPTMODULES += UAVOFrSKYSPortBridge
 OPTMODULES += Geofence
 OPTMODULES += Logging
 OPTMODULES += FlightStats
+OPTMODULES += Storm32Bgc
 
 # Paths
 OPUAVTALKINC = $(OPUAVTALK)/inc

@@ -119,6 +119,7 @@ extern uintptr_t pios_com_debug_id;
 extern uintptr_t pios_com_frsky_sport_id;
 extern uintptr_t pios_com_spiflash_logging_id;
 extern uintptr_t pios_com_openlog_logging_id;
+extern uintptr_t pios_com_storm32bgc_id;
 
 #define PIOS_COM_GPS                    (pios_com_gps_id)
 #define PIOS_COM_TELEM_USB              (pios_com_telem_usb_id)
@@ -134,6 +135,7 @@ extern uintptr_t pios_com_openlog_logging_id;
 #define PIOS_COM_FRSKY_SPORT            (pios_com_frsky_sport_id)
 #define PIOS_COM_OPENLOG                (pios_com_openlog_logging_id)
 #define PIOS_COM_SPIFLASH               (pios_com_spiflash_logging_id)
+#define PIOS_COM_STORM32BGC             (pios_com_storm32bgc_id)
 
 #define DEBUG_LEVEL 0
 #define DEBUG_PRINTF(level, ...) {if(level <= DEBUG_LEVEL && pios_com_debug_id > 0) { PIOS_COM_SendFormattedStringNonBlocking(pios_com_debug_id, __VA_ARGS__); }}

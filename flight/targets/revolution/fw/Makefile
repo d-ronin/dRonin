@@ -69,6 +69,7 @@ OPTMODULES += ComUsbBridge
 OPTMODULES += UAVOMSPBridge
 OPTMODULES += Logging
 OPTMODULES += FlightStats
+OPTMODULES += Storm32Bgc
 
 # Paths
 OPUAVTALKINC = $(OPUAVTALK)/inc
