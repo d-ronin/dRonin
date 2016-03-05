@@ -53,10 +53,7 @@ Item {
                 id: mouseArea
                 anchors.fill: parent
                 hoverEnabled: true
-                onClicked: {
-                    console.log(link)
-                    container.clicked(link)
-                }
+                onClicked: Qt.openUrlExternally(link)
             }
         }
     }

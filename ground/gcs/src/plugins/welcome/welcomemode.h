@@ -64,7 +64,6 @@ public:
     void setPriority(int priority) { m_priority = priority; }
 
 public slots:
-    void openUrl(const QString &url);
     void openPage(const QString &page);
     void triggerAction(const QString &actionId);
 
