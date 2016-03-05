@@ -104,6 +104,12 @@ int main(void) {
 	const uint32_t zero = 0;
 	PIOS_FLASH_start_transaction(fw_partition_id);
 	PIOS_FLASH_write_data(fw_partition_id, 0, (uint8_t *)&zero, sizeof(zero));
+	/* 
+	 * Invalidate FW metadata so GCS can know FW is invalid
+	 * We replace the fourth letter of the TlFw sentinel with 0
+	 */
+	uint32_t offset = pios_board_info_blob.desc_base - pios_board_info_blob.fw_base + 3;
+	PIOS_FLASH_write_data(fw_partition_id, offset, (uint8_t *)&zero, sizeof(char));
 	PIOS_FLASH_end_transaction(fw_partition_id);
 	PIOS_LED_Off(PIOS_LED_HEARTBEAT);
 
@@ -117,9 +123,7 @@ int main(void) {
 			PIOS_DELAY_WaitmS(1000);
 	}
 
-	while (1) {
-		PIOS_DELAY_WaitmS(1000);
-	}
+	PIOS_SYS_Reset();
 }
 
 void error(int led) {
