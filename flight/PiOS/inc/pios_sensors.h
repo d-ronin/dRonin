@@ -110,4 +110,10 @@ void PIOS_SENSORS_SetMaxGyro(int32_t rate);
 //! Get the maximum gyro rate in deg/s
 int32_t PIOS_SENSORS_GetMaxGyro();
 
+//! Set the sample rate of a sensor (Hz)
+void PIOS_SENSORS_SetSampleRate(enum pios_sensor_type type, uint32_t sample_rate);
+
+//! Get the sample rate of a sensor (Hz)
+uint32_t PIOS_SENSORS_GetSampleRate(enum pios_sensor_type type);
+
 #endif /* PIOS_SENSOR_H */
