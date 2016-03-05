@@ -11,7 +11,7 @@
         </field>
         <field name="Capacity" units="mAh"  type="uint32"  elements="1" defaultvalue="2200"/>
 
-        <field name="LowVoltageLevels" units="V"  type="float" elementnames="Warning, Alarm" defaultvalue="3.5, 3.3"/>
+        <field name="CellVoltageThresholds" units="V"  type="float" elementnames="Warning, Alarm" defaultvalue="3.5, 3.3"/>
           
         <field name="SensorCalibrationFactor" units="mV/U" type="float" elementnames="Voltage, Current" defaultvalue="63.69, 36.60"/>
         <field name="SensorCalibrationOffset" units="" type="float" elementnames="Voltage, Current" defaultvalue="0, 0"/>

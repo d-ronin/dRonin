@@ -129,6 +129,8 @@ static void batteryTask(void * parameters)
 			currentADCPin = batterySettings.CurrentPin;
 			if (currentADCPin == FLIGHTBATTERYSETTINGS_CURRENTPIN_NONE)
 				currentADCPin = -1;
+
+			cells_calculated = false;
 		}
 
 		bool adc_pin_invalid = false;
@@ -138,7 +140,7 @@ static void batteryTask(void * parameters)
 		if (voltageADCPin >= 0) {
 			float adc_voltage = (float)PIOS_ADC_GetChannelVolt(voltageADCPin);
 			float scaled_voltage = 0.0f;
-			static unsigned cells;
+			unsigned cells = batterySettings.NbCells;
 
 			// A negative result indicates an error (PIOS_ADC_GetChannelVolt returns negative on error)
 			if(adc_voltage < 0.0f)
@@ -151,25 +153,33 @@ static void batteryTask(void * parameters)
 
 				// disallow negative values as these are cast to unsigned integral types
 				// in some telemetry layers
-				if(scaled_voltage < 0.0f) {
+				if (scaled_voltage < 0.0f) {
 					scaled_voltage = 0.0f;
 					adc_offset_invalid = true;
+				} else if (batterySettings.MaxCellVoltage > 0.0f) {
+					if (!cells_calculated) {
+						cells = ((scaled_voltage / batterySettings.MaxCellVoltage) + 0.9f);
+						if (cells > 0) {
+							cells_calculated = true;
+							flightBatteryData.DetectedCellCount = cells;
+						}
+					}
+				} else {
+					cells_calculated = false;
 				}
-				else if(scaled_voltage > 3.0f && !cells_calculated && (batterySettings.MaxCellVoltage > 0)){
-					cells_calculated = true;
-					cells = ((scaled_voltage / batterySettings.MaxCellVoltage) + 0.9f);
-					flightBatteryData.DetectedCellCount = cells;
+
+				if (!cells_calculated) {
+					cells = batterySettings.NbCells;
+					flightBatteryData.DetectedCellCount = 0;
 				}
-				else if(!cells_calculated)
-					cells = 1;
 			}
 
 			flightBatteryData.Voltage = scaled_voltage;
 
 			// generate alarms and warnings
-			if (flightBatteryData.Voltage < (batterySettings.LowVoltageLevels[FLIGHTBATTERYSETTINGS_LOWVOLTAGELEVELS_ALARM] * cells))
+			if (flightBatteryData.Voltage < (batterySettings.CellVoltageThresholds[FLIGHTBATTERYSETTINGS_CELLVOLTAGETHRESHOLDS_ALARM] * cells))
 				AlarmsSet(SYSTEMALARMS_ALARM_BATTERY, SYSTEMALARMS_ALARM_CRITICAL);
-			else if (flightBatteryData.Voltage < (batterySettings.LowVoltageLevels[FLIGHTBATTERYSETTINGS_LOWVOLTAGELEVELS_WARNING] * cells))
+			else if (flightBatteryData.Voltage < (batterySettings.CellVoltageThresholds[FLIGHTBATTERYSETTINGS_CELLVOLTAGETHRESHOLDS_WARNING] * cells))
 				AlarmsSet(SYSTEMALARMS_ALARM_BATTERY, SYSTEMALARMS_ALARM_WARNING);
 			else
 				AlarmsClear(SYSTEMALARMS_ALARM_BATTERY);
