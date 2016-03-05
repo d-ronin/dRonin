@@ -33,6 +33,12 @@
 #include <pios_config.h>
 #include <pios_board_info.h>
 
+enum board_revision {
+	BOARD_REVISION_4 = 0x04,
+	BOARD_REVISION_5,
+	BOARD_REVISION_6
+};
+
 #if defined(PIOS_INCLUDE_LED)
 
 #include <pios_led_priv.h>
@@ -970,3 +976,162 @@ void PIOS_I2C_adapter_er_irq_handler(void)
 #include <pios_com_msg_priv.h>
 
 #endif /* PIOS_INCLUDE_COM_MSG */
+
+/**
+ * Configuration for the HMC5883L chip
+ */
+#if defined(PIOS_INCLUDE_HMC5883)
+#include "pios_hmc5883_priv.h"
+static struct pios_exti_cfg pios_exti_hmc5883_cfg __exti_config = {
+	// MAG_DRDY output on rev4 hardware (PB12)
+	.vector = PIOS_HMC5883_IRQHandler,
+	.line = EXTI_Line12,
+	.pin = {
+		.gpio = GPIOB,
+		.init = {
+			.GPIO_Pin = GPIO_Pin_12,
+			.GPIO_Speed = GPIO_Speed_2MHz,
+			.GPIO_Mode = GPIO_Mode_IN_FLOATING,
+		},
+	},
+	.irq = {
+		.init = {
+			.NVIC_IRQChannel = EXTI15_10_IRQn,
+			.NVIC_IRQChannelPreemptionPriority = PIOS_IRQ_PRIO_LOW,
+			.NVIC_IRQChannelSubPriority = 0,
+			.NVIC_IRQChannelCmd = ENABLE,
+		},
+	},
+	.exti = {
+		.init = {
+			.EXTI_Line = EXTI_Line12, // matches above GPIO pin
+			.EXTI_Mode = EXTI_Mode_Interrupt,
+			.EXTI_Trigger = EXTI_Trigger_Rising,
+			.EXTI_LineCmd = ENABLE,
+		},
+	},
+};
+
+static struct pios_exti_cfg pios_exti_hmc5883_cfg_v5 __exti_config = {
+	// MAG_DRDY output on rev5 hardware PC14
+	.vector = PIOS_HMC5883_IRQHandler,
+	.line = EXTI_Line14,
+	.pin = {
+		.gpio = GPIOC,
+		.init = {
+			.GPIO_Pin = GPIO_Pin_14,
+			.GPIO_Speed = GPIO_Speed_2MHz,
+			.GPIO_Mode = GPIO_Mode_IN_FLOATING,
+		},
+	},
+	.irq = {
+		.init = {
+			.NVIC_IRQChannel = EXTI15_10_IRQn,
+			.NVIC_IRQChannelPreemptionPriority = PIOS_IRQ_PRIO_LOW,
+			.NVIC_IRQChannelSubPriority = 0,
+			.NVIC_IRQChannelCmd = ENABLE,
+		},
+	},
+	.exti = {
+		.init = {
+			.EXTI_Line = EXTI_Line14, // matches above GPIO pin
+			.EXTI_Mode = EXTI_Mode_Interrupt,
+			.EXTI_Trigger = EXTI_Trigger_Rising,
+			.EXTI_LineCmd = ENABLE,
+		},
+	},
+};
+
+static /*const*/ struct pios_hmc5883_cfg pios_hmc5883_cfg = {
+	.exti_cfg = &pios_exti_hmc5883_cfg,
+	.M_ODR = PIOS_HMC5883_ODR_75,
+	.Meas_Conf = PIOS_HMC5883_MEASCONF_NORMAL,
+	.Gain = PIOS_HMC5883_GAIN_1_9,
+	.Mode = PIOS_HMC5883_MODE_CONTINUOUS,
+	.Default_Orientation = PIOS_HMC5883_TOP_90DEG,  // TODO: check & fix orientation
+};
+
+#endif /* PIOS_INCLUDE_HMC5883 */
+
+/**
+ * Configuration for the MS5611 chip
+ */
+#if defined(PIOS_INCLUDE_MS5611)
+#include "pios_ms5611_priv.h"
+static const struct pios_ms5611_cfg pios_ms5611_cfg = {
+	.oversampling = MS5611_OSR_512,
+	.temperature_interleaving = 1,
+};
+#endif /* PIOS_INCLUDE_MS5611 */
+
+/**
+ * Configuration for the MPU chip
+ */
+#if defined(PIOS_INCLUDE_MPU)
+#include "pios_mpu.h"
+static const struct pios_exti_cfg pios_exti_mpu_cfg __exti_config = {
+	// MPU_INT output on rev4 hardware (PB13)
+	.vector = PIOS_MPU_IRQHandler,
+	.line = EXTI_Line13,
+	.pin = {
+		.gpio = GPIOB,
+		.init = {
+			.GPIO_Pin   = GPIO_Pin_13,
+			.GPIO_Speed = GPIO_Speed_2MHz,
+			.GPIO_Mode  = GPIO_Mode_IN_FLOATING,
+		},
+	},
+	.irq = {
+		.init = {
+			.NVIC_IRQChannel = EXTI15_10_IRQn,
+			.NVIC_IRQChannelPreemptionPriority = PIOS_IRQ_PRIO_HIGH,
+			.NVIC_IRQChannelSubPriority = 0,
+			.NVIC_IRQChannelCmd = ENABLE,
+		},
+	},
+	.exti = {
+		.init = {
+			.EXTI_Line = EXTI_Line13, // matches above GPIO pin
+			.EXTI_Mode = EXTI_Mode_Interrupt,
+			.EXTI_Trigger = EXTI_Trigger_Rising,
+			.EXTI_LineCmd = ENABLE,
+		},
+	},
+};
+
+static const struct pios_exti_cfg pios_exti_mpu_cfg_v5 __exti_config = {
+	// MPU_INT output on rev5+ hardware (PC13)
+	.vector = PIOS_MPU_IRQHandler,
+	.line = EXTI_Line13,
+	.pin = {
+		.gpio = GPIOC,
+		.init = {
+			.GPIO_Pin   = GPIO_Pin_13,
+			.GPIO_Speed = GPIO_Speed_2MHz,
+			.GPIO_Mode  = GPIO_Mode_IN_FLOATING,
+		},
+	},
+	.irq = {
+		.init = {
+			.NVIC_IRQChannel = EXTI15_10_IRQn,
+			.NVIC_IRQChannelPreemptionPriority = PIOS_IRQ_PRIO_HIGH,
+			.NVIC_IRQChannelSubPriority = 0,
+			.NVIC_IRQChannelCmd = ENABLE,
+		},
+	},
+	.exti = {
+		.init = {
+			.EXTI_Line = EXTI_Line13, // matches above GPIO pin
+			.EXTI_Mode = EXTI_Mode_Interrupt,
+			.EXTI_Trigger = EXTI_Trigger_Rising,
+			.EXTI_LineCmd = ENABLE,
+		},
+	},
+};
+
+static struct pios_mpu_cfg pios_mpu_cfg = {
+	.exti_cfg = &pios_exti_mpu_cfg,
+	.default_samplerate = 333,
+	.orientation = PIOS_MPU_TOP_90DEG,
+};
+#endif /* PIOS_INCLUDE_MPU */
