@@ -76,6 +76,9 @@
 static struct pios_queue *queue;
 static struct pios_thread *taskHandle;
 
+static bool flightStatusUpdated = true;
+static bool manualControlCommandUpdated = true;
+
 // used to inform the actuator thread that actuator / mixer settings are updated
 static volatile bool settings_updated;
 
@@ -223,6 +226,10 @@ static void actuator_task(void* parameters)
 	/* Read initial values of ActuatorSettings */
 	settings_updated = true;
 
+	// Connect update callbacks
+	FlightStatusConnectCallbackCtx(UAVObjCbSetFlag, &flightStatusUpdated);
+	ManualControlCommandConnectCallbackCtx(UAVObjCbSetFlag, &manualControlCommandUpdated);
+
 	// Main task loop
 	uint32_t last_systime = PIOS_Thread_Systime();
 
@@ -264,10 +271,18 @@ static void actuator_task(void* parameters)
 			dT = (this_systime - last_systime) / 1000.0f;
 		last_systime = this_systime;
 
-		FlightStatusGet(&flightStatus);
 		ActuatorDesiredGet(&desired);
 		ActuatorCommandGet(&command);
-		ManualControlCommandGet(&manual_control_command);
+
+		if (flightStatusUpdated) {
+			FlightStatusGet(&flightStatus);
+			flightStatusUpdated = false;
+		}
+
+		if (manualControlCommandUpdated) {
+			ManualControlCommandGet(&manual_control_command);
+			manualControlCommandUpdated = false;
+		}
 
 #if defined(MIXERSTATUS_DIAGNOSTICS)
 		MixerStatusGet(&mixerStatus);
