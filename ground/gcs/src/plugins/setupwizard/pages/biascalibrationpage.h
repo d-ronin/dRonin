@@ -53,9 +53,6 @@ private slots:
     void calibrationTimeout();
 
 private:
-    static const int BIAS_CYCLES = 200;
-    static const int BIAS_RATE   = 50;
-
     Ui::BiasCalibrationPage *ui;
     Calibration *m_calibrationUtil;
 
