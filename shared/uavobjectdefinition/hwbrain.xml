@@ -35,7 +35,7 @@
 				<option>PicoC</option>
 				<option>S.Bus</option>
 				<option>S.Bus Non Inverted</option>
-				<option>Storm32bgc</option>
+				<option>Storm32Bgc</option>
 				<option>Telemetry</option>
 				<option>OpenLog</option>
 			</options>
@@ -59,7 +59,7 @@
 				<option>MavLinkTX_GPS_RX</option>
 				<option>PicoC</option>
 				<option>S.Bus Non Inverted</option>
-				<option>Storm32bgc</option>
+				<option>Storm32Bgc</option>
 				<option>Telemetry</option>
 				<option>OpenLog</option>
 			</options>
@@ -82,7 +82,7 @@
 				<option>MavLinkTX_GPS_RX</option>
 				<option>PicoC</option>
 				<option>S.Bus Non Inverted</option>
-				<option>Storm32bgc</option>
+				<option>Storm32Bgc</option>
 				<option>Telemetry</option>
 				<option>OpenLog</option>
 			</options>

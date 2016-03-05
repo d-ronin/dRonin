@@ -38,7 +38,7 @@
 				<option>OpenLog</option>
 				<option>PicoC</option>
 				<option>S.Bus Non Inverted</option>
-				<option>Storm32bgc</option>
+				<option>Storm32Bgc</option>
 				<option>Telemetry</option>
 			</options>
 		</field>
@@ -63,7 +63,7 @@
 				<option>PicoC</option>
 				<option>S.Bus</option>
 				<option>S.Bus Non Inverted</option>
-				<option>Storm32bgc</option>
+				<option>Storm32Bgc</option>
 				<option>Telemetry</option>
 			</options>
 		</field>
@@ -88,7 +88,7 @@
 				<option>OpenLog</option>
 				<option>PicoC</option>
 				<option>S.Bus Non Inverted</option>
-				<option>Storm32bgc</option>
+				<option>Storm32Bgc</option>
 				<option>Telemetry</option>
 			</options>
 		</field>
@@ -112,7 +112,7 @@
 				<option>OpenLog</option>
 				<option>PicoC</option>
 				<option>S.Bus Non Inverted</option>
-				<option>Storm32bgc</option>
+				<option>Storm32Bgc</option>
 				<option>Telemetry</option>
 			</options>
 		</field>
@@ -136,7 +136,7 @@
 				<option>OpenLog</option>
 				<option>PicoC</option>
 				<option>S.Bus Non Inverted</option>
-				<option>Storm32bgc</option>
+				<option>Storm32Bgc</option>
 				<option>Telemetry</option>
 			</options>
 		</field>

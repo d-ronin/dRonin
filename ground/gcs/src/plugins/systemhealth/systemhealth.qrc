@@ -21,7 +21,6 @@
         <file>html/Battery-Error.html</file>
         <file>html/FlightTime-Warning.html</file>
 		<file>html/Gimbal-Critical.html</file>
-		<file>html/Gimbal-Error.html</file>
 		<file>html/Gimbal-Warning.html</file>
         <file>html/GPS-Critical.html</file>
         <file>html/GPS-Error.html</file>

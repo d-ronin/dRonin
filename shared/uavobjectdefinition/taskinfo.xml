@@ -40,7 +40,7 @@
 			<elementname>Logging</elementname>
 			<elementname>UAVOFrSkySPortBridge</elementname>
 			<elementname>FlightStats</elementname>
-			<elementname>Storm32bgc</elementname>
+			<elementname>Storm32Bgc</elementname>
 		</elementnames>
 		<description>The remaining free space in each task's stack. Disabled tasks will show 0 bytes free.</description>
 	</field> 
@@ -83,7 +83,7 @@
 			<elementname>Logging</elementname>
 			<elementname>UAVOFrSkySPortBridge</elementname>
 			<elementname>FlightStats</elementname>
-			<elementname>Storm32bgc</elementname>
+			<elementname>Storm32Bgc</elementname>
 		</elementnames>
 		<options>
 			<option>False</option>
@@ -130,7 +130,7 @@
 			<elementname>Logging</elementname>
 			<elementname>UAVOFrSkySPortBridge</elementname>
 			<elementname>FlightStats</elementname>
-			<elementname>Storm32bgc</elementname>
+			<elementname>Storm32Bgc</elementname>
 		</elementnames>
 		<description>The percentage of CPU time used by each task.</description>
 	</field> 
