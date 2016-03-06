@@ -31,7 +31,6 @@
 /* Project Includes */
 #include "pios.h"
 
-#define PIOS_INCLUDE_LPS25H
 #if defined(PIOS_INCLUDE_LPS25H)
 
 #include "pios_lps25h.h"
