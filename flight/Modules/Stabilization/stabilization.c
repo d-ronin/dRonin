@@ -127,10 +127,15 @@ struct pid pids[PID_MAX];
 
 volatile bool gyro_filter_updated = false;
 
+static bool actuatorDesiredUpdated = true;
+static bool flightStatusUpdated = true;
+static bool stabilizationDesiredUpdated = true;
+static bool systemSettingsUpdated = true;
+
 // Private functions
 static void stabilizationTask(void* parameters);
 static void zero_pids(void);
-static void calculate_pids(void);
+static void calculate_pids(float thrust);
 static void SettingsUpdatedCb(UAVObjEvent * objEv, void *ctx, void *obj, int len);
 static float get_throttle(StabilizationDesiredData *stabilization_desired, SystemSettingsAirframeTypeOptions *airframe_type);
 
@@ -213,6 +218,12 @@ static void stabilizationTask(void* parameters)
 	float *rateDesiredAxis = &rateDesired.Roll;
 	float horizonRateFraction = 0.0f;
 
+	// Connect callbacks
+	ActuatorDesiredConnectCallbackCtx(UAVObjCbSetFlag, &actuatorDesiredUpdated);
+	FlightStatusConnectCallbackCtx(UAVObjCbSetFlag, &flightStatusUpdated);
+	StabilizationDesiredConnectCallbackCtx(UAVObjCbSetFlag, &stabilizationDesiredUpdated);
+	SystemSettingsConnectCallbackCtx(UAVObjCbSetFlag, &systemSettingsUpdated);
+
 	// Force refresh of all settings immediately before entering main task loop
 	SettingsUpdatedCb(NULL, NULL, NULL, 0);
 
@@ -236,8 +247,6 @@ static void stabilizationTask(void* parameters)
 			AlarmsSet(SYSTEMALARMS_ALARM_STABILIZATION,SYSTEMALARMS_ALARM_WARNING);
 			continue;
 		}
-
-		calculate_pids();
 
 		float dT = PIOS_DELAY_DiffuS(timeval) * 1.0e-6f;
 		timeval = PIOS_DELAY_GetRaw();
@@ -272,12 +281,30 @@ static void stabilizationTask(void* parameters)
 			gyro_filter_updated = false;
 		}
 
-		FlightStatusGet(&flightStatus);
-		StabilizationDesiredGet(&stabDesired);
+		if (actuatorDesiredUpdated) {
+			ActuatorDesiredGet(&actuatorDesired);
+			actuatorDesiredUpdated = false;
+		}
+
+		if (flightStatusUpdated) {
+			FlightStatusGet(&flightStatus);
+			flightStatusUpdated = false;
+		}
+
+		if (stabilizationDesiredUpdated) {
+			StabilizationDesiredGet(&stabDesired);
+			calculate_pids(stabDesired.Thrust);
+			stabilizationDesiredUpdated = false;
+		}
+
+		if (systemSettingsUpdated) {
+			SystemSettingsAirframeTypeGet(&airframe_type);
+			systemSettingsUpdated = false;
+		}
+
 		AttitudeActualGet(&attitudeActual);
 		GyrosGet(&gyrosData);
-		ActuatorDesiredGet(&actuatorDesired);
-		SystemSettingsAirframeTypeGet(&airframe_type);
+
 		actuatorDesired.Thrust = stabDesired.Thrust;
 
 #if defined(RATEDESIRED_DIAGNOSTICS)
@@ -838,6 +865,8 @@ static void stabilizationTask(void* parameters)
 		actuatorDesired.UpdateTime = dT * 1000;
 
 		ActuatorDesiredSet(&actuatorDesired);
+		// So we only fetch it above if it is modified by another module (wacky)
+		actuatorDesiredUpdated = false;
 
 		if(flightStatus.Armed != FLIGHTSTATUS_ARMED_ARMED ||
 		   (lowThrottleZeroIntegral && get_throttle(&stabDesired, &airframe_type) < 0))
@@ -870,7 +899,7 @@ static void zero_pids(void)
 		axis_lock_accum[i] = 0.0f;
 }
 
-static void calculate_pids()
+static void calculate_pids(float thrust)
 {
 
 	// This scale will be calculated and allows suppressing the PID
@@ -878,10 +907,6 @@ static void calculate_pids()
 	float roll_scale = 1.0f;
 	float pitch_scale = 1.0f;
 	float yaw_scale = 1.0f;
-
-	// Fetch the current thrust settings
-	float thrust;
-	StabilizationDesiredThrustGet(&thrust);
 
 	// Calculate the desired PID suppression based on thrust settings. This is
 	// similar to an algorithm used by MultiWii and empirically works well. It
@@ -1051,7 +1076,9 @@ static void SettingsUpdatedCb(UAVObjEvent * ev, void *ctx, void *obj, int len)
 		StabilizationSettingsGet(&settings);
 
 		// Update the PID settings
-		calculate_pids();
+		float thrust;
+		StabilizationDesiredThrustGet(&thrust);
+		calculate_pids(thrust);
 
 		// Maximum deviation to accumulate for axis lock
 		max_axis_lock = settings.MaxAxisLock;
