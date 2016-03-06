@@ -71,9 +71,6 @@ int main()
 	/* Initialize modules */
 	MODULE_INITIALISE_ALL(PIOS_WDG_Clear);
 
-	/* swap the stack to use the IRQ stack */
-	Stack_Change();
-
 	/* Start the FreeRTOS scheduler which should never returns.*/
 	vTaskStartScheduler();
 

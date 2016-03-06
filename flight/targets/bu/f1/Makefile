@@ -53,6 +53,10 @@ SRC += $(BUCOMMONDIR)/main.c
 SRC += $(BUCOMMONDIR)/bu_payload.c
 SRC += $(BUCOMMONDIR)/pios_board.c
 
+## startup
+SRC += $(PIOSSTM32F10X)/startup.c
+SRC += $(PIOSSTM32F10X)/vectors_stm32f10x.c
+
 ## Bootloader Updater (architecture specific)
 #SRC += $(BUARCHDIR)/pios_board.c
 
@@ -91,7 +95,7 @@ SRC += $(STMSPDSRCDIR)/misc.c
 # Even though the DOS/Win* filesystem matches both .s and .S the same,
 # it will preserve the spelling of the filenames, and gcc itself does
 # care about how the name is spelled on its command-line.
-ASRC = $(PIOSSTM32F10X)/startup_stm32f10x_$(MODEL)$(MODEL_SUFFIX).S
+ASRC =
 
 # List any extra directories to look for include files here.
 #    Each directory must be seperated by a space.
@@ -180,7 +184,7 @@ LDFLAGS += -Wl,--fatal-warnings
 
 # Set linker-script name depending on selected submodel name
 LDFLAGS += -T$(LINKERSCRIPTPATH)/link_$(BOARD)_memory.ld
-LDFLAGS += -T$(LINKERSCRIPTPATH)/link_$(BOARD)_sections.ld
+LDFLAGS += -T$(LINKERSCRIPTPATH)/link_STM32103CB_sections.ld
 
 # List of all source files.
 ALLSRC     = $(ASRC) $(SRC)
