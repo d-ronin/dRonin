@@ -6,6 +6,7 @@
  * @{
  *
  * @file       coptercontrol.c 
+ * @author     dRonin, http://dRonin.org/, Copyright (C) 2016
  * @author     The OpenPilot Team, http://www.openpilot.org Copyright (C) 2011.
  * @author     Tau Labs, http://taulabs.org, Copyright (C) 2012-2013
  * @author     dRonin, http://dronin.org Copyright (C) 2016
@@ -28,6 +29,10 @@
  * You should have received a copy of the GNU General Public License along 
  * with this program; if not, write to the Free Software Foundation, Inc., 
  * 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
+ *
+ * Additional note on redistribution: The copyright and license notices above
+ * must be maintained in each individual source file that is a derivative work
+ * of this source file; otherwise redistribution is prohibited.
  */
 
 
@@ -45,7 +50,6 @@
 
 /* Prototype of PIOS_Board_Init() function */
 extern void PIOS_Board_Init(void);
-extern void Stack_Change(void);
 
 /**
 * dRonin Main function:
@@ -73,9 +77,6 @@ int main()
 
 	/* Initialize modules */
 	MODULE_INITIALISE_ALL(PIOS_WDG_Clear);
-
-	/* swap the stack to use the IRQ stack */
-	Stack_Change();
 
 	/* Start the FreeRTOS scheduler, which should never return.
 	 *

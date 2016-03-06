@@ -28,6 +28,10 @@
  */
 
 #include "pios.h"
+
+
+#ifdef PIOS_INCLUDE_ADC
+
 #include <pios_internal_adc_priv.h>
 
 // Private types
@@ -227,6 +231,10 @@ float PIOS_ADC_GetChannelVolt(uint32_t channel)
 	}
 	return -1;
 }
+
+
+#endif // PIOS_INCLUDE_ADC
+
 /**
  * @}
  * @}

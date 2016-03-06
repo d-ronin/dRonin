@@ -6,6 +6,7 @@
  * @{
  *
  * @file       main.c 
+ * @author     dRonin, http://dRonin.org/, Copyright (C) 2016
  * @author     The OpenPilot Team, http://www.openpilot.org Copyright (C) 2011.
  * @author     Tau Labs, http://taulabs.org, Copyright (C) 2012-2015
  * @brief      Start FreeRTOS and the Modules.
@@ -26,6 +27,10 @@
  * You should have received a copy of the GNU General Public License along 
  * with this program; if not, write to the Free Software Foundation, Inc., 
  * 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
+ *
+ * Additional note on redistribution: The copyright and license notices above
+ * must be maintained in each individual source file that is a derivative work
+ * of this source file; otherwise redistribution is prohibited.
  */
 
 
@@ -33,31 +38,14 @@
 #include "openpilot.h"
 #include "uavobjectsinit.h"
 #include "systemmod.h"
+
+#if defined(PIOS_INCLUDE_FREERTOS)
 #include "FreeRTOS.h"
 #include "task.h"
-
-/* Task Priorities */
-#define PRIORITY_TASK_HOOKS             (tskIDLE_PRIORITY + 3)
-
-/* Global Variables */
+#endif /* defined(PIOS_INCLUDE_FREERTOS) */
 
 /* Prototype of PIOS_Board_Init() function */
 extern void PIOS_Board_Init(void);
-extern void Stack_Change(void);
-
-/* Local Variables */
-#define INIT_TASK_PRIORITY	(tskIDLE_PRIORITY + configMAX_PRIORITIES - 1)	// max priority
-#define INIT_TASK_STACK		(640 / 4)
-static xTaskHandle initTaskHandle;
-
-/* Function Prototypes */
-static void initTask(void *parameters);
-
-/* Prototype of generated InitModules() function */
-extern void InitModules(void);
-
-/* board-info/system_stm32f10x.c */
-extern void SetSysClock(void);
 
 /**
 * dRonin Main function:
@@ -70,29 +58,26 @@ extern void SetSysClock(void);
 */
 int main()
 {
-	int	result;
-
 	/* NOTE: Do NOT modify the following start-up sequence */
 	/* Any new initialization functions should be added in OpenPilotInit() */
-	vPortInitialiseBlocks();
+	PIOS_heap_initialize_blocks();
 
 	/* Brings up System using CMSIS functions, enables the LEDs. */
 	PIOS_SYS_Init();
 
-	// Configure the System clock frequency, HCLK, PCLK2 and PCLK1 prescalers
-	// Configure the Flash Latency cycles and enable prefetch buffer
-	SetSysClock();
+	/* Architecture dependant Hardware and
+	 * core subsystem initialisation
+	 * (see pios_board.c for your arch)
+	 * */
+	PIOS_Board_Init();
+	PIOS_WDG_Clear();
 
-	/* use a FreeRTOS task to bring up the system so we can */
-	/* always rely on FreeRTOS primitive */
-	result = xTaskCreate(initTask, (const signed char *)"init",
-						 INIT_TASK_STACK, NULL, INIT_TASK_PRIORITY,
-						 &initTaskHandle);
-	PIOS_Assert(result == pdPASS);
+	/* Initialize modules */
+	MODULE_INITIALISE_ALL(PIOS_WDG_Clear);
 
 	/* swap the stack to use the IRQ stack */
-	Stack_Change();
-
+	//Stack_Change();
+#ifdef PIOS_INCLUDE_FREERTOS
 	/* Start the FreeRTOS scheduler */
 	vTaskStartScheduler();
 
@@ -103,25 +88,11 @@ int main()
 		PIOS_LED_Toggle(PIOS_LED_HEARTBEAT); \
 		PIOS_DELAY_WaitmS(100); \
 	};
+#else
+	#error Requires FreeRTOS
+#endif // PIOS_INCLUDE_FREERTOS
 
 	return 0;
-}
-/**
- * Initialisation task.
- *
- * Runs board and module initialisation, then terminates.
- */
-void
-initTask(void *parameters)
-{
-	/* board driver init */
-	PIOS_Board_Init();
-
-	/* Initialize modules */
-	MODULE_INITIALISE_ALL(PIOS_WDG_Clear);
-
-	/* terminate this task */
-	vTaskDelete(NULL);
 }
 
 /**

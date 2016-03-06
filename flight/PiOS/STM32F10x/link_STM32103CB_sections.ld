@@ -6,9 +6,9 @@ _init_stack_size = 0x200;
 _init_heap_size = 53 * 256;
 
 /* Stub out these functions since we don't use them anyway */
-PROVIDE (   vPortSVCHandler = 0 ) ;
-PROVIDE (   xPortPendSVHandler = 0 ) ;
-PROVIDE (   xPortSysTickHandler = 0 ) ;
+PROVIDE (vPortSVCHandler = 0) ;
+PROVIDE (xPortPendSVHandler = 0) ;
+PROVIDE (xPortSysTickHandler = 0) ;
 
 /* Section Definitions */
 SECTIONS
@@ -16,7 +16,8 @@ SECTIONS
     .text :
     {
         PROVIDE (pios_isr_vector_table_base = .);
-        KEEP(*(.isr_vector .isr_vector.*))
+        KEEP(*(.cpu_vectors))    /* CPU exception vectors */
+        KEEP(*(.io_vectors))    /* I/O interrupt vectors */
         *(.text .text.* .gnu.linkonce.t.*)
         *(.glue_7t) *(.glue_7)
         *(.rodata .rodata* .gnu.linkonce.r.*)
@@ -71,20 +72,15 @@ SECTIONS
     _sidata = .;
 
     /*
-     * This stack is used both as the initial sp during early init as well as ultimately
-     * being used as the STM32's MSP (Main Stack Pointer) which is the same stack that
-     * is used for _all_ interrupt handlers.  The end of this stack should be placed
-     * against the lowest address in RAM so that a stack overrun results in a hard fault
-     * at the first access beyond the end of the stack.
-     */
-    .irq_stack :
+        * Place the IRQ/bootstrap stack at the bottom of SRAM so that an overflow
+        * results in a hard fault.
+        */
+    .istack (NOLOAD) :
     {
-        . = ALIGN(4);
+       . = ALIGN(4);
         _irq_stack_end = . ;
-        . = . + _irq_stack_size ;
-        . = ALIGN(4);
-        _irq_stack_top = . - 4 ;
-        . = ALIGN(4);
+        *(.irqstack)
+        _irq_stack_top = . ;
     } > SRAM
 
     .data : AT (_etext)
@@ -107,25 +103,24 @@ SECTIONS
         PROVIDE ( _end = _ebss ) ;
     } > SRAM
 
-    /* keep the heap section at the end of the SRAM
-     * this will allow to claim the remaining bytes not used
-     * at run time! (done by the reset vector).
+    /*
+     * The heap consumes the remainder of the SRAM.
      */
-
     .heap (NOLOAD) :
     {
         . = ALIGN(4);
         _sheap = . ;
+        
+        /*
+         * This allows us to declare an object or objects up to the minimum acceptable
+         * heap size and receive a linker error if the space available for the heap is
+         * not sufficient.
+         */
         *(.heap)
-        . = ALIGN(4);
-	. = . + _init_heap_size ;
-        . = ALIGN(4);
-        _eheap = . ;
-        _init_stack_end = . ;
-        . = . + _init_stack_size ;
-        . = ALIGN(4);
-        _eheap_post_rtos = . ;
-        _init_stack_top = . - 4 ;
+        
+        /* extend the heap up to the top of SRAM */
+        . = ORIGIN(SRAM) + LENGTH(SRAM) - ABSOLUTE(_sheap);
+        _eheap = .;
     } > SRAM
 
     _eram = ORIGIN(SRAM) + LENGTH(SRAM) ;
