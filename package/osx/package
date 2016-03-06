@@ -26,6 +26,8 @@ device=$(hdiutil attach  "${TEMP_FILE}" | \
 
 # packaging goes here
 mkdir "/Volumes/${VOL_NAME}/Firmware"
+mkdir "${APP_PATH}/${APP_NAME_IN}/Contents/Resources/firmware"
+cp -rp "${FW_DIR}"/* "${APP_PATH}/${APP_NAME_IN}/Contents/Resources/firmware"
 mkdir "/Volumes/${VOL_NAME}/Utilities"
 cp -r "${APP_PATH}/${APP_NAME_IN}" "/Volumes/${VOL_NAME}/${APP_NAME_OUT}"
 cp -rp "${FW_DIR}"/* "/Volumes/${VOL_NAME}/Firmware"

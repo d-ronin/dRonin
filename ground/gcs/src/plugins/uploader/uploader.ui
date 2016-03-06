@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>822</width>
-    <height>687</height>
+    <height>703</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -50,6 +50,9 @@ Rescue is possible in USB mode only.</string>
        <property name="text">
         <string>Boot</string>
        </property>
+       <property name="autoDefault">
+        <bool>true</bool>
+       </property>
       </widget>
      </item>
      <item>
@@ -72,6 +75,9 @@ Rescue is possible in USB mode only.</string>
        </property>
        <property name="text">
         <string>Flash</string>
+       </property>
+       <property name="autoDefault">
+        <bool>true</bool>
        </property>
       </widget>
      </item>

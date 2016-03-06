@@ -38,7 +38,9 @@
 #include "firmwareiapobj.h"
 #include "fileutils.h"
 #include "coreplugin/icore.h"
+#include <coreplugin/modemanager.h>
 #include "rawhid/rawhidplugin.h"
+#include "../../../../../build/ground/gcs/gcsversioninfo.h"
 
 using namespace uploader;
 
@@ -359,8 +361,13 @@ void UploaderGadgetWidget::onAutopilotReady()
     board.max_code_size = tr("Not available");
     DeviceInformationUpdate(board);
     deviceDescriptorStruct device;
-    if(utilMngr->getBoardDescriptionStruct(device))
-        FirmwareOnDeviceUpdate(device, QString::number(utilMngr->getFirmwareCRC(), 16));
+    if(utilMngr->getBoardDescriptionStruct(device)) {
+        FirmwareOnDeviceUpdate(device, QString::number(utilMngr->getFirmwareCRC()));
+        if (FirmwareCheckForUpdate(device)) {
+            Core::ModeManager::instance()->activateModeByWorkspaceName("Firmware");
+            m_widget->haltButton->click();
+        }
+    }
     emit newBoardSeen(board, device);
 }
 
@@ -423,6 +430,7 @@ void UploaderGadgetWidget::onFlashButtonClick()
     setStatusInfo("",uploader::STATUSICON_RUNNING);
     previousStatus = uploaderStatus;
     setUploaderStatus(uploader::UPLOADING_FW);
+    onStatusUpdate(QString("Starting upload..."), 0); // set progress bar to 0 while erasing
     connect(&dfu, SIGNAL(operationProgress(QString,int)), this, SLOT(onStatusUpdate(QString, int)));
     connect(&dfu, SIGNAL(uploadFinished(tl_dfu::Status)), this, SLOT(onUploadFinish(tl_dfu::Status)));
     dfu.UploadPartitionThreaded(loadedFile, DFU_PARTITION_FW, currentBoard.max_code_size.toInt());
@@ -473,17 +481,28 @@ void UploaderGadgetWidget::onBootloaderDetected()
     }
     if(dfu.OpenBootloaderComs(devices.first()))
     {
+        tl_dfu::device dev = dfu.findCapabilities();
         switch (uploaderStatus) {
         case uploader::HALTING:
         case uploader::RESCUING:
             break;
+        case uploader::DISCONNECTED:
+        {
+            QByteArray description = dfu.DownloadDescriptionAsByteArray(dev.SizeOfDesc);
+            deviceDescriptorStruct descStructure;
+            if(!UAVObjectUtilManager::descriptionToStructure(description, descStructure))
+                break;
+            if (FirmwareCheckForUpdate(descStructure)) {
+                Core::ModeManager::instance()->activateModeByWorkspaceName("Firmware");
+                break;
+            }
+        }
+        // fall through to default
         default:
             dfu.JumpToApp(false);
             dfu.CloseBootloaderComs();
             return;
         }
-
-        tl_dfu::device dev = dfu.findCapabilities();
 
         //Bootloader has new cap extensions, query partitions and fill out browser
         if(dev.CapExt)
@@ -552,6 +571,7 @@ void UploaderGadgetWidget::onBootloaderDetected()
         case uploader::HALTING:
             setUploaderStatus(uploader::BL_FROM_HALT);
             break;
+        case uploader::DISCONNECTED:
         case uploader::RESCUING:
             setUploaderStatus(uploader::BL_FROM_RESCUE);
             break;
@@ -560,6 +580,13 @@ void UploaderGadgetWidget::onBootloaderDetected()
         }
 
         setStatusInfo(tr("Connection to bootloader successful"), uploader::STATUSICON_OK);
+
+        if (FirmwareLoadFromFile(getFirmwarePathForBoard(info.board->shortName()))) {
+            setStatusInfo(tr("Ready to flash firmware"), uploader::STATUSICON_OK);
+            this->activateWindow();
+            m_widget->flashButton->setFocus();
+        }
+
         emit bootloaderDetected();
     }
     else
@@ -685,6 +712,14 @@ void UploaderGadgetWidget::onUploadFinish(Status stat)
         {
             setStatusInfo(tr("Firmware and firmware metadata upload success"), uploader::STATUSICON_OK);
             lastUploadResult = true;
+            // uploaded succeeded so we can assume the loaded file is on the board
+            deviceDescriptorStruct descStructure;
+            if (UAVObjectUtilManager::descriptionToStructure(tempArray, descStructure)) {
+                quint32 crc = dfu.CRCFromQBArray(loadedFile, currentBoard.max_code_size.toLong());
+                FirmwareOnDeviceUpdate(descStructure, QString::number(crc));
+            }
+            this->activateWindow();
+            m_widget->bootButton->setFocus();
             emit uploadFinish(true);
         }
         else
@@ -1085,29 +1120,10 @@ QString UploaderGadgetWidget::LoadFirmwareFileDialog(QString boardName)
 {
     QFileDialog::Options options;
     QString selectedFilter;
-    QString fwDirectoryStr;
-    QDir fwDirectory;
     boardName = boardName.toLower();
-    //Format filename for file chooser
-#ifdef Q_OS_WIN
-    fwDirectoryStr = QCoreApplication::applicationDirPath();
-    fwDirectory = QDir(fwDirectoryStr);
-    fwDirectory.cdUp();
-    fwDirectory.cd("firmware");
-    fwDirectoryStr = fwDirectory.absolutePath();
-#elif defined Q_OS_LINUX
-    fwDirectoryStr = QCoreApplication::applicationDirPath();
-    fwDirectory = QDir(fwDirectoryStr);
-    fwDirectory.cd("../../..");
-    fwDirectoryStr = fwDirectory.absolutePath();
-    fwDirectoryStr = fwDirectoryStr + "/fw_" + boardName +"/fw_"+ boardName +".tlfw";
-#elif defined Q_OS_MAC
-    fwDirectoryStr = QCoreApplication::applicationDirPath();
-    fwDirectory = QDir(fwDirectoryStr);
-    fwDirectory.cd("../../../../../..");
-    fwDirectoryStr = fwDirectory.absolutePath();
-    fwDirectoryStr = fwDirectoryStr+"/fw_" + boardName +"/fw_"+ boardName +".tlfw";
-#endif
+
+    QString fwDirectoryStr = getFirmwarePathForBoard(boardName);
+
     QString fileName = QFileDialog::getOpenFileName(this,
                                                     tr("Select firmware file"),
                                                     fwDirectoryStr,
@@ -1401,10 +1417,13 @@ void UploaderGadgetWidget::setUploaderStatus(const uploader::UploaderStatus &val
     }
 }
 
-//! Check that the resources for auto updating are compiled in
+//! Check that we can find the board firmware
 bool UploaderGadgetWidget::autoUpdateCapable()
 {
-    return QDir(":/build").exists();
+    QString board;
+    if(currentBoard.board)
+        board = currentBoard.board->shortName().toLower();
+    return QDir(QFileInfo(getFirmwarePathForBoard(board)).absolutePath()).exists();
 }
 
 /**
@@ -1452,8 +1471,7 @@ bool UploaderGadgetWidget::autoUpdate()
         emit autoUpdateSignal(FAILURE,QVariant());
         return false;
     }
-    m_filename = QString("fw_").append(board);
-    m_filename=":/build/"+m_filename+"/"+m_filename+".tlfw";
+    m_filename = getFirmwarePathForBoard(board);
     if(!QFile::exists(m_filename))
     {
         emit autoUpdateSignal(FAILURE_FILENOTFOUND,QVariant());
@@ -1501,4 +1519,98 @@ void UploaderGadgetWidget::onAutoUpdateCount(int i)
 void UploaderGadgetWidget::openHelp()
 {
     QDesktopServices::openUrl( QUrl("https://github.com/d-ronin/dRonin/wiki/OnlineHelp:-Uploader-Plugin", QUrl::StrictMode) );
+}
+
+QString UploaderGadgetWidget::getFirmwarePathForBoard(QString(boardName))
+{
+    QDir fwDirectory;
+    QString fwDirectoryStr;
+    boardName = boardName.toLower();
+
+#ifdef Q_OS_WIN
+    #ifdef FIRMWARE_RELEASE_CONFIG
+        fwDirectoryStr = QCoreApplication::applicationDirPath();
+        fwDirectory = QDir(fwDirectoryStr);
+        fwDirectory.cdUp();
+        fwDirectory.cd("firmware");
+        fwDirectoryStr = fwDirectory.absolutePath();
+    #else
+        fwDirectoryStr = QCoreApplication::applicationDirPath();
+        fwDirectory = QDir(fwDirectoryStr);
+        fwDirectory.cd("../../..");
+        fwDirectoryStr = fwDirectory.absolutePath();
+        fwDirectoryStr += "/fw_" + boardName;
+    #endif // FIRMWARE_RELEASE_CONFIG
+#elif defined Q_OS_LINUX
+    #ifdef FIRMWARE_RELEASE_CONFIG
+        fwDirectory = QDir("/usr/local/" GCS_PROJECT_BRANDING_PRETTY "/firmware");
+        fwDirectoryStr = fwDirectory.absolutePath();
+    #else
+        fwDirectoryStr = QCoreApplication::applicationDirPath();
+        fwDirectory = QDir(fwDirectoryStr);
+        fwDirectory.cd("../../..");
+        fwDirectoryStr = fwDirectory.absolutePath();
+        fwDirectoryStr += "/fw_" + boardName;
+    #endif // FIRMWARE_RELEASE_CONFIG
+    fwDirectoryStr += "/fw_" + boardName + ".tlfw";
+#elif defined Q_OS_MAC
+    #ifdef FIRMWARE_RELEASE_CONFIG
+        fwDirectoryStr = QCoreApplication::applicationDirPath();
+        fwDirectory = QDir(fwDirectoryStr);
+        fwDirectory.cd("../Resources/firmware");
+        fwDirectoryStr = fwDirectory.absolutePath();
+    #else
+        fwDirectoryStr = QCoreApplication::applicationDirPath();
+        fwDirectory = QDir(fwDirectoryStr);
+        fwDirectory.cd("../../../../../..");
+        fwDirectoryStr = fwDirectory.absolutePath();
+        fwDirectoryStr += "/fw_" + boardName;
+    #endif // FIRMWARE_RELEASE_CONFIG
+    fwDirectoryStr += "/fw_"+ boardName +".tlfw";
+#endif
+
+    return fwDirectoryStr;
+}
+
+bool UploaderGadgetWidget::FirmwareLoadFromFile(QString filename)
+{
+    return FirmwareLoadFromFile(QFileInfo(filename));
+}
+
+bool UploaderGadgetWidget::FirmwareLoadFromFile(QFileInfo filename)
+{
+    if (!filename.exists())
+        return false;
+
+    QFile file(filename.filePath());
+    if(!file.open(QIODevice::ReadOnly))
+        return false;
+    loadedFile = file.readAll();
+
+    FirmwareLoadedClear(true);
+    FirmwareLoadedUpdate(loadedFile);
+    setUploaderStatus(getUploaderStatus());
+
+    return true;
+}
+
+bool UploaderGadgetWidget::FirmwareCheckForUpdate(deviceDescriptorStruct device)
+{
+// #ifdef FIRMWARE_RELEASE_CONFIG
+    const QString gcsRev(GCS_REVISION);
+    if (gcsRev.contains(':')) {
+        QString gcsShort = gcsRev.mid(gcsRev.indexOf(':') + 1, 8);
+        if (gcsShort != device.gitHash) {
+            QMessageBox msgBox;
+            msgBox.setText(tr("The firmware version on your board does not match this version of GCS."));
+            msgBox.setInformativeText(tr("Do you want to upgrade the firmware to a compatible version?"));
+            msgBox.setDetailedText(QString("Firmware git hash: %1\nGCS git hash: %2").arg(device.gitHash).arg(gcsShort));
+            msgBox.setStandardButtons(QMessageBox::Yes | QMessageBox::No);
+            msgBox.setDefaultButton(QMessageBox::Yes);
+            if (msgBox.exec() == QMessageBox::Yes)
+                return true;
+        }
+    }
+// #endif // FIRMWARE_RELEASE_CONFIG
+    return false;
 }
