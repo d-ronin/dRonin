@@ -157,6 +157,7 @@ CFLAGS += -Wa,-adhlns=$(addprefix $(OUTDIR)/, $(notdir $(addsuffix .lst, $(basen
 # Compiler flags to generate dependency files:
 CFLAGS += -MD -MP -MF $(OUTDIR)/dep/$(@F).d
 
+CFLAGS += -DPIOS_INCLUDE_SPI
 CFLAGS += -DPIOS_INCLUDE_FLASH
 CFLAGS += -DPIOS_INCLUDE_FLASH_JEDEC
 CFLAGS += -DPIOS_INCLUDE_FLASH_INTERNAL
@@ -226,6 +227,19 @@ $(shell md $(subst /,\\,$(OUTDIR)) 2>NUL)
 else
 $(shell mkdir -p $(OUTDIR) 2>/dev/null)
 endif
+
+# Allows the bin to be padded up to the firmware description blob base
+# Required for boards which don't use the TL bootloader to put
+# the blob at the correct location
+ifdef PAD_TLFW_FW_DESC
+FW_DESC_BASE := $(shell echo $$(($(FW_BANK_BASE)+$(FW_BANK_SIZE)-$(FW_DESC_SIZE))))
+else
+FW_DESC_BASE = 0
+endif
+
+$(eval $(call TLFW_TEMPLATE,$(OUTDIR)/$(TARGET).bin,$(BOARD_TYPE),$(BOARD_REVISION),$(FW_DESC_BASE)))
+
+tlfw: $(OUTDIR)/$(TARGET).tlfw
 
 # Include the dependency files.
 ifdef ComSpec

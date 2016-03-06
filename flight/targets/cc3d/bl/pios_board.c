@@ -67,6 +67,30 @@ void PIOS_Board_Init(void)
 	PIOS_LED_Init(led_cfg);
 #endif	/* PIOS_INCLUDE_LED */
 
+#if defined(PIOS_INCLUDE_FLASH)
+	const struct pios_board_info * bdinfo = &pios_board_info_blob;
+
+#if defined(PIOS_INCLUDE_SPI)
+        /* Set up the SPI interface to the serial flash */
+        if (PIOS_SPI_Init(&pios_spi_flash_accel_id, &pios_spi_flash_accel_cfg_cc3d
+)) {
+                PIOS_Assert(0);
+        }
+#endif
+
+        PIOS_Flash_Jedec_Init(&pios_external_flash_id, pios_spi_flash_accel_id, 0,
+ &flash_m25p_cfg);
+
+        PIOS_Flash_Internal_Init(&pios_internal_flash_id, &flash_internal_cfg);
+
+        /* Register the partition table */
+        const struct pios_flash_partition * flash_partition_table;
+        uint32_t num_partitions;
+        flash_partition_table = PIOS_BOARD_HW_DEFS_GetPartitionTable(bdinfo->board_rev, &num_partitions);
+        PIOS_FLASH_register_partition_table(flash_partition_table, num_partitions)
+;
+#endif  /* PIOS_INCLUDE_FLASH */
+
 #if defined(PIOS_INCLUDE_USB)
 	/* Initialize board specific USB data */
 	PIOS_USB_BOARD_DATA_Init();
