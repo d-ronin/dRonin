@@ -133,6 +133,8 @@ private:
     FirmwareIAPObj *firmwareIap;
     deviceInfo currentBoard;
     QString lastConnectedTelemetryDevice;
+    QString ignoredRev;
+
     uploader::UploaderStatus uploaderStatus;
     uploader::UploaderStatus previousStatus;
     QByteArray tempArray;
