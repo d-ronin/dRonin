@@ -489,12 +489,15 @@ void UploaderGadgetWidget::onBootloaderDetected()
         case uploader::DISCONNECTED:
         {
             QByteArray description = dfu.DownloadDescriptionAsByteArray(dev.SizeOfDesc);
+            // look for completed bootloader update (last 2 chars of TlFw string are nulled)
+            if (QString(description.left(4)) == "Tl")
+                break;
             deviceDescriptorStruct descStructure;
-            if(!UAVObjectUtilManager::descriptionToStructure(description, descStructure))
-                break;
-            if (FirmwareCheckForUpdate(descStructure)) {
-                Core::ModeManager::instance()->activateModeByWorkspaceName("Firmware");
-                break;
+            if (UAVObjectUtilManager::descriptionToStructure(description, descStructure)) {
+                if (FirmwareCheckForUpdate(descStructure)) {
+                    Core::ModeManager::instance()->activateModeByWorkspaceName("Firmware");
+                    break;
+                }
             }
         }
         // fall through to default
