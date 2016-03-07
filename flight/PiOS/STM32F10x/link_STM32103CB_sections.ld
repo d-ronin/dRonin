@@ -104,7 +104,7 @@ SECTIONS
     } > SRAM
 
     /*
-     * The heap consumes the remainder of the SRAM.
+     * The heap consumes all of the SRAM up to init stack.
      */
     .heap (NOLOAD) :
     {
@@ -118,9 +118,21 @@ SECTIONS
          */
         *(.heap)
         
-        /* extend the heap up to the top of SRAM */
-        . = ORIGIN(SRAM) + LENGTH(SRAM) - ABSOLUTE(_sheap);
+        /* extend the heap up to the bottom of init stack */
+        . = ORIGIN(SRAM) + LENGTH(SRAM) - (ABSOLUTE(_init_stack_top) - ABSOLUTE(_init_stack_end));
         _eheap = .;
+    } > SRAM
+
+    /*
+        * Place the Init stack at the bottom of SRAM so that an overflow
+        * results in a hard fault.
+        */
+    .inistack (NOLOAD) :
+    {
+       . = ALIGN(4);
+        _init_stack_end = . ;
+        *(.initstack)
+        _init_stack_top = . ;
     } > SRAM
 
     _eram = ORIGIN(SRAM) + LENGTH(SRAM) ;

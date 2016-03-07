@@ -50,6 +50,7 @@
 
 /* Prototype of PIOS_Board_Init() function */
 extern void PIOS_Board_Init(void);
+extern void stack_change(void);
 
 /**
 * dRonin Main function:
@@ -77,6 +78,9 @@ int main()
 
 	/* Initialize modules */
 	MODULE_INITIALISE_ALL(PIOS_WDG_Clear);
+
+	/* Change to IRQ stack */
+	stack_change();
 
 	/* Start the FreeRTOS scheduler, which should never return.
 	 *

@@ -41,8 +41,13 @@ extern int		main(void) __attribute__((noreturn));
 /* prototype our _main() to avoid prolog/epilog insertion and other related junk */
 void 			_main(void) __attribute__((noreturn, naked, no_instrument_function));
 
+/* stack_change() to reclaim init stack for heap */
+void 			stack_change(void) __attribute__((noreturn, naked, no_instrument_function));
+
 /** default handler for CPU exceptions */
 static void		default_cpu_handler(void) __attribute__((noreturn, naked, no_instrument_function));
+
+extern void 	PIOS_heap_increase_size(size_t bytes);
 
 /** BSS symbols XXX should have a header that defines all of these */
 extern char		_sbss, _ebss;
@@ -50,8 +55,9 @@ extern char		_sbss, _ebss;
 /** DATA symbols XXX should have a header that defines all of these */
 extern char		_sidata, _sdata, _edata;
 
-/** The bootstrap/IRQ stack XXX should define size somewhere else */
-char			irq_stack[576] __attribute__((section(".irqstack")));
+/** The IRQ and init stacks */
+char			init_stack[INIT_STACK_SIZE] __attribute__((section(".initstack")));
+char			irq_stack[IRQ_STACK_SIZE] __attribute__((section(".irqstack")));
 
 /** exception handler */
 typedef const void	(vector)(void);
@@ -108,19 +114,30 @@ _main(void)
 		GPIOB->CRL = (uint32_t)(0x77 << 12);
 		GPIOB->BRR = (uint16_t)(GPIO_Pin_3 | GPIO_Pin_4);
 		// jump to ST bootloader*/
-		#define ST_BOOTLOADER 0x1FFFF000ul
-		__set_MSP(ST_BOOTLOADER);
-		// jump an extra one for thumb mode
-		((void (*)(void))(ST_BOOTLOADER + 4ul + 1ul))();
+		__set_MSP(0x1FFFF000ul);
+		// jump an extra one byte for thumb mode
+		((void (*)(void))(0x1FFFF005ul))();
 	}
 #endif // USE_STM32103CB_Naze32
 
-	/* fill most of the IRQ/bootstrap stack with a watermark pattern so we can measure how much is used */
+	/* fill most of the IRQ stack with a watermark pattern so we can measure how much is used */
 	for (int i = 0; i < ((sizeof(irq_stack) - 64) / 4); i++)
 		((uint32_t *)irq_stack)[i] = 0x0000a5a5;
 
 	/* call main */
 	(void)main();
+}
+
+/**
+ * Change from Init stack to IRQ stack, reclaim Init stack into heap
+ */
+void stack_change(void)
+{
+	register long lr asm("lr");
+	uint32_t ret = lr;
+	__set_MSP((uint32_t)&irq_stack[sizeof(irq_stack)]);
+	PIOS_heap_increase_size(sizeof(init_stack));
+	((void (*)(void))ret)();
 }
 
 /**
@@ -157,7 +174,7 @@ HANDLER(xPortSysTickHandler);
 
 /** CortexM3 vector table */
 struct cm3_vectors cpu_vectors __attribute((section(".cpu_vectors"))) = {
-		.initial_stack = &irq_stack[sizeof(irq_stack)],
+		.initial_stack = &init_stack[sizeof(init_stack)],
 		.entry = (vector *)_main,
 		.vectors = {
 				NMI_Handler,

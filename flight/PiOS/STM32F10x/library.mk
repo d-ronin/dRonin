@@ -15,7 +15,7 @@ ARCHFLAGS           += -mcpu=cortex-m3 -march=armv7-m -mfloat-abi=soft
 FLOATABI            += soft
 
 #
-# PIOS device library source and includes
+# PiOS device library source and includes
 #
 PIOS_F1SRC           = $(filter-out $(PIOS_DEVLIB)pios_i2c.c, $(wildcard $(PIOS_DEVLIB)*.c))
 ifndef USE_USB
@@ -24,6 +24,12 @@ endif
 SRC                 += $(PIOS_F1SRC)
 
 EXTRAINCDIRS        += $(PIOS_DEVLIB)inc
+
+#
+# PiOS startup related options
+#
+CDEFS               += -DINIT_STACK_SIZE=1200
+CDEFS               += -DIRQ_STACK_SIZE=576
 
 #
 # ST Peripheral library
