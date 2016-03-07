@@ -3,7 +3,13 @@
 
 from struct import Struct
 
-config_arena_magic = 0x3bb141cf
+known_magics = {
+        'aq32/quanton'                   : 0x3b1b14cf,
+        'brain'                          : 0x3bb141cf,
+        'cc3d/discf4/revo/sim/sparky2'   : 0x99abcdef,
+        'colibri'                        : 0x3bb141ed,
+        'flyingf3/lux/naze/pipx/sparky'  : 0x9ae1ee11
+        }
 
 # magic, state .. 8 byte offset in
 arena_header = Struct('II')
@@ -30,6 +36,8 @@ class LogFSImport(dict):
     def __init__(self, githash, contents):
         from dronin import uavo_collection
 
+        our_magic = None
+
         uavo_defs = uavo_collection.UAVOCollection()
 
         if githash:
@@ -49,7 +57,13 @@ class LogFSImport(dict):
             if (pos & 0x7ff) == 0:
                 magic,arena_state = arena_header.unpack_from(contents, pos)
 
-                if magic == config_arena_magic:
+                if our_magic is None:
+                    for k in known_magics:
+                        if known_magics[k] == magic:
+                            #print "Selected magic number for targ " + k
+                            our_magic = magic
+
+                if magic == our_magic:
                     # let's assume this is good.  the slot is in the right place to
                     # actually be an arena header, and it has the right magic.
 
