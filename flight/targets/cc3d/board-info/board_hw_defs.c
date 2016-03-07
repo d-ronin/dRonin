@@ -401,18 +401,18 @@ static const struct pios_flash_partition pios_flash_partition_table_m25p16[] = {
 		.label        = FLASH_PARTITION_LABEL_SETTINGS,
 		.chip_desc    = &pios_flash_chip_m25p16,
 		.first_sector = 0,
-		.last_sector  = 15,
+		.last_sector  = 3,
 		.chip_offset  = 0,
-		.size         = (15 - 0 + 1) * FLASH_SECTOR_64KB,
+		.size         = (3 - 0 + 1) * FLASH_SECTOR_64KB,
 	},
 
 	{
-		.label        = FLASH_PARTITION_LABEL_WAYPOINTS,
+		.label        = FLASH_PARTITION_LABEL_LOG,
 		.chip_desc    = &pios_flash_chip_m25p16,
-		.first_sector = 16,
+		.first_sector = 4,
 		.last_sector  = 31,
-		.chip_offset  = (16 * FLASH_SECTOR_64KB),
-		.size         = (31 - 16 + 1) * FLASH_SECTOR_64KB,
+		.chip_offset  = (4 * FLASH_SECTOR_64KB),
+		.size         = (31 - 4 + 1) * FLASH_SECTOR_64KB,
 	},
 #endif	/* PIOS_INCLUDE_FLASH_JEDEC */
 };
