@@ -139,7 +139,6 @@ static void altitudeHoldTask(void *parameters)
 	struct pid velocity_pid;
 
 	// Listen for object updates.
-	AltitudeHoldDesiredConnectQueue(queue);
 	AltitudeHoldSettingsConnectQueue(queue);
 	FlightStatusConnectQueue(queue);
 
@@ -150,9 +149,9 @@ static void altitudeHoldTask(void *parameters)
 	AlarmsSet(SYSTEMALARMS_ALARM_ALTITUDEHOLD, SYSTEMALARMS_ALARM_OK);
 
 	// Main task loop
-	const uint32_t dt_ms = 5;
-	const float dt_s = dt_ms * 0.001f;
+	const uint32_t dt_ms = 20;
 	uint32_t timeout = dt_ms;
+	uint32_t timeval = PIOS_DELAY_GetRaw();
 
 	while (1) {
 		if (PIOS_Queue_Receive(queue, &ev, timeout) != true) {
@@ -166,12 +165,7 @@ static void altitudeHoldTask(void *parameters)
 				// Copy the current throttle as a starting point for integral
 				StabilizationDesiredThrustGet(&velocity_pid.iAccumulator);
 				engaged = true;
-
-				// Make sure this uses a valid AltitudeHoldDesired. No delay is really required here
-				// because ManualControl sets AltitudeHoldDesired first before the FlightStatus, but
-				// this is just to be conservative at 1ms when engaging will not bother the pilot.
-				PIOS_Thread_Sleep(1);
-				AltitudeHoldDesiredGet(&altitudeHoldDesired);
+				timeval = PIOS_DELAY_GetRaw();
 
 			} else if (flight_mode != FLIGHTSTATUS_FLIGHTMODE_ALTITUDEHOLD)
 				engaged = false;
@@ -179,13 +173,14 @@ static void altitudeHoldTask(void *parameters)
 			// Run loop at 20 Hz when engaged otherwise just slowly wait for it to be engaged
 			timeout = engaged ? dt_ms : 100;
 
-		} else if (ev.obj == AltitudeHoldDesiredHandle()) {
-			AltitudeHoldDesiredGet(&altitudeHoldDesired);
+			continue;
+
 		} else if (ev.obj == AltitudeHoldSettingsHandle()) {
 			AltitudeHoldSettingsGet(&altitudeHoldSettings);
 
 			pid_configure(&velocity_pid, altitudeHoldSettings.VelocityKp,
 				          altitudeHoldSettings.VelocityKi, 0.0f, 1.0f);
+			continue;
 		}
 
 		bool landing = altitudeHoldDesired.Land == ALTITUDEHOLDDESIRED_LAND_TRUE;
@@ -204,14 +199,17 @@ static void altitudeHoldTask(void *parameters)
 			velocity_z = -velocity_z; // Use positive up convention
 
 			// Compute the altitude error
+			AltitudeHoldDesiredGet(&altitudeHoldDesired);
 			altitude_error = altitudeHoldDesired.Altitude - position_z;
 
 			// Velocity desired is from the outer controller plus the set point
+			float dT = PIOS_DELAY_DiffuS(timeval) * 1.0e-6f;
+			timeval = PIOS_DELAY_GetRaw();
 			float velocity_desired = altitude_error * altitudeHoldSettings.PositionKp + altitudeHoldDesired.ClimbRate;
 			float throttle_desired = pid_apply_antiwindup(&velocity_pid, 
 			                    velocity_desired - velocity_z,
 			                    min_throttle, 1.0f, // positive limits since this is throttle
-			                    dt_s);
+			                    dT);
 
 			AltitudeHoldStateData altitudeHoldState;
 			altitudeHoldState.VelocityDesired = velocity_desired;
