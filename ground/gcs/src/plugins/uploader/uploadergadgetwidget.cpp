@@ -1556,8 +1556,9 @@ bool UploaderGadgetWidget::FirmwareCheckForUpdate(deviceDescriptorStruct device)
             msgBox.setText(tr("The firmware version on your board does not match this version of GCS."));
             msgBox.setInformativeText(tr("Do you want to upgrade the firmware to a compatible version?"));
             msgBox.setDetailedText(QString("Firmware git hash: %1\nGCS git hash: %2").arg(device.gitHash).arg(gcsShort));
-            msgBox.setStandardButtons(QMessageBox::Yes | QMessageBox::No | QMessageBox::Ignore);
+            msgBox.setStandardButtons(QMessageBox::Yes | QMessageBox::Ignore);
             msgBox.setDefaultButton(QMessageBox::Yes);
+
             int val = msgBox.exec();
 
             if (val == QMessageBox::Yes)
