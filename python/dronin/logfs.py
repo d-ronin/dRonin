@@ -45,17 +45,10 @@ class LogFSImport(dict):
 
     slot_size = 256
 
-    def __init__(self, githash, contents):
+    def __init__(self, githash, contents, deftar=None):
         from dronin import uavo_collection
 
         our_magic = None
-
-        uavo_defs = uavo_collection.UAVOCollection()
-
-        if githash:
-            uavo_defs.from_git_hash(githash)
-
-        self.githash = githash
 
         pos = 0
 
@@ -107,6 +100,15 @@ class LogFSImport(dict):
 
         # We do this in two passes; A) so we can try and guess a good version from the
         # set of IDs if it is not known in the future, B) to unpack all at once
+
+        uavo_defs = uavo_collection.UAVOCollection()
+
+        if deftar:
+            uavo_defs.from_tar_bytes(deftar)
+        else:
+            uavo_defs.from_git_hash(githash)
+
+        self.githash = githash
 
         for id_tup,offset in obj_offsets.iteritems():
             obj_id, inst_id = id_tup

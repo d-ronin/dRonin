@@ -53,10 +53,19 @@ class UAVOCollection(dict):
             # add this uavo definition to our dictionary
             self.update([('{0:08x}'.format(u._id), u)])
 
+    def from_tar_bytes(self, contents):
+        from cStringIO import StringIO
+        import tarfile
+
+        # coerce the tar file data into a file object so that tarfile likes it
+        fobj = StringIO(contents)
+
+        # feed the tar file data to a tarfile object
+        with tarfile.open(fileobj=fobj) as t:
+            self.from_tar_file(t)
+
     def from_git_hash(self, githash):
         import subprocess
-        import tarfile
-        from cStringIO import StringIO
         # Get the directory where the code is located
         src_dir = op.join(op.dirname(__file__), "..", "..")
         #
@@ -67,13 +76,7 @@ class UAVOCollection(dict):
         # grab the tar file data
         git_archive_data, git_archive_errors = p.communicate()
 
-        # coerce the tar file data into a file object so that tarfile likes it
-        fobj = StringIO(git_archive_data)
-
-        # feed the tar file data to a tarfile object
-        t = tarfile.open(fileobj=fobj)
-
-        self.from_tar_file(t)
+        self.from_tar_bytes(git_archive_data)
 
     def from_uavo_xml_path(self, path):
         import os
