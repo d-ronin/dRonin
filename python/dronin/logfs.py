@@ -2,36 +2,48 @@
 # Licensed under the GNU LGPL version 2.1 or any later version (see COPYING.LESSER)
 
 from struct import Struct
+from datetime import datetime
 
-known_magics = {
-        'aq32/quanton'                   : 0x3b1b14cf,
-        'brain'                          : 0x3bb141cf,
-        'cc3d/discf4/revo/sim/sparky2'   : 0x99abcdef,
-        'colibri'                        : 0x3bb141ed,
-        'flyingf3/lux/naze/pipx/sparky'  : 0x9ae1ee11
-        }
+from xml.etree import ElementTree
 
-# magic, state .. 8 byte offset in
-arena_header = Struct('II')
+def _prettify(elem):
+    """Return a pretty-printed XML string for the Element.
+    """
+    from xml.dom import minidom
 
-arena_states = { 'ERASED' : 0xffffffff,
-        'RESERVED'  : 0xe6e6ffff,
-        'ACTIVE'    : 0xe6e66666,
-        'OBSOLETE'  : 0x00000000 }
-
-# state, obj_id, obj_inst_id, obj_size
-slot_header = Struct('IIHH')
-
-slot_states = { 'EMPTY' : 0xffffffff,
-        'RESERVED'      : 0xfafaffff,
-        'ACTIVE'        : 0xfafaaaaa,
-        'OBSOLETE'      : 0x00000000 }
-
-slot_size = 256
+    rough_string = ElementTree.tostring(elem, 'utf-8')
+    reparsed = minidom.parseString(rough_string)
+    return reparsed.toprettyxml(indent="  ")
 
 class LogFSImport(dict):
     # vastly varying arena_size -- 0x1000 to 0x20000 ... though 0x20000 (aq32) is
     # probably illegit   all slot sizes 0x100 for settings
+
+    known_magics = {
+            'aq32/quanton'                   : 0x3b1b14cf,
+            'brain'                          : 0x3bb141cf,
+            'cc3d/discf4/revo/sim/sparky2'   : 0x99abcdef,
+            'colibri'                        : 0x3bb141ed,
+            'flyingf3/lux/naze/pipx/sparky'  : 0x9ae1ee11
+            }
+
+    # magic, state .. 8 byte offset in
+    arena_header = Struct('II')
+
+    arena_states = { 'ERASED' : 0xffffffff,
+            'RESERVED'  : 0xe6e6ffff,
+            'ACTIVE'    : 0xe6e66666,
+            'OBSOLETE'  : 0x00000000 }
+
+    # state, obj_id, obj_inst_id, obj_size
+    slot_header = Struct('IIHH')
+
+    slot_states = { 'EMPTY' : 0xffffffff,
+            'RESERVED'      : 0xfafaffff,
+            'ACTIVE'        : 0xfafaaaaa,
+            'OBSOLETE'      : 0x00000000 }
+
+    slot_size = 256
 
     def __init__(self, githash, contents):
         from dronin import uavo_collection
@@ -43,6 +55,8 @@ class LogFSImport(dict):
         if githash:
             uavo_defs.from_git_hash(githash)
 
+        self.githash = githash
+
         pos = 0
 
         prev_state_good = False
@@ -50,16 +64,16 @@ class LogFSImport(dict):
 
         obj_offsets = {}
 
-        while pos + slot_size < len(contents):
+        while pos + self.slot_size < len(contents):
             # check if we're in a sane state
 
             # assumption: arena sizes are power of 2, at least 2048 bytes
             if (pos & 0x7ff) == 0:
-                magic,arena_state = arena_header.unpack_from(contents, pos)
+                magic,arena_state = self.arena_header.unpack_from(contents, pos)
 
                 if our_magic is None:
-                    for k in known_magics:
-                        if known_magics[k] == magic:
+                    for k in self.known_magics:
+                        if self.known_magics[k] == magic:
                             #print "Selected magic number for targ " + k
                             our_magic = magic
 
@@ -69,27 +83,27 @@ class LogFSImport(dict):
 
                     # print "Found probable arena at %x, state=%08x" % (pos, arena_state)
 
-                    if arena_state == arena_states['ACTIVE']:
+                    if arena_state == self.arena_states['ACTIVE']:
                         in_good_arena = True
                     else:
                         in_good_arena = False
 
-                    pos += slot_size
+                    pos += self.slot_size
                     prev_state_good = True
 
                     continue
 
-            state, obj_id, inst_id, size = slot_header.unpack_from(contents, pos)
+            state, obj_id, inst_id, size = self.slot_header.unpack_from(contents, pos)
 
             prev_state_good = False
 
-            if state == slot_states['ACTIVE']:
+            if state == self.slot_states['ACTIVE']:
                 if in_good_arena:
-                    obj_offsets[(obj_id, inst_id)] = pos + slot_header.size
+                    obj_offsets[(obj_id, inst_id)] = pos + self.slot_header.size
 
                 prev_state_good = True
 
-            pos += slot_size
+            pos += self.slot_size
 
         # We do this in two passes; A) so we can try and guess a good version from the
         # set of IDs if it is not known in the future, B) to unpack all at once
@@ -108,3 +122,20 @@ class LogFSImport(dict):
 
                 self[obj._name] = objInstance
 
+    def ExportXML(self):
+        top = ElementTree.Element('uavobjects')
+
+        comment = ElementTree.Comment('Automatically generated by dronin.logfs')
+        top.append(comment)
+        comment = ElementTree.Comment('Exported at %s' % (datetime.utcnow()))
+        top.append(comment)
+        comment = ElementTree.Comment('Interpreted using githash %s' % (self.githash))
+        top.append(comment)
+
+        settings = ElementTree.SubElement(top, 'settings')
+
+        for obj_name in sorted(self.keys()):
+            exported_obj = self[obj_name].to_xml_elem()
+            settings.append(exported_obj)
+
+        return _prettify(top)
