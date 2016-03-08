@@ -323,7 +323,13 @@ static void msp_send_analog(struct msp_bridge *m)
 	ManualControlCommandGet(&manualState);
 
 	// MSP RSSI's range is 0-1023
-	data.status.rssi = (manualState.Rssi >= 0 && manualState.Rssi <= 100) ? manualState.Rssi * 10 : 0;
+	if (manualState.Rssi <= 0) {
+		data.status.rssi = 0;
+	} else if (manualState.Rssi >= 100) {
+		data.status.rssi = 1023;
+	} else {
+		data.status.rssi = manualState.Rssi * 10;
+	}
 
 	msp_send(m, MSP_ANALOG, data.buf, sizeof(data));
 }
