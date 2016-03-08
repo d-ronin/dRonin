@@ -80,7 +80,6 @@ private slots:
     void onIAPPresentChanged(UAVDataObject*);
     void onIAPUpdated();
     void onLoadFirmwareButtonClick();
-    void onHaltButtonClick();
     void onFlashButtonClick();
     void onRescueButtonClick();
     void onBootloaderDetected();
@@ -97,7 +96,6 @@ private slots:
     void onBootButtonClick();
     void onAutoUpdateCount(int i);
     void openHelp();
-    void onResetButtonClick();
     void onAvailableDevicesChanged(QLinkedList<Core::DevListItem>);
 private:
     void FirmwareOnDeviceClear(bool clear);
@@ -119,6 +117,7 @@ private:
     bool FirmwareLoadFromFile(QString filename);
     bool FirmwareLoadFromFile(QFileInfo filename);
     bool FirmwareCheckForUpdate(deviceDescriptorStruct device);
+    void haltOrReset(bool halting);
 
     Ui_UploaderWidget *m_widget;
     bool telemetryConnected;
@@ -134,6 +133,8 @@ private:
     FirmwareIAPObj *firmwareIap;
     deviceInfo currentBoard;
     QString lastConnectedTelemetryDevice;
+    QString ignoredRev;
+
     uploader::UploaderStatus uploaderStatus;
     uploader::UploaderStatus previousStatus;
     QByteArray tempArray;

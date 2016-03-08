@@ -2,7 +2,7 @@
  ******************************************************************************
  *
  * @file       uploadergadgetwidget.cpp
- * @author     dRonin, http://dronin.org Copyright (C) 2015
+ * @author     dRonin, http://dronin.org Copyright (C) 2015-2016
  * @author     Tau Labs, http://taulabs.org, Copyright (C) 2014
  * @addtogroup GCSPlugins GCS Plugins
  * @{
@@ -58,7 +58,7 @@ UploaderGadgetWidget::UploaderGadgetWidget(QWidget *parent):QWidget(parent),
     m_widget->partitionBrowserTW->setSelectionBehavior(QAbstractItemView::SelectRows);
 
     // these widgets will be set to retain their position in the layout even when hidden
-    QList<QWidget *> hideable = {m_widget->progressBar, m_widget->resetButton, m_widget->haltButton};
+    QList<QWidget *> hideable = {m_widget->progressBar};
     foreach (QWidget *widget, hideable) {
         QSizePolicy sp = widget->sizePolicy();
         sp.setRetainSizeWhenHidden(true);
@@ -103,12 +103,10 @@ UploaderGadgetWidget::UploaderGadgetWidget(QWidget *parent):QWidget(parent),
 
     //Connect button signals to slots
     connect(m_widget->openButton, SIGNAL(clicked()), this, SLOT(onLoadFirmwareButtonClick()));
-    connect(m_widget->haltButton, SIGNAL(clicked()), this, SLOT(onHaltButtonClick()));
     connect(m_widget->rescueButton, SIGNAL(clicked()), this, SLOT(onRescueButtonClick()));
     connect(m_widget->flashButton, SIGNAL(clicked()), this, SLOT(onFlashButtonClick()));
     connect(m_widget->bootButton, SIGNAL(clicked()), this, SLOT(onBootButtonClick()));
     connect(m_widget->safeBootButton, SIGNAL(clicked()), this, SLOT(onBootButtonClick()));
-    connect(m_widget->resetButton, SIGNAL(clicked()), this, SLOT(onResetButtonClick()));
     connect(m_widget->pbHelp, SIGNAL(clicked()),this,SLOT(openHelp()));
     Core::BoardManager* brdMgr = Core::ICore::instance()->boardManager();
 
@@ -365,7 +363,7 @@ void UploaderGadgetWidget::onAutopilotReady()
         FirmwareOnDeviceUpdate(device, QString::number(utilMngr->getFirmwareCRC()));
         if (FirmwareCheckForUpdate(device)) {
             Core::ModeManager::instance()->activateModeByWorkspaceName("Firmware");
-            m_widget->haltButton->click();
+            m_widget->rescueButton->click();
         }
     }
     emit newBoardSeen(board, device);
@@ -387,7 +385,7 @@ void UploaderGadgetWidget::onIAPPresentChanged(UAVDataObject *obj)
  */
 void UploaderGadgetWidget::onIAPUpdated()
 {
-    if( (getUploaderStatus() == uploader::RESCUING) || (getUploaderStatus() == uploader::HALTING) )
+    if( (getUploaderStatus() == uploader::RESCUING) || (getUploaderStatus() == uploader::HALTING) || (getUploaderStatus() == uploader::BOOTING) )
         return;
     iapUpdated = true;
     CheckAutopilotReady();
@@ -436,12 +434,79 @@ void UploaderGadgetWidget::onFlashButtonClick()
     dfu.UploadPartitionThreaded(loadedFile, DFU_PARTITION_FW, currentBoard.max_code_size.toInt());
 }
 
+void UploaderGadgetWidget::haltOrReset(bool halting)
+{
+    lastConnectedTelemetryDevice = conMngr->getCurrentDevice().device.data()->getName();
+    if(!firmwareIap->getIsPresentOnHardware())
+        return;
+
+    if (halting) {
+        setUploaderStatus(uploader::HALTING);
+    } else {
+        setUploaderStatus(uploader::BOOTING);
+    }
+
+    QEventLoop loop;
+    QTimer timeout;
+    timeout.setSingleShot(true);
+    firmwareIap->setBoardRevision(0);
+    firmwareIap->setBoardType(0);
+    connect(&timeout, SIGNAL(timeout()), &loop, SLOT(quit()));
+    connect(firmwareIap,SIGNAL(transactionCompleted(UAVObject*,bool)), &loop, SLOT(quit()));
+    int magicValue = 1122;
+    int magicStep = 1111;
+    for(int i = 0; i < 3; ++i)
+    {
+        //Firmware IAP module specifies that the timing between iap commands must be
+        //between 500 and 5000ms
+        timeout.start(600);
+        loop.exec();
+        firmwareIap->setCommand(magicValue);
+        magicValue += magicStep;
+        if((!halting) && (magicValue == 3344))
+            magicValue = 4455;
+
+        setStatusInfo(QString(tr("Sending IAP Step %0").arg(i + 1)), uploader::STATUSICON_INFO);
+        firmwareIap->updated();
+        timeout.start(1000);
+        loop.exec();
+        if(!timeout.isActive())
+        {
+            setStatusInfo(QString(tr("Sending IAP Step %0 failed").arg(i + 1)), uploader::STATUSICON_FAIL);
+            return;
+        }
+        timeout.stop();
+    }
+
+    if(conMngr->getCurrentDevice().connection->shortName() == "USB")
+    {
+        conMngr->disconnectDevice();
+        timeout.start(200);
+        loop.exec();
+        conMngr->suspendPolling();
+        onRescueTimer(true);
+    }
+    else
+    {
+        setUploaderStatus(uploader::DISCONNECTED);
+        conMngr->disconnectDevice();
+    }
+}
+
 /**
  * @brief slot called when the user presses the rescue button
  * It enables the bootloader detection and starts a detection timer
  */
 void UploaderGadgetWidget::onRescueButtonClick()
 {
+    if (telMngr->isConnected()) {
+        // This means "halt" to enter the loader.
+        haltOrReset(true);
+
+        return;
+    }
+
+    // Otherwise, this means "begin rescue".
     conMngr->suspendPolling();
     setUploaderStatus(uploader::RESCUING);
     setStatusInfo(tr("Please connect the board with USB with no external power applied"), uploader::STATUSICON_INFO);
@@ -492,6 +557,7 @@ void UploaderGadgetWidget::onBootloaderDetected()
             // look for completed bootloader update (last 2 chars of TlFw string are nulled)
             if (QString(description.left(4)) == "Tl")
                 break;
+
             deviceDescriptorStruct descStructure;
             if (UAVObjectUtilManager::descriptionToStructure(description, descStructure)) {
                 if (FirmwareCheckForUpdate(descStructure)) {
@@ -914,9 +980,16 @@ void UploaderGadgetWidget::onPartitionsBundleFlash()
  */
 void UploaderGadgetWidget::onBootButtonClick()
 {
+    bool safeboot = (sender() == m_widget->safeBootButton);
+
+    if (telMngr->isConnected()) {
+        haltOrReset(false);
+        return;
+    }
+
     if(!CheckInBootloaderState())
         return;
-    bool safeboot = (sender() == m_widget->safeBootButton);
+
     dfu.JumpToApp(safeboot);
     dfu.CloseBootloaderComs();
 }
@@ -1164,64 +1237,6 @@ void UploaderGadgetWidget::setStatusInfo(QString str, uploader::StatusIcon ic)
 }
 
 /**
- * @brief slot called when the user clicks reset
- */
-void UploaderGadgetWidget::onResetButtonClick()
-{
-
-    lastConnectedTelemetryDevice = conMngr->getCurrentDevice().device.data()->getName();
-    if(!telMngr->isConnected() || !firmwareIap->getIsPresentOnHardware())
-        return;
-    previousStatus = getUploaderStatus();
-    setUploaderStatus(uploader::BOOTING);
-    QEventLoop loop;
-    QTimer timeout;
-    timeout.setSingleShot(true);
-    firmwareIap->setBoardRevision(0);
-    firmwareIap->setBoardType(0);
-    connect(&timeout, SIGNAL(timeout()), &loop, SLOT(quit()));
-    connect(firmwareIap,SIGNAL(transactionCompleted(UAVObject*,bool)), &loop, SLOT(quit()));
-    int magicValue = 1122;
-    int magicStep = 1111;
-    for(int i = 0; i < 3; ++i)
-    {
-        //Firmware IAP module specifies that the timing between iap commands must be
-        //between 500 and 5000ms
-        timeout.start(600);
-        loop.exec();
-        firmwareIap->setCommand(magicValue);
-        magicValue += magicStep;
-        if(magicValue == 3344)
-            magicValue = 4455;
-        setStatusInfo(QString(tr("Sending IAP Step %0").arg(i + 1)), uploader::STATUSICON_INFO);
-        firmwareIap->updated();
-        timeout.start(1000);
-        loop.exec();
-        if(!timeout.isActive())
-        {
-            setStatusInfo(QString(tr("Sending IAP Step %0 failed").arg(i + 1)), uploader::STATUSICON_FAIL);
-            setUploaderStatus(previousStatus);
-            return;
-        }
-        timeout.stop();
-    }
-    if(conMngr->getCurrentDevice().connection->shortName() == "USB")
-    {
-        conMngr->disconnectDevice();
-        timeout.start(200);
-        loop.exec();
-        conMngr->suspendPolling();
-    }
-    else
-    {
-        setUploaderStatus(uploader::DISCONNECTED);
-        conMngr->disconnectDevice();
-    }
-
-    return;
-}
-
-/**
  * @brief slot by connectionManager when new devices arrive
  * Used to reconnect the boards after booting if autoconnect is disabled
  */
@@ -1235,61 +1250,6 @@ void UploaderGadgetWidget::onAvailableDevicesChanged(QLinkedList<Core::DevListIt
             conMngr->connectDevice(item);
         }
     }
-}
-
-/**
- * @brief slot called when the user clicks halt
- */
-void UploaderGadgetWidget::onHaltButtonClick()
-{
-    lastConnectedTelemetryDevice = conMngr->getCurrentDevice().device.data()->getName();
-    if(!telMngr->isConnected() || !firmwareIap->getIsPresentOnHardware())
-        return;
-    previousStatus = getUploaderStatus();
-    setUploaderStatus(uploader::HALTING);
-    QEventLoop loop;
-    QTimer timeout;
-    timeout.setSingleShot(true);
-    firmwareIap->setBoardRevision(0);
-    firmwareIap->setBoardType(0);
-    connect(&timeout, SIGNAL(timeout()), &loop, SLOT(quit()));
-    connect(firmwareIap,SIGNAL(transactionCompleted(UAVObject*,bool)), &loop, SLOT(quit()));
-    int magicValue = 1122;
-    int magicStep = 1111;
-    for(int i = 0; i < 3; ++i)
-    {
-        //Firmware IAP module specifies that the timing between iap commands must be
-        //between 500 and 5000ms
-        timeout.start(600);
-        loop.exec();
-        firmwareIap->setCommand(magicValue);
-        magicValue += magicStep;
-        setStatusInfo(QString(tr("Sending IAP Step %0").arg(i + 1)), uploader::STATUSICON_INFO);
-        firmwareIap->updated();
-        timeout.start(1000);
-        loop.exec();
-        if(!timeout.isActive())
-        {
-            setStatusInfo(QString(tr("Sending IAP Step %0 failed").arg(i + 1)), uploader::STATUSICON_FAIL);
-            setUploaderStatus(previousStatus);
-            return;
-        }
-        timeout.stop();
-    }
-    if(conMngr->getCurrentDevice().connection->shortName() == "USB")
-    {
-        conMngr->disconnectDevice();
-        timeout.start(200);
-        loop.exec();
-        conMngr->suspendPolling();
-        onRescueTimer(true);
-    }
-    else
-    {
-        setUploaderStatus(uploader::DISCONNECTED);
-        conMngr->disconnectDevice();
-    }
-    return;
 }
 
 /**
@@ -1310,59 +1270,55 @@ void UploaderGadgetWidget::setUploaderStatus(const uploader::UploaderStatus &val
     uploaderStatus = value;
     switch (uploaderStatus) {
     case uploader::DISCONNECTED:
-        m_widget->haltButton->setVisible(false);
-        m_widget->resetButton->setVisible(false);
         m_widget->progressBar->setVisible(false);
 
         m_widget->rescueButton->setEnabled(true);
+        m_widget->rescueButton->setText(tr("Rescue"));
+        m_widget->bootButton->setText(tr("Boot"));
+
         m_widget->openButton->setEnabled(true);
-        m_widget->haltButton->setEnabled(false);
         m_widget->bootButton->setEnabled(false);
         m_widget->safeBootButton->setEnabled(false);
-        m_widget->resetButton->setEnabled(false);
         m_widget->flashButton->setEnabled(false);
         m_widget->partitionBrowserTW->setContextMenuPolicy(Qt::NoContextMenu);
         break;
     case uploader::HALTING:
-        m_widget->haltButton->setVisible(false);
-        m_widget->resetButton->setVisible(false);
         m_widget->progressBar->setVisible(false);
+
+        m_widget->rescueButton->setText(tr("Enter bootloader"));
+        m_widget->bootButton->setText(tr("Boot"));
 
         m_widget->rescueButton->setEnabled(false);
         m_widget->openButton->setEnabled(true);
-        m_widget->haltButton->setEnabled(false);
         m_widget->bootButton->setEnabled(false);
         m_widget->safeBootButton->setEnabled(false);
-        m_widget->resetButton->setEnabled(false);
         m_widget->flashButton->setEnabled(false);
         m_widget->partitionBrowserTW->setContextMenuPolicy(Qt::NoContextMenu);
         break;
     case uploader::RESCUING:
-        m_widget->haltButton->setVisible(false);
-        m_widget->resetButton->setVisible(false);
         m_widget->progressBar->setVisible(true);
+
+        m_widget->rescueButton->setText(tr("Rescue"));
+        m_widget->bootButton->setText(tr("Boot"));
 
         m_widget->rescueButton->setEnabled(false);
         m_widget->openButton->setEnabled(true);
-        m_widget->haltButton->setEnabled(false);
         m_widget->bootButton->setEnabled(false);
         m_widget->safeBootButton->setEnabled(false);
-        m_widget->resetButton->setEnabled(false);
         m_widget->flashButton->setEnabled(false);
         m_widget->partitionBrowserTW->setContextMenuPolicy(Qt::NoContextMenu);
         break;
     case uploader::BL_FROM_HALT:
     case uploader::BL_FROM_RESCUE:
-        m_widget->haltButton->setVisible(false);
-        m_widget->resetButton->setVisible(false);
         m_widget->progressBar->setVisible(false);
+
+        m_widget->rescueButton->setText(tr("Rescue"));
+        m_widget->bootButton->setText(tr("Boot"));
 
         m_widget->rescueButton->setEnabled(false);
         m_widget->openButton->setEnabled(true);
-        m_widget->haltButton->setEnabled(false);
         m_widget->bootButton->setEnabled(true);
         m_widget->safeBootButton->setEnabled(true);
-        m_widget->resetButton->setEnabled(false);
         if(!loadedFile.isEmpty())
             m_widget->flashButton->setEnabled(true);
         else
@@ -1370,16 +1326,15 @@ void UploaderGadgetWidget::setUploaderStatus(const uploader::UploaderStatus &val
         m_widget->partitionBrowserTW->setContextMenuPolicy(Qt::ActionsContextMenu);
         break;
     case uploader::CONNECTED_TO_TELEMETRY:
-        m_widget->haltButton->setVisible(true);
-        m_widget->resetButton->setVisible(true);
         m_widget->progressBar->setVisible(false);
 
-        m_widget->rescueButton->setEnabled(false);
+        m_widget->rescueButton->setText(tr("Enter bootloader"));
+        m_widget->bootButton->setText(tr("Reboot"));
+
+        m_widget->rescueButton->setEnabled(true);
         m_widget->openButton->setEnabled(true);
-        m_widget->haltButton->setEnabled(true);
-        m_widget->bootButton->setEnabled(false);
+        m_widget->bootButton->setEnabled(true);
         m_widget->safeBootButton->setEnabled(false);
-        m_widget->resetButton->setEnabled(true);
         m_widget->flashButton->setEnabled(false);
         m_widget->partitionBrowserTW->setContextMenuPolicy(Qt::NoContextMenu);
         break;
@@ -1389,30 +1344,24 @@ void UploaderGadgetWidget::setUploaderStatus(const uploader::UploaderStatus &val
     case uploader::UPLOADING_PARTITION:
     case uploader::DOWNLOADING_PARTITION_BUNDLE:
     case uploader::UPLOADING_PARTITION_BUNDLE:
-        m_widget->haltButton->setVisible(false);
-        m_widget->resetButton->setVisible(false);
         m_widget->progressBar->setVisible(true);
 
         m_widget->rescueButton->setEnabled(false);
         m_widget->openButton->setEnabled(false);
-        m_widget->haltButton->setEnabled(false);
         m_widget->bootButton->setEnabled(false);
         m_widget->safeBootButton->setEnabled(false);
-        m_widget->resetButton->setEnabled(false);
         m_widget->flashButton->setEnabled(false);
         m_widget->partitionBrowserTW->setContextMenuPolicy(Qt::NoContextMenu);
         break;
     case uploader::BOOTING:
-        m_widget->haltButton->setVisible(false);
-        m_widget->resetButton->setVisible(false);
         m_widget->progressBar->setVisible(false);
 
-        m_widget->rescueButton->setEnabled(false);
+        m_widget->rescueButton->setText(tr("Enter bootloader"));
+        m_widget->bootButton->setText(tr("Reboot"));
+
         m_widget->openButton->setEnabled(false);
-        m_widget->haltButton->setEnabled(false);
         m_widget->bootButton->setEnabled(false);
         m_widget->safeBootButton->setEnabled(false);
-        m_widget->resetButton->setEnabled(false);
         m_widget->flashButton->setEnabled(false);
         m_widget->partitionBrowserTW->setContextMenuPolicy(Qt::NoContextMenu);
     default:
@@ -1599,21 +1548,24 @@ bool UploaderGadgetWidget::FirmwareLoadFromFile(QFileInfo filename)
 
 bool UploaderGadgetWidget::FirmwareCheckForUpdate(deviceDescriptorStruct device)
 {
-// #ifdef FIRMWARE_RELEASE_CONFIG
     const QString gcsRev(GCS_REVISION);
     if (gcsRev.contains(':')) {
         QString gcsShort = gcsRev.mid(gcsRev.indexOf(':') + 1, 8);
-        if (gcsShort != device.gitHash) {
+        if ((gcsShort != device.gitHash) && (ignoredRev != gcsShort)) {
             QMessageBox msgBox;
             msgBox.setText(tr("The firmware version on your board does not match this version of GCS."));
             msgBox.setInformativeText(tr("Do you want to upgrade the firmware to a compatible version?"));
             msgBox.setDetailedText(QString("Firmware git hash: %1\nGCS git hash: %2").arg(device.gitHash).arg(gcsShort));
-            msgBox.setStandardButtons(QMessageBox::Yes | QMessageBox::No);
+            msgBox.setStandardButtons(QMessageBox::Yes | QMessageBox::Ignore);
             msgBox.setDefaultButton(QMessageBox::Yes);
-            if (msgBox.exec() == QMessageBox::Yes)
+
+            int val = msgBox.exec();
+
+            if (val == QMessageBox::Yes)
                 return true;
+            else if (val == QMessageBox::Ignore)
+                ignoredRev = gcsShort;
         }
     }
-// #endif // FIRMWARE_RELEASE_CONFIG
     return false;
 }
