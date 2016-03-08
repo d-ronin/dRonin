@@ -11,7 +11,7 @@ import struct
 import re
 import warnings
 import copy
-from collections import namedtuple, OrderedDict
+from collections import namedtuple, OrderedDict, Iterable
 
 RE_SPECIAL_CHARS = re.compile('[\\.\\-\\s\\+/\\(\\)]')
 
@@ -114,6 +114,44 @@ class UAVTupleClass():
             rep += '%s=%s, ' % (field, value_str)
         rep = rep[:-2] + ')'
         return rep
+
+    def elem_to_string(self, field_name, value):
+        mapping = getattr(self, 'ENUMR_' + field_name, None)
+
+        if mapping is None:
+            return str(value)
+
+        val = mapping.get(value, None)
+
+        if val is not None:
+            return mapping[value]
+        else:
+            return 'Unknown'
+
+    def to_xml_elem(self):
+        munged_name = self._name[5:]
+
+        from xml.etree.ElementTree import Element, SubElement
+        xmlobj = Element('object', { 'name' : munged_name })
+
+        raw_dict = self._asdict()
+
+        for field_name in sorted(raw_dict.keys()):
+            if field_name == 'name': continue
+            if field_name == 'time': continue
+            if field_name == 'uavo_id': continue
+
+            field_value = raw_dict[field_name]
+
+            if isinstance(field_value, Iterable):
+                text_value = ','.join( [ self.elem_to_string(field_name, v) for v in field_value ] )
+            else:
+                text_value = self.elem_to_string(field_name, field_value)
+
+            xmlfield = SubElement(xmlobj, 'field', { 'name' : field_name, 'values' : text_value })
+
+        return xmlobj
+
 
 type_enum_map = {
     'int8'    : 0,

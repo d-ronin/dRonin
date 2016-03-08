@@ -8,19 +8,6 @@ from xml.etree import ElementTree
 from xml.etree.ElementTree import Element, SubElement, Comment, tostring
 from xml.dom import minidom
 
-def elem_to_string(obj, field_name, value):
-    mapping = getattr(obj, 'ENUMR_' + field_name, None)
-
-    if mapping is None:
-        return str(value)
-
-    val = mapping.get(value, None)
-
-    if val is not None:
-        return mapping[value]
-    else:
-        return 'Unknown'
-
 githash='next'
 imported = LogFSImport(githash, file('cc3d_settings.bin', 'rb').read())
 
@@ -32,26 +19,8 @@ top.append(comment)
 settings = SubElement(top, 'settings')
 
 for obj_name in sorted(imported.keys()):
-    raw_obj = imported[obj_name]
-
-    munged_name = obj_name[5:]
-    xmlobj = SubElement(settings, 'object', { 'name' : munged_name })
-
-    raw_dict = raw_obj._asdict()
-
-    for field_name in sorted(raw_dict.keys()):
-        if field_name == 'name': continue
-        if field_name == 'time': continue
-        if field_name == 'uavo_id': continue
-
-        field_value = raw_dict[field_name]
-
-        if isinstance(field_value, collections.Iterable):
-            text_value = ','.join( [ elem_to_string(raw_obj, field_name, v) for v in field_value ] )
-        else:
-            text_value = elem_to_string(raw_obj, field_name, field_value)
-
-        xmlfield = SubElement(xmlobj, 'field', { 'name' : field_name, 'values' : text_value })
+    exported_obj = imported[obj_name].to_xml_elem()
+    top.append(exported_obj)
 
 def prettify(elem):
     """Return a pretty-printed XML string for the Element.
