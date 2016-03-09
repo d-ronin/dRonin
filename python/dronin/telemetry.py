@@ -114,45 +114,42 @@ class TelemetryBase():
 
         self.cond.acquire()
 
-        with self.cond:
-            while True:
-                if iterIdx < len(self.uavo_list):
-                    obj = self.uavo_list[iterIdx]
+        while True:
+            if iterIdx < len(self.uavo_list):
+                obj = self.uavo_list[iterIdx]
 
-                    iterIdx += 1
+                iterIdx += 1
 
+                self.cond.release()
+
+                yield obj
+
+                self.cond.acquire()
+            elif self.iter_blocks and not self._done():
+                if self.service_in_iter:
                     self.cond.release()
-                    try:
-                        yield obj
-                    finally:
-                        self.cond.acquire()
-                elif self.iter_blocks and not self._done():
-                    if self.service_in_iter:
-                        self.cond.release()
 
-                        try:
-                            self.service_connection()
-                        finally:
-                            self.cond.acquire()
-                    else:
-                        # wait for another thread to fill it in
-                        self.cond.wait()
+                    self.service_connection()
+
+                    self.cond.acquire()
                 else:
-                    # Don't really recommend this mode anymore/maybe remove
-                    if self.service_in_iter and not self._done():
-                        # Do at least one non-blocking attempt
-                        self.cond.release()
+                    # wait for another thread to fill it in
+                    self.cond.wait()
+            else:
+                # Don't really recommend this mode anymore/maybe remove
+                if self.service_in_iter and not self._done():
+                    # Do at least one non-blocking attempt
+                    self.cond.release()
 
-                        try:
-                            self.service_connection(0)
-                        finally:
-                            self.cond.acquire()
+                    self.service_connection(0)
 
-                    # I think this should probably keep the index so that
-                    # new iterations pick up where we were.. XXX TODO
-                    # takes some thought as to what is "right"
-                    if iterIdx >= len(self.uavo_list):
-                        break
+                    self.cond.acquire()
+
+                # I think this should probably keep the index so that
+                # new iterations pick up where we were.. XXX TODO
+                # takes some thought as to what is "right"
+                if iterIdx >= len(self.uavo_list):
+                    break
 
     def __make_handshake(self, handshake):
         return self.GCSTelemetryStats._make_to_send(
