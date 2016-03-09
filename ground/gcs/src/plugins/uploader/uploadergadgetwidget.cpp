@@ -833,42 +833,49 @@ void UploaderGadgetWidget::onUploadFinish(Status stat)
  * @brief slot called the DFUObject when a download operation finishes
  * @param result true if the download was successfull
  */
-void UploaderGadgetWidget::onDownloadFinish(bool result)
+void UploaderGadgetWidget::onDownloadSaveFinish(bool result)
 {
-    switch (uploaderStatus) {
-    case uploader::DOWNLOADING_PARTITION:
-        dfu.disconnect();
-        if(result)
+    dfu.disconnect();
+    if(result)
+    {
+        setStatusInfo(tr("Partition download success"), uploader::STATUSICON_OK);
+        QString filename = QFileDialog::getSaveFileName(this, tr("Save File"),QDir::homePath(),"*.bin");
+        if(filename.isEmpty())
         {
-            setStatusInfo(tr("Partition download success"), uploader::STATUSICON_OK);
-            QString filename = QFileDialog::getSaveFileName(this, tr("Save File"),QDir::homePath(),"*.bin");
-            if(filename.isEmpty())
-            {
-                setStatusInfo(tr("Error, empty filename"), uploader::STATUSICON_FAIL);
-                setUploaderStatus(previousStatus);
-                return;
-            }
+            setStatusInfo(tr("Error, empty filename"), uploader::STATUSICON_FAIL);
+            setUploaderStatus(previousStatus);
+            return;
+        }
 
-            if(!filename.endsWith(".bin",Qt::CaseInsensitive))
-                filename.append(".bin");
-            QFile file(filename);
-            if(file.open(QIODevice::WriteOnly))
-            {
-                file.write(tempArray);
-                file.close();
-                setStatusInfo(tr("Partition written to file"), uploader::STATUSICON_OK);
-            }
-            else
-                setStatusInfo(tr("Error could not open file for save"), uploader::STATUSICON_FAIL);
+        if(!filename.endsWith(".bin",Qt::CaseInsensitive))
+            filename.append(".bin");
+        QFile file(filename);
+        if(file.open(QIODevice::WriteOnly))
+        {
+            file.write(tempArray);
+            file.close();
+            setStatusInfo(tr("Partition written to file"), uploader::STATUSICON_OK);
         }
         else
-            setStatusInfo(tr("Partition download failed"), uploader::STATUSICON_FAIL);
-        setUploaderStatus(previousStatus);
-        break;
-    default:
-        break;
+            setStatusInfo(tr("Error could not open file for save"), uploader::STATUSICON_FAIL);
     }
+    else
+        setStatusInfo(tr("Partition download failed"), uploader::STATUSICON_FAIL);
+    setUploaderStatus(previousStatus);
+}
 
+void UploaderGadgetWidget::triggerPartitionDownload(int index)
+{
+    if(!CheckInBootloaderState())
+        return;
+    int size = m_widget->partitionBrowserTW->item(index,1)->text().toInt();
+
+    setStatusInfo("",uploader::STATUSICON_RUNNING);
+    previousStatus = uploaderStatus;
+    setUploaderStatus(uploader::DOWNLOADING_PARTITION);
+    connect(&dfu, SIGNAL(operationProgress(QString,int)), this, SLOT(onStatusUpdate(QString, int)));
+    tempArray.clear();
+    dfu.DownloadPartitionThreaded(&tempArray, (dfu_partition_label)index, size);
 }
 
 /**
@@ -876,18 +883,11 @@ void UploaderGadgetWidget::onDownloadFinish(bool result)
  */
 void UploaderGadgetWidget::onPartitionSave()
 {
-    if(!CheckInBootloaderState())
-        return;
     int index = m_widget->partitionBrowserTW->selectedItems().first()->row();
-    int size = m_widget->partitionBrowserTW->item(index,1)->text().toInt();
 
-    setStatusInfo("",uploader::STATUSICON_RUNNING);
-    previousStatus = uploaderStatus;
-    setUploaderStatus(uploader::DOWNLOADING_PARTITION);
-    connect(&dfu, SIGNAL(operationProgress(QString,int)), this, SLOT(onStatusUpdate(QString, int)));
-    connect(&dfu, SIGNAL(downloadFinished(bool)), this, SLOT(onDownloadFinish(bool)));
-    tempArray.clear();
-    dfu.DownloadPartitionThreaded(&tempArray, (dfu_partition_label)index, size);
+    connect(&dfu, SIGNAL(downloadFinished(bool)), this, SLOT(onDownloadSaveFinish(bool)));
+
+    triggerPartitionDownload(index);
 }
 
 /**
@@ -1152,8 +1152,6 @@ void UploaderGadgetWidget::setUploaderStatus(const uploader::UploaderStatus &val
     case uploader::UPLOADING_DESC:
     case uploader::DOWNLOADING_PARTITION:
     case uploader::UPLOADING_PARTITION:
-    case uploader::DOWNLOADING_PARTITION_BUNDLE:
-    case uploader::UPLOADING_PARTITION_BUNDLE:
         m_widget->progressBar->setVisible(true);
 
         m_widget->rescueButton->setEnabled(false);

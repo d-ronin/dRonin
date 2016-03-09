@@ -88,7 +88,7 @@ private slots:
     void onRescueTimer(bool start = false);
     void onStatusUpdate(QString, int);
     void onUploadFinish(tl_dfu::Status);
-    void onDownloadFinish(bool);
+    void onDownloadSaveFinish(bool);
     void onPartitionSave();
     void onPartitionFlash();
     void onPartitionErase();
@@ -114,6 +114,7 @@ private:
     bool FirmwareLoadFromFile(QString filename);
     bool FirmwareLoadFromFile(QFileInfo filename);
     bool FirmwareCheckForUpdate(deviceDescriptorStruct device);
+    void triggerPartitionDownload(int index);
     void haltOrReset(bool halting);
 
     Ui_UploaderWidget *m_widget;
