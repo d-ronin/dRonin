@@ -3,9 +3,21 @@
 # Proof of concept example of using the logfs api.
 from dronin.logfs import LogFSImport
 
-githash='Release-20160120.3'
+def main():
+    import argparse
 
-imported = LogFSImport(githash, file('magma.bin', 'rb').read())
+    parser = argparse.ArgumentParser(description="Import a logfs settings partition and convert to XML")
+    parser.add_argument('filename', metavar='filename.bin', help="the filename in which the settings dump is stored")
+    parser.add_argument('-g', dest='githash', metavar='githash', help="the githash to use to interpret the settings dump", default="next")
 
-for obj_name in imported:
-    print imported[obj_name]
+    arg = parser.parse_args()
+
+    githash = arg.githash
+    srcfile = arg.filename
+
+    imported = LogFSImport(githash, file(srcfile, 'rb').read())
+
+    print imported.ExportXML()
+
+if __name__ == '__main__':
+        main()
