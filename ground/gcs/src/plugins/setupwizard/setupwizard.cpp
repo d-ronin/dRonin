@@ -51,10 +51,6 @@
 #include "extensionsystem/pluginmanager.h"
 #include "vehicleconfigurationhelper.h"
 #include "actuatorsettings.h"
-#include "pages/autoupdatepage.h"
-#include "uploader/uploadergadgetfactory.h"
-
-using namespace uploader;
 
 SetupWizard::SetupWizard(QWidget *parent) : QWizard(parent), VehicleConfigurationSource(),
     m_controllerType(NULL),
@@ -76,12 +72,6 @@ int SetupWizard::nextId() const
 {
     switch (currentId()) {
     case PAGE_START:
-        if (canAutoUpdate()) {
-            return PAGE_UPDATE;
-        } else {
-            return PAGE_CONTROLLER;
-        }
-    case PAGE_UPDATE:
         return PAGE_CONTROLLER;
 
     case PAGE_CONTROLLER:
@@ -281,7 +271,6 @@ QString SetupWizard::getSummaryText()
 void SetupWizard::createPages()
 {
     setPage(PAGE_START, new TLStartPage(this));
-    setPage(PAGE_UPDATE, new AutoUpdatePage(this));
     setPage(PAGE_CONTROLLER, new ControllerPage(this));
     setPage(PAGE_VEHICLES, new VehiclePage(this));
     setPage(PAGE_MULTI, new MultiPage(this));
@@ -332,20 +321,3 @@ bool SetupWizard::saveHardwareSettings() const
     return helper.setupHardwareSettings();
 }
 
-/**
- * @brief SetupWizard::canAutoUpdate determine if build can autoupdated
- *
- * This checks for the firmware resource file being existing to see if
- * auto-updating is even an option.
- *
- * @return true if auto-update can be attempted
- */
-bool SetupWizard::canAutoUpdate() const
-{
-    ExtensionSystem::PluginManager *pm = ExtensionSystem::PluginManager::instance();
-
-    Q_ASSERT(pm);
-    UploaderGadgetFactory *uploader    = pm->getObject<UploaderGadgetFactory>();
-    Q_ASSERT(uploader);
-    return uploader->isAutoUpdateCapable();
-}
