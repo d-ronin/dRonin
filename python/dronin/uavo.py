@@ -7,11 +7,13 @@ Copyright (C) 2015 dRonin, http://dronin.org
 Licensed under the GNU LGPL version 2.1 or any later version (see COPYING.LESSER)
 """
 
-import struct
 import re
-import warnings
-import copy
-from collections import namedtuple, OrderedDict, Iterable
+from collections import namedtuple, OrderedDict
+
+try:
+    from struct import Struct, calcsize
+except:
+    from structshim import Struct, calcsize
 
 RE_SPECIAL_CHARS = re.compile('[\\.\\-\\s\\+/\\(\\)]')
 
@@ -55,8 +57,6 @@ class UAVTupleClass():
          - timestamp: the timestamp to put on the object instance
          - offset: an optional index into data where to begin deserialization
         """
-        import struct
-
         unpack_field_values = cls._packstruct.unpack_from(data, offset)
 
         field_values = []
@@ -143,7 +143,7 @@ class UAVTupleClass():
 
             field_value = raw_dict[field_name]
 
-            if isinstance(field_value, Iterable):
+            if isinstance(field_value, tuple):
                 text_value = ','.join( [ self.elem_to_string(field_name, v) for v in field_value ] )
             else:
                 text_value = self.elem_to_string(field_name, field_value)
@@ -226,7 +226,7 @@ def make_class(collection, xml_file, update_globals=True):
             cloneof_name = field.get('cloneof')
             for i, field in enumerate(fields):
                 if field['name'] == cloneof_name:
-                    clone_info = copy.deepcopy(field)
+                    clone_info = field.copy()
                     break
 
             # replace it with the new name
@@ -288,8 +288,7 @@ def make_class(collection, xml_file, update_globals=True):
                         values = tuple(info['options'][v.strip()]
                                        for v in info['defaultvalue'].split(','))
                     except KeyError:
-                        warnings.warn('Invalid default value: %s.%s has no option %s'
-                                      % (name, info['name'], info['defaultvalue']))
+                        print 'Invalid default value: %s.%s has no option %s' % (name, info['name'], info['defaultvalue'])
                         values = (0,)
                 else:  # float or int
                     values = tuple(float(v) for v in info['defaultvalue'].split(','))
@@ -312,7 +311,7 @@ def make_class(collection, xml_file, update_globals=True):
         fields.append(info)
 
     # Sort fields by size (bigger to smaller) to ensure alignment when packed
-    fields.sort(key=lambda x: struct.calcsize(struct_element_map[x['type']]), reverse = True)
+    fields.sort(key=lambda x: calcsize(struct_element_map[x['type']]), reverse = True)
 
     ##### CALCULATE THE APPROPRIATE UAVO ID #####
     hash_calc = UAVOHash()
@@ -350,7 +349,7 @@ def make_class(collection, xml_file, update_globals=True):
 
         formats.append('' + f['elements'].__str__() + struct_element_map[f['type']])
 
-    fmt = struct.Struct('<' + ''.join(formats))
+    fmt = Struct('<' + ''.join(formats))
 
     ##### CALCULATE THE NUMPY TYPE ASSOCIATED WITH THIS CLASS #####
     dtype  = [('name', 'S20'), ('time', 'double'), ('uavo_id', 'uint')]

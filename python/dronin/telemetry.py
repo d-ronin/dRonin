@@ -8,11 +8,7 @@ Licensed under the GNU LGPL version 2.1 or any later version (see COPYING.LESSER
 
 import socket
 import time
-import array
-import select
 import errno
-
-import threading
 
 import uavtalk, uavo_collection, uavo
 
@@ -71,7 +67,8 @@ class TelemetryBase():
 
         self.last_values = {}
 
-        self.cond = threading.Condition()
+        from threading import Condition
+        self.cond = Condition()
 
         self.service_in_iter = service_in_iter
         self.iter_blocks = iter_blocks
@@ -351,6 +348,8 @@ class FDTelemetry(BidirTelemetry):
 
     # Call select and do one set of IO operations.
     def _do_io(self, finish_time):
+        import select
+
         rdSet = []
         wrSet = []
 
