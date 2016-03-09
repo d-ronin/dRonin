@@ -92,8 +92,6 @@ private slots:
     void onPartitionSave();
     void onPartitionFlash();
     void onPartitionErase();
-    void onPartitionsBundleSave();
-    void onPartitionsBundleFlash();
     void onBootButtonClick();
     void onAutoUpdateCount(int i);
     void openHelp();
@@ -112,8 +110,6 @@ private:
     void CheckAutopilotReady();
     bool CheckInBootloaderState();
     void setStatusInfo(QString str, uploader::StatusIcon ic);
-    void ProcessPartitionBundleFlash(bool result, bool start = false);
-    void ProcessPartitionBundleSave(bool result, int count = -1);
     QString getFirmwarePathForBoard(QString boardName);
     bool FirmwareLoadFromFile(QString filename);
     bool FirmwareLoadFromFile(QFileInfo filename);

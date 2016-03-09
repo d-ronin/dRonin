@@ -75,12 +75,6 @@ UploaderGadgetWidget::UploaderGadgetWidget(QWidget *parent):QWidget(parent),
     action = new QAction("Erase",this);
     connect(action, SIGNAL(triggered()), this, SLOT(onPartitionErase()));
     m_widget->partitionBrowserTW->addAction(action);
-    action = new QAction("Save partitions bundle",this);
-    connect(action, SIGNAL(triggered()), this, SLOT(onPartitionsBundleSave()));
-    m_widget->partitionBrowserTW->addAction(action);
-    action = new QAction("Flash partitions bundle",this);
-    connect(action, SIGNAL(triggered()), this, SLOT(onPartitionsBundleFlash()));
-    m_widget->partitionBrowserTW->addAction(action);
     m_widget->partitionBrowserTW->setContextMenuPolicy(Qt::ActionsContextMenu);
 
     //Clear widgets to defaults
@@ -830,19 +824,6 @@ void UploaderGadgetWidget::onUploadFinish(Status stat)
         dfu.disconnect();
         setUploaderStatus(previousStatus);
         break;
-    case uploader::UPLOADING_PARTITION_BUNDLE:
-    {
-        bool result = false;
-        if(stat == Last_operation_Success)
-        {
-            setStatusInfo(tr("Partition upload success"), uploader::STATUSICON_OK);
-            result = true;
-        }
-        else
-            setStatusInfo(tr("Partition upload failed"), uploader::STATUSICON_FAIL);
-        ProcessPartitionBundleFlash(result);
-    }
-        break;
     default:
         break;
     }
@@ -855,9 +836,6 @@ void UploaderGadgetWidget::onUploadFinish(Status stat)
 void UploaderGadgetWidget::onDownloadFinish(bool result)
 {
     switch (uploaderStatus) {
-    case uploader::DOWNLOADING_PARTITION_BUNDLE:
-        ProcessPartitionBundleSave(result);
-        break;
     case uploader::DOWNLOADING_PARTITION:
         dfu.disconnect();
         if(result)
@@ -966,37 +944,6 @@ void UploaderGadgetWidget::onPartitionErase()
 }
 
 /**
- * @brief slot called when the user clicks bundle save on the partition browser
- * This creates a zip file with all the partitions binaries
- */
-void UploaderGadgetWidget::onPartitionsBundleSave()
-{
-    if(!CheckInBootloaderState())
-        return;
-    int count = m_widget->partitionBrowserTW->rowCount();
-
-    setStatusInfo("",uploader::STATUSICON_RUNNING);
-    previousStatus = uploaderStatus;
-    setUploaderStatus(uploader::DOWNLOADING_PARTITION_BUNDLE);
-    connect(&dfu, SIGNAL(operationProgress(QString,int)), this, SLOT(onStatusUpdate(QString, int)));
-    connect(&dfu, SIGNAL(downloadFinished(bool)), this, SLOT(onDownloadFinish(bool)));
-    ProcessPartitionBundleSave(true, count);
-}
-
-/**
- * @brief slot called when the user clicks bundle save on the partition browser
- * This opens a zip file of users choice extracts it and flashes the binaries included
- * to the correspondent partitions
- */
-void UploaderGadgetWidget::onPartitionsBundleFlash()
-{
-    if(!CheckInBootloaderState())
-        return;
-    setStatusInfo("",uploader::STATUSICON_RUNNING);
-    ProcessPartitionBundleFlash(true, true);
-}
-
-/**
  * @brief slot called when the user clicks the boot button
  * Atempts to Boot the board and starts a timeout timer
  */
@@ -1014,174 +961,6 @@ void UploaderGadgetWidget::onBootButtonClick()
 
     dfu.JumpToApp(safeboot);
     dfu.CloseBootloaderComs();
-}
-
-/**
- * @brief Processes the partition bundle flashing, this gets called everytime
- * one of the partitions gets flashed
- * @param result result of last partition save
- * @param start true if the partition bundle flash is to be started from the first partition
- */
-void UploaderGadgetWidget::ProcessPartitionBundleFlash(bool result, bool start)
-{
-    static QList<partitionStruc> arrayList;
-    static QList<int> failedUploads;
-    static int lastPartition;
-    if(start)
-    {
-        lastPartition = -1;
-        arrayList.clear();
-        failedUploads.clear();
-        QString fileName = QFileDialog::getOpenFileName(this,
-                                                        tr("Select bundle file"),
-                                                        QDir::homePath(),
-                                                        tr("Bundle File (*.zip)"));
-        QDir dir = QDir::temp();
-        if(!dir.mkdir("tlbundleextract"))
-        {
-            setStatusInfo(tr("Error could not create temporary directory"), uploader::STATUSICON_FAIL);
-            return;
-        }
-        dir.cd("tlbundleextract");
-        if(!FileUtils::extractAll(fileName, dir))
-        {
-            setStatusInfo(tr("Error could not create temporary directory"), uploader::STATUSICON_FAIL);
-            return;
-        }
-        foreach (QFileInfo fileInfo, dir.entryInfoList(QDir::Files, QDir::Name)) {
-            QFile file(fileInfo.absoluteFilePath());
-            if(!file.open(QIODevice::ReadOnly))
-            {
-                setStatusInfo(tr("Error could not open temporary files"), uploader::STATUSICON_FAIL);
-                return;
-            }
-            partitionStruc p;
-            p.partitionData = file.readAll();
-            p.partitionNumber = fileInfo.fileName().remove(".bin").toInt();
-            arrayList.append(p);
-            file.close();
-        }
-        foreach (partitionStruc p, arrayList) {
-            qDebug()<<p.partitionNumber<<"<<"<<p.partitionData.length();
-        }
-        FileUtils::removeDir(dir.absolutePath());
-        previousStatus = uploaderStatus;
-        setUploaderStatus(uploader::UPLOADING_PARTITION_BUNDLE);
-        connect(&dfu, SIGNAL(operationProgress(QString,int)), this, SLOT(onStatusUpdate(QString, int)));
-        connect(&dfu, SIGNAL(uploadFinished(tl_dfu::Status)), this, SLOT(onUploadFinish(tl_dfu::Status)));
-    }
-    if(!arrayList.isEmpty())
-    {
-        if( (lastPartition != -1) && !result )
-            failedUploads.append(lastPartition);
-        partitionStruc p = arrayList.first();
-        lastPartition = p.partitionNumber;
-        tempArray = p.partitionData;
-        arrayList.removeFirst();
-        setStatusInfo(QString(tr("Uploading %0 partition")).arg(dfu.partitionStringFromLabel((dfu_partition_label)p.partitionNumber)), uploader::STATUSICON_RUNNING);
-        dfu.UploadPartitionThreaded(tempArray, dfu_partition_label(p.partitionNumber), tempArray.length());
-    }
-    else
-    {
-        dfu.disconnect();
-        setUploaderStatus(previousStatus);
-        if(failedUploads.length() == 0)
-            setStatusInfo(tr("Partitions bundle written to flash"), uploader::STATUSICON_OK);
-        else
-        {
-            QString failed;
-            foreach (int i, failedUploads) {
-                failed.append(dfu.partitionStringFromLabel((dfu_partition_label)i)+ ", ");
-            }
-            failed = failed.left(failed.length() -2);
-            setStatusInfo(QString(tr("The following partitions failed to be flashed:%0").arg(failed)), uploader::STATUSICON_FAIL);
-        }
-    }
-}
-
-/**
- * @brief Processes the partition bundle saving, this gets called everytime
- * one of the partitions gets downloaded
- * @param result result of last partition download
- * @param count number of partitions to save
- */
-void UploaderGadgetWidget::ProcessPartitionBundleSave(bool result, int count)
-{
-    static QList<QByteArray> arrayList;
-    static QList<int> failedSaves;
-    static int m_count = 0;
-    static int m_current_partition;
-    if(count != -1)
-    {
-        m_count = count;
-        m_current_partition = 0;
-    }
-    else
-    {
-        if(!result)
-            failedSaves.append(m_count);
-        arrayList.append(tempArray);
-    }
-    if(m_current_partition == m_count)
-    {
-        dfu.disconnect();
-        setUploaderStatus(previousStatus);
-        QDir dir = QDir::temp();
-        if(!dir.mkdir("tlbundle"))
-        {
-            setStatusInfo(tr("Error could not create temporary directory"), uploader::STATUSICON_FAIL);
-            return;
-        }
-        dir.cd("tlbundle");
-        for(int x = 0;x < m_count; ++x)
-        {
-            if(!failedSaves.contains(x))
-            {
-                QFile file(dir.absolutePath() + QDir::separator() + QString::number(x) + ".bin");
-                if(!file.open(QIODevice::WriteOnly))
-                {
-                    setStatusInfo(tr("Error could not save temporary file"), uploader::STATUSICON_FAIL);
-                    return;
-                }
-                QByteArray array = arrayList.at(x);
-                file.write(array);
-                file.close();
-            }
-        }
-        QString filename = QFileDialog::getSaveFileName(this, tr("Save File"),QDir::homePath(),"*.zip");
-        if(filename.isEmpty())
-        {
-            setStatusInfo(tr("Error, empty filename"), uploader::STATUSICON_FAIL);
-            return;
-        }
-
-        if(!filename.endsWith(".zip",Qt::CaseInsensitive))
-            filename.append(".zip");
-        if(FileUtils::archive(filename, dir, "tlbundle", ""))
-        {
-            if(failedSaves.length() == 0)
-                setStatusInfo(tr("Partitions bundle written to file"), uploader::STATUSICON_OK);
-            else
-            {
-                QString failed;
-                foreach (int i, failedSaves) {
-                    failed.append(dfu.partitionStringFromLabel((dfu_partition_label)i)+ ", ");
-                }
-                failed = failed.left(failed.length() -2);
-                setStatusInfo(QString(tr("The following partitions failed to load:%0").arg(failed)), uploader::STATUSICON_FAIL);
-            }
-        }
-        else
-            setStatusInfo(tr("Error could not open file for save"), uploader::STATUSICON_FAIL);
-        FileUtils::removeDir(dir.absolutePath());
-        arrayList.clear();
-        failedSaves.clear();
-        return;
-    }
-    int size = m_widget->partitionBrowserTW->item(m_current_partition, 1)->text().toInt();
-    tempArray.clear();
-    dfu.DownloadPartitionThreaded(&tempArray, (dfu_partition_label)m_current_partition, size);
-    ++m_current_partition;
 }
 
 /**
