@@ -107,6 +107,8 @@ UploaderGadgetWidget::UploaderGadgetWidget(QWidget *parent):QWidget(parent),
     connect(m_widget->flashButton, SIGNAL(clicked()), this, SLOT(onFlashButtonClick()));
     connect(m_widget->bootButton, SIGNAL(clicked()), this, SLOT(onBootButtonClick()));
     connect(m_widget->safeBootButton, SIGNAL(clicked()), this, SLOT(onBootButtonClick()));
+    connect(m_widget->exportConfigButton, SIGNAL(clicked()), this, SLOT(onRescueButtonClick()));
+
     connect(m_widget->pbHelp, SIGNAL(clicked()),this,SLOT(openHelp()));
     Core::BoardManager* brdMgr = Core::ICore::instance()->boardManager();
 
@@ -511,6 +513,26 @@ void UploaderGadgetWidget::onRescueButtonClick()
     setUploaderStatus(uploader::RESCUING);
     setStatusInfo(tr("Please connect the board with USB with no external power applied"), uploader::STATUSICON_INFO);
     onRescueTimer(true);
+}
+
+/**
+ * @brief slot called when the user selects the Export Config button.
+ * It retrieves the setting partition and sends it to the cloud, trading it
+ * for an XML configuration file.
+ */
+void UploaderGadgetWidget::onExportButtonClick()
+{
+    if (telMngr->isConnected()) {
+        /* XXX select the UAV-oriented export thing */
+
+        return;
+    }
+
+    /* XXX make sure there's a setting partition */
+    /* XXX get confirmation from user that using the cloud service is OK */
+    /* XXX pull down settings partition to ram */
+    /* XXX post to cloud service */
+    /* XXX save dialog for XML config */
 }
 
 /**
@@ -1280,6 +1302,7 @@ void UploaderGadgetWidget::setUploaderStatus(const uploader::UploaderStatus &val
         m_widget->bootButton->setEnabled(false);
         m_widget->safeBootButton->setEnabled(false);
         m_widget->flashButton->setEnabled(false);
+        m_widget->exportConfigButton->setEnabled(false);
         m_widget->partitionBrowserTW->setContextMenuPolicy(Qt::NoContextMenu);
         break;
     case uploader::HALTING:
@@ -1293,6 +1316,7 @@ void UploaderGadgetWidget::setUploaderStatus(const uploader::UploaderStatus &val
         m_widget->bootButton->setEnabled(false);
         m_widget->safeBootButton->setEnabled(false);
         m_widget->flashButton->setEnabled(false);
+        m_widget->exportConfigButton->setEnabled(false);
         m_widget->partitionBrowserTW->setContextMenuPolicy(Qt::NoContextMenu);
         break;
     case uploader::RESCUING:
@@ -1306,6 +1330,7 @@ void UploaderGadgetWidget::setUploaderStatus(const uploader::UploaderStatus &val
         m_widget->bootButton->setEnabled(false);
         m_widget->safeBootButton->setEnabled(false);
         m_widget->flashButton->setEnabled(false);
+        m_widget->exportConfigButton->setEnabled(false);
         m_widget->partitionBrowserTW->setContextMenuPolicy(Qt::NoContextMenu);
         break;
     case uploader::BL_FROM_HALT:
@@ -1323,6 +1348,10 @@ void UploaderGadgetWidget::setUploaderStatus(const uploader::UploaderStatus &val
             m_widget->flashButton->setEnabled(true);
         else
             m_widget->flashButton->setEnabled(false);
+
+        // XXX: needs to be conditional on presence of setting partition
+        m_widget->exportConfigButton->setEnabled(true);
+
         m_widget->partitionBrowserTW->setContextMenuPolicy(Qt::ActionsContextMenu);
         break;
     case uploader::CONNECTED_TO_TELEMETRY:
@@ -1336,6 +1365,8 @@ void UploaderGadgetWidget::setUploaderStatus(const uploader::UploaderStatus &val
         m_widget->bootButton->setEnabled(true);
         m_widget->safeBootButton->setEnabled(false);
         m_widget->flashButton->setEnabled(false);
+        m_widget->exportConfigButton->setEnabled(true);
+
         m_widget->partitionBrowserTW->setContextMenuPolicy(Qt::NoContextMenu);
         break;
     case uploader::UPLOADING_FW:
@@ -1351,6 +1382,7 @@ void UploaderGadgetWidget::setUploaderStatus(const uploader::UploaderStatus &val
         m_widget->bootButton->setEnabled(false);
         m_widget->safeBootButton->setEnabled(false);
         m_widget->flashButton->setEnabled(false);
+        m_widget->exportConfigButton->setEnabled(false);
         m_widget->partitionBrowserTW->setContextMenuPolicy(Qt::NoContextMenu);
         break;
     case uploader::BOOTING:
@@ -1363,6 +1395,7 @@ void UploaderGadgetWidget::setUploaderStatus(const uploader::UploaderStatus &val
         m_widget->bootButton->setEnabled(false);
         m_widget->safeBootButton->setEnabled(false);
         m_widget->flashButton->setEnabled(false);
+        m_widget->exportConfigButton->setEnabled(false);
         m_widget->partitionBrowserTW->setContextMenuPolicy(Qt::NoContextMenu);
     default:
         break;

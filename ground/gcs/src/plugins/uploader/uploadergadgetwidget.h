@@ -82,6 +82,7 @@ private slots:
     void onLoadFirmwareButtonClick();
     void onFlashButtonClick();
     void onRescueButtonClick();
+    void onExportButtonClick();
     void onBootloaderDetected();
     void onBootloaderRemoved();
     void onRescueTimer(bool start = false);
