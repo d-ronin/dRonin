@@ -62,16 +62,13 @@ class UPLOADER_EXPORT UploaderGadgetWidget : public QWidget
 public:
     UploaderGadgetWidget(QWidget *parent = 0);
     ~UploaderGadgetWidget();
-    bool autoUpdateCapable();
 public slots:
-    bool autoUpdate();
 signals:
     void bootloaderDetected();
     void rescueTimer(int);
     void rescueFinish(bool);
     void uploadFinish(bool);
     void uploadProgress(UploaderStatus, QVariant);
-    void autoUpdateSignal(UploaderStatus, QVariant);
     void newBoardSeen(deviceInfo board, deviceDescriptorStruct device);
 private slots:
     void onAutopilotConnect();
@@ -93,7 +90,6 @@ private slots:
     void onPartitionFlash();
     void onPartitionErase();
     void onBootButtonClick();
-    void onAutoUpdateCount(int i);
     void openHelp();
     void onAvailableDevicesChanged(QLinkedList<Core::DevListItem>);
 private:

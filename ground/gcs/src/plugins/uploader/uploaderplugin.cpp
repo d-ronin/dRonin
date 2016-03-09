@@ -63,5 +63,4 @@ void UploaderPlugin::shutdown()
 void UploaderPlugin::testStuff()
 {
     QCOMPARE(QString("hello").toUpper(), QString("HELLO"));
-    QCOMPARE(mf->isAutoUpdateCapable(), true);
 }
