@@ -48,7 +48,7 @@ class LogFSImport(dict):
 
     slot_size = 256
 
-    def __init__(self, githash, contents, deftar=None):
+    def __init__(self, githash, contents):
         from dronin import uavo_collection
 
         our_magic = None
@@ -106,10 +106,7 @@ class LogFSImport(dict):
 
         uavo_defs = uavo_collection.UAVOCollection()
 
-        if deftar:
-            uavo_defs.from_tar_bytes(deftar)
-        else:
-            uavo_defs.from_git_hash(githash)
+        uavo_defs.from_git_hash(githash)
 
         self.githash = githash
 

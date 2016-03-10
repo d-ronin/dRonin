@@ -72,11 +72,22 @@ class UAVOCollection(dict):
         # Grab the exact uavo definition files from the git repo using the header's git hash
         #
         p = subprocess.Popen(['git', 'archive', githash, '--', 'shared/uavobjectdefinition/'],
-                             stdout=subprocess.PIPE, cwd=src_dir)
+                             stdout=subprocess.PIPE, stderr=subprocess.PIPE,
+                             cwd=src_dir)
         # grab the tar file data
         git_archive_data, git_archive_errors = p.communicate()
 
-        self.from_tar_bytes(git_archive_data)
+        if p.returncode == 0:
+            self.from_tar_bytes(git_archive_data)
+            return
+
+        #print "Error exit status, falling back to cloud"
+
+        import urllib2
+
+        web_data = urllib2.urlopen("http://dronin-autotown.appspot.com/uavos/%s" % githash).read()
+
+        self.from_tar_bytes(web_data)
 
     def from_uavo_xml_path(self, path):
         import os

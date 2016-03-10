@@ -6,12 +6,15 @@ Copyright (C) 2015 dRonin, http://dronin.org
 
 Licensed under the GNU LGPL version 2.1 or any later version (see COPYING.LESSER)
 
-
 Ordinarily one would use the methods exposed by the telemetry module instead of
 this interface.
 """
 
-import struct
+try:
+    from struct import Struct
+except:
+    from structshim import Struct
+
 import time
 
 __all__ = [ "send_object", "process_stream" ]
@@ -26,10 +29,10 @@ __all__ = [ "send_object", "process_stream" ]
 # Serialization of header elements
 
 # sync(1) + type(1) + len(2) + objid(4)
-header_fmt = struct.Struct("<BBHL")
-logheader_fmt = struct.Struct("<IQ")
-timestamp_fmt = struct.Struct("<H")
-instance_fmt = struct.Struct("<H")
+header_fmt = Struct("<BBHL")
+logheader_fmt = Struct("<IQ")
+timestamp_fmt = Struct("<H")
+instance_fmt = Struct("<H")
 
 # CRC lookup table
 crc_table = [
