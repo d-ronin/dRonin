@@ -130,7 +130,6 @@ private:
     QString ignoredRev;
 
     uploader::UploaderStatus uploaderStatus;
-    uploader::UploaderStatus previousStatus;
     QByteArray tempArray;
     bool lastUploadResult;
 };

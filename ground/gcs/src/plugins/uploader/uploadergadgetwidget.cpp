@@ -422,7 +422,6 @@ void UploaderGadgetWidget::onLoadFirmwareButtonClick()
 void UploaderGadgetWidget::onFlashButtonClick()
 {
     setStatusInfo("",uploader::STATUSICON_RUNNING);
-    previousStatus = uploaderStatus;
     setUploaderStatus(uploader::UPLOADING_FW);
     onStatusUpdate(QString("Starting upload..."), 0); // set progress bar to 0 while erasing
     connect(&dfu, SIGNAL(operationProgress(QString,int)), this, SLOT(onStatusUpdate(QString, int)));
@@ -539,12 +538,8 @@ void UploaderGadgetWidget::onBootloaderDetected()
     QList<USBPortInfo> devices;
 
     // If we are already connected to a bootloader, skip
-    switch (uploaderStatus) {
-    case uploader::BL_FROM_HALT:
-    case uploader::BL_FROM_RESCUE:
+    if (uploaderStatus == uploader::BL_SITTING) {
         return;
-    default:
-        break;
     }
 
     foreach(int vendorID, brdMgr->getKnownVendorIDs()) {
@@ -652,17 +647,8 @@ void UploaderGadgetWidget::onBootloaderDetected()
             FirmwareOnDeviceUpdate(descStructure, QString::number((dev.FW_CRC)));
         }
         DeviceInformationUpdate(info);
-        switch (uploaderStatus) {
-        case uploader::HALTING:
-            setUploaderStatus(uploader::BL_FROM_HALT);
-            break;
-        case uploader::DISCONNECTED:
-        case uploader::RESCUING:
-            setUploaderStatus(uploader::BL_FROM_RESCUE);
-            break;
-        default:
-            break;
-        }
+
+        setUploaderStatus(uploader::BL_SITTING);
 
         setStatusInfo(tr("Connection to bootloader successful"), uploader::STATUSICON_OK);
 
@@ -779,13 +765,13 @@ void UploaderGadgetWidget::onUploadFinish(Status stat)
             }
             else
             {
-                setUploaderStatus(previousStatus);
+                setUploaderStatus(uploader::BL_SITTING);
                 dfu.disconnect();
             }
         }
         else
         {
-            setUploaderStatus(previousStatus);
+            setUploaderStatus(uploader::BL_SITTING);
             setStatusInfo(tr("Firmware upload failed"), uploader::STATUSICON_FAIL);
             dfu.disconnect();
             lastUploadResult = false;
@@ -814,7 +800,7 @@ void UploaderGadgetWidget::onUploadFinish(Status stat)
             uploadFinish(false);
         }
         dfu.disconnect();
-        setUploaderStatus(previousStatus);
+        setUploaderStatus(uploader::BL_SITTING);
         break;
     case uploader::UPLOADING_PARTITION:
         if(stat == Last_operation_Success)
@@ -822,7 +808,7 @@ void UploaderGadgetWidget::onUploadFinish(Status stat)
         else
             setStatusInfo(tr("Partition upload failed"), uploader::STATUSICON_FAIL);
         dfu.disconnect();
-        setUploaderStatus(previousStatus);
+        setUploaderStatus(uploader::BL_SITTING);
         break;
     default:
         break;
@@ -843,7 +829,7 @@ void UploaderGadgetWidget::onDownloadSaveFinish(bool result)
         if(filename.isEmpty())
         {
             setStatusInfo(tr("Error, empty filename"), uploader::STATUSICON_FAIL);
-            setUploaderStatus(previousStatus);
+            setUploaderStatus(uploader::BL_SITTING);
             return;
         }
 
@@ -861,7 +847,8 @@ void UploaderGadgetWidget::onDownloadSaveFinish(bool result)
     }
     else
         setStatusInfo(tr("Partition download failed"), uploader::STATUSICON_FAIL);
-    setUploaderStatus(previousStatus);
+
+    setUploaderStatus(uploader::BL_SITTING);
 }
 
 void UploaderGadgetWidget::triggerPartitionDownload(int index)
@@ -871,7 +858,6 @@ void UploaderGadgetWidget::triggerPartitionDownload(int index)
     int size = m_widget->partitionBrowserTW->item(index,1)->text().toInt();
 
     setStatusInfo("",uploader::STATUSICON_RUNNING);
-    previousStatus = uploaderStatus;
     setUploaderStatus(uploader::DOWNLOADING_PARTITION);
     connect(&dfu, SIGNAL(operationProgress(QString,int)), this, SLOT(onStatusUpdate(QString, int)));
     tempArray.clear();
@@ -922,7 +908,6 @@ void UploaderGadgetWidget::onPartitionFlash()
     if(QMessageBox::warning(this, tr("Warning"), tr("Are you sure you want to flash the selected partition?"),QMessageBox::Yes, QMessageBox::No) != QMessageBox::Yes)
         return;
     setStatusInfo("",uploader::STATUSICON_RUNNING);
-    previousStatus = uploaderStatus;
     setUploaderStatus(uploader::UPLOADING_PARTITION);
     connect(&dfu, SIGNAL(operationProgress(QString,int)), this, SLOT(onStatusUpdate(QString, int)));
     connect(&dfu, SIGNAL(uploadFinished(tl_dfu::Status)), this, SLOT(onUploadFinish(tl_dfu::Status)));
@@ -981,7 +966,7 @@ void UploaderGadgetWidget::CheckAutopilotReady()
  */
 bool UploaderGadgetWidget::CheckInBootloaderState()
 {
-    if( (uploaderStatus != uploader::BL_FROM_HALT) && (uploaderStatus != uploader::BL_FROM_RESCUE) )
+    if(uploaderStatus != uploader::BL_SITTING)
     {
         setStatusInfo(tr("Cannot perform the selected operation if not in bootloader state"), uploader::STATUSICON_FAIL);
         return false;
@@ -1112,8 +1097,7 @@ void UploaderGadgetWidget::setUploaderStatus(const uploader::UploaderStatus &val
         m_widget->exportConfigButton->setEnabled(false);
         m_widget->partitionBrowserTW->setContextMenuPolicy(Qt::NoContextMenu);
         break;
-    case uploader::BL_FROM_HALT:
-    case uploader::BL_FROM_RESCUE:
+    case uploader::BL_SITTING:
         m_widget->progressBar->setVisible(false);
 
         m_widget->rescueButton->setText(tr("Rescue"));
@@ -1181,7 +1165,6 @@ void UploaderGadgetWidget::setUploaderStatus(const uploader::UploaderStatus &val
 
 /**
  * @brief Opens the plugin help page on the default browser
- * TODO ADD SPECIFIC NG PAGE TO THE WIKI
  */
 void UploaderGadgetWidget::openHelp()
 {
