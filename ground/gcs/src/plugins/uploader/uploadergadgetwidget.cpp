@@ -39,6 +39,7 @@
 #include "fileutils.h"
 #include "coreplugin/icore.h"
 #include <coreplugin/modemanager.h>
+#include <coreplugin/actionmanager/actionmanager.h>
 #include "rawhid/rawhidplugin.h"
 #include "../../../../../build/ground/gcs/gcsversioninfo.h"
 
@@ -80,6 +81,7 @@ UploaderGadgetWidget::UploaderGadgetWidget(QWidget *parent):QWidget(parent),
     //Clear widgets to defaults
     FirmwareOnDeviceClear(true);
     FirmwareLoadedClear(true);
+
     PartitionBrowserClear();
     DeviceInformationClear();
 
@@ -521,7 +523,16 @@ void UploaderGadgetWidget::onRescueButtonClick()
 void UploaderGadgetWidget::onExportButtonClick()
 {
     if (telMngr->isConnected()) {
-        /* XXX select the UAV-oriented export thing */
+        /* select the UAV-oriented export thing */
+        Core::ActionManager *am = Core::ICore::instance()->actionManager();
+
+        if (!am) return;
+
+        Core::Command *cmd = am->command("UAVSettingsImportExportPlugin.UAVSettingsExport");
+
+        if (cmd) {
+            cmd->action();
+        }
 
         return;
     }
