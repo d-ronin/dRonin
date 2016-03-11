@@ -76,6 +76,8 @@ private slots:
     void onShareToDatabase();
     void onShareToClipboard();
     void onShareToDatabaseComplete(QNetworkReply *reply);
+    void onYawTuneToggled(bool checked);
+    void onStabSettingsUpdated(UAVObject *obj);
 };
 
 #endif // CONFIGAUTOTUNE_H
