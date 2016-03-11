@@ -128,6 +128,7 @@ private:
     DFUObject dfu;
     ExtensionSystem::PluginManager *pm;
     USBSignalFilter *usbFilterBL;
+    USBSignalFilter *usbFilterUP;
     TelemetryManager* telMngr;
     Core::ConnectionManager *conMngr;
     FirmwareIAPObj *firmwareIap;

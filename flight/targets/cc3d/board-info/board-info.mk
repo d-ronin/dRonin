@@ -2,7 +2,7 @@ BOARD_TYPE          := 0x04
 BOARD_REVISION      := 0x02
 # Previous version was 0x080, 0x081 introduces forced boot from bkp registers,
 # 0x082 fixes halt (by not double-initing board) 
-BOOTLOADER_VERSION  := 0x82
+BOOTLOADER_VERSION  := 0x83
 HW_TYPE             := 0x01
 
 MCU                 := cortex-m3
@@ -27,3 +27,7 @@ EE_BANK_SIZE        := 0x00000000
 
 EF_BANK_BASE        := 0x08000000  # Start of entire flash image (usually start of bootloader as well)
 EF_BANK_SIZE        := 0x00020000  # Size of the entire flash image (from bootloader until end of firmware)
+
+OSCILLATOR_FREQ     := 8000000
+SYSCLK_FREQ         := 72000000
+FW_DESC_BASE        := 0

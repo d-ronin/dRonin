@@ -399,6 +399,7 @@ enum usb_op_board_ids {
 enum usb_op_board_modes {
 	USB_OP_BOARD_MODE_BL = 1,
 	USB_OP_BOARD_MODE_FW = 2,
+	USB_OP_BOARD_MODE_UP = 3,
 } __attribute__((packed));
 
 #define USB_OP_DEVICE_VER(board_id, board_mode) (\

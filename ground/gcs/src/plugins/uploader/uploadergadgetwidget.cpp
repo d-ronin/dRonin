@@ -112,9 +112,14 @@ UploaderGadgetWidget::UploaderGadgetWidget(QWidget *parent):QWidget(parent),
 
     //Setup usb discovery signals for boards in bl state
     usbFilterBL = new USBSignalFilter(brdMgr->getKnownVendorIDs(),-1,-1,USBMonitor::Bootloader);
+    usbFilterUP = new USBSignalFilter(brdMgr->getKnownVendorIDs(),-1,-1,USBMonitor::Upgrader);
     connect(usbFilterBL, SIGNAL(deviceRemoved()), this, SLOT(onBootloaderRemoved()));
 
     connect(usbFilterBL, SIGNAL(deviceDiscovered()), this, SLOT(onBootloaderDetected()), Qt::UniqueConnection);
+
+    connect(usbFilterUP, SIGNAL(deviceRemoved()), this, SLOT(onBootloaderRemoved()));
+
+    connect(usbFilterUP, SIGNAL(deviceDiscovered()), this, SLOT(onBootloaderDetected()), Qt::UniqueConnection);
 
     conMngr = Core::ICore::instance()->connectionManager();
     connect(conMngr, SIGNAL(availableDevicesChanged(QLinkedList<Core::DevListItem>)), this, SLOT(onAvailableDevicesChanged(QLinkedList<Core::DevListItem>)));
@@ -531,7 +536,16 @@ void UploaderGadgetWidget::onBootloaderDetected()
         break;
     }
 
+    bool inUpgrader = false;
+
     foreach(int vendorID, brdMgr->getKnownVendorIDs()) {
+        QList<USBPortInfo> upgraderDevs = USBMonitor::instance()->availableDevices(vendorID,-1,-1,USBMonitor::Upgrader);
+
+        if (upgraderDevs.length() > 0) {
+            inUpgrader = true;
+            devices.append(upgraderDevs);
+        }
+
         devices.append(USBMonitor::instance()->availableDevices(vendorID,-1,-1,USBMonitor::Bootloader));
     }
     if(devices.length() > 1)
@@ -547,30 +561,33 @@ void UploaderGadgetWidget::onBootloaderDetected()
     if(dfu.OpenBootloaderComs(devices.first()))
     {
         tl_dfu::device dev = dfu.findCapabilities();
-        switch (uploaderStatus) {
-        case uploader::HALTING:
-        case uploader::RESCUING:
-            break;
-        case uploader::DISCONNECTED:
-        {
-            QByteArray description = dfu.DownloadDescriptionAsByteArray(dev.SizeOfDesc);
-            // look for completed bootloader update (last 2 chars of TlFw string are nulled)
-            if (QString(description.left(4)) == "Tl")
-                break;
 
-            deviceDescriptorStruct descStructure;
-            if (UAVObjectUtilManager::descriptionToStructure(description, descStructure)) {
-                if (FirmwareCheckForUpdate(descStructure)) {
-                    Core::ModeManager::instance()->activateModeByWorkspaceName("Firmware");
+        if (!inUpgrader) {
+            switch (uploaderStatus) {
+            case uploader::HALTING:
+            case uploader::RESCUING:
+                break;
+            case uploader::DISCONNECTED:
+            {
+                QByteArray description = dfu.DownloadDescriptionAsByteArray(dev.SizeOfDesc);
+                // look for completed bootloader update (last 2 chars of TlFw string are nulled)
+                if (QString(description.left(4)) == "Tl")
                     break;
+
+                deviceDescriptorStruct descStructure;
+                if (UAVObjectUtilManager::descriptionToStructure(description, descStructure)) {
+                    if (FirmwareCheckForUpdate(descStructure)) {
+                        Core::ModeManager::instance()->activateModeByWorkspaceName("Firmware");
+                        break;
+                    }
                 }
             }
-        }
-        // fall through to default
-        default:
-            dfu.JumpToApp(false);
-            dfu.CloseBootloaderComs();
-            return;
+            // fall through to default
+            default:
+                dfu.JumpToApp(false);
+                dfu.CloseBootloaderComs();
+                return;
+            }
         }
 
         //Bootloader has new cap extensions, query partitions and fill out browser
@@ -648,12 +665,16 @@ void UploaderGadgetWidget::onBootloaderDetected()
             break;
         }
 
-        setStatusInfo(tr("Connection to bootloader successful"), uploader::STATUSICON_OK);
+        if (!inUpgrader) {
+            setStatusInfo(tr("Connection to bootloader successful"), uploader::STATUSICON_OK);
 
-        if (FirmwareLoadFromFile(getFirmwarePathForBoard(info.board->shortName()))) {
-            setStatusInfo(tr("Ready to flash firmware"), uploader::STATUSICON_OK);
-            this->activateWindow();
-            m_widget->flashButton->setFocus();
+            if (FirmwareLoadFromFile(getFirmwarePathForBoard(info.board->shortName()))) {
+                setStatusInfo(tr("Ready to flash firmware"), uploader::STATUSICON_OK);
+                this->activateWindow();
+                m_widget->flashButton->setFocus();
+            }
+        } else {
+            setStatusInfo(tr("Connected to upgrader-loader"), uploader::STATUSICON_OK);
         }
 
         emit bootloaderDetected();
@@ -688,11 +709,12 @@ void UploaderGadgetWidget::onRescueTimer(bool start)
 {
     static int progress;
     static QTimer timer;
-    if(sender() == usbFilterBL)
+    if((sender() == usbFilterBL) || (sender() == usbFilterUP))
     {
         timer.stop();
         m_widget->progressBar->setValue(0);
         disconnect(usbFilterBL, SIGNAL(deviceDiscovered()), this, SLOT(onRescueTimer()));
+        disconnect(usbFilterUP, SIGNAL(deviceDiscovered()), this, SLOT(onRescueTimer()));
         rescueFinish(true);
         return;
     }
@@ -703,6 +725,7 @@ void UploaderGadgetWidget::onRescueTimer(bool start)
         connect(&timer, SIGNAL(timeout()), this, SLOT(onRescueTimer()),Qt::UniqueConnection);
         timer.start(200);
         connect(usbFilterBL, SIGNAL(deviceDiscovered()), this, SLOT(onRescueTimer()), Qt::UniqueConnection);
+        connect(usbFilterUP, SIGNAL(deviceDiscovered()), this, SLOT(onRescueTimer()), Qt::UniqueConnection);
         emit rescueTimer(0);
     }
     else
@@ -714,6 +737,7 @@ void UploaderGadgetWidget::onRescueTimer(bool start)
     if(progress == 0)
     {
         disconnect(usbFilterBL, SIGNAL(deviceDiscovered()), this, SLOT(onRescueTimer()));
+        disconnect(usbFilterUP, SIGNAL(deviceDiscovered()), this, SLOT(onRescueTimer()));
         timer.disconnect();
         setStatusInfo(tr("Failed to detect bootloader"), uploader::STATUSICON_FAIL);
         setUploaderStatus(uploader::DISCONNECTED);
