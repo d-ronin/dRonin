@@ -930,15 +930,15 @@ all_ef:        $(EF_TARGETS)
 all_ef_clean:  $(addsuffix _clean, $(EF_TARGETS))
 
 .PHONY: all_up all_up_clean
-all_up:        $(EF_TARGETS)
-all_up_clean:  $(addsuffix _clean, $(EF_TARGETS))
+all_up:        $(UP_TARGETS)
+all_up_clean:  $(addsuffix _clean, $(UP_TARGETS))
 
 .PHONY: all_sim all_sim_clean
 all_sim: $(SIM_BOARDS)
 all_sim_clean: $(addsuffix _clean, $(SIM_BOARDS))
 
 .PHONY: all_flight all_flight_clean
-all_flight:       all_fw all_bl all_bu all_ef all_sim
+all_flight:       all_fw all_bl all_bu all_ef all_up all_sim
 all_flight_clean: all_fw_clean all_bl_clean all_bu_clean all_ef_clean all_sim_clean
 
 # Expand the groups of targets for each board
