@@ -112,9 +112,14 @@ UploaderGadgetWidget::UploaderGadgetWidget(QWidget *parent):QWidget(parent),
 
     //Setup usb discovery signals for boards in bl state
     usbFilterBL = new USBSignalFilter(brdMgr->getKnownVendorIDs(),-1,-1,USBMonitor::Bootloader);
+    usbFilterUP = new USBSignalFilter(brdMgr->getKnownVendorIDs(),-1,-1,USBMonitor::Upgrader);
     connect(usbFilterBL, SIGNAL(deviceRemoved()), this, SLOT(onBootloaderRemoved()));
 
     connect(usbFilterBL, SIGNAL(deviceDiscovered()), this, SLOT(onBootloaderDetected()), Qt::UniqueConnection);
+
+    connect(usbFilterUP, SIGNAL(deviceRemoved()), this, SLOT(onBootloaderRemoved()));
+
+    connect(usbFilterUP, SIGNAL(deviceDiscovered()), this, SLOT(onBootloaderDetected()), Qt::UniqueConnection);
 
     conMngr = Core::ICore::instance()->connectionManager();
     connect(conMngr, SIGNAL(availableDevicesChanged(QLinkedList<Core::DevListItem>)), this, SLOT(onAvailableDevicesChanged(QLinkedList<Core::DevListItem>)));
@@ -688,11 +693,12 @@ void UploaderGadgetWidget::onRescueTimer(bool start)
 {
     static int progress;
     static QTimer timer;
-    if(sender() == usbFilterBL)
+    if((sender() == usbFilterBL) || (sender() == usbFilterUP))
     {
         timer.stop();
         m_widget->progressBar->setValue(0);
         disconnect(usbFilterBL, SIGNAL(deviceDiscovered()), this, SLOT(onRescueTimer()));
+        disconnect(usbFilterUP, SIGNAL(deviceDiscovered()), this, SLOT(onRescueTimer()));
         rescueFinish(true);
         return;
     }
@@ -703,6 +709,7 @@ void UploaderGadgetWidget::onRescueTimer(bool start)
         connect(&timer, SIGNAL(timeout()), this, SLOT(onRescueTimer()),Qt::UniqueConnection);
         timer.start(200);
         connect(usbFilterBL, SIGNAL(deviceDiscovered()), this, SLOT(onRescueTimer()), Qt::UniqueConnection);
+        connect(usbFilterUP, SIGNAL(deviceDiscovered()), this, SLOT(onRescueTimer()), Qt::UniqueConnection);
         emit rescueTimer(0);
     }
     else
@@ -714,6 +721,7 @@ void UploaderGadgetWidget::onRescueTimer(bool start)
     if(progress == 0)
     {
         disconnect(usbFilterBL, SIGNAL(deviceDiscovered()), this, SLOT(onRescueTimer()));
+        disconnect(usbFilterUP, SIGNAL(deviceDiscovered()), this, SLOT(onRescueTimer()));
         timer.disconnect();
         setStatusInfo(tr("Failed to detect bootloader"), uploader::STATUSICON_FAIL);
         setUploaderStatus(uploader::DISCONNECTED);

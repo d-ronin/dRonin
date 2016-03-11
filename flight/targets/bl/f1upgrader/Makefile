@@ -157,6 +157,7 @@ CFLAGS += -Wa,-adhlns=$(addprefix $(OUTDIR)/, $(notdir $(addsuffix .lst, $(basen
 # Compiler flags to generate dependency files:
 CFLAGS += -MD -MP -MF $(OUTDIR)/dep/$(@F).d
 
+CFLAGS += -DF1_UPGRADER
 CFLAGS += -DPIOS_INCLUDE_SPI
 CFLAGS += -DPIOS_INCLUDE_FLASH
 CFLAGS += -DPIOS_INCLUDE_FLASH_JEDEC

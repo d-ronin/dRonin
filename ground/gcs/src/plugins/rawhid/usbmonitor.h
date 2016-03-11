@@ -136,7 +136,8 @@ class RAWHID_EXPORT USBMonitor : public QThread
 public:
     enum RunState {
         Bootloader = 0x01,
-        Running = 0x02
+        Running = 0x02,
+        Upgrader = 0x03,
     };
 
     static USBMonitor *instance();
