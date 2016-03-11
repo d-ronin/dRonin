@@ -326,8 +326,17 @@ void ConfigAutotuneWidget::recomputeStabilization()
     if(!stabilizationSettings)
         return;
 
+    SystemSettings *systemSettings = SystemSettings::GetInstance(getObjectManager());
+    Q_ASSERT(systemSettings);
+    if(!systemSettings)
+        return;
+
     SystemIdent::DataFields systemIdentData = systemIdent->getData();
     stabSettings = stabilizationSettings->getData();
+
+    quint8 airframe = systemSettings->getAirframeType();
+    const bool tune_yaw = (airframe == SystemSettings::AIRFRAMETYPE_QUADX || airframe == SystemSettings::AIRFRAMETYPE_QUADP) &&
+            m_autotune->cbUseYaw->isChecked() && systemIdentData.Beta[SystemIdent::BETA_YAW] >= 6.3;
 
     // These three parameters define the desired response properties
     // - rate scale in the fraction of the natural speed of the system
@@ -410,7 +419,7 @@ void ConfigAutotuneWidget::recomputeStabilization()
             stabSettings.PitchPI[StabilizationSettings::PITCHPI_KI] = ki_o;
             break;
         case 2: // Yaw
-            if (m_autotune->cbUseYaw->isChecked() && systemIdentData.Beta[SystemIdent::BETA_YAW] >= 6.3) {
+            if (tune_yaw) {
                 stabSettings.YawRatePID[StabilizationSettings::YAWRATEPID_KP] = kp;
                 stabSettings.YawRatePID[StabilizationSettings::YAWRATEPID_KI] = ki;
                 stabSettings.YawRatePID[StabilizationSettings::YAWRATEPID_KD] = kd;
@@ -429,7 +438,7 @@ void ConfigAutotuneWidget::recomputeStabilization()
     m_autotune->pitchRateKp->setText(QString::number(stabSettings.PitchRatePID[StabilizationSettings::PITCHRATEPID_KP]));
     m_autotune->pitchRateKi->setText(QString::number(stabSettings.PitchRatePID[StabilizationSettings::PITCHRATEPID_KI]));
     m_autotune->pitchRateKd->setText(QString::number(stabSettings.PitchRatePID[StabilizationSettings::PITCHRATEPID_KD]));
-    if (m_autotune->cbUseYaw->isChecked() && systemIdentData.Beta[SystemIdent::BETA_YAW] >= 6.3) {
+    if (tune_yaw) {
         m_autotune->yawRateKp->setText(QString::number(stabSettings.YawRatePID[StabilizationSettings::YAWRATEPID_KP]));
         m_autotune->yawRateKi->setText(QString::number(stabSettings.YawRatePID[StabilizationSettings::YAWRATEPID_KI]));
         m_autotune->yawRateKd->setText(QString::number(stabSettings.YawRatePID[StabilizationSettings::YAWRATEPID_KD]));
