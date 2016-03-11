@@ -8,6 +8,8 @@ __I uint8_t AHBPrescTable[16] = { 0, 0, 0, 0, 0, 0, 0, 0, 1, 2, 3, 4, 6, 7, 8, 9
 
 uint32_t hse_value = 8000000;
 
+static void SetSysClock(void);
+
 void SystemInit(void)
 {
     /* Reset the RCC clock configuration to the default reset state(for debug purpose) */
@@ -28,6 +30,10 @@ void SystemInit(void)
 
     /* Disable all interrupts and clear pending bits  */
     RCC->CIR = 0x009F0000;
+
+    /* Configure the System clock frequency, HCLK, PCLK2 and PCLK1 prescalers */
+    /* Configure the Flash Latency cycles and enable prefetch buffer */
+    SetSysClock();
 
     SCB->VTOR = FLASH_BASE;     /* Vector Table Relocation in Internal FLASH. */
 }
@@ -86,7 +92,7 @@ enum {
 };
 
 // Set system clock to 72 (HSE) or 64 (HSI) MHz
-void SetSysClock(void)
+static void SetSysClock(void)
 {
     __IO uint32_t StartUpCounter = 0, status = 0, clocksrc = SRC_NONE;
     __IO uint32_t *RCC_CRH = &GPIOC->CRH;

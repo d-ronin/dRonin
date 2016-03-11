@@ -28,6 +28,8 @@
  */
 #include <pios.h>
 
+#ifdef PIOS_INCLUDE_DMA_CB_SUBSCRIBING_FUNCTION
+
 void PIOS_DMA_Default_Handler(void);
 
 void (*pios_dma_handler_map[PIOS_DMA_MAX_CHANNELS][PIOS_DMA_MAX_HANDLERS_PER_CHANNEL])(void)={{NULL}};
@@ -53,3 +55,5 @@ int8_t PIOS_DMA_Install_Interrupt_handler(DMA_Channel_TypeDef *channel, void * f
 	}
 	return -2;
 }
+
+#endif // PIOS_INCLUDE_DMA_CB_SUBSCRIBING_FUNCTION
