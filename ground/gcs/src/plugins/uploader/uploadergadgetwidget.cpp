@@ -536,7 +536,16 @@ void UploaderGadgetWidget::onBootloaderDetected()
         break;
     }
 
+    bool inUpgrader = false;
+
     foreach(int vendorID, brdMgr->getKnownVendorIDs()) {
+        QList<USBPortInfo> upgraderDevs = USBMonitor::instance()->availableDevices(vendorID,-1,-1,USBMonitor::Upgrader);
+
+        if (upgraderDevs.length() > 0) {
+            inUpgrader = true;
+            devices.append(upgraderDevs);
+        }
+
         devices.append(USBMonitor::instance()->availableDevices(vendorID,-1,-1,USBMonitor::Bootloader));
     }
     if(devices.length() > 1)
@@ -552,30 +561,33 @@ void UploaderGadgetWidget::onBootloaderDetected()
     if(dfu.OpenBootloaderComs(devices.first()))
     {
         tl_dfu::device dev = dfu.findCapabilities();
-        switch (uploaderStatus) {
-        case uploader::HALTING:
-        case uploader::RESCUING:
-            break;
-        case uploader::DISCONNECTED:
-        {
-            QByteArray description = dfu.DownloadDescriptionAsByteArray(dev.SizeOfDesc);
-            // look for completed bootloader update (last 2 chars of TlFw string are nulled)
-            if (QString(description.left(4)) == "Tl")
-                break;
 
-            deviceDescriptorStruct descStructure;
-            if (UAVObjectUtilManager::descriptionToStructure(description, descStructure)) {
-                if (FirmwareCheckForUpdate(descStructure)) {
-                    Core::ModeManager::instance()->activateModeByWorkspaceName("Firmware");
+        if (!inUpgrader) {
+            switch (uploaderStatus) {
+            case uploader::HALTING:
+            case uploader::RESCUING:
+                break;
+            case uploader::DISCONNECTED:
+            {
+                QByteArray description = dfu.DownloadDescriptionAsByteArray(dev.SizeOfDesc);
+                // look for completed bootloader update (last 2 chars of TlFw string are nulled)
+                if (QString(description.left(4)) == "Tl")
                     break;
+
+                deviceDescriptorStruct descStructure;
+                if (UAVObjectUtilManager::descriptionToStructure(description, descStructure)) {
+                    if (FirmwareCheckForUpdate(descStructure)) {
+                        Core::ModeManager::instance()->activateModeByWorkspaceName("Firmware");
+                        break;
+                    }
                 }
             }
-        }
-        // fall through to default
-        default:
-            dfu.JumpToApp(false);
-            dfu.CloseBootloaderComs();
-            return;
+            // fall through to default
+            default:
+                dfu.JumpToApp(false);
+                dfu.CloseBootloaderComs();
+                return;
+            }
         }
 
         //Bootloader has new cap extensions, query partitions and fill out browser
@@ -653,12 +665,16 @@ void UploaderGadgetWidget::onBootloaderDetected()
             break;
         }
 
-        setStatusInfo(tr("Connection to bootloader successful"), uploader::STATUSICON_OK);
+        if (!inUpgrader) {
+            setStatusInfo(tr("Connection to bootloader successful"), uploader::STATUSICON_OK);
 
-        if (FirmwareLoadFromFile(getFirmwarePathForBoard(info.board->shortName()))) {
-            setStatusInfo(tr("Ready to flash firmware"), uploader::STATUSICON_OK);
-            this->activateWindow();
-            m_widget->flashButton->setFocus();
+            if (FirmwareLoadFromFile(getFirmwarePathForBoard(info.board->shortName()))) {
+                setStatusInfo(tr("Ready to flash firmware"), uploader::STATUSICON_OK);
+                this->activateWindow();
+                m_widget->flashButton->setFocus();
+            }
+        } else {
+            setStatusInfo(tr("Connected to upgrader-loader"), uploader::STATUSICON_OK);
         }
 
         emit bootloaderDetected();
