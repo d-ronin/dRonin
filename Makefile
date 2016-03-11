@@ -807,7 +807,7 @@ up_$(1)_%:
 		$$(MAKE) -r --no-print-directory \
 		BOARD_NAME=$(1) \
 		BOARD_SHORT_NAME=$(3) \
-		BUILD_TYPE=bl \
+		BUILD_TYPE=up \
 		TCHAIN_PREFIX="$(ARM_SDK_PREFIX)" \
 		REMOVE_CMD="$(RM)" OOCD_EXE="$(OPENOCD)" \
 		\
@@ -819,9 +819,6 @@ up_$(1)_%:
 		BLCOMMONDIR=$$(BLCOMMONDIR) \
 		BLARCHDIR=$$(BLARCHDIR) \
 		BLBOARDDIR=$$(BLBOARDDIR) \
-		FW_DESC_BASE=0 \
-		OSCILLATOR_FREQ=8000000 \
-		SYSCLK_FREQ=72000000 \
 		\
 		$$*
 
