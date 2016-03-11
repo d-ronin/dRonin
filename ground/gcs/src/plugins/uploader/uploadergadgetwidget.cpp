@@ -120,7 +120,7 @@ UploaderGadgetWidget::UploaderGadgetWidget(QWidget *parent):QWidget(parent),
     foreach (int i, brdMgr->getKnownVendorIDs()) {
         if(USBMonitor::instance()->availableDevices(i, -1, -1, USBMonitor::Bootloader).length() > 0)
         {
-            setUploaderStatus(uploader::RESCUING);
+            setUploaderStatus(uploader::ENTERING_LOADER);
             onBootloaderDetected();
             break;
         }
@@ -335,7 +335,7 @@ void UploaderGadgetWidget::onAutopilotDisconnect()
     telemetryConnected = false;
     iapPresent = false;
     iapUpdated = false;
-    if( (getUploaderStatus() == uploader::RESCUING) || (getUploaderStatus() == uploader::HALTING) || (getUploaderStatus() == uploader::BOOTING))
+    if( (getUploaderStatus() == uploader::ENTERING_LOADER) )
         return;
     setUploaderStatus(uploader::DISCONNECTED);
     setStatusInfo(tr("Telemetry disconnected"), uploader::STATUSICON_INFO);
@@ -383,7 +383,7 @@ void UploaderGadgetWidget::onIAPPresentChanged(UAVDataObject *obj)
  */
 void UploaderGadgetWidget::onIAPUpdated()
 {
-    if( (getUploaderStatus() == uploader::RESCUING) || (getUploaderStatus() == uploader::HALTING) || (getUploaderStatus() == uploader::BOOTING) )
+    if(getUploaderStatus() == uploader::ENTERING_LOADER)
         return;
     iapUpdated = true;
     CheckAutopilotReady();
@@ -438,9 +438,9 @@ void UploaderGadgetWidget::haltOrReset(bool halting)
         return;
 
     if (halting) {
-        setUploaderStatus(uploader::HALTING);
+        setUploaderStatus(uploader::ENTERING_LOADER);
     } else {
-        setUploaderStatus(uploader::BOOTING);
+        setUploaderStatus(uploader::DISCONNECTED);
     }
 
     QEventLoop loop;
@@ -505,7 +505,7 @@ void UploaderGadgetWidget::onRescueButtonClick()
 
     // Otherwise, this means "begin rescue".
     conMngr->suspendPolling();
-    setUploaderStatus(uploader::RESCUING);
+    setUploaderStatus(uploader::ENTERING_LOADER);
     setStatusInfo(tr("Please connect the board with USB with no external power applied"), uploader::STATUSICON_INFO);
     onRescueTimer(true);
 }
@@ -570,8 +570,7 @@ void UploaderGadgetWidget::onBootloaderDetected()
     {
         tl_dfu::device dev = dfu.findCapabilities();
         switch (uploaderStatus) {
-        case uploader::HALTING:
-        case uploader::RESCUING:
+        case uploader::ENTERING_LOADER:
             break;
         case uploader::DISCONNECTED:
         {
@@ -1080,21 +1079,7 @@ void UploaderGadgetWidget::setUploaderStatus(const uploader::UploaderStatus &val
         m_widget->exportConfigButton->setEnabled(false);
         m_widget->partitionBrowserTW->setContextMenuPolicy(Qt::NoContextMenu);
         break;
-    case uploader::HALTING:
-        m_widget->progressBar->setVisible(false);
-
-        m_widget->rescueButton->setText(tr("Enter bootloader"));
-        m_widget->bootButton->setText(tr("Boot"));
-
-        m_widget->rescueButton->setEnabled(false);
-        m_widget->openButton->setEnabled(true);
-        m_widget->bootButton->setEnabled(false);
-        m_widget->safeBootButton->setEnabled(false);
-        m_widget->flashButton->setEnabled(false);
-        m_widget->exportConfigButton->setEnabled(false);
-        m_widget->partitionBrowserTW->setContextMenuPolicy(Qt::NoContextMenu);
-        break;
-    case uploader::RESCUING:
+    case uploader::ENTERING_LOADER:
         m_widget->progressBar->setVisible(true);
 
         m_widget->rescueButton->setText(tr("Rescue"));
@@ -1157,18 +1142,6 @@ void UploaderGadgetWidget::setUploaderStatus(const uploader::UploaderStatus &val
         m_widget->exportConfigButton->setEnabled(false);
         m_widget->partitionBrowserTW->setContextMenuPolicy(Qt::NoContextMenu);
         break;
-    case uploader::BOOTING:
-        m_widget->progressBar->setVisible(false);
-
-        m_widget->rescueButton->setText(tr("Enter bootloader"));
-        m_widget->bootButton->setText(tr("Reboot"));
-
-        m_widget->openButton->setEnabled(false);
-        m_widget->bootButton->setEnabled(false);
-        m_widget->safeBootButton->setEnabled(false);
-        m_widget->flashButton->setEnabled(false);
-        m_widget->exportConfigButton->setEnabled(false);
-        m_widget->partitionBrowserTW->setContextMenuPolicy(Qt::NoContextMenu);
     default:
         break;
     }
