@@ -36,7 +36,6 @@
 
 #include "uploadergadgetwidget.h"
 #include "firmwareiapobj.h"
-#include "fileutils.h"
 #include "coreplugin/icore.h"
 #include <coreplugin/modemanager.h>
 #include <coreplugin/actionmanager/actionmanager.h>

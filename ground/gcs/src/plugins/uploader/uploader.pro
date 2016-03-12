@@ -14,7 +14,6 @@ HEADERS += uploadergadget.h \
     uploadergadgetwidget.h \
     uploaderplugin.h \
     uploader_global.h \
-    fileutils.h \
     bl_messages.h \
     tl_dfu.h \
     ../../../../../build/ground/gcs/gcsversioninfo.h
@@ -23,8 +22,8 @@ SOURCES += uploadergadget.cpp \
     uploadergadgetfactory.cpp \
     uploadergadgetwidget.cpp \
     uploaderplugin.cpp \
-    fileutils.cpp \
     tl_dfu.cpp
+
 OTHER_FILES += Uploader.pluginspec \
     Uploader.json
 
