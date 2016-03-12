@@ -438,7 +438,6 @@ void UploaderGadgetWidget::onFlashButtonClick()
 
 void UploaderGadgetWidget::haltOrReset(bool halting)
 {
-    lastConnectedTelemetryDevice = conMngr->getCurrentDevice().device.data()->getName();
     if(!firmwareIap->getIsPresentOnHardware())
         return;
 
@@ -1054,22 +1053,6 @@ void UploaderGadgetWidget::setStatusInfo(QString str, uploader::StatusIcon ic)
         px.load(QString(":/uploader/images/gtk-info.svg"));
     }
     m_widget->statusPic->setPixmap(px);
-}
-
-/**
- * @brief slot by connectionManager when new devices arrive
- * Used to reconnect the boards after booting if autoconnect is disabled
- */
-void UploaderGadgetWidget::onAvailableDevicesChanged(QLinkedList<Core::DevListItem> devList)
-{
-    if(conMngr->getAutoconnect() || conMngr->isConnected() || lastConnectedTelemetryDevice.isEmpty())
-        return;
-    foreach (Core::DevListItem item, devList) {
-        if(item.device.data()->getName() == lastConnectedTelemetryDevice)
-        {
-            conMngr->connectDevice(item);
-        }
-    }
 }
 
 /**

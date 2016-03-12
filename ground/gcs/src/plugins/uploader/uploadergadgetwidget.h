@@ -91,7 +91,6 @@ private slots:
     void onPartitionErase();
     void onBootButtonClick();
     void openHelp();
-    void onAvailableDevicesChanged(QLinkedList<Core::DevListItem>);
 private:
     void FirmwareOnDeviceClear(bool clear);
     void FirmwareLoadedClear(bool clear);
@@ -127,7 +126,6 @@ private:
     Core::ConnectionManager *conMngr;
     FirmwareIAPObj *firmwareIap;
     deviceInfo currentBoard;
-    QString lastConnectedTelemetryDevice;
     QString ignoredRev;
 
     uploader::UploaderStatus uploaderStatus;
