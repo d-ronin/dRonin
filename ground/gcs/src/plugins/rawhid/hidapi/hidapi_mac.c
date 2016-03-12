@@ -30,6 +30,7 @@
 #include <pthread.h>
 #include <sys/time.h>
 #include <unistd.h>
+#include <stdint.h>
 
 #include "hidapi.h"
 
@@ -100,7 +101,10 @@ struct input_report {
 	struct input_report *next;
 };
 
+#define HID_DEV_MAGIC 0xa83f93b1
+
 struct hid_device_ {
+	uint32_t magic;
 	IOHIDDeviceRef device_handle;
 	int blocking;
 	int uses_numbered_reports;
@@ -118,11 +122,16 @@ struct hid_device_ {
 	pthread_barrier_t barrier; /* Ensures correct startup sequence */
 	pthread_barrier_t shutdown_barrier; /* Ensures correct shutdown sequence */
 	int shutdown_thread;
+	bool run_loop_stopped;
 };
+
+// shared between all threads
+static pthread_mutex_t stop_run_loop_mutex = PTHREAD_MUTEX_INITIALIZER;
 
 static hid_device *new_hid_device(void)
 {
 	hid_device *dev = calloc(1, sizeof(hid_device));
+	dev->magic = HID_DEV_MAGIC;
 	dev->device_handle = NULL;
 	dev->blocking = 1;
 	dev->uses_numbered_reports = 0;
@@ -145,7 +154,7 @@ static hid_device *new_hid_device(void)
 
 static void free_hid_device(hid_device *dev)
 {
-	if (!dev)
+	if (!dev || dev->magic != HID_DEV_MAGIC)
 		return;
 
 	/* Delete any input reports still left over. */
@@ -171,6 +180,10 @@ static void free_hid_device(hid_device *dev)
 	pthread_barrier_destroy(&dev->barrier);
 	pthread_cond_destroy(&dev->condition);
 	pthread_mutex_destroy(&dev->mutex);
+
+	pthread_mutex_lock(&stop_run_loop_mutex);
+	dev->magic = 0;
+	pthread_mutex_unlock(&stop_run_loop_mutex);
 
 	/* Free the structure itself. */
 	free(dev);
@@ -548,14 +561,26 @@ hid_device * HID_API_EXPORT hid_open(unsigned short vendor_id, unsigned short pr
 	return handle;
 }
 
+static void stop_run_loop(hid_device *dev)
+{
+	CFRunLoopRef run_loop = NULL;
+	pthread_mutex_lock(&stop_run_loop_mutex);
+	if (dev->magic == HID_DEV_MAGIC && !dev->run_loop_stopped) {
+		dev->run_loop_stopped = true;
+		dev->disconnected = 1;
+		run_loop = dev->run_loop;
+	}
+	pthread_mutex_unlock(&stop_run_loop_mutex);
+
+	if (run_loop)
+		CFRunLoopStop(run_loop);
+}
+
 static void hid_device_removal_callback(void *context, IOReturn result,
                                         void *sender)
 {
-	/* Stop the Run Loop for this device. */
-	hid_device *d = context;
-
-	d->disconnected = 1;
-	CFRunLoopStop(d->run_loop);
+	(void)result; (void)sender;
+	stop_run_loop((hid_device *)context);
 }
 
 /* The Run Loop calls this function for each input report received.
@@ -613,8 +638,7 @@ static void hid_report_callback(void *context, IOReturn result, void *sender,
    hid_close(), and serves to stop the read_thread's run loop. */
 static void perform_signal_callback(void *context)
 {
-	hid_device *dev = context;
-	CFRunLoopStop(dev->run_loop); /*TODO: CFRunLoopGetCurrent()*/
+	stop_run_loop((hid_device *)context);
 }
 
 static void *read_thread(void *param)
@@ -638,6 +662,7 @@ static void *read_thread(void *param)
 	/* Store off the Run Loop so it can be stopped from hid_close()
 	   and on device disconnection. */
 	dev->run_loop = CFRunLoopGetCurrent();
+	dev->run_loop_stopped = false;
 
 	/* Notify the main thread that the read thread is up and running. */
 	pthread_barrier_wait(&dev->barrier);
