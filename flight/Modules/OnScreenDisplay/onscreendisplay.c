@@ -60,6 +60,7 @@
 #include "pios_thread.h"
 #include "pios_semaphore.h"
 #include "misc_math.h"
+#include "pios_modules.h"
 
 #include "onscreendisplay.h"
 #include "onscreendisplaysettings.h"
@@ -1581,7 +1582,7 @@ int32_t OnScreenDisplayInitialize(void)
 	ModuleSettingsData module_settings;
 	ModuleSettingsGet(&module_settings);
 
-	has_gps = module_settings.AdminState[MODULESETTINGS_ADMINSTATE_GPS];
+	has_gps = PIOS_Modules_IsEnabled(PIOS_MODULE_GPS);
 	has_battery = module_settings.AdminState[MODULESETTINGS_ADMINSTATE_BATTERY];
 
 	uint8_t filter;

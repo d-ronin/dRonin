@@ -61,6 +61,7 @@
 #include "manualcontrolcommand.h"
 #include "flightstatus.h"
 #include "pios_thread.h"
+#include "pios_modules.h"
 
 #include <pios_hal.h>
 
@@ -77,7 +78,7 @@
 // Private types
 
 // Private variables
-static bool module_enabled;
+static bool module_enabled = false;
 static struct pios_thread *taskHandle;
 static uint32_t lighttelemetryPort;
 static uint8_t ltm_scheduler;
@@ -99,24 +100,15 @@ static void send_LTM_Sframe();
  */
 int32_t uavoLighttelemetryBridgeInitialize()
 {
-	module_enabled = false;
-	
 	lighttelemetryPort = PIOS_COM_LIGHTTELEMETRY;
-	
-	if ( lighttelemetryPort )
-	{
-		uint8_t module_state[MODULESETTINGS_ADMINSTATE_NUMELEM]; 
-		ModuleSettingsAdminStateGet(module_state); 
-						  
-		if ( module_state[MODULESETTINGS_ADMINSTATE_UAVOLIGHTTELEMETRYBRIDGE] == MODULESETTINGS_ADMINSTATE_ENABLED ) 
-		{ 
-			// Update telemetry settings
-			ltm_scheduler = 1;
-			module_enabled = true; 
-			return 0;
-		}
+
+	if (lighttelemetryPort && PIOS_Modules_IsEnabled(PIOS_MODULE_UAVOLIGHTTELEMETRYBRIDGE)) {
+		// Update telemetry settings
+		ltm_scheduler = 1;
+		module_enabled = true; 
+		return 0;
 	}
-	
+
 	return -1;
 }
 

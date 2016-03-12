@@ -37,6 +37,7 @@
 #include "pios_queue.h"
 #include "pios_mutex.h"
 #include "uavobjectmanager.h"
+#include "pios_modules.h"
 
 #include "cameradesired.h"
 
@@ -74,14 +75,7 @@ int32_t Storm32BgcInitialize(void)
 {
 	storm32bgc_com_id = PIOS_COM_STORM32BGC;
 
-	uint8_t module_state[MODULESETTINGS_ADMINSTATE_NUMELEM];
-
-	ModuleSettingsAdminStateGet(module_state);
-
-	if (module_state[MODULESETTINGS_ADMINSTATE_STORM32BGC] == MODULESETTINGS_ADMINSTATE_ENABLED)
-		module_enabled = true;
-	else
-		module_enabled = false;
+	module_enabled = PIOS_Modules_IsEnabled(PIOS_MODULE_STORM32BGC);
 
 	if (!storm32bgc_com_id)
 		module_enabled = false;
