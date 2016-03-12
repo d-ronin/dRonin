@@ -42,7 +42,7 @@
 #include "gpsposition.h"
 #include "modulesettings.h"
 
-#if defined(PIOS_INCLUDE_FRSKY_SPORT_TELEMETRY) || defined(PIOS_INCLUDE_FRSKY_SPORT_TELEMETRY_NOSINGLEWIRE)
+#if defined(PIOS_INCLUDE_FRSKY_SPORT_TELEMETRY)
 
 #define FRSKY_POLL_REQUEST                 0x7e
 #define FRSKY_MINIMUM_POLL_INTERVAL        10000
@@ -280,7 +280,7 @@ static void uavoFrSKYSPortBridgeTask(void *parameters)
 	}
 }
 
-#endif //PIOS_INCLUDE_FRSKY_SPORT_TELEMETRY || PIOS_INCLUDE_FRSKY_SPORT_TELEMETRY_NOSINGLEWIRE
+#endif //PIOS_INCLUDE_FRSKY_SPORT_TELEMETRY
 /**
  * @}
  * @}

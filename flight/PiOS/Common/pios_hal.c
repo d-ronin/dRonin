@@ -70,7 +70,7 @@ uintptr_t pios_com_hott_id;
 uintptr_t pios_com_frsky_sensor_hub_id;
 #endif
 
-#if defined(PIOS_INCLUDE_FRSKY_SPORT_TELEMETRY) || defined(PIOS_INCLUDE_FRSKY_SPORT_TELEMETRY_NOSINGLEWIRE)
+#if defined(PIOS_INCLUDE_FRSKY_SPORT_TELEMETRY)
 uintptr_t pios_com_frsky_sport_id;
 #endif
 
@@ -487,15 +487,13 @@ void PIOS_HAL_ConfigurePort(HwSharedPortTypesOptions port_type,
 		break;
 
 	case HWSHARED_PORTTYPES_FRSKYSPORTTELEMETRY:
-#if defined(PIOS_INCLUDE_FRSKY_SPORT_TELEMETRY_NOSINGLEWIRE)
-		PIOS_HAL_ConfigureCom(usart_port_cfg, &usart_port_params, PIOS_COM_FRSKYSPORT_RX_BUF_LEN, PIOS_COM_FRSKYSPORT_TX_BUF_LEN, com_driver, &port_driver_id);
-		target = &pios_com_frsky_sport_id;
-#endif /* PIOS_INCLUDE_FRSKY_SPORT_TELEMETRY_NOSINGLEWIRE */
-
 #if defined(PIOS_INCLUDE_FRSKY_SPORT_TELEMETRY)
+#if defined(STM32F30X)
+		// F3 has internal inverters and can switch rx/tx pins
 		usart_port_params.rx_invert   = true;
 		usart_port_params.tx_invert   = true;
 		usart_port_params.single_wire = true;
+#endif // STM32F30X
 
 		PIOS_HAL_ConfigureCom(usart_port_cfg, &usart_port_params, PIOS_COM_FRSKYSPORT_RX_BUF_LEN, PIOS_COM_FRSKYSPORT_TX_BUF_LEN, com_driver, &port_driver_id);
 		target = &pios_com_frsky_sport_id;
