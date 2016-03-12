@@ -20,7 +20,7 @@
       <enum>QTabWidget::Rounded</enum>
      </property>
      <property name="currentIndex">
-      <number>2</number>
+      <number>0</number>
      </property>
      <property name="tabsClosable">
       <bool>false</bool>
@@ -33,7 +33,7 @@
        <item>
         <widget class="QLabel" name="label">
          <property name="text">
-          <string>Some modules have additional options in specific tabs which become available when the module is enabled. After enabling a module, a power cycle is required before you can save those settings.</string>
+          <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;After enabling a module, a power cycle is required before you can save those settings.&lt;/p&gt;&lt;p&gt;Some modules are shown greyed out. These modules are either enabled from their own configuration tabs, or are automatically enabled by configuring appropriate ports on the &amp;quot;Hardware&amp;quot; configuration tab. &lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
          </property>
          <property name="wordWrap">
           <bool>true</bool>
@@ -1083,8 +1083,8 @@
            <rect>
             <x>0</x>
             <y>0</y>
-            <width>376</width>
-            <height>864</height>
+            <width>360</width>
+            <height>714</height>
            </rect>
           </property>
           <layout class="QGridLayout" name="gridLayout">

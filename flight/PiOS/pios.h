@@ -188,6 +188,8 @@
 #endif
 #endif
 
+#include <pios_modules.h>
+
 #include <pios_crc.h>
 
 #define NELEMENTS(x) (sizeof(x) / sizeof(*(x)))

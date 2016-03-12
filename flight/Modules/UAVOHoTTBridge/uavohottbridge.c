@@ -39,6 +39,7 @@
 
 #include "uavohottbridge.h"
 #include "pios_thread.h"
+#include "pios_modules.h"
 
 // Private constants
 #define STACK_SIZE_BYTES 700
@@ -94,10 +95,7 @@ static int32_t uavoHoTTBridgeInitialize(void)
 {
 	hott_port = PIOS_COM_HOTT;
 
-	uint8_t module_state[MODULESETTINGS_ADMINSTATE_NUMELEM];
-	ModuleSettingsAdminStateGet(module_state);
-
-	if (hott_port && (module_state[MODULESETTINGS_ADMINSTATE_UAVOHOTTBRIDGE] == MODULESETTINGS_ADMINSTATE_ENABLED)) {
+	if (hott_port && PIOS_Modules_IsEnabled(PIOS_MODULE_UAVOHOTTBRIDGE)) {
 		module_enabled = true;
 		// HoTT telemetry baudrate is fixed to 19200
 		PIOS_COM_ChangeBaud(hott_port, 19200);
