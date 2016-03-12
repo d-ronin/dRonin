@@ -260,6 +260,19 @@ Rescue is possible in USB mode only.</string>
               </widget>
              </item>
              <item>
+              <spacer name="horizontalSpacer_3">
+               <property name="orientation">
+                <enum>Qt::Horizontal</enum>
+               </property>
+               <property name="sizeHint" stdset="0">
+                <size>
+                 <width>40</width>
+                 <height>20</height>
+                </size>
+               </property>
+              </spacer>
+             </item>
+             <item>
               <layout class="QVBoxLayout" name="verticalLayout_4">
                <item>
                 <layout class="QHBoxLayout" name="horizontalLayout_3">
@@ -355,7 +368,7 @@ Rescue is possible in USB mode only.</string>
                     <item>
                      <widget class="QTableWidget" name="partitionBrowserTW">
                       <property name="sizePolicy">
-                       <sizepolicy hsizetype="Fixed" vsizetype="Expanding">
+                       <sizepolicy hsizetype="Fixed" vsizetype="Minimum">
                         <horstretch>0</horstretch>
                         <verstretch>0</verstretch>
                        </sizepolicy>
@@ -699,21 +712,21 @@ Rescue is possible in USB mode only.</string>
                </property>
               </widget>
              </item>
-             <item>
-              <spacer name="horizontalSpacer_2">
-               <property name="orientation">
-                <enum>Qt::Horizontal</enum>
-               </property>
-               <property name="sizeHint" stdset="0">
-                <size>
-                 <width>40</width>
-                 <height>20</height>
-                </size>
-               </property>
-              </spacer>
-             </item>
             </layout>
            </widget>
+          </item>
+          <item>
+           <spacer name="horizontalSpacer_2">
+            <property name="orientation">
+             <enum>Qt::Horizontal</enum>
+            </property>
+            <property name="sizeHint" stdset="0">
+             <size>
+              <width>40</width>
+              <height>20</height>
+             </size>
+            </property>
+           </spacer>
           </item>
          </layout>
         </widget>
