@@ -193,6 +193,18 @@ bool bl_xfer_write_start(struct xfer_state * xfer, const struct msg_xfer_start *
 	/* Set up the transfer */
 	bool partition_needs_erase;
 	switch (xfer_start->label) {
+#ifdef F1_UPGRADER
+	case DFU_PARTITION_BL:
+		PIOS_FLASH_find_partition_id(FLASH_PARTITION_LABEL_BL, &xfer->partition_id);
+		PIOS_FLASH_get_partition_size(xfer->partition_id, &xfer->partition_size);
+		xfer->partition_size  -= bdinfo->desc_size; /* don't allow overwriting descriptor */
+		xfer->original_partition_offset = 0;
+		xfer->crc              = ntohl(xfer_start->expected_crc);
+		xfer->check_crc        = true;
+		xfer->bytes_to_crc     = xfer->partition_size;
+		partition_needs_erase  = true;
+		break;
+#endif
 	case DFU_PARTITION_FW:
 		PIOS_FLASH_find_partition_id(FLASH_PARTITION_LABEL_FW, &xfer->partition_id);
 		PIOS_FLASH_get_partition_size(xfer->partition_id, &xfer->partition_size);
@@ -317,6 +329,11 @@ bool bl_xfer_wipe_partition(const struct msg_wipe_partition *wipe_partition)
 	enum pios_flash_partition_labels flash_label;
 
 	switch (wipe_partition->label) {
+#ifdef F1_UPGRADER
+	case DFU_PARTITION_BL:
+		flash_label = FLASH_PARTITION_LABEL_BL;
+		break;
+#endif
 	case DFU_PARTITION_FW:
 		flash_label = FLASH_PARTITION_LABEL_FW;
 		break;
