@@ -111,6 +111,7 @@ UploaderGadgetWidget::UploaderGadgetWidget(QWidget *parent):QWidget(parent),
     //Setup usb discovery signals for boards in bl state
     usbFilterBL = new USBSignalFilter(brdMgr->getKnownVendorIDs(),-1,-1,USBMonitor::Bootloader);
     usbFilterUP = new USBSignalFilter(brdMgr->getKnownVendorIDs(),-1,-1,USBMonitor::Upgrader);
+
     connect(usbFilterBL, SIGNAL(deviceRemoved()), this, SLOT(onBootloaderRemoved()));
 
     connect(usbFilterBL, SIGNAL(deviceDiscovered()), this, SLOT(onBootloaderDetected()), Qt::UniqueConnection);
@@ -120,15 +121,14 @@ UploaderGadgetWidget::UploaderGadgetWidget(QWidget *parent):QWidget(parent),
     connect(usbFilterUP, SIGNAL(deviceDiscovered()), this, SLOT(onBootloaderDetected()), Qt::UniqueConnection);
 
     conMngr = Core::ICore::instance()->connectionManager();
-    connect(conMngr, SIGNAL(availableDevicesChanged(QLinkedList<Core::DevListItem>)), this, SLOT(onAvailableDevicesChanged(QLinkedList<Core::DevListItem>)));
-    // Check if a board is already in bootloader state when the GCS starts
-    foreach (int i, brdMgr->getKnownVendorIDs()) {
-        if(USBMonitor::instance()->availableDevices(i, -1, -1, USBMonitor::Bootloader).length() > 0)
-        {
-            setUploaderStatus(uploader::ENTERING_LOADER);
-            onBootloaderDetected();
-            break;
-        }
+
+    /* Enter the loader if it's available */
+    setUploaderStatus(uploader::ENTERING_LOADER);
+    onBootloaderDetected();
+
+    /* Else begin our normal actions waitin' for a board */
+    if (getUploaderStatus() != uploader::BL_SITTING) {
+        setUploaderStatus(uploader::DISCONNECTED);
     }
 }
 
@@ -139,13 +139,6 @@ UploaderGadgetWidget::~UploaderGadgetWidget()
 {
 
 }
-
-/**
- * @brief Configure the board to use an receiver input type on a port number
- * @param type the type of receiver to use
- * @param port_num which input port to configure (board specific numbering)
- * @return true if successfully configured or false otherwise
- */
 
 /**
  * @brief Hides or unhides the firmware on device information set
@@ -989,7 +982,6 @@ void UploaderGadgetWidget::CheckAutopilotReady()
     if(telemetryConnected && iapPresent && iapUpdated)
     {
         onAutopilotReady();
-        utilMngr->versionMatchCheck();
     }
 }
 

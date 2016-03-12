@@ -41,7 +41,6 @@
 #include <QtGlobal>
 #include <QObject>
 #include <QTimer>
-#include <QMutex>
 #include <QQueue>
 #include <QComboBox>
 #include <QDateTime>
@@ -77,7 +76,6 @@ public:
     bool setAllNonSettingsMetadata(QMap<QString, UAVObject::Metadata>);
     bool resetMetadataToDefaults();
     int getBoardRevision();
-    void versionMatchCheck();
 protected:
     FirmwareIAPObj::DataFields getFirmwareIap();
 signals:
@@ -85,17 +83,14 @@ signals:
     void completedMetadataWrite(bool);
 
 private:
-    QMutex *mutex;
     QQueue<UAVObject *> queue;
     enum {IDLE, AWAITING_ACK, AWAITING_COMPLETED} saveState;
     void saveNextObject();
     QTimer failureTimer;
     ExtensionSystem::PluginManager *pm;
     UAVObjectManager *obm;
-    UAVObjectUtilManager *obum;
     QMap<UAVDataObject*, UAVObject::Metadata> metadataSendlist;
     bool metadataSendSuccess;
-    QErrorMessage *incompatibleMsg;
 private slots:
     void objectPersistenceTransactionCompleted(UAVObject* obj, bool success);
     void objectPersistenceUpdated(UAVObject * obj);
