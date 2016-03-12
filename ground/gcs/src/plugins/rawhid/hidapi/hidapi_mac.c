@@ -555,7 +555,10 @@ static void hid_device_removal_callback(void *context, IOReturn result,
 	hid_device *d = context;
 
 	d->disconnected = 1;
-	CFRunLoopStop(d->run_loop);
+
+	if (d->run_loop)
+		CFRunLoopStop(d->run_loop);
+	d->run_loop = NULL;
 }
 
 /* The Run Loop calls this function for each input report received.
@@ -614,7 +617,9 @@ static void hid_report_callback(void *context, IOReturn result, void *sender,
 static void perform_signal_callback(void *context)
 {
 	hid_device *dev = context;
-	CFRunLoopStop(dev->run_loop); /*TODO: CFRunLoopGetCurrent()*/
+	if (dev->run_loop)
+		CFRunLoopStop(dev->run_loop); /*TODO: CFRunLoopGetCurrent()*/
+	dev->run_loop = NULL;
 }
 
 static void *read_thread(void *param)
