@@ -102,7 +102,7 @@ UploaderGadgetWidget::UploaderGadgetWidget(QWidget *parent):QWidget(parent),
     connect(m_widget->flashButton, SIGNAL(clicked()), this, SLOT(onFlashButtonClick()));
     connect(m_widget->bootButton, SIGNAL(clicked()), this, SLOT(onBootButtonClick()));
     connect(m_widget->safeBootButton, SIGNAL(clicked()), this, SLOT(onBootButtonClick()));
-    connect(m_widget->exportConfigButton, SIGNAL(clicked()), this, SLOT(onRescueButtonClick()));
+    connect(m_widget->exportConfigButton, SIGNAL(clicked()), this, SLOT(onExportButtonClick()));
 
     connect(m_widget->pbHelp, SIGNAL(clicked()),this,SLOT(openHelp()));
     Core::BoardManager* brdMgr = Core::ICore::instance()->boardManager();
@@ -523,8 +523,50 @@ void UploaderGadgetWidget::onExportButtonClick()
     }
 
     /* XXX make sure there's a setting partition */
-    /* XXX get confirmation from user that using the cloud service is OK */
-    /* XXX pull down settings partition to ram */
+
+    /* XXX make sure the cloud service is there and has right git rev */
+
+    /* get confirmation from user that using the cloud service is OK */
+    QMessageBox msgBox;
+    msgBox.setText(tr("Do you wish to export the settings partition as an XML settings file?"));
+    msgBox.setInformativeText(tr("This will send the raw configuration information to a dRonin cloud service for translation."));
+    msgBox.setStandardButtons(QMessageBox::Yes | QMessageBox::No);
+    msgBox.setDefaultButton(QMessageBox::Yes);
+
+    int val = msgBox.exec();
+
+    if (val != QMessageBox::Yes) {
+        return;
+    }
+
+    /* pull down settings partition to ram */
+
+    QEventLoop loop;
+
+    QTimer timeout;
+    bool operationSuccess = false;
+
+    connect(&timeout, SIGNAL(timeout()), &loop, SLOT(quit()));
+
+    /* disconnects when loop comes out of scope */
+    connect(&dfu, &DFUObject::downloadFinished, &loop, [&] (bool status) {
+        operationSuccess = status;
+        loop.exit();
+    } );
+
+    timeout.start(40000);       /* 40 secs is a long time */
+
+    triggerPartitionDownload(DFU_PARTITION_SETTINGS);
+    loop.exec();                /* Wait for timeout or download complete */
+
+    if (!operationSuccess) {
+        setStatusInfo(tr("Error, unable to pull settings partition"), uploader::STATUSICON_FAIL);
+
+        return;
+    }
+
+    setStatusInfo(tr("XXX WOOT GOT SOME SETTINS"), uploader::STATUSICON_FAIL);
+
     /* XXX post to cloud service */
     /* XXX save dialog for XML config */
 }
@@ -793,7 +835,6 @@ void UploaderGadgetWidget::onUploadFinish(Status stat)
             setUploaderStatus(uploader::BL_SITTING);
             setStatusInfo(tr("Firmware upload failed"), uploader::STATUSICON_FAIL);
             dfu.disconnect();
-            lastUploadResult = false;
             uploadFinish(false);
         }
         break;
@@ -801,7 +842,6 @@ void UploaderGadgetWidget::onUploadFinish(Status stat)
         if(stat == Last_operation_Success)
         {
             setStatusInfo(tr("Firmware and firmware metadata upload success"), uploader::STATUSICON_OK);
-            lastUploadResult = true;
             // uploaded succeeded so we can assume the loaded file is on the board
             deviceDescriptorStruct descStructure;
             if (UAVObjectUtilManager::descriptionToStructure(tempArray, descStructure)) {
@@ -815,7 +855,6 @@ void UploaderGadgetWidget::onUploadFinish(Status stat)
         else
         {
             setStatusInfo(tr("Firmware metadata upload failed"), uploader::STATUSICON_FAIL);
-            lastUploadResult = false;
             uploadFinish(false);
         }
         dfu.disconnect();

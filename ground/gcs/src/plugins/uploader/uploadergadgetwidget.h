@@ -53,12 +53,6 @@ class UPLOADER_EXPORT UploaderGadgetWidget : public QWidget
 {
     Q_OBJECT
 
-    struct partitionStruc
-    {
-        QByteArray partitionData;
-        int partitionNumber;
-    };
-
 public:
     UploaderGadgetWidget(QWidget *parent = 0);
     ~UploaderGadgetWidget();
@@ -130,7 +124,6 @@ private:
 
     uploader::UploaderStatus uploaderStatus;
     QByteArray tempArray;
-    bool lastUploadResult;
 };
 }
 #endif // UPLOADERGADGETWIDGET_H
