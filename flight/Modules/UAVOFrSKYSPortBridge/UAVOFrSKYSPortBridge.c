@@ -35,6 +35,7 @@
 
 #include "frsky_packing.h"
 #include "pios_thread.h"
+#include "pios_modules.h"
 
 #include "baroaltitude.h"
 #include "flightbatterysettings.h"
@@ -102,7 +103,7 @@ static const uint8_t frsky_sensor_ids[] = {0x1b};
 #endif
 #define TASK_PRIORITY               PIOS_THREAD_PRIO_LOW
 
-static bool module_enabled;
+static bool module_enabled = false;
 static struct frsky_sport_telemetry *frsky;
 static int32_t uavoFrSKYSPortBridgeInitialize(void);
 static void uavoFrSKYSPortBridgeTask(void *parameters);
@@ -233,11 +234,7 @@ static int32_t uavoFrSKYSPortBridgeInitialize(void)
 {
 	uintptr_t sport_com = PIOS_COM_FRSKY_SPORT;
 
-	uint8_t module_state[MODULESETTINGS_ADMINSTATE_NUMELEM];
-	ModuleSettingsAdminStateGet(module_state);
-
-	if (sport_com && (module_state[MODULESETTINGS_ADMINSTATE_UAVOFRSKYSPORTBRIDGE]
-						== MODULESETTINGS_ADMINSTATE_ENABLED)) {
+	if (sport_com && PIOS_Modules_IsEnabled(PIOS_MODULE_UAVOFRSKYSPORTBRIDGE)) {
 		frsky = PIOS_malloc(sizeof(struct frsky_sport_telemetry));
 		if (frsky != NULL) {
 			memset(frsky, 0x00, sizeof(struct frsky_sport_telemetry));
@@ -259,8 +256,6 @@ static int32_t uavoFrSKYSPortBridgeInitialize(void)
 			return 0;
 		}
 	}
-
-	module_enabled = false;
 
 	return -1;
 }

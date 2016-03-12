@@ -90,7 +90,6 @@ ConfigModuleWidget::ConfigModuleWidget(QWidget *parent) : ConfigTaskWidget(paren
     addUAVObjectToWidgetRelation(moduleSettingsName, "AdminState", ui->cbVtolFollower, ModuleSettings::ADMINSTATE_VTOLPATHFOLLOWER);
     addUAVObjectToWidgetRelation(moduleSettingsName, "AdminState", ui->cbPathPlanner, ModuleSettings::ADMINSTATE_PATHPLANNER);
     addUAVObjectToWidgetRelation(moduleSettingsName, "AdminState", ui->cbPicoC, ModuleSettings::ADMINSTATE_PICOC);
-    addUAVObjectToWidgetRelation(moduleSettingsName, "AdminState", ui->cbUAVOFrSkySPortBridge, ModuleSettings::ADMINSTATE_UAVOFRSKYSPORTBRIDGE);
     addUAVObjectToWidgetRelation(moduleSettingsName, "AdminState", ui->cbGeofence, ModuleSettings::ADMINSTATE_GEOFENCE);
     addUAVObjectToWidgetRelation(moduleSettingsName, "AdminState", ui->cbAutotune, ModuleSettings::ADMINSTATE_AUTOTUNE);
     addUAVObjectToWidgetRelation(moduleSettingsName, "AdminState", ui->cbTxPid, ModuleSettings::ADMINSTATE_TXPID);
@@ -104,6 +103,7 @@ ConfigModuleWidget::ConfigModuleWidget(QWidget *parent) : ConfigTaskWidget(paren
     addUAVObjectToWidgetRelation(TaskInfo::NAME, "Running", ui->cbUAVOLighttelemetryBridge, TaskInfo::RUNNING_UAVOLIGHTTELEMETRYBRIDGE);
     addUAVObjectToWidgetRelation(TaskInfo::NAME, "Running", ui->cbUAVOFrskyBridge, TaskInfo::RUNNING_UAVOFRSKYSBRIDGE);
     addUAVObjectToWidgetRelation(TaskInfo::NAME, "Running", ui->cbUAVOMSPBridge, TaskInfo::RUNNING_UAVOMSPBRIDGE);
+    addUAVObjectToWidgetRelation(TaskInfo::NAME, "Running", ui->cbUAVOFrSkySPortBridge, TaskInfo::RUNNING_UAVOFRSKYSPORTBRIDGE);
 
     // Don't allow auto-modules to be changed
     ui->cbComBridge->setDisabled(true);
@@ -113,6 +113,7 @@ ConfigModuleWidget::ConfigModuleWidget(QWidget *parent) : ConfigTaskWidget(paren
     ui->cbUAVOLighttelemetryBridge->setDisabled(true);
     ui->cbUAVOFrskyBridge->setDisabled(true);
     ui->cbUAVOMSPBridge->setDisabled(true);
+    ui->cbUAVOFrSkySPortBridge->setDisabled(true);
 
     // Don't allow these to be changed here, only in the respective tabs.
     ui->cbAutotune->setDisabled(true);
@@ -371,9 +372,6 @@ ConfigModuleWidget::ConfigModuleWidget(QWidget *parent) : ConfigTaskWidget(paren
     ui->cbPicoC->setProperty(trueString.toLatin1(), "Enabled");
     ui->cbPicoC->setProperty(falseString.toLatin1(), "Disabled");
 
-    ui->cbUAVOFrSkySPortBridge->setProperty(trueString.toLatin1(), "Enabled");
-    ui->cbUAVOFrSkySPortBridge->setProperty(falseString.toLatin1(), "Disabled");
-
     ui->cbGeofence->setProperty(trueString.toLatin1(), "Enabled");
     ui->cbGeofence->setProperty(falseString.toLatin1(), "Disabled");
 
@@ -416,6 +414,9 @@ ConfigModuleWidget::ConfigModuleWidget(QWidget *parent) : ConfigTaskWidget(paren
 
     ui->cbUAVOMSPBridge->setProperty(trueString.toLatin1(), "True");
     ui->cbUAVOMSPBridge->setProperty(falseString.toLatin1(), "False");
+
+    ui->cbUAVOFrSkySPortBridge->setProperty(trueString.toLatin1(), "True");
+    ui->cbUAVOFrSkySPortBridge->setProperty(falseString.toLatin1(), "False");
 
     enableBatteryTab(false);
     enableAirspeedTab(false);
@@ -498,6 +499,7 @@ void ConfigModuleWidget::recheckTabs()
     ui->cbUAVOLighttelemetryBridge->setDisabled(true);
     ui->cbUAVOFrskyBridge->setDisabled(true);
     ui->cbUAVOMSPBridge->setDisabled(true);
+    ui->cbUAVOFrSkySPortBridge->setDisabled(true);
 }
 
 //! Enable appropriate tab when objects are updated
