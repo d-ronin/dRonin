@@ -500,6 +500,15 @@ void ConfigModuleWidget::recheckTabs()
     ui->cbUAVOFrskyBridge->setDisabled(true);
     ui->cbUAVOMSPBridge->setDisabled(true);
     ui->cbUAVOFrSkySPortBridge->setDisabled(true);
+    // clear checkboxes in-case taskinfo object doesn't exist (it will look like the last connected board's modules are still enabled)
+    ui->cbComBridge->setChecked(false);
+    ui->cbGPS->setChecked(false);
+    ui->cbUavoMavlink->setChecked(false);
+    ui->cbUAVOHottBridge->setChecked(false);
+    ui->cbUAVOLighttelemetryBridge->setChecked(false);
+    ui->cbUAVOFrskyBridge->setChecked(false);
+    ui->cbUAVOMSPBridge->setChecked(false);
+    ui->cbUAVOFrSkySPortBridge->setChecked(false);
 }
 
 //! Enable appropriate tab when objects are updated
