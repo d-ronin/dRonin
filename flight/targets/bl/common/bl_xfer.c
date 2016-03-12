@@ -78,7 +78,7 @@ bool bl_xfer_crc_ok_p(const struct xfer_state * xfer)
 
 	uint32_t actual_crc = bl_compute_partition_crc(xfer->partition_id,
 						xfer->original_partition_offset,
-						xfer->bytes_to_crc);
+						xfer->partition_size);
 
 	return (actual_crc == xfer->crc);
 }
@@ -191,64 +191,43 @@ bool bl_xfer_write_start(struct xfer_state * xfer, const struct msg_xfer_start *
 	const struct pios_board_info * bdinfo = &pios_board_info_blob;
 
 	/* Set up the transfer */
-	bool partition_needs_erase;
+	bool partition_needs_erase = true;
+
+	xfer->check_crc = true;
+	xfer->crc  = ntohl(xfer_start->expected_crc);
+	xfer->original_partition_offset = 0;
+
 	switch (xfer_start->label) {
 #ifdef F1_UPGRADER
 	case DFU_PARTITION_BL:
 		PIOS_FLASH_find_partition_id(FLASH_PARTITION_LABEL_BL, &xfer->partition_id);
 		PIOS_FLASH_get_partition_size(xfer->partition_id, &xfer->partition_size);
 		xfer->partition_size  -= bdinfo->desc_size; /* don't allow overwriting descriptor */
-		xfer->original_partition_offset = 0;
-		xfer->crc              = ntohl(xfer_start->expected_crc);
-		xfer->check_crc        = true;
-		xfer->bytes_to_crc     = xfer->partition_size;
-		partition_needs_erase  = true;
 		break;
 #endif
 	case DFU_PARTITION_FW:
 		PIOS_FLASH_find_partition_id(FLASH_PARTITION_LABEL_FW, &xfer->partition_id);
 		PIOS_FLASH_get_partition_size(xfer->partition_id, &xfer->partition_size);
 		xfer->partition_size  -= bdinfo->desc_size; /* don't allow overwriting descriptor */
-		xfer->original_partition_offset = 0;
-		xfer->crc              = ntohl(xfer_start->expected_crc);
-		xfer->check_crc        = true;
-		xfer->bytes_to_crc     = xfer->partition_size;
-		partition_needs_erase  = true;
 		break;
 	case DFU_PARTITION_DESC:
 		PIOS_FLASH_find_partition_id(FLASH_PARTITION_LABEL_FW, &xfer->partition_id);
 		PIOS_FLASH_get_partition_size(xfer->partition_id, &xfer->partition_size);
 		xfer->original_partition_offset = bdinfo->desc_base - bdinfo->fw_base;
-		xfer->crc              = ntohl(xfer_start->expected_crc);
 		xfer->check_crc        = false;
 		partition_needs_erase  = false;
 		break;
 	case DFU_PARTITION_SETTINGS:
 		PIOS_FLASH_find_partition_id(FLASH_PARTITION_LABEL_SETTINGS, &xfer->partition_id);
 		PIOS_FLASH_get_partition_size(xfer->partition_id, &xfer->partition_size);
-		xfer->original_partition_offset = 0;
-		xfer->crc              = ntohl(xfer_start->expected_crc);
-		xfer->check_crc        = true;
-		xfer->bytes_to_crc     = xfer->partition_size;
-		partition_needs_erase  = true;
 		break;
 	case DFU_PARTITION_WAYPOINTS:
 		PIOS_FLASH_find_partition_id(FLASH_PARTITION_LABEL_WAYPOINTS, &xfer->partition_id);
 		PIOS_FLASH_get_partition_size(xfer->partition_id, &xfer->partition_size);
-		xfer->original_partition_offset = 0;
-		xfer->crc              = ntohl(xfer_start->expected_crc);
-		xfer->check_crc        = true;
-		xfer->bytes_to_crc     = xfer->partition_size;
-		partition_needs_erase  = true;
 		break;
 	case DFU_PARTITION_LOG:
 		PIOS_FLASH_find_partition_id(FLASH_PARTITION_LABEL_LOG, &xfer->partition_id);
 		PIOS_FLASH_get_partition_size(xfer->partition_id, &xfer->partition_size);
-		xfer->original_partition_offset = 0;
-		xfer->crc              = ntohl(xfer_start->expected_crc);
-		xfer->check_crc        = true;
-		xfer->bytes_to_crc     = xfer->partition_size;
-		partition_needs_erase  = true;
 		break;
 	default:
 		return false;
