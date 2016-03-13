@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>400</width>
+    <width>733</width>
     <height>300</height>
    </rect>
   </property>
@@ -22,7 +22,7 @@
      <property name="frameShadow">
       <enum>QFrame::Raised</enum>
      </property>
-     <layout class="QVBoxLayout" name="verticalLayout_2"/>
+     <layout class="QFormLayout" name="portSettingsLayout"/>
     </widget>
    </item>
    <item>
@@ -124,15 +124,24 @@ Useful if you have accidentally changed some settings.</string>
        <property name="objrelation" stdset="0">
         <stringlist>
          <string>button:reload</string>
-         <string>buttongroup:10</string>
+         <string>buttongroup:1</string>
         </stringlist>
        </property>
       </widget>
      </item>
      <item>
-      <widget class="QPushButton" name="applyButton">
+      <widget class="QPushButton" name="defaultsButton">
+       <property name="toolTip">
+        <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Reset all settings to defaults.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+       </property>
        <property name="text">
-        <string>Apply</string>
+        <string>Reset Defaults</string>
+       </property>
+       <property name="objrelation" stdset="0">
+        <stringlist>
+         <string>button:default</string>
+         <string>buttongroup:1</string>
+        </stringlist>
        </property>
       </widget>
      </item>
@@ -143,6 +152,26 @@ Useful if you have accidentally changed some settings.</string>
        </property>
        <property name="text">
         <string>Save</string>
+       </property>
+       <property name="objrelation" stdset="0">
+        <stringlist>
+         <string>button:save</string>
+        </stringlist>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QPushButton" name="rebootButton">
+       <property name="toolTip">
+        <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Reboot the board. Saved settings will be applied, unsaved settings will be lost.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+       </property>
+       <property name="text">
+        <string>Reboot</string>
+       </property>
+       <property name="objrelation" stdset="0">
+        <stringlist>
+         <string>button:reboot</string>
+        </stringlist>
        </property>
       </widget>
      </item>

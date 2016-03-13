@@ -41,7 +41,6 @@ HEADERS += calibration.h \
     mixercurve.h \
     dblspindelegate.h \
     configautotunewidget.h \
-    hwfieldselector.h \
     tempcompcurve.h \
     textbubbleslider.h \
     vehicletrim.h \
@@ -76,7 +75,6 @@ SOURCES += calibration.cpp \
     mixercurve.cpp \
     dblspindelegate.cpp \
     configautotunewidget.cpp \
-    hwfieldselector.cpp \
     tempcompcurve.cpp \
     textbubbleslider.cpp \
     vehicletrim.cpp \
@@ -99,7 +97,6 @@ FORMS += airframe.ui \
     txpid.ui \
     mixercurve.ui \
     autotune.ui \
-    hwfieldselector.ui \
     modules.ui \
     convertmwrate.ui \
     osd.ui \
