@@ -85,8 +85,9 @@ void ConfigGadgetWidget::deferredLoader()
     icon = new QIcon();
     icon->addFile(":/configgadget/images/hardware_normal.png", QSize(), QIcon::Normal, QIcon::Off);
     icon->addFile(":/configgadget/images/hardware_selected.png", QSize(), QIcon::Selected, QIcon::Off);
-    qwd = new DefaultHwSettingsWidget(this, false);
-    ftw->insertTab(ConfigGadgetWidget::hardware, qwd, *icon, QString("Board"));
+    qwd = new QLabel(tr("<p>No recognized board detected. Hardware tab will refresh once a known board is detected.</p>"), this);
+    qobject_cast<QLabel *>(qwd)->setWordWrap(true);
+    ftw->insertTab(ConfigGadgetWidget::hardware, qwd, *icon, QString(tr("Hardware")));
     break;
 
 	case 1:
@@ -237,7 +238,8 @@ void ConfigGadgetWidget::onAutopilotDisconnect() {
     QIcon *icon = new QIcon();
     icon->addFile(":/configgadget/images/hardware_normal.png", QSize(), QIcon::Normal, QIcon::Off);
     icon->addFile(":/configgadget/images/hardware_selected.png", QSize(), QIcon::Selected, QIcon::Off);
-    QWidget *qwd = new DefaultHwSettingsWidget(this, false);
+    QLabel *qwd = new QLabel(tr("<p>No recognized board detected. Hardware tab will refresh once a known board is detected.</p>"), this);
+    qwd->setWordWrap(true);
     ftw->insertTab(ConfigGadgetWidget::hardware, qwd, *icon, QString("Hardware"));
     ftw->setCurrentIndex(ConfigGadgetWidget::hardware);
 
@@ -249,7 +251,7 @@ void ConfigGadgetWidget::onAutopilotConnect() {
     QIcon* icon;
     QWidget* qwd;
 
-    bool hasOSD = true;
+    bool hasOSD = false;
 
     int index = ftw->currentIndex();
 
@@ -257,7 +259,6 @@ void ConfigGadgetWidget::onAutopilotConnect() {
         lastTabIndex = index;
     }
 
-    qDebug()<<"ConfigGadgetWidget onAutopilotConnect";
     // First of all, check what Board type we are talking to, and
     // if necessary, remove/add tabs in the config gadget:
     ExtensionSystem::PluginManager *pm = ExtensionSystem::PluginManager::instance();
@@ -265,33 +266,40 @@ void ConfigGadgetWidget::onAutopilotConnect() {
     if (utilMngr) {
         ftw->setCurrentIndex(ConfigGadgetWidget::hardware);
         ftw->removeTab(ConfigGadgetWidget::hardware);
-        icon = new QIcon();
-        icon->addFile(":/configgadget/images/hardware_normal.png", QSize(), QIcon::Normal, QIcon::Off);
-        icon->addFile(":/configgadget/images/hardware_selected.png", QSize(), QIcon::Selected, QIcon::Off);
 
         // If the board provides a custom configuration widget then use it,
         // otherwise use the default which populates the fields from the
         // hardware UAVO
+        bool valid_board = false;
         Core::IBoardType *board = utilMngr->getBoardType();
-        if (board == NULL) {
-            QLabel *txt = new QLabel(this);
-            txt->setText(tr("Board detected, but of unknown type. This could be because either your GCS or firmware is out of date."));
-            qwd = txt;
-        } else {
+        if (board) {
             qwd = board->getBoardConfiguration();
-            if (qwd == NULL) {
-                qwd = new DefaultHwSettingsWidget(this, true);
+            if (qwd) {
+                valid_board = true;
+            } else {
+                UAVObject *settingsObj = utilMngr->getObjectManager()->getObject(board->getHwUAVO());
+                if (settingsObj) {
+                    qwd = new DefaultHwSettingsWidget(settingsObj, this);
+                    valid_board = true;
+                }
             }
 
-            if (!board->queryCapabilities(Core::IBoardType::BOARD_CAPABILITIES_OSD)) {
-                hasOSD = false;
-
-                if (lastTabIndex == ConfigGadgetWidget::osd) {
-                    lastTabIndex = ConfigGadgetWidget::hardware;
-                }
+            if (board->queryCapabilities(Core::IBoardType::BOARD_CAPABILITIES_OSD)) {
+                hasOSD = true;
+            } else if (lastTabIndex == ConfigGadgetWidget::osd) {
+                lastTabIndex = ConfigGadgetWidget::hardware;
             }
         }
 
+        if (!valid_board) {
+            QLabel *txt = new QLabel(tr("<p>Board detected, but of unknown type. This could be because either your GCS or firmware is out of date.</p>"), this);
+            txt->setWordWrap(true);
+            qwd = txt;
+        }
+
+        icon = new QIcon();
+        icon->addFile(":/configgadget/images/hardware_normal.png", QSize(), QIcon::Normal, QIcon::Off);
+        icon->addFile(":/configgadget/images/hardware_selected.png", QSize(), QIcon::Selected, QIcon::Off);
         ftw->insertTab(ConfigGadgetWidget::hardware, qwd, *icon, QString(tr("Hardware")));
         ftw->setCurrentIndex(ConfigGadgetWidget::hardware);
     }
