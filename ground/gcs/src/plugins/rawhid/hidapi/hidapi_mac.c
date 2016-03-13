@@ -33,64 +33,6 @@
 
 #include "hidapi.h"
 
-/* Barrier implementation because Mac OSX doesn't have pthread_barrier.
-   It also doesn't have clock_gettime(). So much for POSIX and SUSv2.
-   This implementation came from Brent Priddy and was posted on
-   StackOverflow. It is used with his permission. */
-typedef int pthread_barrierattr_t;
-typedef struct pthread_barrier {
-    pthread_mutex_t mutex;
-    pthread_cond_t cond;
-    int count;
-    int trip_count;
-} pthread_barrier_t;
-
-static int pthread_barrier_init(pthread_barrier_t *barrier, const pthread_barrierattr_t *attr, unsigned int count)
-{
-	if(count == 0) {
-		errno = EINVAL;
-		return -1;
-	}
-
-	if(pthread_mutex_init(&barrier->mutex, 0) < 0) {
-		return -1;
-	}
-	if(pthread_cond_init(&barrier->cond, 0) < 0) {
-		pthread_mutex_destroy(&barrier->mutex);
-		return -1;
-	}
-	barrier->trip_count = count;
-	barrier->count = 0;
-
-	return 0;
-}
-
-static int pthread_barrier_destroy(pthread_barrier_t *barrier)
-{
-	pthread_cond_destroy(&barrier->cond);
-	pthread_mutex_destroy(&barrier->mutex);
-	return 0;
-}
-
-static int pthread_barrier_wait(pthread_barrier_t *barrier)
-{
-	pthread_mutex_lock(&barrier->mutex);
-	++(barrier->count);
-	if(barrier->count >= barrier->trip_count)
-	{
-		barrier->count = 0;
-		pthread_cond_broadcast(&barrier->cond);
-		pthread_mutex_unlock(&barrier->mutex);
-		return 1;
-	}
-	else
-	{
-		pthread_cond_wait(&barrier->cond, &(barrier->mutex));
-		pthread_mutex_unlock(&barrier->mutex);
-		return 0;
-	}
-}
-
 static int return_data(hid_device *dev, unsigned char *data, size_t length);
 
 /* Linked List of input reports received from the device. */
@@ -104,7 +46,6 @@ struct hid_device_ {
 	IOHIDDeviceRef device_handle;
 	int blocking;
 	int uses_numbered_reports;
-	int disconnected;
 	CFStringRef run_loop_mode;
 	CFRunLoopRef run_loop;
 	CFRunLoopSourceRef source;
@@ -115,9 +56,7 @@ struct hid_device_ {
 	pthread_t thread;
 	pthread_mutex_t mutex; /* Protects input_reports */
 	pthread_cond_t condition;
-	pthread_barrier_t barrier; /* Ensures correct startup sequence */
-	pthread_barrier_t shutdown_barrier; /* Ensures correct shutdown sequence */
-	int shutdown_thread;
+	volatile int shutdown_thread;
 };
 
 static hid_device *new_hid_device(void)
@@ -126,7 +65,6 @@ static hid_device *new_hid_device(void)
 	dev->device_handle = NULL;
 	dev->blocking = 1;
 	dev->uses_numbered_reports = 0;
-	dev->disconnected = 0;
 	dev->run_loop_mode = NULL;
 	dev->run_loop = NULL;
 	dev->source = NULL;
@@ -137,8 +75,6 @@ static hid_device *new_hid_device(void)
 	/* Thread objects */
 	pthread_mutex_init(&dev->mutex, NULL);
 	pthread_cond_init(&dev->condition, NULL);
-	pthread_barrier_init(&dev->barrier, NULL, 2);
-	pthread_barrier_init(&dev->shutdown_barrier, NULL, 2);
 
 	return dev;
 }
@@ -167,8 +103,6 @@ static void free_hid_device(hid_device *dev)
 	free(dev->input_report_buf);
 
 	/* Clean up the thread objects */
-	pthread_barrier_destroy(&dev->shutdown_barrier);
-	pthread_barrier_destroy(&dev->barrier);
 	pthread_cond_destroy(&dev->condition);
 	pthread_mutex_destroy(&dev->mutex);
 
@@ -548,16 +482,6 @@ hid_device * HID_API_EXPORT hid_open(unsigned short vendor_id, unsigned short pr
 	return handle;
 }
 
-static void hid_device_removal_callback(void *context, IOReturn result,
-                                        void *sender)
-{
-	/* Stop the Run Loop for this device. */
-	hid_device *d = context;
-
-	d->disconnected = 1;
-	CFRunLoopStop(d->run_loop);
-}
-
 /* The Run Loop calls this function for each input report received.
    This function puts the data into a linked list to be picked up by
    hid_read(). */
@@ -622,8 +546,12 @@ static void *read_thread(void *param)
 	hid_device *dev = param;
 	SInt32 code;
 
+	/* Store off the Run Loop so it can be stopped from hid_close()
+	   and on device disconnection. */
+	dev->run_loop = CFRunLoopGetCurrent();
+
 	/* Move the device's run loop to this thread. */
-	IOHIDDeviceScheduleWithRunLoop(dev->device_handle, CFRunLoopGetCurrent(), dev->run_loop_mode);
+	IOHIDDeviceScheduleWithRunLoop(dev->device_handle, dev->run_loop, dev->run_loop_mode);
 
 	/* Create the RunLoopSource which is used to signal the
 	   event loop to stop when hid_close() is called. */
@@ -635,23 +563,10 @@ static void *read_thread(void *param)
 	dev->source = CFRunLoopSourceCreate(kCFAllocatorDefault, 0/*order*/, &ctx);
 	CFRunLoopAddSource(CFRunLoopGetCurrent(), dev->source, dev->run_loop_mode);
 
-	/* Store off the Run Loop so it can be stopped from hid_close()
-	   and on device disconnection. */
-	dev->run_loop = CFRunLoopGetCurrent();
-
-	/* Notify the main thread that the read thread is up and running. */
-	pthread_barrier_wait(&dev->barrier);
-
 	/* Run the Event Loop. CFRunLoopRunInMode() will dispatch HID input
 	   reports into the hid_report_callback(). */
-	while (!dev->shutdown_thread && !dev->disconnected) {
+	while (!dev->shutdown_thread) {
 		code = CFRunLoopRunInMode(dev->run_loop_mode, 1000/*sec*/, FALSE);
-		/* Return if the device has been disconnected */
-		if (code == kCFRunLoopRunFinished) {
-			dev->disconnected = 1;
-			break;
-		}
-
 
 		/* Break if The Run Loop returns Finished or Stopped. */
 		if (code != kCFRunLoopRunTimedOut &&
@@ -664,6 +579,12 @@ static void *read_thread(void *param)
 		}
 	}
 
+	IOHIDDeviceRegisterInputReportCallback(
+		dev->device_handle, dev->input_report_buf, dev->max_input_report_len,
+		NULL, dev);
+	IOHIDDeviceUnscheduleFromRunLoop(dev->device_handle, dev->run_loop, dev->run_loop_mode);
+	IOHIDDeviceScheduleWithRunLoop(dev->device_handle, CFRunLoopGetMain(), kCFRunLoopDefaultMode);
+
 	/* Now that the read thread is stopping, Wake any threads which are
 	   waiting on data (in hid_read_timeout()). Do this under a mutex to
 	   make sure that a thread which is about to go to sleep waiting on
@@ -671,12 +592,8 @@ static void *read_thread(void *param)
 	   signaled. */
 	pthread_mutex_lock(&dev->mutex);
 	pthread_cond_broadcast(&dev->condition);
+	dev->run_loop = NULL;
 	pthread_mutex_unlock(&dev->mutex);
-
-	/* Wait here until hid_close() is called and makes it past
-	   the call to CFRunLoopWakeUp(). This thread still needs to
-	   be valid when that function is called on the other thread. */
-	pthread_barrier_wait(&dev->shutdown_barrier);
 
 	return NULL;
 }
@@ -732,13 +649,9 @@ hid_device * HID_API_EXPORT hid_open_path(const char *path)
 				IOHIDDeviceRegisterInputReportCallback(
 					os_dev, dev->input_report_buf, dev->max_input_report_len,
 					&hid_report_callback, dev);
-				IOHIDDeviceRegisterRemovalCallback(dev->device_handle, hid_device_removal_callback, dev);
 
 				/* Start the read thread */
 				pthread_create(&dev->thread, NULL, read_thread, dev);
-
-				/* Wait here for the read thread to be initialized. */
-				pthread_barrier_wait(&dev->barrier);
 
 				return dev;
 			}
@@ -761,8 +674,8 @@ static int set_report(hid_device *dev, IOHIDReportType type, const unsigned char
 	size_t length_to_send;
 	IOReturn res;
 
-	/* Return if the device has been disconnected. */
-	if (dev->disconnected)
+	/* Return if we're shutting down. */
+	if (dev->shutdown_thread)
 		return -1;
 
 	if (data[0] == 0x0) {
@@ -778,17 +691,13 @@ static int set_report(hid_device *dev, IOHIDReportType type, const unsigned char
 		length_to_send = length;
 	}
 
-	if (!dev->disconnected) {
-		res = IOHIDDeviceSetReport(dev->device_handle,
-					   type,
-					   data[0], /* Report ID*/
-					   data_to_send, length_to_send);
+	res = IOHIDDeviceSetReport(dev->device_handle,
+			type,
+			data[0], /* Report ID*/
+			data_to_send, length_to_send);
 
-		if (res == kIOReturnSuccess) {
-			return length;
-		}
-		else
-			return -1;
+	if (res == kIOReturnSuccess) {
+		return length;
 	}
 
 	return -1;
@@ -805,17 +714,22 @@ static int return_data(hid_device *dev, unsigned char *data, size_t length)
 	/* Copy the data out of the linked list item (rpt) into the
 	   return buffer (data), and delete the liked list item. */
 	struct input_report *rpt = dev->input_reports;
-	size_t len = (length < rpt->len)? length: rpt->len;
-	memcpy(data, rpt->data, len);
-	dev->input_reports = rpt->next;
-	free(rpt->data);
-	free(rpt);
-	return len;
+
+	if (rpt) {
+		size_t len = (length < rpt->len)? length: rpt->len;
+		memcpy(data, rpt->data, len);
+		dev->input_reports = rpt->next;
+		free(rpt->data);
+		free(rpt);
+		return len;
+	}
+
+	return 0;
 }
 
 static int cond_wait(const hid_device *dev, pthread_cond_t *cond, pthread_mutex_t *mutex)
 {
-	while (!dev->input_reports) {
+	while ((!dev->input_reports) && (!dev->shutdown_thread)) {
 		int res = pthread_cond_wait(cond, mutex);
 		if (res != 0)
 			return res;
@@ -825,9 +739,6 @@ static int cond_wait(const hid_device *dev, pthread_cond_t *cond, pthread_mutex_
 		   data in the queue before returning, and if not, go back
 		   to sleep. See the pthread_cond_timedwait() man page for
 		   details. */
-
-		if (dev->shutdown_thread || dev->disconnected)
-			return -1;
 	}
 
 	return 0;
@@ -835,7 +746,7 @@ static int cond_wait(const hid_device *dev, pthread_cond_t *cond, pthread_mutex_
 
 static int cond_timedwait(const hid_device *dev, pthread_cond_t *cond, pthread_mutex_t *mutex, const struct timespec *abstime)
 {
-	while (!dev->input_reports) {
+	while ((!dev->input_reports) && (!dev->shutdown_thread)) {
 		int res = pthread_cond_timedwait(cond, mutex, abstime);
 		if (res != 0)
 			return res;
@@ -845,9 +756,6 @@ static int cond_timedwait(const hid_device *dev, pthread_cond_t *cond, pthread_m
 		   data in the queue before returning, and if not, go back
 		   to sleep. See the pthread_cond_timedwait() man page for
 		   details. */
-
-		if (dev->shutdown_thread || dev->disconnected)
-			return -1;
 	}
 
 	return 0;
@@ -868,12 +776,6 @@ int HID_API_EXPORT hid_read_timeout(hid_device *dev, unsigned char *data, size_t
 		goto ret;
 	}
 
-	/* Return if the device has been disconnected. */
-	if (dev->disconnected) {
-		bytes_read = -1;
-		goto ret;
-	}
-
 	if (dev->shutdown_thread) {
 		/* This means the device has been closed (or there
 		   has been an error. An error code of -1 should
@@ -888,14 +790,8 @@ int HID_API_EXPORT hid_read_timeout(hid_device *dev, unsigned char *data, size_t
 		/* Blocking */
 		int res;
 		res = cond_wait(dev, &dev->condition, &dev->mutex);
-		if (res == 0)
-			bytes_read = return_data(dev, data, length);
-		else {
-			/* There was an error, or a device disconnection. */
-			bytes_read = -1;
-		}
-	}
-	else if (milliseconds > 0) {
+		bytes_read = return_data(dev, data, length);
+	} else if (milliseconds > 0) {
 		/* Non-blocking, but called with timeout. */
 		int res;
 		struct timespec ts;
@@ -916,8 +812,7 @@ int HID_API_EXPORT hid_read_timeout(hid_device *dev, unsigned char *data, size_t
 			bytes_read = 0;
 		else
 			bytes_read = -1;
-	}
-	else {
+	} else {
 		/* Purely non-blocking */
 		bytes_read = 0;
 	}
@@ -952,61 +847,51 @@ int HID_API_EXPORT hid_get_feature_report(hid_device *dev, unsigned char *data, 
 	IOReturn res;
 
 	/* Return if the device has been unplugged. */
-	if (dev->disconnected)
+	if (dev->shutdown_thread)
 		return -1;
 
 	res = IOHIDDeviceGetReport(dev->device_handle,
 	                           kIOHIDReportTypeFeature,
 	                           data[0], /* Report ID */
 	                           data, &len);
+
 	if (res == kIOReturnSuccess)
 		return len;
-	else
-		return -1;
-}
 
+	return -1;
+}
 
 void HID_API_EXPORT hid_close(hid_device *dev)
 {
 	if (!dev)
 		return;
 
-	/* Disconnect the report callback before close. */
-	if (!dev->disconnected) {
-		IOHIDDeviceRegisterInputReportCallback(
-			dev->device_handle, dev->input_report_buf, dev->max_input_report_len,
-			NULL, dev);
-		IOHIDDeviceRegisterRemovalCallback(dev->device_handle, NULL, dev);
-		IOHIDDeviceUnscheduleFromRunLoop(dev->device_handle, dev->run_loop, dev->run_loop_mode);
-		IOHIDDeviceScheduleWithRunLoop(dev->device_handle, CFRunLoopGetMain(), kCFRunLoopDefaultMode);
-	}
+	pthread_mutex_lock(&dev->mutex);
 
 	/* Cause read_thread() to stop. */
 	dev->shutdown_thread = 1;
 
 	/* Wake up the run thread's event loop so that the thread can exit. */
-	CFRunLoopSourceSignal(dev->source);
-	CFRunLoopWakeUp(dev->run_loop);
+	if (dev->run_loop) {
+		CFRunLoopSourceSignal(dev->source);
+		CFRunLoopWakeUp(dev->run_loop);
+	}
 
-	/* Notify the read thread that it can shut down now. */
-	pthread_barrier_wait(&dev->shutdown_barrier);
+	pthread_mutex_unlock(&dev->mutex);
 
 	/* Wait for read_thread() to end. */
 	pthread_join(dev->thread, NULL);
 
-	/* Close the OS handle to the device, but only if it's not
-	   been unplugged. If it's been unplugged, then calling
-	   IOHIDDeviceClose() will crash. */
-	if (!dev->disconnected) {
-		IOHIDDeviceClose(dev->device_handle, kIOHIDOptionsTypeSeizeDevice);
-	}
+	/* Close the OS handle to the device. */
+	IOHIDDeviceClose(dev->device_handle, kIOHIDOptionsTypeSeizeDevice);
 
 	/* Clear out the queue of received reports. */
-	pthread_mutex_lock(&dev->mutex);
+	/* No lock is necessary ehre because there's no one to contend with
+	 * us. */
 	while (dev->input_reports) {
 		return_data(dev, NULL, 0);
 	}
-	pthread_mutex_unlock(&dev->mutex);
+
 	CFRelease(dev->device_handle);
 
 	free_hid_device(dev);
@@ -1034,7 +919,6 @@ int HID_API_EXPORT_CALL hid_get_indexed_string(hid_device *dev, int string_index
 	return 0;
 }
 
-
 HID_API_EXPORT const wchar_t * HID_API_CALL  hid_error(hid_device *dev)
 {
 	/* TODO: */
@@ -1042,71 +926,3 @@ HID_API_EXPORT const wchar_t * HID_API_CALL  hid_error(hid_device *dev)
 	return NULL;
 }
 
-
-
-
-
-
-
-#if 0
-static int32_t get_usage(IOHIDDeviceRef device)
-{
-	int32_t res;
-	res = get_int_property(device, CFSTR(kIOHIDDeviceUsageKey));
-	if (!res)
-		res = get_int_property(device, CFSTR(kIOHIDPrimaryUsageKey));
-	return res;
-}
-
-static int32_t get_usage_page(IOHIDDeviceRef device)
-{
-	int32_t res;
-	res = get_int_property(device, CFSTR(kIOHIDDeviceUsagePageKey));
-	if (!res)
-		res = get_int_property(device, CFSTR(kIOHIDPrimaryUsagePageKey));
-	return res;
-}
-
-static int get_transport(IOHIDDeviceRef device, wchar_t *buf, size_t len)
-{
-	return get_string_property(device, CFSTR(kIOHIDTransportKey), buf, len);
-}
-
-
-int main(void)
-{
-	IOHIDManagerRef mgr;
-	int i;
-
-	mgr = IOHIDManagerCreate(kCFAllocatorDefault, kIOHIDOptionsTypeNone);
-	IOHIDManagerSetDeviceMatching(mgr, NULL);
-	IOHIDManagerOpen(mgr, kIOHIDOptionsTypeNone);
-
-	CFSetRef device_set = IOHIDManagerCopyDevices(mgr);
-
-	CFIndex num_devices = CFSetGetCount(device_set);
-	IOHIDDeviceRef *device_array = calloc(num_devices, sizeof(IOHIDDeviceRef));
-	CFSetGetValues(device_set, (const void **) device_array);
-
-	for (i = 0; i < num_devices; i++) {
-		IOHIDDeviceRef dev = device_array[i];
-		printf("Device: %p\n", dev);
-		printf("  %04hx %04hx\n", get_vendor_id(dev), get_product_id(dev));
-
-		wchar_t serial[256], buf[256];
-		char cbuf[256];
-		get_serial_number(dev, serial, 256);
-
-
-		printf("  Serial: %ls\n", serial);
-		printf("  Loc: %ld\n", get_location_id(dev));
-		get_transport(dev, buf, 256);
-		printf("  Trans: %ls\n", buf);
-		make_path(dev, cbuf, 256);
-		printf("  Path: %s\n", cbuf);
-
-	}
-
-	return 0;
-}
-#endif
