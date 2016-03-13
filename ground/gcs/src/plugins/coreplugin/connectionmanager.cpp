@@ -40,7 +40,6 @@
 #include <QHBoxLayout>
 #include <QComboBox>
 #include <QEventLoop>
-#include <QMessageBox>
 #include <alarmsmonitorwidget.h>
 
 namespace Core {
@@ -111,8 +110,6 @@ void ConnectionManager::init()
  */
 void ConnectionManager::onConnectDeviceFailed(DevListItem *device)
 {
-    QMessageBox msgBox;
-
     QString msg("<span style='color:red'>Failed</span> to connect device: ");
     if(device && device->device)
         msg.append(device->device->getDisplayName());
@@ -124,8 +121,8 @@ void ConnectionManager::onConnectDeviceFailed(DevListItem *device)
         msg.append("<br />Have you set udev rules?");
 #endif
 
-    msgBox.setText(msg);
-    msgBox.exec();
+    msgFailedToConnect.setText(msg);
+    msgFailedToConnect.open();
 }
 
 /**
