@@ -482,16 +482,6 @@ hid_device * HID_API_EXPORT hid_open(unsigned short vendor_id, unsigned short pr
 	return handle;
 }
 
-static void hid_device_removal_callback(void *context, IOReturn result,
-                                        void *sender)
-{
-	/* Stop the Run Loop for this device. */
-	hid_device *d = context;
-
-	d->shutdown_thread = 1;
-	CFRunLoopStop(d->run_loop);
-}
-
 /* The Run Loop calls this function for each input report received.
    This function puts the data into a linked list to be picked up by
    hid_read(). */
@@ -592,7 +582,6 @@ static void *read_thread(void *param)
 	IOHIDDeviceRegisterInputReportCallback(
 		dev->device_handle, dev->input_report_buf, dev->max_input_report_len,
 		NULL, dev);
-	IOHIDDeviceRegisterRemovalCallback(dev->device_handle, NULL, dev);
 	IOHIDDeviceUnscheduleFromRunLoop(dev->device_handle, dev->run_loop, dev->run_loop_mode);
 	IOHIDDeviceScheduleWithRunLoop(dev->device_handle, CFRunLoopGetMain(), kCFRunLoopDefaultMode);
 
@@ -660,7 +649,6 @@ hid_device * HID_API_EXPORT hid_open_path(const char *path)
 				IOHIDDeviceRegisterInputReportCallback(
 					os_dev, dev->input_report_buf, dev->max_input_report_len,
 					&hid_report_callback, dev);
-				IOHIDDeviceRegisterRemovalCallback(dev->device_handle, hid_device_removal_callback, dev);
 
 				/* Start the read thread */
 				pthread_create(&dev->thread, NULL, read_thread, dev);
