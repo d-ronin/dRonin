@@ -870,14 +870,43 @@ void UploaderGadgetWidget::onStatusUpdate(QString text, int progress)
     }
 }
 
-/**
- * @brief slot called the DFUObject when a download operation finishes
- * @param result true if the download was successfull
- */
-void UploaderGadgetWidget::onDownloadSaveFinish(bool result)
+void UploaderGadgetWidget::triggerPartitionDownload(int index)
 {
+    if(!CheckInBootloaderState())
+        return;
+    int size = m_widget->partitionBrowserTW->item(index,1)->text().toInt();
+
+    setStatusInfo("",uploader::STATUSICON_RUNNING);
+    setUploaderStatus(uploader::BL_BUSY);
+    connect(&dfu, SIGNAL(operationProgress(QString,int)), this, SLOT(onStatusUpdate(QString, int)));
+    tempArray.clear();
+    dfu.DownloadPartitionThreaded(&tempArray, (dfu_partition_label)index, size);
+}
+
+/**
+ * @brief slot called when the user clicks save on the partition browser
+ */
+void UploaderGadgetWidget::onPartitionSave()
+{
+    int index = m_widget->partitionBrowserTW->selectedItems().first()->row();
+
+    QEventLoop loop;
+
+    bool operationSuccess = false;
+
+    /* disconnects when loop comes out of scope */
+    connect(&dfu, &DFUObject::downloadFinished, &loop, [&] (bool status) {
+        operationSuccess = status;
+        loop.exit();
+    } );
+
+    triggerPartitionDownload(index);
+
+    loop.exec();
+
     dfu.disconnect();
-    if(result)
+
+    if(operationSuccess)
     {
         setStatusInfo(tr("Partition download success"), uploader::STATUSICON_OK);
         QString filename = QFileDialog::getSaveFileName(this, tr("Save File"),QDir::homePath(),"*.bin");
@@ -899,36 +928,11 @@ void UploaderGadgetWidget::onDownloadSaveFinish(bool result)
         }
         else
             setStatusInfo(tr("Error could not open file for save"), uploader::STATUSICON_FAIL);
-    }
-    else
+    } else {
         setStatusInfo(tr("Partition download failed"), uploader::STATUSICON_FAIL);
+    }
 
     setUploaderStatus(uploader::BL_SITTING);
-}
-
-void UploaderGadgetWidget::triggerPartitionDownload(int index)
-{
-    if(!CheckInBootloaderState())
-        return;
-    int size = m_widget->partitionBrowserTW->item(index,1)->text().toInt();
-
-    setStatusInfo("",uploader::STATUSICON_RUNNING);
-    setUploaderStatus(uploader::DOWNLOADING_PARTITION);
-    connect(&dfu, SIGNAL(operationProgress(QString,int)), this, SLOT(onStatusUpdate(QString, int)));
-    tempArray.clear();
-    dfu.DownloadPartitionThreaded(&tempArray, (dfu_partition_label)index, size);
-}
-
-/**
- * @brief slot called when the user clicks save on the partition browser
- */
-void UploaderGadgetWidget::onPartitionSave()
-{
-    int index = m_widget->partitionBrowserTW->selectedItems().first()->row();
-
-    connect(&dfu, SIGNAL(downloadFinished(bool)), this, SLOT(onDownloadSaveFinish(bool)));
-
-    triggerPartitionDownload(index);
 }
 
 /**
@@ -1176,7 +1180,6 @@ void UploaderGadgetWidget::setUploaderStatus(const uploader::UploaderStatus &val
         m_widget->partitionBrowserTW->setContextMenuPolicy(Qt::NoContextMenu);
         break;
     case uploader::BL_BUSY:
-    case uploader::DOWNLOADING_PARTITION:
         m_widget->progressBar->setVisible(true);
 
         m_widget->rescueButton->setEnabled(false);

@@ -77,7 +77,6 @@ private slots:
     void onBootloaderRemoved();
     void onRescueTimer(bool start = false);
     void onStatusUpdate(QString, int);
-    void onDownloadSaveFinish(bool);
     void onPartitionSave();
     void onPartitionFlash();
     void onPartitionErase();

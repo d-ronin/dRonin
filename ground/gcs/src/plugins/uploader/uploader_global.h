@@ -35,7 +35,7 @@
 
 namespace uploader
 {
-typedef enum { DISCONNECTED, ENTERING_LOADER, BL_SITTING, BL_BUSY, CONNECTED_TO_TELEMETRY, DOWNLOADING_PARTITION } UploaderStatus;
+typedef enum { DISCONNECTED, ENTERING_LOADER, BL_SITTING, BL_BUSY, CONNECTED_TO_TELEMETRY } UploaderStatus;
 }
 struct deviceInfo
 {
