@@ -34,6 +34,7 @@
 #define UPLOADERGADGETWIDGET_H
 
 #include <QPointer>
+#include <QNetworkAccessManager>
 #include "ui_uploader.h"
 #include "tl_dfu.h"
 #include <coreplugin/iboardtype.h>
@@ -115,12 +116,16 @@ private:
     USBSignalFilter *usbFilterUP;
     TelemetryManager* telMngr;
     Core::ConnectionManager *conMngr;
+    QNetworkAccessManager *netMngr;
+
     FirmwareIAPObj *firmwareIap;
     deviceInfo currentBoard;
     QString ignoredRev;
 
     uploader::UploaderStatus uploaderStatus;
     QByteArray tempArray;
+
+    const QString exportUrl = QString("http://dronin-autotown.appspot.com/convert");
 };
 }
 #endif // UPLOADERGADGETWIDGET_H

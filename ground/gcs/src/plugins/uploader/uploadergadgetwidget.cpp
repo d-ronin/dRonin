@@ -33,6 +33,11 @@
 #include <QFileDialog>
 #include <QMessageBox>
 #include <QDesktopServices>
+#include <QHttpPart>
+#include <QHttpMultiPart>
+#include <QNetworkRequest>
+#include <QNetworkReply>
+#include <QUrl>
 
 #include "uploadergadgetwidget.h"
 #include "firmwareiapobj.h"
@@ -87,6 +92,8 @@ UploaderGadgetWidget::UploaderGadgetWidget(QWidget *parent):QWidget(parent),
     pm = ExtensionSystem::PluginManager::instance();
     telMngr = pm->getObject<TelemetryManager>();
     utilMngr = pm->getObject<UAVObjectUtilManager>();
+
+    netMngr = new QNetworkAccessManager(this);
 
     UAVObjectManager *obm = pm->getObject<UAVObjectManager>();
     connect(telMngr, SIGNAL(connected()), this, SLOT(onAutopilotConnect()));
@@ -590,9 +597,9 @@ void UploaderGadgetWidget::onExportButtonClick()
         return;
     }
 
-    /* XXX make sure there's a setting partition */
+    /* XXX: TODO: make sure there's a setting partition */
 
-    /* XXX make sure the cloud service is there and has right git rev */
+    /* XXX: TODO:  make sure the cloud service is there and has right git rev */
 
     /* get confirmation from user that using the cloud service is OK */
     QMessageBox msgBox;
@@ -622,10 +629,14 @@ void UploaderGadgetWidget::onExportButtonClick()
         loop.exit();
     } );
 
-    timeout.start(40000);       /* 40 secs is a long time */
+    timeout.start(100000);       /* 100 secs is a long time; unfortunately
+                                  * revo settings part is HUUUUGE and takes
+                                  * forever to download. */
 
     triggerPartitionDownload(DFU_PARTITION_SETTINGS);
     loop.exec();                /* Wait for timeout or download complete */
+
+    dfu.disconnect();
 
     if (!operationSuccess) {
         setStatusInfo(tr("Error, unable to pull settings partition"), uploader::STATUSICON_FAIL);
@@ -633,10 +644,78 @@ void UploaderGadgetWidget::onExportButtonClick()
         return;
     }
 
-    setStatusInfo(tr("XXX WOOT GOT SOME SETTINS"), uploader::STATUSICON_FAIL);
+    setStatusInfo(tr("Retrieved settings; contacting cloud..."), uploader::STATUSICON_FAIL);
 
-    /* XXX post to cloud service */
-    /* XXX save dialog for XML config */
+    /* post to cloud service */
+    QUrl url(exportUrl);
+    QNetworkRequest request(url);
+
+    QHttpMultiPart *multiPart = new QHttpMultiPart(QHttpMultiPart::FormDataType);
+
+    QHttpPart githash, datafile;
+
+    githash.setHeader(QNetworkRequest::ContentDispositionHeader,QVariant("form-data; name=\"githash\""));
+    githash.setBody("Release-20160120.3");
+
+    /* XXX: TODO: real source */
+
+    /* XXX: TODO: send some additional details up */
+
+    datafile.setHeader(QNetworkRequest::ContentTypeHeader, QVariant("application/octet-stream"));
+    datafile.setHeader(QNetworkRequest::ContentDispositionHeader, QVariant("form-data; filename=\"datafile\"; name=\"datafile\""));
+    datafile.setBody(tempArray);
+
+    multiPart->append(githash);
+    multiPart->append(datafile);
+
+    QNetworkReply *reply = netMngr->post(request, multiPart);
+
+//    connect(reply, SIGNAL(uploadProgress(qint64,qint64)), autotuneShareForm, SLOT(setProgress(qint64,qint64)));
+
+    connect(reply, SIGNAL(finished()), &loop, SLOT(quit()));
+    timeout.start(15000);       /* 15 seconds */
+    loop.exec();
+
+    if (!reply->isFinished()) {
+        setStatusInfo(tr("Timeout communicating with cloud service"), uploader::STATUSICON_FAIL);
+        return;
+    }
+
+    QVariant statusCode = reply->attribute(QNetworkRequest::HttpStatusCodeAttribute);
+
+    int code = statusCode.toInt();
+
+    if (code != 200) {
+        setStatusInfo(tr("Received status code %1 from cloud").arg(code), uploader::STATUSICON_FAIL);
+        return;
+    }
+
+    setStatusInfo(tr("Retrieved dump of configuration from cloud"), uploader::STATUSICON_OK);
+
+    QByteArray content = reply->readAll();
+
+    //qDebug() << QString(content);
+
+    /* save dialog for XML config */
+    QString filename = QFileDialog::getSaveFileName(this, tr("Save Settings Dump"),"cloud_exported.xml","*.xml");
+    if(filename.isEmpty())
+    {
+        setStatusInfo(tr("Error, empty filename"), uploader::STATUSICON_FAIL);
+        setUploaderStatus(uploader::BL_SITTING);
+        return;
+    }
+
+    if(!filename.endsWith(".xml",Qt::CaseInsensitive))
+        filename.append(".xml");
+    QFile file(filename);
+    if(file.open(QIODevice::WriteOnly))
+    {
+        file.write(content);
+        file.close();
+        setStatusInfo(tr("Dump of configuration saved to file!"), uploader::STATUSICON_OK);
+    }
+    else
+        setStatusInfo(tr("Error could not open file for save"), uploader::STATUSICON_FAIL);
 }
 
 /**
@@ -981,7 +1060,7 @@ void UploaderGadgetWidget::onPartitionFlash()
     } );
 
     dfu.UploadPartitionThreaded(tempArray, (dfu_partition_label)index, size);
-    
+
     loop.exec();
 
     if(operationSuccess == Last_operation_Success)
@@ -1159,7 +1238,7 @@ void UploaderGadgetWidget::setUploaderStatus(const uploader::UploaderStatus &val
         else
             m_widget->flashButton->setEnabled(false);
 
-        // XXX: needs to be conditional on presence of setting partition
+        // XXX: TODO: needs to be conditional on presence of setting partition
         m_widget->exportConfigButton->setEnabled(true);
 
         m_widget->partitionBrowserTW->setContextMenuPolicy(Qt::ActionsContextMenu);
