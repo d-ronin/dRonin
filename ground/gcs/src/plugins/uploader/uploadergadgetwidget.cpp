@@ -414,12 +414,80 @@ void UploaderGadgetWidget::onLoadFirmwareButtonClick()
  */
 void UploaderGadgetWidget::onFlashButtonClick()
 {
+    QEventLoop loop;
+
+    QTimer timeout;
+    tl_dfu::Status operationSuccess = DFUidle;
+
     setStatusInfo("",uploader::STATUSICON_RUNNING);
-    setUploaderStatus(uploader::UPLOADING_FW);
+    setUploaderStatus(uploader::BL_BUSY);
     onStatusUpdate(QString("Starting upload..."), 0); // set progress bar to 0 while erasing
     connect(&dfu, SIGNAL(operationProgress(QString,int)), this, SLOT(onStatusUpdate(QString, int)));
-    connect(&dfu, SIGNAL(uploadFinished(tl_dfu::Status)), this, SLOT(onUploadFinish(tl_dfu::Status)));
     dfu.UploadPartitionThreaded(loadedFile, DFU_PARTITION_FW, currentBoard.max_code_size.toInt());
+
+    /* disconnects when loop comes out of scope */
+    connect(&dfu, &DFUObject::uploadFinished, &loop, [&] (tl_dfu::Status status) {
+        operationSuccess = status;
+        loop.exit();
+    } );
+
+    loop.exec();                /* Wait for timeout or download complete */
+
+    if (operationSuccess != Last_operation_Success) {
+        dfu.disconnect();
+        setUploaderStatus(uploader::BL_SITTING);
+        setStatusInfo(tr("Firmware upload failed"), uploader::STATUSICON_FAIL);
+
+        return;
+    }
+
+    setStatusInfo(tr("Firmware upload success"), uploader::STATUSICON_OK);
+
+    if ((!loadedFile.right(100).startsWith("TlFw")) && (!loadedFile.right(100).startsWith("OpFw"))) {
+        dfu.disconnect();
+        setUploaderStatus(uploader::BL_SITTING);
+
+        return;
+    }
+
+    tempArray.clear();
+    tempArray.append(loadedFile.right(100));
+    tempArray.chop(20);
+    QString user("                    ");
+    user = user.replace(0, m_widget->userDefined_LD_lbl->text().length(), m_widget->userDefined_LD_lbl->text());
+    tempArray.append(user.toLatin1());
+    setStatusInfo(tr("Starting firmware metadata upload"), uploader::STATUSICON_INFO);
+    dfu.UploadPartitionThreaded(tempArray, DFU_PARTITION_DESC, 100);
+
+    operationSuccess = DFUidle;
+
+    loop.exec();
+
+    if(operationSuccess != Last_operation_Success) {
+            dfu.disconnect();
+
+            setStatusInfo(tr("Firmware metadata upload failed"), uploader::STATUSICON_FAIL);
+
+            setUploaderStatus(uploader::BL_SITTING);
+
+            return;
+    }
+
+    dfu.disconnect();
+    setUploaderStatus(uploader::BL_SITTING);
+    setStatusInfo(tr("Firmware and firmware metadata upload success"), uploader::STATUSICON_OK);
+
+    // uploaded succeeded so we can assume the loaded file is on the board
+    deviceDescriptorStruct descStructure;
+    if (UAVObjectUtilManager::descriptionToStructure(tempArray, descStructure)) {
+        quint32 crc = dfu.CRCFromQBArray(loadedFile, currentBoard.max_code_size.toLong());
+        FirmwareOnDeviceUpdate(descStructure, QString::number(crc));
+    }
+
+    this->activateWindow();
+    m_widget->bootButton->setFocus();
+    dfu.disconnect();
+    setUploaderStatus(uploader::BL_SITTING);
 }
 
 void UploaderGadgetWidget::haltOrReset(bool halting)
@@ -796,80 +864,9 @@ void UploaderGadgetWidget::onStatusUpdate(QString text, int progress)
         setStatusInfo(text, uploader::STATUSICON_RUNNING);
     if(progress != -1)
         m_widget->progressBar->setValue(progress);
-    if( (getUploaderStatus() == uploader::UPLOADING_FW) || (getUploaderStatus() == uploader::UPLOADING_DESC) )
+    if( (getUploaderStatus() == uploader::BL_BUSY) )
     {
         emit uploadProgress(getUploaderStatus(), progress);
-    }
-}
-
-/**
- * @brief slot called the DFUObject when an upload operation finishes
- * @param stat upload result
- */
-void UploaderGadgetWidget::onUploadFinish(Status stat)
-{
-    switch (uploaderStatus) {
-    case uploader::UPLOADING_FW:
-        if(stat == Last_operation_Success)
-        {
-            setStatusInfo(tr("Firmware upload success"), uploader::STATUSICON_OK);
-            if (loadedFile.right(100).startsWith("TlFw") || loadedFile.right(100).startsWith("OpFw")) {
-                tempArray.clear();
-                tempArray.append(loadedFile.right(100));
-                tempArray.chop(20);
-                QString user("                    ");
-                user = user.replace(0, m_widget->userDefined_LD_lbl->text().length(), m_widget->userDefined_LD_lbl->text());
-                tempArray.append(user.toLatin1());
-                setStatusInfo(tr("Starting firmware metadata upload"), uploader::STATUSICON_INFO);
-                dfu.UploadPartitionThreaded(tempArray, DFU_PARTITION_DESC, 100);
-                setUploaderStatus(uploader::UPLOADING_DESC);
-            }
-            else
-            {
-                setUploaderStatus(uploader::BL_SITTING);
-                dfu.disconnect();
-            }
-        }
-        else
-        {
-            setUploaderStatus(uploader::BL_SITTING);
-            setStatusInfo(tr("Firmware upload failed"), uploader::STATUSICON_FAIL);
-            dfu.disconnect();
-            uploadFinish(false);
-        }
-        break;
-    case uploader::UPLOADING_DESC:
-        if(stat == Last_operation_Success)
-        {
-            setStatusInfo(tr("Firmware and firmware metadata upload success"), uploader::STATUSICON_OK);
-            // uploaded succeeded so we can assume the loaded file is on the board
-            deviceDescriptorStruct descStructure;
-            if (UAVObjectUtilManager::descriptionToStructure(tempArray, descStructure)) {
-                quint32 crc = dfu.CRCFromQBArray(loadedFile, currentBoard.max_code_size.toLong());
-                FirmwareOnDeviceUpdate(descStructure, QString::number(crc));
-            }
-            this->activateWindow();
-            m_widget->bootButton->setFocus();
-            emit uploadFinish(true);
-        }
-        else
-        {
-            setStatusInfo(tr("Firmware metadata upload failed"), uploader::STATUSICON_FAIL);
-            uploadFinish(false);
-        }
-        dfu.disconnect();
-        setUploaderStatus(uploader::BL_SITTING);
-        break;
-    case uploader::UPLOADING_PARTITION:
-        if(stat == Last_operation_Success)
-            setStatusInfo(tr("Partition upload success"), uploader::STATUSICON_OK);
-        else
-            setStatusInfo(tr("Partition upload failed"), uploader::STATUSICON_FAIL);
-        dfu.disconnect();
-        setUploaderStatus(uploader::BL_SITTING);
-        break;
-    default:
-        break;
     }
 }
 
@@ -966,10 +963,29 @@ void UploaderGadgetWidget::onPartitionFlash()
     if(QMessageBox::warning(this, tr("Warning"), tr("Are you sure you want to flash the selected partition?"),QMessageBox::Yes, QMessageBox::No) != QMessageBox::Yes)
         return;
     setStatusInfo("",uploader::STATUSICON_RUNNING);
-    setUploaderStatus(uploader::UPLOADING_PARTITION);
+    setUploaderStatus(uploader::BL_BUSY);
     connect(&dfu, SIGNAL(operationProgress(QString,int)), this, SLOT(onStatusUpdate(QString, int)));
-    connect(&dfu, SIGNAL(uploadFinished(tl_dfu::Status)), this, SLOT(onUploadFinish(tl_dfu::Status)));
+
+    tl_dfu::Status operationSuccess = DFUidle;
+
+    QEventLoop loop;
+
+    /* disconnects when loop comes out of scope */
+    connect(&dfu, &DFUObject::uploadFinished, &loop, [&] (tl_dfu::Status status) {
+        operationSuccess = status;
+        loop.exit();
+    } );
+
     dfu.UploadPartitionThreaded(tempArray, (dfu_partition_label)index, size);
+    
+    loop.exec();
+
+    if(operationSuccess == Last_operation_Success)
+        setStatusInfo(tr("Partition upload success"), uploader::STATUSICON_OK);
+    else
+        setStatusInfo(tr("Partition upload failed"), uploader::STATUSICON_FAIL);
+    dfu.disconnect();
+    setUploaderStatus(uploader::BL_SITTING);
 }
 
 /**
@@ -1159,10 +1175,8 @@ void UploaderGadgetWidget::setUploaderStatus(const uploader::UploaderStatus &val
 
         m_widget->partitionBrowserTW->setContextMenuPolicy(Qt::NoContextMenu);
         break;
-    case uploader::UPLOADING_FW:
-    case uploader::UPLOADING_DESC:
+    case uploader::BL_BUSY:
     case uploader::DOWNLOADING_PARTITION:
-    case uploader::UPLOADING_PARTITION:
         m_widget->progressBar->setVisible(true);
 
         m_widget->rescueButton->setEnabled(false);

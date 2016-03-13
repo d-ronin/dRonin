@@ -61,7 +61,6 @@ signals:
     void bootloaderDetected();
     void rescueTimer(int);
     void rescueFinish(bool);
-    void uploadFinish(bool);
     void uploadProgress(UploaderStatus, QVariant);
     void newBoardSeen(deviceInfo board, deviceDescriptorStruct device);
 private slots:
@@ -78,7 +77,6 @@ private slots:
     void onBootloaderRemoved();
     void onRescueTimer(bool start = false);
     void onStatusUpdate(QString, int);
-    void onUploadFinish(tl_dfu::Status);
     void onDownloadSaveFinish(bool);
     void onPartitionSave();
     void onPartitionFlash();
