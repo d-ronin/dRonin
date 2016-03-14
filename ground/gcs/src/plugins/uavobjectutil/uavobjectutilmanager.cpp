@@ -4,7 +4,7 @@
  * @file       uavobjectutilmanager.cpp
  * @author     The OpenPilot Team, http://www.openpilot.org Copyright (C) 2010.
  * @author     Tau Labs, http://taulabs.org, Copyright (C) 2013
- * @author     dRonin, http://dronin.org Copyright (C) 2015
+ * @author     dRonin, http://dronin.org Copyright (C) 2015-2016
  * @see        The GNU Public License (GPL) Version 3
  * @addtogroup GCSPlugins GCS Plugins
  * @{
@@ -26,6 +26,10 @@
  * You should have received a copy of the GNU General Public License along
  * with this program; if not, write to the Free Software Foundation, Inc.,
  * 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
+ *
+ * Additional note on redistribution: The copyright and license notices above
+ * must be maintained in each individual source file that is a derivative work
+ * of this source file; otherwise redistribution is prohibited.
  */
 
 #include "uavobjectutilmanager.h"
@@ -54,37 +58,24 @@
 
 UAVObjectUtilManager::UAVObjectUtilManager()
 {
-    mutex = new QMutex(QMutex::Recursive);
     saveState = IDLE;
     failureTimer.stop();
     failureTimer.setSingleShot(true);
     failureTimer.setInterval(1000);
     connect(&failureTimer, SIGNAL(timeout()),this,SLOT(objectPersistenceOperationFailed()));
 
-    pm = NULL;
     obm = NULL;
-    obum = NULL;
 
     pm = ExtensionSystem::PluginManager::instance();
     if (pm)
     {
         obm = pm->getObject<UAVObjectManager>();
-        obum = pm->getObject<UAVObjectUtilManager>();
     }
-
-    incompatibleMsg = new QErrorMessage();
 }
 
 UAVObjectUtilManager::~UAVObjectUtilManager()
 {
-    incompatibleMsg->deleteLater();
 	disconnect();
-
-	if (mutex)
-	{
-		delete mutex;
-		mutex = NULL;
-	}
 }
 
 
@@ -720,47 +711,4 @@ bool UAVObjectUtilManager::descriptionToStructure(QByteArray desc, deviceDescrip
    return false;
 }
 
-void UAVObjectUtilManager::versionMatchCheck()
-{
-    deviceDescriptorStruct boardDescription;
-    getBoardDescriptionStruct(boardDescription);
-    QByteArray uavoHashArray;
-    QString uavoHash = QString::fromLatin1(Core::Constants::UAVOSHA1_STR);
-    uavoHash.chop(2);
-    uavoHash.remove(0,2);
-    uavoHash = uavoHash.trimmed();
-    bool ok;
-    foreach(QString str,uavoHash.split(","))
-    {
-        uavoHashArray.append(str.toInt(&ok,16));
-    }
-    if (!ok)
-        return;
-    QByteArray fwVersion=boardDescription.uavoHash;
-    if (fwVersion != uavoHashArray) {
-
-        QString gcsDescription = QString::fromLatin1(Core::Constants::GCS_REVISION_STR);
-        QString gcsGitHash = gcsDescription.mid(gcsDescription.indexOf(":")+1, 8);
-        gcsGitHash.remove( QRegExp("^[0]*") );
-        QString gcsGitDate = gcsDescription.mid(gcsDescription.indexOf(" ")+1, 14);
-
-        QString gcsUavoHashStr;
-        QString fwUavoHashStr;
-        foreach(char i, fwVersion)
-        {
-            fwUavoHashStr.append(QString::number(i,16).right(2));
-        }
-        foreach(char i, uavoHashArray)
-        {
-            gcsUavoHashStr.append(QString::number(i,16).right(2));
-        }
-        QString gcsVersion = gcsGitDate + " (" + gcsGitHash + "-"+ gcsUavoHashStr.left(8) + ")";
-        QString fwVersion = boardDescription.gitDate + " (" + boardDescription.gitHash + "-" + fwUavoHashStr.left(8) + ")";
-
-        QString warning = QString(tr(
-                                      "GCS and firmware versions of the UAV objects set do not match which can cause configuration problems. "
-                                      "GCS version: %1 Firmware version: %2.")).arg(gcsVersion).arg(fwVersion);
-        incompatibleMsg->showMessage(warning);
-    }
-}
 // ******************************

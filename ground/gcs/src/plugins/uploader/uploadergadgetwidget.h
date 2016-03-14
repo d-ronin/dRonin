@@ -34,6 +34,7 @@
 #define UPLOADERGADGETWIDGET_H
 
 #include <QPointer>
+#include <QNetworkAccessManager>
 #include "ui_uploader.h"
 #include "tl_dfu.h"
 #include <coreplugin/iboardtype.h>
@@ -53,25 +54,15 @@ class UPLOADER_EXPORT UploaderGadgetWidget : public QWidget
 {
     Q_OBJECT
 
-    struct partitionStruc
-    {
-        QByteArray partitionData;
-        int partitionNumber;
-    };
-
 public:
     UploaderGadgetWidget(QWidget *parent = 0);
     ~UploaderGadgetWidget();
-    bool autoUpdateCapable();
 public slots:
-    bool autoUpdate();
 signals:
     void bootloaderDetected();
     void rescueTimer(int);
     void rescueFinish(bool);
-    void uploadFinish(bool);
     void uploadProgress(UploaderStatus, QVariant);
-    void autoUpdateSignal(UploaderStatus, QVariant);
     void newBoardSeen(deviceInfo board, deviceDescriptorStruct device);
 private slots:
     void onAutopilotConnect();
@@ -82,21 +73,16 @@ private slots:
     void onLoadFirmwareButtonClick();
     void onFlashButtonClick();
     void onRescueButtonClick();
+    void onExportButtonClick();
     void onBootloaderDetected();
     void onBootloaderRemoved();
     void onRescueTimer(bool start = false);
     void onStatusUpdate(QString, int);
-    void onUploadFinish(tl_dfu::Status);
-    void onDownloadFinish(bool);
     void onPartitionSave();
     void onPartitionFlash();
     void onPartitionErase();
-    void onPartitionsBundleSave();
-    void onPartitionsBundleFlash();
     void onBootButtonClick();
-    void onAutoUpdateCount(int i);
     void openHelp();
-    void onAvailableDevicesChanged(QLinkedList<Core::DevListItem>);
 private:
     void FirmwareOnDeviceClear(bool clear);
     void FirmwareLoadedClear(bool clear);
@@ -111,12 +97,11 @@ private:
     void CheckAutopilotReady();
     bool CheckInBootloaderState();
     void setStatusInfo(QString str, uploader::StatusIcon ic);
-    void ProcessPartitionBundleFlash(bool result, bool start = false);
-    void ProcessPartitionBundleSave(bool result, int count = -1);
     QString getFirmwarePathForBoard(QString boardName);
     bool FirmwareLoadFromFile(QString filename);
     bool FirmwareLoadFromFile(QFileInfo filename);
     bool FirmwareCheckForUpdate(deviceDescriptorStruct device);
+    void triggerPartitionDownload(int index);
     void haltOrReset(bool halting);
 
     Ui_UploaderWidget *m_widget;
@@ -131,15 +116,16 @@ private:
     USBSignalFilter *usbFilterUP;
     TelemetryManager* telMngr;
     Core::ConnectionManager *conMngr;
+    QNetworkAccessManager *netMngr;
+
     FirmwareIAPObj *firmwareIap;
     deviceInfo currentBoard;
-    QString lastConnectedTelemetryDevice;
     QString ignoredRev;
 
     uploader::UploaderStatus uploaderStatus;
-    uploader::UploaderStatus previousStatus;
     QByteArray tempArray;
-    bool lastUploadResult;
+
+    const QString exportUrl = QString("http://dronin-autotown.appspot.com/convert");
 };
 }
 #endif // UPLOADERGADGETWIDGET_H

@@ -33,7 +33,7 @@
 using namespace uploader;
 
 UploaderGadgetFactory::UploaderGadgetFactory(QObject *parent) :
-    IUAVGadgetFactory(QString("Uploader"), tr("Uploader"), parent),isautocapable(false)
+    IUAVGadgetFactory(QString("Uploader"), tr("Uploader"), parent)
 {
     setSingleConfigurationGadgetTrue();
 }
@@ -45,9 +45,6 @@ UploaderGadgetFactory::~UploaderGadgetFactory()
 Core::IUAVGadget* UploaderGadgetFactory::createGadget(QWidget *parent)
 {
     UploaderGadgetWidget* gadgetWidget = new UploaderGadgetWidget(parent);
-    isautocapable=gadgetWidget->autoUpdateCapable();
-    connect(this,SIGNAL(autoUpdate()),gadgetWidget,SLOT(autoUpdate()));
-    connect(gadgetWidget,SIGNAL(autoUpdateSignal(UploaderStatus, QVariant)),this,SIGNAL(autoUpdateSignal(UploaderStatus ,QVariant)));
     connect(gadgetWidget, SIGNAL(newBoardSeen(deviceInfo,deviceDescriptorStruct)), this, SIGNAL(newBoardSeen(deviceInfo,deviceDescriptorStruct)));
     return new UploaderGadget(QString("Uploader"), gadgetWidget, parent);
 }
@@ -56,8 +53,4 @@ IUAVGadgetConfiguration *UploaderGadgetFactory::createConfiguration(QSettings* q
 {
     Q_UNUSED(qSettings);
     return NULL;
-}
-bool UploaderGadgetFactory::isAutoUpdateCapable()
-{
-    return isautocapable;
 }

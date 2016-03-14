@@ -76,7 +76,7 @@ Rescue is possible in USB mode only.</string>
         <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Opens a file containing the firmware you wish to flash&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
        </property>
        <property name="text">
-        <string>Open File</string>
+        <string>Open File...</string>
        </property>
       </widget>
      </item>
@@ -90,6 +90,13 @@ Rescue is possible in USB mode only.</string>
        </property>
        <property name="autoDefault">
         <bool>true</bool>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QPushButton" name="exportConfigButton">
+       <property name="text">
+        <string>Export Config...</string>
        </property>
       </widget>
      </item>
@@ -108,6 +115,12 @@ Rescue is possible in USB mode only.</string>
      </item>
      <item>
       <widget class="QPushButton" name="pbHelp">
+       <property name="minimumSize">
+        <size>
+         <width>0</width>
+         <height>35</height>
+        </size>
+       </property>
        <property name="text">
         <string/>
        </property>
@@ -247,6 +260,19 @@ Rescue is possible in USB mode only.</string>
               </widget>
              </item>
              <item>
+              <spacer name="horizontalSpacer_3">
+               <property name="orientation">
+                <enum>Qt::Horizontal</enum>
+               </property>
+               <property name="sizeHint" stdset="0">
+                <size>
+                 <width>40</width>
+                 <height>20</height>
+                </size>
+               </property>
+              </spacer>
+             </item>
+             <item>
               <layout class="QVBoxLayout" name="verticalLayout_4">
                <item>
                 <layout class="QHBoxLayout" name="horizontalLayout_3">
@@ -334,51 +360,59 @@ Rescue is possible in USB mode only.</string>
                   </widget>
                  </item>
                  <item>
-                  <widget class="QGroupBox" name="capabilitieGB">
+                  <widget class="QGroupBox" name="partitionBrowserGB">
                    <property name="title">
-                    <string>Capabilities</string>
+                    <string>Partition Browser</string>
                    </property>
                    <layout class="QVBoxLayout" name="verticalLayout_5">
                     <item>
-                     <widget class="QLabel" name="gyroCap_lbl">
-                      <property name="text">
-                       <string>Gyroscope</string>
+                     <widget class="QTableWidget" name="partitionBrowserTW">
+                      <property name="sizePolicy">
+                       <sizepolicy hsizetype="Fixed" vsizetype="Minimum">
+                        <horstretch>0</horstretch>
+                        <verstretch>0</verstretch>
+                       </sizepolicy>
                       </property>
-                     </widget>
-                    </item>
-                    <item>
-                     <widget class="QLabel" name="accCap_lbl">
-                      <property name="text">
-                       <string>Accelerometer</string>
+                      <property name="minimumSize">
+                       <size>
+                        <width>210</width>
+                        <height>0</height>
+                       </size>
                       </property>
-                     </widget>
-                    </item>
-                    <item>
-                     <widget class="QLabel" name="magCap_lbl">
-                      <property name="text">
-                       <string>Magnetometer</string>
+                      <property name="maximumSize">
+                       <size>
+                        <width>210</width>
+                        <height>16777215</height>
+                       </size>
                       </property>
-                     </widget>
-                    </item>
-                    <item>
-                     <widget class="QLabel" name="baroCap_lbl">
-                      <property name="text">
-                       <string>Barometer</string>
+                      <property name="horizontalScrollBarPolicy">
+                       <enum>Qt::ScrollBarAlwaysOff</enum>
                       </property>
-                     </widget>
-                    </item>
-                    <item>
-                     <widget class="QLabel" name="radioCap_lbl">
-                      <property name="text">
-                       <string>Radio</string>
+                      <property name="editTriggers">
+                       <set>QAbstractItemView::NoEditTriggers</set>
                       </property>
-                     </widget>
-                    </item>
-                    <item>
-                     <widget class="QLabel" name="osdCap_lbl">
-                      <property name="text">
-                       <string>On Screen Display</string>
-                      </property>
+                      <attribute name="horizontalHeaderDefaultSectionSize">
+                       <number>90</number>
+                      </attribute>
+                      <attribute name="horizontalHeaderMinimumSectionSize">
+                       <number>90</number>
+                      </attribute>
+                      <attribute name="horizontalHeaderStretchLastSection">
+                       <bool>true</bool>
+                      </attribute>
+                      <attribute name="verticalHeaderVisible">
+                       <bool>false</bool>
+                      </attribute>
+                      <column>
+                       <property name="text">
+                        <string>Partition</string>
+                       </property>
+                      </column>
+                      <column>
+                       <property name="text">
+                        <string>Size</string>
+                       </property>
+                      </column>
                      </widget>
                     </item>
                    </layout>
@@ -642,6 +676,12 @@ Rescue is possible in USB mode only.</string>
                </item>
                <item>
                 <widget class="QLineEdit" name="userDefined_LD_lbl">
+                 <property name="sizePolicy">
+                  <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
+                   <horstretch>0</horstretch>
+                   <verstretch>0</verstretch>
+                  </sizepolicy>
+                 </property>
                  <property name="maxLength">
                   <number>20</number>
                  </property>
@@ -676,69 +716,17 @@ Rescue is possible in USB mode only.</string>
            </widget>
           </item>
           <item>
-           <widget class="QGroupBox" name="partitionBrowserGB">
-            <property name="sizePolicy">
-             <sizepolicy hsizetype="Fixed" vsizetype="Preferred">
-              <horstretch>0</horstretch>
-              <verstretch>0</verstretch>
-             </sizepolicy>
+           <spacer name="horizontalSpacer_2">
+            <property name="orientation">
+             <enum>Qt::Horizontal</enum>
             </property>
-            <property name="title">
-             <string>Partition Browser</string>
+            <property name="sizeHint" stdset="0">
+             <size>
+              <width>40</width>
+              <height>20</height>
+             </size>
             </property>
-            <layout class="QVBoxLayout" name="verticalLayout_8">
-             <item>
-              <widget class="QTableWidget" name="partitionBrowserTW">
-               <property name="sizePolicy">
-                <sizepolicy hsizetype="Fixed" vsizetype="Expanding">
-                 <horstretch>0</horstretch>
-                 <verstretch>0</verstretch>
-                </sizepolicy>
-               </property>
-               <property name="minimumSize">
-                <size>
-                 <width>210</width>
-                 <height>0</height>
-                </size>
-               </property>
-               <property name="maximumSize">
-                <size>
-                 <width>210</width>
-                 <height>16777215</height>
-                </size>
-               </property>
-               <property name="horizontalScrollBarPolicy">
-                <enum>Qt::ScrollBarAlwaysOff</enum>
-               </property>
-               <property name="editTriggers">
-                <set>QAbstractItemView::NoEditTriggers</set>
-               </property>
-               <attribute name="horizontalHeaderDefaultSectionSize">
-                <number>90</number>
-               </attribute>
-               <attribute name="horizontalHeaderMinimumSectionSize">
-                <number>90</number>
-               </attribute>
-               <attribute name="horizontalHeaderStretchLastSection">
-                <bool>true</bool>
-               </attribute>
-               <attribute name="verticalHeaderVisible">
-                <bool>false</bool>
-               </attribute>
-               <column>
-                <property name="text">
-                 <string>Partition</string>
-                </property>
-               </column>
-               <column>
-                <property name="text">
-                 <string>Size</string>
-                </property>
-               </column>
-              </widget>
-             </item>
-            </layout>
-           </widget>
+           </spacer>
           </item>
          </layout>
         </widget>

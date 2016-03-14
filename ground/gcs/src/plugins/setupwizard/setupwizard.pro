@@ -9,7 +9,6 @@ include(../../plugins/uavobjectutil/uavobjectutil.pri)
 include(../../plugins/uavobjectwidgetutils/uavobjectwidgetutils.pri)
 include(../../plugins/config/config.pri)
 
-LIBS *= -l$$qtLibraryName(Uploader)
 HEADERS += setupwizardplugin.h \ 
     setupwizard.h \
     pages/boardtype_unknown.h \
@@ -32,7 +31,6 @@ HEADERS += setupwizardplugin.h \
     outputcalibrationutil.h \
     pages/rebootpage.h \
     pages/savepage.h \
-    pages/autoupdatepage.h \
     pages/biascalibrationpage.h \
     pages/tlendpage.h \
     pages/tlstartpage.h
@@ -59,7 +57,6 @@ SOURCES += setupwizardplugin.cpp \
     outputcalibrationutil.cpp \
     pages/rebootpage.cpp \
     pages/savepage.cpp \
-    pages/autoupdatepage.cpp \
     pages/biascalibrationpage.cpp \
     pages/tlendpage.cpp \
     pages/tlstartpage.cpp
@@ -86,7 +83,6 @@ FORMS += \
     pages/outputcalibrationpage.ui \
     pages/rebootpage.ui \
     pages/savepage.ui \
-    pages/autoupdatepage.ui \
     pages/biascalibrationpage.ui
 
 RESOURCES += \
