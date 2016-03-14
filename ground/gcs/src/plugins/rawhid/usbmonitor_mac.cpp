@@ -58,7 +58,7 @@ USBMonitor::USBMonitor(QObject *parent): QThread(parent) {
 
     m_instance = this;
 
-    listMutex = new QMutex();
+    listMutex = new QMutex(QMutex::Recursive);
     knowndevices.clear();
 
     hid_manager = IOHIDManagerCreate(kCFAllocatorDefault, kIOHIDOptionsTypeNone);
@@ -134,6 +134,20 @@ void USBMonitor::detach_callback(void *context, IOReturn r, void *hid_mgr, IOHID
 
 void USBMonitor::addDevice(USBPortInfo info) {
     QMutexLocker locker(listMutex);
+    for( int i = 0; i < knowndevices.length(); i++) {
+
+        USBPortInfo existing = knowndevices.at(i);
+        if (existing.serialNumber.split("+").at(0) ==
+                info.serialNumber.split("+").at(0)) {
+            // TODO: Fix hack; don't keep a parallel data structure, re-enumerate
+            qDebug() << "USBMonitor: Duplicate device detected: " << info.serialNumber << " vs. existing: " << existing.serialNumber;
+            knowndevices.removeAt(i);
+            emit deviceRemoved(existing);
+
+            i--;
+        }
+    }
+
     knowndevices.append(info);
     emit deviceDiscovered(info);
 }
@@ -175,7 +189,7 @@ Returns a list of all currently available devices
 */
 QList<USBPortInfo> USBMonitor::availableDevices()
 {
-    //QMutexLocker locker(listMutex);
+    QMutexLocker locker(listMutex);
     return knowndevices;
 }
 
