@@ -115,6 +115,8 @@ uint32_t PIOS_Thread_Systime(void)
  */
 void PIOS_Thread_Sleep(uint32_t time_ms)
 {
+	if (xTaskGetSchedulerState() == taskSCHEDULER_NOT_STARTED)
+		return;
 	if (time_ms == PIOS_THREAD_TIMEOUT_MAX)
 		vTaskDelay(portMAX_DELAY);
 	else
