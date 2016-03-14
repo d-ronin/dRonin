@@ -313,9 +313,6 @@
                <property name="text">
                 <string/>
                </property>
-               <property name="scaledContents">
-                <bool>true</bool>
-               </property>
               </widget>
              </item>
              <item row="0" column="2">
