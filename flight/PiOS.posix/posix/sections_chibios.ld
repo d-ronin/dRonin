@@ -133,16 +133,16 @@ SECTIONS
   }
 
   /* 
-   * Init section for UAVObjects.
+   * Register of settings UAVObjects. 
    */
-  .initcalluavobj.init :
+  .settingsuavobjs :
   {
     . = ALIGN(4);
-    __uavobj_initcall_start = .;
-    KEEP(*(.initcalluavobj.init))
+    __uavobj_settings_register_start = .;
+    KEEP(*(.settingsuavobjs))
     . = ALIGN(4);
-    __uavobj_initcall_end   = .;
-  }
+    __uavobj_settings_register_end   = .;
+  } > flash
 
   /* 
   * Module init section section

@@ -33,5 +33,6 @@ int32_t PIOS_FLASHFS_Format(uintptr_t fs_id);
 int32_t PIOS_FLASHFS_ObjSave(uintptr_t fs_id, uint32_t obj_id, uint16_t obj_inst_id, uint8_t * obj_data, uint16_t obj_size);
 int32_t PIOS_FLASHFS_ObjLoad(uintptr_t fs_id, uint32_t obj_id, uint16_t obj_inst_id, uint8_t * obj_data, uint16_t obj_size);
 int32_t PIOS_FLASHFS_ObjDelete(uintptr_t fs_id, uint32_t obj_id, uint16_t obj_inst_id);
+int32_t PIOS_FLASHFS_ObjIdAtSlot(uintptr_t fs_id, uint16_t slot, uint32_t *obj_id, uint32_t *obj_inst_id);
 
 #endif	/* PIOS_FLASHFS_H_ */

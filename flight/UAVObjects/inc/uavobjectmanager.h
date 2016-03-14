@@ -41,6 +41,10 @@
 #define UAVOBJ_ALL_INSTANCES 0xFFFF
 #define UAVOBJ_MAX_INSTANCES 1000
 
+#define UAVOBJ_SETTINGS_REGISTER(uavoid) \
+	static uint32_t __settings_uavobj_##uavoid __attribute__((__used__)) \
+	__attribute__((section(".settingsuavobjs"))) = uavoid;
+
 /*
  * Shifts and masks used to read/write metadata flags.
  */
