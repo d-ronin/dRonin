@@ -103,7 +103,6 @@ static const struct pios_mpu60x0_cfg pios_mpu6000_cfg = {
  * called from System/openpilot.c
  */
 void PIOS_Board_Init(void) {
-
 	/* Delay system */
 	PIOS_DELAY_Init();
 
