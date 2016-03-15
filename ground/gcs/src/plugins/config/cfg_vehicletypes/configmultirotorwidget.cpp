@@ -41,6 +41,7 @@
 #include "mixersettings.h"
 
 const QString ConfigMultiRotorWidget::CHANNELBOXNAME = QString("multiMotorChannelBox");
+const QString ConfigMultiRotorWidget::CHANNELLABELNAME = QString("MotorOutputLabel");
 
 
 /**
@@ -67,6 +68,9 @@ void ConfigMultiRotorWidget::setupUI(SystemSettings::AirframeTypeOptions frameTy
     Q_ASSERT(quad);
 
     int i;
+    // motor labels
+    QStringList labels;
+    int numMotors;
 
     // set aircraftType to Multirotor, disable triyaw channel
     setComboCurrentIndex(m_aircraft->aircraftType, m_aircraft->aircraftType->findText("Multirotor"));
@@ -87,14 +91,15 @@ void ConfigMultiRotorWidget::setupUI(SystemSettings::AirframeTypeOptions frameTy
     case SystemSettings::AIRFRAMETYPE_TRI:
         setComboCurrentIndex( m_aircraft->multirotorFrameType, m_aircraft->multirotorFrameType->findData(SystemSettings::AIRFRAMETYPE_TRI));
 
-        //Enable all necessary motor channel boxes...
-        enableComboBoxes(uiowner, CHANNELBOXNAME, 3, true);
-
         m_aircraft->mrRollMixLevel->setValue(100);
         m_aircraft->mrPitchMixLevel->setValue(100);
         setYawMixLevel(50);
 
         m_aircraft->triYawChannelBox->setEnabled(true);
+
+        // set motor boxes
+        numMotors = 3;
+        labels << "NW" << "NE" << "S";
         break;
     case SystemSettings::AIRFRAMETYPE_QUADX:
         setComboCurrentIndex( m_aircraft->multirotorFrameType, m_aircraft->multirotorFrameType->findData(SystemSettings::AIRFRAMETYPE_QUADX));
@@ -106,6 +111,10 @@ void ConfigMultiRotorWidget::setupUI(SystemSettings::AirframeTypeOptions frameTy
         m_aircraft->mrRollMixLevel->setValue(50);
         m_aircraft->mrPitchMixLevel->setValue(50);
         setYawMixLevel(50);
+
+        // set motor boxes
+        numMotors = 4;
+        labels << "NW" << "NE" << "SE" << "SW";
         break;
     case SystemSettings::AIRFRAMETYPE_QUADP:
         setComboCurrentIndex( m_aircraft->multirotorFrameType, m_aircraft->multirotorFrameType->findData(SystemSettings::AIRFRAMETYPE_QUADP));
@@ -116,80 +125,92 @@ void ConfigMultiRotorWidget::setupUI(SystemSettings::AirframeTypeOptions frameTy
         m_aircraft->mrRollMixLevel->setValue(100);
         m_aircraft->mrPitchMixLevel->setValue(100);
         setYawMixLevel(50);
+
+        // set motor boxes
+        numMotors = 4;
+        labels << "N" << "E" << "S" << "W";
         break;
     case SystemSettings::AIRFRAMETYPE_HEXA:
         setComboCurrentIndex( m_aircraft->multirotorFrameType, m_aircraft->multirotorFrameType->findData(SystemSettings::AIRFRAMETYPE_HEXA));
 
-        //Enable all necessary motor channel boxes...
-        enableComboBoxes(uiowner, CHANNELBOXNAME, 6, true);
-
         m_aircraft->mrRollMixLevel->setValue(50);
         m_aircraft->mrPitchMixLevel->setValue(33);
         setYawMixLevel(33);
+
+        // set motor boxes
+        numMotors = 6;
         break;
     case SystemSettings::AIRFRAMETYPE_HEXAX:
         setComboCurrentIndex( m_aircraft->multirotorFrameType, m_aircraft->multirotorFrameType->findData(SystemSettings::AIRFRAMETYPE_HEXAX));
 
-        //Enable all necessary motor channel boxes...
-        enableComboBoxes(uiowner, CHANNELBOXNAME, 6, true);
-
         m_aircraft->mrRollMixLevel->setValue(33);
         m_aircraft->mrPitchMixLevel->setValue(50);
         setYawMixLevel(33);
+
+        // set motor boxes
+        numMotors = 6;
         break;
     case SystemSettings::AIRFRAMETYPE_HEXACOAX:
         setComboCurrentIndex( m_aircraft->multirotorFrameType, m_aircraft->multirotorFrameType->findData(SystemSettings::AIRFRAMETYPE_HEXACOAX));
 
-        //Enable all necessary motor channel boxes...
-        enableComboBoxes(uiowner, CHANNELBOXNAME, 6, true);
-
         m_aircraft->mrRollMixLevel->setValue(100);
         m_aircraft->mrPitchMixLevel->setValue(50);
         setYawMixLevel(66);
+
+        // set motor boxes
+        numMotors = 6;
         break;
     case SystemSettings::AIRFRAMETYPE_OCTO:
         setComboCurrentIndex( m_aircraft->multirotorFrameType, m_aircraft->multirotorFrameType->findData(SystemSettings::AIRFRAMETYPE_OCTO));
 
-        //Enable all necessary motor channel boxes
-        enableComboBoxes(uiowner, CHANNELBOXNAME, 8, true);
-
         m_aircraft->mrRollMixLevel->setValue(33);
         m_aircraft->mrPitchMixLevel->setValue(33);
         setYawMixLevel(25);
+
+        // set motor boxes
+        numMotors = 8;
         break;
     case SystemSettings::AIRFRAMETYPE_OCTOV:
         setComboCurrentIndex( m_aircraft->multirotorFrameType, m_aircraft->multirotorFrameType->findData(SystemSettings::AIRFRAMETYPE_OCTOV));
-        //Enable all necessary motor channel boxes
-        enableComboBoxes(uiowner, CHANNELBOXNAME, 8, true);
 
         m_aircraft->mrRollMixLevel->setValue(25);
         m_aircraft->mrPitchMixLevel->setValue(25);
         setYawMixLevel(25);
+
+        // set motor boxes
+        numMotors = 8;
         break;
     case SystemSettings::AIRFRAMETYPE_OCTOCOAXP:
         setComboCurrentIndex( m_aircraft->multirotorFrameType, m_aircraft->multirotorFrameType->findData(SystemSettings::AIRFRAMETYPE_OCTOCOAXP));
 
-        //Enable all necessary motor channel boxes
-        enableComboBoxes(uiowner, CHANNELBOXNAME, 8, true);
-
         m_aircraft->mrRollMixLevel->setValue(100);
         m_aircraft->mrPitchMixLevel->setValue(100);
         setYawMixLevel(50);
+
+        // set motor boxes
+        numMotors = 8;
         break;
     case SystemSettings::AIRFRAMETYPE_OCTOCOAXX:
         setComboCurrentIndex( m_aircraft->multirotorFrameType, m_aircraft->multirotorFrameType->findData(SystemSettings::AIRFRAMETYPE_OCTOCOAXX));
 
-        //Enable all necessary motor channel boxes
-        enableComboBoxes(uiowner, CHANNELBOXNAME, 8, true);
-
         m_aircraft->mrRollMixLevel->setValue(50);
         m_aircraft->mrPitchMixLevel->setValue(50);
         setYawMixLevel(50);
+
+        // set motor boxes
+        numMotors = 8;
         break;
     default:
         Q_ASSERT(0);
         break;
     }
+
+    // set labels on motor boxes, use default labels when not specified by vehicle type above
+    for (int i = labels.length() + 1; i <= numMotors; i++)
+        labels << QString::number(i);
+    setLabelText(uiowner, CHANNELLABELNAME, labels);
+    // enable necessary motor boxes
+    enableComboBoxes(uiowner, CHANNELBOXNAME, numMotors, true);
 
     //Draw the appropriate airframe
     drawAirframe(frameType);

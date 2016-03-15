@@ -146,8 +146,8 @@
            <rect>
             <x>0</x>
             <y>0</y>
-            <width>850</width>
-            <height>439</height>
+            <width>852</width>
+            <height>445</height>
            </rect>
           </property>
           <layout class="QVBoxLayout" name="verticalLayout">
@@ -748,7 +748,7 @@ margin:1px;</string>
                 <number>0</number>
                </property>
                <property name="verticalSpacing">
-                <number>-1</number>
+                <number>6</number>
                </property>
                <item row="0" column="0">
                 <widget class="QGroupBox" name="groupBox_10">
@@ -1297,6 +1297,12 @@ margin:1px;</string>
                     </property>
                     <item row="0" column="0">
                      <widget class="QLabel" name="MotorOutputLabel1">
+                      <property name="minimumSize">
+                       <size>
+                        <width>35</width>
+                        <height>0</height>
+                       </size>
+                      </property>
                       <property name="styleSheet">
                        <string notr="true">background-color: qlineargradient(spread:reflect, x1:0.507, y1:0, x2:0.507, y2:0.772, stop:0.208955 rgba(74, 74, 74, 255), stop:0.78607 rgba(36, 36, 36, 255));
 color: rgb(255, 255, 255);
@@ -1306,6 +1312,9 @@ margin:1px;</string>
                       </property>
                       <property name="text">
                        <string>1</string>
+                      </property>
+                      <property name="alignment">
+                       <set>Qt::AlignCenter</set>
                       </property>
                      </widget>
                     </item>
@@ -1317,7 +1326,13 @@ margin:1px;</string>
                      </widget>
                     </item>
                     <item row="1" column="0">
-                     <widget class="QLabel" name="label_8">
+                     <widget class="QLabel" name="MotorOutputLabel2">
+                      <property name="minimumSize">
+                       <size>
+                        <width>35</width>
+                        <height>0</height>
+                       </size>
+                      </property>
                       <property name="styleSheet">
                        <string notr="true">background-color: qlineargradient(spread:reflect, x1:0.507, y1:0, x2:0.507, y2:0.772, stop:0.208955 rgba(74, 74, 74, 255), stop:0.78607 rgba(36, 36, 36, 255));
 color: rgb(255, 255, 255);
@@ -1327,6 +1342,9 @@ margin:1px;</string>
                       </property>
                       <property name="text">
                        <string>2</string>
+                      </property>
+                      <property name="alignment">
+                       <set>Qt::AlignCenter</set>
                       </property>
                      </widget>
                     </item>
@@ -1338,7 +1356,13 @@ margin:1px;</string>
                      </widget>
                     </item>
                     <item row="2" column="0">
-                     <widget class="QLabel" name="label_9">
+                     <widget class="QLabel" name="MotorOutputLabel3">
+                      <property name="minimumSize">
+                       <size>
+                        <width>35</width>
+                        <height>0</height>
+                       </size>
+                      </property>
                       <property name="styleSheet">
                        <string notr="true">background-color: qlineargradient(spread:reflect, x1:0.507, y1:0, x2:0.507, y2:0.772, stop:0.208955 rgba(74, 74, 74, 255), stop:0.78607 rgba(36, 36, 36, 255));
 color: rgb(255, 255, 255);
@@ -1348,6 +1372,9 @@ margin:1px;</string>
                       </property>
                       <property name="text">
                        <string>3</string>
+                      </property>
+                      <property name="alignment">
+                       <set>Qt::AlignCenter</set>
                       </property>
                      </widget>
                     </item>
@@ -1359,7 +1386,13 @@ margin:1px;</string>
                      </widget>
                     </item>
                     <item row="3" column="0">
-                     <widget class="QLabel" name="label_10">
+                     <widget class="QLabel" name="MotorOutputLabel4">
+                      <property name="minimumSize">
+                       <size>
+                        <width>35</width>
+                        <height>0</height>
+                       </size>
+                      </property>
                       <property name="styleSheet">
                        <string notr="true">background-color: qlineargradient(spread:reflect, x1:0.507, y1:0, x2:0.507, y2:0.772, stop:0.208955 rgba(74, 74, 74, 255), stop:0.78607 rgba(36, 36, 36, 255));
 color: rgb(255, 255, 255);
@@ -1369,6 +1402,9 @@ margin:1px;</string>
                       </property>
                       <property name="text">
                        <string>4</string>
+                      </property>
+                      <property name="alignment">
+                       <set>Qt::AlignCenter</set>
                       </property>
                      </widget>
                     </item>
@@ -1393,7 +1429,13 @@ margin:1px;</string>
                      <number>6</number>
                     </property>
                     <item row="0" column="0">
-                     <widget class="QLabel" name="label_11">
+                     <widget class="QLabel" name="MotorOutputLabel5">
+                      <property name="minimumSize">
+                       <size>
+                        <width>35</width>
+                        <height>0</height>
+                       </size>
+                      </property>
                       <property name="styleSheet">
                        <string notr="true">background-color: qlineargradient(spread:reflect, x1:0.507, y1:0, x2:0.507, y2:0.772, stop:0.208955 rgba(74, 74, 74, 255), stop:0.78607 rgba(36, 36, 36, 255));
 color: rgb(255, 255, 255);
@@ -1403,6 +1445,9 @@ margin:1px;</string>
                       </property>
                       <property name="text">
                        <string>5</string>
+                      </property>
+                      <property name="alignment">
+                       <set>Qt::AlignCenter</set>
                       </property>
                      </widget>
                     </item>
@@ -1423,7 +1468,13 @@ margin:1px;</string>
                      </widget>
                     </item>
                     <item row="1" column="0">
-                     <widget class="QLabel" name="label_12">
+                     <widget class="QLabel" name="MotorOutputLabel6">
+                      <property name="minimumSize">
+                       <size>
+                        <width>35</width>
+                        <height>0</height>
+                       </size>
+                      </property>
                       <property name="styleSheet">
                        <string notr="true">background-color: qlineargradient(spread:reflect, x1:0.507, y1:0, x2:0.507, y2:0.772, stop:0.208955 rgba(74, 74, 74, 255), stop:0.78607 rgba(36, 36, 36, 255));
 color: rgb(255, 255, 255);
@@ -1433,6 +1484,9 @@ margin:1px;</string>
                       </property>
                       <property name="text">
                        <string>6</string>
+                      </property>
+                      <property name="alignment">
+                       <set>Qt::AlignCenter</set>
                       </property>
                      </widget>
                     </item>
@@ -1447,7 +1501,13 @@ margin:1px;</string>
                      </widget>
                     </item>
                     <item row="2" column="0">
-                     <widget class="QLabel" name="label_16">
+                     <widget class="QLabel" name="MotorOutputLabel7">
+                      <property name="minimumSize">
+                       <size>
+                        <width>35</width>
+                        <height>0</height>
+                       </size>
+                      </property>
                       <property name="styleSheet">
                        <string notr="true">background-color: qlineargradient(spread:reflect, x1:0.507, y1:0, x2:0.507, y2:0.772, stop:0.208955 rgba(74, 74, 74, 255), stop:0.78607 rgba(36, 36, 36, 255));
 color: rgb(255, 255, 255);
@@ -1457,6 +1517,9 @@ margin:1px;</string>
                       </property>
                       <property name="text">
                        <string>7</string>
+                      </property>
+                      <property name="alignment">
+                       <set>Qt::AlignCenter</set>
                       </property>
                      </widget>
                     </item>
@@ -1471,7 +1534,13 @@ margin:1px;</string>
                      </widget>
                     </item>
                     <item row="3" column="0">
-                     <widget class="QLabel" name="label_17">
+                     <widget class="QLabel" name="MotorOutputLabel8">
+                      <property name="minimumSize">
+                       <size>
+                        <width>35</width>
+                        <height>0</height>
+                       </size>
+                      </property>
                       <property name="styleSheet">
                        <string notr="true">background-color: qlineargradient(spread:reflect, x1:0.507, y1:0, x2:0.507, y2:0.772, stop:0.208955 rgba(74, 74, 74, 255), stop:0.78607 rgba(36, 36, 36, 255));
 color: rgb(255, 255, 255);
@@ -1481,6 +1550,9 @@ margin:1px;</string>
                       </property>
                       <property name="text">
                        <string>8</string>
+                      </property>
+                      <property name="alignment">
+                       <set>Qt::AlignCenter</set>
                       </property>
                      </widget>
                     </item>
@@ -1645,8 +1717,8 @@ margin:1px;</string>
                    <rect>
                     <x>0</x>
                     <y>0</y>
-                    <width>724</width>
-                    <height>258</height>
+                    <width>773</width>
+                    <height>226</height>
                    </rect>
                   </property>
                   <layout class="QVBoxLayout" name="verticalLayout_11">
@@ -2339,7 +2411,7 @@ margin:1px;</string>
                      <string>-</string>
                     </property>
                     <property name="textAlignment">
-                     <set>AlignHCenter|AlignVCenter|AlignCenter</set>
+                     <set>AlignCenter</set>
                     </property>
                    </item>
                    <item row="0" column="1">
@@ -2347,7 +2419,7 @@ margin:1px;</string>
                      <string>-</string>
                     </property>
                     <property name="textAlignment">
-                     <set>AlignHCenter|AlignVCenter|AlignCenter</set>
+                     <set>AlignCenter</set>
                     </property>
                    </item>
                    <item row="0" column="2">
@@ -2355,7 +2427,7 @@ margin:1px;</string>
                      <string>-</string>
                     </property>
                     <property name="textAlignment">
-                     <set>AlignHCenter|AlignVCenter|AlignCenter</set>
+                     <set>AlignCenter</set>
                     </property>
                    </item>
                    <item row="0" column="3">
@@ -2363,7 +2435,7 @@ margin:1px;</string>
                      <string>-</string>
                     </property>
                     <property name="textAlignment">
-                     <set>AlignHCenter|AlignVCenter|AlignCenter</set>
+                     <set>AlignCenter</set>
                     </property>
                    </item>
                    <item row="0" column="4">
@@ -2371,7 +2443,7 @@ margin:1px;</string>
                      <string>-</string>
                     </property>
                     <property name="textAlignment">
-                     <set>AlignHCenter|AlignVCenter|AlignCenter</set>
+                     <set>AlignCenter</set>
                     </property>
                    </item>
                    <item row="0" column="5">
@@ -2379,7 +2451,7 @@ margin:1px;</string>
                      <string>-</string>
                     </property>
                     <property name="textAlignment">
-                     <set>AlignHCenter|AlignVCenter|AlignCenter</set>
+                     <set>AlignCenter</set>
                     </property>
                    </item>
                    <item row="0" column="6">
@@ -2387,7 +2459,7 @@ margin:1px;</string>
                      <string>-</string>
                     </property>
                     <property name="textAlignment">
-                     <set>AlignHCenter|AlignVCenter|AlignCenter</set>
+                     <set>AlignCenter</set>
                     </property>
                    </item>
                    <item row="0" column="7">
@@ -2395,7 +2467,7 @@ margin:1px;</string>
                      <string>-</string>
                     </property>
                     <property name="textAlignment">
-                     <set>AlignHCenter|AlignVCenter|AlignCenter</set>
+                     <set>AlignCenter</set>
                     </property>
                    </item>
                    <item row="0" column="8">
@@ -2403,7 +2475,7 @@ margin:1px;</string>
                      <string>-</string>
                     </property>
                     <property name="textAlignment">
-                     <set>AlignHCenter|AlignVCenter|AlignCenter</set>
+                     <set>AlignCenter</set>
                     </property>
                    </item>
                    <item row="0" column="9">
@@ -2411,7 +2483,7 @@ margin:1px;</string>
                      <string>-</string>
                     </property>
                     <property name="textAlignment">
-                     <set>AlignHCenter|AlignVCenter|AlignCenter</set>
+                     <set>AlignCenter</set>
                     </property>
                    </item>
                    <item row="1" column="0">
@@ -2419,7 +2491,7 @@ margin:1px;</string>
                      <string>-</string>
                     </property>
                     <property name="textAlignment">
-                     <set>AlignHCenter|AlignVCenter|AlignCenter</set>
+                     <set>AlignCenter</set>
                     </property>
                    </item>
                    <item row="1" column="1">
@@ -2427,7 +2499,7 @@ margin:1px;</string>
                      <string>-</string>
                     </property>
                     <property name="textAlignment">
-                     <set>AlignHCenter|AlignVCenter|AlignCenter</set>
+                     <set>AlignCenter</set>
                     </property>
                    </item>
                    <item row="1" column="2">
@@ -2435,7 +2507,7 @@ margin:1px;</string>
                      <string>-</string>
                     </property>
                     <property name="textAlignment">
-                     <set>AlignHCenter|AlignVCenter|AlignCenter</set>
+                     <set>AlignCenter</set>
                     </property>
                    </item>
                    <item row="1" column="3">
@@ -2443,7 +2515,7 @@ margin:1px;</string>
                      <string>-</string>
                     </property>
                     <property name="textAlignment">
-                     <set>AlignHCenter|AlignVCenter|AlignCenter</set>
+                     <set>AlignCenter</set>
                     </property>
                    </item>
                    <item row="1" column="4">
@@ -2451,7 +2523,7 @@ margin:1px;</string>
                      <string>-</string>
                     </property>
                     <property name="textAlignment">
-                     <set>AlignHCenter|AlignVCenter|AlignCenter</set>
+                     <set>AlignCenter</set>
                     </property>
                    </item>
                    <item row="1" column="5">
@@ -2459,7 +2531,7 @@ margin:1px;</string>
                      <string>-</string>
                     </property>
                     <property name="textAlignment">
-                     <set>AlignHCenter|AlignVCenter|AlignCenter</set>
+                     <set>AlignCenter</set>
                     </property>
                    </item>
                    <item row="1" column="6">
@@ -2467,7 +2539,7 @@ margin:1px;</string>
                      <string>-</string>
                     </property>
                     <property name="textAlignment">
-                     <set>AlignHCenter|AlignVCenter|AlignCenter</set>
+                     <set>AlignCenter</set>
                     </property>
                    </item>
                    <item row="1" column="7">
@@ -2475,7 +2547,7 @@ margin:1px;</string>
                      <string>-</string>
                     </property>
                     <property name="textAlignment">
-                     <set>AlignHCenter|AlignVCenter|AlignCenter</set>
+                     <set>AlignCenter</set>
                     </property>
                    </item>
                    <item row="1" column="8">
@@ -2483,7 +2555,7 @@ margin:1px;</string>
                      <string>-</string>
                     </property>
                     <property name="textAlignment">
-                     <set>AlignHCenter|AlignVCenter|AlignCenter</set>
+                     <set>AlignCenter</set>
                     </property>
                    </item>
                    <item row="1" column="9">
@@ -2491,7 +2563,7 @@ margin:1px;</string>
                      <string>-</string>
                     </property>
                     <property name="textAlignment">
-                     <set>AlignHCenter|AlignVCenter|AlignCenter</set>
+                     <set>AlignCenter</set>
                     </property>
                    </item>
                    <item row="2" column="0">
@@ -2499,7 +2571,7 @@ margin:1px;</string>
                      <string>-</string>
                     </property>
                     <property name="textAlignment">
-                     <set>AlignHCenter|AlignVCenter|AlignCenter</set>
+                     <set>AlignCenter</set>
                     </property>
                    </item>
                    <item row="2" column="1">
@@ -2507,7 +2579,7 @@ margin:1px;</string>
                      <string>-</string>
                     </property>
                     <property name="textAlignment">
-                     <set>AlignHCenter|AlignVCenter|AlignCenter</set>
+                     <set>AlignCenter</set>
                     </property>
                    </item>
                    <item row="2" column="2">
@@ -2515,7 +2587,7 @@ margin:1px;</string>
                      <string>-</string>
                     </property>
                     <property name="textAlignment">
-                     <set>AlignHCenter|AlignVCenter|AlignCenter</set>
+                     <set>AlignCenter</set>
                     </property>
                    </item>
                    <item row="2" column="3">
@@ -2523,7 +2595,7 @@ margin:1px;</string>
                      <string>-</string>
                     </property>
                     <property name="textAlignment">
-                     <set>AlignHCenter|AlignVCenter|AlignCenter</set>
+                     <set>AlignCenter</set>
                     </property>
                    </item>
                    <item row="2" column="4">
@@ -2531,7 +2603,7 @@ margin:1px;</string>
                      <string>-</string>
                     </property>
                     <property name="textAlignment">
-                     <set>AlignHCenter|AlignVCenter|AlignCenter</set>
+                     <set>AlignCenter</set>
                     </property>
                    </item>
                    <item row="2" column="5">
@@ -2539,7 +2611,7 @@ margin:1px;</string>
                      <string>-</string>
                     </property>
                     <property name="textAlignment">
-                     <set>AlignHCenter|AlignVCenter|AlignCenter</set>
+                     <set>AlignCenter</set>
                     </property>
                    </item>
                    <item row="2" column="6">
@@ -2547,7 +2619,7 @@ margin:1px;</string>
                      <string>-</string>
                     </property>
                     <property name="textAlignment">
-                     <set>AlignHCenter|AlignVCenter|AlignCenter</set>
+                     <set>AlignCenter</set>
                     </property>
                    </item>
                    <item row="2" column="7">
@@ -2555,7 +2627,7 @@ margin:1px;</string>
                      <string>-</string>
                     </property>
                     <property name="textAlignment">
-                     <set>AlignHCenter|AlignVCenter|AlignCenter</set>
+                     <set>AlignCenter</set>
                     </property>
                    </item>
                    <item row="2" column="8">
@@ -2563,7 +2635,7 @@ margin:1px;</string>
                      <string>-</string>
                     </property>
                     <property name="textAlignment">
-                     <set>AlignHCenter|AlignVCenter|AlignCenter</set>
+                     <set>AlignCenter</set>
                     </property>
                    </item>
                    <item row="2" column="9">
@@ -2571,7 +2643,7 @@ margin:1px;</string>
                      <string>-</string>
                     </property>
                     <property name="textAlignment">
-                     <set>AlignHCenter|AlignVCenter|AlignCenter</set>
+                     <set>AlignCenter</set>
                     </property>
                    </item>
                    <item row="3" column="0">
@@ -2579,7 +2651,7 @@ margin:1px;</string>
                      <string>-</string>
                     </property>
                     <property name="textAlignment">
-                     <set>AlignHCenter|AlignVCenter|AlignCenter</set>
+                     <set>AlignCenter</set>
                     </property>
                    </item>
                    <item row="3" column="1">
@@ -2587,7 +2659,7 @@ margin:1px;</string>
                      <string>-</string>
                     </property>
                     <property name="textAlignment">
-                     <set>AlignHCenter|AlignVCenter|AlignCenter</set>
+                     <set>AlignCenter</set>
                     </property>
                    </item>
                    <item row="3" column="2">
@@ -2595,7 +2667,7 @@ margin:1px;</string>
                      <string>-</string>
                     </property>
                     <property name="textAlignment">
-                     <set>AlignHCenter|AlignVCenter|AlignCenter</set>
+                     <set>AlignCenter</set>
                     </property>
                    </item>
                    <item row="3" column="3">
@@ -2603,7 +2675,7 @@ margin:1px;</string>
                      <string>-</string>
                     </property>
                     <property name="textAlignment">
-                     <set>AlignHCenter|AlignVCenter|AlignCenter</set>
+                     <set>AlignCenter</set>
                     </property>
                    </item>
                    <item row="3" column="4">
@@ -2611,7 +2683,7 @@ margin:1px;</string>
                      <string>-</string>
                     </property>
                     <property name="textAlignment">
-                     <set>AlignHCenter|AlignVCenter|AlignCenter</set>
+                     <set>AlignCenter</set>
                     </property>
                    </item>
                    <item row="3" column="5">
@@ -2619,7 +2691,7 @@ margin:1px;</string>
                      <string>-</string>
                     </property>
                     <property name="textAlignment">
-                     <set>AlignHCenter|AlignVCenter|AlignCenter</set>
+                     <set>AlignCenter</set>
                     </property>
                    </item>
                    <item row="3" column="6">
@@ -2627,7 +2699,7 @@ margin:1px;</string>
                      <string>-</string>
                     </property>
                     <property name="textAlignment">
-                     <set>AlignHCenter|AlignVCenter|AlignCenter</set>
+                     <set>AlignCenter</set>
                     </property>
                    </item>
                    <item row="3" column="7">
@@ -2635,7 +2707,7 @@ margin:1px;</string>
                      <string>-</string>
                     </property>
                     <property name="textAlignment">
-                     <set>AlignHCenter|AlignVCenter|AlignCenter</set>
+                     <set>AlignCenter</set>
                     </property>
                    </item>
                    <item row="3" column="8">
@@ -2643,7 +2715,7 @@ margin:1px;</string>
                      <string>-</string>
                     </property>
                     <property name="textAlignment">
-                     <set>AlignHCenter|AlignVCenter|AlignCenter</set>
+                     <set>AlignCenter</set>
                     </property>
                    </item>
                    <item row="3" column="9">
@@ -2651,7 +2723,7 @@ margin:1px;</string>
                      <string>-</string>
                     </property>
                     <property name="textAlignment">
-                     <set>AlignHCenter|AlignVCenter|AlignCenter</set>
+                     <set>AlignCenter</set>
                     </property>
                    </item>
                    <item row="4" column="0">
@@ -2659,7 +2731,7 @@ margin:1px;</string>
                      <string>-</string>
                     </property>
                     <property name="textAlignment">
-                     <set>AlignHCenter|AlignVCenter|AlignCenter</set>
+                     <set>AlignCenter</set>
                     </property>
                    </item>
                    <item row="4" column="1">
@@ -2667,7 +2739,7 @@ margin:1px;</string>
                      <string>-</string>
                     </property>
                     <property name="textAlignment">
-                     <set>AlignHCenter|AlignVCenter|AlignCenter</set>
+                     <set>AlignCenter</set>
                     </property>
                    </item>
                    <item row="4" column="2">
@@ -2675,7 +2747,7 @@ margin:1px;</string>
                      <string>-</string>
                     </property>
                     <property name="textAlignment">
-                     <set>AlignHCenter|AlignVCenter|AlignCenter</set>
+                     <set>AlignCenter</set>
                     </property>
                    </item>
                    <item row="4" column="3">
@@ -2683,7 +2755,7 @@ margin:1px;</string>
                      <string>-</string>
                     </property>
                     <property name="textAlignment">
-                     <set>AlignHCenter|AlignVCenter|AlignCenter</set>
+                     <set>AlignCenter</set>
                     </property>
                    </item>
                    <item row="4" column="4">
@@ -2691,7 +2763,7 @@ margin:1px;</string>
                      <string>-</string>
                     </property>
                     <property name="textAlignment">
-                     <set>AlignHCenter|AlignVCenter|AlignCenter</set>
+                     <set>AlignCenter</set>
                     </property>
                    </item>
                    <item row="4" column="5">
@@ -2699,7 +2771,7 @@ margin:1px;</string>
                      <string>-</string>
                     </property>
                     <property name="textAlignment">
-                     <set>AlignHCenter|AlignVCenter|AlignCenter</set>
+                     <set>AlignCenter</set>
                     </property>
                    </item>
                    <item row="4" column="6">
@@ -2707,7 +2779,7 @@ margin:1px;</string>
                      <string>-</string>
                     </property>
                     <property name="textAlignment">
-                     <set>AlignHCenter|AlignVCenter|AlignCenter</set>
+                     <set>AlignCenter</set>
                     </property>
                    </item>
                    <item row="4" column="7">
@@ -2715,7 +2787,7 @@ margin:1px;</string>
                      <string>-</string>
                     </property>
                     <property name="textAlignment">
-                     <set>AlignHCenter|AlignVCenter|AlignCenter</set>
+                     <set>AlignCenter</set>
                     </property>
                    </item>
                    <item row="4" column="8">
@@ -2723,7 +2795,7 @@ margin:1px;</string>
                      <string>-</string>
                     </property>
                     <property name="textAlignment">
-                     <set>AlignHCenter|AlignVCenter|AlignCenter</set>
+                     <set>AlignCenter</set>
                     </property>
                    </item>
                    <item row="4" column="9">
@@ -2731,7 +2803,7 @@ margin:1px;</string>
                      <string>-</string>
                     </property>
                     <property name="textAlignment">
-                     <set>AlignHCenter|AlignVCenter|AlignCenter</set>
+                     <set>AlignCenter</set>
                     </property>
                    </item>
                    <item row="5" column="0">
@@ -2739,7 +2811,7 @@ margin:1px;</string>
                      <string>-</string>
                     </property>
                     <property name="textAlignment">
-                     <set>AlignHCenter|AlignVCenter|AlignCenter</set>
+                     <set>AlignCenter</set>
                     </property>
                    </item>
                    <item row="5" column="1">
@@ -2747,7 +2819,7 @@ margin:1px;</string>
                      <string>-</string>
                     </property>
                     <property name="textAlignment">
-                     <set>AlignHCenter|AlignVCenter|AlignCenter</set>
+                     <set>AlignCenter</set>
                     </property>
                    </item>
                    <item row="5" column="2">
@@ -2755,7 +2827,7 @@ margin:1px;</string>
                      <string>-</string>
                     </property>
                     <property name="textAlignment">
-                     <set>AlignHCenter|AlignVCenter|AlignCenter</set>
+                     <set>AlignCenter</set>
                     </property>
                    </item>
                    <item row="5" column="3">
@@ -2763,7 +2835,7 @@ margin:1px;</string>
                      <string>-</string>
                     </property>
                     <property name="textAlignment">
-                     <set>AlignHCenter|AlignVCenter|AlignCenter</set>
+                     <set>AlignCenter</set>
                     </property>
                    </item>
                    <item row="5" column="4">
@@ -2771,7 +2843,7 @@ margin:1px;</string>
                      <string>-</string>
                     </property>
                     <property name="textAlignment">
-                     <set>AlignHCenter|AlignVCenter|AlignCenter</set>
+                     <set>AlignCenter</set>
                     </property>
                    </item>
                    <item row="5" column="5">
@@ -2779,7 +2851,7 @@ margin:1px;</string>
                      <string>-</string>
                     </property>
                     <property name="textAlignment">
-                     <set>AlignHCenter|AlignVCenter|AlignCenter</set>
+                     <set>AlignCenter</set>
                     </property>
                    </item>
                    <item row="5" column="6">
@@ -2787,7 +2859,7 @@ margin:1px;</string>
                      <string>-</string>
                     </property>
                     <property name="textAlignment">
-                     <set>AlignHCenter|AlignVCenter|AlignCenter</set>
+                     <set>AlignCenter</set>
                     </property>
                    </item>
                    <item row="5" column="7">
@@ -2795,7 +2867,7 @@ margin:1px;</string>
                      <string>-</string>
                     </property>
                     <property name="textAlignment">
-                     <set>AlignHCenter|AlignVCenter|AlignCenter</set>
+                     <set>AlignCenter</set>
                     </property>
                    </item>
                    <item row="5" column="8">
@@ -2803,7 +2875,7 @@ margin:1px;</string>
                      <string>-</string>
                     </property>
                     <property name="textAlignment">
-                     <set>AlignHCenter|AlignVCenter|AlignCenter</set>
+                     <set>AlignCenter</set>
                     </property>
                    </item>
                    <item row="5" column="9">
@@ -2811,7 +2883,7 @@ margin:1px;</string>
                      <string>-</string>
                     </property>
                     <property name="textAlignment">
-                     <set>AlignHCenter|AlignVCenter|AlignCenter</set>
+                     <set>AlignCenter</set>
                     </property>
                    </item>
                   </widget>

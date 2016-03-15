@@ -145,6 +145,9 @@ class VehicleConfig: public ConfigTaskWidget
 
         const static double mixerRange;
 
+    protected:
+        void setLabelText(QWidget* owner, const QString &boxName, const QStringList &labels);
+
     private:
 
         static UAVObjectManager* getUAVObjectManager();
