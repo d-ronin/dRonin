@@ -273,7 +273,7 @@ endif
 
 openocd_install: openocd_clean
         # download the source
-	$(V0) @echo " DOWNLOAD     $(OPENOCD_URL) @ $(OPENOCD_REV)"
+	$(V0) @echo " DOWNLOAD     $(OPENOCD_URL) @ $(OPENOCD_TAG)"
 	$(V1) [ ! -d "$(OPENOCD_BUILD_DIR)" ] || $(RM) -rf "$(OPENOCD_BUILD_DIR)"
 	$(V1) mkdir -p "$(OPENOCD_BUILD_DIR)"
 	$(V1) git clone --no-checkout $(OPENOCD_URL) "$(OPENOCD_BUILD_DIR)"
