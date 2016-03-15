@@ -33,6 +33,7 @@
 
 #include "configstabilizationwidget.h"
 #include "convertmwrate.h"
+#include "manualcontrolsettings.h"
 
 #include <QDebug>
 #include <QStringList>
@@ -49,7 +50,7 @@
 #include <coreplugin/generalsettings.h>
 
 
-ConfigStabilizationWidget::ConfigStabilizationWidget(QWidget *parent) : ConfigTaskWidget(parent)
+ConfigStabilizationWidget::ConfigStabilizationWidget(QWidget *parent) : ConfigTaskWidget(parent), manualControlSettings(nullptr)
 {
     m_stabilization = new Ui_StabilizationWidget();
     m_stabilization->setupUi(this);
@@ -60,6 +61,12 @@ ConfigStabilizationWidget::ConfigStabilizationWidget(QWidget *parent) : ConfigTa
 
     if (!settings->useExpertMode())
         m_stabilization->saveStabilizationToRAM_6->setVisible(false);
+
+    // display switch arming not selected warning when hangtime enabled
+    connect(m_stabilization->sbHangtime, SIGNAL(valueChanged(double)), this, SLOT(hangtimeChanged()));
+    manualControlSettings = getObjectManager()->getObject(ManualControlSettings::NAME);
+    if (manualControlSettings)
+        connect(manualControlSettings, SIGNAL(objectUpdated(UAVObject*)), this, SLOT(hangtimeChanged()));
 
 
     autoLoadWidgets();
@@ -388,4 +395,17 @@ void ConfigStabilizationWidget::showExpoPlot()
       m_stabilization->attitudeStickExpoPlot->plotDataYaw(m_stabilization->attitudeYawExpo->value(), m_stabilization->rateYawKp_3->value(), ExpoCurve::Y_Left);
       update_exp.RateYaw = false;
     }
+}
+
+void ConfigStabilizationWidget::hangtimeChanged()
+{
+    bool warn = m_stabilization->sbHangtime->value() > 0.0;
+    if (manualControlSettings) {
+        UAVObjectField *field = manualControlSettings->getField("Arming");
+        if (field) {
+            const QString option = field->getValue().toString();
+            warn &= !option.startsWith("Switch") && option != "Always Disarmed";
+        }
+    }
+    m_stabilization->lblSwitchArmingWarning->setVisible(warn);
 }

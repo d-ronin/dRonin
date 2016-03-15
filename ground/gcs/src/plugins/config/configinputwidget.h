@@ -197,6 +197,7 @@ private slots:
         void updateCalibration();
         void checkArmingConfig(QString option);
         void checkFlightMode(QString option);
+        void checkHangtimeConfig();
 
 protected:
         void resizeEvent(QResizeEvent *event);

@@ -64,6 +64,8 @@ private:
       bool HorizonRateYaw;
     } update_exp;
 
+    UAVObject *manualControlSettings;
+
 private slots:
     void linkCheckBoxes(int value);
     void processLinkedWidgets(QWidget*);
@@ -73,6 +75,7 @@ private slots:
     void applyMWRateConvertDialog();
 
     void showExpoPlot();
+    void hangtimeChanged();
 };
 
 #endif // ConfigStabilizationWidget_H

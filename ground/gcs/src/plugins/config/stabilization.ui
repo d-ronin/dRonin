@@ -615,8 +615,8 @@
            <rect>
             <x>0</x>
             <y>0</y>
-            <width>1006</width>
-            <height>883</height>
+            <width>1008</width>
+            <height>896</height>
            </rect>
           </property>
           <layout class="QVBoxLayout" name="verticalLayout_12">
@@ -10498,8 +10498,8 @@ border-radius: 5;</string>
            <rect>
             <x>0</x>
             <y>0</y>
-            <width>980</width>
-            <height>1019</height>
+            <width>918</width>
+            <height>996</height>
            </rect>
           </property>
           <property name="autoFillBackground">
@@ -29361,8 +29361,8 @@ value as the Kp.</string>
            <rect>
             <x>0</x>
             <y>0</y>
-            <width>980</width>
-            <height>1473</height>
+            <width>994</width>
+            <height>1466</height>
            </rect>
           </property>
           <layout class="QVBoxLayout" name="verticalLayout_9">
@@ -34777,6 +34777,13 @@ border-radius: 5;</string>
                    </size>
                   </property>
                  </spacer>
+                </item>
+                <item row="1" column="0" colspan="11">
+                 <widget class="QLabel" name="lblSwitchArmingWarning">
+                  <property name="text">
+                   <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600; color:#ff0000;&quot;&gt;Warning:&lt;/span&gt;&lt;span style=&quot; color:#ff0000;&quot;&gt; It is strongly recommended to use switch arming when HangTime is enabled.&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                  </property>
+                 </widget>
                 </item>
                </layout>
               </widget>
