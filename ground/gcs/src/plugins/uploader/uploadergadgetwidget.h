@@ -95,10 +95,11 @@ private:
     void setStatusInfo(QString str, uploader::StatusIcon ic);
     QString getFirmwarePathForBoard(QString boardName);
     bool FirmwareLoadFromFile(QString filename);
-    bool FirmwareLoadFromFile(QFileInfo filename);
     bool FirmwareCheckForUpdate(deviceDescriptorStruct device);
     void triggerPartitionDownload(int index);
     void haltOrReset(bool halting);
+    bool tradeSettingsWithCloud();
+    bool downloadSettings();
 
     Ui_UploaderWidget *m_widget;
 
@@ -106,17 +107,20 @@ private:
 
     bool telemetryConnected;
     bool iapUpdated;
-    UAVObjectUtilManager* utilMngr;
-    QByteArray loadedFile;
-    DFUObject dfu;
-    ExtensionSystem::PluginManager *pm;
-    USBSignalFilter *usbFilterBL;
-    USBSignalFilter *usbFilterUP;
-    TelemetryManager* telMngr;
-    Core::ConnectionManager *conMngr;
-    QNetworkAccessManager *netMngr;
 
-    FirmwareIAPObj *firmwareIap;
+    QByteArray loadedFile;
+    QByteArray settingsDump;
+
+    DFUObject dfu;
+    USBSignalFilter* usbFilterBL;
+    USBSignalFilter* usbFilterUP;
+    ExtensionSystem::PluginManager* pm;
+    TelemetryManager* telMngr;
+    UAVObjectUtilManager* utilMngr;
+    Core::ConnectionManager* conMngr;
+    QNetworkAccessManager* netMngr;
+
+    FirmwareIAPObj* firmwareIap;
     deviceInfo currentBoard;
     QString ignoredRev;
 
