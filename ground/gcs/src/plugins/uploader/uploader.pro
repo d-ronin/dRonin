@@ -17,19 +17,22 @@ HEADERS += uploadergadget.h \
     uploader_global.h \
     bl_messages.h \
     tl_dfu.h \
+    upgradeassistantdialog.h \
     ../../../../../build/ground/gcs/gcsversioninfo.h
 
 SOURCES += uploadergadget.cpp \
     uploadergadgetfactory.cpp \
     uploadergadgetwidget.cpp \
     uploaderplugin.cpp \
+    upgradeassistantdialog.cpp \
     tl_dfu.cpp
 
 OTHER_FILES += Uploader.pluginspec \
     Uploader.json
 
 FORMS += \
-    uploader.ui
+    uploader.ui \
+    upgradeassistant.ui
 
 RESOURCES += \
     uploader.qrc
