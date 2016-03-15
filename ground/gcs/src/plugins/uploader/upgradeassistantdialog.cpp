@@ -28,6 +28,9 @@
  * of this source file; otherwise redistribution is prohibited.
  */
 
+#include <QFont>
+#include <QDebug>
+
 #include "upgradeassistantdialog.h"
 #include "ui_upgradeassistant.h"
 
@@ -36,9 +39,53 @@ UpgradeAssistantDialog::UpgradeAssistantDialog(QWidget *parent) :
     ui(new Ui::UpgradeAssistant)
 {
     ui->setupUi(this);
+
+    stepLabels[STEP_ENTERLOADER] = ui->lblEnterLoader;
+    stepLabels[STEP_UPGRADEBOOTLOADER] = ui->lblUpgradeBootloader;
+    stepLabels[STEP_PROGRAMUPGRADER] = ui->lblProgramUpgrader;
+    stepLabels[STEP_ENTERUPGRADER] = ui->lblEnterUpgrader;
+    stepLabels[STEP_DOWNLOADSETTINGS] = ui->lblDownloadSettings;
+    stepLabels[STEP_TRANSLATESETTINGS] = ui->lblTranslateSettings;
+    stepLabels[STEP_ERASESETTINGS] = ui->lblEraseSettings;
+    stepLabels[STEP_REENTERLOADER] = ui->lblReenterLoader;
+    stepLabels[STEP_FLASHFIRMWARE] = ui->lblFlashFirmware;
+    stepLabels[STEP_BOOT] = ui->lblBoot;
+    stepLabels[STEP_IMPORT] = ui->lblImport;
+
+    for (int i=STEP_FIRST; i<STEP_NUM; i++) {
+        originalText[i] = new QString(stepLabels[i]->text());
+    }
 }
 
 UpgradeAssistantDialog::~UpgradeAssistantDialog()
 {
     delete ui;
+}
+
+void UpgradeAssistantDialog::setOperatingMode(bool upgradingBootloader, bool usingUpgrader)
+{
+    ui->lblUpgradeBootloader->setVisible(upgradingBootloader);
+
+    ui->lblProgramUpgrader->setVisible(usingUpgrader);
+    ui->lblEnterUpgrader->setVisible(usingUpgrader);
+    ui->lblReenterLoader->setVisible(usingUpgrader);
+}
+
+void UpgradeAssistantDialog::onStepChanged(UpgradeAssistantStep step)
+{
+    for (int i=STEP_FIRST; i<STEP_NUM; i++) {
+        if (i < step) {
+            // Ensure marked done
+            stepLabels[i]->setText(*originalText[i] + tr(" done!"));
+        } else if (i >= step) {
+            // Ensure not marked done..
+            stepLabels[i]->setText(*originalText[i]);
+        }
+
+        if (i != step) {
+            stepLabels[i]->setObjectName("inactiveUpgradeStep");
+        } else {
+            stepLabels[i]->setObjectName("activeUpgradeStep");
+        }
+    }
 }
