@@ -326,3 +326,26 @@ UAVObjectManager* VehicleConfig::getUAVObjectManager() {
     Q_ASSERT(objMngr);
     return objMngr;
 }
+
+/**
+ * Helper function:
+ * sets the text of QLabel widgets that are children of owner
+ * @param[in] owner The parent widget containing the target label widgets
+ * @param[in] boxName prefix for names of label widgets (suffix is a number)
+ * @param[in] labels The desired labels
+ */
+ void VehicleConfig::setLabelText(QWidget* owner, const QString &boxName, const QStringList &labels)
+ {
+    // set the desired labels
+    for (int i = 0; i < labels.length(); i++) {
+        QLabel* lbl = owner->findChild<QLabel*>(QString("%0%1").arg(boxName).arg(i + 1));
+        if (lbl)
+            lbl->setText(labels[i]);
+    }
+    // set the remainder of the labels blank
+    int i = labels.length();
+    while(QLabel* lbl = owner->findChild<QLabel*>(QString("%0%1").arg(boxName).arg(i + 1))) {
+        lbl->setText(QString(""));
+        i++;
+    }
+ }
