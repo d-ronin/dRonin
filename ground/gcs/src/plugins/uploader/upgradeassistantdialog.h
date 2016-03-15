@@ -32,7 +32,10 @@
 #define UPGRADEASSISTANT_H
 
 #include <QDialog>
+#include <QLabel>
 #include <QMap>
+#include <QString>
+
 namespace Ui {
 class UpgradeAssistant;
 }
@@ -41,11 +44,36 @@ class UpgradeAssistantDialog : public QDialog
 {
     Q_OBJECT
 public:
+    typedef enum {
+        STEP_FIRST=0,
+        STEP_ENTERLOADER=0,
+        STEP_UPGRADEBOOTLOADER,
+        STEP_PROGRAMUPGRADER,
+        STEP_ENTERUPGRADER,
+        STEP_DOWNLOADSETTINGS,
+        STEP_TRANSLATESETTINGS,
+        STEP_ERASESETTINGS,
+        STEP_REENTERLOADER,
+        STEP_FLASHFIRMWARE,
+        STEP_BOOT,
+        STEP_IMPORT,
+        STEP_NUM
+    } UpgradeAssistantStep;
+
     explicit UpgradeAssistantDialog(QWidget *parent = 0);
     ~UpgradeAssistantDialog();
+
+    void setOperatingMode(bool upgradingBootloader, bool usingUpgrader);
+
+//public slots:
+    void onStepChanged(UpgradeAssistantStep step);
     
 private:
     Ui::UpgradeAssistant *ui;
+
+    QLabel *stepLabels[STEP_NUM];
+
+    QString *originalText[STEP_NUM];
 };
 
 #endif // UPGRADEASSISTANT_H

@@ -360,7 +360,7 @@ void UploaderGadgetWidget::onAutopilotReady()
             onRescueButtonClick();
 
             Core::ModeManager::instance()->activateModeByWorkspaceName("Firmware");
-            // Set the status, so when we enter the loader we cue off the
+            // Set the status, so when we enter the loader we cue the
             // upgrade state machine/actions.
             setUploaderStatus(uploader::UPGRADING);
         }
@@ -847,6 +847,9 @@ void UploaderGadgetWidget::onBootloaderDetected()
 
         if (!inUpgrader) {
             if (triggerUpgrading) {
+                m_dialog.onStepChanged(UpgradeAssistantDialog::STEP_TRANSLATESETTINGS);
+                m_dialog.setOperatingMode(false, false);
+
                 m_dialog.open();
                 return;
             }

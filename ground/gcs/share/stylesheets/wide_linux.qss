@@ -4,6 +4,7 @@ Utils--StyledBar { background-color: qlineargradient(spread:pad, x1:0, y1:0, x2:
  
 
 
+QLabel#activeUpgradeStep { font-weight: bold; }
 
 
 
