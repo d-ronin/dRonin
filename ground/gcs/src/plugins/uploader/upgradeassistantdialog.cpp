@@ -64,19 +64,27 @@ UpgradeAssistantDialog::~UpgradeAssistantDialog()
 
 void UpgradeAssistantDialog::setOperatingMode(bool upgradingBootloader, bool usingUpgrader)
 {
-    ui->lblUpgradeBootloader->setVisible(upgradingBootloader);
+    ui->lblUpgradeBootloader->setEnabled(upgradingBootloader);
 
-    ui->lblProgramUpgrader->setVisible(usingUpgrader);
-    ui->lblEnterUpgrader->setVisible(usingUpgrader);
-    ui->lblReenterLoader->setVisible(usingUpgrader);
+    ui->lblProgramUpgrader->setEnabled(usingUpgrader);
+    ui->lblEnterUpgrader->setEnabled(usingUpgrader);
+    ui->lblReenterLoader->setEnabled(usingUpgrader);
+
+    onStepChanged(curStep);
 }
 
 void UpgradeAssistantDialog::onStepChanged(UpgradeAssistantStep step)
 {
+    curStep = step;
+
     for (int i=STEP_FIRST; i<STEP_NUM; i++) {
         if (i < step) {
             // Ensure marked done
-            stepLabels[i]->setText(*originalText[i] + tr(" done!"));
+            if (stepLabels[i]->isEnabled()) {
+                stepLabels[i]->setText(*originalText[i] + tr(" done!"));
+            } else {
+                stepLabels[i]->setText(*originalText[i] + tr(" (skipped)"));
+            }
         } else if (i >= step) {
             // Ensure not marked done..
             stepLabels[i]->setText(*originalText[i]);
