@@ -117,6 +117,12 @@ struct USBPortInfo {
     int vendorID;       ///< Vendor ID.
     int productID;      ///< Product ID
     int bcdDevice;
+
+    unsigned char getRunState()
+    {
+        return bcdDevice&0x00ff;
+    }
+
     bool operator==(USBPortInfo const &port)
     {
         return ( (port.serialNumber == serialNumber) && (port.manufacturer == manufacturer) &&
