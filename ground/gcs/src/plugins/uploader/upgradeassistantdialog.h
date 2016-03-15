@@ -74,6 +74,8 @@ private:
     QLabel *stepLabels[STEP_NUM];
 
     QString *originalText[STEP_NUM];
+
+    UpgradeAssistantStep curStep;
 };
 
 #endif // UPGRADEASSISTANT_H
