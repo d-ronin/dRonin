@@ -540,9 +540,7 @@ void UploaderGadgetWidget::haltOrReset(bool halting)
         loop.exec();
         conMngr->suspendPolling();
         onRescueTimer(true);
-    }
-    else
-    {
+    } else {
         setUploaderStatus(uploader::DISCONNECTED);
         conMngr->disconnectDevice();
     }
@@ -566,6 +564,112 @@ void UploaderGadgetWidget::onRescueButtonClick()
     setUploaderStatus(uploader::ENTERING_LOADER);
     setStatusInfo(tr("Please connect the board with USB with no external power applied"), uploader::STATUSICON_INFO);
     onRescueTimer(true);
+}
+
+bool UploaderGadgetWidget::downloadSettings() {
+    QEventLoop loop;
+
+    QTimer timeout;
+    bool operationSuccess = false;
+
+    connect(&timeout, SIGNAL(timeout()), &loop, SLOT(quit()));
+
+    /* disconnects when loop comes out of scope */
+    connect(&dfu, &DFUObject::downloadFinished, &loop, [&] (bool status) {
+        operationSuccess = status;
+        loop.exit();
+    } );
+
+    timeout.start(100000);       /* 100 secs is a long time; unfortunately
+                                  * revo settings part is HUUUUGE and takes
+                                  * forever to download. */
+
+    triggerPartitionDownload(DFU_PARTITION_SETTINGS);
+    loop.exec();                /* Wait for timeout or download complete */
+
+    dfu.disconnect();
+
+    return operationSuccess;
+}
+
+bool UploaderGadgetWidget::tradeSettingsWithCloud() {
+    /* post to cloud service */
+    QUrl url(exportUrl);
+    QNetworkRequest request(url);
+
+    QHttpMultiPart *multiPart = new QHttpMultiPart(QHttpMultiPart::FormDataType);
+
+    QHttpPart githash, datafile;
+
+    githash.setHeader(QNetworkRequest::ContentDispositionHeader,QVariant("form-data; name=\"githash\""));
+    githash.setBody("Release-20160120.3");
+
+    /* XXX: TODO: real source */
+
+    /* XXX: TODO: send some additional details up */
+
+    datafile.setHeader(QNetworkRequest::ContentTypeHeader, QVariant("application/octet-stream"));
+    datafile.setHeader(QNetworkRequest::ContentDispositionHeader, QVariant("form-data; filename=\"datafile\"; name=\"datafile\""));
+    datafile.setBody(tempArray);
+
+    multiPart->append(githash);
+    multiPart->append(datafile);
+
+    QNetworkReply *reply = netMngr->post(request, multiPart);
+
+    QEventLoop loop;
+
+    QTimer timeout;
+
+    connect(&timeout, SIGNAL(timeout()), &loop, SLOT(quit()));
+    connect(reply, SIGNAL(finished()), &loop, SLOT(quit()));
+    timeout.start(15000);       /* 15 seconds */
+    loop.exec();
+
+    if (!reply->isFinished()) {
+        setStatusInfo(tr("Timeout communicating with cloud service"), uploader::STATUSICON_FAIL);
+        return false;
+    }
+
+    QVariant statusCode = reply->attribute(QNetworkRequest::HttpStatusCodeAttribute);
+
+    int code = statusCode.toInt();
+
+    if (code != 200) {
+        setStatusInfo(tr("Received status code %1 from cloud").arg(code), uploader::STATUSICON_FAIL);
+        return false;
+    }
+
+    setStatusInfo(tr("Retrieved dump of configuration from cloud"), uploader::STATUSICON_OK);
+
+    settingsDump = reply->readAll();
+
+    //qDebug() << QString(content);
+
+    /* save dialog for XML config */
+    QString filename = QFileDialog::getSaveFileName(this, tr("Save Settings Backup"),"cloud_exported.xml","*.xml");
+    if(filename.isEmpty())
+    {
+        setStatusInfo(tr("Error, empty filename"), uploader::STATUSICON_FAIL);
+        setUploaderStatus(uploader::BL_SITTING);
+        return false;
+    }
+
+    if(!filename.endsWith(".xml",Qt::CaseInsensitive))
+        filename.append(".xml");
+    QFile file(filename);
+    if(!file.open(QIODevice::WriteOnly))
+    {
+        setStatusInfo(tr("Error could not open file for save"), uploader::STATUSICON_FAIL);
+
+        return false;
+    }
+
+    file.write(settingsDump);
+    file.close();
+    setStatusInfo(tr("Dump of configuration saved to file!"), uploader::STATUSICON_OK);
+
+    return true;
 }
 
 /**
@@ -608,30 +712,7 @@ void UploaderGadgetWidget::onExportButtonClick()
     }
 
     /* pull down settings partition to ram */
-
-    QEventLoop loop;
-
-    QTimer timeout;
-    bool operationSuccess = false;
-
-    connect(&timeout, SIGNAL(timeout()), &loop, SLOT(quit()));
-
-    /* disconnects when loop comes out of scope */
-    connect(&dfu, &DFUObject::downloadFinished, &loop, [&] (bool status) {
-        operationSuccess = status;
-        loop.exit();
-    } );
-
-    timeout.start(100000);       /* 100 secs is a long time; unfortunately
-                                  * revo settings part is HUUUUGE and takes
-                                  * forever to download. */
-
-    triggerPartitionDownload(DFU_PARTITION_SETTINGS);
-    loop.exec();                /* Wait for timeout or download complete */
-
-    dfu.disconnect();
-
-    if (!operationSuccess) {
+    if (!downloadSettings()) {
         setStatusInfo(tr("Error, unable to pull settings partition"), uploader::STATUSICON_FAIL);
 
         return;
@@ -639,74 +720,7 @@ void UploaderGadgetWidget::onExportButtonClick()
 
     setStatusInfo(tr("Retrieved settings; contacting cloud..."), uploader::STATUSICON_FAIL);
 
-    /* post to cloud service */
-    QUrl url(exportUrl);
-    QNetworkRequest request(url);
-
-    QHttpMultiPart *multiPart = new QHttpMultiPart(QHttpMultiPart::FormDataType);
-
-    QHttpPart githash, datafile;
-
-    githash.setHeader(QNetworkRequest::ContentDispositionHeader,QVariant("form-data; name=\"githash\""));
-    githash.setBody("Release-20160120.3");
-
-    /* XXX: TODO: real source */
-
-    /* XXX: TODO: send some additional details up */
-
-    datafile.setHeader(QNetworkRequest::ContentTypeHeader, QVariant("application/octet-stream"));
-    datafile.setHeader(QNetworkRequest::ContentDispositionHeader, QVariant("form-data; filename=\"datafile\"; name=\"datafile\""));
-    datafile.setBody(tempArray);
-
-    multiPart->append(githash);
-    multiPart->append(datafile);
-
-    QNetworkReply *reply = netMngr->post(request, multiPart);
-
-    connect(reply, SIGNAL(finished()), &loop, SLOT(quit()));
-    timeout.start(15000);       /* 15 seconds */
-    loop.exec();
-
-    if (!reply->isFinished()) {
-        setStatusInfo(tr("Timeout communicating with cloud service"), uploader::STATUSICON_FAIL);
-        return;
-    }
-
-    QVariant statusCode = reply->attribute(QNetworkRequest::HttpStatusCodeAttribute);
-
-    int code = statusCode.toInt();
-
-    if (code != 200) {
-        setStatusInfo(tr("Received status code %1 from cloud").arg(code), uploader::STATUSICON_FAIL);
-        return;
-    }
-
-    setStatusInfo(tr("Retrieved dump of configuration from cloud"), uploader::STATUSICON_OK);
-
-    QByteArray content = reply->readAll();
-
-    //qDebug() << QString(content);
-
-    /* save dialog for XML config */
-    QString filename = QFileDialog::getSaveFileName(this, tr("Save Settings Dump"),"cloud_exported.xml","*.xml");
-    if(filename.isEmpty())
-    {
-        setStatusInfo(tr("Error, empty filename"), uploader::STATUSICON_FAIL);
-        setUploaderStatus(uploader::BL_SITTING);
-        return;
-    }
-
-    if(!filename.endsWith(".xml",Qt::CaseInsensitive))
-        filename.append(".xml");
-    QFile file(filename);
-    if(file.open(QIODevice::WriteOnly))
-    {
-        file.write(content);
-        file.close();
-        setStatusInfo(tr("Dump of configuration saved to file!"), uploader::STATUSICON_OK);
-    }
-    else
-        setStatusInfo(tr("Error could not open file for save"), uploader::STATUSICON_FAIL);
+    tradeSettingsWithCloud();
 }
 
 /**
@@ -1202,7 +1216,6 @@ void UploaderGadgetWidget::setUploaderStatus(const uploader::UploaderStatus &val
         m_widget->partitionBrowserTW->setContextMenuPolicy(Qt::NoContextMenu);
         break;
     case uploader::ENTERING_LOADER:
-    case uploader::UPGRADING:
         m_widget->progressBar->setVisible(true);
 
         m_widget->rescueButton->setText(tr("Rescue"));
@@ -1251,6 +1264,7 @@ void UploaderGadgetWidget::setUploaderStatus(const uploader::UploaderStatus &val
 
         m_widget->partitionBrowserTW->setContextMenuPolicy(Qt::NoContextMenu);
         break;
+    case uploader::UPGRADING:
     case uploader::BL_BUSY:
         m_widget->progressBar->setVisible(true);
 
@@ -1328,15 +1342,12 @@ QString UploaderGadgetWidget::getFirmwarePathForBoard(QString(boardName))
 
 bool UploaderGadgetWidget::FirmwareLoadFromFile(QString filename)
 {
-    return FirmwareLoadFromFile(QFileInfo(filename));
-}
+    QFileInfo fileinfo = QFileInfo(filename);
 
-bool UploaderGadgetWidget::FirmwareLoadFromFile(QFileInfo filename)
-{
-    if (!filename.exists())
+    if (!fileinfo.exists())
         return false;
 
-    QFile file(filename.filePath());
+    QFile file(fileinfo.filePath());
     if(!file.open(QIODevice::ReadOnly))
         return false;
     loadedFile = file.readAll();
