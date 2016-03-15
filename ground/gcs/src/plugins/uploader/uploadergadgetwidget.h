@@ -43,6 +43,7 @@
 #include "uavobjectutilmanager.h"
 #include "uavtalk/telemetrymanager.h"
 #include "coreplugin/connectionmanager.h"
+#include "upgradeassistantdialog.h"
 
 using namespace tl_dfu;
 
@@ -59,16 +60,11 @@ public:
     ~UploaderGadgetWidget();
 public slots:
 signals:
-    void bootloaderDetected();
-    void rescueTimer(int);
-    void rescueFinish(bool);
-    void uploadProgress(UploaderStatus, QVariant);
     void newBoardSeen(deviceInfo board, deviceDescriptorStruct device);
 private slots:
     void onAutopilotConnect();
     void onAutopilotDisconnect();
     void onAutopilotReady();
-    void onIAPPresentChanged(UAVDataObject*);
     void onIAPUpdated();
     void onLoadFirmwareButtonClick();
     void onFlashButtonClick();
@@ -105,8 +101,10 @@ private:
     void haltOrReset(bool halting);
 
     Ui_UploaderWidget *m_widget;
+
+    UpgradeAssistantDialog m_dialog;
+
     bool telemetryConnected;
-    bool iapPresent;
     bool iapUpdated;
     UAVObjectUtilManager* utilMngr;
     QByteArray loadedFile;

@@ -54,7 +54,7 @@ using namespace uploader;
  * creates actions, creates utility classes instances, etc
  */
 UploaderGadgetWidget::UploaderGadgetWidget(QWidget *parent):QWidget(parent),
-    telemetryConnected(false), iapPresent(false), iapUpdated(false)
+    telemetryConnected(false), iapUpdated(false)
 {
     m_widget = new Ui_UploaderWidget();
     m_widget->setupUi(this);
@@ -100,7 +100,6 @@ UploaderGadgetWidget::UploaderGadgetWidget(QWidget *parent):QWidget(parent),
     connect(telMngr, SIGNAL(disconnected()), this, SLOT(onAutopilotDisconnect()));
     firmwareIap = FirmwareIAPObj::GetInstance(obm);
 
-    connect(firmwareIap, SIGNAL(presentOnHardwareChanged(UAVDataObject*)), this, SLOT(onIAPPresentChanged(UAVDataObject*)));
     connect(firmwareIap, SIGNAL(objectUpdated(UAVObject*)), this, SLOT(onIAPUpdated()), Qt::UniqueConnection);
 
     //Connect button signals to slots
@@ -135,6 +134,7 @@ UploaderGadgetWidget::UploaderGadgetWidget(QWidget *parent):QWidget(parent),
     /* Else begin our normal actions waitin' for a board */
     if (getUploaderStatus() != uploader::BL_SITTING) {
         setUploaderStatus(uploader::DISCONNECTED);
+        // XXX TODO text
     }
 }
 
@@ -331,7 +331,6 @@ void UploaderGadgetWidget::onAutopilotDisconnect()
     DeviceInformationClear();
     PartitionBrowserClear();
     telemetryConnected = false;
-    iapPresent = false;
     iapUpdated = false;
     if( (getUploaderStatus() == uploader::ENTERING_LOADER) )
         return;
@@ -358,22 +357,15 @@ void UploaderGadgetWidget::onAutopilotReady()
     if(utilMngr->getBoardDescriptionStruct(device)) {
         FirmwareOnDeviceUpdate(device, QString::number(utilMngr->getFirmwareCRC()));
         if (FirmwareCheckForUpdate(device)) {
+            onRescueButtonClick();
+
             Core::ModeManager::instance()->activateModeByWorkspaceName("Firmware");
-            m_widget->rescueButton->click();
+            // Set the status, so when we enter the loader we cue off the
+            // upgrade state machine/actions.
+            setUploaderStatus(uploader::UPGRADING);
         }
     }
     emit newBoardSeen(board, device);
-}
-
-/**
- * @brief slot called by the iap object when the hardware reports it
- * has it
- */
-void UploaderGadgetWidget::onIAPPresentChanged(UAVDataObject *obj)
-{
-    iapPresent = obj->getIsPresentOnHardware();
-    if(obj->getIsPresentOnHardware())
-        CheckAutopilotReady();
 }
 
 /**
@@ -381,7 +373,8 @@ void UploaderGadgetWidget::onIAPPresentChanged(UAVDataObject *obj)
  */
 void UploaderGadgetWidget::onIAPUpdated()
 {
-    if(getUploaderStatus() == uploader::ENTERING_LOADER)
+    if ((getUploaderStatus() == uploader::ENTERING_LOADER) ||
+            (getUploaderStatus() == uploader::UPGRADING))
         return;
     iapUpdated = true;
     CheckAutopilotReady();
@@ -670,8 +663,6 @@ void UploaderGadgetWidget::onExportButtonClick()
 
     QNetworkReply *reply = netMngr->post(request, multiPart);
 
-//    connect(reply, SIGNAL(uploadProgress(qint64,qint64)), autotuneShareForm, SLOT(setProgress(qint64,qint64)));
-
     connect(reply, SIGNAL(finished()), &loop, SLOT(quit()));
     timeout.start(15000);       /* 15 seconds */
     loop.exec();
@@ -732,34 +723,35 @@ void UploaderGadgetWidget::onBootloaderDetected()
         return;
     }
 
-    bool inUpgrader = false;
+    bool triggerUpgrading = false;
 
     foreach(int vendorID, brdMgr->getKnownVendorIDs()) {
-        QList<USBPortInfo> upgraderDevs = USBMonitor::instance()->availableDevices(vendorID,-1,-1,USBMonitor::Upgrader);
-
-        if (upgraderDevs.length() > 0) {
-            inUpgrader = true;
-            devices.append(upgraderDevs);
-        }
-
+        devices.append(USBMonitor::instance()->availableDevices(vendorID,-1,-1,USBMonitor::Upgrader));
         devices.append(USBMonitor::instance()->availableDevices(vendorID,-1,-1,USBMonitor::Bootloader));
     }
-    if(devices.length() > 1)
-    {
+
+    if(devices.length() > 1) {
         setStatusInfo(tr("More than one device was detected in bootloader state"), uploader::STATUSICON_INFO);
         return;
-    }
-    else if(devices.length() == 0)
-    {
+    } else if(devices.length() == 0) {
         setStatusInfo("No devices in bootloader state detected", uploader::STATUSICON_FAIL);
         return;
     }
-    if(dfu.OpenBootloaderComs(devices.first()))
-    {
+
+    USBPortInfo device = devices.first();
+    bool inUpgrader = false;
+
+    if (device.getRunState() == USBMonitor::Upgrader) {
+        inUpgrader = true;
+    }
+
+    if (dfu.OpenBootloaderComs(device)) {
         tl_dfu::device dev = dfu.findCapabilities();
 
         if (!inUpgrader) {
             switch (uploaderStatus) {
+            case uploader::UPGRADING:
+                triggerUpgrading = true;
             case uploader::ENTERING_LOADER:
                 break;
             case uploader::DISCONNECTED:
@@ -773,6 +765,7 @@ void UploaderGadgetWidget::onBootloaderDetected()
                 if (UAVObjectUtilManager::descriptionToStructure(description, descStructure)) {
                     if (FirmwareCheckForUpdate(descStructure)) {
                         Core::ModeManager::instance()->activateModeByWorkspaceName("Firmware");
+                        triggerUpgrading = true;
                         break;
                     }
                 }
@@ -850,8 +843,14 @@ void UploaderGadgetWidget::onBootloaderDetected()
         DeviceInformationUpdate(info);
 
         setUploaderStatus(uploader::BL_SITTING);
+        iapUpdated = false;
 
         if (!inUpgrader) {
+            if (triggerUpgrading) {
+                m_dialog.open();
+                return;
+            }
+
             setStatusInfo(tr("Connection to bootloader successful"), uploader::STATUSICON_OK);
 
             if (FirmwareLoadFromFile(getFirmwarePathForBoard(info.board->shortName()))) {
@@ -862,8 +861,6 @@ void UploaderGadgetWidget::onBootloaderDetected()
         } else {
             setStatusInfo(tr("Connected to upgrader-loader"), uploader::STATUSICON_OK);
         }
-
-        emit bootloaderDetected();
     }
     else
     {
@@ -901,7 +898,6 @@ void UploaderGadgetWidget::onRescueTimer(bool start)
         m_widget->progressBar->setValue(0);
         disconnect(usbFilterBL, SIGNAL(deviceDiscovered()), this, SLOT(onRescueTimer()));
         disconnect(usbFilterUP, SIGNAL(deviceDiscovered()), this, SLOT(onRescueTimer()));
-        rescueFinish(true);
         return;
     }
     if(start)
@@ -912,12 +908,10 @@ void UploaderGadgetWidget::onRescueTimer(bool start)
         timer.start(200);
         connect(usbFilterBL, SIGNAL(deviceDiscovered()), this, SLOT(onRescueTimer()), Qt::UniqueConnection);
         connect(usbFilterUP, SIGNAL(deviceDiscovered()), this, SLOT(onRescueTimer()), Qt::UniqueConnection);
-        emit rescueTimer(0);
     }
     else
     {
         progress -= 1;
-        emit rescueTimer(100 - progress);
     }
     m_widget->progressBar->setValue(progress);
     if(progress == 0)
@@ -927,7 +921,6 @@ void UploaderGadgetWidget::onRescueTimer(bool start)
         timer.disconnect();
         setStatusInfo(tr("Failed to detect bootloader"), uploader::STATUSICON_FAIL);
         setUploaderStatus(uploader::DISCONNECTED);
-        emit rescueFinish(false);
         conMngr->resumePolling();
     }
 }
@@ -943,10 +936,6 @@ void UploaderGadgetWidget::onStatusUpdate(QString text, int progress)
         setStatusInfo(text, uploader::STATUSICON_RUNNING);
     if(progress != -1)
         m_widget->progressBar->setValue(progress);
-    if( (getUploaderStatus() == uploader::BL_BUSY) )
-    {
-        emit uploadProgress(getUploaderStatus(), progress);
-    }
 }
 
 void UploaderGadgetWidget::triggerPartitionDownload(int index)
@@ -1110,7 +1099,7 @@ void UploaderGadgetWidget::onBootButtonClick()
  */
 void UploaderGadgetWidget::CheckAutopilotReady()
 {
-    if(telemetryConnected && iapPresent && iapUpdated)
+    if(telemetryConnected && iapUpdated)
     {
         onAutopilotReady();
     }
@@ -1210,6 +1199,7 @@ void UploaderGadgetWidget::setUploaderStatus(const uploader::UploaderStatus &val
         m_widget->partitionBrowserTW->setContextMenuPolicy(Qt::NoContextMenu);
         break;
     case uploader::ENTERING_LOADER:
+    case uploader::UPGRADING:
         m_widget->progressBar->setVisible(true);
 
         m_widget->rescueButton->setText(tr("Rescue"));
