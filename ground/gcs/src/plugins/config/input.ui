@@ -1405,7 +1405,7 @@ channel value for each flight mode.</string>
             <x>0</x>
             <y>0</y>
             <width>838</width>
-            <height>794</height>
+            <height>817</height>
            </rect>
           </property>
           <layout class="QVBoxLayout" name="verticalLayout_2">
@@ -1486,6 +1486,13 @@ channel value for each flight mode.</string>
                 </property>
                 <property name="wordWrap">
                  <bool>true</bool>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <widget class="QLabel" name="lblHangTimeWarning">
+                <property name="text">
+                 <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600; color:#ff0000;&quot;&gt;Warning:&lt;/span&gt;&lt;span style=&quot; color:#ff0000;&quot;&gt; It is strongly recommended to use switch arming when HangTime is enabled.&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
                 </property>
                </widget>
               </item>

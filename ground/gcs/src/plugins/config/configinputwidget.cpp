@@ -51,6 +51,7 @@
 #include <coreplugin/generalsettings.h>
 
 #include "actuatorcommand.h"
+#include "actuatorsettings.h"
 
 // The fraction of range to place the neutral position in
 #define THROTTLE_NEUTRAL_FRACTION 0.02
@@ -335,6 +336,11 @@ ConfigInputWidget::ConfigInputWidget(QWidget *parent) : ConfigTaskWidget(parent)
                 connect(child, SIGNAL(currentTextChanged(QString)), this, SLOT(checkFlightMode(QString)));
         }
     }
+
+    // display warning if hangtime is enabled but not using switch arming
+    ActuatorSettings *actuatorSettings = qobject_cast<ActuatorSettings *>(getObjectManager()->getObject(ActuatorSettings::NAME));
+    if (actuatorSettings)
+        connect(actuatorSettings, SIGNAL(objectUpdated(UAVObject *)), this, SLOT(checkHangtimeConfig()));
 }
 void ConfigInputWidget::resetTxControls()
 {
@@ -1751,6 +1757,9 @@ void ConfigInputWidget::checkArmingConfig(QString option)
         m_config->lblThrottleCheckWarn->hide();
     else
         m_config->lblThrottleCheckWarn->show();
+
+    // display warning if hangtime is enabled but not using switch arming
+    checkHangtimeConfig();
 }
 
 void ConfigInputWidget::checkFlightMode(QString option)
@@ -1773,4 +1782,18 @@ void ConfigInputWidget::checkFlightMode(QString option)
                 m_config->lblMultiwii->show();
         }
     }
+}
+
+void ConfigInputWidget::checkHangtimeConfig()
+{
+    bool warn = true;
+
+    ActuatorSettings *actuatorSettings = qobject_cast<ActuatorSettings *>(getObjectManager()->getObject(ActuatorSettings::NAME));
+    if (actuatorSettings)
+        warn &= actuatorSettings->getLowPowerStabilizationMaxTime() > 0.0f;
+
+    const QString option = m_config->armControl->currentText();
+    warn &= !option.startsWith("Switch") && option != "Always Disarmed";
+
+    m_config->lblHangTimeWarning->setVisible(warn);
 }
