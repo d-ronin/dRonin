@@ -7,7 +7,7 @@
  *
  * @file       RadioComBridge.c
  * @author     The OpenPilot Team, http://www.openpilot.org Copyright (C) 2012.
- * @author     Tau Labs, http://taulabs.org, Copyright (C) 2013-2014
+ * @author     Tau Labs, http://taulabs.org, Copyright (C) 2013-2016
  * @author     dRonin, http://dronin.org Copyright (C) 2015-2016
  * @brief      Bridges from RFM22b comm channel to another PIOS_COM channel
  *             has the ability to hook and process UAVO packets for the radio
@@ -156,25 +156,27 @@ static int32_t RadioComBridgeStart(void)
 		// Configure the UAVObject callbacks
 		ObjectPersistenceConnectCallback(&objectPersistenceUpdatedCb);
 
+		// Watchdog must be registered before starting tasks
+#ifdef PIOS_INCLUDE_WDG
+		PIOS_WDG_RegisterFlag(PIOS_WDG_TELEMETRYTX);
+		PIOS_WDG_RegisterFlag(PIOS_WDG_TELEMETRYRX);
+		PIOS_WDG_RegisterFlag(PIOS_WDG_RADIOTX);
+		PIOS_WDG_RegisterFlag(PIOS_WDG_RADIORX);
+#endif
+
 		// Start the primary tasks for receiving/sending UAVTalk packets from the GCS.
 		data->telemetryTxTaskHandle = PIOS_Thread_Create(telemetryTxTask, "telemetryTxTask", STACK_SIZE_BYTES, NULL, TASK_PRIORITY);
 		data->telemetryRxTaskHandle = PIOS_Thread_Create(telemetryRxTask, "telemetryRxTask", STACK_SIZE_BYTES, NULL, TASK_PRIORITY);
 			    
 		if (PIOS_PPM_RECEIVER != 0) {
-			data->PPMInputTaskHandle = PIOS_Thread_Create(PPMInputTask, "PPMInputTask",STACK_SIZE_BYTES, NULL, TASK_PRIORITY);
 #ifdef PIOS_INCLUDE_WDG
 			PIOS_WDG_RegisterFlag(PIOS_WDG_PPMINPUT);
 #endif
+			data->PPMInputTaskHandle = PIOS_Thread_Create(PPMInputTask, "PPMInputTask",STACK_SIZE_BYTES, NULL, TASK_PRIORITY);
 		}
 		data->radioTxTaskHandle = PIOS_Thread_Create(radioTxTask, "radioTxTask", STACK_SIZE_BYTES, NULL, TASK_PRIORITY);
 		data->radioRxTaskHandle = PIOS_Thread_Create(radioRxTask, "radioRxTask", STACK_SIZE_BYTES, NULL, TASK_PRIORITY);
 
-		// Register the watchdog timers.
-#ifdef PIOS_INCLUDE_WDG
-		PIOS_WDG_RegisterFlag(PIOS_WDG_TELEMETRYRX);
-		PIOS_WDG_RegisterFlag(PIOS_WDG_RADIOTX);
-		PIOS_WDG_RegisterFlag(PIOS_WDG_RADIORX);
-#endif
 		return 0;
 	}
 

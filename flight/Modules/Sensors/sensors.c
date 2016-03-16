@@ -7,8 +7,8 @@
  *
  * @file       sensors.c
  * @author     The OpenPilot Team, http://www.openpilot.org Copyright (C) 2010.
- * @author     Tau Labs, http://taulabs.org, Copyright (C) 2013-2014
- * @author     dRonin, http://dronin.org Copyright (C) 2015
+ * @author     Tau Labs, http://taulabs.org, Copyright (C) 2013-2016
+ * @author     dRonin, http://dronin.org Copyright (C) 2015-2016
  * @brief      Acquire sensor data from sensors registered with @ref PIOS_Sensors
  *
  * @see        The GNU Public License (GPL) Version 3
@@ -194,10 +194,12 @@ static int32_t SensorsInitialize(void)
  */
 static int32_t SensorsStart(void)
 {
+	// Watchdog must be registered before starting task
+	PIOS_WDG_RegisterFlag(PIOS_WDG_SENSORS);
+
 	// Start main task
 	sensorsTaskHandle = PIOS_Thread_Create(SensorsTask, "Sensors", STACK_SIZE_BYTES, NULL, TASK_PRIORITY);
 	TaskMonitorAdd(TASKINFO_RUNNING_SENSORS, sensorsTaskHandle);
-	PIOS_WDG_RegisterFlag(PIOS_WDG_SENSORS);
 
 	return 0;
 }

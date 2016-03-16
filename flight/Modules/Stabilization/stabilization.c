@@ -7,7 +7,7 @@
  *
  * @file       stabilization.c
  * @author     dRonin, http://dRonin.org/, Copyright (C) 2015-2016
- * @author     Tau Labs, http://taulabs.org, Copyright (C) 2012-2014
+ * @author     Tau Labs, http://taulabs.org, Copyright (C) 2012-2016
  * @author     The OpenPilot Team, http://www.openpilot.org Copyright (C) 2010.
  * @brief      Control the UAV attitude to @ref StabilizationDesired
  *
@@ -167,10 +167,13 @@ int32_t StabilizationStart()
 	StabilizationSettingsConnectCallback(SettingsUpdatedCb);
 	SubTrimSettingsConnectCallback(SettingsUpdatedCb);
 
+	// Watchdog must be registered before starting task
+	PIOS_WDG_RegisterFlag(PIOS_WDG_STABILIZATION);
+
 	// Start main task
 	taskHandle = PIOS_Thread_Create(stabilizationTask, "Stabilization", STACK_SIZE_BYTES, NULL, TASK_PRIORITY);
 	TaskMonitorAdd(TASKINFO_RUNNING_STABILIZATION, taskHandle);
-	PIOS_WDG_RegisterFlag(PIOS_WDG_STABILIZATION);
+
 	return 0;
 }
 

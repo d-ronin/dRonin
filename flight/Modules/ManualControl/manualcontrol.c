@@ -14,7 +14,7 @@
  * transmitter settings come from @ref ManualControlSettings.
  *
  * @file       manualcontrol.c
- * @author     Tau Labs, http://taulabs.org, Copyright (C) 2013-2014
+ * @author     Tau Labs, http://taulabs.org, Copyright (C) 2013-2016
  * @brief      ManualControl module. Handles safety R/C link and flight mode.
  *
  * @see        The GNU Public License (GPL) Version 3
@@ -82,10 +82,12 @@ bool ok_to_arm(void);
  */
 int32_t ManualControlStart()
 {
+	// Watchdog must be registered before starting task
+	PIOS_WDG_RegisterFlag(PIOS_WDG_MANUAL);
+
 	// Start main task
 	taskHandle = PIOS_Thread_Create(manualControlTask, "Control", STACK_SIZE_BYTES, NULL, TASK_PRIORITY);
 	TaskMonitorAdd(TASKINFO_RUNNING_MANUALCONTROL, taskHandle);
-	PIOS_WDG_RegisterFlag(PIOS_WDG_MANUAL);
 
 	return 0;
 }

@@ -13,7 +13,7 @@
  *
  * @file       attitude.c
  * @author     The OpenPilot Team, http://www.openpilot.org Copyright (C) 2010.
- * @author     Tau Labs, http://taulabs.org, Copyright (C) 2013-2015
+ * @author     Tau Labs, http://taulabs.org, Copyright (C) 2013-2016
  * @author     dRonin, http://dronin.org Copyright (C) 2015-2016
  * @brief      Update attitude for F1 targets
  *
@@ -111,11 +111,12 @@ static float accumulated_gyro[3];
  */
 int32_t AttitudeStart(void)
 {
-	
+	// Watchdog must be registered before starting task
+	PIOS_WDG_RegisterFlag(PIOS_WDG_ATTITUDE);
+
 	// Start main task
 	taskHandle = PIOS_Thread_Create(AttitudeTask, "Attitude", STACK_SIZE_BYTES, NULL, TASK_PRIORITY);
 	TaskMonitorAdd(TASKINFO_RUNNING_ATTITUDE, taskHandle);
-	PIOS_WDG_RegisterFlag(PIOS_WDG_ATTITUDE);
 	
 	return 0;
 }
