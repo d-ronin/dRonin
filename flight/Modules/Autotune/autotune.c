@@ -7,7 +7,7 @@
  *
  * @file       autotune.c
  * @author     dRonin, http://dRonin.org/, Copyright (C) 2015-2016
- * @author     Tau Labs, http://taulabs.org, Copyright (C) 2013-2014
+ * @author     Tau Labs, http://taulabs.org, Copyright (C) 2013-2016
  * @author     The OpenPilot Team, http://www.openpilot.org Copyright (C) 2012.
  * @brief      State machine to run autotuning. Low level work done by @ref
  *             StabilizationModule
@@ -127,10 +127,13 @@ int32_t AutotuneStart(void)
 {
 	// Start main task if it is enabled
 	if(module_enabled) {
+		// Watchdog must be registered before starting task
+		PIOS_WDG_RegisterFlag(PIOS_WDG_AUTOTUNE);
+
+		// Start main task
 		taskHandle = PIOS_Thread_Create(AutotuneTask, "Autotune", STACK_SIZE_BYTES, NULL, TASK_PRIORITY);
 
 		TaskMonitorAdd(TASKINFO_RUNNING_AUTOTUNE, taskHandle);
-		PIOS_WDG_RegisterFlag(PIOS_WDG_AUTOTUNE);
 	}
 	return 0;
 }

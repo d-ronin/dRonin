@@ -7,7 +7,7 @@
  *
  * @file       sensors.c
  * @author     dRonin, http://dRonin.org/, Copyright (C) 2015-2016
- * @author     Tau Labs, http://taulabs.org, Copyright (C) 2013-2014
+ * @author     Tau Labs, http://taulabs.org, Copyright (C) 2013-2016
  * @author     The OpenPilot Team, http://www.openpilot.org Copyright (C) 2010.
  * @brief      Update available sensors registered with @ref PIOS_Sensors
  *
@@ -117,10 +117,12 @@ int32_t SensorsInitialize(void)
  */
 int32_t SensorsStart(void)
 {
+	// Watchdog must be registered before starting task
+	PIOS_WDG_RegisterFlag(PIOS_WDG_SENSORS);
+
 	// Start main task
 	sensorsTaskHandle = PIOS_Thread_Create(SensorsTask, "Sensors", STACK_SIZE_BYTES, NULL, TASK_PRIORITY);
 	TaskMonitorAdd(TASKINFO_RUNNING_SENSORS, sensorsTaskHandle);
-	PIOS_WDG_RegisterFlag(PIOS_WDG_SENSORS);
 
 	return 0;
 }

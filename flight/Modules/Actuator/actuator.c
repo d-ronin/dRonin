@@ -7,7 +7,7 @@
  *
  * @file       actuator.c
  * @author     dRonin, http://dRonin.org/, Copyright (C) 2015-2016
- * @author     Tau Labs, http://taulabs.org, Copyright (C) 2013-2015
+ * @author     Tau Labs, http://taulabs.org, Copyright (C) 2013-2016
  * @author     The OpenPilot Team, http://www.openpilot.org Copyright (C) 2010.
  * @brief      Actuator module. Drives the actuators (servos, motors etc).
  * @brief      Take the values in @ref ActuatorDesired and mix to set the outputs
@@ -110,10 +110,12 @@ static typeof(mixerSettings.Mixer1Vector) *get_mixer_vec(int idx);
  */
 int32_t ActuatorStart()
 {
+	// Watchdog must be registered before starting task
+	PIOS_WDG_RegisterFlag(PIOS_WDG_ACTUATOR);
+
 	// Start main task
 	taskHandle = PIOS_Thread_Create(actuator_task, "Actuator", STACK_SIZE_BYTES, NULL, TASK_PRIORITY);
 	TaskMonitorAdd(TASKINFO_RUNNING_ACTUATOR, taskHandle);
-	PIOS_WDG_RegisterFlag(PIOS_WDG_ACTUATOR);
 
 	return 0;
 }
