@@ -685,11 +685,19 @@ void UploaderGadgetWidget::doUpgradeOperation()
     QEventLoop loop;
     QTimer timeout;
 
-    bool operationSuccess = false;
+    bool aborted = false;
 
     connect(&timeout, SIGNAL(timeout()), &loop, SLOT(quit()));
+    connect(&m_dialog, &UpgradeAssistantDialog::finished, &loop, [&] (int result) {
+        aborted = true;
+        loop.exit();
+    } );
 
     for (int i = UpgradeAssistantDialog::STEP_FIRST; i < UpgradeAssistantDialog::STEP_NUM; i++) {
+        if (aborted) {
+            break;
+        }
+
         m_dialog.onStepChanged(static_cast<UpgradeAssistantDialog::UpgradeAssistantStep>(i));
         timeout.start(1000);       /* 1 second */
         loop.exec();
