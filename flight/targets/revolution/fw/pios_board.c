@@ -98,6 +98,14 @@ static const struct pios_hmc5883_cfg pios_hmc5883_cfg = {
 	.Mode = PIOS_HMC5883_MODE_CONTINUOUS,
 	.Default_Orientation = PIOS_HMC5883_TOP_270DEG,
 };
+
+static const struct pios_hmc5883_cfg pios_hmc5883_external_cfg = {
+    .M_ODR               = PIOS_HMC5883_ODR_75,
+    .Meas_Conf           = PIOS_HMC5883_MEASCONF_NORMAL,
+    .Gain                = PIOS_HMC5883_GAIN_1_9,
+    .Mode                = PIOS_HMC5883_MODE_SINGLE,
+    .Default_Orientation = PIOS_HMC5883_TOP_270DEG,
+};
 #endif /* PIOS_INCLUDE_HMC5883 */
 
 /**
@@ -164,6 +172,8 @@ static const struct pios_mpu60x0_cfg pios_mpu6000_cfg = {
 #define PIOS_COM_DEBUGCONSOLE_TX_BUF_LEN 40
 uintptr_t pios_com_debug_id;
 #endif	/* PIOS_INCLUDE_DEBUG_CONSOLE */
+
+bool external_mag_fail;
 
 uintptr_t pios_internal_adc_id = 0;
 uintptr_t pios_uavo_settings_fs_id;
@@ -515,14 +525,60 @@ void PIOS_Board_Init(void) {
 			hwRevoMini.MaxChannel, hwRevoMini.CoordID, 1);
 #endif /* PIOS_INCLUDE_RFM22B */
 
-
-	if (PIOS_I2C_Init(&pios_i2c_mag_pressure_adapter_id, &pios_i2c_mag_pressure_adapter_cfg)) {
-		PIOS_DEBUG_Assert(0);
-	}
-	
-	PIOS_DELAY_WaitmS(50);
-
 	PIOS_SENSORS_Init();
+
+#if defined(PIOS_INCLUDE_I2C)
+	if (PIOS_I2C_Init(&pios_i2c_mag_pressure_adapter_id, &pios_i2c_mag_pressure_adapter_cfg))
+		PIOS_DEBUG_Assert(0);
+	else
+		AlarmsSet(SYSTEMALARMS_ALARM_I2C, SYSTEMALARMS_ALARM_OK);
+#endif  // PIOS_INCLUDE_I2C
+	
+#if defined(PIOS_INCLUDE_HMC5883)
+	PIOS_WDG_Clear();
+
+	uint8_t Magnetometer;
+	HwRevolutionMagnetometerGet(&Magnetometer);
+
+	external_mag_fail = false;
+
+	if (Magnetometer == HWREVOLUTION_MAGNETOMETER_EXTERNALI2CFLEXIPORT)	{
+		if (PIOS_HMC5883_Init(pios_i2c_flexiport_adapter_id, &pios_hmc5883_external_cfg) == 0) {
+            if (PIOS_HMC5883_Test() == 0) {
+                // External mag configuration was successful
+
+                // setup sensor orientation
+                uint8_t ExtMagOrientation;
+                HwRevolutionExtMagOrientationGet(&ExtMagOrientation);
+
+                enum pios_hmc5883_orientation hmc5883_externalOrientation = \
+                    (ExtMagOrientation == HWREVOLUTION_EXTMAGORIENTATION_TOP0DEGCW)      ? PIOS_HMC5883_TOP_0DEG      : \
+                    (ExtMagOrientation == HWREVOLUTION_EXTMAGORIENTATION_TOP90DEGCW)     ? PIOS_HMC5883_TOP_90DEG     : \
+                    (ExtMagOrientation == HWREVOLUTION_EXTMAGORIENTATION_TOP180DEGCW)    ? PIOS_HMC5883_TOP_180DEG    : \
+                    (ExtMagOrientation == HWREVOLUTION_EXTMAGORIENTATION_TOP270DEGCW)    ? PIOS_HMC5883_TOP_270DEG    : \
+                    (ExtMagOrientation == HWREVOLUTION_EXTMAGORIENTATION_BOTTOM0DEGCW)   ? PIOS_HMC5883_BOTTOM_0DEG   : \
+                    (ExtMagOrientation == HWREVOLUTION_EXTMAGORIENTATION_BOTTOM90DEGCW)  ? PIOS_HMC5883_BOTTOM_90DEG  : \
+                    (ExtMagOrientation == HWREVOLUTION_EXTMAGORIENTATION_BOTTOM180DEGCW) ? PIOS_HMC5883_BOTTOM_180DEG : \
+                    (ExtMagOrientation == HWREVOLUTION_EXTMAGORIENTATION_BOTTOM270DEGCW) ? PIOS_HMC5883_BOTTOM_270DEG : \
+                    pios_hmc5883_external_cfg.Default_Orientation;
+                PIOS_HMC5883_SetOrientation(hmc5883_externalOrientation);
+            }
+            else
+                external_mag_fail = true;  // External HMC5883 Test Failed
+        }
+        else
+            external_mag_fail = true;  // External HMC5883 Init Failed
+    }
+
+    if (Magnetometer == HWREVOLUTION_MAGNETOMETER_INTERNAL)
+    {
+        if (PIOS_HMC5883_Init(PIOS_I2C_MAIN_ADAPTER, &pios_hmc5883_cfg) != 0)
+            PIOS_HAL_Panic(PIOS_LED_ALARM, PIOS_HAL_PANIC_MAG);
+        if (PIOS_HMC5883_Test() != 0)
+            PIOS_HAL_Panic(PIOS_LED_ALARM, PIOS_HAL_PANIC_MAG);
+    }
+
+#endif  // PIOS_INCLUDE_HMC5883
 
 #if defined(PIOS_INCLUDE_ADC)
 	uint32_t internal_adc_id;
@@ -533,13 +589,6 @@ void PIOS_Board_Init(void) {
         GPIO_Init(pios_current_sonar_pin.gpio, &pios_current_sonar_pin.init);
 #endif
 
-#if defined(PIOS_INCLUDE_HMC5883)
-	if(PIOS_HMC5883_Init(PIOS_I2C_MAIN_ADAPTER, &pios_hmc5883_cfg) != 0)
-		PIOS_HAL_Panic(PIOS_LED_ALARM, PIOS_HAL_PANIC_MAG);
-	if (PIOS_HMC5883_Test() != 0)
-		PIOS_HAL_Panic(PIOS_LED_ALARM, PIOS_HAL_PANIC_MAG);
-#endif
-	
 #if defined(PIOS_INCLUDE_MS5611)
 	if (PIOS_MS5611_Init(&pios_ms5611_cfg, pios_i2c_mag_pressure_adapter_id) != 0)
 		PIOS_HAL_Panic(PIOS_LED_ALARM, PIOS_HAL_PANIC_BARO);
