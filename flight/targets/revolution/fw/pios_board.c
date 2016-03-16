@@ -534,70 +534,12 @@ void PIOS_Board_Init(void) {
 			hwRevoMini.MaxChannel, hwRevoMini.CoordID, 1);
 #endif /* PIOS_INCLUDE_RFM22B */
 
-	PIOS_SENSORS_Init();
+	/* init sensor queue registration */
+    PIOS_SENSORS_Init();
 
-#if defined(PIOS_INCLUDE_HMC5883)
-	PIOS_WDG_Clear();
-
-	uint8_t Magnetometer;
-	HwRevolutionMagnetometerGet(&Magnetometer);
-
-	external_mag_fail = false;
-
-	if (Magnetometer == HWREVOLUTION_MAGNETOMETER_EXTERNALI2CFLEXIPORT)	{
-		if (PIOS_HMC5883_Init(pios_i2c_flexiport_adapter_id, &pios_hmc5883_external_cfg) == 0) {
-			if (PIOS_HMC5883_Test() == 0) {
-				// External mag configuration was successful
-
-				// setup sensor orientation
-				uint8_t ExtMagOrientation;
-				HwRevolutionExtMagOrientationGet(&ExtMagOrientation);
-
-				enum pios_hmc5883_orientation hmc5883_externalOrientation = \
-					(ExtMagOrientation == HWREVOLUTION_EXTMAGORIENTATION_TOP0DEGCW)      ? PIOS_HMC5883_TOP_0DEG      : \
-					(ExtMagOrientation == HWREVOLUTION_EXTMAGORIENTATION_TOP90DEGCW)     ? PIOS_HMC5883_TOP_90DEG     : \
-					(ExtMagOrientation == HWREVOLUTION_EXTMAGORIENTATION_TOP180DEGCW)    ? PIOS_HMC5883_TOP_180DEG    : \
-					(ExtMagOrientation == HWREVOLUTION_EXTMAGORIENTATION_TOP270DEGCW)    ? PIOS_HMC5883_TOP_270DEG    : \
-					(ExtMagOrientation == HWREVOLUTION_EXTMAGORIENTATION_BOTTOM0DEGCW)   ? PIOS_HMC5883_BOTTOM_0DEG   : \
-					(ExtMagOrientation == HWREVOLUTION_EXTMAGORIENTATION_BOTTOM90DEGCW)  ? PIOS_HMC5883_BOTTOM_90DEG  : \
-					(ExtMagOrientation == HWREVOLUTION_EXTMAGORIENTATION_BOTTOM180DEGCW) ? PIOS_HMC5883_BOTTOM_180DEG : \
-					(ExtMagOrientation == HWREVOLUTION_EXTMAGORIENTATION_BOTTOM270DEGCW) ? PIOS_HMC5883_BOTTOM_270DEG : \
-					pios_hmc5883_external_cfg.Default_Orientation;
-				PIOS_HMC5883_SetOrientation(hmc5883_externalOrientation);
-			}
-			else
-				external_mag_fail = true;  // External HMC5883 Test Failed
-		}
-		else
-			external_mag_fail = true;  // External HMC5883 Init Failed
-	}
-
-	if (Magnetometer == HWREVOLUTION_MAGNETOMETER_INTERNAL)
-	{
-		if (PIOS_HMC5883_Init(PIOS_I2C_MAIN_ADAPTER, &pios_hmc5883_cfg) != 0)
-			PIOS_HAL_Panic(PIOS_LED_ALARM, PIOS_HAL_PANIC_MAG);
-
-		if (PIOS_HMC5883_Test() != 0)
-			PIOS_HAL_Panic(PIOS_LED_ALARM, PIOS_HAL_PANIC_MAG);
-	}
-
-#endif  // PIOS_INCLUDE_HMC5883
-
-#if defined(PIOS_INCLUDE_ADC)
-	uint32_t internal_adc_id;
-	PIOS_INTERNAL_ADC_Init(&internal_adc_id, &pios_adc_cfg);
-	PIOS_ADC_Init(&pios_internal_adc_id, &pios_internal_adc_driver, internal_adc_id);
- 
-        // configure the pullup for PA8 (inhibit pullups from current/sonar shared pin)
-        GPIO_Init(pios_current_sonar_pin.gpio, &pios_current_sonar_pin.init);
-#endif
-
-#if defined(PIOS_INCLUDE_MS5611)
-	if (PIOS_MS5611_Init(&pios_ms5611_cfg, pios_i2c_mag_pressure_adapter_id) != 0)
-		PIOS_HAL_Panic(PIOS_LED_ALARM, PIOS_HAL_PANIC_BARO);
-	if (PIOS_MS5611_Test() != 0)
-		PIOS_HAL_Panic(PIOS_LED_ALARM, PIOS_HAL_PANIC_BARO);
-#endif
+    PIOS_WDG_Clear();
+    PIOS_DELAY_WaitmS(200);
+    PIOS_WDG_Clear();
 
 #if defined(PIOS_INCLUDE_MPU6000)
 	if (PIOS_MPU6000_Init(pios_spi_gyro_id,0, &pios_mpu6000_cfg) != 0)
@@ -665,6 +607,77 @@ void PIOS_Board_Init(void) {
 	    (hw_mpu6000_samplerate == HWREVOLUTION_MPU6000RATE_8000) ? 8000 : \
 	    pios_mpu6000_cfg.default_samplerate;
 	PIOS_MPU6000_SetSampleRate(mpu6000_samplerate);
+#endif
+
+#if defined(PIOS_INCLUDE_I2C)
+#if defined(PIOS_INCLUDE_HMC5883)
+	PIOS_WDG_Clear();
+
+	uint8_t Magnetometer;
+	HwRevolutionMagnetometerGet(&Magnetometer);
+
+	external_mag_fail = false;
+
+	if (Magnetometer == HWREVOLUTION_MAGNETOMETER_EXTERNALI2CFLEXIPORT)	{
+		if (PIOS_HMC5883_Init(pios_i2c_flexiport_adapter_id, &pios_hmc5883_external_cfg) == 0) {
+			if (PIOS_HMC5883_Test() == 0) {
+				// External mag configuration was successful
+
+				// setup sensor orientation
+				uint8_t ExtMagOrientation;
+				HwRevolutionExtMagOrientationGet(&ExtMagOrientation);
+
+				enum pios_hmc5883_orientation hmc5883_externalOrientation = \
+					(ExtMagOrientation == HWREVOLUTION_EXTMAGORIENTATION_TOP0DEGCW)      ? PIOS_HMC5883_TOP_0DEG      : \
+					(ExtMagOrientation == HWREVOLUTION_EXTMAGORIENTATION_TOP90DEGCW)     ? PIOS_HMC5883_TOP_90DEG     : \
+					(ExtMagOrientation == HWREVOLUTION_EXTMAGORIENTATION_TOP180DEGCW)    ? PIOS_HMC5883_TOP_180DEG    : \
+					(ExtMagOrientation == HWREVOLUTION_EXTMAGORIENTATION_TOP270DEGCW)    ? PIOS_HMC5883_TOP_270DEG    : \
+					(ExtMagOrientation == HWREVOLUTION_EXTMAGORIENTATION_BOTTOM0DEGCW)   ? PIOS_HMC5883_BOTTOM_0DEG   : \
+					(ExtMagOrientation == HWREVOLUTION_EXTMAGORIENTATION_BOTTOM90DEGCW)  ? PIOS_HMC5883_BOTTOM_90DEG  : \
+					(ExtMagOrientation == HWREVOLUTION_EXTMAGORIENTATION_BOTTOM180DEGCW) ? PIOS_HMC5883_BOTTOM_180DEG : \
+					(ExtMagOrientation == HWREVOLUTION_EXTMAGORIENTATION_BOTTOM270DEGCW) ? PIOS_HMC5883_BOTTOM_270DEG : \
+					pios_hmc5883_external_cfg.Default_Orientation;
+				PIOS_HMC5883_SetOrientation(hmc5883_externalOrientation);
+			}
+			else
+				external_mag_fail = true;  // External HMC5883 Test Failed
+		}
+		else
+			external_mag_fail = true;  // External HMC5883 Init Failed
+	}
+
+	if (Magnetometer == HWREVOLUTION_MAGNETOMETER_INTERNAL)
+	{
+		if (PIOS_HMC5883_Init(PIOS_I2C_MAIN_ADAPTER, &pios_hmc5883_cfg) != 0)
+			PIOS_HAL_Panic(PIOS_LED_ALARM, PIOS_HAL_PANIC_MAG);
+		if (PIOS_HMC5883_Test() != 0)
+			PIOS_HAL_Panic(PIOS_LED_ALARM, PIOS_HAL_PANIC_MAG);
+	}
+
+#endif  // PIOS_INCLUDE_HMC5883
+
+	//I2C is slow, sensor init as well, reset watchdog to prevent reset here
+    PIOS_WDG_Clear();
+
+#if defined(PIOS_INCLUDE_MS5611)
+	if (PIOS_MS5611_Init(&pios_ms5611_cfg, pios_i2c_mag_pressure_adapter_id) != 0)
+		PIOS_HAL_Panic(PIOS_LED_ALARM, PIOS_HAL_PANIC_BARO);
+	if (PIOS_MS5611_Test() != 0)
+		PIOS_HAL_Panic(PIOS_LED_ALARM, PIOS_HAL_PANIC_BARO);
+#endif
+
+    //I2C is slow, sensor init as well, reset watchdog to prevent reset here
+    PIOS_WDG_Clear();
+
+#endif    /* PIOS_INCLUDE_I2C */
+
+#if defined(PIOS_INCLUDE_ADC)
+	uint32_t internal_adc_id;
+	PIOS_INTERNAL_ADC_Init(&internal_adc_id, &pios_adc_cfg);
+	PIOS_ADC_Init(&pios_internal_adc_id, &pios_internal_adc_driver, internal_adc_id);
+ 
+        // configure the pullup for PA8 (inhibit pullups from current/sonar shared pin)
+        GPIO_Init(pios_current_sonar_pin.gpio, &pios_current_sonar_pin.init);
 #endif
 
 #if defined(PIOS_INCLUDE_FLASH) && defined(PIOS_INCLUDE_FLASH_JEDEC)
