@@ -87,9 +87,7 @@ bool Sparky::queryCapabilities(BoardCapabilities capability)
         return true;
     case BOARD_CAPABILITIES_BAROS:
         return true;
-    case BOARD_CAPABILITIES_RADIO:
-        return false;
-    case BOARD_CAPABILITIES_OSD:
+    default:
         return false;
     }
     return false;
