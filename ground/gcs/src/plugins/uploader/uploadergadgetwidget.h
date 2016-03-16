@@ -93,7 +93,7 @@ private:
     void CheckAutopilotReady();
     bool CheckInBootloaderState();
     void setStatusInfo(QString str, uploader::StatusIcon ic);
-    QString getFirmwarePathForBoard(QString boardName);
+    QString getImagePath(QString boardName, QString imageType = QString("fw"));
     bool FirmwareLoadFromFile(QString filename);
     bool FirmwareCheckForUpdate(deviceDescriptorStruct device);
     void triggerPartitionDownload(int index);
