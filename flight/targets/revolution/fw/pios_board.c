@@ -338,10 +338,19 @@ void PIOS_Board_Init(void) {
 #endif	/* PIOS_INCLUDE_USB */
 
 	/* Configure IO ports */
+
+#if defined(PIOS_INCLUDE_I2C)
+	if (PIOS_I2C_Init(&pios_i2c_mag_pressure_adapter_id, &pios_i2c_mag_pressure_adapter_cfg))
+		PIOS_DEBUG_Assert(0);
+	else
+		AlarmsSet(SYSTEMALARMS_ALARM_I2C, SYSTEMALARMS_ALARM_OK);
+#endif  // PIOS_INCLUDE_I2C
+
 	HwRevolutionDSMxModeOptions hw_DSMxMode;
 	HwRevolutionDSMxModeGet(&hw_DSMxMode);
 	
 	/* Configure main USART port */
+
 	uint8_t hw_mainport;
 	HwRevolutionMainPortGet(&hw_mainport);
 
@@ -527,13 +536,6 @@ void PIOS_Board_Init(void) {
 
 	PIOS_SENSORS_Init();
 
-#if defined(PIOS_INCLUDE_I2C)
-	if (PIOS_I2C_Init(&pios_i2c_mag_pressure_adapter_id, &pios_i2c_mag_pressure_adapter_cfg))
-		PIOS_DEBUG_Assert(0);
-	else
-		AlarmsSet(SYSTEMALARMS_ALARM_I2C, SYSTEMALARMS_ALARM_OK);
-#endif  // PIOS_INCLUDE_I2C
-	
 #if defined(PIOS_INCLUDE_HMC5883)
 	PIOS_WDG_Clear();
 
@@ -544,39 +546,40 @@ void PIOS_Board_Init(void) {
 
 	if (Magnetometer == HWREVOLUTION_MAGNETOMETER_EXTERNALI2CFLEXIPORT)	{
 		if (PIOS_HMC5883_Init(pios_i2c_flexiport_adapter_id, &pios_hmc5883_external_cfg) == 0) {
-            if (PIOS_HMC5883_Test() == 0) {
-                // External mag configuration was successful
+			if (PIOS_HMC5883_Test() == 0) {
+				// External mag configuration was successful
 
-                // setup sensor orientation
-                uint8_t ExtMagOrientation;
-                HwRevolutionExtMagOrientationGet(&ExtMagOrientation);
+				// setup sensor orientation
+				uint8_t ExtMagOrientation;
+				HwRevolutionExtMagOrientationGet(&ExtMagOrientation);
 
-                enum pios_hmc5883_orientation hmc5883_externalOrientation = \
-                    (ExtMagOrientation == HWREVOLUTION_EXTMAGORIENTATION_TOP0DEGCW)      ? PIOS_HMC5883_TOP_0DEG      : \
-                    (ExtMagOrientation == HWREVOLUTION_EXTMAGORIENTATION_TOP90DEGCW)     ? PIOS_HMC5883_TOP_90DEG     : \
-                    (ExtMagOrientation == HWREVOLUTION_EXTMAGORIENTATION_TOP180DEGCW)    ? PIOS_HMC5883_TOP_180DEG    : \
-                    (ExtMagOrientation == HWREVOLUTION_EXTMAGORIENTATION_TOP270DEGCW)    ? PIOS_HMC5883_TOP_270DEG    : \
-                    (ExtMagOrientation == HWREVOLUTION_EXTMAGORIENTATION_BOTTOM0DEGCW)   ? PIOS_HMC5883_BOTTOM_0DEG   : \
-                    (ExtMagOrientation == HWREVOLUTION_EXTMAGORIENTATION_BOTTOM90DEGCW)  ? PIOS_HMC5883_BOTTOM_90DEG  : \
-                    (ExtMagOrientation == HWREVOLUTION_EXTMAGORIENTATION_BOTTOM180DEGCW) ? PIOS_HMC5883_BOTTOM_180DEG : \
-                    (ExtMagOrientation == HWREVOLUTION_EXTMAGORIENTATION_BOTTOM270DEGCW) ? PIOS_HMC5883_BOTTOM_270DEG : \
-                    pios_hmc5883_external_cfg.Default_Orientation;
-                PIOS_HMC5883_SetOrientation(hmc5883_externalOrientation);
-            }
-            else
-                external_mag_fail = true;  // External HMC5883 Test Failed
-        }
-        else
-            external_mag_fail = true;  // External HMC5883 Init Failed
-    }
+				enum pios_hmc5883_orientation hmc5883_externalOrientation = \
+					(ExtMagOrientation == HWREVOLUTION_EXTMAGORIENTATION_TOP0DEGCW)      ? PIOS_HMC5883_TOP_0DEG      : \
+					(ExtMagOrientation == HWREVOLUTION_EXTMAGORIENTATION_TOP90DEGCW)     ? PIOS_HMC5883_TOP_90DEG     : \
+					(ExtMagOrientation == HWREVOLUTION_EXTMAGORIENTATION_TOP180DEGCW)    ? PIOS_HMC5883_TOP_180DEG    : \
+					(ExtMagOrientation == HWREVOLUTION_EXTMAGORIENTATION_TOP270DEGCW)    ? PIOS_HMC5883_TOP_270DEG    : \
+					(ExtMagOrientation == HWREVOLUTION_EXTMAGORIENTATION_BOTTOM0DEGCW)   ? PIOS_HMC5883_BOTTOM_0DEG   : \
+					(ExtMagOrientation == HWREVOLUTION_EXTMAGORIENTATION_BOTTOM90DEGCW)  ? PIOS_HMC5883_BOTTOM_90DEG  : \
+					(ExtMagOrientation == HWREVOLUTION_EXTMAGORIENTATION_BOTTOM180DEGCW) ? PIOS_HMC5883_BOTTOM_180DEG : \
+					(ExtMagOrientation == HWREVOLUTION_EXTMAGORIENTATION_BOTTOM270DEGCW) ? PIOS_HMC5883_BOTTOM_270DEG : \
+					pios_hmc5883_external_cfg.Default_Orientation;
+				PIOS_HMC5883_SetOrientation(hmc5883_externalOrientation);
+			}
+			else
+				external_mag_fail = true;  // External HMC5883 Test Failed
+		}
+		else
+			external_mag_fail = true;  // External HMC5883 Init Failed
+	}
 
-    if (Magnetometer == HWREVOLUTION_MAGNETOMETER_INTERNAL)
-    {
-        if (PIOS_HMC5883_Init(PIOS_I2C_MAIN_ADAPTER, &pios_hmc5883_cfg) != 0)
-            PIOS_HAL_Panic(PIOS_LED_ALARM, PIOS_HAL_PANIC_MAG);
-        if (PIOS_HMC5883_Test() != 0)
-            PIOS_HAL_Panic(PIOS_LED_ALARM, PIOS_HAL_PANIC_MAG);
-    }
+	if (Magnetometer == HWREVOLUTION_MAGNETOMETER_INTERNAL)
+	{
+		if (PIOS_HMC5883_Init(PIOS_I2C_MAIN_ADAPTER, &pios_hmc5883_cfg) != 0)
+			PIOS_HAL_Panic(PIOS_LED_ALARM, PIOS_HAL_PANIC_MAG);
+
+		if (PIOS_HMC5883_Test() != 0)
+			PIOS_HAL_Panic(PIOS_LED_ALARM, PIOS_HAL_PANIC_MAG);
+	}
 
 #endif  // PIOS_INCLUDE_HMC5883
 
