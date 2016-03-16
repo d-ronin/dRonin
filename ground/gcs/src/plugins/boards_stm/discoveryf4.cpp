@@ -63,6 +63,7 @@ QString DiscoveryF4::boardDescription()
 //! Return which capabilities this board has
 bool DiscoveryF4::queryCapabilities(BoardCapabilities capability)
 {
+    Q_UNUSED(capability);
     return false;
 }
 
