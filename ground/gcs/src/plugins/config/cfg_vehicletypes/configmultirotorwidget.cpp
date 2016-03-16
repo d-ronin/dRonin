@@ -70,7 +70,7 @@ void ConfigMultiRotorWidget::setupUI(SystemSettings::AirframeTypeOptions frameTy
     int i;
     // motor labels
     QStringList labels;
-    int numMotors;
+    int numMotors = 0;
 
     // set aircraftType to Multirotor, disable triyaw channel
     setComboCurrentIndex(m_aircraft->aircraftType, m_aircraft->aircraftType->findText("Multirotor"));
@@ -85,7 +85,6 @@ void ConfigMultiRotorWidget::setupUI(SystemSettings::AirframeTypeOptions frameTy
             combobox->setItemData(0, 0, Qt::DecorationRole);
         }
     }
-
 
     switch(frameType){
     case SystemSettings::AIRFRAMETYPE_TRI:
