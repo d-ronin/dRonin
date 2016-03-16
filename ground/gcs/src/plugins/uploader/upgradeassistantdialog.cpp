@@ -40,6 +40,8 @@ UpgradeAssistantDialog::UpgradeAssistantDialog(QWidget *parent) :
 {
     ui->setupUi(this);
 
+    setModal(true);
+
     stepLabels[STEP_ENTERLOADER] = ui->lblEnterLoader;
     stepLabels[STEP_UPGRADEBOOTLOADER] = ui->lblUpgradeBootloader;
     stepLabels[STEP_PROGRAMUPGRADER] = ui->lblProgramUpgrader;
@@ -55,6 +57,9 @@ UpgradeAssistantDialog::UpgradeAssistantDialog(QWidget *parent) :
     for (int i=STEP_FIRST; i<STEP_NUM; i++) {
         originalText[i] = new QString(stepLabels[i]->text());
     }
+
+    connect(ui->buttonBox, SIGNAL(clicked(QAbstractButton *)), this,
+            SLOT(reject()));
 }
 
 UpgradeAssistantDialog::~UpgradeAssistantDialog()
@@ -95,4 +100,8 @@ void UpgradeAssistantDialog::onStepChanged(UpgradeAssistantStep step)
             stepLabels[i]->setText(*originalText[i]);
         }
     }
+}
+
+void UpgradeAssistantDialog::closeEvent(QCloseEvent* event) {
+    reject();
 }

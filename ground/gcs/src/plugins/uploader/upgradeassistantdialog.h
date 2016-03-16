@@ -67,6 +67,9 @@ public:
 
 //public slots:
     void onStepChanged(UpgradeAssistantStep step);
+
+protected:
+    void closeEvent(QCloseEvent *event);
     
 private:
     Ui::UpgradeAssistant *ui;
