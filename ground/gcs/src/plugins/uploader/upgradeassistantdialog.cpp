@@ -80,6 +80,8 @@ void UpgradeAssistantDialog::setOperatingMode(bool upgradingBootloader, bool usi
 
 void UpgradeAssistantDialog::onStepChanged(UpgradeAssistantStep step)
 {
+    qDebug() << QString("UpgradeAssistant: in step %1").arg(step);
+
     curStep = step;
 
     int stepVal = step;
@@ -103,5 +105,7 @@ void UpgradeAssistantDialog::onStepChanged(UpgradeAssistantStep step)
 }
 
 void UpgradeAssistantDialog::closeEvent(QCloseEvent* event) {
+    (void) event;
+
     reject();
 }
