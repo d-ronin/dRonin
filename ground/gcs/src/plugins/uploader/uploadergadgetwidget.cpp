@@ -964,7 +964,7 @@ void UploaderGadgetWidget::onBootloaderDetected()
 
             setStatusInfo(tr("Connection to bootloader successful"), uploader::STATUSICON_OK);
 
-            if (FirmwareLoadFromFile(getFirmwarePathForBoard(info.board->shortName()))) {
+            if (FirmwareLoadFromFile(getImagePath(info.board->shortName()))) {
                 setStatusInfo(tr("Ready to flash firmware"), uploader::STATUSICON_OK);
                 this->activateWindow();
                 m_widget->flashButton->setFocus();
@@ -1240,7 +1240,7 @@ QString UploaderGadgetWidget::LoadFirmwareFileDialog(QString boardName)
     QString selectedFilter;
     boardName = boardName.toLower();
 
-    QString fwDirectoryStr = getFirmwarePathForBoard(boardName);
+    QString fwDirectoryStr = getImagePath(boardName);
 
     QString fileName = QFileDialog::getOpenFileName(this,
                                                     tr("Select firmware file"),
@@ -1383,55 +1383,43 @@ void UploaderGadgetWidget::openHelp()
     QDesktopServices::openUrl( QUrl("https://github.com/d-ronin/dRonin/wiki/OnlineHelp:-Uploader-Plugin", QUrl::StrictMode) );
 }
 
-QString UploaderGadgetWidget::getFirmwarePathForBoard(QString(boardName))
+QString UploaderGadgetWidget::getImagePath(QString boardName, QString imageType)
 {
-    QDir fwDirectory;
-    QString fwDirectoryStr;
-    boardName = boardName.toLower();
+    QString imageName = QString("%1_%2").arg(imageType).arg(boardName.toLower());
+    QString imageNameWithSuffix = QString("%1.tlfw").arg(imageName);
 
-#ifdef Q_OS_WIN
-    #ifdef FIRMWARE_RELEASE_CONFIG
-        fwDirectoryStr = QCoreApplication::applicationDirPath();
-        fwDirectory = QDir(fwDirectoryStr);
-        fwDirectory.cdUp();
-        fwDirectory.cd("firmware");
-        fwDirectoryStr = fwDirectory.absolutePath();
-    #else
-        fwDirectoryStr = QCoreApplication::applicationDirPath();
-        fwDirectory = QDir(fwDirectoryStr);
-        fwDirectory.cd("../../..");
-        fwDirectoryStr = fwDirectory.absolutePath();
-        fwDirectoryStr += "/fw_" + boardName;
-    #endif // FIRMWARE_RELEASE_CONFIG
-#elif defined Q_OS_LINUX
-    #ifdef FIRMWARE_RELEASE_CONFIG
-        fwDirectory = QDir("/usr/local/" GCS_PROJECT_BRANDING_PRETTY "/firmware");
-        fwDirectoryStr = fwDirectory.absolutePath();
-    #else
-        fwDirectoryStr = QCoreApplication::applicationDirPath();
-        fwDirectory = QDir(fwDirectoryStr);
-        fwDirectory.cd("../../..");
-        fwDirectoryStr = fwDirectory.absolutePath();
-        fwDirectoryStr += "/fw_" + boardName;
-    #endif // FIRMWARE_RELEASE_CONFIG
-    fwDirectoryStr += "/fw_" + boardName + ".tlfw";
-#elif defined Q_OS_MAC
-    #ifdef FIRMWARE_RELEASE_CONFIG
-        fwDirectoryStr = QCoreApplication::applicationDirPath();
-        fwDirectory = QDir(fwDirectoryStr);
-        fwDirectory.cd("../Resources/firmware");
-        fwDirectoryStr = fwDirectory.absolutePath();
-    #else
-        fwDirectoryStr = QCoreApplication::applicationDirPath();
-        fwDirectory = QDir(fwDirectoryStr);
-        fwDirectory.cd("../../../../../..");
-        fwDirectoryStr = fwDirectory.absolutePath();
-        fwDirectoryStr += "/fw_" + boardName;
-    #endif // FIRMWARE_RELEASE_CONFIG
-    fwDirectoryStr += "/fw_"+ boardName +".tlfw";
-#endif
+    QStringList paths = QStringList() 
+        /* Relative paths first; try in application bundle or build dir */
+        << "."                                  // uh, right here?
+        << "../firmware"                        // windows installed path
+        /* Added ../build to these to make sure our assumptions are right 
+         * about it being a build tree */
+        << "../../../../build"                  // windows / linux build
+        << "../../../../../../../build"         // OSX build
+        << "../Resources/firmware"              // OSX app bundle
+        << "/usr/local/" GCS_PROJECT_BRANDING_PRETTY "/firmware"; // leenucks deb
 
-    return fwDirectoryStr;
+    foreach (QString path, paths) {
+        QDir pathDir = QDir(QCoreApplication::applicationDirPath());
+
+        if (pathDir.cd(path)) {
+            /* Two things to try. */
+            QString perTargetPath = QString("%1/%2/%3").arg(pathDir.absolutePath()).arg(imageName).arg(imageNameWithSuffix);
+
+            if (QFile::exists(perTargetPath)) {
+                return perTargetPath;
+            }
+
+            QString directPath = QString("%1/%2").arg(pathDir.absolutePath()).arg(imageNameWithSuffix);
+
+            if (QFile::exists(directPath)) {
+                return directPath;
+            }
+        }
+    }
+
+    /* This is sane for file dialogs, too. */
+    return QString("");
 }
 
 bool UploaderGadgetWidget::FirmwareLoadFromFile(QString filename)
