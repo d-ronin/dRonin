@@ -134,7 +134,7 @@ UploaderGadgetWidget::UploaderGadgetWidget(QWidget *parent):QWidget(parent),
     /* Else begin our normal actions waitin' for a board */
     if (getUploaderStatus() != uploader::BL_SITTING) {
         setUploaderStatus(uploader::DISCONNECTED);
-        // XXX TODO text
+        setStatusInfo(tr("GCS ready for flight board connection..."), uploader::STATUSICON_OK);
     }
 }
 
@@ -408,11 +408,8 @@ void UploaderGadgetWidget::onLoadFirmwareButtonClick()
     setUploaderStatus(getUploaderStatus());
 }
 
-/**
- * @brief slot called when the user presses the flash firmware button
- * It start a non blocking firmware upload
- */
-void UploaderGadgetWidget::onFlashButtonClick()
+// Would be nice to do the work here required to constify firmwareImage
+bool UploaderGadgetWidget::flashFirmware(QByteArray &firmwareImage)
 {
     QEventLoop loop;
 
@@ -423,7 +420,7 @@ void UploaderGadgetWidget::onFlashButtonClick()
     setUploaderStatus(uploader::BL_BUSY);
     onStatusUpdate(QString("Starting upload..."), 0); // set progress bar to 0 while erasing
     connect(&dfu, SIGNAL(operationProgress(QString,int)), this, SLOT(onStatusUpdate(QString, int)));
-    dfu.UploadPartitionThreaded(loadedFile, DFU_PARTITION_FW, currentBoard.max_code_size.toInt());
+    dfu.UploadPartitionThreaded(firmwareImage, DFU_PARTITION_FW, currentBoard.max_code_size.toInt());
 
     /* disconnects when loop comes out of scope */
     connect(&dfu, &DFUObject::uploadFinished, &loop, [&] (tl_dfu::Status status) {
@@ -438,20 +435,20 @@ void UploaderGadgetWidget::onFlashButtonClick()
         setUploaderStatus(uploader::BL_SITTING);
         setStatusInfo(tr("Firmware upload failed"), uploader::STATUSICON_FAIL);
 
-        return;
+        return false;
     }
 
     setStatusInfo(tr("Firmware upload success"), uploader::STATUSICON_OK);
 
-    if ((!loadedFile.right(100).startsWith("TlFw")) && (!loadedFile.right(100).startsWith("OpFw"))) {
+    if ((!firmwareImage.right(100).startsWith("TlFw")) && (!firmwareImage.right(100).startsWith("OpFw"))) {
         dfu.disconnect();
         setUploaderStatus(uploader::BL_SITTING);
 
-        return;
+        return true;
     }
 
     tempArray.clear();
-    tempArray.append(loadedFile.right(100));
+    tempArray.append(firmwareImage.right(100));
     tempArray.chop(20);
     QString user("                    ");
     user = user.replace(0, m_widget->userDefined_LD_lbl->text().length(), m_widget->userDefined_LD_lbl->text());
@@ -470,7 +467,7 @@ void UploaderGadgetWidget::onFlashButtonClick()
 
             setUploaderStatus(uploader::BL_SITTING);
 
-            return;
+            return false;
     }
 
     dfu.disconnect();
@@ -480,14 +477,25 @@ void UploaderGadgetWidget::onFlashButtonClick()
     // uploaded succeeded so we can assume the loaded file is on the board
     deviceDescriptorStruct descStructure;
     if (UAVObjectUtilManager::descriptionToStructure(tempArray, descStructure)) {
-        quint32 crc = dfu.CRCFromQBArray(loadedFile, currentBoard.max_code_size.toLong());
+        quint32 crc = dfu.CRCFromQBArray(firmwareImage, currentBoard.max_code_size.toLong());
         FirmwareOnDeviceUpdate(descStructure, QString::number(crc));
     }
-
-    this->activateWindow();
-    m_widget->bootButton->setFocus();
     dfu.disconnect();
     setUploaderStatus(uploader::BL_SITTING);
+
+    return true;
+}
+
+/**
+ * @brief slot called when the user presses the flash firmware button
+ * It start a non blocking firmware upload
+ */
+void UploaderGadgetWidget::onFlashButtonClick()
+{
+    if (flashFirmware(loadedFile)) {
+        this->activateWindow();
+        m_widget->bootButton->setFocus();
+    }
 }
 
 void UploaderGadgetWidget::haltOrReset(bool halting)
@@ -676,6 +684,8 @@ void UploaderGadgetWidget::upgradeError(QString why)
 
     m_dialog.hide();
 
+    qDebug() << "Upgrade assistant failed: " + why;
+
     /* XXX TODO: Infer what state we should be in-- telemetry? bl? none? */
 
     /* XXX TODO: Pop up a proper error dialog */
@@ -690,6 +700,8 @@ void UploaderGadgetWidget::doUpgradeOperation()
     QTimer timeout;
 
     bool aborted = false;
+
+    struct deviceInfo board = currentBoard;
 
     connect(&timeout, SIGNAL(timeout()), &loop, SLOT(quit()));
     connect(&m_dialog, &UpgradeAssistantDialog::finished, &loop, [&] (int result) {
@@ -711,7 +723,7 @@ void UploaderGadgetWidget::doUpgradeOperation()
      * have the bootupdater, legacy upgrade tool, and firmware images */
 
     bool upgradingLoader = false;
-    bool isCrippledBoard = false;
+    bool isCrippledBoard = board.board->queryCapabilities(Core::IBoardType::BOARD_DISABILITY_REQUIRESUPGRADER);
 
     m_dialog.setOperatingMode(upgradingLoader, isCrippledBoard);
 
@@ -740,7 +752,7 @@ void UploaderGadgetWidget::doUpgradeOperation()
     m_dialog.onStepChanged(UpgradeAssistantDialog::STEP_TRANSLATESETTINGS);
 
     /* translate the settings using the cloud service */
-    if (!tradeSettingsWithCloud("Release-20160120.3")) {
+    if (!tradeSettingsWithCloud("Release-20160120.3")) { // XXX REV
         upgradeError(tr("Unable to use cloud services to translate settings!"));
 
         return;
@@ -755,7 +767,18 @@ void UploaderGadgetWidget::doUpgradeOperation()
     }
 
     m_dialog.onStepChanged(UpgradeAssistantDialog::STEP_FLASHFIRMWARE);
+    if (!FirmwareLoadFromFile(getImagePath(board.board->shortName()))) {
+        upgradeError(tr("Unable to load firmware image for board!"));
+
+        return;
+    }
+
     /* XXX TODO: flash the appropriate firmware image */
+    if (flashFirmware(loadedFile)) {
+        upgradeError(tr("Unable to flash firmware image to board!"));
+
+        return;
+    }
 
     m_dialog.onStepChanged(UpgradeAssistantDialog::STEP_BOOT);
     /* XXX TODO: start firmware and wait for telemetry connection */

@@ -102,6 +102,7 @@ private:
     bool downloadSettings();
     void doUpgradeOperation();
     void upgradeError(QString why);
+    bool flashFirmware(QByteArray &firmwareImage);
 
     Ui_UploaderWidget *m_widget;
 

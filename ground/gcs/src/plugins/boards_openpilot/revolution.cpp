@@ -97,7 +97,7 @@ bool Revolution::queryCapabilities(BoardCapabilities capability)
         return true;
     case BOARD_CAPABILITIES_RADIO:
         return true;
-    case BOARD_CAPABILITIES_OSD:
+    default:
         return false;
     }
     return false;

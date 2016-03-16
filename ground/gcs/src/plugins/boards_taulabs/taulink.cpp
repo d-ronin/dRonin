@@ -72,17 +72,9 @@ QString TauLink::boardDescription()
 bool TauLink::queryCapabilities(BoardCapabilities capability)
 {
     switch(capability) {
-    case BOARD_CAPABILITIES_GYROS:
-        return false;
-    case BOARD_CAPABILITIES_ACCELS:
-        return false;
-    case BOARD_CAPABILITIES_MAGS:
-        return false;
-    case BOARD_CAPABILITIES_BAROS:
-        return false;
     case BOARD_CAPABILITIES_RADIO:
         return true;
-    case BOARD_CAPABILITIES_OSD:
+    default:
         return false;
     }
     return false;
