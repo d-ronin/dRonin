@@ -339,7 +339,6 @@ DFUObject::statusReport DFUObject::StatusRequest()
 
     TL_DFU_QXTLOG_DEBUG(QString("StatusRequest:%0 bytes sent").arg(result));
     result = ReceiveData(message);
-    TL_DFU_QXTLOG_DEBUG(result);//TODO CHECK LENGHT
     TL_DFU_QXTLOG_DEBUG(QString("StatusRequest:%0 bytes received").arg(result));
     if(message.flags_command == BL_MSG_STATUS_REP) {
         TL_DFU_QXTLOG_DEBUG(QString("Status:%0").arg(message.v.status_rep.current_state));
@@ -398,8 +397,7 @@ device DFUObject::findCapabilities()
         TL_DFU_QXTLOG_DEBUG(QString("Device SizeOfDesc=%0").arg(currentDevice.SizeOfDesc));
         TL_DFU_QXTLOG_DEBUG(QString("BL Version=%0").arg(currentDevice.BL_Version));
         TL_DFU_QXTLOG_DEBUG(QString("FW CRC=%0").arg(currentDevice.FW_CRC));
-        if(currentDevice.PartitionSizes.size() > 0)
-        {
+        if(currentDevice.PartitionSizes.size() > 0) {
             for(int partition = 0;partition < 10;++partition)
                 TL_DFU_QXTLOG_DEBUG(QString("Partition %0 Size %1").arg(partition).arg(currentDevice.PartitionSizes.at(partition)));
             currentDevice.PartitionSizes.resize(currentDevice.PartitionSizes.indexOf(0));
@@ -427,27 +425,23 @@ bool DFUObject::OpenBootloaderComs(USBPortInfo port)
     m_eventloop.exec();
     hid_init();
     m_hidHandle = hid_open(port.vendorID, port.productID, NULL);
-    if ( m_hidHandle )
-    {
+    if ( m_hidHandle ) {
         QTimer::singleShot(200,&m_eventloop, SLOT(quit()));
         m_eventloop.exec();
         AbortOperation();
-        if(!EnterDFU())
-        {
+        if(!EnterDFU()) {
             TL_DFU_QXTLOG_DEBUG(QString("Could not process enterDFU command"));
             CloseBootloaderComs();
             return false;
         }
-        if(StatusRequest().status != tl_dfu::DFUidle)
-        {
+        if(StatusRequest().status != tl_dfu::DFUidle) {
             TL_DFU_QXTLOG_DEBUG(QString("Status different that DFUidle after enterDFU command"));
             CloseBootloaderComs();
             return false;
         }
 
         return true;
-    } else
-    {
+    } else {
         TL_DFU_QXTLOG_DEBUG(QString("Could not open USB port"));
         CloseBootloaderComs();
         return false;
@@ -527,8 +521,8 @@ tl_dfu::Status DFUObject::UploadPartition(QByteArray &sourceArray, dfu_partition
 
     if( threadJob.partition_size < (quint32)sourceArray.length() )
     {
-        TL_DFU_QXTLOG_DEBUG("ERROR array to big for device");
-        return tl_dfu::abort;;
+        TL_DFU_QXTLOG_DEBUG("ERROR array too big for device");
+        return tl_dfu::abort;
     }
 
     quint32 crc = DFUObject::CRCFromQBArray(sourceArray, threadJob.partition_size);
@@ -544,12 +538,9 @@ tl_dfu::Status DFUObject::UploadPartition(QByteArray &sourceArray, dfu_partition
     emit operationProgress(QString("Erasing, please wait..."), -1);
 
     TL_DFU_QXTLOG_DEBUG( "Erasing memory");
-    if (StatusRequest().status == tl_dfu::abort)
-    {
-        TL_DFU_QXTLOG_DEBUG( "returning TL_DFU::abort");
-        return tl_dfu::abort;
-    }
-    ret = StatusRequest();
+
+    ret=StatusRequest();
+
     TL_DFU_QXTLOG_DEBUG(QString("Erase returned:%0").arg(StatusToString(ret.status)));
 
     if(ret.status != tl_dfu::uploading) {
@@ -695,6 +686,7 @@ int DFUObject::SendData(bl_messages data)
         return -1;
     }
 
+    /* XXX All of these lengths seem wrong */
     char array[sizeof(bl_messages) + 1];
     array[0] = 0x02;
     memcpy(array + 1, &data, sizeof(bl_messages));
@@ -712,6 +704,7 @@ int DFUObject::ReceiveData(bl_messages &data)
         return -1;
     }
 
+    /* XXX All of these lengths seem wrong */
     char array[sizeof(bl_messages) + 1];
     int received = hid_read_timeout(m_hidHandle, (unsigned char *) array, BUF_LEN, 10000);
     memcpy(&data, array + 1, sizeof(bl_messages));
@@ -740,6 +733,9 @@ QString DFUObject::partitionStringFromLabel(dfu_partition_label label)
         break;
     case DFU_PARTITION_WAYPOINTS:
         return QString(tr("waypoints"));
+        break;
+    case DFU_PARTITION_LOG:
+        return QString(tr("log"));
         break;
     default:
         return QString::number(label);

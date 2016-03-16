@@ -125,6 +125,8 @@ UploaderGadgetWidget::UploaderGadgetWidget(QWidget *parent):QWidget(parent),
 
     connect(usbFilterUP, SIGNAL(deviceDiscovered()), this, SLOT(onBootloaderDetected()), Qt::UniqueConnection);
 
+    connect(&dfu, SIGNAL(operationProgress(QString,int)), this, SLOT(onStatusUpdate(QString, int)));
+
     conMngr = Core::ICore::instance()->connectionManager();
 
     /* Enter the loader if it's available */
@@ -414,12 +416,15 @@ bool UploaderGadgetWidget::flashFirmware(QByteArray &firmwareImage)
     QEventLoop loop;
 
     QTimer timeout;
+    timeout.setSingleShot(true);
+
+    /* XXX set appropriate timeout */
+
     tl_dfu::Status operationSuccess = DFUidle;
 
     setStatusInfo("",uploader::STATUSICON_RUNNING);
     setUploaderStatus(uploader::BL_BUSY);
     onStatusUpdate(QString("Starting upload..."), 0); // set progress bar to 0 while erasing
-    connect(&dfu, SIGNAL(operationProgress(QString,int)), this, SLOT(onStatusUpdate(QString, int)));
     dfu.UploadPartitionThreaded(firmwareImage, DFU_PARTITION_FW, currentBoard.max_code_size.toInt());
 
     /* disconnects when loop comes out of scope */
@@ -431,7 +436,6 @@ bool UploaderGadgetWidget::flashFirmware(QByteArray &firmwareImage)
     loop.exec();                /* Wait for timeout or download complete */
 
     if (operationSuccess != Last_operation_Success) {
-        dfu.disconnect();
         setUploaderStatus(uploader::BL_SITTING);
         setStatusInfo(tr("Firmware upload failed"), uploader::STATUSICON_FAIL);
 
@@ -441,7 +445,6 @@ bool UploaderGadgetWidget::flashFirmware(QByteArray &firmwareImage)
     setStatusInfo(tr("Firmware upload success"), uploader::STATUSICON_OK);
 
     if ((!firmwareImage.right(100).startsWith("TlFw")) && (!firmwareImage.right(100).startsWith("OpFw"))) {
-        dfu.disconnect();
         setUploaderStatus(uploader::BL_SITTING);
 
         return true;
@@ -461,8 +464,6 @@ bool UploaderGadgetWidget::flashFirmware(QByteArray &firmwareImage)
     loop.exec();
 
     if(operationSuccess != Last_operation_Success) {
-            dfu.disconnect();
-
             setStatusInfo(tr("Firmware metadata upload failed"), uploader::STATUSICON_FAIL);
 
             setUploaderStatus(uploader::BL_SITTING);
@@ -470,7 +471,6 @@ bool UploaderGadgetWidget::flashFirmware(QByteArray &firmwareImage)
             return false;
     }
 
-    dfu.disconnect();
     setUploaderStatus(uploader::BL_SITTING);
     setStatusInfo(tr("Firmware and firmware metadata upload success"), uploader::STATUSICON_OK);
 
@@ -480,7 +480,6 @@ bool UploaderGadgetWidget::flashFirmware(QByteArray &firmwareImage)
         quint32 crc = dfu.CRCFromQBArray(firmwareImage, currentBoard.max_code_size.toLong());
         FirmwareOnDeviceUpdate(descStructure, QString::number(crc));
     }
-    dfu.disconnect();
     setUploaderStatus(uploader::BL_SITTING);
 
     return true;
@@ -578,6 +577,8 @@ bool UploaderGadgetWidget::downloadSettings() {
     QEventLoop loop;
 
     QTimer timeout;
+    timeout.setSingleShot(true);
+
     bool operationSuccess = false;
 
     connect(&timeout, SIGNAL(timeout()), &loop, SLOT(quit()));
@@ -594,8 +595,6 @@ bool UploaderGadgetWidget::downloadSettings() {
 
     triggerPartitionDownload(DFU_PARTITION_SETTINGS);
     loop.exec();                /* Wait for timeout or download complete */
-
-    dfu.disconnect();
 
     return operationSuccess;
 }
@@ -626,11 +625,14 @@ bool UploaderGadgetWidget::tradeSettingsWithCloud(QString release) {
     QEventLoop loop;
 
     QTimer timeout;
+    timeout.setSingleShot(true);
 
     connect(&timeout, SIGNAL(timeout()), &loop, SLOT(quit()));
     connect(reply, SIGNAL(finished()), &loop, SLOT(quit()));
     timeout.start(15000);       /* 15 seconds */
     loop.exec();
+
+    timeout.stop();
 
     if (!reply->isFinished()) {
         setStatusInfo(tr("Timeout communicating with cloud service"), uploader::STATUSICON_FAIL);
@@ -701,6 +703,8 @@ void UploaderGadgetWidget::doUpgradeOperation()
     QEventLoop loop;
     QTimer timeout;
 
+    timeout.setSingleShot(true);
+
     bool aborted = false;
 
     struct deviceInfo board = currentBoard;
@@ -743,6 +747,7 @@ void UploaderGadgetWidget::doUpgradeOperation()
 
     if (isCrippledBoard) {
         m_dialog.onStepChanged(UpgradeAssistantDialog::STEP_PROGRAMUPGRADER);
+
         /* program the legacy upgrade tool */
         if (!FirmwareLoadFromFile(getImagePath(board.board->shortName(), "up"))) {
             upgradeError(tr("Unable to load upgrader image for board!"));
@@ -767,13 +772,18 @@ void UploaderGadgetWidget::doUpgradeOperation()
         m_dialog.onStepChanged(UpgradeAssistantDialog::STEP_ENTERUPGRADER);
 
         /* enter and connect to the upgrader */
+        setUploaderStatus(uploader::ENTERING_LOADER);
         dfu.JumpToApp(false);
         dfu.CloseBootloaderComs();
 
         /* XXX TODO: Properly detect upgrader */
-        timeout.start(2000);
+        timeout.start(4000);
 
         loop.exec();
+
+        timeout.stop();
+
+        onBootloaderDetected();
     }
 
     m_dialog.onStepChanged(UpgradeAssistantDialog::STEP_DOWNLOADSETTINGS);
@@ -813,7 +823,18 @@ void UploaderGadgetWidget::doUpgradeOperation()
 
     if (isCrippledBoard) {
         m_dialog.onStepChanged(UpgradeAssistantDialog::STEP_REENTERLOADER);
-        /* XXX TODO: re-enter the loader in preparation for flashing fw */
+        /* re-enter the loader in preparation for flashing fw */
+
+        setUploaderStatus(uploader::ENTERING_LOADER);
+        dfu.ResetDevice();
+        dfu.CloseBootloaderComs();
+
+        /* XXX TODO: Properly detect main loader */
+        timeout.start(2500);
+        loop.exec();
+        timeout.stop();
+
+        onBootloaderDetected();
     }
 
     m_dialog.onStepChanged(UpgradeAssistantDialog::STEP_FLASHFIRMWARE);
@@ -1063,14 +1084,6 @@ void UploaderGadgetWidget::onBootloaderDetected()
         info.cpu_serial = "Not Available";
         info.hw_revision = QString::number(dev.HW_Rev);
         info.max_code_size = QString::number(dev.SizeOfCode);
-        QByteArray description = dfu.DownloadDescriptionAsByteArray(dev.SizeOfDesc);
-        deviceDescriptorStruct descStructure;
-        if(!UAVObjectUtilManager::descriptionToStructure(description, descStructure))
-            setStatusInfo(tr("Could not parse firmware metadata"), uploader::STATUSICON_INFO);
-        else
-        {
-            FirmwareOnDeviceUpdate(descStructure, QString::number((dev.FW_CRC)));
-        }
         DeviceInformationUpdate(info);
 
         setUploaderStatus(uploader::BL_SITTING);
@@ -1080,6 +1093,15 @@ void UploaderGadgetWidget::onBootloaderDetected()
             if (triggerUpgrading) {
                 doUpgradeOperation();
                 return;
+            }
+
+            QByteArray description = dfu.DownloadDescriptionAsByteArray(dev.SizeOfDesc);
+            deviceDescriptorStruct descStructure;
+            if(!UAVObjectUtilManager::descriptionToStructure(description, descStructure))
+                setStatusInfo(tr("Could not parse firmware metadata"), uploader::STATUSICON_INFO);
+            else
+            {
+                FirmwareOnDeviceUpdate(descStructure, QString::number((dev.FW_CRC)));
             }
 
             setStatusInfo(tr("Connection to bootloader successful"), uploader::STATUSICON_OK);
@@ -1112,7 +1134,6 @@ void UploaderGadgetWidget::onBootloaderRemoved()
     FirmwareOnDeviceClear(true);
     PartitionBrowserClear();
     setUploaderStatus(uploader::DISCONNECTED);
-    dfu.disconnect();
 }
 
 /**
@@ -1123,6 +1144,7 @@ void UploaderGadgetWidget::onRescueTimer(bool start)
 {
     static int progress;
     static QTimer timer;
+
     if((sender() == usbFilterBL) || (sender() == usbFilterUP))
     {
         timer.stop();
@@ -1177,7 +1199,6 @@ void UploaderGadgetWidget::triggerPartitionDownload(int index)
 
     setStatusInfo("",uploader::STATUSICON_RUNNING);
     setUploaderStatus(uploader::BL_BUSY);
-    connect(&dfu, SIGNAL(operationProgress(QString,int)), this, SLOT(onStatusUpdate(QString, int)));
     tempArray.clear();
     dfu.DownloadPartitionThreaded(&tempArray, (dfu_partition_label)index, size);
 }
@@ -1202,8 +1223,6 @@ void UploaderGadgetWidget::onPartitionSave()
     triggerPartitionDownload(index);
 
     loop.exec();
-
-    dfu.disconnect();
 
     if(operationSuccess)
     {
@@ -1267,7 +1286,6 @@ void UploaderGadgetWidget::onPartitionFlash()
         return;
     setStatusInfo("",uploader::STATUSICON_RUNNING);
     setUploaderStatus(uploader::BL_BUSY);
-    connect(&dfu, SIGNAL(operationProgress(QString,int)), this, SLOT(onStatusUpdate(QString, int)));
 
     tl_dfu::Status operationSuccess = DFUidle;
 
@@ -1287,7 +1305,6 @@ void UploaderGadgetWidget::onPartitionFlash()
         setStatusInfo(tr("Partition upload success"), uploader::STATUSICON_OK);
     else
         setStatusInfo(tr("Partition upload failed"), uploader::STATUSICON_FAIL);
-    dfu.disconnect();
     setUploaderStatus(uploader::BL_SITTING);
 }
 
@@ -1380,6 +1397,8 @@ QString UploaderGadgetWidget::LoadFirmwareFileDialog(QString boardName)
  */
 void UploaderGadgetWidget::setStatusInfo(QString str, uploader::StatusIcon ic)
 {
+    qDebug() << str;
+
     QPixmap px;
     m_widget->statusLabel->setText(str);
     switch (ic) {

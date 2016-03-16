@@ -92,6 +92,12 @@ void PIOS_Board_Init(void)
 #endif  /* PIOS_INCLUDE_FLASH */
 
 #if defined(PIOS_INCLUDE_USB)
+
+#ifdef F1_UPGRADER
+	/* Inject a delay so that host can detect USB disconnect */
+	PIOS_DELAY_WaitmS(1250);
+#endif
+
 	/* Initialize board specific USB data */
 	PIOS_USB_BOARD_DATA_Init();
 
