@@ -693,6 +693,8 @@ void UploaderGadgetWidget::upgradeError(QString why)
 
 void UploaderGadgetWidget::doUpgradeOperation()
 {
+    Core::ModeManager::instance()->activateModeByWorkspaceName("Firmware");
+
     m_dialog.onStepChanged(UpgradeAssistantDialog::STEP_ENTERLOADER);
     m_dialog.setOperatingMode(true, true);
 
@@ -717,13 +719,20 @@ void UploaderGadgetWidget::doUpgradeOperation()
         return;
     }
 
-    /* XXX TODO: Infer what operations we need to do */
     /* XXX TODO: Save the version to convert from, etc */
-    /* XXX TODO: Check prereqs-- cloud service, appropriate revision,
-     * have the bootupdater, legacy upgrade tool, and firmware images */
+
+    /* Infer what operations we need to do -- first, do they need the upgrade
+     * tool? */
+    bool isCrippledBoard = board.board->queryCapabilities(Core::IBoardType::BOARD_DISABILITY_REQUIRESUPGRADER);
 
     bool upgradingLoader = false;
-    bool isCrippledBoard = board.board->queryCapabilities(Core::IBoardType::BOARD_DISABILITY_REQUIRESUPGRADER);
+
+    if (!isCrippledBoard) {
+        /* XXX TODO: If no settings part known, new loader needed. */
+    }
+
+    /* XXX TODO: Check prereqs-- cloud service, appropriate revision,
+     * have the bootupdater, legacy upgrade tool, and firmware images */
 
     m_dialog.setOperatingMode(upgradingLoader, isCrippledBoard);
 
@@ -734,10 +743,37 @@ void UploaderGadgetWidget::doUpgradeOperation()
 
     if (isCrippledBoard) {
         m_dialog.onStepChanged(UpgradeAssistantDialog::STEP_PROGRAMUPGRADER);
-        /* XXX TODO: program the legacy upgrade tool */
+        /* program the legacy upgrade tool */
+        if (!FirmwareLoadFromFile(getImagePath(board.board->shortName(), "up"))) {
+            upgradeError(tr("Unable to load upgrader image for board!"));
+
+            return;
+        }
+
+        loop.processEvents();
+        if (aborted) {
+            upgradeError(tr("Aborted!"));
+            
+            return;
+        }
+
+        /* flash the appropriate main firmware image */
+        if (!flashFirmware(loadedFile)) {
+            upgradeError(tr("Unable to flash upgrader image to board!"));
+
+            return;
+        }
 
         m_dialog.onStepChanged(UpgradeAssistantDialog::STEP_ENTERUPGRADER);
-        /* XXX TODO: enter and connect to the upgrader */
+
+        /* enter and connect to the upgrader */
+        dfu.JumpToApp(false);
+        dfu.CloseBootloaderComs();
+
+        /* XXX TODO: Properly detect upgrader */
+        timeout.start(2000);
+
+        loop.exec();
     }
 
     m_dialog.onStepChanged(UpgradeAssistantDialog::STEP_DOWNLOADSETTINGS);
@@ -749,12 +785,26 @@ void UploaderGadgetWidget::doUpgradeOperation()
         return;
     }
 
+    loop.processEvents();
+    if (aborted) {
+        upgradeError(tr("Aborted!"));
+        
+        return;
+    }
+
     m_dialog.onStepChanged(UpgradeAssistantDialog::STEP_TRANSLATESETTINGS);
 
     /* translate the settings using the cloud service */
     if (!tradeSettingsWithCloud("Release-20160120.3")) { // XXX REV
         upgradeError(tr("Unable to use cloud services to translate settings!"));
 
+        return;
+    }
+
+    loop.processEvents();
+    if (aborted) {
+        upgradeError(tr("Aborted!"));
+        
         return;
     }
 
@@ -773,17 +823,52 @@ void UploaderGadgetWidget::doUpgradeOperation()
         return;
     }
 
-    /* XXX TODO: flash the appropriate firmware image */
-    if (flashFirmware(loadedFile)) {
+    loop.processEvents();
+    if (aborted) {
+        upgradeError(tr("Aborted!"));
+        
+        return;
+    }
+
+    /* flash the appropriate main firmware image */
+    if (!flashFirmware(loadedFile)) {
         upgradeError(tr("Unable to flash firmware image to board!"));
 
         return;
     }
 
     m_dialog.onStepChanged(UpgradeAssistantDialog::STEP_BOOT);
-    /* XXX TODO: start firmware and wait for telemetry connection */
+
+    bool firmwareConnected = false;
+
+    /* start firmware and wait for telemetry connection */
+    connect(telMngr, &TelemetryManager::connected, &loop, [&] () {
+        firmwareConnected = true;
+        loop.exit();
+    } );
+
+    dfu.JumpToApp(false);
+    dfu.CloseBootloaderComs();
+
+    timeout.start(10000);
+
+    loop.exec();
+
+    if (aborted) {
+        upgradeError(tr("Aborted!"));
+        
+        return;
+    }
+
+    if (!firmwareConnected) {
+        upgradeError(tr("Unable to connect to new firmware!"));
+        
+        return;
+    }
 
     m_dialog.onStepChanged(UpgradeAssistantDialog::STEP_IMPORT);
+
+
     /* XXX TODO: trigger import of saved settings. */
 
 
@@ -898,10 +983,22 @@ void UploaderGadgetWidget::onBootloaderDetected()
                 deviceDescriptorStruct descStructure;
                 if (UAVObjectUtilManager::descriptionToStructure(description, descStructure)) {
                     if (FirmwareCheckForUpdate(descStructure)) {
-                        Core::ModeManager::instance()->activateModeByWorkspaceName("Firmware");
                         triggerUpgrading = true;
                         break;
-                    }
+                    } 
+                } else {
+                    QMessageBox msgBox;
+                    msgBox.setText(tr("There appears to be no valid firmware on your device.."));
+                    msgBox.setInformativeText(tr("Do you want to install firmware?"));
+                    msgBox.setStandardButtons(QMessageBox::Yes | QMessageBox::No);
+                    msgBox.setDefaultButton(QMessageBox::Yes);
+
+                    int val = msgBox.exec();
+
+                    if (val == QMessageBox::Yes)
+                        triggerUpgrading = true;
+
+                    break;      /* Don't boot in any case */
                 }
             }
             // fall through to default
