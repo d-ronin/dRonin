@@ -98,9 +98,10 @@ private:
     bool FirmwareCheckForUpdate(deviceDescriptorStruct device);
     void triggerPartitionDownload(int index);
     void haltOrReset(bool halting);
-    bool tradeSettingsWithCloud();
+    bool tradeSettingsWithCloud(QString release);
     bool downloadSettings();
     void doUpgradeOperation();
+    void upgradeError(QString why);
 
     Ui_UploaderWidget *m_widget;
 

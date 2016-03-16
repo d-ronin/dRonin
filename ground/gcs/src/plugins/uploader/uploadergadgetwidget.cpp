@@ -592,7 +592,7 @@ bool UploaderGadgetWidget::downloadSettings() {
     return operationSuccess;
 }
 
-bool UploaderGadgetWidget::tradeSettingsWithCloud() {
+bool UploaderGadgetWidget::tradeSettingsWithCloud(QString release) {
     /* post to cloud service */
     QUrl url(exportUrl);
     QNetworkRequest request(url);
@@ -602,9 +602,7 @@ bool UploaderGadgetWidget::tradeSettingsWithCloud() {
     QHttpPart githash, datafile;
 
     githash.setHeader(QNetworkRequest::ContentDispositionHeader,QVariant("form-data; name=\"githash\""));
-    githash.setBody("Release-20160120.3");
-
-    /* XXX: TODO: real source */
+    githash.setBody(release.toLatin1());
 
     /* XXX: TODO: send some additional details up */
 
@@ -672,15 +670,21 @@ bool UploaderGadgetWidget::tradeSettingsWithCloud() {
     return true;
 }
 
+void UploaderGadgetWidget::upgradeError(QString why)
+{
+    (void) why;
+
+    m_dialog.hide();
+
+    /* XXX TODO: Infer what state we should be in-- telemetry? bl? none? */
+
+    /* XXX TODO: Pop up a proper error dialog */
+}
+
 void UploaderGadgetWidget::doUpgradeOperation()
 {
-    bool upgradingLoader = false;
-    bool isCrippledBoard = false;
-
     m_dialog.onStepChanged(UpgradeAssistantDialog::STEP_ENTERLOADER);
-    m_dialog.setOperatingMode(upgradingLoader, isCrippledBoard);
-
-    m_dialog.open();
+    m_dialog.setOperatingMode(true, true);
 
     QEventLoop loop;
     QTimer timeout;
@@ -689,19 +693,79 @@ void UploaderGadgetWidget::doUpgradeOperation()
 
     connect(&timeout, SIGNAL(timeout()), &loop, SLOT(quit()));
     connect(&m_dialog, &UpgradeAssistantDialog::finished, &loop, [&] (int result) {
+        (void) result;
         aborted = true;
         loop.exit();
     } );
 
-    for (int i = UpgradeAssistantDialog::STEP_FIRST; i < UpgradeAssistantDialog::STEP_NUM; i++) {
-        if (aborted) {
-            break;
-        }
+    m_dialog.open();
 
-        m_dialog.onStepChanged(static_cast<UpgradeAssistantDialog::UpgradeAssistantStep>(i));
-        timeout.start(1000);       /* 1 second */
-        loop.exec();
+    if (uploaderStatus != uploader::BL_SITTING) {
+        upgradeError(tr("Not in expected bootloader state!"));
+        return;
     }
+
+    /* XXX TODO: Infer what operations we need to do */
+    /* XXX TODO: Save the version to convert from, etc */
+    /* XXX TODO: Check prereqs-- cloud service, appropriate revision,
+     * have the bootupdater, legacy upgrade tool, and firmware images */
+
+    bool upgradingLoader = false;
+    bool isCrippledBoard = false;
+
+    m_dialog.setOperatingMode(upgradingLoader, isCrippledBoard);
+
+    if (upgradingLoader) {
+        m_dialog.onStepChanged(UpgradeAssistantDialog::STEP_UPGRADEBOOTLOADER);
+        /* XXX TODO: properly upgrade bootloader */
+    }
+
+    if (isCrippledBoard) {
+        m_dialog.onStepChanged(UpgradeAssistantDialog::STEP_PROGRAMUPGRADER);
+        /* XXX TODO: program the legacy upgrade tool */
+
+        m_dialog.onStepChanged(UpgradeAssistantDialog::STEP_ENTERUPGRADER);
+        /* XXX TODO: enter and connect to the upgrader */
+    }
+
+    m_dialog.onStepChanged(UpgradeAssistantDialog::STEP_DOWNLOADSETTINGS);
+
+    /* download the settings partition from the board */
+    if (!downloadSettings()) {
+        upgradeError(tr("Unable to pull settings partition!"));
+
+        return;
+    }
+
+    m_dialog.onStepChanged(UpgradeAssistantDialog::STEP_TRANSLATESETTINGS);
+
+    /* translate the settings using the cloud service */
+    if (!tradeSettingsWithCloud("Release-20160120.3")) {
+        upgradeError(tr("Unable to use cloud services to translate settings!"));
+
+        return;
+    }
+
+    m_dialog.onStepChanged(UpgradeAssistantDialog::STEP_ERASESETTINGS);
+    /* XXX TODO: wipe the board setting partition in prepation of upgrade */
+
+    if (isCrippledBoard) {
+        m_dialog.onStepChanged(UpgradeAssistantDialog::STEP_REENTERLOADER);
+        /* XXX TODO: re-enter the loader in preparation for flashing fw */
+    }
+
+    m_dialog.onStepChanged(UpgradeAssistantDialog::STEP_FLASHFIRMWARE);
+    /* XXX TODO: flash the appropriate firmware image */
+
+    m_dialog.onStepChanged(UpgradeAssistantDialog::STEP_BOOT);
+    /* XXX TODO: start firmware and wait for telemetry connection */
+
+    m_dialog.onStepChanged(UpgradeAssistantDialog::STEP_IMPORT);
+    /* XXX TODO: trigger import of saved settings. */
+
+
+    /* XXX TODO: notify user of success. */
+    m_dialog.hide();
 }
 
 /**
@@ -752,7 +816,8 @@ void UploaderGadgetWidget::onExportButtonClick()
 
     setStatusInfo(tr("Retrieved settings; contacting cloud..."), uploader::STATUSICON_FAIL);
 
-    tradeSettingsWithCloud();
+    /* XXX: TODO: real release/tag info */
+    tradeSettingsWithCloud("Release-20160120.3");
 }
 
 /**
