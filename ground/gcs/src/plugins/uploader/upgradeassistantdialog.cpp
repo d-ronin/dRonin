@@ -77,23 +77,22 @@ void UpgradeAssistantDialog::onStepChanged(UpgradeAssistantStep step)
 {
     curStep = step;
 
+    int stepVal = step;
+
     for (int i=STEP_FIRST; i<STEP_NUM; i++) {
-        if (i < step) {
+        if (i < stepVal) {
             // Ensure marked done
             if (stepLabels[i]->isEnabled()) {
                 stepLabels[i]->setText(*originalText[i] + tr(" done!"));
             } else {
                 stepLabels[i]->setText(*originalText[i] + tr(" (skipped)"));
             }
-        } else if (i >= step) {
+        } else if (i == stepVal) {
+            // Ensure not marked done..
+            stepLabels[i]->setText(QString("<b>%1</b>").arg(*originalText[i]));
+        } else /* i > stepVal */ {
             // Ensure not marked done..
             stepLabels[i]->setText(*originalText[i]);
-        }
-
-        if (i != step) {
-            stepLabels[i]->setObjectName("inactiveUpgradeStep");
-        } else {
-            stepLabels[i]->setObjectName("activeUpgradeStep");
         }
     }
 }
