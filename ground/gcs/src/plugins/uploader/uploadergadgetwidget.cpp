@@ -672,6 +672,30 @@ bool UploaderGadgetWidget::tradeSettingsWithCloud() {
     return true;
 }
 
+void UploaderGadgetWidget::doUpgradeOperation()
+{
+    bool upgradingLoader = false;
+    bool isCrippledBoard = false;
+
+    m_dialog.onStepChanged(UpgradeAssistantDialog::STEP_ENTERLOADER);
+    m_dialog.setOperatingMode(upgradingLoader, isCrippledBoard);
+
+    m_dialog.open();
+
+    QEventLoop loop;
+    QTimer timeout;
+
+    bool operationSuccess = false;
+
+    connect(&timeout, SIGNAL(timeout()), &loop, SLOT(quit()));
+
+    for (int i = UpgradeAssistantDialog::STEP_FIRST; i < UpgradeAssistantDialog::STEP_NUM; i++) {
+        m_dialog.onStepChanged(static_cast<UpgradeAssistantDialog::UpgradeAssistantStep>(i));
+        timeout.start(1000);       /* 1 second */
+        loop.exec();
+    }
+}
+
 /**
  * @brief slot called when the user selects the Export Config button.
  * It retrieves the setting partition and sends it to the cloud, trading it
@@ -861,10 +885,7 @@ void UploaderGadgetWidget::onBootloaderDetected()
 
         if (!inUpgrader) {
             if (triggerUpgrading) {
-                m_dialog.onStepChanged(UpgradeAssistantDialog::STEP_TRANSLATESETTINGS);
-                m_dialog.setOperatingMode(false, false);
-
-                m_dialog.open();
+                doUpgradeOperation();
                 return;
             }
 

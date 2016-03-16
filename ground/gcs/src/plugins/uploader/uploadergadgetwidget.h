@@ -100,6 +100,7 @@ private:
     void haltOrReset(bool halting);
     bool tradeSettingsWithCloud();
     bool downloadSettings();
+    void doUpgradeOperation();
 
     Ui_UploaderWidget *m_widget;
 
