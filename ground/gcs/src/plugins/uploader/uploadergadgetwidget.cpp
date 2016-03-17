@@ -619,12 +619,16 @@ bool UploaderGadgetWidget::askIfShouldContinue() {
 }
 
 bool UploaderGadgetWidget::tradeSettingsWithCloud(QString release,
-        bool upgrading) {
+        bool upgrading, QByteArray *settingsOut) {
     /* post to cloud service */
     QUrl url(exportUrl);
     QNetworkRequest request(url);
 
     QHttpMultiPart *multiPart = new QHttpMultiPart(QHttpMultiPart::FormDataType);
+
+    if (settingsOut != NULL) {
+        settingsOut->clear();
+    }
 
     QHttpPart githash, datafile;
 
@@ -672,7 +676,9 @@ bool UploaderGadgetWidget::tradeSettingsWithCloud(QString release,
 
     settingsDump = reply->readAll();
 
-    //qDebug() << QString(content);
+    if (settingsOut != NULL) {
+        *settingsOut = settingsDump;
+    }
 
     /* save dialog for XML config */
     while (true) {
@@ -777,11 +783,12 @@ void UploaderGadgetWidget::doUpgradeOperation()
     bool upgradingLoader = false;
 
     if (!isCrippledBoard) {
-        /* XXX TODO: If no settings part known, new loader needed. */
+        /* If no settings part known, new loader needed. */
+        upgradingLoader = !haveSettingsPart();
     }
 
-    /* XXX TODO: Check prereqs-- cloud service, appropriate revision,
-     * have the bootupdater, legacy upgrade tool, and firmware images */
+    /* XXX TODO: Check prereqs-- cloud service, appropriate revision */
+    /* XXX TODO: gather up bootupdater, legacy upgrader, and firmware images */
 
     m_dialog.setOperatingMode(upgradingLoader, isCrippledBoard);
 
@@ -847,8 +854,10 @@ void UploaderGadgetWidget::doUpgradeOperation()
 
     m_dialog.onStepChanged(UpgradeAssistantDialog::STEP_TRANSLATESETTINGS);
 
+    QByteArray xmlDump;
+
     /* translate the settings using the cloud service */
-    if (!tradeSettingsWithCloud("Release-20160120.3", true)) { // XXX REV
+    if (!tradeSettingsWithCloud("Release-20160120.3", true, &xmlDump)) { // XXX REV
         upgradeError(tr("Unable to use cloud services to translate settings!"));
 
         return;
@@ -976,7 +985,19 @@ void UploaderGadgetWidget::onExportButtonClick()
         return;
     }
 
-    /* XXX TODO: make sure there's a setting partition */
+    /* make sure there's a setting partition */
+    if (!haveSettingsPart()) {
+        QMessageBox msgBox;
+
+        msgBox.setText(tr("No settings partition accessible; can't export."));
+        msgBox.setInformativeText(tr("If you're using a F3 or F4 flight controller, please upgrade your bootloader.  F1 does not support export configuration in the main loader."));
+        msgBox.setStandardButtons(QMessageBox::Ok);
+        msgBox.setDefaultButton(QMessageBox::Ok);
+
+        msgBox.exec();
+
+        return;
+    }
 
     /* XXX TODO:  make sure the cloud service is there and has right git rev */
 
@@ -1128,6 +1149,8 @@ void UploaderGadgetWidget::onBootloaderDetected()
                 m_widget->partitionBrowserTW->setItem(index, 1, size);
                 ++index;
             }
+        } else {
+            m_widget->partitionBrowserTW->setRowCount(0);
         }
         deviceInfo info;
         QList <Core::IBoardType *> boards = pm->getObjects<Core::IBoardType>();
@@ -1486,6 +1509,16 @@ uploader::UploaderStatus UploaderGadgetWidget::getUploaderStatus() const
     return uploaderStatus;
 }
 
+bool UploaderGadgetWidget::haveSettingsPart() const
+{
+    /* Would be nice to determine this in a nicer way */
+    if (m_widget->partitionBrowserTW->rowCount() >= DFU_PARTITION_SETTINGS) {
+        return true;
+    }
+
+    return false;
+}
+
 /**
  * @brief Sets the current uploader status
  * Enables, disables, hides, unhides widgets according to the new status
@@ -1538,8 +1571,7 @@ void UploaderGadgetWidget::setUploaderStatus(const uploader::UploaderStatus &val
         else
             m_widget->flashButton->setEnabled(false);
 
-        // XXX TODO: needs to be conditional on presence of setting partition
-        m_widget->exportConfigButton->setEnabled(true);
+        m_widget->exportConfigButton->setEnabled(haveSettingsPart());
 
         m_widget->partitionBrowserTW->setContextMenuPolicy(Qt::ActionsContextMenu);
         break;
