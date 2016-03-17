@@ -64,7 +64,7 @@ bool UAVSettingsImportExportPlugin::initialize(const QStringList& args, QString 
 { 
     Q_UNUSED(args);
     Q_UNUSED(errMsg);
-    mf = new UAVSettingsImportExportFactory(this);
+    mf = new UAVSettingsImportExportManager(this);
     addAutoReleasedObject(mf);
     return true;
 }

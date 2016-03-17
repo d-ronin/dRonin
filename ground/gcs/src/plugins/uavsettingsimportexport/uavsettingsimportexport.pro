@@ -10,10 +10,10 @@ include(uavsettingsimportexport_dependencies.pri)
 
 HEADERS += uavsettingsimportexport.h \
     importsummary.h \
-    uavsettingsimportexportfactory.h
+    uavsettingsimportexportmanager.h
 SOURCES += uavsettingsimportexport.cpp \
     importsummary.cpp \
-    uavsettingsimportexportfactory.cpp
+    uavsettingsimportexportmanager.cpp
  
 OTHER_FILES += uavsettingsimportexport.pluginspec \
     uavsettingsimportexport.json

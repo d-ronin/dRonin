@@ -34,7 +34,7 @@
 #include "configtaskwidget.h"
 #include <QWidget>
 #include <QLineEdit>
-#include "uavsettingsimportexport/uavsettingsimportexportfactory.h"
+#include "uavsettingsimportexport/uavsettingsimportexportmanager.h"
 #include <coreplugin/connectionmanager.h>
 #include <coreplugin/icore.h>
 
@@ -51,7 +51,7 @@ ConfigTaskWidget::ConfigTaskWidget(QWidget *parent) : QWidget(parent),currentBoa
     connect(telMngr, SIGNAL(disconnected()), this, SLOT(onAutopilotDisconnect()),Qt::UniqueConnection);
     connect(telMngr, SIGNAL(connected()), this, SIGNAL(autoPilotConnected()),Qt::UniqueConnection);
     connect(telMngr, SIGNAL(disconnected()), this, SIGNAL(autoPilotDisconnected()),Qt::UniqueConnection);
-    UAVSettingsImportExportFactory * importexportplugin =  pm->getObject<UAVSettingsImportExportFactory>();
+    UAVSettingsImportExportManager * importexportplugin =  pm->getObject<UAVSettingsImportExportManager>();
     connect(importexportplugin,SIGNAL(importAboutToBegin()),this,SLOT(invalidateObjects()));
 }
 
