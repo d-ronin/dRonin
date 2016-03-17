@@ -32,6 +32,7 @@
 #include "rawhid_global.h"
 
 #include <QThread>
+#include <QTimer>
 #include <QMutex>
 
 // Depending on the OS, we'll need different things:
@@ -135,7 +136,11 @@ struct USBPortInfo {
 *   A monitoring thread which will wait for device events.
 */
 
+#if defined(Q_OS_UNIX)
 class RAWHID_EXPORT USBMonitor : public QThread
+#else
+class RAWHID_EXPORT USBMonitor
+#endif
 {
     Q_OBJECT
 
@@ -179,6 +184,9 @@ private slots:
      an event
      */
     void deviceEventReceived();
+#if defined( Q_OS_MAC)
+    void periodic();
+#endif
 
 private:
 
@@ -191,13 +199,15 @@ private:
     Q_DISABLE_COPY(USBMonitor)
     static USBMonitor *m_instance;
 
-
     // Depending on the OS, we'll need different things:
 #if defined( Q_OS_MAC)
     static void attach_callback(void *context, IOReturn r, void *hid_mgr, IOHIDDeviceRef dev);
     static void detach_callback(void *context, IOReturn r, void *hid_mgr, IOHIDDeviceRef dev);
     void addDevice(USBPortInfo info);
     void removeDevice(IOHIDDeviceRef dev);
+
+    QTimer periodicTimer;
+
     IOHIDManagerRef hid_manager;
 #elif defined(Q_OS_UNIX)
     struct udev *context;

@@ -34,6 +34,7 @@
 #include "usbmonitor.h"
 #include <IOKit/IOKitLib.h>
 #include <IOKit/hid/IOHIDLib.h>
+#include <CoreFoundation/CoreFoundation.h>
 #include <CoreFoundation/CFString.h>
 #include <CoreFoundation/CFArray.h>
 #include <QMutexLocker>
@@ -57,7 +58,7 @@ static bool HID_GetStrProperty(IOHIDDeviceRef dev, CFStringRef property, QString
 /**
   Initialize the USB monitor here
   */
-USBMonitor::USBMonitor(QObject *parent): QThread(parent) {
+USBMonitor::USBMonitor(QObject *parent) {
     hid_manager=NULL;
     IOReturn ret;
 
@@ -87,14 +88,22 @@ USBMonitor::USBMonitor(QObject *parent): QThread(parent) {
         return;
     }
 
-    start();
+    connect(&periodicTimer, SIGNAL(timeout()), this, SLOT(periodic()));
+    periodicTimer.start(300);
 }
 
 USBMonitor::~USBMonitor()
 {
-    //if(hid_manager != NULL)
-    //    IOHIDManagerUnscheduleFromRunLoop(hid_manager, CFRunLoopGetCurrent(), kCFRunLoopDefaultMode);
-    quit();
+    IOHIDManagerUnscheduleFromRunLoop(hid_manager,
+            CFRunLoopGetCurrent(), kCFRunLoopDefaultMode);
+    CFRelease(hid_manager);
+}
+
+void USBMonitor::periodic() {
+    SInt32 res;
+    do {
+        res = CFRunLoopRunInMode(kCFRunLoopDefaultMode, 0.001, FALSE);
+    } while(res != kCFRunLoopRunFinished && res != kCFRunLoopRunTimedOut);
 }
 
 void USBMonitor::deviceEventReceived() {
@@ -120,8 +129,6 @@ void USBMonitor::removeDevice(IOHIDDeviceRef dev) {
             return;
         }
     }
-
-
 }
 
 /**
