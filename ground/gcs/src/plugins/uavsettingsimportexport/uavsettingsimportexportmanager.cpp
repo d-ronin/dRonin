@@ -1,9 +1,10 @@
 /**
  ******************************************************************************
  *
- * @file       uavsettingsimportexportfactory.cpp
+ * @file       uavsettingsimportexportmanager.cpp
  * @author     (C) 2011 The OpenPilot Team, http://www.openpilot.org
  * @author     Tau Labs, http://taulabs.org, Copyright (C) 2014
+ * @author     dRonin, http://dRonin.org/, Copyright (C) 2016
  * @addtogroup GCSPlugins GCS Plugins
  * @{
  * @addtogroup UAVSettingsImportExport UAVSettings Import/Export Plugin
@@ -24,9 +25,13 @@
  * You should have received a copy of the GNU General Public License along
  * with this program; if not, write to the Free Software Foundation, Inc.,
  * 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
+ *
+ * Additional note on redistribution: The copyright and license notices above
+ * must be maintained in each individual source file that is a derivative work
+ * of this source file; otherwise redistribution is prohibited.
  */
 
-#include "uavsettingsimportexportfactory.h"
+#include "uavsettingsimportexportmanager.h"
 #include <QtPlugin>
 #include <QStringList>
 #include <QDebug>
@@ -52,12 +57,12 @@
 #include <QFileDialog>
 #include <QMessageBox>
 
-UAVSettingsImportExportFactory::~UAVSettingsImportExportFactory()
+UAVSettingsImportExportManager::~UAVSettingsImportExportManager()
 {
     // Do nothing
 }
 
-UAVSettingsImportExportFactory::UAVSettingsImportExportFactory(QObject *parent):QObject(parent)
+UAVSettingsImportExportManager::UAVSettingsImportExportManager(QObject *parent):QObject(parent)
 {
 
     // Add Menu entry
@@ -93,7 +98,7 @@ UAVSettingsImportExportFactory::UAVSettingsImportExportFactory(QObject *parent):
 }
 
 // Slot called by the menu manager on user action
-void UAVSettingsImportExportFactory::importUAVSettings()
+void UAVSettingsImportExportManager::importUAVSettings()
 {
     // ask for file name
     QString fileName;
@@ -227,7 +232,7 @@ void UAVSettingsImportExportFactory::importUAVSettings()
 
 
 // Create an XML document from UAVObject database
-QString UAVSettingsImportExportFactory::createXMLDocument(const enum storedData what, const bool fullExport)
+QString UAVSettingsImportExportManager::createXMLDocument(const enum storedData what, const bool fullExport)
 {
     // generate an XML first (used for all export formats as a formatted data source)
     ExtensionSystem::PluginManager *pm = ExtensionSystem::PluginManager::instance();
@@ -419,7 +424,7 @@ QString UAVSettingsImportExportFactory::createXMLDocument(const enum storedData 
 }
 
 // Slot called by the menu manager on user action
-void UAVSettingsImportExportFactory::exportUAVSettings()
+void UAVSettingsImportExportManager::exportUAVSettings()
 {
     // ask for file name
     QString fileName;
@@ -461,7 +466,7 @@ void UAVSettingsImportExportFactory::exportUAVSettings()
 }
 
 // Slot called by the menu manager on user action
-void UAVSettingsImportExportFactory::exportUAVData()
+void UAVSettingsImportExportManager::exportUAVData()
 {
     if (QMessageBox::question(0, tr("Are you sure?"),
                               tr("This option is only useful for passing your current "
