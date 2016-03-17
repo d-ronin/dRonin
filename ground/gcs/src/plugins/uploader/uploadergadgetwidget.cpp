@@ -788,7 +788,33 @@ void UploaderGadgetWidget::doUpgradeOperation()
     }
 
     /* XXX TODO: Check prereqs-- cloud service, appropriate revision */
-    /* XXX TODO: gather up bootupdater, legacy upgrader, and firmware images */
+
+    /* gather up bootupdater, legacy upgrader, and firmware images as needed,
+     * so we spot errors before we do destructive things */
+
+    QByteArray upgraderFile, bootUpdateFile, firmwareFile;
+
+    if (isCrippledBoard) {
+        if (!FirmwareLoadFromFile(getImagePath(board.board->shortName(), "up"), &upgraderFile)) {
+            upgradeError(tr("Unable to load legacy upgrader image for board!"));
+
+            return;
+        }
+    }
+
+    if (upgradingLoader) {
+        if (!FirmwareLoadFromFile(getImagePath(board.board->shortName(), "bu"), &bootUpdateFile)) {
+            upgradeError(tr("Unable to load bootloader update image for board!"));
+
+            return;
+        }
+    }
+
+    if (!FirmwareLoadFromFile(getImagePath(board.board->shortName(), "fw"), &firmwareFile)) {
+        upgradeError(tr("Unable to load firmware image for board!"));
+
+        return;
+    }
 
     m_dialog.setOperatingMode(upgradingLoader, isCrippledBoard);
 
@@ -801,11 +827,9 @@ void UploaderGadgetWidget::doUpgradeOperation()
         m_dialog.onStepChanged(UpgradeAssistantDialog::STEP_PROGRAMUPGRADER);
 
         /* program the legacy upgrade tool */
-        if (!FirmwareLoadFromFile(getImagePath(board.board->shortName(), "up"))) {
-            upgradeError(tr("Unable to load upgrader image for board!"));
-
-            return;
-        }
+        FirmwareLoadedClear(true);
+        FirmwareLoadedUpdate(upgraderFile);
+        setUploaderStatus(getUploaderStatus());
 
         loop.processEvents();
         if (aborted) {
@@ -814,8 +838,7 @@ void UploaderGadgetWidget::doUpgradeOperation()
             return;
         }
 
-        /* flash the appropriate main firmware image */
-        if (!flashFirmware(loadedFile)) {
+        if (!flashFirmware(upgraderFile)) {
             upgradeError(tr("Unable to flash upgrader image to board!"));
 
             return;
@@ -898,11 +921,11 @@ void UploaderGadgetWidget::doUpgradeOperation()
     }
 
     m_dialog.onStepChanged(UpgradeAssistantDialog::STEP_FLASHFIRMWARE);
-    if (!FirmwareLoadFromFile(getImagePath(board.board->shortName()))) {
-        upgradeError(tr("Unable to load firmware image for board!"));
 
-        return;
-    }
+    /* flash the appropriate main firmware image */
+    FirmwareLoadedClear(true);
+    FirmwareLoadedUpdate(firmwareFile);
+    setUploaderStatus(getUploaderStatus());
 
     loop.processEvents();
     if (aborted) {
@@ -911,8 +934,7 @@ void UploaderGadgetWidget::doUpgradeOperation()
         return;
     }
 
-    /* flash the appropriate main firmware image */
-    if (!flashFirmware(loadedFile)) {
+    if (!flashFirmware(firmwareFile)) {
         upgradeError(tr("Unable to flash firmware image to board!"));
 
         return;
@@ -923,6 +945,10 @@ void UploaderGadgetWidget::doUpgradeOperation()
 
         return;
     }
+
+    /* XXX set ignoredrev to what we just programmed, so if we programmed
+     * an outdated rev in a developer environment we don't immediately bop
+     * up the message */
 
     m_dialog.onStepChanged(UpgradeAssistantDialog::STEP_BOOT);
 
@@ -1187,7 +1213,7 @@ void UploaderGadgetWidget::onBootloaderDetected()
 
             setStatusInfo(tr("Connection to bootloader successful"), uploader::STATUSICON_OK);
 
-            if (FirmwareLoadFromFile(getImagePath(info.board->shortName()))) {
+            if (FirmwareLoadFromFile(getImagePath(info.board->shortName()), &loadedFile)) {
                 setStatusInfo(tr("Ready to flash firmware"), uploader::STATUSICON_OK);
                 this->activateWindow();
                 m_widget->flashButton->setFocus();
@@ -1655,7 +1681,8 @@ QString UploaderGadgetWidget::getImagePath(QString boardName, QString imageType)
     return QString("");
 }
 
-bool UploaderGadgetWidget::FirmwareLoadFromFile(QString filename)
+bool UploaderGadgetWidget::FirmwareLoadFromFile(QString filename,
+        QByteArray *contents)
 {
     QFileInfo fileinfo = QFileInfo(filename);
 
@@ -1665,11 +1692,7 @@ bool UploaderGadgetWidget::FirmwareLoadFromFile(QString filename)
     QFile file(fileinfo.filePath());
     if(!file.open(QIODevice::ReadOnly))
         return false;
-    loadedFile = file.readAll();
-
-    FirmwareLoadedClear(true);
-    FirmwareLoadedUpdate(loadedFile);
-    setUploaderStatus(getUploaderStatus());
+    *contents = file.readAll();
 
     return true;
 }
