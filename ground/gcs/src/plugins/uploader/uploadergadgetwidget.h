@@ -98,12 +98,14 @@ private:
     bool FirmwareCheckForUpdate(deviceDescriptorStruct device);
     void triggerPartitionDownload(int index);
     void haltOrReset(bool halting);
-    bool tradeSettingsWithCloud(QString release, bool upgrading = false);
+    bool tradeSettingsWithCloud(QString release, bool upgrading = false,
+            QByteArray *settingsOut = NULL);
     bool askIfShouldContinue();
     bool downloadSettings();
     void doUpgradeOperation();
     void upgradeError(QString why);
     bool flashFirmware(QByteArray &firmwareImage);
+    bool haveSettingsPart() const;
 
     Ui_UploaderWidget *m_widget;
 
@@ -111,6 +113,7 @@ private:
 
     bool telemetryConnected;
     bool iapUpdated;
+
 
     QByteArray loadedFile;
     QByteArray settingsDump;
