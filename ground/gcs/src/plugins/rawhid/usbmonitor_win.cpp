@@ -59,7 +59,7 @@ USBMonitor* USBMonitor::m_instance = 0;
 
 
 
-USBMonitor::USBMonitor(QObject *parent): QThread(parent) {
+USBMonitor::USBMonitor(QObject *parent) {
     HidD_GetHidGuid(&guid_hid);
     if( !QMetaType::isRegistered( QMetaType::type("USBPortInfo") ) )
         qRegisterMetaType<USBPortInfo>("USBPortInfo");
@@ -76,7 +76,6 @@ USBMonitor::~USBMonitor()
     if( notificationWidget )
         delete notificationWidget;
 #endif
-    quit();
 }
 
 /**

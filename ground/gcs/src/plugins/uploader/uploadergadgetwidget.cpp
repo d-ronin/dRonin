@@ -117,13 +117,13 @@ UploaderGadgetWidget::UploaderGadgetWidget(QWidget *parent):QWidget(parent),
     usbFilterBL = new USBSignalFilter(brdMgr->getKnownVendorIDs(),-1,-1,USBMonitor::Bootloader);
     usbFilterUP = new USBSignalFilter(brdMgr->getKnownVendorIDs(),-1,-1,USBMonitor::Upgrader);
 
-    connect(usbFilterBL, SIGNAL(deviceRemoved()), this, SLOT(onBootloaderRemoved()));
+    connect(usbFilterBL, SIGNAL(deviceRemoved()), this, SLOT(onBootloaderRemoved()), Qt::QueuedConnection);
 
-    connect(usbFilterBL, SIGNAL(deviceDiscovered()), this, SLOT(onBootloaderDetected()), Qt::UniqueConnection);
+    connect(usbFilterBL, SIGNAL(deviceDiscovered()), this, SLOT(onBootloaderDetected()), Qt::QueuedConnection);
 
-    connect(usbFilterUP, SIGNAL(deviceRemoved()), this, SLOT(onBootloaderRemoved()));
+    connect(usbFilterUP, SIGNAL(deviceRemoved()), this, SLOT(onBootloaderRemoved()), Qt::QueuedConnection);
 
-    connect(usbFilterUP, SIGNAL(deviceDiscovered()), this, SLOT(onBootloaderDetected()), Qt::UniqueConnection);
+    connect(usbFilterUP, SIGNAL(deviceDiscovered()), this, SLOT(onBootloaderDetected()), Qt::QueuedConnection);
 
     connect(&dfu, SIGNAL(operationProgress(QString,int)), this, SLOT(onStatusUpdate(QString, int)));
 
@@ -334,7 +334,9 @@ void UploaderGadgetWidget::onAutopilotDisconnect()
     PartitionBrowserClear();
     telemetryConnected = false;
     iapUpdated = false;
-    if( (getUploaderStatus() == uploader::ENTERING_LOADER) )
+    if(getUploaderStatus() == uploader::ENTERING_LOADER)
+        return;
+    if(getUploaderStatus() == uploader::UPGRADING_CATCHLOADER)
         return;
     setUploaderStatus(uploader::DISCONNECTED);
     setStatusInfo(tr("Telemetry disconnected"), uploader::STATUSICON_INFO);
@@ -545,6 +547,7 @@ void UploaderGadgetWidget::haltOrReset(bool halting)
         conMngr->disconnectDevice();
         timeout.start(200);
         loop.exec();
+        timeout.stop();
         conMngr->suspendPolling();
         onRescueTimer(true);
     } else {
@@ -654,6 +657,7 @@ bool UploaderGadgetWidget::tradeSettingsWithCloud(QString release) {
 
     //qDebug() << QString(content);
 
+    /* XXX TODO: Need to force user to save during upgrade */
     /* save dialog for XML config */
     QString filename = QFileDialog::getSaveFileName(this, tr("Save Settings Backup"),"cloud_exported.xml","*.xml");
     if(filename.isEmpty())
@@ -782,8 +786,6 @@ void UploaderGadgetWidget::doUpgradeOperation()
         loop.exec();
 
         timeout.stop();
-
-        onBootloaderDetected();
     }
 
     m_dialog.onStepChanged(UpgradeAssistantDialog::STEP_DOWNLOADSETTINGS);
@@ -825,16 +827,14 @@ void UploaderGadgetWidget::doUpgradeOperation()
         m_dialog.onStepChanged(UpgradeAssistantDialog::STEP_REENTERLOADER);
         /* re-enter the loader in preparation for flashing fw */
 
-        setUploaderStatus(uploader::ENTERING_LOADER);
+        setUploaderStatus(uploader::UPGRADING_CATCHLOADER);
         dfu.ResetDevice();
         dfu.CloseBootloaderComs();
 
         /* XXX TODO: Properly detect main loader */
-        timeout.start(2500);
+        timeout.start(4000);
         loop.exec();
         timeout.stop();
-
-        onBootloaderDetected();
     }
 
     m_dialog.onStepChanged(UpgradeAssistantDialog::STEP_FLASHFIRMWARE);
@@ -871,7 +871,7 @@ void UploaderGadgetWidget::doUpgradeOperation()
     dfu.JumpToApp(false);
     dfu.CloseBootloaderComs();
 
-    timeout.start(10000);
+    timeout.start(15000);
 
     loop.exec();
 
@@ -992,6 +992,7 @@ void UploaderGadgetWidget::onBootloaderDetected()
             switch (uploaderStatus) {
             case uploader::UPGRADING:
                 triggerUpgrading = true;
+            case uploader::UPGRADING_CATCHLOADER:
             case uploader::ENTERING_LOADER:
                 break;
             case uploader::DISCONNECTED:
@@ -1133,7 +1134,10 @@ void UploaderGadgetWidget::onBootloaderRemoved()
     DeviceInformationClear();
     FirmwareOnDeviceClear(true);
     PartitionBrowserClear();
-    setUploaderStatus(uploader::DISCONNECTED);
+
+    if (uploaderStatus != uploader::UPGRADING_CATCHLOADER) {
+        setUploaderStatus(uploader::DISCONNECTED);
+    }
 }
 
 /**
@@ -1498,6 +1502,7 @@ void UploaderGadgetWidget::setUploaderStatus(const uploader::UploaderStatus &val
         m_widget->partitionBrowserTW->setContextMenuPolicy(Qt::NoContextMenu);
         break;
     case uploader::UPGRADING:
+    case uploader::UPGRADING_CATCHLOADER:
     case uploader::BL_BUSY:
         m_widget->progressBar->setVisible(true);
 

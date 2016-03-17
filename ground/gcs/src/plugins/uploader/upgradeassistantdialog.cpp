@@ -40,7 +40,7 @@ UpgradeAssistantDialog::UpgradeAssistantDialog(QWidget *parent) :
 {
     ui->setupUi(this);
 
-    setModal(true);
+    //setModal(true);
 
     stepLabels[STEP_ENTERLOADER] = ui->lblEnterLoader;
     stepLabels[STEP_UPGRADEBOOTLOADER] = ui->lblUpgradeBootloader;
