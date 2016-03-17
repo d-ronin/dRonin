@@ -396,7 +396,7 @@ void UploaderGadgetWidget::onLoadFirmwareButtonClick()
     QString filename = LoadFirmwareFileDialog(board);
     if(filename.isEmpty())
     {
-        setStatusInfo(tr("Invalid Filename"), uploader::STATUSICON_FAIL);
+        setStatusInfo(tr("Open cancelled"), uploader::STATUSICON_FAIL);
         return;
     }
     QFile file(filename);
@@ -602,7 +602,24 @@ bool UploaderGadgetWidget::downloadSettings() {
     return operationSuccess;
 }
 
-bool UploaderGadgetWidget::tradeSettingsWithCloud(QString release) {
+bool UploaderGadgetWidget::askIfShouldContinue() {
+    QMessageBox msgBox;
+    msgBox.setText(tr("Proceed without saving a configuration backup?"));
+    msgBox.setInformativeText(tr("It is strongly encouraged that you save a backup of the configuration before proceeding with upgrade."));
+    msgBox.setStandardButtons(QMessageBox::Yes | QMessageBox::No);
+    msgBox.setDefaultButton(QMessageBox::No);
+
+    int val = msgBox.exec();
+
+    if (val == QMessageBox::Yes) {
+        return true;
+    }
+
+    return false;
+}
+
+bool UploaderGadgetWidget::tradeSettingsWithCloud(QString release,
+        bool upgrading) {
     /* post to cloud service */
     QUrl url(exportUrl);
     QNetworkRequest request(url);
@@ -614,7 +631,7 @@ bool UploaderGadgetWidget::tradeSettingsWithCloud(QString release) {
     githash.setHeader(QNetworkRequest::ContentDispositionHeader,QVariant("form-data; name=\"githash\""));
     githash.setBody(release.toLatin1());
 
-    /* XXX: TODO: send some additional details up */
+    /* XXX TODO: send some additional details up */
 
     datafile.setHeader(QNetworkRequest::ContentTypeHeader, QVariant("application/octet-stream"));
     datafile.setHeader(QNetworkRequest::ContentDispositionHeader, QVariant("form-data; filename=\"datafile\"; name=\"datafile\""));
@@ -657,31 +674,55 @@ bool UploaderGadgetWidget::tradeSettingsWithCloud(QString release) {
 
     //qDebug() << QString(content);
 
-    /* XXX TODO: Need to force user to save during upgrade */
     /* save dialog for XML config */
-    QString filename = QFileDialog::getSaveFileName(this, tr("Save Settings Backup"),"cloud_exported.xml","*.xml");
-    if(filename.isEmpty())
-    {
-        setStatusInfo(tr("Error, empty filename"), uploader::STATUSICON_FAIL);
-        setUploaderStatus(uploader::BL_SITTING);
-        return false;
+    while (true) {
+        QString filename = QFileDialog::getSaveFileName(this, tr("Save Settings Backup"),"cloud_exported.xml","*.xml");
+        if(filename.isEmpty())
+        {
+            setStatusInfo(tr("Save cancelled."), uploader::STATUSICON_FAIL);
+            if (!upgrading) {
+                setUploaderStatus(uploader::BL_SITTING);
+                return false;
+            }
+
+            /* If we're upgrading, we allow a user to decline to save the config..
+             * but we discourage it.
+             */
+
+            if (askIfShouldContinue()) {
+                return true;
+            }
+
+            continue;
+        }
+
+        if(!filename.endsWith(".xml",Qt::CaseInsensitive))
+            filename.append(".xml");
+        QFile file(filename);
+        if(!file.open(QIODevice::WriteOnly))
+        {
+            setStatusInfo(tr("Error could not open file for save"), uploader::STATUSICON_FAIL);
+
+            if (!upgrading) {
+                setUploaderStatus(uploader::BL_SITTING);
+                return false;
+            }
+
+            if (askIfShouldContinue()) {
+                return true;
+            }
+
+            continue;
+        }
+
+        file.write(settingsDump);
+        file.close();
+        setStatusInfo(tr("Dump of configuration saved to file!"), uploader::STATUSICON_OK);
+
+        return true;
     }
 
-    if(!filename.endsWith(".xml",Qt::CaseInsensitive))
-        filename.append(".xml");
-    QFile file(filename);
-    if(!file.open(QIODevice::WriteOnly))
-    {
-        setStatusInfo(tr("Error could not open file for save"), uploader::STATUSICON_FAIL);
-
-        return false;
-    }
-
-    file.write(settingsDump);
-    file.close();
-    setStatusInfo(tr("Dump of configuration saved to file!"), uploader::STATUSICON_OK);
-
-    return true;
+    return false;       // unreachable
 }
 
 void UploaderGadgetWidget::upgradeError(QString why)
@@ -762,7 +803,7 @@ void UploaderGadgetWidget::doUpgradeOperation()
         loop.processEvents();
         if (aborted) {
             upgradeError(tr("Aborted!"));
-            
+
             return;
         }
 
@@ -800,14 +841,14 @@ void UploaderGadgetWidget::doUpgradeOperation()
     loop.processEvents();
     if (aborted) {
         upgradeError(tr("Aborted!"));
-        
+
         return;
     }
 
     m_dialog.onStepChanged(UpgradeAssistantDialog::STEP_TRANSLATESETTINGS);
 
     /* translate the settings using the cloud service */
-    if (!tradeSettingsWithCloud("Release-20160120.3")) { // XXX REV
+    if (!tradeSettingsWithCloud("Release-20160120.3", true)) { // XXX REV
         upgradeError(tr("Unable to use cloud services to translate settings!"));
 
         return;
@@ -816,12 +857,16 @@ void UploaderGadgetWidget::doUpgradeOperation()
     loop.processEvents();
     if (aborted) {
         upgradeError(tr("Aborted!"));
-        
+
         return;
     }
 
     m_dialog.onStepChanged(UpgradeAssistantDialog::STEP_ERASESETTINGS);
-    /* XXX TODO: wipe the board setting partition in prepation of upgrade */
+
+    /* wipe the board setting partition in prepation of upgrade */
+    if (!dfu.WipePartition(DFU_PARTITION_SETTINGS)) {
+        upgradeError(tr("Failed to erase settings partition!"));
+    }
 
     if (isCrippledBoard) {
         m_dialog.onStepChanged(UpgradeAssistantDialog::STEP_REENTERLOADER);
@@ -837,6 +882,12 @@ void UploaderGadgetWidget::doUpgradeOperation()
         timeout.stop();
     }
 
+    if (aborted) {
+        upgradeError(tr("Aborted!"));
+
+        return;
+    }
+
     m_dialog.onStepChanged(UpgradeAssistantDialog::STEP_FLASHFIRMWARE);
     if (!FirmwareLoadFromFile(getImagePath(board.board->shortName()))) {
         upgradeError(tr("Unable to load firmware image for board!"));
@@ -847,13 +898,19 @@ void UploaderGadgetWidget::doUpgradeOperation()
     loop.processEvents();
     if (aborted) {
         upgradeError(tr("Aborted!"));
-        
+
         return;
     }
 
     /* flash the appropriate main firmware image */
     if (!flashFirmware(loadedFile)) {
         upgradeError(tr("Unable to flash firmware image to board!"));
+
+        return;
+    }
+
+    if (aborted) {
+        upgradeError(tr("Aborted!"));
 
         return;
     }
@@ -877,13 +934,13 @@ void UploaderGadgetWidget::doUpgradeOperation()
 
     if (aborted) {
         upgradeError(tr("Aborted!"));
-        
+
         return;
     }
 
     if (!firmwareConnected) {
         upgradeError(tr("Unable to connect to new firmware!"));
-        
+
         return;
     }
 
@@ -919,9 +976,9 @@ void UploaderGadgetWidget::onExportButtonClick()
         return;
     }
 
-    /* XXX: TODO: make sure there's a setting partition */
+    /* XXX TODO: make sure there's a setting partition */
 
-    /* XXX: TODO:  make sure the cloud service is there and has right git rev */
+    /* XXX TODO:  make sure the cloud service is there and has right git rev */
 
     /* get confirmation from user that using the cloud service is OK */
     QMessageBox msgBox;
@@ -945,7 +1002,7 @@ void UploaderGadgetWidget::onExportButtonClick()
 
     setStatusInfo(tr("Retrieved settings; contacting cloud..."), uploader::STATUSICON_FAIL);
 
-    /* XXX: TODO: real release/tag info */
+    /* XXX TODO: real release/tag info */
     tradeSettingsWithCloud("Release-20160120.3");
 }
 
@@ -1234,7 +1291,7 @@ void UploaderGadgetWidget::onPartitionSave()
         QString filename = QFileDialog::getSaveFileName(this, tr("Save File"),QDir::homePath(),"*.bin");
         if(filename.isEmpty())
         {
-            setStatusInfo(tr("Error, empty filename"), uploader::STATUSICON_FAIL);
+            setStatusInfo(tr("Save cancelled"), uploader::STATUSICON_FAIL);
             setUploaderStatus(uploader::BL_SITTING);
             return;
         }
@@ -1267,7 +1324,7 @@ void UploaderGadgetWidget::onPartitionFlash()
     QString filename = QFileDialog::getOpenFileName(this, tr("Open File"),QDir::homePath(),"*.bin");
     if(filename.isEmpty())
     {
-        setStatusInfo(tr("Error, empty filename"), uploader::STATUSICON_FAIL);
+        setStatusInfo(tr("Flash cancelled"), uploader::STATUSICON_FAIL);
         return;
     }
     QFile file(filename);
@@ -1481,7 +1538,7 @@ void UploaderGadgetWidget::setUploaderStatus(const uploader::UploaderStatus &val
         else
             m_widget->flashButton->setEnabled(false);
 
-        // XXX: TODO: needs to be conditional on presence of setting partition
+        // XXX TODO: needs to be conditional on presence of setting partition
         m_widget->exportConfigButton->setEnabled(true);
 
         m_widget->partitionBrowserTW->setContextMenuPolicy(Qt::ActionsContextMenu);
