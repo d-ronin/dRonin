@@ -41,6 +41,9 @@ ImportSummaryDialog::ImportSummaryDialog( QWidget *parent) :
     importedObjects(NULL)
 {
    ui->setupUi(this);
+
+   setModal(true);
+
    setWindowTitle(tr("Import Summary"));
 
    ui->importSummaryList->setColumnCount(3);

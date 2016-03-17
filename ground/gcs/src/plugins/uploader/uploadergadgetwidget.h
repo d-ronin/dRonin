@@ -43,6 +43,7 @@
 #include "uavobjectutilmanager.h"
 #include "uavtalk/telemetrymanager.h"
 #include "coreplugin/connectionmanager.h"
+#include "uavsettingsimportexport/uavsettingsimportexportmanager.h"
 #include "upgradeassistantdialog.h"
 
 using namespace tl_dfu;
@@ -126,6 +127,7 @@ private:
     UAVObjectUtilManager* utilMngr;
     Core::ConnectionManager* conMngr;
     QNetworkAccessManager* netMngr;
+    UAVSettingsImportExportManager* importMngr;
 
     FirmwareIAPObj* firmwareIap;
     deviceInfo currentBoard;

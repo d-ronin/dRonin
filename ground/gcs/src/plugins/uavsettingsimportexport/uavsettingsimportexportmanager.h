@@ -45,15 +45,17 @@ public:
     UAVSettingsImportExportManager(QObject *parent = 0);
     ~UAVSettingsImportExportManager();
     static bool updateObject(UAVObject *obj, QDomNode * node);
+    
+    bool importUAVSettings(const QByteArray &settings);
+
+public slots:
+    void importUAVSettings();
+    void exportUAVSettings();
+    void exportUAVData();
 
 private:
     enum storedData { Settings, Data, Both };
     QString createXMLDocument(const enum storedData, const bool fullExport);
-
-private slots:
-    void importUAVSettings();
-    void exportUAVSettings();
-    void exportUAVData();
 
 signals:
     void importAboutToBegin();
