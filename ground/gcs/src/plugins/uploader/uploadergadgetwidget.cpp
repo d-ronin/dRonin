@@ -92,6 +92,7 @@ UploaderGadgetWidget::UploaderGadgetWidget(QWidget *parent):QWidget(parent),
     pm = ExtensionSystem::PluginManager::instance();
     telMngr = pm->getObject<TelemetryManager>();
     utilMngr = pm->getObject<UAVObjectUtilManager>();
+    importMngr =  pm->getObject<UAVSettingsImportExportManager>();
 
     netMngr = new QNetworkAccessManager(this);
 
@@ -981,8 +982,12 @@ void UploaderGadgetWidget::doUpgradeOperation()
 
     m_dialog.onStepChanged(UpgradeAssistantDialog::STEP_IMPORT);
 
+    /* trigger import of saved settings. */
+    if (!importMngr->importUAVSettings(xmlDump)) {
+        upgradeError(tr("Unable to import UAV settings from upgrade!"));
 
-    /* XXX TODO: trigger import of saved settings. */
+        return;
+    }
 
 
     /* XXX TODO: notify user of success. */

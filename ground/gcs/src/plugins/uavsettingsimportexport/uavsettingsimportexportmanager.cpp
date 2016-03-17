@@ -97,35 +97,22 @@ UAVSettingsImportExportManager::UAVSettingsImportExportManager(QObject *parent):
 
 }
 
-// Slot called by the menu manager on user action
-void UAVSettingsImportExportManager::importUAVSettings()
+bool UAVSettingsImportExportManager::importUAVSettings(const QByteArray &settings)
 {
-    // ask for file name
-    QString fileName;
-    QString filters = tr("UAVObjects XML files (*.uav);; XML files (*.xml)");
-    fileName = QFileDialog::getOpenFileName(0, tr("Import UAV Settings"), "", filters);
-    if (fileName.isEmpty()) {
-        return;
-    }
-
-    // Now open the file
-    QFile file(fileName);
     QDomDocument doc("UAVObjects");
-    file.open(QFile::ReadOnly|QFile::Text);
-    if (!doc.setContent(file.readAll())) {
+
+    if (!doc.setContent(settings)) {
         QMessageBox msgBox;
         msgBox.setText(tr("File Parsing Failed."));
         msgBox.setInformativeText(tr("This file is not a correct XML file"));
         msgBox.setStandardButtons(QMessageBox::Ok);
         msgBox.exec();
-        return;
+        return false;
     }
-    file.close();
-
-    // find the root of settings subtree
     emit importAboutToBegin();
     qDebug()<<"Import about to begin";
 
+    // find the root of settings subtree
     QDomElement root = doc.documentElement();
     if (root.tagName() == "uavobjects") {
         root = root.firstChildElement("settings");
@@ -136,7 +123,7 @@ void UAVSettingsImportExportManager::importUAVSettings()
         msgBox.setInformativeText(tr("This file does not contain correct UAVSettings"));
         msgBox.setStandardButtons(QMessageBox::Ok);
         msgBox.exec();
-        return;
+        return false;
     }
 
     // We are now ok: setup the import summary dialog & update it as we
@@ -228,6 +215,30 @@ void UAVSettingsImportExportManager::importUAVSettings()
     qDebug() << "End import";
     swui.setUAVOSettings(importedObjectManager);
     swui.exec();
+
+    // XXX TODO: Return meaningful status
+    return true;
+}
+
+// Slot called by the menu manager on user action
+void UAVSettingsImportExportManager::importUAVSettings()
+{
+    // ask for file name
+    QString fileName;
+    QString filters = tr("UAVObjects XML files (*.uav);; XML files (*.xml)");
+    fileName = QFileDialog::getOpenFileName(0, tr("Import UAV Settings"), "", filters);
+    if (fileName.isEmpty()) {
+        return;
+    }
+
+    // Now open the file
+    QFile file(fileName);
+    QDomDocument doc("UAVObjects");
+    file.open(QFile::ReadOnly|QFile::Text);
+
+    importUAVSettings(file.readAll());
+
+    file.close();
 }
 
 
