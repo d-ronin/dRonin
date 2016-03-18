@@ -53,7 +53,9 @@ ifeq ($(EXPORT_SYMBOLS),YES)
 endif
 
 package_all_compress: package_all
-	$(V1)cd $(PACKAGE_DIR)/../ && $(ZIPBIN) -r --exclude=*.zip $(BUILD_DIR)/dronin-$(PACKAGE_LBL).zip $(notdir $(PACKAGE_DIR))
+	$(V1)cd $(PACKAGE_DIR) && rm -rf $(GCS_PACKAGE_NAME)/firmware
+	$(V1)cd $(PACKAGE_DIR) && cp -r firmware_$(PACKAGE_LBL) $(GCS_PACKAGE_NAME)/firmware
+	$(V1)cd $(PACKAGE_DIR) && $(ZIPBIN) -r --exclude=*.zip $(BUILD_DIR)/dronin-$(PACKAGE_LBL).zip $(GCS_PACKAGE_NAME)
 
 .PHONY: standalone
 .PHONY: package_ground_compress
