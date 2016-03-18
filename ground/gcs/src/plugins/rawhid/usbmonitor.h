@@ -133,13 +133,13 @@ struct USBPortInfo {
 };
 
 /**
-*   A monitoring thread which will wait for device events.
+*   A monitor which will wait for device events.
 */
 
-#if defined(Q_OS_UNIX)
-class RAWHID_EXPORT USBMonitor : public QThread
+#if  defined(Q_OS_MAC) || defined (Q_OS_WIN32)
+class RAWHID_EXPORT USBMonitor : public QObject
 #else
-class RAWHID_EXPORT USBMonitor
+class RAWHID_EXPORT USBMonitor : public QThread
 #endif
 {
     Q_OBJECT
