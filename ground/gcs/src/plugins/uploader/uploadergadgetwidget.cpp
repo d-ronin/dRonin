@@ -419,12 +419,14 @@ bool UploaderGadgetWidget::flashFirmware(QByteArray &firmwareImage)
     QEventLoop loop;
 
     QTimer timeout;
-    timeout.setSingleShot(true);
 
-    /* XXX set appropriate timeout */
+    connect(&timeout, SIGNAL(timeout()), &loop, SLOT(quit()));
+
+    timeout.setSingleShot(true);
+    timeout.start(35000);       // Very long out of caution.
 
     tl_dfu::Status operationSuccess = DFUidle;
-
+e
     setStatusInfo("",uploader::STATUSICON_RUNNING);
     setUploaderStatus(uploader::BL_BUSY);
     onStatusUpdate(QString("Starting upload..."), 0); // set progress bar to 0 while erasing
@@ -437,6 +439,8 @@ bool UploaderGadgetWidget::flashFirmware(QByteArray &firmwareImage)
     } );
 
     loop.exec();                /* Wait for timeout or download complete */
+
+    timeout.stop();
 
     if (operationSuccess != Last_operation_Success) {
         setUploaderStatus(uploader::BL_SITTING);
@@ -464,7 +468,9 @@ bool UploaderGadgetWidget::flashFirmware(QByteArray &firmwareImage)
 
     operationSuccess = DFUidle;
 
+    timeout.start(10000);
     loop.exec();
+    timeout.stop();
 
     if(operationSuccess != Last_operation_Success) {
             setStatusInfo(tr("Firmware metadata upload failed"), uploader::STATUSICON_FAIL);
@@ -742,7 +748,6 @@ void UploaderGadgetWidget::upgradeError(QString why)
 
     qDebug() << "Upgrade assistant failed: " + why;
 
-    /* XXX TODO: Infer what state we should be in-- telemetry? bl? none? */
     setUploaderStatus(uploader::DISCONNECTED);
 
     /* Pop up a proper error dialog */
@@ -792,8 +797,11 @@ void UploaderGadgetWidget::doUpgradeOperation()
         return;
     }
 
-    /* XXX TODO: Save the version to convert from, etc */
+    /* Save the version to convert from, so we can tell the cloud service */
+    QString upgradingFrom = m_widget->gitHashOD_lbl->text();
 
+    qDebug() << "Upgrading from " << upgradingFrom;
+c
     /* Infer what operations we need to do -- first, do they need the upgrade
      * tool? */
     bool isCrippledBoard = board.board->queryCapabilities(Core::IBoardType::BOARD_DISABILITY_REQUIRESUPGRADER);
@@ -931,7 +939,7 @@ void UploaderGadgetWidget::doUpgradeOperation()
     QByteArray xmlDump;
 
     /* translate the settings using the cloud service */
-    if (!tradeSettingsWithCloud("Release-20160120.3", true, &xmlDump)) { // XXX REV
+    if (!tradeSettingsWithCloud(upgradingFrom, true, &xmlDump)) {
         upgradeError(tr("Unable to use cloud services to translate settings!"));
 
         return;
@@ -1113,8 +1121,9 @@ void UploaderGadgetWidget::onExportButtonClick()
 
     setStatusInfo(tr("Retrieved settings; contacting cloud..."), uploader::STATUSICON_FAIL);
 
-    /* XXX TODO: real release/tag info */
-    tradeSettingsWithCloud("Release-20160120.3");
+    QString upgradingFrom = m_widget->gitHashOD_lbl->text();
+
+    tradeSettingsWithCloud(upgradingFrom);
 }
 
 /**
