@@ -426,7 +426,7 @@ bool UploaderGadgetWidget::flashFirmware(QByteArray &firmwareImage)
     timeout.start(35000);       // Very long out of caution.
 
     tl_dfu::Status operationSuccess = DFUidle;
-e
+
     setStatusInfo("",uploader::STATUSICON_RUNNING);
     setUploaderStatus(uploader::BL_BUSY);
     onStatusUpdate(QString("Starting upload..."), 0); // set progress bar to 0 while erasing
@@ -801,7 +801,7 @@ void UploaderGadgetWidget::doUpgradeOperation()
     QString upgradingFrom = m_widget->gitHashOD_lbl->text();
 
     qDebug() << "Upgrading from " << upgradingFrom;
-c
+
     /* Infer what operations we need to do -- first, do they need the upgrade
      * tool? */
     bool isCrippledBoard = board.board->queryCapabilities(Core::IBoardType::BOARD_DISABILITY_REQUIRESUPGRADER);
@@ -1270,11 +1270,6 @@ void UploaderGadgetWidget::onBootloaderDetected()
         iapUpdated = false;
 
         if (!inUpgrader) {
-            if (triggerUpgrading) {
-                doUpgradeOperation();
-                return;
-            }
-
             QByteArray description = dfu.DownloadDescriptionAsByteArray(dev.SizeOfDesc);
             deviceDescriptorStruct descStructure;
             if(!UAVObjectUtilManager::descriptionToStructure(description, descStructure))
@@ -1293,6 +1288,11 @@ void UploaderGadgetWidget::onBootloaderDetected()
             }
         } else {
             setStatusInfo(tr("Connected to upgrader-loader"), uploader::STATUSICON_OK);
+        }
+
+        if (triggerUpgrading) {
+            doUpgradeOperation();
+            return;
         }
 
         emit enteredLoader();
