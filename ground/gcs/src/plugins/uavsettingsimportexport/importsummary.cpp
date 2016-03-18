@@ -127,6 +127,10 @@ void ImportSummaryDialog::addLine(QString uavObjectName, QString text, bool stat
    this->showEvent(NULL);
 }
 
+int ImportSummaryDialog::numLines() const
+{
+    return ui->importSummaryList->rowCount();
+}
 
 /*
   Sets or unsets every UAVObjet in the list
@@ -160,6 +164,7 @@ void ImportSummaryDialog::doTheApplySaving()
         ++itemCount;
         }
     }
+
     if(itemCount==0)
         return;
 
@@ -194,6 +199,7 @@ void ImportSummaryDialog::doTheApplySaving()
     QMessageBox msgBox;
 
     msgBox.setText(tr("Settings saved to flash."));
+
     msgBox.setInformativeText(tr("You must power cycle the flight controller to apply settings and continue configuration."));
 
     msgBox.setStandardButtons(QMessageBox::Ok);
