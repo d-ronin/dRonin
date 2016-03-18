@@ -743,8 +743,17 @@ void UploaderGadgetWidget::upgradeError(QString why)
     qDebug() << "Upgrade assistant failed: " + why;
 
     /* XXX TODO: Infer what state we should be in-- telemetry? bl? none? */
+    setUploaderStatus(uploader::DISCONNECTED);
 
-    /* XXX TODO: Pop up a proper error dialog */
+    /* Pop up a proper error dialog */
+    QMessageBox msgBox;
+
+    msgBox.setIcon(QMessageBox::Critical);
+    msgBox.setText(tr("Automatic upgrade failed."));
+    msgBox.setInformativeText(why);
+
+    msgBox.setStandardButtons(QMessageBox::Ok);
+    msgBox.exec();
 }
 
 void UploaderGadgetWidget::doUpgradeOperation()
@@ -760,6 +769,7 @@ void UploaderGadgetWidget::doUpgradeOperation()
     timeout.setSingleShot(true);
 
     bool aborted = false;
+    bool entLoader = false;
 
     struct deviceInfo board = currentBoard;
 
@@ -767,6 +777,11 @@ void UploaderGadgetWidget::doUpgradeOperation()
     connect(&m_dialog, &UpgradeAssistantDialog::finished, &loop, [&] (int result) {
         (void) result;
         aborted = true;
+        loop.exit();
+    } );
+
+    connect(this, &UploaderGadgetWidget::enteredLoader, &loop, [&] () {
+        entLoader = true;
         loop.exit();
     } );
 
@@ -823,7 +838,38 @@ void UploaderGadgetWidget::doUpgradeOperation()
 
     if (upgradingLoader) {
         m_dialog.onStepChanged(UpgradeAssistantDialog::STEP_UPGRADEBOOTLOADER);
-        /* XXX TODO: properly upgrade bootloader */
+
+        /* program the boot upgrader tool */
+        FirmwareLoadedClear(true);
+        FirmwareLoadedUpdate(bootUpdateFile);
+        setUploaderStatus(getUploaderStatus());
+
+        loop.processEvents();
+        if (aborted) {
+            upgradeError(tr("Aborted!"));
+
+            return;
+        }
+
+        if (!flashFirmware(bootUpdateFile)) {
+            upgradeError(tr("Unable to flash upgrader image to board!"));
+
+            return;
+        }
+
+        entLoader = false;
+        setUploaderStatus(uploader::UPGRADING_CATCHLOADER);
+        dfu.JumpToApp(false);
+        dfu.CloseBootloaderComs();
+
+        /* Wait for / detect main loader */
+        timeout.start(18000);
+        loop.exec();
+        timeout.stop();
+
+        if (!entLoader) {
+            upgradeError(tr("Unable to enter bootloader after bootloader upgrade!"));
+        }
     }
 
     if (isCrippledBoard) {
@@ -849,17 +895,19 @@ void UploaderGadgetWidget::doUpgradeOperation()
 
         m_dialog.onStepChanged(UpgradeAssistantDialog::STEP_ENTERUPGRADER);
 
-        /* enter and connect to the upgrader */
-        setUploaderStatus(uploader::ENTERING_LOADER);
+        entLoader = false;
+        setUploaderStatus(uploader::UPGRADING_CATCHLOADER);
         dfu.JumpToApp(false);
         dfu.CloseBootloaderComs();
 
-        /* XXX TODO: Properly detect upgrader */
-        timeout.start(4000);
-
+        /* Wait for / detect main loader */
+        timeout.start(18000);
         loop.exec();
-
         timeout.stop();
+
+        if (!entLoader) {
+            upgradeError(tr("Unable to enter legacy upgrade tool on board!!"));
+        }
     }
 
     m_dialog.onStepChanged(UpgradeAssistantDialog::STEP_DOWNLOADSETTINGS);
@@ -907,14 +955,19 @@ void UploaderGadgetWidget::doUpgradeOperation()
         m_dialog.onStepChanged(UpgradeAssistantDialog::STEP_REENTERLOADER);
         /* re-enter the loader in preparation for flashing fw */
 
+        entLoader = false;
         setUploaderStatus(uploader::UPGRADING_CATCHLOADER);
         dfu.ResetDevice();
         dfu.CloseBootloaderComs();
 
-        /* XXX TODO: Properly detect main loader */
-        timeout.start(4000);
+        /* Wait for / detect main loader */
+        timeout.start(18000);
         loop.exec();
         timeout.stop();
+
+        if (!entLoader) {
+            upgradeError(tr("Unable to re-enter main bootloader on board!"));
+        }
     }
 
     if (aborted) {
@@ -1232,6 +1285,8 @@ void UploaderGadgetWidget::onBootloaderDetected()
         } else {
             setStatusInfo(tr("Connected to upgrader-loader"), uploader::STATUSICON_OK);
         }
+
+        emit enteredLoader();
     }
     else
     {

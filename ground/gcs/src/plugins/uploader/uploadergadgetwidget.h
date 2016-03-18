@@ -62,6 +62,7 @@ public:
 public slots:
 signals:
     void newBoardSeen(deviceInfo board, deviceDescriptorStruct device);
+    void enteredLoader();
 private slots:
     void onAutopilotConnect();
     void onAutopilotDisconnect();
