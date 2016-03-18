@@ -213,6 +213,15 @@ bool UAVSettingsImportExportManager::importUAVSettings(const QByteArray &setting
         node = node.nextSibling();
     }
     qDebug() << "End import";
+
+    if (swui.numLines() < 1) {
+        QMessageBox::critical(0,
+                              tr("Unable to import settings"),
+                              tr("No settings found in XML dump"),
+                              QMessageBox::Ok);
+        return false;
+    }
+
     swui.setUAVOSettings(importedObjectManager);
     swui.exec();
 

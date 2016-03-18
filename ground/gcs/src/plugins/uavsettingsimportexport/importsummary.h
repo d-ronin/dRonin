@@ -52,6 +52,7 @@ public:
     ~ImportSummaryDialog();
     void addLine(QString objectName, QString text, bool status);
     void setUAVOSettings(UAVObjectManager* obj);
+    int numLines() const;
 
 protected:
     void showEvent(QShowEvent *event);
