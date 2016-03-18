@@ -691,7 +691,7 @@ bool UploaderGadgetWidget::tradeSettingsWithCloud(QString srcRelease,
 
     /* save dialog for XML config */
     while (true) {
-        QString filename = QFileDialog::getSaveFileName(this, tr("Save Settings Backup"),"cloud_exported.xml","*.xml");
+        QString filename = QFileDialog::getSaveFileName(this, tr("Save Settings Backup"),"cloud_exported.uav","*.uav");
         if(filename.isEmpty())
         {
             setStatusInfo(tr("Save cancelled."), uploader::STATUSICON_FAIL);
