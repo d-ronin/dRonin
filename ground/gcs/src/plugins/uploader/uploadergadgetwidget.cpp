@@ -1157,6 +1157,7 @@ void UploaderGadgetWidget::onBootloaderDetected()
 
     USBPortInfo device = devices.first();
     bool inUpgrader = false;
+    bool validDescription = false;
 
     if (device.getRunState() == USBMonitor::Upgrader) {
         inUpgrader = true;
@@ -1164,6 +1165,16 @@ void UploaderGadgetWidget::onBootloaderDetected()
 
     if (dfu.OpenBootloaderComs(device)) {
         tl_dfu::device dev = dfu.findCapabilities();
+
+        QByteArray description = dfu.DownloadDescriptionAsByteArray(dev.SizeOfDesc);
+        deviceDescriptorStruct descStructure;
+        if(!UAVObjectUtilManager::descriptionToStructure(description, descStructure))
+            setStatusInfo(tr("Could not parse firmware metadata"), uploader::STATUSICON_INFO);
+        else
+        {
+            FirmwareOnDeviceUpdate(descStructure, QString::number((dev.FW_CRC)));
+            validDescription = true;
+        }
 
         if (!inUpgrader) {
             switch (uploaderStatus) {
@@ -1174,13 +1185,11 @@ void UploaderGadgetWidget::onBootloaderDetected()
                 break;
             case uploader::DISCONNECTED:
             {
-                QByteArray description = dfu.DownloadDescriptionAsByteArray(dev.SizeOfDesc);
                 // look for completed bootloader update (last 2 chars of TlFw string are nulled)
                 if (QString(description.left(4)) == "Tl")
                     break;
 
-                deviceDescriptorStruct descStructure;
-                if (UAVObjectUtilManager::descriptionToStructure(description, descStructure)) {
+                if (validDescription) {
                     if (FirmwareCheckForUpdate(descStructure)) {
                         triggerUpgrading = true;
                         break;
@@ -1270,15 +1279,6 @@ void UploaderGadgetWidget::onBootloaderDetected()
         iapUpdated = false;
 
         if (!inUpgrader) {
-            QByteArray description = dfu.DownloadDescriptionAsByteArray(dev.SizeOfDesc);
-            deviceDescriptorStruct descStructure;
-            if(!UAVObjectUtilManager::descriptionToStructure(description, descStructure))
-                setStatusInfo(tr("Could not parse firmware metadata"), uploader::STATUSICON_INFO);
-            else
-            {
-                FirmwareOnDeviceUpdate(descStructure, QString::number((dev.FW_CRC)));
-            }
-
             setStatusInfo(tr("Connection to bootloader successful"), uploader::STATUSICON_OK);
 
             if (FirmwareLoadFromFile(getImagePath(info.board->shortName()), &loadedFile)) {
