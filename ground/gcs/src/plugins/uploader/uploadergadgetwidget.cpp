@@ -711,8 +711,9 @@ bool UploaderGadgetWidget::tradeSettingsWithCloud(QString srcRelease,
             continue;
         }
 
-        if(!filename.endsWith(".xml",Qt::CaseInsensitive))
-            filename.append(".xml");
+        if(!filename.endsWith(".uav",Qt::CaseInsensitive))
+            filename.append(".uav");
+
         QFile file(filename);
         if(!file.open(QIODevice::WriteOnly))
         {
