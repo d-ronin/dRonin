@@ -45,7 +45,7 @@ public:
     UAVSettingsImportExportManager(QObject *parent = 0);
     ~UAVSettingsImportExportManager();
     static bool updateObject(UAVObject *obj, QDomNode * node);
-    
+
     bool importUAVSettings(const QByteArray &settings);
 
 public slots:
