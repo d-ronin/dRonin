@@ -947,9 +947,11 @@ void UploaderGadgetWidget::doUpgradeOperation()
         return;
     }
 
-    /* XXX set ignoredrev to what we just programmed, so if we programmed
+    /* Set ignoredrev to what we just programmed, so if we programmed
      * an outdated rev in a developer environment we don't immediately bop
      * up the message */
+    ignoredRev = m_widget->gitHashOD_lbl->text();
+    qDebug() << ignoredRev;
 
     m_dialog.onStepChanged(UpgradeAssistantDialog::STEP_BOOT);
 
@@ -1707,7 +1709,7 @@ bool UploaderGadgetWidget::FirmwareCheckForUpdate(deviceDescriptorStruct device)
     const QString gcsRev(GCS_REVISION);
     if (gcsRev.contains(':')) {
         QString gcsShort = gcsRev.mid(gcsRev.indexOf(':') + 1, 8);
-        if ((gcsShort != device.gitHash) && (ignoredRev != gcsShort)) {
+        if ((gcsShort != device.gitHash) && (ignoredRev != device.gitHash)) {
             QMessageBox msgBox;
             msgBox.setText(tr("The firmware version on your board does not match this version of GCS."));
             msgBox.setInformativeText(tr("Do you want to upgrade the firmware to a compatible version?"));
@@ -1720,7 +1722,7 @@ bool UploaderGadgetWidget::FirmwareCheckForUpdate(deviceDescriptorStruct device)
             if (val == QMessageBox::Yes)
                 return true;
             else if (val == QMessageBox::Ignore)
-                ignoredRev = gcsShort;
+                ignoredRev = device.gitHash;
         }
     }
     return false;
