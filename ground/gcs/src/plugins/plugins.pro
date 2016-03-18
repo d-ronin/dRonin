@@ -103,6 +103,7 @@ plugin_uploader.depends += plugin_uavobjects
 plugin_uploader.depends += plugin_uavtalk
 plugin_uploader.depends += plugin_rawhid
 plugin_uploader.depends += plugin_uavobjectutil
+plugin_uploader.depends += plugin_uavsettingsimportexport
 SUBDIRS += plugin_uploader
 
 # Dial gadget
