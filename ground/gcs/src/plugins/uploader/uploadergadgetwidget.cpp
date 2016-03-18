@@ -619,7 +619,7 @@ bool UploaderGadgetWidget::askIfShouldContinue() {
     return false;
 }
 
-bool UploaderGadgetWidget::tradeSettingsWithCloud(QString release,
+bool UploaderGadgetWidget::tradeSettingsWithCloud(QString srcRelease,
         bool upgrading, QByteArray *settingsOut) {
     /* post to cloud service */
     QUrl url(exportUrl);
@@ -631,12 +631,14 @@ bool UploaderGadgetWidget::tradeSettingsWithCloud(QString release,
         settingsOut->clear();
     }
 
-    QHttpPart githash, datafile;
+    QHttpPart githash, adaptTo, datafile;
 
     githash.setHeader(QNetworkRequest::ContentDispositionHeader,QVariant("form-data; name=\"githash\""));
-    githash.setBody(release.toLatin1());
+    githash.setBody(srcRelease.toLatin1());
 
-    /* XXX TODO: send some additional details up */
+    const QString gcsRev(GCS_REVISION);
+    adaptTo.setHeader(QNetworkRequest::ContentDispositionHeader,QVariant("form-data; name=\"adaptTo\""));
+    adaptTo.setBody(gcsRev.toLatin1());
 
     datafile.setHeader(QNetworkRequest::ContentTypeHeader, QVariant("application/octet-stream"));
     datafile.setHeader(QNetworkRequest::ContentDispositionHeader, QVariant("form-data; filename=\"datafile\"; name=\"datafile\""));

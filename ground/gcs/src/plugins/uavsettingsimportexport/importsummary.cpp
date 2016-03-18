@@ -2,7 +2,7 @@
  ******************************************************************************
  *
  * @file       importsummary.cpp
- * @author     dRonin, http://dRonin.org/, Copyright (C) 2015
+ * @author     dRonin, http://dRonin.org/, Copyright (C) 2015-2016
  * @author     Tau Labs, http://taulabs.org, Copyright (C) 2013
  * @author     (C) 2011 The OpenPilot Team, http://www.openpilot.org
  * @addtogroup GCSPlugins GCS Plugins
@@ -31,6 +31,8 @@
 #include <QDomDocument>
 #include <QXmlQuery>
 
+#include <QMessageBox>
+
 // for Parameterized slots
 #include <QSignalMapper>
 #include "importsummary.h"
@@ -55,7 +57,7 @@ ImportSummaryDialog::ImportSummaryDialog( QWidget *parent) :
    ui->importSummaryList->setHorizontalHeaderLabels(header);
    ui->progressBar->setValue(0);
 
-   connect( ui->closeButton, SIGNAL(clicked()), this, SLOT(close()));
+   connect( ui->closeButton, SIGNAL(clicked()), this, SLOT(reject()));
    connect(ui->btnSaveToFlash, SIGNAL(clicked()), this, SLOT(doTheApplySaving()));
 
    // Connect the Select All/None buttons
@@ -183,9 +185,21 @@ void ImportSummaryDialog::doTheApplySaving()
             utilManager->saveObjectToFlash(boardObj);
 
             updateCompletion();
-            this->repaint();
+            repaint();
         }
     }
+
+    hide();
+
+    QMessageBox msgBox;
+
+    msgBox.setText(tr("Settings saved to flash."));
+    msgBox.setInformativeText(tr("You must power cycle the flight controller to apply settings and continue configuration."));
+
+    msgBox.setStandardButtons(QMessageBox::Ok);
+    msgBox.exec();
+
+    accept();
 }
 
 
