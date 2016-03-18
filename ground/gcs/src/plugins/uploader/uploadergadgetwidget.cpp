@@ -871,7 +871,7 @@ void UploaderGadgetWidget::doUpgradeOperation()
         dfu.CloseBootloaderComs();
 
         /* Wait for / detect main loader */
-        timeout.start(18000);
+        timeout.start(25000);
         loop.exec();
         timeout.stop();
 
@@ -909,7 +909,7 @@ void UploaderGadgetWidget::doUpgradeOperation()
         dfu.CloseBootloaderComs();
 
         /* Wait for / detect main loader */
-        timeout.start(18000);
+        timeout.start(25000);
         loop.exec();
         timeout.stop();
 
@@ -969,7 +969,7 @@ void UploaderGadgetWidget::doUpgradeOperation()
         dfu.CloseBootloaderComs();
 
         /* Wait for / detect main loader */
-        timeout.start(18000);
+        timeout.start(25000);
         loop.exec();
         timeout.stop();
 
@@ -1029,7 +1029,7 @@ void UploaderGadgetWidget::doUpgradeOperation()
     dfu.JumpToApp(false);
     dfu.CloseBootloaderComs();
 
-    timeout.start(15000);
+    timeout.start(25000);
 
     loop.exec();
 
