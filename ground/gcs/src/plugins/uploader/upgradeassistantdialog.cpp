@@ -108,6 +108,10 @@ void UpgradeAssistantDialog::onStepChanged(UpgradeAssistantStep step)
     } else {
         ui->buttonBox->setStandardButtons(QDialogButtonBox::Abort);
     }
+
+    if (isVisible()) {
+        raise();
+    }
 }
 
 void UpgradeAssistantDialog::closeEvent(QCloseEvent* event) {
