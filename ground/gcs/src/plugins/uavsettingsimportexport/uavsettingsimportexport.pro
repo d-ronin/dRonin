@@ -14,7 +14,7 @@ HEADERS += uavsettingsimportexport.h \
 SOURCES += uavsettingsimportexport.cpp \
     importsummary.cpp \
     uavsettingsimportexportmanager.cpp
- 
+
 OTHER_FILES += uavsettingsimportexport.pluginspec \
     uavsettingsimportexport.json
 
