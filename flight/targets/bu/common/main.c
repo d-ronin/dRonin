@@ -46,7 +46,7 @@ int main(void) {
 	PIOS_SYS_Init();
 	PIOS_Board_Init();
 	PIOS_LED_On(PIOS_LED_HEARTBEAT);
-	PIOS_DELAY_WaitmS(3000);
+	PIOS_DELAY_WaitmS(1000);
 	PIOS_LED_Off(PIOS_LED_HEARTBEAT);
 
 	/*
@@ -84,8 +84,6 @@ int main(void) {
 	PIOS_FLASH_end_transaction(bl_partition_id);
 	PIOS_LED_Off(PIOS_LED_HEARTBEAT);
 
-	PIOS_DELAY_WaitmS(500);
-
 	/* Write in the new bootloader */
 	PIOS_LED_On(PIOS_LED_HEARTBEAT);
 	PIOS_FLASH_start_transaction(bl_partition_id);
@@ -113,10 +111,10 @@ int main(void) {
 	PIOS_FLASH_end_transaction(fw_partition_id);
 	PIOS_LED_Off(PIOS_LED_HEARTBEAT);
 
-	PIOS_DELAY_WaitmS(1000);
+	PIOS_DELAY_WaitmS(100);
 
 	/* Flash the LED to indicate finished */
-	for (uint8_t x = 0; x < 5; ++x) {
+	for (uint8_t x = 0; x < 2; ++x) {
 			PIOS_LED_On(PIOS_LED_HEARTBEAT);
 			PIOS_DELAY_WaitmS(1000);
 			PIOS_LED_Off(PIOS_LED_HEARTBEAT);
