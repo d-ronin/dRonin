@@ -993,9 +993,11 @@ void UploaderGadgetWidget::doUpgradeOperation()
         return;
     }
 
+    m_dialog.onStepChanged(UpgradeAssistantDialog::STEP_DONE);
 
-    /* XXX TODO: notify user of success. */
-    m_dialog.hide();
+    while (!aborted) {
+        loop.exec();
+    }
 }
 
 /**

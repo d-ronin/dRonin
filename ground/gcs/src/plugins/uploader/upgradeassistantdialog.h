@@ -57,7 +57,8 @@ public:
         STEP_FLASHFIRMWARE,
         STEP_BOOT,
         STEP_IMPORT,
-        STEP_NUM
+        STEP_DONE,
+        STEP_NUM=STEP_DONE      // STEP_DONE is not a real step with a label
     } UpgradeAssistantStep;
 
     explicit UpgradeAssistantDialog(QWidget *parent = 0);
