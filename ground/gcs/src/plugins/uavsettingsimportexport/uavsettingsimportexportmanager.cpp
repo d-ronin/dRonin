@@ -216,8 +216,7 @@ bool UAVSettingsImportExportManager::importUAVSettings(const QByteArray &setting
     swui.setUAVOSettings(importedObjectManager);
     swui.exec();
 
-    // XXX TODO: Return meaningful status
-    return true;
+    return swui.result() == QDialog::Accepted;
 }
 
 // Slot called by the menu manager on user action

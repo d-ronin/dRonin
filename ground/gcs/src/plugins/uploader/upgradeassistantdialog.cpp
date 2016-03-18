@@ -102,6 +102,12 @@ void UpgradeAssistantDialog::onStepChanged(UpgradeAssistantStep step)
             stepLabels[i]->setText(*originalText[i]);
         }
     }
+
+    if (step == STEP_DONE) {
+        ui->buttonBox->setStandardButtons(QDialogButtonBox::Close);
+    } else {
+        ui->buttonBox->setStandardButtons(QDialogButtonBox::Abort);
+    }
 }
 
 void UpgradeAssistantDialog::closeEvent(QCloseEvent* event) {
