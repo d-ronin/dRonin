@@ -249,7 +249,7 @@ bool DFUObject::DownloadPartition(QByteArray *fw, qint32 const & numberOfBytes, 
         }
         if(ntohl(message.v.xfer_cont.current_packet_number) != x)
         {
-            TL_DFU_QXTLOG_DEBUG(QString("Wrong packet number received while downloading partition %0").arg(ntohl(message.v.xfer_cont.current_packet_number)));
+            TL_DFU_QXTLOG_DEBUG(QString("Wrong packet number received while downloading partition- %0 vs %1").arg(ntohl(message.v.xfer_cont.current_packet_number)).arg(x));
             return false;
         }
         if(x == msg.numberOfPackets - 1)
@@ -258,7 +258,10 @@ bool DFUObject::DownloadPartition(QByteArray *fw, qint32 const & numberOfBytes, 
             size = 14 * 4;
         fw->append((char*)message.v.xfer_cont.data, size);
     }
-    TL_DFU_QXTLOG_DEBUG(QString("STATUS=%1").arg(StatusRequest().status));
+
+    StatusRequest();
+
+    TL_DFU_QXTLOG_DEBUG(QString("Download operation completed"));
     return true;
 }
 

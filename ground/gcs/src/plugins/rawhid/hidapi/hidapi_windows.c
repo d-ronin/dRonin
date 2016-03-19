@@ -164,6 +164,8 @@ static void free_hid_device(hid_device *dev)
 
 static void register_error(hid_device *device, const char *op)
 {
+	(void) op;
+
 	WCHAR *ptr, *msg;
 
 	FormatMessageW(FORMAT_MESSAGE_ALLOCATE_BUFFER |
@@ -262,7 +264,26 @@ int HID_API_EXPORT hid_exit(void)
 	return 0;
 }
 
-struct hid_device_info HID_API_EXPORT * HID_API_CALL hid_enumerate(unsigned short vendor_id, unsigned short product_id)
+static struct hid_device_info *remove_from_list_by_path(struct hid_device_info **list,
+		const char *path) {
+	// Double-pointer walk of list
+	for (; *list; list = &((*list)->next)) {
+		if (!strcmp(path, (*list)->path)) {
+			struct hid_device_info *elem = *list;
+
+			/* We found it.  First, remove from list */
+			*list = elem->next;
+
+			elem->next = NULL;
+
+			return elem;
+		}
+	}
+
+	return NULL;
+}
+
+struct hid_device_info HID_API_EXPORT * HID_API_CALL hid_enumerate(unsigned short vendor_id, unsigned short product_id, struct hid_device_info *prev_enumeration)
 {
 	BOOL res;
 	struct hid_device_info *root = NULL; /* return object */
@@ -362,7 +383,27 @@ struct hid_device_info HID_API_EXPORT * HID_API_CALL hid_enumerate(unsigned shor
 			}
 		}
 
-		//wprintf(L"HandleName: %s\n", device_interface_detail_data->DevicePath);
+                if (!device_interface_detail_data->DevicePath) {
+			goto cont;
+		}
+
+		struct hid_device_info *tmp;
+
+		/* if path equal, take record and skip rest. */
+		tmp = remove_from_list_by_path(&prev_enumeration,
+				device_interface_detail_data->DevicePath);
+
+		if (tmp) {
+			if (cur_dev) {
+				cur_dev->next = tmp;
+			} else {
+				root = tmp;
+			}
+
+			cur_dev = tmp;
+
+			goto cont;
+		}
 
 		/* Open a handle to the device */
 		write_handle = open_device(device_interface_detail_data->DevicePath, TRUE);
@@ -386,23 +427,20 @@ struct hid_device_info HID_API_EXPORT * HID_API_CALL hid_enumerate(unsigned shor
 		    (product_id == 0x0 || attrib.ProductID == product_id)) {
 
 			#define WSTR_LEN 512
-			const char *str;
-			struct hid_device_info *tmp;
 			PHIDP_PREPARSED_DATA pp_data = NULL;
 			HIDP_CAPS caps;
 			BOOLEAN res;
 			NTSTATUS nt_res;
 			wchar_t wstr[WSTR_LEN]; /* TODO: Determine Size */
-			size_t len;
 
 			/* VID/PID match. Create the record. */
 			tmp = (struct hid_device_info*) calloc(1, sizeof(struct hid_device_info));
 			if (cur_dev) {
 				cur_dev->next = tmp;
-			}
-			else {
+			} else {
 				root = tmp;
 			}
+
 			cur_dev = tmp;
 
 			/* Get the Usage Page and Usage for this device. */
@@ -419,15 +457,7 @@ struct hid_device_info HID_API_EXPORT * HID_API_CALL hid_enumerate(unsigned shor
 			
 			/* Fill out the record */
 			cur_dev->next = NULL;
-			str = device_interface_detail_data->DevicePath;
-			if (str) {
-				len = strlen(str);
-				cur_dev->path = (char*) calloc(len+1, sizeof(char));
-				strncpy(cur_dev->path, str, len+1);
-				cur_dev->path[len] = '\0';
-			}
-			else
-				cur_dev->path = NULL;
+			cur_dev->path = strdup(device_interface_detail_data->DevicePath);
 
 			/* Serial Number */
 			res = HidD_GetSerialNumberString(write_handle, wstr, sizeof(wstr));
@@ -489,9 +519,10 @@ cont:
 
 	/* Close the device information handle. */
 	SetupDiDestroyDeviceInfoList(device_info_set);
+	
+	hid_free_enumeration(prev_enumeration);
 
 	return root;
-
 }
 
 void  HID_API_EXPORT HID_API_CALL hid_free_enumeration(struct hid_device_info *devs)
@@ -517,7 +548,7 @@ HID_API_EXPORT hid_device * HID_API_CALL hid_open(unsigned short vendor_id, unsi
 	const char *path_to_open = NULL;
 	hid_device *handle = NULL;
 	
-	devs = hid_enumerate(vendor_id, product_id);
+	devs = hid_enumerate(vendor_id, product_id, NULL);
 	cur_dev = devs;
 	while (cur_dev) {
 		if (cur_dev->vendor_id == vendor_id &&
