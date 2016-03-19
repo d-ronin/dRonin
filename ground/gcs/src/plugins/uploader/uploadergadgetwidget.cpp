@@ -762,6 +762,21 @@ void UploaderGadgetWidget::upgradeError(QString why)
     msgBox.exec();
 }
 
+void UploaderGadgetWidget::stepChangeAndDelay(QEventLoop &loop, int delayMs,
+        UpgradeAssistantDialog::UpgradeAssistantStep step)
+{
+    m_dialog.onStepChanged(step);
+
+    QTimer delay;
+
+    delay.setSingleShot(true);
+    connect(&delay, SIGNAL(timeout()), &loop, SLOT(quit()));
+
+    delay.start(delayMs);
+    loop.exec();
+    delay.stop();
+}
+
 void UploaderGadgetWidget::doUpgradeOperation()
 {
     Core::ModeManager::instance()->activateModeByWorkspaceName("Firmware");
@@ -846,19 +861,18 @@ void UploaderGadgetWidget::doUpgradeOperation()
     m_dialog.setOperatingMode(upgradingLoader, isCrippledBoard);
 
     if (upgradingLoader) {
-        m_dialog.onStepChanged(UpgradeAssistantDialog::STEP_UPGRADEBOOTLOADER);
+        stepChangeAndDelay(loop, 400, UpgradeAssistantDialog::STEP_UPGRADEBOOTLOADER);
 
-        /* program the boot upgrader tool */
-        FirmwareLoadedClear(true);
-        FirmwareLoadedUpdate(bootUpdateFile);
-        setUploaderStatus(getUploaderStatus());
-
-        loop.processEvents();
         if (aborted) {
             upgradeError(tr("Aborted!"));
 
             return;
         }
+
+        /* program the boot upgrader tool */
+        FirmwareLoadedClear(true);
+        FirmwareLoadedUpdate(bootUpdateFile);
+        setUploaderStatus(getUploaderStatus());
 
         if (!flashFirmware(bootUpdateFile)) {
             upgradeError(tr("Unable to flash upgrader image to board!"));
@@ -882,19 +896,18 @@ void UploaderGadgetWidget::doUpgradeOperation()
     }
 
     if (isCrippledBoard) {
-        m_dialog.onStepChanged(UpgradeAssistantDialog::STEP_PROGRAMUPGRADER);
+        stepChangeAndDelay(loop, 400, UpgradeAssistantDialog::STEP_PROGRAMUPGRADER);
 
-        /* program the legacy upgrade tool */
-        FirmwareLoadedClear(true);
-        FirmwareLoadedUpdate(upgraderFile);
-        setUploaderStatus(getUploaderStatus());
-
-        loop.processEvents();
         if (aborted) {
             upgradeError(tr("Aborted!"));
 
             return;
         }
+
+        /* program the legacy upgrade tool */
+        FirmwareLoadedClear(true);
+        FirmwareLoadedUpdate(upgraderFile);
+        setUploaderStatus(getUploaderStatus());
 
         if (!flashFirmware(upgraderFile)) {
             upgradeError(tr("Unable to flash upgrader image to board!"));
@@ -902,7 +915,13 @@ void UploaderGadgetWidget::doUpgradeOperation()
             return;
         }
 
-        m_dialog.onStepChanged(UpgradeAssistantDialog::STEP_ENTERUPGRADER);
+        stepChangeAndDelay(loop, 400, UpgradeAssistantDialog::STEP_ENTERUPGRADER);
+
+        if (aborted) {
+            upgradeError(tr("Aborted!"));
+
+            return;
+        }
 
         entLoader = false;
         setUploaderStatus(uploader::UPGRADING_CATCHLOADER);
@@ -919,7 +938,13 @@ void UploaderGadgetWidget::doUpgradeOperation()
         }
     }
 
-    m_dialog.onStepChanged(UpgradeAssistantDialog::STEP_DOWNLOADSETTINGS);
+    stepChangeAndDelay(loop, 400, UpgradeAssistantDialog::STEP_DOWNLOADSETTINGS);
+
+    if (aborted) {
+        upgradeError(tr("Aborted!"));
+
+        return;
+    }
 
     /* download the settings partition from the board */
     if (!downloadSettings()) {
@@ -928,14 +953,13 @@ void UploaderGadgetWidget::doUpgradeOperation()
         return;
     }
 
-    loop.processEvents();
+    stepChangeAndDelay(loop, 100, UpgradeAssistantDialog::STEP_TRANSLATESETTINGS);
+
     if (aborted) {
         upgradeError(tr("Aborted!"));
 
         return;
     }
-
-    m_dialog.onStepChanged(UpgradeAssistantDialog::STEP_TRANSLATESETTINGS);
 
     QByteArray xmlDump;
 
@@ -946,14 +970,13 @@ void UploaderGadgetWidget::doUpgradeOperation()
         return;
     }
 
-    loop.processEvents();
+    stepChangeAndDelay(loop, 400, UpgradeAssistantDialog::STEP_ERASESETTINGS);
+
     if (aborted) {
         upgradeError(tr("Aborted!"));
 
         return;
     }
-
-    m_dialog.onStepChanged(UpgradeAssistantDialog::STEP_ERASESETTINGS);
 
     /* wipe the board setting partition in prepation of upgrade */
     if (!dfu.WipePartition(DFU_PARTITION_SETTINGS)) {
@@ -961,6 +984,14 @@ void UploaderGadgetWidget::doUpgradeOperation()
     }
 
     if (isCrippledBoard) {
+        stepChangeAndDelay(loop, 400, UpgradeAssistantDialog::STEP_REENTERLOADER);
+
+        if (aborted) {
+            upgradeError(tr("Aborted!"));
+
+            return;
+        }
+
         m_dialog.onStepChanged(UpgradeAssistantDialog::STEP_REENTERLOADER);
         /* re-enter the loader in preparation for flashing fw */
 
@@ -979,13 +1010,13 @@ void UploaderGadgetWidget::doUpgradeOperation()
         }
     }
 
+    stepChangeAndDelay(loop, 400, UpgradeAssistantDialog::STEP_FLASHFIRMWARE);
+
     if (aborted) {
         upgradeError(tr("Aborted!"));
 
         return;
     }
-
-    m_dialog.onStepChanged(UpgradeAssistantDialog::STEP_FLASHFIRMWARE);
 
     /* flash the appropriate main firmware image */
     FirmwareLoadedClear(true);
@@ -1017,7 +1048,13 @@ void UploaderGadgetWidget::doUpgradeOperation()
     ignoredRev = m_widget->gitHashOD_lbl->text();
     qDebug() << ignoredRev;
 
-    m_dialog.onStepChanged(UpgradeAssistantDialog::STEP_BOOT);
+    stepChangeAndDelay(loop, 400, UpgradeAssistantDialog::STEP_BOOT);
+
+    if (aborted) {
+        upgradeError(tr("Aborted!"));
+
+        return;
+    }
 
     bool firmwareConnected = false;
 
@@ -1046,7 +1083,13 @@ void UploaderGadgetWidget::doUpgradeOperation()
         return;
     }
 
-    m_dialog.onStepChanged(UpgradeAssistantDialog::STEP_IMPORT);
+    stepChangeAndDelay(loop, 400, UpgradeAssistantDialog::STEP_IMPORT);
+
+    if (aborted) {
+        upgradeError(tr("Aborted!"));
+
+        return;
+    }
 
     /* trigger import of saved settings. */
     if (!importMngr->importUAVSettings(xmlDump)) {
