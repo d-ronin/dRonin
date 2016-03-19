@@ -1009,6 +1009,8 @@ void UploaderGadgetWidget::doUpgradeOperation()
 
         if (!entLoader) {
             upgradeError(tr("Unable to re-enter main bootloader on board!"));
+
+            return;
         }
     }
 

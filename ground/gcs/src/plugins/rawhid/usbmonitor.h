@@ -69,6 +69,8 @@ struct USBPortInfo {
     }
 };
 
+Q_DECLARE_METATYPE(USBPortInfo);
+
 /**
 *   A monitor which will wait for device events.
 */
@@ -119,5 +121,8 @@ private:
     static USBMonitor *m_instance;
 
     QTimer periodicTimer;
+
+    struct hid_device_info *prevDevList;
+
 };
 #endif // USBMONITOR_H
