@@ -104,6 +104,8 @@ private:
             QByteArray *settingsOut = NULL);
     bool askIfShouldContinue();
     bool downloadSettings();
+    void stepChangeAndDelay(QEventLoop &loop, int delayMs,
+                    UpgradeAssistantDialog::UpgradeAssistantStep step);
     void doUpgradeOperation();
     void upgradeError(QString why);
     bool flashFirmware(QByteArray &firmwareImage);
