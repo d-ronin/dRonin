@@ -1,6 +1,5 @@
 TEMPLATE = lib
 TARGET = RawHID
-QT +=widgets
 include(../../gcsplugin.pri)
 include(rawhid_dependencies.pri)
 HEADERS += rawhid_global.h \
@@ -14,7 +13,8 @@ HEADERS += rawhid_global.h \
 SOURCES += rawhidplugin.cpp \
     rawhid.cpp \
     usbsignalfilter.cpp \
-    usbdevice.cpp
+    usbdevice.cpp \
+    usbmonitor.cpp
 FORMS += 
 RESOURCES += 
 DEFINES += RAWHID_LIBRARY
@@ -23,8 +23,7 @@ OTHER_FILES += RawHID.pluginspec \
 
 # Platform Specific USB HID Stuff
 win32 { 
-    SOURCES += hidapi/hidapi_windows.c \
-        usbmonitor_win.cpp
+    SOURCES += hidapi/hidapi_windows.c 
     LIBS += -lhid \
         -lsetupapi
         win32-msvc* {
@@ -32,18 +31,15 @@ win32 {
         }
 }
 macx { 
-    SOURCES += usbmonitor_mac.cpp \
-            hidapi/hidapi_mac.c
+    SOURCES += hidapi/hidapi_mac.c
     LIBS += -framework IOKit \
         -framework CoreFoundation
 }
 linux-g++ {
-    SOURCES += hidapi/hidapi_linux.c \
-            usbmonitor_linux.cpp
+    SOURCES += hidapi/hidapi_linux.c
     LIBS += -lusb-1.0 -ludev -lrt
 }
 linux-g++-64 {
-    SOURCES += hidapi/hidapi_linux.c \
-            usbmonitor_linux.cpp
+    SOURCES += hidapi/hidapi_linux.c
     LIBS += -lusb-1.0 -ludev -lrt
 }
