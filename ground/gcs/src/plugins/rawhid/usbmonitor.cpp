@@ -58,36 +58,37 @@ USBMonitor::USBMonitor(QObject *parent) : QObject(parent) {
 
     connect(&periodicTimer, SIGNAL(timeout()), this, SLOT(periodic()));
     periodicTimer.start(200);
+
+    prevDevList = NULL;
 }
 
 USBMonitor::~USBMonitor()
 {
+    hid_free_enumeration(prevDevList);
 }
 
 void USBMonitor::periodic() {
-    struct hid_device_info *hid_dev_list = hid_enumerate(0, 0);
+    struct hid_device_info *hidDevList = hid_enumerate(0, 0, prevDevList);
 
     QList<USBPortInfo> unseenDevices = knowndevices;
     QList<USBPortInfo> newDevices;
 
-    for (struct hid_device_info *hid_dev = hid_dev_list;
-            hid_dev != NULL;
-            hid_dev = hid_dev->next) {
+    for (struct hid_device_info *hidDev = hidDevList;
+            hidDev != NULL;
+            hidDev = hidDev->next) {
         USBPortInfo info;
 
-        info.vendorID = hid_dev->vendor_id;
-        info.productID = hid_dev->product_id;
-        info.bcdDevice = hid_dev->release_number;
-        info.serialNumber = QString::fromWCharArray(hid_dev->serial_number);
-        info.product = QString::fromWCharArray(hid_dev->product_string);
-        info.manufacturer = QString::fromWCharArray(hid_dev->manufacturer_string);
+        info.vendorID = hidDev->vendor_id;
+        info.productID = hidDev->product_id;
+        info.bcdDevice = hidDev->release_number;
+        info.serialNumber = QString::fromWCharArray(hidDev->serial_number);
+        info.product = QString::fromWCharArray(hidDev->product_string);
+        info.manufacturer = QString::fromWCharArray(hidDev->manufacturer_string);
 
         if (!unseenDevices.removeOne(info)) {
             newDevices.append(info);
         } 
     }
-
-    hid_free_enumeration(hid_dev_list);
 
     foreach (USBPortInfo item, unseenDevices) {
         qDebug() << "Removing " << item.vendorID << item.productID << item.bcdDevice << item.serialNumber << item.product << item.manufacturer;
