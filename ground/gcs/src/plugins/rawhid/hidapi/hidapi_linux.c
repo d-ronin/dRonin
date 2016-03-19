@@ -179,7 +179,7 @@ static uint32_t get_bytes(uint8_t *rpt, size_t len, size_t num_bytes, size_t cur
    Usage and Usage Page that it finds in the descriptor.
    The return value is 0 on success and -1 on failure. */
 static int get_usage(uint8_t *report_descriptor, size_t size,
-                     unsigned short *usage_page, unsigned short *usage)
+		unsigned short *usage_page, unsigned short *usage)
 {
 	unsigned int i = 0;
 	int size_code;
@@ -454,7 +454,26 @@ int HID_API_EXPORT hid_exit(void)
 	return 0;
 }
 
-struct hid_device_info  HID_API_EXPORT *hid_enumerate(unsigned short vendor_id, unsigned short product_id)
+static struct hid_device_info *remove_from_list_by_path(struct hid_device_info **list,
+		const char *path) {
+	// Double-pointer walk of list
+	for (; *list; list = &((*list)->next)) {
+		if (!strcmp(path, (*list)->path)) {
+			struct hid_device_info *elem = *list;
+
+			/* We found it.  First, remove from list */
+			*list = elem->next;
+
+			elem->next = NULL;
+
+			return elem;
+		}
+	}
+
+	return NULL;
+}
+
+struct hid_device_info  HID_API_EXPORT *hid_enumerate(unsigned short vendor_id, unsigned short product_id, struct hid_device_info *prev_enumeration)
 {
 	libusb_device **devs;
 	libusb_device *dev;
@@ -497,6 +516,25 @@ struct hid_device_info  HID_API_EXPORT *hid_enumerate(unsigned short vendor_id, 
 						if ((vendor_id == 0x0 || vendor_id == dev_vid) &&
 						    (product_id == 0x0 || product_id == dev_pid)) {
 							struct hid_device_info *tmp;
+							char *path = make_path(dev, interface_num);
+
+							/* If path equal, take record and skip rest. */
+							tmp = remove_from_list_by_path(&prev_enumeration, path);
+
+							if (tmp) {
+								free(path);
+
+								if (cur_dev) {
+									cur_dev->next = tmp;
+								}
+								else {
+									root = tmp;
+								}
+
+								cur_dev = tmp;
+
+								continue;
+							}
 
 							/* VID/PID match. Create the record. */
 							tmp = calloc(1, sizeof(struct hid_device_info));
@@ -510,7 +548,7 @@ struct hid_device_info  HID_API_EXPORT *hid_enumerate(unsigned short vendor_id, 
 
 							/* Fill out the record */
 							cur_dev->next = NULL;
-							cur_dev->path = make_path(dev, interface_num);
+							cur_dev->path = path;
 
 							res = libusb_open(dev, &handle);
 
@@ -584,7 +622,7 @@ struct hid_device_info  HID_API_EXPORT *hid_enumerate(unsigned short vendor_id, 
 								/* Re-attach kernel driver if necessary. */
 								if (detached) {
 									res = libusb_attach_kernel_driver(handle, interface_num);
-                                                                        handle = NULL;
+									handle = NULL;
 									if (res < 0)
 										LOG("Couldn't re-attach kernel driver.\n");
 								}
@@ -593,7 +631,7 @@ struct hid_device_info  HID_API_EXPORT *hid_enumerate(unsigned short vendor_id, 
 #endif /* INVASIVE_GET_USAGE */
 
 								libusb_close(handle);
-                                                                handle = NULL;
+								handle = NULL;
 							}
 							/* VID/PID */
 							cur_dev->vendor_id = dev_vid;
@@ -613,6 +651,8 @@ struct hid_device_info  HID_API_EXPORT *hid_enumerate(unsigned short vendor_id, 
 	}
 
 	libusb_free_device_list(devs, 1);
+
+	hid_free_enumeration(prev_enumeration);
 
 	return root;
 }
@@ -637,7 +677,7 @@ hid_device * hid_open(unsigned short vendor_id, unsigned short product_id, const
 	const char *path_to_open = NULL;
 	hid_device *handle = NULL;
 
-	devs = hid_enumerate(vendor_id, product_id);
+	devs = hid_enumerate(vendor_id, product_id, NULL);
 	cur_dev = devs;
 	while (cur_dev) {
 		if (cur_dev->vendor_id == vendor_id &&
@@ -856,7 +896,7 @@ HID_API_EXPORT hid_device * hid_open_path(const char *path)
 							res = libusb_detach_kernel_driver(dev->device_handle, intf_desc->bInterfaceNumber);
 							if (res < 0) {
 								libusb_close(dev->device_handle);
-                                                                dev->device_handle = NULL;
+								dev->device_handle = NULL;
 								LOG("Unable to detach Kernel Driver\n");
 								free(dev_path);
 								good_open = 0;
@@ -869,7 +909,7 @@ HID_API_EXPORT hid_device * hid_open_path(const char *path)
 							LOG("can't claim interface %d: %d\n", intf_desc->bInterfaceNumber, res);
 							free(dev_path);
 							libusb_close(dev->device_handle);
-                                                        dev->device_handle = NULL;
+							dev->device_handle = NULL;
 							good_open = 0;
 							break;
 						}
@@ -1190,7 +1230,7 @@ void HID_API_EXPORT hid_close(hid_device *dev)
 
 	/* Close the handle */
 	libusb_close(dev->device_handle);
-        dev->device_handle = NULL;
+	dev->device_handle = NULL;
 
 	/* Clear out the queue of received reports. */
 	pthread_mutex_lock(&dev->mutex);

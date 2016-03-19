@@ -286,7 +286,7 @@ static int make_path(IOHIDDeviceRef device, char *buf, size_t len)
 	pid = get_product_id(device);
 
 	res = snprintf(buf, len, "%s_%04hx_%04hx_%x",
-                       transport, vid, pid, location);
+			transport, vid, pid, location);
 
 
 	buf[len-1] = '\0';
@@ -339,7 +339,26 @@ static void process_pending_events(void) {
 	} while(res != kCFRunLoopRunFinished && res != kCFRunLoopRunTimedOut);
 }
 
-struct hid_device_info  HID_API_EXPORT *hid_enumerate(unsigned short vendor_id, unsigned short product_id)
+static struct hid_device_info *remove_from_list_by_path(struct hid_device_info **list,
+		const char *path) {
+	// Double-pointer walk of list
+	for (; *list; list = &((*list)->next)) {
+		if (!strcmp(path, (*list)->path)) {
+			struct hid_device_info *elem = *list;
+
+			/* We found it.  First, remove from list */
+			*list = elem->next;
+
+			elem->next = NULL;
+
+			return elem;
+		}
+	}
+
+	return NULL;
+}
+
+struct hid_device_info HID_API_EXPORT *hid_enumerate(unsigned short vendor_id, unsigned short product_id, struct hid_device_info *prev_enumeration)
 {
 	struct hid_device_info *root = NULL; /* return object */
 	struct hid_device_info *cur_dev = NULL;
@@ -372,17 +391,38 @@ struct hid_device_info  HID_API_EXPORT *hid_enumerate(unsigned short vendor_id, 
 
 		IOHIDDeviceRef dev = device_array[i];
 
-        if (!dev) {
-            continue;
-        }
+		if (!dev) {
+			continue;
+		}
+
 		dev_vid = get_vendor_id(dev);
 		dev_pid = get_product_id(dev);
 
 		/* Check the VID/PID against the arguments */
 		if ((vendor_id == 0x0 || vendor_id == dev_vid) &&
-		    (product_id == 0x0 || product_id == dev_pid)) {
+				(product_id == 0x0 || product_id == dev_pid)) {
 			struct hid_device_info *tmp;
 			size_t len;
+
+			len = make_path(dev, cbuf, sizeof(cbuf));
+
+			tmp = remove_from_list_by_path(&prev_enumeration,
+					cbuf);
+
+			/* If path equal, take record and skip rest. */
+			if (tmp) {
+				if (cur_dev) {
+					cur_dev->next = tmp;
+					cur_dev = tmp;
+				}
+				else {
+					root = tmp;
+				}
+
+				cur_dev = tmp;
+
+				continue;
+			}
 
 			/* VID/PID match. Create the record. */
 			tmp = malloc(sizeof(struct hid_device_info));
@@ -400,7 +440,6 @@ struct hid_device_info  HID_API_EXPORT *hid_enumerate(unsigned short vendor_id, 
 
 			/* Fill out the record */
 			cur_dev->next = NULL;
-			len = make_path(dev, cbuf, sizeof(cbuf));
 			cur_dev->path = strdup(cbuf);
 
 			/* Serial Number */
@@ -428,6 +467,8 @@ struct hid_device_info  HID_API_EXPORT *hid_enumerate(unsigned short vendor_id, 
 	free(device_array);
 	CFRelease(device_set);
 
+	hid_free_enumeration(prev_enumeration);
+
 	return root;
 }
 
@@ -453,7 +494,7 @@ hid_device * HID_API_EXPORT hid_open(unsigned short vendor_id, unsigned short pr
 	const char *path_to_open = NULL;
 	hid_device * handle = NULL;
 
-	devs = hid_enumerate(vendor_id, product_id);
+	devs = hid_enumerate(vendor_id, product_id, NULL);
 	cur_dev = devs;
 	while (cur_dev) {
 		if (cur_dev->vendor_id == vendor_id &&
@@ -486,8 +527,8 @@ hid_device * HID_API_EXPORT hid_open(unsigned short vendor_id, unsigned short pr
    This function puts the data into a linked list to be picked up by
    hid_read(). */
 static void hid_report_callback(void *context, IOReturn result, void *sender,
-                         IOHIDReportType report_type, uint32_t report_id,
-                         uint8_t *report, CFIndex report_length)
+		IOHIDReportType report_type, uint32_t report_id,
+		uint8_t *report, CFIndex report_length)
 {
 	struct input_report *rpt;
 	hid_device *dev = context;
