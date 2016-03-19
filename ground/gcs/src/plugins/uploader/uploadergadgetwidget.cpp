@@ -595,6 +595,7 @@ bool UploaderGadgetWidget::downloadSettings() {
 
     /* disconnects when loop comes out of scope */
     connect(&dfu, &DFUObject::downloadFinished, &loop, [&] (bool status) {
+        qDebug() << "downloadFinished in dSettings: " << status;
         operationSuccess = status;
         loop.exit();
     } );
@@ -605,6 +606,7 @@ bool UploaderGadgetWidget::downloadSettings() {
 
     triggerPartitionDownload(DFU_PARTITION_SETTINGS);
     loop.exec();                /* Wait for timeout or download complete */
+    timeout.stop();
 
     return operationSuccess;
 }
