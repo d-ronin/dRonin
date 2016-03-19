@@ -116,8 +116,9 @@ QString Brain::getHwUAVO()
 }
 
 //! Determine if this board supports configuring the receiver
-bool Brain::isInputConfigurationSupported()
+bool Brain::isInputConfigurationSupported(enum InputType type = INPUT_TYPE_ANY)
 {
+    Q_UNUSED(type);
     return true;
 }
 

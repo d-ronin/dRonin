@@ -48,7 +48,7 @@ public:
     virtual QWidget *getBoardConfiguration(QWidget *parent, bool connected);
 
     //! Tell the wizard this board knows how to configure inputs
-    bool isInputConfigurationSupported() { return true; }
+    bool isInputConfigurationSupported(enum InputType type = INPUT_TYPE_ANY) { Q_UNUSED(type); return true; }
 
     /**
      * Configure the board to use an receiver input type on a port number

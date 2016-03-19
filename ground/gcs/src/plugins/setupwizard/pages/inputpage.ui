@@ -72,7 +72,8 @@ p, li { white-space: pre-wrap; }
        <property name="icon">
         <iconset resource="../wizardResources.qrc">
          <normaloff>:/setupwizard/resources/bttn-pwm-up.png</normaloff>
-         <normalon>:/setupwizard/resources/bttn-pwm-down.png</normalon>:/setupwizard/resources/bttn-pwm-up.png</iconset>
+         <normalon>:/setupwizard/resources/bttn-pwm-down.png</normalon>
+         <disabledoff>:/setupwizard/resources/bttn-pwm-disabled.png</disabledoff>:/setupwizard/resources/bttn-pwm-up.png</iconset>
        </property>
        <property name="iconSize">
         <size>
@@ -116,7 +117,8 @@ p, li { white-space: pre-wrap; }
        <property name="icon">
         <iconset resource="../wizardResources.qrc">
          <normaloff>:/setupwizard/resources/bttn-ppm-up.png</normaloff>
-         <normalon>:/setupwizard/resources/bttn-ppm-down.png</normalon>:/setupwizard/resources/bttn-ppm-up.png</iconset>
+         <normalon>:/setupwizard/resources/bttn-ppm-down.png</normalon>
+         <disabledoff>:/setupwizard/resources/bttn-ppm-disabled.png</disabledoff>:/setupwizard/resources/bttn-ppm-up.png</iconset>
        </property>
        <property name="iconSize">
         <size>
@@ -157,7 +159,8 @@ p, li { white-space: pre-wrap; }
        <property name="icon">
         <iconset resource="../wizardResources.qrc">
          <normaloff>:/setupwizard/resources/bttn-sbus-up.png</normaloff>
-         <normalon>:/setupwizard/resources/bttn-sbus-down.png</normalon>:/setupwizard/resources/bttn-sbus-up.png</iconset>
+         <normalon>:/setupwizard/resources/bttn-sbus-down.png</normalon>
+         <disabledoff>:/setupwizard/resources/bttn-sbus-disabled.png</disabledoff>:/setupwizard/resources/bttn-sbus-up.png</iconset>
        </property>
        <property name="iconSize">
         <size>
@@ -198,7 +201,8 @@ p, li { white-space: pre-wrap; }
        <property name="icon">
         <iconset resource="../wizardResources.qrc">
          <normaloff>:/setupwizard/resources/bttn-sat-up.png</normaloff>
-         <normalon>:/setupwizard/resources/bttn-sat-down.png</normalon>:/setupwizard/resources/bttn-sat-up.png</iconset>
+         <normalon>:/setupwizard/resources/bttn-sat-down.png</normalon>
+         <disabledoff>:/setupwizard/resources/bttn-sat-disabled.png</disabledoff>:/setupwizard/resources/bttn-sat-up.png</iconset>
        </property>
        <property name="iconSize">
         <size>
@@ -239,7 +243,8 @@ p, li { white-space: pre-wrap; }
        <property name="icon">
         <iconset resource="../wizardResources.qrc">
          <normaloff>:/setupwizard/resources/bttn-sumd-up.png</normaloff>
-         <normalon>:/setupwizard/resources/bttn-sumd-down.png</normalon>:/setupwizard/resources/bttn-sumd-up.png</iconset>
+         <normalon>:/setupwizard/resources/bttn-sumd-down.png</normalon>
+         <disabledoff>:/setupwizard/resources/bttn-sumd-disabled.png</disabledoff>:/setupwizard/resources/bttn-sumd-up.png</iconset>
        </property>
        <property name="iconSize">
         <size>

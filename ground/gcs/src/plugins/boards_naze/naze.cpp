@@ -134,9 +134,10 @@ int Naze::queryMaxGyroRate()
 }
 
 //! Determine if this board supports configuring the receiver
-bool Naze::isInputConfigurationSupported()
+bool Naze::isInputConfigurationSupported(enum InputType type = INPUT_TYPE_ANY)
 {
     // doesn't work for now since the board can't reconnect  automatically after reboot
+    Q_UNUSED(type);
     return false;
 }
 

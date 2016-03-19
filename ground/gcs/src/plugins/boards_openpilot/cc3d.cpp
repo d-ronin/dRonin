@@ -116,8 +116,9 @@ QString CC3D::getHwUAVO()
 
 
 //! Determine if this board supports configuring the receiver
-bool CC3D::isInputConfigurationSupported()
+bool CC3D::isInputConfigurationSupported(enum InputType type = INPUT_TYPE_ANY)
 {
+    Q_UNUSED(type);
     return true;
 }
 

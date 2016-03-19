@@ -33,3 +33,15 @@ AbstractWizardPage::AbstractWizardPage(SetupWizard *wizard, QWidget *parent) :
 {
     m_wizard = wizard;
 }
+
+/**
+ * @brief ControllerPage::getControllerType get the interface for
+ * the connected board
+ * @return the IBoardType
+ */
+Core::IBoardType *AbstractWizardPage::getControllerType() const
+{
+    ExtensionSystem::PluginManager *pm = ExtensionSystem::PluginManager::instance();
+    UAVObjectUtilManager *utilMngr = pm->getObject<UAVObjectUtilManager>();
+    return utilMngr->getBoardType();
+}
