@@ -32,6 +32,7 @@
 
 #include <QWizardPage>
 #include "setupwizard.h"
+#include <coreplugin/iboardtype.h>
 
 class AbstractWizardPage : public QWizardPage {
     Q_OBJECT
@@ -46,6 +47,8 @@ public:
     {
         return m_wizard;
     }
+
+    Core::IBoardType* getControllerType() const;
 };
 
 #endif // ABSTRACTWIZARDPAGE_H

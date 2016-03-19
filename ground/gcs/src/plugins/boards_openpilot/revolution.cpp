@@ -136,8 +136,9 @@ HwRevolution * Revolution::getSettings()
     return hwRevolution;
 }
 //! Determine if this board supports configuring the receiver
-bool Revolution::isInputConfigurationSupported()
+bool Revolution::isInputConfigurationSupported(enum InputType type = INPUT_TYPE_ANY)
 {
+    Q_UNUSED(type);
     return true;
 }
 

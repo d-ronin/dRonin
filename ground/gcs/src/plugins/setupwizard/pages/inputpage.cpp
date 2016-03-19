@@ -40,6 +40,23 @@ InputPage::InputPage(SetupWizard *wizard, QWidget *parent) :
     ui(new Ui::InputPage)
 {
     ui->setupUi(this);
+    
+    // disable invalid input types
+    Core::IBoardType* board = getControllerType();
+    if (board) {
+        ui->pwmButton->setEnabled(board->isInputConfigurationSupported(Core::IBoardType::INPUT_TYPE_PWM));
+        ui->ppmButton->setEnabled(board->isInputConfigurationSupported(Core::IBoardType::INPUT_TYPE_PPM));
+        ui->hottsumdButton->setEnabled(board->isInputConfigurationSupported(Core::IBoardType::INPUT_TYPE_HOTTSUMD));
+        ui->sbusButton->setEnabled(board->isInputConfigurationSupported(Core::IBoardType::INPUT_TYPE_SBUS));
+        ui->spectrumButton->setEnabled(board->isInputConfigurationSupported(Core::IBoardType::INPUT_TYPE_DSM));
+    }
+    // the default might have been disabled, choose one that's available
+    foreach (QToolButton *button, findChildren<QToolButton *>()) {
+        if (button->isEnabled()) {
+            button->setChecked(true);
+            break;
+        }
+    }
 }
 
 InputPage::~InputPage()

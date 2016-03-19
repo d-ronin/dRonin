@@ -95,18 +95,6 @@ bool ControllerPage::anyControllerConnected()
     return m_telemtryManager->isConnected();
 }
 
-/**
- * @brief ControllerPage::getControllerType get the interface for
- * the connected board
- * @return the IBoardType
- */
-Core::IBoardType *ControllerPage::getControllerType() const
-{
-    ExtensionSystem::PluginManager *pm = ExtensionSystem::PluginManager::instance();
-    UAVObjectUtilManager *utilMngr     = pm->getObject<UAVObjectUtilManager>();
-    return utilMngr->getBoardType();
-}
-
 void ControllerPage::setupDeviceList()
 {
     devicesChanged(m_connectionManager->getAvailableDevices());

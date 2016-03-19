@@ -41,5 +41,10 @@
         <file>resources/bttn-flash-up.png</file>
         <file>resources/bttn-upgrade-down.png</file>
         <file>resources/bttn-upgrade-up.png</file>
+        <file>resources/bttn-ppm-disabled.png</file>
+        <file>resources/bttn-pwm-disabled.png</file>
+        <file>resources/bttn-sat-disabled.png</file>
+        <file>resources/bttn-sbus-disabled.png</file>
+        <file>resources/bttn-sumd-disabled.png</file>
     </qresource>
 </RCC>

@@ -45,7 +45,7 @@ public:
     virtual QPixmap getBoardPicture();
     virtual QString getHwUAVO();
     virtual int queryMaxGyroRate();
-    virtual bool isInputConfigurationSupported();
+    virtual bool isInputConfigurationSupported(enum InputType type);
     virtual bool setInputType(enum InputType type);
     virtual enum Core::IBoardType::InputType getInputType();
     virtual bool isUSBSupported() { return false; }
