@@ -538,6 +538,11 @@ tl_dfu::Status DFUObject::UploadPartition(QByteArray &sourceArray, dfu_partition
     emit operationProgress(QString("Erasing, please wait..."), -1);
 
     TL_DFU_QXTLOG_DEBUG( "Erasing memory");
+    if (StatusRequest().status == tl_dfu::abort)
+    {
+        TL_DFU_QXTLOG_DEBUG( "returning TL_DFU::abort");
+        return tl_dfu::abort;
+    }
 
     ret=StatusRequest();
 
