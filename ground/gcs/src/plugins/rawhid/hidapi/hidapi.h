@@ -123,6 +123,9 @@ extern "C" {
 				to open.
 			@param product_id The Product ID (PID) of the types of
 				device to open.
+			@param prev_enumeration A previous enumeration list to
+				steal info from and avoid further touching
+				devices.  Freed by this operation.
 
 		    @returns
 		    	This function returns a pointer to a linked list of type
@@ -130,7 +133,7 @@ extern "C" {
 		    	attached to the system, or NULL in the case of failure. Free
 		    	this linked list by calling hid_free_enumeration().
 		*/
-		struct hid_device_info HID_API_EXPORT * HID_API_CALL hid_enumerate(unsigned short vendor_id, unsigned short product_id);
+		struct hid_device_info HID_API_EXPORT * HID_API_CALL hid_enumerate(unsigned short vendor_id, unsigned short product_id, struct hid_device_info *prev_enumeration);
 
 		/** @brief Free an enumeration Linked List
 

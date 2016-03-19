@@ -119,5 +119,8 @@ private:
     static USBMonitor *m_instance;
 
     QTimer periodicTimer;
+
+    struct hid_device_info *prevDevList;
+
 };
 #endif // USBMONITOR_H
