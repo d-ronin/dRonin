@@ -26,6 +26,10 @@
 
 #include <pios_stringify.h>	/* __stringify */
 
+/* This is needed to make ccache aware the binary has changed. Without it,
+   ccache will always return old cached files. */
+static const char dummy[] = __stringify(BU_HASH);
+
 asm(
 	".section .rodata\n"
 
