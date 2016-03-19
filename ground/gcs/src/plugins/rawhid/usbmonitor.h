@@ -35,84 +35,11 @@
 #include <QTimer>
 #include <QMutex>
 
-// Depending on the OS, we'll need different things:
-#if defined( Q_OS_MAC)
-#include <IOKit/IOKitLib.h>
-#include <IOKit/hid/IOHIDLib.h>
-#elif defined(Q_OS_UNIX)
-
-#include <libudev.h>
-#include <QSocketNotifier>
-
-#elif defined (Q_OS_WIN32)
-#ifndef _WIN32_WINNT
-    #define _WIN32_WINNT 0x0500
-#endif
-#ifndef _WIN32_WINDOWS
-    #define _WIN32_WINDOWS 0x0500
-#endif
-#ifndef WINVER
-    #define WINVER 0x0500
-#endif
-#include <windows.h>
-#include <dbt.h>
-#include <setupapi.h>
-#include <hidsdi.h>
-#ifdef __cplusplus
-extern "C" {
-#endif
-// Some functions no longer included in hidsdi.h
-
-#ifndef _MSC_VER
-HIDAPI VOID NTAPI HidD_GetHidGuid (LPGUID);
-HIDAPI BOOL NTAPI HidD_GetPreparsedData(HANDLE, PHIDP_PREPARSED_DATA  *);
-HIDAPI BOOL NTAPI HidD_FreePreparsedData(PHIDP_PREPARSED_DATA);
-HIDAPI BOOL NTAPI HidD_FlushQueue (HANDLE);
-HIDAPI BOOL NTAPI HidD_GetConfiguration (HANDLE, PHIDD_CONFIGURATION, ULONG);
-HIDAPI BOOL NTAPI HidD_SetConfiguration (HANDLE, PHIDD_CONFIGURATION, ULONG);
-HIDAPI BOOL NTAPI HidD_GetPhysicalDescriptor (HANDLE, PVOID, ULONG);
-HIDAPI BOOL NTAPI HidD_GetIndexedString ( HANDLE, ULONG, PVOID, ULONG);
-HIDAPI BOOL NTAPI HidD_GetSerialNumberString (HANDLE, PVOID, ULONG);
-#endif
-
-#ifdef __cplusplus
-}
-#endif
-#endif
-
-#ifdef Q_OS_WIN
-#ifdef QT_GUI_LIB
-#include <QWidget>
-class USBMonitor;
-
-class USBRegistrationWidget : public QWidget
-{
-    Q_OBJECT
-public:
-    USBRegistrationWidget( USBMonitor* qese ) {
-        this->qese = qese;
-    }
-    ~USBRegistrationWidget( ) {}
-
-protected:
-    USBMonitor* qese;
-    bool nativeEvent(const QByteArray & /*eventType*/, void *msg, long *result);
-};
-#endif
-#endif
-
 struct USBPortInfo {
-    //QString friendName; ///< Friendly name.
-    //QString physName;
-    //QString enumName;   ///< It seems its the only one with meaning
     QString serialNumber; // As a string as it can be anything, really...
     QString manufacturer;
     QString product;
-#if defined(Q_OS_WIN32)
-    QString devicePath; //only has meaning on windows
-#elif  defined(Q_OS_MAC)
-    IOHIDDeviceRef dev_handle;
-#endif
+
     int UsagePage;
     int Usage;
     int vendorID;       ///< Vendor ID.
@@ -136,11 +63,7 @@ struct USBPortInfo {
 *   A monitor which will wait for device events.
 */
 
-#if  defined(Q_OS_MAC) || defined (Q_OS_WIN32)
 class RAWHID_EXPORT USBMonitor : public QObject
-#else
-class RAWHID_EXPORT USBMonitor : public QThread
-#endif
 {
     Q_OBJECT
 
@@ -157,9 +80,6 @@ public:
     ~USBMonitor();
     QList<USBPortInfo> availableDevices();
     QList<USBPortInfo> availableDevices(int vid, int pid, int boardModel, int runState);
-    #if defined (Q_OS_WIN32)
-    LRESULT onDeviceChangeWin( WPARAM wParam, LPARAM lParam );
-    #endif
 signals:
     /*!
       A new device has been connected to the system.
@@ -179,61 +99,15 @@ signals:
     void deviceRemoved( const USBPortInfo & info );
 
 private slots:
-    /**
-     Callback available for whenever the system that is put in place gets
-     an event
-     */
-    void deviceEventReceived();
-#if defined( Q_OS_MAC)
     void periodic();
-#endif
 
 private:
-
-    //! Mutex for modifying the list of available devices
-    QMutex * listMutex;
-
     //! List of known devices maintained by callbacks
     QList<USBPortInfo> knowndevices;
 
     Q_DISABLE_COPY(USBMonitor)
     static USBMonitor *m_instance;
 
-    // Depending on the OS, we'll need different things:
-#if defined( Q_OS_MAC)
-    static void attach_callback(void *context, IOReturn r, void *hid_mgr, IOHIDDeviceRef dev);
-    static void detach_callback(void *context, IOReturn r, void *hid_mgr, IOHIDDeviceRef dev);
-    void addDevice(USBPortInfo info);
-    void removeDevice(IOHIDDeviceRef dev);
-
     QTimer periodicTimer;
-
-    IOHIDManagerRef hid_manager;
-#elif defined(Q_OS_UNIX)
-    struct udev *context;
-    struct udev_monitor *monitor;
-    QSocketNotifier *monitorNotifier;
-    USBPortInfo makePortInfo(struct udev_device *dev);
-#elif defined (Q_OS_WIN32)
-    GUID guid_hid;
-    void setUpNotifications();
-     /*!
-     * Get specific property from registry.
-     * \param devInfo pointer to the device information set that contains the interface
-     *    and its underlying device. Returned by SetupDiGetClassDevs() function.
-     * \param devData pointer to an SP_DEVINFO_DATA structure that defines the device instance.
-     *    this is returned by SetupDiGetDeviceInterfaceDetail() function.
-     * \param property registry property. One of defined SPDRP_* constants.
-     * \return property string.
-     */
-    static QString getDeviceProperty(HDEVINFO devInfo, PSP_DEVINFO_DATA devData, DWORD property);
-    static int infoFromHandle(const GUID & guid,USBPortInfo & info,HDEVINFO & devInfo,DWORD & index);
-    static void enumerateDevicesWin( const GUID & guidDev, QList<USBPortInfo>* infoList );
-    bool matchAndDispatchChangedDevice(const QString & deviceID, const GUID & guid, WPARAM wParam);
-#ifdef QT_GUI_LIB
-    USBRegistrationWidget* notificationWidget;
-#endif
-#endif
-
 };
 #endif // USBMONITOR_H
