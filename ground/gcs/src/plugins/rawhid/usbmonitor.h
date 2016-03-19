@@ -40,8 +40,6 @@ struct USBPortInfo {
     QString manufacturer;
     QString product;
 
-    int UsagePage;
-    int Usage;
     int vendorID;       ///< Vendor ID.
     int productID;      ///< Product ID
     int bcdDevice;
@@ -54,7 +52,7 @@ struct USBPortInfo {
     bool operator==(USBPortInfo const &port)
     {
         return ( (port.serialNumber == serialNumber) && (port.manufacturer == manufacturer) &&
-                 (port.product == product) && (port.UsagePage == UsagePage) && (port.Usage == Usage) &&
+                 (port.product == product) &&
                  (port.vendorID == vendorID) && (port.productID == productID) && (port.bcdDevice == bcdDevice) );
     }
 };

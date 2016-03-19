@@ -78,8 +78,6 @@ void USBMonitor::periodic() {
         info.vendorID = hid_dev->vendor_id;
         info.productID = hid_dev->product_id;
         info.bcdDevice = hid_dev->release_number;
-        info.Usage = hid_dev->usage;
-        info.UsagePage = hid_dev->usage_page;
         info.serialNumber = QString::fromWCharArray(hid_dev->serial_number);
         info.product = QString::fromWCharArray(hid_dev->product_string);
         info.manufacturer = QString::fromWCharArray(hid_dev->manufacturer_string);
@@ -92,12 +90,16 @@ void USBMonitor::periodic() {
     hid_free_enumeration(hid_dev_list);
 
     foreach (USBPortInfo item, unseenDevices) {
+        qDebug() << "Removing " << item.vendorID << item.productID << item.bcdDevice << item.serialNumber << item.product << item.manufacturer;
+
         knowndevices.removeOne(item);
 
         emit deviceRemoved(item);
     }
 
     foreach (USBPortInfo item, newDevices) {
+        qDebug() << "Adding " << item.vendorID << item.productID << item.bcdDevice << item.serialNumber << item.product << item.manufacturer;
+
         knowndevices.append(item);
 
         emit deviceDiscovered(item);
