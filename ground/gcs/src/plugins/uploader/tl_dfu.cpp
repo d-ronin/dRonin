@@ -35,7 +35,7 @@
 
 #include <QApplication>
 
-//#define TL_DFU_DEBUG
+#define TL_DFU_DEBUG
 #ifdef TL_DFU_DEBUG
 #define TL_DFU_QXTLOG_DEBUG(...) qDebug()<<__VA_ARGS__
 #else  // TL_DFU_DEBUG
