@@ -51,9 +51,21 @@ struct USBPortInfo {
 
     bool operator==(USBPortInfo const &port)
     {
-        return ( (port.serialNumber == serialNumber) && (port.manufacturer == manufacturer) &&
-                 (port.product == product) &&
-                 (port.vendorID == vendorID) && (port.productID == productID) && (port.bcdDevice == bcdDevice) );
+        if (port.vendorID != vendorID) return false;
+
+        if (port.productID != productID) return false;
+
+        if (port.bcdDevice != bcdDevice) return false;
+
+        if (port.serialNumber != serialNumber) {
+            if ((serialNumber != "") && (port.serialNumber != "")) {
+                return false;
+            }
+        }
+
+        /* Don't compare manufacturer or product strings for identification */
+
+        return true;            // We ran the gauntlet and came out OK.
     }
 };
 
