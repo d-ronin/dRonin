@@ -45,7 +45,7 @@ public:
     virtual QString getHwUAVO();
 
     //! Determine if this board supports configuring the receiver
-    virtual bool isInputConfigurationSupported();
+    virtual bool isInputConfigurationSupported(InputType type);
 
     /**
      * Configure the board to use an receiver input type on a port number

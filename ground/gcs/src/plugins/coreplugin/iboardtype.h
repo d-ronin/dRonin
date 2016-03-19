@@ -166,11 +166,12 @@ public:
         INPUT_TYPE_SBUSNONINVERTED,
         INPUT_TYPE_HOTTSUMD,
         INPUT_TYPE_HOTTSUMH,
-        INPUT_TYPE_UNKNOWN
+        INPUT_TYPE_UNKNOWN,
+        INPUT_TYPE_ANY
     };
 
     //! Determine if this board supports configuring the receiver
-    virtual bool isInputConfigurationSupported() { return false; }
+    virtual bool isInputConfigurationSupported(enum InputType type = INPUT_TYPE_ANY) { Q_UNUSED(type); return false; }
 
     /**
      * @brief Configure the board to use an receiver input type on a port number

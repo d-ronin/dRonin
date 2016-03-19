@@ -143,8 +143,9 @@ HwSparky2 * Sparky2::getSettings()
 }
 
 //! Determine if this board supports configuring the receiver
-bool Sparky2::isInputConfigurationSupported()
+bool Sparky2::isInputConfigurationSupported(enum InputType type = INPUT_TYPE_ANY)
 {
+    Q_UNUSED(type);
     return true;
 }
 
