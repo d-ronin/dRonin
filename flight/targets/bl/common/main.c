@@ -607,6 +607,9 @@ static void process_packet_rx(struct bl_fsm_context * context, const struct bl_m
 		bl_fsm_inject_event(context, BL_EVENT_JUMP_TO_APP);
 		break;
 	case BL_MSG_RESET:
+		PIOS_IRQ_Disable();
+		PIOS_DELAY_WaitmS(1500);
+
 		PIOS_SYS_Reset();
 		break;
 	case BL_MSG_OP_ABORT:
