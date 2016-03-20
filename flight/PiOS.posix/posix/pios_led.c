@@ -29,52 +29,46 @@
 /* Project Includes */
 #include "pios.h"
 #include "openpilot.h"
+#include "hwsimulation.h"
 
 #if defined(PIOS_INCLUDE_LED)
 
 /* Private Function Prototypes */
 
-DONT_BUILD_IF(PIOS_LED_NUM > 8, piosLedNumTooHigh);
+DONT_BUILD_IF(PIOS_LED_NUM != HWSIMULATION_LEDSTATE_NUMELEM, piosLedNumWrong);
 
 /* Local Variables */
-static uint8_t ledStatus;
+static uint8_t ledState[HWSIMULATION_LEDSTATE_NUMELEM];
+
+static int map_pios_led_to_uavo(const uint32_t led)
+{
+	switch (led) {
+	case PIOS_LED_ALARM:
+		return HWSIMULATION_LEDSTATE_ALARM;
+	case PIOS_LED_HEARTBEAT:
+		return HWSIMULATION_LEDSTATE_HEARTBEAT;
+	default:
+		PIOS_Assert(0);
+	}
+}
 
 static inline void PIOS_SetLED(uint32_t led, uint8_t stat) {
-	uint8_t newStatus = ledStatus;
-
 	PIOS_Assert(led < PIOS_LED_NUM);
 
-	uint8_t mask = 1 << led;
+	uint8_t old_state = ledState[map_pios_led_to_uavo(led)];
+	ledState[map_pios_led_to_uavo(led)] = stat ? HWSIMULATION_LEDSTATE_ON : HWSIMULATION_LEDSTATE_OFF;
 
-	if (stat) {
-		newStatus |= mask;
-	} else {
-		newStatus &= ~mask;
+	HwSimulationLedStateSet(ledState);
+
+	if (old_state == ledState[map_pios_led_to_uavo(led)])
+		return;
+
+	char leds[HWSIMULATION_LEDSTATE_NUMELEM + 1];
+	for (int i = 0; i < HWSIMULATION_LEDSTATE_NUMELEM; i++) {
+		leds[i] = (ledState[i] == HWSIMULATION_LEDSTATE_ON) ? '*' : '.';
 	}
-
-	if (newStatus != ledStatus) {
-		ledStatus = newStatus;
-
-		char leds[PIOS_LED_NUM+1];
-
-		uint8_t mask = 1;
-
-		for (int i=0; i<PIOS_LED_NUM; i++) {
-			if (newStatus & mask) {
-				leds[i] = '*';
-			} else {
-				leds[i] = '.';
-			}
-
-			mask <<= 1;
-		}
-
-		leds[PIOS_LED_NUM] = 0;
-
-		printf("PIOS: LEDs: [%s]\n", leds);
-	}
-
-	//printf("PIOS: LED %i status %i\n",led,stat);
+	leds[PIOS_LED_NUM] = '\0';
+	printf("LED State: [%s]\n", leds);
 }
 
 /**
@@ -82,6 +76,8 @@ static inline void PIOS_SetLED(uint32_t led, uint8_t stat) {
 */
 void PIOS_LED_Init(void)
 {
+	PIOS_Assert(0);
+	HwSimulationLedStateGet(ledState);
 }
 
 
@@ -111,7 +107,9 @@ void PIOS_LED_Off(uint32_t led)
 */
 void PIOS_LED_Toggle(uint32_t led)
 {
-	PIOS_SetLED(led, ((ledStatus >> led) & 1) ? 0 : 1);
+	PIOS_Assert(led < PIOS_LED_NUM);
+
+	PIOS_SetLED(led, ((ledState[map_pios_led_to_uavo(led)] == HWSIMULATION_LEDSTATE_ON) ? 0 : 1));
 }
 
 #endif
