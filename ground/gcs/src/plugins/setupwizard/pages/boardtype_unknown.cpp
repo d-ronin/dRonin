@@ -50,3 +50,17 @@ bool BoardtypeUnknown::validatePage()
 {
     return true;
 }
+
+void BoardtypeUnknown::setFailureType(FailureType type)
+{
+    switch (type) {
+    case UNKNOWN_FIRMWARE:
+        ui->lblReason->setText(tr("The firmware version on the board does not match this version of GCS."));
+        break;
+    case UNKNOWN_BOARD:
+        ui->lblReason->setText(tr("Unknown board type."));
+        break;
+    default:
+        break;
+    }
+}
