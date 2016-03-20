@@ -545,8 +545,6 @@ void PIOS_HAL_ConfigurePort(HwSharedPortTypesOptions port_type,
 
 	case HWSHARED_PORTTYPES_I2C:
 #if defined(PIOS_INCLUDE_I2C)
-		AlarmsSet(SYSTEMALARMS_ALARM_I2C, SYSTEMALARMS_ALARM_OK);
-		
 		if (i2c_id && i2c_cfg) {
 			if (PIOS_I2C_Init(i2c_id, i2c_cfg)) {
 				PIOS_Assert(0);
@@ -554,6 +552,9 @@ void PIOS_HAL_ConfigurePort(HwSharedPortTypesOptions port_type,
 			}
 			if (PIOS_I2C_CheckClear(*i2c_id) != 0)
 				AlarmsSet(SYSTEMALARMS_ALARM_I2C, SYSTEMALARMS_ALARM_CRITICAL);
+
+			if (AlarmsGet(SYSTEMALARMS_ALARM_I2C) == SYSTEMALARMS_ALARM_UNINITIALISED)
+				AlarmsSet(SYSTEMALARMS_ALARM_I2C, SYSTEMALARMS_ALARM_OK);
 		}
 #endif  /* PIOS_INCLUDE_I2C */
 		break;
