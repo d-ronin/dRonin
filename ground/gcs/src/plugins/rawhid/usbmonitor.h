@@ -69,6 +69,8 @@ struct USBPortInfo {
     }
 };
 
+Q_DECLARE_METATYPE(USBPortInfo);
+
 /**
 *   A monitor which will wait for device events.
 */
