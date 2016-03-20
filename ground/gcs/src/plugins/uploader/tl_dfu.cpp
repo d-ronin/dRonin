@@ -35,6 +35,10 @@
 
 #include <QApplication>
 
+extern "C" {
+#include <unistd.h>
+}
+
 #define TL_DFU_DEBUG
 #ifdef TL_DFU_DEBUG
 #define TL_DFU_QXTLOG_DEBUG(...) qDebug()<<__VA_ARGS__
@@ -694,11 +698,24 @@ int DFUObject::SendData(bl_messages data)
         return -1;
     }
 
-    /* XXX All of these lengths seem wrong */
     char array[sizeof(bl_messages) + 1];
     array[0] = 0x02;
     memcpy(array + 1, &data, sizeof(bl_messages));
-    return hid_write(m_hidHandle, (unsigned char *) array, BUF_LEN);
+
+    int ret;
+
+    for (int i=0; i<10; i++) {
+        ret = hid_write(m_hidHandle, (unsigned char *) array, BUF_LEN);
+
+        if (ret < 0) {
+            qDebug() << "hid_write returned error" << ret;
+            usleep(2000);
+        } else {
+            break;
+        }
+    }
+
+    return ret;
 }
 
 /**
@@ -712,7 +729,6 @@ int DFUObject::ReceiveData(bl_messages &data)
         return -1;
     }
 
-    /* XXX All of these lengths seem wrong */
     char array[sizeof(bl_messages) + 1];
     int received = hid_read_timeout(m_hidHandle, (unsigned char *) array, BUF_LEN, 10000);
     memcpy(&data, array + 1, sizeof(bl_messages));
