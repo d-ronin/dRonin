@@ -219,12 +219,20 @@ void DFUObject::run()
   */
 bool DFUObject::DownloadPartition(QByteArray *fw, qint32 const & numberOfBytes, dfu_partition_label const & partition)
 {
+    int numTries = 3;
+    quint32 x = 0;
+    quint32 offset = 0;
+
     EnterDFU();
     emit operationProgress(QString("Downloading %0 partition...").arg(partitionStringFromLabel(partition)), -1);
     messagePackets msg = CalculatePadding(numberOfBytes);
+
+retry:
+    offset = x;
+
     bl_messages message;
     message.flags_command = BL_MSG_READ_START;
-    message.v.xfer_start.packets_in_transfer = ntohl(msg.numberOfPackets);
+    message.v.xfer_start.packets_in_transfer = ntohl(msg.numberOfPackets + offset);
     message.v.xfer_start.words_in_last_packet = msg.lastPacketCount;
     message.v.xfer_start.label = partition;
 
@@ -236,7 +244,7 @@ bool DFUObject::DownloadPartition(QByteArray *fw, qint32 const & numberOfBytes, 
     int laspercentage = 0;
 
     // Now get those packets:
-    for(quint32 x = 0;x < msg.numberOfPackets; ++x)
+    for(; x < msg.numberOfPackets; ++x)
     {
         int size;
         percentage = (float)(x + 1) / msg.numberOfPackets * 100;
@@ -248,12 +256,29 @@ bool DFUObject::DownloadPartition(QByteArray *fw, qint32 const & numberOfBytes, 
 
         if(message.flags_command != BL_MSG_READ_CONT)
         {
-            TL_DFU_QXTLOG_DEBUG("Message different from BL_MSG_READ_CONT received while downloading partition");
+            qDebug() << "Message different from BL_MSG_READ_CONT received while downloading partition";
             return false;
         }
-        if(ntohl(message.v.xfer_cont.current_packet_number) != x)
+        if(ntohl(message.v.xfer_cont.current_packet_number) != (x - offset))
         {
-            TL_DFU_QXTLOG_DEBUG(QString("Wrong packet number received while downloading partition- %0 vs %1").arg(ntohl(message.v.xfer_cont.current_packet_number)).arg(x));
+            qDebug() << QString("Wrong packet number received while downloading partition- %0 vs %1").arg(ntohl(message.v.xfer_cont.current_packet_number)).arg(x - offset);
+            if (ntohl(message.v.xfer_cont.current_packet_number) > (x - offset)) {
+                if ((numTries--) > 0) {
+                    StatusRequest();
+
+                    // Drain out pending packets.
+                    for (unsigned int i=0; i<(msg.numberOfPackets + 10); i++) {
+                        bl_messages dummy;
+                        if (ReceiveData(dummy, 400) <= 0) {
+                            break;
+                        }
+                    }
+
+                    StatusRequest();
+
+                    goto retry;
+                }
+            }
             return false;
         }
         if(x == msg.numberOfPackets - 1)
@@ -261,6 +286,8 @@ bool DFUObject::DownloadPartition(QByteArray *fw, qint32 const & numberOfBytes, 
         else
             size = 14 * 4;
         fw->append((char*)message.v.xfer_cont.data, size);
+
+        numTries = 3;
     }
 
     StatusRequest();
@@ -275,6 +302,8 @@ bool DFUObject::DownloadPartition(QByteArray *fw, qint32 const & numberOfBytes, 
   */
 int DFUObject::ResetDevice(void)
 {
+    StatusRequest();
+
     bl_messages message;
     message.flags_command = BL_MSG_RESET;
     return SendData(message);
@@ -723,14 +752,14 @@ int DFUObject::SendData(bl_messages data)
   @param data variable where the received data will be stored
   @return actual bytes read
   */
-int DFUObject::ReceiveData(bl_messages &data)
+int DFUObject::ReceiveData(bl_messages &data, int timeoutMS)
 {
     if (!m_hidHandle) {
         return -1;
     }
 
     char array[sizeof(bl_messages) + 1];
-    int received = hid_read_timeout(m_hidHandle, (unsigned char *) array, BUF_LEN, 10000);
+    int received = hid_read_timeout(m_hidHandle, (unsigned char *) array, BUF_LEN, timeoutMS);
     memcpy(&data, array + 1, sizeof(bl_messages));
     return received;
 }
