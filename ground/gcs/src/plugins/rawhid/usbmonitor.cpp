@@ -57,7 +57,8 @@ USBMonitor::USBMonitor(QObject *parent) : QObject(parent) {
     hid_init();
 
     connect(&periodicTimer, SIGNAL(timeout()), this, SLOT(periodic()));
-    periodicTimer.start(200);
+    periodicTimer.setSingleShot(true);
+    periodicTimer.start(150);
 
     prevDevList = NULL;
 }
@@ -90,6 +91,8 @@ void USBMonitor::periodic() {
         } 
     }
 
+    prevDevList = hidDevList;
+
     foreach (USBPortInfo item, unseenDevices) {
         qDebug() << "Removing " << item.vendorID << item.productID << item.bcdDevice << item.serialNumber << item.product << item.manufacturer;
 
@@ -106,7 +109,8 @@ void USBMonitor::periodic() {
         emit deviceDiscovered(item);
     }
 
-    prevDevList = hidDevList;
+    /* Ensure our signals are spaced out.  Also limit our CPU consumption */
+    periodicTimer.start(150);
 }
 
 QList<USBPortInfo> USBMonitor::availableDevices()
