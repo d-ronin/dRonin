@@ -711,4 +711,17 @@ bool UAVObjectUtilManager::descriptionToStructure(QByteArray desc, deviceDescrip
    return false;
 }
 
+QString UAVObjectUtilManager::getFirmwareHash()
+{
+    deviceDescriptorStruct dev;
+    if (getBoardDescriptionStruct(dev))
+        return dev.gitHash;
+    return QString();
+}
+
+QString UAVObjectUtilManager::getGcsHash()
+{
+    return QString(Core::Constants::GCS_REVISION_SHORT_STR);
+}
+
 // ******************************

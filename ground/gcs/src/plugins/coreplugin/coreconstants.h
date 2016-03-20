@@ -53,6 +53,11 @@ const char * const GCS_REVISION_PRETTY_STR      = GCS_REVISION_PRETTY;
 #else
 const char * const GCS_REVISION_PRETTY_STR      = "";
 #endif
+#ifdef GCS_REVISION_SHORT
+const char * const GCS_REVISION_SHORT_STR      = GCS_REVISION_SHORT;
+#else
+const char * const GCS_REVISION_SHORT_STR      = "";
+#endif
 
 #undef GCS_VERSION
 #undef STRINGIFY

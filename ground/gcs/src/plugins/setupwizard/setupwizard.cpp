@@ -76,13 +76,28 @@ int SetupWizard::nextId() const
 
     case PAGE_CONTROLLER:
     {
-        Core::IBoardType* type = getControllerType();
-        if (type != NULL && type->isInputConfigurationSupported())
-            return PAGE_INPUT;
-        else if (type != NULL)
-            return PAGE_INPUT_NOT_SUPPORTED;
-        else
+        ExtensionSystem::PluginManager *pm = ExtensionSystem::PluginManager::instance();
+        Q_ASSERT(pm);
+        UAVObjectUtilManager *utilMngr = pm->getObject<UAVObjectUtilManager>();
+        Q_ASSERT(utilMngr);
+
+        const QString fwHash = utilMngr->getFirmwareHash();
+        const QString gcsHash = utilMngr->getGcsHash();
+        if (!fwHash.length() || fwHash != gcsHash) {
+            qobject_cast<BoardtypeUnknown *>(page(PAGE_BOARDTYPE_UNKNOWN))->setFailureType(BoardtypeUnknown::UNKNOWN_FIRMWARE);
             return PAGE_BOARDTYPE_UNKNOWN;
+        }
+
+        Core::IBoardType* type = getControllerType();
+        if (type == NULL) {
+            qobject_cast<BoardtypeUnknown *>(page(PAGE_BOARDTYPE_UNKNOWN))->setFailureType(BoardtypeUnknown::UNKNOWN_BOARD);
+            return PAGE_BOARDTYPE_UNKNOWN;
+        }
+
+        if (type->isInputConfigurationSupported())
+            return PAGE_INPUT;
+        else
+            return PAGE_INPUT_NOT_SUPPORTED;
     }
     case PAGE_VEHICLES:
     {
