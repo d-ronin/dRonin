@@ -351,8 +351,8 @@ $(OUTDIR)/sim_firmwareinfo.c: $(ROOT_DIR)/make/templates/firmwareinfotemplate_si
 		--path=$(ROOT_DIR) \
 		--template=$^ \
 		--outfile=$@ \
-		--type=9 \
-		--revision=1 \
+		--type=$(BOARD_TYPE) \
+		--revision=$(BOARD_REVISION) \
 		--uavodir=$(ROOT_DIR)/shared/uavobjectdefinition
 
 
