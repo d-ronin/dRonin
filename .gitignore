@@ -74,3 +74,5 @@ androidgcs/gen/
 #local doxygen pages
 /html
 
+# Ignore simulation/unit-test flash image
+theflash.bin
