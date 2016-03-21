@@ -423,7 +423,9 @@ bool UploaderGadgetWidget::flashFirmware(QByteArray &firmwareImage)
     connect(&timeout, SIGNAL(timeout()), &loop, SLOT(quit()));
 
     timeout.setSingleShot(true);
-    timeout.start(35000);       // Very long out of caution.
+    timeout.start(120000);      // Very long out of caution.  Current Brain
+                                // FW takes 36-37 seconds on some machines to
+                                // flash.
 
     tl_dfu::Status operationSuccess = DFUidle;
 
