@@ -135,11 +135,11 @@ private:
 
     // USB coms:
     int SendData(bl_messages);
-    int ReceiveData(bl_messages &data, int timeoutMS=10000);
+    int ReceiveData(bl_messages &data, int timeoutMS = 10000);
     hid_device *m_hidHandle;
 
     bool StartUpload(qint32  const &numberOfBytes, const dfu_partition_label &label, quint32 crc);
-    bool UploadData(qint32 const & numberOfPackets,QByteArray  & data);
+    bool UploadData(qint32 const &numberOfPackets, QByteArray  &data);
 
     typedef struct ThreadJobStruc
     {

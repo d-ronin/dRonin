@@ -267,7 +267,9 @@ retry:
                     AbortOperation();
 
                     // Drain out pending packets.
-                    for (unsigned int i=0; i<(msg.numberOfPackets + 10); i++) {
+                    for (unsigned int i = 0; 
+                            i < (msg.numberOfPackets + 10);
+                            i++) {
                         bl_messages dummy;
                         if (ReceiveData(dummy, 400) <= 0) {
                             break;
