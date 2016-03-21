@@ -75,8 +75,8 @@ protected slots:
 private:
     RawHID *RawHidHandle;
     bool enablePolling;
-    USBMonitor* m_usbMonitor;
-    USBSignalFilter* m_signalFilter;
+    USBMonitor *m_usbMonitor;
+    USBSignalFilter *m_signalFilter;
 };
 
 class RAWHID_EXPORT RawHIDPlugin
@@ -92,8 +92,8 @@ public:
     virtual bool initialize(const QStringList &arguments, QString *error_message);
     virtual void extensionsInitialized();
 private:
-    RawHIDConnection* hidConnection;
-    USBMonitor* m_usbMonitor;
+    RawHIDConnection *hidConnection;
+    USBMonitor *m_usbMonitor;
 
 };
 

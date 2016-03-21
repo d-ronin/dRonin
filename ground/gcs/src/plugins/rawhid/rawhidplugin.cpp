@@ -97,7 +97,7 @@ QList < Core::IDevice*> RawHIDConnection::availableDevices()
         RAW_HID_QXTLOG_DEBUG("[rawhidplugin] VendorID type known: ", vendorID);
         portsList = m_usbMonitor->availableDevices(vendorID, -1, -1,USBMonitor::Running);
         // We currently list devices by their serial number        
-        USBDevice* dev = new USBDevice();
+        USBDevice *dev = new USBDevice();
         foreach(USBPortInfo prt, portsList) {
             dev->setName(prt.serialNumber);
             dev->setDisplayName(prt.product);
@@ -188,7 +188,7 @@ void RawHIDPlugin::extensionsInitialized()
 
 }
 
-bool RawHIDPlugin::initialize(const QStringList & arguments, QString * errorString)
+bool RawHIDPlugin::initialize(const QStringList &arguments, QString *errorString)
 {
     Q_UNUSED(arguments);
     Q_UNUSED(errorString);
