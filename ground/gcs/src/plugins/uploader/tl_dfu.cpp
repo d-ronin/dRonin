@@ -115,7 +115,7 @@ bool DFUObject::StartUpload(qint32 const & numberOfBytes, dfu_partition_label co
 bool DFUObject::UploadData(qint32 const & numberOfBytes, QByteArray  & data)
 {
     messagePackets msg = CalculatePadding(numberOfBytes);
-    TL_DFU_QXTLOG_DEBUG(QString("Start Uploading:%0 4byte packets").arg(msg.numberOfPackets));
+    TL_DFU_QXTLOG_DEBUG(QString("Start Uploading:%0 56 byte packets").arg(msg.numberOfPackets));
     bl_messages message;
     message.flags_command = BL_MSG_WRITE_CONT;
     int packetsize;
