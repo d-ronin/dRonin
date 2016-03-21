@@ -70,6 +70,7 @@ SUBDIRS += plugin_opmap
 plugin_scope.subdir = scope
 plugin_scope.depends = plugin_coreplugin
 plugin_scope.depends += plugin_uavobjects
+plugin_scope.depends += plugin_uavobjectutil
 plugin_scope.depends += plugin_uavtalk
 SUBDIRS += plugin_scope
 
@@ -183,6 +184,7 @@ SUBDIRS += plugin_ipconnection
 plugin_hitl.subdir = hitl
 plugin_hitl.depends = plugin_coreplugin
 plugin_hitl.depends += plugin_uavobjects
+plugin_hitl.depends += plugin_uavobjectutil
 plugin_hitl.depends += plugin_uavtalk
 SUBDIRS += plugin_hitl
 }
