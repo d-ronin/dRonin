@@ -100,7 +100,7 @@ signals:
       Currently only implemented on Windows and OS X.
       \param info The device that has been discovered.
     */
-    void deviceDiscovered( const USBPortInfo & info );
+    void deviceDiscovered( const USBPortInfo &info );
     /*!
       A device has been disconnected from the system.
 
@@ -108,7 +108,7 @@ signals:
       Currently only implemented on Windows and OS X.
       \param info The device that was disconnected.
     */
-    void deviceRemoved( const USBPortInfo & info );
+    void deviceRemoved( const USBPortInfo &info );
 
 private slots:
     void periodic();

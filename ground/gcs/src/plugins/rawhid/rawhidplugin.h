@@ -75,8 +75,16 @@ protected slots:
 private:
     RawHID *RawHidHandle;
     bool enablePolling;
+<<<<<<< Updated upstream
     USBMonitor* m_usbMonitor;
     USBSignalFilter* m_signalFilter;
+=======
+
+protected:
+    QMutex m_enumMutex;
+    USBMonitor *m_usbMonitor;
+    bool m_deviceOpened;
+>>>>>>> Stashed changes
 };
 
 class RAWHID_EXPORT RawHIDPlugin
@@ -92,8 +100,8 @@ public:
     virtual bool initialize(const QStringList &arguments, QString *error_message);
     virtual void extensionsInitialized();
 private:
-    RawHIDConnection* hidConnection;
-    USBMonitor* m_usbMonitor;
+    RawHIDConnection *hidConnection;
+    USBMonitor *m_usbMonitor;
 
 };
 
