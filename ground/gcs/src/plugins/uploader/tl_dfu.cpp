@@ -294,7 +294,7 @@ retry:
 
     StatusRequest();
 
-    TL_DFU_QXTLOG_DEBUG(QString("Download operation completed"));
+    TL_DFU_QXTLOG_DEBUG(QString("Download operation completed-- %1 bytes").arg(fw->size()));
     return true;
 }
 
