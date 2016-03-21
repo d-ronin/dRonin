@@ -1325,19 +1325,23 @@ void UploaderGadgetWidget::onBootloaderDetected()
         info.max_code_size = QString::number(dev.SizeOfCode);
         DeviceInformationUpdate(info);
 
-        setUploaderStatus(uploader::BL_SITTING);
         iapUpdated = false;
 
         if (!inUpgrader) {
             setStatusInfo(tr("Connection to bootloader successful"), uploader::STATUSICON_OK);
 
             if (FirmwareLoadFromFile(getImagePath(info.board->shortName()), &loadedFile)) {
+                FirmwareLoadedClear(true);
+                FirmwareLoadedUpdate(loadedFile);
                 setStatusInfo(tr("Ready to flash firmware"), uploader::STATUSICON_OK);
                 this->activateWindow();
                 m_widget->flashButton->setFocus();
             }
+
+            setUploaderStatus(uploader::BL_SITTING);
         } else {
             setStatusInfo(tr("Connected to upgrader-loader"), uploader::STATUSICON_OK);
+            setUploaderStatus(uploader::BL_SITTING);
         }
 
         if (triggerUpgrading) {
