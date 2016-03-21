@@ -76,6 +76,8 @@ void USBMonitor::periodic() {
     QList<USBPortInfo> unseenDevices = knowndevices;
     QList<USBPortInfo> newDevices;
 
+    bool didAnything = false;
+
     for (struct hid_device_info *hidDev = hidDevList;
             hidDev != NULL;
             hidDev = hidDev->next) {
@@ -87,7 +89,6 @@ void USBMonitor::periodic() {
         info.serialNumber = QString::fromWCharArray(hidDev->serial_number);
         info.product = QString::fromWCharArray(hidDev->product_string);
         info.manufacturer = QString::fromWCharArray(hidDev->manufacturer_string);
-
         if (!unseenDevices.removeOne(info)) {
             newDevices.append(info);
         } 
@@ -96,6 +97,8 @@ void USBMonitor::periodic() {
     prevDevList = hidDevList;
 
     foreach (USBPortInfo item, unseenDevices) {
+        didAnything = true;
+
         qDebug() << "Removing " << item.vendorID << item.productID << item.bcdDevice << item.serialNumber << item.product << item.manufacturer;
 
         knowndevices.removeOne(item);
@@ -104,11 +107,19 @@ void USBMonitor::periodic() {
     }
 
     foreach (USBPortInfo item, newDevices) {
-        qDebug() << "Adding " << item.vendorID << item.productID << item.bcdDevice << item.serialNumber << item.product << item.manufacturer;
+        if (!knowndevices.contains(item)) {
+            didAnything = true;
 
-        knowndevices.append(item);
+            qDebug() << "Adding " << item.vendorID << item.productID << item.bcdDevice << item.serialNumber << item.product << item.manufacturer;
 
-        emit deviceDiscovered(item);
+            knowndevices.append(item);
+
+            emit deviceDiscovered(item);
+        }
+    }
+
+    if (didAnything) {
+        qDebug() << "usbmonitor detection cycle complete.";
     }
 
     /* Ensure our signals are spaced out.  Also limit our CPU consumption */

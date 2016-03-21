@@ -35,6 +35,7 @@
 #include <QDebug>
 
 #include "rawhid_const.h"
+#include "usbsignalfilter.h"
 
 
 // **********************************************************************
@@ -48,16 +49,18 @@ RawHIDConnection::RawHIDConnection()
 
     m_usbMonitor = USBMonitor::instance();
 
-    connect(m_usbMonitor, SIGNAL(deviceDiscovered(USBPortInfo)), this, SLOT(onDeviceConnected()));
-    connect(m_usbMonitor, SIGNAL(deviceRemoved(USBPortInfo)), this, SLOT(onDeviceDisconnected()));
-
+    m_signalFilter = new USBSignalFilter(-1, -1, -1, USBMonitor::Running);
+    connect(m_signalFilter, SIGNAL(deviceDiscovered()), this, SLOT(onDeviceConnected()));
+    connect(m_signalFilter, SIGNAL(deviceRemoved()), this, SLOT(onDeviceDisconnected()));
 }
 
 RawHIDConnection::~RawHIDConnection()
 {
-	if (RawHidHandle)
-            if (RawHidHandle->isOpen())
-                RawHidHandle->close();
+    if (RawHidHandle)
+        if (RawHidHandle->isOpen())
+            RawHidHandle->close();
+
+    delete m_signalFilter;
 }
 
 /**
