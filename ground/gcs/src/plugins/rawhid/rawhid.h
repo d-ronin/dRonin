@@ -84,7 +84,7 @@ protected:
     RawHIDReadThread *m_readThread;
     RawHIDWriteThread *m_writeThread;
 
-	QMutex *m_mutex;
+    QMutex *m_mutex;
 };
 
 #endif // RAWHID_H

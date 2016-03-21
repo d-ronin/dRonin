@@ -122,14 +122,14 @@ private:
     QByteArray settingsDump;
 
     DFUObject dfu;
-    USBSignalFilter* usbFilterBL;
-    USBSignalFilter* usbFilterUP;
-    ExtensionSystem::PluginManager* pm;
-    TelemetryManager* telMngr;
-    UAVObjectUtilManager* utilMngr;
-    Core::ConnectionManager* conMngr;
-    QNetworkAccessManager* netMngr;
-    UAVSettingsImportExportManager* importMngr;
+    USBSignalFilter *usbFilterBL;
+    USBSignalFilter *usbFilterUP;
+    ExtensionSystem::PluginManager *pm;
+    TelemetryManager *telMngr;
+    UAVObjectUtilManager *utilMngr;
+    Core::ConnectionManager *conMngr;
+    QNetworkAccessManager *netMngr;
+    UAVSettingsImportExportManager *importMngr;
 
     FirmwareIAPObj* firmwareIap;
     deviceInfo currentBoard;

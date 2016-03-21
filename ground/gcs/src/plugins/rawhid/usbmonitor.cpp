@@ -46,7 +46,7 @@
 
 #define printf USB_MON_QXTLOG_DEBUG
 
-USBMonitor* USBMonitor::m_instance = 0;
+USBMonitor *USBMonitor::m_instance = 0;
 
 /**
   Initialize the USB monitor here

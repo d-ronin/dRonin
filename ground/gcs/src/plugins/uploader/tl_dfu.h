@@ -124,7 +124,7 @@ private:
     // Helper functions:
     QString StatusToString(tl_dfu::Status  const & status);
     static quint32 CRC32WideFast(quint32 Crc, quint32 Size, quint32 *Buffer);
-    void CopyWords(char * source, char* destination, int count);
+    void CopyWords(char *source, char *destination, int count);
     messagePackets CalculatePadding(quint32 numberOfBytes);
 
     // Service commands:
