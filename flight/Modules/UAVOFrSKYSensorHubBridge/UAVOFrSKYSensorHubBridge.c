@@ -44,6 +44,7 @@
 #include "velocityactual.h"
 #include "attitudeactual.h"
 #include "pios_thread.h"
+#include "pios_modules.h"
 
 #if defined(PIOS_INCLUDE_FRSKY_SENSOR_HUB)
 // ****************
@@ -216,11 +217,7 @@ static int32_t uavoFrSKYSensorHubBridgeInitialize(void)
 {
 	uintptr_t frsky_port = PIOS_COM_FRSKY_SENSOR_HUB;
 
-	uint8_t module_state[MODULESETTINGS_ADMINSTATE_NUMELEM];
-	ModuleSettingsAdminStateGet(module_state);
-
-	if (frsky_port && (module_state[MODULESETTINGS_ADMINSTATE_UAVOFRSKYSENSORHUBBRIDGE]
-					== MODULESETTINGS_ADMINSTATE_ENABLED)) {
+	if (frsky_port && PIOS_Modules_IsEnabled(PIOS_MODULE_UAVOFRSKYSENSORHUBBRIDGE)) {
 		shub_global = PIOS_malloc(sizeof(*shub_global));
 
 		if (shub_global == 0) {

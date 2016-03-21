@@ -52,6 +52,7 @@
 #include "baroaltitude.h"
 #include "pios_thread.h"
 #include "pios_sensors.h"
+#include "pios_modules.h"
 
 #include "baroaltitude.h"
 #include "flightbatterysettings.h"
@@ -164,7 +165,7 @@ struct msp_bridge {
 
 #define BOOT_DISPLAY_TIME_MS (10*1000)
 
-static bool module_enabled;
+static bool module_enabled = false;
 extern uintptr_t pios_com_msp_id;
 static struct msp_bridge *msp;
 static int32_t uavoMSPBridgeInitialize(void);
@@ -727,12 +728,7 @@ static void setMSPSpeed(struct msp_bridge *m)
  */
 static int32_t uavoMSPBridgeInitialize(void)
 {
-	uint8_t module_state[MODULESETTINGS_ADMINSTATE_NUMELEM];
-	ModuleSettingsAdminStateGet(module_state);
-
-	if (pios_com_msp_id && (module_state[MODULESETTINGS_ADMINSTATE_UAVOMSPBRIDGE]
-			== MODULESETTINGS_ADMINSTATE_ENABLED)) {
-
+	if (pios_com_msp_id && PIOS_Modules_IsEnabled(PIOS_MODULE_UAVOMSPBRIDGE)) {
 		msp = PIOS_malloc(sizeof(*msp));
 		if (msp != NULL) {
 			memset(msp, 0x00, sizeof(*msp));
@@ -743,8 +739,6 @@ static int32_t uavoMSPBridgeInitialize(void)
 			return 0;
 		}
 	}
-
-	module_enabled = false;
 
 	return -1;
 }

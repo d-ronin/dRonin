@@ -41,6 +41,7 @@
 #include "modulesettings.h"
 #include "pios_thread.h"
 #include <pios_hal.h>
+#include "pios_modules.h"
 
 #include <stdbool.h>
 
@@ -114,13 +115,7 @@ static int32_t comUsbBridgeInitialize(void)
 #ifdef MODULE_ComUsbBridge_BUILTIN
 	module_enabled = true;
 #else
-	uint8_t module_state[MODULESETTINGS_ADMINSTATE_NUMELEM];
-	ModuleSettingsAdminStateGet(module_state);
-	if (module_state[MODULESETTINGS_ADMINSTATE_COMUSBBRIDGE] == MODULESETTINGS_ADMINSTATE_ENABLED) {
-		module_enabled = true;
-	} else {
-		module_enabled = false;
-	}
+	module_enabled = PIOS_Modules_IsEnabled(PIOS_MODULE_COMUSBBRIDGE);
 #endif
 
 	return 0;

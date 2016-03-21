@@ -50,6 +50,7 @@
 #include "baroaltitude.h"
 #include "mavlink.h"
 #include "pios_thread.h"
+#include "pios_modules.h"
 
 #include <pios_hal.h>
 
@@ -122,12 +123,7 @@ static int32_t uavoMavlinkBridgeStart(void) {
 static int32_t uavoMavlinkBridgeInitialize(void) {
 	mavlink_port = PIOS_COM_MAVLINK;
 
-	uint8_t module_state[MODULESETTINGS_ADMINSTATE_NUMELEM];
-	ModuleSettingsAdminStateGet(module_state);
-
-	if (mavlink_port
-			&& (module_state[MODULESETTINGS_ADMINSTATE_UAVOMAVLINKBRIDGE]
-					== MODULESETTINGS_ADMINSTATE_ENABLED)) {
+	if (mavlink_port && PIOS_Modules_IsEnabled(PIOS_MODULE_UAVOMAVLINKBRIDGE)) {
 		updateSettings();
 
 		mav_msg = PIOS_malloc(sizeof(*mav_msg));
@@ -144,7 +140,7 @@ static int32_t uavoMavlinkBridgeInitialize(void) {
 
 	return 0;
 }
-MODULE_INITCALL( uavoMavlinkBridgeInitialize, uavoMavlinkBridgeStart)
+MODULE_INITCALL(uavoMavlinkBridgeInitialize, uavoMavlinkBridgeStart)
 
 static void send_message() {
 	uint16_t msg_length = MAVLINK_NUM_NON_PAYLOAD_BYTES +

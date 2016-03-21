@@ -8,26 +8,17 @@
 				<elementname>Autotune</elementname>
 				<elementname>Battery</elementname>
 				<elementname>CameraStab</elementname>
-				<elementname>ComUsbBridge</elementname>
 				<elementname>FixedWingPathFollower</elementname>
 				<elementname>Fault</elementname>
-				<elementname>GPS</elementname>
 				<elementname>PathPlanner</elementname>
 				<elementname>TxPID</elementname>
 				<elementname>VtolPathFollower</elementname>
 				<elementname>GroundPathFollower</elementname>
-				<elementname>UAVOMavlinkBridge</elementname>
-				<elementname>UAVOMSPBridge</elementname>
-				<elementname>UAVOLighttelemetryBridge</elementname>
 				<elementname>VibrationAnalysis</elementname>
-				<elementname>UAVOHoTTBridge</elementname>
-				<elementname>UAVOFrSKYSensorHubBridge</elementname>
 				<elementname>PicoC</elementname>
-				<elementname>UAVOFrSkySPortBridge</elementname>
 				<elementname>Geofence</elementname>
 				<elementname>Logging</elementname>
 				<elementname>FlightStats</elementname>
-				<elementname>Storm32Bgc</elementname>
 			</elementnames>
 		</field>
 

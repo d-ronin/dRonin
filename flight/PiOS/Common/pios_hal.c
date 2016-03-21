@@ -38,6 +38,7 @@
 #include <pios_openlrs_rcvr_priv.h>
 #include <pios_rfm22b_rcvr_priv.h>
 #include <pios_hsum_priv.h>
+#include <pios_modules.h>
 
 #include <manualcontrolsettings.h>
 
@@ -69,7 +70,7 @@ uintptr_t pios_com_hott_id;
 uintptr_t pios_com_frsky_sensor_hub_id;
 #endif
 
-#if defined(PIOS_INCLUDE_FRSKY_SPORT_TELEMETRY) || defined(PIOS_INCLUDE_FRSKY_SPORT_TELEMETRY_NOSINGLEWIRE)
+#if defined(PIOS_INCLUDE_FRSKY_SPORT_TELEMETRY)
 uintptr_t pios_com_frsky_sport_id;
 #endif
 
@@ -441,6 +442,7 @@ void PIOS_HAL_ConfigurePort(HwSharedPortTypesOptions port_type,
 	case HWSHARED_PORTTYPES_COMBRIDGE:
 		PIOS_HAL_ConfigureCom(usart_port_cfg, &usart_port_params, PIOS_COM_BRIDGE_RX_BUF_LEN, PIOS_COM_BRIDGE_TX_BUF_LEN, com_driver, &port_driver_id);
 		target = &pios_com_bridge_id;
+		//module is enabled by the USB port config rather than here
 		break;
 
 	case HWSHARED_PORTTYPES_DEBUGCONSOLE:
@@ -480,28 +482,29 @@ void PIOS_HAL_ConfigurePort(HwSharedPortTypesOptions port_type,
 
 		PIOS_HAL_ConfigureCom(usart_port_cfg, &usart_port_params, 0, PIOS_COM_FRSKYSENSORHUB_TX_BUF_LEN, com_driver, &port_driver_id);
 		target = &pios_com_frsky_sensor_hub_id;
+		PIOS_Modules_Enable(PIOS_MODULE_UAVOFRSKYSENSORHUBBRIDGE);
 #endif /* PIOS_INCLUDE_FRSKY_SENSOR_HUB */
 		break;
 
 	case HWSHARED_PORTTYPES_FRSKYSPORTTELEMETRY:
-#if defined(PIOS_INCLUDE_FRSKY_SPORT_TELEMETRY_NOSINGLEWIRE)
-		PIOS_HAL_ConfigureCom(usart_port_cfg, &usart_port_params, PIOS_COM_FRSKYSPORT_RX_BUF_LEN, PIOS_COM_FRSKYSPORT_TX_BUF_LEN, com_driver, &port_driver_id);
-		target = &pios_com_frsky_sport_id;
-#endif /* PIOS_INCLUDE_FRSKY_SPORT_TELEMETRY_NOSINGLEWIRE */
-
 #if defined(PIOS_INCLUDE_FRSKY_SPORT_TELEMETRY)
+#if defined(STM32F30X)
+		// F3 has internal inverters and can switch rx/tx pins
 		usart_port_params.rx_invert   = true;
 		usart_port_params.tx_invert   = true;
 		usart_port_params.single_wire = true;
+#endif // STM32F30X
 
 		PIOS_HAL_ConfigureCom(usart_port_cfg, &usart_port_params, PIOS_COM_FRSKYSPORT_RX_BUF_LEN, PIOS_COM_FRSKYSPORT_TX_BUF_LEN, com_driver, &port_driver_id);
 		target = &pios_com_frsky_sport_id;
+		PIOS_Modules_Enable(PIOS_MODULE_UAVOFRSKYSPORTBRIDGE);
 #endif /* PIOS_INCLUDE_FRSKY_SPORT_TELEMETRY */
 		break;
 
 	case HWSHARED_PORTTYPES_GPS:
 		PIOS_HAL_ConfigureCom(usart_port_cfg, &usart_port_params, PIOS_COM_GPS_RX_BUF_LEN, PIOS_COM_GPS_TX_BUF_LEN, com_driver, &port_driver_id);
 		target = &pios_com_gps_id;
+		PIOS_Modules_Enable(PIOS_MODULE_GPS);
 		break;
 
 	case HWSHARED_PORTTYPES_HOTTSUMD:
@@ -536,6 +539,7 @@ void PIOS_HAL_ConfigurePort(HwSharedPortTypesOptions port_type,
 #if defined(PIOS_INCLUDE_HOTT)
 		PIOS_HAL_ConfigureCom(usart_port_cfg, &usart_port_params, PIOS_COM_HOTT_RX_BUF_LEN, PIOS_COM_HOTT_TX_BUF_LEN, com_driver, &port_driver_id);
 		target = &pios_com_hott_id;
+		PIOS_Modules_Enable(PIOS_MODULE_UAVOHOTTBRIDGE);
 #endif /* PIOS_INCLUDE_HOTT */
 		break;
 
@@ -558,6 +562,7 @@ void PIOS_HAL_ConfigurePort(HwSharedPortTypesOptions port_type,
 #if defined(PIOS_INCLUDE_LIGHTTELEMETRY)
 		PIOS_HAL_ConfigureCom(usart_port_cfg, &usart_port_params, 0, PIOS_COM_LIGHTTELEMETRY_TX_BUF_LEN, com_driver, &port_driver_id);
 		target = &pios_com_lighttelemetry_id;
+		PIOS_Modules_Enable(PIOS_MODULE_UAVOLIGHTTELEMETRYBRIDGE);
 #endif
 		break;
 
@@ -565,6 +570,7 @@ void PIOS_HAL_ConfigurePort(HwSharedPortTypesOptions port_type,
 #if defined(PIOS_INCLUDE_MAVLINK)
 		PIOS_HAL_ConfigureCom(usart_port_cfg, &usart_port_params, 0, PIOS_COM_MAVLINK_TX_BUF_LEN, com_driver, &port_driver_id);
 		target = &pios_com_mavlink_id;
+		PIOS_Modules_Enable(PIOS_MODULE_UAVOMAVLINKBRIDGE);
 #endif          /* PIOS_INCLUDE_MAVLINK */
 		break;
 
@@ -573,6 +579,8 @@ void PIOS_HAL_ConfigurePort(HwSharedPortTypesOptions port_type,
 		PIOS_HAL_ConfigureCom(usart_port_cfg, &usart_port_params, PIOS_COM_GPS_RX_BUF_LEN, PIOS_COM_MAVLINK_TX_BUF_LEN, com_driver, &port_driver_id);
 		target = &pios_com_mavlink_id;
 		target2 = &pios_com_gps_id;
+		PIOS_Modules_Enable(PIOS_MODULE_UAVOMAVLINKBRIDGE);
+		PIOS_Modules_Enable(PIOS_MODULE_GPS);
 #endif          /* PIOS_INCLUDE_MAVLINK */
 		break;
 
@@ -580,6 +588,7 @@ void PIOS_HAL_ConfigurePort(HwSharedPortTypesOptions port_type,
 #if defined(PIOS_INCLUDE_MSP_BRIDGE)
 		PIOS_HAL_ConfigureCom(usart_port_cfg, &usart_port_params, PIOS_COM_MSP_RX_BUF_LEN, PIOS_COM_MSP_TX_BUF_LEN, com_driver, &port_driver_id);
 		target = &pios_com_msp_id;
+		PIOS_Modules_Enable(PIOS_MODULE_UAVOMSPBRIDGE);
 #endif
 		break;
 
@@ -667,6 +676,7 @@ void PIOS_HAL_ConfigurePort(HwSharedPortTypesOptions port_type,
 
 		PIOS_HAL_ConfigureCom(usart_port_cfg, &usart_port_params, PIOS_COM_STORM32BGC_RX_BUF_LEN, PIOS_COM_STORM32BGC_TX_BUF_LEN, com_driver, &port_driver_id);
 		target = &pios_com_storm32bgc_id;
+		PIOS_Modules_Enable(PIOS_MODULE_STORM32BGC);
 #endif  /* PIOS_INCLUDE_STORM32BGC */
 		break;
 
@@ -727,6 +737,7 @@ void PIOS_HAL_ConfigureCDC(HwSharedUSB_VCPPortOptions port_type,
 						tx_buffer, PIOS_COM_BRIDGE_TX_BUF_LEN)) {
 			PIOS_Assert(0);
 		}
+		PIOS_Modules_Enable(PIOS_MODULE_COMUSBBRIDGE);
 	}
 	break;
 	case HWSHARED_USB_VCPPORT_DEBUGCONSOLE:

@@ -40,6 +40,7 @@
 #include "modulesettings.h"
 #include "vibrationanalysissettings.h"
 #include "picocsettings.h"
+#include "taskinfo.h"
 
 // Define static variables
 QString ConfigModuleWidget::trueString("TrueString");
@@ -81,26 +82,38 @@ ConfigModuleWidget::ConfigModuleWidget(QWidget *parent) : ConfigTaskWidget(paren
     if (!settings->useExpertMode())
        ui->saveRAM->setVisible(false);
 
-    // Link the checkboxes
+    // Link the checkboxes for manual module enable
     addUAVObjectToWidgetRelation(moduleSettingsName, "AdminState", ui->cbAirspeed, ModuleSettings::ADMINSTATE_AIRSPEED);
     addUAVObjectToWidgetRelation(moduleSettingsName, "AdminState", ui->cbAltitudeHold, ModuleSettings::ADMINSTATE_ALTITUDEHOLD);
     addUAVObjectToWidgetRelation(moduleSettingsName, "AdminState", ui->cbBattery, ModuleSettings::ADMINSTATE_BATTERY);
-    addUAVObjectToWidgetRelation(moduleSettingsName, "AdminState", ui->cbComBridge, ModuleSettings::ADMINSTATE_COMUSBBRIDGE);
-    addUAVObjectToWidgetRelation(moduleSettingsName, "AdminState", ui->cbGPS, ModuleSettings::ADMINSTATE_GPS);
-    addUAVObjectToWidgetRelation(moduleSettingsName, "AdminState", ui->cbUavoMavlink, ModuleSettings::ADMINSTATE_UAVOMAVLINKBRIDGE);
     addUAVObjectToWidgetRelation(moduleSettingsName, "AdminState", ui->cbVibrationAnalysis, ModuleSettings::ADMINSTATE_VIBRATIONANALYSIS);
     addUAVObjectToWidgetRelation(moduleSettingsName, "AdminState", ui->cbVtolFollower, ModuleSettings::ADMINSTATE_VTOLPATHFOLLOWER);
     addUAVObjectToWidgetRelation(moduleSettingsName, "AdminState", ui->cbPathPlanner, ModuleSettings::ADMINSTATE_PATHPLANNER);
     addUAVObjectToWidgetRelation(moduleSettingsName, "AdminState", ui->cbPicoC, ModuleSettings::ADMINSTATE_PICOC);
-    addUAVObjectToWidgetRelation(moduleSettingsName, "AdminState", ui->cbUAVOHottBridge, ModuleSettings::ADMINSTATE_UAVOHOTTBRIDGE);
-    addUAVObjectToWidgetRelation(moduleSettingsName, "AdminState", ui->cbUAVOLighttelemetryBridge, ModuleSettings::ADMINSTATE_UAVOLIGHTTELEMETRYBRIDGE);
-    addUAVObjectToWidgetRelation(moduleSettingsName, "AdminState", ui->cbUAVOFrskyBridge, ModuleSettings::ADMINSTATE_UAVOFRSKYSENSORHUBBRIDGE);
-    addUAVObjectToWidgetRelation(moduleSettingsName, "AdminState", ui->cbUAVOFrSkySPortBridge, ModuleSettings::ADMINSTATE_UAVOFRSKYSPORTBRIDGE);
     addUAVObjectToWidgetRelation(moduleSettingsName, "AdminState", ui->cbGeofence, ModuleSettings::ADMINSTATE_GEOFENCE);
     addUAVObjectToWidgetRelation(moduleSettingsName, "AdminState", ui->cbAutotune, ModuleSettings::ADMINSTATE_AUTOTUNE);
-    addUAVObjectToWidgetRelation(moduleSettingsName, "AdminState", ui->cbUAVOMSPBridge, ModuleSettings::ADMINSTATE_UAVOMSPBRIDGE);
     addUAVObjectToWidgetRelation(moduleSettingsName, "AdminState", ui->cbTxPid, ModuleSettings::ADMINSTATE_TXPID);
     addUAVObjectToWidgetRelation(moduleSettingsName, "AdminState", ui->cbLogging, ModuleSettings::ADMINSTATE_LOGGING);
+
+    // Link the checkboxes for auto module enable, for information only
+    addUAVObjectToWidgetRelation(TaskInfo::NAME, "Running", ui->cbComBridge, TaskInfo::RUNNING_COM2USBBRIDGE); // only looking at com2usb (not usb2com) task should be good enough
+    addUAVObjectToWidgetRelation(TaskInfo::NAME, "Running", ui->cbGPS, TaskInfo::RUNNING_GPS);
+    addUAVObjectToWidgetRelation(TaskInfo::NAME, "Running", ui->cbUavoMavlink, TaskInfo::RUNNING_UAVOMAVLINKBRIDGE);
+    addUAVObjectToWidgetRelation(TaskInfo::NAME, "Running", ui->cbUAVOHottBridge, TaskInfo::RUNNING_UAVOHOTTBRIDGE);
+    addUAVObjectToWidgetRelation(TaskInfo::NAME, "Running", ui->cbUAVOLighttelemetryBridge, TaskInfo::RUNNING_UAVOLIGHTTELEMETRYBRIDGE);
+    addUAVObjectToWidgetRelation(TaskInfo::NAME, "Running", ui->cbUAVOFrskyBridge, TaskInfo::RUNNING_UAVOFRSKYSBRIDGE);
+    addUAVObjectToWidgetRelation(TaskInfo::NAME, "Running", ui->cbUAVOMSPBridge, TaskInfo::RUNNING_UAVOMSPBRIDGE);
+    addUAVObjectToWidgetRelation(TaskInfo::NAME, "Running", ui->cbUAVOFrSkySPortBridge, TaskInfo::RUNNING_UAVOFRSKYSPORTBRIDGE);
+
+    // Don't allow auto-modules to be changed
+    ui->cbComBridge->setDisabled(true);
+    ui->cbGPS->setDisabled(true);
+    ui->cbUavoMavlink->setDisabled(true);
+    ui->cbUAVOHottBridge->setDisabled(true);
+    ui->cbUAVOLighttelemetryBridge->setDisabled(true);
+    ui->cbUAVOFrskyBridge->setDisabled(true);
+    ui->cbUAVOMSPBridge->setDisabled(true);
+    ui->cbUAVOFrSkySPortBridge->setDisabled(true);
 
     // Don't allow these to be changed here, only in the respective tabs.
     ui->cbAutotune->setDisabled(true);
@@ -348,15 +361,6 @@ ConfigModuleWidget::ConfigModuleWidget(QWidget *parent) : ConfigTaskWidget(paren
     ui->cbBattery->setProperty(trueString.toLatin1(), "Enabled");
     ui->cbBattery->setProperty(falseString.toLatin1(), "Disabled");
 
-    ui->cbComBridge->setProperty(trueString.toLatin1(), "Enabled");
-    ui->cbComBridge->setProperty(falseString.toLatin1(), "Disabled");
-
-    ui->cbGPS->setProperty(trueString.toLatin1(), "Enabled");
-    ui->cbGPS->setProperty(falseString.toLatin1(), "Disabled");
-
-    ui->cbUavoMavlink->setProperty(trueString.toLatin1(), "Enabled");
-    ui->cbUavoMavlink->setProperty(falseString.toLatin1(), "Disabled");
-
     ui->cbVibrationAnalysis->setProperty(trueString.toLatin1(), "Enabled");
     ui->cbVibrationAnalysis->setProperty(falseString.toLatin1(), "Disabled");
 
@@ -368,18 +372,6 @@ ConfigModuleWidget::ConfigModuleWidget(QWidget *parent) : ConfigTaskWidget(paren
 
     ui->cbPicoC->setProperty(trueString.toLatin1(), "Enabled");
     ui->cbPicoC->setProperty(falseString.toLatin1(), "Disabled");
-
-    ui->cbUAVOHottBridge->setProperty(trueString.toLatin1(), "Enabled");
-    ui->cbUAVOHottBridge->setProperty(falseString.toLatin1(), "Disabled");
-
-    ui->cbUAVOFrskyBridge->setProperty(trueString.toLatin1(), "Enabled");
-    ui->cbUAVOFrskyBridge->setProperty(falseString.toLatin1(), "Disabled");
-
-    ui->cbUAVOFrSkySPortBridge->setProperty(trueString.toLatin1(), "Enabled");
-    ui->cbUAVOFrSkySPortBridge->setProperty(falseString.toLatin1(), "Disabled");
-
-    ui->cbUAVOLighttelemetryBridge->setProperty(trueString.toLatin1(), "Enabled");
-    ui->cbUAVOLighttelemetryBridge->setProperty(falseString.toLatin1(), "Disabled");	
 
     ui->cbGeofence->setProperty(trueString.toLatin1(), "Enabled");
     ui->cbGeofence->setProperty(falseString.toLatin1(), "Disabled");
@@ -396,14 +388,36 @@ ConfigModuleWidget::ConfigModuleWidget(QWidget *parent) : ConfigTaskWidget(paren
     ui->gb_measureCurrent->setProperty(trueString.toLatin1(), "Enabled");
     ui->gb_measureCurrent->setProperty(falseString.toLatin1(), "Disabled");
 
-    ui->cbUAVOMSPBridge->setProperty(trueString.toLatin1(), "Enabled");
-    ui->cbUAVOMSPBridge->setProperty(falseString.toLatin1(), "Disabled");
-
     ui->cbTxPid->setProperty(trueString.toLatin1(), "Enabled");
     ui->cbTxPid->setProperty(falseString.toLatin1(), "Disabled");
 
     ui->cbLogging->setProperty(trueString.toLatin1(), "Enabled");
     ui->cbLogging->setProperty(falseString.toLatin1(), "Disabled");
+
+    // read-only/auto-enabled modules
+    ui->cbComBridge->setProperty(trueString.toLatin1(), "True");
+    ui->cbComBridge->setProperty(falseString.toLatin1(), "False");
+
+    ui->cbGPS->setProperty(trueString.toLatin1(), "True");
+    ui->cbGPS->setProperty(falseString.toLatin1(), "False");
+
+    ui->cbUavoMavlink->setProperty(trueString.toLatin1(), "True");
+    ui->cbUavoMavlink->setProperty(falseString.toLatin1(), "False");
+
+    ui->cbUAVOHottBridge->setProperty(trueString.toLatin1(), "True");
+    ui->cbUAVOHottBridge->setProperty(falseString.toLatin1(), "False");
+
+    ui->cbUAVOFrskyBridge->setProperty(trueString.toLatin1(), "True");
+    ui->cbUAVOFrskyBridge->setProperty(falseString.toLatin1(), "False");
+
+    ui->cbUAVOLighttelemetryBridge->setProperty(trueString.toLatin1(), "True");
+    ui->cbUAVOLighttelemetryBridge->setProperty(falseString.toLatin1(), "False");
+
+    ui->cbUAVOMSPBridge->setProperty(trueString.toLatin1(), "True");
+    ui->cbUAVOMSPBridge->setProperty(falseString.toLatin1(), "False");
+
+    ui->cbUAVOFrSkySPortBridge->setProperty(trueString.toLatin1(), "True");
+    ui->cbUAVOFrSkySPortBridge->setProperty(falseString.toLatin1(), "False");
 
     enableBatteryTab(false);
     enableAirspeedTab(false);
@@ -478,6 +492,24 @@ void ConfigModuleWidget::recheckTabs()
     // the fields.
     ui->cbAutotune->setDisabled(true);
     ui->cbTxPid->setDisabled(true);
+    // Don't allow auto-modules to be changed
+    ui->cbComBridge->setDisabled(true);
+    ui->cbGPS->setDisabled(true);
+    ui->cbUavoMavlink->setDisabled(true);
+    ui->cbUAVOHottBridge->setDisabled(true);
+    ui->cbUAVOLighttelemetryBridge->setDisabled(true);
+    ui->cbUAVOFrskyBridge->setDisabled(true);
+    ui->cbUAVOMSPBridge->setDisabled(true);
+    ui->cbUAVOFrSkySPortBridge->setDisabled(true);
+    // clear checkboxes in-case taskinfo object doesn't exist (it will look like the last connected board's modules are still enabled)
+    ui->cbComBridge->setChecked(false);
+    ui->cbGPS->setChecked(false);
+    ui->cbUavoMavlink->setChecked(false);
+    ui->cbUAVOHottBridge->setChecked(false);
+    ui->cbUAVOLighttelemetryBridge->setChecked(false);
+    ui->cbUAVOFrskyBridge->setChecked(false);
+    ui->cbUAVOMSPBridge->setChecked(false);
+    ui->cbUAVOFrSkySPortBridge->setChecked(false);
 }
 
 //! Enable appropriate tab when objects are updated

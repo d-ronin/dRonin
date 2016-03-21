@@ -47,6 +47,7 @@
 #include "gpsvelocity.h"
 #include "modulesettings.h"
 #include "pios_thread.h"
+#include "pios_modules.h"
 
 #include "NMEA.h"
 #include "UBX.h"
@@ -126,13 +127,7 @@ int32_t GPSInitialize(void)
 #ifdef MODULE_GPS_BUILTIN
 	module_enabled = true;
 #else
-	uint8_t module_state[MODULESETTINGS_ADMINSTATE_NUMELEM];
-	ModuleSettingsAdminStateGet(module_state);
-	if (module_state[MODULESETTINGS_ADMINSTATE_GPS] == MODULESETTINGS_ADMINSTATE_ENABLED) {
-		module_enabled = true;
-	} else {
-		module_enabled = false;
-	}
+	module_enabled = PIOS_Modules_IsEnabled(PIOS_MODULE_GPS);
 #endif
 
 	// These things are only conditional on small F1 targets.
