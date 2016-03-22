@@ -37,6 +37,7 @@
 #include <QTime>
 #include <QVector>
 
+#include "ffft/FFTReal.h"
 
 /**
  * @brief The SpectrogramData class The spectrogram plot has a fixed size
@@ -86,6 +87,7 @@ private:
     double timeHorizon;
     unsigned int windowWidth;
     double autoscaleValueUpdated;
+    ffft::FFTReal <double> *fft_object;
 
 };
 
