@@ -747,7 +747,7 @@ bool UploaderGadgetWidget::tradeSettingsWithCloud(QString srcRelease,
 
 void UploaderGadgetWidget::upgradeError(QString why)
 {
-    (void) why;
+    Q_UNUSED(why);
 
     m_dialog.hide();
 

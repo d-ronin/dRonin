@@ -463,7 +463,7 @@ bool DFUObject::OpenBootloaderComs(USBPortInfo port)
     m_eventloop.exec();
     hid_init();
     m_hidHandle = hid_open(port.vendorID, port.productID, NULL);
-    if ( m_hidHandle ) {
+    if (m_hidHandle) {
         QTimer::singleShot(200,&m_eventloop, SLOT(quit()));
         m_eventloop.exec();
         AbortOperation();
@@ -582,7 +582,7 @@ tl_dfu::Status DFUObject::UploadPartition(QByteArray &sourceArray, dfu_partition
         return tl_dfu::abort;
     }
 
-    ret=StatusRequest();
+    ret = StatusRequest();
 
     TL_DFU_QXTLOG_DEBUG(QString("Erase returned:%0").arg(StatusToString(ret.status)));
 
@@ -735,7 +735,7 @@ int DFUObject::SendData(bl_messages data)
 
     int ret;
 
-    for (int i=0; i<10; i++) {
+    for (int i = 0; i < 10; i++) {
         ret = hid_write(m_hidHandle, (unsigned char *) array, BUF_LEN);
 
         if (ret < 0) {
