@@ -53,15 +53,22 @@
 SpectrogramData::SpectrogramData(QString uavObject, QString uavField, double samplingFrequency, unsigned int windowWidth, double timeHorizon)
         : Plot3dData(uavObject, uavField),
           spectrogram(0),
-          rasterData(0)
+          rasterData(0),
+          fft_object(0)
 {
     this->samplingFrequency = samplingFrequency;
     this->timeHorizon = timeHorizon;
-    this->windowWidth = windowWidth;
     autoscaleValueUpdated = 0;
 
     // Create raster data
     rasterData = new QwtMatrixRasterData();
+    
+    if(mathFunction == "FFT") {
+        fft_object = new ffft::FFTReal<double>(windowWidth);
+        windowWidth /= 2;
+    }
+
+    this->windowWidth = windowWidth;
 
     rasterData->setValueMatrix( *zDataHistory, windowWidth );
 
@@ -153,15 +160,33 @@ bool SpectrogramData::append(UAVObject* multiObj)
         // Get list of object instances
         QVector<UAVObject*> list = objManager->getObjectInstancesVector(multiObj->getName());
 
-        // Remove a row's worth of data.
-        unsigned int spectrogramWidth = list.size();
+        int spectrogramWidth = list.size() * list.front()->getField(uavFieldName)->getNumElements();
+        if(mathFunction == "FFT") {
+            if ( !((spectrogramWidth != 0) && ((spectrogramWidth & (~spectrogramWidth + 1)) == spectrogramWidth)) ) {
+                qDebug() << "Spectrogram width not power of 2. Got " << spectrogramWidth << ". Ignoring";
+                return false;
+            }
+            spectrogramWidth /= 2;
+        }
 
         // Check that there is a full window worth of data. While GCS is starting up, the size of
         // multiple instance UAVOs is 1, so it's possible for spurious data to come in before
         // the flight controller board has had time to initialize the UAVO size.
-        if (spectrogramWidth != windowWidth){
-            qDebug() << "Incomplete data set in" << multiObj->getName() << "." << uavFieldName <<  "spectrogram: " << spectrogramWidth << " samples provided, but expected " << windowWidth;
-            return false;
+        if ( ((unsigned int) spectrogramWidth) != windowWidth){
+            qDebug() << "Different data set in" << multiObj->getName() << "." << uavFieldName <<  "spectrogram: " << spectrogramWidth << " samples provided, but expected " << windowWidth;
+            windowWidth = spectrogramWidth;
+
+            clearPlots();
+
+            rasterData->setValueMatrix(*zDataHistory, windowWidth);
+
+            if(mathFunction == "FFT") {
+                qDebug() << "Initializing new FFT with N=" << windowWidth;
+                delete fft_object;
+                fft_object = new ffft::FFTReal<double>(windowWidth * 2);
+            }
+
+            qDebug() << "Spectrogram width adjusted to " << windowWidth;
         }
 
         //Initialize vector where we will read out an entire row of multiple instance UAVO
@@ -174,36 +199,61 @@ bool SpectrogramData::append(UAVObject* multiObj)
 
             // Get the field of interest
             foreach (UAVObject *obj, list) {
-                UAVObjectField* field =  obj->getField(uavFieldName);
-
-                double currentValue = valueAsDouble(obj, field, haveSubField, uavSubFieldName) * pow(10, scalePower);
-
-                double vecVal = currentValue;
-                //Normally some math would go here, modifying vecVal before appending it to values
-                // .
-                // .
-                // .
-
-
-                // Second to last step, see if autoscale is turned on and if the value exceeds the maximum for the scope.
-                if ( zMaximum == 0 &&  vecVal > rasterData->interval(Qt::ZAxis).maxValue()){
-                    // Change scope maximum and color depth
-                    rasterData->setInterval(Qt::ZAxis, QwtInterval(0, vecVal) );
-                    autoscaleValueUpdated = vecVal;
+                UAVObjectField* field = obj->getField(uavFieldName);
+                int numElements = field->getNumElements();
+                
+                // Check if the instance has a scale field
+                double scale = 1;
+                QList<UAVObjectField*> fieldList = obj->getFields();
+                foreach (UAVObjectField* field, fieldList) {
+                    if(field->getType() == UAVObjectField::FLOAT32 && field->getName() == "scale"){
+                        scale = field->getValue().toDouble();
+                    }
                 }
-                // Last step, assign value to vector
-                values += vecVal;
+
+                for(int i=0; i<numElements; i++){
+                    double currentValue = field->getValue(i).toDouble() / scale;  // Get the value and scale it
+
+                    //Normally some math would go here, modifying currentValue before appending it to values
+                    // .
+                    // .
+                    // .
+
+                    // Last step, assign value to vector
+                    values += currentValue;
+                }
+            }
+
+            // Check if the FFT needs to be calculated
+            if (mathFunction == "FFT") {
+                // Check if the fft_object was already created
+                // May happen if settings change after the spectrogram was created
+                if (fft_object == NULL) {
+                    fft_object = new ffft::FFTReal<double>(windowWidth * 2);
+                }
+
+                QVector<double> fftout(windowWidth * 2);
+                fft_object->do_fft(&fftout[0], values.data());
+                fftout.resize(windowWidth);
+                values.clear();
+                values << fftout;
+            }
+            
+            for (unsigned int i=0; i<windowWidth; i++) {
+                 // See if autoscale is turned on and if the value exceeds the maximum for the scope.
+                if ( zMaximum == 0 &&  values[i] > rasterData->interval(Qt::ZAxis).maxValue()){
+                    // Change scope maximum and color depth
+                    rasterData->setInterval(Qt::ZAxis, QwtInterval(0, values[i]) );
+                    autoscaleValueUpdated = values[i];
+                }
             }
 
             while (timeDataHistory->back() - timeDataHistory->front() > timeHorizon){
                 timeDataHistory->pop_front();
-                zDataHistory->remove(0, fminl(spectrogramWidth, zDataHistory->size()));
+                zDataHistory->remove(0, fminl(windowWidth, zDataHistory->size()));
             }
-
-            // Doublecheck that there are the right number of samples. This can occur if the "field" assert fails
-            if(values.size() == (int) windowWidth){
-                *zDataHistory << values;
-            }
+            
+            *zDataHistory << values;
 
             return true;
         }
