@@ -172,7 +172,7 @@ bool SpectrogramData::append(UAVObject* multiObj)
         // Check that there is a full window worth of data. While GCS is starting up, the size of
         // multiple instance UAVOs is 1, so it's possible for spurious data to come in before
         // the flight controller board has had time to initialize the UAVO size.
-        if (spectrogramWidth != windowWidth){
+        if ( ((unsigned int) spectrogramWidth) != windowWidth){
             qDebug() << "Different data set in" << multiObj->getName() << "." << uavFieldName <<  "spectrogram: " << spectrogramWidth << " samples provided, but expected " << windowWidth;
             windowWidth = spectrogramWidth;
 
