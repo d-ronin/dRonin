@@ -201,10 +201,20 @@ bool SpectrogramData::append(UAVObject* multiObj)
             foreach (UAVObject *obj, list) {
                 UAVObjectField* field = obj->getField(uavFieldName);
                 int numElements = field->getNumElements();
+                
+                // Check if the instance has a scale field
+                double scale = 1;
+                QList<UAVObjectField*> fieldList = obj->getFields();
+                foreach (UAVObjectField* field, fieldList) {
+                    if(field->getType() == UAVObjectField::FLOAT32 && field->getName() == "scale"){
+                        scale = field->getValue().toDouble();
+                    }
+                }
 
                 for(int i=0; i<numElements; i++){
-                    double currentValue = field->getValue(i).toDouble();
-                    //Normally some math would go here, modifying vecVal before appending it to values
+                    double currentValue = field->getValue(i).toDouble() / scale;  // Get the value and scale it
+
+                    //Normally some math would go here, modifying currentValue before appending it to values
                     // .
                     // .
                     // .
@@ -214,7 +224,14 @@ bool SpectrogramData::append(UAVObject* multiObj)
                 }
             }
 
+            // Check if the FFT needs to be calculated
             if (mathFunction == "FFT") {
+                // Check if the fft_object was already created
+                // May happen if settings change after the spectrogram was created
+                if (fft_object == NULL) {
+                    fft_object = new ffft::FFTReal<double>(windowWidth * 2);
+                }
+
                 QVector<double> fftout(windowWidth * 2);
                 fft_object->do_fft(&fftout[0], values.data());
                 fftout.resize(windowWidth);

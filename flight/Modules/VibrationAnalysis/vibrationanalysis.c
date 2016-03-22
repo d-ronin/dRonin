@@ -63,6 +63,7 @@
 
 #define MAX_ACCEL_RANGE 16                          // Maximum accelerometer resolution in [g]
 #define FLOAT_TO_Q15 (32768/(MAX_ACCEL_RANGE*GRAVITY)) // This is the scaling constant that scales all input floats to +-
+#define VIBRATION_ELEMENTS_COUNT 16  // Number of elements per object Instance
 
 // Private variables
 static struct pios_thread *taskHandle;
@@ -72,6 +73,7 @@ static bool module_enabled = false;
 static struct VibrationAnalysis_data {
 	uint16_t accels_sum_count;
 	uint16_t window_size;
+	uint16_t instances;
 
 	float accels_data_sum_x;
 	float accels_data_sum_y;
@@ -81,9 +83,9 @@ static struct VibrationAnalysis_data {
 	float accels_static_bias_y; // (0,0,-g). In the case where they are not, this will still  
 	float accels_static_bias_z; // converge to the true bias in a few thousand measurements.	
 	
-	int16_t *accel_buffer_complex_x_q15;
-	int16_t *accel_buffer_complex_y_q15;
-	int16_t *accel_buffer_complex_z_q15;
+	int16_t *accel_buffer_x_q15;
+	int16_t *accel_buffer_y_q15;
+	int16_t *accel_buffer_z_q15;
 } *vtd;
 
 
@@ -101,6 +103,8 @@ static int32_t VibrationAnalysisStart(void)
 
 	//Get the window size
 	uint16_t window_size; // Make a local copy in order to check settings before allocating memory
+	uint16_t instances = 0;
+
 	VibrationAnalysisSettingsFFTWindowSizeOptions window_size_enum;
 	VibrationAnalysisSettingsFFTWindowSizeGet(&window_size_enum);
 	switch (window_size_enum) {
@@ -124,10 +128,11 @@ static int32_t VibrationAnalysisStart(void)
 	}
 	
 
+	instances = window_size / VIBRATION_ELEMENTS_COUNT;
 	// Create instances for vibration analysis. Start from i=1 because the first instance is generated
 	// by VibrationAnalysisOutputInitialize(). Generate three times the length because there are three
 	// vectors. Each instance will get 16 sample values.
-	for (int i=1; i < window_size/16; i++) {
+	for (int i=1; i < instances; i++) {
 		uint16_t ret = VibrationAnalysisOutputCreateInstance();
 		if (ret == 0) {
 			// This fails when it's a metaobject. Not a very helpful test.
@@ -136,7 +141,7 @@ static int32_t VibrationAnalysisStart(void)
 		}
 	}
 	
-	if (VibrationAnalysisOutputGetNumInstances() != window_size/16){
+	if (VibrationAnalysisOutputGetNumInstances() != instances){
 		// This is a more useful test for failure.
 		module_enabled = false;
 		return -1;
@@ -153,24 +158,25 @@ static int32_t VibrationAnalysisStart(void)
 	// make sure that all struct values are zeroed...
 	memset(vtd, 0, sizeof(struct VibrationAnalysis_data));
 	//... except for Z axis static bias
-	vtd->accels_static_bias_z=-GRAVITY; // [See note in definition of VibrationAnalysis_data structure]
+	vtd->accels_static_bias_z -= GRAVITY; // [See note in definition of VibrationAnalysis_data structure]
 
 	// Now place the window size into the buffer
 	vtd->window_size = window_size;
+	vtd->instances = instances;
 	
-	//Create the buffers. They are in Q15 format.
-	vtd->accel_buffer_complex_x_q15 = (int16_t *) PIOS_malloc(window_size*sizeof(typeof(*vtd->accel_buffer_complex_x_q15)));
-	if (vtd->accel_buffer_complex_x_q15 == NULL) {
+	//Create the buffers.
+	vtd->accel_buffer_x_q15 = (int16_t *) PIOS_malloc(window_size*sizeof(typeof(*vtd->accel_buffer_x_q15)));
+	if (vtd->accel_buffer_x_q15 == NULL) {
 		module_enabled = false; //Check if allocation succeeded
 		return -1;
 	}
-	vtd->accel_buffer_complex_y_q15 = (int16_t *) PIOS_malloc(window_size*sizeof(typeof(*vtd->accel_buffer_complex_y_q15)));
-	if (vtd->accel_buffer_complex_y_q15 == NULL) {
+	vtd->accel_buffer_y_q15 = (int16_t *) PIOS_malloc(window_size*sizeof(typeof(*vtd->accel_buffer_y_q15)));
+	if (vtd->accel_buffer_y_q15 == NULL) {
 		module_enabled = false; //Check if allocation succeeded
 		return -1;
 	}
-	vtd->accel_buffer_complex_z_q15 = (int16_t *) PIOS_malloc(window_size*sizeof(typeof(*vtd->accel_buffer_complex_z_q15)));
-	if (vtd->accel_buffer_complex_z_q15 == NULL) {
+	vtd->accel_buffer_z_q15 = (int16_t *) PIOS_malloc(window_size*sizeof(typeof(*vtd->accel_buffer_z_q15)));
+	if (vtd->accel_buffer_z_q15 == NULL) {
 		module_enabled = false; //Check if allocation succeeded
 		return -1;
 	}
@@ -297,11 +303,10 @@ static void VibrationAnalysisTask(void *parameters)
 		vtd->accels_static_bias_y = alpha*accels_avg_y + (1-alpha)*vtd->accels_static_bias_y;
 		vtd->accels_static_bias_z = alpha*accels_avg_z + (1-alpha)*vtd->accels_static_bias_z;
 		
-		// Add averaged values to the buffer, and remove DC bias. Only add real component, the
-		// complex component was already set to zero by a memset operation
-		vtd->accel_buffer_complex_x_q15[sample_count] = (accels_avg_x - vtd->accels_static_bias_x)*FLOAT_TO_Q15 + 0.5f; // Extra +0.5 rounds value when casting to int
-		vtd->accel_buffer_complex_y_q15[sample_count] = (accels_avg_y - vtd->accels_static_bias_y)*FLOAT_TO_Q15 + 0.5f; // Extra +0.5 rounds value when casting to int
-		vtd->accel_buffer_complex_z_q15[sample_count] = (accels_avg_z - vtd->accels_static_bias_z)*FLOAT_TO_Q15 + 0.5f; // Extra +0.5 rounds value when casting to int
+		// Add averaged values to the buffer, and remove DC bias.
+		vtd->accel_buffer_x_q15[sample_count] = (accels_avg_x - vtd->accels_static_bias_x)*FLOAT_TO_Q15 + 0.5f; // Extra +0.5 rounds value when casting to int
+		vtd->accel_buffer_y_q15[sample_count] = (accels_avg_y - vtd->accels_static_bias_y)*FLOAT_TO_Q15 + 0.5f; // Extra +0.5 rounds value when casting to int
+		vtd->accel_buffer_z_q15[sample_count] = (accels_avg_z - vtd->accels_static_bias_z)*FLOAT_TO_Q15 + 0.5f; // Extra +0.5 rounds value when casting to int
 		
 		//Reset the accumulators
 		vtd->accels_data_sum_x = 0;
@@ -318,20 +323,21 @@ static void VibrationAnalysisTask(void *parameters)
 			//Reset sample count
 			sample_count = 0;
 			//Write output to UAVO
-			for (int j=0; j<vtd->window_size/16; j++) {
-				for (int k = 0; k<16; k++) {					
-					vibrationAnalysisOutputData.x[k] = vtd->accel_buffer_complex_x_q15[j*k]/FLOAT_TO_Q15;
-					vibrationAnalysisOutputData.y[k] = vtd->accel_buffer_complex_y_q15[j*k]/FLOAT_TO_Q15;
-					vibrationAnalysisOutputData.z[k] = vtd->accel_buffer_complex_z_q15[j*k]/FLOAT_TO_Q15;
+			for (int j=0; j<vtd->instances; j++) {
+				vibrationAnalysisOutputData.scale = FLOAT_TO_Q15;
+				for (int k=0; k<VIBRATION_ELEMENTS_COUNT; k++) {					
+					vibrationAnalysisOutputData.x[k] = vtd->accel_buffer_x_q15[j*k];
+					vibrationAnalysisOutputData.y[k] = vtd->accel_buffer_y_q15[j*k];
+					vibrationAnalysisOutputData.z[k] = vtd->accel_buffer_z_q15[j*k];
 				}
 				VibrationAnalysisOutputInstSet(j, &vibrationAnalysisOutputData);
 			}
 
 
 			// Erase buffer, which has the effect of setting the complex part to 0.
-			memset(vtd->accel_buffer_complex_x_q15, 0, vtd->window_size*sizeof(typeof(*(vtd->accel_buffer_complex_x_q15))));
-			memset(vtd->accel_buffer_complex_y_q15, 0, vtd->window_size*sizeof(typeof(*(vtd->accel_buffer_complex_y_q15))));
-			memset(vtd->accel_buffer_complex_z_q15, 0, vtd->window_size*sizeof(typeof(*(vtd->accel_buffer_complex_z_q15))));
+			memset(vtd->accel_buffer_x_q15, 0, vtd->window_size*sizeof(typeof(*(vtd->accel_buffer_x_q15))));
+			memset(vtd->accel_buffer_y_q15, 0, vtd->window_size*sizeof(typeof(*(vtd->accel_buffer_y_q15))));
+			memset(vtd->accel_buffer_z_q15, 0, vtd->window_size*sizeof(typeof(*(vtd->accel_buffer_z_q15))));
 		}
 	}
 }
