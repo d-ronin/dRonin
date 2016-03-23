@@ -1052,7 +1052,6 @@ void UploaderGadgetWidget::doUpgradeOperation()
      * an outdated rev in a developer environment we don't immediately bop
      * up the message */
     ignoredRev = m_widget->gitHashOD_lbl->text();
-    qDebug() << ignoredRev;
 
     stepChangeAndDelay(loop, 400, UpgradeAssistantDialog::STEP_BOOT);
 
@@ -1072,21 +1071,39 @@ void UploaderGadgetWidget::doUpgradeOperation()
 
     dfu.JumpToApp(false);
     dfu.CloseBootloaderComs();
+    setUploaderStatus(uploader::DISCONNECTED);
 
-    timeout.start(25000);
+    for (int tries = 0; tries < 2; tries++) {
+        timeout.start(25000);
 
-    loop.exec();
+        if (!firmwareConnected) {
+            loop.exec();
+        }
 
-    if (aborted) {
-        upgradeError(tr("Aborted!"));
+        timeout.stop();
 
-        return;
-    }
+        if (aborted) {
+            upgradeError(tr("Aborted!"));
 
-    if (!firmwareConnected) {
-        upgradeError(tr("Unable to connect to new firmware!"));
+            return;
+        }
 
-        return;
+        if (!firmwareConnected) {
+            if (tries == 0) {
+                QMessageBox::warning(this,
+                        tr("Unable to automatically reset board"),
+                        tr("GCS was unable to automatically reset the flight "
+                            "controller.  Please detach the board from USB "
+                            "and all other power, click 'OK' and then plug "
+                            "it back in."));
+            } else {
+                upgradeError(tr("Unable to connect to new firmware!"));
+
+                return;
+            }
+        } else {
+            break;
+        }
     }
 
     stepChangeAndDelay(loop, 400, UpgradeAssistantDialog::STEP_IMPORT);
