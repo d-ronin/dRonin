@@ -336,10 +336,9 @@ static void AttitudeTask(void *parameters)
 		           (stateEstimation.AttitudeFilter == STATEESTIMATION_ATTITUDEFILTER_INSINDOOR) ||
 		           (stateEstimation.NavigationFilter == STATEESTIMATION_NAVIGATIONFILTER_INS);
 
-		// INS outdoor mode when used for navigation OR explicit outdoor mode
+		// INS outdoor mode when used for navigation OR explicit outdoor attitude
 		bool outdoor = (stateEstimation.AttitudeFilter == STATEESTIMATION_ATTITUDEFILTER_INSOUTDOOR) ||
-		               ((stateEstimation.AttitudeFilter == STATEESTIMATION_ATTITUDEFILTER_COMPLEMENTARY) &&
-		                (stateEstimation.NavigationFilter == STATEESTIMATION_NAVIGATIONFILTER_INS));
+		                (stateEstimation.NavigationFilter == STATEESTIMATION_NAVIGATIONFILTER_INS);
 
 		// Complementary filter only needed when used for attitude
 		bool complementary = stateEstimation.AttitudeFilter == STATEESTIMATION_ATTITUDEFILTER_COMPLEMENTARY;
