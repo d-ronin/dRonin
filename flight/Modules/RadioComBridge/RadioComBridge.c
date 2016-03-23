@@ -158,7 +158,6 @@ static int32_t RadioComBridgeStart(void)
 
 		// Watchdog must be registered before starting tasks
 #ifdef PIOS_INCLUDE_WDG
-		PIOS_WDG_RegisterFlag(PIOS_WDG_TELEMETRYTX);
 		PIOS_WDG_RegisterFlag(PIOS_WDG_TELEMETRYRX);
 		PIOS_WDG_RegisterFlag(PIOS_WDG_RADIOTX);
 		PIOS_WDG_RegisterFlag(PIOS_WDG_RADIORX);
