@@ -77,8 +77,8 @@
 		<field name="MaxRfSpeed" units="bps" type="enum" elements="1" parent="HwShared.MaxRfSpeed" defaultvalue="64000"/>
 		<field name="MaxRfPower" units="mW" type="enum" elements="1" parent="HwShared.MaxRfPower"  defaultvalue="1.25"/>
 		<field name="RfBand" units="MHz" type="enum" elements="1" parent="HwShared.RfBand" defaultvalue="BoardDefault"/>
-		<field name="MinChannel" units="" type="uint8" elements="1" defaultvalue="0"/>
-		<field name="MaxChannel" units="" type="uint8" elements="1" defaultvalue="250"/>
+		<field name="MinChannel" units="" type="uint8" elements="1" defaultvalue="0" limits="%BE:0:250"/>
+		<field name="MaxChannel" units="" type="uint8" elements="1" defaultvalue="250" limits="%BE:0:250"/>
 
 		<field name="GyroRange" units="deg/s" type="enum" elements="1" options="250,500,1000,2000" defaultvalue="2000"/>
 		<field name="AccelRange" units="*gravity m/s^2" type="enum" elements="1" options="2G,4G,8G,16G" defaultvalue="8G"/>
