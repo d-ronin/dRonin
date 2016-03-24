@@ -31,9 +31,11 @@
 #include <coreplugin/icore.h>
 #include <QtCore/QtPlugin>
 #include <QtCore/QMutexLocker>
+#include <QThread>
 #include <QDebug>
 
 #include "rawhid_const.h"
+#include "usbsignalfilter.h"
 
 
 // **********************************************************************
@@ -47,16 +49,18 @@ RawHIDConnection::RawHIDConnection()
 
     m_usbMonitor = USBMonitor::instance();
 
-    connect(m_usbMonitor, SIGNAL(deviceDiscovered(USBPortInfo)), this, SLOT(onDeviceConnected()));
-    connect(m_usbMonitor, SIGNAL(deviceRemoved(USBPortInfo)), this, SLOT(onDeviceDisconnected()));
-
+    m_signalFilter = new USBSignalFilter(-1, -1, -1, USBMonitor::Running);
+    connect(m_signalFilter, SIGNAL(deviceDiscovered()), this, SLOT(onDeviceConnected()));
+    connect(m_signalFilter, SIGNAL(deviceRemoved()), this, SLOT(onDeviceDisconnected()));
 }
 
 RawHIDConnection::~RawHIDConnection()
 {
-	if (RawHidHandle)
-            if (RawHidHandle->isOpen())
-                RawHidHandle->close();
+    if (RawHidHandle)
+        if (RawHidHandle->isOpen())
+            RawHidHandle->close();
+
+    delete m_signalFilter;
 }
 
 /**
@@ -93,7 +97,7 @@ QList < Core::IDevice*> RawHIDConnection::availableDevices()
         RAW_HID_QXTLOG_DEBUG("[rawhidplugin] VendorID type known: ", vendorID);
         portsList = m_usbMonitor->availableDevices(vendorID, -1, -1,USBMonitor::Running);
         // We currently list devices by their serial number        
-        USBDevice* dev = new USBDevice();
+        USBDevice *dev = new USBDevice();
         foreach(USBPortInfo prt, portsList) {
             dev->setName(prt.serialNumber);
             dev->setDisplayName(prt.product);
@@ -168,8 +172,12 @@ RawHIDPlugin::RawHIDPlugin()
 
 RawHIDPlugin::~RawHIDPlugin()
 {
-    m_usbMonitor->quit();
-    m_usbMonitor->wait(500);
+    QThread *q = dynamic_cast<QThread *>(m_usbMonitor);
+
+    if (q != NULL) {
+        q->quit();
+        q->wait(500);
+    }
 
 }
 
@@ -180,7 +188,7 @@ void RawHIDPlugin::extensionsInitialized()
 
 }
 
-bool RawHIDPlugin::initialize(const QStringList & arguments, QString * errorString)
+bool RawHIDPlugin::initialize(const QStringList &arguments, QString *errorString)
 {
     Q_UNUSED(arguments);
     Q_UNUSED(errorString);
@@ -190,5 +198,3 @@ bool RawHIDPlugin::initialize(const QStringList & arguments, QString * errorStri
 
     return true;
 }
-
-// **********************************************************************

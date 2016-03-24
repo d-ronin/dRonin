@@ -31,6 +31,7 @@
 #include "rawhid_global.h"
 #include "rawhid.h"
 #include "usbmonitor.h"
+#include "usbsignalfilter.h"
 #include "extensionsystem/pluginmanager.h"
 #include "coreplugin/iconnection.h"
 #include "coreplugin/iboardtype.h"
@@ -42,7 +43,6 @@
 
 class IConnection;
 class RawHIDConnection;
-
 
 /**
 *   Define a connection via the IConnection interface
@@ -75,11 +75,8 @@ protected slots:
 private:
     RawHID *RawHidHandle;
     bool enablePolling;
-
-protected:
-    QMutex m_enumMutex;
-    USBMonitor* m_usbMonitor;
-    bool m_deviceOpened;
+    USBMonitor *m_usbMonitor;
+    USBSignalFilter *m_signalFilter;
 };
 
 class RAWHID_EXPORT RawHIDPlugin
@@ -96,7 +93,7 @@ public:
     virtual void extensionsInitialized();
 private:
     RawHIDConnection *hidConnection;
-    USBMonitor* m_usbMonitor;
+    USBMonitor *m_usbMonitor;
 
 };
 

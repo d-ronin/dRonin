@@ -50,7 +50,7 @@
 #include "actuatorsettings.h"
 #include "systemalarms.h"
 #include "systemsettings.h"
-#include "uavsettingsimportexport/uavsettingsimportexportfactory.h"
+#include "uavsettingsimportexport/uavsettingsimportexportmanager.h"
 #include <extensionsystem/pluginmanager.h>
 #include <coreplugin/generalsettings.h>
 #include <coreplugin/modemanager.h>
@@ -68,7 +68,7 @@ ConfigOutputWidget::ConfigOutputWidget(QWidget *parent) : ConfigTaskWidget(paren
     /* There's lots of situations where it's unsafe to run tests.
      * Import/export:
      */
-    UAVSettingsImportExportFactory * importexportplugin =  pm->getObject<UAVSettingsImportExportFactory>();
+    UAVSettingsImportExportManager * importexportplugin =  pm->getObject<UAVSettingsImportExportManager>();
     connect(importexportplugin,SIGNAL(importAboutToBegin()),this,SLOT(stopTests()));
 
     /* Board connection/disconnection: */

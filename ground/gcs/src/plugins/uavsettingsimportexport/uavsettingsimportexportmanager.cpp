@@ -1,9 +1,10 @@
 /**
  ******************************************************************************
  *
- * @file       uavsettingsimportexportfactory.cpp
+ * @file       uavsettingsimportexportmanager.cpp
  * @author     (C) 2011 The OpenPilot Team, http://www.openpilot.org
  * @author     Tau Labs, http://taulabs.org, Copyright (C) 2014
+ * @author     dRonin, http://dRonin.org/, Copyright (C) 2016
  * @addtogroup GCSPlugins GCS Plugins
  * @{
  * @addtogroup UAVSettingsImportExport UAVSettings Import/Export Plugin
@@ -24,9 +25,13 @@
  * You should have received a copy of the GNU General Public License along
  * with this program; if not, write to the Free Software Foundation, Inc.,
  * 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
+ *
+ * Additional note on redistribution: The copyright and license notices above
+ * must be maintained in each individual source file that is a derivative work
+ * of this source file; otherwise redistribution is prohibited.
  */
 
-#include "uavsettingsimportexportfactory.h"
+#include "uavsettingsimportexportmanager.h"
 #include <QtPlugin>
 #include <QStringList>
 #include <QDebug>
@@ -52,12 +57,12 @@
 #include <QFileDialog>
 #include <QMessageBox>
 
-UAVSettingsImportExportFactory::~UAVSettingsImportExportFactory()
+UAVSettingsImportExportManager::~UAVSettingsImportExportManager()
 {
     // Do nothing
 }
 
-UAVSettingsImportExportFactory::UAVSettingsImportExportFactory(QObject *parent):QObject(parent)
+UAVSettingsImportExportManager::UAVSettingsImportExportManager(QObject *parent):QObject(parent)
 {
 
     // Add Menu entry
@@ -92,35 +97,22 @@ UAVSettingsImportExportFactory::UAVSettingsImportExportFactory(QObject *parent):
 
 }
 
-// Slot called by the menu manager on user action
-void UAVSettingsImportExportFactory::importUAVSettings()
+bool UAVSettingsImportExportManager::importUAVSettings(const QByteArray &settings)
 {
-    // ask for file name
-    QString fileName;
-    QString filters = tr("UAVObjects XML files (*.uav);; XML files (*.xml)");
-    fileName = QFileDialog::getOpenFileName(0, tr("Import UAV Settings"), "", filters);
-    if (fileName.isEmpty()) {
-        return;
-    }
-
-    // Now open the file
-    QFile file(fileName);
     QDomDocument doc("UAVObjects");
-    file.open(QFile::ReadOnly|QFile::Text);
-    if (!doc.setContent(file.readAll())) {
+
+    if (!doc.setContent(settings)) {
         QMessageBox msgBox;
         msgBox.setText(tr("File Parsing Failed."));
         msgBox.setInformativeText(tr("This file is not a correct XML file"));
         msgBox.setStandardButtons(QMessageBox::Ok);
         msgBox.exec();
-        return;
+        return false;
     }
-    file.close();
-
-    // find the root of settings subtree
     emit importAboutToBegin();
     qDebug()<<"Import about to begin";
 
+    // find the root of settings subtree
     QDomElement root = doc.documentElement();
     if (root.tagName() == "uavobjects") {
         root = root.firstChildElement("settings");
@@ -131,7 +123,7 @@ void UAVSettingsImportExportFactory::importUAVSettings()
         msgBox.setInformativeText(tr("This file does not contain correct UAVSettings"));
         msgBox.setStandardButtons(QMessageBox::Ok);
         msgBox.exec();
-        return;
+        return false;
     }
 
     // We are now ok: setup the import summary dialog & update it as we
@@ -221,13 +213,45 @@ void UAVSettingsImportExportFactory::importUAVSettings()
         node = node.nextSibling();
     }
     qDebug() << "End import";
+
+    if (swui.numLines() < 1) {
+        QMessageBox::critical(0,
+                              tr("Unable to import settings"),
+                              tr("No settings found in XML dump"),
+                              QMessageBox::Ok);
+        return false;
+    }
+
     swui.setUAVOSettings(importedObjectManager);
     swui.exec();
+
+    return swui.result() == QDialog::Accepted;
+}
+
+// Slot called by the menu manager on user action
+void UAVSettingsImportExportManager::importUAVSettings()
+{
+    // ask for file name
+    QString fileName;
+    QString filters = tr("UAVObjects XML files (*.uav);; XML files (*.xml)");
+    fileName = QFileDialog::getOpenFileName(0, tr("Import UAV Settings"), "", filters);
+    if (fileName.isEmpty()) {
+        return;
+    }
+
+    // Now open the file
+    QFile file(fileName);
+    QDomDocument doc("UAVObjects");
+    file.open(QFile::ReadOnly|QFile::Text);
+
+    importUAVSettings(file.readAll());
+
+    file.close();
 }
 
 
 // Create an XML document from UAVObject database
-QString UAVSettingsImportExportFactory::createXMLDocument(const enum storedData what, const bool fullExport)
+QString UAVSettingsImportExportManager::createXMLDocument(const enum storedData what, const bool fullExport)
 {
     // generate an XML first (used for all export formats as a formatted data source)
     ExtensionSystem::PluginManager *pm = ExtensionSystem::PluginManager::instance();
@@ -419,7 +443,7 @@ QString UAVSettingsImportExportFactory::createXMLDocument(const enum storedData 
 }
 
 // Slot called by the menu manager on user action
-void UAVSettingsImportExportFactory::exportUAVSettings()
+void UAVSettingsImportExportManager::exportUAVSettings()
 {
     // ask for file name
     QString fileName;
@@ -461,7 +485,7 @@ void UAVSettingsImportExportFactory::exportUAVSettings()
 }
 
 // Slot called by the menu manager on user action
-void UAVSettingsImportExportFactory::exportUAVData()
+void UAVSettingsImportExportManager::exportUAVData()
 {
     if (QMessageBox::question(0, tr("Are you sure?"),
                               tr("This option is only useful for passing your current "

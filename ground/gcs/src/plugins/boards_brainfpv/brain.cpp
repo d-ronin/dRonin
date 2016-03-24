@@ -85,10 +85,10 @@ bool Brain::queryCapabilities(BoardCapabilities capability)
         return true;
     case BOARD_CAPABILITIES_BAROS:
         return true;
-    case BOARD_CAPABILITIES_RADIO:
-        return false;
     case BOARD_CAPABILITIES_OSD:
         return true;
+    default:
+        return false;
     }
     return false;
 }

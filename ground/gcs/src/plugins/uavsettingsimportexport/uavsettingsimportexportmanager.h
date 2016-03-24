@@ -1,8 +1,9 @@
 /**
  ******************************************************************************
  *
- * @file       uavsettingsimportexportfactory.h
+ * @file       uavsettingsimportexportmanager.h
  * @author     (C) 2011 The OpenPilot Team, http://www.openpilot.org
+ * @author     dRonin, http://dRonin.org/, Copyright (C) 2016
  * @addtogroup GCSPlugins GCS Plugins
  * @{
  * @addtogroup UAVSettingsImportExport UAVSettings Import/Export Plugin
@@ -23,6 +24,10 @@
  * You should have received a copy of the GNU General Public License along
  * with this program; if not, write to the Free Software Foundation, Inc.,
  * 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
+ *
+ * Additional note on redistribution: The copyright and license notices above
+ * must be maintained in each individual source file that is a derivative work
+ * of this source file; otherwise redistribution is prohibited.
  */
 #ifndef UAVSETTINGSIMPORTEXPORTFACTORY_H
 #define UAVSETTINGSIMPORTEXPORTFACTORY_H
@@ -32,23 +37,25 @@
 
 class QDomNode;
 
-class UAVSETTINGSIMPORTEXPORT_EXPORT UAVSettingsImportExportFactory : public QObject
+class UAVSETTINGSIMPORTEXPORT_EXPORT UAVSettingsImportExportManager : public QObject
 {
     Q_OBJECT
 
 public:
-    UAVSettingsImportExportFactory(QObject *parent = 0);
-    ~UAVSettingsImportExportFactory();
+    UAVSettingsImportExportManager(QObject *parent = 0);
+    ~UAVSettingsImportExportManager();
     static bool updateObject(UAVObject *obj, QDomNode * node);
+
+    bool importUAVSettings(const QByteArray &settings);
+
+public slots:
+    void importUAVSettings();
+    void exportUAVSettings();
+    void exportUAVData();
 
 private:
     enum storedData { Settings, Data, Both };
     QString createXMLDocument(const enum storedData, const bool fullExport);
-
-private slots:
-    void importUAVSettings();
-    void exportUAVSettings();
-    void exportUAVData();
 
 signals:
     void importAboutToBegin();

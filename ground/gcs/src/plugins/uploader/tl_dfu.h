@@ -124,7 +124,7 @@ private:
     // Helper functions:
     QString StatusToString(tl_dfu::Status  const & status);
     static quint32 CRC32WideFast(quint32 Crc, quint32 Size, quint32 *Buffer);
-    void CopyWords(char * source, char* destination, int count);
+    void CopyWords(char *source, char *destination, int count);
     messagePackets CalculatePadding(quint32 numberOfBytes);
 
     // Service commands:
@@ -135,11 +135,11 @@ private:
 
     // USB coms:
     int SendData(bl_messages);
-    int ReceiveData(bl_messages &data);
+    int ReceiveData(bl_messages &data, int timeoutMS = 10000);
     hid_device *m_hidHandle;
 
     bool StartUpload(qint32  const &numberOfBytes, const dfu_partition_label &label, quint32 crc);
-    bool UploadData(qint32 const & numberOfPackets,QByteArray  & data);
+    bool UploadData(qint32 const &numberOfPackets, QByteArray  &data);
 
     typedef struct ThreadJobStruc
     {

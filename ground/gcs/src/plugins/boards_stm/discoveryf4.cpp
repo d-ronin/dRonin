@@ -63,20 +63,7 @@ QString DiscoveryF4::boardDescription()
 //! Return which capabilities this board has
 bool DiscoveryF4::queryCapabilities(BoardCapabilities capability)
 {
-    switch(capability) {
-    case BOARD_CAPABILITIES_GYROS:
-        return false;
-    case BOARD_CAPABILITIES_ACCELS:
-        return false;
-    case BOARD_CAPABILITIES_MAGS:
-        return false;
-    case BOARD_CAPABILITIES_BAROS:
-        return false;
-    case BOARD_CAPABILITIES_RADIO:
-        return false;
-    case BOARD_CAPABILITIES_OSD:
-        return false;
-    }
+    Q_UNUSED(capability);
     return false;
 }
 

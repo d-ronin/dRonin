@@ -99,7 +99,9 @@ endif
 	$(V1) tar -cvJf $(PACKAGE_DIR)/$(GCS_PACKAGE_NAME).tar.xz -C $(PACKAGE_DIR) $(GCS_PACKAGE_NAME)
 
 package_all_compress: package_all
-	$(V1) tar -cvJf $(BUILD_DIR)/dronin-$(PACKAGE_LBL).tar.xz --exclude='*.tar.xz' -C $(PACKAGE_DIR)/.. $(notdir $(PACKAGE_DIR))
+	$(V1)cd $(PACKAGE_DIR) && rm -rf $(GCS_PACKAGE_NAME)/firmware
+	$(V1)cd $(PACKAGE_DIR) && cp -r firmware_$(PACKAGE_LBL) $(GCS_PACKAGE_NAME)/firmware
+	$(V1) tar -cvJf $(BUILD_DIR)/dronin-$(PACKAGE_LBL).tar.xz --exclude='*.tar.xz' -C $(PACKAGE_DIR) $(GCS_PACKAGE_NAME)
 
 .PHONY: standalone installer_package deb_build $(DEB_BUILD_DIR)
 .PHONY: package_ground_compress

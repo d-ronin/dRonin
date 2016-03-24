@@ -115,6 +115,16 @@
       </widget>
      </item>
      <item>
+      <widget class="QPushButton" name="closeButton">
+       <property name="toolTip">
+        <string>Close this dialog without further changes</string>
+       </property>
+       <property name="text">
+        <string>Cancel</string>
+       </property>
+      </widget>
+     </item>
+     <item>
       <widget class="QPushButton" name="btnSaveToFlash">
        <property name="toolTip">
         <string>Save all settings checked above to persistent board storage,
@@ -122,16 +132,6 @@ then close the dialog.</string>
        </property>
        <property name="text">
         <string>Save</string>
-       </property>
-      </widget>
-     </item>
-     <item>
-      <widget class="QPushButton" name="closeButton">
-       <property name="toolTip">
-        <string>Close this dialog without further changes</string>
-       </property>
-       <property name="text">
-        <string>Close</string>
        </property>
       </widget>
      </item>

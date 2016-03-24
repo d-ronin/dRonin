@@ -38,7 +38,9 @@
 #include <pios_openlrs_rcvr_priv.h>
 #include <pios_rfm22b_rcvr_priv.h>
 #include <pios_hsum_priv.h>
+
 #include <pios_modules.h>
+#include <pios_sys.h>
 
 #include <manualcontrolsettings.h>
 
@@ -203,14 +205,14 @@ uintptr_t pios_com_debug_id;
  * @param[in] code Number of blinks to do in a row
  */
 void PIOS_HAL_Panic(uint32_t led_id, enum pios_hal_panic code) {
-	while (1) {
+	for (int cnt = 0; cnt < 3; cnt++) {
 		for (int32_t i = 0; i < code; i++) {
 			PIOS_WDG_Clear();
 			PIOS_LED_Toggle(led_id);
-			PIOS_DELAY_WaitmS(200);
+			PIOS_DELAY_WaitmS(175);
 			PIOS_WDG_Clear();
 			PIOS_LED_Toggle(led_id);
-			PIOS_DELAY_WaitmS(200);
+			PIOS_DELAY_WaitmS(175);
 		}
 		PIOS_DELAY_WaitmS(200);
 		PIOS_WDG_Clear();
@@ -219,6 +221,8 @@ void PIOS_HAL_Panic(uint32_t led_id, enum pios_hal_panic code) {
 		PIOS_DELAY_WaitmS(100);
 		PIOS_WDG_Clear();
 	}
+
+	PIOS_SYS_Reset();
 }
 
 /**
