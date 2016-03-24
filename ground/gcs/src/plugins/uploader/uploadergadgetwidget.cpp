@@ -1362,8 +1362,14 @@ void UploaderGadgetWidget::onBootloaderDetected()
         }
 
         if (triggerUpgrading) {
-            doUpgradeOperation();
-            return;
+            if (currentBoard.board) {
+                bool canBeUpgraded = currentBoard.board->queryCapabilities(Core::IBoardType::BOARD_CAPABILITIES_UPGRADEABLE);
+
+                if (canBeUpgraded) {
+                    doUpgradeOperation();
+                    return;
+                }
+            }
         }
 
         emit enteredLoader();
