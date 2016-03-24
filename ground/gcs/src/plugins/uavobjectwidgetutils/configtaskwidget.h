@@ -137,6 +137,7 @@ public:
     bool addShadowWidget(QString object,QString field,QWidget * widget,int index=0,double scale=1,bool isLimited=false, QList<int> *defaultReloadGroups=NULL, quint32 instID=0);
 
     void autoLoadWidgets();
+    void loadAllLimits();
 
     bool isAutopilotConnected();
     bool isDirty();

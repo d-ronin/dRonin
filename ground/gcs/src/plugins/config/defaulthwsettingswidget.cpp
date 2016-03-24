@@ -92,7 +92,8 @@ DefaultHwSettingsWidget::DefaultHwSettingsWidget(UAVObject *settingsObj, QWidget
         objRelation.append(QString("objname:%1").arg(settingsObj->getName()));
         objRelation.append(QString("fieldname:%1").arg(fields[i]->getName()));
         objRelation.append(QString("buttongroup:1"));
-        // TODO: handle field limits
+        objRelation.append(QString("haslimits:yes"));
+
         wdg->setProperty("objrelation", objRelation);
 
         lbl = new QLabel(fields[i]->getName(), this);
@@ -100,6 +101,7 @@ DefaultHwSettingsWidget::DefaultHwSettingsWidget(UAVObject *settingsObj, QWidget
     }
 
     autoLoadWidgets();
+    loadAllLimits();
     populateWidgets();
     refreshWidgetsValues();
     enableControls(true);
