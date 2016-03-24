@@ -347,17 +347,16 @@ void PIOS_Board_Init(void)
 
 	/* Configure the IO ports */
 	
-	PIOS_HAL_ConfigurePort(HWSHARED_PORTTYPES_I2C,  // port type protocol
-	        NULL,                                   // usart_port_cfg
-	        NULL,                                   // com_driver
-	        &pios_i2c_internal_id,                  // i2c_id
-	        &pios_i2c_internal_cfg,                 // i2c_cfg 
-	        NULL,                                   // ppm_cfg
-	        NULL,                                   // pwm_cfg
-	        PIOS_LED_ALARM,                         // led_id
-	        NULL,                                   // dsm_cfg
-	        0,                                      // dsm_mode
-	        NULL);                                  // sbus_cfg
+#if defined(PIOS_INCLUDE_I2C)
+	if (PIOS_I2C_Init(&pios_i2c_internal_id, &pios_i2c_internal_cfg))
+		PIOS_DEBUG_Assert(0);
+
+	if (PIOS_I2C_CheckClear(pios_i2c_internal_id) != 0)
+		PIOS_HAL_Panic(PIOS_LED_ALARM, PIOS_HAL_PANIC_I2C_INT);
+	else
+		if (AlarmsGet(SYSTEMALARMS_ALARM_I2C) == SYSTEMALARMS_ALARM_UNINITIALISED)
+			AlarmsSet(SYSTEMALARMS_ALARM_I2C, SYSTEMALARMS_ALARM_OK);
+#endif  // PIOS_INCLUDE_I2C
 
 	HwSparkyDSMxModeOptions hw_DSMxMode;
 	HwSparkyDSMxModeGet(&hw_DSMxMode);
@@ -502,10 +501,10 @@ void PIOS_Board_Init(void)
 	{
 #endif /* PIOS_INCLUDE_MPU6050 */
 
-		uint8_t Magnetometer;
-		HwSparkyMagnetometerGet(&Magnetometer);
+		uint8_t magnetometer;
+		HwSparkyMagnetometerGet(&magnetometer);
 
-		if (Magnetometer == HWSPARKY_MAGNETOMETER_INTERNAL)
+		if (magnetometer == HWSPARKY_MAGNETOMETER_INTERNAL)
 			use_mpu_mag = true;
 		else
 			use_mpu_mag = false;
@@ -633,29 +632,29 @@ void PIOS_Board_Init(void)
 
 #if defined(PIOS_INCLUDE_HMC5883)
 	{
-		uint8_t Magnetometer;
-		HwSparkyMagnetometerGet(&Magnetometer);
+		uint8_t magnetometer;
+		HwSparkyMagnetometerGet(&magnetometer);
 
 		external_mag_fail = false;
 		
-		if (Magnetometer == HWSPARKY_MAGNETOMETER_EXTERNALI2CFLEXIPORT) {
+		if (magnetometer == HWSPARKY_MAGNETOMETER_EXTERNALI2CFLEXIPORT) {
 			if (PIOS_HMC5883_Init(pios_i2c_flexi_id, &pios_hmc5883_external_cfg) == 0) {
 				if (PIOS_HMC5883_Test() == 0) {
 					// External mag configuration was successful
 
 					// setup sensor orientation
-					uint8_t ExtMagOrientation;
-					HwSparkyExtMagOrientationGet(&ExtMagOrientation);
+					uint8_t ext_mag_orientation;
+					HwSparkyExtMagOrientationGet(&ext_mag_orientation);
 
 					enum pios_hmc5883_orientation hmc5883_externalOrientation = \
-						(ExtMagOrientation == HWSPARKY_EXTMAGORIENTATION_TOP0DEGCW)      ? PIOS_HMC5883_TOP_0DEG      : \
-						(ExtMagOrientation == HWSPARKY_EXTMAGORIENTATION_TOP90DEGCW)     ? PIOS_HMC5883_TOP_90DEG     : \
-						(ExtMagOrientation == HWSPARKY_EXTMAGORIENTATION_TOP180DEGCW)    ? PIOS_HMC5883_TOP_180DEG    : \
-						(ExtMagOrientation == HWSPARKY_EXTMAGORIENTATION_TOP270DEGCW)    ? PIOS_HMC5883_TOP_270DEG    : \
-						(ExtMagOrientation == HWSPARKY_EXTMAGORIENTATION_BOTTOM0DEGCW)   ? PIOS_HMC5883_BOTTOM_0DEG   : \
-						(ExtMagOrientation == HWSPARKY_EXTMAGORIENTATION_BOTTOM90DEGCW)  ? PIOS_HMC5883_BOTTOM_90DEG  : \
-						(ExtMagOrientation == HWSPARKY_EXTMAGORIENTATION_BOTTOM180DEGCW) ? PIOS_HMC5883_BOTTOM_180DEG : \
-						(ExtMagOrientation == HWSPARKY_EXTMAGORIENTATION_BOTTOM270DEGCW) ? PIOS_HMC5883_BOTTOM_270DEG : \
+						(ext_mag_orientation == HWSPARKY_EXTMAGORIENTATION_TOP0DEGCW)      ? PIOS_HMC5883_TOP_0DEG      : \
+						(ext_mag_orientation == HWSPARKY_EXTMAGORIENTATION_TOP90DEGCW)     ? PIOS_HMC5883_TOP_90DEG     : \
+						(ext_mag_orientation == HWSPARKY_EXTMAGORIENTATION_TOP180DEGCW)    ? PIOS_HMC5883_TOP_180DEG    : \
+						(ext_mag_orientation == HWSPARKY_EXTMAGORIENTATION_TOP270DEGCW)    ? PIOS_HMC5883_TOP_270DEG    : \
+						(ext_mag_orientation == HWSPARKY_EXTMAGORIENTATION_BOTTOM0DEGCW)   ? PIOS_HMC5883_BOTTOM_0DEG   : \
+						(ext_mag_orientation == HWSPARKY_EXTMAGORIENTATION_BOTTOM90DEGCW)  ? PIOS_HMC5883_BOTTOM_90DEG  : \
+						(ext_mag_orientation == HWSPARKY_EXTMAGORIENTATION_BOTTOM180DEGCW) ? PIOS_HMC5883_BOTTOM_180DEG : \
+						(ext_mag_orientation == HWSPARKY_EXTMAGORIENTATION_BOTTOM270DEGCW) ? PIOS_HMC5883_BOTTOM_270DEG : \
 						pios_hmc5883_external_cfg.Default_Orientation;
 					PIOS_HMC5883_SetOrientation(hmc5883_externalOrientation);
 				}

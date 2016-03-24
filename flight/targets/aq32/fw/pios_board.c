@@ -351,17 +351,16 @@ void PIOS_Board_Init(void) {
 
     /* Configure the IO ports */
 
-    PIOS_HAL_ConfigurePort(HWSHARED_PORTTYPES_I2C,  // port type protocol
-            NULL,                                   // usart_port_cfg
-            NULL,                                   // com_driver
-            &pios_i2c_internal_id,                  // i2c_id
-            &pios_i2c_internal_cfg,                 // i2c_cfg
-            NULL,                                   // ppm_cfg
-            NULL,                                   // pwm_cfg
-            PIOS_LED_ALARM,                         // led_id
-            NULL,                                   // dsm_cfg
-            0,                                      // dsm_mode
-            NULL);                                  // sbus_cfg
+#if defined(PIOS_INCLUDE_I2C)
+	if (PIOS_I2C_Init(&pios_i2c_internal_id, &pios_i2c_internal_cfg))
+		PIOS_DEBUG_Assert(0);
+
+	if (PIOS_I2C_CheckClear(pios_i2c_internal_id) != 0)
+		PIOS_HAL_Panic(PIOS_LED_ALARM, PIOS_HAL_PANIC_I2C_INT);
+	else
+		if (AlarmsGet(SYSTEMALARMS_ALARM_I2C) == SYSTEMALARMS_ALARM_UNINITIALISED)
+			AlarmsSet(SYSTEMALARMS_ALARM_I2C, SYSTEMALARMS_ALARM_OK);
+#endif  // PIOS_INCLUDE_I2C
 
     HwAQ32DSMxModeOptions hw_DSMxMode;
     HwAQ32DSMxModeGet(&hw_DSMxMode);
@@ -574,12 +573,12 @@ void PIOS_Board_Init(void) {
 #if defined(PIOS_INCLUDE_HMC5883)
     PIOS_WDG_Clear();
 
-    uint8_t Magnetometer;
-    HwAQ32MagnetometerGet(&Magnetometer);
+    uint8_t magnetometer;
+    HwAQ32MagnetometerGet(&magnetometer);
 
     external_mag_fail = false;
 
-    if (Magnetometer == HWAQ32_MAGNETOMETER_EXTERNAL)
+    if (magnetometer == HWAQ32_MAGNETOMETER_EXTERNAL)
     {
 		PIOS_HAL_ConfigurePort(HWSHARED_PORTTYPES_I2C,  // port type protocol
 				NULL,                                   // usart_port_cfg
@@ -598,18 +597,18 @@ void PIOS_Board_Init(void) {
                 // External mag configuration was successful
 
                 // setup sensor orientation
-                uint8_t ExtMagOrientation;
-                HwAQ32ExtMagOrientationGet(&ExtMagOrientation);
+                uint8_t ext_mag_orientation;
+                HwAQ32ExtMagOrientationGet(&ext_mag_orientation);
 
                 enum pios_hmc5883_orientation hmc5883_externalOrientation = \
-                    (ExtMagOrientation == HWAQ32_EXTMAGORIENTATION_TOP0DEGCW)      ? PIOS_HMC5883_TOP_0DEG      : \
-                    (ExtMagOrientation == HWAQ32_EXTMAGORIENTATION_TOP90DEGCW)     ? PIOS_HMC5883_TOP_90DEG     : \
-                    (ExtMagOrientation == HWAQ32_EXTMAGORIENTATION_TOP180DEGCW)    ? PIOS_HMC5883_TOP_180DEG    : \
-                    (ExtMagOrientation == HWAQ32_EXTMAGORIENTATION_TOP270DEGCW)    ? PIOS_HMC5883_TOP_270DEG    : \
-                    (ExtMagOrientation == HWAQ32_EXTMAGORIENTATION_BOTTOM0DEGCW)   ? PIOS_HMC5883_BOTTOM_0DEG   : \
-                    (ExtMagOrientation == HWAQ32_EXTMAGORIENTATION_BOTTOM90DEGCW)  ? PIOS_HMC5883_BOTTOM_90DEG  : \
-                    (ExtMagOrientation == HWAQ32_EXTMAGORIENTATION_BOTTOM180DEGCW) ? PIOS_HMC5883_BOTTOM_180DEG : \
-                    (ExtMagOrientation == HWAQ32_EXTMAGORIENTATION_BOTTOM270DEGCW) ? PIOS_HMC5883_BOTTOM_270DEG : \
+                    (ext_mag_orientation == HWAQ32_EXTMAGORIENTATION_TOP0DEGCW)      ? PIOS_HMC5883_TOP_0DEG      : \
+                    (ext_mag_orientation == HWAQ32_EXTMAGORIENTATION_TOP90DEGCW)     ? PIOS_HMC5883_TOP_90DEG     : \
+                    (ext_mag_orientation == HWAQ32_EXTMAGORIENTATION_TOP180DEGCW)    ? PIOS_HMC5883_TOP_180DEG    : \
+                    (ext_mag_orientation == HWAQ32_EXTMAGORIENTATION_TOP270DEGCW)    ? PIOS_HMC5883_TOP_270DEG    : \
+                    (ext_mag_orientation == HWAQ32_EXTMAGORIENTATION_BOTTOM0DEGCW)   ? PIOS_HMC5883_BOTTOM_0DEG   : \
+                    (ext_mag_orientation == HWAQ32_EXTMAGORIENTATION_BOTTOM90DEGCW)  ? PIOS_HMC5883_BOTTOM_90DEG  : \
+                    (ext_mag_orientation == HWAQ32_EXTMAGORIENTATION_BOTTOM180DEGCW) ? PIOS_HMC5883_BOTTOM_180DEG : \
+                    (ext_mag_orientation == HWAQ32_EXTMAGORIENTATION_BOTTOM270DEGCW) ? PIOS_HMC5883_BOTTOM_270DEG : \
                     pios_hmc5883_external_cfg.Default_Orientation;
                 PIOS_HMC5883_SetOrientation(hmc5883_externalOrientation);
             }
@@ -620,7 +619,7 @@ void PIOS_Board_Init(void) {
             external_mag_fail = true;  // External HMC5883 Init Failed
     }
 
-    if (Magnetometer == HWAQ32_MAGNETOMETER_INTERNAL)
+    if (magnetometer == HWAQ32_MAGNETOMETER_INTERNAL)
     {
         if (PIOS_HMC5883_Init(pios_i2c_internal_id, &pios_hmc5883_internal_cfg) != 0)
             PIOS_HAL_Panic(PIOS_LED_ALARM, PIOS_HAL_PANIC_MAG);

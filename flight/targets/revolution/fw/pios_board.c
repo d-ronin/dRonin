@@ -346,7 +346,8 @@ void PIOS_Board_Init(void) {
 	if (PIOS_I2C_CheckClear(pios_i2c_mag_pressure_adapter_id) != 0)
 		PIOS_HAL_Panic(PIOS_LED_ALARM, PIOS_HAL_PANIC_I2C_INT);
 	else
-		AlarmsSet(SYSTEMALARMS_ALARM_I2C, SYSTEMALARMS_ALARM_OK);
+		if (AlarmsGet(SYSTEMALARMS_ALARM_I2C) == SYSTEMALARMS_ALARM_UNINITIALISED)
+			AlarmsSet(SYSTEMALARMS_ALARM_I2C, SYSTEMALARMS_ALARM_OK);
 #endif  // PIOS_INCLUDE_I2C
 
 	HwRevolutionDSMxModeOptions hw_DSMxMode;
