@@ -130,9 +130,10 @@ class UAVTupleClass():
 
     def to_xml_elem(self):
         munged_name = self._name[5:]
-
+        munged_id = '0x%X' % self._id
         from xml.etree.ElementTree import Element, SubElement
-        xmlobj = Element('object', { 'name' : munged_name })
+        xmlobj = Element('object', { 'name' : munged_name,
+            'id' : munged_id })
 
         raw_dict = self._asdict()
 
