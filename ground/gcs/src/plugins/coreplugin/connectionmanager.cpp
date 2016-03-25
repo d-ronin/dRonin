@@ -84,8 +84,6 @@ ConnectionManager::ConnectionManager(Internal::MainWindow *mainWindow, QTabWidge
     reconnectCheck = new QTimer(this);
     connect(reconnect,SIGNAL(timeout()),this,SLOT(reconnectSlot()));
     connect(reconnectCheck,SIGNAL(timeout()),this,SLOT(reconnectCheckSlot()));
-
-    connect(this, SIGNAL(connectDeviceFailed(DevListItem*)), this, SLOT(onConnectDeviceFailed(DevListItem*)));
 }
 
 ConnectionManager::~ConnectionManager()
@@ -108,16 +106,16 @@ void ConnectionManager::init()
  * @brief Notifies the user when a connection attempt fails
  * @param device The device to which connection was attemped
  */
-void ConnectionManager::onConnectDeviceFailed(DevListItem *device)
+void ConnectionManager::connectDeviceFailed(DevListItem &device)
 {
     QString msg("<span style='color:red'>Failed</span> to connect device: ");
-    if(device && device->device)
-        msg.append(device->device->getDisplayName());
+    if (device.device)
+        msg.append(device.device->getDisplayName());
     else
         msg.append("Unknown");
 
 #ifdef Q_OS_LINUX
-    if(device && device->connection && device->connection->shortName() == "USB")
+    if (device.connection && device.connection->shortName() == "USB")
         msg.append("<br />Have you set udev rules?");
 #endif
 
@@ -131,13 +129,11 @@ void ConnectionManager::onConnectDeviceFailed(DevListItem *device)
 bool ConnectionManager::connectDevice(DevListItem device)
 {
     if (!device.connection) {
-        emit connectDeviceFailed(&device);
         return false;
     }
 
     QIODevice *io_dev = device.connection->openDevice(device.device);
     if (!io_dev) {
-        emit connectDeviceFailed(&device);
         return false;
     }
 
@@ -145,7 +141,6 @@ bool ConnectionManager::connectDevice(DevListItem device)
 
     // check if opening the device worked
     if (!io_dev->isOpen()) {
-        emit connectDeviceFailed(&device);
         return false;
     }
 
@@ -271,8 +266,11 @@ void ConnectionManager::onConnectClicked()
     {
         // connecting to currently selected device
         DevListItem device = findDevice(m_availableDevList->itemData(m_availableDevList->currentIndex(), Qt::ToolTipRole).toString());
-        if (device.connection)
-            connectDevice(device);
+        if (device.connection) {
+            if (!connectDevice(device)) {
+                connectDeviceFailed(device);
+            }
+        }
     }
     else
     {	// disconnecting
@@ -482,7 +480,6 @@ void ConnectionManager::devChanged(IConnection *connection)
     updateConnectionDropdown();
 
     emit availableDevicesChanged(m_devList);
-
 
     //disable connection button if the liNameif (m_availableDevList->count() > 0)
     if (m_availableDevList->count() > 0)

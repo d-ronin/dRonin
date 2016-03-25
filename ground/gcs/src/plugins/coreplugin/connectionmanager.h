@@ -121,7 +121,6 @@ signals:
     void deviceAboutToDisconnect();
     void deviceDisconnected();
     void availableDevicesChanged(const QLinkedList<Core::DevListItem> devices);
-    void connectDeviceFailed(DevListItem *device);
 
 public slots:
     void telemetryConnected();
@@ -139,7 +138,6 @@ private slots:
     void connectionsCallBack(); //used to call devChange after all the plugins are loaded
     void reconnectSlot();
     void reconnectCheckSlot();
-    void onConnectDeviceFailed(DevListItem *device);
 
 protected:
     QComboBox *m_availableDevList;
@@ -153,6 +151,9 @@ protected:
     //currently connected connection plugin
     DevListItem m_connectionDevice;
 
+    // Last thing the user tried to connect to manually
+    DevListItem m_lastManualConnect;
+
     //currently connected QIODevice
     QIODevice *m_ioDev;
 
@@ -160,13 +161,14 @@ protected:
     QMessageBox msgFailedToConnect;
 
 private:
-	bool connectDevice();
+    bool connectDevice();
     bool polling;
     Internal::MainWindow *m_mainWindow;
     QList <IConnection *> connectionBackup;
     QTimer *reconnect;
     QTimer *reconnectCheck;
 
+    void connectDeviceFailed(DevListItem &device);
 };
 
 } //namespace Core
