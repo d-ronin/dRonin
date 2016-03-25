@@ -629,6 +629,35 @@ bool UploaderGadgetWidget::askIfShouldContinue() {
     return false;
 }
 
+bool UploaderGadgetWidget::saveSettings(const QByteArray &settingsDump) {
+    /* save dialog for XML config */
+    QString filename = QFileDialog::getSaveFileName(this, tr("Save Settings Backup"),"cloud_exported.uav","*.uav");
+    if(filename.isEmpty())
+    {
+        setStatusInfo(tr("Save cancelled."), uploader::STATUSICON_FAIL);
+        setUploaderStatus(uploader::BL_SITTING);
+        return false;
+    }
+
+    if(!filename.endsWith(".uav",Qt::CaseInsensitive))
+        filename.append(".uav");
+
+    QFile file(filename);
+    if(!file.open(QIODevice::WriteOnly))
+    {
+        setStatusInfo(tr("Error could not open file for save"), uploader::STATUSICON_FAIL);
+
+        setUploaderStatus(uploader::BL_SITTING);
+        return false;
+    }
+
+    file.write(settingsDump);
+    file.close();
+    setStatusInfo(tr("Dump of configuration saved to file!"), uploader::STATUSICON_OK);
+
+    return true;
+}
+
 bool UploaderGadgetWidget::tradeSettingsWithCloud(QString srcRelease,
         bool upgrading, QByteArray *settingsOut) {
     /* post to cloud service */
@@ -693,56 +722,11 @@ bool UploaderGadgetWidget::tradeSettingsWithCloud(QString srcRelease,
         *settingsOut = settingsDump;
     }
 
-    /* save dialog for XML config */
-    while (true) {
-        QString filename = QFileDialog::getSaveFileName(this, tr("Save Settings Backup"),"cloud_exported.uav","*.uav");
-        if(filename.isEmpty())
-        {
-            setStatusInfo(tr("Save cancelled."), uploader::STATUSICON_FAIL);
-            if (!upgrading) {
-                setUploaderStatus(uploader::BL_SITTING);
-                return false;
-            }
-
-            /* If we're upgrading, we allow a user to decline to save the config..
-             * but we discourage it.
-             */
-
-            if (askIfShouldContinue()) {
-                return true;
-            }
-
-            continue;
-        }
-
-        if(!filename.endsWith(".uav",Qt::CaseInsensitive))
-            filename.append(".uav");
-
-        QFile file(filename);
-        if(!file.open(QIODevice::WriteOnly))
-        {
-            setStatusInfo(tr("Error could not open file for save"), uploader::STATUSICON_FAIL);
-
-            if (!upgrading) {
-                setUploaderStatus(uploader::BL_SITTING);
-                return false;
-            }
-
-            if (askIfShouldContinue()) {
-                return true;
-            }
-
-            continue;
-        }
-
-        file.write(settingsDump);
-        file.close();
-        setStatusInfo(tr("Dump of configuration saved to file!"), uploader::STATUSICON_OK);
-
+    if (upgrading) {
         return true;
     }
 
-    return false;       // unreachable
+    return saveSettings(settingsDump);
 }
 
 void UploaderGadgetWidget::upgradeError(QString why)
@@ -796,6 +780,8 @@ void UploaderGadgetWidget::doUpgradeOperation()
     bool aborted = false;
     bool entLoader = false;
 
+    int ret;
+
     struct deviceInfo board = currentBoard;
 
     connect(&timeout, SIGNAL(timeout()), &loop, SLOT(quit()));
@@ -833,6 +819,7 @@ void UploaderGadgetWidget::doUpgradeOperation()
         upgradingLoader = !haveSettingsPart();
     }
 
+    stepChangeAndDelay(loop, 400, UpgradeAssistantDialog::STEP_CHECKCLOUD);
     /* XXX TODO: Check prereqs-- cloud service, appropriate revision */
 
     /* gather up bootupdater, legacy upgrader, and firmware images as needed,
@@ -974,6 +961,34 @@ void UploaderGadgetWidget::doUpgradeOperation()
         return;
     }
 
+    bool done = false;
+
+    while (!done) {
+        if (aborted) {
+            upgradeError(tr("Aborted!"));
+
+            return;
+        }
+
+        ret = m_dialog.PromptUser(tr("Obtained settings from cloud."),
+                tr("It is recommended that you save a backup of the settings "
+                    "before proceeding with upgrade."),
+                QStringList() << tr("Continue without saving")
+                << tr("Save settings backup"));
+
+        switch (ret) {
+            case 0: /* continue */
+                done = true;
+                break;
+            case 1: /* save settings backup */
+                /* try to save.  if successful, set done */
+                done = saveSettings(xmlDump);
+                break;
+            default:
+                break;
+        }
+    }
+
     stepChangeAndDelay(loop, 400, UpgradeAssistantDialog::STEP_ERASESETTINGS);
 
     if (aborted) {
@@ -1074,6 +1089,12 @@ void UploaderGadgetWidget::doUpgradeOperation()
     setUploaderStatus(uploader::DISCONNECTED);
 
     for (int tries = 0; tries < 2; tries++) {
+        if (aborted) {
+            upgradeError(tr("Aborted!"));
+
+            return;
+        }
+
         timeout.start(25000);
 
         if (!firmwareConnected) {
@@ -1090,12 +1111,11 @@ void UploaderGadgetWidget::doUpgradeOperation()
 
         if (!firmwareConnected) {
             if (tries == 0) {
-                QMessageBox::warning(this,
+                ret = m_dialog.PromptUser(
                         tr("Unable to automatically reset board"),
-                        tr("GCS was unable to automatically reset the flight "
-                            "controller.  Please detach the board from USB "
-                            "and all other power, click 'OK' and then plug "
-                            "it back in."));
+                        tr("Please remove power and USB from the flight board, "
+                            " plug it back in, and select \"Continue.\""),
+                        QStringList() << tr("Continue"));
             } else {
                 upgradeError(tr("Unable to connect to new firmware!"));
 
@@ -1108,17 +1128,24 @@ void UploaderGadgetWidget::doUpgradeOperation()
 
     stepChangeAndDelay(loop, 400, UpgradeAssistantDialog::STEP_IMPORT);
 
-    if (aborted) {
-        upgradeError(tr("Aborted!"));
+    while (true) {
+        if (aborted) {
+            upgradeError(tr("Aborted!"));
 
-        return;
-    }
+            return;
+        }
 
-    /* trigger import of saved settings. */
-    if (!importMngr->importUAVSettings(xmlDump)) {
-        upgradeError(tr("Unable to import UAV settings from upgrade!"));
+        ret = m_dialog.PromptUser(
+                tr("Please review the imported settings and save to board."),
+                tr("No settings are currently saved.  Select the "
+                    "\"Review and Save\" button to import the settings."),
+                QStringList() << tr("Review and Save"));
 
-        return;
+        if (ret == 0) {
+            if (importMngr->importUAVSettings(xmlDump, true)) {
+                break;
+            }
+        }
     }
 
     m_dialog.onStepChanged(UpgradeAssistantDialog::STEP_DONE);
