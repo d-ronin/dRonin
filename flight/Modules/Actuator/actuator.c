@@ -467,7 +467,7 @@ static void actuator_task(void* parameters)
 			command.NumFailedUpdates++;
 			ActuatorCommandSet(&command);
 			AlarmsSet(SYSTEMALARMS_ALARM_ACTUATOR, SYSTEMALARMS_ALARM_CRITICAL);
-		} else if (clipped) {
+		} else if (stabilize_now && clipped) {
 			AlarmsSet(SYSTEMALARMS_ALARM_ACTUATOR, SYSTEMALARMS_ALARM_WARNING);
 		} else {
 			AlarmsClear(SYSTEMALARMS_ALARM_ACTUATOR);
