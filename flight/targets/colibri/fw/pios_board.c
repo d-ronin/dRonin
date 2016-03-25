@@ -162,6 +162,8 @@ static const struct pios_mpu60x0_cfg pios_mpu6000_cfg = {
 };
 #endif /* PIOS_INCLUDE_MPU6000 */
 
+bool external_mag_fail;
+
 uintptr_t pios_com_spiflash_logging_id;
 uintptr_t pios_com_openlog_logging_id;
 uintptr_t pios_uavo_settings_fs_id;
@@ -190,16 +192,6 @@ void PIOS_Board_Init(void) {
 	PIOS_Assert(led_cfg);
 	PIOS_LED_Init(led_cfg);
 #endif /* PIOS_INCLUDE_LED */
-
-#if defined(PIOS_INCLUDE_I2C)
-	if (PIOS_I2C_Init
-	    (&pios_i2c_internal_adapter_id,
-	     &pios_i2c_internal_adapter_cfg)) {
-		PIOS_DEBUG_Assert(0);
-	}
-	if (PIOS_I2C_CheckClear(pios_i2c_internal_adapter_id) != 0)
-		PIOS_HAL_Panic(PIOS_LED_ALARM, PIOS_HAL_PANIC_I2C_INT);
-#endif
 
 #if defined(PIOS_INCLUDE_SPI)
 	if (PIOS_SPI_Init(&pios_spi_flash_id, &pios_spi_flash_cfg)) {
@@ -354,6 +346,18 @@ void PIOS_Board_Init(void) {
 #endif /* PIOS_INCLUDE_USB */
 
 	/* Configure the IO ports */
+
+#if defined(PIOS_INCLUDE_I2C)
+	if (PIOS_I2C_Init(&pios_i2c_internal_adapter_id, &pios_i2c_internal_adapter_cfg)) {
+		PIOS_DEBUG_Assert(0);
+	}
+	if (PIOS_I2C_CheckClear(pios_i2c_internal_adapter_id) != 0)
+		PIOS_HAL_Panic(PIOS_LED_ALARM, PIOS_HAL_PANIC_I2C_INT);
+	else
+		if (AlarmsGet(SYSTEMALARMS_ALARM_I2C) == SYSTEMALARMS_ALARM_UNINITIALISED)
+			AlarmsSet(SYSTEMALARMS_ALARM_I2C, SYSTEMALARMS_ALARM_OK);
+#endif
+
 	HwColibriDSMxModeOptions hw_DSMxMode;
 	HwColibriDSMxModeGet(&hw_DSMxMode);
 
@@ -581,8 +585,7 @@ void PIOS_Board_Init(void) {
 	PIOS_WDG_Clear();
 
 #if defined(PIOS_INCLUDE_MPU6000)
-	if (PIOS_MPU6000_Init(pios_spi_gyro_accel_id, 0, &pios_mpu6000_cfg)
-	    != 0)
+	if (PIOS_MPU6000_Init(pios_spi_gyro_accel_id, 0, &pios_mpu6000_cfg) != 0)
 		PIOS_HAL_Panic(PIOS_LED_ALARM, PIOS_HAL_PANIC_IMU);
 	if (PIOS_MPU6000_Test() != 0)
 		PIOS_HAL_Panic(PIOS_LED_ALARM, PIOS_HAL_PANIC_IMU);
@@ -626,100 +629,81 @@ void PIOS_Board_Init(void) {
 	uint8_t hw_mpu6000_dlpf;
 	HwColibriMPU6000DLPFGet(&hw_mpu6000_dlpf);
 	enum pios_mpu60x0_filter mpu6000_dlpf =
-	    (hw_mpu6000_dlpf ==
-	     HWCOLIBRI_MPU6000DLPF_256) ? PIOS_MPU60X0_LOWPASS_256_HZ
-	    : (hw_mpu6000_dlpf ==
-	       HWCOLIBRI_MPU6000DLPF_188) ? PIOS_MPU60X0_LOWPASS_188_HZ
-	    : (hw_mpu6000_dlpf ==
-	       HWCOLIBRI_MPU6000DLPF_98) ? PIOS_MPU60X0_LOWPASS_98_HZ
-	    : (hw_mpu6000_dlpf ==
-	       HWCOLIBRI_MPU6000DLPF_42) ? PIOS_MPU60X0_LOWPASS_42_HZ
-	    : (hw_mpu6000_dlpf ==
-	       HWCOLIBRI_MPU6000DLPF_20) ? PIOS_MPU60X0_LOWPASS_20_HZ
-	    : (hw_mpu6000_dlpf ==
-	       HWCOLIBRI_MPU6000DLPF_10) ? PIOS_MPU60X0_LOWPASS_10_HZ
-	    : (hw_mpu6000_dlpf ==
-	       HWCOLIBRI_MPU6000DLPF_5) ? PIOS_MPU60X0_LOWPASS_5_HZ :
-	    pios_mpu6000_cfg.default_filter;
+		(hw_mpu6000_dlpf == HWCOLIBRI_MPU6000DLPF_256) ? PIOS_MPU60X0_LOWPASS_256_HZ : \
+		(hw_mpu6000_dlpf == HWCOLIBRI_MPU6000DLPF_188) ? PIOS_MPU60X0_LOWPASS_188_HZ : \
+		(hw_mpu6000_dlpf == HWCOLIBRI_MPU6000DLPF_98) ? PIOS_MPU60X0_LOWPASS_98_HZ : \
+		(hw_mpu6000_dlpf == HWCOLIBRI_MPU6000DLPF_42) ? PIOS_MPU60X0_LOWPASS_42_HZ : \
+		(hw_mpu6000_dlpf == HWCOLIBRI_MPU6000DLPF_20) ? PIOS_MPU60X0_LOWPASS_20_HZ : \
+		(hw_mpu6000_dlpf == HWCOLIBRI_MPU6000DLPF_10) ? PIOS_MPU60X0_LOWPASS_10_HZ : \
+		(hw_mpu6000_dlpf == HWCOLIBRI_MPU6000DLPF_5) ? PIOS_MPU60X0_LOWPASS_5_HZ : \
+		pios_mpu6000_cfg.default_filter;
 	PIOS_MPU6000_SetLPF(mpu6000_dlpf);
 
 	uint8_t hw_mpu6000_samplerate;
 	HwColibriMPU6000RateGet(&hw_mpu6000_samplerate);
 	uint16_t mpu6000_samplerate =
-	    (hw_mpu6000_samplerate == HWCOLIBRI_MPU6000RATE_200) ? 200 :
-	    (hw_mpu6000_samplerate == HWCOLIBRI_MPU6000RATE_333) ? 333 :
-	    (hw_mpu6000_samplerate == HWCOLIBRI_MPU6000RATE_500) ? 500 :
-	    (hw_mpu6000_samplerate == HWCOLIBRI_MPU6000RATE_666) ? 666 :
-	    (hw_mpu6000_samplerate == HWCOLIBRI_MPU6000RATE_1000) ? 1000 :
-	    (hw_mpu6000_samplerate == HWCOLIBRI_MPU6000RATE_2000) ? 2000 :
-	    (hw_mpu6000_samplerate == HWCOLIBRI_MPU6000RATE_4000) ? 4000 :
-	    (hw_mpu6000_samplerate == HWCOLIBRI_MPU6000RATE_8000) ? 8000 :
-	    pios_mpu6000_cfg.default_samplerate;
+		(hw_mpu6000_samplerate == HWCOLIBRI_MPU6000RATE_200) ? 200 : \
+		(hw_mpu6000_samplerate == HWCOLIBRI_MPU6000RATE_333) ? 333 : \
+		(hw_mpu6000_samplerate == HWCOLIBRI_MPU6000RATE_500) ? 500 : \
+		(hw_mpu6000_samplerate == HWCOLIBRI_MPU6000RATE_666) ? 666 : \
+		(hw_mpu6000_samplerate == HWCOLIBRI_MPU6000RATE_1000) ? 1000 : \
+		(hw_mpu6000_samplerate == HWCOLIBRI_MPU6000RATE_2000) ? 2000 : \
+		(hw_mpu6000_samplerate == HWCOLIBRI_MPU6000RATE_4000) ? 4000 : \
+		(hw_mpu6000_samplerate == HWCOLIBRI_MPU6000RATE_8000) ? 8000 : \
+		pios_mpu6000_cfg.default_samplerate;
 	PIOS_MPU6000_SetSampleRate(mpu6000_samplerate);
 #endif
 
 #if defined(PIOS_INCLUDE_I2C)
 #if defined(PIOS_INCLUDE_HMC5883)
 	{
-		uint8_t Magnetometer;
-		HwColibriMagnetometerGet(&Magnetometer);
+		uint8_t magnetometer;
+		HwColibriMagnetometerGet(&magnetometer);
 
-		if (Magnetometer == HWCOLIBRI_MAGNETOMETER_INTERNAL) {
-			if (PIOS_HMC5883_Init (pios_i2c_internal_adapter_id, &pios_hmc5883_internal_cfg) != 0)
-				PIOS_HAL_Panic(PIOS_LED_ALARM, PIOS_HAL_PANIC_MAG);
-			if (PIOS_HMC5883_Test() != 0)
-				PIOS_HAL_Panic(PIOS_LED_ALARM, PIOS_HAL_PANIC_MAG);
-		}
+		uint32_t adaptor_id = 0;
 
-		if (Magnetometer == HWCOLIBRI_MAGNETOMETER_EXTERNALI2CUART1) {
-			// init sensor
-			if (PIOS_HMC5883_Init(pios_i2c_usart1_adapter_id, &pios_hmc5883_external_cfg) != 0)
-				AlarmsSet(SYSTEMALARMS_ALARM_I2C, SYSTEMALARMS_ALARM_CRITICAL);
-			if (PIOS_HMC5883_Test() != 0)
-				AlarmsSet(SYSTEMALARMS_ALARM_I2C, SYSTEMALARMS_ALARM_CRITICAL);
-		}
+		external_mag_fail = false;
 
-		if (Magnetometer == HWCOLIBRI_MAGNETOMETER_EXTERNALI2CUART3) {
-				// init sensor
-				if (PIOS_HMC5883_Init(pios_i2c_usart3_adapter_id, &pios_hmc5883_external_cfg) != 0)
-					AlarmsSet(SYSTEMALARMS_ALARM_I2C, SYSTEMALARMS_ALARM_CRITICAL);
-				if (PIOS_HMC5883_Test() != 0)
-					AlarmsSet(SYSTEMALARMS_ALARM_I2C, SYSTEMALARMS_ALARM_CRITICAL);
-			}
-
-		if (Magnetometer == HWCOLIBRI_MAGNETOMETER_EXTERNALI2CUART1 ||
-		    Magnetometer == HWCOLIBRI_MAGNETOMETER_EXTERNALI2CUART3)
+		if ((magnetometer == HWCOLIBRI_MAGNETOMETER_EXTERNALI2CUART1) || (magnetometer == HWCOLIBRI_MAGNETOMETER_EXTERNALI2CUART3))
 		{
-			// setup sensor orientation
-			uint8_t ExtMagOrientation;
-			HwColibriExtMagOrientationGet(&ExtMagOrientation);
+			if (magnetometer == HWCOLIBRI_MAGNETOMETER_EXTERNALI2CUART1)
+				adaptor_id = pios_i2c_usart1_adapter_id;
 
-			enum pios_hmc5883_orientation hmc5883_orientation =
-			    (ExtMagOrientation ==
-			     HWCOLIBRI_EXTMAGORIENTATION_TOP0DEGCW) ?
-			    PIOS_HMC5883_TOP_0DEG : (ExtMagOrientation ==
-						     HWCOLIBRI_EXTMAGORIENTATION_TOP90DEGCW)
-			    ? PIOS_HMC5883_TOP_90DEG : (ExtMagOrientation
-							==
-							HWCOLIBRI_EXTMAGORIENTATION_TOP180DEGCW)
-			    ? PIOS_HMC5883_TOP_180DEG : (ExtMagOrientation
-							 ==
-							 HWCOLIBRI_EXTMAGORIENTATION_TOP270DEGCW)
-			    ? PIOS_HMC5883_TOP_270DEG : (ExtMagOrientation
-							 ==
-							 HWCOLIBRI_EXTMAGORIENTATION_BOTTOM0DEGCW)
-			    ? PIOS_HMC5883_BOTTOM_0DEG : (ExtMagOrientation
-							  ==
-							  HWCOLIBRI_EXTMAGORIENTATION_BOTTOM90DEGCW)
-			    ? PIOS_HMC5883_BOTTOM_90DEG
-			    : (ExtMagOrientation ==
-			       HWCOLIBRI_EXTMAGORIENTATION_BOTTOM180DEGCW)
-			    ? PIOS_HMC5883_BOTTOM_180DEG
-			    : (ExtMagOrientation ==
-			       HWCOLIBRI_EXTMAGORIENTATION_BOTTOM270DEGCW)
-			    ? PIOS_HMC5883_BOTTOM_270DEG :
-			    pios_hmc5883_external_cfg.Default_Orientation;
-			PIOS_HMC5883_SetOrientation(hmc5883_orientation);
+			if (magnetometer == HWCOLIBRI_MAGNETOMETER_EXTERNALI2CUART3)
+				adaptor_id = pios_i2c_usart3_adapter_id;
+
+			if ((adaptor_id != 0) && (PIOS_HMC5883_Init(adaptor_id, &pios_hmc5883_external_cfg) == 0)) {
+				if (PIOS_HMC5883_Test() == 0) {
+					// External mag configuration was successful
+
+					// setup sensor orientation
+					uint8_t ext_mag_orientation;
+					HwColibriExtMagOrientationGet(&ext_mag_orientation);
+
+					enum pios_hmc5883_orientation hmc5883_externalOrientation = \
+						(ext_mag_orientation == HWCOLIBRI_EXTMAGORIENTATION_TOP0DEGCW)      ? PIOS_HMC5883_TOP_0DEG      : \
+						(ext_mag_orientation == HWCOLIBRI_EXTMAGORIENTATION_TOP90DEGCW)     ? PIOS_HMC5883_TOP_90DEG     : \
+						(ext_mag_orientation == HWCOLIBRI_EXTMAGORIENTATION_TOP180DEGCW)    ? PIOS_HMC5883_TOP_180DEG    : \
+						(ext_mag_orientation == HWCOLIBRI_EXTMAGORIENTATION_TOP270DEGCW)    ? PIOS_HMC5883_TOP_270DEG    : \
+						(ext_mag_orientation == HWCOLIBRI_EXTMAGORIENTATION_BOTTOM0DEGCW)   ? PIOS_HMC5883_BOTTOM_0DEG   : \
+						(ext_mag_orientation == HWCOLIBRI_EXTMAGORIENTATION_BOTTOM90DEGCW)  ? PIOS_HMC5883_BOTTOM_90DEG  : \
+						(ext_mag_orientation == HWCOLIBRI_EXTMAGORIENTATION_BOTTOM180DEGCW) ? PIOS_HMC5883_BOTTOM_180DEG : \
+						(ext_mag_orientation == HWCOLIBRI_EXTMAGORIENTATION_BOTTOM270DEGCW) ? PIOS_HMC5883_BOTTOM_270DEG : \
+						pios_hmc5883_external_cfg.Default_Orientation;
+					PIOS_HMC5883_SetOrientation(hmc5883_externalOrientation);
+				}
+				else
+					external_mag_fail = true;  // External HMC5883 Test Failed
+			}
+			else
+				external_mag_fail = true;  // External HMC5883 Init Failed
+		}
+
+		if (magnetometer == HWCOLIBRI_MAGNETOMETER_INTERNAL) {
+			if (PIOS_HMC5883_Init(pios_i2c_internal_adapter_id, &pios_hmc5883_internal_cfg) != 0)
+				PIOS_HAL_Panic(PIOS_LED_ALARM, PIOS_HAL_PANIC_MAG);
+			if (PIOS_HMC5883_Test() != 0)
+				PIOS_HAL_Panic(PIOS_LED_ALARM, PIOS_HAL_PANIC_MAG);
 		}
 	}
 #endif

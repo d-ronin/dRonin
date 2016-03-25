@@ -127,6 +127,8 @@
  */
 #define IDLE_COUNTS_PER_SEC_AT_NO_LOAD (9873737)
 
+#define SUPPORTS_EXTERNAL_MAG
+
 #endif /* PIOS_CONFIG_H */
 /**
  * @}

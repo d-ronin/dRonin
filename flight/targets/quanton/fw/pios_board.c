@@ -159,6 +159,8 @@ static const struct pios_mpu60x0_cfg pios_mpu6000_cfg = {
 };
 #endif /* PIOS_INCLUDE_MPU6000 */
 
+bool external_mag_fail;
+
 uintptr_t pios_com_openlog_logging_id;
 uintptr_t pios_com_spiflash_logging_id;
 uintptr_t pios_uavo_settings_fs_id;
@@ -188,14 +190,6 @@ void PIOS_Board_Init(void) {
 	PIOS_Assert(led_cfg);
 	PIOS_LED_Init(led_cfg);
 #endif	/* PIOS_INCLUDE_LED */
-
-#if defined(PIOS_INCLUDE_I2C)
-	if (PIOS_I2C_Init(&pios_i2c_internal_adapter_id, &pios_i2c_internal_adapter_cfg)) {
-		PIOS_DEBUG_Assert(0);
-	}
-	if (PIOS_I2C_CheckClear(pios_i2c_internal_adapter_id) != 0)
-		PIOS_HAL_Panic(PIOS_LED_ALARM, PIOS_HAL_PANIC_I2C_INT);
-#endif
 
 #if defined(PIOS_INCLUDE_SPI)
 	if (PIOS_SPI_Init(&pios_spi_flash_id, &pios_spi_flash_cfg)) {
@@ -337,6 +331,18 @@ void PIOS_Board_Init(void) {
 #endif	/* PIOS_INCLUDE_USB */
 
 	/* Configure the IO ports */
+
+#if defined(PIOS_INCLUDE_I2C)
+	if (PIOS_I2C_Init(&pios_i2c_internal_adapter_id, &pios_i2c_internal_adapter_cfg)) {
+		PIOS_DEBUG_Assert(0);
+	}
+	if (PIOS_I2C_CheckClear(pios_i2c_internal_adapter_id) != 0)
+		PIOS_HAL_Panic(PIOS_LED_ALARM, PIOS_HAL_PANIC_I2C_INT);
+	else
+		if (AlarmsGet(SYSTEMALARMS_ALARM_I2C) == SYSTEMALARMS_ALARM_UNINITIALISED)
+			AlarmsSet(SYSTEMALARMS_ALARM_I2C, SYSTEMALARMS_ALARM_OK);
+#endif
+
 	HwQuantonDSMxModeOptions hw_DSMxMode;
 	HwQuantonDSMxModeGet(&hw_DSMxMode);
 
@@ -648,50 +654,53 @@ void PIOS_Board_Init(void) {
 #if defined(PIOS_INCLUDE_I2C)
 #if defined(PIOS_INCLUDE_HMC5883)
 	{
-		uint8_t Magnetometer;
-		HwQuantonMagnetometerGet(&Magnetometer);
+		uint8_t magnetometer;
+		HwQuantonMagnetometerGet(&magnetometer);
 
-		if (Magnetometer == HWQUANTON_MAGNETOMETER_INTERNAL) {
+		uint32_t adaptor_id = 0;
+
+		external_mag_fail = false;
+
+		if ((magnetometer == HWQUANTON_MAGNETOMETER_EXTERNALI2CUART1) || (magnetometer == HWQUANTON_MAGNETOMETER_EXTERNALI2CUART3))
+		{
+			if (magnetometer == HWQUANTON_MAGNETOMETER_EXTERNALI2CUART1)
+				adaptor_id = pios_i2c_usart1_adapter_id;
+
+			if (magnetometer == HWQUANTON_MAGNETOMETER_EXTERNALI2CUART3)
+				adaptor_id = pios_i2c_usart3_adapter_id;
+
+			if ((adaptor_id != 0) && (PIOS_HMC5883_Init(adaptor_id, &pios_hmc5883_external_cfg) == 0)) {
+				if (PIOS_HMC5883_Test() == 0) {
+					// External mag configuration was successful
+
+					// setup sensor orientation
+					uint8_t ext_mag_orientation;
+					HwQuantonExtMagOrientationGet(&ext_mag_orientation);
+
+					enum pios_hmc5883_orientation hmc5883_externalOrientation = \
+						(ext_mag_orientation == HWQUANTON_EXTMAGORIENTATION_TOP0DEGCW)      ? PIOS_HMC5883_TOP_0DEG      : \
+						(ext_mag_orientation == HWQUANTON_EXTMAGORIENTATION_TOP90DEGCW)     ? PIOS_HMC5883_TOP_90DEG     : \
+						(ext_mag_orientation == HWQUANTON_EXTMAGORIENTATION_TOP180DEGCW)    ? PIOS_HMC5883_TOP_180DEG    : \
+						(ext_mag_orientation == HWQUANTON_EXTMAGORIENTATION_TOP270DEGCW)    ? PIOS_HMC5883_TOP_270DEG    : \
+						(ext_mag_orientation == HWQUANTON_EXTMAGORIENTATION_BOTTOM0DEGCW)   ? PIOS_HMC5883_BOTTOM_0DEG   : \
+						(ext_mag_orientation == HWQUANTON_EXTMAGORIENTATION_BOTTOM90DEGCW)  ? PIOS_HMC5883_BOTTOM_90DEG  : \
+						(ext_mag_orientation == HWQUANTON_EXTMAGORIENTATION_BOTTOM180DEGCW) ? PIOS_HMC5883_BOTTOM_180DEG : \
+						(ext_mag_orientation == HWQUANTON_EXTMAGORIENTATION_BOTTOM270DEGCW) ? PIOS_HMC5883_BOTTOM_270DEG : \
+						pios_hmc5883_external_cfg.Default_Orientation;
+					PIOS_HMC5883_SetOrientation(hmc5883_externalOrientation);
+				}
+				else
+					external_mag_fail = true;  // External HMC5883 Test Failed
+			}
+			else
+				external_mag_fail = true;  // External HMC5883 Init Failed
+		}
+
+		if (magnetometer == HWQUANTON_MAGNETOMETER_INTERNAL) {
 			if (PIOS_HMC5883_Init(pios_i2c_internal_adapter_id, &pios_hmc5883_internal_cfg) != 0)
 				PIOS_HAL_Panic(PIOS_LED_ALARM, PIOS_HAL_PANIC_MAG);
 			if (PIOS_HMC5883_Test() != 0)
 				PIOS_HAL_Panic(PIOS_LED_ALARM, PIOS_HAL_PANIC_MAG);
-		}
-
-		if (Magnetometer == HWQUANTON_MAGNETOMETER_EXTERNALI2CUART1) {
-			// init sensor
-			if (PIOS_HMC5883_Init(pios_i2c_usart1_adapter_id, &pios_hmc5883_external_cfg) != 0)
-				AlarmsSet(SYSTEMALARMS_ALARM_I2C, SYSTEMALARMS_ALARM_CRITICAL);
-			if (PIOS_HMC5883_Test() != 0)
-				AlarmsSet(SYSTEMALARMS_ALARM_I2C, SYSTEMALARMS_ALARM_CRITICAL);
-		}
-
-		if (Magnetometer == HWQUANTON_MAGNETOMETER_EXTERNALI2CUART3) {
-			// init sensor
-			if (PIOS_HMC5883_Init(pios_i2c_usart3_adapter_id, &pios_hmc5883_external_cfg) != 0)
-				AlarmsSet(SYSTEMALARMS_ALARM_I2C, SYSTEMALARMS_ALARM_CRITICAL);
-			if (PIOS_HMC5883_Test() != 0)
-				AlarmsSet(SYSTEMALARMS_ALARM_I2C, SYSTEMALARMS_ALARM_CRITICAL);
-		}
-
-		if (Magnetometer == HWQUANTON_MAGNETOMETER_EXTERNALI2CUART1 ||
-			Magnetometer == HWQUANTON_MAGNETOMETER_EXTERNALI2CUART3)
-		{
-			// setup sensor orientation
-			uint8_t ExtMagOrientation;
-			HwQuantonExtMagOrientationGet(&ExtMagOrientation);
-
-			enum pios_hmc5883_orientation hmc5883_orientation = \
-				(ExtMagOrientation == HWQUANTON_EXTMAGORIENTATION_TOP0DEGCW) ? PIOS_HMC5883_TOP_0DEG : \
-				(ExtMagOrientation == HWQUANTON_EXTMAGORIENTATION_TOP90DEGCW) ? PIOS_HMC5883_TOP_90DEG : \
-				(ExtMagOrientation == HWQUANTON_EXTMAGORIENTATION_TOP180DEGCW) ? PIOS_HMC5883_TOP_180DEG : \
-				(ExtMagOrientation == HWQUANTON_EXTMAGORIENTATION_TOP270DEGCW) ? PIOS_HMC5883_TOP_270DEG : \
-				(ExtMagOrientation == HWQUANTON_EXTMAGORIENTATION_BOTTOM0DEGCW) ? PIOS_HMC5883_BOTTOM_0DEG : \
-				(ExtMagOrientation == HWQUANTON_EXTMAGORIENTATION_BOTTOM90DEGCW) ? PIOS_HMC5883_BOTTOM_90DEG : \
-				(ExtMagOrientation == HWQUANTON_EXTMAGORIENTATION_BOTTOM180DEGCW) ? PIOS_HMC5883_BOTTOM_180DEG : \
-				(ExtMagOrientation == HWQUANTON_EXTMAGORIENTATION_BOTTOM270DEGCW) ? PIOS_HMC5883_BOTTOM_270DEG : \
-				pios_hmc5883_external_cfg.Default_Orientation;
-			PIOS_HMC5883_SetOrientation(hmc5883_orientation);
 		}
 	}
 #endif
