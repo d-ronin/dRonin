@@ -46,7 +46,7 @@ public:
     ~UAVSettingsImportExportManager();
     static bool updateObject(UAVObject *obj, QDomNode * node);
 
-    bool importUAVSettings(const QByteArray &settings);
+    bool importUAVSettings(const QByteArray &settings, bool quiet = false);
 
 public slots:
     void importUAVSettings();
