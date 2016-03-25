@@ -111,18 +111,18 @@ int32_t VtolPathFollowerInitialize()
 		module_enabled = false;
 	}
 #endif
+	AltitudeHoldSettingsInitialize();
+	VtolPathFollowerSettingsInitialize();
 
 	if (!module_enabled) {
 		return -1;
 	}
 
 	AccelDesiredInitialize();
-	AltitudeHoldSettingsInitialize();
 	AltitudeHoldStateInitialize();
 	PathDesiredInitialize();
 	PathStatusInitialize();
 	VelocityDesiredInitialize();
-	VtolPathFollowerSettingsInitialize();
 	VtolPathFollowerStatusInitialize();
 	
 	return 0;
