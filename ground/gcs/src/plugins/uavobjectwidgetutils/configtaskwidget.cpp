@@ -358,19 +358,26 @@ void ConfigTaskWidget::forceConnectedState()//dynamic widgets don't recieve the 
 void ConfigTaskWidget::onAutopilotConnect()
 {
     if (utilMngr)
-        currentBoard = utilMngr->getBoardModel();//TODO REMEMBER TO ADD THIS TO FORCE CONNECTED FUNC ON CC3D_RELEASE
+        currentBoard = utilMngr->getBoardModel();
+
     invalidateObjects();
     isConnected=true;
-    foreach(objectToWidget * ow,objOfInterest)
-    {
-        loadWidgetLimits(ow->widget,ow->field,ow->index,ow->isLimited,ow->scale);
-    }
+    loadAllLimits();
     enableControls(true);
     refreshWidgetsValues();
     setDirty(false);
 
     emit autoPilotConnected();
 }
+
+void ConfigTaskWidget::loadAllLimits()
+{
+    foreach(objectToWidget * ow,objOfInterest)
+    {
+        loadWidgetLimits(ow->widget,ow->field,ow->index,ow->isLimited,ow->scale);
+    }
+}
+
 /**
  * SLOT Function used to populate the widgets with the initial values
  * Overwrite this if you need to change the default behavior
