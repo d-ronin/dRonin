@@ -46,6 +46,7 @@
 #define MPU9250_TASK_STACK_BYTES 512
 #define PIOS_MPU9250_MAX_DOWNSAMPLE 2
 
+#define ICM20608G_WHOAMI_ID     0xAF
 #define MPU9250_WHOAMI_ID       0x71
 #define MPU6500_WHOAMI_ID       0x70
 
@@ -358,6 +359,7 @@ static int32_t PIOS_MPU9250_Config(struct pios_mpu9250_cfg const *cfg)
 		case MPU9250_WHOAMI_ID:
 			break;
 		case MPU6500_WHOAMI_ID:
+		case ICM20608G_WHOAMI_ID:
 			if (dev->cfg->use_magnetometer)
 				return -2;
 			break;
@@ -447,7 +449,7 @@ int32_t PIOS_MPU9250_SPI_Init(uint32_t spi_id, uint32_t slave_num, const struct 
 int32_t PIOS_MPU9250_Test(void)
 {
 	uint8_t id = PIOS_MPU9250_ReadReg(PIOS_MPU60X0_WHOAMI);
-	if ((id != MPU9250_WHOAMI_ID) && (id != MPU6500_WHOAMI_ID))
+	if ((id != MPU9250_WHOAMI_ID) && (id != MPU6500_WHOAMI_ID) && (id != ICM20608G_WHOAMI_ID))
 		return 1;
 
 	if (dev->cfg->use_magnetometer) {

@@ -1,0 +1,98 @@
+<xml>
+	<object name="HwDTFc" singleinstance="true" settings="true" category="HardwareSettings">
+		<description>Selection of optional hardware configurations.</description>
+
+		<field name="RcvrPort" units="function" type="enum" elements="1" parent="HwShared.PortTypes" defaultvalue="PPM">
+			<options>
+				<option>Disabled</option>
+				<option>PPM</option>
+				<option>Telemetry</option>
+				<option>DebugConsole</option>
+				<option>ComBridge</option>
+				<option>GPS</option>
+				<option>S.Bus</option>
+				<option>S.Bus Non Inverted</option>
+				<option>DSM</option>
+				<option>MavLinkTX</option>
+				<option>MavLinkTX_GPS_RX</option>
+				<option>MSP</option>
+				<option>HoTT Telemetry</option>
+				<option>FrSKY Sensor Hub</option>
+				<option>LighttelemetryTx</option>
+				<option>FrSKY SPort Telemetry</option>
+				<option>OpenLog</option>
+				<option>HoTT SUMD</option>
+				<option>HoTT SUMH</option>
+			</options>
+		</field>
+
+		<field name="Uart2" units="function" type="enum" elements="1" parent="HwShared.PortTypes" defaultvalue="Disabled">
+			<options>
+				<option>Disabled</option>
+				<option>Telemetry</option>
+				<option>DebugConsole</option>
+				<option>ComBridge</option>
+				<option>GPS</option>
+				<option>S.Bus</option>
+				<option>S.Bus Non Inverted</option>
+				<option>DSM</option>
+				<option>MavLinkTX</option>
+				<option>MavLinkTX_GPS_RX</option>
+				<option>MSP</option>
+				<option>HoTT Telemetry</option>
+				<option>FrSKY Sensor Hub</option>
+				<option>LighttelemetryTx</option>
+				<option>FrSKY SPort Telemetry</option>
+				<option>OpenLog</option>
+				<option>HoTT SUMD</option>
+				<option>HoTT SUMH</option>
+			</options>
+		</field>
+		
+		<field name="Uart3" units="function" type="enum" elements="1" parent="HwShared.PortTypes" defaultvalue="Disabled">
+			<options>
+				<option>Disabled</option>
+				<option>Telemetry</option>
+				<option>DebugConsole</option>
+				<option>ComBridge</option>
+				<option>GPS</option>
+				<option>S.Bus</option>
+				<option>S.Bus Non Inverted</option>
+				<option>DSM</option>
+				<option>MavLinkTX</option>
+				<option>MavLinkTX_GPS_RX</option>
+				<option>MSP</option>
+				<option>HoTT Telemetry</option>
+				<option>FrSKY Sensor Hub</option>
+				<option>LighttelemetryTx</option>
+				<option>FrSKY SPort Telemetry</option>
+				<option>OpenLog</option>
+				<option>HoTT SUMD</option>
+				<option>HoTT SUMH</option>
+			</options>
+		</field>
+
+		<field name="USB_HIDPort" units="function" type="enum" elements="1" parent="HwShared.USB_HIDPort" defaultvalue="USBTelemetry"/>
+		<field name="USB_VCPPort" units="function" type="enum" elements="1" parent="HwShared.USB_VCPPort" defaultvalue="Disabled">
+			<options>
+				<option>Disabled</option>
+				<option>USBTelemetry</option>
+				<option>ComBridge</option>
+				<option>DebugConsole</option>
+			</options>
+		</field>
+
+		<field name="DSMxMode" units="mode" type="enum" elements="1" parent="HwShared.DSMxMode" defaultvalue="Autodetect"/>
+
+        <field name="GyroRange" units="deg/s" type="enum" elements="1" options="250,500,1000,2000" defaultvalue="2000"/>
+        <field name="AccelRange" units="*gravity m/s^2" type="enum" elements="1" options="2G,4G,8G,16G" defaultvalue="8G"/>
+        <field name="ICM20608G_Rate" units="Hz" type="enum" elements="1" options="200,250,333,500,1000" defaultvalue="500"/>
+        <field name="ICM20608G_GyroLPF" units="Hz" type="enum" elements="1" options="184,92,41,20,10,5" defaultvalue="184"/>
+        <field name="ICM20608G_AccelLPF" units="Hz" type="enum" elements="1" options="460,184,92,41,20,10,5" defaultvalue="184"/>
+
+		<access gcs="readwrite" flight="readwrite"/>
+		<telemetrygcs acked="true" updatemode="onchange" period="0"/>
+		<telemetryflight acked="true" updatemode="onchange" period="0"/>
+		<logging updatemode="manual" period="0"/>
+    </object>
+</xml>

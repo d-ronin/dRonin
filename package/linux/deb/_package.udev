@@ -76,3 +76,10 @@ SUBSYSTEM=="usb", ATTRS{idVendor}=="20a0", ATTRS{idProduct}=="4284", MODE="0664"
 
 # Lumenier LUX flight controller
 SUBSYSTEM=="usb", ATTRS{idVendor}=="1209", ATTRS{idProduct}=="f3fc", MODE="0664", GROUP="plugdev"
+
+#
+# DTFUHF
+#
+
+# DTFUHF DTFc flight controller
+SUBSYSTEM=="usb", ATTRS{idVendor}=="16d0", ATTRS{idProduct}=="d7fc", MODE="0664", GROUP="plugdev"
