@@ -58,7 +58,6 @@
 #include <QStyleFactory>
 #include "manhattanstyle.h"
 #include "settingsdialog.h"
-#include "threadmanager.h"
 #include "uniqueidmanager.h"
 #include "versiondialog.h"
 
@@ -108,7 +107,6 @@ MainWindow::MainWindow() :
     m_additionalContexts(m_globalContext),
     m_dontSaveSettings(false),
     m_actionManager(new ActionManagerPrivate(this)),
-    m_threadManager(new ThreadManager(this)),
     m_modeManager(0),
     m_connectionManager(0),
     m_boardManager(0),
@@ -919,11 +917,6 @@ QSettings *MainWindow::settings(QSettings::Scope scope) const
         return m_settings;
     else
         return m_globalSettings;
-}
-
-ThreadManager *MainWindow::threadManager() const
-{
-     return m_threadManager;
 }
 
 ConnectionManager *MainWindow::connectionManager() const
