@@ -32,7 +32,6 @@
 #include "simulator.h"
 #include "extensionsystem/pluginmanager.h"
 #include "coreplugin/icore.h"
-#include "coreplugin/threadmanager.h"
 #include "hitlnoisegeneration.h"
 
 volatile bool Simulator::isStarted = false;
@@ -53,7 +52,6 @@ Simulator::Simulator(const SimulatorSettings& params) :
 	name("")
 {
 	// move to thread
-	moveToThread(Core::ICore::instance()->threadManager()->getRealTimeThread());
         connect(this, SIGNAL(myStart()), this, SLOT(onStart()),Qt::QueuedConnection);
 	emit myStart();
 

@@ -37,7 +37,6 @@
 #include "fgsimulator.h"
 #include "extensionsystem/pluginmanager.h"
 #include "coreplugin/icore.h"
-#include "coreplugin/threadmanager.h"
 
 FGSimulator::FGSimulator(const SimulatorSettings& params) :
     Simulator(params)

@@ -42,7 +42,6 @@
 #include <QtNetwork/QUdpSocket>
 #include <QWaitCondition>
 #include <QMutex>
-#include <coreplugin/threadmanager.h>
 
 #include <QDebug>
 
@@ -56,8 +55,6 @@ QAbstractSocket *ret;
 
 IPConnection::IPConnection(IPconnectionConnection *connection) : QObject()
 {
-    moveToThread(Core::ICore::instance()->threadManager()->getRealTimeThread());
-
     QObject::connect(connection, SIGNAL(CreateSocket(QString,int,bool)),
                      this, SLOT(onOpenDevice(QString,int,bool)));
     QObject::connect(connection, SIGNAL(CloseSocket(QAbstractSocket*)),
