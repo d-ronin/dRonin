@@ -78,7 +78,6 @@ public:
     virtual ActionManager *actionManager() const = 0;
     virtual UniqueIDManager *uniqueIDManager() const = 0;
     virtual MessageManager *messageManager() const = 0;
-    virtual ThreadManager *threadManager() const = 0;
     virtual ModeManager *modeManager() const = 0;
     virtual ConnectionManager *connectionManager() const = 0;
     virtual GlobalMessaging * globalMessaging() const = 0;

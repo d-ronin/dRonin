@@ -35,7 +35,6 @@ SOURCES += mainwindow.cpp \
     basemode.cpp \
     baseview.cpp \
     coreplugin.cpp \
-    threadmanager.cpp \
     modemanager.cpp \
     coreimpl.cpp \
     plugindialog.cpp \
@@ -96,7 +95,6 @@ HEADERS += mainwindow.h \
     basemode.h \
     baseview.h \
     coreplugin.h \
-    threadmanager.h \
     modemanager.h \
     coreimpl.h \
     plugindialog.h \
