@@ -26,7 +26,6 @@
 #include "kmlexportplugin.h"
 #include <QDebug>
 #include <QtPlugin>
-#include <QThread>
 #include <QStringList>
 #include <QDir>
 #include <QFileDialog>
