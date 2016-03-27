@@ -31,7 +31,6 @@
 
 #include "rawhid_global.h"
 
-#include <QThread>
 #include <QTimer>
 #include <QMutex>
 
