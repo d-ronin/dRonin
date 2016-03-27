@@ -37,7 +37,6 @@
 #include <simulator.h>
 #include "uavobjectmanager.h"
 #include "coreplugin/icore.h"
-#include "coreplugin/threadmanager.h"
 
 
 QStringList Simulator::instances;

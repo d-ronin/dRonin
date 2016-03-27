@@ -35,7 +35,6 @@
 #include "hitlnoisegeneration.h"
 #include "extensionsystem/pluginmanager.h"
 #include <coreplugin/icore.h>
-#include <coreplugin/threadmanager.h>
 
 struct Noise{
     Accels::DataFields accelData;

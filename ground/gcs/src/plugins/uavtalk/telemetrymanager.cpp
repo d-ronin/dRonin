@@ -29,12 +29,10 @@
 #include "telemetrymanager.h"
 #include <extensionsystem/pluginmanager.h>
 #include <coreplugin/icore.h>
-#include <coreplugin/threadmanager.h>
 
 TelemetryManager::TelemetryManager() :
     autopilotConnected(false)
 {
-    moveToThread(Core::ICore::instance()->threadManager()->getRealTimeThread());
     // Get UAVObjectManager instance
     ExtensionSystem::PluginManager* pm = ExtensionSystem::PluginManager::instance();
     objMngr = pm->getObject<UAVObjectManager>();
