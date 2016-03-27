@@ -41,7 +41,6 @@
 #include "manualcontrolcommand.h"
 #include "manualcontrolsettings.h"
 #include "stabilizationsettings.h"
-#include "mwratesettings.h"
 #include "stateestimation.h"
 
 // Events that can be be injected into the FSM and trigger state changes
@@ -62,7 +61,6 @@ enum menu_fsm_state {
 	FSM_STATE_MAIN_HOMELOC,     /*!< Home Location */
 	FSM_STATE_MAIN_PIDRATE,     /*!< PID Rate*/
 	FSM_STATE_MAIN_PIDATT,      /*!< PID Attitude*/
-	FSM_STATE_MAIN_PIDMWRATE,   /*!< PID RateMW*/
 	FSM_STATE_MAIN_TPA,         /*!< Throttle PID Attenuation */
 	FSM_STATE_MAIN_STICKLIMITS, /*!< Stick Range and Limits */
 	FSM_STATE_MAIN_STATS, /*!< Flight Stats */
@@ -116,21 +114,6 @@ enum menu_fsm_state {
 	FSM_STATE_PIDATT_SAVEEXIT,   /*!< Save & Exit */
 	FSM_STATE_PIDATT_EXIT,       /*!< Exit */
 /*------------------------------------------------------------------------------------------*/
-	FSM_STATE_PIDMWRATE_IDLE,       /*!< Dummy state with nothing selected */
-	FSM_STATE_PIDMWRATE_ROLLP,      /*!< Roll P Gain */
-	FSM_STATE_PIDMWRATE_ROLLI,      /*!< Roll I Gain */
-	FSM_STATE_PIDMWRATE_ROLLD,      /*!< Roll D Gain */
-	FSM_STATE_PIDMWRATE_PITCHP,     /*!< Pitch P Gain */
-	FSM_STATE_PIDMWRATE_PITCHI,     /*!< Pitch I Gain */
-	FSM_STATE_PIDMWRATE_PITCHD,     /*!< Pitch D Gain */
-	FSM_STATE_PIDMWRATE_YAWP,       /*!< Yaw P Gain */
-	FSM_STATE_PIDMWRATE_YAWI,       /*!< Yaw I Gain */
-	FSM_STATE_PIDMWRATE_YAWD,       /*!< Yaw D Gain */
-	FSM_STATE_PIDMWRATE_RPRATE,     /*!< Roll Pitch Attenuation */
-	FSM_STATE_PIDMWRATE_YRATE,      /*!< Yaw Attenuation */
-	FSM_STATE_PIDMWRATE_SAVEEXIT,   /*!< Save & Exit */
-	FSM_STATE_PIDMWRATE_EXIT,       /*!< Exit */
-/*------------------------------------------------------------------------------------------*/
 	FSM_STATE_TPA_IDLE,             /*!< Dummy state with nothing selected */
 	FSM_STATE_TPA_ROLLATT,          /*!< Roll Attenuation */
 	FSM_STATE_TPA_ROLLTH,           /*!< Roll Threshold */
@@ -180,7 +163,6 @@ static void flightmode_menu(void);
 static void homeloc_menu(void);
 static void pidrate_menu(void);
 static void pidatt_menu(void);
-static void pidmwrate_menu(void);
 static void tpa_menu(void);
 static void sticklimits_menu(void);
 static void stats_menu(void);
@@ -223,22 +205,14 @@ const static struct menu_fsm_transition menu_fsm[FSM_STATE_NUM_STATES] = {
 		.menu_fn = main_menu,
 		.next_state = {
 			[FSM_EVENT_UP] = FSM_STATE_MAIN_PIDRATE,
-			[FSM_EVENT_DOWN] = FSM_STATE_MAIN_PIDMWRATE,
-			[FSM_EVENT_RIGHT] = FSM_STATE_PIDATT_IDLE,
-		},
-	},
-	[FSM_STATE_MAIN_PIDMWRATE] = {
-		.menu_fn = main_menu,
-		.next_state = {
-			[FSM_EVENT_UP] = FSM_STATE_MAIN_PIDATT,
 			[FSM_EVENT_DOWN] = FSM_STATE_MAIN_TPA,
-			[FSM_EVENT_RIGHT] = FSM_STATE_PIDMWRATE_IDLE,
+			[FSM_EVENT_RIGHT] = FSM_STATE_PIDATT_IDLE,
 		},
 	},
 	[FSM_STATE_MAIN_TPA] = {
 		.menu_fn = main_menu,
 		.next_state = {
-			[FSM_EVENT_UP] = FSM_STATE_MAIN_PIDMWRATE,
+			[FSM_EVENT_UP] = FSM_STATE_MAIN_PIDATT,
 			[FSM_EVENT_DOWN] = FSM_STATE_MAIN_STICKLIMITS,
 			[FSM_EVENT_RIGHT] = FSM_STATE_TPA_IDLE,
 		},
@@ -582,107 +556,6 @@ const static struct menu_fsm_transition menu_fsm[FSM_STATE_NUM_STATES] = {
 		},
 	},
 /*------------------------------------------------------------------------------------------*/
-	[FSM_STATE_PIDMWRATE_IDLE] = {
-		.menu_fn = pidmwrate_menu,
-		.next_state = {
-			[FSM_EVENT_UP] = FSM_STATE_PIDMWRATE_EXIT,
-			[FSM_EVENT_DOWN] = FSM_STATE_PIDMWRATE_ROLLP,
-		},
-	},
-	[FSM_STATE_PIDMWRATE_ROLLP] = {
-		.menu_fn = pidmwrate_menu,
-		.next_state = {
-			[FSM_EVENT_UP] = FSM_STATE_PIDMWRATE_EXIT,
-			[FSM_EVENT_DOWN] = FSM_STATE_PIDMWRATE_ROLLI,
-		},
-	},
-	[FSM_STATE_PIDMWRATE_ROLLI] = {
-		.menu_fn = pidmwrate_menu,
-		.next_state = {
-			[FSM_EVENT_UP] = FSM_STATE_PIDMWRATE_ROLLP,
-			[FSM_EVENT_DOWN] = FSM_STATE_PIDMWRATE_ROLLD,
-		},
-	},
-	[FSM_STATE_PIDMWRATE_ROLLD] = {
-		.menu_fn = pidmwrate_menu,
-		.next_state = {
-			[FSM_EVENT_UP] = FSM_STATE_PIDMWRATE_ROLLI,
-			[FSM_EVENT_DOWN] = FSM_STATE_PIDMWRATE_PITCHP,
-		},
-	},
-	[FSM_STATE_PIDMWRATE_PITCHP] = {
-		.menu_fn = pidmwrate_menu,
-		.next_state = {
-			[FSM_EVENT_UP] = FSM_STATE_PIDMWRATE_ROLLD,
-			[FSM_EVENT_DOWN] = FSM_STATE_PIDMWRATE_PITCHI,
-		},
-	},
-	[FSM_STATE_PIDMWRATE_PITCHI] = {
-		.menu_fn = pidmwrate_menu,
-		.next_state = {
-			[FSM_EVENT_UP] = FSM_STATE_PIDMWRATE_PITCHP,
-			[FSM_EVENT_DOWN] = FSM_STATE_PIDMWRATE_PITCHD,
-		},
-	},
-	[FSM_STATE_PIDMWRATE_PITCHD] = {
-		.menu_fn = pidmwrate_menu,
-		.next_state = {
-			[FSM_EVENT_UP] = FSM_STATE_PIDMWRATE_PITCHI,
-			[FSM_EVENT_DOWN] = FSM_STATE_PIDMWRATE_YAWP,
-		},
-	},
-	[FSM_STATE_PIDMWRATE_YAWP] = {
-		.menu_fn = pidmwrate_menu,
-		.next_state = {
-			[FSM_EVENT_UP] = FSM_STATE_PIDMWRATE_PITCHD,
-			[FSM_EVENT_DOWN] = FSM_STATE_PIDMWRATE_YAWI,
-		},
-	},
-	[FSM_STATE_PIDMWRATE_YAWI] = {
-		.menu_fn = pidmwrate_menu,
-		.next_state = {
-			[FSM_EVENT_UP] = FSM_STATE_PIDMWRATE_YAWP,
-			[FSM_EVENT_DOWN] = FSM_STATE_PIDMWRATE_YAWD,
-		},
-	},
-	[FSM_STATE_PIDMWRATE_YAWD] = {
-		.menu_fn = pidmwrate_menu,
-		.next_state = {
-			[FSM_EVENT_UP] = FSM_STATE_PIDMWRATE_YAWI,
-			[FSM_EVENT_DOWN] = FSM_STATE_PIDMWRATE_RPRATE,
-		},
-	},
-	[FSM_STATE_PIDMWRATE_RPRATE] = {
-		.menu_fn = pidmwrate_menu,
-		.next_state = {
-			[FSM_EVENT_UP] = FSM_STATE_PIDMWRATE_YAWD,
-			[FSM_EVENT_DOWN] = FSM_STATE_PIDMWRATE_YRATE,
-		},
-	},
-	[FSM_STATE_PIDMWRATE_YRATE] = {
-		.menu_fn = pidmwrate_menu,
-		.next_state = {
-			[FSM_EVENT_UP] = FSM_STATE_PIDMWRATE_RPRATE,
-			[FSM_EVENT_DOWN] = FSM_STATE_PIDMWRATE_SAVEEXIT,
-		},
-	},
-	[FSM_STATE_PIDMWRATE_SAVEEXIT] = {
-		.menu_fn = pidmwrate_menu,
-		.next_state = {
-			[FSM_EVENT_UP] = FSM_STATE_PIDMWRATE_YRATE,
-			[FSM_EVENT_DOWN] = FSM_STATE_PIDMWRATE_EXIT,
-			[FSM_EVENT_RIGHT] = FSM_STATE_MAIN_PIDMWRATE,
-		},
-	},
-	[FSM_STATE_PIDMWRATE_EXIT] = {
-		.menu_fn = pidmwrate_menu,
-		.next_state = {
-			[FSM_EVENT_UP] = FSM_STATE_PIDMWRATE_SAVEEXIT,
-			[FSM_EVENT_DOWN] = FSM_STATE_PIDMWRATE_ROLLP,
-			[FSM_EVENT_RIGHT] = FSM_STATE_MAIN_PIDMWRATE,
-		},
-	},
-/*------------------------------------------------------------------------------------------*/
 	[FSM_STATE_TPA_IDLE] = {
 		.menu_fn = tpa_menu,
 		.next_state = {
@@ -982,9 +855,6 @@ void main_menu(void)
 			case FSM_STATE_MAIN_PIDATT:
 				write_string("PID - Attitude", MENU_LINE_X, y_pos, 0, 0, TEXT_VA_TOP, TEXT_HA_LEFT, 0, MENU_FONT);
 				break;
-			case FSM_STATE_MAIN_PIDMWRATE:
-				write_string("PID - MWRate", MENU_LINE_X, y_pos, 0, 0, TEXT_VA_TOP, TEXT_HA_LEFT, 0, MENU_FONT);
-				break;
 			case FSM_STATE_MAIN_TPA:
 				write_string("Throttle PID Attenuation", MENU_LINE_X, y_pos, 0, 0, TEXT_VA_TOP, TEXT_HA_LEFT, 0, MENU_FONT);
 				break;
@@ -1099,7 +969,6 @@ void flightmode_menu(void)
 		[MANUALCONTROLSETTINGS_FLIGHTMODEPOSITION_ACRO] = "Acro",
 		[MANUALCONTROLSETTINGS_FLIGHTMODEPOSITION_ACROPLUS] = "AcroPlus",
 		[MANUALCONTROLSETTINGS_FLIGHTMODEPOSITION_LEVELING] = "Leveling",
-		[MANUALCONTROLSETTINGS_FLIGHTMODEPOSITION_MWRATE] = "MW Rate",
 		[MANUALCONTROLSETTINGS_FLIGHTMODEPOSITION_HORIZON] = "Horizon",
 		[MANUALCONTROLSETTINGS_FLIGHTMODEPOSITION_AXISLOCK] = "Axis Lock",
 		[MANUALCONTROLSETTINGS_FLIGHTMODEPOSITION_VIRTUALBAR] = "Virtualbar",
@@ -1400,124 +1269,6 @@ void pidatt_menu(void)
 		draw_selected_icon(MENU_LINE_X - 4, y_pos + 4);
 	}
 }
-
-const char * rate_strings[] = {"RollPitchRate ",
-							   "YawRate       ",};
-void pidmwrate_menu(void)
-{
-	const float limits_low[] = {0.f, 0.f, 0.f};
-	const float limits_high[] = {0.1f, 0.1f, 1e-3f};
-	const float increments[] = {1e-4, 1e-4f, 1e-6f};
-
-	float pid_arr[MWRATESETTINGS_ROLLRATEPID_NUMELEM];
-	int y_pos = MENU_LINE_Y;
-	enum menu_fsm_state my_state = FSM_STATE_PIDMWRATE_ROLLP;
-	bool data_changed = false;
-	char tmp_str[100] = {0};
-	uint8_t rate;
-
-	draw_menu_title("PID MWRate");
-
-	for (int i = 0; i < 3; i++) {
-		data_changed = false;
-		switch (i) {
-			case 0:
-				MWRateSettingsRollRatePIDGet(pid_arr);
-				break;
-			case 1:
-				MWRateSettingsPitchRatePIDGet(pid_arr);
-				break;
-			case 2:
-				MWRateSettingsYawRatePIDGet(pid_arr);
-				break;
-		}
-		for (int j = 0; j < 3; j++) {
-			sprintf(tmp_str, "%s %s: %0.6f", axis_strings[i], pid_strings[j], (double)pid_arr[j]);
-			write_string(tmp_str, MENU_LINE_X, y_pos, 0, 0, TEXT_VA_TOP, TEXT_HA_LEFT, 0, MENU_FONT);
-			draw_hscale(180, GRAPHICS_RIGHT - 5, y_pos + 2, limits_low[j], limits_high[j], pid_arr[j]);
-			if (my_state == current_state) {
-				draw_selected_icon(MENU_LINE_X - 4, y_pos + 4);
-				if (current_event == FSM_EVENT_RIGHT) {
-					pid_arr[j] = MIN(pid_arr[j] + increments[j], limits_high[j]);
-					data_changed = true;
-				}
-				if (current_event == FSM_EVENT_LEFT) {
-					pid_arr[j] = MAX(pid_arr[j] - increments[j], limits_low[j]);
-					data_changed = true;
-				}
-				if (data_changed) {
-					switch (i) {
-						case 0:
-							MWRateSettingsRollRatePIDSet(pid_arr);
-							break;
-						case 1:
-							MWRateSettingsPitchRatePIDSet(pid_arr);
-							break;
-						case 2:
-							MWRateSettingsYawRatePIDSet(pid_arr);
-							break;
-					}
-				}
-			}
-			y_pos += MENU_LINE_SPACING;
-			my_state++;
-		}
-	}
-
-	// rate limits
-	for (int i = 0; i < 2; i++) {
-		data_changed = false;
-		switch (i) {
-			case 0:
-				MWRateSettingsRollPitchRateGet(&rate);
-				break;
-			case 1:
-				MWRateSettingsYawRateGet(&rate);
-				break;
-		}
-
-		sprintf(tmp_str, "%s : %d", rate_strings[i], rate);
-		write_string(tmp_str, MENU_LINE_X, y_pos, 0, 0, TEXT_VA_TOP, TEXT_HA_LEFT, 0, MENU_FONT);
-		draw_hscale(180, GRAPHICS_RIGHT - 5, y_pos + 2, 0, 100, rate);
-		if (my_state == current_state) {
-			draw_selected_icon(MENU_LINE_X - 4, y_pos + 4);
-			if (current_event == FSM_EVENT_RIGHT) {
-				rate = MIN(rate + 1, 100);
-				data_changed = true;
-			}
-			if (current_event == FSM_EVENT_LEFT) {
-				rate = MAX((int)rate- 1, 0);
-				data_changed = true;
-			}
-			if (data_changed) {
-				switch (i) {
-					case 0:
-						MWRateSettingsRollPitchRateSet(&rate);
-						break;
-					case 1:
-						MWRateSettingsYawRateSet(&rate);
-						break;
-				}
-			}
-		}
-		y_pos += MENU_LINE_SPACING;
-		my_state++;
-	}
-
-	write_string("Save and Exit", MENU_LINE_X, y_pos, 0, 0, TEXT_VA_TOP, TEXT_HA_LEFT, 0, MENU_FONT);
-	if (current_state == FSM_STATE_PIDMWRATE_SAVEEXIT) {
-		draw_selected_icon(MENU_LINE_X - 4, y_pos + 4);
-		if (current_event == FSM_EVENT_RIGHT)
-			UAVObjSave(MWRateSettingsHandle(), 0);
-	}
-
-	y_pos += MENU_LINE_SPACING;
-	write_string("Exit", MENU_LINE_X, y_pos, 0, 0, TEXT_VA_TOP, TEXT_HA_LEFT, 0, MENU_FONT);
-	if (current_state == FSM_STATE_PIDMWRATE_EXIT) {
-		draw_selected_icon(MENU_LINE_X - 4, y_pos + 4);
-	}
-}
-
 
 const char * tpa_strings[] = {"Threshold   ",
 							  "Attenuation "};

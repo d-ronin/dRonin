@@ -51,7 +51,6 @@
 #include "cameradesired.h"
 #include "flightstatus.h"
 #include "gyros.h"
-#include "mwratesettings.h"
 #include "ratedesired.h"
 #include "systemident.h"
 #include "stabilizationdesired.h"
@@ -101,17 +100,12 @@ enum {
 	PID_VBAR_ROLL = PID_GROUP_VBAR,
 	PID_VBAR_PITCH,
 	PID_VBAR_YAW,
-	PID_GROUP_MWR,   // Multiwii rate settings
-	PID_MWR_ROLL = PID_GROUP_MWR,
-	PID_MWR_PITCH,
-	PID_MWR_YAW,
 	PID_COORDINATED_FLIGHT_YAW,
 	PID_MAX
 };
 
 // Private variables
 static struct pios_thread *taskHandle;
-static MWRateSettingsData mwrate_settings;
 static StabilizationSettingsData settings;
 static SubTrimData subTrim;
 static struct pios_queue *queue;
@@ -163,7 +157,6 @@ int32_t StabilizationStart()
 	GyrosConnectQueue(queue);
 
 	// Connect settings callback
-	MWRateSettingsConnectCallback(SettingsUpdatedCb);
 	StabilizationSettingsConnectCallback(SettingsUpdatedCb);
 	SubTrimSettingsConnectCallback(SettingsUpdatedCb);
 
@@ -184,7 +177,6 @@ int32_t StabilizationInitialize()
 {
 	// Initialize variables
 	StabilizationSettingsInitialize();
-	MWRateSettingsInitialize();
 	ActuatorDesiredInitialize();
 	SubTrimInitialize();
 	SubTrimSettingsInitialize();
@@ -466,7 +458,7 @@ static void stabilizationTask(void* parameters)
 
 			case STABILIZATIONDESIRED_STABILIZATIONMODE_ACROPLUS:
 					// this implementation is based on the Openpilot/Librepilot Acro+ flightmode
-					// and our existing rate & MWRate flightmodes
+					// and our previous MWRate flightmodes
 					if(reinit)
 							pids[PID_GROUP_RATE + i].iAccumulator = 0;
 
@@ -476,7 +468,7 @@ static void stabilizationTask(void* parameters)
 					// Store to rate desired variable for storing to UAVO
 					rateDesiredAxis[i] = bound_sym(raw_input * settings.ManualRate[i], settings.ManualRate[i]);
 
-					// Zero integral for aggressive maneuvers, like it is done for MWRate
+					// Zero integral for aggressive maneuvers
 					if ((i < 2 && fabsf(gyro_filtered[i]) > 150.0f) ||
 											(i == 0 && fabsf(raw_input) > 0.2f)) {
 							pids[PID_GROUP_RATE + i].iAccumulator = 0;
@@ -577,63 +569,6 @@ static void stabilizationTask(void* parameters)
 					actuatorDesiredAxis[i] = pid_apply_setpoint(&pids[PID_GROUP_RATE + i],  rateDesiredAxis[i],  gyro_filtered[i], dT);
 					actuatorDesiredAxis[i] = bound_sym(actuatorDesiredAxis[i],1.0f);
 
-					break;
-
-				case STABILIZATIONDESIRED_STABILIZATIONMODE_MWRATE:
-				{
-					if(reinit) {
-						pids[PID_GROUP_MWR + i].iAccumulator = 0;
-					}
-
-					/*
-					 Conversion from MultiWii PID settings to our units.
-						Kp = Kp_mw * 4 / 80 / 500
-						Kd = Kd_mw * looptime * 1e-6 * 4 * 3 / 32 / 500
-						Ki = Ki_mw * 4 / 125 / 64 / (looptime * 1e-6) / 500
-
-						These values will just be approximate and should help
-						you get started.
-					*/
-
-
-					// dynamic PIDs are scaled both by thrust and stick position
-					float scale = (i == 0 || i == 1) ? mwrate_settings.RollPitchRate : mwrate_settings.YawRate;
-					float pid_scale = (100.0f - scale * fabsf(raw_input)) / 100.0f;
-					float dynP8 = pids[PID_GROUP_MWR + i].p * pid_scale;
-					float dynD8 = pids[PID_GROUP_MWR + i].d * pid_scale;
-					// these terms are used by the integral loop this proportional term is scaled by thrust (this is different than MW
-					// that does not apply scale
-					float cfgP8 = pids[PID_GROUP_MWR + i].p;
-					float cfgI8 = pids[PID_GROUP_MWR + i].i;
-
-					// Dynamically adjust PID settings
-					struct pid mw_pid;
-					mw_pid.p = 0;      // use zero Kp here because of strange setpoint. applied later.
-					mw_pid.d = dynD8;
-					mw_pid.i = cfgI8;
-					mw_pid.iLim = pids[PID_GROUP_MWR + i].iLim;
-					mw_pid.iAccumulator = pids[PID_GROUP_MWR + i].iAccumulator;
-					mw_pid.lastErr = pids[PID_GROUP_MWR + i].lastErr;
-					mw_pid.lastDer = pids[PID_GROUP_MWR + i].lastDer;
-
-					// Zero integral for aggressive maneuvers
- 					if ((i < 2 && fabsf(gyro_filtered[i]) > 150.0f) ||
- 					    (i == 0 && fabsf(raw_input) > 0.2f)) {
-						mw_pid.iAccumulator = 0;
-						mw_pid.i = 0;
-					}
-
-					// Apply controller as if we want zero change, then add stick input afterwards
-					actuatorDesiredAxis[i] = pid_apply_setpoint(&mw_pid,  raw_input / cfgP8,  gyro_filtered[i], dT);
-					actuatorDesiredAxis[i] += raw_input;             // apply input
-					actuatorDesiredAxis[i] -= dynP8 * gyro_filtered[i]; // apply Kp term
-					actuatorDesiredAxis[i] = bound_sym(actuatorDesiredAxis[i],1.0f);
-
-					// Store PID accumulators for next cycle
-					pids[PID_GROUP_MWR + i].iAccumulator = mw_pid.iAccumulator;
-					pids[PID_GROUP_MWR + i].lastErr = mw_pid.lastErr;
-					pids[PID_GROUP_MWR + i].lastDer = mw_pid.lastDer;
-				}
 					break;
 				case STABILIZATIONDESIRED_STABILIZATIONMODE_SYSTEMIDENT:
 					if(reinit) {
@@ -1023,27 +958,6 @@ static void calculate_pids(float thrust)
 	              0, /* No derivative term */
 	              settings.CoordinatedFlightYawPI[STABILIZATIONSETTINGS_COORDINATEDFLIGHTYAWPI_ILIMIT]);
 
-	// Set the mwrate roll settings
-	pid_configure(&pids[PID_MWR_ROLL],
-	              mwrate_settings.RollRatePID[MWRATESETTINGS_ROLLRATEPID_KP] * roll_scale,
-	              mwrate_settings.RollRatePID[MWRATESETTINGS_ROLLRATEPID_KI],
-	              mwrate_settings.RollRatePID[MWRATESETTINGS_ROLLRATEPID_KD] * roll_scale,
-	              mwrate_settings.RollRatePID[MWRATESETTINGS_ROLLRATEPID_ILIMIT]);
-
-	// Set the mwrate pitch settings
-	pid_configure(&pids[PID_MWR_PITCH],
-	              mwrate_settings.PitchRatePID[MWRATESETTINGS_PITCHRATEPID_KP] * pitch_scale,
-	              mwrate_settings.PitchRatePID[MWRATESETTINGS_PITCHRATEPID_KI],
-	              mwrate_settings.PitchRatePID[MWRATESETTINGS_PITCHRATEPID_KD] * pitch_scale,
-	              mwrate_settings.PitchRatePID[MWRATESETTINGS_PITCHRATEPID_ILIMIT]);
-
-	// Set the mwrate yaw settings
-	pid_configure(&pids[PID_MWR_YAW],
-	              mwrate_settings.YawRatePID[MWRATESETTINGS_YAWRATEPID_KP] * yaw_scale,
-	              mwrate_settings.YawRatePID[MWRATESETTINGS_YAWRATEPID_KI],
-	              mwrate_settings.YawRatePID[MWRATESETTINGS_YAWRATEPID_KD] * yaw_scale,
-	              mwrate_settings.YawRatePID[MWRATESETTINGS_YAWRATEPID_ILIMIT]);
-
 	// Set the coordinated flight settings
 	pid_configure(&pids[PID_COORDINATED_FLIGHT_YAW],
 	              settings.CoordinatedFlightYawPI[STABILIZATIONSETTINGS_COORDINATEDFLIGHTYAWPI_KP],
@@ -1095,10 +1009,6 @@ static void SettingsUpdatedCb(UAVObjEvent * ev, void *ctx, void *obj, int len)
 		lowThrottleZeroIntegral = settings.LowThrottleZeroIntegral == STABILIZATIONSETTINGS_LOWTHROTTLEZEROINTEGRAL_TRUE;
 
 		gyro_filter_updated = true;
-	}
-
-	if (ev == NULL || ev->obj == MWRateSettingsHandle()) {
-		MWRateSettingsGet(&mwrate_settings);
 	}
 }
 
