@@ -70,9 +70,6 @@ TelemetryMonitor::TelemetryMonitor(UAVObjectManager* objMngr, Telemetry* tel, QH
 {
     sessionID = QDateTime::currentDateTime().toTime_t();
     this->connectionTimer = new QTime();
-    // Create mutex
-    mutex = new QMutex(QMutex::Recursive);
-
     // Get stats objects
     gcsStatsObj = GCSTelemetryStats::GetInstance(objMngr);
     flightStatsObj = FlightTelemetryStats::GetInstance(objMngr);
@@ -279,7 +276,6 @@ void TelemetryMonitor::transactionCompleted(UAVObject* obj, bool success)
 {
     TELEMETRYMONITOR_QXTLOG_DEBUG(QString("%0 received %1 OBJID:%2 result:%3").arg(Q_FUNC_INFO).arg(obj->getName()).arg(obj->getObjID()).arg(success));
     Q_UNUSED(success);
-    QMutexLocker locker(mutex);
     if(obj->getObjID() == FirmwareIAPObj::OBJID)
     {
         if(!success && (retries < IAP_OBJECT_RETRIES))
@@ -314,7 +310,6 @@ void TelemetryMonitor::transactionCompleted(UAVObject* obj, bool success)
 void TelemetryMonitor::flightStatsUpdated(UAVObject* obj)
 {
     Q_UNUSED(obj);
-    QMutexLocker locker(mutex);
 
     // Force update if not yet connected
     GCSTelemetryStats::DataFields gcsStats = gcsStatsObj->getData();
@@ -580,8 +575,6 @@ void TelemetryMonitor::sessionFallback()
  */
 void TelemetryMonitor::processStatsUpdates()
 {
-    QMutexLocker locker(mutex);
-
     // Get telemetry stats
     GCSTelemetryStats::DataFields gcsStats = gcsStatsObj->getData();
     FlightTelemetryStats::DataFields flightStats = flightStatsObj->getData();

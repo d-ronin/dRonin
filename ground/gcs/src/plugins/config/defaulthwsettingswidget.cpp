@@ -30,7 +30,6 @@
  * of this source file; otherwise redistribution is prohibited.
  */
 #include "defaulthwsettingswidget.h"
-#include <QMutexLocker>
 #include <QErrorMessage>
 #include <QDebug>
 #include <QLineEdit>
