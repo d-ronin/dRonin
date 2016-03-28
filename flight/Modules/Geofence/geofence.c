@@ -75,10 +75,9 @@ int32_t GeofenceInitialize(void)
 	}
 #endif
 
+	GeoFenceSettingsInitialize();
+
 	if (module_enabled) {
-
-		GeoFenceSettingsInitialize();
-
 		// allocate and initialize the static data storage only if module is enabled
 		geofenceSettings = (GeoFenceSettingsData *) PIOS_malloc(sizeof(GeoFenceSettingsData));
 		if (geofenceSettings == NULL) {

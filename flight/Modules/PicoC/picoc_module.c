@@ -117,8 +117,9 @@ static int32_t picocInitialize(void)
 
 	module_enabled = false;
 
+	PicoCSettingsInitialize();
+
 	if (module_state[MODULESETTINGS_ADMINSTATE_PICOC] == MODULESETTINGS_ADMINSTATE_ENABLED) {
-		PicoCSettingsInitialize();
 		PicoCStatusInitialize();
 
 		// get picoc settings
