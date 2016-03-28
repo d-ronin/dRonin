@@ -267,11 +267,26 @@ void PIOS_Board_Init(void)
 	HwSharedPortTypesOptions hw_rcvrport;
 	HwDTFcRcvrPortGet(&hw_rcvrport);
 	PIOS_HAL_ConfigurePort(hw_rcvrport, // port_type
-						&pios_uart1_usart_cfg, // usart_port_cfg
+						&pios_uart3_usart_cfg, // usart_port_cfg
 						&pios_usart_com_driver, // com_driver
 						NULL, // i2c_id
 						NULL, // i2c_cfg
 						&pios_ppm_cfg, // ppm_cfg
+						NULL, // pwm_cfg
+						PIOS_LED_ALARM, // led_id
+						&pios_uart3_dsm_cfg, // dsm_cfg
+						hw_DSMxMode, // dsm_mode
+						NULL); // sbus_cfg
+	
+	/* Configure Uart1 */
+	HwSharedPortTypesOptions hw_uart1;
+	HwDTFcUart1Get(&hw_uart1);
+	PIOS_HAL_ConfigurePort(hw_uart1, // port_type
+						&pios_uart1_usart_cfg, // usart_port_cfg
+						&pios_usart_com_driver, // com_driver
+						NULL, // i2c_id
+						NULL, // i2c_cfg
+						NULL, // ppm_cfg
 						NULL, // pwm_cfg
 						PIOS_LED_ALARM, // led_id
 						&pios_uart1_dsm_cfg, // dsm_cfg
@@ -290,21 +305,6 @@ void PIOS_Board_Init(void)
 						NULL, // pwm_cfg
 						PIOS_LED_ALARM, // led_id
 						&pios_uart2_dsm_cfg, // dsm_cfg
-						hw_DSMxMode, // dsm_mode
-						NULL); // sbus_cfg
-	
-	/* Configure Uart3 */
-	HwSharedPortTypesOptions hw_uart3;
-	HwDTFcUart3Get(&hw_uart3);
-	PIOS_HAL_ConfigurePort(hw_uart3, // port_type
-						&pios_uart3_usart_cfg, // usart_port_cfg
-						&pios_usart_com_driver, // com_driver
-						NULL, // i2c_id
-						NULL, // i2c_cfg
-						NULL, // ppm_cfg
-						NULL, // pwm_cfg
-						PIOS_LED_ALARM, // led_id
-						&pios_uart3_dsm_cfg, // dsm_cfg
 						hw_DSMxMode, // dsm_mode
 						NULL); // sbus_cfg
 

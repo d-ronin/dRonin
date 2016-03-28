@@ -147,13 +147,13 @@ bool DTFc::setInputType(enum InputType type)
         settings.RcvrPort = HwDTFc::RCVRPORT_PPM;
         break;
     case INPUT_TYPE_SBUS:
-        settings.RcvrPort = HwDTFc::UART3_SBUS;
+        settings.RcvrPort = HwDTFc::RCVRPORT_SBUS;
         break;
     case INPUT_TYPE_DSM:
-        settings.RcvrPort = HwDTFc::UART3_DSM;
+        settings.RcvrPort = HwDTFc::RCVRPORT_DSM;
         break;
     case INPUT_TYPE_HOTTSUMD:
-        settings.RcvrPort = HwDTFc::UART3_HOTTSUMD;
+        settings.RcvrPort = HwDTFc::RCVRPORT_HOTTSUMD;
         break;
     default:
         return false;
@@ -190,22 +190,22 @@ enum Core::IBoardType::InputType DTFc::getInputType()
     case HwDTFc::RCVRPORT_HOTTSUMD:
         return INPUT_TYPE_HOTTSUMD;
     }
-    switch(settings.Uart2) {
+    switch(settings.Uart1) {
+    case HwDTFc::UART1_SBUS:
+    case HwDTFc::UART1_SBUSNONINVERTED:
+        return INPUT_TYPE_SBUS;
+    case HwDTFc::UART1_DSM:
+        return INPUT_TYPE_DSM;
+    case HwDTFc::UART1_HOTTSUMD:
+        return INPUT_TYPE_HOTTSUMD;
+    }
+    switch(settings.Uart1) {
     case HwDTFc::UART2_SBUS:
     case HwDTFc::UART2_SBUSNONINVERTED:
         return INPUT_TYPE_SBUS;
     case HwDTFc::UART2_DSM:
         return INPUT_TYPE_DSM;
     case HwDTFc::UART2_HOTTSUMD:
-        return INPUT_TYPE_HOTTSUMD;
-    }
-    switch(settings.Uart3) {
-    case HwDTFc::UART3_SBUS:
-    case HwDTFc::UART3_SBUSNONINVERTED:
-        return INPUT_TYPE_SBUS;
-    case HwDTFc::UART3_DSM:
-        return INPUT_TYPE_DSM;
-    case HwDTFc::UART3_HOTTSUMD:
         return INPUT_TYPE_HOTTSUMD;
     }
     

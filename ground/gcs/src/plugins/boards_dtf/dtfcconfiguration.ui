@@ -143,9 +143,9 @@
                   </spacer>
                  </item>
                  <item>
-                  <widget class="QLabel" name="lblUART2">
+                  <widget class="QLabel" name="lblUART1">
                    <property name="text">
-                    <string>UART2</string>
+                    <string>UART1</string>
                    </property>
                   </widget>
                  </item>
@@ -154,7 +154,7 @@
                    <property name="objrelation" stdset="0">
                     <stringlist notr="true">
                      <string>objname:HwDTFc</string>
-                     <string>fieldname:Uart2</string>
+                     <string>fieldname:Uart1</string>
                      <string>buttongroup:1</string>
                     </stringlist>
                    </property>
@@ -191,9 +191,9 @@
                   </spacer>
                  </item>
                  <item>
-                  <widget class="QLabel" name="lblUART3">
+                  <widget class="QLabel" name="lblUART2">
                    <property name="text">
-                    <string>UART3</string>
+                    <string>UART2</string>
                    </property>
                   </widget>
                  </item>
@@ -202,7 +202,7 @@
                    <property name="objrelation" stdset="0">
                     <stringlist>
                      <string>objname:HwDTFc</string>
-                     <string>fieldname:Uart3</string>
+                     <string>fieldname:Uart2</string>
                      <string>buttongroup:1</string>
                     </stringlist>
                    </property>

@@ -26,7 +26,7 @@
 			</options>
 		</field>
 
-		<field name="Uart2" units="function" type="enum" elements="1" parent="HwShared.PortTypes" defaultvalue="Disabled">
+		<field name="Uart1" units="function" type="enum" elements="1" parent="HwShared.PortTypes" defaultvalue="Disabled">
 			<options>
 				<option>Disabled</option>
 				<option>Telemetry</option>
@@ -49,7 +49,7 @@
 			</options>
 		</field>
 		
-		<field name="Uart3" units="function" type="enum" elements="1" parent="HwShared.PortTypes" defaultvalue="Disabled">
+		<field name="Uart2" units="function" type="enum" elements="1" parent="HwShared.PortTypes" defaultvalue="Disabled">
 			<options>
 				<option>Disabled</option>
 				<option>Telemetry</option>
