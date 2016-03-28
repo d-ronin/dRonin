@@ -71,7 +71,6 @@ bool Naze::queryCapabilities(BoardCapabilities capability)
 {
     switch(capability) {
     case BOARD_CAPABILITIES_GYROS:
-        return true;
     case BOARD_CAPABILITIES_ACCELS:
         return true;
     default:

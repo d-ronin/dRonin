@@ -69,6 +69,7 @@ bool CC3D::queryCapabilities(BoardCapabilities capability)
     switch(capability) {
     case BOARD_CAPABILITIES_GYROS:
     case BOARD_CAPABILITIES_ACCELS:
+    case BOARD_CAPABILITIES_UPGRADEABLE:
     case BOARD_DISABILITY_REQUIRESUPGRADER:
         return true;
     default:
