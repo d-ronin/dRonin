@@ -423,7 +423,7 @@ bool UploaderGadgetWidget::flashFirmware(QByteArray &firmwareImage)
     connect(&timeout, SIGNAL(timeout()), &loop, SLOT(quit()));
 
     timeout.setSingleShot(true);
-    timeout.start(120000);      // Very long out of caution.  Current Brain
+    timeout.start(120000);      // Very long out of caution. Current Brain
                                 // FW takes 36-37 seconds on some machines to
                                 // flash.
 
@@ -981,7 +981,7 @@ void UploaderGadgetWidget::doUpgradeOperation()
                 done = true;
                 break;
             case 1: /* save settings backup */
-                /* try to save.  if successful, set done */
+                /* try to save. if successful, set done */
                 done = saveSettings(xmlDump);
                 break;
             default:
@@ -1137,7 +1137,7 @@ void UploaderGadgetWidget::doUpgradeOperation()
 
         ret = m_dialog.PromptUser(
                 tr("Please review the imported settings and save to board."),
-                tr("No settings are currently saved.  Select the "
+                tr("No settings are currently saved. Select the "
                     "\"Review and Save\" button to import the settings."),
                 QStringList() << tr("Review and Save"));
 
@@ -1182,7 +1182,7 @@ void UploaderGadgetWidget::onExportButtonClick()
         QMessageBox msgBox;
 
         msgBox.setText(tr("No settings partition accessible; can't export."));
-        msgBox.setInformativeText(tr("If you're using a F3 or F4 flight controller, please upgrade your bootloader.  F1 does not support export configuration in the main loader."));
+        msgBox.setInformativeText(tr("If you're using a F3 or F4 flight controller, please upgrade your bootloader. F1 does not support export configuration in the main loader."));
         msgBox.setStandardButtons(QMessageBox::Ok);
         msgBox.setDefaultButton(QMessageBox::Ok);
 
