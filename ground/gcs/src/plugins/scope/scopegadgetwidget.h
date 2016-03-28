@@ -2,8 +2,11 @@
  ******************************************************************************
  *
  * @file       scopegadgetwidget.h
+ *
  * @author     The OpenPilot Team, http://www.openpilot.org Copyright (C) 2010.
  * @author     Tau Labs, http://taulabs.org, Copyright (C) 2013
+ * @author     dRonin, http://dRonin.org/, Copyright (C) 2016
+ *
  * @brief      Scope Plugin Gadget Widget
  * @see        The GNU Public License (GPL) Version 3
  *
@@ -27,6 +30,10 @@
  * You should have received a copy of the GNU General Public License along
  * with this program; if not, write to the Free Software Foundation, Inc.,
  * 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
+ *
+ * Additional note on redistribution: The copyright and license notices above
+ * must be maintained in each individual source file that is a derivative work
+ * of this source file; otherwise redistribution is prohibited.
  */
 
 #ifndef SCOPEGADGETWIDGET_H_
@@ -49,7 +56,6 @@ class UAVDataObject;
 #include <QTimer>
 #include <QTime>
 #include <QVector>
-#include <QMutex>
 
 /*!
   \brief This class is used to render the time values on the horizontal axis for the
@@ -115,7 +121,6 @@ private slots:
     void showOptionDialog();
 
 private:
-    QMutex mutex;
     int m_refreshInterval;
     ScopeConfig *m_scope;
     QMap<QString, PlotData*> m_dataSources;

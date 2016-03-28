@@ -2,8 +2,11 @@
  ******************************************************************************
  *
  * @file       telemetrymonitor.cpp
+ *
  * @author     The OpenPilot Team, http://www.openpilot.org Copyright (C) 2010.
  * @author     Tau Labs, http://taulabs.org, Copyright (C) 2014
+ * @author     dRonin, http://dRonin.org/, Copyright (C) 2016
+ *
  * @addtogroup GCSPlugins GCS Plugins
  * @{
  * @addtogroup UAVTalkPlugin UAVTalk Plugin
@@ -24,6 +27,10 @@
  * You should have received a copy of the GNU General Public License along
  * with this program; if not, write to the Free Software Foundation, Inc.,
  * 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
+ *
+ * Additional note on redistribution: The copyright and license notices above
+ * must be maintained in each individual source file that is a derivative work
+ * of this source file; otherwise redistribution is prohibited.
  */
 
 #ifndef TELEMETRYMONITOR_H
@@ -33,8 +40,6 @@
 #include <QQueue>
 #include <QTimer>
 #include <QTime>
-#include <QMutex>
-#include <QMutexLocker>
 #include "uavobjectmanager.h"
 #include "gcstelemetrystats.h"
 #include "flighttelemetrystats.h"
@@ -88,7 +93,6 @@ private:
     GCSTelemetryStats* gcsStatsObj;
     FlightTelemetryStats* flightStatsObj;
     QTimer* statsTimer;
-    QMutex* mutex;
     QTime* connectionTimer;
     SessionManaging* sessionObj;
     void startRetrievingObjects();

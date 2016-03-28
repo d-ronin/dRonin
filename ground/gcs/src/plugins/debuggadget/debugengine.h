@@ -2,7 +2,6 @@
 #define DEBUGENGINE_H
 #include <QTextBrowser>
 #include <QPointer>
-#include <QMutex>
 #include <QObject>
 
 

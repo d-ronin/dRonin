@@ -2,8 +2,10 @@
  ******************************************************************************
  *
  * @file       uavobjectgeneratorgcs.cpp
+ *
  * @author     The OpenPilot Team, http://www.openpilot.org Copyright (C) 2010.
- * @author     dRonin, http://dronin.org Copyright (C) 2015
+ * @author     dRonin, http://dronin.org Copyright (C) 2015-2016
+ *
  * @brief      produce gcs code for uavobjects
  *
  * @see        The GNU Public License (GPL) Version 3
@@ -23,6 +25,10 @@
  * You should have received a copy of the GNU General Public License along
  * with this program; if not, write to the Free Software Foundation, Inc.,
  * 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
+ *
+ * Additional note on redistribution: The copyright and license notices above
+ * must be maintained in each individual source file that is a derivative work
+ * of this source file; otherwise redistribution is prohibited.
  */
 
 #include "uavobjectgeneratorgcs.h"
@@ -181,7 +187,6 @@ bool UAVObjectGeneratorGCS::process_object(ObjectInfo* info)
             propertiesImpl +=
                     QString("%1 %2::get%3(quint32 index) const\n"
                             "{\n"
-                            "   QMutexLocker locker(mutex);\n"
                             "   return data.%3[index];\n"
                             "}\n")
                     .arg(type).arg(info->name).arg(field->name);
@@ -191,10 +196,8 @@ bool UAVObjectGeneratorGCS::process_object(ObjectInfo* info)
             propertiesImpl +=
                     QString("void %1::set%2(quint32 index, %3 value)\n"
                             "{\n"
-                            "   mutex->lock();\n"
                             "   bool changed = data.%2[index] != value;\n"
                             "   data.%2[index] = value;\n"
-                            "   mutex->unlock();\n"
                             "   if (changed) emit %2Changed(index,value);\n"
                             "}\n\n")
                     .arg(info->name).arg(field->name).arg(type);
@@ -212,7 +215,6 @@ bool UAVObjectGeneratorGCS::process_object(ObjectInfo* info)
                 propertiesImpl +=
                         QString("%1 %2::get%3_%4() const\n"
                                 "{\n"
-                                "   QMutexLocker locker(mutex);\n"
                                 "   return data.%3[%5];\n"
                                 "}\n")
                         .arg(type).arg(info->name).arg(field->name).arg(elementName).arg(elementIndex);
@@ -222,10 +224,8 @@ bool UAVObjectGeneratorGCS::process_object(ObjectInfo* info)
                 propertiesImpl +=
                         QString("void %1::set%2_%3(%4 value)\n"
                                 "{\n"
-                                "   mutex->lock();\n"
                                 "   bool changed = data.%2[%5] != value;\n"
                                 "   data.%2[%5] = value;\n"
-                                "   mutex->unlock();\n"
                                 "   if (changed) emit %2_%3Changed(value);\n"
                                 "}\n\n")
                         .arg(info->name).arg(field->name).arg(elementName).arg(type).arg(elementIndex);
@@ -246,7 +246,6 @@ bool UAVObjectGeneratorGCS::process_object(ObjectInfo* info)
             propertiesImpl +=
                     QString("%1 %2::get%3() const\n"
                             "{\n"
-                            "   QMutexLocker locker(mutex);\n"
                             "   return data.%3;\n"
                             "}\n")
                     .arg(type).arg(info->name).arg(field->name);
@@ -256,10 +255,8 @@ bool UAVObjectGeneratorGCS::process_object(ObjectInfo* info)
             propertiesImpl +=
                     QString("void %1::set%2(%3 value)\n"
                             "{\n"
-                            "   mutex->lock();\n"
                             "   bool changed = data.%2 != value;\n"
                             "   data.%2 = value;\n"
-                            "   mutex->unlock();\n"
                             "   if (changed) emit %2Changed(value);\n"
                             "}\n\n")
                     .arg(info->name).arg(field->name).arg(type);

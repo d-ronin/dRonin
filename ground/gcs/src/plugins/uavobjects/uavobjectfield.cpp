@@ -2,8 +2,10 @@
  ******************************************************************************
  *
  * @file       uavobjectfield.cpp
+ *
  * @author     The OpenPilot Team, http://www.openpilot.org Copyright (C) 2010.
- * @author     dRonin, http://dronin.org Copyright (C) 2015
+ * @author     dRonin, http://dronin.org Copyright (C) 2015-2016
+ *
  * @see        The GNU Public License (GPL) Version 3
  * @addtogroup GCSPlugins GCS Plugins
  * @{
@@ -25,7 +27,12 @@
  * You should have received a copy of the GNU General Public License along
  * with this program; if not, write to the Free Software Foundation, Inc.,
  * 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
+ *
+ * Additional note on redistribution: The copyright and license notices above
+ * must be maintained in each individual source file that is a derivative work
+ * of this source file; otherwise redistribution is prohibited.
  */
+
 #include "uavobjectfield.h"
 #include <QtEndian>
 #include <QDebug>
@@ -529,7 +536,6 @@ UAVObject* UAVObjectField::getObject()
 
 void UAVObjectField::clear()
 {
-    QMutexLocker locker(obj->getMutex());
     switch (type)
     {
     case BITFIELD:
@@ -594,7 +600,6 @@ QString UAVObjectField::toString()
 
 qint32 UAVObjectField::pack(quint8* dataOut)
 {
-    QMutexLocker locker(obj->getMutex());
     // Pack each element in output buffer
     switch (type)
     {
@@ -669,7 +674,6 @@ qint32 UAVObjectField::pack(quint8* dataOut)
 
 qint32 UAVObjectField::unpack(const quint8* dataIn)
 {
-    QMutexLocker locker(obj->getMutex());
     // Unpack each element from input buffer
     switch (type)
     {
@@ -822,7 +826,6 @@ bool UAVObjectField::isText()
 
 QVariant UAVObjectField::getValue(quint32 index)
 {
-    QMutexLocker locker(obj->getMutex());
     // Check that index is not out of bounds
     if ( index >= numElements )
     {
@@ -916,7 +919,6 @@ QVariant UAVObjectField::getValue(quint32 index)
 
 bool UAVObjectField::checkValue(const QVariant& value, quint32 index)
 {
-    QMutexLocker locker(obj->getMutex());
     // Check that index is not out of bounds
     if ( index >= numElements )
     {
@@ -957,7 +959,6 @@ bool UAVObjectField::checkValue(const QVariant& value, quint32 index)
 
 void UAVObjectField::setValue(const QVariant& value, quint32 index)
 {
-    QMutexLocker locker(obj->getMutex());
     // Check that index is not out of bounds
     if ( index >= numElements )
     {
