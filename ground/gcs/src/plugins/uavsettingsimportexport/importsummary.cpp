@@ -37,10 +37,11 @@
 #include <QSignalMapper>
 #include "importsummary.h"
 
-ImportSummaryDialog::ImportSummaryDialog( QWidget *parent) :
+ImportSummaryDialog::ImportSummaryDialog( QWidget *parent, bool quiet) :
     QDialog(parent),
     ui(new Ui::ImportSummaryDialog),
-    importedObjects(NULL)
+    importedObjects(NULL),
+    quiet(quiet)
 {
    ui->setupUi(this);
 
@@ -196,14 +197,16 @@ void ImportSummaryDialog::doTheApplySaving()
 
     hide();
 
-    QMessageBox msgBox;
+    if (!quiet) {
+        QMessageBox msgBox;
 
-    msgBox.setText(tr("Settings saved to flash."));
+        msgBox.setText(tr("Settings saved to flash."));
 
-    msgBox.setInformativeText(tr("You must power cycle the flight controller to apply settings and continue configuration."));
+        msgBox.setInformativeText(tr("You must power cycle the flight controller to apply settings and continue configuration."));
 
-    msgBox.setStandardButtons(QMessageBox::Ok);
-    msgBox.exec();
+        msgBox.setStandardButtons(QMessageBox::Ok);
+        msgBox.exec();
+    }
 
     accept();
 }

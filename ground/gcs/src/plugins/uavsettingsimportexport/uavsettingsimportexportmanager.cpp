@@ -97,7 +97,8 @@ UAVSettingsImportExportManager::UAVSettingsImportExportManager(QObject *parent):
 
 }
 
-bool UAVSettingsImportExportManager::importUAVSettings(const QByteArray &settings)
+bool UAVSettingsImportExportManager::importUAVSettings(const QByteArray &settings,
+        bool quiet)
 {
     QDomDocument doc("UAVObjects");
 
@@ -128,7 +129,7 @@ bool UAVSettingsImportExportManager::importUAVSettings(const QByteArray &setting
 
     // We are now ok: setup the import summary dialog & update it as we
     // go along.
-    ImportSummaryDialog swui((QWidget*)Core::ICore::instance()->mainWindow());
+    ImportSummaryDialog swui((QWidget*)Core::ICore::instance()->mainWindow(), quiet);
 
     ExtensionSystem::PluginManager *pm = ExtensionSystem::PluginManager::instance();
     UAVObjectManager *boardObjManager = pm->getObject<UAVObjectManager>();

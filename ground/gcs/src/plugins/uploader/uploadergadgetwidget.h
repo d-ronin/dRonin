@@ -94,6 +94,7 @@ private:
     void setUploaderStatus(const uploader::UploaderStatus &value);
     void CheckAutopilotReady();
     bool CheckInBootloaderState();
+    /* XXX TODO: make capitalization consistent */
     void setStatusInfo(QString str, uploader::StatusIcon ic);
     QString getImagePath(QString boardName, QString imageType = QString("fw"));
     bool FirmwareLoadFromFile(QString filename, QByteArray *contents);
@@ -102,6 +103,8 @@ private:
     void haltOrReset(bool halting);
     bool tradeSettingsWithCloud(QString srcRelease, bool upgrading = false,
             QByteArray *settingsOut = NULL);
+    bool saveSettings(const QByteArray &settingsDump);
+
     bool askIfShouldContinue();
     bool downloadSettings();
     void stepChangeAndDelay(QEventLoop &loop, int delayMs,
