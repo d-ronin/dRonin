@@ -251,6 +251,11 @@ int32_t transmitter_control_update()
 			value = PIOS_RCVR_Read(pios_rcvr_group_map[MANUALCONTROLSETTINGS_CHANNELGROUPS_SBUS], settings.RssiChannelNumber);
 #endif /* PIOS_INCLUDE_SBUS */
 			break;
+		case MANUALCONTROLSETTINGS_RSSITYPE_HOTTSUM:
+#if defined(PIOS_INCLUDE_HSUM)
+			value = PIOS_RCVR_Read(pios_rcvr_group_map[MANUALCONTROLSETTINGS_CHANNELGROUPS_HOTTSUM], settings.RssiChannelNumber);
+#endif /* PIOS_INCLUDE_HSUM */
+			break;
 		}
 		if(value < 0)
 			value = 0;
