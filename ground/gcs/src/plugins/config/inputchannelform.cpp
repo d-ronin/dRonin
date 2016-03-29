@@ -179,6 +179,9 @@ void inputChannelForm::groupUpdated()
             case ManualControlSettings::RSSITYPE_SBUS:
                 count = 18;
                 break;
+            case ManualControlSettings::RSSITYPE_HOTTSUM:
+                count = 32;
+                break;
             case ManualControlSettings::RSSITYPE_ADC:
                 count = 9;
                 break;
