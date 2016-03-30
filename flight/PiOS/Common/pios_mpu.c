@@ -295,7 +295,7 @@ static int32_t PIOS_MPU_Mag_WriteReg(uint8_t reg, uint8_t data)
 	// we will use I2C SLV4 to manipulate with AK8963 control registers
 	if (PIOS_MPU_WriteReg(PIOS_MPU_SLV4_REG_REG, reg) != 0)
 		return -1;
-	PIOS_MPU_WriteReg(PIOS_MPU_SLV4_ADDR_REG, PIOS_MPU_AK8963_ADDR);
+	PIOS_MPU_WriteReg(PIOS_MPU_SLV4_ADDR_REG, PIOS_MPU_AK89XX_ADDR);
 	PIOS_MPU_WriteReg(PIOS_MPU_SLV4_DO_REG, data);
 	PIOS_MPU_WriteReg(PIOS_MPU_SLV4_CTRL_REG, PIOS_MPU_I2CSLV_EN);
 
@@ -326,7 +326,7 @@ static uint8_t PIOS_MPU_Mag_ReadReg(uint8_t reg)
 {
 	// we will use I2C SLV4 to manipulate with AK8xxx control registers
 	PIOS_MPU_WriteReg(PIOS_MPU_SLV4_REG_REG, reg);
-	PIOS_MPU_WriteReg(PIOS_MPU_SLV4_ADDR_REG, PIOS_MPU_AK8963_ADDR | 0x80);
+	PIOS_MPU_WriteReg(PIOS_MPU_SLV4_ADDR_REG, PIOS_MPU_AK89XX_ADDR | 0x80);
 	PIOS_MPU_WriteReg(PIOS_MPU_SLV4_CTRL_REG, PIOS_MPU_I2CSLV_EN);
 
 	// wait for I2C transaction done, use simple safety
@@ -351,19 +351,25 @@ static uint8_t PIOS_MPU_Mag_ReadReg(uint8_t reg)
  */
 static int32_t PIOS_MPU_Mag_Config(void)
 {
-	// reset AK8963
-	if (PIOS_MPU_Mag_WriteReg(PIOS_MPU_AK8963_CNTL2_REG, PIOS_MPU_AK8963_CNTL2_SRST) != 0)
-		return -3;
+	if (mpu_dev->mpu_type == PIOS_MPU9250) {
+		// reset AK8963
+		if (PIOS_MPU_Mag_WriteReg(PIOS_MPU_AK8963_CNTL2_REG, PIOS_MPU_AK8963_CNTL2_SRST) != 0)
+			return -3;
+	}
+	// AK8975 (MPU-9150) doesn't have soft reset function
 
 	// give chip some time to initialize
 	PIOS_DELAY_WaitmS(2);
 
 	// set magnetometer sampling rate to 100Hz and 16-bit resolution
-	PIOS_MPU_Mag_WriteReg(PIOS_MPU_AK8963_CNTL1_REG, PIOS_MPU_AK8963_MODE_CONTINUOUS_FAST_16B);
+	if (mpu_dev->mpu_type == PIOS_MPU9250)
+		PIOS_MPU_Mag_WriteReg(PIOS_MPU_AK89XX_CNTL1_REG, PIOS_MPU_AK8963_MODE_CONTINUOUS_FAST_16B);
+	else
+		PIOS_MPU_Mag_WriteReg(PIOS_MPU_AK89XX_CNTL1_REG, PIOS_MPU_AK8975_MODE_SINGLE_12B);
 
 	// configure mpu to read ak8963 data range from STATUS1 to STATUS2 at ODR
-	PIOS_MPU_WriteReg(PIOS_MPU_SLV0_REG_REG, PIOS_MPU_AK8963_ST1_REG);
-	PIOS_MPU_WriteReg(PIOS_MPU_SLV0_ADDR_REG, PIOS_MPU_AK8963_ADDR | 0x80);
+	PIOS_MPU_WriteReg(PIOS_MPU_SLV0_REG_REG, PIOS_MPU_AK89XX_ST1_REG);
+	PIOS_MPU_WriteReg(PIOS_MPU_SLV0_ADDR_REG, PIOS_MPU_AK89XX_ADDR | 0x80);
 	PIOS_MPU_WriteReg(PIOS_MPU_SLV0_CTRL_REG, PIOS_MPU_I2CSLV_EN | 8);
 
 	return 0;
@@ -383,8 +389,8 @@ static bool PIOS_MPU_Mag_Alloc(struct pios_mpu_dev *dev)
 static int32_t PIOS_MPU_Mag_Probe(void)
 {
 	/* probe for mag whomai */
-	uint8_t id = PIOS_MPU_Mag_ReadReg(PIOS_MPU_AK8963_WHOAMI_REG);
-	if (id != PIOS_MPU_AK8963_WHOAMI_ID)
+	uint8_t id = PIOS_MPU_Mag_ReadReg(PIOS_MPU_AK89XX_WHOAMI_REG);
+	if (id != PIOS_MPU_AK89XX_WHOAMI_ID)
 		return -2;
 
 	return 0;
@@ -583,14 +589,15 @@ void PIOS_MPU_SetAccelBandwidth(uint16_t bandwidth)
 
 int32_t PIOS_MPU_SetSampleRate(uint16_t samplerate_hz)
 {
-	uint16_t filter_frequency = 1000;
+	// TODO: think about supporting >1 khz, aliasing/noise issues though..
+	uint16_t internal_rate = 1000;
 
 	// limit samplerate to filter frequency
-	if (samplerate_hz > filter_frequency)
-		samplerate_hz = filter_frequency;
+	if (samplerate_hz > internal_rate)
+		samplerate_hz = internal_rate;
 
 	// calculate divisor, round to nearest integer
-	int32_t divisor = (int32_t)(((float)filter_frequency / samplerate_hz) + 0.5f) - 1;
+	int32_t divisor = (int32_t)(((float)internal_rate / samplerate_hz) + 0.5f) - 1;
 
 	// limit resulting divisor to register value range
 	if (divisor < 0)
@@ -599,14 +606,19 @@ int32_t PIOS_MPU_SetSampleRate(uint16_t samplerate_hz)
 	if (divisor > 0xff)
 		divisor = 0xff;
 
+	// calculate true sample rate
+	samplerate_hz = internal_rate / (1 + divisor);
+
 	int32_t retval = PIOS_MPU_WriteReg(PIOS_MPU_SMPLRT_DIV_REG, (uint8_t)divisor);
 
 	if (retval == 0) {
 		PIOS_SENSORS_SetSampleRate(PIOS_SENSOR_ACCEL, samplerate_hz);
 		PIOS_SENSORS_SetSampleRate(PIOS_SENSOR_GYRO, samplerate_hz);
 #ifdef PIOS_INCLUDE_MPU_MAG
-		if (mpu_dev->use_mag)
-			PIOS_SENSORS_SetSampleRate(PIOS_SENSOR_MAG, samplerate_hz);
+		if (mpu_dev->use_mag) {
+			uint16_t mag_rate = (mpu_dev->mpu_type == PIOS_MPU9250) ? 100 : samplerate_hz;
+			PIOS_SENSORS_SetSampleRate(PIOS_SENSOR_MAG, mag_rate);
+		}
 #endif // PIOS_INCLUDE_MPU_MAG
 	}
 
@@ -1070,12 +1082,28 @@ static void PIOS_MPU_Task(void *parameters)
 
 #ifdef PIOS_INCLUDE_MPU_MAG
 		if (mpu_dev->use_mag) {
-			uint8_t st1 = mpu_rec_buf[IDX_MAG_ST1];
-			if (st1 & PIOS_MPU_AK8963_ST1_DRDY) {
-				mag_data.x *= 1.5f;
-				mag_data.y *= 1.5f;
-				mag_data.z *= 1.5f;
+			// check data ready
+			bool mag_ok = mpu_rec_buf[IDX_MAG_ST1] & PIOS_MPU_AK89XX_ST1_DRDY;
+			// check for overflow
+			mag_ok &= !(mpu_rec_buf[IDX_MAG_ST2] & PIOS_MPU_AK89XX_ST2_HOFL);
+			// check for data error on mpu-9150
+			mag_ok &= (mpu_dev->mpu_type != PIOS_MPU9150 || !(mpu_rec_buf[IDX_MAG_ST2] & PIOS_MPU_AK8975_ST2_DERR));
+			if (mag_ok) {
+				float mag_scale;
+				if (mpu_dev->mpu_type == PIOS_MPU9150)
+					mag_scale = 3.0f; // 12-bit sampling
+				else if (mpu_rec_buf[IDX_MAG_ST2] & PIOS_MPU_AK8963_ST2_BITM)
+					mag_scale = 1.5f; // 16-bit sampling
+				else
+					mag_scale = 6.0f; // 14-bit sampling
+				mag_data.x *= mag_scale;
+				mag_data.y *= mag_scale;
+				mag_data.z *= mag_scale;
 				PIOS_Queue_Send(mpu_dev->mag_queue, &mag_data, 0);
+
+				// trigger another sample
+				if (mpu_dev->mpu_type == PIOS_MPU9150)
+					PIOS_MPU_Mag_WriteReg(PIOS_MPU_AK89XX_CNTL1_REG, PIOS_MPU_AK8975_MODE_SINGLE_12B);
 			}
 		}
 #endif // PIOS_INCLUDE_MPU_MAG

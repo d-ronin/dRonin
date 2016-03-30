@@ -124,20 +124,21 @@
 #define PIOS_MPU_I2CSLV_GRP           0x10
 
 
-/* AK8963 Registers */
-#define PIOS_MPU_AK8963_ADDR                         0x0C
-#define PIOS_MPU_AK8963_WHOAMI_REG                   0x00
-#define PIOS_MPU_AK8963_WHOAMI_ID                    0x48
-#define PIOS_MPU_AK8963_ST1_REG                      0x02
-#define PIOS_MPU_AK8963_ST2_REG                      0x09
-#define PIOS_MPU_AK8963_ST1_DOR                      0x02
-#define PIOS_MPU_AK8963_ST1_DRDY                     0x01
+/* AK89XX Registers */
+#define PIOS_MPU_AK89XX_ADDR                         0x0C
+#define PIOS_MPU_AK89XX_WHOAMI_REG                   0x00
+#define PIOS_MPU_AK89XX_WHOAMI_ID                    0x48
+#define PIOS_MPU_AK89XX_ST1_REG                      0x02
+#define PIOS_MPU_AK89XX_ST2_REG                      0x09
+#define PIOS_MPU_AK89XX_ST1_DRDY                     0x01
 #define PIOS_MPU_AK8963_ST2_BITM                     0x10
-#define PIOS_MPU_AK8963_ST2_HOFL                     0x08
-#define PIOS_MPU_AK8963_CNTL1_REG                    0x0A
-#define PIOS_MPU_AK8963_CNTL2_REG                    0x0A
+#define PIOS_MPU_AK89XX_ST2_HOFL                     0x08
+#define PIOS_MPU_AK8975_ST2_DERR                     0x04
+#define PIOS_MPU_AK89XX_CNTL1_REG                    0x0A
+#define PIOS_MPU_AK8963_CNTL2_REG                    0x0B
 #define PIOS_MPU_AK8963_CNTL2_SRST                   0x01
 #define PIOS_MPU_AK8963_MODE_CONTINUOUS_FAST_16B     0x16
+#define PIOS_MPU_AK8975_MODE_SINGLE_12B              0x01
 
 #endif /* PIOS_MPU_PRIV_H */
 

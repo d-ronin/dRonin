@@ -113,16 +113,6 @@ enum pios_mpu_orientation { // clockwise rotation from board forward
 	PIOS_MPU_BOTTOM_270DEG  = 0x07,
 };
 
-struct pios_mpu_data {
-	int16_t gyro_x;
-	int16_t gyro_y;
-	int16_t gyro_z;
-	int16_t accel_x;
-	int16_t accel_y;
-	int16_t accel_z;
-	int16_t temperature;
-};
-
 struct pios_mpu_cfg {
 	const struct pios_exti_cfg *exti_cfg; /* Pointer to the EXTI configuration */
 
