@@ -708,6 +708,13 @@ bool UploaderGadgetWidget::tradeSettingsWithCloud(QString srcRelease,
         settingsOut->clear();
     }
 
+    // ZLib compress the data
+    QByteArray compressed = qCompress(tempArray, 8);
+
+    // Remove the first 4 bytes, because Qt prepends expected length
+    // (not compatible with zlib)
+    compressed.remove(0, 4);
+
     QHttpPart githash, adaptTo, datafile;
 
     githash.setHeader(QNetworkRequest::ContentDispositionHeader,QVariant("form-data; name=\"githash\""));
@@ -719,7 +726,7 @@ bool UploaderGadgetWidget::tradeSettingsWithCloud(QString srcRelease,
 
     datafile.setHeader(QNetworkRequest::ContentTypeHeader, QVariant("application/octet-stream"));
     datafile.setHeader(QNetworkRequest::ContentDispositionHeader, QVariant("form-data; filename=\"datafile\"; name=\"datafile\""));
-    datafile.setBody(tempArray);
+    datafile.setBody(compressed);
 
     multiPart->append(githash);
     multiPart->append(datafile);
