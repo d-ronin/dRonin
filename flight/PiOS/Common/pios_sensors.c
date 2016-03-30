@@ -36,13 +36,16 @@
 
 //! The list of queue handles
 static struct pios_queue *queues[PIOS_SENSOR_LAST];
+static uint32_t sample_rates[PIOS_SENSOR_LAST];
 static int32_t max_gyro_rate;
 
 //! Initialize the sensors interface
 int32_t PIOS_SENSORS_Init()
 {
-	for (uint32_t i = 0; i < PIOS_SENSOR_LAST; i++)
+	for (uint32_t i = 0; i < PIOS_SENSOR_LAST; i++) {
 		queues[i] = NULL;
+		sample_rates[i] = 0;
+	}
 
 	return 0;
 }
@@ -89,4 +92,22 @@ void PIOS_SENSORS_SetMaxGyro(int32_t rate)
 int32_t PIOS_SENSORS_GetMaxGyro()
 {
 		return max_gyro_rate;
+}
+
+//! Set the sample rate of a sensor (Hz)
+void PIOS_SENSORS_SetSampleRate(enum pios_sensor_type type, uint32_t sample_rate)
+{
+	if (type >= PIOS_SENSOR_LAST)
+		return;
+
+	sample_rates[type] = sample_rate;
+}
+
+//! Get the sample rate of a sensor (Hz)
+uint32_t PIOS_SENSORS_GetSampleRate(enum pios_sensor_type type)
+{
+	if (type >= PIOS_SENSOR_LAST)
+		return 0;
+
+	return sample_rates[type];
 }
