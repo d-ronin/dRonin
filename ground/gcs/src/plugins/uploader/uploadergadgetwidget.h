@@ -103,13 +103,15 @@ private:
     void haltOrReset(bool halting);
     bool tradeSettingsWithCloud(QString srcRelease, bool upgrading = false,
             QByteArray *settingsOut = NULL);
+    int isCloudReleaseAvailable(QString srcRelease);
+
     bool saveSettings(const QByteArray &settingsDump);
 
     bool askIfShouldContinue();
     bool downloadSettings();
     void stepChangeAndDelay(QEventLoop &loop, int delayMs,
                     UpgradeAssistantDialog::UpgradeAssistantStep step);
-    void doUpgradeOperation();
+    void doUpgradeOperation(bool blankFC);
     void upgradeError(QString why);
     bool flashFirmware(QByteArray &firmwareImage);
     bool haveSettingsPart() const;
@@ -142,6 +144,7 @@ private:
     QByteArray tempArray;
 
     const QString exportUrl = QString("http://dronin-autotown.appspot.com/convert");
+    const QString hasRevUrl = QString("http://dronin-autotown.appspot.com/uavos/%1");
 };
 }
 #endif // UPLOADERGADGETWIDGET_H

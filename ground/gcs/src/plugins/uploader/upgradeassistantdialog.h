@@ -65,7 +65,8 @@ public:
     explicit UpgradeAssistantDialog(QWidget *parent = 0);
     ~UpgradeAssistantDialog();
 
-    void setOperatingMode(bool upgradingBootloader, bool usingUpgrader);
+    void setOperatingMode(bool upgradingBootloader, bool usingUpgrader,
+            bool blankFC);
 
     int PromptUser(QString promptText, QString detailText, QStringList buttonText);
 

@@ -69,13 +69,18 @@ UpgradeAssistantDialog::~UpgradeAssistantDialog()
     delete ui;
 }
 
-void UpgradeAssistantDialog::setOperatingMode(bool upgradingBootloader, bool usingUpgrader)
+void UpgradeAssistantDialog::setOperatingMode(bool upgradingBootloader,
+        bool usingUpgrader, bool blankFC)
 {
     ui->lblUpgradeBootloader->setEnabled(upgradingBootloader);
 
     ui->lblProgramUpgrader->setEnabled(usingUpgrader);
     ui->lblEnterUpgrader->setEnabled(usingUpgrader);
     ui->lblReenterLoader->setEnabled(usingUpgrader);
+
+    ui->lblDownloadSettings->setEnabled(!blankFC);
+    ui->lblTranslateSettings->setEnabled(!blankFC);
+    ui->lblImport->setEnabled(!blankFC);
 
     onStepChanged(curStep);
 }
