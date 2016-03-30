@@ -39,7 +39,7 @@ SystemHealthGadgetConfiguration::SystemHealthGadgetConfiguration(QString classId
     //if a saved configuration exists load it
     if(qSettings != 0) {
         QString diagram= qSettings->value("diagram").toString();
-        systemFile = Utils::PathUtils().InsertDataPath(diagram);
+        systemFile = Utils::PathUtils::getInstance()->InsertDataPath(diagram);
     }
 }
 
@@ -59,6 +59,6 @@ IUAVGadgetConfiguration *SystemHealthGadgetConfiguration::clone()
  *
  */
 void SystemHealthGadgetConfiguration::saveConfig(QSettings* qSettings) const {
-    QString diagram = Utils::PathUtils().RemoveDataPath(systemFile);
+    QString diagram = Utils::PathUtils::getInstance()->RemoveDataPath(systemFile);
     qSettings->setValue("diagram", diagram);
 }

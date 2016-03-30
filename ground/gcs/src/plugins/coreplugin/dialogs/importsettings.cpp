@@ -23,13 +23,13 @@ void importSettings::loadFiles(QString path)
     int x=0;
     foreach(QString fileStr, list)
     {
-        fileInfo * info=new fileInfo;
+        fileInfo * info = new fileInfo;
         QSettings settings(path+QDir::separator()+fileStr, XmlConfig::XmlSettingsFormat);
         settings.beginGroup("General");
         info->description=settings.value("Description","None").toString();
         info->details=settings.value("Details","None").toString();
         settings.endGroup();
-        info->file=path+QDir::separator()+fileStr;
+        info->file = path+QDir::separator()+fileStr;
         configList.insert(x,info);
         ui->cbConfigs->addItem(info->description,x);
         ++x;
@@ -41,9 +41,10 @@ void importSettings::updateDetails(int index)
     fileInfo * info=configList.value(ui->cbConfigs->itemData(index).toInt());
     ui->lblDetails->setText(info->details);
 }
-QString importSettings::choosenConfig()
+QString importSettings::choosenConfig(bool &usePortableSettings)
 {
-    fileInfo * info=configList.value(ui->cbConfigs->itemData(ui->cbConfigs->currentIndex()).toInt());
+    usePortableSettings = ui->cb_usePortableSettings->isChecked();
+    fileInfo * info = configList.value(ui->cbConfigs->itemData(ui->cbConfigs->currentIndex()).toInt());
     return info->file;
 }
 

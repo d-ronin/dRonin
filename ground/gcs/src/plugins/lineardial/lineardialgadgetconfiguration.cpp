@@ -51,7 +51,7 @@ LineardialGadgetConfiguration::LineardialGadgetConfiguration(QString classId, QS
     //if a saved configuration exists load it
     if(qSettings != 0) {
         QString dFile = qSettings->value("dFile").toString();
-        dialFile = Utils::PathUtils().InsertDataPath(dFile);
+        dialFile = Utils::PathUtils::getInstance()->InsertDataPath(dFile);
         sourceDataObject = qSettings->value("sourceDataObject").toString();
         sourceObjectField = qSettings->value("sourceObjectField").toString();
         minValue = qSettings->value("minValue").toDouble();
@@ -98,7 +98,7 @@ IUAVGadgetConfiguration *LineardialGadgetConfiguration::clone()
  *
  */
 void LineardialGadgetConfiguration::saveConfig(QSettings* qSettings) const {
-   QString dFile = Utils::PathUtils().RemoveDataPath(dialFile);
+   QString dFile = Utils::PathUtils::getInstance()->RemoveDataPath(dialFile);
    qSettings->setValue("dFile", dFile);
    qSettings->setValue("sourceDataObject", sourceDataObject);
    qSettings->setValue("sourceObjectField", sourceObjectField);

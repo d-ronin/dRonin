@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>536</width>
-    <height>441</height>
+    <height>472</height>
    </rect>
   </property>
   <layout class="QVBoxLayout" name="verticalLayout_2">
@@ -32,6 +32,16 @@
       <property name="verticalSpacing">
        <number>2</number>
       </property>
+      <item row="12" column="0">
+       <widget class="QLabel" name="label_5">
+        <property name="text">
+         <string>Automatically connect a Tau Labs USB device:</string>
+        </property>
+        <property name="wordWrap">
+         <bool>true</bool>
+        </property>
+       </widget>
+      </item>
       <item row="1" column="0">
        <widget class="QLabel" name="colorLabel">
         <property name="text">
@@ -39,7 +49,7 @@
         </property>
        </widget>
       </item>
-      <item row="14" column="1">
+      <item row="15" column="1">
        <widget class="QCheckBox" name="cbExpertMode">
         <property name="text">
          <string/>
@@ -148,7 +158,7 @@
         </property>
        </widget>
       </item>
-      <item row="11" column="1">
+      <item row="12" column="1">
        <widget class="QCheckBox" name="checkAutoConnect">
         <property name="text">
          <string/>
@@ -158,10 +168,30 @@
         </property>
        </widget>
       </item>
-      <item row="14" column="0">
+      <item row="14" column="1">
+       <widget class="QCheckBox" name="cbUseUDPMirror">
+        <property name="text">
+         <string/>
+        </property>
+       </widget>
+      </item>
+      <item row="15" column="0">
        <widget class="QLabel" name="labelExpert">
         <property name="text">
          <string>Expert Mode</string>
+        </property>
+       </widget>
+      </item>
+      <item row="13" column="1">
+       <widget class="QCheckBox" name="checkAutoSelect">
+        <property name="enabled">
+         <bool>false</bool>
+        </property>
+        <property name="text">
+         <string/>
+        </property>
+        <property name="checked">
+         <bool>true</bool>
         </property>
        </widget>
       </item>
@@ -172,7 +202,7 @@
         </property>
        </widget>
       </item>
-      <item row="12" column="0">
+      <item row="13" column="0">
        <widget class="QLabel" name="label_6">
         <property name="text">
          <string>Automatically select a Tau Labs USB device:</string>
@@ -182,40 +212,31 @@
         </property>
        </widget>
       </item>
-      <item row="13" column="1">
-       <widget class="QCheckBox" name="cbUseUDPMirror">
-        <property name="text">
-         <string/>
-        </property>
-       </widget>
-      </item>
-      <item row="11" column="0">
-       <widget class="QLabel" name="label_5">
-        <property name="text">
-         <string>Automatically connect a Tau Labs USB device:</string>
-        </property>
-        <property name="wordWrap">
-         <bool>true</bool>
-        </property>
-       </widget>
-      </item>
-      <item row="13" column="0">
+      <item row="14" column="0">
        <widget class="QLabel" name="labelUDP">
         <property name="text">
          <string>Use UDP Mirror</string>
         </property>
        </widget>
       </item>
-      <item row="12" column="1">
-       <widget class="QCheckBox" name="checkAutoSelect">
-        <property name="enabled">
-         <bool>false</bool>
-        </property>
+      <item row="16" column="1">
+       <widget class="QCheckBox" name="cbSessionMessaging">
         <property name="text">
          <string/>
         </property>
-        <property name="checked">
-         <bool>true</bool>
+       </widget>
+      </item>
+      <item row="16" column="0">
+       <widget class="QLabel" name="label_10">
+        <property name="text">
+         <string>Session Managing</string>
+        </property>
+       </widget>
+      </item>
+      <item row="11" column="0">
+       <widget class="QLabel" name="lbl_PortableSettings">
+        <property name="text">
+         <string>Use portable settings</string>
         </property>
        </widget>
       </item>
@@ -239,17 +260,13 @@
         </item>
        </layout>
       </item>
-      <item row="15" column="1">
-       <widget class="QCheckBox" name="cbSessionMessaging">
+      <item row="11" column="1">
+       <widget class="QCheckBox" name="cb_usePortableSettings">
+        <property name="toolTip">
+         <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Changes to this settings will only take effect after application restart&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+        </property>
         <property name="text">
          <string/>
-        </property>
-       </widget>
-      </item>
-      <item row="15" column="0">
-       <widget class="QLabel" name="label_10">
-        <property name="text">
-         <string>Session Managing</string>
         </property>
        </widget>
       </item>

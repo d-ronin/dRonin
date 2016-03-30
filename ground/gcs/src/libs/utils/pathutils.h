@@ -36,12 +36,15 @@
 #include <QtWidgets/QApplication>
 #include <QSettings>
 
+#define SETTINGS_DIR_NOT_WRITABLE_MSG1 "Settings directory is not writable"
+#define SETTINGS_DIR_NOT_WRITABLE_MSG2 "Reverting to global settings"
+
 namespace Utils {
 
 class QTCREATOR_UTILS_EXPORT PathUtils
 {
 public:
-    PathUtils();
+    static PathUtils * getInstance();
     QString GetDataPath();
     QString RemoveDataPath(QString path);
     QString InsertDataPath(QString path);
@@ -51,8 +54,14 @@ public:
     QString InsertStoragePath(QString path);
     QString getSettingsFilename();
     void setSettingsFilename(QString filename);
+    QString getLocalSettingsFilePath(bool &writable);
+    QString getGlobalSettingsFilePath();
+    void useGlobalSettings();
+    bool useLocalSettings();
 private:
-    static QString settingsFilename;
+    QString settingsFilename;
+    PathUtils();
+    static Utils::PathUtils *instance;
 };
 
 }
