@@ -64,7 +64,7 @@ static const uint8_t pios_mpu_whoami[PIOS_MPU_NUM] = {
 	[PIOS_MPU60X0] = 0x68,
 	[PIOS_MPU6500] = 0x70,
 	[PIOS_MPU9150] = 0x68,
-	[PIOS_MPU9250] = 0x71
+	[PIOS_MPU9250] = 0x71,
 };
 
 /**
@@ -72,7 +72,7 @@ static const uint8_t pios_mpu_whoami[PIOS_MPU_NUM] = {
  */
 static const uint8_t pios_mpu_i2c_addr[] = {
 	0x68,
-	0x69
+	0x69,
 };
 
 /**
@@ -80,7 +80,7 @@ static const uint8_t pios_mpu_i2c_addr[] = {
  */
 enum pios_mpu_com_driver {
 	PIOS_MPU_COM_I2C, /**< I2C driver */
-	PIOS_MPU_COM_SPI  /**< SPI driver */
+	PIOS_MPU_COM_SPI,  /**< SPI driver */
 };
 
 /**
