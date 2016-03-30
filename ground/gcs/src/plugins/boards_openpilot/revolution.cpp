@@ -166,13 +166,13 @@ bool Revolution::setInputType(enum InputType type)
         settings.MainPort = HwRevolution::MAINPORT_SBUS;
         break;
     case INPUT_TYPE_DSM:
-        settings.MainPort = HwRevolution::MAINPORT_DSM;
+        settings.FlexiPort = HwRevolution::FLEXIPORT_DSM;
         break;
     case INPUT_TYPE_HOTTSUMD:
-        settings.MainPort = HwRevolution::MAINPORT_HOTTSUMD;
+        settings.FlexiPort = HwRevolution::FLEXIPORT_HOTTSUMD;
         break;
     case INPUT_TYPE_HOTTSUMH:
-        settings.MainPort = HwRevolution::MAINPORT_HOTTSUMH;
+        settings.FlexiPort = HwRevolution::FLEXIPORT_HOTTSUMH;
         break;
     default:
         return false;
