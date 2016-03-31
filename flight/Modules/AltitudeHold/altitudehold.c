@@ -109,8 +109,9 @@ int32_t AltitudeHoldInitialize()
 	}
 #endif
 
+	AltitudeHoldSettingsInitialize();
+
 	if(module_enabled) {
-		AltitudeHoldSettingsInitialize();
 		AltitudeHoldDesiredInitialize();
 		AltitudeHoldStateInitialize();
 
