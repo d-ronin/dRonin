@@ -19,11 +19,11 @@ test_and_add_to_path ()
   fi
 
   if [ -f "$1/$2" ] ; then
-    PATH=$PATH\:$1
+    PATH=$1\:$PATH
   fi
 }
 
-test_and_add_to_path "$QT_BASEDIR/$QT_VERSION/$QT_MINGWVER/bin" "qmake.exe"
+test_and_add_to_path "$QT_BASEDIR/$QT_VERSION/$QT_MINGWVER/bin" "QtWebProcess.exe"
 test_and_add_to_path "$QT_BASEDIR/Tools/$QT_MINGWVER/bin" "gcc.exe"
 test_and_add_to_path "/C/Python27" "python.exe"
 test_and_add_to_path "/C/OpenOCD/0.4.0/bin/" "openocd.exe"

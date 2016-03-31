@@ -78,14 +78,11 @@ bool Brain::queryCapabilities(BoardCapabilities capability)
 {
     switch(capability) {
     case BOARD_CAPABILITIES_GYROS:
-        return true;
     case BOARD_CAPABILITIES_ACCELS:
-        return true;
     case BOARD_CAPABILITIES_MAGS:
-        return true;
     case BOARD_CAPABILITIES_BAROS:
-        return true;
     case BOARD_CAPABILITIES_OSD:
+    case BOARD_CAPABILITIES_UPGRADEABLE:
         return true;
     default:
         return false;

@@ -43,175 +43,11 @@
 #include <pios_hal.h>
 #include <openpilot.h>
 #include <uavobjectsinit.h>
+#include "firmwareiap.h"
 #include "hwnaze.h"
 #include "manualcontrolsettings.h"
 #include "modulesettings.h"
 
-/**
- * Configuration for the HMC5883L chip
- */
-#if defined(PIOS_INCLUDE_HMC5883)
-#include "pios_hmc5883_priv.h"
-static struct pios_exti_cfg pios_exti_hmc5883_cfg __exti_config = {
-	// MAG_DRDY output on rev4 hardware (PB12)
-	.vector = PIOS_HMC5883_IRQHandler,
-	.line = EXTI_Line12,
-	.pin = {
-		.gpio = GPIOB,
-		.init = {
-			.GPIO_Pin = GPIO_Pin_12,
-			.GPIO_Speed = GPIO_Speed_2MHz,
-			.GPIO_Mode = GPIO_Mode_IN_FLOATING,
-		},
-	},
-	.irq = {
-		.init = {
-			.NVIC_IRQChannel = EXTI15_10_IRQn,
-			.NVIC_IRQChannelPreemptionPriority = PIOS_IRQ_PRIO_LOW,
-			.NVIC_IRQChannelSubPriority = 0,
-			.NVIC_IRQChannelCmd = ENABLE,
-		},
-	},
-	.exti = {
-		.init = {
-			.EXTI_Line = EXTI_Line12, // matches above GPIO pin
-			.EXTI_Mode = EXTI_Mode_Interrupt,
-			.EXTI_Trigger = EXTI_Trigger_Rising,
-			.EXTI_LineCmd = ENABLE,
-		},
-	},
-};
-
-static struct pios_exti_cfg pios_exti_hmc5883_cfg_v5 __exti_config = {
-        // MAG_DRDY output on rev5 hardware PC14
-	.vector = PIOS_HMC5883_IRQHandler,
-	.line = EXTI_Line14,
-	.pin = {
-		.gpio = GPIOC,
-		.init = {
-			.GPIO_Pin = GPIO_Pin_14,
-			.GPIO_Speed = GPIO_Speed_2MHz,
-			.GPIO_Mode = GPIO_Mode_IN_FLOATING,
-		},
-	},
-	.irq = {
-		.init = {
-			.NVIC_IRQChannel = EXTI15_10_IRQn,
-			.NVIC_IRQChannelPreemptionPriority = PIOS_IRQ_PRIO_LOW,
-			.NVIC_IRQChannelSubPriority = 0,
-			.NVIC_IRQChannelCmd = ENABLE,
-		},
-	},
-	.exti = {
-		.init = {
-			.EXTI_Line = EXTI_Line14, // matches above GPIO pin
-			.EXTI_Mode = EXTI_Mode_Interrupt,
-			.EXTI_Trigger = EXTI_Trigger_Rising,
-			.EXTI_LineCmd = ENABLE,
-		},
-	},
-};
-
-static /*const*/ struct pios_hmc5883_cfg pios_hmc5883_cfg = {
-	.exti_cfg = &pios_exti_hmc5883_cfg,
-	.M_ODR = PIOS_HMC5883_ODR_75,
-	.Meas_Conf = PIOS_HMC5883_MEASCONF_NORMAL,
-	.Gain = PIOS_HMC5883_GAIN_1_9,
-	.Mode = PIOS_HMC5883_MODE_CONTINUOUS,
-	.Default_Orientation = PIOS_HMC5883_TOP_90DEG,  // TODO: check & fix orientation
-};
-
-#endif /* PIOS_INCLUDE_HMC5883 */
-
-/**
- * Configuration for the MS5611 chip
- */
-#if defined(PIOS_INCLUDE_MS5611)
-#include "pios_ms5611_priv.h"
-static const struct pios_ms5611_cfg pios_ms5611_cfg = {
-	.oversampling = MS5611_OSR_512,
-	.temperature_interleaving = 1,
-};
-#endif /* PIOS_INCLUDE_MS5611 */
-
-/**
- * Configuration for the MPU6050 chip
- */
-#if defined(PIOS_INCLUDE_MPU6050)
-#include "pios_mpu6050.h"
-//#define PIOS_MPU6050_I2C_ADDR PIOS_MPU6050_I2C_ADD_A0_HIGH
-#define PIOS_MPU6050_I2C_ADDR PIOS_MPU6050_I2C_ADD_A0_LOW
-static const struct pios_exti_cfg pios_exti_mpu6050_cfg_pb13 __exti_config = {
-	// MPU_INT output on rev4 hardware (PB13)
-	.vector = PIOS_MPU6050_IRQHandler,
-	.line = EXTI_Line13,
-	.pin = {
-		.gpio = GPIOB,
-		.init = {
-			.GPIO_Pin   = GPIO_Pin_13,
-			.GPIO_Speed = GPIO_Speed_2MHz,
-			.GPIO_Mode  = GPIO_Mode_IN_FLOATING,
-		},
-	},
-	.irq = {
-		.init = {
-			.NVIC_IRQChannel = EXTI15_10_IRQn,
-			.NVIC_IRQChannelPreemptionPriority = PIOS_IRQ_PRIO_HIGH,
-			.NVIC_IRQChannelSubPriority = 0,
-			.NVIC_IRQChannelCmd = ENABLE,
-		},
-	},
-	.exti = {
-		.init = {
-			.EXTI_Line = EXTI_Line13, // matches above GPIO pin
-			.EXTI_Mode = EXTI_Mode_Interrupt,
-			.EXTI_Trigger = EXTI_Trigger_Rising,
-			.EXTI_LineCmd = ENABLE,
-		},
-	},
-};
-
-static const struct pios_exti_cfg pios_exti_mpu6050_cfg_pc13 __exti_config = {
-	// MPU_INT output on rev5 hardware (PC13)
-	.vector = PIOS_MPU6050_IRQHandler,
-	.line = EXTI_Line13,
-	.pin = {
-		.gpio = GPIOC,
-		.init = {
-			.GPIO_Pin   = GPIO_Pin_13,
-			.GPIO_Speed = GPIO_Speed_2MHz,
-			.GPIO_Mode  = GPIO_Mode_IN_FLOATING,
-		},
-	},
-	.irq = {
-		.init = {
-			.NVIC_IRQChannel = EXTI15_10_IRQn,
-			.NVIC_IRQChannelPreemptionPriority = PIOS_IRQ_PRIO_HIGH,
-			.NVIC_IRQChannelSubPriority = 0,
-			.NVIC_IRQChannelCmd = ENABLE,
-		},
-	},
-	.exti = {
-		.init = {
-			.EXTI_Line = EXTI_Line13, // matches above GPIO pin
-			.EXTI_Mode = EXTI_Mode_Interrupt,
-			.EXTI_Trigger = EXTI_Trigger_Rising,
-			.EXTI_LineCmd = ENABLE,
-		},
-	},
-};
-
-static /*const*/ struct pios_mpu60x0_cfg pios_mpu6050_cfg = {
-	.exti_cfg = &pios_exti_mpu6050_cfg_pb13,
-	.default_samplerate = 400,
-	.interrupt_cfg = PIOS_MPU60X0_INT_CLR_ANYRD | PIOS_MPU60X0_INT_I2C_BYPASS_EN,
-	.interrupt_en = PIOS_MPU60X0_INTEN_DATA_RDY,
-	.User_ctl = 0,
-	.Pwr_mgmt_clk = PIOS_MPU60X0_PWRMGMT_PLL_Z_CLK,
-	.default_filter = PIOS_MPU60X0_LOWPASS_256_HZ,
-	.orientation = PIOS_MPU60X0_TOP_90DEG
-};
-#endif /* PIOS_INCLUDE_MPU6050 */
 
 #define PIOS_COM_TELEM_RF_RX_BUF_LEN 32
 #define PIOS_COM_TELEM_RF_TX_BUF_LEN 12
@@ -235,13 +71,14 @@ extern uintptr_t pios_com_msp_id;
 //#include <pios_board_info.h>
 //from flight/targets/naze32/board-info/system_stm32f10x.c
 extern uint32_t hse_value;
+static enum board_revision board_rev;
 
 void PIOS_Board_Init(void) {
 
 	/* Delay system */
 	PIOS_DELAY_Init();
 
-	bool board_v5 = (hse_value == 12000000);
+	board_rev = (hse_value == 12000000) ? BOARD_REVISION_5 : BOARD_REVISION_4;
 
 	//TODO: Buzzer
 	//rev5 needs inverted beeper.
@@ -507,32 +344,38 @@ void PIOS_Board_Init(void) {
 
 	GPIO_PinRemapConfig(GPIO_Remap_SWJ_JTAGDisable, ENABLE);
 
-#if defined(PIOS_INCLUDE_MPU6050)
+#if defined(PIOS_INCLUDE_MPU)
 	uint8_t mpu_pin;
 	HwNazeMPU6050IntPinGet(&mpu_pin);
-	if((board_v5 && mpu_pin == HWNAZE_MPU6050INTPIN_AUTO) || mpu_pin == HWNAZE_MPU6050INTPIN_PC13) {
-		pios_mpu6050_cfg.exti_cfg = &pios_exti_mpu6050_cfg_pc13;
+	if(((board_rev == BOARD_REVISION_5) && mpu_pin == HWNAZE_MPU6050INTPIN_AUTO) || mpu_pin == HWNAZE_MPU6050INTPIN_PC13) {
+		pios_mpu_cfg.exti_cfg = &pios_exti_mpu_cfg_v5;
 	}
 
-	if (PIOS_MPU6050_Init(pios_i2c_internal_id, PIOS_MPU6050_I2C_ADD_A0_LOW, &pios_mpu6050_cfg) != 0)
+	pios_mpu_dev_t mpu_dev = NULL;
+	int retval = PIOS_MPU_I2C_Init(&mpu_dev, pios_i2c_internal_id, &pios_mpu_cfg);
+	if (retval != 0)
 		PIOS_HAL_Panic(PIOS_LED_ALARM, PIOS_HAL_PANIC_IMU);
-	if (PIOS_MPU6050_Test() != 0)
-		PIOS_HAL_Panic(PIOS_LED_ALARM, PIOS_HAL_PANIC_IMU);
+
+	if (PIOS_MPU_GetType() == PIOS_MPU6500)
+		board_rev = BOARD_REVISION_6;
+
+	// we now know exactly what rev the hardware is
+	FirmwareIAPSetBoardRev(board_rev);
 
 	uint8_t hw_gyro_range;
 	HwNazeGyroRangeGet(&hw_gyro_range);
 	switch(hw_gyro_range) {
 		case HWNAZE_GYRORANGE_250:
-			PIOS_MPU6050_SetGyroRange(PIOS_MPU60X0_SCALE_250_DEG);
+			PIOS_MPU_SetGyroRange(PIOS_MPU_SCALE_250_DEG);
 			break;
 		case HWNAZE_GYRORANGE_500:
-			PIOS_MPU6050_SetGyroRange(PIOS_MPU60X0_SCALE_500_DEG);
+			PIOS_MPU_SetGyroRange(PIOS_MPU_SCALE_500_DEG);
 			break;
 		case HWNAZE_GYRORANGE_1000:
-			PIOS_MPU6050_SetGyroRange(PIOS_MPU60X0_SCALE_1000_DEG);
+			PIOS_MPU_SetGyroRange(PIOS_MPU_SCALE_1000_DEG);
 			break;
 		case HWNAZE_GYRORANGE_2000:
-			PIOS_MPU6050_SetGyroRange(PIOS_MPU60X0_SCALE_2000_DEG);
+			PIOS_MPU_SetGyroRange(PIOS_MPU_SCALE_2000_DEG);
 			break;
 	}
 
@@ -540,32 +383,32 @@ void PIOS_Board_Init(void) {
 	HwNazeAccelRangeGet(&hw_accel_range);
 	switch(hw_accel_range) {
 		case HWNAZE_ACCELRANGE_2G:
-			PIOS_MPU6050_SetAccelRange(PIOS_MPU60X0_ACCEL_2G);
+			PIOS_MPU_SetAccelRange(PIOS_MPU_SCALE_2G);
 			break;
 		case HWNAZE_ACCELRANGE_4G:
-			PIOS_MPU6050_SetAccelRange(PIOS_MPU60X0_ACCEL_4G);
+			PIOS_MPU_SetAccelRange(PIOS_MPU_SCALE_4G);
 			break;
 		case HWNAZE_ACCELRANGE_8G:
-			PIOS_MPU6050_SetAccelRange(PIOS_MPU60X0_ACCEL_8G);
+			PIOS_MPU_SetAccelRange(PIOS_MPU_SCALE_8G);
 			break;
 		case HWNAZE_ACCELRANGE_16G:
-			PIOS_MPU6050_SetAccelRange(PIOS_MPU60X0_ACCEL_16G);
+			PIOS_MPU_SetAccelRange(PIOS_MPU_SCALE_16G);
 			break;
 	}
 
 	// the filter has to be set before rate else divisor calculation will fail
 	uint8_t hw_mpu_dlpf;
 	HwNazeMPU6050DLPFGet(&hw_mpu_dlpf);
-	enum pios_mpu60x0_filter mpu_dlpf = \
-			    (hw_mpu_dlpf == HWNAZE_MPU6050DLPF_256) ? PIOS_MPU60X0_LOWPASS_256_HZ : \
-			    (hw_mpu_dlpf == HWNAZE_MPU6050DLPF_188) ? PIOS_MPU60X0_LOWPASS_188_HZ : \
-			    (hw_mpu_dlpf == HWNAZE_MPU6050DLPF_98) ? PIOS_MPU60X0_LOWPASS_98_HZ : \
-			    (hw_mpu_dlpf == HWNAZE_MPU6050DLPF_42) ? PIOS_MPU60X0_LOWPASS_42_HZ : \
-			    (hw_mpu_dlpf == HWNAZE_MPU6050DLPF_20) ? PIOS_MPU60X0_LOWPASS_20_HZ : \
-			    (hw_mpu_dlpf == HWNAZE_MPU6050DLPF_10) ? PIOS_MPU60X0_LOWPASS_10_HZ : \
-			    (hw_mpu_dlpf == HWNAZE_MPU6050DLPF_5) ? PIOS_MPU60X0_LOWPASS_5_HZ : \
-			    pios_mpu6050_cfg.default_filter;
-	PIOS_MPU6050_SetLPF(mpu_dlpf);
+	uint16_t bandwidth = \
+			    (hw_mpu_dlpf == HWNAZE_MPU6050DLPF_256) ? 250 : \
+			    (hw_mpu_dlpf == HWNAZE_MPU6050DLPF_188) ? 184 : \
+			    (hw_mpu_dlpf == HWNAZE_MPU6050DLPF_98) ? 92 : \
+			    (hw_mpu_dlpf == HWNAZE_MPU6050DLPF_42) ? 41 : \
+			    (hw_mpu_dlpf == HWNAZE_MPU6050DLPF_20) ? 20 : \
+			    (hw_mpu_dlpf == HWNAZE_MPU6050DLPF_10) ? 10 : \
+			    (hw_mpu_dlpf == HWNAZE_MPU6050DLPF_5) ? 5 : \
+			    184;
+	PIOS_MPU_SetGyroBandwidth(bandwidth);
 
 	uint8_t hw_mpu_samplerate;
 	HwNazeMPU6050RateGet(&hw_mpu_samplerate);
@@ -573,10 +416,10 @@ void PIOS_Board_Init(void) {
 			    (hw_mpu_samplerate == HWNAZE_MPU6050RATE_200) ? 200 : \
 			    (hw_mpu_samplerate == HWNAZE_MPU6050RATE_333) ? 333 : \
 			    (hw_mpu_samplerate == HWNAZE_MPU6050RATE_500) ? 500 : \
-			    pios_mpu6050_cfg.default_samplerate;
-	PIOS_MPU6050_SetSampleRate(mpu_samplerate);
+			    pios_mpu_cfg.default_samplerate;
+	PIOS_MPU_SetSampleRate(mpu_samplerate);
 
-#endif /* PIOS_INCLUDE_MPU6050 */
+#endif /* PIOS_INCLUDE_MPU */
 
 	//I2C is slow, sensor init as well, reset watchdog to prevent reset here
 	PIOS_WDG_Clear();

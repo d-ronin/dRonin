@@ -35,7 +35,6 @@ include $(BOARD_INFO_DIR)/board-info.mk
 # Set developer code and compile options
 # Set to YES for debugging
 DEBUG ?= NO
-EMBED_BL_UPDATE ?= NO
 
 # List of modules to include
 MODULES = Sensors
@@ -122,12 +121,6 @@ SRC += $(OPUAVOBJ)/uavobjectmanager.c
 ifeq ($(DEBUG),YES)
 SRC += $(DEBUG_CM3_DIR)/dcc_stdio.c
 SRC += $(DEBUG_CM3_DIR)/cm3_fault_handlers.c
-endif
-
-ifeq ($(EMBED_BL_UPDATE), YES)
-CDEFS += -DEMBED_BL_UPDATE
-CDEFS += -DBU_PAYLOAD_FILE=$(ROOT_DIR)/build/bl_$(BOARD_NAME)/bl_$(BOARD_NAME).bin
-SRC += $(ROOT_DIR)/flight/targets/bu/common/bu_payload.c
 endif
 
 SRC += $(FLIGHTLIB)/paths.c

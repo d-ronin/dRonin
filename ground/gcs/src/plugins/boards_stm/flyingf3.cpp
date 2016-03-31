@@ -77,10 +77,9 @@ bool FlyingF3::queryCapabilities(BoardCapabilities capability)
 {
     switch(capability) {
     case BOARD_CAPABILITIES_GYROS:
-        return true;
     case BOARD_CAPABILITIES_ACCELS:
-        return true;
     case BOARD_CAPABILITIES_MAGS:
+    case BOARD_CAPABILITIES_UPGRADEABLE:
         return true;
     default:
         return false;

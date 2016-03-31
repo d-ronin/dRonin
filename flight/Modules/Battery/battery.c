@@ -73,6 +73,7 @@ static int32_t BatteryStart(void)
  */
 int32_t BatteryInitialize(void)
 {
+	FlightBatterySettingsInitialize();
 #ifdef MODULE_Battery_BUILTIN
 	module_enabled = true;
 #else
@@ -85,7 +86,6 @@ int32_t BatteryInitialize(void)
 		return 0;
 	}
 #endif
-	FlightBatterySettingsInitialize();
 	FlightBatteryStateInitialize();
 
 	return 0;

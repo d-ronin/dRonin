@@ -47,6 +47,7 @@ public:
     typedef enum {
         STEP_FIRST=0,
         STEP_ENTERLOADER=0,
+        STEP_CHECKCLOUD,
         STEP_UPGRADEBOOTLOADER,
         STEP_PROGRAMUPGRADER,
         STEP_ENTERUPGRADER,
@@ -64,7 +65,10 @@ public:
     explicit UpgradeAssistantDialog(QWidget *parent = 0);
     ~UpgradeAssistantDialog();
 
-    void setOperatingMode(bool upgradingBootloader, bool usingUpgrader);
+    void setOperatingMode(bool upgradingBootloader, bool usingUpgrader,
+            bool blankFC);
+
+    int PromptUser(QString promptText, QString detailText, QStringList buttonText);
 
 //public slots:
     void onStepChanged(UpgradeAssistantStep step);

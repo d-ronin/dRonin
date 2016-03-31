@@ -94,6 +94,10 @@ static void af_init(float X[AF_NUMX], float P[AF_NUMP]);
  */
 int32_t AutotuneInitialize(void)
 {
+#ifndef SMALLF1
+	SystemIdentInitialize();
+#endif
+
 	// Create a queue, connect to manual control command and flightstatus
 #ifdef MODULE_Autotune_BUILTIN
 	module_enabled = true;

@@ -112,6 +112,10 @@ int32_t TxPIDInitialize(void)
 	}
 #endif
 
+#ifndef SMALLF1
+	TxPIDSettingsInitialize();
+#endif
+
 	if (module_enabled) {
 		txpid_data = PIOS_malloc(sizeof(*txpid_data));
 

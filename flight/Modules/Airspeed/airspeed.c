@@ -156,6 +156,8 @@ static void doSettingsUpdate()
  */
 int32_t AirspeedInitialize()
 {
+	AirspeedSettingsInitialize();
+
 #ifdef MODULE_Airspeed_BUILTIN
 	module_enabled = true;
 #else
@@ -173,7 +175,6 @@ int32_t AirspeedInitialize()
 
 	BaroAirspeedInitialize();
 	AirspeedActualInitialize();
-	AirspeedSettingsInitialize();
 
 #ifdef BARO_AIRSPEED_PRESENT
 	// Get the analog pin

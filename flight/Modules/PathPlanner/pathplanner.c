@@ -114,8 +114,9 @@ int32_t PathPlannerInitialize()
 	}
 #endif
 
+	PathPlannerSettingsInitialize();
+
 	if(module_enabled) {
-		PathPlannerSettingsInitialize();
 		WaypointInitialize();
 		WaypointActiveInitialize();
 

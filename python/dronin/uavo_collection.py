@@ -12,6 +12,8 @@ import uavo
 import operator
 import os.path as op
 
+GITHASH_OF_LAST_RESORT = 'Release-20160120.3'
+
 class UAVOCollection(dict):
     def __init__(self):
         self.clear()
@@ -89,7 +91,8 @@ class UAVOCollection(dict):
 
         import urllib2
 
-        web_data = urllib2.urlopen("http://dronin-autotown.appspot.com/uavos/%s" % githash).read()
+        web_data = urllib2.urlopen("http://dronin-autotown.appspot.com/uavos/%s?altGitHash=%s" % (
+            githash, GITHASH_OF_LAST_RESORT)).read()
 
         self.from_tar_bytes(web_data)
 

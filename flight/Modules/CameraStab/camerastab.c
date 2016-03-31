@@ -114,6 +114,8 @@ int32_t CameraStabInitialize(void)
 	}
 #endif
 
+	CameraStabSettingsInitialize();
+
 	if (module_enabled) {
 
 		// allocate and initialize the static data storage only if module is enabled
@@ -128,7 +130,6 @@ int32_t CameraStabInitialize(void)
 		csd->lastSysTime = PIOS_Thread_Systime() - SAMPLE_PERIOD_MS;
 
 		AttitudeActualInitialize();
-		CameraStabSettingsInitialize();
 		CameraDesiredInitialize();
 
 		CameraStabSettingsConnectCallback(settings_updated_cb);

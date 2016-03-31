@@ -28,8 +28,9 @@
  * of this source file; otherwise redistribution is prohibited.
  */
 
-#include <QFont>
 #include <QDebug>
+#include <QFont>
+#include <QPushButton>
 
 #include "upgradeassistantdialog.h"
 #include "ui_upgradeassistant.h"
@@ -43,6 +44,7 @@ UpgradeAssistantDialog::UpgradeAssistantDialog(QWidget *parent) :
     setModal(true);
 
     stepLabels[STEP_ENTERLOADER] = ui->lblEnterLoader;
+    stepLabels[STEP_CHECKCLOUD] = ui->lblCheckCloud;
     stepLabels[STEP_UPGRADEBOOTLOADER] = ui->lblUpgradeBootloader;
     stepLabels[STEP_PROGRAMUPGRADER] = ui->lblProgramUpgrader;
     stepLabels[STEP_ENTERUPGRADER] = ui->lblEnterUpgrader;
@@ -58,7 +60,7 @@ UpgradeAssistantDialog::UpgradeAssistantDialog(QWidget *parent) :
         originalText[i] = new QString(stepLabels[i]->text());
     }
 
-    connect(ui->buttonBox, SIGNAL(clicked(QAbstractButton *)), this,
+    connect(ui->buttonBox, SIGNAL(rejected()), this,
             SLOT(reject()));
 }
 
@@ -67,7 +69,8 @@ UpgradeAssistantDialog::~UpgradeAssistantDialog()
     delete ui;
 }
 
-void UpgradeAssistantDialog::setOperatingMode(bool upgradingBootloader, bool usingUpgrader)
+void UpgradeAssistantDialog::setOperatingMode(bool upgradingBootloader,
+        bool usingUpgrader, bool blankFC)
 {
     ui->lblUpgradeBootloader->setEnabled(upgradingBootloader);
 
@@ -75,7 +78,54 @@ void UpgradeAssistantDialog::setOperatingMode(bool upgradingBootloader, bool usi
     ui->lblEnterUpgrader->setEnabled(usingUpgrader);
     ui->lblReenterLoader->setEnabled(usingUpgrader);
 
+    ui->lblDownloadSettings->setEnabled(!blankFC);
+    ui->lblTranslateSettings->setEnabled(!blankFC);
+    ui->lblImport->setEnabled(!blankFC);
+
     onStepChanged(curStep);
+}
+
+int UpgradeAssistantDialog::PromptUser(
+        QString promptText, QString detailText, QStringList buttonText) {
+    int clickIndex=-1;
+
+    QList <QPushButton *> buttons;
+
+    QEventLoop loop;
+
+    int i = 0;
+
+    foreach (const QString &buttLabel, buttonText) {
+        QPushButton *newButt = new QPushButton(buttLabel);
+        buttons.append(newButt);
+        ui->buttonBox->addButton(newButt, QDialogButtonBox::ActionRole);
+
+        connect(newButt, &QPushButton::clicked, &loop, [&, i] (bool checked) {
+                Q_UNUSED(checked);
+                clickIndex = i;
+                loop.exit();
+            } );
+
+        i++;
+    }
+
+    connect(this, &UpgradeAssistantDialog::finished, &loop, &QEventLoop::quit);
+
+    ui->lblStatus->setText(promptText);
+    ui->lblDetailStatus->setText(detailText);
+
+    loop.exec();
+
+    foreach (QPushButton *button, buttons) {
+        ui->buttonBox->removeButton(button);
+
+        delete button;
+    }
+
+    ui->lblStatus->setText(tr("Auto-upgrade running..."));
+    ui->lblDetailStatus->setText(tr("Please wait while the upgrader performs automated actions on the flight board."));
+
+    return clickIndex;
 }
 
 void UpgradeAssistantDialog::onStepChanged(UpgradeAssistantStep step)
@@ -105,8 +155,14 @@ void UpgradeAssistantDialog::onStepChanged(UpgradeAssistantStep step)
 
     if (step == STEP_DONE) {
         ui->buttonBox->setStandardButtons(QDialogButtonBox::Close);
+
+        ui->lblStatus->setText(tr("Auto-upgrade complete!"));
+        ui->lblDetailStatus->setText(tr("It may be necessary to reset your flight board (by removing and attaching power and USB) to apply settings."));
     } else {
         ui->buttonBox->setStandardButtons(QDialogButtonBox::Abort);
+
+        ui->lblStatus->setText(tr("Auto-upgrade running..."));
+        ui->lblDetailStatus->setText(tr("Please wait while the upgrader performs automated actions on the flight board."));
     }
 
     if (isVisible()) {
