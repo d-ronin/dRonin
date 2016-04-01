@@ -65,6 +65,7 @@ static const uint8_t pios_mpu_whoami[PIOS_MPU_NUM] = {
 	[PIOS_MPU6500] = 0x70,
 	[PIOS_MPU9150] = 0x68,
 	[PIOS_MPU9250] = 0x71,
+	[PIOS_ICM20608G] = 0xAF,
 };
 
 /**
@@ -545,7 +546,7 @@ void PIOS_MPU_SetGyroBandwidth(uint16_t bandwidth)
 			filter = PIOS_MPU6500_GYRO_LOWPASS_92_HZ;
 		else
 			filter = PIOS_MPU6500_GYRO_LOWPASS_184_HZ;
-	} else {
+	} else if (mpu_dev->mpu_type == PIOS_MPU60X0) {
 		if (bandwidth <= 5)
 			filter = PIOS_MPU60X0_GYRO_LOWPASS_5_HZ;
 		else if (bandwidth <= 10)
@@ -558,6 +559,21 @@ void PIOS_MPU_SetGyroBandwidth(uint16_t bandwidth)
 			filter = PIOS_MPU60X0_GYRO_LOWPASS_98_HZ;
 		else
 			filter = PIOS_MPU60X0_GYRO_LOWPASS_188_HZ;
+	} else {
+		if (bandwidth <= 5)
+			filter = PIOS_ICM20608G_GYRO_LOWPASS_5_HZ;
+		else if (bandwidth <= 10)
+			filter = PIOS_ICM20608G_GYRO_LOWPASS_10_HZ;
+		else if (bandwidth <= 20)
+			filter = PIOS_ICM20608G_GYRO_LOWPASS_20_HZ;
+		else if (bandwidth <= 92)
+			filter = PIOS_ICM20608G_GYRO_LOWPASS_92_HZ;
+		else if (bandwidth <= 176)
+			filter = PIOS_ICM20608G_GYRO_LOWPASS_176_HZ;
+		else if (bandwidth <= 250)
+			filter = PIOS_ICM20608G_GYRO_LOWPASS_250_HZ;
+		else
+			filter = PIOS_ICM20608G_GYRO_LOWPASS_3281_HZ;
 	}
 
 	PIOS_MPU_WriteReg(PIOS_MPU_DLPF_CFG_REG, filter);
@@ -565,24 +581,41 @@ void PIOS_MPU_SetGyroBandwidth(uint16_t bandwidth)
 
 void PIOS_MPU_SetAccelBandwidth(uint16_t bandwidth)
 {
-	if (mpu_dev->mpu_type != PIOS_MPU6500 && mpu_dev->mpu_type != PIOS_MPU9250)
+	if (mpu_dev->mpu_type != PIOS_MPU6500 && mpu_dev->mpu_type != PIOS_MPU9250 && mpu_dev->mpu_type != PIOS_ICM20608G)
 		return;
 
 	enum pios_mpu6500_accel_filter filter;
-	if (bandwidth <= 5)
-		filter = PIOS_MPU6500_ACCEL_LOWPASS_5_HZ;
-	else if (bandwidth <= 10)
-		filter = PIOS_MPU6500_ACCEL_LOWPASS_10_HZ;
-	else if (bandwidth <= 20)
-		filter = PIOS_MPU6500_ACCEL_LOWPASS_20_HZ;
-	else if (bandwidth <= 41)
-		filter = PIOS_MPU6500_ACCEL_LOWPASS_41_HZ;
-	else if (bandwidth <= 92)
-		filter = PIOS_MPU6500_ACCEL_LOWPASS_92_HZ;
-	else if (bandwidth <= 184)
-		filter = PIOS_MPU6500_ACCEL_LOWPASS_184_HZ;
-	else
-		filter = PIOS_MPU6500_ACCEL_LOWPASS_460_HZ;
+	if (mpu_dev->mpu_type == PIOS_MPU6500 || mpu_dev->mpu_type == PIOS_MPU9250) {
+		if (bandwidth <= 5)
+			filter = PIOS_MPU6500_ACCEL_LOWPASS_5_HZ;
+		else if (bandwidth <= 10)
+			filter = PIOS_MPU6500_ACCEL_LOWPASS_10_HZ;
+		else if (bandwidth <= 20)
+			filter = PIOS_MPU6500_ACCEL_LOWPASS_20_HZ;
+		else if (bandwidth <= 41)
+			filter = PIOS_MPU6500_ACCEL_LOWPASS_41_HZ;
+		else if (bandwidth <= 92)
+			filter = PIOS_MPU6500_ACCEL_LOWPASS_92_HZ;
+		else if (bandwidth <= 184)
+			filter = PIOS_MPU6500_ACCEL_LOWPASS_184_HZ;
+		else
+			filter = PIOS_MPU6500_ACCEL_LOWPASS_460_HZ;
+	} else {
+		if (bandwidth <= 5)
+			filter = PIOS_ICM20608G_ACCEL_LOWPASS_5_HZ;
+		else if (bandwidth <= 10)
+			filter = PIOS_ICM20608G_ACCEL_LOWPASS_10_HZ;
+		else if (bandwidth <= 21)
+			filter = PIOS_ICM20608G_ACCEL_LOWPASS_21_HZ;
+		else if (bandwidth <= 45)
+			filter = PIOS_ICM20608G_ACCEL_LOWPASS_45_HZ;
+		else if (bandwidth <= 99)
+			filter = PIOS_ICM20608G_ACCEL_LOWPASS_99_HZ;
+		else if (bandwidth <= 218)
+			filter = PIOS_ICM20608G_ACCEL_LOWPASS_218_HZ;
+		else
+			filter = PIOS_ICM20608G_ACCEL_LOWPASS_420_HZ;
+	}
 
 	PIOS_MPU_WriteReg(PIOS_MPU_ACCEL_CFG2_REG, filter);
 }
