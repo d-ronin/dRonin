@@ -73,6 +73,10 @@ Revolution::~Revolution()
 
 }
 
+int Revolution::minBootLoaderVersion() {
+    return 0x84;
+}
+
 QString Revolution::shortName()
 {
     return QString("Revolution");

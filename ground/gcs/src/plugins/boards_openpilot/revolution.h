@@ -42,6 +42,7 @@ public:
 
     virtual QString shortName();
     virtual QString boardDescription();
+    virtual int minBootLoaderVersion();
     virtual bool queryCapabilities(BoardCapabilities capability);
     virtual QStringList getSupportedProtocols();
     virtual QPixmap getBoardPicture();
