@@ -1341,7 +1341,7 @@ void UploaderGadgetWidget::onBootloaderDetected()
 
     if(devices.length() > 1) {
         setStatusInfo(tr("More than one device was detected in bootloader state"), uploader::STATUSICON_INFO);
-        return;
+        //return;
     } else if(devices.length() == 0) {
         setStatusInfo("No devices in bootloader state detected", uploader::STATUSICON_FAIL);
         return;
