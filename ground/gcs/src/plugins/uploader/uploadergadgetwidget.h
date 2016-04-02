@@ -111,7 +111,7 @@ private:
     bool downloadSettings();
     void stepChangeAndDelay(QEventLoop &loop, int delayMs,
                     UpgradeAssistantDialog::UpgradeAssistantStep step);
-    void doUpgradeOperation(bool blankFC);
+    void doUpgradeOperation(bool blankFC,  tl_dfu::device &dev);
     void upgradeError(QString why);
     bool flashFirmware(QByteArray &firmwareImage);
     bool haveSettingsPart() const;

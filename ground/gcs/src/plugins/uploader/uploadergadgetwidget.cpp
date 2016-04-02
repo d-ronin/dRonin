@@ -810,7 +810,7 @@ void UploaderGadgetWidget::stepChangeAndDelay(QEventLoop &loop, int delayMs,
     delay.stop();
 }
 
-void UploaderGadgetWidget::doUpgradeOperation(bool blankFC)
+void UploaderGadgetWidget::doUpgradeOperation(bool blankFC, tl_dfu::device &dev)
 {
     Core::ModeManager::instance()->activateModeByWorkspaceName("Firmware");
 
@@ -862,6 +862,12 @@ void UploaderGadgetWidget::doUpgradeOperation(bool blankFC)
     if (!isCrippledBoard) {
         /* If no settings part known, new loader needed. */
         upgradingLoader = !haveSettingsPart();
+
+        int requiredLoader = board.board->minBootLoaderVersion();
+
+        if (requiredLoader > dev.BL_Version) {
+            upgradingLoader = true;
+        }
     }
 
     m_dialog.setOperatingMode(upgradingLoader, isCrippledBoard, blankFC);
@@ -1496,7 +1502,7 @@ void UploaderGadgetWidget::onBootloaderDetected()
                 bool canBeUpgraded = currentBoard.board->queryCapabilities(Core::IBoardType::BOARD_CAPABILITIES_UPGRADEABLE);
 
                 if (canBeUpgraded) {
-                    doUpgradeOperation(blankFC);
+                    doUpgradeOperation(blankFC, dev);
                     return;
                 }
             }

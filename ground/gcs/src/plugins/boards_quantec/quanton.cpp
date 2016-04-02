@@ -73,6 +73,11 @@ QString Quanton::boardDescription()
     return QString("quanton flight control rev. 1 by Quantec Networks GmbH");
 }
 
+int Quanton::minBootLoaderVersion() {
+    return 0x84;
+}
+
+
 //! Return which capabilities this board has
 bool Quanton::queryCapabilities(BoardCapabilities capability)
 {
