@@ -59,17 +59,28 @@ int main(void) {
 
 	/* Calculate how far the board_info_blob is from the beginning of the bootloader */
 	uint32_t board_info_blob_offset = (uint32_t)&pios_board_info_blob - (uint32_t)0x08000000;
+	uint32_t board_info_blob_end_offset = board_info_blob_offset + sizeof(pios_board_info_blob);
 
 	/* Use the same offset into our embedded bootloader image */
-	struct pios_board_info * new_board_info_blob = (struct pios_board_info *)
+	struct pios_board_info *flash_board_info_blob = (struct pios_board_info *)
 		((uintptr_t)&_bu_payload_start + board_info_blob_offset);
 
+	struct pios_board_info new_board_info_blob = *flash_board_info_blob;
+
 	/* Compare the two board info blobs to make sure they're for the same HW revision */
-	if ((pios_board_info_blob.magic != new_board_info_blob->magic) ||
-		(pios_board_info_blob.board_type != new_board_info_blob->board_type) ||
-		(pios_board_info_blob.board_rev != new_board_info_blob->board_rev)) {
+	if ((pios_board_info_blob.magic != new_board_info_blob.magic) ||
+		(pios_board_info_blob.board_type != new_board_info_blob.board_type)) {
 		error(PIOS_LED_HEARTBEAT);
 	}
+
+	/* If the bootloader provides a revision, it'd better match. */
+	if ((new_board_info_blob.board_rev != 0xff) &&
+			(pios_board_info_blob.board_rev != new_board_info_blob.board_rev)) {
+		error(PIOS_LED_HEARTBEAT);
+	}
+
+	/* Else we fix up the hardware revision to match */
+	new_board_info_blob.board_rev = pios_board_info_blob.board_rev;
 
 	/* Embedded bootloader looks like it's the right one for this HW, proceed... */
 
@@ -87,7 +98,16 @@ int main(void) {
 	/* Write in the new bootloader */
 	PIOS_LED_On(PIOS_LED_HEARTBEAT);
 	PIOS_FLASH_start_transaction(bl_partition_id);
-	PIOS_FLASH_write_data(bl_partition_id, 0, (uint8_t *)&_bu_payload_start, _bu_payload_size);
+
+	/* Write everything before the board info blob. */
+	PIOS_FLASH_write_data(bl_partition_id, 0, (uint8_t *)&_bu_payload_start, board_info_blob_offset);
+
+	/* Write the board info blob-- as we've constructed it */
+	PIOS_FLASH_write_data(bl_partition_id, board_info_blob_offset, (uint8_t *)&new_board_info_blob, sizeof(new_board_info_blob));
+
+	/* Write everything after the board info blob. */
+	PIOS_FLASH_write_data(bl_partition_id, board_info_blob_end_offset, ((uint8_t *)&_bu_payload_start) + board_info_blob_end_offset, _bu_payload_size - board_info_blob_end_offset);
+
 	PIOS_FLASH_end_transaction(bl_partition_id);
 	PIOS_LED_Off(PIOS_LED_HEARTBEAT);
 
