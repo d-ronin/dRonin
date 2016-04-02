@@ -401,7 +401,7 @@ void OPDfuIni(uint8_t discover) {
 	dev.BL_Version = bdinfo->bl_rev;
 	dev.FW_Crc = CalcFirmCRC();
 	dev.devID = (bdinfo->board_type << 8) | (bdinfo->board_rev);
-	dev.devType = bdinfo->hw_type;
+	dev.devType = 1;
 	numberOfDevices = 1;
 	devicesTable[0] = dev;
 	if (discover) {

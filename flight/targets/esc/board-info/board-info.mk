@@ -1,7 +1,6 @@
 BOARD_TYPE          := 0x08
 BOARD_REVISION      := 0x01
 BOOTLOADER_VERSION  := 0x01
-HW_TYPE             := 0x01
 
 MCU                 := cortex-m3
 CHIP                := STM32F103CBT
