@@ -363,9 +363,6 @@ SRC       += $(OUTDIR)/sim_firmwareinfo.c
 .PHONY: elf
 elf: $(OUTDIR)/$(TARGET).elf
 
-# Display sizes of sections.
-$(eval $(call SIZE_TEMPLATE, $(OUTDIR)/$(TARGET).elf))
-
 result = ${shell echo "test"}
 ifeq (${result}, test)
 	quote = '
