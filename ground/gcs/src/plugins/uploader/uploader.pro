@@ -17,8 +17,7 @@ HEADERS += uploadergadget.h \
     uploader_global.h \
     bl_messages.h \
     tl_dfu.h \
-    upgradeassistantdialog.h \
-    ../../../../../build/ground/gcs/gcsversioninfo.h
+    upgradeassistantdialog.h
 
 SOURCES += uploadergadget.cpp \
     uploadergadgetfactory.cpp \
