@@ -26,6 +26,7 @@ class LogFSImport(dict):
             'discoveryf4'                    : 0x99abcfef,
             'sparky2 int/revo/sim'           : 0x99abcedf,
             'sparky2'                        : 0x77abcedf,
+            'simulation'                     : 0x89abceef,
             'colibri'                        : 0x3bb141ed,
             'flyingf3/lux/naze/pipx/sparky'  : 0x9ae1ee11
             }
