@@ -177,6 +177,9 @@ public:
         INPUT_TYPE_ANY
     };
 
+    //! Returns the minimum bootloader version required
+    virtual int minBootLoaderVersion() { return 0; }
+
     //! Determine if this board supports configuring the receiver
     virtual bool isInputConfigurationSupported(enum InputType type = INPUT_TYPE_ANY) { Q_UNUSED(type); return false; }
 
