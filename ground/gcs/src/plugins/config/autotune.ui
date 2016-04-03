@@ -703,6 +703,20 @@ p, li { white-space: pre-wrap; }
               <string>Computed Values</string>
              </property>
              <layout class="QGridLayout" name="gridLayout_3">
+              <item row="3" column="1">
+               <widget class="QLabel" name="yawRateKp">
+                <property name="text">
+                 <string>-</string>
+                </property>
+               </widget>
+              </item>
+              <item row="7" column="2">
+               <widget class="QLabel" name="label_22">
+                <property name="text">
+                 <string>Outer Ki</string>
+                </property>
+               </widget>
+              </item>
               <item row="1" column="1">
                <widget class="QLabel" name="rollRateKp">
                 <property name="text">
@@ -780,20 +794,6 @@ p, li { white-space: pre-wrap; }
                 </property>
                </widget>
               </item>
-              <item row="1" column="0">
-               <widget class="QLabel" name="label_4">
-                <property name="text">
-                 <string>Roll</string>
-                </property>
-               </widget>
-              </item>
-              <item row="3" column="1">
-               <widget class="QLabel" name="yawRateKp">
-                <property name="text">
-                 <string>-</string>
-                </property>
-               </widget>
-              </item>
               <item row="3" column="3">
                <widget class="QLabel" name="yawRateKd">
                 <property name="text">
@@ -801,10 +801,10 @@ p, li { white-space: pre-wrap; }
                 </property>
                </widget>
               </item>
-              <item row="2" column="0">
-               <widget class="QLabel" name="label_12">
+              <item row="1" column="0">
+               <widget class="QLabel" name="label_4">
                 <property name="text">
-                 <string>Pitch</string>
+                 <string>Roll</string>
                 </property>
                </widget>
               </item>
@@ -812,6 +812,13 @@ p, li { white-space: pre-wrap; }
                <widget class="QLabel" name="pitchRateKi">
                 <property name="text">
                  <string>0</string>
+                </property>
+               </widget>
+              </item>
+              <item row="2" column="0">
+               <widget class="QLabel" name="label_12">
+                <property name="text">
+                 <string>Pitch</string>
                 </property>
                </widget>
               </item>
@@ -856,24 +863,37 @@ p, li { white-space: pre-wrap; }
                 </property>
                </widget>
               </item>
+              <item row="7" column="3">
+               <widget class="QLabel" name="lblOuterKi">
+                <property name="text">
+                 <string>0</string>
+                </property>
+               </widget>
+              </item>
               <item row="5" column="0" colspan="4">
                <widget class="QLabel" name="label_21">
                 <property name="text">
                  <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600; color:#ff0000;&quot;&gt;Note: &lt;/span&gt;&lt;span style=&quot; color:#ff0000;&quot;&gt;Yaw tuning is currently experimental only. Please exercise appropriate care if utilising this option.&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
                 </property>
-               </widget>
-              </item>
-              <item row="7" column="2">
-               <widget class="QLabel" name="label_22">
-                <property name="text">
-                 <string>Outer Ki</string>
+                <property name="wordWrap">
+                 <bool>true</bool>
                 </property>
                </widget>
               </item>
-              <item row="7" column="3">
-               <widget class="QLabel" name="lblOuterKi">
+              <item row="9" column="0" colspan="4">
+               <widget class="QCheckBox" name="cbUseOuterKi">
                 <property name="text">
-                 <string>0</string>
+                 <string>Use experimetal outer loop Ki tuning</string>
+                </property>
+               </widget>
+              </item>
+              <item row="10" column="0" colspan="4">
+               <widget class="QLabel" name="label_23">
+                <property name="text">
+                 <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600; color:#ff0000;&quot;&gt;Note: &lt;/span&gt;&lt;span style=&quot; color:#ff0000;&quot;&gt;Outer loop K&lt;/span&gt;&lt;span style=&quot; color:#ff0000; vertical-align:sub;&quot;&gt;i&lt;/span&gt;&lt;span style=&quot; color:#ff0000;&quot;&gt; tuning is currently experimental only. Please exercise appropriate care if utilising this option.&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                </property>
+                <property name="wordWrap">
+                 <bool>true</bool>
                 </property>
                </widget>
               </item>

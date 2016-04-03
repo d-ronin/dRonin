@@ -80,6 +80,7 @@ ConfigAutotuneWidget::ConfigAutotuneWidget(ConfigGadgetWidget *parent) :
     connect(m_autotune->rateNoise, SIGNAL(valueChanged(int)), this, SLOT(recomputeStabilization()));
 
     connect(m_autotune->cbUseYaw, SIGNAL(toggled(bool)), this, SLOT(onYawTuneToggled(bool)));
+    connect(m_autotune->cbUseOuterKi, SIGNAL(toggled(bool)), this, SLOT(recomputeStabilization()));
 
     addUAVObject(ModuleSettings::NAME);
 
@@ -369,7 +370,7 @@ void ConfigAutotuneWidget::recomputeStabilization()
     // critically damped;
     const double zeta_o = 1.3;
     const double kp_o = 1 / 4.0 / (zeta_o * zeta_o) / (1/wn);
-    const double ki_o = 0.75 * kp_o / (2 * M_PI * tau * 10.0);
+    const double ki_o = (m_autotune->cbUseOuterKi->isChecked()) ? (0.75 * kp_o / (2 * M_PI * tau * 10.0)) : 0.0;
 
     // For now just run over roll and pitch
     for (int i = 0; i < 3; i++) {
