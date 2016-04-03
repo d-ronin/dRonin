@@ -929,7 +929,7 @@ p, li { white-space: pre-wrap; }
                    <string notr="true"/>
                   </property>
                   <property name="text">
-                   <string>Apply Computed Values</string>
+                   <string>Copy Tune to Stabilization Tab</string>
                   </property>
                  </widget>
                 </item>
