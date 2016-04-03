@@ -20,8 +20,8 @@
         <file>html/Battery-Critical.html</file>
         <file>html/Battery-Error.html</file>
         <file>html/FlightTime-Warning.html</file>
-		<file>html/Gimbal-Critical.html</file>
-		<file>html/Gimbal-Warning.html</file>
+        <file>html/Gimbal-Critical.html</file>
+        <file>html/Gimbal-Warning.html</file>
         <file>html/GPS-Critical.html</file>
         <file>html/GPS-Error.html</file>
         <file>html/GPS-Warning.html</file>
@@ -53,8 +53,9 @@
         <file>html/StateEstimation-PDOP-Too-High.html</file>
         <file>html/StateEstimation-Too-Few-Satellites.html</file>
         <file>html/StateEstimation-Undefined.html</file>
-	<file>html/TempBaro-Warning.html</file>
-	<file>html/TempBaro-Error.html</file>
-	<file>html/TempBaro-Critical.html</file>
+        <file>html/TempBaro-Warning.html</file>
+        <file>html/TempBaro-Error.html</file>
+        <file>html/TempBaro-Critical.html</file>
+        <file>html/Actuator-Warning.html</file>
     </qresource>
 </RCC>
