@@ -594,7 +594,8 @@ def get_telemetry_by_args(desc="Process telemetry", service_in_iter=True,
 
     if args.serial:
         return telemetry.SerialTelemetry(args.source, speed=args.baud,
-                service_in_iter=service_in_iter, iter_blocks=iter_blocks)
+                service_in_iter=service_in_iter, iter_blocks=iter_blocks,
+                githash=githash)
 
     if args.baud != "115200":
         parser.print_help()
@@ -606,7 +607,8 @@ def get_telemetry_by_args(desc="Process telemetry", service_in_iter=True,
         file_obj = file(args.source, 'rb')
 
         t = telemetry.FileTelemetry(file_obj, parse_header=parse_header,
-            gcs_timestamps=args.timestamped, name=args.source)
+            gcs_timestamps=args.timestamped, name=args.source,
+            githash=githash)
 
         return t
 
@@ -618,4 +620,5 @@ def get_telemetry_by_args(desc="Process telemetry", service_in_iter=True,
         raise ValueError("Target doesn't exist and isn't a network address")
 
     return telemetry.NetworkTelemetry(host=host, port=int(port), name=args.source,
-            service_in_iter=service_in_iter, iter_blocks=iter_blocks)
+            service_in_iter=service_in_iter, iter_blocks=iter_blocks,
+            githash=githash)
