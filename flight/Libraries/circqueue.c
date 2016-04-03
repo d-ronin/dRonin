@@ -51,6 +51,9 @@ circ_queue_t circ_queue_new(uint16_t elem_size, uint16_t num_elem) {
 	/* PIOS_malloc_no_dma may not be safe for some later uses.. hmmm */
 	struct circ_queue *ret = PIOS_malloc(sizeof(*ret) + size);
 
+	if (!ret)
+		return NULL;
+
 	memset(ret, 0, sizeof(*ret) + size);
 
 	ret->elem_size = elem_size;
