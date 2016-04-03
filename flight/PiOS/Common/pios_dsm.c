@@ -182,33 +182,36 @@ enum dsm_resolution PIOS_DSM_DetectResolution(uint8_t *packet)
 	if (word0 & DSM_2ND_FRAME_MASK)
 		return DSM_UNKNOWN;
 
-	if (packet[1] != 0x00)								// If transmitter information byte != 0, master satellite
-	{
-		if ((packet[1] & DSM_RESOLUTION_MASK) == 0x00)	// Check resolution bit in transmitter information byte
-			return DSM_10BIT;							// and set DSM resolution accordingly
-		else 
+	// If transmitter information byte != 0, master satellite.
+	// Interpret the value for type.
+	switch (packet[1]) {
+		case 0xb2:	// 11ms 2048 DSMX
+		case 0xa2:	// 22ms 2048 DSMX
+		case 0x12:	// 11ms 2048 DSM2
 			return DSM_11BIT;
-	}
-	else												// Else slave satellite
-	{
-		// Check for 10 bit
-		channel0 = (word0 >> 10) & 0x0f;
-		channel1 = (word1 >> 10) & 0x0f;
-		bit_10 = (channel0 == 1) && (channel1 == 5);
-
-		// Check for 11 bit
-		channel0 = (word0 >> 11) & 0x0f;
-		channel1 = (word1 >> 11) & 0x0f;
-		bit_11 = (channel0 == 1) && (channel1 == 5);
-
-		if (bit_10 && !bit_11)
+		case 0x01:	// 22ms 1024 DSM2
 			return DSM_10BIT;
-		
-		if (bit_11 && !bit_10)
-			return DSM_11BIT;
-		
-		return DSM_UNKNOWN;		
+		default:
+			break;
 	}
+
+	// Check for 10 bit
+	channel0 = (word0 >> 10) & 0x0f;
+	channel1 = (word1 >> 10) & 0x0f;
+	bit_10 = (channel0 == 1) && (channel1 == 5);
+
+	// Check for 11 bit
+	channel0 = (word0 >> 11) & 0x0f;
+	channel1 = (word1 >> 11) & 0x0f;
+	bit_11 = (channel0 == 1) && (channel1 == 5);
+
+	if (bit_10 && !bit_11)
+		return DSM_10BIT;
+
+	if (bit_11 && !bit_10)
+		return DSM_11BIT;
+
+	return DSM_UNKNOWN;
 }
 
 /**
