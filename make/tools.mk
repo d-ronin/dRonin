@@ -22,7 +22,19 @@ ifdef OPENOCD_FTDI
 endif
 
 # Set up QT toolchain
-QT_SDK_DIR := $(TOOLS_DIR)/Qt5.5.1
+QT_VERSION := 5.5.1
+QT_SDK_DIR := $(TOOLS_DIR)/Qt$(QT_VERSION)
+
+# On any platform except windows
+ifndef WINDOWS
+# Check for a current QT SDK dir, abort without
+ifeq ($(wildcard $(QT_SDK_DIR)),)
+ifneq ($(MAKECMDGOALS), qt_sdk_install)
+	$(error "QT SDK not found, please run `qt_sdk_install`")
+endif
+endif
+endif
+
 
 ifdef LINUX
   ifdef AMD64
