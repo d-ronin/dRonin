@@ -478,7 +478,13 @@ void ConfigModuleWidget::recheckTabs()
 
     obj = getObjectManager()->getObject(HoTTSettings::NAME);
     connect(obj, SIGNAL(transactionCompleted(UAVObject*,bool)), this, SLOT(objectUpdated(UAVObject*,bool)), Qt::UniqueConnection);
-    obj->requestUpdate();
+    TaskInfo *taskInfo = qobject_cast<TaskInfo *>(getObjectManager()->getObject(TaskInfo::NAME));
+    if (taskInfo && taskInfo->getIsPresentOnHardware()) {
+        connect(taskInfo, SIGNAL(transactionCompleted(UAVObject *, bool)), obj, SLOT(requestUpdate()), Qt::UniqueConnection);
+        taskInfo->requestUpdate();
+    } else {
+        obj->requestUpdate();
+    }
 
     obj = getObjectManager()->getObject(GeoFenceSettings::NAME);
     connect(obj, SIGNAL(transactionCompleted(UAVObject*,bool)), this, SLOT(objectUpdated(UAVObject*,bool)), Qt::UniqueConnection);
@@ -518,25 +524,30 @@ void ConfigModuleWidget::objectUpdated(UAVObject * obj, bool success)
     if (!obj)
         return;
 
+    ModuleSettings *moduleSettings = qobject_cast<ModuleSettings *>(getObjectManager()->getObject(ModuleSettings::NAME));
+    Q_ASSERT(moduleSettings);
+    TaskInfo *taskInfo = qobject_cast<TaskInfo *>(getObjectManager()->getObject(TaskInfo::NAME));
+    bool enableHott = (taskInfo && taskInfo->getIsPresentOnHardware()) ? (taskInfo->getRunning_UAVOHoTTBridge() == TaskInfo::RUNNING_TRUE) : true;
+
     QString objName = obj->getName();
     if (objName.compare(AirspeedSettings::NAME) == 0) {
-        enableAirspeedTab(success);
+        enableAirspeedTab(success && moduleSettings->getAdminState_Airspeed() == ModuleSettings::ADMINSTATE_ENABLED);
     }
     else if (objName.compare(FlightBatterySettings::NAME) == 0) {
-        enableBatteryTab(success);
+        enableBatteryTab(success && moduleSettings->getAdminState_Battery() == ModuleSettings::ADMINSTATE_ENABLED);
         refreshAdcNames();
     }
     else if (objName.compare(VibrationAnalysisSettings::NAME) == 0) {
-        enableVibrationTab(success);
+        enableVibrationTab(success && moduleSettings->getAdminState_VibrationAnalysis() == ModuleSettings::ADMINSTATE_ENABLED);
     }
     else if (objName.compare(HoTTSettings::NAME) == 0) {
-        enableHoTTTelemetryTab(success);
+        enableHoTTTelemetryTab(success && enableHott);
     }
     else if (objName.compare(GeoFenceSettings::NAME) == 0) {
-        enableGeofenceTab(success);
+        enableGeofenceTab(success && moduleSettings->getAdminState_Geofence() == ModuleSettings::ADMINSTATE_ENABLED);
     }
     else if (objName.compare(PicoCSettings::NAME) == 0) {
-        enablePicoCTab(success);
+        enablePicoCTab(success && moduleSettings->getAdminState_PicoC() == ModuleSettings::ADMINSTATE_ENABLED);
     }
 }
 
