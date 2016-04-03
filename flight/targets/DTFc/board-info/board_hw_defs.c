@@ -72,6 +72,7 @@ static const struct pios_led pios_leds[] = {
 				.GPIO_PuPd = GPIO_PuPd_NOPULL
 			},
 		},
+		.active_high = false,
 	},
 };
 
@@ -846,7 +847,7 @@ static const struct pios_usb_cfg pios_usb_main_cfg = {
 			.GPIO_Speed = GPIO_Speed_2MHz,
 			.GPIO_Mode  = GPIO_Mode_IN,
 			.GPIO_OType = GPIO_OType_OD,
-			.GPIO_PuPd  = GPIO_PuPd_DOWN,
+			.GPIO_PuPd  = GPIO_PuPd_NOPULL,
 		},
 	}	
 };

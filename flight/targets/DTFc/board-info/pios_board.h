@@ -93,6 +93,10 @@ TIM17 |           |xxxxxxxxxxx|xxxxxxxxxxx|xxxxxxxxxx
 #define PIOS_LED_HEARTBEAT				1
 #define PIOS_LED_USB					2
 
+#define USB_LED_ON						PIOS_LED_On(PIOS_LED_USB)
+#define USB_LED_OFF						PIOS_LED_Off(PIOS_LED_USB)
+#define USB_LED_TOGGLE					PIOS_LED_Toggle(PIOS_LED_USB)
+
 //------------------------
 // PIOS_WDG
 //------------------------
