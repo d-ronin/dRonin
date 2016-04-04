@@ -56,7 +56,9 @@ bool InputPage::validatePage()
     } else if (ui->sbusButton->isChecked()) {
         getWizard()->setInputType(Core::IBoardType::INPUT_TYPE_SBUS);
     } else if (ui->spectrumButton->isChecked()) {
-        getWizard()->setInputType(Core::IBoardType::INPUT_TYPE_DSM2);
+        getWizard()->setInputType(Core::IBoardType::INPUT_TYPE_DSM);
+    } else if (ui->hottsumdButton->isChecked()) {
+        getWizard()->setInputType(Core::IBoardType::INPUT_TYPE_HOTTSUMD);
     } else {
         getWizard()->setInputType(Core::IBoardType::INPUT_TYPE_PWM);
     }

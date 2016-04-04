@@ -1,6 +1,8 @@
 TEMPLATE = lib
 TARGET = Utils
-QMAKE_CXXFLAGS += -Wno-sign-compare
+
+!win32-msvc*:QMAKE_CXXFLAGS += -Wno-sign-compare
+win32: QMAKE_CXXFLAGS_RELEASE -= -Zc:strictStrings
 
 QT += gui \
     network \
@@ -55,7 +57,6 @@ SOURCES += reloadpromptutils.cpp \
     homelocationutil.cpp \
     mytabbedstackwidget.cpp \
     mytabwidget.cpp \
-    cachedsvgitem.cpp \
     svgimageprovider.cpp \
     phpbb.cpp \
     foruminteractionform.cpp
@@ -114,7 +115,6 @@ HEADERS += utils_global.h \
     homelocationutil.h \
     mytabbedstackwidget.h \
     mytabwidget.h \
-    cachedsvgitem.h \
     svgimageprovider.h \
     phpbb.h \
     foruminteractionform.h

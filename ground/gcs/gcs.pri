@@ -57,8 +57,6 @@ isEmpty(GCS_BUILD_TREE) {
 }
 GCS_APP_PATH = $$GCS_BUILD_TREE/bin
 macx {
-    QMAKE_CFLAGS_X86_64 += -mmacosx-version-min=10.7
-    QMAKE_CXXFLAGS_X86_64 = $$QMAKE_CFLAGS_X86_64
     GCS_APP_TARGET   = "Tau Labs GCS"
     GCS_LIBRARY_PATH = $$GCS_APP_PATH/$${GCS_APP_TARGET}.app/Contents/Plugins
     GCS_PLUGIN_PATH  = $$GCS_LIBRARY_PATH
@@ -67,6 +65,7 @@ macx {
     GCS_DATA_BASENAME = Resources
     GCS_DOC_PATH     = $$GCS_DATA_PATH/doc
     GCS_BIN_PATH     = $$GCS_APP_PATH/$${GCS_APP_TARGET}.app/Contents/MacOS
+    QMAKE_MACOSX_DEPLOYMENT_TARGET=10.9
     copydata = 1
 } else {
     win32 {
@@ -112,6 +111,13 @@ unix {
     CONFIG(debug, debug|release):MOC_DIR = $${OUT_PWD}/.moc/debug-shared
     CONFIG(release, debug|release):MOC_DIR = $${OUT_PWD}/.moc/release-shared
 
+    CONFIG(debug, debug|release) {
+# Unfortunately this is ineffective on OSX, due to
+# https://bugreports.qt.io/browse/QTBUG-39417
+# Should probe paths once upstream defect resolved
+        exists(/usr/bin/ccache):QMAKE_CXX="ccache g++"
+    }
+
     RCC_DIR = $${OUT_PWD}/.rcc
     UI_DIR = $${OUT_PWD}/.uic
 }
@@ -123,6 +129,25 @@ linux-g++* {
 }
 
 win32 {
-	# http://gcc.gnu.org/bugzilla/show_bug.cgi?id=52991
-	QMAKE_CXXFLAGS += -mno-ms-bitfields
+    # http://gcc.gnu.org/bugzilla/show_bug.cgi?id=52991
+    QMAKE_CXXFLAGS += -mno-ms-bitfields
+    RELEASE_WITH_SYMBOLS {
+        QMAKE_CFLAGS_RELEASE += -Zi
+        QMAKE_CXXFLAGS_RELEASE += -Zi
+        QMAKE_LFLAGS_RELEASE += /DEBUG /OPT:REF
+    }
 }
+
+unix {
+	GEN_GCOV {
+		QMAKE_CXXFLAGS += -g -Wall -fprofile-arcs -ftest-coverage -O0
+		QMAKE_LFLAGS += -g -Wall -fprofile-arcs -ftest-coverage  -O0
+		LIBS += \
+		    -lgcov
+		unix:OBJECTS_DIR = ./Build
+		unix:MOC_DIR = ./Build
+		unix:UI_DIR = ./Build
+	}
+}
+
+CONFIG += c++11

@@ -51,16 +51,13 @@
 
 #include "vtol_follower_priv.h"
 
-#include "attitudeactual.h"
-#include "loitercommand.h"
 #include "pathdesired.h"
 #include "positionactual.h"
-#include "stabilizationdesired.h"
+#include "vtolpathfollowersettings.h"
 #include "vtolpathfollowerstatus.h"
 
 // Various navigation constants
 const static float RTH_MIN_ALTITUDE = 15.f;  //!< Hover at least 15 m above home */
-const static float RTH_VELOCITY     = 2.5f;  //!< Return home at 2.5 m/s */
 const static float RTH_ALT_ERROR    = 1.0f;  //!< The altitude to come within for RTH */
 const static float DT               = 0.05f; // TODO: make the self monitored
 
@@ -98,21 +95,11 @@ enum vtol_fsm_state {
 struct vtol_fsm_transition {
 	void (*entry_fn)();       /*!< Called when entering a state (i.e. activating a state) */
 	int32_t (*static_fn)();   /*!< Called while in a state to update nav and check termination */
+	uint32_t timeout;	  /*!< Timeout in milliseconds. 0=no timeout */
 	enum vtol_fsm_state next_state[FSM_EVENT_NUM_EVENTS];
 };
 
-/**
- * Navigation modes that the states can enable. There is no one to one correspondence
- * between states and these navigation modes as some FSM might have multiple hold states
- * for example. When entering a hold state the FSM will configure the hold parameters and
- * then set the navgiation mode
- */
-enum vtol_nav_mode {
-	VTOL_NAV_HOLD,   /*!< Hold at the configured location @ref do_land*/
-	VTOL_NAV_PATH,   /*!< Fly the configured path @ref do_path*/
-	VTOL_NAV_LAND,   /*!< Land at the desired location @ref do_land */
-	VTOL_NAV_IDLE    /*!< Nothing, no mode configured */
-};
+#define MILLI 1000
 
 // State transition methods, typically enabling for certain actions
 static void go_enable_hold_here(void);
@@ -124,7 +111,6 @@ static void go_enable_fly_home(void);
 static void go_enable_land_home(void);
 
 // Methods that actually achieve the desired nav mode
-static int32_t do_default(void);
 static int32_t do_hold(void);
 static int32_t do_path(void);
 static int32_t do_requested_path(void);
@@ -133,13 +119,13 @@ static int32_t do_loiter(void);
 static int32_t do_ph_climb(void);
 
 // Utility functions
-static void configure_timeout(int32_t s);
+static void vtol_fsm_timer_set(int32_t ms);
+static bool vtol_fsm_timer_expired();
 static void hold_position(float north, float east, float down);
 
 /**
  * The state machine for landing at home does the following:
- * 1. enable holding at the current location
- * 2  TODO: if it leaves the hold region enable a nav mode
+ * enable holding at the current location
  */
 const static struct vtol_fsm_transition fsm_hold_position[FSM_STATE_NUM_STATES] = {
 	[FSM_STATE_INIT] = {
@@ -159,9 +145,7 @@ const static struct vtol_fsm_transition fsm_hold_position[FSM_STATE_NUM_STATES] 
 
 /**
  * The state machine for following the Path Planner:
- * 1. enable following path segment
- * 2  TODO: the path planner should be able to utilize the goals of the
- *    follower so needs to be handled in the main module and not here.
+ * enable following path segment
  */
 const static struct vtol_fsm_transition fsm_follow_path[FSM_STATE_NUM_STATES] = {
 	[FSM_STATE_INIT] = {
@@ -178,13 +162,14 @@ const static struct vtol_fsm_transition fsm_follow_path[FSM_STATE_NUM_STATES] = 
 		},
 	},
 };
+
 /**
  * The state machine for landing at home does the following:
  * 1. holds where currently at for 10 seconds
  * 2. ascend to minimum altitude
  * 3. flies to home at 2 m/s at either current altitude or 15 m above home
  * 4. holds above home for 10 seconds
- * 5. descends to ground
+ * 5. descends to ground (This step currently does not complete)
  * 6. disarms the system
  */
 const static struct vtol_fsm_transition fsm_land_home[FSM_STATE_NUM_STATES] = {
@@ -195,6 +180,8 @@ const static struct vtol_fsm_transition fsm_land_home[FSM_STATE_NUM_STATES] = {
 	},
 	[FSM_STATE_PRE_RTH_HOLD] = {
 		.entry_fn = go_enable_pause_10s_here,
+		.static_fn = do_hold,
+		.timeout = 10 * MILLI,
 		.next_state = {
 			[FSM_EVENT_TIMEOUT] = FSM_STATE_PRE_RTH_RISE,
 			[FSM_EVENT_HIT_TARGET] = FSM_STATE_UNCHANGED,
@@ -204,6 +191,7 @@ const static struct vtol_fsm_transition fsm_land_home[FSM_STATE_NUM_STATES] = {
 	[FSM_STATE_PRE_RTH_RISE] = {
 		.entry_fn = go_enable_rise_here,
 		.static_fn = do_ph_climb,
+		.timeout = 10 * MILLI,	/* Not sure this is good */
 		.next_state = {
 			[FSM_EVENT_TIMEOUT] = FSM_STATE_FLYING_PATH,
 			[FSM_EVENT_HIT_TARGET] = FSM_STATE_FLYING_PATH,
@@ -212,12 +200,15 @@ const static struct vtol_fsm_transition fsm_land_home[FSM_STATE_NUM_STATES] = {
 	},
 	[FSM_STATE_FLYING_PATH] = {
 		.entry_fn = go_enable_fly_home,
+		.static_fn = do_path,
 		.next_state = {
 			[FSM_EVENT_HIT_TARGET] = FSM_STATE_POST_RTH_HOLD,
 		},
 	},
 	[FSM_STATE_POST_RTH_HOLD] = {
 		.entry_fn = go_enable_pause_home_10s,
+		.static_fn = do_hold,
+		.timeout = 10 * MILLI,
 		.next_state = {
 			[FSM_EVENT_TIMEOUT] = FSM_STATE_LANDING,
 			[FSM_EVENT_HIT_TARGET] = FSM_STATE_UNCHANGED,
@@ -226,6 +217,7 @@ const static struct vtol_fsm_transition fsm_land_home[FSM_STATE_NUM_STATES] = {
 	},
 	[FSM_STATE_LANDING] = {
 		.entry_fn = go_enable_land_home,
+		.static_fn = do_land,
 		.next_state = {
 			[FSM_EVENT_HIT_TARGET] = FSM_STATE_DISARM,
 		},
@@ -233,14 +225,54 @@ const static struct vtol_fsm_transition fsm_land_home[FSM_STATE_NUM_STATES] = {
 
 };
 
-//! Tracks how many times the fsm_static has been called
-static uint32_t current_count, set_time_count, timer_duration = 0;
+//! Specifies a time since startup in ms that the timeout fires.
+static uint32_t vtol_fsm_timer_expiration = 0;
 
-void configure_timeout(int32_t s)
+/**
+ * Sets up an interval timer that can be later checked for expiration.
+ * @param[in] ms Relative time in millseconds.  0 to cancel pending timer, if any
+ */
+static void vtol_fsm_timer_set(int32_t ms)
 {
-	set_time_count = current_count;
-	timer_duration = s;
+	if (ms) {
+		uint32_t now = PIOS_Thread_Systime();
+		vtol_fsm_timer_expiration = ms+now;
+
+		// If we wrap and get very unlucky, make sure we still
+		// have a timer 1ms later.
+		if (vtol_fsm_timer_expiration == 0) {
+			vtol_fsm_timer_expiration++;
+		}
+	} else {
+		vtol_fsm_timer_expiration = 0;
+	}
 }
+
+/**
+ * Checks if there is a pending timer that has expired.
+ * @return True if expired.
+ */
+static bool vtol_fsm_timer_expired() {
+	/* If there's a timer... */
+	if (vtol_fsm_timer_expiration > 0) {
+		/* See if it expires. */
+
+		uint32_t now = PIOS_Thread_Systime();
+		uint32_t interval = vtol_fsm_timer_expiration - now;
+
+		/* If it has expired, this will wrap around and be a big
+		 * number.  Use a windowed scheme to detect this:
+		 * Assume we will run at least every 0x10000000 us
+		 * (3 days) and timeouts can't exceed 0xf0000000 us (46 days)
+		 */
+		if (interval > 0xf0000000) {
+			return true;
+		}
+	}
+
+	return false;
+}
+
 
 /**
  * @addtogroup VtolNavigationFsmMethods
@@ -255,18 +287,55 @@ const static struct vtol_fsm_transition *current_goal;
 static enum vtol_fsm_state curr_state;
 
 /**
- * Process any sequence of automatic state transitions
+ * Enter a new state.  Reacts appropriately (e.g. does nothing) if you pass
+ * FSM_STATE_UNCHANGED.
+ * @param[in] state The desired state.
+ * @return true if there was a state transition, false otherwise.
  */
-static void vtol_fsm_process_auto()
+static int vtol_fsm_enter_state(enum vtol_fsm_state state)
 {
-	while (current_goal[curr_state].next_state[FSM_EVENT_AUTO]) {
-		curr_state = current_goal[curr_state].next_state[FSM_EVENT_AUTO];
+	if (state != FSM_STATE_UNCHANGED) {
+		curr_state = state;
 
 		/* Call the entry function (if any) for the next state. */
 		if (current_goal[curr_state].entry_fn) {
 			current_goal[curr_state].entry_fn();
 		}
+
+		/* 0 disables any pending timeout, otherwise it's set to the
+		 * value for this state */
+		vtol_fsm_timer_set(current_goal[curr_state].timeout);
+
+		return 1;
 	}
+
+	return 0;
+}
+
+/**
+ * Update the state machine based on an event.
+ * @param[in] event The event in question
+ * @return true if there was a state transition, false otherwise.
+ */
+static bool vtol_fsm_process_event(enum vtol_fsm_event event)
+{
+	enum vtol_fsm_state next = current_goal[curr_state].next_state[event];
+
+	/* Special if condition to not have to explicitly define auto
+	 * (don't do fault transitions on auto) */
+	if ((event != FSM_EVENT_AUTO) || (next != FSM_STATE_FAULT)) {
+		return vtol_fsm_enter_state(next);
+	}
+
+	return false;
+}
+
+/**
+ * Process any sequence of automatic state transitions
+ */
+static void vtol_fsm_process_auto()
+{
+	while (vtol_fsm_process_event(FSM_EVENT_AUTO));
 }
 
 /**
@@ -276,12 +345,8 @@ static void vtol_fsm_process_auto()
 static void vtol_fsm_fsm_init(const struct vtol_fsm_transition *goal)
 {
 	current_goal = goal;
-	curr_state = FSM_STATE_INIT;
 
-	/* Call the entry function (if any) for the next state. */
-	if (current_goal[curr_state].entry_fn) {
-		current_goal[curr_state].entry_fn();
-	}
+	vtol_fsm_enter_state(FSM_STATE_INIT);
 
 	/* Process any AUTO transitions in the FSM */
 	vtol_fsm_process_auto();
@@ -293,35 +358,17 @@ static void vtol_fsm_fsm_init(const struct vtol_fsm_transition *goal)
  * This method will first update the current state @ref curr_state based on the
  * current state and the active @ref current_goal. When it enters a new state it
  * calls the appropriate entry_fn if it exists.
+ *
+ * This differs from vtol_fsm_process_event in that it handles auto transitions
+ * afterwards.
  */
 static void vtol_fsm_inject_event(enum vtol_fsm_event event)
 {
-	// No need for mutexes here since this is called in a single threaded manner
-
-	/*
-	 * The STATE_UNCHANGED indicates to ignore these events
-	 */
-	if (current_goal[curr_state].next_state[event] == FSM_STATE_UNCHANGED)
-		return;
-
-	/*
-	 * Move to the next state
-	 *
-	 * This is done prior to calling the new state's entry function to
-	 * guarantee that the entry function never depends on the previous
-	 * state.  This way, it cannot ever know what the previous state was.
-	 */
-	curr_state = current_goal[curr_state].next_state[event];
-
-	/* Call the entry function (if any) for the next state. */
-	if (current_goal[curr_state].entry_fn) {
-		current_goal[curr_state].entry_fn();
-	}
+	vtol_fsm_process_event(event);
 
 	/* Process any AUTO transitions in the FSM */
 	vtol_fsm_process_auto();
 }
-
 
 /**
  * vtol_fsm_static is called regularly and checks whether a timeout event has occurred
@@ -334,17 +381,11 @@ static int32_t vtol_fsm_static()
 	VtolPathFollowerStatusFSM_StateSet((uint8_t *) &curr_state);
 
 	// If the current state has a static function, call it
-	if (current_goal[curr_state].static_fn)
+	if (current_goal[curr_state].static_fn) {
 		current_goal[curr_state].static_fn();
-	else {
-		int32_t ret_val;
-		if ((ret_val = do_default()) < 0)
-			return ret_val;
 	}
 
-	current_count++;
-
-	if ((timer_duration > 0) && ((current_count - set_time_count) * DT) > timer_duration) {
+	if (vtol_fsm_timer_expired()) {
 		vtol_fsm_inject_event(FSM_EVENT_TIMEOUT);
 	}
 
@@ -360,46 +401,21 @@ static int32_t vtol_fsm_static()
  * @{
  */
 
-//! The currently configured navigation mode. Used to sanity check configuration.
-static enum vtol_nav_mode vtol_nav_mode;
-
-/**
- * General methods which based on the selected @ref vtol_nav_mode calls the appropriate
- * specific method
- */
-static int32_t do_default()
-{
-	switch(vtol_nav_mode) {
-	case VTOL_NAV_HOLD:
-		return do_hold();
-	case VTOL_NAV_PATH:
-		return do_path();
-	case VTOL_NAV_LAND:
-		return do_land();
-		break;
-	default:
-		// TODO: error?
-		break;
-	}
-
-	return -1;
-}
-
 //! The setpoint for position hold relative to home in m
 static float vtol_hold_position_ned[3];
 
 /**
  * Update control values to stay at selected hold location.
  *
- * This method uses the vtol follower library to calculate the control values. The 
- * desired location is stored in @ref vtol_hold_position_ned.
+ * This method uses the vtol follower library to calculate the control values.
+ * Desired location is stored in @ref vtol_hold_position_ned.
  *
  * @return 0 if successful, <0 if failure
  */
 static int32_t do_hold()
 {
 	if (vtol_follower_control_endpoint(DT, vtol_hold_position_ned) == 0) {
-		if (vtol_follower_control_attitude(DT) == 0) {
+		if (vtol_follower_control_attitude(DT, NULL) == 0) {
 			return 0;
 		}
 	}
@@ -408,13 +424,15 @@ static int32_t do_hold()
 }
 
 //! The configured path desired. Uses the @ref PathDesired structure
-static PathDesiredData vtol_fsm_path_desired;
+static PathDesiredData vtol_fsm_path_desired = {
+	.Waypoint = 8000	// Unlikely to clash with pathplanner
+};
 
 /**
  * Update control values to fly along a path.
  *
- * This method uses the vtol follower library to calculate the control values. The 
- * desired path is stored in @ref vtol_fsm_path_desired.
+ * This method uses the vtol follower library to calculate the control values.
+ * Desired path is stored in @ref vtol_fsm_path_desired.
  *
  * @return 0 if successful, <0 if failure
  */
@@ -422,7 +440,7 @@ static int32_t do_path()
 {
 	struct path_status progress;
 	if (vtol_follower_control_path(DT, &vtol_fsm_path_desired, &progress) == 0) {
-		if (vtol_follower_control_attitude(DT) == 0) {
+		if (vtol_follower_control_attitude(DT, NULL) == 0) {
 
 			if (progress.fractional_progress >= 1.0f) {
 				vtol_fsm_inject_event(FSM_EVENT_HIT_TARGET);
@@ -446,12 +464,16 @@ static int32_t do_requested_path()
 	// Fetch the path desired from the path planner
 	PathDesiredGet(&vtol_fsm_path_desired);
 
-	// Most 
 	switch(vtol_fsm_path_desired.Mode) {
 	case PATHDESIRED_MODE_LAND:
 		for (uint8_t i = 0; i < 3; i++)
 			vtol_hold_position_ned[i] = vtol_fsm_path_desired.End[i];
 		return do_land();
+	case PATHDESIRED_MODE_HOLDPOSITION:
+	case PATHDESIRED_MODE_ENDPOINT:
+		for (uint8_t i = 0; i < 3; i++)
+			vtol_hold_position_ned[i] = vtol_fsm_path_desired.End[i];
+		return do_hold();
 	default:
 		return do_path();
 	}
@@ -460,8 +482,8 @@ static int32_t do_requested_path()
 /**
  * Update control values to land at @ref vtol_hold_position_ned.
  *
- * This method uses the vtol follower library to calculate the control values. The 
- * desired landing location is stored in @ref vtol_hold_position_ned.
+ * This method uses the vtol follower library to calculate the control values.
+ * The desired landing location is stored in @ref vtol_hold_position_ned.
  *
  * @return 0 if successful, <0 if failure
  */
@@ -469,7 +491,7 @@ static int32_t do_land()
 {
 	bool landed;
 	if (vtol_follower_control_land(DT, vtol_hold_position_ned, &landed) == 0) {
-		if (vtol_follower_control_attitude(DT) == 0) {
+		if (vtol_follower_control_attitude(DT, NULL) == 0) {
 			return 0;
 		}
 	}
@@ -482,46 +504,31 @@ static int32_t do_land()
  */
 static int32_t do_loiter()
 {
-	const float LOITER_LEASH = 4;
+	float att_adj[2] = { 0, 0 };
+	float hold_pos[3] = {
+		vtol_hold_position_ned[0],
+		vtol_hold_position_ned[1],
+		vtol_hold_position_ned[2]
+	};
 
-	LoiterCommandData loiterCommand;
-	LoiterCommandGet(&loiterCommand);
+	float alt_adj = 0;
 
-	float yaw;
-	AttitudeActualYawGet(&yaw);
-	yaw *= DEG2RAD;
+	if (vtol_follower_control_loiter(DT, hold_pos, att_adj, &alt_adj)) {
+		// If hold position changed, use it!
+		// We follow this conditional just to avoid unnecessarily
+		// spamming updates to the PositionDesired object.
 
-	float north_offset = 0;
-	float east_offset = 0;
-	float down_offset = 0;
-
-	if (loiterCommand.Frame == LOITERCOMMAND_FRAME_BODY) {
-		north_offset = (loiterCommand.Forward * cosf(yaw) - loiterCommand.Right * sinf(yaw)) * DT;
-		east_offset = (loiterCommand.Forward * sinf(yaw) + loiterCommand.Right * cosf(yaw)) * DT;
-	} else {
-		north_offset = loiterCommand.Forward * DT;
-		east_offset = loiterCommand.Right * DT;
+		hold_position(hold_pos[0], hold_pos[1], hold_pos[2]);
 	}
 
-	float new_north = vtol_hold_position_ned[0] + north_offset;
-	float new_east = vtol_hold_position_ned[1] + east_offset;
-	PositionActualData positionActual;
-	PositionActualGet(&positionActual);
-
-	const float cur_offset = sqrtf(powf(vtol_hold_position_ned[0] - positionActual.North, 2) +
-		                           powf(vtol_hold_position_ned[1] - positionActual.East, 2));
-	const float new_offset = sqrtf(powf(new_north - positionActual.North, 2) + powf(new_east - positionActual.East, 2));
-	if (new_offset < LOITER_LEASH || (new_offset < cur_offset)) {
-		// prevent moving set point too far from the current
-		// location. Ideally when there is a command input it would
-		// be added to the position controller instead of soley move
-		// the setpoint.
-		hold_position(vtol_hold_position_ned[0] + north_offset,
-			vtol_hold_position_ned[1] + east_offset,
-			vtol_hold_position_ned[2] + down_offset);
+	if (vtol_follower_control_altrate(DT, vtol_hold_position_ned,
+				alt_adj) == 0) {
+		if (vtol_follower_control_attitude(DT, att_adj) == 0) {
+			return 0;
+		}
 	}
 
-	return do_hold();
+	return -1;
 }
 
 /**
@@ -562,8 +569,6 @@ static int32_t do_ph_climb()
  */
 static void hold_position(float north, float east, float down)
 {
-	vtol_nav_mode = VTOL_NAV_HOLD;
-
 	vtol_hold_position_ned[0] = north;
 	vtol_hold_position_ned[1] = east;
 	vtol_hold_position_ned[2] = down;
@@ -577,8 +582,11 @@ static void hold_position(float north, float east, float down)
 	vtol_fsm_path_desired.End[2] = down;
 	vtol_fsm_path_desired.StartingVelocity = 0;
 	vtol_fsm_path_desired.EndingVelocity   = 0;
-	vtol_fsm_path_desired.Mode = PATHDESIRED_MODE_FLYENDPOINT;
+	vtol_fsm_path_desired.Mode = PATHDESIRED_MODE_ENDPOINT;
 	vtol_fsm_path_desired.ModeParameters = 0;
+
+	vtol_fsm_path_desired.Waypoint++;
+
 	PathDesiredSet(&vtol_fsm_path_desired);
 }
 
@@ -591,33 +599,39 @@ static void go_enable_hold_here()
 	PositionActualGet(&positionActual);
 
 	hold_position(positionActual.North, positionActual.East, positionActual.Down);
-
-	configure_timeout(0);
 }
 
 static void go_enable_fly_path()
 {
-	vtol_nav_mode = VTOL_NAV_HOLD;
 }
 
 /**
- * Enable holding position at current location for 10 s. Uses a minimum altitude for
- * the vertical altitude. Configures for hold.
+ * Enable holding position at current location for 10 s. 
  */
 static void go_enable_pause_10s_here()
 {
 	PositionActualData positionActual;
 	PositionActualGet(&positionActual);
 
-	// Make sure we return at a minimum of 15 m above home
-	if (positionActual.Down > -RTH_MIN_ALTITUDE)
-		positionActual.Down = -RTH_MIN_ALTITUDE;
+	// Previously this would climb all the way to the minimum altitude
+	// immediately.  IMO this doesn't match the intent of the initial RTH
+	// pause (rise is in the next state).  It has also caused issues
+	// when a burst of full throttle from the combined effect of altitude
+	// error and the impulse from application of the mode destabilized
+	// flaky quads.
+	//
+	// On the other hand, if we're too low, it's advantageous to rise
+	// at least a small amount immediately.  It's also good to not set our
+	// hold position too low from any immediate altimeter error.
+	// So climb 1.5m right away. -mpl
+
+	if (positionActual.Down > -RTH_MIN_ALTITUDE) {
+		positionActual.Down = fmaxf(-RTH_MIN_ALTITUDE,
+				positionActual.Down - 1.5f);
+	}
 
 	hold_position(positionActual.North, positionActual.East, positionActual.Down);
-
-	configure_timeout(10);
 }
-
 
 /**
  * Stay at current location but rise to a minimal location.
@@ -634,7 +648,6 @@ static void go_enable_rise_here()
 	// go straight to the next state
 	if (fabsf(down - vtol_hold_position_ned[2]) > RTH_ALT_ERROR) {
 		hold_position(vtol_hold_position_ned[0], vtol_hold_position_ned[1], down);
-		configure_timeout(10);
 	} else {
 		vtol_fsm_inject_event(FSM_EVENT_TIMEOUT);
 	}
@@ -650,8 +663,6 @@ static void go_enable_pause_home_10s()
 		down = -RTH_MIN_ALTITUDE;
 
 	hold_position(0, 0, down);
-
-	configure_timeout(10);
 }
 
 /**
@@ -659,8 +670,6 @@ static void go_enable_pause_home_10s()
  */
 static void go_enable_fly_home()
 {
-	vtol_nav_mode = VTOL_NAV_PATH;
-
 	PositionActualData positionActual;
 	PositionActualGet(&positionActual);
 
@@ -673,32 +682,41 @@ static void go_enable_fly_home()
 	vtol_fsm_path_desired.End[0] = 0;
 	vtol_fsm_path_desired.End[1] = 0;
 	vtol_fsm_path_desired.End[2] = positionActual.Down;
-	if (vtol_fsm_path_desired.End[2] > -RTH_MIN_ALTITUDE)
+
+	if (positionActual.Down > -RTH_MIN_ALTITUDE) {
+		vtol_fsm_path_desired.Start[2] = -RTH_MIN_ALTITUDE;
 		vtol_fsm_path_desired.End[2] = -RTH_MIN_ALTITUDE;
+	}
 
-	vtol_fsm_path_desired.StartingVelocity = RTH_VELOCITY;
-	vtol_fsm_path_desired.EndingVelocity = RTH_VELOCITY;
+	/* Paranoia: set to 3.0f just in case calls below fail.  TODO: change
+	 * UAVO semantics to be guaranteed to either succeed or crash */
+	float rth_vel = 3.0f;
+	VtolPathFollowerSettingsReturnToHomeVelGet(&rth_vel);
 
-	vtol_fsm_path_desired.Mode = PATHDESIRED_MODE_FLYVECTOR;
+	vtol_fsm_path_desired.StartingVelocity = rth_vel;
+	vtol_fsm_path_desired.EndingVelocity = rth_vel;
+
+	vtol_fsm_path_desired.Mode = PATHDESIRED_MODE_VECTOR;
 	vtol_fsm_path_desired.ModeParameters = 0;
 
-	PathDesiredSet(&vtol_fsm_path_desired);
+	/* It's necessary that this increment so that we don't end up
+	 * latching completion status. Wraparound, etc, is OK.
+	 * This is for compatibility with the waypoint handshaking in the
+	 * path planner.
+	 */
+	vtol_fsm_path_desired.Waypoint++;
 
-	configure_timeout(0);
+	PathDesiredSet(&vtol_fsm_path_desired);
 }
 
 /**
- * Enable holding at home location for 10 s at current altitude. Configures for hold.
+ * Descends to land.
  */
 static void go_enable_land_home()
 {
-	vtol_nav_mode = VTOL_NAV_LAND;
-
 	vtol_hold_position_ned[0] = 0;
 	vtol_hold_position_ned[1] = 0;
-	vtol_hold_position_ned[2] = 0; // Has no affect
-
-	configure_timeout(0);
+	vtol_hold_position_ned[2] = 0; // Has no effect
 }
 
 //! @}

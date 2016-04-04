@@ -10,17 +10,19 @@ OTHER_FILES += TauLabs.json
 
 HEADERS += \
     taulabsplugin.h \
-    freedom.h \
     sparky.h \
     sparkybgc.h \
-    sparkybgcconfiguration.h
+    sparkybgcconfiguration.h \
+    sparky2.h \
+    taulink.h
 
 SOURCES += \
     taulabsplugin.cpp \
-    freedom.cpp \
     sparky.cpp \
     sparkybgc.cpp \
-    sparkybgcconfiguration.cpp
+    sparkybgcconfiguration.cpp \
+    sparky2.cpp \
+    taulink.cpp
 
 RESOURCES += \
     taulabs.qrc

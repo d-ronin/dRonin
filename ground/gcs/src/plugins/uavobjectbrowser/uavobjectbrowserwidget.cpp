@@ -58,7 +58,7 @@ UAVObjectBrowserWidget::UAVObjectBrowserWidget(QWidget *parent) : QWidget(parent
     m_model = new UAVObjectTreeModel(this);
 
     // Create tree view and add to layout
-    treeView = new UAVOBrowserTreeView(m_model, MAXIMUM_UPDATE_PERIOD);
+    treeView = new UAVOBrowserTreeView(MAXIMUM_UPDATE_PERIOD);
     treeView->setObjectName(QString::fromUtf8("treeView"));
     m_browser->verticalLayout->addWidget(treeView);
 
@@ -73,12 +73,16 @@ UAVObjectBrowserWidget::UAVObjectBrowserWidget(QWidget *parent) : QWidget(parent
     connect((QTreeView*) treeView, SIGNAL(collapsed(QModelIndex)), this, SLOT(onTreeItemCollapsed(QModelIndex) ));
     connect((QTreeView*) treeView, SIGNAL(expanded(QModelIndex)), this, SLOT(onTreeItemExpanded(QModelIndex) ));
 
+    connect(m_browser->le_searchField, SIGNAL(textChanged(QString)), this, SLOT(searchTextChanged(QString)));
+    connect(m_browser->bn_clearSearchField, SIGNAL(clicked()), this, SLOT(searchTextCleared()));
+
     // Set browser buttons to disabled
     enableUAVOBrowserButtons(false);
 }
 
-void UAVObjectBrowserWidget::onTreeItemExpanded(QModelIndex currentIndex)
+void UAVObjectBrowserWidget::onTreeItemExpanded(QModelIndex currentProxyIndex)
 {
+    QModelIndex currentIndex = proxyModel->mapToSource(currentProxyIndex);
     TreeItem *item = static_cast<TreeItem*>(currentIndex.internalPointer());
     TopTreeItem *top = dynamic_cast<TopTreeItem*>(item->parent());
 
@@ -136,9 +140,9 @@ void UAVObjectBrowserWidget::onTreeItemExpanded(QModelIndex currentIndex)
     }
 }
 
-void UAVObjectBrowserWidget::onTreeItemCollapsed(QModelIndex currentIndex)
+void UAVObjectBrowserWidget::onTreeItemCollapsed(QModelIndex currentProxyIndex)
 {
-
+    QModelIndex currentIndex = proxyModel->mapToSource(currentProxyIndex);
     TreeItem *item = static_cast<TreeItem*>(currentIndex.internalPointer());
     TopTreeItem *top = dynamic_cast<TopTreeItem*>(item->parent());
 
@@ -261,13 +265,18 @@ void UAVObjectBrowserWidget::setViewOptions(bool categorized, bool scientific, b
 void UAVObjectBrowserWidget::initialize()
 {
     m_model->initializeModel(m_viewoptions->cbCategorized->isChecked(),m_viewoptions->cbScientific->isChecked());
-    treeView->setModel(m_model);
+
+    // Create and configure the proxy model
+    proxyModel = new TreeSortFilterProxyModel(this);
+    proxyModel->setSourceModel(m_model);
+    treeView->setModel(proxyModel);
     treeView->setColumnWidth(0, 300);
+
     treeView->setEditTriggers(QAbstractItemView::AllEditTriggers);
     treeView->setSelectionBehavior(QAbstractItemView::SelectItems);
     treeView->setUniformRowHeights(true);
 
-    BrowserItemDelegate *m_delegate = new BrowserItemDelegate();
+    BrowserItemDelegate *m_delegate = new BrowserItemDelegate(proxyModel);
     treeView->setItemDelegate(m_delegate);
 
     // Connect signals
@@ -288,11 +297,13 @@ void UAVObjectBrowserWidget::initialize()
 void UAVObjectBrowserWidget::refreshHiddenObjects()
 {
     QList<QModelIndex> indexList = m_model->getDataObjectIndexes();
-    foreach(QModelIndex index , indexList)
+    foreach(QModelIndex modelIndex, indexList)
     {
-        TreeItem *item = static_cast<TreeItem*>(index.internalPointer());
+        QModelIndex proxyModelindex = proxyModel->mapFromSource(modelIndex);
+
+        TreeItem *item = static_cast<TreeItem*>(proxyModelindex.internalPointer());
         if(item)
-            treeView->setRowHidden(index.row(), index.parent(), m_viewoptions->cbHideNotPresent->isChecked() && !item->getIsPresentOnHardware());
+            treeView->setRowHidden(proxyModelindex.row(), proxyModelindex.parent(), m_viewoptions->cbHideNotPresent->isChecked() && !item->getIsPresentOnHardware());
     }
 }
 
@@ -303,18 +314,20 @@ void UAVObjectBrowserWidget::refreshHiddenObjects()
  */
 void UAVObjectBrowserWidget::showMetaData(bool show)
 {
-    refreshViewOtpions();
+    refreshViewOptions();
     QList<QModelIndex> metaIndexes = m_model->getMetaDataIndexes();
-    foreach(QModelIndex index , metaIndexes)
+    foreach(QModelIndex modelIndex, metaIndexes)
     {
-        treeView->setRowHidden(index.row(), index.parent(), !show);
+        QModelIndex proxyModelindex = proxyModel->mapFromSource(modelIndex);
+
+        treeView->setRowHidden(proxyModelindex.row(), proxyModelindex.parent(), !show);
     }
 }
 
 /**
  * @brief fires the viewOptionsChanged SIGNAL with the current values.
  */
-void UAVObjectBrowserWidget::refreshViewOtpions()
+void UAVObjectBrowserWidget::refreshViewOptions()
 {
     emit viewOptionsChanged(m_viewoptions->cbCategorized->isChecked(),m_viewoptions->cbScientific->isChecked(),m_viewoptions->cbMetaData->isChecked(),m_viewoptions->cbHideNotPresent->isChecked());
 }
@@ -326,7 +339,7 @@ void UAVObjectBrowserWidget::refreshViewOtpions()
 void UAVObjectBrowserWidget::showNotPresent(bool show)
 {
     Q_UNUSED(show);
-    refreshViewOtpions();
+    refreshViewOptions();
     refreshHiddenObjects();
 }
 
@@ -342,7 +355,12 @@ void UAVObjectBrowserWidget::sendUpdate()
 {
     this->setFocus();
     ObjectTreeItem *objItem = findCurrentObjectTreeItem();
-    Q_ASSERT(objItem);
+
+    // This occurs when the selected item is not inside a UAVObject
+    if (objItem == NULL) {
+       return;
+    }
+
     UAVDataObject * dataObj=qobject_cast<UAVDataObject *>(objItem->object());
     if(dataObj && dataObj->isSettings())
         objItem->setUpdatedOnly(true);
@@ -362,7 +380,12 @@ void UAVObjectBrowserWidget::sendUpdate()
 void UAVObjectBrowserWidget::requestUpdate()
 {
     ObjectTreeItem *objItem = findCurrentObjectTreeItem();
-    Q_ASSERT(objItem);
+
+    // This occurs when the selected item is not inside a UAVObject
+    if (objItem == NULL) {
+       return;
+    }
+
     UAVObject *obj = objItem->object();
     Q_ASSERT(obj);
     obj->requestUpdate();
@@ -378,7 +401,7 @@ void UAVObjectBrowserWidget::requestUpdate()
  */
 ObjectTreeItem *UAVObjectBrowserWidget::findCurrentObjectTreeItem()
 {
-    QModelIndex current = treeView->currentIndex();
+    QModelIndex current = proxyModel->mapToSource(treeView->currentIndex());
     TreeItem *item = static_cast<TreeItem*>(current.internalPointer());
     ObjectTreeItem *objItem = 0;
 
@@ -409,7 +432,12 @@ void UAVObjectBrowserWidget::saveObject()
     sendUpdate();
     // Save object
     ObjectTreeItem *objItem = findCurrentObjectTreeItem();
-    Q_ASSERT(objItem);
+
+    // This occurs when the selected item is not inside a UAVObject
+    if (objItem == NULL) {
+       return;
+    }
+
     UAVDataObject * dataObj=qobject_cast<UAVDataObject *>(objItem->object());
     if(dataObj && dataObj->isSettings())
         objItem->setUpdatedOnly(false);
@@ -429,7 +457,12 @@ void UAVObjectBrowserWidget::loadObject()
 {
     // Load object
     ObjectTreeItem *objItem = findCurrentObjectTreeItem();
-    Q_ASSERT(objItem);
+
+    // This occurs when the selected item is not inside a UAVObject
+    if (objItem == NULL) {
+       return;
+    }
+
     UAVObject *obj = objItem->object();
     Q_ASSERT(obj);
     updateObjectPersistance(ObjectPersistence::OPERATION_LOAD, obj);
@@ -447,7 +480,12 @@ void UAVObjectBrowserWidget::loadObject()
 void UAVObjectBrowserWidget::eraseObject()
 {
     ObjectTreeItem *objItem = findCurrentObjectTreeItem();
-    Q_ASSERT(objItem);
+
+    // This occurs when the selected item is not inside a UAVObject
+    if (objItem == NULL) {
+       return;
+    }
+
     UAVObject *obj = objItem->object();
     Q_ASSERT(obj);
     updateObjectPersistance(ObjectPersistence::OPERATION_DELETE, obj);
@@ -483,10 +521,11 @@ void UAVObjectBrowserWidget::updateObjectPersistance(ObjectPersistence::Operatio
  * @param current Current model index
  * @param previous unused
  */
-void UAVObjectBrowserWidget::toggleUAVOButtons(const QModelIndex &currentIndex, const QModelIndex &previousIndex)
+void UAVObjectBrowserWidget::toggleUAVOButtons(const QModelIndex &currentProxyIndex, const QModelIndex &previousIndex)
 {
     Q_UNUSED(previousIndex);
 
+    QModelIndex currentIndex = proxyModel->mapToSource(currentProxyIndex);
     TreeItem *item = static_cast<TreeItem*>(currentIndex.internalPointer());
     TopTreeItem *top = dynamic_cast<TopTreeItem*>(item);
     ObjectTreeItem *data = dynamic_cast<ObjectTreeItem*>(item);
@@ -534,6 +573,16 @@ void UAVObjectBrowserWidget::viewOptionsChangedSlot()
 {
     emit viewOptionsChanged(m_viewoptions->cbCategorized->isChecked(),m_viewoptions->cbScientific->isChecked(),m_viewoptions->cbMetaData->isChecked(),m_viewoptions->cbHideNotPresent);
     m_model->initializeModel(m_viewoptions->cbCategorized->isChecked(), m_viewoptions->cbScientific->isChecked());
+
+    // Reset proxy model
+    disconnect(treeView->selectionModel(), SIGNAL(currentChanged(QModelIndex,QModelIndex)), this, SLOT(toggleUAVOButtons(QModelIndex,QModelIndex)));
+    delete proxyModel;
+    proxyModel = new TreeSortFilterProxyModel(this);
+    proxyModel->setSourceModel(m_model);
+    treeView->setModel(proxyModel);
+    searchTextChanged(m_browser->le_searchField->text());
+    connect(treeView->selectionModel(), SIGNAL(currentChanged(QModelIndex,QModelIndex)), this, SLOT(toggleUAVOButtons(QModelIndex,QModelIndex)));
+
     showMetaData(m_viewoptions->cbMetaData->isChecked());
     refreshHiddenObjects();
 }
@@ -545,11 +594,48 @@ void UAVObjectBrowserWidget::viewOptionsChangedSlot()
  */
 void UAVObjectBrowserWidget::enableUAVOBrowserButtons(bool enableState)
 {
+    // temporary hack until session management is fixed
+    enableState = true;
     m_browser->sendButton->setEnabled(enableState);
     m_browser->requestButton->setEnabled(enableState);
     m_browser->saveSDButton->setEnabled(enableState);
     m_browser->readSDButton->setEnabled(enableState);
     m_browser->eraseSDButton->setEnabled(enableState);
+}
+
+/**
+ * @brief UAVObjectBrowserWidget::searchTextChanged Looks for matching text in the UAVO fields
+ */
+void UAVObjectBrowserWidget::searchTextChanged(QString searchText)
+{
+    proxyModel->setFilterRegExp(QRegExp(searchText, Qt::CaseInsensitive, QRegExp::FixedString));
+}
+
+void UAVObjectBrowserWidget::searchTextCleared()
+{
+    m_browser->le_searchField->clear();
+}
+
+void UAVObjectBrowserWidget::keyPressEvent(QKeyEvent *e)
+{
+    switch(e->key())
+    {
+    case Qt::Key_Escape:
+        searchTextCleared();
+    default:
+        QWidget::keyPressEvent(e);
+    }
+}
+
+void UAVObjectBrowserWidget::keyReleaseEvent(QKeyEvent *e)
+{
+    switch(e->key())
+    {
+    case Qt::Key_Escape:
+        searchTextCleared();
+    default:
+        QWidget::keyReleaseEvent(e);
+    }
 }
 
 
@@ -558,8 +644,7 @@ void UAVObjectBrowserWidget::enableUAVOBrowserButtons(bool enableState)
 /**
  * @brief UAVOBrowserTreeView::UAVOBrowserTreeView Constructor for reimplementation of QTreeView
  */
-UAVOBrowserTreeView::UAVOBrowserTreeView(UAVObjectTreeModel *m_model_new, unsigned int updateTimerPeriod) : QTreeView(),
-    m_model(m_model_new),
+UAVOBrowserTreeView::UAVOBrowserTreeView(unsigned int updateTimerPeriod) : QTreeView(),
     m_updateTreeViewFlag(false)
 {
     // Start timer at 100ms
@@ -588,16 +673,18 @@ void UAVOBrowserTreeView::updateTimerPeriod(unsigned int val)
 
 
 /**
- * @brief UAVOBrowserTreeView::onTimeout_updateView On timeout, emits dataChanged() SIGNAL for
- * all data tree indices that have changed since last timeout.
+ * @brief UAVOBrowserTreeView::onTimeout_updateView On timeout, emits dataChanged() SIGNAL. Origingally,
+ * this was intended to only function on the the data tree indices that had changed since last timeout,
+ * but QTreeView does not respect the limits in dataChanged, instead redrawing the entire tree at each
+ * update.
  */
 void UAVOBrowserTreeView::onTimeout_updateView()
 {
     if (m_updateTreeViewFlag == true) {
-        QModelIndex topLeftData = m_model->getIndex(0, 0, m_model->getNonSettingsTree());
-        QModelIndex bottomRightData = m_model->getIndex(1, 1, m_model->getNonSettingsTree());
+        QModelIndex topLeftIndex = model()->index(0, 0);
+        QModelIndex bottomRightIndex = model()->index(1, 1);
 
-        QTreeView::dataChanged(topLeftData, bottomRightData);
+        QTreeView::dataChanged(topLeftIndex, bottomRightIndex);
     }
 
     m_updateTreeViewFlag = false;
@@ -609,12 +696,13 @@ void UAVOBrowserTreeView::onTimeout_updateView()
  * @param topLeft Top left index from data model update
  * @param bottomRight Bottom right index from data model update
  */
-void UAVOBrowserTreeView::updateView(QModelIndex topLeft, QModelIndex bottomRight)
+void UAVOBrowserTreeView::updateView(const QModelIndex &topLeftProxy, const QModelIndex &bottomRightProxy)
 {
-    Q_UNUSED(bottomRight);
+    Q_UNUSED(bottomRightProxy);
 
     // First static_cast from *void to a tree item pointer. This is safe because we know all the indices are tree items
-    TreeItem *treeItemPtr = static_cast<TreeItem*>(topLeft.internalPointer());
+    QModelIndex topLeftModel = proxyModel->mapToSource(topLeftProxy);
+    TreeItem *treeItemPtr = static_cast<TreeItem*>(topLeftModel.internalPointer());
 
     // Second, do a dynamic_cast in order to detect if this tree item is a data object
     DataObjectTreeItem *dataObjectTreeItemPtr = dynamic_cast<DataObjectTreeItem*>(treeItemPtr);
@@ -641,4 +729,74 @@ void UAVOBrowserTreeView::dataChanged(const QModelIndex & topLeft, const QModelI
     else { // ... otherwise pass them directly on to the treeview.
        QTreeView::dataChanged(topLeft, bottomRight);
     }
+}
+
+
+//============================
+
+TreeSortFilterProxyModel::TreeSortFilterProxyModel(QObject *p) :
+    QSortFilterProxyModel(p)
+{
+    Q_ASSERT(p);
+}
+
+/**
+ * @brief TreeSortFilterProxyModel::filterAcceptsRow  Taken from
+ * http://qt-project.org/forums/viewthread/7782. This proxy model
+ * will accept rows:
+ *   - That match themselves, or
+ *   - That have a parent that matches (on its own), or
+ *   - That have a child that matches.
+ * @param sourceRow
+ * @param sourceParent
+ * @return
+ */
+bool TreeSortFilterProxyModel::filterAcceptsRow(int source_row, const QModelIndex &source_parent) const
+{
+    if (filterAcceptsRowItself(source_row, source_parent))
+        return true;
+
+    //accept if any of the parents is accepted on it's own merits
+    QModelIndex parent = source_parent;
+    while (parent.isValid()) {
+        if (filterAcceptsRowItself(parent.row(), parent.parent()))
+            return true;
+        parent = parent.parent();
+    }
+
+    //accept if any of the children is accepted on it's own merits
+    if (hasAcceptedChildren(source_row, source_parent)) {
+        return true;
+    }
+
+    return false;
+}
+
+bool TreeSortFilterProxyModel::filterAcceptsRowItself(int source_row, const QModelIndex &source_parent) const
+{
+    return QSortFilterProxyModel::filterAcceptsRow(source_row, source_parent);
+}
+
+bool TreeSortFilterProxyModel::hasAcceptedChildren(int source_row, const QModelIndex &source_parent) const
+{
+    QModelIndex item = sourceModel()->index(source_row,0,source_parent);
+    if (!item.isValid()) {
+        //qDebug() << "item invalid" << source_parent << source_row;
+        return false;
+    }
+
+    //check if there are children
+    int childCount = item.model()->rowCount(item);
+    if (childCount == 0)
+        return false;
+
+    for (int i = 0; i < childCount; ++i) {
+        if (filterAcceptsRowItself(i, item))
+            return true;
+        //recursive call -> NOTICE that this is depth-first searching, you're probably better off with breadth first search...
+        if (hasAcceptedChildren(i, item))
+            return true;
+    }
+
+    return false;
 }

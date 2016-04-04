@@ -139,8 +139,9 @@ LoggingThread::~LoggingThread()
 bool LoggingThread::openFile(QString file, LoggingPlugin * parent)
 {
     logFile.setFileName(file);
-    logFile.open(QIODevice::WriteOnly);
-
+    if (!logFile.open(QIODevice::WriteOnly)) {
+        return false;
+    }
     ExtensionSystem::PluginManager *pm = ExtensionSystem::PluginManager::instance();
     UAVObjectManager *objManager = pm->getObject<UAVObjectManager>();
 
@@ -341,28 +342,28 @@ bool LoggingPlugin::initialize(const QStringList& args, QString *errMsg)
     Core::ActionContainer* ac = am->actionContainer(Core::Constants::M_TOOLS);
 
     // Command to start logging
-    cmd = am->registerAction(new QAction(this),
+    cmdLogging = am->registerAction(new QAction(this),
                                             "LoggingPlugin.Logging",
                                             QList<int>() <<
                                             Core::Constants::C_GLOBAL_ID);
-    cmd->setDefaultKeySequence(QKeySequence("Ctrl+L"));
-    cmd->action()->setText("Start logging...");
+    cmdLogging->setDefaultKeySequence(QKeySequence("Ctrl+L"));
+    cmdLogging->action()->setText("Start logging...");
 
     ac->menu()->addSeparator();
     ac->appendGroup("Logging");
-    ac->addAction(cmd, "Logging");
+    ac->addAction(cmdLogging, "Logging");
 
-    connect(cmd->action(), SIGNAL(triggered(bool)), this, SLOT(toggleLogging()));
+    connect(cmdLogging->action(), SIGNAL(triggered(bool)), this, SLOT(toggleLogging()));
 
     // Command to downlaod log
-    cmd = am->registerAction(new QAction(this),
+    cmdDownload = am->registerAction(new QAction(this),
                                             "LoggingPlugin.Download",
                                             QList<int>() <<
                                             Core::Constants::C_GLOBAL_ID);
-    cmd->setDefaultKeySequence(QKeySequence("Ctrl+D"));
-    cmd->action()->setText("Download log...");
-    ac->addAction(cmd, "Logging");
-    connect(cmd->action(), SIGNAL(triggered(bool)), this, SLOT(downloadLog()));
+    cmdDownload->setDefaultKeySequence(QKeySequence("Ctrl+D"));
+    cmdDownload->action()->setText("Download log...");
+    ac->addAction(cmdDownload, "Logging");
+    connect(cmdDownload->action(), SIGNAL(triggered(bool)), this, SLOT(downloadLog()));
 
 
     mf = new LoggingGadgetFactory(this);
@@ -391,19 +392,19 @@ void LoggingPlugin::toggleLogging()
     {
 
         QString fileName = QFileDialog::getSaveFileName(NULL, tr("Start Log"),
-                                    tr("TauLabs-%0.tll").arg(QDateTime::currentDateTime().toString("yyyy-MM-dd_hh-mm-ss")),
+                                    QDir::homePath() + QDir::separator() + tr("TauLabs-%0.tll").arg(QDateTime::currentDateTime().toString("yyyy-MM-dd_hh-mm-ss")),
                                     tr("Tau Labs Log (*.tll)"));
         if (fileName.isEmpty())
             return;
 
         startLogging(fileName);
-        cmd->action()->setText(tr("Stop logging"));
+        cmdLogging->action()->setText(tr("Stop logging"));
 
     }
     else if(state == LOGGING)
     {
         stopLogging();
-        cmd->action()->setText(tr("Start logging..."));
+        cmdLogging->action()->setText(tr("Start logging..."));
     }
 }
 

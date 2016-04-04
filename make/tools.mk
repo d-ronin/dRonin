@@ -22,13 +22,13 @@ ifdef OPENOCD_FTDI
 endif
 
 # Set up QT toolchain
-QT_SDK_DIR := $(TOOLS_DIR)/Qt5.4.0
+QT_SDK_DIR := $(TOOLS_DIR)/Qt5.5.0
 
 ifdef LINUX
   ifdef AMD64
-    QT_PLUGINS_DIR = $(QT_SDK_DIR)/5.4/gcc_64/plugins
+    QT_PLUGINS_DIR = $(QT_SDK_DIR)/5.5/gcc_64/plugins
   else
-    QT_PLUGINS_DIR = $(QT_SDK_DIR)/5.4/gcc/plugins
+    QT_PLUGINS_DIR = $(QT_SDK_DIR)/5.5/gcc/plugins
   endif
 endif
 
@@ -57,23 +57,25 @@ OPENOCD_FTDI ?= yes
 ifdef LINUX
   ifdef AMD64
     # Linux 64-bit
-    qt_sdk_install: QT_SDK_URL := http://download.qt-project.org/official_releases/qt/5.4/5.4.0/qt-opensource-linux-x64-5.4.0.run
-    QT_SDK_QMAKE_PATH := $(QT_SDK_DIR)/5.4/gcc_64/bin/qmake
+    qt_sdk_install: QT_SDK_URL := http://download.qt.io/official_releases/qt/5.5/5.5.0/qt-opensource-linux-x64-5.5.0-2.run
+    QT_SDK_QMAKE_PATH := $(QT_SDK_DIR)/5.5/gcc_64/bin/qmake
   else
     # Linux 32-bit
-    qt_sdk_install: QT_SDK_URL := http://download.qt-project.org/official_releases/qt/5.4/5.4.0/qt-opensource-linux-x86-5.4.0.run
-    QT_SDK_QMAKE_PATH := $(QT_SDK_DIR)/5.4/gcc/bin/qmake
+    qt_sdk_install: QT_SDK_URL := http://download.qt.io/official_releases/qt/5.5/5.5.0/qt-opensource-linux-x86-5.5.0.run
+    QT_SDK_QMAKE_PATH := $(QT_SDK_DIR)/5.5/gcc/bin/qmake
   endif
 endif
 
 ifdef MACOSX
-  qt_sdk_install: QT_SDK_URL  := http://download.qt-project.org/official_releases/qt/5.4/5.4.0/qt-opensource-mac-x64-clang-5.4.0.dmg
-  QT_SDK_QMAKE_PATH := $(QT_SDK_DIR)/5.4/clang_64/bin/qmake
+  qt_sdk_install: QT_SDK_URL  := http://download.qt.io/official_releases/qt/5.5/5.5.0/qt-opensource-mac-x64-clang-5.5.0.dmg
+  QT_SDK_QMAKE_PATH := $(QT_SDK_DIR)/5.5/clang_64/bin/qmake
+
+  export QT_SDK_BIN_PATH := $(QT_SDK_DIR)/5.5/clang_64/bin
 endif
 
 ifdef WINDOWS
-  qt_sdk_install: QT_SDK_URL  := http://download.qt-project.org/official_releases/qt/5.4/5.4.0/qt-opensource-windows-x86-mingw491_opengl-5.4.0.exe
-  QT_SDK_QMAKE_PATH := $(QT_SDK_DIR)/5.4/mingw491_32/bin/qmake
+  qt_sdk_install: QT_SDK_URL  := http://download.qt.io/official_releases/qt/5.5/5.5.0/qt-opensource-windows-x86-mingw492-5.5.0.exe
+  QT_SDK_QMAKE_PATH := $(QT_SDK_DIR)/5.5/mingw492_32/bin/qmake
 endif
 
 qt_sdk_install: QT_SDK_FILE := $(notdir $(QT_SDK_URL))
@@ -93,18 +95,18 @@ qt_sdk_install: qt_sdk_clean
 
 ifneq (,$(filter $(UNAME), Darwin))
 	$(V1) hdiutil attach -quiet -private -mountpoint /tmp/qt-installer "$(DL_DIR)/$(QT_SDK_FILE)" 
-	$(V1) /tmp/qt-installer/qt-opensource-mac-x64-clang-5.4.0.app/Contents/MacOS/qt-opensource-mac-x64-clang-5.4.0
+	$(V1) /tmp/qt-installer/qt-opensource-mac-x64-clang-5.5.0.app/Contents/MacOS/qt-opensource-mac-x64-clang-5.5.0
 	$(V1) hdiutil detach -quiet /tmp/qt-installer
 endif
- 
+
 ifneq (,$(filter $(UNAME), Linux))
         #installer is an executable, make it executable and run it
 	$(V1) chmod u+x "$(DL_DIR)/$(QT_SDK_FILE)"
-	$(V1) "$(DL_DIR)/$(QT_SDK_FILE)" -style cleanlooks
+	$(V1) "$(DL_DIR)/$(QT_SDK_FILE)"
 endif
 
 ifdef WINDOWS
-	$(V1) ./downloads/qt-opensource-windows-x86-mingw491_opengl-5.4.0.exe
+	$(V1) ./downloads/qt-opensource-windows-x86-mingw492-5.5.0.exe
 endif
 
 .PHONY: qt_sdk_clean
@@ -112,30 +114,35 @@ qt_sdk_clean:
 	$(V1) [ ! -d "$(QT_SDK_DIR)" ] || $(RM) -rf $(QT_SDK_DIR)
 
 # Set up ARM (STM32) SDK
-ARM_SDK_DIR := $(TOOLS_DIR)/gcc-arm-none-eabi-4_8-2013q4
+ARM_SDK_DIR := $(TOOLS_DIR)/gcc-arm-none-eabi-4_9-2015q1
 
 .PHONY: arm_sdk_install
 ifdef LINUX
-  arm_sdk_install: ARM_SDK_URL  := https://launchpad.net/gcc-arm-embedded/4.8/4.8-2013-q4-major/+download/gcc-arm-none-eabi-4_8-2013q4-20131204-linux.tar.bz2
+  arm_sdk_install: ARM_SDK_URL  := https://launchpad.net/gcc-arm-embedded/4.9/4.9-2015-q1-update/+download/gcc-arm-none-eabi-4_9-2015q1-20150306-linux.tar.bz2
 endif
 
 ifdef MACOSX
-  arm_sdk_install: ARM_SDK_URL  := https://launchpad.net/gcc-arm-embedded/4.8/4.8-2013-q4-major/+download/gcc-arm-none-eabi-4_8-2013q4-20131218-mac.tar.bz2
+  arm_sdk_install: ARM_SDK_URL  := https://launchpad.net/gcc-arm-embedded/4.9/4.9-2015-q1-update/+download/gcc-arm-none-eabi-4_9-2015q1-20150306-mac.tar.bz2
 endif
 
 ifdef WINDOWS
-  arm_sdk_install: ARM_SDK_URL  := https://launchpad.net/gcc-arm-embedded/4.8/4.8-2013-q4-major/+download/gcc-arm-none-eabi-4_8-2013q4-20131204-win32.zip
+  arm_sdk_install: ARM_SDK_URL  := https://launchpad.net/gcc-arm-embedded/4.9/4.9-2015-q1-update/+download/gcc-arm-none-eabi-4_9-2015q1-20150306-win32.zip
 endif
 
 arm_sdk_install: ARM_SDK_FILE := $(notdir $(ARM_SDK_URL))
 # order-only prereq on directory existance:
 arm_sdk_install: | $(DL_DIR) $(TOOLS_DIR)
 arm_sdk_install: arm_sdk_clean
+ifneq ($(OSFAMILY), windows)
         # download the source only if it's newer than what we already have
 	$(V1) wget --no-check-certificate -N -P "$(DL_DIR)" "$(ARM_SDK_URL)"
 
         # binary only release so just extract it
 	$(V1) tar -C $(TOOLS_DIR) -xjf "$(DL_DIR)/$(ARM_SDK_FILE)"
+else
+	$(V1) curl -L -k -o "$(DL_DIR)/$(ARM_SDK_FILE)" "$(ARM_SDK_URL)"
+	$(V1) unzip -q -d $(ARM_SDK_DIR) "$(DL_DIR)/$(ARM_SDK_FILE)"
+endif
 
 .PHONY: arm_sdk_clean
 arm_sdk_clean:
@@ -323,7 +330,7 @@ stm32flash_clean:
 DFUUTIL_DIR := $(TOOLS_DIR)/dfu-util
 
 .PHONY: dfuutil_install
-dfuutil_install: DFUUTIL_URL  := http://dfu-util.gnumonks.org/releases/dfu-util-0.7.tar.gz
+dfuutil_install: DFUUTIL_URL  := http://dfu-util.sourceforge.net/releases/dfu-util-0.8.tar.gz
 dfuutil_install: DFUUTIL_FILE := $(notdir $(DFUUTIL_URL))
 dfuutil_install: | $(DL_DIR) $(TOOLS_DIR)
 dfuutil_install: dfuutil_clean
@@ -341,7 +348,7 @@ dfuutil_install: dfuutil_clean
 	$(V0) @echo " BUILD        $(DFUUTIL_DIR)"
 	$(V1) mkdir -p "$(DFUUTIL_DIR)"
 	$(V1) ( \
-	  cd $(DL_DIR)/dfuutil-build/dfu-util-0.7 ; \
+	  cd $(DL_DIR)/dfuutil-build/dfu-util-0.8 ; \
 	  ./configure --prefix="$(DFUUTIL_DIR)" ; \
 	  $(MAKE) ; \
 	  $(MAKE) install ; \
@@ -374,7 +381,7 @@ android_sdk_clean:
 .PHONY: android_sdk_update
 android_sdk_update:
 	$(V0) @echo " UPDATE       $(ANDROID_SDK_DIR)"
-	$(ANDROID_SDK_DIR)/tools/android update sdk --no-ui --all -t platform-tools,build-tools-20.0.0,android-14,addon-google_apis-google-14
+	$(ANDROID_SDK_DIR)/tools/android update sdk --no-ui --all -t platform-tools,build-tools-20.0.0,android-19,addon-google_apis-google-19
 
 # Set up Google Test (gtest) tools
 GTEST_DIR       := $(TOOLS_DIR)/gtest-1.7.0
@@ -398,34 +405,6 @@ gtest_install: gtest_clean
 gtest_clean:
 	$(V0) @echo " CLEAN        $(GTEST_DIR)"
 	$(V1) [ ! -d "$(GTEST_DIR)" ] || $(RM) -rf "$(GTEST_DIR)"
-
-.PHONY: gui_install
-MAKE_GUI_DIR := $(TOOLS_DIR)/make_gui/
-MAKE_GUI_SOURCE_DIR := $(ROOT_DIR)/shared/make_gui
-gui_install:
-	$(V1) mkdir -p "$(MAKE_GUI_DIR)/build"
-	$(V1) ( cd "$(MAKE_GUI_DIR)/build" && \
-	  $(QMAKE) $(MAKE_GUI_SOURCE_DIR)/make_gui.pro -spec $(QT_SPEC) && \
-	  $(MAKE) -w ; \
-	)
-	$(V1) [ ! -d "$(MAKE_GUI_DIR)/build" ] || $(RM) -rf "$(MAKE_GUI_DIR)/build"
-
-.PHONY: gui_clean
-gui_clean:
-	$(V0) @echo " CLEAN        $(MAKE_GUI_DIR)"
-	$(V1) [ ! -d "$(MAKE_GUI_DIR)" ] || $(RM) -rf "$(MAKE_GUI_DIR)"
-
-.PHONY: gui
-gui:
-ifeq ($(shell [ -d "$(MAKE_GUI_DIR)" ] && echo "exists"), exists)
-ifeq ($(UNAME), Darwin)
-	$(MAKE_GUI_DIR)gui.app/Contents/MacOS/gui
-else
-	$(MAKE_GUI_DIR)gui
-endif
-else
-	 @echo "make gui not installed, run make gui_install"
-endif
 
 
 # Set up astyle tools
@@ -460,6 +439,42 @@ astyle_clean:
 	$(V0) @echo " CLEAN        $(ASTYLE_BUILD_DIR)"
 	$(V1) [ ! -d "$(ASTYLE_BUILD_DIR)" ] || $(RM) -r "$(ASTYLE_BUILD_DIR)"
 
+# Set up uncrustify tools
+UNCRUSTIFY_DIR := $(TOOLS_DIR)/uncrustify-0.61
+UNCRUSTIFY_BUILD_DIR := $(DL_DIR)/uncrustify
+
+.PHONY: uncrustify_install
+uncrustify_install: | $(DL_DIR) $(TOOLS_DIR)
+uncrustify_install: UNCRUSTIFY_URL := http://downloads.sourceforge.net/project/uncrustify/uncrustify/uncrustify-0.61/uncrustify-0.61.tar.gz
+uncrustify_install: UNCRUSTIFY_FILE := uncrustify-0.61.tar.gz
+uncrustify_install: UNCRUSTIFY_OPTIONS := prefix=$(UNCRUSTIFY_DIR)
+uncrustify_install: uncrustify_clean
+ifneq ($(OSFAMILY), windows)
+	$(V0) @echo " DOWNLOAD     $(UNCRUSTIFY_URL)"
+	$(V1) wget --no-check-certificate -N -P "$(DL_DIR)" "$(UNCRUSTIFY_URL)"
+else
+	$(V1) curl -L -k -o "$(DL_DIR)/$(UNCRUSTIFY_FILE)" "$(UNCRUSTIFY_URL)"
+endif
+        # extract the src
+	$(V0) @echo " EXTRACT      $(UNCRUSTIFY_FILE)"
+	$(V1) tar -C $(TOOLS_DIR) -xf "$(DL_DIR)/$(UNCRUSTIFY_FILE)"
+
+	$(V0) @echo " BUILD        $(UNCRUSTIFY_DIR)"
+	$(V1) ( \
+	  cd $(UNCRUSTIFY_DIR) ; \
+	  ./configure --prefix="$(UNCRUSTIFY_DIR)" ; \
+	  $(MAKE) ; \
+	  $(MAKE) install ; \
+	)
+	      # delete the extracted source when we're done
+	$(V1) [ ! -d "$(UNCRUSTIFY_BUILD_DIR)" ] || $(RM) -r "$(UNCRUSTIFY_BUILD_DIR)"
+
+.PHONY: uncrustify_clean
+uncrustify_clean:
+	$(V0) @echo " CLEAN        $(UNCRUSTIFY_DIR)"
+	$(V1) [ ! -d "$(UNCRUSTIFY_DIR)" ] || $(RM) -r "$(UNCRUSTIFY_DIR)"
+	$(V0) @echo " CLEAN        $(UNCRUSTIFY_BUILD_DIR)"
+	$(V1) [ ! -d "$(UNCRUSTIFY_BUILD_DIR)" ] || $(RM) -r "$(UNCRUSTIFY_BUILD_DIR)"
 
 # Set up libkml
 
@@ -512,7 +527,7 @@ ifeq ($(shell [ -d "$(QT_SDK_DIR)" ] && echo "exists"), exists)
   QMAKE = $(QT_SDK_QMAKE_PATH)
 ifdef WINDOWS
   # Windows needs to be told where to find Qt libraries
-  export PATH := $(QT_SDK_DIR)/5.4/mingw491_32/bin:$(PATH) 
+  export PATH := $(QT_SDK_DIR)/5.5/mingw492_32/bin:$(PATH)
 endif
 else
   # not installed, hope it's in the path...
@@ -522,6 +537,9 @@ endif
 ifeq ($(shell [ -d "$(ARM_SDK_DIR)" ] && echo "exists"), exists)
   ARM_SDK_PREFIX := $(ARM_SDK_DIR)/bin/arm-none-eabi-
 else
+  ifneq ($(MAKECMDGOALS),arm_sdk_install)
+    $(info **WARNING** ARM-SDK not in $(ARM_SDK_DIR)  Please run 'make arm_sdk_install')
+  endif
   # not installed, hope it's in the path...
   ARM_SDK_PREFIX ?= arm-none-eabi-
 endif
@@ -549,21 +567,28 @@ ifeq ($(shell [ -d "$(ASTYLE_DIR)" ] && echo "exists"), exists)
 else
   # not installed, hope it's in the path...
   ASTYLE ?= astyle
-endif	
+endif
+
+ifeq ($(shell [ -d "$(UNCRUSTIFY_DIR)" ] && echo "exists"), exists)
+  UNCRUSTIFY := $(UNCRUSTIFY_DIR)/bin/uncrustify
+else
+  # not installed, hope it's in the path...
+  UNCRUSTIFY ?= uncrustify
+endif
+
 
 .PHONY: openssl_install
 
 # OPENSSL download URL
 ifdef WINDOWS
-  openssl_install: OPENSSL_URL  := http://slproweb.com/download/Win32OpenSSL-1_0_1i.exe
-  
+  openssl_install: OPENSSL_URL  := https://slproweb.com/download/Win32OpenSSL-1_0_2d.exe
+
 openssl_install: OPENSSL_FILE := $(notdir $(OPENSSL_URL))
 OPENSSL_DIR = $(TOOLS_DIR)/win32openssl
 # order-only prereq on directory existance:
 openssl_install : | $(DL_DIR) $(TOOLS_DIR)
 openssl_install: openssl_clean
-        # download the instalatopn file only if it's newer than what we already have
-	$(V1) wget -N -P "$(DL_DIR)" "$(OPENSSL_URL)"
+	$(V1) curl -L -k -o "$(DL_DIR)/$(OPENSSL_FILE)" "$(OPENSSL_URL)"
 	$(V1) ./downloads/$(OPENSSL_FILE) /DIR=$(OPENSSL_DIR) /silent
 else
 openssl_install:

@@ -1,9 +1,23 @@
 # Toolchain prefix (i.e arm-elf- -> arm-elf-gcc.exe)
 TCHAIN_PREFIX ?= arm-none-eabi-
 
+CCACHE :=
+
+ifeq ($(FLIGHT_BUILD_CONF), debug)
+export DEBUG:=YES
+CCACHE := $(shell which ccache)
+else ifeq ($(FLIGHT_BUILD_CONF), default)
+# In the default case, keep the old "DEBUG"  variable handling
+CCACHE := $(shell which ccache)
+else ifeq ($(FLIGHT_BUILD_CONF), release)
+export DEBUG:=NO
+else
+$(error Only debug, release, or default allowed for FLIGHT_BUILD_CONF)
+endif
+
 # Define toolchain component names.
-CC      = $(TCHAIN_PREFIX)gcc
-CXX     = $(TCHAIN_PREFIX)g++
+CC      = $(CCACHE) $(TCHAIN_PREFIX)gcc
+CXX     = $(CCACHE) $(TCHAIN_PREFIX)g++
 AR      = $(TCHAIN_PREFIX)ar
 OBJCOPY = $(TCHAIN_PREFIX)objcopy
 OBJDUMP = $(TCHAIN_PREFIX)objdump
@@ -59,6 +73,7 @@ MSG_JTAG_WIPE        = ${quote} JTAG-WIPE $(MSG_EXTRA) ${quote}
 MSG_PADDING          = ${quote} PADDING   $(MSG_EXTRA) ${quote}
 MSG_FLASH_IMG        = ${quote} FLASH_IMG $(MSG_EXTRA) ${quote}
 MSG_GCOV             = ${quote} GCOV      $(MSG_EXTRA) ${quote}
+MSG_AR               = ${quote} AR        $(MSG_EXTRA) ${quote}
 
 toprel = $(subst $(realpath $(ROOT_DIR))/,,$(abspath $(1)))
 
@@ -111,6 +126,7 @@ endef
 #  $(1) = path to bin file
 #  $(2) = boardtype in hex
 #  $(3) = board revision in hex
+#  $(4) = address to pad firmware bin before appending info blob
 define TLFW_TEMPLATE
 FORCE:
 
@@ -127,9 +143,16 @@ $(1).firmwareinfo.c: $(1) $(ROOT_DIR)/make/templates/firmwareinfotemplate.c FORC
 
 $(eval $(call COMPILE_C_TEMPLATE, $(1).firmwareinfo.c))
 
-$(OUTDIR)/$(notdir $(basename $(1))).tlfw : $(1) $(1).firmwareinfo.bin
+# This pads the bin up to the firmware description blob base
+# Required for boards which don't use the TL bootloader to put
+# the blob at the correct location, if pad location($(4)) is
+# less than bin length this is ineffective
+%.padded.bin: %.elf
+	$(V1) $(OBJCOPY) --pad-to=$(4) -O binary $$< $$@
+
+$(OUTDIR)/$(notdir $(basename $(1))).tlfw: $(1:.bin=.padded.bin) $(1).firmwareinfo.bin
 	@echo $(MSG_TLFIRMWARE) $$(call toprel, $$@)
-	$(V1) cat $(1) $(1).firmwareinfo.bin > $$@
+	$(V1) cat $$^ > $$@
 endef
 
 # Assemble: create object files from assembler source files.
@@ -272,3 +295,4 @@ $(OUTDIR)/$(1).gcov: $(OUTDIR)/$$(basename $(1)).gcda
 	  $(GCOV) $(1) 2>&1 > /dev/null ; \
 	)
 endef
+

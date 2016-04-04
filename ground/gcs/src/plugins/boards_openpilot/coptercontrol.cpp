@@ -143,20 +143,19 @@ bool CopterControl::setInputOnPort(enum InputType type, int port_num)
         settings.RcvrPort = HwCopterControl::RCVRPORT_PWM;
         break;
     case INPUT_TYPE_PPM:
-        settings.RcvrPort = HwCopterControl::RCVRPORT_PPM;
+	/* Break from the past; for new builds pick a default that will
+	 * work with OneShot/SyncPWM. */
+        settings.RcvrPort = HwCopterControl::RCVRPORT_PPMONPIN8;
         break;
     case INPUT_TYPE_SBUS:
         settings.MainPort = HwCopterControl::MAINPORT_SBUS;
         settings.FlexiPort = HwCopterControl::FLEXIPORT_TELEMETRY;
         break;
-    case INPUT_TYPE_DSM2:
-        settings.FlexiPort = HwCopterControl::FLEXIPORT_DSM2;
+    case INPUT_TYPE_DSM:
+        settings.FlexiPort = HwCopterControl::FLEXIPORT_DSM;
         break;
-    case INPUT_TYPE_DSMX10BIT:
-        settings.FlexiPort = HwCopterControl::FLEXIPORT_DSMX10BIT;
-        break;
-    case INPUT_TYPE_DSMX11BIT:
-        settings.FlexiPort = HwCopterControl::FLEXIPORT_DSMX11BIT;
+    case INPUT_TYPE_HOTTSUMD:
+        settings.FlexiPort = HwCopterControl::FLEXIPORT_HOTTSUMD;
         break;
     default:
         return false;
@@ -188,12 +187,10 @@ enum Core::IBoardType::InputType CopterControl::getInputOnPort(int port_num)
     HwCopterControl::DataFields settings = hwCopterControl->getData();
 
     switch(settings.FlexiPort) {
-    case HwCopterControl::FLEXIPORT_DSM2:
-        return INPUT_TYPE_DSM2;
-    case HwCopterControl::FLEXIPORT_DSMX10BIT:
-        return INPUT_TYPE_DSMX10BIT;
-    case HwCopterControl::FLEXIPORT_DSMX11BIT:
-        return INPUT_TYPE_DSMX11BIT;
+    case HwCopterControl::FLEXIPORT_DSM:
+        return INPUT_TYPE_DSM;
+    case HwCopterControl::FLEXIPORT_HOTTSUMD:
+        return INPUT_TYPE_HOTTSUMD;
     default:
         break;
     }
@@ -206,6 +203,7 @@ enum Core::IBoardType::InputType CopterControl::getInputOnPort(int port_num)
     }
 
     switch(settings.RcvrPort) {
+    case HwCopterControl::RCVRPORT_PPMONPIN8:
     case HwCopterControl::RCVRPORT_PPM:
         return INPUT_TYPE_PPM;
     case HwCopterControl::RCVRPORT_PWM:

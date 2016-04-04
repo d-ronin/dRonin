@@ -56,11 +56,11 @@
 #include "pios_mpu9150.h"
 static const struct pios_exti_cfg pios_exti_mpu9150_cfg __exti_config = {
 	.vector = PIOS_MPU9150_IRQHandler,
-	.line = EXTI_Line15,
+	.line = EXTI_Line8,
 	.pin = {
 		.gpio = GPIOA,
 		.init = {
-			.GPIO_Pin = GPIO_Pin_15,
+			.GPIO_Pin = GPIO_Pin_8,
 			.GPIO_Speed = GPIO_Speed_50MHz,
 			.GPIO_Mode = GPIO_Mode_IN,
 			.GPIO_OType = GPIO_OType_OD,
@@ -69,7 +69,7 @@ static const struct pios_exti_cfg pios_exti_mpu9150_cfg __exti_config = {
 	},
 	.irq = {
 		.init = {
-			.NVIC_IRQChannel = EXTI15_10_IRQn,
+			.NVIC_IRQChannel = EXTI9_5_IRQn,
 			.NVIC_IRQChannelPreemptionPriority = PIOS_IRQ_PRIO_MID,
 			.NVIC_IRQChannelSubPriority = 0,
 			.NVIC_IRQChannelCmd = ENABLE,
@@ -77,7 +77,7 @@ static const struct pios_exti_cfg pios_exti_mpu9150_cfg __exti_config = {
 	},
 	.exti = {
 		.init = {
-			.EXTI_Line = EXTI_Line15, // matches above GPIO pin
+			.EXTI_Line = EXTI_Line8, // matches above GPIO pin
 			.EXTI_Mode = EXTI_Mode_Interrupt,
 			.EXTI_Trigger = EXTI_Trigger_Rising,
 			.EXTI_LineCmd = ENABLE,
@@ -93,7 +93,8 @@ static const struct pios_mpu60x0_cfg pios_mpu9150_cfg = {
 	.User_ctl = 0,
 	.Pwr_mgmt_clk = PIOS_MPU60X0_PWRMGMT_PLL_Z_CLK,
 	.default_filter = PIOS_MPU60X0_LOWPASS_256_HZ,
-	.orientation = PIOS_MPU60X0_TOP_180DEG
+	.orientation = PIOS_MPU60X0_TOP_90DEG,
+	.use_internal_mag = true
 };
 #endif /* PIOS_INCLUDE_MPU9150 */
 
@@ -178,8 +179,8 @@ static void PIOS_Board_configure_com (const struct pios_usart_cfg *usart_port_cf
 
 #ifdef PIOS_INCLUDE_DSM
 static void PIOS_Board_configure_dsm(const struct pios_usart_cfg *pios_usart_dsm_cfg, const struct pios_dsm_cfg *pios_dsm_cfg,
-		const struct pios_com_driver *pios_usart_com_driver,enum pios_dsm_proto *proto,
-		ManualControlSettingsChannelGroupsOptions channelgroup,uint8_t *bind)
+		const struct pios_com_driver *pios_usart_com_driver,
+		ManualControlSettingsChannelGroupsOptions channelgroup,HwSparkyBGCDSMxModeOptions *mode)
 {
 	uintptr_t pios_usart_dsm_id;
 	if (PIOS_USART_Init(&pios_usart_dsm_id, pios_usart_dsm_cfg)) {
@@ -188,7 +189,7 @@ static void PIOS_Board_configure_dsm(const struct pios_usart_cfg *pios_usart_dsm
 
 	uintptr_t pios_dsm_id;
 	if (PIOS_DSM_Init(&pios_dsm_id, pios_dsm_cfg, pios_usart_com_driver,
-			pios_usart_dsm_id, *proto, *bind)) {
+			pios_usart_dsm_id, *mode)) {
 		PIOS_Assert(0);
 	}
 
@@ -296,9 +297,11 @@ void PIOS_Board_Init(void) {
 	EventDispatcherInitialize();
 	UAVObjInitialize();
 
-	/* Initialize the alarms library */
+	/* Initialize the alarms library. Reads RCC reset flags */
 	AlarmsInitialize();
+	PIOS_RESET_Clear(); // Clear the RCC reset flags after use.
 
+	/* Initialize the hardware UAVOs */
 	HwSparkyBGCInitialize();
 	ModuleSettingsInitialize();
 
@@ -316,12 +319,11 @@ void PIOS_Board_Init(void) {
 	}
 #endif
 
+#if defined(PIOS_INCLUDE_BRUSHLESS)
 	/* Set up pulse timers */
-	PIOS_TIM_InitClock(&tim_1_brushless_cfg);
 	PIOS_TIM_InitClock(&tim_2_brushless_cfg);
 	PIOS_TIM_InitClock(&tim_3_brushless_cfg);
-	PIOS_TIM_InitClock(&tim_15_brushless_cfg);
-	PIOS_TIM_InitClock(&tim_16_brushless_cfg);
+#endif /* PIOS_INCLUDE_BRUSHLESS */
 
 	/* IAP System Setup */
 	PIOS_IAP_Init();
@@ -473,8 +475,8 @@ void PIOS_Board_Init(void) {
 #endif	/* PIOS_INCLUDE_USB */
 
 	/* Configure the IO ports */
-	uint8_t hw_DSMxBind;
-	HwSparkyBGCDSMxBindGet(&hw_DSMxBind);
+	HwSparkyBGCDSMxModeOptions hw_DSMxMode;
+	HwSparkyBGCDSMxModeGet(&hw_DSMxMode);
 
 	/* UART1 Port */
 	uint8_t hw_flexi;
@@ -511,28 +513,11 @@ void PIOS_Board_Init(void) {
 		}
 #endif	/* PIOS_INCLUDE_SBUS */
 		break;
-	case HWSPARKYBGC_FLEXIPORT_DSM2:
-	case HWSPARKYBGC_FLEXIPORT_DSMX10BIT:
-	case HWSPARKYBGC_FLEXIPORT_DSMX11BIT:
+	case HWSPARKYBGC_FLEXIPORT_DSM:
 #if defined(PIOS_INCLUDE_DSM)
 		{
-			enum pios_dsm_proto proto;
-			switch (hw_flexi) {
-			case HWSPARKYBGC_FLEXIPORT_DSM2:
-				proto = PIOS_DSM_PROTO_DSM2;
-				break;
-			case HWSPARKYBGC_FLEXIPORT_DSMX10BIT:
-				proto = PIOS_DSM_PROTO_DSMX10BIT;
-				break;
-			case HWSPARKYBGC_FLEXIPORT_DSMX11BIT:
-				proto = PIOS_DSM_PROTO_DSMX11BIT;
-				break;
-			default:
-				PIOS_Assert(0);
-				break;
-			}
 			PIOS_Board_configure_dsm(&pios_flexi_dsm_cfg, &pios_flexi_dsm_aux_cfg, &pios_usart_com_driver,
-				&proto, MANUALCONTROLSETTINGS_CHANNELGROUPS_DSMFLEXIPORT, &hw_DSMxBind);
+				MANUALCONTROLSETTINGS_CHANNELGROUPS_DSM, &hw_DSMxMode);
 		}
 #endif	/* PIOS_INCLUDE_DSM */
 		break;
@@ -582,28 +567,11 @@ void PIOS_Board_Init(void) {
 		}
 #endif	/* PIOS_INCLUDE_PPM */
 		break;
-	case HWSPARKYBGC_RCVRPORT_DSM2:
-	case HWSPARKYBGC_RCVRPORT_DSMX10BIT:
-	case HWSPARKYBGC_RCVRPORT_DSMX11BIT:
+	case HWSPARKYBGC_RCVRPORT_DSM:
 #if defined(PIOS_INCLUDE_DSM)
 		{
-			enum pios_dsm_proto proto;
-			switch (hw_rcvrport) {
-			case HWSPARKYBGC_RCVRPORT_DSM2:
-				proto = PIOS_DSM_PROTO_DSM2;
-				break;
-			case HWSPARKYBGC_RCVRPORT_DSMX10BIT:
-				proto = PIOS_DSM_PROTO_DSMX10BIT;
-				break;
-			case HWSPARKYBGC_RCVRPORT_DSMX11BIT:
-				proto = PIOS_DSM_PROTO_DSMX11BIT;
-				break;
-			default:
-				PIOS_Assert(0);
-				break;
-			}
 			PIOS_Board_configure_dsm(&pios_rcvr_dsm_cfg, &pios_rcvr_dsm_aux_cfg, &pios_usart_com_driver,
-				&proto, MANUALCONTROLSETTINGS_CHANNELGROUPS_DSMMAINPORT, &hw_DSMxBind);
+				MANUALCONTROLSETTINGS_CHANNELGROUPS_DSM, &hw_DSMxMode);
 		}
 #endif	/* PIOS_INCLUDE_DSM */
 		break;

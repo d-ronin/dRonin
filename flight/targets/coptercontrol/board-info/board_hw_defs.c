@@ -1065,7 +1065,44 @@ static const struct pios_usart_cfg pios_usart_generic_flexi_cfg = {
  */
 #include <pios_dsm_priv.h>
 
-static const struct pios_usart_cfg pios_usart_dsm_main_cfg = {
+static const struct pios_dsm_cfg pios_dsm_main_cfg = {
+	.bind = {
+		.gpio = GPIOA,
+		.init = {
+			.GPIO_Pin   = GPIO_Pin_10,
+			.GPIO_Speed = GPIO_Speed_2MHz,
+			.GPIO_Mode  = GPIO_Mode_Out_PP,
+		},
+	},
+};
+
+static const struct pios_dsm_cfg pios_dsm_flexi_cfg = {
+	.bind = {
+		.gpio = GPIOB,
+		.init = {
+			.GPIO_Pin   = GPIO_Pin_11,
+			.GPIO_Speed = GPIO_Speed_2MHz,
+			.GPIO_Mode  = GPIO_Mode_Out_PP,
+		},
+	},
+};
+
+#endif	/* PIOS_INCLUDE_DSM */
+
+#if defined(PIOS_INCLUDE_HSUM)
+/*
+ * Graupner HoTT SUMD/SUMH USART
+ */
+#include <pios_hsum_priv.h>
+
+#endif	/* PIOS_INCLUDE_HSUM */
+
+#if (defined(PIOS_INCLUDE_DSM) || defined(PIOS_INCLUDE_HSUM))
+/*
+ * Spektrum/JR DSM or Graupner HoTT SUMD/SUMH USART
+ */
+
+static const struct pios_usart_cfg pios_usart_dsm_hsum_main_cfg = {
 	.regs = USART1,
 	.init = {
 		.USART_BaudRate            = 115200,
@@ -1101,18 +1138,7 @@ static const struct pios_usart_cfg pios_usart_dsm_main_cfg = {
 	},
 };
 
-static const struct pios_dsm_cfg pios_dsm_main_cfg = {
-	.bind = {
-		.gpio = GPIOA,
-		.init = {
-			.GPIO_Pin   = GPIO_Pin_10,
-			.GPIO_Speed = GPIO_Speed_2MHz,
-			.GPIO_Mode  = GPIO_Mode_Out_PP,
-		},
-	},
-};
-
-static const struct pios_usart_cfg pios_usart_dsm_flexi_cfg = {
+static const struct pios_usart_cfg pios_usart_dsm_hsum_flexi_cfg = {
 	.regs = USART3,
 	.init = {
 		.USART_BaudRate            = 115200,
@@ -1148,18 +1174,7 @@ static const struct pios_usart_cfg pios_usart_dsm_flexi_cfg = {
 	},
 };
 
-static const struct pios_dsm_cfg pios_dsm_flexi_cfg = {
-	.bind = {
-		.gpio = GPIOB,
-		.init = {
-			.GPIO_Pin   = GPIO_Pin_11,
-			.GPIO_Speed = GPIO_Speed_2MHz,
-			.GPIO_Mode  = GPIO_Mode_Out_PP,
-		},
-	},
-};
-
-#endif	/* PIOS_INCLUDE_DSM */
+#endif	/* PIOS_INCLUDE_DSM || PIOS_INCLUDE_HSUM */
 
 
 #if defined(PIOS_INCLUDE_SBUS)
@@ -1319,6 +1334,17 @@ const struct pios_ppm_cfg pios_ppm_cfg = {
 	.num_channels = 1,
 };
 
+const struct pios_ppm_cfg pios_ppm_pin8_cfg = {
+	.tim_ic_init = {
+		.TIM_ICPolarity = TIM_ICPolarity_Rising,
+		.TIM_ICSelection = TIM_ICSelection_DirectTI,
+		.TIM_ICPrescaler = TIM_ICPSC_DIV1,
+		.TIM_ICFilter = 0x0,
+	},
+	/* Use only the first channel for ppm */
+	.channels = &pios_tim_rcvrport_all_channels[5],
+	.num_channels = 1,
+};
 #endif	/* PIOS_INCLUDE_PPM */
 
 /* 
@@ -1514,16 +1540,6 @@ const struct pios_usb_hid_cfg pios_usb_hid_cfg = {
 };
 
 #endif /* PIOS_INCLUDE_USB_HID */
-
-#if defined(PIOS_INCLUDE_USB_RCTX)
-#include <pios_usb_rctx_priv.h>
-
-const struct pios_usb_rctx_cfg pios_usb_rctx_cfg = {
-	.data_if = 2,
-	.data_tx_ep = 1,
-};
-
-#endif	/* PIOS_INCLUDE_USB_RCTX */
 
 #if defined(PIOS_INCLUDE_USB_CDC)
 #include <pios_usb_cdc_priv.h>

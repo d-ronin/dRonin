@@ -200,15 +200,17 @@ uintptr_t pios_com_telem_usb_id;
 uintptr_t pios_com_telem_rf_id;
 uintptr_t pios_com_vcp_id;
 uintptr_t pios_com_bridge_id;
-uintptr_t pios_com_overo_id;
 uintptr_t pios_com_mavlink_id;
 uintptr_t pios_com_hott_id;
 uintptr_t pios_com_frsky_sensor_hub_id;
 uintptr_t pios_com_lighttelemetry_id;
 uintptr_t pios_com_picoc_id;
+uintptr_t pios_com_spiflash_logging_id;
 uintptr_t pios_uavo_settings_fs_id;
 uintptr_t pios_waypoints_settings_fs_id;
 uintptr_t pios_internal_adc_id;
+
+uintptr_t streamfs_id;
 
 /*
  * Setup a com port based on the passed cfg, driver and buffer sizes. rx or tx size of 0 disables rx or tx
@@ -255,9 +257,8 @@ static void PIOS_Board_configure_dsm(const struct pios_usart_cfg
 				     *pios_dsm_cfg,
 				     const struct pios_com_driver
 				     *pios_usart_com_driver,
-				     enum pios_dsm_proto *proto,
 				     ManualControlSettingsChannelGroupsOptions
-				     channelgroup, uint8_t * bind)
+				     channelgroup, HwColibriDSMxModeOptions * mode)
 {
 	uintptr_t pios_usart_dsm_id;
 	if (PIOS_USART_Init(&pios_usart_dsm_id, pios_usart_dsm_cfg)) {
@@ -267,7 +268,7 @@ static void PIOS_Board_configure_dsm(const struct pios_usart_cfg
 	uintptr_t pios_dsm_id;
 	if (PIOS_DSM_Init
 	    (&pios_dsm_id, pios_dsm_cfg, pios_usart_com_driver,
-	     pios_usart_dsm_id, *proto, *bind)) {
+	     pios_usart_dsm_id, *mode)) {
 		PIOS_Assert(0);
 	}
 
@@ -412,6 +413,11 @@ void PIOS_Board_Init(void)
 	    (&pios_waypoints_settings_fs_id, &flashfs_waypoints_cfg,
 	     FLASH_PARTITION_LABEL_WAYPOINTS) != 0)
 		panic(1);
+
+#if defined(ERASE_FLASH)
+	PIOS_FLASHFS_Format(pios_uavo_settings_fs_id);
+#endif
+
 #endif /* PIOS_INCLUDE_FLASH */
 
 	/* Initialize the task monitor library */
@@ -421,9 +427,11 @@ void PIOS_Board_Init(void)
 	EventDispatcherInitialize();
 	UAVObjInitialize();
 
-	/* Initialize the alarms library */
+	/* Initialize the alarms library. Reads RCC reset flags */
 	AlarmsInitialize();
+	PIOS_RESET_Clear(); // Clear the RCC reset flags after use.
 
+	/* Initialize the hardware UAVOs */
 	HwColibriInitialize();
 	ModuleSettingsInitialize();
 
@@ -646,8 +654,8 @@ void PIOS_Board_Init(void)
 #endif /* PIOS_INCLUDE_USB */
 
 	/* Configure the IO ports */
-	uint8_t hw_DSMxBind;
-	HwColibriDSMxBindGet(&hw_DSMxBind);
+	HwColibriDSMxModeOptions hw_DSMxMode;
+	HwColibriDSMxModeGet(&hw_DSMxMode);
 
 	/* init sensor queue registration */
 	PIOS_SENSORS_Init();
@@ -706,32 +714,15 @@ void PIOS_Board_Init(void)
 #endif /* PIOS_INCLUDE_HMC5883 */
 #endif /* PIOS_INCLUDE_I2C */
 		break;
-	case HWCOLIBRI_UART1_DSM2:
-	case HWCOLIBRI_UART1_DSMX10BIT:
-	case HWCOLIBRI_UART1_DSMX11BIT:
+	case HWCOLIBRI_UART1_DSM:
 #if defined(PIOS_INCLUDE_DSM)
 		{
-			enum pios_dsm_proto proto;
-			switch (hw_uart1) {
-			case HWCOLIBRI_UART1_DSM2:
-				proto = PIOS_DSM_PROTO_DSM2;
-				break;
-			case HWCOLIBRI_UART1_DSMX10BIT:
-				proto = PIOS_DSM_PROTO_DSMX10BIT;
-				break;
-			case HWCOLIBRI_UART1_DSMX11BIT:
-				proto = PIOS_DSM_PROTO_DSMX11BIT;
-				break;
-			default:
-				PIOS_Assert(0);
-				break;
-			}
+			
 			PIOS_Board_configure_dsm(&pios_usart1_dsm_hsum_cfg,
 						 &pios_usart1_dsm_aux_cfg,
 						 &pios_usart_com_driver,
-						 &proto,
-						 MANUALCONTROLSETTINGS_CHANNELGROUPS_DSMMAINPORT,
-						 &hw_DSMxBind);
+						 MANUALCONTROLSETTINGS_CHANNELGROUPS_DSM,
+						 &hw_DSMxMode);
 		}
 #endif /* PIOS_INCLUDE_DSM */
 		break;
@@ -880,32 +871,14 @@ void PIOS_Board_Init(void)
 		}
 #endif /* PIOS_INCLUDE_SBUS */
 		break;
-	case HWCOLIBRI_UART2_DSM2:
-	case HWCOLIBRI_UART2_DSMX10BIT:
-	case HWCOLIBRI_UART2_DSMX11BIT:
+	case HWCOLIBRI_UART2_DSM:
 #if defined(PIOS_INCLUDE_DSM)
 		{
-			enum pios_dsm_proto proto;
-			switch (hw_uart2) {
-			case HWCOLIBRI_UART2_DSM2:
-				proto = PIOS_DSM_PROTO_DSM2;
-				break;
-			case HWCOLIBRI_UART2_DSMX10BIT:
-				proto = PIOS_DSM_PROTO_DSMX10BIT;
-				break;
-			case HWCOLIBRI_UART2_DSMX11BIT:
-				proto = PIOS_DSM_PROTO_DSMX11BIT;
-				break;
-			default:
-				PIOS_Assert(0);
-				break;
-			}
 			PIOS_Board_configure_dsm(&pios_usart2_dsm_hsum_cfg,
 						 &pios_usart2_dsm_aux_cfg,
 						 &pios_usart_com_driver,
-						 &proto,
-						 MANUALCONTROLSETTINGS_CHANNELGROUPS_DSMMAINPORT,
-						 &hw_DSMxBind);
+						 MANUALCONTROLSETTINGS_CHANNELGROUPS_DSM,
+						 &hw_DSMxMode);
 		}
 #endif /* PIOS_INCLUDE_DSM */
 		break;
@@ -1061,32 +1034,14 @@ void PIOS_Board_Init(void)
 #endif /* PIOS_INCLUDE_HMC5883 */
 #endif /* PIOS_INCLUDE_I2C */
 		break;
-	case HWCOLIBRI_UART3_DSM2:
-	case HWCOLIBRI_UART3_DSMX10BIT:
-	case HWCOLIBRI_UART3_DSMX11BIT:
+	case HWCOLIBRI_UART3_DSM:
 #if defined(PIOS_INCLUDE_DSM)
 		{
-			enum pios_dsm_proto proto;
-			switch (hw_uart3) {
-			case HWCOLIBRI_UART3_DSM2:
-				proto = PIOS_DSM_PROTO_DSM2;
-				break;
-			case HWCOLIBRI_UART3_DSMX10BIT:
-				proto = PIOS_DSM_PROTO_DSMX10BIT;
-				break;
-			case HWCOLIBRI_UART3_DSMX11BIT:
-				proto = PIOS_DSM_PROTO_DSMX11BIT;
-				break;
-			default:
-				PIOS_Assert(0);
-				break;
-			}
 			PIOS_Board_configure_dsm(&pios_usart3_dsm_hsum_cfg,
 						 &pios_usart3_dsm_aux_cfg,
 						 &pios_usart_com_driver,
-						 &proto,
-						 MANUALCONTROLSETTINGS_CHANNELGROUPS_DSMMAINPORT,
-						 &hw_DSMxBind);
+						 MANUALCONTROLSETTINGS_CHANNELGROUPS_DSM,
+						 &hw_DSMxMode);
 		}
 #endif /* PIOS_INCLUDE_DSM */
 		break;
@@ -1208,32 +1163,14 @@ void PIOS_Board_Init(void)
 					 &pios_com_gps_id);
 #endif
 		break;
-	case HWCOLIBRI_UART4_DSM2:
-	case HWCOLIBRI_UART4_DSMX10BIT:
-	case HWCOLIBRI_UART4_DSMX11BIT:
+	case HWCOLIBRI_UART4_DSM:
 #if defined(PIOS_INCLUDE_DSM)
 		{
-			enum pios_dsm_proto proto;
-			switch (hw_uart4) {
-			case HWCOLIBRI_UART4_DSM2:
-				proto = PIOS_DSM_PROTO_DSM2;
-				break;
-			case HWCOLIBRI_UART4_DSMX10BIT:
-				proto = PIOS_DSM_PROTO_DSMX10BIT;
-				break;
-			case HWCOLIBRI_UART4_DSMX11BIT:
-				proto = PIOS_DSM_PROTO_DSMX11BIT;
-				break;
-			default:
-				PIOS_Assert(0);
-				break;
-			}
 			PIOS_Board_configure_dsm(&pios_usart4_dsm_hsum_cfg,
 						 &pios_usart4_dsm_aux_cfg,
 						 &pios_usart_com_driver,
-						 &proto,
-						 MANUALCONTROLSETTINGS_CHANNELGROUPS_DSMMAINPORT,
-						 &hw_DSMxBind);
+						 MANUALCONTROLSETTINGS_CHANNELGROUPS_DSM,
+						 &hw_DSMxMode);
 		}
 #endif /* PIOS_INCLUDE_DSM */
 		break;
@@ -1682,6 +1619,18 @@ void PIOS_Board_Init(void)
 			      &pios_internal_adc_driver, internal_adc_id);
 	}
 #endif
+
+#if defined(PIOS_INCLUDE_FLASH)
+	if ( PIOS_STREAMFS_Init(&streamfs_id, &streamfs_settings, FLASH_PARTITION_LABEL_LOG) != 0)
+		panic(8);
+
+	const uint32_t LOG_BUF_LEN = 256;
+	uint8_t *log_rx_buffer = PIOS_malloc(LOG_BUF_LEN);
+	uint8_t *log_tx_buffer = PIOS_malloc(LOG_BUF_LEN);
+	if (PIOS_COM_Init(&pios_com_spiflash_logging_id, &pios_streamfs_com_driver, streamfs_id,
+	                  log_rx_buffer, LOG_BUF_LEN, log_tx_buffer, LOG_BUF_LEN) != 0)
+		panic(9);
+#endif /* PIOS_INCLUDE_FLASH */
 
 	//Set battery input pin to floating as long as it is unused
 	GPIO_InitTypeDef GPIO_InitStructure;

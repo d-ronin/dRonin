@@ -212,14 +212,21 @@ void PIOS_SPI_flash_irq_handler(void)
 
 static const struct flashfs_logfs_cfg flashfs_settings_cfg = {
 	.fs_magic      = 0x3bb141cf,
-	.arena_size    = 0x00010000, /* 256 * slot size */
+	.arena_size    = 0x00004000, /* 64 * slot size */
 	.slot_size     = 0x00000100, /* 256 bytes */
 };
 
 static const struct flashfs_logfs_cfg flashfs_waypoints_cfg = {
 	.fs_magic      = 0x9a365a64,
-	.arena_size    = 0x00010000, /* 1024 * slot size */
+	.arena_size    = 0x00004000, /* 64 * slot size */
 	.slot_size     = 0x00000040, /* 64 bytes */
+};
+
+#include "pios_streamfs_priv.h"
+const struct streamfs_cfg streamfs_settings = {
+	.fs_magic      = 0x89abceef,
+	.arena_size    = 0x00001000, /* 64 KB */
+	.write_size    = 0x00000100, /* 256 bytes */
 };
 
 #if defined(PIOS_INCLUDE_FLASH_JEDEC)
@@ -320,22 +327,29 @@ static const struct pios_flash_partition pios_flash_partition_table[] = {
 		.label        = FLASH_PARTITION_LABEL_SETTINGS,
 		.chip_desc    = &pios_flash_chip_external,
 		.first_sector = 0,
-		.last_sector  = 511,
+		.last_sector  = 15,
 		.chip_offset  = 0,
-		.size         = (511 - 0 + 1) * FLASH_SECTOR_4KB,
+		.size         = (15 - 0 + 1) * FLASH_SECTOR_4KB,
 	},
 
 	{
 		.label        = FLASH_PARTITION_LABEL_WAYPOINTS,
 		.chip_desc    = &pios_flash_chip_external,
-		.first_sector = 512,
-		.last_sector  = 1023,
-		.chip_offset  = (512 * FLASH_SECTOR_4KB),
-		.size         = (1023 - 512 + 1) * FLASH_SECTOR_4KB,
+		.first_sector = 16,
+		.last_sector  = 31,
+		.chip_offset  = (16 * FLASH_SECTOR_4KB),
+		.size         = (31 - 16 + 1) * FLASH_SECTOR_4KB,
+	},
+
+	{
+		.label        = FLASH_PARTITION_LABEL_LOG,
+		.chip_desc    = &pios_flash_chip_external,
+		.first_sector = 32,
+		.last_sector  = 2047,
+		.chip_offset  = (32 * FLASH_SECTOR_4KB),
+		.size         = (2047 - 32 + 1) * FLASH_SECTOR_4KB,
 	},
 #endif	/* PIOS_INCLUDE_FLASH_JEDEC */
-
-	/* NOTE sectros 1024..2047 currently unused */
 };
 
 const struct pios_flash_partition * PIOS_BOARD_HW_DEFS_GetPartitionTable (uint32_t board_revision, uint32_t * num_partitions)
@@ -345,6 +359,7 @@ const struct pios_flash_partition * PIOS_BOARD_HW_DEFS_GetPartitionTable (uint32
 	*num_partitions = NELEMENTS(pios_flash_partition_table);
 	return pios_flash_partition_table;
 }
+
 
 #endif	/* PIOS_INCLUDE_FLASH */
 
@@ -1796,6 +1811,72 @@ const struct pios_video_cfg pios_video_cfg = {
 };
 
 #endif /* if defined(PIOS_INCLUDE_VIDEO) */
+
+#if defined(PIOS_INCLUDE_FRSKY_RSSI)
+#include "pios_frsky_rssi_priv.h"
+const TIM_TimeBaseInitTypeDef pios_frsky_rssi_time_base ={
+	.TIM_Prescaler = 6,
+	.TIM_ClockDivision = TIM_CKD_DIV1,
+	.TIM_CounterMode = TIM_CounterMode_Up,
+	.TIM_Period = 0xFFFF,
+	.TIM_RepetitionCounter = 0x0000,
+};
+
+
+const struct pios_frsky_rssi_cfg pios_frsky_rssi_cfg = {
+	.clock_cfg = {
+		.timer = TIM8,
+		.time_base_init = &pios_frsky_rssi_time_base,
+	},
+	.channels = {
+		{
+			.timer = TIM8,
+			.timer_chan = TIM_Channel_2,
+			.pin   = {
+				.gpio = GPIOC,
+				.init = {
+					.GPIO_Pin   = GPIO_Pin_7,
+					.GPIO_Speed = GPIO_Speed_100MHz,
+					.GPIO_Mode  = GPIO_Mode_AF,
+					.GPIO_OType = GPIO_OType_PP,
+					.GPIO_PuPd  = GPIO_PuPd_UP
+				},
+				.pin_source = GPIO_PinSource7,
+			},
+			.remap = GPIO_AF_TIM8,
+		},
+		{
+			.timer = TIM8,
+			.timer_chan = TIM_Channel_1,
+			.pin   = {
+				.gpio = GPIOC,
+				.init = {
+					.GPIO_Pin   = GPIO_Pin_7,
+					.GPIO_Speed = GPIO_Speed_100MHz,
+					.GPIO_Mode  = GPIO_Mode_AF,
+					.GPIO_OType = GPIO_OType_PP,
+					.GPIO_PuPd  = GPIO_PuPd_UP
+				},
+				.pin_source = GPIO_PinSource7,
+			},
+			.remap = GPIO_AF_TIM8,
+		},
+	},
+	.ic2 = {
+		.TIM_ICPolarity = TIM_ICPolarity_Falling,
+		.TIM_ICSelection = TIM_ICSelection_IndirectTI,
+		.TIM_ICPrescaler = TIM_ICPSC_DIV1,
+		.TIM_ICFilter = 0x0,
+	},
+	.ic1 = {
+		.TIM_ICPolarity = TIM_ICPolarity_Rising,
+		.TIM_ICSelection = TIM_ICSelection_DirectTI,
+		.TIM_ICPrescaler = TIM_ICPSC_DIV1,
+		.TIM_ICFilter = 0x0,
+	}
+};
+
+#endif /* PIOS_INCLUDE_FRSKY_RSSI */
 
 /**
  * @}

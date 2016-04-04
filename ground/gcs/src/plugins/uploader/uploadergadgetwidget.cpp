@@ -1171,12 +1171,21 @@ void UploaderGadgetWidget::onResetButtonClick()
         }
         timeout.stop();
     }
-    setUploaderStatus(uploader::BOOTING);
-    conMngr->disconnectDevice();
-    timeout.start(200);
-    loop.exec();
-    conMngr->suspendPolling();
-    bootTimeoutTimer.start();
+    if(conMngr->getCurrentDevice().connection->shortName() == "USB")
+    {
+        setUploaderStatus(uploader::BOOTING);
+        conMngr->disconnectDevice();
+        timeout.start(200);
+        loop.exec();
+        conMngr->suspendPolling();
+        bootTimeoutTimer.start();
+    }
+    else
+    {
+        setUploaderStatus(uploader::DISCONNECTED);
+        conMngr->disconnectDevice();
+    }
+
     return;
 }
 
@@ -1235,11 +1244,19 @@ void UploaderGadgetWidget::onHaltButtonClick()
         }
         timeout.stop();
     }
-    conMngr->disconnectDevice();
-    timeout.start(200);
-    loop.exec();
-    conMngr->suspendPolling();
-    onRescueTimer(true);
+    if(conMngr->getCurrentDevice().connection->shortName() == "USB")
+    {
+        conMngr->disconnectDevice();
+        timeout.start(200);
+        loop.exec();
+        conMngr->suspendPolling();
+        onRescueTimer(true);
+    }
+    else
+    {
+        setUploaderStatus(uploader::DISCONNECTED);
+        conMngr->disconnectDevice();
+    }
     return;
 }
 
@@ -1341,10 +1358,7 @@ void UploaderGadgetWidget::setUploaderStatus(const uploader::UploaderStatus &val
     case uploader::CONNECTED_TO_TELEMETRY:
         m_widget->rescueButton->setVisible(false);
         m_widget->openButton->setVisible(true);
-        if(conMngr->getCurrentDevice().connection->shortName() == "USB")
-            m_widget->haltButton->setVisible(true);
-        else
-            m_widget->haltButton->setVisible(false);
+        m_widget->haltButton->setVisible(true);
         m_widget->bootButton->setVisible(false);
         m_widget->safeBootButton->setVisible(false);
         m_widget->resetButton->setVisible(true);
@@ -1503,5 +1517,5 @@ void UploaderGadgetWidget::onAutoUpdateCount(int i)
  */
 void UploaderGadgetWidget::openHelp()
 {
-    QDesktopServices::openUrl( QUrl("http://wiki.taulabs.org/OnlineHelp:-Uploader-Plugin", QUrl::StrictMode) );
+    QDesktopServices::openUrl( QUrl("https://github.com/TauLabs/TauLabs/wiki/OnlineHelp:-Uploader-Plugin", QUrl::StrictMode) );
 }

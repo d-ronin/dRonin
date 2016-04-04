@@ -31,6 +31,13 @@
 
 /* PIOS Feature Selection */
 #include "pios_config_sim.h"
+
+#if defined(PIOS_INCLUDE_CHIBIOS)
+/* @note    This is required because of difference in chip define between ChibiOS and ST libs.
+ *          It is also used to force inclusion of chibios_transition defines. */
+#include "hal.h"
+#endif /* defined(PIOS_INCLUDE_CHIBIOS) */
+
 #include <pios_posix.h>
 
 #if defined(PIOS_INCLUDE_FREERTOS)
@@ -70,6 +77,7 @@
 #include <pios_debug.h>
 #include <pios_crc.h>
 #include <pios_rcvr.h>
+#include <pios_reset.h>
 #include <pios_irq.h>
 #include <pios_sensors.h>
 #include <pios_sim.h>

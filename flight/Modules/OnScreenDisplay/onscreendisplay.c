@@ -1,6 +1,6 @@
 /**
  ******************************************************************************
- * @addtogroup auLabsModules Tau Labs Modules
+ * @addtogroup Tau Labs Modules
  * @{
  * @addtogroup OnScreenDisplay OSD Module
  * @brief Process OSD information
@@ -73,15 +73,16 @@
 #include "pios_video.h"
 
 #include "physical_constants.h"
-#include "sin_lookup.h"
 
+#include "accels.h"
 #include "accessorydesired.h"
 #include "airspeedactual.h"
 #include "attitudeactual.h"
 #include "baroaltitude.h"
 #include "flightstatus.h"
-#include "flightstatus.h"
 #include "flightbatterystate.h"
+#include "flightbatterysettings.h"
+#include "flightstats.h"
 #include "gpsposition.h"
 #include "positionactual.h"
 #include "gpstime.h"
@@ -89,18 +90,23 @@
 #include "gpsvelocity.h"
 #include "homelocation.h"
 #include "manualcontrolcommand.h"
+#include "modulesettings.h"
+#include "stateestimation.h"
 #include "systemalarms.h"
 #include "systemstats.h"
+#include "tabletinfo.h"
 #include "taskinfo.h"
 #include "velocityactual.h"
 #include "waypoint.h"
 #include "waypointactive.h"
 
+#include "osd_utils.h"
+#include "osd_menu.h"
 #include "fonts.h"
 #include "font12x18.h"
 #include "font8x10.h"
 #include "WMMInternal.h"
-#include "logos.h"
+#include "images.h"
 #include "mgrs.h"
 
 extern uint8_t PIOS_Board_Revision(void);
@@ -120,13 +126,46 @@ static void onScreenDisplayTask(void *parameters);
 #define STACK_SIZE_BYTES 2048
 #define TASK_PRIORITY    PIOS_THREAD_PRIO_LOW
 #define UPDATE_PERIOD    100
-#define BLINK_INTERVAL_FRAMES 6
+#define BLINK_INTERVAL_FRAMES 12
 
 const char METRIC_DIST_UNIT_LONG[] = "km";
 const char METRIC_DIST_UNIT_SHORT[] = "m";
+const char METRIC_SPEED_UNIT[] = "km/h";
 
 const char IMPERIAL_DIST_UNIT_LONG[] = "M";
 const char IMPERIAL_DIST_UNIT_SHORT[] = "ft";
+const char IMPERIAL_SPEED_UNIT[] = "MPH";
+
+const point_t HOME_ARROW[] = {
+	{
+		.x = 0,
+		.y = -10,
+	},
+	{
+		.x = 9,
+		.y = 1,
+	},
+	{
+		.x = 3,
+		.y = 1,
+	},
+	{
+		.x = 3,
+		.y = 8,
+	},
+	{
+		.x = -3,
+		.y = 8,
+	},
+	{
+		.x = -3,
+		.y = 1,
+	},
+	{
+		.x = -9,
+		.y = 1,
+	}
+};
 
 // Unit conversion constants
 #define MS_TO_KMH 3.6f
@@ -134,19 +173,21 @@ const char IMPERIAL_DIST_UNIT_SHORT[] = "ft";
 #define M_TO_FEET 3.28084f
 
 
-
 // ****************
 // Private variables
-static uint16_t frame_counter = 0;
+uint16_t frame_counter = 0;
 static bool module_enabled = false;
+static bool has_battery = false;
+static bool has_gps = false;
+static bool has_nav = false;
 static struct pios_thread *taskHandle;
 struct pios_semaphore * onScreenDisplaySemaphore = NULL;
-uint8_t module_state[MODULESETTINGS_ADMINSTATE_NUMELEM];
 float convert_speed;
 float convert_distance;
 float convert_distance_divider;
 const char * dist_unit_long = METRIC_DIST_UNIT_LONG;
 const char * dist_unit_short = METRIC_DIST_UNIT_SHORT;
+const char * speed_unit = METRIC_SPEED_UNIT;
 const char digits[16] = "0123456789abcdef";
 char mgrs_str[20] = {0};
 
@@ -154,13 +195,16 @@ char mgrs_str[20] = {0};
 float home_baro_altitude = 0;
 static volatile bool osd_settings_updated = true;
 static volatile bool osd_page_updated = true;
-
+static OnScreenDisplaySettingsData osd_settings;
+static bool blink;
+static AccelsData accelsDataAcc;
 //                     small, normal, large
 const int SIZE_TO_FONT[3] = {2, 0, 3};
 
+
 #ifdef DEBUG_TIMING
-static portTickType in_ticks  = 0;
-static portTickType out_ticks = 0;
+static uint32_t in_ticks  = 0;
+static uint32_t out_ticks = 0;
 static uint16_t in_time  = 0;
 static uint16_t out_time = 0;
 #endif
@@ -174,1173 +218,39 @@ void clearGraphics()
 
 void draw_image(uint16_t x, uint16_t y, const struct Image * image)
 {
-	x /= 8;  // column position in bytes
+	CHECK_COORDS(x + image->width, y + image->height);
 	uint8_t byte_width = image->width / 8;
+	uint8_t pixel_offset = x % 8;
+	uint8_t mask1 = 0xFF;
+	uint8_t mask2 = 0x00;
 
-	for (uint16_t xp = 0; xp < image->width / 8; xp++){
-		for (uint16_t yp = 0; yp < image->height; yp++){
-			draw_buffer_level[(y + yp) * BUFFER_WIDTH + xp + x] = image->level[yp * byte_width + xp];
-			draw_buffer_mask[(y + yp) * BUFFER_WIDTH + xp + x] = image->mask[yp * byte_width + xp];
+	if (pixel_offset > 0) {
+		for (uint8_t i=0; i<pixel_offset; i++) {
+			mask2 |= 0x01 << i;
 		}
-	}
-}
-
-/// Draws four points relative to the given center point.
-///
-/// \li centerX + X, centerY + Y
-/// \li centerX + X, centerY - Y
-/// \li centerX - X, centerY + Y
-/// \li centerX - X, centerY - Y
-///
-/// \param centerX the x coordinate of the center point
-/// \param centerY the y coordinate of the center point
-/// \param deltaX the difference between the centerX coordinate and each pixel drawn
-/// \param deltaY the difference between the centerY coordinate and each pixel drawn
-/// \param color the color to draw the pixels with.
-void plotFourQuadrants(int32_t centerX, int32_t centerY, int32_t deltaX, int32_t deltaY)
-{
-	write_pixel_lm(centerX + deltaX, centerY + deltaY, 1, 1); // Ist      Quadrant
-	write_pixel_lm(centerX - deltaX, centerY + deltaY, 1, 1); // IInd     Quadrant
-	write_pixel_lm(centerX - deltaX, centerY - deltaY, 1, 1); // IIIrd    Quadrant
-	write_pixel_lm(centerX + deltaX, centerY - deltaY, 1, 1); // IVth     Quadrant
-}
-
-/// Implements the midpoint ellipse drawing algorithm which is a bresenham
-/// style DDF.
-///
-/// \param centerX the x coordinate of the center of the ellipse
-/// \param centerY the y coordinate of the center of the ellipse
-/// \param horizontalRadius the horizontal radius of the ellipse
-/// \param verticalRadius the vertical radius of the ellipse
-/// \param color the color of the ellipse border
-void ellipse(int centerX, int centerY, int horizontalRadius, int verticalRadius)
-{
-	int64_t doubleHorizontalRadius = horizontalRadius * horizontalRadius;
-	int64_t doubleVerticalRadius   = verticalRadius * verticalRadius;
-
-	int64_t error = doubleVerticalRadius - doubleHorizontalRadius * verticalRadius + (doubleVerticalRadius >> 2);
-
-	int x = 0;
-	int y = verticalRadius;
-	int deltaX = 0;
-	int deltaY = (doubleHorizontalRadius << 1) * y;
-
-	plotFourQuadrants(centerX, centerY, x, y);
-
-	while (deltaY >= deltaX) {
-		x++;
-		deltaX += (doubleVerticalRadius << 1);
-
-		error  += deltaX + doubleVerticalRadius;
-
-		if (error >= 0) {
-			y--;
-			deltaY -= (doubleHorizontalRadius << 1);
-
-			error  -= deltaY;
-		}
-		plotFourQuadrants(centerX, centerY, x, y);
+		mask1 = ~mask2;
 	}
 
-	error = (int64_t)(doubleVerticalRadius * (x + 1 / 2.0f) * (x + 1 / 2.0f) + doubleHorizontalRadius * (y - 1) * (y - 1) - doubleHorizontalRadius * doubleVerticalRadius);
-
-	while (y >= 0) {
-		error  += doubleHorizontalRadius;
-		y--;
-		deltaY -= (doubleHorizontalRadius << 1);
-		error  -= deltaY;
-
-		if (error <= 0) {
-			x++;
-			deltaX += (doubleVerticalRadius << 1);
-			error  += deltaX;
-		}
-
-		plotFourQuadrants(centerX, centerY, x, y);
-	}
-}
-
-void drawArrow(uint16_t x, uint16_t y, uint16_t angle, uint16_t size_quarter)
-{
-	float sin_angle = sin_lookup_deg(angle);
-	float cos_angle = cos_lookup_deg(angle);
-	int16_t peak_x  = (int16_t)(sin_angle * size_quarter * 2);
-	int16_t peak_y  = (int16_t)(cos_angle * size_quarter * 2);
-	int16_t d_end_x = (int16_t)(cos_angle * size_quarter);
-	int16_t d_end_y = (int16_t)(sin_angle * size_quarter);
-
-	write_line_lm(x + peak_x, y - peak_y, x - peak_x - d_end_x, y + peak_y - d_end_y, 1, 1);
-	write_line_lm(x + peak_x, y - peak_y, x - peak_x + d_end_x, y + peak_y + d_end_y, 1, 1);
-	write_line_lm(x, y, x - peak_x - d_end_x, y + peak_y - d_end_y, 1, 1);
-	write_line_lm(x, y, x - peak_x + d_end_x, y + peak_y + d_end_y, 1, 1);
-}
-
-void drawBox(uint16_t x1, uint16_t y1, uint16_t x2, uint16_t y2)
-{
-	write_line_lm(x1, y1, x2, y1, 1, 1); // top
-	write_line_lm(x1, y1, x1, y2, 1, 1); // left
-	write_line_lm(x2, y1, x2, y2, 1, 1); // right
-	write_line_lm(x1, y2, x2, y2, 1, 1); // bottom
-}
-
-/**
- * write_pixel: Write a pixel at an x,y position to a given surface.
- *
- * @param       buff    pointer to buffer to write in
- * @param       x               x coordinate
- * @param       y               y coordinate
- * @param       mode    0 = clear bit, 1 = set bit, 2 = toggle bit
- */
-void write_pixel(uint8_t *buff, int x, int y, int mode)
-{
-	CHECK_COORDS(x, y);
-	// Determine the bit in the word to be set and the word
-	// index to set it in.
-	int bitnum    = CALC_BIT_IN_WORD(x);
-	int wordnum   = CALC_BUFF_ADDR(x, y);
-	// Apply a mask.
-	uint16_t mask = 1 << (7 - bitnum);
-	WRITE_WORD_MODE(buff, wordnum, mask, mode);
-}
-
-/**
- * write_pixel_lm: write the pixel on both surfaces (level and mask.)
- * Uses current draw buffer.
- *
- * @param       x               x coordinate
- * @param       y               y coordinate
- * @param       mmode   0 = clear, 1 = set, 2 = toggle
- * @param       lmode   0 = black, 1 = white, 2 = toggle
- */
-void write_pixel_lm(int x, int y, int mmode, int lmode)
-{
-	CHECK_COORDS(x, y);
-	// Determine the bit in the word to be set and the word
-	// index to set it in.
-	int bitnum    = CALC_BIT_IN_WORD(x);
-	int wordnum   = CALC_BUFF_ADDR(x, y);
-	// Apply the masks.
-	uint16_t mask = 1 << (7 - bitnum);
-	WRITE_WORD_MODE(draw_buffer_mask, wordnum, mask, mmode);
-	WRITE_WORD_MODE(draw_buffer_level, wordnum, mask, lmode);
-}
-
-/**
- * write_hline: optimised horizontal line writing algorithm
- *
- * @param       buff    pointer to buffer to write in
- * @param       x0      x0 coordinate
- * @param       x1      x1 coordinate
- * @param       y       y coordinate
- * @param       mode    0 = clear, 1 = set, 2 = toggle
- */
-void write_hline(uint8_t *buff, int x0, int x1, int y, int mode)
-{
-	CHECK_COORD_Y(y);
-	CLIP_COORD_X(x0);
-	CLIP_COORD_X(x1);
-	if (x0 > x1) {
-		SWAP(x0, x1);
-	}
-	if (x0 == x1) {
-		return;
-	}
-	/* This is an optimised algorithm for writing horizontal lines.
-	 * We begin by finding the addresses of the x0 and x1 points. */
-	int addr0     = CALC_BUFF_ADDR(x0, y);
-	int addr1     = CALC_BUFF_ADDR(x1, y);
-	int addr0_bit = CALC_BIT_IN_WORD(x0);
-	int addr1_bit = CALC_BIT_IN_WORD(x1);
-	int mask, mask_l, mask_r, i;
-	/* If the addresses are equal, we only need to write one word
-	 * which is an island. */
-	if (addr0 == addr1) {
-		mask = COMPUTE_HLINE_ISLAND_MASK(addr0_bit, addr1_bit);
-		WRITE_WORD_MODE(buff, addr0, mask, mode);
-	} else {
-		/* Otherwise we need to write the edges and then the middle. */
-		mask_l = COMPUTE_HLINE_EDGE_L_MASK(addr0_bit);
-		mask_r = COMPUTE_HLINE_EDGE_R_MASK(addr1_bit);
-		WRITE_WORD_MODE(buff, addr0, mask_l, mode);
-		WRITE_WORD_MODE(buff, addr1, mask_r, mode);
-		// Now write 0xffff words from start+1 to end-1.
-		for (i = addr0 + 1; i <= addr1 - 1; i++) {
-			uint8_t m = 0xff;
-			WRITE_WORD_MODE(buff, i, m, mode);
-		}
-	}
-}
-
-/**
- * write_hline_lm: write both level and mask buffers.
- *
- * @param       x0              x0 coordinate
- * @param       x1              x1 coordinate
- * @param       y               y coordinate
- * @param       lmode   0 = clear, 1 = set, 2 = toggle
- * @param       mmode   0 = clear, 1 = set, 2 = toggle
- */
-void write_hline_lm(int x0, int x1, int y, int lmode, int mmode)
-{
-	// TODO: an optimisation would compute the masks and apply to
-	// both buffers simultaneously.
-	write_hline(draw_buffer_level, x0, x1, y, lmode);
-	write_hline(draw_buffer_mask, x0, x1, y, mmode);
-}
-
-/**
- * write_hline_outlined: outlined horizontal line with varying endcaps
- * Always uses draw buffer.
- *
- * @param       x0                      x0 coordinate
- * @param       x1                      x1 coordinate
- * @param       y                       y coordinate
- * @param       endcap0         0 = none, 1 = single pixel, 2 = full cap
- * @param       endcap1         0 = none, 1 = single pixel, 2 = full cap
- * @param       mode            0 = black outline, white body, 1 = white outline, black body
- * @param       mmode           0 = clear, 1 = set, 2 = toggle
- */
-void write_hline_outlined(int x0, int x1, int y, int endcap0, int endcap1, int mode, int mmode)
-{
-	int stroke, fill;
-
-	SETUP_STROKE_FILL(stroke, fill, mode);
-	if (x0 > x1) {
-		SWAP(x0, x1);
-	}
-	// Draw the main body of the line.
-	write_hline_lm(x0 + 1, x1 - 1, y - 1, stroke, mmode);
-	write_hline_lm(x0 + 1, x1 - 1, y + 1, stroke, mmode);
-	write_hline_lm(x0 + 1, x1 - 1, y, fill, mmode);
-	// Draw the endcaps, if any.
-	DRAW_ENDCAP_HLINE(endcap0, x0, y, stroke, fill, mmode);
-	DRAW_ENDCAP_HLINE(endcap1, x1, y, stroke, fill, mmode);
-}
-
-/**
- * write_vline: optimised vertical line writing algorithm
- *
- * @param       buff    pointer to buffer to write in
- * @param       x       x coordinate
- * @param       y0      y0 coordinate
- * @param       y1      y1 coordinate
- * @param       mode    0 = clear, 1 = set, 2 = toggle
- */
-void write_vline(uint8_t *buff, int x, int y0, int y1, int mode)
-{
-	CHECK_COORD_X(x);
-	CLIP_COORD_Y(y0);
-	CLIP_COORD_Y(y1);
-	if (y0 > y1) {
-		SWAP(y0, y1);
-	}
-	if (y0 == y1) {
-		return;
-	}
-	/* This is an optimised algorithm for writing vertical lines.
-	 * We begin by finding the addresses of the x,y0 and x,y1 points. */
-	int addr0  = CALC_BUFF_ADDR(x, y0);
-	int addr1  = CALC_BUFF_ADDR(x, y1);
-	/* Then we calculate the pixel data to be written. */
-	int bitnum = CALC_BIT_IN_WORD(x);
-	uint16_t mask = 1 << (7 - bitnum);
-	/* Run from addr0 to addr1 placing pixels. Increment by the number
-	 * of words n each graphics line. */
-	for (int a = addr0; a <= addr1; a += BUFFER_WIDTH) {
-		WRITE_WORD_MODE(buff, a, mask, mode);
-	}
-}
-
-/**
- * write_vline_lm: write both level and mask buffers.
- *
- * @param       x               x coordinate
- * @param       y0              y0 coordinate
- * @param       y1              y1 coordinate
- * @param       lmode   0 = clear, 1 = set, 2 = toggle
- * @param       mmode   0 = clear, 1 = set, 2 = toggle
- */
-void write_vline_lm(int x, int y0, int y1, int lmode, int mmode)
-{
-	// TODO: an optimisation would compute the masks and apply to
-	// both buffers simultaneously.
-	write_vline(draw_buffer_level, x, y0, y1, lmode);
-	write_vline(draw_buffer_mask, x, y0, y1, mmode);
-}
-
-/**
- * write_vline_outlined: outlined vertical line with varying endcaps
- * Always uses draw buffer.
- *
- * @param       x                       x coordinate
- * @param       y0                      y0 coordinate
- * @param       y1                      y1 coordinate
- * @param       endcap0         0 = none, 1 = single pixel, 2 = full cap
- * @param       endcap1         0 = none, 1 = single pixel, 2 = full cap
- * @param       mode            0 = black outline, white body, 1 = white outline, black body
- * @param       mmode           0 = clear, 1 = set, 2 = toggle
- */
-void write_vline_outlined(int x, int y0, int y1, int endcap0, int endcap1, int mode, int mmode)
-{
-	int stroke, fill;
-
-	if (y0 > y1) {
-		SWAP(y0, y1);
-	}
-	SETUP_STROKE_FILL(stroke, fill, mode);
-	// Draw the main body of the line.
-	write_vline_lm(x - 1, y0 + 1, y1 - 1, stroke, mmode);
-	write_vline_lm(x + 1, y0 + 1, y1 - 1, stroke, mmode);
-	write_vline_lm(x, y0 + 1, y1 - 1, fill, mmode);
-	// Draw the endcaps, if any.
-	DRAW_ENDCAP_VLINE(endcap0, x, y0, stroke, fill, mmode);
-	DRAW_ENDCAP_VLINE(endcap1, x, y1, stroke, fill, mmode);
-}
-
-/**
- * write_filled_rectangle: draw a filled rectangle.
- *
- * Uses an optimised algorithm which is similar to the horizontal
- * line writing algorithm, but optimised for writing the lines
- * multiple times without recalculating lots of stuff.
- *
- * @param       buff    pointer to buffer to write in
- * @param       x               x coordinate (left)
- * @param       y               y coordinate (top)
- * @param       width   rectangle width
- * @param       height  rectangle height
- * @param       mode    0 = clear, 1 = set, 2 = toggle
- */
-void write_filled_rectangle(uint8_t *buff, int x, int y, int width, int height, int mode)
-{
-	int yy, addr0_old, addr1_old;
-
-	CHECK_COORDS(x, y);
-	CHECK_COORDS(x + width, y + height);
-	if (width <= 0 || height <= 0) {
-		return;
-	}
-	// Calculate as if the rectangle was only a horizontal line. We then
-	// step these addresses through each row until we iterate `height` times.
-	int addr0     = CALC_BUFF_ADDR(x, y);
-	int addr1     = CALC_BUFF_ADDR(x + width, y);
-	int addr0_bit = CALC_BIT_IN_WORD(x);
-	int addr1_bit = CALC_BIT_IN_WORD(x + width);
-	int mask, mask_l, mask_r, i;
-	// If the addresses are equal, we need to write one word vertically.
-	if (addr0 == addr1) {
-		mask = COMPUTE_HLINE_ISLAND_MASK(addr0_bit, addr1_bit);
-		while (height--) {
-			WRITE_WORD_MODE(buff, addr0, mask, mode);
-			addr0 += BUFFER_WIDTH;
-		}
-	} else {
-		// Otherwise we need to write the edges and then the middle repeatedly.
-		mask_l    = COMPUTE_HLINE_EDGE_L_MASK(addr0_bit);
-		mask_r    = COMPUTE_HLINE_EDGE_R_MASK(addr1_bit);
-		// Write edges first.
-		yy        = 0;
-		addr0_old = addr0;
-		addr1_old = addr1;
-		while (yy < height) {
-			WRITE_WORD_MODE(buff, addr0, mask_l, mode);
-			WRITE_WORD_MODE(buff, addr1, mask_r, mode);
-			addr0 += BUFFER_WIDTH;
-			addr1 += BUFFER_WIDTH;
-			yy++;
-		}
-		// Now write 0xffff words from start+1 to end-1 for each row.
-		yy    = 0;
-		addr0 = addr0_old;
-		addr1 = addr1_old;
-		while (yy < height) {
-			for (i = addr0 + 1; i <= addr1 - 1; i++) {
-				uint8_t m = 0xff;
-				WRITE_WORD_MODE(buff, i, m, mode);
-			}
-			addr0 += BUFFER_WIDTH;
-			addr1 += BUFFER_WIDTH;
-			yy++;
-		}
-	}
-}
-
-/**
- * write_filled_rectangle_lm: draw a filled rectangle on both draw buffers.
- *
- * @param       x               x coordinate (left)
- * @param       y               y coordinate (top)
- * @param       width   rectangle width
- * @param       height  rectangle height
- * @param       lmode   0 = clear, 1 = set, 2 = toggle
- * @param       mmode   0 = clear, 1 = set, 2 = toggle
- */
-void write_filled_rectangle_lm(int x, int y, int width, int height, int lmode, int mmode)
-{
-	write_filled_rectangle(draw_buffer_mask, x, y, width, height, mmode);
-	write_filled_rectangle(draw_buffer_level, x, y, width, height, lmode);
-}
-
-/**
- * write_rectangle_outlined: draw an outline of a rectangle. Essentially
- * a convenience wrapper for draw_hline_outlined and draw_vline_outlined.
- *
- * @param       x               x coordinate (left)
- * @param       y               y coordinate (top)
- * @param       width   rectangle width
- * @param       height  rectangle height
- * @param       mode    0 = black outline, white body, 1 = white outline, black body
- * @param       mmode   0 = clear, 1 = set, 2 = toggle
- */
-void write_rectangle_outlined(int x, int y, int width, int height, int mode, int mmode)
-{
-	write_hline_outlined(x, x + width, y, ENDCAP_ROUND, ENDCAP_ROUND, mode, mmode);
-	write_hline_outlined(x, x + width, y + height, ENDCAP_ROUND, ENDCAP_ROUND, mode, mmode);
-	write_vline_outlined(x, y, y + height, ENDCAP_ROUND, ENDCAP_ROUND, mode, mmode);
-	write_vline_outlined(x + width, y, y + height, ENDCAP_ROUND, ENDCAP_ROUND, mode, mmode);
-}
-
-/**
- * write_circle: draw the outline of a circle on a given buffer,
- * with an optional dash pattern for the line instead of a normal line.
- *
- * @param       buff    pointer to buffer to write in
- * @param       cx              origin x coordinate
- * @param       cy              origin y coordinate
- * @param       r               radius
- * @param       dashp   dash period (pixels) - zero for no dash
- * @param       mode    0 = clear, 1 = set, 2 = toggle
- */
-void write_circle(uint8_t *buff, int cx, int cy, int r, int dashp, int mode)
-{
-	CHECK_COORDS(cx, cy);
-	int error = -r, x = r, y = 0;
-	while (x >= y) {
-		if (dashp == 0 || (y % dashp) < (dashp / 2)) {
-			CIRCLE_PLOT_8(buff, cx, cy, x, y, mode);
-		}
-		error += (y * 2) + 1;
-		y++;
-		if (error >= 0) {
-			--x;
-			error -= x * 2;
-		}
-	}
-}
-
-/**
- * write_circle_outlined: draw an outlined circle on the draw buffer.
- *
- * @param       cx              origin x coordinate
- * @param       cy              origin y coordinate
- * @param       r               radius
- * @param       dashp   dash period (pixels) - zero for no dash
- * @param       bmode   0 = 4-neighbour border, 1 = 8-neighbour border
- * @param       mode    0 = black outline, white body, 1 = white outline, black body
- * @param       mmode   0 = clear, 1 = set, 2 = toggle
- */
-void write_circle_outlined(int cx, int cy, int r, int dashp, int bmode, int mode, int mmode)
-{
-	int stroke, fill;
-
-	CHECK_COORDS(cx, cy);
-	SETUP_STROKE_FILL(stroke, fill, mode);
-	// This is a two step procedure. First, we draw the outline of the
-	// circle, then we draw the inner part.
-	int error = -r, x = r, y = 0;
-	while (x >= y) {
-		if (dashp == 0 || (y % dashp) < (dashp / 2)) {
-			CIRCLE_PLOT_8(draw_buffer_mask, cx, cy, x + 1, y, mmode);
-			CIRCLE_PLOT_8(draw_buffer_level, cx, cy, x + 1, y, stroke);
-			CIRCLE_PLOT_8(draw_buffer_mask, cx, cy, x, y + 1, mmode);
-			CIRCLE_PLOT_8(draw_buffer_level, cx, cy, x, y + 1, stroke);
-			CIRCLE_PLOT_8(draw_buffer_mask, cx, cy, x - 1, y, mmode);
-			CIRCLE_PLOT_8(draw_buffer_level, cx, cy, x - 1, y, stroke);
-			CIRCLE_PLOT_8(draw_buffer_mask, cx, cy, x, y - 1, mmode);
-			CIRCLE_PLOT_8(draw_buffer_level, cx, cy, x, y - 1, stroke);
-			if (bmode == 1) {
-				CIRCLE_PLOT_8(draw_buffer_mask, cx, cy, x + 1, y + 1, mmode);
-				CIRCLE_PLOT_8(draw_buffer_level, cx, cy, x + 1, y + 1, stroke);
-				CIRCLE_PLOT_8(draw_buffer_mask, cx, cy, x - 1, y - 1, mmode);
-				CIRCLE_PLOT_8(draw_buffer_level, cx, cy, x - 1, y - 1, stroke);
+	for (uint16_t yp = 0; yp < image->height; yp++){
+		for (uint16_t xp = 0; xp < image->width / 8; xp++){
+			draw_buffer_level[(y + yp) * BUFFER_WIDTH + xp + x / 8] |= (image->level[yp * byte_width + xp] & mask1) >> pixel_offset;
+			draw_buffer_mask[(y + yp) * BUFFER_WIDTH + xp + x / 8] |= (image->mask[yp * byte_width + xp] & mask1) >> pixel_offset;
+			if (pixel_offset > 0) {
+				draw_buffer_level[(y + yp) * BUFFER_WIDTH + xp + x / 8 + 1] |= (image->level[yp * byte_width + xp] & mask2) << (8 - pixel_offset);
+				draw_buffer_mask[(y + yp) * BUFFER_WIDTH + xp + x / 8 + 1] |= (image->mask[yp * byte_width + xp] & mask2) << (8 - pixel_offset);
 			}
 		}
-		error += (y * 2) + 1;
-		y++;
-		if (error >= 0) {
-			--x;
-			error -= x * 2;
-		}
-	}
-	error = -r;
-	x     = r;
-	y     = 0;
-	while (x >= y) {
-		if (dashp == 0 || (y % dashp) < (dashp / 2)) {
-			CIRCLE_PLOT_8(draw_buffer_mask, cx, cy, x, y, mmode);
-			CIRCLE_PLOT_8(draw_buffer_level, cx, cy, x, y, fill);
-		}
-		error += (y * 2) + 1;
-		y++;
-		if (error >= 0) {
-			--x;
-			error -= x * 2;
-		}
-	}
-}
-
-/**
- * write_circle_filled: fill a circle on a given buffer.
- *
- * @param       buff    pointer to buffer to write in
- * @param       cx              origin x coordinate
- * @param       cy              origin y coordinate
- * @param       r               radius
- * @param       mode    0 = clear, 1 = set, 2 = toggle
- */
-void write_circle_filled(uint8_t *buff, int cx, int cy, int r, int mode)
-{
-	CHECK_COORDS(cx, cy);
-	int error = -r, x = r, y = 0, xch = 0;
-	// It turns out that filled circles can take advantage of the midpoint
-	// circle algorithm. We simply draw very fast horizontal lines across each
-	// pair of X,Y coordinates. In some cases, this can even be faster than
-	// drawing an outlined circle!
-	//
-	// Due to multiple writes to each set of pixels, we have a special exception
-	// for when using the toggling draw mode.
-	while (x >= y) {
-		if (y != 0) {
-			write_hline(buff, cx - x, cx + x, cy + y, mode);
-			write_hline(buff, cx - x, cx + x, cy - y, mode);
-			if (mode != 2 || (mode == 2 && xch && (cx - x) != (cx - y))) {
-				write_hline(buff, cx - y, cx + y, cy + x, mode);
-				write_hline(buff, cx - y, cx + y, cy - x, mode);
-				xch = 0;
-			}
-		}
-		error += (y * 2) + 1;
-		y++;
-		if (error >= 0) {
-			--x;
-			xch    = 1;
-			error -= x * 2;
-		}
-	}
-	// Handle toggle mode.
-	if (mode == 2) {
-		write_hline(buff, cx - r, cx + r, cy, mode);
-	}
-}
-
-/**
- * write_line: Draw a line of arbitrary angle.
- *
- * @param       buff    pointer to buffer to write in
- * @param       x0              first x coordinate
- * @param       y0              first y coordinate
- * @param       x1              second x coordinate
- * @param       y1              second y coordinate
- * @param       mode    0 = clear, 1 = set, 2 = toggle
- */
-void write_line(uint8_t *buff, int x0, int y0, int x1, int y1, int mode)
-{
-	// Based on http://en.wikipedia.org/wiki/Bresenham%27s_line_algorithm
-	int steep = abs(y1 - y0) > abs(x1 - x0);
-
-	if (steep) {
-		SWAP(x0, y0);
-		SWAP(x1, y1);
-	}
-	if (x0 > x1) {
-		SWAP(x0, x1);
-		SWAP(y0, y1);
-	}
-	int deltax     = x1 - x0;
-	int deltay = abs(y1 - y0);
-	int error      = deltax / 2;
-	int ystep;
-	int y = y0;
-	int x; // , lasty = y, stox = 0;
-	if (y0 < y1) {
-		ystep = 1;
-	} else {
-		ystep = -1;
-	}
-	for (x = x0; x < x1; x++) {
-		if (steep) {
-			write_pixel(buff, y, x, mode);
-		} else {
-			write_pixel(buff, x, y, mode);
-		}
-		error -= deltay;
-		if (error < 0) {
-			y     += ystep;
-			error += deltax;
-		}
-	}
-}
-
-/**
- * write_line_lm: Draw a line of arbitrary angle.
- *
- * @param       x0              first x coordinate
- * @param       y0              first y coordinate
- * @param       x1              second x coordinate
- * @param       y1              second y coordinate
- * @param       mmode   0 = clear, 1 = set, 2 = toggle
- * @param       lmode   0 = clear, 1 = set, 2 = toggle
- */
-void write_line_lm(int x0, int y0, int x1, int y1, int mmode, int lmode)
-{
-	write_line(draw_buffer_mask, x0, y0, x1, y1, mmode);
-	write_line(draw_buffer_level, x0, y0, x1, y1, lmode);
-}
-
-/**
- * write_line_outlined: Draw a line of arbitrary angle, with an outline.
- *
- * @param       x0                      first x coordinate
- * @param       y0                      first y coordinate
- * @param       x1                      second x coordinate
- * @param       y1                      second y coordinate
- * @param       endcap0         0 = none, 1 = single pixel, 2 = full cap
- * @param       endcap1         0 = none, 1 = single pixel, 2 = full cap
- * @param       mode            0 = black outline, white body, 1 = white outline, black body
- * @param       mmode           0 = clear, 1 = set, 2 = toggle
- */
-void write_line_outlined(int x0, int y0, int x1, int y1,
-						 __attribute__((unused)) int endcap0, __attribute__((unused)) int endcap1,
-						 int mode, int mmode)
-{
-	// Based on http://en.wikipedia.org/wiki/Bresenham%27s_line_algorithm
-	// This could be improved for speed.
-	int omode, imode;
-
-	if (mode == 0) {
-		omode = 0;
-		imode = 1;
-	} else {
-		omode = 1;
-		imode = 0;
-	}
-	int steep = abs(y1 - y0) > abs(x1 - x0);
-	if (steep) {
-		SWAP(x0, y0);
-		SWAP(x1, y1);
-	}
-	if (x0 > x1) {
-		SWAP(x0, x1);
-		SWAP(y0, y1);
-	}
-	int deltax     = x1 - x0;
-	int deltay = abs(y1 - y0);
-	int error      = deltax / 2;
-	int ystep;
-	int y = y0;
-	int x;
-	if (y0 < y1) {
-		ystep = 1;
-	} else {
-		ystep = -1;
-	}
-	// Draw the outline.
-	for (x = x0; x < x1; x++) {
-		if (steep) {
-			write_pixel_lm(y - 1, x, mmode, omode);
-			write_pixel_lm(y + 1, x, mmode, omode);
-			write_pixel_lm(y, x - 1, mmode, omode);
-			write_pixel_lm(y, x + 1, mmode, omode);
-		} else {
-			write_pixel_lm(x - 1, y, mmode, omode);
-			write_pixel_lm(x + 1, y, mmode, omode);
-			write_pixel_lm(x, y - 1, mmode, omode);
-			write_pixel_lm(x, y + 1, mmode, omode);
-		}
-		error -= deltay;
-		if (error < 0) {
-			y     += ystep;
-			error += deltax;
-		}
-	}
-	// Now draw the innards.
-	error = deltax / 2;
-	y     = y0;
-	for (x = x0; x < x1; x++) {
-		if (steep) {
-			write_pixel_lm(y, x, mmode, imode);
-		} else {
-			write_pixel_lm(x, y, mmode, imode);
-		}
-		error -= deltay;
-		if (error < 0) {
-			y     += ystep;
-			error += deltax;
-		}
-	}
-}
-
-/**
- * write_line_outlined_dashed: Draw a line of arbitrary angle, with an outline, potentially dashed.
- *
- * @param       x0              first x coordinate
- * @param       y0              first y coordinate
- * @param       x1              second x coordinate
- * @param       y1              second y coordinate
- * @param       endcap0         0 = none, 1 = single pixel, 2 = full cap
- * @param       endcap1         0 = none, 1 = single pixel, 2 = full cap
- * @param       mode            0 = black outline, white body, 1 = white outline, black body
- * @param       mmode           0 = clear, 1 = set, 2 = toggle
- * @param       dots			0 = not dashed, > 0 = # of set/unset dots for the dashed innards
- */
-void write_line_outlined_dashed(int x0, int y0, int x1, int y1,
-								__attribute__((unused)) int endcap0, __attribute__((unused)) int endcap1,
-								int mode, int mmode, int dots)
-{
-	// Based on http://en.wikipedia.org/wiki/Bresenham%27s_line_algorithm
-	// This could be improved for speed.
-	int omode, imode;
-
-	if (mode == 0) {
-		omode = 0;
-		imode = 1;
-	} else {
-		omode = 1;
-		imode = 0;
-	}
-	int steep = abs(y1 - y0) > abs(x1 - x0);
-	if (steep) {
-		SWAP(x0, y0);
-		SWAP(x1, y1);
-	}
-	if (x0 > x1) {
-		SWAP(x0, x1);
-		SWAP(y0, y1);
-	}
-	int deltax = x1 - x0;
-	int deltay = abs(y1 - y0);
-	int error  = deltax / 2;
-	int ystep;
-	int y = y0;
-	int x;
-	if (y0 < y1) {
-		ystep = 1;
-	} else {
-		ystep = -1;
-	}
-	// Draw the outline.
-	for (x = x0; x < x1; x++) {
-		if (steep) {
-			write_pixel_lm(y - 1, x, mmode, omode);
-			write_pixel_lm(y + 1, x, mmode, omode);
-			write_pixel_lm(y, x - 1, mmode, omode);
-			write_pixel_lm(y, x + 1, mmode, omode);
-		} else {
-			write_pixel_lm(x - 1, y, mmode, omode);
-			write_pixel_lm(x + 1, y, mmode, omode);
-			write_pixel_lm(x, y - 1, mmode, omode);
-			write_pixel_lm(x, y + 1, mmode, omode);
-		}
-		error -= deltay;
-		if (error < 0) {
-			y     += ystep;
-			error += deltax;
-		}
-	}
-	// Now draw the innards.
-	error = deltax / 2;
-	y     = y0;
-	int dot_cnt = 0;
-	int draw    = 1;
-	for (x = x0; x < x1; x++) {
-		if (dots && !(dot_cnt++ % dots)) {
-			draw++;
-		}
-		if (draw % 2) {
-			if (steep) {
-				write_pixel_lm(y, x, mmode, imode);
-			} else {
-				write_pixel_lm(x, y, mmode, imode);
-			}
-		}
-		error -= deltay;
-		if (error < 0) {
-			y     += ystep;
-			error += deltax;
-		}
-	}
-}
-
-/**
- * write_word_misaligned: Write a misaligned word across two addresses
- * with an x offset.
- *
- * This allows for many pixels to be set in one write.
- *
- * @param       buff    buffer to write in
- * @param       word    word to write (16 bits)
- * @param       addr    address of first word
- * @param       xoff    x offset (0-15)
- * @param       mode    0 = clear, 1 = set, 2 = toggle
- */
-void write_word_misaligned(uint8_t *buff, uint16_t word, unsigned int addr, unsigned int xoff, int mode)
-{
-	int16_t firstmask = word >> xoff;
-	int16_t lastmask  = word << (16 - xoff);
-
-	WRITE_WORD_MODE(buff, addr + 1, firstmask && 0x00ff, mode);
-	WRITE_WORD_MODE(buff, addr, (firstmask & 0xff00) >> 8, mode);
-	if (xoff > 0) {
-		WRITE_WORD_MODE(buff, addr + 2, (lastmask & 0xff00) >> 8, mode);
-	}
-}
-
-/**
- * write_word_misaligned_NAND: Write a misaligned word across two addresses
- * with an x offset, using a NAND mask.
- *
- * This allows for many pixels to be set in one write.
- *
- * @param       buff    buffer to write in
- * @param       word    word to write (16 bits)
- * @param       addr    address of first word
- * @param       xoff    x offset (0-15)
- *
- * This is identical to calling write_word_misaligned with a mode of 0 but
- * it doesn't go through a lot of switch logic which slows down text writing
- * a lot.
- */
-void write_word_misaligned_NAND(uint8_t *buff, uint16_t word, unsigned int addr, unsigned int xoff)
-{
-	uint16_t firstmask = word >> xoff;
-	uint16_t lastmask  = word << (16 - xoff);
-
-	WRITE_WORD_NAND(buff, addr + 1, firstmask & 0x00ff);
-	WRITE_WORD_NAND(buff, addr, (firstmask & 0xff00) >> 8);
-	if (xoff > 0) {
-		WRITE_WORD_NAND(buff, addr + 2, (lastmask & 0xff00) >> 8);
-	}
-}
-
-/**
- * write_word_misaligned_OR: Write a misaligned word across two addresses
- * with an x offset, using an OR mask.
- *
- * This allows for many pixels to be set in one write.
- *
- * @param       buff    buffer to write in
- * @param       word    word to write (16 bits)
- * @param       addr    address of first word
- * @param       xoff    x offset (0-15)
- *
- * This is identical to calling write_word_misaligned with a mode of 1 but
- * it doesn't go through a lot of switch logic which slows down text writing
- * a lot.
- */
-void write_word_misaligned_OR(uint8_t *buff, uint16_t word, unsigned int addr, unsigned int xoff)
-{
-	uint16_t firstmask = word >> xoff;
-	uint16_t lastmask  = word << (16 - xoff);
-
-	WRITE_WORD_OR(buff, addr + 1, firstmask & 0x00ff);
-	WRITE_WORD_OR(buff, addr, (firstmask & 0xff00) >> 8);
-	if (xoff > 0) {
-		WRITE_WORD_OR(buff, addr + 2, (lastmask & 0xff00) >> 8);
-	}
-}
-
-/**
- * write_word_misaligned_lm: Write a misaligned word across two
- * words, in both level and mask buffers. This is core to the text
- * writing routines.
- *
- * @param       buff    buffer to write in
- * @param       word    word to write (16 bits)
- * @param       addr    address of first word
- * @param       xoff    x offset (0-15)
- * @param       lmode   0 = clear, 1 = set, 2 = toggle
- * @param       mmode   0 = clear, 1 = set, 2 = toggle
- */
-void write_word_misaligned_lm(uint16_t wordl, uint16_t wordm, unsigned int addr, unsigned int xoff, int lmode, int mmode)
-{
-	write_word_misaligned(draw_buffer_level, wordl, addr, xoff, lmode);
-	write_word_misaligned(draw_buffer_mask, wordm, addr, xoff, mmode);
-}
-
-/**
- * fetch_font_info: Fetch font info structs.
- *
- * @param       ch              character
- * @param       font    font id
- */
-int fetch_font_info(uint8_t ch, int font, struct FontEntry *font_info, char *lookup)
-{
-	// First locate the font struct.
-	if ((unsigned int)font > SIZEOF_ARRAY(fonts)) {
-		return 0; // font does not exist, exit.
-	}
-	// Load the font info; IDs are always sequential.
-	*font_info = fonts[font];
-	// Locate character in font lookup table. (If required.)
-	if (lookup != NULL) {
-		*lookup = font_info->lookup[ch];
-		if (*lookup == 0xff) {
-			return 0; // character doesn't exist, don't bother writing it.
-		}
-	}
-	return 1;
-}
-
-/**
- * write_char16: Draw a character on the current draw buffer.
- *
- * @param       ch      character to write
- * @param       x       x coordinate (left)
- * @param       y       y coordinate (top)
- * @param       font    font to use
- */
-void write_char16(char ch, int x, int y, int font)
-{
-	int yy, row, xshift;
-	uint16_t and_mask, or_mask, levels;
-	struct FontEntry font_info;
-
-	fetch_font_info(0, font, &font_info, NULL);
-
-	// check if char is partly out of boundary
-	uint8_t partly_out = (x < GRAPHICS_LEFT) || (x + font_info.width > GRAPHICS_RIGHT) || (y < GRAPHICS_TOP) || (y + font_info.height > GRAPHICS_BOTTOM);
-	// check if char is totally out of boundary, if so return
-	if (partly_out && ((x + font_info.width < GRAPHICS_LEFT) || (x > GRAPHICS_RIGHT) || (y + font_info.height < GRAPHICS_TOP) || (y > GRAPHICS_BOTTOM))) {
-		return;
-	}
-
-	// Compute starting address of character
-	int addr = CALC_BUFF_ADDR(x, y);
-	int wbit = CALC_BIT_IN_WORD(x);
-
-	// If font only supports lowercase or uppercase, make the letter lowercase or uppercase
-	// if (font_info.flags & FONT_LOWERCASE_ONLY) ch = tolower(ch);
-	// if (font_info.flags & FONT_UPPERCASE_ONLY) ch = toupper(ch);
-
-	// How wide is the character? We handle characters from 8 pixels up in this function
-	if (font_info.width >= 8) {
-		// Load data pointer.
-		row    = ch * font_info.height;
-		xshift = 16 - font_info.width;
-		// We can write mask words easily.
-		// Level bits are more complicated. We need to set or clear level bits, but only where the mask bit is set; otherwise, we need to leave them alone.
-		// To do this, for each word, we construct an AND mask and an OR mask, and apply each individually.
-		for (yy = y; yy < y + font_info.height; yy++) {
-			if (!partly_out || ((x >= GRAPHICS_LEFT) && (x + font_info.width <= GRAPHICS_RIGHT) && (yy >= GRAPHICS_TOP) && (yy <= GRAPHICS_BOTTOM))) {
-				if (font == 3) {
-					// mask
-					write_word_misaligned_OR(draw_buffer_mask, font_mask12x18[row] << xshift, addr, wbit);
-					// level
-					levels   = font_frame12x18[row];
-					// if (!(flags & FONT_INVERT)) // data is normally inverted
-					levels   = ~levels;
-					or_mask  = font_mask12x18[row] << xshift;
-					and_mask = (font_mask12x18[row] & levels) << xshift;
-				} else {
-					// mask
-					write_word_misaligned_OR(draw_buffer_mask, font_mask8x10[row] << xshift, addr, wbit);
-					// level
-					levels   = font_frame8x10[row];
-					// if (!(flags & FONT_INVERT)) // data is normally inverted
-					levels   = ~levels;
-					or_mask  = font_mask8x10[row] << xshift;
-					and_mask = (font_mask8x10[row] & levels) << xshift;
-				}
-				write_word_misaligned_OR(draw_buffer_level, or_mask, addr, wbit);
-				// If we're not bold write the AND mask.
-				// if (!(flags & FONT_BOLD))
-				write_word_misaligned_NAND(draw_buffer_level, and_mask, addr, wbit);
-			}
-			addr += BUFFER_WIDTH;
-			row++;
-		}
-	}
-}
-
-/**
- * write_char: Draw a character on the current draw buffer.
- * Currently supports outlined characters and characters with a width of up to 8 pixels.
- *
- * @param       ch      character to write
- * @param       x       x coordinate (left)
- * @param       y       y coordinate (top)
- * @param       flags   flags to write with
- * @param       font    font to use
- */
-void write_char(char ch, int x, int y, int flags, int font)
-{
-	int yy, row, xshift;
-	uint16_t and_mask, or_mask, levels;
-	struct FontEntry font_info;
-	char lookup = 0;
-
-	fetch_font_info(ch, font, &font_info, &lookup);
-
-	// check if char is partly out of boundary
-	uint8_t partly_out = (x < GRAPHICS_LEFT) || (x + font_info.width > GRAPHICS_RIGHT) || (y < GRAPHICS_TOP) || (y + font_info.height > GRAPHICS_BOTTOM);
-	// check if char is totally out of boundary, if so return
-	if (partly_out && ((x + font_info.width < GRAPHICS_LEFT) || (x > GRAPHICS_RIGHT) || (y + font_info.height < GRAPHICS_TOP) || (y > GRAPHICS_BOTTOM))) {
-		return;
-	}
-
-	// Compute starting address of character
-	unsigned int addr = CALC_BUFF_ADDR(x, y);
-	unsigned int wbit = CALC_BIT_IN_WORD(x);
-
-	// If font only supports lowercase or uppercase, make the letter lowercase or uppercase
-	// if (font_info.flags & FONT_LOWERCASE_ONLY) ch = tolower(ch);
-	// if (font_info.flags & FONT_UPPERCASE_ONLY) ch = toupper(ch);
-
-	// How wide is the character? We handle characters up to 8 pixels in this function
-	if (font_info.width <= 8) {
-		// Load data pointer.
-		row    = lookup * font_info.height * 2;
-		xshift = 16 - font_info.width;
-		// We can write mask words easily.
-		// Level bits are more complicated. We need to set or clear level bits, but only where the mask bit is set; otherwise, we need to leave them alone.
-		// To do this, for each word, we construct an AND mask and an OR mask, and apply each individually.
-		for (yy = y; yy < y + font_info.height; yy++) {
-			if (!partly_out || ((x >= GRAPHICS_LEFT) && (x + font_info.width <= GRAPHICS_RIGHT) && (yy >= GRAPHICS_TOP) && (yy <= GRAPHICS_BOTTOM))) {
-				// mask
-				write_word_misaligned_OR(draw_buffer_mask, font_info.data[row] << xshift, addr, wbit);
-				// level
-				levels = font_info.data[row + font_info.height];
-				if (!(flags & FONT_INVERT)) { // data is normally inverted
-					levels = ~levels;
-				}
-				or_mask  = font_info.data[row] << xshift;
-				and_mask = (font_info.data[row] & levels) << xshift;
-				write_word_misaligned_OR(draw_buffer_level, or_mask, addr, wbit);
-				// If we're not bold write the AND mask.
-				// if (!(flags & FONT_BOLD))
-				write_word_misaligned_NAND(draw_buffer_level, and_mask, addr, wbit);
-			}
-			addr += BUFFER_WIDTH;
-			row++;
-		}
-	}
-}
-
-/**
- * calc_text_dimensions: Calculate the dimensions of a
- * string in a given font. Supports new lines and
- * carriage returns in text.
- *
- * @param       str                     string to calculate dimensions of
- * @param       font_info       font info structure
- * @param       xs                      horizontal spacing
- * @param       ys                      vertical spacing
- * @param       dim                     return result: struct FontDimensions
- */
-void calc_text_dimensions(char *str, struct FontEntry font, int xs, int ys, struct FontDimensions *dim)
-{
-	int max_length = 0, line_length = 0, lines = 1;
-
-	while (*str != 0) {
-		line_length++;
-		if (*str == '\n' || *str == '\r') {
-			if (line_length > max_length) {
-				max_length = line_length;
-			}
-			line_length = 0;
-			lines++;
-		}
-		str++;
-	}
-	if (line_length > max_length) {
-		max_length = line_length;
-	}
-	dim->width  = max_length * (font.width + xs);
-	dim->height = lines * (font.height + ys);
-}
-
-/**
- * write_string: Draw a string on the screen with certain
- * alignment parameters.
- *
- * @param       str             string to write
- * @param       x               x coordinate
- * @param       y               y coordinate
- * @param       xs              horizontal spacing
- * @param       ys              horizontal spacing
- * @param       va              vertical align
- * @param       ha              horizontal align
- * @param       flags   flags (passed to write_char)
- * @param       font    font
- */
-void write_string(char *str, int x, int y, int xs, int ys, int va, int ha, int flags, int font)
-{
-	int xx = 0, yy = 0, xx_original = 0;
-	struct FontEntry font_info;
-	struct FontDimensions dim;
-
-	// Determine font info and dimensions/position of the string.
-	fetch_font_info(0, font, &font_info, NULL);
-	calc_text_dimensions(str, font_info, xs, ys, &dim);
-	switch (va) {
-	case TEXT_VA_TOP:
-		yy = y;
-		break;
-	case TEXT_VA_MIDDLE:
-		yy = y - (dim.height / 2);
-		break;
-	case TEXT_VA_BOTTOM:
-		yy = y - dim.height;
-		break;
-	}
-	switch (ha) {
-	case TEXT_HA_LEFT:
-		xx = x;
-		break;
-	case TEXT_HA_CENTER:
-		xx = x - (dim.width / 2);
-		break;
-	case TEXT_HA_RIGHT:
-		xx = x - dim.width;
-		break;
-	}
-	// Then write each character.
-	xx_original = xx;
-	while (*str != 0) {
-		if (*str == '\n' || *str == '\r') {
-			yy += ys + font_info.height;
-			xx  = xx_original;
-		} else {
-			if (xx >= 0 && xx < GRAPHICS_WIDTH_REAL) {
-				if (font_info.id < 2) {
-					write_char(*str, xx, yy, flags, font);
-				} else {
-					write_char16(*str, xx, yy, font);
-				}
-			}
-			xx += font_info.width + xs;
-		}
-		str++;
 	}
 }
 
 void drawBattery(uint16_t x, uint16_t y, uint8_t battery, uint16_t size)
 {
-	int i = 0;
-	int batteryLines;
-
-	write_rectangle_outlined((x) - 1, (y) - 1 + 2, size, size * 3, 0, 1);
-	write_vline_lm((x) - 1 + (size / 2 + size / 4) + 1, (y) - 2, (y) - 1 + 1, 0, 1);
-	write_vline_lm((x) - 1 + (size / 2 - size / 4) - 1, (y) - 2, (y) - 1 + 1, 0, 1);
-	write_hline_lm((x) - 1 + (size / 2 - size / 4), (x) - 1 + (size / 2 + size / 4), (y) - 2, 0, 1);
-	write_hline_lm((x) - 1 + (size / 2 - size / 4), (x) - 1 + (size / 2 + size / 4), (y) - 1, 1, 1);
-	write_hline_lm((x) - 1 + (size / 2 - size / 4), (x) - 1 + (size / 2 + size / 4), (y) - 1 + 1, 1, 1);
-
-	batteryLines = battery * (size * 3 - 2) / 100;
-	for (i = 0; i < batteryLines; i++) {
-		write_hline_lm((x) - 1, (x) - 1 + size, (y) - 1 + size * 3 - i, 1, 1);
-	}
+	write_rectangle_outlined(x - 2, y + 2, 2, size / 3 - 4, 0, 1);
+	write_rectangle_outlined(x, y, size, size / 3, 0, 1);
+	uint8_t charge_width =  battery * (size - 2) / 100;
+	write_filled_rectangle_lm(x + size - charge_width, y + 1, charge_width, size / 3, 1, 1);
 }
+
 
 /**
  * hud_draw_vertical_scale: Draw a vertical scale.
@@ -1361,6 +271,7 @@ void drawBattery(uint16_t x, uint16_t y, uint8_t battery, uint16_t size)
  */
 // #define VERTICAL_SCALE_BRUTE_FORCE_BLANK_OUT
 #define VERTICAL_SCALE_FILLED_NUMBER
+#define VSCALE_FONT 2
 void hud_draw_vertical_scale(int v, int range, int halign, int x, int y, int height, int mintick_step, int majtick_step, int mintick_len, int majtick_len,
 							 int boundtick_len, __attribute__((unused)) int max_val, int flags)
 {
@@ -1383,7 +294,7 @@ void hud_draw_vertical_scale(int v, int range, int halign, int x, int y, int hei
 		boundtick_end   = x - boundtick_len;
 	}
 	// Retrieve width of large font (font #0); from this calculate the x spacing.
-	fetch_font_info(0, 0, &font_info, NULL);
+	fetch_font_info(0, VSCALE_FONT, &font_info, NULL);
 	int arrow_len      = (font_info.height / 2) + 1;
 	int text_x_spacing = (font_info.width / 2);
 	int max_text_y     = 0, text_length = 0;
@@ -1434,7 +345,7 @@ void hud_draw_vertical_scale(int v, int range, int halign, int x, int y, int hei
 	// Generate the string for the value, as well as calculating its dimensions.
 	memset(temp, ' ', 10);
 	// my_itoa(v, temp);
-	sprintf(temp, "%d", v);
+	sprintf(temp, "%02d", v);
 	// TODO: add auto-sizing.
 	calc_text_dimensions(temp, font_info, 1, 0, &dim);
 	int xx = 0, i = 0;
@@ -1444,44 +355,45 @@ void hud_draw_vertical_scale(int v, int range, int halign, int x, int y, int hei
 		xx = majtick_end - text_x_spacing;
 	}
 	y++;
+	uint8_t width =  dim.width + 4;
 	// Draw an arrow from the number to the point.
 	for (i = 0; i < arrow_len; i++) {
 		if (halign == -1) {
 			write_pixel_lm(xx - arrow_len + i, y - i - 1, 1, 1);
 			write_pixel_lm(xx - arrow_len + i, y + i - 1, 1, 1);
 #ifdef VERTICAL_SCALE_FILLED_NUMBER
-			write_hline_lm(xx + dim.width - 1, xx - arrow_len + i + 1, y - i - 1, 0, 1);
-			write_hline_lm(xx + dim.width - 1, xx - arrow_len + i + 1, y + i - 1, 0, 1);
+			write_hline_lm(xx + width - 1, xx - arrow_len + i + 1, y - i - 1, 0, 1);
+			write_hline_lm(xx + width - 1, xx - arrow_len + i + 1, y + i - 1, 0, 1);
 #else
-			write_hline_lm(xx + dim.width - 1, xx - arrow_len + i + 1, y - i - 1, 0, 0);
-			write_hline_lm(xx + dim.width - 1, xx - arrow_len + i + 1, y + i - 1, 0, 0);
+			write_hline_lm(xx + width - 1, xx - arrow_len + i + 1, y - i - 1, 0, 0);
+			write_hline_lm(xx + width - 1, xx - arrow_len + i + 1, y + i - 1, 0, 0);
 #endif
 		} else {
 			write_pixel_lm(xx + arrow_len - i, y - i - 1, 1, 1);
 			write_pixel_lm(xx + arrow_len - i, y + i - 1, 1, 1);
 #ifdef VERTICAL_SCALE_FILLED_NUMBER
-			write_hline_lm(xx - dim.width - 1, xx + arrow_len - i - 1, y - i - 1, 0, 1);
-			write_hline_lm(xx - dim.width - 1, xx + arrow_len - i - 1, y + i - 1, 0, 1);
+			write_hline_lm(xx - width - 1, xx + arrow_len - i - 1, y - i - 1, 0, 1);
+			write_hline_lm(xx - width - 1, xx + arrow_len - i - 1, y + i - 1, 0, 1);
 #else
-			write_hline_lm(xx - dim.width - 1, xx + arrow_len - i - 1, y - i - 1, 0, 0);
-			write_hline_lm(xx - dim.width - 1, xx + arrow_len - i - 1, y + i - 1, 0, 0);
+			write_hline_lm(xx - width - 1, xx + arrow_len - i - 1, y - i - 1, 0, 0);
+			write_hline_lm(xx - width - 1, xx + arrow_len - i - 1, y + i - 1, 0, 0);
 #endif
 		}
 	}
 	if (halign == -1) {
-		write_hline_lm(xx, xx + dim.width - 1, y - arrow_len, 1, 1);
-		write_hline_lm(xx, xx + dim.width - 1, y + arrow_len - 2, 1, 1);
-		write_vline_lm(xx + dim.width - 1, y - arrow_len, y + arrow_len - 2, 1, 1);
+		write_hline_lm(xx, xx + width -1, y - arrow_len, 1, 1);
+		write_hline_lm(xx, xx + width - 1, y + arrow_len - 2, 1, 1);
+		write_vline_lm(xx + width - 1, y - arrow_len, y + arrow_len - 2, 1, 1);
 	} else {
-		write_hline_lm(xx, xx - dim.width - 1, y - arrow_len, 1, 1);
-		write_hline_lm(xx, xx - dim.width - 1, y + arrow_len - 2, 1, 1);
-		write_vline_lm(xx - dim.width - 1, y - arrow_len, y + arrow_len - 2, 1, 1);
+		write_hline_lm(xx, xx - width - 1, y - arrow_len, 1, 1);
+		write_hline_lm(xx, xx - width - 1, y + arrow_len - 2, 1, 1);
+		write_vline_lm(xx - width - 1, y - arrow_len, y + arrow_len - 2, 1, 1);
 	}
 	// Draw the text.
 	if (halign == -1) {
-		write_string(temp, xx, y, 1, 0, TEXT_VA_MIDDLE, TEXT_HA_LEFT, 0, 0);
+		write_string(temp, xx + width / 2, y - 1, 1, 0, TEXT_VA_MIDDLE, TEXT_HA_CENTER, 0, VSCALE_FONT);
 	} else {
-		write_string(temp, xx, y, 1, 0, TEXT_VA_MIDDLE, TEXT_HA_RIGHT, 0, 0);
+		write_string(temp, xx - width / 2, y - 1, 1, 0, TEXT_VA_MIDDLE, TEXT_HA_CENTER, 0, VSCALE_FONT);
 	}
 #ifdef VERTICAL_SCALE_BRUTE_FORCE_BLANK_OUT
 	// This is a bad brute force method destuctive to other things that maybe drawn underneath like e.g. the artificial horizon:
@@ -1635,25 +547,26 @@ void hud_draw_linear_compass(int v, int home_dir, int range, int width, int x, i
 #define CENTER_BODY       3
 #define CENTER_WING       7
 #define CENTER_RUDDER     5
+#define PITCH_STEP       10
 void simple_artifical_horizon(float roll, float pitch, int16_t x, int16_t y, int16_t width, int16_t height,
-							  int8_t max_pitch)
+							  int8_t max_pitch, uint8_t n_pitch_steps)
 {
 	float sin_roll;
 	float cos_roll;
-	int16_t d_x; // delta x
-	int16_t d_y; // delta y
+	int16_t d_x, d_x2; // delta x
+	int16_t d_y, d_y2; // delta y
+	char tmp_str[5];
 
 	int16_t pp_x; // pitch point x
 	int16_t pp_y; // pitch point y
+	int16_t d_x_10, d_y_10, d_x_2, d_y_2;
 
-	if (roll > 0) {
-		sin_roll    = sin_lookup_deg(roll);
-		cos_roll    = cos_lookup_deg(roll);
-	}
-	else {
-		sin_roll    = -1 * sin_lookup_deg(-1 * roll);
-		cos_roll    = cos_lookup_deg(-1 * roll);
-	}
+	int16_t pp_x2;
+	int16_t pp_y2;
+
+
+	sin_roll    = sinf(roll * (float)(M_PI / 180));
+	cos_roll    = cosf(roll * (float)(M_PI / 180));
 
 	// roll to pitch transformation
 	pp_x        = x * (1 + (sin_roll * pitch) / (float)max_pitch);
@@ -1662,13 +575,45 @@ void simple_artifical_horizon(float roll, float pitch, int16_t x, int16_t y, int
 	// main horizon
 	d_x = cos_roll * width / 2;
 	d_y = sin_roll * width / 2;
-	write_line_outlined_dashed(pp_x - d_x, pp_y + d_y, pp_x + d_x, pp_y - d_y, 2, 2, 0, 1, 0);
+	write_line_outlined(pp_x - d_x, pp_y + d_y, pp_x - d_x / 3, pp_y + d_y / 3, 2, 2, 0, 1);
+	write_line_outlined(pp_x + d_x / 3, pp_y - d_y / 3, pp_x + d_x, pp_y - d_y, 2, 2, 0, 1);
 
-	// center mark
-	//write_circle_outlined(x, y, CENTER_BODY, 0, 0, 0, 1);
-	write_line_outlined(x - CENTER_WING - CENTER_BODY, y, x - CENTER_BODY, y, 2, 0, 0, 1);
-	write_line_outlined(x + 1 + CENTER_BODY, y, x + 1 + CENTER_BODY + CENTER_WING, y, 0, 2, 0, 1);
-	write_line_outlined(x, y - CENTER_RUDDER - CENTER_BODY, x, y - CENTER_BODY, 2, 0, 0, 1);
+
+	// 10 degree steps
+	d_x = 3 * d_x / 4;
+	d_y = 3 * d_y / 4;
+	d_x2 = 3 * d_x / 4;
+	d_y2 = 3 * d_y / 4;
+
+	d_x_10 = x * sin_roll * 10.f / (float)max_pitch;
+	d_y_10 = y * cos_roll * 10.f / (float)max_pitch;
+	d_x_2 = d_x_10 / 6;
+	d_y_2 = d_y_10 / 6;
+
+	for (int i=1; i<=n_pitch_steps; i++) {
+		sprintf(tmp_str, "%d", i * PITCH_STEP);
+
+		pp_x2 = pp_x - i * d_x_10;
+		pp_y2 = pp_y - i * d_y_10;;
+
+		write_line_outlined(pp_x2 - d_x2, pp_y2 + d_y2, pp_x2 + d_x2, pp_y2 - d_y2, 2, 2, 0, 1);
+		write_line_outlined(pp_x2 - d_x2, pp_y2 + d_y2, pp_x2 - d_x2 + d_x_2, pp_y2 + d_y2 + d_y_2, 2, 2, 0, 1);
+		write_line_outlined(pp_x2 + d_x2, pp_y2 - d_y2, pp_x2 + d_x2 + d_x_2, pp_y2 - d_y2 + d_y_2, 2, 2, 0, 1);
+
+		write_string(tmp_str, pp_x2 - d_x - 4, pp_y2 + d_y, 0, 0, TEXT_VA_MIDDLE, TEXT_HA_CENTER, 0, 1);
+		write_string(tmp_str, pp_x2 + d_x + 4, pp_y2 - d_y, 0, 0, TEXT_VA_MIDDLE, TEXT_HA_CENTER, 0, 1);
+
+		pp_x2 = pp_x + i * d_x_10;
+		pp_y2 = pp_y + i * d_y_10;;
+
+
+		write_line_outlined_dashed(pp_x2 - d_x2, pp_y2 + d_y2, pp_x2 + d_x2, pp_y2 - d_y2, 2, 2, 0, 1, 5);
+		write_line_outlined(pp_x2 - d_x2, pp_y2 + d_y2, pp_x2 - d_x2 - d_x_2, pp_y2 + d_y2 - d_y_2, 2, 2, 0, 1);
+		write_line_outlined(pp_x2 + d_x2, pp_y2 - d_y2, pp_x2 + d_x2 - d_x_2, pp_y2 - d_y2 - d_y_2, 2, 2, 0, 1);
+
+		write_string(tmp_str, pp_x2 - d_x - 4, pp_y2 + d_y, 0, 0, TEXT_VA_MIDDLE, TEXT_HA_CENTER, 0, 1);
+		write_string(tmp_str, pp_x2 + d_x + 4, pp_y2 - d_y, 0, 0, TEXT_VA_MIDDLE, TEXT_HA_CENTER, 0, 1);
+	}
 }
 
 void draw_flight_mode(int x, int y, int xs, int ys, int va, int ha, int flags, int font)
@@ -1684,8 +629,20 @@ void draw_flight_mode(int x, int y, int xs, int ys, int va, int ha, int flags, i
 		case FLIGHTSTATUS_FLIGHTMODE_ACRO:
 			write_string("ACRO", x, y, xs, ys, va, ha, flags, font);
 			break;
+		case FLIGHTSTATUS_FLIGHTMODE_ACROPLUS:
+			write_string("ACRO PLUS", x, y, xs, ys, va, ha, flags, font);
+			break;
 		case FLIGHTSTATUS_FLIGHTMODE_LEVELING:
 			write_string("LEVEL", x, y, xs, ys, va, ha, flags, font);
+			break;
+		case FLIGHTSTATUS_FLIGHTMODE_MWRATE:
+			write_string("MWRTE", x, y, xs, ys, va, ha, flags, font);
+			break;
+		case FLIGHTSTATUS_FLIGHTMODE_HORIZON:
+			write_string("HOR", x, y, xs, ys, va, ha, flags, font);
+			break;
+		case FLIGHTSTATUS_FLIGHTMODE_AXISLOCK:
+			write_string("ALCK", x, y, xs, ys, va, ha, flags, font);
 			break;
 		case FLIGHTSTATUS_FLIGHTMODE_VIRTUALBAR:
 			write_string("VBAR", x, y, xs, ys, va, ha, flags, font);
@@ -1705,9 +662,6 @@ void draw_flight_mode(int x, int y, int xs, int ys, int va, int ha, int flags, i
 		case FLIGHTSTATUS_FLIGHTMODE_ALTITUDEHOLD:
 			write_string("AHLD", x, y, xs, ys, va, ha, flags, font);
 			break;
-		case FLIGHTSTATUS_FLIGHTMODE_VELOCITYCONTROL:
-			write_string("VCNT", x, y, xs, ys, va, ha, flags, font);
-			break;
 		case FLIGHTSTATUS_FLIGHTMODE_POSITIONHOLD:
 			write_string("PHLD", x, y, xs, ys, va, ha, flags, font);
 			break;
@@ -1718,7 +672,30 @@ void draw_flight_mode(int x, int y, int xs, int ys, int va, int ha, int flags, i
 			write_string("PLAN", x, y, xs, ys, va, ha, flags, font);
 			break;
 		case FLIGHTSTATUS_FLIGHTMODE_TABLETCONTROL:
-			write_string("TAB", x, y, xs, ys, va, ha, flags, font);
+			TabletInfoTabletModeDesiredGet(&mode);
+			switch (mode) {
+				case TABLETINFO_TABLETMODEDESIRED_POSITIONHOLD:
+					write_string("TAB PH", x, y, xs, ys, va, ha, flags, font);
+					break;
+				case TABLETINFO_TABLETMODEDESIRED_RETURNTOHOME:
+					write_string("TAB RTH", x, y, xs, ys, va, ha, flags, font);
+					break;
+				case TABLETINFO_TABLETMODEDESIRED_RETURNTOTABLET:
+					write_string("TAB RTT", x, y, xs, ys, va, ha, flags, font);
+					break;
+				case TABLETINFO_TABLETMODEDESIRED_PATHPLANNER:
+					write_string("TAB Path", x, y, xs, ys, va, ha, flags, font);
+					break;
+				case TABLETINFO_TABLETMODEDESIRED_FOLLOWME:
+					write_string("TAB FollowMe", x, y, xs, ys, va, ha, flags, font);
+					break;
+				case TABLETINFO_TABLETMODEDESIRED_LAND:
+					write_string("TAB Land", x, y, xs, ys, va, ha, flags, font);
+					break;
+				case TABLETINFO_TABLETMODEDESIRED_CAMERAPOI:
+					write_string("TAB POI", x, y, xs, ys, va, ha, flags, font);
+					break;
+			}
 			break;
 	}
 }
@@ -1781,8 +758,7 @@ void draw_alarms(int x, int y, int xs, int ys, int va, int ha, int flags, int fo
 			if (str_pos + this_len + 2 >= sizeof(temp))
 				break;
 
-			if ((alarm.Alarm[ALL_ALRARMS[pos]] != SYSTEMALARMS_ALARM_WARNING)
-				&& (frame_counter % BLINK_INTERVAL_FRAMES < BLINK_INTERVAL_FRAMES / 2)){
+			if ((alarm.Alarm[ALL_ALRARMS[pos]] != SYSTEMALARMS_ALARM_WARNING) && !blink){
 				// for alarms, we blink
 				this_len += 1;
 				while (this_len > 0){
@@ -1806,7 +782,7 @@ void draw_alarms(int x, int y, int xs, int ys, int va, int ha, int flags, int fo
 
 
 // map with home at center
-void draw_map_home_center(int width_px, int height_px, int width_m, int height_m, bool show_wp, bool show_home)
+void draw_map_home_center(int width_px, int height_px, int width_m, int height_m, bool show_wp, bool show_home, bool show_tablet)
 {
 	char tmp_str[10] = { 0 };
 	WaypointData waypoint;
@@ -1820,7 +796,7 @@ void draw_map_home_center(int width_px, int height_px, int width_m, int height_m
 	scale_y = (float)height_px / height_m;
 
 	// draw waypoints
-	if ((module_state[MODULESETTINGS_ADMINSTATE_PATHPLANNER] == MODULESETTINGS_ADMINSTATE_ENABLED) && show_wp) {
+	if (show_wp && WaypointHandle() && WaypointActiveHandle()) {
 		int num_wp = UAVObjGetNumInstances(WaypointHandle());
 		WaypointActiveGet(&waypoint_active);
 		for (int i=0; i < num_wp; i++) {
@@ -1846,14 +822,29 @@ void draw_map_home_center(int width_px, int height_px, int width_m, int height_m
 		write_string("H", GRAPHICS_X_MIDDLE, GRAPHICS_Y_MIDDLE - 4, 0, 0, TEXT_VA_TOP, TEXT_HA_CENTER, 0, 1);
 	}
 
+	// Draw Tablet
+	if (show_tablet) {
+		TabletInfoData tabletInfo;
+		TabletInfoGet(&tabletInfo);
+		if (tabletInfo.Connected) {
+			float NED[3];
+			lla_to_ned(tabletInfo.Latitude, tabletInfo.Longitude, tabletInfo.Altitude, NED);
+
+			if ((fabs(NED[1]) < width_m / 2) && (fabs(NED[0]) < height_m / 2)) {
+				x = GRAPHICS_X_MIDDLE + scale_x * NED[1];
+				y = GRAPHICS_Y_MIDDLE - scale_y * NED[0];
+				write_string("T", x, y - 4, 0, 0, TEXT_VA_TOP, TEXT_HA_CENTER, 0, 1);
+			}
+		}
+	}
+
 	// draw UAV position and orientation
 	PositionActualNorthGet(&p_north);
 	PositionActualEastGet(&p_east);
 
 	// decide wether the UAV is outside of the map range and where to draw it
 	if ((2.0f * (float)fabs(p_north) > height_m) || (2.0f * (float)fabs(p_east) > width_m)) {
-		draw_uav = frame_counter % BLINK_INTERVAL_FRAMES < BLINK_INTERVAL_FRAMES / 2;
-		if (draw_uav) {
+		if (blink) {
 			aspect = (float)width_m / (float)height_m;
 			aspect_pos = p_north / p_east;
 			if ((float)fabs(aspect_pos) < aspect) {
@@ -1867,6 +858,10 @@ void draw_map_home_center(int width_px, int height_px, int width_m, int height_m
 			}
 			p_north_draw = GRAPHICS_Y_MIDDLE - p_north_draw * scale_y;
 			p_east_draw = GRAPHICS_X_MIDDLE + p_east_draw * scale_x;
+			draw_uav = true;
+		}
+		else {
+			draw_uav = false;
 		}
 	} else {
 		// inside map
@@ -1883,20 +878,20 @@ void draw_map_home_center(int width_px, int height_px, int width_m, int height_m
 		rot = yaw - 210;
 		if (rot < 0)
 			rot += 360;
-		x = p_east_draw + 10.f * sin_lookup_deg(rot);
-		y = p_north_draw - 10.f * cos_lookup_deg(rot);
+		x = p_east_draw + 10.f * sinf(rot * (float)(M_PI / 180));
+		y = p_north_draw - 10.f * cosf(rot * (float)(M_PI / 180));
 		write_line_outlined(p_east_draw, p_north_draw, x, y, 2, 0, 0, 1);
 		rot = yaw - 150;
 		if (rot < 0)
 			rot += 360;
-		x = p_east_draw + 10 * sin_lookup_deg(rot);
-		y = p_north_draw - 10 * cos_lookup_deg(rot);
+		x = p_east_draw + 10 * sinf(rot * (float)(M_PI / 180));
+		y = p_north_draw - 10 * cosf(rot * (float)(M_PI / 180));
 		write_line_outlined(p_east_draw, p_north_draw, x, y, 2, 0, 0, 1);
 	}
 }
 
 // map with uav at center
-void draw_map_uav_center(int width_px, int height_px, int width_m, int height_m, bool show_wp, bool show_uav)
+void draw_map_uav_center(int width_px, int height_px, int width_m, int height_m, bool show_wp, bool show_uav, bool show_tablet)
 {
 	char tmp_str[10] = { 0 };
 	WaypointData waypoint;
@@ -1904,7 +899,6 @@ void draw_map_uav_center(int width_px, int height_px, int width_m, int height_m,
 	float scale_x, scale_y;
 	float p_north, p_east, p_north_draw, p_east_draw, p_north_draw2, p_east_draw2, yaw, aspect, aspect_pos, sin_yaw, cos_yaw;
 	int x, y;
-	bool draw_outside = frame_counter % BLINK_INTERVAL_FRAMES < BLINK_INTERVAL_FRAMES / 2;
 	bool draw_this_wp = false;
 
 	// scaling
@@ -1918,11 +912,11 @@ void draw_map_uav_center(int width_px, int height_px, int width_m, int height_m,
 	PositionActualEastGet(&p_east);
 	if (yaw < 0)
 		yaw += 360;
-	sin_yaw = sin_lookup_deg(yaw);
-	cos_yaw = cos_lookup_deg(yaw);
+	sin_yaw = sinf(yaw * (float)(M_PI / 180));
+	cos_yaw = cosf(yaw * (float)(M_PI / 180));
 
 	// Draw waypoints
-	if ((module_state[MODULESETTINGS_ADMINSTATE_PATHPLANNER] == MODULESETTINGS_ADMINSTATE_ENABLED) && show_wp) {
+	if (show_wp && WaypointHandle() && WaypointActiveHandle()) {
 		int num_wp = UAVObjGetNumInstances(WaypointHandle());
 		WaypointActiveGet(&waypoint_active);
 		for (int i=0; i < num_wp; i++) {
@@ -1941,7 +935,7 @@ void draw_map_uav_center(int width_px, int height_px, int width_m, int height_m,
 
 			draw_this_wp = false;
 			if ((2.0f * (float)fabs(p_north_draw) > height_m) || (2.0f * (float)fabs(p_east_draw) > width_m)) {
-				if (draw_outside) {
+				if (blink) {
 					aspect_pos = p_north_draw / p_east_draw;
 					if ((float)fabs(aspect_pos) < aspect) {
 						// left or right of map
@@ -1975,7 +969,7 @@ void draw_map_uav_center(int width_px, int height_px, int width_m, int height_m,
 	p_north_draw = sin_yaw * -1 * p_east - cos_yaw * p_north;
 
 	if ((2.0f * (float)fabs(p_north_draw) > height_m) || (2.0f * (float)fabs(p_east_draw) > width_m)) {
-		if (draw_outside) {
+		if (blink) {
 			aspect_pos = p_north_draw / p_east_draw;
 			if ((float)fabs(aspect_pos) < aspect) {
 				// left or right of map
@@ -1995,6 +989,47 @@ void draw_map_uav_center(int width_px, int height_px, int width_m, int height_m,
 		x = GRAPHICS_X_MIDDLE + p_east_draw * scale_x;
 		y = GRAPHICS_Y_MIDDLE - p_north_draw * scale_y;
 		write_string("H", x, y- 4, 0, 0, TEXT_VA_TOP, TEXT_HA_CENTER, 0, 1);
+	}
+
+	// Draw Tablet
+	if (show_tablet) {
+		TabletInfoData tabletInfo;
+		TabletInfoGet(&tabletInfo);
+		if (tabletInfo.Connected) {
+			float NED[3];
+			lla_to_ned(tabletInfo.Latitude, tabletInfo.Longitude, tabletInfo.Altitude, NED);
+
+			// translation
+			p_east_draw2 = NED[1] - p_east;
+			p_north_draw2 = NED[0] - p_north;
+
+			// rotation
+			p_east_draw = cos_yaw * p_east_draw2 - sin_yaw * p_north_draw2;
+			p_north_draw = sin_yaw * p_east_draw2 + cos_yaw * p_north_draw2;
+
+			if ((2.0f * (float)fabs(p_north_draw) > height_m) || (2.0f * (float)fabs(p_east_draw) > width_m)) {
+				if (blink) {
+					aspect_pos = p_north_draw / p_east_draw;
+					if ((float)fabs(aspect_pos) < aspect) {
+						// left or right of map
+						p_east_draw = sign(p_east_draw) * width_m / 2.f;
+						p_north_draw = p_east_draw * aspect_pos;
+					} else {
+						// above or below map
+						p_north_draw = sign(p_north_draw) * height_m / 2.f;
+						p_east_draw = p_north_draw / aspect_pos;
+					}
+					x = GRAPHICS_X_MIDDLE + p_east_draw * scale_x;
+					y = GRAPHICS_Y_MIDDLE - p_north_draw * scale_y;
+					write_string("T", x, y- 4, 0, 0, TEXT_VA_TOP, TEXT_HA_CENTER, 0, 1);
+				}
+			} else {
+				// inside map
+				x = GRAPHICS_X_MIDDLE + p_east_draw * scale_x;
+				y = GRAPHICS_Y_MIDDLE - p_north_draw * scale_y;
+				write_string("T", x, y- 4, 0, 0, TEXT_VA_TOP, TEXT_HA_CENTER, 0, 1);
+			}
+		}
 	}
 
 	// Draw UAV
@@ -2061,28 +1096,7 @@ void showVideoType(int16_t x, int16_t y)
 	}
 }
 
-int utoa(unsigned int i, char *output, size_t olen)
-{
-	size_t sublen;
-	if (olen < 2)      /* need room for at least 1 digit + '\0' */
-		return 0;
-	if (i < 10) {        /* base case */
-		output[0] = digits[i];
-		sublen = 0;
-	} else {
-		/*
-						generate leading digits by recursive call;
-						low order digit is then placed at end of array
-				*/
-		sublen = utoa(i/10, output, olen-1);
-		if (sublen == 0)
-			return 0;       /* propigate error */
-		output[sublen] = digits[i % 10];
-	}
-	output[++sublen] = '\0';
-	return sublen;
-}
-
+const char * HOME_LABELS[] = {"", "Home: "};
 
 void render_user_page(OnScreenDisplayPageSettingsData * page)
 {
@@ -2092,34 +1106,38 @@ void render_user_page(OnScreenDisplayPageSettingsData * page)
 	int home_dir = -1;
 	uint8_t tmp_uint8;
 	int16_t tmp_int16;
+	uint32_t tmp_uint32;
 	int tmp_int1, tmp_int2;
 
 	if (page == NULL)
 		return;
 
 	// Get home distance and direction (only makes sense if GPS is enabled
-	if (module_state[MODULESETTINGS_ADMINSTATE_GPS] == MODULESETTINGS_ADMINSTATE_ENABLED && (page->HomeDistance || page->CompassHomeDir)) {
+	if (has_nav && (page->HomeDistance || page->CompassHomeDir) && PositionActualHandle() ) {
 		PositionActualNorthGet(&tmp);
 		PositionActualEastGet(&tmp1);
 
 		if (page->HomeDistance)
 			home_dist = (float)sqrt(tmp * tmp + tmp1 * tmp1) * convert_distance;
 
+		// XXX check HomeArrow
 		if (page->CompassHomeDir)
 			home_dir = (int)(atan2f(tmp1, tmp) * RAD2DEG) + 180;
 	}
 
 	// Draw Map
-	if (page->Map) {
+	if (has_nav && page->Map && PositionActualHandle() ) {
 		if (page->MapCenterMode == ONSCREENDISPLAYPAGESETTINGS_MAPCENTERMODE_UAV) {
 			draw_map_uav_center(page->MapWidthPixels, page->MapHeightPixels,
 								page->MapWidthMeters, page->MapHeightMeters,
-								page->MapShowWp, page->MapShowUavHome);
+								page->MapShowWp, page->MapShowUavHome,
+								page->MapShowTablet);
 
 		} else {
 			draw_map_home_center(page->MapWidthPixels, page->MapHeightPixels,
 								page->MapWidthMeters, page->MapHeightMeters,
-								page->MapShowWp, page->MapShowUavHome);
+								page->MapShowWp, page->MapShowUavHome,
+								page->MapShowTablet);
 		}
 	}
 
@@ -2133,14 +1151,31 @@ void render_user_page(OnScreenDisplayPageSettingsData * page)
 		if (page->AltitudeScaleSource == ONSCREENDISPLAYPAGESETTINGS_ALTITUDESCALESOURCE_BARO) {
 			BaroAltitudeAltitudeGet(&tmp);
 			tmp -= home_baro_altitude;
-		} else {
+		} else if (PositionActualHandle()){
 			PositionActualDownGet(&tmp);
 			tmp *= -1.0f;
+		} else {
+			tmp = 0.f;
 		}
 		if (page->AltitudeScaleAlign == ONSCREENDISPLAYPAGESETTINGS_ALTITUDESCALEALIGN_LEFT)
 			hud_draw_vertical_scale(tmp * convert_distance, 100, -1, page->AltitudeScalePos, GRAPHICS_Y_MIDDLE, 120, 10, 20, 5, 8, 11, 10000, 0);
 		else
 			hud_draw_vertical_scale(tmp * convert_distance, 100, 1, page->AltitudeScalePos, GRAPHICS_Y_MIDDLE, 120, 10, 20, 5, 8, 11, 10000, 0);
+	}
+
+	// Altitude Numeric
+	if (page->AltitudeNumeric) {
+		if (page->AltitudeNumericSource == ONSCREENDISPLAYPAGESETTINGS_ALTITUDENUMERICSOURCE_BARO) {
+			BaroAltitudeAltitudeGet(&tmp);
+			tmp -= home_baro_altitude;
+		} else if (PositionActualHandle()){
+			PositionActualDownGet(&tmp);
+			tmp *= -1.0f;
+		} else {
+			tmp = 0.f;
+		}
+		sprintf(tmp_str, "%d", (int)(tmp * convert_distance));
+		write_string(tmp_str, page->AltitudeNumericPosX, page->AltitudeNumericPosY, 0, 0, TEXT_VA_TOP, (int)page->AltitudeNumericAlign, 0, SIZE_TO_FONT[page->AltitudeNumericFont]);
 	}
 	
 	// Arming Status
@@ -2154,11 +1189,18 @@ void render_user_page(OnScreenDisplayPageSettingsData * page)
 	if (page->ArtificialHorizon) {
 		AttitudeActualRollGet(&tmp);
 		AttitudeActualPitchGet(&tmp1);
-		simple_artifical_horizon(tmp, tmp1, GRAPHICS_X_MIDDLE, GRAPHICS_Y_MIDDLE, 150, 150, 30);
+		simple_artifical_horizon(tmp, tmp1, GRAPHICS_X_MIDDLE, GRAPHICS_Y_MIDDLE, 150, 150, page->ArtificialHorizonMaxPitch, page->ArtificialHorizonPitchSteps);
 	}
-	
+
+	// Center mark
+	if (page->CenterMark) {
+		write_line_outlined(GRAPHICS_X_MIDDLE - CENTER_WING - CENTER_BODY, GRAPHICS_Y_MIDDLE, GRAPHICS_X_MIDDLE - CENTER_BODY, GRAPHICS_Y_MIDDLE, 2, 0, 0, 1);
+		write_line_outlined(GRAPHICS_X_MIDDLE + 1 + CENTER_BODY, GRAPHICS_Y_MIDDLE, GRAPHICS_X_MIDDLE + 1 + CENTER_BODY + CENTER_WING, GRAPHICS_Y_MIDDLE, 0, 2, 0, 1);
+		write_line_outlined(GRAPHICS_X_MIDDLE, GRAPHICS_Y_MIDDLE - CENTER_RUDDER - CENTER_BODY, GRAPHICS_X_MIDDLE, GRAPHICS_Y_MIDDLE - CENTER_BODY, 2, 0, 0, 1);
+	}
+
 	// Battery
-	if (module_state[MODULESETTINGS_ADMINSTATE_BATTERY] == MODULESETTINGS_ADMINSTATE_ENABLED) {
+	if (has_battery && FlightBatteryStateHandle()) {
 		if (page->BatteryVolt) {
 			FlightBatteryStateVoltageGet(&tmp);
 			sprintf(tmp_str, "%0.1fV", (double)tmp);
@@ -2174,6 +1216,19 @@ void render_user_page(OnScreenDisplayPageSettingsData * page)
 			sprintf(tmp_str, "%0.0fmAh", (double)tmp);
 			write_string(tmp_str, page->BatteryConsumedPosX, page->BatteryConsumedPosY, 0, 0, TEXT_VA_TOP, (int)page->BatteryConsumedAlign, 0, SIZE_TO_FONT[page->BatteryConsumedFont]);
 		}
+
+		if (page->BatteryChargeState) {
+			FlightBatteryStateConsumedEnergyGet(&tmp);
+			FlightBatterySettingsCapacityGet(&tmp_uint32);
+			drawBattery(page->BatteryChargeStatePosX, page->BatteryChargeStatePosY, 100 - 100 * tmp / tmp_uint32, 24);
+		}
+	}
+
+	// Climb rate
+	if (page->ClimbRate && VelocityActualHandle()) {
+		VelocityActualDownGet(&tmp);
+		sprintf(tmp_str, "%0.1f", (double)(-1.f * convert_distance * tmp));
+		write_string(tmp_str, page->ClimbRatePosX, page->ClimbRatePosY, 0, 0, TEXT_VA_TOP, (int)page->ClimbRateAlign, 0, SIZE_TO_FONT[page->ClimbRateFont]);
 	}
 	
 	// Compass
@@ -2181,9 +1236,30 @@ void render_user_page(OnScreenDisplayPageSettingsData * page)
 		AttitudeActualYawGet(&tmp);
 		if (tmp < 0)
 			tmp += 360;
-		hud_draw_linear_compass(tmp, home_dir, 120, 180, GRAPHICS_X_MIDDLE, (int)page->CompassPos, 15, 30, 5, 8, 0);
+		if (page->CompassHomeDir) {
+			hud_draw_linear_compass(tmp, home_dir, 120, 180, GRAPHICS_X_MIDDLE, (int)page->CompassPos, 15, 30, 5, 8, 0);
+		}
+		else {
+			hud_draw_linear_compass(tmp, -1, 120, 180, GRAPHICS_X_MIDDLE, (int)page->CompassPos, 15, 30, 5, 8, 0);
+		}
 	}
-	
+
+	// Custom text
+	if (page->CustomText) {
+		memcpy((void *)tmp_str, (void *)(osd_settings.CustomText), ONSCREENDISPLAYSETTINGS_CUSTOMTEXT_NUMELEM);
+		tmp_str[ONSCREENDISPLAYSETTINGS_CUSTOMTEXT_NUMELEM] = 0;
+		write_string(tmp_str, page->CustomTextPosX, page->CustomTextPosY, 0, 0, TEXT_VA_TOP, (int)page->CustomTextAlign, 0, SIZE_TO_FONT[page->CustomTextFont]);
+	}
+
+	// Home arrow
+	if (has_nav && page->HomeArrow) {
+		if (!page->Compass) {
+			AttitudeActualYawGet(&tmp);
+		}
+		tmp = fmodf(home_dir -tmp, 360.f);
+		draw_polygon(page->HomeArrowPosX, page->HomeArrowPosY, tmp, HOME_ARROW, NELEMENTS(HOME_ARROW), 0, 1);
+	}
+
 	// CPU utilization
 	if (page->Cpu) {
 		SystemStatsCPULoadGet(&tmp_uint8);
@@ -2196,31 +1272,50 @@ void render_user_page(OnScreenDisplayPageSettingsData * page)
 		draw_flight_mode(page->FlightModePosX, page->FlightModePosY, 0, 0, TEXT_VA_TOP, (int)page->FlightModeAlign, 0, SIZE_TO_FONT[page->FlightModeFont]);
 	}
 
+	// G Force
+	if (page->GForce) {
+		AccelsData accelsData;
+		AccelsGet(&accelsData);
+		// apply low pass filter to reduce noise bias
+		accelsDataAcc.x = 0.8f * accelsDataAcc.x + 0.2f * accelsData.x;
+		accelsDataAcc.y = 0.8f * accelsDataAcc.y + 0.2f * accelsData.y;
+		accelsDataAcc.z = 0.8f * accelsDataAcc.z + 0.2f * accelsData.z;
+
+		tmp = sqrtf(powf(accelsDataAcc.x, 2.f) + powf(accelsDataAcc.y, 2.f) + powf(accelsDataAcc.z, 2.f)) / 9.81f;
+		sprintf(tmp_str, "%0.1fG", (double)tmp);
+		write_string(tmp_str, page->GForcePosX, page->GForcePosY, 0, 0, TEXT_VA_TOP, (int)page->GForceAlign, 0, SIZE_TO_FONT[page->GForceFont]);
+	}
+
+
 	// GPS
-	if ((module_state[MODULESETTINGS_ADMINSTATE_GPS] == MODULESETTINGS_ADMINSTATE_ENABLED) &&
-		(page->GpsStatus || page->GpsLat || page->GpsLon)) {
+	if (has_gps && GPSPositionHandle() && (page->GpsStatus || page->GpsLat || page->GpsLon || page->GpsMgrs)) {
 		GPSPositionData gps_data;
 		GPSPositionGet(&gps_data);
+
+		draw_image(page->GpsStatusPosX, page->GpsStatusPosY - image_gps.height / 2, &image_gps);
+
+		uint8_t pdop_1 = gps_data.PDOP;
+		uint8_t pdop_2 = roundf(10 * (gps_data.PDOP - pdop_1));
 
 		if (page->GpsStatus) {
 			switch (gps_data.Status)
 			{
 				case GPSPOSITION_STATUS_NOFIX:
-					sprintf(tmp_str, "NOFIX");
+					sprintf(tmp_str, "NO");
 					break;
 				case GPSPOSITION_STATUS_FIX2D:
-					sprintf(tmp_str, "FIX:2D Sats: %d", (int)gps_data.Satellites);
+					sprintf(tmp_str, "2D %d %d.%d", (int)gps_data.Satellites, (int)pdop_1, pdop_2);
 					break;
 				case GPSPOSITION_STATUS_FIX3D:
-					sprintf(tmp_str, "FIX:3D Sats: %d", (int)gps_data.Satellites);
+					sprintf(tmp_str, "3D %d %d.%d", (int)gps_data.Satellites, (int)pdop_1, pdop_2);
 					break;
 				case GPSPOSITION_STATUS_DIFF3D:
-					sprintf(tmp_str, "FIX:D3D Sats: %d", (int)gps_data.Satellites);
+					sprintf(tmp_str, "3D %d %d.%d", (int)gps_data.Satellites, (int)pdop_1, pdop_2);
 					break;
 				default:
 					sprintf(tmp_str, "NOGPS");
 			}
-			write_string(tmp_str, page->GpsStatusPosX, page->GpsStatusPosY, 0, 0, TEXT_VA_TOP, (int)page->GpsStatusAlign, 0, SIZE_TO_FONT[page->GpsStatusFont]);
+			write_string(tmp_str, page->GpsStatusPosX + image_gps.width -4, page->GpsStatusPosY, 0, 0, TEXT_VA_MIDDLE, TEXT_HA_LEFT, 0, SIZE_TO_FONT[page->GpsStatusFont]);
 		}
 
 		if (page->GpsLat) {
@@ -2252,46 +1347,93 @@ void render_user_page(OnScreenDisplayPageSettingsData * page)
 	{
 		tmp = home_dist * convert_distance;
 		if (tmp < convert_distance_divider)
-			sprintf(tmp_str, "Home: %d%s", (int)tmp, dist_unit_short);
-		else
-			sprintf(tmp_str, "Home: %0.2f%s", (double)(tmp / convert_distance_divider), dist_unit_long);
-
-		write_string(tmp_str, page->HomeDistancePosX, page->HomeDistancePosY, 0, 0, TEXT_VA_TOP, (int)page->HomeDistanceAlign, 0, SIZE_TO_FONT[page->HomeDistanceFont]);
+			sprintf(tmp_str, "%d%s", (int)tmp, dist_unit_short);
+		else {
+			sprintf(tmp_str, "%0.2f%s", (double)(tmp / convert_distance_divider), dist_unit_long);
+		}
+		if (page->HomeDistanceShowIcon) {
+			draw_image(page->HomeDistancePosX, page->HomeDistancePosY - image_home.height / 2, &image_home);
+		}
+		write_string(tmp_str, page->HomeDistancePosX + image_home.width - 4, page->HomeDistancePosY, 0, 0, TEXT_VA_MIDDLE, TEXT_HA_LEFT, 0, SIZE_TO_FONT[page->HomeDistanceFont]);
 	}
 
 	// RSSI
 	if (page->Rssi) {
 		ManualControlCommandRssiGet(&tmp_int16);
-		sprintf(tmp_str, "RSSI:%3d", tmp_int16);
-		write_string(tmp_str, page->RssiPosX, page->RssiPosY, 0, 0, TEXT_VA_TOP, (int)page->RssiAlign, 0, SIZE_TO_FONT[page->RssiFont]);
+		if (tmp_int16 > osd_settings.RssiWarnThreshold || blink) {
+			sprintf(tmp_str, "%3d", tmp_int16);
+			if (page->RssiShowIcon) { // XXX rename
+				draw_image(page->RssiPosX, page->RssiPosY - image_rssi.height / 2, &image_rssi);
+			}
+			write_string(tmp_str, page->RssiPosX + image_rssi.width - 4, page->RssiPosY, 0, 0, TEXT_VA_MIDDLE, TEXT_HA_LEFT, 0, SIZE_TO_FONT[page->RssiFont]);
+		}
 	}
 
-	// Speed
+	// Speed Scale
 	if (page->SpeedScale) {
 		tmp = 0.f;
 		switch (page->SpeedScaleSource)
 		{
+			tmp = 0.f;
 			case ONSCREENDISPLAYPAGESETTINGS_SPEEDSCALESOURCE_NAV:
-				VelocityActualNorthGet(&tmp);
-				VelocityActualEastGet(&tmp1);
-				tmp = sqrt(tmp * tmp + tmp1 * tmp1);
+				if (VelocityActualHandle()) {
+					VelocityActualNorthGet(&tmp);
+					VelocityActualEastGet(&tmp1);
+					tmp = sqrt(tmp * tmp + tmp1 * tmp1);
+				}
+				sprintf(tmp_str, "%s", "GND");
 				break;
 			case ONSCREENDISPLAYPAGESETTINGS_SPEEDSCALESOURCE_GPS:
-				if (module_state[MODULESETTINGS_ADMINSTATE_GPS] == MODULESETTINGS_ADMINSTATE_ENABLED) {
+				if (GPSVelocityHandle()) {
+					GPSVelocityNorthGet(&tmp);
+					GPSVelocityEastGet(&tmp1);
+					tmp = sqrt(tmp * tmp + tmp1 * tmp1);
+				}
+				sprintf(tmp_str, "%s", "GND");
+				break;
+			case ONSCREENDISPLAYPAGESETTINGS_SPEEDSCALESOURCE_AIRSPEED:
+				if (AirspeedActualHandle()) {
+					AirspeedActualTrueAirspeedGet(&tmp);
+				}
+				sprintf(tmp_str, "%s", "AIR");
+		}
+		if (page->SpeedScaleAlign == ONSCREENDISPLAYPAGESETTINGS_SPEEDSCALEALIGN_LEFT) {
+			hud_draw_vertical_scale(tmp * convert_speed, 30, -1,  page->SpeedScalePos, GRAPHICS_Y_MIDDLE, 120, 10, 20, 5, 8, 11, 100, 0);
+			write_string(tmp_str, page->SpeedScalePos + 10, 200, 0, 0, TEXT_VA_MIDDLE, TEXT_HA_LEFT, 0, 1);
+		}
+		else {
+			hud_draw_vertical_scale(tmp * convert_speed, 30, 1,  page->SpeedScalePos, GRAPHICS_Y_MIDDLE, 120, 10, 20, 5, 8, 11, 100, 0);
+			write_string(tmp_str, page->SpeedScalePos - 30, 200, 0, 0, TEXT_VA_MIDDLE, TEXT_HA_LEFT, 0, 1);
+		}
+	}
+
+	// Speed Numeric
+	if (page->SpeedNumeric) {
+		tmp = 0.f;
+		switch (page->SpeedNumericSource)
+		{
+			tmp = 0.f;
+			case ONSCREENDISPLAYPAGESETTINGS_SPEEDNUMERICSOURCE_NAV:
+				if (VelocityActualHandle()) {
+					VelocityActualNorthGet(&tmp);
+					VelocityActualEastGet(&tmp1);
+				}
+				tmp = sqrt(tmp * tmp + tmp1 * tmp1);
+				break;
+			case ONSCREENDISPLAYPAGESETTINGS_SPEEDNUMERICSOURCE_GPS:
+				if (GPSVelocityHandle()) {
 					GPSVelocityNorthGet(&tmp);
 					GPSVelocityEastGet(&tmp1);
 					tmp = sqrt(tmp * tmp + tmp1 * tmp1);
 				}
 				break;
-			case ONSCREENDISPLAYPAGESETTINGS_SPEEDSCALESOURCE_AIRSPEED:
-				if (module_state[MODULESETTINGS_ADMINSTATE_AIRSPEED] == MODULESETTINGS_ADMINSTATE_ENABLED) {
+			case ONSCREENDISPLAYPAGESETTINGS_SPEEDNUMERICSOURCE_AIRSPEED:
+				if (AirspeedActualHandle()) {
 					AirspeedActualTrueAirspeedGet(&tmp);
 				}
 		}
-		if (page->SpeedScaleAlign == ONSCREENDISPLAYPAGESETTINGS_SPEEDSCALEALIGN_LEFT)
-			hud_draw_vertical_scale(tmp * convert_speed, 30, -1,  page->SpeedScalePos, GRAPHICS_Y_MIDDLE, 120, 10, 20, 5, 8, 11, 100, 0);
-		else
-			hud_draw_vertical_scale(tmp * convert_speed, 30, 1,  page->SpeedScalePos, GRAPHICS_Y_MIDDLE, 120, 10, 20, 5, 8, 11, 100, 0);
+		sprintf(tmp_str, "%d", (int)(tmp * convert_speed));
+		write_string(tmp_str, page->SpeedNumericPosX, page->SpeedNumericPosY, 0, 0, (int)page->SpeedNumericAlign, TEXT_HA_LEFT, 0, SIZE_TO_FONT[page->SpeedNumericFont]);
 	}
 
 	// Time
@@ -2311,6 +1453,100 @@ void render_user_page(OnScreenDisplayPageSettingsData * page)
 		}
 		write_string(tmp_str, page->TimePosX, page->TimePosY, 0, 0, TEXT_VA_TOP, (int)page->TimeAlign, 0, SIZE_TO_FONT[page->TimeFont]);
 	}
+
+	// Throttle
+	if (page->Throttle){
+		ManualControlCommandThrottleGet(&tmp);
+		if (tmp < 0){
+			tmp = 0;
+		}
+
+		sprintf(tmp_str, "%d", (int)(100 * tmp + 0.5f));
+
+		write_string(tmp_str, page->ThrottlePosX, page->ThrottlePosY, 0, 0, TEXT_VA_TOP, (int)page->ThrottleAlign, 0, SIZE_TO_FONT[page->ThrottleFont]);
+	}
+}
+
+
+#define STATS_LINE_SPACING 11
+#define STATS_LINE_Y 40
+#define STATS_LINE_X (GRAPHICS_LEFT + 10)
+#define STATS_FONT 2
+
+int render_stats()
+{
+	float tmp;
+	char tmp_str[100] = { 0 };
+	int y_pos = STATS_LINE_Y;
+	FlightStatsData stats;
+	FlightStatsGet(&stats);
+
+	write_string("Flight Statistics", GRAPHICS_X_MIDDLE, 10, 0, 0, TEXT_VA_TOP, TEXT_HA_CENTER, 0, 3);
+
+	if (has_nav){
+		tmp = convert_distance * stats.DistanceTravelled;
+		if (tmp < convert_distance_divider)
+			sprintf(tmp_str, "Distance traveled:        %d %s", (int)tmp, dist_unit_short);
+		else {
+			sprintf(tmp_str, "Distance traveled:        %0.2f %s", (double)(tmp / convert_distance_divider), dist_unit_long);
+		}
+		write_string(tmp_str, STATS_LINE_X, y_pos, 0, 0, TEXT_VA_TOP, TEXT_HA_LEFT, 0, STATS_FONT);
+		y_pos += STATS_LINE_SPACING;
+
+		tmp = convert_distance * stats.MaxDistanceToHome;
+		if (tmp < convert_distance_divider)
+			sprintf(tmp_str, "Maximum distance to home: %d %s", (int)tmp, dist_unit_short);
+		else {
+			sprintf(tmp_str, "Maximum distance to home: %0.2f %s", (double)(tmp / convert_distance_divider), dist_unit_long);
+		}
+		write_string(tmp_str, STATS_LINE_X, y_pos, 0, 0, TEXT_VA_TOP, TEXT_HA_LEFT, 0, STATS_FONT);
+		y_pos += STATS_LINE_SPACING;
+
+		tmp = convert_distance * stats.MaxAltitude;
+		sprintf(tmp_str, "Maximum altitude:         %0.2f %s", (double)tmp, dist_unit_short);
+		write_string(tmp_str, STATS_LINE_X, y_pos, 0, 0, TEXT_VA_TOP, TEXT_HA_LEFT, 0, STATS_FONT);
+		y_pos += 2 * STATS_LINE_SPACING;
+
+
+		tmp = convert_speed * stats.MaxGroundSpeed;
+		sprintf(tmp_str, "Maximum ground speed:     %0.2f %s", (double)tmp, speed_unit);
+		write_string(tmp_str, STATS_LINE_X, y_pos, 0, 0, TEXT_VA_TOP, TEXT_HA_LEFT, 0, STATS_FONT);
+		y_pos += STATS_LINE_SPACING;
+	}
+
+	tmp = convert_distance * stats.MaxClimbRate;
+	sprintf(tmp_str, "Maximum climb rate:       %0.2f %s/s", (double)tmp, dist_unit_short);
+	write_string(tmp_str, STATS_LINE_X, y_pos, 0, 0, TEXT_VA_TOP, TEXT_HA_LEFT, 0, STATS_FONT);
+	y_pos += STATS_LINE_SPACING;
+
+
+	tmp = convert_distance * stats.MaxDescentRate;
+	sprintf(tmp_str, "Maximum descent rate:     %0.2f %s/s", (double)tmp, dist_unit_short);
+	write_string(tmp_str, STATS_LINE_X, y_pos, 0, 0, TEXT_VA_TOP, TEXT_HA_LEFT, 0, STATS_FONT);
+	y_pos += 2 * STATS_LINE_SPACING;
+
+	sprintf(tmp_str, "Maximum roll rate:        %d deg/s", stats.MaxRollRate);
+	write_string(tmp_str, STATS_LINE_X, y_pos, 0, 0, TEXT_VA_TOP, TEXT_HA_LEFT, 0, STATS_FONT);
+	y_pos += STATS_LINE_SPACING;
+
+	sprintf(tmp_str, "Maximum pitch rate:       %d deg/s", stats.MaxPitchRate);
+	write_string(tmp_str, STATS_LINE_X, y_pos, 0, 0, TEXT_VA_TOP, TEXT_HA_LEFT, 0, STATS_FONT);
+	y_pos += STATS_LINE_SPACING;
+
+	sprintf(tmp_str, "Maximum yaw rate:         %d deg/s", stats.MaxYawRate);
+	write_string(tmp_str, STATS_LINE_X, y_pos, 0, 0, TEXT_VA_TOP, TEXT_HA_LEFT, 0, STATS_FONT);
+	y_pos += 2 * STATS_LINE_SPACING;
+
+	if (has_battery){
+		sprintf(tmp_str, "Consumed energy:          %d mAh", stats.ConsumedEnergy);
+		write_string(tmp_str, STATS_LINE_X, y_pos, 0, 0, TEXT_VA_TOP, TEXT_HA_LEFT, 0, STATS_FONT);
+		y_pos += STATS_LINE_SPACING;
+
+		sprintf(tmp_str, "Initial battery voltage:  %0.1f V", (double)stats.InitialBatteryVoltage / 1000.);
+		write_string(tmp_str, STATS_LINE_X, y_pos, 0, 0, TEXT_VA_TOP, TEXT_HA_LEFT, 0, STATS_FONT);
+		y_pos += STATS_LINE_SPACING;
+	}
+	return y_pos;
 }
 
 
@@ -2354,25 +1590,34 @@ int32_t OnScreenDisplayInitialize(void)
 {
 	uint8_t osd_state;
 
-	ModuleSettingsAdminStateGet(module_state);
-	
-	// XXX fix this!
-//	STATIC_ASSERT(sizeof(OnScreenDisplayPageSettingsData) == sizeof(OnScreenDisplayPageSettings2Data), "settings must be the same!");
-//	STATIC_ASSERT(sizeof(OnScreenDisplayPageSettingsData) == sizeof(OnScreenDisplayPageSettings3Data), "settings must be the same!");
-//	STATIC_ASSERT(sizeof(OnScreenDisplayPageSettingsData) == sizeof(OnScreenDisplayPageSettings4Data), "settings must be the same!");
-
-	OnScreenDisplayPageSettingsInitialize();
-	OnScreenDisplayPageSettings2Initialize();
-	OnScreenDisplayPageSettings3Initialize();
-	OnScreenDisplayPageSettings4Initialize();
-
+	OnScreenDisplaySettingsInitialize();
 	OnScreenDisplaySettingsOSDEnabledGet(&osd_state);
+
 	if (osd_state == ONSCREENDISPLAYSETTINGS_OSDENABLED_ENABLED) {
 		module_enabled = true;
 	} else {
 		module_enabled = false;
 		return 0;
 	}
+
+	ModuleSettingsData module_settings;
+	ModuleSettingsGet(&module_settings);
+
+	has_gps = module_settings.AdminState[MODULESETTINGS_ADMINSTATE_GPS];
+	has_battery = module_settings.AdminState[MODULESETTINGS_ADMINSTATE_BATTERY];
+
+	uint8_t filter;
+	StateEstimationNavigationFilterGet(&filter);
+	if (filter != STATEESTIMATION_NAVIGATIONFILTER_NONE){
+		has_nav = true;
+	} else {
+		has_nav = false;
+	}
+
+	OnScreenDisplayPageSettingsInitialize();
+	OnScreenDisplayPageSettings2Initialize();
+	OnScreenDisplayPageSettings3Initialize();
+	OnScreenDisplayPageSettings4Initialize();
 
 	/* Register callbacks for modified settings */
 	OnScreenDisplaySettingsConnectCallback(OnScreenSettingsUpdatedCb);
@@ -2397,15 +1642,22 @@ MODULE_INITCALL(OnScreenDisplayInitialize, OnScreenDisplayStart);
 static void onScreenDisplayTask(__attribute__((unused)) void *parameters)
 {
 	AccessoryDesiredData accessory;
-	OnScreenDisplaySettingsData osd_settings;
 	OnScreenDisplayPageSettingsData osd_page_settings;
 
+	uint32_t now;
+	uint32_t show_stats_until = 0;
+	uint8_t arm_status;
+	uint8_t last_arm_status = FLIGHTSTATUS_ARMED_DISARMED;
 	uint8_t current_page = 0;
 	uint8_t last_page = -1;
+	uint8_t page_when_stats_enabled = 0;
 	float tmp;
-	
+
 	OnScreenDisplaySettingsGet(&osd_settings);
 	home_baro_altitude = 0.;
+
+	// clear accels data accumulator
+	memset(&accelsDataAcc, 0, sizeof(AccelsData));
 
 	// blank
 	while (PIOS_Thread_Systime() <= BLANK_TIME) {
@@ -2452,6 +1704,7 @@ static void onScreenDisplayTask(__attribute__((unused)) void *parameters)
 
 	while (1) {
 		if (PIOS_Semaphore_Take(onScreenDisplaySemaphore, LONG_TIME) == true) {
+			now = PIOS_Thread_Systime();
 #ifdef DEBUG_TIMING
 			in_ticks = PIOS_Thread_Systime();
 			out_time = in_ticks - out_ticks;
@@ -2470,6 +1723,7 @@ static void onScreenDisplayTask(__attribute__((unused)) void *parameters)
 					convert_speed = MS_TO_MPH;
 					dist_unit_long = IMPERIAL_DIST_UNIT_LONG;
 					dist_unit_short = IMPERIAL_DIST_UNIT_SHORT;
+					speed_unit = IMPERIAL_SPEED_UNIT;
 				}
 				else{
 					convert_distance = 1.f;
@@ -2477,10 +1731,14 @@ static void onScreenDisplayTask(__attribute__((unused)) void *parameters)
 					convert_speed = MS_TO_KMH;
 					dist_unit_long = METRIC_DIST_UNIT_LONG;
 					dist_unit_short = METRIC_DIST_UNIT_SHORT;
+					speed_unit = METRIC_SPEED_UNIT;
 				}
 
 				osd_settings_updated = false;
 			}
+
+			// decide whether to show blinking elements
+			blink = frame_counter % BLINK_INTERVAL_FRAMES < BLINK_INTERVAL_FRAMES / 2;
 
 			if (frame_counter % 5 == 0) {
 				// determine current page to use
@@ -2509,10 +1767,53 @@ static void onScreenDisplayTask(__attribute__((unused)) void *parameters)
 				osd_page_updated = false;
 			}
 
+			// Show stats when we disarm
+			FlightStatusArmedGet(&arm_status);
+			if (arm_status == FLIGHTSTATUS_ARMED_DISARMED){
+				if (last_arm_status != FLIGHTSTATUS_ARMED_DISARMED){
+					switch (osd_settings.StatsDisplayDuration){
+						case ONSCREENDISPLAYSETTINGS_STATSDISPLAYDURATION_OFF:
+							show_stats_until = 0;
+							break;
+						case ONSCREENDISPLAYSETTINGS_STATSDISPLAYDURATION_10S:
+							show_stats_until = now + 10 * 1000;
+							break;
+						case ONSCREENDISPLAYSETTINGS_STATSDISPLAYDURATION_20S:
+							show_stats_until = now + 20 * 1000;
+							break;
+						case ONSCREENDISPLAYSETTINGS_STATSDISPLAYDURATION_30S:
+							show_stats_until = now + 30 * 1000;
+							break;
+					}
+					page_when_stats_enabled = current_page;
+					current_page = ONSCREENDISPLAYSETTINGS_PAGECONFIG_STATISTICS;
+				} else {
+					if (show_stats_until > now){
+						if (frame_counter % 5 == 0 && current_page != page_when_stats_enabled){
+							// toggling the page switch gets rid of the stats display
+							show_stats_until = 0;
+						}
+						else {
+							current_page = ONSCREENDISPLAYSETTINGS_PAGECONFIG_STATISTICS;
+						}
+					}
+				}
+			}
+
 			clearGraphics();
 			switch (current_page) {
 				case ONSCREENDISPLAYSETTINGS_PAGECONFIG_OFF:
 					break;
+				case ONSCREENDISPLAYSETTINGS_PAGECONFIG_STATISTICS:
+					render_stats();
+					break;
+				case ONSCREENDISPLAYSETTINGS_PAGECONFIG_MENU:
+					if ((arm_status == FLIGHTSTATUS_ARMED_DISARMED) ||
+						(osd_settings.DisableMenuWhenArmed == ONSCREENDISPLAYSETTINGS_DISABLEMENUWHENARMED_DISABLED)){
+							render_osd_menu();
+							break;
+					}
+					write_string("Menu Disabled", GRAPHICS_X_MIDDLE, 50, 0, 0, TEXT_VA_TOP, TEXT_HA_CENTER, 0, 3);
 				case ONSCREENDISPLAYSETTINGS_PAGECONFIG_CUSTOM1:
 				case ONSCREENDISPLAYSETTINGS_PAGECONFIG_CUSTOM2:
 				case ONSCREENDISPLAYSETTINGS_PAGECONFIG_CUSTOM3:
@@ -2525,9 +1826,13 @@ static void onScreenDisplayTask(__attribute__((unused)) void *parameters)
 
 			frame_counter++;
 			last_page = current_page;
+			last_arm_status = arm_status;
 #ifdef DEBUG_TIMING
 			out_ticks = PIOS_Thread_Systime();
 			in_time   = out_ticks - in_ticks;
+			char tmp_str[50];
+			sprintf(tmp_str, "%03d %03d", (int)in_time, (int)out_time);
+			write_string(tmp_str, GRAPHICS_X_MIDDLE, GRAPHICS_Y_MIDDLE - 20, 0, 0, TEXT_VA_TOP, TEXT_HA_CENTER, 0, 3);
 #endif
 		}
 	}

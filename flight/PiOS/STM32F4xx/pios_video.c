@@ -42,7 +42,7 @@
 #include "pios_semaphore.h"
 
 // How many frames until we redraw
-#define VSYNC_REDRAW_CNT 4
+#define VSYNC_REDRAW_CNT 2
 
 extern struct pios_semaphore * onScreenDisplaySemaphore;
 
@@ -125,6 +125,11 @@ bool PIOS_Vsync_ISR()
 {
 	static bool woken = false;
 	static uint16_t Vsync_update = 0;
+
+	// discard spurious vsync pulses (due to improper grounding), so we don't overload the CPU
+	if (active_line > 0 && active_line < pios_video_type_cfg_ntsc.graphics_hight_real - 10) {
+		return false;
+	}
 
 	// Stop the line counter
 	TIM_Cmd(dev_cfg->line_counter, DISABLE);

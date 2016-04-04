@@ -52,6 +52,12 @@ ConfigOsdWidget::ConfigOsdWidget(QWidget *parent) : ConfigTaskWidget(parent)
     manualCommandObj = ManualControlCommand::GetInstance(getObjectManager());
     manualSettingsObj = ManualControlSettings::GetInstance(getObjectManager());
 
+    // connect signals to set/get custom OSD text
+    connect(ui->applyButton, SIGNAL(clicked()), this, SLOT(setCustomText()));
+    connect(ui->saveButton, SIGNAL(clicked()), this, SLOT(setCustomText()));
+    connect(ui->reloadButton, SIGNAL(clicked()), this, SLOT(getCustomText()));
+    connect(osdSettingsObj, SIGNAL(CustomText_0Changed(quint8)), this, SLOT(getCustomText()));
+
     // setup the OSD widgets
     QString osdSettingsName = osdSettingsObj->getName();
     addUAVObjectToWidgetRelation(osdSettingsName, "OSDEnabled", ui->cb_osd_enabled);
@@ -75,6 +81,13 @@ ConfigOsdWidget::ConfigOsdWidget(QWidget *parent) : ConfigTaskWidget(parent)
     addUAVObjectToWidgetRelation(osdSettingsName, "PageConfig", ui->osdPagePos4, 3);
     addUAVObjectToWidgetRelation(osdSettingsName, "PageConfig", ui->osdPagePos5, 4);
     addUAVObjectToWidgetRelation(osdSettingsName, "PageConfig", ui->osdPagePos6, 5);
+
+    addUAVObjectToWidgetRelation(osdSettingsName, "DisableMenuWhenArmed", ui->cb_menu_disabled);
+    ui->cb_menu_disabled->setProperty(trueString.toLatin1(), "Enabled");
+    ui->cb_menu_disabled->setProperty(falseString.toLatin1(), "Disabled");
+
+    addUAVObjectToWidgetRelation(osdSettingsName, "RssiWarnThreshold", ui->RssiWarnThreshold);
+    addUAVObjectToWidgetRelation(osdSettingsName, "StatsDisplayDuration", ui->cb_stats_duration);
 
     connect(ManualControlCommand::GetInstance(getObjectManager()),SIGNAL(objectUpdated(UAVObject*)),this,SLOT(movePageSlider()));
     connect(OnScreenDisplaySettings::GetInstance(getObjectManager()),SIGNAL(objectUpdated(UAVObject*)),this,SLOT(updatePositionSlider()));
@@ -329,11 +342,37 @@ void ConfigOsdWidget::handle_button_3_2()
     copyOsdPage(3, 2);
 }
 
+void ConfigOsdWidget::setCustomText()
+{
+    const QString text = ui->le_custom_text->displayText();
+    int n_string = text.size();
+
+    for (int i=0; i<OnScreenDisplaySettings::CUSTOMTEXT_NUMELEM; i++){
+        if (i < n_string){
+            osdSettingsObj->setCustomText(i, (quint8)(text.data()[i].toLatin1()));
+        } else {
+            osdSettingsObj->setCustomText(i, 0);
+        }
+    }
+}
+
+void ConfigOsdWidget::getCustomText()
+{
+    char text[OnScreenDisplaySettings::CUSTOMTEXT_NUMELEM];
+
+    for (int i=0; i<OnScreenDisplaySettings::CUSTOMTEXT_NUMELEM; i++){
+        text[i] =  osdSettingsObj->getCustomText(i);
+    }
+    QString q_text = QString::fromLatin1(text, OnScreenDisplaySettings::CUSTOMTEXT_NUMELEM);
+    ui->le_custom_text->setText(q_text);
+}
+
+
 void ConfigOsdWidget::setupOsdPage(Ui::OsdPage * page, QWidget * page_widget, UAVObject * settings)
 {
     page->setupUi(page_widget);
     QString name = settings->getName();
-    
+
     // Alarms
     addUAVObjectToWidgetRelation(name, "Alarm", page->AlarmEnabled);
     page->AlarmEnabled->setProperty(trueString.toLatin1(), "Enabled");
@@ -351,6 +390,16 @@ void ConfigOsdWidget::setupOsdPage(Ui::OsdPage * page, QWidget * page_widget, UA
     addUAVObjectToWidgetRelation(name, "AltitudeScaleAlign", page->AltitudeScaleAlign);
     addUAVObjectToWidgetRelation(name, "AltitudeScaleSource", page->AltitudeScaleSource);
 
+    // Altitude Numeric
+    addUAVObjectToWidgetRelation(name, "AltitudeNumeric", page->AltitudeNumericEnabled);
+    page->AltitudeNumericEnabled->setProperty(trueString.toLatin1(), "Enabled");
+    page->AltitudeNumericEnabled->setProperty(falseString.toLatin1(), "Disabled");
+    addUAVObjectToWidgetRelation(name, "AltitudeNumericPosX", page->AltitudeNumericX);
+    addUAVObjectToWidgetRelation(name, "AltitudeNumericPosY", page->AltitudeNumericY);
+    addUAVObjectToWidgetRelation(name, "AltitudeNumericAlign", page->AltitudeNumericAlign);
+    addUAVObjectToWidgetRelation(name, "AltitudeNumericFont", page->AltitudeNumericFont);
+    addUAVObjectToWidgetRelation(name, "AltitudeNumericSource", page->AltitudeNumericSource);
+
     // Arming Status
     addUAVObjectToWidgetRelation(name, "ArmStatus", page->ArmStatusEnabled);
     page->ArmStatusEnabled->setProperty(trueString.toLatin1(), "Enabled");
@@ -364,6 +413,8 @@ void ConfigOsdWidget::setupOsdPage(Ui::OsdPage * page, QWidget * page_widget, UA
     addUAVObjectToWidgetRelation(name, "ArtificialHorizon", page->ArtificialHorizonEnabled);
     page->ArtificialHorizonEnabled->setProperty(trueString.toLatin1(), "Enabled");
     page->ArtificialHorizonEnabled->setProperty(falseString.toLatin1(), "Disabled");
+    addUAVObjectToWidgetRelation(name, "ArtificialHorizonMaxPitch", page->ArtificialHorizonMaxPitch);
+    addUAVObjectToWidgetRelation(name, "ArtificialHorizonPitchSteps", page->ArtificialHorizonPitchSteps);
 
     // Battery Voltage
     addUAVObjectToWidgetRelation(name, "BatteryVolt", page->BatteryVoltEnabled);
@@ -392,6 +443,27 @@ void ConfigOsdWidget::setupOsdPage(Ui::OsdPage * page, QWidget * page_widget, UA
     addUAVObjectToWidgetRelation(name, "BatteryConsumedFont", page->BatteryConsumedFont);
     addUAVObjectToWidgetRelation(name, "BatteryConsumedAlign", page->BatteryConsumedAlign);
 
+    // Battery Charge State
+    addUAVObjectToWidgetRelation(name, "BatteryChargeState", page->BatteryChargeStateEnabled);
+    page->BatteryChargeStateEnabled->setProperty(trueString.toLatin1(), "Enabled");
+    page->BatteryChargeStateEnabled->setProperty(falseString.toLatin1(), "Disabled");
+    addUAVObjectToWidgetRelation(name, "BatteryChargeStatePosX", page->BatteryChargeStateX);
+    addUAVObjectToWidgetRelation(name, "BatteryChargeStatePosY", page->BatteryChargeStateY);
+
+    // Center Mark
+    addUAVObjectToWidgetRelation(name, "CenterMark", page->CenterMarkEnabled);
+    page->CenterMarkEnabled->setProperty(trueString.toLatin1(), "Enabled");
+    page->CenterMarkEnabled->setProperty(falseString.toLatin1(), "Disabled");
+
+    // Climb rate
+    addUAVObjectToWidgetRelation(name, "ClimbRate", page->ClimbRateEnabled);
+    page->ClimbRateEnabled->setProperty(trueString.toLatin1(), "Enabled");
+    page->ClimbRateEnabled->setProperty(falseString.toLatin1(), "Disabled");
+    addUAVObjectToWidgetRelation(name, "ClimbRatePosX", page->ClimbRateX);
+    addUAVObjectToWidgetRelation(name, "ClimbRatePosY", page->ClimbRateY);
+    addUAVObjectToWidgetRelation(name, "ClimbRateFont", page->ClimbRateFont);
+    addUAVObjectToWidgetRelation(name, "ClimbRateAlign", page->ClimbRateAlign);
+
     // Compass
     addUAVObjectToWidgetRelation(name, "Compass", page->CompassEnabled);
     page->CompassEnabled->setProperty(trueString.toLatin1(), "Enabled");
@@ -410,6 +482,15 @@ void ConfigOsdWidget::setupOsdPage(Ui::OsdPage * page, QWidget * page_widget, UA
     addUAVObjectToWidgetRelation(name, "CpuFont", page->CpuFont);
     addUAVObjectToWidgetRelation(name, "CpuAlign", page->CpuAlign);
 
+    // Custom text
+    addUAVObjectToWidgetRelation(name, "CustomText", page->CustomTextEnabled);
+    page->CustomTextEnabled->setProperty(trueString.toLatin1(), "Enabled");
+    page->CustomTextEnabled->setProperty(falseString.toLatin1(), "Disabled");
+    addUAVObjectToWidgetRelation(name, "CustomTextPosX", page->CustomTextX);
+    addUAVObjectToWidgetRelation(name, "CustomTextPosY", page->CustomTextY);
+    addUAVObjectToWidgetRelation(name, "CustomTextFont", page->CustomTextFont);
+    addUAVObjectToWidgetRelation(name, "CustomTextAlign", page->CustomTextAlign);
+
     // Flight Mode
     addUAVObjectToWidgetRelation(name, "FlightMode", page->FlightModeEnabled);
     page->FlightModeEnabled->setProperty(trueString.toLatin1(), "Enabled");
@@ -419,6 +500,15 @@ void ConfigOsdWidget::setupOsdPage(Ui::OsdPage * page, QWidget * page_widget, UA
     addUAVObjectToWidgetRelation(name, "FlightModeFont", page->FlightModeFont);
     addUAVObjectToWidgetRelation(name, "FlightModeAlign", page->FlightModeAlign);
 
+    // G force
+    addUAVObjectToWidgetRelation(name, "GForce", page->GForceEnabled);
+    page->GForceEnabled->setProperty(trueString.toLatin1(), "Enabled");
+    page->GForceEnabled->setProperty(falseString.toLatin1(), "Disabled");
+    addUAVObjectToWidgetRelation(name, "GForcePosX", page->GForceX);
+    addUAVObjectToWidgetRelation(name, "GForcePosY", page->GForceY);
+    addUAVObjectToWidgetRelation(name, "GForceFont", page->GForceFont);
+    addUAVObjectToWidgetRelation(name, "GForceAlign", page->GForceAlign);
+
     // GPS Status
     addUAVObjectToWidgetRelation(name, "GpsStatus", page->GpsStatusEnabled);
     page->GpsStatusEnabled->setProperty(trueString.toLatin1(), "Enabled");
@@ -426,7 +516,6 @@ void ConfigOsdWidget::setupOsdPage(Ui::OsdPage * page, QWidget * page_widget, UA
     addUAVObjectToWidgetRelation(name, "GpsStatusPosX", page->GpsStatusX);
     addUAVObjectToWidgetRelation(name, "GpsStatusPosY", page->GpsStatusY);
     addUAVObjectToWidgetRelation(name, "GpsStatusFont", page->GpsStatusFont);
-    addUAVObjectToWidgetRelation(name, "GpsStatusAlign", page->GpsStatusAlign);
 
     // GPS Latitude
     addUAVObjectToWidgetRelation(name, "GpsLat", page->GpsLatEnabled);
@@ -462,7 +551,16 @@ void ConfigOsdWidget::setupOsdPage(Ui::OsdPage * page, QWidget * page_widget, UA
     addUAVObjectToWidgetRelation(name, "HomeDistancePosX", page->HomeDistanceX);
     addUAVObjectToWidgetRelation(name, "HomeDistancePosY", page->HomeDistanceY);
     addUAVObjectToWidgetRelation(name, "HomeDistanceFont", page->HomeDistanceFont);
-    addUAVObjectToWidgetRelation(name, "HomeDistanceAlign", page->HomeDistanceAlign);
+    addUAVObjectToWidgetRelation(name, "HomeDistanceShowIcon", page->HomeDistanceShowIcon);
+    page->HomeDistanceShowIcon->setProperty(trueString.toLatin1(), "Enabled");
+    page->HomeDistanceShowIcon->setProperty(falseString.toLatin1(), "Disabled");
+
+    // Home Arrow
+    addUAVObjectToWidgetRelation(name, "HomeArrow", page->HomeArrowEnabled);
+    page->HomeArrowEnabled->setProperty(trueString.toLatin1(), "Enabled");
+    page->HomeArrowEnabled->setProperty(falseString.toLatin1(), "Disabled");
+    addUAVObjectToWidgetRelation(name, "HomeArrowPosX", page->HomeArrowX);
+    addUAVObjectToWidgetRelation(name, "HomeArrowPosY", page->HomeArrowY);
 
     // RSSI
     addUAVObjectToWidgetRelation(name, "Rssi", page->RssiEnabled);
@@ -471,7 +569,9 @@ void ConfigOsdWidget::setupOsdPage(Ui::OsdPage * page, QWidget * page_widget, UA
     addUAVObjectToWidgetRelation(name, "RssiPosX", page->RssiX);
     addUAVObjectToWidgetRelation(name, "RssiPosY", page->RssiY);
     addUAVObjectToWidgetRelation(name, "RssiFont", page->RssiFont);
-    addUAVObjectToWidgetRelation(name, "RssiAlign", page->RssiAlign);
+    addUAVObjectToWidgetRelation(name, "RssiShowIcon", page->RssiShowIcon);
+    page->RssiShowIcon->setProperty(trueString.toLatin1(), "Enabled");
+    page->RssiShowIcon->setProperty(falseString.toLatin1(), "Disabled");
 
     // Speed Scale
     addUAVObjectToWidgetRelation(name, "SpeedScale", page->SpeedScaleEnabled);
@@ -481,7 +581,17 @@ void ConfigOsdWidget::setupOsdPage(Ui::OsdPage * page, QWidget * page_widget, UA
     addUAVObjectToWidgetRelation(name, "SpeedScaleAlign", page->SpeedScaleAlign);
     addUAVObjectToWidgetRelation(name, "SpeedScaleSource", page->SpeedScaleSource);
 
-    // RSSI
+    // Speed Numeric
+    addUAVObjectToWidgetRelation(name, "SpeedNumeric", page->SpeedNumericEnabled);
+    page->SpeedNumericEnabled->setProperty(trueString.toLatin1(), "Enabled");
+    page->SpeedNumericEnabled->setProperty(falseString.toLatin1(), "Disabled");
+    addUAVObjectToWidgetRelation(name, "SpeedNumericPosX", page->SpeedNumericX);
+    addUAVObjectToWidgetRelation(name, "SpeedNumericPosY", page->SpeedNumericY);
+    addUAVObjectToWidgetRelation(name, "SpeedNumericAlign", page->SpeedNumericAlign);
+    addUAVObjectToWidgetRelation(name, "SpeedNumericFont", page->SpeedNumericFont);
+    addUAVObjectToWidgetRelation(name, "SpeedNumericSource", page->SpeedNumericSource);
+
+    // Time
     addUAVObjectToWidgetRelation(name, "Time", page->TimeEnabled);
     page->TimeEnabled->setProperty(trueString.toLatin1(), "Enabled");
     page->TimeEnabled->setProperty(falseString.toLatin1(), "Disabled");
@@ -489,6 +599,15 @@ void ConfigOsdWidget::setupOsdPage(Ui::OsdPage * page, QWidget * page_widget, UA
     addUAVObjectToWidgetRelation(name, "TimePosY", page->TimeY);
     addUAVObjectToWidgetRelation(name, "TimeFont", page->TimeFont);
     addUAVObjectToWidgetRelation(name, "TimeAlign", page->TimeAlign);
+
+    // Throttle
+    addUAVObjectToWidgetRelation(name, "Throttle", page->ThrottleEnabled);
+    page->ThrottleEnabled->setProperty(trueString.toLatin1(), "Enabled");
+    page->ThrottleEnabled->setProperty(falseString.toLatin1(), "Disabled");
+    addUAVObjectToWidgetRelation(name, "ThrottlePosX", page->ThrottleX);
+    addUAVObjectToWidgetRelation(name, "ThrottlePosY", page->ThrottleY);
+    addUAVObjectToWidgetRelation(name, "ThrottleFont", page->ThrottleFont);
+    addUAVObjectToWidgetRelation(name, "ThrottleAlign", page->ThrottleAlign);
 
     // Map
     addUAVObjectToWidgetRelation(name, "Map", page->MapEnabled);
@@ -501,6 +620,9 @@ void ConfigOsdWidget::setupOsdPage(Ui::OsdPage * page, QWidget * page_widget, UA
     addUAVObjectToWidgetRelation(name, "MapShowUavHome", page->mapShowUavHome);
     page->mapShowUavHome->setProperty(trueString.toLatin1(), "Enabled");
     page->mapShowUavHome->setProperty(falseString.toLatin1(), "Disabled");
+    addUAVObjectToWidgetRelation(name, "MapShowTablet", page->mapShowTablet);
+    page->mapShowTablet->setProperty(trueString.toLatin1(), "Enabled");
+    page->mapShowTablet->setProperty(falseString.toLatin1(), "Disabled");
     addUAVObjectToWidgetRelation(name, "MapWidthMeters", page->mapWidthMeters);
     addUAVObjectToWidgetRelation(name, "MapHeightMeters", page->mapHeightMeters);
     addUAVObjectToWidgetRelation(name, "MapWidthPixels", page->mapWidthPixels);

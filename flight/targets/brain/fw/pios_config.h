@@ -5,11 +5,11 @@
  * @addtogroup BrainFPV FC support files
  * @{
  *
- * @file       pios_config.h 
+ * @file       pios_config.h
  * @author     Tau Labs, http://taulabs.org, Copyright (C) 2012-2013
  * @brief      Board specific options that modify PiOS capabilities
  * @see        The GNU Public License (GPL) Version 3
- * 
+ *
  *****************************************************************************/
 /*
  * This program is free software; you can redistribute it and/or modify
@@ -31,7 +31,7 @@
 #define PIOS_CONFIG_H
 
 /* Major features */
-#define PIOS_INCLUDE_FREERTOS
+#define PIOS_INCLUDE_CHIBIOS
 #define PIOS_INCLUDE_BL_HELPER
 
 /* Enable/Disable PiOS Modules */
@@ -55,6 +55,8 @@
 #define PIOS_INCLUDE_RTC
 #define PIOS_INCLUDE_WDG
 #define PIOS_INCLUDE_FASTHEAP
+#define PIOS_INCLUDE_HPWM
+#define PIOS_INCLUDE_FRSKY_RSSI
 
 /* Select the sensors to include */
 #define PIOS_INCLUDE_MS5611
@@ -62,6 +64,8 @@
 #define PIOS_INCLUDE_MPU9250_BRAIN
 #define PIOS_INCLUDE_HMC5883
 #define PIOS_INCLUDE_HMC5983_I2C
+#define PIOS_INCLUDE_ETASV3
+#define PIOS_I2C_ETASV3_ADAPTER pios_i2c_flexi_id
 
 #define FLASH_FREERTOS
 /* Com systems to include */
@@ -73,8 +77,9 @@
 #define PIOS_INCLUDE_HOTT
 #define PIOS_INCLUDE_FRSKY_SENSOR_HUB
 #define PIOS_INCLUDE_SESSION_MANAGEMENT
-//#define PIOS_INCLUDE_LIGHTTELEMETRY
+#define PIOS_INCLUDE_LIGHTTELEMETRY
 #define PIOS_INCLUDE_PICOC
+#define PIOS_INCLUDE_FRSKY_SPORT_TELEMETRY
 
 #define PIOS_INCLUDE_GPS
 #define PIOS_INCLUDE_GPS_NMEA_PARSER
@@ -84,6 +89,7 @@
 /* Supported receiver interfaces */
 #define PIOS_INCLUDE_RCVR
 #define PIOS_INCLUDE_DSM
+#define PIOS_INCLUDE_HSUM
 #define PIOS_INCLUDE_SBUS
 #define PIOS_INCLUDE_PPM
 #define PIOS_INCLUDE_PWM
@@ -97,7 +103,7 @@
 /* OSD stuff */
 #define PIOS_VIDEO_TIM4_COUNTER
 #define PIOS_INCLUDE_VIDEO
-
+#define MODULE_FLIGHTSTATS_BUILTIN
 #define PIOS_INCLUDE_DEBUG_CONSOLE
 
 /* Other Interfaces */
@@ -110,7 +116,7 @@
 #define PIOS_GPS_SETS_HOMELOCATION      /* GPS options */
 
 #define CAMERASTAB_POI_MODE
- 
+
 /* Alarm Thresholds */
 #define HEAP_LIMIT_WARNING		1000
 #define HEAP_LIMIT_CRITICAL		500
@@ -120,7 +126,7 @@
 #define CPULOAD_LIMIT_CRITICAL		95
 
 /*
- * This has been calibrated 2013/03/11 using next @ 6d21c7a590619ebbc074e60cab5e134e65c9d32b.
+ * This has been calibrated 2014/03/01 using chibios @ fbd194c026098076bddd9e45e147828000f39d89
  * Calibration has been done by disabling the init task, breaking into debugger after
  * approximately after 60 seconds, then doing the following math:
  *
@@ -130,9 +136,8 @@
  * configuration like number of task priorities or similar changes.
  * A change in the cpu load calculation or the idle task handler will invalidate this as well.
  */
-#define IDLE_COUNTS_PER_SEC_AT_NO_LOAD (6984538)
+#define IDLE_COUNTS_PER_SEC_AT_NO_LOAD (9873737)
 
-#define REVOLUTION
 #define BRAIN
 
 #endif /* PIOS_CONFIG_H */

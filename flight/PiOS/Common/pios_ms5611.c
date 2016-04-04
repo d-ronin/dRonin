@@ -45,7 +45,8 @@
 #define MS5611_TASK_STACK_BYTES	512
 
 /* MS5611 Addresses */
-#define MS5611_I2C_ADDR	        0x77
+#define MS5611_I2C_ADDR_0x76    0x76
+#define MS5611_I2C_ADDR_0x77    0x77
 #define MS5611_RESET            0x1E
 #define MS5611_CALIB_ADDR       0xA2  /* First sample is factory stuff */
 #define MS5611_CALIB_LEN        16
@@ -54,6 +55,9 @@
 #define MS5611_TEMP_ADDR        0x50
 #define MS5611_ADC_MSB          0xF6
 #define MS5611_P0               101.3250f
+
+/* Private Variables */
+uint8_t ms5611_i2c_addr;
 
 /* Private methods */
 static int32_t PIOS_MS5611_Read(uint8_t address, uint8_t * buffer, uint8_t len);
@@ -143,6 +147,12 @@ int32_t PIOS_MS5611_Init(const struct pios_ms5611_cfg *cfg, int32_t i2c_device)
 
 	dev->i2c_id = i2c_device;
 	dev->cfg = cfg;
+
+	/* Which I2C address is being used? */
+	if (dev->cfg->use_0x76_address == true)
+		ms5611_i2c_addr = MS5611_I2C_ADDR_0x76;
+	else
+		ms5611_i2c_addr = MS5611_I2C_ADDR_0x77;
 
 	if (PIOS_MS5611_WriteCommand(MS5611_RESET) != 0)
 		return -2;
@@ -322,14 +332,14 @@ static int32_t PIOS_MS5611_Read(uint8_t address, uint8_t *buffer, uint8_t len)
 	const struct pios_i2c_txn txn_list[] = {
 		{
 			.info = __func__,
-			.addr = MS5611_I2C_ADDR,
+			.addr = ms5611_i2c_addr,
 			.rw = PIOS_I2C_TXN_WRITE,
 			.len = 1,
 			.buf = &address,
 		},
 		{
 			.info = __func__,
-			.addr = MS5611_I2C_ADDR,
+			.addr = ms5611_i2c_addr,
 			.rw = PIOS_I2C_TXN_READ,
 			.len = len,
 			.buf = buffer,
@@ -355,7 +365,7 @@ static int32_t PIOS_MS5611_WriteCommand(uint8_t command)
 	const struct pios_i2c_txn txn_list[] = {
 		{
 			.info = __func__,
-			.addr = MS5611_I2C_ADDR,
+			.addr = ms5611_i2c_addr,
 			.rw = PIOS_I2C_TXN_WRITE,
 			.len = 1,
 			.buf = &command,
@@ -400,10 +410,12 @@ static void PIOS_MS5611_Task(void *parameters)
 {
 	// init this to 1 in order to force a temperature read on the first run
 	uint32_t temp_press_interleave_count = 1;
+	int32_t  read_adc_result = 0;
 
 	while (1) {
 
 		--temp_press_interleave_count;
+		read_adc_result = 0;
 
 		if (temp_press_interleave_count == 0)
 		{
@@ -411,7 +423,7 @@ static void PIOS_MS5611_Task(void *parameters)
 			PIOS_MS5611_ClaimDevice();
 			PIOS_MS5611_StartADC(TEMPERATURE_CONV);
 			PIOS_Thread_Sleep(PIOS_MS5611_GetDelay());
-			PIOS_MS5611_ReadADC();
+			read_adc_result = PIOS_MS5611_ReadADC();
 			PIOS_MS5611_ReleaseDevice();
 
 			temp_press_interleave_count = dev->cfg->temperature_interleaving;
@@ -423,7 +435,7 @@ static void PIOS_MS5611_Task(void *parameters)
 		PIOS_MS5611_ClaimDevice();
 		PIOS_MS5611_StartADC(PRESSURE_CONV);
 		PIOS_Thread_Sleep(PIOS_MS5611_GetDelay());
-		PIOS_MS5611_ReadADC();
+		read_adc_result = PIOS_MS5611_ReadADC();
 		PIOS_MS5611_ReleaseDevice();
 
 		// Compute the altitude from the pressure and temperature and send it out
@@ -432,7 +444,9 @@ static void PIOS_MS5611_Task(void *parameters)
 		data.pressure = ((float) dev->pressure_unscaled) / 1000.0f;
 		data.altitude = 44330.0f * (1.0f - powf(data.pressure / MS5611_P0, (1.0f / 5.255f)));
 
-		PIOS_Queue_Send(dev->queue, &data, 0);
+		if (read_adc_result == 0) {
+			PIOS_Queue_Send(dev->queue, &data, 0);
+		}
 	}
 }
 

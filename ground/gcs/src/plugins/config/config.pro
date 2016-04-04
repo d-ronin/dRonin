@@ -1,8 +1,13 @@
 TEMPLATE = lib
 TARGET = Config
 DEFINES += CONFIG_LIBRARY
+DEFINES += QWT_DLL
+
 QT += svg
+
 include(config_dependencies.pri)
+LIBS *= -l$$qtLibraryName(Qwt)
+
 INCLUDEPATH *= ../../libs/eigen
 
 OTHER_FILES += Config.pluginspec \
@@ -18,7 +23,6 @@ HEADERS += calibration.h \
     configinputwidget.h \
     configoutputwidget.h \
     configvehicletypewidget.h \
-    configpipxtremewidget.h \
     configstabilizationwidget.h \
     assertions.h \
     defaulthwsettingswidget.h \
@@ -42,7 +46,8 @@ HEADERS += calibration.h \
     vehicletrim.h \
     configmodulewidget.h \
     configosdwidget.h \
-    convertmwrate.h
+    convertmwrate.h \
+    expocurve.h
 
 SOURCES += calibration.cpp \
     configplugin.cpp \
@@ -55,7 +60,6 @@ SOURCES += calibration.cpp \
     configoutputwidget.cpp \
     configvehicletypewidget.cpp \
     configstabilizationwidget.cpp \
-    configpipxtremewidget.cpp \
     defaulthwsettingswidget.cpp \
     inputchannelform.cpp \
     configcamerastabilizationwidget.cpp \
@@ -76,7 +80,8 @@ SOURCES += calibration.cpp \
     vehicletrim.cpp \
     configmodulewidget.cpp \
     configosdwidget.cpp \
-    convertmwrate.cpp
+    convertmwrate.cpp \
+    expocurve.cpp
 
 FORMS += airframe.ui \
     ccpm.ui \
@@ -89,7 +94,6 @@ FORMS += airframe.ui \
     outputchannelform.ui \
     attitude.ui \
     txpid.ui \
-    pipxtreme.ui \
     mixercurve.ui \
     autotune.ui \
     hwfieldselector.ui \

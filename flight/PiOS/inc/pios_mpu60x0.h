@@ -8,7 +8,7 @@
  *
  * @file       PIOS_MPU60X0.h
  * @author     The OpenPilot Team, http://www.openpilot.org Copyright (C) 2012.
- * @author     Tau Labs, http://taulabs.org, Copyright (C) 2012-2014
+ * @author     Tau Labs, http://taulabs.org, Copyright (C) 2012-2015
  * @brief      MPU60X0 3-axis gyor function headers
  * @see        The GNU Public License (GPL) Version 3
  *
@@ -40,6 +40,7 @@
 #define PIOS_MPU60X0_DLPF_CFG_REG         0X1A
 #define PIOS_MPU60X0_GYRO_CFG_REG         0X1B
 #define PIOS_MPU60X0_ACCEL_CFG_REG        0X1C
+#define PIOS_MPU60X0_ACCEL_CFG2_REG       0X1D
 #define PIOS_MPU60X0_FIFO_EN_REG          0x23
 #define PIOS_MPU60X0_SLV0_ADDR_REG        0x25
 #define PIOS_MPU60X0_SLV0_REG_REG         0x26
@@ -87,6 +88,7 @@
 #define PIOS_MPU60X0_INT_OPEN             0x40
 #define PIOS_MPU60X0_INT_LATCH_EN         0x20
 #define PIOS_MPU60X0_INT_CLR_ANYRD        0x10
+#define PIOS_MPU60X0_INT_I2C_BYPASS_EN    0x02	
 
 #define PIOS_MPU60X0_INTEN_OVERFLOW       0x10
 #define PIOS_MPU60X0_INTEN_DATA_RDY       0x01
@@ -180,6 +182,7 @@ struct pios_mpu60x0_cfg {
 	uint8_t Pwr_mgmt_clk;			/* Power management and clock selection (See datasheet page 32 for more details) */
 	enum pios_mpu60x0_filter default_filter;
 	enum pios_mpu60x0_orientation orientation;
+	uint8_t use_internal_mag;		/* Flag to indicate whether or not to use the internal mag on MPU9x50 devices */
 };
 
 #endif /* PIOS_MPU60X0_H */

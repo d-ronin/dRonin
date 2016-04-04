@@ -320,10 +320,6 @@ int32_t PIOS_MPU9250_SetSampleRate(uint16_t samplerate_hz)
 		// the sample rate divisor cannot be used in this case..
 		return 0;
 
-	if ((dev->accel_filter == PIOS_MPU9250_ACCEL_LOWPASS_460_HZ) || (dev->accel_filter == PIOS_MPU9250_ACCEL_LOWPASS_3600_HZ))
-		// the sample rate divisor cannot be used in this case..
-		return 0;
-
 	// limit samplerate to filter frequency
 	if (samplerate_hz > filter_frequency)
 		samplerate_hz = filter_frequency;
@@ -721,27 +717,27 @@ static void PIOS_MPU9250_Task(void *parameters)
 			gyro_data.x  = (int16_t)(mpu9250_rec_buf[IDX_GYRO_YOUT_H] << 8 | mpu9250_rec_buf[IDX_GYRO_YOUT_L]);
 			break;
 		case PIOS_MPU60X0_TOP_90DEG:
-			accel_data.y = - (int16_t)(mpu9250_rec_buf[IDX_ACCEL_YOUT_H] << 8 | mpu9250_rec_buf[IDX_ACCEL_YOUT_L]);
+			accel_data.y = -1.0f * (int16_t)(mpu9250_rec_buf[IDX_ACCEL_YOUT_H] << 8 | mpu9250_rec_buf[IDX_ACCEL_YOUT_L]);
 			accel_data.x = (int16_t)(mpu9250_rec_buf[IDX_ACCEL_XOUT_H] << 8 | mpu9250_rec_buf[IDX_ACCEL_XOUT_L]);
-			gyro_data.y  = - (int16_t)(mpu9250_rec_buf[IDX_GYRO_YOUT_H] << 8 | mpu9250_rec_buf[IDX_GYRO_YOUT_L]);
+			gyro_data.y  = -1.0f * (int16_t)(mpu9250_rec_buf[IDX_GYRO_YOUT_H] << 8 | mpu9250_rec_buf[IDX_GYRO_YOUT_L]);
 			gyro_data.x  = (int16_t)(mpu9250_rec_buf[IDX_GYRO_XOUT_H] << 8 | mpu9250_rec_buf[IDX_GYRO_XOUT_L]);
 			break;
 		case PIOS_MPU60X0_TOP_180DEG:
-			accel_data.y = - (int16_t)(mpu9250_rec_buf[IDX_ACCEL_XOUT_H] << 8 | mpu9250_rec_buf[IDX_ACCEL_XOUT_L]);
-			accel_data.x = - (int16_t)(mpu9250_rec_buf[IDX_ACCEL_YOUT_H] << 8 | mpu9250_rec_buf[IDX_ACCEL_YOUT_L]);
-			gyro_data.y  = - (int16_t)(mpu9250_rec_buf[IDX_GYRO_XOUT_H] << 8 | mpu9250_rec_buf[IDX_GYRO_XOUT_L]);
-			gyro_data.x  = - (int16_t)(mpu9250_rec_buf[IDX_GYRO_YOUT_H] << 8 | mpu9250_rec_buf[IDX_GYRO_YOUT_L]);
+			accel_data.y = -1.0f * (int16_t)(mpu9250_rec_buf[IDX_ACCEL_XOUT_H] << 8 | mpu9250_rec_buf[IDX_ACCEL_XOUT_L]);
+			accel_data.x = -1.0f * (int16_t)(mpu9250_rec_buf[IDX_ACCEL_YOUT_H] << 8 | mpu9250_rec_buf[IDX_ACCEL_YOUT_L]);
+			gyro_data.y  = -1.0f * (int16_t)(mpu9250_rec_buf[IDX_GYRO_XOUT_H] << 8 | mpu9250_rec_buf[IDX_GYRO_XOUT_L]);
+			gyro_data.x  = -1.0f * (int16_t)(mpu9250_rec_buf[IDX_GYRO_YOUT_H] << 8 | mpu9250_rec_buf[IDX_GYRO_YOUT_L]);
 			break;
 		case PIOS_MPU60X0_TOP_270DEG:
 			accel_data.y = (int16_t)(mpu9250_rec_buf[IDX_ACCEL_YOUT_H] << 8 | mpu9250_rec_buf[IDX_ACCEL_YOUT_L]);
-			accel_data.x = - (int16_t)(mpu9250_rec_buf[IDX_ACCEL_XOUT_H] << 8 | mpu9250_rec_buf[IDX_ACCEL_XOUT_L]);
+			accel_data.x = -1.0f * (int16_t)(mpu9250_rec_buf[IDX_ACCEL_XOUT_H] << 8 | mpu9250_rec_buf[IDX_ACCEL_XOUT_L]);
 			gyro_data.y  = (int16_t)(mpu9250_rec_buf[IDX_GYRO_YOUT_H] << 8 | mpu9250_rec_buf[IDX_GYRO_YOUT_L]);
-			gyro_data.x  = - (int16_t)(mpu9250_rec_buf[IDX_GYRO_XOUT_H] << 8 | mpu9250_rec_buf[IDX_GYRO_XOUT_L]);
+			gyro_data.x  = -1.0f * (int16_t)(mpu9250_rec_buf[IDX_GYRO_XOUT_H] << 8 | mpu9250_rec_buf[IDX_GYRO_XOUT_L]);
 			break;
 		case PIOS_MPU60X0_BOTTOM_0DEG:
-			accel_data.y = - (int16_t)(mpu9250_rec_buf[IDX_ACCEL_XOUT_H] << 8 | mpu9250_rec_buf[IDX_ACCEL_XOUT_L]);
+			accel_data.y = -1.0f * (int16_t)(mpu9250_rec_buf[IDX_ACCEL_XOUT_H] << 8 | mpu9250_rec_buf[IDX_ACCEL_XOUT_L]);
 			accel_data.x = (int16_t)(mpu9250_rec_buf[IDX_ACCEL_YOUT_H] << 8 | mpu9250_rec_buf[IDX_ACCEL_YOUT_L]);
-			gyro_data.y  = - (int16_t)(mpu9250_rec_buf[IDX_GYRO_XOUT_H] << 8 | mpu9250_rec_buf[IDX_GYRO_XOUT_L]);
+			gyro_data.y  = -1.0f * (int16_t)(mpu9250_rec_buf[IDX_GYRO_XOUT_H] << 8 | mpu9250_rec_buf[IDX_GYRO_XOUT_L]);
 			gyro_data.x  = (int16_t)(mpu9250_rec_buf[IDX_GYRO_YOUT_H] << 8 | mpu9250_rec_buf[IDX_GYRO_YOUT_L]);
 			gyro_data.z  = (int16_t)(mpu9250_rec_buf[IDX_GYRO_ZOUT_H] << 8 | mpu9250_rec_buf[IDX_GYRO_ZOUT_L]);
 			accel_data.z = (int16_t)(mpu9250_rec_buf[IDX_ACCEL_ZOUT_H] << 8 | mpu9250_rec_buf[IDX_ACCEL_ZOUT_L]);
@@ -756,24 +752,24 @@ static void PIOS_MPU9250_Task(void *parameters)
 			break;
 		case PIOS_MPU60X0_BOTTOM_180DEG:
 			accel_data.y = (int16_t)(mpu9250_rec_buf[IDX_ACCEL_XOUT_H] << 8 | mpu9250_rec_buf[IDX_ACCEL_XOUT_L]);
-			accel_data.x = - (int16_t)(mpu9250_rec_buf[IDX_ACCEL_YOUT_H] << 8 | mpu9250_rec_buf[IDX_ACCEL_YOUT_L]);
+			accel_data.x = -1.0f * (int16_t)(mpu9250_rec_buf[IDX_ACCEL_YOUT_H] << 8 | mpu9250_rec_buf[IDX_ACCEL_YOUT_L]);
 			gyro_data.y  = (int16_t)(mpu9250_rec_buf[IDX_GYRO_XOUT_H] << 8 | mpu9250_rec_buf[IDX_GYRO_XOUT_L]);
-			gyro_data.x  = - (int16_t)(mpu9250_rec_buf[IDX_GYRO_YOUT_H] << 8 | mpu9250_rec_buf[IDX_GYRO_YOUT_L]);
+			gyro_data.x  = -1.0f * (int16_t)(mpu9250_rec_buf[IDX_GYRO_YOUT_H] << 8 | mpu9250_rec_buf[IDX_GYRO_YOUT_L]);
 			gyro_data.z  = (int16_t)(mpu9250_rec_buf[IDX_GYRO_ZOUT_H] << 8 | mpu9250_rec_buf[IDX_GYRO_ZOUT_L]);
 			accel_data.z = (int16_t)(mpu9250_rec_buf[IDX_ACCEL_ZOUT_H] << 8 | mpu9250_rec_buf[IDX_ACCEL_ZOUT_L]);
 			break;
 		case PIOS_MPU60X0_BOTTOM_270DEG:
-			accel_data.y = - (int16_t)(mpu9250_rec_buf[IDX_ACCEL_YOUT_H] << 8 | mpu9250_rec_buf[IDX_ACCEL_YOUT_L]);
-			accel_data.x = - (int16_t)(mpu9250_rec_buf[IDX_ACCEL_XOUT_H] << 8 | mpu9250_rec_buf[IDX_ACCEL_XOUT_L]);
-			gyro_data.y  = - (int16_t)(mpu9250_rec_buf[IDX_GYRO_YOUT_H] << 8 | mpu9250_rec_buf[IDX_GYRO_YOUT_L]);
-			gyro_data.x  = - (int16_t)(mpu9250_rec_buf[IDX_GYRO_XOUT_H] << 8 | mpu9250_rec_buf[IDX_GYRO_XOUT_L]);
+			accel_data.y = -1.0f * (int16_t)(mpu9250_rec_buf[IDX_ACCEL_YOUT_H] << 8 | mpu9250_rec_buf[IDX_ACCEL_YOUT_L]);
+			accel_data.x = -1.0f * (int16_t)(mpu9250_rec_buf[IDX_ACCEL_XOUT_H] << 8 | mpu9250_rec_buf[IDX_ACCEL_XOUT_L]);
+			gyro_data.y  = -1.0f * (int16_t)(mpu9250_rec_buf[IDX_GYRO_YOUT_H] << 8 | mpu9250_rec_buf[IDX_GYRO_YOUT_L]);
+			gyro_data.x  = -1.0f * (int16_t)(mpu9250_rec_buf[IDX_GYRO_XOUT_H] << 8 | mpu9250_rec_buf[IDX_GYRO_XOUT_L]);
 			gyro_data.z  = (int16_t)(mpu9250_rec_buf[IDX_GYRO_ZOUT_H] << 8 | mpu9250_rec_buf[IDX_GYRO_ZOUT_L]);
 			accel_data.z = (int16_t)(mpu9250_rec_buf[IDX_ACCEL_ZOUT_H] << 8 | mpu9250_rec_buf[IDX_ACCEL_ZOUT_L]);
 			break;
 		}
 
-		gyro_data.z  = - (int16_t)(mpu9250_rec_buf[IDX_GYRO_ZOUT_H] << 8 | mpu9250_rec_buf[IDX_GYRO_ZOUT_L]);
-		accel_data.z = - (int16_t)(mpu9250_rec_buf[IDX_ACCEL_ZOUT_H] << 8 | mpu9250_rec_buf[IDX_ACCEL_ZOUT_L]);
+		gyro_data.z  = -1.0f * (int16_t)(mpu9250_rec_buf[IDX_GYRO_ZOUT_H] << 8 | mpu9250_rec_buf[IDX_GYRO_ZOUT_L]);
+		accel_data.z = -1.0f * (int16_t)(mpu9250_rec_buf[IDX_ACCEL_ZOUT_H] << 8 | mpu9250_rec_buf[IDX_ACCEL_ZOUT_L]);
 
 		int16_t raw_temp = (int16_t)(mpu9250_rec_buf[IDX_TEMP_OUT_H] << 8 | mpu9250_rec_buf[IDX_TEMP_OUT_L]);
 		float temperature = 21.0f + ((float)raw_temp) / 333.87f;
@@ -806,35 +802,35 @@ static void PIOS_MPU9250_Task(void *parameters)
 					break;
 				case PIOS_MPU60X0_TOP_90DEG:
 					mag_data.y = (int16_t)  (mpu9250_mag_buffer[1] << 0x08 | mpu9250_mag_buffer[0]);
-					mag_data.x = (int16_t) -(mpu9250_mag_buffer[3] << 0x08 | mpu9250_mag_buffer[2]);
+					mag_data.x = -1.0f * (int16_t)  (mpu9250_mag_buffer[3] << 0x08 | mpu9250_mag_buffer[2]);
 					break;
 				case PIOS_MPU60X0_TOP_180DEG:
-					mag_data.x = (int16_t) -(mpu9250_mag_buffer[1] << 0x08 | mpu9250_mag_buffer[0]);
-					mag_data.y = (int16_t) -(mpu9250_mag_buffer[3] << 0x08 | mpu9250_mag_buffer[2]);
+					mag_data.x = -1.0f * (int16_t) (mpu9250_mag_buffer[1] << 0x08 | mpu9250_mag_buffer[0]);
+					mag_data.y = -1.0f * (int16_t) (mpu9250_mag_buffer[3] << 0x08 | mpu9250_mag_buffer[2]);
 					break;
 				case PIOS_MPU60X0_TOP_270DEG:
-					mag_data.y = (int16_t) -(mpu9250_mag_buffer[1] << 0x08 | mpu9250_mag_buffer[0]);
+					mag_data.y = -1.0f * (int16_t)  (mpu9250_mag_buffer[1] << 0x08 | mpu9250_mag_buffer[0]);
 					mag_data.x = (int16_t)  (mpu9250_mag_buffer[3] << 0x08 | mpu9250_mag_buffer[2]);
 					break;
 				case PIOS_MPU60X0_BOTTOM_0DEG:
 					mag_data.x = (int16_t) (mpu9250_mag_buffer[1] << 0x08 | mpu9250_mag_buffer[0]);
-					mag_data.y = (int16_t) - (mpu9250_mag_buffer[3] << 0x08 | mpu9250_mag_buffer[2]);
-					mag_data.z = (int16_t) - (mpu9250_mag_buffer[5] << 0x08 | mpu9250_mag_buffer[4]);
+					mag_data.y = -1.0f * (int16_t) (mpu9250_mag_buffer[3] << 0x08 | mpu9250_mag_buffer[2]);
+					mag_data.z = -1.0f * (int16_t) (mpu9250_mag_buffer[5] << 0x08 | mpu9250_mag_buffer[4]);
 					break;
 				case PIOS_MPU60X0_BOTTOM_90DEG:
-					mag_data.y = (int16_t) - (mpu9250_mag_buffer[1] << 0x08 | mpu9250_mag_buffer[0]);
-					mag_data.x = (int16_t) - (mpu9250_mag_buffer[3] << 0x08 | mpu9250_mag_buffer[2]);
-					mag_data.z = (int16_t) - (mpu9250_mag_buffer[5] << 0x08 | mpu9250_mag_buffer[4]);
+					mag_data.y = -1.0f * (int16_t) (mpu9250_mag_buffer[1] << 0x08 | mpu9250_mag_buffer[0]);
+					mag_data.x = -1.0f * (int16_t) (mpu9250_mag_buffer[3] << 0x08 | mpu9250_mag_buffer[2]);
+					mag_data.z = -1.0f * (int16_t) (mpu9250_mag_buffer[5] << 0x08 | mpu9250_mag_buffer[4]);
 					break;
 				case PIOS_MPU60X0_BOTTOM_180DEG:
-					mag_data.x = (int16_t) - (mpu9250_mag_buffer[1] << 0x08 | mpu9250_mag_buffer[0]);
+					mag_data.x = -1.0f * (int16_t) (mpu9250_mag_buffer[1] << 0x08 | mpu9250_mag_buffer[0]);
 					mag_data.y = (int16_t)   (mpu9250_mag_buffer[3] << 0x08 | mpu9250_mag_buffer[2]);
-					mag_data.z = (int16_t) - (mpu9250_mag_buffer[5] << 0x08 | mpu9250_mag_buffer[4]);
+					mag_data.z = -1.0f * (int16_t) (mpu9250_mag_buffer[5] << 0x08 | mpu9250_mag_buffer[4]);
 					break;
 				case PIOS_MPU60X0_BOTTOM_270DEG:
 					mag_data.y = (int16_t)   (mpu9250_mag_buffer[1] << 0x08 | mpu9250_mag_buffer[0]);
 					mag_data.x = (int16_t)   (mpu9250_mag_buffer[3] << 0x08 | mpu9250_mag_buffer[2]);
-					mag_data.z = (int16_t) - (mpu9250_mag_buffer[5] << 0x08 | mpu9250_mag_buffer[4]);
+					mag_data.z = -1.0f * (int16_t) (mpu9250_mag_buffer[5] << 0x08 | mpu9250_mag_buffer[4]);
 					break;
 				}
 				mag_data.z = (int16_t) (mpu9250_mag_buffer[5] << 0x08 | mpu9250_mag_buffer[4]);

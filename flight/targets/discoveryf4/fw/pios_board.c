@@ -44,7 +44,7 @@
 #include "modulesettings.h"
 
 /* One slot per selectable receiver group.
- *  eg. PWM, PPM, GCS, DSMMAINPORT, DSMFLEXIPORT, SBUS
+ *  eg. PWM, PPM, GCS, DSM, DSM, SBUS
  * NOTE: No slot in this map for NONE.
  */
 uintptr_t pios_rcvr_group_map[MANUALCONTROLSETTINGS_CHANNELGROUPS_NONE];
@@ -168,9 +168,11 @@ void PIOS_Board_Init(void) {
 	EventDispatcherInitialize();
 	UAVObjInitialize();
 
-	/* Initialize the alarms library */
+	/* Initialize the alarms library. Reads RCC reset flags */
 	AlarmsInitialize();
+	PIOS_RESET_Clear(); // Clear the RCC reset flags after use.
 
+	/* Initialize the hardware UAVOs */
 	HwDiscoveryF4Initialize();
 	ModuleSettingsInitialize();
 

@@ -23,11 +23,14 @@
  * with this program; if not, write to the Free Software Foundation, Inc.,
  * 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
  */
-
+#define _USE_MATH_DEFINES
+#include <cmath>
 #include <QInputDialog>
+#include <cmath>
 #include <algorithms/pathfillet.h>
 #include <waypoint.h>
-#include <math.h>
+
+#include <physical_constants.h>
 
 #define SIGN(x) (x < 0 ? -1 : 1)
 
@@ -107,14 +110,12 @@ bool PathFillet::processPath(FlightDataModel *model)
         {
         case Waypoint::MODE_CIRCLEPOSITIONRIGHT:
             return false;
-        case Waypoint::MODE_FLYCIRCLERIGHT:
-        case Waypoint::MODE_DRIVECIRCLERIGHT:
+        case Waypoint::MODE_CIRCLERIGHT:
             curvature = 1.0f/ModeParameters;
             break;
         case Waypoint::MODE_CIRCLEPOSITIONLEFT:
             return false;
-        case Waypoint::MODE_FLYCIRCLELEFT:
-        case Waypoint::MODE_DRIVECIRCLELEFT:
+        case Waypoint::MODE_CIRCLELEFT:
             curvature = -1.0f/ModeParameters;
             break;
         }
@@ -398,13 +399,13 @@ void PathFillet::setNewWaypoint(int index, float *pos, float velocity, float cur
         new_model->insertRow(index);
 
     // Convert from curvature representation to waypoint
-    quint8 mode = Waypoint::MODE_FLYVECTOR;
+    quint8 mode = Waypoint::MODE_VECTOR;
     float radius = 0;
-    if (curvature > 0 && !isinf(curvature)) {
-        mode = Waypoint::MODE_FLYCIRCLERIGHT;
+    if (curvature > 0 && !std::isinf(curvature)) {
+        mode = Waypoint::MODE_CIRCLERIGHT;
         radius = 1.0 / curvature;
-    } else if (curvature < 0 && !isinf(curvature)) {
-        mode = Waypoint::MODE_FLYCIRCLELEFT;
+    } else if (curvature < 0 && !std::isinf(curvature)) {
+        mode = Waypoint::MODE_CIRCLELEFT;
         radius = -1.0 / curvature;
     }
 

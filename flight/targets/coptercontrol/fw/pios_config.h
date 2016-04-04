@@ -36,7 +36,6 @@
 #define PIOS_INCLUDE_DELAY
 #if defined(USE_I2C)
 #define PIOS_INCLUDE_I2C
-//#define PIOS_INCLUDE_I2C_ESC
 #endif
 #if defined(USE_PCF8591)
 #define PIOS_INCLUDE_PCF8591
@@ -45,11 +44,13 @@
 #define PIOS_INCLUDE_LED
 #define PIOS_INCLUDE_IAP
 #define PIOS_INCLUDE_TIM
+#define PIOS_INCLUDE_HPWM
 
 #define PIOS_INCLUDE_RCVR
 
 /* Supported receiver interfaces */
 #define PIOS_INCLUDE_DSM
+#define PIOS_INCLUDE_HSUM
 #define PIOS_INCLUDE_SBUS
 #define PIOS_INCLUDE_PPM
 #define PIOS_INCLUDE_PWM
@@ -62,6 +63,7 @@
 #define PIOS_INCLUDE_GPS_NMEA_PARSER /* Include the NMEA protocol parser */
 #define PIOS_INCLUDE_GPS_UBX_PARSER  /* Include the UBX protocol parser */
 #define PIOS_INCLUDE_MAVLINK
+#define PIOS_INCLUDE_MSP_BRIDGE
 #define PIOS_INCLUDE_FRSKY_SENSOR_HUB
 #define PIOS_INCLUDE_LIGHTTELEMETRY
 
@@ -71,7 +73,6 @@
 #define PIOS_INCLUDE_USART
 #define PIOS_INCLUDE_USB
 #define PIOS_INCLUDE_USB_HID
-#define PIOS_INCLUDE_USB_RCTX
 #define PIOS_INCLUDE_USB_CDC
 #define PIOS_INCLUDE_COM
 #define PIOS_INCLUDE_FREERTOS
@@ -102,15 +103,36 @@
 #define CPULOAD_LIMIT_CRITICAL		95
 
 /* Task stack sizes */
-#define PIOS_ACTUATOR_STACK_SIZE        800
-#define PIOS_MANUAL_STACK_SIZE          600
+#define PIOS_ACTUATOR_STACK_SIZE        600
+#define PIOS_MANUAL_STACK_SIZE          700
 #define PIOS_SYSTEM_STACK_SIZE          660
 #define PIOS_STABILIZATION_STACK_SIZE   624
 #define PIOS_TELEM_STACK_SIZE           500
 #define PIOS_EVENTDISPATCHER_STACK_SIZE 720
-#define PIOS_MAVLINK_STACK_SIZE         600
-#define PIOS_COMUSBBRIDGE_STACK_SIZE    280
+#define PIOS_MAVLINK_STACK_SIZE         496
+#define PIOS_COMUSBBRIDGE_STACK_SIZE    480
 #define IDLE_COUNTS_PER_SEC_AT_NO_LOAD 1995998
+
+/* Buffer sizes */
+#define PIOS_COM_TELEM_RF_RX_BUF_LEN 32
+#define PIOS_COM_TELEM_RF_TX_BUF_LEN 12
+
+#define PIOS_COM_GPS_RX_BUF_LEN 32
+#define PIOS_COM_GPS_TX_BUF_LEN 0
+
+#define PIOS_COM_TELEM_USB_RX_BUF_LEN 65
+#define PIOS_COM_TELEM_USB_TX_BUF_LEN 65
+
+#define PIOS_COM_BRIDGE_RX_BUF_LEN 65
+#define PIOS_COM_BRIDGE_TX_BUF_LEN 12
+
+#define PIOS_COM_MAVLINK_TX_BUF_LEN 32
+
+#define PIOS_COM_FRSKYSENSORHUB_TX_BUF_LEN 128
+
+#define PIOS_COM_LIGHTTELEMETRY_TX_BUF_LEN 19
+
+
 
 // This can't be too high to stop eventdispatcher thread overflowing
 #define PIOS_EVENTDISAPTCHER_QUEUE      10
@@ -118,11 +140,8 @@
 /* PIOS Initcall infrastructure */
 #define PIOS_INCLUDE_INITCALL
 
+#define SMALLF1
 #define COPTERCONTROL
-// Conditional related to making CC run navigation
-#if defined(NAVGIATION)
-#define PIOS_GPS_PROVIDES_AIRSPEED
-#endif
 
 #endif /* PIOS_CONFIG_H */
 /**

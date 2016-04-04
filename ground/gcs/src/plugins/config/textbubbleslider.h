@@ -29,7 +29,7 @@
 #define TEXTBUBBLESLIDER_H
 
 #include <QSlider>
-#include <QtDesigner/QDesignerExportWidget>
+#include <QtUiPlugin/QDesignerExportWidget>
 
 class TextBubbleSlider : public QSlider
 {
@@ -43,6 +43,7 @@ public:
 
     void setMinimum(int);
     void setMaximum(int);
+    void setHidden(bool);
 
 protected:
     void paintEvent ( QPaintEvent * event );
@@ -55,6 +56,7 @@ private:
     int maximumFontHeight;
     int slideHandleWidth;
     int slideHandleMargin;
+    bool hidden;
 
 };
 

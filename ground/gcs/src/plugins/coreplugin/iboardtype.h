@@ -161,9 +161,7 @@ public:
         INPUT_TYPE_DISABLED,
         INPUT_TYPE_PWM,
         INPUT_TYPE_PPM,
-        INPUT_TYPE_DSM2,
-        INPUT_TYPE_DSMX10BIT,
-        INPUT_TYPE_DSMX11BIT,
+        INPUT_TYPE_DSM,
         INPUT_TYPE_SBUS,
         INPUT_TYPE_HOTTSUMD,
         INPUT_TYPE_HOTTSUMH,
@@ -200,6 +198,33 @@ public:
      *
      */
     virtual int queryMaxGyroRate() { return -1; }
+
+    /**
+     * Get the RFM22b device ID this modem
+     * @return RFM22B device ID or 0 if not supported
+     */
+    virtual quint32 getRfmID() { return 0; }
+
+    /**
+     * Set the coordinator ID. If set to zero this device will
+     * be a coordinator.
+     * @param id - the ID of the coordinator to bind to, or 0 to make this
+     *     board the coordinator
+     * @param baud_rate - the maximum baud rate to use, or 0 to leave unchanged
+     * @param rf_power - the maximum radio power to use or -1 to leave unchanged
+     * @return true if successful or false if not
+     */
+    enum LinkMode { LINK_TELEM, LINK_TELEM_PPM, LINK_PPM };
+
+    virtual bool bindRadio(quint32 /*id*/, quint32 /*baud_rate*/, float /*rf_power*/,
+                           Core::IBoardType::LinkMode /*linkMode*/, quint8 /*min*/,
+                           quint8 /*max*/) { return false; }
+
+    /**
+     * Check whether the board has USB
+     * @return true if usb, false if not
+     */
+    virtual bool isUSBSupported() { return true; }
 
     static QString getBoardNameFromID(int id);
 

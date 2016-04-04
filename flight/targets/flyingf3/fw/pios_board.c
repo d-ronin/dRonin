@@ -193,7 +193,6 @@ uintptr_t pios_com_mavlink_id;
 uintptr_t pios_com_hott_id;
 uintptr_t pios_com_frsky_sensor_hub_id;
 uintptr_t pios_com_lighttelemetry_id;
-uintptr_t pios_com_overo_id;
 uintptr_t pios_com_can_id;
 uintptr_t pios_com_frsky_sport_id;
 
@@ -240,8 +239,8 @@ static void PIOS_Board_configure_com (const struct pios_usart_cfg *usart_port_cf
 
 #ifdef PIOS_INCLUDE_DSM
 static void PIOS_Board_configure_dsm(const struct pios_usart_cfg *pios_usart_dsm_cfg, const struct pios_dsm_cfg *pios_dsm_cfg,
-		const struct pios_com_driver *pios_usart_com_driver,enum pios_dsm_proto *proto,
-		ManualControlSettingsChannelGroupsOptions channelgroup,uint8_t *bind)
+		const struct pios_com_driver *pios_usart_com_driver,
+		ManualControlSettingsChannelGroupsOptions channelgroup,HwFlyingF3DSMxModeOptions *mode)
 {
 	uintptr_t pios_usart_dsm_id;
 	if (PIOS_USART_Init(&pios_usart_dsm_id, pios_usart_dsm_cfg)) {
@@ -250,7 +249,7 @@ static void PIOS_Board_configure_dsm(const struct pios_usart_cfg *pios_usart_dsm
 
 	uintptr_t pios_dsm_id;
 	if (PIOS_DSM_Init(&pios_dsm_id, pios_dsm_cfg, pios_usart_com_driver,
-			pios_usart_dsm_id, *proto, *bind)) {
+			pios_usart_dsm_id, *mode)) {
 		PIOS_Assert(0);
 	}
 
@@ -382,6 +381,11 @@ void PIOS_Board_Init(void) {
 	/* Mount all filesystems */
 	PIOS_FLASHFS_Logfs_Init(&pios_uavo_settings_fs_id, &flashfs_internal_settings_cfg, FLASH_PARTITION_LABEL_SETTINGS);
 	PIOS_FLASHFS_Logfs_Init(&pios_waypoints_settings_fs_id, &flashfs_internal_waypoints_cfg, FLASH_PARTITION_LABEL_WAYPOINTS);
+
+#if defined(ERASE_FLASH)
+	PIOS_FLASHFS_Format(pios_uavo_settings_fs_id);
+#endif
+
 #endif
 
 	/* Initialize the task monitor library */
@@ -391,9 +395,11 @@ void PIOS_Board_Init(void) {
 	EventDispatcherInitialize();
 	UAVObjInitialize();
 
-	/* Initialize the alarms library */
+	/* Initialize the alarms library. Reads RCC reset flags */
 	AlarmsInitialize();
+	PIOS_RESET_Clear(); // Clear the RCC reset flags after use.
 
+	/* Initialize the hardware UAVOs */
 	HwFlyingF3Initialize();
 	ModuleSettingsInitialize();
 
@@ -573,8 +579,8 @@ void PIOS_Board_Init(void) {
 #endif	/* PIOS_INCLUDE_USB */
 
 	/* Configure the IO ports */
-	uint8_t hw_DSMxBind;
-	HwFlyingF3DSMxBindGet(&hw_DSMxBind);
+	HwFlyingF3DSMxModeOptions hw_DSMxMode;
+	HwFlyingF3DSMxModeGet(&hw_DSMxMode);
 
 	/* UART1 Port */
 	uint8_t hw_uart1;
@@ -611,28 +617,11 @@ void PIOS_Board_Init(void) {
 		}
 #endif	/* PIOS_INCLUDE_SBUS */
 		break;
-	case HWFLYINGF3_UART1_DSM2:
-	case HWFLYINGF3_UART1_DSMX10BIT:
-	case HWFLYINGF3_UART1_DSMX11BIT:
+	case HWFLYINGF3_UART1_DSM:
 #if defined(PIOS_INCLUDE_DSM)
 		{
-			enum pios_dsm_proto proto;
-			switch (hw_uart1) {
-			case HWFLYINGF3_UART1_DSM2:
-				proto = PIOS_DSM_PROTO_DSM2;
-				break;
-			case HWFLYINGF3_UART1_DSMX10BIT:
-				proto = PIOS_DSM_PROTO_DSMX10BIT;
-				break;
-			case HWFLYINGF3_UART1_DSMX11BIT:
-				proto = PIOS_DSM_PROTO_DSMX11BIT;
-				break;
-			default:
-				PIOS_Assert(0);
-				break;
-			}
 			PIOS_Board_configure_dsm(&pios_usart1_dsm_hsum_cfg, &pios_usart1_dsm_aux_cfg, &pios_usart_com_driver,
-				&proto, MANUALCONTROLSETTINGS_CHANNELGROUPS_DSMMAINPORT, &hw_DSMxBind);
+				MANUALCONTROLSETTINGS_CHANNELGROUPS_DSM, &hw_DSMxMode);
 		}
 #endif	/* PIOS_INCLUDE_DSM */
 		break;
@@ -737,28 +726,11 @@ void PIOS_Board_Init(void) {
 		}
 #endif	/* PIOS_INCLUDE_SBUS */
 		break;
-	case HWFLYINGF3_UART2_DSM2:
-	case HWFLYINGF3_UART2_DSMX10BIT:
-	case HWFLYINGF3_UART2_DSMX11BIT:
+	case HWFLYINGF3_UART2_DSM:
 #if defined(PIOS_INCLUDE_DSM)
 		{
-			enum pios_dsm_proto proto;
-			switch (hw_uart2) {
-			case HWFLYINGF3_UART2_DSM2:
-				proto = PIOS_DSM_PROTO_DSM2;
-				break;
-			case HWFLYINGF3_UART2_DSMX10BIT:
-				proto = PIOS_DSM_PROTO_DSMX10BIT;
-				break;
-			case HWFLYINGF3_UART2_DSMX11BIT:
-				proto = PIOS_DSM_PROTO_DSMX11BIT;
-				break;
-			default:
-				PIOS_Assert(0);
-				break;
-			}
 			PIOS_Board_configure_dsm(&pios_usart2_dsm_hsum_cfg, &pios_usart2_dsm_aux_cfg, &pios_usart_com_driver,
-				&proto, MANUALCONTROLSETTINGS_CHANNELGROUPS_DSMMAINPORT, &hw_DSMxBind);
+				MANUALCONTROLSETTINGS_CHANNELGROUPS_DSM, &hw_DSMxMode);
 		}
 #endif	/* PIOS_INCLUDE_DSM */
 		break;
@@ -862,28 +834,11 @@ void PIOS_Board_Init(void) {
 		}
 #endif	/* PIOS_INCLUDE_SBUS */
 		break;
-	case HWFLYINGF3_UART3_DSM2:
-	case HWFLYINGF3_UART3_DSMX10BIT:
-	case HWFLYINGF3_UART3_DSMX11BIT:
+	case HWFLYINGF3_UART3_DSM:
 #if defined(PIOS_INCLUDE_DSM)
 		{
-			enum pios_dsm_proto proto;
-			switch (hw_uart3) {
-			case HWFLYINGF3_UART3_DSM2:
-				proto = PIOS_DSM_PROTO_DSM2;
-				break;
-			case HWFLYINGF3_UART3_DSMX10BIT:
-				proto = PIOS_DSM_PROTO_DSMX10BIT;
-				break;
-			case HWFLYINGF3_UART3_DSMX11BIT:
-				proto = PIOS_DSM_PROTO_DSMX11BIT;
-				break;
-			default:
-				PIOS_Assert(0);
-				break;
-			}
 			PIOS_Board_configure_dsm(&pios_usart3_dsm_hsum_cfg, &pios_usart3_dsm_aux_cfg, &pios_usart_com_driver,
-				&proto, MANUALCONTROLSETTINGS_CHANNELGROUPS_DSMMAINPORT, &hw_DSMxBind);
+				MANUALCONTROLSETTINGS_CHANNELGROUPS_DSM, &hw_DSMxMode);
 		}
 #endif	/* PIOS_INCLUDE_DSM */
 		break;
@@ -987,28 +942,11 @@ void PIOS_Board_Init(void) {
 		}
 #endif	/* PIOS_INCLUDE_SBUS */
 		break;
-	case HWFLYINGF3_UART4_DSM2:
-	case HWFLYINGF3_UART4_DSMX10BIT:
-	case HWFLYINGF3_UART4_DSMX11BIT:
+	case HWFLYINGF3_UART4_DSM:
 #if defined(PIOS_INCLUDE_DSM)
 		{
-			enum pios_dsm_proto proto;
-			switch (hw_uart4) {
-			case HWFLYINGF3_UART4_DSM2:
-				proto = PIOS_DSM_PROTO_DSM2;
-				break;
-			case HWFLYINGF3_UART4_DSMX10BIT:
-				proto = PIOS_DSM_PROTO_DSMX10BIT;
-				break;
-			case HWFLYINGF3_UART4_DSMX11BIT:
-				proto = PIOS_DSM_PROTO_DSMX11BIT;
-				break;
-			default:
-				PIOS_Assert(0);
-				break;
-			}
 			PIOS_Board_configure_dsm(&pios_usart4_dsm_hsum_cfg, &pios_usart4_dsm_aux_cfg, &pios_usart_com_driver,
-				&proto, MANUALCONTROLSETTINGS_CHANNELGROUPS_DSMMAINPORT, &hw_DSMxBind);
+				MANUALCONTROLSETTINGS_CHANNELGROUPS_DSM, &hw_DSMxMode);
 		}
 #endif	/* PIOS_INCLUDE_DSM */
 		break;
@@ -1112,28 +1050,11 @@ void PIOS_Board_Init(void) {
 		}
 #endif	/* PIOS_INCLUDE_SBUS */
 		break;
-	case HWFLYINGF3_UART5_DSM2:
-	case HWFLYINGF3_UART5_DSMX10BIT:
-	case HWFLYINGF3_UART5_DSMX11BIT:
+	case HWFLYINGF3_UART5_DSM:
 #if defined(PIOS_INCLUDE_DSM)
 		{
-			enum pios_dsm_proto proto;
-			switch (hw_uart5) {
-			case HWFLYINGF3_UART5_DSM2:
-				proto = PIOS_DSM_PROTO_DSM2;
-				break;
-			case HWFLYINGF3_UART5_DSMX10BIT:
-				proto = PIOS_DSM_PROTO_DSMX10BIT;
-				break;
-			case HWFLYINGF3_UART5_DSMX11BIT:
-				proto = PIOS_DSM_PROTO_DSMX11BIT;
-				break;
-			default:
-				PIOS_Assert(0);
-				break;
-			}
 			PIOS_Board_configure_dsm(&pios_usart5_dsm_hsum_cfg, &pios_usart5_dsm_aux_cfg, &pios_usart_com_driver,
-				&proto, MANUALCONTROLSETTINGS_CHANNELGROUPS_DSMMAINPORT, &hw_DSMxBind);
+				MANUALCONTROLSETTINGS_CHANNELGROUPS_DSM, &hw_DSMxMode);
 		}
 #endif	/* PIOS_INCLUDE_DSM */
 		break;

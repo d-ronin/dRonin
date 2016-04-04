@@ -50,14 +50,16 @@ void ConnectionDiagram::resizeEvent(QResizeEvent *event)
 {
     QWidget::resizeEvent(event);
 
-    ui->connectionDiagram->fitInView(m_background, Qt::KeepAspectRatio);
+    if(m_background != NULL)
+        ui->connectionDiagram->fitInView(m_background, Qt::KeepAspectRatio);
 }
 
 void ConnectionDiagram::showEvent(QShowEvent *event)
 {
     QWidget::showEvent(event);
 
-    ui->connectionDiagram->fitInView(m_background, Qt::KeepAspectRatio);
+    if(m_background != NULL)
+        ui->connectionDiagram->fitInView(m_background, Qt::KeepAspectRatio);
 }
 
 void ConnectionDiagram::setupGraphicsScene()
@@ -127,9 +129,7 @@ void ConnectionDiagram::setupGraphicsScene()
         case Core::IBoardType::INPUT_TYPE_SBUS:
             elementsToShow << "sbus";
             break;
-        case Core::IBoardType::INPUT_TYPE_DSMX10BIT:
-        case Core::IBoardType::INPUT_TYPE_DSMX11BIT:
-        case Core::IBoardType::INPUT_TYPE_DSM2:
+        case Core::IBoardType::INPUT_TYPE_DSM:
             elementsToShow << "satellite";
             break;
         case Core::IBoardType::INPUT_TYPE_HOTTSUMD:

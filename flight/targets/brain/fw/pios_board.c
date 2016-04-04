@@ -11,7 +11,7 @@
  * @see        The GNU Public License (GPL) Version 3
  *
  *****************************************************************************/
-/* 
+/*
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation; either version 3 of the License, or
@@ -45,6 +45,10 @@
 #include "manualcontrolsettings.h"
 #include "onscreendisplaysettings.h"
 
+/* The ADDRESSES of the _bu_payload_* symbols */
+extern const uint32_t _bu_payload_start;
+extern const uint32_t _bu_payload_end;
+extern const uint32_t _bu_payload_size;
 
 /**
  * Configuration for the MPU9250 chip
@@ -128,6 +132,9 @@ static const struct pios_ms5611_cfg pios_ms5611_cfg = {
 };
 #endif /* PIOS_INCLUDE_MS5611 */
 
+#if defined(PIOS_INCLUDE_FRSKY_RSSI)
+#include "pios_frsky_rssi_priv.h"
+#endif /* PIOS_INCLUDE_FRSKY_RSSI */
 
 /* One slot per selectable receiver group.
  *  eg. PWM, PPM, GCS, SPEKTRUM1, SPEKTRUM2, SBUS
@@ -159,12 +166,15 @@ uintptr_t pios_rcvr_group_map[MANUALCONTROLSETTINGS_CHANNELGROUPS_NONE];
 #define PIOS_COM_PICOC_RX_BUF_LEN 128
 #define PIOS_COM_PICOC_TX_BUF_LEN 128
 
+#define PIOS_COM_FRSKYSPORT_TX_BUF_LEN 16
+#define PIOS_COM_FRSKYSPORT_RX_BUF_LEN 16
+
 #if defined(PIOS_INCLUDE_DEBUG_CONSOLE)
 #define PIOS_COM_DEBUGCONSOLE_TX_BUF_LEN 40
 uintptr_t pios_com_debug_id;
 #endif /* PIOS_INCLUDE_DEBUG_CONSOLE */
 
-bool brain_external_mag_fail;
+bool external_mag_fail;
 
 uintptr_t pios_com_gps_id;
 uintptr_t pios_com_telem_usb_id;
@@ -172,15 +182,18 @@ uintptr_t pios_com_telem_rf_id;
 uintptr_t pios_com_vcp_id;
 uintptr_t pios_com_bridge_id;
 uintptr_t pios_com_mavlink_id;
-uintptr_t pios_com_overo_id;
 uintptr_t pios_internal_adc_id;
 uintptr_t pios_com_hott_id;
 uintptr_t pios_com_frsky_sensor_hub_id;
 uintptr_t pios_com_lighttelemetry_id;
 uintptr_t pios_com_picoc_id;
+uintptr_t pios_com_logging_id;
+uintptr_t pios_com_frsky_sport_id;
+
 
 uintptr_t pios_uavo_settings_fs_id;
 uintptr_t pios_waypoints_settings_fs_id;
+uintptr_t streamfs_id;
 
 /*
  * Setup a com port based on the passed cfg, driver and buffer sizes. rx or tx size of 0 disables rx or tx
@@ -220,8 +233,8 @@ static void PIOS_Board_configure_com (const struct pios_usart_cfg *usart_port_cf
 
 #ifdef PIOS_INCLUDE_DSM
 static void PIOS_Board_configure_dsm(const struct pios_usart_cfg *pios_usart_dsm_cfg, const struct pios_dsm_cfg *pios_dsm_cfg,
-									 const struct pios_com_driver *pios_usart_com_driver,enum pios_dsm_proto *proto,
-									 ManualControlSettingsChannelGroupsOptions channelgroup,uint8_t *bind)
+									 const struct pios_com_driver *pios_usart_com_driver,
+									 ManualControlSettingsChannelGroupsOptions channelgroup, HwBrainDSMxModeOptions *mode)
 {
 	uintptr_t pios_usart_dsm_id;
 	if (PIOS_USART_Init(&pios_usart_dsm_id, pios_usart_dsm_cfg)) {
@@ -230,7 +243,7 @@ static void PIOS_Board_configure_dsm(const struct pios_usart_cfg *pios_usart_dsm
 
 	uintptr_t pios_dsm_id;
 	if (PIOS_DSM_Init(&pios_dsm_id, pios_dsm_cfg, pios_usart_com_driver,
-					  pios_usart_dsm_id, *proto, *bind)) {
+					  pios_usart_dsm_id, *mode)) {
 		PIOS_Assert(0);
 	}
 
@@ -251,12 +264,12 @@ static void PIOS_Board_configure_hsum(const struct pios_usart_cfg *pios_usart_hs
 	if (PIOS_USART_Init(&pios_usart_hsum_id, pios_usart_hsum_cfg)) {
 		PIOS_Assert(0);
 	}
-	
+
 	uintptr_t pios_hsum_id;
 	if (PIOS_HSUM_Init(&pios_hsum_id, pios_usart_com_driver, pios_usart_hsum_id, *proto)) {
 		PIOS_Assert(0);
 	}
-	
+
 	uintptr_t pios_hsum_rcvr_id;
 	if (PIOS_RCVR_Init(&pios_hsum_rcvr_id, &pios_hsum_rcvr_driver, pios_hsum_id)) {
 		PIOS_Assert(0);
@@ -300,7 +313,7 @@ void OSD_configure_bw_levels(void)
 
 	/* Time base configuration */
 	TIM_TimeBaseStructInit(&TIM_TimeBaseStructure);
-	TIM_TimeBaseStructure.TIM_Prescaler = (SystemCoreClock / 25500000) - 1; // Get clock to 25 MHz on STM32F2/F4
+	TIM_TimeBaseStructure.TIM_Prescaler = (PIOS_SYSCLK / 25500000) - 1; // Get clock to 25 MHz on STM32F2/F4
 	TIM_TimeBaseStructure.TIM_Period = 255;
 	TIM_TimeBaseStructure.TIM_ClockDivision = 0;
 	TIM_TimeBaseStructure.TIM_CounterMode = TIM_CounterMode_Up;
@@ -373,8 +386,6 @@ void PIOS_Board_Init(void) {
 	bool use_internal_mag = true;
 	bool ext_mag_init_ok = false;
 	bool use_rxport_usart = false;
-	enum pios_mpu9250_gyro_filter gyro_filter;
-	enum pios_mpu9250_accel_filter accel_filter;
 
 	/* Delay system */
 	PIOS_DELAY_Init();
@@ -411,7 +422,48 @@ void PIOS_Board_Init(void) {
 	if (PIOS_FLASHFS_Logfs_Init(&pios_uavo_settings_fs_id, &flashfs_settings_cfg, FLASH_PARTITION_LABEL_SETTINGS) != 0)
 		panic(1);
 	if (PIOS_FLASHFS_Logfs_Init(&pios_waypoints_settings_fs_id, &flashfs_waypoints_cfg, FLASH_PARTITION_LABEL_WAYPOINTS) != 0)
-		panic(1);;
+		panic(1);
+
+#if defined(ERASE_FLASH)
+	PIOS_FLASHFS_Format(pios_uavo_settings_fs_id);
+#endif
+
+#if defined(EMBED_BL_UPDATE)
+	/* Update the bootloader if necessary */
+
+	uintptr_t bl_partition_id;
+	if (PIOS_FLASH_find_partition_id(FLASH_PARTITION_LABEL_BL, &bl_partition_id) != 0){
+		panic(2);
+	}
+
+	uint32_t bl_crc32 = PIOS_CRC32_updateCRC(0, (uint8_t *)0x08000000, _bu_payload_size);
+	uint32_t bl_new_crc32 = PIOS_CRC32_updateCRC(0, (uint8_t *)&_bu_payload_start, _bu_payload_size);
+
+	if (bl_new_crc32 != bl_crc32 ){
+		/* The bootloader needs to be updated */
+
+		/* Erase the partition */
+		PIOS_LED_On(PIOS_LED_ALARM);
+		PIOS_FLASH_start_transaction(bl_partition_id);
+		PIOS_FLASH_erase_partition(bl_partition_id);
+		PIOS_FLASH_end_transaction(bl_partition_id);
+
+		/* Write in the new bootloader */
+		PIOS_FLASH_start_transaction(bl_partition_id);
+		PIOS_FLASH_write_data(bl_partition_id, 0, (uint8_t *)&_bu_payload_start, _bu_payload_size);
+		PIOS_FLASH_end_transaction(bl_partition_id);
+		PIOS_LED_Off(PIOS_LED_ALARM);
+
+		/* Blink the LED to indicate BL update */
+		for (uint8_t i=0; i<10; i++){
+			PIOS_DELAY_WaitmS(50);
+			PIOS_LED_On(PIOS_LED_ALARM);
+			PIOS_DELAY_WaitmS(50);
+			PIOS_LED_Off(PIOS_LED_ALARM);
+		}
+	}
+#endif /* EMBED_BL_UPDATE */
+
 #endif	/* PIOS_INCLUDE_FLASH */
 
 	RCC_ClearFlag(); // The flags cleared after use
@@ -600,8 +652,8 @@ void PIOS_Board_Init(void) {
 #endif	/* PIOS_INCLUDE_USB */
 
 	/* Configure the IO ports */
-	uint8_t hw_DSMxBind;
-	HwBrainDSMxBindGet(&hw_DSMxBind);
+	HwBrainDSMxModeOptions hw_DSMxMode;
+	HwBrainDSMxModeGet(&hw_DSMxMode);
 
 	/* init sensor queue registration */
 	PIOS_SENSORS_Init();
@@ -637,28 +689,11 @@ void PIOS_Board_Init(void) {
 	}
 #endif	/* PIOS_INCLUDE_SBUS */
 		break;
-	case HWBRAIN_MAINPORT_DSM2:
-	case HWBRAIN_MAINPORT_DSMX10BIT:
-	case HWBRAIN_MAINPORT_DSMX11BIT:
+	case HWBRAIN_MAINPORT_DSM:
 #if defined(PIOS_INCLUDE_DSM)
 	{
-		enum pios_dsm_proto proto;
-		switch (hw_mainport) {
-		case HWBRAIN_MAINPORT_DSM2:
-			proto = PIOS_DSM_PROTO_DSM2;
-			break;
-		case HWBRAIN_MAINPORT_DSMX10BIT:
-			proto = PIOS_DSM_PROTO_DSMX10BIT;
-			break;
-		case HWBRAIN_MAINPORT_DSMX11BIT:
-			proto = PIOS_DSM_PROTO_DSMX11BIT;
-			break;
-		default:
-			PIOS_Assert(0);
-			break;
-		}
 		PIOS_Board_configure_dsm(&pios_mainport_dsm_hsum_cfg, &pios_mainport_dsm_aux_cfg, &pios_usart_com_driver,
-								 &proto, MANUALCONTROLSETTINGS_CHANNELGROUPS_DSMMAINPORT, &hw_DSMxBind);
+								 MANUALCONTROLSETTINGS_CHANNELGROUPS_DSM, &hw_DSMxMode);
 	}
 #endif	/* PIOS_INCLUDE_DSM */
 		break;
@@ -667,7 +702,7 @@ void PIOS_Board_Init(void) {
 #if defined(PIOS_INCLUDE_HSUM)
 	{
 		enum pios_hsum_proto proto;
-		switch (hw_uart1) {
+		switch (hw_mainport) {
 		case HWBRAIN_MAINPORT_HOTTSUMD:
 			proto = PIOS_HSUM_PROTO_SUMD;
 			break;
@@ -729,6 +764,16 @@ void PIOS_Board_Init(void) {
 		PIOS_Board_configure_com(&pios_mainport_cfg, PIOS_COM_PICOC_RX_BUF_LEN, PIOS_COM_PICOC_TX_BUF_LEN, &pios_usart_com_driver, &pios_com_picoc_id);
 #endif /* PIOS_INCLUDE_PICOC */
 		break;
+	case HWBRAIN_MAINPORT_FRSKYSPORTTELEMETRY:
+#if defined(PIOS_INCLUDE_FRSKY_SPORT_TELEMETRY) && defined(PIOS_INCLUDE_USART) && defined(PIOS_INCLUDE_COM)
+		PIOS_Board_configure_com(&pios_mainport_cfg, PIOS_COM_FRSKYSPORT_RX_BUF_LEN, PIOS_COM_FRSKYSPORT_TX_BUF_LEN, &pios_usart_com_driver, &pios_com_frsky_sport_id);
+#endif /* PIOS_INCLUDE_FRSKYSPORTTELEMETRY */
+		break;
+	}
+
+	if (hw_mainport != HWBRAIN_MAINPORT_SBUS) {
+		GPIO_Init(pios_mainport_sbus_aux_cfg.inv.gpio, (GPIO_InitTypeDef*)&pios_mainport_sbus_aux_cfg.inv.init);
+		GPIO_WriteBit(pios_mainport_sbus_aux_cfg.inv.gpio, pios_mainport_sbus_aux_cfg.inv.init.GPIO_Pin, pios_mainport_sbus_aux_cfg.gpio_inv_disable);
 	}
 
 	/* Flx Port */
@@ -743,69 +788,6 @@ void PIOS_Board_Init(void) {
 		if (PIOS_I2C_Init(&pios_i2c_flexi_id, &pios_i2c_flexi_cfg)) {
 			PIOS_DEBUG_Assert(0);
 		}
-		//if (PIOS_I2C_CheckClear(pios_i2c_flexi_id) != 0)
-		//	panic(6);
-
-		uint8_t Magnetometer;
-		HwBrainMagnetometerGet(&Magnetometer);
-
-		switch (Magnetometer) {
-			case HWBRAIN_MAGNETOMETER_FLXPORTHMC5883:
-#if defined(PIOS_INCLUDE_HMC5883)
-				if (PIOS_HMC5883_Init(pios_i2c_flexi_id, &pios_hmc5883_external_cfg) == 0) {
-					if (PIOS_HMC5883_Test() == 0) {
-						// sensor configuration was successful: external mag is attached and powered
-
-						// setup sensor orientation
-						uint8_t ExtMagOrientation;
-						HwBrainExtMagOrientationGet(&ExtMagOrientation);
-
-						enum pios_hmc5883_orientation hmc5883_orientation = \
-							(ExtMagOrientation == HWBRAIN_EXTMAGORIENTATION_TOP0DEGCW) ? PIOS_HMC5883_TOP_0DEG : \
-							(ExtMagOrientation == HWBRAIN_EXTMAGORIENTATION_TOP90DEGCW) ? PIOS_HMC5883_TOP_90DEG : \
-							(ExtMagOrientation == HWBRAIN_EXTMAGORIENTATION_TOP180DEGCW) ? PIOS_HMC5883_TOP_180DEG : \
-							(ExtMagOrientation == HWBRAIN_EXTMAGORIENTATION_TOP270DEGCW) ? PIOS_HMC5883_TOP_270DEG : \
-							(ExtMagOrientation == HWBRAIN_EXTMAGORIENTATION_BOTTOM0DEGCW) ? PIOS_HMC5883_BOTTOM_0DEG : \
-							(ExtMagOrientation == HWBRAIN_EXTMAGORIENTATION_BOTTOM90DEGCW) ? PIOS_HMC5883_BOTTOM_90DEG : \
-							(ExtMagOrientation == HWBRAIN_EXTMAGORIENTATION_BOTTOM180DEGCW) ? PIOS_HMC5883_BOTTOM_180DEG : \
-							(ExtMagOrientation == HWBRAIN_EXTMAGORIENTATION_BOTTOM270DEGCW) ? PIOS_HMC5883_BOTTOM_270DEG : \
-							pios_hmc5883_external_cfg.Default_Orientation;
-						PIOS_HMC5883_SetOrientation(hmc5883_orientation);
-						ext_mag_init_ok = true;
-					}
-				}
-#endif /* PIOS_INCLUDE_HMC5883 */
-				use_internal_mag = false;
-				break;
-			case HWBRAIN_MAGNETOMETER_FLXPORTHMC5983:
-#if defined(PIOS_INCLUDE_HMC5983_I2C)
-				if (PIOS_HMC5983_Init(pios_i2c_flexi_id, 0, &pios_hmc5983_external_cfg) == 0) {
-
-					if (PIOS_HMC5983_Test() == 0) {
-						// sensor configuration was successful: external mag is attached and powered
-
-						// setup sensor orientation
-						uint8_t ExtMagOrientation;
-						HwBrainExtMagOrientationGet(&ExtMagOrientation);
-
-						enum pios_hmc5983_orientation hmc5983_orientation = \
-							(ExtMagOrientation == HWBRAIN_EXTMAGORIENTATION_TOP0DEGCW) ? PIOS_HMC5983_TOP_0DEG : \
-							(ExtMagOrientation == HWBRAIN_EXTMAGORIENTATION_TOP90DEGCW) ? PIOS_HMC5983_TOP_90DEG : \
-							(ExtMagOrientation == HWBRAIN_EXTMAGORIENTATION_TOP180DEGCW) ? PIOS_HMC5983_TOP_180DEG : \
-							(ExtMagOrientation == HWBRAIN_EXTMAGORIENTATION_TOP270DEGCW) ? PIOS_HMC5983_TOP_270DEG : \
-							(ExtMagOrientation == HWBRAIN_EXTMAGORIENTATION_BOTTOM0DEGCW) ? PIOS_HMC5983_BOTTOM_0DEG : \
-							(ExtMagOrientation == HWBRAIN_EXTMAGORIENTATION_BOTTOM90DEGCW) ? PIOS_HMC5983_BOTTOM_90DEG : \
-							(ExtMagOrientation == HWBRAIN_EXTMAGORIENTATION_BOTTOM180DEGCW) ? PIOS_HMC5983_BOTTOM_180DEG : \
-							(ExtMagOrientation == HWBRAIN_EXTMAGORIENTATION_BOTTOM270DEGCW) ? PIOS_HMC5983_BOTTOM_270DEG : \
-							pios_hmc5983_external_cfg.Orientation;
-						PIOS_HMC5983_SetOrientation(hmc5983_orientation);
-						ext_mag_init_ok = true;
-					}
-				}
-#endif /* PIOS_INCLUDE_HMC5983_I2C */
-				use_internal_mag = false;
-				break;
-		}
 		break;
 #endif /* PIOS_INCLUDE_I2C */
 	case HWBRAIN_FLXPORT_GPS:
@@ -813,28 +795,11 @@ void PIOS_Board_Init(void) {
 		PIOS_Board_configure_com(&pios_flxport_cfg, PIOS_COM_GPS_RX_BUF_LEN, PIOS_COM_GPS_TX_BUF_LEN, &pios_usart_com_driver, &pios_com_gps_id);
 #endif
 		break;
-	case HWBRAIN_FLXPORT_DSM2:
-	case HWBRAIN_FLXPORT_DSMX10BIT:
-	case HWBRAIN_FLXPORT_DSMX11BIT:
+	case HWBRAIN_FLXPORT_DSM:
 #if defined(PIOS_INCLUDE_DSM)
 	{
-		enum pios_dsm_proto proto;
-		switch (hw_flxport) {
-		case HWBRAIN_FLXPORT_DSM2:
-			proto = PIOS_DSM_PROTO_DSM2;
-			break;
-		case HWBRAIN_FLXPORT_DSMX10BIT:
-			proto = PIOS_DSM_PROTO_DSMX10BIT;
-			break;
-		case HWBRAIN_FLXPORT_DSMX11BIT:
-			proto = PIOS_DSM_PROTO_DSMX11BIT;
-			break;
-		default:
-			PIOS_Assert(0);
-			break;
-		}
 		PIOS_Board_configure_dsm(&pios_flxport_dsm_hsum_cfg, &pios_flxport_dsm_aux_cfg, &pios_usart_com_driver,
-								 &proto, MANUALCONTROLSETTINGS_CHANNELGROUPS_DSMMAINPORT, &hw_DSMxBind);
+								 MANUALCONTROLSETTINGS_CHANNELGROUPS_DSM, &hw_DSMxMode);
 	}
 #endif	/* PIOS_INCLUDE_DSM */
 		break;
@@ -843,7 +808,7 @@ void PIOS_Board_Init(void) {
 #if defined(PIOS_INCLUDE_HSUM)
 	{
 		enum pios_hsum_proto proto;
-		switch (hw_uart1) {
+		switch (hw_flxport) {
 		case HWBRAIN_FLXPORT_HOTTSUMD:
 			proto = PIOS_HSUM_PROTO_SUMD;
 			break;
@@ -905,8 +870,12 @@ void PIOS_Board_Init(void) {
 		PIOS_Board_configure_com(&pios_flxport_cfg, PIOS_COM_PICOC_RX_BUF_LEN, PIOS_COM_PICOC_TX_BUF_LEN, &pios_usart_com_driver, &pios_com_picoc_id);
 #endif /* PIOS_INCLUDE_PICOC */
 		break;
+	case HWBRAIN_FLXPORT_FRSKYSPORTTELEMETRY:
+#if defined(PIOS_INCLUDE_FRSKY_SPORT_TELEMETRY) && defined(PIOS_INCLUDE_USART) && defined(PIOS_INCLUDE_COM)
+		PIOS_Board_configure_com(&pios_flxport_cfg, PIOS_COM_FRSKYSPORT_RX_BUF_LEN, PIOS_COM_FRSKYSPORT_TX_BUF_LEN, &pios_usart_com_driver, &pios_com_frsky_sport_id);
+#endif /* PIOS_INCLUDE_FRSKYSPORTTELEMETRY */
+		break;
 	}
-
 
 	/* Configure the rcvr port */
 	uint8_t hw_rxport;
@@ -929,6 +898,11 @@ void PIOS_Board_Init(void) {
 	}
 #endif	/* PIOS_INCLUDE_PWM */
 		break;
+	case HWBRAIN_RXPORT_PPMFRSKY:
+		// special mode that enables PP, FrSky RSSI, and Sensor Hub
+#if defined(PIOS_INCLUDE_FRSKY_SENSOR_HUB) && defined(PIOS_INCLUDE_USART) && defined(PIOS_INCLUDE_COM)
+		PIOS_Board_configure_com(&pios_rxportusart_cfg, 0, PIOS_COM_FRSKYSENSORHUB_TX_BUF_LEN, &pios_usart_com_driver, &pios_com_frsky_sensor_hub_id);
+#endif /* PIOS_INCLUDE_FRSKY_SENSOR_HUB */
 	case HWBRAIN_RXPORT_PPM:
 	case HWBRAIN_RXPORT_PPMOUTPUTS:
 #if defined(PIOS_INCLUDE_PPM)
@@ -974,28 +948,11 @@ void PIOS_Board_Init(void) {
 			PIOS_Board_configure_com(&pios_rxportusart_cfg, PIOS_COM_GPS_RX_BUF_LEN, PIOS_COM_GPS_TX_BUF_LEN, &pios_usart_com_driver, &pios_com_gps_id);
 #endif
 			break;
-		case HWBRAIN_RXPORTUSART_DSM2:
-		case HWBRAIN_RXPORTUSART_DSMX10BIT:
-		case HWBRAIN_RXPORTUSART_DSMX11BIT:
+		case HWBRAIN_RXPORTUSART_DSM:
 #if defined(PIOS_INCLUDE_DSM)
 		{
-			enum pios_dsm_proto proto;
-			switch (hw_flxport) {
-			case HWBRAIN_RXPORTUSART_DSM2:
-				proto = PIOS_DSM_PROTO_DSM2;
-				break;
-			case HWBRAIN_RXPORTUSART_DSMX10BIT:
-				proto = PIOS_DSM_PROTO_DSMX10BIT;
-				break;
-			case HWBRAIN_RXPORTUSART_DSMX11BIT:
-				proto = PIOS_DSM_PROTO_DSMX11BIT;
-				break;
-			default:
-				PIOS_Assert(0);
-				break;
-			}
 			PIOS_Board_configure_dsm(&pios_rxportusart_dsm_hsum_cfg, &pios_rxportusart_dsm_aux_cfg, &pios_usart_com_driver,
-									 &proto, MANUALCONTROLSETTINGS_CHANNELGROUPS_DSMMAINPORT, &hw_DSMxBind);
+									 MANUALCONTROLSETTINGS_CHANNELGROUPS_DSM, &hw_DSMxMode);
 		}
 #endif	/* PIOS_INCLUDE_DSM */
 			break;
@@ -1004,7 +961,7 @@ void PIOS_Board_Init(void) {
 #if defined(PIOS_INCLUDE_HSUM)
 		{
 			enum pios_hsum_proto proto;
-			switch (hw_uart1) {
+			switch (hw_rxportusart) {
 			case HWBRAIN_RXPORTUSART_HOTTSUMD:
 				proto = PIOS_HSUM_PROTO_SUMD;
 				break;
@@ -1066,6 +1023,11 @@ void PIOS_Board_Init(void) {
 			PIOS_Board_configure_com(&pios_rxportusart_cfg, PIOS_COM_PICOC_RX_BUF_LEN, PIOS_COM_PICOC_TX_BUF_LEN, &pios_usart_com_driver, &pios_com_picoc_id);
 #endif /* PIOS_INCLUDE_PICOC */
 			break;
+		case HWBRAIN_RXPORTUSART_FRSKYSPORTTELEMETRY:
+#if defined(PIOS_INCLUDE_FRSKY_SPORT_TELEMETRY) && defined(PIOS_INCLUDE_USART) && defined(PIOS_INCLUDE_COM)
+			PIOS_Board_configure_com(&pios_rxportusart_cfg, PIOS_COM_FRSKYSPORT_RX_BUF_LEN, PIOS_COM_FRSKYSPORT_TX_BUF_LEN, &pios_usart_com_driver, &pios_com_frsky_sport_id);
+#endif /* PIOS_INCLUDE_FRSKYSPORTTELEMETRY */
+			break;
 		}
 	}
 
@@ -1085,8 +1047,9 @@ void PIOS_Board_Init(void) {
 	case HWBRAIN_RXPORT_DISABLED:
 	case HWBRAIN_RXPORT_PWM:
 	case HWBRAIN_RXPORT_PPM:
+	case HWBRAIN_RXPORT_UART:
 	case HWBRAIN_RXPORT_PPMUART:
-		/* Set up the servo outputs */
+	/* Set up the servo outputs */
 #ifdef PIOS_INCLUDE_SERVO
 		PIOS_Servo_Init(&pios_servo_cfg);
 #endif
@@ -1101,6 +1064,14 @@ void PIOS_Board_Init(void) {
 		PIOS_Servo_Init(&pios_servo_rcvr_ppm_uart_out_cfg);
 #endif
 		break;
+	case HWBRAIN_RXPORT_PPMFRSKY:
+#ifdef PIOS_INCLUDE_SERVO
+		PIOS_Servo_Init(&pios_servo_cfg);
+#endif
+#if defined(PIOS_INCLUDE_FRSKY_RSSI)
+		PIOS_FrSkyRssi_Init(&pios_frsky_rssi_cfg);
+#endif /* PIOS_INCLUDE_FRSKY_RSSI */
+		break;
 	case HWBRAIN_RXPORT_OUTPUTS:
 #ifdef PIOS_INCLUDE_SERVO
 		PIOS_Servo_Init(&pios_servo_rcvr_all_cfg);
@@ -1110,6 +1081,7 @@ void PIOS_Board_Init(void) {
 #else
 	PIOS_DEBUG_Init(&pios_tim_servo_all_channels, NELEMENTS(pios_tim_servo_all_channels));
 #endif
+
 
 #if defined(PIOS_INCLUDE_GPIO)
 	PIOS_GPIO_Init();
@@ -1128,6 +1100,75 @@ void PIOS_Board_Init(void) {
 
 	PIOS_WDG_Clear();
 
+	/* Magnetometer selection */
+	uint8_t Magnetometer;
+	HwBrainMagnetometerGet(&Magnetometer);
+	switch (Magnetometer) {
+		case HWBRAIN_MAGNETOMETER_DISABLED:
+			use_internal_mag = false;
+			ext_mag_init_ok = true;
+			break;
+		case HWBRAIN_MAGNETOMETER_FLXPORTHMC5883:
+			if (hw_flxport == HWBRAIN_FLXPORT_I2C){
+#if defined(PIOS_INCLUDE_HMC5883)
+				if (PIOS_HMC5883_Init(pios_i2c_flexi_id, &pios_hmc5883_external_cfg) == 0) {
+					if (PIOS_HMC5883_Test() == 0) {
+						// sensor configuration was successful: external mag is attached and powered
+
+						// setup sensor orientation
+						uint8_t ExtMagOrientation;
+						HwBrainExtMagOrientationGet(&ExtMagOrientation);
+
+						enum pios_hmc5883_orientation hmc5883_orientation = \
+							(ExtMagOrientation == HWBRAIN_EXTMAGORIENTATION_TOP0DEGCW) ? PIOS_HMC5883_TOP_0DEG : \
+							(ExtMagOrientation == HWBRAIN_EXTMAGORIENTATION_TOP90DEGCW) ? PIOS_HMC5883_TOP_90DEG : \
+							(ExtMagOrientation == HWBRAIN_EXTMAGORIENTATION_TOP180DEGCW) ? PIOS_HMC5883_TOP_180DEG : \
+							(ExtMagOrientation == HWBRAIN_EXTMAGORIENTATION_TOP270DEGCW) ? PIOS_HMC5883_TOP_270DEG : \
+							(ExtMagOrientation == HWBRAIN_EXTMAGORIENTATION_BOTTOM0DEGCW) ? PIOS_HMC5883_BOTTOM_0DEG : \
+							(ExtMagOrientation == HWBRAIN_EXTMAGORIENTATION_BOTTOM90DEGCW) ? PIOS_HMC5883_BOTTOM_90DEG : \
+							(ExtMagOrientation == HWBRAIN_EXTMAGORIENTATION_BOTTOM180DEGCW) ? PIOS_HMC5883_BOTTOM_180DEG : \
+							(ExtMagOrientation == HWBRAIN_EXTMAGORIENTATION_BOTTOM270DEGCW) ? PIOS_HMC5883_BOTTOM_270DEG : \
+							pios_hmc5883_external_cfg.Default_Orientation;
+						PIOS_HMC5883_SetOrientation(hmc5883_orientation);
+						ext_mag_init_ok = true;
+					}
+				}
+			}
+#endif /* PIOS_INCLUDE_HMC5883 */
+			use_internal_mag = false;
+			break;
+		case HWBRAIN_MAGNETOMETER_FLXPORTHMC5983:
+			if (hw_flxport == HWBRAIN_FLXPORT_I2C){
+#if defined(PIOS_INCLUDE_HMC5983_I2C)
+				if (PIOS_HMC5983_Init(pios_i2c_flexi_id, 0, &pios_hmc5983_external_cfg) == 0) {
+
+					if (PIOS_HMC5983_Test() == 0) {
+						// sensor configuration was successful: external mag is attached and powered
+
+						// setup sensor orientation
+						uint8_t ExtMagOrientation;
+						HwBrainExtMagOrientationGet(&ExtMagOrientation);
+
+						enum pios_hmc5983_orientation hmc5983_orientation = \
+							(ExtMagOrientation == HWBRAIN_EXTMAGORIENTATION_TOP0DEGCW) ? PIOS_HMC5983_TOP_0DEG : \
+							(ExtMagOrientation == HWBRAIN_EXTMAGORIENTATION_TOP90DEGCW) ? PIOS_HMC5983_TOP_90DEG : \
+							(ExtMagOrientation == HWBRAIN_EXTMAGORIENTATION_TOP180DEGCW) ? PIOS_HMC5983_TOP_180DEG : \
+							(ExtMagOrientation == HWBRAIN_EXTMAGORIENTATION_TOP270DEGCW) ? PIOS_HMC5983_TOP_270DEG : \
+							(ExtMagOrientation == HWBRAIN_EXTMAGORIENTATION_BOTTOM0DEGCW) ? PIOS_HMC5983_BOTTOM_0DEG : \
+							(ExtMagOrientation == HWBRAIN_EXTMAGORIENTATION_BOTTOM90DEGCW) ? PIOS_HMC5983_BOTTOM_90DEG : \
+							(ExtMagOrientation == HWBRAIN_EXTMAGORIENTATION_BOTTOM180DEGCW) ? PIOS_HMC5983_BOTTOM_180DEG : \
+							(ExtMagOrientation == HWBRAIN_EXTMAGORIENTATION_BOTTOM270DEGCW) ? PIOS_HMC5983_BOTTOM_270DEG : \
+							pios_hmc5983_external_cfg.Orientation;
+						PIOS_HMC5983_SetOrientation(hmc5983_orientation);
+						ext_mag_init_ok = true;
+					}
+				}
+			}
+#endif /* PIOS_INCLUDE_HMC5983_I2C */
+			use_internal_mag = false;
+			break;
+	}
+
 #if defined(PIOS_INCLUDE_MPU9250_BRAIN)
 #if defined(PIOS_INCLUDE_MPU6050)
 	// Enable autoprobing when both 6050 and 9050 compiled in
@@ -1137,30 +1178,31 @@ void PIOS_Board_Init(void) {
 #else
 	{
 #endif /* PIOS_INCLUDE_MPU6050 */
-		uint8_t hw_accelgyrolpf;
-		HwBrainAccelGyroLPFGet(&hw_accelgyrolpf);
-		switch(hw_accelgyrolpf)
-		{
-			case HWBRAIN_ACCELGYROLPF_20HZ:
-				accel_filter = PIOS_MPU9250_ACCEL_LOWPASS_20_HZ;
-				gyro_filter = PIOS_MPU9250_GYRO_LOWPASS_20_HZ;
-				break;
-			case HWBRAIN_ACCELGYROLPF_41HZ:
-				accel_filter = PIOS_MPU9250_ACCEL_LOWPASS_41_HZ;
-				gyro_filter = PIOS_MPU9250_GYRO_LOWPASS_41_HZ;
-				break;
-			case HWBRAIN_ACCELGYROLPF_92HZ:
-				accel_filter = PIOS_MPU9250_ACCEL_LOWPASS_92_HZ;
-				gyro_filter = PIOS_MPU9250_GYRO_LOWPASS_92_HZ;
-				break;
-			default:
-				accel_filter = PIOS_MPU9250_ACCEL_LOWPASS_184_HZ;
-				gyro_filter = PIOS_MPU9250_GYRO_LOWPASS_184_HZ;
-		}
+		uint8_t hw_mpu9250_dlpf;
+		HwBrainMPU9250GyroLPFGet(&hw_mpu9250_dlpf);
+		enum pios_mpu9250_gyro_filter mpu9250_gyro_lpf = \
+			(hw_mpu9250_dlpf == HWBRAIN_MPU9250GYROLPF_184) ? PIOS_MPU9250_GYRO_LOWPASS_184_HZ : \
+			(hw_mpu9250_dlpf == HWBRAIN_MPU9250GYROLPF_92) ? PIOS_MPU9250_GYRO_LOWPASS_92_HZ : \
+			(hw_mpu9250_dlpf == HWBRAIN_MPU9250GYROLPF_41) ? PIOS_MPU9250_GYRO_LOWPASS_41_HZ : \
+			(hw_mpu9250_dlpf == HWBRAIN_MPU9250GYROLPF_20) ? PIOS_MPU9250_GYRO_LOWPASS_20_HZ : \
+			(hw_mpu9250_dlpf == HWBRAIN_MPU9250GYROLPF_10) ? PIOS_MPU9250_GYRO_LOWPASS_10_HZ : \
+			(hw_mpu9250_dlpf == HWBRAIN_MPU9250GYROLPF_5) ? PIOS_MPU9250_GYRO_LOWPASS_5_HZ : \
+			PIOS_MPU9250_GYRO_LOWPASS_184_HZ;
+
+		HwBrainMPU9250AccelLPFGet(&hw_mpu9250_dlpf);
+		enum pios_mpu9250_accel_filter mpu9250_accel_lpf = \
+			(hw_mpu9250_dlpf == HWBRAIN_MPU9250ACCELLPF_460) ? PIOS_MPU9250_ACCEL_LOWPASS_460_HZ : \
+			(hw_mpu9250_dlpf == HWBRAIN_MPU9250ACCELLPF_184) ? PIOS_MPU9250_ACCEL_LOWPASS_184_HZ : \
+			(hw_mpu9250_dlpf == HWBRAIN_MPU9250ACCELLPF_92) ? PIOS_MPU9250_ACCEL_LOWPASS_92_HZ : \
+			(hw_mpu9250_dlpf == HWBRAIN_MPU9250ACCELLPF_41) ? PIOS_MPU9250_ACCEL_LOWPASS_41_HZ : \
+			(hw_mpu9250_dlpf == HWBRAIN_MPU9250ACCELLPF_20) ? PIOS_MPU9250_ACCEL_LOWPASS_20_HZ : \
+			(hw_mpu9250_dlpf == HWBRAIN_MPU9250ACCELLPF_10) ? PIOS_MPU9250_ACCEL_LOWPASS_10_HZ : \
+			(hw_mpu9250_dlpf == HWBRAIN_MPU9250ACCELLPF_5) ? PIOS_MPU9250_ACCEL_LOWPASS_5_HZ : \
+			PIOS_MPU9250_ACCEL_LOWPASS_184_HZ;
 
 		int retval;
 		retval = PIOS_MPU9250_Init(pios_i2c_internal_id, PIOS_MPU9250_I2C_ADD_A0_LOW, use_internal_mag,
-									gyro_filter, accel_filter, &pios_mpu9250_cfg);
+									mpu9250_gyro_lpf, mpu9250_accel_lpf, &pios_mpu9250_cfg);
 		if (retval == -10)
 			panic(1); // indicate missing IRQ separately
 		if (retval != 0)
@@ -1168,36 +1210,56 @@ void PIOS_Board_Init(void) {
 
 		// To be safe map from UAVO enum to driver enum
 		uint8_t hw_gyro_range;
-		HwBrainGyroRangeGet(&hw_gyro_range);
+		HwBrainGyroFullScaleGet(&hw_gyro_range);
 		switch(hw_gyro_range) {
-			case HWBRAIN_GYRORANGE_250:
+			case HWBRAIN_GYROFULLSCALE_250:
 				PIOS_MPU9250_SetGyroRange(PIOS_MPU60X0_SCALE_250_DEG);
 				break;
-			case HWBRAIN_GYRORANGE_500:
+			case HWBRAIN_GYROFULLSCALE_500:
 				PIOS_MPU9250_SetGyroRange(PIOS_MPU60X0_SCALE_500_DEG);
 				break;
-			case HWBRAIN_GYRORANGE_1000:
+			case HWBRAIN_GYROFULLSCALE_1000:
 				PIOS_MPU9250_SetGyroRange(PIOS_MPU60X0_SCALE_1000_DEG);
 				break;
-			case HWBRAIN_GYRORANGE_2000:
+			case HWBRAIN_GYROFULLSCALE_2000:
 				PIOS_MPU9250_SetGyroRange(PIOS_MPU60X0_SCALE_2000_DEG);
 				break;
 		}
 
 		uint8_t hw_accel_range;
-		HwBrainAccelRangeGet(&hw_accel_range);
+		HwBrainAccelFullScaleGet(&hw_accel_range);
 		switch(hw_accel_range) {
-			case HWBRAIN_ACCELRANGE_2G:
+			case HWBRAIN_ACCELFULLSCALE_2G:
 				PIOS_MPU9250_SetAccelRange(PIOS_MPU60X0_ACCEL_2G);
 				break;
-			case HWBRAIN_ACCELRANGE_4G:
+			case HWBRAIN_ACCELFULLSCALE_4G:
 				PIOS_MPU9250_SetAccelRange(PIOS_MPU60X0_ACCEL_4G);
 				break;
-			case HWBRAIN_ACCELRANGE_8G:
+			case HWBRAIN_ACCELFULLSCALE_8G:
 				PIOS_MPU9250_SetAccelRange(PIOS_MPU60X0_ACCEL_8G);
 				break;
-			case HWBRAIN_ACCELRANGE_16G:
+			case HWBRAIN_ACCELFULLSCALE_16G:
 				PIOS_MPU9250_SetAccelRange(PIOS_MPU60X0_ACCEL_16G);
+				break;
+		}
+
+		uint8_t mpu_rate;
+		HwBrainMPU9250RateGet(&mpu_rate);
+		switch(mpu_rate) {
+			case HWBRAIN_MPU9250RATE_200:
+				PIOS_MPU9250_SetSampleRate(200);
+				break;
+			case HWBRAIN_MPU9250RATE_250:
+				PIOS_MPU9250_SetSampleRate(250);
+				break;
+			case HWBRAIN_MPU9250RATE_333:
+				PIOS_MPU9250_SetSampleRate(333);
+				break;
+			case HWBRAIN_MPU9250RATE_500:
+				PIOS_MPU9250_SetSampleRate(500);
+				break;
+			case HWBRAIN_MPU9250RATE_1000:
+				PIOS_MPU9250_SetSampleRate(1000);
 				break;
 		}
 	}
@@ -1210,6 +1272,18 @@ void PIOS_Board_Init(void) {
 	PIOS_INTERNAL_ADC_Init(&internal_adc_id, &pios_adc_cfg);
 	PIOS_ADC_Init(&pios_internal_adc_id, &pios_internal_adc_driver, internal_adc_id);
 #endif
+
+#if defined(PIOS_INCLUDE_FLASH)
+	if ( PIOS_STREAMFS_Init(&streamfs_id, &streamfs_settings, FLASH_PARTITION_LABEL_LOG) != 0)
+		panic(8);
+
+	const uint32_t LOG_BUF_LEN = 256;
+	uint8_t *log_rx_buffer = PIOS_malloc(LOG_BUF_LEN);
+	uint8_t *log_tx_buffer = PIOS_malloc(LOG_BUF_LEN);
+	if (PIOS_COM_Init(&pios_com_logging_id, &pios_streamfs_com_driver, streamfs_id,
+					  log_rx_buffer, LOG_BUF_LEN, log_tx_buffer, LOG_BUF_LEN) != 0)
+		panic(9);
+#endif /* PIOS_INCLUDE_FLASH */
 
 #if defined(PIOS_INCLUDE_VIDEO)
 	// make sure the mask pin is low
@@ -1227,7 +1301,7 @@ void PIOS_Board_Init(void) {
 #endif
 
 	// set variable so the Sensors task sets an alarm
-	brain_external_mag_fail = !use_internal_mag && !ext_mag_init_ok;
+	external_mag_fail = !use_internal_mag && !ext_mag_init_ok;
 
 	/* Make sure we have at least one telemetry link configured or else fail initialization */
 	PIOS_Assert(pios_com_telem_rf_id || pios_com_telem_usb_id);

@@ -50,7 +50,7 @@
 #ifdef PIOS_MPU9250_SPI_HIGH_SPEED
 #define MPU9250_SPI_HIGH_SPEED              PIOS_MPU9250_SPI_HIGH_SPEED
 #else
-#define MPU9250_SPI_HIGH_SPEED              20000000
+#define MPU9250_SPI_HIGH_SPEED              20000000	// should result in 10.5MHz clock on F4 targets like Sparky2
 #endif
 #define MPU9250_SPI_LOW_SPEED               300000
 
@@ -539,7 +539,9 @@ void PIOS_MPU9250_SetGyroLPF(enum pios_mpu9250_gyro_filter filter)
  */
 void PIOS_MPU9250_SetAccelLPF(enum pios_mpu9250_accel_filter filter)
 {
-	PIOS_MPU9250_WriteReg(PIOS_MPU9250_ACCEL_DLPF_CFG_REG, filter);
+	// Note this sets the a_fchoice_b to 0 which enables the DLPF
+	// which is what is desired.
+	PIOS_MPU9250_WriteReg(PIOS_MPU60X0_ACCEL_CFG2_REG, filter);
 
 	dev->accel_filter = filter;
 }

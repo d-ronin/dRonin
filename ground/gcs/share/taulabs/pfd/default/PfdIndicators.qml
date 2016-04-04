@@ -1,4 +1,5 @@
 import QtQuick 2.0
+import "convertint8.js" as CInt8
 
 Item {
     id: sceneItem
@@ -14,7 +15,7 @@ Item {
         elementName: "gcstelemetry-"+statusName
         sceneSize: sceneItem.sceneSize
 
-        property string statusName : ["Disconnected","HandshakeReq","HandshakeAck","Connected"][GCSTelemetryStats.Status]
+        property string statusName : ["Disconnected","HandshakeReq","HandshakeAck","Connected"][CInt8.ConvertInt8(GCSTelemetryStats.Status)]
 
         // Force refresh of the arrow image when elementName changes
         onElementNameChanged: { generateSource() }
@@ -39,12 +40,12 @@ Item {
     // GPS status text
     Text {
         id: gps_text
-        text: "GPS: " + GPSPosition.Satellites + "\nPDP: " + GPSPosition.PDOP.toFixed(2)
+        text: "GPS: " + CInt8.ConvertInt8(GPSPosition.Satellites) + "\nPDP: " + GPSPosition.PDOP.toFixed(2) + "\nACC: " + GPSPosition.Accuracy.toFixed(2)
         color: "white"
         font.family: "Arial"
-        font.pixelSize: telemetry_status.height * 0.75
+        font.pixelSize: telemetry_status.height * 0.55
 
-        visible: GPSPosition.Satellites > 0
+        visible: CInt8.ConvertInt8(GPSPosition.Satellites)
 
         property variant scaledBounds: svgRenderer.scaledElementBounds("pfd.svg", "gps-txt")
         x: Math.floor(scaledBounds.x * sceneItem.width)
@@ -62,9 +63,7 @@ Item {
         color: "white"
         font.family: "Arial"
 
-        //I think it should be pixel size,
-        //but making it more consistent with C++ version instead
-        font.pointSize: scaledBounds.height * sceneItem.height
+        font.pixelSize: telemetry_status.height * .55
 
         visible: FlightBatteryState.Voltage > 0 || FlightBatteryState.Current > 0
 
