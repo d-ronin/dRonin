@@ -38,8 +38,8 @@
 #include <math.h>
 #include <QMessageBox>
 
-#include "mixersettings.h"
 #include "actuatorcommand.h"
+#include "mixersettings.h"
 
 ConfigCcpmWidget::ConfigCcpmWidget(QWidget *parent) : VehicleConfig(parent)
 {
@@ -223,7 +223,7 @@ QStringList ConfigCcpmWidget::getChannelDescriptions()
     QStringList channelDesc;
 
     // init a channel_numelem list of channel desc defaults
-    for (i=0; i < (int)(ConfigCcpmWidget::CHANNEL_NUMELEM); i++)
+    for (i=0; i < (int)(ActuatorCommand::CHANNEL_NUMELEM); i++)
     {
         channelDesc.append(QString("-"));
     }
@@ -653,13 +653,13 @@ void ConfigCcpmWidget::UpdateMixer()
                 //Generate the mixer vector
                 if (i==0)
                 {//main motor-engine
-                    m_ccpm->ccpmAdvancedSettingsTable->item(i,1)->setText(QString("%1").arg(127));//ThrottleCurve1
+                    m_ccpm->ccpmAdvancedSettingsTable->item(i,1)->setText(QString("%1").arg(mixerRange));//ThrottleCurve1
                     m_ccpm->ccpmAdvancedSettingsTable->item(i,2)->setText(QString("%1").arg(0));//ThrottleCurve2
                     m_ccpm->ccpmAdvancedSettingsTable->item(i,3)->setText(QString("%1").arg(0));//Roll
                     m_ccpm->ccpmAdvancedSettingsTable->item(i,4)->setText(QString("%1").arg(0));//Pitch
 
                     if (TypeText.compare(QString::fromUtf8("Coax 2 Servo 90º"), Qt::CaseInsensitive)==0)
-                        m_ccpm->ccpmAdvancedSettingsTable->item(i,5)->setText(QString("%1").arg(-127));//Yaw
+                        m_ccpm->ccpmAdvancedSettingsTable->item(i,5)->setText(QString("%1").arg(-mixerRange));//Yaw
                     else
                         m_ccpm->ccpmAdvancedSettingsTable->item(i,5)->setText(QString("%1").arg(0));//Yaw
 
@@ -668,12 +668,12 @@ void ConfigCcpmWidget::UpdateMixer()
                 {//tailrotor --or-- counter-clockwise motor
                     if (TypeText.compare(QString::fromUtf8("Coax 2 Servo 90º"), Qt::CaseInsensitive)==0)
                     {
-                        m_ccpm->ccpmAdvancedSettingsTable->item(i,1)->setText(QString("%1").arg(127));//ThrottleCurve1
-                        m_ccpm->ccpmAdvancedSettingsTable->item(i,5)->setText(QString("%1").arg(127));//Yaw
+                        m_ccpm->ccpmAdvancedSettingsTable->item(i,1)->setText(QString("%1").arg(mixerRange));//ThrottleCurve1
+                        m_ccpm->ccpmAdvancedSettingsTable->item(i,5)->setText(QString("%1").arg(mixerRange));//Yaw
                     }
                     else{
                         m_ccpm->ccpmAdvancedSettingsTable->item(i,1)->setText(QString("%1").arg(0));//ThrottleCurve1
-                        m_ccpm->ccpmAdvancedSettingsTable->item(i,5)->setText(QString("%1").arg(127));//Yaw
+                        m_ccpm->ccpmAdvancedSettingsTable->item(i,5)->setText(QString("%1").arg(mixerRange));//Yaw
                     }
 
                     m_ccpm->ccpmAdvancedSettingsTable->item(i,2)->setText(QString("%1").arg(0));//ThrottleCurve2
@@ -684,9 +684,9 @@ void ConfigCcpmWidget::UpdateMixer()
                 if (i>1)
                 {//Swashplate
                     m_ccpm->ccpmAdvancedSettingsTable->item(i,1)->setText(QString("%1").arg(0));//ThrottleCurve1
-                    m_ccpm->ccpmAdvancedSettingsTable->item(i,2)->setText(QString("%1").arg((int)(127.0*CollectiveConstant)));//ThrottleCurve2
-                    m_ccpm->ccpmAdvancedSettingsTable->item(i,3)->setText(QString("%1").arg((int)(127.0*(RollConstant)*sin((180+config.heli.CorrectionAngle + ThisAngle[i])*DEG2RAD))));//Roll
-                    m_ccpm->ccpmAdvancedSettingsTable->item(i,4)->setText(QString("%1").arg((int)(127.0*(PitchConstant)*cos((config.heli.CorrectionAngle + ThisAngle[i])*DEG2RAD))));//Pitch
+                    m_ccpm->ccpmAdvancedSettingsTable->item(i,2)->setText(QString("%1").arg((int)(mixerRange * CollectiveConstant))); //ThrottleCurve2
+                    m_ccpm->ccpmAdvancedSettingsTable->item(i,3)->setText(QString("%1").arg((int)(mixerRange * RollConstant * sin((180 + config.heli.CorrectionAngle + ThisAngle[i])*DEG2RAD)))); //Roll
+                    m_ccpm->ccpmAdvancedSettingsTable->item(i,4)->setText(QString("%1").arg((int)(mixerRange * PitchConstant * cos((config.heli.CorrectionAngle + ThisAngle[i])*DEG2RAD)))); //Pitch
                     m_ccpm->ccpmAdvancedSettingsTable->item(i,5)->setText(QString("%1").arg(0));//Yaw
 
                 }
@@ -917,17 +917,20 @@ void ConfigCcpmWidget::setMixer()
     UpdateMixer();
 
     // Set up some helper pointers
-    qint8 * mixers[8] = {mixerSettingsData.Mixer1Vector,
-                         mixerSettingsData.Mixer2Vector,
-                         mixerSettingsData.Mixer3Vector,
-                         mixerSettingsData.Mixer4Vector,
-                         mixerSettingsData.Mixer5Vector,
-                         mixerSettingsData.Mixer6Vector,
-                         mixerSettingsData.Mixer7Vector,
-                         mixerSettingsData.Mixer8Vector
+    decltype(&mixerSettingsData.Mixer1Vector[0]) mixers[] = {
+        mixerSettingsData.Mixer1Vector,
+        mixerSettingsData.Mixer2Vector,
+        mixerSettingsData.Mixer3Vector,
+        mixerSettingsData.Mixer4Vector,
+        mixerSettingsData.Mixer5Vector,
+        mixerSettingsData.Mixer6Vector,
+        mixerSettingsData.Mixer7Vector,
+        mixerSettingsData.Mixer8Vector,
+        mixerSettingsData.Mixer9Vector,
+        mixerSettingsData.Mixer10Vector
     };
 
-    quint8 * mixerTypes[8] = {
+    decltype(&mixerSettingsData.Mixer1Type) mixerTypes[] = {
         &mixerSettingsData.Mixer1Type,
         &mixerSettingsData.Mixer2Type,
         &mixerSettingsData.Mixer3Type,
@@ -935,33 +938,36 @@ void ConfigCcpmWidget::setMixer()
         &mixerSettingsData.Mixer5Type,
         &mixerSettingsData.Mixer6Type,
         &mixerSettingsData.Mixer7Type,
-        &mixerSettingsData.Mixer8Type
+        &mixerSettingsData.Mixer8Type,
+        &mixerSettingsData.Mixer9Type,
+        &mixerSettingsData.Mixer10Type
     };
 
+    uint8_t mixerTypesCount = sizeof(mixerTypes)/sizeof(mixerTypes[0]);
+
     //reset all to Disabled
-    for (i=0; i<8; i++)
-        *mixerTypes[i] = 0;
+    for (i = 0; i < mixerTypesCount; i++) {
+        *(mixerTypes[i]) = 0;
+    }
 
     //go through the user data and update the mixer matrix
-    for (i=0;i<6;i++)
+    for (i = 0; i < 6; i++)
     {
-        if (MixerChannelData[i]>0)
-        {
+        if (MixerChannelData[i] > 0 && (uint)MixerChannelData[i] < mixerTypesCount) {
             //Set the mixer type. If Coax, then first two are motors. Otherwise, only first is motor
-            if (TypeText.compare(QString::fromUtf8("Coax 2 Servo 90º"), Qt::CaseInsensitive)==0)
+            if (TypeText.compare(QString::fromUtf8("Coax 2 Servo 90º"), Qt::CaseInsensitive) == 0)
             {
                 *(mixerTypes[MixerChannelData[i] - 1]) = i > 1 ?
                             MixerSettings::MIXER1TYPE_SERVO :
                             MixerSettings::MIXER1TYPE_MOTOR;
-            }
-            else{
+            } else {
                 *(mixerTypes[MixerChannelData[i] - 1]) = i > 0 ?
                             MixerSettings::MIXER1TYPE_SERVO :
                             MixerSettings::MIXER1TYPE_MOTOR;
             }
 
             //Configure the vector
-            for (j=0;j<5;j++)
+            for (j = 0; j < 5; j++)
                 mixers[MixerChannelData[i] - 1][j] = m_ccpm->ccpmAdvancedSettingsTable->item(i,j+1)->text().toInt(); //TODO: Fix crash here
         }
     }

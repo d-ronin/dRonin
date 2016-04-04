@@ -67,7 +67,6 @@ static uint32_t lastSysTime;
 
 // Private functions
 static void manualControlTask(void *parameters);
-static bool ok_to_arm(void);
 static FlightStatusControlSourceOptions control_source_select();
 
 // Private functions for control events
@@ -75,15 +74,20 @@ static int32_t control_event_arm();
 static int32_t control_event_arming();
 static int32_t control_event_disarm();
 
+// This is exposed to transmitter_control
+bool ok_to_arm(void);
+
 /**
  * Module starting
  */
 int32_t ManualControlStart()
 {
+	// Watchdog must be registered before starting task
+	PIOS_WDG_RegisterFlag(PIOS_WDG_MANUAL);
+
 	// Start main task
 	taskHandle = PIOS_Thread_Create(manualControlTask, "Control", STACK_SIZE_BYTES, NULL, TASK_PRIORITY);
 	TaskMonitorAdd(TASKINFO_RUNNING_MANUALCONTROL, taskHandle);
-	PIOS_WDG_RegisterFlag(PIOS_WDG_MANUAL);
 
 	return 0;
 }
@@ -270,7 +274,7 @@ static FlightStatusControlSourceOptions control_source_select()
  * @brief Determine if the aircraft is safe to arm based on alarms
  * @returns True if safe to arm, false otherwise
  */
-static bool ok_to_arm(void)
+bool ok_to_arm(void)
 {
 	// read alarms
 	SystemAlarmsData alarms;

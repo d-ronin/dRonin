@@ -30,6 +30,7 @@ include $(BOARD_INFO_DIR)/board-info.mk
 # Set to YES for debugging
 DEBUG ?= NO
 ERASE_FLASH ?= NO
+RTOS ?= CHIBIOS
 
 # List of modules to include
 MODULES = Sensors
@@ -44,35 +45,35 @@ OPTMODULES += GPS
 OPTMODULES += CameraStab
 OPTMODULES += Autotune
 OPTMODULES += TxPID
-OPTMODULES += GenericI2CSensor
+#OPTMODULES += GenericI2CSensor
 OPTMODULES += AltitudeHold
 OPTMODULES += PathPlanner
 OPTMODULES += VtolPathFollower
 OPTMODULES += FixedWingPathFollower
 OPTMODULES += VibrationAnalysis
 OPTMODULES += UAVOMavlinkBridge
+OPTMODULES += UAVOMSPBridge
 OPTMODULES += UAVOLighttelemetryBridge 
 OPTMODULES += Battery
 OPTMODULES += ComUsbBridge
-OPTMODULES += Airspeed/revolution
+#OPTMODULES += Airspeed
 OPTMODULES += UAVOHoTTBridge
 OPTMODULES += UAVOFrSKYSensorHubBridge
 OPTMODULES += UAVOFrSKYSPortBridge
 OPTMODULES += Geofence
 
 # Paths
+TARGET_ARCHITECTURE = STM32F30x
 OPUAVTALKINC = $(OPUAVTALK)/inc
 OPUAVOBJINC = $(OPUAVOBJ)/inc
 PIOSINC = $(PIOS)/inc
 FLIGHTLIBINC = $(FLIGHTLIB)/inc
 MATHLIB = $(FLIGHTLIB)/math
 MATHLIBINC = $(FLIGHTLIB)/math
-RSCODE = $(FLIGHTLIB)/rscode
-RSCODEINC = $(FLIGHTLIB)/rscode
-PIOSSTM32F30X = $(PIOS)/STM32F30x
+PIOSSTM32FXXX = $(PIOS)/$(TARGET_ARCHITECTURE)
 PIOSCOMMON = $(PIOS)/Common
 PIOSCOMMONLIB = $(PIOSCOMMON)/Libraries
-APPLIBDIR = $(PIOSSTM32F30X)/Libraries
+APPLIBDIR = $(PIOSSTM32FXXX)/Libraries
 STMLIBDIR = $(APPLIBDIR)
 STMSPDDIR = $(STMLIBDIR)/STM32F30x_StdPeriph_Driver
 STMSPDSRCDIR = $(STMSPDDIR)/src
@@ -83,8 +84,6 @@ OPUAVOBJINC = $(OPUAVOBJ)/inc
 MAVLINKINC = $(FLIGHTLIB)/mavlink/v1.0/common
 
 # optional component libraries
-include $(APPLIBDIR)/ChibiOS/library.mk
-#include $(PIOSCOMMONLIB)/dosfs/library.mk
 include $(FLIGHTLIB)/CMSIS3/DSP_Lib/library.mk
 
 # List C source files here. (C dependencies are automatically generated.)
@@ -95,7 +94,6 @@ SRC += ${foreach MOD, ${MODULES} ${OPTMODULES}, ${wildcard ${OPMODULEDIR}/${MOD}
 ## OPENPILOT CORE:
 SRC += ${OPMODULEDIR}/System/systemmod.c
 SRC += main.c
-SRC += board.c
 SRC += pios_board.c
 SRC += pios_usb_board_data.c
 SRC += $(FLIGHTLIB)/alarms.c
@@ -115,24 +113,23 @@ SRC += $(FLIGHTLIB)/insgps14state.c
 SRC += $(FLIGHTLIB)/taskmonitor.c
 SRC += $(FLIGHTLIB)/sanitycheck.c
 SRC += $(FLIGHTLIB)/frsky_packing.c
+SRC += $(FLIGHTLIB)/msplib.c
 SRC += $(MATHLIB)/coordinate_conversions.c
 SRC += $(MATHLIB)/misc_math.c
 SRC += $(MATHLIB)/pid.c
 SRC += $(MATHLIB)/atmospheric_math.c
 
-## PIOS Hardware (STM32F30x)
-include $(PIOS)/STM32F30x/library_chibios.mk
-
 ## PIOS Hardware (Common)
 SRC += $(PIOSCOMMON)/pios_delay.c
 SRC += $(PIOSCOMMON)/pios_mpu6050.c
 SRC += $(PIOSCOMMON)/pios_mpu9150.c
-SRC += $(PIOSCOMMON)/pios_ms5611.c
+SRC += $(PIOSCOMMON)/pios_ms5xxx.c
 SRC += $(PIOSCOMMON)/pios_etasv3.c
 SRC += $(PIOSCOMMON)/pios_mpxv5004.c
 SRC += $(PIOSCOMMON)/pios_mpxv7002.c
 SRC += $(PIOSCOMMON)/pios_hmc5883.c
 SRC += $(PIOSCOMMON)/pios_crc.c
+SRC += $(PIOSCOMMON)/pios_can_common.c
 SRC += $(PIOSCOMMON)/pios_com.c
 SRC += $(PIOSCOMMON)/pios_dsm.c
 SRC += $(PIOSCOMMON)/pios_rcvr.c
@@ -152,7 +149,7 @@ SRC += $(PIOSCOMMON)/pios_semaphore.c
 SRC += $(PIOSCOMMON)/pios_mutex.c
 SRC += $(PIOSCOMMON)/pios_thread.c
 SRC += $(PIOSCOMMON)/pios_queue.c
-
+SRC += $(PIOSCOMMON)/pios_hal.c
 
 # List C++ source files here.
 # use file-extension .cpp for C++-files (not .C)
@@ -171,7 +168,7 @@ EXTRAINCDIRS += $(OPUAVSYNTHDIR)
 EXTRAINCDIRS += $(FLIGHTLIBINC)
 EXTRAINCDIRS += $(MATHLIBINC)
 EXTRAINCDIRS += $(RSCODEINC)
-EXTRAINCDIRS += $(PIOSSTM32F30X)
+EXTRAINCDIRS += $(PIOSSTM32FXXX)
 EXTRAINCDIRS += $(PIOSCOMMON)
 EXTRAINCDIRS += $(BOARD_INFO_DIR)
 EXTRAINCDIRS += $(STMSPDINCDIR)
@@ -197,7 +194,7 @@ EXTRA_LIBDIRS =
 EXTRA_LIBS =
 
 # Path to Linker-Scripts
-LINKERSCRIPTPATH = $(PIOSSTM32F30X)
+LINKERSCRIPTPATH = $(PIOSSTM32FXXX)
 
 # Optimization level, can be [0, 1, 2, 3, s].
 # 0 = turn off optimization. s = optimize for size.
@@ -308,6 +305,8 @@ ASFLAGS += $(ADEFS)
 ASFLAGS += -Wa,-adhlns=$(addprefix $(OUTDIR)/, $(notdir $(addsuffix .lst, $(basename $<))))
 ASFLAGS += $(patsubst %,-I%,$(EXTRAINCDIRS))
 
+LIBS += $(UAVOBJLIB)
+
 # Linker flags.
 #  -Wl,...:     tell GCC to pass this to linker.
 #    -Map:      create map file
@@ -321,9 +320,5 @@ LDFLAGS += -Wl,--fatal-warnings
 
 #Linker scripts
 LDFLAGS += -T memory.ld $(addprefix -T,$(LINKER_SCRIPTS_APP))
-
-include ./UAVObjects.inc
-
-UAVO_NAV = YES
 
 include $(MAKE_INC_DIR)/firmware-common.mk

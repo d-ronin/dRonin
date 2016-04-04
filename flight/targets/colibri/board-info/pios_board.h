@@ -6,7 +6,8 @@
  * @{
  *
  * @file       STM32F4xx_Colibri.c 
- * @author     Tau Labs, http://taulabs.org, Copyright (C) 2012-2014
+ * @author     dRonin, http://dronin.org Copyright (C) 2015
+ * @author     Tau Labs, http://taulabs.org, Copyright (C) 2012-2015
  * @brief      Board specific defines for Colibri
  * @see        The GNU Public License (GPL) Version 3
  * 
@@ -109,7 +110,7 @@ extern uint32_t pios_i2c_usart3_adapter_id;
 //
 // See also pios_board.c
 //-------------------------
-extern uintptr_t pios_com_telem_rf_id;
+extern uintptr_t pios_com_telem_serial_id;
 extern uintptr_t pios_com_gps_id;
 extern uintptr_t pios_com_telem_usb_id;
 extern uintptr_t pios_com_bridge_id;
@@ -119,11 +120,11 @@ extern uintptr_t pios_com_hott_id;
 extern uintptr_t pios_com_frsky_sensor_hub_id;
 extern uintptr_t pios_com_lighttelemetry_id;
 extern uintptr_t pios_com_picoc_id;
-extern uintptr_t pios_com_logging_id;
+extern uintptr_t pios_com_spiflash_logging_id;
 
 #define PIOS_COM_GPS                    (pios_com_gps_id)
 #define PIOS_COM_TELEM_USB              (pios_com_telem_usb_id)
-#define PIOS_COM_TELEM_RF               (pios_com_telem_rf_id)
+#define PIOS_COM_TELEM_RF               (pios_com_telem_serial_id)
 #define PIOS_COM_BRIDGE                 (pios_com_bridge_id)
 #define PIOS_COM_VCP                    (pios_com_vcp_id)
 #define PIOS_COM_MAVLINK                (pios_com_mavlink_id)
@@ -131,7 +132,8 @@ extern uintptr_t pios_com_logging_id;
 #define PIOS_COM_FRSKY_SENSOR_HUB       (pios_com_frsky_sensor_hub_id)
 #define PIOS_COM_LIGHTTELEMETRY         (pios_com_lighttelemetry_id)
 #define PIOS_COM_PICOC                  (pios_com_picoc_id)
-#define PIOS_COM_LOGGING                (pios_com_logging_id)
+#define PIOS_COM_OPENLOG                (uintptr_t)(NULL)
+#define PIOS_COM_SPIFLASH               (pios_com_spiflash_logging_id)
 
 #if defined(PIOS_INCLUDE_DEBUG_CONSOLE)
 extern uintptr_t pios_com_debug_id;
@@ -223,23 +225,8 @@ extern uintptr_t pios_com_debug_id;
 // ADC
 //-------------------------
 #define PIOS_ADC_SUB_DRIVER_MAX_INSTANCES       3
-
-// PIOS_ADC_PinGet(0) = IN7
-// PIOS_ADC_PinGet(1) = IN8
-//-------------------------
 #define PIOS_DMA_PIN_CONFIG                                                                   \
-{                                                                                             \
-	{ GPIOA, GPIO_Pin_0,     ADC_Channel_0 },                                                 \
-	{ GPIOA, GPIO_Pin_1,     ADC_Channel_1 },                                                 \
-	{ NULL,  0,              ADC_Channel_Vrefint },           /* Voltage reference */         \
-	{ NULL,  0,              ADC_Channel_TempSensor },        /* Temperature sensor */        \
-	{ NULL,  0,              ADC_Channel_TempSensor },        /* Temperature sensor */        \
-}
 
-/* we have to do all this to satisfy the PIOS_ADC_MAX_SAMPLES define in pios_adc.h */
-/* which is annoying because this then determines the rate at which we generate buffer turnover events */
-/* the objective here is to get enough buffer space to support 100Hz averaging rate */
-#define PIOS_ADC_NUM_CHANNELS           5
 #define PIOS_ADC_MAX_OVERSAMPLING       2
 #define PIOS_ADC_USE_ADC2               0
 

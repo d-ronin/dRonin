@@ -31,7 +31,6 @@
 #define PIOS_CONFIG_H
 
 /* Major features */
-#define PIOS_INCLUDE_CHIBIOS
 #define PIOS_INCLUDE_BL_HELPER
 
 /* Enable/Disable PiOS Modules */
@@ -65,7 +64,7 @@
 #define PIOS_INCLUDE_MPXV7002
 #define PIOS_MPU6000_ACCEL
 #define PIOS_MPU6000_SIMPLE_INIT_SEQUENCE
-#define PIOS_INCLUDE_MS5611
+#define PIOS_INCLUDE_MS5XXX
 #define FLASH_FREERTOS
 /* Com systems to include */
 #define PIOS_INCLUDE_COM
@@ -78,6 +77,7 @@
 #define PIOS_INCLUDE_SESSION_MANAGEMENT
 //#define PIOS_INCLUDE_LIGHTTELEMETRY
 #define PIOS_INCLUDE_PICOC
+#define PICOC_NO_DMATH
 
 #define PIOS_INCLUDE_GPS
 #define PIOS_INCLUDE_GPS_NMEA_PARSER

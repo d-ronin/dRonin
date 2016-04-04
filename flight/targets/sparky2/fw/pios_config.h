@@ -6,7 +6,7 @@
  * @{
  *
  * @file       pios_config.h 
- * @author     Tau Labs, http://taulabs.org, Copyright (C) 2012-2015
+ * @author     Tau Labs, http://taulabs.org, Copyright (C) 2012-2016
  * @brief      Board configuration file
  * @see        The GNU Public License (GPL) Version 3
  * 
@@ -32,7 +32,6 @@
 #define PIOS_CONFIG_H
 
 /* Major features */
-#define PIOS_INCLUDE_CHIBIOS
 #define PIOS_INCLUDE_BL_HELPER
 
 /* Enable/Disable PiOS Modules */
@@ -67,7 +66,7 @@
 //#define PIOS_INCLUDE_MPU9250
 #define PIOS_INCLUDE_MPU9250_SPI
 #define PIOS_MPU6000_ACCEL
-#define PIOS_INCLUDE_MS5611
+#define PIOS_INCLUDE_MS5XXX
 #define PIOS_INCLUDE_ETASV3
 #define PIOS_INCLUDE_MPXV5004
 #define PIOS_INCLUDE_MPXV7002
@@ -83,13 +82,16 @@
 #define PIOS_INCLUDE_GPS_NMEA_PARSER
 #define PIOS_INCLUDE_GPS_UBX_PARSER
 #define PIOS_INCLUDE_MAVLINK
+#define PIOS_INCLUDE_MSP_BRIDGE
 #define PIOS_INCLUDE_HOTT
 #define PIOS_INCLUDE_FRSKY_SENSOR_HUB
 #define PIOS_INCLUDE_FRSKY_SPORT_TELEMETRY
 #define PIOS_INCLUDE_SESSION_MANAGEMENT
-//#define PIOS_INCLUDE_LIGHTTELEMETRY
+#define PIOS_INCLUDE_LIGHTTELEMETRY
 #define PIOS_INCLUDE_PICOC
 #define PIOS_INCLUDE_FRSKY_SPORT_TELEMETRY
+#define PIOS_INCLUDE_DAC_BEEPS
+#define PIOS_INCLUDE_FSK
 
 /* Supported receiver interfaces */
 #define PIOS_INCLUDE_RCVR

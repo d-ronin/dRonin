@@ -7,7 +7,7 @@
  *
  * @file       pios_board.c 
  * @author     The OpenPilot Team, http://www.openpilot.org Copyright (C) 2011.
- * @author     Tau Labs, http://taulabs.org, Copyright (C) 2012-2015
+ * @author     Tau Labs, http://taulabs.org, Copyright (C) 2012-2016
  * @brief      The board specific initialization routines
  * @see        The GNU Public License (GPL) Version 3
  * 
@@ -149,11 +149,21 @@ void PIOS_Board_Init(void) {
 	}
 #endif
 
-	PIOS_HAL_ConfigurePort(hwTauLink.MainPort,
-	    &pios_usart_serial_cfg, &pios_usart_com_driver,
-	    /* no I2C, DSM, HSUM, SBUS, etc. */
-	    NULL, NULL, NULL, PIOS_LED_ALARM,
-	    NULL, NULL, 0, NULL, NULL, false);
+	PIOS_HAL_ConfigurePort(hwTauLink.MainPort,   // port type protocol
+			&pios_usart_serial_cfg,              // usart_port_cfg
+			&pios_usart_serial_cfg,              // frsky usart_port_cfg
+			&pios_usart_com_driver,              // com_driver
+			NULL,                                // i2c_id
+			NULL,                                // i2c_cfg
+			NULL,                                // ppm_cfg
+			NULL,                                // pwm_cfg
+			PIOS_LED_ALARM,                      // led_id
+			NULL,                                // usart_dsm_hsum_cfg
+			NULL,                                // dsm_cfg
+			0,                                   // dsm_mode
+			NULL,                                // sbus_rcvr_cfg
+			NULL,                                // sbus_cfg    
+			false);                              // sbus_toggle
 
 	// Update the com baud rate.
 	uint32_t comBaud = 9600;
@@ -181,7 +191,7 @@ void PIOS_Board_Init(void) {
 	const struct pios_rfm22b_cfg *rfm22b_cfg = PIOS_BOARD_HW_DEFS_GetRfm22Cfg(bdinfo->board_rev);
 	PIOS_HAL_ConfigureRFM22B(hwTauLink.Radio, bdinfo->board_type,
 	    bdinfo->board_rev, hwTauLink.MaxRfPower,
-	    hwTauLink.MaxRfSpeed, NULL, rfm22b_cfg,
+	    hwTauLink.MaxRfSpeed, hwTauLink.RfBand, NULL, rfm22b_cfg,
 	    hwTauLink.MinChannel, hwTauLink.MaxChannel,
 	    hwTauLink.CoordID, 0);
 
@@ -196,13 +206,13 @@ void PIOS_Board_Init(void) {
 			if (PIOS_USART_Init(&pios_usart2_id, &pios_usart_bluetooth_cfg)) {
 				PIOS_Assert(0);
 			}
-			uint8_t *rx_buffer = (uint8_t *)PIOS_malloc(128);
-			uint8_t *tx_buffer = (uint8_t *)PIOS_malloc(256);
+			uint8_t *rx_buffer = (uint8_t *)PIOS_malloc(PIOS_COM_TELEM_RX_BUF_LEN);
+			uint8_t *tx_buffer = (uint8_t *)PIOS_malloc(PIOS_COM_TELEM_TX_BUF_LEN);
 			PIOS_Assert(rx_buffer);
 			PIOS_Assert(tx_buffer);
 			if (PIOS_COM_Init(&pios_com_telem_uart_bluetooth_id, &pios_usart_com_driver, pios_usart2_id,
-												rx_buffer, PIOS_COM_TELEM_RX_BUF_LEN,
-												tx_buffer, PIOS_COM_TELEM_TX_BUF_LEN)) {
+			                  rx_buffer, PIOS_COM_TELEM_RX_BUF_LEN,
+			                  tx_buffer, PIOS_COM_TELEM_TX_BUF_LEN)) {
 				PIOS_Assert(0);
 			}
 
@@ -233,8 +243,8 @@ void PIOS_Board_Init(void) {
 			PIOS_Assert(rx_buffer);
 			PIOS_Assert(tx_buffer);
 			if (PIOS_COM_Init(&pios_com_telem_uart_bluetooth_id, &pios_usart_com_driver, pios_usart2_id,
-												rx_buffer, PIOS_COM_TELEM_RX_BUF_LEN,
-												tx_buffer, PIOS_COM_TELEM_TX_BUF_LEN)) {
+			                  rx_buffer, PIOS_COM_TELEM_RX_BUF_LEN,
+			                  tx_buffer, PIOS_COM_TELEM_TX_BUF_LEN)) {
 				PIOS_Assert(0);
 			}
 
@@ -271,7 +281,7 @@ void PIOS_Board_Init(void) {
 			pios_com_bridge_id = pios_com_telem_uart_bluetooth_id;
 		}
 			break;
-		case HWTAULINK_MAINPORT_DISABLED:
+		case HWTAULINK_BTPORT_DISABLED:
 			break;
 		}
 	}

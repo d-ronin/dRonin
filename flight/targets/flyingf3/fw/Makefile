@@ -32,6 +32,7 @@ include $(BOARD_INFO_DIR)/board-info.mk
 # @optbrief Set to YES to compile for debugging
 DEBUG ?= NO
 ERASE_FLASH ?= NO
+RTOS ?= CHIBIOS
 
 # @endgroup Compile Options
 # List of modules to include
@@ -56,7 +57,7 @@ OPTMODULES += GroundPathFollower
 OPTMODULES += UAVOMavlinkBridge
 OPTMODULES += Battery
 OPTMODULES += ComUsbBridge
-OPTMODULES += Airspeed/revolution
+OPTMODULES += Airspeed
 OPTMODULES += UAVOHoTTBridge
 OPTMODULES += UAVOFrSKYSensorHubBridge
 OPTMODULES += UAVOLighttelemetryBridge
@@ -68,6 +69,7 @@ OPTMODULES += Geofence
 #OPTMODULES += VibrationAnalysis
 
 # Paths
+TARGET_ARCHITECTURE = STM32F30x
 OPUAVTALKINC = $(OPUAVTALK)/inc
 OPUAVOBJINC = $(OPUAVOBJ)/inc
 PIOSINC = $(PIOS)/inc
@@ -76,10 +78,10 @@ MATHLIB = $(FLIGHTLIB)/math
 MATHLIBINC = $(FLIGHTLIB)/math
 RSCODE = $(FLIGHTLIB)/rscode
 RSCODEINC = $(FLIGHTLIB)/rscode
-PIOSSTM32F30X = $(PIOS)/STM32F30x
+PIOSSTM32FXXX = $(PIOS)/$(TARGET_ARCHITECTURE)
 PIOSCOMMON = $(PIOS)/Common
 PIOSCOMMONLIB = $(PIOSCOMMON)/Libraries
-APPLIBDIR = $(PIOSSTM32F30X)/Libraries
+APPLIBDIR = $(PIOSSTM32FXXX)/Libraries
 STMLIBDIR = $(APPLIBDIR)
 STMSPDDIR = $(STMLIBDIR)/STM32F30x_StdPeriph_Driver
 STMSPDSRCDIR = $(STMSPDDIR)/src
@@ -87,13 +89,9 @@ STMSPDINCDIR = $(STMSPDDIR)/inc
 DEBUG_CM3_DIR = $(PIOSCOMMONLIB)/Debug
 DEBUG_CM3_DIR_INC = $(DEBUG_CM3_DIR)/inc
 OPUAVOBJINC = $(OPUAVOBJ)/inc
-FLIGHTPLANLIB = $(OPMODULEDIR)/FlightPlan/lib
-FLIGHTPLANS = $(OPMODULEDIR)/FlightPlan/flightplans
 MAVLINKINC = $(FLIGHTLIB)/mavlink/v1.0/common
 
 # optional component libraries
-include $(APPLIBDIR)/ChibiOS/library.mk
-#include $(PIOSCOMMONLIB)/dosfs/library.mk
 include $(FLIGHTLIB)/CMSIS3/DSP_Lib/library.mk
 
 # List C source files here. (C dependencies are automatically generated.)
@@ -104,7 +102,6 @@ SRC += ${foreach MOD, ${MODULES} ${OPTMODULES}, ${wildcard ${OPMODULEDIR}/${MOD}
 ## OPENPILOT CORE:
 SRC += ${OPMODULEDIR}/System/systemmod.c
 SRC += main.c
-SRC += board.c
 SRC += pios_board.c
 SRC += pios_usb_board_data.c
 SRC += $(FLIGHTLIB)/alarms.c
@@ -134,7 +131,6 @@ SRC += $(MATHLIB)/pid.c
 SRC += $(MATHLIB)/atmospheric_math.c
 
 ## PIOS Hardware (STM32F30x)
-include $(PIOS)/STM32F30x/library_chibios.mk
 
 ## PIOS Hardware (Common)
 SRC += $(PIOSCOMMON)/pios_delay.c
@@ -159,13 +155,13 @@ SRC += $(PIOSCOMMON)/pios_usb_util.c
 SRC += $(PIOSCOMMON)/pios_dma.c
 SRC += $(PIOSCOMMON)/pios_adc.c
 SRC += $(PIOSCOMMON)/pios_flash.c
-SRC += $(PIOSCOMMON)/pios_ms5611.c
-SRC += $(PIOSCOMMON)/pios_ms5611_spi.c
+SRC += $(PIOSCOMMON)/pios_ms5xxx.c
 SRC += $(PIOSCOMMON)/pios_heap.c
 SRC += $(PIOSCOMMON)/pios_semaphore.c
 SRC += $(PIOSCOMMON)/pios_mutex.c
 SRC += $(PIOSCOMMON)/pios_thread.c
 SRC += $(PIOSCOMMON)/pios_queue.c
+SRC += $(PIOSCOMMON)/pios_hal.c
 
 # List C++ source files here.
 # use file-extension .cpp for C++-files (not .C)
@@ -184,7 +180,7 @@ EXTRAINCDIRS += $(OPUAVSYNTHDIR)
 EXTRAINCDIRS += $(FLIGHTLIBINC)
 EXTRAINCDIRS += $(MATHLIBINC)
 EXTRAINCDIRS += $(RSCODEINC)
-EXTRAINCDIRS += $(PIOSSTM32F30X)
+EXTRAINCDIRS += $(PIOSSTM32FXXX)
 EXTRAINCDIRS += $(PIOSCOMMON)
 EXTRAINCDIRS += $(BOARD_INFO_DIR)
 EXTRAINCDIRS += $(STMSPDINCDIR)
@@ -210,7 +206,7 @@ EXTRA_LIBDIRS =
 EXTRA_LIBS =
 
 # Path to Linker-Scripts
-LINKERSCRIPTPATH = $(PIOSSTM32F30X)
+LINKERSCRIPTPATH = $(PIOSSTM32FXXX)
 
 # Optimization level, can be [0, 1, 2, 3, s].
 # 0 = turn off optimization. s = optimize for size.
@@ -311,6 +307,8 @@ ASFLAGS += $(ADEFS)
 ASFLAGS += -Wa,-adhlns=$(addprefix $(OUTDIR)/, $(notdir $(addsuffix .lst, $(basename $<))))
 ASFLAGS += $(patsubst %,-I%,$(EXTRAINCDIRS))
 
+LIBS += $(UAVOBJLIB)
+
 # Linker flags.
 #  -Wl,...:     tell GCC to pass this to linker.
 #    -Map:      create map file
@@ -324,9 +322,5 @@ LDFLAGS += -Wl,--fatal-warnings
 
 #Linker scripts
 LDFLAGS += -T memory.ld $(addprefix -T,$(LINKER_SCRIPTS_APP))
-
-include ./UAVObjects.inc
-
-UAVO_NAV = YES
 
 include $(MAKE_INC_DIR)/firmware-common.mk

@@ -53,10 +53,6 @@
 
 #include "misc_math.h"
 
-#if defined(PIOS_INCLUDE_USB_RCTX)
-#include "pios_usb_rctx.h"
-#endif	/* PIOS_INCLUDE_USB_RCTX */
-
 #if defined(PIOS_INCLUDE_OPENLRS_RCVR)
 #include "pios_openlrs.h"
 #endif /* PIOS_INCLUDE_OPENLRS_RCVR */
@@ -107,15 +103,15 @@ static bool updateRcvrActivity(struct rcvr_activity_fsm * fsm);
 static void manual_control_settings_updated(UAVObjEvent * ev);
 static void set_loiter_command(ManualControlCommandData * cmd);
 
+// Exposed from manualcontrol to prevent attempts to arm when unsafe
+extern bool ok_to_arm();
+
 #define assumptions (assumptions1 && assumptions3 && assumptions5 && assumptions_flightmode && assumptions_channelcount)
+DONT_BUILD_IF(!assumptions, TransmitterControlAssumptions);
 
 //! Initialize the transmitter control mode
 int32_t transmitter_control_initialize()
 {
-	/* Check the assumptions about uavobject enum's are correct */
-	if(!assumptions)
-		return -1;
-
 	AccessoryDesiredInitialize();
 	ManualControlCommandInitialize();
 	FlightStatusInitialize();
@@ -249,6 +245,7 @@ int32_t transmitter_control_update()
 
 		if (settings.ChannelGroups[n] >= MANUALCONTROLSETTINGS_CHANNELGROUPS_NONE) {
 			cmd.Channel[n] = PIOS_RCVR_INVALID;
+			validChannel[n] = false;
 		} else {
 			cmd.Channel[n] = PIOS_RCVR_Read(pios_rcvr_group_map[settings.ChannelGroups[n]],
 							settings.ChannelNumber[n]);
@@ -306,8 +303,8 @@ int32_t transmitter_control_update()
 	    validChannel[MANUALCONTROLSETTINGS_CHANNELGROUPS_FLIGHTMODE];
 
 	// because arming is optional we must determine if it is needed before checking it is valid
-	bool arming_valid_input = settings.ChannelGroups[MANUALCONTROLSETTINGS_CHANNELGROUPS_ARMING] >= MANUALCONTROLSETTINGS_CHANNELGROUPS_NONE ||
-	    validChannel[MANUALCONTROLSETTINGS_CHANNELGROUPS_ARMING];
+	bool arming_valid_input = (settings.Arming < MANUALCONTROLSETTINGS_ARMING_SWITCH) ||
+		validChannel[MANUALCONTROLSETTINGS_CHANNELGROUPS_ARMING];
 
 	// decide if we have valid manual input or not
 	valid_input_detected &= validChannel[MANUALCONTROLSETTINGS_CHANNELGROUPS_THROTTLE] &&
@@ -397,17 +394,6 @@ int32_t transmitter_control_update()
 	
 	// Update cmd object
 	ManualControlCommandSet(&cmd);
-
-#if defined(PIOS_INCLUDE_USB_RCTX)
-	// Optionally make the hardware behave like a USB HID joystick
-	if (pios_usb_rctx_id) {
-		PIOS_USB_RCTX_Update(pios_usb_rctx_id,
-				cmd.Channel,
-				settings.ChannelMin,
-				settings.ChannelMax,
-				NELEMENTS(cmd.Channel));
-	}
-#endif	/* PIOS_INCLUDE_USB_RCTX */
 
 	return 0;
 }
@@ -511,6 +497,10 @@ static void set_armed_if_changed(uint8_t new_arm) {
  */
 static bool arming_position(ManualControlCommandData * cmd, ManualControlSettingsData * settings) {
 
+	// If system is not appropriate to arm, do not even attempt
+	if (!ok_to_arm())
+		return false;
+
 	bool lowThrottle = cmd->Throttle <= 0;
 
 	switch(settings->Arming) {
@@ -532,12 +522,12 @@ static bool arming_position(ManualControlCommandData * cmd, ManualControlSetting
 			(cmd->Roll > ARMED_THRESHOLD || cmd->Roll < -ARMED_THRESHOLD) ) &&
 			(cmd->Pitch > ARMED_THRESHOLD);
 			// Note that pulling pitch stick down corresponds to positive values
+	case MANUALCONTROLSETTINGS_ARMING_SWITCHTHROTTLE:
+	case MANUALCONTROLSETTINGS_ARMING_SWITCHTHROTTLEDELAY:
+		if (!lowThrottle) return false;
 	case MANUALCONTROLSETTINGS_ARMING_SWITCH:
 	case MANUALCONTROLSETTINGS_ARMING_SWITCHDELAY:
 		return cmd->ArmSwitch == MANUALCONTROLCOMMAND_ARMSWITCH_ARMED;
-	case MANUALCONTROLSETTINGS_ARMING_SWITCHTHROTTLE:
-	case MANUALCONTROLSETTINGS_ARMING_SWITCHTHROTTLEDELAY:
-		return lowThrottle && cmd->ArmSwitch == MANUALCONTROLCOMMAND_ARMSWITCH_ARMED;
 	default:
 		return false;
 	}
@@ -1072,21 +1062,32 @@ static void altitude_hold_desired(ManualControlCommandData * cmd, bool flightMod
 		altitudeHoldDesired.Altitude = -current_down;
 		altitudeHoldDesired.ClimbRate = 0;
 	} else {
-		uint8_t altitude_hold_expo, altitude_hold_maxrate, altitude_hold_deadband;
-		AltitudeHoldSettingsMaxRateGet(&altitude_hold_maxrate);
+		uint8_t altitude_hold_expo;
+		uint8_t altitude_hold_maxclimbrate10;
+		uint8_t altitude_hold_maxdescentrate10;
+		uint8_t altitude_hold_deadband;
+		AltitudeHoldSettingsMaxClimbRateGet(&altitude_hold_maxclimbrate10);
+		AltitudeHoldSettingsMaxDescentRateGet(&altitude_hold_maxdescentrate10);
+
+		// Scale altitude hold rate
+		float altitude_hold_maxclimbrate = altitude_hold_maxclimbrate10 * 0.1f;
+		float altitude_hold_maxdescentrate = altitude_hold_maxdescentrate10 * 0.1f;
+
 		AltitudeHoldSettingsExpoGet(&altitude_hold_expo);
 		AltitudeHoldSettingsDeadbandGet(&altitude_hold_deadband);
 
-		const float DEADBAND_HIGH = 0.50f + altitude_hold_deadband * 0.01f;
-		const float DEADBAND_LOW = 0.50f - altitude_hold_deadband * 0.01f;
+		const float DEADBAND_HIGH = 0.50f +
+			(altitude_hold_deadband / 2.0f) * 0.01f;
+		const float DEADBAND_LOW = 0.50f -
+			(altitude_hold_deadband / 2.0f) * 0.01f;
 
 		float climb_rate = 0.0f;
 		if (cmd->Throttle > DEADBAND_HIGH) {
 			climb_rate = expo3((cmd->Throttle - DEADBAND_HIGH) / (1.0f - DEADBAND_HIGH), altitude_hold_expo) *
-		                         altitude_hold_maxrate;
-		} else if (cmd->Throttle < DEADBAND_LOW && altitude_hold_maxrate > MIN_CLIMB_RATE) {
+		                         altitude_hold_maxclimbrate;
+		} else if (cmd->Throttle < DEADBAND_LOW && altitude_hold_maxdescentrate > MIN_CLIMB_RATE) {
 			climb_rate = ((cmd->Throttle < 0) ? DEADBAND_LOW : DEADBAND_LOW - cmd->Throttle) / DEADBAND_LOW;
-			climb_rate = -expo3(climb_rate, altitude_hold_expo) * altitude_hold_maxrate;
+			climb_rate = -expo3(climb_rate, altitude_hold_expo) * altitude_hold_maxdescentrate;
 		}
 
 		// When throttle is negative tell the module that we are in landing mode
@@ -1195,13 +1196,20 @@ bool validInputRange(int16_t min, int16_t max, uint16_t value, uint16_t offset)
  */
 static void applyDeadband(float *value, float deadband)
 {
-	if (fabsf(*value) < deadband)
+	if (deadband < 0.0001f) return; /* ignore tiny deadband value */
+	if (deadband >= 1) return;	/* reject nonsensical db values */
+
+	if (fabsf(*value) < deadband) {
 		*value = 0.0f;
-	else
-		if (*value > 0.0f)
+	} else {
+		if (*value > 0.0f) {
 			*value -= deadband;
-		else
+		} else {
 			*value += deadband;
+		}
+
+		*value /= (1 - deadband);
+	}
 }
 
 //! Update the manual control settings

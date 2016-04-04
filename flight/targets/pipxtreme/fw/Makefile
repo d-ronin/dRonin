@@ -30,6 +30,8 @@ include $(BOARD_INFO_DIR)/board-info.mk
 # Set to YES to compile for debugging
 DEBUG ?= NO
 
+RTOS ?= FREERTOS
+
 # Include objects that are just nice information to show
 STACK_DIAGNOSTICS ?= NO
 MIXERSTATUS_DIAGNOSTICS ?= NO
@@ -78,11 +80,7 @@ STMSPDINCDIR = $(STMSPDDIR)/inc
 STMUSBSRCDIR = $(STMUSBDIR)/src
 STMUSBINCDIR = $(STMUSBDIR)/inc
 CMSISDIR  = $(STMLIBDIR)/CMSIS/Core/CM3
-DOSFSDIR  = $(APPLIBDIR)/dosfs
 MSDDIR  = $(APPLIBDIR)/msd
-RTOSDIR = $(PIOSCOMMON)/Libraries/FreeRTOS
-RTOSSRCDIR = $(RTOSDIR)/Source
-RTOSINCDIR = $(RTOSSRCDIR)/include
 RTOSPORTDIR = $(APPLIBDIR)/FreeRTOS/Source
 
 # List C source files here. (C dependencies are automatically generated.)
@@ -154,7 +152,6 @@ SRC += $(PIOSCOMMON)/pios_usb_util.c
 SRC += $(PIOSCOMMON)/pios_delay.c
 SRC += $(PIOSCOMMON)/pios_crc.c
 SRC += $(PIOSCOMMON)/pios_com.c
-SRC += $(PIOSCOMMON)/pios_i2c_esc.c
 SRC += $(PIOSCOMMON)/pios_rcvr.c
 SRC += $(PIOSCOMMON)/pios_flash.c
 SRC += $(PIOSCOMMON)/pios_flashfs_logfs.c
@@ -172,7 +169,6 @@ SRC += $(PIOSCOMMON)/pios_hal.c
 ## Libraries for flight calculations
 SRC += $(FLIGHTLIB)/fifo_buffer.c
 SRC += $(FLIGHTLIB)/taskmonitor.c
-SRC += $(FLIGHTLIB)/aes.c
 ## The Reed-Solomon FEC library
 SRC += $(FLIGHTLIB)/rscode/rs.c
 SRC += $(FLIGHTLIB)/rscode/berlekamp.c
@@ -211,13 +207,9 @@ SRC += $(STMUSBSRCDIR)/usb_mem.c
 SRC += $(STMUSBSRCDIR)/usb_regs.c
 SRC += $(STMUSBSRCDIR)/usb_sil.c
 
-## RTOS
-SRC += $(RTOSSRCDIR)/list.c
-SRC += $(RTOSSRCDIR)/queue.c
-SRC += $(RTOSSRCDIR)/tasks.c
-
 ## RTOS Portable
 SRC += $(RTOSPORTDIR)/portable/GCC/ARM_CM3/port.c
+EXTRAINCDIRS += $(RTOSPORTDIR)/portable/GCC/ARM_CM3
 
 # List C source files here which must be compiled in ARM-Mode (no -mthumb).
 # use file-extension c for "c-only"-files
@@ -265,11 +257,8 @@ EXTRAINCDIRS  += $(BOARD_INFO_DIR)
 EXTRAINCDIRS  += $(STMSPDINCDIR)
 EXTRAINCDIRS  += $(STMUSBINCDIR)
 EXTRAINCDIRS  += $(CMSISDIR)
-EXTRAINCDIRS  += $(DOSFSDIR)
 EXTRAINCDIRS  += $(MSDDIR)
-EXTRAINCDIRS  += $(RTOSINCDIR)
 EXTRAINCDIRS  += $(APPLIBDIR)
-EXTRAINCDIRS  += $(RTOSPORTDIR)/portable/GCC/ARM_CM3
 
 EXTRAINCDIRS += ${foreach MOD, ${OPTMODULES} ${MODULES}, ${OPMODULEDIR}/${MOD}/inc} ${OPMODULEDIR}/System/inc
 
@@ -428,6 +417,8 @@ ASFLAGS += -Wa,-adhlns=$(addprefix $(OUTDIR)/, $(notdir $(addsuffix .lst, $(base
 ASFLAGS += $(patsubst %,-I%,$(EXTRAINCDIRS))
 
 MATH_LIB = -lm
+
+LIBS += $(UAVOBJLIB)
 
 # Linker flags.
 #  -Wl,...:     tell GCC to pass this to linker.

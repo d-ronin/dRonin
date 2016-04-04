@@ -93,22 +93,20 @@
 #define BINDING_VERSION ((OPENLRSNG_VERSION & 0x0ff0)>>4)
 
 // HW frequency limits
-#if (RFMTYPE == 868)
-#  define MIN_RFM_FREQUENCY 848000000
-#  define MAX_RFM_FREQUENCY 888000000
-#  define DEFAULT_CARRIER_FREQUENCY 868000000  // Hz  (ch 0)
-#  define BINDING_FREQUENCY 868000000 // Hz
-#elif (RFMTYPE == 915)
-#  define MIN_RFM_FREQUENCY 895000000
-#  define MAX_RFM_FREQUENCY 935000000
-#  define DEFAULT_CARRIER_FREQUENCY 915000000  // Hz  (ch 0)
-#  define BINDING_FREQUENCY 915000000 // Hz
-#else
-#  define MIN_RFM_FREQUENCY 413000000
-#  define MAX_RFM_FREQUENCY 463000000
-#  define DEFAULT_CARRIER_FREQUENCY 435000000  // Hz  (ch 0)
-#  define BINDING_FREQUENCY 435000000 // Hz
-#endif
+#define MIN_RFM_FREQUENCY_868 848000000
+#define MAX_RFM_FREQUENCY_868 888000000
+#define DEFAULT_CARRIER_FREQUENCY_868 868000000  // Hz  (ch 0)
+#define BINDING_FREQUENCY_868 868000000 // Hz
+
+#define MIN_RFM_FREQUENCY_915 895000000
+#define MAX_RFM_FREQUENCY_915 935000000
+#define DEFAULT_CARRIER_FREQUENCY_915 915000000  // Hz  (ch 0)
+#define BINDING_FREQUENCY_915 915000000 // Hz
+
+#define MIN_RFM_FREQUENCY_433 413000000
+#define MAX_RFM_FREQUENCY_433 463000000
+#define DEFAULT_CARRIER_FREQUENCY_433 435000000  // Hz  (ch 0)
+#define BINDING_FREQUENCY_433 435000000 // Hz
 
 #define RFM22_DEVICE_TYPE                         0x00  // R
 #define RFM22_DT_MASK                             0x1F
@@ -141,6 +139,8 @@ struct pios_openlrs_dev {
   uint32_t spi_id;
   uint32_t slave_num;
 
+  HwSharedRfBandOptions band;
+
   // The task handle
   struct pios_thread *taskHandle;
 
@@ -169,6 +169,7 @@ struct pios_openlrs_dev {
   uint32_t beacon_frequency;
   uint8_t beacon_delay;
   uint8_t beacon_period;
+  bool beacon_armed;
 
   enum RF_MODE rf_mode;
   uint32_t rf_channel;

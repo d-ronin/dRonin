@@ -3,6 +3,7 @@
  *
  * @file       configinputwidget.cpp
  * @author     The OpenPilot Team, http://www.openpilot.org Copyright (C) 2010.
+ * @author     dRonin, http://dronin.org Copyright (C) 2015
  * @author     Tau Labs, http://taulabs.org, Copyright (C) 2013
  * @addtogroup GCSPlugins GCS Plugins
  * @{
@@ -98,7 +99,7 @@ ConfigInputWidget::ConfigInputWidget(QWidget *parent) : ConfigTaskWidget(parent)
     }
 
     // RSSI
-    inputChannelForm * inpForm=new inputChannelForm(this,false,false);
+    inputChannelForm * inpForm = new inputChannelForm(this, false, false, inputChannelForm::CHANNELFUNC_RSSI);
     m_config->channelSettings->layout()->addWidget(inpForm);
     QString name = "RSSI";
     inpForm->setName(name);
@@ -1628,10 +1629,14 @@ void ConfigInputWidget::simpleCalibration(bool enable)
         for (unsigned int i = 0; i < ManualControlCommand::CHANNEL_NUMELEM; i++)
             manualSettingsData.ChannelNeutral[i] = manualCommandData.Channel[i];
 
-        // Force flight mode neutral to middle
+        // Force switches to middle
         manualSettingsData.ChannelNeutral[ManualControlSettings::CHANNELNUMBER_FLIGHTMODE] =
                 (manualSettingsData.ChannelMax[ManualControlSettings::CHANNELNUMBER_FLIGHTMODE] +
                 manualSettingsData.ChannelMin[ManualControlSettings::CHANNELNUMBER_FLIGHTMODE]) / 2;
+
+        manualSettingsData.ChannelNeutral[ManualControlSettings::CHANNELNUMBER_ARMING] =
+                (manualSettingsData.ChannelMax[ManualControlSettings::CHANNELNUMBER_ARMING] +
+                manualSettingsData.ChannelMin[ManualControlSettings::CHANNELNUMBER_ARMING]) / 2;
 
         // Force throttle to be near min
         manualSettingsData.ChannelNeutral[ManualControlSettings::CHANNELNEUTRAL_THROTTLE] =

@@ -14,7 +14,8 @@
  *
  * @file       attitude.c
  * @author     The OpenPilot Team, http://www.openpilot.org Copyright (C) 2010.
- * @author     Tau Labs, http://taulabs.org Copyright (C) 2012-2014
+ * @author     dRonin, http://dronin.org Copyright (C) 2015
+ * @author     Tau Labs, http://taulabs.org Copyright (C) 2012-2015
  * @brief      Full attitude estimation algorithm
  *
  * @see        The GNU Public License (GPL) Version 3
@@ -79,7 +80,7 @@
 #include "velocityactual.h"
 
 // Private constants
-#define STACK_SIZE_BYTES 2200
+#define STACK_SIZE_BYTES 2504
 #define TASK_PRIORITY PIOS_THREAD_PRIO_HIGH
 #define FAILSAFE_TIMEOUT_MS 10
 
@@ -153,6 +154,8 @@ static const float zeros[3] = {0.0f, 0.0f, 0.0f};
 static struct complementary_filter_state complementary_filter_state;
 static struct cfvert cfvert; //!< State information for vertical filter
 
+static float linearized_conversion_factor_f[3];
+
 // Private functions
 static void AttitudeTask(void *parameters);
 
@@ -165,7 +168,7 @@ static int32_t setNavigationNone();
 //! Update the complementary filter attitude estimate
 static int32_t updateAttitudeComplementary(bool first_run, bool secondary, bool raw_gps);
 //! Set the @ref AttitudeActual to the complementary filter estimate
-static int32_t setAttitudeComplementary();
+static int32_t setAttitudeComplementary(AttitudeActualData *attitudeActual);
 
 static float calc_ned_accel(float *q, float *accels);
 static void cfvert_reset(struct cfvert *cf, float baro, float time_constant);
@@ -175,7 +178,7 @@ static void cfvert_update_baro(struct cfvert *cf, float baro, float dt);
 //! Update the INSGPS attitude estimate
 static int32_t updateAttitudeINSGPS(bool first_run, bool outdoor_mode);
 //! Set the attitude to the current INSGPS estimate
-static int32_t setAttitudeINSGPS();
+static int32_t setAttitudeINSGPS(AttitudeActualData *attitudeActual);
 //! Set the navigation to the current INSGPS estimate
 static int32_t setNavigationINSGPS();
 static void updateNedAccel();
@@ -183,7 +186,6 @@ static void settingsUpdatedCb(UAVObjEvent * objEv);
 
 //! A low pass filter on the accels which helps with vibration resistance
 static void apply_accel_filter(const float * raw, float * filtered);
-static int32_t getNED(GPSPositionData * gpsPosition, float * NED);
 
 //! Compute the mean gyro accumulated and assign the bias
 static void accumulate_gyro_compute();
@@ -280,10 +282,12 @@ int32_t AttitudeStart(void)
 	if (GPSVelocityHandle())
 		GPSVelocityConnectQueue(gpsVelQueue);
 
+	// Watchdog must be registered before starting task
+	PIOS_WDG_RegisterFlag(PIOS_WDG_ATTITUDE);
+
 	// Start main task
 	attitudeTaskHandle = PIOS_Thread_Create(AttitudeTask, "Attitude", STACK_SIZE_BYTES, NULL, TASK_PRIORITY);
 	TaskMonitorAdd(TASKINFO_RUNNING_ATTITUDE, attitudeTaskHandle);
-	PIOS_WDG_RegisterFlag(PIOS_WDG_ATTITUDE);
 
 	return 0;
 }
@@ -309,6 +313,8 @@ static void AttitudeTask(void *parameters)
 	// Invalidate previous algorithm to trigger a first run
 	last_algorithm = 0xfffffff;
 	last_complementary = false;
+
+	AttitudeActualData attitudeActual;
 
 	// Main task loop
 	while (1) {
@@ -360,11 +366,11 @@ static void AttitudeTask(void *parameters)
 		// This  function blocks on data queue
 		switch (stateEstimation.AttitudeFilter ) {
 		case STATEESTIMATION_ATTITUDEFILTER_COMPLEMENTARY:
-			setAttitudeComplementary();
+			setAttitudeComplementary(&attitudeActual);
 			break;
 		case STATEESTIMATION_ATTITUDEFILTER_INSOUTDOOR:
 		case STATEESTIMATION_ATTITUDEFILTER_INSINDOOR:
-			setAttitudeINSGPS();
+			setAttitudeINSGPS(&attitudeActual);
 			break;
 		}
 
@@ -448,12 +454,38 @@ static int32_t updateAttitudeComplementary(bool first_run, bool secondary, bool 
 			MagnetometerGet(&magData);
 		}
 
-		float RPY[3];
+		/* Initialization is tricky. We're using two reference vectors, one which
+		 * is the Earth's gravitational field and the other the Earth's magnetic field
+		 * While we know that gravity is always almost perfectly straight down, and
+		 * thus has trivially large x and y components, the magnetic field has
+		 * components in all directions. Toward the equator the Z component is small,
+		 * but toward the poles it grows very quickly. For instance, near Boston, USA,
+		 * the magnetic field strength is stronger in the Z direction than the X and
+		 * Y combined.
+		 *
+		 * The upshot is that while we can initialize roll and pitch from the gravity
+		 * field alone, we cannot get yaw without taking into account the vehicle's
+		 * roll and pitch.
+		 */
+		float RPY_D[3];
+
 		float theta = atan2f(accelsData.x, -accelsData.z);
-		RPY[1] = theta * RAD2DEG;
-		RPY[0] = atan2f(-accelsData.y, -accelsData.z / cosf(theta)) * RAD2DEG;
-		RPY[2] = atan2f(-magData.y, magData.x) * RAD2DEG;
-		RPY2Quaternion(RPY, cf_q);
+		RPY_D[1] = theta * RAD2DEG;
+		RPY_D[0] = atan2f(-accelsData.y, -accelsData.z / cosf(theta)) * RAD2DEG;
+
+		// See above note about why we rotate the magnetic field before continuing.
+		float RPY_R[3] = {RPY_D[0] * DEG2RAD, RPY_D[1] * DEG2RAD, 0};
+		float Rbe[3][3];
+		float mag_body_frame[3]  = {magData.x, magData.y, magData.z};
+		float mag_earth_frame[3];
+		Euler2R(RPY_R, Rbe);
+		rot_mult(Rbe, mag_body_frame, mag_earth_frame, true);
+
+		// Now that we have the magnetic field in the Earth frame, extract yaw.
+		RPY_D[2] = atan2f(-mag_earth_frame[1], mag_earth_frame[0]) * RAD2DEG;
+
+		// Convert Euler angles into quaternion
+		RPY2Quaternion(RPY_D, cf_q);
 
 		complementary_filter_state.initialization = CF_POWERON;
 		complementary_filter_state.reset_timeval = PIOS_DELAY_GetRaw();
@@ -793,14 +825,17 @@ static int32_t setNavigationRaw()
 		GPSPositionData gpsPosition;
 		GPSPositionGet(&gpsPosition);
 
-		if (gpsPosition.Satellites < 6)
+		if (gpsPosition.Satellites < insSettings.MinRNAVSatellites)
 			set_state_estimation_error(SYSTEMALARMS_STATEESTIMATION_TOOFEWSATELLITES);
-		else if (gpsPosition.PDOP > 4.0f)
+		else if (gpsPosition.PDOP > insSettings.MinRNAVPDOP)
 			set_state_estimation_error(SYSTEMALARMS_STATEESTIMATION_PDOPTOOHIGH);
 		else
 			set_state_estimation_error(SYSTEMALARMS_STATEESTIMATION_NONE);
 
-		getNED(&gpsPosition, NED);
+		// Get NED coordinates from LLA coordinates
+		get_linearized_3D_transformation(gpsPosition.Latitude,  gpsPosition.Longitude, gpsPosition.Altitude,
+		                                 homeLocation.Latitude, homeLocation.Longitude,  homeLocation.Altitude,
+		                                 linearized_conversion_factor_f, NED);
 
 		NEDPositionData nedPosition;
 		NEDPositionGet(&nedPosition);
@@ -856,12 +891,11 @@ static int32_t setNavigationNone()
  * Set the @ref AttitudeActual UAVO to the complementary filter
  * estimate
  */
-static int32_t setAttitudeComplementary()
+static int32_t setAttitudeComplementary(AttitudeActualData *attitudeActual)
 {
-	AttitudeActualData attitude;
-	quat_copy(cf_q, &attitude.q1);
-	Quaternion2RPY(&attitude.q1,&attitude.Roll);
-	AttitudeActualSet(&attitude);
+	quat_copy(cf_q, &attitudeActual->q1);
+	Quaternion2RPY(&attitudeActual->q1, &attitudeActual->Roll);
+	AttitudeActualSet(attitudeActual);
 
 	return 0;
 }
@@ -948,7 +982,7 @@ static int32_t updateAttitudeINSGPS(bool first_run, bool outdoor_mode)
 
 	// These should be static as their values are checked multiple times per update
 	static BaroAltitudeData baroData;
-	static GPSPositionData gpsData;
+	static GPSPositionData gpsPosition;
 
 	static bool mag_updated = false;
 	static bool baro_updated;
@@ -1012,7 +1046,7 @@ static int32_t updateAttitudeINSGPS(bool first_run, bool outdoor_mode)
        MagnetometerGet(&magData);
 
 	if (gps_updated)
-		GPSPositionGet(&gpsData);
+		GPSPositionGet(&gpsPosition);
 
 	if (gps_vel_updated)
 		GPSVelocityGet(&gpsVelData);
@@ -1024,8 +1058,11 @@ static int32_t updateAttitudeINSGPS(bool first_run, bool outdoor_mode)
 	// Be is set and a good value
 	mag_updated &= !outdoor_mode || (homeLocation.Be[0] != 0 || homeLocation.Be[1] != 0 || homeLocation.Be[2]);
 
-	// A more stringent requirement for GPS to initialize the filter
-	bool gps_init_usable = gps_updated && (gpsData.Satellites >= 7) && (gpsData.PDOP <= 3.5f) && (homeLocation.Set == HOMELOCATION_SET_TRUE);
+        // A more stringent requirement for GPS to initialize the filter
+	bool gps_init_usable = gps_updated &&
+	      (gpsPosition.Satellites >= insSettings.MinRNAVSatellites+1) &&
+	      (gpsPosition.PDOP <= insSettings.MinRNAVPDOP*.9f) &&
+	      (homeLocation.Set == HOMELOCATION_SET_TRUE);
 
 	// Set user-friendly alarms appropriately based on state
 	if (ins_state == INS_INIT) {
@@ -1038,10 +1075,10 @@ static int32_t updateAttitudeINSGPS(bool first_run, bool outdoor_mode)
 		else
 			set_state_estimation_error(SYSTEMALARMS_STATEESTIMATION_UNDEFINED);
 
-	} else if (outdoor_mode && (gpsData.Satellites < 6 || gpsData.PDOP > 4.0f)) {
-		if (gpsData.Satellites < 6)
+        } else if (outdoor_mode && (gpsPosition.Satellites < insSettings.MinRNAVSatellites || gpsPosition.PDOP > insSettings.MinRNAVPDOP)) {
+                if (gpsPosition.Satellites < insSettings.MinRNAVSatellites)
 			set_state_estimation_error(SYSTEMALARMS_STATEESTIMATION_TOOFEWSATELLITES);
-		else if (gpsData.PDOP > 4.0f)
+                else if (gpsPosition.PDOP > insSettings.MinRNAVPDOP)
 			set_state_estimation_error(SYSTEMALARMS_STATEESTIMATION_PDOPTOOHIGH);
 		else if (homeLocation.Set == HOMELOCATION_SET_FALSE)
 			set_state_estimation_error(SYSTEMALARMS_STATEESTIMATION_NOHOME);
@@ -1105,8 +1142,10 @@ static int32_t updateAttitudeINSGPS(bool first_run, bool outdoor_mode)
 			float gyro_bias[3] = {gyrosBias.x * DEG2RAD, gyrosBias.y * DEG2RAD, gyrosBias.z * DEG2RAD};
 			INSSetGyroBias(gyro_bias);
 
-			// Initialize to current location
-			getNED(&gpsData, NED);
+			// Get NED coordinates from LLA
+			get_linearized_3D_transformation(gpsPosition.Latitude, gpsPosition.Longitude, gpsPosition.Altitude,
+			                                 homeLocation.Latitude, homeLocation.Longitude, homeLocation.Altitude,
+			                                 linearized_conversion_factor_f, NED);
 
 			// Initialize barometric offset to current GPS NED coordinate
 			baro_offset = -baroData.Altitude;
@@ -1136,7 +1175,9 @@ static int32_t updateAttitudeINSGPS(bool first_run, bool outdoor_mode)
 	
 
 	// Have a minimum requirement for gps usage a little more liberal than during initialization
-	gps_updated &= (gpsData.Satellites >= 6) && (gpsData.PDOP <= 4.0f) && (homeLocation.Set == HOMELOCATION_SET_TRUE);
+	gps_updated &= (gpsPosition.Satellites >= insSettings.MinRNAVSatellites) &&
+		      (gpsPosition.PDOP <= insSettings.MinRNAVPDOP) &&
+		      (homeLocation.Set == HOMELOCATION_SET_TRUE);
 
 	dT = PIOS_DELAY_DiffuS(ins_last_time) / 1.0e6f;
 	ins_last_time = PIOS_DELAY_GetRaw();
@@ -1190,7 +1231,9 @@ static int32_t updateAttitudeINSGPS(bool first_run, bool outdoor_mode)
 		sensors |= HORIZ_POS_SENSORS;
 
 		// Transform the GPS position into NED coordinates
-		getNED(&gpsData, NED);
+		get_linearized_3D_transformation(gpsPosition.Latitude,  gpsPosition.Longitude, gpsPosition.Altitude,
+		                                 homeLocation.Latitude, homeLocation.Longitude,  homeLocation.Altitude,
+		                                 linearized_conversion_factor_f, NED);
 
 		// Store this for inspecting offline
 		NEDPositionData nedPos;
@@ -1223,7 +1266,7 @@ static int32_t updateAttitudeINSGPS(bool first_run, bool outdoor_mode)
 		// setting.  But from there it will increase really quickly.
 		// sqrt(.5) / 3.5 =~ 0.181f 
 		float pos_var = insSettings.GpsVar[INSSETTINGS_GPSVAR_POS] * 
-			(0.6f + powf(gpsData.Accuracy * 0.180f, 2));
+			(0.6f + powf(gpsPosition.Accuracy * 0.180f, 2));
 
 		// A good value of speed accuracy in flight is 0.35-0.5. 
 		// sqrt(.5) / .5 =~ 1.414
@@ -1231,7 +1274,7 @@ static int32_t updateAttitudeINSGPS(bool first_run, bool outdoor_mode)
 			(0.5f + powf(gpsVelData.Accuracy * 1.414f, 2));
 
 		float v_pos_var = insSettings.GpsVar[INSSETTINGS_GPSVAR_VERTPOS] +
-			(0.7f + powf(gpsData.Accuracy * 0.167f, 3.0));
+			(0.7f + powf(gpsPosition.Accuracy * 0.167f, 3.0));
 
 		// We trust the vertical much less as accuracy gets worse.
 		// cuberoot(.3)/4.0 =~ .167
@@ -1273,14 +1316,13 @@ static int32_t updateAttitudeINSGPS(bool first_run, bool outdoor_mode)
 }
 
 //! Set the attitude to the current INSGPS estimate
-static int32_t setAttitudeINSGPS()
+static int32_t setAttitudeINSGPS(AttitudeActualData *attitudeActual)
 {
 	float gyro_bias[3];
-	AttitudeActualData attitude;
 
-	INSGetState(NULL, NULL, &attitude.q1, gyro_bias, NULL);
-	Quaternion2RPY(&attitude.q1,&attitude.Roll);
-	AttitudeActualSet(&attitude);
+	INSGetState(NULL, NULL, &attitudeActual->q1, gyro_bias, NULL);
+	Quaternion2RPY(&attitudeActual->q1, &attitudeActual->Roll);
+	AttitudeActualSet(attitudeActual);
 
 	if (insSettings.ComputeGyroBias == INSSETTINGS_COMPUTEGYROBIAS_TRUE && 
 	    !gyroBiasSettingsUpdated) {
@@ -1325,28 +1367,6 @@ static void apply_accel_filter(const float * raw, float * filtered)
 	}
 }
 
-/**
- * @brief Convert the GPS LLA position into NED coordinates
- * @note this method uses a taylor expansion around the home coordinates
- * to convert to NED which allows it to be done with all floating
- * calculations
- * @param[in] Current lat-lon coordinates on WGS84 ellipsoid, altitude referenced to MSL geoid (likely EGM 1996, but no guarantees)
- * @param[out] NED frame coordinates
- * @returns 0 for success, -1 for failure
- */
-float T[3];
-static int32_t getNED(GPSPositionData * gpsPosition, float * NED)
-{
-	float dL[3] = {(gpsPosition->Latitude - homeLocation.Latitude) / 10.0e6f * DEG2RAD,
-                   (gpsPosition->Longitude - homeLocation.Longitude) / 10.0e6f * DEG2RAD,
-                   (gpsPosition->Altitude - homeLocation.Altitude)};
-
-	NED[0] = T[0] * dL[0];
-	NED[1] = T[1] * dL[1];
-	NED[2] = T[2] * dL[2];
-
-	return 0;
-}
 
 /**
  * Keep a running filtered version of the acceleration in the NED frame
@@ -1409,9 +1429,9 @@ static void check_home_location()
 	GPSTimeData gpsTime;
 	GPSTimeGet(&gpsTime);
 	
-	// Check for valid data for the calculation
-	if (gps.PDOP < 3.5f && 
-	     gps.Satellites >= 7 &&
+	// Check for valid data for the calculation. Use a more stringent requirement for GPS before setting the home location.
+	if (gps.PDOP < insSettings.MinRNAVPDOP*.9f &&
+	     gps.Satellites >= insSettings.MinRNAVSatellites+1 &&
 	     (gps.Status == GPSPOSITION_STATUS_FIX3D ||
 	     gps.Status == GPSPOSITION_STATUS_DIFF3D) &&
 	     gpsTime.Year >= 2000)
@@ -1422,7 +1442,7 @@ static void check_home_location()
 		homeLocation.Altitude = gps.Altitude; // Altitude referenced to mean sea level geoid (likely EGM 1996, but no guarantees)
 
 		// Compute home ECEF coordinates and the rotation matrix into NED
-		double LLA[3] = { ((double)homeLocation.Latitude) / 10e6, ((double)homeLocation.Longitude) / 10e6, ((double)homeLocation.Altitude) };
+		float LLA[3] = { homeLocation.Latitude / 10e6f, homeLocation.Longitude / 10e6f, homeLocation.Altitude };
 
 		// Compute magnetic flux direction at home location
 		if (WMM_GetMagVector(LLA[0], LLA[1], LLA[2], gpsTime.Month, gpsTime.Day, gpsTime.Year, &homeLocation.Be[0]) >= 0)
@@ -1472,13 +1492,7 @@ static void settingsUpdatedCb(UAVObjEvent * ev)
 		if (armed == FLIGHTSTATUS_ARMED_DISARMED) {
 			HomeLocationGet(&homeLocation);
 			// Compute matrix to convert deltaLLA to NED
-			float lat, alt;
-			lat = homeLocation.Latitude / 10.0e6f * DEG2RAD;
-			alt = homeLocation.Altitude;
-
-			T[0] = alt+6.378137E6f;
-			T[1] = cosf(lat)*(alt+6.378137E6f);
-			T[2] = -1.0f;
+			LLA2NED_linearization_float(homeLocation.Latitude, homeLocation.Altitude, linearized_conversion_factor_f);
 
 			home_location_updated = true;
 		}

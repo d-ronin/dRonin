@@ -565,6 +565,7 @@ static const struct pios_usart_cfg pios_main_dsm_hsum_cfg = {
 #endif	/* PIOS_INCLUDE_DSM || PIOS_INCLUDE_HSUM */
 
 #if defined(PIOS_INCLUDE_SBUS)
+
 /*
  * S.Bus USART
  */
@@ -683,6 +684,7 @@ static const struct pios_usart_cfg pios_main_sbus_cfg = {
 static const struct pios_sbus_cfg pios_main_sbus_aux_cfg = {
 	/* No inverter configuration, f3 uart subsystem already does this for us */
 };
+
 #endif	/* PIOS_INCLUDE_SBUS */
 
 #ifdef PIOS_INCLUDE_FRSKY_SPORT_TELEMETRY
@@ -1418,12 +1420,12 @@ static struct pios_internal_adc_cfg internal_adc_cfg = {
 	.half_flag = DMA1_IT_HT1,
 	.full_flag = DMA1_IT_TC1,
 	.oversampling = 32,
-	.number_of_used_pins = 3,
-	.adc_pins = (struct adc_pin[]){
+	.adc_pins = {
 		{GPIOA,GPIO_Pin_1,ADC_Channel_2,true},
 		{GPIOA,GPIO_Pin_4,ADC_Channel_1,false},
 		{GPIOA,GPIO_Pin_7,ADC_Channel_4,false},
 	},
+	.adc_pin_count = 3,
 	.adc_dev_master = ADC1,
 	.adc_dev_slave = ADC2,
 };

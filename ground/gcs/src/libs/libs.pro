@@ -3,13 +3,18 @@ CONFIG   += ordered
 QT += widgets
 SUBDIRS   = \
     qscispinbox\
-    qtconcurrent \
     aggregation \
     extensionsystem \
     utils \
     tlmapcontrol \
-    qwt
-
+    qwt \
+    libcrashreporter-qt
+win32 {
+SUBDIRS   += \
+    zlib
+}
+SUBDIRS   += \
+    quazip
 SDL {
 SUBDIRS += sdlgamepad
 }

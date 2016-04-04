@@ -3,6 +3,7 @@
  * @file       configmodulewidget.cpp
  * @brief      Configure the optional modules
  * @author     Tau Labs, http://taulabs.org, Copyright (C) 2013
+ * @author     dRonin, http://dronin.org Copyright (C) 2015
  * @addtogroup GCSPlugins GCS Plugins
  * @{
  * @addtogroup ConfigPlugin Config Plugin
@@ -28,6 +29,7 @@
 
 #include <extensionsystem/pluginmanager.h>
 #include <coreplugin/generalsettings.h>
+#include <coreplugin/iboardtype.h>
 
 
 #include "airspeedsettings.h"
@@ -81,7 +83,6 @@ ConfigModuleWidget::ConfigModuleWidget(QWidget *parent) : ConfigTaskWidget(paren
     addUAVObjectToWidgetRelation(moduleSettingsName, "AdminState", ui->cbComBridge, ModuleSettings::ADMINSTATE_COMUSBBRIDGE);
     addUAVObjectToWidgetRelation(moduleSettingsName, "AdminState", ui->cbGPS, ModuleSettings::ADMINSTATE_GPS);
     addUAVObjectToWidgetRelation(moduleSettingsName, "AdminState", ui->cbUavoMavlink, ModuleSettings::ADMINSTATE_UAVOMAVLINKBRIDGE);
-    addUAVObjectToWidgetRelation(moduleSettingsName, "AdminState", ui->cbOveroSync, ModuleSettings::ADMINSTATE_OVEROSYNC);
     addUAVObjectToWidgetRelation(moduleSettingsName, "AdminState", ui->cbVibrationAnalysis, ModuleSettings::ADMINSTATE_VIBRATIONANALYSIS);
     addUAVObjectToWidgetRelation(moduleSettingsName, "AdminState", ui->cbVtolFollower, ModuleSettings::ADMINSTATE_VTOLPATHFOLLOWER);
     addUAVObjectToWidgetRelation(moduleSettingsName, "AdminState", ui->cbPathPlanner, ModuleSettings::ADMINSTATE_PATHPLANNER);
@@ -92,9 +93,13 @@ ConfigModuleWidget::ConfigModuleWidget(QWidget *parent) : ConfigTaskWidget(paren
     addUAVObjectToWidgetRelation(moduleSettingsName, "AdminState", ui->cbUAVOFrSkySPortBridge, ModuleSettings::ADMINSTATE_UAVOFRSKYSPORTBRIDGE);
     addUAVObjectToWidgetRelation(moduleSettingsName, "AdminState", ui->cbGeofence, ModuleSettings::ADMINSTATE_GEOFENCE);
     addUAVObjectToWidgetRelation(moduleSettingsName, "AdminState", ui->cbAutotune, ModuleSettings::ADMINSTATE_AUTOTUNE);
+    addUAVObjectToWidgetRelation(moduleSettingsName, "AdminState", ui->cbUAVOMSPBridge, ModuleSettings::ADMINSTATE_UAVOMSPBRIDGE);
+    addUAVObjectToWidgetRelation(moduleSettingsName, "AdminState", ui->cbTxPid, ModuleSettings::ADMINSTATE_TXPID);
+    addUAVObjectToWidgetRelation(moduleSettingsName, "AdminState", ui->cbLogging, ModuleSettings::ADMINSTATE_LOGGING);
 
-    // Don't allow this to be changed here, only in the autotune tab.
+    // Don't allow these to be changed here, only in the respective tabs.
     ui->cbAutotune->setDisabled(true);
+    ui->cbTxPid->setDisabled(true);
 
     // Connect the voltage and current checkboxes, such that the ADC pins are toggled and vice versa
     connect(ui->gb_measureVoltage, SIGNAL(toggled(bool)), this, SLOT(toggleBatteryMonitoringPin()));
@@ -342,9 +347,6 @@ ConfigModuleWidget::ConfigModuleWidget(QWidget *parent) : ConfigTaskWidget(paren
     ui->cbUavoMavlink->setProperty(trueString.toLatin1(), "Enabled");
     ui->cbUavoMavlink->setProperty(falseString.toLatin1(), "Disabled");
 
-    ui->cbOveroSync->setProperty(trueString.toLatin1(), "Enabled");
-    ui->cbOveroSync->setProperty(falseString.toLatin1(), "Disabled");
-
     ui->cbVibrationAnalysis->setProperty(trueString.toLatin1(), "Enabled");
     ui->cbVibrationAnalysis->setProperty(falseString.toLatin1(), "Disabled");
 
@@ -375,11 +377,20 @@ ConfigModuleWidget::ConfigModuleWidget(QWidget *parent) : ConfigTaskWidget(paren
     ui->cbAutotune->setProperty(trueString.toLatin1(), "Enabled");
     ui->cbAutotune->setProperty(falseString.toLatin1(), "Disabled");
 
+    ui->cbLogging->setProperty(trueString.toLatin1(), "Enabled");
+    ui->cbLogging->setProperty(falseString.toLatin1(), "Disabled");
+
     ui->gb_measureVoltage->setProperty(trueString.toLatin1(), "Enabled");
     ui->gb_measureVoltage->setProperty(falseString.toLatin1(), "Disabled");
 
     ui->gb_measureCurrent->setProperty(trueString.toLatin1(), "Enabled");
     ui->gb_measureCurrent->setProperty(falseString.toLatin1(), "Disabled");
+
+    ui->cbUAVOMSPBridge->setProperty(trueString.toLatin1(), "Enabled");
+    ui->cbUAVOMSPBridge->setProperty(falseString.toLatin1(), "Disabled");
+
+    ui->cbTxPid->setProperty(trueString.toLatin1(), "Enabled");
+    ui->cbTxPid->setProperty(falseString.toLatin1(), "Disabled");
 
     enableBatteryTab(false);
     enableAirspeedTab(false);
@@ -451,8 +462,9 @@ void ConfigModuleWidget::recheckTabs()
     obj->requestUpdate();
 
     // This requires re-evaluation so that board connection doesn't re-enable
-    // the field.
+    // the fields.
     ui->cbAutotune->setDisabled(true);
+    ui->cbTxPid->setDisabled(true);
 }
 
 //! Enable appropriate tab when objects are updated
@@ -462,18 +474,25 @@ void ConfigModuleWidget::objectUpdated(UAVObject * obj, bool success)
         return;
 
     QString objName = obj->getName();
-    if (objName.compare(AirspeedSettings::NAME) == 0)
+    if (objName.compare(AirspeedSettings::NAME) == 0) {
         enableAirspeedTab(success);
-    else if (objName.compare(FlightBatterySettings::NAME) == 0)
+    }
+    else if (objName.compare(FlightBatterySettings::NAME) == 0) {
         enableBatteryTab(success);
-    else if (objName.compare(VibrationAnalysisSettings::NAME) == 0)
+        refreshAdcNames();
+    }
+    else if (objName.compare(VibrationAnalysisSettings::NAME) == 0) {
         enableVibrationTab(success);
-    else if (objName.compare(HoTTSettings::NAME) == 0)
+    }
+    else if (objName.compare(HoTTSettings::NAME) == 0) {
         enableHoTTTelemetryTab(success);
-    else if (objName.compare(GeoFenceSettings::NAME) == 0)
+    }
+    else if (objName.compare(GeoFenceSettings::NAME) == 0) {
         enableGeofenceTab(success);
-    else if (objName.compare(PicoCSettings::NAME) == 0)
+    }
+    else if (objName.compare(PicoCSettings::NAME) == 0) {
         enablePicoCTab(success);
+    }
 }
 
 /**
@@ -700,6 +719,30 @@ void ConfigModuleWidget::enablePicoCTab(bool enabled)
 {
     int idx = ui->moduleTab->indexOf(ui->tabPicoC);
     ui->moduleTab->setTabEnabled(idx,enabled);
+}
+
+//! Replace ADC combobox names on battery tab with board specific ones
+void ConfigModuleWidget::refreshAdcNames(void)
+{
+    QStringList names;
+    Core::IBoardType *board = utilMngr->getBoardType();
+    if (board)
+        names = board->getAdcNames();
+    if (names.isEmpty())
+        return;
+
+    for (int i = 0; i <= 8; i++) {
+        QString name;
+        if (i < names.length())
+            name = names[i] + QString(" (ADC%1)").arg(i);
+        else
+            name = QString("N/A (ADC%1)").arg(i);
+
+        if (i < ui->cbVoltagePin->count())
+            ui->cbVoltagePin->setItemText(i, name);
+        if (i < ui->cbCurrentPin->count())
+            ui->cbCurrentPin->setItemText(i, name);
+    }
 }
 
 /**

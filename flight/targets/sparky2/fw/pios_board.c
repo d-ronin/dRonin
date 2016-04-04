@@ -6,7 +6,7 @@
  * @{
  *
  * @file       pios_board.c 
- * @author     Tau Labs, http://taulabs.org, Copyright (C) 2012-2015
+ * @author     Tau Labs, http://taulabs.org, Copyright (C) 2012-2016
  * @brief      Board initialization file
  * @see        The GNU Public License (GPL) Version 3
  * 
@@ -45,6 +45,8 @@
 #include "modulesettings.h"
 #include <rfm22bstatus.h>
 #include <rfm22breceiver.h>
+#include <pios_dacbeep_priv.h>
+#include <pios_fskdac_priv.h>
 #include <pios_rfm22b_rcvr_priv.h>
 #include <pios_openlrs_rcvr_priv.h>
 
@@ -55,13 +57,14 @@
 /**
  * Configuration for the MS5611 chip
  */
-#if defined(PIOS_INCLUDE_MS5611)
-#include "pios_ms5611_priv.h"
-static const struct pios_ms5611_cfg pios_ms5611_cfg = {
-	.oversampling = MS5611_OSR_1024,
+#if defined(PIOS_INCLUDE_MS5XXX)
+#include "pios_ms5xxx_priv.h"
+static const struct pios_ms5xxx_cfg pios_ms5xxx_cfg = {
+	.oversampling = MS5XXX_OSR_1024,
 	.temperature_interleaving = 1,
+	.pios_ms5xxx_model = PIOS_MS5M_MS5611,
 };
-#endif /* PIOS_INCLUDE_MS5611 */
+#endif /* PIOS_INCLUDE_MS5XXX */
 
 
 /**
@@ -130,7 +133,9 @@ static const struct pios_hmc5883_cfg pios_hmc5883_external_cfg = {
 #define PIOS_COM_CAN_RX_BUF_LEN 256
 #define PIOS_COM_CAN_TX_BUF_LEN 256
 
-uintptr_t pios_com_logging_id;
+#define PIOS_COM_FSKDAC_BUF_LEN 19
+
+uintptr_t pios_com_spiflash_logging_id;
 uintptr_t pios_com_can_id;
 uintptr_t pios_internal_adc_id = 0;
 uintptr_t pios_uavo_settings_fs_id;
@@ -139,6 +144,8 @@ uintptr_t pios_waypoints_settings_fs_id;
 uintptr_t pios_can_id;
 
 uintptr_t streamfs_id;
+
+uintptr_t dacbeep_handle;
 
 /**
  * Indicate a target-specific error code when a component fails to initialize
@@ -151,6 +158,10 @@ static void panic(int32_t code) {
 	PIOS_HAL_Panic(PIOS_LED_ALARM, code);
 }
 
+/**
+ * Set the external pins high that go to the VTX module
+ * and set the FPV frequency it transmits at
+ */
 void set_vtx_channel(HwSparky2VTX_ChOptions channel)
 {
 	uint8_t chan = 0;
@@ -436,6 +447,7 @@ void PIOS_Board_Init(void) {
 	EventDispatcherInitialize();
 	UAVObjInitialize();
 
+	/* Initialize the hardware UAVOs */
 	HwSparky2Initialize();
 	ModuleSettingsInitialize();
 
@@ -452,8 +464,9 @@ void PIOS_Board_Init(void) {
 	}
 #endif
 
-	/* Initialize the alarms library */
+	/* Initialize the alarms library. Reads RCC reset flags */
 	AlarmsInitialize();
+	PIOS_RESET_Clear(); // Clear the RCC reset flags after use.
 
 	/* Initialize the task monitor library */
 	TaskMonitorInitialize();
@@ -555,23 +568,41 @@ void PIOS_Board_Init(void) {
 	uint8_t hw_mainport;
 	HwSparky2MainPortGet(&hw_mainport);
 
-	PIOS_HAL_ConfigurePort(hw_mainport, &pios_usart_main_cfg,
-			&pios_usart_com_driver, NULL, NULL, NULL,
-			PIOS_LED_ALARM,
-			&pios_usart_dsm_hsum_main_cfg, &pios_dsm_main_cfg,
-			hw_DSMxMode, NULL, NULL, false);
+	PIOS_HAL_ConfigurePort(hw_mainport,          // port type protocol
+			&pios_usart_main_cfg,                // usart_port_cfg
+			&pios_usart_main_cfg,                // frsky usart_port_cfg
+			&pios_usart_com_driver,              // com_driver 
+			NULL,                                // i2c_id 
+			NULL,                                // i2c_cfg 
+			NULL,                                // i2c_cfg 
+			NULL,                                // pwm_cfg
+			PIOS_LED_ALARM,                      // led_id
+			&pios_usart_dsm_hsum_main_cfg,       // usart_dsm_hsum_cfg 
+			&pios_dsm_main_cfg,                  // dsm_cfg
+			hw_DSMxMode,                         // dsm_mode 
+			NULL,                                // sbus_rcvr_cfg 
+			NULL,                                // sbus_cfg 
+			false);                              // sbus_toggle
 
 	/* Configure FlexiPort */
 	uint8_t hw_flexiport;
 	HwSparky2FlexiPortGet(&hw_flexiport);
 
-	PIOS_HAL_ConfigurePort(hw_flexiport, &pios_usart_flexi_cfg,
-			&pios_usart_com_driver,
-			&pios_i2c_flexiport_adapter_id,
-			&pios_i2c_flexiport_adapter_cfg, NULL,
-			PIOS_LED_ALARM,
-			&pios_usart_dsm_hsum_flexi_cfg, &pios_dsm_flexi_cfg,
-			hw_DSMxMode, NULL, NULL, false);
+	PIOS_HAL_ConfigurePort(hw_flexiport,         // port type protocol
+			&pios_usart_flexi_cfg,               // usart_port_cfg
+			&pios_usart_flexi_cfg,               // frsky usart_port_cfg
+			&pios_usart_com_driver,              // com_driver
+			&pios_i2c_flexiport_adapter_id,      // i2c_id
+			&pios_i2c_flexiport_adapter_cfg,     // i2c_cfg 
+			NULL,                                // i2c_cfg 
+			NULL,                                // pwm_cfg
+			PIOS_LED_ALARM,                      // led_id
+			&pios_usart_dsm_hsum_flexi_cfg,      // usart_dsm_hsum_cfg
+			&pios_dsm_flexi_cfg,                 // dsm_cfg
+			hw_DSMxMode,                         // dsm_mode 
+			NULL,                                // sbus_rcvr_cfg 
+			NULL,                                // sbus_cfg 
+			false);                              // sbus_toggle
 
 #if defined(PIOS_INCLUDE_RFM22B)
 	HwSparky2Data hwSparky2;
@@ -584,6 +615,7 @@ void PIOS_Board_Init(void) {
 	PIOS_HAL_ConfigureRFM22B(hwSparky2.Radio,
 			bdinfo->board_type, bdinfo->board_rev,
 			hwSparky2.MaxRfPower, hwSparky2.MaxRfSpeed,
+			hwSparky2.RfBand,
 			openlrs_cfg, rfm22b_cfg,
 			hwSparky2.MinChannel, hwSparky2.MaxChannel,
 			hwSparky2.CoordID, 1);
@@ -598,16 +630,21 @@ void PIOS_Board_Init(void) {
 		hw_DSMxMode = HWSPARKY2_DSMXMODE_AUTODETECT; /* Do not try to bind through XOR */
 	}
 
-	PIOS_HAL_ConfigurePort(hw_rcvrport,
-			NULL, /* XXX TODO: fix as part of DSM refactor */
-			&pios_usart_com_driver,
-			NULL, NULL,
-			&pios_ppm_cfg, 
-			PIOS_LED_ALARM,
-			&pios_usart_dsm_hsum_rcvr_cfg,
-			&pios_dsm_rcvr_cfg,
-			hw_DSMxMode, get_sbus_rcvr_cfg(bdinfo->board_rev),
-			&pios_sbus_cfg, get_sbus_toggle(bdinfo->board_rev));
+	PIOS_HAL_ConfigurePort(hw_rcvrport,           // port type protocol
+			NULL,                                 // usart_port_cfg
+			NULL,                                 // frsky usart_port_cfg
+			&pios_usart_com_driver,               // com_driver
+			NULL,                                 // i2c_id
+			NULL,                                 // i2c_cfg
+			&pios_ppm_cfg,                        // ppm_cfg
+			NULL,                                 // pwm_cfg
+			PIOS_LED_ALARM,                       // led_id
+			&pios_usart_dsm_hsum_rcvr_cfg,        // usart_dsm_hsum_cfg
+			&pios_dsm_rcvr_cfg,                   // dsm_cfg
+			hw_DSMxMode,                          // dsm_mode
+			get_sbus_rcvr_cfg(bdinfo->board_rev), // sbus_rcvr_cfg
+			&pios_sbus_cfg,                       // sbus_cfg
+			get_sbus_toggle(bdinfo->board_rev));  // sbus_toggle
 
 #if defined(PIOS_INCLUDE_GCSRCVR)
 	GCSReceiverInitialize();
@@ -635,17 +672,6 @@ void PIOS_Board_Init(void) {
 	if(get_use_can(bdinfo->board_rev)) {
 		if (PIOS_CAN_Init(&pios_can_id, &pios_can_cfg) != 0)
 			panic(6);
-
-		uint8_t * rx_buffer = (uint8_t *) PIOS_malloc(PIOS_COM_CAN_RX_BUF_LEN);
-		uint8_t * tx_buffer = (uint8_t *) PIOS_malloc(PIOS_COM_CAN_TX_BUF_LEN);
-		PIOS_Assert(rx_buffer);
-		PIOS_Assert(tx_buffer);
-		if (PIOS_COM_Init(&pios_com_can_id, &pios_can_com_driver, pios_can_id,
-		                  rx_buffer, PIOS_COM_CAN_RX_BUF_LEN,
-		                  tx_buffer, PIOS_COM_CAN_TX_BUF_LEN))
-			panic(6);
-
-		/* pios_com_bridge_id = pios_com_can_id; */
 	}
 #endif
 
@@ -653,19 +679,56 @@ void PIOS_Board_Init(void) {
 
 	PIOS_SENSORS_Init();
 
+	uint8_t dac_mode;
+	HwSparky2AdcDacGet(&dac_mode);
+	struct pios_internal_adc_cfg *adc_cfg = &pios_adc_withoutdac_cfg;
+
+	// Select what the ADC or DAC is used for
+	switch(dac_mode) {
+	case HWSPARKY2_ADCDAC_ADC:
+		adc_cfg = &pios_adc_withdac_cfg;
+		break;
+	case HWSPARKY2_ADCDAC_BEEP:
+#if defined(PIOS_INCLUDE_DAC_BEEPS)
+	{
+		uintptr_t dacbeep_id;
+		PIOS_DACBEEP_Init(&dacbeep_id);
+		dacbeep_handle = dacbeep_id;
+	}
+#endif /* PIOS_INCLUDE_DAC_BEEPS */
+		break;
+	case HWSPARKY2_ADCDAC_FSKTELEM:
+#if defined(PIOS_INCLUDE_FSK)
+	{
+		uintptr_t fskdac_id;
+		PIOS_FSKDAC_Init(&fskdac_id);
+
+		uintptr_t fskdac_com_id;
+		uint8_t * tx_buffer = (uint8_t *) PIOS_malloc(PIOS_COM_FSKDAC_BUF_LEN);
+		PIOS_Assert(tx_buffer);
+		if (PIOS_COM_Init(&fskdac_com_id, &pios_fskdac_com_driver, fskdac_id,
+		                  NULL, 0,
+		                  tx_buffer, PIOS_COM_FSKDAC_BUF_LEN))
+			panic(6);
+
+		uint8_t baud = MODULESETTINGS_LIGHTTELEMETRYSPEED_1200;
+		ModuleSettingsLightTelemetrySpeedSet(&baud);
+		pios_com_lighttelemetry_id = fskdac_com_id; // send from light telemetry when enabled
+	}
+#endif /* PIOS_INCLUDE_FSK */
+		break;
+	}
+
 #if defined(PIOS_INCLUDE_ADC)
 	uint32_t internal_adc_id;
-	PIOS_INTERNAL_ADC_Init(&internal_adc_id, &pios_adc_cfg);
+	PIOS_INTERNAL_ADC_Init(&internal_adc_id, adc_cfg);
 	PIOS_ADC_Init(&pios_internal_adc_id, &pios_internal_adc_driver, internal_adc_id);
- 
-        // configure the pullup for PA8 (inhibit pullups from current/sonar shared pin)
-        GPIO_Init(pios_current_sonar_pin.gpio, &pios_current_sonar_pin.init);
 #endif
 
-#if defined(PIOS_INCLUDE_MS5611)
-	if (PIOS_MS5611_Init(&pios_ms5611_cfg, pios_i2c_mag_pressure_adapter_id) != 0)
+#if defined(PIOS_INCLUDE_MS5XXX)
+	if (PIOS_MS5XXX_I2C_Init(pios_i2c_mag_pressure_adapter_id, MS5XXX_I2C_ADDR_0x77, &pios_ms5xxx_cfg) != 0)
 		panic(4);
-	if (PIOS_MS5611_Test() != 0)
+	if (PIOS_MS5XXX_Test() != 0)
 		panic(4);
 #endif
 
@@ -800,7 +863,7 @@ void PIOS_Board_Init(void) {
 		const uint32_t LOG_BUF_LEN = 256;
 		uint8_t *log_rx_buffer = PIOS_malloc(LOG_BUF_LEN);
 		uint8_t *log_tx_buffer = PIOS_malloc(LOG_BUF_LEN);
-		if (PIOS_COM_Init(&pios_com_logging_id, &pios_streamfs_com_driver, streamfs_id,
+		if (PIOS_COM_Init(&pios_com_spiflash_logging_id, &pios_streamfs_com_driver, streamfs_id,
 			log_rx_buffer, LOG_BUF_LEN, log_tx_buffer, LOG_BUF_LEN) != 0)
 			panic(9);
 	}

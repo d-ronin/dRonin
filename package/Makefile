@@ -44,6 +44,8 @@ CLEAN_GROUND := YES
 CLEAN_FLIGHT := YES
 endif
 
+USE_MSVC ?= NO
+
 # Set up targets
 ALL_BOARDS        := coptercontrol pipxtreme revomini sparky sparky2 sparkybgc quanton colibri flyingf3 flyingf4 aq32 naze32
 ALL_BOARDS_BU     := coptercontrol pipxtreme
@@ -77,11 +79,10 @@ help:
 	@echo "       This usually is safe."
 	@echo
 
-# Clean and build uavobjects since all parts depend on them
-uavobjects_%: all_clean
+uavobjects: 
 	$(V1) $(MAKE) -C $(ROOT_DIR) $@
 
-matlab: uavobjects_matlab
+matlab: uavobjects
 	$(V1) $(MAKE) -C $(ROOT_DIR) $@
 
 all_clean:
@@ -111,10 +112,10 @@ endif
 endef
 
 # Firmware
-$(eval $(call INSTALL_TEMPLATE,all_fw,uavobjects_flight,$(FW_DIR),,-$(PACKAGE_LBL),,,$(FW_TARGETS),install))
+$(eval $(call INSTALL_TEMPLATE,all_fw,uavobjects,$(FW_DIR),,-$(PACKAGE_LBL),,,$(FW_TARGETS),install))
 
 # Bootloaders (change 'install' to 'bin' if you don't want to install bootloaders)
-$(eval $(call INSTALL_TEMPLATE,all_bl,uavobjects_flight,$(BL_DIR),,-$(PACKAGE_LBL),,,$(BL_TARGETS),install))
+$(eval $(call INSTALL_TEMPLATE,all_bl,uavobjects,$(BL_DIR),,-$(PACKAGE_LBL),,,$(BL_TARGETS),install))
 
 # Bootloader updaters
 $(eval $(call INSTALL_TEMPLATE,all_bu,all_bl,$(BU_DIR),,-$(PACKAGE_LBL),,,$(BU_TARGETS),install))
@@ -128,7 +129,7 @@ package_ground: | ground_package
 
 package: | package_flight package_ground package_matlab
 
-.PHONY: help uavobjects_flight uavobjects_gcs uavobjects_matlab all_clean package_flight package_ground package
+.PHONY: help uavobjects all_clean package_flight package_ground package
 
 # tlfw_resource must be generated before the ground package,
 # and it depends on flight firmware images

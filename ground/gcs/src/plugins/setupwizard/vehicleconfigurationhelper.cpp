@@ -5,7 +5,8 @@
  * @brief      Provide an interface between the settings selected and the wizard
  *             and storing them on the FC
  * @author     The OpenPilot Team, http://www.openpilot.org Copyright (C) 2012.
- * @author     Tau Labs, http://taulabs.org, Copyright (C) 2013
+ * @author     dRonin, http://dRonin.org/, Copyright (C) 2015
+ * @author     Tau Labs, http://taulabs.org, Copyright (C) 2013-2015
  * @see        The GNU Public License (GPL) Version 3
  *
  * @addtogroup GCSPlugins GCS Plugins
@@ -198,7 +199,7 @@ void VehicleConfigurationHelper::applyActuatorConfiguration()
         }
 
         qint16 updateFrequency = LEGACY_ESC_FREQUENCY;
-        ActuatorSettings::TimerPwmResolutionOptions resolution;
+        ActuatorSettings::TimerPwmResolutionOptions resolution = ActuatorSettings::TIMERPWMRESOLUTION_1MHZ;
         switch (m_configSource->getESCType()) {
         case VehicleConfigurationSource::ESC_LEGACY:
             updateFrequency = LEGACY_ESC_FREQUENCY;
@@ -223,6 +224,7 @@ void VehicleConfigurationHelper::applyActuatorConfiguration()
             data.TimerUpdateFreq[1] = updateFrequency;
             data.TimerPwmResolution[0] = resolution;
             data.TimerPwmResolution[1] = resolution;
+            data.MotorsSpinWhileArmed = ActuatorSettings::MOTORSSPINWHILEARMED_TRUE;
             break;
         case VehicleConfigurationSource::MULTI_ROTOR_QUAD_X:
         case VehicleConfigurationSource::MULTI_ROTOR_QUAD_PLUS:
@@ -232,6 +234,7 @@ void VehicleConfigurationHelper::applyActuatorConfiguration()
             data.TimerPwmResolution[0] = resolution;
             data.TimerPwmResolution[1] = resolution;
             data.TimerPwmResolution[2] = resolution;
+            data.MotorsSpinWhileArmed = ActuatorSettings::MOTORSSPINWHILEARMED_TRUE;
             break;
         case VehicleConfigurationSource::MULTI_ROTOR_HEXA:
         case VehicleConfigurationSource::MULTI_ROTOR_HEXA_COAX_Y:
@@ -248,6 +251,7 @@ void VehicleConfigurationHelper::applyActuatorConfiguration()
             data.TimerPwmResolution[1] = resolution;
             data.TimerPwmResolution[2] = resolution;
             data.TimerPwmResolution[3] = resolution;
+            data.MotorsSpinWhileArmed = ActuatorSettings::MOTORSSPINWHILEARMED_TRUE;
             break;
         default:
             break;
@@ -537,7 +541,7 @@ void VehicleConfigurationHelper::resetVehicleConfig()
         UAVObjectField *field = mSettings->getField(throttlePattern.arg(i));
         Q_ASSERT(field);
         for (quint32 i = 0; i < field->getNumElements(); i++) {
-            field->setValue(i * (1.0f / (field->getNumElements() - 1)), i);
+            field->setValue(i * (0.9f / (field->getNumElements() - 1)), i);
         }
     }
 

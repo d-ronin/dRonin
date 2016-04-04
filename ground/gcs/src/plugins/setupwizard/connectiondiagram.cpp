@@ -50,14 +50,16 @@ void ConnectionDiagram::resizeEvent(QResizeEvent *event)
 {
     QWidget::resizeEvent(event);
 
-    ui->connectionDiagram->fitInView(m_background, Qt::KeepAspectRatio);
+    if(m_background != NULL)
+        ui->connectionDiagram->fitInView(m_background, Qt::KeepAspectRatio);
 }
 
 void ConnectionDiagram::showEvent(QShowEvent *event)
 {
     QWidget::showEvent(event);
 
-    ui->connectionDiagram->fitInView(m_background, Qt::KeepAspectRatio);
+    if(m_background != NULL)
+        ui->connectionDiagram->fitInView(m_background, Qt::KeepAspectRatio);
 }
 
 void ConnectionDiagram::setupGraphicsScene()
@@ -132,7 +134,7 @@ void ConnectionDiagram::setupGraphicsScene()
             break;
         case Core::IBoardType::INPUT_TYPE_HOTTSUMD:
         case Core::IBoardType::INPUT_TYPE_HOTTSUMH:
-            elementsToShow << "HoTT";
+            elementsToShow << "hott";
             break;
         default:
             break;

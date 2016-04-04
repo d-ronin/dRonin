@@ -98,13 +98,14 @@ static const struct pios_hmc5883_cfg pios_hmc5883_cfg = {
 /**
  * Configuration for the MS5611 chip
  */
-#if defined(PIOS_INCLUDE_MS5611)
-#include "pios_ms5611_priv.h"
-static const struct pios_ms5611_cfg pios_ms5611_cfg = {
-	.oversampling = MS5611_OSR_1024,
+#if defined(PIOS_INCLUDE_MS5XXX)
+#include "pios_ms5xxx_priv.h"
+static const struct pios_ms5xxx_cfg pios_ms5xxx_cfg = {
+	.oversampling = MS5XXX_OSR_1024,
 	.temperature_interleaving = 1,
+	.pios_ms5xxx_model = PIOS_MS5M_MS5611,
 };
-#endif /* PIOS_INCLUDE_MS5611 */
+#endif /* PIOS_INCLUDE_MS5XXX */
 
 
 /**
@@ -223,9 +224,11 @@ void PIOS_Board_Init(void) {
 	EventDispatcherInitialize();
 	UAVObjInitialize();
 
-	/* Initialize the alarms library */
+	/* Initialize the alarms library. Reads RCC reset flags */
 	AlarmsInitialize();
+	PIOS_RESET_Clear(); // Clear the RCC reset flags after use.
 
+	/* Initialize the hardware UAVOs */
 	HwRevoMiniInitialize();
 	ModuleSettingsInitialize();
 
@@ -327,21 +330,41 @@ void PIOS_Board_Init(void) {
 	uint8_t hw_mainport;
 	HwRevoMiniMainPortGet(&hw_mainport);
 
-	PIOS_HAL_ConfigurePort(hw_mainport, &pios_usart_main_cfg,
-			&pios_usart_com_driver, NULL, NULL, NULL, PIOS_LED_ALARM,
-			&pios_usart_dsm_hsum_main_cfg, &pios_dsm_main_cfg,
-			hw_DSMxMode >= HWREVOMINI_DSMXMODE_BIND3PULSES ? HWREVOMINI_DSMXMODE_AUTODETECT : hw_DSMxMode /* No bind on main port */, &pios_usart_sbus_main_cfg,
-			&pios_sbus_cfg, true);
+	PIOS_HAL_ConfigurePort(hw_mainport,          // port type protocol
+			&pios_usart_main_cfg,                // usart_port_cfg
+			&pios_usart_main_cfg,                // frsky usart_port_cfg
+			&pios_usart_com_driver,              // com_driver 
+			NULL,                                // i2c_id
+			NULL,                                // i2c_cfg
+			NULL,                                // ppm_cfg
+			NULL,                                // pwm_cfg
+			PIOS_LED_ALARM,                      // led_id
+			&pios_usart_dsm_hsum_main_cfg,       // usart_dsm_hsum_cfg
+			&pios_dsm_main_cfg,                  // dsm_cfg
+			hw_DSMxMode >= HWREVOMINI_DSMXMODE_BIND3PULSES ? HWREVOMINI_DSMXMODE_AUTODETECT : hw_DSMxMode /* No bind on main port */, 
+			&pios_usart_sbus_main_cfg,           // sbus_rcvr_cfg
+			&pios_sbus_cfg,                      // sbus_cfg 
+			true);                               // sbus_toggle
 
 	/* Configure FlexiPort */
 	uint8_t hw_flexiport;
 	HwRevoMiniFlexiPortGet(&hw_flexiport);
 
-	PIOS_HAL_ConfigurePort(hw_flexiport, &pios_usart_flexi_cfg,
-			&pios_usart_com_driver, &pios_i2c_flexiport_adapter_id,
-			&pios_i2c_flexiport_adapter_cfg, NULL, PIOS_LED_ALARM,
-			&pios_usart_dsm_hsum_flexi_cfg, &pios_dsm_flexi_cfg,
-			hw_DSMxMode, NULL, NULL, false);
+	PIOS_HAL_ConfigurePort(hw_flexiport,         // port type protocol 
+			&pios_usart_flexi_cfg,               // usart_port_cfg
+			&pios_usart_flexi_cfg,               // frsky usart_port_cfg
+			&pios_usart_com_driver,              // com_driver
+			&pios_i2c_flexiport_adapter_id,      // i2c_id
+			&pios_i2c_flexiport_adapter_cfg,     // i2c_cfg
+			NULL,                                // ppm_cfg
+			NULL,                                // pwm_cfg
+			PIOS_LED_ALARM,                      // led_id
+			&pios_usart_dsm_hsum_flexi_cfg,      // usart_dsm_hsum_cfg
+			&pios_dsm_flexi_cfg,                 // dsm_cfg
+			hw_DSMxMode,                         // dsm_mode
+			NULL,                                // sbus_rcvr_cfg
+			NULL,                                // sbus_cfg    
+			false);                              // sbus_toggle
 
 	HwRevoMiniData hwRevoMini;
 	HwRevoMiniGet(&hwRevoMini);
@@ -353,6 +376,7 @@ void PIOS_Board_Init(void) {
 	PIOS_HAL_ConfigureRFM22B(hwRevoMini.Radio,
 			bdinfo->board_type, bdinfo->board_rev,
 			hwRevoMini.MaxRfPower, hwRevoMini.MaxRfSpeed,
+			hwRevoMini.RfBand,
 			openlrs_cfg, rfm22b_cfg, hwRevoMini.MinChannel,
 			hwRevoMini.MaxChannel, hwRevoMini.CoordID, 1);
 #endif /* PIOS_INCLUDE_RFM22B */
@@ -477,8 +501,8 @@ void PIOS_Board_Init(void) {
 	PIOS_HMC5883_Init(PIOS_I2C_MAIN_ADAPTER, &pios_hmc5883_cfg);
 #endif
 	
-#if defined(PIOS_INCLUDE_MS5611)
-	PIOS_MS5611_Init(&pios_ms5611_cfg, pios_i2c_mag_pressure_adapter_id);
+#if defined(PIOS_INCLUDE_MS5XXX)
+	PIOS_MS5XXX_I2C_Init(pios_i2c_mag_pressure_adapter_id, MS5XXX_I2C_ADDR_0x77, &pios_ms5xxx_cfg);
 #endif
 
 #if defined(PIOS_INCLUDE_MPU6000)

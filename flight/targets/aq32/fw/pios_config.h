@@ -31,7 +31,6 @@
 #define PIOS_CONFIG_H
 
 /* Major features */
-#define PIOS_INCLUDE_CHIBIOS
 #define PIOS_INCLUDE_BL_HELPER
 
 /* Enable/Disable PiOS Modules */
@@ -56,13 +55,14 @@
 #define PIOS_INCLUDE_WDG
 #define PIOS_INCLUDE_FASTHEAP
 #define PIOS_INCLUDE_HPWM
+#define PIOS_INCLUDE_OPENLOG
 
 /* Select the sensors to include */
 #define PIOS_INCLUDE_HMC5883
 #define PIOS_INCLUDE_MPU6000
 #define PIOS_MPU6000_ACCEL
 #define PIOS_MPU6000_SIMPLE_INIT_SEQUENCE
-#define PIOS_INCLUDE_MS5611
+#define PIOS_INCLUDE_MS5XXX
 #define FLASH_FREERTOS
 
 /* Com systems to include */
@@ -71,6 +71,7 @@
 #define PIOS_INCLUDE_TELEMETRY_RF
 #define PIOS_INCLUDE_COM_FLEXI
 #define PIOS_INCLUDE_MAVLINK
+#define PIOS_INCLUDE_MSP_BRIDGE
 #define PIOS_INCLUDE_HOTT
 #define PIOS_INCLUDE_FRSKY_SENSOR_HUB
 #define PIOS_INCLUDE_SESSION_MANAGEMENT

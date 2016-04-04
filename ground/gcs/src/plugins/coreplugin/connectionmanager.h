@@ -40,6 +40,7 @@
 #include <QPushButton>
 #include <QComboBox>
 #include <QPointer>
+#include <QMessageBox>
 
 #include "core_global.h"
 #include <QTimer>
@@ -115,6 +116,7 @@ signals:
     void deviceAboutToDisconnect();
     void deviceDisconnected();
     void availableDevicesChanged(const QLinkedList<Core::DevListItem> devices);
+    void connectDeviceFailed(DevListItem *device);
 
 public slots:
     void telemetryConnected();
@@ -132,6 +134,7 @@ private slots:
     void connectionsCallBack(); //used to call devChange after all the plugins are loaded
     void reconnectSlot();
     void reconnectCheckSlot();
+    void onConnectDeviceFailed(DevListItem *device);
 
 protected:
     QComboBox *m_availableDevList;
@@ -147,6 +150,8 @@ protected:
 
     //currently connected QIODevice
     QIODevice *m_ioDev;
+
+    QMessageBox msgFailedToConnect;
 
 private:
 	bool connectDevice();

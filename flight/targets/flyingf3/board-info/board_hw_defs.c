@@ -563,17 +563,6 @@ void PIOS_SPI_3_irq_handler(void)
 	PIOS_SPI_IRQ_Handler(pios_spi_3_id);
 }
 
-/**
- * Configuration for the MS5611 chip on SPI
- */
-#if defined(PIOS_INCLUDE_MS5611_SPI) || defined(PIOS_INCLUDE_MS5611)
-#include "pios_ms5611_priv.h"
-static const struct pios_ms5611_cfg pios_ms5611_cfg = {
-	.oversampling             = MS5611_OSR_4096,
-	.temperature_interleaving = 1,
-};
-#endif /* PIOS_INCLUDE_MS5611_SPI */
-
 #endif	/* PIOS_INCLUDE_SPI */
 
 
@@ -2744,8 +2733,11 @@ static const struct pios_internal_adc_cfg internal_adc_cfg_rcflyer_shield = {
 	.oversampling = 32,
 	.adc_dev_master = ADC1,
 	.adc_dev_slave = ADC2,
-	.number_of_used_pins = 2,
-	.adc_pins = (struct adc_pin[]){{GPIOC,GPIO_Pin_3,ADC_Channel_9,true},{GPIOC,GPIO_Pin_4,ADC_Channel_5,false},},
+	.adc_pin_count = 2,
+	.adc_pins = {
+		{GPIOC,GPIO_Pin_3,ADC_Channel_9,true},
+		{GPIOC,GPIO_Pin_4,ADC_Channel_5,false},
+	},
 };
 #endif //PIOS_INCLUDE_ADC
 

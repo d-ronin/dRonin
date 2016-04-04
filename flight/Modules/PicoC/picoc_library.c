@@ -191,6 +191,7 @@ struct LibraryFunction PlatformLibrary_string[] =
  * math.h
  */
 #ifndef NO_FP
+#ifndef NO_DOUBLE_MATH
 void LibSin(struct ParseState *Parser, struct Value *ReturnValue, struct Value **Param, int NumArgs)
 {
 	ReturnValue->Val->FP = sin(Param[0]->Val->FP);
@@ -281,10 +282,104 @@ void LibFloor(struct ParseState *Parser, struct Value *ReturnValue, struct Value
 {
 	ReturnValue->Val->FP = floor(Param[0]->Val->FP);
 }
+#endif /* NO_DOUBLE_MATH */
+
+/* single precision math functions */
+void LibSinf(struct ParseState *Parser, struct Value *ReturnValue, struct Value **Param, int NumArgs)
+{
+	ReturnValue->Val->FP = sinf(Param[0]->Val->FP);
+}
+
+void LibCosf(struct ParseState *Parser, struct Value *ReturnValue, struct Value **Param, int NumArgs)
+{
+	ReturnValue->Val->FP = cosf(Param[0]->Val->FP);
+}
+
+void LibTanf(struct ParseState *Parser, struct Value *ReturnValue, struct Value **Param, int NumArgs)
+{
+	ReturnValue->Val->FP = tanf(Param[0]->Val->FP);
+}
+
+void LibAsinf(struct ParseState *Parser, struct Value *ReturnValue, struct Value **Param, int NumArgs)
+{
+	ReturnValue->Val->FP = asinf(Param[0]->Val->FP);
+}
+
+void LibAcosf(struct ParseState *Parser, struct Value *ReturnValue, struct Value **Param, int NumArgs)
+{
+	ReturnValue->Val->FP = acosf(Param[0]->Val->FP);
+}
+
+void LibAtanf(struct ParseState *Parser, struct Value *ReturnValue, struct Value **Param, int NumArgs)
+{
+	ReturnValue->Val->FP = atanf(Param[0]->Val->FP);
+}
+
+void LibSinhf(struct ParseState *Parser, struct Value *ReturnValue, struct Value **Param, int NumArgs)
+{
+	ReturnValue->Val->FP = sinhf(Param[0]->Val->FP);
+}
+
+void LibCoshf(struct ParseState *Parser, struct Value *ReturnValue, struct Value **Param, int NumArgs)
+{
+	ReturnValue->Val->FP = coshf(Param[0]->Val->FP);
+}
+
+void LibTanhf(struct ParseState *Parser, struct Value *ReturnValue, struct Value **Param, int NumArgs)
+{
+	ReturnValue->Val->FP = tanhf(Param[0]->Val->FP);
+}
+
+void LibExpf(struct ParseState *Parser, struct Value *ReturnValue, struct Value **Param, int NumArgs)
+{
+	ReturnValue->Val->FP = expf(Param[0]->Val->FP);
+}
+
+void LibFabsf(struct ParseState *Parser, struct Value *ReturnValue, struct Value **Param, int NumArgs)
+{
+	ReturnValue->Val->FP = fabsf(Param[0]->Val->FP);
+}
+
+void LibLogf(struct ParseState *Parser, struct Value *ReturnValue, struct Value **Param, int NumArgs)
+{
+	ReturnValue->Val->FP = logf(Param[0]->Val->FP);
+}
+
+void LibLog10f(struct ParseState *Parser, struct Value *ReturnValue, struct Value **Param, int NumArgs)
+{
+	ReturnValue->Val->FP = log10f(Param[0]->Val->FP);
+}
+
+void LibPowf(struct ParseState *Parser, struct Value *ReturnValue, struct Value **Param, int NumArgs)
+{
+	ReturnValue->Val->FP = powf(Param[0]->Val->FP, Param[1]->Val->FP);
+}
+
+void LibSqrtf(struct ParseState *Parser, struct Value *ReturnValue, struct Value **Param, int NumArgs)
+{
+	ReturnValue->Val->FP = sqrtf(Param[0]->Val->FP);
+}
+
+void LibRoundf(struct ParseState *Parser, struct Value *ReturnValue, struct Value **Param, int NumArgs)
+{
+	/* this awkward definition of "round()" due to it being inconsistently declared in math.h */
+	ReturnValue->Val->FP = ceilf(Param[0]->Val->FP - 0.5);
+}
+
+void LibCeilf(struct ParseState *Parser, struct Value *ReturnValue, struct Value **Param, int NumArgs)
+{
+	ReturnValue->Val->FP = ceilf(Param[0]->Val->FP);
+}
+
+void LibFloorf(struct ParseState *Parser, struct Value *ReturnValue, struct Value **Param, int NumArgs)
+{
+	ReturnValue->Val->FP = floorf(Param[0]->Val->FP);
+}
 
 /* list of all library functions and their prototypes */
 struct LibraryFunction PlatformLibrary_math[] =
 {
+#ifndef NO_DOUBLE_MATH
 	{ LibSin,		"float sin(float);" },
 	{ LibCos,		"float cos(float);" },
 	{ LibTan,		"float tan(float);" },
@@ -303,6 +398,25 @@ struct LibraryFunction PlatformLibrary_math[] =
 	{ LibRound,		"float round(float);" },
 	{ LibCeil,		"float ceil(float);" },
 	{ LibFloor,		"float floor(float);" },
+#endif /* NO_DOUBLE_MATH */
+	{ LibSinf,		"float sinf(float);" },
+	{ LibCosf,		"float cosf(float);" },
+	{ LibTanf,		"float tanf(float);" },
+	{ LibAsinf,		"float asinf(float);" },
+	{ LibAcosf,		"float acosf(float);" },
+	{ LibAtanf,		"float atanf(float);" },
+	{ LibSinhf,		"float sinhf(float);" },
+	{ LibCoshf,		"float coshf(float);" },
+	{ LibTanhf,		"float tanhf(float);" },
+	{ LibExpf,		"float expf(float);" },
+	{ LibFabsf,		"float fabsf(float);" },
+	{ LibLogf,		"float logf(float);" },
+	{ LibLog10f,	"float log10f(float);" },
+	{ LibPowf,		"float powf(float,float);" },
+	{ LibSqrtf,		"float sqrtf(float);" },
+	{ LibRoundf,	"float roundf(float);" },
+	{ LibCeilf,		"float ceilf(float);" },
+	{ LibFloorf,	"float floorf(float);" },
 	{ NULL, NULL }
 };
 
@@ -488,18 +602,51 @@ void SystemPWMOutSet(struct ParseState *Parser, struct Value *ReturnValue, struc
 	MixerSettingsData mixerSettings;
 	MixerSettingsGet(&mixerSettings);
 
-	// this structure is equivalent to the UAVObjects for one mixer.
-	typedef struct {
-		uint8_t type;
-		int8_t matrix[5];
-	} __attribute__((packed)) Mixer_t;
+#define PICOC_ACTUATOR_TYPE MIXERSETTINGS_MIXER1TYPE_DISABLED
 
-	// base pointer to mixer vectors and types
-	Mixer_t * mixers = (Mixer_t *)&mixerSettings.Mixer1Type;
+	// Initialize at !MIXERSETTINGS_MIXER1TYPE_DISABLED because then we're sure it will fail the ==MIXERSETTINGS_MIXER1TYPE_DISABLED test below
+	uint8_t mixer_type = (!PICOC_ACTUATOR_TYPE);
+
+	switch(channel) {
+	case 0:
+		mixer_type = mixerSettings.Mixer1Type;
+		break;
+	case 1:
+		mixer_type = mixerSettings.Mixer2Type;
+		break;
+	case 2:
+		mixer_type = mixerSettings.Mixer3Type;
+		break;
+	case 3:
+		mixer_type = mixerSettings.Mixer4Type;
+		break;
+	case 4:
+		mixer_type = mixerSettings.Mixer5Type;
+		break;
+	case 5:
+		mixer_type = mixerSettings.Mixer6Type;
+		break;
+	case 6:
+		mixer_type = mixerSettings.Mixer7Type;
+		break;
+	case 7:
+		mixer_type = mixerSettings.Mixer8Type;
+		break;
+	case 8:
+		mixer_type = mixerSettings.Mixer9Type;
+		break;
+	case 9:
+		mixer_type = mixerSettings.Mixer10Type;
+		break;
+	default:
+		// We can never get here unless there are mixer channels not handled in the above. Fail out.
+		PIOS_Assert(0);
+	}
 
 	// the mixer has to be disabled for this channel.
-	if (mixers[channel].type != MIXERSETTINGS_MIXER1TYPE_DISABLED)
+	if (mixer_type != PICOC_ACTUATOR_TYPE)
 		return;
+
 
 	// check actuator settings
 	ActuatorSettingsData actuatorSettings;

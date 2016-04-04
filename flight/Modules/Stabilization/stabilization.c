@@ -14,7 +14,8 @@
  *
  * @file       stabilization.c
  * @author     The OpenPilot Team, http://www.openpilot.org Copyright (C) 2010.
- * @author     Tau Labs, http://taulabs.org, Copyright (C) 2012-2014
+ * @author     dRonin, http://dronin.org Copyright (C) 2015
+ * @author     Tau Labs, http://taulabs.org, Copyright (C) 2012-2015
  * @brief      Attitude stabilization.
  *
  * @see        The GNU Public License (GPL) Version 3
@@ -84,16 +85,20 @@
 #define HORIZON_MODE_MAX_BLEND               0.85f
 
 enum {
-	PID_RATE_ROLL,   // Rate controller settings
+	PID_GROUP_RATE,   // Rate controller settings
+	PID_RATE_ROLL = PID_GROUP_RATE,
 	PID_RATE_PITCH,
 	PID_RATE_YAW,
-	PID_ATT_ROLL,    // Attitude controller settings
+	PID_GROUP_ATT,    // Attitude controller settings
+	PID_ATT_ROLL = PID_GROUP_ATT,
 	PID_ATT_PITCH,
 	PID_ATT_YAW,
-	PID_VBAR_ROLL,   // Virtual flybar settings
+	PID_GROUP_VBAR,   // Virtual flybar settings
+	PID_VBAR_ROLL = PID_GROUP_VBAR,
 	PID_VBAR_PITCH,
 	PID_VBAR_YAW,
-	PID_MWR_ROLL,   // Virtual flybar settings
+	PID_GROUP_MWR,   // Multiwii rate settings
+	PID_MWR_ROLL = PID_GROUP_MWR,
 	PID_MWR_PITCH,
 	PID_MWR_YAW,
 	PID_COORDINATED_FLIGHT_YAW,
@@ -142,10 +147,13 @@ int32_t StabilizationStart()
 	StabilizationSettingsConnectCallback(SettingsUpdatedCb);
 	TrimAnglesSettingsConnectCallback(SettingsUpdatedCb);
 
+	// Watchdog must be registered before starting task
+	PIOS_WDG_RegisterFlag(PIOS_WDG_STABILIZATION);
+
 	// Start main task
 	taskHandle = PIOS_Thread_Create(stabilizationTask, "Stabilization", STACK_SIZE_BYTES, NULL, TASK_PRIORITY);
 	TaskMonitorAdd(TASKINFO_RUNNING_STABILIZATION, taskHandle);
-	PIOS_WDG_RegisterFlag(PIOS_WDG_STABILIZATION);
+
 	return 0;
 }
 
@@ -344,13 +352,13 @@ static void stabilizationTask(void* parameters)
 			{
 				case STABILIZATIONDESIRED_STABILIZATIONMODE_RATE:
 					if(reinit)
-						pids[PID_RATE_ROLL + i].iAccumulator = 0;
+						pids[PID_GROUP_RATE + i].iAccumulator = 0;
 
 					// Store to rate desired variable for storing to UAVO
 					rateDesiredAxis[i] = bound_sym(stabDesiredAxis[i], settings.ManualRate[i]);
 
 					// Compute the inner loop
-					actuatorDesiredAxis[i] = pid_apply_setpoint(&pids[PID_RATE_ROLL + i],  rateDesiredAxis[i],  gyro_filtered[i], dT);
+					actuatorDesiredAxis[i] = pid_apply_setpoint(&pids[PID_GROUP_RATE + i],  rateDesiredAxis[i],  gyro_filtered[i], dT);
 					actuatorDesiredAxis[i] = bound_sym(actuatorDesiredAxis[i],1.0f);
 
 					break;
@@ -359,7 +367,7 @@ static void stabilizationTask(void* parameters)
 					// this implementation is based on the Openpilot/Librepilot Acro+ flightmode
 					// and our existing rate & MWRate flightmodes
 					if(reinit)
-							pids[PID_RATE_ROLL + i].iAccumulator = 0;
+							pids[PID_GROUP_RATE + i].iAccumulator = 0;
 
 					// The factor for gyro suppression / mixing raw stick input into the output; scaled by raw stick input
 					float factor = fabsf(raw_input[i]) * settings.AcroInsanityFactor / 100;
@@ -370,28 +378,28 @@ static void stabilizationTask(void* parameters)
 					// Zero integral for aggressive maneuvers, like it is done for MWRate
 					if ((i < 2 && fabsf(gyro_filtered[i]) > 150.0f) ||
 											(i == 0 && fabsf(raw_input[i]) > 0.2f)) {
-							pids[PID_RATE_ROLL + i].iAccumulator = 0;
-							pids[PID_RATE_ROLL + i].i = 0;
+							pids[PID_GROUP_RATE + i].iAccumulator = 0;
+							pids[PID_GROUP_RATE + i].i = 0;
 							}
 
 					// Compute the inner loop
-					actuatorDesiredAxis[i] = pid_apply_setpoint(&pids[PID_RATE_ROLL + i], rateDesiredAxis[i], gyro_filtered[i], dT);
+					actuatorDesiredAxis[i] = pid_apply_setpoint(&pids[PID_GROUP_RATE + i], rateDesiredAxis[i], gyro_filtered[i], dT);
 					actuatorDesiredAxis[i] = factor * raw_input[i] + (1.0f - factor) * actuatorDesiredAxis[i];
 					actuatorDesiredAxis[i] = bound_sym(actuatorDesiredAxis[i], 1.0f);
 
 					break;
 			case STABILIZATIONDESIRED_STABILIZATIONMODE_ATTITUDE:
 					if(reinit) {
-						pids[PID_ATT_ROLL + i].iAccumulator = 0;
-						pids[PID_RATE_ROLL + i].iAccumulator = 0;
+						pids[PID_GROUP_ATT + i].iAccumulator = 0;
+						pids[PID_GROUP_RATE + i].iAccumulator = 0;
 					}
 
 					// Compute the outer loop
-					rateDesiredAxis[i] = pid_apply(&pids[PID_ATT_ROLL + i], local_attitude_error[i], dT);
+					rateDesiredAxis[i] = pid_apply(&pids[PID_GROUP_ATT + i], local_attitude_error[i], dT);
 					rateDesiredAxis[i] = bound_sym(rateDesiredAxis[i], settings.MaximumRate[i]);
 
 					// Compute the inner loop
-					actuatorDesiredAxis[i] = pid_apply_setpoint(&pids[PID_RATE_ROLL + i],  rateDesiredAxis[i],  gyro_filtered[i], dT);
+					actuatorDesiredAxis[i] = pid_apply_setpoint(&pids[PID_GROUP_RATE + i],  rateDesiredAxis[i],  gyro_filtered[i], dT);
 					actuatorDesiredAxis[i] = bound_sym(actuatorDesiredAxis[i],1.0f);
 
 					break;
@@ -401,27 +409,27 @@ static void stabilizationTask(void* parameters)
 					rateDesiredAxis[i] = stabDesiredAxis[i];
 
 					// Run a virtual flybar stabilization algorithm on this axis
-					stabilization_virtual_flybar(gyro_filtered[i], rateDesiredAxis[i], &actuatorDesiredAxis[i], dT, reinit, i, &pids[PID_VBAR_ROLL + i], &settings);
+					stabilization_virtual_flybar(gyro_filtered[i], rateDesiredAxis[i], &actuatorDesiredAxis[i], dT, reinit, i, &pids[PID_GROUP_VBAR + i], &settings);
 
 					break;
 				case STABILIZATIONDESIRED_STABILIZATIONMODE_WEAKLEVELING:
 				{
 					if (reinit)
-						pids[PID_RATE_ROLL + i].iAccumulator = 0;
+						pids[PID_GROUP_RATE + i].iAccumulator = 0;
 
 					float weak_leveling = local_attitude_error[i] * weak_leveling_kp;
 					weak_leveling = bound_sym(weak_leveling, weak_leveling_max);
 
 					// Compute desired rate as input biased towards leveling
 					rateDesiredAxis[i] = stabDesiredAxis[i] + weak_leveling;
-					actuatorDesiredAxis[i] = pid_apply_setpoint(&pids[PID_RATE_ROLL + i],  rateDesiredAxis[i],  gyro_filtered[i], dT);
+					actuatorDesiredAxis[i] = pid_apply_setpoint(&pids[PID_GROUP_RATE + i],  rateDesiredAxis[i],  gyro_filtered[i], dT);
 					actuatorDesiredAxis[i] = bound_sym(actuatorDesiredAxis[i],1.0f);
 
 					break;
 				}
 				case STABILIZATIONDESIRED_STABILIZATIONMODE_AXISLOCK:
 					if (reinit)
-						pids[PID_RATE_ROLL + i].iAccumulator = 0;
+						pids[PID_GROUP_RATE + i].iAccumulator = 0;
 
 					if (fabsf(stabDesiredAxis[i]) > max_axislock_rate) {
 						// While getting strong commands act like rate mode
@@ -435,26 +443,26 @@ static void stabilizationTask(void* parameters)
 						axis_lock_accum[i] = bound_sym(axis_lock_accum[i], max_axis_lock);
 
 						// Compute the inner loop
-						float tmpRateDesired = pid_apply(&pids[PID_ATT_ROLL + i], axis_lock_accum[i], dT);
+						float tmpRateDesired = pid_apply(&pids[PID_GROUP_ATT + i], axis_lock_accum[i], dT);
 						rateDesiredAxis[i] = bound_sym(tmpRateDesired, settings.MaximumRate[i]);
 					}
 
-					actuatorDesiredAxis[i] = pid_apply_setpoint(&pids[PID_RATE_ROLL + i],  rateDesiredAxis[i],  gyro_filtered[i], dT);
+					actuatorDesiredAxis[i] = pid_apply_setpoint(&pids[PID_GROUP_RATE + i],  rateDesiredAxis[i],  gyro_filtered[i], dT);
 					actuatorDesiredAxis[i] = bound_sym(actuatorDesiredAxis[i],1.0f);
 
 					break;
 
 				case STABILIZATIONDESIRED_STABILIZATIONMODE_HORIZON:
 					if(reinit) {
-						pids[PID_RATE_ROLL + i].iAccumulator = 0;
+						pids[PID_GROUP_RATE + i].iAccumulator = 0;
 					}
 
 					// Do not allow outer loop integral to wind up in this mode since the controller
 					// is often disengaged.
-					pids[PID_ATT_ROLL + i].iAccumulator = 0;
+					pids[PID_GROUP_ATT + i].iAccumulator = 0;
 
 					// Compute the outer loop for the attitude control
-					float rateDesiredAttitude = pid_apply(&pids[PID_ATT_ROLL + i], local_attitude_error[i], dT);
+					float rateDesiredAttitude = pid_apply(&pids[PID_GROUP_ATT + i], local_attitude_error[i], dT);
 					// Compute the desire rate for a rate control
 					float rateDesiredRate = raw_input[i] * settings.ManualRate[i];
 
@@ -465,7 +473,7 @@ static void stabilizationTask(void* parameters)
 					rateDesiredAxis[i] = bound_sym(rateDesiredAxis[i], settings.ManualRate[i]);
 
 					// Compute the inner loop
-					actuatorDesiredAxis[i] = pid_apply_setpoint(&pids[PID_RATE_ROLL + i],  rateDesiredAxis[i],  gyro_filtered[i], dT);
+					actuatorDesiredAxis[i] = pid_apply_setpoint(&pids[PID_GROUP_RATE + i],  rateDesiredAxis[i],  gyro_filtered[i], dT);
 					actuatorDesiredAxis[i] = bound_sym(actuatorDesiredAxis[i],1.0f);
 
 					break;
@@ -473,7 +481,7 @@ static void stabilizationTask(void* parameters)
 				case STABILIZATIONDESIRED_STABILIZATIONMODE_MWRATE:
 				{
 					if(reinit) {
-						pids[PID_MWR_ROLL + i].iAccumulator = 0;
+						pids[PID_GROUP_MWR + i].iAccumulator = 0;
 					}
 
 					/*
@@ -492,22 +500,22 @@ static void stabilizationTask(void* parameters)
 					// dynamic PIDs are scaled both by throttle and stick position
 					float scale = (i == 0 || i == 1) ? mwrate_settings.RollPitchRate : mwrate_settings.YawRate;
 					float pid_scale = (100.0f - scale * fabsf(raw_input[i])) / 100.0f;
-					float dynP8 = pids[PID_MWR_ROLL + i].p * pid_scale;
-					float dynD8 = pids[PID_MWR_ROLL + i].d * pid_scale;
+					float dynP8 = pids[PID_GROUP_MWR + i].p * pid_scale;
+					float dynD8 = pids[PID_GROUP_MWR + i].d * pid_scale;
 					// these terms are used by the integral loop this proportional term is scaled by throttle (this is different than MW
 					// that does not apply scale 
-					float cfgP8 = pids[PID_MWR_ROLL + i].p;
-					float cfgI8 = pids[PID_MWR_ROLL + i].i;
+					float cfgP8 = pids[PID_GROUP_MWR + i].p;
+					float cfgI8 = pids[PID_GROUP_MWR + i].i;
 
 					// Dynamically adjust PID settings
 					struct pid mw_pid;
 					mw_pid.p = 0;      // use zero Kp here because of strange setpoint. applied later.
 					mw_pid.d = dynD8;
 					mw_pid.i = cfgI8;
-					mw_pid.iLim = pids[PID_MWR_ROLL + i].iLim;
-					mw_pid.iAccumulator = pids[PID_MWR_ROLL + i].iAccumulator;
-					mw_pid.lastErr = pids[PID_MWR_ROLL + i].lastErr;
-					mw_pid.lastDer = pids[PID_MWR_ROLL + i].lastDer;
+					mw_pid.iLim = pids[PID_GROUP_MWR + i].iLim;
+					mw_pid.iAccumulator = pids[PID_GROUP_MWR + i].iAccumulator;
+					mw_pid.lastErr = pids[PID_GROUP_MWR + i].lastErr;
+					mw_pid.lastDer = pids[PID_GROUP_MWR + i].lastDer;
 
 					// Zero integral for aggressive maneuvers
  					if ((i < 2 && fabsf(gyro_filtered[i]) > 150.0f) ||
@@ -523,15 +531,15 @@ static void stabilizationTask(void* parameters)
 					actuatorDesiredAxis[i] = bound_sym(actuatorDesiredAxis[i],1.0f);
 
 					// Store PID accumulators for next cycle
-					pids[PID_MWR_ROLL + i].iAccumulator = mw_pid.iAccumulator;
-					pids[PID_MWR_ROLL + i].lastErr = mw_pid.lastErr;
-					pids[PID_MWR_ROLL + i].lastDer = mw_pid.lastDer;
+					pids[PID_GROUP_MWR + i].iAccumulator = mw_pid.iAccumulator;
+					pids[PID_GROUP_MWR + i].lastErr = mw_pid.lastErr;
+					pids[PID_GROUP_MWR + i].lastDer = mw_pid.lastDer;
 				}
 					break;
 				case STABILIZATIONDESIRED_STABILIZATIONMODE_SYSTEMIDENT:
 					if(reinit) {
-						pids[PID_ATT_ROLL + i].iAccumulator = 0;
-						pids[PID_RATE_ROLL + i].iAccumulator = 0;
+						pids[PID_GROUP_ATT + i].iAccumulator = 0;
+						pids[PID_GROUP_RATE + i].iAccumulator = 0;
 					}
 
 					static uint32_t ident_iteration = 0;
@@ -554,7 +562,7 @@ static void stabilizationTask(void* parameters)
 						if (pitch_scale > 0.25f)
 							pitch_scale = 0.25f;
 						if (yaw_scale > 0.25f)
-							yaw_scale = 0.2f;
+							yaw_scale = 0.25f;
 
 						switch(ident_iteration & 0x07) {
 							case 0:
@@ -602,11 +610,11 @@ static void stabilizationTask(void* parameters)
 
 					if (i == ROLL || i == PITCH) {
 						// Compute the outer loop
-						rateDesiredAxis[i] = pid_apply(&pids[PID_ATT_ROLL + i], local_attitude_error[i], dT);
+						rateDesiredAxis[i] = pid_apply(&pids[PID_GROUP_ATT + i], local_attitude_error[i], dT);
 						rateDesiredAxis[i] = bound_sym(rateDesiredAxis[i], settings.MaximumRate[i]);
 
 						// Compute the inner loop
-						actuatorDesiredAxis[i] = pid_apply_setpoint(&pids[PID_RATE_ROLL + i],  rateDesiredAxis[i],  gyro_filtered[i], dT);
+						actuatorDesiredAxis[i] = pid_apply_setpoint(&pids[PID_GROUP_RATE + i],  rateDesiredAxis[i],  gyro_filtered[i], dT);
 						actuatorDesiredAxis[i] += ident_offsets[i];
 						actuatorDesiredAxis[i] = bound_sym(actuatorDesiredAxis[i],1.0f);
 					} else {
@@ -614,7 +622,7 @@ static void stabilizationTask(void* parameters)
 						rateDesiredAxis[i] = bound_sym(stabDesiredAxis[i], settings.ManualRate[i]);
 
 						// Compute the inner loop only for yaw
-						actuatorDesiredAxis[i] = pid_apply_setpoint(&pids[PID_RATE_ROLL + i],  rateDesiredAxis[i],  gyro_filtered[i], dT);
+						actuatorDesiredAxis[i] = pid_apply_setpoint(&pids[PID_GROUP_RATE + i],  rateDesiredAxis[i],  gyro_filtered[i], dT);
 						actuatorDesiredAxis[i] += ident_offsets[i];
 						actuatorDesiredAxis[i] = bound_sym(actuatorDesiredAxis[i],1.0f);						
 					}
@@ -696,8 +704,8 @@ static void stabilizationTask(void* parameters)
 					// The sanity check enforces this is only selectable for Yaw
 					// for a gimbal you can select pitch too.
 					if(reinit) {
-						pids[PID_ATT_ROLL + i].iAccumulator = 0;
-						pids[PID_RATE_ROLL + i].iAccumulator = 0;
+						pids[PID_GROUP_ATT + i].iAccumulator = 0;
+						pids[PID_GROUP_RATE + i].iAccumulator = 0;
 					}
 
 					float error;
@@ -735,11 +743,11 @@ static void stabilizationTask(void* parameters)
 						error = true;
 
 					// Compute the outer loop
-					rateDesiredAxis[i] = pid_apply(&pids[PID_ATT_ROLL + i], error, dT);
+					rateDesiredAxis[i] = pid_apply(&pids[PID_GROUP_ATT + i], error, dT);
 					rateDesiredAxis[i] = bound_sym(rateDesiredAxis[i], settings.PoiMaximumRate[i]);
 
 					// Compute the inner loop
-					actuatorDesiredAxis[i] = pid_apply_setpoint(&pids[PID_RATE_ROLL + i],  rateDesiredAxis[i],  gyro_filtered[i], dT);
+					actuatorDesiredAxis[i] = pid_apply_setpoint(&pids[PID_GROUP_RATE + i],  rateDesiredAxis[i],  gyro_filtered[i], dT);
 					actuatorDesiredAxis[i] = bound_sym(actuatorDesiredAxis[i],1.0f);
 
 					break;

@@ -125,13 +125,14 @@ static /*const*/ struct pios_hmc5883_cfg pios_hmc5883_cfg = {
 /**
  * Configuration for the MS5611 chip
  */
-#if defined(PIOS_INCLUDE_MS5611)
-#include "pios_ms5611_priv.h"
-static const struct pios_ms5611_cfg pios_ms5611_cfg = {
-	.oversampling = MS5611_OSR_512,
+#if defined(PIOS_INCLUDE_MS5XXX)
+#include "pios_ms5xxx_priv.h"
+static const struct pios_ms5xxx_cfg pios_ms5xxx_cfg = {
+	.oversampling = MS5XXX_OSR_512,
 	.temperature_interleaving = 1,
+	.pios_ms5xxx_model = PIOS_MS5M_MS5611,
 };
-#endif /* PIOS_INCLUDE_MS5611 */
+#endif /* PIOS_INCLUDE_MS5XXX */
 
 /**
  * Configuration for the MPU6050 chip
@@ -221,6 +222,11 @@ uintptr_t pios_uavo_settings_fs_id;
 
 uintptr_t pios_internal_adc_id;
 
+#if defined(PIOS_INCLUDE_MSP_BRIDGE)
+extern uintptr_t pios_com_msp_id;
+#endif
+
+
 /**
  * Indicate a target-specific error code when a component fails to initialize
  * 1 pulse - MPU6050 - no irq
@@ -303,6 +309,7 @@ void PIOS_Board_Init(void) {
 	EventDispatcherInitialize();
 	UAVObjInitialize();
 
+	/* Initialize the hardware UAVOs */
 	HwNazeInitialize();
 	ModuleSettingsInitialize();
 
@@ -320,8 +327,9 @@ void PIOS_Board_Init(void) {
 	}
 #endif
 
-	/* Initialize the alarms library */
+	/* Initialize the alarms library. Reads RCC reset flags */
 	AlarmsInitialize();
+	PIOS_RESET_Clear(); // Clear the RCC reset flags after use.
 
 	/* Initialize the task monitor library */
 	TaskMonitorInitialize();
@@ -350,9 +358,23 @@ void PIOS_Board_Init(void) {
 
 
 	/* UART1 Port */
-#if defined(PIOS_INCLUDE_TELEMETRY) && defined(PIOS_INCLUDE_USART) && defined(PIOS_INCLUDE_COM)
-        PIOS_HAL_ConfigureCom(&pios_usart_main_cfg, PIOS_COM_TELEM_RF_RX_BUF_LEN, PIOS_COM_TELEM_RF_TX_BUF_LEN, &pios_usart_com_driver, &pios_com_telem_serial_id);
+#if (defined(PIOS_INCLUDE_TELEMETRY) || defined(PIOS_INCLUDE_MSP_BRIDGE)) && defined(PIOS_INCLUDE_USART) && defined(PIOS_INCLUDE_COM)
+	uint8_t hw_mainport;
+	HwNazeMainPortGet(&hw_mainport);
+
+	switch (hw_mainport) {
+	case HWNAZE_MAINPORT_TELEMETRY:
+#if defined(PIOS_INCLUDE_TELEMETRY)
+		PIOS_HAL_ConfigureCom(&pios_usart_main_cfg, PIOS_COM_TELEM_RF_RX_BUF_LEN, PIOS_COM_TELEM_RF_TX_BUF_LEN, &pios_usart_com_driver, &pios_com_telem_serial_id);
 #endif /* PIOS_INCLUDE_TELEMETRY */
+		break;
+	case HWNAZE_MAINPORT_MSP:
+#if defined(PIOS_INCLUDE_MSP_BRIDGE)
+		PIOS_HAL_ConfigureCom(&pios_usart_main_cfg, PIOS_COM_TELEM_RF_RX_BUF_LEN, PIOS_COM_TELEM_RF_TX_BUF_LEN, &pios_usart_com_driver, &pios_com_msp_id);
+#endif /* PIOS_INCLUDE_MSP_BRIDGE */
+		break;
+	}
+#endif /* PIOS_INCLUDE_TELEMETRY || PIOS_INCLUDE_MSP_BRIDGE */
 
 	/* Configure the rcvr port */
 	uint8_t hw_rcvrport;
@@ -376,24 +398,6 @@ void PIOS_Board_Init(void) {
 #endif	/* PIOS_INCLUDE_PWM */
 		break;
 	case HWNAZE_RCVRPORT_PPMSERIAL:
-		{
-			uint8_t hw_rcvrserial;
-			HwNazeRcvrSerialGet(&hw_rcvrserial);
-			HwNazeDSMxModeOptions hw_DSMxMode;
-			HwNazeDSMxModeGet(&hw_DSMxMode);
-			PIOS_HAL_ConfigurePort(hw_rcvrserial, 
-					&pios_usart_rcvrserial_cfg,
-					&pios_usart_com_driver,
-					NULL, NULL, NULL,
-					PIOS_LED_ALARM,
-					&pios_usart_dsm_hsum_rcvrserial_cfg,
-					&pios_dsm_rcvrserial_cfg,
-					hw_DSMxMode,
-					NULL, NULL, false);
-		}
-
-		// Fall through to set up PPM.
-
 	case HWNAZE_RCVRPORT_PPM:
 	case HWNAZE_RCVRPORT_PPMOUTPUTS:
 #if defined(PIOS_INCLUDE_PPM)
@@ -438,6 +442,39 @@ void PIOS_Board_Init(void) {
 		break;
 	}
 
+#if defined(PIOS_INCLUDE_USART) && defined(PIOS_INCLUDE_COM)
+	switch (hw_rcvrport) {
+	case HWNAZE_RCVRPORT_PPMSERIAL:
+	case HWNAZE_RCVRPORT_SERIAL:
+		{
+			uint8_t hw_rcvrserial;
+			HwNazeRcvrSerialGet(&hw_rcvrserial);
+			
+			HwNazeDSMxModeOptions hw_DSMxMode;
+			HwNazeDSMxModeGet(&hw_DSMxMode);
+			
+			PIOS_HAL_ConfigurePort(hw_rcvrserial,        // port type protocol
+					&pios_usart_rcvrserial_cfg,          // usart_port_cfg
+					&pios_usart_rcvrserial_cfg,          // frsky usart_port_cfg
+					&pios_usart_com_driver,              // com_driver
+					NULL,                                // i2c_id
+					NULL,                                // i2c_cfg
+					NULL,                                // ppm_cfg
+					NULL,                                // pwm_cfg
+					PIOS_LED_ALARM,                      // led_id
+					&pios_usart_dsm_hsum_rcvrserial_cfg, // usart_dsm_hsum_cfg
+					&pios_dsm_rcvrserial_cfg,            // dsm_cfg
+					hw_DSMxMode,                         // dsm_mode
+					NULL,                                // sbus_rcvr_cfg
+					NULL,                                // sbus_cfg
+					false);                              // sbus_toggle
+		}
+		break;
+	default:
+		break;
+	}
+#endif	/* PIOS_INCLUDE_USART && PIOS_INCLUDE_COM */
+
 #if defined(PIOS_INCLUDE_GCSRCVR)
 	GCSReceiverInitialize();
 	uintptr_t pios_gcsrcvr_id;
@@ -460,6 +497,7 @@ void PIOS_Board_Init(void) {
 		case HWNAZE_RCVRPORT_PPM:
 		case HWNAZE_RCVRPORT_PPMPWM:
 		case HWNAZE_RCVRPORT_PPMSERIAL:
+		case HWNAZE_RCVRPORT_SERIAL:
 			PIOS_Servo_Init(&pios_servo_cfg);
 			break;
 		case HWNAZE_RCVRPORT_PPMOUTPUTS:
@@ -473,7 +511,21 @@ void PIOS_Board_Init(void) {
 #endif
 
 #if defined(PIOS_INCLUDE_ADC)
-#error "Not yet implemented"
+	{
+		uint16_t number_of_adc_pins = 2; // first two pins are always available
+		switch(hw_rcvrport) {
+		case HWNAZE_RCVRPORT_PPM:
+		case HWNAZE_RCVRPORT_PPMSERIAL:
+		case HWNAZE_RCVRPORT_SERIAL:
+			number_of_adc_pins += 2; // rcvr port pins also available
+			break;
+		default:
+			break;
+		}
+		uint32_t internal_adc_id;
+		PIOS_INTERNAL_ADC_LIGHT_Init(&internal_adc_id, &internal_adc_cfg, number_of_adc_pins);
+		PIOS_ADC_Init(&pios_internal_adc_id, &pios_internal_adc_driver, internal_adc_id);
+	}
 #endif /* PIOS_INCLUDE_ADC */
 	PIOS_WDG_Clear();
 	PIOS_DELAY_WaitmS(200);
@@ -528,15 +580,38 @@ void PIOS_Board_Init(void) {
 			break;
 	}
 
+	// the filter has to be set before rate else divisor calculation will fail
+	uint8_t hw_mpu_dlpf;
+	HwNazeMPU6050DLPFGet(&hw_mpu_dlpf);
+	enum pios_mpu60x0_filter mpu_dlpf = \
+			    (hw_mpu_dlpf == HWNAZE_MPU6050DLPF_256) ? PIOS_MPU60X0_LOWPASS_256_HZ : \
+			    (hw_mpu_dlpf == HWNAZE_MPU6050DLPF_188) ? PIOS_MPU60X0_LOWPASS_188_HZ : \
+			    (hw_mpu_dlpf == HWNAZE_MPU6050DLPF_98) ? PIOS_MPU60X0_LOWPASS_98_HZ : \
+			    (hw_mpu_dlpf == HWNAZE_MPU6050DLPF_42) ? PIOS_MPU60X0_LOWPASS_42_HZ : \
+			    (hw_mpu_dlpf == HWNAZE_MPU6050DLPF_20) ? PIOS_MPU60X0_LOWPASS_20_HZ : \
+			    (hw_mpu_dlpf == HWNAZE_MPU6050DLPF_10) ? PIOS_MPU60X0_LOWPASS_10_HZ : \
+			    (hw_mpu_dlpf == HWNAZE_MPU6050DLPF_5) ? PIOS_MPU60X0_LOWPASS_5_HZ : \
+			    pios_mpu6050_cfg.default_filter;
+	PIOS_MPU6050_SetLPF(mpu_dlpf);
+
+	uint8_t hw_mpu_samplerate;
+	HwNazeMPU6050RateGet(&hw_mpu_samplerate);
+	uint16_t mpu_samplerate = \
+			    (hw_mpu_samplerate == HWNAZE_MPU6050RATE_200) ? 200 : \
+			    (hw_mpu_samplerate == HWNAZE_MPU6050RATE_333) ? 333 : \
+			    (hw_mpu_samplerate == HWNAZE_MPU6050RATE_500) ? 500 : \
+			    pios_mpu6050_cfg.default_samplerate;
+	PIOS_MPU6050_SetSampleRate(mpu_samplerate);
+
 #endif /* PIOS_INCLUDE_MPU6050 */
 
 	//I2C is slow, sensor init as well, reset watchdog to prevent reset here
 	PIOS_WDG_Clear();
 
-#if defined(PIOS_INCLUDE_MS5611)
-	if (PIOS_MS5611_Init(&pios_ms5611_cfg, pios_i2c_internal_id) != 0)
+#if defined(PIOS_INCLUDE_MS5XXX)
+	if (PIOS_MS5XXX_I2C_Init(pios_i2c_internal_id, MS5XXX_I2C_ADDR_0x77, &pios_ms5xxx_cfg) != 0)
 		panic(4);
-	if (PIOS_MS5611_Test() != 0)
+	if (PIOS_MS5XXX_Test() != 0)
 		panic(4);
 #endif
 
@@ -551,9 +626,6 @@ void PIOS_Board_Init(void) {
 #if defined(PIOS_INCLUDE_GPIO)
 	PIOS_GPIO_Init();
 #endif
-
-	/* Make sure we have at least one telemetry link configured or else fail initialization */
-	PIOS_Assert(pios_com_telem_serial_id);
 }
 
 /**

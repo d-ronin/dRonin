@@ -61,14 +61,6 @@
 #include <stm32f10x.h>
 #endif
 
-#if defined(PIOS_INCLUDE_SDCARD)
-/* Dosfs Includes */
-#include <dosfs.h>
-
-/* Mass Storage Device Includes */
-//#include <msd.h>
-#endif
-
 /* Generic initcall infrastructure */
 #if defined(PIOS_INCLUDE_INITCALL)
 #include "pios_initcall.h"
@@ -81,7 +73,6 @@
 #include <pios_sys.h>
 #include <pios_delay.h>
 #include <pios_led.h>
-#include <pios_sdcard.h>
 #include <pios_usart.h>
 #include <pios_irq.h>
 #include <pios_adc.h>
@@ -96,6 +87,7 @@
 #include <pios_ppm.h>
 #include <pios_pwm.h>
 #include <pios_rcvr.h>
+#include <pios_reset.h>
 #if defined(PIOS_INCLUDE_DMA_CB_SUBSCRIBING_FUNCTION)
 #include <pios_dma.h>
 #endif
@@ -112,7 +104,6 @@
 
 /* PIOS Hardware Includes (Common) */
 #include <pios_heap.h>
-#include <pios_sdcard.h>
 #include <pios_com.h>
 #if defined(PIOS_INCLUDE_MPXV7002)
 #include <pios_mpxv7002.h>
@@ -156,11 +147,8 @@
 #if defined(PIOS_INCLUDE_LSM303)
 #include <pios_lsm303.h>
 #endif
-#if defined(PIOS_INCLUDE_MS5611)
-#include <pios_ms5611.h>
-#endif
-#if defined(PIOS_INCLUDE_MS5611_SPI)
-#include <pios_ms5611_spi.h>
+#if defined(PIOS_INCLUDE_MS5XXX)
+#include <pios_ms5xxx_priv.h>
 #endif
 #if defined(PIOS_INCLUDE_IAP)
 #include <pios_iap.h>

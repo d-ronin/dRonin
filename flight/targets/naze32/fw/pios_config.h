@@ -32,7 +32,7 @@
 #define PIOS_CONFIG_H
 
 /* Enable/Disable PiOS Modules */
-//#define PIOS_INCLUDE_ADC
+#define PIOS_INCLUDE_ADC
 #define PIOS_INCLUDE_DELAY
 #define PIOS_INCLUDE_I2C
 //#define PIOS_INCLUDE_I2C_ESC
@@ -59,6 +59,7 @@
 #define PIOS_INCLUDE_GPS_NMEA_PARSER /* Include the NMEA protocol parser */
 #define PIOS_INCLUDE_GPS_UBX_PARSER  /* Include the UBX protocol parser */
 #define PIOS_INCLUDE_MAVLINK
+#define PIOS_INCLUDE_MSP_BRIDGE
 
 #define PIOS_INCLUDE_SERVO
 #define PIOS_INCLUDE_HPWM
@@ -66,14 +67,13 @@
 #define PIOS_INCLUDE_SYS
 #define PIOS_INCLUDE_USART
 #define PIOS_INCLUDE_COM
-#define PIOS_INCLUDE_FREERTOS
 #define PIOS_INCLUDE_GPIO
 #define PIOS_INCLUDE_EXTI
 #define PIOS_INCLUDE_RTC
 //#define PIOS_INCLUDE_WDG
 #define PIOS_INCLUDE_BL_HELPER
 
-//#define PIOS_INCLUDE_MS5611
+//#define PIOS_INCLUDE_MS5XXX
 //#define PIOS_INCLUDE_HMC5883
 #define PIOS_INCLUDE_MPU6050
 #define PIOS_MPU6050_ACCEL
@@ -96,7 +96,7 @@
 #define CPULOAD_LIMIT_CRITICAL		95
 
 /* Task stack sizes */
-#define PIOS_ACTUATOR_STACK_SIZE        800
+#define PIOS_ACTUATOR_STACK_SIZE        600
 #define PIOS_MANUAL_STACK_SIZE          700
 #define PIOS_SYSTEM_STACK_SIZE          660
 #define PIOS_STABILIZATION_STACK_SIZE   624

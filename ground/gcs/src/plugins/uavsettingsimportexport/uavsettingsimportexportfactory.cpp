@@ -4,6 +4,7 @@
  * @file       uavsettingsimportexportfactory.cpp
  * @author     (C) 2011 The OpenPilot Team, http://www.openpilot.org
  * @author     Tau Labs, http://taulabs.org, Copyright (C) 2014
+ * @author     dRonin, http://dRonin.org/, Copyright (C) 2016
  * @addtogroup GCSPlugins GCS Plugins
  * @{
  * @addtogroup UAVSettingsImportExport UAVSettings Import/Export Plugin
@@ -139,7 +140,9 @@ void UAVSettingsImportExportFactory::importUAVSettings()
     ImportSummaryDialog swui((QWidget*)Core::ICore::instance()->mainWindow());
 
     ExtensionSystem::PluginManager *pm = ExtensionSystem::PluginManager::instance();
-    UAVObjectManager *objManager = pm->getObject<UAVObjectManager>();
+    UAVObjectManager *boardObjManager = pm->getObject<UAVObjectManager>();
+    UAVObjectManager importedObjectManager;
+
     swui.show();
 
     QDomNode node = root.firstChild();
@@ -152,7 +155,7 @@ void UAVSettingsImportExportFactory::importUAVSettings()
             uint uavObjectID = e.attribute("id").toUInt(NULL,16);
 
             // Sanity Check:
-            UAVObject *obj = objManager->getObject(uavObjectName);
+            UAVObject *obj = boardObjManager->getObject(uavObjectName);
             UAVDataObject *dobj = dynamic_cast<UAVDataObject*>(obj);
             if (obj == NULL) {
                 // This object is unknown!
@@ -163,13 +166,15 @@ void UAVSettingsImportExportFactory::importUAVSettings()
             } else {
                 //  - Update each field
                 //  - Issue and "updated" command
+                UAVDataObject *newObj = dobj->clone();
+
                 bool error = false;
                 bool setError = false;
                 QDomNode field = node.firstChild();
                 while(!field.isNull()) {
                     QDomElement f = field.toElement();
                     if (f.tagName() == "field") {
-                        UAVObjectField *uavfield = obj->getField(f.attribute("name"));
+                        UAVObjectField *uavfield = newObj->getField(f.attribute("name"));
                         if (uavfield) {
                             QStringList list = f.attribute("values").split(",");
                             if (list.length() == 1) {
@@ -199,24 +204,26 @@ void UAVSettingsImportExportFactory::importUAVSettings()
                     }
                     field = field.nextSibling();
                 }
-                obj->updated();
+                newObj->updated();
 
                 if (error) {
                     swui.addLine(uavObjectName, "Warning (Object field unknown)", true);
-                } else if (uavObjectID != obj->getObjID()) {
-                    qDebug() << "Mismatch for Object " << uavObjectName << uavObjectID << " - " << obj->getObjID();
+                } else if (uavObjectID != newObj->getObjID()) {
+                    qDebug() << "Mismatch for Object " << uavObjectName << uavObjectID << " - " << newObj->getObjID();
                     swui.addLine(uavObjectName, "Warning (ObjectID mismatch)", true);
                 } else if (setError) {
                     swui.addLine(uavObjectName, "Warning (Objects field value(s) invalid)", false);
                 } else {
                     swui.addLine(uavObjectName, "OK", true);
                 }
+                importedObjectManager.registerObject(newObj);
             }
         }
         node = node.nextSibling();
     }
-    qDebug() << "End import";
+    swui.setUAVOSettings(&importedObjectManager);
     swui.exec();
+    qDebug() << "[Importer] End import";
 }
 
 
@@ -338,35 +345,74 @@ QString UAVSettingsImportExportFactory::createXMLDocument(const enum storedData 
         }
     }
 
-    // This sorts the XML <object> children's <name=".."> attribute by alphabetical order. This
-    // is particularly helpful when comparing *.uav files to each other.
+    // This sorts the XML <object> children's <name=".."> attribute by alphabetical order,
+    // as well as sorting all attributes by alphabetical order (see note below for
+    // special circumstances around sorting attributes. This is particularly helpful when
+    // comparing *.uav files to each other.
     QString preliminaryXMLDoc = doc.toString(4);
+    QString alphabetizedAttributesXMLDoc;
     QString alphabetizedXMLDoc;
 
-    QString xmlAlpheticalSorter(" \
-        <xsl:stylesheet version=\"2.0\" xmlns:xsl=\"http://www.w3.org/1999/XSL/Transform\"> \
-          <xsl:output method=\"xml\" indent=\"yes\" omit-xml-declaration=\"no\"/> \
-          <xsl:strip-space elements=\"*\"/> \
-          \
-          <xsl:template match=\"@* | node()\"> \
-            <xsl:copy> \
-              <xsl:apply-templates select=\"@* | node()\"/> \
-            </xsl:copy> \
-          </xsl:template> \
-          \
-          <xsl:template match=\"settings\"> \
-            <xsl:copy> \
-              <xsl:apply-templates select=\"@*\" /> \
-              <xsl:apply-templates select=\"object\"> \
-                <xsl:sort select=\"@name\" data-type=\"text\"/> \
-              </xsl:apply-templates> \
-            </xsl:copy> \
-          </xsl:template> \
-        </xsl:stylesheet> \
-    ");
+    // (New C++11 "raw string literal" string format.)
+    // This sorts all attributes by alphabetical order. This is *not* guaranteed to
+    // work. In fact, it is guaranteed *not* to work in all conditions. See
+    // http://stackoverflow.com/questions/1429991/using-xsl-to-sort-attributes.
+    // However, it seems to work so far and there's no expectation it will change
+    // in Qt's near future.
+    QString xmlAttributeSorter = R"(
+        <xsl:stylesheet version="2.0" xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
+          <xsl:output method="xml" encoding="UTF-8" indent="yes"/>
+          <xsl:template match="*">
+            <xsl:copy>
+              <xsl:apply-templates select="@*">
+                <xsl:sort select="name() "/>
+              </xsl:apply-templates>
+              <xsl:apply-templates/>
+            </xsl:copy>
+          </xsl:template>
+          <xsl:template match="@*|comment()|processing-instruction() ">
+            <xsl:copy />
+          </xsl:template>
+        </xsl:stylesheet>
+    )";
 
+    // (New C++11 "raw string literal" string format.)
+    // This XSLT template sorts all children by alphabetical order. This is guaranteed
+    // to work (unlike the attribute sorting).
+    QString xmlAlpheticalSorter = R"(
+        <xsl:stylesheet version="2.0" xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
+          <xsl:output method="xml" indent="yes" omit-xml-declaration="no"/>
+          <xsl:strip-space elements="*"/>
+
+          <xsl:template match="@* | node() ">
+            <xsl:copy>
+              <xsl:apply-templates select="@* | node() "/>
+            </xsl:copy>
+          </xsl:template>
+
+          <xsl:template match="settings">
+            <xsl:copy>
+              <xsl:apply-templates select="@*" />
+              <xsl:apply-templates select="object">
+                <xsl:sort select="@name" data-type="text"/>
+
+              </xsl:apply-templates>
+            </xsl:copy>
+          </xsl:template>
+
+        </xsl:stylesheet>
+    )";
+
+    // Generate query and set to XSLT v2.0
     QXmlQuery query(QXmlQuery::XSLT20);
+
+    // First sort attributes...
     query.setFocus(preliminaryXMLDoc);
+    query.setQuery(xmlAttributeSorter);
+    query.evaluateTo(&alphabetizedAttributesXMLDoc);
+
+    // Then sort children.
+    query.setFocus(alphabetizedAttributesXMLDoc);
     query.setQuery(xmlAlpheticalSorter);
     query.evaluateTo(&alphabetizedXMLDoc);
 

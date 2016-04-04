@@ -97,10 +97,13 @@ int32_t AutotuneStart(void)
 {
 	// Start main task if it is enabled
 	if(module_enabled) {
+		// Watchdog must be registered before starting task
+		PIOS_WDG_RegisterFlag(PIOS_WDG_AUTOTUNE);
+
+		// Start main task
 		taskHandle = PIOS_Thread_Create(AutotuneTask, "Autotune", STACK_SIZE_BYTES, NULL, TASK_PRIORITY);
 
 		TaskMonitorAdd(TASKINFO_RUNNING_AUTOTUNE, taskHandle);
-		PIOS_WDG_RegisterFlag(PIOS_WDG_AUTOTUNE);
 	}
 	return 0;
 }
@@ -108,7 +111,7 @@ int32_t AutotuneStart(void)
 MODULE_INITCALL(AutotuneInitialize, AutotuneStart)
 
 static void UpdateSystemIdent(const float *X, const float *noise,
-		float dT_s) {
+		float dT_s, uint32_t predicts) {
 	SystemIdentData relay;
 	relay.Beta[SYSTEMIDENT_BETA_ROLL]    = X[6];
 	relay.Beta[SYSTEMIDENT_BETA_PITCH]   = X[7];
@@ -123,6 +126,8 @@ static void UpdateSystemIdent(const float *X, const float *noise,
 		relay.Noise[SYSTEMIDENT_NOISE_YAW]   = noise[2];
 	}
 	relay.Period = dT_s * 1000.0f;
+
+	relay.NumAfPredicts = predicts;
 	SystemIdentSet(&relay);
 }
 
@@ -191,6 +196,8 @@ static void AutotuneTask(void *parameters)
 		const uint32_t PREPARE_TIME = 2000;
 		const uint32_t MEASURE_TIME = 60000;
 
+		static uint32_t updateCounter = 0;
+
 		bool doingIdent = false;
 
 		FlightStatusData flightStatus;
@@ -217,9 +224,10 @@ static void AutotuneTask(void *parameters)
 
 					af_init(X,P);
 
-					UpdateSystemIdent(X, NULL, 0.0f);
+					UpdateSystemIdent(X, NULL, 0.0f, 0);
 
 					state = AT_START;
+
 				}
 				break;
 
@@ -235,6 +243,8 @@ static void AutotuneTask(void *parameters)
 
 
 				last_time = PIOS_DELAY_GetRaw();
+
+				updateCounter = 0;
 
 				break;
 
@@ -265,7 +275,11 @@ static void AutotuneTask(void *parameters)
 						noise[i] = NOISE_ALPHA * noise[i] + (1-NOISE_ALPHA) * (y[i] - X[i]) * (y[i] - X[i]);
 					}
 
-					UpdateSystemIdent(X, noise, dT_s);
+					// Update uavo every 256 cycles to avoid
+					// telemetry spam
+					if (!((updateCounter++) & 0xff)) {
+						UpdateSystemIdent(X, noise, dT_s, updateCounter);
+					}
 				}
 
 				if (diffTime > MEASURE_TIME) { // Move on to next state
@@ -279,7 +293,9 @@ static void AutotuneTask(void *parameters)
 
 			case AT_FINISHED:
 
-				// Wait until disarmed and landed before updating the settings
+				// Wait until disarmed and landed before saving the settings
+
+				UpdateSystemIdent(X, noise, 0, updateCounter);
 				if (flightStatus.Armed == FLIGHTSTATUS_ARMED_DISARMED && throttle <= 0)
 					state = AT_SET;
 

@@ -36,6 +36,8 @@
 #include "uavdataobject.h"
 #include "uavobjectmanager.h"
 
+#include "uavogcsversion.h"
+
 $(PARENT_INCLUDES)
 
 class UAVOBJECTS_EXPORT $(NAME): public UAVDataObject
@@ -68,6 +70,7 @@ $(DATAFIELDINFO)
     static const bool ISSINGLEINST = $(ISSINGLEINST);
     static const bool ISSETTINGS = $(ISSETTINGS);
     static const quint32 NUMBYTES = $(NUMBYTES);
+    static const QHash<QString, QString> FIELD_DESCRIPTIONS;
 
     // Functions
     $(NAME)();

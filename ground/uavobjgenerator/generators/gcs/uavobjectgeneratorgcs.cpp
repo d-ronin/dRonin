@@ -42,8 +42,9 @@ bool UAVObjectGeneratorGCS::generate(UAVObjectParser* parser,QString templatepat
     gcsCodeTemplate = readFile( gcsCodePath.absoluteFilePath("uavobjecttemplate.cpp") );
     gcsIncludeTemplate = readFile( gcsCodePath.absoluteFilePath("uavobjecttemplate.h") );
     QString gcsInitTemplate = readFile( gcsCodePath.absoluteFilePath("uavobjectsinittemplate.cpp") );
+    QString gcsVersionTemplate = readFile( gcsCodePath.absoluteFilePath("uavogcsversiontemplate.h") );
 
-    if (gcsCodeTemplate.isEmpty() || gcsIncludeTemplate.isEmpty() || gcsInitTemplate.isEmpty()) {
+    if (gcsCodeTemplate.isEmpty() || gcsIncludeTemplate.isEmpty() || gcsInitTemplate.isEmpty() || gcsVersionTemplate.isEmpty()) {
         std::cerr << "Problem reading gcs code templates" << endl;
         return false;
     }
@@ -63,6 +64,14 @@ bool UAVObjectGeneratorGCS::generate(UAVObjectParser* parser,QString templatepat
     gcsInitTemplate.replace( QString("$(OBJINC)"), objInc);
     gcsInitTemplate.replace( QString("$(OBJINIT)"), gcsObjInit);
     bool res = writeFileIfDiffrent( gcsOutputPath.absolutePath() + "/uavobjectsinit.cpp", gcsInitTemplate );
+    if (!res) {
+        cout << "Error: Could not write output files" << endl;
+        return false;
+    }
+
+    gcsVersionTemplate.replace( QString("$(UAVOHASH)"), 
+                QString("0x%1").arg(parser->getUavoHash(), 16, 16, QChar('0')));
+    res = writeFileIfDiffrent( gcsOutputPath.absolutePath() + "/uavogcsversion.h", gcsVersionTemplate );
     if (!res) {
         cout << "Error: Could not write output files" << endl;
         return false;
@@ -139,6 +148,7 @@ bool UAVObjectGeneratorGCS::process_object(ObjectInfo* info)
     QString propertySetters;
     QString propertyNotifications;
     QString propertyNotificationsImpl;
+    QString fieldDescriptionsStrings;
 
     //to avoid name conflicts
     QStringList reservedProperties;
@@ -254,6 +264,21 @@ bool UAVObjectGeneratorGCS::process_object(ObjectInfo* info)
                             "            emit %1Changed(data.%1);\n")
                     .arg(field->name);
         }
+
+        properties += QString("    Q_PROPERTY(QString %1_Description READ get%1_Description);\n")
+                    .arg(field->name);
+        propertyGetters +=
+                    QString("    Q_INVOKABLE QString get%1_Description() const;\n")
+                    .arg(field->name);
+        propertiesImpl +=
+                        QString("QString %1::get%2_Description() const\n"
+                                "{\n"
+                                "   return FIELD_DESCRIPTIONS[\"%2\"];\n"
+                                "}\n")
+                        .arg(info->name).arg(field->name);
+        fieldDescriptionsStrings += 
+                        QString("    {\"%1\", \"%2\"},\n")
+                        .arg(field->name).arg(escape_raw_string(field->description));
     }
 
     outInclude.replace(QString("$(PROPERTIES)"), properties);
@@ -263,6 +288,7 @@ bool UAVObjectGeneratorGCS::process_object(ObjectInfo* info)
 
     outCode.replace(QString("$(PROPERTIES_IMPL)"), propertiesImpl);
     outCode.replace(QString("$(NOTIFY_PROPERTIES_CHANGED)"), propertyNotificationsImpl);
+    outCode.replace(QString("$(FIELDDESCRIPTIONS_STRINGS)"), fieldDescriptionsStrings);
 
     // Replace the $(FIELDSINIT) tag
     QString finit;
@@ -313,7 +339,7 @@ bool UAVObjectGeneratorGCS::process_object(ObjectInfo* info)
 
             finit.append("};\n");
 
-            finit.append( QString("    fields.append( new UAVObjectField(QString(\"%1\"), QString(\"%2\"), UAVObjectField::ENUM, %3, %4, %5, QString(\"%6\")));\n")
+            finit.append( QString("    fields.append( new UAVObjectField(QString(\"%1\"), QString(\"%2\"), UAVObjectField::ENUM, %3, %4, %5, QString(\"%6\"), FIELD_DESCRIPTIONS[\"%1\"]));\n")
                           .arg(info->fields[n]->name)
                           .arg(info->fields[n]->units)
                           .arg(varElemName)
@@ -323,7 +349,7 @@ bool UAVObjectGeneratorGCS::process_object(ObjectInfo* info)
         }
         // For all other types
         else {
-            finit.append( QString("    fields.append( new UAVObjectField(QString(\"%1\"), QString(\"%2\"), UAVObjectField::%3, %4, QStringList(), QList<int>(), QString(\"%5\")));\n")
+            finit.append( QString("    fields.append( new UAVObjectField(QString(\"%1\"), QString(\"%2\"), UAVObjectField::%3, %4, QStringList(), QList<int>(), QString(\"%5\"), FIELD_DESCRIPTIONS[\"%1\"]));\n")
                           .arg(info->fields[n]->name)
                           .arg(info->fields[n]->units)
                           .arg(fieldTypeStrCPPClass[info->fields[n]->type])
@@ -409,9 +435,15 @@ bool UAVObjectGeneratorGCS::process_object(ObjectInfo* info)
             {
                 if ( info->fields[n]->type == FIELDTYPE_ENUM )
                 {
+                    int defaultVal;
+                    if (info->fields[n]->parent != NULL)
+                        defaultVal = info->fields[n]->parent->options.indexOf( info->fields[n]->defaultValues[0] );
+                    else
+                        defaultVal = info->fields[n]->options.indexOf( info->fields[n]->defaultValues[0] );
+
                     initfields.append( QString("    data.%1 = %2;\n")
                                 .arg( info->fields[n]->name )
-                                .arg( info->fields[n]->options.indexOf( info->fields[n]->defaultValues[0] ) ) );
+                                .arg( defaultVal ) );
                 }
                 else if ( info->fields[n]->type == FIELDTYPE_FLOAT32 )
                 {
@@ -432,11 +464,16 @@ bool UAVObjectGeneratorGCS::process_object(ObjectInfo* info)
                 for (int idx = 0; idx < info->fields[n]->numElements; ++idx)
                 {
                     if ( info->fields[n]->type == FIELDTYPE_ENUM ) {
+                        int defaultVal;
+                        if (info->fields[n]->parent != NULL)
+                            defaultVal = info->fields[n]->parent->options.indexOf( info->fields[n]->defaultValues[idx] );
+                        else
+                            defaultVal = info->fields[n]->options.indexOf( info->fields[n]->defaultValues[idx] );
+                        
                         initfields.append( QString("    data.%1[%2] = %3;\n")
                                     .arg( info->fields[n]->name )
                                     .arg( idx )
-                                    // XXX TODO MPL
-                                    .arg( info->fields[n]->options.indexOf( info->fields[n]->defaultValues[idx] ) ) );
+                                    .arg( defaultVal ) );
                     }
                     else if ( info->fields[n]->type == FIELDTYPE_FLOAT32 ) {
                         initfields.append( QString("    data.%1[%2] = %3;\n")
@@ -470,4 +507,13 @@ bool UAVObjectGeneratorGCS::process_object(ObjectInfo* info)
     }
 
     return true;
+}
+
+/**
+ * Escapes a raw string so it can be used in generated C/C++ source
+ * Whitespace will be gobbled
+ */
+QString UAVObjectGeneratorGCS::escape_raw_string(QString raw)
+{
+    return raw.replace("\\", "\\\\").replace("\"", "\\\"").simplified();
 }

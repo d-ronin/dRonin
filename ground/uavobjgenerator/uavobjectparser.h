@@ -70,6 +70,7 @@ struct FieldInfo_s {
     bool defaultElementNames;
     QStringList defaultValues;
     QString limitValues;
+    QString description;
 
     FieldInfo *parent;
     ObjectInfo *parentObj;
@@ -135,6 +136,9 @@ public:
     int findOptionIndex(FieldInfo *field, quint32 inputIdx);
 
     int getNumBytes(int objIndex);
+
+    quint64 getUavoHash();
+
     QStringList all_units;
 
 private:
@@ -145,6 +149,7 @@ private:
     QStringList updateModeStrXML;
     QStringList accessModeStr;
     QStringList accessModeStrXML;
+    quint64 uavoHash;
 
     QString genErrorMsg(QString& fileName, QString errMsg, int errorLine, int errorCol);
 
@@ -159,6 +164,8 @@ private:
     quint32 updateHash(quint32 value, quint32 hash);
     quint32 updateHash(QString& value, quint32 hash);
     int resolveFieldParent(ObjectInfo *item, FieldInfo *field);
+    int checkDefaultValues(FieldInfo *field);
+    QStringList parseDefaults(const QDomNode &elemAttr);
 };
 
 #endif // UAVOBJECTPARSER_H
