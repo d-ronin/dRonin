@@ -123,9 +123,6 @@ int32_t TelemetryInitialize(void)
 	// Create object queues
 	queue = PIOS_Queue_Create(MAX_QUEUE_SIZE, sizeof(UAVObjEvent));
 
-	// Update telemetry settings
-	updateSettings();
-    
 	// Initialise UAVTalk
 	uavTalkCon = UAVTalkInitialize(&transmitData);
 
