@@ -35,6 +35,7 @@
 
 class SetupWizardPlugin : public ExtensionSystem::IPlugin {
     Q_OBJECT
+    Q_PLUGIN_METADATA(IID "org.dronin.plugins.SetupWizard")
 public:
     SetupWizardPlugin();
     ~SetupWizardPlugin();
@@ -52,3 +53,8 @@ private:
 };
 
 #endif // SETUPWIZARDPLUGIN_H
+
+/**
+ * @}
+ * @}
+ */

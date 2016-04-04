@@ -1,12 +1,14 @@
 TEMPLATE = lib
 TARGET = Serial
-include(../../taulabsgcsplugin.pri)
+QT += widgets
+QT += serialport
+
+include(../../gcsplugin.pri)
 include(serial_dependencies.pri)
-INCLUDEPATH *= ../../libs/qextserialport/src
 HEADERS += serialplugin.h \
             serialpluginconfiguration.h \
             serialpluginoptionspage.h \
-            serialdevice.c
+            serialdevice.h
 SOURCES += serialplugin.cpp \
             serialpluginconfiguration.cpp \
             serialpluginoptionspage.cpp \
@@ -14,4 +16,5 @@ SOURCES += serialplugin.cpp \
 FORMS += \ 
     serialpluginoptions.ui
 RESOURCES += 
-OTHER_FILES += Serial.pluginspec
+OTHER_FILES += Serial.pluginspec \
+    Serial.json

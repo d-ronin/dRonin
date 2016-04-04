@@ -10,7 +10,7 @@
  * @brief      Source file for the World Magnetic Model
  *             This is a port of code available from the US NOAA.
  *
- *             The hard coded coefficients should be valid until 2015.
+ *             The hard coded coefficients should be valid until 2020.
  *
  *             Updated coeffs from ..
  *             http://www.ngdc.noaa.gov/geomag/WMM/wmm_ddownload.shtml
@@ -44,6 +44,8 @@
  * 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
  */
 
+#define _USE_MATH_DEFINES
+#include <cmath>
 #include "worldmagmodel.h"
 
 #include <qglobal.h>
@@ -127,7 +129,7 @@ namespace Utils {
         MagneticModel.nMaxSecVar = WMM_MAX_SECULAR_VARIATION_MODEL_DEGREES;
         MagneticModel.SecularVariationUsed = 0;
 
-        // Must be updated periodically. Last update expires in 2015
+        // Must be updated periodically. Last update expires in 2020
         MagneticModel.EditionDate = MAGNETIC_MODEL_EDITION_DATE;
         MagneticModel.epoch       = MAGNETIC_MODEL_EPOCH;
         sprintf(MagneticModel.ModelName, MAGNETIC_MODEL_NAME);

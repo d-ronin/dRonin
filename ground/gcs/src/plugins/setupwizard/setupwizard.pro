@@ -1,19 +1,16 @@
-
 TEMPLATE = lib 
 TARGET = SetupWizard 
 QT += svg
 
 
-include(../../taulabsgcsplugin.pri)
+include(../../gcsplugin.pri)
 include(../../plugins/coreplugin/coreplugin.pri)
 include(../../plugins/uavobjectutil/uavobjectutil.pri)
+include(../../plugins/uavobjectwidgetutils/uavobjectwidgetutils.pri)
 include(../../plugins/config/config.pri)
 
-LIBS *= -l$$qtLibraryName(Uploader)
 HEADERS += setupwizardplugin.h \ 
     setupwizard.h \
-    pages/startpage.h \
-    pages/endpage.h \
     pages/boardtype_unknown.h \
     pages/controllerpage.h \
     pages/vehiclepage.h \
@@ -34,13 +31,12 @@ HEADERS += setupwizardplugin.h \
     outputcalibrationutil.h \
     pages/rebootpage.h \
     pages/savepage.h \
-    pages/autoupdatepage.h \
-    pages/biascalibrationpage.h
+    pages/biascalibrationpage.h \
+    pages/tlendpage.h \
+    pages/tlstartpage.h
 
 SOURCES += setupwizardplugin.cpp \
     setupwizard.cpp \
-    pages/startpage.cpp \
-    pages/endpage.cpp \
     pages/boardtype_unknown.cpp \
     pages/controllerpage.cpp \
     pages/vehiclepage.cpp \
@@ -61,10 +57,12 @@ SOURCES += setupwizardplugin.cpp \
     outputcalibrationutil.cpp \
     pages/rebootpage.cpp \
     pages/savepage.cpp \
-    pages/autoupdatepage.cpp \
-    pages/biascalibrationpage.cpp
+    pages/biascalibrationpage.cpp \
+    pages/tlendpage.cpp \
+    pages/tlstartpage.cpp
 
-OTHER_FILES += SetupWizard.pluginspec
+OTHER_FILES += SetupWizard.pluginspec \
+    SetupWizard.json
 
 FORMS += \
     pages/startpage.ui \
@@ -85,7 +83,6 @@ FORMS += \
     pages/outputcalibrationpage.ui \
     pages/rebootpage.ui \
     pages/savepage.ui \
-    pages/autoupdatepage.ui \
     pages/biascalibrationpage.ui
 
 RESOURCES += \

@@ -237,3 +237,117 @@ TEST_F(CircularModulusDeg, SweepError) {
     ASSERT_NEAR(error, circular_modulus_deg(error + 1080), eps);
   }
 };
+
+// Test fixture for vector2_clip()
+class Vector2Clip : public MiscMath {
+protected:
+  virtual void SetUp() {
+  }
+
+  virtual void TearDown() {
+  }
+};
+
+TEST_F(Vector2Clip, TestScale) {
+  float eps = 0.000001f;
+
+  // Choose a non-integer limit
+  for (int i=0; i<3; i++) {
+    // Change the limit on each interation. This tests limit < 1, limit = 1, and limit > 1.
+    float limit = 0.5*i;
+
+    float test_vec_null[2] = {0, 0};
+    float test_vec_within[2] = {limit/2, limit/2};
+    float test_vec_edge_numerically_stable[2] = {limit, 0};
+    float test_vec_edge_numerically_unstable[2] =
+        {(float) (sqrt(2)/2*limit), (float) (sqrt(2)/2*limit)};
+    float test_vec_outside[2] = {limit, limit};
+
+    // Test for 0 vector
+    vector2_clip(test_vec_null, limit);
+    ASSERT_NEAR(test_vec_null[0], 0, eps);
+    ASSERT_NEAR(test_vec_null[1], 0, eps);
+
+    // Test for vector within limits
+    vector2_clip(test_vec_within, limit);
+    EXPECT_EQ(test_vec_within[0], limit/2);
+    EXPECT_EQ(test_vec_within[1], limit/2);
+
+    // Test for vector numerically identically at limits
+    vector2_clip(test_vec_edge_numerically_stable, limit);
+    EXPECT_EQ(test_vec_edge_numerically_stable[0], limit);
+    EXPECT_EQ(test_vec_edge_numerically_stable[1], 0.0f);
+
+    // Test for vector identically at limits, but suffering from numerical imprecision
+    vector2_clip(test_vec_edge_numerically_unstable, limit);
+    ASSERT_NEAR(test_vec_edge_numerically_unstable[0], sqrt(2)/2*limit, eps);
+    ASSERT_NEAR(test_vec_edge_numerically_unstable[1], sqrt(2)/2*limit, eps);
+
+    // Test for vector outside limits
+    vector2_clip(test_vec_outside, limit);
+    ASSERT_NEAR(test_vec_outside[0], sqrt(2)/2*limit, eps);
+    ASSERT_NEAR(test_vec_outside[1], sqrt(2)/2*limit, eps);
+  }
+};
+
+// Test fixture for linear_interpolate()
+class LinearInterpolate : public MiscMath {
+protected:
+  virtual void SetUp() {
+  }
+
+  virtual void TearDown() {
+  }
+};
+
+TEST_F(LinearInterpolate, ThrottleCurve1to1) {
+  float const range_min = 0.0f;
+  float const range_max = 1.0f;
+  uint8_t const curve_numpts = 5;
+  float const curve[5] = { 0.0f, 0.25f, 0.5f, 0.75f, 1.0f };
+  float eps = 0.000001f;
+
+  // 21 points in range
+  for (size_t i = 0; i <= 20; ++i) {
+    float const input = i * 0.05f;
+    EXPECT_NEAR(input, linear_interpolate(input, curve, curve_numpts, range_min, range_max), eps);
+  }
+
+  // 10 points below min range
+  for (size_t i = 1; i <= 10; ++i) {
+    float const input = range_min - i * 0.1f;
+    EXPECT_NEAR(range_min, linear_interpolate(input, curve, curve_numpts, range_min, range_max), eps);
+  }
+
+  // 10 points above max range
+  for (size_t i = 1; i <= 10; ++i) {
+    float const input = range_max + i * 0.1f;
+    EXPECT_NEAR(range_max, linear_interpolate(input, curve, curve_numpts, range_min, range_max), eps);
+  }
+};
+
+TEST_F(LinearInterpolate, CollectiveCurve1to1) {
+  float const range_min = -1.0f;
+  float const range_max = 1.0f;
+  uint8_t const curve_numpts = 5;
+  float const curve[5] = { -1.0f, -0.5f, 0.0f, 0.5f, 1.0f };
+  float eps = 0.000001f;
+
+  // 21 points in range
+  for (size_t i = 0; i <= 20; ++i) {
+    float const input = i * 0.1f - 1.0f;
+    EXPECT_NEAR(input, linear_interpolate(input, curve, curve_numpts, range_min, range_max), eps);
+  }
+
+  // 10 points below min range
+  for (size_t i = 1; i <= 10; ++i) {
+    float const input = range_min - i * 0.1f;
+    EXPECT_NEAR(range_min, linear_interpolate(input, curve, curve_numpts, range_min, range_max), eps);
+  }
+
+  // 10 points above max range
+  for (size_t i = 1; i <= 10; ++i) {
+    float const input = range_max + i * 0.1f;
+    EXPECT_NEAR(range_max, linear_interpolate(input, curve, curve_numpts, range_min, range_max), eps);
+  }
+};

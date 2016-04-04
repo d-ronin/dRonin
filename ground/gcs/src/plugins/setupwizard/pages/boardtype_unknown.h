@@ -43,9 +43,15 @@ class BoardtypeUnknown : public AbstractWizardPage {
     Q_OBJECT
 
 public:
+    enum FailureType {
+        UNKNOWN_BOARD,
+        UNKNOWN_FIRMWARE,
+    };
+
     explicit BoardtypeUnknown(SetupWizard *wizard, QWidget *parent = 0);
     ~BoardtypeUnknown();
     bool validatePage();
+    void setFailureType(FailureType type);
 
 private:
     Ui::BoardtypeUnknown *ui;

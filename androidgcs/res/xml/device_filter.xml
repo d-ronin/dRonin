@@ -1,11 +1,18 @@
 <?xml version="1.0" encoding="utf-8"?>
 
 <resources>
-    <usb-device vendor-id="8352" product-id="16730" />  
-    <usb-device vendor-id="8352" product-id="16731" />  
-	<usb-device vendor-id="8352" product-id="16732" />  
-	<usb-device vendor-id="8352" product-id="16733" />  
-	<usb-device vendor-id="8352" product-id="16734" />
+	<usb-device vendor-id="8352" product-id="16731" />  <!-- CC -->
+	<usb-device vendor-id="8352" product-id="16732" />  <!-- PIPX -->
+	<usb-device vendor-id="8352" product-id="16733" />  <!-- CC3D -->
+	<usb-device vendor-id="8352" product-id="16734" />  <!-- REVO -->
+	<usb-device vendor-id="8352" product-id="16962" />  <!-- BFPV -->
+	<usb-device vendor-id="8352" product-id="16949" />  <!-- Colibri -->
+	<usb-device vendor-id="8352" product-id="16848" />  <!-- Freedom/S1/S2 -->
+
+	<usb-device vendor-id="4617" product-id="62460" />  <!-- LLUX -->
+
+	<usb-device vendor-id="4058" product-id="256" />    <!-- Quanton -->
+
 	<!--  0x0403 / 0x6001: FTDI FT232R UART  -->
 	<usb-device vendor-id="1027" product-id="24577" />
 </resources>

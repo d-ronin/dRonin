@@ -21,7 +21,6 @@
 			<elementname>FlightPlan</elementname>
 			<elementname>Com2UsbBridge</elementname>
 			<elementname>Usb2ComBridge</elementname>
-			<elementname>OveroSync</elementname>
 			<elementname>ModemRx</elementname>
 			<elementname>ModemTx</elementname>
 			<elementname>ModemStat</elementname>
@@ -29,11 +28,22 @@
 			<elementname>EventDispatcher</elementname>
 			<elementname>GenericI2CSensor</elementname>
 			<elementname>UAVOMavlinkBridge</elementname>
+			<elementname>UAVOMSPBridge</elementname>
+			<elementname>UAVOLighttelemetryBridge</elementname>
 			<elementname>UAVORelay</elementname>
 			<elementname>VibrationAnalysis</elementname>
 			<elementname>Battery</elementname>
 			<elementname>UAVOHoTTBridge</elementname>
+			<elementname>UAVOFrSKYSensorHubBridge</elementname>
+			<elementname>PicoC</elementname>
+			<elementname>OnScreenDisplay</elementname>
+			<elementname>Logging</elementname>
+			<elementname>UAVOFrSkySPortBridge</elementname>
+			<elementname>FlightStats</elementname>
+			<elementname>Storm32Bgc</elementname>
+			<elementname>IMU</elementname>
 		</elementnames>
+		<description>The remaining free space in each task's stack. Disabled tasks will show 0 bytes free.</description>
 	</field> 
 	<field name="Running" units="bool" type="enum">
 		<elementnames>
@@ -55,7 +65,6 @@
 			<elementname>FlightPlan</elementname>
 			<elementname>Com2UsbBridge</elementname>
 			<elementname>Usb2ComBridge</elementname>
-			<elementname>OveroSync</elementname>
 			<elementname>ModemRx</elementname>
 			<elementname>ModemTx</elementname>
 			<elementname>ModemStat</elementname>
@@ -63,15 +72,26 @@
 			<elementname>EventDispatcher</elementname>
 			<elementname>GenericI2CSensor</elementname>
 			<elementname>UAVOMavlinkBridge</elementname>
+			<elementname>UAVOMSPBridge</elementname>
+			<elementname>UAVOLighttelemetryBridge</elementname>
 			<elementname>UAVORelay</elementname>
 			<elementname>VibrationAnalysis</elementname>
 			<elementname>Battery</elementname>
 			<elementname>UAVOHoTTBridge</elementname>
+			<elementname>UAVOFrSKYSBridge</elementname>
+			<elementname>PicoC</elementname>
+			<elementname>OnScreenDisplay</elementname>
+			<elementname>Logging</elementname>
+			<elementname>UAVOFrSkySPortBridge</elementname>
+			<elementname>FlightStats</elementname>
+			<elementname>Storm32Bgc</elementname>
+			<elementname>IMU</elementname>
 		</elementnames>
 		<options>
 			<option>False</option>
 			<option>True</option>
 		</options>
+		<description>The run state of each task.</description>
 	</field>
 	<field name="RunningTime" units="%" type="uint8">
 		<elementnames>
@@ -93,7 +113,6 @@
 			<elementname>FlightPlan</elementname>
 			<elementname>Com2UsbBridge</elementname>
 			<elementname>Usb2ComBridge</elementname>
-			<elementname>OveroSync</elementname>
 			<elementname>ModemRx</elementname>
 			<elementname>ModemTx</elementname>
 			<elementname>ModemStat</elementname>
@@ -101,15 +120,26 @@
 			<elementname>EventDispatcher</elementname>
 			<elementname>GenericI2CSensor</elementname>
 			<elementname>UAVOMavlinkBridge</elementname>
+			<elementname>UAVOMSPBridge</elementname>
+			<elementname>UAVOLighttelemetryBridge</elementname>
 			<elementname>UAVORelay</elementname>
 			<elementname>VibrationAnalysis</elementname>
 			<elementname>Battery</elementname>
 			<elementname>UAVOHoTTBridge</elementname>
+			<elementname>UAVOFrSKYSensorHubBridge</elementname>
+			<elementname>PicoC</elementname>
+			<elementname>OnScreenDisplay</elementname>
+			<elementname>Logging</elementname>
+			<elementname>UAVOFrSkySPortBridge</elementname>
+			<elementname>FlightStats</elementname>
+			<elementname>Storm32Bgc</elementname>
+			<elementname>IMU</elementname>
 		</elementnames>
+		<description>The percentage of CPU time used by each task.</description>
 	</field> 
 	<access gcs="readwrite" flight="readwrite"/>
 	<telemetrygcs acked="true" updatemode="onchange" period="0"/>
-	<telemetryflight acked="true" updatemode="periodic" period="10000"/>
+	<telemetryflight acked="true" updatemode="throttled" period="10000"/>
 	<logging updatemode="periodic" period="1000"/>
     </object>
 </xml>

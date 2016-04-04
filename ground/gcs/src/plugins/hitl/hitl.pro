@@ -1,5 +1,5 @@
 TEMPLATE = subdirs
 
-SUBDIRS = plugin aerosimrc
+SUBDIRS = plugin
 
 plugin.file = plugin.pro

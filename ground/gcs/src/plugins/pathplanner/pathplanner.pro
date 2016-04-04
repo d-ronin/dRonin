@@ -1,8 +1,9 @@
 QT += xml
+QT+=widgets
 TEMPLATE = lib
 TARGET = PathPlanner
 
-include(../../taulabsgcsplugin.pri) 
+include(../../gcsplugin.pri) 
 include(../../plugins/coreplugin/coreplugin.pri) 
 include(../../plugins/uavobjects/uavobjects.pri)
 
@@ -31,7 +32,8 @@ SOURCES += flightdatamodel.cpp
 SOURCES += modeluavoproxy.cpp
 SOURCES += algorithms/pathfillet.cpp
 
-OTHER_FILES += PathPlanner.pluginspec
+OTHER_FILES += PathPlanner.pluginspec \
+    PathPlanner.json
 
 FORMS += pathplanner.ui
 FORMS += waypoint_dialog.ui

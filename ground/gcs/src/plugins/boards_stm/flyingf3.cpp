@@ -3,6 +3,7 @@
  *
  * @file       flyingf3.cpp
  * @author     Tau Labs, http://taulabs.org, Copyright (C) 2013
+ * @author     dRonin, http://dronin.org Copyright (C) 2015
  *
  * @addtogroup GCSPlugins GCS Plugins
  * @{
@@ -76,14 +77,11 @@ bool FlyingF3::queryCapabilities(BoardCapabilities capability)
 {
     switch(capability) {
     case BOARD_CAPABILITIES_GYROS:
-        return true;
     case BOARD_CAPABILITIES_ACCELS:
-        return true;
     case BOARD_CAPABILITIES_MAGS:
+    case BOARD_CAPABILITIES_UPGRADEABLE:
         return true;
-    case BOARD_CAPABILITIES_BAROS:
-        return false;
-    case BOARD_CAPABILITIES_RADIO:
+    default:
         return false;
     }
     return false;

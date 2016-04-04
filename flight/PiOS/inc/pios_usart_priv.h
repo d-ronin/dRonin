@@ -41,16 +41,20 @@ extern const struct pios_com_driver pios_usart_com_driver;
 struct pios_usart_cfg {
 	USART_TypeDef *regs;
 	uint32_t remap;		/* GPIO_Remap_* */
-	USART_InitTypeDef init;
 	struct stm32_gpio rx;
 	struct stm32_gpio tx;
 	struct stm32_irq irq;
+};
+
+struct pios_usart_params {
+	USART_InitTypeDef init;
 	bool rx_invert;
 	bool tx_invert;
 	bool rxtx_swap;
+	bool single_wire;
 };
 
-extern int32_t PIOS_USART_Init(uintptr_t * usart_id, const struct pios_usart_cfg * cfg);
+extern int32_t PIOS_USART_Init(uintptr_t * usart_id, const struct pios_usart_cfg * cfg, struct pios_usart_params * params);
 extern const struct pios_usart_cfg * PIOS_USART_GetConfig(uintptr_t usart_id);
 
 #endif /* PIOS_USART_PRIV_H */

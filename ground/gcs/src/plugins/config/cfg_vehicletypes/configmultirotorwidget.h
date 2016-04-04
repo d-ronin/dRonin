@@ -35,7 +35,7 @@
 #include "uavobjectmanager.h"
 #include "uavobject.h"
 #include "uavtalk/telemetrymanager.h"
-#include <QtGui/QWidget>
+#include <QWidget>
 #include <QList>
 #include <QItemDelegate>
 
@@ -69,6 +69,7 @@ private:
     virtual void ResetActuators(GUIConfigDataUnion* configData);
     static QStringList getChannelDescriptions();
     static const QString CHANNELBOXNAME;
+    static const QString CHANNELLABELNAME;
     void setYawMixLevel(int);
 
     void drawAirframe(SystemSettings::AirframeTypeOptions multiRotorType);

@@ -151,7 +151,7 @@ bool SpectrogramData::append(UAVObject* multiObj)
 
 
         // Get list of object instances
-        QVector<UAVObject*> list = objManager->getObjectInstances(multiObj->getName());
+        QVector<UAVObject*> list = objManager->getObjectInstancesVector(multiObj->getName());
 
         // Remove a row's worth of data.
         unsigned int spectrogramWidth = list.size();
@@ -214,9 +214,9 @@ bool SpectrogramData::append(UAVObject* multiObj)
 
 
 /**
- * @brief SpectrogramScopeConfig::clearPlots Clear all plot data
+ * @brief SpectrogramScopeConfig::deletePlots Delete all plot data
  */
-void SpectrogramData::clearPlots(PlotData *spectrogramData)
+void SpectrogramData::deletePlots(PlotData *spectrogramData)
 {
     spectrogram->detach();
 
@@ -226,4 +226,16 @@ void SpectrogramData::clearPlots(PlotData *spectrogramData)
     // Delete spectrogram (also deletes raster data)
     delete spectrogram;
     delete spectrogramData;
+}
+
+
+/**
+ * @brief SpectrogramScopeConfig::clearPlots Clear all plot data
+ */
+void SpectrogramData::clearPlots()
+{
+    timeDataHistory->clear();
+    zDataHistory->clear();
+
+    resetAxisRanges();
 }

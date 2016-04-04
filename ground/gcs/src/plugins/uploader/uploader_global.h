@@ -2,7 +2,7 @@
  ******************************************************************************
  *
  * @file       uploader_global.h
- * @author     The OpenPilot Team, http://www.openpilot.org Copyright (C) 2010.
+ * @author     Tau Labs, http://taulabs.org, Copyright (C) 2014
  * @see        The GNU Public License (GPL) Version 3
  * @addtogroup GCSPlugins GCS Plugins
  * @{
@@ -30,6 +30,21 @@
 #define UPLOADER_GLOBAL_H
 
 #include <QtCore/qglobal.h>
+#include <QPointer>
+#include <coreplugin/boardmanager.h>
+
+namespace uploader
+{
+typedef enum { DISCONNECTED, ENTERING_LOADER, BL_SITTING, BL_BUSY, CONNECTED_TO_TELEMETRY, UPGRADING, UPGRADING_CATCHLOADER } UploaderStatus;
+}
+struct deviceInfo
+{
+    QPointer<Core::IBoardType> board;
+    QString bl_version;
+    QString max_code_size;
+    QString cpu_serial;
+    QString hw_revision;
+};
 
 #if defined(UPLOADER_LIBRARY)
 #  define UPLOADER_EXPORT Q_DECL_EXPORT

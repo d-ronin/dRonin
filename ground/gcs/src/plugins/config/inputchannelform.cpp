@@ -4,9 +4,12 @@
 #include "manualcontrolsettings.h"
 #include "gcsreceiver.h"
 
-inputChannelForm::inputChannelForm(QWidget *parent,bool showlegend) :
+#include <coreplugin/iboardtype.h>
+
+inputChannelForm::inputChannelForm(QWidget *parent, bool showlegend, bool showSlider, ChannelFunc chanType):
     ConfigTaskWidget(parent),
-    ui(new Ui::inputChannelForm)
+    ui(new Ui::inputChannelForm),
+    m_chanType(chanType)
 {
     ui->setupUi(this);
     
@@ -19,12 +22,19 @@ inputChannelForm::inputChannelForm(QWidget *parent,bool showlegend) :
         layout()->removeWidget(ui->legend3);
         layout()->removeWidget(ui->legend4);
         layout()->removeWidget(ui->legend5);
+        layout()->removeWidget(ui->legend6);
         delete ui->legend0;
         delete ui->legend1;
         delete ui->legend2;
         delete ui->legend3;
         delete ui->legend4;
         delete ui->legend5;
+        delete ui->legend6;
+    }
+
+    if(!showSlider)
+    {
+        ui->channelNeutral->setHidden(true);
     }
 
     // Connect slots
@@ -69,21 +79,33 @@ void inputChannelForm::setName(QString &name)
   */
 void inputChannelForm::minMaxUpdated()
 {
-    bool reverse = (ui->channelMin->value() > ui->channelMax->value());
-    if(reverse) {
-        ui->channelNeutral->setMinimum(ui->channelMax->value());
-        ui->channelNeutral->setMaximum(ui->channelMin->value());
+    if (ui->channelMin->value() != ui->channelMax->value()) {
+        bool reverse = (ui->channelMin->value() > ui->channelMax->value());
+        if(reverse) {
+            ui->channelNeutral->setMinimum(ui->channelMax->value());
+            ui->channelNeutral->setMaximum(ui->channelMin->value());
 
-        // Set the QSlider groove colors so that the fill is on the side of the minimum value
-        ui->channelNeutral->setProperty("state", "inverted");
-    } else {
-        ui->channelNeutral->setMinimum(ui->channelMin->value());
-        ui->channelNeutral->setMaximum(ui->channelMax->value());
+            // Set the QSlider groove colors so that the fill is on the side of the minimum value
+            ui->channelNeutral->setProperty("state", "inverted");
+        } else {
+            ui->channelNeutral->setMinimum(ui->channelMin->value());
+            ui->channelNeutral->setMaximum(ui->channelMax->value());
 
-        // Set the QSlider groove colors so that the fill is on the side of the minimum value
-        ui->channelNeutral->setProperty("state", "normal");
+            // Set the QSlider groove colors so that the fill is on the side of the minimum value
+            ui->channelNeutral->setProperty("state", "normal");
+        }
+        ui->channelNeutral->setInvertedAppearance(reverse);
+
+        // make sure slider is enabled (can be removed when "else" below is removed)
+        ui->channelNeutral->setEnabled(true);
     }
-    ui->channelNeutral->setInvertedAppearance(reverse);
+    else {
+        // when the min and max is equal, disable this slider to prevent crash
+        // from Qt bug: https://bugreports.qt.io/browse/QTBUG-43398
+        ui->channelNeutral->setMinimum(ui->channelMin->value() - 1);
+        ui->channelNeutral->setMaximum(ui->channelMax->value() + 1);
+        ui->channelNeutral->setEnabled(false);
+    }
 
     // Force refresh of style sheet.
     ui->channelNeutral->setStyle(QApplication::style());
@@ -102,36 +124,106 @@ void inputChannelForm::groupUpdated()
 
     quint8 count = 0;
 
-    switch(ui->channelGroup->currentIndex()) {
-    case -1: // Nothing selected
-        count = 0;
+    switch (m_chanType) {
+
+    case inputChannelForm::CHANNELFUNC_RC:
+        {
+            switch (ui->channelGroup->currentIndex()) {
+            case -1: // Nothing selected
+                count = 0;
+                break;
+            case ManualControlSettings::CHANNELGROUPS_PWM:
+                count = 8; // Need to make this 6 for CC
+                break;
+            case ManualControlSettings::CHANNELGROUPS_PPM:
+            case ManualControlSettings::CHANNELGROUPS_DSM:
+                count = 12;
+                break;
+            case ManualControlSettings::CHANNELGROUPS_SBUS:
+                count = 18;
+                break;
+            case ManualControlSettings::CHANNELGROUPS_RFM22B:
+                count = 9;
+                break;
+            case ManualControlSettings::CHANNELGROUPS_OPENLRS:
+                count = 8;
+                break;
+            case ManualControlSettings::CHANNELGROUPS_GCS:
+                count = GCSReceiver::CHANNEL_NUMELEM;
+                break;
+            case ManualControlSettings::CHANNELGROUPS_HOTTSUM:
+                count = 32;
+                break;
+            case ManualControlSettings::CHANNELGROUPS_NONE:
+                count = 0;
+                break;
+            default:
+                Q_ASSERT(0);
+            }
+        }
         break;
-    case ManualControlSettings::CHANNELGROUPS_PWM:
-        count = 8; // Need to make this 6 for CC
+
+
+    case inputChannelForm::CHANNELFUNC_RSSI:
+        {
+            switch (ui->channelGroup->currentIndex()) {
+            case -1: // Nothing selected
+                count = 0;
+                break;
+            case ManualControlSettings::RSSITYPE_PWM:
+                count = 8;
+                break;
+            case ManualControlSettings::RSSITYPE_PPM:
+                count = 12;
+                break;
+            case ManualControlSettings::RSSITYPE_SBUS:
+                count = 18;
+                break;
+            case ManualControlSettings::RSSITYPE_HOTTSUM:
+                count = 32;
+                break;
+            case ManualControlSettings::RSSITYPE_ADC:
+                count = 9;
+                break;
+            case ManualControlSettings::RSSITYPE_OPENLRS:
+                count = 8;
+                break;
+            case ManualControlSettings::RSSITYPE_FRSKYPWM:
+                count = 1;
+                break;
+            case ManualControlSettings::RSSITYPE_NONE:
+                count = 0;
+                break;
+            default:
+                Q_ASSERT(0);
+            }
+        }
         break;
-    case ManualControlSettings::CHANNELGROUPS_PPM:
-    case ManualControlSettings::CHANNELGROUPS_DSMMAINPORT:
-    case ManualControlSettings::CHANNELGROUPS_DSMFLEXIPORT:
-        count = 12;
-        break;
-    case ManualControlSettings::CHANNELGROUPS_SBUS:
-        count = 18;
-        break;
-    case ManualControlSettings::CHANNELGROUPS_GCS:
-        count = GCSReceiver::CHANNEL_NUMELEM;
-        break;
-    case ManualControlSettings::CHANNELGROUPS_HOTTSUM:
-        count = 32;
-        break;
-    case ManualControlSettings::CHANNELGROUPS_NONE:
-        count = 0;
-        break;
-    default:
-        Q_ASSERT(0);
+
     }
 
-    for (int i = 0; i < count; i++)
-        ui->channelNumberDropdown->addItem(QString(tr("Chan %1").arg(i+1)));
+    if (m_chanType == inputChannelForm::CHANNELFUNC_RSSI &&
+            ui->channelGroup->currentIndex() == ManualControlSettings::RSSITYPE_ADC) {
+        QStringList names;
+        Core::IBoardType *board = utilMngr->getBoardType();
+        if (board)
+            names = board->getAdcNames();
+
+        for (int i = 0; i < count; i++) {
+            QString name;
+            if (i < names.length())
+                name = names[i] + QString(" (ADC%1)").arg(i);
+            else if (names.isEmpty())
+                name = QString("ADC%1").arg(i);
+            else
+                name = QString("N/A (ADC%1)").arg(i);
+
+            ui->channelNumberDropdown->addItem(name);
+        }
+    } else {
+        for (int i = 0; i < count; i++)
+            ui->channelNumberDropdown->addItem(QString(tr("Chan %1").arg(i+1)));
+    }
 
     ui->channelNumber->setMaximum(count);
     ui->channelNumber->setMinimum(0);

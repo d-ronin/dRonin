@@ -3,6 +3,7 @@
  *
  * @file       logging.cpp
  * @author     The OpenPilot Team, http://www.openpilot.org Copyright (C) 2010.
+ * @author     Tau Labs, http://taulabs.org, Copyright (C) 2014
  * @see        The GNU Public License (GPL) Version 3
  * @brief      Import/Export Plugin
  * @addtogroup GCSPlugins GCS Plugins
@@ -30,6 +31,8 @@
 #include "loggingplugin.h"
 #include "loggingdevice.h"
 #include "logginggadgetfactory.h"
+#include "flightlogdownload.h"
+
 #include <QDebug>
 #include <QtPlugin>
 #include <QThread>
@@ -78,11 +81,12 @@ QIODevice* LoggingConnection::openDevice(IDevice *deviceName)
     if (logFile.isOpen()){
         logFile.close();
     }
-    QString fileName = QFileDialog::getOpenFileName(NULL, tr("Open file"), QString(""), tr("Tau Labs Log (*.tll)"));
+    QString fileName = QFileDialog::getOpenFileName(NULL, tr("Open file"), QString(""), tr("dRonin Log Files (*.drlog *.tll)"));
     if (!fileName.isNull()) {
         startReplay(fileName);
+        return &logFile;
     }
-    return &logFile;
+    return NULL;
 }
 
 void LoggingConnection::startReplay(QString file)
@@ -135,8 +139,9 @@ LoggingThread::~LoggingThread()
 bool LoggingThread::openFile(QString file, LoggingPlugin * parent)
 {
     logFile.setFileName(file);
-    logFile.open(QIODevice::WriteOnly);
-
+    if (!logFile.open(QIODevice::WriteOnly)) {
+        return false;
+    }
     ExtensionSystem::PluginManager *pm = ExtensionSystem::PluginManager::instance();
     UAVObjectManager *objManager = pm->getObject<UAVObjectManager>();
 
@@ -168,7 +173,7 @@ void LoggingThread::run()
     ExtensionSystem::PluginManager *pm = ExtensionSystem::PluginManager::instance();
     UAVObjectManager *objManager = pm->getObject<UAVObjectManager>();
 
-    QVector< QVector<UAVObject*> > list = objManager->getObjects();
+    QVector< QVector<UAVObject*> > list = objManager->getObjectsVector();
     QVector< QVector<UAVObject*> >::const_iterator i;
     QVector<UAVObject*>::const_iterator j;
     int objects = 0;
@@ -210,7 +215,7 @@ void LoggingThread::stopLogging()
     ExtensionSystem::PluginManager *pm = ExtensionSystem::PluginManager::instance();
     UAVObjectManager *objManager = pm->getObject<UAVObjectManager>();
 
-    QVector< QVector<UAVObject*> > list = objManager->getObjects();
+    QVector< QVector<UAVObject*> > list = objManager->getObjectsVector();
     QVector< QVector<UAVObject*> >::const_iterator i;
     QVector<UAVObject*>::const_iterator j;
 
@@ -240,7 +245,7 @@ void LoggingThread::retrieveSettings()
     // Get UAVObjectManager instance
     ExtensionSystem::PluginManager* pm = ExtensionSystem::PluginManager::instance();
     UAVObjectManager *objMngr = pm->getObject<UAVObjectManager>();
-    QVector< QVector<UAVDataObject*> > objs = objMngr->getDataObjects();
+    QVector< QVector<UAVDataObject*> > objs = objMngr->getDataObjectsVector();
     for (int n = 0; n < objs.size(); ++n)
     {
         UAVDataObject* obj = objs[n][0];
@@ -337,18 +342,28 @@ bool LoggingPlugin::initialize(const QStringList& args, QString *errMsg)
     Core::ActionContainer* ac = am->actionContainer(Core::Constants::M_TOOLS);
 
     // Command to start logging
-    cmd = am->registerAction(new QAction(this),
+    cmdLogging = am->registerAction(new QAction(this),
                                             "LoggingPlugin.Logging",
                                             QList<int>() <<
                                             Core::Constants::C_GLOBAL_ID);
-    cmd->setDefaultKeySequence(QKeySequence("Ctrl+L"));
-    cmd->action()->setText("Start logging...");
+    cmdLogging->setDefaultKeySequence(QKeySequence("Ctrl+L"));
+    cmdLogging->action()->setText("Start logging...");
 
     ac->menu()->addSeparator();
     ac->appendGroup("Logging");
-    ac->addAction(cmd, "Logging");
+    ac->addAction(cmdLogging, "Logging");
 
-    connect(cmd->action(), SIGNAL(triggered(bool)), this, SLOT(toggleLogging()));
+    connect(cmdLogging->action(), SIGNAL(triggered(bool)), this, SLOT(toggleLogging()));
+
+    // Command to downlaod log
+    cmdDownload = am->registerAction(new QAction(this),
+                                            "LoggingPlugin.Download",
+                                            QList<int>() <<
+                                            Core::Constants::C_GLOBAL_ID);
+    cmdDownload->setDefaultKeySequence(QKeySequence("Ctrl+D"));
+    cmdDownload->action()->setText("Download log...");
+    ac->addAction(cmdDownload, "Logging");
+    connect(cmdDownload->action(), SIGNAL(triggered(bool)), this, SLOT(downloadLog()));
 
 
     mf = new LoggingGadgetFactory(this);
@@ -361,6 +376,12 @@ bool LoggingPlugin::initialize(const QStringList& args, QString *errMsg)
     return true;
 }
 
+void LoggingPlugin::downloadLog()
+{
+    FlightLogDownload download;
+    download.exec();
+}
+
 /**
   * The action that is triggered by the menu item which opens the
   * file and begins logging if successful
@@ -371,19 +392,19 @@ void LoggingPlugin::toggleLogging()
     {
 
         QString fileName = QFileDialog::getSaveFileName(NULL, tr("Start Log"),
-                                    tr("TauLabs-%0.tll").arg(QDateTime::currentDateTime().toString("yyyy-MM-dd_hh-mm-ss")),
-                                    tr("Tau Labs Log (*.tll)"));
+                                    QDir::homePath() + QDir::separator() + tr("dRonin-%0.drlog").arg(QDateTime::currentDateTime().toString("yyyy-MM-dd_hh-mm-ss")),
+                                    tr("dRonin Log (*.drlog)"));
         if (fileName.isEmpty())
             return;
 
         startLogging(fileName);
-        cmd->action()->setText(tr("Stop logging"));
+        cmdLogging->action()->setText(tr("Stop logging"));
 
     }
     else if(state == LOGGING)
     {
         stopLogging();
-        cmd->action()->setText(tr("Start logging..."));
+        cmdLogging->action()->setText(tr("Start logging..."));
     }
 }
 
@@ -466,7 +487,6 @@ void LoggingPlugin::shutdown()
 {
     // Do nothing
 }
-Q_EXPORT_PLUGIN(LoggingPlugin)
 
 /**
  * @}

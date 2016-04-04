@@ -39,6 +39,7 @@
 #include <QSize>
 #include <QPoint>
 #include <QtCore/QUrl>
+#include <QDataStream>
 
 #define NUM_PREFIX "arr_"
 
@@ -88,7 +89,7 @@ void XmlConfig::handleNode(QDomElement* node, QSettings::SettingsMap &map, QStri
     // Xml tags are restrictive with allowed characters,
     // so we urlencode and replace % with __PCT__ on file
     nodeName = nodeName.replace("__PCT__", "%");
-    nodeName = QUrl::fromPercentEncoding(nodeName.toAscii());
+    nodeName = QUrl::fromPercentEncoding(nodeName.toLatin1());
 
     if ( nodeName == XmlConfig::rootName )
         ;
@@ -98,7 +99,7 @@ void XmlConfig::handleNode(QDomElement* node, QSettings::SettingsMap &map, QStri
         path += "/" + nodeName;
 
 //    qDebug() << "Node: " << ": " << path << " Children: " << node->childNodes().length();
-    for ( uint i = 0; i < node->childNodes().length(); ++i ){
+    for ( int i = 0; i < node->childNodes().length(); ++i ){
         QDomNode child = node->childNodes().item(i);
         if ( child.isElement() ){
             handleNode( static_cast<QDomElement*>(&child), map, path);

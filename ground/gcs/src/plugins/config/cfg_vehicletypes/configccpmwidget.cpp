@@ -30,16 +30,16 @@
 
 #include <QDebug>
 #include <QStringList>
-#include <QtGui/QWidget>
-#include <QtGui/QTextEdit>
-#include <QtGui/QVBoxLayout>
-#include <QtGui/QPushButton>
+#include <QWidget>
+#include <QTextEdit>
+#include <QVBoxLayout>
+#include <QPushButton>
 #include <QBrush>
 #include <math.h>
 #include <QMessageBox>
 
-#include "mixersettings.h"
 #include "actuatorcommand.h"
+#include "mixersettings.h"
 
 ConfigCcpmWidget::ConfigCcpmWidget(QWidget *parent) : VehicleConfig(parent)
 {
@@ -47,8 +47,8 @@ ConfigCcpmWidget::ConfigCcpmWidget(QWidget *parent) : VehicleConfig(parent)
     SwashLvlConfigurationInProgress=0;
     SwashLvlState=0;
     SwashLvlServoInterlock=0;
-    updatingFromHardware=FALSE;
-    updatingToHardware=FALSE;
+    updatingFromHardware=false;
+    updatingToHardware=false;
 
     m_ccpm = new Ui_ccpmWidget();
     m_ccpm->setupUi(this);
@@ -130,13 +130,9 @@ ConfigCcpmWidget::ConfigCcpmWidget(QWidget *parent) : VehicleConfig(parent)
 
     }
 
-    //initialize our two mixer curves
+    //initialize our throttle mixer curve
     // mixercurve defaults to mixercurve_throttle
     m_ccpm->ThrottleCurve->initLinearCurve(5, 1.0, 0.0);
-
-    // tell mixercurve this is a pitch curve
-    m_ccpm->PitchCurve->setMixerType(MixerCurve::MIXERCURVE_OTHER);
-    m_ccpm->PitchCurve->initLinearCurve(5, 1.0, -1.0);
 
     //initialize channel names
     m_ccpm->ccpmEngineChannel->addItems(channelNames);
@@ -159,9 +155,22 @@ ConfigCcpmWidget::ConfigCcpmWidget(QWidget *parent) : VehicleConfig(parent)
              QString::fromUtf8("Coax 2 Servo 90º")  <<
              QString::fromUtf8("Custom - User Angles") << QString::fromUtf8("Custom - Advanced Settings");
     m_ccpm->ccpmType->addItems(Types);
-    m_ccpm->ccpmType->setCurrentIndex(m_ccpm->ccpmType->count() - 1);
+
+    // set default swashplate config to CCPM 3 Servo 120 degrees
+    // need to set the index for the dropdown list and update the UI config using that index
+    m_ccpm->ccpmType->setCurrentIndex(m_ccpm->ccpmType->findText(QString::fromUtf8("CCPM 3 Servo 120º")));
+    GUIConfigDataUnion config = GetConfigData();
+    config.heli.SwashplateType = m_ccpm->ccpmType->count() - m_ccpm->ccpmType->currentIndex()-1;
+    SetConfigData(config);
 
     refreshAirframeWidgetsValues(SystemSettings::AIRFRAMETYPE_HELICP);
+
+    //initialize our collective mixer curve
+    // refreshAirframeWidgetsValues triggers a whole cascade of curve-related calls
+    // need set the collective curve info after this point to make it stick
+    // tell mixercurve this is a pitch curve
+    m_ccpm->PitchCurve->setMixerType(MixerCurve::MIXERCURVE_OTHER);
+    m_ccpm->PitchCurve->initLinearCurve(5, 1.0, -1.0);
 
     UpdateType();
 
@@ -182,7 +191,6 @@ ConfigCcpmWidget::ConfigCcpmWidget(QWidget *parent) : VehicleConfig(parent)
     connect(m_ccpm->ccpmCollectivespinBox, SIGNAL(valueChanged(int)), this, SLOT(UpdateMixer()));
     connect(m_ccpm->ccpmType, SIGNAL(currentIndexChanged(int)), this, SLOT(UpdateType()));
     connect(m_ccpm->ccpmSingleServo, SIGNAL(currentIndexChanged(int)), this, SLOT(UpdateType()));
-    connect(m_ccpm->TabObject, SIGNAL(currentChanged ( QWidget * )), this, SLOT(UpdateType()));
 
     connect(m_ccpm->SwashLvlStartButton, SIGNAL(clicked()), this, SLOT(SwashLvlStartButtonPressed()));
     connect(m_ccpm->SwashLvlNextButton, SIGNAL(clicked()), this, SLOT(SwashLvlNextButtonPressed()));
@@ -224,7 +232,7 @@ QStringList ConfigCcpmWidget::getChannelDescriptions()
     QStringList channelDesc;
 
     // init a channel_numelem list of channel desc defaults
-    for (i=0; i < (int)(ConfigCcpmWidget::CHANNEL_NUMELEM); i++)
+    for (i=0; i < (int)(ActuatorCommand::CHANNEL_NUMELEM); i++)
     {
         channelDesc.append(QString("-"));
     }
@@ -654,13 +662,13 @@ void ConfigCcpmWidget::UpdateMixer()
                 //Generate the mixer vector
                 if (i==0)
                 {//main motor-engine
-                    m_ccpm->ccpmAdvancedSettingsTable->item(i,1)->setText(QString("%1").arg(127));//ThrottleCurve1
+                    m_ccpm->ccpmAdvancedSettingsTable->item(i,1)->setText(QString("%1").arg(mixerRange));//ThrottleCurve1
                     m_ccpm->ccpmAdvancedSettingsTable->item(i,2)->setText(QString("%1").arg(0));//ThrottleCurve2
                     m_ccpm->ccpmAdvancedSettingsTable->item(i,3)->setText(QString("%1").arg(0));//Roll
                     m_ccpm->ccpmAdvancedSettingsTable->item(i,4)->setText(QString("%1").arg(0));//Pitch
 
                     if (TypeText.compare(QString::fromUtf8("Coax 2 Servo 90º"), Qt::CaseInsensitive)==0)
-                        m_ccpm->ccpmAdvancedSettingsTable->item(i,5)->setText(QString("%1").arg(-127));//Yaw
+                        m_ccpm->ccpmAdvancedSettingsTable->item(i,5)->setText(QString("%1").arg(-mixerRange));//Yaw
                     else
                         m_ccpm->ccpmAdvancedSettingsTable->item(i,5)->setText(QString("%1").arg(0));//Yaw
 
@@ -669,12 +677,12 @@ void ConfigCcpmWidget::UpdateMixer()
                 {//tailrotor --or-- counter-clockwise motor
                     if (TypeText.compare(QString::fromUtf8("Coax 2 Servo 90º"), Qt::CaseInsensitive)==0)
                     {
-                        m_ccpm->ccpmAdvancedSettingsTable->item(i,1)->setText(QString("%1").arg(127));//ThrottleCurve1
-                        m_ccpm->ccpmAdvancedSettingsTable->item(i,5)->setText(QString("%1").arg(127));//Yaw
+                        m_ccpm->ccpmAdvancedSettingsTable->item(i,1)->setText(QString("%1").arg(mixerRange));//ThrottleCurve1
+                        m_ccpm->ccpmAdvancedSettingsTable->item(i,5)->setText(QString("%1").arg(mixerRange));//Yaw
                     }
                     else{
                         m_ccpm->ccpmAdvancedSettingsTable->item(i,1)->setText(QString("%1").arg(0));//ThrottleCurve1
-                        m_ccpm->ccpmAdvancedSettingsTable->item(i,5)->setText(QString("%1").arg(127));//Yaw
+                        m_ccpm->ccpmAdvancedSettingsTable->item(i,5)->setText(QString("%1").arg(mixerRange));//Yaw
                     }
 
                     m_ccpm->ccpmAdvancedSettingsTable->item(i,2)->setText(QString("%1").arg(0));//ThrottleCurve2
@@ -685,9 +693,9 @@ void ConfigCcpmWidget::UpdateMixer()
                 if (i>1)
                 {//Swashplate
                     m_ccpm->ccpmAdvancedSettingsTable->item(i,1)->setText(QString("%1").arg(0));//ThrottleCurve1
-                    m_ccpm->ccpmAdvancedSettingsTable->item(i,2)->setText(QString("%1").arg((int)(127.0*CollectiveConstant)));//ThrottleCurve2
-                    m_ccpm->ccpmAdvancedSettingsTable->item(i,3)->setText(QString("%1").arg((int)(127.0*(RollConstant)*sin((180+config.heli.CorrectionAngle + ThisAngle[i])*DEG2RAD))));//Roll
-                    m_ccpm->ccpmAdvancedSettingsTable->item(i,4)->setText(QString("%1").arg((int)(127.0*(PitchConstant)*cos((config.heli.CorrectionAngle + ThisAngle[i])*DEG2RAD))));//Pitch
+                    m_ccpm->ccpmAdvancedSettingsTable->item(i,2)->setText(QString("%1").arg((int)(mixerRange * CollectiveConstant))); //ThrottleCurve2
+                    m_ccpm->ccpmAdvancedSettingsTable->item(i,3)->setText(QString("%1").arg((int)(mixerRange * RollConstant * sin((180 + config.heli.CorrectionAngle + ThisAngle[i])*DEG2RAD)))); //Roll
+                    m_ccpm->ccpmAdvancedSettingsTable->item(i,4)->setText(QString("%1").arg((int)(mixerRange * PitchConstant * cos((config.heli.CorrectionAngle + ThisAngle[i])*DEG2RAD)))); //Pitch
                     m_ccpm->ccpmAdvancedSettingsTable->item(i,5)->setText(QString("%1").arg(0));//Yaw
 
                 }
@@ -718,9 +726,9 @@ SystemSettings::AirframeTypeOptions ConfigCcpmWidget::updateConfigObjects()
     bool useCCPM;
     bool useCyclic;
 
-    if (updatingFromHardware == TRUE) return airframeType;
+    if (updatingFromHardware == true) return airframeType;
 
-    updatingFromHardware = TRUE;
+    updatingFromHardware = true;
 
     //get the user options
     GUIConfigDataUnion config = GetConfigData();
@@ -771,7 +779,7 @@ SystemSettings::AirframeTypeOptions ConfigCcpmWidget::updateConfigObjects()
 
     SetConfigData(config);
 
-    updatingFromHardware = FALSE;
+    updatingFromHardware = false;
     return airframeType;
 }
 
@@ -865,7 +873,7 @@ void ConfigCcpmWidget::getMixer()
     if (SwashLvlConfigurationInProgress)return;
     if (updatingToHardware)return;
 
-    updatingFromHardware=TRUE;
+    updatingFromHardware=true;
 
     MixerSettings *mixerSettings = MixerSettings::GetInstance(getObjectManager());
     Q_ASSERT(mixerSettings);
@@ -893,7 +901,7 @@ void ConfigCcpmWidget::getMixer()
         m_ccpm->PitchCurve->ResetCurve();
     }
 
-    updatingFromHardware=FALSE;
+    updatingFromHardware=false;
 
     ccpmSwashplateUpdate();
 }
@@ -907,9 +915,9 @@ void ConfigCcpmWidget::setMixer()
     int i,j;
 
     if (SwashLvlConfigurationInProgress)return;
-    if (updatingToHardware == TRUE) return;
+    if (updatingToHardware == true) return;
 
-    updatingToHardware=TRUE;
+    updatingToHardware=true;
 
     MixerSettings * mixerSettings = MixerSettings::GetInstance(getObjectManager());
     Q_ASSERT(mixerSettings);
@@ -918,17 +926,20 @@ void ConfigCcpmWidget::setMixer()
     UpdateMixer();
 
     // Set up some helper pointers
-    qint8 * mixers[8] = {mixerSettingsData.Mixer1Vector,
-                         mixerSettingsData.Mixer2Vector,
-                         mixerSettingsData.Mixer3Vector,
-                         mixerSettingsData.Mixer4Vector,
-                         mixerSettingsData.Mixer5Vector,
-                         mixerSettingsData.Mixer6Vector,
-                         mixerSettingsData.Mixer7Vector,
-                         mixerSettingsData.Mixer8Vector
+    decltype(&mixerSettingsData.Mixer1Vector[0]) mixers[] = {
+        mixerSettingsData.Mixer1Vector,
+        mixerSettingsData.Mixer2Vector,
+        mixerSettingsData.Mixer3Vector,
+        mixerSettingsData.Mixer4Vector,
+        mixerSettingsData.Mixer5Vector,
+        mixerSettingsData.Mixer6Vector,
+        mixerSettingsData.Mixer7Vector,
+        mixerSettingsData.Mixer8Vector,
+        mixerSettingsData.Mixer9Vector,
+        mixerSettingsData.Mixer10Vector
     };
 
-    quint8 * mixerTypes[8] = {
+    decltype(&mixerSettingsData.Mixer1Type) mixerTypes[] = {
         &mixerSettingsData.Mixer1Type,
         &mixerSettingsData.Mixer2Type,
         &mixerSettingsData.Mixer3Type,
@@ -936,33 +947,34 @@ void ConfigCcpmWidget::setMixer()
         &mixerSettingsData.Mixer5Type,
         &mixerSettingsData.Mixer6Type,
         &mixerSettingsData.Mixer7Type,
-        &mixerSettingsData.Mixer8Type
+        &mixerSettingsData.Mixer8Type,
+        &mixerSettingsData.Mixer9Type,
+        &mixerSettingsData.Mixer10Type
     };
 
     //reset all to Disabled
-    for (i=0; i<8; i++)
-        *mixerTypes[i] = 0;
+    for (i = 0; i < 8; i++)
+        *(mixerTypes[i]) = 0;
 
     //go through the user data and update the mixer matrix
-    for (i=0;i<6;i++)
+    for (i = 0; i < 6; i++)
     {
-        if (MixerChannelData[i]>0)
+        if (MixerChannelData[i] > 0 && (uint)MixerChannelData[i] < sizeof(mixerTypes) / sizeof(mixerTypes[0]))
         {
             //Set the mixer type. If Coax, then first two are motors. Otherwise, only first is motor
-            if (TypeText.compare(QString::fromUtf8("Coax 2 Servo 90º"), Qt::CaseInsensitive)==0)
+            if (TypeText.compare(QString::fromUtf8("Coax 2 Servo 90º"), Qt::CaseInsensitive) == 0)
             {
                 *(mixerTypes[MixerChannelData[i] - 1]) = i > 1 ?
                             MixerSettings::MIXER1TYPE_SERVO :
                             MixerSettings::MIXER1TYPE_MOTOR;
-            }
-            else{
+            } else {
                 *(mixerTypes[MixerChannelData[i] - 1]) = i > 0 ?
                             MixerSettings::MIXER1TYPE_SERVO :
                             MixerSettings::MIXER1TYPE_MOTOR;
             }
 
             //Configure the vector
-            for (j=0;j<5;j++)
+            for (j = 0; j < 5; j++)
                 mixers[MixerChannelData[i] - 1][j] = m_ccpm->ccpmAdvancedSettingsTable->item(i,j+1)->text().toInt(); //TODO: Fix crash here
         }
     }
@@ -985,7 +997,7 @@ void ConfigCcpmWidget::setMixer()
     
     mixerSettings->setData(mixerSettingsData);
     mixerSettings->updated();
-    updatingToHardware=FALSE;
+    updatingToHardware=false;
 
 }
 
@@ -1092,11 +1104,20 @@ void ConfigCcpmWidget::SwashLvlStartButtonPressed()
             oldSwashLvlConfiguration.ServoChannels[1]=m_ccpm->ccpmServoXChannel->currentIndex();
             oldSwashLvlConfiguration.ServoChannels[2]=m_ccpm->ccpmServoYChannel->currentIndex();
             oldSwashLvlConfiguration.ServoChannels[3]=m_ccpm->ccpmServoZChannel->currentIndex();
+
             //if servos are used
-            oldSwashLvlConfiguration.Used[0]=((m_ccpm->ccpmServoWChannel->currentIndex()>0)&&(m_ccpm->ccpmServoWChannel->isEnabled()));
-            oldSwashLvlConfiguration.Used[1]=((m_ccpm->ccpmServoXChannel->currentIndex()>0)&&(m_ccpm->ccpmServoXChannel->isEnabled()));
-            oldSwashLvlConfiguration.Used[2]=((m_ccpm->ccpmServoYChannel->currentIndex()>0)&&(m_ccpm->ccpmServoYChannel->isEnabled()));
-            oldSwashLvlConfiguration.Used[3]=((m_ccpm->ccpmServoZChannel->currentIndex()>0)&&(m_ccpm->ccpmServoZChannel->isEnabled()));
+            oldSwashLvlConfiguration.Used[0]=(m_ccpm->ccpmServoWChannel->currentIndex()>0);
+            oldSwashLvlConfiguration.Used[1]=(m_ccpm->ccpmServoXChannel->currentIndex()>0);
+            oldSwashLvlConfiguration.Used[2]=(m_ccpm->ccpmServoYChannel->currentIndex()>0);
+            oldSwashLvlConfiguration.Used[3]=(m_ccpm->ccpmServoZChannel->currentIndex()>0);
+
+            // all the channel spinboxes have "None" as index zero; thus, all channels will be off by 1
+            for (uint8_t i = 0; i < CCPM_MAX_SWASH_SERVOS; ++i )
+            {
+                // if a channel is selected, shift its value into the correct range [0,N-1] instead of [1,N]
+                if (oldSwashLvlConfiguration.ServoChannels[i] > 0) oldSwashLvlConfiguration.ServoChannels[i] --;
+            }
+
             //min,neutral,max values for the servos
             for (i=0;i<CCPM_MAX_SWASH_SERVOS;i++)
             {
@@ -1419,7 +1440,7 @@ void ConfigCcpmWidget::setSwashplateLevel(int percent)
     if (percent>100)return;// -1;
     if (SwashLvlConfigurationInProgress!=1)return;// -1;
     int i;
-    double value;
+    double value = 0;
     double level = ((double)percent /50.00) - 1.00;
 
     SwashLvlServoInterlock=1;
@@ -1428,6 +1449,10 @@ void ConfigCcpmWidget::setSwashplateLevel(int percent)
     ActuatorCommand::DataFields actuatorCommandData = actuatorCommand->getData();
 
     for (i=0;i<CCPM_MAX_SWASH_SERVOS;i++) {
+        // don't do anything for unused channels (set to "None")
+        if (newSwashLvlConfiguration.Used[i] == 0)
+            continue;
+
         if (level==0)
             value = newSwashLvlConfiguration.Neutral[i];
         else if (level > 0)
@@ -1458,6 +1483,10 @@ void ConfigCcpmWidget::SwashLvlSpinBoxChanged(int value)
     ActuatorCommand::DataFields actuatorCommandData = actuatorCommand->getData();
 
     for (i = 0; i < CCPM_MAX_SWASH_SERVOS; i++) {
+        // don't do anything for unused channels (set to "None")
+        if (newSwashLvlConfiguration.Used[i] == 0)
+            continue;
+
         value = SwashLvlSpinBoxes[i]->value();
 
         switch (SwashLvlState)

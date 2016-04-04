@@ -1,16 +1,18 @@
 BOARD_TYPE          := 0x85
 BOARD_REVISION      := 0x01
-BOOTLOADER_VERSION  := 0x81
+# Previous version was 0x081, 0x082 introduces partition extensions and forced boot from bkp registers
+BOOTLOADER_VERSION  := 0x83
 HW_TYPE             := 0x01
 
 MCU                 := cortex-m4
 CHIP                := STM32F407VGT
+STM32_TYPE          := STM32F40_41xxx
 BOARD               := STM32F4xx_DISCOVERYF4
 MODEL               := HD
 MODEL_SUFFIX        := 
 
-OPENOCD_JTAG_CONFIG := stlink-v2.cfg
-OPENOCD_CONFIG      := stm32f4xx.stlink.cfg
+OPENOCD_JTAG_CONFIG ?= stlink-v2.cfg
+OPENOCD_CONFIG      := stm32f4x.cfg
 
 # Note: These must match the values in link_$(BOARD)_memory.ld
 BL_BANK_BASE        := 0x08000000  # Start of bootloader flash

@@ -1,8 +1,13 @@
 /**
  ******************************************************************************
+ *
  * @file       vehicletrim.cpp
- * @author     Tau Labs, http://taulabs.org, Copyright (C) 2013
+ * @author     dRonin, http://dRonin.org/, Copyright (C) 2015-2016
+ * @author     Tau Labs, http://taulabs.org, Copyright (C) 2013-2014
  * @brief      Gui-less support class for vehicle trimming
+ *
+ * @see        The GNU Public License (GPL) Version 3
+ *
  *****************************************************************************/
 /*
  * This program is free software; you can redistribute it and/or modify
@@ -18,6 +23,10 @@
  * You should have received a copy of the GNU General Public License along
  * with this program; if not, write to the Free Software Foundation, Inc.,
  * 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
+ *
+ * Additional note on redistribution: The copyright and license notices above
+ * must be maintained in each individual source file that is a derivative work
+ * of this source file; otherwise redistribution is prohibited.
  */
 
 #include "vehicletrim.h"
@@ -27,7 +36,7 @@
 #include "actuatorsettings.h"
 #include "stabilizationdesired.h"
 #include "flightstatus.h"
-#include "trimanglessettings.h"
+#include "subtrimsettings.h"
 #include "systemalarms.h"
 
 
@@ -51,9 +60,9 @@ VehicleTrim::autopilotLevelBiasMessages VehicleTrim::setAutopilotBias()
     FlightStatus *flightStatus = FlightStatus::GetInstance(getObjectManager());
     StabilizationDesired *stabilizationDesired = StabilizationDesired::GetInstance(getObjectManager());
 
-    // Get TrimAnglesSettings UAVO
-    TrimAnglesSettings *trimAnglesSettings = TrimAnglesSettings::GetInstance(getObjectManager());
-    TrimAnglesSettings::DataFields trimAnglesSettingsData = trimAnglesSettings->getData();
+    // Get SubTrimSettings UAVO
+    SubTrimSettings *subTrimSettings = SubTrimSettings::GetInstance(getObjectManager());
+    SubTrimSettings::DataFields subTrimSettingsData = subTrimSettings->getData();
 
     // Check that the receiver is present
     if (systemAlarms->getAlarm_ManualControl()  != SystemAlarms::ALARM_OK){
@@ -66,38 +75,25 @@ VehicleTrim::autopilotLevelBiasMessages VehicleTrim::setAutopilotBias()
     }
 
     // Check that vehicle is in stabilized{1,2,3} flight mode
-    if (flightStatus->getFlightMode() != FlightStatus::FLIGHTMODE_STABILIZED1 &&
+    if (flightStatus->getFlightMode() != FlightStatus::FLIGHTMODE_LEVELING &&
+            flightStatus->getFlightMode() != FlightStatus::FLIGHTMODE_ALTITUDEHOLD &&
+            flightStatus->getFlightMode() != FlightStatus::FLIGHTMODE_STABILIZED1 &&
             flightStatus->getFlightMode() != FlightStatus::FLIGHTMODE_STABILIZED2 &&
             flightStatus->getFlightMode() != FlightStatus::FLIGHTMODE_STABILIZED3){
         return AUTOPILOT_LEVEL_FAILED_DUE_TO_FLIGHTMODE;
     }
 
     // Check that pitch and roll axes are in attitude mode
-    if ((stabilizationDesired->getStabilizationMode_Pitch() != StabilizationDesired::STABILIZATIONMODE_ATTITUDE &&
-            stabilizationDesired->getStabilizationMode_Pitch() != StabilizationDesired::STABILIZATIONMODE_ATTITUDEPLUS )||
-            (stabilizationDesired->getStabilizationMode_Roll() != StabilizationDesired::STABILIZATIONMODE_ATTITUDE &&
-             stabilizationDesired->getStabilizationMode_Roll() != StabilizationDesired::STABILIZATIONMODE_ATTITUDEPLUS)) {
+    if ((stabilizationDesired->getStabilizationMode_Pitch() != StabilizationDesired::STABILIZATIONMODE_ATTITUDE) ||
+            (stabilizationDesired->getStabilizationMode_Roll() != StabilizationDesired::STABILIZATIONMODE_ATTITUDE)) {
         return AUTOPILOT_LEVEL_FAILED_DUE_TO_STABILIZATIONMODE;
     }
 
-    // Copy the current pitch and roll settings to the trim pitch and roll
-    // TODO: Use averaged pitch desired data in order to ensure that 1) spurious
-    // data doesn't creep in and 2) the user is not actively moving the TX stick
-    if (stabilizationDesired->getStabilizationMode_Roll() == StabilizationDesired::STABILIZATIONMODE_ATTITUDEPLUS) {
-        trimAnglesSettingsData.Roll += stabilizationDesired->getRoll();
-    } else {
-        trimAnglesSettingsData.Roll = stabilizationDesired->getRoll();
-    }
-
-    if (stabilizationDesired->getStabilizationMode_Pitch() == StabilizationDesired::STABILIZATIONMODE_ATTITUDEPLUS) {
-        trimAnglesSettingsData.Pitch += stabilizationDesired->getPitch();
-    } else {
-        trimAnglesSettingsData.Pitch = stabilizationDesired->getPitch();
-    }
-
-    // Set the data to the UAVO, and inform the flight controller that the UAVO has been updated
-    trimAnglesSettings->setData(trimAnglesSettingsData);
-    trimAnglesSettings->updated();
+    // Increment the current pitch and roll settings by what the pilot is requesting
+    subTrimSettingsData.Roll += stabilizationDesired->getRoll();
+    subTrimSettingsData.Pitch += stabilizationDesired->getPitch();
+    subTrimSettings->setData(subTrimSettingsData);
+    subTrimSettings->updated();
 
     // Inform GUI that trim function has successfully completed
     emit trimCompleted();
@@ -115,6 +111,7 @@ VehicleTrim::actuatorTrimMessages VehicleTrim::setTrimActuators()
 {
     SystemAlarms *systemAlarms = SystemAlarms::GetInstance(getObjectManager());
     FlightStatus *flightStatus = FlightStatus::GetInstance(getObjectManager());
+    StabilizationDesired *stabilizationDesired = StabilizationDesired::GetInstance(getObjectManager());
 
     // Get ActuatorCommand UAVO
     ActuatorCommand *actuatorCommand = ActuatorCommand::GetInstance(getObjectManager());
@@ -129,8 +126,12 @@ VehicleTrim::actuatorTrimMessages VehicleTrim::setTrimActuators()
         return ACTUATOR_TRIM_FAILED_DUE_TO_MISSING_RECEIVER;
     }
 
-    // Check that vehicle is in manual mode
-    if (flightStatus->getFlightMode() != FlightStatus::FLIGHTMODE_MANUAL){
+    // Ensure that vehicle is in full manual mode
+    if (flightStatus->getFlightMode() != FlightStatus::FLIGHTMODE_MANUAL ||
+            stabilizationDesired->getStabilizationMode_Roll() != StabilizationDesired::STABILIZATIONMODE_MANUAL ||
+            stabilizationDesired->getStabilizationMode_Pitch() != StabilizationDesired::STABILIZATIONMODE_MANUAL ||
+            stabilizationDesired->getStabilizationMode_Yaw() != StabilizationDesired::STABILIZATIONMODE_MANUAL)
+    {
         return ACTUATOR_TRIM_FAILED_DUE_TO_FLIGHTMODE;
     }
 

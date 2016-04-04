@@ -22,8 +22,31 @@ ifdef OPENOCD_FTDI
 endif
 
 # Set up QT toolchain
-QT_SDK_DIR := $(TOOLS_DIR)/qtsdk-v1.2.1
-QT_SDK_QMAKE_PATH := $(QT_SDK_DIR)/Desktop/Qt/4.8.1/gcc/bin/qmake
+QT_SDK_DIR := $(TOOLS_DIR)/Qt5.5.1
+
+ifdef LINUX
+  ifdef AMD64
+    QT_PLUGINS_DIR = $(QT_SDK_DIR)/5.5/gcc_64/plugins
+  else
+    QT_PLUGINS_DIR = $(QT_SDK_DIR)/5.5/gcc/plugins
+  endif
+endif
+
+# Set variables for Android SDK
+ifdef MACOSX
+  ANDROID_SDK_DIR := $(TOOLS_DIR)/android-sdk-macosx
+  ANDROID_SDK_URL := http://dl.google.com/android/android-sdk_r23.0.2-macosx.zip
+endif
+
+ifdef LINUX
+  ANDROID_SDK_DIR := $(TOOLS_DIR)/android-sdk-linux
+  ANDROID_SDK_URL := http://dl.google.com/android/android-sdk_r23.0.2-linux.tgz
+endif
+
+ifdef WINDOWS
+  ANDROID_SDK_DIR := $(TOOLS_DIR)/android-sdk-windows
+  ANDROID_SDK_URL := http://dl.google.com/android/android-sdk_r23.0.2-windows.zip
+endif
 
 # Build openocd without FTDI (yes | no)
 OPENOCD_FTDI ?= yes
@@ -34,19 +57,25 @@ OPENOCD_FTDI ?= yes
 ifdef LINUX
   ifdef AMD64
     # Linux 64-bit
-    qt_sdk_install: QT_SDK_URL := http://jenkins.taulabs.org/distfiles/QtSdk-offline-linux-x86_64-v1.2.1.run
+    qt_sdk_install: QT_SDK_URL := http://download.qt.io/official_releases/qt/5.5/5.5.1/qt-opensource-linux-x64-5.5.1.run
+    QT_SDK_QMAKE_PATH := $(QT_SDK_DIR)/5.5/gcc_64/bin/qmake
   else
     # Linux 32-bit
-    qt_sdk_install: QT_SDK_URL  := http://jenkins.taulabs.org/distfiles/QtSdk-offline-linux-x86-v1.2.1.run
+    qt_sdk_install: QT_SDK_URL := http://download.qt.io/official_releases/qt/5.5/5.5.1/qt-opensource-linux-x86-5.5.1.run
+    QT_SDK_QMAKE_PATH := $(QT_SDK_DIR)/5.5/gcc/bin/qmake
   endif
 endif
 
 ifdef MACOSX
-  qt_sdk_install: QT_SDK_URL  := http://jenkins.taulabs.org/distfiles/QtSdk-offline-mac-x86-v1.2.1.dmg
+  qt_sdk_install: QT_SDK_URL  := http://download.qt.io/official_releases/qt/5.5/5.5.1/qt-opensource-mac-x64-clang-5.5.1.dmg
+  QT_SDK_QMAKE_PATH := $(QT_SDK_DIR)/5.5/clang_64/bin/qmake
+
+  export QT_SDK_BIN_PATH := $(QT_SDK_DIR)/5.5/clang_64/bin
 endif
 
 ifdef WINDOWS
-  qt_sdk_install: QT_SDK_URL  := http://jenkins.taulabs.org/distfiles/QtSdk-offline-win-x86-v1.2.1.exe
+  qt_sdk_install: QT_SDK_URL  := http://download.qt.io/official_releases/qt/5.5/5.5.1/qt-opensource-windows-x86-mingw492-5.5.1.exe
+  QT_SDK_QMAKE_PATH := $(QT_SDK_DIR)/5.5/mingw492_32/bin/qmake
 endif
 
 qt_sdk_install: QT_SDK_FILE := $(notdir $(QT_SDK_URL))
@@ -55,7 +84,7 @@ qt_sdk_install: QT_SDK_FILE := $(notdir $(QT_SDK_URL))
 qt_sdk_install : | $(DL_DIR) $(TOOLS_DIR)
 qt_sdk_install: qt_sdk_clean
         # download the source only if it's newer than what we already have
-	$(V1) wget -N --content-disposition -P "$(DL_DIR)" "$(QT_SDK_URL)"
+	$(V1) wget -N -P "$(DL_DIR)" "$(QT_SDK_URL)"
         # tell the user exactly which path they should select in the GUI
 	$(V1) echo "*** NOTE NOTE NOTE ***"
 	$(V1) echo "*"
@@ -64,10 +93,20 @@ qt_sdk_install: qt_sdk_clean
 	$(V1) echo "*"
 	$(V1) echo "*** NOTE NOTE NOTE ***"
 
+ifneq (,$(filter $(UNAME), Darwin))
+	$(V1) hdiutil attach -quiet -private -mountpoint /tmp/qt-installer "$(DL_DIR)/$(QT_SDK_FILE)" 
+	$(V1) /tmp/qt-installer/qt-opensource-mac-x64-clang-5.5.1.app/Contents/MacOS/qt-opensource-mac-x64-clang-5.5.1
+	$(V1) hdiutil detach -quiet /tmp/qt-installer
+endif
+
 ifneq (,$(filter $(UNAME), Linux))
         #installer is an executable, make it executable and run it
 	$(V1) chmod u+x "$(DL_DIR)/$(QT_SDK_FILE)"
-	$(V1) "$(DL_DIR)/$(QT_SDK_FILE)" -style cleanlooks
+	$(V1) "$(DL_DIR)/$(QT_SDK_FILE)"
+endif
+
+ifdef WINDOWS
+	$(V1) ./downloads/qt-opensource-windows-x86-mingw492-5.5.1.exe
 endif
 
 .PHONY: qt_sdk_clean
@@ -75,28 +114,35 @@ qt_sdk_clean:
 	$(V1) [ ! -d "$(QT_SDK_DIR)" ] || $(RM) -rf $(QT_SDK_DIR)
 
 # Set up ARM (STM32) SDK
-ARM_SDK_DIR := $(TOOLS_DIR)/gcc-arm-none-eabi-4_7-2013q1
+ARM_SDK_DIR := $(TOOLS_DIR)/gcc-arm-none-eabi-5_2-2015q4
 
 .PHONY: arm_sdk_install
-ifeq ($(UNAME), Linux)
-# Linux
-arm_sdk_install: ARM_SDK_URL  := https://launchpad.net/gcc-arm-embedded/4.7/4.7-2013-q1-update/+download/gcc-arm-none-eabi-4_7-2013q1-20130313-linux.tar.bz2
+ifdef LINUX
+  arm_sdk_install: ARM_SDK_URL  := https://launchpad.net/gcc-arm-embedded/5.0/5-2015-q4-major/+download/gcc-arm-none-eabi-5_2-2015q4-20151219-linux.tar.bz2
 endif
 
-ifeq ($(UNAME), Darwin)
-# Mac
-arm_sdk_install: ARM_SDK_URL  := https://launchpad.net/gcc-arm-embedded/4.7/4.7-2013-q1-update/+download/gcc-arm-none-eabi-4_7-2013q1-20130313-mac.tar.bz2
+ifdef MACOSX
+  arm_sdk_install: ARM_SDK_URL  := https://launchpad.net/gcc-arm-embedded/5.0/5-2015-q4-major/+download/gcc-arm-none-eabi-5_2-2015q4-20151219-mac.tar.bz2
+endif
+
+ifdef WINDOWS
+  arm_sdk_install: ARM_SDK_URL  := https://launchpad.net/gcc-arm-embedded/5.0/5-2015-q4-major/+download/gcc-arm-none-eabi-5_2-2015q4-20151219-win32.zip
 endif
 
 arm_sdk_install: ARM_SDK_FILE := $(notdir $(ARM_SDK_URL))
 # order-only prereq on directory existance:
 arm_sdk_install: | $(DL_DIR) $(TOOLS_DIR)
 arm_sdk_install: arm_sdk_clean
+ifneq ($(OSFAMILY), windows)
         # download the source only if it's newer than what we already have
 	$(V1) wget --no-check-certificate -N -P "$(DL_DIR)" "$(ARM_SDK_URL)"
 
         # binary only release so just extract it
 	$(V1) tar -C $(TOOLS_DIR) -xjf "$(DL_DIR)/$(ARM_SDK_FILE)"
+else
+	$(V1) curl -L -k -o "$(DL_DIR)/$(ARM_SDK_FILE)" "$(ARM_SDK_URL)"
+	$(V1) unzip -q -d $(ARM_SDK_DIR) "$(DL_DIR)/$(ARM_SDK_FILE)"
+endif
 
 .PHONY: arm_sdk_clean
 arm_sdk_clean:
@@ -214,11 +260,11 @@ OPENOCD_BUILD_DIR := $(DL_DIR)/openocd-build
 
 openocd_install: | $(DL_DIR) $(TOOLS_DIR)
 openocd_install: OPENOCD_URL     := git://git.code.sf.net/p/openocd/code
-openocd_install: OPENOCD_REV     := cf1418e9a85013bbf8dbcc2d2e9985695993d9f4
+openocd_install: OPENOCD_TAG     := v0.9.0
 openocd_install: OPENOCD_OPTIONS := --enable-maintainer-mode --prefix="$(OPENOCD_DIR)" --enable-buspirate --enable-stlink
 
 ifeq ($(OPENOCD_FTDI), yes)
-openocd_install: OPENOCD_OPTIONS := $(OPENOCD_OPTIONS) --enable-ft2232_libftdi
+openocd_install: OPENOCD_OPTIONS := $(OPENOCD_OPTIONS) --enable-ftdi
 endif
 
 ifeq ($(UNAME), Darwin)
@@ -227,20 +273,13 @@ endif
 
 openocd_install: openocd_clean
         # download the source
-	$(V0) @echo " DOWNLOAD     $(OPENOCD_URL) @ $(OPENOCD_REV)"
+	$(V0) @echo " DOWNLOAD     $(OPENOCD_URL) @ $(OPENOCD_TAG)"
 	$(V1) [ ! -d "$(OPENOCD_BUILD_DIR)" ] || $(RM) -rf "$(OPENOCD_BUILD_DIR)"
 	$(V1) mkdir -p "$(OPENOCD_BUILD_DIR)"
 	$(V1) git clone --no-checkout $(OPENOCD_URL) "$(OPENOCD_BUILD_DIR)"
 	$(V1) ( \
 	  cd $(OPENOCD_BUILD_DIR) ; \
-	  git checkout -q $(OPENOCD_REV) ; \
-	)
-
-        # apply patches
-	$(V0) @echo " PATCH        $(OPENOCD_DIR)"
-	$(V1) ( \
-	  cd $(OPENOCD_BUILD_DIR) ; \
-	  git apply < $(ROOT_DIR)/flight/Project/OpenOCD/0003-freertos-cm4f-fpu-support.patch ; \
+	  git checkout -q tags/$(OPENOCD_TAG) ; \
 	)
 
         # build and install
@@ -284,7 +323,7 @@ stm32flash_clean:
 DFUUTIL_DIR := $(TOOLS_DIR)/dfu-util
 
 .PHONY: dfuutil_install
-dfuutil_install: DFUUTIL_URL  := http://dfu-util.gnumonks.org/releases/dfu-util-0.7.tar.gz
+dfuutil_install: DFUUTIL_URL  := http://dfu-util.sourceforge.net/releases/dfu-util-0.8.tar.gz
 dfuutil_install: DFUUTIL_FILE := $(notdir $(DFUUTIL_URL))
 dfuutil_install: | $(DL_DIR) $(TOOLS_DIR)
 dfuutil_install: dfuutil_clean
@@ -302,7 +341,7 @@ dfuutil_install: dfuutil_clean
 	$(V0) @echo " BUILD        $(DFUUTIL_DIR)"
 	$(V1) mkdir -p "$(DFUUTIL_DIR)"
 	$(V1) ( \
-	  cd $(DL_DIR)/dfuutil-build/dfu-util-0.7 ; \
+	  cd $(DL_DIR)/dfuutil-build/dfu-util-0.8 ; \
 	  ./configure --prefix="$(DFUUTIL_DIR)" ; \
 	  $(MAKE) ; \
 	  $(MAKE) install ; \
@@ -314,9 +353,7 @@ dfuutil_clean:
 	$(V1) [ ! -d "$(DFUUTIL_DIR)" ] || $(RM) -r "$(DFUUTIL_DIR)"
 
 # see http://developer.android.com/sdk/ for latest versions
-ANDROID_SDK_DIR := $(TOOLS_DIR)/android-sdk-linux
 .PHONY: android_sdk_install
-android_sdk_install: ANDROID_SDK_URL  := http://dl.google.com/android/android-sdk_r21.0.1-linux.tgz
 android_sdk_install: ANDROID_SDK_FILE := $(notdir $(ANDROID_SDK_URL))
 # order-only prereq on directory existance:
 android_sdk_install: | $(DL_DIR) $(TOOLS_DIR)
@@ -337,14 +374,14 @@ android_sdk_clean:
 .PHONY: android_sdk_update
 android_sdk_update:
 	$(V0) @echo " UPDATE       $(ANDROID_SDK_DIR)"
-	$(ANDROID_SDK_DIR)/tools/android update sdk --no-ui -t platform-tools,android-14,addon-google_apis-google-14
+	$(ANDROID_SDK_DIR)/tools/android update sdk --no-ui --all -t platform-tools,build-tools-20.0.0,android-19,addon-google_apis-google-19
 
 # Set up Google Test (gtest) tools
-GTEST_DIR       := $(TOOLS_DIR)/gtest-1.6.0
+GTEST_DIR       := $(TOOLS_DIR)/gtest-1.7.0
 
 .PHONY: gtest_install
 gtest_install: | $(DL_DIR) $(TOOLS_DIR)
-gtest_install: GTEST_URL  := http://googletest.googlecode.com/files/gtest-1.6.0.zip
+gtest_install: GTEST_URL  := http://googletest.googlecode.com/files/gtest-1.7.0.zip
 gtest_install: GTEST_FILE := $(notdir $(GTEST_URL))
 gtest_install: gtest_clean
         # download the file unconditionally since google code gives back 404
@@ -362,67 +399,42 @@ gtest_clean:
 	$(V0) @echo " CLEAN        $(GTEST_DIR)"
 	$(V1) [ ! -d "$(GTEST_DIR)" ] || $(RM) -rf "$(GTEST_DIR)"
 
-.PHONY: gui_install
-MAKE_GUI_DIR := $(TOOLS_DIR)/make_gui/
-MAKE_GUI_SOURCE_DIR := $(ROOT_DIR)/shared/make_gui
-gui_install:
-	$(V1) mkdir -p "$(MAKE_GUI_DIR)/build"
-	$(V1) ( cd "$(MAKE_GUI_DIR)/build" && \
-	  $(QMAKE) $(MAKE_GUI_SOURCE_DIR)/make_gui.pro -spec $(QT_SPEC) && \
-	  $(MAKE) -w ; \
-	)
-	$(V1) [ ! -d "$(MAKE_GUI_DIR)/build" ] || $(RM) -rf "$(MAKE_GUI_DIR)/build"
+# Set up uncrustify tools
+UNCRUSTIFY_DIR := $(TOOLS_DIR)/uncrustify-0.61
+UNCRUSTIFY_BUILD_DIR := $(DL_DIR)/uncrustify
 
-.PHONY: gui_clean
-gui_clean:
-	$(V0) @echo " CLEAN        $(MAKE_GUI_DIR)"
-	$(V1) [ ! -d "$(MAKE_GUI_DIR)" ] || $(RM) -rf "$(MAKE_GUI_DIR)"
-
-.PHONY: gui
-gui:
-ifeq ($(shell [ -d "$(MAKE_GUI_DIR)" ] && echo "exists"), exists)
-ifeq ($(UNAME), Darwin)
-	$(MAKE_GUI_DIR)gui.app/Contents/MacOS/gui
+.PHONY: uncrustify_install
+uncrustify_install: | $(DL_DIR) $(TOOLS_DIR)
+uncrustify_install: UNCRUSTIFY_URL := http://downloads.sourceforge.net/project/uncrustify/uncrustify/uncrustify-0.61/uncrustify-0.61.tar.gz
+uncrustify_install: UNCRUSTIFY_FILE := uncrustify-0.61.tar.gz
+uncrustify_install: UNCRUSTIFY_OPTIONS := prefix=$(UNCRUSTIFY_DIR)
+uncrustify_install: uncrustify_clean
+ifneq ($(OSFAMILY), windows)
+	$(V0) @echo " DOWNLOAD     $(UNCRUSTIFY_URL)"
+	$(V1) wget --no-check-certificate -N -P "$(DL_DIR)" "$(UNCRUSTIFY_URL)"
 else
-	$(MAKE_GUI_DIR)gui
+	$(V1) curl -L -k -o "$(DL_DIR)/$(UNCRUSTIFY_FILE)" "$(UNCRUSTIFY_URL)"
 endif
-else
-	 @echo "make gui not installed, run make gui_install"
-endif
+        # extract the src
+	$(V0) @echo " EXTRACT      $(UNCRUSTIFY_FILE)"
+	$(V1) tar -C $(TOOLS_DIR) -xf "$(DL_DIR)/$(UNCRUSTIFY_FILE)"
 
-
-# Set up astyle tools
-ASTYLE_DIR := $(TOOLS_DIR)/astyle
-ASTYLE_BUILD_DIR := $(DL_DIR)/astyle
-
-.PHONY: astyle_install
-astyle_install: | $(DL_DIR) $(TOOLS_DIR)
-astyle_install: ASTYLE_URL := https://svn.code.sf.net/p/astyle/code/trunk/AStyle
-astyle_install: ASTYLE_REV := 376
-astyle_install: ASTYLE_OPTIONS := prefix=$(ASTYLE_DIR)
-astyle_install: astyle_clean
-        # download the source
-	$(V0) @echo " DOWNLOAD     $(ASTYLE_URL) @ $(ASTYLE_REV)"
-	$(V1) svn export -q "$(ASTYLE_URL)" -r $(ASTYLE_REV) "$(ASTYLE_BUILD_DIR)"
-
-        # build and install
-	$(V0) @echo " BUILD        $(ASTYLE_DIR)"
-	$(V1) mkdir -p "$(ASTYLE_DIR)"
+	$(V0) @echo " BUILD        $(UNCRUSTIFY_DIR)"
 	$(V1) ( \
-	  $(MAKE) -C $(ASTYLE_BUILD_DIR)/build/gcc $(ASTYLE_OPTIONS) ; \
-	  $(MAKE) -C $(ASTYLE_BUILD_DIR)/build/gcc $(ASTYLE_OPTIONS) install ; \
+	  cd $(UNCRUSTIFY_DIR) ; \
+	  ./configure --prefix="$(UNCRUSTIFY_DIR)" ; \
+	  $(MAKE) ; \
+	  $(MAKE) install ; \
 	)
+	      # delete the extracted source when we're done
+	$(V1) [ ! -d "$(UNCRUSTIFY_BUILD_DIR)" ] || $(RM) -r "$(UNCRUSTIFY_BUILD_DIR)"
 
-        # delete the extracted source when we're done
-	$(V1) [ ! -d "$(ASTYLE_BUILD_DIR)" ] || $(RM) -r "$(ASTYLE_BUILD_DIR)"
-
-.PHONY: astyle_clean
-astyle_clean:
-	$(V0) @echo " CLEAN        $(ASTYLE_DIR)"
-	$(V1) [ ! -d "$(ASTYLE_DIR)" ] || $(RM) -r "$(ASTYLE_DIR)"
-	$(V0) @echo " CLEAN        $(ASTYLE_BUILD_DIR)"
-	$(V1) [ ! -d "$(ASTYLE_BUILD_DIR)" ] || $(RM) -r "$(ASTYLE_BUILD_DIR)"
-
+.PHONY: uncrustify_clean
+uncrustify_clean:
+	$(V0) @echo " CLEAN        $(UNCRUSTIFY_DIR)"
+	$(V1) [ ! -d "$(UNCRUSTIFY_DIR)" ] || $(RM) -r "$(UNCRUSTIFY_DIR)"
+	$(V0) @echo " CLEAN        $(UNCRUSTIFY_BUILD_DIR)"
+	$(V1) [ ! -d "$(UNCRUSTIFY_BUILD_DIR)" ] || $(RM) -r "$(UNCRUSTIFY_BUILD_DIR)"
 
 # Set up libkml
 
@@ -465,6 +477,28 @@ libkml_clean:
 	$(V0) @echo " CLEAN        $(LIBKML_BUILD_DIR)"
 	$(V1) [ ! -d "$(LIBKML_BUILD_DIR)" ] || $(RM) -rf "$(LIBKML_BUILD_DIR)"
 
+# ZIP download URL
+zip_install: ZIP_URL  := ftp://ftp.info-zip.org/pub/infozip/src/zip30.tgz
+
+zip_install: ZIP_FILE := $(notdir $(ZIP_URL))
+
+ZIP_DIR = $(TOOLS_DIR)/zip30
+
+# order-only prereq on directory existance:
+zip_install : | $(DL_DIR) $(TOOLS_DIR)
+zip_install: zip_clean
+	$(V1) curl -L -k -o "$(DL_DIR)/$(ZIP_FILE)" "$(ZIP_URL)"
+	$(V1) tar --force-local -C $(TOOLS_DIR) -xzf "$(DL_DIR)/$(ZIP_FILE)"
+ifneq ($(OSFAMILY), windows)
+	$(V1) cd "$(ZIP_DIR)" && $(MAKE) -f unix/Makefile generic_gcc
+else
+	$(V1) cd "$(ZIP_DIR)" && $(MAKE) -f win32/makefile.gcc
+endif
+
+.PHONY: zip_clean
+zip_clean:
+	$(V1) [ ! -d "$(ZIP_DIR)" ] || $(RM) -rf $(ZIP_DIR)
+
 ##############################
 #
 # Set up paths to tools
@@ -481,8 +515,17 @@ endif
 ifeq ($(shell [ -d "$(ARM_SDK_DIR)" ] && echo "exists"), exists)
   ARM_SDK_PREFIX := $(ARM_SDK_DIR)/bin/arm-none-eabi-
 else
+  ifneq ($(MAKECMDGOALS),arm_sdk_install)
+    $(error **WARNING** ARM-SDK not in $(ARM_SDK_DIR)  Please run 'make arm_sdk_install')
+  endif
   # not installed, hope it's in the path...
   ARM_SDK_PREFIX ?= arm-none-eabi-
+endif
+
+ifeq ($(shell [ -d "$(ZIP_DIR)" ] && echo "exists"), exists)
+  export ZIPBIN := $(ZIP_DIR)/zip
+else
+  export ZIPBIN := zip
 endif
 
 ifeq ($(shell [ -d "$(OPENOCD_DIR)" ] && echo "exists"), exists)
@@ -494,7 +537,7 @@ endif
 
 ifeq ($(shell [ -d "$(ANDROID_SDK_DIR)" ] && echo "exists"), exists)
   ANDROID     := $(ANDROID_SDK_DIR)/tools/android
-  ANDROID_DX  := $(ANDROID_SDK_DIR)/platform-tools/dx
+  ANDROID_DX  := $(ANDROID_SDK_DIR)/build-tools/20.0.0/dx
   ANDROID_ADB := $(ANDROID_SDK_DIR)/platform-tools/adb
 else
   # not installed, hope it's in the path...
@@ -508,5 +551,77 @@ ifeq ($(shell [ -d "$(ASTYLE_DIR)" ] && echo "exists"), exists)
 else
   # not installed, hope it's in the path...
   ASTYLE ?= astyle
-endif	
-	
+endif
+
+ifeq ($(shell [ -d "$(UNCRUSTIFY_DIR)" ] && echo "exists"), exists)
+  UNCRUSTIFY := $(UNCRUSTIFY_DIR)/bin/uncrustify
+else
+  # not installed, hope it's in the path...
+  UNCRUSTIFY ?= uncrustify
+endif
+
+
+.PHONY: openssl_install
+
+# OPENSSL download URL
+ifdef WINDOWS
+  openssl_install: OPENSSL_URL  := https://slproweb.com/download/Win32OpenSSL-1_0_2f.exe
+
+openssl_install: OPENSSL_FILE := $(notdir $(OPENSSL_URL))
+OPENSSL_DIR = $(TOOLS_DIR)/win32openssl
+# order-only prereq on directory existance:
+openssl_install : | $(DL_DIR) $(TOOLS_DIR)
+openssl_install: openssl_clean
+	$(V1) curl -L -k -o "$(DL_DIR)/$(OPENSSL_FILE)" "$(OPENSSL_URL)"
+	$(V1) ./downloads/$(OPENSSL_FILE) /DIR=$(OPENSSL_DIR) /silent
+else
+openssl_install:
+	$(V1) $(error THIS IS A WINDOWS ONLY TARGET)
+endif
+
+.PHONY: openssl_clean
+openssl_clean:
+	$(V1) [ ! -d "$(OPENSSL_DIR)" ] || $(RM) -rf $(OPENSSL_DIR)
+
+
+BREAKPAD_URL := https://google-breakpad.googlecode.com/svn/trunk
+BREAKPAD_REV := 1498
+BREAKPAD_DIR := $(TOOLS_DIR)/breakpad
+
+.PHONY: breakpad_install
+breakpad_install: | $(DL_DIR) $(TOOLS_DIR)
+breakpad_install: breakpad_clean
+	$(V0) @echo " DOWNLOAD     $(BREAKPAD_URL) @ r$(BREAKPAD_REV)"
+	$(V1) svn export -q -r "$(BREAKPAD_REV)" "$(BREAKPAD_URL)" "$(BREAKPAD_DIR)"
+
+	$(V0) @echo " BUILD        $(BREAKPAD_DIR)"
+	$(V1) cd "$(BREAKPAD_DIR)" ; \
+	$(V1) ./configure --prefix="$(BREAKPAD_DIR)" ; \
+	$(V1) $(MAKE) --silent ; \
+	$(V1) $(MAKE) --silent install
+
+.PHONY: breakpad_clean
+breakpad_clean:
+	$(V0) @echo " CLEAN        $(BREAKPAD_DIR)"
+	$(V1) [ ! -d "$(BREAKPAD_DIR)" ] || $(RM) -rf $(BREAKPAD_DIR)
+
+
+.PHONY: sdl_install
+
+# SDL download URL
+SDL_DIR  := $(TOOLS_DIR)/SDL.framework
+SDL_URL  := https://www.libsdl.org/release/SDL-1.2.15.dmg
+SDL_FILE := SDL-1.2.15.dmg
+
+ifdef MACOSX
+sdl_install:
+	$(V0) @echo " DOWNLOAD $(SDL_URL) "
+	$(V1) curl -L -k -o "$(DL_DIR)/$(SDL_FILE)" "$(SDL_URL)"
+	$(V1) hdiutil attach $(DL_DIR)/$(SDL_FILE);
+	$(V1) cp -r /Volumes/SDL/SDL.framework $(TOOLS_DIR);
+	$(V1) hdiutil detach /Volumes/SDL;
+	$(V1) rm $(DL_DIR)/$(SDL_FILE);
+endif
+
+
+

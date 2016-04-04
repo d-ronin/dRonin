@@ -14,7 +14,7 @@
  * transmitter settings come from @ref ManualControlSettings.
  *
  * @file       manualcontrol.c
- * @author     Tau Labs, http://taulabs.org, Copyright (C) 2013
+ * @author     Tau Labs, http://taulabs.org, Copyright (C) 2013-2016
  * @brief      ManualControl module. Handles safety R/C link and flight mode.
  *
  * @see        The GNU Public License (GPL) Version 3
@@ -38,10 +38,13 @@
 
 #include "openpilot.h"
 
+#include "pios_thread.h"
+
 #include "control.h"
 #include "failsafe_control.h"
 #include "tablet_control.h"
 #include "transmitter_control.h"
+#include "geofence_control.h"
 
 #include "flightstatus.h"
 #include "manualcontrolcommand.h"
@@ -52,19 +55,18 @@
 #if defined(PIOS_MANUAL_STACK_SIZE)
 #define STACK_SIZE_BYTES PIOS_MANUAL_STACK_SIZE
 #else
-#define STACK_SIZE_BYTES 1424
+#define STACK_SIZE_BYTES 1000
 #endif
 
-#define TASK_PRIORITY (tskIDLE_PRIORITY+4)
+#define TASK_PRIORITY PIOS_THREAD_PRIO_HIGHEST
 #define UPDATE_PERIOD_MS 20
 
 // Private variables
-static xTaskHandle taskHandle;
-static portTickType lastSysTime;
+static struct pios_thread *taskHandle;
+static uint32_t lastSysTime;
 
 // Private functions
 static void manualControlTask(void *parameters);
-static bool ok_to_arm(void);
 static FlightStatusControlSourceOptions control_source_select();
 
 // Private functions for control events
@@ -72,15 +74,20 @@ static int32_t control_event_arm();
 static int32_t control_event_arming();
 static int32_t control_event_disarm();
 
+// This is exposed to transmitter_control
+bool ok_to_arm(void);
+
 /**
  * Module starting
  */
 int32_t ManualControlStart()
 {
-	// Start main task
-	xTaskCreate(manualControlTask, (signed char *)"Control", STACK_SIZE_BYTES/4, NULL, TASK_PRIORITY, &taskHandle);
-	TaskMonitorAdd(TASKINFO_RUNNING_MANUALCONTROL, taskHandle);
+	// Watchdog must be registered before starting task
 	PIOS_WDG_RegisterFlag(PIOS_WDG_MANUAL);
+
+	// Start main task
+	taskHandle = PIOS_Thread_Create(manualControlTask, "Control", STACK_SIZE_BYTES, NULL, TASK_PRIORITY);
+	TaskMonitorAdd(TASKINFO_RUNNING_MANUALCONTROL, taskHandle);
 
 	return 0;
 }
@@ -93,7 +100,7 @@ int32_t ManualControlInitialize()
 	failsafe_control_initialize();
 	transmitter_control_initialize();
 	tablet_control_initialize();
-
+	geofence_control_initialize();
 
 	return 0;
 }
@@ -112,7 +119,7 @@ static void manualControlTask(void *parameters)
 	FlightStatusSet(&flightStatus);
 
 	// Main task loop
-	lastSysTime = xTaskGetTickCount();
+	lastSysTime = PIOS_Thread_Systime();
 
 	// Select failsafe before run
 	failsafe_control_select(true);
@@ -124,6 +131,7 @@ static void manualControlTask(void *parameters)
 		failsafe_control_update();
 		transmitter_control_update();
 		tablet_control_update();
+		geofence_control_update();
 
 		// Initialize to invalid value to ensure first update sets FlightStatus
 		static FlightStatusControlSourceOptions last_control_selection = -1;
@@ -156,6 +164,10 @@ static void manualControlTask(void *parameters)
 			}
 			break;
 		}
+		case FLIGHTSTATUS_CONTROLSOURCE_GEOFENCE:
+			geofence_control_select(reset_controller);
+			control_events = geofence_control_get_events();
+			break;
 		case FLIGHTSTATUS_CONTROLSOURCE_FAILSAFE:
 		default:
 			failsafe_control_select(reset_controller);
@@ -183,7 +195,7 @@ static void manualControlTask(void *parameters)
 		}
 
 		// Wait until next update
-		vTaskDelayUntil(&lastSysTime, MS2TICKS(UPDATE_PERIOD_MS));
+		PIOS_Thread_Sleep_Until(&lastSysTime, UPDATE_PERIOD_MS);
 		PIOS_WDG_UpdateFlag(PIOS_WDG_MANUAL);
 	}
 }
@@ -238,6 +250,14 @@ static int32_t control_event_disarm()
  */
 static FlightStatusControlSourceOptions control_source_select()
 {
+	// If the geofence controller is triggered, it takes precendence
+	// over even transmitter or failsafe. This means this must be
+	// EXTREMELY robust. The current behavior of geofence is simply
+	// to shut off the motors.
+	if (geofence_control_activate()) {
+		return FLIGHTSTATUS_CONTROLSOURCE_GEOFENCE;
+	}
+
 	ManualControlCommandData cmd;
 	ManualControlCommandGet(&cmd);
 	if (cmd.Connected != MANUALCONTROLCOMMAND_CONNECTED_TRUE) {
@@ -254,7 +274,7 @@ static FlightStatusControlSourceOptions control_source_select()
  * @brief Determine if the aircraft is safe to arm based on alarms
  * @returns True if safe to arm, false otherwise
  */
-static bool ok_to_arm(void)
+bool ok_to_arm(void)
 {
 	// read alarms
 	SystemAlarmsData alarms;
@@ -269,6 +289,14 @@ static bool ok_to_arm(void)
 		{
 			return false;
 		}
+	}
+
+	uint8_t flight_mode;
+	FlightStatusFlightModeGet(&flight_mode);
+
+	if (flight_mode == FLIGHTSTATUS_FLIGHTMODE_FAILSAFE) {
+		/* Separately mask FAILSAFE arming here. */
+		return false;
 	}
 
 	return true;

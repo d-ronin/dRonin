@@ -9,6 +9,7 @@ CDEFS				+= -DSTM32F4XX
 CDEFS				+= -DHSE_VALUE=$(OSCILLATOR_FREQ)
 CDEFS 				+= -DUSE_STDPERIPH_DRIVER
 ARCHFLAGS			+= -mcpu=cortex-m4 -march=armv7e-m -mfpu=fpv4-sp-d16 -mfloat-abi=hard
+FLOATABI			+= hard
 
 #
 # PIOS device library source and includes
@@ -19,9 +20,9 @@ EXTRAINCDIRS		+=	$(PIOS_DEVLIB)/inc
 # CMSIS for the F4
 #
 include $(PIOSCOMMONLIB)/CMSIS3/library.mk
-CMSIS3_DEVICEDIR	:=	$(PIOS_DEVLIB)/Libraries/CMSIS3/Device/ST/STM32F4xx
+CMSIS_DEVICEDIR	:=	$(PIOS_DEVLIB)/Libraries/CMSIS/Device/ST/STM32F4xx
 SRC			+=	$(BOARD_INFO_DIR)/cmsis_system.c
-EXTRAINCDIRS		+=	$(CMSIS3_DEVICEDIR)/Include
+EXTRAINCDIRS		+=	$(CMSIS_DEVICEDIR)/Include
 
 #
 # ST Peripheral library
@@ -44,15 +45,3 @@ SRC				+=	$(addprefix $(USBOTGLIB)/src/,$(USBOTGLIB_SRC))
 USBDEVLIB			=	$(PIOS_DEVLIB)/Libraries/STM32_USB_Device_Library
 EXTRAINCDIRS			+=	$(USBDEVLIB)/Core/inc
 SRC				+=	$(wildcard $(USBDEVLIB)/Core/src/*.c)
-
-#
-# FreeRTOS
-#
-# If the application has included the generic FreeRTOS support, then add in
-# the device-specific pieces of the code.
-#
-ifneq ($(FREERTOS_DIR),)
-FREERTOS_PORTDIR	:=	$(PIOS_DEVLIB)/Libraries/FreeRTOS/Source
-EXTRAINCDIRS		+=	$(FREERTOS_PORTDIR)/portable/GCC/ARM_CM4F
-SRC					+=	$(wildcard $(FREERTOS_PORTDIR)/portable/GCC/ARM_CM4F/*.c)
-endif

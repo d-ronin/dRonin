@@ -8,7 +8,8 @@
  *
  * @file       pios_usart.c   
  * @author     The OpenPilot Team, http://www.openpilot.org Copyright (C) 2012.
- * @author     Tau Labs, http://taulabs.org, Copyright (C) 2012-2013
+ * @author     Tau Labs, http://taulabs.org, Copyright (C) 2012-2014
+ * @author     dRonin, http://dronin.org, Copyright (C) 2016
  * @brief      USART commands. Inits USARTs, controls USARTs & Interupt handlers. (STM32 dependent)
  * @see        The GNU Public License (GPL) Version 3
  *
@@ -103,41 +104,81 @@ static uintptr_t PIOS_USART_1_id;
 void USART1_EXTI25_IRQHandler(void) __attribute__ ((alias ("PIOS_USART_1_irq_handler")));
 static void PIOS_USART_1_irq_handler (void)
 {
+#if defined(PIOS_INCLUDE_CHIBIOS)
+	CH_IRQ_PROLOGUE();
+#endif /* defined(PIOS_INCLUDE_CHIBIOS) */
+
 	PIOS_USART_generic_irq_handler (PIOS_USART_1_id);
+
+#if defined(PIOS_INCLUDE_CHIBIOS)
+	CH_IRQ_EPILOGUE();
+#endif /* defined(PIOS_INCLUDE_CHIBIOS) */
 }
 
 static uintptr_t PIOS_USART_2_id;
 void USART2_EXTI26_IRQHandler(void) __attribute__ ((alias ("PIOS_USART_2_irq_handler")));
 static void PIOS_USART_2_irq_handler (void)
 {
+#if defined(PIOS_INCLUDE_CHIBIOS)
+	CH_IRQ_PROLOGUE();
+#endif /* defined(PIOS_INCLUDE_CHIBIOS) */
+
 	PIOS_USART_generic_irq_handler (PIOS_USART_2_id);
+
+#if defined(PIOS_INCLUDE_CHIBIOS)
+	CH_IRQ_EPILOGUE();
+#endif /* defined(PIOS_INCLUDE_CHIBIOS) */
 }
 
 static uintptr_t PIOS_USART_3_id;
 void USART3_EXTI28_IRQHandler(void) __attribute__ ((alias ("PIOS_USART_3_irq_handler")));
 static void PIOS_USART_3_irq_handler (void)
 {
+#if defined(PIOS_INCLUDE_CHIBIOS)
+	CH_IRQ_PROLOGUE();
+#endif /* defined(PIOS_INCLUDE_CHIBIOS) */
+
 	PIOS_USART_generic_irq_handler (PIOS_USART_3_id);
+
+#if defined(PIOS_INCLUDE_CHIBIOS)
+	CH_IRQ_EPILOGUE();
+#endif /* defined(PIOS_INCLUDE_CHIBIOS) */
 }
 
 static uintptr_t PIOS_UART_4_id;
 void UART4_EXTI34_IRQHandler(void) __attribute__ ((alias ("PIOS_UART_4_irq_handler")));
 static void PIOS_UART_4_irq_handler (void)
 {
+#if defined(PIOS_INCLUDE_CHIBIOS)
+	CH_IRQ_PROLOGUE();
+#endif /* defined(PIOS_INCLUDE_CHIBIOS) */
+
 	PIOS_USART_generic_irq_handler (PIOS_UART_4_id);
+
+#if defined(PIOS_INCLUDE_CHIBIOS)
+	CH_IRQ_EPILOGUE();
+#endif /* defined(PIOS_INCLUDE_CHIBIOS) */
 }
 
 static uintptr_t PIOS_UART_5_id;
 void UART5_EXTI35_IRQHandler(void) __attribute__ ((alias ("PIOS_UART_5_irq_handler")));
 static void PIOS_UART_5_irq_handler (void)
 {
+#if defined(PIOS_INCLUDE_CHIBIOS)
+	CH_IRQ_PROLOGUE();
+#endif /* defined(PIOS_INCLUDE_CHIBIOS) */
+
 	PIOS_USART_generic_irq_handler (PIOS_UART_5_id);
+
+#if defined(PIOS_INCLUDE_CHIBIOS)
+	CH_IRQ_EPILOGUE();
+#endif /* defined(PIOS_INCLUDE_CHIBIOS) */
 }
 
 /**
 * Initialise a single USART device
 */
-int32_t PIOS_USART_Init(uintptr_t * usart_id, const struct pios_usart_cfg * cfg)
+int32_t PIOS_USART_Init(uintptr_t * usart_id, const struct pios_usart_cfg * cfg, struct pios_usart_params * params)
 {
 	PIOS_DEBUG_Assert(usart_id);
 	PIOS_DEBUG_Assert(cfg);
@@ -169,23 +210,28 @@ int32_t PIOS_USART_Init(uintptr_t * usart_id, const struct pios_usart_cfg * cfg)
 		GPIO_Init(usart_dev->cfg->tx.gpio, (GPIO_InitTypeDef *)&usart_dev->cfg->tx.init);
 
 	/* Apply inversion and swap settings */
-	if (usart_dev->cfg->rx_invert == true)
+	if (params->rx_invert == true)
 		USART_InvPinCmd(usart_dev->cfg->regs, USART_InvPin_Rx, ENABLE);
 	else
 		USART_InvPinCmd(usart_dev->cfg->regs, USART_InvPin_Rx, DISABLE);
 
-	if (usart_dev->cfg->tx_invert == true)
+	if (params->tx_invert == true)
 		USART_InvPinCmd(usart_dev->cfg->regs, USART_InvPin_Tx, ENABLE);
 	else
 		USART_InvPinCmd(usart_dev->cfg->regs, USART_InvPin_Tx, DISABLE);
 
-	if (usart_dev->cfg->rxtx_swap == true)
+	if (params->rxtx_swap == true)
 		USART_SWAPPinCmd(usart_dev->cfg->regs, ENABLE);
 	else
 		USART_SWAPPinCmd(usart_dev->cfg->regs, DISABLE);
 
+	if (params->single_wire == true)
+		USART_HalfDuplexCmd(usart_dev->cfg->regs, ENABLE);
+	else
+		USART_HalfDuplexCmd(usart_dev->cfg->regs, DISABLE);
+
 	/* Configure the USART */
-	USART_Init(usart_dev->cfg->regs, (USART_InitTypeDef *)&usart_dev->cfg->init);
+	USART_Init(usart_dev->cfg->regs, (USART_InitTypeDef *)&params->init);
 
 	*usart_id = (uintptr_t)usart_dev;
 
@@ -255,17 +301,21 @@ static void PIOS_USART_ChangeBaud(uintptr_t usart_id, uint32_t baud)
 
 	USART_InitTypeDef USART_InitStructure;
 
-	/* Start with a copy of the default configuration for the peripheral */
-	USART_InitStructure = usart_dev->cfg->init;
-
 	/* Adjust the baud rate */
 	USART_InitStructure.USART_BaudRate = baud;
 
-	/* Write back the new configuration */
+	/* Get current parameters */
+	USART_InitStructure.USART_WordLength          = usart_dev->cfg->regs->CR1 &  (uint32_t)USART_CR1_M;
+	USART_InitStructure.USART_Parity              = usart_dev->cfg->regs->CR1 & ((uint32_t)USART_CR1_PCE  | (uint32_t)USART_CR1_PS);
+	USART_InitStructure.USART_StopBits            = usart_dev->cfg->regs->CR2 &  (uint32_t)USART_CR2_STOP;
+	USART_InitStructure.USART_HardwareFlowControl = usart_dev->cfg->regs->CR3 & ((uint32_t)USART_CR3_CTSE | (uint32_t)USART_CR3_RTSE);
+	USART_InitStructure.USART_Mode                = usart_dev->cfg->regs->CR1 & ((uint32_t)USART_CR1_TE   | (uint32_t)USART_CR1_RE) ;
+
+	/* Write back the new configuration (Note this disables USART) */
 	USART_Init(usart_dev->cfg->regs, &USART_InitStructure);
 
-	/* For some reason USART_Init results in the UE bit in USART_CR1 being cleared
-	 * so we have to enable it again.
+	/*
+	 * Re enable USART.
 	 */
 	USART_Cmd(usart_dev->cfg->regs, ENABLE);
 }
@@ -346,10 +396,6 @@ static void PIOS_USART_generic_irq_handler(uintptr_t usart_id)
 		USART_ClearITPendingBit(usart_dev->cfg->regs, USART_IT_ORE);
 		++usart_dev->error_overruns;
 	}
-	
-#if defined(PIOS_INCLUDE_FREERTOS)
-	portEND_SWITCHING_ISR(rx_need_yield || tx_need_yield);
-#endif	/* PIOS_INCLUDE_FREERTOS */
 }
 
 #endif

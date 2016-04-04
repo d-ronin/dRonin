@@ -39,8 +39,8 @@
 #include "scopes2d/scatterplotscopeconfig.h"
 #include "scopes3d/spectrogramscopeconfig.h"
 
-#include <QtGui/qpalette.h>
-#include <QtGui/QMessageBox>
+#include <qpalette.h>
+#include <QMessageBox>
 
 
 ScopeGadgetOptionsPage::ScopeGadgetOptionsPage(ScopeGadgetConfiguration *config, QObject *parent) :
@@ -90,19 +90,35 @@ QWidget* ScopeGadgetOptionsPage::createPage(QWidget *parent)
     // Fills the combo boxes for the UAVObjects
     ExtensionSystem::PluginManager *pm = ExtensionSystem::PluginManager::instance();
     UAVObjectManager *objManager = pm->getObject<UAVObjectManager>();
-    QVector< QVector<UAVDataObject*> > objList = objManager->getDataObjects();
+    QVector< QVector<UAVDataObject*> > objList = objManager->getDataObjectsVector();
+    QStringList toAdd;
+
+    QString previous = NULL;
+
     foreach (QVector<UAVDataObject*> list, objList) {
         foreach (UAVDataObject* obj, list) {
+	    QString name = obj->getName();
+
             if (obj->isSingleInstance())
             {
-                options_page->cmbUAVObjects->addItem(obj->getName());
+		toAdd.append(name);
             }
-            else if(obj->getName() != options_page->cmbUAVObjects->itemText(options_page->cmbUAVObjects->count()-1))
+            else if(name != previous)
             { //Checks to see if we're duplicating UAVOs because of multiple instances
-                options_page->cmbUAVObjects->addItem(obj->getName());
-                options_page->cmbUAVObjectsSpectrogram->addItem(obj->getName());
+		toAdd.append(name);
             }
+
+            previous = name;
         }
+    }
+
+    qSort(toAdd);
+
+    foreach (QString elem, toAdd) {
+	// Before we only added items to the spectrogram if they were not
+	// single instance; assuming that was in error
+	options_page->cmbUAVObjects->addItem(elem);
+	options_page->cmbUAVObjectsSpectrogram->addItem(elem);
     }
 
     QStringList mathFunctions;

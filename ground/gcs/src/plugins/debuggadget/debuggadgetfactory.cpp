@@ -7,7 +7,7 @@
  * @{
  * @addtogroup DebugGadgetPlugin Debug Gadget Plugin
  * @{
- * @brief A place holder gadget plugin 
+ * @brief A place holder gadget plugin
  *****************************************************************************/
 /*
  * This program is free software; you can redistribute it and/or modify
@@ -28,20 +28,45 @@
 #include "debuggadgetwidget.h"
 #include "debuggadget.h"
 #include <coreplugin/iuavgadget.h>
+#include <QTextStream>
+
+void customMessageHandler(QtMsgType type, const QMessageLogContext &context, const QString &msg)
+{
+    Q_UNUSED(context)
+    switch (type) {
+    case QtDebugMsg:
+        debugengine::getInstance()->writeDebug(msg);
+        break;
+    case QtWarningMsg:
+        debugengine::getInstance()->writeWarning(msg);
+        QTextStream(stderr) << "[Warning] " << msg << endl;
+        break;
+    case QtCriticalMsg:
+        debugengine::getInstance()->writeCritical(msg);
+        QTextStream(stderr) << "[Critical] " << msg << endl;
+        break;
+    case QtFatalMsg:
+        debugengine::getInstance()->writeFatal(msg);
+        QTextStream(stderr) << "[FATAL] " << msg << endl;
+    default:
+        debugengine::getInstance()->writeDebug(msg);
+    }
+}
 
 DebugGadgetFactory::DebugGadgetFactory(QObject *parent) :
-        IUAVGadgetFactory(QString("DebugGadget"),
-                          tr("DebugGadget"),
-                          parent)
-{
-}
+    IUAVGadgetFactory(QString("DebugGadget"),
+                      tr("DebugGadget"),
+                      parent)
+{}
 
 DebugGadgetFactory::~DebugGadgetFactory()
+{}
+
+IUAVGadget *DebugGadgetFactory::createGadget(QWidget *parent)
 {
+    qInstallMessageHandler(customMessageHandler);
 
-}
+    DebugGadgetWidget *gadgetWidget = new DebugGadgetWidget(parent);
 
-IUAVGadget* DebugGadgetFactory::createGadget(QWidget *parent) {
-    DebugGadgetWidget* gadgetWidget = new DebugGadgetWidget(parent);
     return new DebugGadget(QString("DebugGadget"), gadgetWidget, parent);
 }

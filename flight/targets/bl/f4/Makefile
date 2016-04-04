@@ -2,6 +2,8 @@
 # @file       Makefile
 # @author     The OpenPilot Team, http://www.openpilot.org, Copyright (C) 2009.
 # @author     Tau Labs, http://taulabs.org, Copyright (C) 2012-2013
+# @author     dRonin, http://dRonin.org/, Copyright (C) 2016
+#
 # @addtogroup 
 # @{
 # @addtogroup 
@@ -22,7 +24,10 @@
 # You should have received a copy of the GNU General Public License along
 # with this program; if not, write to the Free Software Foundation, Inc.,
 # 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
-#
+# 
+# Additional note on redistribution: The copyright and license notices above
+# must be maintained in each individual source file that is a derivative work
+# of this source file; otherwise redistribution is prohibited.
 
 ifndef MAKE_INC_DIR
 $(error This Makefile cannot be run directly)
@@ -129,13 +134,10 @@ ADEFS = -D__ASSEMBLY__
 #    -adhlns...: create assembler listing
 #
 # Flags for C and C++ (arm-elf-gcc/arm-elf-g++)
-
-# This is not the best place for these.  Really should abstract out
-# to the board file or something
-CFLAGS += -DSTM32F4XX
+CFLAGS += -D$(STM32_TYPE)
 
 CFLAGS += -gdwarf-2
-CFLAGS += -Os
+CFLAGS += -Os -fconserve-stack
 CFLAGS += -fdata-sections -ffunction-sections
 
 CFLAGS += -mcpu=$(MCU)
@@ -210,16 +212,6 @@ $(eval $(call SIZE_TEMPLATE, $(OUTDIR)/$(TARGET).elf))
 docs:
 	doxygen  $(DOXYGENDIR)/doxygen.cfg
 
-# Install: install binary file with prefix/suffix into install directory
-install: $(OUTDIR)/$(TARGET).bin
-ifneq ($(INSTALL_DIR),)
-	@echo $(MSG_INSTALLING) $(call toprel, $<)
-	$(V1) mkdir -p $(INSTALL_DIR)
-	$(V1) $(INSTALL) $< $(INSTALL_DIR)/$(INSTALL_PFX)$(TARGET)$(INSTALL_SFX).bin
-else
-	$(error INSTALL_DIR must be specified for $@)
-endif
-
 # Create output files directory
 # all known MS Windows OS define the ComSpec environment variable
 ifdef ComSpec
@@ -234,6 +226,3 @@ ifdef ComSpec
 else
 -include $(shell mkdir -p $(OUTDIR) 2>/dev/null) $(shell mkdir $(OUTDIR)/dep 2>/dev/null) $(wildcard $(OUTDIR)/dep/*)
 endif
-
-# Listing of phony targets.
-.PHONY : install

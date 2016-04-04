@@ -1,18 +1,15 @@
+isEmpty(BRANDING_PATH) {
+BRANDING_PATH = $$PWD/../../branding
+DEFINES += BRANDING_PATH=\\\"$$BRANDING_PATH\\\"
+include ($$BRANDING_PATH/gcs_definitions.pri)
+}
+
 defineReplace(cleanPath) {
-    win32:1 ~= s|\\\\|/|g
-    contains(1, ^/.*):pfx = /
-    else:pfx =
-    segs = $$split(1, /)
-    out =
-    for(seg, segs) {
-        equals(seg, ..):out = $$member(out, 0, -2)
-        else:!equals(seg, .):out += $$seg
-    }
-    return($$join(out, /, $$pfx))
+    return($$clean_path($$1))
 }
 
 defineReplace(targetPath) {
-    return($$replace(1, /, $$QMAKE_DIR_SEP))
+    return($$shell_path($$1))
 }
 
 defineReplace(addNewline) { 
@@ -24,8 +21,10 @@ defineReplace(qtLibraryName) {
    LIBRARY_NAME = $$1
    CONFIG(debug, debug|release) {
       !debug_and_release|build_pass {
+         !RELEASE_WITH_SYMBOLS {
           mac:RET = $$member(LIBRARY_NAME, 0)_debug
-              else:win32:RET = $$member(LIBRARY_NAME, 0)d
+          }
+          win32:RET = $$member(LIBRARY_NAME, 0)d
       }
    }
    isEmpty(RET):RET = $$LIBRARY_NAME
@@ -33,16 +32,8 @@ defineReplace(qtLibraryName) {
 }
 
 # For use in custom compilers which just copy files
-win32:i_flag = i
 defineReplace(stripSrcDir) {
-    win32 {
-        !contains(1, ^.:.*):1 = $$OUT_PWD/$$1
-    } else {
-        !contains(1, ^/.*):1 = $$OUT_PWD/$$1
-    }
-    out = $$cleanPath($$1)
-    out ~= s|^$$re_escape($$PWD/)||$$i_flag
-    return($$out)
+    return($$relative_path($$absolute_path($$1, $$OUT_PWD), $$_PRO_FILE_PWD_))
 }
 
 isEmpty(TEST):CONFIG(debug, debug|release) {
@@ -55,6 +46,9 @@ isEmpty(GCS_LIBRARY_BASENAME) {
     GCS_LIBRARY_BASENAME = lib
 }
 
+RELEASE_WITH_SYMBOLS {
+DEFINES += RELEASE_WITH_SYMBOLS
+}
 DEFINES += GCS_LIBRARY_BASENAME=\\\"$$GCS_LIBRARY_BASENAME\\\"
 
 equals(TEST, 1) {
@@ -74,36 +68,35 @@ isEmpty(GCS_BUILD_TREE) {
 }
 GCS_APP_PATH = $$GCS_BUILD_TREE/bin
 macx {
-    QMAKE_CFLAGS_X86_64 += -mmacosx-version-min=10.7
-    QMAKE_CXXFLAGS_X86_64 = $$QMAKE_CFLAGS_X86_64
-    GCS_APP_TARGET   = "Tau Labs GCS"
+    GCS_APP_TARGET   = "$${GCS_PROJECT_BRANDING_PRETTY}-GCS"
     GCS_LIBRARY_PATH = $$GCS_APP_PATH/$${GCS_APP_TARGET}.app/Contents/Plugins
     GCS_PLUGIN_PATH  = $$GCS_LIBRARY_PATH
     GCS_LIBEXEC_PATH = $$GCS_APP_PATH/$${GCS_APP_TARGET}.app/Contents/Resources
     GCS_DATA_PATH    = $$GCS_APP_PATH/$${GCS_APP_TARGET}.app/Contents/Resources
     GCS_DATA_BASENAME = Resources
     GCS_DOC_PATH     = $$GCS_DATA_PATH/doc
+    GCS_BIN_PATH     = $$GCS_APP_PATH/$${GCS_APP_TARGET}.app/Contents/MacOS
+    QMAKE_MACOSX_DEPLOYMENT_TARGET=10.9
     copydata = 1
 } else {
     win32 {
         contains(TEMPLATE, vc.*)|contains(TEMPLATE_PREFIX, vc):vcproj = 1
-        GCS_APP_TARGET   = taulabsgcs
+        GCS_APP_TARGET   = $${GCS_PROJECT_BRANDING}gcs
     } else {
-        GCS_APP_WRAPPER  = taulabsgcs
-        GCS_APP_TARGET   = taulabsgcs.bin
+        GCS_APP_WRAPPER  = $${GCS_PROJECT_BRANDING}gcs
+        GCS_APP_TARGET   = $${GCS_PROJECT_BRANDING}gcs.bin
     }
-    GCS_LIBRARY_PATH = $$GCS_BUILD_TREE/$$GCS_LIBRARY_BASENAME/taulabs
+    GCS_LIBRARY_PATH = $$GCS_BUILD_TREE/$$GCS_LIBRARY_BASENAME/$$GCS_PROJECT_BRANDING
     GCS_PLUGIN_PATH  = $$GCS_LIBRARY_PATH/plugins
     GCS_LIBEXEC_PATH = $$GCS_APP_PATH # FIXME
-    GCS_DATA_PATH    = $$GCS_BUILD_TREE/share/taulabs
-    GCS_DATA_BASENAME = share/taulabs
+    GCS_DATA_PATH    = $$GCS_BUILD_TREE/share
+    GCS_DATA_BASENAME = share
     GCS_DOC_PATH     = $$GCS_BUILD_TREE/share/doc
     !isEqual(GCS_SOURCE_TREE, $$GCS_BUILD_TREE):copydata = 1
 }
-
-
-DEFINES += GCS_DATA_BASENAME=\\\"$$GCS_DATA_BASENAME\\\"
-
+GCS_VERSION_INFO_FILE = $$GCS_BUILD_TREE/gcsversioninfo.h
+DEFINES += 'GCS_VERSION_INFO_FILE=\\\"$$GCS_VERSION_INFO_FILE\\\"'
+DEFINES += 'GCS_DATA_BASENAME=\\\"$$GCS_DATA_BASENAME\\\"'
 # Include path to shared API directory
 INCLUDEPATH *= \
     $$GCS_SOURCE_TREE/../../shared/api
@@ -132,9 +125,44 @@ unix {
     UI_DIR = $${OUT_PWD}/.uic
 }
 
+
+CONFIG(debug, debug|release) {
+    # Unfortunately this is ineffective on OSX, due to
+    # https://bugreports.qt.io/browse/QTBUG-39417
+    # Should use it once upstream defect resolved
+    QMAKE_CXX=$$(CCACHE_BIN) g++
+}
+
+
 linux-g++* {
     # Bail out on non-selfcontained libraries. Just a security measure
     # to prevent checking in code that does not compile on other platforms.
     QMAKE_LFLAGS += -Wl,--allow-shlib-undefined -Wl,--no-undefined
+
+    # Enable -Werror on Linux, should do this for all platforms once warnings are all eliminated
+    QMAKE_CXXFLAGS_WARN_ON += -Werror
 }
 
+win32 {
+    # http://gcc.gnu.org/bugzilla/show_bug.cgi?id=52991
+!win32-msvc*:QMAKE_CXXFLAGS += -mno-ms-bitfields
+    RELEASE_WITH_SYMBOLS {
+        QMAKE_CFLAGS_RELEASE += -Zi
+        QMAKE_CXXFLAGS_RELEASE += -Zi
+        QMAKE_LFLAGS_RELEASE += /DEBUG /OPT:REF
+    }
+}
+
+unix {
+	GEN_GCOV {
+		QMAKE_CXXFLAGS += -g -Wall -fprofile-arcs -ftest-coverage -O0
+		QMAKE_LFLAGS += -g -Wall -fprofile-arcs -ftest-coverage  -O0
+		LIBS += \
+		    -lgcov
+		unix:OBJECTS_DIR = ./Build
+		unix:MOC_DIR = ./Build
+		unix:UI_DIR = ./Build
+	}
+}
+
+CONFIG += c++11

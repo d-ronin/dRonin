@@ -30,7 +30,7 @@
 #define SPLITTERORVIEW_H
 
 #include <QWidget>
-#include <QtGui/QMouseEvent>
+#include <QMouseEvent>
 #include "uavgadgetmanager.h"
 #include "uavgadgetview.h"
 
@@ -42,10 +42,10 @@ class SplitterOrView  : public QWidget
 {
     Q_OBJECT
 public:
-    SplitterOrView(UAVGadgetManager *uavGadgetManager, Core::IUAVGadget *uavGadget = 0);
+    SplitterOrView(UAVGadgetManager *uavGadgetManager, Core::IUAVGadget *uavGadget = 0, bool restoring = false);
     ~SplitterOrView();
 
-    void split(Qt::Orientation orientation);
+    void split(Qt::Orientation orientation, bool restoring = false);
     void unsplit();
 
     inline bool isView() const { return m_view != 0; }

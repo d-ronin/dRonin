@@ -8,6 +8,7 @@
  *
  * @file       pios_sbus_priv.h
  * @author     The OpenPilot Team, http://www.openpilot.org Copyright (C) 2011.
+ * @author     Tau Labs, http://taulabs.org, Copyright (C) 2012-2014
  * @brief      Futaba S.Bus Private structures.
  * @see        The GNU Public License (GPL) Version 3
  *
@@ -49,8 +50,14 @@
  *                   0x04 - lost frame flag,
  *                   0x08 - failsafe flag,
  *                   0xf0 - reserved
- *  1 byte  - 0x00 (end of frame byte)
+ *
+ * The R7008SB receiver has four different end of frame bytes, which rotates in order:
+ *    00000100
+ *    00010100
+ *    00100100
+ *    00110100 *  1 byte  - 0x00 (end of frame byte)
  */
+
 #define SBUS_FRAME_LENGTH		(1+22+1+1)
 #define SBUS_SOF_BYTE			0x0f
 #define SBUS_EOF_BYTE			0x00
@@ -59,13 +66,9 @@
 #define SBUS_FLAG_FL			0x04
 #define SBUS_FLAG_FS			0x08
 
-/*
- * S.Bus protocol provides 16 proportional and 2 discrete channels.
- * Do not change unless driver code is updated accordingly.
- */
-#if (PIOS_SBUS_NUM_INPUTS != (16+2))
-#error "S.Bus protocol provides 16 proportional and 2 discrete channels"
-#endif
+#define SBUS_R7008SB_EOF_COUNTER_MASK 0xCF
+#define SBUS_R7008SB_EOF_BYTE         0x04
+
 
 /* Discrete channels represented as bits, provide values for them */
 #define	SBUS_VALUE_MIN			352
@@ -82,12 +85,24 @@ struct pios_sbus_cfg {
 	BitAction gpio_inv_disable;
 };
 
+/*
+ * S.Bus protocol provides 16 proportional and 2 discrete channels.
+ * Do not change unless driver code is updated accordingly.
+ */
+#ifdef PIOS_INCLUDE_SBUS
+
+#if (PIOS_SBUS_NUM_INPUTS != (16+2))
+#error "S.Bus protocol provides 16 proportional and 2 discrete channels"
+#endif
+
 extern const struct pios_rcvr_driver pios_sbus_rcvr_driver;
 
 extern int32_t PIOS_SBus_Init(uintptr_t *sbus_id,
-			      const struct pios_sbus_cfg *cfg,
 			      const struct pios_com_driver *driver,
 			      uintptr_t lower_id);
+
+
+#endif /* PIOS_INCLUDE_SBUS */
 
 #endif /* PIOS_SBUS_PRIV_H */
 

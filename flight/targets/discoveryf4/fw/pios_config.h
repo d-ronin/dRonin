@@ -6,7 +6,7 @@
  * @{
  *
  * @file       pios_config.h 
- * @author     Tau Labs, http://taulabs.org, Copyright (C) 2012-2013
+ * @author     Tau Labs, http://taulabs.org, Copyright (C) 2012-2014
  * @brief      Board specific options that modify PiOS capabilities
  * @see        The GNU Public License (GPL) Version 3
  * 
@@ -31,7 +31,8 @@
 #define PIOS_CONFIG_H
 
 /* Major features */
-#define PIOS_INCLUDE_FREERTOS
+//#define PIOS_INCLUDE_FREERTOS
+#define PIOS_INCLUDE_CHIBIOS
 #define PIOS_INCLUDE_BL_HELPER
 
 /* Enable/Disable PiOS Modules */
@@ -48,7 +49,7 @@
 /* Supported receiver interfaces */
 //#define PIOS_INCLUDE_DSM
 //#define PIOS_INCLUDE_SBUS
-//#define PIOS_INCLUDE_PPM
+#define PIOS_INCLUDE_PPM
 //#define PIOS_INCLUDE_PWM
 #define PIOS_INCLUDE_GCSRCVR
 
@@ -78,14 +79,9 @@
 #define PIOS_INCLUDE_FLASH_INTERNAL
 #define PIOS_INCLUDE_LOGFS_SETTINGS
 
-/* Other Interfaces */
-//#define PIOS_INCLUDE_I2C_ESC
-
 /* Flags that alter behaviors - mostly to lower resources for CC */
 #define PIOS_INCLUDE_INITCALL           /* Include init call structures */
 #define PIOS_TELEM_PRIORITY_QUEUE       /* Enable a priority queue in telemetry */
-//#define PIOS_QUATERNION_STABILIZATION   /* Stabilization options HEAVILY BROKEN!! */
-//#define PIOS_GPS_SETS_HOMELOCATION      /* GPS options */
 
 /* Alarm Thresholds */
 #define HEAP_LIMIT_WARNING		4000
@@ -108,8 +104,9 @@
  */
 #define IDLE_COUNTS_PER_SEC_AT_NO_LOAD (6984538)
 
-//This enables altitude hold in manualcontrol module
-//#define REVOLUTION
+#define PIOS_NO_ALARMS
+
+#define NO_SENSORS
 
 #endif /* PIOS_CONFIG_H */
 /**

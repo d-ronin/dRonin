@@ -2,6 +2,7 @@
  ******************************************************************************
  *
  * @file       icore.cpp
+ * @author     dRonin, http://dRonin.org/, Copyright (C) 2015
  * @author     The OpenPilot Team, http://www.openpilot.org Copyright (C) 2010.
  *             Parts by Nokia Corporation (qt-info@nokia.com) Copyright (C) 2009.
  * @addtogroup GCSPlugins GCS Plugins
@@ -31,7 +32,7 @@
 /*!
     \namespace Core
     \brief The Core namespace contains all classes that make up the Core plugin
-    which constitute the basic functionality of the Tau Labs GCS.
+    which constitute the basic functionality of the GCS.
 */
 
 /*!
@@ -42,7 +43,7 @@
 /*!
     \class Core::ICore
     \brief The ICore class allows access to the different part that make up
-    the basic functionality of the Tau Labs GCS.
+    the basic functionality of the GCS.
 
     You should never create a subclass of this interface. The one and only
     instance is created by the Core plugin. You can access this instance
@@ -136,17 +137,6 @@
     active document.
 */
 
-
-
-/*!
-    \fn VariableManager *ICore::variableManager() const
-    \brief Returns the application's variable manager.
-
-    The variable manager is used to register application wide string variables
-    like \c MY_PROJECT_DIR such that strings like \c{somecommand ${MY_PROJECT_DIR}/sub}
-    can be resolved/expanded from anywhere in the application.
-*/
-
 /*!
     \fn ThreadManager *ICore::threadManager() const
     \brief Returns the application's thread manager.
@@ -163,14 +153,7 @@
     The mode manager handles everything related to the instances of IMode
     that were added to the plugin manager's object pool as well as their
     buttons and the tool bar with the round buttons in the lower left
-    corner of the Tau Labs GCS.
-*/
-
-/*!
-    \fn MimeDatabase *ICore::mimeDatabase() const
-    \brief Returns the application's mime database.
-
-    Use the mime database to manage mime types.
+    corner of the GCS.
 */
 
 /*!
@@ -187,19 +170,6 @@
     If \a scope is QSettings::SystemScope, only the system settings
     shipped with the current version of Qt Creator will be read. This
     functionality exists for internal purposes only.
-
-    \see settingsDatabase()
-*/
-
-/*!
-    \fn SettingsDatabase *ICore::settingsDatabase() const
-    \brief Returns the application's settings database.
-
-    The settings database is meant as an alternative to the regular settings
-    object. It is more suitable for storing large amounts of data. The settings
-    are application wide.
-
-    \see SettingsDatabase
 */
 
 /*!
@@ -292,7 +262,7 @@
 /*!
     \fn void ICore::openFiles(const QStringList &fileNames)
     \brief Open all files from a list of \a fileNames like it would be
-    done if they were given to the Tau Labs GCS on the command line, or
+    done if they were given to the GCS on the command line, or
     they were opened via \gui{File|Open}.
 */
 

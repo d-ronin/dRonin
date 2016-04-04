@@ -5,10 +5,10 @@
  * @addtogroup RevolutionBL Revolution bootloader
  * @{
  *
- * @file       pios_config.h 
+ * @file       op_dfu.h 
  * @author     The OpenPilot Team, http://www.openpilot.org Copyright (C) 2010.
  * @author     Tau Labs, http://taulabs.org, Copyright (C) 2012-2013
- * @brief      Board specific bootloader configuration file for PiOS
+ * @brief      This file contains the DFU commands handling code
  * @see        The GNU Public License (GPL) Version 3
  *
  *****************************************************************************/
@@ -44,5 +44,7 @@
 #define PIOS_INCLUDE_FLASH
 #define PIOS_INCLUDE_FLASH_INTERNAL
 #define PIOS_INCLUDE_FLASH_JEDEC
+
+#define BOOTLOADER_PAUSE_DELAY 2
 
 #endif /* PIOS_CONFIG_H */

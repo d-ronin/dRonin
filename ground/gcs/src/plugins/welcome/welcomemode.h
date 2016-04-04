@@ -2,6 +2,7 @@
  ******************************************************************************
  *
  * @file       welcomemode.h
+ * @author     dRonin, http://dRonin.org/, Copyright (C) 2015
  * @author     The OpenPilot Team, http://www.openpilot.org Copyright (C) 2010.
  *             Parts by Nokia Corporation (qt-info@nokia.com) Copyright (C) 2009.
  * @addtogroup GCSPlugins GCS Plugins
@@ -59,16 +60,16 @@ public:
     const char *uniqueModeName() const;
     QList<int> context() const;
     void activated();
-    QString contextHelpId() const { return QLatin1String("Tau Labs GCS"); }
+    QString contextHelpId() const { return QLatin1String("dRonin GCS"); }
     void setPriority(int priority) { m_priority = priority; }
 
 public slots:
-    void openUrl(const QString &url);
     void openPage(const QString &page);
     void triggerAction(const QString &actionId);
 
 private:
     WelcomeModePrivate *m_d;
+    QWidget *m_container;
     int m_priority;
 };
 

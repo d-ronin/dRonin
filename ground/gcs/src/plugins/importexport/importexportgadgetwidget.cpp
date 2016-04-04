@@ -3,6 +3,7 @@
  *
  * @file       importexportgadgetwidget.cpp
  * @author     The OpenPilot Team, http://www.openpilot.org Copyright (C) 2010.
+ * @author     dRonin, http://dRonin.org/, Copyright (C) 2015
  * @see        The GNU Public License (GPL) Version 3
  * @brief      Widget for Import/Export Plugin
  * @addtogroup GCSPlugins GCS Plugins
@@ -200,7 +201,7 @@ void ImportExportGadgetWidget::importConfiguration(const QString& fileName)
 void ImportExportGadgetWidget::on_helpButton_clicked()
 {
     qDebug() << "Show Help";
-    QDesktopServices::openUrl(QUrl("https://github.com/TauLabs/TauLabs/wiki/OnlineHelp:-Import-Export"));
+    QDesktopServices::openUrl(QUrl("https://github.com/d-ronin/dRonin/wiki/OnlineHelp:-Import-Export"));
 }
 
 

@@ -1,0 +1,62 @@
+.\"                                      Hey, EMACS: -*- nroff -*-
+.\" First parameter, NAME, should be all caps
+.\" Second parameter, SECTION, should be 1-8, maybe w/ subsection
+.\" other parameters are allowed: see man(7), man(1)
+.TH <BRANDING_PACKAGE_MAN_NAME> 1
+.\" Please adjust this date whenever revising the manpage.
+.\"
+.\" Some roff macros, for reference:
+.\" .nh        disable hyphenation
+.\" .hy        enable hyphenation
+.\" .ad l      left justify
+.\" .ad b      justify to both left and right margins
+.\" .nf        disable filling
+.\" .fi        enable filling
+.\" .br        insert line break
+.\" .sp <n>    insert n+1 empty lines
+.\" for manpage-specific macros, see man(7)
+.SH NAME
+<BRANDING_PACKAGE_EXEC> \- The Ground Control Station Software from the dRonin project
+.SH SYNOPSIS
+.B <BRANDING_PACKAGE_EXEC>
+.RI [ options ] config_file
+.SH DESCRIPTION
+This manual page documents briefly the
+.B <BRANDING_PACKAGE_EXEC>
+commands.
+.PP
+.\" TeX users may be more comfortable with the \fB<whatever>\fP and
+.\" \fI<whatever>\fP escape sequences to invode bold face and italics,
+.\" respectively.
+\fB<BRANDING_PACKAGE_EXEC>\fP is a program that allows you to change settings on compatible flight controllers,
+create flightpaths, view controller data, create and upload picoC scripts, replay logged data, etc...
+.SH OPTIONS
+.TP
+.B \--help
+Show summary of options.
+.TP
+.B \--version
+Show version of program application and plugins.
+.TP
+.B \--override setting=value
+Overrides a configuration setting.
+.TP
+.B \--reset-config
+Resets the configuration settings file to defaults.
+.TP
+.B \--no-load plugin_name
+Skips loading of the plugin
+.TP
+.B \--plugin-option option_name=option_value
+Passes an option to the plugin.
+.TP
+.B \--test plugin_name
+Runs tests on the plugin (Requires compiling with -D WITH_TESTS).
+.TP
+.B \config_file (optional)
+Loads the configuration file instead of the default one.
+.TP
+.SH AUTHOR
+<BRANDING_PACKAGE_EXEC> was written by <BRANDING_PACKAGE_HOME_PAGE>.
+.PP
+This manual page was written by <BRANDING_PACKAGE_HOME_PAGE> <<BRANDING_PACKAGE_COPYRIGHT_EMAIL>>.

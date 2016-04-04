@@ -28,6 +28,7 @@
 #define BL_MESSAGES_H_
 
 #include <stdint.h>		/* uint*_t */
+#define BL_INCLUDE_CAP_EXTENSIONS
 
 /* Note:
  *   Writes are from PC -> FC
@@ -82,6 +83,7 @@ enum dfu_partition_label {
 	DFU_PARTITION_BL,
 	DFU_PARTITION_SETTINGS,
 	DFU_PARTITION_WAYPOINTS,
+	DFU_PARTITION_LOG,
 } __attribute__((packed));
 
 #pragma pack(push)  /* push current alignment to stack */

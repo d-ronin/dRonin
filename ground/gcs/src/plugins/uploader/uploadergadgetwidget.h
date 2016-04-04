@@ -2,12 +2,13 @@
  ******************************************************************************
  *
  * @file       uploadergadgetwidget.h
- * @author     The OpenPilot Team, http://www.openpilot.org Copyright (C) 2010.
+ * @author     dRonin, http://dRonin.org/, Copyright (C) 2016
+ * @author     Tau Labs, http://taulabs.org, Copyright (C) 2014
  * @addtogroup GCSPlugins GCS Plugins
  * @{
- * @addtogroup YModemUploader YModem Serial Uploader Plugin
+ * @addtogroup  Uploader Uploader Plugin
  * @{
- * @brief The YModem protocol serial uploader plugin
+ * @brief The Tau Labs uploader plugin main widget
  *****************************************************************************/
 /*
  * This program is free software; you can redistribute it and/or modify
@@ -23,95 +24,127 @@
  * You should have received a copy of the GNU General Public License along
  * with this program; if not, write to the Free Software Foundation, Inc.,
  * 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
+ *
+ * Additional note on redistribution: The copyright and license notices above
+ * must be maintained in each individual source file that is a derivative work
+ * of this source file; otherwise redistribution is prohibited.
  */
 
 #ifndef UPLOADERGADGETWIDGET_H
 #define UPLOADERGADGETWIDGET_H
 
+#include <QPointer>
+#include <QNetworkAccessManager>
 #include "ui_uploader.h"
-#include "delay.h"
-#include "devicewidget.h"
-#include "runningdevicewidget.h"
-#include "op_dfu.h"
-#include <qextserialport.h>
-#include <qextserialenumerator.h>
-
-
-#include "uavtalk/telemetrymanager.h"
-#include "extensionsystem/pluginmanager.h"
-#include "uavobjectmanager.h"
-#include "uavobject.h"
-
-#include "coreplugin/icore.h"
-#include "coreplugin/connectionmanager.h"
-
-#include "rawhid/rawhidplugin.h"
-#include <QtGui/QWidget>
-#include <QLabel>
-#include <QLineEdit>
-#include <QThread>
-#include <QMessageBox>
-#include <QTimer>
-#include "devicedescriptorstruct.h"
-#include <QProgressDialog>
-#include <QErrorMessage>
-#include <QDesktopServices>
+#include "tl_dfu.h"
+#include <coreplugin/iboardtype.h>
 #include "uploader_global.h"
-#include "enums.h"
-using namespace OP_DFU;
-using namespace uploader;
+#include "devicedescriptorstruct.h"
+#include "uavobjectutilmanager.h"
+#include "uavtalk/telemetrymanager.h"
+#include "coreplugin/connectionmanager.h"
+#include "uavsettingsimportexport/uavsettingsimportexportmanager.h"
+#include "upgradeassistantdialog.h"
+
+using namespace tl_dfu;
+
+namespace uploader {
+
+typedef enum { STATUSICON_OK, STATUSICON_RUNNING, STATUSICON_FAIL, STATUSICON_INFO} StatusIcon;
 
 class UPLOADER_EXPORT UploaderGadgetWidget : public QWidget
 {
     Q_OBJECT
 
-
 public:
     UploaderGadgetWidget(QWidget *parent = 0);
-   ~UploaderGadgetWidget();
-    void log(QString str);
-    bool autoUpdateCapable();
+    ~UploaderGadgetWidget();
 public slots:
+signals:
+    void newBoardSeen(deviceInfo board, deviceDescriptorStruct device);
+    void enteredLoader();
+private slots:
     void onAutopilotConnect();
     void onAutopilotDisconnect();
-    void populate();
+    void onAutopilotReady();
+    void onIAPUpdated();
+    void onLoadFirmwareButtonClick();
+    void onFlashButtonClick();
+    void onRescueButtonClick();
+    void onExportButtonClick();
+    void onBootloaderDetected();
+    void onBootloaderRemoved();
+    void onRescueTimer(bool start = false);
+    void onStatusUpdate(QString, int);
+    void onPartitionSave();
+    void onPartitionFlash();
+    void onPartitionErase();
+    void onBootButtonClick();
     void openHelp();
-    bool autoUpdate();
-    void autoUpdateProgress(int);
-signals:
-    void autoUpdateSignal(uploader::AutoUpdateStep,QVariant);
 private:
-     Ui_UploaderWidget *m_config;
-     DFUObject *dfu;
-     IAPStep currentStep;
-     bool resetOnly;
-     void clearLog();
-     QString getPortDevice(const QString &friendName);
-     QProgressDialog* m_progress;
-     QTimer* m_timer;
-     QLineEdit* openFileNameLE;
-     QEventLoop m_eventloop;
-     QErrorMessage * msg;
-     void connectSignalSlot(QWidget * widget);
-     int autoUpdateConnectTimeout;
-private slots:
-    void onPhisicalHWConnect();
-    void versionMatchCheck();
-    void error(QString errorString,int errorNumber);
-    void info(QString infoString,int infoNumber);
-    void goToBootloader(UAVObject* = NULL, bool = false);
-    void systemReset();
-    void systemBoot();
-    void systemSafeBoot();
-    void commonSystemBoot(bool = false);
-    void systemRescue();
-    void getSerialPorts();
-    void perform();
-    void performAuto();
-    void cancel();
-    void uploadStarted();
-    void uploadEnded(bool succeed);
+    void FirmwareOnDeviceClear(bool clear);
+    void FirmwareLoadedClear(bool clear);
+    void PartitionBrowserClear();
+    void DeviceInformationClear();
+    void DeviceInformationUpdate(deviceInfo board);
+    void FirmwareOnDeviceUpdate(deviceDescriptorStruct firmware, QString crc);
+    void FirmwareLoadedUpdate(QByteArray firmwareArray);
+    QString LoadFirmwareFileDialog(QString);
+    uploader::UploaderStatus getUploaderStatus() const;
+    void setUploaderStatus(const uploader::UploaderStatus &value);
+    void CheckAutopilotReady();
+    bool CheckInBootloaderState();
+    /* XXX TODO: make capitalization consistent */
+    void setStatusInfo(QString str, uploader::StatusIcon ic);
+    QString getImagePath(QString boardName, QString imageType = QString("fw"));
+    bool FirmwareLoadFromFile(QString filename, QByteArray *contents);
+    bool FirmwareCheckForUpdate(deviceDescriptorStruct device);
+    void triggerPartitionDownload(int index);
+    void haltOrReset(bool halting);
+    bool tradeSettingsWithCloud(QString srcRelease, bool upgrading = false,
+            QByteArray *settingsOut = NULL);
+    int isCloudReleaseAvailable(QString srcRelease);
 
+    bool saveSettings(const QByteArray &settingsDump);
+
+    bool askIfShouldContinue();
+    bool downloadSettings();
+    void stepChangeAndDelay(QEventLoop &loop, int delayMs,
+                    UpgradeAssistantDialog::UpgradeAssistantStep step);
+    void doUpgradeOperation(bool blankFC,  tl_dfu::device &dev);
+    void upgradeError(QString why);
+    bool flashFirmware(QByteArray &firmwareImage);
+    bool haveSettingsPart() const;
+
+    Ui_UploaderWidget *m_widget;
+
+    UpgradeAssistantDialog m_dialog;
+
+    bool telemetryConnected;
+    bool iapUpdated;
+
+    QByteArray loadedFile;
+    QByteArray settingsDump;
+
+    DFUObject dfu;
+    USBSignalFilter *usbFilterBL;
+    USBSignalFilter *usbFilterUP;
+    ExtensionSystem::PluginManager *pm;
+    TelemetryManager *telMngr;
+    UAVObjectUtilManager *utilMngr;
+    Core::ConnectionManager *conMngr;
+    QNetworkAccessManager *netMngr;
+    UAVSettingsImportExportManager *importMngr;
+
+    FirmwareIAPObj* firmwareIap;
+    deviceInfo currentBoard;
+    QString ignoredRev;
+
+    uploader::UploaderStatus uploaderStatus;
+    QByteArray tempArray;
+
+    const QString exportUrl = QString("http://dronin-autotown.appspot.com/convert");
+    const QString hasRevUrl = QString("http://dronin-autotown.appspot.com/uavos/%1");
 };
-
+}
 #endif // UPLOADERGADGETWIDGET_H

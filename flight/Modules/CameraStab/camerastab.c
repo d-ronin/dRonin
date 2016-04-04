@@ -7,7 +7,8 @@
  *
  * @file       camerastab.c
  * @author     The OpenPilot Team, http://www.openpilot.org Copyright (C) 2010.
- * @author     Tau Labs, http://taulabs.org, Copyright (C) 2012-2013
+ * @author     Tau Labs, http://taulabs.org, Copyright (C) 2012-2014
+ * @author     dRonin, http://dronin.org Copyright (C) 2015
  * @brief      Stabilize camera against the roll pitch and yaw of aircraft
  *
  * @see        The GNU Public License (GPL) Version 3
@@ -44,6 +45,8 @@
 #include "openpilot.h"
 #include "misc_math.h"
 #include "physical_constants.h"
+#include "pios_thread.h"
+#include "pios_can.h"
 
 #include "accessorydesired.h"
 #include "attitudeactual.h"
@@ -67,7 +70,7 @@ enum {ROLL,PITCH,YAW,MAX_AXES};
 
 // Private variables
 static struct CameraStab_data {
-	portTickType lastSysTime;
+	uint32_t lastSysTime;
 	uint8_t AttitudeFilter;
 	float attitude_filtered[MAX_AXES];
 	float inputs[CAMERASTABSETTINGS_INPUT_NUMELEM];
@@ -78,25 +81,26 @@ static struct CameraStab_data {
 } *csd;
 
 // Private functions
-static void attitudeUpdated(UAVObjEvent* ev);
-static void settings_updated_cb(UAVObjEvent * ev);
+static void attitudeUpdated(UAVObjEvent* ev, void *ctx, void *obj, int len);
+static void settings_updated_cb(UAVObjEvent * ev, void *ctx, void *obj, int len);
 static void applyFF(uint8_t index, float dT_ms, float *attitude, CameraStabSettingsData* cameraStab);
+static void gimbal_can_message();
 
 #if defined(CAMERASTAB_POI_MODE)
-static void tablet_info_flag_update(UAVObjEvent * ev);
+static void tablet_info_flag_update(UAVObjEvent * ev, void *ctx, void *obj, int len);
 static void tablet_info_process();
 static bool tablet_info_updated = false;
 #endif /* CAMERASTAB_POI_MODE */
 
 // Private variables
-static bool module_enabled;
+
 /**
  * Initialise the module, called on startup
  * \returns 0 on success or -1 if initialisation failed
  */
 int32_t CameraStabInitialize(void)
 {
-	module_enabled = false;
+	bool module_enabled = false;
 
 #ifdef MODULE_CameraStab_BUILTIN
 	module_enabled = true;
@@ -110,10 +114,12 @@ int32_t CameraStabInitialize(void)
 	}
 #endif
 
+	CameraStabSettingsInitialize();
+
 	if (module_enabled) {
 
 		// allocate and initialize the static data storage only if module is enabled
-		csd = (struct CameraStab_data *) pvPortMalloc(sizeof(struct CameraStab_data));
+		csd = (struct CameraStab_data *) PIOS_malloc(sizeof(struct CameraStab_data));
 		if (csd == NULL) {
 			module_enabled = false;
 			return -1;
@@ -121,26 +127,18 @@ int32_t CameraStabInitialize(void)
 
 		// make sure that all inputs[] are zeroed
 		memset(csd, 0, sizeof(struct CameraStab_data));
-		csd->lastSysTime = xTaskGetTickCount() - MS2TICKS(SAMPLE_PERIOD_MS);
+		csd->lastSysTime = PIOS_Thread_Systime() - SAMPLE_PERIOD_MS;
 
 		AttitudeActualInitialize();
-		CameraStabSettingsInitialize();
 		CameraDesiredInitialize();
 
 		CameraStabSettingsConnectCallback(settings_updated_cb);
-		settings_updated_cb(NULL);
+		settings_updated_cb(NULL, NULL, NULL, 0);
 #if defined(CAMERASTAB_POI_MODE)
 		PoiLocationInitialize();
 		TabletInfoInitialize();
 		TabletInfoConnectCallback(tablet_info_flag_update);
 #endif /* CAMERASTAB_POI_MODE */
-
-		UAVObjEvent ev = {
-			.obj = AttitudeActualHandle(),
-			.instId = 0,
-			.event = 0,
-		};
-		EventPeriodicCallbackCreate(&ev, attitudeUpdated, MS2TICKS(SAMPLE_PERIOD_MS));
 
 		return 0;
 	}
@@ -151,6 +149,18 @@ int32_t CameraStabInitialize(void)
 /* stub: module has no module thread */
 int32_t CameraStabStart(void)
 {
+	if (csd == NULL) {
+		return -1;
+	}
+
+	// Schedule periodic task to process attitude
+	UAVObjEvent ev = {
+		.obj = AttitudeActualHandle(),
+		.instId = 0,
+		.event = 0,
+	};
+	EventPeriodicCallbackCreate(&ev, attitudeUpdated, SAMPLE_PERIOD_MS);
+
 	return 0;
 }
 
@@ -160,8 +170,9 @@ MODULE_INITCALL(CameraStabInitialize, CameraStabStart)
  * Periodic callback that processes changes in the attitude
  * and recalculates the desied gimbal angle.
  */
-static void attitudeUpdated(UAVObjEvent* ev)
+static void attitudeUpdated(UAVObjEvent* ev, void *ctx, void *obj, int len)
 {	
+	(void) ev; (void) ctx; (void) obj; (void) len;
 	if (ev->obj != AttitudeActualHandle())
 		return;
 
@@ -170,8 +181,8 @@ static void attitudeUpdated(UAVObjEvent* ev)
 	CameraStabSettingsData *settings = &csd->settings;
 
 	// Check how long since last update, time delta between calls in ms
-	portTickType thisSysTime = xTaskGetTickCount();
-	float dT_ms = TICKS2MS(thisSysTime - csd->lastSysTime);
+	uint32_t thisSysTime = PIOS_Thread_Systime();
+	float dT_ms = thisSysTime - csd->lastSysTime;
 	csd->lastSysTime = thisSysTime;
 
 	if (dT_ms <= 0)
@@ -231,7 +242,8 @@ static void attitudeUpdated(UAVObjEvent* ev)
 		}
 #if defined(CAMERASTAB_POI_MODE)		
 		else if (settings->Input[i] == CAMERASTABSETTINGS_INPUT_POI) {
-			// Process any updates of the tablet location
+			// Process any updates of the tablet location if it wants to
+			// be the POI
 			tablet_info_process();
 
 			PositionActualData positionActual;
@@ -252,9 +264,6 @@ static void attitudeUpdated(UAVObjEvent* ev)
 			if (yaw < 0.0f)
 				yaw += 360.0f;
 
-			// Store the absolute declination relative to UAV
-			CameraDesiredDeclinationSet(&pitch);
-
 			// Only try and track objects more than 2 m away
 			if (distance > 2) {
 				switch (i) {
@@ -262,7 +271,8 @@ static void attitudeUpdated(UAVObjEvent* ev)
 					// Does not make sense to use position to control yaw
 					break;
 				case CAMERASTABSETTINGS_INPUT_PITCH:
-					// Sign for declination is opposite of the sign for pitch used below
+					// Store the absolute declination relative to UAV
+					CameraDesiredDeclinationSet(&pitch);
 					csd->inputs[CAMERASTABSETTINGS_INPUT_PITCH] = -pitch;
 					break;
 				case CAMERASTABSETTINGS_INPUT_YAW:
@@ -279,7 +289,7 @@ static void attitudeUpdated(UAVObjEvent* ev)
 
 		// Set output channels
 		output = bound_sym((attitude + csd->inputs[i]) / settings->OutputRange[i], 1.0f);
-		if (TICKS2MS(thisSysTime) > LOAD_DELAY) {
+		if (thisSysTime > LOAD_DELAY) {
 			switch (i) {
 			case ROLL:
 				CameraDesiredRollSet(&output);
@@ -293,6 +303,9 @@ static void attitudeUpdated(UAVObjEvent* ev)
 			}
 		}
 	}
+
+	// Send a message over CAN, if include
+	gimbal_can_message();
 }
 
 /**
@@ -334,8 +347,10 @@ static void applyFF(uint8_t index, float dT_ms, float *attitude, CameraStabSetti
  * Called when the settings are updated to store a local copy
  * @param[in] ev The update event
  */
-static void settings_updated_cb(UAVObjEvent * ev)
+static void settings_updated_cb(UAVObjEvent * ev, void *ctx, void *obj, int len)
 {
+	(void) ev; (void) ctx; (void) obj; (void) len;
+
 	CameraStabSettingsGet(&csd->settings);
 }
 
@@ -344,8 +359,10 @@ static void settings_updated_cb(UAVObjEvent * ev)
  * When the tablet info changes update the POI location to match
  * the current tablet location
  */
-static void tablet_info_flag_update(UAVObjEvent * ev)
+static void tablet_info_flag_update(UAVObjEvent * ev, void *ctx, void *obj, int len)
 {
+	(void) ev; (void) ctx; (void) obj; (void) len;
+
 	if (ev->obj == NULL || ev->obj != TabletInfoHandle())
 		return;
 
@@ -364,34 +381,66 @@ static void tablet_info_process() {
 
 	TabletInfoData tablet;
 	TabletInfoGet(&tablet);
-	if (tablet.TabletModeDesired != TABLETINFO_TABLETMODEDESIRED_CAMERAPOI)
-		return;
+	if (tablet.Connected == TABLETINFO_CONNECTED_TRUE && tablet.POI == TABLETINFO_POI_TRUE)
+	{
+		HomeLocationData homeLocation;
+		HomeLocationGet(&homeLocation);
 
-	HomeLocationData homeLocation;
-	HomeLocationGet(&homeLocation);
+		PoiLocationData poi;
 
-	PoiLocationData poi;
+		float lat, alt;
+		lat = homeLocation.Latitude / 10.0e6f * DEG2RAD;
+		alt = homeLocation.Altitude;
 
-	float lat, alt;
-	lat = homeLocation.Latitude / 10.0e6f * DEG2RAD;
-	alt = homeLocation.Altitude;
+		float T[3];
+		T[0] = alt+6.378137E6f;
+		T[1] = cosf(lat)*(alt+6.378137E6f);
+		T[2] = -1.0f;
 
-	float T[3];
-	T[0] = alt+6.378137E6f;
-	T[1] = cosf(lat)*(alt+6.378137E6f);
-	T[2] = -1.0f;
+		float dL[3] = {(tablet.Latitude - homeLocation.Latitude) / 10.0e6f * DEG2RAD,
+			(tablet.Longitude - homeLocation.Longitude) / 10.0e6f * DEG2RAD,
+			(tablet.Altitude)};
 
-	float dL[3] = {(tablet.Latitude - homeLocation.Latitude) / 10.0e6f * DEG2RAD,
-		(tablet.Longitude - homeLocation.Longitude) / 10.0e6f * DEG2RAD,
-		(tablet.Altitude - homeLocation.Altitude)};
-
-	poi.North = T[0] * dL[0];
-	poi.East = T[1] * dL[1];
-	poi.Down = T[2] * dL[2];
-	PoiLocationSet(&poi);
+		poi.North = T[0] * dL[0];
+		poi.East = T[1] * dL[1];
+		poi.Down = T[2] * dL[2];
+		PoiLocationSet(&poi);
+	}
 }
 
 #endif /* CAMERASTAB_POI_MODE */
+
+
+#if defined(PIOS_INCLUDE_CAN)
+extern uintptr_t pios_can_id;
+#endif /* PIOS_INCLUDE_CAN */
+
+/**
+ * Relay control messages to an external gimbal
+ */
+static void gimbal_can_message()
+{
+#if defined(PIOS_INCLUDE_CAN)
+	AttitudeActualData attitude;
+	AttitudeActualGet(&attitude);
+
+	CameraDesiredData cameraDesired;
+	CameraDesiredGet(&cameraDesired);
+
+	struct pios_can_gimbal_message bgc_message = {
+		.fc_roll = attitude.Roll,
+		.fc_pitch = attitude.Pitch,
+		.fc_yaw = attitude.Yaw,
+		.setpoint_roll = 0,
+		.setpoint_pitch = cameraDesired.Declination,
+		.setpoint_yaw = cameraDesired.Bearing
+	};
+
+	PIOS_CAN_TxData(pios_can_id, PIOS_CAN_GIMBAL, (uint8_t *) &bgc_message);
+#endif /* PIOS_INCLUDE_CAN */
+}
+
+
 /**
  * @}
  * @}

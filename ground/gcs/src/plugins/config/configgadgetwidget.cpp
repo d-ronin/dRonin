@@ -3,7 +3,8 @@
  *
  * @file       configgadgetwidget.cpp
  * @author     E. Lafargue & The OpenPilot Team, http://www.openpilot.org Copyright (C) 2010.
- * @author     Tau Labs, http://taulabs.org, Copyright (C) 2013
+ * @author     Tau Labs, http://taulabs.org, Copyright (C) 2013-2014
+ * @author     dRonin, http://dronin.org Copyright (C) 2015-2016
  * @addtogroup GCSPlugins GCS Plugins
  * @{
  * @addtogroup ConfigPlugin Config Plugin
@@ -24,6 +25,10 @@
  * You should have received a copy of the GNU General Public License along
  * with this program; if not, write to the Free Software Foundation, Inc.,
  * 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
+ *
+ * Additional note on redistribution: The copyright and license notices above
+ * must be maintained in each individual source file that is a derivative work
+ * of this source file; otherwise redistribution is prohibited.
  */
 
 #include "configgadgetwidget.h"
@@ -32,23 +37,22 @@
 #include "configinputwidget.h"
 #include "configoutputwidget.h"
 #include "configstabilizationwidget.h"
+#include "configosdwidget.h"
 #include "configmodulewidget.h"
 #include "configautotunewidget.h"
 #include "configcamerastabilizationwidget.h"
 #include "configtxpidwidget.h"
-#include "config_cc_hw_widget.h"
-#include "configpipxtremewidget.h"
 #include "configattitudewidget.h"
 #include "defaulthwsettingswidget.h"
 #include "uavobjectutilmanager.h"
 
 #include <QDebug>
 #include <QStringList>
-#include <QtGui/QWidget>
-#include <QtGui/QTextEdit>
-#include <QtGui/QVBoxLayout>
-#include <QtGui/QPushButton>
-
+#include <QWidget>
+#include <QTextEdit>
+#include <QVBoxLayout>
+#include <QPushButton>
+#include <QTimer>
 
 
 ConfigGadgetWidget::ConfigGadgetWidget(QWidget *parent) : QWidget(parent)
@@ -63,70 +67,117 @@ ConfigGadgetWidget::ConfigGadgetWidget(QWidget *parent) : QWidget(parent)
     layout->addWidget(ftw);
     setLayout(layout);
 
-    // *********************
+    help = 0;
+    chunk = 0;
+    lastTabIndex = ConfigGadgetWidget::hardware;
+
+    QTimer::singleShot(500, this, SLOT(deferredLoader()));
+}
+
+void ConfigGadgetWidget::deferredLoader()
+{
+    QIcon *icon;
     QWidget *qwd;
 
-    QIcon *icon = new QIcon();
+    switch (chunk) {
+	case 0:
+    // *********************
+    icon = new QIcon();
     icon->addFile(":/configgadget/images/hardware_normal.png", QSize(), QIcon::Normal, QIcon::Off);
     icon->addFile(":/configgadget/images/hardware_selected.png", QSize(), QIcon::Selected, QIcon::Off);
-    qwd = new DefaultHwSettingsWidget(this, false);
-    ftw->insertTab(ConfigGadgetWidget::hardware, qwd, *icon, QString("Board"));
+    qwd = new QLabel(tr("<p>No recognized board detected. Hardware tab will refresh once a known board is detected.</p>"), this);
+    qobject_cast<QLabel *>(qwd)->setWordWrap(true);
+    ftw->insertTab(ConfigGadgetWidget::hardware, qwd, *icon, QString(tr("Hardware")));
+    break;
 
+	case 1:
+    ftw->setCurrentIndex(ConfigGadgetWidget::hardware);
+    break;
+
+	case 2:
     icon = new QIcon();
     icon->addFile(":/configgadget/images/vehicle_normal.png", QSize(), QIcon::Normal, QIcon::Off);
     icon->addFile(":/configgadget/images/vehicle_selected.png", QSize(), QIcon::Selected, QIcon::Off);
     qwd = new ConfigVehicleTypeWidget(this);
     ftw->insertTab(ConfigGadgetWidget::aircraft, qwd, *icon, QString("Vehicle"));
+    break;
 
+        case 3:
     icon = new QIcon();
     icon->addFile(":/configgadget/images/input_normal.png", QSize(), QIcon::Normal, QIcon::Off);
     icon->addFile(":/configgadget/images/input_selected.png", QSize(), QIcon::Selected, QIcon::Off);
     qwd = new ConfigInputWidget(this);
     ftw->insertTab(ConfigGadgetWidget::input, qwd, *icon, QString("Input"));
+    break;
 
+	case 4:
     icon = new QIcon();
     icon->addFile(":/configgadget/images/output_normal.png", QSize(), QIcon::Normal, QIcon::Off);
     icon->addFile(":/configgadget/images/output_selected.png", QSize(), QIcon::Selected, QIcon::Off);
     qwd = new ConfigOutputWidget(this);
     ftw->insertTab(ConfigGadgetWidget::output, qwd, *icon, QString("Output"));
+    break;
 
+	case 5:
     icon = new QIcon();
     icon->addFile(":/configgadget/images/ins_normal.png", QSize(), QIcon::Normal, QIcon::Off);
     icon->addFile(":/configgadget/images/ins_selected.png", QSize(), QIcon::Selected, QIcon::Off);
     qwd = new ConfigAttitudeWidget(this);
     ftw->insertTab(ConfigGadgetWidget::sensors, qwd, *icon, QString("Attitude"));
+    break;
 
+	case 6:
     icon = new QIcon();
     icon->addFile(":/configgadget/images/stabilization_normal.png", QSize(), QIcon::Normal, QIcon::Off);
     icon->addFile(":/configgadget/images/stabilization_selected.png", QSize(), QIcon::Selected, QIcon::Off);
     qwd = new ConfigStabilizationWidget(this);
     ftw->insertTab(ConfigGadgetWidget::stabilization, qwd, *icon, QString("Stabilization"));
+    break;
 
+	case 7:
     icon = new QIcon();
-    icon->addFile(":/configgadget/images/autotune_normal.png", QSize(), QIcon::Normal, QIcon::Off);
-    icon->addFile(":/configgadget/images/autotune_selected.png", QSize(), QIcon::Selected, QIcon::Off);
+    icon->addFile(":/configgadget/images/modules_normal.png", QSize(), QIcon::Normal, QIcon::Off);
+    icon->addFile(":/configgadget/images/modules_selected.png", QSize(), QIcon::Selected, QIcon::Off);
     qwd = new ConfigModuleWidget(this);
     ftw->insertTab(ConfigGadgetWidget::modules, qwd, *icon, QString("Modules"));
+    break;
 
+	case 8:
     icon = new QIcon();
     icon->addFile(":/configgadget/images/autotune_normal.png", QSize(), QIcon::Normal, QIcon::Off);
     icon->addFile(":/configgadget/images/autotune_selected.png", QSize(), QIcon::Selected, QIcon::Off);
     qwd = new ConfigAutotuneWidget(this);
     ftw->insertTab(ConfigGadgetWidget::autotune, qwd, *icon, QString("Autotune"));
+    break;
 
+	case 9:
     icon = new QIcon();
     icon->addFile(":/configgadget/images/camstab_normal.png", QSize(), QIcon::Normal, QIcon::Off);
     icon->addFile(":/configgadget/images/camstab_selected.png", QSize(), QIcon::Selected, QIcon::Off);
     qwd = new ConfigCameraStabilizationWidget(this);
     ftw->insertTab(ConfigGadgetWidget::camerastabilization, qwd, *icon, QString("Camera Stab"));
+    break;
 
+	case 10:
     icon = new QIcon();
     icon->addFile(":/configgadget/images/txpid_normal.png", QSize(), QIcon::Normal, QIcon::Off);
     icon->addFile(":/configgadget/images/txpid_selected.png", QSize(), QIcon::Selected, QIcon::Off);
     qwd = new ConfigTxPIDWidget(this);
     ftw->insertTab(ConfigGadgetWidget::txpid, qwd, *icon, QString("TxPID"));
+    break;
 
-    ftw->setCurrentIndex(ConfigGadgetWidget::hardware);
+	case 11:
+    icon = new QIcon();
+    icon->addFile(":/configgadget/images/osd_normal.png", QSize(), QIcon::Normal, QIcon::Off);
+    icon->addFile(":/configgadget/images/osd_selected.png", QSize(), QIcon::Selected, QIcon::Off);
+    qwd = new ConfigOsdWidget(this);
+    ftw->insertTab(ConfigGadgetWidget::osd, qwd, *icon, QString("OSD"));
+    // Hide OSD if not applicable, else show
+    ftw->setHidden(ConfigGadgetWidget::osd, true);
+    break;
+
+        case 12:
+	default:
     // *********************
     // Listen to autopilot connection events
 
@@ -140,22 +191,24 @@ ConfigGadgetWidget::ConfigGadgetWidget(QWidget *parent) : QWidget(parent)
         onAutopilotConnect();    
     }
 
-    help = 0;
     connect(ftw,SIGNAL(currentAboutToShow(int,bool*)),this,SLOT(tabAboutToChange(int,bool*)));//,Qt::BlockingQueuedConnection);
-
-    // Connect to the PipXStatus object updates
-    UAVObjectManager *objManager = pm->getObject<UAVObjectManager>();
-    oplinkStatusObj = dynamic_cast<UAVDataObject*>(objManager->getObject("OPLinkStatus"));
-    if (oplinkStatusObj != NULL ) {
-        connect(oplinkStatusObj, SIGNAL(objectUpdated(UAVObject*)), this, SLOT(updateOPLinkStatus(UAVObject*)));
-    } else {
-	qDebug() << "Error: Object is unknown (OPLinkStatus).";
+    return;
     }
 
-    // Create the timer that is used to timeout the connection to the OPLink.
-    oplinkTimeout = new QTimer(this);
-    connect(oplinkTimeout, SIGNAL(timeout()), this, SLOT(onOPLinkDisconnect()));
-    oplinkConnected = false;
+    chunk++;
+
+    QTimer::singleShot(0, this, SLOT(deferredLoader()));
+}
+
+void ConfigGadgetWidget::paintEvent(QPaintEvent *event)
+{
+    (void) event;
+
+    if (chunk < 12) {
+	// jumpstart loading.
+        deferredLoader();
+        deferredLoader();
+    }
 }
 
 ConfigGadgetWidget::~ConfigGadgetWidget()
@@ -177,13 +230,16 @@ void ConfigGadgetWidget::resizeEvent(QResizeEvent *event)
 }
 
 void ConfigGadgetWidget::onAutopilotDisconnect() {
+    lastTabIndex = ftw->currentIndex();
+
     ftw->setCurrentIndex(ConfigGadgetWidget::hardware);
     ftw->removeTab(ConfigGadgetWidget::hardware);
 
     QIcon *icon = new QIcon();
     icon->addFile(":/configgadget/images/hardware_normal.png", QSize(), QIcon::Normal, QIcon::Off);
     icon->addFile(":/configgadget/images/hardware_selected.png", QSize(), QIcon::Selected, QIcon::Off);
-    QWidget *qwd = new DefaultHwSettingsWidget(this, false);
+    QLabel *qwd = new QLabel(tr("<p>No recognized board detected. Hardware tab will refresh once a known board is detected.</p>"), this);
+    qwd->setWordWrap(true);
     ftw->insertTab(ConfigGadgetWidget::hardware, qwd, *icon, QString("Hardware"));
     ftw->setCurrentIndex(ConfigGadgetWidget::hardware);
 
@@ -195,36 +251,57 @@ void ConfigGadgetWidget::onAutopilotConnect() {
     QIcon* icon;
     QWidget* qwd;
 
-    qDebug()<<"ConfigGadgetWidget onAutopilotConnect";
+    bool hasOSD = false;
+
+    int index = ftw->currentIndex();
+
+    if (index != ConfigGadgetWidget::hardware) {
+        lastTabIndex = index;
+    }
+
     // First of all, check what Board type we are talking to, and
     // if necessary, remove/add tabs in the config gadget:
     ExtensionSystem::PluginManager *pm = ExtensionSystem::PluginManager::instance();
     UAVObjectUtilManager* utilMngr = pm->getObject<UAVObjectUtilManager>();
     if (utilMngr) {
-        int board = utilMngr->getBoardModel();
-        if ((board & 0xff00) == 1024) {
-            // CopterControl family
-            ftw->setCurrentIndex(ConfigGadgetWidget::hardware);
+        ftw->setCurrentIndex(ConfigGadgetWidget::hardware);
+        ftw->removeTab(ConfigGadgetWidget::hardware);
 
-            // Delete the current hardware panel, replace with CopterControl/CC3D hardware configuration
-            ftw->removeTab(ConfigGadgetWidget::hardware);
-            icon = new QIcon();
-            icon->addFile(":/configgadget/images/hardware_normal.png", QSize(), QIcon::Normal, QIcon::Off);
-            icon->addFile(":/configgadget/images/hardware_selected.png", QSize(), QIcon::Selected, QIcon::Off);
-            qwd = new ConfigCCHWWidget(this);
-            ftw->insertTab(ConfigGadgetWidget::hardware, qwd, *icon, QString("Hardware"));
-            ftw->setCurrentIndex(ConfigGadgetWidget::hardware);
-        } else {
-            // Non-CopterControl family
-            ftw->setCurrentIndex(ConfigGadgetWidget::hardware);
-            ftw->removeTab(ConfigGadgetWidget::hardware);
-            QIcon *icon = new QIcon();
-            icon->addFile(":/configgadget/images/hardware_normal.png", QSize(), QIcon::Normal, QIcon::Off);
-            icon->addFile(":/configgadget/images/hardware_selected.png", QSize(), QIcon::Normal, QIcon::On);
-            QWidget *qwd = new DefaultHwSettingsWidget(this, true);
-            ftw->insertTab(ConfigGadgetWidget::hardware, qwd, *icon, QString("Hardware"));
-            ftw->setCurrentIndex(ConfigGadgetWidget::hardware);
+        // If the board provides a custom configuration widget then use it,
+        // otherwise use the default which populates the fields from the
+        // hardware UAVO
+        bool valid_board = false;
+        Core::IBoardType *board = utilMngr->getBoardType();
+        if (board) {
+            qwd = board->getBoardConfiguration();
+            if (qwd) {
+                valid_board = true;
+            } else {
+                UAVObject *settingsObj = utilMngr->getObjectManager()->getObject(board->getHwUAVO());
+                if (settingsObj) {
+                    qwd = new DefaultHwSettingsWidget(settingsObj, this);
+                    valid_board = true;
+                }
+            }
+
+            if (board->queryCapabilities(Core::IBoardType::BOARD_CAPABILITIES_OSD)) {
+                hasOSD = true;
+            } else if (lastTabIndex == ConfigGadgetWidget::osd) {
+                lastTabIndex = ConfigGadgetWidget::hardware;
+            }
         }
+
+        if (!valid_board) {
+            QLabel *txt = new QLabel(tr("<p>Board detected, but of unknown type. This could be because either your GCS or firmware is out of date.</p>"), this);
+            txt->setWordWrap(true);
+            qwd = txt;
+        }
+
+        icon = new QIcon();
+        icon->addFile(":/configgadget/images/hardware_normal.png", QSize(), QIcon::Normal, QIcon::Off);
+        icon->addFile(":/configgadget/images/hardware_selected.png", QSize(), QIcon::Selected, QIcon::Off);
+        ftw->insertTab(ConfigGadgetWidget::hardware, qwd, *icon, QString(tr("Hardware")));
+        ftw->setCurrentIndex(ConfigGadgetWidget::hardware);
     }
 
     //! Remove and recreate the attitude widget to refresh board capabilities
@@ -235,7 +312,17 @@ void ConfigGadgetWidget::onAutopilotConnect() {
     qwd = new ConfigAttitudeWidget(this);
     ftw->insertTab(ConfigGadgetWidget::sensors, qwd, *icon, QString("Attitude"));
 
+    // Hide OSD if not applicable, else show
+    ftw->setHidden(ConfigGadgetWidget::osd, !hasOSD);
+
+    ftw->setCurrentIndex(lastTabIndex);
+
     emit autopilotConnected();
+}
+
+void ConfigGadgetWidget::changeTab(int i)
+{
+    ftw->setCurrentIndex(i);
 }
 
 void ConfigGadgetWidget::tabAboutToChange(int i, bool * proceed)
@@ -247,11 +334,10 @@ void ConfigGadgetWidget::tabAboutToChange(int i, bool * proceed)
         return;
     }
 
-    // Check if widget is dirty (i.e. has unsaved changes), and if it does, then check if
-    // either an autopilot or a PipX/OPLink telemetry unit is connected.
-    if(wid->isDirty() &&
-            (wid->isAutopilotConnected()||
-             QString(wid->metaObject()->className()) == "ConfigPipXtremeWidget"))
+    wid->tabSwitchingAway();
+
+    // Check if widget is dirty (i.e. has unsaved changes)
+    if(wid->isDirty() && wid->isAutopilotConnected())
     {
         int ans=QMessageBox::warning(this,tr("Unsaved changes"),tr("The tab you are leaving has unsaved changes,"
                                                            "if you proceed they may be lost."
@@ -262,32 +348,4 @@ void ConfigGadgetWidget::tabAboutToChange(int i, bool * proceed)
             wid->setDirty(false);
         }
     }
-}
-
-/*!
-  \brief Called by updates to @OPLinkStatus
-  */
-void ConfigGadgetWidget::updateOPLinkStatus(UAVObject *)
-{
-    // Restart the disconnection timer.
-    oplinkTimeout->start(5000);
-    if (!oplinkConnected)
-    {
-        qDebug() << "ConfigGadgetWidget onOPLinkConnect";
-
-        QIcon *icon = new QIcon();
-        icon->addFile(":/configgadget/images/pipx-normal.png", QSize(), QIcon::Normal, QIcon::Off);
-        icon->addFile(":/configgadget/images/pipx-selected.png", QSize(), QIcon::Selected, QIcon::Off);
-
-        QWidget *qwd = new ConfigPipXtremeWidget(this);
-        ftw->insertTab(ConfigGadgetWidget::oplink, qwd, *icon, QString("OPLink"));
-        oplinkConnected = true;
-    }
-}
-
-void ConfigGadgetWidget::onOPLinkDisconnect() {
-	qDebug()<<"ConfigGadgetWidget onOPLinkDisconnect";
-	oplinkTimeout->stop();
-	ftw->removeTab(ConfigGadgetWidget::oplink);
-	oplinkConnected = false;
 }

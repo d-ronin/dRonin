@@ -2,6 +2,7 @@
  ******************************************************************************
  *
  * @file       iuavgadgetconfiguration.h
+ * @author     dRonin, http://dRonin.org/, Copyright (C) 2016
  * @author     The OpenPilot Team, http://www.openpilot.org Copyright (C) 2010.
  * @addtogroup GCSPlugins GCS Plugins
  * @{
@@ -23,6 +24,10 @@
  * You should have received a copy of the GNU General Public License along 
  * with this program; if not, write to the Free Software Foundation, Inc., 
  * 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
+ *
+ * Additional note on redistribution: The copyright and license notices above
+ * must be maintained in each individual source file that is a derivative work
+ * of this source file; otherwise redistribution is prohibited.
  */
 
 #ifndef IUAVGADGETCONFIGURATION_H
@@ -50,6 +55,7 @@ public:
     bool locked() const { return m_locked; }
     void setLocked(bool locked) { m_locked = locked; }
 
+    virtual void saveConfig() const {};
     virtual void saveConfig(QSettings* /*settings*/) const {};
     virtual void saveConfig(QSettings* settings, UAVConfigInfo* /*configInfo*/) const { saveConfig(settings); }
 

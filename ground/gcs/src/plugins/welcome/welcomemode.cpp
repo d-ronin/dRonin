@@ -2,6 +2,7 @@
  ******************************************************************************
  *
  * @file       welcomemode.cpp
+ * @author     dRonin, http://dRonin.org/, Copyright (C) 2015
  * @author     The OpenPilot Team, http://www.openpilot.org Copyright (C) 2010.
  *             Parts by Nokia Corporation (qt-info@nokia.com) Copyright (C) 2009.
  * @addtogroup GCSPlugins GCS Plugins
@@ -38,17 +39,18 @@
 #include <utils/styledbar.h>
 #include <utils/welcomemodetreewidget.h>
 #include <utils/iwelcomepage.h>
+#include <utils/pathutils.h>
 
-#include <QtGui/QDesktopServices>
+#include <QDesktopServices>
 
 #include <QtCore/QSettings>
 #include <QtCore/QUrl>
 #include <QtCore/QDebug>
 
-#include <QtDeclarative/qdeclarative.h>
-#include <QtDeclarative/qdeclarativeview.h>
-#include <QtDeclarative/qdeclarativeengine.h>
-#include <QtDeclarative/qdeclarativecontext.h>
+#include <QtQuick>
+#include <QQuickView>
+#include <QQmlEngine>
+#include <QQmlContext>
 
 #include <cstdlib>
 
@@ -61,7 +63,7 @@ struct WelcomeModePrivate
 {
     WelcomeModePrivate();
 
-    QDeclarativeView *declarativeView;
+    QQuickView *quickView;
 };
 
 WelcomeModePrivate::WelcomeModePrivate()
@@ -73,15 +75,17 @@ WelcomeMode::WelcomeMode() :
     m_d(new WelcomeModePrivate),
     m_priority(Core::Constants::P_MODE_WELCOME)
 {
-    m_d->declarativeView = new QDeclarativeView;
-    m_d->declarativeView->setResizeMode(QDeclarativeView::SizeRootObjectToView);
-    m_d->declarativeView->engine()->rootContext()->setContextProperty("welcomePlugin", this);
-    m_d->declarativeView->setSource(QUrl("qrc:/welcome/qml/main.qml"));
+    m_d->quickView = new QQuickView;
+    m_d->quickView->setResizeMode(QQuickView::SizeRootObjectToView);
+    m_d->quickView->engine()->rootContext()->setContextProperty("welcomePlugin", this);
+    QString fn = Utils::PathUtils().InsertDataPath(QString("%%DATAPATH%%/welcome/main.qml"));
+    m_d->quickView->setSource(QUrl::fromLocalFile(fn));
+    m_container = NULL;
 }
 
 WelcomeMode::~WelcomeMode()
 {
-    delete m_d->declarativeView;
+    delete m_d->quickView;
     delete m_d;
 }
 
@@ -102,7 +106,12 @@ int WelcomeMode::priority() const
 
 QWidget* WelcomeMode::widget()
 {
-    return m_d->declarativeView;
+    if (!m_container) {
+        m_container = QWidget::createWindowContainer(m_d->quickView);
+        m_container->setMinimumSize(64, 64);
+        m_container->setSizePolicy(QSizePolicy::MinimumExpanding, QSizePolicy::MinimumExpanding);
+    }
+    return m_container;
 }
 
 const char* WelcomeMode::uniqueModeName() const
@@ -115,11 +124,6 @@ QList<int> WelcomeMode::context() const
     static QList<int> contexts = QList<int>()
                                  << Core::UniqueIDManager::instance()->uniqueIdentifier(Core::Constants::C_WELCOME_MODE);
     return contexts;
-}
-
-void WelcomeMode::openUrl(const QString &url)
-{
-    QDesktopServices::openUrl(QUrl(url));
 }
 
 void WelcomeMode::openPage(const QString &page)

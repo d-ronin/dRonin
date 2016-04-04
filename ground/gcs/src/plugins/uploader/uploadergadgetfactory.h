@@ -2,12 +2,12 @@
  ******************************************************************************
  *
  * @file       uploadergadgetfactory.h
- * @author     The OpenPilot Team, http://www.openpilot.org Copyright (C) 2010.
+ * @author     Tau Labs, http://taulabs.org, Copyright (C) 2014
  * @addtogroup GCSPlugins GCS Plugins
  * @{
- * @addtogroup YModemUploader YModem Serial Uploader Plugin
+ * @addtogroup  Uploader Uploader Plugin
  * @{
- * @brief The YModem protocol serial uploader plugin
+ * @brief The Tau Labs uploader plugin factory
  *****************************************************************************/
 /*
  * This program is free software; you can redistribute it and/or modify
@@ -30,13 +30,16 @@
 
 #include <coreplugin/iuavgadgetfactory.h>
 #include "uploader_global.h"
-#include "enums.h"
+#include "uavobjectutil/devicedescriptorstruct.h"
+
 namespace Core {
 class IUAVGadget;
 class IUAVGadgetFactory;
 }
 
 using namespace Core;
+
+namespace uploader {
 
 class UPLOADER_EXPORT UploaderGadgetFactory : public Core::IUAVGadgetFactory
 {
@@ -47,12 +50,10 @@ public:
 
     Core::IUAVGadget *createGadget(QWidget *parent);
     IUAVGadgetConfiguration *createConfiguration(QSettings* qSettings);
-    bool isAutoUpdateCapable();
 private:
-    bool isautocapable;
 signals:
-    void autoUpdateSignal(uploader::AutoUpdateStep,QVariant);
-    void autoUpdate();
+    void newBoardSeen(deviceInfo board, deviceDescriptorStruct device);
 };
 
+}
 #endif // UPLOADERGADGETFACTORY_H

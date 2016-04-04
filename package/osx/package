@@ -3,52 +3,48 @@
 # Information about dmg generation: http://stackoverflow.com/questions/96882/how-do-i-create-a-nice-looking-dmg-for-mac-os-x-using-command-line-tools
 
 # the following environment variables must be set
-: ${ROOT_DIR?} ${BUILD_DIR?} ${PACKAGE_LBL?} ${PACKAGE_DIR?} ${FW_DIR?}
+: ${ROOT_DIR?} ${BUILD_DIR?} ${PACKAGE_LBL?} ${PACKAGE_DIR?} ${FW_DIR?} ${DMG_LBL?} ${GCS_PACKAGE_DIR}
 
 # more variables
-APP_NAME="Tau Labs GCS.app"
-APP_PATH="${BUILD_DIR}/ground/gcs/bin/"
-TEMP_FILE="${PACKAGE_DIR}/TauLabs-temp.dmg.sparseimage"
-OUT_FILE="${PACKAGE_DIR}/TauLabs-${PACKAGE_LBL}.dmg"
-ICON_FILE="${ROOT_DIR}/package/linux/taulabs.png"
-VOL_NAME="Tau Labs"
+APP_NAME_IN="dRonin-GCS.app"
+APP_NAME_OUT="dRonin GCS.app"
+APP_PATH="${GCS_PACKAGE_DIR}"
+TEMP_FILE="${PACKAGE_DIR}/dRonin-temp.dmg.sparseimage"
+OUT_FILE="${PACKAGE_DIR}/${DMG_LBL}.dmg"
+ICON_FILE="${ROOT_DIR}/branding/gcs_logo_256.png"
+BG_PIC_NAME="osx_package_bg.png"
+VOL_NAME="dRonin"
 
 # prepare the stage
 rm -f "${TEMP_FILE}"
 rm -f "${OUT_FILE}"
 
-hdiutil create -size 250M -type SPARSE -volname "${VOL_NAME}" -fs HFS+ "${TEMP_FILE}"
+hdiutil create -size 500M -type SPARSE -volname "${VOL_NAME}" -fs HFS+ "${TEMP_FILE}"
 
 device=$(hdiutil attach  "${TEMP_FILE}" | \
          egrep '^/dev/' | sed 1q | awk '{print $1}')
 
-
 # packaging goes here
 mkdir "/Volumes/${VOL_NAME}/Firmware"
+mkdir "${APP_PATH}/${APP_NAME_IN}/Contents/Resources/firmware"
+cp -rp "${FW_DIR}"/* "${APP_PATH}/${APP_NAME_IN}/Contents/Resources/firmware"
 mkdir "/Volumes/${VOL_NAME}/Utilities"
-cp -r "${APP_PATH}/${APP_NAME}" "/Volumes/${VOL_NAME}"
-cp "${FW_DIR}/fw_quanton-${PACKAGE_LBL}.tlfw" "/Volumes/${VOL_NAME}/Firmware"
-cp "${FW_DIR}/fw_freedom-${PACKAGE_LBL}.tlfw" "/Volumes/${VOL_NAME}/Firmware"
-cp "${FW_DIR}/fw_flyingf3-${PACKAGE_LBL}.tlfw" "/Volumes/${VOL_NAME}/Firmware"
-cp "${FW_DIR}/fw_flyingf4-${PACKAGE_LBL}.tlfw" "/Volumes/${VOL_NAME}/Firmware"
-cp "${FW_DIR}/fw_coptercontrol-${PACKAGE_LBL}.tlfw" "/Volumes/${VOL_NAME}/Firmware"
-cp "${FW_DIR}/fw_revomini-${PACKAGE_LBL}.tlfw" "/Volumes/${VOL_NAME}/Firmware"
-cp "${FW_DIR}/fw_pipxtreme-${PACKAGE_LBL}.tlfw" "/Volumes/${VOL_NAME}/Firmware"
-cp "${FW_DIR}/fw_revolution-${PACKAGE_LBL}.tlfw" "/Volumes/${VOL_NAME}/Firmware"
-cp "${FW_DIR}/fw_sparky-${PACKAGE_LBL}.tlfw" "/Volumes/${VOL_NAME}/Firmware"
+cp -r "${APP_PATH}/${APP_NAME_IN}" "/Volumes/${VOL_NAME}/${APP_NAME_OUT}"
+cp -rp "${FW_DIR}"/* "/Volumes/${VOL_NAME}/Firmware"
+
+mkdir "/Volumes/${VOL_NAME}/.background"
+
+cp "${ROOT_DIR}/branding/${BG_PIC_NAME}" "/Volumes/${VOL_NAME}/.background/"
 
 cp "${BUILD_DIR}/matlab/LogConvert.m" "/Volumes/${VOL_NAME}/Utilities/LogConvert-${PACKAGE_LBL}.m"
-
-cp "${ROOT_DIR}/HISTORY.txt" "/Volumes/${VOL_NAME}"
-
-"${ROOT_DIR}/package/osx/libraries" \
-	"/Volumes/${VOL_NAME}/Tau Labs GCS.app" || exit 1
+cp "${ROOT_DIR}/LICENSE.txt" "/Volumes/${VOL_NAME}"
 
 echo "Changing mounted folder icons"
+
 # Set the icon for the mounted DMG.
 # Inspired from http://stackoverflow.com/questions/988920/where-to-find-volume-mount-icon-on-leopard
-cp "${ROOT_DIR}/package/osx/VolumeIcon.icns" "/Volumes/${VOL_NAME}/.VolumeIcon.icns"
-SetFile -a C "/Volumes/${VOL_NAME}"
+#cp "${ROOT_DIR}/package/osx/VolumeIcon.icns" "/Volumes/${VOL_NAME}/.VolumeIcon.icns"
+#SetFile -a C "/Volumes/${VOL_NAME}"
 	
 echo "Laying out dmg..."
 
@@ -59,19 +55,17 @@ echo '
            set current view of container window to icon view
            set toolbar visible of container window to false
            set statusbar visible of container window to false
-           set the bounds of container window to {400, 100, 935, 430}
+           set the bounds of container window to {400, 100, 950, 450}
            set theViewOptions to the icon view options of container window
            set arrangement of theViewOptions to not arranged
-           set icon size of theViewOptions to 72
-#           set background picture of theViewOptions to file ".background:'${backgroundPictureName}'"
+           set icon size of theViewOptions to 95
+           set background picture of theViewOptions to file ".background:'${BG_PIC_NAME}'"
            make new alias file at container window to POSIX file "/Applications" with properties {name:"Applications"}
-#           set position of item "'${APP_NAME}'" of container window to {100, 75}
-#           set position of item "Applications" of container window to {350, 75}
-#           set position of item "Firmware" of container window to {100, 250}
-#           set position of item "HISTORY.txt" of container window to {350, 250}
-#           
-#           close #Workaround for... 
-#           open  #... Snow Leopard bug
+           set position of item "'${APP_NAME_OUT}'" of container window to {100, 75}
+           set position of item "Applications" of container window to {450, 75}
+           set position of item "Firmware" of container window to {100, 260}
+           set position of item "Utilities" of container window to {275, 260}
+           set position of item "LICENSE.txt" of container window to {450, 260}
 
            update without registering applications
            delay 5

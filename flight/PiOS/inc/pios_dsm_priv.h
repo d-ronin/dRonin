@@ -7,7 +7,9 @@
  * @{
  *
  * @file       pios_dsm_priv.h
- * @author     The OpenPilot Team, http://www.openpilot.org Copyright (C) 2011.
+ * @author     The OpenPilot Team, http://www.openpilot.org Copyright (C) 2014.
+ * @author     Tau Labs, http://taulabs.org, Copyright (C) 2014
+ *
  * @brief      Spektrum/JR DSMx satellite receiver private structures.
  * @see        The GNU Public License (GPL) Version 3
  *
@@ -34,6 +36,10 @@
 #include <pios.h>
 #include <pios_stm32.h>
 #include <pios_usart_priv.h>
+
+// for HwSharedDSMxModeOptions
+#include <uavobjectmanager.h>
+#include <hwshared.h>
 
 /*
  * Currently known DSMx (DSM2, DSMJ, DSMX) satellite serial port settings:
@@ -98,9 +104,9 @@
  * master.
  */
 
-#define DSM_CHANNELS_PER_FRAME		7
+#define DSM_CHANNELS_PER_FRAME	7
 #define DSM_FRAME_LENGTH		(1+1+DSM_CHANNELS_PER_FRAME*2)
-#define DSM_DSM2_RES_MASK		0x0010
+#define DSM_RESOLUTION_MASK		0x10
 #define DSM_2ND_FRAME_MASK		0x8000
 
 /*
@@ -108,13 +114,6 @@
  * for debugging. Currently is not used by the receiver layer.
  */
 //#define DSM_LOST_FRAME_COUNTER
-
-/* DSM protocol variations */
-enum pios_dsm_proto {
-	PIOS_DSM_PROTO_DSM2,
-	PIOS_DSM_PROTO_DSMX10BIT,
-	PIOS_DSM_PROTO_DSMX11BIT,
-};
 
 /* DSM receiver instance configuration */
 struct pios_dsm_cfg {
@@ -127,8 +126,7 @@ extern int32_t PIOS_DSM_Init(uintptr_t *dsm_id,
 			     const struct pios_dsm_cfg *cfg,
 			     const struct pios_com_driver *driver,
 			     uintptr_t lower_id,
-			     enum pios_dsm_proto proto,
-			     uint8_t bind);
+			     HwSharedDSMxModeOptions mode);
 
 #endif /* PIOS_DSM_PRIV_H */
 

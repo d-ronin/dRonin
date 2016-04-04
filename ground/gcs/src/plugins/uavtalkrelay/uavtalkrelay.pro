@@ -1,7 +1,7 @@
 QT += network
 TEMPLATE = lib
 TARGET = UAVTalkRelay
-include(../../taulabsgcsplugin.pri)
+include(../../gcsplugin.pri)
 include(../uavtalk/uavtalk.pri)
 include(uavtalkrelay_dependencies.pri)
 HEADERS += \
@@ -18,4 +18,5 @@ SOURCES += \
 
 FORMS += uavtalkrelayoptionspage.ui
 DEFINES += UAVTALKRELAY_LIBRARY
-OTHER_FILES += UAVTalkRelay.pluginspec
+OTHER_FILES += UAVTalkRelay.pluginspec \
+    UAVTalkRelay.json

@@ -4,6 +4,7 @@
  * @file       configattitudewidget.h
  * @author     The OpenPilot Team, http://www.openpilot.org Copyright (C) 2010.
  * @author     Tau Labs, http://taulabs.org, Copyright (C) 2013
+ * @author     dRonin, http://dronin.org Copyright (C) 2015
  * @addtogroup GCSPlugins GCS Plugins
  * @{
  * @addtogroup ConfigPlugin Config Plugin
@@ -32,10 +33,10 @@
 #include <QDebug>
 #include <QTimer>
 #include <QStringList>
-#include <QtGui/QWidget>
-#include <QtGui/QTextEdit>
-#include <QtGui/QVBoxLayout>
-#include <QtGui/QPushButton>
+#include <QWidget>
+#include <QTextEdit>
+#include <QVBoxLayout>
+#include <QPushButton>
 #include <QMessageBox>
 #include <QThread>
 #include <QErrorMessage>
@@ -102,9 +103,11 @@ ConfigAttitudeWidget::ConfigAttitudeWidget(QWidget *parent) :
             board_has_accelerometer = board->queryCapabilities(Core::IBoardType::BOARD_CAPABILITIES_ACCELS);
             board_has_magnetometer = board->queryCapabilities(Core::IBoardType::BOARD_CAPABILITIES_MAGS);
         }
-        else
-            qDebug() << "Board not found";
     }
+
+    Core::Internal::GeneralSettings *settings = pm->getObject<Core::Internal::GeneralSettings>();
+    if (!settings->useExpertMode())
+	m_ui->applyButton->setVisible(false);
 
     // Must set up the UI (above) before setting up the UAVO mappings or refreshWidgetValues
     // will be dealing with some null pointers
@@ -167,10 +170,16 @@ ConfigAttitudeWidget::ConfigAttitudeWidget(QWidget *parent) :
     // Let the calibration gadget mark the tab as dirty, i.e. having unsaved data.
     connect(&calibration, SIGNAL(calibrationCompleted()), this, SLOT(do_SetDirty()));
 
+    // Let the calibration class mark the widget as busy
+    connect(&calibration, SIGNAL(calibrationBusy(bool)), this, SLOT(onCalibrationBusy(bool)));
+
     m_ui->sixPointStart->setEnabled(true);
     m_ui->yawOrientationStart->setEnabled(true);
     m_ui->levelingStart->setEnabled(true);
     m_ui->levelingAndBiasStart->setEnabled(true);
+
+    // F1 boards don't have this object
+    setNotMandatory("StateEstimation");
 
     refreshWidgetsValues();
 }
@@ -255,6 +264,15 @@ void ConfigAttitudeWidget::configureSixPoint()
         m_ui->cbCalibrateMags->setChecked(true && board_has_magnetometer);
     }
     calibration.initialize(m_ui->cbCalibrateAccels->isChecked(), m_ui->cbCalibrateMags->isChecked());
+}
+
+void ConfigAttitudeWidget::onCalibrationBusy(bool busy)
+{
+    // Show the UI is blocking
+    if (busy)
+        QApplication::setOverrideCursor(Qt::WaitCursor);
+    else
+        QApplication::restoreOverrideCursor();
 }
 
 

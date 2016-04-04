@@ -4,6 +4,7 @@
  * @file       connectiondiagram.cpp
  * @author     The OpenPilot Team, http://www.openpilot.org Copyright (C) 2012.
  * @author     Tau Labs, http://taulabs.org, Copyright (C) 2013
+ * @author     dRonin, http://dRonin.org/, Copyright (C) 2015
  * @see        The GNU Public License (GPL) Version 3
  *
  * @addtogroup GCSPlugins GCS Plugins
@@ -50,14 +51,16 @@ void ConnectionDiagram::resizeEvent(QResizeEvent *event)
 {
     QWidget::resizeEvent(event);
 
-    ui->connectionDiagram->fitInView(m_background, Qt::KeepAspectRatio);
+    if(m_background != NULL)
+        ui->connectionDiagram->fitInView(m_background, Qt::KeepAspectRatio);
 }
 
 void ConnectionDiagram::showEvent(QShowEvent *event)
 {
     QWidget::showEvent(event);
 
-    ui->connectionDiagram->fitInView(m_background, Qt::KeepAspectRatio);
+    if(m_background != NULL)
+        ui->connectionDiagram->fitInView(m_background, Qt::KeepAspectRatio);
 }
 
 void ConnectionDiagram::setupGraphicsScene()
@@ -80,10 +83,6 @@ void ConnectionDiagram::setupGraphicsScene()
         m_scene->addItem(m_background);
 
         QList<QString> elementsToShow;
-
-        Core::IBoardType* type = m_configSource->getControllerType();
-        if (type != NULL)
-            elementsToShow << QString("controller-").append(type->shortName().toLower());
 
         switch (m_configSource->getVehicleType()) {
         case VehicleConfigurationSource::VEHICLE_MULTI:
@@ -127,18 +126,20 @@ void ConnectionDiagram::setupGraphicsScene()
         case Core::IBoardType::INPUT_TYPE_SBUS:
             elementsToShow << "sbus";
             break;
-        case Core::IBoardType::INPUT_TYPE_DSMX10BIT:
-        case Core::IBoardType::INPUT_TYPE_DSMX11BIT:
-        case Core::IBoardType::INPUT_TYPE_DSM2:
+        case Core::IBoardType::INPUT_TYPE_DSM:
             elementsToShow << "satellite";
             break;
         case Core::IBoardType::INPUT_TYPE_HOTTSUMD:
         case Core::IBoardType::INPUT_TYPE_HOTTSUMH:
-            elementsToShow << "HoTT";
+            elementsToShow << "hott";
             break;
         default:
             break;
         }
+
+        Core::IBoardType* type = m_configSource->getControllerType();
+        if (type != NULL)
+            elementsToShow << QString("controller-").append(type->shortName().toLower());
 
         setupGraphicsSceneItems(elementsToShow);
 

@@ -2,6 +2,7 @@
  ******************************************************************************
  *
  * @file       mytabbedstackwidget.h
+ * @author     dRonin, http://dRonin.org Copyright (C) 2016
  * @author     The OpenPilot Team, http://www.openpilot.org Copyright (C) 2010.
  *             Parts by Nokia Corporation (qt-info@nokia.com) Copyright (C) 2009.
  * @brief
@@ -24,13 +25,19 @@
  * You should have received a copy of the GNU General Public License along
  * with this program; if not, write to the Free Software Foundation, Inc.,
  * 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
+ *
+ * Additional note on redistribution: The copyright and license notices above
+ * must be maintained in each individual source file that is a derivative work
+ * of this source file; otherwise redistribution is prohibited.
  */
 
 #ifndef MYTABBEDSTACKWIDGET_H
 #define MYTABBEDSTACKWIDGET_H
 
-#include "utils/mylistwidget.h"
-#include <QtGui/QStackedWidget>
+#include "utils_global.h"
+#include <QStackedWidget>
+#include <QListWidget>
+
 
 /*
  * MyTabbedStackWidget is a MyListWidget combined with a QStackedWidget,
@@ -50,7 +57,8 @@ public:
     int currentIndex() const;
 
     void insertCornerWidget(int index, QWidget *widget);
-    int cornerWidgetCount() { return m_cornerWidgetCount; }
+    void setHidden(int index, bool hide);
+
     QWidget * currentWidget(){return m_stackWidget->currentWidget();}
     QWidget * getWidget(int index) {return m_stackWidget->widget(index);}
 
@@ -65,12 +73,10 @@ private slots:
     void showWidget(int index);
 
 private:
-    MyListWidget *m_listWidget;
+    QListWidget *m_listWidget;
     QStackedWidget *m_stackWidget;
-    QWidget *m_selectionWidget;
     bool m_vertical;
     bool m_iconAbove;
-    int m_cornerWidgetCount;
 };
 
 #endif // MYTABBEDSTACKWIDGET_H

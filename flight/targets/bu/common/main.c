@@ -46,7 +46,7 @@ int main(void) {
 	PIOS_SYS_Init();
 	PIOS_Board_Init();
 	PIOS_LED_On(PIOS_LED_HEARTBEAT);
-	PIOS_DELAY_WaitmS(3000);
+	PIOS_DELAY_WaitmS(1000);
 	PIOS_LED_Off(PIOS_LED_HEARTBEAT);
 
 	/*
@@ -84,8 +84,6 @@ int main(void) {
 	PIOS_FLASH_end_transaction(bl_partition_id);
 	PIOS_LED_Off(PIOS_LED_HEARTBEAT);
 
-	PIOS_DELAY_WaitmS(500);
-
 	/* Write in the new bootloader */
 	PIOS_LED_On(PIOS_LED_HEARTBEAT);
 	PIOS_FLASH_start_transaction(bl_partition_id);
@@ -104,22 +102,28 @@ int main(void) {
 	const uint32_t zero = 0;
 	PIOS_FLASH_start_transaction(fw_partition_id);
 	PIOS_FLASH_write_data(fw_partition_id, 0, (uint8_t *)&zero, sizeof(zero));
+	/* 
+	 * Invalidate FW metadata so GCS can know FW is invalid
+	 * We replace the 3rd and 4th letters of the TlFw sentinel with 0
+	 */
+	uint32_t offset = pios_board_info_blob.desc_base - pios_board_info_blob.fw_base + 2;
+	PIOS_FLASH_write_data(fw_partition_id, offset, (uint8_t *)&zero, 2);
 	PIOS_FLASH_end_transaction(fw_partition_id);
 	PIOS_LED_Off(PIOS_LED_HEARTBEAT);
 
-	PIOS_DELAY_WaitmS(1000);
+	PIOS_DELAY_WaitmS(100);
 
 	/* Flash the LED to indicate finished */
-	for (uint8_t x = 0; x < 5; ++x) {
+	for (uint8_t x = 0; x < 2; ++x) {
 			PIOS_LED_On(PIOS_LED_HEARTBEAT);
 			PIOS_DELAY_WaitmS(1000);
 			PIOS_LED_Off(PIOS_LED_HEARTBEAT);
 			PIOS_DELAY_WaitmS(1000);
 	}
 
-	while (1) {
-		PIOS_DELAY_WaitmS(1000);
-	}
+	PIOS_SYS_Reset();
+
+	while(1); // just in case reset fails
 }
 
 void error(int led) {

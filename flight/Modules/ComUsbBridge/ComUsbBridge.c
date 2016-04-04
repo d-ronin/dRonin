@@ -7,7 +7,9 @@
  *
  * @file       ComUsbBridge.c
  * @author     The OpenPilot Team, http://www.openpilot.org Copyright (C) 2011.
- * @author     Tau Labs, http://taulabs.org, Copyright (C) 2013
+ * @author     Tau Labs, http://taulabs.org, Copyright (C) 2013-2014
+ * @author     dRonin, http://dRonin.org/, Copyright (C) 2016
+ *
  * @brief      Bridges selected Com Port to the USB VCP emulated serial port
  * @see        The GNU Public License (GPL) Version 3
  *
@@ -26,12 +28,20 @@
  * You should have received a copy of the GNU General Public License along
  * with this program; if not, write to the Free Software Foundation, Inc.,
  * 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
+ *
+ * Additional note on redistribution: The copyright and license notices above
+ * must be maintained in each individual source file that is a derivative work
+ * of this source file; otherwise redistribution is prohibited.
  */
 
 // ****************
 
 #include "openpilot.h"
+
 #include "modulesettings.h"
+#include "pios_thread.h"
+#include <pios_hal.h>
+#include "pios_modules.h"
 
 #include <stdbool.h>
 
@@ -48,21 +58,18 @@ static void updateSettings();
 #if defined(PIOS_COMUSBBRIDGE_STACK_SIZE)
 #define STACK_SIZE_BYTES PIOS_COMUSBBRIDGE_STACK_SIZE
 #else
-#define STACK_SIZE_BYTES 384
+#define STACK_SIZE_BYTES 480
 #endif
 
-#define TASK_PRIORITY                   (tskIDLE_PRIORITY + 1)
+#define TASK_PRIORITY                   PIOS_THREAD_PRIO_LOW
 
 #define BRIDGE_BUF_LEN 10
 
 // ****************
 // Private variables
 
-static xTaskHandle com2UsbBridgeTaskHandle;
-static xTaskHandle usb2ComBridgeTaskHandle;
-
-static uint8_t * com2usb_buf;
-static uint8_t * usb2com_buf;
+static struct pios_thread *com2UsbBridgeTaskHandle;
+static struct pios_thread *usb2ComBridgeTaskHandle;
 
 static uint32_t usart_port;
 static uint32_t vcp_port;
@@ -79,9 +86,9 @@ static int32_t comUsbBridgeStart(void)
 {
 	if (module_enabled) {
 		// Start tasks
-		xTaskCreate(com2UsbBridgeTask, (signed char *)"Com2UsbBridge", STACK_SIZE_BYTES/4, NULL, TASK_PRIORITY, &com2UsbBridgeTaskHandle);
+		com2UsbBridgeTaskHandle = PIOS_Thread_Create(com2UsbBridgeTask, "Com2UsbBridge", STACK_SIZE_BYTES, NULL, TASK_PRIORITY);
 		TaskMonitorAdd(TASKINFO_RUNNING_COM2USBBRIDGE, com2UsbBridgeTaskHandle);
-		xTaskCreate(usb2ComBridgeTask, (signed char *)"Usb2ComBridge", STACK_SIZE_BYTES/4, NULL, TASK_PRIORITY, &usb2ComBridgeTaskHandle);
+		usb2ComBridgeTaskHandle = PIOS_Thread_Create(usb2ComBridgeTask, "Usb2ComBridge", STACK_SIZE_BYTES, NULL, TASK_PRIORITY);
 		TaskMonitorAdd(TASKINFO_RUNNING_USB2COMBRIDGE, usb2ComBridgeTaskHandle);
 		return 0;
 	}
@@ -108,23 +115,8 @@ static int32_t comUsbBridgeInitialize(void)
 #ifdef MODULE_ComUsbBridge_BUILTIN
 	module_enabled = true;
 #else
-	uint8_t module_state[MODULESETTINGS_ADMINSTATE_NUMELEM];
-	ModuleSettingsAdminStateGet(module_state);
-	if (module_state[MODULESETTINGS_ADMINSTATE_COMUSBBRIDGE] == MODULESETTINGS_ADMINSTATE_ENABLED) {
-		module_enabled = true;
-	} else {
-		module_enabled = false;
-	}
+	module_enabled = PIOS_Modules_IsEnabled(PIOS_MODULE_COMUSBBRIDGE);
 #endif
-
-	if (module_enabled) {
-		com2usb_buf = pvPortMalloc(BRIDGE_BUF_LEN);
-		PIOS_Assert(com2usb_buf);
-		usb2com_buf = pvPortMalloc(BRIDGE_BUF_LEN);
-		PIOS_Assert(usb2com_buf);
-
-		updateSettings();
-	}
 
 	return 0;
 }
@@ -141,6 +133,8 @@ static void com2UsbBridgeTask(void *parameters)
 	while (1) {
 		uint32_t rx_bytes;
 
+		uint8_t com2usb_buf[BRIDGE_BUF_LEN];
+
 		rx_bytes = PIOS_COM_ReceiveBuffer(usart_port, com2usb_buf, BRIDGE_BUF_LEN, 500);
 		if (rx_bytes > 0) {
 			/* Bytes available to transfer */
@@ -154,10 +148,14 @@ static void com2UsbBridgeTask(void *parameters)
 
 static void usb2ComBridgeTask(void * parameters)
 {
+	updateSettings();
+
 	/* Handle vcp -> usart direction */
 	volatile uint32_t tx_errors = 0;
 	while (1) {
 		uint32_t rx_bytes;
+
+		uint8_t usb2com_buf[BRIDGE_BUF_LEN];
 
 		rx_bytes = PIOS_COM_ReceiveBuffer(vcp_port, usb2com_buf, BRIDGE_BUF_LEN, 500);
 		if (rx_bytes > 0) {
@@ -174,35 +172,11 @@ static void usb2ComBridgeTask(void * parameters)
 static void updateSettings()
 {
 	if (usart_port) {
-
 		// Retrieve settings
 		uint8_t speed;
 		ModuleSettingsComUsbBridgeSpeedGet(&speed);
 
-		// Set port speed
-		switch (speed) {
-		case MODULESETTINGS_COMUSBBRIDGESPEED_2400:
-			PIOS_COM_ChangeBaud(usart_port, 2400);
-			break;
-		case MODULESETTINGS_COMUSBBRIDGESPEED_4800:
-			PIOS_COM_ChangeBaud(usart_port, 4800);
-			break;
-		case MODULESETTINGS_COMUSBBRIDGESPEED_9600:
-			PIOS_COM_ChangeBaud(usart_port, 9600);
-			break;
-		case MODULESETTINGS_COMUSBBRIDGESPEED_19200:
-			PIOS_COM_ChangeBaud(usart_port, 19200);
-			break;
-		case MODULESETTINGS_COMUSBBRIDGESPEED_38400:
-			PIOS_COM_ChangeBaud(usart_port, 38400);
-			break;
-		case MODULESETTINGS_COMUSBBRIDGESPEED_57600:
-			PIOS_COM_ChangeBaud(usart_port, 57600);
-			break;
-		case MODULESETTINGS_COMUSBBRIDGESPEED_115200:
-			PIOS_COM_ChangeBaud(usart_port, 115200);
-			break;
-		}
+		PIOS_HAL_ConfigureSerialSpeed(usart_port, speed);
 	}
 }
 

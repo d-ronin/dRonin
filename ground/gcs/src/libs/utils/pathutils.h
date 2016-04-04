@@ -2,6 +2,7 @@
  ******************************************************************************
  *
  * @file       pathutils.h
+ * @author     dRonin, http://dRonin.org/, Copyright (C) 2015
  * @author     The OpenPilot Team, http://www.openpilot.org Copyright (C) 2010.
  *             Parts by Nokia Corporation (qt-info@nokia.com) Copyright (C) 2009.
  * @brief
@@ -32,7 +33,7 @@
 #include "utils_global.h"
 #include "../extensionsystem/pluginmanager.h"
 #include <QDir>
-#include <QApplication>
+#include <QtWidgets/QApplication>
 #include <QSettings>
 
 namespace Utils {
@@ -48,7 +49,10 @@ public:
     QString GetStoragePath();
     QString RemoveStoragePath(QString path);
     QString InsertStoragePath(QString path);
-
+    QString getSettingsFilename();
+    void setSettingsFilename(QString filename);
+private:
+    static QString settingsFilename;
 };
 
 }

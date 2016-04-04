@@ -7,7 +7,7 @@
  * @{
  * @file       pios_hmc5983.c
  * @author     The OpenPilot Team, http://www.openpilot.org Copyright (C) 2012.
- * @author     Tau Labs, http://taulabs.org, Copyright (C) 2012-2013
+ * @author     Tau Labs, http://taulabs.org, Copyright (C) 2012-2014
  * @brief      HMC5983 Magnetic Sensor Functions from AHRS
  * @see        The GNU Public License (GPL) Version 3
  *
@@ -34,9 +34,13 @@
 
 #if defined(PIOS_INCLUDE_HMC5983)
 
+#include "pios_semaphore.h"
+#include "pios_thread.h"
+#include "pios_queue.h"
+
 /* Private constants */
-#define HMC5983_TASK_PRIORITY        (tskIDLE_PRIORITY + configMAX_PRIORITIES - 1)  // max priority
-#define HMC5983_TASK_STACK	         (512 / 4)
+#define HMC5983_TASK_PRIORITY        PIOS_THREAD_PRIO_HIGHEST
+#define HMC5983_TASK_STACK_BYTES     512
 #define PIOS_HMC5983_MAX_DOWNSAMPLE  1
 
 /* Global Variables */
@@ -50,9 +54,9 @@ struct hmc5983_dev {
 	uint32_t spi_id;
 	uint32_t slave_num;
 	const struct pios_hmc5983_cfg *cfg;
-	xQueueHandle queue;
-	xTaskHandle task;
-	xSemaphoreHandle data_ready_sema;
+	struct pios_queue *queue;
+	struct pios_thread *task;
+	struct pios_semaphore *data_ready_sema;
 	enum pios_hmc5983_dev_magic magic;
 };
 
@@ -63,6 +67,7 @@ static int32_t PIOS_HMC5983_ReleaseBus(void);
 static int32_t PIOS_HMC5983_Read(uint8_t address, uint8_t *buffer, uint8_t len);
 static int32_t PIOS_HMC5983_Write(uint8_t address, uint8_t buffer);
 static void PIOS_HMC5983_Task(void *parameters);
+
 
 static struct hmc5983_dev *dev;
 
@@ -77,19 +82,19 @@ static struct hmc5983_dev *PIOS_HMC5983_alloc(void) {
 
 	hmc5983_dev->magic = PIOS_HMC5983_DEV_MAGIC;
 
-	hmc5983_dev->queue = xQueueCreate(PIOS_HMC5983_MAX_DOWNSAMPLE, sizeof(struct pios_sensor_mag_data));
+	hmc5983_dev->queue = PIOS_Queue_Create(PIOS_HMC5983_MAX_DOWNSAMPLE, sizeof(struct pios_sensor_mag_data));
 	if (hmc5983_dev->queue == NULL) {
-		vPortFree(hmc5983_dev);
+		PIOS_free(hmc5983_dev);
 		return NULL;
 	}
 
-	hmc5983_dev->data_ready_sema = xSemaphoreCreateMutex();
+	hmc5983_dev->data_ready_sema = PIOS_Semaphore_Create();
 	if (hmc5983_dev->data_ready_sema == NULL) {
-		vPortFree(hmc5983_dev);
+		PIOS_free(hmc5983_dev);
 		return NULL;
 	}
 
-	return(hmc5983_dev);
+	return hmc5983_dev;
 }
 
 /**
@@ -130,13 +135,9 @@ int32_t PIOS_HMC5983_Init(uint32_t spi_id, uint32_t slave_num, const struct pios
 
 	PIOS_SENSORS_Register(PIOS_SENSOR_MAG, dev->queue);
 
-	int result = xTaskCreate(PIOS_HMC5983_Task, (const signed char *)"pios_hmc5983",
-				HMC5983_TASK_STACK, NULL, HMC5983_TASK_PRIORITY,
-				&dev->task);
+	dev->task = PIOS_Thread_Create(PIOS_HMC5983_Task, "pios_hmc5983", HMC5983_TASK_STACK_BYTES, NULL, HMC5983_TASK_PRIORITY);
 
-	PIOS_Assert(result == pdPASS);
-
-	dev->data_ready_sema = xSemaphoreCreateMutex();
+	PIOS_Assert(dev->task != NULL);
 
 	return 0;
 }
@@ -292,7 +293,7 @@ static int32_t PIOS_HMC5983_ReadMag(struct pios_sensor_mag_data *mag_data)
 	mag_y = ((int16_t)((uint16_t) buffer[4] << 8) + buffer[5]) * 1000 / sensitivity;
 
 	// Define "0" when the fiducial is in the front left of the board
-	switch (dev->cfg->orientation) {
+	switch (dev->cfg->Orientation) {
 	case PIOS_HMC5983_TOP_0DEG:
 		mag_data->x = -mag_x;
 		mag_data->y = mag_y;
@@ -312,6 +313,26 @@ static int32_t PIOS_HMC5983_ReadMag(struct pios_sensor_mag_data *mag_data)
 		mag_data->x = mag_y;
 		mag_data->y = mag_x;
 		mag_data->z = -mag_z;
+		break;
+	case PIOS_HMC5983_BOTTOM_0DEG:
+		mag_data->x = -mag_x;
+		mag_data->y = -mag_y;
+		mag_data->z = mag_z;
+		break;
+	case PIOS_HMC5983_BOTTOM_90DEG:
+		mag_data->x = -mag_y;
+		mag_data->y = mag_x;
+		mag_data->z = mag_z;
+		break;
+	case PIOS_HMC5983_BOTTOM_180DEG:
+		mag_data->x = mag_x;
+		mag_data->y = mag_y;
+		mag_data->z = mag_z;
+		break;
+	case PIOS_HMC5983_BOTTOM_270DEG:
+		mag_data->x = mag_y;
+		mag_data->y = -mag_x;
+		mag_data->z = mag_z;
 		break;
 	}
 
@@ -499,10 +520,10 @@ bool PIOS_HMC5983_IRQHandler(void)
 	if (PIOS_HMC5983_Validate(dev) != 0)
 		return false;
 
-	portBASE_TYPE xHigherPriorityTaskWoken;
-	xSemaphoreGiveFromISR(dev->data_ready_sema, &xHigherPriorityTaskWoken);
+	bool woken = false;
+	PIOS_Semaphore_Give_FromISR(dev->data_ready_sema, &woken);
 
-	return xHigherPriorityTaskWoken == pdTRUE;
+	return woken;
 }
 
 /**
@@ -512,18 +533,18 @@ static void PIOS_HMC5983_Task(void *parameters)
 {
 	while (1) {
 		if (PIOS_HMC5983_Validate(dev) != 0) {
-			vTaskDelay(100 * portTICK_RATE_MS);
+			PIOS_Thread_Sleep(100);
 			continue;
 		}
 
-		if (xSemaphoreTake(dev->data_ready_sema, portMAX_DELAY) != pdTRUE) {
-			vTaskDelay(100 * portTICK_RATE_MS);
+		if (PIOS_Semaphore_Take(dev->data_ready_sema, PIOS_SEMAPHORE_TIMEOUT_MAX) != true) {
+			PIOS_Thread_Sleep(100);
 			continue;
 		}
 
 		struct pios_sensor_mag_data mag_data;
 		if (PIOS_HMC5983_ReadMag(&mag_data) == 0)
-			xQueueSend(dev->queue, (void *)&mag_data, 0);
+			PIOS_Queue_Send(dev->queue, &mag_data, 0);
 	}
 }
 

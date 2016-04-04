@@ -1,0 +1,16 @@
+Source: <BRANDING_PACKAGE_SOURCE>
+Section: unknown
+Priority: extra
+Maintainer: <AUTHOR>
+Build-Depends: debhelper (>= 7.0.50~)
+Standards-Version: 3.8.4
+Homepage: <BRANDING_PACKAGE_HOME_PAGE>
+Vcs-Git: <BRANDING_PACKAGE_VCS_GIT>
+Vcs-Browser: <BRANDING_PACKAGE_VCS_BROWSER> 
+
+Package: <BRANDING_PACKAGE_SOURCE>
+Architecture: <ARCHITECTURE>
+Depends: ${shlibs:Depends}, ${misc:Depends}
+Description: <BRANDING_PACKAGE_PRETTY> GCS
+ The <BRANDING_PACKAGE_PRETTY> project ground control station.
+ A program that allows you to change settings on compatible flight controllers, create flightpaths, view controller data, create and upload picoC scripts, replay logged data, etc...

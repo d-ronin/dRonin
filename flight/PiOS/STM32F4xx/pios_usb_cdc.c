@@ -9,7 +9,7 @@
  *
  * @file       pios_usb_com_cdc.c
  * @author     The OpenPilot Team, http://www.openpilot.org Copyright (C) 2010.
- * @author     Tau Labs, http://taulabs.org, Copyright (C) 2012-2013
+ * @author     Tau Labs, http://taulabs.org, Copyright (C) 2012-2014
  * @brief      USB COM functions (STM32 dependent code)
  * @see        The GNU Public License (GPL) Version 3
  *
@@ -211,10 +211,6 @@ static bool PIOS_USB_CDC_SendData(struct pios_usb_cdc_dev * usb_cdc_dev)
 	PIOS_USBHOOK_EndpointTx(usb_cdc_dev->cfg->data_tx_ep,
 				usb_cdc_dev->tx_packet_buffer,
 				bytes_to_tx);
-
-#if defined(PIOS_INCLUDE_FREERTOS)
-	portEND_SWITCHING_ISR(need_yield);
-#endif	/* PIOS_INCLUDE_FREERTOS */
 
 	return true;
 }
@@ -630,10 +626,6 @@ static bool PIOS_USB_CDC_DATA_EP_OUT_Callback(uintptr_t usb_cdc_id, uint8_t epnu
 		usb_cdc_dev->rx_active = false;
 		rc = false;
 	}
-
-#if defined(PIOS_INCLUDE_FREERTOS)
-	portEND_SWITCHING_ISR(need_yield);
-#endif	/* PIOS_INCLUDE_FREERTOS */
 
 	return rc;
 }

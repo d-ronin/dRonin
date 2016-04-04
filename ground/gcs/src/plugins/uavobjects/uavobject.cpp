@@ -3,6 +3,7 @@
  *
  * @file       uavobject.cpp
  * @author     The OpenPilot Team, http://www.openpilot.org Copyright (C) 2010.
+ * @author     Tau Labs, http://taulabs.org, Copyright (C) 2014
  * @see        The GNU Public License (GPL) Version 3
  * @addtogroup GCSPlugins GCS Plugins
  * @{
@@ -28,6 +29,8 @@
 #include "uavobject.h"
 #include <QtEndian>
 #include <QDebug>
+#include <QJsonArray>
+#include <QJsonValue>
 
 // Constants
 #define UAVOBJ_ACCESS_SHIFT 0
@@ -179,6 +182,14 @@ void UAVObject::requestUpdate()
 }
 
 /**
+ * Request that this object and all it's instances updated with the latest values from the autopilot
+ */
+void UAVObject::requestUpdateAllInstances()
+{
+    emit updateAllInstancesRequested(this);
+}
+
+/**
  * Signal that the object has been updated
  */
 void UAVObject::updated()
@@ -235,6 +246,37 @@ QList<UAVObjectField*> UAVObject::getFields()
 {
     QMutexLocker locker(mutex);
     return fields;
+}
+
+/**
+ * Get the JSON representation of the object
+ */
+QJsonObject UAVObject::getJsonRepresentation() {
+    QMutexLocker locker(mutex);
+
+    QJsonObject obj, fieldMap;
+
+    obj["id"] = static_cast <qint64> (getObjID());
+    obj["name"] = getName();
+
+    foreach (UAVObjectField* field, fields) {
+        quint32 nelem = field->getNumElements();
+
+        if (nelem > 1) {
+            QVariantList vals;
+            for (unsigned int n = 0; n < nelem; ++n) {
+                vals.append(field->getValue(n));
+            }
+
+            fieldMap[field->getName()] = QJsonArray::fromVariantList(vals);
+        } else {
+            fieldMap[field->getName()] = QJsonValue::fromVariant(field->getValue(0));
+        }
+    }
+
+    obj["fields"] = fieldMap;
+
+    return obj;
 }
 
 /**
@@ -295,151 +337,6 @@ qint32 UAVObject::unpack(const quint8* dataIn)
 }
 
 /**
- * Save the object data to the file.
- * The file will be created in the current directory
- * and its name will be the same as the object with
- * the .uavobj extension.
- * @returns True on success, false on failure
- */
-bool UAVObject::save()
-{
-    QMutexLocker locker(mutex);
-
-    // Open file
-    QFile file(name + ".uavobj");
-    if (!file.open(QFile::WriteOnly))
-    {
-        return false;
-    }
-
-    // Write object
-    if ( !save(file) )
-    {
-        return false;
-    }
-
-    // Close file
-    file.close();
-    return true;
-}
-
-/**
- * Save the object data to the file.
- * The file is expected to be already open for writting.
- * The data will be appended and the file will not be closed.
- * @returns True on success, false on failure
- */
-bool UAVObject::save(QFile& file)
-{
-    QMutexLocker locker(mutex);
-    quint8 buffer[numBytes];
-    quint8 tmpId[4];
-
-    // Write the object ID
-    qToLittleEndian<quint32>(objID, tmpId);
-    if ( file.write((const char*)tmpId, 4) == -1 )
-    {
-        return false;
-    }
-
-    // Write the instance ID
-    if (!isSingleInst)
-    {
-        qToLittleEndian<quint16>(instID, tmpId);
-        if ( file.write((const char*)tmpId, 2) == -1 )
-        {
-            return false;
-        }
-    }
-
-    // Write the data
-    pack(buffer);
-    if ( file.write((const char*)buffer, numBytes) == -1 )
-    {
-        return false;
-    }
-
-    // Done
-    return true;
-}
-
-/**
- * Load the object data from a file.
- * The file will be openned in the current directory
- * and its name will be the same as the object with
- * the .uavobj extension.
- * @returns True on success, false on failure
- */
-bool UAVObject::load()
-{
-    QMutexLocker locker(mutex);
-
-    // Open file
-    QFile file(name + ".uavobj");
-    if (!file.open(QFile::ReadOnly))
-    {
-        return false;
-    }
-
-    // Load object
-    if ( !load(file) )
-    {
-        return false;
-    }
-
-    // Close file
-    file.close();
-    return true;
-}
-
-/**
- * Load the object data from file.
- * The file is expected to be already open for reading.
- * The data will be read and the file will not be closed.
- * @returns True on success, false on failure
- */
-bool UAVObject::load(QFile& file)
-{
-    QMutexLocker locker(mutex);
-    quint8 buffer[numBytes];
-    quint8 tmpId[4];
-
-    // Read the object ID
-    if ( file.read((char*)tmpId, 4) != 4 )
-    {
-        return false;
-    }
-
-    // Check that the IDs match
-    if (qFromLittleEndian<quint32>(tmpId) != objID)
-    {
-        return false;
-    }
-
-    // Read the instance ID
-    if ( file.read((char*)tmpId, 2) != 2 )
-    {
-        return false;
-    }
-
-    // Check that the IDs match
-    if (qFromLittleEndian<quint16>(tmpId) != instID)
-    {
-        return false;
-    }
-
-    // Read and unpack the data
-    if ( file.read((char*)buffer, numBytes) != numBytes )
-    {
-        return false;
-    }
-    unpack(buffer);
-
-    // Done
-    return true;
-}
-
-/**
  * Return a string with the object information
  */
 QString UAVObject::toString()
@@ -481,11 +378,19 @@ QString UAVObject::toStringData()
 }
 
 /**
- * Emit the transactionCompleted event (used by the UAVTalk plugin)
+ * (overloaded) Emit the transactionCompleted event (used by the UAVTalk plugin)
  */
 void UAVObject::emitTransactionCompleted(bool success)
 {
     emit transactionCompleted(this, success);
+}
+
+/**
+ * (overloaded) Emit the transactionCompletedNack event
+ */
+void UAVObject::emitTransactionCompleted(bool success, bool nacked)
+{
+    emit transactionCompleted(this, success, nacked);
 }
 
 /**
@@ -494,6 +399,14 @@ void UAVObject::emitTransactionCompleted(bool success)
 void UAVObject::emitNewInstance(UAVObject * obj)
 {
     emit newInstance(obj);
+}
+
+/**
+ * Emit the instanceRemoved event
+ */
+void UAVObject::emitInstanceRemoved(UAVObject * obj)
+{
+    emit instanceRemoved(obj);
 }
 
 /**

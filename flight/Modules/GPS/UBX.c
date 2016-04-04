@@ -7,7 +7,8 @@
  *
  * @file       UBX.c
  * @author     The OpenPilot Team, http://www.openpilot.org Copyright (C) 2012.
- * @author     Tau Labs, http://taulabs.org, Copyright (C) 2013
+ * @author     Tau Labs, http://taulabs.org, Copyright (C) 2013-2015
+ * @author     dRonin, http://dronin.org Copyright (C) 2015
  * @brief      Process UBX data
  * @see        The GNU Public License (GPL) Version 3
  *
@@ -36,6 +37,8 @@
 #include "UBX.h"
 #include "GPS.h"
 
+static uint32_t parse_errors;
+
 static bool checksum_ubx_message(const struct UBXPacket *);
 static uint32_t parse_ubx_message(const struct UBXPacket *, GPSPositionData *);
 
@@ -57,7 +60,7 @@ int parse_ubx_stream (uint8_t c, char *gps_rx_buffer, GPSPositionData *GpsData, 
 	};
 
 	static enum proto_states proto_state = START;
-	static uint8_t rx_count = 0;
+	static uint16_t rx_count = 0;
 	struct UBXPacket *ubx = (struct UBXPacket *)gps_rx_buffer;
 
 	switch (proto_state) {
@@ -188,8 +191,12 @@ static bool checksum_ubx_message (const struct UBXPacket *ubx)
 	if (ubx->header.ck_a == ck_a &&
 			ubx->header.ck_b == ck_b)
 		return true;
-	else
+	else {
+		parse_errors++;
+		UBloxInfoParseErrorsSet(&parse_errors);
+
 		return false;
+	}
 
 }
 
@@ -209,6 +216,7 @@ static void parse_ubx_nav_sol (const struct UBX_NAV_SOL *sol, GPSPositionData *G
 {
 	if (check_msgtracker(sol->iTOW, SOL_RECEIVED)) {
 		GpsPosition->Satellites = sol->numSV;
+		GpsPosition->Accuracy = sol->pAcc / 100.0f;
 
 		if (sol->flags & STATUS_FLAGS_GPSFIX_OK) {
 			switch (sol->gpsFix) {
@@ -216,7 +224,8 @@ static void parse_ubx_nav_sol (const struct UBX_NAV_SOL *sol, GPSPositionData *G
 					GpsPosition->Status = GPSPOSITION_STATUS_FIX2D;
 					break;
 				case STATUS_GPSFIX_3DFIX:
-					GpsPosition->Status = GPSPOSITION_STATUS_FIX3D;
+					GpsPosition->Status = (sol->flags & STATUS_FLAGS_DIFFSOLN) ?
+						GPSPOSITION_STATUS_DIFF3D : GPSPOSITION_STATUS_FIX3D;
 					break;
 				default: GpsPosition->Status = GPSPOSITION_STATUS_NOFIX;
 			}
@@ -244,6 +253,7 @@ static void parse_ubx_nav_velned (const struct UBX_NAV_VELNED *velned, GPSPositi
 			GpsVelocity.North	= (float)velned->velN/100.0f;
 			GpsVelocity.East	= (float)velned->velE/100.0f;
 			GpsVelocity.Down	= (float)velned->velD/100.0f;
+			GpsVelocity.Accuracy	= (float)velned->sAcc/100.0f;
 			GPSVelocitySet(&GpsVelocity);
 			GpsPosition->Groundspeed = (float)velned->gSpeed * 0.01f;
 			GpsPosition->Heading = (float)velned->heading * 1.0e-5f;
@@ -273,29 +283,76 @@ static void parse_ubx_nav_timeutc (const struct UBX_NAV_TIMEUTC *timeutc)
 #if !defined(PIOS_GPS_MINIMAL)
 static void parse_ubx_nav_svinfo (const struct UBX_NAV_SVINFO *svinfo)
 {
-	uint8_t chan;
+	uint8_t chan = 0;
 	GPSSatellitesData svdata;
 
-	svdata.SatsInView = 0;
-	for (chan = 0; chan < svinfo->numCh;	chan++) {
-		if (svdata.SatsInView < GPSSATELLITES_PRN_NUMELEM) {
-			svdata.Azimuth[svdata.SatsInView] = (float)svinfo->sv[chan].azim;
-			svdata.Elevation[svdata.SatsInView] = (float)svinfo->sv[chan].elev;
-			svdata.PRN[svdata.SatsInView] = svinfo->sv[chan].svid;
-			svdata.SNR[svdata.SatsInView] = svinfo->sv[chan].cno;
-			svdata.SatsInView++;
+	bool skipped=false;
+
+	svdata.SatsInView = svinfo->numCh;
+
+	// Invalid.. too many channels to fit in message.
+	if (svinfo->numCh > MAX_SVS) return;
+
+	for (int i = 0;
+	    (i < svinfo->numCh) && (chan < GPSSATELLITES_PRN_NUMELEM);
+	    i++) {
+		// Prioritize putting info on satellites we're actually
+		// receiving first
+		if (!svinfo->sv[i].cno) {
+			skipped=true;
+			continue;
 		}
 
+		svdata.Azimuth[chan] 	= svinfo->sv[i].azim;
+		svdata.Elevation[chan] 	= svinfo->sv[i].elev;
+		svdata.PRN[chan] 	= svinfo->sv[i].svid;
+		svdata.SNR[chan] 	= svinfo->sv[i].cno;
+
+		chan++;
 	}
+
+	// Now fill any available slots with satellites we're not receiving.
+	if (skipped) {
+		for (int i = 0;
+		    (i < svinfo->numCh) && (chan < GPSSATELLITES_PRN_NUMELEM);	
+		    i++) {
+			if (!svinfo->sv[i].cno) {
+				svdata.Azimuth[chan] 	= svinfo->sv[i].azim;
+				svdata.Elevation[chan] 	= svinfo->sv[i].elev;
+				svdata.PRN[chan] 	= svinfo->sv[i].svid;
+				svdata.SNR[chan] 	= svinfo->sv[i].cno;
+				chan++;
+			}
+		}
+	}
+
 	// fill remaining slots (if any)
-	for (chan = svdata.SatsInView; chan < GPSSATELLITES_PRN_NUMELEM; chan++) {
-		svdata.Azimuth[chan] = (float)0.0f;
-		svdata.Elevation[chan] = (float)0.0f;
+	for (; chan < GPSSATELLITES_PRN_NUMELEM; chan++) {
+		svdata.Azimuth[chan] = 0;
+		svdata.Elevation[chan] = 0;
 		svdata.PRN[chan] = 0;
 		svdata.SNR[chan] = 0;
 	}
 
 	GPSSatellitesSet(&svdata);
+}
+#endif
+
+#if !defined(PIOS_GPS_MINIMAL)
+static void parse_ubx_mon_ver (const struct UBX_MON_VER *version_info)
+{
+	UBloxInfoData ublox;
+	UBloxInfoGet(&ublox);
+	// sw version is in the format X.YY
+	ublox.swVersion = (version_info->swVersion[0] - '0') +
+		(version_info->swVersion[2] - '0') * 0.1f +
+		(version_info->swVersion[3] - '0') * 0.01f;
+	for (uint32_t i = 0; i < 4; i++) {
+		ublox.hwVersion = ublox.hwVersion * 10 +
+			version_info->hwVersion[i] - '0';
+	}
+	ublox.ParseErrors = parse_errors;
+	UBloxInfoSet(&ublox);
 }
 #endif
 
@@ -331,6 +388,15 @@ static uint32_t parse_ubx_message (const struct UBXPacket *ubx, GPSPositionData 
 #endif
 			}
 			break;
+#if !defined(PIOS_GPS_MINIMAL)
+		case UBX_CLASS_MON:
+			switch (ubx->header.id) {
+				case UBX_ID_MONVER:
+					parse_ubx_mon_ver (&ubx->payload.mon_ver);
+					break;
+			}
+			break;
+#endif
 	}
 	if (msgtracker.msg_received == ALL_RECEIVED) {
 		GPSPositionSet(GpsPosition);

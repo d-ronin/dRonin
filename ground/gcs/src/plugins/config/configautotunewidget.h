@@ -2,6 +2,7 @@
  ******************************************************************************
  *
  * @file       configautotunewidget.h
+ * @author     dRonin, http://dronin.org, Copyright (C) 2015
  * @author     The OpenPilot Team, http://www.openpilot.org Copyright (C) 2012.
  * @addtogroup GCSPlugins GCS Plugins
  * @{
@@ -32,30 +33,51 @@
 #include "extensionsystem/pluginmanager.h"
 #include "uavobjectmanager.h"
 #include "uavobject.h"
+#include "actuatorsettings.h"
 #include "stabilizationsettings.h"
-#include "relaytuningsettings.h"
-#include "relaytuning.h"
-#include <QtGui/QWidget>
+#include "systemident.h"
+#include <QWidget>
 #include <QTimer>
+#include <QtNetwork/QNetworkReply>
+#include "autotuneshareform.h"
+#include "configgadgetwidget.h"
 
 class ConfigAutotuneWidget : public ConfigTaskWidget
 {
     Q_OBJECT
 public:
-    explicit ConfigAutotuneWidget(QWidget *parent = 0);
+    explicit ConfigAutotuneWidget(ConfigGadgetWidget *parent = 0);
 
 private:
     Ui_AutotuneWidget *m_autotune;
     StabilizationSettings::DataFields stabSettings;
+    UAVObjectUtilManager* utilMngr;
+    AutotuneShareForm *autotuneShareForm;
+    ConfigGadgetWidget *parentConfigWidget;
+
+    bool approveSettings(SystemIdent::DataFields systemIdentData);
+    QJsonDocument getResultsJson();
+    QString getResultsPlainText();
+    void saveUserData();
+    void loadUserData();
+
+    static const QString databaseUrl;
 
 signals:
 
 public slots:
     void refreshWidgetsValues(UAVObject *obj);
     void updateObjectsFromWidgets();
+    void resetSliders();
 private slots:
     void recomputeStabilization();
     void saveStabilization();
+    void onShareData();
+    void onShareToDatabase();
+    void onShareToClipboard();
+    void onShareToDatabaseComplete(QNetworkReply *reply);
+    void onYawTuneToggled(bool checked);
+    void onStabSettingsUpdated(UAVObject *obj);
 };
 
 #endif // CONFIGAUTOTUNE_H

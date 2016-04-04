@@ -3,6 +3,7 @@
  *
  * @file       configtaskwidget.h
  * @author     The OpenPilot Team, http://www.openpilot.org Copyright (C) 2010.
+ * @author     Tau Labs, http://taulabs.org, Copyright (C) 2014
  *
  * @addtogroup GCSPlugins GCS Plugins
  * @{
@@ -34,7 +35,7 @@
 #include "uavobject.h"
 #include "uavobjectutilmanager.h"
 #include <QQueue>
-#include <QtGui/QWidget>
+#include <QWidget>
 #include <QList>
 #include <QLabel>
 #include "smartsavebutton.h"
@@ -82,7 +83,7 @@ public:
         }
     };
 
-    enum buttonTypeEnum {none,save_button,apply_button,reload_button,default_button,help_button};
+    enum buttonTypeEnum {none,save_button,apply_button,reload_button,default_button,help_button,reboot_button};
     enum metadataSetEnum {ALL_METADATA, SETTINGS_METADATA_ONLY, NONSETTINGS_METADATA_ONLY};
 
     struct uiRelationAutomation
@@ -127,6 +128,7 @@ public:
     void addApplySaveButtons(QPushButton * update,QPushButton * save);
     void addReloadButton(QPushButton * button,int buttonGroup);
     void addDefaultButton(QPushButton * button,int buttonGroup);
+    void addRebootButton(QPushButton * button);
     //////////
 
     void addWidgetToDefaultReloadGroups(QWidget * widget, QList<int> *groups);
@@ -135,6 +137,7 @@ public:
     bool addShadowWidget(QString object,QString field,QWidget * widget,int index=0,double scale=1,bool isLimited=false, QList<int> *defaultReloadGroups=NULL, quint32 instID=0);
 
     void autoLoadWidgets();
+    void loadAllLimits();
 
     bool isAutopilotConnected();
     bool isDirty();
@@ -145,6 +148,10 @@ public:
     void addHelpButton(QPushButton * button,QString url);
     void forceShadowUpdates();
     void forceConnectedState();
+
+    void setNotMandatory(QString object);
+
+    virtual void tabSwitchingAway() {}
 
 public slots:
     void onAutopilotDisconnect();
@@ -171,7 +178,8 @@ private slots:
     void objectUpdated(UAVObject*);
     void defaultButtonClicked();
     void reloadButtonClicked();
-
+    void rebootButtonClicked();
+    void doRefreshHiddenObjects(UAVDataObject*);
 private:
     int currentBoard;
     bool isConnected;
@@ -180,13 +188,13 @@ private:
     QList <objectToWidget*> objOfInterest;
     ExtensionSystem::PluginManager *pm;
     UAVObjectManager *objManager;
-    UAVObjectUtilManager* utilMngr;
     smartSaveButton *smartsave;
     QMap<UAVObject *,bool> objectUpdates;
     QMap<int,QList<objectToWidget*> *> defaultReloadGroups;
     QMap<QWidget *,objectToWidget*> shadowsList;
     QMap<QPushButton *,QString> helpButtonList;
     QList<QPushButton *> reloadButtonList;
+    QList<QPushButton *> rebootButtonList;
     bool dirty;
     bool setFieldFromWidget(QWidget *widget, UAVObjectField *field, int index, double scale);
     bool setWidgetFromField(QWidget *widget, UAVObjectField *field, int index, double scale, bool hasLimits);
@@ -209,6 +217,7 @@ protected:
     void checkWidgetsLimits(QWidget *widget, UAVObjectField *field, int index, bool hasLimits, QVariant value, double scale);
     virtual QVariant getVariantFromWidget(QWidget *widget, double scale);
     virtual bool setWidgetFromVariant(QWidget *widget,QVariant value,double scale);
+    UAVObjectUtilManager* utilMngr;
 };
 
 #endif // CONFIGTASKWIDGET_H

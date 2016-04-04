@@ -31,7 +31,7 @@
 #include "scopegadgetconfiguration.h"
 #include "scopegadgetwidget.h"
 
-#include <QtGui/qcolor.h>
+#include <qcolor.h>
 
 ScopeGadget::ScopeGadget(QString classId, ScopeGadgetWidget *widget, QWidget *parent) :
         IUAVGadget(classId, parent),
@@ -53,6 +53,8 @@ void ScopeGadget::loadConfiguration(IUAVGadgetConfiguration* config)
         return;
 
     scopeGadgetWidget->clearPlotWidget();
+    scopeGadgetWidget->setScopeName(config->name());
+
     sgConfig->getScope()->loadConfiguration(scopeGadgetWidget);
 }
 

@@ -2,6 +2,7 @@
  ******************************************************************************
  *
  * @file       shortcutsettings.cpp
+ * @author     dRonin, http://dRonin.org/, Copyright (C) 2016
  * @author     The OpenPilot Team, http://www.openpilot.org Copyright (C) 2010.
  *             Parts by Nokia Corporation (qt-info@nokia.com) Copyright (C) 2009.
  * @addtogroup GCSPlugins GCS Plugins
@@ -24,6 +25,10 @@
  * You should have received a copy of the GNU General Public License along 
  * with this program; if not, write to the Free Software Foundation, Inc., 
  * 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
+ *
+ * Additional note on redistribution: The copyright and license notices above
+ * must be maintained in each individual source file that is a derivative work
+ * of this source file; otherwise redistribution is prohibited.
  */
 
 #include "shortcutsettings.h"
@@ -37,11 +42,9 @@
 #include "uniqueidmanager.h"
 #include <utils/treewidgetcolumnstretcher.h>
 
-
-#include <QtGui/QKeyEvent>
-#include <QtGui/QShortcut>
-#include <QtGui/QHeaderView>
-#include <QtGui/QFileDialog>
+#include <QKeyEvent>
+#include <QShortcut>
+#include <QHeaderView>
 #include <QtDebug>
 
 Q_DECLARE_METATYPE(Core::Internal::ShortcutItem*)
@@ -95,10 +98,6 @@ QWidget *ShortcutSettings::createPage(QWidget *parent)
         this, SLOT(resetKeySequence()));
     connect(m_page->removeButton, SIGNAL(clicked()),
         this, SLOT(removeKeySequence()));
-    connect(m_page->exportButton, SIGNAL(clicked()),
-        this, SLOT(exportAction()));
-    connect(m_page->importButton, SIGNAL(clicked()),
-        this, SLOT(importAction()));
     connect(m_page->defaultButton, SIGNAL(clicked()),
         this, SLOT(defaultAction()));
 
@@ -158,7 +157,7 @@ void ShortcutSettings::commandChanged(QTreeWidgetItem *current)
         return;
     }
     m_page->seqGrp->setEnabled(true);
-    ShortcutItem *scitem = qVariantValue<ShortcutItem *>(current->data(0, Qt::UserRole));
+    ShortcutItem *scitem = current->data(0, Qt::UserRole).value<ShortcutItem *>();
     setKeySequence(scitem->m_key);
 }
 
@@ -174,9 +173,9 @@ void ShortcutSettings::keyChanged()
 {
     QTreeWidgetItem *current = m_page->commandList->currentItem();
     if (current && current->data(0, Qt::UserRole).isValid()) {
-        ShortcutItem *scitem = qVariantValue<ShortcutItem *>(current->data(0, Qt::UserRole));
+        ShortcutItem *scitem = current->data(0, Qt::UserRole).value<ShortcutItem *>();
         scitem->m_key = QKeySequence(m_key[0], m_key[1], m_key[2], m_key[3]);
-        current->setText(2, scitem->m_key);
+        current->setText(2, scitem->m_key.toString());
     }
 }
 
@@ -187,7 +186,7 @@ void ShortcutSettings::setKeySequence(const QKeySequence &key)
     for (int i = 0; i < m_keyNum; ++i) {
         m_key[i] = key[i];
     }
-    m_page->shortcutEdit->setText(key);
+    m_page->shortcutEdit->setText(key.toString());
 }
 
 bool ShortcutSettings::filter(const QString &f, const QTreeWidgetItem *item)
@@ -219,7 +218,7 @@ void ShortcutSettings::resetKeySequence()
 {
     QTreeWidgetItem *current = m_page->commandList->currentItem();
     if (current && current->data(0, Qt::UserRole).isValid()) {
-        ShortcutItem *scitem = qVariantValue<ShortcutItem *>(current->data(0, Qt::UserRole));
+        ShortcutItem *scitem = current->data(0, Qt::UserRole).value<ShortcutItem *>();
         setKeySequence(scitem->m_cmd->defaultKeySequence());
     }
 }
@@ -230,52 +229,14 @@ void ShortcutSettings::removeKeySequence()
     m_page->shortcutEdit->clear();
 }
 
-void ShortcutSettings::importAction()
-{
-    UniqueIDManager *uidm = UniqueIDManager::instance();
-
-    QString fileName = QFileDialog::getOpenFileName(0, tr("Import Keyboard Mapping Scheme"),
-        ICore::instance()->resourcePath() + "/schemes/",
-        tr("Keyboard Mapping Scheme (*.kms)"));
-    if (!fileName.isEmpty()) {
-        CommandsFile cf(fileName);
-        QMap<QString, QKeySequence> mapping = cf.importCommands();
-
-        foreach (ShortcutItem *item, m_scitems) {
-            QString sid = uidm->stringForUniqueIdentifier(item->m_cmd->id());
-            if (mapping.contains(sid)) {
-                item->m_key = mapping.value(sid);
-                item->m_item->setText(2, item->m_key);
-                if (item->m_item == m_page->commandList->currentItem())
-                    commandChanged(item->m_item);
-            }
-        }
-    }
-}
-
 void ShortcutSettings::defaultAction()
 {
     foreach (ShortcutItem *item, m_scitems) {
         item->m_key = item->m_cmd->defaultKeySequence();
-        item->m_item->setText(2, item->m_key);
+        item->m_item->setText(2, item->m_key.toString());
         if (item->m_item == m_page->commandList->currentItem())
             commandChanged(item->m_item);
     }
-}
-
-void ShortcutSettings::exportAction()
-{
-#if 0
-    QString fileName = ICore::instance()->fileManager()->getSaveFileNameWithExtension(
-        tr("Export Keyboard Mapping Scheme"),
-        ICore::instance()->resourcePath() + "/schemes/",
-        tr("Keyboard Mapping Scheme (*.kms)"),
-        ".kms");
-    if (!fileName.isEmpty()) {
-        CommandsFile cf(fileName);
-        cf.exportCommands(m_scitems);
-    }
-#endif
 }
 
 void ShortcutSettings::initialize()
@@ -308,7 +269,7 @@ void ShortcutSettings::initialize()
             item->setText(1, c->shortcut()->whatsThis());
         }
 
-        item->setText(2, s->m_key);
+        item->setText(2, s->m_key.toString());
         item->setData(0, Qt::UserRole, qVariantFromValue(s));
     }
 }
@@ -342,7 +303,7 @@ void ShortcutSettings::handleKeyEvent(QKeyEvent *e)
     }
     m_keyNum++;
     QKeySequence ks(m_key[0], m_key[1], m_key[2], m_key[3]);
-    m_page->shortcutEdit->setText(ks);
+    m_page->shortcutEdit->setText(ks.toString());
     e->accept();
 }
 

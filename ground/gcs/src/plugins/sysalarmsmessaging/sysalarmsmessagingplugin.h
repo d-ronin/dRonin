@@ -31,9 +31,9 @@
 
 
 #include <extensionsystem/iplugin.h>
+#include <coreplugin/globalmessaging.h>
 #include "uavobject.h"
 #include "uavtalk/telemetrymanager.h"
-#include <coreplugin/globalmessaging.h>
 
 using namespace Core;
 
@@ -46,6 +46,7 @@ class SysAlarmsMessagingPlugin
     : public ExtensionSystem::IPlugin
 {
     Q_OBJECT
+    Q_PLUGIN_METADATA(IID "org.dronin.plugins.SysAlarmsMessaging")
 
 public:
     SysAlarmsMessagingPlugin();

@@ -3,6 +3,7 @@
  *
  * @file       configvehicletypewidget.cpp
  * @author     E. Lafargue, K. Sebesta & The OpenPilot Team, http://www.openpilot.org Copyright (C) 2012
+ * @author     Tau Labs, http://taulabs.org, Copyright (C) 2012-2014 
  * @addtogroup GCSPlugins GCS Plugins
  * @{
  * @addtogroup ConfigPlugin Config Plugin
@@ -29,17 +30,19 @@
 #include <QDebug>
 #include <QStringList>
 #include <QTimer>
-#include <QtGui/QWidget>
-#include <QtGui/QTextEdit>
-#include <QtGui/QVBoxLayout>
-#include <QtGui/QPushButton>
+#include <QWidget>
+#include <QTextEdit>
+#include <QVBoxLayout>
+#include <QPushButton>
 #include <math.h>
 #include <QDesktopServices>
 #include <QUrl>
 #include <QEventLoop>
+#include <QMessageBox>
 
 #include "systemsettings.h"
 #include "mixersettings.h"
+#include "actuatorcommand.h"
 #include "actuatorsettings.h"
 #include "vehicletrim.h"
 #include <extensionsystem/pluginmanager.h>
@@ -60,8 +63,8 @@ QWidget *SpinBoxDelegate::createEditor(QWidget *parent,
     const QModelIndex &/* index */) const
 {
     QSpinBox *editor = new QSpinBox(parent);
-    editor->setMinimum(-127);
-    editor->setMaximum(127);
+    editor->setMinimum(-VehicleConfig::mixerRange);
+    editor->setMaximum(VehicleConfig::mixerRange);
 
     return editor;
 }
@@ -114,12 +117,9 @@ ConfigVehicleTypeWidget::ConfigVehicleTypeWidget(QWidget *parent) : ConfigTaskWi
 
     addUAVObjectToWidgetRelation("MixerSettings","Curve2Source",m_aircraft->customThrottle2Curve->getCBCurveSource());
 
-    ffTuningInProgress = false;
-    ffTuningPhase = false;
-
     //Generate lists of mixerTypeNames, mixerVectorNames, channelNames
     channelNames << "None";
-    for (int i = 0; i < (int)ActuatorSettings::CHANNELADDR_NUMELEM; i++) {
+    for (int i = 0; i < (int)ActuatorSettings::CHANNELTYPE_NUMELEM; i++) {
 
         mixerTypes << QString("Mixer%1Type").arg(i+1);
         mixerVectors << QString("Mixer%1Vector").arg(i+1);
@@ -186,14 +186,14 @@ ConfigVehicleTypeWidget::ConfigVehicleTypeWidget(QWidget *parent) : ConfigTaskWi
     UAVDataObject* obj = dynamic_cast<UAVDataObject*>(getObjectManager()->getObject(QString("MixerSettings")));
     UAVObjectField* field = obj->getField(QString("Mixer1Type"));
     QStringList list = field->getOptions();
-    for (int i=0; i<(int)(VehicleConfig::CHANNEL_NUMELEM); i++) {
+    for (int i=0; i<(int)(ActuatorCommand::CHANNEL_NUMELEM); i++) {
         QComboBox* qb = new QComboBox(m_aircraft->customMixerTable);
         qb->addItems(list);
         m_aircraft->customMixerTable->setCellWidget(0,i,qb);
     }
 
     SpinBoxDelegate *sbd = new SpinBoxDelegate();
-    for (int i=1; i<(int)(VehicleConfig::CHANNEL_NUMELEM); i++) {
+    for (int i=1; i<(int)(ActuatorCommand::CHANNEL_NUMELEM); i++) {
         m_aircraft->customMixerTable->setItemDelegateForRow(i, sbd);
     }
 
@@ -223,11 +223,6 @@ ConfigVehicleTypeWidget::ConfigVehicleTypeWidget(QWidget *parent) : ConfigTaskWi
     connect(m_aircraft->multirotorFrameType, SIGNAL(currentIndexChanged(int)), this, SLOT(doSetupAirframeUI(int)));
     connect(m_aircraft->groundVehicleType, SIGNAL(currentIndexChanged(int)), this, SLOT(doSetupAirframeUI(int)));
     //mdl connect(m_heli->m_ccpm->ccpmType, SIGNAL(currentIndexChanged(QString)), this, SLOT(setupAirframeUI(QString)));
-
-    //Connect the three feed forward test checkboxes
-    connect(m_aircraft->ffTestBox1, SIGNAL(clicked(bool)), this, SLOT(enableFFTest()));
-    connect(m_aircraft->ffTestBox2, SIGNAL(clicked(bool)), this, SLOT(enableFFTest()));
-    connect(m_aircraft->ffTestBox3, SIGNAL(clicked(bool)), this, SLOT(enableFFTest()));
 
     //Connect the multirotor motor reverse checkbox
     connect(m_aircraft->MultirotorRevMixercheckBox, SIGNAL(clicked(bool)), this, SLOT(reverseMultirotorMotor()));
@@ -320,7 +315,7 @@ QStringList ConfigVehicleTypeWidget::getChannelDescriptions()
 
         default:
         {
-            for (i=0; i < (int)(VehicleConfig::CHANNEL_NUMELEM); i++)
+            for (i=0; i < (int)(ActuatorCommand::CHANNEL_NUMELEM); i++)
                 channelDesc.append(QString("-"));
         }
         break;
@@ -346,7 +341,7 @@ void ConfigVehicleTypeWidget::switchAirframeType(int index)
         break;
     case AIRFRAME_CUSTOM:
         m_aircraft->customMixerTable->resizeColumnsToContents();
-        for (int i=0;i<(int)(VehicleConfig::CHANNEL_NUMELEM);i++) {
+        for (int i=0;i<(int)(ActuatorCommand::CHANNEL_NUMELEM);i++) {
             m_aircraft->customMixerTable->setColumnWidth(i,(m_aircraft->customMixerTable->width()-
                                                             m_aircraft->customMixerTable->verticalHeader()->width())/10);
         }
@@ -370,7 +365,7 @@ void ConfigVehicleTypeWidget::showEvent(QShowEvent *event)
     // the result is usually a ahrsbargraph that is way too small.
     m_aircraft->quadShape->fitInView(quad, Qt::KeepAspectRatio);
     m_aircraft->customMixerTable->resizeColumnsToContents();
-    for (int i=0;i<(int)(VehicleConfig::CHANNEL_NUMELEM);i++) {
+    for (int i=0;i<(int)(ActuatorCommand::CHANNEL_NUMELEM);i++) {
         m_aircraft->customMixerTable->setColumnWidth(i,(m_aircraft->customMixerTable->width()-
                                                         m_aircraft->customMixerTable->verticalHeader()->width())/ 10);
     }
@@ -385,7 +380,7 @@ void ConfigVehicleTypeWidget::resizeEvent(QResizeEvent* event)
     m_aircraft->quadShape->fitInView(quad, Qt::KeepAspectRatio);
     // Make the custom table columns autostretch:
     m_aircraft->customMixerTable->resizeColumnsToContents();
-    for (int i=0;i<(int)(VehicleConfig::CHANNEL_NUMELEM);i++) {
+    for (int i=0;i<(int)(ActuatorCommand::CHANNEL_NUMELEM);i++) {
         m_aircraft->customMixerTable->setColumnWidth(i,(m_aircraft->customMixerTable->width()-
                                                         m_aircraft->customMixerTable->verticalHeader()->width())/ 10);
     }
@@ -423,68 +418,6 @@ void ConfigVehicleTypeWidget::toggleRudder2(int index)
     } else {
         m_aircraft->fwRudder2ChannelBox->setEnabled(false);
         m_aircraft->fwRudder2Label->setEnabled(false);
-    }
-}
-
-/////////////////////////////////////////////////////////
-/// Feed Forward Testing
-/////////////////////////////////////////////////////////
-/**
-  Enables and runs feed forward testing
-  */
-void ConfigVehicleTypeWidget::enableFFTest()
-{
-    // Role:
-    // - Check if all three checkboxes are checked
-    // - Every other timer event: toggle engine from 45% to 55%
-    // - Every other time event: send FF settings to flight FW
-    if (m_aircraft->ffTestBox1->isChecked() &&
-        m_aircraft->ffTestBox2->isChecked() &&
-        m_aircraft->ffTestBox3->isChecked()) {
-        if (!ffTuningInProgress)
-        {
-            // Initiate tuning:
-            UAVDataObject* obj = dynamic_cast<UAVDataObject*>(getObjectManager()->getObject(QString("ManualControlCommand")));
-            UAVObject::Metadata mdata = obj->getMetadata();
-            accInitialData = mdata;
-            UAVObject::SetFlightAccess(mdata, UAVObject::ACCESS_READONLY);
-            obj->setMetadata(mdata);
-        }
-        // Depending on phase, either move actuator or send FF settings:
-        if (ffTuningPhase) {
-            // Send FF settings to the board
-            MixerSettings *mixerSettings = MixerSettings::GetInstance(getObjectManager());
-            Q_ASSERT(mixerSettings);
-
-            QPointer<VehicleConfig> vconfig = new VehicleConfig();
-
-            // Update feed forward settings
-            vconfig->setMixerValue(mixerSettings, "FeedForward", m_aircraft->feedForwardSlider->value() / 100.0);
-            vconfig->setMixerValue(mixerSettings, "AccelTime", m_aircraft->accelTime->value());
-            vconfig->setMixerValue(mixerSettings, "DecelTime", m_aircraft->decelTime->value());
-            vconfig->setMixerValue(mixerSettings, "MaxAccel", m_aircraft->maxAccelSlider->value());
-            mixerSettings->updated();
-        } else  {
-            // Toggle motor state
-            UAVDataObject* obj = dynamic_cast<UAVDataObject*>(getObjectManager()->getObject(QString("ManualControlCommand")));
-            double value = obj->getField("Throttle")->getDouble();
-            double target = (value < 0.5) ? 0.55 : 0.45;
-            obj->getField("Throttle")->setValue(target);
-            obj->updated();
-        }
-        ffTuningPhase = !ffTuningPhase;
-        ffTuningInProgress = true;
-        QTimer::singleShot(1000, this, SLOT(enableFFTest()));
-    } else {
-        // - If no: disarm timer, restore actuatorcommand metadata
-        // Disarm!
-        if (ffTuningInProgress) {
-            ffTuningInProgress = false;
-            UAVDataObject* obj = dynamic_cast<UAVDataObject*>(getObjectManager()->getObject(QString("ManualControlCommand")));
-            UAVObject::Metadata mdata = obj->getMetadata();
-            mdata = accInitialData; // Restore metadata
-            obj->setMetadata(mdata);
-        }
     }
 }
 
@@ -720,7 +653,7 @@ void ConfigVehicleTypeWidget::updateCustomAirframeUI()
     }
 
     // Update the mixer table:
-    for (int channel=0; channel<(int)(VehicleConfig::CHANNEL_NUMELEM); channel++) {
+    for (int channel=0; channel<(int)(ActuatorCommand::CHANNEL_NUMELEM); channel++) {
         UAVObjectField* field = mixerSettings->getField(mixerTypes.at(channel));
         if (field)
         {
@@ -743,12 +676,6 @@ void ConfigVehicleTypeWidget::updateCustomAirframeUI()
                 QString::number(vconfig->getMixerVectorValue(mixerSettings,channel,MixerSettings::MIXER1VECTOR_YAW)));
         }
     }
-
-    // Update feed forward settings
-    m_aircraft->feedForwardSlider->setValue(vconfig->getMixerValue(mixerSettings,"FeedForward") * 100);
-    m_aircraft->accelTime->setValue(vconfig->getMixerValue(mixerSettings,"AccelTime"));
-    m_aircraft->decelTime->setValue(vconfig->getMixerValue(mixerSettings,"DecelTime"));
-    m_aircraft->maxAccelSlider->setValue(vconfig->getMixerValue(mixerSettings,"MaxAccel"));
 }
 
 
@@ -767,12 +694,6 @@ void ConfigVehicleTypeWidget::updateObjectsFromWidgets()
     Q_ASSERT(mixerSettings);
 
     QPointer<VehicleConfig> vconfig = new VehicleConfig();
-
-    // Update feed forward settings
-    vconfig->setMixerValue(mixerSettings, "FeedForward", m_aircraft->feedForwardSlider->value() / 100.0);
-    vconfig->setMixerValue(mixerSettings, "AccelTime", m_aircraft->accelTime->value());
-    vconfig->setMixerValue(mixerSettings, "DecelTime", m_aircraft->decelTime->value());
-    vconfig->setMixerValue(mixerSettings, "MaxAccel", m_aircraft->maxAccelSlider->value());
 
     frameType = SystemSettings::AIRFRAMETYPE_CUSTOM; //Set airframe type default to "Custom"
 
@@ -793,7 +714,7 @@ void ConfigVehicleTypeWidget::updateObjectsFromWidgets()
         vconfig->setThrottleCurve(mixerSettings, MixerSettings::MIXER1VECTOR_THROTTLECURVE2, m_aircraft->customThrottle2Curve->getCurve());
 
         // Update the table:
-        for (int channel=0; channel<(int)(VehicleConfig::CHANNEL_NUMELEM); channel++) {
+        for (int channel=0; channel<(int)(ActuatorCommand::CHANNEL_NUMELEM); channel++) {
             QComboBox* q = (QComboBox*)m_aircraft->customMixerTable->cellWidget(0,channel);
             if(q->currentText()=="Disabled")
                 vconfig->setMixerType(mixerSettings,channel,MixerSettings::MIXER1TYPE_DISABLED);
@@ -851,7 +772,7 @@ void ConfigVehicleTypeWidget::updateObjectsFromWidgets()
 void ConfigVehicleTypeWidget::openHelp()
 {
 
-    QDesktopServices::openUrl( QUrl("https://github.com/TauLabs/TauLabs/wiki/OnlineHelp:-Vehicle-configuration", QUrl::StrictMode) );
+    QDesktopServices::openUrl( QUrl("https://github.com/d-ronin/dRonin/wiki/OnlineHelp:-Vehicle-configuration", QUrl::StrictMode) );
 }
 
 /**
@@ -877,7 +798,7 @@ void ConfigVehicleTypeWidget::reverseMultirotorMotor(){
 void ConfigVehicleTypeWidget::bnLevelTrim_clicked()
 {
     QMessageBox msgBox(QMessageBox::Question, tr("Trim level"),
-                       "Use the transmitter trim to set the autopilot for straight and level flight? (Please see the tooltip for more information.)",
+                       tr("Use the transmitter trim to set the autopilot for straight and level flight? (Please see the tooltip for more information.)"),
                        QMessageBox::Yes | QMessageBox::No, this);
     int userChoice = msgBox.exec();
 
@@ -895,34 +816,34 @@ void ConfigVehicleTypeWidget::bnLevelTrim_clicked()
     case VehicleTrim::AUTOPILOT_LEVEL_FAILED_DUE_TO_MISSING_RECEIVER:
     {
         QMessageBox msgBox(QMessageBox::Critical, tr("No receiver detected"),
-                           "Transmitter and receiver must be powered on.", QMessageBox::Ok, this);
+                           tr("Transmitter and receiver must be powered on."), QMessageBox::Ok, this);
         msgBox.exec();
         break;
     }
     case VehicleTrim::AUTOPILOT_LEVEL_FAILED_DUE_TO_ARMED_STATE:
     {
         QMessageBox msgBox(QMessageBox::Critical, tr("Vehicle armed"),
-                           "The autopilot must be disarmed first.", QMessageBox::Ok, this);
+                           tr("The autopilot must be disarmed first."), QMessageBox::Ok, this);
         msgBox.exec();
         break;
     }
     case VehicleTrim::AUTOPILOT_LEVEL_FAILED_DUE_TO_FLIGHTMODE:
     {
         QMessageBox msgBox(QMessageBox::Critical, tr("Vehicle not in Stabilized mode"),
-                           "The autopilot must be in Stabilized1, Stabilized2, or Stabilized3 mode.", QMessageBox::Ok, this);
+                           tr("The autopilot must be in Leveling, Stabilized1, Stabilized2, or Stabilized3 mode."), QMessageBox::Ok, this);
         msgBox.exec();
         break;
     }
     case VehicleTrim::AUTOPILOT_LEVEL_FAILED_DUE_TO_STABILIZATIONMODE:
     {
         QMessageBox msgBox(QMessageBox::Critical, tr("Incorrect roll and pitch stabilization modes."),
-                           "Both roll and pitch must be in Attitude or AttitudePlus stabilization mode.", QMessageBox::Ok, this);
+                           tr("Both roll and pitch must be in Attitude stabilization mode."), QMessageBox::Ok, this);
         msgBox.exec();
         break;
     }
     case VehicleTrim::AUTOPILOT_LEVEL_SUCCESS:
         QMessageBox msgBox(QMessageBox::Information, tr("Trim updated"),
-                           "Trim successfully updated, please reset the transmitter's trim and be sure to configure stabilization settings to use AttitudePlus.", QMessageBox::Ok, this);
+                           tr("Trim successfully updated, please reset the transmitter's trim to zero and be sure to configure stabilization settings to use Attitude mode."), QMessageBox::Ok, this);
         msgBox.exec();
 
         // Set tab as dirty (i.e. having unsaved changes).
@@ -998,10 +919,6 @@ void ConfigVehicleTypeWidget::addToDirtyMonitor()
     addWidget(m_aircraft->groundVehicleThrottle1->getCurveWidget());
     addWidget(m_aircraft->groundVehicleThrottle2->getCurveWidget());
     addWidget(m_aircraft->groundVehicleType);
-    addWidget(m_aircraft->feedForwardSlider);
-    addWidget(m_aircraft->accelTime);
-    addWidget(m_aircraft->decelTime);
-    addWidget(m_aircraft->maxAccelSlider);
     addWidget(m_aircraft->multirotorFrameType);
     addWidget(m_aircraft->multiMotorChannelBox1);
     addWidget(m_aircraft->multiMotorChannelBox2);

@@ -8,7 +8,7 @@
  *
  * @file       pios_sbus.c
  * @author     The OpenPilot Team, http://www.openpilot.org Copyright (C) 2011.
- * @author     Tau Labs, http://taulabs.org, Copyright (C) 2013
+ * @author     Tau Labs, http://taulabs.org, Copyright (C) 2013-2014
  * @brief      Code to read Futaba S.Bus receiver serial stream
  * @see        The GNU Public License (GPL) Version 3
  *
@@ -59,13 +59,11 @@ struct pios_sbus_state {
 	uint8_t received_data[SBUS_FRAME_LENGTH - 2];
 	uint8_t receive_timer;
 	uint8_t failsafe_timer;
-	uint8_t frame_found;
 	uint8_t byte_count;
 };
 
 struct pios_sbus_dev {
 	enum pios_sbus_dev_magic magic;
-	const struct pios_sbus_cfg *cfg;
 	struct pios_sbus_state state;
 };
 
@@ -98,15 +96,14 @@ static void PIOS_SBus_ResetChannels(struct pios_sbus_state *state)
 /* Reset S.Bus receiver state */
 static void PIOS_SBus_ResetState(struct pios_sbus_state *state)
 {
-	state->receive_timer = 0;
 	state->failsafe_timer = 0;
-	state->frame_found = 0;
+	state->receive_timer = 0;
+	state->byte_count = 0;
 	PIOS_SBus_ResetChannels(state);
 }
 
 /* Initialise S.Bus receiver interface */
 int32_t PIOS_SBus_Init(uintptr_t *sbus_id,
-		       const struct pios_sbus_cfg *cfg,
 		       const struct pios_com_driver *driver,
 		       uintptr_t lower_id)
 {
@@ -117,25 +114,12 @@ int32_t PIOS_SBus_Init(uintptr_t *sbus_id,
 	struct pios_sbus_dev *sbus_dev;
 
 	sbus_dev = (struct pios_sbus_dev *)PIOS_SBus_Alloc();
-	if (!sbus_dev) goto out_fail;
-
-	/* Bind the configuration to the device instance */
-	sbus_dev->cfg = cfg;
+	if (!sbus_dev) return -1;
 
 	PIOS_SBus_ResetState(&(sbus_dev->state));
 
 	*sbus_id = (uintptr_t)sbus_dev;
 
-	/* Enable inverter clock and enable the inverter */
-	if (cfg->gpio_clk_func != NULL)
-		(*cfg->gpio_clk_func)(cfg->gpio_clk_periph, ENABLE);
-	if (cfg->inv.gpio != NULL)
-	{
-		GPIO_Init(cfg->inv.gpio, (GPIO_InitTypeDef*)&cfg->inv.init);
-		GPIO_WriteBit(cfg->inv.gpio, cfg->inv.init.GPIO_Pin, cfg->gpio_inv_enable);
-	}
-
-	/* Set comm driver callback */
 	(driver->bind_rx_cb)(lower_id, PIOS_SBus_RxInCallback, *sbus_id);
 
 	if (!PIOS_RTC_RegisterTickCallback(PIOS_SBus_Supervisor, *sbus_id)) {
@@ -143,9 +127,6 @@ int32_t PIOS_SBus_Init(uintptr_t *sbus_id,
 	}
 
 	return 0;
-
-out_fail:
-	return -1;
 }
 
 /**
@@ -210,18 +191,12 @@ static void PIOS_SBus_UnrollChannels(struct pios_sbus_state *state)
 /* Update decoder state processing input byte from the S.Bus stream */
 static void PIOS_SBus_UpdateState(struct pios_sbus_state *state, uint8_t b)
 {
-	/* should not process any data until new frame is found */
-	if (!state->frame_found)
-		return;
-
 	if (state->byte_count == 0) {
-		if (b != SBUS_SOF_BYTE) {
-			/* discard the whole frame if the 1st byte is not correct */
-			state->frame_found = 0;
-		} else {
+		if (b == SBUS_SOF_BYTE) {
 			/* do not store the SOF byte */
 			state->byte_count++;
 		}
+		/* Otherwise discard this byte. */
 		return;
 	}
 
@@ -231,7 +206,7 @@ static void PIOS_SBus_UpdateState(struct pios_sbus_state *state, uint8_t b)
 		state->received_data[state->byte_count - 1] = b;
 		state->byte_count++;
 	} else {
-		if (b == SBUS_EOF_BYTE) {
+		if (b == SBUS_EOF_BYTE || (b & SBUS_R7008SB_EOF_COUNTER_MASK) == SBUS_R7008SB_EOF_BYTE) {
 			/* full frame received */
 			uint8_t flags = state->received_data[SBUS_FRAME_LENGTH - 3];
 			if (flags & SBUS_FLAG_FL) {
@@ -249,7 +224,7 @@ static void PIOS_SBus_UpdateState(struct pios_sbus_state *state, uint8_t b)
 		}
 
 		/* prepare for the next frame */
-		state->frame_found = 0;
+		state->byte_count = 0;
 	}
 }
 
@@ -270,10 +245,11 @@ static uint16_t PIOS_SBus_RxInCallback(uintptr_t context,
 	/* process byte(s) and clear receive timer */
 	for (uint8_t i = 0; i < buf_len; i++) {
 		PIOS_SBus_UpdateState(state, buf[i]);
-		state->receive_timer = 0;
 	}
 
-	/* Always signal that we can accept another byte */
+	state->receive_timer = 0;
+
+	/* Always signal that we can accept another frame */
 	if (headroom)
 		*headroom = SBUS_FRAME_LENGTH;
 
@@ -286,14 +262,13 @@ static uint16_t PIOS_SBus_RxInCallback(uintptr_t context,
 
 /**
  * Input data supervisor is called periodically and provides
- * two functions: frame syncing and failsafe triggering.
+ * failsafe triggering.
  *
  * S.Bus frames come at 7ms (HS) or 14ms (FS) rate at 100000bps.
- * RTC timer is running at 625Hz (1.6ms). So with divider 2 it gives
- * 3.2ms pause between frames which is good for both S.Bus frame rates.
+ * RTC timer is running at 625Hz (1.6ms).
  *
  * Data receive function must clear the receive_timer to confirm new
- * data reception. If no new data received in 100ms, we must call the
+ * data reception. If no new data received in 48ms, we must call the
  * failsafe function which clears all channels.
  */
 static void PIOS_SBus_Supervisor(uintptr_t sbus_id)
@@ -305,15 +280,15 @@ static void PIOS_SBus_Supervisor(uintptr_t sbus_id)
 
 	struct pios_sbus_state *state = &(sbus_dev->state);
 
-	/* waiting for new frame if no bytes were received in 3.2ms */
+	/* An appropriate gap of at least 3.2ms causes us to go back to
+	 * expecting start of frame. */
 	if (++state->receive_timer > 2) {
-		state->frame_found = 1;
 		state->byte_count = 0;
 		state->receive_timer = 0;
 	}
 
-	/* activate failsafe if no frames have arrived in 102.4ms */
-	if (++state->failsafe_timer > 64) {
+	/* activate failsafe if no frames have arrived in 48ms */
+	if (++state->failsafe_timer > 30) {
 		PIOS_SBus_ResetChannels(state);
 		state->failsafe_timer = 0;
 	}

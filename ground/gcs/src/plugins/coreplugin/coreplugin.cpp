@@ -5,6 +5,7 @@
  * @author     The OpenPilot Team, http://www.openpilot.org Copyright (C) 2010.
  *             Parts by Nokia Corporation (qt-info@nokia.com) Copyright (C) 2009.
  * @author     Tau Labs, http://taulabs.org, Copyright (C) 2013
+ * @author     dRonin, http://dRonin.org/, Copyright (C) 2015
  * @addtogroup GCSPlugins GCS Plugins
  * @{
  * @addtogroup CorePlugin Core Plugin
@@ -26,13 +27,11 @@
  * with this program; if not, write to the Free Software Foundation, Inc., 
  * 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
  */
-
 #include "coreplugin.h"
 #include "coreimpl.h"
 #include "mainwindow.h"
 #include <QtPlugin>
 #include <extensionsystem/pluginmanager.h>
-
 #include <QtCore/QtPlugin>
 
 using namespace Core::Internal;
@@ -41,6 +40,8 @@ CorePlugin::CorePlugin() :
     m_mainWindow(new MainWindow)
 {
     connect(m_mainWindow,SIGNAL(splashMessages(QString)),this,SIGNAL(splashMessages(QString)));
+    connect(m_mainWindow,SIGNAL(hideSplash()),this,SIGNAL(hideSplash()));
+    connect(m_mainWindow,SIGNAL(showSplash()),this,SIGNAL(showSplash()));
 }
 
 CorePlugin::~CorePlugin()
@@ -50,7 +51,12 @@ CorePlugin::~CorePlugin()
 
 bool CorePlugin::initialize(const QStringList &arguments, QString *errorMessage)
 {
-    Q_UNUSED(arguments)
+    if(arguments.contains("crashme")) {
+        if((arguments.length() > 1) && (arguments.at(arguments.indexOf("crashme") + 1) == "yes")) {
+            QString *s = 0;
+            s->append("crash");
+        }
+    }
     const bool success = m_mainWindow->init(errorMessage);
     if (success) {
         // nothing right now
@@ -79,5 +85,3 @@ void CorePlugin::shutdown()
 {
     m_mainWindow->shutdown();
 }
-
-Q_EXPORT_PLUGIN2(Core,CorePlugin)

@@ -6,10 +6,13 @@
  * @{
  *
  * @file       groundpathfollower.c
+ * @author     dRonin, http://dRonin.org/, Copyright (C) 2015-2016
+ * @author     Tau Labs, http://taulabs.org, Copyright (C) 2013-2014
  * @author     The OpenPilot Team, http://www.openpilot.org Copyright (C) 2012.
- * @author     Tau Labs, http://taulabs.org, Copyright (C) 2013
  * @brief      Perform the path segment requested by @ref PathDesired
-
+ *
+ * @see        The GNU Public License (GPL) Version 3
+ *
  *****************************************************************************/
 /*
  * This program is free software; you can redistribute it and/or modify
@@ -25,6 +28,10 @@
  * You should have received a copy of the GNU General Public License along
  * with this program; if not, write to the Free Software Foundation, Inc.,
  * 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
+ *
+ * Additional note on redistribution: The copyright and license notices above
+ * must be maintained in each individual source file that is a derivative work
+ * of this source file; otherwise redistribution is prohibited.
  */
 
 /**
@@ -64,22 +71,23 @@
 #include "velocityactual.h"
 #include "groundpathfollowersettings.h"
 #include "coordinate_conversions.h"
+#include "pios_thread.h"
 
 // Private constants
 #define MAX_QUEUE_SIZE 4
 #define STACK_SIZE_BYTES 1548
-#define TASK_PRIORITY (tskIDLE_PRIORITY+2)
+#define TASK_PRIORITY PIOS_THREAD_PRIO_NORMAL
 
 // Private types
 
 // Private variables
-static xTaskHandle pathfollowerTaskHandle;
+static struct pios_thread *pathfollowerTaskHandle;
 static PathDesiredData pathDesired;
 static GroundPathFollowerSettingsData guidanceSettings;
 
 // Private functions
 static void groundPathFollowerTask(void *parameters);
-static void SettingsUpdatedCb(UAVObjEvent * ev);
+static void SettingsUpdatedCb(UAVObjEvent * ev, void *ctx, void *obj, int len);
 static void updateNedAccel();
 static void updatePathVelocity();
 static void updateEndpointVelocity();
@@ -97,7 +105,7 @@ int32_t GroundPathFollowerStart()
 {
 	if (module_enabled) {
 		// Start main task
-		xTaskCreate(groundPathFollowerTask, (signed char *)"GroundPathFollower", STACK_SIZE_BYTES/4, NULL, TASK_PRIORITY, &pathfollowerTaskHandle);
+		pathfollowerTaskHandle = PIOS_Thread_Create(groundPathFollowerTask, "GroundPathFollower", STACK_SIZE_BYTES, NULL, TASK_PRIORITY);
 		TaskMonitorAdd(TASKINFO_RUNNING_PATHFOLLOWER, pathfollowerTaskHandle);
 	}
 
@@ -152,7 +160,7 @@ static void groundPathFollowerTask(void *parameters)
 	SystemSettingsData systemSettings;
 	FlightStatusData flightStatus;
 
-	portTickType lastUpdateTime;
+	uint32_t lastUpdateTime;
 
 	GroundPathFollowerSettingsConnectCallback(SettingsUpdatedCb);
 	PathDesiredConnectCallback(SettingsUpdatedCb);
@@ -161,7 +169,7 @@ static void groundPathFollowerTask(void *parameters)
 	PathDesiredGet(&pathDesired);
 
 	// Main task loop
-	lastUpdateTime = xTaskGetTickCount();
+	lastUpdateTime = PIOS_Thread_Systime();
 	while (1) {
 
 		// Conditions when this runs:
@@ -175,12 +183,12 @@ static void groundPathFollowerTask(void *parameters)
 			(systemSettings.AirframeType != SYSTEMSETTINGS_AIRFRAMETYPE_GROUNDVEHICLEMOTORCYCLE) )
 		{
 			AlarmsSet(SYSTEMALARMS_ALARM_PATHFOLLOWER,SYSTEMALARMS_ALARM_WARNING);
-			vTaskDelay(1000);
+			PIOS_Thread_Sleep(1000);
 			continue;
 		}
 
 		// Continue collecting data if not enough time
-		vTaskDelayUntil(&lastUpdateTime, MS2TICKS(guidanceSettings.UpdatePeriod));
+		PIOS_Thread_Sleep_Until(&lastUpdateTime, guidanceSettings.UpdatePeriod);
 
 		// Convert the accels into the NED frame
 		updateNedAccel();
@@ -209,13 +217,13 @@ static void groundPathFollowerTask(void *parameters)
 				}
 				break;
 			case FLIGHTSTATUS_FLIGHTMODE_PATHPLANNER:
-				if (pathDesired.Mode == PATHDESIRED_MODE_FLYENDPOINT ||
+				if (pathDesired.Mode == PATHDESIRED_MODE_ENDPOINT ||
 					pathDesired.Mode == PATHDESIRED_MODE_HOLDPOSITION) {
 					updateEndpointVelocity();
 					updateGroundDesiredAttitude();
-				} else if (pathDesired.Mode == PATHDESIRED_MODE_FLYVECTOR ||
-					pathDesired.Mode == PATHDESIRED_MODE_FLYCIRCLELEFT ||
-					pathDesired.Mode == PATHDESIRED_MODE_FLYCIRCLERIGHT) {
+				} else if (pathDesired.Mode == PATHDESIRED_MODE_VECTOR ||
+					pathDesired.Mode == PATHDESIRED_MODE_CIRCLELEFT ||
+					pathDesired.Mode == PATHDESIRED_MODE_CIRCLERIGHT) {
 					updatePathVelocity();
 					updateGroundDesiredAttitude();
 				} else {
@@ -232,7 +240,7 @@ static void groundPathFollowerTask(void *parameters)
 				// Track throttle before engaging this mode.  Cheap system ident
 				StabilizationDesiredData stabDesired;
 				StabilizationDesiredGet(&stabDesired);
-				throttleOffset = stabDesired.Throttle;
+				throttleOffset = stabDesired.Thrust;
 
 				break;
 		}
@@ -266,6 +274,9 @@ static void updatePathVelocity()
 		pathStatus.Status = PATHSTATUS_STATUS_INPROGRESS;
 	else
 		pathStatus.Status = PATHSTATUS_STATUS_COMPLETED;
+
+	pathStatus.Waypoint = pathDesired.Waypoint;
+
 	PathStatusSet(&pathStatus);
 
 	float groundspeed = pathDesired.StartingVelocity +
@@ -387,7 +398,7 @@ static void updateGroundDesiredAttitude()
 	// Calculate direction from velocityDesired and set stabDesired.Yaw
 	stabDesired.Yaw = atan2f( velocityDesired.East, velocityDesired.North ) * RAD2DEG;
 
-	// Calculate throttle and set stabDesired.Throttle
+	// Calculate throttle and set stabDesired.Thrust
 	float velDesired = sqrtf(powf(velocityDesired.East,2) + powf(velocityDesired.North,2));
 	float velActual = sqrtf(powf(eastVel,2) + powf(northVel,2));
 	ManualControlCommandData manualControlData;
@@ -395,24 +406,24 @@ static void updateGroundDesiredAttitude()
 	switch (guidanceSettings.ThrottleControl) {
 		case GROUNDPATHFOLLOWERSETTINGS_THROTTLECONTROL_MANUAL:
 		{
-			stabDesired.Throttle = manualControlData.Throttle;
+			stabDesired.Thrust = manualControlData.Throttle;
 			break;
 		}
 		case GROUNDPATHFOLLOWERSETTINGS_THROTTLECONTROL_PROPORTIONAL:
 		{
 			float velRatio = velDesired / guidanceSettings.HorizontalVelMax;
-			stabDesired.Throttle = guidanceSettings.MaxThrottle * velRatio;
+			stabDesired.Thrust = guidanceSettings.MaxThrottle * velRatio;
 			if (guidanceSettings.ManualOverride == GROUNDPATHFOLLOWERSETTINGS_MANUALOVERRIDE_TRUE) {
-				stabDesired.Throttle = stabDesired.Throttle * manualControlData.Throttle;
+				stabDesired.Thrust = stabDesired.Thrust * manualControlData.Throttle;
 			}
 			break;
 		}
 		case GROUNDPATHFOLLOWERSETTINGS_THROTTLECONTROL_AUTO:
 		{
 			float velError = velDesired - velActual;
-			stabDesired.Throttle = pid_apply(&ground_pids[VELOCITY], velError, dT) + velDesired * guidanceSettings.VelocityFeedforward;
+			stabDesired.Thrust = pid_apply(&ground_pids[VELOCITY], velError, dT) + velDesired * guidanceSettings.VelocityFeedforward;
 			if (guidanceSettings.ManualOverride == GROUNDPATHFOLLOWERSETTINGS_MANUALOVERRIDE_TRUE) {
-				stabDesired.Throttle = stabDesired.Throttle * manualControlData.Throttle;
+				stabDesired.Thrust = stabDesired.Thrust * manualControlData.Throttle;
 			}
 			break;
 		}
@@ -424,7 +435,7 @@ static void updateGroundDesiredAttitude()
 	}
 
 	// Limit throttle as per settings
-	stabDesired.Throttle = bound_min_max(stabDesired.Throttle, 0, guidanceSettings.MaxThrottle);
+	stabDesired.Thrust = bound_min_max(stabDesired.Thrust, 0, guidanceSettings.MaxThrottle);
 
 	// Set StabilizationDesired object
 	stabDesired.StabilizationMode[STABILIZATIONDESIRED_STABILIZATIONMODE_ROLL] = STABILIZATIONDESIRED_STABILIZATIONMODE_ATTITUDE;
@@ -473,8 +484,9 @@ static void updateNedAccel()
 	NedAccelSet(&accelData);
 }
 
-static void SettingsUpdatedCb(UAVObjEvent * ev)
+static void SettingsUpdatedCb(UAVObjEvent * ev, void *ctx, void *obj, int len)
 {
+	(void) ctx; (void) obj; (void) len;
 	GroundPathFollowerSettingsGet(&guidanceSettings);
 
 	// Configure the velocity control PID loops

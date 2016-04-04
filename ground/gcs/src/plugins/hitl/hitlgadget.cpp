@@ -3,6 +3,7 @@
  *
  * @file       hitlgadget.cpp
  * @author     The OpenPilot Team, http://www.openpilot.org Copyright (C) 2010.
+ * @author     dRonin, http://dronin.org Copyright (C) 2015
  *
  * @addtogroup GCSPlugins GCS Plugins
  * @{
@@ -45,7 +46,6 @@ HITLGadget::~HITLGadget()
 void HITLGadget::loadConfiguration(IUAVGadgetConfiguration* config)
 {
     HITLConfiguration *m = qobject_cast<HITLConfiguration*>(config);
-    // IL2 <-- Is this still necessary? [KDS]
 	emit changeConfiguration();
 	m_widget->setSettingParameters(m->Settings());
 }

@@ -5,10 +5,11 @@
  * @addtogroup Revolution OpenPilot Revolution support files
  * @{
  *
- * @file       STM32Fxx_Revolution.h
+ * @file       STM32F4xx_Revolution.h
  * @author     The OpenPilot Team, http://www.openpilot.org Copyright (C) 2011.
  * @author     Tau Labs, http://taulabs.org, Copyright (C) 2012-2013
- * @brief      Board specific defines for Revolution
+ * @author     dRonin, http://dronin.org Copyright (C) 2015
+ * @brief      Board specific defines for RevoMini
  * @see        The GNU Public License (GPL) Version 3
  * 
  *****************************************************************************/
@@ -26,13 +27,23 @@
  * You should have received a copy of the GNU General Public License along
  * with this program; if not, write to the Free Software Foundation, Inc.,
  * 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
+ *
+ * Additional note on redistribution: The copyright and license notices above
+ * must be maintained in each individual source file that is a derivative work
+ * of this source file; otherwise redistribution is prohibited.
  */
 
 
 #ifndef STM3210E_INS_H_
-#define STM3210E_INS_H_
 
 #include <stdbool.h>
+
+#if defined(PIOS_INCLUDE_DEBUG_CONSOLE)
+#define DEBUG_LEVEL 0
+#define DEBUG_PRINTF(level, ...) {if(level <= DEBUG_LEVEL && pios_com_debug_id > 0) { PIOS_COM_SendFormattedStringNonBlocking(pios_com_debug_id, __VA_ARGS__); }}
+#else
+#define DEBUG_PRINTF(level, ...)
+#endif	/* PIOS_INCLUDE_DEBUG_CONSOLE */
 
 //------------------------
 // Timers and Channels Used
@@ -92,8 +103,8 @@ TIM8  |           |           |           |
 // See also pios_board.c
 //------------------------
 #define PIOS_I2C_MAX_DEVS			3
-extern uint32_t pios_i2c_mag_adapter_id;
-#define PIOS_I2C_MAIN_ADAPTER			(pios_i2c_mag_adapter_id)
+extern uint32_t pios_i2c_mag_pressure_adapter_id;
+#define PIOS_I2C_MAIN_ADAPTER			(pios_i2c_mag_pressure_adapter_id)
 extern uint32_t pios_i2c_flexiport_adapter_id;
 #define PIOS_I2C_FLEXI_ADAPTER			(pios_i2c_flexiport_adapter_id)
 #define PIOS_I2C_ETASV3_ADAPTER			(PIOS_I2C_FLEXI_ADAPTER)
@@ -103,28 +114,62 @@ extern uint32_t pios_i2c_flexiport_adapter_id;
 //
 // See also pios_board.c
 //-------------------------
-extern uintptr_t pios_com_telem_rf_id;
+extern uintptr_t pios_com_telem_serial_id;
 extern uintptr_t pios_com_gps_id;
 extern uintptr_t pios_com_telem_usb_id;
 extern uintptr_t pios_com_bridge_id;
 extern uintptr_t pios_com_vcp_id;
 extern uintptr_t pios_com_mavlink_id;
 extern uintptr_t pios_com_hott_id;
+extern uintptr_t pios_com_frsky_sensor_hub_id;
+extern uintptr_t pios_com_lighttelemetry_id;
+extern uintptr_t pios_com_picoc_id;
+extern uintptr_t pios_com_frsky_sport_id;
+extern uintptr_t pios_com_spiflash_logging_id;
+extern uintptr_t pios_com_openlog_logging_id;
+extern uintptr_t pios_com_storm32bgc_id;
 
 #define PIOS_COM_GPS                    (pios_com_gps_id)
 #define PIOS_COM_TELEM_USB              (pios_com_telem_usb_id)
-#define PIOS_COM_TELEM_RF               (pios_com_telem_rf_id)
+#define PIOS_COM_TELEM_RF               (pios_com_telem_serial_id)
 #define PIOS_COM_BRIDGE                 (pios_com_bridge_id)
 #define PIOS_COM_VCP                    (pios_com_vcp_id)
-#define PIOS_COM_DEBUG                  (pios_com_debug_id)
 #define PIOS_COM_MAVLINK                (pios_com_mavlink_id)
 #define PIOS_COM_HOTT                   (pios_com_hott_id)
+#define PIOS_COM_FRSKY_SENSOR_HUB       (pios_com_frsky_sensor_hub_id)
+#define PIOS_COM_LIGHTTELEMETRY         (pios_com_lighttelemetry_id)
+#define PIOS_COM_PICOC                  (pios_com_picoc_id)
+#define PIOS_COM_FRSKY_SPORT            (pios_com_frsky_sport_id)
+#define PIOS_COM_SPIFLASH               (pios_com_spiflash_logging_id)
+#define PIOS_COM_OPENLOG                (pios_com_openlog_logging_id)
+#define PIOS_COM_STORM32BGC             (pios_com_storm32bgc_id)
+
+#if defined(PIOS_INCLUDE_DEBUG_CONSOLE)
+extern uintptr_t pios_com_debug_id;
+#define PIOS_COM_DEBUG                  (pios_com_debug_id)
+#endif	/* PIOS_INCLUDE_DEBUG_CONSOLE */
+
+#if defined(PIOS_INCLUDE_RFM22B)
+extern uint32_t pios_rfm22b_id;
+extern uint32_t pios_spi_telem_flash_id;
+#define PIOS_RFM22_SPI_PORT             (pios_spi_telem_flash_id)
+#endif /* PIOS_INCLUDE_RFM22B */
+
+//-------------------------
+// Packet Handler
+//-------------------------
+#define RS_ECC_NPARITY 4
+#define PIOS_PH_MAX_PACKET 255
+#define PIOS_PH_WIN_SIZE 3
+#define PIOS_PH_MAX_CONNECTIONS 1
+extern uint32_t pios_packet_handler;
+#define PIOS_PACKET_HANDLER (pios_packet_handler)
 
 //------------------------
 // TELEMETRY 
 //------------------------
 #define TELEM_QUEUE_SIZE         80
-#define PIOS_TELEM_STACK_SIZE    624					
+#define PIOS_TELEM_STACK_SIZE    624			
 
 #define PIOS_SYSCLK										168000000
 //	Peripherals that belongs to APB1 are:
@@ -181,12 +226,6 @@ extern uintptr_t pios_com_hott_id;
 #define PIOS_SPEKTRUM_NUM_INPUTS     12
 
 //-------------------------
-// Receiver HSUM input
-//-------------------------
-#define PIOS_HSUM_MAX_DEVS		2
-#define PIOS_HSUM_NUM_INPUTS		32
-
-//-------------------------
 // Receiver S.Bus input
 //-------------------------
 #define PIOS_SBUS_NUM_INPUTS         (16+2)
@@ -194,7 +233,13 @@ extern uintptr_t pios_com_hott_id;
 //-------------------------
 // Receiver DSM input
 //-------------------------
-#define PIOS_DSM_NUM_INPUTS          12
+#define PIOS_DSM_NUM_INPUTS			12
+
+//-------------------------
+// Receiver HSUM input
+//-------------------------
+#define PIOS_HSUM_MAX_DEVS		2
+#define PIOS_HSUM_NUM_INPUTS		32
 
 //-------------------------
 // Servo outputs
@@ -209,38 +254,14 @@ extern uintptr_t pios_com_hott_id;
 
 //-------------------------
 // ADC
-// PIOS_ADC_PinGet(0) = Current sensor
-// PIOS_ADC_PinGet(1) = Voltage sensor
-// PIOS_ADC_PinGet(4) = VREF
-// PIOS_ADC_PinGet(5) = Temperature sensor
-//-------------------------
-#define PIOS_DMA_PIN_CONFIG                                                                         \
-{                                                                                                   \
-	{GPIOC, GPIO_Pin_0,     ADC_Channel_10},                                                        \
-	{GPIOC, GPIO_Pin_1,     ADC_Channel_11},                                                        \
-	{NULL,  0,                      ADC_Channel_Vrefint},           /* Voltage reference */         \
-	{NULL,  0,                      ADC_Channel_TempSensor},         /* Temperature sensor */        \
-	{GPIOC, GPIO_Pin_2,     ADC_Channel_12}  \
-}
-
-/* we have to do all this to satisfy the PIOS_ADC_MAX_SAMPLES define in pios_adc.h */
-/* which is annoying because this then determines the rate at which we generate buffer turnover events */
-/* the objective here is to get enough buffer space to support 100Hz averaging rate */
-#define PIOS_ADC_NUM_CHANNELS           4
+#define PIOS_ADC_SUB_DRIVER_MAX_INSTANCES       3
 #define PIOS_ADC_MAX_OVERSAMPLING       2
-#define PIOS_ADC_USE_ADC2               0
-
-#define VREF_PLUS			3.3
+#define VREF_PLUS                     3.3
 
 //-------------------------
 // USB
 //-------------------------
 #define PIOS_USB_ENABLED                        1 /* Should remove all references to this */
-
-//-------------------------
-// ADC
-//-------------------------
-#define PIOS_ADC_SUB_DRIVER_MAX_INSTANCES       3
 
 #endif /* STM3210E_INS_H_ */
 

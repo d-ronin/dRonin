@@ -1,7 +1,7 @@
 /**
  ******************************************************************************
  * @file       pios_semaphore.h
- * @author     Tau Labs, http://taulabs.org, Copyright (C) 2013
+ * @author     Tau Labs, http://taulabs.org, Copyright (C) 2013-2014
  * @addtogroup PIOS PIOS Core hardware abstraction layer
  * @{
  * @addtogroup PIOS_Semaphore Semaphore Abstraction
@@ -36,15 +36,17 @@
 struct pios_semaphore
 {
 #if defined(PIOS_INCLUDE_FREERTOS)
-	xSemaphoreHandle sema_handle;
-#else
+	uintptr_t sema_handle;
+#elif defined(PIOS_INCLUDE_CHIBIOS)
+	BinarySemaphore sema;
+#elif defined(PIOS_INCLUDE_IRQ)
 	uint32_t sema_count;
-#endif
+#endif /* defined(PIOS_INCLUDE_IRQ) */
 };
 
 /*
  * The following functions implement the concept of a binary semaphore usable
- * with and without PIOS_INCLUDE_FREERTOS.
+ * with PIOS_INCLUDE_FREERTOS, PIOS_INCLUDE_CHIBIOS or PIOS_INCLUDE_IRQ.
  *
  * Note that this is not the same as:
  * - counting semaphore
@@ -52,11 +54,13 @@ struct pios_semaphore
  * - recursive mutex
  *
  * see FreeRTOS documentation for details: http://www.freertos.org/a00113.html
+ * see ChibiOS documentation for details: http://chibios.sourceforge.net/html/group__synchronization.html
  */
 
 struct pios_semaphore *PIOS_Semaphore_Create(void);
 bool PIOS_Semaphore_Take(struct pios_semaphore *sema, uint32_t timeout_ms);
 bool PIOS_Semaphore_Give(struct pios_semaphore *sema);
+
 bool PIOS_Semaphore_Take_FromISR(struct pios_semaphore *sema, bool *woken);
 bool PIOS_Semaphore_Give_FromISR(struct pios_semaphore *sema, bool *woken);
 

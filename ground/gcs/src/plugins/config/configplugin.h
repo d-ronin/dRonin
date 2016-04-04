@@ -43,6 +43,7 @@ class ConfigGadgetFactory;
 class ConfigPlugin : public ExtensionSystem::IPlugin
 {
     Q_OBJECT
+    Q_PLUGIN_METADATA(IID "org.dronin.plugins.Config")
 
 public:
     ConfigPlugin();

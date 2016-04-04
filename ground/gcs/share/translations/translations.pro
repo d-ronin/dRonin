@@ -1,0 +1,89 @@
+include(../../gcs.pri)
+
+LANGUAGES = de es fr ru zh_CN
+
+# var, prepend, append
+defineReplace(prependAll) {
+    for(a,$$1):result += $$2$${a}$$3
+    return($$result)
+}
+
+XMLPATTERNS = $$targetPath($$[QT_INSTALL_BINS]/xmlpatterns)
+LUPDATE = $$targetPath($$[QT_INSTALL_BINS]/lupdate) -locations relative -no-ui-lines -no-sort
+LRELEASE = $$targetPath($$[QT_INSTALL_BINS]/lrelease)
+LCONVERT = $$targetPath($$[QT_INSTALL_BINS]/lconvert)
+
+wd = $$replace(GCS_SOURCE_TREE, /, $$QMAKE_DIR_SEP)
+
+TRANSLATIONS = $$prependAll(LANGUAGES, $$PWD/dronin_,.ts)
+
+MIME_TR_H = $$OUT_PWD/mime_tr.h
+
+for(dir, $$list($$files($$GCS_SOURCE_TREE/src/plugins/*))):MIMETYPES_FILES += $$files($$dir/*.mimetypes.xml)
+MIMETYPES_FILES = \"$$join(MIMETYPES_FILES, |)\"
+
+QMAKE_SUBSTITUTES += extract-mimetypes.xq.in
+ts.commands += \
+    $$XMLPATTERNS -output $$MIME_TR_H $$PWD/extract-mimetypes.xq && \
+    (cd $$GCS_SOURCE_TREE && $$LUPDATE src $$MIME_TR_H -ts $$TRANSLATIONS) && \
+    $$QMAKE_DEL_FILE $$targetPath($$MIME_TR_H)
+
+QMAKE_EXTRA_TARGETS += ts
+
+TEMPLATE = app
+TARGET = phony_target2
+CONFIG -= qt sdk separate_debug_info gdb_dwarf_index
+QT =
+LIBS =
+
+updateqm.input = TRANSLATIONS
+updateqm.output = $$GCS_DATA_PATH/translations/${QMAKE_FILE_BASE}.qm
+isEmpty(vcproj):updateqm.variable_out = PRE_TARGETDEPS
+updateqm.commands = $$LRELEASE ${QMAKE_FILE_IN} -qm ${QMAKE_FILE_OUT}
+updateqm.name = LRELEASE ${QMAKE_FILE_IN}
+updateqm.CONFIG += no_link
+QMAKE_EXTRA_COMPILERS += updateqm
+
+isEmpty(vcproj) {
+    QMAKE_LINK = @: IGNORE THIS LINE
+    OBJECTS_DIR =
+    win32:CONFIG -= embed_manifest_exe
+} else {
+    CONFIG += console
+    PHONY_DEPS = .
+    phony_src.input = PHONY_DEPS
+    phony_src.output = phony.c
+    phony_src.variable_out = GENERATED_SOURCES
+    phony_src.commands = echo int main() { return 0; } > phony.c
+    phony_src.name = CREATE phony.c
+    phony_src.CONFIG += combine
+    QMAKE_EXTRA_COMPILERS += phony_src
+}
+
+qmfiles.files = $$prependAll(LANGUAGES, $$OUT_PWD/dronin_,.qm)
+qmfiles.path = /share/dronin/translations
+qmfiles.CONFIG += no_check_exist
+INSTALLS += qmfiles
+
+QTSYSTRANS = qt qtbase qtscript qtquick1 qtmultimedia qtxmlpatterns
+
+#========= begin block copying qt_*.qm files ==========
+defineReplace(QtQmExists) {
+    for(lang,$$1) {
+        for(transbase,QTSYSTRANS) {
+            qm_file = $$[QT_INSTALL_TRANSLATIONS]/$${transbase}_$${lang}.qm
+            exists($$qm_file) : result += $$qm_file
+        }
+    }
+    return($$result)
+}
+QT_TRANSLATIONS = $$QtQmExists(LANGUAGES)
+
+copyQT_QMs.input = QT_TRANSLATIONS
+copyQT_QMs.output = $$GCS_DATA_PATH/translations/${QMAKE_FILE_BASE}.qm
+isEmpty(vcproj):copyQT_QMs.variable_out = PRE_TARGETDEPS
+copyQT_QMs.commands = $(COPY_FILE) ${QMAKE_FILE_IN} ${QMAKE_FILE_OUT}
+copyQT_QMs.name = Copy ${QMAKE_FILE_IN}
+copyQT_QMs.CONFIG += no_link
+QMAKE_EXTRA_COMPILERS += copyQT_QMs
+#========= end block copying qt_*.qm files ============

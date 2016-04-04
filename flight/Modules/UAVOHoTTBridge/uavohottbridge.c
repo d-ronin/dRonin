@@ -6,7 +6,8 @@
  * @{ 
  *
  * @file       uavohottbridge.c
- * @author     Tau Labs, http://taulabs.org, Copyright (C) 2013
+ * @author     dRonin, http://dRonin.org/, Copyright (C) 2016
+ * @author     Tau Labs, http://taulabs.org, Copyright (C) 2013-2014
  * @brief      sends telemery data on HoTT request
  * @see        The GNU Public License (GPL) Version 3
  *
@@ -25,6 +26,10 @@
  * You should have received a copy of the GNU General Public License along
  * with this program; if not, write to the Free Software Foundation, Inc.,
  * 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
+ *
+ * Additional note on redistribution: The copyright and license notices above
+ * must be maintained in each individual source file that is a derivative work
+ * of this source file; otherwise redistribution is prohibited.
  */
 
 
@@ -33,13 +38,15 @@
 #if defined(PIOS_INCLUDE_HOTT)
 
 #include "uavohottbridge.h"
+#include "pios_thread.h"
+#include "pios_modules.h"
 
 // Private constants
-#define STACK_SIZE_BYTES 800
-#define TASK_PRIORITY				(tskIDLE_PRIORITY + 2)
+#define STACK_SIZE_BYTES 700
+#define TASK_PRIORITY				PIOS_THREAD_PRIO_NORMAL
 
 // Private variables
-static xTaskHandle uavoHoTTBridgeTaskHandle;
+static struct pios_thread *uavoHoTTBridgeTaskHandle;
 static uint32_t hott_port;
 static bool module_enabled;
 static struct telemetrydata *telestate;
@@ -69,9 +76,9 @@ static int32_t uavoHoTTBridgeStart(void)
 {
 	if (module_enabled) {
 		// Start task
-		xTaskCreate(uavoHoTTBridgeTask, (signed char *) "uavoHoTTBridge",
-				STACK_SIZE_BYTES / 4, NULL, TASK_PRIORITY,
-				&uavoHoTTBridgeTaskHandle);
+		uavoHoTTBridgeTaskHandle = PIOS_Thread_Create(
+				uavoHoTTBridgeTask, "uavoHoTTBridge",
+				STACK_SIZE_BYTES, NULL, TASK_PRIORITY);
 		TaskMonitorAdd(TASKINFO_RUNNING_UAVOHOTTBRIDGE,
 				uavoHoTTBridgeTaskHandle);
 		return 0;
@@ -88,17 +95,14 @@ static int32_t uavoHoTTBridgeInitialize(void)
 {
 	hott_port = PIOS_COM_HOTT;
 
-	uint8_t module_state[MODULESETTINGS_ADMINSTATE_NUMELEM];
-	ModuleSettingsAdminStateGet(module_state);
-
-	if (hott_port && (module_state[MODULESETTINGS_ADMINSTATE_UAVOHOTTBRIDGE] == MODULESETTINGS_ADMINSTATE_ENABLED)) {
+	if (hott_port && PIOS_Modules_IsEnabled(PIOS_MODULE_UAVOHOTTBRIDGE)) {
 		module_enabled = true;
 		// HoTT telemetry baudrate is fixed to 19200
 		PIOS_COM_ChangeBaud(hott_port, 19200);
 		HoTTSettingsInitialize();
 
 		// allocate memory for telemetry data
-		telestate = (struct telemetrydata *)pvPortMalloc(sizeof(*telestate));
+		telestate = (struct telemetrydata *)PIOS_malloc(sizeof(*telestate));
 
 		if (telestate == NULL) {
 			// there is not enough free memory. the module could not run.
@@ -124,11 +128,11 @@ static void uavoHoTTBridgeTask(void *parameters) {
 	memset(telestate, 0, sizeof(*telestate));
 
 	// initialize timer variables
-	portTickType lastSysTime = xTaskGetTickCount();
+	uint32_t lastSysTime = PIOS_Thread_Systime();
 	// idle delay between telemetry request and answer
-	portTickType idledelay = MS2TICKS(IDLE_TIME);
+	uint32_t idledelay = IDLE_TIME;
 	// data delay between transmitted bytes
-	portTickType datadelay = MS2TICKS(DATA_TIME);
+	uint32_t datadelay = DATA_TIME;
 
 	// work on hott telemetry. endless loop.
 	while (1) {
@@ -140,10 +144,10 @@ static void uavoHoTTBridgeTask(void *parameters) {
 
 		// wait for a byte of telemetry request in data delay interval
 		while (PIOS_COM_ReceiveBuffer(hott_port, rx_buffer, 1, 0) == 0) {
-			vTaskDelayUntil(&lastSysTime, datadelay);
+			PIOS_Thread_Sleep_Until(&lastSysTime, datadelay);
 		}
 		// set start trigger point
-		lastSysTime = xTaskGetTickCount();
+		lastSysTime = PIOS_Thread_Systime();
 
 		// examine received data stream
 		if (rx_buffer[1] == HOTT_BINARY_ID) {
@@ -187,18 +191,20 @@ static void uavoHoTTBridgeTask(void *parameters) {
 		// check if a message is in the transmit buffer.
 		if (message_size > 0) {
 			// check idle line before transmit. pause, then check receiver buffer
-			vTaskDelayUntil(&lastSysTime, idledelay);
+			PIOS_Thread_Sleep_Until(&lastSysTime, idledelay);
 
 			if (PIOS_COM_ReceiveBuffer(hott_port, rx_buffer, 1, 0) == 0) {
 				// nothing received means idle line. ready to transmit the requested message
 				for (int i = 0; i < message_size; i++) {
 					// send message content with pause between each byte
 					PIOS_COM_SendCharNonBlocking(hott_port, tx_buffer[i]);
-					vTaskDelayUntil(&lastSysTime, datadelay);
+					// grab possible incoming loopback data and throw it away
+					PIOS_COM_ReceiveBuffer(hott_port, rx_buffer, sizeof(rx_buffer), 0);
+					PIOS_Thread_Sleep_Until(&lastSysTime, datadelay);
 				}
 
 				// after transmitting the message, any loopback data needs to be cleaned up.
-				vTaskDelayUntil(&lastSysTime, idledelay);
+				PIOS_Thread_Sleep_Until(&lastSysTime, idledelay);
 				PIOS_COM_ReceiveBuffer(hott_port, tx_buffer, message_size, 0);
 			}
 		}
@@ -312,8 +318,11 @@ uint16_t build_GPS_message(struct hott_gps_message *msg) {
 	switch (telestate->GPS.Status) {
 		case GPSPOSITION_STATUS_FIX2D:
 			msg->gps_fix_char = '2';
+			break;
 		case GPSPOSITION_STATUS_FIX3D:
+		case GPSPOSITION_STATUS_DIFF3D:
 			msg->gps_fix_char = '3';
+			break;
 		default:
 			msg->gps_fix_char = 0;
 	}
@@ -528,8 +537,6 @@ void update_telemetrydata () {
 	// update all available data
 	if (HoTTSettingsHandle() != NULL)
 		HoTTSettingsGet(&telestate->Settings);
-	if (AltHoldSmoothedHandle() != NULL)
-		AltHoldSmoothedGet(&telestate->Altitude);
 	if (AttitudeActualHandle() != NULL)
 		AttitudeActualGet(&telestate->Attitude);
 	if (BaroAltitudeHandle() != NULL)
@@ -550,13 +557,15 @@ void update_telemetrydata () {
 		PositionActualGet(&telestate->Position);
 	if (SystemAlarmsHandle() != NULL)
 		SystemAlarmsGet(&telestate->SysAlarms);
+	if (VelocityActualHandle() != NULL)
+		VelocityActualGet(&telestate->Velocity);
 
-	// send actual climbrate value to ring buffer
+	// send actual climbrate value to ring buffer as mm per 0.2s values
 	uint8_t n = telestate->climbrate_pointer;
-	telestate->climbratebuffer[telestate->climbrate_pointer++] = telestate->Altitude.Velocity;
+	telestate->climbratebuffer[telestate->climbrate_pointer++] = -telestate->Velocity.Down * 200;
 	telestate->climbrate_pointer %= climbratesize;
 
-	// calculate smoothed climbrates per 1, 3 and 10 second(s) based on 200ms interval
+	// calculate avarage climbrates in meters per 1, 3 and 10 second(s) based on 200ms interval
 	telestate->climbrate1s = 0;
 	telestate->climbrate3s = 0;
 	telestate->climbrate10s = 0;
@@ -567,20 +576,19 @@ void update_telemetrydata () {
 		n += climbratesize - 1;
 		n %= climbratesize;
 	}
-	telestate->climbrate1s = telestate->climbrate1s / 5;
-	telestate->climbrate3s = telestate->climbrate3s / 5;
-	telestate->climbrate10s = telestate->climbrate10s / 5;
+	telestate->climbrate1s = telestate->climbrate1s / 1000;
+	telestate->climbrate3s = telestate->climbrate3s / 1000;
+	telestate->climbrate10s = telestate->climbrate10s / 1000;
 
 	// set altitude offset and clear min/max values when arming
 	if ((telestate->FlightStatus.Armed == FLIGHTSTATUS_ARMED_ARMING) || ((telestate->last_armed != FLIGHTSTATUS_ARMED_ARMED) && (telestate->FlightStatus.Armed == FLIGHTSTATUS_ARMED_ARMED))) {
-		telestate->altitude_offset = telestate->Altitude.Altitude;
 		telestate->min_altitude = 0;
 		telestate->max_altitude = 0;
 	}
 	telestate->last_armed = telestate->FlightStatus.Armed;
 
 	// calculate altitude relative to start position
-	telestate->altitude = telestate->Altitude.Altitude - telestate->altitude_offset;
+	telestate->altitude = -telestate->Position.Down;
 
 	// check and set min/max values when armed.
 	if (telestate->FlightStatus.Armed == FLIGHTSTATUS_ARMED_ARMED) {
@@ -599,15 +607,19 @@ void update_telemetrydata () {
 	// statusline
 	const char *txt_unknown = "unknown";
 	const char *txt_manual = "Manual";
+	const char *txt_acro = "Acro";
+	const char *txt_leveling = "Leveling";
+	const char *txt_virtualbar = "Virtualbar";
 	const char *txt_stabilized1 = "Stabilized1";
 	const char *txt_stabilized2 = "Stabilized2";
 	const char *txt_stabilized3 = "Stabilized3";
 	const char *txt_autotune = "Autotune";
 	const char *txt_altitudehold = "AltitudeHold";
-	const char *txt_velocitycontrol = "VelocityCtrl";
 	const char *txt_positionhold = "PositionHold";
 	const char *txt_returntohome = "ReturnToHome";
 	const char *txt_pathplanner = "PathPlanner";
+	const char *txt_tabletcontrol = "TabletCtrl";
+	const char *txt_failsafe = "Failsafe";
 	const char *txt_disarmed = "Disarmed";
 	const char *txt_arming = "Arming";
 	const char *txt_armed = "Armed";
@@ -616,6 +628,15 @@ void update_telemetrydata () {
 	switch (telestate->FlightStatus.FlightMode) {
 		case FLIGHTSTATUS_FLIGHTMODE_MANUAL:
 			txt_flightmode = txt_manual;
+			break;
+		case FLIGHTSTATUS_FLIGHTMODE_ACRO:
+			txt_flightmode = txt_acro;
+			break;
+		case FLIGHTSTATUS_FLIGHTMODE_LEVELING:
+			txt_flightmode = txt_leveling;
+			break;
+		case FLIGHTSTATUS_FLIGHTMODE_VIRTUALBAR:
+			txt_flightmode = txt_virtualbar;
 			break;
 		case FLIGHTSTATUS_FLIGHTMODE_STABILIZED1:
 			txt_flightmode = txt_stabilized1;
@@ -632,9 +653,6 @@ void update_telemetrydata () {
 		case FLIGHTSTATUS_FLIGHTMODE_ALTITUDEHOLD:
 			txt_flightmode = txt_altitudehold;
 			break;
-		case FLIGHTSTATUS_FLIGHTMODE_VELOCITYCONTROL:
-			txt_flightmode = txt_velocitycontrol;
-			break;
 		case FLIGHTSTATUS_FLIGHTMODE_POSITIONHOLD:
 			txt_flightmode = txt_positionhold;
 			break;
@@ -643,6 +661,12 @@ void update_telemetrydata () {
 			break;
 		case FLIGHTSTATUS_FLIGHTMODE_PATHPLANNER:
 			txt_flightmode = txt_pathplanner;
+			break;
+		case FLIGHTSTATUS_FLIGHTMODE_TABLETCONTROL:
+			txt_flightmode = txt_tabletcontrol;
+			break;
+		case FLIGHTSTATUS_FLIGHTMODE_FAILSAFE:
+			txt_flightmode = txt_failsafe;
 			break;
 		default:
 			txt_flightmode = txt_unknown;

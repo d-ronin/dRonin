@@ -37,6 +37,7 @@ class ScopeConfig;
 class UAVDataObject;
 
 #include "qwt/src/qwt.h"
+#include "qwt/src/qwt_legend.h"
 #include "qwt/src/qwt_plot.h"
 #include "qwt/src/qwt_plot_grid.h"
 #include "qwt/src/qwt_plot_layout.h"
@@ -92,6 +93,7 @@ public:
     void startTimer(int);
     QwtPlotGrid *m_grid;
     QwtLegend *m_legend;
+    void setScopeName(QString val) {scopeName = val;}
 
 protected:
     void mousePressEvent(QMouseEvent *e);
@@ -104,9 +106,13 @@ protected:
 private slots:
     void uavObjectReceived(UAVObject*);
     void replotNewData();
-    void showCurve(QwtPlotItem *item, bool on);
+    void showCurve(const QVariant & itemInfo, bool on, int index);
     void startPlotting();
     void stopPlotting();
+    void popUpMenu(const QPoint &mousePosition);
+    void clearPlot();
+    void copyToClipboardAsImage();
+    void showOptionDialog();
 
 private:
     QMutex mutex;
@@ -116,7 +122,7 @@ private:
     double m_xWindowSize;
     static QTimer *replotTimer;
     QList<QString> m_connectedUAVObjects;
-
+    QString scopeName;
 };
 
 

@@ -33,8 +33,9 @@
 #include "uavobjectmanager.h"
 #include "uavobject.h"
 #include "stabilizationsettings.h"
-#include <QtGui/QWidget>
+#include <QWidget>
 #include <QTimer>
+#include <expocurve.h>
 
 
 class ConfigStabilizationWidget: public ConfigTaskWidget
@@ -47,12 +48,34 @@ public:
 
 private:
     Ui_StabilizationWidget *m_stabilization;
-    QTimer * realtimeUpdates;
+
+    struct UpdateExpoFlags {
+      bool RateRoll;
+      bool RatePitch;
+      bool RateYaw;
+      bool AttitudeRoll;
+      bool AttitudePitch;
+      bool AttitudeYaw;
+      bool HorizonAttitudeRoll;
+      bool HorizonAttitudePitch;
+      bool HorizonAttitudeYaw;
+      bool HorizonRateRoll;
+      bool HorizonRatePitch;
+      bool HorizonRateYaw;
+    } update_exp;
+
+    UAVObject *manualControlSettings;
+
 private slots:
-    void realtimeUpdatesSlot(int);
     void linkCheckBoxes(int value);
     void processLinkedWidgets(QWidget*);
     void applyRateLimits();
+
+    void showMWRateConvertDialog();
+    void applyMWRateConvertDialog();
+
+    void showExpoPlot();
+    void hangtimeChanged();
 };
 
 #endif // ConfigStabilizationWidget_H

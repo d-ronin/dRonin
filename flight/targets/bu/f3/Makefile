@@ -4,6 +4,7 @@
  #  
  # Makefile for OpenPilot project build PiOS and the AP.
  #
+ # dRonin, http://dRonin.org/, Copyright (C) 2016
  # The OpenPilot Team, http://www.openpilot.org, Copyright (C) 2009.
  #    
  # 
@@ -20,6 +21,10 @@
  # You should have received a copy of the GNU General Public License along 
  # with this program; if not, write to the Free Software Foundation, Inc., 
  # 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
+ #
+ # Additional note on redistribution: The copyright and license notices above
+ # must be maintained in each individual source file that is a derivative work
+ # of this source file; otherwise redistribution is prohibited.
  #####
 
 ifndef MAKE_INC_DIR
@@ -82,11 +87,16 @@ EXTRAINCDIRS  += $(BUBOARDDIR)
 EXTRAINCDIRS  += $(BUARCHDIR)
 EXTRAINCDIRS  += $(BUCOMMONDIR)
 
+PAYLOAD_FILE = $(ROOT_DIR)/build/bl_$(BOARD_NAME)/bl_$(BOARD_NAME).bin
 # Place project-specific -D (define) and/or 
 # -U options for C here.
 CDEFS += -DMEM_SIZE=$(FW_BANK_SIZE)
 CDEFS += -DUSE_$(BOARD)
-CDEFS += -DBU_PAYLOAD_FILE=$(ROOT_DIR)/build/bl_$(BOARD_NAME)/bl_$(BOARD_NAME).bin
+CDEFS += -DBU_PAYLOAD_FILE=$(PAYLOAD_FILE)
+
+# This exists to prevent ccache from caching compilation results when the file
+# has changed.  md5sum is used on linux and Windows; cksum is used on mac.
+CDEFS += -DBU_HASH=$(shell md5sum "$(PAYLOAD_FILE)" 2>/dev/null | cut -d ' ' -f 1 || cksum "$(PAYLOAD_FILE)" | cut -d ' ' -f 1)
 
 # Place project-specific -D and/or -U options for 
 # Assembler with preprocessor here.
@@ -106,7 +116,7 @@ ADEFS = -D__ASSEMBLY__
 # Flags for C and C++ (arm-elf-gcc/arm-elf-g++)
 
 CFLAGS += -gdwarf-2
-CFLAGS += -Os
+CFLAGS += -Os -fconserve-stack
 CFLAGS += -ffunction-sections
 
 CFLAGS += $(ARCHFLAGS) -mthumb
@@ -183,16 +193,6 @@ $(eval $(call SIZE_TEMPLATE, $(OUTDIR)/$(TARGET).elf))
 docs:
 	doxygen  $(DOXYGENDIR)/doxygen.cfg
 
-# Install: install binary file with prefix/suffix into install directory
-install: $(OUTDIR)/$(TARGET).tlfw
-ifneq ($(INSTALL_DIR),)
-	@echo $(MSG_INSTALLING) $(call toprel, $<)
-	$(V1) mkdir -p $(INSTALL_DIR)
-	$(V1) $(INSTALL) $< $(INSTALL_DIR)/$(INSTALL_PFX)$(TARGET)$(INSTALL_SFX).tlfw
-else
-	$(error INSTALL_DIR must be specified for $@)
-endif
-
 # Create output files directory
 # all known MS Windows OS define the ComSpec environment variable
 ifdef ComSpec
@@ -207,6 +207,3 @@ ifdef ComSpec
 else
 -include $(shell mkdir -p $(OUTDIR) 2>/dev/null) $(shell mkdir $(OUTDIR)/dep 2>/dev/null) $(wildcard $(OUTDIR)/dep/*)
 endif
-
-# Listing of phony targets.
-.PHONY : install

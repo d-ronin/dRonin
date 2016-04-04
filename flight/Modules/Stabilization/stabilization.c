@@ -4,18 +4,18 @@
  * @{
  * @addtogroup StabilizationModule Stabilization Module
  * @{
+ *
+ * @file       stabilization.c
+ * @author     dRonin, http://dRonin.org/, Copyright (C) 2015-2016
+ * @author     Tau Labs, http://taulabs.org, Copyright (C) 2012-2016
+ * @author     The OpenPilot Team, http://www.openpilot.org Copyright (C) 2010.
  * @brief      Control the UAV attitude to @ref StabilizationDesired
  *
  * The main control code which keeps the UAV at the attitude requested by
- * @ref StabilizationDesired.  This is done by comparing against 
+ * @ref StabilizationDesired.  This is done by comparing against
  * @ref AttitudeActual to compute the error in roll pitch and yaw then
  * then based on the mode and values in @ref StabilizationSettings computing
  * the desired outputs and placing them in @ref ActuatorDesired.
- *
- * @file       stabilization.c
- * @author     The OpenPilot Team, http://www.openpilot.org Copyright (C) 2010.
- * @author     Tau Labs, http://taulabs.org, Copyright (C) 2012-2013
- * @brief      Attitude stabilization.
  *
  * @see        The GNU Public License (GPL) Version 3
  *
@@ -34,10 +34,16 @@
  * You should have received a copy of the GNU General Public License along
  * with this program; if not, write to the Free Software Foundation, Inc.,
  * 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
+ *
+ * Additional note on redistribution: The copyright and license notices above
+ * must be maintained in each individual source file that is a derivative work
+ * of this source file; otherwise redistribution is prohibited.
  */
 
 #include "openpilot.h"
 #include "stabilization.h"
+#include "pios_thread.h"
+#include "pios_queue.h"
 
 #include "accels.h"
 #include "actuatordesired.h"
@@ -45,20 +51,22 @@
 #include "cameradesired.h"
 #include "flightstatus.h"
 #include "gyros.h"
+#include "mwratesettings.h"
 #include "ratedesired.h"
+#include "systemident.h"
 #include "stabilizationdesired.h"
 #include "stabilizationsettings.h"
-#include "trimangles.h"
-#include "trimanglessettings.h"
+#include "subtrim.h"
+#include "subtrimsettings.h"
+#include "systemsettings.h"
+#include "manualcontrolcommand.h"
 
 // Math libraries
 #include "coordinate_conversions.h"
 #include "pid.h"
-#include "sin_lookup.h"
 #include "misc_math.h"
 
 // Includes for various stabilization algorithms
-#include "relay_tuning.h"
 #include "virtualflybar.h"
 
 // Private constants
@@ -67,38 +75,46 @@
 #if defined(PIOS_STABILIZATION_STACK_SIZE)
 #define STACK_SIZE_BYTES PIOS_STABILIZATION_STACK_SIZE
 #else
-#define STACK_SIZE_BYTES 724
+#define STACK_SIZE_BYTES 800
 #endif
 
-#define TASK_PRIORITY (tskIDLE_PRIORITY+4)
+#define TASK_PRIORITY PIOS_THREAD_PRIO_HIGHEST
 #define FAILSAFE_TIMEOUT_MS 30
 #define COORDINATED_FLIGHT_MIN_ROLL_THRESHOLD 3.0f
 #define COORDINATED_FLIGHT_MAX_YAW_THRESHOLD 0.05f
 
 //! Set the stick position that maximally transitions to rate
+// This value is also used for the expo plot in GCS (config/stabilization/advanced).
+// Please adapt changes here also to the init of the plots  in /ground/gcs/src/plugins/config/configstabilizationwidget.cpp
 #define HORIZON_MODE_MAX_BLEND               0.85f
 
 enum {
-	PID_RATE_ROLL,   // Rate controller settings
+	PID_GROUP_RATE,   // Rate controller settings
+	PID_RATE_ROLL = PID_GROUP_RATE,
 	PID_RATE_PITCH,
 	PID_RATE_YAW,
-	PID_ATT_ROLL,    // Attitude controller settings
+	PID_GROUP_ATT,    // Attitude controller settings
+	PID_ATT_ROLL = PID_GROUP_ATT,
 	PID_ATT_PITCH,
 	PID_ATT_YAW,
-	PID_VBAR_ROLL,   // Virtual flybar settings
+	PID_GROUP_VBAR,   // Virtual flybar settings
+	PID_VBAR_ROLL = PID_GROUP_VBAR,
 	PID_VBAR_PITCH,
 	PID_VBAR_YAW,
+	PID_GROUP_MWR,   // Multiwii rate settings
+	PID_MWR_ROLL = PID_GROUP_MWR,
+	PID_MWR_PITCH,
+	PID_MWR_YAW,
 	PID_COORDINATED_FLIGHT_YAW,
 	PID_MAX
 };
 
-
 // Private variables
-static xTaskHandle taskHandle;
+static struct pios_thread *taskHandle;
+static MWRateSettingsData mwrate_settings;
 static StabilizationSettingsData settings;
-static TrimAnglesData trimAngles;
-static xQueueHandle queue;
-float gyro_alpha = 0;
+static SubTrimData subTrim;
+static struct pios_queue *queue;
 float axis_lock_accum[3] = {0,0,0};
 uint8_t max_axis_lock = 0;
 uint8_t max_axislock_rate = 0;
@@ -106,12 +122,32 @@ float weak_leveling_kp = 0;
 uint8_t weak_leveling_max = 0;
 bool lowThrottleZeroIntegral;
 float vbar_decay = 0.991f;
+float gyro_alpha = 0.6;
 struct pid pids[PID_MAX];
+
+volatile bool gyro_filter_updated = false;
+
+static bool actuatorDesiredUpdated = true;
+static bool flightStatusUpdated = true;
+static bool stabilizationDesiredUpdated = true;
+static bool systemSettingsUpdated = true;
 
 // Private functions
 static void stabilizationTask(void* parameters);
-static void ZeroPids(void);
-static void SettingsUpdatedCb(UAVObjEvent * ev);
+static void zero_pids(void);
+static void calculate_pids(float thrust);
+static void SettingsUpdatedCb(UAVObjEvent * objEv, void *ctx, void *obj, int len);
+static float get_throttle(StabilizationDesiredData *stabilization_desired, SystemSettingsAirframeTypeOptions *airframe_type);
+
+static float get_throttle(StabilizationDesiredData *stabilization_desired, SystemSettingsAirframeTypeOptions *airframe_type)
+{
+	if (*airframe_type == SYSTEMSETTINGS_AIRFRAMETYPE_HELICP) {
+		float heli_throttle;
+		ManualControlCommandThrottleGet( &heli_throttle );
+		return heli_throttle;
+	}
+	return stabilization_desired->Thrust;
+}
 
 /**
  * Module initialization
@@ -120,20 +156,24 @@ int32_t StabilizationStart()
 {
 	// Initialize variables
 	// Create object queue
-	queue = xQueueCreate(MAX_QUEUE_SIZE, sizeof(UAVObjEvent));
+	queue = PIOS_Queue_Create(MAX_QUEUE_SIZE, sizeof(UAVObjEvent));
 
 	// Listen for updates.
 	//	AttitudeActualConnectQueue(queue);
 	GyrosConnectQueue(queue);
-	
+
 	// Connect settings callback
+	MWRateSettingsConnectCallback(SettingsUpdatedCb);
 	StabilizationSettingsConnectCallback(SettingsUpdatedCb);
-	TrimAnglesSettingsConnectCallback(SettingsUpdatedCb);
+	SubTrimSettingsConnectCallback(SettingsUpdatedCb);
+
+	// Watchdog must be registered before starting task
+	PIOS_WDG_RegisterFlag(PIOS_WDG_STABILIZATION);
 
 	// Start main task
-	xTaskCreate(stabilizationTask, (signed char*)"Stabilization", STACK_SIZE_BYTES/4, NULL, TASK_PRIORITY, &taskHandle);
+	taskHandle = PIOS_Thread_Create(stabilizationTask, "Stabilization", STACK_SIZE_BYTES, NULL, TASK_PRIORITY);
 	TaskMonitorAdd(TASKINFO_RUNNING_STABILIZATION, taskHandle);
-	PIOS_WDG_RegisterFlag(PIOS_WDG_STABILIZATION);
+
 	return 0;
 }
 
@@ -144,18 +184,18 @@ int32_t StabilizationInitialize()
 {
 	// Initialize variables
 	StabilizationSettingsInitialize();
+	MWRateSettingsInitialize();
 	ActuatorDesiredInitialize();
-	TrimAnglesInitialize();
-	TrimAnglesSettingsInitialize();
+	SubTrimInitialize();
+	SubTrimSettingsInitialize();
+	ManualControlCommandInitialize();
 #if defined(RATEDESIRED_DIAGNOSTICS)
 	RateDesiredInitialize();
 #endif
 
-	// Code required for relay tuning
-	sin_lookup_initialize();
-
 	return 0;
 }
+
 
 MODULE_INITCALL(StabilizationInitialize, StabilizationStart);
 
@@ -165,46 +205,111 @@ MODULE_INITCALL(StabilizationInitialize, StabilizationStart);
 static void stabilizationTask(void* parameters)
 {
 	UAVObjEvent ev;
-	
+
 	uint32_t timeval = PIOS_DELAY_GetRaw();
-	
+
 	ActuatorDesiredData actuatorDesired;
 	StabilizationDesiredData stabDesired;
 	RateDesiredData rateDesired;
 	AttitudeActualData attitudeActual;
 	GyrosData gyrosData;
 	FlightStatusData flightStatus;
+	SystemSettingsAirframeTypeOptions airframe_type;
 
 	float *stabDesiredAxis = &stabDesired.Roll;
 	float *actuatorDesiredAxis = &actuatorDesired.Roll;
 	float *rateDesiredAxis = &rateDesired.Roll;
 	float horizonRateFraction = 0.0f;
 
+	// Connect callbacks
+	ActuatorDesiredConnectCallbackCtx(UAVObjCbSetFlag, &actuatorDesiredUpdated);
+	FlightStatusConnectCallbackCtx(UAVObjCbSetFlag, &flightStatusUpdated);
+	StabilizationDesiredConnectCallbackCtx(UAVObjCbSetFlag, &stabilizationDesiredUpdated);
+	SystemSettingsConnectCallbackCtx(UAVObjCbSetFlag, &systemSettingsUpdated);
+
 	// Force refresh of all settings immediately before entering main task loop
-	SettingsUpdatedCb((UAVObjEvent *) NULL);
-	
+	SettingsUpdatedCb(NULL, NULL, NULL, 0);
+
+	// Settings for system identification
+	uint32_t iteration = 0;
+	const uint32_t SYSTEM_IDENT_PERIOD = 75;
+	uint32_t system_ident_timeval = PIOS_DELAY_GetRaw();
+
+	float dT_filtered = 0;
+
 	// Main task loop
-	ZeroPids();
+	zero_pids();
 	while(1) {
-		float dT;
-		
+		iteration++;
+
 		PIOS_WDG_UpdateFlag(PIOS_WDG_STABILIZATION);
-		
+
 		// Wait until the AttitudeRaw object is updated, if a timeout then go to failsafe
-		if ( xQueueReceive(queue, &ev, MS2TICKS(FAILSAFE_TIMEOUT_MS)) != pdTRUE )
+		if (PIOS_Queue_Receive(queue, &ev, FAILSAFE_TIMEOUT_MS) != true)
 		{
 			AlarmsSet(SYSTEMALARMS_ALARM_STABILIZATION,SYSTEMALARMS_ALARM_WARNING);
 			continue;
 		}
-		
-		dT = PIOS_DELAY_DiffuS(timeval) * 1.0e-6f;
+
+		float dT = PIOS_DELAY_DiffuS(timeval) * 1.0e-6f;
 		timeval = PIOS_DELAY_GetRaw();
-		
-		FlightStatusGet(&flightStatus);
-		StabilizationDesiredGet(&stabDesired);
+
+		// exponential moving averaging (EMA) of dT to reduce jitter; ~200points
+		// to have more or less equivalent noise reduction to a normal N point moving averaging:  alpha = 2 / (N + 1)
+		// run it only at the beginning for the first samples, to reduce CPU load, and the value should converge to a constant value
+
+		if (iteration < 100) {
+			dT_filtered = dT;
+		} else if (iteration < 2000) {
+			dT_filtered = 0.01f * dT + (1.0f - 0.01f) * dT_filtered;
+		} else if (iteration == 2000) {
+			gyro_filter_updated = true;
+		}
+
+		if (gyro_filter_updated) {
+			if (settings.GyroCutoff < 1.0f) {
+				gyro_alpha = 0;
+			} else {
+				gyro_alpha = expf(-2.0f * (float)(M_PI) *
+						settings.GyroCutoff * dT_filtered);
+			}
+
+			// Compute time constant for vbar decay term
+			if (settings.VbarTau < 0.001f) {
+				vbar_decay = 0;
+			} else {
+				vbar_decay = expf(-dT_filtered / settings.VbarTau);
+			}
+
+			gyro_filter_updated = false;
+		}
+
+		if (actuatorDesiredUpdated) {
+			ActuatorDesiredGet(&actuatorDesired);
+			actuatorDesiredUpdated = false;
+		}
+
+		if (flightStatusUpdated) {
+			FlightStatusGet(&flightStatus);
+			flightStatusUpdated = false;
+		}
+
+		if (stabilizationDesiredUpdated) {
+			StabilizationDesiredGet(&stabDesired);
+			calculate_pids(stabDesired.Thrust);
+			stabilizationDesiredUpdated = false;
+		}
+
+		if (systemSettingsUpdated) {
+			SystemSettingsAirframeTypeGet(&airframe_type);
+			systemSettingsUpdated = false;
+		}
+
 		AttitudeActualGet(&attitudeActual);
 		GyrosGet(&gyrosData);
-		ActuatorDesiredGet(&actuatorDesired);
+
+		actuatorDesired.Thrust = stabDesired.Thrust;
+
 #if defined(RATEDESIRED_DIAGNOSTICS)
 		RateDesiredGet(&rateDesired);
 #endif
@@ -214,97 +319,64 @@ static void stabilizationTask(void* parameters)
 			float Pitch;
 			float Yaw;
 		} trimmedAttitudeSetpoint;
-		
+
 		// Mux in level trim values, and saturate the trimmed attitude setpoint.
-		trimmedAttitudeSetpoint.Roll = bound_sym(stabDesired.Roll + trimAngles.Roll, settings.RollMax);
-		trimmedAttitudeSetpoint.Pitch = bound_sym(stabDesired.Pitch + trimAngles.Pitch, settings.PitchMax);
+		trimmedAttitudeSetpoint.Roll = bound_min_max(
+			stabDesired.Roll + subTrim.Roll,
+			-settings.RollMax + subTrim.Roll,
+			 settings.RollMax + subTrim.Roll);
+		trimmedAttitudeSetpoint.Pitch = bound_min_max(
+			stabDesired.Pitch + subTrim.Pitch,
+			-settings.PitchMax + subTrim.Pitch,
+			 settings.PitchMax + subTrim.Pitch);
 		trimmedAttitudeSetpoint.Yaw = stabDesired.Yaw;
 
-		// Track the stick with the most deflection to choose rate blending
-		// For horizon mode we need to compute the desire attitude from an unscaled value
+		// For horizon mode we need to compute the desire attitude from an unscaled value and apply the
+		// trim offset. Also track the stick with the most deflection to choose rate blending.
 		horizonRateFraction = 0.0f;
 		if (stabDesired.StabilizationMode[ROLL] == STABILIZATIONDESIRED_STABILIZATIONMODE_HORIZON) {
-			trimmedAttitudeSetpoint.Roll = stabDesired.Roll * settings.RollMax;
+			trimmedAttitudeSetpoint.Roll = bound_min_max(
+				stabDesired.Roll * settings.RollMax + subTrim.Roll,
+				-settings.RollMax + subTrim.Roll,
+				 settings.RollMax + subTrim.Roll);
 			horizonRateFraction = fabsf(stabDesired.Roll);
 		}
 		if (stabDesired.StabilizationMode[PITCH] == STABILIZATIONDESIRED_STABILIZATIONMODE_HORIZON) {
-			trimmedAttitudeSetpoint.Pitch = stabDesired.Pitch * settings.PitchMax;
+			trimmedAttitudeSetpoint.Pitch = bound_min_max(
+				stabDesired.Pitch * settings.PitchMax + subTrim.Pitch,
+				-settings.PitchMax + subTrim.Pitch,
+				 settings.PitchMax + subTrim.Pitch);
 			horizonRateFraction = MAX(horizonRateFraction, fabsf(stabDesired.Pitch));
 		}
 		if (stabDesired.StabilizationMode[YAW] == STABILIZATIONDESIRED_STABILIZATIONMODE_HORIZON) {
 			trimmedAttitudeSetpoint.Yaw = stabDesired.Yaw * settings.YawMax;
 			horizonRateFraction = MAX(horizonRateFraction, fabsf(stabDesired.Yaw));
 		}
+
+		// For weak leveling mode the attitude setpoint is the trim value (drifts back towards "0")
+		if (stabDesired.StabilizationMode[ROLL] == STABILIZATIONDESIRED_STABILIZATIONMODE_WEAKLEVELING) {
+			trimmedAttitudeSetpoint.Roll = subTrim.Roll;
+		}
+		if (stabDesired.StabilizationMode[PITCH] == STABILIZATIONDESIRED_STABILIZATIONMODE_WEAKLEVELING) {
+			trimmedAttitudeSetpoint.Pitch = subTrim.Pitch;
+		}
+		if (stabDesired.StabilizationMode[YAW] == STABILIZATIONDESIRED_STABILIZATIONMODE_WEAKLEVELING) {
+			trimmedAttitudeSetpoint.Yaw = 0;
+		}
+
 		// Note we divide by the maximum limit here so the fraction ranges from 0 to 1 depending on
 		// how much is requested.
 		horizonRateFraction = bound_sym(horizonRateFraction, HORIZON_MODE_MAX_BLEND) / HORIZON_MODE_MAX_BLEND;
 
-
-#if defined(PIOS_QUATERNION_STABILIZATION)
-		// Quaternion calculation of error in each axis.  Uses more memory.
-		float rpy_desired[3];
-		float q_desired[4];
-		float q_error[4];
+		// Calculate the errors in each axis. The local error is used in the following modes:
+		//  ATTITUDE, HORIZON, WEAKLEVELING
 		float local_attitude_error[3];
-		
-		// Essentially zero errors for anything in rate or none
-		if (stabDesired.StabilizationMode[STABILIZATIONDESIRED_STABILIZATIONMODE_ROLL] == STABILIZATIONDESIRED_STABILIZATIONMODE_ATTITUDEPLUS)
-			rpy_desired[0] = trimmedAttitudeSetpoint.Roll;
-		else if(stabDesired.StabilizationMode[STABILIZATIONDESIRED_STABILIZATIONMODE_ROLL] == STABILIZATIONDESIRED_STABILIZATIONMODE_WEAKLEVELING)
-			rpy_desired[0] = trimAngles.Roll;
-		else
-			rpy_desired[0] = stabDesired.Roll;
-		
-		if (stabDesired.StabilizationMode[STABILIZATIONDESIRED_STABILIZATIONMODE_PITCH] == STABILIZATIONDESIRED_STABILIZATIONMODE_ATTITUDEPLUS)
-			rpy_desired[1] = trimmedAttitudeSetpoint.Pitch;
-		else if(stabDesired.StabilizationMode[STABILIZATIONDESIRED_STABILIZATIONMODE_PITCH] == STABILIZATIONDESIRED_STABILIZATIONMODE_WEAKLEVELING)
-			rpy_desired[1] = trimAngles.Pitch;
-		else
-			rpy_desired[1] = stabDesired.Pitch;
-		
-		if (stabDesired.StabilizationMode[STABILIZATIONDESIRED_STABILIZATIONMODE_YAW] == STABILIZATIONDESIRED_STABILIZATIONMODE_ATTITUDEPLUS)
-			rpy_desired[2] = trimmedAttitudeSetpoint.Yaw;
-		else if(stabDesired.StabilizationMode[STABILIZATIONDESIRED_STABILIZATIONMODE_YAW] == STABILIZATIONDESIRED_STABILIZATIONMODE_WEAKLEVELING)
-			rpy_desired[2] = 0;
-		else
-			rpy_desired[2] = stabDesired.Yaw;
-		
-		RPY2Quaternion(rpy_desired, q_desired);
-		quat_inverse(q_desired);
-		quat_mult(q_desired, &attitudeActual.q1, q_error);
-		quat_inverse(q_error);
-		Quaternion2RPY(q_error, local_attitude_error);
-		
-#else
-		// Simpler algorithm for CC, less memory
-		float local_attitude_error[3];
-		if (stabDesired.StabilizationMode[STABILIZATIONDESIRED_STABILIZATIONMODE_ROLL] == STABILIZATIONDESIRED_STABILIZATIONMODE_ATTITUDEPLUS ||
-			stabDesired.StabilizationMode[STABILIZATIONDESIRED_STABILIZATIONMODE_ROLL] == STABILIZATIONDESIRED_STABILIZATIONMODE_HORIZON)
-			local_attitude_error[0] = trimmedAttitudeSetpoint.Roll - attitudeActual.Roll;
-		else if(stabDesired.StabilizationMode[STABILIZATIONDESIRED_STABILIZATIONMODE_ROLL] == STABILIZATIONDESIRED_STABILIZATIONMODE_WEAKLEVELING)
-			local_attitude_error[0] = trimAngles.Roll - attitudeActual.Roll;
-		else
-			local_attitude_error[0] = stabDesired.Roll - attitudeActual.Roll;
-
-		if (stabDesired.StabilizationMode[STABILIZATIONDESIRED_STABILIZATIONMODE_PITCH] == STABILIZATIONDESIRED_STABILIZATIONMODE_ATTITUDEPLUS ||
-			stabDesired.StabilizationMode[STABILIZATIONDESIRED_STABILIZATIONMODE_PITCH] == STABILIZATIONDESIRED_STABILIZATIONMODE_HORIZON)
-			local_attitude_error[1] = trimmedAttitudeSetpoint.Pitch - attitudeActual.Pitch;
-		else if(stabDesired.StabilizationMode[STABILIZATIONDESIRED_STABILIZATIONMODE_PITCH] == STABILIZATIONDESIRED_STABILIZATIONMODE_WEAKLEVELING)
-			local_attitude_error[1] = trimAngles.Pitch - attitudeActual.Pitch;
-		else
-			local_attitude_error[1] = stabDesired.Pitch - attitudeActual.Pitch;
-
-		if (stabDesired.StabilizationMode[STABILIZATIONDESIRED_STABILIZATIONMODE_YAW] == STABILIZATIONDESIRED_STABILIZATIONMODE_ATTITUDEPLUS ||
-			stabDesired.StabilizationMode[STABILIZATIONDESIRED_STABILIZATIONMODE_YAW] == STABILIZATIONDESIRED_STABILIZATIONMODE_HORIZON)
-			local_attitude_error[2] = trimmedAttitudeSetpoint.Yaw - attitudeActual.Yaw;
-		else if(stabDesired.StabilizationMode[STABILIZATIONDESIRED_STABILIZATIONMODE_YAW] == STABILIZATIONDESIRED_STABILIZATIONMODE_WEAKLEVELING)
-			local_attitude_error[2] = -attitudeActual.Yaw;
-		else
-			local_attitude_error[2] = stabDesired.Yaw - attitudeActual.Yaw;
+		local_attitude_error[0] = trimmedAttitudeSetpoint.Roll - attitudeActual.Roll;
+		local_attitude_error[1] = trimmedAttitudeSetpoint.Pitch - attitudeActual.Pitch;
+		local_attitude_error[2] = trimmedAttitudeSetpoint.Yaw - attitudeActual.Yaw;
 
 		// Wrap yaw error to [-180,180]
 		local_attitude_error[2] = circular_modulus_deg(local_attitude_error[2]);
-#endif
 
 		static float gyro_filtered[3];
 		gyro_filtered[0] = gyro_filtered[0] * gyro_alpha + gyrosData.x * (1 - gyro_alpha);
@@ -318,39 +390,117 @@ static void stabilizationTask(void* parameters)
 		//Run the selected stabilization algorithm on each axis:
 		for(uint8_t i=0; i< MAX_AXES; i++)
 		{
+			// XXX TODO: Factor this body out into function.
+
+			uint8_t mode = stabDesired.StabilizationMode[i];
+			float raw_input = (&stabDesired.Roll)[i];
+
+			if (mode == STABILIZATIONDESIRED_STABILIZATIONMODE_FAILSAFE) {
+				// Everything except planes should drop straight down
+				if ((airframe_type != SYSTEMSETTINGS_AIRFRAMETYPE_FIXEDWING) &&
+						(airframe_type != SYSTEMSETTINGS_AIRFRAMETYPE_FIXEDWINGELEVON) &&
+						(airframe_type != SYSTEMSETTINGS_AIRFRAMETYPE_FIXEDWINGVTAIL)) {
+					actuatorDesired.Thrust = 0.0f;
+					switch (i) {
+						case 0: /* Roll */
+							mode = STABILIZATIONDESIRED_STABILIZATIONMODE_ATTITUDE;
+							raw_input = 0;
+							break;
+						case 1:
+						default:
+							mode = STABILIZATIONDESIRED_STABILIZATIONMODE_ATTITUDE;
+							raw_input = 0;
+							break;
+						case 2:
+							mode = STABILIZATIONDESIRED_STABILIZATIONMODE_RATE;
+							raw_input = 0;
+							break;
+					}
+				}
+				else
+				{
+					actuatorDesired.Thrust = -1.0f;
+
+					switch (i) {
+						case 0: /* Roll */
+							mode = STABILIZATIONDESIRED_STABILIZATIONMODE_ATTITUDE;
+							raw_input = -10;
+							break;
+						case 1:
+						default:
+							mode = STABILIZATIONDESIRED_STABILIZATIONMODE_ATTITUDE;
+							raw_input = 0;
+							break;
+						case 2:
+							mode = STABILIZATIONDESIRED_STABILIZATIONMODE_RATE;
+							raw_input = -5;
+							break;
+					}
+				}
+			}
+
+
 			// Check whether this axis mode needs to be reinitialized
-			bool reinit = (stabDesired.StabilizationMode[i] != previous_mode[i]);
-			previous_mode[i] = stabDesired.StabilizationMode[i];
+			bool reinit = (mode != previous_mode[i]);
+			previous_mode[i] = mode;
 
 			// Apply the selected control law
-			switch(stabDesired.StabilizationMode[i])
+			switch(mode)
 			{
+				case STABILIZATIONDESIRED_STABILIZATIONMODE_FAILSAFE:
+					PIOS_Assert(0); /* Shouldn't happen, per above */
+					break;
+
 				case STABILIZATIONDESIRED_STABILIZATIONMODE_RATE:
 					if(reinit)
-						pids[PID_RATE_ROLL + i].iAccumulator = 0;
+						pids[PID_GROUP_RATE + i].iAccumulator = 0;
 
 					// Store to rate desired variable for storing to UAVO
 					rateDesiredAxis[i] = bound_sym(stabDesiredAxis[i], settings.ManualRate[i]);
 
 					// Compute the inner loop
-					actuatorDesiredAxis[i] = pid_apply_setpoint(&pids[PID_RATE_ROLL + i],  rateDesiredAxis[i],  gyro_filtered[i], dT);
+					actuatorDesiredAxis[i] = pid_apply_setpoint(&pids[PID_GROUP_RATE + i],  rateDesiredAxis[i],  gyro_filtered[i], dT);
 					actuatorDesiredAxis[i] = bound_sym(actuatorDesiredAxis[i],1.0f);
 
 					break;
 
-				case STABILIZATIONDESIRED_STABILIZATIONMODE_ATTITUDEPLUS:
-				case STABILIZATIONDESIRED_STABILIZATIONMODE_ATTITUDE:
+			case STABILIZATIONDESIRED_STABILIZATIONMODE_ACROPLUS:
+					// this implementation is based on the Openpilot/Librepilot Acro+ flightmode
+					// and our existing rate & MWRate flightmodes
+					if(reinit)
+							pids[PID_GROUP_RATE + i].iAccumulator = 0;
+
+					// The factor for gyro suppression / mixing raw stick input into the output; scaled by raw stick input
+					float factor = fabsf(raw_input) * settings.AcroInsanityFactor / 100;
+
+					// Store to rate desired variable for storing to UAVO
+					rateDesiredAxis[i] = bound_sym(raw_input * settings.ManualRate[i], settings.ManualRate[i]);
+
+					// Zero integral for aggressive maneuvers, like it is done for MWRate
+					if ((i < 2 && fabsf(gyro_filtered[i]) > 150.0f) ||
+											(i == 0 && fabsf(raw_input) > 0.2f)) {
+							pids[PID_GROUP_RATE + i].iAccumulator = 0;
+							pids[PID_GROUP_RATE + i].i = 0;
+							}
+
+					// Compute the inner loop
+					actuatorDesiredAxis[i] = pid_apply_setpoint(&pids[PID_GROUP_RATE + i], rateDesiredAxis[i], gyro_filtered[i], dT);
+					actuatorDesiredAxis[i] = factor * raw_input + (1.0f - factor) * actuatorDesiredAxis[i];
+					actuatorDesiredAxis[i] = bound_sym(actuatorDesiredAxis[i], 1.0f);
+
+					break;
+			case STABILIZATIONDESIRED_STABILIZATIONMODE_ATTITUDE:
 					if(reinit) {
-						pids[PID_ATT_ROLL + i].iAccumulator = 0;
-						pids[PID_RATE_ROLL + i].iAccumulator = 0;
+						pids[PID_GROUP_ATT + i].iAccumulator = 0;
+						pids[PID_GROUP_RATE + i].iAccumulator = 0;
 					}
 
 					// Compute the outer loop
-					rateDesiredAxis[i] = pid_apply(&pids[PID_ATT_ROLL + i], local_attitude_error[i], dT);
+					rateDesiredAxis[i] = pid_apply(&pids[PID_GROUP_ATT + i], local_attitude_error[i], dT);
 					rateDesiredAxis[i] = bound_sym(rateDesiredAxis[i], settings.MaximumRate[i]);
 
 					// Compute the inner loop
-					actuatorDesiredAxis[i] = pid_apply_setpoint(&pids[PID_RATE_ROLL + i],  rateDesiredAxis[i],  gyro_filtered[i], dT);
+					actuatorDesiredAxis[i] = pid_apply_setpoint(&pids[PID_GROUP_RATE + i],  rateDesiredAxis[i],  gyro_filtered[i], dT);
 					actuatorDesiredAxis[i] = bound_sym(actuatorDesiredAxis[i],1.0f);
 
 					break;
@@ -360,95 +510,221 @@ static void stabilizationTask(void* parameters)
 					rateDesiredAxis[i] = stabDesiredAxis[i];
 
 					// Run a virtual flybar stabilization algorithm on this axis
-					stabilization_virtual_flybar(gyro_filtered[i], rateDesiredAxis[i], &actuatorDesiredAxis[i], dT, reinit, i, &pids[PID_VBAR_ROLL + i], &settings);
+					stabilization_virtual_flybar(gyro_filtered[i], rateDesiredAxis[i], &actuatorDesiredAxis[i], dT, reinit, i, &pids[PID_GROUP_VBAR + i], &settings);
 
 					break;
 				case STABILIZATIONDESIRED_STABILIZATIONMODE_WEAKLEVELING:
 				{
 					if (reinit)
-						pids[PID_RATE_ROLL + i].iAccumulator = 0;
+						pids[PID_GROUP_RATE + i].iAccumulator = 0;
 
 					float weak_leveling = local_attitude_error[i] * weak_leveling_kp;
 					weak_leveling = bound_sym(weak_leveling, weak_leveling_max);
 
 					// Compute desired rate as input biased towards leveling
 					rateDesiredAxis[i] = stabDesiredAxis[i] + weak_leveling;
-					actuatorDesiredAxis[i] = pid_apply_setpoint(&pids[PID_RATE_ROLL + i],  rateDesiredAxis[i],  gyro_filtered[i], dT);
+					actuatorDesiredAxis[i] = pid_apply_setpoint(&pids[PID_GROUP_RATE + i],  rateDesiredAxis[i],  gyro_filtered[i], dT);
 					actuatorDesiredAxis[i] = bound_sym(actuatorDesiredAxis[i],1.0f);
 
 					break;
 				}
 				case STABILIZATIONDESIRED_STABILIZATIONMODE_AXISLOCK:
 					if (reinit)
-						pids[PID_RATE_ROLL + i].iAccumulator = 0;
+						pids[PID_GROUP_RATE + i].iAccumulator = 0;
 
-					if(fabs(stabDesiredAxis[i]) > max_axislock_rate) {
+					if (fabsf(stabDesiredAxis[i]) > max_axislock_rate) {
 						// While getting strong commands act like rate mode
-						rateDesiredAxis[i] = stabDesiredAxis[i];
+						rateDesiredAxis[i] = bound_sym(stabDesiredAxis[i], settings.ManualRate[i]);
+
+						// Reset accumulator
 						axis_lock_accum[i] = 0;
 					} else {
-						// For weaker commands or no command simply attitude lock (almost) on no gyro change
+						// For weaker commands or no command simply lock (almost) on no gyro change
 						axis_lock_accum[i] += (stabDesiredAxis[i] - gyro_filtered[i]) * dT;
 						axis_lock_accum[i] = bound_sym(axis_lock_accum[i], max_axis_lock);
-						rateDesiredAxis[i] = pid_apply(&pids[PID_ATT_ROLL + i], axis_lock_accum[i], dT);
+
+						// Compute the inner loop
+						float tmpRateDesired = pid_apply(&pids[PID_GROUP_ATT + i], axis_lock_accum[i], dT);
+						rateDesiredAxis[i] = bound_sym(tmpRateDesired, settings.MaximumRate[i]);
 					}
 
-					rateDesiredAxis[i] = bound_sym(rateDesiredAxis[i], settings.MaximumRate[i]);
-
-					actuatorDesiredAxis[i] = pid_apply_setpoint(&pids[PID_RATE_ROLL + i],  rateDesiredAxis[i],  gyro_filtered[i], dT);
+					actuatorDesiredAxis[i] = pid_apply_setpoint(&pids[PID_GROUP_RATE + i],  rateDesiredAxis[i],  gyro_filtered[i], dT);
 					actuatorDesiredAxis[i] = bound_sym(actuatorDesiredAxis[i],1.0f);
 
 					break;
 
 				case STABILIZATIONDESIRED_STABILIZATIONMODE_HORIZON:
 					if(reinit) {
-						pids[PID_RATE_ROLL + i].iAccumulator = 0;
+						pids[PID_GROUP_RATE + i].iAccumulator = 0;
 					}
-
-					// The unscaled input (-1,1)
-					float *raw_input = &stabDesired.Roll;
 
 					// Do not allow outer loop integral to wind up in this mode since the controller
 					// is often disengaged.
-					pids[PID_ATT_ROLL + i].iAccumulator = 0;
+					pids[PID_GROUP_ATT + i].iAccumulator = 0;
 
 					// Compute the outer loop for the attitude control
-					float rateDesiredAttitude = pid_apply(&pids[PID_ATT_ROLL + i], local_attitude_error[i], dT);
+					float rateDesiredAttitude = pid_apply(&pids[PID_GROUP_ATT + i], local_attitude_error[i], dT);
 					// Compute the desire rate for a rate control
-					float rateDesiredRate = expo3(raw_input[i], settings.RateExpo[i]) * settings.ManualRate[i];
+					float rateDesiredRate = raw_input * settings.ManualRate[i];
 
 					// Blend from one rate to another. The maximum of all stick positions is used for the
 					// amount so that when one axis goes completely to rate the other one does too. This
 					// prevents doing flips while one axis tries to stay in attitude mode.
 					rateDesiredAxis[i] = rateDesiredAttitude * (1.0f-horizonRateFraction) + rateDesiredRate * horizonRateFraction;
-					rateDesiredAxis[i] = bound_sym(rateDesiredAxis[i], settings.MaximumRate[i]);
+					rateDesiredAxis[i] = bound_sym(rateDesiredAxis[i], settings.ManualRate[i]);
 
 					// Compute the inner loop
-					actuatorDesiredAxis[i] = pid_apply_setpoint(&pids[PID_RATE_ROLL + i],  rateDesiredAxis[i],  gyro_filtered[i], dT);
+					actuatorDesiredAxis[i] = pid_apply_setpoint(&pids[PID_GROUP_RATE + i],  rateDesiredAxis[i],  gyro_filtered[i], dT);
 					actuatorDesiredAxis[i] = bound_sym(actuatorDesiredAxis[i],1.0f);
 
 					break;
-				case STABILIZATIONDESIRED_STABILIZATIONMODE_RELAYRATE:
-					// Store to rate desired variable for storing to UAVO
-					rateDesiredAxis[i] = bound_sym(stabDesiredAxis[i], settings.ManualRate[i]);
 
-					// Run the relay controller which also estimates the oscillation parameters
-					stabilization_relay_rate(rateDesiredAxis[i] - gyro_filtered[i], &actuatorDesiredAxis[i], i, reinit);
-					actuatorDesiredAxis[i] = bound_sym(actuatorDesiredAxis[i],1.0);
-					
+				case STABILIZATIONDESIRED_STABILIZATIONMODE_MWRATE:
+				{
+					if(reinit) {
+						pids[PID_GROUP_MWR + i].iAccumulator = 0;
+					}
+
+					/*
+					 Conversion from MultiWii PID settings to our units.
+						Kp = Kp_mw * 4 / 80 / 500
+						Kd = Kd_mw * looptime * 1e-6 * 4 * 3 / 32 / 500
+						Ki = Ki_mw * 4 / 125 / 64 / (looptime * 1e-6) / 500
+
+						These values will just be approximate and should help
+						you get started.
+					*/
+
+
+					// dynamic PIDs are scaled both by thrust and stick position
+					float scale = (i == 0 || i == 1) ? mwrate_settings.RollPitchRate : mwrate_settings.YawRate;
+					float pid_scale = (100.0f - scale * fabsf(raw_input)) / 100.0f;
+					float dynP8 = pids[PID_GROUP_MWR + i].p * pid_scale;
+					float dynD8 = pids[PID_GROUP_MWR + i].d * pid_scale;
+					// these terms are used by the integral loop this proportional term is scaled by thrust (this is different than MW
+					// that does not apply scale
+					float cfgP8 = pids[PID_GROUP_MWR + i].p;
+					float cfgI8 = pids[PID_GROUP_MWR + i].i;
+
+					// Dynamically adjust PID settings
+					struct pid mw_pid;
+					mw_pid.p = 0;      // use zero Kp here because of strange setpoint. applied later.
+					mw_pid.d = dynD8;
+					mw_pid.i = cfgI8;
+					mw_pid.iLim = pids[PID_GROUP_MWR + i].iLim;
+					mw_pid.iAccumulator = pids[PID_GROUP_MWR + i].iAccumulator;
+					mw_pid.lastErr = pids[PID_GROUP_MWR + i].lastErr;
+					mw_pid.lastDer = pids[PID_GROUP_MWR + i].lastDer;
+
+					// Zero integral for aggressive maneuvers
+ 					if ((i < 2 && fabsf(gyro_filtered[i]) > 150.0f) ||
+ 					    (i == 0 && fabsf(raw_input) > 0.2f)) {
+						mw_pid.iAccumulator = 0;
+						mw_pid.i = 0;
+					}
+
+					// Apply controller as if we want zero change, then add stick input afterwards
+					actuatorDesiredAxis[i] = pid_apply_setpoint(&mw_pid,  raw_input / cfgP8,  gyro_filtered[i], dT);
+					actuatorDesiredAxis[i] += raw_input;             // apply input
+					actuatorDesiredAxis[i] -= dynP8 * gyro_filtered[i]; // apply Kp term
+					actuatorDesiredAxis[i] = bound_sym(actuatorDesiredAxis[i],1.0f);
+
+					// Store PID accumulators for next cycle
+					pids[PID_GROUP_MWR + i].iAccumulator = mw_pid.iAccumulator;
+					pids[PID_GROUP_MWR + i].lastErr = mw_pid.lastErr;
+					pids[PID_GROUP_MWR + i].lastDer = mw_pid.lastDer;
+				}
 					break;
-					
-				case STABILIZATIONDESIRED_STABILIZATIONMODE_RELAYATTITUDE:
-					if(reinit)
-						pids[PID_ATT_ROLL + i].iAccumulator = 0;
+				case STABILIZATIONDESIRED_STABILIZATIONMODE_SYSTEMIDENT:
+					if(reinit) {
+						pids[PID_GROUP_ATT + i].iAccumulator = 0;
+						pids[PID_GROUP_RATE + i].iAccumulator = 0;
+					}
 
-					// Compute the outer loop like attitude mode
-					rateDesiredAxis[i] = pid_apply(&pids[PID_ATT_ROLL + i], local_attitude_error[i], dT);
-					rateDesiredAxis[i] = bound_sym(rateDesiredAxis[i], settings.MaximumRate[i]);
+					static uint32_t ident_iteration = 0;
+					static float ident_offsets[3] = {0};
 
-					// Run the relay controller which also estimates the oscillation parameters
-					stabilization_relay_rate(rateDesiredAxis[i] - gyro_filtered[i], &actuatorDesiredAxis[i], i, reinit);
-					actuatorDesiredAxis[i] = bound_sym(actuatorDesiredAxis[i],1.0);
+					if (PIOS_DELAY_DiffuS(system_ident_timeval) / 1000.0f > SYSTEM_IDENT_PERIOD && SystemIdentHandle()) {
+						ident_iteration++;
+						system_ident_timeval = PIOS_DELAY_GetRaw();
+
+						SystemIdentData systemIdent;
+						SystemIdentGet(&systemIdent);
+
+						const float SCALE_BIAS = 7.1f;
+						float roll_scale = expapprox(SCALE_BIAS - systemIdent.Beta[SYSTEMIDENT_BETA_ROLL]);
+						float pitch_scale = expapprox(SCALE_BIAS - systemIdent.Beta[SYSTEMIDENT_BETA_PITCH]);
+						float yaw_scale = expapprox(SCALE_BIAS - systemIdent.Beta[SYSTEMIDENT_BETA_YAW]);
+
+						if (roll_scale > 0.25f)
+							roll_scale = 0.25f;
+						if (pitch_scale > 0.25f)
+							pitch_scale = 0.25f;
+						if (yaw_scale > 0.25f)
+							yaw_scale = 0.25f;
+
+						switch(ident_iteration & 0x07) {
+							case 0:
+								ident_offsets[0] = 0;
+								ident_offsets[1] = 0;
+								ident_offsets[2] = yaw_scale;
+								break;
+							case 1:
+								ident_offsets[0] = roll_scale;
+								ident_offsets[1] = 0;
+								ident_offsets[2] = 0;
+								break;
+							case 2:
+								ident_offsets[0] = 0;
+								ident_offsets[1] = 0;
+								ident_offsets[2] = -yaw_scale;
+								break;
+							case 3:
+								ident_offsets[0] = -roll_scale;
+								ident_offsets[1] = 0;
+								ident_offsets[2] = 0;
+								break;
+							case 4:
+								ident_offsets[0] = 0;
+								ident_offsets[1] = 0;
+								ident_offsets[2] = yaw_scale;
+								break;
+							case 5:
+								ident_offsets[0] = 0;
+								ident_offsets[1] = pitch_scale;
+								ident_offsets[2] = 0;
+								break;
+							case 6:
+								ident_offsets[0] = 0;
+								ident_offsets[1] = 0;
+								ident_offsets[2] = -yaw_scale;
+								break;
+							case 7:
+								ident_offsets[0] = 0;
+								ident_offsets[1] = -pitch_scale;
+								ident_offsets[2] = 0;
+								break;
+						}
+					}
+
+					if (i == ROLL || i == PITCH) {
+						// Compute the outer loop
+						rateDesiredAxis[i] = pid_apply(&pids[PID_GROUP_ATT + i], local_attitude_error[i], dT);
+						rateDesiredAxis[i] = bound_sym(rateDesiredAxis[i], settings.MaximumRate[i]);
+
+						// Compute the inner loop
+						actuatorDesiredAxis[i] = pid_apply_setpoint(&pids[PID_GROUP_RATE + i],  rateDesiredAxis[i],  gyro_filtered[i], dT);
+						actuatorDesiredAxis[i] += ident_offsets[i];
+						actuatorDesiredAxis[i] = bound_sym(actuatorDesiredAxis[i],1.0f);
+					} else {
+						// Get the desired rate. yaw is always in rate mode in system ident.
+						rateDesiredAxis[i] = bound_sym(stabDesiredAxis[i], settings.ManualRate[i]);
+
+						// Compute the inner loop only for yaw
+						actuatorDesiredAxis[i] = pid_apply_setpoint(&pids[PID_GROUP_RATE + i],  rateDesiredAxis[i],  gyro_filtered[i], dT);
+						actuatorDesiredAxis[i] += ident_offsets[i];
+						actuatorDesiredAxis[i] = bound_sym(actuatorDesiredAxis[i],1.0f);
+					}
 
 					break;
 
@@ -461,9 +737,8 @@ static void stabilizationTask(void* parameters)
 								axis_lock_accum[YAW] = 0;
 							}
 
-							//If we are in neither roll attitude mode nor attitude-plus mode, trigger an error
-							if ((stabDesired.StabilizationMode[ROLL] != STABILIZATIONDESIRED_STABILIZATIONMODE_ATTITUDE &&
-								  stabDesired.StabilizationMode[ROLL] != STABILIZATIONDESIRED_STABILIZATIONMODE_ATTITUDEPLUS ))
+							//If we are not in roll attitude mode, trigger an error
+							if (stabDesired.StabilizationMode[ROLL] != STABILIZATIONDESIRED_STABILIZATIONMODE_ATTITUDE)
 							{
 								error = true;
 								break ;
@@ -528,8 +803,8 @@ static void stabilizationTask(void* parameters)
 					// The sanity check enforces this is only selectable for Yaw
 					// for a gimbal you can select pitch too.
 					if(reinit) {
-						pids[PID_ATT_ROLL + i].iAccumulator = 0;
-						pids[PID_RATE_ROLL + i].iAccumulator = 0;
+						pids[PID_GROUP_ATT + i].iAccumulator = 0;
+						pids[PID_GROUP_RATE + i].iAccumulator = 0;
 					}
 
 					float error;
@@ -539,6 +814,17 @@ static void stabilizationTask(void* parameters)
 						case PITCH:
 							CameraDesiredDeclinationGet(&angle);
 							error = circular_modulus_deg(angle - attitudeActual.Pitch);
+							break;
+						case ROLL:
+						{
+							uint8_t roll_fraction = 0;
+
+							// For ROLL POI mode we track the FC roll angle (scaled) to
+							// allow keeping some motion
+							CameraDesiredRollGet(&angle);
+							angle *= roll_fraction / 100.0f;
+							error = circular_modulus_deg(angle - attitudeActual.Roll);
+						}
 							break;
 						case YAW:
 							CameraDesiredBearingGet(&angle);
@@ -551,15 +837,18 @@ static void stabilizationTask(void* parameters)
 						error = true;
 
 					// Compute the outer loop
-					rateDesiredAxis[i] = pid_apply(&pids[PID_ATT_ROLL + i], error, dT);
+					rateDesiredAxis[i] = pid_apply(&pids[PID_GROUP_ATT + i], error, dT);
 					rateDesiredAxis[i] = bound_sym(rateDesiredAxis[i], settings.PoiMaximumRate[i]);
 
 					// Compute the inner loop
-					actuatorDesiredAxis[i] = pid_apply_setpoint(&pids[PID_RATE_ROLL + i],  rateDesiredAxis[i],  gyro_filtered[i], dT);
+					actuatorDesiredAxis[i] = pid_apply_setpoint(&pids[PID_GROUP_RATE + i],  rateDesiredAxis[i],  gyro_filtered[i], dT);
 					actuatorDesiredAxis[i] = bound_sym(actuatorDesiredAxis[i],1.0f);
 
 					break;
-				case STABILIZATIONDESIRED_STABILIZATIONMODE_NONE:
+				case STABILIZATIONDESIRED_STABILIZATIONMODE_DISABLED:
+					actuatorDesiredAxis[i] = 0.0;
+					break;
+				case STABILIZATIONDESIRED_STABILIZATIONMODE_MANUAL:
 					actuatorDesiredAxis[i] = bound_sym(stabDesiredAxis[i],1.0f);
 					break;
 				default:
@@ -577,18 +866,13 @@ static void stabilizationTask(void* parameters)
 
 		// Save dT
 		actuatorDesired.UpdateTime = dT * 1000;
-		actuatorDesired.Throttle = stabDesired.Throttle;
 
-		if(flightStatus.FlightMode != FLIGHTSTATUS_FLIGHTMODE_MANUAL) {
-			ActuatorDesiredSet(&actuatorDesired);
-		} else {
-			// Force all axes to reinitialize when engaged
-			for(uint8_t i=0; i< MAX_AXES; i++)
-				previous_mode[i] = 255;
-		}
+		ActuatorDesiredSet(&actuatorDesired);
+		// So we only fetch it above if it is modified by another module (wacky)
+		actuatorDesiredUpdated = false;
 
 		if(flightStatus.Armed != FLIGHTSTATUS_ARMED_ARMED ||
-		   (lowThrottleZeroIntegral && stabDesired.Throttle < 0))
+		   (lowThrottleZeroIntegral && get_throttle(&stabDesired, &airframe_type) < 0))
 		{
 			// Force all axes to reinitialize when engaged
 			for(uint8_t i=0; i< MAX_AXES; i++)
@@ -608,7 +892,7 @@ static void stabilizationTask(void* parameters)
 /**
  * Clear the accumulators and derivatives for all the axes
  */
-static void ZeroPids(void)
+static void zero_pids(void)
 {
 	for(uint32_t i = 0; i < PID_MAX; i++)
 		pid_zero(&pids[i]);
@@ -618,95 +902,186 @@ static void ZeroPids(void)
 		axis_lock_accum[i] = 0.0f;
 }
 
-
-static void SettingsUpdatedCb(UAVObjEvent * ev)
+static void calculate_pids(float thrust)
 {
-	if (ev == NULL || ev->obj == TrimAnglesSettingsHandle())
-	{
-		TrimAnglesSettingsData trimAnglesSettings;
 
-		TrimAnglesGet(&trimAngles);
-		TrimAnglesSettingsGet(&trimAnglesSettings);
+	// This scale will be calculated and allows suppressing the PID
+	// controller gain
+	float roll_scale = 1.0f;
+	float pitch_scale = 1.0f;
+	float yaw_scale = 1.0f;
+
+	// Calculate the desired PID suppression based on thrust settings. This is
+	// similar to an algorithm used by MultiWii and empirically works well. It
+	// creates a piecewise linear suppression of PIDs versus thrust.
+	for (uint32_t i = 0; i < 3; i++) {
+		float attenuation;
+		float threshold;
+		float scale = 1.0f;
+
+		switch(i) {
+		case 0:
+			attenuation = settings.RollRateTPA[STABILIZATIONSETTINGS_ROLLRATETPA_ATTENUATION] / 100.0f;
+			threshold = settings.RollRateTPA[STABILIZATIONSETTINGS_ROLLRATETPA_THRESHOLD] / 100.0f;
+			break;
+		case 1:
+			attenuation = settings.RollRateTPA[STABILIZATIONSETTINGS_PITCHRATETPA_ATTENUATION] / 100.0f;
+			threshold = settings.RollRateTPA[STABILIZATIONSETTINGS_PITCHRATETPA_THRESHOLD] / 100.0f;
+			break;
+		case 2:
+			attenuation = settings.RollRateTPA[STABILIZATIONSETTINGS_YAWRATETPA_ATTENUATION] / 100.0f;
+			threshold = settings.RollRateTPA[STABILIZATIONSETTINGS_YAWRATETPA_THRESHOLD] / 100.0f;
+			break;
+		}
+
+		// Ensure everything is in a valid range to keep scale well behaved
+		if (thrust > 0 && thrust < 1.0f &&
+			attenuation > 0 && attenuation < 0.9f &&
+			threshold > 0 && threshold < 1) {
+
+			if (thrust > threshold)
+				scale = 1.0f - attenuation * (thrust - threshold) / (1.0f - threshold);
+		}
+
+		switch(i) {
+		case 0:
+			roll_scale = scale;
+			break;
+		case 1:
+			pitch_scale = scale;
+			break;
+		case 2:
+			yaw_scale = scale;
+			break;
+		}
+	}
+
+	// Set the roll rate PID constants
+	pid_configure(&pids[PID_RATE_ROLL],
+	              settings.RollRatePID[STABILIZATIONSETTINGS_ROLLRATEPID_KP] * roll_scale,
+	              settings.RollRatePID[STABILIZATIONSETTINGS_ROLLRATEPID_KI],
+	              settings.RollRatePID[STABILIZATIONSETTINGS_ROLLRATEPID_KD] * roll_scale,
+	              settings.RollRatePID[STABILIZATIONSETTINGS_ROLLRATEPID_ILIMIT]);
+
+	// Set the pitch rate PID constants
+	pid_configure(&pids[PID_RATE_PITCH],
+	              settings.PitchRatePID[STABILIZATIONSETTINGS_PITCHRATEPID_KP] * pitch_scale,
+	              settings.PitchRatePID[STABILIZATIONSETTINGS_PITCHRATEPID_KI],
+	              settings.PitchRatePID[STABILIZATIONSETTINGS_PITCHRATEPID_KD] * pitch_scale,
+	              settings.PitchRatePID[STABILIZATIONSETTINGS_PITCHRATEPID_ILIMIT]);
+
+	// Set the yaw rate PID constants
+	pid_configure(&pids[PID_RATE_YAW],
+	              settings.YawRatePID[STABILIZATIONSETTINGS_YAWRATEPID_KP] * yaw_scale,
+	              settings.YawRatePID[STABILIZATIONSETTINGS_YAWRATEPID_KI],
+	              settings.YawRatePID[STABILIZATIONSETTINGS_YAWRATEPID_KD] * yaw_scale,
+	              settings.YawRatePID[STABILIZATIONSETTINGS_YAWRATEPID_ILIMIT]);
+
+	// Set the roll attitude PI constants
+	pid_configure(&pids[PID_ATT_ROLL],
+	              settings.RollPI[STABILIZATIONSETTINGS_ROLLPI_KP],
+	              settings.RollPI[STABILIZATIONSETTINGS_ROLLPI_KI], 0,
+	              settings.RollPI[STABILIZATIONSETTINGS_ROLLPI_ILIMIT]);
+
+	// Set the pitch attitude PI constants
+	pid_configure(&pids[PID_ATT_PITCH],
+	              settings.PitchPI[STABILIZATIONSETTINGS_PITCHPI_KP],
+	              settings.PitchPI[STABILIZATIONSETTINGS_PITCHPI_KI], 0,
+	              settings.PitchPI[STABILIZATIONSETTINGS_PITCHPI_ILIMIT]);
+
+	// Set the yaw attitude PI constants
+	pid_configure(&pids[PID_ATT_YAW],
+	              settings.YawPI[STABILIZATIONSETTINGS_YAWPI_KP],
+	              settings.YawPI[STABILIZATIONSETTINGS_YAWPI_KI], 0,
+	              settings.YawPI[STABILIZATIONSETTINGS_YAWPI_ILIMIT]);
+
+	// Set the vbar roll settings
+	pid_configure(&pids[PID_VBAR_ROLL],
+	              settings.VbarRollPID[STABILIZATIONSETTINGS_VBARROLLPID_KP] * roll_scale,
+	              settings.VbarRollPID[STABILIZATIONSETTINGS_VBARROLLPID_KI],
+	              settings.VbarRollPID[STABILIZATIONSETTINGS_VBARROLLPID_KD] * roll_scale,
+	              0);
+
+	// Set the vbar pitch settings
+	pid_configure(&pids[PID_VBAR_PITCH],
+	              settings.VbarPitchPID[STABILIZATIONSETTINGS_VBARPITCHPID_KP] * pitch_scale,
+	              settings.VbarPitchPID[STABILIZATIONSETTINGS_VBARPITCHPID_KI],
+	              settings.VbarPitchPID[STABILIZATIONSETTINGS_VBARPITCHPID_KD] * pitch_scale,
+	              0);
+
+	// Set the vbar yaw settings
+	pid_configure(&pids[PID_VBAR_YAW],
+	              settings.VbarYawPID[STABILIZATIONSETTINGS_VBARYAWPID_KP] * yaw_scale,
+	              settings.VbarYawPID[STABILIZATIONSETTINGS_VBARYAWPID_KI],
+	              settings.VbarYawPID[STABILIZATIONSETTINGS_VBARYAWPID_KD] * yaw_scale,
+	              0);
+
+	// Set the coordinated flight settings
+	pid_configure(&pids[PID_COORDINATED_FLIGHT_YAW],
+	              settings.CoordinatedFlightYawPI[STABILIZATIONSETTINGS_COORDINATEDFLIGHTYAWPI_KP],
+	              settings.CoordinatedFlightYawPI[STABILIZATIONSETTINGS_COORDINATEDFLIGHTYAWPI_KI],
+	              0, /* No derivative term */
+	              settings.CoordinatedFlightYawPI[STABILIZATIONSETTINGS_COORDINATEDFLIGHTYAWPI_ILIMIT]);
+
+	// Set the mwrate roll settings
+	pid_configure(&pids[PID_MWR_ROLL],
+	              mwrate_settings.RollRatePID[MWRATESETTINGS_ROLLRATEPID_KP] * roll_scale,
+	              mwrate_settings.RollRatePID[MWRATESETTINGS_ROLLRATEPID_KI],
+	              mwrate_settings.RollRatePID[MWRATESETTINGS_ROLLRATEPID_KD] * roll_scale,
+	              mwrate_settings.RollRatePID[MWRATESETTINGS_ROLLRATEPID_ILIMIT]);
+
+	// Set the mwrate pitch settings
+	pid_configure(&pids[PID_MWR_PITCH],
+	              mwrate_settings.PitchRatePID[MWRATESETTINGS_PITCHRATEPID_KP] * pitch_scale,
+	              mwrate_settings.PitchRatePID[MWRATESETTINGS_PITCHRATEPID_KI],
+	              mwrate_settings.PitchRatePID[MWRATESETTINGS_PITCHRATEPID_KD] * pitch_scale,
+	              mwrate_settings.PitchRatePID[MWRATESETTINGS_PITCHRATEPID_ILIMIT]);
+
+	// Set the mwrate yaw settings
+	pid_configure(&pids[PID_MWR_YAW],
+	              mwrate_settings.YawRatePID[MWRATESETTINGS_YAWRATEPID_KP] * yaw_scale,
+	              mwrate_settings.YawRatePID[MWRATESETTINGS_YAWRATEPID_KI],
+	              mwrate_settings.YawRatePID[MWRATESETTINGS_YAWRATEPID_KD] * yaw_scale,
+	              mwrate_settings.YawRatePID[MWRATESETTINGS_YAWRATEPID_ILIMIT]);
+
+	// Set the coordinated flight settings
+	pid_configure(&pids[PID_COORDINATED_FLIGHT_YAW],
+	              settings.CoordinatedFlightYawPI[STABILIZATIONSETTINGS_COORDINATEDFLIGHTYAWPI_KP],
+	              settings.CoordinatedFlightYawPI[STABILIZATIONSETTINGS_COORDINATEDFLIGHTYAWPI_KI],
+	              0, /* No derivative term */
+	              settings.CoordinatedFlightYawPI[STABILIZATIONSETTINGS_COORDINATEDFLIGHTYAWPI_ILIMIT]);
+
+	// Set up the derivative term
+	pid_configure_derivative(settings.DerivativeCutoff, settings.DerivativeGamma);
+
+}
+
+static void SettingsUpdatedCb(UAVObjEvent * ev, void *ctx, void *obj, int len)
+{
+	(void) ctx; (void) obj; (void) len;
+
+	if (ev == NULL || ev->obj == SubTrimSettingsHandle())
+	{
+		SubTrimSettingsData subTrimSettings;
+
+		SubTrimGet(&subTrim);
+		SubTrimSettingsGet(&subTrimSettings);
 
 		// Set the trim angles
-		trimAngles.Roll = trimAnglesSettings.Roll;
-		trimAngles.Pitch = trimAnglesSettings.Pitch;
+		subTrim.Roll = subTrimSettings.Roll;
+		subTrim.Pitch = subTrimSettings.Pitch;
 
-		TrimAnglesSet(&trimAngles);
+		SubTrimSet(&subTrim);
 	}
 
 	if (ev == NULL || ev->obj == StabilizationSettingsHandle())
 	{
 		StabilizationSettingsGet(&settings);
-		// Set the roll rate PID constants
-		pid_configure(&pids[PID_RATE_ROLL],
-		              settings.RollRatePID[STABILIZATIONSETTINGS_ROLLRATEPID_KP],
-		              settings.RollRatePID[STABILIZATIONSETTINGS_ROLLRATEPID_KI],
-		              settings.RollRatePID[STABILIZATIONSETTINGS_ROLLRATEPID_KD],
-		              settings.RollRatePID[STABILIZATIONSETTINGS_ROLLRATEPID_ILIMIT]);
 
-		// Set the pitch rate PID constants
-		pid_configure(&pids[PID_RATE_PITCH],
-		              settings.PitchRatePID[STABILIZATIONSETTINGS_PITCHRATEPID_KP],
-		              settings.PitchRatePID[STABILIZATIONSETTINGS_PITCHRATEPID_KI],
-		              settings.PitchRatePID[STABILIZATIONSETTINGS_PITCHRATEPID_KD],
-		              settings.PitchRatePID[STABILIZATIONSETTINGS_PITCHRATEPID_ILIMIT]);
-
-		// Set the yaw rate PID constants
-		pid_configure(&pids[PID_RATE_YAW],
-		              settings.YawRatePID[STABILIZATIONSETTINGS_YAWRATEPID_KP],
-		              settings.YawRatePID[STABILIZATIONSETTINGS_YAWRATEPID_KI],
-		              settings.YawRatePID[STABILIZATIONSETTINGS_YAWRATEPID_KD],
-		              settings.YawRatePID[STABILIZATIONSETTINGS_YAWRATEPID_ILIMIT]);
-
-		// Set the roll attitude PI constants
-		pid_configure(&pids[PID_ATT_ROLL],
-		              settings.RollPI[STABILIZATIONSETTINGS_ROLLPI_KP],
-		              settings.RollPI[STABILIZATIONSETTINGS_ROLLPI_KI], 0,
-		              settings.RollPI[STABILIZATIONSETTINGS_ROLLPI_ILIMIT]);
-
-		// Set the pitch attitude PI constants
-		pid_configure(&pids[PID_ATT_PITCH],
-		              settings.PitchPI[STABILIZATIONSETTINGS_PITCHPI_KP],
-		              settings.PitchPI[STABILIZATIONSETTINGS_PITCHPI_KI], 0,
-		              settings.PitchPI[STABILIZATIONSETTINGS_PITCHPI_ILIMIT]);
-
-		// Set the yaw attitude PI constants
-		pid_configure(&pids[PID_ATT_YAW],
-		              settings.YawPI[STABILIZATIONSETTINGS_YAWPI_KP],
-		              settings.YawPI[STABILIZATIONSETTINGS_YAWPI_KI], 0,
-		              settings.YawPI[STABILIZATIONSETTINGS_YAWPI_ILIMIT]);
-
-		// Set the vbar roll settings
-		pid_configure(&pids[PID_VBAR_ROLL],
-		              settings.VbarRollPID[STABILIZATIONSETTINGS_VBARROLLPID_KP],
-		              settings.VbarRollPID[STABILIZATIONSETTINGS_VBARROLLPID_KI],
-		              settings.VbarRollPID[STABILIZATIONSETTINGS_VBARROLLPID_KD],
-		              0);
-
-		// Set the vbar pitch settings
-		pid_configure(&pids[PID_VBAR_PITCH],
-		              settings.VbarPitchPID[STABILIZATIONSETTINGS_VBARPITCHPID_KP],
-		              settings.VbarPitchPID[STABILIZATIONSETTINGS_VBARPITCHPID_KI],
-		              settings.VbarPitchPID[STABILIZATIONSETTINGS_VBARPITCHPID_KD],
-		              0);
-
-		// Set the vbar yaw settings
-		pid_configure(&pids[PID_VBAR_YAW],
-		              settings.VbarYawPID[STABILIZATIONSETTINGS_VBARYAWPID_KP],
-		              settings.VbarYawPID[STABILIZATIONSETTINGS_VBARYAWPID_KI],
-		              settings.VbarYawPID[STABILIZATIONSETTINGS_VBARYAWPID_KD],
-		              0);
-
-		// Set the coordinated flight settings
-		pid_configure(&pids[PID_COORDINATED_FLIGHT_YAW],
-		              settings.CoordinatedFlightYawPI[STABILIZATIONSETTINGS_COORDINATEDFLIGHTYAWPI_KP],
-		              settings.CoordinatedFlightYawPI[STABILIZATIONSETTINGS_COORDINATEDFLIGHTYAWPI_KI],
-		              0, /* No derivative term */
-		              settings.CoordinatedFlightYawPI[STABILIZATIONSETTINGS_COORDINATEDFLIGHTYAWPI_ILIMIT]);
-
-		// Set up the derivative term
-		pid_configure_derivative(settings.DerivativeCutoff, settings.DerivativeGamma);
+		// Update the PID settings
+		float thrust;
+		StabilizationDesiredThrustGet(&thrust);
+		calculate_pids(thrust);
 
 		// Maximum deviation to accumulate for axis lock
 		max_axis_lock = settings.MaxAxisLock;
@@ -716,22 +1091,14 @@ static void SettingsUpdatedCb(UAVObjEvent * ev)
 		weak_leveling_kp = settings.WeakLevelingKp;
 		weak_leveling_max = settings.MaxWeakLevelingRate;
 
-		// Whether to zero the PID integrals while throttle is low
+		// Whether to zero the PID integrals while thrust is low
 		lowThrottleZeroIntegral = settings.LowThrottleZeroIntegral == STABILIZATIONSETTINGS_LOWTHROTTLEZEROINTEGRAL_TRUE;
 
-		// The dT has some jitter iteration to iteration that we don't want to
-		// make thie result unpredictable.  Still, it's nicer to specify the constant
-		// based on a time (in ms) rather than a fixed multiplier.  The error between
-		// update rates on OP (~300 Hz) and CC (~475 Hz) is negligible for this
-		// calculation
-		const float fakeDt = 0.0025f;
-		if(settings.GyroTau < 0.0001f)
-			gyro_alpha = 0;   // not trusting this to resolve to 0
-		else
-			gyro_alpha = expf(-fakeDt  / settings.GyroTau);
+		gyro_filter_updated = true;
+	}
 
-		// Compute time constant for vbar decay term based on a tau
-		vbar_decay = expf(-fakeDt / settings.VbarTau);
+	if (ev == NULL || ev->obj == MWRateSettingsHandle()) {
+		MWRateSettingsGet(&mwrate_settings);
 	}
 }
 
@@ -740,4 +1107,3 @@ static void SettingsUpdatedCb(UAVObjEvent * ev)
  * @}
  * @}
  */
-

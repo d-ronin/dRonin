@@ -40,7 +40,7 @@
 #include "cfg_vehicletypes/configgroundvehiclewidget.h"
 #include "cfg_vehicletypes/vehicleconfig.h"
 
-#include <QtGui/QWidget>
+#include <QWidget>
 #include <QList>
 #include <QItemDelegate>
 
@@ -83,8 +83,6 @@ private:
     QStringList mixerVectors;
 
     QGraphicsSvgItem *quad;
-    bool ffTuningInProgress;
-    bool ffTuningPhase;
     UAVObject::Metadata accInitialData;
     SystemSettings::AirframeTypeOptions frameType;
 
@@ -103,7 +101,6 @@ private slots:
     void toggleRudder2(int index);
     void switchAirframeType(int index);
 
-    void enableFFTest();
     void openHelp();
     void reverseMultirotorMotor();
 

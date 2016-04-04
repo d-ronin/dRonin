@@ -4,6 +4,7 @@
  * @file       setupwizard.cpp
  * @author     The OpenPilot Team, http://www.openpilot.org Copyright (C) 2012.
  * @author     Tau Labs, http://taulabs.org, Copyright (C) 2013
+ * @author     dRonin, http://dRonin.org/, Copyright (C) 2015
  * @see        The GNU Public License (GPL) Version 3
  *
  * @addtogroup GCSPlugins GCS Plugins
@@ -29,8 +30,8 @@
  */
 
 #include "setupwizard.h"
-#include "pages/startpage.h"
-#include "pages/endpage.h"
+#include "pages/tlstartpage.h"
+#include "pages/tlendpage.h"
 #include "pages/boardtype_unknown.h"
 #include "pages/controllerpage.h"
 #include "pages/vehiclepage.h"
@@ -50,15 +51,13 @@
 #include "extensionsystem/pluginmanager.h"
 #include "vehicleconfigurationhelper.h"
 #include "actuatorsettings.h"
-#include "pages/autoupdatepage.h"
-#include "uploader/uploadergadgetfactory.h"
 
 SetupWizard::SetupWizard(QWidget *parent) : QWizard(parent), VehicleConfigurationSource(),
     m_controllerType(NULL),
     m_vehicleType(VEHICLE_UNKNOWN), m_inputType(Core::IBoardType::INPUT_TYPE_UNKNOWN), m_escType(ESC_UNKNOWN),
     m_calibrationPerformed(false), m_restartNeeded(false), m_connectionManager(0)
 {
-    setWindowTitle(tr("Tau Labs Setup Wizard"));
+    setWindowTitle(tr("dRonin Setup Wizard"));
     setOption(QWizard::IndependentPages, false);
     for (quint16 i = 0; i < ActuatorSettings::CHANNELMAX_NUMELEM; i++) {
         m_actuatorSettings << actuatorChannelSettings();
@@ -73,23 +72,32 @@ int SetupWizard::nextId() const
 {
     switch (currentId()) {
     case PAGE_START:
-        if (canAutoUpdate()) {
-            return PAGE_UPDATE;
-        } else {
-            return PAGE_CONTROLLER;
-        }
-    case PAGE_UPDATE:
         return PAGE_CONTROLLER;
 
     case PAGE_CONTROLLER:
     {
-        Core::IBoardType* type = getControllerType();
-        if (type != NULL && type->isInputConfigurationSupported())
-            return PAGE_INPUT;
-        else if (type != NULL)
-            return PAGE_INPUT_NOT_SUPPORTED;
-        else
+        ExtensionSystem::PluginManager *pm = ExtensionSystem::PluginManager::instance();
+        Q_ASSERT(pm);
+        UAVObjectUtilManager *utilMngr = pm->getObject<UAVObjectUtilManager>();
+        Q_ASSERT(utilMngr);
+
+        const QString fwHash = utilMngr->getFirmwareHash();
+        const QString gcsHash = utilMngr->getGcsHash();
+        if (!fwHash.length() || fwHash != gcsHash) {
+            qobject_cast<BoardtypeUnknown *>(page(PAGE_BOARDTYPE_UNKNOWN))->setFailureType(BoardtypeUnknown::UNKNOWN_FIRMWARE);
             return PAGE_BOARDTYPE_UNKNOWN;
+        }
+
+        Core::IBoardType* type = getControllerType();
+        if (type == NULL) {
+            qobject_cast<BoardtypeUnknown *>(page(PAGE_BOARDTYPE_UNKNOWN))->setFailureType(BoardtypeUnknown::UNKNOWN_BOARD);
+            return PAGE_BOARDTYPE_UNKNOWN;
+        }
+
+        if (type->isInputConfigurationSupported())
+            return PAGE_INPUT;
+        else
+            return PAGE_INPUT_NOT_SUPPORTED;
     }
     case PAGE_VEHICLES:
     {
@@ -238,14 +246,8 @@ QString SetupWizard::getSummaryText()
     case Core::IBoardType::INPUT_TYPE_SBUS:
         summary.append(tr("Futaba S.Bus"));
         break;
-    case Core::IBoardType::INPUT_TYPE_DSM2:
-        summary.append(tr("Spektrum satellite (DSM2)"));
-        break;
-    case Core::IBoardType::INPUT_TYPE_DSMX10BIT:
-        summary.append(tr("Spektrum satellite (DSMX10BIT)"));
-        break;
-    case Core::IBoardType::INPUT_TYPE_DSMX11BIT:
-        summary.append(tr("Spektrum satellite (DSMX11BIT)"));
+    case Core::IBoardType::INPUT_TYPE_DSM:
+        summary.append(tr("Spektrum satellite (DSM)"));
         break;
     case Core::IBoardType::INPUT_TYPE_HOTTSUMD:
         summary.append(tr("Graupner HoTT (SUMD)"));
@@ -266,6 +268,9 @@ QString SetupWizard::getSummaryText()
     case ESC_RAPID:
         summary.append(tr("Rapid ESC (400 Hz)"));
         break;
+    case ESC_ONESHOT:
+        summary.append(tr("OneShot (SyncPwm + 125-250us)"));
+        break;
     default:
         summary.append(tr("Unknown"));
     }
@@ -280,8 +285,7 @@ QString SetupWizard::getSummaryText()
 
 void SetupWizard::createPages()
 {
-    setPage(PAGE_START, new StartPage(this));
-    setPage(PAGE_UPDATE, new AutoUpdatePage(this));
+    setPage(PAGE_START, new TLStartPage(this));
     setPage(PAGE_CONTROLLER, new ControllerPage(this));
     setPage(PAGE_VEHICLES, new VehiclePage(this));
     setPage(PAGE_MULTI, new MultiPage(this));
@@ -298,7 +302,7 @@ void SetupWizard::createPages()
     setPage(PAGE_REBOOT, new RebootPage(this));
     setPage(PAGE_NOTYETIMPLEMENTED, new NotYetImplementedPage(this));
     setPage(PAGE_BOARDTYPE_UNKNOWN, new BoardtypeUnknown(this));
-    setPage(PAGE_END, new EndPage(this));
+    setPage(PAGE_END, new TLEndPage(this));
 
     setStartId(PAGE_START);
 
@@ -332,20 +336,3 @@ bool SetupWizard::saveHardwareSettings() const
     return helper.setupHardwareSettings();
 }
 
-/**
- * @brief SetupWizard::canAutoUpdate determine if build can autoupdated
- *
- * This checks for the firmware resource file being existing to see if
- * auto-updating is even an option.
- *
- * @return true if auto-update can be attempted
- */
-bool SetupWizard::canAutoUpdate() const
-{
-    ExtensionSystem::PluginManager *pm = ExtensionSystem::PluginManager::instance();
-
-    Q_ASSERT(pm);
-    UploaderGadgetFactory *uploader    = pm->getObject<UploaderGadgetFactory>();
-    Q_ASSERT(uploader);
-    return uploader->isAutoUpdateCapable();
-}

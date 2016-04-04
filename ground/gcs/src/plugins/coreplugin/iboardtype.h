@@ -2,7 +2,8 @@
  ******************************************************************************
  *
  * @file       iboardtype.h
- * @author     Tau Labs, http://taulabs.org, Copyright (C) 2012-2013
+ * @author     dRonin, http://dRonin.org/, Copyright (C) 2016
+ * @author     Tau Labs, http://taulabs.org, Copyright (C) 2012-2014
  *             Parts by Nokia Corporation (qt-info@nokia.com) Copyright (C) 2009.
  * @addtogroup GCSPlugins GCS Plugins
  * @{
@@ -24,6 +25,10 @@
  * You should have received a copy of the GNU General Public License along
  * with this program; if not, write to the Free Software Foundation, Inc.,
  * 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
+ *
+ * Additional note on redistribution: The copyright and license notices above
+ * must be maintained in each individual source file that is a derivative work
+ * of this source file; otherwise redistribution is prohibited.
  */
 #ifndef IBOARDTYPE_H
 #define IBOARDTYPE_H
@@ -60,17 +65,17 @@ public:
         QString serialNumber;
         QString manufacturer;
         QString product;
-        int UsagePage;
-        int Usage;
-        int vendorID;
-        int productID;
+        int UsagePage = 0;
+        int Usage = 0;
+        int vendorID = 0;
+        int productID = 0;
         // the convention for DFU mode is to change the
         // Lower byte of bcdDevice depending on whether
         // the board is in Bootloader mode or running mode.
         // We provide the relevant values there:
-        int bootloaderMode;
-        int runningMode;
-        int bcdDevice; // Note: not that useful, the two values above
+        int bootloaderMode = 0;
+        int runningMode = 0;
+        int bcdDevice = 0; // Note: not that useful, the two values above
                        // cater for almost the same into
     };
 
@@ -88,7 +93,9 @@ public:
     //! Types of capabilities boards can support
     enum BoardCapabilities {BOARD_CAPABILITIES_GYROS, BOARD_CAPABILITIES_ACCELS,
                             BOARD_CAPABILITIES_MAGS, BOARD_CAPABILITIES_BAROS,
-                            BOARD_CAPABILITIES_RADIO};
+                            BOARD_CAPABILITIES_RADIO, BOARD_CAPABILITIES_OSD,
+                            BOARD_CAPABILITIES_UPGRADEABLE,
+                            BOARD_DISABILITY_REQUIRESUPGRADER };
     /**
      * @brief Query capabilities of the board.
      * @return true if board supports the capability that is requested (from BoardCapabilities)
@@ -151,6 +158,9 @@ public:
     //! Get the board type number
     int getBoardType() { return boardType; }
 
+    //! Return a custom configuration widget, if one is provided
+    virtual QWidget *getBoardConfiguration(QWidget * /*parent*/ = 0, bool /*connected*/ = true) { return NULL; }
+
     /***** methods related to configuring specific boards *****/
 
     //! Types of input to configure for the default port
@@ -158,32 +168,33 @@ public:
         INPUT_TYPE_DISABLED,
         INPUT_TYPE_PWM,
         INPUT_TYPE_PPM,
-        INPUT_TYPE_DSM2,
-        INPUT_TYPE_DSMX10BIT,
-        INPUT_TYPE_DSMX11BIT,
+        INPUT_TYPE_DSM,
         INPUT_TYPE_SBUS,
+        INPUT_TYPE_SBUSNONINVERTED,
         INPUT_TYPE_HOTTSUMD,
         INPUT_TYPE_HOTTSUMH,
-        INPUT_TYPE_UNKNOWN
+        INPUT_TYPE_UNKNOWN,
+        INPUT_TYPE_ANY
     };
 
+    //! Returns the minimum bootloader version required
+    virtual int minBootLoaderVersion() { return 0; }
+
     //! Determine if this board supports configuring the receiver
-    virtual bool isInputConfigurationSupported() { return false; }
+    virtual bool isInputConfigurationSupported(enum InputType type = INPUT_TYPE_ANY) { Q_UNUSED(type); return false; }
 
     /**
      * @brief Configure the board to use an receiver input type on a port number
      * @param type the type of receiver to use
-     * @param port_num which input port to configure (board specific numbering)
      * @return true if successfully configured or false otherwise
      */
-    virtual bool setInputOnPort(enum InputType /*type*/, int port_num = 0) { Q_UNUSED(port_num); return false; }
+    virtual bool setInputType(enum InputType /*type*/) { return false; }
 
     /**
-     * @brief getInputOnPort get the current input type
-     * @param port_num which input port to query (board specific numbering)
+     * @brief getInputType get the current input type
      * @return the currently selected input type
      */
-    virtual enum InputType getInputOnPort(int port_num = 0) { Q_UNUSED(port_num); return INPUT_TYPE_UNKNOWN; }
+    virtual enum InputType getInputType() { return INPUT_TYPE_UNKNOWN; }
 
     /**
      * @brief getConnectionDiagram get the connection diagram for this board
@@ -197,6 +208,37 @@ public:
      *
      */
     virtual int queryMaxGyroRate() { return -1; }
+
+    /**
+     * Get the RFM22b device ID this modem
+     * @return RFM22B device ID or 0 if not supported
+     */
+    virtual quint32 getRfmID() { return 0; }
+
+    /**
+     * Set the coordinator ID. If set to zero this device will
+     * be a coordinator.
+     * @param id - the ID of the coordinator to bind to, or 0 to make this
+     *     board the coordinator
+     * @param baud_rate - the maximum baud rate to use, or 0 to leave unchanged
+     * @param rf_power - the maximum radio power to use or -1 to leave unchanged
+     * @return true if successful or false if not
+     */
+    enum LinkMode { LINK_TELEM, LINK_TELEM_PPM, LINK_PPM };
+
+    virtual bool bindRadio(quint32 /*id*/, quint32 /*baud_rate*/, float /*rf_power*/,
+                           Core::IBoardType::LinkMode /*linkMode*/, quint8 /*min*/,
+                           quint8 /*max*/) { return false; }
+
+    /**
+     * Check whether the board has USB
+     * @return true if usb, false if not
+     */
+    virtual bool isUSBSupported() { return true; }
+
+    static QString getBoardNameFromID(int id);
+
+    virtual QStringList getAdcNames() { return QStringList(); }
 
 signals:
 

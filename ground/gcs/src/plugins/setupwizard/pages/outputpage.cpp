@@ -43,12 +43,30 @@ OutputPage::~OutputPage()
     delete ui;
 }
 
+//! Set outputs from 125us to 250us
+void OutputPage::setOneshotTimings()
+{
+    QList<actuatorChannelSettings> allSettings = getWizard()->getActuatorSettings();
+    for (int i = 0; i < allSettings.count(); i++) {
+        actuatorChannelSettings settings = allSettings[i];
+        settings.channelMin     = 125;
+        settings.channelNeutral = 125;
+        settings.channelMax     = 250;
+        allSettings[i] = settings;
+    }
+    getWizard()->setActuatorSettings(allSettings);
+}
+
 bool OutputPage::validatePage()
 {
-    if (ui->rapidESCButton->isChecked()) {
-        getWizard()->setESCType(SetupWizard::ESC_RAPID);
+    if (ui->oneShotButton->isChecked()) {
+        getWizard()->setESCType(SetupWizard::ESC_ONESHOT);
+
+        // This is safe to do even if they are wrong. Normal ESCS
+        // ignore oneshot.
+        setOneshotTimings();
     } else {
-        getWizard()->setESCType(SetupWizard::ESC_LEGACY);
+        getWizard()->setESCType(SetupWizard::ESC_RAPID);
     }
 
     return true;

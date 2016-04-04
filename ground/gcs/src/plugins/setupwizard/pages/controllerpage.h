@@ -54,7 +54,6 @@ public:
 private:
     Ui::ControllerPage *ui;
     bool anyControllerConnected();
-    Core::IBoardType* getControllerType() const;
     void setupDeviceList();
     void setControllerType(Core::IBoardType *);
     Core::ConnectionManager *m_connectionManager;

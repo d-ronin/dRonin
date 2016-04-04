@@ -2,6 +2,7 @@
  ******************************************************************************
  *
  * @file       coreimpl.cpp
+ * @author     dRonin, http://dRonin.org/, Copyright (C) 2015
  * @author     The OpenPilot Team, http://www.openpilot.org Copyright (C) 2010.
  *             Parts by Nokia Corporation (qt-info@nokia.com) Copyright (C) 2009.
  * @addtogroup GCSPlugins GCS Plugins
@@ -107,11 +108,6 @@ UAVGadgetInstanceManager *CoreImpl::uavGadgetInstanceManager() const
     return m_mainwindow->uavGadgetInstanceManager();
 }
 
-VariableManager *CoreImpl::variableManager() const
-{
-    return m_mainwindow->variableManager();
-}
-
 ThreadManager *CoreImpl::threadManager() const
 {
     return m_mainwindow->threadManager();
@@ -122,25 +118,15 @@ ModeManager *CoreImpl::modeManager() const
     return m_mainwindow->modeManager();
 }
 
-MimeDatabase *CoreImpl::mimeDatabase() const
-{
-    return m_mainwindow->mimeDatabase();
-}
-
 QSettings *CoreImpl::settings(QSettings::Scope scope) const
 {
     return m_mainwindow->settings(scope);
 }
 
-SettingsDatabase *CoreImpl::settingsDatabase() const
-{
-    return m_mainwindow->settingsDatabase();
-}
-
 #ifdef Q_OS_MAC
 #  define SHARE_PATH "/../Resources"
 #else
-#  define SHARE_PATH "/../share/taulabs"
+#  define SHARE_PATH "/../share"
 #endif
 
 QString CoreImpl::resourcePath() const

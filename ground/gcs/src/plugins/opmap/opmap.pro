@@ -1,7 +1,7 @@
 QT += xml
 TEMPLATE = lib
 TARGET = OPMapGadget
-include(../../taulabsgcsplugin.pri)
+include(../../gcsplugin.pri)
 include(../../plugins/coreplugin/coreplugin.pri)
 include(../../libs/tlmapcontrol/tlmapcontrol.pri)
 include(../../plugins/uavobjects/uavobjects.pri)
@@ -32,7 +32,8 @@ SOURCES += opmapplugin.cpp \
     modelmapproxy.cpp \
     homeeditor.cpp
 
-OTHER_FILES += OPMapGadget.pluginspec
+OTHER_FILES += OPMapGadget.pluginspec \
+    OPMapGadget.json
 
 FORMS += opmapgadgetoptionspage.ui \
     opmap_widget.ui \

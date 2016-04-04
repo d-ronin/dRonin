@@ -18,72 +18,30 @@
 #define PFDQMLGADGETWIDGET_H_
 
 #include "pfdqmlgadgetconfiguration.h"
-#include <QtDeclarative/qdeclarativeview.h>
+#include <QtQuick/QQuickView>
 
 class UAVObjectManager;
 
-class PfdQmlGadgetWidget : public QDeclarativeView
+class PfdQmlGadgetWidget : public QQuickView
 {
     Q_OBJECT
-    Q_PROPERTY(QString earthFile READ earthFile WRITE setEarthFile NOTIFY earthFileChanged)
-    Q_PROPERTY(bool terrainEnabled READ terrainEnabled WRITE setTerrainEnabled NOTIFY terrainEnabledChanged)
-
-    Q_PROPERTY(bool actualPositionUsed READ actualPositionUsed WRITE setActualPositionUsed NOTIFY actualPositionUsedChanged)
-
-    //pre-defined fallback position
-    Q_PROPERTY(double latitude READ latitude WRITE setLatitude NOTIFY latitudeChanged)
-    Q_PROPERTY(double longitude READ longitude WRITE setLongitude NOTIFY longitudeChanged)
-    Q_PROPERTY(double altitude READ altitude WRITE setAltitude NOTIFY altitudeChanged)
 
 public:
-    PfdQmlGadgetWidget(QWidget *parent = 0);
+    PfdQmlGadgetWidget(QWindow *parent = 0);
    ~PfdQmlGadgetWidget();
     void setQmlFile(QString fn);
 
-    QString earthFile() const { return m_earthFile; }
-    bool terrainEnabled() const { return m_terrainEnabled && m_openGLEnabled; }
-
-    bool actualPositionUsed() const { return m_actualPositionUsed; }
-    double latitude() const { return m_latitude; }
-    double longitude() const { return m_longitude; }
-    double altitude() const { return m_altitude; }
-
 public slots:
-    void setEarthFile(QString arg);
-    void setTerrainEnabled(bool arg);
-    void setOpenGLEnabled(bool arg);
-
-    void setLatitude(double arg);
-    void setLongitude(double arg);
-    void setAltitude(double arg);
-
-    void setActualPositionUsed(bool arg);
     void setSettingsMap(const QVariantMap &settings);
 
-signals:
-    void earthFileChanged(QString arg);
-    void terrainEnabledChanged(bool arg);
-
-    void actualPositionUsedChanged(bool arg);
-    void latitudeChanged(double arg);
-    void longitudeChanged(double arg);
-    void altitudeChanged(double arg);
+protected:
+    void mouseReleaseEvent(QMouseEvent *event);
 
 private:
     QStringList objectsToExport;
     QString m_qmlFileName;
-    QString m_earthFile;
-    bool m_openGLEnabled;
-    bool m_terrainEnabled;
-
-    bool m_actualPositionUsed;
-    double m_latitude;
-    double m_longitude;
-    double m_altitude;
 
     UAVObjectManager *m_objManager;
-    void hideEvent(QHideEvent *event);
-    void showEvent(QShowEvent *event);
     void exportUAVOInstance(const QString &objectName, int instId);
     void resetUAVOExport(const QString &objectName, int instId);
 };

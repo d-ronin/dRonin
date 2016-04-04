@@ -6,6 +6,7 @@
  * @{
  *
  * @file       txpid.c
+ * @author     dRonin, http://dronin.org Copyright (C) 2015-2016
  * @author     The OpenPilot Team, http://www.openpilot.org Copyright (C) 2011.
  * @brief      Optional module to tune PID settings using R/C transmitter.
  *
@@ -26,6 +27,10 @@
  * You should have received a copy of the GNU General Public License along
  * with this program; if not, write to the Free Software Foundation, Inc.,
  * 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
+ *
+ * Additional note on redistribution: The copyright and license notices above
+ * must be maintained in each individual source file that is a derivative work
+ * of this source file; otherwise redistribution is prohibited.
  */
 
 /**
@@ -48,6 +53,10 @@
 #include "accessorydesired.h"
 #include "manualcontrolcommand.h"
 #include "stabilizationsettings.h"
+#ifndef SMALLF1
+#include "vtolpathfollowersettings.h"
+#endif
+
 #include "flightstatus.h"
 #include "modulesettings.h"
 
@@ -65,12 +74,24 @@
 #endif
 
 // Private types
+struct txpid_struct {
+	TxPIDSettingsData inst;
+	StabilizationSettingsData stab;
+	AccessoryDesiredData accessory;
+#ifndef SMALLF1
+	VtolPathFollowerSettingsData vtolPathFollowerSettingsData;
+#endif
+#if (TELEMETRY_UPDATE_PERIOD_MS != 0)
+	UAVObjMetadata metadata;
+#endif
+};
 
 // Private variables
+static struct txpid_struct *txpid_data;
 
 // Private functions
-static void updatePIDs(UAVObjEvent* ev);
-static uint8_t update(float *var, float val);
+static void updatePIDs(UAVObjEvent* ev, void *ctx, void *obj, int len);
+static bool update(float *var, float val);
 static float scale(float val, float inMin, float inMax, float outMin, float outMax);
 
 /**
@@ -79,7 +100,7 @@ static float scale(float val, float inMin, float inMax, float outMin, float outM
  */
 int32_t TxPIDInitialize(void)
 {
-	bool module_enabled;
+	bool module_enabled = false;
 
 #ifdef MODULE_TxPID_BUILTIN
 	module_enabled = true;
@@ -88,245 +109,307 @@ int32_t TxPIDInitialize(void)
 	ModuleSettingsAdminStateGet(module_state);
 	if (module_state[MODULESETTINGS_ADMINSTATE_TXPID] == MODULESETTINGS_ADMINSTATE_ENABLED) {
 		module_enabled = true;
-	} else {
-		module_enabled = false;
 	}
 #endif
 
-	if (module_enabled) {
-
-		TxPIDSettingsInitialize();
-		AccessoryDesiredInitialize();
-
-		UAVObjEvent ev = {
-			.obj = AccessoryDesiredHandle(),
-			.instId = 0,
-			.event = 0,
-		};
-		EventPeriodicCallbackCreate(&ev, updatePIDs, MS2TICKS(SAMPLE_PERIOD_MS));
-
-#if (TELEMETRY_UPDATE_PERIOD_MS != 0)
-		// Change StabilizationSettings update rate from OnChange to periodic
-		// to prevent telemetry link flooding with frequent updates in case of
-		// control channel jitter.
-		// Warning: saving to flash with this code active will change the
-		// StabilizationSettings update rate permanently. Use Metadata via
-		// browser to reset to defaults (telemetryAcked=true, OnChange).
-		UAVObjMetadata metadata;
-		StabilizationSettingsInitialize();
-		StabilizationSettingsGetMetadata(&metadata);
-		metadata.telemetryAcked = 0;
-		metadata.telemetryUpdateMode = UPDATEMODE_PERIODIC;
-		metadata.telemetryUpdatePeriod = TELEMETRY_UPDATE_PERIOD_MS;
-		StabilizationSettingsSetMetadata(&metadata);
+#ifndef SMALLF1
+	TxPIDSettingsInitialize();
 #endif
 
-		return 0;
+	if (module_enabled) {
+		txpid_data = PIOS_malloc(sizeof(*txpid_data));
+
+		if (txpid_data != NULL) {
+			memset(txpid_data, 0x00, sizeof(*txpid_data));
+
+			TxPIDSettingsInitialize();
+			AccessoryDesiredInitialize();
+
+			return 0;
+		}
 	}
 
 	return -1;
 }
 
-MODULE_INITCALL(TxPIDInitialize, NULL)
+/**
+ * Module start routine automatically called after initialization routine
+ * @return 0 when was successful
+ */
+static int32_t TxPIDStart(void)
+{
+	if (txpid_data == NULL) {
+		return -1;
+	}
+
+	UAVObjEvent ev = {
+			.obj = AccessoryDesiredHandle(),
+			.instId = 0,
+			.event = 0,
+		};
+		EventPeriodicCallbackCreate(&ev, updatePIDs, SAMPLE_PERIOD_MS);
+
+#if (TELEMETRY_UPDATE_PERIOD_MS != 0)
+	// Change StabilizationSettings update rate from OnChange to periodic
+	// to prevent telemetry link flooding with frequent updates in case of
+	// control channel jitter.
+	// Warning: saving to flash with this code active will change the
+	// StabilizationSettings update rate permanently. Use Metadata via
+	// browser to reset to defaults (telemetryAcked=true, OnChange).
+	StabilizationSettingsInitialize();
+	StabilizationSettingsGetMetadata(&txpid_data->metadata);
+	txpid_data->metadata.telemetryAcked = 0;
+	txpid_data->metadata.telemetryUpdateMode = UPDATEMODE_PERIODIC;
+	txpid_data->metadata.telemetryUpdatePeriod = TELEMETRY_UPDATE_PERIOD_MS;
+	StabilizationSettingsSetMetadata(&txpid_data->metadata);
+#endif
+
+	return 0;
+}
+
+MODULE_INITCALL(TxPIDInitialize, TxPIDStart);
 
 /**
  * Update PIDs callback function
  */
-static void updatePIDs(UAVObjEvent* ev)
+static void updatePIDs(UAVObjEvent* ev, void *ctx, void *obj, int len)
 {
+	(void) ev; (void) ctx; (void) obj; (void) len;
+
 	if (ev->obj != AccessoryDesiredHandle())
 		return;
 
-	TxPIDSettingsData inst;
-	TxPIDSettingsGet(&inst);
+	TxPIDSettingsGet(&txpid_data->inst);
 
-	if (inst.UpdateMode == TXPIDSETTINGS_UPDATEMODE_NEVER)
+	if (txpid_data->inst.UpdateMode == TXPIDSETTINGS_UPDATEMODE_NEVER)
 		return;
 
 	uint8_t armed;
 	FlightStatusArmedGet(&armed);
-	if ((inst.UpdateMode == TXPIDSETTINGS_UPDATEMODE_WHENARMED) &&
+	if ((txpid_data->inst.UpdateMode == TXPIDSETTINGS_UPDATEMODE_WHENARMED) &&
 			(armed == FLIGHTSTATUS_ARMED_DISARMED))
 		return;
 
-	StabilizationSettingsData stab;
-	StabilizationSettingsGet(&stab);
-	AccessoryDesiredData accessory;
+	StabilizationSettingsGet(&txpid_data->stab);
 
-	uint8_t needsUpdate = 0;
+#ifndef SMALLF1
+	// Check to make sure the settings UAVObject has been instantiated
+	if (VtolPathFollowerSettingsHandle()) {
+		VtolPathFollowerSettingsGet(&txpid_data->vtolPathFollowerSettingsData);
+	}
+
+	bool vtolPathFollowerSettingsNeedsUpdate = false;
+#endif
+
+	bool stabilizationSettingsNeedsUpdate = false;
 
 	// Loop through every enabled instance
 	for (uint8_t i = 0; i < TXPIDSETTINGS_PIDS_NUMELEM; i++) {
-		if (inst.PIDs[i] != TXPIDSETTINGS_PIDS_DISABLED) {
+		if (txpid_data->inst.PIDs[i] != TXPIDSETTINGS_PIDS_DISABLED) {
 
 			float value;
-			if (inst.Inputs[i] == TXPIDSETTINGS_INPUTS_THROTTLE) {
+			if (txpid_data->inst.Inputs[i] == TXPIDSETTINGS_INPUTS_THROTTLE) {
 				ManualControlCommandThrottleGet(&value);
 				value = scale(value,
-						inst.ThrottleRange[TXPIDSETTINGS_THROTTLERANGE_MIN],
-						inst.ThrottleRange[TXPIDSETTINGS_THROTTLERANGE_MAX],
-						inst.MinPID[i], inst.MaxPID[i]);
-			} else if (AccessoryDesiredInstGet(inst.Inputs[i] - TXPIDSETTINGS_INPUTS_ACCESSORY0, &accessory) == 0) {
-				value = scale(accessory.AccessoryVal, -1.0, 1.0, inst.MinPID[i], inst.MaxPID[i]);
+						txpid_data->inst.ThrottleRange[TXPIDSETTINGS_THROTTLERANGE_MIN],
+						txpid_data->inst.ThrottleRange[TXPIDSETTINGS_THROTTLERANGE_MAX],
+						txpid_data->inst.MinPID[i], txpid_data->inst.MaxPID[i]);
+			} else if (AccessoryDesiredInstGet(txpid_data->inst.Inputs[i] - TXPIDSETTINGS_INPUTS_ACCESSORY0, &txpid_data->accessory) == 0) {
+				value = scale(txpid_data->accessory.AccessoryVal, -1.0, 1.0, txpid_data->inst.MinPID[i], txpid_data->inst.MaxPID[i]);
 			} else {
 				continue;
 			}
 
-			switch (inst.PIDs[i]) {
+			switch (txpid_data->inst.PIDs[i]) {
 			case TXPIDSETTINGS_PIDS_ROLLRATEKP:
-				needsUpdate |= update(&stab.RollRatePID[STABILIZATIONSETTINGS_ROLLRATEPID_KP], value);
+				stabilizationSettingsNeedsUpdate |= update(&txpid_data->stab.RollRatePID[STABILIZATIONSETTINGS_ROLLRATEPID_KP], value);
 				break;
 			case TXPIDSETTINGS_PIDS_ROLLRATEKI:
-				needsUpdate |= update(&stab.RollRatePID[STABILIZATIONSETTINGS_ROLLRATEPID_KI], value);
+				stabilizationSettingsNeedsUpdate |= update(&txpid_data->stab.RollRatePID[STABILIZATIONSETTINGS_ROLLRATEPID_KI], value);
 				break;
 			case TXPIDSETTINGS_PIDS_ROLLRATEKD:
-				needsUpdate |= update(&stab.RollRatePID[STABILIZATIONSETTINGS_ROLLRATEPID_KD], value);
+				stabilizationSettingsNeedsUpdate |= update(&txpid_data->stab.RollRatePID[STABILIZATIONSETTINGS_ROLLRATEPID_KD], value);
 				break;
 			case TXPIDSETTINGS_PIDS_ROLLRATEILIMIT:
-				needsUpdate |= update(&stab.RollRatePID[STABILIZATIONSETTINGS_ROLLRATEPID_ILIMIT], value);
+				stabilizationSettingsNeedsUpdate |= update(&txpid_data->stab.RollRatePID[STABILIZATIONSETTINGS_ROLLRATEPID_ILIMIT], value);
 				break;
 			case TXPIDSETTINGS_PIDS_ROLLATTITUDEKP:
-				needsUpdate |= update(&stab.RollPI[STABILIZATIONSETTINGS_ROLLPI_KP], value);
+				stabilizationSettingsNeedsUpdate |= update(&txpid_data->stab.RollPI[STABILIZATIONSETTINGS_ROLLPI_KP], value);
 				break;
 			case TXPIDSETTINGS_PIDS_ROLLATTITUDEKI:
-				needsUpdate |= update(&stab.RollPI[STABILIZATIONSETTINGS_ROLLPI_KI], value);
+				stabilizationSettingsNeedsUpdate |= update(&txpid_data->stab.RollPI[STABILIZATIONSETTINGS_ROLLPI_KI], value);
 				break;
 			case TXPIDSETTINGS_PIDS_ROLLATTITUDEILIMIT:
-				needsUpdate |= update(&stab.RollPI[STABILIZATIONSETTINGS_ROLLPI_ILIMIT], value);
+				stabilizationSettingsNeedsUpdate |= update(&txpid_data->stab.RollPI[STABILIZATIONSETTINGS_ROLLPI_ILIMIT], value);
 				break;
 			case TXPIDSETTINGS_PIDS_PITCHRATEKP:
-				needsUpdate |= update(&stab.PitchRatePID[STABILIZATIONSETTINGS_PITCHRATEPID_KP], value);
+				stabilizationSettingsNeedsUpdate |= update(&txpid_data->stab.PitchRatePID[STABILIZATIONSETTINGS_PITCHRATEPID_KP], value);
 				break;
 			case TXPIDSETTINGS_PIDS_PITCHRATEKI:
-				needsUpdate |= update(&stab.PitchRatePID[STABILIZATIONSETTINGS_PITCHRATEPID_KI], value);
+				stabilizationSettingsNeedsUpdate |= update(&txpid_data->stab.PitchRatePID[STABILIZATIONSETTINGS_PITCHRATEPID_KI], value);
 				break;
 			case TXPIDSETTINGS_PIDS_PITCHRATEKD:
-				needsUpdate |= update(&stab.PitchRatePID[STABILIZATIONSETTINGS_PITCHRATEPID_KD], value);
+				stabilizationSettingsNeedsUpdate |= update(&txpid_data->stab.PitchRatePID[STABILIZATIONSETTINGS_PITCHRATEPID_KD], value);
 				break;
 			case TXPIDSETTINGS_PIDS_PITCHRATEILIMIT:
-				needsUpdate |= update(&stab.PitchRatePID[STABILIZATIONSETTINGS_PITCHRATEPID_ILIMIT], value);
+				stabilizationSettingsNeedsUpdate |= update(&txpid_data->stab.PitchRatePID[STABILIZATIONSETTINGS_PITCHRATEPID_ILIMIT], value);
 				break;
 			case TXPIDSETTINGS_PIDS_PITCHATTITUDEKP:
-				needsUpdate |= update(&stab.PitchPI[STABILIZATIONSETTINGS_PITCHPI_KP], value);
+				stabilizationSettingsNeedsUpdate |= update(&txpid_data->stab.PitchPI[STABILIZATIONSETTINGS_PITCHPI_KP], value);
 				break;
 			case TXPIDSETTINGS_PIDS_PITCHATTITUDEKI:
-				needsUpdate |= update(&stab.PitchPI[STABILIZATIONSETTINGS_PITCHPI_KI], value);
+				stabilizationSettingsNeedsUpdate |= update(&txpid_data->stab.PitchPI[STABILIZATIONSETTINGS_PITCHPI_KI], value);
 				break;
 			case TXPIDSETTINGS_PIDS_PITCHATTITUDEILIMIT:
-				needsUpdate |= update(&stab.PitchPI[STABILIZATIONSETTINGS_PITCHPI_ILIMIT], value);
+				stabilizationSettingsNeedsUpdate |= update(&txpid_data->stab.PitchPI[STABILIZATIONSETTINGS_PITCHPI_ILIMIT], value);
 				break;
 			case TXPIDSETTINGS_PIDS_ROLLPITCHRATEKP:
-				needsUpdate |= update(&stab.RollRatePID[STABILIZATIONSETTINGS_ROLLRATEPID_KP], value);
-				needsUpdate |= update(&stab.PitchRatePID[STABILIZATIONSETTINGS_PITCHRATEPID_KP], value);
+				stabilizationSettingsNeedsUpdate |= update(&txpid_data->stab.RollRatePID[STABILIZATIONSETTINGS_ROLLRATEPID_KP], value);
+				stabilizationSettingsNeedsUpdate |= update(&txpid_data->stab.PitchRatePID[STABILIZATIONSETTINGS_PITCHRATEPID_KP], value);
 				break;
 			case TXPIDSETTINGS_PIDS_ROLLPITCHRATEKI:
-				needsUpdate |= update(&stab.RollRatePID[STABILIZATIONSETTINGS_ROLLRATEPID_KI], value);
-				needsUpdate |= update(&stab.PitchRatePID[STABILIZATIONSETTINGS_PITCHRATEPID_KI], value);
+				stabilizationSettingsNeedsUpdate |= update(&txpid_data->stab.RollRatePID[STABILIZATIONSETTINGS_ROLLRATEPID_KI], value);
+				stabilizationSettingsNeedsUpdate |= update(&txpid_data->stab.PitchRatePID[STABILIZATIONSETTINGS_PITCHRATEPID_KI], value);
 				break;
 			case TXPIDSETTINGS_PIDS_ROLLPITCHRATEKD:
-				needsUpdate |= update(&stab.RollRatePID[STABILIZATIONSETTINGS_ROLLRATEPID_KD], value);
-				needsUpdate |= update(&stab.PitchRatePID[STABILIZATIONSETTINGS_PITCHRATEPID_KD], value);
+				stabilizationSettingsNeedsUpdate |= update(&txpid_data->stab.RollRatePID[STABILIZATIONSETTINGS_ROLLRATEPID_KD], value);
+				stabilizationSettingsNeedsUpdate |= update(&txpid_data->stab.PitchRatePID[STABILIZATIONSETTINGS_PITCHRATEPID_KD], value);
 				break;
 			case TXPIDSETTINGS_PIDS_ROLLPITCHRATEILIMIT:
-				needsUpdate |= update(&stab.RollRatePID[STABILIZATIONSETTINGS_ROLLRATEPID_ILIMIT], value);
-				needsUpdate |= update(&stab.PitchRatePID[STABILIZATIONSETTINGS_PITCHRATEPID_ILIMIT], value);
+				stabilizationSettingsNeedsUpdate |= update(&txpid_data->stab.RollRatePID[STABILIZATIONSETTINGS_ROLLRATEPID_ILIMIT], value);
+				stabilizationSettingsNeedsUpdate |= update(&txpid_data->stab.PitchRatePID[STABILIZATIONSETTINGS_PITCHRATEPID_ILIMIT], value);
 				break;
 			case TXPIDSETTINGS_PIDS_ROLLPITCHATTITUDEKP:
-				needsUpdate |= update(&stab.RollPI[STABILIZATIONSETTINGS_ROLLPI_KP], value);
-				needsUpdate |= update(&stab.PitchPI[STABILIZATIONSETTINGS_PITCHPI_KP], value);
+				stabilizationSettingsNeedsUpdate |= update(&txpid_data->stab.RollPI[STABILIZATIONSETTINGS_ROLLPI_KP], value);
+				stabilizationSettingsNeedsUpdate |= update(&txpid_data->stab.PitchPI[STABILIZATIONSETTINGS_PITCHPI_KP], value);
 				break;
 			case TXPIDSETTINGS_PIDS_ROLLPITCHATTITUDEKI:
-				needsUpdate |= update(&stab.RollPI[STABILIZATIONSETTINGS_ROLLPI_KI], value);
-				needsUpdate |= update(&stab.PitchPI[STABILIZATIONSETTINGS_PITCHPI_KI], value);
+				stabilizationSettingsNeedsUpdate |= update(&txpid_data->stab.RollPI[STABILIZATIONSETTINGS_ROLLPI_KI], value);
+				stabilizationSettingsNeedsUpdate |= update(&txpid_data->stab.PitchPI[STABILIZATIONSETTINGS_PITCHPI_KI], value);
 				break;
 			case TXPIDSETTINGS_PIDS_ROLLPITCHATTITUDEILIMIT:
-				needsUpdate |= update(&stab.RollPI[STABILIZATIONSETTINGS_ROLLPI_ILIMIT], value);
-				needsUpdate |= update(&stab.PitchPI[STABILIZATIONSETTINGS_PITCHPI_ILIMIT], value);
+				stabilizationSettingsNeedsUpdate |= update(&txpid_data->stab.RollPI[STABILIZATIONSETTINGS_ROLLPI_ILIMIT], value);
+				stabilizationSettingsNeedsUpdate |= update(&txpid_data->stab.PitchPI[STABILIZATIONSETTINGS_PITCHPI_ILIMIT], value);
 				break;
 			case TXPIDSETTINGS_PIDS_YAWRATEKP:
-				needsUpdate |= update(&stab.YawRatePID[STABILIZATIONSETTINGS_YAWRATEPID_KP], value);
+				stabilizationSettingsNeedsUpdate |= update(&txpid_data->stab.YawRatePID[STABILIZATIONSETTINGS_YAWRATEPID_KP], value);
 				break;
 			case TXPIDSETTINGS_PIDS_YAWRATEKI:
-				needsUpdate |= update(&stab.YawRatePID[STABILIZATIONSETTINGS_YAWRATEPID_KI], value);
+				stabilizationSettingsNeedsUpdate |= update(&txpid_data->stab.YawRatePID[STABILIZATIONSETTINGS_YAWRATEPID_KI], value);
 				break;
 			case TXPIDSETTINGS_PIDS_YAWRATEKD:
-				needsUpdate |= update(&stab.YawRatePID[STABILIZATIONSETTINGS_YAWRATEPID_KD], value);
+				stabilizationSettingsNeedsUpdate |= update(&txpid_data->stab.YawRatePID[STABILIZATIONSETTINGS_YAWRATEPID_KD], value);
 				break;
 			case TXPIDSETTINGS_PIDS_YAWRATEILIMIT:
-				needsUpdate |= update(&stab.YawRatePID[STABILIZATIONSETTINGS_YAWRATEPID_ILIMIT], value);
+				stabilizationSettingsNeedsUpdate |= update(&txpid_data->stab.YawRatePID[STABILIZATIONSETTINGS_YAWRATEPID_ILIMIT], value);
 				break;
 			case TXPIDSETTINGS_PIDS_YAWATTITUDEKP:
-				needsUpdate |= update(&stab.YawPI[STABILIZATIONSETTINGS_YAWPI_KP], value);
+				stabilizationSettingsNeedsUpdate |= update(&txpid_data->stab.YawPI[STABILIZATIONSETTINGS_YAWPI_KP], value);
 				break;
 			case TXPIDSETTINGS_PIDS_YAWATTITUDEKI:
-				needsUpdate |= update(&stab.YawPI[STABILIZATIONSETTINGS_YAWPI_KI], value);
+				stabilizationSettingsNeedsUpdate |= update(&txpid_data->stab.YawPI[STABILIZATIONSETTINGS_YAWPI_KI], value);
 				break;
 			case TXPIDSETTINGS_PIDS_YAWATTITUDEILIMIT:
-				needsUpdate |= update(&stab.YawPI[STABILIZATIONSETTINGS_YAWPI_ILIMIT], value);
+				stabilizationSettingsNeedsUpdate |= update(&txpid_data->stab.YawPI[STABILIZATIONSETTINGS_YAWPI_ILIMIT], value);
 				break;
-			case TXPIDSETTINGS_PIDS_GYROTAU:
-				needsUpdate |= update(&stab.GyroTau, value);
+			case TXPIDSETTINGS_PIDS_GYROCUTOFF:
+				stabilizationSettingsNeedsUpdate |= update(&txpid_data->stab.GyroCutoff, value);
 				break;
-			case TXPIDSETTINGS_PIDS_ROLLVBARSENSITIVITY: 
-				needsUpdate |= update(&stab.VbarSensitivity[STABILIZATIONSETTINGS_VBARSENSITIVITY_ROLL], value);
+			case TXPIDSETTINGS_PIDS_ROLLVBARSENSITIVITY:
+				stabilizationSettingsNeedsUpdate |= update(&txpid_data->stab.VbarSensitivity[STABILIZATIONSETTINGS_VBARSENSITIVITY_ROLL], value);
 				break;
 			case TXPIDSETTINGS_PIDS_PITCHVBARSENSITIVITY:
-				needsUpdate |= update(&stab.VbarSensitivity[STABILIZATIONSETTINGS_VBARSENSITIVITY_PITCH], value);
+				stabilizationSettingsNeedsUpdate |= update(&txpid_data->stab.VbarSensitivity[STABILIZATIONSETTINGS_VBARSENSITIVITY_PITCH], value);
 				break;
 			case TXPIDSETTINGS_PIDS_ROLLPITCHVBARSENSITIVITY:
-				needsUpdate |= update(&stab.VbarSensitivity[STABILIZATIONSETTINGS_VBARSENSITIVITY_ROLL], value);
-				needsUpdate |= update(&stab.VbarSensitivity[STABILIZATIONSETTINGS_VBARSENSITIVITY_PITCH], value);
+				stabilizationSettingsNeedsUpdate |= update(&txpid_data->stab.VbarSensitivity[STABILIZATIONSETTINGS_VBARSENSITIVITY_ROLL], value);
+				stabilizationSettingsNeedsUpdate |= update(&txpid_data->stab.VbarSensitivity[STABILIZATIONSETTINGS_VBARSENSITIVITY_PITCH], value);
 				break;
 			
 			case TXPIDSETTINGS_PIDS_YAWVBARSENSITIVITY:
-				needsUpdate |= update(&stab.VbarSensitivity[STABILIZATIONSETTINGS_VBARSENSITIVITY_YAW], value);
+				stabilizationSettingsNeedsUpdate |= update(&txpid_data->stab.VbarSensitivity[STABILIZATIONSETTINGS_VBARSENSITIVITY_YAW], value);
 				break;
 			case TXPIDSETTINGS_PIDS_ROLLVBARKP:
-				needsUpdate |= update(&stab.VbarRollPID[STABILIZATIONSETTINGS_VBARROLLPID_KP], value);
+				stabilizationSettingsNeedsUpdate |= update(&txpid_data->stab.VbarRollPID[STABILIZATIONSETTINGS_VBARROLLPID_KP], value);
 				break;
 			case TXPIDSETTINGS_PIDS_ROLLVBARKI:
-				needsUpdate |= update(&stab.VbarRollPID[STABILIZATIONSETTINGS_VBARROLLPID_KI], value);
+				stabilizationSettingsNeedsUpdate |= update(&txpid_data->stab.VbarRollPID[STABILIZATIONSETTINGS_VBARROLLPID_KI], value);
 				break;	
 			case TXPIDSETTINGS_PIDS_ROLLVBARKD:
-				needsUpdate |= update(&stab.VbarRollPID[STABILIZATIONSETTINGS_VBARROLLPID_KD], value);
+				stabilizationSettingsNeedsUpdate |= update(&txpid_data->stab.VbarRollPID[STABILIZATIONSETTINGS_VBARROLLPID_KD], value);
 				break;
 			case TXPIDSETTINGS_PIDS_PITCHVBARKP:
-				needsUpdate |= update(&stab.VbarPitchPID[STABILIZATIONSETTINGS_VBARPITCHPID_KP], value);
+				stabilizationSettingsNeedsUpdate |= update(&txpid_data->stab.VbarPitchPID[STABILIZATIONSETTINGS_VBARPITCHPID_KP], value);
 				break;
 			case TXPIDSETTINGS_PIDS_PITCHVBARKI:
-				needsUpdate |= update(&stab.VbarPitchPID[STABILIZATIONSETTINGS_VBARPITCHPID_KI], value);
+				stabilizationSettingsNeedsUpdate |= update(&txpid_data->stab.VbarPitchPID[STABILIZATIONSETTINGS_VBARPITCHPID_KI], value);
 				break;
 			case TXPIDSETTINGS_PIDS_PITCHVBARKD:
-				needsUpdate |= update(&stab.VbarPitchPID[STABILIZATIONSETTINGS_VBARPITCHPID_KD], value);
+				stabilizationSettingsNeedsUpdate |= update(&txpid_data->stab.VbarPitchPID[STABILIZATIONSETTINGS_VBARPITCHPID_KD], value);
 				break;
 			case TXPIDSETTINGS_PIDS_ROLLPITCHVBARKP:
-				needsUpdate |= update(&stab.VbarRollPID[STABILIZATIONSETTINGS_VBARROLLPID_KP], value);
-				needsUpdate |= update(&stab.VbarPitchPID[STABILIZATIONSETTINGS_VBARPITCHPID_KP], value);
+				stabilizationSettingsNeedsUpdate |= update(&txpid_data->stab.VbarRollPID[STABILIZATIONSETTINGS_VBARROLLPID_KP], value);
+				stabilizationSettingsNeedsUpdate |= update(&txpid_data->stab.VbarPitchPID[STABILIZATIONSETTINGS_VBARPITCHPID_KP], value);
 				break;
 			case TXPIDSETTINGS_PIDS_ROLLPITCHVBARKI:
-				needsUpdate |= update(&stab.VbarRollPID[STABILIZATIONSETTINGS_VBARROLLPID_KI], value);
-				needsUpdate |= update(&stab.VbarPitchPID[STABILIZATIONSETTINGS_VBARPITCHPID_KI], value);
+				stabilizationSettingsNeedsUpdate |= update(&txpid_data->stab.VbarRollPID[STABILIZATIONSETTINGS_VBARROLLPID_KI], value);
+				stabilizationSettingsNeedsUpdate |= update(&txpid_data->stab.VbarPitchPID[STABILIZATIONSETTINGS_VBARPITCHPID_KI], value);
 				break;
 			case TXPIDSETTINGS_PIDS_ROLLPITCHVBARKD:
-				needsUpdate |= update(&stab.VbarRollPID[STABILIZATIONSETTINGS_VBARROLLPID_KD], value);
-				needsUpdate |= update(&stab.VbarPitchPID[STABILIZATIONSETTINGS_VBARPITCHPID_KD], value);
+				stabilizationSettingsNeedsUpdate |= update(&txpid_data->stab.VbarRollPID[STABILIZATIONSETTINGS_VBARROLLPID_KD], value);
+				stabilizationSettingsNeedsUpdate |= update(&txpid_data->stab.VbarPitchPID[STABILIZATIONSETTINGS_VBARPITCHPID_KD], value);
 				break;
 			case TXPIDSETTINGS_PIDS_YAWVBARKP:
-				needsUpdate |= update(&stab.VbarYawPID[STABILIZATIONSETTINGS_VBARYAWPID_KP], value);
+				stabilizationSettingsNeedsUpdate |= update(&txpid_data->stab.VbarYawPID[STABILIZATIONSETTINGS_VBARYAWPID_KP], value);
 				break;
 			case TXPIDSETTINGS_PIDS_YAWVBARKI:
-				needsUpdate |= update(&stab.VbarYawPID[STABILIZATIONSETTINGS_VBARYAWPID_KI], value);
+				stabilizationSettingsNeedsUpdate |= update(&txpid_data->stab.VbarYawPID[STABILIZATIONSETTINGS_VBARYAWPID_KI], value);
 				break;
 			case TXPIDSETTINGS_PIDS_YAWVBARKD:
-				needsUpdate |= update(&stab.VbarYawPID[STABILIZATIONSETTINGS_VBARYAWPID_KD], value);
+				stabilizationSettingsNeedsUpdate |= update(&txpid_data->stab.VbarYawPID[STABILIZATIONSETTINGS_VBARYAWPID_KD], value);
 				break;
+#ifndef SMALLF1
+			case TXPIDSETTINGS_PIDS_HORIZONTALPOSKP:
+				vtolPathFollowerSettingsNeedsUpdate |= update(&txpid_data->vtolPathFollowerSettingsData.HorizontalPosPI[VTOLPATHFOLLOWERSETTINGS_HORIZONTALPOSPI_KP], value);
+				break;
+			case TXPIDSETTINGS_PIDS_HORIZONTALPOSKI:
+				vtolPathFollowerSettingsNeedsUpdate |= update(&txpid_data->vtolPathFollowerSettingsData.HorizontalPosPI[VTOLPATHFOLLOWERSETTINGS_HORIZONTALPOSPI_KI], value);
+				break;
+			case TXPIDSETTINGS_PIDS_HORIZONTALPOSILIMIT:
+				vtolPathFollowerSettingsNeedsUpdate |= update(&txpid_data->vtolPathFollowerSettingsData.HorizontalPosPI[VTOLPATHFOLLOWERSETTINGS_HORIZONTALPOSPI_ILIMIT], value);
+				break;
+			case TXPIDSETTINGS_PIDS_HORIZONTALVELKP:
+				vtolPathFollowerSettingsNeedsUpdate |= update(&txpid_data->vtolPathFollowerSettingsData.HorizontalVelPID[VTOLPATHFOLLOWERSETTINGS_HORIZONTALVELPID_KP], value);
+				break;
+			case TXPIDSETTINGS_PIDS_HORIZONTALVELKI:
+				vtolPathFollowerSettingsNeedsUpdate |= update(&txpid_data->vtolPathFollowerSettingsData.HorizontalVelPID[VTOLPATHFOLLOWERSETTINGS_HORIZONTALVELPID_KI], value);
+				break;
+			case TXPIDSETTINGS_PIDS_HORIZONTALVELKD:
+				vtolPathFollowerSettingsNeedsUpdate |= update(&txpid_data->vtolPathFollowerSettingsData.HorizontalVelPID[VTOLPATHFOLLOWERSETTINGS_HORIZONTALVELPID_KD], value);
+				break;
+#endif /* !SMALLF1 */
 			default:
-				PIOS_Assert(0);
+				// Previously this would assert.  But now the
+				// object may be missing and it's not worth a
+				// crash.
+				break;
 			}
 		}
 	}
-	if (needsUpdate)
-		StabilizationSettingsSet(&stab);
+
+	// Update UAVOs, if necessary
+	if (stabilizationSettingsNeedsUpdate) {
+		StabilizationSettingsSet(&txpid_data->stab);
+	}
+
+#ifndef SMALLF1
+	if (vtolPathFollowerSettingsNeedsUpdate) {
+		// Check to make sure the settings UAVObject has been instantiated
+		if (VtolPathFollowerSettingsHandle()) {
+			VtolPathFollowerSettingsSet(&txpid_data->vtolPathFollowerSettingsData);
+		}
+	}
+#endif
 }
 
 /**
@@ -363,13 +446,13 @@ static float scale(float val, float inMin, float inMax, float outMin, float outM
  * Updates var using val if needed.
  * \returns 1 if updated, 0 otherwise
  */
-static uint8_t update(float *var, float val)
+static bool update(float *var, float val)
 {
 	if (*var != val) {
 		*var = val;
-		return 1;
+		return true;
 	}
-	return 0;
+	return false;
 }
 
 /**

@@ -3,6 +3,7 @@
  *
  * @file       configgadgetwidget.h
  * @author     The OpenPilot Team, http://www.openpilot.org Copyright (C) 2010.
+ * @author     dRonin, http://dronin.org Copyright (C) 2015
  * @addtogroup GCSPlugins GCS Plugins
  * @{
  * @addtogroup ConfigPlugin Config Plugin
@@ -32,7 +33,7 @@
 #include "uavobjectmanager.h"
 #include "uavobject.h"
 #include "objectpersistence.h"
-#include <QtGui/QWidget>
+#include <QWidget>
 #include <QList>
 #include <QTextBrowser>
 #include "utils/pathutils.h"
@@ -44,36 +45,36 @@ class ConfigGadgetWidget: public QWidget
 {
     Q_OBJECT
     QTextBrowser* help;
+    int chunk;
 
 public:
     ConfigGadgetWidget(QWidget *parent = 0);
     ~ConfigGadgetWidget();
-    enum widgetTabs {hardware=0, aircraft, input, output, sensors, stabilization, modules, camerastabilization, txpid, oplink, autotune};
+    enum widgetTabs {hardware=0, aircraft, input, output, sensors, stabilization, modules, camerastabilization, txpid, autotune, osd};
     void startInputWizard();
+    void changeTab(int i);
 
 public slots:
     void onAutopilotConnect();
     void onAutopilotDisconnect();
     void tabAboutToChange(int i,bool *);
-    void updateOPLinkStatus(UAVObject *object);
-    void onOPLinkDisconnect();
+    void deferredLoader();
 
 signals:
     void autopilotConnected();
     void autopilotDisconnected();
-    void oplinkConnect();
-    void oplinkDisconnect();
 
 protected:
         void resizeEvent(QResizeEvent * event);
+        void paintEvent(QPaintEvent * event);
         MyTabbedStackWidget *ftw;
 
 private:
-	UAVDataObject* oplinkStatusObj;
-
-	// A timer that timesout the connction to the OPLink.
-	QTimer *oplinkTimeout;
-	bool oplinkConnected;
+        UAVDataObject* oplinkStatusObj;
+        int lastTabIndex;
+        // A timer that timesout the connction to the OPLink.
+        QTimer *oplinkTimeout;
+        bool oplinkConnected;
 };
 
 #endif // CONFIGGADGETWIDGET_H

@@ -2,113 +2,157 @@
 	<object name="HwQuanton" singleinstance="true" settings="true" category="HardwareSettings">
 		<description>Selection of optional hardware configurations.</description>
 
-		<field name="RcvrPort" units="function" type="enum" elements="1" options="Disabled,PWM,PWM+ADC,PPM,PPM+ADC,PPM+PWM,PPM+PWM+ADC,PPM+Outputs,PPM+Outputs+ADC,Outputs,Outputs+ADC" defaultvalue="PWM"/>
-
-		<field name="Uart1" units="function" type="enum" elements="1"  defaultvalue="Disabled">
+		<field name="RcvrPort" units="function" type="enum" elements="1" defaultvalue="PWM">
 			<options>
 				<option>Disabled</option>
-				<option>Telemetry</option>
+				<option>Outputs</option>
+				<option>Outputs+ADC</option>
+				<option>PPM</option>
+				<option>PPM+ADC</option>
+				<option>PPM+Outputs</option>
+				<option>PPM+Outputs+ADC</option>
+				<option>PPM+PWM</option>
+				<option>PPM+PWM+ADC</option>
+				<option>PWM</option>
+				<option>PWM+ADC</option>
+			</options>
+		</field>
+
+		<field name="Uart1" units="function" type="enum" elements="1" parent="HwShared.PortTypes" defaultvalue="Disabled">
+			<options>
+				<option>Disabled</option>
+				<option>ComBridge</option>
+				<option>DebugConsole</option>
+				<option>DSM</option>
+				<option>FrSKY Sensor Hub</option>
+				<option>FrSKY SPort Telemetry</option>
 				<option>GPS</option>
+				<option>HoTT SUMD</option>
+				<option>HoTT SUMH</option>
+				<option>HoTT Telemetry</option>
 				<option>I2C</option>
-				<option>DSM2</option>
-				<option>DSMX (10bit)</option>
-				<option>DSMX (11bit)</option>
-				<option>DebugConsole</option>
-				<option>ComBridge</option>
+				<option>LighttelemetryTx</option>
 				<option>MavLinkTX</option>
 				<option>MavLinkTX_GPS_RX</option>
-				<option>HoTT SUMD</option>
-				<option>HoTT SUMH</option>
-				<option>HoTT Telemetry</option>
+				<option>MSP</option>
+				<option>OpenLog</option>
+				<option>PicoC</option>
+				<option>S.Bus Non Inverted</option>
+				<option>Storm32Bgc</option>
+				<option>Telemetry</option>
 			</options>
 		</field>
 
-		<field name="Uart2" units="function" type="enum" elements="1"  defaultvalue="Disabled">
+		<field name="Uart2" units="function" type="enum" elements="1" parent="HwShared.PortTypes" defaultvalue="Disabled">
 			<options>
 				<option>Disabled</option>
-				<option>Telemetry</option>
-				<option>GPS</option>
-				<option>S.BUS</option>
-				<option>DSM2</option>
-				<option>DSMX (10bit)</option>
-				<option>DSMX (11bit)</option>
-				<option>DebugConsole</option>
 				<option>ComBridge</option>
-				<option>MavLinkTX</option>
-				<option>MavLinkTX_GPS_RX</option>
+				<option>DebugConsole</option>
+				<option>DSM</option>
+				<option>FrSKY Sensor Hub</option>
+				<option>FrSKY SPort Telemetry</option>
+				<option>GPS</option>
 				<option>HoTT SUMD</option>
 				<option>HoTT SUMH</option>
 				<option>HoTT Telemetry</option>
+				<option>LighttelemetryTx</option>
+				<option>MavLinkTX</option>
+				<option>MavLinkTX_GPS_RX</option>
+				<option>MSP</option>
+				<option>OpenLog</option>
+				<option>PicoC</option>
+				<option>S.Bus</option>
+				<option>S.Bus Non Inverted</option>
+				<option>Storm32Bgc</option>
+				<option>Telemetry</option>
 			</options>
 		</field>
 
-		<field name="Uart3" units="function" type="enum" elements="1"  defaultvalue="Disabled">
+		<field name="Uart3" units="function" type="enum" elements="1" parent="HwShared.PortTypes" defaultvalue="Disabled">
 			<options>
 				<option>Disabled</option>
-				<option>Telemetry</option>
+				<option>ComBridge</option>
+				<option>DebugConsole</option>
+				<option>DSM</option>
+				<option>FrSKY Sensor Hub</option>
+				<option>FrSKY SPort Telemetry</option>
 				<option>GPS</option>
+				<option>HoTT SUMD</option>
+				<option>HoTT SUMH</option>
+				<option>HoTT Telemetry</option>
 				<option>I2C</option>
-				<option>DSM2</option>
-				<option>DSMX (10bit)</option>
-				<option>DSMX (11bit)</option>
-				<option>DebugConsole</option>
-				<option>ComBridge</option>
+				<option>LighttelemetryTx</option>
 				<option>MavLinkTX</option>
 				<option>MavLinkTX_GPS_RX</option>
-				<option>HoTT SUMD</option>
-				<option>HoTT SUMH</option>
-				<option>HoTT Telemetry</option>
+				<option>MSP</option>
+				<option>OpenLog</option>
+				<option>PicoC</option>
+				<option>S.Bus Non Inverted</option>
+				<option>Storm32Bgc</option>
+				<option>Telemetry</option>
 			</options>
 		</field>
 
-		<field name="Uart4" units="function" type="enum" elements="1"  defaultvalue="Telemetry">
+		<field name="Uart4" units="function" type="enum" elements="1" parent="HwShared.PortTypes" defaultvalue="Telemetry">
 			<options>
 				<option>Disabled</option>
-				<option>Telemetry</option>
-				<option>GPS</option>
-				<option>DSM2</option>
-				<option>DSMX (10bit)</option>
-				<option>DSMX (11bit)</option>
-				<option>DebugConsole</option>
 				<option>ComBridge</option>
-				<option>MavLinkTX</option>
-				<option>MavLinkTX_GPS_RX</option>
+				<option>DebugConsole</option>
+				<option>DSM</option>
+				<option>FrSKY Sensor Hub</option>
+				<option>FrSKY SPort Telemetry</option>
+				<option>GPS</option>
 				<option>HoTT SUMD</option>
 				<option>HoTT SUMH</option>
 				<option>HoTT Telemetry</option>
+				<option>LighttelemetryTx</option>
+				<option>MavLinkTX</option>
+				<option>MavLinkTX_GPS_RX</option>
+				<option>MSP</option>
+				<option>OpenLog</option>
+				<option>PicoC</option>
+				<option>S.Bus Non Inverted</option>
+				<option>Storm32Bgc</option>
+				<option>Telemetry</option>
 			</options>
 		</field>
 
-		<field name="Uart5" units="function" type="enum" elements="1"  defaultvalue="GPS">
+		<field name="Uart5" units="function" type="enum" elements="1" parent="HwShared.PortTypes" defaultvalue="GPS">
 			<options>
 				<option>Disabled</option>
-				<option>Telemetry</option>
-				<option>GPS</option>
-				<option>DSM2</option>
-				<option>DSMX (10bit)</option>
-				<option>DSMX (11bit)</option>
-				<option>DebugConsole</option>
 				<option>ComBridge</option>
-				<option>MavLinkTX</option>
-				<option>MavLinkTX_GPS_RX</option>
+				<option>DebugConsole</option>
+				<option>DSM</option>
+				<option>FrSKY Sensor Hub</option>
+				<option>FrSKY SPort Telemetry</option>
+				<option>GPS</option>
 				<option>HoTT SUMD</option>
 				<option>HoTT SUMH</option>
 				<option>HoTT Telemetry</option>
+				<option>LighttelemetryTx</option>
+				<option>MavLinkTX</option>
+				<option>MavLinkTX_GPS_RX</option>
+				<option>MSP</option>
+				<option>OpenLog</option>
+				<option>PicoC</option>
+				<option>S.Bus Non Inverted</option>
+				<option>Storm32Bgc</option>
+				<option>Telemetry</option>
 			</options>
 		</field>
 
-		<field name="USB_HIDPort" units="function" type="enum" elements="1" options="USBTelemetry,RCTransmitter,Disabled" defaultvalue="USBTelemetry"/>
-		<field name="USB_VCPPort" units="function" type="enum" elements="1" options="USBTelemetry,ComBridge,DebugConsole,Disabled" defaultvalue="Disabled"/>
+		<field name="USB_HIDPort" units="function" type="enum" elements="1" parent="HwShared.USB_HIDPort" defaultvalue="USBTelemetry"/>
+		<field name="USB_VCPPort" units="function" type="enum" elements="1" parent="HwShared.USB_VCPPort" defaultvalue="Disabled"/>
 
-		<field name="DSMxBind" units=""  type="uint8"  elements="1" defaultvalue="0"/>
+		<field name="DSMxMode" units="mode" type="enum" elements="1" parent="HwShared.DSMxMode" defaultvalue="Autodetect"/>
 
-		<field name="GyroRange" units="deg/s" type="enum" elements="1" options="250,500,1000,2000" defaultvalue="500"/>
+		<field name="GyroRange" units="deg/s" type="enum" elements="1" options="250,500,1000,2000" defaultvalue="1000"/>
 		<field name="AccelRange" units="*gravity m/s^2" type="enum" elements="1" options="2G,4G,8G,16G" defaultvalue="8G"/>
-		<field name="MPU6000Rate" units="" type="enum" elements="1" options="200,333,500,666,1000,2000,4000,8000" defaultvalue="666"/>
-		<field name="MPU6000DLPF" units="" type="enum" elements="1" options="256,188,98,42,20,10,5" defaultvalue="256"/>
+		<field name="MPU6000Rate" units="" type="enum" elements="1" options="200,333,500,666,1000,2000,4000,8000" defaultvalue="500"/>
+		<field name="MPU6000DLPF" units="" type="enum" elements="1" options="256,188,98,42,20,10,5" defaultvalue="188"/>
 		
 		<field name="Magnetometer" units="function" type="enum" elements="1" options="Disabled,Internal,ExternalI2CUart1,ExternalI2CUart3" defaultvalue="Internal"/>
-		<field name="ExtMagOrientation" units="function" type="enum" elements="1" options="Top0degCW,Top90degCW,Top180degCW,Top270degCW,Bottom0degCW,Bottom90degCW,Bottom180degCW,Bottom270degCW" defaultvalue="Top0degCW" />
+		<field name="ExtMagOrientation" units="function" type="enum" elements="1" parent="HwShared.MagOrientation" defaultvalue="Top0degCW" />
 	
 		<access gcs="readwrite" flight="readwrite"/>
 		<telemetrygcs acked="true" updatemode="onchange" period="0"/>

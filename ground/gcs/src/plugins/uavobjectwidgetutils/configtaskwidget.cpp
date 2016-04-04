@@ -2,6 +2,7 @@
  ******************************************************************************
  *
  * @file       configtaskwidget.cpp
+ * @author     dRonin, http://dRonin.org/, Copyright (C) 2016
  * @author     Tau Labs, http://taulabs.org, Copyright (C) 2013
  * @author     The OpenPilot Team, http://www.openpilot.org Copyright (C) 2010.
  *
@@ -25,16 +26,22 @@
  * You should have received a copy of the GNU General Public License along
  * with this program; if not, write to the Free Software Foundation, Inc.,
  * 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
+ *
+ * Additional note on redistribution: The copyright and license notices above
+ * must be maintained in each individual source file that is a derivative work
+ * of this source file; otherwise redistribution is prohibited.
  */
 #include "configtaskwidget.h"
-#include <QtGui/QWidget>
-#include <QtGui/QLineEdit>
-#include "uavsettingsimportexport/uavsettingsimportexportfactory.h"
+#include <QWidget>
+#include <QLineEdit>
+#include "uavsettingsimportexport/uavsettingsimportexportmanager.h"
+#include <coreplugin/connectionmanager.h>
+#include <coreplugin/icore.h>
 
 /**
  * Constructor
  */
-ConfigTaskWidget::ConfigTaskWidget(QWidget *parent) : QWidget(parent),currentBoard(0),isConnected(false),allowWidgetUpdates(true),smartsave(NULL),dirty(false),outOfLimitsStyle("background-color: rgb(255, 0, 0);"),timeOut(NULL)
+ConfigTaskWidget::ConfigTaskWidget(QWidget *parent) : QWidget(parent),currentBoard(0),isConnected(false),allowWidgetUpdates(true),smartsave(NULL),dirty(false),outOfLimitsStyle("background-color: rgb(255, 180, 0);"),timeOut(NULL)
 {
     pm = ExtensionSystem::PluginManager::instance();
     objManager = pm->getObject<UAVObjectManager>();
@@ -44,7 +51,7 @@ ConfigTaskWidget::ConfigTaskWidget(QWidget *parent) : QWidget(parent),currentBoa
     connect(telMngr, SIGNAL(disconnected()), this, SLOT(onAutopilotDisconnect()),Qt::UniqueConnection);
     connect(telMngr, SIGNAL(connected()), this, SIGNAL(autoPilotConnected()),Qt::UniqueConnection);
     connect(telMngr, SIGNAL(disconnected()), this, SIGNAL(autoPilotDisconnected()),Qt::UniqueConnection);
-    UAVSettingsImportExportFactory * importexportplugin =  pm->getObject<UAVSettingsImportExportFactory>();
+    UAVSettingsImportExportManager * importexportplugin =  pm->getObject<UAVSettingsImportExportManager>();
     connect(importexportplugin,SIGNAL(importAboutToBegin()),this,SLOT(invalidateObjects()));
 }
 
@@ -149,6 +156,19 @@ void ConfigTaskWidget::addUAVObjectToWidgetRelation(UAVObject * obj,UAVObjectFie
 }
 
 /**
+ * Set a UAVObject as not mandatory, meaning that if it doesn't exist on the 
+ * hardware a failed upload or save will be marked as successfull
+ */
+void ConfigTaskWidget::setNotMandatory(QString object)
+{
+    UAVObject *obj = objManager->getObject(object);
+    Q_ASSERT(obj);
+    if(smartsave) {
+        smartsave->setNotMandatory((UAVDataObject*)obj);
+    }
+}
+
+/**
  * Add an UAVObject field to widget relation to the management system
  * @param object name of the object to add
  * @param field name of the field to add
@@ -173,6 +193,13 @@ void ConfigTaskWidget::addUAVObjectToWidgetRelation(QString object, QString fiel
         objectUpdates.insert(obj,true);
         connect(obj, SIGNAL(objectUpdated(UAVObject*)),this, SLOT(objectUpdated(UAVObject*)));
         connect(obj, SIGNAL(objectUpdated(UAVObject*)), this, SLOT(refreshWidgetsValues(UAVObject*)), Qt::UniqueConnection);
+        UAVDataObject *dobj = dynamic_cast<UAVDataObject *>(obj);
+        if(dobj)
+        {
+            connect(dobj, SIGNAL(presentOnHardwareChanged(UAVDataObject*)),this, SLOT(doRefreshHiddenObjects(UAVDataObject*)));
+            if(widget)
+                widget->setEnabled(dobj->getIsPresentOnHardware());
+        }
     }
     if(!field.isEmpty() && obj)
         _field = obj->getField(QString(field));
@@ -331,19 +358,26 @@ void ConfigTaskWidget::forceConnectedState()//dynamic widgets don't recieve the 
 void ConfigTaskWidget::onAutopilotConnect()
 {
     if (utilMngr)
-        currentBoard = utilMngr->getBoardModel();//TODO REMEMBER TO ADD THIS TO FORCE CONNECTED FUNC ON CC3D_RELEASE
+        currentBoard = utilMngr->getBoardModel();
+
     invalidateObjects();
     isConnected=true;
-    foreach(objectToWidget * ow,objOfInterest)
-    {
-        loadWidgetLimits(ow->widget,ow->field,ow->index,ow->isLimited,ow->scale);
-    }
+    loadAllLimits();
     enableControls(true);
     refreshWidgetsValues();
     setDirty(false);
 
     emit autoPilotConnected();
 }
+
+void ConfigTaskWidget::loadAllLimits()
+{
+    foreach(objectToWidget * ow,objOfInterest)
+    {
+        loadWidgetLimits(ow->widget,ow->field,ow->index,ow->isLimited,ow->scale);
+    }
+}
+
 /**
  * SLOT Function used to populate the widgets with the initial values
  * Overwrite this if you need to change the default behavior
@@ -467,6 +501,9 @@ void ConfigTaskWidget::enableControls(bool enable)
     foreach (QPushButton * button, reloadButtonList) {
         button->setEnabled(enable);
     }
+    foreach (QPushButton * button, rebootButtonList) {
+        button->setEnabled(enable);
+    }
 }
 /**
  * @brief ConfigTaskWidget::forceShadowUpdates
@@ -492,7 +529,7 @@ void ConfigTaskWidget::forceShadowUpdates()
 void ConfigTaskWidget::widgetsContentsChanged()
 {
     emit widgetContentsChanged((QWidget*)sender());
-    double scale;
+    double scale = 0;
     objectToWidget * oTw= shadowsList.value((QWidget*)sender(),NULL);
     if(oTw)
     {
@@ -699,6 +736,13 @@ bool ConfigTaskWidget::addShadowWidget(QString object, QString field, QWidget *w
             if(defaultReloadGroups)
                 addWidgetToDefaultReloadGroups(widget,defaultReloadGroups);
             loadWidgetLimits(widget,oTw->field,oTw->index,isLimited,scale);
+            UAVDataObject *dobj = dynamic_cast<UAVDataObject *>(oTw->object);
+            if(dobj)
+            {
+                connect(dobj, SIGNAL(presentOnHardwareChanged(UAVDataObject*)),this, SLOT(doRefreshHiddenObjects(UAVDataObject*)));
+                if(widget)
+                    widget->setEnabled(dobj->getIsPresentOnHardware());
+            }
             return true;
         }
     }
@@ -758,6 +802,8 @@ void ConfigTaskWidget::autoLoadWidgets()
                         uiRelation.buttonType=default_button;
                     else if(value=="help")
                         uiRelation.buttonType=help_button;
+                    else if(value=="reboot")
+                        uiRelation.buttonType=reboot_button;
                 }
                 else if(prop== "buttongroup")
                 {
@@ -769,7 +815,7 @@ void ConfigTaskWidget::autoLoadWidgets()
                 else if(prop=="url")
                     uiRelation.url=str.mid(str.indexOf(":")+1);
             }
-            if(!uiRelation.buttonType==none)
+            if(uiRelation.buttonType!=none)
             {
                 QPushButton * button=NULL;
                 switch(uiRelation.buttonType)
@@ -786,18 +832,33 @@ void ConfigTaskWidget::autoLoadWidgets()
                     break;
                 case default_button:
                     button=qobject_cast<QPushButton *>(widget);
-                    if(button)
-                        addDefaultButton(button,uiRelation.buttonGroup.at(0));
+                    if (button) {
+                        if (!uiRelation.buttonGroup.length()) {
+                            qWarning() << "[autoLoadWidgets] No button group specified for default button!";
+                            uiRelation.buttonGroup.append(0);
+                        }
+                        addDefaultButton(button, uiRelation.buttonGroup.at(0));
+                    }
                     break;
                 case reload_button:
                     button=qobject_cast<QPushButton *>(widget);
-                    if(button)
-                        addReloadButton(button,uiRelation.buttonGroup.at(0));
+                    if (button) {
+                        if (!uiRelation.buttonGroup.length()) {
+                            qWarning() << "[autoLoadWidgets] No button group specified for reload button!";
+                            uiRelation.buttonGroup.append(0);
+                        }
+                        addReloadButton(button, uiRelation.buttonGroup.at(0));
+                    }
                     break;
                 case help_button:
                     button=qobject_cast<QPushButton *>(widget);
                     if(button)
                         addHelpButton(button,uiRelation.url);
+                    break;
+                case reboot_button:
+                    button=qobject_cast<QPushButton *>(widget);
+                    if(button)
+                        addRebootButton(button);
                     break;
 
                 default:
@@ -875,6 +936,16 @@ void ConfigTaskWidget::addReloadButton(QPushButton *button, int buttonGroup)
     connect(button,SIGNAL(clicked()),this,SLOT(reloadButtonClicked()));
 }
 /**
+ * Adds a button to reboot board
+ * @param button pointer to the reload button
+ * @param buttongroup number of the group
+ */
+void ConfigTaskWidget::addRebootButton(QPushButton *button)
+{
+    rebootButtonList.append(button);
+    connect(button, SIGNAL(clicked()), this, SLOT(rebootButtonClicked()));
+}
+/**
  * Called when a default button is clicked
  */
 void ConfigTaskWidget::defaultButtonClicked()
@@ -890,6 +961,55 @@ void ConfigTaskWidget::defaultButtonClicked()
         setWidgetFromField(oTw->widget,temp->getField(oTw->field->getName()),oTw->index,oTw->scale,oTw->isLimited);
     }
 }
+void ConfigTaskWidget::rebootButtonClicked()
+{
+    QPushButton *button = qobject_cast<QPushButton *>(sender());
+    button->setEnabled(false);
+    button->setIcon(QIcon(":/uploader/images/system-run.svg"));
+
+    FirmwareIAPObj *iapObj = dynamic_cast<FirmwareIAPObj *>(getObjectManager()->getObject(FirmwareIAPObj::NAME));
+    Core::ConnectionManager *conMngr = Core::ICore::instance()->connectionManager();
+
+    if(!conMngr->isConnected() || !iapObj->getIsPresentOnHardware()) {
+        button->setEnabled(true);
+        button->setIcon(QIcon(":/uploader/images/error.svg"));
+        return;
+    }
+    QEventLoop loop;
+    QTimer timeout;
+    timeout.setSingleShot(true);
+    iapObj->setBoardRevision(0);
+    iapObj->setBoardType(0);
+    connect(&timeout, SIGNAL(timeout()), &loop, SLOT(quit()));
+    connect(iapObj, SIGNAL(transactionCompleted(UAVObject*,bool)), &loop, SLOT(quit()));
+    int magicValue = 1122;
+    int magicStep = 1111;
+    for(int i = 0; i < 3; ++i)
+    {
+        //Firmware IAP module specifies that the timing between iap commands must be
+        //between 500 and 5000ms
+        timeout.start(600);
+        loop.exec();
+        iapObj->setCommand(magicValue);
+        magicValue += magicStep;
+        if(magicValue == 3344)
+            magicValue = 4455;
+        iapObj->updated();
+        timeout.start(1000);
+        loop.exec();
+        if(!timeout.isActive())
+        {
+            button->setEnabled(true);
+            button->setIcon(QIcon(":/uploader/images/error.svg"));
+            return;
+        }
+        timeout.stop();
+    }
+    button->setEnabled(true);
+    button->setIcon(QIcon(":/uploader/images/dialog-apply.svg"));
+    conMngr->disconnectDevice();
+}
+
 /**
  * Called when a reload button is clicked
  */
@@ -912,6 +1032,10 @@ void ConfigTaskWidget::reloadButtonClicked()
     {
         if (oTw->object != NULL)
         {
+            UAVDataObject * dobj = dynamic_cast<UAVDataObject*>(oTw->object);
+            if(dobj)
+                if(!dobj->getIsPresentOnHardware())
+                    continue;
             temphelper value;
             value.objid=oTw->object->getObjID();
             value.objinstid=oTw->object->getInstID();
@@ -946,6 +1070,25 @@ void ConfigTaskWidget::reloadButtonClicked()
     {
         delete timeOut;
         timeOut=NULL;
+    }
+}
+
+void ConfigTaskWidget::doRefreshHiddenObjects(UAVDataObject * obj)
+{
+    foreach(objectToWidget * ow, shadowsList.values())
+    {
+        if(ow->object==NULL || ow->widget==NULL)
+        {
+            //do nothing
+        }
+        else
+        {
+            if(ow->object==obj)
+                foreach (QWidget *w, shadowsList.keys(ow)) {
+                    w->setEnabled(obj->getIsPresentOnHardware());
+                }
+        }
+
     }
 }
 
@@ -1088,7 +1231,7 @@ QVariant ConfigTaskWidget::getVariantFromWidget(QWidget * widget,double scale)
 {
     if(QComboBox * comboBox=qobject_cast<QComboBox *>(widget))
     {
-        return (QString)comboBox->currentText();
+        return comboBox->currentData();
     }
     else if(QDoubleSpinBox * dblSpinBox=qobject_cast<QDoubleSpinBox *>(widget))
     {
@@ -1128,7 +1271,7 @@ bool ConfigTaskWidget::setWidgetFromVariant(QWidget *widget, QVariant value, dou
 {
     if(QComboBox * comboBox=qobject_cast<QComboBox *>(widget))
     {
-        comboBox->setCurrentIndex(comboBox->findText(value.toString()));
+        comboBox->setCurrentIndex(comboBox->findData(value.toString()));
         return true;
     }
     else if(QLabel * label=qobject_cast<QLabel *>(widget))
@@ -1190,6 +1333,19 @@ bool ConfigTaskWidget::setWidgetFromField(QWidget * widget,UAVObjectField * fiel
 {
     if(!widget || !field)
         return false;
+
+    // use UAVO field description as tooltip if the widget doesn't already have one
+    if (!widget->toolTip().length()) {
+        QString desc = field->getDescription().trimmed().toHtmlEscaped();
+        if (desc.length()) {
+            // insert html tags to make this rich text so Qt will take care of wrapping
+            desc.prepend("<span style='font-style: normal'>");
+            desc.remove("@Ref", Qt::CaseInsensitive);
+            desc.append("</span>");
+        }
+        widget->setToolTip(desc);
+    }
+
     if(QComboBox * cb=qobject_cast<QComboBox *>(widget))
     {
         if(cb->count()==0)
@@ -1216,10 +1372,18 @@ void ConfigTaskWidget::checkWidgetsLimits(QWidget * widget,UAVObjectField * fiel
             widget->setProperty("styleBackup",widget->styleSheet());
         widget->setStyleSheet(outOfLimitsStyle);
         widget->setProperty("wasOverLimits",(bool)true);
+        if(!widget->property("toolTipBackup").isValid()) {
+            QString tip = widget->toolTip();
+            if (tip.length() && !tip.startsWith("<"))
+                tip = tip.prepend("<p>").append("</p>");
+            widget->setProperty("toolTipBackup", tip);
+        }
+        widget->setToolTip(widget->property("toolTipBackup").toString() +
+                           tr("<p><strong>Warning:</strong> The value of this field exceeds the recommended limits! Please double-check before flying.</p>"));
         if(QComboBox * cb=qobject_cast<QComboBox *>(widget))
         {
-            if(cb->findText(value.toString())==-1)
-                cb->addItem(value.toString());
+            if(cb->findData(value.toString())==-1)
+                cb->addItem(value.toString(), value);
         }
         else if(QDoubleSpinBox * cb=qobject_cast<QDoubleSpinBox *>(widget))
         {
@@ -1267,6 +1431,12 @@ void ConfigTaskWidget::checkWidgetsLimits(QWidget * widget,UAVObjectField * fiel
                 QString style=widget->property("styleBackup").toString();
                 widget->setStyleSheet(style);
             }
+
+            if(widget->property("toolTipBackup").isValid())
+                widget->setToolTip(widget->property("toolTipBackup").toString());
+            else
+                widget->setToolTip("");
+
             loadWidgetLimits(widget,field,index,hasLimits,scale);
         }
     }
@@ -1280,16 +1450,11 @@ void ConfigTaskWidget::loadWidgetLimits(QWidget * widget,UAVObjectField * field,
     {
         cb->clear();
         QStringList option=field->getOptions();
-        if(hasLimits)
+        foreach(QString str,option)
         {
-            foreach(QString str,option)
-            {
-                if(field->isWithinLimits(str,index,currentBoard))
-                    cb->addItem(str);
-            }
+            if(!hasLimits || field->isWithinLimits(str,index,currentBoard))
+                cb->addItem(str, str);
         }
-        else
-            cb->addItems(option);
     }
     if(!hasLimits)
         return;

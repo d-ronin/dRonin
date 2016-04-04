@@ -1,15 +1,18 @@
 /**
  ******************************************************************************
- *
- * @file       flightgearbridge.cpp
- * @author     The OpenPilot Team, http://www.openpilot.org Copyright (C) 2010.
- * @author     Tau Labs, http://taulabs.org, Copyright (C) 2013
- *
  * @addtogroup GCSPlugins GCS Plugins
  * @{
  * @addtogroup HITLPlugin HITL Plugin
  * @{
+ *
+ * @file       flightgearbridge.cpp
+ * @author     dRonin, http://dRonin.org/, Copyright (C) 2015-2016
+ * @author     Tau Labs, http://taulabs.org, Copyright (C) 2013
+ * @author     The OpenPilot Team, http://www.openpilot.org Copyright (C) 2010.
  * @brief The Hardware In The Loop plugin
+ *
+ * @see        The GNU Public License (GPL) Version 3
+ *
  *****************************************************************************/
 /*
  * This program is free software; you can redistribute it and/or modify
@@ -25,6 +28,10 @@
  * You should have received a copy of the GNU General Public License along
  * with this program; if not, write to the Free Software Foundation, Inc.,
  * 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
+ *
+ * Additional note on redistribution: The copyright and license notices above
+ * must be maintained in each individual source file that is a derivative work
+ * of this source file; otherwise redistribution is prohibited.
  */
 
 #include "fgsimulator.h"
@@ -67,7 +74,7 @@ bool FGSimulator::setupProcess()
     //	xmlFile.close();
     //	QFile xmlFileOut(pathData + "/Protocol/opfgprotocol.xml");
     //	xmlFileOut.open(QIODevice::WriteOnly | QIODevice::Text);
-    //	xmlFileOut.write(xml.toAscii());
+    //	xmlFileOut.write(xml.toLatin1());
     //	xmlFileOut.close();
 
     Qt::HANDLE mainThread = QThread::currentThreadId();
@@ -112,14 +119,14 @@ bool FGSimulator::setupProcess()
     if (settings.startSim)
     {
         QString cmd("\"" + settings.binPath + "\" " + args + "\n");
-        simProcess->write(cmd.toAscii());
+        simProcess->write(cmd.toLatin1());
     }
     else
     {
         emit processOutput("Start Flightgear from the command line with the following arguments: \n\n" + args + "\n\n" +
                            "You can optionally run Flightgear from a networked computer.\n" +
                            "Make sure the computer running Flightgear can can ping your local interface adapter. ie." + settings.hostAddress + "\n"
-                           "Remote computer must have the correct Tau Labs protocol installed.");
+                           "Remote computer must have the correct GCS protocol installed.");
     }
 
     udpCounterGCSsend = 0;
@@ -141,33 +148,21 @@ void FGSimulator::transmitUpdate()
 {
     ActuatorDesired::DataFields actData;
     FlightStatus::DataFields flightStatusData = flightStatus->getData();
-    ManualControlCommand::DataFields manCtrlData = manCtrlCommand->getData();
     float ailerons = -1;
     float elevator = -1;
     float rudder = -1;
     float throttle = -1;
 
-    if(flightStatusData.FlightMode == FlightStatus::FLIGHTMODE_MANUAL)
-    {
-        // Read joystick input
-        if(flightStatusData.Armed == FlightStatus::ARMED_ARMED)
-        {
-            // Note: Pitch sign is reversed in FG ?
-            ailerons = manCtrlData.Roll;
-            elevator = -manCtrlData.Pitch;
-            rudder = manCtrlData.Yaw;
-            throttle = manCtrlData.Throttle;
-        }
-    }
-    else
-    {
-        // Read ActuatorDesired from autopilot
-        actData = actDesired->getData();
+    // Read ActuatorDesired from autopilot
+    actData = actDesired->getData();
 
+    // if we're in any mode other than manual, or if we're in manual and we're armed, update outputs from ActuatorDesired
+    if(flightStatus->getFlightMode() != FlightStatus::FLIGHTMODE_MANUAL || flightStatusData.Armed == FlightStatus::ARMED_ARMED)
+    {
         ailerons = actData.Roll;
         elevator = -actData.Pitch;
         rudder = actData.Yaw;
-        throttle = actData.Throttle;
+        throttle = actData.Thrust;
     }
 
     int allowableDifference = 10;
@@ -190,7 +185,7 @@ void FGSimulator::transmitUpdate()
                 .arg(throttle) //throttle
                 .arg(udpCounterGCSsend); //UDP packet counter delay
 
-        QByteArray data = cmd.toAscii();
+        QByteArray data = cmd.toLatin1();
 
         if(outSocket->writeDatagram(data, QHostAddress(settings.remoteAddress), settings.outPort) == -1)
         {
@@ -209,7 +204,7 @@ void FGSimulator::transmitUpdate()
         actData.Roll = ailerons;
         actData.Pitch = -elevator;
         actData.Yaw = rudder;
-        actData.Throttle = throttle;
+        actData.Thrust = throttle;
         actDesired->setData(actData);
     }
 }
@@ -256,11 +251,11 @@ void FGSimulator::processUpdate(const QByteArray& inp)
     // Get pressure (kpa)
     float pressure = fields[FG_PRESSURE].toFloat() * INCHES_MERCURY2KPA;
     // Get VelocityActual Down (cm/s)
-    float velocityActualDown = - fields[FG_VEL_ACT_DOWN].toFloat() * FEET_PER_SECOND2CM_PER_SECOND;
+    float velocityActualDown = - fields[FG_VEL_ACT_DOWN].toFloat() * FEET_PER_SECOND2M_PER_SECOND;
     // Get VelocityActual East (cm/s)
-    float velocityActualEast = fields[FG_VEL_ACT_EAST].toFloat() * FEET_PER_SECOND2CM_PER_SECOND;
+    float velocityActualEast = fields[FG_VEL_ACT_EAST].toFloat() * FEET_PER_SECOND2M_PER_SECOND;
     // Get VelocityActual Down (cm/s)
-    float velocityActualNorth = fields[FG_VEL_ACT_NORTH].toFloat() * FEET_PER_SECOND2CM_PER_SECOND;
+    float velocityActualNorth = fields[FG_VEL_ACT_NORTH].toFloat() * FEET_PER_SECOND2M_PER_SECOND;
 
     // Get UDP packets received by FG
     int n = fields[FG_COUNTER_RECV].toInt();

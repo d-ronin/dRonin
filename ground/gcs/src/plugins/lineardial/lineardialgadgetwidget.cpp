@@ -2,6 +2,7 @@
  ******************************************************************************
  *
  * @file       lineardialgadgetwidget.cpp
+ * @author     dRonin, http://dRonin.org/, Copyright (C) 2015
  * @author     Edouard Lafargue Copyright (C) 2010.
  * @addtogroup GCSPlugins GCS Plugins
  * @{
@@ -25,10 +26,11 @@
  * 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
  */
 
+#include <math.h>
+
 #include "lineardialgadgetwidget.h"
 #include <utils/stylehelper.h>
-#include <QtGui/QFileDialog>
-#include <QtOpenGL/QGLWidget>
+#include <QFileDialog>
 #include <QDebug>
 
 LineardialGadgetWidget::LineardialGadgetWidget(QWidget *parent) : QGraphicsView(parent)
@@ -59,17 +61,6 @@ LineardialGadgetWidget::LineardialGadgetWidget(QWidget *parent) : QGraphicsView(
 LineardialGadgetWidget::~LineardialGadgetWidget()
 {
    // Do nothing
-}
-
-/*!
-  \brief Enables/Disables OpenGL
-  */
-void LineardialGadgetWidget::enableOpenGL(bool flag)
-{
-	if (flag)
-		setViewport(new QGLWidget(QGLFormat(QGL::SampleBuffers)));
-	else
-		setViewport(new QWidget);
 }
 
 /*!
@@ -423,7 +414,7 @@ void LineardialGadgetWidget::moveIndex()
         dialTimer.stop();
         return;
     }
-    if ((abs((indexValue-indexTarget)*10) > 3)) {
+    if ((fabs((indexValue-indexTarget)*10) > 3)) {
         indexValue += (indexTarget - indexValue)/5;
     } else {
         indexValue = indexTarget;

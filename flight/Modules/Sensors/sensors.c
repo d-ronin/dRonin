@@ -7,7 +7,8 @@
  *
  * @file       sensors.c
  * @author     The OpenPilot Team, http://www.openpilot.org Copyright (C) 2010.
- * @author     Tau Labs, http://taulabs.org, Copyright (C) 2013
+ * @author     Tau Labs, http://taulabs.org, Copyright (C) 2013-2016
+ * @author     dRonin, http://dronin.org Copyright (C) 2015-2016
  * @brief      Acquire sensor data from sensors registered with @ref PIOS_Sensors
  *
  * @see        The GNU Public License (GPL) Version 3
@@ -32,6 +33,14 @@
 #include "openpilot.h"
 #include "pios.h"
 #include "physical_constants.h"
+#include "pios_thread.h"
+#include "pios_queue.h"
+#include "misc_math.h"
+
+#if defined(PIOS_INCLUDE_PX4FLOW)
+#include "pios_px4flow_priv.h"
+extern uintptr_t external_i2c_adapter_id;
+#endif /* PIOS_INCLUDE_PX4FLOW */
 
 // UAVOs
 #include "accels.h"
@@ -41,7 +50,10 @@
 #include "gyros.h"
 #include "gyrosbias.h"
 #include "homelocation.h"
+#include "opticalflowsettings.h"
+#include "opticalflow.h"
 #include "sensorsettings.h"
+#include "rangefinderdistance.h"
 #include "inssettings.h"
 #include "magnetometer.h"
 #include "magbias.h"
@@ -49,9 +61,11 @@
 
 // Private constants
 #define STACK_SIZE_BYTES 1000
-#define TASK_PRIORITY (tskIDLE_PRIORITY+3)
+#define TASK_PRIORITY PIOS_THREAD_PRIO_HIGH
 #define SENSOR_PERIOD 6		// this allows sensor data to arrive as slow as 166Hz
 #define REQUIRED_GOOD_CYCLES 50
+#define MAX_TIME_BETWEEN_VALID_BARO_DATAS_MS 100*1000  // we allow a pause time of 100 ms between two valid
+                                                       // temperature/barometer dataa
 
 // Private types
 enum mag_calibration_algo {
@@ -61,12 +75,20 @@ enum mag_calibration_algo {
 
 // Private functions
 static void SensorsTask(void *parameters);
-static void settingsUpdatedCb(UAVObjEvent * objEv);
+static void settingsUpdatedCb(UAVObjEvent * objEv, void *ctx, void *obj, int len);
 
 static void update_accels(struct pios_sensor_accel_data *accel);
 static void update_gyros(struct pios_sensor_gyro_data *gyro);
 static void update_mags(struct pios_sensor_mag_data *mag);
 static void update_baro(struct pios_sensor_baro_data *baro);
+
+#if defined (PIOS_INCLUDE_OPTICALFLOW)
+static void update_optical_flow(struct pios_sensor_optical_flow_data *optical_flow);
+#endif /* PIOS_INCLUDE_OPTICALFLOW */
+
+#if defined (PIOS_INCLUDE_RANGEFINDER)
+static void update_rangefinder(struct pios_sensor_rangefinder_data *rangefinder);
+#endif /* PIOS_INCLUDE_RANGEFINDER */
 
 static void mag_calibration_prelemari(MagnetometerData *mag);
 static void mag_calibration_fix_length(MagnetometerData *mag);
@@ -74,7 +96,7 @@ static void mag_calibration_fix_length(MagnetometerData *mag);
 static void updateTemperatureComp(float temperature, float *temp_bias);
 
 // Private variables
-static xTaskHandle sensorsTaskHandle;
+static struct pios_thread *sensorsTaskHandle;
 static INSSettingsData insSettings;
 static AccelsData accelsData;
 
@@ -94,12 +116,16 @@ static float z_accel_offset = 0;
 static float Rsb[3][3] = {{0}}; //! Rotation matrix that transforms from the body frame to the sensor board frame
 static int8_t rotate = 0;
 
+#if defined(SUPPORTS_EXTERNAL_MAG)
+// indicates whether the external mag works
+extern bool external_mag_fail;
+#endif
 //! Select the algorithm to try and null out the magnetometer bias error
 static enum mag_calibration_algo mag_calibration_algo = MAG_CALIBRATION_PRELEMARI;
 
 /**
  * API for sensor fusion algorithms:
- * Configure(xQueueHandle gyro, xQueueHandle accel, xQueueHandle mag, xQueueHandle baro)
+ * Configure(struct pios_queue *gyro, struct pios_queue *accel, struct pios_queue *mag, struct pios_queue *baro)
  *   Stores all the queues the algorithm will pull data from
  * FinalizeSensors() -- before saving the sensors modifies them based on internal state (gyro bias)
  * Update() -- queries queues and updates the attitude estiamte
@@ -122,6 +148,37 @@ static int32_t SensorsInitialize(void)
 	SensorSettingsInitialize();
 	INSSettingsInitialize();
 
+#if defined (PIOS_INCLUDE_OPTICALFLOW)
+	OpticalFlowSettingsInitialize();
+	OpticalFlowSettingsData opticalFlowSettings;
+	OpticalFlowSettingsGet(&opticalFlowSettings);
+	switch (opticalFlowSettings.SensorType ){
+		case OPTICALFLOWSETTINGS_SENSORTYPE_PX4FLOW:
+#if defined(PIOS_INCLUDE_PX4FLOW)
+		{
+			struct pios_px4flow_cfg pios_px4flow_cfg;
+			pios_px4flow_cfg.rotation.roll_D100 = opticalFlowSettings.SensorRotation[OPTICALFLOWSETTINGS_SENSORROTATION_ROLL];
+			pios_px4flow_cfg.rotation.pitch_D100 = opticalFlowSettings.SensorRotation[OPTICALFLOWSETTINGS_SENSORROTATION_PITCH];
+			pios_px4flow_cfg.rotation.yaw_D100 = opticalFlowSettings.SensorRotation[OPTICALFLOWSETTINGS_SENSORROTATION_YAW];
+			if (PIOS_PX4Flow_Init(&pios_px4flow_cfg, external_i2c_adapter_id) != 0) {
+				// set alarm
+			}
+		}
+#endif /* PIOS_INCLUDE_PX4FLOW */
+		break;
+	}
+
+	if (PIOS_SENSORS_GetQueue(PIOS_SENSOR_OPTICAL_FLOW) != NULL ) {
+		OpticalFlowInitialize();
+	}
+#endif /* PIOS_INCLUDE_OPTICALFLOW */
+
+#if defined (PIOS_INCLUDE_RANGEFINDER)
+	if (PIOS_SENSORS_GetQueue(PIOS_SENSOR_RANGEFINDER) != NULL ) {
+		RangefinderDistanceInitialize();
+	}
+#endif /* PIOS_INCLUDE_RANGEFINDER */
+
 	rotate = 0;
 
 	AttitudeSettingsConnectCallback(&settingsUpdatedCb);
@@ -137,15 +194,17 @@ static int32_t SensorsInitialize(void)
  */
 static int32_t SensorsStart(void)
 {
-	// Start main task
-	xTaskCreate(SensorsTask, (signed char *)"Sensors", STACK_SIZE_BYTES/4, NULL, TASK_PRIORITY, &sensorsTaskHandle);
-	TaskMonitorAdd(TASKINFO_RUNNING_SENSORS, sensorsTaskHandle);
+	// Watchdog must be registered before starting task
 	PIOS_WDG_RegisterFlag(PIOS_WDG_SENSORS);
+
+	// Start main task
+	sensorsTaskHandle = PIOS_Thread_Create(SensorsTask, "Sensors", STACK_SIZE_BYTES, NULL, TASK_PRIORITY);
+	TaskMonitorAdd(TASKINFO_RUNNING_SENSORS, sensorsTaskHandle);
 
 	return 0;
 }
 
-MODULE_INITCALL(SensorsInitialize, SensorsStart)
+MODULE_INITCALL(SensorsInitialize, SensorsStart);
 
 
 /**
@@ -154,24 +213,25 @@ MODULE_INITCALL(SensorsInitialize, SensorsStart)
  */
 static void SensorsTask(void *parameters)
 {
-	portTickType lastSysTime;
+	uint32_t lastSysTime;
 
 	AlarmsSet(SYSTEMALARMS_ALARM_SENSORS, SYSTEMALARMS_ALARM_CRITICAL);
 
 	UAVObjEvent ev;
-	settingsUpdatedCb(&ev);
+	settingsUpdatedCb(&ev, NULL, NULL, 0);
 
 
 	// Main task loop
-	lastSysTime = xTaskGetTickCount();
+	lastSysTime = PIOS_Thread_Systime();
 	uint32_t good_runs = 1;
+	uint32_t last_baro_update_time = PIOS_DELAY_GetRaw();
 
 	while (1) {
 		if (good_runs == 0) {
 			PIOS_WDG_UpdateFlag(PIOS_WDG_SENSORS);
-			lastSysTime = xTaskGetTickCount();
+			lastSysTime = PIOS_Thread_Systime();
 			AlarmsSet(SYSTEMALARMS_ALARM_SENSORS, SYSTEMALARMS_ALARM_CRITICAL);
-			vTaskDelayUntil(&lastSysTime, MS2TICKS(SENSOR_PERIOD));
+			PIOS_Thread_Sleep_Until(&lastSysTime, SENSOR_PERIOD);
 		}
 
 		struct pios_sensor_gyro_data gyros;
@@ -182,15 +242,15 @@ static void SensorsTask(void *parameters)
 		uint32_t timeval = PIOS_DELAY_GetRaw();
 
 		//Block on gyro data but nothing else
-		xQueueHandle queue;
+		struct pios_queue *queue;
 		queue = PIOS_SENSORS_GetQueue(PIOS_SENSOR_GYRO);
-		if(queue == NULL || xQueueReceive(queue, (void *) &gyros, SENSOR_PERIOD) == errQUEUE_EMPTY) {
+		if (queue == NULL || PIOS_Queue_Receive(queue, &gyros, SENSOR_PERIOD) == false) {
 			good_runs = 0;
 			continue;
 		}
 
 		queue = PIOS_SENSORS_GetQueue(PIOS_SENSOR_ACCEL);
-		if(queue == NULL || xQueueReceive(queue, (void *) &accels, 0) == errQUEUE_EMPTY) {
+		if (queue == NULL || PIOS_Queue_Receive(queue, &accels, 0) == false) {
 			//If no new accels data is ready, reuse the latest sample
 			AccelsSet(&accelsData);
 		}
@@ -202,19 +262,55 @@ static void SensorsTask(void *parameters)
 		update_gyros(&gyros);
 
 		queue = PIOS_SENSORS_GetQueue(PIOS_SENSOR_MAG);
-		if(queue != NULL && xQueueReceive(queue, (void *) &mags, 0) != errQUEUE_EMPTY) {
+		if (queue != NULL && PIOS_Queue_Receive(queue, &mags, 0) != false) {
 			update_mags(&mags);
 		}
 
 		queue = PIOS_SENSORS_GetQueue(PIOS_SENSOR_BARO);
-		if (queue != NULL && xQueueReceive(queue, (void *) &baro, 0) != errQUEUE_EMPTY) {
-			update_baro(&baro);
+		if (queue != NULL) {
+			if (PIOS_Queue_Receive(queue, &baro, 0) != false) {
+				// we can use the timeval because it contains the current time stamp (PIOS_DELAY_GetRaw())
+				last_baro_update_time = timeval;
+				update_baro(&baro);
+				AlarmsClear(SYSTEMALARMS_ALARM_TEMPBARO);
+
+			} else {
+				// Check that we got valid sensor datas
+				uint32_t dT_baro_datas = PIOS_DELAY_DiffuS(last_baro_update_time);
+				// if the last valid sensor datas older than 100 ms report an error
+				if (dT_baro_datas > MAX_TIME_BETWEEN_VALID_BARO_DATAS_MS) {
+					AlarmsSet(SYSTEMALARMS_ALARM_TEMPBARO, SYSTEMALARMS_ALARM_ERROR);
+				}
+			}
+
 		}
 
-		if (good_runs > REQUIRED_GOOD_CYCLES)
+#if defined(PIOS_INCLUDE_OPTICALFLOW)
+		struct pios_sensor_optical_flow_data optical_flow;
+		queue = PIOS_SENSORS_GetQueue(PIOS_SENSOR_OPTICAL_FLOW);
+		if (queue != NULL && PIOS_Queue_Receive(queue, &optical_flow, 0) != false) {
+			update_optical_flow(&optical_flow);
+		}
+#endif /* PIOS_INCLUDE_OPTICALFLOW */
+
+#if defined(PIOS_INCLUDE_RANGEFINDER)
+		struct pios_sensor_rangefinder_data rangefinder;
+		queue = PIOS_SENSORS_GetQueue(PIOS_SENSOR_RANGEFINDER);
+		if (queue != NULL && PIOS_Queue_Receive(queue, &rangefinder, 0) != false) {
+			update_rangefinder(&rangefinder);
+		}
+#endif /* PIOS_INCLUDE_RANGEFINDER */
+
+		bool test_good_run = good_runs > REQUIRED_GOOD_CYCLES;
+		#if defined(SUPPORTS_EXTERNAL_MAG)
+		test_good_run = test_good_run && !external_mag_fail;
+		#endif
+
+		if (test_good_run)
 			AlarmsClear(SYSTEMALARMS_ALARM_SENSORS);
 		else
 			good_runs++;
+		
 		PIOS_WDG_UpdateFlag(PIOS_WDG_SENSORS);
 
 		// Check total time to get the sensors wasn't over the limit
@@ -301,6 +397,15 @@ static void update_gyros(struct pios_sensor_gyro_data *gyros)
 		gyrosData.x -= gyrosBias.x;
 		gyrosData.y -= gyrosBias.y;
 		gyrosData.z -= gyrosBias.z;
+
+		const float GYRO_BIAS_WARN = 10.0f;
+		if (fabsf(gyrosBias.x) > GYRO_BIAS_WARN ||
+			fabsf(gyrosBias.y) > GYRO_BIAS_WARN ||
+			fabsf(gyrosBias.z) > GYRO_BIAS_WARN) {
+			AlarmsSet(SYSTEMALARMS_ALARM_GYROBIAS, SYSTEMALARMS_ALARM_WARNING);
+		} else {
+			AlarmsClear(SYSTEMALARMS_ALARM_GYROBIAS);
+		}
 	}
 
 	GyrosSet(&gyrosData);
@@ -355,15 +460,63 @@ static void update_mags(struct pios_sensor_mag_data *mag)
  */
 static void update_baro(struct pios_sensor_baro_data *baro)
 {
-	if (isnan(baro->altitude) || isnan(baro->temperature) || isnan(baro->pressure))
+	// Check for Nan or infinity
+	if (IS_NOT_FINITE(baro->altitude) || IS_NOT_FINITE(baro->temperature) || IS_NOT_FINITE(baro->pressure)) {
+		AlarmsSet(SYSTEMALARMS_ALARM_TEMPBARO, SYSTEMALARMS_ALARM_WARNING);
 		return;
-
+	}
+	
+	AlarmsSet(SYSTEMALARMS_ALARM_TEMPBARO, SYSTEMALARMS_ALARM_OK);
 	BaroAltitudeData baroAltitude;
 	baroAltitude.Temperature = baro->temperature;
 	baroAltitude.Pressure = baro->pressure;
 	baroAltitude.Altitude = baro->altitude;
 	BaroAltitudeSet(&baroAltitude);
 }
+
+/*
+ * Update the optical flow uavo from the data from the optical flow queue
+ * @param [in] optical_flow raw optical flow data
+ */
+#if defined (PIOS_INCLUDE_OPTICALFLOW)
+void update_optical_flow(struct pios_sensor_optical_flow_data *optical_flow)
+{
+	OpticalFlowData opticalFlow;
+
+	opticalFlow.x = optical_flow->x_dot;
+	opticalFlow.y = optical_flow->y_dot;
+	opticalFlow.z = optical_flow->z_dot;
+
+	opticalFlow.Quality = optical_flow->quality;
+
+	OpticalFlowSet(&opticalFlow);
+}
+#endif /* PIOS_INCLUDE_OPTICALFLOW */
+
+/*
+ * Update the rangefinder uavo from the data from the rangefinder queue
+ * @param [in] rangefinder raw rangefinder data
+ */
+#if defined (PIOS_INCLUDE_RANGEFINDER)
+static void update_rangefinder(struct pios_sensor_rangefinder_data *rangefinder)
+{
+	RangefinderDistanceData rangefinderAltitude;
+	RangefinderDistanceGet(&rangefinderAltitude);
+
+	AttitudeActualData attitude;
+	AttitudeActualGet(&attitude);
+
+	rangefinderAltitude.Range = rangefinder->range;
+
+	if (rangefinder->range_status == 0) {
+		rangefinderAltitude.RangingStatus = RANGEFINDERDISTANCE_RANGINGSTATUS_OUTOFRANGE;
+	} else {
+		rangefinderAltitude.RangingStatus = RANGEFINDERDISTANCE_RANGINGSTATUS_INRANGE;
+	}
+
+	RangefinderDistanceSet(&rangefinderAltitude);
+}
+#endif /* PIOS_INCLUDE_RANGEFINDER */
 
 /**
  * Compute the bias expected from temperature variation for each gyro
@@ -508,8 +661,10 @@ static void mag_calibration_fix_length(MagnetometerData *mag)
 /**
  * Locally cache some variables from the AtttitudeSettings object
  */
-static void settingsUpdatedCb(UAVObjEvent * objEv)
+static void settingsUpdatedCb(UAVObjEvent * objEv, void *ctx, void *obj, int len)
 {
+	(void) ctx; (void) obj; (void) len;
+
 	SensorSettingsData sensorSettings;
 	SensorSettingsGet(&sensorSettings);
 	INSSettingsGet(&insSettings);

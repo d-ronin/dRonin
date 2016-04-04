@@ -2,10 +2,10 @@
  ******************************************************************************
  *
  * @file       mainwindow.cpp
- * @author     Tau Labs, http://taulabs.org Copyright (C) 2012
  * @author     The OpenPilot Team, http://www.openpilot.org Copyright (C) 2010.
  *             Parts by Nokia Corporation (qt-info@nokia.com) Copyright (C) 2009.
- * @author     Tau Labs, http://taulabs.org, Copyright (C) 2013
+ * @author     Tau Labs, http://taulabs.org Copyright (C) 2012-2013
+ * @author     dRonin, http://dronin.org Copyright (C) 2015-2016
  * @addtogroup GCSPlugins GCS Plugins
  * @{
  * @addtogroup CorePlugin Core Plugin
@@ -26,6 +26,10 @@
  * You should have received a copy of the GNU General Public License along 
  * with this program; if not, write to the Free Software Foundation, Inc., 
  * 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
+ *
+ * Additional note on redistribution: The copyright and license notices above
+ * must be maintained in each individual source file that is a derivative work
+ * of this source file; otherwise redistribution is prohibited.
  */
 
 #include "mainwindow.h"
@@ -40,10 +44,7 @@
 #include "generalsettings.h"
 #include "messagemanager.h"
 #include "modemanager.h"
-#include "mimedatabase.h"
 #include "plugindialog.h"
-#include "qxtlogger.h"
-#include "qxtbasicstdloggerengine.h"
 #include "shortcutsettings.h"
 #include "uavgadgetmanager.h"
 #include "uavgadgetinstancemanager.h"
@@ -54,20 +55,20 @@
 #include "ioutputpane.h"
 #include "icorelistener.h"
 #include "iconfigurableplugin.h"
+#include <QStyleFactory>
 #include "manhattanstyle.h"
-#include "rightpane.h"
 #include "settingsdialog.h"
 #include "threadmanager.h"
 #include "uniqueidmanager.h"
-#include "variablemanager.h"
 #include "versiondialog.h"
 
-#include <coreplugin/settingsdatabase.h>
 #include <extensionsystem/pluginmanager.h>
 #include "dialogs/iwizard.h"
+#include <utils/hostosinfo.h>
 #include <utils/pathchooser.h>
 #include <utils/stylehelper.h>
 #include <utils/xmlconfig.h>
+#include <utils/pathutils.h>
 
 #include <QtCore/QDebug>
 #include <QtCore/QFileInfo>
@@ -76,17 +77,20 @@
 #include <QtCore/QtPlugin>
 #include <QtCore/QUrl>
 
-#include <QtGui/QApplication>
-#include <QtGui/QCloseEvent>
-#include <QtGui/QMenu>
-#include <QtGui/QPixmap>
-#include <QtGui/QShortcut>
-#include <QtGui/QStatusBar>
-#include <QtGui/QWizard>
-#include <QtGui/QToolButton>
-#include <QtGui/QMessageBox>
+#include <QApplication>
+#include <QCloseEvent>
+#include <QMenu>
+#include <QPixmap>
+#include <QShortcut>
+#include <QStatusBar>
+#include <QWizard>
+#include <QToolButton>
+#include <QMessageBox>
 #include <QDesktopServices>
 #include "dialogs/importsettings.h"
+#include <QDir>
+#include <QMimeData>
+#include <QNetworkProxy>
 #include <QDir>
 
 using namespace Core;
@@ -102,22 +106,12 @@ MainWindow::MainWindow() :
     m_uniqueIDManager(new UniqueIDManager()),
     m_globalContext(QList<int>() << Constants::C_GLOBAL_ID),
     m_additionalContexts(m_globalContext),
-    // keep this in sync with main() in app/main.cpp
-    m_settings(new QSettings(XmlConfig::XmlSettingsFormat, QSettings::UserScope,
-                             QLatin1String("TauLabs"), QLatin1String("TauLabs_config"), this)),
-    m_globalSettings(new QSettings(XmlConfig::XmlSettingsFormat, QSettings::SystemScope,
-                                 QLatin1String("TauLabs"), QLatin1String("TauLabs_config"), this)),
-    m_settingsDatabase(new SettingsDatabase(QFileInfo(m_settings->fileName()).path(),
-                                            QLatin1String("TauLabs_config"),
-                                            this)),
     m_dontSaveSettings(false),
     m_actionManager(new ActionManagerPrivate(this)),
-    m_variableManager(new VariableManager(this)),
     m_threadManager(new ThreadManager(this)),
     m_modeManager(0),
     m_connectionManager(0),
     m_boardManager(0),
-    m_mimeDatabase(new MimeDatabase),
     m_versionDialog(0),
     m_authorsDialog(0),
     m_activeContext(0),
@@ -131,34 +125,57 @@ MainWindow::MainWindow() :
     m_saveAllAction(0),
     m_exitAction(0),
     m_optionsAction(0),
-#ifdef Q_WS_MAC
+#ifdef Q_OS_MAC
     m_minimizeAction(0),
     m_zoomAction(0),
-#endif
+#endif /* Q_OS_MAC */
     m_toggleFullScreenAction(0)
 {
-    setWindowTitle(tr("Tau Labs GCS"));
-#ifndef Q_WS_MAC
-    qApp->setWindowIcon(QIcon(":/core/images/taulabs_logo_128.png"));
-#endif
-    QCoreApplication::setApplicationName(QLatin1String("Tau Labs GCS"));
-    QCoreApplication::setApplicationVersion(QLatin1String(Core::Constants::GCS_VERSION_LONG));
-    QCoreApplication::setOrganizationName(QLatin1String("TauLabs"));
-    QCoreApplication::setOrganizationDomain(QLatin1String("taulabs.org"));
-    QSettings::setDefaultFormat(XmlConfig::XmlSettingsFormat);
-    QString baseName = qApp->style()->objectName();
-#ifdef Q_WS_X11
-    if (baseName == QLatin1String("windows")) {
-        // Sometimes we get the standard windows 95 style as a fallback
-        // e.g. if we are running on a KDE4 desktop
-        QByteArray desktopEnvironment = qgetenv("DESKTOP_SESSION");
-        if (desktopEnvironment == "kde")
-            baseName = QLatin1String("plastique");
-        else
-            baseName = QLatin1String("cleanlooks");
+    // keep this in sync with main() in app/main.cpp
+    m_settings = new QSettings(QDir::tempPath() + QDir::separator() + GCS_PROJECT_BRANDING + QDir::separator() + "config_autosave", XmlConfig::XmlSettingsFormat, this);
+    // Copy original settings file to working settings. Do this in scope so that
+    // we are guaranteed that the originalSettings file is closed. This prevents corruption
+    // since the QSettings being used are copies of the original file.
+    {   
+        QSettings originalSettings(Utils::PathUtils().getSettingsFilename(), XmlConfig::XmlSettingsFormat, this);
+
+        // There is no copy constructor for QSettings, so we have to do it manually
+        m_settings->clear();
+        QStringList keys = originalSettings.allKeys();
+        for( QStringList::iterator i = keys.begin(); i != keys.end(); i++ )
+        {
+            m_settings->setValue( *i, originalSettings.value( *i ) );
+        }
     }
-#endif
+
+    setWindowTitle(QLatin1String(Core::Constants::GCS_NAME));
+    if (!Utils::HostOsInfo::isMacHost())
+        QApplication::setWindowIcon(QIcon(Core::Constants::ICON_GCS));
+    QCoreApplication::setApplicationName(QLatin1String(Core::Constants::GCS_NAME));
+    QCoreApplication::setApplicationVersion(QLatin1String(Core::Constants::GCS_VERSION_LONG));
+    QCoreApplication::setOrganizationName(QLatin1String(Core::Constants::GCS_AUTHOR));
+    QCoreApplication::setOrganizationDomain(QLatin1String(GCS_PROJECT_BRANDING_HELP));
+    QSettings::setDefaultFormat(XmlConfig::XmlSettingsFormat);
+    QString baseName = QApplication::style()->objectName();
+
+    qDebug() << baseName;
+    if (Utils::HostOsInfo::isAnyUnixHost() && !Utils::HostOsInfo::isMacHost()) {
+        if (baseName == QLatin1String("windows")) {
+            // Sometimes we get the standard windows 95 style as a fallback
+            if (QStyleFactory::keys().contains(QLatin1String("Fusion"))) {
+                baseName = QLatin1String("fusion"); // Qt5
+            } else { // Qt4
+                // e.g. if we are running on a KDE4 desktop
+                QByteArray desktopEnvironment = qgetenv("DESKTOP_SESSION");
+                if (desktopEnvironment == "kde")
+                    baseName = QLatin1String("plastique");
+                else
+                    baseName = QLatin1String("cleanlooks");
+            }
+        }
+    }
     qApp->setStyle(new ManhattanStyle(baseName));
+
 
     setDockNestingEnabled(true);
 
@@ -169,14 +186,12 @@ MainWindow::MainWindow() :
     registerDefaultActions();
 
     m_modeStack = new MyTabWidget(this);
-    m_modeStack->setIconSize(QSize(24,24));
+    m_modeStack->setIconSize(QSize(24, 24));
     m_modeStack->setTabPosition(QTabWidget::South);
     m_modeStack->setMovable(false);
     m_modeStack->setMinimumWidth(512);
     m_modeStack->setElideMode(Qt::ElideRight);
-#ifndef Q_WS_MAC
-    m_modeStack->setDocumentMode(true);
-#endif
+
     m_globalMessaging = new GlobalMessaging(this);
 
     m_modeManager = new ModeManager(this, m_modeStack);
@@ -196,26 +211,18 @@ MainWindow::MainWindow() :
     connect(m_modeManager, SIGNAL(newModeOrder(QVector<IMode*>)), m_workspaceSettings, SLOT(newModeOrder(QVector<IMode*>)));
     statusBar()->setProperty("p_styled", true);
     setAcceptDrops(true);
-    foreach (QString engine, qxtLog->allLoggerEngines())
-        qxtLog->removeLoggerEngine(engine);
-    qxtLog->addLoggerEngine("std", new QxtBasicSTDLoggerEngine());
-    qxtLog->installAsMessageHandler();
-    qxtLog->enableAllLogLevels();
 }
 
 MainWindow::~MainWindow()
 {
-	if (m_connectionManager)	// Pip
-	{
-		m_connectionManager->disconnectDevice();
-		m_connectionManager->suspendPolling();
-	}
+    if (m_connectionManager)
+    {
+        m_connectionManager->disconnectDevice();
+        m_connectionManager->suspendPolling();
+    }
 
-	hide();
+    hide();
 
-	qxtLog->removeAsMessageHandler();
-    foreach (QString engine, qxtLog->allLoggerEngines())
-        qxtLog->removeLoggerEngine(engine);
     ExtensionSystem::PluginManager *pm = ExtensionSystem::PluginManager::instance();
     if (m_uavGadgetManagers.count() > 0) {
         foreach (UAVGadgetManager *mode, m_uavGadgetManagers)
@@ -238,6 +245,22 @@ MainWindow::~MainWindow()
     m_generalSettings = 0;
     delete m_workspaceSettings;
     m_workspaceSettings = 0;
+
+    // Copy working settings back to original settings file. Do this in scope so that
+    // we are guaranteed that the originalSettings file is closed. This minimizes the risk
+    // of corruption since the QSettings are saved (almost) atomically.
+    {
+        QSettings originalSettings(Utils::PathUtils().getSettingsFilename(), XmlConfig::XmlSettingsFormat, this);
+
+        // There is no copy constructor for QSettings, so we have to do it manually
+        originalSettings.clear();
+        QStringList keys = m_settings->allKeys();
+        for( QStringList::iterator i = keys.begin(); i != keys.end(); i++ )
+        {
+            originalSettings.setValue( *i, m_settings->value( *i ) );
+        }
+    }
+
     delete m_settings;
     m_settings = 0;
     delete m_uniqueIDManager;
@@ -249,8 +272,6 @@ MainWindow::~MainWindow()
 
     delete m_modeManager;
     m_modeManager = 0;
-    delete m_mimeDatabase;
-    m_mimeDatabase = 0;
 }
 
 bool MainWindow::init(QString *errorMessage)
@@ -298,7 +319,6 @@ void MainWindow::extensionsInitialized()
 #else
             directory.cdUp();
             directory.cd("share");
-            directory.cd("taulabs");
 #endif
             directory.cd("default_configurations");
 
@@ -318,10 +338,17 @@ void MainWindow::extensionsInitialized()
         }
         if(showDialog)
         {
+            // This has often ended up behind the splash screen, which looks
+            // bad.
+            emit hideSplash();
+
             importSettings * dialog=new importSettings(this);
             dialog->loadFiles(directory.absolutePath());
             dialog->exec();
             filename=dialog->choosenConfig();
+
+            emit showSplash();
+
             settings=new QSettings(filename, XmlConfig::XmlSettingsFormat);
             delete dialog;
         }
@@ -341,9 +368,17 @@ void MainWindow::extensionsInitialized()
 
     m_messageManager->init();
     readSettings(qs);
-
     updateContext();
     emit splashMessages(tr("Preparing to open core"));
+
+    QString currentPath = QDir::currentPath();
+
+    if ((currentPath.length() < 4) || currentPath.contains(".app", Qt::CaseInsensitive) ||
+                currentPath.contains("Program Files", Qt::CaseInsensitive) ||
+                !QDir(currentPath).exists()) {
+        QDir::setCurrent(QDir::homePath());
+    }
+
     emit m_coreImpl->coreAboutToOpen();
     show();
     emit m_coreImpl->coreOpened();
@@ -358,7 +393,6 @@ void MainWindow::loadStyleSheet(QString name) {
 #else
     directory.cdUp();
     directory.cd("share");
-    directory.cd("taulabs");
 #endif
     directory.cd("stylesheets");
 #ifdef Q_OS_MAC
@@ -469,7 +503,10 @@ IContext *MainWindow::currentContextObject() const
 
 QStatusBar *MainWindow::statusBar() const
 {
-    return new QStatusBar();// m_modeStack->statusBar();
+    // TODO: This is a memory leak waiting to happen.  We should try to use
+    // a real status bar and add the connection widgets there.  Unfortunately
+    // what is returned so returning NULL segfaults right now.
+    return new QStatusBar();
 }
 
 void MainWindow::registerDefaultContainers()
@@ -478,9 +515,9 @@ void MainWindow::registerDefaultContainers()
 
     ActionContainer *menubar = am->createMenuBar(Constants::MENU_BAR);
 
-#ifndef Q_WS_MAC // System menu bar on Mac
+#ifndef Q_OS_MAC // System menu bar on Mac
     setMenuBar(menubar->menuBar());
-#endif
+#endif /* Q_OS_MAC */
     menubar->appendGroup(Constants::G_FILE);
     menubar->appendGroup(Constants::G_EDIT);
     menubar->appendGroup(Constants::G_VIEW);
@@ -591,63 +628,10 @@ void MainWindow::registerDefaultActions()
     cmd->setDefaultKeySequence(QKeySequence(Qt::Key_Escape));
     connect(m_focusToEditor, SIGNAL(activated()), this, SLOT(setFocusToEditor()));
 
-    // New File Action
-
-    /*
-    m_newAction = new QAction(QIcon(Constants::ICON_NEWFILE), tr("&New File or Project..."), this);
-    cmd = am->registerAction(m_newAction, Constants::NEW, m_globalContext);
-    cmd->setDefaultKeySequence(QKeySequence::New);
-    mfile->addAction(cmd, Constants::G_FILE_NEW);
-    connect(m_newAction, SIGNAL(triggered()), this, SLOT(newFile()));
-*/
-
-    // Open Action
-/*
-    m_openAction = new QAction(QIcon(Constants::ICON_OPENFILE), tr("&Open File or Project..."), this);
-    cmd = am->registerAction(m_openAction, Constants::OPEN, m_globalContext);
-    cmd->setDefaultKeySequence(QKeySequence::Open);
-    mfile->addAction(cmd, Constants::G_FILE_OPEN);
-    connect(m_openAction, SIGNAL(triggered()), this, SLOT(openFile()));
-*/
-
-    // Open With Action
-/*
-    m_openWithAction = new QAction(tr("&Open File With..."), this);
-    cmd = am->registerAction(m_openWithAction, Constants::OPEN_WITH, m_globalContext);
-    mfile->addAction(cmd, Constants::G_FILE_OPEN);
-    connect(m_openWithAction, SIGNAL(triggered()), this, SLOT(openFileWith()));
-*/
-
-        // File->Recent Files Menu
-/*
-    ActionContainer *ac = am->createMenu(Constants::M_FILE_RECENTFILES);
-    mfile->addMenu(ac, Constants::G_FILE_OPEN);
-    ac->menu()->setTitle(tr("Recent Files"));
-*/
-/*
-    // Save Action
-    QAction *tmpaction = new QAction(QIcon(Constants::ICON_SAVEFILE), tr("&Save"), this);
-    cmd = am->registerAction(tmpaction, Constants::SAVE, m_globalContext);
-    cmd->setDefaultKeySequence(QKeySequence::Save);
-    cmd->setAttribute(Command::CA_UpdateText);
-    cmd->setDefaultText(tr("&Save"));
-    mfile->addAction(cmd, Constants::G_FILE_SAVE);
-
-    // Save As Action
-    tmpaction = new QAction(tr("Save &As..."), this);
-    cmd = am->registerAction(tmpaction, Constants::SAVEAS, m_globalContext);
-#ifdef Q_WS_MAC
-    cmd->setDefaultKeySequence(QKeySequence(tr("Ctrl+Shift+S")));
-#endif
-    cmd->setAttribute(Command::CA_UpdateText);
-    cmd->setDefaultText(tr("Save &As..."));
-    mfile->addAction(cmd, Constants::G_FILE_SAVE);
-    */
-
     // SaveAll Action
     m_saveAllAction = new QAction(tr("Save &GCS Default Settings"), this);
     cmd = am->registerAction(m_saveAllAction, Constants::SAVEALL, m_globalContext);
-#ifndef Q_WS_MAC
+#ifndef Q_OS_MAC
     cmd->setDefaultKeySequence(QKeySequence(tr("Ctrl+Shift+S")));
 #endif
     mfile->addAction(cmd, Constants::G_FILE_SAVE);
@@ -709,14 +693,14 @@ void MainWindow::registerDefaultActions()
     // Options Action
     m_optionsAction = new QAction(QIcon(Constants::ICON_OPTIONS), tr("&Options..."), this);
     cmd = am->registerAction(m_optionsAction, Constants::OPTIONS, m_globalContext);
-#ifdef Q_WS_MAC
+#ifdef Q_OS_MAC
     cmd->setDefaultKeySequence(QKeySequence("Ctrl+,"));
     cmd->action()->setMenuRole(QAction::PreferencesRole);
 #endif
     mtools->addAction(cmd, Constants::G_DEFAULT_THREE);
     connect(m_optionsAction, SIGNAL(triggered()), this, SLOT(showOptionsDialog()));
 
-#ifdef Q_WS_MAC
+#ifdef Q_OS_MAC
     // Minimize Action
     m_minimizeAction = new QAction(tr("Minimize"), this);
     cmd = am->registerAction(m_minimizeAction, Constants::MINIMIZE_WINDOW, m_globalContext);
@@ -735,7 +719,7 @@ void MainWindow::registerDefaultActions()
     mwindow->addAction(cmd, Constants::G_WINDOW_SIZE);
 #endif
 
-#ifndef Q_WS_MAC
+#ifndef Q_OS_MAC
     // Full Screen Action
     m_toggleFullScreenAction = new QAction(tr("Full Screen"), this);
     m_toggleFullScreenAction->setCheckable(true);
@@ -753,7 +737,7 @@ void MainWindow::registerDefaultActions()
     //Window menu separators
     QAction *tmpaction1 = new QAction(this);
     tmpaction1->setSeparator(true);
-    cmd = am->registerAction(tmpaction1, QLatin1String("OpenPilot.Window.Sep.Split"), uavGadgetManagerContext);
+    cmd = am->registerAction(tmpaction1, QLatin1String("GCS.Window.Sep.Split"), uavGadgetManagerContext);
     mwindow->addAction(cmd, Constants::G_WINDOW_HIDE_TOOLBAR);
 
     m_showToolbarsAction = new QAction(tr("Edit Gadgets Mode"), this);
@@ -765,10 +749,10 @@ void MainWindow::registerDefaultActions()
     //Window menu separators
     QAction *tmpaction2 = new QAction(this);
     tmpaction2->setSeparator(true);
-    cmd = am->registerAction(tmpaction2, QLatin1String("OpenPilot.Window.Sep.Split2"), uavGadgetManagerContext);
+    cmd = am->registerAction(tmpaction2, QLatin1String("GCS.Window.Sep.Split2"), uavGadgetManagerContext);
     mwindow->addAction(cmd, Constants::G_WINDOW_SPLIT);
 
-#ifdef Q_WS_MAC
+#ifdef Q_OS_MAC
     QString prefix = tr("Meta+Shift");
 #else
     QString prefix = tr("Ctrl+Shift");
@@ -807,7 +791,7 @@ void MainWindow::registerDefaultActions()
     connect(tmpaction, SIGNAL(triggered()), this,  SLOT(showHelp()));
 
     // About sep
-#ifndef Q_WS_MAC // doesn't have the "About" actions in the Help menu
+#ifndef Q_OS_MAC // doesn't have the "About" actions in the Help menu
     tmpaction = new QAction(this);
     tmpaction->setSeparator(true);
     cmd = am->registerAction(tmpaction, QLatin1String("QtCreator.Help.Sep.About"), m_globalContext);
@@ -819,34 +803,34 @@ void MainWindow::registerDefaultActions()
     cmd = am->registerAction(tmpaction, Constants::ABOUT_PLUGINS, m_globalContext);
     mhelp->addAction(cmd, Constants::G_HELP_ABOUT);
     tmpaction->setEnabled(true);
-#ifdef Q_WS_MAC
+#ifdef Q_OS_MAC
     cmd->action()->setMenuRole(QAction::ApplicationSpecificRole);
 #endif
     connect(tmpaction, SIGNAL(triggered()), this,  SLOT(aboutPlugins()));
 
     // About GCS Action
-#ifdef Q_WS_MAC
-    tmpaction = new QAction(QIcon(Constants::ICON_TAULABS), tr("About &Tau Labs GCS"), this); // it's convention not to add dots to the about menu
+#ifdef Q_OS_MAC
+    tmpaction = new QAction(QIcon(Constants::ICON_GCS), tr("About &GCS"), this); // it's convention not to add dots to the about menu
 #else
-    tmpaction = new QAction(QIcon(Constants::ICON_TAULABS), tr("About &Tau Labs GCS..."), this);
+    tmpaction = new QAction(QIcon(Constants::ICON_GCS), tr("About &GCS..."), this);
 #endif
-    cmd = am->registerAction(tmpaction, Constants::ABOUT_TAULABSGCS, m_globalContext);
+    cmd = am->registerAction(tmpaction, Constants::ABOUT_GCS, m_globalContext);
     mhelp->addAction(cmd, Constants::G_HELP_ABOUT);
     tmpaction->setEnabled(true);
-#ifdef Q_WS_MAC
+#ifdef Q_OS_MAC
     cmd->action()->setMenuRole(QAction::ApplicationSpecificRole);
 #endif
-    connect(tmpaction, SIGNAL(triggered()), this,  SLOT(aboutTauLabsGCS()));
+    connect(tmpaction, SIGNAL(triggered()), this,  SLOT(aboutGCS()));
 
     //Credits Action
     tmpaction = new QAction(QIcon(Constants::ICON_PLUGIN), tr("About &Authors..."), this);
     cmd = am->registerAction(tmpaction, Constants::ABOUT_AUTHORS, m_globalContext);
     mhelp->addAction(cmd, Constants::G_HELP_ABOUT);
     tmpaction->setEnabled(true);
-#ifdef Q_WS_MAC
+#ifdef Q_OS_MAC
     cmd->action()->setMenuRole(QAction::ApplicationSpecificRole);
 #endif
-    connect(tmpaction, SIGNAL(triggered()), this,  SLOT(aboutTauLabsAuthors()));
+    connect(tmpaction, SIGNAL(triggered()), this,  SLOT(aboutAuthors()));
 
 
 }
@@ -858,42 +842,6 @@ void MainWindow::newFile()
 void MainWindow::openFile()
 {
 }
-
-/*static QList<IFileFactory*> getNonEditorFileFactories()
-{
-    QList<IFileFactory*> tmp;
-    return tmp;
-}
-
-static IFileFactory *findFileFactory(const QList<IFileFactory*> &fileFactories,
-                                     const MimeDatabase *db,
-                                     const QFileInfo &fi)
-{
-    if (const MimeType mt = db->findByFile(fi)) {
-        const QString type = mt.type();
-        foreach (IFileFactory *factory, fileFactories) {
-            if (factory->mimeTypes().contains(type))
-                return factory;
-        }
-    }
-    return 0;
-}
-
-// opens either an editor or loads a project
-void MainWindow::openFiles(const QStringList &fileNames)
-{
-    QList<IFileFactory*> nonEditorFileFactories = getNonEditorFileFactories();
-
-    foreach (const QString &fileName, fileNames) {
-        const QFileInfo fi(fileName);
-        const QString absoluteFilePath = fi.absoluteFilePath();
-        if (IFileFactory *fileFactory = findFileFactory(nonEditorFileFactories, mimeDatabase(), fi)) {
-            fileFactory->open(absoluteFilePath);
-        } else {
-
-        }
-    }
-}*/
 
 void MainWindow::setFocusToEditor()
 {
@@ -916,7 +864,7 @@ void MainWindow::saveAll()
     if ( m_dontSaveSettings) return;
 
     emit m_coreImpl->saveSettingsRequested();
-    saveSettings(); // TauLabs-specific.
+    saveSettings();
 }
 
 void MainWindow::exit()
@@ -973,11 +921,6 @@ QSettings *MainWindow::settings(QSettings::Scope scope) const
         return m_globalSettings;
 }
 
-VariableManager *MainWindow::variableManager() const
-{
-     return m_variableManager;
-}
-
 ThreadManager *MainWindow::threadManager() const
 {
      return m_threadManager;
@@ -1007,11 +950,6 @@ UAVGadgetInstanceManager *MainWindow::uavGadgetInstanceManager() const
 ModeManager *MainWindow::modeManager() const
 {
     return m_modeManager;
-}
-
-MimeDatabase *MainWindow::mimeDatabase() const
-{
-    return m_mimeDatabase;
 }
 
 GeneralSettings * MainWindow::generalSettings() const
@@ -1059,7 +997,7 @@ void MainWindow::changeEvent(QEvent *e)
             emit windowActivated();
         }
     } else if (e->type() == QEvent::WindowStateChange) {
-#ifdef Q_WS_MAC
+#ifdef Q_OS_MAC
         bool minimized = isMinimized();
         if (debugMainWindow)
             qDebug() << "main window state changed to minimized=" << minimized;
@@ -1227,6 +1165,7 @@ void MainWindow::readSettings(QSettings* qs, bool workspaceDiffOnly)
     }
 
     m_generalSettings->readSettings(qs);
+    QNetworkProxy::setApplicationProxy (m_generalSettings->getNetworkProxy());
     m_actionManager->readSettings(qs);
 
     qs->beginGroup(QLatin1String(settingsGroup));
@@ -1355,8 +1294,16 @@ void MainWindow::saveSettings(IConfigurablePlugin* plugin, QSettings* qs)
 
 void MainWindow::deleteSettings()
 {
+    // Clear the in-memory settings
     m_settings->clear();
     m_settings->sync();
+
+    // Clear the on-disk settings
+    QSettings originalSettings(Utils::PathUtils().getSettingsFilename(), XmlConfig::XmlSettingsFormat, this);
+    originalSettings.clear();
+    originalSettings.sync();
+
+    // Don't save the settings when exiting
     m_dontSaveSettings = true;
 }
 
@@ -1426,7 +1373,7 @@ void MainWindow::openRecentFile()
     }
 }
 
-void MainWindow::aboutTauLabsGCS()
+void MainWindow::aboutGCS()
 {
     if (!m_versionDialog) {
         m_versionDialog = new VersionDialog(this);
@@ -1444,7 +1391,7 @@ void MainWindow::destroyVersionDialog()
     }
 }
 
-void MainWindow::aboutTauLabsAuthors()
+void MainWindow::aboutAuthors()
 {
     if (!m_authorsDialog) {
         m_authorsDialog = new AuthorsDialog(this);

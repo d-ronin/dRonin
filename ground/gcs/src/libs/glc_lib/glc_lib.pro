@@ -1,18 +1,16 @@
 TEMPLATE = lib
 TARGET = GLC_lib
-DEFINES += GLC_LIB_LIBRARY
-include(../../taulabslibrary.pri)
-
-# GLC_lib qmake configuration
-#TEMPLATE = lib
-QT += opengl \
-    core
-
-
-CONFIG += exceptions \
-    warn_on
-#TARGET = GLC_lib
 #VERSION = 2.2.0
+
+DEFINES += GLC_LIB_LIBRARY
+
+include(../../gcslibrary.pri)
+include(../../libs/quazip/quazip.pri)
+
+QT += core opengl
+
+# disable all warnings (no need for warnings as glc sources are imported)
+CONFIG += exceptions warn_off
 
 DEFINES += CREATE_GLC_LIB_DLL
 DEFINES += LIB3DS_EXPORTS
@@ -24,20 +22,12 @@ unix:MOC_DIR = ./Build
 unix:UI_DIR = ./Build
 
 DEPENDPATH += .
-INCLUDEPATH *= .
-INCLUDEPATH *= ./3rdparty/zlib
+INCLUDEPATH += .
+INCLUDEPATH += ./3rdparty/zlib
 
 RESOURCES += glc_lib.qrc
 
 # Input					
-HEADERS_QUAZIP +=	3rdparty/quazip/crypt.h \
-					3rdparty/quazip/ioapi.h \
-					3rdparty/quazip/quazip.h \
-					3rdparty/quazip/quazipfile.h \
-					3rdparty/quazip/quazipfileinfo.h \
-					3rdparty/quazip/quazipnewinfo.h \
-					3rdparty/quazip/unzip.h \
-					3rdparty/quazip/zip.h
 
 HEADERS_LIB3DS += 3rdparty/lib3ds/atmosphere.h \
            3rdparty/lib3ds/background.h \
@@ -82,6 +72,7 @@ HEADERS_GLC_IO +=		io/glc_objmtlloader.h \
 						io/glc_3dxmltoworld.h \
 						io/glc_colladatoworld.h \
 						io/glc_worldto3dxml.h \
+						io/glc_worldto3ds.h \
 						io/glc_bsreptoworld.h \
 						io/glc_xmlutil.h \
 						io/glc_fileloader.h \
@@ -122,14 +113,16 @@ HEADERS_GLC_GEOMETRY +=		geometry/glc_geometry.h \
 							geometry/glc_disc.h \
 							geometry/glc_cone.h \
 							geometry/glc_sphere.h \
-							geometry/glc_pointcloud.h
+							geometry/glc_pointcloud.h \
+							geometry/glc_extrudedmesh.h
 
 HEADERS_GLC_SHADING +=	shading/glc_material.h \						
 						shading/glc_texture.h \
 						shading/glc_shader.h \
 						shading/glc_selectionmaterial.h \
 						shading/glc_light.h \
-						shading/glc_renderproperties.h
+						shading/glc_renderproperties.h \
+						shading/glc_renderer.h
 						
 HEADERS_GLC_VIEWPORT +=	viewport/glc_camera.h \
 						viewport/glc_imageplane.h \
@@ -181,28 +174,9 @@ HEADERS_GLC_3DWIDGET += 3DWidget/glc_3dwidget.h \
 
 HEADERS_GLC_GLU +=	glu/glc_glu.h
 
-HEADERS += $${HEADERS_QUAZIP} $${HEADERS_LIB3DS} $${HEADERS_GLC_MATHS} $${HEADERS_GLC_IO}
+HEADERS += $${HEADERS_LIB3DS} $${HEADERS_GLC_MATHS} $${HEADERS_GLC_IO}
 HEADERS += $${HEADERS_GLC} $${HEADERS_GLEXT} $${HEADERS_GLC_SCENEGRAPH} $${HEADERS_GLC_GEOMETRY}
 HEADERS += $${HEADERS_GLC_SHADING} $${HEADERS_GLC_VIEWPORT} $${HEADERS_GLC_3DWIDGET} $${HEADERS_GLC_GLU}
-		   
-SOURCES += 3rdparty/zlib/adler32.c \
-           3rdparty/zlib/compress.c \
-           3rdparty/zlib/crc32.c \
-           3rdparty/zlib/deflate.c \
-           3rdparty/zlib/gzio.c \
-           3rdparty/zlib/inffast.c \
-           3rdparty/zlib/inflate.c \
-           3rdparty/zlib/inftrees.c \
-           3rdparty/zlib/trees.c \
-           3rdparty/zlib/uncompr.c \
-           3rdparty/zlib/zutil.c
-
-SOURCES += 3rdparty/quazip/ioapi.c \
-           3rdparty/quazip/quazip.cpp \
-           3rdparty/quazip/quazipfile.cpp \
-           3rdparty/quazip/quazipnewinfo.cpp \
-           3rdparty/quazip/unzip.c \
-           3rdparty/quazip/zip.c
 
 SOURCES += 3rdparty/lib3ds/atmosphere.c \
            3rdparty/lib3ds/background.c \
@@ -238,6 +212,7 @@ SOURCES +=	io/glc_objmtlloader.cpp \
 			io/glc_3dxmltoworld.cpp \
 			io/glc_colladatoworld.cpp \
 			io/glc_worldto3dxml.cpp \
+			io/glc_worldto3ds.cpp \
 			io/glc_bsreptoworld.cpp \
 			io/glc_fileloader.cpp
 
@@ -275,7 +250,8 @@ SOURCES +=	geometry/glc_geometry.cpp \
 			geometry/glc_disc.cpp \
 			geometry/glc_cone.cpp \
 			geometry/glc_sphere.cpp \
-			geometry/glc_pointcloud.cpp
+			geometry/glc_pointcloud.cpp \
+			geometry/glc_extrudedmesh.cpp
 
 
 SOURCES +=	shading/glc_material.cpp \
@@ -283,7 +259,8 @@ SOURCES +=	shading/glc_material.cpp \
 			shading/glc_light.cpp \
 			shading/glc_selectionmaterial.cpp \
 			shading/glc_shader.cpp \
-			shading/glc_renderproperties.cpp
+			shading/glc_renderproperties.cpp \
+			shading/glc_renderer.cpp
 
 SOURCES +=	viewport/glc_camera.cpp \
 			viewport/glc_imageplane.cpp \
@@ -416,6 +393,7 @@ HEADERS_INST = include/GLC_BoundingBox \
     		   include/GLC_FlyMover \
     		   include/GLC_RepFlyMover \
     		   include/GLC_WorldTo3dxml \
+    		   include/GLC_WorldTo3ds \
     		   include/GLC_RenderStatistics \
     		   include/GLC_Ext \
     		   include/GLC_Cone \
@@ -435,7 +413,9 @@ HEADERS_INST = include/GLC_BoundingBox \
     		   include/GLC_TsrMover \
     		   include/GLC_Glu \
     		   include/GLC_Context \
-    		   include/GLC_ContextManager
+    		   include/GLC_ContextManager \
+    		   include/GLC_Renderer \
+    		   include/GLC_ExtrudedMesh
 
     			   
 # Linux and macx install configuration
@@ -481,7 +461,6 @@ win32 {
 include.files = $${HEADERS_GLC} $${HEADERS_INST}
 include_lib3ds.files = $${HEADERS_LIB3DS}
 include_glext.files =$${HEADERS_GLEXT}
-include_quazip.files = $${HEADERS_QUAZIP}
 include_glc_maths.files= $${HEADERS_GLC_MATHS}
 include_glc_io.files= $${HEADERS_GLC_IO}
 include_glc_scengraph.files= $${HEADERS_GLC_SCENEGRAPH}
@@ -499,7 +478,8 @@ INSTALLS += include_lib3ds include_glext include_quazip include_glc_maths includ
 INSTALLS += include_glc_scengraph include_glc_geometry include_glc_shading include_glc_viewport
 INSTALLS += include_glc_3dwidget include_glc_glu
 
-INSTALLS += target
+# workaround to avoid target being added a second time due to ../../gcslibrary.pri
+!contains(INSTALLS,target):INSTALLS += target
 INSTALLS +=include
 
 OTHER_FILES += \
@@ -509,3 +489,7 @@ OTHER_FILES += \
     qtc_packaging/debian_harmattan/control \
     qtc_packaging/debian_harmattan/compat \
     qtc_packaging/debian_harmattan/changelog
+
+win32 {
+    LIBS += -lopengl32
+}

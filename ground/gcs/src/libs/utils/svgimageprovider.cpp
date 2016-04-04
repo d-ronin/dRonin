@@ -7,7 +7,7 @@
  * @{
  * @addtogroup OPMapPlugin QML Viewer Plugin
  * @{
- * @brief Svg declarative image provider
+ * @brief Svg QtQuick image provider
  *****************************************************************************/
 /*
  * This program is free software; you can redistribute it and/or modify
@@ -29,10 +29,11 @@
 #include <QDebug>
 #include <QPainter>
 #include <QUrl>
+#include <QFileInfo>
 
 SvgImageProvider::SvgImageProvider(const QString &basePath):
     QObject(),
-    QDeclarativeImageProvider(QDeclarativeImageProvider::Image),
+    QQuickImageProvider(QQuickImageProvider::Image),
     m_basePath(basePath)
 {
 }
@@ -44,18 +45,25 @@ SvgImageProvider::~SvgImageProvider()
 
 QSvgRenderer *SvgImageProvider::loadRenderer(const QString &svgFile)
 {
-    QSvgRenderer *renderer = m_renderers.value(svgFile);
+    QSvgRenderer *renderer = m_renderers.value(svgFile, NULL);
     if (!renderer) {
-        renderer = new QSvgRenderer(svgFile);
+        QString fn = svgFile;
 
-        QString fn = QUrl::fromLocalFile(m_basePath).resolved(svgFile).toLocalFile();
+        if(!QFileInfo::exists(fn)) {
+            //convert path to be relative to base
+            fn = QUrl::fromLocalFile(m_basePath).resolved(svgFile).toLocalFile();
+        }
 
-        //convert path to be relative to base
-        if (!renderer->isValid())
-            renderer->load(fn);
+        if(!QFileInfo::exists(fn)) {
+            //it's really missing this time
+            qWarning() << "[SvgImageProvider::loadRenderer]SVG file not found:" << svgFile;
+            return 0;
+        }
+
+        renderer = new QSvgRenderer(fn);
 
         if (!renderer->isValid()) {
-            qWarning() << "Failed to load svg file:" << svgFile << fn;
+            qWarning() << "[SvgImageProvider::loadRenderer]Failed to load svg file:" << svgFile;
             delete renderer;
             return 0;
         }

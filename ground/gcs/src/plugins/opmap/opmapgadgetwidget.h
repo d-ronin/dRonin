@@ -34,8 +34,8 @@
 
 #include "modelmapproxy.h"
 
-#include <QtGui/QWidget>
-#include <QtGui/QMenu>
+#include <QWidget>
+#include <QMenu>
 #include <QStringList>
 #include <QStandardItemModel>
 #include <QList>
@@ -107,7 +107,6 @@ public:
     void setZoom(int zoom);
     void setPosition(QPointF pos);
     void setMapProvider(QString provider);
-    void setUseOpenGL(bool useOpenGL);
     void setShowTileGridLines(bool showTileGridLines);
     void setAccessMode(QString accessMode);
     void setUseMemoryCache(bool useMemoryCache);
@@ -240,8 +239,8 @@ private:
     Ui::OPMap_Widget *m_widget;
     mapcontrol::TLMapWidget *m_map;
 	ExtensionSystem::PluginManager *pm;
-	UAVObjectManager *obm;
-	UAVObjectUtilManager *obum;
+	UAVObjectManager *uavo_mgr;
+	UAVObjectUtilManager *uavo_util_mgr;
 
     QStandardItemModel wayPoint_treeView_model;
     mapcontrol::WayPointItem *m_mouse_waypoint;
@@ -322,7 +321,6 @@ private:
     void setMapFollowingMode();
 
 	bool setHomeLocationObject();
-    QMenu contextMenu;
     internals::PointLatLng lastLatLngMouse;
     WayPointItem * magicWayPoint;
 

@@ -31,6 +31,7 @@
 #define INSGPS_H_
 
 #include "stdint.h"
+#include "stdbool.h"
 
 /**
   * @addtogroup Constants
@@ -39,8 +40,8 @@
 #define POS_SENSORS 0x007
 #define HORIZ_POS_SENSORS 0x003
 #define VERT_POS_SENSORS 0x004
-#define HORIZ_SENSORS 0x018
-#define VERT_SENSORS  0x020
+#define HORIZ_VEL_SENSORS 0x018
+#define VERT_VEL_SENSORS  0x020
 #define MAG_SENSORS 0x1C0
 #define BARO_SENSOR 0x200
 
@@ -67,16 +68,20 @@ void INSCovariancePrediction(float dT);
 void INSCorrection(const float mag_data[3], const float Pos[3], const float Vel[3], float BaroAlt, uint16_t SensorsUsed);
 
 //! Get the current state estimate
-void INSGetState(float *pos, float *vel, float *attitude, float *bias);
+void INSGetState(float *pos, float *vel, float *attitude, float *gyro_bias, float *accel_bias);
+
+//! Set the current flight state
+void INSSetArmed(bool armed);
 
 /****************************************************/
 /** These methods alter the behavior of the filter **/
 /****************************************************/
 
-void INSResetP(const float PDiag[13]);
+void INSResetP(const float *PDiag);
 void INSSetState(const float pos[3], const float vel[3], const float q[4], const float gyro_bias[3], const float accel_bias[3]);
 void INSSetPosVelVar(float PosVar, float VelVar, float VertPosVar);
 void INSSetGyroBias(const float gyro_bias[3]);
+void INSSetAccelBias(const float gyro_bias[3]);
 void INSSetAccelVar(const float accel_var[3]);
 void INSSetGyroVar(const float gyro_var[3]);
 void INSSetMagNorth(const float B[3]);
@@ -85,14 +90,6 @@ void INSSetBaroVar(float baro_var);
 void INSPosVelReset(const float pos[3], const float vel[3]);
 
 void INSGetVariance(float *p);
-
-void MagCorrection(const float mag_data[3]);
-void MagVelBaroCorrection(const float mag_data[3], const float Vel[3], float BaroAlt);
-void FullCorrection(const float mag_data[3], const float Pos[3], const float Vel[3],
-		    float BaroAlt);
-void GpsBaroCorrection(const float Pos[3], const float Vel[3], float BaroAlt);
-void GpsMagCorrection(const float mag_data[3], const float Pos[3], const float Vel[2]);
-void VelBaroCorrection(const float Vel[3], float BaroAlt);
 
 uint16_t ins_get_num_states();
 

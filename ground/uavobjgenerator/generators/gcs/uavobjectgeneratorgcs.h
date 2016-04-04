@@ -3,6 +3,7 @@
  *
  * @file       uavobjectgeneratorgcs.h
  * @author     The OpenPilot Team, http://www.openpilot.org Copyright (C) 2010.
+ * @author     dRonin, http://dronin.org Copyright (C) 2015
  * @brief      produce gcs code for uavobjects
  *
  * @see        The GNU Public License (GPL) Version 3
@@ -38,9 +39,12 @@ public:
 
 private:
     bool process_object(ObjectInfo* info);
+    QString form_enum_name(const QString& objectName,
+            const QString& fieldName, const QString& option);
+    QString escape_raw_string(QString raw);
 
     QString gcsCodeTemplate,gcsIncludeTemplate;
-    QStringList fieldTypeStrCPP,fieldTypeStrCPPClass;
+    QStringList fieldTypeStrCPP, fieldTypeStrQML,fieldTypeStrCPPClass;
     QDir gcsCodePath;
     QDir gcsOutputPath;
 };

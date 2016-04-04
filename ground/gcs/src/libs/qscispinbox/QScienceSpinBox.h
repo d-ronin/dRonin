@@ -4,15 +4,21 @@
 #ifndef __QScienceSpinBox_H__
 #define __QScienceSpinBox_H__
 
-#include <QtGui/QDoubleSpinBox>
-#include <QtGui/QDoubleValidator>
-#include <QtGui/QLineEdit>
+#ifdef QSCIENCESPINBOX
+    #define QSCIENCESPINBOX_EXPORT Q_DECL_EXPORT
+#else
+    #define QSCIENCESPINBOX_EXPORT Q_DECL_IMPORT
+#endif
+
+#include <QtWidgets/QDoubleSpinBox>
+#include <QDoubleValidator>
+#include <QtWidgets/QLineEdit>
 #include <QtCore/QVariant>
 #include <QtCore/QDebug>
 #include <QtCore/QString>
 
 
-class QScienceSpinBox : public QDoubleSpinBox
+class QSCIENCESPINBOX_EXPORT QScienceSpinBox : public QDoubleSpinBox
 {
 Q_OBJECT
 public:

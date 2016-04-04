@@ -2,6 +2,7 @@
  ******************************************************************************
  *
  * @file       mytabbedstackwidget.cpp
+ * @author     dRonin, http://dRonin.org/, Copyright (C) 2016
  * @author     The OpenPilot Team, http://www.openpilot.org Copyright (C) 2010.
  *             Parts by Nokia Corporation (qt-info@nokia.com) Copyright (C) 2009.
  * @brief
@@ -24,11 +25,16 @@
  * You should have received a copy of the GNU General Public License along
  * with this program; if not, write to the Free Software Foundation, Inc.,
  * 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
+ *
+ * Additional note on redistribution: The copyright and license notices above
+ * must be maintained in each individual source file that is a derivative work
+ * of this source file; otherwise redistribution is prohibited.
  */
+
 #include "mytabbedstackwidget.h"
-#include <QtGui/QVBoxLayout>
-#include <QtGui/QHBoxLayout>
-#include <QtGui/QLabel>
+#include <QVBoxLayout>
+#include <QHBoxLayout>
+#include <QLabel>
 #include <QtCore/QDebug>
 
 MyTabbedStackWidget::MyTabbedStackWidget(QWidget *parent, bool isVertical, bool iconAbove)
@@ -36,8 +42,7 @@ MyTabbedStackWidget::MyTabbedStackWidget(QWidget *parent, bool isVertical, bool 
       m_vertical(isVertical),
       m_iconAbove(iconAbove)
 {
-    m_listWidget = new MyListWidget(this);
-    m_listWidget->setIconAbove(m_iconAbove);
+    m_listWidget = new QListWidget(this);
     m_stackWidget = new QStackedWidget();
     m_stackWidget->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
 
@@ -47,7 +52,7 @@ MyTabbedStackWidget::MyTabbedStackWidget(QWidget *parent, bool isVertical, bool 
         toplevelLayout->addWidget(m_listWidget);
         toplevelLayout->addWidget(m_stackWidget);
         m_listWidget->setFlow(QListView::TopToBottom);
-        m_listWidget->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Expanding);
+        m_listWidget->setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Expanding);
         m_listWidget->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
     } else {
         toplevelLayout = new QVBoxLayout;
@@ -59,13 +64,21 @@ MyTabbedStackWidget::MyTabbedStackWidget(QWidget *parent, bool isVertical, bool 
     }
 
     if (m_iconAbove && m_vertical) {
-        m_listWidget->setFixedWidth(90); // this should be computed instead
+        m_listWidget->setFixedWidth(91); // this should be computed instead
+        m_listWidget->setWrapping(false);
+        // make the scrollbar small and similar to OS X so it doesn't overlay the icons
+        m_listWidget->setStyleSheet(QString("QScrollBar:vertical { width: 6px; border-width: 0px; background: none; margin: 2px 0px 2px 0px; }"
+                                            "QScrollBar::handle:vertical { background: #5c5c5c; border-radius: 3px; }"
+                                            "QScrollBar::add-line:vertical { width: 0; height: 0; }"
+                                            "QScrollBar::sub-line:vertical { width: 0; height: 0 }"));
     }
 
     toplevelLayout->setSpacing(0);
     toplevelLayout->setContentsMargins(0, 0, 0, 0);
-    m_listWidget->setContentsMargins(0, 0, 0, 0);
-    m_listWidget->setSpacing(0);
+    m_listWidget->setContentsMargins(0, 0, 4, 0);
+    m_listWidget->setSizeAdjustPolicy(QAbstractScrollArea::AdjustToContents);
+    m_listWidget->setSpacing(4);
+    m_listWidget->setViewMode(QListView::IconMode);
     m_stackWidget->setContentsMargins(0, 0, 0, 0);
     setLayout(toplevelLayout);
 
@@ -77,7 +90,14 @@ void MyTabbedStackWidget::insertTab(const int index, QWidget *tab, const QIcon &
     tab->setContentsMargins(0, 0, 0, 0);
     m_stackWidget->insertWidget(index, tab);
     QListWidgetItem *item = new QListWidgetItem(icon, label);
+    item->setFlags(Qt::ItemIsEnabled | Qt::ItemIsSelectable);
+    item->setTextAlignment(Qt::AlignHCenter | Qt::AlignBottom);
     item->setToolTip(label);
+
+    if (m_vertical) {
+        item->setSizeHint(QSize(85, 82));
+    }
+
     m_listWidget->insertItem(index, item);
 }
 
@@ -125,3 +145,13 @@ void MyTabbedStackWidget::insertCornerWidget(int index, QWidget *widget)
     widget->hide();
 }
 
+void MyTabbedStackWidget::setHidden(int index, bool hide)
+{
+    QListWidgetItem *i = m_listWidget->item(index);
+
+    if (!i) {
+        return;
+    }
+
+    i->setHidden(hide);
+}

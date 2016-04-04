@@ -81,12 +81,6 @@ void PIOS_SYS_Init(void)
 */
 int32_t PIOS_SYS_Reset(void)
 {
-	/* Disable all RTOS tasks */
-#if defined(PIOS_INCLUDE_FREERTOS)
-	/* port specific FreeRTOS function to disable tasks (nested) */
-	portENTER_CRITICAL();
-#endif
-
 	// disable all interrupts
 	PIOS_IRQ_Disable();
 
@@ -106,14 +100,6 @@ int32_t PIOS_SYS_Reset(void)
 
 	/* We will never reach this point */
 	return -1;
-}
-
-/**
-* Returns the CPU's flash size (in bytes)
-*/
-uint32_t PIOS_SYS_getCPUFlashSize(void)
-{
-	return ((uint32_t) MEM16(0x1FFFF7E0) * 1000);
 }
 
 /**

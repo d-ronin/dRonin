@@ -3,6 +3,7 @@
  * @file       DefaultHwSettingsWidget.cpp
  * @author     The OpenPilot Team, http://www.openpilot.org Copyright (C) 2010.
  * @author     Tau Labs, http://taulabs.org, Copyright (C) 2012-2013
+ * @author     dRonin, http://dRonin.org/, Copyright (C) 2016
  * @addtogroup GCSPlugins GCS Plugins
  * @{
  * @addtogroup ConfigPlugin Config Plugin
@@ -23,62 +24,90 @@
  * You should have received a copy of the GNU General Public License along
  * with this program; if not, write to the Free Software Foundation, Inc.,
  * 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
+ *
+ * Additional note on redistribution: The copyright and license notices above
+ * must be maintained in each individual source file that is a derivative work
+ * of this source file; otherwise redistribution is prohibited.
  */
 #include "defaulthwsettingswidget.h"
-#include "hwfieldselector.h"
 #include <QMutexLocker>
 #include <QErrorMessage>
 #include <QDebug>
+#include <QLineEdit>
+#include <QComboBox>
+#include <QSpinBox>
+#include <QDoubleSpinBox>
 
 /**
  * @brief DefaultHwSettingsWidget::DefaultHwSettingsWidget Constructed when either a new
  * board connection is established or when there is no board
  * @param parent The main configuration widget
  */
-DefaultHwSettingsWidget::DefaultHwSettingsWidget(QWidget *parent, bool autopilotConnected) :
+DefaultHwSettingsWidget::DefaultHwSettingsWidget(UAVObject *settingsObj, QWidget *parent) :
         ConfigTaskWidget(parent),
-        defaultHWSettingsWidget(new Ui_defaulthwsettings),
-        hwSettingsObject(NULL),
-        settingSelected(false)
+        defaultHWSettingsWidget(new Ui_defaulthwsettings)
 {
+    Q_ASSERT(settingsObj);
+
     defaultHWSettingsWidget->setupUi(this);
 
-    //TODO: This is a bit ugly. It sets up a form with no elements. The
-    //result is that there is no formatting-- such as scrolling and stretching behavior--, so
-    //this has to be manually added in the code.
-    //Ideally, there would be a generic hardware page which is filled in either with a board-specific subform, or with
-    //generic elements based on the hardware UAVO.
-    fieldWidgets.clear();
+    QFormLayout *layout = qobject_cast<QFormLayout *>(defaultHWSettingsWidget->portSettingsFrame->layout());
+    QWidget *wdg;
+    QLabel *lbl;
 
-    bool unknown_board = true;
-    if (autopilotConnected){
-        addApplySaveButtons(defaultHWSettingsWidget->applyButton,defaultHWSettingsWidget->saveButton);
-        addReloadButton(defaultHWSettingsWidget->reloadButton, 0);
-
-        // Query the board plugin for the connected board to get the specific
-        // hw settings object
-        ExtensionSystem::PluginManager *pm = ExtensionSystem::PluginManager::instance();
-        if (pm != NULL) {
-             UAVObjectUtilManager* uavoUtilManager = pm->getObject<UAVObjectUtilManager>();
-             Core::IBoardType* board = uavoUtilManager->getBoardType();
-             if (board != NULL) {
-                 QString hwSwettingsObject = board->getHwUAVO();
-
-                 UAVObject *obj = getObjectManager()->getObject(hwSwettingsObject);
-                 if (obj != NULL) {
-                     unknown_board = false;
-                     qDebug() << "Checking object " << obj->getName();
-                     connect(obj,SIGNAL(transactionCompleted(UAVObject*,bool)), this, SLOT(settingsUpdated(UAVObject*,bool)));
-                     obj->requestUpdate();
-                 }
-             }
+    QList <UAVObjectField*> fields = settingsObj->getFields();
+    for (int i = 0; i < fields.size(); i++) {
+        switch (fields[i]->getType()) {
+        case UAVObjectField::BITFIELD:
+        case UAVObjectField::ENUM:
+            wdg = new QComboBox(this);
+            break;
+        case UAVObjectField::INT8:
+        case UAVObjectField::INT16:
+        case UAVObjectField::INT32:
+        case UAVObjectField::UINT8:
+        case UAVObjectField::UINT16:
+        case UAVObjectField::UINT32: {
+            QSpinBox *sbx = new QSpinBox(this);
+            if (fields[i]->getUnits().length())
+                sbx->setSuffix(QString(" %1").arg(fields[i]->getUnits()));
+            wdg = sbx;
+            break;
         }
+        case UAVObjectField::FLOAT32: {
+            QDoubleSpinBox *sbx = new QDoubleSpinBox(this);
+            if (fields[i]->getUnits().length())
+                sbx->setSuffix(QString(" %1").arg(fields[i]->getUnits()));
+            wdg = sbx;
+            break;
+        }
+        case UAVObjectField::STRING:
+            wdg = new QLineEdit(this);
+            break;
+        default:
+            continue;
+        }
+
+        QStringList objRelation;
+        objRelation.append(QString("objname:%1").arg(settingsObj->getName()));
+        objRelation.append(QString("fieldname:%1").arg(fields[i]->getName()));
+        objRelation.append(QString("buttongroup:1"));
+        objRelation.append(QString("haslimits:yes"));
+
+        wdg->setProperty("objrelation", objRelation);
+
+        lbl = new QLabel(fields[i]->getName(), this);
+        layout->addRow(lbl, wdg);
     }
 
-    if (unknown_board) {
-        QLabel *label = new QLabel("  No recognized board detected.\n  Hardware tab will refresh once a known board is detected.", this);
-        label->resize(385, 200);
-    }
+    autoLoadWidgets();
+    loadAllLimits();
+    populateWidgets();
+    refreshWidgetsValues();
+    enableControls(true);
+
+    // Have to force the form as clean (unedited by user) since refreshWidgetsValues forces it to dirty.
+    forceConnectedState();
 
     disableMouseWheelEvents();
 }
@@ -86,58 +115,4 @@ DefaultHwSettingsWidget::DefaultHwSettingsWidget(QWidget *parent, bool autopilot
 DefaultHwSettingsWidget::~DefaultHwSettingsWidget()
 {
     delete defaultHWSettingsWidget;
-}
-
-void DefaultHwSettingsWidget::settingsUpdated(UAVObject *obj, bool success)
-{
-    if (success && !settingSelected) {
-        qDebug() << "Selected object " << obj->getName();
-        settingSelected = true;
-
-        hwSettingsObject = obj;
-        updateFields();
-
-        QList<int> reloadGroups;
-        reloadGroups << 0;
-
-        addUAVObject(obj, &reloadGroups);
-        refreshWidgetsValues();
-
-        // Have to force the form as clean (unedited by user) since refreshWidgetsValues forces it to dirty.
-        setDirty(false);
-    }
-}
-
-/**
- * @brief DefaultHwSettingsWidget::updateFields Update the list of fields and show all of them
- * on the UI.  Connect each to the smart save system.
- */
-void DefaultHwSettingsWidget::updateFields()
-{
-    Q_ASSERT(settingSelected);
-    Q_ASSERT(hwSettingsObject != NULL);
-
-    QLayout *layout = defaultHWSettingsWidget->portSettingsFrame->layout();
-    for (int i = 0; i < fieldWidgets.size(); i++)
-        layout->removeWidget(fieldWidgets[i]);
-    fieldWidgets.clear();
-
-    QList <UAVObjectField*> fields = hwSettingsObject->getFields();
-    for (int i = 0; i < fields.size(); i++) {
-        if (fields[i]->getType() != UAVObjectField::ENUM)
-            continue;
-        HwFieldSelector *sel = new HwFieldSelector(this);
-        layout->addWidget(sel);
-        sel->setUavoField(fields[i]);
-        fieldWidgets.append(sel);
-        addUAVObjectToWidgetRelation(hwSettingsObject->getName(),fields[i]->getName(),sel->getCombo());
-    }
-
-    QBoxLayout *boxLayout = dynamic_cast<QBoxLayout *>(layout);
-    if (boxLayout) {
-        boxLayout->addStretch();
-    }
-
-    // Prevent mouse wheel from changing items
-    disableMouseWheelEvents();
 }

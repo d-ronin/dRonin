@@ -3,6 +3,7 @@
  *
  * @file       discoveryf4.cpp
  * @author     Tau Labs, http://taulabs.org, Copyright (C) 2013
+ * @author     dRonin, http://dronin.org Copyright (C) 2015
  *
  * @addtogroup GCSPlugins GCS Plugins
  * @{
@@ -62,18 +63,7 @@ QString DiscoveryF4::boardDescription()
 //! Return which capabilities this board has
 bool DiscoveryF4::queryCapabilities(BoardCapabilities capability)
 {
-    switch(capability) {
-    case BOARD_CAPABILITIES_GYROS:
-        return false;
-    case BOARD_CAPABILITIES_ACCELS:
-        return false;
-    case BOARD_CAPABILITIES_MAGS:
-        return false;
-    case BOARD_CAPABILITIES_BAROS:
-        return false;
-    case BOARD_CAPABILITIES_RADIO:
-        return false;
-    }
+    Q_UNUSED(capability);
     return false;
 }
 

@@ -1,14 +1,14 @@
-
 /**
  ******************************************************************************
  *
  * @file       uploaderplugin.cpp
- * @author     The OpenPilot Team, http://www.openpilot.org Copyright (C) 2010.
+ * @author     dRonin, http://dRonin.org/, Copyright (C) 2015
+ * @author     Tau Labs, http://taulabs.org, Copyright (C) 2014
  * @addtogroup GCSPlugins GCS Plugins
  * @{
- * @addtogroup YModemUploader YModem Serial Uploader Plugin
+ * @addtogroup  Uploader Uploader Plugin
  * @{
- * @brief The YModem protocol serial uploader plugin
+ * @brief The Tau Labs uploader plugin
  *****************************************************************************/
 /*
  * This program is free software; you can redistribute it and/or modify
@@ -30,7 +30,7 @@
 #include <QtPlugin>
 #include <QStringList>
 #include <extensionsystem/pluginmanager.h>
-
+#include <QTest>
 UploaderPlugin::UploaderPlugin()
 {
    // Do nothing
@@ -57,7 +57,10 @@ void UploaderPlugin::extensionsInitialized()
 
 void UploaderPlugin::shutdown()
 {
-   // Do nothing
+    // Do nothing
 }
-Q_EXPORT_PLUGIN(UploaderPlugin)
 
+void UploaderPlugin::testStuff()
+{
+    QCOMPARE(QString("hello").toUpper(), QString("HELLO"));
+}

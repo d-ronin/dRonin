@@ -6,26 +6,26 @@
  * @brief PIOS interface for USART port
  * @{
  *
- * @file       pios_usart.c   
+ * @file       pios_usart.c
  * @author     The OpenPilot Team, http://www.openpilot.org Copyright (C) 2012.
- * @author     Tau Labs, http://taulabs.org, Copyright (C) 2012-2013
+ * @author     Tau Labs, http://taulabs.org, Copyright (C) 2012-2014
  * @brief      USART commands. Inits USARTs, controls USARTs & Interupt handlers. (STM32 dependent)
  * @see        The GNU Public License (GPL) Version 3
  *
  *****************************************************************************/
-/* 
- * This program is free software; you can redistribute it and/or modify 
- * it under the terms of the GNU General Public License as published by 
- * the Free Software Foundation; either version 3 of the License, or 
+/*
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 3 of the License, or
  * (at your option) any later version.
- * 
- * This program is distributed in the hope that it will be useful, but 
- * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY 
- * or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License 
+ *
+ * This program is distributed in the hope that it will be useful, but
+ * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
+ * or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License
  * for more details.
- * 
- * You should have received a copy of the GNU General Public License along 
- * with this program; if not, write to the Free Software Foundation, Inc., 
+ *
+ * You should have received a copy of the GNU General Public License along
+ * with this program; if not, write to the Free Software Foundation, Inc.,
  * 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
  */
 
@@ -98,48 +98,96 @@ static uintptr_t PIOS_USART_1_id;
 void USART1_IRQHandler(void) __attribute__ ((alias ("PIOS_USART_1_irq_handler")));
 static void PIOS_USART_1_irq_handler (void)
 {
+#if defined(PIOS_INCLUDE_CHIBIOS)
+	CH_IRQ_PROLOGUE();
+#endif /* defined(PIOS_INCLUDE_CHIBIOS) */
+
 	PIOS_USART_generic_irq_handler (PIOS_USART_1_id);
+
+#if defined(PIOS_INCLUDE_CHIBIOS)
+	CH_IRQ_EPILOGUE();
+#endif /* defined(PIOS_INCLUDE_CHIBIOS) */
 }
 
 static uintptr_t PIOS_USART_2_id;
 void USART2_IRQHandler(void) __attribute__ ((alias ("PIOS_USART_2_irq_handler")));
 static void PIOS_USART_2_irq_handler (void)
 {
+#if defined(PIOS_INCLUDE_CHIBIOS)
+	CH_IRQ_PROLOGUE();
+#endif /* defined(PIOS_INCLUDE_CHIBIOS) */
+
 	PIOS_USART_generic_irq_handler (PIOS_USART_2_id);
+
+#if defined(PIOS_INCLUDE_CHIBIOS)
+	CH_IRQ_EPILOGUE();
+#endif /* defined(PIOS_INCLUDE_CHIBIOS) */
 }
 
 static uintptr_t PIOS_USART_3_id;
 void USART3_IRQHandler(void) __attribute__ ((alias ("PIOS_USART_3_irq_handler")));
 static void PIOS_USART_3_irq_handler (void)
 {
+#if defined(PIOS_INCLUDE_CHIBIOS)
+	CH_IRQ_PROLOGUE();
+#endif /* defined(PIOS_INCLUDE_CHIBIOS) */
+
 	PIOS_USART_generic_irq_handler (PIOS_USART_3_id);
+
+#if defined(PIOS_INCLUDE_CHIBIOS)
+	CH_IRQ_EPILOGUE();
+#endif /* defined(PIOS_INCLUDE_CHIBIOS) */
 }
 
 static uintptr_t PIOS_USART_4_id;
 void USART4_IRQHandler(void) __attribute__ ((alias ("PIOS_USART_4_irq_handler")));
 static void PIOS_USART_4_irq_handler (void)
 {
+#if defined(PIOS_INCLUDE_CHIBIOS)
+	CH_IRQ_PROLOGUE();
+#endif /* defined(PIOS_INCLUDE_CHIBIOS) */
+
 	PIOS_USART_generic_irq_handler (PIOS_USART_4_id);
+
+#if defined(PIOS_INCLUDE_CHIBIOS)
+	CH_IRQ_EPILOGUE();
+#endif /* defined(PIOS_INCLUDE_CHIBIOS) */
 }
 
 static uintptr_t PIOS_USART_5_id;
 void USART5_IRQHandler(void) __attribute__ ((alias ("PIOS_USART_5_irq_handler")));
 static void PIOS_USART_5_irq_handler (void)
 {
+#if defined(PIOS_INCLUDE_CHIBIOS)
+	CH_IRQ_PROLOGUE();
+#endif /* defined(PIOS_INCLUDE_CHIBIOS) */
+
 	PIOS_USART_generic_irq_handler (PIOS_USART_5_id);
+
+#if defined(PIOS_INCLUDE_CHIBIOS)
+	CH_IRQ_EPILOGUE();
+#endif /* defined(PIOS_INCLUDE_CHIBIOS) */
 }
 
 static uintptr_t PIOS_USART_6_id;
 void USART6_IRQHandler(void) __attribute__ ((alias ("PIOS_USART_6_irq_handler")));
 static void PIOS_USART_6_irq_handler (void)
 {
+#if defined(PIOS_INCLUDE_CHIBIOS)
+	CH_IRQ_PROLOGUE();
+#endif /* defined(PIOS_INCLUDE_CHIBIOS) */
+
 	PIOS_USART_generic_irq_handler (PIOS_USART_6_id);
+
+#if defined(PIOS_INCLUDE_CHIBIOS)
+	CH_IRQ_EPILOGUE();
+#endif /* defined(PIOS_INCLUDE_CHIBIOS) */
 }
 
 /**
 * Initialise a single USART device
 */
-int32_t PIOS_USART_Init(uintptr_t * usart_id, const struct pios_usart_cfg * cfg)
+int32_t PIOS_USART_Init(uintptr_t * usart_id, const struct pios_usart_cfg * cfg, struct pios_usart_params * params)
 {
 	PIOS_DEBUG_Assert(usart_id);
 	PIOS_DEBUG_Assert(cfg);
@@ -171,8 +219,14 @@ int32_t PIOS_USART_Init(uintptr_t * usart_id, const struct pios_usart_cfg * cfg)
 	if (usart_dev->cfg->tx.gpio != 0)
 		GPIO_Init(usart_dev->cfg->tx.gpio, (GPIO_InitTypeDef *)&usart_dev->cfg->tx.init);
 
+	/* Enable single wire mode if requested */
+	if (params->single_wire == true)
+		USART_HalfDuplexCmd(usart_dev->cfg->regs, ENABLE);
+	else
+		USART_HalfDuplexCmd(usart_dev->cfg->regs, DISABLE);
+
 	/* Configure the USART */
-	USART_Init(usart_dev->cfg->regs, (USART_InitTypeDef *)&usart_dev->cfg->init);
+	USART_Init(usart_dev->cfg->regs, (USART_InitTypeDef *)&params->init);
 
 	*usart_id = (uintptr_t)usart_dev;
 
@@ -245,11 +299,15 @@ static void PIOS_USART_ChangeBaud(uintptr_t usart_id, uint32_t baud)
 
 	USART_InitTypeDef USART_InitStructure;
 
-	/* Start with a copy of the default configuration for the peripheral */
-	USART_InitStructure = usart_dev->cfg->init;
-
 	/* Adjust the baud rate */
 	USART_InitStructure.USART_BaudRate = baud;
+
+	/* Get current parameters */
+	USART_InitStructure.USART_WordLength          = usart_dev->cfg->regs->CR1 &  (uint32_t)USART_CR1_M;
+	USART_InitStructure.USART_Parity              = usart_dev->cfg->regs->CR1 & ((uint32_t)USART_CR1_PCE  | (uint32_t)USART_CR1_PS);
+	USART_InitStructure.USART_StopBits            = usart_dev->cfg->regs->CR2 &  (uint32_t)USART_CR2_STOP;
+	USART_InitStructure.USART_HardwareFlowControl = usart_dev->cfg->regs->CR3 & ((uint32_t)USART_CR3_CTSE | (uint32_t)USART_CR3_RTSE);
+	USART_InitStructure.USART_Mode                = usart_dev->cfg->regs->CR1 & ((uint32_t)USART_CR1_TE   | (uint32_t)USART_CR1_RE) ;
 
 	/* Write back the new configuration */
 	USART_Init(usart_dev->cfg->regs, &USART_InitStructure);
@@ -326,10 +384,6 @@ static void PIOS_USART_generic_irq_handler(uintptr_t usart_id)
 			USART_ITConfig(usart_dev->cfg->regs, USART_IT_TXE, DISABLE);
 		}
 	}
-	
-#if defined(PIOS_INCLUDE_FREERTOS)
-	portEND_SWITCHING_ISR(rx_need_yield || tx_need_yield);
-#endif	/* PIOS_INCLUDE_FREERTOS */
 }
 
 #endif

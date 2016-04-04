@@ -1,6 +1,7 @@
 BOARD_TYPE          := 0x83
 BOARD_REVISION      := 0x01
-BOOTLOADER_VERSION  := 0x81
+# Previous version was 0x081, 0x082 introduces partition extensions and forced boot from bkp registers
+BOOTLOADER_VERSION  := 0x82
 HW_TYPE             := 0x00		# seems to be unused
 
 MCU                 := cortex-m4
@@ -9,8 +10,8 @@ BOARD               := STM32F30x_FLYINGF3
 MODEL               := HD
 MODEL_SUFFIX        := 
 
-OPENOCD_JTAG_CONFIG := stlink-v2.cfg
-OPENOCD_CONFIG      := stm32f3xx.stlink.cfg
+OPENOCD_JTAG_CONFIG ?= stlink-v2.cfg
+OPENOCD_CONFIG      := stm32f3x.cfg
 
 # Note: These must match the values in link_$(BOARD)_memory.ld
 BL_BANK_BASE        := 0x08000000  # Start of bootloader flash

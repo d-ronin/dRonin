@@ -2,6 +2,7 @@
  ******************************************************************************
  *
  * @file       uavgadgetmanager.cpp
+ * @author     dRonin, http://dRonin.org/, Copyright (C) 2015-2016
  * @author     The OpenPilot Team, http://www.openpilot.org Copyright (C) 2010.
  *             Parts by Nokia Corporation (qt-info@nokia.com) Copyright (C) 2009.
  * @addtogroup GCSPlugins GCS Plugins
@@ -24,6 +25,10 @@
  * You should have received a copy of the GNU General Public License along
  * with this program; if not, write to the Free Software Foundation, Inc.,
  * 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
+ *
+ * Additional note on redistribution: The copyright and license notices above
+ * must be maintained in each individual source file that is a derivative work
+ * of this source file; otherwise redistribution is prohibited.
  */
 
 #include "uavgadgetmanager.h"
@@ -40,8 +45,6 @@
 #include <coreplugin/actionmanager/actionmanager.h>
 #include <coreplugin/baseview.h>
 #include <coreplugin/imode.h>
-#include <coreplugin/settingsdatabase.h>
-#include <coreplugin/variablemanager.h>
 
 #include <extensionsystem/pluginmanager.h>
 
@@ -53,15 +56,15 @@
 #include <QtCore/QProcess>
 #include <QtCore/QSet>
 
-#include <QtGui/QAction>
-#include <QtGui/QApplication>
-#include <QtGui/QLayout>
-#include <QtGui/QMainWindow>
-#include <QtGui/QMenu>
-#include <QtGui/QMessageBox>
-#include <QtGui/QPushButton>
-#include <QtGui/QSplitter>
-#include <QtGui/QStackedLayout>
+#include <QAction>
+#include <QApplication>
+#include <QLayout>
+#include <QMainWindow>
+#include <QMenu>
+#include <QMessageBox>
+#include <QPushButton>
+#include <QSplitter>
+#include <QStackedLayout>
 
 Q_DECLARE_METATYPE(Core::IUAVGadget*)
 
@@ -70,13 +73,6 @@ using namespace Core::Internal;
 using namespace Utils;
 
 enum { debugUAVGadgetManager=0 };
-
-static inline ExtensionSystem::PluginManager *pluginManager()
-{
-    return ExtensionSystem::PluginManager::instance();
-}
-
-//===================UAVGadgetManager=====================
 
 UAVGadgetManager::UAVGadgetManager(ICore *core, QString name, QIcon icon, int priority, QString uniqueName, QWidget *parent) :
     m_showToolbars(true),
@@ -108,7 +104,7 @@ UAVGadgetManager::UAVGadgetManager(ICore *core, QString name, QIcon icon, int pr
             this, SLOT(modeChanged(Core::IMode*)));
 
     // other setup
-    m_splitterOrView = new SplitterOrView(this, 0);
+    m_splitterOrView = new SplitterOrView(this, 0, true);
 
     // SplitterOrView with 0 as gadget calls our setCurrentGadget, which relies on currentSplitterOrView(),
     // which needs our m_splitterorView to be set, which isn't set yet at that time.
@@ -139,6 +135,10 @@ void UAVGadgetManager::modeChanged(Core::IMode *mode)
 {
     if (mode != this)
         return;
+
+    if (!m_currentGadget) {
+        m_splitterOrView->view()->doReplaceGadget(0);
+    }
 
     m_currentGadget->widget()->setFocus();
     showToolbars(toolbarsShown());

@@ -30,13 +30,17 @@
 #include "uavobjectmanager.h"
 #include "uavobject.h"
 
+#include "actuatorcommand.h"
+
 #include <QDebug>
+
+const double VehicleConfig::mixerRange = 127.0;
 
 VehicleConfig::VehicleConfig(QWidget *parent) : ConfigTaskWidget(parent)
 {
     //Generate lists of mixerTypeNames, mixerVectorNames, channelNames
     channelNames << "None";
-    for (int i = 0; i < (int)(VehicleConfig::CHANNEL_NUMELEM); i++) {
+    for (int i = 0; i < (int)(ActuatorCommand::CHANNEL_NUMELEM); i++) {
         mixerTypes << QString("Mixer%1Type").arg(i+1);
         mixerVectors << QString("Mixer%1Vector").arg(i+1);
         channelNames << QString("Channel%1").arg(i+1);
@@ -124,7 +128,7 @@ void VehicleConfig::setComboCurrentIndex(QComboBox* box, int index)
 void VehicleConfig::enableComboBoxes(QWidget* owner, QString boxName, int boxCount, bool enable)
 {
     for (int i = 1; i <= boxCount; i++) {
-        QComboBox* box = qFindChild<QComboBox*>(owner, QString("%0%1").arg(boxName).arg(i));
+        QComboBox* box = owner->findChild<QComboBox*>(QString("%0%1").arg(boxName).arg(i));
         if (box)
             box->setEnabled(enable);
     }
@@ -179,7 +183,7 @@ void VehicleConfig::resetMixerVector(UAVDataObject* mixer, int channel)
 // Disable all servo/motor mixers (but keep camera and accessory ones)
 void VehicleConfig::resetMixers(UAVDataObject *mixer)
 {
-    for (int channel = 0; channel < (int)VehicleConfig::CHANNEL_NUMELEM; channel++) {
+    for (int channel = 0; channel < (int)ActuatorCommand::CHANNEL_NUMELEM; channel++) {
         QString type = getMixerType(mixer, channel);
         if ((type == mixerTypeDescriptions[MixerSettings::MIXER1TYPE_DISABLED]) || (type == mixerTypeDescriptions[MixerSettings::MIXER1TYPE_MOTOR]) || (type == mixerTypeDescriptions[MixerSettings::MIXER1TYPE_SERVO])) {
             setMixerType(mixer, channel, MixerSettings::MIXER1TYPE_DISABLED);
@@ -322,3 +326,26 @@ UAVObjectManager* VehicleConfig::getUAVObjectManager() {
     Q_ASSERT(objMngr);
     return objMngr;
 }
+
+/**
+ * Helper function:
+ * sets the text of QLabel widgets that are children of owner
+ * @param[in] owner The parent widget containing the target label widgets
+ * @param[in] boxName prefix for names of label widgets (suffix is a number)
+ * @param[in] labels The desired labels
+ */
+ void VehicleConfig::setLabelText(QWidget* owner, const QString &boxName, const QStringList &labels)
+ {
+    // set the desired labels
+    for (int i = 0; i < labels.length(); i++) {
+        QLabel* lbl = owner->findChild<QLabel*>(QString("%0%1").arg(boxName).arg(i + 1));
+        if (lbl)
+            lbl->setText(labels[i]);
+    }
+    // set the remainder of the labels blank
+    int i = labels.length();
+    while(QLabel* lbl = owner->findChild<QLabel*>(QString("%0%1").arg(boxName).arg(i + 1))) {
+        lbl->setText(QString(""));
+        i++;
+    }
+ }

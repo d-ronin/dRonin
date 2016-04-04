@@ -1,7 +1,8 @@
 /**
  ******************************************************************************
  * @file       pios_heap.c
- * @author     Tau Labs, http://taulabs.org, Copyright (C) 2013
+ * @author     dRonin, http://dRonin.org/, Copyright (C) 2015
+ * @author     Tau Labs, http://taulabs.org, Copyright (C) 2013-2014
  * @addtogroup PIOS PIOS Core hardware abstraction layer
  * @{
  * @addtogroup PIOS_HEAP Heap Allocation Abstraction
@@ -47,23 +48,13 @@ bool PIOS_heap_malloc_failed_p(void)
 	return malloc_failed_flag;
 }
 
-#if defined(PIOS_INCLUDE_FREERTOS)
-
-/*
- * Defining MPU_WRAPPERS_INCLUDED_FROM_API_FILE prevents task.h from redefining
- * all the API functions to use the MPU wrappers.  That should only be done when
- * task.h is included from an application file.
- * */
-#define MPU_WRAPPERS_INCLUDED_FROM_API_FILE
-#include "FreeRTOS.h"		/* needed by task.h */
-#include "task.h"		/* vTaskSuspendAll, xTaskResumeAll */
-#undef MPU_WRAPPERS_INCLUDED_FROM_API_FILE
-
-#endif	/* PIOS_INCLUDE_FREERTOS */
-
 void * PIOS_malloc(size_t size)
 {
-	void *buf = pvPortMalloc(size);
+#if defined(PIOS_INCLUDE_CHIBIOS)
+	void *buf = chHeapAlloc(NULL, size);
+#else
+#error "pios_heap requires PIOS_INCLUDE_CHIBIOS"
+#endif
 
 	if (buf == NULL)
 		malloc_failed_hook();
@@ -78,7 +69,25 @@ void * PIOS_malloc_no_dma(size_t size)
 
 void PIOS_free(void * buf)
 {
-	vPortFree(buf);
+#if defined(PIOS_INCLUDE_CHIBIOS)
+	chHeapFree(buf);
+#else
+#error "pios_heap requires PIOS_INCLUDE_CHIBIOS"
+#endif
+}
+
+void PIOS_heap_initialize_blocks(void)
+{
+}
+
+size_t PIOS_heap_get_free_size(void)
+{
+	return 4096;
+}
+
+size_t PIOS_fastheap_get_free_size(void)
+{
+	return 0;
 }
 
 /**

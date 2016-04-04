@@ -1,9 +1,23 @@
 # Toolchain prefix (i.e arm-elf- -> arm-elf-gcc.exe)
 TCHAIN_PREFIX ?= arm-none-eabi-
 
+CCACHE :=
+
+ifeq ($(FLIGHT_BUILD_CONF), debug)
+export DEBUG:=YES
+CCACHE := $(CCACHE_BIN)
+else ifeq ($(FLIGHT_BUILD_CONF), default)
+# In the default case, keep the old "DEBUG"  variable handling
+CCACHE := $(CCACHE_BIN)
+else ifeq ($(FLIGHT_BUILD_CONF), release)
+export DEBUG:=NO
+else
+$(error Only debug, release, or default allowed for FLIGHT_BUILD_CONF)
+endif
+
 # Define toolchain component names.
-CC      = $(TCHAIN_PREFIX)gcc
-CXX     = $(TCHAIN_PREFIX)g++
+CC      = $(CCACHE) $(TCHAIN_PREFIX)gcc
+CXX     = $(CCACHE) $(TCHAIN_PREFIX)g++
 AR      = $(TCHAIN_PREFIX)ar
 OBJCOPY = $(TCHAIN_PREFIX)objcopy
 OBJDUMP = $(TCHAIN_PREFIX)objdump
@@ -26,9 +40,9 @@ endif
 
 # Add a board designator to the terse message text
 ifeq ($(ENABLE_MSG_EXTRA),yes)
-	MSG_EXTRA := [$(BUILD_TYPE)|$(BOARD_SHORT_NAME)]
+	MSG_EXTRA = [$(BUILD_TYPE)|$(BOARD_SHORT_NAME)]
 else
-	MSG_BOARD :=
+	MSG_EXTRA :=
 endif
 
 # Define Messages
@@ -56,9 +70,11 @@ MSG_TLFIRMWARE       = ${quote} TLFW      $(MSG_EXTRA) ${quote}
 MSG_FWINFO           = ${quote} FWINFO    $(MSG_EXTRA) ${quote}
 MSG_JTAG_PROGRAM     = ${quote} JTAG-PGM  $(MSG_EXTRA) ${quote}
 MSG_JTAG_WIPE        = ${quote} JTAG-WIPE $(MSG_EXTRA) ${quote}
+MSG_JTAG_DEBUG       = ${quote} JTAG-DBG  $(MSG_EXTRA) ${quote}
 MSG_PADDING          = ${quote} PADDING   $(MSG_EXTRA) ${quote}
 MSG_FLASH_IMG        = ${quote} FLASH_IMG $(MSG_EXTRA) ${quote}
 MSG_GCOV             = ${quote} GCOV      $(MSG_EXTRA) ${quote}
+MSG_AR               = ${quote} AR        $(MSG_EXTRA) ${quote}
 
 toprel = $(subst $(realpath $(ROOT_DIR))/,,$(abspath $(1)))
 
@@ -111,12 +127,13 @@ endef
 #  $(1) = path to bin file
 #  $(2) = boardtype in hex
 #  $(3) = board revision in hex
+#  $(4) = address to pad firmware bin before appending info blob
 define TLFW_TEMPLATE
 FORCE:
 
 $(1).firmwareinfo.c: $(1) $(ROOT_DIR)/make/templates/firmwareinfotemplate.c FORCE
 	@echo $(MSG_FWINFO) $$(call toprel, $$@)
-	$(V1) python $(ROOT_DIR)/make/scripts/version-info.py \
+	$(V1) $(PYTHON) $(ROOT_DIR)/make/scripts/version-info.py \
 		--path=$(ROOT_DIR) \
 		--template=$(ROOT_DIR)/make/templates/firmwareinfotemplate.c \
 		--outfile=$$@ \
@@ -127,9 +144,16 @@ $(1).firmwareinfo.c: $(1) $(ROOT_DIR)/make/templates/firmwareinfotemplate.c FORC
 
 $(eval $(call COMPILE_C_TEMPLATE, $(1).firmwareinfo.c))
 
-$(OUTDIR)/$(notdir $(basename $(1))).tlfw : $(1) $(1).firmwareinfo.bin
+# This pads the bin up to the firmware description blob base
+# Required for boards which don't use the TL bootloader to put
+# the blob at the correct location, if pad location($(4)) is
+# less than bin length this is ineffective
+%.padded.bin: %.elf
+	$(V1) $(OBJCOPY) --pad-to=$(4) -O binary $$< $$@
+
+$(OUTDIR)/$(notdir $(basename $(1))).tlfw: $(1:.bin=.padded.bin) $(1).firmwareinfo.bin
 	@echo $(MSG_TLFIRMWARE) $$(call toprel, $$@)
-	$(V1) cat $(1) $(1).firmwareinfo.bin > $$@
+	$(V1) cat $$^ > $$@
 endef
 
 # Assemble: create object files from assembler source files.
@@ -245,11 +269,7 @@ program: $(1)
 	@echo $(MSG_JTAG_PROGRAM) $$(call toprel, $$<)
 	$(V1) $(OOCD_EXE) \
 		$$(OOCD_JTAG_SETUP) \
-		$$(OOCD_BOARD_RESET) \
-		-c "flash write_image erase $$< $(2) bin" \
-		-c "verify_image $$< $(2) bin" \
-		-c "reset run" \
-		-c "shutdown"
+		-c "program $$< verify reset exit"
 
 .PHONY: wipe
 wipe:
@@ -260,7 +280,16 @@ wipe:
 		-c "flash erase_address pad $(2) $(3)" \
 		-c "reset run" \
 		-c "shutdown"
-endef
+
+.PHONY: debug
+debug: $(1)
+	@echo $(MSG_JTAG_DEBUG) $$(call toprel, $$<)
+	$(V1) $(OOCD_EXE) \
+		$$(OOCD_JTAG_SETUP) \
+		-c "program $$< verify"
+		-c "reset init"
+
+endef # JTAG_TEMPLATE
 
 # Generate GCOV summary
 #  $(1) = name of source file to analyze with gcov
@@ -272,3 +301,4 @@ $(OUTDIR)/$(1).gcov: $(OUTDIR)/$$(basename $(1)).gcda
 	  $(GCOV) $(1) 2>&1 > /dev/null ; \
 	)
 endef
+

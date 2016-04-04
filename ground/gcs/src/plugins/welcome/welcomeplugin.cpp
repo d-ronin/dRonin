@@ -4,6 +4,7 @@
  * @file       welcomeplugin.cpp
  * @author     The OpenPilot Team, http://www.openpilot.org Copyright (C) 2010.
  *             Parts by Nokia Corporation (qt-info@nokia.com) Copyright (C) 2009.
+ * @author     dRonin, http://dronin.org Copyright (C) 2015
  * @addtogroup GCSPlugins GCS Plugins
  * @{
  * @addtogroup WelcomePlugin Welcome Plugin
@@ -39,10 +40,10 @@
 
 #include <QtCore/QDebug>
 #include <QtCore/QtPlugin>
-#include <QtGui/QAction>
-#include <QtGui/QMenu>
-#include <QtGui/QMessageBox>
-#include <QtGui/QPushButton>
+#include <QAction>
+#include <QMenu>
+#include <QMessageBox>
+#include <QPushButton>
 
 using namespace Welcome::Internal;
 
@@ -55,7 +56,7 @@ WelcomePlugin::~WelcomePlugin()
 {
     if (m_welcomeMode) {
         removeObject(m_welcomeMode);
-        delete m_welcomeMode;
+        m_welcomeMode->deleteLater();
     }
 }
 
@@ -91,5 +92,3 @@ void WelcomePlugin::extensionsInitialized()
 {
     Core::ModeManager::instance()->activateMode(m_welcomeMode->uniqueModeName());
 }
-
-Q_EXPORT_PLUGIN(WelcomePlugin)

@@ -114,6 +114,7 @@ private:
 class LoggingPlugin : public ExtensionSystem::IPlugin
 {
     Q_OBJECT
+    Q_PLUGIN_METADATA(IID "org.dronin.plugins.LoggingGadget")
 
 public:
     LoggingPlugin();
@@ -123,7 +124,7 @@ public:
     bool initialize(const QStringList & arguments, QString * errorString);
     void shutdown();
 
-    LoggingConnection* getLogConnection() { return logConnection; };
+    LoggingConnection* getLogConnection() { return logConnection; }
     LogFile* getLogfile() { return logConnection->getLogfile();}
     void setLogMenuTitle(QString str);
 
@@ -142,6 +143,7 @@ protected:
     LoggingConnection* logConnection;
 
 private slots:
+    void downloadLog();
     void toggleLogging();
     void startLogging(QString file);
     void stopLogging();
@@ -151,7 +153,8 @@ private slots:
 
 private:
     LoggingGadgetFactory *mf;
-    Core::Command* cmd;
+    Core::Command* cmdLogging;
+    Core::Command* cmdDownload;
 
 };
 #endif /* LoggingPLUGIN_H_ */

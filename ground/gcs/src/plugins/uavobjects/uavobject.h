@@ -31,6 +31,7 @@
 
 #include "uavobjects_global.h"
 #include <QtGlobal>
+#include <QJsonObject>
 #include <QObject>
 #include <QMutex>
 #include <QMutexLocker>
@@ -39,6 +40,12 @@
 #include <QFile>
 #include <qglobal.h>
 #include "uavobjectfield.h"
+
+#ifdef _MSC_VER
+#define PACK( __Declaration__ ) __pragma( pack(push, 1) ) __Declaration__ __pragma( pack(pop) )
+#else
+#define PACK( __Declaration__ ) __Declaration__ __attribute__((__packed__))
+#endif
 
 #define UAVOBJ_ACCESS_SHIFT 0
 #define UAVOBJ_GCS_ACCESS_SHIFT 1
@@ -90,12 +97,12 @@ public:
      *    4-5    telemetryUpdateMode        Update mode used by the telemetry module (UAVObjUpdateMode)
      *    6-7    gcsTelemetryUpdateMode     Update mode used by the GCS (UAVObjUpdateMode)
      */
-     typedef struct {
+     PACK(typedef struct {
         quint8 flags; /** Defines flags for update and logging modes and whether an update should be ACK'd (bits defined above) */
         quint16 flightTelemetryUpdatePeriod; /** Update period used by the telemetry module (only if telemetry mode is PERIODIC) */
         quint16 gcsTelemetryUpdatePeriod; /** Update period used by the GCS (only if telemetry mode is PERIODIC) */
         quint16 loggingUpdatePeriod; /** Update period used by the logging module (only if logging mode is PERIODIC) */
-     } __attribute__((packed)) Metadata;
+     }) Metadata;
 
 
     UAVObject(quint32 objID, bool isSingleInst, const QString& name);
@@ -109,10 +116,6 @@ public:
     quint32 getNumBytes(); 
     qint32 pack(quint8* dataOut);
     qint32 unpack(const quint8* dataIn);
-    bool save();
-    bool save(QFile& file);
-    bool load();
-    bool load(QFile& file);
     virtual void setMetadata(const Metadata& mdata) = 0;
     virtual Metadata getMetadata() = 0;
     virtual Metadata getDefaultMetadata() = 0;
@@ -126,8 +129,11 @@ public:
     QString toString();
     QString toStringBrief();
     QString toStringData();
+    QJsonObject getJsonRepresentation();
     void emitTransactionCompleted(bool success);
+    void emitTransactionCompleted(bool success, bool nacked);
     void emitNewInstance(UAVObject *);
+    void emitInstanceRemoved(UAVObject *);
 
     // Metadata accessors
     static void MetadataInitialize(Metadata& meta);
@@ -146,6 +152,7 @@ public:
 		
 public slots:
     void requestUpdate();
+    void requestUpdateAllInstances();
     void updated();
 
 signals:
@@ -198,6 +205,11 @@ signals:
     void updateRequested(UAVObject* obj);
 
     /**
+     * @brief updateAllInstancesRequested
+     * @param obj
+     */
+    void updateAllInstancesRequested(UAVObject* obj);
+    /**
      * @brief transactionCompleted. Triggered by a call to
      * emitTransactionCompleted - done in telemetry.cpp whenever a
      * transaction finishes.
@@ -205,12 +217,18 @@ signals:
      * @param success
      */
     void transactionCompleted(UAVObject* obj, bool success);
-
+    void transactionCompleted(UAVObject* obj, bool success, bool nack);
     /**
      * @brief newInstance
      * @param obj
      */
     void newInstance(UAVObject* obj);
+
+    /**
+     * @brief instance removed from manager
+     * @param obj
+     */
+    void instanceRemoved(UAVObject* obj);
 
 private slots:
     void fieldUpdated(UAVObjectField* field);
@@ -226,10 +244,10 @@ protected:
     QMutex* mutex;
     quint8* data;
     QList<UAVObjectField*> fields;
-
     void initializeFields(QList<UAVObjectField*>& fields, quint8* data, quint32 numBytes);
     void setDescription(const QString& description);
     void setCategory(const QString& category);
+
 };
 
 #endif // UAVOBJECT_H

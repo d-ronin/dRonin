@@ -97,18 +97,14 @@ ModelMapProxy::overlayType ModelMapProxy::overlayTranslate(int type)
 {
     switch(type)
     {
-    case Waypoint::MODE_FLYENDPOINT:
-    case Waypoint::MODE_FLYVECTOR:
-    case Waypoint::MODE_DRIVEENDPOINT:
-    case Waypoint::MODE_DRIVEVECTOR:
+    case Waypoint::MODE_ENDPOINT:
+    case Waypoint::MODE_VECTOR:
         return OVERLAY_LINE;
         break;
-    case Waypoint::MODE_FLYCIRCLERIGHT:
-    case Waypoint::MODE_DRIVECIRCLERIGHT:
+    case Waypoint::MODE_CIRCLERIGHT:
         return OVERLAY_CURVE_RIGHT;
         break;
-    case Waypoint::MODE_FLYCIRCLELEFT:
-    case Waypoint::MODE_DRIVECIRCLELEFT:
+    case Waypoint::MODE_CIRCLELEFT:
         return OVERLAY_CURVE_LEFT;
         break;
     default:
@@ -269,8 +265,8 @@ void ModelMapProxy::dataChanged(const QModelIndex &topLeft, const QModelIndex &b
             case FlightDataModel::MODE:
                 refreshOverlays();
                 break;
-            case FlightDataModel::WPDESCRITPTION:
-                index=model->index(x,FlightDataModel::WPDESCRITPTION);
+            case FlightDataModel::WPDESCRIPTION:
+                index=model->index(x,FlightDataModel::WPDESCRIPTION);
                 desc=index.data(Qt::DisplayRole).toString();
                 item->SetDescription(desc);
                 break;
@@ -317,9 +313,8 @@ void ModelMapProxy::rowsInserted(const QModelIndex &parent, int first, int last)
     {
         QModelIndex index;
         internals::PointLatLng latlng;
-        WayPointItem *item;
         double altitude;
-        index=model->index(x,FlightDataModel::WPDESCRITPTION);
+        index=model->index(x,FlightDataModel::WPDESCRIPTION);
         QString desc=index.data(Qt::DisplayRole).toString();
         index=model->index(x,FlightDataModel::LATPOSITION);
         latlng.SetLat(index.data(Qt::DisplayRole).toDouble());
@@ -327,7 +322,7 @@ void ModelMapProxy::rowsInserted(const QModelIndex &parent, int first, int last)
         latlng.SetLng(index.data(Qt::DisplayRole).toDouble());
         index=model->index(x,FlightDataModel::ALTITUDE);
         altitude=index.data(Qt::DisplayRole).toDouble();
-        item=myMap->WPInsert(latlng,altitude,desc,x);
+        myMap->WPInsert(latlng,altitude,desc,x);
     }
     refreshOverlays();
 }

@@ -3,6 +3,7 @@
  *
  * @file       openpilotplugin.h
  * @author     Tau Labs, http://taulabs.org, Copyright (C) 2013
+ * @author     dRonin, http://dronin.org, Copyright (C) 2016
  *
  * @addtogroup GCSPlugins GCS Plugins
  * @{
@@ -27,10 +28,8 @@
  */
 
 #include "openpilotplugin.h"
-#include "coptercontrol.h"
-#include "pipxtreme.h"
+#include "cc3d.h"
 #include "revolution.h"
-#include "revomini.h"
 #include <QtPlugin>
 
 
@@ -57,22 +56,14 @@ void OpenPilotPlugin::extensionsInitialized()
      * Create the board objects here.
      *
      */
-    CopterControl* cc3d = new CopterControl();
+    CC3D* cc3d = new CC3D();
     addAutoReleasedObject(cc3d);
-
-    PipXtreme* pipx = new PipXtreme();
-    addAutoReleasedObject(pipx);
 
     Revolution* revo = new Revolution();
     addAutoReleasedObject(revo);
-
-    RevoMini* rmini = new RevoMini();
-    addAutoReleasedObject(rmini);
 
 }
 
 void OpenPilotPlugin::shutdown()
 {
 }
-
-Q_EXPORT_PLUGIN(OpenPilotPlugin)

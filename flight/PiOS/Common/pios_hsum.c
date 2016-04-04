@@ -1,7 +1,7 @@
 /**
  ******************************************************************************
  * @file       pios_hsum.c
- * @author     Tau Labs, http://taulabs.org, Copyright (C) 2013
+ * @author     Tau Labs, http://taulabs.org, Copyright (C) 2013-2014
  * @addtogroup PIOS PIOS Core hardware abstraction layer
  * @{
  * @addtogroup PIOS_HSUM Graupner HoTT receiver functions
@@ -124,12 +124,12 @@ struct pios_hsum_dev {
 };
 
 /* Allocate HSUM device descriptor */
-#if defined(PIOS_INCLUDE_FREERTOS)
+#if defined(PIOS_INCLUDE_FREERTOS) || defined(PIOS_INCLUDE_CHIBIOS)
 static struct pios_hsum_dev *PIOS_HSUM_Alloc(void)
 {
 	struct pios_hsum_dev *hsum_dev;
 
-	hsum_dev = (struct pios_hsum_dev *)pvPortMalloc(sizeof(*hsum_dev));
+	hsum_dev = (struct pios_hsum_dev *)PIOS_malloc(sizeof(*hsum_dev));
 	if (!hsum_dev)
 		return NULL;
 

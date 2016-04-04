@@ -1,7 +1,7 @@
 TEMPLATE = lib 
 TARGET = EmptyGadget
-
-include(../../taulabsgcsplugin.pri)
+QT += widgets
+include(../../gcsplugin.pri)
 include(../../plugins/coreplugin/coreplugin.pri) 
 
 HEADERS += emptyplugin.h
@@ -13,4 +13,5 @@ SOURCES += emptygadget.cpp
 SOURCES += emptygadgetfactory.cpp
 SOURCES += emptygadgetwidget.cpp
 
-OTHER_FILES += EmptyGadget.pluginspec
+OTHER_FILES += EmptyGadget.pluginspec \
+                EmptyGadget.json

@@ -1,7 +1,8 @@
 TEMPLATE = lib
 TARGET = QScienceSpinBox
+QT += widgets
 
-include(../../taulabslibrary.pri)
+include(../../gcslibrary.pri)
 
 DEFINES += QSCIENCESPINBOX
 

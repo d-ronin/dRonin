@@ -40,6 +40,7 @@ class MainWindow;
 class CorePlugin : public ExtensionSystem::IPlugin
 {
     Q_OBJECT
+    Q_PLUGIN_METADATA(IID "org.dronin.plugins.Core")
 
 public:
     CorePlugin();
@@ -53,6 +54,9 @@ public slots:
     void remoteArgument(const QString&);
 signals:
     void splashMessages(QString);
+    void hideSplash();
+    void showSplash();
+
 private:
     MainWindow *m_mainWindow;
 };

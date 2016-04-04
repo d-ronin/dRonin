@@ -1,17 +1,18 @@
 /**
  ******************************************************************************
- *
- * @file       xplanesimulator.cpp
- * @author     The OpenPilot Team, http://www.openpilot.org Copyright (C) 2010.
- * @author     Tau Labs, http://taulabs.org, Copyright (C) 2013
- * @brief
- * @see        The GNU Public License (GPL) Version 3
- *
  * @addtogroup GCSPlugins GCS Plugins
  * @{
  * @addtogroup HITLPlugin HITL Plugin
  * @{
- * @brief The Hardware In The Loop plugin
+ *
+ * @file       xplanesimulator.cpp
+ * @author     dRonin, http://dRonin.org/, Copyright (C) 2015-2016
+ * @author     Tau Labs, http://taulabs.org, Copyright (C) 2013
+ * @author     The OpenPilot Team, http://www.openpilot.org Copyright (C) 2010.
+ * @brief      The Hardware In The Loop plugin
+ *
+ * @see        The GNU Public License (GPL) Version 3
+ *
  *****************************************************************************/
 /*
  * This program is free software; you can redistribute it and/or modify
@@ -27,6 +28,10 @@
  * You should have received a copy of the GNU General Public License along
  * with this program; if not, write to the Free Software Foundation, Inc.,
  * 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
+ *
+ * Additional note on redistribution: The copyright and license notices above
+ * must be maintained in each individual source file that is a derivative work
+ * of this source file; otherwise redistribution is prohibited.
  */
 
 /**
@@ -65,7 +70,6 @@
 #include <coreplugin/icore.h>
 #include <coreplugin/threadmanager.h>
 #include <math.h>
-#include <qxtlogger.h>
 
 void TraceBuf(const char* buf,int len);
 
@@ -109,7 +113,7 @@ void XplaneSimulator::transmitUpdate()
         float ailerons = actData.Roll;
         float elevator = actData.Pitch;
         float rudder = actData.Yaw;
-        float throttle = actData.Throttle > 0? actData.Throttle : 0;
+        float throttle = actData.Thrust > 0? actData.Thrust : 0;
         float none = -999;
         //quint32 none = *((quint32*)&tmp); // get float as 4 bytes
         
@@ -237,7 +241,7 @@ void XplaneSimulator::processUpdate(const QByteArray& dataBuf)
         buf.remove(0,5);
         if(dataBuf.size() % 36)
         {
-            qxtLog->info("incorrect length of UDP packet: ",buf);
+            qDebug() << "XPlaneSimulator: incorrect length of UDP packet: " << buf;
             return; // incorrect length of struct
         }
         // check correctness of data length, length must be multiple of (id_size+8*float_size)=4+8*4=36

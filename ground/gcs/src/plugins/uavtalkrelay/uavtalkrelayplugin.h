@@ -39,6 +39,7 @@
 class UAVTALKRELAY_EXPORT UavTalkRelayPlugin: public Core::IConfigurablePlugin
 {
     Q_OBJECT
+    Q_PLUGIN_METADATA(IID "org.dronin.plugins.UAVTalkRelay")
     friend class UavTalkRelayOptionsPage;
 public:
 

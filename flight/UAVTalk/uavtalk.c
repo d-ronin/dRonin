@@ -7,7 +7,7 @@
  *
  * @file       uavtalk.c
  * @author     The OpenPilot Team, http://www.openpilot.org Copyright (C) 2010.
- * @author     Tau Labs, http://taulabs.org, Copyright (C) 2013
+ * @author     Tau Labs, http://taulabs.org, Copyright (C) 2013-2014
  * @brief      UAVTalk library, implements to telemetry protocol. See the wiki for more details.
  *
  * This code packetizes UAVObjects into UAVTalk messages includes the CRC for
@@ -34,6 +34,8 @@
 
 #include "openpilot.h"
 #include "uavtalk_priv.h"
+#include "pios_mutex.h"
+#include "pios_thread.h"
 
 
 // Private functions
@@ -54,21 +56,23 @@ static void updateAck(UAVTalkConnectionData *connection, UAVObjHandle obj, uint1
 UAVTalkConnection UAVTalkInitialize(UAVTalkOutputStream outputStream)
 {
 	// allocate object
-	UAVTalkConnectionData * connection = pvPortMalloc(sizeof(UAVTalkConnectionData));
+	UAVTalkConnectionData * connection = PIOS_malloc_no_dma(sizeof(UAVTalkConnectionData));
 	if (!connection) return 0;
 	connection->canari = UAVTALK_CANARI;
 	connection->iproc.rxPacketLength = 0;
 	connection->iproc.state = UAVTALK_STATE_SYNC;
 	connection->outStream = outputStream;
-	connection->lock = xSemaphoreCreateRecursiveMutex();
-	connection->transLock = xSemaphoreCreateRecursiveMutex();
+	connection->lock = PIOS_Recursive_Mutex_Create();
+	PIOS_Assert(connection->lock != NULL);
+	connection->transLock = PIOS_Recursive_Mutex_Create();
+	PIOS_Assert(connection->transLock != NULL);
 	// allocate buffers
-	connection->rxBuffer = pvPortMalloc(UAVTALK_MAX_PACKET_LENGTH);
+	connection->rxBuffer = PIOS_malloc(UAVTALK_MAX_PACKET_LENGTH);
 	if (!connection->rxBuffer) return 0;
-	connection->txBuffer = pvPortMalloc(UAVTALK_MAX_PACKET_LENGTH);
+	connection->txBuffer = PIOS_malloc(UAVTALK_MAX_PACKET_LENGTH);
 	if (!connection->txBuffer) return 0;
-	vSemaphoreCreateBinary(connection->respSema);
-	xSemaphoreTake(connection->respSema, 0); // reset to zero
+	connection->respSema = PIOS_Semaphore_Create();
+	PIOS_Semaphore_Take(connection->respSema, 0); // reset to zero
 	UAVTalkResetStats( (UAVTalkConnection) connection );
 	return (UAVTalkConnection) connection;
 }
@@ -87,13 +91,13 @@ int32_t UAVTalkSetOutputStream(UAVTalkConnection connectionHandle, UAVTalkOutput
     CHECKCONHANDLE(connectionHandle,connection,return -1);
 
 	// Lock
-	xSemaphoreTakeRecursive(connection->lock, portMAX_DELAY);
+	PIOS_Recursive_Mutex_Lock(connection->lock, PIOS_MUTEX_TIMEOUT_MAX);
 	
 	// set output stream
 	connection->outStream = outputStream;
 	
 	// Release lock
-	xSemaphoreGiveRecursive(connection->lock);
+	PIOS_Recursive_Mutex_Unlock(connection->lock);
 
 	return 0;
 
@@ -122,13 +126,13 @@ void UAVTalkGetStats(UAVTalkConnection connectionHandle, UAVTalkStats* statsOut)
     CHECKCONHANDLE(connectionHandle,connection,return );
 
 	// Lock
-	xSemaphoreTakeRecursive(connection->lock, portMAX_DELAY);
+	PIOS_Recursive_Mutex_Lock(connection->lock, PIOS_MUTEX_TIMEOUT_MAX);
 	
 	// Copy stats
 	memcpy(statsOut, &connection->stats, sizeof(UAVTalkStats));
 	
 	// Release lock
-	xSemaphoreGiveRecursive(connection->lock);
+	PIOS_Recursive_Mutex_Unlock(connection->lock);
 }
 
 /**
@@ -141,13 +145,13 @@ void UAVTalkResetStats(UAVTalkConnection connectionHandle)
     CHECKCONHANDLE(connectionHandle,connection,return);
 
 	// Lock
-	xSemaphoreTakeRecursive(connection->lock, portMAX_DELAY);
+	PIOS_Recursive_Mutex_Lock(connection->lock, PIOS_MUTEX_TIMEOUT_MAX);
 	
 	// Clear stats
 	memset(&connection->stats, 0, sizeof(UAVTalkStats));
 	
 	// Release lock
-	xSemaphoreGiveRecursive(connection->lock);
+	PIOS_Recursive_Mutex_Unlock(connection->lock);
 }
 
 /**
@@ -244,43 +248,43 @@ int32_t UAVTalkSendObjectTimestamped(UAVTalkConnection connectionHandle, UAVObjH
  */
 static int32_t objectTransaction(UAVTalkConnectionData *connection, UAVObjHandle obj, uint16_t instId, uint8_t type, int32_t timeoutMs)
 {
-	int32_t respReceived;
+	bool respReceived;
 	
 	// Send object depending on if a response is needed
 	if (type == UAVTALK_TYPE_OBJ_ACK || type == UAVTALK_TYPE_OBJ_ACK_TS || type == UAVTALK_TYPE_OBJ_REQ)
 	{
 		// Get transaction lock (will block if a transaction is pending)
-		xSemaphoreTakeRecursive(connection->transLock, portMAX_DELAY);
+		PIOS_Recursive_Mutex_Lock(connection->transLock, PIOS_MUTEX_TIMEOUT_MAX);
 		// Send object
-		xSemaphoreTakeRecursive(connection->lock, portMAX_DELAY);
+		PIOS_Recursive_Mutex_Lock(connection->lock, PIOS_MUTEX_TIMEOUT_MAX);
 		connection->respObj = obj;
 		connection->respInstId = instId;
 		sendObject(connection, obj, instId, type);
-		xSemaphoreGiveRecursive(connection->lock);
+		PIOS_Recursive_Mutex_Unlock(connection->lock);
 		// Wait for response (or timeout)
-		respReceived = xSemaphoreTake(connection->respSema, timeoutMs/portTICK_RATE_MS);
+		respReceived = PIOS_Semaphore_Take(connection->respSema, timeoutMs);
 		// Check if a response was received
-		if (respReceived == pdFALSE)
+		if (respReceived == false)
 		{
 			// Cancel transaction
-			xSemaphoreTakeRecursive(connection->lock, portMAX_DELAY);
-			xSemaphoreTake(connection->respSema, 0); // non blocking call to make sure the value is reset to zero (binary sema)
+			PIOS_Recursive_Mutex_Lock(connection->lock, PIOS_MUTEX_TIMEOUT_MAX);
+			PIOS_Semaphore_Take(connection->respSema, 0); // non blocking call to make sure the value is reset to zero (binary sema)
 			connection->respObj = 0;
-			xSemaphoreGiveRecursive(connection->lock);
-			xSemaphoreGiveRecursive(connection->transLock);
+			PIOS_Recursive_Mutex_Unlock(connection->lock);
+			PIOS_Recursive_Mutex_Unlock(connection->transLock);
 			return -1;
 		}
 		else
 		{
-			xSemaphoreGiveRecursive(connection->transLock);
+			PIOS_Recursive_Mutex_Unlock(connection->transLock);
 			return 0;
 		}
 	}
 	else if (type == UAVTALK_TYPE_OBJ || type == UAVTALK_TYPE_OBJ_TS)
 	{
-		xSemaphoreTakeRecursive(connection->lock, portMAX_DELAY);
+		PIOS_Recursive_Mutex_Lock(connection->lock, PIOS_MUTEX_TIMEOUT_MAX);
 		sendObject(connection, obj, instId, type);
-		xSemaphoreGiveRecursive(connection->lock);
+		PIOS_Recursive_Mutex_Unlock(connection->lock);
 		return 0;
 	}
 	else
@@ -553,12 +557,156 @@ UAVTalkRxState UAVTalkProcessInputStream(UAVTalkConnection connectionHandle, uin
 		CHECKCONHANDLE(connectionHandle,connection,return -1);
 		UAVTalkInputProcessor *iproc = &connection->iproc;
 
-		xSemaphoreTakeRecursive(connection->lock, portMAX_DELAY);
+		PIOS_Recursive_Mutex_Lock(connection->lock, PIOS_MUTEX_TIMEOUT_MAX);
 		receiveObject(connection, iproc->type, iproc->objId, iproc->instId, connection->rxBuffer, iproc->length);
-		xSemaphoreGiveRecursive(connection->lock);
+		PIOS_Recursive_Mutex_Unlock(connection->lock);
 	}
 
 	return state;
+}
+
+/**
+ * Send a parsed packet received on one connection handle out on a different connection handle.
+ * The packet must be in a complete state, meaning it is completed parsing.
+ * The packet is re-assembled from the component parts into a complete message and sent.
+ * This can be used to relay packets from one UAVTalk connection to another.
+ * \param[in] connection UAVTalkConnection to be used
+ * \param[in] rxbyte Received byte
+ * \return 0 Success
+ * \return -1 Failure
+ */
+int32_t UAVTalkRelayPacket(UAVTalkConnection inConnectionHandle, UAVTalkConnection outConnectionHandle)
+{
+    UAVTalkConnectionData *inConnection;
+
+    CHECKCONHANDLE(inConnectionHandle, inConnection, return -1);
+    UAVTalkInputProcessor *inIproc = &inConnection->iproc;
+
+    // The input packet must be completely parsed.
+    if (inIproc->state != UAVTALK_STATE_COMPLETE) {
+        inConnection->stats.rxErrors++;
+
+        return -1;
+    }
+
+    UAVTalkConnectionData *outConnection;
+    CHECKCONHANDLE(outConnectionHandle, outConnection, return -1);
+
+    if (!outConnection->outStream) {
+        outConnection->stats.txErrors++;
+
+        return -1;
+    }
+
+    // Lock
+    PIOS_Recursive_Mutex_Lock(outConnection->lock, PIOS_MUTEX_TIMEOUT_MAX);
+
+    outConnection->txBuffer[0] = UAVTALK_SYNC_VAL;
+    // Setup type
+    outConnection->txBuffer[1] = inIproc->type;
+    // next 2 bytes are reserved for data length (inserted here later)
+    // Setup object ID
+    outConnection->txBuffer[4] = (uint8_t)(inIproc->objId & 0xFF);
+    outConnection->txBuffer[5] = (uint8_t)((inIproc->objId >> 8) & 0xFF);
+    outConnection->txBuffer[6] = (uint8_t)((inIproc->objId >> 16) & 0xFF);
+    outConnection->txBuffer[7] = (uint8_t)((inIproc->objId >> 24) & 0xFF);
+    int32_t headerLength = 8;
+
+    if (inIproc->obj) {
+    	if (!UAVObjIsSingleInstance(inIproc->obj)) {
+			// Setup instance ID
+			outConnection->txBuffer[8] = (uint8_t)(inIproc->instId & 0xFF);
+			outConnection->txBuffer[9] = (uint8_t)((inIproc->instId >> 8) & 0xFF);
+			headerLength = 10;
+		}
+    }
+
+    // Add timestamp when the transaction type is appropriate
+    if (inIproc->type & UAVTALK_TIMESTAMPED) {
+        uint32_t time = PIOS_Thread_Systime();
+        outConnection->txBuffer[10] = (uint8_t)(time & 0xFF);
+        outConnection->txBuffer[11] = (uint8_t)((time >> 8) & 0xFF);
+        headerLength += 2;
+    }
+
+    // Copy data (if any)
+    if (inIproc->length > 0) {
+        memcpy(&outConnection->txBuffer[headerLength], inConnection->rxBuffer, inIproc->length);
+    }
+
+    // Store the packet length
+    outConnection->txBuffer[2] = (uint8_t)((headerLength + inIproc->length) & 0xFF);
+    outConnection->txBuffer[3] = (uint8_t)(((headerLength + inIproc->length) >> 8) & 0xFF);
+
+    // Copy the checksum
+    outConnection->txBuffer[headerLength + inIproc->length] = inIproc->cs;
+
+    // Send the buffer.
+    int32_t rc = (*outConnection->outStream)(outConnection->txBuffer, headerLength + inIproc->length + UAVTALK_CHECKSUM_LENGTH);
+
+    // Update stats
+    outConnection->stats.txBytes += (rc > 0) ? rc : 0;
+
+    // evaluate return value before releasing the lock
+    int32_t ret = 0;
+    if (rc != (int32_t)(headerLength + inIproc->length + UAVTALK_CHECKSUM_LENGTH)) {
+        outConnection->stats.txErrors++;
+        ret = -1;
+    }
+
+    // Release lock
+    PIOS_Recursive_Mutex_Unlock(outConnection->lock);
+
+    // Done
+    return ret;
+}
+
+/**
+ * Complete receiving a UAVTalk packet.  This will cause the packet to be unpacked, acked, etc.
+ * \param[in] connectionHandle UAVTalkConnection to be used
+ * \return 0 Success
+ * \return -1 Failure
+ */
+int32_t UAVTalkReceiveObject(UAVTalkConnection connectionHandle)
+{
+    UAVTalkConnectionData *connection;
+
+    CHECKCONHANDLE(connectionHandle, connection, return -1);
+
+    UAVTalkInputProcessor *iproc = &connection->iproc;
+    if (iproc->state != UAVTALK_STATE_COMPLETE) {
+        return -1;
+    }
+
+    return receiveObject(connection, iproc->type, iproc->objId, iproc->instId, connection->rxBuffer, iproc->length);
+}
+
+/**
+ * Get the object ID of the current packet.
+ * \param[in] connectionHandle UAVTalkConnection to be used
+ * \return The object ID, or 0 on error.
+ */
+uint32_t UAVTalkGetPacketObjId(UAVTalkConnection connectionHandle)
+{
+    UAVTalkConnectionData *connection;
+
+    CHECKCONHANDLE(connectionHandle, connection, return 0);
+
+    return connection->iproc.objId;
+}
+
+/**
+ * Get the object ID of the current packet.
+ * \param[in] connectionHandle UAVTalkConnection to be used
+ * \return The object ID, or 0 on error.
+ */
+uint32_t UAVTalkGetPacketInstId(UAVTalkConnection connectionHandle)
+{
+    UAVTalkConnectionData *connection;
+
+    CHECKCONHANDLE(connectionHandle, connection, return 0);
+
+    return connection->iproc.instId;
 }
 
 /**
@@ -604,7 +752,7 @@ UAVTalkRxState UAVTalkRelayInputStream(UAVTalkConnection connectionHandle, uint8
 		// Add timestamp when the transaction type is appropriate
 		if (iproc->type & UAVTALK_TIMESTAMPED)
 		{
-			portTickType time = xTaskGetTickCount();
+			uint32_t time = PIOS_Thread_Systime();
 			connection->txBuffer[dataOffset] = (uint8_t)(time & 0xFF);
 			connection->txBuffer[dataOffset + 1] = (uint8_t)((time >> 8) & 0xFF);
 			dataOffset += 2;
@@ -641,12 +789,12 @@ int32_t UAVTalkSendAck(UAVTalkConnection connectionHandle, UAVObjHandle obj, uin
 	CHECKCONHANDLE(connectionHandle,connection,return -1);
 
 	// Lock
-	xSemaphoreTakeRecursive(connection->lock, portMAX_DELAY);
+	PIOS_Recursive_Mutex_Lock(connection->lock, PIOS_MUTEX_TIMEOUT_MAX);
 
 	int32_t ret = sendObject(connection, obj, instId, UAVTALK_TYPE_ACK);
 	
 	// Release lock
-	xSemaphoreGiveRecursive(connection->lock);
+	PIOS_Recursive_Mutex_Unlock(connection->lock);
 
 	return ret;
 }
@@ -664,12 +812,12 @@ int32_t UAVTalkSendNack(UAVTalkConnection connectionHandle, uint32_t objId)
 	CHECKCONHANDLE(connectionHandle,connection,return -1);
 
 	// Lock
-	xSemaphoreTakeRecursive(connection->lock, portMAX_DELAY);
+	PIOS_Recursive_Mutex_Lock(connection->lock, PIOS_MUTEX_TIMEOUT_MAX);
 
 	int32_t ret = sendNack(connection, objId);
 	
 	// Release lock
-	xSemaphoreGiveRecursive(connection->lock);
+	PIOS_Recursive_Mutex_Unlock(connection->lock);
 
 	return ret;
 }
@@ -689,7 +837,7 @@ int32_t UAVTalkSendBuf(UAVTalkConnection connectionHandle, uint8_t *buf, uint16_
 	CHECKCONHANDLE(connectionHandle,connection, return -1);
 
 	// Lock
-	xSemaphoreTakeRecursive(connection->lock, portMAX_DELAY);
+	PIOS_Recursive_Mutex_Lock(connection->lock, PIOS_MUTEX_TIMEOUT_MAX);
 
 	// Output the buffer
 	int32_t rc = (*connection->outStream)(buf, len);
@@ -698,7 +846,7 @@ int32_t UAVTalkSendBuf(UAVTalkConnection connectionHandle, uint8_t *buf, uint16_
 	connection->stats.txBytes += len;
 
 	// Release lock
-	xSemaphoreGiveRecursive(connection->lock);
+	PIOS_Recursive_Mutex_Unlock(connection->lock);
 
 	// Done
 	if (rc != len)
@@ -806,7 +954,7 @@ static void updateAck(UAVTalkConnectionData *connection, UAVObjHandle obj, uint1
 {
 	if (connection->respObj == obj && (connection->respInstId == instId || connection->respInstId == UAVOBJ_ALL_INSTANCES))
 	{
-		xSemaphoreGive(connection->respSema);
+		PIOS_Semaphore_Give(connection->respSema);
 		connection->respObj = 0;
 	}
 }
@@ -913,7 +1061,7 @@ static int32_t sendSingleObject(UAVTalkConnectionData *connection, UAVObjHandle 
 	// Add timestamp when the transaction type is appropriate
 	if (type & UAVTALK_TIMESTAMPED)
 	{
-		portTickType time = xTaskGetTickCount();
+		uint32_t time = PIOS_Thread_Systime();
 		connection->txBuffer[dataOffset] = (uint8_t)(time & 0xFF);
 		connection->txBuffer[dataOffset + 1] = (uint8_t)((time >> 8) & 0xFF);
 		dataOffset += 2;

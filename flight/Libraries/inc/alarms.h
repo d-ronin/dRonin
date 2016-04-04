@@ -5,6 +5,7 @@
  *
  * @file       alarms.h
  * @author     The OpenPilot Team, http://www.openpilot.org Copyright (C) 2010.
+ * @author     dRonin, http://dronin.org Copyright (C) 2015
  * @brief      Include file of the alarm library
  * @see        The GNU Public License (GPL) Version 3
  *
@@ -40,6 +41,19 @@ void AlarmsClearAll();
 int32_t AlarmsHasWarnings();
 int32_t AlarmsHasErrors();
 int32_t AlarmsHasCritical();
+/** Produce a string indicating what alarms are currently firing.
+ * @param[alarm] the current alarm state (from SystemAlarmsGet).
+ * @param[buf] where the alarm string should be written.
+ * @param[buflen] how many bytes may be safely written into buf.
+ * @param[blink] if true, alarms are replaced with spaces.
+ * @param[state] output variable indicating the most severe alarm found.
+ * The output variable 'state' is a value from the SystemAlarms alarm enum
+ * (e.g., SYSTEMALARMS_ALARM_WARNING).
+ * @returns The number of bytes written to the buffer.
+ */
+int32_t AlarmString(SystemAlarmsData *alarm, char *buf, size_t buflen,
+		    bool blink, uint8_t *state);
+const char *AlarmBootReason(uint8_t reason);
 
 #endif // ALARMS_H
 

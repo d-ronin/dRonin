@@ -80,28 +80,28 @@ static bool nmeaProcessGPGSA(GPSPositionData * GpsData, bool* gpsDataUpdated, ch
 
 const static struct nmea_parser nmea_parsers[] = {
 	{
-		.prefix = "GPGGA",
+		.prefix = "GGA",
 		.handler = nmeaProcessGPGGA,
 	},
 	{
-		.prefix = "GPVTG",
+		.prefix = "VTG",
 		.handler = nmeaProcessGPVTG,
 	},
 	{
-		.prefix = "GPGSA",
+		.prefix = "GSA",
 		.handler = nmeaProcessGPGSA,
 	},
 	{
-		.prefix = "GPRMC",
+		.prefix = "RMC",
 		.handler = nmeaProcessGPRMC,
 	},
 #if !defined(PIOS_GPS_MINIMAL)
 	{
-		.prefix = "GPZDA",
+		.prefix = "ZDA",
 		.handler = nmeaProcessGPZDA,
 	},
 	{
-		.prefix = "GPGSV",
+		.prefix = "GSV",
 		.handler = nmeaProcessGPGSV,
 	},
 #endif //PIOS_GPS_MINIMAL
@@ -381,7 +381,8 @@ bool NMEA_update_position(char *nmea_sentence, GPSPositionData *GpsData)
 	// Sample NMEA message: "GPRMC,000131.736,V,,,,,0.00,0.00,060180,,,N*43"
 
 	// The first parameter starts at the beginning of the message
-	params[0] = p;
+	p += 2; // Skip the first two characters (e.g., GP, GN) which is the talker ID
+	params[0] = p; 
 	nbParams = 1;
 	while (*p != 0) {
 		if (*p == '*') {
@@ -763,6 +764,10 @@ static bool nmeaProcessGPGSA(GPSPositionData * GpsData, bool* gpsDataUpdated, ch
 
 	// next field: VDOP
 	GpsData->VDOP = NMEA_real_to_float(param[17]);
+
+	// NMEA doesn't have this.  Assume we have a nominally 5m accurate
+	// receiver and scale accordingly.
+	GpsData->Accuracy = GpsData->PDOP * 5.0f;
 
 	return true;
 }

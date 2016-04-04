@@ -31,16 +31,20 @@
 #include <QAbstractTableModel>
 #include "pathplanner_global.h"
 
-struct pathPlanData
+/**
+ * @brief The PathPlanData struct is the internal representation
+ * of the waypoints. Notice this is in absolute terms, not NED.
+ */
+struct PathPlanData
 {
-    QString wpDescritption;
-    double latPosition;
-    double lngPosition;
-    double altitude;
-    float velocity;
-    int mode;
-    float mode_params;
-    bool locked;
+    QString wpDescription; //!< Description for the waypoint
+    double latPosition;    //!< Latitude of the waypoint
+    double lngPosition;    //!< Longitude of the waypoint
+    double altitude;       //!< Altitude of the waypoint (m above ellipsoid)
+    float velocity;        //!< Velocity associated with this waypoint
+    int mode;              //!< Navigation mode for this waypoint
+    float mode_params;     //!< Optional parameters associated with this waypoint
+    bool locked;           //!< Lock a waypoint
 };
 
 class PATHPLANNER_EXPORT FlightDataModel : public QAbstractTableModel
@@ -49,11 +53,11 @@ class PATHPLANNER_EXPORT FlightDataModel : public QAbstractTableModel
 public:
 
     //! The column names
-    enum pathPlanDataEnum
+    enum PathPlanDataEnum
     {
         LATPOSITION,LNGPOSITION,ALTITUDE,
         NED_NORTH, NED_EAST, NED_DOWN,
-        VELOCITY,MODE,MODE_PARAMS,LOCKED, WPDESCRITPTION,
+        VELOCITY,MODE,MODE_PARAMS,LOCKED, WPDESCRIPTION,
         LASTCOLUMN
     };
 
@@ -62,6 +66,7 @@ public:
     int columnCount(const QModelIndex &parent = QModelIndex()) const;
     QVariant data(const QModelIndex &index, int role = Qt::DisplayRole) const;
     QVariant headerData(int section, Qt::Orientation orientation, int role) const;
+    void fixupValidationErrors();
 
     bool setData(const QModelIndex & index, const QVariant & value, int role = Qt::EditRole);
     Qt::ItemFlags flags(const QModelIndex & index) const ;
@@ -75,8 +80,13 @@ public:
     //! Replace a model data with another model
     bool replaceData(FlightDataModel *newModel);
 
+    //! Prevent validation/correction of data
+    void pauseValidation(bool pausing);
+
 private:
-    QList<pathPlanData *> dataStorage;
+    QList<PathPlanData *> dataStorage;
+    
+    bool valPaused;
 
     //! NED representation of a location
     struct NED {
@@ -87,12 +97,19 @@ private:
 
     //! Get the NED representation of a waypoint
     struct FlightDataModel::NED getNED(int index) const;
+    struct FlightDataModel::NED getNED(PathPlanData *row) const;
 
     //! Set the NED representation of a waypoint
     bool setNED(int index, struct FlightDataModel::NED NED);
+    bool setNED(PathPlanData *row, struct FlightDataModel::NED NED);
 
     //! Get the current home location
     bool getHomeLocation(double *homeLLA) const;
+    //! Set the current home location
+    bool setHomeLocation(double *homeLLA);
+
+    //! Error box for file loading
+    void showErrorDialog(const char *title, const char *message);
 };
 
 #endif // FlightDataModel_H

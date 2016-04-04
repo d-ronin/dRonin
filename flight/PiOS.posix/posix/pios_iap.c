@@ -1,16 +1,39 @@
-/*!
- * 	@File iap.c
- *	@Brief	
+/**
+ ******************************************************************************
+ * @addtogroup PIOS PIOS Core hardware abstraction layer
+ * @{
+ * @addtogroup   PIOS_IAP IAP Functions
+ * @brief OSX SITL PIOS IAP Functions
+ * @{
  *
- *  Created on: Sep 6, 2010
- *      Author: joe
+ * @file       pios_iap.c
+ * @author     joe 2010
+ * @author     Tau Labs, http://taulabs.org, Copyright (C) 2012-2014
+ * @brief      In application programming functions
+ * @see        The GNU Public License (GPL) Version 3
+ *
+ *****************************************************************************/
+/*
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful, but
+ * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
+ * or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License
+ * for more details.
+ *
+ * You should have received a copy of the GNU General Public License along
+ * with this program; if not, write to the Free Software Foundation, Inc.,
+ * 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
  */
-
 
 /****************************************************************************************
  *  Header files
  ****************************************************************************************/
 #include <pios.h>
+#include <stdio.h>
 
 /*!
  * \brief	PIOS_IAP_Init - performs required initializations for iap module.
@@ -39,7 +62,10 @@ uint32_t	PIOS_IAP_CheckRequest( void )
 	return false;
 }
 
-
+uint32_t	PIOS_Boot_CheckRequest( void )
+{
+	return false;
+}
 
 /*!
  * \brief   Sets the 1st word of the request sequence.
@@ -49,10 +75,17 @@ uint32_t	PIOS_IAP_CheckRequest( void )
  */
 void	PIOS_IAP_SetRequest1(void)
 {
+	printf("IAP SetRequest1\n");
 }
 
 void	PIOS_IAP_SetRequest2(void)
 {
+	printf("IAP SetRequest2\n");
+}
+
+void	PIOS_IAP_SetRequest3(void)
+{
+	printf("IAP SetRequest3\n");
 }
 
 void	PIOS_IAP_ClearRequest(void)

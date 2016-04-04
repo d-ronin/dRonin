@@ -2,7 +2,7 @@ TEMPLATE = lib
 TARGET = MagicWaypoint 
 QT += svg
 
-include(../../taulabsgcsplugin.pri) 
+include(../../gcsplugin.pri) 
 include(../../plugins/coreplugin/coreplugin.pri) 
 include(../../plugins/uavobjects/uavobjects.pri)
 
@@ -18,7 +18,8 @@ SOURCES += magicwaypointgadgetfactory.cpp
 SOURCES += magicwaypointplugin.cpp
 SOURCES += positionfield.cpp
 
-OTHER_FILES += MagicWaypoint.pluginspec
+OTHER_FILES += MagicWaypoint.pluginspec \
+    MagicWaypoint.json
 
 FORMS += magicwaypoint.ui
 

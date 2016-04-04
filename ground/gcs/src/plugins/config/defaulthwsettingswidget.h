@@ -29,15 +29,9 @@
 #define DEFAULTHWSETTINGSt_H
 
 #include "ui_defaulthwsettings.h"
-#include "hwfieldselector.h"
 #include "../uavobjectwidgetutils/configtaskwidget.h"
-#include "extensionsystem/pluginmanager.h"
-#include "uavobjectmanager.h"
 #include "uavobject.h"
-#include <QList>
-#include <QtGui/QWidget>
-#include <QTimer>
-#include <QMutex>
+#include <QWidget>
 
 class Ui_Widget;
 
@@ -46,21 +40,11 @@ class DefaultHwSettingsWidget : public ConfigTaskWidget
     Q_OBJECT
 
 public:
-    explicit DefaultHwSettingsWidget(QWidget *parent = 0, bool autoPilotConnected = false);
+    explicit DefaultHwSettingsWidget(UAVObject *settingsObj, QWidget *parent = 0);
     ~DefaultHwSettingsWidget();
 
-private slots:
-    void settingsUpdated(UAVObject*,bool);
-
 private:
-    void updateFields();
     Ui_defaulthwsettings *defaultHWSettingsWidget;
-
-    QList<QString> allHwSettings;
-    UAVObject *hwSettingsObject;
-    bool settingSelected;
-
-    QList <HwFieldSelector *> fieldWidgets;
 };
 
 #endif // DEFAULTHWSETTINGSt_H

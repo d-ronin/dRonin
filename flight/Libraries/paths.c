@@ -4,10 +4,11 @@
  * @{
  *
  * @file       paths.c
- * @author     Tau Labs, http://taulabs.org, Copyright (C) 2012-2013
+ * @author     Tau Labs, http://taulabs.org, Copyright (C) 2012-2014
  * @author     The OpenPilot Team, http://www.openpilot.org Copyright (C) 2012.
+ * @author     dRonin, http://dronin.org Copyright (C) 2015
  * @brief      Path calculation library with common API
- * 
+ *
  * Paths are represented by the structure @ref PathDesired and also take in
  * @ref PositionActual.  This library then computes the error from the path
  * which includes the vector tangent to the path at the closest location
@@ -40,10 +41,16 @@
 #include "pathdesired.h"
 
 // private functions
-static void path_endpoint( float * start_point, float * end_point, float * cur_point, struct path_status * status);
-static void path_vector( float * start_point, float * end_point, float * cur_point, struct path_status * status);
-static void path_circle(float * center_point, float radius, float * cur_point, struct path_status * status, bool clockwise);
-static void path_curve(float * start_point, float * end_point, float radius, float * cur_point, struct path_status * status, bool clockwise);
+static void path_endpoint(const float * start_point, const float * end_point,
+                          const float * cur_point, struct path_status * status);
+static void path_vector(const float * start_point, const float * end_point,
+                        const float * cur_point, struct path_status * status);
+static void path_circle(const float * center_point, float radius,
+                        const float * cur_point, struct path_status * status,
+                        bool clockwise);
+static void path_curve(const float * start_point, const float * end_point,
+                       float radius, const float * cur_point,
+                       struct path_status * status, bool clockwise);
 
 /**
  * @brief Compute progress along path and deviation from it
@@ -53,25 +60,22 @@ static void path_curve(float * start_point, float * end_point, float radius, flo
  * @param[in] mode Path following mode
  * @param[out] status Structure containing progress along path and deviation
  */
-void path_progress(PathDesiredData *pathDesired,
-	               float *cur_point,
-	               struct path_status *status)
+void path_progress(const PathDesiredData *pathDesired,
+                   const float *cur_point,
+                   struct path_status *status)
 {
 	uint8_t mode = pathDesired->Mode;
 	float start_point[2] = {pathDesired->Start[0],pathDesired->Start[1]};
 	float end_point[2] = {pathDesired->End[0],pathDesired->End[1]};
 
 	switch(mode) {
-		case PATHDESIRED_MODE_FLYVECTOR:
-		case PATHDESIRED_MODE_DRIVEVECTOR:
+		case PATHDESIRED_MODE_VECTOR:
 			return path_vector(start_point, end_point, cur_point, status);
 			break;
-		case PATHDESIRED_MODE_FLYCIRCLERIGHT:
-		case PATHDESIRED_MODE_DRIVECIRCLERIGHT:
+		case PATHDESIRED_MODE_CIRCLERIGHT:
 			return path_curve(start_point, end_point, pathDesired->ModeParameters, cur_point, status, 1);
 			break;
-		case PATHDESIRED_MODE_FLYCIRCLELEFT:
-		case PATHDESIRED_MODE_DRIVECIRCLELEFT:
+		case PATHDESIRED_MODE_CIRCLELEFT:
 			return path_curve(start_point, end_point, pathDesired->ModeParameters, cur_point, status, 0);
 			break;
 		case PATHDESIRED_MODE_CIRCLEPOSITIONLEFT:
@@ -80,8 +84,8 @@ void path_progress(PathDesiredData *pathDesired,
 		case PATHDESIRED_MODE_CIRCLEPOSITIONRIGHT:
 			return path_circle(end_point, pathDesired->ModeParameters, cur_point, status, 1);
 			break;
-		case PATHDESIRED_MODE_FLYENDPOINT:
-		case PATHDESIRED_MODE_DRIVEENDPOINT:
+		case PATHDESIRED_MODE_ENDPOINT:
+		case PATHDESIRED_MODE_HOLDPOSITION:
 		default:
 			// use the endpoint as default failsafe if called in unknown modes
 			return path_endpoint(start_point, end_point, cur_point, status);
@@ -96,10 +100,10 @@ void path_progress(PathDesiredData *pathDesired,
  * @param[in] cur_point Current location
  * @param[out] status Structure containing progress along path and deviation
  */
-static void path_endpoint(float *start_point,
-	                      float *end_point,
-	                      float *cur_point,
-	                      struct path_status *status)
+static void path_endpoint(const float *start_point,
+                          const float *end_point,
+                          const float *cur_point,
+                          struct path_status *status)
 {
 	float path_north, path_east, diff_north, diff_east;
 	float dist_path, dist_diff;
@@ -131,7 +135,6 @@ static void path_endpoint(float *start_point,
 	// Compute direction to travel
 	status->path_direction[0] = diff_north / dist_diff;
 	status->path_direction[1] = diff_east / dist_diff;
-
 }
 
 /**
@@ -141,10 +144,10 @@ static void path_endpoint(float *start_point,
  * @param[in] cur_point Current location
  * @param[out] status Structure containing progress along path and deviation
  */
-static void path_vector(float *start_point,
-	                    float *end_point,
-	                    float *cur_point,
-	                    struct path_status *status)
+static void path_vector(const float *start_point,
+                        const float *end_point,
+                        const float *cur_point,
+                        struct path_status *status)
 {
 	float path_north, path_east, diff_north, diff_east;
 	float dist_path;
@@ -183,7 +186,7 @@ static void path_vector(float *start_point,
 	status->correction_direction[1] = (status->error > 0) ? -normal[1] : normal[1];
 	
 	// Now just want magnitude of error
-	status->error = fabs(status->error);
+	status->error = fabsf(status->error);
 
 	// Compute direction to travel
 	status->path_direction[0] = path_north / dist_path;
@@ -198,15 +201,19 @@ static void path_vector(float *start_point,
  * @param[in] cur_point Current location
  * @param[out] status Structure containing progress along path and deviation
  */
-static void path_circle(float * center_point,
+static void path_circle(const float * center_point,
                         float radius,
-                        float * cur_point,
-                        struct path_status * status, 
+                        const float * cur_point,
+                        struct path_status * status,
                         bool clockwise)
 {
 	float diff_north, diff_east;
 	float cradius;
 	float normal[2];
+
+	if (radius < 0.10f) {
+		radius = 0.10f;		// Never try a circle less than 10cm
+	}
 
 	// Current location relative to center
 	diff_north = cur_point[0] - center_point[0];
@@ -248,7 +255,7 @@ static void path_circle(float * center_point,
 	status->path_direction[0] = normal[0];
 	status->path_direction[1] = normal[1];
 
-	status->error = fabs(status->error);
+	status->error = fabsf(status->error);
 }
 
 /**
@@ -259,17 +266,39 @@ static void path_circle(float * center_point,
  * @param[in] cur_point Current location
  * @param[out] status Structure containing progress along path and deviation
  */
-static void path_curve(float * start_point,
-	                   float * end_point,
-	                   float radius,
-	                   float * cur_point,
-	                   struct path_status *status,
-	                   bool clockwise)
+static void path_curve(const float * start_point,
+                       const float * end_point,
+                       float radius,
+                       const float * cur_point,
+                       struct path_status *status,
+                       bool clockwise)
 {
+	// OK for up to 10km
+	float min_radius = sqrtf(powf(start_point[0] - end_point[0], 2) +
+		powf(start_point[1] - end_point[1], 2)) / 2.0f + 0.01f;
+
+	if (fabsf(radius) < min_radius) {
+		// This was possibly floating point confusion.
+		// Add 5cm and .5% and call it good.
+		if (radius >= 0) {
+			radius += 0.05f;
+		} else {
+			radius -= 0.05f;
+		}
+
+		radius *= 1.005f;
+
+		if (fabsf(radius) < min_radius) {
+			// Whoops! Radius was not close.  Convert to (nearly)
+			// straight line.
+			radius = min_radius * 1000;
+		}
+	}
+
 	float diff_north, diff_east;
 	float path_north, path_east;
 	float cradius;
-	float normal[2];	
+	float normal[2];
 
 	// Compute the center of the circle connecting the two points as the intersection of two circles
 	// around the two points from
@@ -293,9 +322,9 @@ static void path_curve(float * start_point,
 	d = sqrtf(radius * radius / (p_n * p_n + p_e * p_e) - 0.25f);
 
 	float radius_sign = (radius > 0) ? 1 : -1;
-	radius = fabs(radius);
+	float m_radius = fabsf(radius);
 
-	if (fabs(p_n) < 1e-3 && fabs(p_e) < 1e-3) {
+	if (fabsf(p_n) < 1e-3f && fabsf(p_e) < 1e-3f) {
 		center[0] = m_n;
 		center[1] = m_e;
 	} else {
@@ -312,12 +341,12 @@ static void path_curve(float * start_point,
 
 	// Compute error in terms of meters from the curve (the distance projected
 	// normal onto the path i.e. cross-track distance)
-	status->error = radius - cradius;
+	status->error = m_radius - cradius;
 
 	if (cradius < 1e-6f) {
 		// cradius is zero, just fly somewhere and make sure correction is still a normal
 		status->fractional_progress = 1;
-		status->error = radius;
+		status->error = m_radius;
 		status->correction_direction[0] = 0;
 		status->correction_direction[1] = 1;
 		status->path_direction[0] = 1;
@@ -352,7 +381,7 @@ static void path_curve(float * start_point,
 
 	status->fractional_progress = dot / (dist_path * dist_path);
 
-	status->error = fabs(status->error);
+	status->error = fabsf(status->error);
 }
 
 /**

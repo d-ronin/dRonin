@@ -109,6 +109,8 @@ public slots:
     void setTempCalRange(int r);
 
 signals:
+    //! Indicate whether the calibration is busy
+    void calibrationBusy(bool busy);
     //! Indicate whether to enable or disable controls
     void toggleControls(bool enable);
 
@@ -146,6 +148,9 @@ signals:
     void calibrationCompleted();
 
 private:
+    //! Helper function to set a QMap of metadata
+    void setMetadata(QMap<QString, UAVObject::Metadata> metaList);
+
     //! Perform the leveling calculation
     void doStartLeveling();
 
@@ -176,7 +181,7 @@ private:
     QMap<QString, UAVObject::Metadata> originalMetaData;
 
     //! List of optimized metadata rates
-    QMap<QString, UAVObject::Metadata> metaDataList;
+    QMap<QString, UAVObject::Metadata> slowedDownMetaDataList;
 
     QList<double> gyro_accum_x;
     QList<double> gyro_accum_y;
@@ -196,11 +201,11 @@ private:
     static const int NUM_SENSOR_UPDATES_LEVELING = 300;
     static const int NUM_SENSOR_UPDATES_YAW_ORIENTATION = 300;
     static const int NUM_SENSOR_UPDATES_SIX_POINT = 100;
-    static const int SENSOR_UPDATE_PERIOD = 20;
-    static const int NON_SENSOR_UPDATE_PERIOD = 5000;
+    static const int SENSOR_UPDATE_PERIOD = 25;
+    static const int NON_SENSOR_UPDATE_PERIOD = 0;
     double MIN_TEMPERATURE_RANGE;
 
-    double initialBoardRotation[3];
+    double boardRotationMatrix[3][3];
     double initialAccelsScale[3];
     double initialAccelsBias[3];
     double initialMagsScale[3];

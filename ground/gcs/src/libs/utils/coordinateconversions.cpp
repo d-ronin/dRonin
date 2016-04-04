@@ -26,14 +26,14 @@
  * with this program; if not, write to the Free Software Foundation, Inc.,
  * 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
  */
-
+#define _USE_MATH_DEFINES
+#include <cmath>
 #include "coordinateconversions.h"
 #include <qglobal.h>
 #include <QDebug>
 #include <math.h>
 
-#define RAD2DEG (180.0/M_PI)
-#define DEG2RAD (M_PI/180.0)
+#include <physical_constants.h>
 
 namespace Utils {
 
@@ -164,6 +164,7 @@ int CoordinateConversions::NED2LLA_HomeECEF(double BaseECEF[3], double NED[3], d
 int CoordinateConversions::NED2LLA_HomeLLA(double homeLLA[3], double NED[3], double LLA[3])
 {
     double T[3];
+    // 6.378137E6 is the radius of the earth
     T[0] = homeLLA[2]+6.378137E6f * M_PI / 180.0;
     T[1] = cosf(homeLLA[0] * M_PI / 180.0)*(homeLLA[2]+6.378137E6f) * M_PI / 180.0;
     T[2] = -1.0f;

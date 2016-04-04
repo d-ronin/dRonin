@@ -3,6 +3,7 @@
  *
  * @file       uavobjectbrowserwidget.h
  * @author     The OpenPilot Team, http://www.openpilot.org Copyright (C) 2010.
+ * @author     Tau Labs, http://taulabs.org, Copyright (C) 2014
  * @addtogroup GCSPlugins GCS Plugins
  * @{
  * @addtogroup UAVObjectBrowserPlugin UAVObject Browser Plugin
@@ -30,7 +31,9 @@
 
 #include <QModelIndex>
 #include <QWidget>
+#include <QKeyEvent>
 #include <QTreeView>
+#include <QSortFilterProxyModel>
 #include "objectpersistence.h"
 #include "uavobjecttreemodel.h"
 
@@ -39,13 +42,26 @@ class ObjectTreeItem;
 class Ui_UAVObjectBrowser;
 class Ui_viewoptions;
 
+class TreeSortFilterProxyModel : public QSortFilterProxyModel
+{
+public:
+    TreeSortFilterProxyModel(QObject *parent);
+
+protected:
+    bool filterAcceptsRow(int source_row, const QModelIndex &source_parent) const;
+    bool filterAcceptsRowItself(int source_row, const QModelIndex &source_parent) const;
+    bool hasAcceptedChildren(int source_row, const QModelIndex &source_parent) const;
+};
+
 class UAVOBrowserTreeView : public QTreeView
 {
     Q_OBJECT
 public:
-    UAVOBrowserTreeView(UAVObjectTreeModel *m_model, unsigned int updateTimerPeriod);
-    void updateView(QModelIndex topLeft, QModelIndex bottomRight);
+    UAVOBrowserTreeView(unsigned int updateTimerPeriod);
+    void updateView(const QModelIndex &topLeft, const QModelIndex &bottomRight);
     void updateTimerPeriod(unsigned int val);
+
+    virtual void setModel(QAbstractItemModel *model){QTreeView::setModel(model); proxyModel = static_cast<TreeSortFilterProxyModel *>(model);}
 
     /**
      * @brief dataChanged Reimplements QTreeView::dataChanged signal
@@ -56,15 +72,12 @@ public:
     virtual void dataChanged(const QModelIndex & topLeft, const QModelIndex & bottomRight,
                              const QVector<int> & roles = QVector<int> ());
 
-    void setModel(QAbstractItemModel *model) {m_model = dynamic_cast<UAVObjectTreeModel*>(model); QTreeView::setModel(model);}
-
 private slots:
     void onTimeout_updateView();
 
 private:
-    UAVObjectTreeModel *m_model;
-
     bool m_updateTreeViewFlag;
+    TreeSortFilterProxyModel *proxyModel;
 
     QTimer m_updateViewTimer;
 
@@ -79,15 +92,16 @@ public:
     ~UAVObjectBrowserWidget();
     void setRecentlyUpdatedColor(QColor color) { m_recentlyUpdatedColor = color; m_model->setRecentlyUpdatedColor(color); }
     void setManuallyChangedColor(QColor color) { m_manuallyChangedColor = color; m_model->setManuallyChangedColor(color); }
+    void setNotPresentOnHwColor(QColor color) { m_notPresentOnHwColor = color; m_model->setNotPresentOnHwColor(color); }
     void setRecentlyUpdatedTimeout(int timeout) { m_recentlyUpdatedTimeout = timeout; m_model->setRecentlyUpdatedTimeout(timeout); }
     void setOnlyHighlightChangedValues(bool highlight) { m_onlyHighlightChangedValues = highlight; m_model->setOnlyHighlightChangedValues(highlight); }
-    void setViewOptions(bool categorized,bool scientific,bool metadata);
-
+    void setViewOptions(bool categorized, bool scientific, bool metadata, bool hideNotPresent);
+    void initialize();
+    void refreshHiddenObjects();
 public slots:
     void showMetaData(bool show);
-    void categorize(bool categorize);
-    void useScientificNotation(bool scientific);
-
+    void showNotPresent(bool show);
+    void doRefreshHiddenObjects();
 private slots:
     void sendUpdate();
     void requestUpdate();
@@ -101,8 +115,11 @@ private slots:
     void onTreeItemCollapsed(QModelIndex);
     void onTreeItemExpanded(QModelIndex);
 
+    void searchTextChanged(QString searchText);
+    void searchTextCleared();
+
 signals:
-    void viewOptionsChanged(bool categorized,bool scientific,bool metadata);
+    void viewOptionsChanged(bool categorized,bool scientific,bool metadata,bool hideNotPresent);
 private:
     QPushButton *m_requestUpdate;
     QPushButton *m_sendUpdate;
@@ -110,22 +127,27 @@ private:
     Ui_viewoptions *m_viewoptions;
     QDialog *m_viewoptionsDialog;
     UAVObjectTreeModel *m_model;
+    TreeSortFilterProxyModel *proxyModel;
 
     int m_recentlyUpdatedTimeout;
     QColor m_recentlyUpdatedColor;
     QColor m_manuallyChangedColor;
+    QColor m_notPresentOnHwColor;
     bool m_onlyHighlightChangedValues;
 
     void updateObjectPersistance(ObjectPersistence::OperationOptions op, UAVObject *obj);
     void enableUAVOBrowserButtons(bool enableState);
     ObjectTreeItem *findCurrentObjectTreeItem();
     void updateThrottlePeriod(UAVObject *);
+    void keyPressEvent(QKeyEvent *e);
+    void keyReleaseEvent(QKeyEvent *e);
 
     UAVOBrowserTreeView *treeView;
 
     QMap<QString, unsigned int> expandedUavoItems;
 
     unsigned int updatePeriod;
+    void refreshViewOptions();
 };
 
 #endif /* UAVOBJECTBROWSERWIDGET_H_ */

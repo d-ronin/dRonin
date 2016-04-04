@@ -1,0 +1,38 @@
+This work was packaged for Debian by:
+
+    <AUTHOR> on <DATE> -0600
+
+It was downloaded from:
+
+    <BRANDING_PACKAGE_COPYRIGHT_DOWNLOADED_FROM>
+
+Upstream Author(s):
+
+    Copyright (C) 2015 <BRANDING_PACKAGE_HOME_PAGE> <<BRANDING_PACKAGE_COPYRIGHT_EMAIL>>
+
+Copyright:
+
+    Copyright (C) 2015 <BRANDING_PACKAGE_HOME_PAGE> <<BRANDING_PACKAGE_COPYRIGHT_EMAIL>>
+
+License:
+
+    This program is free software; you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation; either version 3 of the License, or
+    (at your option) any later version.
+    This program is distributed in the hope that it will be useful, but
+    WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
+    or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License
+    for more details.
+    You should have received a copy of the GNU General Public License along
+    with this program; if not, write to the Free Software Foundation, Inc.,
+    59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
+    see "/usr/share/common-licenses/GPL-3".
+
+    This program contains software and images under other (GPL compatible)
+    licenses.  Please see LICENSE.txt as included in the package for details
+    on these licenses.
+
+The Debian packaging is:
+
+    Copyright (C) 2015 <BRANDING_PACKAGE_HOME_PAGE> <<BRANDING_PACKAGE_COPYRIGHT_EMAIL>> and is licensed under the GPL version 3, see "/usr/share/common-licenses/GPL-3".

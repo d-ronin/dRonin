@@ -42,8 +42,7 @@
 #include "coreplugin/connectionmanager.h"
 
 #include "qwt/src/qwt_legend.h"
-#include "qwt/src/qwt_legend_item.h"
-#include "qwt/src/qwt_double_range.h"
+#include "qwt/src/qwt_legend_label.h"
 #include "qwt/src/qwt_scale_widget.h"
 
 #include <iostream>
@@ -51,12 +50,15 @@
 #include <QDebug>
 #include <QColor>
 #include <QStringList>
-#include <QtGui/QWidget>
-#include <QtGui/QVBoxLayout>
-#include <QtGui/QPushButton>
+#include <QWidget>
+#include <QVBoxLayout>
+#include <QPushButton>
 #include <QMutexLocker>
 #include <QWheelEvent>
-
+#include <QMenu>
+#include <QAction>
+#include <QClipboard>
+#include <QApplication>
 
 QTimer *ScopeGadgetWidget::replotTimer=0;
 
@@ -81,6 +83,9 @@ ScopeGadgetWidget::ScopeGadgetWidget(QWidget *parent) : QwtPlot(parent),
     Core::ConnectionManager *cm = Core::ICore::instance()->connectionManager();
     connect(cm, SIGNAL(deviceAboutToDisconnect()), this, SLOT(stopPlotting()));
     connect(cm, SIGNAL(deviceConnected(QIODevice*)), this, SLOT(startPlotting()));
+
+    setContextMenuPolicy(Qt::CustomContextMenu);
+    connect(this, SIGNAL(customContextMenuRequested(const QPoint &)), this, SLOT(popUpMenu(const QPoint &)));
 }
 
 /**
@@ -102,6 +107,69 @@ ScopeGadgetWidget::~ScopeGadgetWidget()
 }
 
 // ******************************************************************
+
+void ScopeGadgetWidget::popUpMenu(const QPoint &mousePosition)
+{
+    Q_UNUSED(mousePosition);
+
+    QMenu menu;
+    QAction *action = menu.addAction(tr("Clear"));
+
+    // Add clear plot item to menu
+    connect(action, SIGNAL(triggered(bool)), this, SLOT(clearPlot()));
+    action = menu.addAction(tr("Copy to Clipboard"));
+
+    // Add copy to clipboard item to menu
+    connect(action, SIGNAL(triggered(bool)), this, SLOT(copyToClipboardAsImage()));
+    menu.addSeparator();
+
+    // Add options dialog to clipboard
+    action = menu.addAction(tr("Options..."));
+    connect(action, SIGNAL(triggered(bool)), this, SLOT(showOptionDialog()));
+
+    // Show the menu
+    menu.exec(QCursor::pos());
+}
+
+
+/**
+ * @brief ScopeGadgetWidget::clearPlot Clears the plotted data, but does not destroy the plots
+ */
+void ScopeGadgetWidget::clearPlot()
+{
+    if(m_scope){
+        // Clear the plots
+        foreach(PlotData* plotData, m_dataSources.values()) {
+            plotData->clearPlots();
+        }
+    }
+}
+
+
+/**
+ * @brief ScopeGadgetWidget::copyToClipboardAsImage Copies the selected scope to the clipboard
+ */
+void ScopeGadgetWidget::copyToClipboardAsImage()
+{
+    QPixmap pixmap =  QWidget::grab();
+    if(pixmap.isNull()){
+        qDebug("Failed to capture the plot");
+        return;
+    }
+    QClipboard *clipboard = QApplication::clipboard();
+    clipboard->setPixmap(pixmap);
+}
+
+
+/**
+ * @brief ScopeGadgetWidget::showOptionDialog Show the settings dialog for the selected scope
+ */
+void ScopeGadgetWidget::showOptionDialog()
+{
+    // This directly opens the preferences dialog and goes straight to the chosen tab.
+    Core::ICore::instance()->showOptionsDialog("ScopeGadget", scopeName);
+}
+
 
 /**
  * @brief ScopeGadgetWidget::mousePressEvent Pass mouse press event to QwtPlot
@@ -230,7 +298,8 @@ void ScopeGadgetWidget::deleteLegend()
 
     disconnect(this, SIGNAL(legendChecked(QwtPlotItem *, bool)), this, 0);
 
-    m_legend->clear();
+    delete m_legend;
+    m_legend = NULL;
     insertLegend(NULL, QwtPlot::TopLegend);
 }
 
@@ -244,8 +313,8 @@ void ScopeGadgetWidget::addLegend()
         return;
 
     // Show a legend at the top
-    m_legend = new QwtLegend;
-    m_legend->setItemMode(QwtLegend::CheckableItem);
+    m_legend = new QwtLegend(this);
+    m_legend->setDefaultItemMode(QwtLegendData::Checkable);
     m_legend->setFrameStyle(QFrame::Box | QFrame::Sunken);
     m_legend->setToolTip(tr("Click legend to show/hide scope trace"));
 
@@ -261,12 +330,13 @@ void ScopeGadgetWidget::addLegend()
     //    not visible, and the un-hiding it.
     foreach (QwtPlotItem *item, this->itemList()) {
         bool on = item->isVisible();
-        QWidget *w = m_legend->find(item);
-        if ( w && w->inherits("QwtLegendItem") )
-            ((QwtLegendItem *)w)->setChecked(!on);
+        QVariant itemInfo = QwtPlot::itemToInfo(item);
+        QWidget *w = m_legend->legendWidget(itemInfo);
+        if ( w && w->inherits("QwtLegendLabel") )
+            ((QwtLegendLabel *)w)->setChecked(!on);
     }
 
-    connect(this, SIGNAL(legendChecked(QwtPlotItem *, bool)), this, SLOT(showCurve(QwtPlotItem *, bool)));
+    connect(m_legend, SIGNAL(checked(const QVariant &, bool, int)), this, SLOT(showCurve(QVariant,bool,int)));
 }
 
 
@@ -275,15 +345,15 @@ void ScopeGadgetWidget::addLegend()
  * @param item
  * @param on
  */
-void ScopeGadgetWidget::showCurve(QwtPlotItem *item, bool on)
+void ScopeGadgetWidget::showCurve(const QVariant & itemInfo, bool on, int index)
 {
-    item->setVisible(!on);
-    QWidget *w = legend()->find(item);
-    if ( w && w->inherits("QwtLegendItem") )
-        ((QwtLegendItem *)w)->setChecked(on);
+    Q_UNUSED(index);
+    QwtPlotItem * item = QwtPlot::infoToItem(itemInfo);
+    if (item)
+        item->setVisible(!on);
 
     mutex.lock();
-        replot();
+    replot();
     mutex.unlock();
 }
 
@@ -336,7 +406,7 @@ void ScopeGadgetWidget::clearPlotWidget()
     if(m_scope){
         // Clear the plots
         foreach(PlotData* plotData, m_dataSources.values()) {
-            plotData->clearPlots(plotData);
+            plotData->deletePlots(plotData);
         }
 
         // Clear the data
@@ -416,5 +486,6 @@ void ScopeGadgetWidget::startTimer(int refreshInterval){
             replotTimer->start(refreshInterval);
         else
             replotTimer->setInterval(refreshInterval);
+
     }
 }

@@ -6,7 +6,8 @@
  * @{
  *
  * @file       failsafe_control.c
- * @author     Tau Labs, http://taulabs.org, Copyright (C) 2013
+ * @author     dRonin, http://dRonin.org/, Copyright (C) 2015-2016
+ * @author     Tau Labs, http://taulabs.org, Copyright (C) 2013-2014
  * @brief      Failsafe controller when transmitter control is lost
  *
  * @see        The GNU Public License (GPL) Version 3
@@ -26,6 +27,10 @@
  * You should have received a copy of the GNU General Public License along
  * with this program; if not, write to the Free Software Foundation, Inc.,
  * 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
+ *
+ * Additional note on redistribution: The copyright and license notices above
+ * must be maintained in each individual source file that is a derivative work
+ * of this source file; otherwise redistribution is prohibited.
  */
 
 #include "openpilot.h"
@@ -35,6 +40,7 @@
 
 #include "flightstatus.h"
 #include "stabilizationdesired.h"
+#include "systemsettings.h"
 
 //! Initialize the failsafe controller
 int32_t failsafe_control_initialize()
@@ -63,52 +69,33 @@ int32_t failsafe_control_select(bool reset_controller)
 
 	uint8_t flight_status;
 	FlightStatusFlightModeGet(&flight_status);
-	if (flight_status != FLIGHTSTATUS_FLIGHTMODE_STABILIZED1 || reset_controller) {
-		flight_status = FLIGHTSTATUS_FLIGHTMODE_STABILIZED1;
+	if (flight_status != FLIGHTSTATUS_FLIGHTMODE_FAILSAFE || reset_controller) {
+		flight_status = FLIGHTSTATUS_FLIGHTMODE_FAILSAFE;
 		FlightStatusFlightModeSet(&flight_status);
 	}
 
-#ifdef GIMBAL
-	// Gimbals do not need failsafe
+	SystemSettingsAirframeTypeOptions airframe_type;
+	SystemSettingsAirframeTypeGet(&airframe_type);
+
 	StabilizationDesiredData stabilization_desired;
 	StabilizationDesiredGet(&stabilization_desired);
-	stabilization_desired.Throttle = -1;
+	stabilization_desired.Thrust = (airframe_type == SYSTEMSETTINGS_AIRFRAMETYPE_HELICP) ? 0 : -1;
 	stabilization_desired.Roll = 0;
 	stabilization_desired.Pitch = 0;
-	stabilization_desired.Yaw = 0;
-	stabilization_desired.StabilizationMode[STABILIZATIONDESIRED_STABILIZATIONMODE_ROLL] = STABILIZATIONDESIRED_STABILIZATIONMODE_ATTITUDE;
-	stabilization_desired.StabilizationMode[STABILIZATIONDESIRED_STABILIZATIONMODE_PITCH] = STABILIZATIONDESIRED_STABILIZATIONMODE_POI;
-	stabilization_desired.StabilizationMode[STABILIZATIONDESIRED_STABILIZATIONMODE_YAW] = STABILIZATIONDESIRED_STABILIZATIONMODE_AXISLOCK;
-	StabilizationDesiredSet(&stabilization_desired);
-#else
-	// Pick default values that will roughly cause a plane to circle down
-	// and a quad to fall straight down
-	StabilizationDesiredData stabilization_desired;
-	StabilizationDesiredGet(&stabilization_desired);
+	stabilization_desired.Yaw   = 0;
 
 	if (!armed_when_enabled) {
 		/* disable stabilization so outputs do not move when system was not armed */
-		stabilization_desired.Throttle = -1;
-		stabilization_desired.Roll  = 0;
-		stabilization_desired.Pitch = 0;
-		stabilization_desired.Yaw   = 0;
-		stabilization_desired.StabilizationMode[STABILIZATIONDESIRED_STABILIZATIONMODE_ROLL] = STABILIZATIONDESIRED_STABILIZATIONMODE_NONE;
-		stabilization_desired.StabilizationMode[STABILIZATIONDESIRED_STABILIZATIONMODE_PITCH] = STABILIZATIONDESIRED_STABILIZATIONMODE_NONE;
-		stabilization_desired.StabilizationMode[STABILIZATIONDESIRED_STABILIZATIONMODE_YAW] = STABILIZATIONDESIRED_STABILIZATIONMODE_NONE;		
+		stabilization_desired.StabilizationMode[STABILIZATIONDESIRED_STABILIZATIONMODE_ROLL] = STABILIZATIONDESIRED_STABILIZATIONMODE_DISABLED;
+		stabilization_desired.StabilizationMode[STABILIZATIONDESIRED_STABILIZATIONMODE_PITCH] = STABILIZATIONDESIRED_STABILIZATIONMODE_DISABLED;
+		stabilization_desired.StabilizationMode[STABILIZATIONDESIRED_STABILIZATIONMODE_YAW] = STABILIZATIONDESIRED_STABILIZATIONMODE_DISABLED;
 	} else {
-		/* Pick default values that will roughly cause a plane to circle down and */
-		/* a quad to fall straight down */
-		stabilization_desired.Throttle = -1;
-		stabilization_desired.Roll = -10;
-		stabilization_desired.Pitch = 0;
-		stabilization_desired.Yaw = -5;
-		stabilization_desired.StabilizationMode[STABILIZATIONDESIRED_STABILIZATIONMODE_ROLL] = STABILIZATIONDESIRED_STABILIZATIONMODE_ATTITUDE;
-		stabilization_desired.StabilizationMode[STABILIZATIONDESIRED_STABILIZATIONMODE_PITCH] = STABILIZATIONDESIRED_STABILIZATIONMODE_ATTITUDE;
-		stabilization_desired.StabilizationMode[STABILIZATIONDESIRED_STABILIZATIONMODE_YAW] = STABILIZATIONDESIRED_STABILIZATIONMODE_RATE;
+		stabilization_desired.StabilizationMode[STABILIZATIONDESIRED_STABILIZATIONMODE_ROLL] = STABILIZATIONDESIRED_STABILIZATIONMODE_FAILSAFE;
+		stabilization_desired.StabilizationMode[STABILIZATIONDESIRED_STABILIZATIONMODE_PITCH] = STABILIZATIONDESIRED_STABILIZATIONMODE_FAILSAFE;
+		stabilization_desired.StabilizationMode[STABILIZATIONDESIRED_STABILIZATIONMODE_YAW] = STABILIZATIONDESIRED_STABILIZATIONMODE_FAILSAFE;
 	}
 
 	StabilizationDesiredSet(&stabilization_desired);
-#endif
 
 	return 0;
 }

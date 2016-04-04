@@ -9,6 +9,7 @@
  * @file       pios_gcsrcvr.c
  * @author     The OpenPilot Team, http://www.openpilot.org Copyright (C) 2010.
  * @author     Tau Labs, http://taulabs.org, Copyright (C) 2013
+ * @author     dRonin, http://dronin.org Copyright (C) 2015
  * @brief      GCS Input functions (STM32 dependent)
  * @see        The GNU Public License (GPL) Version 3
  *
@@ -82,7 +83,7 @@ static struct pios_gcsrcvr_dev *PIOS_gcsrcvr_alloc(void)
 	return(gcsrcvr_dev);
 }
 
-static void gcsreceiver_updated(UAVObjEvent * ev)
+static void gcsreceiver_updated(UAVObjEvent * ev, void *ctx, void *obj, int len)
 {
 	struct pios_gcsrcvr_dev *gcsrcvr_dev = global_gcsrcvr_dev;
 	if (ev->obj == GCSReceiverHandle()) {

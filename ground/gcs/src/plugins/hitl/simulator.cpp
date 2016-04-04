@@ -4,6 +4,7 @@
  * @file       simulator.cpp
  * @author     The OpenPilot Team, http://www.openpilot.org Copyright (C) 2010.
  * @author     Tau Labs, http://taulabs.org, Copyright (C) 2013
+ * @author     dRonin, http://dronin.org Copyright (C) 2015
  *
  * @addtogroup GCSPlugins GCS Plugins
  * @{
@@ -29,7 +30,6 @@
 
 
 #include "simulator.h"
-#include "qxtlogger.h"
 #include "extensionsystem/pluginmanager.h"
 #include "coreplugin/icore.h"
 #include "coreplugin/threadmanager.h"
@@ -184,11 +184,6 @@ void Simulator::onStart()
                        "inputPort: " + QString::number(settings.inPort) + "\n" + \
                        "outputPort: " + QString::number(settings.outPort) + "\n");
 
-    qxtLog->info("\nLocal interface: " + settings.hostAddress + "\n" + \
-                 "Remote interface: " + settings.remoteAddress + "\n" + \
-                 "inputPort: " + QString::number(settings.inPort) + "\n" + \
-                 "outputPort: " + QString::number(settings.outPort) + "\n");
-
 	connect(inSocket, SIGNAL(readyRead()), this, SLOT(receiveUpdate()),Qt::DirectConnection);
 
 	// Setup transmit timer
@@ -251,7 +246,7 @@ void Simulator::setupUAVObjects()
 
     // Iterate over list of UAVObjects, setting all dynamic data metadata objects to slow update rate.
     UAVObjectManager *objManager = getObjectManager();
-    QVector< QVector<UAVDataObject*> > objList = objManager->getDataObjects();
+    QVector< QVector<UAVDataObject*> > objList = objManager->getDataObjectsVector();
     foreach (QVector<UAVDataObject*> list, objList) {
         foreach (UAVDataObject* obj, list) {
             if(!obj->isSettings()) {
@@ -274,15 +269,9 @@ void Simulator::setupUAVObjects()
     // Most simulators use the flight controller's ActuatorDesired UAVO
     // for control output...
     if (settings.simulatorId == "FG"  ||
-             settings.simulatorId == "IL2" ||
              settings.simulatorId == "X-Plane")
     {
         setupInputObject(actDesired, settings.minOutputPeriod);
-    }
-    else if(settings.simulatorId == "ASimRC")
-    {
-        //...however, AeroSimRC uses the servo PWM output (i.e. ActuatorCommand)
-        setupInputObject(actCommand, settings.minOutputPeriod);
     }
 
     if (settings.gcsReceiverEnabled) {
@@ -709,24 +698,24 @@ void Simulator::updateUAVOs(Output2Hardware out){
     }
 
 //    /*******************************/
-//    if (settings.sonarAltitude) {
-//        static QTime sonarAltTime = currentTime;
-//        if (sonarAltTime.msecsTo(currentTime) >= settings.sonarAltRate) {
-//            SonarAltitude::DataFields sonarAltData;
-//            sonarAltData = sonarAlt->getData();
+//    if (settings.rangefinderDistanceEnable) {
+//        static QTime rangefinderDistanceTime = currentTime;
+//        if (rangefinderDistanceTime.msecsTo(currentTime) >= settings.rangefinderDistanceRate) {
+//            RangefinderDistance::DataFields rangefinderDistanceData;
+//            rangefinderDistanceData = rangefinderDistance->getData();
 
-//            float sAlt = settings.sonarMaxAlt;
+//            float rDistance = settings.rangefinderMaxDistance;
 //            // 0.35 rad ~= 20 degree
-//            if ((agl < (sAlt * 2.0)) && (roll < 0.35) && (pitch < 0.35)) {
+//            if ((agl < (rDistance * 2.0)) && (roll < 0.35) && (pitch < 0.35)) {
 //                float x = agl * qTan(roll);
 //                float y = agl * qTan(pitch);
 //                float h = qSqrt(x*x + y*y + agl*agl);
-//                sAlt = qMin(h, sAlt);
+//                rDistance = qMin(h, rDistance);
 //            }
 
-//            sonarAltData.Altitude = sAlt;
-//            sonarAlt->setData(sonarAltData);
-//            sonarAltTime = currentTime;
+//            rangefinderDistanceData.Range = rDistance;
+//            rangefinderDistance->setData(rangefinderDistanceData);
+//            rangefinderDistanceTime = currentTime;
 //        }
 //    }
 

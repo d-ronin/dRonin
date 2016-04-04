@@ -6,8 +6,9 @@
  * @{
  *
  * @file       sensors.c
+ * @author     dRonin, http://dRonin.org/, Copyright (C) 2015-2016
+ * @author     Tau Labs, http://taulabs.org, Copyright (C) 2013-2016
  * @author     The OpenPilot Team, http://www.openpilot.org Copyright (C) 2010.
- * @author     Tau Labs, http://taulabs.org, Copyright (C) 2013
  * @brief      Update available sensors registered with @ref PIOS_Sensors
  *
  * @see        The GNU Public License (GPL) Version 3
@@ -27,11 +28,16 @@
  * You should have received a copy of the GNU General Public License along
  * with this program; if not, write to the Free Software Foundation, Inc.,
  * 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
+ *
+ * Additional note on redistribution: The copyright and license notices above
+ * must be maintained in each individual source file that is a derivative work
+ * of this source file; otherwise redistribution is prohibited.
  */
 
 #include "pios.h"
 #include "openpilot.h"
 #include "physical_constants.h"
+#include "pios_thread.h"
 
 #include "accels.h"
 #include "actuatordesired.h"
@@ -56,13 +62,13 @@
 
 // Private constants
 #define STACK_SIZE_BYTES 1540
-#define TASK_PRIORITY (tskIDLE_PRIORITY+3)
+#define TASK_PRIORITY PIOS_THREAD_PRIO_HIGH
 #define SENSOR_PERIOD 2
 
 // Private types
 
 // Private variables
-static xTaskHandle sensorsTaskHandle;
+static struct pios_thread *sensorsTaskHandle;
 
 // Private functions
 static void SensorsTask(void *parameters);
@@ -111,10 +117,12 @@ int32_t SensorsInitialize(void)
  */
 int32_t SensorsStart(void)
 {
-	// Start main task
-	xTaskCreate(SensorsTask, (signed char *)"Sensors", STACK_SIZE_BYTES/4, NULL, TASK_PRIORITY, &sensorsTaskHandle);
-	TaskMonitorAdd(TASKINFO_RUNNING_SENSORS, sensorsTaskHandle);
+	// Watchdog must be registered before starting task
 	PIOS_WDG_RegisterFlag(PIOS_WDG_SENSORS);
+
+	// Start main task
+	sensorsTaskHandle = PIOS_Thread_Create(SensorsTask, "Sensors", STACK_SIZE_BYTES, NULL, TASK_PRIORITY);
+	TaskMonitorAdd(TASKINFO_RUNNING_SENSORS, sensorsTaskHandle);
 
 	return 0;
 }
@@ -195,7 +203,7 @@ static void SensorsTask(void *parameters)
 				simulateModelCar();
 		}
 
-		vTaskDelay(MS2TICKS(2));
+		PIOS_Thread_Sleep(2);
 
 	}
 }
@@ -316,7 +324,7 @@ static void simulateModelQuadcopter()
 	static float temperature = 20;
 	float Rbe[3][3];
 	
-	const float ACTUATOR_ALPHA = 0.8;
+	const float ACTUATOR_ALPHA = 0.9;
 	const float MAX_THRUST = GRAVITY * 2;
 	const float K_FRICTION = 1;
 	const float GPS_PERIOD = 0.1;
@@ -335,31 +343,18 @@ static void simulateModelQuadcopter()
 	ActuatorDesiredData actuatorDesired;
 	ActuatorDesiredGet(&actuatorDesired);
 
-	float thrust = (flightStatus.Armed == FLIGHTSTATUS_ARMED_ARMED) ? actuatorDesired.Throttle * MAX_THRUST : 0;
+	float thrust = (flightStatus.Armed == FLIGHTSTATUS_ARMED_ARMED) ? actuatorDesired.Thrust * MAX_THRUST : 0;
 	if (thrust < 0)
 		thrust = 0;
 	
 	if (thrust != thrust)
 		thrust = 0;
 	
-//	float control_scaling = thrust * thrustToDegs;
-//	// In rad/s
-//	rpy[0] = control_scaling * actuatorDesired.Roll * (1 - ACTUATOR_ALPHA) + rpy[0] * ACTUATOR_ALPHA;
-//	rpy[1] = control_scaling * actuatorDesired.Pitch * (1 - ACTUATOR_ALPHA) + rpy[1] * ACTUATOR_ALPHA;
-//	rpy[2] = control_scaling * actuatorDesired.Yaw * (1 - ACTUATOR_ALPHA) + rpy[2] * ACTUATOR_ALPHA;
-//	
-//	GyrosData gyrosData; // Skip get as we set all the fields
-//	gyrosData.x = rpy[0] * 180 / M_PI + rand_gauss();
-//	gyrosData.y = rpy[1] * 180 / M_PI + rand_gauss();
-//	gyrosData.z = rpy[2] * 180 / M_PI + rand_gauss();
-	
-	RateDesiredData rateDesired;
-	RateDesiredGet(&rateDesired);
-	
-	rpy[0] = (flightStatus.Armed == FLIGHTSTATUS_ARMED_ARMED) * rateDesired.Roll * (1 - ACTUATOR_ALPHA) + rpy[0] * ACTUATOR_ALPHA;
-	rpy[1] = (flightStatus.Armed == FLIGHTSTATUS_ARMED_ARMED) * rateDesired.Pitch * (1 - ACTUATOR_ALPHA) + rpy[1] * ACTUATOR_ALPHA;
-	rpy[2] = (flightStatus.Armed == FLIGHTSTATUS_ARMED_ARMED) * rateDesired.Yaw * (1 - ACTUATOR_ALPHA) + rpy[2] * ACTUATOR_ALPHA;
-	
+	float control_scaling = 500.0f;
+	// In rad/s
+	rpy[0] = control_scaling * actuatorDesired.Roll * (1 - ACTUATOR_ALPHA) + rpy[0] * ACTUATOR_ALPHA;
+	rpy[1] = control_scaling * actuatorDesired.Pitch * (1 - ACTUATOR_ALPHA) + rpy[1] * ACTUATOR_ALPHA;
+	rpy[2] = control_scaling * actuatorDesired.Yaw * (1 - ACTUATOR_ALPHA) + rpy[2] * ACTUATOR_ALPHA;
 
 	temperature = 20;
 	GyrosData gyrosData; // Skip get as we set all the fields
@@ -433,7 +428,7 @@ static void simulateModelQuadcopter()
 	}
 		
 	// Sensor feels gravity (when not acceleration in ned frame e.g. ned_accel[2] = 0)
-	ned_accel[2] -= 9.81;
+	ned_accel[2] -= GRAVITY;
 	
 	// Transform the accels back in to body frame
 	AccelsData accelsData; // Skip get as we set all the fields
@@ -462,6 +457,12 @@ static void simulateModelQuadcopter()
 	
 	HomeLocationData homeLocation;
 	HomeLocationGet(&homeLocation);
+	if (homeLocation.Set == HOMELOCATION_SET_FALSE) {
+		homeLocation.Be[0] = 100;
+		homeLocation.Be[1] = 0;
+		homeLocation.Be[2] = 400;
+		homeLocation.Set = HOMELOCATION_SET_TRUE;
+	}
 
 	static float gps_vel_drift[3] = {0,0,0};
 	gps_vel_drift[0] = gps_vel_drift[0] * 0.65 + rand_gauss() / 5.0;
@@ -491,6 +492,7 @@ static void simulateModelQuadcopter()
 		gpsPosition.Heading = 180 / M_PI * atan2f(vel[1] + gps_vel_drift[1],vel[0] + gps_vel_drift[0]);
 		gpsPosition.Satellites = 7;
 		gpsPosition.PDOP = 1;
+		gpsPosition.Accuracy = 3.0;
 		gpsPosition.Status = GPSPOSITION_STATUS_FIX3D;
 		GPSPositionSet(&gpsPosition);
 		last_gps_time = PIOS_DELAY_GetRaw();
@@ -504,6 +506,7 @@ static void simulateModelQuadcopter()
 		gpsVelocity.North = vel[0] + gps_vel_drift[0];
 		gpsVelocity.East = vel[1] + gps_vel_drift[1];
 		gpsVelocity.Down = vel[2] + gps_vel_drift[2];
+		gpsVelocity.Accuracy = 0.75;
 		GPSVelocitySet(&gpsVelocity);
 		last_gps_vel_time = PIOS_DELAY_GetRaw();
 	}
@@ -581,7 +584,7 @@ static void simulateModelAirplane()
 	ActuatorDesiredData actuatorDesired;
 	ActuatorDesiredGet(&actuatorDesired);
 	
-	float thrust = (flightStatus.Armed == FLIGHTSTATUS_ARMED_ARMED) ? actuatorDesired.Throttle * MAX_THRUST : 0;
+	float thrust = (flightStatus.Armed == FLIGHTSTATUS_ARMED_ARMED) ? actuatorDesired.Thrust * MAX_THRUST : 0;
 	if (thrust < 0)
 		thrust = 0;
 	
@@ -755,6 +758,12 @@ static void simulateModelAirplane()
 	
 	HomeLocationData homeLocation;
 	HomeLocationGet(&homeLocation);
+	if (homeLocation.Set == HOMELOCATION_SET_FALSE) {
+		homeLocation.Be[0] = 100;
+		homeLocation.Be[1] = 0;
+		homeLocation.Be[2] = 400;
+		homeLocation.Set = HOMELOCATION_SET_TRUE;
+	}
 	
 	static float gps_vel_drift[3] = {0,0,0};
 	gps_vel_drift[0] = gps_vel_drift[0] * 0.65 + rand_gauss() / 5.0;
@@ -867,7 +876,7 @@ static void simulateModelCar()
 	ActuatorDesiredData actuatorDesired;
 	ActuatorDesiredGet(&actuatorDesired);
 	
-	float thrust = (flightStatus.Armed == FLIGHTSTATUS_ARMED_ARMED) ? actuatorDesired.Throttle * MAX_THRUST : 0;
+	float thrust = (flightStatus.Armed == FLIGHTSTATUS_ARMED_ARMED) ? actuatorDesired.Thrust * MAX_THRUST : 0;
 	if (thrust < 0)
 		thrust = 0;
 	
@@ -1006,6 +1015,12 @@ static void simulateModelCar()
 	
 	HomeLocationData homeLocation;
 	HomeLocationGet(&homeLocation);
+	if (homeLocation.Set == HOMELOCATION_SET_FALSE) {
+		homeLocation.Be[0] = 100;
+		homeLocation.Be[1] = 0;
+		homeLocation.Be[2] = 400;
+		homeLocation.Set = HOMELOCATION_SET_TRUE;
+	}
 	
 	static float gps_vel_drift[3] = {0,0,0};
 	gps_vel_drift[0] = gps_vel_drift[0] * 0.65 + rand_gauss() / 5.0;

@@ -46,6 +46,7 @@
 //lint -esym(766, stdio.h)
 
 // #define  TEST_PRINTF    1
+#define  USE_NEWLIB    1
 
 #include <pios.h>
 
@@ -185,36 +186,6 @@ int _read(int file, char *ptr, int len)
 int _write_r( void * reent, int file, char * ptr, int len )
 {
     return 0;
-}
-
-/*==============================================================================
- * Increase program data space. As malloc and related functions depend on this,
- * it is useful to have a working implementation. The following suffices for a
- * standalone system; it exploits the symbol _end automatically defined by the
- * GNU linker.
- */
-caddr_t _sbrk(int incr)
-{
-    extern char _end;		/* Defined by the linker */
-    static char *heap_end;
-    char *prev_heap_end;
-    char * stack_ptr;
-
-    if (heap_end == 0)
-    {
-      heap_end = &_end;
-    }
-
-    prev_heap_end = heap_end;
-    asm volatile ("MRS %0, msp" : "=r" (stack_ptr) );
-    if (heap_end + incr > stack_ptr)
-    {
-      _write_r ((void *)0, 1, "Heap and stack collision\n", 25);
-      _exit (1);
-    }
-
-    heap_end += incr;
-    return (caddr_t) prev_heap_end;
 }
 
 /*==============================================================================
@@ -565,7 +536,13 @@ static int print (char **out, int *varg)
 #ifdef USE_NEWLIB
             char *cptr = (char *) varg ;  //lint !e740 !e826  convert to double pointer
             uint caddr = (uint) cptr ;
-            if ((caddr & 0xF) != 0) {
+
+            // If aligning to 8 byte boundaries, bit 3 should not be tested or a misaligment
+            // can result. When a float is converted to a double, bits 0 and 1 will not be
+            // set, so don't test them (the pointer add doesn't fix byte and word misaligments
+            // anyways)
+            // ** original aligment test-->> if ((caddr & 0xF) != 0) {
+            if ((caddr & 0x4) != 0) {
                cptr += 4 ;
             }
             double *dblptr = (double *) cptr ;  //lint !e740 !e826  convert to double pointer

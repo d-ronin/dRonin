@@ -75,7 +75,12 @@ void ControllerPage::initializePage()
 
 bool ControllerPage::isComplete() const
 {
-    return (getControllerType() != NULL) &&
+    Core::IBoardType* type = getControllerType();
+
+    if (type == NULL)
+        return false;
+
+    return !type->isUSBSupported() ||
            m_connectionManager->getCurrentDevice().getConName().startsWith("USB:", Qt::CaseInsensitive);
 }
 
@@ -88,18 +93,6 @@ bool ControllerPage::validatePage()
 bool ControllerPage::anyControllerConnected()
 {
     return m_telemtryManager->isConnected();
-}
-
-/**
- * @brief ControllerPage::getControllerType get the interface for
- * the connected board
- * @return the IBoardType
- */
-Core::IBoardType *ControllerPage::getControllerType() const
-{
-    ExtensionSystem::PluginManager *pm = ExtensionSystem::PluginManager::instance();
-    UAVObjectUtilManager *utilMngr     = pm->getObject<UAVObjectUtilManager>();
-    return utilMngr->getBoardType();
 }
 
 void ControllerPage::setupDeviceList()

@@ -6,6 +6,7 @@
  *             and storing them on the FC
  * @author     The OpenPilot Team, http://www.openpilot.org Copyright (C) 2012.
  * @author     Tau Labs, http://taulabs.org, Copyright (C) 2013
+ * @author     dRonin, http://dRonin.org/, Copyright (C) 2015
  * @see        The GNU Public License (GPL) Version 3
  *
  * @addtogroup GCSPlugins GCS Plugins
@@ -39,8 +40,10 @@
 #include "sensorsettings.h"
 #include "stabilizationsettings.h"
 
-const qint16 VehicleConfigurationHelper::LEGACY_ESC_FREQUENCE = 50;
-const qint16 VehicleConfigurationHelper::RAPID_ESC_FREQUENCE  = 400;
+const qint16 VehicleConfigurationHelper::LEGACY_ESC_FREQUENCY = 50;
+const qint16 VehicleConfigurationHelper::RAPID_ESC_FREQUENCY  = 400;
+const qint16 VehicleConfigurationHelper::ONESHOT_ESC_FREQUENCY  = 0; // Triggers sync update
+
 const float VehicleConfigurationHelper::DEFAULT_ENABLED_ACCEL_TAU = 0.1;
 
 VehicleConfigurationHelper::VehicleConfigurationHelper(VehicleConfigurationSource *configSource)
@@ -122,7 +125,7 @@ void VehicleConfigurationHelper::applyHardwareConfiguration()
         return;
 
     Core::IBoardType::InputType newType = m_configSource->getInputType();
-    bool success = boardPlugin->setInputOnPort(newType);
+    bool success = boardPlugin->setInputType(newType);
 
     if (success) {
         UAVDataObject* hwSettings = dynamic_cast<UAVDataObject*>(
@@ -184,7 +187,6 @@ void VehicleConfigurationHelper::applyActuatorConfiguration()
         QList<actuatorChannelSettings> actuatorSettings = m_configSource->getActuatorSettings();
         for (quint16 i = 0; i < ActuatorSettings::CHANNELMAX_NUMELEM; i++) {
             data.ChannelType[i]    = ActuatorSettings::CHANNELTYPE_PWM;
-            data.ChannelAddr[i]    = i;
             data.ChannelMin[i]     = actuatorSettings[i].channelMin;
             data.ChannelNeutral[i] = actuatorSettings[i].channelNeutral;
             data.ChannelMax[i]     = actuatorSettings[i].channelMax;
@@ -192,17 +194,24 @@ void VehicleConfigurationHelper::applyActuatorConfiguration()
 
         data.MotorsSpinWhileArmed = ActuatorSettings::MOTORSSPINWHILEARMED_FALSE;
 
-        for (quint16 i = 0; i < ActuatorSettings::CHANNELUPDATEFREQ_NUMELEM; i++) {
-            data.ChannelUpdateFreq[i] = LEGACY_ESC_FREQUENCE;
+        for (quint16 i = 0; i < ActuatorSettings::TIMERUPDATEFREQ_NUMELEM; i++) {
+            data.TimerUpdateFreq[i] = LEGACY_ESC_FREQUENCY;
         }
 
-        qint16 updateFrequence = LEGACY_ESC_FREQUENCE;
+        qint16 updateFrequency = LEGACY_ESC_FREQUENCY;
+        ActuatorSettings::TimerPwmResolutionOptions resolution = ActuatorSettings::TIMERPWMRESOLUTION_12MHZ;
         switch (m_configSource->getESCType()) {
         case VehicleConfigurationSource::ESC_LEGACY:
-            updateFrequence = LEGACY_ESC_FREQUENCE;
+            updateFrequency = LEGACY_ESC_FREQUENCY;
+            resolution = ActuatorSettings::TIMERPWMRESOLUTION_1MHZ;
             break;
         case VehicleConfigurationSource::ESC_RAPID:
-            updateFrequence = RAPID_ESC_FREQUENCE;
+            updateFrequency = RAPID_ESC_FREQUENCY;
+            resolution = ActuatorSettings::TIMERPWMRESOLUTION_1MHZ;
+            break;
+        case VehicleConfigurationSource::ESC_ONESHOT:
+            updateFrequency = ONESHOT_ESC_FREQUENCY;
+            resolution = ActuatorSettings::TIMERPWMRESOLUTION_12MHZ;
             break;
         default:
             break;
@@ -211,14 +220,20 @@ void VehicleConfigurationHelper::applyActuatorConfiguration()
         // TOOD: vehicle specific sets of update frequencies
         switch (m_configSource->getVehicleSubType()) {
         case VehicleConfigurationSource::MULTI_ROTOR_TRI_Y:
-            data.ChannelUpdateFreq[0] = updateFrequence;
-            data.ChannelUpdateFreq[1] = updateFrequence;
+            data.TimerUpdateFreq[0] = updateFrequency;
+            data.TimerUpdateFreq[1] = updateFrequency;
+            data.TimerPwmResolution[0] = resolution;
+            data.MotorsSpinWhileArmed = ActuatorSettings::MOTORSSPINWHILEARMED_TRUE;
             break;
         case VehicleConfigurationSource::MULTI_ROTOR_QUAD_X:
         case VehicleConfigurationSource::MULTI_ROTOR_QUAD_PLUS:
-            data.ChannelUpdateFreq[0] = updateFrequence;
-            data.ChannelUpdateFreq[1] = updateFrequence;
-            data.ChannelUpdateFreq[2] = updateFrequence;
+            data.TimerUpdateFreq[0] = updateFrequency;
+            data.TimerUpdateFreq[1] = updateFrequency;
+            data.TimerUpdateFreq[2] = updateFrequency;
+            data.TimerPwmResolution[0] = resolution;
+            data.TimerPwmResolution[1] = resolution;
+            data.TimerPwmResolution[2] = resolution;
+            data.MotorsSpinWhileArmed = ActuatorSettings::MOTORSSPINWHILEARMED_TRUE;
             break;
         case VehicleConfigurationSource::MULTI_ROTOR_HEXA:
         case VehicleConfigurationSource::MULTI_ROTOR_HEXA_COAX_Y:
@@ -227,10 +242,15 @@ void VehicleConfigurationHelper::applyActuatorConfiguration()
         case VehicleConfigurationSource::MULTI_ROTOR_OCTO_COAX_X:
         case VehicleConfigurationSource::MULTI_ROTOR_OCTO_COAX_PLUS:
         case VehicleConfigurationSource::MULTI_ROTOR_OCTO_V:
-            data.ChannelUpdateFreq[0] = updateFrequence;
-            data.ChannelUpdateFreq[1] = updateFrequence;
-            data.ChannelUpdateFreq[2] = updateFrequence;
-            data.ChannelUpdateFreq[3] = updateFrequence;
+            data.TimerUpdateFreq[0] = updateFrequency;
+            data.TimerUpdateFreq[1] = updateFrequency;
+            data.TimerUpdateFreq[2] = updateFrequency;
+            data.TimerUpdateFreq[3] = updateFrequency;
+            data.TimerPwmResolution[0] = resolution;
+            data.TimerPwmResolution[1] = resolution;
+            data.TimerPwmResolution[2] = resolution;
+            data.TimerPwmResolution[3] = resolution;
+            data.MotorsSpinWhileArmed = ActuatorSettings::MOTORSSPINWHILEARMED_TRUE;
             break;
         default:
             break;
@@ -266,9 +286,9 @@ void VehicleConfigurationHelper::applyFlighModeConfiguration()
     data.Stabilization3Settings[1] = ManualControlSettings::STABILIZATION3SETTINGS_RATE;
     data.Stabilization3Settings[2] = ManualControlSettings::STABILIZATION3SETTINGS_RATE;
     data.FlightModeNumber = 3;
-    data.FlightModePosition[0]     = ManualControlSettings::FLIGHTMODEPOSITION_STABILIZED1;
-    data.FlightModePosition[1]     = ManualControlSettings::FLIGHTMODEPOSITION_STABILIZED2;
-    data.FlightModePosition[2]     = ManualControlSettings::FLIGHTMODEPOSITION_STABILIZED3;
+    data.FlightModePosition[0]     = ManualControlSettings::FLIGHTMODEPOSITION_LEVELING;
+    data.FlightModePosition[1]     = ManualControlSettings::FLIGHTMODEPOSITION_ACRO;
+    data.FlightModePosition[2]     = ManualControlSettings::FLIGHTMODEPOSITION_STABILIZED1;
     data.FlightModePosition[3]     = ManualControlSettings::FLIGHTMODEPOSITION_ALTITUDEHOLD;
     data.FlightModePosition[4]     = ManualControlSettings::FLIGHTMODEPOSITION_POSITIONHOLD;
     data.FlightModePosition[5]     = ManualControlSettings::FLIGHTMODEPOSITION_MANUAL;
@@ -370,10 +390,8 @@ void VehicleConfigurationHelper::applyManualControlDefaults()
     case Core::IBoardType::INPUT_TYPE_SBUS:
         channelType = ManualControlSettings::CHANNELGROUPS_SBUS;
         break;
-    case Core::IBoardType::INPUT_TYPE_DSMX10BIT:
-    case Core::IBoardType::INPUT_TYPE_DSMX11BIT:
-    case Core::IBoardType::INPUT_TYPE_DSM2:
-        channelType = ManualControlSettings::CHANNELGROUPS_DSMMAINPORT;
+    case Core::IBoardType::INPUT_TYPE_DSM:
+        channelType = ManualControlSettings::CHANNELGROUPS_DSM;
         break;
     case Core::IBoardType::INPUT_TYPE_HOTTSUMD:
     case Core::IBoardType::INPUT_TYPE_HOTTSUMH:
@@ -516,19 +534,13 @@ void VehicleConfigurationHelper::resetVehicleConfig()
     // Reset all vehicle data
     MixerSettings *mSettings = MixerSettings::GetInstance(m_uavoManager);
 
-    // Reset feed forward, accel times etc
-    mSettings->setFeedForward(0.0f);
-    mSettings->setMaxAccel(1000.0f);
-    mSettings->setAccelTime(0.0f);
-    mSettings->setDecelTime(0.0f);
-
     // Reset throttle curves
     QString throttlePattern = "ThrottleCurve%1";
     for (int i = 1; i <= 2; i++) {
         UAVObjectField *field = mSettings->getField(throttlePattern.arg(i));
         Q_ASSERT(field);
         for (quint32 i = 0; i < field->getNumElements(); i++) {
-            field->setValue(i * (1.0f / (field->getNumElements() - 1)), i);
+            field->setValue(i * (0.9f / (field->getNumElements() - 1)), i);
         }
     }
 
@@ -618,9 +630,6 @@ GUIConfigDataUnion VehicleConfigurationHelper::getGUIConfigData()
 {
     GUIConfigDataUnion configData;
 
-    SystemSettings *systemSettings = SystemSettings::GetInstance(m_uavoManager);
-    Q_ASSERT(systemSettings);
-
     for (int i = 0; i < (int)(SystemSettings::AIRFRAMECATEGORYSPECIFICCONFIGURATION_NUMELEM); i++) {
         configData.UAVObject[i] = 0; // systemSettingsData.GUIConfigData[i];
     }
@@ -632,7 +641,7 @@ void VehicleConfigurationHelper::setupQuadCopter()
 {
     mixerChannelSettings channels[10];
     GUIConfigDataUnion guiSettings = getGUIConfigData();
-    SystemSettings::AirframeTypeOptions frame = SystemSettings::AIRFRAMETYPE_FIXEDWING;
+    SystemSettings::AirframeTypeOptions frame = SystemSettings::AIRFRAMETYPE_QUADP;
 
     switch (m_configSource->getVehicleSubType()) {
     case VehicleConfigurationSource::MULTI_ROTOR_QUAD_PLUS:
@@ -722,7 +731,7 @@ void VehicleConfigurationHelper::setupHexaCopter()
 {
     mixerChannelSettings channels[10];
     GUIConfigDataUnion guiSettings = getGUIConfigData();
-    SystemSettings::AirframeTypeOptions frame = SystemSettings::AIRFRAMETYPE_FIXEDWING;
+    SystemSettings::AirframeTypeOptions frame = SystemSettings::AIRFRAMETYPE_HEXA;
 
     switch (m_configSource->getVehicleSubType()) {
     case VehicleConfigurationSource::MULTI_ROTOR_HEXA:
@@ -901,7 +910,7 @@ void VehicleConfigurationHelper::setupOctoCopter()
 {
     mixerChannelSettings channels[10];
     GUIConfigDataUnion guiSettings = getGUIConfigData();
-    SystemSettings::AirframeTypeOptions frame = SystemSettings::AIRFRAMETYPE_FIXEDWING;
+    SystemSettings::AirframeTypeOptions frame = SystemSettings::AIRFRAMETYPE_OCTO;
 
     switch (m_configSource->getVehicleSubType()) {
     case VehicleConfigurationSource::MULTI_ROTOR_OCTO:

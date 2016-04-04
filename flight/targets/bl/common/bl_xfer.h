@@ -42,7 +42,6 @@ struct xfer_state {
 	uint32_t current_partition_offset;
 	uint32_t next_packet_number;
 	bool     check_crc;
-	uint32_t bytes_to_crc;
 	uint32_t crc;
 
 	uint32_t bytes_to_xfer;

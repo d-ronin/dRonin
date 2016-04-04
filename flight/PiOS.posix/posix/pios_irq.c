@@ -42,8 +42,8 @@
 */
 int32_t PIOS_IRQ_Disable(void)
 {
-#if defined(PIOS_INCLUDE_FREERTOS)
-	taskENTER_CRITICAL();
+#if defined(PIOS_INCLUDE_CHIBIOS)
+	chSysDisable();
 #endif
 	return 0;
 }
@@ -55,10 +55,15 @@ int32_t PIOS_IRQ_Disable(void)
 */
 int32_t PIOS_IRQ_Enable(void)
 {
-#if defined(PIOS_INCLUDE_FREERTOS)
-	taskEXIT_CRITICAL();
+#if defined(PIOS_INCLUDE_CHIBIOS)
+	chSysEnable();
 #endif
 	return 0;
+}
+
+bool PIOS_IRQ_InISR(void)
+{
+	return false;
 }
 
 #endif

@@ -1,7 +1,7 @@
 TEMPLATE = lib
 TARGET = Aggregation
 
-include(../../taulabslibrary.pri)
+include(../../gcslibrary.pri)
 
 DEFINES += AGGREGATION_LIBRARY
 

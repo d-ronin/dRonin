@@ -24,16 +24,11 @@
  * 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
  */
 #include "uavobjectgeneratormatlab.h"
-#include "../../../gcs/src/plugins/coreplugin/coreconstants.h"
-
 
 using namespace std;
 
 
 bool UAVObjectGeneratorMatlab::generate(UAVObjectParser* parser,QString templatepath,QString outputpath) {
-
-    QString gcsRevision = QString::fromLatin1(Core::Constants::GCS_REVISION_STR);
-
     fieldTypeStrMatlab << "int8" << "int16" << "int32"
         << "uint8" << "uint16" << "uint32" << "single" << "uint8";
     fieldSizeStrMatlab << "1" << "2" << "4"
@@ -56,7 +51,6 @@ bool UAVObjectGeneratorMatlab::generate(UAVObjectParser* parser,QString template
         process_object(info, numBytes);
     }
 
-    matlabCodeTemplate.replace( QString("$(GCSREVISION)"), gcsRevision);
     matlabCodeTemplate.replace( QString("$(INSTANTIATIONCODE)"), matlabInstantiationCode);
     matlabCodeTemplate.replace( QString("$(SWITCHCODE)"), matlabSwitchCode);
     matlabCodeTemplate.replace( QString("$(CLEANUPCODE)"), matlabCleanupCode);
@@ -122,18 +116,19 @@ bool UAVObjectGeneratorMatlab::process_object(ObjectInfo* info, int numBytes)
     // Generate 'Switch:' code (will replace the $(SWITCHCODE) tag) //
     //==============================================================//
     matlabSwitchCode.append("\t\tcase " + objectTableName.toUpper() + "_OBJID\n");
-    matlabSwitchCode.append("\t\t\t" + tableIdxName + " = " + tableIdxName +" + 1;\n");
-    matlabSwitchCode.append("\t\t\t" + objectTableName + "FidIdx(" + tableIdxName + ") = bufferIdx; %#ok<*AGROW>\n");
-    matlabSwitchCode.append("\t\t\t" + objectTableName + ".timestamp(" + tableIdxName + ") = timestamp; %#ok<*AGROW>\n");
-    matlabSwitchCode.append("\t\t\tbufferIdx=bufferIdx + " +  objectTableName.toUpper() + "_NUMBYTES+1; %+1 is for CRC\n");
+    matlabSwitchCode.append("\t\t\tif buffer_len >= bufferIdx + " +  objectTableName.toUpper() + "_NUMBYTES+1;\n");
+    matlabSwitchCode.append("\t\t\t\t" + tableIdxName + " = " + tableIdxName +" + 1;\n");
+    matlabSwitchCode.append("\t\t\t\t" + objectTableName + "FidIdx(" + tableIdxName + ") = bufferIdx; %#ok<*AGROW>\n");
+    matlabSwitchCode.append("\t\t\t\t" + objectTableName + ".timestamp(" + tableIdxName + ") = timestamp; %#ok<*AGROW>\n");
+    matlabSwitchCode.append("\t\t\t\tbufferIdx=bufferIdx + " +  objectTableName.toUpper() + "_NUMBYTES+1; %+1 is for CRC\n");
     if(!info->isSingleInst){
-        matlabSwitchCode.append("\t\t\tbufferIdx = bufferIdx + 2; %An extra two bytes for the instance ID\n");
+        matlabSwitchCode.append("\t\t\t\tbufferIdx = bufferIdx + 2; %An extra two bytes for the instance ID\n");
     }
-    matlabSwitchCode.append("\t\t\tif " + tableIdxName + " >= length(" + objectTableName +"FidIdx) %Check to see if pre-allocated memory is exhausted\n");
-    matlabSwitchCode.append("\t\t\t\t" + objectTableName + "FidIdx(" + tableIdxName + "*2) = 0;\n");
-    matlabSwitchCode.append("\t\t\tend\n");
+    matlabSwitchCode.append("\t\t\t\tif " + tableIdxName + " >= length(" + objectTableName +"FidIdx) %Check to see if pre-allocated memory is exhausted\n");
+    matlabSwitchCode.append("\t\t\t\t\t" + objectTableName + "FidIdx(" + tableIdxName + "*2) = 0;\n");
+    matlabSwitchCode.append("\t\t\t\tend\n\t\t\tend\n");
 
-	
+
     //============================================================//
     // Generate 'Cleanup:' code (will replace the $(CLEANUP) tag) //
     //============================================================//

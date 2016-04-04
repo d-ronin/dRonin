@@ -20,6 +20,8 @@
         <file>html/Battery-Critical.html</file>
         <file>html/Battery-Error.html</file>
         <file>html/FlightTime-Warning.html</file>
+        <file>html/Gimbal-Critical.html</file>
+        <file>html/Gimbal-Warning.html</file>
         <file>html/GPS-Critical.html</file>
         <file>html/GPS-Error.html</file>
         <file>html/GPS-Warning.html</file>
@@ -29,16 +31,31 @@
         <file>html/Stabilization-Warning.html</file>
         <file>html/Stack-Critical.html</file>
         <file>html/Telemetry-Error.html</file>
+        <file>html/ADC-Critical.html</file>
+        <file>html/ADC-Warning.html</file>
         <file>html/SystemConfiguration-Error-AltitudeHold.html</file>
         <file>html/SystemConfiguration-Error-AutoTune.html</file>
+        <file>html/SystemConfiguration-Error-DuplicatePortCfg.html</file>
         <file>html/SystemConfiguration-Error-Multirotor.html</file>
         <file>html/SystemConfiguration-Error-PathPlanner.html</file>
         <file>html/SystemConfiguration-Error-PositionHold.html</file>
         <file>html/SystemConfiguration-Error-Stabilization.html</file>
-        <file>html/SystemConfiguration-Error-VelocityControl.html</file>
         <file>html/SystemConfiguration-Undefined.html</file>
         <file>html/PathPlanner-Error.html</file>
         <file>html/PathPlanner-Critical.html</file>
         <file>html/PathFollower-Warning.html</file>
+        <file>html/StateEstimation-Accelerometer-Queue-Not-Updating.html</file>
+        <file>html/StateEstimation-Gyro-Queue-Not-Updating.html</file>
+        <file>html/StateEstimation-No-Barometer.html</file>
+        <file>html/StateEstimation-No-GPS.html</file>
+        <file>html/StateEstimation-No-Magnetometer.html</file>
+        <file>html/StateEstimation-NoHome.html</file>
+        <file>html/StateEstimation-PDOP-Too-High.html</file>
+        <file>html/StateEstimation-Too-Few-Satellites.html</file>
+        <file>html/StateEstimation-Undefined.html</file>
+        <file>html/TempBaro-Warning.html</file>
+        <file>html/TempBaro-Error.html</file>
+        <file>html/TempBaro-Critical.html</file>
+        <file>html/Actuator-Warning.html</file>
     </qresource>
 </RCC>

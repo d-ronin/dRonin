@@ -34,7 +34,7 @@
 #include "uavobject.h"
 #include "uavobjectutilmanager.h"
 #include "cfg_vehicletypes/vehicleconfig.h"
-#include <QtGui/QWidget>
+#include <QWidget>
 #include <QList>
 
 class Ui_OutputWidget;
@@ -59,23 +59,35 @@ private:
     OutputChannelForm* getOutputChannelForm(const int index) const;
     int mccDataRate;
 
+    //! List of dropdowns for the timer rate
+    QList<QComboBox*> rateList;
+    //! List of dropdowns for the timer resolution
+    QList<QComboBox*> resList;
+    //! List of timer grouping labels
+    QList<QLabel*> lblList;
+
+    // For naming custom rates and OneShot
+    QString timerFreqToString(quint32) const;
+    quint32 timerStringToFreq(QString) const;
+
     UAVObject::Metadata accInitialData;
 
-    bool wasItMe;
+    virtual void tabSwitchingAway();
 
 private slots:
     void stopTests();
-    void disableIfNotMe(UAVObject *obj);
     virtual void refreshWidgetsValues(UAVObject * obj=NULL);
     void updateObjectsFromWidgets();
     void runChannelTests(bool state);
     void sendChannelTest(int index, int value);
+    void startESCCalibration();
     void openHelp();
     void do_SetDirty();
     void assignOutputChannels(UAVObject *obj);
+    void refreshWidgetRanges();
 
 protected:
-        void enableControls(bool enable);
+    void enableControls(bool enable);
 };
 
 #endif

@@ -4,6 +4,8 @@
  * @file       uavgadgetview.h
  * @author     The OpenPilot Team, http://www.openpilot.org Copyright (C) 2010.
  *             Parts by Nokia Corporation (qt-info@nokia.com) Copyright (C) 2009.
+ * @author     Tau Labs, http://taulabs.org, Copyright (C) 2014
+ * @author     dRonin, http://dRonin.org/, Copyright (C) 2015
  * @addtogroup GCSPlugins GCS Plugins
  * @{
  * @addtogroup CorePlugin Core Plugin
@@ -32,11 +34,11 @@
 #include <QtCore/QList>
 #include <QtCore/QString>
 #include <QtCore/QSettings>
-#include <QtGui/QWidget>
-#include <QtGui/QAction>
-#include <QtGui/QSplitter>
-#include <QtGui/QVBoxLayout>
-#include <QtGui/QStackedLayout>
+#include <QWidget>
+#include <QAction>
+#include <QSplitter>
+#include <QVBoxLayout>
+#include <QStackedLayout>
 #include <QtCore/QPointer>
 
 
@@ -64,9 +66,9 @@ class UAVGadgetView : public QWidget
     Q_OBJECT
 
 public:
-    UAVGadgetView(UAVGadgetManager *uavGadgetManager, IUAVGadget *uavGadget = 0, QWidget *parent = 0);
+    UAVGadgetView(UAVGadgetManager *uavGadgetManager, IUAVGadget *uavGadget = 0, QWidget *parent = 0, bool restoring = false);
     virtual ~UAVGadgetView();
-
+    void selectionActivated(int index, bool forceLoadConfiguration);
     void removeGadget();
     IUAVGadget *gadget() const;
     void setGadget(IUAVGadget *uavGadget);
@@ -76,14 +78,13 @@ public:
 
 public slots:
     void closeView();
-    void listSelectionActivated(int index);
+    void doReplaceGadget(int index);
 
 private slots:
     void currentGadgetChanged(IUAVGadget *gadget);
 
 private:
     void updateToolBar();
-
     QPointer<UAVGadgetManager> m_uavGadgetManager;
     QPointer<IUAVGadget> m_uavGadget;
     QWidget *m_toolBar;

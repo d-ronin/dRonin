@@ -1,8 +1,9 @@
 TEMPLATE = lib
 TARGET = HITL
 QT += network
+QT += widgets
 
-include(../../taulabsgcsplugin.pri)
+include(../../gcsplugin.pri)
 include(hitl_dependencies.pri)
 
 HEADERS += hitlplugin.h \
@@ -13,9 +14,7 @@ HEADERS += hitlplugin.h \
     hitlgadget.h \
     hitlnoisegeneration.h \
     simulator.h \
-    aerosimrcsimulator.h \
     fgsimulator.h \
-    il2simulator.h \
     xplanesimulator.h
 SOURCES += hitlplugin.cpp \
     hitlwidget.cpp \
@@ -25,11 +24,10 @@ SOURCES += hitlplugin.cpp \
     hitlgadget.cpp \
     hitlnoisegeneration.cpp \
     simulator.cpp \
-    aerosimrcsimulator.cpp \
     fgsimulator.cpp \
-    il2simulator.cpp \
     xplanesimulator.cpp
-OTHER_FILES += hitl.pluginspec
+OTHER_FILES += hitl.pluginspec \
+                hitl.json
 FORMS += hitloptionspage.ui \
     hitlwidget.ui
 RESOURCES += hitlresources.qrc

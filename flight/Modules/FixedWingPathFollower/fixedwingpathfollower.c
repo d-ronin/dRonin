@@ -6,9 +6,10 @@
  * @{
  *
  * @file       fixedwingpathfollower.c
+ * @author     dRonin, http://dRonin.org/, Copyright (C) 2015-2016
+ * @author     Tau Labs, http://taulabs.org, Copyright (C) 2013-2014
  * @author     The OpenPilot Team, http://www.openpilot.org Copyright (C) 2010.
- * @author     Tau Labs, http://taulabs.org, Copyright (C) 2013
- * @brief      This module compared @ref PositionActual to @ref PathDesired 
+ * @brief      This module compared @ref PositionActual to @ref PathDesired
  * and sets @ref StabilizationDesired.  It only does this when the FlightMode field
  * of @ref ManualControlCommand is Auto.
  *
@@ -29,6 +30,10 @@
  * You should have received a copy of the GNU General Public License along
  * with this program; if not, write to the Free Software Foundation, Inc.,
  * 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
+ *
+ * Additional note on redistribution: The copyright and license notices above
+ * must be maintained in each individual source file that is a derivative work
+ * of this source file; otherwise redistribution is prohibited.
  */
 
 /**
@@ -70,16 +75,17 @@
 #include "velocitydesired.h"
 #include "velocityactual.h"
 #include "coordinate_conversions.h"
+#include "pios_thread.h"
 
 // Private constants
 #define MAX_QUEUE_SIZE 4
 #define STACK_SIZE_BYTES 1548
-#define TASK_PRIORITY (tskIDLE_PRIORITY+2)
+#define TASK_PRIORITY PIOS_THREAD_PRIO_NORMAL
 // Private types
 
 // Private variables
 static bool module_enabled = false;
-static xTaskHandle pathfollowerTaskHandle;
+static struct pios_thread *pathfollowerTaskHandle;
 static PathDesiredData pathDesired;
 static PathStatusData pathStatus;
 static FixedWingPathFollowerSettingsData fixedwingpathfollowerSettings;
@@ -87,10 +93,10 @@ static FixedWingAirspeedsData fixedWingAirspeeds;
 
 // Private functions
 static void pathfollowerTask(void *parameters);
-static void SettingsUpdatedCb(UAVObjEvent * ev);
+static void SettingsUpdatedCb(UAVObjEvent * ev, void *ctx, void *obj, int len);
 static void updatePathVelocity();
 static uint8_t updateFixedDesiredAttitude();
-static void airspeedActualUpdatedCb(UAVObjEvent * ev);
+static void airspeedActualUpdatedCb(UAVObjEvent * ev, void *ctx, void *obj, int len);
 
 /**
  * Initialise the module, called on startup
@@ -100,7 +106,7 @@ int32_t FixedWingPathFollowerStart()
 {
 	if (module_enabled) {
 		// Start main task
-		xTaskCreate(pathfollowerTask, (signed char *)"PathFollower", STACK_SIZE_BYTES/4, NULL, TASK_PRIORITY, &pathfollowerTaskHandle);
+		pathfollowerTaskHandle = PIOS_Thread_Create(pathfollowerTask, "PathFollower", STACK_SIZE_BYTES, NULL, TASK_PRIORITY);
 		TaskMonitorAdd(TASKINFO_RUNNING_PATHFOLLOWER, pathfollowerTaskHandle);
 	}
 
@@ -151,6 +157,7 @@ static float airspeedErrorInt=0;
 
 // correct speed by measured airspeed
 static float indicatedAirspeedActualBias = 0;
+static bool path_desired_updated;
 
 /**
  * Module thread, should not return.
@@ -160,7 +167,7 @@ static void pathfollowerTask(void *parameters)
 	SystemSettingsData systemSettings;
 	FlightStatusData flightStatus;
 	
-	portTickType lastUpdateTime;
+	uint32_t lastUpdateTime;
 	
 	AirspeedActualConnectCallback(airspeedActualUpdatedCb);
 	FixedWingPathFollowerSettingsConnectCallback(SettingsUpdatedCb);
@@ -168,13 +175,15 @@ static void pathfollowerTask(void *parameters)
 	PathDesiredConnectCallback(SettingsUpdatedCb);
 
 	// Force update of all the settings
-	SettingsUpdatedCb(NULL);
+	SettingsUpdatedCb(NULL, NULL, NULL, 0);
 	
 	FixedWingPathFollowerSettingsGet(&fixedwingpathfollowerSettings);
+	path_desired_updated = false;
 	PathDesiredGet(&pathDesired);
-	
+	PathDesiredConnectCallbackCtx(UAVObjCbSetFlag, &path_desired_updated);
+
 	// Main task loop
-	lastUpdateTime = xTaskGetTickCount();
+	lastUpdateTime = PIOS_Thread_Systime();
 	while (1) {
 
 		// Conditions when this runs:
@@ -187,72 +196,132 @@ static void pathfollowerTask(void *parameters)
 			(systemSettings.AirframeType != SYSTEMSETTINGS_AIRFRAMETYPE_FIXEDWINGELEVON) &&
 			(systemSettings.AirframeType != SYSTEMSETTINGS_AIRFRAMETYPE_FIXEDWINGVTAIL) )
 		{
-			AlarmsSet(SYSTEMALARMS_ALARM_PATHFOLLOWER,SYSTEMALARMS_ALARM_WARNING);
-			vTaskDelay(1000);
+			AlarmsSet(SYSTEMALARMS_ALARM_PATHFOLLOWER,SYSTEMALARMS_ALARM_CRITICAL);
+			PIOS_Thread_Sleep(1000);
 			continue;
 		}
 
 		// Continue collecting data if not enough time
-		vTaskDelayUntil(&lastUpdateTime, fixedwingpathfollowerSettings.UpdatePeriod / portTICK_RATE_MS);
+		PIOS_Thread_Sleep_Until(&lastUpdateTime, fixedwingpathfollowerSettings.UpdatePeriod);
 
-		
+		static uint8_t last_flight_mode;
 		FlightStatusGet(&flightStatus);
 		PathStatusGet(&pathStatus);
-	
-		uint8_t result;
-		// Check the combinations of flightmode and pathdesired mode
-		switch(flightStatus.FlightMode) {
-			case FLIGHTSTATUS_FLIGHTMODE_POSITIONHOLD:
+
+		PositionActualData positionActual;
+
+		static enum {FW_FOLLOWER_IDLE, FW_FOLLOWER_RUNNING, FW_FOLLOWER_ERR} state = FW_FOLLOWER_IDLE;
+
+		// Check whether an update to the path desired occured and we should
+		// process it. This makes sure that the follower alarm state is
+		// updated.
+		bool process_path_desired_update = 
+		    (last_flight_mode == FLIGHTSTATUS_FLIGHTMODE_PATHPLANNER ||
+		     last_flight_mode == FLIGHTSTATUS_FLIGHTMODE_PATHPLANNER) &&
+		    path_desired_updated;
+		path_desired_updated = false;
+
+		// Process most of these when the flight mode changes
+		// except when in path following mode in which case
+		// each iteration must make sure this has the latest
+		// PathDesired
+		if (flightStatus.FlightMode != last_flight_mode ||
+			process_path_desired_update) {
+			
+			last_flight_mode = flightStatus.FlightMode;
+
+			switch(flightStatus.FlightMode) {
 			case FLIGHTSTATUS_FLIGHTMODE_RETURNTOHOME:
-				pathStatus.Status = PATHSTATUS_STATUS_INPROGRESS;
-				if (pathDesired.Mode == PATHDESIRED_MODE_HOLDPOSITION ||
-					pathDesired.Mode == PATHDESIRED_MODE_CIRCLEPOSITIONLEFT ||
-					pathDesired.Mode == PATHDESIRED_MODE_CIRCLEPOSITIONLEFT) {
-					updatePathVelocity();
-					result = updateFixedDesiredAttitude();
-					if (result) {
-						AlarmsSet(SYSTEMALARMS_ALARM_PATHFOLLOWER,SYSTEMALARMS_ALARM_OK);
-					} else {
-						AlarmsSet(SYSTEMALARMS_ALARM_PATHFOLLOWER,SYSTEMALARMS_ALARM_WARNING);
-					}
-				} else {
-					AlarmsSet(SYSTEMALARMS_ALARM_PATHFOLLOWER,SYSTEMALARMS_ALARM_ERROR);
-				}
+				state = FW_FOLLOWER_RUNNING;
+
+				PositionActualGet(&positionActual);
+
+				pathDesired.Mode = PATHDESIRED_MODE_CIRCLEPOSITIONRIGHT;
+				pathDesired.Start[0] = positionActual.North;
+				pathDesired.Start[1] = positionActual.East;
+				pathDesired.Start[2] = positionActual.Down;
+				pathDesired.End[0] = 0;
+				pathDesired.End[1] = 0;
+				pathDesired.End[2] = -30.0f;
+				pathDesired.ModeParameters = fixedwingpathfollowerSettings.OrbitRadius;
+				pathDesired.StartingVelocity = fixedWingAirspeeds.CruiseSpeed;
+				pathDesired.EndingVelocity = fixedWingAirspeeds.CruiseSpeed;
+				PathDesiredSet(&pathDesired);
+
+				break;
+			case FLIGHTSTATUS_FLIGHTMODE_POSITIONHOLD:
+				state = FW_FOLLOWER_RUNNING;
+
+				PositionActualGet(&positionActual);
+
+				pathDesired.Mode = PATHDESIRED_MODE_CIRCLEPOSITIONRIGHT;
+				pathDesired.Start[0] = positionActual.North;
+				pathDesired.Start[1] = positionActual.East;
+				pathDesired.Start[2] = positionActual.Down;
+				pathDesired.End[0] = positionActual.North;
+				pathDesired.End[1] = positionActual.East;
+				pathDesired.End[2] = positionActual.Down;
+				pathDesired.ModeParameters = fixedwingpathfollowerSettings.OrbitRadius;
+				pathDesired.StartingVelocity = fixedWingAirspeeds.CruiseSpeed;
+				pathDesired.EndingVelocity = fixedWingAirspeeds.CruiseSpeed;
+				PathDesiredSet(&pathDesired);
+
 				break;
 			case FLIGHTSTATUS_FLIGHTMODE_PATHPLANNER:
-				pathStatus.Status = PATHSTATUS_STATUS_INPROGRESS;
+			case FLIGHTSTATUS_FLIGHTMODE_TABLETCONTROL:
+				state = FW_FOLLOWER_RUNNING;
+
+				PathDesiredGet(&pathDesired);
 				switch(pathDesired.Mode) {
-					case PATHDESIRED_MODE_FLYENDPOINT:
-					case PATHDESIRED_MODE_FLYVECTOR:
-					case PATHDESIRED_MODE_FLYCIRCLERIGHT:
-					case PATHDESIRED_MODE_FLYCIRCLELEFT:
-						updatePathVelocity();
-						result = updateFixedDesiredAttitude();
-						if (result) {
-							AlarmsSet(SYSTEMALARMS_ALARM_PATHFOLLOWER,SYSTEMALARMS_ALARM_OK);
-						} else {
-							AlarmsSet(SYSTEMALARMS_ALARM_PATHFOLLOWER,SYSTEMALARMS_ALARM_WARNING);
-						}
+					case PATHDESIRED_MODE_ENDPOINT:
+					case PATHDESIRED_MODE_VECTOR:
+					case PATHDESIRED_MODE_CIRCLERIGHT:
+					case PATHDESIRED_MODE_CIRCLELEFT:
 						break;
 					default:
+						state = FW_FOLLOWER_ERR;
 						pathStatus.Status = PATHSTATUS_STATUS_CRITICAL;
-						AlarmsSet(SYSTEMALARMS_ALARM_PATHFOLLOWER,SYSTEMALARMS_ALARM_ERROR);
+						PathStatusSet(&pathStatus);
+						AlarmsSet(SYSTEMALARMS_ALARM_PATHFOLLOWER,SYSTEMALARMS_ALARM_CRITICAL);
 						break;
 				}
 				break;
 			default:
-				// Be cleaner and get rid of global variables
-				northVelIntegral = 0;
-				eastVelIntegral = 0;
-				downVelIntegral = 0;
-				bearingIntegral = 0;
-				speedIntegral = 0;
-				accelIntegral = 0;
-				powerIntegral = 0;
-
+				state = FW_FOLLOWER_IDLE;
 				break;
+			}
 		}
-		PathStatusSet(&pathStatus);
+
+		switch(state) {
+		case FW_FOLLOWER_RUNNING:
+		{
+			updatePathVelocity();
+			uint8_t result = updateFixedDesiredAttitude();
+			if (result) {
+				AlarmsClear(SYSTEMALARMS_ALARM_PATHFOLLOWER);
+			} else {
+				AlarmsSet(SYSTEMALARMS_ALARM_PATHFOLLOWER,SYSTEMALARMS_ALARM_WARNING);
+			}
+			PathStatusSet(&pathStatus);
+			break;
+		}
+		case FW_FOLLOWER_IDLE:
+			// Be cleaner and get rid of global variables
+			northVelIntegral = 0;
+			eastVelIntegral = 0;
+			downVelIntegral = 0;
+			bearingIntegral = 0;
+			speedIntegral = 0;
+			accelIntegral = 0;
+			powerIntegral = 0;
+			airspeedErrorInt = 0;
+			AlarmsClear(SYSTEMALARMS_ALARM_PATHFOLLOWER);
+			break;
+		case FW_FOLLOWER_ERR:
+		default:
+			// Leave alarms set above
+			break;
+		}
 	}
 }
 
@@ -277,17 +346,13 @@ static void updatePathVelocity()
 	float groundspeed = 0;
 	float altitudeSetpoint = 0;
 	switch (pathDesired.Mode) {
-		case PATHDESIRED_MODE_FLYCIRCLERIGHT:
-		case PATHDESIRED_MODE_DRIVECIRCLERIGHT:
-		case PATHDESIRED_MODE_FLYCIRCLELEFT:
-		case PATHDESIRED_MODE_DRIVECIRCLELEFT:
+		case PATHDESIRED_MODE_CIRCLERIGHT:
+		case PATHDESIRED_MODE_CIRCLELEFT:
 			groundspeed = pathDesired.EndingVelocity;
 			altitudeSetpoint = pathDesired.End[2];
 			break;
-		case PATHDESIRED_MODE_FLYENDPOINT:
-		case PATHDESIRED_MODE_DRIVEENDPOINT:
-		case PATHDESIRED_MODE_FLYVECTOR:
-		case PATHDESIRED_MODE_DRIVEVECTOR:
+		case PATHDESIRED_MODE_ENDPOINT:
+		case PATHDESIRED_MODE_VECTOR:
 		default:
 			groundspeed = pathDesired.StartingVelocity + (pathDesired.EndingVelocity - pathDesired.StartingVelocity) *
 				bound_min_max(progress.fractional_progress,0,1);
@@ -322,6 +387,9 @@ static void updatePathVelocity()
 		pathStatus.Status = PATHSTATUS_STATUS_INPROGRESS;
 	else
 		pathStatus.Status = PATHSTATUS_STATUS_COMPLETED;
+
+	pathStatus.Waypoint = pathDesired.Waypoint;
+
 	VelocityDesiredSet(&velocityDesired);
 }
 
@@ -470,7 +538,7 @@ static uint8_t updateFixedDesiredAttitude()
 	fixedwingpathfollowerStatus.Command[FIXEDWINGPATHFOLLOWERSTATUS_COMMAND_POWER] = powerCommand;
 
 	// set throttle
-	stabDesired.Throttle = powerCommand;
+	stabDesired.Thrust = powerCommand;
 
 	// Error condition: plane cannot hold altitude at current speed.
 	fixedwingpathfollowerStatus.Errors[FIXEDWINGPATHFOLLOWERSTATUS_ERRORS_LOWPOWER] = 0;
@@ -542,7 +610,6 @@ static uint8_t updateFixedDesiredAttitude()
 		result = 0;
 	}
 
-
 	/**
 	 * Compute desired roll command
 	 */
@@ -583,40 +650,56 @@ static uint8_t updateFixedDesiredAttitude()
 
 	stabDesired.StabilizationMode[STABILIZATIONDESIRED_STABILIZATIONMODE_ROLL] = STABILIZATIONDESIRED_STABILIZATIONMODE_ATTITUDE;
 	stabDesired.StabilizationMode[STABILIZATIONDESIRED_STABILIZATIONMODE_PITCH] = STABILIZATIONDESIRED_STABILIZATIONMODE_ATTITUDE;
-	stabDesired.StabilizationMode[STABILIZATIONDESIRED_STABILIZATIONMODE_YAW] = STABILIZATIONDESIRED_STABILIZATIONMODE_NONE;
+	stabDesired.StabilizationMode[STABILIZATIONDESIRED_STABILIZATIONMODE_YAW] = STABILIZATIONDESIRED_STABILIZATIONMODE_MANUAL;
 	
-	StabilizationDesiredSet(&stabDesired);
+	if (isnan(stabDesired.Roll) || isnan(stabDesired.Pitch) || isnan(stabDesired.Yaw) || isnan(stabDesired.Thrust)) {
+		northVelIntegral = 0;
+		eastVelIntegral = 0;
+		downVelIntegral = 0;
+		bearingIntegral = 0;
+		speedIntegral = 0;
+		accelIntegral = 0;
+		powerIntegral = 0;
+		airspeedErrorInt = 0;
+
+		result = 0;
+	} else {
+		StabilizationDesiredSet(&stabDesired);
+	}
 
 	FixedWingPathFollowerStatusSet(&fixedwingpathfollowerStatus);
 
 	return result;
 }
 
-static void SettingsUpdatedCb(UAVObjEvent * ev)
+static void SettingsUpdatedCb(UAVObjEvent * ev, void *ctx, void *obj, int len)
 {
+	(void) ctx; (void) obj; (void) len;
+
 	if (ev == NULL || ev->obj == FixedWingPathFollowerSettingsHandle())
 		FixedWingPathFollowerSettingsGet(&fixedwingpathfollowerSettings);
 	if (ev == NULL || ev->obj == FixedWingAirspeedsHandle())
 		FixedWingAirspeedsGet(&fixedWingAirspeeds);
-	if (ev == NULL || ev->obj == PathDesiredHandle())
-		PathDesiredGet(&pathDesired);
 }
 
-static void airspeedActualUpdatedCb(UAVObjEvent * ev)
+static void airspeedActualUpdatedCb(UAVObjEvent * ev, void *ctx, void *obj,
+	int len)
 {
+	(void) ctx;
 
-	AirspeedActualData airspeedActual;
+	AirspeedActualData *airspeedActual = obj;
+
+	PIOS_Assert(len == sizeof(airspeedActual));
+
 	VelocityActualData velocityActual;
 
-	AirspeedActualGet(&airspeedActual);
 	VelocityActualGet(&velocityActual);
-	float groundspeed = sqrtf(velocityActual.East*velocityActual.East + velocityActual.North*velocityActual.North );
 
+	float groundspeed = sqrtf(velocityActual.East*velocityActual.East + velocityActual.North*velocityActual.North );
 	
-	indicatedAirspeedActualBias = airspeedActual.CalibratedAirspeed - groundspeed;
+	indicatedAirspeedActualBias = airspeedActual->CalibratedAirspeed - groundspeed;
 	// note - we do fly by Indicated Airspeed (== calibrated airspeed)
 	// however since airspeed is updated less often than groundspeed, we use sudden changes to groundspeed to offset the airspeed by the same measurement.
-
 }
 
 /**

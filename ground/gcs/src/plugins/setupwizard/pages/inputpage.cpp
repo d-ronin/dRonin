@@ -40,6 +40,23 @@ InputPage::InputPage(SetupWizard *wizard, QWidget *parent) :
     ui(new Ui::InputPage)
 {
     ui->setupUi(this);
+    
+    // disable invalid input types
+    Core::IBoardType* board = getControllerType();
+    if (board) {
+        ui->pwmButton->setEnabled(board->isInputConfigurationSupported(Core::IBoardType::INPUT_TYPE_PWM));
+        ui->ppmButton->setEnabled(board->isInputConfigurationSupported(Core::IBoardType::INPUT_TYPE_PPM));
+        ui->hottsumdButton->setEnabled(board->isInputConfigurationSupported(Core::IBoardType::INPUT_TYPE_HOTTSUMD));
+        ui->sbusButton->setEnabled(board->isInputConfigurationSupported(Core::IBoardType::INPUT_TYPE_SBUS));
+        ui->spectrumButton->setEnabled(board->isInputConfigurationSupported(Core::IBoardType::INPUT_TYPE_DSM));
+    }
+    // the default might have been disabled, choose one that's available
+    foreach (QToolButton *button, findChildren<QToolButton *>()) {
+        if (button->isEnabled()) {
+            button->setChecked(true);
+            break;
+        }
+    }
 }
 
 InputPage::~InputPage()
@@ -56,7 +73,9 @@ bool InputPage::validatePage()
     } else if (ui->sbusButton->isChecked()) {
         getWizard()->setInputType(Core::IBoardType::INPUT_TYPE_SBUS);
     } else if (ui->spectrumButton->isChecked()) {
-        getWizard()->setInputType(Core::IBoardType::INPUT_TYPE_DSM2);
+        getWizard()->setInputType(Core::IBoardType::INPUT_TYPE_DSM);
+    } else if (ui->hottsumdButton->isChecked()) {
+        getWizard()->setInputType(Core::IBoardType::INPUT_TYPE_HOTTSUMD);
     } else {
         getWizard()->setInputType(Core::IBoardType::INPUT_TYPE_PWM);
     }
@@ -79,6 +98,6 @@ bool InputPage::restartNeeded(Core::IBoardType::InputType selectedType)
         return true;
 
     // Map from the enums used in SetupWizard to IBoardType
-    Core::IBoardType::InputType boardInputType = board->getInputOnPort();
+    Core::IBoardType::InputType boardInputType = board->getInputType();
     return (selectedType != boardInputType);
 }

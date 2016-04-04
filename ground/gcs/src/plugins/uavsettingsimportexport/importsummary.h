@@ -48,9 +48,11 @@ class ImportSummaryDialog : public QDialog
     Q_OBJECT
 
 public:
-    ImportSummaryDialog(QWidget *parent=0);
+    ImportSummaryDialog(QWidget *parent=0, bool quiet=false);
     ~ImportSummaryDialog();
     void addLine(QString objectName, QString text, bool status);
+    void setUAVOSettings(UAVObjectManager* obj);
+    int numLines() const;
 
 protected:
     void showEvent(QShowEvent *event);
@@ -58,12 +60,15 @@ protected:
 
 private:
     Ui::ImportSummaryDialog *ui;
+    UAVObjectManager* importedObjects;
+    bool quiet;
 
 public slots:
-    void updateSaveCompletion();
+    void updateCompletion();
 
 private slots:
-    void doTheSaving();
+    void doTheApplySaving();
+    void setCheckedState(int state);
     void openHelp();
 
 };

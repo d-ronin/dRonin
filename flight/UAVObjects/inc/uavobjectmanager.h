@@ -6,7 +6,8 @@
  *
  * @file       uavobjectmanager.h
  * @author     The OpenPilot Team, http://www.openpilot.org Copyright (C) 2010.
- * @author     Tau Labs, http://taulabs.org, Copyright (C) 2012-2013
+ * @author     Tau Labs, http://taulabs.org, Copyright (C) 2012-2014
+ * @author     dRonin, http://dronin.org Copyright (C) 2015-2016
  * @brief      Object manager library. This library holds a collection of all objects.
  *             It can be used by all modules/libraries to find an object reference.
  * @see        The GNU Public License (GPL) Version 3
@@ -26,10 +27,16 @@
  * You should have received a copy of the GNU General Public License along
  * with this program; if not, write to the Free Software Foundation, Inc.,
  * 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
+ *
+ * Additional note on redistribution: The copyright and license notices above
+ * must be maintained in each individual source file that is a derivative work
+ * of this source file; otherwise redistribution is prohibited.
  */
 
 #ifndef UAVOBJECTMANAGER_H
 #define UAVOBJECTMANAGER_H
+
+#include "pios_queue.h"
 
 #define UAVOBJ_ALL_INSTANCES 0xFFFF
 #define UAVOBJ_MAX_INSTANCES 1000
@@ -45,7 +52,7 @@
 #define UAVOBJ_GCS_TELEMETRY_UPDATE_MODE_SHIFT 6
 #define UAVOBJ_UPDATE_MODE_MASK 0x3
 
-typedef void* UAVObjHandle;
+typedef struct UAVOBase * UAVObjHandle;
 
 /**
  * Object update mode, used by multiple modules (e.g. telemetry and logger)
@@ -89,8 +96,6 @@ typedef enum {
 	EV_UPDATED = 0x02, /** Object data updated by changing the data structure */
 	EV_UPDATED_MANUAL = 0x04, /** Object update event manually generated */
 	EV_UPDATED_PERIODIC = 0x08, /** Object update from periodic event */
-	EV_UPDATE_REQ = 0x10, /** Request to update object data */
-	EV_UPDATED_THROTTLED_DIRTY = 0x80 /** Indicates a throttled object has been updated but not sent **/
 } UAVObjEventType;
 
 /**
@@ -116,12 +121,14 @@ typedef struct {
 	UAVObjEventType event;
 } UAVObjEvent;
 
+
 /**
  * Event callback, this function is called when an event is invoked. The function
  * will be executed in the event task. The ev parameter should be copied if needed
  * after the function returns.
  */
-typedef void (*UAVObjEventCallback)(UAVObjEvent* ev);
+typedef void (*UAVObjEventCallback)(UAVObjEvent* ev, void* cb_ctx,
+	void *uavo_data, int uavo_len);
 
 /**
  * Callback used to initialize the object fields to their default values.
@@ -137,6 +144,9 @@ typedef struct {
 	uint32_t lastCallbackErrorID;
 	uint32_t lastQueueErrorID;
 } UAVObjStats;
+
+typedef void (*new_uavo_instance_cb_t)(uint32_t,uint32_t);
+void UAVObjRegisterNewInstanceCB(new_uavo_instance_cb_t callback);
 
 int32_t UAVObjInitialize();
 void UAVObjGetStats(UAVObjStats* statsOut);
@@ -191,16 +201,20 @@ void UAVObjSetTelemetryUpdateMode(UAVObjMetadata* dataOut, UAVObjUpdateMode val)
 UAVObjUpdateMode UAVObjGetGcsTelemetryUpdateMode(const UAVObjMetadata* dataOut);
 void UAVObjSetTelemetryGcsUpdateMode(UAVObjMetadata* dataOut, UAVObjUpdateMode val);
 int8_t UAVObjReadOnly(UAVObjHandle obj);
-int32_t UAVObjConnectQueue(UAVObjHandle obj_handle, xQueueHandle queue, uint8_t eventMask);
-int32_t UAVObjDisconnectQueue(UAVObjHandle obj_handle, xQueueHandle queue);
-int32_t UAVObjConnectCallback(UAVObjHandle obj_handle, UAVObjEventCallback cb, uint8_t eventMask);
-int32_t UAVObjDisconnectCallback(UAVObjHandle obj_handle, UAVObjEventCallback cb);
-void UAVObjRequestUpdate(UAVObjHandle obj);
-void UAVObjRequestInstanceUpdate(UAVObjHandle obj_handle, uint16_t instId);
+int32_t UAVObjConnectQueue(UAVObjHandle obj_handle, struct pios_queue *queue, uint8_t eventMask);
+int32_t UAVObjDisconnectQueue(UAVObjHandle obj_handle, struct pios_queue *queue);
+int32_t UAVObjConnectQueueThrottled(UAVObjHandle obj_handle, struct pios_queue *queue, uint8_t eventMask, uint16_t interval);
+int32_t UAVObjConnectCallback(UAVObjHandle obj_handle, UAVObjEventCallback cb, void *cbCtx, uint8_t eventMask);
+int32_t UAVObjConnectCallbackThrottled(UAVObjHandle obj_handle, UAVObjEventCallback cb, void *cbCtx, uint8_t eventMask, uint16_t interval);
+int32_t UAVObjDisconnectCallback(UAVObjHandle obj_handle, UAVObjEventCallback cb, void *cbCtx);
 void UAVObjUpdated(UAVObjHandle obj);
 void UAVObjInstanceUpdated(UAVObjHandle obj_handle, uint16_t instId);
 void UAVObjIterate(void (*iterator)(UAVObjHandle obj));
-int32_t getEventMask(UAVObjHandle obj_handle, xQueueHandle queue);
+int32_t getEventMask(UAVObjHandle obj_handle, struct pios_queue *queue);
+uint8_t UAVObjCount();
+uint32_t UAVObjIDByIndex(uint8_t index);
+void UAVObjCbSetFlag(UAVObjEvent *objEv, void *ctx, void *obj, int len);
+void UAVObjCbCopyData(UAVObjEvent *objEv, void *ctx, void *obj, int len);
 
 #endif // UAVOBJECTMANAGER_H
 

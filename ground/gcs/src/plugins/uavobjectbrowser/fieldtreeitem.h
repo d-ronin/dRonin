@@ -30,11 +30,11 @@
 
 #include "treeitem.h"
 #include <QtCore/QStringList>
-#include <QtGui/QWidget>
-#include <QtGui/QSpinBox>
-#include <QtGui/QDoubleSpinBox>
+#include <QWidget>
+#include <QSpinBox>
+#include <QDoubleSpinBox>
 #include <qscispinbox/QScienceSpinBox.h>
-#include <QtGui/QComboBox>
+#include <QComboBox>
 #include <limits>
 
 #define QINT8MIN std::numeric_limits<qint8>::min()
@@ -90,6 +90,11 @@ public:
     }
     void apply() {
         int value = data(dataColumn).toInt();
+        if (value == -1) {
+            qDebug() << "Warning, UAVO browser field is outside range. This should never happen!";
+            Q_ASSERT(0);
+            return;
+        }
         QStringList options = m_field->getOptions();
         m_field->setValue(options[value], m_index);
         setChanged(false);
@@ -105,6 +110,7 @@ public:
     }
     QWidget *createEditor(QWidget *parent) {
         QComboBox *editor = new QComboBox(parent);
+        editor->setFocusPolicy(Qt::ClickFocus);
         foreach (QString option, m_enumOptions)
             editor->addItem(option);
         return editor;

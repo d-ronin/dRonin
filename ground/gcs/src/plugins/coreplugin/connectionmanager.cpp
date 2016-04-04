@@ -4,6 +4,7 @@
  * @file       connectionmanager.cpp
  * @author     The OpenPilot Team, http://www.openpilot.org Copyright (C) 2010.
  *             Parts by Nokia Corporation (qt-info@nokia.com) Copyright (C) 2009.
+ * @author     dRonin, http://dronin.org Copyright (C) 2015
  * @addtogroup GCSPlugins GCS Plugins
  * @{
  * @addtogroup CorePlugin Core Plugin
@@ -32,8 +33,8 @@
 #include <coreplugin/iconnection.h>
 #include <coreplugin/idevice.h>
 #include <extensionsystem/pluginmanager.h>
-#include "qextserialport/src/qextserialenumerator.h"
-#include "qextserialport/src/qextserialport.h"
+#include <QtSerialPort/QSerialPort>
+#include <QtSerialPort/QSerialPortInfo>
 #include <QDebug>
 #include <QLabel>
 #include <QHBoxLayout>
@@ -102,19 +103,39 @@ void ConnectionManager::init()
 }
 
 /**
+ * @brief Notifies the user when a connection attempt fails
+ * @param device The device to which connection was attemped
+ */
+void ConnectionManager::connectDeviceFailed(DevListItem &device)
+{
+    QString msg("<span style='color:red'>Failed</span> to connect device: ");
+    if (device.device)
+        msg.append(device.device->getDisplayName());
+    else
+        msg.append("Unknown");
+
+#ifdef Q_OS_LINUX
+    if (device.connection && device.connection->shortName() == "USB")
+        msg.append("<br />Have you set udev rules?");
+#endif
+
+    msgFailedToConnect.setText(msg);
+    msgFailedToConnect.open();
+}
+
+/**
 *   Method called when the user clicks the "Connect" button
 */
 bool ConnectionManager::connectDevice(DevListItem device)
 {
-    Q_UNUSED(device);
-
-    DevListItem connection_device = findDevice(m_availableDevList->itemData(m_availableDevList->currentIndex(),Qt::ToolTipRole).toString());
-    if (!connection_device.connection)
+    if (!device.connection) {
         return false;
+    }
 
-    QIODevice *io_dev = connection_device.connection->openDevice(connection_device.device);
-    if (!io_dev)
+    QIODevice *io_dev = device.connection->openDevice(device.device);
+    if (!io_dev) {
         return false;
+    }
 
     io_dev->open(QIODevice::ReadWrite);
 
@@ -123,9 +144,15 @@ bool ConnectionManager::connectDevice(DevListItem device)
         return false;
     }
 
+    // The device is connected make it the one selected on the dropbox
+    for(int x = 0; x < m_availableDevList->count(); ++x)
+    {
+        if(device.getConName() == m_availableDevList->itemData(x,Qt::ToolTipRole).toString())
+            m_availableDevList->setCurrentIndex(x);
+    }
     // we appear to have connected to the device OK
     // remember the connection/device details
-    m_connectionDevice = connection_device;
+    m_connectionDevice = device;
     m_ioDev = io_dev;
 
     connect(m_connectionDevice.connection, SIGNAL(destroyed(QObject *)), this, SLOT(onConnectionDestroyed(QObject *)), Qt::QueuedConnection);
@@ -239,8 +266,11 @@ void ConnectionManager::onConnectClicked()
     {
         // connecting to currently selected device
         DevListItem device = findDevice(m_availableDevList->itemData(m_availableDevList->currentIndex(), Qt::ToolTipRole).toString());
-        if (device.connection)
-            connectDevice(device);
+        if (device.connection) {
+            if (!connectDevice(device)) {
+                connectDeviceFailed(device);
+            }
+        }
     }
     else
     {	// disconnecting
@@ -270,12 +300,12 @@ void ConnectionManager::telemetryDisconnected()
     qDebug() << "TelemetryMonitor: disconnected";
 
     if (m_ioDev){
-        if(m_connectionDevice.connection->shortName()=="Serial") {
+        if(m_connectionDevice.connection->reconnect())//currently used with bluetooth only
+        {
             if(!reconnect->isActive())
                 reconnect->start(1000);
         }
     }
-
     //tell the monitor we're disconnected
     m_monitorWidget->disconnect();
 }
@@ -361,6 +391,14 @@ void ConnectionManager::resumePolling()
 }
 
 /**
+*   Returns true if autoconnection is enabled
+*/
+bool ConnectionManager::getAutoconnect()
+{
+    return m_mainWindow->generalSettings()->autoConnect();
+}
+
+/**
  * Synchronize the list of connections displayed with those physically
  * present
  * @param[in] connection Connection type that you want to forget about :)
@@ -389,8 +427,9 @@ void ConnectionManager::updateConnectionList(IConnection *connection)
             }
 
             // We have to delete the IDevice in that DevListItem before getting rid
-            // of the iter itself.
-            delete(iter->device);
+            // of the iter itself
+            if(!iter->device.isNull())
+                iter->device->deleteLater();
 
             iter = m_devList.erase(iter);
         } else
@@ -441,7 +480,6 @@ void ConnectionManager::devChanged(IConnection *connection)
     updateConnectionDropdown();
 
     emit availableDevicesChanged(m_devList);
-
 
     //disable connection button if the liNameif (m_availableDevList->count() > 0)
     if (m_availableDevList->count() > 0)

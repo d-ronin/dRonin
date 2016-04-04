@@ -6,10 +6,7 @@
 #   and the ARM toolchain installed to either the Taulabs/tools directory, their 
 #   respective default installation locations,  or made available on the system path.
 
-# misc tools
-RM=rm
-
-QT_SPEC=linux-g++
+QT_SPEC ?= linux-g++
 
 # Check for and find Python 2
 

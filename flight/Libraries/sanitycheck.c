@@ -2,9 +2,12 @@
  ******************************************************************************
  * @addtogroup TauLabsLibraries Tau Labs Libraries
  * @{
+ *
  * @file       sanitycheck.c
- * @author     Tau Labs, http://taulabs.org, Copyright (C) 2012-2013
+ * @author     dRonin, http://dRonin.org/, Copyright (C) 2015-2016
+ * @author     Tau Labs, http://taulabs.org, Copyright (C) 2012-2015
  * @brief      Utilities to validate a flight configuration
+ *
  * @see        The GNU Public License (GPL) Version 3
  *
  *****************************************************************************/
@@ -22,6 +25,10 @@
  * You should have received a copy of the GNU General Public License along
  * with this program; if not, write to the Free Software Foundation, Inc.,
  * 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
+ *
+ * Additional note on redistribution: The copyright and license notices above
+ * must be maintained in each individual source file that is a derivative work
+ * of this source file; otherwise redistribution is prohibited.
  */
 
 #include "openpilot.h"
@@ -31,6 +38,7 @@
 #include "sanitycheck.h"
 #include "manualcontrolsettings.h"
 #include "stabilizationsettings.h"
+#include "stateestimation.h"
 #include "systemalarms.h"
 #include "systemsettings.h"
 
@@ -51,8 +59,8 @@ static int32_t check_stabilization_settings(int index, bool multirotor);
 //! Check a stabilization mode switch position for safety
 static int32_t check_stabilization_rates();
 
-//!  Set the error code and alarm state
-static void set_config_error(SystemAlarmsConfigErrorOptions error_code);
+//! Check the system is safe for autonomous flight
+static int32_t check_safe_autonomous();
 
 /**
  * Run a preflight check over the hardware configuration
@@ -62,10 +70,6 @@ int32_t configuration_check()
 {
 	SystemAlarmsConfigErrorOptions error_code = SYSTEMALARMS_CONFIGERROR_NONE;
 	
-	// Get board type
-	const struct pios_board_info * bdinfo = &pios_board_info_blob;	
-	bool coptercontrol = bdinfo->board_type == 0x04;
-
 	// For when modules are not running we should explicitly check the objects are
 	// valid
 	if (ManualControlSettingsHandle() == NULL ||
@@ -100,7 +104,6 @@ int32_t configuration_check()
 	uint8_t modes[MANUALCONTROLSETTINGS_FLIGHTMODEPOSITION_NUMELEM];
 	ManualControlSettingsFlightModeNumberGet(&num_modes);
 	ManualControlSettingsFlightModePositionGet(modes);
-	
 
 	for(uint32_t i = 0; i < num_modes; i++) {
 		switch(modes[i]) {
@@ -108,6 +111,16 @@ int32_t configuration_check()
 				if (multirotor) {
 					error_code = SYSTEMALARMS_CONFIGERROR_STABILIZATION;
 				}
+				break;
+			case MANUALCONTROLSETTINGS_FLIGHTMODEPOSITION_ACRO:
+			case MANUALCONTROLSETTINGS_FLIGHTMODEPOSITION_ACROPLUS:
+			case MANUALCONTROLSETTINGS_FLIGHTMODEPOSITION_LEVELING:
+			case MANUALCONTROLSETTINGS_FLIGHTMODEPOSITION_MWRATE:
+			case MANUALCONTROLSETTINGS_FLIGHTMODEPOSITION_HORIZON:
+			case MANUALCONTROLSETTINGS_FLIGHTMODEPOSITION_AXISLOCK:
+			case MANUALCONTROLSETTINGS_FLIGHTMODEPOSITION_VIRTUALBAR:
+			case MANUALCONTROLSETTINGS_FLIGHTMODEPOSITION_FAILSAFE:
+				// always ok
 				break;
 			case MANUALCONTROLSETTINGS_FLIGHTMODEPOSITION_STABILIZED1:
 				error_code = (error_code == SYSTEMALARMS_CONFIGERROR_NONE) ? check_stabilization_settings(1, multirotor) : error_code;
@@ -123,44 +136,24 @@ int32_t configuration_check()
 					error_code = SYSTEMALARMS_CONFIGERROR_AUTOTUNE;
 				break;
 			case MANUALCONTROLSETTINGS_FLIGHTMODEPOSITION_ALTITUDEHOLD:
-				if (coptercontrol)
+				if ( !TaskMonitorQueryRunning(TASKINFO_RUNNING_ALTITUDEHOLD) )
 					error_code = SYSTEMALARMS_CONFIGERROR_ALTITUDEHOLD;
-				else {
-					if ( !TaskMonitorQueryRunning(TASKINFO_RUNNING_ALTITUDEHOLD) )
-						error_code = SYSTEMALARMS_CONFIGERROR_ALTITUDEHOLD;
-				}
-				break;
-			case MANUALCONTROLSETTINGS_FLIGHTMODEPOSITION_VELOCITYCONTROL:
-				if (coptercontrol) {
-					error_code = SYSTEMALARMS_CONFIGERROR_VELOCITYCONTROL;
-				}
-				else {
-					if (!TaskMonitorQueryRunning(TASKINFO_RUNNING_PATHFOLLOWER)) {
-						error_code = SYSTEMALARMS_CONFIGERROR_VELOCITYCONTROL;
-					}
-				}
 				break;
 			case MANUALCONTROLSETTINGS_FLIGHTMODEPOSITION_POSITIONHOLD:
 			case MANUALCONTROLSETTINGS_FLIGHTMODEPOSITION_RETURNTOHOME:
-				if (coptercontrol) {
+				if (!TaskMonitorQueryRunning(TASKINFO_RUNNING_PATHFOLLOWER)) {
 					error_code = SYSTEMALARMS_CONFIGERROR_PATHPLANNER;
-				}
-				else {
-					if (!TaskMonitorQueryRunning(TASKINFO_RUNNING_PATHFOLLOWER)) {
-						error_code = SYSTEMALARMS_CONFIGERROR_PATHPLANNER;
-					}
+				} else {
+					error_code = check_safe_autonomous();
 				}
 				break;
 			case MANUALCONTROLSETTINGS_FLIGHTMODEPOSITION_PATHPLANNER:
 			case MANUALCONTROLSETTINGS_FLIGHTMODEPOSITION_TABLETCONTROL:
-				if (coptercontrol) {
+				if (!TaskMonitorQueryRunning(TASKINFO_RUNNING_PATHFOLLOWER) ||
+					!TaskMonitorQueryRunning(TASKINFO_RUNNING_PATHPLANNER)) {
 					error_code = SYSTEMALARMS_CONFIGERROR_PATHPLANNER;
-				}
-				else {
-					if (!TaskMonitorQueryRunning(TASKINFO_RUNNING_PATHFOLLOWER) ||
-						!TaskMonitorQueryRunning(TASKINFO_RUNNING_PATHPLANNER)) {
-						error_code = SYSTEMALARMS_CONFIGERROR_PATHPLANNER;
-					}
+				} else {
+					error_code = check_safe_autonomous();
 				}
 				break;
 			default:
@@ -211,17 +204,16 @@ static int32_t check_stabilization_settings(int index, bool multirotor)
 			return SYSTEMALARMS_CONFIGERROR_NONE;
 	}
 
-	// For multirotors verify that nothing is set to "none"
+	// For multirotors verify that nothing is set to "disabled" or "manual"
 	if (multirotor) {
 		for(uint32_t i = 0; i < NELEMENTS(modes); i++) {
-			if (modes[i] == MANUALCONTROLSETTINGS_STABILIZATION1SETTINGS_NONE)
+			if (modes[i] == MANUALCONTROLSETTINGS_STABILIZATION1SETTINGS_DISABLED || modes[i] == MANUALCONTROLSETTINGS_STABILIZATION1SETTINGS_MANUAL)
 				return SYSTEMALARMS_CONFIGERROR_MULTIROTOR;
 
 			// If this axis allows enabling an autotune behavior without the module
 			// running then set an alarm now that aututune module initializes the
 			// appropriate objects
-			if ((modes[i] == MANUALCONTROLSETTINGS_STABILIZATION1SETTINGS_RELAYRATE || 
-				modes[i] == MANUALCONTROLSETTINGS_STABILIZATION1SETTINGS_RELAYATTITUDE) &&
+			if ((modes[i] == MANUALCONTROLSETTINGS_STABILIZATION1SETTINGS_SYSTEMIDENT) &&
 				(!TaskMonitorQueryRunning(TASKINFO_RUNNING_AUTOTUNE)))
 				return SYSTEMALARMS_CONFIGERROR_AUTOTUNE;
 		}
@@ -240,8 +232,8 @@ static int32_t check_stabilization_settings(int index, bool multirotor)
 
 
 	// Warning: This assumes that certain conditions in the XML file are met.  That 
-	// MANUALCONTROLSETTINGS_STABILIZATION1SETTINGS_NONE has the same numeric value for each channel
-	// and is the same for STABILIZATIONDESIRED_STABILIZATIONMODE_NONE
+	// MANUALCONTROLSETTINGS_STABILIZATION1SETTINGS_DISABLED has the same numeric value for each channel
+	// and is the same for STABILIZATIONDESIRED_STABILIZATIONMODE_DISABLED
 
 	return SYSTEMALARMS_CONFIGERROR_NONE;
 }
@@ -250,6 +242,10 @@ static int32_t check_stabilization_settings(int index, bool multirotor)
  * If the system is disarmed, look for a variety of conditions that
  * make it unsafe to arm (that might not be dangerous to engage once
  * flying).
+ *
+ * Note this does not check every possible situation that prevents
+ * arming.  In particular, transmitter_control checks for failsafe and
+ * ranges and switch arming configuration to allow/prevent arming.
  */
 static int32_t check_safe_to_arm()
 {
@@ -260,15 +256,61 @@ static int32_t check_safe_to_arm()
 	if (flightStatus.Armed != FLIGHTSTATUS_ARMED_ARMED) {
 		switch (flightStatus.FlightMode) {
 			case FLIGHTSTATUS_FLIGHTMODE_MANUAL:
+			case FLIGHTSTATUS_FLIGHTMODE_ACRO:
+			case FLIGHTSTATUS_FLIGHTMODE_ACROPLUS:
+			case FLIGHTSTATUS_FLIGHTMODE_LEVELING:
+			case FLIGHTSTATUS_FLIGHTMODE_MWRATE:
+			case FLIGHTSTATUS_FLIGHTMODE_HORIZON:
+			case FLIGHTSTATUS_FLIGHTMODE_AXISLOCK:
+			case FLIGHTSTATUS_FLIGHTMODE_VIRTUALBAR:
 			case FLIGHTSTATUS_FLIGHTMODE_STABILIZED1:
 			case FLIGHTSTATUS_FLIGHTMODE_STABILIZED2:
 			case FLIGHTSTATUS_FLIGHTMODE_STABILIZED3:
+			case FLIGHTSTATUS_FLIGHTMODE_ALTITUDEHOLD:
+				break;
+
+			case FLIGHTSTATUS_FLIGHTMODE_FAILSAFE:
+				/* for failsafe, we don't want to prevent
+				 * arming here because it makes an ugly looking
+				 * GCS config error.
+				 */
 				break;
 			default:
 				// Any mode not specifically allowed prevents arming
 				return SYSTEMALARMS_CONFIGERROR_UNSAFETOARM;
 		}
 	}
+
+	return SYSTEMALARMS_CONFIGERROR_NONE;
+}
+
+/**
+ * If an autonomous mode is available, make sure all the configurations are
+ * valid for it
+ */
+static int32_t check_safe_autonomous()
+{
+	// The current filter combinations are safe for navigation
+	//   Attitude   |  Navigation
+	//     Comp     |     Raw          (not recommended)
+	//     Comp     |     INS          (recommmended)
+	//    Anything  |     None         (unsafe)
+	//   INSOutdoor |     INS
+	//   INSIndoor  |     INS          (unsafe)
+
+
+#if !defined(SMALLF1)
+	StateEstimationData stateEstimation;
+	StateEstimationGet(&stateEstimation);
+
+	if (stateEstimation.AttitudeFilter == STATEESTIMATION_ATTITUDEFILTER_INSINDOOR)
+		return SYSTEMALARMS_CONFIGERROR_NAVFILTER;
+
+	// Anything not allowed is invalid, safe default
+	if (stateEstimation.NavigationFilter != STATEESTIMATION_NAVIGATIONFILTER_INS &&
+		stateEstimation.NavigationFilter != STATEESTIMATION_NAVIGATIONFILTER_RAW)
+		return SYSTEMALARMS_CONFIGERROR_NAVFILTER;
+#endif
 
 	return SYSTEMALARMS_CONFIGERROR_NONE;
 }
@@ -299,27 +341,37 @@ static int32_t check_stabilization_rates()
  * Set the error code and alarm state
  * @param[in] error code
  */
-static void set_config_error(SystemAlarmsConfigErrorOptions error_code)
+void set_config_error(SystemAlarmsConfigErrorOptions error_code)
 {
 	// Get the severity of the alarm given the error code
 	SystemAlarmsAlarmOptions severity;
+
+	static bool sticky = false;
+
+	/* Once a sticky error occurs, never change the error code */
+	if (sticky) return;
+
 	switch (error_code) {
 	case SYSTEMALARMS_CONFIGERROR_NONE:
 		severity = SYSTEMALARMS_ALARM_OK;
 		break;
-	case SYSTEMALARMS_CONFIGERROR_STABILIZATION:
-	case SYSTEMALARMS_CONFIGERROR_MULTIROTOR:
+	default:
+		error_code = SYSTEMALARMS_CONFIGERROR_UNDEFINED;
+		/* and fall through */
+
+	case SYSTEMALARMS_CONFIGERROR_DUPLICATEPORTCFG:
+		sticky = true;
+		/* and fall through */
 	case SYSTEMALARMS_CONFIGERROR_AUTOTUNE:
 	case SYSTEMALARMS_CONFIGERROR_ALTITUDEHOLD:
-	case SYSTEMALARMS_CONFIGERROR_VELOCITYCONTROL:
-	case SYSTEMALARMS_CONFIGERROR_POSITIONHOLD:
+	case SYSTEMALARMS_CONFIGERROR_MULTIROTOR:
+	case SYSTEMALARMS_CONFIGERROR_NAVFILTER:
 	case SYSTEMALARMS_CONFIGERROR_PATHPLANNER:
+	case SYSTEMALARMS_CONFIGERROR_POSITIONHOLD:
+	case SYSTEMALARMS_CONFIGERROR_STABILIZATION:
+	case SYSTEMALARMS_CONFIGERROR_UNDEFINED:
 	case SYSTEMALARMS_CONFIGERROR_UNSAFETOARM:
 		severity = SYSTEMALARMS_ALARM_ERROR;
-		break;
-	default:
-		severity = SYSTEMALARMS_ALARM_ERROR;
-		error_code = SYSTEMALARMS_CONFIGERROR_UNDEFINED;
 		break;
 	}
 

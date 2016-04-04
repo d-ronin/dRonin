@@ -7,7 +7,7 @@
  *
  * @file       pid.c
  * @author     The OpenPilot Team, http://www.openpilot.org Copyright (C) 2010.
- * @author     Tau Labs, http://taulabs.org, Copyright (C) 2012-2013
+ * @author     Tau Labs, http://taulabs.org, Copyright (C) 2012-2014
  * @brief      PID Control algorithms
  *
  * @see        The GNU Public License (GPL) Version 3
@@ -50,12 +50,11 @@ static float deriv_gamma = 1.0;
 float pid_apply(struct pid *pid, const float err, float dT)
 {	
 	if (pid->i == 0) {
-		// If Ki is zero, reset the integrator
-		pid->iAccumulator = 0;
+		// If Ki is zero, do not change the integrator. We do not reset to zero
+		// because sometimes the accumulator term is set externally
 	} else {
-		// Scale up accumulator by 1000 while computing to avoid losing precision
-		pid->iAccumulator += err * (pid->i * dT * 1000.0f);
-		pid->iAccumulator = bound_sym(pid->iAccumulator, pid->iLim * 1000.0f);
+		pid->iAccumulator += err * (pid->i * dT);
+		pid->iAccumulator = bound_sym(pid->iAccumulator, pid->iLim);
 	}
 
 	// Calculate DT1 term
@@ -68,7 +67,7 @@ float pid_apply(struct pid *pid, const float err, float dT)
 		pid->lastDer = dterm;            //   ^ set constant to 1/(2*pi*f_cutoff)
 	}	                                 //   7.9577e-3  means 20 Hz f_cutoff
  
-	return ((err * pid->p) + pid->iAccumulator / 1000.0f + dterm);
+	return ((err * pid->p) + pid->iAccumulator + dterm);
 }
 
 /**
@@ -87,11 +86,10 @@ float pid_apply_antiwindup(struct pid *pid, const float err,
 	float min_bound, float max_bound, float dT)
 {	
 	if (pid->i == 0) {
-		// If Ki is zero, reset the integrator
-		pid->iAccumulator = 0;
+		// If Ki is zero, do not change the integrator. We do not reset to zero
+		// because sometimes the accumulator term is set externally
 	} else {
-		// Scale up accumulator by 1000 while computing to avoid losing precision
-		pid->iAccumulator += err * (pid->i * dT * 1000.0f);
+		pid->iAccumulator += err * (pid->i * dT);
 	}
 
 	// Calculate DT1 term
@@ -105,7 +103,7 @@ float pid_apply_antiwindup(struct pid *pid, const float err,
 	}	                                 //   7.9577e-3  means 20 Hz f_cutoff
  
  	// Compute how much (if at all) the output is saturating
-	float ideal_output = ((err * pid->p) + pid->iAccumulator / 1000.0f + dterm);
+	float ideal_output = ((err * pid->p) + pid->iAccumulator + dterm);
 	float saturation = 0;
 	if (ideal_output > max_bound) {
 		saturation = max_bound - ideal_output;
@@ -115,8 +113,8 @@ float pid_apply_antiwindup(struct pid *pid, const float err,
 		ideal_output = min_bound;
 	}
 	// Use Kt 10x Ki
-	pid->iAccumulator += saturation * (pid->i * 10.0f * dT * 1000.0f);
-	pid->iAccumulator = bound_sym(pid->iAccumulator, pid->iLim * 1000.0f);
+	pid->iAccumulator += saturation * (pid->i * 10.0f * dT);
+	pid->iAccumulator = bound_sym(pid->iAccumulator, pid->iLim);
 
 	return ideal_output;
 }
@@ -137,12 +135,11 @@ float pid_apply_setpoint(struct pid *pid, const float setpoint, const float meas
 	float err = setpoint - measured;
 	
 	if (pid->i == 0) {
-		// If Ki is zero, reset the integrator
-		pid->iAccumulator = 0;
+		// If Ki is zero, do not change the integrator. We do not reset to zero
+		// because sometimes the accumulator term is set externally
 	} else {
-		// Scale up accumulator by 1000 while computing to avoid losing precision
-		pid->iAccumulator += err * (pid->i * dT * 1000.0f);
-		pid->iAccumulator = bound_sym(pid->iAccumulator, pid->iLim * 1000.0f);
+		pid->iAccumulator += err * (pid->i * dT);
+		pid->iAccumulator = bound_sym(pid->iAccumulator, pid->iLim);
 	}
 
 	// Calculate DT1 term,
@@ -155,7 +152,7 @@ float pid_apply_setpoint(struct pid *pid, const float setpoint, const float meas
 		pid->lastDer = dterm;            //   ^ set constant to 1/(2*pi*f_cutoff)
 	}	                                 //   7.9577e-3  means 20 Hz f_cutoff
  
-	return ((err * pid->p) + pid->iAccumulator / 1000.0f + dterm);
+	return ((err * pid->p) + pid->iAccumulator + dterm);
 }
 
 /**

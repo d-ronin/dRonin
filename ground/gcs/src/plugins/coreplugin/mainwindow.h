@@ -56,12 +56,8 @@ class IWizard;
 class ConnectionManager;
 class BoardManager;
 class MessageManager;
-class MimeDatabase;
 class ModeManager;
-class RightPaneWidget;
-class SettingsDatabase;
 class UniqueIDManager;
-class VariableManager;
 class ThreadManager;
 class ViewManagerInterface;
 class UAVGadgetManager;
@@ -72,7 +68,6 @@ namespace Internal {
 
 class ActionManagerPrivate;
 class CoreImpl;
-class FancyTabWidget;
 class GeneralSettings;
 class ShortcutSettings;
 class WorkspaceSettings;
@@ -110,13 +105,10 @@ public:
     UAVGadgetInstanceManager *uavGadgetInstanceManager() const;
     Core::ConnectionManager *connectionManager() const;
     Core::BoardManager *boardManager() const;
-    Core::VariableManager *variableManager() const;
     Core::ThreadManager *threadManager() const;
     Core::ModeManager *modeManager() const;
-    Core::MimeDatabase *mimeDatabase() const;
     Internal::GeneralSettings *generalSettings() const;
     QSettings *settings(QSettings::Scope scope) const;
-    inline SettingsDatabase *settingsDatabase() const { return m_settingsDatabase; }
     IContext * currentContextObject() const;
     QStatusBar *statusBar() const;
     void addAdditionalContext(int context);
@@ -130,6 +122,8 @@ public:
 signals:
     void windowActivated();
     void splashMessages(QString);
+    void hideSplash();
+    void showSplash();
 public slots:
     void newFile();
     void openFileWith();
@@ -158,9 +152,9 @@ private slots:
     void openRecentFile();
     void setFocusToEditor();
     void saveAll();
-    void aboutTauLabsGCS();
+    void aboutGCS();
     void aboutPlugins();
-    void aboutTauLabsAuthors();
+    void aboutAuthors();
     void updateFocusWidget(QWidget *old, QWidget *now);
     void destroyVersionDialog();
     void destroyAuthorsDialog();
@@ -182,19 +176,16 @@ private:
     QList<int> m_additionalContexts;
     QSettings *m_settings;
     QSettings *m_globalSettings;
-    SettingsDatabase *m_settingsDatabase;
     bool m_dontSaveSettings; // In case of an Error or if we reset the settings, never save them.
     ActionManagerPrivate *m_actionManager;
     MessageManager *m_messageManager;
     GlobalMessaging * m_globalMessaging;
-    VariableManager *m_variableManager;
     ThreadManager *m_threadManager;
     ModeManager *m_modeManager;
     QList<UAVGadgetManager*> m_uavGadgetManagers;
     UAVGadgetInstanceManager *m_uavGadgetInstanceManager;
     ConnectionManager *m_connectionManager;
     BoardManager *m_boardManager;
-    MimeDatabase *m_mimeDatabase;
     MyTabWidget *m_modeStack;
     Core::BaseView *m_outputView;
     VersionDialog *m_versionDialog;
@@ -227,7 +218,7 @@ private:
     QString m_config_description;
     QString m_config_details;
     QString m_config_stylesheet;
-#ifdef Q_WS_MAC
+#ifdef Q_OS_MAC
     QAction *m_minimizeAction;
     QAction *m_zoomAction;
 #endif

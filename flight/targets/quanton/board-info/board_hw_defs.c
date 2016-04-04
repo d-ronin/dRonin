@@ -6,7 +6,8 @@
  * @{
  *
  * @file       board_hw_defs.c 
- * @author     Tau Labs, http://taulabs.org, Copyright (C) 2012-2013
+ * @author     Tau Labs, http://taulabs.org, Copyright (C) 2012-2014
+ * @author     dRonin, http://dronin.org Copyright (C) 2015
  * @brief      Defines board specific static initializers for hardware for the
  *             Quanton board.
  * @see        The GNU Public License (GPL) Version 3
@@ -570,15 +571,15 @@ void PIOS_I2C_internal_er_irq_handler(void)
 #include "pios_flashfs_logfs_priv.h"
 
 static const struct flashfs_logfs_cfg flashfs_settings_cfg = {
-	.fs_magic      = 0x3bb141cf,
-	.arena_size    = 0x00010000, /* 256 * slot size */
-	.slot_size     = 0x00000100, /* 256 bytes */
+	.fs_magic = 0x3b1b14cf,
+	.arena_size = 0x00004000,	/* 64 * slot size */
+	.slot_size = 0x00000100,	/* 256 bytes */
 };
 
 static const struct flashfs_logfs_cfg flashfs_waypoints_cfg = {
-	.fs_magic      = 0x9a365a64,
-	.arena_size    = 0x00010000, /* 1024 * slot size */
-	.slot_size     = 0x00000040, /* 64 bytes */
+	.fs_magic = 0x93a566a4,
+	.arena_size = 0x00004000,	/* 64 * slot size */
+	.slot_size = 0x00000040,	/* 64 bytes */
 };
 
 #if defined(PIOS_INCLUDE_FLASH_JEDEC)
@@ -667,12 +668,12 @@ static const struct pios_flash_partition pios_flash_partition_table[] = {
 		.label        = FLASH_PARTITION_LABEL_FW,
 		.chip_desc    = &pios_flash_chip_internal,
 		.first_sector = 5,
-		.last_sector  = 6,
+		.last_sector  = 7,
 		.chip_offset  = (4 * FLASH_SECTOR_16KB) + (1 * FLASH_SECTOR_64KB),
-		.size         = (6 - 5 + 1) * FLASH_SECTOR_128KB,
+		.size         = (7 - 5 + 1) * FLASH_SECTOR_128KB,
 	},
 
-	/* NOTE: sectors 7-11 of the internal flash are currently unallocated */
+	/* NOTE: sectors 8-11 of the internal flash are currently unallocated */
 
 #endif /* PIOS_INCLUDE_FLASH_INTERNAL */
 
@@ -681,18 +682,27 @@ static const struct pios_flash_partition pios_flash_partition_table[] = {
 		.label        = FLASH_PARTITION_LABEL_SETTINGS,
 		.chip_desc    = &pios_flash_chip_external,
 		.first_sector = 0,
-		.last_sector  = 511,
+		.last_sector  = 15,
 		.chip_offset  = 0,
-		.size         = (511 - 0 + 1) * FLASH_SECTOR_4KB,
+		.size         = (15 - 0 + 1) * FLASH_SECTOR_4KB,
 	},
 
 	{
 		.label        = FLASH_PARTITION_LABEL_WAYPOINTS,
 		.chip_desc    = &pios_flash_chip_external,
-		.first_sector = 512,
+		.first_sector = 16,
+		.last_sector  = 31,
+		.chip_offset  = (16 * FLASH_SECTOR_4KB),
+		.size         = (31 - 16 + 1) * FLASH_SECTOR_4KB,
+	},
+
+	{
+		.label        = FLASH_PARTITION_LABEL_LOG,
+		.chip_desc    = &pios_flash_chip_external,
+		.first_sector = 32,
 		.last_sector  = 1023,
-		.chip_offset  = (512 * FLASH_SECTOR_4KB),
-		.size         = (1023 - 512 + 1) * FLASH_SECTOR_4KB,
+		.chip_offset  = (32 * FLASH_SECTOR_4KB),
+		.size         = (1023 - 32 + 1) * FLASH_SECTOR_4KB,
 	},
 #endif	/* PIOS_INCLUDE_FLASH_JEDEC */
 };
@@ -704,6 +714,13 @@ const struct pios_flash_partition * PIOS_BOARD_HW_DEFS_GetPartitionTable (uint32
 	*num_partitions = NELEMENTS(pios_flash_partition_table);
 	return pios_flash_partition_table;
 }
+
+#include "pios_streamfs_priv.h"
+const struct streamfs_cfg streamfs_settings = {
+       .fs_magic      = 0x89abceef,
+       .arena_size    = 0x00001000, /* 64 KB */
+       .write_size    = 0x00000100, /* 256 bytes */
+};
 
 #endif	/* PIOS_INCLUDE_FLASH */
 
@@ -784,218 +801,9 @@ static const struct pios_dsm_cfg pios_usart5_dsm_aux_cfg = {
 
 #endif	/* PIOS_INCLUDE_DSM */
 
-#if defined(PIOS_INCLUDE_HSUM)
-/*
- * Graupner HoTT SUMD/SUMH USART
- */
-#include <pios_hsum_priv.h>
-
-#endif	/* PIOS_INCLUDE_HSUM */
-
-#if (defined(PIOS_INCLUDE_DSM) || defined(PIOS_INCLUDE_HSUM))
-/*
- * Spektrum/JR DSM or Graupner HoTT SUMD/SUMH USART
- */
-
-static const struct pios_usart_cfg pios_usart1_dsm_hsum_cfg = {
-	.regs = USART1,
-	.remap = GPIO_AF_USART1,
-	.init = {
-		.USART_BaudRate = 115200,
-		.USART_WordLength = USART_WordLength_8b,
-		.USART_Parity = USART_Parity_No,
-		.USART_StopBits = USART_StopBits_1,
-		.USART_HardwareFlowControl = USART_HardwareFlowControl_None,
-		.USART_Mode = USART_Mode_Rx,
-	},
-	.irq = {
-		.init = {
-			.NVIC_IRQChannel = USART1_IRQn,
-			.NVIC_IRQChannelPreemptionPriority = PIOS_IRQ_PRIO_MID,
-			.NVIC_IRQChannelSubPriority = 0,
-			.NVIC_IRQChannelCmd = ENABLE,
-		},
-	},
-	.rx = {
-		.gpio = GPIOB,
-		.init = {
-			.GPIO_Pin   = GPIO_Pin_7,
-			.GPIO_Speed = GPIO_Speed_2MHz,
-			.GPIO_Mode  = GPIO_Mode_AF,
-			.GPIO_OType = GPIO_OType_PP,
-			.GPIO_PuPd  = GPIO_PuPd_UP
-		},
-		.pin_source = GPIO_PinSource7,
-	},
-};
-
-static const struct pios_usart_cfg pios_usart2_dsm_hsum_cfg = {
-	.regs = USART2,
-	.remap = GPIO_AF_USART2,
-	.init = {
-		.USART_BaudRate = 115200,
-		.USART_WordLength = USART_WordLength_8b,
-		.USART_Parity = USART_Parity_No,
-		.USART_StopBits = USART_StopBits_1,
-		.USART_HardwareFlowControl = USART_HardwareFlowControl_None,
-		.USART_Mode = USART_Mode_Rx,
-	},
-	.irq = {
-		.init = {
-			.NVIC_IRQChannel = USART2_IRQn,
-			.NVIC_IRQChannelPreemptionPriority = PIOS_IRQ_PRIO_MID,
-			.NVIC_IRQChannelSubPriority = 0,
-			.NVIC_IRQChannelCmd = ENABLE,
-		},
-	},
-	.rx = {
-		.gpio = GPIOA,
-		.init = {
-			.GPIO_Pin   = GPIO_Pin_3,
-			.GPIO_Speed = GPIO_Speed_2MHz,
-			.GPIO_Mode  = GPIO_Mode_AF,
-			.GPIO_OType = GPIO_OType_PP,
-			.GPIO_PuPd  = GPIO_PuPd_UP
-		},
-		.pin_source = GPIO_PinSource3,
-	},
-};
-
-static const struct pios_usart_cfg pios_usart3_dsm_hsum_cfg = {
-	.regs = USART3,
-	.remap = GPIO_AF_USART3,
-	.init = {
-		.USART_BaudRate = 115200,
-		.USART_WordLength = USART_WordLength_8b,
-		.USART_Parity = USART_Parity_No,
-		.USART_StopBits = USART_StopBits_1,
-		.USART_HardwareFlowControl = USART_HardwareFlowControl_None,
-		.USART_Mode = USART_Mode_Rx,
-	},
-	.irq = {
-		.init = {
-			.NVIC_IRQChannel = USART3_IRQn,
-			.NVIC_IRQChannelPreemptionPriority = PIOS_IRQ_PRIO_MID,
-			.NVIC_IRQChannelSubPriority = 0,
-			.NVIC_IRQChannelCmd = ENABLE,
-		},
-	},
-	.rx = {
-		.gpio = GPIOB,
-		.init = {
-			.GPIO_Pin   = GPIO_Pin_11,
-			.GPIO_Speed = GPIO_Speed_2MHz,
-			.GPIO_Mode  = GPIO_Mode_AF,
-			.GPIO_OType = GPIO_OType_PP,
-			.GPIO_PuPd  = GPIO_PuPd_UP
-		},
-		.pin_source = GPIO_PinSource11,
-	},
-};
-
-static const struct pios_usart_cfg pios_usart4_dsm_hsum_cfg = {
-	.regs = UART4,
-	.remap = GPIO_AF_UART4,
-	.init = {
-		.USART_BaudRate = 115200,
-		.USART_WordLength = USART_WordLength_8b,
-		.USART_Parity = USART_Parity_No,
-		.USART_StopBits = USART_StopBits_1,
-		.USART_HardwareFlowControl = USART_HardwareFlowControl_None,
-		.USART_Mode = USART_Mode_Rx,
-	},
-	.irq = {
-		.init = {
-			.NVIC_IRQChannel = UART4_IRQn,
-			.NVIC_IRQChannelPreemptionPriority = PIOS_IRQ_PRIO_MID,
-			.NVIC_IRQChannelSubPriority = 0,
-			.NVIC_IRQChannelCmd = ENABLE,
-		},
-	},
-	.rx = {
-		.gpio = GPIOC,
-		.init = {
-			.GPIO_Pin   = GPIO_Pin_11,
-			.GPIO_Speed = GPIO_Speed_2MHz,
-			.GPIO_Mode  = GPIO_Mode_AF,
-			.GPIO_OType = GPIO_OType_PP,
-			.GPIO_PuPd  = GPIO_PuPd_UP
-		},
-		.pin_source = GPIO_PinSource11,
-	},
-};
-
-static const struct pios_usart_cfg pios_usart5_dsm_hsum_cfg = {
-	.regs = UART5,
-	.remap = GPIO_AF_UART5,
-	.init = {
-		.USART_BaudRate = 115200,
-		.USART_WordLength = USART_WordLength_8b,
-		.USART_Parity = USART_Parity_No,
-		.USART_StopBits = USART_StopBits_1,
-		.USART_HardwareFlowControl = USART_HardwareFlowControl_None,
-		.USART_Mode = USART_Mode_Rx,
-	},
-	.irq = {
-		.init = {
-			.NVIC_IRQChannel = UART5_IRQn,
-			.NVIC_IRQChannelPreemptionPriority = PIOS_IRQ_PRIO_MID,
-			.NVIC_IRQChannelSubPriority = 0,
-			.NVIC_IRQChannelCmd = ENABLE,
-		},
-	},
-	.rx = {
-		.gpio = GPIOD,
-		.init = {
-			.GPIO_Pin   = GPIO_Pin_2,
-			.GPIO_Speed = GPIO_Speed_2MHz,
-			.GPIO_Mode  = GPIO_Mode_AF,
-			.GPIO_OType = GPIO_OType_PP,
-			.GPIO_PuPd  = GPIO_PuPd_UP
-		},
-		.pin_source = GPIO_PinSource2,
-	},
-};
-
-#endif	/* PIOS_INCLUDE_DSM || PIOS_INCLUDE_HSUM */
-
 #if defined(PIOS_INCLUDE_SBUS)
-/*
- * S.Bus USART
- */
-#include <pios_sbus_priv.h>
 
-static const struct pios_usart_cfg pios_usart2_sbus_cfg = {
-	.regs = USART2,
-	.remap = GPIO_AF_USART2,
-	.init = {
-		.USART_BaudRate            = 100000,
-		.USART_WordLength          = USART_WordLength_8b,
-		.USART_Parity              = USART_Parity_Even,
-		.USART_StopBits            = USART_StopBits_2,
-		.USART_HardwareFlowControl = USART_HardwareFlowControl_None,
-		.USART_Mode                = USART_Mode_Rx,
-	},
-	.irq = {
-		.init = {
-			.NVIC_IRQChannel                   = USART2_IRQn,
-			.NVIC_IRQChannelPreemptionPriority = PIOS_IRQ_PRIO_MID,
-			.NVIC_IRQChannelSubPriority        = 0,
-			.NVIC_IRQChannelCmd                = ENABLE,
-		  },
-	},
-	.rx = {
-		.gpio = GPIOA,
-		.init = {
-			.GPIO_Pin   = GPIO_Pin_3,
-			.GPIO_Speed = GPIO_Speed_2MHz,
-			.GPIO_Mode  = GPIO_Mode_AF,
-			.GPIO_OType = GPIO_OType_PP,
-			.GPIO_PuPd  = GPIO_PuPd_UP
-		},
-		.pin_source = GPIO_PinSource3,
-	},
-};
+#include <pios_sbus_priv.h>
 
 static const struct pios_sbus_cfg pios_usart2_sbus_aux_cfg = {
 	/* Inverter configuration */
@@ -1017,14 +825,6 @@ static const struct pios_sbus_cfg pios_usart2_sbus_aux_cfg = {
 static const struct pios_usart_cfg pios_usart1_cfg = {
 	.regs = USART1,
 	.remap = GPIO_AF_USART1,
-	.init = {
-		.USART_BaudRate = 57600,
-		.USART_WordLength = USART_WordLength_8b,
-		.USART_Parity = USART_Parity_No,
-		.USART_StopBits = USART_StopBits_1,
-		.USART_HardwareFlowControl = USART_HardwareFlowControl_None,
-		.USART_Mode = USART_Mode_Rx | USART_Mode_Tx,
-	},
 	.irq = {
 		.init = {
 			.NVIC_IRQChannel = USART1_IRQn,
@@ -1060,14 +860,6 @@ static const struct pios_usart_cfg pios_usart1_cfg = {
 static const struct pios_usart_cfg pios_usart2_cfg = {
 	.regs = USART2,
 	.remap = GPIO_AF_USART2,
-	.init = {
-		.USART_BaudRate = 57600,
-		.USART_WordLength = USART_WordLength_8b,
-		.USART_Parity = USART_Parity_No,
-		.USART_StopBits = USART_StopBits_1,
-		.USART_HardwareFlowControl = USART_HardwareFlowControl_None,
-		.USART_Mode = USART_Mode_Rx | USART_Mode_Tx,
-	},
 	.irq = {
 		.init = {
 			.NVIC_IRQChannel = USART2_IRQn,
@@ -1103,14 +895,6 @@ static const struct pios_usart_cfg pios_usart2_cfg = {
 static const struct pios_usart_cfg pios_usart3_cfg = {
 	.regs = USART3,
 	.remap = GPIO_AF_USART3,
-	.init = {
-		.USART_BaudRate = 57600,
-		.USART_WordLength = USART_WordLength_8b,
-		.USART_Parity = USART_Parity_No,
-		.USART_StopBits = USART_StopBits_1,
-		.USART_HardwareFlowControl = USART_HardwareFlowControl_None,
-		.USART_Mode = USART_Mode_Rx | USART_Mode_Tx,
-	},
 	.irq = {
 		.init = {
 			.NVIC_IRQChannel = USART3_IRQn,
@@ -1146,14 +930,6 @@ static const struct pios_usart_cfg pios_usart3_cfg = {
 static const struct pios_usart_cfg pios_usart4_cfg = {
 	.regs = UART4,
 	.remap = GPIO_AF_UART4,
-	.init = {
-		.USART_BaudRate = 57600,
-		.USART_WordLength = USART_WordLength_8b,
-		.USART_Parity = USART_Parity_No,
-		.USART_StopBits = USART_StopBits_1,
-		.USART_HardwareFlowControl = USART_HardwareFlowControl_None,
-		.USART_Mode = USART_Mode_Rx | USART_Mode_Tx,
-	},
 	.irq = {
 		.init = {
 			.NVIC_IRQChannel = UART4_IRQn,
@@ -1189,14 +965,6 @@ static const struct pios_usart_cfg pios_usart4_cfg = {
 static const struct pios_usart_cfg pios_usart5_cfg = {
 	.regs = UART5,
 	.remap = GPIO_AF_UART5,
-	.init = {
-		.USART_BaudRate = 57600,
-		.USART_WordLength = USART_WordLength_8b,
-		.USART_Parity = USART_Parity_No,
-		.USART_StopBits = USART_StopBits_1,
-		.USART_HardwareFlowControl = USART_HardwareFlowControl_None,
-		.USART_Mode = USART_Mode_Rx | USART_Mode_Tx,
-	},
 	.irq = {
 		.init = {
 			.NVIC_IRQChannel = UART5_IRQn,
@@ -1391,7 +1159,7 @@ static const struct pios_tim_clock_cfg tim_3_cfg = {
 
 static const struct pios_tim_clock_cfg tim_10_cfg = {
 	.timer = TIM10,
-	.time_base_init = &tim_3_12_time_base,
+	.time_base_init = &tim_10_11_time_base,
 	.irq = {
 		.init = {
 			.NVIC_IRQChannel                   = TIM1_UP_TIM10_IRQn,
@@ -1404,7 +1172,7 @@ static const struct pios_tim_clock_cfg tim_10_cfg = {
 
 static const struct pios_tim_clock_cfg tim_11_cfg = {
 	.timer = TIM11,
-	.time_base_init = &tim_3_12_time_base,
+	.time_base_init = &tim_10_11_time_base,
 	.irq = {
 		.init = {
 			.NVIC_IRQChannel                   = TIM1_TRG_COM_TIM11_IRQn,
@@ -2157,7 +1925,7 @@ static const struct pios_usb_cfg pios_usb_main_cfg = {
 			.GPIO_Speed = GPIO_Speed_25MHz,
 			.GPIO_Mode  = GPIO_Mode_IN,
 			.GPIO_OType = GPIO_OType_OD,
-			.GPIO_PuPd  = GPIO_PuPd_NOPULL,
+			.GPIO_PuPd  = GPIO_PuPd_UP,
 		},
 	}
 };
@@ -2239,6 +2007,13 @@ struct pios_internal_adc_cfg pios_adc_cfg = {
 	},
 	.half_flag = DMA_IT_HTIF4,
 	.full_flag = DMA_IT_TCIF4,
+	.adc_pins = {                                                                                 \
+		{ GPIOA, GPIO_Pin_0,     ADC_Channel_0 },                                                 \
+		{ GPIOA, GPIO_Pin_1,     ADC_Channel_1 },                                                 \
+		{ NULL,  0,              ADC_Channel_Vrefint },           /* Voltage reference */         \
+		{ NULL,  0,              ADC_Channel_TempSensor },        /* Temperature sensor */        \
+	},
+	.adc_pin_count = 4
 };
 
 void PIOS_ADC_DMA_irq_handler(void)

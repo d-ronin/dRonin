@@ -1,6 +1,8 @@
 BOARD_TYPE          := 0x03
-BOARD_REVISION      := 0x01
-BOOTLOADER_VERSION  := 0x80
+BOARD_REVISION      := 0x02
+# Previous version was 0x080, 0x081 introduces forced boot from bkp registers,
+# 0x082 fixes halt (by not double-initing board) 
+BOOTLOADER_VERSION  := 0x82
 HW_TYPE             := 0x01
 
 MCU                 := cortex-m3
@@ -9,15 +11,7 @@ BOARD               := STM32103CB_PIPXTREME
 MODEL               := MD
 MODEL_SUFFIX        := _PX
 
-OPENOCD_CONFIG      := stm32f1x.cfg
-
-OPENOCD_JTAG_CONFIG := foss-jtag.revb.cfg
-OPENOCD_CONFIG      := stm32f1x.cfg
-
-OPENOCD_JTAG_CONFIG := foss-jtag.revb.cfg
-OPENOCD_CONFIG      := stm32f1x.cfg
-
-OPENOCD_JTAG_CONFIG := foss-jtag.revb.cfg
+OPENOCD_JTAG_CONFIG ?= stlink-v2.cfg
 OPENOCD_CONFIG      := stm32f1x.cfg
 
 # Note: These must match the values in link_$(BOARD)_memory.ld

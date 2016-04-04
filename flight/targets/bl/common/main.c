@@ -1,7 +1,7 @@
 /**
  ******************************************************************************
  * @file       main.c
- * @author     Tau Labs, http://taulabs.org, Copyright (C) 2013
+ * @author     Tau Labs, http://taulabs.org, Copyright (C) 2014
  * @addtogroup Bootloader
  * @{
  * @addtogroup Bootloader
@@ -43,7 +43,12 @@ extern void PIOS_Board_Init(void);
 #define SEC_TO_MSEC(s) ((s) * 1000)
 #define SEC_TO_USEC(s) ((s) * 1000 * 1000)
 
+#if defined(BOOTLOADER_PAUSE_DELAY) // allow altering bootloader delay
+#define BL_DETECT_BREAK_TO_BL_TIMER MSEC_TO_USEC(BOOTLOADER_PAUSE_DELAY)
+#else
 #define BL_DETECT_BREAK_TO_BL_TIMER MSEC_TO_USEC(500)
+#endif
+
 #define BL_WAIT_FOR_DFU_TIMER SEC_TO_USEC(6)
 #define BL_RECOVER_FROM_FAULT_TIMER SEC_TO_USEC(10)
 
@@ -106,6 +111,7 @@ enum bl_events {
 	BL_EVENT_TRANSFER_DONE,
 	BL_EVENT_TRANSFER_ERROR,
 	BL_EVENT_AUTO,
+	BL_EVENT_FORCE_BOOT,
 
 	BL_EVENT_NUM_EVENTS	/* Must be last */
 };
@@ -163,15 +169,16 @@ const static struct bl_transition bl_transitions[BL_STATE_NUM_STATES] = {
 			[BL_EVENT_ABORT_OPERATION]  = BL_STATE_WAIT_FOR_DFU,
 			[BL_EVENT_USB_CONNECTED]    = BL_STATE_WAIT_FOR_DFU,
 			[BL_EVENT_TIMER_EXPIRY]     = BL_STATE_JUMPING_TO_APP,
+			[BL_EVENT_FORCE_BOOT]	    = BL_STATE_JUMPING_TO_APP,
 		},
 	},
 	[BL_STATE_WAIT_FOR_DFU] = {
 		.entry_fn = go_wait_for_dfu,
 		.next_state = {
 			[BL_EVENT_ENTER_DFU]        = BL_STATE_DFU_IDLE,
-			[BL_EVENT_TIMER_EXPIRY]     = BL_STATE_JUMPING_TO_APP,
 			[BL_EVENT_ABORT_OPERATION]  = BL_STATE_WAIT_FOR_DFU,
 			[BL_EVENT_USB_CONNECTED]    = BL_STATE_WAIT_FOR_DFU,
+			[BL_EVENT_TIMER_EXPIRY]     = BL_STATE_JUMPING_TO_APP,
 			[BL_EVENT_USB_DISCONNECTED] = BL_STATE_JUMPING_TO_APP,
 		},
 	},
@@ -194,9 +201,14 @@ const static struct bl_transition bl_transitions[BL_STATE_NUM_STATES] = {
 			[BL_EVENT_READ_START]       = BL_STATE_DFU_READ_IN_PROGRESS,
 			[BL_EVENT_WRITE_START]      = BL_STATE_DFU_WRITE_IN_PROGRESS,
 			[BL_EVENT_ABORT_OPERATION]  = BL_STATE_DFU_IDLE,
-			[BL_EVENT_JUMP_TO_APP]      = BL_STATE_JUMPING_TO_APP,
 			[BL_EVENT_USB_CONNECTED]    = BL_STATE_DFU_IDLE,
+#ifdef F1_UPGRADER
+			[BL_EVENT_JUMP_TO_APP]      = BL_STATE_DFU_IDLE,
+			[BL_EVENT_USB_DISCONNECTED] = BL_STATE_DFU_IDLE,
+#else
+			[BL_EVENT_JUMP_TO_APP]      = BL_STATE_JUMPING_TO_APP,
 			[BL_EVENT_USB_DISCONNECTED] = BL_STATE_JUMPING_TO_APP,
+#endif
 		},
 	},
 	[BL_STATE_DFU_READ_IN_PROGRESS] = {
@@ -435,11 +447,22 @@ int main(void)
 
 	/* Check if the user has requested that we boot into DFU mode */
 	PIOS_IAP_Init();
+
+#ifdef F1_UPGRADER
+	PIOS_IAP_ClearRequest();
+	bl_fsm_inject_event(&bl_fsm_context, BL_EVENT_ENTER_DFU);
+#else
 	if (PIOS_IAP_CheckRequest() == true) {
 		/* User has requested that we boot into DFU mode */
 		PIOS_IAP_ClearRequest();
 		bl_fsm_inject_event(&bl_fsm_context, BL_EVENT_ENTER_DFU);
+	} else if (PIOS_Boot_CheckRequest() == true) {
+		/* User has requested that we boot into firmware */
+		PIOS_IAP_ClearRequest();
+		PIOS_DELAY_WaitmS(1000);//needed so OS can detect FW USB disconnect
+		bl_fsm_inject_event(&bl_fsm_context, BL_EVENT_FORCE_BOOT);
 	}
+#endif
 
 	/* Assume no USB connected */
 	bool usb_connected = false;
@@ -584,6 +607,9 @@ static void process_packet_rx(struct bl_fsm_context * context, const struct bl_m
 		bl_fsm_inject_event(context, BL_EVENT_JUMP_TO_APP);
 		break;
 	case BL_MSG_RESET:
+		PIOS_IRQ_Disable();
+		PIOS_DELAY_WaitmS(1500);
+
 		PIOS_SYS_Reset();
 		break;
 	case BL_MSG_OP_ABORT:

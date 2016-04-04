@@ -1,7 +1,7 @@
 /**
  ******************************************************************************
  * @file       pios_heap.c
- * @author     Tau Labs, http://taulabs.org, Copyright (C) 2013
+ * @author     Tau Labs, http://taulabs.org, Copyright (C) 2013-2014
  * @addtogroup PIOS PIOS Core hardware abstraction layer
  * @{
  * @addtogroup PIOS_HEAP Heap Allocation Abstraction
@@ -50,19 +50,11 @@ bool PIOS_heap_malloc_failed_p(void)
 	return malloc_failed_flag;
 }
 
-#if defined(PIOS_INCLUDE_FREERTOS)
+#if defined(PIOS_INCLUDE_FREERTOS) || defined(PIOS_INCLUDE_CHIBIOS)
 
-/*
- * Defining MPU_WRAPPERS_INCLUDED_FROM_API_FILE prevents task.h from redefining
- * all the API functions to use the MPU wrappers.  That should only be done when
- * task.h is included from an application file.
- * */
-#define MPU_WRAPPERS_INCLUDED_FROM_API_FILE
-#include "FreeRTOS.h"		/* needed by task.h */
-#include "task.h"		/* vTaskSuspendAll, xTaskResumeAll */
-#undef MPU_WRAPPERS_INCLUDED_FROM_API_FILE
+#include "pios_thread.h"
 
-#endif	/* PIOS_INCLUDE_FREERTOS */
+#endif	/* PIOS_INCLUDE_FREERTOS || defined(PIOS_INCLUDE_CHIBIOS) */
 
 struct pios_heap {
 	const uintptr_t start_addr;
@@ -85,18 +77,18 @@ static void * simple_malloc(struct pios_heap *heap, size_t size)
 	void * buf = NULL;
 	uint32_t align_pad = (sizeof(uintptr_t) - (size & (sizeof(uintptr_t) - 1))) % sizeof(uintptr_t);
 
-#if defined(PIOS_INCLUDE_FREERTOS)
-	vTaskSuspendAll();
-#endif	/* PIOS_INCLUDE_FREERTOS */
+#if defined(PIOS_INCLUDE_FREERTOS) || defined(PIOS_INCLUDE_CHIBIOS)
+	PIOS_Thread_Scheduler_Suspend();
+#endif	/* PIOS_INCLUDE_FREERTOS || defined(PIOS_INCLUDE_CHIBIOS) */
 
 	if (heap->free_addr + size <= heap->end_addr) {
 		buf = (void *)heap->free_addr;
 		heap->free_addr += size + align_pad;
 	}
 
-#if defined(PIOS_INCLUDE_FREERTOS)
-	xTaskResumeAll();
-#endif	/* PIOS_INCLUDE_FREERTOS */
+#if defined(PIOS_INCLUDE_FREERTOS) || defined(PIOS_INCLUDE_CHIBIOS)
+	PIOS_Thread_Scheduler_Resume();
+#endif	/* PIOS_INCLUDE_FREERTOS || defined(PIOS_INCLUDE_CHIBIOS) */
 
 	return buf;
 }
@@ -198,17 +190,44 @@ size_t xPortGetFreeHeapSize(void) __attribute__((alias ("PIOS_heap_get_free_size
 size_t PIOS_heap_get_free_size(void)
 {
 #if defined(PIOS_INCLUDE_FREERTOS)
-	vTaskSuspendAll();
+	PIOS_Thread_Scheduler_Suspend();
 #endif	/* PIOS_INCLUDE_FREERTOS */
 
 	size_t free_bytes = simple_get_free_bytes(&pios_standard_heap);
 
 #if defined(PIOS_INCLUDE_FREERTOS)
-	xTaskResumeAll();
+	PIOS_Thread_Scheduler_Resume();
 #endif	/* PIOS_INCLUDE_FREERTOS */
 
 	return free_bytes;
 }
+
+
+#if defined(PIOS_INCLUDE_FASTHEAP)
+
+size_t PIOS_fastheap_get_free_size(void)
+{
+#if defined(PIOS_INCLUDE_FREERTOS)
+	PIOS_Thread_Scheduler_Suspend();
+#endif	/* PIOS_INCLUDE_FREERTOS */
+
+	size_t free_bytes = simple_get_free_bytes(&pios_nodma_heap);
+
+#if defined(PIOS_INCLUDE_FREERTOS)
+	PIOS_Thread_Scheduler_Resume();
+#endif	/* PIOS_INCLUDE_FREERTOS */
+
+	return free_bytes;
+}
+
+#else
+
+size_t PIOS_fastheap_get_free_size(void)
+{
+	return 0;
+}
+
+#endif // PIOS_INCLUDE_FASTHEAP
 
 void vPortInitialiseBlocks(void) __attribute__((alias ("PIOS_heap_initialize_blocks")));
 void PIOS_heap_initialize_blocks(void)
@@ -219,15 +238,23 @@ void PIOS_heap_initialize_blocks(void)
 void xPortIncreaseHeapSize(size_t bytes) __attribute__((alias ("PIOS_heap_increase_size")));
 void PIOS_heap_increase_size(size_t bytes)
 {
-#if defined(PIOS_INCLUDE_FREERTOS)
-	vTaskSuspendAll();
-#endif	/* PIOS_INCLUDE_FREERTOS */
+#if defined(PIOS_INCLUDE_FREERTOS) || defined(PIOS_INCLUDE_CHIBIOS)
+	PIOS_Thread_Scheduler_Suspend();
+#endif	/* PIOS_INCLUDE_FREERTOS || defined(PIOS_INCLUDE_CHIBIOS) */
 
 	simple_extend_heap(&pios_standard_heap, bytes);
 
-#if defined(PIOS_INCLUDE_FREERTOS)
-	xTaskResumeAll();
-#endif	/* PIOS_INCLUDE_FREERTOS */
+#if defined(PIOS_INCLUDE_FREERTOS) || defined(PIOS_INCLUDE_CHIBIOS)
+	PIOS_Thread_Scheduler_Resume();
+#endif	/* PIOS_INCLUDE_FREERTOS || defined(PIOS_INCLUDE_CHIBIOS) */
+}
+
+/* Provide an implementation of _sbrk for library functions.
+ * Right now it returns failure always.
+ */
+void *_sbrk(int incr) {
+	PIOS_Assert(0);
+	return (void *) -1;
 }
 
 /**

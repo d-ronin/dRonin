@@ -4,8 +4,9 @@
 #include <string.h>		/* memset */
 
 #include <stdbool.h>
-#include "FreeRTOS.h"
+#include "pios_heap.h"
 #include "pios_flash_posix_priv.h"
+#include "pios_heap.h"
 
 enum flash_posix_magic {
 	FLASH_POSIX_MAGIC = 0x321dabc1,
@@ -20,7 +21,7 @@ struct flash_posix_dev {
 
 static struct flash_posix_dev * PIOS_Flash_Posix_Alloc(void)
 {
-	struct flash_posix_dev * flash_dev = pvPortMalloc(sizeof(struct flash_posix_dev));
+	struct flash_posix_dev * flash_dev = PIOS_malloc(sizeof(struct flash_posix_dev));
 
 	flash_dev->magic = FLASH_POSIX_MAGIC;
 
@@ -62,7 +63,7 @@ void PIOS_Flash_Posix_Destroy(uintptr_t chip_id)
 
 	fclose(flash_dev->flash_file);
 
-	free(flash_dev);
+	PIOS_free(flash_dev);
 }
 
 /**********************************
@@ -104,14 +105,12 @@ static int32_t PIOS_Flash_Posix_EraseSector(uintptr_t chip_id, uint32_t chip_sec
 		assert(0);
 	}
 
-	unsigned char * buf = pvPortMalloc(flash_dev->cfg->size_of_sector);
-	assert (buf);
+	unsigned char buf[flash_dev->cfg->size_of_sector];
+
 	memset((void *)buf, 0xFF, flash_dev->cfg->size_of_sector);
 
 	size_t s;
 	s = fwrite (buf, 1, flash_dev->cfg->size_of_sector, flash_dev->flash_file);
-
-	free(buf);
 
 	assert (s == flash_dev->cfg->size_of_sector);
 

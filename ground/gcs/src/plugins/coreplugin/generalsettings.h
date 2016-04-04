@@ -2,6 +2,8 @@
  ******************************************************************************
  *
  * @file       generalsettings.h
+ * @author     dRonin, http://dronin.org Copyright (C) 2015
+ * @author     Tau Labs, http://taulabs.org, Copyright (C) 2014
  * @author     The OpenPilot Team, http://www.openpilot.org Copyright (C) 2010.
  *             Parts by Nokia Corporation (qt-info@nokia.com) Copyright (C) 2009.
  * @addtogroup GCSPlugins GCS Plugins
@@ -31,8 +33,9 @@
 
 #include <coreplugin/dialogs/ioptionspage.h>
 #include <QtCore/QPointer>
-#include <QtGui/QWidget>
+#include <QWidget>
 #include <QSettings>
+#include <QtNetwork/QNetworkProxy>
 
 namespace Core {
 namespace Internal {
@@ -59,19 +62,40 @@ public:
     bool autoConnect() const;
     bool autoSelect() const;
     bool useUDPMirror() const;
+    bool useSessionManaging() const;
     void readSettings(QSettings* qs);
     void saveSettings(QSettings* qs);
     bool useExpertMode() const;
+    QNetworkProxy getNetworkProxy();
+    void setObservations(QString value);
+    QString getObservations();
+    void setVehicleType(QString type);
+    QString getVehicleType();
+    void setBoardType(QString type);
+    QString getBoardType();
+    void setWeight(int weight);
+    int getWeight();
+    void setVehicleSize(int spacing);
+    int getVehicleSize();
+    void setBatteryCells(int cells);
+    int getBatteryCells();
+    void setMotors(QString motors);
+    QString getMotors();
+    void setESCs(QString escs);
+    QString getESCs();
+    void setProps(QString props);
+    QString getProps();
 signals:
-
+    void generalSettingsChanged();
 private slots:
     void resetInterfaceColor();
     void resetLanguage();
     void showHelpForExternalEditor();
-    void slotAutoConnect(int);
+    void slotAutoConnect(int);    
 
 private:
     void fillLanguageBox() const;
+    void fillProxyTypesBox() const;
     QString language() const;
     void setLanguage(const QString&);
     Ui::GeneralSettings *m_page;
@@ -83,7 +107,21 @@ private:
     bool m_useExpertMode;
     QPointer<QWidget> m_dialog;
     QList<QTextCodec *> m_codecs;
-
+    int m_proxyType;
+    int m_proxyPort;
+    QString m_proxyHostname;
+    QString m_proxyUser;
+    QString m_proxyPassword;
+    QString m_observations;
+    QString m_vehicle;
+    QString m_board;
+    int m_weight;
+    int m_size;
+    int m_cells;
+    QString m_motors;
+    QString m_escs;
+    QString m_props;
+    bool m_useSessionManaging;
 };
 } // namespace Internal
 } // namespace Core

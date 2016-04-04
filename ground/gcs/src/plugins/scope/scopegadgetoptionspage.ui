@@ -233,7 +233,7 @@
               <item row="2" column="0">
                <widget class="QLabel" name="label_6">
                 <property name="text">
-                 <string>UAVO data multiplier:</string>
+                 <string>Data multiplier:</string>
                 </property>
                </widget>
               </item>
@@ -637,7 +637,7 @@
                   <item row="2" column="0">
                    <widget class="QLabel" name="label_21">
                     <property name="text">
-                     <string>UAVO data multiplier:</string>
+                     <string>Data multiplier:</string>
                     </property>
                    </widget>
                   </item>
@@ -742,7 +742,7 @@
                   <item row="0" column="0">
                    <widget class="QLabel" name="label_24">
                     <property name="text">
-                     <string>Sampling frequency:</string>
+                     <string>Sampling rate:</string>
                     </property>
                    </widget>
                   </item>

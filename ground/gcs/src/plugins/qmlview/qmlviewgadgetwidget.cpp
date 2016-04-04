@@ -34,38 +34,24 @@
 
 #include <QDebug>
 #include <QSvgRenderer>
-#include <QtOpenGL/QGLWidget>
 #include <QtCore/qfileinfo.h>
 #include <QtCore/qdir.h>
 
-#include <QtDeclarative/qdeclarativeengine.h>
-#include <QtDeclarative/qdeclarativecontext.h>
+#include <QQmlEngine>
+#include <QQmlContext>
 
-QmlViewGadgetWidget::QmlViewGadgetWidget(QWidget *parent) :
-    QDeclarativeView(parent)
+QmlViewGadgetWidget::QmlViewGadgetWidget(QWindow *parent) :
+   QQuickView(parent)
 {
-    setMinimumSize(64,64);
-    setSizePolicy(QSizePolicy::MinimumExpanding, QSizePolicy::MinimumExpanding);
     setResizeMode(SizeRootObjectToView);
-
-    QStringList objectsToExport;
-    objectsToExport << "VelocityActual" <<
-                       "PositionActual" <<
-                       "AttitudeActual" <<
-                       "GPSPosition" <<
-                       "GCSTelemetryStats" <<
-                       "FlightBatteryState";
 
     ExtensionSystem::PluginManager *pm = ExtensionSystem::PluginManager::instance();
     UAVObjectManager *objManager = pm->getObject<UAVObjectManager>();
 
-    foreach (const QString &objectName, objectsToExport) {
-        UAVObject* object = objManager->getObject(objectName);
-        if (object)
-            engine()->rootContext()->setContextProperty(objectName, object);
-        else
-            qWarning() << "Failed to load object" << objectName;
-    }
+    QVector<QVector<UAVObject*>> objects = objManager->getObjectsVector();
+
+    foreach (const QVector<UAVObject*> &objInst, objects)
+        engine()->rootContext()->setContextProperty(objInst.at(0)->getName(), objInst.at(0));
 
     engine()->rootContext()->setContextProperty("qmlWidget", this);
 }
@@ -82,6 +68,8 @@ void QmlViewGadgetWidget::setQmlFile(QString fn)
     SvgImageProvider *svgProvider = new SvgImageProvider(fn);
     engine()->addImageProvider("svg", svgProvider);
 
+    engine()->clearComponentCache();
+
     //it's necessary to allow qml side to query svg element position
     engine()->rootContext()->setContextProperty("svgRenderer", svgProvider);
     engine()->setBaseUrl(QUrl::fromLocalFile(fn));
@@ -89,18 +77,18 @@ void QmlViewGadgetWidget::setQmlFile(QString fn)
     qDebug() << Q_FUNC_INFO << fn;
     setSource(QUrl::fromLocalFile(fn));
 
-    foreach(const QDeclarativeError &error, errors()) {
+    foreach(const QQmlError &error, errors()) {
         qDebug() << error.description();
     }
 }
 
-/*!
-  \brief Enables/Disables OpenGL
-  */
-void QmlViewGadgetWidget::enableOpenGL(bool flag) {
-    if (flag) {
-        setViewport(new QGLWidget(QGLFormat(QGL::SampleBuffers)));
-    } else {
-        setViewport(new QWidget);
+void QmlViewGadgetWidget::mouseReleaseEvent(QMouseEvent *event)
+{
+    // Reload the schene on the middle mouse button click.
+    if (event->button() == Qt::MiddleButton) {
+        setQmlFile(m_fn);
     }
+
+    QQuickView::mouseReleaseEvent(event);
 }
+

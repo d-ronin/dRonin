@@ -1,29 +1,26 @@
-# Tau Labs
+![dRonin](http://dronin.org/assets/images/logos/logo_final_full.png)
 
-## Goals
-The goal of Tau Labs is to focus on writing high quality open source code for autopilots that can easily provide the basis for research projects or further development by anyone.  The project focuses on high quality code, robust testing, and ease of use. Our target audience is professionals, researchers, and students, but we want to make those more advanced techniques easy and accessible for anyone.
+dRonin is an autopilot/flight controller firmware for controllers in the OpenPilot/Tau Labs family.  It's aimed at a variety of use cases: acro/racing, autonomous flight, and vehicle research.
 
-By “research”, we mean not only universities or institutions focused on research on UAVs, but any group who might have use for UAVs for their research purpose. Examples include UAVs used for agricultural surveys, air quality logging. By “students” we mean aiming the use of our project in the classroom, especially thanks to the availability of an entry-level reference platform (see below).
+dRonin is production ready and released under the GPL.
 
-The Tau Labs software is released under the GPL and will be treated in that spirit.  The code was forked from the OpenPilot project in November of 2012.  Porting the software to new boards is encouraged and fun.  The project will also maintain a set of reference platforms which the code will be more frequently tested against and will be expected to perform optimally.  As it was put, these will receive “A+ development support.”  As Lilvinz put it, with open source you can only give and create and we want to continue doing that.
+See [dronin.org](http://dronin.org) for more details.
 
-## Getting involved
-Click that big fork button on github and start coding!  We use pull requests as reviews so expect a lot of constructive feedback!
+## Supported Targets
 
-In addition check out http://forums.taulabs.org for more discussion
+### Full Support
 
-Chat on freenode.net #taulabs
+- [AeroQuad32](http://aeroquad.com/showwiki.php?title=AeroQuad32-Flight-Control-Board-v2)
+- [BrainFPV](http://brainfpv.com/)
+- [Lumenier Lux](http://www.getfpv.com/lumenier-lux-flight-controller.html)
+- OpenPilot Revolution
+- Quantec Quanton
+- Tau Labs Sparky
+- [Tau Labs Sparky2](https://github.com/TauLabs/TauLabs/wiki/Sparky2)
+- [Team Black Sheep Colibri / Gemini hexcopter](http://team-blacksheep.com/products/prod:gemini)
 
-## Code Layout
+### Limited Support
 
-Here is a quick breakdown of the main directories to get you oriented
-
-* flight - contains the firmware components of the code
-* flight/target - the location of the board targets (e.g. flight/targets/freedom)
-* flight/PiOS - contains the drivers
-* flight/Modules - the flight control logic, broken into modules that communicate via UAVObjects
-* flight/tests - unit tests for some components of the flight code
-* ground - contains the GCS code
-* shared - contains UAV Object definitions shared between the GCS and the flight firmware
-* androidgcs - contains the ground control software for android
-
+- DiscoveryF3 evaluation boards from ST Micro (informal support only)
+- Naze32 (non-navigation functionality)
+- OpenPilot CC3D (non-navigation functionality)

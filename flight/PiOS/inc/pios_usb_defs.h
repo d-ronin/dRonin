@@ -3,6 +3,7 @@
  * @file       pios_usb_defs.h
  * @author     The OpenPilot Team, http://www.openpilot.org Copyright (C) 2010.
  * @author     Tau Labs, http://taulabs.org, Copyright (C) 2013
+ * @author     dRonin, http://dRonin.org/, Copyright (C) 2015-2016
  * @addtogroup PIOS PIOS Core hardware abstraction layer
  * @{
  * @addtogroup PIOS_USB_DEFS USB standard types and definitions
@@ -346,6 +347,7 @@ enum usb_cdc_notification {
 #define USB_VENDOR_ID_CLAYLOGIC    0x20A0
 #define USB_VENDOR_ID_OPENPILOT    USB_VENDOR_ID_CLAYLOGIC
 #define USB_VENDOR_ID_TAULABS      USB_VENDOR_ID_CLAYLOGIC
+#define USB_VENDOR_ID_PIDCODES     0x1209
 
 /*
  * These USB Product IDs are allocated along with the purchase
@@ -356,7 +358,7 @@ enum usb_cdc_notification {
 enum usb_product_ids {
 	/* OpenPilot Boards */
 	USB_PRODUCT_ID_OPENPILOT_MAIN = 0x415A,
-	USB_PRODUCT_ID_COPTERCONTROL  = 0x415B,
+	USB_PRODUCT_ID_CC3D           = 0x415B,
 	USB_PRODUCT_ID_PIPXTREME      = 0x415C,
 	USB_PRODUCT_ID_SPARE2         = 0x415D,
 	USB_PRODUCT_ID_REVOLUTION     = 0x415E,
@@ -364,13 +366,24 @@ enum usb_product_ids {
 	USB_PRODUCT_ID_SPARE          = 0x4195,
 
 	/* Tau Labs Boards */
-	USB_PRODUCT_ID_FREEDOM        = 0x41d0,
-	USB_PRODUCT_ID_SPARKY         = USB_PRODUCT_ID_FREEDOM,
+	USB_PRODUCT_ID_SPARKY         = 0x41d0,
+
+	/* BrainFPV Boards */
+	USB_PRODUCT_ID_BRAIN          = 0x4242,
 
 	/* ST Eval Boards */
 	USB_PRODUCT_ID_DISCOVERYF4    = USB_PRODUCT_ID_SPARE,
 	USB_PRODUCT_ID_FLYINGF3       = USB_PRODUCT_ID_SPARE,
 	USB_PRODUCT_ID_FLYINGF4       = USB_PRODUCT_ID_SPARE,
+} __attribute__((packed));
+
+/*
+ * These USB Product ids come from pidcodes.github.com , for use with
+ * FOSS software stacks like this one.
+ */
+enum usb_product_ids_pidcodes {
+	/* BroTronics boards */
+	USB_PRODUCT_ID_LUX            = 0xf3fc,
 } __attribute__((packed));
 
 enum usb_op_board_ids {
@@ -386,6 +399,7 @@ enum usb_op_board_ids {
 enum usb_op_board_modes {
 	USB_OP_BOARD_MODE_BL = 1,
 	USB_OP_BOARD_MODE_FW = 2,
+	USB_OP_BOARD_MODE_UP = 3,
 } __attribute__((packed));
 
 #define USB_OP_DEVICE_VER(board_id, board_mode) (\

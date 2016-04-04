@@ -1,7 +1,7 @@
 /**
  ******************************************************************************
  * @file       telemetryschedulergadgetwidget.h
- * @author     Tau Labs, http://taulabs.org Copyright (C) 2013.
+ * @author     Tau Labs, http://taulabs.org Copyright (C) 2013-2014.
  * @addtogroup Telemetry Scheduler GCS Plugins
  * @{
  * @addtogroup TelemetrySchedulerGadgetPlugin Telemetry Scheduler Gadget Plugin
@@ -32,13 +32,11 @@
 #include <QTableView>
 #include <QStandardItemModel>
 #include <QItemDelegate>
-#include <QtGui/QLabel>
+#include <QLabel>
 
 #include "uavobjectutil/uavobjectutilmanager.h"
 #include "extensionsystem/pluginmanager.h"
 #include "uavobject.h"
-
-#include "telemetryschedulergadgetconfiguration.h"
 
 class Ui_TelemetryScheduler;
 class Ui_Metadata_Dialog;
@@ -53,7 +51,6 @@ public:
     TelemetrySchedulerGadgetWidget(QWidget *parent = 0);
     ~TelemetrySchedulerGadgetWidget();
 
-    void setConfig(TelemetrySchedulerConfiguration *val){m_config = val;}
 signals:
 
 protected slots:
@@ -63,33 +60,38 @@ private slots:
     void loadTelemetryFromFile();
 
     //! Apply selected telemetry schedule to the UAV
-    void applySchedule();
+    QList<UAVMetaObject *> applySchedule();
     //! Save selected telemetry schedule on the UAV
     void saveSchedule();
-
+    void onSavedSchedule(bool);
+    void onCompletedMetadataWrite(bool);
+    void onCompletedMetadataSave(int, bool);
     void updateCurrentColumn(UAVObject *);
-    void dataModel_itemChanged(QStandardItem *);
+    void dataModel_itemChanged(int col);
+    void dataModel_itemChanged(QStandardItem *item);
     void addTelemetryColumn();
     void removeTelemetryColumn();
     void changeVerticalHeader(int);
     void changeHorizontalHeader(int);
+    void customMenuRequested(QPoint pos);
+    void uavoPresentOnHardwareChanged(UAVDataObject*);
+    void onHideNotPresent(bool);
 private:
     int stripMs(QVariant rate_ms);
-
+    QList<UAVMetaObject *> metaObjectsToSave;
     void importTelemetryConfiguration(const QString& fileName);
     UAVObjectUtilManager *getObjectUtilManager();
     UAVObjectManager *getObjectManager();
 
     Ui_TelemetryScheduler *m_telemetryeditor;
 
-    TelemetrySchedulerConfiguration *m_config;
     UAVObjectManager *objManager;
     QString filename;
 
     QMap<QString, UAVObject::Metadata> defaultMdata;
+    QMap<UAVDataObject*, int> uavoIndex;
 
     QStringList columnHeaders;
-    QStringList rowHeaders;
 
     SchedulerModel *schedulerModel;
     QFrozenTableViewWithCopyPaste *telemetryScheduleView;
@@ -115,7 +117,7 @@ public:
     Qt::ItemFlags flags (const QModelIndex & index) const
     {
         if (index.column() == 0 || index.column() == 1)
-            return Qt::ItemIsEnabled | Qt::ItemIsSelectable;
+            return 0;
         else
             return Qt::ItemIsEnabled | Qt::ItemIsSelectable | Qt::ItemIsEditable;
     }
@@ -139,6 +141,7 @@ public:
     void setHorizontalHeaderItem(int column, QStandardItem *item);
     bool removeColumns(int column, int count, const QModelIndex &parent = QModelIndex());
 
+    void fixGeometry(int value);
 protected:
     virtual void keyPressEvent(QKeyEvent * event);
 
@@ -146,15 +149,15 @@ protected:
     void scrollTo (const QModelIndex & index, ScrollHint hint = EnsureVisible);
 
 private slots:
-      void updateSectionWidth(int logicalIndex,int, int newSize);
-      void updateSectionHeight(int logicalIndex, int, int newSize);
+    void updateSectionWidth(int logicalIndex,int, int newSize);
+    void updateSectionHeight(int logicalIndex, int, int newSize);
 
 private:
     void copy();
     void paste();
     void deleteCells();
 
-    void updateFrozenTableGeometry();
+    void updateFrozenTableGeometry(int verticalHeaderWidth);
     void init();
     QTableView *frozenTableView;
     QStandardItemModel *frozenModel;

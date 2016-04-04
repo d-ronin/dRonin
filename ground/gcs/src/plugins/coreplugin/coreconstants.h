@@ -4,6 +4,8 @@
  * @file       coreconstants.h
  * @author     The OpenPilot Team, http://www.openpilot.org Copyright (C) 2010.
  *             Parts by Nokia Corporation (qt-info@nokia.com) Copyright (C) 2009.
+ * @author     Tau Labs, http://taulabs.org Copyright (C) 2012-2013
+ * @author     dRonin, http://dronin.org Copyright (C) 2015
  * @addtogroup GCSPlugins GCS Plugins
  * @{
  * @addtogroup CorePlugin Core Plugin
@@ -32,30 +34,29 @@
 namespace Core {
 namespace Constants {
 
-#define GCS_VERSION_MAJOR 0
-#define GCS_VERSION_MINOR 1
-#define GCS_VERSION_RELEASE 0
-const char * const GCS_VERSION_TYPE = "Beta";
-const char * const GCS_VERSION_CODENAME = "Phoenix";
+const char * const GCS_NAME              = GCS_PROJECT_BRANDING_PRETTY " GCS";
+const char * const GCS_AUTHOR            = GCS_PROJECT_BRANDING_PRETTY;
+const char t []                          = __DATE__;
+const char * const GCS_YEAR              = t + 7;
 
-#define STRINGIFY_INTERNAL(x) #x
-#define STRINGIFY(x) STRINGIFY_INTERNAL(x)
-
-#define GCS_VERSION STRINGIFY(GCS_VERSION_MAJOR) \
-    "." STRINGIFY(GCS_VERSION_MINOR) \
-    "." STRINGIFY(GCS_VERSION_RELEASE)
-
-const char * const GCS_VERSION_LONG      = GCS_VERSION;
-const char * const GCS_AUTHOR            = "Tau Labs";
-const char * const GCS_YEAR              = "2012";
-
-const char * const GCS_HELP              = "http://github.com/TauLabs";
+const char * const GCS_HELP              = GCS_PROJECT_BRANDING_HELP;
 #ifdef GCS_REVISION
-const char * const GCS_REVISION_STR      = STRINGIFY(GCS_REVISION);
-const char * const UAVOSHA1_STR          = STRINGIFY(UAVO_HASH);
+const char * const GCS_REVISION_STR      = GCS_REVISION;
+const char * const UAVOSHA1_STR          = UAVO_HASH_STR;
 #else
 const char * const GCS_REVISION_STR      = "";
 const char * const UAVOSHA1_STR          = "";
+#endif
+const char * const GCS_VERSION_LONG      = GCS_REVISION_STR;
+#ifdef GCS_REVISION_PRETTY
+const char * const GCS_REVISION_PRETTY_STR      = GCS_REVISION_PRETTY;
+#else
+const char * const GCS_REVISION_PRETTY_STR      = "";
+#endif
+#ifdef GCS_REVISION_SHORT
+const char * const GCS_REVISION_SHORT_STR      = GCS_REVISION_SHORT;
+#else
+const char * const GCS_REVISION_SHORT_STR      = "";
 #endif
 
 #undef GCS_VERSION
@@ -140,7 +141,7 @@ const char * const GO_FORWARD            = "GCS.GoForward";
 const char * const GOTOPREVIOUSGROUP     = "GCS.GotoPreviousTabGroup";
 const char * const GOTONEXTGROUP         = "GCS.GotoNextTabGroup";
 const char * const WINDOWSLIST           = "GCS.WindowsList";
-const char * const ABOUT_TAULABSGCS      = "GCS.AboutTauLabsGCS";
+const char * const ABOUT_GCS             = "GCS.AboutGCS";
 const char * const ABOUT_PLUGINS         = "GCS.AboutPlugins";
 const char * const ABOUT_AUTHORS         = "GCS.AboutAuthors";
 const char * const ABOUT_QT              = "GCS.AboutQt";
@@ -212,6 +213,7 @@ const char * const ICON_PREV             = ":/core/images/prev.png";
 const char * const ICON_DIR              = ":/core/images/dir.png";
 const char * const ICON_CLEAN_PANE       = ":/core/images/clean_pane_small.png";
 const char * const ICON_CLEAR            = ":/core/images/clear.png";
+const char * const ICON_CLOSE            = ":/core/images/closebutton.png";
 const char * const ICON_FIND             = ":/core/images/find.png";
 const char * const ICON_FINDNEXT         = ":/core/images/findnext.png";
 const char * const ICON_REPLACE          = ":/core/images/replace.png";
@@ -222,8 +224,7 @@ const char * const ICON_PLUGIN           = ":/core/images/pluginicon.png";
 const char * const ICON_EXIT             = ":/core/images/exiticon.png";
 const char * const ICON_OPTIONS          = ":/core/images/optionsicon.png";
 const char * const ICON_HELP             = ":/core/images/helpicon.png";
-const char * const ICON_TAULABS          = ":/core/images/openpiloticon.png";
-
+const char * const ICON_GCS              = ":/core/gcs_logo_128";
 
 // wizard kind
 const char * const WIZARD_TYPE_FILE      = "GCS::WizardType::File";

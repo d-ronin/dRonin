@@ -9,7 +9,7 @@
  * @file       pios_sys.c  
  * @author     Michael Smith Copyright (C) 2011
  * @author     The OpenPilot Team, http://www.openpilot.org Copyright (C) 2012.
- * @author     Tau Labs, http://taulabs.org, Copyright (C) 2012-2013
+ * @author     Tau Labs, http://taulabs.org, Copyright (C) 2012-2014
  * @brief      Sets up basic STM32 system hardware, functions are called from Main.
  * @see        The GNU Public License (GPL) Version 3
  *
@@ -45,9 +45,11 @@ static void NVIC_Configuration(void);
 */
 void PIOS_SYS_Init(void)
 {
+#if !defined(PIOS_INCLUDE_CHIBIOS)
 	/* Setup STM32 system (RCC, clock, PLL and Flash configuration) - CMSIS Function */
 	SystemInit();
 	SystemCoreClockUpdate();	/* update SystemCoreClock for use elsewhere */
+#endif /* !defined(PIOS_INCLUDE_CHIBIOS) */
 
 	/*
 	 * @todo might make sense to fetch the bus clocks and save them somewhere to avoid
@@ -151,12 +153,6 @@ void PIOS_SYS_Init(void)
 */
 int32_t PIOS_SYS_Reset(void)
 {
-	/* Disable all RTOS tasks */
-#if defined(PIOS_INCLUDE_FREERTOS)
-	/* port specific FreeRTOS function to disable tasks (nested) */
-	portENTER_CRITICAL();
-#endif
-
 	// disable all interrupts
 	PIOS_IRQ_Disable();
 
@@ -177,14 +173,6 @@ int32_t PIOS_SYS_Reset(void)
 
 	/* We will never reach this point */
 	return -1;
-}
-
-/**
-* Returns the CPU's flash size (in bytes)
-*/
-uint32_t PIOS_SYS_getCPUFlashSize(void)
-{
-	return ((uint32_t) MEM_SIZE);	// FIXME: it might be possible to locate in the OTP area, but haven't looked and not documented
 }
 
 /**

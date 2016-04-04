@@ -3,6 +3,7 @@
  *
  * @file       uavobjectfield.cpp
  * @author     The OpenPilot Team, http://www.openpilot.org Copyright (C) 2010.
+ * @author     dRonin, http://dronin.org Copyright (C) 2015
  * @see        The GNU Public License (GPL) Version 3
  * @addtogroup GCSPlugins GCS Plugins
  * @{
@@ -29,7 +30,7 @@
 #include <QtEndian>
 #include <QDebug>
 
-UAVObjectField::UAVObjectField(const QString& name, const QString& units, FieldType type, quint32 numElements, const QStringList& options, const QString &limits)
+UAVObjectField::UAVObjectField(const QString& name, const QString& units, FieldType type, quint32 numElements, const QStringList& options, const QList<int>& indices, const QString &limits, const QString &description)
 {
     QStringList elementNames;
     // Set element names
@@ -38,27 +39,29 @@ UAVObjectField::UAVObjectField(const QString& name, const QString& units, FieldT
         elementNames.append(QString("%1").arg(n));
     }
     // Initialize
-    constructorInitialize(name, units, type, elementNames, options,limits);
+    constructorInitialize(name, units, type, elementNames, options, indices, limits, description);
 
 }
 
-UAVObjectField::UAVObjectField(const QString& name, const QString& units, FieldType type, const QStringList& elementNames, const QStringList& options, const QString &limits)
+UAVObjectField::UAVObjectField(const QString& name, const QString& units, FieldType type, const QStringList& elementNames, const QStringList& options, const QList<int>& indices, const QString &limits, const QString &description)
 {
-    constructorInitialize(name, units, type, elementNames, options,limits);
+    constructorInitialize(name, units, type, elementNames, options, indices, limits, description);
 }
 
-void UAVObjectField::constructorInitialize(const QString& name, const QString& units, FieldType type, const QStringList& elementNames, const QStringList& options,const QString &limits)
+void UAVObjectField::constructorInitialize(const QString& name, const QString& units, FieldType type, const QStringList& elementNames, const QStringList& options, const QList<int>& indices, const QString &limits, const QString &description)
 {
     // Copy params
     this->name = name;
     this->units = units;
     this->type = type;
     this->options = options;
+    this->indices = indices;
     this->numElements = elementNames.length();
     this->offset = 0;
     this->data = NULL;
     this->obj = NULL;
     this->elementNames = elementNames;
+    this->description = description;
     // Set field size
     switch (type)
     {
@@ -88,7 +91,8 @@ void UAVObjectField::constructorInitialize(const QString& name, const QString& u
         break;
     case BITFIELD:
         numBytesPerElement = sizeof(quint8);
-        this->options = QStringList()<<tr("0")<<tr("1");
+        this->options = QStringList() << tr("0") << tr("1");
+        this->indices = QList<int>() << 0 << 1;
         break;
     case STRING:
         numBytesPerElement = sizeof(quint8);
@@ -111,10 +115,10 @@ void UAVObjectField::limitsInitialize(const QString &limits)
         return;
     QStringList stringPerElement=limits.split(",");
     quint32 index=0;
-    foreach (QString str, stringPerElement) {
+    foreach (const QString &str, stringPerElement) {
         QStringList ruleList=str.split(";");
         QList<LimitStruct> limitList;
-        foreach(QString rule,ruleList)
+        foreach(const QString &rule,ruleList)
         {
             QString _str=rule.trimmed();
             if(_str.isEmpty())
@@ -146,7 +150,7 @@ void UAVObjectField::limitsInitialize(const QString &limits)
                 else
                     qDebug()<<"limits parsing failed (invalid property) on UAVObjectField"<<name;
                 valuesPerElement.removeAt(0);
-                foreach(QString _value,valuesPerElement)
+                foreach(const QString &_value,valuesPerElement)
                 {
                     QString value=_value.trimmed();
                     switch (type)
@@ -199,7 +203,7 @@ bool UAVObjectField::isWithinLimits(QVariant var,quint32 index, int board)
     if(!elementLimits.keys().contains(index))
         return true;
 
-    foreach(LimitStruct struc,elementLimits.value(index))
+    foreach(const LimitStruct &struc,elementLimits.value(index))
     {
         if((struc.board!=board) && board!=0 && struc.board!=0)
             continue;
@@ -211,7 +215,7 @@ bool UAVObjectField::isWithinLimits(QVariant var,quint32 index, int board)
             case INT8:
             case INT16:
             case INT32:
-                foreach (QVariant vars, struc.values) {
+                foreach (const QVariant &vars, struc.values) {
                     if(var.toInt()==vars.toInt())
                         return true;
                 }
@@ -221,7 +225,7 @@ bool UAVObjectField::isWithinLimits(QVariant var,quint32 index, int board)
             case UINT16:
             case UINT32:
             case BITFIELD:
-                foreach (QVariant vars, struc.values) {
+                foreach (const QVariant &vars, struc.values) {
                     if(var.toUInt()==vars.toUInt())
                         return true;
                 }
@@ -229,14 +233,14 @@ bool UAVObjectField::isWithinLimits(QVariant var,quint32 index, int board)
                 break;
             case ENUM:
             case STRING:
-                foreach (QVariant vars, struc.values) {
+                foreach (const QVariant &vars, struc.values) {
                     if(var.toString()==vars.toString())
                         return true;
                 }
                 return false;
                 break;
             case FLOAT32:
-                foreach (QVariant vars, struc.values) {
+                foreach (const QVariant &vars, struc.values) {
                     if(var.toFloat()==vars.toFloat())
                         return true;
                 }
@@ -252,7 +256,7 @@ bool UAVObjectField::isWithinLimits(QVariant var,quint32 index, int board)
             case INT8:
             case INT16:
             case INT32:
-                foreach (QVariant vars, struc.values) {
+                foreach (const QVariant &vars, struc.values) {
                     if(var.toInt()==vars.toInt())
                         return false;
                 }
@@ -262,7 +266,7 @@ bool UAVObjectField::isWithinLimits(QVariant var,quint32 index, int board)
             case UINT16:
             case UINT32:
             case BITFIELD:
-                foreach (QVariant vars, struc.values) {
+                foreach (const QVariant &vars, struc.values) {
                     if(var.toUInt()==vars.toUInt())
                         return false;
                 }
@@ -270,14 +274,14 @@ bool UAVObjectField::isWithinLimits(QVariant var,quint32 index, int board)
                 break;
             case ENUM:
             case STRING:
-                foreach (QVariant vars, struc.values) {
+                foreach (const QVariant &vars, struc.values) {
                     if(var.toString()==vars.toString())
                         return false;
                 }
                 return true;
                 break;
             case FLOAT32:
-                foreach (QVariant vars, struc.values) {
+                foreach (const QVariant &vars, struc.values) {
                     if(var.toFloat()==vars.toFloat())
                         return false;
                 }
@@ -313,6 +317,9 @@ bool UAVObjectField::isWithinLimits(QVariant var,quint32 index, int board)
                 return true;
                 break;
             case ENUM:
+		    // OK, I think this is OK with parents.  Because we'll
+		    // consider the limit to mean "as ordered in this object".
+		    // So no need to map to underlying types.  
                     if(!(options.indexOf(var.toString())>=options.indexOf(struc.values.at(0).toString()) && options.indexOf(var.toString())<=options.indexOf(struc.values.at(1).toString())))
                         return false;
                 return true;
@@ -414,7 +421,7 @@ QVariant UAVObjectField::getMaxLimit(quint32 index,int board)
 {
     if(!elementLimits.keys().contains(index))
         return QVariant();
-    foreach(LimitStruct struc,elementLimits.value(index))
+    foreach(const LimitStruct &struc,elementLimits.value(index))
     {
         if((struc.board!=board) && board!=0 && struc.board!=0)
             continue;
@@ -877,12 +884,14 @@ QVariant UAVObjectField::getValue(quint32 index)
     {
         quint8 tmpenum;
         memcpy(&tmpenum, &data[offset + numBytesPerElement*index], numBytesPerElement);
-        //            Q_ASSERT((tmpenum < options.length()) && (tmpenum >= 0)); // catch bad enum settings
-        if(tmpenum >= options.length()) {
-            qDebug() << "Invalid value for" << name;
-            return QVariant( QString("Bad Value") );
-        }
-        return QVariant( options[tmpenum] );
+	// Too slow?
+	for (int i = 0; i < indices.length(); i++) {
+	    if (tmpenum == indices[i]) {
+		return QVariant( options[i] );
+	    }
+	}
+
+	return QVariant( QString("Bad Value") );
         break;
     }
     case BITFIELD:
@@ -1007,6 +1016,9 @@ void UAVObjectField::setValue(const QVariant& value, quint32 index)
         {
             qint8 tmpenum = options.indexOf( value.toString() );
             Q_ASSERT(tmpenum >= 0); // To catch any programming errors where we set invalid values
+
+	    tmpenum = indices[tmpenum];
+
             memcpy(&data[offset + numBytesPerElement*index], &tmpenum, numBytesPerElement);
             break;
         }
@@ -1021,7 +1033,7 @@ void UAVObjectField::setValue(const QVariant& value, quint32 index)
         case STRING:
         {
             QString str = value.toString();
-            QByteArray barray = str.toAscii();
+            QByteArray barray = str.toLatin1();
             quint32 index;
             for (index = 0; index < (quint32)barray.length() && index < (numElements-1); ++index)
             {
@@ -1044,3 +1056,7 @@ void UAVObjectField::setDouble(double value, quint32 index)
     setValue(QVariant(value), index);
 }
 
+QString UAVObjectField::getDescription()
+{
+    return description;
+}

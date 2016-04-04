@@ -6,7 +6,8 @@
  * @{
  *
  * @file       tablet_control.c
- * @author     Tau Labs, http://taulabs.org, Copyright (C) 2013
+ * @author     dRonin, http://dRonin.org/, Copyright (C) 2015-2016
+ * @author     Tau Labs, http://taulabs.org, Copyright (C) 2013-2015
  * @brief      Use tablet for control source
  *
  * @see        The GNU Public License (GPL) Version 3
@@ -26,6 +27,10 @@
  * You should have received a copy of the GNU General Public License along
  * with this program; if not, write to the Free Software Foundation, Inc.,
  * 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
+ *
+ * Additional note on redistribution: The copyright and license notices above
+ * must be maintained in each individual source file that is a derivative work
+ * of this source file; otherwise redistribution is prohibited.
  */
 
 #include "openpilot.h"
@@ -37,18 +42,19 @@
 #include "flightstatus.h"
 #include "gpsposition.h"
 #include "homelocation.h"
+#include "loitercommand.h"
 #include "pathdesired.h"
 #include "positionactual.h"
 #include "tabletinfo.h"
 #include "systemsettings.h"
 
-#if !defined(COPTERCONTROL)
+#if !defined(SMALLF1)
 
 //! Private methods
 static int32_t tabletInfo_to_ned(TabletInfoData *tabletInfo, float *NED);
 
 //! Private constants
-#define HOME_ALTITUDE_OFFSET 5
+#define HOME_ALTITUDE_OFFSET 15
 #define FOLLOWME_RADIUS      20
 
 //! Initialize the tablet controller
@@ -86,45 +92,34 @@ int32_t tablet_control_select(bool reset_controller)
 	PathDesiredGet(&pathDesired);
 
 	uint8_t mode = flightStatus.FlightMode;
-	static TabletInfoTabletModeDesiredOptions last_tablet_mode;
 
 	switch(tabletInfo.TabletModeDesired) {
 		case TABLETINFO_TABLETMODEDESIRED_POSITIONHOLD:
-			if (mode != FLIGHTSTATUS_FLIGHTMODE_POSITIONHOLD || 
-			    last_tablet_mode != tabletInfo.TabletModeDesired) {
-				mode = FLIGHTSTATUS_FLIGHTMODE_POSITIONHOLD;
-
-				PositionActualData positionActual;
-				PositionActualGet(&positionActual);
-
-				pathDesired.End[0] = positionActual.North;
-				pathDesired.End[1] = positionActual.East;
-				pathDesired.End[2] = positionActual.Down;
-				pathDesired.Mode = PATHDESIRED_MODE_HOLDPOSITION;
-				pathDesired.StartingVelocity = 5;
-				pathDesired.EndingVelocity = 5;
-
-				PathDesiredSet(&pathDesired);				
-			}
-			break;
-		case TABLETINFO_TABLETMODEDESIRED_RETURNTOHOME:
+			// Use the position hold FSM. This will take the current position
+			// when flight mode first is position hold. The tablet does not
+			// set the position explicitly
 			mode = FLIGHTSTATUS_FLIGHTMODE_POSITIONHOLD;
 
-			pathDesired.End[0] = 0;
-			pathDesired.End[1] = 0;
-			pathDesired.End[2] = -HOME_ALTITUDE_OFFSET;
-			pathDesired.Mode = PATHDESIRED_MODE_HOLDPOSITION;
-			pathDesired.StartingVelocity = 5;
-			pathDesired.EndingVelocity = 5;
+			// Command to not move. This code is identical to that in manualcontrol
+			LoiterCommandData loiterCommand;
+			loiterCommand.Pitch = 0;
+			loiterCommand.Roll = 0;
+			loiterCommand.Thrust = 0.5f;
+			loiterCommand.Frame = LOITERCOMMAND_FRAME_BODY;
+			LoiterCommandSet(&loiterCommand);
 
-			PathDesiredSet(&pathDesired);
+			break;
+		case TABLETINFO_TABLETMODEDESIRED_RETURNTOHOME:
+
+			// Use the return to home FSM.
+			mode = FLIGHTSTATUS_FLIGHTMODE_RETURNTOHOME;
 
 			break;
 		case TABLETINFO_TABLETMODEDESIRED_RETURNTOTABLET:
 		{
 			float NED[3];
 
-			mode = FLIGHTSTATUS_FLIGHTMODE_POSITIONHOLD;
+			mode = FLIGHTSTATUS_FLIGHTMODE_TABLETCONTROL;
 			tabletInfo_to_ned(&tabletInfo, NED);
 
 			pathDesired.End[0] = NED[0];
@@ -143,8 +138,10 @@ int32_t tablet_control_select(bool reset_controller)
 			break;
 		case TABLETINFO_TABLETMODEDESIRED_FOLLOWME:
 		{
+			mode = FLIGHTSTATUS_FLIGHTMODE_TABLETCONTROL;
+			
 			// Follow the tablet location at a fixed height, but always following by
-			// a set radius
+			// a set radius. This mode is updated every cycle, unlike the others.
 			float NED[3];
 			tabletInfo_to_ned(&tabletInfo, NED);
 
@@ -153,7 +150,7 @@ int32_t tablet_control_select(bool reset_controller)
 
 			float DeltaN = NED[0] - positionActual.North;
 			float DeltaE = NED[1] - positionActual.East;
-			float dist = sqrt(DeltaN * DeltaN + DeltaE * DeltaE);
+			float dist = sqrtf(DeltaN * DeltaN + DeltaE * DeltaE);
 
 			// If outside the follow radius code to the nearest point on the border
 			// otherwise stay in the same location
@@ -167,7 +164,7 @@ int32_t tablet_control_select(bool reset_controller)
 				pathDesired.End[1] = positionActual.East;
 				pathDesired.End[2] = -HOME_ALTITUDE_OFFSET;
 			}
-			pathDesired.Mode = PATHDESIRED_MODE_HOLDPOSITION;
+			pathDesired.Mode = FLIGHTSTATUS_FLIGHTMODE_PATHPLANNER;
 			pathDesired.StartingVelocity = 5;
 			pathDesired.EndingVelocity = 5;
 
@@ -181,9 +178,6 @@ int32_t tablet_control_select(bool reset_controller)
 			// Fail out.  This will trigger failsafe mode.
 			return -1;
 	}
-
-	// Cache the last tablet mode
-	last_tablet_mode = tabletInfo.TabletModeDesired;
 
 	// Update mode if changed
 	if (mode != flightStatus.FlightMode) {

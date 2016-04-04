@@ -3,6 +3,7 @@
  *
  * @file       dialgadgetoptionspage.cpp
  * @author     The OpenPilot Team, http://www.openpilot.org Copyright (C) 2010.
+ * @author     Tau Labs, http://taulabs.org, Copyright (C) 2014
  * @see        The GNU Public License (GPL) Version 3
  * @addtogroup GCSPlugins GCS Plugins
  * @{
@@ -58,7 +59,7 @@ QWidget *DialGadgetOptionsPage::createPage(QWidget *parent)
     // Fills the combo boxes for the UAVObjects
     ExtensionSystem::PluginManager *pm = ExtensionSystem::PluginManager::instance();
     UAVObjectManager *objManager = pm->getObject<UAVObjectManager>();
-    QVector< QVector<UAVDataObject*> > objList = objManager->getDataObjects();
+    QVector< QVector<UAVDataObject*> > objList = objManager->getDataObjectsVector();
     foreach (QVector<UAVDataObject*> list, objList) {
         foreach (UAVDataObject* obj, list) {
             options_page->uavObject1->addItem(obj->getName());
@@ -104,7 +105,6 @@ QWidget *DialGadgetOptionsPage::createPage(QWidget *parent)
     options_page->moveNeedle2->setCurrentIndex(options_page->moveNeedle2->findText(m_config->getN2Move()));
     options_page->moveNeedle3->setCurrentIndex(options_page->moveNeedle3->findText(m_config->getN3Move()));
 
-	options_page->useOpenGL->setChecked(m_config->useOpenGL());
 	options_page->smoothUpdates->setChecked(m_config->getBeSmooth());
 
 
@@ -181,8 +181,7 @@ void DialGadgetOptionsPage::apply()
     m_config->setN2Move(options_page->moveNeedle2->currentText());
     m_config->setN3Move(options_page->moveNeedle3->currentText());
     m_config->setFont(font.toString());
-	m_config->setUseOpenGL(options_page->useOpenGL->checkState());
-	m_config->setBeSmooth(options_page->smoothUpdates->checkState());
+    m_config->setBeSmooth(options_page->smoothUpdates->checkState());
 }
 
 /**

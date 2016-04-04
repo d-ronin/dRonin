@@ -10,19 +10,14 @@
 
 		<field name="Mode" units="" type="enum" elements="1">
 			<options>
-				<option>FlyEndpoint</option>
-				<option>FlyVector</option>
-				<option>FlyCircleRight</option>
-				<option>FlyCircleLeft</option>
-				<option>DriveEndpoint</option>
-				<option>DriveVector</option>
-				<option>DriveCircleLeft</option>
-				<option>DriveCircleRight</option>
+				<option>Endpoint</option>
+				<option>Vector</option>
+				<option>CircleRight</option>
+				<option>CircleLeft</option>
 				<option>HoldPosition</option>
 				<option>CirclePositionLeft</option>
 				<option>CirclePositionRight</option>
 				<option>Land</option>
-				<option>Stop</option>
 				<option>Invalid</option>
 			</options>
 		</field>
@@ -31,7 +26,8 @@
 		<field name="ModeParameters" units="" type="float" elements="1" default="0"/>
 		<access gcs="readwrite" flight="readwrite"/>
 		<telemetrygcs acked="true" updatemode="manual" period="0"/>
-		<telemetryflight acked="true" updatemode="periodic" period="4000"/>
+		<!-- previously acked.. not anymore.  Way too intrusive to send all waypoints at 4 second intervals and then demand acknowledgements for each -->
+		<telemetryflight acked="false" updatemode="periodic" period="10000"/>
 		<logging updatemode="periodic" period="1000"/>
 	</object>
 </xml>

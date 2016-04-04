@@ -30,7 +30,9 @@
 #include <extensionsystem/iplugin.h> 
 
 class DoNothingPlugin : public ExtensionSystem::IPlugin 
-{ 
+{
+    Q_OBJECT
+    Q_PLUGIN_METADATA(IID "org.dronin.plugins.DoNothing")
 public: 
    DoNothingPlugin(); 
    ~DoNothingPlugin(); 

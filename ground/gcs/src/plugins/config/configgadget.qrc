@@ -1,14 +1,9 @@
 <RCC>
     <qresource prefix="/configgadget">
-        <file>images/help2.png</file>
-        <file>images/ahrs-calib.svg</file>
         <file>images/paper-plane.svg</file>
         <file>images/curve-bg.svg</file>
         <file>images/multirotor-shapes.svg</file>
         <file>images/ccpm_setup.svg</file>
-        <file>images/PipXtreme.png</file>
-        <file>images/help.png</file>
-        <file>images/coptercontrol.svg</file>
         <file>images/TX2.svg</file>
         <file>images/output_selected.png</file>
         <file>images/output_normal.png</file>
@@ -31,5 +26,12 @@
         <file>images/pipx-selected.png</file>
         <file>images/pipx-normal.png</file>
         <file>images/swap.svg</file>
+        <file>images/share-2-icon.png</file>
+        <file>images/modules_normal.png</file>
+        <file>images/modules_selected.png</file>
+        <file>images/osd_normal.png</file>
+        <file>images/osd_selected.png</file>
+        <file>images/ic_cloud_upload_48px.svg</file>
+        <file>images/ic_content_paste_48px.svg</file>
     </qresource>
 </RCC>

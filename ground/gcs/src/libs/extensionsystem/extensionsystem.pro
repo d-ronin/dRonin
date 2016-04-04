@@ -1,12 +1,13 @@
 TEMPLATE = lib
 TARGET = ExtensionSystem
+QT += widgets
 DEFINES += EXTENSIONSYSTEM_LIBRARY
-include(../../taulabslibrary.pri)
+include(../../gcslibrary.pri)
 include(extensionsystem_dependencies.pri)
 
 unix:!macx:!freebsd*:LIBS += -ldl
 
-DEFINES += GCS_TEST_DIR=\\\"$$GCS_SOURCE_TREE\\\"
+DEFINES += GCS_TEST_DIR=\\\"$$GCS_BUILD_TREE\\\"
 
 HEADERS += pluginerrorview.h \
     plugindetailsview.h \

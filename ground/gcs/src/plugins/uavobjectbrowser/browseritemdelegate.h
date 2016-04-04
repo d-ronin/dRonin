@@ -29,15 +29,21 @@
 #define BROWSERITEMDELEGATE_H
 
 #include <QStyledItemDelegate>
+#include <QEvent>
+
+class TreeSortFilterProxyModel;
 
 class BrowserItemDelegate : public QStyledItemDelegate
 {
 Q_OBJECT
 public:
-    explicit BrowserItemDelegate(QObject *parent = 0);
+    explicit BrowserItemDelegate(TreeSortFilterProxyModel *proxyModel, QObject *parent = 0);
 
     QWidget *createEditor(QWidget *parent, const QStyleOptionViewItem &option,
                           const QModelIndex &index) const;
+
+    //! This filter is required to make combo boxes work
+    bool eventFilter(QObject *object, QEvent *event);
 
     void setEditorData(QWidget *editor, const QModelIndex &index) const;
     void setModelData(QWidget *editor, QAbstractItemModel *model,
@@ -53,6 +59,8 @@ signals:
 
 public slots:
 
+private:
+    TreeSortFilterProxyModel *proxyModel;
 };
 
 #endif // BROWSERITEMDELEGATE_H

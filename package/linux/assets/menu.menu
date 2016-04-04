@@ -1,0 +1,12 @@
+<!DOCTYPE Menu PUBLIC "-//freedesktop//DTD Menu 1.0//EN"
+ "http://www.freedesktop.org/standards/menu-spec/1.0/menu.dtd">
+<Menu>
+  <Name>Applications</Name>
+  <Menu>
+    <Name><BRANDING_PACKAGE_PRETTY></Name>
+    <Directory><BRANDING_PACKAGE_SOURCE>_menu.directory</Directory>
+    <Include>
+        <Category><BRANDING_PACKAGE_PRETTY>Menu</Category>
+    </Include>
+  </Menu> <!-- End Menu-->
+</Menu>

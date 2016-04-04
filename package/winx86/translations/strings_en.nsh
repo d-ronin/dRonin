@@ -1,6 +1,4 @@
-﻿#
-# Project: OpenPilot
-# NSIS header file for OpenPilot GCS
+﻿# dRonin, http://dronin.org, Copyright (C) 2015-2016
 # The OpenPilot Team, http://www.openpilot.org, Copyright (C) 2010-2011.
 #
 # This program is free software; you can redistribute it and/or modify
@@ -16,7 +14,10 @@
 # You should have received a copy of the GNU General Public License along
 # with this program; if not, write to the Free Software Foundation, Inc.,
 # 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
-#
+# 
+# Additional note on redistribution: The copyright and license notices above
+# must be maintained in each individual source file that is a derivative work
+# of this source file; otherwise redistribution is prohibited.
 
 ;
 ; Translation file for ${LANG_ENGLISH}
@@ -25,21 +26,18 @@
 ;--------------------------------
 ; Installer section descriptions
 
-  LangString DESC_InSecCore ${LANG_ENGLISH} "Core GCS components (executable and libraries)."
+  LangString DESC_InSecCore ${LANG_ENGLISH} "Core components (executable and libraries)."
   LangString DESC_InSecPlugins ${LANG_ENGLISH} "GCS plugins (provide most of GCS functionality)."
   LangString DESC_InSecResources ${LANG_ENGLISH} "GCS resources (diagrams, dials, mapicons, 3d-models, PFD)."
   LangString DESC_InSecSounds ${LANG_ENGLISH} "GCS sound files (used for audible event notifications)."
   LangString DESC_InSecLocalization ${LANG_ENGLISH} "GCS localization (for supported languages)."
-  LangString DESC_InSecFirmware ${LANG_ENGLISH} "OpenPilot firmware binaries."
-  LangString DESC_InSecUtilities ${LANG_ENGLISH} "OpenPilot utilities (Matlab log parser)."
-  LangString DESC_InSecDrivers ${LANG_ENGLISH} "OpenPilot hardware driver files (optional OpenPilot CDC driver)."
-  LangString DESC_InSecInstallDrivers ${LANG_ENGLISH} "Optional OpenPilot CDC driver (virtual USB COM port)."
-  LangString DESC_InSecAeroSimRC ${LANG_ENGLISH} "AeroSimRC plugin files with sample configuration."
+  LangString DESC_InSecFirmware ${LANG_ENGLISH} "Firmware binaries."
+  LangString DESC_InSecUtilities ${LANG_ENGLISH} "Utilities (Matlab log parser)."
   LangString DESC_InSecShortcuts ${LANG_ENGLISH} "Install application start menu shortcuts."
 
 ;--------------------------------
 ; Uninstaller section descriptions
 
-  LangString DESC_UnSecProgram ${LANG_ENGLISH} "OpenPilot GCS application and all components."
-  LangString DESC_UnSecCache ${LANG_ENGLISH} "OpenPilot GCS cached maps data."
-  LangString DESC_UnSecConfig ${LANG_ENGLISH} "OpenPilot GCS configuration files."
+  LangString DESC_UnSecProgram ${LANG_ENGLISH} "GCS application and all components."
+  LangString DESC_UnSecCache ${LANG_ENGLISH} "Cached map data."
+  LangString DESC_UnSecConfig ${LANG_ENGLISH} "GCS configuration files."

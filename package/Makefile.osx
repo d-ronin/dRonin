@@ -2,19 +2,61 @@
 # MacOSX-specific packaging
 #
 
-osx_package: gcs package_flight package_matlab
-	( \
-	  ROOT_DIR="$(ROOT_DIR)" \
-	  BUILD_DIR="$(BUILD_DIR)" \
-	  PACKAGE_LBL="$(PACKAGE_LBL)" \
-	  PACKAGE_DIR="$(PACKAGE_DIR)" \
-	  FW_DIR="$(FW_DIR)" \
-	  "$(ROOT_DIR)/package/osx/package" \
-	)
+APP_NAME_OSX="dRonin-GCS.app"
+APP_PATH="${BUILD_DIR}/ground/gcs/bin/"
+TEMP_FILE="${PACKAGE_DIR}/dRonin-temp.dmg.sparseimage"
+ICON_FILE="${ROOT_DIR}/linux/dronin.png"
+VOL_NAME="dRonin"
 
-gcs: uavobjects
-	$(V1) $(MAKE) -C $(ROOT_DIR) GCS_BUILD_CONF=release $@
+GCS_PACKAGE_ROOT := $(GCS_PACKAGE_NAME)/$(APP_NAME_OSX)
 
-ground_package: | osx_package
+# calls macdeployqt and bundles the extra libraries into .app
+standalone: $(STANDALONE_DEPENDENCIES)
+	"${ROOT_DIR}/package/osx/libraries" ${APP_PATH}/${APP_NAME_OSX}
 
+# puts the files into a dmg
+dmg: ground_package extract_firmware matlab
+	ROOT_DIR="$(ROOT_DIR)" \
+	BUILD_DIR="$(BUILD_DIR)" \
+	PACKAGE_LBL="$(PACKAGE_LBL)" \
+	DMG_LBL="dRonin_$(PLATFORM)_$(PLATFORM_NAME)-$(PACKAGE_LBL)" \
+	PACKAGE_DIR="$(PACKAGE_DIR)" \
+	GCS_PACKAGE_DIR="$(PACKAGE_DIR)/$(GCS_PACKAGE_NAME)" \
+	FW_DIR="$(PACKAGE_DIR)/firmware_$(PACKAGE_LBL)" \
+	"$(ROOT_DIR)/package/osx/package"
+
+installer_package: | dmg
+
+ground_package_os_specific: | standalone
+	@echo $@ starting
+	$(V1) rm -r -f $(PACKAGE_DIR)/$(GCS_PACKAGE_ROOT)
+	$(V1) mkdir -p $(PACKAGE_DIR)/$(GCS_PACKAGE_NAME)
+	$(V1) cp -v -R $(BUILD_DIR)/ground/gcs/bin/$(APP_NAME_OSX) $(PACKAGE_DIR)/$(GCS_PACKAGE_NAME)
+ifeq ($(EXPORT_SYMBOLS), YES)
+	$(V1) $(ROOT_DIR)/package/osx_extract_debug_symbols.sh $(DUMP_SYMBOLS_TOOL) $(PACKAGE_DIR)/$(GCS_PACKAGE_NAME)
+endif
 .PHONY: gcs ground_package osx_package
+
+.PHONY: package_ground_compress
+package_ground_compress: package_ground
+	$(V1)cd $(PACKAGE_DIR) && $(ZIPBIN) -9 -r $(GCS_PACKAGE_NAME) $(GCS_PACKAGE_NAME)
+ifeq ($(EXPORT_SYMBOLS),YES)
+	$(V1)cd $(PACKAGE_DIR) && $(ZIPBIN) -9 -r $(GCS_PACKAGE_NAME)_symbols $(GCS_PACKAGE_NAME)_symbols
+endif
+
+package_all_compress: package_all
+	$(V1)cd $(PACKAGE_DIR)/../ && $(ZIPBIN) -9 -r --exclude=*.zip $(BUILD_DIR)/dronin-$(PACKAGE_LBL) $(notdir $(PACKAGE_DIR))
+
+.PHONY: standalone installer_package
+.PHONY: package_ground_compress
+
+gcs:
+	@echo "OSX Package Make of GCS."
+ifeq ($(EXPORT_SYMBOLS), YES)
+	$(V1) $(MAKE) -C $(ROOT_DIR) GCS_QMAKE_OPTS="CONFIG+=RELEASE_WITH_SYMBOLS" GCS_BUILD_CONF=debug $@
+else
+	$(V1) $(MAKE) -C $(ROOT_DIR) GCS_BUILD_CONF=release $@
+endif
+
+matlab:
+	$(V1) $(MAKE) -C $(ROOT_DIR) $@

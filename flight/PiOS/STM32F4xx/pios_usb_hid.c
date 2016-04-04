@@ -9,7 +9,7 @@
  *
  * @file       pios_usb_hid.c
  * @author     The OpenPilot Team, http://www.openpilot.org Copyright (C) 2010.
- * @author     Tau Labs, http://taulabs.org, Copyright (C) 2012-2013
+ * @author     Tau Labs, http://taulabs.org, Copyright (C) 2012-2014
  * @brief      USB COM functions (STM32 dependent code)
  * @see        The GNU Public License (GPL) Version 3
  *
@@ -207,10 +207,6 @@ static bool PIOS_USB_HID_SendReport(struct pios_usb_hid_dev * usb_hid_dev)
 				usb_hid_dev->tx_packet_buffer,
 				sizeof(usb_hid_dev->tx_packet_buffer));
 #endif
-
-#if defined(PIOS_INCLUDE_FREERTOS)
-	portEND_SWITCHING_ISR(need_yield);
-#endif	/* PIOS_INCLUDE_FREERTOS */
 
 	return true;
 }
@@ -512,10 +508,6 @@ static bool PIOS_USB_HID_EP_OUT_Callback(uintptr_t usb_hid_id, uint8_t epnum, ui
 		usb_hid_dev->rx_active = false;
 		rc = false;
 	}
-
-#if defined(PIOS_INCLUDE_FREERTOS)
-	portEND_SWITCHING_ISR(need_yield);
-#endif	/* PIOS_INCLUDE_FREERTOS */
 
 	return rc;
 }
