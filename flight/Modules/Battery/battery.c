@@ -156,7 +156,7 @@ static void batteryTask(void * parameters)
 				if (scaled_voltage < 0.0f) {
 					scaled_voltage = 0.0f;
 					adc_offset_invalid = true;
-				} else if (batterySettings.MaxCellVoltage > 0.0f) {
+				} else if (batterySettings.MaxCellVoltage > 0.0f && scaled_voltage > 2.5f) {
 					if (!cells_calculated) {
 						cells = ((scaled_voltage / batterySettings.MaxCellVoltage) + 0.9f);
 						if (cells > 0) {
