@@ -54,6 +54,10 @@
 #include "pios_sensors.h"
 #include "pios_modules.h"
 
+#ifndef SMALLF1
+#include "positionactual.h"
+#endif
+
 #include "baroaltitude.h"
 #include "flightbatterysettings.h"
 #include "flightbatterystate.h"
@@ -446,12 +450,18 @@ static void msp_send_altitude(struct msp_bridge *m)
 			uint16_t vario; // cm/s
 		} __attribute__((packed)) baro;
 	} data;
+	
+	float tmp;
 
-	BaroAltitudeData baro;
+#ifdef SMALLF1
 	if (BaroAltitudeHandle() != NULL)
-		BaroAltitudeGet(&baro);
+		BaroAltitudeAltitudeGet(&tmp);
+#else
+	if (PositionActualHandle() != NULL)
+		PositionActualDownGet(&tmp);
+#endif
 
-	data.baro.alt = (int32_t)roundf(baro.Altitude * 100.0f);
+	data.baro.alt = (int32_t)roundf(tmp * 100.0f);
 
 	msp_send(m, MSP_ALTITUDE, data.buf, sizeof(data));
 }
