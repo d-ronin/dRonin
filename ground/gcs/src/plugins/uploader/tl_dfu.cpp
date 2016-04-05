@@ -472,18 +472,16 @@ retry:
         AbortOperation();
         if(!EnterDFU()) {
             TL_DFU_QXTLOG_DEBUG(QString("Could not process enterDFU command"));
-            if ((retries--) > 0) {
+            if ((retries--) > 0)
                 goto retry;
-            }
 
             CloseBootloaderComs();
             return false;
         }
         if(StatusRequest().status != tl_dfu::DFUidle) {
             TL_DFU_QXTLOG_DEBUG(QString("Status different that DFUidle after enterDFU command"));
-            if ((retries--) > 0) {
+            if ((retries--) > 0)
                 goto retry;
-            }
 
             CloseBootloaderComs();
             return false;
@@ -493,9 +491,8 @@ retry:
     } else {
         TL_DFU_QXTLOG_DEBUG(QString("Could not open USB port"));
 
-        if ((retries--) > 0) {
+        if ((retries--) > 0)
             goto retry;
-        }
 
         CloseBootloaderComs();
         return false;
