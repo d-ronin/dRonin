@@ -453,12 +453,15 @@ device DFUObject::findCapabilities()
   */
 bool DFUObject::OpenBootloaderComs(USBPortInfo port)
 {
+    int retries = 3;
+
+    QEventLoop m_eventloop;
+retry:
     // If device was unplugged the previous coms are
     // not closed. We must close it before opening
     // a new one.
     CloseBootloaderComs();
 
-    QEventLoop m_eventloop;
     QTimer::singleShot(200,&m_eventloop, SLOT(quit()));
     m_eventloop.exec();
     hid_init();
@@ -469,11 +472,17 @@ bool DFUObject::OpenBootloaderComs(USBPortInfo port)
         AbortOperation();
         if(!EnterDFU()) {
             TL_DFU_QXTLOG_DEBUG(QString("Could not process enterDFU command"));
+            if ((retries--) > 0)
+                goto retry;
+
             CloseBootloaderComs();
             return false;
         }
         if(StatusRequest().status != tl_dfu::DFUidle) {
             TL_DFU_QXTLOG_DEBUG(QString("Status different that DFUidle after enterDFU command"));
+            if ((retries--) > 0)
+                goto retry;
+
             CloseBootloaderComs();
             return false;
         }
@@ -481,9 +490,14 @@ bool DFUObject::OpenBootloaderComs(USBPortInfo port)
         return true;
     } else {
         TL_DFU_QXTLOG_DEBUG(QString("Could not open USB port"));
+
+        if ((retries--) > 0)
+            goto retry;
+
         CloseBootloaderComs();
         return false;
     }
+
     return false;
 }
 
