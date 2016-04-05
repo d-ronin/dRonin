@@ -1027,6 +1027,8 @@ void UploaderGadgetWidget::doUpgradeOperation(bool blankFC, tl_dfu::device &dev)
 
         if (!entLoader) {
             upgradeError(tr("Unable to enter legacy upgrade tool on board!!"));
+
+            return;
         }
     }
 
