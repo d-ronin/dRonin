@@ -36,8 +36,6 @@
 #include <utils/hostosinfo.h>
 #include <utils/stylehelper.h>
 
-#include <utils/fancymainwindow.h>
-
 #include <QApplication>
 #include <QComboBox>
 #include <QDockWidget>
@@ -77,9 +75,6 @@ bool panelWidget(const QWidget *widget)
     // Do not style dialogs or explicitly ignored widgets
     if ((widget->window()->windowFlags() & Qt::WindowType_Mask) == Qt::Dialog)
         return false;
-
-    if (qobject_cast<const Utils::FancyMainWindow *>(widget))
-        return true;
 
     if (qobject_cast<const QTabBar *>(widget))
         return styleEnabled(widget);
