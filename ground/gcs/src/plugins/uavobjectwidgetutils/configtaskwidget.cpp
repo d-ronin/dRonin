@@ -1216,6 +1216,11 @@ bool ConfigTaskWidget::setFieldFromWidget(QWidget * widget,UAVObjectField * fiel
         field->setValue(ret,index);
         return true;
     }
+    else if(qobject_cast<QLabel *>(widget))
+    { // Labels are readonly
+        return false;
+    }
+    else
     {
         qDebug() << __FUNCTION__ << "widget to uavobject relation not implemented for widget: " << widget->objectName()  << "of class:" << widget->metaObject()->className();
         return false;
