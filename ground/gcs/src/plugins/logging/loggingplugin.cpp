@@ -490,7 +490,7 @@ void LoggingPlugin::shutdown()
         loggingThread->wait();
     }
 
-    if (loggingThread == NULL) {
+    if (loggingThread != NULL) {
         delete loggingThread;
         loggingThread = NULL;
     }
