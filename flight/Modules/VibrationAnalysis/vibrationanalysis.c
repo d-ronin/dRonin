@@ -51,7 +51,15 @@
 // Private constants
 
 #define MAX_QUEUE_SIZE 2
-#define STACK_SIZE_BYTES (200 + 484 + (6*window_size)*0) // The memory requirement grows linearly 
+
+/*
+    Stack usage reported by gcc:
+    VibrationAnalysisCleanup     16
+    VibrationAnalysisInitialize  24
+    VibrationAnalysisStart       48
+    VibrationAnalysisTask        192
+*/
+#define STACK_SIZE_BYTES (192 + 48 + 16 + (2*3*window_size)*0) // The memory requirement grows linearly 
 																				  // with window size. The constant is multiplied
 																				  // by 0 in order to reflect the fact that the
 																				  // malloc'ed memory is not taken from the module 
@@ -341,8 +349,7 @@ static void VibrationAnalysisTask(void *parameters)
         
 
         // Wait until the Accels object is updated, and never time out
-        if (PIOS_Queue_Receive(queue, &ev, PIOS_QUEUE_TIMEOUT_MAX) == true)
-        {
+        if (PIOS_Queue_Receive(queue, &ev, PIOS_QUEUE_TIMEOUT_MAX) == true) {
             /**
              * Accumulate accelerometer data. This would be a great place to add a 
              * high-pass filter, in order to eliminate the DC bias from gravity.
