@@ -484,7 +484,7 @@ void LoggingPlugin::extensionsInitialized()
 
 void LoggingPlugin::shutdown()
 {
-    if(state == LOGGING) {
+    if (state == LOGGING) {
         stopLogging();
 
         loggingThread->wait();
