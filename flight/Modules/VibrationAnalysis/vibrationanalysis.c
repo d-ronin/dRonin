@@ -110,23 +110,23 @@ static void VibrationAnalysisCleanup(void) {
     }
     
     // Cleanup
-    if(vtd != NULL) {
+    if (vtd != NULL) {
         PIOS_free(vtd);
         vtd = NULL;        
     }
 
-    if(vtd->accel_buffer_x != NULL){
+    if (vtd->accel_buffer_x != NULL){
         PIOS_free(vtd->accel_buffer_x);
         vtd->accel_buffer_x = NULL;
     }
     
-    if(vtd->accel_buffer_y != NULL) {
+    if (vtd->accel_buffer_y != NULL) {
         PIOS_free(vtd->accel_buffer_y);
         vtd->accel_buffer_y = NULL;
 
     }
 
-    if(vtd->accel_buffer_z != NULL) {
+    if (vtd->accel_buffer_z != NULL) {
         PIOS_free(vtd->accel_buffer_z);
         vtd->accel_buffer_z = NULL;
     }
@@ -146,7 +146,7 @@ static int32_t VibrationAnalysisStart(void)
     uint16_t instances = 0;
 
     // Allocate and initialize the static data storage only if module is enabled the first time
-    if(vtd == NULL){
+    if (vtd == NULL){
         vtd = (struct VibrationAnalysis_data *) PIOS_malloc(sizeof(struct VibrationAnalysis_data));
         if (vtd == NULL) {
             module_enabled = false;
@@ -183,7 +183,7 @@ static int32_t VibrationAnalysisStart(void)
 
     // Is the new window size different?
     // Will happen upon initialization and when the window size changes
-    if(window_size != vtd->window_size) {
+    if (window_size != vtd->window_size) {
         instances = window_size / VIBRATION_ELEMENTS_COUNT;
 
         // Check number of existing instances
@@ -248,7 +248,7 @@ static int32_t VibrationAnalysisStart(void)
     }
     
     // Start main task
-    if( taskHandle == NULL){
+    if (taskHandle == NULL) {
         taskHandle = PIOS_Thread_Create(VibrationAnalysisTask, "VibrationAnalysis", STACK_SIZE_BYTES, NULL, TASK_PRIORITY);
         task = TaskMonitorAdd(TASKINFO_RUNNING_VIBRATIONANALYSIS, taskHandle);
     }
@@ -294,7 +294,6 @@ MODULE_INITCALL(VibrationAnalysisInitialize, VibrationAnalysisStart)
 
 static void VibrationAnalysisTask(void *parameters)
 {
-#define MAX_BLOCKSIZE   2048    
     uint32_t lastSysTime;
     uint32_t lastSettingsUpdateTime;
     uint8_t runAnalysisFlag = VIBRATIONANALYSISSETTINGS_TESTINGSTATUS_OFF; // By default, turn analysis off
@@ -315,11 +314,11 @@ static void VibrationAnalysisTask(void *parameters)
     vibrationAnalysisOutputData.samples = vtd->window_size;
 
     // Main module task, never exit from while loop
-    while(module_enabled)
+    while (module_enabled)
     {
 
         // Only check settings once every 100ms and not in the middle of a buffer accumulation
-        if(PIOS_Thread_Systime() - lastSettingsUpdateTime > SETTINGS_THROTTLING_MS && sample_count == 0) {
+        if (PIOS_Thread_Systime() - lastSettingsUpdateTime > SETTINGS_THROTTLING_MS && sample_count == 0) {
             //First check if the analysis is active
             VibrationAnalysisSettingsTestingStatusGet(&runAnalysisFlag);
             
@@ -361,7 +360,7 @@ static void VibrationAnalysisTask(void *parameters)
         }
         
         // If not enough time has passed, keep accumulating data
-        if(PIOS_Thread_Systime() - lastSysTime < sampleRate_ms) {
+        if (PIOS_Thread_Systime() - lastSysTime < sampleRate_ms) {
             continue;
         }
         
@@ -374,7 +373,7 @@ static void VibrationAnalysisTask(void *parameters)
         float accels_avg_z = vtd->accels_data_sum_z / vtd->accels_sum_count;
         
         //Calculate DC bias
-        float alpha=.005; //Hard-coded to drift very slowly
+        float alpha = .005; //Hard-coded to drift very slowly
         vtd->accels_static_bias_x = alpha*accels_avg_x + (1-alpha)*vtd->accels_static_bias_x;
         vtd->accels_static_bias_y = alpha*accels_avg_y + (1-alpha)*vtd->accels_static_bias_y;
         vtd->accels_static_bias_z = alpha*accels_avg_z + (1-alpha)*vtd->accels_static_bias_z;
@@ -399,10 +398,10 @@ static void VibrationAnalysisTask(void *parameters)
             //Reset sample count
             sample_count = 0;
             //Write output to UAVO
-            for (int j=0; j<vtd->instances; j++) {
+            for (uint16_t j=0; j<vtd->instances; j++) {
                 vibrationAnalysisOutputData.scale = FLOAT_TO_FIXED;
 
-                for (int k=0; k<VIBRATION_ELEMENTS_COUNT; k++) {                    
+                for (uint16_t k=0; k<VIBRATION_ELEMENTS_COUNT; k++) {                    
                     vibrationAnalysisOutputData.x[k] = vtd->accel_buffer_x[k + VIBRATION_ELEMENTS_COUNT*j];
                     vibrationAnalysisOutputData.y[k] = vtd->accel_buffer_y[k + VIBRATION_ELEMENTS_COUNT*j];
                     vibrationAnalysisOutputData.z[k] = vtd->accel_buffer_z[k + VIBRATION_ELEMENTS_COUNT*j];
