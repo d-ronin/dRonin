@@ -44,6 +44,10 @@
 
 #include <manualcontrolsettings.h>
 
+#if defined(PIOS_INCLUDE_OPENLRS_RCVR)
+#include <openlrs.h>
+#endif
+
 #include <sanitycheck.h>
 
 uintptr_t pios_rcvr_group_map[MANUALCONTROLSETTINGS_CHANNELGROUPS_NONE];
@@ -841,6 +845,10 @@ void PIOS_HAL_ConfigureRFM22B(HwSharedRadioPortOptions radio_type,
 	/* Initalize the RFM22B radio COM device. */
 	RFM22BStatusInitialize();
 	RFM22BStatusCreateInstance();
+
+#if defined(PIOS_INCLUDE_OPENLRS_RCVR)
+	OpenLRSInitialize();
+#endif
 
 	RFM22BStatusData rfm22bstatus;
 	RFM22BStatusGet(&rfm22bstatus);
