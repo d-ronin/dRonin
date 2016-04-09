@@ -57,5 +57,6 @@
         <file>html/TempBaro-Error.html</file>
         <file>html/TempBaro-Critical.html</file>
         <file>html/Actuator-Warning.html</file>
+        <file>html/SystemConfiguration-Error-UnsafeToArm.html</file>
     </qresource>
 </RCC>
