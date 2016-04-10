@@ -119,18 +119,23 @@ ConfigModuleWidget::ConfigModuleWidget(QWidget *parent) : ConfigTaskWidget(paren
     ui->cbAutotune->setDisabled(true);
     ui->cbTxPid->setDisabled(true);
 
+    // Connect auto-cell detection logic
+    connect(ui->gbAutoCellDetection, SIGNAL(toggled(bool)), this, SLOT(autoCellDetectionToggled(bool)));
+    connect(ui->sbMaxCellVoltage, SIGNAL(valueChanged(double)), this, SLOT(maxCellVoltageChanged(double)));
+
     // Connect the voltage and current checkboxes, such that the ADC pins are toggled and vice versa
     connect(ui->gb_measureVoltage, SIGNAL(toggled(bool)), this, SLOT(toggleBatteryMonitoringPin()));
     connect(ui->gb_measureCurrent, SIGNAL(toggled(bool)), this, SLOT(toggleBatteryMonitoringPin()));
     connect(ui->cbVoltagePin, SIGNAL(currentIndexChanged(int)), this, SLOT(toggleBatteryMonitoringGb()));
     connect(ui->cbCurrentPin, SIGNAL(currentIndexChanged(int)), this, SLOT(toggleBatteryMonitoringGb()));
 
+    addUAVObjectToWidgetRelation(batterySettingsName, "MaxCellVoltage", ui->sbMaxCellVoltage);
     addUAVObjectToWidgetRelation(batterySettingsName, "NbCells", ui->sb_numBatteryCells);
     addUAVObjectToWidgetRelation(batterySettingsName, "Capacity", ui->sb_batteryCapacity);
     addUAVObjectToWidgetRelation(batterySettingsName, "VoltagePin", ui->cbVoltagePin);
     addUAVObjectToWidgetRelation(batterySettingsName, "CurrentPin", ui->cbCurrentPin);
-    addUAVObjectToWidgetRelation(batterySettingsName, "VoltageThresholds", ui->sb_lowVoltageAlarm, FlightBatterySettings::VOLTAGETHRESHOLDS_ALARM);
-    addUAVObjectToWidgetRelation(batterySettingsName, "VoltageThresholds", ui->sb_lowVoltageWarning, FlightBatterySettings::VOLTAGETHRESHOLDS_WARNING);
+    addUAVObjectToWidgetRelation(batterySettingsName, "CellVoltageThresholds", ui->sb_lowVoltageAlarm, FlightBatterySettings::CELLVOLTAGETHRESHOLDS_ALARM);
+    addUAVObjectToWidgetRelation(batterySettingsName, "CellVoltageThresholds", ui->sb_lowVoltageWarning, FlightBatterySettings::CELLVOLTAGETHRESHOLDS_WARNING);
     addUAVObjectToWidgetRelation(batterySettingsName, "SensorCalibrationFactor", ui->sb_voltageFactor, FlightBatterySettings::SENSORCALIBRATIONFACTOR_VOLTAGE);
     addUAVObjectToWidgetRelation(batterySettingsName, "SensorCalibrationFactor", ui->sb_currentFactor, FlightBatterySettings::SENSORCALIBRATIONFACTOR_CURRENT);
     addUAVObjectToWidgetRelation(batterySettingsName, "SensorCalibrationOffset", ui->sb_voltageOffSet, FlightBatterySettings::SENSORCALIBRATIONOFFSET_VOLTAGE);
@@ -138,6 +143,7 @@ ConfigModuleWidget::ConfigModuleWidget(QWidget *parent) : ConfigTaskWidget(paren
     addUAVObjectToWidgetRelation(batterySettingsName, "FlightTimeThresholds", ui->sb_flightTimeAlarm, FlightBatterySettings::FLIGHTTIMETHRESHOLDS_ALARM);
     addUAVObjectToWidgetRelation(batterySettingsName, "FlightTimeThresholds", ui->sb_flightTimeWarning, FlightBatterySettings::FLIGHTTIMETHRESHOLDS_WARNING);
 
+    addUAVObjectToWidgetRelation(batteryStateName, "DetectedCellCount", ui->leLiveCellCount);
     addUAVObjectToWidgetRelation(batteryStateName, "Voltage", ui->le_liveVoltageReading);
     addUAVObjectToWidgetRelation(batteryStateName, "Current", ui->le_liveCurrentReading);
 
@@ -814,6 +820,33 @@ void ConfigModuleWidget::updateVoltageFactor()
 void ConfigModuleWidget::updateVoltageFactorFromUavo(float value)
 {
     ui->sb_voltageRatio->setValue(1000.0 / (double)value);
+}
+
+void ConfigModuleWidget::autoCellDetectionToggled(bool checked)
+{
+    ui->sbMaxCellVoltage->setEnabled(checked);
+    ui->lblMaxCellVoltage->setEnabled(checked);
+    ui->sb_numBatteryCells->setEnabled(!checked);
+    ui->lblNumBatteryCells->setEnabled(!checked);
+    if (checked) {
+        if (ui->sbMaxCellVoltage->property("ValueBackup").isValid())
+            ui->sbMaxCellVoltage->setValue(ui->sbMaxCellVoltage->property("ValueBackup").toDouble());
+        else
+            ui->sbMaxCellVoltage->setValue(4.2); // TODO: set this to default UAVO val instead of hardcoding?
+    } else {
+        ui->sbMaxCellVoltage->setProperty("ValueBackup", ui->sbMaxCellVoltage->value());
+        ui->sbMaxCellVoltage->setValue(0.0);
+    }
+}
+
+void ConfigModuleWidget::maxCellVoltageChanged(double value)
+{
+    if (value > 0.0) {
+        if (!ui->gbAutoCellDetection->isChecked())
+            ui->gbAutoCellDetection->setChecked(true);
+    } else if (ui->gbAutoCellDetection->isChecked()) {
+        ui->gbAutoCellDetection->setChecked(false);
+    }
 }
 
 /**

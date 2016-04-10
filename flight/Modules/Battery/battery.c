@@ -8,7 +8,7 @@
  * @file       battery.c
  * @author     The OpenPilot Team, http://www.openpilot.org Copyright (C) 2010.
  * @author     Tau Labs, http://taulabs.org, Copyright (C) 2013-2014
- * @author     dRonin, http://dronin.org Copyright (C) 2015
+ * @author     dRonin, http://dronin.org Copyright (C) 2016
  * @brief      Module to read the battery Voltage and Current periodically and set alarms appropriately.
  *
  * @see        The GNU Public License (GPL) Version 3
@@ -28,6 +28,10 @@
  * You should have received a copy of the GNU General Public License along
  * with this program; if not, write to the Free Software Foundation, Inc.,
  * 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
+ *
+ * Additional note on redistribution: The copyright and license notices above
+ * must be maintained in each individual source file that is a derivative work
+ * of this source file; otherwise redistribution is prohibited.
  */
 
 #include "openpilot.h"
@@ -100,6 +104,8 @@ static void batteryTask(void * parameters)
 	const float dT = SAMPLE_PERIOD_MS / 1000.0f;
 
 	battery_settings_updated = true;
+	bool cells_calculated = false;
+	unsigned cells = 1;
 
 	// Main task loop
 	uint32_t lastSysTime;
@@ -124,6 +130,8 @@ static void batteryTask(void * parameters)
 			currentADCPin = batterySettings.CurrentPin;
 			if (currentADCPin == FLIGHTBATTERYSETTINGS_CURRENTPIN_NONE)
 				currentADCPin = -1;
+
+			cells_calculated = false;
 		}
 
 		bool adc_pin_invalid = false;
@@ -145,18 +153,33 @@ static void batteryTask(void * parameters)
 
 				// disallow negative values as these are cast to unsigned integral types
 				// in some telemetry layers
-				if(scaled_voltage < 0.0f) {
+				if (scaled_voltage < 0.0f) {
 					scaled_voltage = 0.0f;
 					adc_offset_invalid = true;
+				} else if (batterySettings.MaxCellVoltage > 0.0f && scaled_voltage > 2.5f) {
+					if (!cells_calculated) {
+						cells = ((scaled_voltage / batterySettings.MaxCellVoltage) + 0.9f);
+						if (cells > 0) {
+							cells_calculated = true;
+							flightBatteryData.DetectedCellCount = cells;
+						}
+					}
+				} else {
+					cells_calculated = false;
+				}
+
+				if (!cells_calculated) {
+					cells = batterySettings.NbCells;
+					flightBatteryData.DetectedCellCount = 0;
 				}
 			}
 
 			flightBatteryData.Voltage = scaled_voltage;
 
 			// generate alarms and warnings
-			if (flightBatteryData.Voltage < batterySettings.VoltageThresholds[FLIGHTBATTERYSETTINGS_VOLTAGETHRESHOLDS_ALARM])
+			if (flightBatteryData.Voltage < (batterySettings.CellVoltageThresholds[FLIGHTBATTERYSETTINGS_CELLVOLTAGETHRESHOLDS_ALARM] * cells))
 				AlarmsSet(SYSTEMALARMS_ALARM_BATTERY, SYSTEMALARMS_ALARM_CRITICAL);
-			else if (flightBatteryData.Voltage < batterySettings.VoltageThresholds[FLIGHTBATTERYSETTINGS_VOLTAGETHRESHOLDS_WARNING])
+			else if (flightBatteryData.Voltage < (batterySettings.CellVoltageThresholds[FLIGHTBATTERYSETTINGS_CELLVOLTAGETHRESHOLDS_WARNING] * cells))
 				AlarmsSet(SYSTEMALARMS_ALARM_BATTERY, SYSTEMALARMS_ALARM_WARNING);
 			else
 				AlarmsClear(SYSTEMALARMS_ALARM_BATTERY);
