@@ -14,6 +14,10 @@ QT_MINGWVER="mingw492_32"
 
 test_and_add_to_path ()
 {
+   # Optional block of code: if the thing we're looking for is already in our
+   # path, don't search for it here.  Makes some scenarios better and some
+   # worse.
+
 #  if which $2 >/dev/null 2>&1 ; then
 #    return
 #  fi
