@@ -360,6 +360,31 @@ static const struct pios_usart_cfg pios_main_usart_cfg = {
 		.pin_source = GPIO_PinSource10,
 	},
 };
+
+static const struct pios_usart_cfg pios_rcvr_usart_cfg = {
+	.regs = USART1,
+	.remap = GPIO_AF_7,
+	.irq = {
+		.init = {
+			.NVIC_IRQChannel                   = USART1_IRQn,
+			.NVIC_IRQChannelPreemptionPriority = PIOS_IRQ_PRIO_HIGHEST,
+			.NVIC_IRQChannelSubPriority        = 0,
+			.NVIC_IRQChannelCmd                = ENABLE,
+		  },
+	},
+	.rx = {
+		.gpio = GPIOC,
+		.init = {
+			.GPIO_Pin   = GPIO_Pin_5,
+			.GPIO_Speed = GPIO_Speed_2MHz,
+			.GPIO_Mode  = GPIO_Mode_AF,
+			.GPIO_OType = GPIO_OType_PP,
+			.GPIO_PuPd  = GPIO_PuPd_UP
+		},
+		.pin_source = GPIO_PinSource5,
+	},
+};
+
 #endif  /* PIOS_INCLUDE_USART */
 
 #if defined(PIOS_INCLUDE_COM)
