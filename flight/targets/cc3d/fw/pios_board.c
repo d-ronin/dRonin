@@ -260,7 +260,7 @@ void PIOS_Board_Init(void) {
 			NULL,                                // pwm_cfg
 			0,                                   // led_id
 			&pios_dsm_main_cfg,                  // dsm_cfg
-			hw_DSMxMode,                         // dsm_mode
+			0,                                   // dsm_mode
 			&pios_sbus_cfg);                     // sbus_cfg
 
 	/* Configure the flexi port */
