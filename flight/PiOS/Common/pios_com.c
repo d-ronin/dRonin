@@ -463,6 +463,24 @@ int32_t PIOS_COM_SendFormattedString(uintptr_t com_id, const char *format, ...)
 }
 
 /**
+ * Reports number of bytes available for receiving.
+ * \param[in] com_id the COM instance to receive from
+ * \returns number of bytes available to be read
+ */
+uint16_t PIOS_COM_GetNumReceiveBytesPending(uintptr_t com_id) {
+	struct pios_com_dev * com_dev = (struct pios_com_dev *)com_id;
+
+	if (!PIOS_COM_validate(com_dev)) {
+		/* Undefined COM port for this board (see pios_board.c) */
+		PIOS_Assert(0);
+	}
+
+	PIOS_Assert(com_dev->has_rx);
+
+	return fifoBuf_getUsed(&com_dev->rx);
+}
+
+/**
 * Transfer bytes from port buffers into another buffer
 * \param[in] port COM port
 * \returns Byte from buffer

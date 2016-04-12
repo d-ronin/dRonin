@@ -58,6 +58,7 @@ extern int32_t PIOS_COM_SendFormattedStringNonBlocking(uintptr_t com_id, const c
 extern int32_t PIOS_COM_SendFormattedString(uintptr_t com_id, const char *format, ...);
 extern uint16_t PIOS_COM_ReceiveBuffer(uintptr_t com_id, uint8_t * buf, uint16_t buf_len, uint32_t timeout_ms);
 extern bool PIOS_COM_Available(uintptr_t com_id);
+uint16_t PIOS_COM_GetNumReceiveBytesPending(uintptr_t com_id);
 
 #endif /* PIOS_COM_H */
 
