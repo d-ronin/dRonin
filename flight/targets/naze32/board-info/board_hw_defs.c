@@ -1135,3 +1135,42 @@ static struct pios_mpu_cfg pios_mpu_cfg = {
 	.orientation = PIOS_MPU_TOP_90DEG,
 };
 #endif /* PIOS_INCLUDE_MPU */
+
+
+#if defined(PIOS_INCLUDE_SBUS)
+
+#include <pios_sbus_priv.h>
+
+static const struct pios_sbus_cfg pios_sbus_cfg = {
+    /* Inverter configuration */
+    .inv = {
+        .gpio = GPIOB,
+        .init = {
+            .GPIO_Pin   = GPIO_Pin_2,
+            .GPIO_Speed = GPIO_Speed_2MHz,
+            .GPIO_Mode  = GPIO_Mode_Out_PP
+        },
+    },
+    .gpio_inv_enable = Bit_SET,
+    .gpio_inv_disable = Bit_RESET,
+};
+
+const struct pios_sbus_cfg *get_sbus_cfg(enum board_revision board_rev)
+{
+    switch(board_rev) {
+    case BOARD_REVISION_6:
+        return &pios_sbus_cfg;
+    default:
+        return NULL;
+    }
+}
+
+#else
+
+const struct pios_sbus_cfg *get_sbus_cfg(enum board_revision board_rev)
+{
+    (void)board_rev;
+    return NULL;
+}
+
+#endif  /* PIOS_INCLUDE_SBUS */

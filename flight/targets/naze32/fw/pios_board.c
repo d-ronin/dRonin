@@ -192,98 +192,6 @@ void PIOS_Board_Init(void) {
 
 #endif /* PIOS_INCLUDE_TELEMETRY || PIOS_INCLUDE_MSP_BRIDGE */
 
-	/* Configure the rcvr port */
-	uint8_t hw_rcvrport;
-	HwNazeRcvrPortGet(&hw_rcvrport);
-
-	switch (hw_rcvrport) {
-
-	case HWNAZE_RCVRPORT_DISABLED:
-		break;
-
-	case HWNAZE_RCVRPORT_PWM:
-		PIOS_HAL_ConfigurePort(HWSHARED_PORTTYPES_PWM,  // port type protocol
-				NULL,                                   // usart_port_cfg
-				NULL,                                   // com_driver
-				NULL,                                   // i2c_id
-				NULL,                                   // i2c_cfg
-				NULL,                                   // ppm_cfg
-				&pios_pwm_cfg,                          // pwm_cfg
-				PIOS_LED_ALARM,                         // led_id
-				NULL,                                   // dsm_cfg
-				0,                                      // dsm_mode
-				NULL);                                  // sbus_cfg
-		break;
-
-	case HWNAZE_RCVRPORT_PPMSERIAL:
-	case HWNAZE_RCVRPORT_SERIAL:
-		{
-			uint8_t hw_rcvrserial;
-			HwNazeRcvrSerialGet(&hw_rcvrserial);
-
-			HwNazeDSMxModeOptions hw_DSMxMode;
-			HwNazeDSMxModeGet(&hw_DSMxMode);
-
-			PIOS_HAL_ConfigurePort(hw_rcvrserial,        // port type protocol
-					&pios_usart_rcvrserial_cfg,          // usart_port_cfg
-					&pios_usart_com_driver,              // com_driver
-					NULL,                                // i2c_id
-					NULL,                                // i2c_cfg
-					NULL,                                // ppm_cfg
-					NULL,                                // pwm_cfg
-					PIOS_LED_ALARM,                      // led_id
-					&pios_dsm_rcvrserial_cfg,            // dsm_cfg
-					hw_DSMxMode,                         // dsm_mode
-					NULL);                               // sbus_cfg
-		}
-
-		if (hw_rcvrport == HWNAZE_RCVRPORT_SERIAL)
-			break;
-
-		// Else fall through to set up PPM.
-
-	case HWNAZE_RCVRPORT_PPM:
-	case HWNAZE_RCVRPORT_PPMOUTPUTS:
-		PIOS_HAL_ConfigurePort(HWSHARED_PORTTYPES_PPM,  // port type protocol
-				NULL,                                   // usart_port_cfg
-				NULL,                                   // com_driver
-				NULL,                                   // i2c_id
-				NULL,                                   // i2c_cfg
-				&pios_ppm_cfg,                          // ppm_cfg
-				NULL,                                   // pwm_cfg
-				PIOS_LED_ALARM,                         // led_id
-				NULL,                                   // dsm_cfg
-				0,                                      // dsm_mode
-				NULL);                                  // sbus_cfg
-		break;
-
-	case HWNAZE_RCVRPORT_PPMPWM:
-		PIOS_HAL_ConfigurePort(HWSHARED_PORTTYPES_PPM,  // port type protocol
-				NULL,                                   // usart_port_cfg
-				NULL,                                   // com_driver
-				NULL,                                   // i2c_id
-				NULL,                                   // i2c_cfg
-				&pios_ppm_cfg,                          // ppm_cfg
-				NULL,                                   // pwm_cfg
-				PIOS_LED_ALARM,                         // led_id
-				NULL,                                   // dsm_cfg
-				0,                                      // dsm_mode
-				NULL);                                  // sbus_cfg
-
-		PIOS_HAL_ConfigurePort(HWSHARED_PORTTYPES_PWM,  // port type protocol
-				NULL,                                   // usart_port_cfg
-				NULL,                                   // com_driver
-				NULL,                                   // i2c_id
-				NULL,                                   // i2c_cfg
-				NULL,                                   // ppm_cfg
-				&pios_pwm_with_ppm_cfg,                 // pwm_cfg
-				PIOS_LED_ALARM,                         // led_id
-				NULL,                                   // dsm_cfg
-				0,                                      // dsm_mode
-				NULL);                                  // sbus_cfg
-		break;
-	}
-
 #if defined(PIOS_INCLUDE_GCSRCVR)
 	GCSReceiverInitialize();
 	uintptr_t pios_gcsrcvr_id;
@@ -297,6 +205,9 @@ void PIOS_Board_Init(void) {
 
 	/* Remap AFIO pin for PB4 (Servo 5 Out)*/
 	GPIO_PinRemapConfig( GPIO_Remap_SWJ_NoJTRST, ENABLE);
+
+	uint8_t hw_rcvrport;
+	HwNazeRcvrPortGet(&hw_rcvrport);
 
 #ifndef PIOS_DEBUG_ENABLE_DEBUG_PINS
 #ifdef PIOS_INCLUDE_SERVO
@@ -423,6 +334,110 @@ void PIOS_Board_Init(void) {
 
 	//I2C is slow, sensor init as well, reset watchdog to prevent reset here
 	PIOS_WDG_Clear();
+
+	/* Configure the rcvr port */
+	// Note: must come after the MPU init so we know which board rev
+
+	switch (hw_rcvrport) {
+
+	case HWNAZE_RCVRPORT_DISABLED:
+		break;
+
+	case HWNAZE_RCVRPORT_PWM:
+		PIOS_HAL_ConfigurePort(HWSHARED_PORTTYPES_PWM,  // port type protocol
+				NULL,                                   // usart_port_cfg
+				NULL,                                   // com_driver
+				NULL,                                   // i2c_id
+				NULL,                                   // i2c_cfg
+				NULL,                                   // ppm_cfg
+				&pios_pwm_cfg,                          // pwm_cfg
+				PIOS_LED_ALARM,                         // led_id
+				NULL,                                   // dsm_cfg
+				0,                                      // dsm_mode
+				NULL);                                  // sbus_cfg
+		break;
+
+	case HWNAZE_RCVRPORT_PPMSERIAL:
+	case HWNAZE_RCVRPORT_SERIAL:
+		{
+			uint8_t hw_rcvrserial;
+			HwNazeRcvrSerialGet(&hw_rcvrserial);
+
+			HwNazeDSMxModeOptions hw_dsmx_mode;
+			HwNazeDSMxModeGet(&hw_dsmx_mode);
+			if (board_rev == BOARD_REVISION_6) {
+				switch (hw_dsmx_mode) {
+				case HWNAZE_DSMXMODE_AUTODETECT:
+				case HWNAZE_DSMXMODE_FORCE10BIT:
+				case HWNAZE_DSMXMODE_FORCE11BIT:
+					// do nothing
+					break;
+				default:
+					// don't busfight with inverter XOR IC
+					hw_dsmx_mode = HWNAZE_DSMXMODE_AUTODETECT;
+					break;
+				}
+			}
+
+			PIOS_HAL_ConfigurePort(hw_rcvrserial,        // port type protocol
+					&pios_usart_rcvrserial_cfg,          // usart_port_cfg
+					&pios_usart_com_driver,              // com_driver
+					NULL,                                // i2c_id
+					NULL,                                // i2c_cfg
+					NULL,                                // ppm_cfg
+					NULL,                                // pwm_cfg
+					PIOS_LED_ALARM,                      // led_id
+					&pios_dsm_rcvrserial_cfg,            // dsm_cfg
+					hw_dsmx_mode,                        // dsm_mode
+					get_sbus_cfg(board_rev));            // sbus_cfg
+		}
+
+		if (hw_rcvrport == HWNAZE_RCVRPORT_SERIAL)
+			break;
+
+		// Else fall through to set up PPM.
+
+	case HWNAZE_RCVRPORT_PPM:
+	case HWNAZE_RCVRPORT_PPMOUTPUTS:
+		PIOS_HAL_ConfigurePort(HWSHARED_PORTTYPES_PPM,  // port type protocol
+				NULL,                                   // usart_port_cfg
+				NULL,                                   // com_driver
+				NULL,                                   // i2c_id
+				NULL,                                   // i2c_cfg
+				&pios_ppm_cfg,                          // ppm_cfg
+				NULL,                                   // pwm_cfg
+				PIOS_LED_ALARM,                         // led_id
+				NULL,                                   // dsm_cfg
+				0,                                      // dsm_mode
+				NULL);                                  // sbus_cfg
+		break;
+
+	case HWNAZE_RCVRPORT_PPMPWM:
+		PIOS_HAL_ConfigurePort(HWSHARED_PORTTYPES_PPM,  // port type protocol
+				NULL,                                   // usart_port_cfg
+				NULL,                                   // com_driver
+				NULL,                                   // i2c_id
+				NULL,                                   // i2c_cfg
+				&pios_ppm_cfg,                          // ppm_cfg
+				NULL,                                   // pwm_cfg
+				PIOS_LED_ALARM,                         // led_id
+				NULL,                                   // dsm_cfg
+				0,                                      // dsm_mode
+				NULL);                                  // sbus_cfg
+
+		PIOS_HAL_ConfigurePort(HWSHARED_PORTTYPES_PWM,  // port type protocol
+				NULL,                                   // usart_port_cfg
+				NULL,                                   // com_driver
+				NULL,                                   // i2c_id
+				NULL,                                   // i2c_cfg
+				NULL,                                   // ppm_cfg
+				&pios_pwm_with_ppm_cfg,                 // pwm_cfg
+				PIOS_LED_ALARM,                         // led_id
+				NULL,                                   // dsm_cfg
+				0,                                      // dsm_mode
+				NULL);                                  // sbus_cfg
+		break;
+	}
 
 #if defined(PIOS_INCLUDE_MS5611)
 	if (PIOS_MS5611_Init(&pios_ms5611_cfg, pios_i2c_internal_id) != 0)
