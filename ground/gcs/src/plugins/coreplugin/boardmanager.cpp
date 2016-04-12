@@ -80,8 +80,8 @@ QList<int> BoardManager::getKnownVendorIDs()
 
     foreach (IBoardType* board, m_boardTypesList) {
         int vid = board->getUSBInfo().vendorID;
-        if (!list.contains(vid))
-        list.append(vid);
+        if ((vid > 0) && (!list.contains(vid)))
+            list.append(vid);
     }
 
     return list;
