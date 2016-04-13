@@ -64,6 +64,10 @@ static uint32_t txRetries;
 static uint32_t timeOfLastObjectUpdate;
 static UAVTalkConnection uavTalkCon;
 
+#if defined(PIOS_INCLUDE_USB)
+static volatile uint32_t usb_timeout_time;
+#endif
+
 // Private functions
 static void telemetryTxTask(void *parameters);
 static void telemetryRxTask(void *parameters);
@@ -295,6 +299,52 @@ static void telemetryTxTask(void *parameters)
 	}
 }
 
+#if defined(PIOS_INCLUDE_USB)
+/**
+ * Updates the USB activity timer, and returns whether we should use USB this
+ * time around.
+ * \param[in] seen_active true if we have seen activity on the USB port this time
+ * \return true if we should use usb, false if not.
+ */
+static bool processUsbActivity(bool seen_active)
+{
+	uint32_t this_systime = PIOS_Thread_Systime();
+	uint32_t fixedup_time = this_systime +
+		USB_ACTIVITY_TIMEOUT_MS;
+
+	if (seen_active) {
+		if (fixedup_time < this_systime) {
+			// (mostly) handle wrap.
+			usb_timeout_time = UINT32_MAX;
+		} else {
+			usb_timeout_time = fixedup_time;
+		}
+
+		return true;
+	}
+
+	uint32_t usb_time = usb_timeout_time;
+
+	if (this_systime >= usb_time) {
+		usb_timeout_time = 0;
+
+		return false;
+	}
+
+	/* If the timeout is too far in the future ...
+	 * (because of the above wrap case..)  */
+	if (fixedup_time < usb_time) {
+		if (fixedup_time > this_systime) {
+			/* and we're not wrapped, then fixup the
+			 * time. */
+			usb_timeout_time = fixedup_time;
+		}
+	}
+
+	return true;
+}
+#endif // PIOS_INCLUDE_USB
+
 /**
  * Telemetry transmit task. Processes queue events and periodic updates.
  */
@@ -314,9 +364,13 @@ static void telemetryRxTask(void *parameters)
 				for (uint8_t i = 0; i < bytes_to_process; i++) {
 					UAVTalkProcessInputStream(uavTalkCon,serial_data[i]);
 				}
+
+#if defined(PIOS_INCLUDE_USB)
+				if (inputPort == PIOS_COM_TELEM_USB) {
+					processUsbActivity(true);
+				}
+#endif
 			}
-		} else {
-			PIOS_Thread_Sleep(3);
 		}
 	}
 }
@@ -489,37 +543,9 @@ static uintptr_t getComPort()
 		 * up for RX, bump the activity time.
 		 */
 
-		static volatile uint32_t usb_timeout_time;
+		bool rx_pending = PIOS_COM_GetNumReceiveBytesPending(PIOS_COM_TELEM_USB);
 
-		uint32_t this_systime = PIOS_Thread_Systime();
-
-		if (PIOS_COM_GetNumReceiveBytesPending(PIOS_COM_TELEM_USB)) {
-			usb_timeout_time = this_systime + USB_ACTIVITY_TIMEOUT_MS;
-
-			// (mostly) handle wrap.
-			if (usb_timeout_time < this_systime) {
-				usb_timeout_time = UINT32_MAX;
-			}
-
-			return PIOS_COM_TELEM_USB;
-		}
-
-		if (this_systime >= usb_timeout_time) {
-			usb_timeout_time = 0;
-		} else {
-			uint32_t fixedup_time = this_systime +
-				USB_ACTIVITY_TIMEOUT_MS;
-
-			/* If the timeout is too far in the future ...
-			 * (because of the above wrap case..)  */
-			if (fixedup_time < usb_timeout_time) {
-				if (fixedup_time > this_systime) {
-					/* and we're not wrapped, then fixup the
-					 * time. */
-					usb_timeout_time = fixedup_time;
-				}
-			}
-
+		if (processUsbActivity(rx_pending)) {
 			return PIOS_COM_TELEM_USB;
 		}
 	}
