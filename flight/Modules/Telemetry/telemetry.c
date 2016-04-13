@@ -52,6 +52,8 @@
 #define MAX_RETRIES 2
 #define STATS_UPDATE_PERIOD_MS 4000
 #define CONNECTION_TIMEOUT_MS 8000
+#define USB_ACTIVITY_TIMEOUT_MS 3000
+
 // Private types
 
 // Private variables
@@ -482,14 +484,51 @@ static void updateSettings()
 static uintptr_t getComPort()
 {
 #if defined(PIOS_INCLUDE_USB)
-	if (PIOS_COM_Available(PIOS_COM_TELEM_USB) )
-		return PIOS_COM_TELEM_USB;
-	else
+	if (PIOS_COM_Available(PIOS_COM_TELEM_USB)) {
+		/* Let's further qualify this.  If there's anything spooled
+		 * up for RX, bump the activity time.
+		 */
+
+		static volatile uint32_t usb_timeout_time;
+
+		uint32_t this_systime = PIOS_Thread_Systime();
+
+		if (PIOS_COM_GetNumReceiveBytesPending(PIOS_COM_TELEM_USB)) {
+			usb_timeout_time = this_systime + USB_ACTIVITY_TIMEOUT_MS;
+
+			// (mostly) handle wrap.
+			if (usb_timeout_time < this_systime) {
+				usb_timeout_time = UINT32_MAX;
+			}
+
+			return PIOS_COM_TELEM_USB;
+		}
+
+		if (this_systime >= usb_timeout_time) {
+			usb_timeout_time = 0;
+		} else {
+			uint32_t fixedup_time = this_systime +
+				USB_ACTIVITY_TIMEOUT_MS;
+
+			/* If the timeout is too far in the future ...
+			 * (because of the above wrap case..)  */
+			if (fixedup_time < usb_timeout_time) {
+				if (fixedup_time > this_systime) {
+					/* and we're not wrapped, then fixup the
+					 * time. */
+					usb_timeout_time = fixedup_time;
+				}
+			}
+
+			return PIOS_COM_TELEM_USB;
+		}
+	}
 #endif /* PIOS_INCLUDE_USB */
+
 	if (PIOS_COM_Available(PIOS_COM_TELEM_RF) )
 		return PIOS_COM_TELEM_RF;
-	else
-		return 0;
+
+	return 0;
 }
 
 /**
