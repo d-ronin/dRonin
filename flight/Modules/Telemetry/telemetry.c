@@ -543,7 +543,7 @@ static uintptr_t getComPort()
 		 * up for RX, bump the activity time.
 		 */
 
-		bool rx_pending = PIOS_COM_GetNumReceiveBytesPending(PIOS_COM_TELEM_USB);
+		bool rx_pending = PIOS_COM_GetNumReceiveBytesPending(PIOS_COM_TELEM_USB) > 0;
 
 		if (processUsbActivity(rx_pending)) {
 			return PIOS_COM_TELEM_USB;

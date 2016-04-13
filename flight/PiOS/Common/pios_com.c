@@ -477,6 +477,18 @@ uint16_t PIOS_COM_GetNumReceiveBytesPending(uintptr_t com_id) {
 
 	PIOS_Assert(com_dev->has_rx);
 
+	uint16_t bytes_from_fifo = fifoBuf_getUsed(&com_dev->rx);
+
+	if (bytes_from_fifo == 0) {
+		/* No more bytes in receive buffer */
+		/* Make sure the receiver is running */
+		if (com_dev->driver->rx_start) {
+			/* Notify the lower layer that there is now room in the rx buffer */
+			(com_dev->driver->rx_start)(com_dev->lower_id,
+						    fifoBuf_getFree(&com_dev->rx));
+		}
+	}
+
 	return fifoBuf_getUsed(&com_dev->rx);
 }
 
