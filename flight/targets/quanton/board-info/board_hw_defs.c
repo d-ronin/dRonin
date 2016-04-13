@@ -799,6 +799,19 @@ static const struct pios_dsm_cfg pios_usart5_dsm_aux_cfg = {
 	},
 };
 
+static const struct pios_dsm_cfg pios_rcvrserial_dsm_aux_cfg = {
+	.bind = {
+		.gpio = GPIOC,
+		.init = {
+			.GPIO_Pin   = GPIO_Pin_7,
+			.GPIO_Speed = GPIO_Speed_2MHz,
+			.GPIO_Mode  = GPIO_Mode_OUT,
+			.GPIO_OType = GPIO_OType_PP,
+			.GPIO_PuPd  = GPIO_PuPd_NOPULL
+		},
+	},
+};
+
 #endif	/* PIOS_INCLUDE_DSM */
 
 #if defined(PIOS_INCLUDE_SBUS)
@@ -994,6 +1007,41 @@ static const struct pios_usart_cfg pios_usart5_cfg = {
 			.GPIO_PuPd  = GPIO_PuPd_UP
 		},
 		.pin_source = GPIO_PinSource12,
+	},
+};
+
+static const struct pios_usart_cfg pios_usart_rcvrserial_cfg = {
+	.regs  = USART6,
+	.remap = GPIO_AF_USART6,
+	.irq = {
+		.init = {
+			.NVIC_IRQChannel                   = USART6_IRQn,
+			.NVIC_IRQChannelPreemptionPriority = PIOS_IRQ_PRIO_MID,
+			.NVIC_IRQChannelSubPriority        = 0,
+			.NVIC_IRQChannelCmd                = ENABLE,
+		},
+	},
+	.rx   = {
+		.gpio = GPIOC,
+		.init = {
+			.GPIO_Pin   = GPIO_Pin_7,
+			.GPIO_Speed = GPIO_Speed_2MHz,
+			.GPIO_Mode  = GPIO_Mode_AF,
+			.GPIO_OType = GPIO_OType_PP,
+			.GPIO_PuPd  = GPIO_PuPd_UP
+		},
+		.pin_source = GPIO_PinSource7,
+	},
+	.tx   = {
+		.gpio = GPIOC,
+		.init = {
+			.GPIO_Pin   = GPIO_Pin_6,
+			.GPIO_Speed = GPIO_Speed_2MHz,
+			.GPIO_Mode  = GPIO_Mode_AF,
+			.GPIO_OType = GPIO_OType_PP,
+			.GPIO_PuPd  = GPIO_PuPd_UP
+		},
+		.pin_source = GPIO_PinSource6,
 	},
 };
 
