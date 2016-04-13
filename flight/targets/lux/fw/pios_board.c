@@ -296,7 +296,7 @@ void PIOS_Board_Init(void)
 	uint8_t hw_rcvrport;
 	HwLuxRcvrPortGet(&hw_rcvrport);
 	PIOS_HAL_ConfigurePort(hw_rcvrport,           // port_type
-                         NULL,                    // usart_port_cfg
+                         &pios_rcvr_usart_cfg,    // usart_port_cfg
                          &pios_usart_com_driver,  // com_driver
                          NULL,                    // i2c_id
                          NULL,                    // i2c_cfg
