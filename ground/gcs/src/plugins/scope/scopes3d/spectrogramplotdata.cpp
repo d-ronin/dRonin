@@ -200,7 +200,7 @@ bool SpectrogramData::append(UAVObject* multiObj)
             qDebug() << "Spectrogram width adjusted to " << windowWidth;
         }
 
-        UAVObjectField* multiField =  multiObj->getField(uavFieldName);
+        UAVObjectField* multiField = multiObj->getField(uavFieldName);
         Q_ASSERT(multiField);
         if (multiField ) {
 
@@ -218,7 +218,7 @@ bool SpectrogramData::append(UAVObject* multiObj)
                     }
                 }
 
-                for (int i=0; i<numElements; i++) {
+                for (int i = 0; i < numElements; i++) {
                     double currentValue = field->getValue(i).toDouble() / scale;  // Get the value and scale it
 
                     //Normally some math would go here, modifying currentValue before appending it to values
@@ -262,7 +262,7 @@ bool SpectrogramData::append(UAVObject* multiObj)
                 }
 
                 // Hanning Window
-                for (int i=0;i<valuesToProcess; i++) {
+                for (int i = 0; i < valuesToProcess; i++) {
                     plotData[i] *= pow(sin(PI*i/(valuesToProcess - 1) ), 2);
                 }
 
@@ -275,14 +275,14 @@ bool SpectrogramData::append(UAVObject* multiObj)
                 // mag = X * sqrt(re^2 + im^2)/n
                 // X (4.2) is chosen so that the magnitude presented is similar to the acceleration registered
                 // although this is not 100% correct, it helps users understanding the spectrogram.
-                for (unsigned int i=0;i<valuesToProcess/2; i++) {
+                for (unsigned int i = 0; i < valuesToProcess/2; i++) {
                     plotData << 4.2*sqrt(pow(fftout[i], 2) + pow(fftout[valuesToProcess/2 + i], 2)) / valuesToProcess;
                 }
             }
             
             // Apply autoscale if enabled
             if (zMaximum == 0) {
-				for (unsigned int i=0; i<windowWidth; i++) {
+				for (unsigned int i = 0; i < windowWidth; i++) {
 	                 // See if autoscale is turned on and if the value exceeds the maximum for the scope.
 	                if (plotData[i] > rasterData->interval(Qt::ZAxis).maxValue()){
 	                    // Change scope maximum and color depth

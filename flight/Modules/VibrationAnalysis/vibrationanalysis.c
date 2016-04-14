@@ -205,7 +205,7 @@ static int32_t VibrationAnalysisStart(void)
         uint16_t existing_instances = VibrationAnalysisOutputGetNumInstances();
         if(existing_instances < instances) {
             //Create missing instances
-            for (int i=existing_instances; i<instances; i++) {
+            for (int i = existing_instances; i < instances; i++) {
                 uint16_t ret = VibrationAnalysisOutputCreateInstance();
                 if (ret == 0) {
                     // This fails when it's a metaobject. Not a very helpful test.
@@ -361,7 +361,7 @@ static void VibrationAnalysisTask(void *parameters)
     {
 
         // Only check settings once every 100ms and not in the middle of a buffer accumulation to reduce artifacts
-        if (PIOS_Thread_Systime() - lastSettingsUpdateTime > SETTINGS_THROTTLING_MS && sample_count == 0 && instance_number==0) {
+        if (PIOS_Thread_Systime() - lastSettingsUpdateTime > SETTINGS_THROTTLING_MS && sample_count == 0 && instance_number == 0) {
             //First check if the analysis is active
             VibrationAnalysisSettingsTestingStatusGet(&runAnalysisFlag);
             
@@ -436,22 +436,22 @@ static void VibrationAnalysisTask(void *parameters)
 
         // Process and dump an instance at a time
 #ifdef USE_SINGLE_INSTANCE_BUFFERS
-        if (sample_count ==  vtd->buffers_size) {
+        if (sample_count == vtd->buffers_size) {
             sample_count = 0;
 
         // Or process and dump the full window using multiple instances
 #else
-        if (sample_count ==  vtd->window_size) {
+        if (sample_count == vtd->window_size) {
             sample_count = 0;
 
-            for (instance_number=0; instance_number<vtd->instances; instance_number++) 
+            for (instance_number = 0; instance_number < vtd->instances; instance_number++)
 #endif
             {
                 // Dump an instance
-                for (uint16_t k=0; k<VIBRATION_ELEMENTS_COUNT; k++) {   
-                    vibrationAnalysisOutputData.x[k] = vtd->accel_buffer_x[k + VIBRATION_ELEMENTS_COUNT*instance_number];
-                    vibrationAnalysisOutputData.y[k] = vtd->accel_buffer_y[k + VIBRATION_ELEMENTS_COUNT*instance_number];
-                    vibrationAnalysisOutputData.z[k] = vtd->accel_buffer_z[k + VIBRATION_ELEMENTS_COUNT*instance_number];
+                for (uint16_t k = 0; k < VIBRATION_ELEMENTS_COUNT; k++) {
+                    vibrationAnalysisOutputData.x[k] = vtd->accel_buffer_x[k + VIBRATION_ELEMENTS_COUNT * instance_number];
+                    vibrationAnalysisOutputData.y[k] = vtd->accel_buffer_y[k + VIBRATION_ELEMENTS_COUNT * instance_number];
+                    vibrationAnalysisOutputData.z[k] = vtd->accel_buffer_z[k + VIBRATION_ELEMENTS_COUNT * instance_number];
                 }
                 VibrationAnalysisOutputInstSet(instance_number, &vibrationAnalysisOutputData);
                 VibrationAnalysisOutputInstUpdated(instance_number);
