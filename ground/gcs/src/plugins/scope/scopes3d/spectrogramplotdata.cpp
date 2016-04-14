@@ -75,6 +75,7 @@ SpectrogramData::SpectrogramData(QString uavObject, QString uavField, double sam
 
     // Set the ranges for the plot
     resetAxisRanges();
+    plotData.clear();
 }
 
 void SpectrogramData::setXMaximum(double val)
@@ -146,8 +147,9 @@ bool SpectrogramData::append(UAVObject* multiObj)
     if (uavObjectName == multiObj->getName()) {
 
         // Only run on UAVOs that have multiple instances
-        if (multiObj->isSingleInstance())
+        if (multiObj->isSingleInstance()) {
             return false;
+        }
 
         //Instantiate object manager
         UAVObjectManager *objManager;
@@ -163,13 +165,13 @@ bool SpectrogramData::append(UAVObject* multiObj)
 
         uint16_t newWindowWidth = list.size() * list.front()->getField(uavFieldName)->getNumElements();
 
-        /* Check if the instance has a samples field
-        *  Field can be used in object that have dynamic size 
-        *  like the case of the Vibration Analysis
+        /* Check if the instance has a samples field as this will override the windowWidth
+        *  Field can be used in objects that have dynamic size 
+        *  like the case of the Vibration Analysis modeule
         */
         QList<UAVObjectField*> fieldList = multiObj->getFields();
         foreach (UAVObjectField* field, fieldList) {
-            if(field->getType() == UAVObjectField::INT16 && field->getName() == "samples"){
+            if (field->getType() == UAVObjectField::INT16 && field->getName() == "samples") {
                 newWindowWidth = field->getValue().toDouble();
             }
         }
@@ -177,30 +179,27 @@ bool SpectrogramData::append(UAVObject* multiObj)
         uint16_t valuesToProcess = newWindowWidth; // Store the number of samples expected
 
         // Can happen when changing the FFTP Window Width
-        if(mathFunction == "FFT") {
+        if (mathFunction == "FFT") {
             if (! ((valuesToProcess != 0) && ((valuesToProcess & (valuesToProcess - 1)) == 0))) {
                 return false;
             }
-            newWindowWidth /= 2;
+            newWindowWidth /= 2; // FFT Output is half
         }
 
         // Check that there is a full window worth of data. While GCS is starting up, the size of
         // multiple instance UAVOs is 1, so it's possible for spurious data to come in before
         // the flight controller board has had time to initialize the UAVO size.
 
-        if ( newWindowWidth != windowWidth){
+        if (newWindowWidth != windowWidth) {
             windowWidth = newWindowWidth;
             clearPlots();
 
+            plotData.clear();
             rasterData->setValueMatrix(*zDataHistory, windowWidth);
 
             qDebug() << "Spectrogram width adjusted to " << windowWidth;
         }
 
-        //Initialize vector where we will read out an entire row of multiple instance UAVO
-        QVector<double> values;
-
-        timeDataHistory->append(NOW.toTime_t() + NOW.time().msec() / 1000.0);
         UAVObjectField* multiField =  multiObj->getField(uavFieldName);
         Q_ASSERT(multiField);
         if (multiField ) {
@@ -219,7 +218,7 @@ bool SpectrogramData::append(UAVObject* multiObj)
                     }
                 }
 
-                for(int i=0; i<numElements; i++){
+                for (int i=0; i<numElements; i++) {
                     double currentValue = field->getValue(i).toDouble() / scale;  // Get the value and scale it
 
                     //Normally some math would go here, modifying currentValue before appending it to values
@@ -228,14 +227,19 @@ bool SpectrogramData::append(UAVObject* multiObj)
                     // .
 
                     // Last step, assign value to vector
-                    values += currentValue;
+                    plotData += currentValue;
                 }
 
                 // Check if we got enough values
                 // The object instance can temporarily have more values than required
-                if (values.size() == valuesToProcess ) {
+                if (plotData.size() == valuesToProcess ) {
                     break;
                 }
+            }
+
+            // If some instances are still missing
+            if (plotData.size() != valuesToProcess) {
+                return false;
             }
 
             // Check if the FFT needs to be calculated
@@ -244,7 +248,7 @@ bool SpectrogramData::append(UAVObject* multiObj)
             // to display the information.
             if (mathFunction == "FFT") {
                 // Can happen temporarily when changing the FFT Window size
-                if (values.size() != valuesToProcess) {
+                if (plotData.size() != valuesToProcess) {
                     return false;
                 }
 
@@ -259,43 +263,45 @@ bool SpectrogramData::append(UAVObject* multiObj)
 
                 // Hanning Window
                 for (int i=0;i<valuesToProcess; i++) {
-                    values[i] *= pow(sin(PI*i/(valuesToProcess - 1) ), 2);
+                    plotData[i] *= pow(sin(PI*i/(valuesToProcess - 1) ), 2);
                 }
 
                 QVector<double> fftout(valuesToProcess);
 
-                fft_object->do_fft(&fftout[0], values.data()); // Do FFT
-                values.clear();  // Clear vector
+                fft_object->do_fft(&fftout[0], plotData.data()); // Do FFT
+                plotData.clear();  // Clear vector
 
-                //Lets get the magnitude and scale it.
-                //mag = X * sqrt(re^2 + im^2)/n
-                // X is chosen so that the magnitude presented is similar to the acceleration registered
-                // although this is not 100% correct, it helps understanding the spectrogram.
+                // Lets get the magnitude and scale it.
+                // mag = X * sqrt(re^2 + im^2)/n
+                // X (4.2) is chosen so that the magnitude presented is similar to the acceleration registered
+                // although this is not 100% correct, it helps users understanding the spectrogram.
                 for (unsigned int i=0;i<valuesToProcess/2; i++) {
-                    values << 4.2*sqrt(pow(fftout[i], 2) + pow(fftout[valuesToProcess/2 + i], 2)) / valuesToProcess;
+                    plotData << 4.2*sqrt(pow(fftout[i], 2) + pow(fftout[valuesToProcess/2 + i], 2)) / valuesToProcess;
                 }
             }
             
             // Apply autoscale if enabled
-            if ( zMaximum == 0) {
+            if (zMaximum == 0) {
 				for (unsigned int i=0; i<windowWidth; i++) {
 	                 // See if autoscale is turned on and if the value exceeds the maximum for the scope.
-	                if (values[i] > rasterData->interval(Qt::ZAxis).maxValue()){
+	                if (plotData[i] > rasterData->interval(Qt::ZAxis).maxValue()){
 	                    // Change scope maximum and color depth
-	                    rasterData->setInterval(Qt::ZAxis, QwtInterval(0, values[i]) );
-	                    autoscaleValueUpdated = values[i];
+	                    rasterData->setInterval(Qt::ZAxis, QwtInterval(0, plotData[i]) );
+	                    autoscaleValueUpdated = plotData[i];
                 	}
             	}
 
 
             }
-            
+
+            timeDataHistory->append(NOW.toTime_t() + NOW.time().msec() / 1000.0);
             while (timeDataHistory->back() - timeDataHistory->front() > timeHorizon) {
                 timeDataHistory->pop_front();
                 zDataHistory->remove(0, fminl(windowWidth, zDataHistory->size()));
             }
             
-            *zDataHistory << values;
+            *zDataHistory << plotData;
+            plotData.clear();
 
             return true;
         }

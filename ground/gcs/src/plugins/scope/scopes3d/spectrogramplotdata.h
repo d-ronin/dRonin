@@ -88,6 +88,7 @@ private:
     unsigned int windowWidth;
     double autoscaleValueUpdated;
     ffft::FFTReal <double> *fft_object;
+    QVector<double> plotData;
 
 };
 

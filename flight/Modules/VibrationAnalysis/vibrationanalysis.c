@@ -52,14 +52,7 @@
 
 #define MAX_QUEUE_SIZE 2
 
-/*
-    Stack usage reported by gcc:
-    VibrationAnalysisCleanup     16
-    VibrationAnalysisInitialize  24
-    VibrationAnalysisStart       48
-    VibrationAnalysisTask        192
-*/
-#define STACK_SIZE_BYTES (192 + 48 + 16 + (2*3*window_size)*0) // The memory requirement grows linearly 
+#define STACK_SIZE_BYTES (200 + 448 + 16 + (2*3*window_size)*0) // The memory requirement grows linearly 
 																				  // with window size. The constant is multiplied
 																				  // by 0 in order to reflect the fact that the
 																				  // malloc'ed memory is not taken from the module 
@@ -70,8 +63,16 @@
 #define SETTINGS_THROTTLING_MS 100
 
 #define MAX_ACCEL_RANGE 16                          // Maximum accelerometer resolution in [g]
-#define FLOAT_TO_FIXED (32768/(MAX_ACCEL_RANGE*2)-1) // This is the scaling constant that scales input floats to +/-32736
+#define FLOAT_TO_FIXED (32768/(MAX_ACCEL_RANGE*2)-1) // This is the scaling constant that scales input floats
 #define VIBRATION_ELEMENTS_COUNT 16  // Number of elements per object Instance
+
+#define MAX_WINDOW_SIZE 1024
+
+// Comment to larger smaller buffers for better accuracy. The maximum window size will be allocated.
+#define USE_SINGLE_INSTANCE_BUFFERS 1
+
+// Uncomment to enable freeing buffer memory if the PIOS_free method does something useful
+// #define PIOS_FREE_IMPLEMENTED 1
 
 // Private variables
 static struct pios_thread *taskHandle;
@@ -82,6 +83,7 @@ static bool module_enabled = false;
 static struct VibrationAnalysis_data {
 	uint16_t accels_sum_count;
 	uint16_t window_size;
+    uint16_t buffers_size;
 	uint16_t instances;
 
 	float accels_data_sum_x;
@@ -116,7 +118,8 @@ static void VibrationAnalysisCleanup(void) {
         PIOS_Thread_Delete(taskHandle);
         taskHandle = NULL;
     }
-    
+
+#ifdef PIOS_FREE_IMPLEMENTED
     // Cleanup
     if (vtd != NULL) {
         PIOS_free(vtd);
@@ -138,6 +141,8 @@ static void VibrationAnalysisCleanup(void) {
         PIOS_free(vtd->accel_buffer_z);
         vtd->accel_buffer_z = NULL;
     }
+#endif
+
 }
 
 /**
@@ -192,6 +197,8 @@ static int32_t VibrationAnalysisStart(void)
     // Is the new window size different?
     // Will happen upon initialization and when the window size changes
     if (window_size != vtd->window_size) {
+
+#ifndef USE_SINGLE_INSTANCE_BUFFERS
         instances = window_size / VIBRATION_ELEMENTS_COUNT;
 
         // Check number of existing instances
@@ -212,7 +219,11 @@ static int32_t VibrationAnalysisStart(void)
         if (VibrationAnalysisOutputGetNumInstances() < instances) {
             return -1;
         }
-        
+#else
+        instances = 1;
+#endif
+
+#ifdef PIOS_FREE_IMPLEMENTED        
         // Delete existing buffers
         if (vtd->accel_buffer_x != NULL)
             PIOS_free(vtd->accel_buffer_x);
@@ -220,6 +231,7 @@ static int32_t VibrationAnalysisStart(void)
             PIOS_free(vtd->accel_buffer_y);
         if (vtd->accel_buffer_z != NULL)
             PIOS_free(vtd->accel_buffer_z);
+#endif
 
         // Clear buffers
         memset(vtd, 0, sizeof(struct VibrationAnalysis_data));
@@ -228,30 +240,50 @@ static int32_t VibrationAnalysisStart(void)
         // Now place the window size into the buffer
         vtd->window_size = window_size;
         vtd->instances = instances;
+        
+#ifdef USE_SINGLE_INSTANCE_BUFFERS
+        vtd->buffers_size = VIBRATION_ELEMENTS_COUNT; 
+#else
 
-        //Create new buffers.  
-        vtd->accel_buffer_x = (int16_t *) PIOS_malloc(window_size*sizeof(typeof(*vtd->accel_buffer_x)));
+    #ifdef PIOS_FREE_IMPLEMENTED        
+        vtd->buffers_size = window_size;
+    #else
+        vtd->buffers_size = MAX_WINDOW_SIZE; 
+
+    #endif
+
+#endif
+
+
+        //Create new buffers if needed.
         if (vtd->accel_buffer_x == NULL) {
-            VibrationAnalysisCleanup();
+            vtd->accel_buffer_x = (int16_t *) PIOS_malloc(vtd->buffers_size*sizeof(typeof(*vtd->accel_buffer_x)));
+            if (vtd->accel_buffer_x == NULL) {
+                VibrationAnalysisCleanup();
 
-            module_enabled = false;
-            return -1;
+                module_enabled = false;
+                return -1;
+            }
         }
 
-        vtd->accel_buffer_y = (int16_t *) PIOS_malloc(window_size*sizeof(typeof(*vtd->accel_buffer_y)));
         if (vtd->accel_buffer_y == NULL) {
-            VibrationAnalysisCleanup();
+            vtd->accel_buffer_y = (int16_t *) PIOS_malloc(vtd->buffers_size*sizeof(typeof(*vtd->accel_buffer_y)));
+            if (vtd->accel_buffer_y == NULL) {
+                VibrationAnalysisCleanup();
 
-            module_enabled = false;
-            return -1;
+                module_enabled = false;
+                return -1;
+            }
         }
 
-        vtd->accel_buffer_z = (int16_t *) PIOS_malloc(window_size*sizeof(typeof(*vtd->accel_buffer_z)));
         if (vtd->accel_buffer_z == NULL) {
-            VibrationAnalysisCleanup();
+            vtd->accel_buffer_z = (int16_t *) PIOS_malloc(vtd->buffers_size*sizeof(typeof(*vtd->accel_buffer_z)));
+            if (vtd->accel_buffer_z == NULL) {
+                VibrationAnalysisCleanup();
 
-            module_enabled = false;
-            return -1;
+                module_enabled = false;
+                return -1;
+            }
         }
     }
     
@@ -320,13 +352,16 @@ static void VibrationAnalysisTask(void *parameters)
     lastSettingsUpdateTime = PIOS_Thread_Systime() - SETTINGS_THROTTLING_MS;
     
     vibrationAnalysisOutputData.samples = vtd->window_size;
+    vibrationAnalysisOutputData.scale = FLOAT_TO_FIXED;
+
+    uint16_t instance_number = 0;
 
     // Main module task, never exit from while loop
     while (module_enabled)
     {
 
-        // Only check settings once every 100ms and not in the middle of a buffer accumulation
-        if (PIOS_Thread_Systime() - lastSettingsUpdateTime > SETTINGS_THROTTLING_MS && sample_count == 0) {
+        // Only check settings once every 100ms and not in the middle of a buffer accumulation to reduce artifacts
+        if (PIOS_Thread_Systime() - lastSettingsUpdateTime > SETTINGS_THROTTLING_MS && sample_count == 0 && instance_number==0) {
             //First check if the analysis is active
             VibrationAnalysisSettingsTestingStatusGet(&runAnalysisFlag);
             
@@ -399,28 +434,40 @@ static void VibrationAnalysisTask(void *parameters)
         // Advance sample and reset when at buffer end
         sample_count++;
 
-        // Only process once the buffers are filled. This could be done continuously, 
-        // but this way is probably easier on the processor
-        if (sample_count >= vtd->window_size) {
-            //Reset sample count
+        // Process and dump an instance at a time
+#ifdef USE_SINGLE_INSTANCE_BUFFERS
+        if (sample_count ==  vtd->buffers_size) {
             sample_count = 0;
-            //Write output to UAVO
-            for (uint16_t j=0; j<vtd->instances; j++) {
-                vibrationAnalysisOutputData.scale = FLOAT_TO_FIXED;
 
-                for (uint16_t k=0; k<VIBRATION_ELEMENTS_COUNT; k++) {                    
-                    vibrationAnalysisOutputData.x[k] = vtd->accel_buffer_x[k + VIBRATION_ELEMENTS_COUNT*j];
-                    vibrationAnalysisOutputData.y[k] = vtd->accel_buffer_y[k + VIBRATION_ELEMENTS_COUNT*j];
-                    vibrationAnalysisOutputData.z[k] = vtd->accel_buffer_z[k + VIBRATION_ELEMENTS_COUNT*j];
+        // Or process and dump the full window using multiple instances
+#else
+        if (sample_count ==  vtd->window_size) {
+            sample_count = 0;
+
+            for (instance_number=0; instance_number<vtd->instances; instance_number++) 
+#endif
+            {
+                // Dump an instance
+                for (uint16_t k=0; k<VIBRATION_ELEMENTS_COUNT; k++) {   
+                    vibrationAnalysisOutputData.x[k] = vtd->accel_buffer_x[k + VIBRATION_ELEMENTS_COUNT*instance_number];
+                    vibrationAnalysisOutputData.y[k] = vtd->accel_buffer_y[k + VIBRATION_ELEMENTS_COUNT*instance_number];
+                    vibrationAnalysisOutputData.z[k] = vtd->accel_buffer_z[k + VIBRATION_ELEMENTS_COUNT*instance_number];
                 }
-                VibrationAnalysisOutputInstSet(j, &vibrationAnalysisOutputData);
+                VibrationAnalysisOutputInstSet(instance_number, &vibrationAnalysisOutputData);
+                VibrationAnalysisOutputInstUpdated(instance_number);
             }
 
-
-            // Erase buffer, which has the effect of setting the complex part to 0.
-            memset(vtd->accel_buffer_x, 0, vtd->window_size*sizeof(typeof(*(vtd->accel_buffer_x))));
-            memset(vtd->accel_buffer_y, 0, vtd->window_size*sizeof(typeof(*(vtd->accel_buffer_y))));
-            memset(vtd->accel_buffer_z, 0, vtd->window_size*sizeof(typeof(*(vtd->accel_buffer_z))));
+            // Increase the instance number or reset it
+#ifdef USE_SINGLE_INSTANCE_BUFFERS            
+            instance_number++;
+            if (instance_number == vtd->instances) {
+                instance_number = 0;
+            }
+#endif
+            // Erase buffer
+            memset(vtd->accel_buffer_x, 0, vtd->buffers_size*sizeof(typeof(*(vtd->accel_buffer_x))));
+            memset(vtd->accel_buffer_y, 0, vtd->buffers_size*sizeof(typeof(*(vtd->accel_buffer_y))));
+            memset(vtd->accel_buffer_z, 0, vtd->buffers_size*sizeof(typeof(*(vtd->accel_buffer_z))));
         }
     }
 }
