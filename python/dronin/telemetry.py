@@ -606,9 +606,13 @@ def get_telemetry_by_args(desc="Process telemetry", service_in_iter=True,
     if os.path.isfile(args.source):
         file_obj = file(args.source, 'rb')
 
-        t = telemetry.FileTelemetry(file_obj, parse_header=parse_header,
-            gcs_timestamps=args.timestamped, name=args.source,
-            githash=githash)
+        if parse_header:
+            t = telemetry.FileTelemetry(file_obj, parse_header=True,
+                gcs_timestamps=args.timestamped, name=args.source)
+        else:
+            t = telemetry.FileTelemetry(file_obj, parse_header=False,
+                gcs_timestamps=args.timestamped, name=args.source,
+                githash=githash)
 
         return t
 
