@@ -89,7 +89,7 @@ private:
     double autoscaleValueUpdated;
     ffft::FFTReal <double> *fft_object;
     QVector<double> plotData;
-
+    int lastInstanceIndex;
 };
 
 #endif // SPECTROGRAMDATA_H

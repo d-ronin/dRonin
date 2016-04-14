@@ -76,6 +76,7 @@ SpectrogramData::SpectrogramData(QString uavObject, QString uavField, double sam
     // Set the ranges for the plot
     resetAxisRanges();
     plotData.clear();
+    lastInstanceIndex = -1; // To keep track of missing instances. We assume communications keep packet order
 }
 
 void SpectrogramData::setXMaximum(double val)
@@ -173,6 +174,7 @@ bool SpectrogramData::append(UAVObject* multiObj)
         foreach (UAVObjectField* field, fieldList) {
             if (field->getType() == UAVObjectField::INT16 && field->getName() == "samples") {
                 newWindowWidth = field->getValue().toDouble();
+                break;
             }
         }
 
@@ -208,13 +210,27 @@ bool SpectrogramData::append(UAVObject* multiObj)
             foreach (UAVObject *obj, list) {
                 UAVObjectField* field = obj->getField(uavFieldName);
                 int numElements = field->getNumElements();
-                
-                // Check if the instance has a scale field
+
                 double scale = 1;
                 QList<UAVObjectField*> fieldList = obj->getFields();
                 foreach (UAVObjectField* field, fieldList) {
+                    // Check if the instance has a scale field
                     if(field->getType() == UAVObjectField::FLOAT32 && field->getName() == "scale"){
                         scale = field->getValue().toDouble();
+                        break;
+                    }
+
+                    // Check if data is ordered. If not, just discard everything
+                    if (field->getType() == UAVObjectField::INT16 && field->getName() == "index") {
+                        int currentIndex = field->getValue().toDouble();
+                        if (currentIndex != (lastInstanceIndex + 1)) {
+                            fprintf(stderr, "Out of order index. Got %d expected %d\n", currentIndex, lastInstanceIndex + 1);
+                            plotData.clear();
+                            lastInstanceIndex = -1; // Next index will be 0
+                            return false;
+                        }
+
+                        lastInstanceIndex++;
                     }
                 }
 
@@ -247,10 +263,6 @@ bool SpectrogramData::append(UAVObject* multiObj)
             // update the original vector. This will allow using the same code
             // to display the information.
             if (mathFunction == "FFT") {
-                // Can happen temporarily when changing the FFT Window size
-                if (plotData.size() != valuesToProcess) {
-                    return false;
-                }
 
                 // Check if the fft_object was already created or needs to be updated
                 // May happen if settings change after the spectrogram was created
@@ -302,6 +314,7 @@ bool SpectrogramData::append(UAVObject* multiObj)
             
             *zDataHistory << plotData;
             plotData.clear();
+            lastInstanceIndex = -1; // Next index will be 0
 
             return true;
         }
