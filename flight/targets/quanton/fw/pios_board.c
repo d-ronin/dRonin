@@ -426,15 +426,15 @@ void PIOS_Board_Init(void) {
 			hw_DSMxMode,                         // dsm_mode
 			NULL);                               // sbus_cfg
 
-	/* Configure the rcvr port */
-	uint8_t hw_rcvrport;
-	HwQuantonRcvrPortGet(&hw_rcvrport);
+	/* Configure the inport */
+	uint8_t hw_inport;
+	HwQuantonInPortGet(&hw_inport);
 
-	switch (hw_rcvrport) {
-	case HWQUANTON_RCVRPORT_DISABLED:
+	switch (hw_inport) {
+	case HWQUANTON_INPORT_DISABLED:
 		break;
 	
-	case HWQUANTON_RCVRPORT_PWM:
+	case HWQUANTON_INPORT_PWM:
 		PIOS_HAL_ConfigurePort(HWSHARED_PORTTYPES_PWM,  // port type protocol
 				NULL,                                   // usart_port_cfg
 				NULL,                                   // com_driver
@@ -448,7 +448,7 @@ void PIOS_Board_Init(void) {
 				NULL);                                  // sbus_cfg
 		break;
 
-	case HWQUANTON_RCVRPORT_PWMADC:
+	case HWQUANTON_INPORT_PWMADC:
 		PIOS_HAL_ConfigurePort(HWSHARED_PORTTYPES_PWM,  // port type protocol
 				NULL,                                   // usart_port_cfg
 				NULL,                                   // com_driver
@@ -462,10 +462,35 @@ void PIOS_Board_Init(void) {
 				NULL);                                  // sbus_cfg
 		break;
 
-	case HWQUANTON_RCVRPORT_PPM:
-	case HWQUANTON_RCVRPORT_PPMADC:
-	case HWQUANTON_RCVRPORT_PPMOUTPUTS:
-	case HWQUANTON_RCVRPORT_PPMOUTPUTSADC:
+	case HWQUANTON_INPORT_PPMSERIAL:
+	case HWQUANTON_INPORT_PPMSERIALADC:
+	case HWQUANTON_INPORT_SERIAL:
+		{
+			uint8_t hw_inportserial;
+			HwQuantonInPortSerialGet(&hw_inportserial);
+
+			PIOS_HAL_ConfigurePort(hw_inportserial,      // port type protocol
+					&pios_usart_inportserial_cfg,        // usart_port_cfg
+					&pios_usart_com_driver,              // com_driver
+					NULL,                                // i2c_id
+					NULL,                                // i2c_cfg
+					NULL,                                // ppm_cfg
+					NULL,                                // pwm_cfg
+					PIOS_LED_ALARM,                      // led_id
+					&pios_inportserial_dsm_aux_cfg,      // dsm_cfg
+					hw_DSMxMode,                         // dsm_mode
+					NULL);                               // sbus_cfg
+		}
+
+		if (hw_inport == HWQUANTON_INPORT_SERIAL)
+			break;
+
+		// Else fall through to set up PPM.
+
+	case HWQUANTON_INPORT_PPM:
+	case HWQUANTON_INPORT_PPMADC:
+	case HWQUANTON_INPORT_PPMOUTPUTS:
+	case HWQUANTON_INPORT_PPMOUTPUTSADC:
 		PIOS_HAL_ConfigurePort(HWSHARED_PORTTYPES_PPM,  // port type protocol
 				NULL,                                   // usart_port_cfg
 				NULL,                                   // com_driver
@@ -479,7 +504,7 @@ void PIOS_Board_Init(void) {
 				NULL);                                  // sbus_cfg
 		break;
 
-	case HWQUANTON_RCVRPORT_PPMPWM:
+	case HWQUANTON_INPORT_PPMPWM:
 		PIOS_HAL_ConfigurePort(HWSHARED_PORTTYPES_PPM,  // port type protocol
 				NULL,                                   // usart_port_cfg
 				NULL,                                   // com_driver
@@ -505,7 +530,7 @@ void PIOS_Board_Init(void) {
 				NULL);                                  // sbus_cfg
 		break;
 
-	case HWQUANTON_RCVRPORT_PPMPWMADC:
+	case HWQUANTON_INPORT_PPMPWMADC:
 		PIOS_HAL_ConfigurePort(HWSHARED_PORTTYPES_PPM,  // port type protocol
 				NULL,                                   // usart_port_cfg
 				NULL,                                   // com_driver
@@ -544,27 +569,27 @@ void PIOS_Board_Init(void) {
 #endif	/* PIOS_INCLUDE_GCSRCVR */
 
 #ifndef PIOS_DEBUG_ENABLE_DEBUG_PINS
-	switch (hw_rcvrport) {
-		case HWQUANTON_RCVRPORT_DISABLED:
-		case HWQUANTON_RCVRPORT_PWM:
-		case HWQUANTON_RCVRPORT_PWMADC:
-		case HWQUANTON_RCVRPORT_PPM:
-		case HWQUANTON_RCVRPORT_PPMADC:
-		case HWQUANTON_RCVRPORT_PPMPWM:
-		case HWQUANTON_RCVRPORT_PPMPWMADC:
+	switch (hw_inport) {
+		case HWQUANTON_INPORT_DISABLED:
+		case HWQUANTON_INPORT_PWM:
+		case HWQUANTON_INPORT_PWMADC:
+		case HWQUANTON_INPORT_PPM:
+		case HWQUANTON_INPORT_PPMADC:
+		case HWQUANTON_INPORT_PPMPWM:
+		case HWQUANTON_INPORT_PPMPWMADC:
 			/* Set up the servo outputs */
 #ifdef PIOS_INCLUDE_SERVO
 			PIOS_Servo_Init(&pios_servo_cfg);
 #endif
 			break;
-		case HWQUANTON_RCVRPORT_PPMOUTPUTS:
-		case HWQUANTON_RCVRPORT_OUTPUTS:
+		case HWQUANTON_INPORT_PPMOUTPUTS:
+		case HWQUANTON_INPORT_OUTPUTS:
 #ifdef PIOS_INCLUDE_SERVO
 			PIOS_Servo_Init(&pios_servo_with_rcvr_cfg);
 #endif
 			break;
-		case HWQUANTON_RCVRPORT_PPMOUTPUTSADC:
-		case HWQUANTON_RCVRPORT_OUTPUTSADC:
+		case HWQUANTON_INPORT_PPMOUTPUTSADC:
+		case HWQUANTON_INPORT_OUTPUTSADC:
 #ifdef PIOS_INCLUDE_SERVO
 			PIOS_Servo_Init(&pios_servo_with_rcvr_with_adc_cfg);
 #endif
@@ -726,11 +751,13 @@ void PIOS_Board_Init(void) {
 #endif
 
 #if defined(PIOS_INCLUDE_ADC)
-	if (hw_rcvrport == HWQUANTON_RCVRPORT_PWMADC ||
-			hw_rcvrport == HWQUANTON_RCVRPORT_PPMADC ||
-			hw_rcvrport == HWQUANTON_RCVRPORT_PPMPWMADC ||
-			hw_rcvrport == HWQUANTON_RCVRPORT_OUTPUTSADC ||
-			hw_rcvrport == HWQUANTON_RCVRPORT_PPMOUTPUTSADC) {
+	if (hw_inport == HWQUANTON_INPORT_OUTPUTSADC ||
+		hw_inport == HWQUANTON_INPORT_PPMADC ||
+		hw_inport == HWQUANTON_INPORT_PPMOUTPUTSADC ||
+		hw_inport == HWQUANTON_INPORT_PPMPWMADC ||
+		hw_inport == HWQUANTON_INPORT_PPMSERIALADC ||
+		hw_inport == HWQUANTON_INPORT_PWMADC)
+	{
 		uint32_t internal_adc_id;
 		PIOS_INTERNAL_ADC_Init(&internal_adc_id, &pios_adc_cfg);
 		PIOS_ADC_Init(&pios_internal_adc_id, &pios_internal_adc_driver, internal_adc_id);
