@@ -37,7 +37,6 @@
 #include <uavtalk/uavtalk.h>
 #include "kmlexport.h"
 
-#include <QThread>
 #include <QQueue>
 #include <QReadWriteLock>
 

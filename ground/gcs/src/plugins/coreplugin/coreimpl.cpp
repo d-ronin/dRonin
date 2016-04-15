@@ -108,11 +108,6 @@ UAVGadgetInstanceManager *CoreImpl::uavGadgetInstanceManager() const
     return m_mainwindow->uavGadgetInstanceManager();
 }
 
-ThreadManager *CoreImpl::threadManager() const
-{
-    return m_mainwindow->threadManager();
-}
-
 ModeManager *CoreImpl::modeManager() const
 {
     return m_mainwindow->modeManager();

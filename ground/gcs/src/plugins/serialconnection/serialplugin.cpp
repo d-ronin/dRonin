@@ -34,7 +34,6 @@
 #include <QtCore/QtPlugin>
 #include <QMainWindow>
 #include <coreplugin/icore.h>
-#include <coreplugin/threadmanager.h>
 #include <QDebug>
 
 
@@ -191,7 +190,6 @@ QIODevice *SerialConnection::openDevice(IDevice *deviceName)
                             m_deviceOpened = true;
                  }
             }
-            serialHandle->moveToThread(Core::ICore::instance()->threadManager()->getRealTimeThread());
             return serialHandle;
         }
     }

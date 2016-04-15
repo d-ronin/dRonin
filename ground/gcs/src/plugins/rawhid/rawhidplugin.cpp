@@ -31,7 +31,6 @@
 #include <coreplugin/icore.h>
 #include <QtCore/QtPlugin>
 #include <QtCore/QMutexLocker>
-#include <QThread>
 #include <QDebug>
 
 #include "rawhid_const.h"
@@ -167,18 +166,14 @@ void RawHIDConnection::resumePolling()
 
 RawHIDPlugin::RawHIDPlugin()
 {
-	hidConnection = NULL;	// Pip
+    hidConnection = NULL;	// Pip
+    m_usbMonitor = NULL;
 }
 
 RawHIDPlugin::~RawHIDPlugin()
 {
-    QThread *q = dynamic_cast<QThread *>(m_usbMonitor);
-
-    if (q != NULL) {
-        q->quit();
-        q->wait(500);
-    }
-
+    if (m_usbMonitor)
+        delete m_usbMonitor;
 }
 
 void RawHIDPlugin::extensionsInitialized()

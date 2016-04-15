@@ -2,8 +2,10 @@
  ******************************************************************************
  *
  * @file       scopegadgetwidget.cpp
+ *
  * @author     The OpenPilot Team, http://www.openpilot.org Copyright (C) 2010.
  * @author     Tau Labs, http://taulabs.org, Copyright (C) 2013
+ * @author     dRonin, http://dRonin.org/, Copyright (C) 2016
  *
  * @addtogroup GCSPlugins GCS Plugins
  * @{
@@ -25,6 +27,10 @@
  * You should have received a copy of the GNU General Public License along
  * with this program; if not, write to the Free Software Foundation, Inc.,
  * 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
+ *
+ * Additional note on redistribution: The copyright and license notices above
+ * must be maintained in each individual source file that is a derivative work
+ * of this source file; otherwise redistribution is prohibited.
  */
 
 
@@ -53,7 +59,6 @@
 #include <QWidget>
 #include <QVBoxLayout>
 #include <QPushButton>
-#include <QMutexLocker>
 #include <QWheelEvent>
 #include <QMenu>
 #include <QAction>
@@ -198,14 +203,10 @@ void ScopeGadgetWidget::mouseReleaseEvent(QMouseEvent *e)
 void ScopeGadgetWidget::mouseDoubleClickEvent(QMouseEvent *e)
 {
     //On double-click, toggle legend
-    mutex.lock();
-
     if (legend())
         deleteLegend();
     else
         addLegend();
-
-    mutex.unlock();
 
     //On double-click, reset plot zoom
     setAxisAutoScale(QwtPlot::yLeft, true);
@@ -245,7 +246,6 @@ void ScopeGadgetWidget::wheelEvent(QWheelEvent *e)
 
         double zoomScale=1.1; //THIS IS AN ARBITRARY CONSTANT, AND PERHAPS SHOULD BE IN A DEFINE INSTEAD OF BURIED HERE
 
-        mutex.lock(); //DOES THIS mutex.lock NEED TO BE HERE? I DON'T KNOW, I JUST COPIED IT FROM THE ABOVE CODE
         // Set the scale
         if (e->delta()<0){
             setAxisScale(QwtPlot::yLeft,
@@ -257,7 +257,6 @@ void ScopeGadgetWidget::wheelEvent(QWheelEvent *e)
                          (yInterval.minValue()-zoomLine)/zoomScale+zoomLine,
                          (yInterval.maxValue()-zoomLine)/zoomScale+zoomLine );
         }
-        mutex.unlock();
     }
     QwtPlot::wheelEvent(e);
 }
@@ -352,9 +351,7 @@ void ScopeGadgetWidget::showCurve(const QVariant & itemInfo, bool on, int index)
     if (item)
         item->setVisible(!on);
 
-    mutex.lock();
     replot();
-    mutex.unlock();
 }
 
 
@@ -381,8 +378,6 @@ void ScopeGadgetWidget::replotNewData()
     // If the plot is not visible or there is no scope, do not replot
     if (!isVisible() || m_scope == NULL)
         return;
-
-    QMutexLocker locker(&mutex);
 
     // Update the data in the scopes
     foreach(PlotData* plotData, m_dataSources.values())

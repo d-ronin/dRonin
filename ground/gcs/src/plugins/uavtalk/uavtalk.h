@@ -1,8 +1,11 @@
 /**
  ******************************************************************************
  * @file       uavtalk.h
+ *
+ * @author     dRonin, http://dRonin.org/, Copyright (C) 2016
  * @author     Tau Labs, http://taulabs.org, Copyright (C) 2012-2013
  * @author     The OpenPilot Team, http://www.openpilot.org Copyright (C) 2010.
+ *
  * @addtogroup GCSPlugins GCS Plugins
  * @{
  * @addtogroup UAVTalkPlugin UAVTalk Plugin
@@ -24,14 +27,17 @@
  * You should have received a copy of the GNU General Public License along 
  * with this program; if not, write to the Free Software Foundation, Inc., 
  * 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
+ *
+ * Additional note on redistribution: The copyright and license notices above
+ * must be maintained in each individual source file that is a derivative work
+ * of this source file; otherwise redistribution is prohibited.
  */
+
 #ifndef UAVTALK_H
 #define UAVTALK_H
 
 #include <QtCore>
 #include <QIODevice>
-#include <QMutex>
-#include <QMutexLocker>
 #include <QMap>
 #include <QSemaphore>
 #include "uavobjectmanager.h"
@@ -105,7 +111,6 @@ protected:
     // Variables
     QPointer<QIODevice> io;
     UAVObjectManager* objMngr;
-    QMutex* mutex;
     quint8 rxBuffer[MAX_PACKET_LENGTH];
     quint8 txBuffer[MAX_PACKET_LENGTH];
     // Variables used by the receive state machine

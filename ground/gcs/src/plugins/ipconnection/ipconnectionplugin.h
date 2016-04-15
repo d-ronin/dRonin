@@ -2,6 +2,7 @@
  ******************************************************************************
  *
  * @file       IPconnectionplugin.h
+ * @author     dRonin, http://dRonin.org/, Copyright (C) 2016
  * @author     The OpenPilot Team, http://www.openpilot.org Copyright (C) 2010.
  * @addtogroup GCSPlugins GCS Plugins
  * @{
@@ -23,6 +24,10 @@
  * You should have received a copy of the GNU General Public License along
  * with this program; if not, write to the Free Software Foundation, Inc.,
  * 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
+ *
+ * Additional note on redistribution: The copyright and license notices above
+ * must be maintained in each individual source file that is a derivative work
+ * of this source file; otherwise redistribution is prohibited.
  */
 
 #ifndef IPconnectionPLUGIN_H
@@ -47,13 +52,13 @@ class IConnection;
 *   Plugin will add a instance of this class to the pool,
 *   so the connection manager can use it.
 */
-class IPconnection_EXPORT IPconnectionConnection
+class IPconnection_EXPORT IPConnection
     : public Core::IConnection
 {
     Q_OBJECT
 public:
-    IPconnectionConnection();
-    virtual ~IPconnectionConnection();
+    IPConnection();
+    virtual ~IPConnection();
 
     virtual QList <Core::IDevice*> availableDevices();
     virtual QIODevice *openDevice(Core::IDevice *deviceName);
@@ -70,17 +75,13 @@ public:
 protected slots:
     void onEnumerationChanged();
 
-signals: //For the benefit of IPConnection
-    void CreateSocket(QString HostName, int Port, bool UseTCP);
-    void CloseSocket(QAbstractSocket *socket);
-
 private:
-       QAbstractSocket *ipSocket;
-       IPconnectionConfiguration *m_config;
-       IPconnectionOptionsPage *m_optionspage;
-       IPDevice dev;
-       //QSettings* settings;
-
+    void openDevice(QString HostName, int Port, bool UseTCP);
+    QAbstractSocket *ipSocket;
+    IPconnectionConfiguration *m_config;
+    IPconnectionOptionsPage *m_optionspage;
+    IPDevice dev;
+    QString errorMsg;
 };
 
 
@@ -97,8 +98,7 @@ public:
     virtual void extensionsInitialized();
 
 private:
-    IPconnectionConnection *m_connection;
-
+    IPConnection *m_connection;
 };
 
 

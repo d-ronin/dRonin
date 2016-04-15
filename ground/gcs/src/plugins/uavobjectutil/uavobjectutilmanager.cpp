@@ -36,7 +36,6 @@
 #include "physical_constants.h"
 #include "utils/homelocationutil.h"
 
-#include <QMutexLocker>
 #include <QDebug>
 #include <QEventLoop>
 #include <QTimer>

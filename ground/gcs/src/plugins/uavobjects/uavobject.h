@@ -2,8 +2,11 @@
  ******************************************************************************
  *
  * @file       uavobject.h
+ *
+ * @author     dRonin, http://dRonin.org/, Copyright (C) 2016
  * @author     Tau Labs, http://taulabs.org, Copyright (C) 2013
  * @author     The OpenPilot Team, http://www.openpilot.org Copyright (C) 2010.
+ *
  * @see        The GNU Public License (GPL) Version 3
  * @addtogroup GCSPlugins GCS Plugins
  * @{
@@ -25,7 +28,12 @@
  * You should have received a copy of the GNU General Public License along 
  * with this program; if not, write to the Free Software Foundation, Inc., 
  * 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
+ *
+ * Additional note on redistribution: The copyright and license notices above
+ * must be maintained in each individual source file that is a derivative work
+ * of this source file; otherwise redistribution is prohibited.
  */
+
 #ifndef UAVOBJECT_H
 #define UAVOBJECT_H
 
@@ -33,8 +41,6 @@
 #include <QtGlobal>
 #include <QJsonObject>
 #include <QObject>
-#include <QMutex>
-#include <QMutexLocker>
 #include <QString>
 #include <QList>
 #include <QFile>
@@ -119,10 +125,6 @@ public:
     virtual void setMetadata(const Metadata& mdata) = 0;
     virtual Metadata getMetadata() = 0;
     virtual Metadata getDefaultMetadata() = 0;
-    void lock();
-    void lock(int timeoutMs);
-    void unlock();
-    QMutex* getMutex();
     qint32 getNumFields();
     QList<UAVObjectField*> getFields();
     UAVObjectField* getField(const QString& name);
@@ -241,7 +243,6 @@ protected:
     QString description;
     QString category;
     quint32 numBytes;
-    QMutex* mutex;
     quint8* data;
     QList<UAVObjectField*> fields;
     void initializeFields(QList<UAVObjectField*>& fields, quint8* data, quint32 numBytes);

@@ -1,6 +1,8 @@
 /**
  ******************************************************************************
  * @file       opmapgadgetwidget.cpp
+ *
+ * @author     dRonin, http://dRonin.org/, Copyright (C) 2016
  * @author     Tau Labs, http://taulabs.org, Copyright (C) 2012-2013
  * @author     The OpenPilot Team, http://www.openpilot.org Copyright (C) 2012.
  *
@@ -24,6 +26,10 @@
  * You should have received a copy of the GNU General Public License along
  * with this program; if not, write to the Free Software Foundation, Inc.,
  * 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
+ *
+ * Additional note on redistribution: The copyright and license notices above
+ * must be maintained in each individual source file that is a derivative work
+ * of this source file; otherwise redistribution is prohibited.
  */
 
 #include "opmapgadgetwidget.h"
@@ -564,8 +570,6 @@ void OPMapGadgetWidget::updatePosition()
 	if (!m_widget || !m_map)
 		return;
 
-    QMutexLocker locker(&m_map_mutex);
-
 	// *************
 	// get the current UAV details
 
@@ -662,8 +666,6 @@ void OPMapGadgetWidget::updateMousePos()
 {
 	if (!m_widget || !m_map)
 		return;
-
-    QMutexLocker locker(&m_map_mutex);
 
     QPoint p = m_map->mapFromGlobal(QCursor::pos());
     internals::PointLatLng lat_lon = m_map->GetFromLocalToLatLng(p);    // fetch the current lat/lon mouse position
@@ -794,19 +796,16 @@ void OPMapGadgetWidget::OnTileLoadComplete()
 
 void OPMapGadgetWidget::on_toolButtonZoomP_clicked()
 {
-    QMutexLocker locker(&m_map_mutex);
     zoomIn();
 }
 
 void OPMapGadgetWidget::on_toolButtonZoomM_clicked()
 {
-    QMutexLocker locker(&m_map_mutex);
     zoomOut();
 }
 
 void OPMapGadgetWidget::on_toolButtonMapHome_clicked()
 {
-    QMutexLocker locker(&m_map_mutex);
     goHome();
 }
 
@@ -815,7 +814,6 @@ void OPMapGadgetWidget::on_toolButtonMapUAV_clicked()
 	if (!m_widget || !m_map)
 		return;
 
-    QMutexLocker locker(&m_map_mutex);
 
     followUAVpositionAct->toggle();
 }
@@ -833,7 +831,6 @@ void OPMapGadgetWidget::on_horizontalSliderZoom_sliderMoved(int position)
 	if (!m_widget || !m_map)
 		return;
 
-    QMutexLocker locker(&m_map_mutex);
 
     setZoom(position);
 }

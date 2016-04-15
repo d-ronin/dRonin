@@ -3,7 +3,7 @@
  *
  * @file       $(NAMELC).cpp
  * @author     The OpenPilot Team, http://www.openpilot.org Copyright (C) 2010.
- * @author     dRonin, http://dronin.org Copyright (C) 2015
+ * @author     dRonin, http://dronin.org Copyright (C) 2015-2016
  * @see        The GNU Public License (GPL) Version 3
  * @addtogroup GCSPlugins GCS Plugins
  * @{
@@ -30,7 +30,12 @@
  * You should have received a copy of the GNU General Public License along
  * with this program; if not, write to the Free Software Foundation, Inc.,
  * 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
+ *
+ * Additional note on redistribution: The copyright and license notices above
+ * must be maintained in each individual source file that is a derivative work
+ * of this source file; otherwise redistribution is prohibited.
  */
+
 #include "$(NAMELC).h"
 #include "uavobjectfield.h"
 
@@ -96,7 +101,6 @@ $(INITFIELDS)
  */
 $(NAME)::DataFields $(NAME)::getData()
 {
-    QMutexLocker locker(mutex);
     return data;
 }
 
@@ -105,7 +109,6 @@ $(NAME)::DataFields $(NAME)::getData()
  */
 void $(NAME)::setData(const DataFields& data)
 {
-    QMutexLocker locker(mutex);
     // Get metadata
     Metadata mdata = getMetadata();
     // Update object if the access mode permits

@@ -1,8 +1,11 @@
 /**
  ******************************************************************************
  * @file       uavtalk.cpp
+ *
+ * @author     dRonin, http://dRonin.org/, Copyright (C) 2016
  * @author     Tau Labs, http://taulabs.org, Copyright (C) 2012-2013
  * @author     The OpenPilot Team, http://www.openpilot.org Copyright (C) 2010.
+ *
  * @addtogroup GCSPlugins GCS Plugins
  * @{
  * @addtogroup UAVTalkPlugin UAVTalk Plugin
@@ -24,7 +27,12 @@
  * You should have received a copy of the GNU General Public License along 
  * with this program; if not, write to the Free Software Foundation, Inc., 
  * 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
+ *
+ * Additional note on redistribution: The copyright and license notices above
+ * must be maintained in each individual source file that is a derivative work
+ * of this source file; otherwise redistribution is prohibited.
  */
+
 #include "uavtalk.h"
 #include <QtEndian>
 #include <QDebug>
@@ -72,8 +80,6 @@ UAVTalk::UAVTalk(QIODevice* iodev, UAVObjectManager* objMngr)
     rxState = STATE_SYNC;
     rxPacketLength = 0;
 
-    mutex = new QMutex(QMutex::Recursive);
-
     memset(&stats, 0, sizeof(ComStats));
 
     connect(io, SIGNAL(readyRead()), this, SLOT(processInputStream()));
@@ -105,7 +111,6 @@ UAVTalk::~UAVTalk()
  */
 void UAVTalk::resetStats()
 {
-    QMutexLocker locker(mutex);
     memset(&stats, 0, sizeof(ComStats));
 }
 
@@ -114,7 +119,6 @@ void UAVTalk::resetStats()
  */
 UAVTalk::ComStats UAVTalk::getStats()
 {
-    QMutexLocker locker(mutex);
     return stats;
 }
 
@@ -154,7 +158,6 @@ void UAVTalk::dummyUDPRead()
  */
 bool UAVTalk::sendObjectRequest(UAVObject* obj, bool allInstances)
 {
-    QMutexLocker locker(mutex);
     return objectTransaction(obj, TYPE_OBJ_REQ, allInstances);
 }
 
@@ -167,7 +170,6 @@ bool UAVTalk::sendObjectRequest(UAVObject* obj, bool allInstances)
  */
 bool UAVTalk::sendObject(UAVObject* obj, bool acked, bool allInstances)
 {
-    QMutexLocker locker(mutex);
     if (acked)
     {
         return objectTransaction(obj, TYPE_OBJ_ACK, allInstances);
@@ -443,7 +445,6 @@ bool UAVTalk::processInputByte(quint8 rxbyte)
                 break;
             }
 
-            mutex->lock();
                 receiveObject(rxType, rxObjId, rxInstId, rxBuffer, rxLength);
                 if(useUDPMirror)
                 {
@@ -451,7 +452,6 @@ bool UAVTalk::processInputByte(quint8 rxbyte)
                 }
                 stats.rxObjectBytes += rxLength;
                 stats.rxObjects++;
-            mutex->unlock();
 
             rxState = STATE_SYNC;
             UAVTALK_QXTLOG_DEBUG("UAVTalk: CSum->Sync (OK)");
