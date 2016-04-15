@@ -375,7 +375,7 @@ void PIOS_Board_Init(void) {
 			NULL,                                // pwm_cfg
 			PIOS_LED_ALARM,                      // led_id
 			&pios_usart2_dsm_aux_cfg,            // dsm_cfg
-			hw_DSMxMode,                         // dsm_mode
+			0,                                   // dsm_mode
 			&pios_usart2_sbus_aux_cfg);          // sbus_cfg
 
 	/* UART3 Port */
