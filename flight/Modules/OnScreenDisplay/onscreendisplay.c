@@ -672,9 +672,6 @@ void draw_flight_mode(int x, int y, int xs, int ys, int va, int ha, int flags, i
 	case FLIGHTSTATUS_FLIGHTMODE_LEVELING:
 		write_string("LEVEL", x, y, xs, ys, va, ha, flags, font);
 		break;
-	case FLIGHTSTATUS_FLIGHTMODE_MWRATE:
-		write_string("MWRTE", x, y, xs, ys, va, ha, flags, font);
-		break;
 	case FLIGHTSTATUS_FLIGHTMODE_HORIZON:
 		write_string("HOR", x, y, xs, ys, va, ha, flags, font);
 		break;

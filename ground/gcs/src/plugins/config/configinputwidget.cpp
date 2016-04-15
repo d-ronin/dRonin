@@ -1765,23 +1765,7 @@ void ConfigInputWidget::checkArmingConfig(QString option)
 void ConfigInputWidget::checkFlightMode(QString option)
 {
     Q_UNUSED(option);
-    // show multiwii deprecation notice if required
-    m_config->lblMultiwii->hide();
-
-    for (int i = 1; i <= m_config->fmsPosNum->value(); i++) {
-        QComboBox *child = this->findChild<QComboBox *>(QString("fmsModePos%1").arg(i));
-        if (child && child->currentText().contains("MWRate"))
-            m_config->lblMultiwii->show();
-    }
-
-    const QStringList axes({"Roll", "Pitch", "Yaw"});
-    for (int i = 1; i <= 3; i++) {
-        foreach (const QString &axis, axes) {
-            QComboBox *child = this->findChild<QComboBox *>(QString("fmsSsPos%1%2").arg(i).arg(axis));
-            if (child && child->currentText().contains("MWRate"))
-                m_config->lblMultiwii->show();
-        }
-    }
+    // No verification currently required here with the removal of mwrate
 }
 
 void ConfigInputWidget::checkHangtimeConfig()

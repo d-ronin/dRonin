@@ -71,9 +71,6 @@ private slots:
     void processLinkedWidgets(QWidget*);
     void applyRateLimits();
 
-    void showMWRateConvertDialog();
-    void applyMWRateConvertDialog();
-
     void showExpoPlot();
     void hangtimeChanged();
 };
