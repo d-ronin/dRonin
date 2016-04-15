@@ -799,7 +799,7 @@ static const struct pios_dsm_cfg pios_usart5_dsm_aux_cfg = {
 	},
 };
 
-static const struct pios_dsm_cfg pios_rcvrserial_dsm_aux_cfg = {
+static const struct pios_dsm_cfg pios_inportserial_dsm_aux_cfg = {
 	.bind = {
 		.gpio = GPIOC,
 		.init = {
@@ -1010,7 +1010,7 @@ static const struct pios_usart_cfg pios_usart5_cfg = {
 	},
 };
 
-static const struct pios_usart_cfg pios_usart_rcvrserial_cfg = {
+static const struct pios_usart_cfg pios_usart_inportserial_cfg = {
 	.regs  = USART6,
 	.remap = GPIO_AF_USART6,
 	.irq = {

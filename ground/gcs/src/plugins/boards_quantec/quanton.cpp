@@ -151,11 +151,12 @@ QStringList Quanton::getAdcNames()
         return QStringList();
 
     HwQuanton::DataFields settings = hwQuanton->getData();
-    if (settings.RcvrPort == HwQuanton::RCVRPORT_OUTPUTSADC ||
-            settings.RcvrPort == HwQuanton::RCVRPORT_PPMADC ||
-            settings.RcvrPort == HwQuanton::RCVRPORT_PPMOUTPUTSADC ||
-            settings.RcvrPort == HwQuanton::RCVRPORT_PPMPWMADC ||
-            settings.RcvrPort == HwQuanton::RCVRPORT_PWMADC) {
+    if (settings.InPort == HwQuanton::INPORT_OUTPUTSADC ||
+            settings.InPort == HwQuanton::INPORT_PPMADC ||
+            settings.InPort == HwQuanton::INPORT_PPMOUTPUTSADC ||
+            settings.InPort == HwQuanton::INPORT_PPMPWMADC ||
+            settings.InPort == HwQuanton::INPORT_PWMADC ||
+            settings.InPort == HwQuanton::INPORT_PPMSERIALADC) {
         return QStringList() << "IN 7" << "IN 8";
     }
 
