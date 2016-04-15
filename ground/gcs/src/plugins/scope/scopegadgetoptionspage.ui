@@ -14,7 +14,16 @@
    <string>Form</string>
   </property>
   <layout class="QVBoxLayout" name="verticalLayout_4">
-   <property name="margin">
+   <property name="leftMargin">
+    <number>0</number>
+   </property>
+   <property name="topMargin">
+    <number>0</number>
+   </property>
+   <property name="rightMargin">
+    <number>0</number>
+   </property>
+   <property name="bottomMargin">
     <number>0</number>
    </property>
    <item>
@@ -38,7 +47,7 @@
        </rect>
       </property>
       <layout class="QGridLayout" name="gridLayout_4">
-       <item row="0" column="0" rowspan="4" colspan="2">
+       <item row="0" column="0">
         <widget class="QTabWidget" name="tabWidget2d3d">
          <property name="sizePolicy">
           <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
@@ -47,7 +56,7 @@
           </sizepolicy>
          </property>
          <property name="currentIndex">
-          <number>1</number>
+          <number>0</number>
          </property>
          <widget class="QWidget" name="tabPlot2d">
           <attribute name="title">
@@ -80,7 +89,16 @@
               <string>X axis</string>
              </property>
              <layout class="QHBoxLayout" name="horizontalLayout">
-              <property name="margin">
+              <property name="leftMargin">
+               <number>0</number>
+              </property>
+              <property name="topMargin">
+               <number>0</number>
+              </property>
+              <property name="rightMargin">
+               <number>0</number>
+              </property>
+              <property name="bottomMargin">
                <number>0</number>
               </property>
               <item>
@@ -308,11 +326,18 @@
               </item>
               <item row="5" column="1">
                <widget class="QPushButton" name="btnColor">
-                <property name="focusPolicy">
-                 <enum>Qt::StrongFocus</enum>
-                </property>
                 <property name="text">
                  <string>Choose</string>
+                </property>
+               </widget>
+              </item>
+              <item row="6" column="0" colspan="2">
+               <widget class="QPushButton" name="btnApply2dCurve">
+                <property name="toolTip">
+                 <string>Apply the settings to the selected curve data source</string>
+                </property>
+                <property name="text">
+                 <string>Apply</string>
                 </property>
                </widget>
               </item>
@@ -459,9 +484,6 @@
                   <height>25</height>
                  </size>
                 </property>
-                <property name="focusPolicy">
-                 <enum>Qt::StrongFocus</enum>
-                </property>
                 <property name="toolTip">
                  <string>Add a new curve data source</string>
                 </property>
@@ -484,9 +506,6 @@
                   <height>25</height>
                  </size>
                 </property>
-                <property name="focusPolicy">
-                 <enum>Qt::StrongFocus</enum>
-                </property>
                 <property name="toolTip">
                  <string>Remove the selected curve data source</string>
                 </property>
@@ -507,19 +526,6 @@
                  </size>
                 </property>
                </spacer>
-              </item>
-              <item row="1" column="3">
-               <widget class="QPushButton" name="btnApply2dCurve">
-                <property name="focusPolicy">
-                 <enum>Qt::StrongFocus</enum>
-                </property>
-                <property name="toolTip">
-                 <string>Apply the settings to the selected curve data source</string>
-                </property>
-                <property name="text">
-                 <string>Apply</string>
-                </property>
-               </widget>
               </item>
              </layout>
             </widget>
@@ -1044,8 +1050,6 @@
                 </spacer>
                </item>
               </layout>
-              <zorder>groupBox_4</zorder>
-              <zorder>groupBox_3</zorder>
              </widget>
             </widget>
            </item>
@@ -1072,9 +1076,7 @@
   <tabstop>mathFunctionComboBox</tabstop>
   <tabstop>spnMeanSamples</tabstop>
   <tabstop>btnColor</tabstop>
-  <tabstop>btnApply2dCurve</tabstop>
   <tabstop>scrollArea</tabstop>
-  <tabstop>tabWidget2d3d</tabstop>
   <tabstop>spnDataSize</tabstop>
   <tabstop>cmbXAxisScatterplot2d</tabstop>
   <tabstop>cmb3dPlotType</tabstop>
