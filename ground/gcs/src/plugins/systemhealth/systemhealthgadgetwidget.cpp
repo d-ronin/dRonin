@@ -287,6 +287,9 @@ QString SystemHealthGadgetWidget::getAlarmDescriptionFileName(const QString item
         case SystemAlarms::CONFIGERROR_STABILIZATION:
             alarmDescriptionFileName = QString(":/systemhealth/html/SystemConfiguration-Error-Stabilization.html");
         break;
+        case SystemAlarms::CONFIGERROR_NAVFILTER:
+            alarmDescriptionFileName = QString(":/systemhealth/html/SystemConfiguration-Error-NavFilter.html");
+        break;
         case SystemAlarms::CONFIGERROR_MULTIROTOR:
             alarmDescriptionFileName = QString(":/systemhealth/html/SystemConfiguration-Error-Multirotor.html");
         break;
