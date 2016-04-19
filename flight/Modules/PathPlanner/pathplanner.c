@@ -114,11 +114,16 @@ int32_t PathPlannerInitialize()
 	}
 #endif
 
-	PathPlannerSettingsInitialize();
+	if (PathPlannerSettingsInitialize() == -1) {
+		module_enabled = false;
+		return -1;
+	}
 
 	if(module_enabled) {
-		WaypointInitialize();
-		WaypointActiveInitialize();
+		if (WaypointInitialize() == -1 || WaypointActiveInitialize() == -1) {
+			module_enabled = false;
+			return -1;
+		}
 
 		// Create object queue
 		queue = PIOS_Queue_Create(MAX_QUEUE_SIZE, sizeof(UAVObjEvent));

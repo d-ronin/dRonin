@@ -60,7 +60,9 @@ static int32_t tabletInfo_to_ned(TabletInfoData *tabletInfo, float *NED);
 //! Initialize the tablet controller
 int32_t tablet_control_initialize()
 {
-	TabletInfoInitialize();
+	if (TabletInfoInitialize() == -1) {
+		return -1;
+	};
 	return 0;
 }
 

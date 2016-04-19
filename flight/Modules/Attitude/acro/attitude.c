@@ -127,11 +127,14 @@ int32_t AttitudeStart(void)
  */
 int32_t AttitudeInitialize(void)
 {
-	AttitudeActualInitialize();
-	SensorSettingsInitialize();
-	AttitudeSettingsInitialize();
-	AccelsInitialize();
-	GyrosInitialize();
+	if (AttitudeActualInitialize() == -1 \
+		|| SensorSettingsInitialize() == -1 \
+		|| AttitudeSettingsInitialize() == -1 \
+		|| AccelsInitialize() == -1 \
+		|| GyrosInitialize()  == -1) {
+
+		return -1;
+	}
 	
 	// Initialize quaternion
 	AttitudeActualData attitude;

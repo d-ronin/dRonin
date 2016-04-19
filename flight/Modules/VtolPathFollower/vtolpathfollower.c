@@ -109,22 +109,25 @@ int32_t VtolPathFollowerInitialize()
 		module_enabled = true;
 	} else {
 		module_enabled = false;
+		return -1;
 	}
 #endif
-	AltitudeHoldSettingsInitialize();
-	VtolPathFollowerSettingsInitialize();
-
-	if (!module_enabled) {
+	if (AltitudeHoldSettingsInitialize() == -1 || VtolPathFollowerSettingsInitialize() == -1) {
+		module_enabled = false;
 		return -1;
 	}
 
-	AccelDesiredInitialize();
-	AltitudeHoldStateInitialize();
-	PathDesiredInitialize();
-	PathStatusInitialize();
-	VelocityDesiredInitialize();
-	VtolPathFollowerStatusInitialize();
-	
+	if (AccelDesiredInitialize() == -1 \
+		|| AltitudeHoldStateInitialize() == -1 \
+		|| PathDesiredInitialize() == -1 \
+		|| PathStatusInitialize() == -1 \
+		|| VelocityDesiredInitialize() == -1 \
+		|| VtolPathFollowerStatusInitialize() == -1 ) {
+
+		module_enabled = false;
+		return -1;
+	}
+
 	return 0;
 }
 

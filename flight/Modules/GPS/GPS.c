@@ -135,16 +135,26 @@ int32_t GPSInitialize(void)
 #ifdef SMALLF1
 	if (gpsPort && module_enabled) {
 #endif
-		GPSPositionInitialize();
-		GPSVelocityInitialize();
+		if (GPSPositionInitialize() == -1 \
+			|| GPSVelocityInitialize() == -1) {
+			
+			module_enabled = false;
+			return -1;
+		}
 #if !defined(PIOS_GPS_MINIMAL)
-		GPSTimeInitialize();
-		GPSSatellitesInitialize();
-		HomeLocationInitialize();
-		UBloxInfoInitialize();
+		if (GPSTimeInitialize() == -1 \
+			|| GPSSatellitesInitialize() == -1 \
+			|| HomeLocationInitialize() == -1 \
+			|| UBloxInfoInitialize() == -1) {
+			module_enabled = false;
+			return -1;
+		}
 #endif
 #if defined(PIOS_GPS_PROVIDES_AIRSPEED)
-		AirspeedActualInitialize();
+		if (AirspeedActualInitialize() == -1) {
+			module_enabled = false;
+			return -1;
+		}
 #endif
 		updateSettings();
 #ifdef SMALLF1
@@ -156,9 +166,17 @@ int32_t GPSInitialize(void)
 		switch (gpsProtocol) {
 			case MODULESETTINGS_GPSDATAPROTOCOL_NMEA:
 				gps_rx_buffer = PIOS_malloc(NMEA_MAX_PACKET_LENGTH);
+				if (gps_rx_buffer == NULL) {
+					AlarmsSet(SYSTEMALARMS_ALARM_GPS, SYSTEMALARMS_ALARM_ERROR);
+					return -1;
+				}
 				break;
 			case MODULESETTINGS_GPSDATAPROTOCOL_UBX:
 				gps_rx_buffer = PIOS_malloc(sizeof(struct UBXPacket));
+				if (gps_rx_buffer == NULL) {
+					AlarmsSet(SYSTEMALARMS_ALARM_GPS, SYSTEMALARMS_ALARM_ERROR);
+					return -1;
+				}
 				break;
 			default:
 				gps_rx_buffer = NULL;
