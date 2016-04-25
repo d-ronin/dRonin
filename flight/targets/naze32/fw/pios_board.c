@@ -209,27 +209,6 @@ void PIOS_Board_Init(void) {
 	uint8_t hw_rcvrport;
 	HwNazeRcvrPortGet(&hw_rcvrport);
 
-#ifndef PIOS_DEBUG_ENABLE_DEBUG_PINS
-#ifdef PIOS_INCLUDE_SERVO
-	switch (hw_rcvrport) {
-		case HWNAZE_RCVRPORT_DISABLED:
-		case HWNAZE_RCVRPORT_PWM:
-		case HWNAZE_RCVRPORT_PPM:
-		case HWNAZE_RCVRPORT_PPMPWM:
-		case HWNAZE_RCVRPORT_PPMSERIAL:
-		case HWNAZE_RCVRPORT_SERIAL:
-			PIOS_Servo_Init(&pios_servo_cfg);
-			break;
-		case HWNAZE_RCVRPORT_PPMOUTPUTS:
-		case HWNAZE_RCVRPORT_OUTPUTS:
-			PIOS_Servo_Init(&pios_servo_rcvr_cfg);
-			break;
-	}
-#endif
-#else
-	PIOS_DEBUG_Init(&pios_tim_servo_all_channels, NELEMENTS(pios_tim_servo_all_channels));
-#endif
-
 #if defined(PIOS_INCLUDE_ADC)
 	{
 		uint16_t number_of_adc_pins = 2; // first two pins are always available
@@ -438,6 +417,27 @@ void PIOS_Board_Init(void) {
 				NULL);                                  // sbus_cfg
 		break;
 	}
+
+#ifndef PIOS_DEBUG_ENABLE_DEBUG_PINS
+#ifdef PIOS_INCLUDE_SERVO
+	switch (hw_rcvrport) {
+		case HWNAZE_RCVRPORT_DISABLED:
+		case HWNAZE_RCVRPORT_PWM:
+		case HWNAZE_RCVRPORT_PPM:
+		case HWNAZE_RCVRPORT_PPMPWM:
+		case HWNAZE_RCVRPORT_PPMSERIAL:
+		case HWNAZE_RCVRPORT_SERIAL:
+			PIOS_Servo_Init(&pios_servo_cfg);
+			break;
+		case HWNAZE_RCVRPORT_PPMOUTPUTS:
+		case HWNAZE_RCVRPORT_OUTPUTS:
+			PIOS_Servo_Init(&pios_servo_rcvr_cfg);
+			break;
+	}
+#endif
+#else
+	PIOS_DEBUG_Init(&pios_tim_servo_all_channels, NELEMENTS(pios_tim_servo_all_channels));
+#endif
 
 #if defined(PIOS_INCLUDE_MS5611)
 	if (PIOS_MS5611_Init(&pios_ms5611_cfg, pios_i2c_internal_id) != 0)
