@@ -286,9 +286,6 @@ static void actuator_task(void* parameters)
 			manualControlCommandUpdated = false;
 		}
 
-#if defined(MIXERSTATUS_DIAGNOSTICS)
-		MixerStatusGet(&mixerStatus);
-#endif
 		int nMixers = 0;
 
 		for (int ct = 0; ct < MAX_MIX_ACTUATORS; ct++) {
@@ -445,9 +442,13 @@ static void actuator_task(void* parameters)
 			command.MaxUpdateTime = 1000.0f*dT;
 
 		// Update output object
-		ActuatorCommandSet(&command);
-		// Update in case read only (eg. during servo configuration)
-		ActuatorCommandGet(&command);
+		if (!ActuatorCommandReadOnly()) {
+			ActuatorCommandSet(&command);
+		} else {
+			// it's read only during servo configuration--
+			// so GCS takes precedence.
+			ActuatorCommandGet(&command);
+		}
 
 #if defined(MIXERSTATUS_DIAGNOSTICS)
 		MixerStatusSet(&mixerStatus);

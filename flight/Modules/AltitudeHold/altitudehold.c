@@ -246,7 +246,6 @@ static void altitudeHoldTask(void *parameters)
 			altitudeHoldState.Thrust = throttle_desired;
 			AltitudeHoldStateSet(&altitudeHoldState);
 
-			StabilizationDesiredGet(&stabilizationDesired);
 			stabilizationDesired.Thrust = bound_min_max(throttle_desired, min_throttle, 1.0f);
 
 			if (landing) {
