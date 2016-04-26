@@ -88,7 +88,7 @@ bool ConfigurePage::isComplete() const
 bool ConfigurePage::validatePage()
 {
     quint32 bps = ui->cbBaudRate->currentText().toInt();
-    quint32 maxRfPower = ui->cbRfPower->currentText().toFloat();
+    float maxRfPower = ui->cbRfPower->currentText().toFloat();
     quint8 minChannel = ui->sbMinChannel->value();
     quint8 maxChannel = ui->sbMaxChannel->value();
     enum Core::IBoardType::LinkMode linkMode;

@@ -292,7 +292,7 @@ bool Sparky2::bindRadio(quint32 id, quint32 baud_rate, float rf_power,
     }
 
     // Round to an integer to use a switch statement
-    quint32 rf_power_100 = rf_power * 100;
+    quint32 rf_power_100 = (rf_power * 100) + 0.5;
     switch(rf_power_100) {
     case 0:
         settings.MaxRfPower = HwSparky2::MAXRFPOWER_0;
