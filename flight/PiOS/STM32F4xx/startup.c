@@ -76,6 +76,8 @@ _main(void)
 
 	/* configure default FPU state */
 	FPU->FPDSCR |= FPU_FPDSCR_DN_Msk;	/* enable Default NaN */
+	FPU->FPDSCR |= FPU_FPDSCR_FZ_Msk;	/* Use flush to zero for very
+						 * small values. */
 
 	/* enable the FPU */
 	SCB->CPACR |= (0xf << 20);	// turn on CP10/11 for FP support on cores that implement it
