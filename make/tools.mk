@@ -30,7 +30,7 @@ ifndef WINDOWS
   # Check for a current QT SDK dir, abort without
   ifeq ($(wildcard $(QT_SDK_DIR)/*),)
     ifeq (,$(findstring _install,$(MAKECMDGOALS)))
-      $(error "QT SDK not found, please run `qt_sdk_install`")
+      $(error "QT SDK not found, please run `make qt_sdk_install`")
     endif
   endif
 endif
