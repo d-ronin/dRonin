@@ -423,7 +423,8 @@ static int32_t PIOS_MPU_Common_Init(void)
 
 	/* Wait 20 ms for data ready interrupt and make sure it happens twice */
 	if ((PIOS_Semaphore_Take(mpu_dev->data_ready_sema, 20) != true) ||
-		(PIOS_Semaphore_Take(mpu_dev->data_ready_sema, 20) != true)) {
+			(PIOS_Semaphore_Take(mpu_dev->data_ready_sema, 20) != true)) {
+		PIOS_EXTI_DeInit(mpu_dev->cfg->exti_cfg);
 		return -PIOS_MPU_ERROR_NOIRQ;
 	}
 
