@@ -185,8 +185,6 @@ static void batteryTask(void * parameters)
 				AlarmsClear(SYSTEMALARMS_ALARM_BATTERY);
 		} else {
 			flightBatteryData.Voltage = 0;
-			AlarmsSet(SYSTEMALARMS_ALARM_BATTERY, SYSTEMALARMS_ALARM_ERROR);
-			AlarmsSet(SYSTEMALARMS_ALARM_FLIGHTTIME, SYSTEMALARMS_ALARM_ERROR);
 		}
 
 		// handle current
@@ -239,8 +237,6 @@ static void batteryTask(void * parameters)
 				AlarmsClear(SYSTEMALARMS_ALARM_FLIGHTTIME);
 		} else {
 			flightBatteryData.Current = 0;
-			AlarmsSet(SYSTEMALARMS_ALARM_BATTERY, SYSTEMALARMS_ALARM_ERROR);
-			AlarmsSet(SYSTEMALARMS_ALARM_FLIGHTTIME, SYSTEMALARMS_ALARM_ERROR);
 		}
 
 		if(adc_pin_invalid)
