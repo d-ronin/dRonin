@@ -85,7 +85,6 @@ static bool module_enabled;
 static volatile LoggingSettingsData settings;
 static LoggingStatsData loggingData;
 struct pios_queue *logging_queue;
-static struct pios_recursive_mutex *mutex;
 
 // Private functions
 static void    loggingTask(void *parameters);
@@ -179,12 +178,6 @@ int32_t LoggingStart(void)
 	logging_queue = PIOS_Queue_Create(LOGGING_QUEUE_SIZE, sizeof(UAVObjEvent));
 	if (!logging_queue){
 		return -1;
-	}
-
-	// Create mutex
-	mutex = PIOS_Recursive_Mutex_Create();
-	if (mutex == NULL){
-		return -2;
 	}
 
 	// Start logging task
@@ -458,9 +451,8 @@ static void obj_updated_callback(UAVObjEvent * ev, void* cb_ctx, void *uavo_data
 		// We are not logging, so all events are discarded
 		return;
 	}
-	PIOS_Recursive_Mutex_Lock(mutex, PIOS_MUTEX_TIMEOUT_MAX);
+
 	PIOS_Queue_Send(logging_queue, ev, 0);
-	PIOS_Recursive_Mutex_Unlock(mutex);
 }
 
 
