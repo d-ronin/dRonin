@@ -22,25 +22,24 @@ ifdef OPENOCD_FTDI
 endif
 
 # Set up QT toolchain
-QT_VERSION := 5.5.1
+QT_VERSION := 5.6.0
 QT_SDK_DIR := $(TOOLS_DIR)/Qt$(QT_VERSION)
 
 # On any platform except windows
 ifndef WINDOWS
   # Check for a current QT SDK dir, abort without
   ifeq ($(wildcard $(QT_SDK_DIR)/*),)
-    ifneq ($(MAKECMDGOALS), qt_sdk_install)
-      $(error "QT SDK not found, please run `qt_sdk_install`")
+    ifeq (,$(findstring _install,$(MAKECMDGOALS)))
+      $(error "QT SDK not found, please run `make qt_sdk_install`")
     endif
   endif
 endif
 
-
 ifdef LINUX
   ifdef AMD64
-    QT_PLUGINS_DIR = $(QT_SDK_DIR)/5.5/gcc_64/plugins
+    QT_PLUGINS_DIR = $(QT_SDK_DIR)/5.6/gcc_64/plugins
   else
-    QT_PLUGINS_DIR = $(QT_SDK_DIR)/5.5/gcc/plugins
+    QT_PLUGINS_DIR = $(QT_SDK_DIR)/5.6/gcc/plugins
   endif
 endif
 
@@ -69,25 +68,23 @@ OPENOCD_FTDI ?= yes
 ifdef LINUX
   ifdef AMD64
     # Linux 64-bit
-    qt_sdk_install: QT_SDK_URL := http://download.qt.io/official_releases/qt/5.5/5.5.1/qt-opensource-linux-x64-5.5.1.run
-    QT_SDK_QMAKE_PATH := $(QT_SDK_DIR)/5.5/gcc_64/bin/qmake
+    qt_sdk_install: QT_SDK_URL := http://download.qt.io/official_releases/qt/5.6/5.6.0/qt-opensource-linux-x64-5.6.0.run
+    QT_SDK_QMAKE_PATH := $(QT_SDK_DIR)/5.6/gcc_64/bin/qmake
   else
-    # Linux 32-bit
-    qt_sdk_install: QT_SDK_URL := http://download.qt.io/official_releases/qt/5.5/5.5.1/qt-opensource-linux-x86-5.5.1.run
-    QT_SDK_QMAKE_PATH := $(QT_SDK_DIR)/5.5/gcc/bin/qmake
+    $(warning Build is only supported on 64-bit Linux)
   endif
 endif
 
 ifdef MACOSX
-  qt_sdk_install: QT_SDK_URL  := http://download.qt.io/official_releases/qt/5.5/5.5.1/qt-opensource-mac-x64-clang-5.5.1.dmg
-  QT_SDK_QMAKE_PATH := $(QT_SDK_DIR)/5.5/clang_64/bin/qmake
+  qt_sdk_install: QT_SDK_URL  := http://download.qt.io/official_releases/qt/5.6/5.6.0/qt-opensource-mac-x64-clang-5.6.0.dmg
+  QT_SDK_QMAKE_PATH := $(QT_SDK_DIR)/5.6/clang_64/bin/qmake
 
-  export QT_SDK_BIN_PATH := $(QT_SDK_DIR)/5.5/clang_64/bin
+  export QT_SDK_BIN_PATH := $(QT_SDK_DIR)/5.6/clang_64/bin
 endif
 
 ifdef WINDOWS
-  qt_sdk_install: QT_SDK_URL  := http://download.qt.io/official_releases/qt/5.5/5.5.1/qt-opensource-windows-x86-mingw492-5.5.1.exe
-  QT_SDK_QMAKE_PATH := $(QT_SDK_DIR)/5.5/mingw492_32/bin/qmake
+  qt_sdk_install: QT_SDK_URL  := http://download.qt.io/official_releases/qt/5.6/5.6.0/qt-opensource-windows-x86-mingw492-5.6.0.exe
+  QT_SDK_QMAKE_PATH := $(QT_SDK_DIR)/5.6/mingw492_32/bin/qmake
 endif
 
 qt_sdk_install: QT_SDK_FILE := $(notdir $(QT_SDK_URL))
@@ -107,7 +104,7 @@ qt_sdk_install: qt_sdk_clean
 
 ifneq (,$(filter $(UNAME), Darwin))
 	$(V1) hdiutil attach -quiet -private -mountpoint /tmp/qt-installer "$(DL_DIR)/$(QT_SDK_FILE)" 
-	$(V1) /tmp/qt-installer/qt-opensource-mac-x64-clang-5.5.1.app/Contents/MacOS/qt-opensource-mac-x64-clang-5.5.1
+	$(V1) /tmp/qt-installer/qt-opensource-mac-x64-clang-5.6.0.app/Contents/MacOS/qt-opensource-mac-x64-clang-5.6.0
 	$(V1) hdiutil detach -quiet /tmp/qt-installer
 endif
 
@@ -118,7 +115,7 @@ ifneq (,$(filter $(UNAME), Linux))
 endif
 
 ifdef WINDOWS
-	$(V1) ./downloads/qt-opensource-windows-x86-mingw492-5.5.1.exe
+	$(V1) ./downloads/qt-opensource-windows-x86-mingw492-5.6.0.exe
 endif
 
 .PHONY: qt_sdk_clean
@@ -527,7 +524,7 @@ endif
 ifeq ($(shell [ -d "$(ARM_SDK_DIR)" ] && echo "exists"), exists)
   ARM_SDK_PREFIX := $(ARM_SDK_DIR)/bin/arm-none-eabi-
 else
-  ifneq ($(MAKECMDGOALS),arm_sdk_install)
+  ifeq (,$(findstring _install,$(MAKECMDGOALS)))
     $(error **WARNING** ARM-SDK not in $(ARM_SDK_DIR)  Please run 'make arm_sdk_install')
   endif
   # not installed, hope it's in the path...
