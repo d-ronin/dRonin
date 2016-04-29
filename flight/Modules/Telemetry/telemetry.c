@@ -375,6 +375,8 @@ static void telemetryRxTask(void *parameters)
 				}
 #endif
 			}
+		} else {
+			PIOS_Thread_Sleep(3);
 		}
 	}
 }
