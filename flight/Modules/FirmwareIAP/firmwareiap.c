@@ -93,7 +93,9 @@ MODULE_INITCALL(FirmwareIAPInitialize, 0)
 int32_t FirmwareIAPInitialize()
 {
 	
-	FirmwareIAPObjInitialize();
+	if (FirmwareIAPObjInitialize() == -1) {
+		return -1;
+	}
 	
 	const struct pios_board_info * bdinfo = &pios_board_info_blob;
 

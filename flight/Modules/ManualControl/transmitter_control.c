@@ -127,16 +127,21 @@ DONT_BUILD_IF(!assumptions, TransmitterControlAssumptions);
 //! Initialize the transmitter control mode
 int32_t transmitter_control_initialize()
 {
-	AccessoryDesiredInitialize();
-	ManualControlCommandInitialize();
-	FlightStatusInitialize();
-	StabilizationDesiredInitialize();
-	ReceiverActivityInitialize();
-	ManualControlSettingsInitialize();
+	if (AccessoryDesiredInitialize() == -1 \
+		|| ManualControlCommandInitialize() == -1 \
+		|| FlightStatusInitialize() == -1 \
+		|| StabilizationDesiredInitialize() == -1 \
+		|| ReceiverActivityInitialize() == -1 \
+		|| ManualControlSettingsInitialize() == -1 ){
+
+		return -1;
+	}
 
 	// Both the gimbal and coptercontrol do not support loitering
 #if !defined(SMALLF1)
-	LoiterCommandInitialize();
+	if (LoiterCommandInitialize() == -1) {
+		return -1;
+	}
 #endif
 
 	/* For now manual instantiate extra instances of Accessory Desired.  In future  */

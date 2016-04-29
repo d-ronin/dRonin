@@ -1566,7 +1566,10 @@ int32_t OnScreenDisplayInitialize(void)
 {
 	uint8_t osd_state;
 
-	OnScreenDisplaySettingsInitialize();
+	if (OnScreenDisplaySettingsInitialize() == -1) {
+		module_enabled = false;
+		return -1;
+	}
 	OnScreenDisplaySettingsOSDEnabledGet(&osd_state);
 
 	if (osd_state == ONSCREENDISPLAYSETTINGS_OSDENABLED_ENABLED) {
@@ -1590,11 +1593,15 @@ int32_t OnScreenDisplayInitialize(void)
 		has_nav = false;
 	}
 
-	OnScreenDisplayPageSettingsInitialize();
-	OnScreenDisplayPageSettings2Initialize();
-	OnScreenDisplayPageSettings3Initialize();
-	OnScreenDisplayPageSettings4Initialize();
+	if (OnScreenDisplayPageSettingsInitialize() == -1 \
+		|| OnScreenDisplayPageSettings2Initialize() == -1 \
+		|| OnScreenDisplayPageSettings3Initialize() == -1 \
+		|| OnScreenDisplayPageSettings4Initialize() == -1 ) {
 
+		module_enabled = false;
+		return -1;
+	}
+	
 	/* Register callbacks for modified settings */
 	OnScreenDisplaySettingsConnectCallbackCtx(UAVObjCbSetFlag, &osd_settings_updated);
 

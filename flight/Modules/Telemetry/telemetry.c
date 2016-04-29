@@ -120,8 +120,9 @@ int32_t TelemetryStart(void)
  */
 int32_t TelemetryInitialize(void)
 {
-	FlightTelemetryStatsInitialize();
-	GCSTelemetryStatsInitialize();
+	if (FlightTelemetryStatsInitialize() == -1 || GCSTelemetryStatsInitialize() == -1) {
+		return -1;
+	}
 
 	// Initialize vars
 	timeOfLastObjectUpdate = 0;
@@ -132,7 +133,10 @@ int32_t TelemetryInitialize(void)
 	// Initialise UAVTalk
 	uavTalkCon = UAVTalkInitialize(&transmitData);
 
-	SessionManagingInitialize();
+	if (SessionManagingInitialize() == -1) {
+		return -1;
+	}
+	
 	SessionManagingConnectCallback(session_managing_updated);
 
 	//register the new uavo instance callback function in the uavobjectmanager

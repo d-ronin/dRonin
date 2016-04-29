@@ -300,7 +300,10 @@ static int32_t VibrationAnalysisStart(void)
  */
 static int32_t VibrationAnalysisInitialize(void)
 {
-	ModuleSettingsInitialize();
+	if (ModuleSettingsInitialize() == -1) {
+        module_enabled = false;
+        return -1;
+    }
 	
 #ifdef MODULE_VibrationAnalysis_BUILTIN
 	module_enabled = true;
@@ -318,8 +321,10 @@ static int32_t VibrationAnalysisInitialize(void)
 		return -1;
 
 	// Initialize UAVOs
-	VibrationAnalysisSettingsInitialize();
-	VibrationAnalysisOutputInitialize();
+	if (VibrationAnalysisSettingsInitialize() == -1 || VibrationAnalysisOutputInitialize() == -1) {
+        module_enabled = false;
+        return -1;
+    }
 		
 	// Create object queue
 	queue = PIOS_Queue_Create(MAX_QUEUE_SIZE, sizeof(UAVObjEvent));

@@ -242,10 +242,13 @@ static int32_t uavoTaranisInitialize(void)
 
 			// These objects are registered on the TLM so it
 			// can intercept them from the telemetry stream
-			FlightBatteryStateInitialize();
-			FlightStatusInitialize();
-			PositionActualInitialize();
-			VelocityActualInitialize();
+			if (FlightBatteryStateInitialize() == -1 \
+				|| FlightStatusInitialize() == -1 \
+				|| PositionActualInitialize() == -1 \
+				|| VelocityActualInitialize()) {
+				module_enabled = false;
+				return -1;
+			}
 
 			frsky->frsky_settings.use_current_sensor = false;
 			frsky->frsky_settings.batt_cell_count = 0;

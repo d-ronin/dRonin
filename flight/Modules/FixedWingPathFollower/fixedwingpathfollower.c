@@ -132,13 +132,17 @@ int32_t FixedWingPathFollowerInitialize()
 #endif
 
 	if (module_enabled) {
-		FixedWingPathFollowerSettingsInitialize();
-		FixedWingAirspeedsInitialize();
-		FixedWingPathFollowerStatusInitialize();
-		PathDesiredInitialize();
-		PathStatusInitialize();
-		VelocityDesiredInitialize();
-		AirspeedActualInitialize();
+		if (FixedWingPathFollowerSettingsInitialize() == -1 \
+			|| FixedWingAirspeedsInitialize() == -1 \
+			|| FixedWingPathFollowerStatusInitialize() == -1 \
+			|| PathDesiredInitialize() == -1 \
+			|| PathStatusInitialize() == -1 \
+			|| VelocityDesiredInitialize() == -1 \
+			|| AirspeedActualInitialize() == -1 ){
+			
+			module_enabled = false;
+			return -1;
+		}
 	}
 
 	return 0;

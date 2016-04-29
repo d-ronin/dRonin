@@ -114,7 +114,10 @@ int32_t CameraStabInitialize(void)
 	}
 #endif
 
-	CameraStabSettingsInitialize();
+	if (CameraStabSettingsInitialize() == -1) {
+		module_enabled = false;
+		return -1;
+	}
 
 	if (module_enabled) {
 
@@ -129,14 +132,18 @@ int32_t CameraStabInitialize(void)
 		memset(csd, 0, sizeof(struct CameraStab_data));
 		csd->lastSysTime = PIOS_Thread_Systime() - SAMPLE_PERIOD_MS;
 
-		AttitudeActualInitialize();
-		CameraDesiredInitialize();
+		if (AttitudeActualInitialize() == -1 || CameraDesiredInitialize() == -1) {
+			module_enabled = false;
+			return -1;
+		}
 
 		CameraStabSettingsConnectCallback(settings_updated_cb);
 		settings_updated_cb(NULL, NULL, NULL, 0);
 #if defined(CAMERASTAB_POI_MODE)
-		PoiLocationInitialize();
-		TabletInfoInitialize();
+		if (PoiLocationInitialize() == -1 || TabletInfoInitialize() == -1) {
+			module_enabled = false;
+			return -1;
+		}
 		TabletInfoConnectCallback(tablet_info_flag_update);
 #endif /* CAMERASTAB_POI_MODE */
 
