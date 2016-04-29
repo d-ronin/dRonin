@@ -12,7 +12,7 @@ const struct pios_board_info __attribute__((__used__)) __attribute__((__section_
   .board_type = BOARD_TYPE,
   .board_rev  = BOARD_REVISION,
   .bl_rev     = BOOTLOADER_VERSION,
-  .hw_type    = HW_TYPE,
+  .resv       = 0xff,
   .fw_base    = FW_BANK_BASE,
   .fw_size    = FW_BANK_SIZE - FW_DESC_SIZE,
   .desc_base  = FW_BANK_BASE + FW_BANK_SIZE - FW_DESC_SIZE,
