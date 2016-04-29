@@ -113,17 +113,17 @@ static void batteryTask(void * parameters)
 	bool cells_calculated = false;
 	unsigned cells = 1;
 
+	FlightBatteryStateData flightBatteryData;
+	FlightBatterySettingsData batterySettings;
+
+	FlightBatteryStateGet(&flightBatteryData);
+
 	// Main task loop
 	uint32_t lastSysTime;
 	lastSysTime = PIOS_Thread_Systime();
 	while (true) {
 		PIOS_Thread_Sleep_Until(&lastSysTime, SAMPLE_PERIOD_MS);
-
-		FlightBatteryStateData flightBatteryData;
-		FlightBatterySettingsData batterySettings;
 		float energyRemaining;
-
-		FlightBatteryStateGet(&flightBatteryData);
 
 		if (battery_settings_updated) {
 			battery_settings_updated = false;

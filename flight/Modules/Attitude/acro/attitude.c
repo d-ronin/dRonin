@@ -138,7 +138,6 @@ int32_t AttitudeInitialize(void)
 	
 	// Initialize quaternion
 	AttitudeActualData attitude;
-	AttitudeActualGet(&attitude);
 	attitude.q1 = 1;
 	attitude.q2 = 0;
 	attitude.q3 = 0;
@@ -549,10 +548,12 @@ static void updateAttitude(AccelsData * accelsData, GyrosData * gyrosData)
 		q[3] = 0;
 	}
 	
-	AttitudeActualData attitudeActual;
-	AttitudeActualGet(&attitudeActual);
-	
-	quat_copy(q, &attitudeActual.q1);
+	AttitudeActualData attitudeActual = {
+		.q1 = q[0],
+		.q2 = q[1],
+		.q3 = q[2],
+		.q4 = q[3],
+	};
 	
 	// Convert into eueler degrees (makes assumptions about RPY order)
 	Quaternion2RPY(&attitudeActual.q1,&attitudeActual.Roll);

@@ -205,8 +205,6 @@ static void airspeedTask(void *parameters)
 {
 	BaroAirspeedData airspeedData;
 	AirspeedActualData airspeedActualData;
-
-	airspeedData.BaroConnected = BAROAIRSPEED_BAROCONNECTED_FALSE;
 	
 #ifdef BARO_AIRSPEED_PRESENT		
 	uint32_t lastGPSTime = PIOS_Thread_Systime(); //Time since last GPS-derived airspeed calculation
@@ -228,6 +226,12 @@ static void airspeedTask(void *parameters)
 	
 	// Main task loop
 	uint32_t lastSysTime = PIOS_Thread_Systime();
+
+	// Get initial values of airspeed object
+	BaroAirspeedGet(&airspeedData);
+
+	airspeedData.BaroConnected = BAROAIRSPEED_BAROCONNECTED_FALSE;
+
 	while (1)
 	{
 		if (settingsUpdated) {
@@ -235,9 +239,6 @@ static void airspeedTask(void *parameters)
 
 			doSettingsUpdate();
 		}
-
-		// Update the airspeed object
-		BaroAirspeedGet(&airspeedData);
 
 #ifdef BARO_AIRSPEED_PRESENT
 		float airspeed_tas_baro=0;
@@ -361,7 +362,6 @@ static void airspeedTask(void *parameters)
 		airspeedActualData.CalibratedAirspeed = airspeedData.CalibratedAirspeed;
 		BaroAirspeedSet(&airspeedData);
 		AirspeedActualSet(&airspeedActualData);
-			
 	}
 }
 
