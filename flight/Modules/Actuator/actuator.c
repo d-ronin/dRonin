@@ -80,7 +80,9 @@ static bool flightStatusUpdated = true;
 static bool manualControlCommandUpdated = true;
 
 // used to inform the actuator thread that actuator / mixer settings are updated
-static volatile bool settings_updated;
+// set true to ensure they're fetched on first run
+static volatile bool actuator_settings_updated = true;
+static volatile bool mixer_settings_updated = true;
 
 // The actual mixer settings data, pulled at the top of the actuator thread
 static MixerSettingsData mixerSettings;
@@ -95,7 +97,7 @@ static void set_failsafe();
 static float throt_curve(const float input, const float* curve, uint8_t num_points);
 static float collective_curve(const float input, const float* curve, uint8_t num_points);
 static bool set_channel(uint8_t mixer_channel, float value);
-static void actuator_update_rate_if_changed(bool force_update);
+static void actuator_set_servo_mode(void);
 float process_mixer(const int index, const float curve1, const float curve2,
 		ActuatorDesiredData *desired);
 static float mix_channel(int ct, ActuatorDesiredData *desired,
@@ -130,13 +132,13 @@ int32_t ActuatorInitialize()
 	if (ActuatorSettingsInitialize()  == -1) {
 		return -1;
 	}
-	ActuatorSettingsConnectCallbackCtx(UAVObjCbSetFlag, &settings_updated);
+	ActuatorSettingsConnectCallbackCtx(UAVObjCbSetFlag, &actuator_settings_updated);
 
 	// Register for notification of changes to MixerSettings
 	if (MixerSettingsInitialize()  == -1) {
 		return -1;
 	}
-	MixerSettingsConnectCallbackCtx(UAVObjCbSetFlag, &settings_updated);
+	MixerSettingsConnectCallbackCtx(UAVObjCbSetFlag, &mixer_settings_updated);
 
 	// Listen for ActuatorDesired updates (Primary input to this module)
 	if (ActuatorDesiredInitialize()  == -1) {
@@ -236,9 +238,6 @@ static void actuator_task(void* parameters)
 
 	SystemSettingsAirframeTypeOptions airframe_type;
 
-	/* Read initial values of ActuatorSettings */
-	settings_updated = true;
-
 	// Connect update callbacks
 	FlightStatusConnectCallbackCtx(UAVObjCbSetFlag, &flightStatusUpdated);
 	ManualControlCommandConnectCallbackCtx(UAVObjCbSetFlag, &manualControlCommandUpdated);
@@ -251,10 +250,13 @@ static void actuator_task(void* parameters)
 	while (1) {
 		bool clipped = false;
 
-		if (settings_updated) {
-			settings_updated = false;
+		if (actuator_settings_updated) {
+			actuator_settings_updated = false;
 			ActuatorSettingsGet(&actuatorSettings);
-			actuator_update_rate_if_changed(false);
+			actuator_set_servo_mode();
+		}
+		if (mixer_settings_updated) {
+			mixer_settings_updated = false;
 			MixerSettingsGet(&mixerSettings);
 			SystemSettingsAirframeTypeGet(&airframe_type);
 		}
@@ -715,12 +717,11 @@ static bool set_channel(uint8_t mixer_channel, float value)
 			}
 		}
 		PIOS_Servo_Set(mixer_channel,
-					buzzOn ? actuatorSettings.ChannelMax[mixer_channel] : actuatorSettings.ChannelMin[mixer_channel],
-					actuatorSettings.ChannelMax[mixer_channel]);
+					buzzOn ? actuatorSettings.ChannelMax[mixer_channel] : actuatorSettings.ChannelMin[mixer_channel]);
 		return true;
 	}
 	case ACTUATORSETTINGS_CHANNELTYPE_PWM:
-		PIOS_Servo_Set(mixer_channel, value, actuatorSettings.ChannelMax[mixer_channel]);
+		PIOS_Servo_Set(mixer_channel, value);
 		return true;
 	}
 
@@ -731,22 +732,10 @@ static bool set_channel(uint8_t mixer_channel, float value)
 /**
  * @brief Update the servo update rate
  */
-static void actuator_update_rate_if_changed(bool force_update)
+static void actuator_set_servo_mode(void)
 {
-	static uint16_t prevChannelUpdateFreq[ACTUATORSETTINGS_TIMERUPDATEFREQ_NUMELEM];
-
-	// check if the any rate setting is changed
-	if (force_update ||
-			memcmp(prevChannelUpdateFreq,
-				actuatorSettings.TimerUpdateFreq,
-				sizeof(prevChannelUpdateFreq)) != 0) {
-		/* Something has changed, apply the settings to HW */
-		memcpy(prevChannelUpdateFreq,
-				actuatorSettings.TimerUpdateFreq,
-				sizeof(prevChannelUpdateFreq));
-		PIOS_Servo_SetMode(actuatorSettings.TimerUpdateFreq, actuatorSettings.TimerPwmResolution,
-				ACTUATORSETTINGS_TIMERPWMRESOLUTION_NUMELEM);
-	}
+	PIOS_Servo_SetMode(actuatorSettings.TimerUpdateFreq,
+			ACTUATORSETTINGS_TIMERUPDATEFREQ_NUMELEM, actuatorSettings.ChannelMax);
 }
 
 static float mix_channel(int ct, ActuatorDesiredData *desired,
@@ -894,11 +883,6 @@ static typeof(mixerSettings.Mixer1Vector) *get_mixer_vec(int idx)
 		PIOS_Assert(0);
 	}
 }
-
-#define OUTPUT_MODE_ASSUMPTIONS ( ( (int) PWM_MODE_1MHZ == ACTUATORSETTINGS_TIMERPWMRESOLUTION_1MHZ ) && \
-	( (int) PWM_MODE_12MHZ == ACTUATORSETTINGS_TIMERPWMRESOLUTION_12MHZ ) )
-
-DONT_BUILD_IF(!OUTPUT_MODE_ASSUMPTIONS, OutputModeAssumptions);
 
 /**
  * @}

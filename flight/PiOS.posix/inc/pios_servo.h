@@ -30,11 +30,10 @@
 #ifndef PIOS_SERVO_H
 #define PIOS_SERVO_H
 
-enum pwm_mode {PWM_MODE_1MHZ, PWM_MODE_12MHZ};
-
 /* Public Functions */
-extern void PIOS_Servo_SetMode(const uint16_t * speeds, const uint8_t *pwm_mode, uint8_t banks);
-extern void PIOS_Servo_Set(uint8_t Servo, uint16_t Position);
+extern void PIOS_Servo_SetMode(const uint16_t *out_rate, const int banks, const uint16_t *channel_max);
+extern void PIOS_Servo_Set(uint8_t servo, float position);
+extern void PIOS_Servo_Update(void);
 
 #endif /* PIOS_SERVO_H */
 

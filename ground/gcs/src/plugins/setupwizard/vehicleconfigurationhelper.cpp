@@ -199,19 +199,15 @@ void VehicleConfigurationHelper::applyActuatorConfiguration()
         }
 
         qint16 updateFrequency = LEGACY_ESC_FREQUENCY;
-        ActuatorSettings::TimerPwmResolutionOptions resolution = ActuatorSettings::TIMERPWMRESOLUTION_12MHZ;
         switch (m_configSource->getESCType()) {
         case VehicleConfigurationSource::ESC_LEGACY:
             updateFrequency = LEGACY_ESC_FREQUENCY;
-            resolution = ActuatorSettings::TIMERPWMRESOLUTION_1MHZ;
             break;
         case VehicleConfigurationSource::ESC_RAPID:
             updateFrequency = RAPID_ESC_FREQUENCY;
-            resolution = ActuatorSettings::TIMERPWMRESOLUTION_1MHZ;
             break;
         case VehicleConfigurationSource::ESC_ONESHOT:
             updateFrequency = ONESHOT_ESC_FREQUENCY;
-            resolution = ActuatorSettings::TIMERPWMRESOLUTION_12MHZ;
             break;
         default:
             break;
@@ -222,7 +218,6 @@ void VehicleConfigurationHelper::applyActuatorConfiguration()
         case VehicleConfigurationSource::MULTI_ROTOR_TRI_Y:
             data.TimerUpdateFreq[0] = updateFrequency;
             data.TimerUpdateFreq[1] = updateFrequency;
-            data.TimerPwmResolution[0] = resolution;
             data.MotorsSpinWhileArmed = ActuatorSettings::MOTORSSPINWHILEARMED_TRUE;
             break;
         case VehicleConfigurationSource::MULTI_ROTOR_QUAD_X:
@@ -230,9 +225,6 @@ void VehicleConfigurationHelper::applyActuatorConfiguration()
             data.TimerUpdateFreq[0] = updateFrequency;
             data.TimerUpdateFreq[1] = updateFrequency;
             data.TimerUpdateFreq[2] = updateFrequency;
-            data.TimerPwmResolution[0] = resolution;
-            data.TimerPwmResolution[1] = resolution;
-            data.TimerPwmResolution[2] = resolution;
             data.MotorsSpinWhileArmed = ActuatorSettings::MOTORSSPINWHILEARMED_TRUE;
             break;
         case VehicleConfigurationSource::MULTI_ROTOR_HEXA:
@@ -246,10 +238,6 @@ void VehicleConfigurationHelper::applyActuatorConfiguration()
             data.TimerUpdateFreq[1] = updateFrequency;
             data.TimerUpdateFreq[2] = updateFrequency;
             data.TimerUpdateFreq[3] = updateFrequency;
-            data.TimerPwmResolution[0] = resolution;
-            data.TimerPwmResolution[1] = resolution;
-            data.TimerPwmResolution[2] = resolution;
-            data.TimerPwmResolution[3] = resolution;
             data.MotorsSpinWhileArmed = ActuatorSettings::MOTORSSPINWHILEARMED_TRUE;
             break;
         default:

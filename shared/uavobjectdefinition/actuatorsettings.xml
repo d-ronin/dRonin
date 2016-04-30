@@ -4,11 +4,8 @@
         <field name="TimerUpdateFreq" units="Hz" type="uint16" elements="6" defaultvalue="50">
             <description>The frequency of the PWM signal output to the actuator. 0 specifies synchronous PWM.</description>
         </field>
-        <field name="TimerPwmResolution" units="" type="enum" elements="6" options="1MHz,12MHz" defaultvalue="1MHz">
-            <description>Internal timer frequency. Use 1 MHz for traditional RC signals (1000-2000 us) or 12 MHz for FastPWM (125-250 us).</description>
-        </field>
         <field name="ChannelMax" units="us" type="uint16" elements="10" defaultvalue="2000">
-            <description>Maxmium output pulse length. Actuator commands will be scaled [0,1] > [ChannelMin,ChannelMax].</description>
+            <description>Maxmium output pulse length. Actuator commands will be scaled [-1,1] > [ChannelMin,ChannelMax].</description>
         </field>
         <field name="ChannelNeutral" units="us" type="uint16" elements="10" defaultvalue="1000">
             <description>Neutral output pulse length. For motors, should be set to the minimum pulse that causes the motor to start and spin reliably.</description>
