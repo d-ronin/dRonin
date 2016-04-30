@@ -35,12 +35,8 @@ enum pwm_mode {PWM_MODE_1MHZ, PWM_MODE_12MHZ};
 
 /* Public Functions */
 extern void PIOS_Servo_SetMode(const uint16_t * update_rates, const enum pwm_mode *pwm_mdoe, uint8_t banks);
-#if defined(PIOS_INCLUDE_HPWM)
 extern void PIOS_Servo_Set(uint8_t servo, float position, float max);
 extern void PIOS_Servo_Update();
-#else
-extern void PIOS_Servo_Set(uint8_t Servo, uint16_t Position);
-#endif
 
 #endif /* PIOS_SERVO_H */
 

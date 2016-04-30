@@ -471,9 +471,8 @@ static void actuator_task(void* parameters)
 		for (int n = 0; n < ACTUATORCOMMAND_CHANNEL_NUMELEM; ++n) {
 			success &= set_channel(n, command.Channel[n]);
 		}
-#if defined(PIOS_INCLUDE_HPWM)
+
 		PIOS_Servo_Update();
-#endif
 
 		if (!success) {
 			command.NumFailedUpdates++;
@@ -601,9 +600,8 @@ static void set_failsafe()
 	for (int n = 0; n < ACTUATORCOMMAND_CHANNEL_NUMELEM; ++n) {
 		set_channel(n, Channel[n]);
 	}
-#if defined(PIOS_INCLUDE_HPWM) // TODO: this is actually about the synchronous updating and not resolution
+	
 	PIOS_Servo_Update();
-#endif
 
 	// Update output object's parts that we changed
 	ActuatorCommandChannelSet(Channel);
@@ -722,19 +720,11 @@ static bool set_channel(uint8_t mixer_channel, float value)
 		return true;
 	}
 	case ACTUATORSETTINGS_CHANNELTYPE_PWM:
-#if defined(PIOS_INCLUDE_HPWM)
-		// The HPWM method will convert from us to the appropriate settings
 		PIOS_Servo_Set(mixer_channel, value, actuatorSettings.ChannelMax[mixer_channel]);
-#else
-		PIOS_Servo_Set(mixer_channel, value, actuatorSettings.ChannelMax[mixer_channel]);
-#endif
 		return true;
-	default:
-		return false;
 	}
 
 	return false;
-
 }
 #endif
 

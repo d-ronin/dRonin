@@ -45,10 +45,7 @@ static const struct pios_servo_cfg * servo_cfg;
 
 //! The counter rate for the channel, used to calculate compare values.
 static enum pwm_mode *output_channel_resolution;  // The clock rate for that timer
-#if defined(PIOS_INCLUDE_HPWM)
-enum SYNC_PWM {SYNC_PWM_FALSE, SYNC_PWM_TRUE};
-static enum SYNC_PWM *output_channel_mode;
-#endif
+enum sync_pwm {SYNC_PWM_FALSE, SYNC_PWM_TRUE} *output_channel_mode;
 
 /* Private constant definitions */
 #define PWM_MODE_1MHZ_RATE   1000000
@@ -101,14 +98,14 @@ int32_t PIOS_Servo_Init(const struct pios_servo_cfg * cfg)
 		return -1;
 	}
 	memset(output_channel_resolution, 0, servo_cfg->num_channels * sizeof(typeof(output_channel_resolution)));
-#if defined(PIOS_INCLUDE_HPWM)
+
 	/* Allocate memory for frequency table */
 	output_channel_mode = PIOS_malloc(servo_cfg->num_channels * sizeof(typeof(output_channel_mode)));
 	if (output_channel_mode == NULL) {
 		return -1;
 	}
 	memset(output_channel_mode, 0, servo_cfg->num_channels * sizeof(typeof(output_channel_mode)));
-#endif
+
 
 	return 0;
 }
@@ -223,11 +220,9 @@ void PIOS_Servo_SetMode(const uint16_t * speeds, const enum pwm_mode *pwm_mode, 
 			/* Configure frequency scaler for all channels that use the same timer */
 			for (uint8_t j=0; (j < servo_cfg->num_channels); j++) {
 				if (chan->timer == servo_cfg->channels[j].timer) {
-#if defined(PIOS_INCLUDE_HPWM)
 					/* save the frequency for these channels */
 					output_channel_mode[j] = (speeds[set] == 0) ? SYNC_PWM_TRUE : SYNC_PWM_FALSE;
 					output_channel_resolution[j] = pwm_mode[set];
-#endif
 				}
 			}
 
@@ -242,7 +237,6 @@ void PIOS_Servo_SetMode(const uint16_t * speeds, const enum pwm_mode *pwm_mode, 
 * \param[in] Position Servo position in microseconds
 * \param[in] max Maximum pulse length in us for oneshot
 */
-#if defined(PIOS_INCLUDE_HPWM)
 void PIOS_Servo_Set(uint8_t servo, float position, float max)
 {
 	/* Make sure servo exists */
@@ -301,44 +295,7 @@ void PIOS_Servo_Set(uint8_t servo, float position, float max)
 			break;
 	}
 }
-#else
-/**
-* Set servo position
-* \param[in] Servo Servo number (0-num_channels)
-* \param[in] Position Servo position in microseconds
-*/
-void PIOS_Servo_Set(uint8_t servo, uint16_t position)
-{
-	/* Make sure servo exists */
-	if (!servo_cfg || servo >= servo_cfg->num_channels) {
-		return;
-	}
 
-	const struct pios_tim_channel * chan = &servo_cfg->channels[servo];
-
-	/* recalculate the position value based on timer clock rate */
-	/* position is in us */
-	/* clk_rate is in count per second */
-
-	/* Update the position */
-	switch(chan->timer_chan) {
-		case TIM_Channel_1:
-			TIM_SetCompare1(chan->timer, position);
-			break;
-		case TIM_Channel_2:
-			TIM_SetCompare2(chan->timer, position);
-			break;
-		case TIM_Channel_3:
-			TIM_SetCompare3(chan->timer, position);
-			break;
-		case TIM_Channel_4:
-			TIM_SetCompare4(chan->timer, position);
-			break;
-	}
-}
-#endif /* PIOS_INCLUDE_HPWM */
-
-#if defined(PIOS_INCLUDE_HPWM)
 /**
 * Update the timer for HPWM/OneShot
 */
@@ -360,5 +317,3 @@ void PIOS_Servo_Update()
 		}
 	}
 }
-
-#endif /* PIOS_INCLUDE_HPWM */
