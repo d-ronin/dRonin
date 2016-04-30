@@ -52,6 +52,8 @@
 #define MAX_RETRIES 2
 #define STATS_UPDATE_PERIOD_MS 4000
 #define CONNECTION_TIMEOUT_MS 8000
+#define USB_ACTIVITY_TIMEOUT_MS 6000
+
 // Private types
 
 // Private variables
@@ -61,6 +63,10 @@ static uint32_t txErrors;
 static uint32_t txRetries;
 static uint32_t timeOfLastObjectUpdate;
 static UAVTalkConnection uavTalkCon;
+
+#if defined(PIOS_INCLUDE_USB)
+static volatile uint32_t usb_timeout_time;
+#endif
 
 // Private functions
 static void telemetryTxTask(void *parameters);
@@ -293,6 +299,52 @@ static void telemetryTxTask(void *parameters)
 	}
 }
 
+#if defined(PIOS_INCLUDE_USB)
+/**
+ * Updates the USB activity timer, and returns whether we should use USB this
+ * time around.
+ * \param[in] seen_active true if we have seen activity on the USB port this time
+ * \return true if we should use usb, false if not.
+ */
+static bool processUsbActivity(bool seen_active)
+{
+	uint32_t this_systime = PIOS_Thread_Systime();
+	uint32_t fixedup_time = this_systime +
+		USB_ACTIVITY_TIMEOUT_MS;
+
+	if (seen_active) {
+		if (fixedup_time < this_systime) {
+			// (mostly) handle wrap.
+			usb_timeout_time = UINT32_MAX;
+		} else {
+			usb_timeout_time = fixedup_time;
+		}
+
+		return true;
+	}
+
+	uint32_t usb_time = usb_timeout_time;
+
+	if (this_systime >= usb_time) {
+		usb_timeout_time = 0;
+
+		return false;
+	}
+
+	/* If the timeout is too far in the future ...
+	 * (because of the above wrap case..)  */
+	if (fixedup_time < usb_time) {
+		if (fixedup_time > this_systime) {
+			/* and we're not wrapped, then fixup the
+			 * time. */
+			usb_timeout_time = fixedup_time;
+		}
+	}
+
+	return true;
+}
+#endif // PIOS_INCLUDE_USB
+
 /**
  * Telemetry transmit task. Processes queue events and periodic updates.
  */
@@ -312,6 +364,12 @@ static void telemetryRxTask(void *parameters)
 				for (uint8_t i = 0; i < bytes_to_process; i++) {
 					UAVTalkProcessInputStream(uavTalkCon,serial_data[i]);
 				}
+
+#if defined(PIOS_INCLUDE_USB)
+				if (inputPort == PIOS_COM_TELEM_USB) {
+					processUsbActivity(true);
+				}
+#endif
 			}
 		} else {
 			PIOS_Thread_Sleep(3);
@@ -482,14 +540,23 @@ static void updateSettings()
 static uintptr_t getComPort()
 {
 #if defined(PIOS_INCLUDE_USB)
-	if (PIOS_COM_Available(PIOS_COM_TELEM_USB) )
-		return PIOS_COM_TELEM_USB;
-	else
+	if (PIOS_COM_Available(PIOS_COM_TELEM_USB)) {
+		/* Let's further qualify this.  If there's anything spooled
+		 * up for RX, bump the activity time.
+		 */
+
+		bool rx_pending = PIOS_COM_GetNumReceiveBytesPending(PIOS_COM_TELEM_USB) > 0;
+
+		if (processUsbActivity(rx_pending)) {
+			return PIOS_COM_TELEM_USB;
+		}
+	}
 #endif /* PIOS_INCLUDE_USB */
+
 	if (PIOS_COM_Available(PIOS_COM_TELEM_RF) )
 		return PIOS_COM_TELEM_RF;
-	else
-		return 0;
+
+	return 0;
 }
 
 /**
