@@ -387,14 +387,6 @@ int32_t transmitter_control_update()
 			applyDeadband(&cmd.Yaw, settings.Deadband);
 		}
 
-		// Apply Camera Angle Tilt Subsystem after deadband
-		float camera_tilt_angle;
-		StabilizationSettingsCameraTiltGet(&camera_tilt_angle);
-		if (camera_tilt_angle) {
-			cmd.Roll = (cosf((float)(M_PI / 180.0) * camera_tilt_angle) * scaledChannel[MANUALCONTROLSETTINGS_CHANNELGROUPS_ROLL]) + (sinf((float)(M_PI / 180.0) * camera_tilt_angle) * scaledChannel[MANUALCONTROLSETTINGS_CHANNELGROUPS_YAW]);
-			cmd.Yaw = (-1 * sinf((float)(M_PI / 180.0) * camera_tilt_angle) * scaledChannel[MANUALCONTROLSETTINGS_CHANNELGROUPS_ROLL]) + (cosf((float)(M_PI / 180.0) * camera_tilt_angle) * scaledChannel[MANUALCONTROLSETTINGS_CHANNELGROUPS_YAW]);
-		}
-		
 		if(cmd.Channel[MANUALCONTROLSETTINGS_CHANNELGROUPS_COLLECTIVE] != (uint16_t) PIOS_RCVR_INVALID &&
 		   cmd.Channel[MANUALCONTROLSETTINGS_CHANNELGROUPS_COLLECTIVE] != (uint16_t) PIOS_RCVR_NODRIVER &&
 		   cmd.Channel[MANUALCONTROLSETTINGS_CHANNELGROUPS_COLLECTIVE] != (uint16_t) PIOS_RCVR_TIMEOUT) {
@@ -1001,6 +993,8 @@ static void update_stabilization_desired(ManualControlCommandData * manual_contr
                                           STABILIZATIONDESIRED_STABILIZATIONMODE_RATE};
 	const uint8_t * stab_settings;
 
+	uint8_t reprojection = STABILIZATIONDESIRED_REPROJECTIONMODE_NONE;
+
 	uint8_t flightMode;
 
 	FlightStatusFlightModeGet(&flightMode);
@@ -1031,12 +1025,15 @@ static void update_stabilization_desired(ManualControlCommandData * manual_contr
 			break;
 		case FLIGHTSTATUS_FLIGHTMODE_STABILIZED1:
 			stab_settings = settings->Stabilization1Settings;
+			reprojection = settings->Stabilization1Reprojection;
 			break;
 		case FLIGHTSTATUS_FLIGHTMODE_STABILIZED2:
 			stab_settings = settings->Stabilization2Settings;
+			reprojection = settings->Stabilization2Reprojection;
 			break;
 		case FLIGHTSTATUS_FLIGHTMODE_STABILIZED3:
 			stab_settings = settings->Stabilization3Settings;
+			reprojection = settings->Stabilization3Reprojection;
 			break;
 		default:
 			{
@@ -1095,6 +1092,10 @@ static void update_stabilization_desired(ManualControlCommandData * manual_contr
 
 	// for non-helicp, negative thrust is a special flag to stop the motors
 	if( *airframe_type != SYSTEMSETTINGS_AIRFRAMETYPE_HELICP && stabilization.Thrust < 0 ) stabilization.Thrust = -1;
+
+	// Set the reprojection.
+	stabilization.ReprojectionMode = reprojection;
+
 	StabilizationDesiredSet(&stabilization);
 }
 

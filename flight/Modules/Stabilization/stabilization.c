@@ -372,6 +372,24 @@ static void stabilizationTask(void* parameters)
 		static uint8_t previous_mode[MAX_AXES] = {255,255,255};
 		bool error = false;
 
+		// Re-project axes if necessary prior to running stabilization algorithms.
+		uint8_t reprojection = stabDesired.ReprojectionMode;
+		if (reprojection == STABILIZATIONDESIRED_REPROJECTIONMODE_CAMERAANGLE) {
+			float camera_tilt_angle = settings.CameraTilt;
+			if (camera_tilt_angle) {
+				float roll = stabDesired.Roll;
+				float yaw = stabDesired.Yaw;
+				// The roll input should be the cosine of the camera angle multiplied by the roll,
+				// added to the sine of camera angle multiplied by yaw.
+				stabDesired.Roll = (cosf(DEG2RAD * camera_tilt_angle) * roll +
+						(sinf(DEG2RAD * camera_tilt_angle) * yaw));
+				// Yaw is similar but uses the negative sine of the camera angle, multiplied by roll,
+				// added to the cosine of the camera angle, times the yaw
+				stabDesired.Yaw = (-1 * sinf(DEG2RAD * camera_tilt_angle) * roll) +
+						(cosf(DEG2RAD * camera_tilt_angle) * yaw);
+			}
+		}
+
 		//Run the selected stabilization algorithm on each axis:
 		for(uint8_t i=0; i< MAX_AXES; i++)
 		{
@@ -423,7 +441,6 @@ static void stabilizationTask(void* parameters)
 					}
 				}
 			}
-
 
 			// Check whether this axis mode needs to be reinitialized
 			bool reinit = (mode != previous_mode[i]);
