@@ -40,8 +40,6 @@
 #include "pios_tim_priv.h"
 #include "misc_math.h"
 
-#define PIOS_SERVO_MAX_BANKS 6
-
 /* Private variables */
 static const struct pios_servo_cfg *servo_cfg;
 

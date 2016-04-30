@@ -30,6 +30,8 @@
 #ifndef PIOS_SERVO_H
 #define PIOS_SERVO_H
 
+#define PIOS_SERVO_MAX_BANKS 6
+
 /* Public Functions */
 extern void PIOS_Servo_SetMode(const uint16_t *out_rate, const int banks, const uint16_t *channel_max);
 extern void PIOS_Servo_Set(uint8_t servo, float position);

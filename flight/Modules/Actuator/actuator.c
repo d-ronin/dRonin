@@ -884,6 +884,8 @@ static typeof(mixerSettings.Mixer1Vector) *get_mixer_vec(int idx)
 	}
 }
 
+DONT_BUILD_IF(ACTUATORSETTINGS_TIMERUPDATEFREQ_NUMELEM > PIOS_SERVO_MAX_BANKS, TooManyServoBanks);
+
 /**
  * @}
  * @}
