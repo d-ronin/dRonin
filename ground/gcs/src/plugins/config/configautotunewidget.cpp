@@ -103,6 +103,7 @@ ConfigAutotuneWidget::ConfigAutotuneWidget(ConfigGadgetWidget *parent) :
 
     // force defaults in-case somebody tries to change them in UI and forgets to update this func
     resetSliders();
+    setApplyEnabled(false);
 }
 
 /**
@@ -344,16 +345,35 @@ void ConfigAutotuneWidget::recomputeStabilization()
     double beta_roll = systemIdentData.Beta[SystemIdent::BETA_ROLL];
     double beta_pitch = systemIdentData.Beta[SystemIdent::BETA_PITCH];
 
-    double wn = 1/tau;
-    double tau_d = 0;
-    for (int i = 0; i < 30; i++) {
+    double wn = 1/tau, wn_last = 1/tau + 10;
+    double tau_d = 0, tau_d_last = 1000;
+
+    const int iteration_limit = 100, stability_limit = 5;
+    converged = false;
+    iterations = 0;
+    int stable_iterations = 0;
+
+    while (++iterations <= iteration_limit && !converged) {
         double tau_d_roll = (2*damp*tau*wn - 1)/(4*tau*damp*damp*wn*wn - 2*damp*wn - tau*wn*wn + exp(beta_roll)*ghf);
         double tau_d_pitch = (2*damp*tau*wn - 1)/(4*tau*damp*damp*wn*wn - 2*damp*wn - tau*wn*wn + exp(beta_pitch)*ghf);
 
         // Select the slowest filter property
         tau_d = (tau_d_roll > tau_d_pitch) ? tau_d_roll : tau_d_pitch;
         wn = (tau + tau_d) / (tau*tau_d) / (2 * damp + 2);
+
+        // check for convergence
+        if (fabs(tau_d - tau_d_last) <= 0.00001 && fabs(wn - wn_last) <= 0.00001) {
+            if (++stable_iterations >= stability_limit)
+                converged = true;
+        } else {
+            stable_iterations = 0;
+        }
+        tau_d_last = tau_d;
+        wn_last = wn;
     }
+    --iterations; // make the number right for tune share etc.
+
+    setApplyEnabled(converged);
 
     // Set the real pole position. The first pole is quite slow, which
     // prevents the integral being too snappy and driving too much
@@ -539,24 +559,26 @@ QString ConfigAutotuneWidget::getResultsPlainText()
             .arg(m_autotune->wn->text()); // 9
     QString message2 = tr(
                 "Computed values:\n"
+                "Converged:\t%0\n"
                 "\t\t\tRateKp\t\tRateKi\t\tRateKd\n"
-                "Roll:\t\t%0\t%1\t%2\n"
-                "Pitch:\t\t%3\t%4\t%5\n"
-                "Yaw:\t\t%6\t%7\t%8\n"
-                "Outer:\t\t%9\t\t%10\t\t-\n"
-                "Derivative cutoff:\t%11")
-            .arg(m_autotune->rollRateKp->text()) // 0
-            .arg(m_autotune->rollRateKi->text()) // 1
-            .arg(m_autotune->rollRateKd->text()) // 2
-            .arg(m_autotune->pitchRateKp->text()) // 3
-            .arg(m_autotune->pitchRateKi->text()) // 4
-            .arg(m_autotune->pitchRateKd->text()) // 5
-            .arg(m_autotune->yawRateKp->text()) // 6
-            .arg(m_autotune->yawRateKi->text()) // 7
-            .arg(m_autotune->yawRateKd->text()) // 8
-            .arg(m_autotune->lblOuterKp->text()) // 9
-            .arg(m_autotune->lblOuterKi->text()) // 10
-            .arg(m_autotune->derivativeCutoff->text()); // 11
+                "Roll:\t\t%1\t%2\t%3\n"
+                "Pitch:\t\t%4\t%5\t%6\n"
+                "Yaw:\t\t%7\t%8\t%9\n"
+                "Outer:\t\t%10\t\t%11\t\t-\n"
+                "Derivative cutoff:\t%12")
+            .arg(converged ? "Yes" : "No") // 0
+            .arg(m_autotune->rollRateKp->text()) // 1
+            .arg(m_autotune->rollRateKi->text()) // 2
+            .arg(m_autotune->rollRateKd->text()) // 3
+            .arg(m_autotune->pitchRateKp->text()) // 4
+            .arg(m_autotune->pitchRateKi->text()) // 5
+            .arg(m_autotune->pitchRateKd->text()) // 6
+            .arg(m_autotune->yawRateKp->text()) // 7
+            .arg(m_autotune->yawRateKi->text()) // 8
+            .arg(m_autotune->yawRateKd->text()) // 9
+            .arg(m_autotune->lblOuterKp->text()) // 10
+            .arg(m_autotune->lblOuterKi->text()) // 11
+            .arg(m_autotune->derivativeCutoff->text()); // 12
 
     return message0 + message1 + message2;
 }
@@ -573,7 +595,7 @@ QJsonDocument ConfigAutotuneWidget::getResultsJson()
     QJsonObject rawSettings;
 
     QJsonObject json;
-    json["dataVersion"] = 2;
+    json["dataVersion"] = 3;
     json["uniqueId"] = QString(QCryptographicHash::hash(utilMngr->getBoardCPUSerial(), QCryptographicHash::Sha256).toHex());
 
     QJsonObject vehicle, fw;
@@ -671,6 +693,8 @@ QJsonDocument ConfigAutotuneWidget::getResultsJson()
     tuning["parameters"] = parameters;
     computed["naturalFrequency"] = m_autotune->wn->text().toDouble();
     computed["derivativeCutoff"] = m_autotune->derivativeCutoff->text().toDouble();
+    computed["converged"] = converged;
+    computed["iterations"] = iterations;
 
     QJsonObject gains;
     QJsonObject roll_gain, pitch_gain, yaw_gain, outer_gain;
@@ -743,4 +767,11 @@ void ConfigAutotuneWidget::onStabSettingsUpdated(UAVObject *obj)
     m_autotune->yawRateKp->setProperty("Backup", stabSettings.YawRatePID[StabilizationSettings::YAWRATEPID_KP]);
     m_autotune->yawRateKi->setProperty("Backup", stabSettings.YawRatePID[StabilizationSettings::YAWRATEPID_KI]);
     m_autotune->yawRateKd->setProperty("Backup", stabSettings.YawRatePID[StabilizationSettings::YAWRATEPID_KD]);
+}
+
+void ConfigAutotuneWidget::setApplyEnabled(const bool enable)
+{
+    m_autotune->useComputedValues->setEnabled(enable);
+    m_autotune->gbxComputed->setVisible(enable);
+    m_autotune->gbxFailure->setVisible(!enable);
 }

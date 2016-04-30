@@ -266,8 +266,8 @@ p, li { white-space: pre-wrap; }
            <rect>
             <x>0</x>
             <y>0</y>
-            <width>796</width>
-            <height>755</height>
+            <width>794</width>
+            <height>960</height>
            </rect>
           </property>
           <property name="sizePolicy">
@@ -692,7 +692,7 @@ p, li { white-space: pre-wrap; }
             </spacer>
            </item>
            <item>
-            <widget class="QGroupBox" name="groupBox_2">
+            <widget class="QGroupBox" name="gbxComputed">
              <property name="sizePolicy">
               <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
                <horstretch>0</horstretch>
@@ -891,6 +891,28 @@ p, li { white-space: pre-wrap; }
                <widget class="QLabel" name="label_23">
                 <property name="text">
                  <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600; color:#ff0000;&quot;&gt;Note: &lt;/span&gt;&lt;span style=&quot; color:#ff0000;&quot;&gt;Outer loop K&lt;/span&gt;&lt;span style=&quot; color:#ff0000; vertical-align:sub;&quot;&gt;i&lt;/span&gt;&lt;span style=&quot; color:#ff0000;&quot;&gt; tuning is currently experimental only. Please exercise appropriate care if utilising this option.&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                </property>
+                <property name="wordWrap">
+                 <bool>true</bool>
+                </property>
+               </widget>
+              </item>
+             </layout>
+            </widget>
+           </item>
+           <item>
+            <widget class="QGroupBox" name="gbxFailure">
+             <property name="title">
+              <string>Tuning Failed</string>
+             </property>
+             <layout class="QVBoxLayout" name="verticalLayout_5">
+              <item>
+               <widget class="QLabel" name="lblFailure">
+                <property name="styleSheet">
+                 <string notr="true">background: rgb(255, 218, 218)</string>
+                </property>
+                <property name="text">
+                 <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Unfortunately the tune &lt;span style=&quot; font-weight:600; color:#ff0000;&quot;&gt;failed&lt;/span&gt; to converge. &lt;/p&gt;&lt;p&gt;This can happen due to a bad tune, or bad settings on the tuning sliders above. You can try clicking &amp;quot;Reset Sliders&amp;quot; or adjusting the sliders yourself.&lt;/p&gt;&lt;p&gt;You can still share the tune for analysis by the developers, but it cannot be applied.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
                 </property>
                 <property name="wordWrap">
                  <bool>true</bool>
