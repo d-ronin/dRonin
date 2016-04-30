@@ -62,6 +62,7 @@
 
 // Math libraries
 #include "coordinate_conversions.h"
+#include "physical_constants.h"
 #include "pid.h"
 #include "misc_math.h"
 
