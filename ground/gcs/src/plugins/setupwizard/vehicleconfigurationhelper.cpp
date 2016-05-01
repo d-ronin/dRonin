@@ -206,7 +206,8 @@ void VehicleConfigurationHelper::applyActuatorConfiguration()
         case VehicleConfigurationSource::ESC_RAPID:
             updateFrequency = RAPID_ESC_FREQUENCY;
             break;
-        case VehicleConfigurationSource::ESC_ONESHOT:
+        case VehicleConfigurationSource::ESC_ONESHOT42:
+        case VehicleConfigurationSource::ESC_ONESHOT125:
             updateFrequency = ONESHOT_ESC_FREQUENCY;
             break;
         default:
