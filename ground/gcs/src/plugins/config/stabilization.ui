@@ -10498,7 +10498,7 @@ border-radius: 5;</string>
            <rect>
             <x>0</x>
             <y>0</y>
-            <width>951</width>
+            <width>1006</width>
             <height>967</height>
            </rect>
           </property>
@@ -28702,9 +28702,6 @@ border-radius: 5;</string>
                   <property name="decimals">
                    <number>1</number>
                   </property>
-                  <property name="maximum">
-                   <double>15.000000000000000</double>
-                  </property>
                   <property name="singleStep">
                    <double>0.500000000000000</double>
                   </property>
@@ -28717,6 +28714,7 @@ border-radius: 5;</string>
                     <string>fieldname:LowPowerStabilizationMaxPowerAdd</string>
                     <string>scale:.01</string>
                     <string>buttongroup:10</string>
+                    <string>haslimits:yes</string>
                    </stringlist>
                   </property>
                  </widget>
@@ -28758,9 +28756,6 @@ border-radius: 5;</string>
                   <property name="suffix">
                    <string> s</string>
                   </property>
-                  <property name="maximum">
-                   <double>4.500000000000000</double>
-                  </property>
                   <property name="singleStep">
                    <double>0.250000000000000</double>
                   </property>
@@ -28769,6 +28764,7 @@ border-radius: 5;</string>
                     <string>objname:ActuatorSettings</string>
                     <string>fieldname:LowPowerStabilizationMaxTime</string>
                     <string>buttongroup:10</string>
+                    <string>haslimits:yes</string>
                    </stringlist>
                   </property>
                  </widget>
