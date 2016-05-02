@@ -498,7 +498,7 @@
       <enum>QTabWidget::Rounded</enum>
      </property>
      <property name="currentIndex">
-      <number>2</number>
+      <number>0</number>
      </property>
      <property name="documentMode">
       <bool>false</bool>
@@ -25838,7 +25838,7 @@ border-radius: 5;</string>
             <x>0</x>
             <y>0</y>
             <width>1006</width>
-            <height>1266</height>
+            <height>1346</height>
            </rect>
           </property>
           <layout class="QVBoxLayout" name="verticalLayout_9">
@@ -28578,93 +28578,6 @@ border-radius: 5;</string>
                 <string>Advanced Acro Settings</string>
                </property>
                <layout class="QGridLayout" name="gridLayout_31">
-                <item row="0" column="5">
-                 <spacer name="horizontalSpacer_23">
-                  <property name="orientation">
-                   <enum>Qt::Horizontal</enum>
-                  </property>
-                  <property name="sizeType">
-                   <enum>QSizePolicy::Fixed</enum>
-                  </property>
-                  <property name="sizeHint" stdset="0">
-                   <size>
-                    <width>10</width>
-                    <height>20</height>
-                   </size>
-                  </property>
-                 </spacer>
-                </item>
-                <item row="0" column="10">
-                 <widget class="QDoubleSpinBox" name="sbHungPower">
-                  <property name="sizePolicy">
-                   <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
-                    <horstretch>0</horstretch>
-                    <verstretch>0</verstretch>
-                   </sizepolicy>
-                  </property>
-                  <property name="toolTip">
-                   <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;This specifies the maximum amount of power to add when stabilization needs more total power than specified by the throttle input.  This is used during HangTime and other maneuvers.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-                  </property>
-                  <property name="alignment">
-                   <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-                  </property>
-                  <property name="suffix">
-                   <string>%</string>
-                  </property>
-                  <property name="decimals">
-                   <number>1</number>
-                  </property>
-                  <property name="maximum">
-                   <double>15.000000000000000</double>
-                  </property>
-                  <property name="singleStep">
-                   <double>0.500000000000000</double>
-                  </property>
-                  <property name="value">
-                   <double>0.000000000000000</double>
-                  </property>
-                  <property name="objrelation" stdset="0">
-                   <stringlist>
-                    <string>objname:ActuatorSettings</string>
-                    <string>fieldname:LowPowerStabilizationMaxPowerAdd</string>
-                    <string>scale:.01</string>
-                    <string>buttongroup:10</string>
-                   </stringlist>
-                  </property>
-                 </widget>
-                </item>
-                <item row="0" column="9">
-                 <spacer name="horizontalSpacer_25">
-                  <property name="orientation">
-                   <enum>Qt::Horizontal</enum>
-                  </property>
-                  <property name="sizeType">
-                   <enum>QSizePolicy::Fixed</enum>
-                  </property>
-                  <property name="sizeHint" stdset="0">
-                   <size>
-                    <width>10</width>
-                    <height>20</height>
-                   </size>
-                  </property>
-                 </spacer>
-                </item>
-                <item row="0" column="0">
-                 <widget class="QLabel" name="lblInsanityFactor">
-                  <property name="minimumSize">
-                   <size>
-                    <width>150</width>
-                    <height>16</height>
-                   </size>
-                  </property>
-                  <property name="text">
-                   <string>Acro+ Insanity Factor</string>
-                  </property>
-                  <property name="alignment">
-                   <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-                  </property>
-                 </widget>
-                </item>
                 <item row="0" column="1">
                  <spacer name="horizontalSpacer_21">
                   <property name="orientation">
@@ -28680,26 +28593,6 @@ border-radius: 5;</string>
                    </size>
                   </property>
                  </spacer>
-                </item>
-                <item row="0" column="4">
-                 <widget class="QLabel" name="label_4">
-                  <property name="text">
-                   <string>HangTime Maximum Duration</string>
-                  </property>
-                  <property name="alignment">
-                   <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-                  </property>
-                 </widget>
-                </item>
-                <item row="0" column="8">
-                 <widget class="QLabel" name="label_5">
-                  <property name="text">
-                   <string>Maximum Power Add</string>
-                  </property>
-                  <property name="alignment">
-                   <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-                  </property>
-                 </widget>
                 </item>
                 <item row="0" column="2">
                  <widget class="QDoubleSpinBox" name="sbInsanityFactor">
@@ -28738,35 +28631,26 @@ border-radius: 5;</string>
                   </property>
                  </widget>
                 </item>
-                <item row="0" column="6">
-                 <widget class="QDoubleSpinBox" name="sbHangtime">
-                  <property name="sizePolicy">
-                   <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
-                    <horstretch>0</horstretch>
-                    <verstretch>0</verstretch>
-                   </sizepolicy>
+                <item row="1" column="0" colspan="5">
+                 <widget class="QLabel" name="lblSwitchArmingWarning">
+                  <property name="text">
+                   <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600; color:#ff0000;&quot;&gt;Warning:&lt;/span&gt;&lt;span style=&quot; color:#ff0000;&quot;&gt; It is strongly recommended to use switch arming when HangTime is enabled.&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
                   </property>
-                  <property name="toolTip">
-                   <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;HangTime allows stabilization of the flight controller during brief maneuvers at zero throttle.  This specifies the maximum length of time to add power for stabilization at zero throttle.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                 </widget>
+                </item>
+                <item row="0" column="0">
+                 <widget class="QLabel" name="lblInsanityFactor">
+                  <property name="minimumSize">
+                   <size>
+                    <width>150</width>
+                    <height>16</height>
+                   </size>
+                  </property>
+                  <property name="text">
+                   <string>Acro+ Insanity Factor</string>
                   </property>
                   <property name="alignment">
                    <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-                  </property>
-                  <property name="suffix">
-                   <string> s</string>
-                  </property>
-                  <property name="maximum">
-                   <double>4.500000000000000</double>
-                  </property>
-                  <property name="singleStep">
-                   <double>0.250000000000000</double>
-                  </property>
-                  <property name="objrelation" stdset="0">
-                   <stringlist>
-                    <string>objname:ActuatorSettings</string>
-                    <string>fieldname:LowPowerStabilizationMaxTime</string>
-                    <string>buttongroup:10</string>
-                   </stringlist>
                   </property>
                  </widget>
                 </item>
@@ -28783,25 +28667,133 @@ border-radius: 5;</string>
                   </property>
                  </spacer>
                 </item>
-                <item row="0" column="7">
-                 <spacer name="horizontalSpacer_40">
+               </layout>
+              </widget>
+             </item>
+             <item>
+              <widget class="QGroupBox" name="gbHangtime">
+               <property name="title">
+                <string>HangTime</string>
+               </property>
+               <property name="checkable">
+                <bool>true</bool>
+               </property>
+               <property name="checked">
+                <bool>false</bool>
+               </property>
+               <layout class="QGridLayout" name="gridLayout_7">
+                <item row="0" column="4">
+                 <widget class="QDoubleSpinBox" name="sbHangtimePower">
+                  <property name="sizePolicy">
+                   <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+                    <horstretch>0</horstretch>
+                    <verstretch>0</verstretch>
+                   </sizepolicy>
+                  </property>
+                  <property name="toolTip">
+                   <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;This specifies the maximum amount of power to add when stabilization needs more total power than specified by the throttle input.  This is used during HangTime and other maneuvers.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                  </property>
+                  <property name="alignment">
+                   <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+                  </property>
+                  <property name="suffix">
+                   <string>%</string>
+                  </property>
+                  <property name="decimals">
+                   <number>1</number>
+                  </property>
+                  <property name="singleStep">
+                   <double>0.500000000000000</double>
+                  </property>
+                  <property name="value">
+                   <double>0.000000000000000</double>
+                  </property>
+                  <property name="objrelation" stdset="0">
+                   <stringlist>
+                    <string>objname:ActuatorSettings</string>
+                    <string>fieldname:LowPowerStabilizationMaxPowerAdd</string>
+                    <string>scale:.01</string>
+                    <string>buttongroup:10</string>
+                    <string>haslimits:yes</string>
+                   </stringlist>
+                  </property>
+                 </widget>
+                </item>
+                <item row="0" column="0">
+                 <widget class="QLabel" name="lblHangtimeDuration">
+                  <property name="text">
+                   <string>HangTime Maximum Duration</string>
+                  </property>
+                  <property name="alignment">
+                   <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+                  </property>
+                 </widget>
+                </item>
+                <item row="0" column="3">
+                 <widget class="QLabel" name="lblHangtimePower">
+                  <property name="text">
+                   <string>Maximum Power Add</string>
+                  </property>
+                  <property name="alignment">
+                   <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+                  </property>
+                 </widget>
+                </item>
+                <item row="0" column="1">
+                 <widget class="QDoubleSpinBox" name="sbHangtimeDuration">
+                  <property name="sizePolicy">
+                   <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+                    <horstretch>0</horstretch>
+                    <verstretch>0</verstretch>
+                   </sizepolicy>
+                  </property>
+                  <property name="toolTip">
+                   <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;HangTime allows stabilization of the flight controller during brief maneuvers at zero throttle.  This specifies the maximum length of time to add power for stabilization at zero throttle.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                  </property>
+                  <property name="alignment">
+                   <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+                  </property>
+                  <property name="suffix">
+                   <string> s</string>
+                  </property>
+                  <property name="singleStep">
+                   <double>0.250000000000000</double>
+                  </property>
+                  <property name="objrelation" stdset="0">
+                   <stringlist>
+                    <string>objname:ActuatorSettings</string>
+                    <string>fieldname:LowPowerStabilizationMaxTime</string>
+                    <string>buttongroup:10</string>
+                    <string>haslimits:yes</string>
+                   </stringlist>
+                  </property>
+                 </widget>
+                </item>
+                <item row="0" column="2">
+                 <spacer name="horizontalSpacer_23">
                   <property name="orientation">
                    <enum>Qt::Horizontal</enum>
                   </property>
                   <property name="sizeHint" stdset="0">
                    <size>
-                    <width>0</width>
+                    <width>40</width>
                     <height>20</height>
                    </size>
                   </property>
                  </spacer>
                 </item>
-                <item row="1" column="0" colspan="11">
-                 <widget class="QLabel" name="lblSwitchArmingWarning">
-                  <property name="text">
-                   <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600; color:#ff0000;&quot;&gt;Warning:&lt;/span&gt;&lt;span style=&quot; color:#ff0000;&quot;&gt; It is strongly recommended to use switch arming when HangTime is enabled.&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                <item row="0" column="5">
+                 <spacer name="horizontalSpacer_25">
+                  <property name="orientation">
+                   <enum>Qt::Horizontal</enum>
                   </property>
-                 </widget>
+                  <property name="sizeHint" stdset="0">
+                   <size>
+                    <width>40</width>
+                    <height>20</height>
+                   </size>
+                  </property>
+                 </spacer>
                 </item>
                </layout>
               </widget>

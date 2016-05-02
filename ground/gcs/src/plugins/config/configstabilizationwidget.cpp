@@ -62,10 +62,11 @@ ConfigStabilizationWidget::ConfigStabilizationWidget(QWidget *parent) : ConfigTa
         m_stabilization->saveStabilizationToRAM_6->setVisible(false);
 
     // display switch arming not selected warning when hangtime enabled
-    connect(m_stabilization->sbHangtime, SIGNAL(valueChanged(double)), this, SLOT(hangtimeChanged()));
+    connect(m_stabilization->sbHangtimeDuration, SIGNAL(valueChanged(double)), this, SLOT(hangtimeDurationChanged()));
     manualControlSettings = getObjectManager()->getObject(ManualControlSettings::NAME);
     if (manualControlSettings)
-        connect(manualControlSettings, SIGNAL(objectUpdated(UAVObject*)), this, SLOT(hangtimeChanged()));
+        connect(manualControlSettings, SIGNAL(objectUpdated(UAVObject*)), this, SLOT(hangtimeDurationChanged()));
+    connect(m_stabilization->gbHangtime, SIGNAL(toggled(bool)), this, SLOT(hangtimeToggle(bool)));
 
 
     autoLoadWidgets();
@@ -353,9 +354,15 @@ void ConfigStabilizationWidget::showExpoPlot()
     }
 }
 
-void ConfigStabilizationWidget::hangtimeChanged()
+void ConfigStabilizationWidget::hangtimeDurationChanged()
 {
-    bool warn = m_stabilization->sbHangtime->value() > 0.0;
+    bool warn = m_stabilization->sbHangtimeDuration->value() > 0.0;
+
+    if (warn && !m_stabilization->gbHangtime->isChecked())
+        m_stabilization->gbHangtime->setChecked(true);
+    else if (!warn && m_stabilization->gbHangtime->isChecked())
+        m_stabilization->gbHangtime->setChecked(false);
+
     if (manualControlSettings) {
         UAVObjectField *field = manualControlSettings->getField("Arming");
         if (field) {
@@ -364,4 +371,12 @@ void ConfigStabilizationWidget::hangtimeChanged()
         }
     }
     m_stabilization->lblSwitchArmingWarning->setVisible(warn);
+}
+
+void ConfigStabilizationWidget::hangtimeToggle(bool enabled)
+{
+    if (!enabled)
+        m_stabilization->sbHangtimeDuration->setValue(0.0); // 0.0 is disabled
+    else if(m_stabilization->sbHangtimeDuration->value() == 0.0)
+        m_stabilization->sbHangtimeDuration->setValue(2.5); // default duration in s
 }

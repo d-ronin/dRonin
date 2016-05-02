@@ -72,7 +72,8 @@ private slots:
     void applyRateLimits();
 
     void showExpoPlot();
-    void hangtimeChanged();
+    void hangtimeDurationChanged();
+    void hangtimeToggle(bool enabled);
 };
 
 #endif // ConfigStabilizationWidget_H
