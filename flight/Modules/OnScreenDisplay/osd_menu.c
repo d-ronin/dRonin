@@ -56,6 +56,10 @@ enum menu_fsm_event {
 // FSM States
 enum menu_fsm_state {
 	FSM_STATE_FAULT,            /*!< Invalid state transition occurred */
+/*------------------------------------------------------------------------------------------*/
+#if defined(USE_STM32F4xx_BRAINFPVRE1)
+	FSM_STATE_MAIN_RE1,        /*!< RE1 Specific Settings */
+#endif
 	FSM_STATE_MAIN_FILTER,      /*!< Filter Settings */
 	FSM_STATE_MAIN_FMODE,       /*!< Flight Mode Settings */
 	FSM_STATE_MAIN_HOMELOC,     /*!< Home Location */
@@ -63,6 +67,19 @@ enum menu_fsm_state {
 	FSM_STATE_MAIN_PIDATT,      /*!< PID Attitude*/
 	FSM_STATE_MAIN_STICKLIMITS, /*!< Stick Range and Limits */
 	FSM_STATE_MAIN_STATS, /*!< Flight Stats */
+/*------------------------------------------------------------------------------------------*/
+#if defined(USE_STM32F4xx_BRAINFPVRE1)
+	FSM_STATE_RE1_IDLE,           /*!< Dummy state with nothing selected */
+	FSM_STATE_RE1_LED_COLOR,      /*!< LED color (named) */
+	FSM_STATE_RE1_LED_COLOR_R,    /*!< Custom LED color red */
+	FSM_STATE_RE1_LED_COLOR_G,    /*!< Custom LED color green */
+	FSM_STATE_RE1_LED_COLOR_B,    /*!< Custom LED color blue */
+	FSM_STATE_RE1_IR_PROTOCOL,    /*!< IR transponder protocol */
+	FSM_STATE_RE1_IR_IDILAP,      /*!< I-Lap ID */
+	FSM_STATE_RE1_IR_IDTRACKMATE, /*!< Trackmate ID */
+	FSM_STATE_RE1_SAVEEXIT,       /*!< Save & Exit */
+	FSM_STATE_RE1_EXIT,           /*!< Exit */
+#endif
 /*------------------------------------------------------------------------------------------*/
 	FSM_STATE_FILTER_IDLE,     /*!< Dummy state with nothing selected */
 	FSM_STATE_FILTER_ATT,      /*!< Attitude Filter */
@@ -136,6 +153,13 @@ enum menu_fsm_state {
 	FSM_STATE_NUM_STATES
 };
 
+#if defined(USE_STM32F4xx_BRAINFPVRE1)
+	static void brainre1_menu(void);
+#define FSM_STATE_TOP FSM_STATE_MAIN_RE1
+#else
+#define FSM_STATE_TOP FSM_STATE_MAIN_FILTER
+#endif /* defined(USE_STM32F4xx_BRAINFPVRE1) */
+
 // Structure for the FSM
 struct menu_fsm_transition {
 	void (*menu_fn)();     /*!< Called while in a state */
@@ -143,8 +167,10 @@ struct menu_fsm_transition {
 };
 
 extern uint16_t frame_counter;
-static enum menu_fsm_state current_state = FSM_STATE_MAIN_FILTER;
+static enum menu_fsm_state current_state = FSM_STATE_TOP;
 static enum menu_fsm_event current_event = FSM_EVENT_AUTO;
+static bool held_long;
+
 
 static void main_menu(void);
 static void filter_menu(void);
@@ -155,12 +181,27 @@ static void pidatt_menu(void);
 static void sticklimits_menu(void);
 static void stats_menu(void);
 
+
 // The Menu FSM
 const static struct menu_fsm_transition menu_fsm[FSM_STATE_NUM_STATES] = {
-	[FSM_STATE_MAIN_FILTER] = {
+#if defined(USE_STM32F4xx_BRAINFPVRE1)
+	[FSM_STATE_MAIN_RE1] = {
 		.menu_fn = main_menu,
 		.next_state = {
 			[FSM_EVENT_UP] = FSM_STATE_MAIN_STATS,
+			[FSM_EVENT_DOWN] = FSM_STATE_MAIN_FILTER,
+			[FSM_EVENT_RIGHT] = FSM_STATE_RE1_IDLE,
+		},
+	},
+#endif
+	[FSM_STATE_MAIN_FILTER] = {
+		.menu_fn = main_menu,
+		.next_state = {
+#if defined(USE_STM32F4xx_BRAINFPVRE1)
+			[FSM_EVENT_UP] = FSM_STATE_MAIN_RE1,
+#else
+			[FSM_EVENT_UP] = FSM_STATE_MAIN_STATS,
+#endif
 			[FSM_EVENT_DOWN] = FSM_STATE_MAIN_FMODE,
 			[FSM_EVENT_RIGHT] = FSM_STATE_FILTER_IDLE,
 		},
@@ -209,10 +250,85 @@ const static struct menu_fsm_transition menu_fsm[FSM_STATE_NUM_STATES] = {
 		.menu_fn = main_menu,
 		.next_state = {
 			[FSM_EVENT_UP] = FSM_STATE_MAIN_STICKLIMITS,
-			[FSM_EVENT_DOWN] = FSM_STATE_MAIN_FILTER,
+			[FSM_EVENT_DOWN] = FSM_STATE_TOP,
 			[FSM_EVENT_RIGHT] = FSM_STATE_STATS_IDLE,
 		},
 	},
+/*------------------------------------------------------------------------------------------*/
+#if defined(USE_STM32F4xx_BRAINFPVRE1)
+	[FSM_STATE_RE1_IDLE] = {
+		.menu_fn = brainre1_menu,
+		.next_state = {
+			[FSM_EVENT_UP] = FSM_STATE_RE1_EXIT,
+			[FSM_EVENT_DOWN] = FSM_STATE_RE1_LED_COLOR,
+		},
+	},
+	[FSM_STATE_RE1_LED_COLOR] = {
+		.menu_fn = brainre1_menu,
+		.next_state = {
+			[FSM_EVENT_UP] = FSM_STATE_RE1_EXIT,
+			[FSM_EVENT_DOWN] = FSM_STATE_RE1_LED_COLOR_R,
+		},
+	},
+	[FSM_STATE_RE1_LED_COLOR_R] = {
+		.menu_fn = brainre1_menu,
+		.next_state = {
+			[FSM_EVENT_UP] = FSM_STATE_RE1_LED_COLOR,
+			[FSM_EVENT_DOWN] = FSM_STATE_RE1_LED_COLOR_G,
+		},
+	},
+	[FSM_STATE_RE1_LED_COLOR_G] = {
+		.menu_fn = brainre1_menu,
+		.next_state = {
+			[FSM_EVENT_UP] = FSM_STATE_RE1_LED_COLOR_R,
+			[FSM_EVENT_DOWN] = FSM_STATE_RE1_LED_COLOR_B,
+		},
+	},
+	[FSM_STATE_RE1_LED_COLOR_B] = {
+		.menu_fn = brainre1_menu,
+		.next_state = {
+			[FSM_EVENT_UP] = FSM_STATE_RE1_LED_COLOR_G,
+			[FSM_EVENT_DOWN] = FSM_STATE_RE1_IR_PROTOCOL,
+		},
+	},
+	[FSM_STATE_RE1_IR_PROTOCOL] = {
+		.menu_fn = brainre1_menu,
+		.next_state = {
+			[FSM_EVENT_UP] = FSM_STATE_RE1_LED_COLOR_G,
+			[FSM_EVENT_DOWN] = FSM_STATE_RE1_IR_IDILAP,
+		},
+	},
+	[FSM_STATE_RE1_IR_IDILAP] = {
+		.menu_fn = brainre1_menu,
+		.next_state = {
+			[FSM_EVENT_UP] = FSM_STATE_RE1_IR_PROTOCOL,
+			[FSM_EVENT_DOWN] = FSM_STATE_RE1_IR_IDTRACKMATE,
+		},
+	},
+	[FSM_STATE_RE1_IR_IDTRACKMATE] = {
+		.menu_fn = brainre1_menu,
+		.next_state = {
+			[FSM_EVENT_UP] = FSM_STATE_RE1_IR_IDILAP,
+			[FSM_EVENT_DOWN] = FSM_STATE_RE1_SAVEEXIT,
+		},
+	},
+	[FSM_STATE_RE1_SAVEEXIT] = {
+		.menu_fn = brainre1_menu,
+		.next_state = {
+			[FSM_EVENT_UP] = FSM_STATE_RE1_IR_IDTRACKMATE,
+			[FSM_EVENT_DOWN] = FSM_STATE_RE1_EXIT,
+			[FSM_EVENT_RIGHT] = FSM_STATE_MAIN_RE1,
+		},
+	},
+	[FSM_STATE_RE1_EXIT] = {
+		.menu_fn = brainre1_menu,
+		.next_state = {
+			[FSM_EVENT_UP] = FSM_STATE_RE1_SAVEEXIT,
+			[FSM_EVENT_DOWN] = FSM_STATE_RE1_LED_COLOR,
+			[FSM_EVENT_RIGHT] = FSM_STATE_MAIN_RE1,
+		},
+	},
+#endif /* defined(USE_STM32F4xx_BRAINFPVRE1) */
 /*------------------------------------------------------------------------------------------*/
 	[FSM_STATE_FILTER_IDLE] = {
 		.menu_fn = filter_menu,
@@ -691,13 +807,23 @@ enum menu_fsm_event get_controller_event()
 	return FSM_EVENT_AUTO;
 }
 
-
+#define HELD_LONG_THRESHOLD 20
 void render_osd_menu()
 {
 	uint8_t tmp;
+	static enum menu_fsm_event last_fsm_event;
+	static uint32_t event_repeats = 0;
 
 	if (frame_counter % 6 == 0) {
 		current_event = get_controller_event();
+		if (last_fsm_event == current_event) {
+			event_repeats += 1;
+		}
+		else {
+			event_repeats = 0;
+		}
+		last_fsm_event = current_event;
+		held_long = (event_repeats > HELD_LONG_THRESHOLD);
 	}
 	else {
 		current_event = FSM_EVENT_AUTO;
@@ -714,26 +840,26 @@ void render_osd_menu()
 	switch(tmp){
 		case MANUALCONTROLSETTINGS_ARMING_ROLLLEFTTHROTTLE:
 		case MANUALCONTROLSETTINGS_ARMING_ROLLRIGHTTHROTTLE:
-			write_string("Do not use roll for arming.", GRAPHICS_X_MIDDLE, GRAPHICS_BOTTOM - 25, 0, 0, TEXT_VA_TOP, TEXT_HA_CENTER, 0, 2);
+			write_string("Do not use roll for arming.", GRAPHICS_X_MIDDLE, GRAPHICS_BOTTOM - 25, 0, 0, TEXT_VA_TOP, TEXT_HA_CENTER, 0, FONT8X10);
 			break;
 		default:
-			write_string("Use roll and pitch to navigate", GRAPHICS_X_MIDDLE, GRAPHICS_BOTTOM - 25, 0, 0, TEXT_VA_TOP, TEXT_HA_CENTER, 0, 2);
+			write_string("Use roll and pitch to navigate", GRAPHICS_X_MIDDLE, GRAPHICS_BOTTOM - 25, 0, 0, TEXT_VA_TOP, TEXT_HA_CENTER, 0, FONT8X10);
 	}
 
 	FlightStatusArmedGet(&tmp);
 	if (tmp != FLIGHTSTATUS_ARMED_DISARMED)
-		write_string("WARNING: ARMED", GRAPHICS_X_MIDDLE, GRAPHICS_BOTTOM - 12, 0, 0, TEXT_VA_TOP, TEXT_HA_CENTER, 0, 2);
+		write_string("WARNING: ARMED", GRAPHICS_X_MIDDLE, GRAPHICS_BOTTOM - 12, 0, 0, TEXT_VA_TOP, TEXT_HA_CENTER, 0, FONT8X10);
 }
 
 
 #define MENU_LINE_SPACING 11
 #define MENU_LINE_Y 40
 #define MENU_LINE_X (GRAPHICS_LEFT + 10)
-#define MENU_FONT 2
+#define MENU_FONT FONT8X10
 
 void draw_menu_title(char* title)
 {
-	write_string(title, GRAPHICS_X_MIDDLE, 10, 0, 0, TEXT_VA_TOP, TEXT_HA_CENTER, 0, 3);
+	write_string(title, GRAPHICS_X_MIDDLE, 10, 0, 0, TEXT_VA_TOP, TEXT_HA_CENTER, 0, FONT12X18);
 }
 
 void draw_selected_icon(int x, int y)
@@ -749,11 +875,16 @@ void main_menu(void)
 
 	draw_menu_title("Main Menu");
 
-	for (enum menu_fsm_state s=FSM_STATE_MAIN_FILTER; s <= FSM_STATE_MAIN_STATS; s++) {
+	for (enum menu_fsm_state s=FSM_STATE_TOP; s <= FSM_STATE_MAIN_STATS; s++) {
 		if (s == current_state) {
 			draw_selected_icon(MENU_LINE_X - 4, y_pos + 4);
 		}
 		switch (s) {
+#if defined(USE_STM32F4xx_BRAINFPVRE1)
+			case FSM_STATE_MAIN_RE1:
+				write_string("BrainFPV RE1 Settings", MENU_LINE_X, y_pos, 0, 0, TEXT_VA_TOP, TEXT_HA_LEFT, 0, MENU_FONT);
+				break;
+#endif /* defined(USE_STM32F4xx_BRAINFPVRE1) */
 			case FSM_STATE_MAIN_FILTER:
 				write_string("Filter Settings", MENU_LINE_X, y_pos, 0, 0, TEXT_VA_TOP, TEXT_HA_LEFT, 0, MENU_FONT);
 				break;
@@ -781,6 +912,230 @@ void main_menu(void)
 		y_pos += MENU_LINE_SPACING;
 	}
 }
+
+#if defined(USE_STM32F4xx_BRAINFPVRE1)
+#include "hwbrainre1.h"
+
+enum named_colors {
+	LED_COLOR_OFF,
+	LED_COLOR_WHITE,
+	LED_COLOR_RED,
+	LED_COLOR_YELLOW,
+	LED_COLOR_GREEN,
+	LED_COLOR_AQUA,
+	LED_COLOR_BLUE,
+	LED_COLOR_PURPLE,
+	LED_COLOR_CUSTOM,
+	LED_COLOR_NUM_COLORS,
+};
+
+const uint8_t named_color_value[][3] = {
+	{0,   0,   0},
+	{255, 255, 255},
+	{255, 0,   0},
+	{255, 255, 0},
+	{0,   255, 0},
+	{0,   255, 255},
+	{0,   0,   255},
+	{255, 0,   255},
+};
+
+const char * named_color_names[] = {
+	"OFF", "WHITE", "RED", "YELLOW", "GREEN", "AQUA", "BLUE", "PURPLE", "CUSTOM"
+};
+
+const char * ir_protocol_names[HWBRAINRE1_IRPROTOCOL_MAXOPTVAL + 1] = {
+	[HWBRAINRE1_IRPROTOCOL_DISABLED] = "OFF",
+	[HWBRAINRE1_IRPROTOCOL_ILAP] = "I-Lap",
+	[HWBRAINRE1_IRPROTOCOL_TRACKMATE] = "Trackmate"
+};
+
+
+enum named_colors get_current_led_color(HwBrainRE1Data *data)
+{
+	bool match;
+	for (int i=LED_COLOR_OFF; i<LED_COLOR_CUSTOM; i++) {
+		match = true;
+		for (int j=0; j<3; j++) {
+			if (data->LEDColor[j] != named_color_value[i][j]) {
+				match = false;
+				break;
+			}
+		}
+		if (match) {
+			return i;
+		}
+	}
+	return LED_COLOR_CUSTOM;
+}
+
+#define MAX_ID_ILAP 9999999
+#define MAX_ID_TRACKMATE 9999
+
+void brainre1_menu(void)
+{
+	HwBrainRE1Data data;
+	int y_pos = MENU_LINE_Y;
+	enum named_colors led_color;
+	char tmp_str[100] = {0};
+	bool data_changed = false;
+
+	HwBrainRE1Get(&data);
+
+	led_color = get_current_led_color(&data);
+
+	draw_menu_title("BrainFPV RE1 Settings");
+
+	for (enum menu_fsm_state s=FSM_STATE_RE1_LED_COLOR; s <= FSM_STATE_RE1_EXIT; s++) {
+		if (s == current_state) {
+			draw_selected_icon(MENU_LINE_X - 4, y_pos + 4);
+		}
+		switch (s) {
+			case FSM_STATE_RE1_LED_COLOR:
+				sprintf(tmp_str, "LED Color: %s", named_color_names[led_color]);
+				write_string(tmp_str, MENU_LINE_X, y_pos, 0, 0, TEXT_VA_TOP, TEXT_HA_LEFT, 0, MENU_FONT);
+				break;
+			case FSM_STATE_RE1_LED_COLOR_R:
+				sprintf(tmp_str, "LED Color Custom R: %d", (int)data.LEDColor[0]);
+				write_string(tmp_str, MENU_LINE_X, y_pos, 0, 0, TEXT_VA_TOP, TEXT_HA_LEFT, 0, MENU_FONT);
+				break;
+			case FSM_STATE_RE1_LED_COLOR_G:
+				sprintf(tmp_str, "LED Color Custom G: %d", (int)data.LEDColor[1]);
+				write_string(tmp_str, MENU_LINE_X, y_pos, 0, 0, TEXT_VA_TOP, TEXT_HA_LEFT, 0, MENU_FONT);
+				break;
+			case FSM_STATE_RE1_LED_COLOR_B:
+				sprintf(tmp_str, "LED Color Custom B: %d", (int)data.LEDColor[2]);
+				write_string(tmp_str, MENU_LINE_X, y_pos, 0, 0, TEXT_VA_TOP, TEXT_HA_LEFT, 0, MENU_FONT);
+				break;
+			case FSM_STATE_RE1_IR_PROTOCOL:
+				sprintf(tmp_str, "IR Transponder Protocol: %s", ir_protocol_names[data.IRProtocol]);
+				write_string(tmp_str, MENU_LINE_X, y_pos, 0, 0, TEXT_VA_TOP, TEXT_HA_LEFT, 0, MENU_FONT);
+				break;
+			case FSM_STATE_RE1_IR_IDILAP:
+				sprintf(tmp_str, "IR Transponder ID I-Lap:  %07d", (int)data.IRIDILap);
+				write_string(tmp_str, MENU_LINE_X, y_pos, 0, 0, TEXT_VA_TOP, TEXT_HA_LEFT, 0, MENU_FONT);
+				break;
+			case FSM_STATE_RE1_IR_IDTRACKMATE:
+				sprintf(tmp_str, "IR Transponder ID Trackmate: %04d", (int)data.IRIDTrackmate);
+				write_string(tmp_str, MENU_LINE_X, y_pos, 0, 0, TEXT_VA_TOP, TEXT_HA_LEFT, 0, MENU_FONT);
+				break;
+			case FSM_STATE_RE1_SAVEEXIT:
+				write_string("Save and Exit", MENU_LINE_X, y_pos, 0, 0, TEXT_VA_TOP, TEXT_HA_LEFT, 0, MENU_FONT);
+				break;
+			case FSM_STATE_RE1_EXIT:
+				write_string("Exit", MENU_LINE_X, y_pos, 0, 0, TEXT_VA_TOP, TEXT_HA_LEFT, 0, MENU_FONT);
+				break;
+			default:
+				break;
+		}
+		y_pos += MENU_LINE_SPACING;
+	}
+
+	switch (current_state) {
+		case FSM_STATE_RE1_LED_COLOR:
+			if (current_event == FSM_EVENT_RIGHT) {
+				if (led_color >= LED_COLOR_PURPLE)
+					led_color = LED_COLOR_OFF;
+				else
+					led_color = led_color + 1;
+				data.LEDColor[0] = named_color_value[led_color][0];
+				data.LEDColor[1] = named_color_value[led_color][1];
+				data.LEDColor[2] = named_color_value[led_color][2];
+				data_changed = true;
+			}
+			if (current_event == FSM_EVENT_LEFT) {
+				if (led_color == LED_COLOR_OFF)
+					led_color = LED_COLOR_PURPLE;
+				else
+					led_color = led_color - 1;
+				data.LEDColor[0] = named_color_value[led_color][0];
+				data.LEDColor[1] = named_color_value[led_color][1];
+				data.LEDColor[2] = named_color_value[led_color][2];
+				data_changed = true;
+			}
+			break;
+		case FSM_STATE_RE1_LED_COLOR_R:
+		case FSM_STATE_RE1_LED_COLOR_G:
+		case FSM_STATE_RE1_LED_COLOR_B:
+			{
+				int idx = current_state - FSM_STATE_RE1_LED_COLOR_R;
+				if (current_event == FSM_EVENT_RIGHT) {
+					data.LEDColor[idx] += 1;
+					data_changed = true;
+				}
+				if (current_event == FSM_EVENT_LEFT) {
+					data.LEDColor[idx] -= 1;
+					data_changed = true;
+				}
+			}
+			break;
+		case FSM_STATE_RE1_IR_PROTOCOL:
+			if (current_event == FSM_EVENT_RIGHT) {
+				if (data.IRProtocol == HWBRAINRE1_IRPROTOCOL_GLOBAL_MAXOPTVAL)
+					data.IRProtocol = 0;
+				else
+					data.IRProtocol += 1;
+				data_changed = true;
+			}
+			if (current_event == FSM_EVENT_LEFT) {
+				if (data.IRProtocol == 0)
+					data.IRProtocol = HWBRAINRE1_IRPROTOCOL_GLOBAL_MAXOPTVAL;
+				else
+					data.IRProtocol -= 1;
+				data_changed = true;
+			}
+			break;
+		case FSM_STATE_RE1_IR_IDILAP:
+			{
+				int step = held_long ? 1000 : 1;
+				if (current_event == FSM_EVENT_RIGHT) {
+					data.IRIDILap += step;
+					if (data.IRIDILap > MAX_ID_ILAP) {
+						data.IRIDILap = 0;
+					}
+				}
+				if (current_event == FSM_EVENT_LEFT) {
+					data.IRIDILap -= step;
+					if (data.IRIDILap > MAX_ID_ILAP) {
+						data.IRIDILap = MAX_ID_ILAP;
+					}
+				}
+
+				data_changed = true;
+			}
+			break;
+		case FSM_STATE_RE1_IR_IDTRACKMATE:
+			{
+				int step = held_long ? 100 : 1;
+				if (current_event == FSM_EVENT_RIGHT) {
+					data.IRIDTrackmate += step;
+					if (data.IRIDTrackmate > MAX_ID_TRACKMATE) {
+						data.IRIDTrackmate = 0;
+					}
+				}
+				if (current_event == FSM_EVENT_LEFT) {
+					data.IRIDTrackmate -= step;
+					if (data.IRIDTrackmate > MAX_ID_TRACKMATE) {
+						data.IRIDTrackmate = MAX_ID_TRACKMATE;
+					}
+				}
+				data_changed = true;
+			}
+			break;
+		default:
+			break;
+	}
+
+	if (data_changed) {
+		HwBrainRE1Set(&data);
+	}
+
+	if ((current_state == FSM_STATE_RE1_SAVEEXIT) && (current_event == FSM_EVENT_RIGHT)) {
+		// Save and exit
+		UAVObjSave(HwBrainRE1Handle(), 0);
+	}
+}
+#endif /* defined(USE_STM32F4xx_BRAINFPVRE1) */
 
 void filter_menu(void)
 {
