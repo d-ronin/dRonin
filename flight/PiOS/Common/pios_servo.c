@@ -52,7 +52,15 @@ static enum SYNC_PWM *output_channel_mode;
 
 /* Private constant definitions */
 #define PWM_MODE_1MHZ_RATE   1000000
+
+#if (PIOS_SYSCLK == 180000000)
+// Use 15MHz; 12MHz cant be obtained by an integer division of 45MHz
+#define PWM_MODE_12MHZ_RATE  15000000
+#else
 #define PWM_MODE_12MHZ_RATE  12000000
+#endif /* (PIOS_SYSCLK == 180000000) */
+
+
 
 /**
 * Initialise Servos
