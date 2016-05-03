@@ -104,6 +104,7 @@
 /* OSD stuff */
 #define PIOS_VIDEO_TIM4_COUNTER
 #define PIOS_INCLUDE_VIDEO
+#define PIOS_VIDEO_SPLITBUFFER /* Brain uses 2 1-bit/pixel buffers */
 #define MODULE_FLIGHTSTATS_BUILTIN
 #define PIOS_INCLUDE_DEBUG_CONSOLE
 

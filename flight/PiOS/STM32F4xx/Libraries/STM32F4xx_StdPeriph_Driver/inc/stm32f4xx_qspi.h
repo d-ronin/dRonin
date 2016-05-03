@@ -439,7 +439,7 @@ typedef struct
 
 /* Initialization and Configuration functions *********************************/
 void QSPI_DeInit(void);
-void QSPI_Init(QSPI_InitTypeDef* QSPI_InitStruct);
+void QSPI_Init(const QSPI_InitTypeDef* QSPI_InitStruct);
 void QSPI_StructInit(QSPI_InitTypeDef* QSPI_InitStruct);
 void QSPI_ComConfig_Init(QSPI_ComConfig_InitTypeDef* QSPI_ComConfig_InitStruct);
 void QSPI_ComConfig_StructInit(QSPI_ComConfig_InitTypeDef* QSPI_ComConfig_InitStruct);

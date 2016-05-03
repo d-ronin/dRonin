@@ -216,7 +216,7 @@ void QSPI_ComConfig_StructInit(QSPI_ComConfig_InitTypeDef* QSPI_ComConfig_InitSt
   *         contains the configuration information for the specified QSPI peripheral.
   * @retval None
   */
-void QSPI_Init(QSPI_InitTypeDef* QSPI_InitStruct)
+void QSPI_Init(const QSPI_InitTypeDef* QSPI_InitStruct)
 {
   uint32_t tmpreg = 0;
   
