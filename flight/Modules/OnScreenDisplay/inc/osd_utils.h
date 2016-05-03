@@ -34,7 +34,9 @@
 
 #include "openpilot.h"
 #include "fonts.h"
+#include "images.h"
 #include "misc_math.h"
+#include "pios_video.h"
 
 // Size of an array (num items.)
 #define SIZEOF_ARRAY(x) (sizeof(x) / sizeof((x)[0]))
@@ -42,9 +44,33 @@
 #define HUD_VSCALE_FLAG_CLEAR       1
 #define HUD_VSCALE_FLAG_NO_NEGATIVE 2
 
+#if defined(PIOS_VIDEO_SPLITBUFFER)
+#define PIXELS_PER_BIT 8
+#define CALC_BIT_IN_WORD(x) ((x) & 7)
+#define CALC_BIT_MASK(x) (1 << (7 - ((x) & 7)))
+// Horizontal line calculations.
+// Edge cases.
+#define COMPUTE_HLINE_EDGE_L_MASK(b)      ((1 << (8 - (b))) - 1)
+#define COMPUTE_HLINE_EDGE_R_MASK(b)      (~((1 << (7 - (b))) - 1))
+#else
+#if PIOS_VIDEO_BITS_PER_PIXEL != 2
+#error "Only 2 bits / pixel is currently supported"
+#endif
+#define PIXELS_PER_BIT (8 / PIOS_VIDEO_BITS_PER_PIXEL)
+#define CALC_BIT_IN_WORD(x) (2 * ((x) & 3))
+#define CALC_BITSHIFT_WORD(x) (2 * ((x) & 3))
+#define CALC_BIT_MASK(x) (3 << (6 - CALC_BITSHIFT_WORD(x)))
+#define PACK_BITS(mask, level) (level << 7 | mask << 6 | level << 5 | mask << 4 | level << 3 | mask << 2 | level << 1 | mask)
+#define CALC_BIT0_IN_WORD(x)  (2 * ((x) & 3))
+#define CALC_BIT1_IN_WORD(x)  (2 * ((x) & 3) + 1)
+// Horizontal line calculations.
+// Edge cases.
+#define COMPUTE_HLINE_EDGE_L_MASK(b)      ((1 << (7 - (b))) - 1)
+#define COMPUTE_HLINE_EDGE_R_MASK(b)      (~((1 << (6 - (b))) - 1))
+#endif /* defined(PIOS_VIDEO_SPLITBUFFER) */
+
 // Macros for computing addresses and bit positions.
-#define CALC_BUFF_ADDR(x, y) (((x) / 8) + ((y) * BUFFER_WIDTH))
-#define CALC_BIT_IN_WORD(x)  ((x) & 7)
+#define CALC_BUFF_ADDR(x, y) (((x) / PIXELS_PER_BIT) + ((y) * BUFFER_WIDTH))
 #define DEBUG_DELAY
 // Macro for writing a word with a mode (NAND = clear, OR = set, XOR = toggle)
 // at a given position
@@ -57,11 +83,9 @@
 #define WRITE_WORD_NAND(buff, addr, mask) { buff[addr] &= ~mask; DEBUG_DELAY; }
 #define WRITE_WORD_OR(buff, addr, mask)   { buff[addr] |= mask; DEBUG_DELAY; }
 #define WRITE_WORD_XOR(buff, addr, mask)  { buff[addr] ^= mask; DEBUG_DELAY; }
+#define WRITE_WORD(buff, addr, mask, value)  { buff[addr] = (buff[addr] & ~mask) | (value & mask);}
 
-// Horizontal line calculations.
-// Edge cases.
-#define COMPUTE_HLINE_EDGE_L_MASK(b)      ((1 << (8 - (b))) - 1)
-#define COMPUTE_HLINE_EDGE_R_MASK(b)      (~((1 << (7 - (b))) - 1))
+
 // This computes an island mask.
 #define COMPUTE_HLINE_ISLAND_MASK(b0, b1) (COMPUTE_HLINE_EDGE_L_MASK(b0) ^ COMPUTE_HLINE_EDGE_L_MASK(b1));
 
@@ -141,25 +165,21 @@ typedef struct {
 	int16_t y;
 } point_t;
 
+void clearGraphics();
+void draw_image(uint16_t x, uint16_t y, const struct Image * image);
 void plotFourQuadrants(int32_t centerX, int32_t centerY, int32_t deltaX, int32_t deltaY);
 void ellipse(int centerX, int centerY, int horizontalRadius, int verticalRadius);
 void drawArrow(uint16_t x, uint16_t y, uint16_t angle, uint16_t size_quarter);
 void drawBox(uint16_t x1, uint16_t y1, uint16_t x2, uint16_t y2);
-void write_pixel(uint8_t *buff, int x, int y, int mode);
 void write_pixel_lm(int x, int y, int mmode, int lmode);
-void write_hline(uint8_t *buff, int x0, int x1, int y, int mode);
 void write_hline_lm(int x0, int x1, int y, int lmode, int mmode);
 void write_hline_outlined(int x0, int x1, int y, int endcap0, int endcap1, int mode, int mmode);
-void write_vline(uint8_t *buff, int x, int y0, int y1, int mode);
 void write_vline_lm(int x, int y0, int y1, int lmode, int mmode);
 void write_vline_outlined(int x, int y0, int y1, int endcap0, int endcap1, int mode, int mmode);
-void write_filled_rectangle(uint8_t *buff, int x, int y, int width, int height, int mode);
 void write_filled_rectangle_lm(int x, int y, int width, int height, int lmode, int mmode);
 void write_rectangle_outlined(int x, int y, int width, int height, int mode, int mmode);
-void write_circle(uint8_t *buff, int cx, int cy, int r, int dashp, int mode);
 void write_circle_outlined(int cx, int cy, int r, int dashp, int bmode, int mode, int mmode);
-void write_circle_filled(uint8_t *buff, int cx, int cy, int r, int mode);
-void write_line(uint8_t *buff, int x0, int y0, int x1, int y1, int mode);
+
 void write_line_lm(int x0, int y0, int x1, int y1, int mmode, int lmode);
 void write_line_outlined(int x0, int y0, int x1, int y1,
 						 __attribute__((unused)) int endcap0, __attribute__((unused)) int endcap1,
@@ -167,14 +187,8 @@ void write_line_outlined(int x0, int y0, int x1, int y1,
 void write_line_outlined_dashed(int x0, int y0, int x1, int y1,
 								__attribute__((unused)) int endcap0, __attribute__((unused)) int endcap1,
 								int mode, int mmode, int dots);
-void write_word_misaligned(uint8_t *buff, uint16_t word, unsigned int addr, unsigned int xoff, int mode);
-void write_word_misaligned_NAND(uint8_t *buff, uint16_t word, unsigned int addr, unsigned int xoff);
-void write_word_misaligned_OR(uint8_t *buff, uint16_t word, unsigned int addr, unsigned int xoff);
-void write_word_misaligned_lm(uint16_t wordl, uint16_t wordm, unsigned int addr, unsigned int xoff, int lmode, int mmode);
-int fetch_font_info(uint8_t ch, int font, struct FontEntry *font_info, char *lookup);
-void write_char16(char ch, int x, int y, int flags, int font);
-void write_char(char ch, int x, int y, int flags, int font);
-void calc_text_dimensions(char *str, struct FontEntry font, int xs, int ys, struct FontDimensions *dim);
+const struct FontEntry* get_font_info(int font);
+void calc_text_dimensions(char *str, const struct FontEntry *font, int xs, int ys, struct FontDimensions *dim);
 void write_string(char *str, int x, int y, int xs, int ys, int va, int ha, int flags, int font);
 void draw_polygon(int16_t x, int16_t y, float angle, const point_t * points, uint8_t n_points, int mode, int mmode);
 void lla_to_ned(int32_t lat, int32_t lon, float alt, float *NED);

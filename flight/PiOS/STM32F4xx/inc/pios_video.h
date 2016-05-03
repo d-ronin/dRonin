@@ -42,10 +42,44 @@ struct pios_video_type_boundary {
 	uint16_t graphics_bottom;
 };
 
+// 3D Mode
+enum pios_video_3d_mode {
+	PIOS_VIDEO_3D_DISABLED,
+	PIOS_VIDEO_3D_SBS3D,
+};
+
+#if defined(PIOS_INCLUDE_VIDEO_QUADSPI)
+#include <stm32f4xx_qspi.h>
+
 // PAL/NTSC specific config values
 struct pios_video_type_cfg {
 	uint16_t graphics_hight_real;
-	uint8_t  graphics_column_start;
+	uint16_t graphics_column_start;
+	uint8_t  graphics_line_start;
+	uint8_t  dma_buffer_length;
+};
+
+struct pios_video_cfg {
+	QSPI_InitTypeDef qspi_init;
+	DMA_TypeDef *pixel_dma;
+	struct stm32_dma dma;
+	struct stm32_gpio sclk;
+	struct stm32_gpio bk1_io0;
+	struct stm32_gpio bk1_io1;
+	struct stm32_gpio bk1_io2;
+	struct stm32_gpio bk1_io3;
+	const struct pios_exti_cfg *hsync;
+	const struct pios_exti_cfg *vsync;
+	void (* set_bw_levels)(uint8_t, uint8_t);
+	void (* set_x_offset)(int8_t);
+	void (* set_x_scale)(uint8_t);
+	void (* set_3d_config)(enum pios_video_3d_mode, uint8_t);
+};
+#else
+// PAL/NTSC specific config values
+struct pios_video_type_cfg {
+	uint16_t graphics_hight_real;
+	uint16_t graphics_column_start;
 	uint8_t  graphics_line_start;
 	uint8_t  dma_buffer_length;
 	uint8_t  period;
@@ -57,30 +91,32 @@ struct pios_video_cfg {
 	const struct pios_spi_cfg mask;
 	DMA_TypeDef *level_dma;
 	const struct pios_spi_cfg  level;
-
-	const struct pios_exti_cfg *vsync;
-
 	struct pios_tim_channel    hsync_capture;
 	struct pios_tim_channel    pixel_timer;
 	TIM_TypeDef *              line_counter;
-
-	void (* set_bw_levels)(uint8_t, uint8_t);
-
 	TIM_OCInitTypeDef tim_oc_init;
+	const struct pios_exti_cfg *vsync;
+	void (* set_bw_levels)(uint8_t, uint8_t);
+	void (* set_x_scale)(uint8_t);
+	void (* set_3d_config)(enum pios_video_3d_mode, uint8_t);
 };
+#endif /* defined(PIOS_VIDEO_QUADSPI) */
 
 extern const struct pios_video_cfg pios_video_cfg;
 
 extern bool PIOS_Vsync_ISR();
+extern bool PIOS_Hsync_ISR();
+
 extern void PIOS_Video_Init(const struct pios_video_cfg *cfg);
 extern void PIOS_Pixel_Init(void);
 extern void PIOS_Video_SetLevels(uint8_t, uint8_t, uint8_t, uint8_t);
 extern void PIOS_Video_SetXOffset(int8_t);
 extern void PIOS_Video_SetYOffset(int8_t);
+extern void PIOS_Video_SetXScale(uint8_t pal_x_scale, uint8_t ntsc_x_scale);
+extern void PIOS_Video_Set3DConfig(enum pios_video_3d_mode mode, uint8_t right_eye_x_shift);
 
 uint16_t PIOS_Video_GetLines(void);
 uint16_t PIOS_Video_GetType(void);
-
 
 // video boundary values
 extern const struct pios_video_type_boundary *pios_video_type_boundary_act;
@@ -92,20 +128,23 @@ extern const struct pios_video_type_boundary *pios_video_type_boundary_act;
 #define GRAPHICS_X_MIDDLE	((GRAPHICS_RIGHT + 1) / 2)
 #define GRAPHICS_Y_MIDDLE	((GRAPHICS_BOTTOM + 1) / 2)
 
-
 // video type defs for autodetect
 #define VIDEO_TYPE_NONE      0
 #define VIDEO_TYPE_NTSC      1
 #define VIDEO_TYPE_PAL       2
 #define VIDEO_TYPE_PAL_ROWS  300
 
-
 // draw area buffer values, for memory allocation, access and calculations we suppose the larger values for PAL, this also works for NTSC
 #define GRAPHICS_WIDTH_REAL  376                            // max columns
 #define GRAPHICS_HEIGHT_REAL 266                            // max lines
-#define BUFFER_WIDTH         (GRAPHICS_WIDTH_REAL / 8 + 1)  // Bytes plus one byte for SPI, needs to be multiple of 4 for alignment
+#if defined(PIOS_VIDEO_SPLITBUFFER)
+#define BUFFER_WIDTH         (GRAPHICS_WIDTH_REAL / 8  + 1)  // Bytes plus one byte for SPI, needs to be multiple of 4 for alignment
 #define BUFFER_HEIGHT        (GRAPHICS_HEIGHT_REAL)
-
+#else
+#define BUFFER_WIDTH_TMP     (GRAPHICS_WIDTH_REAL / (8 / PIOS_VIDEO_BITS_PER_PIXEL))
+#define BUFFER_WIDTH (BUFFER_WIDTH_TMP + BUFFER_WIDTH_TMP % 4)
+#define BUFFER_HEIGHT        (GRAPHICS_HEIGHT_REAL)
+#endif /* PIOS_INCLUDE_VIDEO_SPLITBUFFER */
 
 // Macro to swap buffers given a temporary pointer.
 #define SWAP_BUFFS(tmp, a, b) { tmp = a; a = b; b = tmp; }
