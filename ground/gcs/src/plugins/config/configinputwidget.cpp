@@ -151,6 +151,9 @@ ConfigInputWidget::ConfigInputWidget(QWidget *parent) : ConfigTaskWidget(parent)
     addUAVObjectToWidgetRelation("ManualControlSettings","Stabilization1Settings",m_config->fmsSsPos1Yaw,"Yaw");
     addUAVObjectToWidgetRelation("ManualControlSettings","Stabilization2Settings",m_config->fmsSsPos2Yaw,"Yaw");
     addUAVObjectToWidgetRelation("ManualControlSettings","Stabilization3Settings",m_config->fmsSsPos3Yaw,"Yaw");
+    addUAVObjectToWidgetRelation("ManualControlSettings","Stabilization1Reprojection",m_config->fmsSsPos1Rep);
+    addUAVObjectToWidgetRelation("ManualControlSettings","Stabilization2Reprojection",m_config->fmsSsPos2Rep);
+    addUAVObjectToWidgetRelation("ManualControlSettings","Stabilization3Reprojection",m_config->fmsSsPos3Rep);
 
     // connect this before the widgets are populated to ensure it always fires
     connect(m_config->armControl, SIGNAL(currentTextChanged(QString)), this, SLOT(checkArmingConfig(QString)));
