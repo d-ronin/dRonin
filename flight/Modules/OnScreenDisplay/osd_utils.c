@@ -7,6 +7,7 @@
  * @{
  *
  * @file       osd_utils.c
+ * @author     dRonin, http://dRonin.org/, Copyright (C) 2016
  * @author     Tau Labs, http://taulabs.org, Copyright (C) 2013-2015
  * @author     The OpenPilot Team, http://www.openpilot.org Copyright (C) 2010-2014.
  * @brief      OSD Utility Functions
@@ -27,13 +28,15 @@
  * You should have received a copy of the GNU General Public License along
  * with this program; if not, write to the Free Software Foundation, Inc.,
  * 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
+ *
+ * Additional note on redistribution: The copyright and license notices above
+ * must be maintained in each individual source file that is a derivative work
+ * of this source file; otherwise redistribution is prohibited.
  */
 
 #include <openpilot.h>
 #include "pios_video.h"
 #include "fonts.h"
-#include "font12x18.h"
-#include "font8x10.h"
 #include "osd_utils.h"
 #include "physical_constants.h"
 #include "math.h"
@@ -42,11 +45,82 @@
 #include "gpsposition.h"
 #include "homelocation.h"
 
+extern struct FontEntry* fonts[NUM_FONTS];
+
+#if defined(PIOS_VIDEO_SPLITBUFFER)
 extern uint8_t *draw_buffer_level;
 extern uint8_t *draw_buffer_mask;
 extern uint8_t *disp_buffer_level;
 extern uint8_t *disp_buffer_mask;
+#else
+extern uint8_t *draw_buffer;
+extern uint8_t *disp_buffer;
+#endif /* defined(PIOS_VIDEO_SPLITBUFFER) */
 
+
+void clearGraphics()
+{
+#if defined(PIOS_VIDEO_SPLITBUFFER)
+	memset((uint8_t *)draw_buffer_mask, 0, BUFFER_HEIGHT * BUFFER_WIDTH);
+	memset((uint8_t *)draw_buffer_level, 0, BUFFER_HEIGHT * BUFFER_WIDTH);
+#else
+	memset((uint8_t *)draw_buffer, 0, BUFFER_HEIGHT * BUFFER_WIDTH);
+#endif /* defined(PIOS_VIDEO_SPLITBUFFER) */
+}
+
+void draw_image(uint16_t x, uint16_t y, const struct Image * image)
+{
+#if defined(PIOS_VIDEO_SPLITBUFFER)
+	CHECK_COORDS(x + image->width, y + image->height);
+	uint8_t byte_width = image->width / 8;
+	uint8_t pixel_offset = x % 8;
+	uint8_t mask1 = 0xFF;
+	uint8_t mask2 = 0x00;
+
+	if (pixel_offset > 0) {
+		for (uint8_t i = 0; i<pixel_offset; i++) {
+			mask2 |= 0x01 << i;
+		}
+		mask1 = ~mask2;
+	}
+
+	for (uint16_t yp = 0; yp < image->height; yp++) {
+		for (uint16_t xp = 0; xp < image->width / 8; xp++) {
+			draw_buffer_level[(y + yp) * BUFFER_WIDTH + xp + x / 8] |= (image->level[yp * byte_width + xp] & mask1) >> pixel_offset;
+			draw_buffer_mask[(y + yp) * BUFFER_WIDTH + xp + x / 8] |= (image->mask[yp * byte_width + xp] & mask1) >> pixel_offset;
+			if (pixel_offset > 0) {
+				draw_buffer_level[(y + yp) * BUFFER_WIDTH + xp + x / 8 + 1] |= (image->level[yp * byte_width + xp] & mask2) <<
+						(8 - pixel_offset);
+				draw_buffer_mask[(y + yp) * BUFFER_WIDTH + xp + x / 8 + 1] |= (image->mask[yp * byte_width + xp] & mask2) <<
+						(8 - pixel_offset);
+			}
+		}
+	}
+#else
+	CHECK_COORDS(x + image->width, y + image->height);
+	uint8_t byte_width = image->width / 4;
+	uint8_t pixel_offset = 2 * (x % 4);
+	uint8_t mask1 = 0xFF;
+	uint8_t mask2 = 0x00;
+
+	if (pixel_offset > 0) {
+		for (uint8_t i = 0; i<pixel_offset; i++) {
+			mask2 |= 0x01 << i;
+		}
+		mask1 = ~mask2;
+	}
+
+	for (uint16_t yp = 0; yp < image->height; yp++) {
+		for (uint16_t xp = 0; xp < byte_width; xp++) {
+			draw_buffer[(y + yp) * BUFFER_WIDTH + xp + x / 4] |= (image->data[yp * byte_width + xp] & mask1) >> pixel_offset;
+			if (pixel_offset > 0) {
+				draw_buffer[(y + yp) * BUFFER_WIDTH + xp + x / 4 + 1] |= (image->data[yp * byte_width + xp] & mask2) <<
+						(8 - pixel_offset);
+			}
+		}
+	}
+#endif /* PIOS_VIDEO_SPLITBUFFER */
+}
 
 /// Draws four points relative to the given center point.
 ///
@@ -146,6 +220,7 @@ void drawBox(uint16_t x1, uint16_t y1, uint16_t x2, uint16_t y2)
 	write_line_lm(x1, y2, x2, y2, 1, 1); // bottom
 }
 
+#if defined(PIOS_VIDEO_SPLITBUFFER)
 /**
  * write_pixel: Write a pixel at an x,y position to a given surface.
  *
@@ -159,12 +234,21 @@ void write_pixel(uint8_t *buff, int x, int y, int mode)
 	CHECK_COORDS(x, y);
 	// Determine the bit in the word to be set and the word
 	// index to set it in.
-	int bitnum    = CALC_BIT_IN_WORD(x);
-	int wordnum   = CALC_BUFF_ADDR(x, y);
-	// Apply a mask.
-	uint16_t mask = 1 << (7 - bitnum);
+	int wordnum = CALC_BUFF_ADDR(x, y);
+	uint8_t mask = CALC_BIT_MASK(x);
 	WRITE_WORD_MODE(buff, wordnum, mask, mode);
 }
+#else
+void write_pixel(int x, int y, uint8_t value)
+{
+	CHECK_COORDS(x, y);
+	// Determine the bit in the word to be set and the word
+	// index to set it in.
+	int wordnum = CALC_BUFF_ADDR(x, y);
+	uint8_t mask = CALC_BIT_MASK(x);
+	WRITE_WORD(draw_buffer, wordnum, mask, value);
+}
+#endif /* PIOS_VIDEO_SPLITBUFFER */
 
 /**
  * write_pixel_lm: write the pixel on both surfaces (level and mask.)
@@ -180,12 +264,15 @@ void write_pixel_lm(int x, int y, int mmode, int lmode)
 	CHECK_COORDS(x, y);
 	// Determine the bit in the word to be set and the word
 	// index to set it in.
-	int bitnum    = CALC_BIT_IN_WORD(x);
-	int wordnum   = CALC_BUFF_ADDR(x, y);
-	// Apply the masks.
-	uint16_t mask = 1 << (7 - bitnum);
-	WRITE_WORD_MODE(draw_buffer_mask, wordnum, mask, mmode);
-	WRITE_WORD_MODE(draw_buffer_level, wordnum, mask, lmode);
+	int addr   = CALC_BUFF_ADDR(x, y);
+	uint8_t mask = CALC_BIT_MASK(x);
+#if defined(PIOS_VIDEO_SPLITBUFFER)
+	WRITE_WORD_MODE(draw_buffer_mask, addr, mask, mmode);
+	WRITE_WORD_MODE(draw_buffer_level, addr, mask, lmode);
+#else
+	uint8_t value = PACK_BITS(mmode, lmode);
+	WRITE_WORD(draw_buffer, addr, mask, value);
+#endif /* defined(PIOS_VIDEO_SPLITBUFFER) */
 }
 
 /**
@@ -197,6 +284,7 @@ void write_pixel_lm(int x, int y, int mmode, int lmode)
  * @param       y       y coordinate
  * @param       mode    0 = clear, 1 = set, 2 = toggle
  */
+#if defined(PIOS_VIDEO_SPLITBUFFER)
 void write_hline(uint8_t *buff, int x0, int x1, int y, int mode)
 {
 	CHECK_COORD_Y(y);
@@ -233,6 +321,45 @@ void write_hline(uint8_t *buff, int x0, int x1, int y, int mode)
 		}
 	}
 }
+#else
+void write_hline(int x0, int x1, int y, uint8_t value)
+{
+	CHECK_COORD_Y(y);
+	CLIP_COORD_X(x0);
+	CLIP_COORD_X(x1);
+	if (x0 > x1) {
+		SWAP(x0, x1);
+	}
+	if (x0 == x1) {
+		return;
+	}
+	/* This is an optimised algorithm for writing horizontal lines.
+	 * We begin by finding the addresses of the x0 and x1 points. */
+	int addr0     = CALC_BUFF_ADDR(x0, y);
+	int addr1     = CALC_BUFF_ADDR(x1, y);
+	int addr0_bit = CALC_BIT1_IN_WORD(x0);
+	int addr1_bit = CALC_BIT0_IN_WORD(x1);
+	int mask, mask_l, mask_r, i;
+	/* If the addresses are equal, we only need to write one word
+	 * which is an island. */
+	if (addr0 == addr1) {
+		mask = COMPUTE_HLINE_ISLAND_MASK(addr0_bit, addr1_bit);
+		WRITE_WORD(draw_buffer, addr0, mask, value);
+	} else {
+		/* Otherwise we need to write the edges and then the middle. */
+		mask_l = COMPUTE_HLINE_EDGE_L_MASK(addr0_bit);
+		mask_r = COMPUTE_HLINE_EDGE_R_MASK(addr1_bit);
+		WRITE_WORD(draw_buffer, addr0, mask_l, value);
+		WRITE_WORD(draw_buffer, addr1, mask_r, value);
+		// Now write 0xffff words from start+1 to end-1.
+		for (i = addr0 + 1; i <= addr1 - 1; i++) {
+			uint8_t m = 0xff;
+			WRITE_WORD(draw_buffer, i, m, value);
+		}
+	}
+}
+#endif /* defined(PIOS_VIDEO_SPLITBUFFER) */
+
 
 /**
  * write_hline_lm: write both level and mask buffers.
@@ -245,10 +372,15 @@ void write_hline(uint8_t *buff, int x0, int x1, int y, int mode)
  */
 void write_hline_lm(int x0, int x1, int y, int lmode, int mmode)
 {
+#if defined(PIOS_VIDEO_SPLITBUFFER)
 	// TODO: an optimisation would compute the masks and apply to
 	// both buffers simultaneously.
 	write_hline(draw_buffer_level, x0, x1, y, lmode);
 	write_hline(draw_buffer_mask, x0, x1, y, mmode);
+#else
+	uint8_t value = PACK_BITS(mmode, lmode);
+	write_hline(x0, x1, y, value);
+#endif /* defined(PIOS_VIDEO_SPLITBUFFER) */
 }
 
 /**
@@ -289,6 +421,7 @@ void write_hline_outlined(int x0, int x1, int y, int endcap0, int endcap1, int m
  * @param       y1      y1 coordinate
  * @param       mode    0 = clear, 1 = set, 2 = toggle
  */
+#if defined(PIOS_VIDEO_SPLITBUFFER)
 void write_vline(uint8_t *buff, int x, int y0, int y1, int mode)
 {
 	CHECK_COORD_X(x);
@@ -305,14 +438,39 @@ void write_vline(uint8_t *buff, int x, int y0, int y1, int mode)
 	int addr0  = CALC_BUFF_ADDR(x, y0);
 	int addr1  = CALC_BUFF_ADDR(x, y1);
 	/* Then we calculate the pixel data to be written. */
-	int bitnum = CALC_BIT_IN_WORD(x);
-	uint16_t mask = 1 << (7 - bitnum);
+	uint8_t mask = CALC_BIT_MASK(x);
 	/* Run from addr0 to addr1 placing pixels. Increment by the number
 	 * of words n each graphics line. */
 	for (int a = addr0; a <= addr1; a += BUFFER_WIDTH) {
 		WRITE_WORD_MODE(buff, a, mask, mode);
 	}
 }
+#else
+void write_vline(int x, int y0, int y1, uint8_t value)
+{
+	CHECK_COORD_X(x);
+	CLIP_COORD_Y(y0);
+	CLIP_COORD_Y(y1);
+	if (y0 > y1) {
+		SWAP(y0, y1);
+	}
+	if (y0 == y1) {
+		return;
+	}
+	/* This is an optimised algorithm for writing vertical lines.
+	 * We begin by finding the addresses of the x,y0 and x,y1 points. */
+	int addr0  = CALC_BUFF_ADDR(x, y0);
+	int addr1  = CALC_BUFF_ADDR(x, y1);
+	/* Then we calculate the pixel data to be written. */
+	uint8_t mask = CALC_BIT_MASK(x);
+	/* Run from addr0 to addr1 placing pixels. Increment by the number
+	 * of words n each graphics line. */
+	for (int a = addr0; a <= addr1; a += BUFFER_WIDTH) {
+		WRITE_WORD(draw_buffer, a, mask, value);
+	}
+}
+#endif /* defined(PIOS_VIDEO_SPLITBUFFER) */
+
 
 /**
  * write_vline_lm: write both level and mask buffers.
@@ -325,10 +483,15 @@ void write_vline(uint8_t *buff, int x, int y0, int y1, int mode)
  */
 void write_vline_lm(int x, int y0, int y1, int lmode, int mmode)
 {
+#if defined(PIOS_VIDEO_SPLITBUFFER)
 	// TODO: an optimisation would compute the masks and apply to
 	// both buffers simultaneously.
 	write_vline(draw_buffer_level, x, y0, y1, lmode);
 	write_vline(draw_buffer_mask, x, y0, y1, mmode);
+#else
+	uint8_t value = PACK_BITS(mmode, lmode);
+	write_vline(x, y0, y1, value);
+#endif /* defined(PIOS_VIDEO_SPLITBUFFER) */
 }
 
 /**
@@ -374,6 +537,7 @@ void write_vline_outlined(int x, int y0, int y1, int endcap0, int endcap1, int m
  * @param       height  rectangle height
  * @param       mode    0 = clear, 1 = set, 2 = toggle
  */
+#if defined(PIOS_VIDEO_SPLITBUFFER)
 void write_filled_rectangle(uint8_t *buff, int x, int y, int width, int height, int mode)
 {
 	int yy, addr0_old, addr1_old;
@@ -427,6 +591,61 @@ void write_filled_rectangle(uint8_t *buff, int x, int y, int width, int height, 
 		}
 	}
 }
+#else
+void write_filled_rectangle(int x, int y, int width, int height, uint8_t value)
+{
+	int yy, addr0_old, addr1_old;
+
+	CHECK_COORDS(x, y);
+	CHECK_COORDS(x + width, y + height);
+	if (width <= 0 || height <= 0) {
+		return;
+	}
+	// Calculate as if the rectangle was only a horizontal line. We then
+	// step these addresses through each row until we iterate `height` times.
+	int addr0     = CALC_BUFF_ADDR(x, y);
+	int addr1     = CALC_BUFF_ADDR(x + width, y);
+	int addr0_bit = CALC_BIT_IN_WORD(x);
+	int addr1_bit = CALC_BIT_IN_WORD(x + width);
+	int mask, mask_l, mask_r, i;
+	// If the addresses are equal, we need to write one word vertically.
+	if (addr0 == addr1) {
+		mask = COMPUTE_HLINE_ISLAND_MASK(addr0_bit, addr1_bit);
+		while (height--) {
+			WRITE_WORD(draw_buffer, addr0, mask, value);
+			addr0 += BUFFER_WIDTH;
+		}
+	} else {
+		// Otherwise we need to write the edges and then the middle repeatedly.
+		mask_l    = COMPUTE_HLINE_EDGE_L_MASK(addr0_bit);
+		mask_r    = COMPUTE_HLINE_EDGE_R_MASK(addr1_bit);
+		// Write edges first.
+		yy        = 0;
+		addr0_old = addr0;
+		addr1_old = addr1;
+		while (yy < height) {
+			WRITE_WORD(draw_buffer, addr0, mask_l, value);
+			WRITE_WORD(draw_buffer, addr1, mask_r, value);
+			addr0 += BUFFER_WIDTH;
+			addr1 += BUFFER_WIDTH;
+			yy++;
+		}
+		// Now write 0xffff words from start+1 to end-1 for each row.
+		yy    = 0;
+		addr0 = addr0_old;
+		addr1 = addr1_old;
+		while (yy < height) {
+			for (i = addr0 + 1; i <= addr1 - 1; i++) {
+				uint8_t m = 0xff;
+				WRITE_WORD(draw_buffer, i, m, value);
+			}
+			addr0 += BUFFER_WIDTH;
+			addr1 += BUFFER_WIDTH;
+			yy++;
+		}
+	}
+}
+#endif /* defined(PIOS_VIDEO_SPLITBUFFER) */
 
 /**
  * write_filled_rectangle_lm: draw a filled rectangle on both draw buffers.
@@ -440,8 +659,13 @@ void write_filled_rectangle(uint8_t *buff, int x, int y, int width, int height, 
  */
 void write_filled_rectangle_lm(int x, int y, int width, int height, int lmode, int mmode)
 {
+#if defined(PIOS_VIDEO_SPLITBUFFER)
 	write_filled_rectangle(draw_buffer_mask, x, y, width, height, mmode);
 	write_filled_rectangle(draw_buffer_level, x, y, width, height, lmode);
+#else
+	uint8_t value = PACK_BITS(mmode, lmode);
+	write_filled_rectangle(x, y, width, height, value);
+#endif /* defined(PIOS_VIDEO_SPLITBUFFER) */
 }
 
 /**
@@ -463,6 +687,7 @@ void write_rectangle_outlined(int x, int y, int width, int height, int mode, int
 	write_vline_outlined(x + width, y, y + height, ENDCAP_ROUND, ENDCAP_ROUND, mode, mmode);
 }
 
+#if defined(PIOS_VIDEO_SPLITBUFFER)
 /**
  * write_circle: draw the outline of a circle on a given buffer,
  * with an optional dash pattern for the line instead of a normal line.
@@ -595,6 +820,7 @@ void write_circle_filled(uint8_t *buff, int cx, int cy, int r, int mode)
 		write_hline(buff, cx - r, cx + r, cy, mode);
 	}
 }
+#endif /* defined(PIOS_VIDEO_SPLITBUFFER) */
 
 /**
  * write_line: Draw a line of arbitrary angle.
@@ -606,6 +832,7 @@ void write_circle_filled(uint8_t *buff, int cx, int cy, int r, int mode)
  * @param       y1              second y coordinate
  * @param       mode    0 = clear, 1 = set, 2 = toggle
  */
+#if defined(PIOS_VIDEO_SPLITBUFFER)
 void write_line(uint8_t *buff, int x0, int y0, int x1, int y1, int mode)
 {
 	// Based on http://en.wikipedia.org/wiki/Bresenham%27s_line_algorithm
@@ -643,6 +870,45 @@ void write_line(uint8_t *buff, int x0, int y0, int x1, int y1, int mode)
 		}
 	}
 }
+#else
+void write_line(int x0, int y0, int x1, int y1, uint8_t value)
+{
+	// Based on http://en.wikipedia.org/wiki/Bresenham%27s_line_algorithm
+	int steep = abs(y1 - y0) > abs(x1 - x0);
+
+	if (steep) {
+		SWAP(x0, y0);
+		SWAP(x1, y1);
+	}
+	if (x0 > x1) {
+		SWAP(x0, x1);
+		SWAP(y0, y1);
+	}
+	int deltax     = x1 - x0;
+	int deltay = abs(y1 - y0);
+	int error      = deltax / 2;
+	int ystep;
+	int y = y0;
+	int x; // , lasty = y, stox = 0;
+	if (y0 < y1) {
+		ystep = 1;
+	} else {
+		ystep = -1;
+	}
+	for (x = x0; x < x1; x++) {
+		if (steep) {
+			write_pixel(y, x, value);
+		} else {
+			write_pixel(x, y, value);
+		}
+		error -= deltay;
+		if (error < 0) {
+			y     += ystep;
+			error += deltax;
+		}
+	}
+}
+#endif /* defined(PIOS_VIDEO_SPLITBUFFER) */
 
 /**
  * write_line_lm: Draw a line of arbitrary angle.
@@ -656,8 +922,13 @@ void write_line(uint8_t *buff, int x0, int y0, int x1, int y1, int mode)
  */
 void write_line_lm(int x0, int y0, int x1, int y1, int mmode, int lmode)
 {
+#if defined(PIOS_VIDEO_SPLITBUFFER)
 	write_line(draw_buffer_mask, x0, y0, x1, y1, mmode);
 	write_line(draw_buffer_level, x0, y0, x1, y1, lmode);
+#else
+	uint8_t value = PACK_BITS(mmode, lmode);
+	write_line(x0, y0, x1, y1, value);
+#endif /* defined(PIOS_VIDEO_SPLITBUFFER) */
 }
 
 /**
@@ -842,30 +1113,6 @@ void write_line_outlined_dashed(int x0, int y0, int x1, int y1,
 }
 
 /**
- * write_word_misaligned: Write a misaligned word across two addresses
- * with an x offset.
- *
- * This allows for many pixels to be set in one write.
- *
- * @param       buff    buffer to write in
- * @param       word    word to write (16 bits)
- * @param       addr    address of first word
- * @param       xoff    x offset (0-15)
- * @param       mode    0 = clear, 1 = set, 2 = toggle
- */
-void write_word_misaligned(uint8_t *buff, uint16_t word, unsigned int addr, unsigned int xoff, int mode)
-{
-	int16_t firstmask = word >> xoff;
-	int16_t lastmask  = word << (16 - xoff);
-
-	WRITE_WORD_MODE(buff, addr + 1, firstmask && 0x00ff, mode);
-	WRITE_WORD_MODE(buff, addr, (firstmask & 0xff00) >> 8, mode);
-	if (xoff > 0) {
-		WRITE_WORD_MODE(buff, addr + 2, (lastmask & 0xff00) >> 8, mode);
-	}
-}
-
-/**
  * write_word_misaligned_NAND: Write a misaligned word across two addresses
  * with an x offset, using a NAND mask.
  *
@@ -920,112 +1167,114 @@ void write_word_misaligned_OR(uint8_t *buff, uint16_t word, unsigned int addr, u
 }
 
 /**
- * write_word_misaligned_lm: Write a misaligned word across two
- * words, in both level and mask buffers. This is core to the text
- * writing routines.
+ * write_word_misaligned_OR: Write a misaligned word across two addresses
+ * with an x offset, using an OR mask.
+ *
+ * This allows for many pixels to be set in one write.
  *
  * @param       buff    buffer to write in
  * @param       word    word to write (16 bits)
  * @param       addr    address of first word
  * @param       xoff    x offset (0-15)
- * @param       lmode   0 = clear, 1 = set, 2 = toggle
- * @param       mmode   0 = clear, 1 = set, 2 = toggle
+ *
+ * This is identical to calling write_word_misaligned with a mode of 1 but
+ * it doesn't go through a lot of switch logic which slows down text writing
+ * a lot.
  */
-void write_word_misaligned_lm(uint16_t wordl, uint16_t wordm, unsigned int addr, unsigned int xoff, int lmode, int mmode)
+void write_word_misaligned_MASKED(uint8_t *buff, uint16_t word, uint16_t mask, unsigned int addr, unsigned int xoff)
 {
-	write_word_misaligned(draw_buffer_level, wordl, addr, xoff, lmode);
-	write_word_misaligned(draw_buffer_mask, wordm, addr, xoff, mmode);
+	uint16_t firstword = (word >> xoff);
+	uint16_t lastword  = word << (16 - xoff);
+	uint16_t firstmask = (mask >> xoff);
+	uint16_t lastmask  = mask << (16 - xoff);
+
+	WRITE_WORD(buff, addr + 1, firstmask & 0x00ff, firstword & 0x00ff);
+	WRITE_WORD(buff, addr, (firstmask & 0xff00) >> 8, (firstword & 0xff00) >> 8);
+	if (xoff > 0) {
+		WRITE_WORD(buff, addr + 2, (lastmask & 0xff00) >> 8, (lastword & 0xff00) >> 8);
+	}
 }
 
-/**
- * fetch_font_info: Fetch font info structs.
- *
- * @param       ch              character
- * @param       font    font id
- */
-int fetch_font_info(uint8_t ch, int font, struct FontEntry *font_info, char *lookup)
-{
-	// First locate the font struct.
-	if ((unsigned int)font > SIZEOF_ARRAY(fonts)) {
-		return 0; // font does not exist, exit.
-	}
-	// Load the font info; IDs are always sequential.
-	*font_info = fonts[font];
-	// Locate character in font lookup table. (If required.)
-	if (lookup != NULL) {
-		*lookup = font_info->lookup[ch];
-		if (*lookup == 0xff) {
-			return 0; // character doesn't exist, don't bother writing it.
-		}
-	}
-	return 1;
-}
 
 /**
- * write_char16: Draw a character on the current draw buffer.
+ * write_char: Draw a character on the current draw buffer.
  *
- * @param       ch      character to write
- * @param       x       x coordinate (left)
- * @param       y       y coordinate (top)
- * @param       flags   flags to write with
- * @param       font    font to use
+ * @param       ch           character to write
+ * @param       x            x coordinate (left)
+ * @param       y            y coordinate (top)
+ * @param       font_info    font to use
  */
-void write_char16(char ch, int x, int y, int flags, int font)
+void write_char(uint8_t ch, int x, int y, const struct FontEntry *font_info)
 {
-	int yy, row, xshift;
-	uint16_t and_mask, or_mask, levels;
-	struct FontEntry font_info;
+	int yy, row;
+#if defined(PIOS_VIDEO_SPLITBUFFER)
+	uint16_t levels;
+#else
+	uint16_t data16;
+#endif
 
-	fetch_font_info(0, font, &font_info, NULL);
+	uint16_t mask;
+	ch = font_info->lookup[ch];
+	if (ch == 255)
+		return;
 
 	// check if char is partly out of boundary
-	uint8_t partly_out = (x < GRAPHICS_LEFT) || (x + font_info.width > GRAPHICS_RIGHT) || (y < GRAPHICS_TOP) || (y + font_info.height > GRAPHICS_BOTTOM);
+	uint8_t partly_out = (x < GRAPHICS_LEFT) || (x + font_info->width > GRAPHICS_RIGHT) || (y < GRAPHICS_TOP) || (y + font_info->height > GRAPHICS_BOTTOM);
 	// check if char is totally out of boundary, if so return
-	if (partly_out && ((x + font_info.width < GRAPHICS_LEFT) || (x > GRAPHICS_RIGHT) || (y + font_info.height < GRAPHICS_TOP) || (y > GRAPHICS_BOTTOM))) {
+	if (partly_out && ((x + font_info->width < GRAPHICS_LEFT) || (x > GRAPHICS_RIGHT) || (y + font_info->height < GRAPHICS_TOP) || (y > GRAPHICS_BOTTOM))) {
 		return;
 	}
 
 	// Compute starting address of character
 	int addr = CALC_BUFF_ADDR(x, y);
 	int wbit = CALC_BIT_IN_WORD(x);
+	row = ch * font_info->height;
 
-	// If font only supports lowercase or uppercase, make the letter lowercase or uppercase
-	// if (font_info.flags & FONT_LOWERCASE_ONLY) ch = tolower(ch);
-	// if (font_info.flags & FONT_UPPERCASE_ONLY) ch = toupper(ch);
-
-	// How wide is the character? We handle characters from 8 pixels up in this function
-	if (font_info.width >= 8) {
-		// Load data pointer.
-		row    = ch * font_info.height;
-		xshift = 16 - font_info.width;
-		// We can write mask words easily.
-		// Level bits are more complicated. We need to set or clear level bits, but only where the mask bit is set; otherwise, we need to leave them alone.
-		// To do this, for each word, we construct an AND mask and an OR mask, and apply each individually.
-		for (yy = y; yy < y + font_info.height; yy++) {
-			if (!partly_out || ((x >= GRAPHICS_LEFT) && (x + font_info.width <= GRAPHICS_RIGHT) && (yy >= GRAPHICS_TOP) && (yy <= GRAPHICS_BOTTOM))) {
-				if (font == 3) {
-					// mask
-					write_word_misaligned_OR(draw_buffer_mask, font_mask12x18[row] << xshift, addr, wbit);
-					// level
-					levels   = font_frame12x18[row];
-					if (!(flags & FONT_INVERT)) // data is normally inverted
-						levels   = ~levels;
-					or_mask  = font_mask12x18[row] << xshift;
-					and_mask = (font_mask12x18[row] & levels) << xshift;
-				} else {
-					// mask
-					write_word_misaligned_OR(draw_buffer_mask, font_mask8x10[row] << xshift, addr, wbit);
-					// level
-					levels   = font_frame8x10[row];
-					if (!(flags & FONT_INVERT)) // data is normally inverted
-						levels   = ~levels;
-					or_mask  = font_mask8x10[row] << xshift;
-					and_mask = (font_mask8x10[row] & levels) << xshift;
-				}
-				write_word_misaligned_OR(draw_buffer_level, or_mask, addr, wbit);
-				// If we're not bold write the AND mask.
-				// if (!(flags & FONT_BOLD))
-				write_word_misaligned_NAND(draw_buffer_level, and_mask, addr, wbit);
+	if (font_info->width > 8) {
+		uint32_t data;
+		for (yy = y; yy < y + font_info->height; yy++) {
+			if (!partly_out || ((x >= GRAPHICS_LEFT) && (x + font_info->width <= GRAPHICS_RIGHT) && (yy >= GRAPHICS_TOP) && (yy <= GRAPHICS_BOTTOM))) {
+				data = ((uint32_t*)font_info->data)[row];
+#if defined(PIOS_VIDEO_SPLITBUFFER)
+				mask = data & 0xFFFF;
+				levels   = (data >> 16) & 0xFFFF;
+				// mask
+				write_word_misaligned_OR(draw_buffer_mask, mask, addr, wbit);
+				// level
+				write_word_misaligned_OR(draw_buffer_level, mask, addr, wbit);
+				mask = (mask & levels);
+				write_word_misaligned_NAND(draw_buffer_level, mask, addr, wbit);
+#else
+				data16 = (data & 0xFFFF0000) >> 16;
+				mask = data16 | (data16 << 1);
+				write_word_misaligned_MASKED(draw_buffer, data16, mask, addr, wbit);
+				data16 = (data & 0x0000FFFF);
+				mask = data16 | (data16 << 1);
+				write_word_misaligned_MASKED(draw_buffer, data16, mask, addr + 2, wbit);
+#endif /* defined(PIOS_VIDEO_SPLITBUFFER) */
+			}
+			addr += BUFFER_WIDTH;
+			row++;
+		}
+	}
+	else {
+		uint16_t data;
+		for (yy = y; yy < y + font_info->height; yy++) {
+			if (!partly_out || ((x >= GRAPHICS_LEFT) && (x + font_info->width <= GRAPHICS_RIGHT) && (yy >= GRAPHICS_TOP) && (yy <= GRAPHICS_BOTTOM))) {
+				data = font_info->data[row];
+#if defined(PIOS_VIDEO_SPLITBUFFER)
+				levels = data & 0xFF00;
+				mask = (data & 0x00FF) << 8;
+				// mask
+				write_word_misaligned_OR(draw_buffer_mask, mask, addr, wbit);
+				// level
+				write_word_misaligned_OR(draw_buffer_level, mask, addr, wbit);
+				mask = (mask & levels);
+				write_word_misaligned_NAND(draw_buffer_level, mask, addr, wbit);
+#else
+				mask = data | (data << 1);
+				write_word_misaligned_MASKED(draw_buffer, data, mask, addr, wbit);
+#endif /* defined(PIOS_VIDEO_SPLITBUFFER) */
 			}
 			addr += BUFFER_WIDTH;
 			row++;
@@ -1033,68 +1282,17 @@ void write_char16(char ch, int x, int y, int flags, int font)
 	}
 }
 
+
 /**
- * write_char: Draw a character on the current draw buffer.
- * Currently supports outlined characters and characters with a width of up to 8 pixels.
+ * fetch_font_info: Fetch font info structs.
  *
- * @param       ch      character to write
- * @param       x       x coordinate (left)
- * @param       y       y coordinate (top)
- * @param       flags   flags to write with
- * @param       font    font to use
+ * @param       font    font id
  */
-void write_char(char ch, int x, int y, int flags, int font)
+const struct FontEntry * get_font_info(int font)
 {
-	int yy, row, xshift;
-	uint16_t and_mask, or_mask, levels;
-	struct FontEntry font_info;
-	char lookup = 0;
-
-	fetch_font_info(ch, font, &font_info, &lookup);
-
-	// check if char is partly out of boundary
-	uint8_t partly_out = (x < GRAPHICS_LEFT) || (x + font_info.width > GRAPHICS_RIGHT) || (y < GRAPHICS_TOP) || (y + font_info.height > GRAPHICS_BOTTOM);
-	// check if char is totally out of boundary, if so return
-	if (partly_out && ((x + font_info.width < GRAPHICS_LEFT) || (x > GRAPHICS_RIGHT) || (y + font_info.height < GRAPHICS_TOP) || (y > GRAPHICS_BOTTOM))) {
-		return;
-	}
-
-	// Compute starting address of character
-	unsigned int addr = CALC_BUFF_ADDR(x, y);
-	unsigned int wbit = CALC_BIT_IN_WORD(x);
-
-	// If font only supports lowercase or uppercase, make the letter lowercase or uppercase
-	// if (font_info.flags & FONT_LOWERCASE_ONLY) ch = tolower(ch);
-	// if (font_info.flags & FONT_UPPERCASE_ONLY) ch = toupper(ch);
-
-	// How wide is the character? We handle characters up to 8 pixels in this function
-	if (font_info.width <= 8) {
-		// Load data pointer.
-		row    = lookup * font_info.height * 2;
-		xshift = 16 - font_info.width;
-		// We can write mask words easily.
-		// Level bits are more complicated. We need to set or clear level bits, but only where the mask bit is set; otherwise, we need to leave them alone.
-		// To do this, for each word, we construct an AND mask and an OR mask, and apply each individually.
-		for (yy = y; yy < y + font_info.height; yy++) {
-			if (!partly_out || ((x >= GRAPHICS_LEFT) && (x + font_info.width <= GRAPHICS_RIGHT) && (yy >= GRAPHICS_TOP) && (yy <= GRAPHICS_BOTTOM))) {
-				// mask
-				write_word_misaligned_OR(draw_buffer_mask, font_info.data[row] << xshift, addr, wbit);
-				// level
-				levels = font_info.data[row + font_info.height];
-				if (!(flags & FONT_INVERT)) { // data is normally inverted
-					levels = ~levels;
-				}
-				or_mask  = font_info.data[row] << xshift;
-				and_mask = (font_info.data[row] & levels) << xshift;
-				write_word_misaligned_OR(draw_buffer_level, or_mask, addr, wbit);
-				// If we're not bold write the AND mask.
-				// if (!(flags & FONT_BOLD))
-				write_word_misaligned_NAND(draw_buffer_level, and_mask, addr, wbit);
-			}
-			addr += BUFFER_WIDTH;
-			row++;
-		}
-	}
+	if (font >= NUM_FONTS)
+		return NULL;
+	return fonts[font];
 }
 
 /**
@@ -1108,7 +1306,7 @@ void write_char(char ch, int x, int y, int flags, int font)
  * @param       ys                      vertical spacing
  * @param       dim                     return result: struct FontDimensions
  */
-void calc_text_dimensions(char *str, struct FontEntry font, int xs, int ys, struct FontDimensions *dim)
+void calc_text_dimensions(char *str, const struct FontEntry *font, int xs, int ys, struct FontDimensions *dim)
 {
 	int max_length = 0, line_length = 0, lines = 1;
 
@@ -1126,8 +1324,8 @@ void calc_text_dimensions(char *str, struct FontEntry font, int xs, int ys, stru
 	if (line_length > max_length) {
 		max_length = line_length;
 	}
-	dim->width  = max_length * (font.width + xs);
-	dim->height = lines * (font.height + ys);
+	dim->width  = max_length * (font->width + xs);
+	dim->height = lines * (font->height + ys);
 }
 
 /**
@@ -1147,32 +1345,22 @@ void calc_text_dimensions(char *str, struct FontEntry font, int xs, int ys, stru
 void write_string(char *str, int x, int y, int xs, int ys, int va, int ha, int flags, int font)
 {
 	int xx = 0, yy = 0, xx_original = 0;
-	struct FontEntry font_info;
+	const struct FontEntry *font_info;
 	struct FontDimensions dim;
 
-	// Determine font info and dimensions/position of the string.
-	fetch_font_info(0, font, &font_info, NULL);
+	font_info = get_font_info(font);
+
 	calc_text_dimensions(str, font_info, xs, ys, &dim);
 	switch (va) {
 	case TEXT_VA_TOP:
 		yy = y;
 		break;
 	case TEXT_VA_MIDDLE:
-		yy = y - (dim.height / 2);
+		yy = y - (dim.height / 2) + 1;
 		break;
 	case TEXT_VA_BOTTOM:
 		yy = y - dim.height;
 		break;
-	}
-
-	// XXX the vertical alignment is not perfect for some reason..
-	switch (font_info.id) {
-		case 2:
-			yy += 1;
-			break;
-		case 3:
-			yy -= 3;
-			break;
 	}
 
 	switch (ha) {
@@ -1190,17 +1378,13 @@ void write_string(char *str, int x, int y, int xs, int ys, int va, int ha, int f
 	xx_original = xx;
 	while (*str != 0) {
 		if (*str == '\n' || *str == '\r') {
-			yy += ys + font_info.height;
+			yy += ys + font_info->height;
 			xx  = xx_original;
 		} else {
 			if (xx >= 0 && xx < GRAPHICS_WIDTH_REAL) {
-				if (font_info.id < 2) {
-					write_char(*str, xx, yy, flags, font);
-				} else {
-					write_char16(*str, xx, yy, flags, font);
-				}
+				write_char(*str, xx, yy, font_info);
 			}
-			xx += font_info.width + xs;
+			xx += font_info->width + xs;
 		}
 		str++;
 	}
@@ -1242,7 +1426,7 @@ void draw_polygon(int16_t x, int16_t y, float angle, const point_t * points, uin
 		x2 = roundf(cos_angle * points[i + 1].x - sin_angle * points[i + 1].y);
 		y2 = roundf(sin_angle * points[i + 1].x + cos_angle * points[i + 1].y);
 
-		write_line(draw_buffer_level, x + x1, y + y1, x + x2, y + y2, 1);
+		write_line_lm(x + x1, y + y1, x + x2, y + y2, 1, 1);
 		x1 = x2;
 		y1 = y2;
 	}
@@ -1250,7 +1434,7 @@ void draw_polygon(int16_t x, int16_t y, float angle, const point_t * points, uin
 	x1 = roundf(cos_angle * points[0].x - sin_angle * points[0].y);
 	y1 = roundf(sin_angle * points[0].x + cos_angle * points[0].y);
 
-	write_line(draw_buffer_level, x + x1, y + y1, x + x2, y + y2, 1);
+	write_line_lm( x + x1, y + y1, x + x2, y + y2, 1, 1);
 }
 
 /**

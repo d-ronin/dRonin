@@ -104,10 +104,7 @@
 #include "osd_utils.h"
 #include "osd_menu.h"
 #include "fonts.h"
-#include "font12x18.h"
-#include "font8x10.h"
 #include "WMMInternal.h"
-#include "images.h"
 #include "mgrs.h"
 
 extern uint8_t PIOS_Board_Revision(void);
@@ -194,8 +191,7 @@ static volatile bool osd_settings_updated = true;
 static volatile bool osd_page_updated = true;
 static OnScreenDisplaySettingsData osd_settings;
 static bool blink;
-//                     small, normal, large
-const int SIZE_TO_FONT[3] = {2, 0, 3};
+
 
 #ifdef DEBUG_TIMING
 static uint32_t in_ticks  = 0;
@@ -204,40 +200,6 @@ static uint16_t in_time  = 0;
 static uint16_t out_time = 0;
 #endif
 
-void clearGraphics()
-{
-	memset((uint8_t *)draw_buffer_mask, 0, BUFFER_HEIGHT * BUFFER_WIDTH);
-	memset((uint8_t *)draw_buffer_level, 0, BUFFER_HEIGHT * BUFFER_WIDTH);
-}
-
-void draw_image(uint16_t x, uint16_t y, const struct Image * image)
-{
-	CHECK_COORDS(x + image->width, y + image->height);
-	uint8_t byte_width = image->width / 8;
-	uint8_t pixel_offset = x % 8;
-	uint8_t mask1 = 0xFF;
-	uint8_t mask2 = 0x00;
-
-	if (pixel_offset > 0) {
-		for (uint8_t i = 0; i<pixel_offset; i++) {
-			mask2 |= 0x01 << i;
-		}
-		mask1 = ~mask2;
-	}
-
-	for (uint16_t yp = 0; yp < image->height; yp++) {
-		for (uint16_t xp = 0; xp < image->width / 8; xp++) {
-			draw_buffer_level[(y + yp) * BUFFER_WIDTH + xp + x / 8] |= (image->level[yp * byte_width + xp] & mask1) >> pixel_offset;
-			draw_buffer_mask[(y + yp) * BUFFER_WIDTH + xp + x / 8] |= (image->mask[yp * byte_width + xp] & mask1) >> pixel_offset;
-			if (pixel_offset > 0) {
-				draw_buffer_level[(y + yp) * BUFFER_WIDTH + xp + x / 8 + 1] |= (image->level[yp * byte_width + xp] & mask2) <<
-						(8 - pixel_offset);
-				draw_buffer_mask[(y + yp) * BUFFER_WIDTH + xp + x / 8 + 1] |= (image->mask[yp * byte_width + xp] & mask2) <<
-						(8 - pixel_offset);
-			}
-		}
-	}
-}
 
 void drawBattery(uint16_t x, uint16_t y, uint8_t battery, uint16_t size)
 {
@@ -266,13 +228,13 @@ void drawBattery(uint16_t x, uint16_t y, uint8_t battery, uint16_t size)
  */
 // #define VERTICAL_SCALE_BRUTE_FORCE_BLANK_OUT
 #define VERTICAL_SCALE_FILLED_NUMBER
-#define VSCALE_FONT 2
+#define VSCALE_FONT FONT8X10
 void hud_draw_vertical_scale(int v, int range, int halign, int x, int y, int height, int mintick_step, int majtick_step, int mintick_len,
 		int majtick_len,
 		int boundtick_len, __attribute__((unused)) int max_val, int flags)
 {
 	char temp[15];
-	struct FontEntry font_info;
+	const struct FontEntry *font_info;
 	struct FontDimensions dim;
 	// Compute the position of the elements.
 	int majtick_start = 0, majtick_end = 0, mintick_start = 0, mintick_end = 0, boundtick_start = 0, boundtick_end = 0;
@@ -290,11 +252,13 @@ void hud_draw_vertical_scale(int v, int range, int halign, int x, int y, int hei
 		boundtick_end   = x - boundtick_len;
 	}
 	// Retrieve width of large font (font #0); from this calculate the x spacing.
-	fetch_font_info(0, VSCALE_FONT, &font_info, NULL);
-	int arrow_len      = (font_info.height / 2) + 1;
-	int text_x_spacing = (font_info.width / 2);
+	font_info = get_font_info(VSCALE_FONT);
+	if (font_info == NULL)
+		return;
+	int arrow_len      = (font_info->height / 2) + 1;
+	int text_x_spacing = (font_info->width / 2);
 	int max_text_y     = 0, text_length = 0;
-	int small_font_char_width = font_info.width + 1; // +1 for horizontal spacing = 1
+	int small_font_char_width = font_info->width + 1; // +1 for horizontal spacing = 1
 	// For -(range / 2) to +(range / 2), draw the scale.
 	int range_2 = range / 2; // , height_2 = height / 2;
 	int r = 0, rr = 0, rv = 0, ys = 0, style = 0; // calc_ys = 0,
@@ -329,9 +293,9 @@ void hud_draw_vertical_scale(int v, int range, int halign, int x, int y, int hei
 					max_text_y = text_length;
 				}
 				if (halign == -1) {
-					write_string(temp, majtick_end + text_x_spacing + 1, ys, 1, 0, TEXT_VA_MIDDLE, TEXT_HA_LEFT, 0, 1);
+					write_string(temp, majtick_end + text_x_spacing + 1, ys, 1, 0, TEXT_VA_MIDDLE, TEXT_HA_LEFT, 0, FONT_OUTLINED8X8);
 				} else {
-					write_string(temp, majtick_end - text_x_spacing + 1, ys, 1, 0, TEXT_VA_MIDDLE, TEXT_HA_RIGHT, 0, 1);
+					write_string(temp, majtick_end - text_x_spacing + 1, ys, 1, 0, TEXT_VA_MIDDLE, TEXT_HA_RIGHT, 0, FONT_OUTLINED8X8);
 				}
 			} else if (style == 2) {
 				write_hline_outlined(mintick_start, mintick_end, ys, 2, 2, 0, 1);
@@ -397,15 +361,15 @@ void hud_draw_vertical_scale(int v, int range, int halign, int x, int y, int hei
 	// disappear. We simply clear the areas above and below the ticker, and we
 	// use little markers on the edges.
 	if (halign == -1) {
-		write_filled_rectangle_lm(majtick_end + text_x_spacing, y + (height / 2) - (font_info.height / 2), max_text_y - boundtick_start,
-				font_info.height, 0, 0);
-		write_filled_rectangle_lm(majtick_end + text_x_spacing, y - (height / 2) - (font_info.height / 2), max_text_y - boundtick_start,
-				font_info.height, 0, 0);
+		write_filled_rectangle_lm(majtick_end + text_x_spacing, y + (height / 2) - (font_info->height / 2), max_text_y - boundtick_start,
+				font_info->height, 0, 0);
+		write_filled_rectangle_lm(majtick_end + text_x_spacing, y - (height / 2) - (font_info->height / 2), max_text_y - boundtick_start,
+				font_info->height, 0, 0);
 	} else {
-		write_filled_rectangle_lm(majtick_end - text_x_spacing - max_text_y, y + (height / 2) - (font_info.height / 2), max_text_y,
-				font_info.height, 0, 0);
-		write_filled_rectangle_lm(majtick_end - text_x_spacing - max_text_y, y - (height / 2) - (font_info.height / 2), max_text_y,
-				font_info.height, 0, 0);
+		write_filled_rectangle_lm(majtick_end - text_x_spacing - max_text_y, y + (height / 2) - (font_info->height / 2), max_text_y,
+				font_info->height, 0, 0);
+		write_filled_rectangle_lm(majtick_end - text_x_spacing - max_text_y, y - (height / 2) - (font_info->height / 2), max_text_y,
+				font_info->height, 0, 0);
 	}
 #endif
 	y--;
@@ -433,7 +397,7 @@ void hud_draw_linear_compass(int v, int home_dir, int range, int width, int x, i
 		int majtick_len, __attribute__((unused)) int flags)
 {
 	v %= 360; // wrap, just in case.
-	struct FontEntry font_info;
+	const struct FontEntry *font_info;
 	int majtick_start = 0, majtick_end = 0, mintick_start = 0, mintick_end = 0, textoffset = 0;
 	char headingstr[4];
 	majtick_start = y;
@@ -488,7 +452,7 @@ void hud_draw_linear_compass(int v, int home_dir, int range, int width, int x, i
 					headingstr[3] = 0;
 				}
 				// +1 fudge...!
-				write_string(headingstr, xs + 1, majtick_start + textoffset, 1, 0, TEXT_VA_MIDDLE, TEXT_HA_CENTER, 0, 1);
+				write_string(headingstr, xs + 1, majtick_start + textoffset, 1, 0, TEXT_VA_MIDDLE, TEXT_HA_CENTER, 0, FONT_OUTLINED8X8);
 
 			} else if (style == 2) {
 				write_vline_outlined(xs, mintick_start, mintick_end, 2, 2, 0, 1);
@@ -499,7 +463,7 @@ void hud_draw_linear_compass(int v, int home_dir, int range, int width, int x, i
 		if (rr == home_dir) {
 			xs = ((long int)(r * width) / (long int)range) + x;
 			write_filled_rectangle_lm(xs - 5, majtick_start + textoffset + 7, 10, 10, 0, 1);
-			write_string("H", xs + 1, majtick_start + textoffset + 12, 1, 0, TEXT_VA_MIDDLE, TEXT_HA_CENTER, 0, 1);
+			write_string("H", xs + 1, majtick_start + textoffset + 12, 1, 0, TEXT_VA_MIDDLE, TEXT_HA_CENTER, 0, FONT_OUTLINED8X8);
 			home_drawn = true;
 		}
 	}
@@ -511,7 +475,7 @@ void hud_draw_linear_compass(int v, int home_dir, int range, int width, int x, i
 			r = x + ((long int)(range_2 * width) / (long int)range);
 
 		write_filled_rectangle_lm(r - 5, majtick_start + textoffset + 7, 10, 10, 0, 1);
-		write_string("H", r + 1, majtick_start + textoffset + 12, 1, 0, TEXT_VA_MIDDLE, TEXT_HA_CENTER, 0, 1);
+		write_string("H", r + 1, majtick_start + textoffset + 12, 1, 0, TEXT_VA_MIDDLE, TEXT_HA_CENTER, 0, FONT_OUTLINED8X8);
 	}
 
 	// Then, draw a rectangle with the present heading in it.
@@ -521,25 +485,27 @@ void hud_draw_linear_compass(int v, int home_dir, int range, int width, int x, i
 	headingstr[1] = '0' + ((v / 10) % 10);
 	headingstr[2] = '0' + (v % 10);
 	headingstr[3] = 0;
-	fetch_font_info(0, 3, &font_info, NULL);
+	font_info = get_font_info(FONT12X18);
+	if (font_info == NULL)
+		return;
 #ifdef COMPASS_SMALL_NUMBER
-	int rect_width = font_info.width * 3;
+	int rect_width = font_info->width * 3;
 #ifdef COMPASS_FILLED_NUMBER
-	write_filled_rectangle_lm(x - (rect_width / 2), majtick_start - 7, rect_width, font_info.height, 0, 1);
+	write_filled_rectangle_lm(x - (rect_width / 2), majtick_start - 7, rect_width, font_info->height, 0, 1);
 #else
-	write_filled_rectangle_lm(x - (rect_width / 2), majtick_start - 7, rect_width, font_info.height, 0, 0);
+	write_filled_rectangle_lm(x - (rect_width / 2), majtick_start - 7, rect_width, font_info->height, 0, 0);
 #endif
-	write_rectangle_outlined(x - (rect_width / 2), majtick_start - 7, rect_width, font_info.height, 0, 1);
-	write_string(headingstr, x + 1, majtick_start + textoffset - 5, 0, 0, TEXT_VA_MIDDLE, TEXT_HA_CENTER, 1, 0);
+	write_rectangle_outlined(x - (rect_width / 2), majtick_start - 7, rect_width, font_info->height, 0, 1);
+	write_string(headingstr, x + 1, majtick_start + textoffset - 6, 0, 0, TEXT_VA_MIDDLE, TEXT_HA_CENTER, 1, FONT_OUTLINED8X14);
 #else
-	int rect_width = (font_info.width + 1) * 3 + 2;
+	int rect_width = (font_info->width + 1) * 3 + 2;
 #ifdef COMPASS_FILLED_NUMBER
-	write_filled_rectangle_lm(x - (rect_width / 2), majtick_start + 2, rect_width, font_info.height + 2, 0, 1);
+	write_filled_rectangle_lm(x - (rect_width / 2), majtick_start + 2, rect_width, font_info->height + 2, 0, 1);
 #else
-	write_filled_rectangle_lm(x - (rect_width / 2), majtick_start + 2, rect_width, font_info.height + 2, 0, 0);
+	write_filled_rectangle_lm(x - (rect_width / 2), majtick_start + 2, rect_width, font_info->height + 2, 0, 0);
 #endif
-	write_rectangle_outlined(x - (rect_width / 2), majtick_start + 2, rect_width, font_info.height + 2, 0, 1);
-	write_string(headingstr, x + 1, majtick_start + textoffset + 2, 0, 0, TEXT_VA_MIDDLE, TEXT_HA_CENTER, 1, 3);
+	write_rectangle_outlined(x - (rect_width / 2), majtick_start + 2, rect_width, font_info->height + 2, 0, 1);
+	write_string(headingstr, x + 1, majtick_start + textoffset, 0, 0, TEXT_VA_MIDDLE, TEXT_HA_CENTER, 1, FONT12X18);
 #endif
 }
 
@@ -617,15 +583,15 @@ void simple_artificial_horizon(float roll, float pitch, int16_t x, int16_t y, in
 				write_line_outlined(pp_x2 - d_x2, pp_y2 + d_y2, pp_x2 - d_x2 - d_x_2, pp_y2 + d_y2 - d_y_2, 2, 2, 0, 1);
 				write_line_outlined(pp_x2 + d_x2, pp_y2 - d_y2, pp_x2 + d_x2 - d_x_2, pp_y2 - d_y2 - d_y_2, 2, 2, 0, 1);
 
-				write_string(tmp_str, pp_x2 - d_x - 4, pp_y2 + d_y, 0, 0, TEXT_VA_MIDDLE, TEXT_HA_CENTER, 0, 1);
-				write_string(tmp_str, pp_x2 + d_x + 4, pp_y2 - d_y, 0, 0, TEXT_VA_MIDDLE, TEXT_HA_CENTER, 0, 1);
+				write_string(tmp_str, pp_x2 - d_x - 4, pp_y2 + d_y, 0, 0, TEXT_VA_MIDDLE, TEXT_HA_CENTER, 0, FONT_OUTLINED8X8);
+				write_string(tmp_str, pp_x2 + d_x + 4, pp_y2 - d_y, 0, 0, TEXT_VA_MIDDLE, TEXT_HA_CENTER, 0, FONT_OUTLINED8X8);
 			} else if (angle > 0) {
 				write_line_outlined(pp_x2 - d_x2, pp_y2 + d_y2, pp_x2 + d_x2, pp_y2 - d_y2, 2, 2, 0, 1);
 				write_line_outlined(pp_x2 - d_x2, pp_y2 + d_y2, pp_x2 - d_x2 + d_x_2, pp_y2 + d_y2 + d_y_2, 2, 2, 0, 1);
 				write_line_outlined(pp_x2 + d_x2, pp_y2 - d_y2, pp_x2 + d_x2 + d_x_2, pp_y2 - d_y2 + d_y_2, 2, 2, 0, 1);
 
-				write_string(tmp_str, pp_x2 - d_x - 4, pp_y2 + d_y, 0, 0, TEXT_VA_MIDDLE, TEXT_HA_CENTER, 0, 1);
-				write_string(tmp_str, pp_x2 + d_x + 4, pp_y2 - d_y, 0, 0, TEXT_VA_MIDDLE, TEXT_HA_CENTER, 0, 1);
+				write_string(tmp_str, pp_x2 - d_x - 4, pp_y2 + d_y, 0, 0, TEXT_VA_MIDDLE, TEXT_HA_CENTER, 0, FONT_OUTLINED8X8);
+				write_string(tmp_str, pp_x2 + d_x + 4, pp_y2 - d_y, 0, 0, TEXT_VA_MIDDLE, TEXT_HA_CENTER, 0, FONT_OUTLINED8X8);
 			} else {
 				write_line_outlined(pp_x2 - d_x, pp_y2 + d_y, pp_x2 - d_x / 3, pp_y2 + d_y / 3, 2, 2, 0, 1);
 				write_line_outlined(pp_x2 + d_x / 3, pp_y2 - d_y / 3, pp_x2 + d_x, pp_y2 - d_y, 2, 2, 0, 1);
@@ -797,14 +763,14 @@ void draw_map_home_center(int width_px, int height_px, int width_m, int height_m
 					write_filled_rectangle_lm(x - 5, y - 5, i < 9 ? 10 : 18, 10, 0, 1);
 				}
 				sprintf(tmp_str, "%d", i + 1);
-				write_string(tmp_str, x, y - 4, 0, 0, TEXT_VA_TOP, TEXT_HA_CENTER, 0, 1);
+				write_string(tmp_str, x, y - 4, 0, 0, TEXT_VA_TOP, TEXT_HA_CENTER, 0, FONT_OUTLINED8X8);
 			}
 		}
 	}
 
 	// draw home
 	if (show_home) {
-		write_string("H", GRAPHICS_X_MIDDLE, GRAPHICS_Y_MIDDLE - 4, 0, 0, TEXT_VA_TOP, TEXT_HA_CENTER, 0, 1);
+		write_string("H", GRAPHICS_X_MIDDLE, GRAPHICS_Y_MIDDLE - 4, 0, 0, TEXT_VA_TOP, TEXT_HA_CENTER, 0, FONT_OUTLINED8X8);
 	}
 
 	// Draw Tablet
@@ -818,7 +784,7 @@ void draw_map_home_center(int width_px, int height_px, int width_m, int height_m
 			if ((fabs(NED[1]) < width_m / 2) && (fabs(NED[0]) < height_m / 2)) {
 				x = GRAPHICS_X_MIDDLE + scale_x * NED[1];
 				y = GRAPHICS_Y_MIDDLE - scale_y * NED[0];
-				write_string("T", x, y - 4, 0, 0, TEXT_VA_TOP, TEXT_HA_CENTER, 0, 1);
+				write_string("T", x, y - 4, 0, 0, TEXT_VA_TOP, TEXT_HA_CENTER, 0, FONT_OUTLINED8X8);
 			}
 		}
 	}
@@ -944,7 +910,7 @@ void draw_map_uav_center(int width_px, int height_px, int width_m, int height_m,
 					write_filled_rectangle_lm(x - 5, y - 5, i < 9 ? 10 : 18, 10, 0, 1);
 				}
 				sprintf(tmp_str, "%d", i + 1);
-				write_string(tmp_str, x, y - 4, 0, 0, TEXT_VA_TOP, TEXT_HA_CENTER, 0, 1);
+				write_string(tmp_str, x, y - 4, 0, 0, TEXT_VA_TOP, TEXT_HA_CENTER, 0, FONT_OUTLINED8X8);
 			}
 		}
 	}
@@ -967,13 +933,13 @@ void draw_map_uav_center(int width_px, int height_px, int width_m, int height_m,
 			}
 			x = GRAPHICS_X_MIDDLE + p_east_draw * scale_x;
 			y = GRAPHICS_Y_MIDDLE - p_north_draw * scale_y;
-			write_string("H", x, y- 4, 0, 0, TEXT_VA_TOP, TEXT_HA_CENTER, 0, 1);
+			write_string("H", x, y- 4, 0, 0, TEXT_VA_TOP, TEXT_HA_CENTER, 0, FONT_OUTLINED8X8);
 		}
 	} else {
 		// inside map
 		x = GRAPHICS_X_MIDDLE + p_east_draw * scale_x;
 		y = GRAPHICS_Y_MIDDLE - p_north_draw * scale_y;
-		write_string("H", x, y- 4, 0, 0, TEXT_VA_TOP, TEXT_HA_CENTER, 0, 1);
+		write_string("H", x, y- 4, 0, 0, TEXT_VA_TOP, TEXT_HA_CENTER, 0, FONT_OUTLINED8X8);
 	}
 
 	// Draw Tablet
@@ -1012,7 +978,7 @@ void draw_map_uav_center(int width_px, int height_px, int width_m, int height_m,
 				// inside map
 				x = GRAPHICS_X_MIDDLE + p_east_draw * scale_x;
 				y = GRAPHICS_Y_MIDDLE - p_north_draw * scale_y;
-				write_string("T", x, y- 4, 0, 0, TEXT_VA_TOP, TEXT_HA_CENTER, 0, 1);
+				write_string("T", x, y- 4, 0, 0, TEXT_VA_TOP, TEXT_HA_CENTER, 0, FONT_OUTLINED8X8);
 			}
 		}
 	}
@@ -1033,7 +999,7 @@ void introGraphics(int16_t x, int16_t y)
 
 void introText(int16_t x, int16_t y)
 {
-	write_string("dRonin", x, y, 0, 0, TEXT_VA_TOP, TEXT_HA_CENTER, 0, 3);
+	write_string("dRonin", x, y, 0, 0, TEXT_VA_TOP, TEXT_HA_CENTER, 0, FONT12X18);
 }
 
 void printFWVersion(int16_t x, int16_t y)
@@ -1066,15 +1032,15 @@ void printFWVersion(int16_t x, int16_t y)
 		tmp[pos++] = digits[(this_char & 0x0F)];
 	}
 
-	write_string(tmp, x, y, 0, 0, TEXT_VA_TOP, TEXT_HA_CENTER, 0, 2);
+	write_string(tmp, x, y, 0, 0, TEXT_VA_TOP, TEXT_HA_CENTER, 0, FONT8X10);
 }
 
 void showVideoType(int16_t x, int16_t y)
 {
 	if (PIOS_Video_GetType() == VIDEO_TYPE_NTSC) {
-		write_string("NTSC", x, y, 0, 0, TEXT_VA_TOP, TEXT_HA_CENTER, 0, 3);
+		write_string("NTSC", x, y, 0, 0, TEXT_VA_TOP, TEXT_HA_CENTER, 0, FONT12X18);
 	} else {
-		write_string("PAL", x, y, 0, 0, TEXT_VA_TOP, TEXT_HA_CENTER, 0, 3);
+		write_string("PAL", x, y, 0, 0, TEXT_VA_TOP, TEXT_HA_CENTER, 0, FONT12X18);
 	}
 }
 
@@ -1124,14 +1090,19 @@ void render_user_page(OnScreenDisplayPageSettingsData * page)
 	// Alarms
 	if (page->Alarm) {
 		draw_alarms((int)page->AlarmPosX, (int)page->AlarmPosY, 0, 0, TEXT_VA_TOP, (int)page->AlarmAlign, 0,
-				SIZE_TO_FONT[page->AlarmFont]);
+				page->AlarmFont);
 	}
 
 	// Altitude Scale
 	if (page->AltitudeScale) {
 		if (page->AltitudeScaleSource == ONSCREENDISPLAYPAGESETTINGS_ALTITUDESCALESOURCE_BARO) {
-			BaroAltitudeAltitudeGet(&tmp);
-			tmp -= home_baro_altitude;
+			if (BaroAltitudeHandle()){
+				BaroAltitudeAltitudeGet(&tmp);
+				tmp -= home_baro_altitude;
+			}
+			else {
+				tmp =0;
+			}
 		} else if (PositionActualHandle()) {
 			PositionActualDownGet(&tmp);
 			tmp *= -1.0f;
@@ -1149,8 +1120,13 @@ void render_user_page(OnScreenDisplayPageSettingsData * page)
 	// Altitude Numeric
 	if (page->AltitudeNumeric) {
 		if (page->AltitudeNumericSource == ONSCREENDISPLAYPAGESETTINGS_ALTITUDENUMERICSOURCE_BARO) {
-			BaroAltitudeAltitudeGet(&tmp);
-			tmp -= home_baro_altitude;
+			if (BaroAltitudeHandle()) {
+				BaroAltitudeAltitudeGet(&tmp);
+				tmp -= home_baro_altitude;
+			}
+			else {
+				tmp = 0;
+			}
 		} else if (PositionActualHandle()) {
 			PositionActualDownGet(&tmp);
 			tmp *= -1.0f;
@@ -1159,7 +1135,7 @@ void render_user_page(OnScreenDisplayPageSettingsData * page)
 		}
 		sprintf(tmp_str, "%d", (int)(tmp * convert_distance));
 		write_string(tmp_str, page->AltitudeNumericPosX, page->AltitudeNumericPosY, 0, 0, TEXT_VA_TOP, (int)page->AltitudeNumericAlign,
-				0, SIZE_TO_FONT[page->AltitudeNumericFont]);
+				0, page->AltitudeNumericFont);
 	}
 
 	// Arming Status
@@ -1167,7 +1143,7 @@ void render_user_page(OnScreenDisplayPageSettingsData * page)
 		FlightStatusArmedGet(&tmp_uint8);
 		if (tmp_uint8 != FLIGHTSTATUS_ARMED_DISARMED)
 			write_string("ARMED", page->ArmStatusPosX, page->ArmStatusPosY, 0, 0, TEXT_VA_TOP, (int)page->ArmStatusAlign, 0,
-					SIZE_TO_FONT[page->ArmStatusFont]);
+					page->ArmStatusFont);
 	}
 
 	// Artificial Horizon (and centermark)
@@ -1184,19 +1160,19 @@ void render_user_page(OnScreenDisplayPageSettingsData * page)
 			FlightBatteryStateVoltageGet(&tmp);
 			sprintf(tmp_str, "%0.1fV", (double)tmp);
 			write_string(tmp_str, page->BatteryVoltPosX, page->BatteryVoltPosY, 0, 0, TEXT_VA_TOP, (int)page->BatteryVoltAlign, 0,
-					SIZE_TO_FONT[page->BatteryVoltFont]);
+					page->BatteryVoltFont);
 		}
 		if (page->BatteryCurrent) {
 			FlightBatteryStateCurrentGet(&tmp);
 			sprintf(tmp_str, "%0.1fA", (double)tmp);
 			write_string(tmp_str, page->BatteryCurrentPosX, page->BatteryCurrentPosY, 0, 0, TEXT_VA_TOP,
-					(int)page->BatteryCurrentAlign, 0, SIZE_TO_FONT[page->BatteryCurrentFont]);
+					(int)page->BatteryCurrentAlign, 0, page->BatteryCurrentFont);
 		}
 		if (page->BatteryConsumed) {
 			FlightBatteryStateConsumedEnergyGet(&tmp);
 			sprintf(tmp_str, "%0.0fmAh", (double)tmp);
 			write_string(tmp_str, page->BatteryConsumedPosX, page->BatteryConsumedPosY, 0, 0, TEXT_VA_TOP,
-					(int)page->BatteryConsumedAlign, 0, SIZE_TO_FONT[page->BatteryConsumedFont]);
+					(int)page->BatteryConsumedAlign, 0, page->BatteryConsumedFont);
 		}
 
 		if (page->BatteryChargeState) {
@@ -1211,7 +1187,7 @@ void render_user_page(OnScreenDisplayPageSettingsData * page)
 		VelocityActualDownGet(&tmp);
 		sprintf(tmp_str, "%0.1f", (double)(-1.f * convert_distance * tmp));
 		write_string(tmp_str, page->ClimbRatePosX, page->ClimbRatePosY, 0, 0, TEXT_VA_TOP, (int)page->ClimbRateAlign, 0,
-				SIZE_TO_FONT[page->ClimbRateFont]);
+				page->ClimbRateFont);
 	}
 
 	// Compass
@@ -1231,7 +1207,7 @@ void render_user_page(OnScreenDisplayPageSettingsData * page)
 		memcpy((void *)tmp_str, (void *)(osd_settings.CustomText), ONSCREENDISPLAYSETTINGS_CUSTOMTEXT_NUMELEM);
 		tmp_str[ONSCREENDISPLAYSETTINGS_CUSTOMTEXT_NUMELEM] = 0;
 		write_string(tmp_str, page->CustomTextPosX, page->CustomTextPosY, 0, 0, TEXT_VA_TOP, (int)page->CustomTextAlign, 0,
-				SIZE_TO_FONT[page->CustomTextFont]);
+				page->CustomTextFont);
 	}
 
 	// Home arrow
@@ -1247,13 +1223,13 @@ void render_user_page(OnScreenDisplayPageSettingsData * page)
 	if (page->Cpu) {
 		SystemStatsCPULoadGet(&tmp_uint8);
 		sprintf(tmp_str, "CPU:%2d", tmp_uint8);
-		write_string(tmp_str, page->CpuPosX, page->CpuPosY, 0, 0, TEXT_VA_TOP, (int)page->CpuAlign, 0, SIZE_TO_FONT[page->CpuFont]);
+		write_string(tmp_str, page->CpuPosX, page->CpuPosY, 0, 0, TEXT_VA_TOP, (int)page->CpuAlign, 0, page->CpuFont);
 	}
 
 	// Flight mode
 	if (page->FlightMode) {
 		draw_flight_mode(page->FlightModePosX, page->FlightModePosY, 0, 0, TEXT_VA_TOP, (int)page->FlightModeAlign, 0,
-				SIZE_TO_FONT[page->FlightModeFont]);
+				page->FlightModeFont);
 	}
 
 	// G Force
@@ -1270,7 +1246,7 @@ void render_user_page(OnScreenDisplayPageSettingsData * page)
 		tmp = sqrtf(powf(accelsDataAcc.x, 2.f) + powf(accelsDataAcc.y, 2.f) + powf(accelsDataAcc.z, 2.f)) / 9.81f;
 		sprintf(tmp_str, "%0.1fG", (double)tmp);
 		write_string(tmp_str, page->GForcePosX, page->GForcePosY, 0, 0, TEXT_VA_TOP, (int)page->GForceAlign, 0,
-				SIZE_TO_FONT[page->GForceFont]);
+				page->GForceFont);
 	}
 
 	// GPS
@@ -1302,19 +1278,19 @@ void render_user_page(OnScreenDisplayPageSettingsData * page)
 				sprintf(tmp_str, "NOGPS");
 			}
 			write_string(tmp_str, page->GpsStatusPosX + image_gps.width -4, page->GpsStatusPosY, 0, 0, TEXT_VA_MIDDLE, TEXT_HA_LEFT,
-					0, SIZE_TO_FONT[page->GpsStatusFont]);
+					0, page->GpsStatusFont);
 		}
 
 		if (page->GpsLat) {
 			sprintf(tmp_str, "%0.5f", (double)gps_data.Latitude / 10000000.0);
 			write_string(tmp_str, page->GpsLatPosX, page->GpsLatPosY, 0, 0, TEXT_VA_TOP, (int)page->GpsLatAlign, 0,
-					SIZE_TO_FONT[page->GpsLatFont]);
+					page->GpsLatFont);
 		}
 
 		if (page->GpsLon) {
 			sprintf(tmp_str, "%0.5f", (double)gps_data.Longitude / 10000000.0);
 			write_string(tmp_str, page->GpsLonPosX, page->GpsLonPosY, 0, 0, TEXT_VA_TOP, (int)page->GpsLonAlign, 0,
-					SIZE_TO_FONT[page->GpsLonFont]);
+					page->GpsLonFont);
 		}
 
 		// MGRS location
@@ -1329,7 +1305,7 @@ void render_user_page(OnScreenDisplayPageSettingsData * page)
 					sprintf(mgrs_str, "MGRS ERR: %d", tmp_int1);
 			}
 			write_string(mgrs_str, page->GpsMgrsPosX, page->GpsMgrsPosY, 0, 0, TEXT_VA_TOP, (int)page->GpsMgrsAlign, 0,
-					SIZE_TO_FONT[page->GpsMgrsFont]);
+					page->GpsMgrsFont);
 		}
 	}
 
@@ -1344,7 +1320,7 @@ void render_user_page(OnScreenDisplayPageSettingsData * page)
 			draw_image(page->HomeDistancePosX, page->HomeDistancePosY - image_home.height / 2, &image_home);
 		}
 		write_string(tmp_str, page->HomeDistancePosX + image_home.width - 4, page->HomeDistancePosY, 0, 0, TEXT_VA_MIDDLE, TEXT_HA_LEFT,
-				0, SIZE_TO_FONT[page->HomeDistanceFont]);
+				0, page->HomeDistanceFont);
 	}
 
 	// RSSI
@@ -1356,7 +1332,7 @@ void render_user_page(OnScreenDisplayPageSettingsData * page)
 				draw_image(page->RssiPosX, page->RssiPosY - image_rssi.height / 2, &image_rssi);
 			}
 			write_string(tmp_str, page->RssiPosX + image_rssi.width - 4, page->RssiPosY, 0, 0, TEXT_VA_MIDDLE, TEXT_HA_LEFT, 0,
-					SIZE_TO_FONT[page->RssiFont]);
+					page->RssiFont);
 		}
 	}
 
@@ -1391,11 +1367,11 @@ void render_user_page(OnScreenDisplayPageSettingsData * page)
 		if (page->SpeedScaleAlign == ONSCREENDISPLAYPAGESETTINGS_SPEEDSCALEALIGN_LEFT) {
 			hud_draw_vertical_scale(tmp * convert_speed, 30, -1,  page->SpeedScalePos, GRAPHICS_Y_MIDDLE, 120, 10, 20, 5, 8, 11,
 					100, 0);
-			write_string(tmp_str, page->SpeedScalePos + 10, 200, 0, 0, TEXT_VA_MIDDLE, TEXT_HA_LEFT, 0, 1);
+			write_string(tmp_str, page->SpeedScalePos + 10, 200, 0, 0, TEXT_VA_MIDDLE, TEXT_HA_LEFT, 0, FONT_OUTLINED8X8);
 		} else {
 			hud_draw_vertical_scale(tmp * convert_speed, 30, 1,  page->SpeedScalePos, GRAPHICS_Y_MIDDLE, 120, 10, 20, 5, 8, 11, 100,
 					0);
-			write_string(tmp_str, page->SpeedScalePos - 30, 200, 0, 0, TEXT_VA_MIDDLE, TEXT_HA_LEFT, 0, 1);
+			write_string(tmp_str, page->SpeedScalePos - 30, 200, 0, 0, TEXT_VA_MIDDLE, TEXT_HA_LEFT, 0, FONT_OUTLINED8X8);
 		}
 	}
 
@@ -1426,7 +1402,7 @@ void render_user_page(OnScreenDisplayPageSettingsData * page)
 		}
 		sprintf(tmp_str, "%d", (int)(tmp * convert_speed));
 		write_string(tmp_str, page->SpeedNumericPosX, page->SpeedNumericPosY, 0, 0, (int)page->SpeedNumericAlign, TEXT_HA_LEFT, 0,
-				SIZE_TO_FONT[page->SpeedNumericFont]);
+				page->SpeedNumericFont);
 	}
 
 	// Time
@@ -1444,7 +1420,7 @@ void render_user_page(OnScreenDisplayPageSettingsData * page)
 			tmp_int2 = (time / 1000) - 60 * tmp_int1 - 3600 * tmp_int16; // seconds
 			sprintf(tmp_str, "%02d:%02d:%02d", (int)tmp_int16, (int)tmp_int1, (int)tmp_int2);
 		}
-		write_string(tmp_str, page->TimePosX, page->TimePosY, 0, 0, TEXT_VA_TOP, (int)page->TimeAlign, 0, SIZE_TO_FONT[page->TimeFont]);
+		write_string(tmp_str, page->TimePosX, page->TimePosY, 0, 0, TEXT_VA_TOP, (int)page->TimeAlign, 0, page->TimeFont);
 	}
 
 	// Throttle
@@ -1457,14 +1433,14 @@ void render_user_page(OnScreenDisplayPageSettingsData * page)
 		sprintf(tmp_str, "%d", (int)(100 * tmp + 0.5f));
 
 		write_string(tmp_str, page->ThrottlePosX, page->ThrottlePosY, 0, 0, TEXT_VA_TOP, (int)page->ThrottleAlign, 0,
-				SIZE_TO_FONT[page->ThrottleFont]);
+				page->ThrottleFont);
 	}
 }
 
 #define STATS_LINE_SPACING 11
 #define STATS_LINE_Y 40
 #define STATS_LINE_X (GRAPHICS_LEFT + 10)
-#define STATS_FONT 2
+#define STATS_FONT FONT8X10
 
 int render_stats()
 {
@@ -1474,7 +1450,7 @@ int render_stats()
 	FlightStatsData stats;
 	FlightStatsGet(&stats);
 
-	write_string("Flight Statistics", GRAPHICS_X_MIDDLE, 10, 0, 0, TEXT_VA_TOP, TEXT_HA_CENTER, 0, 3);
+	write_string("Flight Statistics", GRAPHICS_X_MIDDLE, 10, 0, 0, TEXT_VA_TOP, TEXT_HA_CENTER, 0, FONT12X18);
 
 	if (has_nav) {
 		tmp = convert_distance * stats.DistanceTravelled;
@@ -1637,7 +1613,9 @@ static void onScreenDisplayTask(__attribute__((unused)) void *parameters)
 		// Accumulate baro altitude
 		PIOS_Thread_Sleep(20);
 		frame_counter++;
-		BaroAltitudeAltitudeGet(&tmp);
+		if (BaroAltitudeHandle()) {
+			BaroAltitudeAltitudeGet(&tmp);
+		}
 		home_baro_altitude += tmp;
 	}
 
@@ -1649,6 +1627,16 @@ static void onScreenDisplayTask(__attribute__((unused)) void *parameters)
 			osd_settings.NTSCBlack, osd_settings.NTSCWhite);
 	PIOS_Video_SetXOffset(osd_settings.XOffset);
 	PIOS_Video_SetYOffset(osd_settings.YOffset);
+	PIOS_Video_SetXScale(osd_settings.PALXScale, osd_settings.NTSCXScale);
+	enum pios_video_3d_mode video_3d_mode;
+	switch(osd_settings.ThreeDMode) {
+		case ONSCREENDISPLAYSETTINGS_THREEDMODE_SBS3D:
+			video_3d_mode = PIOS_VIDEO_3D_SBS3D;
+			break;
+		default:
+			video_3d_mode = PIOS_VIDEO_3D_DISABLED;
+	}
+	PIOS_Video_Set3DConfig(video_3d_mode, osd_settings.ThreeDRightEyeXShift);
 
 	// intro
 	while (PIOS_Thread_Systime() <= BLANK_TIME + INTRO_TIME) {
@@ -1667,8 +1655,10 @@ static void onScreenDisplayTask(__attribute__((unused)) void *parameters)
 			}
 			frame_counter++;
 			// Accumulate baro altitude
-			BaroAltitudeAltitudeGet(&tmp);
-			home_baro_altitude += tmp;
+			if (BaroAltitudeHandle()) {
+				BaroAltitudeAltitudeGet(&tmp);
+				home_baro_altitude += tmp;
+			}
 		}
 	}
 
@@ -1689,6 +1679,16 @@ static void onScreenDisplayTask(__attribute__((unused)) void *parameters)
 
 				PIOS_Video_SetXOffset(osd_settings.XOffset);
 				PIOS_Video_SetYOffset(osd_settings.YOffset);
+				PIOS_Video_SetXScale(osd_settings.PALXScale, osd_settings.NTSCXScale);
+				enum pios_video_3d_mode video_3d_mode;
+				switch(osd_settings.ThreeDMode) {
+					case ONSCREENDISPLAYSETTINGS_THREEDMODE_SBS3D:
+						video_3d_mode = PIOS_VIDEO_3D_SBS3D;
+						break;
+					default:
+						video_3d_mode = PIOS_VIDEO_3D_DISABLED;
+				}
+				PIOS_Video_Set3DConfig(video_3d_mode, osd_settings.ThreeDRightEyeXShift);
 
 				if (osd_settings.Units == ONSCREENDISPLAYSETTINGS_UNITS_IMPERIAL) {
 					convert_distance = M_TO_FEET;
@@ -1790,6 +1790,7 @@ static void onScreenDisplayTask(__attribute__((unused)) void *parameters)
 			case ONSCREENDISPLAYSETTINGS_PAGECONFIG_CUSTOM3:
 			case ONSCREENDISPLAYSETTINGS_PAGECONFIG_CUSTOM4:
 				render_user_page(&osd_page_settings);
+
 				break;
 			}
 
@@ -1803,7 +1804,7 @@ static void onScreenDisplayTask(__attribute__((unused)) void *parameters)
 			in_time   = out_ticks - in_ticks;
 			char tmp_str[50];
 			sprintf(tmp_str, "%03d %03d", (int)in_time, (int)out_time);
-			write_string(tmp_str, GRAPHICS_X_MIDDLE, GRAPHICS_Y_MIDDLE - 20, 0, 0, TEXT_VA_TOP, TEXT_HA_CENTER, 0, 3);
+			write_string(tmp_str, GRAPHICS_X_MIDDLE, GRAPHICS_Y_MIDDLE - 20, 0, 0, TEXT_VA_TOP, TEXT_HA_CENTER, 0, FONT8X10);
 #endif
 		}
 	}
