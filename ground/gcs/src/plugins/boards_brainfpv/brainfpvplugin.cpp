@@ -28,6 +28,7 @@
 
 #include "brainfpvplugin.h"
 #include "brain.h"
+#include "brainre1.h"
 #include <QtPlugin>
 
 
@@ -56,7 +57,8 @@ void BrainFPVPlugin::extensionsInitialized()
      */
     Brain* brain = new Brain();
     addAutoReleasedObject(brain);
-
+    BrainRE1* brainre1 = new BrainRE1();
+    addAutoReleasedObject(brainre1);
 }
 
 void BrainFPVPlugin::shutdown()
