@@ -4,13 +4,13 @@
         <field name="TimerUpdateFreq" units="Hz" type="uint16" elements="6" defaultvalue="50">
             <description>The frequency of the PWM signal output to the actuator. 0 specifies synchronous PWM.</description>
         </field>
-        <field name="ChannelMax" units="us" type="uint16" elements="10" defaultvalue="2000">
+        <field name="ChannelMax" units="us" type="uint16" elements="10" defaultvalue="0">
             <description>Maxmium output pulse length. Actuator commands will be scaled [-1,1] > [ChannelMin,ChannelMax].</description>
         </field>
-        <field name="ChannelNeutral" units="us" type="uint16" elements="10" defaultvalue="1000">
+        <field name="ChannelNeutral" units="us" type="uint16" elements="10" defaultvalue="0">
             <description>Neutral output pulse length. For motors, should be set to the minimum pulse that causes the motor to start and spin reliably.</description>
         </field>
-        <field name="ChannelMin" units="us" type="uint16" elements="10" defaultvalue="1000">
+        <field name="ChannelMin" units="us" type="uint16" elements="10" defaultvalue="0">
             <description>Minimum output pulse length. Actuator commands will be scaled from [-1,1] to [ChannelMin,ChannelMax].</description>
         </field>
         <field name="ChannelType" units="" type="enum" elements="10" options="PWM,PWM Alarm,Arming LED,Info LED" defaultvalue="PWM">
