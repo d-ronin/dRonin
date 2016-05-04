@@ -177,9 +177,11 @@ static void send_LTM_Gframe()
 {
 	GPSPositionData pdata;
 	BaroAltitudeData bdata;
-	GPSPositionInitialize();
-	BaroAltitudeInitialize();
-	 //prepare data
+	if (GPSPositionInitialize() == -1 || BaroAltitudeInitialize() == -1) {
+		module_enabled = false;
+		return;
+	}
+	//prepare data
 	GPSPositionGet(&pdata);
 
 	int32_t lt_latitude = pdata.Latitude;

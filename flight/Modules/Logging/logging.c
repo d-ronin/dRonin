@@ -147,12 +147,18 @@ int32_t LoggingInitialize(void)
 	if (!module_enabled)
 		return -1;
 
-	LoggingStatsInitialize();
-	LoggingSettingsInitialize();
+	if (LoggingStatsInitialize() == -1 || LoggingSettingsInitialize() == -1) {
+		module_enabled = false;
+		return -1;
+	}
 
 	// Initialise UAVTalk
 	uavTalkCon = UAVTalkInitialize(&send_data);
-
+	if (uavTalkCon == 0) {
+		module_enabled = false;
+		return -1;
+	}
+	
 	return 0;
 }
 

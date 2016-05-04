@@ -176,13 +176,18 @@ int32_t StabilizationStart()
 int32_t StabilizationInitialize()
 {
 	// Initialize variables
-	StabilizationSettingsInitialize();
-	ActuatorDesiredInitialize();
-	SubTrimInitialize();
-	SubTrimSettingsInitialize();
-	ManualControlCommandInitialize();
+	if (StabilizationSettingsInitialize() == -1 \
+		|| ActuatorDesiredInitialize() == -1 \
+		|| SubTrimInitialize() == -1 \
+		|| SubTrimSettingsInitialize() == -1 \
+		|| ManualControlCommandInitialize() == -1) {
+		return -1;
+	}
+
 #if defined(RATEDESIRED_DIAGNOSTICS)
-	RateDesiredInitialize();
+	if (RateDesiredInitialize() == -1) {
+		return -1;
+	}
 #endif
 
 	return 0;

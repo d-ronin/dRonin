@@ -127,24 +127,35 @@ int32_t ActuatorStart()
 int32_t ActuatorInitialize()
 {
 	// Register for notification of changes to ActuatorSettings
-	ActuatorSettingsInitialize();
+	if (ActuatorSettingsInitialize()  == -1) {
+		return -1;
+	}
 	ActuatorSettingsConnectCallbackCtx(UAVObjCbSetFlag, &settings_updated);
 
 	// Register for notification of changes to MixerSettings
-	MixerSettingsInitialize();
+	if (MixerSettingsInitialize()  == -1) {
+		return -1;
+	}
 	MixerSettingsConnectCallbackCtx(UAVObjCbSetFlag, &settings_updated);
 
 	// Listen for ActuatorDesired updates (Primary input to this module)
-	ActuatorDesiredInitialize();
+	if (ActuatorDesiredInitialize()  == -1) {
+		return -1;
+	}
+
 	queue = PIOS_Queue_Create(MAX_QUEUE_SIZE, sizeof(UAVObjEvent));
 	ActuatorDesiredConnectQueue(queue);
 
 	// Primary output of this module
-	ActuatorCommandInitialize();
+	if (ActuatorCommandInitialize() == -1) {
+		return -1;
+	}
 
 #if defined(MIXERSTATUS_DIAGNOSTICS)
 	// UAVO only used for inspecting the internal status of the mixer during debug
-	MixerStatusInitialize();
+	if (MixerStatusInitialize()  == -1) {
+		return -1;
+	}
 #endif
 
 	return 0;

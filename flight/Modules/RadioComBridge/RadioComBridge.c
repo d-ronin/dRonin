@@ -210,15 +210,19 @@ static int32_t RadioComBridgeInitialize(void)
 		return -1;
 	}
 	// Initialize the UAVObjects that we use
-	RFM22BStatusInitialize();
-	ObjectPersistenceInitialize();
-	RFM22BReceiverInitialize();
-	RadioComBridgeStatsInitialize();
+	if (RFM22BStatusInitialize() == -1 \
+		|| ObjectPersistenceInitialize() == -1 \
+		|| RFM22BReceiverInitialize() == -1 \
+		|| RadioComBridgeStatsInitialize() == -1) {
+		return -1;
+	}
 
 	// Initialise UAVTalk
 	data->telemUAVTalkCon = UAVTalkInitialize(&UAVTalkSendHandler);
 	data->radioUAVTalkCon = UAVTalkInitialize(&RadioSendHandler);
-
+	if (data->telemUAVTalkCon == 0 || data->radioUAVTalkCon == 0) {
+		return -1;
+	}
 	// Initialize the queues.
 	data->uavtalkEventQueue = PIOS_Queue_Create(EVENT_QUEUE_SIZE, sizeof(UAVObjEvent));
 	data->radioEventQueue = PIOS_Queue_Create(EVENT_QUEUE_SIZE, sizeof(UAVObjEvent));

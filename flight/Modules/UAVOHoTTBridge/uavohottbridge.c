@@ -99,7 +99,10 @@ static int32_t uavoHoTTBridgeInitialize(void)
 		module_enabled = true;
 		// HoTT telemetry baudrate is fixed to 19200
 		PIOS_COM_ChangeBaud(hott_port, 19200);
-		HoTTSettingsInitialize();
+		if (HoTTSettingsInitialize() == -1) {
+			module_enabled = false;
+			return -1;
+		}
 
 		// allocate memory for telemetry data
 		telestate = (struct telemetrydata *)PIOS_malloc(sizeof(*telestate));

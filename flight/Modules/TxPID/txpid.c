@@ -113,7 +113,10 @@ int32_t TxPIDInitialize(void)
 #endif
 
 #ifndef SMALLF1
-	TxPIDSettingsInitialize();
+	if (TxPIDSettingsInitialize() == -1) {
+		module_enabled = false;
+		return -1;
+	}
 #endif
 
 	if (module_enabled) {
@@ -122,8 +125,10 @@ int32_t TxPIDInitialize(void)
 		if (txpid_data != NULL) {
 			memset(txpid_data, 0x00, sizeof(*txpid_data));
 
-			TxPIDSettingsInitialize();
-			AccessoryDesiredInitialize();
+			if (TxPIDSettingsInitialize() == -1 || AccessoryDesiredInitialize() == -1) {
+				module_enabled = false;
+				return -1;
+			}
 
 			return 0;
 		}
@@ -156,7 +161,10 @@ static int32_t TxPIDStart(void)
 	// Warning: saving to flash with this code active will change the
 	// StabilizationSettings update rate permanently. Use Metadata via
 	// browser to reset to defaults (telemetryAcked=true, OnChange).
-	StabilizationSettingsInitialize();
+	if (StabilizationSettingsInitialize() == -1){
+		module_enabled = false;
+		return -1;
+	}
 	StabilizationSettingsGetMetadata(&txpid_data->metadata);
 	txpid_data->metadata.telemetryAcked = 0;
 	txpid_data->metadata.telemetryUpdateMode = UPDATEMODE_PERIODIC;

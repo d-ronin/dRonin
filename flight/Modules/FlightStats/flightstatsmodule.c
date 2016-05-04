@@ -89,8 +89,10 @@ int32_t FlightStatsModuleInitialize(void)
 	if (!module_enabled)
 		return -1;
 
-	FlightStatsInitialize();
-	FlightStatsSettingsInitialize();
+	if (FlightStatsInitialize() == -1 || FlightStatsSettingsInitialize() == -1) {
+		module_enabled = false;
+		return -1;
+	}
 
 	// Get settings and connect
 	FlightStatsSettingsConnectCopy(&settings);

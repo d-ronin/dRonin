@@ -164,15 +164,20 @@ int32_t SystemModInitialize(void)
 		return -1;
 
 	// Must registers objects here for system thread because ObjectManager started in OpenPilotInit
-	SystemSettingsInitialize();
-	SystemStatsInitialize();
-	FlightStatusInitialize();
-	ObjectPersistenceInitialize();
+	if (SystemSettingsInitialize() == -1 \
+		|| SystemStatsInitialize() == -1 \
+		|| FlightStatusInitialize() == -1 \
+		|| ObjectPersistenceInitialize() == -1) {
+
+		return -1;
+	}
 #if defined(DIAG_TASKS)
-	TaskInfoInitialize();
+	if (TaskInfoInitialize() == -1)
+		return -1;
 #endif
 #if defined(WDG_STATS_DIAGNOSTICS)
-	WatchdogStatusInitialize();
+	if (WatchdogStatusInitialize() == -1)
+		return -1;
 #endif
 
 	objectPersistenceQueue = PIOS_Queue_Create(1, sizeof(UAVObjEvent));

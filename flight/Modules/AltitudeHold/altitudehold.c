@@ -109,11 +109,21 @@ int32_t AltitudeHoldInitialize()
 	}
 #endif
 
-	AltitudeHoldSettingsInitialize();
+	if (AltitudeHoldSettingsInitialize() == -1) {
+			module_enabled = false;
+			return -1;
+	}
 
 	if(module_enabled) {
-		AltitudeHoldDesiredInitialize();
-		AltitudeHoldStateInitialize();
+		if (AltitudeHoldDesiredInitialize() == -1) {
+			module_enabled = false;
+			return -1;
+		}
+
+		if (AltitudeHoldStateInitialize() == -1) {
+			module_enabled = false;
+			return -1;
+		}
 
 		// Create object queue
 		queue = PIOS_Queue_Create(MAX_QUEUE_SIZE, sizeof(UAVObjEvent));

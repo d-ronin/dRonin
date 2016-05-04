@@ -156,7 +156,10 @@ static void doSettingsUpdate()
  */
 int32_t AirspeedInitialize()
 {
-	AirspeedSettingsInitialize();
+	if (AirspeedSettingsInitialize() == -1) {
+		module_enabled = false;
+		return -1;
+	}
 
 #ifdef MODULE_Airspeed_BUILTIN
 	module_enabled = true;
@@ -173,8 +176,15 @@ int32_t AirspeedInitialize()
 	if (!module_enabled)
 		return -1;
 
-	BaroAirspeedInitialize();
-	AirspeedActualInitialize();
+	if (BaroAirspeedInitialize() == -1) {
+		module_enabled = false;
+		return -1;
+	}
+
+	if (AirspeedActualInitialize() == -1) {
+		module_enabled = false;
+		return -1;
+	}
 
 #ifdef BARO_AIRSPEED_PRESENT
 	// Get the analog pin
@@ -206,7 +216,10 @@ static void airspeedTask(void *parameters)
 	//GPS airspeed calculation variables
 #ifdef GPS_AIRSPEED_PRESENT
 	GPSVelocityConnectCallbackCtx(UAVObjCbSetFlag, &gpsNew);
-	gps_airspeedInitialize();
+	if (gps_airspeedInitialize() == -1) {
+		module_enabled = false;
+		return;
+	}
 #endif
 
 	AirspeedSettingsConnectCallbackCtx(UAVObjCbSetFlag, &settingsUpdated);

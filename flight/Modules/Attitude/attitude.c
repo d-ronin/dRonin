@@ -216,19 +216,25 @@ static void check_home_location();
  */
 int32_t AttitudeInitialize(void)
 {
-	AttitudeActualInitialize();
-	AttitudeSettingsInitialize();
-	SensorSettingsInitialize();
-	INSSettingsInitialize();
-	INSStateInitialize();
-	NedAccelInitialize();
-	NEDPositionInitialize();
-	PositionActualInitialize();
-	StateEstimationInitialize();
-	VelocityActualInitialize();
+
+	if (AttitudeActualInitialize() == -1 \
+		|| AttitudeSettingsInitialize() == -1 \
+		|| SensorSettingsInitialize() == -1 \
+		|| INSSettingsInitialize() == -1 \
+		|| INSStateInitialize() == -1 \
+		|| NedAccelInitialize() == -1 \
+		|| NEDPositionInitialize() == -1 \
+		|| PositionActualInitialize() == -1 \
+		|| StateEstimationInitialize() == -1 \
+		|| VelocityActualInitialize() == -1) {
+	
+		return -1;
+	};
 
 	// Initialize this here while we aren't setting the homelocation in GPS
-	HomeLocationInitialize();
+	if (HomeLocationInitialize() == -1) {
+		return -1;		
+	}
 
 	AttitudeSettingsConnectCallback(&settingsUpdatedCb);
 	HomeLocationConnectCallback(&settingsUpdatedCb);

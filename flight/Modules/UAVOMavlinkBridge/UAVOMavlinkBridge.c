@@ -135,6 +135,9 @@ static int32_t uavoMavlinkBridgeInitialize(void) {
 			}
 
 			module_enabled = true;
+		}else {
+			module_enabled = false;
+			return -1;
 		}
 	}
 

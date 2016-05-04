@@ -31,7 +31,7 @@
 #ifndef GPS_AIRSPEED_H
 #define GPS_AIRSPEED_H
 
-void gps_airspeedInitialize();
+int32_t gps_airspeedInitialize();
 void gps_airspeedGet(float *v_air_GPS);
 
 #endif // GPS_AIRSPEED_H

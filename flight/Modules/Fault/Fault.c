@@ -59,7 +59,10 @@ static int32_t fault_initialize(void)
 	 * we've booted in BootFault recovery mode with all optional
 	 * modules disabled.
 	 */
-	FaultSettingsInitialize();
+	if (FaultSettingsInitialize() == -1) {
+		module_enabled = false;
+		return -1;
+	}
 
 	if (module_enabled) {
 		FaultSettingsActivateFaultGet(&active_fault);

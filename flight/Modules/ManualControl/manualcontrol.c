@@ -97,10 +97,13 @@ int32_t ManualControlStart()
  */
 int32_t ManualControlInitialize()
 {
-	failsafe_control_initialize();
-	transmitter_control_initialize();
-	tablet_control_initialize();
-	geofence_control_initialize();
+	if (failsafe_control_initialize() == -1 \
+		|| transmitter_control_initialize() == -1 \
+		|| tablet_control_initialize() == -1 \
+		|| geofence_control_initialize() == -1) {
+	
+		return -1;
+	}
 
 	return 0;
 }
