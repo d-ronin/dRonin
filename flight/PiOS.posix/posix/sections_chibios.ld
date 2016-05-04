@@ -133,18 +133,6 @@ SECTIONS
   }
 
   /* 
-   * Init section for UAVObjects.
-   */
-  .initcalluavobj.init :
-  {
-    . = ALIGN(4);
-    __uavobj_initcall_start = .;
-    KEEP(*(.initcalluavobj.init))
-    . = ALIGN(4);
-    __uavobj_initcall_end   = .;
-  }
-
-  /* 
   * Module init section section
   */
   .initcallmodule.init :
