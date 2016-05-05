@@ -158,7 +158,6 @@ void UAVObjectUtilManager::saveNextObject()
 
     ObjectPersistence::DataFields data;
     data.Operation = ObjectPersistence::OPERATION_SAVE;
-    data.Selection = ObjectPersistence::SELECTION_SINGLEOBJECT;
     data.ObjectID = obj->getObjID();
     data.InstanceID = obj->getInstID();
     objectPersistence->setData(data);

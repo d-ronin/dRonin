@@ -1045,7 +1045,6 @@ void ConfigTaskWidget::reloadButtonClicked()
                 temp.append(value);
             ObjectPersistence::DataFields data;
             data.Operation = ObjectPersistence::OPERATION_LOAD;
-            data.Selection = ObjectPersistence::SELECTION_SINGLEOBJECT;
             data.ObjectID = oTw->object->getObjID();
             data.InstanceID = oTw->object->getInstID();
             objper->setData(data);

@@ -367,55 +367,25 @@ static void objectUpdatedCb(UAVObjEvent * ev, void *ctx, void *obj_data, int len
 		}
 
 		if (objper.Operation == OBJECTPERSISTENCE_OPERATION_LOAD) {
-			if (objper.Selection == OBJECTPERSISTENCE_SELECTION_SINGLEOBJECT) {
-				// Get selected object
-				obj = UAVObjGetByID(objper.ObjectID);
-				if (obj == 0) {
-					return;
-				}
-				// Load selected instance
-				retval = UAVObjLoad(obj, objper.InstanceID);
-			} else if (objper.Selection == OBJECTPERSISTENCE_SELECTION_ALLSETTINGS
-				   || objper.Selection == OBJECTPERSISTENCE_SELECTION_ALLOBJECTS) {
-				retval = UAVObjLoadSettings();
-			} else if (objper.Selection == OBJECTPERSISTENCE_SELECTION_ALLMETAOBJECTS
-				   || objper.Selection == OBJECTPERSISTENCE_SELECTION_ALLOBJECTS) {
-				retval = UAVObjLoadMetaobjects();
+			// Get selected object
+			obj = UAVObjGetByID(objper.ObjectID);
+			if (obj == 0) {
+				return;
 			}
+			// Load selected instance
+			retval = UAVObjLoad(obj, objper.InstanceID);
 		} else if (objper.Operation == OBJECTPERSISTENCE_OPERATION_SAVE) {
-			if (objper.Selection == OBJECTPERSISTENCE_SELECTION_SINGLEOBJECT) {
-				// Get selected object
-				obj = UAVObjGetByID(objper.ObjectID);
-				if (obj == 0) {
-					return;
-				}
-				// Save selected instance
-				retval = UAVObjSave(obj, objper.InstanceID);
-
-				// Not sure why this is needed
-				PIOS_Thread_Sleep(10);
-
-				// Verify saving worked
-				if (retval == 0)
-					retval = UAVObjLoad(obj, objper.InstanceID);
-			} else if (objper.Selection == OBJECTPERSISTENCE_SELECTION_ALLSETTINGS
-				   || objper.Selection == OBJECTPERSISTENCE_SELECTION_ALLOBJECTS) {
-				retval = UAVObjSaveSettings();
-			} else if (objper.Selection == OBJECTPERSISTENCE_SELECTION_ALLMETAOBJECTS
-				   || objper.Selection == OBJECTPERSISTENCE_SELECTION_ALLOBJECTS) {
-				retval = UAVObjSaveMetaobjects();
+			// Get selected object
+			obj = UAVObjGetByID(objper.ObjectID);
+			if (obj == 0) {
+				return;
 			}
+
+			// Save selected instance
+			retval = UAVObjSave(obj, objper.InstanceID);
 		} else if (objper.Operation == OBJECTPERSISTENCE_OPERATION_DELETE) {
-			if (objper.Selection == OBJECTPERSISTENCE_SELECTION_SINGLEOBJECT) {
-				// Delete selected instance
-				retval = UAVObjDeleteById(objper.ObjectID, objper.InstanceID);
-			} else if (objper.Selection == OBJECTPERSISTENCE_SELECTION_ALLSETTINGS
-				   || objper.Selection == OBJECTPERSISTENCE_SELECTION_ALLOBJECTS) {
-				retval = UAVObjDeleteSettings();
-			} else if (objper.Selection == OBJECTPERSISTENCE_SELECTION_ALLMETAOBJECTS
-				   || objper.Selection == OBJECTPERSISTENCE_SELECTION_ALLOBJECTS) {
-				retval = UAVObjDeleteMetaobjects();
-			}
+			// Delete selected instance
+			retval = UAVObjDeleteById(objper.ObjectID, objper.InstanceID);
 		} else if (objper.Operation == OBJECTPERSISTENCE_OPERATION_FULLERASE) {
 			retval = -1;
 #if defined(PIOS_INCLUDE_LOGFS_SETTINGS)
@@ -423,6 +393,10 @@ static void objectUpdatedCb(UAVObjEvent * ev, void *ctx, void *obj_data, int len
 			retval = PIOS_FLASHFS_Format(pios_uavo_settings_fs_id);
 #endif
 		}
+
+		// Yield when saving, so if there's a ton of updates we don't
+		// prevent other threads from updatin'.
+		PIOS_Thread_Sleep(25);
 
 		switch(retval) {
 			case 0:

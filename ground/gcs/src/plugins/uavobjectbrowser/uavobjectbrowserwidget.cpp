@@ -512,7 +512,6 @@ void UAVObjectBrowserWidget::updateObjectPersistance(ObjectPersistence::Operatio
     {
         ObjectPersistence::DataFields data;
         data.Operation = op;
-        data.Selection = ObjectPersistence::SELECTION_SINGLEOBJECT;
         data.ObjectID = obj->getObjID();
         data.InstanceID = obj->getInstID();
         objper->setData(data);
