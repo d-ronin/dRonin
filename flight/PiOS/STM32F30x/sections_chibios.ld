@@ -77,7 +77,7 @@ SECTIONS
     {
         . = ALIGN(4);
         __module_initcall_start = .;
-        KEEP(*(.initcallmodule.init))
+        KEEP(*(SORT_BY_NAME(.initcall.*)))
         . = ALIGN(4);
         __module_initcall_end   = .;
     } > flash
