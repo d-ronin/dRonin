@@ -189,7 +189,7 @@ int32_t SystemModInitialize(void)
 	return 0;
 }
 
-MODULE_INITCALL(SystemModInitialize, 0)
+MODULE_HIPRI_INITCALL(SystemModInitialize, 0)
 static void systemTask(void *parameters)
 {
 	/* create all modules thread */

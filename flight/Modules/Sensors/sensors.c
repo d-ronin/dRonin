@@ -213,7 +213,7 @@ static int32_t SensorsStart(void)
 	return 0;
 }
 
-MODULE_INITCALL(SensorsInitialize, SensorsStart);
+MODULE_HIPRI_INITCALL(SensorsInitialize, SensorsStart);
 
 
 /**

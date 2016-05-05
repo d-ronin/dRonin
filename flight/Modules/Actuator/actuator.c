@@ -160,7 +160,7 @@ int32_t ActuatorInitialize()
 
 	return 0;
 }
-MODULE_INITCALL(ActuatorInitialize, ActuatorStart);
+MODULE_HIPRI_INITCALL(ActuatorInitialize, ActuatorStart);
 
 static float get_curve2_source(ActuatorDesiredData *desired, SystemSettingsAirframeTypeOptions airframe_type, MixerSettingsCurve2SourceOptions source)
 {
