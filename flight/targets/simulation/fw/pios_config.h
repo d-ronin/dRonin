@@ -83,4 +83,7 @@
 // Enable POI tracking mode for camera stabilization
 #define CAMERASTAB_POI_MODE
 
+#define PIOS_HAVE_LOGFLASH
+#define PIOS_LOGFLASH_SECT_SIZE 0x10000   /* 64kb */
+
 #endif /* PIOS_CONFIG_POSIX_H */

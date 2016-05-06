@@ -178,7 +178,6 @@ bool external_mag_fail;
 uintptr_t pios_internal_adc_id = 0;
 uintptr_t pios_uavo_settings_fs_id;
 uintptr_t pios_waypoints_settings_fs_id;
-uintptr_t pios_com_spiflash_logging_id;
 uintptr_t pios_com_openlog_logging_id;
 
 /**
@@ -681,21 +680,6 @@ void PIOS_Board_Init(void) {
         // configure the pullup for PA8 (inhibit pullups from current/sonar shared pin)
         GPIO_Init(pios_current_sonar_pin.gpio, &pios_current_sonar_pin.init);
 #endif
-
-#if defined(PIOS_INCLUDE_FLASH) && defined(PIOS_INCLUDE_FLASH_JEDEC)
-	uintptr_t streamfs_id;
-
-	if (PIOS_STREAMFS_Init(&streamfs_id, &streamfs_settings, FLASH_PARTITION_LABEL_LOG) != 0)
-		PIOS_HAL_Panic(PIOS_LED_ALARM, PIOS_HAL_PANIC_FILESYS);
-		
-	const uint32_t LOG_BUF_LEN = 256;
-	uint8_t *log_rx_buffer = PIOS_malloc(LOG_BUF_LEN);
-	uint8_t *log_tx_buffer = PIOS_malloc(LOG_BUF_LEN);
-	if (PIOS_COM_Init(&pios_com_spiflash_logging_id, &pios_streamfs_com_driver, streamfs_id,
-		log_rx_buffer, LOG_BUF_LEN, log_tx_buffer, LOG_BUF_LEN) != 0)
-		PIOS_HAL_Panic(PIOS_LED_ALARM, PIOS_HAL_PANIC_FLASH);
-#endif	/* PIOS_INCLUDE_FLASH */
-
 }
 
 /**

@@ -138,6 +138,9 @@
  */
 #define IDLE_COUNTS_PER_SEC_AT_NO_LOAD (9873737)
 
+#define PIOS_HAVE_LOGFLASH
+#define PIOS_LOGFLASH_SECT_SIZE 0x10000   /* 64kb */
+
 #endif /* PIOS_CONFIG_H */
 /**
  * @}

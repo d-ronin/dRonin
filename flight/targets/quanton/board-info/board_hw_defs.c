@@ -715,13 +715,6 @@ const struct pios_flash_partition * PIOS_BOARD_HW_DEFS_GetPartitionTable (uint32
 	return pios_flash_partition_table;
 }
 
-#include "pios_streamfs_priv.h"
-const struct streamfs_cfg streamfs_settings = {
-       .fs_magic      = 0x89abceef,
-       .arena_size    = 0x00001000, /* 64 KB */
-       .write_size    = 0x00000100, /* 256 bytes */
-};
-
 #endif	/* PIOS_INCLUDE_FLASH */
 
 #if defined(PIOS_INCLUDE_USART)

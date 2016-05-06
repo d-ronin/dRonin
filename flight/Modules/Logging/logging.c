@@ -69,6 +69,9 @@
 #include "waypointactive.h"
 
 #include "pios_bl_helper.h"
+#include "pios_streamfs_priv.h"
+
+#include "pios_com_priv.h"
 
 // Private constants
 #define STACK_SIZE_BYTES 1200
@@ -114,14 +117,36 @@ int32_t LoggingInitialize(void)
 #ifdef PIOS_COM_OPENLOG
 	if (PIOS_COM_OPENLOG) {
 		logging_com_id = PIOS_COM_OPENLOG;
-		destination_onboard_flash = false;
 		updateSettings();
 	}
 #endif
 
-#ifdef PIOS_COM_SPIFLASH
-	if ((!logging_com_id) && PIOS_COM_SPIFLASH) {
-		logging_com_id = PIOS_COM_SPIFLASH;
+#ifdef PIOS_HAVE_LOGFLASH
+	if (!logging_com_id) {
+		uintptr_t streamfs_id;
+
+		const struct streamfs_cfg streamfs_settings = {
+			.fs_magic      = 0x89abceef,
+			.arena_size    = PIOS_LOGFLASH_SECT_SIZE,
+			.write_size    = 0x00000100, /* 256 bytes */
+		};
+
+		if (PIOS_STREAMFS_Init(&streamfs_id, &streamfs_settings, FLASH_PARTITION_LABEL_LOG) != 0) {
+			module_enabled = false;
+			return -1;
+		}
+
+		const uint32_t LOG_BUF_LEN = 256;
+		uint8_t *log_rx_buffer = PIOS_malloc(LOG_BUF_LEN);
+		uint8_t *log_tx_buffer = PIOS_malloc(LOG_BUF_LEN);
+		if (PIOS_COM_Init(&logging_com_id, &pios_streamfs_com_driver,
+					streamfs_id, log_rx_buffer, LOG_BUF_LEN,
+					log_tx_buffer, LOG_BUF_LEN) != 0) {
+			module_enabled = false;
+			return -1;
+		}
+#include "pios_streamfs_priv.h"
+
 		destination_onboard_flash = true;
 		updateSettings();
 	}
@@ -196,7 +221,7 @@ static void loggingTask(void *parameters)
 	bool armed = false;
 	uint32_t now = PIOS_Thread_Systime();
 
-#ifdef PIOS_COM_SPIFLASH
+#ifdef PIOS_HAVE_LOGFLASH
 	bool write_open = false;
 	bool read_open = false;
 	int32_t read_sector = 0;
@@ -209,10 +234,10 @@ static void loggingTask(void *parameters)
 	LoggingStatsGet(&loggingData);
 	loggingData.BytesLogged = 0;
 	
-#ifdef PIOS_COM_SPIFLASH
+#ifdef PIOS_HAVE_LOGFLASH
 	if (destination_onboard_flash) {
-		loggingData.MinFileId = PIOS_STREAMFS_MinFileId(PIOS_COM_SPIFLASH);
-		loggingData.MaxFileId = PIOS_STREAMFS_MaxFileId(PIOS_COM_SPIFLASH);
+		loggingData.MinFileId = PIOS_STREAMFS_MinFileId(logging_com_id);
+		loggingData.MaxFileId = PIOS_STREAMFS_MaxFileId(logging_com_id);
 	}
 #endif
 
@@ -254,42 +279,42 @@ static void loggingTask(void *parameters)
 		switch (loggingData.Operation) {
 		case LOGGINGSTATS_OPERATION_FORMAT:
 			// Format the file system
-#ifdef PIOS_COM_SPIFLASH
+#ifdef PIOS_HAVE_LOGFLASH
 			if (destination_onboard_flash){
 				if (read_open || write_open) {
-					PIOS_STREAMFS_Close(PIOS_COM_SPIFLASH);
+					PIOS_STREAMFS_Close(logging_com_id);
 					read_open = false;
 					write_open = false;
 				}
 
-				PIOS_STREAMFS_Format(PIOS_COM_SPIFLASH);
-				loggingData.MinFileId = PIOS_STREAMFS_MinFileId(PIOS_COM_SPIFLASH);
-				loggingData.MaxFileId = PIOS_STREAMFS_MaxFileId(PIOS_COM_SPIFLASH);
+				PIOS_STREAMFS_Format(logging_com_id);
+				loggingData.MinFileId = PIOS_STREAMFS_MinFileId(logging_com_id);
+				loggingData.MaxFileId = PIOS_STREAMFS_MaxFileId(logging_com_id);
 			}
-#endif /* PIOS_COM_SPIFLASH */
+#endif /* PIOS_HAVE_LOGFLASH */
 			loggingData.Operation = LOGGINGSTATS_OPERATION_IDLE;
 			LoggingStatsSet(&loggingData);
 			break;
 		case LOGGINGSTATS_OPERATION_INITIALIZING:
 			// Unregister all objects
 			UAVObjIterate(&unregister_object);
-#ifdef PIOS_COM_SPIFLASH
+#ifdef PIOS_HAVE_LOGFLASH
 			if (destination_onboard_flash){
 				// Close the file if it is open for reading
 				if (read_open) {
-					PIOS_STREAMFS_Close(PIOS_COM_SPIFLASH);
+					PIOS_STREAMFS_Close(logging_com_id);
 					read_open = false;
 				}
 				// Open the file if it is not open for writing
 				if (!write_open) {
-					if (PIOS_STREAMFS_OpenWrite(PIOS_COM_SPIFLASH) != 0) {
+					if (PIOS_STREAMFS_OpenWrite(logging_com_id) != 0) {
 						loggingData.Operation = LOGGINGSTATS_OPERATION_ERROR;
 						continue;
 					} else {
 						write_open = true;
 					}
-					loggingData.MinFileId = PIOS_STREAMFS_MinFileId(PIOS_COM_SPIFLASH);
-					loggingData.MaxFileId = PIOS_STREAMFS_MaxFileId(PIOS_COM_SPIFLASH);
+					loggingData.MinFileId = PIOS_STREAMFS_MinFileId(logging_com_id);
+					loggingData.MaxFileId = PIOS_STREAMFS_MaxFileId(logging_com_id);
 					LoggingStatsSet(&loggingData);
 				}
 			}
@@ -297,7 +322,7 @@ static void loggingTask(void *parameters)
 				read_open = false;
 				write_open = true;
 			}
-#endif /* PIOS_COM_SPIFLASH */
+#endif /* PIOS_HAVE_LOGFLASH */
 
 			// Write information at start of the log file
 			writeHeader();
@@ -345,11 +370,11 @@ static void loggingTask(void *parameters)
 			}
 			break;
 		case LOGGINGSTATS_OPERATION_DOWNLOAD:
-#ifdef PIOS_COM_SPIFLASH
+#ifdef PIOS_HAVE_LOGFLASH
 			if (destination_onboard_flash) {
 				if (!read_open) {
 					// Start reading
-					if (PIOS_STREAMFS_OpenRead(PIOS_COM_SPIFLASH, loggingData.FileRequest) != 0) {
+					if (PIOS_STREAMFS_OpenRead(logging_com_id, loggingData.FileRequest) != 0) {
 						loggingData.Operation = LOGGINGSTATS_OPERATION_ERROR;
 					} else {
 						read_open = true;
@@ -365,7 +390,7 @@ static void loggingTask(void *parameters)
 					if (bytes_read < 0 || bytes_read > LOGGINGSTATS_FILESECTOR_NUMELEM) {
 						// close on error
 						loggingData.Operation = LOGGINGSTATS_OPERATION_ERROR;
-						PIOS_STREAMFS_Close(PIOS_COM_SPIFLASH);
+						PIOS_STREAMFS_Close(logging_com_id);
 						read_open = false;
 					} else if (bytes_read < LOGGINGSTATS_FILESECTOR_NUMELEM) {
 						// Check it has really run out of bytes by reading again
@@ -374,7 +399,7 @@ static void loggingTask(void *parameters)
 						if ((bytes_read + bytes_read2) < LOGGINGSTATS_FILESECTOR_NUMELEM) {
 							// indicate end of file
 							loggingData.Operation = LOGGINGSTATS_OPERATION_COMPLETE;
-							PIOS_STREAMFS_Close(PIOS_COM_SPIFLASH);
+							PIOS_STREAMFS_Close(logging_com_id);
 							read_open = false;
 						} else {
 							// Indicate sent
@@ -389,24 +414,24 @@ static void loggingTask(void *parameters)
 				}
 				LoggingStatsSet(&loggingData);
 			}
-#endif /* PIOS_COM_SPIFLASH */
+#endif /* PIOS_HAVE_LOGFLASH */
 
 			// fall-through to default case
 		default:
 			//  Makes sure that we are not hogging the processor
 			PIOS_Thread_Sleep(10);
-#ifdef PIOS_COM_SPIFLASH
+#ifdef PIOS_HAVE_LOGFLASH
 			if (destination_onboard_flash) {
 				// Close the file if necessary
 				if (write_open) {
-					PIOS_STREAMFS_Close(PIOS_COM_SPIFLASH);
-					loggingData.MinFileId = PIOS_STREAMFS_MinFileId(PIOS_COM_SPIFLASH);
-					loggingData.MaxFileId = PIOS_STREAMFS_MaxFileId(PIOS_COM_SPIFLASH);
+					PIOS_STREAMFS_Close(logging_com_id);
+					loggingData.MinFileId = PIOS_STREAMFS_MinFileId(logging_com_id);
+					loggingData.MaxFileId = PIOS_STREAMFS_MaxFileId(logging_com_id);
 					LoggingStatsSet(&loggingData);
 					write_open = false;
 				}
 			}
-#endif /* PIOS_COM_SPIFLASH */
+#endif /* PIOS_HAVE_LOGFLASH */
 		}
 	}
 }

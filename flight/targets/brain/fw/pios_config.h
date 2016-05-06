@@ -142,6 +142,9 @@
 
 #define BRAIN
 
+#define PIOS_HAVE_LOGFLASH
+#define PIOS_LOGFLASH_SECT_SIZE 0x1000	/* 4kb */
+
 #endif /* PIOS_CONFIG_H */
 /**
  * @}
