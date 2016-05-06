@@ -145,7 +145,6 @@ uintptr_t pios_com_openlog_logging_id;
 
 uintptr_t pios_uavo_settings_fs_id;
 uintptr_t pios_waypoints_settings_fs_id;
-uintptr_t streamfs_id;
 
 /**
 * Initialise PWM Output for black/white level setting
@@ -738,6 +737,8 @@ void PIOS_Board_Init(void) {
 #endif
 
 #if defined(PIOS_INCLUDE_FLASH)
+	uintptr_t streamfs_id;
+
 	if ( PIOS_STREAMFS_Init(&streamfs_id, &streamfs_settings, FLASH_PARTITION_LABEL_LOG) != 0)
 		PIOS_HAL_Panic(PIOS_LED_ALARM, PIOS_HAL_PANIC_FILESYS);
 

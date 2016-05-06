@@ -140,8 +140,6 @@ uintptr_t pios_waypoints_settings_fs_id;
 
 uintptr_t pios_can_id;
 
-uintptr_t streamfs_id;
-
 void set_vtx_channel(HwSparky2VTX_ChOptions channel)
 {
 	uint8_t chan = 0;
@@ -789,6 +787,8 @@ void PIOS_Board_Init(void) {
 
 #if defined(PIOS_INCLUDE_FLASH) && defined(PIOS_INCLUDE_FLASH_JEDEC)
 	if (get_external_flash(bdinfo->board_rev)) {
+		uintptr_t streamfs_id;
+
 		if ( PIOS_STREAMFS_Init(&streamfs_id, &streamfs_settings, FLASH_PARTITION_LABEL_LOG) != 0)
 			PIOS_HAL_Panic(PIOS_LED_ALARM, PIOS_HAL_PANIC_FILESYS);
 			
