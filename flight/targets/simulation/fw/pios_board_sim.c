@@ -91,6 +91,14 @@ const struct pios_tcp_cfg pios_tcp_aux_cfg = {
  * Simulation of the flash filesystem
  */
 #include "../../../tests/logfs/unittest_init.c"
+#include "pios_streamfs_priv.h"
+
+const struct streamfs_cfg streamfs_settings = {
+	.fs_magic      = 0x89abceef,
+	.arena_size    = 0x00010000, /* 64 KB */
+	.write_size    = 0x00000100, /* 256 bytes */
+};
+
 
 uintptr_t pios_uavo_settings_fs_id;
 uintptr_t pios_waypoints_settings_fs_id;
@@ -108,6 +116,8 @@ uintptr_t pios_com_telem_usb_id;
 uintptr_t pios_com_gps_id;
 uintptr_t pios_com_aux_id;
 uintptr_t pios_com_spectrum_id;
+uintptr_t pios_com_spiflash_logging_id;
+
 uintptr_t pios_rcvr_group_map[MANUALCONTROLSETTINGS_CHANNELGROUPS_NONE];
 
 /**
@@ -149,6 +159,19 @@ void PIOS_Board_Init(void) {
 
 	if (PIOS_FLASHFS_Logfs_Init(&pios_waypoints_settings_fs_id, &flashfs_config_waypoints, FLASH_PARTITION_LABEL_WAYPOINTS) != 0)
 		fprintf(stderr, "Unable to open the waypoints partition\n");
+
+	uintptr_t streamfs_id;
+
+	if ( PIOS_STREAMFS_Init(&streamfs_id, &streamfs_settings, FLASH_PARTITION_LABEL_LOG) != 0)
+		fprintf(stderr, "Unable to init streamfs\n");
+
+	const uint32_t LOG_BUF_LEN = 256;
+	uint8_t *log_rx_buffer = PIOS_malloc(LOG_BUF_LEN);
+	uint8_t *log_tx_buffer = PIOS_malloc(LOG_BUF_LEN);
+
+	if (PIOS_COM_Init(&pios_com_spiflash_logging_id, &pios_streamfs_com_driver, streamfs_id,
+				log_rx_buffer, LOG_BUF_LEN, log_tx_buffer, LOG_BUF_LEN) != 0)
+		fprintf(stderr, "Unable to init streamfs com layer\n");
 
 	/* Initialize the task monitor library */
 	TaskMonitorInitialize();
