@@ -661,6 +661,26 @@ static void updateSettings()
 		case MODULESETTINGS_OPENLOGSPEED_250000:
 			PIOS_COM_ChangeBaud(logging_com_id, 250000);
 			break;
+		/* Serial @ 42MHz 16OS can precisely hit 2mbps, 1.5mbps;
+		 * Serial @ 45MHz 16OS can precisely hit 1.5mbps
+		 * Serial @ 48MHz 16OS can precisely hit 2mbps, 1.5mbps
+		 */
+		case MODULESETTINGS_OPENLOGSPEED_1500000:
+			PIOS_COM_ChangeBaud(logging_com_id, 1500000);
+			break;
+		case MODULESETTINGS_OPENLOGSPEED_2000000:
+			PIOS_COM_ChangeBaud(logging_com_id, 2000000);
+			break;
+		/* This is the weird one.
+		 * Serial @ 42MHz will pick 2333333 - 0.4% from openlager
+		 * Serial @ 45MHz will pick 2368421 - 1.2% away
+		 * Serial @ 48MHz (OpenLager) will pick 2341463
+		 * Tolerance is supposed to be 3.3%-ish, but this is a
+		 * high-noise environment and a fast signal, so..
+		 */
+		case MODULESETTINGS_OPENLOGSPEED_2333333:
+			PIOS_COM_ChangeBaud(logging_com_id, 2333333);
+			break;
 		}
 	}
 }
