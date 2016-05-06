@@ -191,13 +191,6 @@ static struct streamfs_state *streamfs_alloc(void)
 	return(streamfs);
 }
 
-static void streamfs_free(struct streamfs_state *streamfs)
-{
-	/* Invalidate the magic */
-	streamfs->magic = ~PIOS_FLASHFS_STREAMFS_DEV_MAGIC;
-	PIOS_free(streamfs);
-}
-
 /**
  * Write footer to current sector and reset pointers for writing to
  * next sector
@@ -680,24 +673,6 @@ out_exit:
 	return rc;
 }
 
-int32_t PIOS_STREAMFS_Destroy(uintptr_t fs_id)
-{
-	int32_t rc;
-
-	struct streamfs_state *streamfs = (struct streamfs_state *)fs_id;
-
-	if (!streamfs_validate(streamfs)) {
-		rc = -1;
-		goto out_exit;
-	}
-
-	streamfs_free(streamfs);
-	rc = 0;
-
-out_exit:
-	return rc;
-}
-
 /**
  * @brief Erases all filesystem arenas and activate the first arena
  * @param[in] fs_id The filesystem to use for this action
@@ -712,7 +687,8 @@ int32_t PIOS_STREAMFS_Format(uintptr_t fs_id)
 {
 	int32_t rc;
 
-	struct streamfs_state *streamfs = (struct streamfs_state *)fs_id;
+	struct streamfs_state *streamfs = (struct streamfs_state *)
+		PIOS_COM_GetDriverCtx(fs_id);
 
 	if (!streamfs_validate(streamfs)) {
 		rc = -1;
@@ -754,7 +730,8 @@ int32_t PIOS_STREAMFS_OpenWrite(uintptr_t fs_id)
 {
 	int32_t rc;
 
-	struct streamfs_state *streamfs = (struct streamfs_state *)fs_id;
+	struct streamfs_state *streamfs = (struct streamfs_state *)
+		PIOS_COM_GetDriverCtx(fs_id);
 
 	bool locked = false;
 
@@ -815,7 +792,8 @@ int32_t PIOS_STREAMFS_OpenRead(uintptr_t fs_id, uint32_t file_id)
 {
 	int32_t rc;
 
-	struct streamfs_state *streamfs = (struct streamfs_state *)fs_id;
+	struct streamfs_state *streamfs = (struct streamfs_state *)
+		PIOS_COM_GetDriverCtx(fs_id);
 	bool locked = false;
 
 	if (!streamfs_validate(streamfs)) {
@@ -873,7 +851,8 @@ out_exit:
 
 int32_t PIOS_STREAMFS_MinFileId(uintptr_t fs_id)
 {
-	struct streamfs_state *streamfs = (struct streamfs_state *)fs_id;
+	struct streamfs_state *streamfs = (struct streamfs_state *)
+		PIOS_COM_GetDriverCtx(fs_id);
 
 	if (!streamfs_validate(streamfs)) {
 		return -1;
@@ -884,7 +863,8 @@ int32_t PIOS_STREAMFS_MinFileId(uintptr_t fs_id)
 
 int32_t PIOS_STREAMFS_MaxFileId(uintptr_t fs_id)
 {
-	struct streamfs_state *streamfs = (struct streamfs_state *)fs_id;
+	struct streamfs_state *streamfs = (struct streamfs_state *)
+		PIOS_COM_GetDriverCtx(fs_id);
 
 	if (!streamfs_validate(streamfs)) {
 		return -1;
@@ -896,8 +876,10 @@ int32_t PIOS_STREAMFS_MaxFileId(uintptr_t fs_id)
 int32_t PIOS_STREAMFS_Close(uintptr_t fs_id)
 {
 	int32_t rc;
+	
+	struct streamfs_state *streamfs = (struct streamfs_state *)
+		PIOS_COM_GetDriverCtx(fs_id);
 
-	struct streamfs_state *streamfs = (struct streamfs_state *)fs_id;
 	bool locked = false;
 
 	if (!streamfs_validate(streamfs)) {
@@ -1072,13 +1054,6 @@ static void PIOS_STREAMFS_TxStart(uintptr_t fs_id, uint16_t tx_bytes_avail)
 	bool valid = streamfs_validate(streamfs);
 	PIOS_Assert(valid);
 
-	if (!streamfs->file_open_writing)
-		return;
-
-	if (!streamfs->tx_out_cb) {
-		return;
-	}
-
 	PIOS_Semaphore_Give(streamfs->sem);
 }
 
@@ -1111,6 +1086,9 @@ static void PIOS_STREAMFS_RegisterTxCallback(uintptr_t fs_id, pios_com_callback 
 	 */
 	streamfs->tx_out_context = context;
 	streamfs->tx_out_cb = tx_out_cb;
+
+	/* Wake up the TX thread, justin case */
+	PIOS_Semaphore_Give(streamfs->sem);
 }
 
 /**

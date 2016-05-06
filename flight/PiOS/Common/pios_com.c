@@ -567,6 +567,16 @@ bool PIOS_COM_Available(uintptr_t com_id)
 	return (com_dev->driver->available)(com_dev->lower_id);
 }
 
+uintptr_t PIOS_COM_GetDriverCtx(uintptr_t com_id) {
+	struct pios_com_dev *com_dev = (struct pios_com_dev *)com_id;
+
+	if (!PIOS_COM_validate(com_dev)) {
+		return false;
+	}
+
+	return com_dev->lower_id;
+}
+
 #endif
 
 /**

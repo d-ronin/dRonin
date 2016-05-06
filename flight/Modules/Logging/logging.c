@@ -68,6 +68,8 @@
 #include "velocityactual.h"
 #include "waypointactive.h"
 
+#include "pios_bl_helper.h"
+
 // Private constants
 #define STACK_SIZE_BYTES 1200
 #define TASK_PRIORITY PIOS_THREAD_PRIO_LOW
@@ -100,12 +102,7 @@ static void updateSettings();
 // Local variables
 static uintptr_t logging_com_id;
 static uint32_t written_bytes;
-static bool destination_spi_flash;
-
-#if defined(PIOS_INCLUDE_FLASH) && defined(PIOS_INCLUDE_FLASH_JEDEC)
-// External variables
-extern uintptr_t streamfs_id;
-#endif
+static bool destination_onboard_flash;
 
 /**
  * Initialise the Logging module
@@ -117,7 +114,7 @@ int32_t LoggingInitialize(void)
 #ifdef PIOS_COM_OPENLOG
 	if (PIOS_COM_OPENLOG) {
 		logging_com_id = PIOS_COM_OPENLOG;
-		destination_spi_flash = false;
+		destination_onboard_flash = false;
 		updateSettings();
 	}
 #endif
@@ -125,7 +122,8 @@ int32_t LoggingInitialize(void)
 #ifdef PIOS_COM_SPIFLASH
 	if ((!logging_com_id) && PIOS_COM_SPIFLASH) {
 		logging_com_id = PIOS_COM_SPIFLASH;
-		destination_spi_flash = true;
+		destination_onboard_flash = true;
+		updateSettings();
 	}
 #endif
 		
@@ -141,8 +139,9 @@ int32_t LoggingInitialize(void)
 	}
 #endif
 
-	if (!logging_com_id)
+	if (!logging_com_id) {
 		module_enabled = false;
+	}
 
 	if (!module_enabled)
 		return -1;
@@ -197,7 +196,7 @@ static void loggingTask(void *parameters)
 	bool armed = false;
 	uint32_t now = PIOS_Thread_Systime();
 
-#if defined(PIOS_INCLUDE_FLASH) && defined(PIOS_INCLUDE_FLASH_JEDEC)
+#ifdef PIOS_COM_SPIFLASH
 	bool write_open = false;
 	bool read_open = false;
 	int32_t read_sector = 0;
@@ -210,14 +209,14 @@ static void loggingTask(void *parameters)
 	LoggingStatsGet(&loggingData);
 	loggingData.BytesLogged = 0;
 	
-#if defined(PIOS_INCLUDE_FLASH) && defined(PIOS_INCLUDE_FLASH_JEDEC)
-	if (destination_spi_flash) {
-		loggingData.MinFileId = PIOS_STREAMFS_MinFileId(streamfs_id);
-		loggingData.MaxFileId = PIOS_STREAMFS_MaxFileId(streamfs_id);
+#ifdef PIOS_COM_SPIFLASH
+	if (destination_onboard_flash) {
+		loggingData.MinFileId = PIOS_STREAMFS_MinFileId(PIOS_COM_SPIFLASH);
+		loggingData.MaxFileId = PIOS_STREAMFS_MaxFileId(PIOS_COM_SPIFLASH);
 	}
 #endif
 
-	if (!destination_spi_flash) {
+	if (!destination_onboard_flash) {
 		updateSettings();
 	}
 
@@ -255,51 +254,42 @@ static void loggingTask(void *parameters)
 		switch (loggingData.Operation) {
 		case LOGGINGSTATS_OPERATION_FORMAT:
 			// Format the file system
-#if defined(PIOS_INCLUDE_FLASH) && defined(PIOS_INCLUDE_FLASH_JEDEC)
-			if (destination_spi_flash){
+#ifdef PIOS_COM_SPIFLASH
+			if (destination_onboard_flash){
 				if (read_open || write_open) {
-					PIOS_STREAMFS_Close(streamfs_id);
+					PIOS_STREAMFS_Close(PIOS_COM_SPIFLASH);
 					read_open = false;
 					write_open = false;
 				}
 
-				PIOS_STREAMFS_Format(streamfs_id);
-				loggingData.MinFileId = PIOS_STREAMFS_MinFileId(streamfs_id);
-				loggingData.MaxFileId = PIOS_STREAMFS_MaxFileId(streamfs_id);
+				PIOS_STREAMFS_Format(PIOS_COM_SPIFLASH);
+				loggingData.MinFileId = PIOS_STREAMFS_MinFileId(PIOS_COM_SPIFLASH);
+				loggingData.MaxFileId = PIOS_STREAMFS_MaxFileId(PIOS_COM_SPIFLASH);
 			}
-#endif /* defined(PIOS_INCLUDE_FLASH) && defined(PIOS_INCLUDE_FLASH_JEDEC) */
+#endif /* PIOS_COM_SPIFLASH */
 			loggingData.Operation = LOGGINGSTATS_OPERATION_IDLE;
 			LoggingStatsSet(&loggingData);
 			break;
 		case LOGGINGSTATS_OPERATION_INITIALIZING:
 			// Unregister all objects
 			UAVObjIterate(&unregister_object);
-			// Register objects to be logged
-			switch (settings.Profile) {
-				case LOGGINGSETTINGS_PROFILE_DEFAULT:
-					register_default_profile();
-					break;
-				case LOGGINGSETTINGS_PROFILE_CUSTOM:
-					UAVObjIterate(&register_object);
-					break;
-			}
-#if defined(PIOS_INCLUDE_FLASH) && defined(PIOS_INCLUDE_FLASH_JEDEC)
-			if (destination_spi_flash){
+#ifdef PIOS_COM_SPIFLASH
+			if (destination_onboard_flash){
 				// Close the file if it is open for reading
 				if (read_open) {
-					PIOS_STREAMFS_Close(streamfs_id);
+					PIOS_STREAMFS_Close(PIOS_COM_SPIFLASH);
 					read_open = false;
 				}
 				// Open the file if it is not open for writing
 				if (!write_open) {
-					if (PIOS_STREAMFS_OpenWrite(streamfs_id) != 0) {
+					if (PIOS_STREAMFS_OpenWrite(PIOS_COM_SPIFLASH) != 0) {
 						loggingData.Operation = LOGGINGSTATS_OPERATION_ERROR;
 						continue;
 					} else {
 						write_open = true;
 					}
-					loggingData.MinFileId = PIOS_STREAMFS_MinFileId(streamfs_id);
-					loggingData.MaxFileId = PIOS_STREAMFS_MaxFileId(streamfs_id);
+					loggingData.MinFileId = PIOS_STREAMFS_MinFileId(PIOS_COM_SPIFLASH);
+					loggingData.MaxFileId = PIOS_STREAMFS_MaxFileId(PIOS_COM_SPIFLASH);
 					LoggingStatsSet(&loggingData);
 				}
 			}
@@ -307,7 +297,7 @@ static void loggingTask(void *parameters)
 				read_open = false;
 				write_open = true;
 			}
-#endif /* defined(PIOS_INCLUDE_FLASH) && defined(PIOS_INCLUDE_FLASH_JEDEC) */
+#endif /* PIOS_COM_SPIFLASH */
 
 			// Write information at start of the log file
 			writeHeader();
@@ -317,8 +307,18 @@ static void loggingTask(void *parameters)
 				UAVObjIterate(&logSettings);
 			}
 
+			// Register objects to be logged
+			switch (settings.Profile) {
+				case LOGGINGSETTINGS_PROFILE_DEFAULT:
+					register_default_profile();
+					break;
+				case LOGGINGSETTINGS_PROFILE_CUSTOM:
+					UAVObjIterate(&register_object);
+					break;
+			}
+
 			// Empty the queue
-			while(PIOS_Queue_Receive(logging_queue, &ev, 0))
+			while(PIOS_Queue_Receive(logging_queue, &ev, 0));
 
 			LoggingStatsBytesLoggedSet(&written_bytes);
 			loggingData.Operation = LOGGINGSTATS_OPERATION_LOGGING;
@@ -345,11 +345,11 @@ static void loggingTask(void *parameters)
 			}
 			break;
 		case LOGGINGSTATS_OPERATION_DOWNLOAD:
-#if defined(PIOS_INCLUDE_FLASH) && defined(PIOS_INCLUDE_FLASH_JEDEC)
-			if (destination_spi_flash) {
+#ifdef PIOS_COM_SPIFLASH
+			if (destination_onboard_flash) {
 				if (!read_open) {
 					// Start reading
-					if (PIOS_STREAMFS_OpenRead(streamfs_id, loggingData.FileRequest) != 0) {
+					if (PIOS_STREAMFS_OpenRead(PIOS_COM_SPIFLASH, loggingData.FileRequest) != 0) {
 						loggingData.Operation = LOGGINGSTATS_OPERATION_ERROR;
 					} else {
 						read_open = true;
@@ -365,7 +365,7 @@ static void loggingTask(void *parameters)
 					if (bytes_read < 0 || bytes_read > LOGGINGSTATS_FILESECTOR_NUMELEM) {
 						// close on error
 						loggingData.Operation = LOGGINGSTATS_OPERATION_ERROR;
-						PIOS_STREAMFS_Close(streamfs_id);
+						PIOS_STREAMFS_Close(PIOS_COM_SPIFLASH);
 						read_open = false;
 					} else if (bytes_read < LOGGINGSTATS_FILESECTOR_NUMELEM) {
 						// Check it has really run out of bytes by reading again
@@ -374,7 +374,7 @@ static void loggingTask(void *parameters)
 						if ((bytes_read + bytes_read2) < LOGGINGSTATS_FILESECTOR_NUMELEM) {
 							// indicate end of file
 							loggingData.Operation = LOGGINGSTATS_OPERATION_COMPLETE;
-							PIOS_STREAMFS_Close(streamfs_id);
+							PIOS_STREAMFS_Close(PIOS_COM_SPIFLASH);
 							read_open = false;
 						} else {
 							// Indicate sent
@@ -389,24 +389,24 @@ static void loggingTask(void *parameters)
 				}
 				LoggingStatsSet(&loggingData);
 			}
-#endif /* defined(PIOS_INCLUDE_FLASH) && defined(PIOS_INCLUDE_FLASH_JEDEC) */
+#endif /* PIOS_COM_SPIFLASH */
 
 			// fall-through to default case
 		default:
 			//  Makes sure that we are not hogging the processor
 			PIOS_Thread_Sleep(10);
-#if defined(PIOS_INCLUDE_FLASH) && defined(PIOS_INCLUDE_FLASH_JEDEC)
-			if (destination_spi_flash) {
+#ifdef PIOS_COM_SPIFLASH
+			if (destination_onboard_flash) {
 				// Close the file if necessary
 				if (write_open) {
-					PIOS_STREAMFS_Close(streamfs_id);
-					loggingData.MinFileId = PIOS_STREAMFS_MinFileId(streamfs_id);
-					loggingData.MaxFileId = PIOS_STREAMFS_MaxFileId(streamfs_id);
+					PIOS_STREAMFS_Close(PIOS_COM_SPIFLASH);
+					loggingData.MinFileId = PIOS_STREAMFS_MinFileId(PIOS_COM_SPIFLASH);
+					loggingData.MaxFileId = PIOS_STREAMFS_MaxFileId(PIOS_COM_SPIFLASH);
 					LoggingStatsSet(&loggingData);
 					write_open = false;
 				}
 			}
-#endif /* defined(PIOS_INCLUDE_FLASH) && defined(PIOS_INCLUDE_FLASH_JEDEC) */
+#endif /* PIOS_COM_SPIFLASH */
 		}
 	}
 }
@@ -602,6 +602,10 @@ static void register_default_profile()
  */
 static void writeHeader()
 {
+	uint8_t fw_blob[100];
+	PIOS_BL_HELPER_FLASH_Read_Description((uint8_t *) &fw_blob,
+			sizeof(fw_blob));
+
 	int pos;
 #define STR_BUF_LEN 45
 	char tmp_str[STR_BUF_LEN];
@@ -609,35 +613,36 @@ static void writeHeader()
 	char this_char;
 	DateTimeT date_time;
 
-	const struct pios_board_info * bdinfo = &pios_board_info_blob;
-
 	// Header
 	#define LOG_HEADER "dRonin git hash:\n"
 	send_data((uint8_t *)LOG_HEADER, strlen(LOG_HEADER));
 
 	// Commit tag name
-	info_str = (char*)(bdinfo->fw_base + bdinfo->fw_size + 14);
-	send_data((uint8_t*)info_str, strlen(info_str));
+	// XXX all of thse should use the fw_version_info structure instead of
+	// doing offset math, but we need to factor out the fw_version_info
+	// struct from the templates first.
+	info_str = (char*)(fw_blob + 14);
+	send_data((uint8_t*)info_str, strnlen(info_str, 26));
 
 	// Git commit hash
 	pos = 0;
 	tmp_str[pos++] = ':';
 	for (int i = 0; i < 4; i++){
-		this_char = *(char*)(bdinfo->fw_base + bdinfo->fw_size + 7 - i);
+		this_char = *(char*)(fw_blob + 7 - i);
 		tmp_str[pos++] = DIGITS[(this_char & 0xF0) >> 4];
 		tmp_str[pos++] = DIGITS[(this_char & 0x0F)];
 	}
 	send_data((uint8_t*)tmp_str, pos);
 
 	// Date
-	date_from_timestamp(*(uint32_t *)(bdinfo->fw_base + bdinfo->fw_size + 8), &date_time);
+	date_from_timestamp(*(uint32_t *)(fw_blob + 8), &date_time);
 	uint8_t len = snprintf(tmp_str, STR_BUF_LEN, " %d%02d%02d\n", 1900 + date_time.year, date_time.mon + 1, date_time.mday);
 	send_data((uint8_t*)tmp_str, len);
 
 	// UAVO SHA1
 	pos = 0;
 	for (int i = 0; i < 20; i++){
-		this_char = *(char*)(bdinfo->fw_base + bdinfo->fw_size + 60 + i);
+		this_char = *(char*)(fw_blob + 60 + i);
 		tmp_str[pos++] = DIGITS[(this_char & 0xF0) >> 4];
 		tmp_str[pos++] = DIGITS[(this_char & 0x0F)];
 	}
