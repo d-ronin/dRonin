@@ -30,6 +30,9 @@
 
 #include "pios_flash.h"		     /* PIOS_FLASH_* */
 #include "pios_streamfs_priv.h" /* Internal API */
+#include "pios_mutex.h"
+#include "pios_semaphore.h"
+#include "pios_thread.h"
 
 #include <stdbool.h>
 #include <stddef.h>		/* NULL */
@@ -51,6 +54,9 @@
  */
 
 #include <pios_com.h>
+
+#define PIOS_STREAMFS_TASK_PRIORITY    PIOS_THREAD_PRIO_LOW
+#define PIOS_STREAMFS_TASK_STACK_BYTES 1000
 
 /* Provide a COM driver */
 static void PIOS_STREAMFS_RegisterRxCallback(uintptr_t fs_id, pios_com_callback rx_in_cb, uintptr_t context);
@@ -77,8 +83,11 @@ struct streamfs_state {
 	enum pios_flashfs_streamfs_dev_magic magic;
 	const struct streamfs_cfg *cfg;
 
-
 	/* pios_com interface */
+	struct pios_mutex *mutex;
+	struct pios_semaphore *sem;
+	struct pios_thread *task;
+
 	pios_com_callback rx_in_cb;
 	uintptr_t rx_in_context;
 	pios_com_callback tx_out_cb;
@@ -512,12 +521,69 @@ static int32_t streamfs_scan_filesystem(struct streamfs_state *streamfs)
 
 	return 0;
 }
+
+static void PIOS_STREAMFS_Task(void *parameters) {
+	struct streamfs_state *streamfs = parameters;
+
+	bool tmp = PIOS_Mutex_Lock(streamfs->mutex, PIOS_MUTEX_TIMEOUT_MAX);
+	PIOS_Assert(tmp);
+
+	while (1) {
+		int32_t bytes_to_write = 0;
+		
+		if (streamfs->tx_out_cb) {
+			bytes_to_write = (streamfs->tx_out_cb)(
+				streamfs->tx_out_context,
+				streamfs->com_buffer,
+				streamfs->cfg->write_size,
+				NULL, NULL);
+		}
+
+		if (bytes_to_write <= 0) {
+			// Block here until woken.
+			PIOS_Mutex_Unlock(streamfs->mutex);
+			PIOS_Semaphore_Take(streamfs->sem, PIOS_SEMAPHORE_TIMEOUT_MAX);
+			tmp = PIOS_Mutex_Lock(streamfs->mutex, PIOS_MUTEX_TIMEOUT_MAX);
+			PIOS_Assert(tmp);
+			continue;
+		}
+
+		if (!streamfs->file_open_writing) {
+			// Drain out pending data while file not open
+			continue;
+		}
+
+		if (PIOS_FLASH_start_transaction(streamfs->partition_id) != 0) {
+			PIOS_Mutex_Unlock(streamfs->mutex);
+			PIOS_Thread_Sleep(50);	// Don't spin
+			tmp = PIOS_Mutex_Lock(streamfs->mutex, PIOS_MUTEX_TIMEOUT_MAX);
+			PIOS_Assert(tmp);
+			continue;
+		}
+
+		// Flush available data from PIOS_COM interface to
+		// file system
+		while (bytes_to_write > 0) {
+			if (streamfs_append_to_file(streamfs, streamfs->com_buffer, bytes_to_write) != 0) {
+				break;
+			}
+
+			bytes_to_write = (streamfs->tx_out_cb)(
+					streamfs->tx_out_context,
+					streamfs->com_buffer,
+					streamfs->cfg->write_size,
+					NULL, NULL);
+		}
+
+		PIOS_FLASH_end_transaction(streamfs->partition_id);
+	}
+}
+
 /**********************************
  *
  * Public API
  *
  *********************************/
-
 
 /**
  * @brief Initialize the flash object setting FS
@@ -573,6 +639,20 @@ int32_t PIOS_STREAMFS_Init(uintptr_t *fs_id, const struct streamfs_cfg *cfg, enu
 	streamfs->active_file_arena        = 0;
 	streamfs->active_file_arena_offset = 0;
 
+	streamfs->mutex = PIOS_Mutex_Create();
+
+	if (!streamfs->mutex) {
+		rc = -1;
+		goto out_exit;
+	}
+
+	streamfs->sem = PIOS_Semaphore_Create();
+
+	if (!streamfs->sem) {
+		rc = -1;
+		goto out_exit;
+	}
+
 	if (PIOS_FLASH_start_transaction(streamfs->partition_id) != 0) {
 		rc = -1;
 		goto out_exit;
@@ -590,6 +670,10 @@ int32_t PIOS_STREAMFS_Init(uintptr_t *fs_id, const struct streamfs_cfg *cfg, enu
 
 //out_end_trans:
 	PIOS_FLASH_end_transaction(streamfs->partition_id);
+
+	streamfs->task = PIOS_Thread_Create(PIOS_STREAMFS_Task,
+			"pios_streamfs", PIOS_STREAMFS_TASK_STACK_BYTES,
+			streamfs, PIOS_STREAMFS_TASK_PRIORITY);
 
 out_exit:
 	return rc;
@@ -671,8 +755,17 @@ int32_t PIOS_STREAMFS_OpenWrite(uintptr_t fs_id)
 
 	struct streamfs_state *streamfs = (struct streamfs_state *)fs_id;
 
+	bool locked = false;
+
 	if (!streamfs_validate(streamfs)) {
 		rc = -1;
+		goto out_exit;
+	}
+
+	locked = PIOS_Mutex_Lock(streamfs->mutex, PIOS_MUTEX_TIMEOUT_MAX);
+
+	if (!locked) {
+		rc = -6;
 		goto out_exit;
 	}
 
@@ -710,6 +803,10 @@ out_end_trans:
 	PIOS_FLASH_end_transaction(streamfs->partition_id);
 
 out_exit:
+	if (locked) {
+		PIOS_Mutex_Unlock(streamfs->mutex);
+	}
+
 	return rc;
 }
 
@@ -718,9 +815,17 @@ int32_t PIOS_STREAMFS_OpenRead(uintptr_t fs_id, uint32_t file_id)
 	int32_t rc;
 
 	struct streamfs_state *streamfs = (struct streamfs_state *)fs_id;
+	bool locked = false;
 
 	if (!streamfs_validate(streamfs)) {
 		rc = -1;
+		goto out_exit;
+	}
+
+	locked = PIOS_Mutex_Lock(streamfs->mutex, PIOS_MUTEX_TIMEOUT_MAX);
+
+	if (!locked) {
+		rc = -6;
 		goto out_exit;
 	}
 
@@ -758,6 +863,10 @@ out_end_trans:
 	PIOS_FLASH_end_transaction(streamfs->partition_id);
 
 out_exit:
+	if (locked) {
+		PIOS_Mutex_Unlock(streamfs->mutex);
+	}
+
 	return rc;
 }
 
@@ -788,9 +897,18 @@ int32_t PIOS_STREAMFS_Close(uintptr_t fs_id)
 	int32_t rc;
 
 	struct streamfs_state *streamfs = (struct streamfs_state *)fs_id;
+	bool locked = false;
 
 	if (!streamfs_validate(streamfs)) {
 		rc = -1;
+		goto out_exit;
+	}
+
+
+	locked = PIOS_Mutex_Lock(streamfs->mutex, PIOS_MUTEX_TIMEOUT_MAX);
+
+	if (!locked) {
+		rc = -6;
 		goto out_exit;
 	}
 
@@ -834,6 +952,10 @@ out_end_trans:
 	PIOS_FLASH_end_transaction(streamfs->partition_id);
 
 out_exit:
+	if (locked) {
+		PIOS_Mutex_Unlock(streamfs->mutex);
+	}
+
 	return rc;
 }
 
@@ -956,26 +1078,7 @@ static void PIOS_STREAMFS_TxStart(uintptr_t fs_id, uint16_t tx_bytes_avail)
 		return;
 	}
 
-	if (PIOS_FLASH_start_transaction(streamfs->partition_id) != 0) {
-		return;
-	}
-
-	// Flush available data from PIOS_COM interface to file system
-	int32_t bytes_to_write;
-	while(1) {
-		bytes_to_write = (streamfs->tx_out_cb)(streamfs->tx_out_context,
-			              streamfs->com_buffer, streamfs->cfg->write_size, NULL, NULL);
-
-		if (bytes_to_write <= 0)
-			break;
-
-		if (streamfs_append_to_file (streamfs, streamfs->com_buffer, bytes_to_write) != 0) {
-			goto out_end_trans;
-		}
-	}
-
-out_end_trans:
-	PIOS_FLASH_end_transaction(streamfs->partition_id);
+	PIOS_Semaphore_Give(streamfs->sem);
 }
 
 
