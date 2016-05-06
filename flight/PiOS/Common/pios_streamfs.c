@@ -522,7 +522,8 @@ static int32_t streamfs_scan_filesystem(struct streamfs_state *streamfs)
 	return 0;
 }
 
-static void PIOS_STREAMFS_Task(void *parameters) {
+static void PIOS_STREAMFS_Task(void *parameters)
+{
 	struct streamfs_state *streamfs = parameters;
 
 	bool tmp = PIOS_Mutex_Lock(streamfs->mutex, PIOS_MUTEX_TIMEOUT_MAX);
@@ -530,7 +531,7 @@ static void PIOS_STREAMFS_Task(void *parameters) {
 
 	while (1) {
 		int32_t bytes_to_write = 0;
-		
+
 		if (streamfs->tx_out_cb) {
 			bytes_to_write = (streamfs->tx_out_cb)(
 				streamfs->tx_out_context,
@@ -1029,7 +1030,7 @@ out_exit:
 static void PIOS_STREAMFS_RxStart(uintptr_t fs_id, uint16_t rx_bytes_avail)
 {
 	struct streamfs_state *streamfs = (struct streamfs_state *)fs_id;
-	
+
 	bool valid = streamfs_validate(streamfs);
 	PIOS_Assert(valid);
 
@@ -1067,7 +1068,7 @@ out_end_trans:
 static void PIOS_STREAMFS_TxStart(uintptr_t fs_id, uint16_t tx_bytes_avail)
 {
 	struct streamfs_state *streamfs = (struct streamfs_state *)fs_id;
-	
+
 	bool valid = streamfs_validate(streamfs);
 	PIOS_Assert(valid);
 
@@ -1088,7 +1089,7 @@ static void PIOS_STREAMFS_RegisterRxCallback(uintptr_t fs_id, pios_com_callback 
 
 	bool valid = streamfs_validate(streamfs);
 	PIOS_Assert(valid);
-	
+
 	/* 
 	 * Order is important in these assignments since ISR uses _cb
 	 * field to determine if it's ok to dereference _cb and _context
@@ -1103,7 +1104,7 @@ static void PIOS_STREAMFS_RegisterTxCallback(uintptr_t fs_id, pios_com_callback 
 
 	bool valid = streamfs_validate(streamfs);
 	PIOS_Assert(valid);
-	
+
 	/* 
 	 * Order is important in these assignments since ISR uses _cb
 	 * field to determine if it's ok to dereference _cb and _context
