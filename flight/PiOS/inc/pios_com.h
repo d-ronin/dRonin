@@ -37,7 +37,6 @@
 typedef uint16_t (*pios_com_callback)(uintptr_t context, uint8_t * buf, uint16_t buf_len, uint16_t * headroom, bool * task_woken);
 
 struct pios_com_driver {
-	void (*init)(uintptr_t id);
 	void (*set_baud)(uintptr_t id, uint32_t baud);
 	void (*tx_start)(uintptr_t id, uint16_t tx_bytes_avail);
 	void (*rx_start)(uintptr_t id, uint16_t rx_bytes_avail);
