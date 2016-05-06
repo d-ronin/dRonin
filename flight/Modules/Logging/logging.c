@@ -137,10 +137,9 @@ int32_t LoggingInitialize(void)
 		}
 
 		const uint32_t LOG_BUF_LEN = 256;
-		uint8_t *log_rx_buffer = PIOS_malloc(LOG_BUF_LEN);
 		uint8_t *log_tx_buffer = PIOS_malloc(LOG_BUF_LEN);
 		if (PIOS_COM_Init(&logging_com_id, &pios_streamfs_com_driver,
-					streamfs_id, log_rx_buffer, LOG_BUF_LEN,
+					streamfs_id, NULL, 0,
 					log_tx_buffer, LOG_BUF_LEN) != 0) {
 			module_enabled = false;
 			return -1;
@@ -385,34 +384,35 @@ static void loggingTask(void *parameters)
 					// Request received for same sector. Reupdate.
 					memcpy(loggingData.FileSector, read_data, LOGGINGSTATS_FILESECTOR_NUMELEM);
 					loggingData.Operation = LOGGINGSTATS_OPERATION_IDLE;
+
 				} else if (read_open && (read_sector + 1) == loggingData.FileSectorNum) {
-					int32_t bytes_read = PIOS_COM_ReceiveBuffer(logging_com_id, read_data, LOGGINGSTATS_FILESECTOR_NUMELEM, 1);
-					if (bytes_read < 0 || bytes_read > LOGGINGSTATS_FILESECTOR_NUMELEM) {
+					int32_t bytes_read = PIOS_STREAMFS_Read(logging_com_id, loggingData.FileSector, LOGGINGSTATS_FILESECTOR_NUMELEM);
+					if (bytes_read < 0) {
 						// close on error
+						printf("%d\n", bytes_read);
 						loggingData.Operation = LOGGINGSTATS_OPERATION_ERROR;
+						loggingData.FileSectorNum = 0xffff;
 						PIOS_STREAMFS_Close(logging_com_id);
 						read_open = false;
-					} else if (bytes_read < LOGGINGSTATS_FILESECTOR_NUMELEM) {
-						// Check it has really run out of bytes by reading again
-						int32_t bytes_read2 = PIOS_COM_ReceiveBuffer(logging_com_id, &read_data[bytes_read], LOGGINGSTATS_FILESECTOR_NUMELEM - bytes_read, 1);
-						memcpy(loggingData.FileSector, read_data, LOGGINGSTATS_FILESECTOR_NUMELEM);
-						if ((bytes_read + bytes_read2) < LOGGINGSTATS_FILESECTOR_NUMELEM) {
+					} else {
+						// Indicate sent
+						loggingData.Operation = LOGGINGSTATS_OPERATION_IDLE;
+
+						if (bytes_read < LOGGINGSTATS_FILESECTOR_NUMELEM) {
 							// indicate end of file
 							loggingData.Operation = LOGGINGSTATS_OPERATION_COMPLETE;
 							PIOS_STREAMFS_Close(logging_com_id);
 							read_open = false;
-						} else {
-							// Indicate sent
-							loggingData.Operation = LOGGINGSTATS_OPERATION_IDLE;
 						}
-					} else {
-						// Indicate sent
-						loggingData.Operation = LOGGINGSTATS_OPERATION_IDLE;
-						memcpy(loggingData.FileSector, read_data, LOGGINGSTATS_FILESECTOR_NUMELEM);
+
 					}
-					read_sector = loggingData.FileSectorNum;
 				}
 				LoggingStatsSet(&loggingData);
+
+				// Store the data in case it's needed again /
+				// lost over telemetry link
+				memcpy(read_data, loggingData.FileSector, LOGGINGSTATS_FILESECTOR_NUMELEM);
+				read_sector = loggingData.FileSectorNum;
 			}
 #endif /* PIOS_HAVE_LOGFLASH */
 
