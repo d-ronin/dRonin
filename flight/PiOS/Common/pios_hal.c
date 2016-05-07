@@ -184,7 +184,7 @@ uintptr_t pios_com_debug_id;
 #endif
 
 #ifndef PIOS_COM_OPENLOG_TX_BUF_LEN
-#define PIOS_COM_OPENLOG_TX_BUF_LEN 256
+#define PIOS_COM_OPENLOG_TX_BUF_LEN 768
 #endif
 
 #ifndef PIOS_COM_RFM22B_RF_RX_BUF_LEN
@@ -601,10 +601,10 @@ void PIOS_HAL_ConfigurePort(HwSharedPortTypesOptions port_type,
 #endif
 		break;
 
-	    case HWSHARED_PORTTYPES_OPENLOG:
+	case HWSHARED_PORTTYPES_OPENLOG:
 #if defined(PIOS_INCLUDE_OPENLOG)
-			PIOS_HAL_ConfigureCom(usart_port_cfg, &usart_port_params, 0, PIOS_COM_OPENLOG_TX_BUF_LEN, com_driver, &port_driver_id);
-			target = &pios_com_openlog_logging_id;
+		PIOS_HAL_ConfigureCom(usart_port_cfg, &usart_port_params, 0, PIOS_COM_OPENLOG_TX_BUF_LEN, com_driver, &port_driver_id);
+		target = &pios_com_openlog_logging_id;
 #endif /* PIOS_INCLUDE_OPENLOG */
 		break;
 
