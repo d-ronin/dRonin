@@ -89,11 +89,11 @@ static struct pios_thread *loggingTaskHandle;
 static bool module_enabled;
 static volatile LoggingSettingsData settings;
 static LoggingStatsData loggingData;
-struct pios_queue *logging_queue;
 
 // Private functions
 static void    loggingTask(void *parameters);
 static int32_t send_data(uint8_t *data, int32_t length);
+static int32_t send_data_nonblock(uint8_t *data, int32_t length);
 static uint16_t get_minimum_logging_period();
 static void unregister_object(UAVObjHandle obj);
 static void register_object(UAVObjHandle obj);
@@ -136,7 +136,7 @@ int32_t LoggingInitialize(void)
 			return -1;
 		}
 
-		const uint32_t LOG_BUF_LEN = 256;
+		const uint32_t LOG_BUF_LEN = 768;
 		uint8_t *log_tx_buffer = PIOS_malloc(LOG_BUF_LEN);
 		if (PIOS_COM_Init(&logging_com_id, &pios_streamfs_com_driver,
 					streamfs_id, NULL, 0,
@@ -144,7 +144,6 @@ int32_t LoggingInitialize(void)
 			module_enabled = false;
 			return -1;
 		}
-#include "pios_streamfs_priv.h"
 
 		destination_onboard_flash = true;
 		updateSettings();
@@ -176,7 +175,7 @@ int32_t LoggingInitialize(void)
 	}
 
 	// Initialise UAVTalk
-	uavTalkCon = UAVTalkInitialize(&send_data);
+	uavTalkCon = UAVTalkInitialize(&send_data_nonblock);
 	if (uavTalkCon == 0) {
 		module_enabled = false;
 		return -1;
@@ -197,12 +196,6 @@ int32_t LoggingStart(void)
 		return -1;
 	}
 
-	// create logging queue
-	logging_queue = PIOS_Queue_Create(LOGGING_QUEUE_SIZE, sizeof(UAVObjEvent));
-	if (!logging_queue){
-		return -1;
-	}
-
 	// Start logging task
 	loggingTaskHandle = PIOS_Thread_Create(loggingTask, "Logging", STACK_SIZE_BYTES, NULL, TASK_PRIORITY);
 
@@ -215,8 +208,6 @@ MODULE_INITCALL(LoggingInitialize, LoggingStart);
 
 static void loggingTask(void *parameters)
 {
-	UAVObjEvent ev;
-
 	bool armed = false;
 	uint32_t now = PIOS_Thread_Systime();
 
@@ -342,26 +333,14 @@ static void loggingTask(void *parameters)
 			}
 
 			// Empty the queue
-			while(PIOS_Queue_Receive(logging_queue, &ev, 0));
-
 			LoggingStatsBytesLoggedSet(&written_bytes);
 			loggingData.Operation = LOGGINGSTATS_OPERATION_LOGGING;
 			LoggingStatsSet(&loggingData);
 			break;
 		case LOGGINGSTATS_OPERATION_LOGGING:
 			{
-				// Sleep between writing
+				// Sleep between updating stats.
 				PIOS_Thread_Sleep_Until(&now, LOGGING_PERIOD_MS);
-
-				// Log the objects registred to the shared queue
-				for (int i=0; i<LOGGING_QUEUE_SIZE; i++) {
-					if (PIOS_Queue_Receive(logging_queue, &ev, 0) == true) {
-						UAVTalkSendObjectTimestamped(uavTalkCon, ev.obj, ev.instId, false, 0);
-					}
-					else {
-						break;
-					}
-				}
 
 				LoggingStatsBytesLoggedSet(&written_bytes);
 
@@ -389,7 +368,6 @@ static void loggingTask(void *parameters)
 					int32_t bytes_read = PIOS_STREAMFS_Read(logging_com_id, loggingData.FileSector, LOGGINGSTATS_FILESECTOR_NUMELEM);
 					if (bytes_read < 0) {
 						// close on error
-						printf("%d\n", bytes_read);
 						loggingData.Operation = LOGGINGSTATS_OPERATION_ERROR;
 						loggingData.FileSectorNum = 0xffff;
 						PIOS_STREAMFS_Close(logging_com_id);
@@ -456,7 +434,17 @@ static void logSettings(UAVObjHandle obj)
  */
 static int32_t send_data(uint8_t *data, int32_t length)
 {
-	if( PIOS_COM_SendBuffer(logging_com_id, data, length) < 0)
+	if (PIOS_COM_SendBuffer(logging_com_id, data, length) < 0)
+		return -1;
+
+	written_bytes += length;
+
+	return length;
+}
+
+static int32_t send_data_nonblock(uint8_t *data, int32_t length)
+{
+	if (PIOS_COM_SendBufferNonBlocking(logging_com_id, data, length) < 0)
 		return -1;
 
 	written_bytes += length;
@@ -477,7 +465,7 @@ static void obj_updated_callback(UAVObjEvent * ev, void* cb_ctx, void *uavo_data
 		return;
 	}
 
-	PIOS_Queue_Send(logging_queue, ev, 0);
+	UAVTalkSendObjectTimestamped(uavTalkCon, ev->obj, ev->instId, false, 0);
 }
 
 
