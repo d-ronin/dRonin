@@ -883,7 +883,6 @@ int32_t PIOS_STREAMFS_Close(uintptr_t fs_id)
 		goto out_exit;
 	}
 
-
 	locked = PIOS_Mutex_Lock(streamfs->mutex, PIOS_MUTEX_TIMEOUT_MAX);
 
 	if (!locked) {

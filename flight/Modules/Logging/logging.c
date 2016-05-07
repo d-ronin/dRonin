@@ -106,6 +106,14 @@ static uintptr_t logging_com_id;
 static uint32_t written_bytes;
 static bool destination_onboard_flash;
 
+#ifdef PIOS_HAVE_LOGFLASH
+static const struct streamfs_cfg streamfs_settings = {
+	.fs_magic      = 0x89abceef,
+	.arena_size    = PIOS_LOGFLASH_SECT_SIZE,
+	.write_size    = 0x00000100, /* 256 bytes */
+};
+#endif
+
 /**
  * Initialise the Logging module
  * \return -1 if initialisation failed
@@ -123,12 +131,6 @@ int32_t LoggingInitialize(void)
 #ifdef PIOS_HAVE_LOGFLASH
 	if (!logging_com_id) {
 		uintptr_t streamfs_id;
-
-		const struct streamfs_cfg streamfs_settings = {
-			.fs_magic      = 0x89abceef,
-			.arena_size    = PIOS_LOGFLASH_SECT_SIZE,
-			.write_size    = 0x00000100, /* 256 bytes */
-		};
 
 		if (PIOS_STREAMFS_Init(&streamfs_id, &streamfs_settings, FLASH_PARTITION_LABEL_LOG) != 0) {
 			module_enabled = false;
@@ -294,6 +296,7 @@ static void loggingTask(void *parameters)
 					PIOS_STREAMFS_Close(logging_com_id);
 					read_open = false;
 				}
+
 				// Open the file if it is not open for writing
 				if (!write_open) {
 					if (PIOS_STREAMFS_OpenWrite(logging_com_id) != 0) {
