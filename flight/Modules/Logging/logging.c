@@ -78,8 +78,7 @@
 #define TASK_PRIORITY PIOS_THREAD_PRIO_LOW
 const char DIGITS[16] = "0123456789abcdef";
 
-#define LOGGING_PERIOD_MS 10
-#define LOGGING_QUEUE_SIZE 64
+#define LOGGING_PERIOD_MS 100
 
 // Private types
 
@@ -328,6 +327,7 @@ static void loggingTask(void *parameters)
 					register_default_profile();
 					break;
 				case LOGGINGSETTINGS_PROFILE_CUSTOM:
+				case LOGGINGSETTINGS_PROFILE_FULLBORE:
 					UAVObjIterate(&register_object);
 					break;
 			}
@@ -514,34 +514,43 @@ static void unregister_object(UAVObjHandle obj) {
 	UAVObjDisconnectCallback(obj, obj_updated_callback, NULL);
 }
 
-
 /**
  * Register a new object: connect the update callback
  * \param[in] obj Object to connect
  */
 static void register_object(UAVObjHandle obj)
 {
-	// check whether we want to log this object
-	UAVObjMetadata meta_data;
-	if (UAVObjGetMetadata(obj, &meta_data) < 0){
-		return;
+	uint16_t period;
+
+	if (settings.Profile == LOGGINGSETTINGS_PROFILE_FULLBORE) {
+		if (UAVObjIsSettings(obj)) {
+			return;
+		}
+
+		period = 1;
+	} else {
+		UAVObjMetadata meta_data;
+		if (UAVObjGetMetadata(obj, &meta_data) < 0){
+			return;
+		}
+
+		if (meta_data.loggingUpdatePeriod == 0){
+			return;
+		}
+
+		period = meta_data.loggingUpdatePeriod;
 	}
 
-	if (meta_data.loggingUpdatePeriod == 0){
-		return;
-	}
+	period = MAX(period, get_minimum_logging_period());
 
-	uint16_t period = MAX(meta_data.loggingUpdatePeriod, get_minimum_logging_period());
 	if (period == 1) {
 		// log every update
 		UAVObjConnectCallback(obj, obj_updated_callback, NULL, EV_UPDATED | EV_UNPACKED);
-	}
-	else {
+	} else {
 		// log updates throttled
 		UAVObjConnectCallbackThrottled(obj, obj_updated_callback, NULL, EV_UPDATED | EV_UNPACKED, period);
 	}
 }
-
 
 /**
  * Register objects for the default logging profile
@@ -680,7 +689,7 @@ static void updateSettings()
 			PIOS_COM_ChangeBaud(logging_com_id, 250000);
 			break;
 		/* Serial @ 42MHz 16OS can precisely hit 2mbps, 1.5mbps;
-		 * Serial @ 45MHz 16OS can precisely hit 1.5mbps
+		 * Serial @ 45MHz 16OS can precisely hit 1.5mbps (2mbps off by 2%)
 		 * Serial @ 48MHz 16OS can precisely hit 2mbps, 1.5mbps
 		 */
 		case MODULESETTINGS_OPENLOGSPEED_1500000:
@@ -690,14 +699,14 @@ static void updateSettings()
 			PIOS_COM_ChangeBaud(logging_com_id, 2000000);
 			break;
 		/* This is the weird one.
-		 * Serial @ 42MHz will pick 2333333 - 0.4% from openlager
-		 * Serial @ 45MHz will pick 2368421 - 1.2% away
-		 * Serial @ 48MHz (OpenLager) will pick 2341463
+		 * Serial @ 42MHz will pick 2470588 - 0.4% from openlager
+		 * Serial @ 45MHz will pick 2500000 - 1.6% away
+		 * Serial @ 96MHz (OpenLager) will pick 2461538
 		 * Tolerance is supposed to be 3.3%-ish, but this is a
 		 * high-noise environment and a fast signal, so..
 		 */
-		case MODULESETTINGS_OPENLOGSPEED_2333333:
-			PIOS_COM_ChangeBaud(logging_com_id, 2333333);
+		case MODULESETTINGS_OPENLOGSPEED_2470000:
+			PIOS_COM_ChangeBaud(logging_com_id, 2470000);
 			break;
 		}
 	}
