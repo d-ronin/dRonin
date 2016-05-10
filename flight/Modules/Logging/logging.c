@@ -106,7 +106,7 @@ static uintptr_t logging_com_id;
 static uint32_t written_bytes;
 static bool destination_onboard_flash;
 
-#ifdef PIOS_HAVE_LOGFLASH
+#ifdef PIOS_INCLUDE_LOG_TO_FLASH
 static const struct streamfs_cfg streamfs_settings = {
 	.fs_magic      = 0x89abceef,
 	.arena_size    = PIOS_LOGFLASH_SECT_SIZE,
@@ -128,7 +128,7 @@ int32_t LoggingInitialize(void)
 	}
 #endif
 
-#ifdef PIOS_HAVE_LOGFLASH
+#ifdef PIOS_INCLUDE_LOG_TO_FLASH
 	if (!logging_com_id) {
 		uintptr_t streamfs_id;
 
@@ -212,7 +212,7 @@ static void loggingTask(void *parameters)
 	bool armed = false;
 	uint32_t now = PIOS_Thread_Systime();
 
-#ifdef PIOS_HAVE_LOGFLASH
+#ifdef PIOS_INCLUDE_LOG_TO_FLASH
 	bool write_open = false;
 	bool read_open = false;
 	int32_t read_sector = 0;
@@ -225,7 +225,7 @@ static void loggingTask(void *parameters)
 	LoggingStatsGet(&loggingData);
 	loggingData.BytesLogged = 0;
 	
-#ifdef PIOS_HAVE_LOGFLASH
+#ifdef PIOS_INCLUDE_LOG_TO_FLASH
 	if (destination_onboard_flash) {
 		loggingData.MinFileId = PIOS_STREAMFS_MinFileId(logging_com_id);
 		loggingData.MaxFileId = PIOS_STREAMFS_MaxFileId(logging_com_id);
@@ -270,7 +270,7 @@ static void loggingTask(void *parameters)
 		switch (loggingData.Operation) {
 		case LOGGINGSTATS_OPERATION_FORMAT:
 			// Format the file system
-#ifdef PIOS_HAVE_LOGFLASH
+#ifdef PIOS_INCLUDE_LOG_TO_FLASH
 			if (destination_onboard_flash){
 				if (read_open || write_open) {
 					PIOS_STREAMFS_Close(logging_com_id);
@@ -282,14 +282,14 @@ static void loggingTask(void *parameters)
 				loggingData.MinFileId = PIOS_STREAMFS_MinFileId(logging_com_id);
 				loggingData.MaxFileId = PIOS_STREAMFS_MaxFileId(logging_com_id);
 			}
-#endif /* PIOS_HAVE_LOGFLASH */
+#endif /* PIOS_INCLUDE_LOG_TO_FLASH */
 			loggingData.Operation = LOGGINGSTATS_OPERATION_IDLE;
 			LoggingStatsSet(&loggingData);
 			break;
 		case LOGGINGSTATS_OPERATION_INITIALIZING:
 			// Unregister all objects
 			UAVObjIterate(&unregister_object);
-#ifdef PIOS_HAVE_LOGFLASH
+#ifdef PIOS_INCLUDE_LOG_TO_FLASH
 			if (destination_onboard_flash){
 				// Close the file if it is open for reading
 				if (read_open) {
@@ -314,7 +314,7 @@ static void loggingTask(void *parameters)
 				read_open = false;
 				write_open = true;
 			}
-#endif /* PIOS_HAVE_LOGFLASH */
+#endif /* PIOS_INCLUDE_LOG_TO_FLASH */
 
 			// Write information at start of the log file
 			writeHeader();
@@ -351,7 +351,7 @@ static void loggingTask(void *parameters)
 			}
 			break;
 		case LOGGINGSTATS_OPERATION_DOWNLOAD:
-#ifdef PIOS_HAVE_LOGFLASH
+#ifdef PIOS_INCLUDE_LOG_TO_FLASH
 			if (destination_onboard_flash) {
 				if (!read_open) {
 					// Start reading
@@ -395,13 +395,13 @@ static void loggingTask(void *parameters)
 				memcpy(read_data, loggingData.FileSector, LOGGINGSTATS_FILESECTOR_NUMELEM);
 				read_sector = loggingData.FileSectorNum;
 			}
-#endif /* PIOS_HAVE_LOGFLASH */
+#endif /* PIOS_INCLUDE_LOG_TO_FLASH */
 
 			// fall-through to default case
 		default:
 			//  Makes sure that we are not hogging the processor
 			PIOS_Thread_Sleep(10);
-#ifdef PIOS_HAVE_LOGFLASH
+#ifdef PIOS_INCLUDE_LOG_TO_FLASH
 			if (destination_onboard_flash) {
 				// Close the file if necessary
 				if (write_open) {
@@ -412,7 +412,7 @@ static void loggingTask(void *parameters)
 					write_open = false;
 				}
 			}
-#endif /* PIOS_HAVE_LOGFLASH */
+#endif /* PIOS_INCLUDE_LOG_TO_FLASH */
 		}
 	}
 }
