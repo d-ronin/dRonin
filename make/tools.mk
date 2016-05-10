@@ -25,12 +25,14 @@ endif
 QT_VERSION := 5.6.0
 QT_SDK_DIR := $(TOOLS_DIR)/Qt$(QT_VERSION)
 
-# On any platform except windows
-ifndef WINDOWS
-  # Check for a current QT SDK dir, abort without
-  ifeq ($(wildcard $(QT_SDK_DIR)/*),)
-    ifeq (,$(findstring _install,$(MAKECMDGOALS)))
-      $(error "QT SDK not found, please run `make qt_sdk_install`")
+ifndef IGNORE_MISSING_TOOLCHAIN
+  # On any platform except windows
+  ifndef WINDOWS
+    # Check for a current QT SDK dir, abort without
+    ifeq ($(wildcard $(QT_SDK_DIR)/*),)
+      ifeq (,$(findstring _install,$(MAKECMDGOALS)))
+        $(error "QT SDK not found, please run `make qt_sdk_install`")
+      endif
     endif
   endif
 endif
@@ -524,8 +526,10 @@ endif
 ifeq ($(shell [ -d "$(ARM_SDK_DIR)" ] && echo "exists"), exists)
   ARM_SDK_PREFIX := $(ARM_SDK_DIR)/bin/arm-none-eabi-
 else
-  ifeq (,$(findstring _install,$(MAKECMDGOALS)))
-    $(error **WARNING** ARM-SDK not in $(ARM_SDK_DIR)  Please run 'make arm_sdk_install')
+  ifndef IGNORE_MISSING_TOOLCHAIN
+    ifeq (,$(findstring _install,$(MAKECMDGOALS)))
+      $(error **WARNING** ARM-SDK not in $(ARM_SDK_DIR)  Please run 'make arm_sdk_install')
+    endif
   endif
   # not installed, hope it's in the path...
   ARM_SDK_PREFIX ?= arm-none-eabi-
