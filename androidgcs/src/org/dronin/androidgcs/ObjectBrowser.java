@@ -1,6 +1,7 @@
 /**
  ******************************************************************************
  * @file       ObjectBrowser.java
+ * @author     dRonin, http://dRonin.org/, Copyright (C) 2016
  * @author     Tau Labs, http://taulabs.org, Copyright (C) 2012-2013
  * @brief      A simple object browser for UAVOs that allows viewing, editing,
  *             loading and saving.
@@ -20,10 +21,16 @@
  * You should have received a copy of the GNU General Public License along
  * with this program; if not, write to the Free Software Foundation, Inc.,
  * 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
+ *
+ * Additional note on redistribution: The copyright and license notices above
+ * must be maintained in each individual source file that is a derivative work
+ * of this source file; otherwise redistribution is prohibited.
  */
 package org.dronin.androidgcs;
 
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 import java.util.ListIterator;
 
@@ -210,6 +217,24 @@ public class ObjectBrowser extends ObjectManagerActivity
 			else if (includeData && !objects.get(0).isSettings())
 				allObjects.addAll(objects);
 		}
+
+		Collections.sort(allObjects, new Comparator<UAVDataObject>() {
+			@Override
+			public int compare(UAVDataObject obj1, UAVDataObject obj2)
+			{
+				if (obj1.isSettings() && (!obj2.isSettings())) {
+					// Put settings before data.
+					return -1;
+				}
+
+				if (obj2.isSettings() && (!obj1.isSettings())) {
+					return 1;
+				}
+
+				// Otherwise sort by name
+				return obj1.getName().compareTo(obj2.getName());
+			}
+		});
 
 		ListView objects = (ListView) findViewById(R.id.object_list);
 		adapter = new ArrayAdapter<UAVDataObject>(this, R.layout.object_browser_item, allObjects);
