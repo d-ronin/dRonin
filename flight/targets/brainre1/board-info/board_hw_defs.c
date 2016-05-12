@@ -109,7 +109,7 @@ const struct streamfs_cfg streamfs_settings = {
 #include "pios_flash_jedec_priv.h"
 
 static const struct pios_flash_jedec_cfg flash_s25fl127_cfg = {
-	.expect_manufacturer = JEDEC_MANUFACTURER_SPANISON,
+	.expect_manufacturer = JEDEC_MANUFACTURER_SPANSION,
 	.expect_memorytype   = 0x20,
 	.expect_capacity     = 0x18,
 	.sector_erase        = 0xd8,
