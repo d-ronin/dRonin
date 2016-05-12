@@ -916,32 +916,17 @@ void main_menu(void)
 #if defined(USE_STM32F4xx_BRAINFPVRE1)
 #include "hwbrainre1.h"
 
-enum named_colors {
-	LED_COLOR_OFF,
-	LED_COLOR_WHITE,
-	LED_COLOR_RED,
-	LED_COLOR_YELLOW,
-	LED_COLOR_GREEN,
-	LED_COLOR_AQUA,
-	LED_COLOR_BLUE,
-	LED_COLOR_PURPLE,
-	LED_COLOR_CUSTOM,
-	LED_COLOR_NUM_COLORS,
-};
-
-const uint8_t named_color_value[][3] = {
-	{0,   0,   0},
-	{255, 255, 255},
-	{255, 0,   0},
-	{255, 255, 0},
-	{0,   255, 0},
-	{0,   255, 255},
-	{0,   0,   255},
-	{255, 0,   255},
-};
-
-const char * named_color_names[] = {
-	"OFF", "WHITE", "RED", "YELLOW", "GREEN", "AQUA", "BLUE", "PURPLE", "CUSTOM"
+const char * led_color_names[HWBRAINRE1_LEDCOLOR_GLOBAL_MAXOPTVAL + 1] = {
+	[HWBRAINRE1_LEDCOLOR_OFF]    = "OFF",
+	[HWBRAINRE1_LEDCOLOR_CUSTOM] = "Custom",
+	[HWBRAINRE1_LEDCOLOR_WHITE]  = "White",
+	[HWBRAINRE1_LEDCOLOR_RED]    = "Red",
+	[HWBRAINRE1_LEDCOLOR_ORANGE] = "Orange",
+	[HWBRAINRE1_LEDCOLOR_YELLOW] = "Yellow",
+	[HWBRAINRE1_LEDCOLOR_GREEN]  = "Green",
+	[HWBRAINRE1_LEDCOLOR_AQUA]   = "Aqua",
+	[HWBRAINRE1_LEDCOLOR_BLUE]   = "Blue",
+	[HWBRAINRE1_LEDCOLOR_PURPLE] = "Purple",
 };
 
 const char * ir_protocol_names[HWBRAINRE1_IRPROTOCOL_MAXOPTVAL + 1] = {
@@ -950,25 +935,6 @@ const char * ir_protocol_names[HWBRAINRE1_IRPROTOCOL_MAXOPTVAL + 1] = {
 	[HWBRAINRE1_IRPROTOCOL_TRACKMATE] = "Trackmate"
 };
 
-
-enum named_colors get_current_led_color(HwBrainRE1Data *data)
-{
-	bool match;
-	for (int i=LED_COLOR_OFF; i<LED_COLOR_CUSTOM; i++) {
-		match = true;
-		for (int j=0; j<3; j++) {
-			if (data->LEDColor[j] != named_color_value[i][j]) {
-				match = false;
-				break;
-			}
-		}
-		if (match) {
-			return i;
-		}
-	}
-	return LED_COLOR_CUSTOM;
-}
-
 #define MAX_ID_ILAP 9999999
 #define MAX_ID_TRACKMATE 9999
 
@@ -976,13 +942,10 @@ void brainre1_menu(void)
 {
 	HwBrainRE1Data data;
 	int y_pos = MENU_LINE_Y;
-	enum named_colors led_color;
 	char tmp_str[100] = {0};
 	bool data_changed = false;
 
 	HwBrainRE1Get(&data);
-
-	led_color = get_current_led_color(&data);
 
 	draw_menu_title("BrainFPV RE1 Settings");
 
@@ -992,19 +955,19 @@ void brainre1_menu(void)
 		}
 		switch (s) {
 			case FSM_STATE_RE1_LED_COLOR:
-				sprintf(tmp_str, "LED Color: %s", named_color_names[led_color]);
+				sprintf(tmp_str, "LED Color: %s", led_color_names[data.LEDColor]);
 				write_string(tmp_str, MENU_LINE_X, y_pos, 0, 0, TEXT_VA_TOP, TEXT_HA_LEFT, 0, MENU_FONT);
 				break;
 			case FSM_STATE_RE1_LED_COLOR_R:
-				sprintf(tmp_str, "LED Color Custom R: %d", (int)data.LEDColor[0]);
+				sprintf(tmp_str, "Custom LED Color R: %d", (int)data.CustomLEDColor[0]);
 				write_string(tmp_str, MENU_LINE_X, y_pos, 0, 0, TEXT_VA_TOP, TEXT_HA_LEFT, 0, MENU_FONT);
 				break;
 			case FSM_STATE_RE1_LED_COLOR_G:
-				sprintf(tmp_str, "LED Color Custom G: %d", (int)data.LEDColor[1]);
+				sprintf(tmp_str, "Custom LED Color G: %d", (int)data.CustomLEDColor[1]);
 				write_string(tmp_str, MENU_LINE_X, y_pos, 0, 0, TEXT_VA_TOP, TEXT_HA_LEFT, 0, MENU_FONT);
 				break;
 			case FSM_STATE_RE1_LED_COLOR_B:
-				sprintf(tmp_str, "LED Color Custom B: %d", (int)data.LEDColor[2]);
+				sprintf(tmp_str, "Custom LED Color B: %d", (int)data.CustomLEDColor[2]);
 				write_string(tmp_str, MENU_LINE_X, y_pos, 0, 0, TEXT_VA_TOP, TEXT_HA_LEFT, 0, MENU_FONT);
 				break;
 			case FSM_STATE_RE1_IR_PROTOCOL:
@@ -1034,23 +997,14 @@ void brainre1_menu(void)
 	switch (current_state) {
 		case FSM_STATE_RE1_LED_COLOR:
 			if (current_event == FSM_EVENT_RIGHT) {
-				if (led_color >= LED_COLOR_PURPLE)
-					led_color = LED_COLOR_OFF;
-				else
-					led_color = led_color + 1;
-				data.LEDColor[0] = named_color_value[led_color][0];
-				data.LEDColor[1] = named_color_value[led_color][1];
-				data.LEDColor[2] = named_color_value[led_color][2];
+				data.LEDColor = (data.LEDColor + 1) % (HWBRAINRE1_LEDCOLOR_GLOBAL_MAXOPTVAL + 1);
 				data_changed = true;
 			}
 			if (current_event == FSM_EVENT_LEFT) {
-				if (led_color == LED_COLOR_OFF)
-					led_color = LED_COLOR_PURPLE;
+				if (data.LEDColor == HWBRAINRE1_LEDCOLOR_OFF)
+					data.LEDColor = HWBRAINRE1_LEDCOLOR_GLOBAL_MAXOPTVAL;
 				else
-					led_color = led_color - 1;
-				data.LEDColor[0] = named_color_value[led_color][0];
-				data.LEDColor[1] = named_color_value[led_color][1];
-				data.LEDColor[2] = named_color_value[led_color][2];
+					data.LEDColor = data.LEDColor - 1;
 				data_changed = true;
 			}
 			break;
@@ -1060,11 +1014,11 @@ void brainre1_menu(void)
 			{
 				int idx = current_state - FSM_STATE_RE1_LED_COLOR_R;
 				if (current_event == FSM_EVENT_RIGHT) {
-					data.LEDColor[idx] += 1;
+					data.CustomLEDColor[idx] += 1;
 					data_changed = true;
 				}
 				if (current_event == FSM_EVENT_LEFT) {
-					data.LEDColor[idx] -= 1;
+					data.CustomLEDColor[idx] -= 1;
 					data_changed = true;
 				}
 			}

@@ -12,16 +12,19 @@ HEADERS += \
     brainfpvplugin.h \
     brain.h \
     brainconfiguration.h \
-    brainre1.h
+    brainre1.h \
+    brainre1configuration.h
 
 SOURCES += \
     brainfpvplugin.cpp \
     brain.cpp \
     brainconfiguration.cpp \
-    brainre1.cpp
+    brainre1.cpp \
+    brainre1configuration.cpp
 
 RESOURCES += \
     brainfpv.qrc
 
 FORMS += \
-    brainconfiguration.ui
+    brainconfiguration.ui \
+    brainre1configuration.ui

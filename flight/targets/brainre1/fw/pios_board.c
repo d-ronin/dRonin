@@ -112,6 +112,21 @@ uintptr_t pios_uavo_settings_fs_id;
 uintptr_t pios_waypoints_settings_fs_id;
 uintptr_t streamfs_id;
 
+
+const uint8_t named_color_value[HWBRAINRE1_LEDCOLOR_GLOBAL_MAXOPTVAL + 1][3] = {
+	[HWBRAINRE1_LEDCOLOR_OFF]    = {0,   0,   0},
+	[HWBRAINRE1_LEDCOLOR_CUSTOM] = {0,   0,   0},
+	[HWBRAINRE1_LEDCOLOR_WHITE]  = {255, 255, 255},
+	[HWBRAINRE1_LEDCOLOR_RED]    = {255, 0,   0},
+	[HWBRAINRE1_LEDCOLOR_ORANGE] = {255, 69,   0},
+	[HWBRAINRE1_LEDCOLOR_YELLOW] = {255, 255, 0},
+	[HWBRAINRE1_LEDCOLOR_GREEN]  = {0,   255, 0},
+	[HWBRAINRE1_LEDCOLOR_AQUA]   = {0,   255, 255},
+	[HWBRAINRE1_LEDCOLOR_BLUE]   = {0,   0,   255},
+	[HWBRAINRE1_LEDCOLOR_PURPLE] = {255, 0,   255},
+};
+
+
 /**
  * settingdUpdatedCb()
  * Called when RE1 hardware settings are updated
@@ -124,7 +139,21 @@ static void settingdUpdatedCb(UAVObjEvent * ev, void *ctx, void *obj, int len)
 
 	/* Set the colors of the RGB LEDs */
 	if (hwre1data->NumberOfLEDs > 0) {
-		PIOS_RE1FPGA_SetLEDColor(hwre1data->NumberOfLEDs, hwre1data->LEDColor[0], hwre1data->LEDColor[1], hwre1data->LEDColor[2]);
+		uint8_t led_color[3];
+		memset(led_color, 0, 3);
+		switch (hwre1data->LEDColor) {
+			case HWBRAINRE1_LEDCOLOR_CUSTOM:
+				led_color[0] = hwre1data->CustomLEDColor[0];
+				led_color[1] = hwre1data->CustomLEDColor[1];
+				led_color[2] = hwre1data->CustomLEDColor[2];
+				break;
+			default:
+				led_color[0] = named_color_value[hwre1data->LEDColor][0];
+				led_color[1] = named_color_value[hwre1data->LEDColor][1];
+				led_color[2] = named_color_value[hwre1data->LEDColor][2];
+		}
+		PIOS_RE1FPGA_SetLEDColor(hwre1data->NumberOfLEDs, led_color[0],
+			led_color[1], led_color[2]);
 	}
 
 	/* Configure the IR emitter for lap timing */
