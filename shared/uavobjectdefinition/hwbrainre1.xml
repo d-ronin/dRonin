@@ -55,11 +55,23 @@
 
 	<field name="USB_HIDPort" units="function" type="enum" elements="1" parent="HwShared.USB_HIDPort" defaultvalue="USBTelemetry"/>
 	<field name="USB_VCPPort" units="function" type="enum" elements="1" parent="HwShared.USB_VCPPort" defaultvalue="Disabled"/>
-
-	<field name="DSMxBind" units=""  type="uint8"  elements="1" defaultvalue="0"/>
 	
 	<field name="NumberOfLEDs" units="" type="uint16" elements="1" defaultvalue="0" limits="%BE:0:1024"/>
-	<field name="LEDColor" units="" type="uint8" elements="3" defaultvalue="255,0,0"/>
+	<field name="CustomLEDColor" units="" type="uint8" elements="3" defaultvalue="255,0,0"/>
+	<field name="LEDColor" units="function" type="enum" elements="1" defaultvalue="Red">
+		<options>
+			<option>Off</option>
+			<option>Custom</option>
+			<option>White</option>
+			<option>Red</option>
+			<option>Orange</option>
+			<option>Yellow</option>
+			<option>Green</option>
+			<option>Aqua</option>
+			<option>Blue</option>
+			<option>Purple</option>
+		</options>
+	</field>
 
 	<field name="IRProtocol" units="function" type="enum" elements="1" defaultvalue="Disabled">
 		<options>
@@ -71,7 +83,7 @@
 
 	<field name="IRIDTrackmate" units="" type="uint16" elements="1" defaultvalue="0" limits="%BE:0:9999"/>
 	<field name="IRIDILap" units="" type="uint32" elements="1" defaultvalue="0" limits="%BE:0:9999999"/>
-	<field name="FailsafeBuzzer" units="function" type="enum" elements="1" options="Disabled,Enabled" defaultvalue="Disabled"/>
+	<field name="FailsafeBuzzer" units="" type="enum" elements="1" options="Disabled,Enabled" defaultvalue="Disabled"/>
 
 	<field name="HWRevision" units="" type="uint8" elements="1" defaultvalue="0"/>
 

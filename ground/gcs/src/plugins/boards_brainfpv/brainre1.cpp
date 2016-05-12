@@ -31,7 +31,7 @@
 #include "uavobjectutil/uavobjectutilmanager.h"
 #include <extensionsystem/pluginmanager.h>
 
-#include "brainconfiguration.h"
+#include "brainre1configuration.h"
 #include "hwbrainre1.h"
 
 /**
@@ -102,7 +102,7 @@ QStringList BrainRE1::getSupportedProtocols()
 
 QPixmap BrainRE1::getBoardPicture()
 {
-    return QPixmap(":/brainfpv/images/brain.png");
+	return QPixmap(":/brainfpv/images/brainre1.png");
 }
 
 //! Determine if this board supports configuring the receiver
@@ -211,8 +211,9 @@ QStringList BrainRE1::getAdcNames()
 {
     return QStringList() << "V" << "I" << "R";
 }
-//QWidget * Brain::getBoardConfiguration(QWidget *parent, bool connected)
-//{
-//    Q_UNUSED(connected);
-//    return new BrainConfiguration(parent);
-//}
+
+QWidget * BrainRE1::getBoardConfiguration(QWidget *parent, bool connected)
+{
+	Q_UNUSED(connected);
+	return new BrainRE1Configuration(parent);
+}
