@@ -404,15 +404,15 @@ static void AutotuneTask(void *parameters)
 					//This will work up to 8kHz with an 89% throttle position before overflow
 					throttle_accumulator += 10000 * pt->throttle;
 
+					/* Free the buffer containing an AT point */
+					circ_queue_read_completed(at_queue);
+
 					// Update uavo every 256 cycles to avoid
 					// telemetry spam
 					if (!((update_counter++) & 0xff)) {
 						float hover_throttle = ((float)(throttle_accumulator/update_counter))/10000.0f;
 						UpdateSystemIdent(X, noise, dT_s, update_counter, at_points_spilled, hover_throttle);
 					}
-
-					/* Free the buffer containing an AT point */
-					circ_queue_read_completed(at_queue);
 				}
 
 				if (diff_time > MEASURE_TIME) { // Move on to next state
