@@ -14,6 +14,7 @@
 				<option>GCS</option>
 				<option>HoTT SUM</option>
 				<option>SRXL</option>
+				<option>IBus</option>
 				<option>None</option>
 			</options>
 			<description>Last active channel group, where active implies that a channel value changed</description>

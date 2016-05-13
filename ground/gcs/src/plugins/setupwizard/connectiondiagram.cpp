@@ -133,6 +133,8 @@ void ConnectionDiagram::setupGraphicsScene()
         case Core::IBoardType::INPUT_TYPE_HOTTSUMH:
             elementsToShow << "hott";
             break;
+        case Core::IBoardType::INPUT_TYPE_IBUS:
+            elementsToShow << "ibus";
         default:
             break;
         }

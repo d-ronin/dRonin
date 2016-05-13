@@ -189,6 +189,10 @@
 #endif
 #endif
 
+#if defined(PIOS_INCLUDE_IBUS)
+#include <pios_ibus.h>
+#endif
+
 #include <pios_modules.h>
 
 #include <pios_crc.h>
