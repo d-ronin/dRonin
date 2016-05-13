@@ -211,13 +211,9 @@ void PIOS_Board_Init(void)
 			if (PIOS_USART_Init(&pios_usart2_id, &pios_usart_bluetooth_cfg, &pios_usart_bluetooth_params)) {
 				PIOS_Assert(0);
 			}
-			uint8_t *rx_buffer = (uint8_t *)PIOS_malloc(PIOS_COM_TELEM_RX_BUF_LEN);
-			uint8_t *tx_buffer = (uint8_t *)PIOS_malloc(PIOS_COM_TELEM_TX_BUF_LEN);
-			PIOS_Assert(rx_buffer);
-			PIOS_Assert(tx_buffer);
 			if (PIOS_COM_Init(&pios_com_telem_uart_bluetooth_id, &pios_usart_com_driver, pios_usart2_id,
-					rx_buffer, PIOS_COM_TELEM_RX_BUF_LEN,
-					tx_buffer, PIOS_COM_TELEM_TX_BUF_LEN)) {
+					PIOS_COM_TELEM_RX_BUF_LEN,
+					PIOS_COM_TELEM_TX_BUF_LEN)) {
 				PIOS_Assert(0);
 			}
 		}
@@ -230,13 +226,9 @@ void PIOS_Board_Init(void)
 			if (PIOS_USART_Init(&pios_usart2_id, &pios_usart_bluetooth_cfg, &pios_usart_bluetooth_params)) {
 				PIOS_Assert(0);
 			}
-			uint8_t *rx_buffer = (uint8_t *)PIOS_malloc(PIOS_COM_TELEM_RX_BUF_LEN);
-			uint8_t *tx_buffer = (uint8_t *)PIOS_malloc(PIOS_COM_TELEM_TX_BUF_LEN);
-			PIOS_Assert(rx_buffer);
-			PIOS_Assert(tx_buffer);
 			if (PIOS_COM_Init(&pios_com_telem_uart_bluetooth_id, &pios_usart_com_driver, pios_usart2_id,
-					rx_buffer, PIOS_COM_TELEM_RX_BUF_LEN,
-					tx_buffer, PIOS_COM_TELEM_TX_BUF_LEN)) {
+					PIOS_COM_TELEM_RX_BUF_LEN,
+					PIOS_COM_TELEM_TX_BUF_LEN)) {
 				PIOS_Assert(0);
 			}
 

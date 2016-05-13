@@ -172,13 +172,9 @@ void PIOS_Board_Init(void) {
 			PIOS_Assert(0);
 		}
 
-		uint8_t * rx_buffer = (uint8_t *) PIOS_malloc(PIOS_COM_TELEM_RF_RX_BUF_LEN);
-		uint8_t * tx_buffer = (uint8_t *) PIOS_malloc(PIOS_COM_TELEM_RF_TX_BUF_LEN);
-		PIOS_Assert(rx_buffer);
-		PIOS_Assert(tx_buffer);
 		if (PIOS_COM_Init(&pios_com_telem_rf_id, &pios_tcp_com_driver, pios_tcp_telem_rf_id,
-						  rx_buffer, PIOS_COM_TELEM_RF_RX_BUF_LEN,
-						  tx_buffer, PIOS_COM_TELEM_RF_TX_BUF_LEN)) {
+				PIOS_COM_TELEM_RF_RX_BUF_LEN,
+				PIOS_COM_TELEM_RF_TX_BUF_LEN)) {
 			PIOS_Assert(0);
 		}
 	}
@@ -190,14 +186,9 @@ void PIOS_Board_Init(void) {
 		if (PIOS_UDP_Init(&pios_udp_telem_rf_id, &pios_udp_telem_cfg)) {
 			PIOS_Assert(0);
 		}
-		
-		uint8_t * rx_buffer = (uint8_t *) PIOS_malloc(PIOS_COM_TELEM_RF_RX_BUF_LEN);
-		uint8_t * tx_buffer = (uint8_t *) PIOS_malloc(PIOS_COM_TELEM_RF_TX_BUF_LEN);
-		PIOS_Assert(rx_buffer);
-		PIOS_Assert(tx_buffer);
 		if (PIOS_COM_Init(&pios_com_telem_rf_id, &pios_udp_com_driver, pios_udp_telem_rf_id,
-						  rx_buffer, PIOS_COM_TELEM_RF_RX_BUF_LEN,
-						  tx_buffer, PIOS_COM_TELEM_RF_TX_BUF_LEN)) {
+				PIOS_COM_TELEM_RF_RX_BUF_LEN,
+				PIOS_COM_TELEM_RF_TX_BUF_LEN)) {
 			PIOS_Assert(0);
 		}
 	}
@@ -210,10 +201,9 @@ void PIOS_Board_Init(void) {
 		if (PIOS_TCP_Init(&pios_tcp_gps_id, &pios_tcp_gps_cfg)) {
 			PIOS_Assert(0);
 		}
-		uint8_t * rx_buffer = (uint8_t *) PIOS_malloc(PIOS_COM_GPS_RX_BUF_LEN);
-		PIOS_Assert(rx_buffer);
+
 		if (PIOS_COM_Init(&pios_com_gps_id, &pios_tcp_com_driver, pios_tcp_gps_id,
-				  rx_buffer, PIOS_COM_GPS_RX_BUF_LEN,
+				  PIOS_COM_GPS_RX_BUF_LEN,
 				  NULL, 0)) {
 			PIOS_Assert(0);
 		}

@@ -100,13 +100,17 @@ static void PIOS_COM_UnblockTx(struct pios_com_dev *com_dev, bool * need_yield);
   * \param[in] id
   * \return < 0 if initialisation failed
   */
-int32_t PIOS_COM_Init(uintptr_t * com_id, const struct pios_com_driver * driver, uintptr_t lower_id, uint8_t * rx_buffer, uint16_t rx_buffer_len, uint8_t * tx_buffer, uint16_t tx_buffer_len)
+int32_t PIOS_COM_Init(uintptr_t * com_id, const struct pios_com_driver * driver, uintptr_t lower_id, uint16_t rx_buffer_len, uint16_t tx_buffer_len)
 {
 	PIOS_Assert(com_id);
 	PIOS_Assert(driver);
 
-	bool has_rx = (rx_buffer && rx_buffer_len > 0);
-	bool has_tx = (tx_buffer && tx_buffer_len > 0);
+	uint8_t *rx_buffer, *tx_buffer;
+
+
+	bool has_rx = false;
+	bool has_tx = false;
+
 	PIOS_Assert(has_rx || has_tx);
 	PIOS_Assert(driver->bind_tx_cb || !has_tx);
 	PIOS_Assert(driver->bind_rx_cb || !has_rx);
@@ -115,6 +119,19 @@ int32_t PIOS_COM_Init(uintptr_t * com_id, const struct pios_com_driver * driver,
 
 	com_dev = (struct pios_com_dev *) PIOS_COM_alloc();
 	if (!com_dev) goto out_fail;
+
+	if (rx_buffer_len) {
+		has_rx = true;
+		rx_buffer = PIOS_malloc(rx_buffer_len);
+		if (!rx_buffer) goto out_fail;
+	}
+
+
+	if (tx_buffer_len) {
+		has_tx = true;
+		tx_buffer = PIOS_malloc(tx_buffer_len);
+		if (!tx_buffer) goto out_fail;
+	}
 
 	com_dev->driver   = driver;
 	com_dev->lower_id = lower_id;

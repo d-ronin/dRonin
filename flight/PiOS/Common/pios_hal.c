@@ -262,7 +262,7 @@ static void PIOS_HAL_SetReceiver(int receiver_type, uintptr_t value) {
 
 #if defined(PIOS_INCLUDE_USART) && defined(PIOS_INCLUDE_COM)
 /**
- * @brief Configures USART and COM subsystems, allocates buffers.
+ * @brief Configures USART and COM subsystems.
  *
  * @param[in] usart_port_cfg USART configuration
  * @param[in] rx_buf_len receive buffer size
@@ -282,25 +282,9 @@ void PIOS_HAL_ConfigureCom(const struct pios_usart_cfg *usart_port_cfg,
 		PIOS_Assert(0);
 	}
 
-	uint8_t * rx_buffer;
-	if (rx_buf_len > 0) {
-		rx_buffer = (uint8_t *) PIOS_malloc(rx_buf_len);
-		PIOS_Assert(rx_buffer);
-	} else {
-		rx_buffer = NULL;
-	}
-
-	uint8_t * tx_buffer;
-	if (tx_buf_len > 0) {
-		tx_buffer = (uint8_t *) PIOS_malloc(tx_buf_len);
-		PIOS_Assert(tx_buffer);
-	} else {
-		tx_buffer = NULL;
-	}
 
 	if (PIOS_COM_Init(com_id, com_driver, usart_id,
-				rx_buffer, rx_buf_len,
-				tx_buffer, tx_buf_len)) {
+			rx_buf_len, tx_buf_len)) {
 		PIOS_Assert(0);
 	}
 }
@@ -724,26 +708,18 @@ void PIOS_HAL_ConfigureCDC(HwSharedUSB_VCPPortOptions port_type,
 		break;
 	case HWSHARED_USB_VCPPORT_USBTELEMETRY:
 	{
-		uint8_t * rx_buffer = (uint8_t *) PIOS_malloc(PIOS_COM_TELEM_USB_RX_BUF_LEN);
-		uint8_t * tx_buffer = (uint8_t *) PIOS_malloc(PIOS_COM_TELEM_USB_TX_BUF_LEN);
-		PIOS_Assert(rx_buffer);
-		PIOS_Assert(tx_buffer);
 		if (PIOS_COM_Init(&pios_com_telem_usb_id, &pios_usb_cdc_com_driver, pios_usb_cdc_id,
-						rx_buffer, PIOS_COM_TELEM_USB_RX_BUF_LEN,
-						tx_buffer, PIOS_COM_TELEM_USB_TX_BUF_LEN)) {
+						PIOS_COM_TELEM_USB_RX_BUF_LEN,
+						PIOS_COM_TELEM_USB_TX_BUF_LEN)) {
 			PIOS_Assert(0);
 		}
 	}
 	break;
 	case HWSHARED_USB_VCPPORT_COMBRIDGE:
 	{
-		uint8_t * rx_buffer = (uint8_t *) PIOS_malloc(PIOS_COM_BRIDGE_RX_BUF_LEN);
-		uint8_t * tx_buffer = (uint8_t *) PIOS_malloc(PIOS_COM_BRIDGE_TX_BUF_LEN);
-		PIOS_Assert(rx_buffer);
-		PIOS_Assert(tx_buffer);
 		if (PIOS_COM_Init(&pios_com_vcp_id, &pios_usb_cdc_com_driver, pios_usb_cdc_id,
-						rx_buffer, PIOS_COM_BRIDGE_RX_BUF_LEN,
-						tx_buffer, PIOS_COM_BRIDGE_TX_BUF_LEN)) {
+						PIOS_COM_BRIDGE_RX_BUF_LEN,
+						PIOS_COM_BRIDGE_TX_BUF_LEN)) {
 			PIOS_Assert(0);
 		}
 		PIOS_Modules_Enable(PIOS_MODULE_COMUSBBRIDGE);
@@ -752,11 +728,10 @@ void PIOS_HAL_ConfigureCDC(HwSharedUSB_VCPPortOptions port_type,
 	case HWSHARED_USB_VCPPORT_DEBUGCONSOLE:
 #if defined(PIOS_INCLUDE_DEBUG_CONSOLE)
 		{
-			uint8_t * tx_buffer = (uint8_t *) PIOS_malloc(PIOS_COM_DEBUGCONSOLE_TX_BUF_LEN);
-			PIOS_Assert(tx_buffer);
-			if (PIOS_COM_Init(&pios_com_debug_id, &pios_usb_cdc_com_driver, pios_usb_cdc_id,
-						NULL, 0,
-						tx_buffer, PIOS_COM_DEBUGCONSOLE_TX_BUF_LEN)) {
+			if (PIOS_COM_Init(&pios_com_debug_id,
+					&pios_usb_cdc_com_driver,
+					pios_usb_cdc_id, 0,
+					PIOS_COM_DEBUGCONSOLE_TX_BUF_LEN)) {
 				PIOS_Assert(0);
 			}
 		}
@@ -765,13 +740,11 @@ void PIOS_HAL_ConfigureCDC(HwSharedUSB_VCPPortOptions port_type,
 	case HWSHARED_USB_VCPPORT_PICOC:
 #if defined(PIOS_INCLUDE_PICOC)
 		{
-			uint8_t * rx_buffer = (uint8_t *) PIOS_malloc(PIOS_COM_PICOC_RX_BUF_LEN);
-			uint8_t * tx_buffer = (uint8_t *) PIOS_malloc(PIOS_COM_PICOC_TX_BUF_LEN);
-			PIOS_Assert(rx_buffer);
-			PIOS_Assert(tx_buffer);
-			if (PIOS_COM_Init(&pios_com_picoc_id, &pios_usb_cdc_com_driver, pios_usb_cdc_id,
-						rx_buffer, PIOS_COM_PICOC_RX_BUF_LEN,
-						tx_buffer, PIOS_COM_PICOC_TX_BUF_LEN)) {
+			if (PIOS_COM_Init(&pios_com_picoc_id,
+					&pios_usb_cdc_com_driver,
+					pios_usb_cdc_id,
+					PIOS_COM_PICOC_RX_BUF_LEN,
+					PIOS_COM_PICOC_TX_BUF_LEN)) {
 				PIOS_Assert(0);
 			}
 		}
@@ -801,13 +774,10 @@ void PIOS_HAL_ConfigureHID(HwSharedUSB_HIDPortOptions port_type,
 		break;
 	case HWSHARED_USB_HIDPORT_USBTELEMETRY:
 	{
-		uint8_t * rx_buffer = (uint8_t *) PIOS_malloc(PIOS_COM_TELEM_USB_RX_BUF_LEN);
-		uint8_t * tx_buffer = (uint8_t *) PIOS_malloc(PIOS_COM_TELEM_USB_TX_BUF_LEN);
-		PIOS_Assert(rx_buffer);
-		PIOS_Assert(tx_buffer);
-		if (PIOS_COM_Init(&pios_com_telem_usb_id, &pios_usb_hid_com_driver, pios_usb_hid_id,
-						rx_buffer, PIOS_COM_TELEM_USB_RX_BUF_LEN,
-						tx_buffer, PIOS_COM_TELEM_USB_TX_BUF_LEN)) {
+		if (PIOS_COM_Init(&pios_com_telem_usb_id,
+				&pios_usb_hid_com_driver, pios_usb_hid_id,
+				PIOS_COM_TELEM_USB_RX_BUF_LEN,
+				PIOS_COM_TELEM_USB_TX_BUF_LEN)) {
 			PIOS_Assert(0);
 		}
 	}
@@ -904,14 +874,10 @@ void PIOS_HAL_ConfigureRFM22B(HwSharedRadioPortOptions radio_type,
 		rfm22bstatus.BoardRevision = PIOS_RFM22B_ModuleVersion(pios_rfm22b_id);
 
 		/* Configure the radio com interface */
-		uint8_t *rx_buffer = (uint8_t *)PIOS_malloc(PIOS_COM_RFM22B_RF_RX_BUF_LEN);
-		uint8_t *tx_buffer = (uint8_t *)PIOS_malloc(PIOS_COM_RFM22B_RF_TX_BUF_LEN);
-
-		PIOS_Assert(rx_buffer);
-		PIOS_Assert(tx_buffer);
-		if (PIOS_COM_Init(&pios_com_rf_id, &pios_rfm22b_com_driver, pios_rfm22b_id,
-					rx_buffer, PIOS_COM_RFM22B_RF_RX_BUF_LEN,
-					tx_buffer, PIOS_COM_RFM22B_RF_TX_BUF_LEN)) {
+		if (PIOS_COM_Init(&pios_com_rf_id, &pios_rfm22b_com_driver,
+				pios_rfm22b_id,
+				PIOS_COM_RFM22B_RF_RX_BUF_LEN,
+				PIOS_COM_RFM22B_RF_TX_BUF_LEN)) {
 			PIOS_Assert(0);
 		}
 
