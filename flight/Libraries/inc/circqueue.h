@@ -1,7 +1,7 @@
 /**
  ******************************************************************************
  * @file       circqueue.h
- * @author     dRonin, http://dRonin.org/, Copyright (C) 2015
+ * @author     dRonin, http://dRonin.org/, Copyright (C) 2015-2016
  * @brief Public header for 1 reader, 1 writer circular queue
  *****************************************************************************/
 /*
@@ -18,6 +18,10 @@
  * You should have received a copy of the GNU General Public License along
  * with this program; if not, write to the Free Software Foundation, Inc.,
  * 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
+ *
+ * Additional note on redistribution: The copyright and license notices above
+ * must be maintained in each individual source file that is a derivative work
+ * of this source file; otherwise redistribution is prohibited.
  */
 
 #ifndef _CIRCQUEUE_H
@@ -30,12 +34,16 @@ typedef struct circ_queue *circ_queue_t;
 
 circ_queue_t circ_queue_new(uint16_t elem_size, uint16_t num_elem);
 
-void *circ_queue_cur_write_pos(circ_queue_t q);
+void *circ_queue_cur_write_pos(circ_queue_t q, uint16_t *avail);
+
+int circ_queue_advance_write_multi(circ_queue_t q, uint16_t amt);
 
 int circ_queue_advance_write(circ_queue_t q);
 
-void *circ_queue_read_pos(circ_queue_t q);
+void *circ_queue_read_pos(circ_queue_t q, uint16_t *avail);
 
 void circ_queue_read_completed(circ_queue_t q);
+
+void circ_queue_read_completed_multi(circ_queue_t q, uint16_t num);
 
 #endif

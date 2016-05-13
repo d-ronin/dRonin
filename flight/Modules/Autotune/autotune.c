@@ -167,7 +167,8 @@ static void at_new_gyro_data(UAVObjEvent * ev, void *ctx, void *obj, int len) {
 		}
 	}
 
-	struct at_queued_data *q_item = circ_queue_cur_write_pos(at_queue);
+	struct at_queued_data *q_item = circ_queue_cur_write_pos(at_queue,
+			NULL);
 
 	q_item->raw_time = PIOS_DELAY_GetRaw();
 
@@ -341,7 +342,7 @@ static void AutotuneTask(void *parameters)
 					last_time = PIOS_DELAY_GetRaw();
 
 					/* Drain the queue of all current data */
-					while (circ_queue_read_pos(at_queue)) {
+					while (circ_queue_read_pos(at_queue, NULL)) {
 						circ_queue_read_completed(at_queue);
 					}
 
@@ -370,7 +371,7 @@ static void AutotuneTask(void *parameters)
 					struct at_queued_data *pt;
 
 					/* Grab an autotune point */
-					pt = circ_queue_read_pos(at_queue);
+					pt = circ_queue_read_pos(at_queue, NULL);
 
 					if (!pt) {
 						/* We've drained the buffer
