@@ -1,2 +1,0 @@
-#define PIOS_INCLUDE_FLASH
-#define PIOS_INCLUDE_COM

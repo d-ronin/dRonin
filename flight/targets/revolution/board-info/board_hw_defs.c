@@ -638,13 +638,6 @@ static const struct pios_flash_partition pios_flash_partition_table[] = {
 #endif	/* PIOS_INCLUDE_FLASH_JEDEC */
 };
 
-#include "pios_streamfs_priv.h"
-const struct streamfs_cfg streamfs_settings = {
-	.fs_magic      = 0x89abceef,
-	.arena_size    = 0x00010000, /* 64 KB */
-	.write_size    = 0x00000100, /* 256 bytes */
-};
-
 const struct pios_flash_partition * PIOS_BOARD_HW_DEFS_GetPartitionTable (uint32_t board_revision, uint32_t * num_partitions)
 {
 	PIOS_Assert(num_partitions);

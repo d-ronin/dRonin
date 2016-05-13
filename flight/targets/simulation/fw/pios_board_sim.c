@@ -107,7 +107,7 @@ uintptr_t pios_com_telem_rf_id;
 uintptr_t pios_com_telem_usb_id;
 uintptr_t pios_com_gps_id;
 uintptr_t pios_com_aux_id;
-uintptr_t pios_com_spectrum_id;
+
 uintptr_t pios_rcvr_group_map[MANUALCONTROLSETTINGS_CHANNELGROUPS_NONE];
 
 /**

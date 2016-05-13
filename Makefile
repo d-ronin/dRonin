@@ -969,7 +969,7 @@ $(eval $(call SIM_TEMPLATE,simulation,Simulation,'sim ',posix,elf))
 #
 ##############################
 
-ALL_UNITTESTS := logfs misc_math coordinate_conversions error_correcting streamfs dsm timeutils circqueue
+ALL_UNITTESTS := logfs misc_math coordinate_conversions error_correcting dsm timeutils circqueue
 ALL_PYTHON_UNITTESTS := python_ut_test
 
 UT_OUT_DIR := $(BUILD_DIR)/unit_tests
@@ -979,12 +979,6 @@ $(UT_OUT_DIR):
 
 .PHONY: all_ut
 all_ut: $(addsuffix _elf, $(addprefix ut_, $(ALL_UNITTESTS))) $(ALL_PYTHON_UNITTESTS)
-
-# The all_ut_tap goal is a legacy alias for the all_ut_xml target so that Jenkins
-# can still build old branches.  This can be deleted in a few months when all
-# branches are using the newer targets.
-.PHONY: all_ut_tap
-all_ut_tap: all_ut_xml
 
 .PHONY: all_ut_xml
 all_ut_xml: $(addsuffix _xml, $(addprefix ut_, $(ALL_UNITTESTS)))

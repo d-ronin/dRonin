@@ -29,12 +29,15 @@
 
 #include <stdint.h>
 
+/* fs_id here is actually the com driver ID, to avoid having to do too
+ * much bookkeepin' */
 int32_t PIOS_STREAMFS_Format(uintptr_t fs_id);
 int32_t PIOS_STREAMFS_OpenWrite(uintptr_t fs_id);
 int32_t PIOS_STREAMFS_OpenRead(uintptr_t fs_id, uint32_t file_id);
 int32_t PIOS_STREAMFS_MinFileId(uintptr_t fs_id);
 int32_t PIOS_STREAMFS_MaxFileId(uintptr_t fs_id);
 int32_t PIOS_STREAMFS_Close(uintptr_t fs_id);
-int32_t PIOS_STREAMFS_Destroy(uintptr_t fs_id);
+int32_t PIOS_STREAMFS_Read(uintptr_t fs_id, uint8_t *data, uint32_t len);
+
 
 #endif	/* PIOS_FLASHFS_STREAMFS_H_ */

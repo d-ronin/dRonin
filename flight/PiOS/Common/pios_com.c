@@ -516,7 +516,10 @@ uint16_t PIOS_COM_ReceiveBuffer(uintptr_t com_id, uint8_t * buf, uint16_t buf_le
 	}
 	PIOS_Assert(com_dev->has_rx);
 
- check_again:
+	/* Clear any pending RX wakeup */
+	PIOS_Semaphore_Take(com_dev->rx_sem, 0);
+
+check_again:
 	bytes_from_fifo = fifoBuf_getData(&com_dev->rx, buf, buf_len);
 
 	if (bytes_from_fifo == 0) {
@@ -565,6 +568,16 @@ bool PIOS_COM_Available(uintptr_t com_id)
 		return true;
 
 	return (com_dev->driver->available)(com_dev->lower_id);
+}
+
+uintptr_t PIOS_COM_GetDriverCtx(uintptr_t com_id) {
+	struct pios_com_dev *com_dev = (struct pios_com_dev *)com_id;
+
+	if (!PIOS_COM_validate(com_dev)) {
+		return false;
+	}
+
+	return com_dev->lower_id;
 }
 
 #endif
