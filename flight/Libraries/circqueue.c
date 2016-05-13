@@ -71,32 +71,43 @@ circ_queue_t circ_queue_new(uint16_t elem_size, uint16_t num_elem) {
  * with the desired data without respect to any synchronization.
  * No promise is made that circ_queue_advance_write will succeed, though.
  *
- * Alternatively, in *avail we return the number of things that can be
+ * Alternatively, in *contig we return the number of things that can be
  * filled in.  We promise that you can circ_queue_advance_write_multi that
  * many.  You can also always write one, but no promises you'll be able to
  * advance write.
  *
  * @param[in] q Handle to circular queue.
- * @param[out] avail The num elements available for contiguous write.
+ * @param[out] contig The num elements available for contiguous write.
+ * @param[out] avail The num elements available before a reader has
+ * freed up more space.  (Includes wraparound/non-contig elems).
  * @returns The position for new data to be written to (of size elem_size).
  */
-void *circ_queue_cur_write_pos(circ_queue_t q, uint16_t *avail) {
+void *circ_queue_write_pos(circ_queue_t q, uint16_t *contig,
+		uint16_t *avail) {
 	void *contents = q->contents;
 	uint16_t wr_head = q->write_head;
+	uint16_t rd_tail = q->read_tail;
 
-	if (avail) {
-		uint16_t rd_tail = q->read_tail;
-
+	if (contig) {
 		if (rd_tail <= wr_head) {
 			/* Avail is the num elems to the end of the buf */
-			*avail = q->num_elem - wr_head;
+			*contig = q->num_elem - wr_head;
 		} else {
 			/* rd_tail > wr_head */
 			/* wr_head is not allowed to advance to meet tail,
 			 * so minus one */
+			*contig = rd_tail - wr_head - 1;
+		}
+	}
+
+	if (avail) {
+		if (rd_tail <= wr_head) {
+			/* To end of buf, to rd_tail, minus one. */
+			*avail = q->num_elem - wr_head + rd_tail - 1;
+		} else {
+			/* Otherwise just to 1 before rd_tail. */
 			*avail = rd_tail - wr_head - 1;
 		}
-
 	}
 
 	return contents + wr_head * q->elem_size;
@@ -177,25 +188,38 @@ int circ_queue_advance_write(circ_queue_t q) {
  * block-in-progress will be returned).
  *
  * @param[in] q Handle to circular queue.
- * @param[out] avail Returns number of contig elements that can be
+ * @param[out] contig Returns number of contig elements that can be
  * read at once.
+ * @param[out] avail Returns number of elements available to read
+ * without any further writer activity.
  * @returns pointer to the data, or NULL if the queue is empty.
  */
-void *circ_queue_read_pos(circ_queue_t q, uint16_t *avail) {
+void *circ_queue_read_pos(circ_queue_t q, uint16_t *contig, uint16_t *avail) {
 	uint16_t read_tail = q->read_tail;
 	uint16_t wr_head = q->write_head;
 
 	void *contents = q->contents;
 
-	if (avail) {
+	if (contig) {
 		if (wr_head >= read_tail) {
 			/* read_tail is allowed to advance to meet head,
 			 * so no minus one here. */
-			*avail = wr_head - read_tail;
+			*contig = wr_head - read_tail;
 		} else {
 			/* Number of contiguous elements to end of the buf,
 			 * otherwise. */
-			*avail = q->num_elem - read_tail;
+			*contig = q->num_elem - read_tail;
+		}
+	}
+
+	if (avail) {
+		if (wr_head >= read_tail) {
+			/* Same as immediately above; no wrap avail */
+			*avail = wr_head - read_tail;
+		} else {
+			/* Distance to end, plus distance from beginning
+			 * to wr_head */
+			*avail = q->num_elem - read_tail + wr_head;
 		}
 	}
 
@@ -228,7 +252,7 @@ void circ_queue_read_completed(circ_queue_t q) {
 
 /** Releases multiple elements of read data obtained by circ_queue_read_pos.
  * Behavior is undefined if returning more than circ_queue_read_pos
- * previously signaled in avail.
+ * previously signaled in contig.
  *
  * @param[in] q Handle to the circula queue.
  * @param[in] num Number of elements to release.
