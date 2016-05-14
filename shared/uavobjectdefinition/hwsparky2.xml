@@ -12,6 +12,7 @@
 				<option>S.Bus</option>
 				<option>S.Bus Non Inverted</option>
 				<option>SRXL</option>
+				<option>IBus</option>
 			</options>
 		</field>
 
@@ -39,6 +40,7 @@
 				<option>S.Bus Non Inverted</option>
 				<option>Storm32Bgc</option>
 				<option>Telemetry</option>
+				<option>IBus</option>
 			</options>
 		</field>
 		<field name="FlexiPort" units="function" type="enum" elements="1" parent="HwShared.PortTypes" defaultvalue="Disabled">
@@ -64,6 +66,7 @@
 				<option>S.Bus Non Inverted</option>
 				<option>Storm32Bgc</option>
 				<option>Telemetry</option>
+				<option>IBus</option>
 			</options>
 		</field>
 
