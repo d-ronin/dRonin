@@ -37,6 +37,13 @@
 
 extern const struct pios_rcvr_driver pios_ibus_rcvr_driver;
 
+/**
+ * @brief Initialises the IBus Rx driver with a serial port
+ * @param[out] ibus_id IBus receiver device handle
+ * @param[in] driver PiOS COM driver for the serial port
+ * @param[in] uart_id UART port driver handle
+ * @retval 0 on success, otherwise error
+ */
 int PIOS_IBus_Init(uintptr_t *ibus_id, const struct pios_com_driver *driver,
 		uintptr_t uart_id);
 

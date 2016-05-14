@@ -32,11 +32,16 @@
 
 #ifdef PIOS_INCLUDE_IBUS
 
+// private
 #define PIOS_IBUS_CHANNELS 8
+// 1 sync byte, 1 unknown byte, 8x channels (uint16_t), 12 unknown bytes, 2 crc bytes
 #define PIOS_IBUS_BUFLEN (1 + 1 + PIOS_IBUS_CHANNELS * 2 + 12 + 2)
 #define PIOS_IBUS_SYNCBYTE 0x20
 #define PIOS_IBUS_MAGIC 0x84fd9a39
 
+/**
+ * @brief IBus receiver driver internal state data
+ */
 struct pios_ibus_dev {
 	uint32_t magic;
 	int buf_pos;
@@ -47,16 +52,58 @@ struct pios_ibus_dev {
 	uint8_t rx_buf[PIOS_IBUS_BUFLEN];
 };
 
+/**
+ * @brief Allocates a driver instance
+ * @retval pios_ibus_dev pointer on success, NULL on failure
+ */
 static struct pios_ibus_dev *PIOS_IBus_Alloc(void);
+/**
+ * @brief Validate a driver instance
+ * @param[in] dev device driver instance pointer
+ * @retval true on success, false on failure
+ */
 static bool PIOS_IBus_Validate(const struct pios_ibus_dev *dev);
+/**
+ * @brief Read a channel from the last received frame
+ * @param[in] id Driver instance
+ * @param[in] channel 0-based channel index
+ * @retval raw channel value, or error value (see pios_rcvr.h)
+ */
 static int32_t PIOS_IBus_Read(uintptr_t id, uint8_t channel);
+/**
+ * @brief Set all channels in the last frame buffer to a given value
+ * @param[in] dev Driver instance
+ * @param[in] value channel value
+ */
 static void PIOS_IBus_SetAllChannels(struct pios_ibus_dev *dev, uint16_t value);
+/**
+ * @brief Serial receive callback
+ * @param[in] context Driver instance handle
+ * @param[in] buf Receive buffer
+ * @param[in] buf_len Number of bytes available
+ * @param[out] headroom Number of bytes remaining in internal buffer
+ * @param[out] task_woken Did we awake a task?
+ * @retval Number of bytes consumed from the buffer
+ */
 static uint16_t PIOS_IBus_Receive(uintptr_t context, uint8_t *buf, uint16_t buf_len,
 		uint16_t *headroom, bool *task_woken);
+/**
+ * @brief Reset the internal receive buffer state
+ * @param[in] dev device driver instance pointer
+ */
 static void PIOS_IBus_ResetBuffer(struct pios_ibus_dev *dev);
+/**
+ * @brief Unpack a frame from the internal receive buffer to the channel buffer
+ * @param[in] dev device driver instance pointer
+ */
 static void PIOS_IBus_UnpackFrame(struct pios_ibus_dev *dev);
+/**
+ * @brief RTC tick callback
+ * @param[in] context Driver instance handle
+ */
 static void PIOS_IBus_Supervisor(uintptr_t context);
 
+// public
 const struct pios_rcvr_driver pios_ibus_rcvr_driver = {
 	.read = PIOS_IBus_Read,
 };
