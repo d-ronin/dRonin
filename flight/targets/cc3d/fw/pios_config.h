@@ -52,6 +52,7 @@
 #define PIOS_INCLUDE_PWM
 #define PIOS_INCLUDE_GCSRCVR
 #define PIOS_INCLUDE_SRXL
+#define PIOS_INCLUDE_IBUS
 
 /* Supported USART-based PIOS modules */
 #define PIOS_INCLUDE_TELEMETRY_RF
