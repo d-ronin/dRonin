@@ -40,6 +40,7 @@
 				<option>Storm32Bgc</option>
 				<option>Telemetry</option>
 				<option>OpenLog</option>
+				<option>IBus</option>
 			</options>
 		</field>
 
@@ -65,6 +66,7 @@
 				<option>Storm32Bgc</option>
 				<option>Telemetry</option>
 				<option>OpenLog</option>
+				<option>IBus</option>
 			</options>
 		</field>
 
@@ -89,6 +91,7 @@
 				<option>Storm32Bgc</option>
 				<option>Telemetry</option>
 				<option>OpenLog</option>
+				<option>IBus</option>
 			</options>
 		</field>
 
