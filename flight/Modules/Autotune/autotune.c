@@ -342,9 +342,7 @@ static void AutotuneTask(void *parameters)
 					last_time = PIOS_DELAY_GetRaw();
 
 					/* Drain the queue of all current data */
-					while (circ_queue_read_pos(at_queue, NULL, NULL)) {
-						circ_queue_read_completed(at_queue);
-					}
+					circ_queue_clear(at_queue);
 
 					/* And reset the point spill counter */
 
