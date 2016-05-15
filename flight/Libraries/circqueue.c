@@ -91,7 +91,15 @@ void *circ_queue_write_pos(circ_queue_t q, uint16_t *contig,
 	if (contig) {
 		if (rd_tail <= wr_head) {
 			/* Avail is the num elems to the end of the buf */
-			*contig = q->num_elem - wr_head;
+			int16_t offset = 0;
+
+			if (rd_tail == 0) {
+				/* Can't advance to the beginning, because
+				 * we'd catch our tail.  [only when tail
+				 * perfectly wrapped] */
+				offset = -1;
+			}
+			*contig = q->num_elem - wr_head + offset;
 		} else {
 			/* rd_tail > wr_head */
 			/* wr_head is not allowed to advance to meet tail,
@@ -120,7 +128,7 @@ static inline uint16_t advance_by_n(uint16_t num_pos, uint16_t current_pos,
 
 	uint32_t pos = current_pos + num_to_advance;
 
-	if (pos > num_pos) {
+	if (pos >= num_pos) {
 		pos -= num_pos;
 	}
 
@@ -140,6 +148,10 @@ static inline uint16_t next_pos(uint16_t num_pos, uint16_t current_pos) {
  * @returns 0 if the write succeeded
  */
 int circ_queue_advance_write_multi(circ_queue_t q, uint16_t amt) {
+	if (amt == 0) {
+		return 0;
+	}
+
 	uint16_t orig_wr_head = q->write_head;
 
 	uint16_t new_write_head = advance_by_n(q->num_elem, orig_wr_head,
@@ -263,6 +275,10 @@ void circ_queue_read_completed(circ_queue_t q) {
  * @param[in] num Number of elements to release.
  */
 void circ_queue_read_completed_multi(circ_queue_t q, uint16_t num) {
+	if (num == 0) {
+		return;
+	}
+
 	/* Avoid multiple accesses to a volatile */
 	uint16_t orig_read_tail = q->read_tail;
 
