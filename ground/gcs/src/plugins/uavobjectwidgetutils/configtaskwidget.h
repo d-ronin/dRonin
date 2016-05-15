@@ -217,6 +217,8 @@ protected:
     void checkWidgetsLimits(QWidget *widget, UAVObjectField *field, int index, bool hasLimits, QVariant value, double scale);
     virtual QVariant getVariantFromWidget(QWidget *widget, double scale);
     virtual bool setWidgetFromVariant(QWidget *widget,QVariant value,double scale);
+    virtual QString getOptionFromChecked(QWidget* widget, bool checked);
+    virtual bool getCheckedFromOption(QWidget* widget, QString option);
     UAVObjectUtilManager* utilMngr;
 };
 

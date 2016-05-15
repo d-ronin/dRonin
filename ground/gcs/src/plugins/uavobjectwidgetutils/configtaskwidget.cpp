@@ -801,6 +801,10 @@ void ConfigTaskWidget::autoLoadWidgets()
                         uiRelation.buttonGroup.append(s.toInt());
                 } else if (prop == "url") {
                     uiRelation.url = str.mid(str.indexOf(":") + 1);
+                } else if (prop == "checkedoption") {
+                    widget->setProperty("checkedOption", value);
+                } else if (prop == "uncheckedoption") {
+                    widget->setProperty("unCheckedOption", value);
                 }
             }
 
@@ -1220,7 +1224,7 @@ bool ConfigTaskWidget::setFieldFromWidget(QWidget * widget,UAVObjectField * fiel
  * @param scale scale to be used on the assignement
  * @return returns the value of the widget times the scale
  */
-QVariant ConfigTaskWidget::getVariantFromWidget(QWidget * widget,double scale)
+QVariant ConfigTaskWidget::getVariantFromWidget(QWidget *widget, double scale)
 {
     if (QComboBox *comboBox = qobject_cast<QComboBox *>(widget))
         return comboBox->currentData();
@@ -1231,9 +1235,9 @@ QVariant ConfigTaskWidget::getVariantFromWidget(QWidget * widget,double scale)
     else if (QSlider *slider = qobject_cast<QSlider *>(widget))
         return (double)(slider->value() * scale);
     else if (QGroupBox *groupBox = qobject_cast<QGroupBox *>(widget))
-        return QString(groupBox->isChecked() ? "TRUE" : "FALSE");
+        return getOptionFromChecked(widget, groupBox->isChecked());
     else if (QCheckBox *checkBox = qobject_cast<QCheckBox *>(widget))
-        return QString(checkBox->isChecked() ? "TRUE" : "FALSE");
+        return getOptionFromChecked(widget, checkBox->isChecked());
     else if (QLineEdit *lineEdit = qobject_cast<QLineEdit *>(widget))
         return lineEdit->displayText();
     else
@@ -1268,12 +1272,10 @@ bool ConfigTaskWidget::setWidgetFromVariant(QWidget *widget, QVariant value, dou
         slider->setValue(qRound(value.toDouble() / scale));
         return true;
     } else if (QGroupBox *groupBox = qobject_cast<QGroupBox *>(widget)) {
-        bool bvalue = value.toString() == "TRUE";
-        groupBox->setChecked(bvalue);
+        groupBox->setChecked(getCheckedFromOption(widget, value.toString()));
         return true;
     } else if (QCheckBox *checkBox=qobject_cast<QCheckBox *>(widget)) {
-        bool bvalue = value.toString() == "TRUE";
-        checkBox->setChecked(bvalue);
+        checkBox->setChecked(getCheckedFromOption(widget, value.toString()));
         return true;
     } else if (QLineEdit *lineEdit=qobject_cast<QLineEdit *>(widget)) {
         if (scale == 0)
@@ -1489,6 +1491,36 @@ bool ConfigTaskWidget::eventFilter( QObject * obj, QEvent * evt ) {
     }
     return QWidget::eventFilter( obj, evt );
 }
+
+/**
+ * @brief Determine which enum option based on checkbox
+ * @param widget Target widget
+ * @param checked Checked status of widget
+ * @return Enum option as string
+ */
+QString ConfigTaskWidget::getOptionFromChecked(QWidget *widget, bool checked)
+{
+    if (checked)
+        return widget->property("checkedOption").isValid() ? widget->property("checkedOption").toString() : "TRUE";
+    else
+        return widget->property("unCheckedOption").isValid() ? widget->property("unCheckedOption").toString() : "FALSE";
+}
+
+/**
+ * @brief Determine whether checkbox should be checked
+ * @param widget Target widget
+ * @param option Enum option as string
+ * @return
+ */
+bool ConfigTaskWidget::getCheckedFromOption(QWidget *widget, QString option)
+{
+    if (widget->property("checkedOption").isValid())
+        return option == widget->property("checkedOption").toString();
+    if (widget->property("unCheckedOption").isValid())
+        return option != widget->property("unCheckedOption").toString();
+    return option == "TRUE";
+}
+
 /**
   @}
   @}
