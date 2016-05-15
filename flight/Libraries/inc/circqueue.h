@@ -48,4 +48,9 @@ void circ_queue_read_completed(circ_queue_t q);
 
 void circ_queue_read_completed_multi(circ_queue_t q, uint16_t num);
 
+uint16_t circ_queue_read_data(circ_queue_t q, void *buf, uint16_t num);
+
+uint16_t circ_queue_write_data(circ_queue_t q, const void *buf, uint16_t num);
+
+void circ_queue_clear(circ_queue_t q);
 #endif

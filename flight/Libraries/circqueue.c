@@ -231,6 +231,11 @@ void *circ_queue_read_pos(circ_queue_t q, uint16_t *contig, uint16_t *avail) {
 	return contents + q->read_tail * q->elem_size;
 }
 
+/** Empties all elements from the queue. */
+void circ_queue_clear(circ_queue_t q) {
+	q->read_tail = q->write_head;
+}
+
 /** Releases an element of read data obtained by circ_queue_read_pos.
  * Behavior is undefined if circ_queue_read_pos did not previously return
  * a block of data.
@@ -278,3 +283,62 @@ void circ_queue_read_completed_multi(circ_queue_t q, uint16_t num) {
 
 	q->read_tail = read_tail;
 }
+
+uint16_t circ_queue_write_data(circ_queue_t q, const void *buf, uint16_t num) {
+	uint16_t total_put = 0;
+	uint16_t put_this_time = 0;
+
+	const void *buf_pos = buf;
+
+	do {
+		void *wr_pos = circ_queue_write_pos(q, &put_this_time, NULL);
+
+		if (!put_this_time) break;
+
+		if (put_this_time > (num - total_put)) {
+			put_this_time = num - total_put;
+		}
+
+		uint32_t sz = put_this_time * q->elem_size;
+
+		memcpy(wr_pos, buf_pos, sz);
+
+		circ_queue_advance_write_multi(q, put_this_time);
+
+		buf_pos += sz;
+
+		total_put += put_this_time;
+	} while (total_put < num);
+
+	return total_put;
+}
+
+uint16_t circ_queue_read_data(circ_queue_t q, void *buf, uint16_t num) {
+	uint16_t total_read = 0;
+	uint16_t read_this_time = 0;
+
+	void *buf_pos = buf;
+
+	do {
+		void *rd_pos = circ_queue_read_pos(q, &read_this_time, NULL);
+
+		if (!read_this_time) break;
+
+		if (read_this_time > (num - total_read)) {
+			read_this_time = num - total_read;
+		}
+
+		uint32_t sz = read_this_time * q->elem_size;
+
+		memcpy(buf_pos, rd_pos, sz);
+
+		circ_queue_read_completed_multi(q, read_this_time);
+
+		buf_pos += sz;
+
+		total_read += read_this_time;
+	} while (total_read < num);
+
+	return total_read;
+}
+
