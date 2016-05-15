@@ -353,9 +353,14 @@ int32_t PIOS_COM_SendBuffer(uintptr_t com_id, const uint8_t *buffer, uint16_t le
 	while (sent < len) {
 		int32_t rc = SendBufferNonBlockingImpl(com_id, buffer,
 				len - sent, false);
-		if (rc >= 0) {
+		if (rc > 0) {
 			buffer += rc;
 			sent += rc;
+		} else if (rc == 0) {
+			/* Block... for 5 seconds? */
+			if (PIOS_Semaphore_Take(com_dev->tx_sem, 5000) != true) {
+				return -3;
+			}
 		} else {
 			// If we succeeded some, report that back.
 			if (sent) break;
@@ -365,21 +370,7 @@ int32_t PIOS_COM_SendBuffer(uintptr_t com_id, const uint8_t *buffer, uint16_t le
 				/* Device is invalid, this will never work */
 				return -1;
 			case -2:
-				/* Device is busy, wait for the underlying device to free some space and retry */
-				/* Make sure the transmitter is running while we wait */
-				if (com_dev->driver->tx_start) {
-					uint16_t tx_avail;
-
-					circ_queue_read_pos(com_dev->tx,
-							NULL, &tx_avail);
-					(com_dev->driver->tx_start)(com_dev->lower_id,
-								tx_avail);
-				}
-#if defined(PIOS_INCLUDE_FREERTOS) || defined(PIOS_INCLUDE_CHIBIOS)
-				if (PIOS_Semaphore_Take(com_dev->tx_sem, 5000) != true) {
-					return -3;
-				}
-#endif
+				PIOS_Assert(0);
 				continue;
 			default:
 				/* Unhandled return code */
