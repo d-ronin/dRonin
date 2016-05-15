@@ -35,7 +35,6 @@
 
 #if defined(PIOS_INCLUDE_L3GD20)
 
-#include "fifo_buffer.h"
 #include "pios_queue.h"
 #include "pios_semaphore.h"
 #include "pios_thread.h"

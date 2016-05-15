@@ -87,10 +87,6 @@ SRC += $(PIOSCOMMON)/pios_usb_util.c
 SRC += $(PIOSCOMMON)/pios_heap.c
 SRC += $(PIOSCOMMON)/pios_semaphore.c
 
-
-## Libraries for flight calculations
-SRC += $(FLIGHTLIB)/fifo_buffer.c
-
 ## CMSIS for STM32
 include $(PIOSCOMMONLIB)/CMSIS3/library.mk
 SRC += $(BOARD_INFO_DIR)/cmsis_system.c

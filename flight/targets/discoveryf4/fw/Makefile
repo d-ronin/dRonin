@@ -88,7 +88,6 @@ endif
 
 SRC += $(MATHLIB)/misc_math.c
 
-SRC += $(FLIGHTLIB)/fifo_buffer.c
 SRC += $(FLIGHTLIB)/circqueue.c
 SRC += $(FLIGHTLIB)/taskmonitor.c
 
