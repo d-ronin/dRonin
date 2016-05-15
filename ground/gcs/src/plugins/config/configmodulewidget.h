@@ -70,6 +70,7 @@ private:
     void enableGeofenceTab(bool enabled);
     void enablePicoCTab(bool enabled);
     void enableGpsTab(bool enabled);
+    void enableLoggingTab(bool enabled);
 
     void refreshAdcNames(void);
 

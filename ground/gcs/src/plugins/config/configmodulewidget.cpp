@@ -41,6 +41,7 @@
 #include "vibrationanalysissettings.h"
 #include "picocsettings.h"
 #include "taskinfo.h"
+#include "loggingsettings.h"
 
 ConfigModuleWidget::ConfigModuleWidget(QWidget *parent) : ConfigTaskWidget(parent)
 {
@@ -92,6 +93,7 @@ ConfigModuleWidget::ConfigModuleWidget(QWidget *parent) : ConfigTaskWidget(paren
     enableGeofenceTab(false);
     enablePicoCTab(false);
     enableGpsTab(false);
+    enableLoggingTab(false);
 
     // Load UAVObjects to widget relations from UI file
     // using objrelation dynamic property
@@ -109,6 +111,7 @@ ConfigModuleWidget::ConfigModuleWidget(QWidget *parent) : ConfigTaskWidget(paren
     setNotMandatory(HoTTSettings::NAME);
     setNotMandatory(PicoCSettings::NAME);
     setNotMandatory(GeoFenceSettings::NAME);
+    setNotMandatory(LoggingSettings::NAME);
 }
 
 ConfigModuleWidget::~ConfigModuleWidget()
@@ -171,6 +174,10 @@ void ConfigModuleWidget::recheckTabs()
     connect(obj, SIGNAL(transactionCompleted(UAVObject*,bool)), this, SLOT(objectUpdated(UAVObject*,bool)), Qt::UniqueConnection);
     obj->requestUpdate();
 
+    obj = getObjectManager()->getObject(LoggingSettings::NAME);
+    connect(obj, SIGNAL(transactionCompleted(UAVObject*,bool)), this, SLOT(objectUpdated(UAVObject*,bool)), Qt::UniqueConnection);
+    obj->requestUpdate();
+
     // This requires re-evaluation so that board connection doesn't re-enable
     // the fields.
     ui->cbAutotune->setDisabled(true);
@@ -196,22 +203,19 @@ void ConfigModuleWidget::objectUpdated(UAVObject * obj, bool success)
     QString objName = obj->getName();
     if (objName.compare(AirspeedSettings::NAME) == 0) {
         enableAirspeedTab(success && moduleSettings->getAdminState_Airspeed() == ModuleSettings::ADMINSTATE_ENABLED);
-    }
-    else if (objName.compare(FlightBatterySettings::NAME) == 0) {
+    } else if (objName.compare(FlightBatterySettings::NAME) == 0) {
         enableBatteryTab(success && moduleSettings->getAdminState_Battery() == ModuleSettings::ADMINSTATE_ENABLED);
         refreshAdcNames();
-    }
-    else if (objName.compare(VibrationAnalysisSettings::NAME) == 0) {
+    } else if (objName.compare(VibrationAnalysisSettings::NAME) == 0) {
         enableVibrationTab(success && moduleSettings->getAdminState_VibrationAnalysis() == ModuleSettings::ADMINSTATE_ENABLED);
-    }
-    else if (objName.compare(HoTTSettings::NAME) == 0) {
+    } else if (objName.compare(HoTTSettings::NAME) == 0) {
         enableHoTTTelemetryTab(success && enableHott);
-    }
-    else if (objName.compare(GeoFenceSettings::NAME) == 0) {
+    } else if (objName.compare(GeoFenceSettings::NAME) == 0) {
         enableGeofenceTab(success && moduleSettings->getAdminState_Geofence() == ModuleSettings::ADMINSTATE_ENABLED);
-    }
-    else if (objName.compare(PicoCSettings::NAME) == 0) {
+    } else if (objName.compare(PicoCSettings::NAME) == 0) {
         enablePicoCTab(success && moduleSettings->getAdminState_PicoC() == ModuleSettings::ADMINSTATE_ENABLED);
+    } else if (objName.compare(LoggingSettings::NAME) == 0) {
+        enableLoggingTab(success && moduleSettings->getAdminState_Logging() == ModuleSettings::ADMINSTATE_ENABLED);
     }
 
     // indicate that we can't tell which modules are running when taskinfo isn't available
@@ -371,6 +375,13 @@ void ConfigModuleWidget::enablePicoCTab(bool enabled)
 void ConfigModuleWidget::enableGpsTab(bool enabled)
 {
     int idx = ui->moduleTab->indexOf(ui->tabGPS);
+    ui->moduleTab->setTabEnabled(idx, enabled);
+}
+
+//! Enable or disable the Logging tab
+void ConfigModuleWidget::enableLoggingTab(bool enabled)
+{
+    int idx = ui->moduleTab->indexOf(ui->tabLogging);
     ui->moduleTab->setTabEnabled(idx, enabled);
 }
 
