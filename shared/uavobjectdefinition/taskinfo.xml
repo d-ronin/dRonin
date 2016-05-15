@@ -88,8 +88,8 @@
 			<elementname>IMU</elementname>
 		</elementnames>
 		<options>
-			<option>False</option>
-			<option>True</option>
+			<option>FALSE</option>
+			<option>TRUE</option>
 		</options>
 		<description>The run state of each task.</description>
 	</field>
