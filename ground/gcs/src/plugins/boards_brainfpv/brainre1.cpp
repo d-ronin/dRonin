@@ -203,7 +203,7 @@ int BrainRE1::queryMaxGyroRate()
 
 QStringList BrainRE1::getAdcNames()
 {
-    return QStringList() << "V" << "I" << "R";
+    return QStringList() << "I" << "V" << "R";
 }
 
 QWidget * BrainRE1::getBoardConfiguration(QWidget *parent, bool connected)
