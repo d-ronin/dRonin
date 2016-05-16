@@ -465,7 +465,7 @@ retry:
     QTimer::singleShot(200,&m_eventloop, SLOT(quit()));
     m_eventloop.exec();
     hid_init();
-    m_hidHandle = hid_open(port.vendorID, port.productID, NULL);
+    m_hidHandle = hid_open_path(port.path.toLatin1());
     if (m_hidHandle) {
         QTimer::singleShot(200,&m_eventloop, SLOT(quit()));
         m_eventloop.exec();

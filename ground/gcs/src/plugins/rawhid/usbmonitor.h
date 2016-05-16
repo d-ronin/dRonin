@@ -45,6 +45,8 @@ struct USBPortInfo {
     QString manufacturer;
     QString product;
 
+    QString path;       ///< Opaque OS-specific path.
+
     int vendorID;       ///< Vendor ID.
     int productID;      ///< Product ID
     int bcdDevice;

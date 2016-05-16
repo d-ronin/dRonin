@@ -89,6 +89,8 @@ void USBMonitor::periodic() {
         info.serialNumber = QString::fromWCharArray(hidDev->serial_number);
         info.product = QString::fromWCharArray(hidDev->product_string);
         info.manufacturer = QString::fromWCharArray(hidDev->manufacturer_string);
+        info.path = QString::fromLatin1(hidDev->path);
+
         if (!unseenDevices.removeOne(info)) {
             newDevices.append(info);
         } 

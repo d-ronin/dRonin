@@ -35,14 +35,17 @@ public:
     USBDevice();
 
     // Our USB-specific device info:
+    QString getPath() const { return path; }
     int getVendorID() const { return vendorID; }
     int getProductID() const { return productID; }
     void setVendorID(int vid) { vendorID = vid; }
     void setProductID(int pid) { productID = pid; }
+    void setPath(QString p) { path = p; }
 
 private:
     int vendorID;
     int productID;
+    QString path;
 
 };
 
