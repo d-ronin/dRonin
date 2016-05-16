@@ -52,14 +52,14 @@ public:
      * @param type the type of receiver to use
      * @param port_num which input port to configure (board specific numbering)
      */
-    virtual bool setInputOnPort(enum InputType type, int port_num = 0);
+    virtual bool setInputType(enum InputType type);
 
     /**
      * @brief getInputOnPort get the current input type
      * @param port_num which input port to query (board specific numbering)
      * @return the currently selected input type
      */
-    virtual enum InputType getInputOnPort(int port_num = 0);
+    virtual enum InputType getInputType();
 
     /**
      * @brief getConnectionDiagram get the connection diagram for this board
