@@ -161,9 +161,6 @@
 #if defined(PIOS_INCLUDE_IAP)
 #include <pios_iap.h>
 #endif
-#if defined(PIOS_INCLUDE_BMA180)
-#include <pios_bma180.h>
-#endif
 #if defined(PIOS_INCLUDE_VIDEO)
 #include <pios_video.h>
 #endif
