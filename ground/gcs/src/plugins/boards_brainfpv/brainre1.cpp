@@ -127,11 +127,8 @@ QString BrainRE1::getHwUAVO()
  * @param port_num which input port to configure (board specific numbering)
  * @return true if successfully configured or false otherwise
  */
-bool BrainRE1::setInputOnPort(enum InputType type, int port_num)
+bool BrainRE1::setInputType(enum InputType type)
 {
-    if (port_num != 0)
-        return false;
-
     ExtensionSystem::PluginManager *pm = ExtensionSystem::PluginManager::instance();
     UAVObjectManager *uavoManager = pm->getObject<UAVObjectManager>();
     HwBrainRE1 *hwBrainRE1 = HwBrainRE1::GetInstance(uavoManager);
@@ -172,11 +169,8 @@ bool BrainRE1::setInputOnPort(enum InputType type, int port_num)
  * @param port_num the port number to query (must be zero)
  * @return the selected input type
  */
-enum Core::IBoardType::InputType BrainRE1::getInputOnPort(int port_num)
+enum Core::IBoardType::InputType BrainRE1::getInputType()
 {
-    if (port_num != 0)
-        return INPUT_TYPE_UNKNOWN;
-
     ExtensionSystem::PluginManager *pm = ExtensionSystem::PluginManager::instance();
     UAVObjectManager *uavoManager = pm->getObject<UAVObjectManager>();
     HwBrainRE1 *hwBrainRE1 = HwBrainRE1::GetInstance(uavoManager);
