@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>959</width>
-    <height>686</height>
+    <height>726</height>
    </rect>
   </property>
   <property name="sizePolicy">
@@ -259,6 +259,16 @@
                   </spacer>
                  </item>
                 </layout>
+               </item>
+               <item>
+                <widget class="QLabel" name="label">
+                 <property name="text">
+                  <string>Note: PPM is always enabled. The RX pin function is selected by jumpers on the bottom of the board.</string>
+                 </property>
+                 <property name="wordWrap">
+                  <bool>true</bool>
+                 </property>
+                </widget>
                </item>
               </layout>
              </item>
@@ -759,8 +769,8 @@
   <tabstop>rebootBoard</tabstop>
  </tabstops>
  <resources>
-  <include location="brotronics.qrc"/>
   <include location="../coreplugin/core.qrc"/>
+  <include location="brotronics.qrc"/>
   <include location="../coreplugin/core.qrc"/>
  </resources>
  <connections/>

@@ -43,6 +43,7 @@
 #include <openpilot.h>
 #include <uavobjectsinit.h>
 #include "hwlux.h"
+#include "hwshared.h"
 #include "manualcontrolsettings.h"
 #include "modulesettings.h"
 
@@ -261,7 +262,6 @@ void PIOS_Board_Init(void)
 	HwLuxDSMxModeOptions hw_DSMxMode;
 	HwLuxDSMxModeGet(&hw_DSMxMode);
 
-	/* This unconditionally configures PPM.  */
 	uint8_t hw_uart3;
 	HwLuxUart3Get(&hw_uart3);
 	PIOS_HAL_ConfigurePort(hw_uart3,              // port_type
@@ -298,11 +298,25 @@ void PIOS_Board_Init(void)
                          &pios_usart_com_driver,  // com_driver
                          NULL,                    // i2c_id
                          NULL,                    // i2c_cfg
-                         &pios_ppm_cfg,           // ppm_cfg
+                         NULL,                    // ppm_cfg
                          NULL,                    // pwm_cfg
                          PIOS_LED_ALARM,          // led_id
                          &pios_rxport_dsm_aux_cfg,// dsm_cfg
                          hw_DSMxMode,             // dsm_mode
+                         NULL);                   // sbus_cfg
+
+    /* Always configure PPM */
+    const uint8_t hw_rxppm = HWSHARED_PORTTYPES_PPM;
+    PIOS_HAL_ConfigurePort(hw_rxppm,              // port_type
+                         NULL,                    // usart_port_cfg
+                         NULL,                    // com_driver
+                         NULL,                    // i2c_id
+                         NULL,                    // i2c_cfg
+                         &pios_ppm_cfg,           // ppm_cfg
+                         NULL,                    // pwm_cfg
+                         PIOS_LED_ALARM,          // led_id
+                         NULL,                    // dsm_cfg
+                         0,                       // dsm_mode
                          NULL);                   // sbus_cfg
 
 #if defined(PIOS_INCLUDE_GCSRCVR)

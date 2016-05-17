@@ -136,7 +136,7 @@ bool Lux::setInputType(enum InputType type)
 
     switch(type) {
     case INPUT_TYPE_PPM:
-        settings.RxPort = HwLux::RXPORT_PPM;
+        // always enabled, do nothing
         break;
     case INPUT_TYPE_SBUS:
         settings.RxPort = HwLux::RXPORT_SBUS;
@@ -146,6 +146,9 @@ bool Lux::setInputType(enum InputType type)
         break;
     case INPUT_TYPE_HOTTSUMD:
         settings.RxPort = HwLux::RXPORT_HOTTSUMD;
+        break;
+    case INPUT_TYPE_HOTTSUMH:
+        settings.RxPort = HwLux::RXPORT_HOTTSUMH;
         break;
     default:
         return false;
@@ -173,16 +176,16 @@ enum Core::IBoardType::InputType Lux::getInputType()
     HwLux::DataFields settings = hwLux->getData();
 
     switch(settings.RxPort) {
-    case HwLux::RXPORT_PPM:
-        return INPUT_TYPE_PPM;
     case HwLux::RXPORT_SBUS:
         return INPUT_TYPE_SBUS;
     case HwLux::RXPORT_DSM:
         return INPUT_TYPE_DSM;
     case HwLux::RXPORT_HOTTSUMD:
         return INPUT_TYPE_HOTTSUMD;
+    case HwLux::RXPORT_HOTTSUMH:
+        return INPUT_TYPE_HOTTSUMH;
     default:
-        return INPUT_TYPE_UNKNOWN;
+        return INPUT_TYPE_PPM;
     }
 }
 
