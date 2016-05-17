@@ -121,6 +121,11 @@ static const struct streamfs_cfg streamfs_settings = {
  */
 int32_t LoggingInitialize(void)
 {
+	if (LoggingSettingsInitialize() == -1) {
+		module_enabled = false;
+		return -1;
+	}
+
 #ifdef PIOS_COM_OPENLOG
 	if (PIOS_COM_OPENLOG) {
 		logging_com_id = PIOS_COM_OPENLOG;
@@ -170,7 +175,7 @@ int32_t LoggingInitialize(void)
 	if (!module_enabled)
 		return -1;
 
-	if (LoggingStatsInitialize() == -1 || LoggingSettingsInitialize() == -1) {
+	if (LoggingStatsInitialize() == -1) {
 		module_enabled = false;
 		return -1;
 	}
