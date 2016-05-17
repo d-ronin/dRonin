@@ -262,48 +262,46 @@ void PIOS_Board_Init(void)
 	HwLuxDSMxModeGet(&hw_DSMxMode);
 
 	/* This unconditionally configures PPM.  */
-	/* Configure main USART port */
-	uint8_t hw_mainport;
-	HwLuxMainPortGet(&hw_mainport);
-	PIOS_HAL_ConfigurePort(hw_mainport,           // port_type
-                         &pios_main_usart_cfg,    // usart_port_cfg
+	uint8_t hw_uart3;
+	HwLuxUart3Get(&hw_uart3);
+	PIOS_HAL_ConfigurePort(hw_uart3,              // port_type
+                         &pios_uart3_cfg,         // usart_port_cfg
                          &pios_usart_com_driver,  // com_driver
                          NULL,                    // i2c_id
                          NULL,                    // i2c_cfg
                          NULL,                    // ppm_cfg
                          NULL,                    // pwm_cfg
                          PIOS_LED_ALARM,          // led_id
-                         &pios_main_dsm_aux_cfg,  // dsm_cfg
+                         &pios_uart3_dsm_aux_cfg, // dsm_cfg
                          hw_DSMxMode,             // dsm_mode
                          NULL);                   // sbus_cfg
 
-	/* Configure FlexiPort */
-	uint8_t hw_flexiport;
-	HwLuxFlexiPortGet(&hw_flexiport);
-	PIOS_HAL_ConfigurePort(hw_flexiport,          // port_type
-                         &pios_flexi_usart_cfg,   // usart_port_cfg
+	uint8_t hw_uart2;
+	HwLuxUart2Get(&hw_uart2);
+	PIOS_HAL_ConfigurePort(hw_uart2,              // port_type
+                         &pios_uart2_cfg,         // usart_port_cfg
                          &pios_usart_com_driver,  // com_driver
                          NULL,                    // i2c_id
                          NULL,                    // i2c_cfg
                          NULL,                    // ppm_cfg
                          NULL,                    // pwm_cfg
                          PIOS_LED_ALARM,          // led_id
-                         &pios_flexi_dsm_aux_cfg, // dsm_cfg
+                         &pios_uart2_dsm_aux_cfg, // dsm_cfg
                          hw_DSMxMode,             // dsm_mode
                          NULL);                   // sbus_cfg
 
-	/* Configure the rcvr port */
-	uint8_t hw_rcvrport;
-	HwLuxRcvrPortGet(&hw_rcvrport);
-	PIOS_HAL_ConfigurePort(hw_rcvrport,           // port_type
-                         &pios_rcvr_usart_cfg,    // usart_port_cfg
+	/* Configure the rx port */
+	uint8_t hw_rxport;
+	HwLuxRxPortGet(&hw_rxport);
+	PIOS_HAL_ConfigurePort(hw_rxport,             // port_type
+                         &pios_rxport_usart_cfg,  // usart_port_cfg
                          &pios_usart_com_driver,  // com_driver
                          NULL,                    // i2c_id
                          NULL,                    // i2c_cfg
                          &pios_ppm_cfg,           // ppm_cfg
                          NULL,                    // pwm_cfg
                          PIOS_LED_ALARM,          // led_id
-                         &pios_rcvr_dsm_aux_cfg,  // dsm_cfg
+                         &pios_rxport_dsm_aux_cfg,// dsm_cfg
                          hw_DSMxMode,             // dsm_mode
                          NULL);                   // sbus_cfg
 

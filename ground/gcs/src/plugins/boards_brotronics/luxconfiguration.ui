@@ -100,7 +100,7 @@
                  <item>
                   <widget class="QLabel" name="lblFlexiPort">
                    <property name="text">
-                    <string>Flexi Port (UART2)</string>
+                    <string>UART2</string>
                    </property>
                   </widget>
                  </item>
@@ -109,7 +109,7 @@
                    <property name="objrelation" stdset="0">
                     <stringlist>
                      <string>objname:HwLux</string>
-                     <string>fieldname:FlexiPort</string>
+                     <string>fieldname:Uart2</string>
                      <string>buttongroup:1</string>
                     </stringlist>
                    </property>
@@ -118,7 +118,7 @@
                  <item>
                   <widget class="QLabel" name="lblMainPort">
                    <property name="text">
-                    <string>Main Port (UART3)</string>
+                    <string>UART3</string>
                    </property>
                   </widget>
                  </item>
@@ -127,7 +127,7 @@
                    <property name="objrelation" stdset="0">
                     <stringlist notr="true">
                      <string>objname:HwLux</string>
-                     <string>fieldname:MainPort</string>
+                     <string>fieldname:Uart3</string>
                      <string>buttongroup:1</string>
                     </stringlist>
                    </property>
@@ -230,7 +230,7 @@
                  <item>
                   <widget class="QLabel" name="lblRxPort">
                    <property name="text">
-                    <string>Receiver Port (UART1)</string>
+                    <string>RX Port (UART1)</string>
                    </property>
                   </widget>
                  </item>
@@ -239,7 +239,7 @@
                    <property name="objrelation" stdset="0">
                     <stringlist>
                      <string>objname:HwLux</string>
-                     <string>fieldname:RcvrPort</string>
+                     <string>fieldname:RxPort</string>
                      <string>buttongroup:1</string>
                     </stringlist>
                    </property>
