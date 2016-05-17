@@ -47,7 +47,8 @@ HEADERS += calibration.h \
     configmodulewidget.h \
     configosdwidget.h \
     expocurve.h \
-    autotuneshareform.h
+    autotuneshareform.h \
+    qreadonlycheckbox.h
 
 SOURCES += calibration.cpp \
     configplugin.cpp \
