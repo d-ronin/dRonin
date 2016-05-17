@@ -250,7 +250,7 @@ const struct pios_flash_partition * PIOS_BOARD_HW_DEFS_GetPartitionTable (uint32
  */
 #include <pios_dsm_priv.h>
 
-static const struct pios_dsm_cfg pios_rcvr_dsm_aux_cfg = {
+static const struct pios_dsm_cfg pios_rxport_dsm_aux_cfg = {
 	.bind = {
 		.gpio = GPIOC,
 		.init = {
@@ -263,7 +263,7 @@ static const struct pios_dsm_cfg pios_rcvr_dsm_aux_cfg = {
 	},
 };
 
-static const struct pios_dsm_cfg pios_flexi_dsm_aux_cfg = {
+static const struct pios_dsm_cfg pios_uart2_dsm_aux_cfg = {
 	.bind = {
 		.gpio = GPIOA,
 		.init = {
@@ -276,7 +276,7 @@ static const struct pios_dsm_cfg pios_flexi_dsm_aux_cfg = {
 	},
 };
 
-static const struct pios_dsm_cfg pios_main_dsm_aux_cfg = {
+static const struct pios_dsm_cfg pios_uart3_dsm_aux_cfg = {
 	.bind = {
 		.gpio = GPIOB,
 		.init = {
@@ -291,7 +291,7 @@ static const struct pios_dsm_cfg pios_main_dsm_aux_cfg = {
 
 #endif	/* PIOS_INCLUDE_DSM */
 
-static const struct pios_usart_cfg pios_flexi_usart_cfg = {
+static const struct pios_usart_cfg pios_uart2_cfg = {
 	.regs = USART2,
 	.remap = GPIO_AF_7,
 	.irq = {
@@ -326,7 +326,7 @@ static const struct pios_usart_cfg pios_flexi_usart_cfg = {
 	},
 };
 
-static const struct pios_usart_cfg pios_main_usart_cfg = {
+static const struct pios_usart_cfg pios_uart3_cfg = {
 	.regs = USART3,
 	.remap = GPIO_AF_7,
 	.irq = {
@@ -361,7 +361,7 @@ static const struct pios_usart_cfg pios_main_usart_cfg = {
 	},
 };
 
-static const struct pios_usart_cfg pios_rcvr_usart_cfg = {
+static const struct pios_usart_cfg pios_rxport_usart_cfg = {
 	.regs = USART1,
 	.remap = GPIO_AF_7,
 	.irq = {
@@ -382,6 +382,17 @@ static const struct pios_usart_cfg pios_rcvr_usart_cfg = {
 			.GPIO_PuPd  = GPIO_PuPd_UP
 		},
 		.pin_source = GPIO_PinSource5,
+	},
+	.tx = {
+		.gpio = GPIOC,
+		.init = {
+			.GPIO_Pin   = GPIO_Pin_4,
+			.GPIO_Speed = GPIO_Speed_2MHz,
+			.GPIO_Mode  = GPIO_Mode_AF,
+			.GPIO_OType = GPIO_OType_PP,
+			.GPIO_PuPd  = GPIO_PuPd_UP
+		},
+		.pin_source = GPIO_PinSource4,
 	},
 };
 
@@ -694,16 +705,16 @@ static const struct pios_servo_cfg pios_servo_cfg = {
 
 
 /*
- * PWM Inputs
+ * PPM Input
  */
-#if defined(PIOS_INCLUDE_PWM) || defined(PIOS_INCLUDE_PPM)
+#if defined(PIOS_INCLUDE_PPM)
 #include <pios_pwm_priv.h>
 
 /*
  * 	INPUTS
-	1:  TIM2_CH4  (PA3)
+	1:  TIM1_CH1  (PA8)
  */
-static const struct pios_tim_channel pios_tim_rcvrport_ppm[] = {
+static const struct pios_tim_channel pios_tim_rxport_ppm[] = {
 	{
 		.timer = TIM1,
 		.timer_chan = TIM_Channel_1,
@@ -721,26 +732,6 @@ static const struct pios_tim_channel pios_tim_rcvrport_ppm[] = {
 		},
 	},
 };
-
-static const struct pios_tim_channel pios_tim_rcvrport_pwm[] = {
-	{ // Ch1 TIM1_CH1  (PA8)
-		.timer = TIM1,
-		.timer_chan = TIM_Channel_1,
-		.remap = GPIO_AF_6,
-		.pin = {
-			.gpio = GPIOA,
-			.init = {
-				.GPIO_Pin = GPIO_Pin_8,
-				.GPIO_Speed = GPIO_Speed_2MHz,
-				.GPIO_Mode  = GPIO_Mode_AF,
-				.GPIO_OType = GPIO_OType_PP,
-				.GPIO_PuPd  = GPIO_PuPd_UP
-			},
-			.pin_source = GPIO_PinSource8,
-		},
-	},
-};
-
 #endif
 
 /*
@@ -757,7 +748,7 @@ static const struct pios_ppm_cfg pios_ppm_cfg = {
 		.TIM_Channel = TIM_Channel_1,
 	},
 	/* Use only the first channel for ppm */
-	.channels = pios_tim_rcvrport_ppm,
+	.channels = pios_tim_rxport_ppm,
 	.num_channels = 1,
 };
 
