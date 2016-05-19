@@ -238,7 +238,11 @@ int32_t transmitter_control_update()
 			break;
 		case MANUALCONTROLSETTINGS_RSSITYPE_ADC:
 #if defined(PIOS_INCLUDE_ADC)
-			value = PIOS_ADC_GetChannelRaw(settings.RssiChannelNumber);
+			if (settings.RssiChannelNumber > 0) {
+				value = PIOS_ADC_GetChannelRaw(settings.RssiChannelNumber - 1);
+			} else {
+				value = 0;
+			}
 #endif
 			break;
 		case MANUALCONTROLSETTINGS_RSSITYPE_OPENLRS:
