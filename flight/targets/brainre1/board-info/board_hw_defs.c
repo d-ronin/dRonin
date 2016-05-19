@@ -98,13 +98,6 @@ static const struct flashfs_logfs_cfg flashfs_waypoints_cfg = {
 	.slot_size     = 0x00000040, /* 64 bytes */
 };
 
-#include "pios_streamfs_priv.h"
-const struct streamfs_cfg streamfs_settings = {
-	.fs_magic      = 0x89abceef,
-	.arena_size    = 0x00010000, /* 64 KB */
-	.write_size    = 0x00000100, /* 256 bytes */
-};
-
 #if defined(PIOS_INCLUDE_FLASH_JEDEC)
 #include "pios_flash_jedec_priv.h"
 

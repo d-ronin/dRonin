@@ -122,7 +122,6 @@ extern uintptr_t pios_com_lighttelemetry_id;
 extern uintptr_t pios_com_picoc_id;
 extern uintptr_t pios_com_hott_id;
 extern uintptr_t pios_com_picoc_id;
-extern uintptr_t pios_com_logging_id;
 extern uintptr_t pios_com_openlog_logging_id;
 
 #define PIOS_COM_GPS                    (pios_com_gps_id)
@@ -136,7 +135,6 @@ extern uintptr_t pios_com_openlog_logging_id;
 #define PIOS_COM_FRSKY_SPORT            (pios_com_frsky_sport_id)
 #define PIOS_COM_LIGHTTELEMETRY         (pios_com_lighttelemetry_id)
 #define PIOS_COM_PICOC                  (pios_com_picoc_id)
-#define PIOS_COM_SPIFLASH               (pios_com_logging_id)
 #define PIOS_COM_OPENLOG                (uintptr_t)(pios_com_openlog_logging_id)
 
 #if defined(PIOS_INCLUDE_DEBUG_CONSOLE)
