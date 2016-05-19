@@ -79,7 +79,10 @@ BrainRE1Configuration::BrainRE1Configuration(QWidget *parent) :
     populateWidgets();
     refreshWidgetsValues();
     forceConnectedState();
-    
+
+    // update the color button
+    getCustomLedColor();
+
     img = QPixmap(":/brainfpv/images/brainre1.png");
     ui->imgLabel->setPixmap(img);
 }
