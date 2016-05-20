@@ -646,7 +646,7 @@ hid_device * hid_open(unsigned short vendor_id, unsigned short product_id, const
 	return handle;
 }
 
-hid_device * HID_API_EXPORT hid_open_path(const char *path)
+HID_API_EXPORT hid_device * hid_open_path(const char *path)
 {
 	hid_device *dev = NULL;
 
@@ -814,6 +814,7 @@ int HID_API_EXPORT_CALL hid_get_serial_number_string(hid_device *dev, wchar_t *s
 	return get_device_string(dev, DEVICE_STRING_SERIAL, string, maxlen);
 }
 
+#if 0
 int HID_API_EXPORT_CALL hid_get_indexed_string(hid_device *dev, int string_index, wchar_t *string, size_t maxlen)
 {
 	return -1;
@@ -824,3 +825,4 @@ HID_API_EXPORT const wchar_t * HID_API_CALL  hid_error(hid_device *dev)
 {
 	return NULL;
 }
+#endif
