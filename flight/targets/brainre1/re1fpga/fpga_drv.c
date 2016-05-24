@@ -575,6 +575,14 @@ void PIOS_RE1FPGA_SetBwLevels(uint8_t black, uint8_t white)
 }
 
 /**
+ * @brief Set the threshold for the video sync pulse detector
+ */
+int32_t PIOS_RE1FPGA_SetSyncThreshold(uint8_t threshold)
+{
+	return PIOS_RE1FPGA_WriteReg(RE1FPGA_REG_THR, threshold, 0xFF);
+}
+
+/**
  * @brief Set OSD x offset
  */
 void PIOS_RE1FPGA_SetXOffset(int8_t x_offset)
