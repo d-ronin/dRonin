@@ -53,11 +53,18 @@ enum pios_re1fpga_ir_protocols {
 	PIOS_RE1FPGA_IR_PROTOCOL_TRACKMATE,
 };
 
+enum pios_re1fpga_buzzer_types {
+	PIOS_RE1FPGA_BUZZER_DC,
+	PIOS_RE1FPGA_BUZZER_AC,
+};
+
+
 int32_t PIOS_RE1FPGA_Init(uint32_t spi_id, uint32_t slave_num, const struct pios_re1fpga_cfg *cfg, bool load_config);
 uint8_t PIOS_RE1FPGA_GetHWRevision();
 int32_t PIOS_RE1FPGA_SerialRxInvert(bool invert);
 int32_t PIOS_RE1FPGA_MPTxPinMode(bool bidrectional, bool invert);
 int32_t PIOS_RE1FPGA_MPTxPinPullUpDown(bool enable, bool pullup);
+int32_t PIOS_RE1FPGA_SetBuzzerType(enum pios_re1fpga_buzzer_types type);
 int32_t PIOS_RE1FPGA_Buzzer(bool enable);
 int32_t PIOS_RE1FPGA_SetNotificationLedColor(enum pios_re1fpga_led_colors led_colors);
 void PIOS_RE1FPGA_SetBwLevels(uint8_t black, uint8_t white);
