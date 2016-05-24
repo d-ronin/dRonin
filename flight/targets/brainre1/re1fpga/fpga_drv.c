@@ -59,6 +59,8 @@
 *                                                1: pull-up
 *                                        CFG[5]: LEDCFG 0: (status: blue, custom: green)
 *                                                       0: (status: green, custom: blue)
+*                                        CFG[6]: 0: BUZZER DC drive
+*                                                1: BUZZER 4kHz drive
 * 0x02     CTL    R/W   1       0x00     CTL[0]: BUZZER 0: off, 1: on
 *                                        CTL[1]: LED custom: 0: off, 1: on
 * 0x03     BLACK  R/W   1       XXX      OSD black level
@@ -521,6 +523,22 @@ int32_t PIOS_RE1FPGA_MPTxPinPullUpDown(bool enable, bool pullup)
 
 	return PIOS_RE1FPGA_WriteReg(RE1FPGA_REG_CFG, data, 0x18);
 }
+
+/**
+ * @brief Set buzzer type
+ */
+int32_t PIOS_RE1FPGA_SetBuzzerType(enum pios_re1fpga_buzzer_types type)
+{
+	uint8_t data;
+	if (type == PIOS_RE1FPGA_BUZZER_DC) {
+		data = 0;
+	}
+	else {
+		data = 255;
+	}
+	return PIOS_RE1FPGA_WriteReg(RE1FPGA_REG_CFG, data, 0x40);
+}
+
 
 /**
  * @brief Enable / disable buzzer

@@ -173,6 +173,15 @@ static void settingdUpdatedCb(UAVObjEvent * ev, void *ctx, void *obj, int len)
 			PIOS_RE1FPGA_SetIRProtocol(PIOS_RE1FPGA_IR_PROTOCOL_TRACKMATE);
 			break;
 	}
+
+	/* Configure the failsafe buzzer */
+	if (hwre1data->FailsafeBuzzer == HWBRAINRE1_FAILSAFEBUZZER_4KHZ_BUZZER) {
+		PIOS_RE1FPGA_SetBuzzerType(PIOS_RE1FPGA_BUZZER_AC);
+	}
+	else {
+		PIOS_RE1FPGA_SetBuzzerType(PIOS_RE1FPGA_BUZZER_DC);
+	}
+
 }
 
 /**
@@ -193,7 +202,7 @@ static void flightStatusUpdatedCb(UAVObjEvent * ev, void *ctx, void *obj, int le
 	if (was_armed && (data->FlightMode == FLIGHTSTATUS_FLIGHTMODE_FAILSAFE)) {
 		uint8_t buzzer_setting;
 		HwBrainRE1FailsafeBuzzerGet(&buzzer_setting);
-		PIOS_RE1FPGA_Buzzer(buzzer_setting == HWBRAINRE1_FAILSAFEBUZZER_ENABLED);
+		PIOS_RE1FPGA_Buzzer(buzzer_setting != HWBRAINRE1_FAILSAFEBUZZER_DISABLED);
 	}
 	else {
 		PIOS_RE1FPGA_Buzzer(false);
