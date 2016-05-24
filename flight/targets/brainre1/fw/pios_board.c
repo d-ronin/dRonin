@@ -182,6 +182,8 @@ static void settingdUpdatedCb(UAVObjEvent * ev, void *ctx, void *obj, int len)
 		PIOS_RE1FPGA_SetBuzzerType(PIOS_RE1FPGA_BUZZER_DC);
 	}
 
+	/* Set video sync detector threshold */
+	PIOS_RE1FPGA_SetSyncThreshold(hwre1data->VideoSyncDetectorThreshold);
 }
 
 /**

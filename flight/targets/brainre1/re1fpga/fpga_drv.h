@@ -68,6 +68,7 @@ int32_t PIOS_RE1FPGA_SetBuzzerType(enum pios_re1fpga_buzzer_types type);
 int32_t PIOS_RE1FPGA_Buzzer(bool enable);
 int32_t PIOS_RE1FPGA_SetNotificationLedColor(enum pios_re1fpga_led_colors led_colors);
 void PIOS_RE1FPGA_SetBwLevels(uint8_t black, uint8_t white);
+int32_t PIOS_RE1FPGA_SetSyncThreshold(uint8_t threshold);
 void PIOS_RE1FPGA_SetXOffset(int8_t x_offset);
 void PIOS_RE1FPGA_SetXScale(uint8_t x_scale);
 void PIOS_RE1FPGA_Set3DConfig(enum pios_video_3d_mode mode, uint8_t x_shift_right);
