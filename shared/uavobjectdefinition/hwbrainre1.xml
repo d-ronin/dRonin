@@ -83,7 +83,7 @@
 
 	<field name="IRIDTrackmate" units="" type="uint16" elements="1" defaultvalue="0" limits="%BE:0:9999"/>
 	<field name="IRIDILap" units="" type="uint32" elements="1" defaultvalue="0" limits="%BE:0:9999999"/>
-	<field name="FailsafeBuzzer" units="" type="enum" elements="1" options="Disabled,Enabled" defaultvalue="Disabled"/>
+	<field name="FailsafeBuzzer" units="" type="enum" elements="1" options="Disabled,DC_Buzzer,4kHz_Buzzer" defaultvalue="Disabled"/>
 
 	<field name="HWRevision" units="" type="uint8" elements="1" defaultvalue="0"/>
 
