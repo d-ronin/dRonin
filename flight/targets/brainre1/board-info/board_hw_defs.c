@@ -988,7 +988,7 @@ static const struct pios_tim_clock_cfg tim_1_cfg = {
 	3: TIM5_CH3 (PA2)
 	4: TIM5_CH4 (PA3)
 	5: TIM1_CH3 (PA10)
-	6: TIM1_CH1 (PA8)
+	6: TIM2_CH1 (PA8)
 	7: TIM8_CH1 (PC6)
 	8: TIM8_CH2 (PC7)
  */
