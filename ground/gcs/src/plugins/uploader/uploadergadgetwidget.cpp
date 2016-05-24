@@ -97,11 +97,16 @@ UploaderGadgetWidget::UploaderGadgetWidget(QWidget *parent):QWidget(parent),
     netMngr = new QNetworkAccessManager(this);
 
     UAVObjectManager *obm = pm->getObject<UAVObjectManager>();
-    connect(telMngr, SIGNAL(connected()), this, SLOT(onAutopilotConnect()));
-    connect(telMngr, SIGNAL(disconnected()), this, SLOT(onAutopilotDisconnect()));
+
+    /* These (and firmwareIAP) are queued connections.  We may do things
+     * that ultimately stop the telemetry manager, so we don't want to be
+     * invoked from its components and return into it.
+     */
+    connect(telMngr, SIGNAL(connected()), this, SLOT(onAutopilotConnect()), Qt::QueuedConnection);
+    connect(telMngr, SIGNAL(disconnected()), this, SLOT(onAutopilotDisconnect()), Qt::QueuedConnection);
     firmwareIap = FirmwareIAPObj::GetInstance(obm);
 
-    connect(firmwareIap, SIGNAL(objectUpdated(UAVObject*)), this, SLOT(onIAPUpdated()), Qt::UniqueConnection);
+    connect(firmwareIap, SIGNAL(objectUpdated(UAVObject*)), this, SLOT(onIAPUpdated()), Qt::QueuedConnection);
 
     //Connect button signals to slots
     connect(m_widget->openButton, SIGNAL(clicked()), this, SLOT(onLoadFirmwareButtonClick()));

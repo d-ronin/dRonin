@@ -704,7 +704,7 @@ ObjectTransactionInfo::~ObjectTransactionInfo()
 {
     telem = 0;
     timer->stop();
-    delete timer;
+    timer->deleteLater();
 }
 
 void ObjectTransactionInfo::timeout()
