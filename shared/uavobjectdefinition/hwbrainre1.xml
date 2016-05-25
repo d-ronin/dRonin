@@ -87,8 +87,8 @@
 
 	<field name="HWRevision" units="" type="uint8" elements="1" defaultvalue="0"/>
 
-	<field name="VideoSyncDetectorThreshold" units="" type="uint8" elements="1" defaultvalue="122">
-		<description>Threshold for the video sync pulse detector. It should not be necessary for the user to change this value from the default (122).</description>
+	<field name="VideoSyncDetectorThreshold" units="" type="uint8" elements="1" defaultvalue="120">
+		<description>Threshold for the video sync pulse detector. It should not be necessary for the user to change this value from the default (120).</description>
 	</field>
 
 	<access gcs="readwrite" flight="readwrite"/>
