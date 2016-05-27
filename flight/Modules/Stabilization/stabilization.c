@@ -194,7 +194,7 @@ int32_t StabilizationInitialize()
 }
 
 
-MODULE_INITCALL(StabilizationInitialize, StabilizationStart);
+MODULE_HIPRI_INITCALL(StabilizationInitialize, StabilizationStart);
 
 /**
  * Module task

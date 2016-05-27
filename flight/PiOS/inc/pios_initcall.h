@@ -60,14 +60,11 @@ extern initmodule_t __module_initcall_start[], __module_initcall_end[];
  * can point at the same handler without causing duplicate-symbol build errors.
  */
 
-#define __define_initcall(level,fn,id) \
-	static initcall_t __initcall_##fn##id __attribute__((__used__)) \
-	__attribute__((__section__(".initcall" level ".init"))) = fn
-
 #define __define_module_initcall(level, ifn, sfn) \
 	static initmodule_t __initcall_##fn __attribute__((__used__)) \
-	__attribute__((__section__(".initcall" level ".init"))) = { .fn_minit = ifn, .fn_tinit = sfn };
+	__attribute__((__section__(".initcall." level))) = { .fn_minit = ifn, .fn_tinit = sfn };
 
+#define MODULE_HIPRI_INITCALL(ifn, sfn)		__define_module_initcall("a_module", ifn, sfn)
 #define MODULE_INITCALL(ifn, sfn)		__define_module_initcall("module", ifn, sfn)
 
 #define MODULE_INITIALISE_ALL(wdgfn)  { \

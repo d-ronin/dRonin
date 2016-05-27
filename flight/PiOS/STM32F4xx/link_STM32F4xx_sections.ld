@@ -15,30 +15,6 @@ SECTIONS
         *(.rodata .rodata* .gnu.linkonce.r.*)
     } > FLASH
 
-    /* 
-     * Init section for UAVObjects. 
-     */
-    .initcalluavobj.init :
-    {
-        . = ALIGN(4);
-        __uavobj_initcall_start = .;
-        KEEP(*(.initcalluavobj.init))
-        . = ALIGN(4);
-        __uavobj_initcall_end   = .;
-    } >FLASH
-
-    /* 
-     * Module init section section
-     */
-    .initcallmodule.init :
-    {
-        . = ALIGN(4);
-        __module_initcall_start = .;
-        KEEP(*(.initcallmodule.init))
-        . = ALIGN(4);
-        __module_initcall_end   = .;
-    } >FLASH
-
     /*
      * C++ exception handling.
      */

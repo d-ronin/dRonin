@@ -24,15 +24,17 @@ SECTIONS
         *(.rodata .rodata* .gnu.linkonce.r.*)
     } > FLASH
 
-    /* module sections */
+    /* 
+     * Module init section section
+     */
     .initcallmodule.init :
     {
         . = ALIGN(4);
         __module_initcall_start = .;
-        KEEP(*(.initcallmodule.init))
+        KEEP(*(SORT_BY_NAME(.initcall.*)))
         . = ALIGN(4);
         __module_initcall_end   = .;
-    } >FLASH
+    } > FLASH
 
     .ARM.extab :
     {
