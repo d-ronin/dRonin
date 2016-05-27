@@ -42,6 +42,8 @@ struct pios_servo_cfg {
 	uint32_t remap;
 	const struct pios_tim_channel * channels;
 	uint8_t num_channels;
+
+	bool force_1MHz;
 };
 
 extern int32_t PIOS_Servo_Init(const struct pios_servo_cfg * cfg);
