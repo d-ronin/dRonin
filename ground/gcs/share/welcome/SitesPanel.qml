@@ -20,13 +20,12 @@ Item {
 
     ListModel {
         id: sitesModel
-        ListElement { title: "dRonin Home"; link: "http://dronin.org" }
-        ListElement { title: "dRonin Wiki"; link: "https://github.com/d-ronin/dRonin/wiki" }
-        ListElement { title: "dRonin Code"; link: "https://github.com/d-ronin/dRonin" }
-        ListElement { title: "dRonin Issues"; link: "https://github.com/d-ronin/dRonin/issues" }
+        ListElement { title: "Documentation"; link: "http://dronin.readme.io/" }
+        ListElement { title: "Home Page"; link: "http://dronin.org" }
+        ListElement { title: "Forum"; link: "https://forum.dronin.org/forum/" }
+        ListElement { title: "Wiki"; link: "https://github.com/d-ronin/dRonin/wiki" }
+        ListElement { title: "GitHub Repository"; link: "https://github.com/d-ronin/dRonin" }
         ListElement { title: "dRonin Facebook"; link: "https://www.facebook.com/flydRonin" }
-        ListElement { title: "dRonin Twitter"; link: "https://twitter.com/flydRonin" }
-        ListElement { title: "dRonin Instagram"; link: "https://www.instagram.com/flydronin/" }
     }
 
     ListView {
