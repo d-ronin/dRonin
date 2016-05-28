@@ -150,7 +150,7 @@ void PIOS_Servo_SetMode(const uint16_t *out_rate, const int banks, const uint16_
 
 		if (bank < 0)
 			bank = banks_found++;
-		
+
 		timer_banks[bank].timer = chan->timer;
 		timer_banks[bank].max_pulse = MAX(timer_banks[bank].max_pulse, channel_max[i]);
 	}
@@ -166,8 +166,30 @@ void PIOS_Servo_SetMode(const uint16_t *out_rate, const int banks, const uint16_
 		if (!max_tim_clock)
 			return;
 
+		uint16_t rate = out_rate[i];
+
+		if (servo_cfg->force_1MHz && (rate == 0)) {
+			/* We've been asked for syncPWM but are in a config
+			 * where we can't do it.  This means CC3D + 333Hz.
+			 * Getting fast output is functionally identical
+			 * to oneshot on a target like this.  Pick a period
+			 * that has a lot of deadtime and call it good.
+			 */
+
+			/* Works out to 2500Hz at normal 250us max pulse,
+			 * 400Hz at 2000us.
+			 *
+			 * Put one more way, with "oneshot", 400us of variable
+			 * delay on 3300us control period.
+			 */
+
+			rate = 1000000 / (timer_banks[i].max_pulse +
+					timer_banks[i].max_pulse / 5 +
+					100);
+		}
+
 		// output rate of 0 means SyncPWM
-		if (out_rate[i] == 0) {
+		if (rate == 0) {
 			/* 
 			 * Ensure a dead time of 2% + 10 us, e.g. 15us for 250us
 			 * long pulses, 50 us for 2000us long pulses
@@ -189,11 +211,17 @@ void PIOS_Servo_SetMode(const uint16_t *out_rate, const int banks, const uint16_
 			TIM_OC3PolarityConfig(timer_banks[i].timer, inverted_polarity);
 			TIM_OC4PolarityConfig(timer_banks[i].timer, inverted_polarity);
 		} else {
-			float num_ticks = (float)max_tim_clock / (float)out_rate[i];
 			// assume 16-bit timer
-			timer_banks[i].prescaler = num_ticks / 0xffff + 0.5f;
+			if (servo_cfg->force_1MHz) {
+				timer_banks[i].prescaler = max_tim_clock / 1000000;
+			} else {
+				float num_ticks = (float)max_tim_clock / (float)rate;
+
+				timer_banks[i].prescaler = num_ticks / 0xffff + 0.5f;
+			}
+
 			timer_banks[i].clk_rate = max_tim_clock / (timer_banks[i].prescaler + 1);
-			timer_banks[i].period = (float)timer_banks[i].clk_rate / (float)out_rate[i];
+			timer_banks[i].period = (float)timer_banks[i].clk_rate / (float)rate;
 
 			// de-select one pulse mode in case SyncPWM was previously used
 			TIM_SelectOnePulseMode(timer_banks[i].timer, TIM_OPMode_Repetitive);

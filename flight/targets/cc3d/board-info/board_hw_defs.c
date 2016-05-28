@@ -945,6 +945,22 @@ struct pios_servo_cfg pios_servo_cfg = {
 	.num_channels = NELEMENTS(pios_tim_servoport_all_pins),
 };
 
+struct pios_servo_cfg pios_servo_slow_cfg = {
+	.tim_oc_init = {
+		.TIM_OCMode = TIM_OCMode_PWM1,
+		.TIM_OutputState = TIM_OutputState_Enable,
+		.TIM_OutputNState = TIM_OutputNState_Disable,
+		.TIM_Pulse = PIOS_SERVOS_INITIAL_POSITION,
+		.TIM_OCPolarity = TIM_OCPolarity_High,
+		.TIM_OCNPolarity = TIM_OCPolarity_High,
+		.TIM_OCIdleState = TIM_OCIdleState_Reset,
+		.TIM_OCNIdleState = TIM_OCNIdleState_Reset,
+	},
+	.channels = pios_tim_servoport_all_pins,
+	.num_channels = NELEMENTS(pios_tim_servoport_all_pins),
+	.force_1MHz = true
+};
+
 const struct pios_servo_cfg pios_servo_rcvr_cfg = {
 	.tim_oc_init = {
 		.TIM_OCMode = TIM_OCMode_PWM1,
@@ -987,7 +1003,9 @@ const struct pios_ppm_cfg pios_ppm_pin8_cfg = {
 		.TIM_ICPrescaler = TIM_ICPSC_DIV1,
 		.TIM_ICFilter = 0x0,
 	},
-	/* Use only the first channel for ppm */
+
+	/* Use only the sixth-- pin 8 -- channel for ppm
+	 * (pinout is PWR GND 0 1 2 3 4 5 */
 	.channels = &pios_tim_rcvrport_all_channels[5],
 	.num_channels = 1,
 };
