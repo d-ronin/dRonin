@@ -44,7 +44,7 @@ public:
     bool validatePage();
 
 private:
-    void setOneshotTimings();
+    void setOutputRanges(quint16 minPulse, quint16 maxPulse);
     Ui::OutputPage *ui;
 };
 

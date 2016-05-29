@@ -124,24 +124,6 @@ ConfigOutputWidget::ConfigOutputWidget(QWidget *parent) : ConfigTaskWidget(paren
     rateList.clear();
     rateList << m_config->cb_outputRate1 << m_config->cb_outputRate2 << m_config->cb_outputRate3
                << m_config->cb_outputRate4 << m_config->cb_outputRate5 << m_config->cb_outputRate6;
-    resList.clear();
-    resList << m_config->cb_outputResolution1 << m_config->cb_outputResolution2 << m_config->cb_outputResolution3
-               << m_config->cb_outputResolution4 << m_config->cb_outputResolution5 << m_config->cb_outputResolution6;
-
-    // Get the list of output resolutions and assign to the resolution dropdowns
-    ActuatorSettings *actuatorSettings = ActuatorSettings::GetInstance(getObjectManager());
-    Q_ASSERT(actuatorSettings);
-    UAVObjectField *resolutions = actuatorSettings->getField("TimerPwmResolution");
-    Q_ASSERT(resolutions);
-
-    QList<QComboBox*>::iterator resIter;
-    for (resIter = resList.begin(); resIter != resList.end(); resIter++) {
-        QComboBox *res = *resIter;
-        res->clear();
-        res->addItems(resolutions->getOptions());
-        addWidget(res);
-        connect(res, SIGNAL(currentIndexChanged(int)), this, SLOT(refreshWidgetRanges()));
-    }
 
     QList<QComboBox*>::iterator rateIter;
     for (rateIter = rateList.begin(); rateIter != rateList.end(); rateIter++) {
@@ -459,7 +441,6 @@ void ConfigOutputWidget::refreshWidgetsValues(UAVObject * obj)
             for (int i=0; i < 6; i++) {
                 lblList.at(i)->setText("-");
                 rateList.at(i)->setEnabled(false);
-                resList.at(i)->setEnabled(false);
             }
 
             // Now repopulate based on board capabilities:
@@ -473,10 +454,6 @@ void ConfigOutputWidget::refreshWidgetsValues(UAVObject * obj)
                     ccmb->addItem(setting);
                 }
                 ccmb->setCurrentIndex(ccmb->findText(setting));
-
-                QComboBox* res = resList.at(i);
-                res->setEnabled(true);
-                res->setCurrentIndex(actuatorSettingsData.TimerPwmResolution[i]);
             }
         }
     }
@@ -521,18 +498,11 @@ void ConfigOutputWidget::refreshWidgetRanges()
                 QComboBox* ccmb = rateList.at(i);
                 quint32 timerFreq = timerStringToFreq(ccmb->currentText());
 
-                QComboBox* res = resList.at(i);
-                quint32 timerRes = res->currentIndex();
-
                 // First saturate at the timer period's maximum value.
                 double maxPulseWidth, timerPeriodUs = 65535;
 
                 // Saturate at the UAVO's maximum value
                 timerPeriodUs = 65535;
-
-                // And adjust units into microseconds if 12MHz timer.
-                if (timerRes == ActuatorSettings::TIMERPWMRESOLUTION_12MHZ)
-                    timerPeriodUs = timerPeriodUs / 12;
 
                 if (timerFreq != 0)
                 {
@@ -592,14 +562,6 @@ void ConfigOutputWidget::updateObjectsFromWidgets()
         actuatorSettingsData.TimerUpdateFreq[3] = timerStringToFreq(m_config->cb_outputRate4->currentText());
         actuatorSettingsData.TimerUpdateFreq[4] = timerStringToFreq(m_config->cb_outputRate5->currentText());
         actuatorSettingsData.TimerUpdateFreq[5] = timerStringToFreq(m_config->cb_outputRate6->currentText());
-
-        // Set output resolution
-        actuatorSettingsData.TimerPwmResolution[0] = m_config->cb_outputResolution1->currentIndex();
-        actuatorSettingsData.TimerPwmResolution[1] = m_config->cb_outputResolution2->currentIndex();
-        actuatorSettingsData.TimerPwmResolution[2] = m_config->cb_outputResolution3->currentIndex();
-        actuatorSettingsData.TimerPwmResolution[3] = m_config->cb_outputResolution4->currentIndex();
-        actuatorSettingsData.TimerPwmResolution[4] = m_config->cb_outputResolution5->currentIndex();
-        actuatorSettingsData.TimerPwmResolution[5] = m_config->cb_outputResolution6->currentIndex();
 
         actuatorSettingsData.MotorInputOutputCurveFit = m_config->motorCurveFit->value();
 

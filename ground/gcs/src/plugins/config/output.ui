@@ -134,8 +134,8 @@
            <rect>
             <x>0</x>
             <y>0</y>
-            <width>838</width>
-            <height>650</height>
+            <width>840</width>
+            <height>659</height>
            </rect>
           </property>
           <layout class="QVBoxLayout" name="verticalLayout_3">
@@ -171,24 +171,101 @@
              <property name="title">
               <string>Output Update Speed</string>
              </property>
-             <layout class="QGridLayout" name="gridLayout" columnstretch="0,0,0,0,0,0,0,0,0">
-              <property name="leftMargin">
-               <number>12</number>
-              </property>
-              <property name="topMargin">
-               <number>12</number>
-              </property>
-              <property name="rightMargin">
-               <number>12</number>
-              </property>
-              <property name="bottomMargin">
-               <number>12</number>
-              </property>
-              <property name="horizontalSpacing">
-               <number>6</number>
-              </property>
-              <item row="2" column="1">
-               <widget class="QLabel" name="label_4">
+             <layout class="QGridLayout" name="gridLayout">
+              <item row="0" column="0">
+               <widget class="QLabel" name="label_9">
+                <property name="font">
+                 <font>
+                  <weight>75</weight>
+                  <bold>true</bold>
+                 </font>
+                </property>
+                <property name="text">
+                 <string>Channel:</string>
+                </property>
+                <property name="alignment">
+                 <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+                </property>
+               </widget>
+              </item>
+              <item row="0" column="1">
+               <widget class="QLabel" name="chBank1">
+                <property name="text">
+                 <string>-</string>
+                </property>
+                <property name="alignment">
+                 <set>Qt::AlignCenter</set>
+                </property>
+               </widget>
+              </item>
+              <item row="0" column="2">
+               <widget class="QLabel" name="chBank2">
+                <property name="text">
+                 <string>-</string>
+                </property>
+                <property name="alignment">
+                 <set>Qt::AlignCenter</set>
+                </property>
+               </widget>
+              </item>
+              <item row="0" column="3">
+               <widget class="QLabel" name="chBank3">
+                <property name="text">
+                 <string>-</string>
+                </property>
+                <property name="alignment">
+                 <set>Qt::AlignCenter</set>
+                </property>
+               </widget>
+              </item>
+              <item row="0" column="4">
+               <widget class="QLabel" name="chBank4">
+                <property name="text">
+                 <string>-</string>
+                </property>
+                <property name="alignment">
+                 <set>Qt::AlignCenter</set>
+                </property>
+               </widget>
+              </item>
+              <item row="0" column="5">
+               <widget class="QLabel" name="chBank5">
+                <property name="text">
+                 <string>-</string>
+                </property>
+                <property name="alignment">
+                 <set>Qt::AlignCenter</set>
+                </property>
+               </widget>
+              </item>
+              <item row="0" column="6">
+               <widget class="QLabel" name="chBank6">
+                <property name="text">
+                 <string>-</string>
+                </property>
+                <property name="alignment">
+                 <set>Qt::AlignCenter</set>
+                </property>
+               </widget>
+              </item>
+              <item row="0" column="7">
+               <spacer name="horizontalSpacer_3">
+                <property name="orientation">
+                 <enum>Qt::Horizontal</enum>
+                </property>
+                <property name="sizeType">
+                 <enum>QSizePolicy::Minimum</enum>
+                </property>
+                <property name="sizeHint" stdset="0">
+                 <size>
+                  <width>5</width>
+                  <height>20</height>
+                 </size>
+                </property>
+               </spacer>
+              </item>
+              <item row="1" column="0">
+               <widget class="QLabel" name="label_3">
                 <property name="sizePolicy">
                  <sizepolicy hsizetype="Minimum" vsizetype="Preferred">
                   <horstretch>0</horstretch>
@@ -208,17 +285,20 @@
                  </font>
                 </property>
                 <property name="text">
-                 <string>Resolution:</string>
+                 <string>Update rate:</string>
                 </property>
                 <property name="alignment">
                  <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
                 </property>
                </widget>
               </item>
-              <item row="1" column="8">
-               <spacer name="horizontalSpacer_4">
+              <item row="1" column="1">
+               <widget class="QComboBox" name="cb_outputRate1">
+                <property name="enabled">
+                 <bool>false</bool>
+                </property>
                 <property name="sizePolicy">
-                 <sizepolicy hsizetype="Minimum" vsizetype="Minimum">
+                 <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
                   <horstretch>0</horstretch>
                   <verstretch>0</verstretch>
                  </sizepolicy>
@@ -229,37 +309,366 @@
                   <height>20</height>
                  </size>
                 </property>
-                <property name="orientation">
-                 <enum>Qt::Horizontal</enum>
+                <property name="toolTip">
+                 <string>Usual value is 400 Hz for multirotor airframes.
+Newer ESCs support OneShot mode with a higher resolution and shorter pulse.
+Leave at 50Hz for fixed wing.</string>
                 </property>
-                <property name="sizeType">
-                 <enum>QSizePolicy::Minimum</enum>
+                <item>
+                 <property name="text">
+                  <string>SyncPWM</string>
+                 </property>
+                </item>
+                <item>
+                 <property name="text">
+                  <string>50</string>
+                 </property>
+                </item>
+                <item>
+                 <property name="text">
+                  <string>60</string>
+                 </property>
+                </item>
+                <item>
+                 <property name="text">
+                  <string>125</string>
+                 </property>
+                </item>
+                <item>
+                 <property name="text">
+                  <string>165</string>
+                 </property>
+                </item>
+                <item>
+                 <property name="text">
+                  <string>270</string>
+                 </property>
+                </item>
+                <item>
+                 <property name="text">
+                  <string>330</string>
+                 </property>
+                </item>
+                <item>
+                 <property name="text">
+                  <string>400</string>
+                 </property>
+                </item>
+                <item>
+                 <property name="text">
+                  <string>1000</string>
+                 </property>
+                </item>
+                <item>
+                 <property name="text">
+                  <string>2000</string>
+                 </property>
+                </item>
+                <item>
+                 <property name="text">
+                  <string>4000</string>
+                 </property>
+                </item>
+                <item>
+                 <property name="text">
+                  <string>8000</string>
+                 </property>
+                </item>
+                <item>
+                 <property name="text">
+                  <string>12000</string>
+                 </property>
+                </item>
+                <item>
+                 <property name="text">
+                  <string>16666</string>
+                 </property>
+                </item>
+               </widget>
+              </item>
+              <item row="1" column="2">
+               <widget class="QComboBox" name="cb_outputRate2">
+                <property name="enabled">
+                 <bool>false</bool>
                 </property>
-                <property name="sizeHint" stdset="0">
+                <property name="sizePolicy">
+                 <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
+                  <horstretch>0</horstretch>
+                  <verstretch>0</verstretch>
+                 </sizepolicy>
+                </property>
+                <property name="minimumSize">
                  <size>
-                  <width>5</width>
+                  <width>0</width>
                   <height>20</height>
                  </size>
                 </property>
-               </spacer>
+                <property name="toolTip">
+                 <string>Usual value is 400 Hz for multirotor airframes.
+Newer ESCs support OneShot mode with a higher resolution and shorter pulse.
+Leave at 50Hz for fixed wing.</string>
+                </property>
+                <item>
+                 <property name="text">
+                  <string>SyncPWM</string>
+                 </property>
+                </item>
+                <item>
+                 <property name="text">
+                  <string>50</string>
+                 </property>
+                </item>
+                <item>
+                 <property name="text">
+                  <string>60</string>
+                 </property>
+                </item>
+                <item>
+                 <property name="text">
+                  <string>125</string>
+                 </property>
+                </item>
+                <item>
+                 <property name="text">
+                  <string>165</string>
+                 </property>
+                </item>
+                <item>
+                 <property name="text">
+                  <string>270</string>
+                 </property>
+                </item>
+                <item>
+                 <property name="text">
+                  <string>330</string>
+                 </property>
+                </item>
+                <item>
+                 <property name="text">
+                  <string>400</string>
+                 </property>
+                </item>
+                <item>
+                 <property name="text">
+                  <string>1000</string>
+                 </property>
+                </item>
+                <item>
+                 <property name="text">
+                  <string>2000</string>
+                 </property>
+                </item>
+                <item>
+                 <property name="text">
+                  <string>4000</string>
+                 </property>
+                </item>
+                <item>
+                 <property name="text">
+                  <string>8000</string>
+                 </property>
+                </item>
+                <item>
+                 <property name="text">
+                  <string>12000</string>
+                 </property>
+                </item>
+                <item>
+                 <property name="text">
+                  <string>16666</string>
+                 </property>
+                </item>
+               </widget>
               </item>
-              <item row="0" column="8">
-               <spacer name="horizontalSpacer_3">
-                <property name="orientation">
-                 <enum>Qt::Horizontal</enum>
+              <item row="1" column="3">
+               <widget class="QComboBox" name="cb_outputRate3">
+                <property name="enabled">
+                 <bool>false</bool>
                 </property>
-                <property name="sizeType">
-                 <enum>QSizePolicy::Minimum</enum>
+                <property name="sizePolicy">
+                 <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
+                  <horstretch>0</horstretch>
+                  <verstretch>0</verstretch>
+                 </sizepolicy>
                 </property>
-                <property name="sizeHint" stdset="0">
+                <property name="minimumSize">
                  <size>
-                  <width>5</width>
+                  <width>0</width>
                   <height>20</height>
                  </size>
                 </property>
-               </spacer>
+                <property name="toolTip">
+                 <string>Usual value is 400 Hz for multirotor airframes.
+Newer ESCs support OneShot mode with a higher resolution and shorter pulse.
+Leave at 50Hz for fixed wing.</string>
+                </property>
+                <item>
+                 <property name="text">
+                  <string>SyncPWM</string>
+                 </property>
+                </item>
+                <item>
+                 <property name="text">
+                  <string>50</string>
+                 </property>
+                </item>
+                <item>
+                 <property name="text">
+                  <string>60</string>
+                 </property>
+                </item>
+                <item>
+                 <property name="text">
+                  <string>125</string>
+                 </property>
+                </item>
+                <item>
+                 <property name="text">
+                  <string>165</string>
+                 </property>
+                </item>
+                <item>
+                 <property name="text">
+                  <string>270</string>
+                 </property>
+                </item>
+                <item>
+                 <property name="text">
+                  <string>330</string>
+                 </property>
+                </item>
+                <item>
+                 <property name="text">
+                  <string>400</string>
+                 </property>
+                </item>
+                <item>
+                 <property name="text">
+                  <string>1000</string>
+                 </property>
+                </item>
+                <item>
+                 <property name="text">
+                  <string>2000</string>
+                 </property>
+                </item>
+                <item>
+                 <property name="text">
+                  <string>4000</string>
+                 </property>
+                </item>
+                <item>
+                 <property name="text">
+                  <string>8000</string>
+                 </property>
+                </item>
+                <item>
+                 <property name="text">
+                  <string>12000</string>
+                 </property>
+                </item>
+                <item>
+                 <property name="text">
+                  <string>16666</string>
+                 </property>
+                </item>
+               </widget>
               </item>
-              <item row="1" column="6">
+              <item row="1" column="4">
+               <widget class="QComboBox" name="cb_outputRate4">
+                <property name="enabled">
+                 <bool>false</bool>
+                </property>
+                <property name="sizePolicy">
+                 <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
+                  <horstretch>0</horstretch>
+                  <verstretch>0</verstretch>
+                 </sizepolicy>
+                </property>
+                <property name="minimumSize">
+                 <size>
+                  <width>0</width>
+                  <height>20</height>
+                 </size>
+                </property>
+                <property name="toolTip">
+                 <string>Usual value is 400 Hz for multirotor airframes.
+Newer ESCs support OneShot mode with a higher resolution and shorter pulse.
+Leave at 50Hz for fixed wing.</string>
+                </property>
+                <item>
+                 <property name="text">
+                  <string>SyncPWM</string>
+                 </property>
+                </item>
+                <item>
+                 <property name="text">
+                  <string>50</string>
+                 </property>
+                </item>
+                <item>
+                 <property name="text">
+                  <string>60</string>
+                 </property>
+                </item>
+                <item>
+                 <property name="text">
+                  <string>125</string>
+                 </property>
+                </item>
+                <item>
+                 <property name="text">
+                  <string>165</string>
+                 </property>
+                </item>
+                <item>
+                 <property name="text">
+                  <string>270</string>
+                 </property>
+                </item>
+                <item>
+                 <property name="text">
+                  <string>330</string>
+                 </property>
+                </item>
+                <item>
+                 <property name="text">
+                  <string>400</string>
+                 </property>
+                </item>
+                <item>
+                 <property name="text">
+                  <string>1000</string>
+                 </property>
+                </item>
+                <item>
+                 <property name="text">
+                  <string>2000</string>
+                 </property>
+                </item>
+                <item>
+                 <property name="text">
+                  <string>4000</string>
+                 </property>
+                </item>
+                <item>
+                 <property name="text">
+                  <string>8000</string>
+                 </property>
+                </item>
+                <item>
+                 <property name="text">
+                  <string>12000</string>
+                 </property>
+                </item>
+                <item>
+                 <property name="text">
+                  <string>16666</string>
+                 </property>
+                </item>
+               </widget>
+              </item>
+              <item row="1" column="5">
                <widget class="QComboBox" name="cb_outputRate5">
                 <property name="enabled">
                  <bool>false</bool>
@@ -359,8 +768,8 @@ Leave at 50Hz for fixed wing.</string>
                 </item>
                </widget>
               </item>
-              <item row="1" column="4">
-               <widget class="QComboBox" name="cb_outputRate3">
+              <item row="1" column="6">
+               <widget class="QComboBox" name="cb_outputRate6">
                 <property name="enabled">
                  <bool>false</bool>
                 </property>
@@ -380,6 +789,9 @@ Leave at 50Hz for fixed wing.</string>
                  <string>Usual value is 400 Hz for multirotor airframes.
 Newer ESCs support OneShot mode with a higher resolution and shorter pulse.
 Leave at 50Hz for fixed wing.</string>
+                </property>
+                <property name="currentIndex">
+                 <number>0</number>
                 </property>
                 <item>
                  <property name="text">
@@ -454,12 +866,9 @@ Leave at 50Hz for fixed wing.</string>
                </widget>
               </item>
               <item row="1" column="7">
-               <widget class="QComboBox" name="cb_outputRate6">
-                <property name="enabled">
-                 <bool>false</bool>
-                </property>
+               <spacer name="horizontalSpacer_4">
                 <property name="sizePolicy">
-                 <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
+                 <sizepolicy hsizetype="Minimum" vsizetype="Minimum">
                   <horstretch>0</horstretch>
                   <verstretch>0</verstretch>
                  </sizepolicy>
@@ -470,598 +879,19 @@ Leave at 50Hz for fixed wing.</string>
                   <height>20</height>
                  </size>
                 </property>
-                <property name="toolTip">
-                 <string>Usual value is 400 Hz for multirotor airframes.
-Newer ESCs support OneShot mode with a higher resolution and shorter pulse.
-Leave at 50Hz for fixed wing.</string>
+                <property name="orientation">
+                 <enum>Qt::Horizontal</enum>
                 </property>
-                <property name="currentIndex">
-                 <number>0</number>
+                <property name="sizeType">
+                 <enum>QSizePolicy::Minimum</enum>
                 </property>
-                <item>
-                 <property name="text">
-                  <string>50</string>
-                 </property>
-                </item>
-                <item>
-                 <property name="text">
-                  <string>60</string>
-                 </property>
-                </item>
-                <item>
-                 <property name="text">
-                  <string>125</string>
-                 </property>
-                </item>
-                <item>
-                 <property name="text">
-                  <string>165</string>
-                 </property>
-                </item>
-                <item>
-                 <property name="text">
-                  <string>270</string>
-                 </property>
-                </item>
-                <item>
-                 <property name="text">
-                  <string>330</string>
-                 </property>
-                </item>
-                <item>
-                 <property name="text">
-                  <string>400</string>
-                 </property>
-                </item>
-                <item>
-                 <property name="text">
-                  <string>1000</string>
-                 </property>
-                </item>
-                <item>
-                 <property name="text">
-                  <string>2000</string>
-                 </property>
-                </item>
-                <item>
-                 <property name="text">
-                  <string>4000</string>
-                 </property>
-                </item>
-                <item>
-                 <property name="text">
-                  <string>8000</string>
-                 </property>
-                </item>
-                <item>
-                 <property name="text">
-                  <string>12000</string>
-                 </property>
-                </item>
-                <item>
-                 <property name="text">
-                  <string>16666</string>
-                 </property>
-                </item>
-               </widget>
-              </item>
-              <item row="1" column="5">
-               <widget class="QComboBox" name="cb_outputRate4">
-                <property name="enabled">
-                 <bool>false</bool>
-                </property>
-                <property name="sizePolicy">
-                 <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
-                  <horstretch>0</horstretch>
-                  <verstretch>0</verstretch>
-                 </sizepolicy>
-                </property>
-                <property name="minimumSize">
+                <property name="sizeHint" stdset="0">
                  <size>
-                  <width>0</width>
+                  <width>5</width>
                   <height>20</height>
                  </size>
                 </property>
-                <property name="toolTip">
-                 <string>Usual value is 400 Hz for multirotor airframes.
-Newer ESCs support OneShot mode with a higher resolution and shorter pulse.
-Leave at 50Hz for fixed wing.</string>
-                </property>
-                <item>
-                 <property name="text">
-                  <string>SyncPWM</string>
-                 </property>
-                </item>
-                <item>
-                 <property name="text">
-                  <string>50</string>
-                 </property>
-                </item>
-                <item>
-                 <property name="text">
-                  <string>60</string>
-                 </property>
-                </item>
-                <item>
-                 <property name="text">
-                  <string>125</string>
-                 </property>
-                </item>
-                <item>
-                 <property name="text">
-                  <string>165</string>
-                 </property>
-                </item>
-                <item>
-                 <property name="text">
-                  <string>270</string>
-                 </property>
-                </item>
-                <item>
-                 <property name="text">
-                  <string>330</string>
-                 </property>
-                </item>
-                <item>
-                 <property name="text">
-                  <string>400</string>
-                 </property>
-                </item>
-                <item>
-                 <property name="text">
-                  <string>1000</string>
-                 </property>
-                </item>
-                <item>
-                 <property name="text">
-                  <string>2000</string>
-                 </property>
-                </item>
-                <item>
-                 <property name="text">
-                  <string>4000</string>
-                 </property>
-                </item>
-                <item>
-                 <property name="text">
-                  <string>8000</string>
-                 </property>
-                </item>
-                <item>
-                 <property name="text">
-                  <string>12000</string>
-                 </property>
-                </item>
-                <item>
-                 <property name="text">
-                  <string>16666</string>
-                 </property>
-                </item>
-               </widget>
-              </item>
-              <item row="1" column="1">
-               <widget class="QLabel" name="label_3">
-                <property name="sizePolicy">
-                 <sizepolicy hsizetype="Minimum" vsizetype="Preferred">
-                  <horstretch>0</horstretch>
-                  <verstretch>0</verstretch>
-                 </sizepolicy>
-                </property>
-                <property name="minimumSize">
-                 <size>
-                  <width>0</width>
-                  <height>20</height>
-                 </size>
-                </property>
-                <property name="font">
-                 <font>
-                  <weight>75</weight>
-                  <bold>true</bold>
-                 </font>
-                </property>
-                <property name="text">
-                 <string>Update rate:</string>
-                </property>
-                <property name="alignment">
-                 <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-                </property>
-               </widget>
-              </item>
-              <item row="0" column="4">
-               <widget class="QLabel" name="chBank3">
-                <property name="text">
-                 <string>-</string>
-                </property>
-                <property name="alignment">
-                 <set>Qt::AlignCenter</set>
-                </property>
-               </widget>
-              </item>
-              <item row="0" column="6">
-               <widget class="QLabel" name="chBank5">
-                <property name="text">
-                 <string>-</string>
-                </property>
-                <property name="alignment">
-                 <set>Qt::AlignCenter</set>
-                </property>
-               </widget>
-              </item>
-              <item row="1" column="3">
-               <widget class="QComboBox" name="cb_outputRate2">
-                <property name="enabled">
-                 <bool>false</bool>
-                </property>
-                <property name="sizePolicy">
-                 <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
-                  <horstretch>0</horstretch>
-                  <verstretch>0</verstretch>
-                 </sizepolicy>
-                </property>
-                <property name="minimumSize">
-                 <size>
-                  <width>0</width>
-                  <height>20</height>
-                 </size>
-                </property>
-                <property name="toolTip">
-                 <string>Usual value is 400 Hz for multirotor airframes.
-Newer ESCs support OneShot mode with a higher resolution and shorter pulse.
-Leave at 50Hz for fixed wing.</string>
-                </property>
-                <item>
-                 <property name="text">
-                  <string>SyncPWM</string>
-                 </property>
-                </item>
-                <item>
-                 <property name="text">
-                  <string>50</string>
-                 </property>
-                </item>
-                <item>
-                 <property name="text">
-                  <string>60</string>
-                 </property>
-                </item>
-                <item>
-                 <property name="text">
-                  <string>125</string>
-                 </property>
-                </item>
-                <item>
-                 <property name="text">
-                  <string>165</string>
-                 </property>
-                </item>
-                <item>
-                 <property name="text">
-                  <string>270</string>
-                 </property>
-                </item>
-                <item>
-                 <property name="text">
-                  <string>330</string>
-                 </property>
-                </item>
-                <item>
-                 <property name="text">
-                  <string>400</string>
-                 </property>
-                </item>
-                <item>
-                 <property name="text">
-                  <string>1000</string>
-                 </property>
-                </item>
-                <item>
-                 <property name="text">
-                  <string>2000</string>
-                 </property>
-                </item>
-                <item>
-                 <property name="text">
-                  <string>4000</string>
-                 </property>
-                </item>
-                <item>
-                 <property name="text">
-                  <string>8000</string>
-                 </property>
-                </item>
-                <item>
-                 <property name="text">
-                  <string>12000</string>
-                 </property>
-                </item>
-                <item>
-                 <property name="text">
-                  <string>16666</string>
-                 </property>
-                </item>
-               </widget>
-              </item>
-              <item row="0" column="3">
-               <widget class="QLabel" name="chBank2">
-                <property name="text">
-                 <string>-</string>
-                </property>
-                <property name="alignment">
-                 <set>Qt::AlignCenter</set>
-                </property>
-               </widget>
-              </item>
-              <item row="0" column="1">
-               <widget class="QLabel" name="label_9">
-                <property name="font">
-                 <font>
-                  <weight>75</weight>
-                  <bold>true</bold>
-                 </font>
-                </property>
-                <property name="text">
-                 <string>Channel:</string>
-                </property>
-                <property name="alignment">
-                 <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-                </property>
-               </widget>
-              </item>
-              <item row="0" column="5">
-               <widget class="QLabel" name="chBank4">
-                <property name="text">
-                 <string>-</string>
-                </property>
-                <property name="alignment">
-                 <set>Qt::AlignCenter</set>
-                </property>
-               </widget>
-              </item>
-              <item row="0" column="2">
-               <widget class="QLabel" name="chBank1">
-                <property name="text">
-                 <string>-</string>
-                </property>
-                <property name="alignment">
-                 <set>Qt::AlignCenter</set>
-                </property>
-               </widget>
-              </item>
-              <item row="0" column="7">
-               <widget class="QLabel" name="chBank6">
-                <property name="text">
-                 <string>-</string>
-                </property>
-                <property name="alignment">
-                 <set>Qt::AlignCenter</set>
-                </property>
-               </widget>
-              </item>
-              <item row="1" column="2">
-               <widget class="QComboBox" name="cb_outputRate1">
-                <property name="enabled">
-                 <bool>false</bool>
-                </property>
-                <property name="sizePolicy">
-                 <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
-                  <horstretch>0</horstretch>
-                  <verstretch>0</verstretch>
-                 </sizepolicy>
-                </property>
-                <property name="minimumSize">
-                 <size>
-                  <width>0</width>
-                  <height>20</height>
-                 </size>
-                </property>
-                <property name="toolTip">
-                 <string>Usual value is 400 Hz for multirotor airframes.
-Newer ESCs support OneShot mode with a higher resolution and shorter pulse.
-Leave at 50Hz for fixed wing.</string>
-                </property>
-                <item>
-                 <property name="text">
-                  <string>SyncPWM</string>
-                 </property>
-                </item>
-                <item>
-                 <property name="text">
-                  <string>50</string>
-                 </property>
-                </item>
-                <item>
-                 <property name="text">
-                  <string>60</string>
-                 </property>
-                </item>
-                <item>
-                 <property name="text">
-                  <string>125</string>
-                 </property>
-                </item>
-                <item>
-                 <property name="text">
-                  <string>165</string>
-                 </property>
-                </item>
-                <item>
-                 <property name="text">
-                  <string>270</string>
-                 </property>
-                </item>
-                <item>
-                 <property name="text">
-                  <string>330</string>
-                 </property>
-                </item>
-                <item>
-                 <property name="text">
-                  <string>400</string>
-                 </property>
-                </item>
-                <item>
-                 <property name="text">
-                  <string>1000</string>
-                 </property>
-                </item>
-                <item>
-                 <property name="text">
-                  <string>2000</string>
-                 </property>
-                </item>
-                <item>
-                 <property name="text">
-                  <string>4000</string>
-                 </property>
-                </item>
-                <item>
-                 <property name="text">
-                  <string>8000</string>
-                 </property>
-                </item>
-                <item>
-                 <property name="text">
-                  <string>12000</string>
-                 </property>
-                </item>
-                <item>
-                 <property name="text">
-                  <string>16666</string>
-                 </property>
-                </item>
-               </widget>
-              </item>
-              <item row="2" column="2">
-               <widget class="QComboBox" name="cb_outputResolution1">
-                <property name="enabled">
-                 <bool>false</bool>
-                </property>
-                <property name="sizePolicy">
-                 <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
-                  <horstretch>0</horstretch>
-                  <verstretch>0</verstretch>
-                 </sizepolicy>
-                </property>
-                <property name="minimumSize">
-                 <size>
-                  <width>0</width>
-                  <height>20</height>
-                 </size>
-                </property>
-                <property name="toolTip">
-                 <string>Use 12MHz resolution for faster timers for more precision.</string>
-                </property>
-               </widget>
-              </item>
-              <item row="2" column="3">
-               <widget class="QComboBox" name="cb_outputResolution2">
-                <property name="enabled">
-                 <bool>false</bool>
-                </property>
-                <property name="sizePolicy">
-                 <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
-                  <horstretch>0</horstretch>
-                  <verstretch>0</verstretch>
-                 </sizepolicy>
-                </property>
-                <property name="minimumSize">
-                 <size>
-                  <width>0</width>
-                  <height>20</height>
-                 </size>
-                </property>
-                <property name="toolTip">
-                 <string>Use 12MHz resolution for faster timers for more precision.</string>
-                </property>
-               </widget>
-              </item>
-              <item row="2" column="4">
-               <widget class="QComboBox" name="cb_outputResolution3">
-                <property name="enabled">
-                 <bool>false</bool>
-                </property>
-                <property name="sizePolicy">
-                 <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
-                  <horstretch>0</horstretch>
-                  <verstretch>0</verstretch>
-                 </sizepolicy>
-                </property>
-                <property name="minimumSize">
-                 <size>
-                  <width>0</width>
-                  <height>20</height>
-                 </size>
-                </property>
-                <property name="toolTip">
-                 <string>Use 12MHz resolution for faster timers for more precision.</string>
-                </property>
-               </widget>
-              </item>
-              <item row="2" column="5">
-               <widget class="QComboBox" name="cb_outputResolution4">
-                <property name="enabled">
-                 <bool>false</bool>
-                </property>
-                <property name="sizePolicy">
-                 <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
-                  <horstretch>0</horstretch>
-                  <verstretch>0</verstretch>
-                 </sizepolicy>
-                </property>
-                <property name="minimumSize">
-                 <size>
-                  <width>0</width>
-                  <height>20</height>
-                 </size>
-                </property>
-                <property name="toolTip">
-                 <string>Use 12MHz resolution for faster timers for more precision.</string>
-                </property>
-               </widget>
-              </item>
-              <item row="2" column="6">
-               <widget class="QComboBox" name="cb_outputResolution5">
-                <property name="enabled">
-                 <bool>false</bool>
-                </property>
-                <property name="sizePolicy">
-                 <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
-                  <horstretch>0</horstretch>
-                  <verstretch>0</verstretch>
-                 </sizepolicy>
-                </property>
-                <property name="minimumSize">
-                 <size>
-                  <width>0</width>
-                  <height>20</height>
-                 </size>
-                </property>
-                <property name="toolTip">
-                 <string>Use 12MHz resolution for faster timers for more precision.</string>
-                </property>
-               </widget>
-              </item>
-              <item row="2" column="7">
-               <widget class="QComboBox" name="cb_outputResolution6">
-                <property name="enabled">
-                 <bool>false</bool>
-                </property>
-                <property name="sizePolicy">
-                 <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
-                  <horstretch>0</horstretch>
-                  <verstretch>0</verstretch>
-                 </sizepolicy>
-                </property>
-                <property name="minimumSize">
-                 <size>
-                  <width>0</width>
-                  <height>20</height>
-                 </size>
-                </property>
-                <property name="toolTip">
-                 <string>Use 12MHz resolution for faster timers for more precision.</string>
-                </property>
-               </widget>
+               </spacer>
               </item>
              </layout>
             </widget>

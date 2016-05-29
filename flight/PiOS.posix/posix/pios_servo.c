@@ -36,7 +36,7 @@
 /* Private Function Prototypes */
 
 /* Local Variables */
-static volatile uint16_t ServoPosition[PIOS_SERVO_NUM_TIMERS];
+static volatile uint16_t servo_position[PIOS_SERVO_NUM_TIMERS];
 
 /**
 * Initialise Servos
@@ -46,29 +46,39 @@ void PIOS_Servo_Init(void)
 }
 
 /**
-* Set the servo update rate (Max 500Hz)
-* \param[in] onetofour Rate for outputs 1 to 4 (Hz)
-* \param[in] fivetoeight Rate for outputs 5 to 8 (Hz)
-*/
-void PIOS_Servo_SetMode(const uint16_t * speeds, const uint8_t *pwm_mode, uint8_t banks)
+ * @brief PIOS_Servo_SetMode Sets the PWM output frequency and resolution.
+ * An output rate of 0 indicates Synchronous updates (e.g. SyncPWM/OneShot), otherwise
+ * normal PWM at the specified output rate.
+ * @param out_rate array of output rate in Hz, banks elements
+ * @param banks maximum number of banks
+ * @param channel_max array of max pulse lengths, number of channels elements
+ */
+void PIOS_Servo_SetMode(const uint16_t *out_rate, const int banks, const uint16_t *channel_max)
 {
 }
 
 /**
 * Set servo position
-* \param[in] Servo Servo number (0-7)
-* \param[in] Position Servo position in milliseconds
+* \param[in] Servo Servo number (0->num_channels-1)
+* \param[in] Position Servo position in microseconds
 */
-void PIOS_Servo_Set(uint8_t Servo, uint16_t Position)
+void PIOS_Servo_Set(uint8_t servo, float position)
 {
 #ifndef PIOS_ENABLE_DEBUG_PINS
 	/* Make sure servo exists */
-	if (Servo < PIOS_SERVO_NUM_OUTPUTS) {
+	if (servo < PIOS_SERVO_NUM_OUTPUTS) {
 		/* Update the position */
-		ServoPosition[Servo] = Position;
+		servo_position[servo] = position;
 
 	}
 #endif // PIOS_ENABLE_DEBUG_PINS
+}
+
+/**
+* Update the timer for HPWM/OneShot
+*/
+void PIOS_Servo_Update(void)
+{
 }
 
 #endif
