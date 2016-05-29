@@ -135,6 +135,9 @@ static int32_t uavoMavlinkBridgeInitialize(void) {
 			}
 
 			module_enabled = true;
+		}else {
+			module_enabled = false;
+			return -1;
 		}
 	}
 
@@ -414,7 +417,6 @@ static void uavoMavlinkBridgeTask(void *parameters) {
 
 			switch (flightStatus.FlightMode) {
 				case FLIGHTSTATUS_FLIGHTMODE_MANUAL:
-				case FLIGHTSTATUS_FLIGHTMODE_MWRATE:
 				case FLIGHTSTATUS_FLIGHTMODE_VIRTUALBAR:
 				case FLIGHTSTATUS_FLIGHTMODE_HORIZON:
 					/* Kinda a catch all */

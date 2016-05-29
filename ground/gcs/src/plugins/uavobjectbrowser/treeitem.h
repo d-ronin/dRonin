@@ -2,9 +2,11 @@
  ******************************************************************************
  *
  * @file       treeitem.h
+ *
  * @author     The OpenPilot Team, http://www.openpilot.org Copyright (C) 2010.
  * @author     Tau Labs, http://taulabs.org, Copyright (C) 2014
- * @author     dRonin, http://dronin.org Copyright (C) 2015
+ * @author     dRonin, http://dronin.org Copyright (C) 2015-2016
+ *
  * @addtogroup GCSPlugins GCS Plugins
  * @{
  * @addtogroup UAVObjectBrowserPlugin UAVObject Browser Plugin
@@ -25,6 +27,10 @@
  * You should have received a copy of the GNU General Public License along 
  * with this program; if not, write to the Free Software Foundation, Inc., 
  * 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
+ *
+ * Additional note on redistribution: The copyright and license notices above
+ * must be maintained in each individual source file that is a derivative work
+ * of this source file; otherwise redistribution is prohibited.
  */
 
 #ifndef TREEITEM_H
@@ -84,9 +90,6 @@ private:
 
     // The list holding all items due to be updated.
     QLinkedList<TreeItem*> m_itemsList;
-
-    //Mutex to lock when accessing list.
-    QMutex m_listMutex;
 
     // This is the timestamp to compare with
     static QTime *m_currentTime;

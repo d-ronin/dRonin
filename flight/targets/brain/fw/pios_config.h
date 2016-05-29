@@ -104,6 +104,7 @@
 /* OSD stuff */
 #define PIOS_VIDEO_TIM4_COUNTER
 #define PIOS_INCLUDE_VIDEO
+#define PIOS_VIDEO_SPLITBUFFER /* Brain uses 2 1-bit/pixel buffers */
 #define MODULE_FLIGHTSTATS_BUILTIN
 #define PIOS_INCLUDE_DEBUG_CONSOLE
 
@@ -140,6 +141,9 @@
 #define IDLE_COUNTS_PER_SEC_AT_NO_LOAD (9873737)
 
 #define BRAIN
+
+#define PIOS_INCLUDE_LOG_TO_FLASH
+#define PIOS_LOGFLASH_SECT_SIZE 0x1000	/* 4kb */
 
 #endif /* PIOS_CONFIG_H */
 /**

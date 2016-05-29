@@ -75,7 +75,10 @@ int32_t GeofenceInitialize(void)
 	}
 #endif
 
-	GeoFenceSettingsInitialize();
+	if (GeoFenceSettingsInitialize() == -1) {
+		module_enabled = false;
+		return -1;
+	}
 
 	if (module_enabled) {
 		// allocate and initialize the static data storage only if module is enabled

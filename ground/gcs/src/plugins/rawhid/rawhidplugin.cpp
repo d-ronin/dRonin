@@ -31,7 +31,6 @@
 #include <coreplugin/icore.h>
 #include <QtCore/QtPlugin>
 #include <QtCore/QMutexLocker>
-#include <QThread>
 #include <QDebug>
 
 #include "rawhid_const.h"
@@ -43,7 +42,6 @@
 
 RawHIDConnection::RawHIDConnection()
 {
-    //added by andrew
     RawHidHandle = NULL;
     enablePolling = true;
 
@@ -103,6 +101,7 @@ QList < Core::IDevice*> RawHIDConnection::availableDevices()
             dev->setDisplayName(prt.product);
             dev->setVendorID(prt.vendorID);
             dev->setProductID(prt.productID);
+            dev->setPath(prt.path);
             devices.append(dev);
         }
     }
@@ -111,10 +110,8 @@ QList < Core::IDevice*> RawHIDConnection::availableDevices()
 
 QIODevice *RawHIDConnection::openDevice(Core::IDevice *deviceName)
 {
-    //added by andrew
     if (RawHidHandle)
         closeDevice(deviceName->getName());
-    //end added by andrew
 
     // We know this device is (should be?) a USB device:
     USBDevice* usbDev = dynamic_cast<USBDevice*>(deviceName);
@@ -167,18 +164,14 @@ void RawHIDConnection::resumePolling()
 
 RawHIDPlugin::RawHIDPlugin()
 {
-	hidConnection = NULL;	// Pip
+    m_usbMonitor = NULL;
+    hidConnection = NULL;
 }
 
 RawHIDPlugin::~RawHIDPlugin()
 {
-    QThread *q = dynamic_cast<QThread *>(m_usbMonitor);
-
-    if (q != NULL) {
-        q->quit();
-        q->wait(500);
-    }
-
+    if (m_usbMonitor)
+        delete m_usbMonitor;
 }
 
 void RawHIDPlugin::extensionsInitialized()

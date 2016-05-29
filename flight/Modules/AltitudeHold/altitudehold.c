@@ -109,10 +109,21 @@ int32_t AltitudeHoldInitialize()
 	}
 #endif
 
+	if (AltitudeHoldSettingsInitialize() == -1) {
+			module_enabled = false;
+			return -1;
+	}
+
 	if(module_enabled) {
-		AltitudeHoldSettingsInitialize();
-		AltitudeHoldDesiredInitialize();
-		AltitudeHoldStateInitialize();
+		if (AltitudeHoldDesiredInitialize() == -1) {
+			module_enabled = false;
+			return -1;
+		}
+
+		if (AltitudeHoldStateInitialize() == -1) {
+			module_enabled = false;
+			return -1;
+		}
 
 		// Create object queue
 		queue = PIOS_Queue_Create(MAX_QUEUE_SIZE, sizeof(UAVObjEvent));
@@ -245,7 +256,6 @@ static void altitudeHoldTask(void *parameters)
 			altitudeHoldState.Thrust = throttle_desired;
 			AltitudeHoldStateSet(&altitudeHoldState);
 
-			StabilizationDesiredGet(&stabilizationDesired);
 			stabilizationDesired.Thrust = bound_min_max(throttle_desired, min_throttle, 1.0f);
 
 			if (landing) {

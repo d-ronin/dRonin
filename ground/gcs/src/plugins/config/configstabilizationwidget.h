@@ -71,11 +71,9 @@ private slots:
     void processLinkedWidgets(QWidget*);
     void applyRateLimits();
 
-    void showMWRateConvertDialog();
-    void applyMWRateConvertDialog();
-
     void showExpoPlot();
-    void hangtimeChanged();
+    void hangtimeDurationChanged();
+    void hangtimeToggle(bool enabled);
 };
 
 #endif // ConfigStabilizationWidget_H

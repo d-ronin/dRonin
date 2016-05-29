@@ -78,25 +78,25 @@
              <string>&lt;!DOCTYPE HTML PUBLIC &quot;-//W3C//DTD HTML 4.0//EN&quot; &quot;http://www.w3.org/TR/REC-html40/strict.dtd&quot;&gt;
 &lt;html&gt;&lt;head&gt;&lt;meta name=&quot;qrichtext&quot; content=&quot;1&quot; /&gt;&lt;style type=&quot;text/css&quot;&gt;
 p, li { white-space: pre-wrap; }
-&lt;/style&gt;&lt;/head&gt;&lt;body style=&quot; font-family:'.Helvetica Neue DeskInterface'; font-size:13pt; font-weight:400; font-style:normal;&quot;&gt;
+&lt;/style&gt;&lt;/head&gt;&lt;body style=&quot; font-family:'Ubuntu'; font-size:11pt; font-weight:400; font-style:normal;&quot;&gt;
 &lt;p align=&quot;center&quot; style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:'Lucida Grande'; font-size:20pt; font-weight:600; color:#ff0000;&quot;&gt;WARNING:&lt;/span&gt;&lt;/p&gt;
-&lt;p style=&quot;-qt-paragraph-type:empty; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px; font-family:'Lucida Grande';&quot;&gt;&lt;br /&gt;&lt;/p&gt;
-&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:'Lucida Grande';&quot;&gt;This is an advanced plugin for the GCS that is going to make your UAV wiggle automatically, so test in a large open area and be cautious of the values that it creates.&lt;br /&gt;&lt;br /&gt;Please read and understand all of the following steps before attempting an autotune.&lt;br /&gt;&lt;/span&gt;&lt;/p&gt;
-&lt;ol style=&quot;margin-top: 0px; margin-bottom: 0px; margin-left: 0px; margin-right: 0px; -qt-list-indent: 1;&quot;&gt;&lt;li style=&quot; font-family:'Lucida Grande';&quot; style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;Go to https://vimeo.com/104806460 and watch the autotuning tutorial.&lt;/li&gt;
-&lt;p style=&quot;-qt-paragraph-type:empty; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:1; text-indent:0px; font-family:'Lucida Grande';&quot;&gt;&lt;br /&gt;&lt;/p&gt;
-&lt;li style=&quot; font-family:'Lucida Grande';&quot; style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;On the &lt;span style=&quot; font-style:italic;&quot;&gt;Input configuration &lt;/span&gt;page, &lt;span style=&quot; font-style:italic;&quot;&gt;Flight Mode Switch Settings tab&lt;/span&gt;, set one of your flight modes to &amp;quot;Autotune&amp;quot;.&lt;/li&gt;
-&lt;p style=&quot;-qt-paragraph-type:empty; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:1; text-indent:0px; font-family:'Lucida Grande';&quot;&gt;&lt;br /&gt;&lt;/p&gt;
-&lt;li style=&quot; font-family:'Lucida Grande';&quot; style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;Click the &lt;span style=&quot; font-style:italic;&quot;&gt;Enable Autotune Module&lt;/span&gt; checkbox below this text, click S&lt;span style=&quot; font-style:italic;&quot;&gt;ave,&lt;/span&gt; and reboot the flight controller.&lt;br /&gt;&lt;/li&gt;
-&lt;li style=&quot; font-family:'Lucida Grande';&quot; style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;Take off, and when stable, change flight mode to autotune. Focus on keeping the UAV in the air while it's wiggling.&lt;/li&gt;
-&lt;ol type=&quot;a&quot; style=&quot;margin-top: 0px; margin-bottom: 0px; margin-left: 0px; margin-right: 0px; -qt-list-indent: 2;&quot;&gt;&lt;li style=&quot; font-family:'Lucida Grande';&quot; style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;In the first few seconds, nothing will happen...&lt;/li&gt;
-&lt;li style=&quot; font-family:'Lucida Grande';&quot; style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;The the UAV will start wiggling for approximately 60 seconds. It will continue to respond to your inputs, and moving the sticks won't negatively affect the tune.&lt;/li&gt;
-&lt;li style=&quot; font-family:'Lucida Grande';&quot; style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;When the wiggling stops, the measurement phase is completed.&lt;/li&gt;&lt;/ol&gt;
-&lt;p style=&quot;-qt-paragraph-type:empty; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:1; text-indent:0px; font-family:'Lucida Grande';&quot;&gt;&lt;br /&gt;&lt;/p&gt;
-&lt;li style=&quot; font-family:'Lucida Grande';&quot; style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;Land and disarm; the system then saves the measured properties. &lt;br /&gt;&lt;/li&gt;
-&lt;li style=&quot; font-family:'Lucida Grande';&quot; style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;Connect to GCS and check the values on the &lt;span style=&quot; font-style:italic;&quot;&gt;Autotune Setup&lt;/span&gt; page. &lt;br /&gt;&lt;/li&gt;
-&lt;li style=&quot; font-family:'Lucida Grande';&quot; style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;Adjust the values as necessary with the &lt;span style=&quot; font-style:italic;&quot;&gt;Damping&lt;/span&gt; and &lt;span style=&quot; font-style:italic;&quot;&gt;Noise sensitivity&lt;/span&gt; sliders until they appear to be reasonable. When satisfied, click the &lt;span style=&quot; font-style:italic;&quot;&gt;Apply Computed Values&lt;/span&gt; button at the bottom right.&lt;br /&gt;&lt;/li&gt;
-&lt;li style=&quot; font-family:'Lucida Grande';&quot; style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;Return to the &lt;span style=&quot; font-style:italic;&quot;&gt;Stabilization&lt;/span&gt; page and click &lt;span style=&quot; font-style:italic;&quot;&gt;save&lt;/span&gt; to enable the new settings. &lt;br /&gt;&lt;/li&gt;
-&lt;li style=&quot; font-family:'Lucida Grande';&quot; style=&quot; margin-top:0px; margin-bottom:12px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;Ensure that a normal flight mode (not Autotune) is selected prior to the next flight.  If Autotune is left as the active mode, the flight controller will not arm.&lt;/li&gt;&lt;/ol&gt;&lt;/body&gt;&lt;/html&gt;</string>
+&lt;p style=&quot;-qt-paragraph-type:empty; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px; font-family:'Lucida Grande'; font-size:13pt;&quot;&gt;&lt;br /&gt;&lt;/p&gt;
+&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:'Lucida Grande'; font-size:13pt;&quot;&gt;This is an advanced plugin for the GCS that is going to make your UAV wiggle automatically, so test in a large open area and be cautious of the values that it creates.&lt;br /&gt;&lt;br /&gt;Please read and understand all of the following steps before attempting an autotune.&lt;br /&gt;&lt;/span&gt;&lt;/p&gt;
+&lt;ol style=&quot;margin-top: 0px; margin-bottom: 0px; margin-left: 0px; margin-right: 0px; -qt-list-indent: 1;&quot;&gt;&lt;li style=&quot; font-family:'Lucida Grande'; font-size:13pt;&quot; style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;Go to https://vimeo.com/104806460 and watch the autotuning tutorial.&lt;/li&gt;
+&lt;p style=&quot;-qt-paragraph-type:empty; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:1; text-indent:0px; font-family:'Lucida Grande'; font-size:13pt;&quot;&gt;&lt;br /&gt;&lt;/p&gt;
+&lt;li style=&quot; font-family:'Lucida Grande'; font-size:13pt;&quot; style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;On the &lt;span style=&quot; font-style:italic;&quot;&gt;Input configuration &lt;/span&gt;page, &lt;span style=&quot; font-style:italic;&quot;&gt;Flight Mode Switch Settings tab&lt;/span&gt;, set one of your flight modes to &amp;quot;Autotune&amp;quot;.&lt;/li&gt;
+&lt;p style=&quot;-qt-paragraph-type:empty; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:1; text-indent:0px; font-family:'Lucida Grande'; font-size:13pt;&quot;&gt;&lt;br /&gt;&lt;/p&gt;
+&lt;li style=&quot; font-family:'Lucida Grande'; font-size:13pt;&quot; style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;Click the &lt;span style=&quot; font-style:italic;&quot;&gt;Enable Autotune Module&lt;/span&gt; checkbox below this text, click S&lt;span style=&quot; font-style:italic;&quot;&gt;ave,&lt;/span&gt; and reboot the flight controller.&lt;br /&gt;&lt;/li&gt;
+&lt;li style=&quot; font-family:'Lucida Grande'; font-size:13pt;&quot; style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;Take off, and when stable, change flight mode to autotune. Focus on keeping the UAV in the air while it's wiggling.&lt;/li&gt;
+&lt;ol type=&quot;a&quot; style=&quot;margin-top: 0px; margin-bottom: 0px; margin-left: 0px; margin-right: 0px; -qt-list-indent: 2;&quot;&gt;&lt;li style=&quot; font-family:'Lucida Grande'; font-size:13pt;&quot; style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;In the first few seconds, nothing will happen...&lt;/li&gt;
+&lt;li style=&quot; font-family:'Lucida Grande'; font-size:13pt;&quot; style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;The the UAV will start wiggling for approximately 60 seconds. It will continue to respond to your inputs, and moving the sticks won't negatively affect the tune.&lt;/li&gt;
+&lt;li style=&quot; font-family:'Lucida Grande'; font-size:13pt;&quot; style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;When the wiggling stops, the measurement phase is completed.&lt;/li&gt;&lt;/ol&gt;
+&lt;p style=&quot;-qt-paragraph-type:empty; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:1; text-indent:0px; font-family:'Lucida Grande'; font-size:13pt;&quot;&gt;&lt;br /&gt;&lt;/p&gt;
+&lt;li style=&quot; font-family:'Lucida Grande'; font-size:13pt;&quot; style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;Land and disarm; the system then saves the measured properties. &lt;br /&gt;&lt;/li&gt;
+&lt;li style=&quot; font-family:'Lucida Grande'; font-size:13pt;&quot; style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;Connect to GCS and check the values on the &lt;span style=&quot; font-style:italic;&quot;&gt;Autotune Setup&lt;/span&gt; page. &lt;br /&gt;&lt;/li&gt;
+&lt;li style=&quot; font-family:'Lucida Grande'; font-size:13pt;&quot; style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;Adjust the values as necessary with the &lt;span style=&quot; font-style:italic;&quot;&gt;Damping&lt;/span&gt; and &lt;span style=&quot; font-style:italic;&quot;&gt;Noise sensitivity&lt;/span&gt; sliders until they appear to be reasonable. When satisfied, click the &lt;span style=&quot; font-style:italic;&quot;&gt;Apply Computed Values&lt;/span&gt; button at the bottom right.&lt;br /&gt;&lt;/li&gt;
+&lt;li style=&quot; font-family:'Lucida Grande'; font-size:13pt;&quot; style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;Return to the &lt;span style=&quot; font-style:italic;&quot;&gt;Stabilization&lt;/span&gt; page and click &lt;span style=&quot; font-style:italic;&quot;&gt;save&lt;/span&gt; to enable the new settings. &lt;br /&gt;&lt;/li&gt;
+&lt;li style=&quot; font-family:'Lucida Grande'; font-size:13pt;&quot; style=&quot; margin-top:0px; margin-bottom:12px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;Ensure that a normal flight mode (not Autotune) is selected prior to the next flight.  If Autotune is left as the active mode, the flight controller will not arm.&lt;/li&gt;&lt;/ol&gt;&lt;/body&gt;&lt;/html&gt;</string>
             </property>
            </widget>
           </item>
@@ -266,8 +266,8 @@ p, li { white-space: pre-wrap; }
            <rect>
             <x>0</x>
             <y>0</y>
-            <width>429</width>
-            <height>726</height>
+            <width>794</width>
+            <height>960</height>
            </rect>
           </property>
           <property name="sizePolicy">
@@ -588,17 +588,54 @@ p, li { white-space: pre-wrap; }
               <string>Tuning Aggressiveness</string>
              </property>
              <layout class="QGridLayout" name="gridLayout_2">
+              <item row="1" column="0">
+               <widget class="QLabel" name="label_11">
+                <property name="text">
+                 <string>Damping</string>
+                </property>
+               </widget>
+              </item>
+              <item row="2" column="2">
+               <widget class="QLabel" name="lblNoise">
+                <property name="text">
+                 <string>1.0 %</string>
+                </property>
+               </widget>
+              </item>
+              <item row="1" column="1">
+               <widget class="QSlider" name="rateDamp">
+                <property name="minimum">
+                 <number>85</number>
+                </property>
+                <property name="maximum">
+                 <number>150</number>
+                </property>
+                <property name="value">
+                 <number>110</number>
+                </property>
+                <property name="orientation">
+                 <enum>Qt::Horizontal</enum>
+                </property>
+               </widget>
+              </item>
+              <item row="3" column="1">
+               <widget class="QLabel" name="wn">
+                <property name="text">
+                 <string/>
+                </property>
+               </widget>
+              </item>
+              <item row="3" column="0">
+               <widget class="QLabel" name="label_2">
+                <property name="text">
+                 <string>Natural frequency</string>
+                </property>
+               </widget>
+              </item>
               <item row="1" column="2">
                <widget class="QLabel" name="lblDamp">
                 <property name="text">
                  <string>1.10</string>
-                </property>
-               </widget>
-              </item>
-              <item row="2" column="0">
-               <widget class="QLabel" name="label">
-                <property name="text">
-                 <string>Noise sensitivity</string>
                 </property>
                </widget>
               </item>
@@ -621,47 +658,10 @@ p, li { white-space: pre-wrap; }
                 </property>
                </widget>
               </item>
-              <item row="3" column="1">
-               <widget class="QLabel" name="wn">
+              <item row="2" column="0">
+               <widget class="QLabel" name="label">
                 <property name="text">
-                 <string/>
-                </property>
-               </widget>
-              </item>
-              <item row="1" column="1">
-               <widget class="QSlider" name="rateDamp">
-                <property name="minimum">
-                 <number>85</number>
-                </property>
-                <property name="maximum">
-                 <number>150</number>
-                </property>
-                <property name="value">
-                 <number>110</number>
-                </property>
-                <property name="orientation">
-                 <enum>Qt::Horizontal</enum>
-                </property>
-               </widget>
-              </item>
-              <item row="3" column="0">
-               <widget class="QLabel" name="label_2">
-                <property name="text">
-                 <string>Natural frequency</string>
-                </property>
-               </widget>
-              </item>
-              <item row="1" column="0">
-               <widget class="QLabel" name="label_11">
-                <property name="text">
-                 <string>Damping</string>
-                </property>
-               </widget>
-              </item>
-              <item row="2" column="2">
-               <widget class="QLabel" name="lblNoise">
-                <property name="text">
-                 <string>1.0 %</string>
+                 <string>Noise sensitivity</string>
                 </property>
                </widget>
               </item>
@@ -692,7 +692,7 @@ p, li { white-space: pre-wrap; }
             </spacer>
            </item>
            <item>
-            <widget class="QGroupBox" name="groupBox_2">
+            <widget class="QGroupBox" name="gbxComputed">
              <property name="sizePolicy">
               <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
                <horstretch>0</horstretch>
@@ -703,36 +703,29 @@ p, li { white-space: pre-wrap; }
               <string>Computed Values</string>
              </property>
              <layout class="QGridLayout" name="gridLayout_3">
-              <item row="0" column="1">
-               <widget class="QLabel" name="label_5">
+              <item row="3" column="1">
+               <widget class="QLabel" name="yawRateKp">
                 <property name="text">
-                 <string>RateKp</string>
+                 <string>-</string>
                 </property>
                </widget>
               </item>
-              <item row="0" column="2">
-               <widget class="QLabel" name="label_9">
+              <item row="7" column="2">
+               <widget class="QLabel" name="label_22">
                 <property name="text">
-                 <string>RateKi</string>
-                </property>
-               </widget>
-              </item>
-              <item row="0" column="3">
-               <widget class="QLabel" name="label_10">
-                <property name="text">
-                 <string>RateKd</string>
-                </property>
-               </widget>
-              </item>
-              <item row="1" column="0">
-               <widget class="QLabel" name="label_4">
-                <property name="text">
-                 <string>Roll</string>
+                 <string>Outer Ki</string>
                 </property>
                </widget>
               </item>
               <item row="1" column="1">
                <widget class="QLabel" name="rollRateKp">
+                <property name="text">
+                 <string>0</string>
+                </property>
+               </widget>
+              </item>
+              <item row="7" column="1">
+               <widget class="QLabel" name="lblOuterKp">
                 <property name="text">
                  <string>0</string>
                 </property>
@@ -745,8 +738,78 @@ p, li { white-space: pre-wrap; }
                 </property>
                </widget>
               </item>
-              <item row="1" column="3">
-               <widget class="QLabel" name="rollRateKd">
+              <item row="8" column="1">
+               <widget class="QLabel" name="derivativeCutoff">
+                <property name="text">
+                 <string>0</string>
+                </property>
+               </widget>
+              </item>
+              <item row="8" column="0">
+               <widget class="QLabel" name="label_18">
+                <property name="text">
+                 <string>Derivative cutoff</string>
+                </property>
+               </widget>
+              </item>
+              <item row="0" column="1">
+               <widget class="QLabel" name="label_5">
+                <property name="text">
+                 <string>RateKp</string>
+                </property>
+               </widget>
+              </item>
+              <item row="3" column="0">
+               <widget class="QLabel" name="lblYawComputed">
+                <property name="text">
+                 <string>Yaw</string>
+                </property>
+               </widget>
+              </item>
+              <item row="3" column="2">
+               <widget class="QLabel" name="yawRateKi">
+                <property name="text">
+                 <string>-</string>
+                </property>
+               </widget>
+              </item>
+              <item row="2" column="3">
+               <widget class="QLabel" name="pitchRateKd">
+                <property name="text">
+                 <string>0</string>
+                </property>
+               </widget>
+              </item>
+              <item row="2" column="1">
+               <widget class="QLabel" name="pitchRateKp">
+                <property name="text">
+                 <string>0</string>
+                </property>
+               </widget>
+              </item>
+              <item row="0" column="3">
+               <widget class="QLabel" name="label_10">
+                <property name="text">
+                 <string>RateKd</string>
+                </property>
+               </widget>
+              </item>
+              <item row="3" column="3">
+               <widget class="QLabel" name="yawRateKd">
+                <property name="text">
+                 <string>-</string>
+                </property>
+               </widget>
+              </item>
+              <item row="1" column="0">
+               <widget class="QLabel" name="label_4">
+                <property name="text">
+                 <string>Roll</string>
+                </property>
+               </widget>
+              </item>
+              <item row="2" column="2">
+               <widget class="QLabel" name="pitchRateKi">
                 <property name="text">
                  <string>0</string>
                 </property>
@@ -759,28 +822,28 @@ p, li { white-space: pre-wrap; }
                 </property>
                </widget>
               </item>
-              <item row="2" column="1">
-               <widget class="QLabel" name="pitchRateKp">
+              <item row="1" column="3">
+               <widget class="QLabel" name="rollRateKd">
                 <property name="text">
                  <string>0</string>
                 </property>
                </widget>
               </item>
-              <item row="2" column="2">
-               <widget class="QLabel" name="pitchRateKi">
+              <item row="0" column="2">
+               <widget class="QLabel" name="label_9">
                 <property name="text">
-                 <string>0</string>
+                 <string>RateKi</string>
                 </property>
                </widget>
               </item>
-              <item row="2" column="3">
-               <widget class="QLabel" name="pitchRateKd">
+              <item row="4" column="0" colspan="4">
+               <widget class="QCheckBox" name="cbUseYaw">
                 <property name="text">
-                 <string>0</string>
+                 <string>Use experimental yaw tuning</string>
                 </property>
                </widget>
               </item>
-              <item row="3" column="0">
+              <item row="6" column="0">
                <widget class="QLabel" name="label_19">
                 <property name="maximumSize">
                  <size>
@@ -793,31 +856,66 @@ p, li { white-space: pre-wrap; }
                 </property>
                </widget>
               </item>
-              <item row="4" column="0">
+              <item row="7" column="0">
                <widget class="QLabel" name="label_15">
                 <property name="text">
                  <string>Outer Kp</string>
                 </property>
                </widget>
               </item>
-              <item row="4" column="1">
-               <widget class="QLabel" name="lblOuterKp">
+              <item row="7" column="3">
+               <widget class="QLabel" name="lblOuterKi">
                 <property name="text">
                  <string>0</string>
                 </property>
                </widget>
               </item>
-              <item row="5" column="0">
-               <widget class="QLabel" name="label_18">
+              <item row="5" column="0" colspan="4">
+               <widget class="QLabel" name="label_21">
                 <property name="text">
-                 <string>Derivative cutoff</string>
+                 <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600; color:#ff0000;&quot;&gt;Note: &lt;/span&gt;&lt;span style=&quot; color:#ff0000;&quot;&gt;Yaw tuning is currently experimental only. Please exercise appropriate care if utilising this option.&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                </property>
+                <property name="wordWrap">
+                 <bool>true</bool>
                 </property>
                </widget>
               </item>
-              <item row="5" column="1">
-               <widget class="QLabel" name="derivativeCutoff">
+              <item row="9" column="0" colspan="4">
+               <widget class="QCheckBox" name="cbUseOuterKi">
                 <property name="text">
-                 <string>0</string>
+                 <string>Use experimetal outer loop Ki tuning</string>
+                </property>
+               </widget>
+              </item>
+              <item row="10" column="0" colspan="4">
+               <widget class="QLabel" name="label_23">
+                <property name="text">
+                 <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600; color:#ff0000;&quot;&gt;Note: &lt;/span&gt;&lt;span style=&quot; color:#ff0000;&quot;&gt;Outer loop K&lt;/span&gt;&lt;span style=&quot; color:#ff0000; vertical-align:sub;&quot;&gt;i&lt;/span&gt;&lt;span style=&quot; color:#ff0000;&quot;&gt; tuning is currently experimental only. Please exercise appropriate care if utilising this option.&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                </property>
+                <property name="wordWrap">
+                 <bool>true</bool>
+                </property>
+               </widget>
+              </item>
+             </layout>
+            </widget>
+           </item>
+           <item>
+            <widget class="QGroupBox" name="gbxFailure">
+             <property name="title">
+              <string>Tuning Failed</string>
+             </property>
+             <layout class="QVBoxLayout" name="verticalLayout_5">
+              <item>
+               <widget class="QLabel" name="lblFailure">
+                <property name="styleSheet">
+                 <string notr="true">background: rgb(255, 218, 218)</string>
+                </property>
+                <property name="text">
+                 <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Unfortunately the tune &lt;span style=&quot; font-weight:600; color:#ff0000;&quot;&gt;failed&lt;/span&gt; to converge. &lt;/p&gt;&lt;p&gt;This can happen due to a bad tune, or bad settings on the tuning sliders above. You can try clicking &amp;quot;Reset Sliders&amp;quot; or adjusting the sliders yourself.&lt;/p&gt;&lt;p&gt;You can still share the tune for analysis by the developers, but it cannot be applied.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                </property>
+                <property name="wordWrap">
+                 <bool>true</bool>
                 </property>
                </widget>
               </item>
@@ -853,7 +951,7 @@ p, li { white-space: pre-wrap; }
                    <string notr="true"/>
                   </property>
                   <property name="text">
-                   <string>Apply Computed Values</string>
+                   <string>Copy Tune to Stabilization Tab</string>
                   </property>
                  </widget>
                 </item>

@@ -138,18 +138,23 @@ static enum mag_calibration_algo mag_calibration_algo = MAG_CALIBRATION_PRELEMAR
  */
 static int32_t SensorsInitialize(void)
 {
-	GyrosInitialize();
-	GyrosBiasInitialize();
-	AccelsInitialize();
-	BaroAltitudeInitialize();
-	MagnetometerInitialize();
-	MagBiasInitialize();
-	AttitudeSettingsInitialize();
-	SensorSettingsInitialize();
-	INSSettingsInitialize();
+	if (GyrosInitialize() == -1 \
+		|| GyrosBiasInitialize() == -1 \
+		|| AccelsInitialize() == -1 \
+		|| BaroAltitudeInitialize() == -1 \
+		|| MagnetometerInitialize() == -1 \
+		|| MagBiasInitialize() == -1 \
+		|| AttitudeSettingsInitialize() == -1 \
+		|| SensorSettingsInitialize() == -1 \
+		|| INSSettingsInitialize() == -1) {
+
+		return -1;
+	}
 
 #if defined (PIOS_INCLUDE_OPTICALFLOW)
-	OpticalFlowSettingsInitialize();
+	if (OpticalFlowSettingsInitialize() == -1){
+		return -1;
+	}
 	OpticalFlowSettingsData opticalFlowSettings;
 	OpticalFlowSettingsGet(&opticalFlowSettings);
 	switch (opticalFlowSettings.SensorType ){
@@ -169,13 +174,17 @@ static int32_t SensorsInitialize(void)
 	}
 
 	if (PIOS_SENSORS_GetQueue(PIOS_SENSOR_OPTICAL_FLOW) != NULL ) {
-		OpticalFlowInitialize();
+		if (OpticalFlowInitialize() == -1) {
+			return -1;
+		}
 	}
 #endif /* PIOS_INCLUDE_OPTICALFLOW */
 
 #if defined (PIOS_INCLUDE_RANGEFINDER)
 	if (PIOS_SENSORS_GetQueue(PIOS_SENSOR_RANGEFINDER) != NULL ) {
-		RangefinderDistanceInitialize();
+		if (RangefinderDistanceInitialize() == -1) {
+			return -1;
+		}
 	}
 #endif /* PIOS_INCLUDE_RANGEFINDER */
 
@@ -204,7 +213,7 @@ static int32_t SensorsStart(void)
 	return 0;
 }
 
-MODULE_INITCALL(SensorsInitialize, SensorsStart);
+MODULE_HIPRI_INITCALL(SensorsInitialize, SensorsStart);
 
 
 /**

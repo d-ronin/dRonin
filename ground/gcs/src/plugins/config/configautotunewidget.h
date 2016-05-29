@@ -54,12 +54,15 @@ private:
     UAVObjectUtilManager* utilMngr;
     AutotuneShareForm *autotuneShareForm;
     ConfigGadgetWidget *parentConfigWidget;
+    int iterations;
+    bool converged;
 
     bool approveSettings(SystemIdent::DataFields systemIdentData);
     QJsonDocument getResultsJson();
     QString getResultsPlainText();
     void saveUserData();
     void loadUserData();
+    void setApplyEnabled(const bool enable);
 
     static const QString databaseUrl;
 
@@ -76,6 +79,8 @@ private slots:
     void onShareToDatabase();
     void onShareToClipboard();
     void onShareToDatabaseComplete(QNetworkReply *reply);
+    void onYawTuneToggled(bool checked);
+    void onStabSettingsUpdated(UAVObject *obj);
 };
 
 #endif // CONFIGAUTOTUNE_H

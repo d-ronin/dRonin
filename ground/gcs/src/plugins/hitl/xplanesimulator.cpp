@@ -68,7 +68,6 @@
 #include "xplanesimulator.h"
 #include "extensionsystem/pluginmanager.h"
 #include <coreplugin/icore.h>
-#include <coreplugin/threadmanager.h>
 #include <math.h>
 
 void TraceBuf(const char* buf,int len);

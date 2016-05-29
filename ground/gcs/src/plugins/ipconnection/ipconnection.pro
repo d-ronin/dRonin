@@ -7,7 +7,6 @@ HEADERS += ipconnectionplugin.h \
     ipconnection_global.h \
     ipconnectionconfiguration.h \
     ipconnectionoptionspage.h \
-    ipconnection_internal.h \
     ipdevice.h
 SOURCES += ipconnectionplugin.cpp \
     ipconnectionconfiguration.cpp \

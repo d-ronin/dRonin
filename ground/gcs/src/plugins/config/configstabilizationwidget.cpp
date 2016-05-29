@@ -32,7 +32,6 @@
  */
 
 #include "configstabilizationwidget.h"
-#include "convertmwrate.h"
 #include "manualcontrolsettings.h"
 
 #include <QDebug>
@@ -63,10 +62,11 @@ ConfigStabilizationWidget::ConfigStabilizationWidget(QWidget *parent) : ConfigTa
         m_stabilization->saveStabilizationToRAM_6->setVisible(false);
 
     // display switch arming not selected warning when hangtime enabled
-    connect(m_stabilization->sbHangtime, SIGNAL(valueChanged(double)), this, SLOT(hangtimeChanged()));
+    connect(m_stabilization->sbHangtimeDuration, SIGNAL(valueChanged(double)), this, SLOT(hangtimeDurationChanged()));
     manualControlSettings = getObjectManager()->getObject(ManualControlSettings::NAME);
     if (manualControlSettings)
-        connect(manualControlSettings, SIGNAL(objectUpdated(UAVObject*)), this, SLOT(hangtimeChanged()));
+        connect(manualControlSettings, SIGNAL(objectUpdated(UAVObject*)), this, SLOT(hangtimeDurationChanged()));
+    connect(m_stabilization->gbHangtime, SIGNAL(toggled(bool)), this, SLOT(hangtimeToggle(bool)));
 
 
     autoLoadWidgets();
@@ -77,8 +77,6 @@ ConfigStabilizationWidget::ConfigStabilizationWidget(QWidget *parent) : ConfigTa
     connect(m_stabilization->checkBox_3,SIGNAL(stateChanged(int)),this,SLOT(linkCheckBoxes(int)));
 
     connect(this,SIGNAL(widgetContentsChanged(QWidget*)),this,SLOT(processLinkedWidgets(QWidget*)));
-
-    connect(m_stabilization->calculateMW, SIGNAL(clicked()), this, SLOT(showMWRateConvertDialog()));
 
     disableMouseWheelEvents();
 
@@ -212,22 +210,6 @@ void ConfigStabilizationWidget::processLinkedWidgets(QWidget * widget)
             m_stabilization->AttitudeRollILimit->setValue(m_stabilization->AttitudePitchILimit_2->value());
         }
     }
-
-    // sync the multiwii rate settings
-    if (m_stabilization->cb_linkMwRollPitch->checkState()==Qt::Checked) {
-        if (widget == m_stabilization->MWRatePitchKp)
-            m_stabilization->MWRateRollKp->setValue(m_stabilization->MWRatePitchKp->value());
-        else if (widget == m_stabilization->MWRateRollKp)
-            m_stabilization->MWRatePitchKp->setValue(m_stabilization->MWRateRollKp->value());
-        else if (widget == m_stabilization->MWRatePitchKi)
-            m_stabilization->MWRateRollKi->setValue(m_stabilization->MWRatePitchKi->value());
-        else if (widget == m_stabilization->MWRateRollKi)
-            m_stabilization->MWRatePitchKi->setValue(m_stabilization->MWRateRollKi->value());
-        else if (widget == m_stabilization->MWRatePitchKd)
-            m_stabilization->MWRateRollKd->setValue(m_stabilization->MWRatePitchKd->value());
-        else if (widget == m_stabilization->MWRateRollKd)
-            m_stabilization->MWRatePitchKd->setValue(m_stabilization->MWRateRollKd->value());
-    }
 }
 
 void ConfigStabilizationWidget::applyRateLimits()
@@ -242,31 +224,6 @@ void ConfigStabilizationWidget::applyRateLimits()
     m_stabilization->fullStickRatePitch->setMaximum(maxRate);
     m_stabilization->fullStickRateYaw->setMaximum(maxRate);
 }
-
-void ConfigStabilizationWidget::showMWRateConvertDialog()
-{
-    ConvertMWRate *dialog = new ConvertMWRate(this);
-
-    connect(dialog, SIGNAL(accepted()), this, SLOT(applyMWRateConvertDialog()));
-    dialog->exec();
-}
-
-void ConfigStabilizationWidget::applyMWRateConvertDialog()
-{
-    ConvertMWRate *dialog = dynamic_cast<ConvertMWRate *>(sender());
-    if (dialog) {
-        m_stabilization->MWRateRollKp->setValue(dialog->getRollKp());
-        m_stabilization->MWRateRollKi->setValue(dialog->getRollKi());
-        m_stabilization->MWRateRollKd->setValue(dialog->getRollKd());
-        m_stabilization->MWRatePitchKp->setValue(dialog->getPitchKp());
-        m_stabilization->MWRatePitchKi->setValue(dialog->getPitchKi());
-        m_stabilization->MWRatePitchKd->setValue(dialog->getPitchKd());
-        m_stabilization->MWRateYawKp->setValue(dialog->getYawKp());
-        m_stabilization->MWRateYawKi->setValue(dialog->getYawKi());
-        m_stabilization->MWRateYawKd->setValue(dialog->getYawKd());
-    }
-}
-
 
 /**
  * @brief ConfigStabilizationWidget::showExpoPlot() Gets the data from the data fileds in UI, and calls the corresponding functions to plot the data.
@@ -397,9 +354,15 @@ void ConfigStabilizationWidget::showExpoPlot()
     }
 }
 
-void ConfigStabilizationWidget::hangtimeChanged()
+void ConfigStabilizationWidget::hangtimeDurationChanged()
 {
-    bool warn = m_stabilization->sbHangtime->value() > 0.0;
+    bool warn = m_stabilization->sbHangtimeDuration->value() > 0.0;
+
+    if (warn && !m_stabilization->gbHangtime->isChecked())
+        m_stabilization->gbHangtime->setChecked(true);
+    else if (!warn && m_stabilization->gbHangtime->isChecked())
+        m_stabilization->gbHangtime->setChecked(false);
+
     if (manualControlSettings) {
         UAVObjectField *field = manualControlSettings->getField("Arming");
         if (field) {
@@ -408,4 +371,12 @@ void ConfigStabilizationWidget::hangtimeChanged()
         }
     }
     m_stabilization->lblSwitchArmingWarning->setVisible(warn);
+}
+
+void ConfigStabilizationWidget::hangtimeToggle(bool enabled)
+{
+    if (!enabled)
+        m_stabilization->sbHangtimeDuration->setValue(0.0); // 0.0 is disabled
+    else if(m_stabilization->sbHangtimeDuration->value() == 0.0)
+        m_stabilization->sbHangtimeDuration->setValue(2.5); // default duration in s
 }

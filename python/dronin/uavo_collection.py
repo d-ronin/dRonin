@@ -48,6 +48,9 @@ class UAVOCollection(dict):
 
         # Build up the UAV objects from the xml definitions
         for f_info in f_members:
+            if f_info.name.count("oplinksettings") > 0:
+                continue
+
             f = t.extractfile(f_info)
 
             u = uavo.make_class(self, f)

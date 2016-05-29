@@ -134,11 +134,15 @@ int32_t GroundPathFollowerInitialize()
 		return -1;
 	}
 
-	GroundPathFollowerSettingsInitialize();
-	PathStatusInitialize();
-	NedAccelInitialize();
-	PathDesiredInitialize();
-	VelocityDesiredInitialize();
+	if (GroundPathFollowerSettingsInitialize() == -1 \
+		|| PathStatusInitialize() == -1 \
+		|| NedAccelInitialize() == -1 \
+		|| PathDesiredInitialize() == -1 \
+		|| VelocityDesiredInitialize() == -1) {
+
+		module_enabled = false;
+		return -1;
+	}
 
 	return 0;
 }

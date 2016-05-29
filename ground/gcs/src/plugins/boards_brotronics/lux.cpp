@@ -136,16 +136,19 @@ bool Lux::setInputType(enum InputType type)
 
     switch(type) {
     case INPUT_TYPE_PPM:
-        settings.RcvrPort = HwLux::RCVRPORT_PPM;
+        // always enabled, do nothing
         break;
     case INPUT_TYPE_SBUS:
-        settings.RcvrPort = HwLux::RCVRPORT_SBUS;
+        settings.RxPort = HwLux::RXPORT_SBUS;
         break;
     case INPUT_TYPE_DSM:
-        settings.RcvrPort = HwLux::RCVRPORT_DSM;
+        settings.RxPort = HwLux::RXPORT_DSM;
         break;
     case INPUT_TYPE_HOTTSUMD:
-        settings.RcvrPort = HwLux::RCVRPORT_HOTTSUMD;
+        settings.RxPort = HwLux::RXPORT_HOTTSUMD;
+        break;
+    case INPUT_TYPE_HOTTSUMH:
+        settings.RxPort = HwLux::RXPORT_HOTTSUMH;
         break;
     default:
         return false;
@@ -172,17 +175,17 @@ enum Core::IBoardType::InputType Lux::getInputType()
 
     HwLux::DataFields settings = hwLux->getData();
 
-    switch(settings.RcvrPort) {
-    case HwLux::RCVRPORT_PPM:
-        return INPUT_TYPE_PPM;
-    case HwLux::RCVRPORT_SBUS:
+    switch(settings.RxPort) {
+    case HwLux::RXPORT_SBUS:
         return INPUT_TYPE_SBUS;
-    case HwLux::RCVRPORT_DSM:
+    case HwLux::RXPORT_DSM:
         return INPUT_TYPE_DSM;
-    case HwLux::RCVRPORT_HOTTSUMD:
+    case HwLux::RXPORT_HOTTSUMD:
         return INPUT_TYPE_HOTTSUMD;
+    case HwLux::RXPORT_HOTTSUMH:
+        return INPUT_TYPE_HOTTSUMH;
     default:
-        return INPUT_TYPE_UNKNOWN;
+        return INPUT_TYPE_PPM;
     }
 }
 

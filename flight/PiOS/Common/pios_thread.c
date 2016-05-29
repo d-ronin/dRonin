@@ -205,7 +205,8 @@ void PIOS_Thread_Scheduler_Resume(void)
 
 #elif defined(PIOS_INCLUDE_CHIBIOS)
 
-#define ST2MS(n) (((((n) - 1UL) * 1000UL) / CH_FREQUENCY) + 1UL)
+#define CVT_MS2ST(msec) ((systime_t)(((((uint32_t)(msec)) * ((uint64_t)CH_FREQUENCY) - 1UL) / 1000UL) + 1UL))
+#define CVT_ST2MS(n) (((((n) - 1ULL) * 1000ULL) / ((uint64_t)CH_FREQUENCY)) + 1UL)
 
 /**
  * Compute size that is at rounded up to the nearest
@@ -320,7 +321,7 @@ void PIOS_Thread_Delete(struct pios_thread *threadp)
  */
 uint32_t PIOS_Thread_Systime(void)
 {
-	return (uint32_t)ST2MS(chTimeNow());
+	return (uint32_t)CVT_ST2MS(chTimeNow());
 }
 
 /**
@@ -349,17 +350,34 @@ void PIOS_Thread_Sleep(uint32_t time_ms)
  */
 void PIOS_Thread_Sleep_Until(uint32_t *previous_ms, uint32_t increment_ms)
 {
-	systime_t future = MS2ST(*previous_ms) + MS2ST(increment_ms);
+	// Do the math in the millisecond domain.
+	*previous_ms += increment_ms;
+
+	systime_t future = CVT_MS2ST(*previous_ms);
+	systime_t increment_st = CVT_MS2ST(increment_ms);
+
 	chSysLock();
+
 	systime_t now = chTimeNow();
-	int mustDelay =
-		now < MS2ST(*previous_ms) ?
-		(now < future && future < MS2ST(*previous_ms)) :
-		(now < future || future < MS2ST(*previous_ms));
-	if (mustDelay)
-		chThdSleepS(future - now);
+	systime_t sleep_time = future - now;
+
+	if (sleep_time > increment_st) {
+		// OK, the calculated sleep time is much longer than
+		// the desired interval.  There's two possibilities:
+		// 1) We were already late!  If so just don't sleep.
+		// 2) The timer wrapped. (at 49 days)  Just don't sleep.
+
+		if ((now - future) > increment_st) {
+			// However, in this particular case we need to fix up
+			// the clock.  If we're very late, OR WRAPPED,
+			// don't try and keep on the previous timebase.
+			*previous_ms = CVT_ST2MS(now);
+		}
+	} else {
+		chThdSleepS(sleep_time);
+	}
+
 	chSysUnlock();
-	*previous_ms = ST2MS(future);
 }
 
 /**

@@ -127,15 +127,17 @@ int32_t AttitudeStart(void)
  */
 int32_t AttitudeInitialize(void)
 {
-	AttitudeActualInitialize();
-	SensorSettingsInitialize();
-	AttitudeSettingsInitialize();
-	AccelsInitialize();
-	GyrosInitialize();
+	if (AttitudeActualInitialize() == -1 \
+		|| SensorSettingsInitialize() == -1 \
+		|| AttitudeSettingsInitialize() == -1 \
+		|| AccelsInitialize() == -1 \
+		|| GyrosInitialize()  == -1) {
+
+		return -1;
+	}
 	
 	// Initialize quaternion
 	AttitudeActualData attitude;
-	AttitudeActualGet(&attitude);
 	attitude.q1 = 1;
 	attitude.q2 = 0;
 	attitude.q3 = 0;
@@ -161,7 +163,7 @@ int32_t AttitudeInitialize(void)
 	return 0;
 }
 
-MODULE_INITCALL(AttitudeInitialize, AttitudeStart)
+MODULE_HIPRI_INITCALL(AttitudeInitialize, AttitudeStart)
 
 /**
  * Module thread, should not return.
@@ -546,10 +548,12 @@ static void updateAttitude(AccelsData * accelsData, GyrosData * gyrosData)
 		q[3] = 0;
 	}
 	
-	AttitudeActualData attitudeActual;
-	AttitudeActualGet(&attitudeActual);
-	
-	quat_copy(q, &attitudeActual.q1);
+	AttitudeActualData attitudeActual = {
+		.q1 = q[0],
+		.q2 = q[1],
+		.q3 = q[2],
+		.q4 = q[3],
+	};
 	
 	// Convert into eueler degrees (makes assumptions about RPY order)
 	Quaternion2RPY(&attitudeActual.q1,&attitudeActual.Roll);

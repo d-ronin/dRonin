@@ -136,18 +136,6 @@ int sensors_count;
 static void SensorsTask(void *parameters)
 {
 	AlarmsClear(SYSTEMALARMS_ALARM_SENSORS);
-	
-//	HomeLocationData homeLocation;
-//	HomeLocationGet(&homeLocation);
-//	homeLocation.Latitude = 0;
-//	homeLocation.Longitude = 0;
-//	homeLocation.Altitude = 0;
-//	homeLocation.Be[0] = 26000;
-//	homeLocation.Be[1] = 400;
-//	homeLocation.Be[2] = 40000;
-//	homeLocation.Set = HOMELOCATION_SET_TRUE;
-//	HomeLocationSet(&homeLocation);
-
 
 	PIOS_SENSORS_SetMaxGyro(500);
 	// Main task loop

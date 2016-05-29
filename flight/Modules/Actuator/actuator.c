@@ -127,29 +127,40 @@ int32_t ActuatorStart()
 int32_t ActuatorInitialize()
 {
 	// Register for notification of changes to ActuatorSettings
-	ActuatorSettingsInitialize();
+	if (ActuatorSettingsInitialize()  == -1) {
+		return -1;
+	}
 	ActuatorSettingsConnectCallbackCtx(UAVObjCbSetFlag, &settings_updated);
 
 	// Register for notification of changes to MixerSettings
-	MixerSettingsInitialize();
+	if (MixerSettingsInitialize()  == -1) {
+		return -1;
+	}
 	MixerSettingsConnectCallbackCtx(UAVObjCbSetFlag, &settings_updated);
 
 	// Listen for ActuatorDesired updates (Primary input to this module)
-	ActuatorDesiredInitialize();
+	if (ActuatorDesiredInitialize()  == -1) {
+		return -1;
+	}
+
 	queue = PIOS_Queue_Create(MAX_QUEUE_SIZE, sizeof(UAVObjEvent));
 	ActuatorDesiredConnectQueue(queue);
 
 	// Primary output of this module
-	ActuatorCommandInitialize();
+	if (ActuatorCommandInitialize() == -1) {
+		return -1;
+	}
 
 #if defined(MIXERSTATUS_DIAGNOSTICS)
 	// UAVO only used for inspecting the internal status of the mixer during debug
-	MixerStatusInitialize();
+	if (MixerStatusInitialize()  == -1) {
+		return -1;
+	}
 #endif
 
 	return 0;
 }
-MODULE_INITCALL(ActuatorInitialize, ActuatorStart);
+MODULE_HIPRI_INITCALL(ActuatorInitialize, ActuatorStart);
 
 static float get_curve2_source(ActuatorDesiredData *desired, SystemSettingsAirframeTypeOptions airframe_type, MixerSettingsCurve2SourceOptions source)
 {
@@ -286,9 +297,6 @@ static void actuator_task(void* parameters)
 			manualControlCommandUpdated = false;
 		}
 
-#if defined(MIXERSTATUS_DIAGNOSTICS)
-		MixerStatusGet(&mixerStatus);
-#endif
 		int nMixers = 0;
 
 		for (int ct = 0; ct < MAX_MIX_ACTUATORS; ct++) {
@@ -315,7 +323,7 @@ static void actuator_task(void* parameters)
 			throttle_source = desired.Thrust;
 		}
 
-		bool stabilize_now = throttle_source > 0.0f;
+		bool stabilize_now = armed && (throttle_source > 0.0f);
 
 		static uint32_t last_pos_throttle_time = 0;
 
@@ -445,9 +453,13 @@ static void actuator_task(void* parameters)
 			command.MaxUpdateTime = 1000.0f*dT;
 
 		// Update output object
-		ActuatorCommandSet(&command);
-		// Update in case read only (eg. during servo configuration)
-		ActuatorCommandGet(&command);
+		if (!ActuatorCommandReadOnly()) {
+			ActuatorCommandSet(&command);
+		} else {
+			// it's read only during servo configuration--
+			// so GCS takes precedence.
+			ActuatorCommandGet(&command);
+		}
 
 #if defined(MIXERSTATUS_DIAGNOSTICS)
 		MixerStatusSet(&mixerStatus);

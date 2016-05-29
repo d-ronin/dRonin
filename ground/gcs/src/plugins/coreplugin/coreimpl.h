@@ -59,7 +59,6 @@ public:
     BoardManager *boardManager() const;
     GlobalMessaging *globalMessaging() const;
     UAVGadgetInstanceManager *uavGadgetInstanceManager() const;
-    ThreadManager *threadManager() const;
     ModeManager *modeManager() const;
 
     QSettings *settings(QSettings::Scope scope = QSettings::UserScope) const;

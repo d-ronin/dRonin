@@ -212,9 +212,9 @@ static void PIOS_INTERNAL_ADC_Converter_Config(uint32_t internal_adc_id)
 		ADC_DeInit(adc_dev->cfg->adc_dev_slave);
 
 	if (adc_dev->cfg->adc_dev_master == ADC1 || adc_dev->cfg->adc_dev_master == ADC2 )
-		RCC_ADCCLKConfig(RCC_ADC12PLLCLK_Div16);
+		RCC_ADCCLKConfig(RCC_ADC12PLLCLK_Div32);
 	else
-		RCC_ADCCLKConfig(RCC_ADC34PLLCLK_Div16);
+		RCC_ADCCLKConfig(RCC_ADC34PLLCLK_Div32);
 
 	ADC_VoltageRegulatorCmd(adc_dev->cfg->adc_dev_master, ENABLE);
 	PIOS_DELAY_WaituS(10);
@@ -231,11 +231,6 @@ static void PIOS_INTERNAL_ADC_Converter_Config(uint32_t internal_adc_id)
 		while (ADC_GetCalibrationStatus(adc_dev->cfg->adc_dev_slave) != RESET)
 			;
 	}
-
-	if (adc_dev->cfg->adc_dev_master == ADC1 || adc_dev->cfg->adc_dev_master == ADC2)
-		RCC_ADCCLKConfig(RCC_ADC12PLLCLK_Div256);
-	else
-		RCC_ADCCLKConfig(RCC_ADC34PLLCLK_Div256);
 
 	/* Do common ADC init */
 	ADC_CommonInitTypeDef ADC_CommonInitStructure;

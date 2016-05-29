@@ -60,15 +60,6 @@
 
 #define META_OPERATIONS_TIMEOUT 5000
 
-class Thread : public QThread
-{
-public:
-    static void usleep(unsigned long usecs)
-    {
-        QThread::usleep(usecs);
-    }
-};
-
 enum calibrationSuccessMessages{
     CALIBRATION_SUCCESS,
     ACCELEROMETER_FAILED,
@@ -600,7 +591,7 @@ void Calibration::doStartSixPoint()
     mag_accum_z.clear();
 
     // TODO: Document why the thread needs to wait 100ms.
-    Thread::usleep(100000);
+    QThread::usleep(100000);
 
     connectSensor(ACCEL, false);
     connectSensor(GYRO, false);
@@ -780,7 +771,7 @@ void Calibration::doCancelTempCalPoint()
         AttitudeSettings::DataFields attitudeSettingsData = attitudeSettings->getData();
         attitudeSettings->setData(attitudeSettingsData);
         attitudeSettings->updated();
-        Thread::usleep(100000); // Sleep 100ms to make sure the new settings values are sent
+        QThread::usleep(100000); // Sleep 100ms to make sure the new settings values are sent
 
         // Reset all sensor values
         resetSensorCalibrationToOriginalValues();

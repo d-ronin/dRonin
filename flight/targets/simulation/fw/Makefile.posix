@@ -100,6 +100,7 @@ OPTMODULES += GroundPathFollower
 OPTMODULES += CameraStab
 OPTMODULES += Autotune
 OPTMODULES += Geofence
+OPTMODULES += Logging
 
 # To run simulation instead of connect to SITL
 MODULES += Sensors/simulated
@@ -152,6 +153,7 @@ SRC += $(FLIGHTLIB)/taskmonitor.c
 SRC += $(FLIGHTLIB)/sanitycheck.c
 SRC += $(FLIGHTLIB)/paths.c
 SRC += $(FLIGHTLIB)/circqueue.c
+SRC += $(FLIGHTLIB)/timeutils.c
 
 SRC += $(MATHLIB)/coordinate_conversions.c
 SRC += $(MATHLIB)/misc_math.c
@@ -171,6 +173,8 @@ SRC += $(PIOSCOMMON)/pios_semaphore.c
 SRC += $(PIOSCOMMON)/pios_mutex.c
 SRC += $(PIOSCOMMON)/pios_thread.c
 SRC += $(PIOSCOMMON)/pios_queue.c
+SRC += $(PIOSCOMMON)/pios_streamfs.c
+
 SRC += $(PIOSCOMMON)/pios_modules.c
 
 SRC += $(PIOSPOSIX)/pios_gcsrcvr.c
@@ -362,9 +366,6 @@ SRC       += $(OUTDIR)/sim_firmwareinfo.c
 
 .PHONY: elf
 elf: $(OUTDIR)/$(TARGET).elf
-
-# Display sizes of sections.
-$(eval $(call SIZE_TEMPLATE, $(OUTDIR)/$(TARGET).elf))
 
 result = ${shell echo "test"}
 ifeq (${result}, test)

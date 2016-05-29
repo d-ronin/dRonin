@@ -62,6 +62,9 @@ Brain::~Brain()
 
 }
 
+int Brain::minBootLoaderVersion() {
+    return 0x82;
+}
 
 QString Brain::shortName()
 {

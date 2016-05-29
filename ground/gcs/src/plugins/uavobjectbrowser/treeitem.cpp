@@ -2,8 +2,11 @@
  ******************************************************************************
  *
  * @file       treeitem.cpp
+ *
  * @author     The OpenPilot Team, http://www.openpilot.org Copyright (C) 2010.
  * @author     Tau Labs, http://taulabs.org, Copyright (C) 2014
+ * @author     dRonin, http://dRonin.org/, Copyright (C) 2016
+ *
  * @addtogroup GCSPlugins GCS Plugins
  * @{
  * @addtogroup UAVObjectBrowserPlugin UAVObject Browser Plugin
@@ -24,6 +27,10 @@
  * You should have received a copy of the GNU General Public License along 
  * with this program; if not, write to the Free Software Foundation, Inc., 
  * 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
+ *
+ * Additional note on redistribution: The copyright and license notices above
+ * must be maintained in each individual source file that is a derivative work
+ * of this source file; otherwise redistribution is prohibited.
  */
 
 #include "treeitem.h"
@@ -50,9 +57,6 @@ HighLightManager::HighLightManager(long checkingInterval, QTime *currentTime)
  */
 bool HighLightManager::add(TreeItem *itemToAdd)
 {
-    // Lock to ensure thread safety
-    QMutexLocker locker(&m_listMutex);
-
     // Check so that the item isn't already in the list
     if(!m_itemsList.contains(itemToAdd))
     {
@@ -68,9 +72,6 @@ bool HighLightManager::add(TreeItem *itemToAdd)
  */
 bool HighLightManager::remove(TreeItem *itemToRemove)
 {
-    // Lock to ensure thread safety
-    QMutexLocker locker(&m_listMutex);
-
     // Remove item and return result
     return m_itemsList.removeOne(itemToRemove);
 }
@@ -83,9 +84,6 @@ bool HighLightManager::remove(TreeItem *itemToRemove)
  */
 void HighLightManager::checkItemsExpired()
 {
-    // Lock to ensure thread safety
-    QMutexLocker locker(&m_listMutex);
-
     // Get a mutable iterator for the list
     QMutableLinkedListIterator<TreeItem*> iter(m_itemsList);
 

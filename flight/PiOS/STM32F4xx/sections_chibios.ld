@@ -71,25 +71,13 @@ SECTIONS
     } > flash
 
     /* 
-     * Init section for UAVObjects.
-     */
-    .initcalluavobj.init :
-    {
-        . = ALIGN(4);
-        __uavobj_initcall_start = .;
-        KEEP(*(.initcalluavobj.init))
-        . = ALIGN(4);
-        __uavobj_initcall_end   = .;
-    } > flash
-
-    /* 
      * Module init section section
      */
     .initcallmodule.init :
     {
         . = ALIGN(4);
         __module_initcall_start = .;
-        KEEP(*(.initcallmodule.init))
+        KEEP(*(SORT_BY_NAME(.initcall.*)))
         . = ALIGN(4);
         __module_initcall_end   = .;
     } > flash

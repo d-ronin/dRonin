@@ -61,11 +61,13 @@ static struct GPSGlobals *gps;
 /*
  * Initialize function loads first data sets, and allocates memory for structure.
  */
-void gps_airspeedInitialize()
+int32_t gps_airspeedInitialize()
 {
 	//This method saves memory in case we don't use the GPS module.
 	gps=(struct GPSGlobals *)PIOS_malloc(sizeof(struct GPSGlobals));
-	
+	if (gps == NULL)
+		return -1;
+
 	//GPS airspeed calculation variables
 	GPSVelocityData gpsVelData;
 	GPSVelocityGet(&gpsVelData);
@@ -86,6 +88,8 @@ void gps_airspeedInitialize()
 	gps->RbeCol1_old[0]=Rbe[0][0];
 	gps->RbeCol1_old[1]=Rbe[0][1];
 	gps->RbeCol1_old[2]=Rbe[0][2];
+
+	return 0;
 }
 
 /*

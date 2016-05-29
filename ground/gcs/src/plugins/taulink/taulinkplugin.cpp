@@ -28,7 +28,6 @@
 #include "taulinkgadgetfactory.h"
 #include <QDebug>
 #include <QtPlugin>
-#include <QThread>
 #include <QStringList>
 #include <QDir>
 #include <QFileDialog>

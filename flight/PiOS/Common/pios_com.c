@@ -9,6 +9,7 @@
  * @file       pios_com.c
  * @author     The OpenPilot Team, http://www.openpilot.org Copyright (C) 2010.
  * @author     Tau Labs, http://taulabs.org, Copyright (C) 2012-2014
+ * @author     dRonin, http://dRonin.org/, Copyright (C) 2016
  * @brief      COM layer functions
  * @see        The GNU Public License (GPL) Version 3
  *
@@ -27,6 +28,10 @@
  * You should have received a copy of the GNU General Public License along
  * with this program; if not, write to the Free Software Foundation, Inc.,
  * 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
+ *
+ * Additional note on redistribution: The copyright and license notices above
+ * must be maintained in each individual source file that is a derivative work
+ * of this source file; otherwise redistribution is prohibited.
  */
 
 /* Project Includes */
@@ -66,14 +71,14 @@ struct pios_com_dev {
 	t_fifo_buffer tx;
 };
 
-static bool PIOS_COM_validate(struct pios_com_dev * com_dev)
+static bool PIOS_COM_validate(struct pios_com_dev *com_dev)
 {
 	return (com_dev && (com_dev->magic == PIOS_COM_DEV_MAGIC));
 }
 
-static struct pios_com_dev * PIOS_COM_alloc(void)
+static struct pios_com_dev *PIOS_COM_alloc(void)
 {
-	struct pios_com_dev * com_dev;
+	struct pios_com_dev *com_dev;
 
 	com_dev = (struct pios_com_dev *)PIOS_malloc(sizeof(*com_dev));
 	if (!com_dev) return (NULL);
@@ -85,8 +90,8 @@ static struct pios_com_dev * PIOS_COM_alloc(void)
 
 static uint16_t PIOS_COM_TxOutCallback(uintptr_t context, uint8_t * buf, uint16_t buf_len, uint16_t * headroom, bool * need_yield);
 static uint16_t PIOS_COM_RxInCallback(uintptr_t context, uint8_t * buf, uint16_t buf_len, uint16_t * headroom, bool * need_yield);
-static void PIOS_COM_UnblockRx(struct pios_com_dev * com_dev, bool * need_yield);
-static void PIOS_COM_UnblockTx(struct pios_com_dev * com_dev, bool * need_yield);
+static void PIOS_COM_UnblockRx(struct pios_com_dev *com_dev, bool * need_yield);
+static void PIOS_COM_UnblockTx(struct pios_com_dev *com_dev, bool * need_yield);
 
 /**
   * Initialises COM layer
@@ -106,7 +111,7 @@ int32_t PIOS_COM_Init(uintptr_t * com_id, const struct pios_com_driver * driver,
 	PIOS_Assert(driver->bind_tx_cb || !has_tx);
 	PIOS_Assert(driver->bind_rx_cb || !has_rx);
 
-	struct pios_com_dev * com_dev;
+	struct pios_com_dev *com_dev;
 
 	com_dev = (struct pios_com_dev *) PIOS_COM_alloc();
 	if (!com_dev) goto out_fail;
@@ -148,7 +153,7 @@ out_fail:
 	return(-1);
 }
 
-static void PIOS_COM_UnblockRx(struct pios_com_dev * com_dev, bool * need_yield)
+static void PIOS_COM_UnblockRx(struct pios_com_dev *com_dev, bool * need_yield)
 {
 #if defined(PIOS_INCLUDE_FREERTOS) || defined(PIOS_INCLUDE_CHIBIOS)
 	if (PIOS_IRQ_InISR() == true)
@@ -158,7 +163,7 @@ static void PIOS_COM_UnblockRx(struct pios_com_dev * com_dev, bool * need_yield)
 #endif
 }
 
-static void PIOS_COM_UnblockTx(struct pios_com_dev * com_dev, bool * need_yield)
+static void PIOS_COM_UnblockTx(struct pios_com_dev *com_dev, bool * need_yield)
 {
 #if defined(PIOS_INCLUDE_FREERTOS) || defined(PIOS_INCLUDE_CHIBIOS)
 	if (PIOS_IRQ_InISR() == true)
@@ -170,7 +175,7 @@ static void PIOS_COM_UnblockTx(struct pios_com_dev * com_dev, bool * need_yield)
 
 static uint16_t PIOS_COM_RxInCallback(uintptr_t context, uint8_t * buf, uint16_t buf_len, uint16_t * headroom, bool * need_yield)
 {
-	struct pios_com_dev * com_dev = (struct pios_com_dev *)context;
+	struct pios_com_dev *com_dev = (struct pios_com_dev *)context;
 
 	bool valid = PIOS_COM_validate(com_dev);
 	PIOS_Assert(valid);
@@ -192,7 +197,7 @@ static uint16_t PIOS_COM_RxInCallback(uintptr_t context, uint8_t * buf, uint16_t
 
 static uint16_t PIOS_COM_TxOutCallback(uintptr_t context, uint8_t * buf, uint16_t buf_len, uint16_t * headroom, bool * need_yield)
 {
-	struct pios_com_dev * com_dev = (struct pios_com_dev *)context;
+	struct pios_com_dev *com_dev = (struct pios_com_dev *)context;
 
 	bool valid = PIOS_COM_validate(com_dev);
 	PIOS_Assert(valid);
@@ -223,7 +228,7 @@ static uint16_t PIOS_COM_TxOutCallback(uintptr_t context, uint8_t * buf, uint16_
 */
 int32_t PIOS_COM_ChangeBaud(uintptr_t com_id, uint32_t baud)
 {
-	struct pios_com_dev * com_dev = (struct pios_com_dev *)com_id;
+	struct pios_com_dev *com_dev = (struct pios_com_dev *)com_id;
 
 	if (!PIOS_COM_validate(com_dev)) {
 		/* Undefined COM port for this board (see pios_board.c) */
@@ -252,7 +257,7 @@ int32_t PIOS_COM_ChangeBaud(uintptr_t com_id, uint32_t baud)
 */
 int32_t PIOS_COM_SendBufferNonBlocking(uintptr_t com_id, const uint8_t *buffer, uint16_t len)
 {
-	struct pios_com_dev * com_dev = (struct pios_com_dev *)com_id;
+	struct pios_com_dev *com_dev = (struct pios_com_dev *)com_id;
 
 	if (!PIOS_COM_validate(com_dev)) {
 		/* Undefined COM port for this board (see pios_board.c) */
@@ -317,7 +322,7 @@ int32_t PIOS_COM_SendBufferNonBlocking(uintptr_t com_id, const uint8_t *buffer, 
 */
 int32_t PIOS_COM_SendBuffer(uintptr_t com_id, const uint8_t *buffer, uint16_t len)
 {
-	struct pios_com_dev * com_dev = (struct pios_com_dev *)com_id;
+	struct pios_com_dev *com_dev = (struct pios_com_dev *)com_id;
 
 	if (!PIOS_COM_validate(com_dev)) {
 		/* Undefined COM port for this board (see pios_board.c) */
@@ -463,6 +468,36 @@ int32_t PIOS_COM_SendFormattedString(uintptr_t com_id, const char *format, ...)
 }
 
 /**
+ * Reports number of bytes available for receiving.
+ * \param[in] com_id the COM instance to receive from
+ * \returns number of bytes available to be read
+ */
+uint16_t PIOS_COM_GetNumReceiveBytesPending(uintptr_t com_id) {
+	struct pios_com_dev *com_dev = (struct pios_com_dev *)com_id;
+
+	if (!PIOS_COM_validate(com_dev)) {
+		/* Undefined COM port for this board (see pios_board.c) */
+		PIOS_Assert(0);
+	}
+
+	PIOS_Assert(com_dev->has_rx);
+
+	uint16_t bytes_from_fifo = fifoBuf_getUsed(&com_dev->rx);
+
+	if (bytes_from_fifo == 0) {
+		/* No more bytes in receive buffer */
+		/* Make sure the receiver is running */
+		if (com_dev->driver->rx_start) {
+			/* Notify the lower layer that there is now room in the rx buffer */
+			(com_dev->driver->rx_start)(com_dev->lower_id,
+						    fifoBuf_getFree(&com_dev->rx));
+		}
+	}
+
+	return fifoBuf_getUsed(&com_dev->rx);
+}
+
+/**
 * Transfer bytes from port buffers into another buffer
 * \param[in] port COM port
 * \returns Byte from buffer
@@ -473,7 +508,7 @@ uint16_t PIOS_COM_ReceiveBuffer(uintptr_t com_id, uint8_t * buf, uint16_t buf_le
 	PIOS_Assert(buf_len);
 	uint16_t bytes_from_fifo;
 
-	struct pios_com_dev * com_dev = (struct pios_com_dev *)com_id;
+	struct pios_com_dev *com_dev = (struct pios_com_dev *)com_id;
 
 	if (!PIOS_COM_validate(com_dev)) {
 		/* Undefined COM port for this board (see pios_board.c) */
@@ -481,7 +516,10 @@ uint16_t PIOS_COM_ReceiveBuffer(uintptr_t com_id, uint8_t * buf, uint16_t buf_le
 	}
 	PIOS_Assert(com_dev->has_rx);
 
- check_again:
+	/* Clear any pending RX wakeup */
+	PIOS_Semaphore_Take(com_dev->rx_sem, 0);
+
+check_again:
 	bytes_from_fifo = fifoBuf_getData(&com_dev->rx, buf, buf_len);
 
 	if (bytes_from_fifo == 0) {
@@ -518,7 +556,7 @@ uint16_t PIOS_COM_ReceiveBuffer(uintptr_t com_id, uint8_t * buf, uint16_t buf_le
  */
 bool PIOS_COM_Available(uintptr_t com_id)
 {
-	struct pios_com_dev * com_dev = (struct pios_com_dev *)com_id;
+	struct pios_com_dev *com_dev = (struct pios_com_dev *)com_id;
 
 	if (!PIOS_COM_validate(com_dev)) {
 		return false;
@@ -530,6 +568,16 @@ bool PIOS_COM_Available(uintptr_t com_id)
 		return true;
 
 	return (com_dev->driver->available)(com_dev->lower_id);
+}
+
+uintptr_t PIOS_COM_GetDriverCtx(uintptr_t com_id) {
+	struct pios_com_dev *com_dev = (struct pios_com_dev *)com_id;
+
+	if (!PIOS_COM_validate(com_dev)) {
+		return false;
+	}
+
+	return com_dev->lower_id;
 }
 
 #endif

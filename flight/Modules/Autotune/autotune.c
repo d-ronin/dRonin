@@ -95,7 +95,10 @@ static void af_init(float X[AF_NUMX], float P[AF_NUMP]);
 int32_t AutotuneInitialize(void)
 {
 #ifndef SMALLF1
-	SystemIdentInitialize();
+	if (SystemIdentInitialize() == -1) {
+		module_enabled = false;
+		return -1;
+	}
 #endif
 
 	// Create a queue, connect to manual control command and flightstatus
@@ -111,8 +114,11 @@ int32_t AutotuneInitialize(void)
 #endif
 
 	if (module_enabled) {
-		SystemIdentInitialize();
-
+		if (SystemIdentInitialize() == -1) {
+			module_enabled = false;
+			return -1;
+		}
+		
 		at_queue = circ_queue_new(sizeof(struct at_queued_data),
 				AT_QUEUE_NUMELEM);
 

@@ -97,11 +97,16 @@ UploaderGadgetWidget::UploaderGadgetWidget(QWidget *parent):QWidget(parent),
     netMngr = new QNetworkAccessManager(this);
 
     UAVObjectManager *obm = pm->getObject<UAVObjectManager>();
-    connect(telMngr, SIGNAL(connected()), this, SLOT(onAutopilotConnect()));
-    connect(telMngr, SIGNAL(disconnected()), this, SLOT(onAutopilotDisconnect()));
+
+    /* These (and firmwareIAP) are queued connections.  We may do things
+     * that ultimately stop the telemetry manager, so we don't want to be
+     * invoked from its components and return into it.
+     */
+    connect(telMngr, SIGNAL(connected()), this, SLOT(onAutopilotConnect()), Qt::QueuedConnection);
+    connect(telMngr, SIGNAL(disconnected()), this, SLOT(onAutopilotDisconnect()), Qt::QueuedConnection);
     firmwareIap = FirmwareIAPObj::GetInstance(obm);
 
-    connect(firmwareIap, SIGNAL(objectUpdated(UAVObject*)), this, SLOT(onIAPUpdated()), Qt::UniqueConnection);
+    connect(firmwareIap, SIGNAL(objectUpdated(UAVObject*)), this, SLOT(onIAPUpdated()), Qt::QueuedConnection);
 
     //Connect button signals to slots
     connect(m_widget->openButton, SIGNAL(clicked()), this, SLOT(onLoadFirmwareButtonClick()));
@@ -810,7 +815,7 @@ void UploaderGadgetWidget::stepChangeAndDelay(QEventLoop &loop, int delayMs,
     delay.stop();
 }
 
-void UploaderGadgetWidget::doUpgradeOperation(bool blankFC)
+void UploaderGadgetWidget::doUpgradeOperation(bool blankFC, tl_dfu::device &dev)
 {
     Core::ModeManager::instance()->activateModeByWorkspaceName("Firmware");
 
@@ -862,6 +867,12 @@ void UploaderGadgetWidget::doUpgradeOperation(bool blankFC)
     if (!isCrippledBoard) {
         /* If no settings part known, new loader needed. */
         upgradingLoader = !haveSettingsPart();
+
+        int requiredLoader = board.board->minBootLoaderVersion();
+
+        if (requiredLoader > dev.BL_Version) {
+            upgradingLoader = true;
+        }
     }
 
     m_dialog.setOperatingMode(upgradingLoader, isCrippledBoard, blankFC);
@@ -1021,6 +1032,8 @@ void UploaderGadgetWidget::doUpgradeOperation(bool blankFC)
 
         if (!entLoader) {
             upgradeError(tr("Unable to enter legacy upgrade tool on board!!"));
+
+            return;
         }
     }
 
@@ -1341,7 +1354,7 @@ void UploaderGadgetWidget::onBootloaderDetected()
 
     if(devices.length() > 1) {
         setStatusInfo(tr("More than one device was detected in bootloader state"), uploader::STATUSICON_INFO);
-        return;
+        //return;
     } else if(devices.length() == 0) {
         setStatusInfo("No devices in bootloader state detected", uploader::STATUSICON_FAIL);
         return;
@@ -1496,7 +1509,7 @@ void UploaderGadgetWidget::onBootloaderDetected()
                 bool canBeUpgraded = currentBoard.board->queryCapabilities(Core::IBoardType::BOARD_CAPABILITIES_UPGRADEABLE);
 
                 if (canBeUpgraded) {
-                    doUpgradeOperation(blankFC);
+                    doUpgradeOperation(blankFC, dev);
                     return;
                 }
             }

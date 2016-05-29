@@ -58,11 +58,10 @@ private slots:
 
     void recheckTabs();
     void objectUpdated(UAVObject * obj, bool success);
+    void autoCellDetectionToggled(bool checked);
+    void maxCellVoltageChanged(double value);
 
 private:
-    QVariant getVariantFromWidget(QWidget * widget, double scale);
-    bool setWidgetFromVariant(QWidget *widget, QVariant value, double scale);
-
     /* To activate the appropriate tabs */
     void enableBatteryTab(bool enabled);
     void enableAirspeedTab(bool enabled);
@@ -70,11 +69,10 @@ private:
     void enableHoTTTelemetryTab(bool enabled);
     void enableGeofenceTab(bool enabled);
     void enablePicoCTab(bool enabled);
+    void enableGpsTab(bool enabled);
+    void enableLoggingTab(bool enabled);
 
     void refreshAdcNames(void);
-
-    static QString trueString;
-    static QString falseString;
 
     Ui::Modules *ui;
 

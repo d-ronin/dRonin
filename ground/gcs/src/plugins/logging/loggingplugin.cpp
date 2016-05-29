@@ -127,7 +127,6 @@ QString LoggingConnection::shortName()
  */
 LoggingThread::~LoggingThread()
 {
-    stopLogging();
 }
 
 /**
@@ -485,7 +484,16 @@ void LoggingPlugin::extensionsInitialized()
 
 void LoggingPlugin::shutdown()
 {
-    // Do nothing
+    if (state == LOGGING) {
+        stopLogging();
+
+        loggingThread->wait();
+    }
+
+    if (loggingThread != NULL) {
+        delete loggingThread;
+        loggingThread = NULL;
+    }
 }
 
 /**

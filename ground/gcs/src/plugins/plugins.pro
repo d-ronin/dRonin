@@ -324,14 +324,6 @@ plugin_boards_naze.depends = plugin_coreplugin
 plugin_boards_naze.depends += plugin_uavobjects
 SUBDIRS += plugin_boards_naze
 
-# Team Black Sheep
-plugin_boards_tbs.subdir = boards_tbs
-plugin_boards_tbs.depends = plugin_coreplugin
-plugin_boards_tbs.depends += plugin_uavobjects
-plugin_boards_tbs.depends += plugin_uavobjectutil
-plugin_boards_tbs.depends += plugin_uavobjectwidgetutils
-SUBDIRS += plugin_boards_tbs
-
 # BrainFPV LLC
 plugin_boards_brainfpv.subdir = boards_brainfpv
 plugin_boards_brainfpv.depends = plugin_coreplugin

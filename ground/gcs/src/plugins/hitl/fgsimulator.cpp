@@ -37,7 +37,6 @@
 #include "fgsimulator.h"
 #include "extensionsystem/pluginmanager.h"
 #include "coreplugin/icore.h"
-#include "coreplugin/threadmanager.h"
 
 FGSimulator::FGSimulator(const SimulatorSettings& params) :
     Simulator(params)
@@ -63,8 +62,6 @@ void FGSimulator::setupUdpPorts(const QString& host, int inPort, int outPort)
 
 bool FGSimulator::setupProcess()
 {
-    QMutexLocker locker(&lock);
-
     // Copy FlightGear generic protocol configuration file to the FG protocol directory
     // NOTE: Not working on Windows 7, if FG is installed in the "Program Files",
     // likelly due to permissions. The file should be manually copied to data/Protocol/opfgprotocol.xml

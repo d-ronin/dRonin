@@ -1,49 +1,48 @@
 <RCC>
     <qresource prefix="/systemhealth">
+        <file>html/ADC-Critical.html</file>
+        <file>html/ADC-Warning.html</file>
         <file>html/Actuator-Critical.html</file>
+        <file>html/Actuator-Warning.html</file>
+        <file>html/AlarmOK.html</file>
+        <file>html/Attitude-Critical.html</file>
+        <file>html/Attitude-Error.html</file>
+        <file>html/Battery-Critical.html</file>
+        <file>html/Battery-Error.html</file>
+        <file>html/Battery-Warning.html</file>
+        <file>html/BootFault-Critical.html</file>
+        <file>html/CPU-Critical.html</file>
+        <file>html/CPU-Warning.html</file>
+        <file>html/EventSystem-Warning.html</file>
+        <file>html/FlightTime-Critical.html</file>
+        <file>html/FlightTime-Error.html</file>
+        <file>html/FlightTime-Warning.html</file>
+        <file>html/GPS-Critical.html</file>
+        <file>html/GPS-Error.html</file>
+        <file>html/GPS-Warning.html</file>
+        <file>html/Geofence-Error.html</file>
+        <file>html/Geofence-Warning.html</file>
+        <file>html/Gimbal-Critical.html</file>
+        <file>html/Gimbal-Warning.html</file>
+        <file>html/GyroBias-Warning.html</file>
+        <file>html/I2C-Critical.html</file>
         <file>html/ManualControl-Critical-PathFollower.html</file>
         <file>html/ManualControl-Critical-Settings.html</file>
         <file>html/ManualControl-Error-AltitudeHold.html</file>
         <file>html/ManualControl-Undefined.html</file>
         <file>html/ManualControl-Warning-Accessory.html</file>
         <file>html/ManualControl-Warning-NoRx.html</file>
-        <file>html/CPU-Critical.html</file>
-        <file>html/CPU-Warning.html</file>
-        <file>html/FlightTime-Error.html</file>
-        <file>html/Battery-Warning.html</file>
-        <file>html/BootFault-Critical.html</file>
-        <file>html/EventSystem-Warning.html</file>
-        <file>html/FlightTime-Critical.html</file>
-        <file>html/AlarmOK.html</file>
-        <file>html/Attitude-Critical.html</file>
-        <file>html/Attitude-Error.html</file>
-        <file>html/Battery-Critical.html</file>
-        <file>html/Battery-Error.html</file>
-        <file>html/FlightTime-Warning.html</file>
-		<file>html/Gimbal-Critical.html</file>
-		<file>html/Gimbal-Warning.html</file>
-        <file>html/GPS-Critical.html</file>
-        <file>html/GPS-Error.html</file>
-        <file>html/GPS-Warning.html</file>
         <file>html/OutOfMemory-Critical.html</file>
         <file>html/OutOfMemory-Warning.html</file>
+        <file>html/PathFollower-Critical.html</file>
+        <file>html/PathFollower-Error.html</file>
+        <file>html/PathFollower-Warning.html</file>
+        <file>html/PathPlanner-Critical.html</file>
+        <file>html/PathPlanner-Error.html</file>
         <file>html/Sensors-Critical.html</file>
+        <file>html/Stabilization-Error.html</file>
         <file>html/Stabilization-Warning.html</file>
         <file>html/Stack-Critical.html</file>
-        <file>html/Telemetry-Error.html</file>
-        <file>html/ADC-Critical.html</file>
-        <file>html/ADC-Warning.html</file>
-        <file>html/SystemConfiguration-Error-AltitudeHold.html</file>
-        <file>html/SystemConfiguration-Error-AutoTune.html</file>
-        <file>html/SystemConfiguration-Error-DuplicatePortCfg.html</file>
-        <file>html/SystemConfiguration-Error-Multirotor.html</file>
-        <file>html/SystemConfiguration-Error-PathPlanner.html</file>
-        <file>html/SystemConfiguration-Error-PositionHold.html</file>
-        <file>html/SystemConfiguration-Error-Stabilization.html</file>
-        <file>html/SystemConfiguration-Undefined.html</file>
-        <file>html/PathPlanner-Error.html</file>
-        <file>html/PathPlanner-Critical.html</file>
-        <file>html/PathFollower-Warning.html</file>
         <file>html/StateEstimation-Accelerometer-Queue-Not-Updating.html</file>
         <file>html/StateEstimation-Gyro-Queue-Not-Updating.html</file>
         <file>html/StateEstimation-No-Barometer.html</file>
@@ -53,8 +52,18 @@
         <file>html/StateEstimation-PDOP-Too-High.html</file>
         <file>html/StateEstimation-Too-Few-Satellites.html</file>
         <file>html/StateEstimation-Undefined.html</file>
-	<file>html/TempBaro-Warning.html</file>
-	<file>html/TempBaro-Error.html</file>
-	<file>html/TempBaro-Critical.html</file>
+        <file>html/SystemConfiguration-Error-AltitudeHold.html</file>
+        <file>html/SystemConfiguration-Error-AutoTune.html</file>
+        <file>html/SystemConfiguration-Error-DuplicatePortCfg.html</file>
+        <file>html/SystemConfiguration-Error-Multirotor.html</file>
+        <file>html/SystemConfiguration-Error-NavFilter.html</file>
+        <file>html/SystemConfiguration-Error-PathPlanner.html</file>
+        <file>html/SystemConfiguration-Error-PositionHold.html</file>
+        <file>html/SystemConfiguration-Error-Stabilization.html</file>
+        <file>html/SystemConfiguration-Error-UnsafeToArm.html</file>
+        <file>html/SystemConfiguration-Undefined.html</file>
+        <file>html/Telemetry-Error.html</file>
+        <file>html/TempBaro-Error.html</file>
+        <file>html/TempBaro-Warning.html</file>
     </qresource>
 </RCC>

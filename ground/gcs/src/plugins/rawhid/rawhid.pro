@@ -37,9 +37,9 @@ macx {
 }
 linux-g++ {
     SOURCES += hidapi/hidapi_linux.c
-    LIBS += -lusb-1.0 -ludev -lrt
+    LIBS += -ludev -lrt
 }
 linux-g++-64 {
     SOURCES += hidapi/hidapi_linux.c
-    LIBS += -lusb-1.0 -ludev -lrt
+    LIBS += -ludev -lrt
 }

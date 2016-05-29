@@ -1,8 +1,11 @@
 /**
  ******************************************************************************
  * @file       telemetry.cpp
+ *
+ * @author     dRonin, http://dRonin.org/, Copyright (C) 2016
  * @author     Tau Labs, http://taulabs.org, Copyright (C) 2012-2013
  * @author     The OpenPilot Team, http://www.openpilot.org Copyright (C) 2010.
+ *
  * @addtogroup GCSPlugins GCS Plugins
  * @{
  * @addtogroup UAVTalkPlugin UAVTalk Plugin
@@ -25,6 +28,10 @@
  * You should have received a copy of the GNU General Public License along 
  * with this program; if not, write to the Free Software Foundation, Inc., 
  * 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
+ *
+ * Additional note on redistribution: The copyright and license notices above
+ * must be maintained in each individual source file that is a derivative work
+ * of this source file; otherwise redistribution is prohibited.
  */
 
 #include "telemetry.h"
@@ -80,7 +87,6 @@ Telemetry::Telemetry(UAVTalk* utalk, UAVObjectManager* objMngr)
 {
     this->utalk = utalk;
     this->objMngr = objMngr;
-    mutex = new QMutex(QMutex::Recursive);
     // Process all objects in the list
     QVector< QVector<UAVObject*> > objs = objMngr->getObjectsVector();
     const int objSize = objs.size();
@@ -559,8 +565,6 @@ void Telemetry::processObjectQueue()
  */
 void Telemetry::processPeriodicUpdates()
 {
-    QMutexLocker locker(mutex);
-
     // Stop timer
     updateTimer->stop();
 
@@ -616,8 +620,6 @@ void Telemetry::processPeriodicUpdates()
 
 Telemetry::TelemetryStats Telemetry::getStats()
 {
-    QMutexLocker locker(mutex);
-
     // Get UAVTalk stats
     UAVTalk::ComStats utalkStats = utalk->getStats();
 
@@ -639,7 +641,6 @@ Telemetry::TelemetryStats Telemetry::getStats()
 
 void Telemetry::resetStats()
 {
-    QMutexLocker locker(mutex);
     utalk->resetStats();
     txErrors = 0;
     txRetries = 0;
@@ -647,49 +648,41 @@ void Telemetry::resetStats()
 
 void Telemetry::objectUpdatedAuto(UAVObject* obj)
 {
-    QMutexLocker locker(mutex);
     processObjectUpdates(obj, EV_UPDATED, false, true);
 }
 
 void Telemetry::objectUpdatedManual(UAVObject* obj)
 {
-    QMutexLocker locker(mutex);
     processObjectUpdates(obj, EV_UPDATED_MANUAL, false, true);
 }
 
 void Telemetry::objectUpdatedPeriodic(UAVObject* obj)
 {
-    QMutexLocker locker(mutex);
     processObjectUpdates(obj, EV_UPDATED_PERIODIC, false, true);
 }
 
 void Telemetry::objectUnpacked(UAVObject* obj)
 {
-    QMutexLocker locker(mutex);
     processObjectUpdates(obj, EV_UNPACKED, false, true);
 }
 
 void Telemetry::updateRequested(UAVObject* obj)
 {
-    QMutexLocker locker(mutex);
     processObjectUpdates(obj, EV_UPDATE_REQ, false, true);
 }
 
 void Telemetry::updateAllInstancesRequested(UAVObject* obj)
 {
-    QMutexLocker locker(mutex);
     processObjectUpdates(obj, EV_UPDATE_REQ, true, true);
 }
 
 void Telemetry::newObject(UAVObject* obj)
 {
-    QMutexLocker locker(mutex);
     registerObject(obj);
 }
 
 void Telemetry::newInstance(UAVObject* obj)
 {
-    QMutexLocker locker(mutex);
     registerObject(obj);
 }
 
@@ -711,7 +704,7 @@ ObjectTransactionInfo::~ObjectTransactionInfo()
 {
     telem = 0;
     timer->stop();
-    delete timer;
+    timer->deleteLater();
 }
 
 void ObjectTransactionInfo::timeout()

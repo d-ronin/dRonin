@@ -29,12 +29,10 @@
 #include "telemetrymanager.h"
 #include <extensionsystem/pluginmanager.h>
 #include <coreplugin/icore.h>
-#include <coreplugin/threadmanager.h>
 
 TelemetryManager::TelemetryManager() :
     autopilotConnected(false)
 {
-    moveToThread(Core::ICore::instance()->threadManager()->getRealTimeThread());
     // Get UAVObjectManager instance
     ExtensionSystem::PluginManager* pm = ExtensionSystem::PluginManager::instance();
     objMngr = pm->getObject<UAVObjectManager>();
@@ -81,9 +79,12 @@ void TelemetryManager::onStop()
 {
     telemetryMon->disconnect(this);
     sessions = telemetryMon->savedSessions();
-    delete telemetryMon;
-    delete telemetry;
-    delete utalk;
+    telemetryMon->deleteLater();
+    telemetryMon = NULL;
+    telemetry->deleteLater();
+    telemetry = NULL;
+    utalk->deleteLater();
+    utalk = NULL;
     onDisconnect();
 }
 

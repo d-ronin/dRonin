@@ -122,7 +122,7 @@ QWidget* ScopeGadgetOptionsPage::createPage(QWidget *parent)
     }
 
     QStringList mathFunctions;
-    mathFunctions << "None" << "Boxcar average" << "Standard deviation";
+    mathFunctions << "None" << "Boxcar average" << "Standard deviation" << "FFT";
 
     options_page->mathFunctionComboBox->addItems(mathFunctions);
     options_page->cmbMathFunctionSpectrogram->addItems(mathFunctions);
@@ -283,6 +283,21 @@ void ScopeGadgetOptionsPage::on_cmbSpectrogramSource_currentIndexChanged(QString
         options_page->sbSpectrogramFrequency->setEnabled(false);
         options_page->sbSpectrogramWidth->setEnabled(false);
 
+        options_page->cmbUavoFieldSpectrogram->clear();
+
+        UAVObject* inst = objManager->getObject(vibrationAnalysisOutput->getObjID());
+
+        QList<UAVObjectField*> fieldList = inst->getFields();
+
+        foreach (UAVObjectField* field, fieldList) {
+            if(field->getType() == UAVObjectField::STRING || field->getType() == UAVObjectField::ENUM)
+              continue;
+            
+            if(field->getElementNames().count() > 1) {
+                options_page->cmbUavoFieldSpectrogram->addItem(field->getName());
+            }
+        }
+    
     }
     else{
         options_page->cmbUAVObjectsSpectrogram->setEnabled(true);

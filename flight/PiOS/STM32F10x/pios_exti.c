@@ -153,6 +153,32 @@ out_fail:
 	return -1;
 }
 
+void PIOS_EXTI_DeInit(const struct pios_exti_cfg *cfg)
+{
+	PIOS_Assert(cfg);
+	PIOS_Assert(&__start__exti);
+	PIOS_Assert(cfg >= &__start__exti);
+	PIOS_Assert(cfg < &__stop__exti);
+
+	/* Disconnect this config from the requested vector */
+	uint8_t line_index = PIOS_EXTI_line_to_index(cfg->line);
+	pios_exti_line_to_cfg_map[line_index] = PIOS_EXTI_INVALID;
+
+	/* Disconnect EXTI */
+	uint8_t exti_source_pin = PIOS_EXTI_gpio_pin_to_exti_source_pin(cfg->pin.init.GPIO_Pin);
+	// sadly std-periph doesn't provide a way to disable the exti line
+	uint32_t tmp = ((uint32_t)0x0F) << (0x04 * (exti_source_pin & (uint8_t)0x03));
+	AFIO->EXTICR[exti_source_pin >> 0x02] &= ~tmp;
+
+	/* Disable EXTI */
+	EXTI_InitTypeDef init = {
+		.EXTI_LineCmd = DISABLE,
+		.EXTI_Mode = cfg->exti.init.EXTI_Mode,
+		.EXTI_Line = cfg->exti.init.EXTI_Line,
+	};
+	EXTI_Init(&init);
+}
+
 static bool PIOS_EXTI_generic_irq_handler(uint8_t line_index)
 {
 	uint8_t cfg_index = pios_exti_line_to_cfg_map[line_index];

@@ -156,7 +156,10 @@ static void doSettingsUpdate()
  */
 int32_t AirspeedInitialize()
 {
-	AirspeedSettingsInitialize();
+	if (AirspeedSettingsInitialize() == -1) {
+		module_enabled = false;
+		return -1;
+	}
 
 #ifdef MODULE_Airspeed_BUILTIN
 	module_enabled = true;
@@ -173,8 +176,15 @@ int32_t AirspeedInitialize()
 	if (!module_enabled)
 		return -1;
 
-	BaroAirspeedInitialize();
-	AirspeedActualInitialize();
+	if (BaroAirspeedInitialize() == -1) {
+		module_enabled = false;
+		return -1;
+	}
+
+	if (AirspeedActualInitialize() == -1) {
+		module_enabled = false;
+		return -1;
+	}
 
 #ifdef BARO_AIRSPEED_PRESENT
 	// Get the analog pin
@@ -195,8 +205,6 @@ static void airspeedTask(void *parameters)
 {
 	BaroAirspeedData airspeedData;
 	AirspeedActualData airspeedActualData;
-
-	airspeedData.BaroConnected = BAROAIRSPEED_BAROCONNECTED_FALSE;
 	
 #ifdef BARO_AIRSPEED_PRESENT		
 	uint32_t lastGPSTime = PIOS_Thread_Systime(); //Time since last GPS-derived airspeed calculation
@@ -208,13 +216,22 @@ static void airspeedTask(void *parameters)
 	//GPS airspeed calculation variables
 #ifdef GPS_AIRSPEED_PRESENT
 	GPSVelocityConnectCallbackCtx(UAVObjCbSetFlag, &gpsNew);
-	gps_airspeedInitialize();
+	if (gps_airspeedInitialize() == -1) {
+		module_enabled = false;
+		return;
+	}
 #endif
 
 	AirspeedSettingsConnectCallbackCtx(UAVObjCbSetFlag, &settingsUpdated);
 	
 	// Main task loop
 	uint32_t lastSysTime = PIOS_Thread_Systime();
+
+	// Get initial values of airspeed object
+	BaroAirspeedGet(&airspeedData);
+
+	airspeedData.BaroConnected = BAROAIRSPEED_BAROCONNECTED_FALSE;
+
 	while (1)
 	{
 		if (settingsUpdated) {
@@ -222,9 +239,6 @@ static void airspeedTask(void *parameters)
 
 			doSettingsUpdate();
 		}
-
-		// Update the airspeed object
-		BaroAirspeedGet(&airspeedData);
 
 #ifdef BARO_AIRSPEED_PRESENT
 		float airspeed_tas_baro=0;
@@ -348,7 +362,6 @@ static void airspeedTask(void *parameters)
 		airspeedActualData.CalibratedAirspeed = airspeedData.CalibratedAirspeed;
 		BaroAirspeedSet(&airspeedData);
 		AirspeedActualSet(&airspeedActualData);
-			
 	}
 }
 

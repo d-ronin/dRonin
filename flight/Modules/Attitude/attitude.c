@@ -216,19 +216,25 @@ static void check_home_location();
  */
 int32_t AttitudeInitialize(void)
 {
-	AttitudeActualInitialize();
-	AttitudeSettingsInitialize();
-	SensorSettingsInitialize();
-	INSSettingsInitialize();
-	INSStateInitialize();
-	NedAccelInitialize();
-	NEDPositionInitialize();
-	PositionActualInitialize();
-	StateEstimationInitialize();
-	VelocityActualInitialize();
+
+	if (AttitudeActualInitialize() == -1 \
+		|| AttitudeSettingsInitialize() == -1 \
+		|| SensorSettingsInitialize() == -1 \
+		|| INSSettingsInitialize() == -1 \
+		|| INSStateInitialize() == -1 \
+		|| NedAccelInitialize() == -1 \
+		|| NEDPositionInitialize() == -1 \
+		|| PositionActualInitialize() == -1 \
+		|| StateEstimationInitialize() == -1 \
+		|| VelocityActualInitialize() == -1) {
+	
+		return -1;
+	};
 
 	// Initialize this here while we aren't setting the homelocation in GPS
-	HomeLocationInitialize();
+	if (HomeLocationInitialize() == -1) {
+		return -1;		
+	}
 
 	AttitudeSettingsConnectCallback(&settingsUpdatedCb);
 	HomeLocationConnectCallback(&settingsUpdatedCb);
@@ -291,7 +297,7 @@ int32_t AttitudeStart(void)
 	return 0;
 }
 
-MODULE_INITCALL(AttitudeInitialize, AttitudeStart)
+MODULE_HIPRI_INITCALL(AttitudeInitialize, AttitudeStart)
 
 /**
  * Module thread, should not return.
@@ -831,14 +837,12 @@ static int32_t setNavigationRaw()
 		getNED(&gpsPosition, NED);
 
 		NEDPositionData nedPosition;
-		NEDPositionGet(&nedPosition);
 		nedPosition.North = NED[0];
 		nedPosition.East = NED[1];
 		nedPosition.Down = NED[2];
 		NEDPositionSet(&nedPosition);
 
 		PositionActualData positionActual;
-		PositionActualGet(&positionActual);
 		positionActual.North = NED[0];
 		positionActual.East = NED[1];
 		positionActual.Down = cfvert.position_z;
@@ -853,7 +857,6 @@ static int32_t setNavigationRaw()
 		GPSVelocityGet(&gpsVelocity);
 
 		VelocityActualData velocityActual;
-		VelocityActualGet(&velocityActual);
 		velocityActual.North = gpsVelocity.North;
 		velocityActual.East = gpsVelocity.East;
 		velocityActual.Down = cfvert.velocity_z;
@@ -905,7 +908,6 @@ static void accumulate_gyro_compute()
 
 		// Accumulate integral of error.  Scale here so that units are (deg/s) but Ki has units of s
 		GyrosBiasData gyrosBias;
-		GyrosBiasGet(&gyrosBias);
 		gyrosBias.x = complementary_filter_state.accumulated_gyro[0] / complementary_filter_state.accumulated_gyro_samples;
 		gyrosBias.y = complementary_filter_state.accumulated_gyro[1] / complementary_filter_state.accumulated_gyro_samples;
 		gyrosBias.z = complementary_filter_state.accumulated_gyro[2] / complementary_filter_state.accumulated_gyro_samples;
@@ -1410,7 +1412,6 @@ static void updateNedAccel()
 	accel_ned[2] += GRAVITY;
 	
 	NedAccelData accelData;
-	NedAccelGet(&accelData);
 	accelData.North = accelData.North * TAU + accel_ned[0] * (1 - TAU);
 	accelData.East = accelData.East * TAU + accel_ned[1] * (1 - TAU);
 	accelData.Down = accelData.Down * TAU + accel_ned[2] * (1 - TAU);
@@ -1475,7 +1476,6 @@ static void settingsUpdatedCb(UAVObjEvent * ev, void *ctx, void *obj, int len)
 		
 		/* When the calibration is updated, update the GyroBias object */
 		GyrosBiasData gyrosBias;
-		GyrosBiasGet(&gyrosBias);
 		gyrosBias.x = 0;
 		gyrosBias.y = 0;
 		gyrosBias.z = 0;

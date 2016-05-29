@@ -50,6 +50,9 @@ static void _add_init_fn(void) { \
 	__module_initcall_end++; \
 }
 
+#define MODULE_HIPRI_INITCALL(ifn, sfn) \
+	MODULE_INITCALL(ifn, sfn)
+
 #define MODULE_INITSYSTEM_DECLS \
 static initmodule_t __module_initcalls[256]; \
 initmodule_t *__module_initcall_start = __module_initcalls; \

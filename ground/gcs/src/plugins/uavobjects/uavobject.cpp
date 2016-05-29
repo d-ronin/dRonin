@@ -2,8 +2,11 @@
  ******************************************************************************
  *
  * @file       uavobject.cpp
+ *
  * @author     The OpenPilot Team, http://www.openpilot.org Copyright (C) 2010.
  * @author     Tau Labs, http://taulabs.org, Copyright (C) 2014
+ * @author     dRonin, http://dRonin.org/, Copyright (C) 2016
+ *
  * @see        The GNU Public License (GPL) Version 3
  * @addtogroup GCSPlugins GCS Plugins
  * @{
@@ -25,7 +28,12 @@
  * You should have received a copy of the GNU General Public License along 
  * with this program; if not, write to the Free Software Foundation, Inc., 
  * 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
+ *
+ * Additional note on redistribution: The copyright and license notices above
+ * must be maintained in each individual source file that is a derivative work
+ * of this source file; otherwise redistribution is prohibited.
  */
+
 #include "uavobject.h"
 #include <QtEndian>
 #include <QDebug>
@@ -56,7 +64,6 @@ UAVObject::UAVObject(quint32 objID, bool isSingleInst, const QString& name)
     this->instID = 0;
     this->isSingleInst = isSingleInst;
     this->name = name;
-    this->mutex = new QMutex(QMutex::Recursive);
 }
 
 /**
@@ -64,7 +71,6 @@ UAVObject::UAVObject(quint32 objID, bool isSingleInst, const QString& name)
  */
 void UAVObject::initialize(quint32 instID)
 {
-    QMutexLocker locker(mutex);
     this->instID = instID;
 }
 
@@ -76,7 +82,6 @@ void UAVObject::initialize(quint32 instID)
  */
 void UAVObject::initializeFields(QList<UAVObjectField*>& fields, quint8* data, quint32 numBytes)
 {
-    QMutexLocker locker(mutex);
     this->numBytes = numBytes;
     this->data = data;
     this->fields = fields;
@@ -199,43 +204,10 @@ void UAVObject::updated()
 }
 
 /**
- * Lock mutex of this object
- */
-void UAVObject::lock()
-{
-    mutex->lock();
-}
-
-/**
- * Lock mutex of this object
- */
-void UAVObject::lock(int timeoutMs)
-{
-    mutex->tryLock(timeoutMs);
-}
-
-/**
- * Unlock mutex of this object
- */
-void UAVObject::unlock()
-{
-    mutex->unlock();
-}
-
-/**
- * Get object's mutex
- */
-QMutex* UAVObject::getMutex()
-{
-    return mutex;
-}
-
-/**
  * Get the number of fields held by this object
  */
 qint32 UAVObject::getNumFields()
 {
-    QMutexLocker locker(mutex);
     return fields.count();
 }
 
@@ -244,7 +216,6 @@ qint32 UAVObject::getNumFields()
  */
 QList<UAVObjectField*> UAVObject::getFields()
 {
-    QMutexLocker locker(mutex);
     return fields;
 }
 
@@ -252,7 +223,6 @@ QList<UAVObjectField*> UAVObject::getFields()
  * Get the JSON representation of the object
  */
 QJsonObject UAVObject::getJsonRepresentation() {
-    QMutexLocker locker(mutex);
 
     QJsonObject obj, fieldMap;
 
@@ -285,7 +255,6 @@ QJsonObject UAVObject::getJsonRepresentation() {
  */
 UAVObjectField* UAVObject::getField(const QString& name)
 {
-    QMutexLocker locker(mutex);
     // Look for field
     for (int n = 0; n < fields.length(); ++n)
     {
@@ -305,7 +274,6 @@ UAVObjectField* UAVObject::getField(const QString& name)
  */
 qint32 UAVObject::pack(quint8* dataOut)
 {
-    QMutexLocker locker(mutex);
     qint32 offset = 0;
     for (QList<UAVObjectField*>::iterator iter = fields.begin(); iter != fields.end(); ++iter)
     {
@@ -322,7 +290,6 @@ qint32 UAVObject::pack(quint8* dataOut)
  */
 qint32 UAVObject::unpack(const quint8* dataIn)
 {
-    QMutexLocker locker(mutex);
     qint32 offset = 0;
     for (QList<UAVObjectField*>::iterator iter = fields.begin(); iter != fields.end(); ++iter)
     {

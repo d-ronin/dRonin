@@ -1,4 +1,0 @@
-define connect
-	target remote localhost:3333
-	file ./build/fw_colibri/fw_colibri.elf
-end

@@ -1,0 +1,7 @@
+The fonts included in this directory are licensed as follows:
+
+font8x10.png: Licence GPL-V3. Originally created for the the OpenPilot Project Copyright 2012
+font12x18.png: Licence GPL-V3. Originally created for the the OpenPilot Project Copyright 2012
+font_outlined8x8.png: License Creative Commons License (version 3.0 BY-SA). Originally created for Super OSD. Copyright (C) 2010 Thomas Oldbury
+font_outlined8x14.png: License Creative Commons License (version 3.0 BY-SA). Originally created for Super OSD. Copyright (C) 2010 Thomas Oldbury
+

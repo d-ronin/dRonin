@@ -333,7 +333,7 @@ bool RawHID::open(OpenMode mode)
     hid_init();
 
     // Open the device using the VID, PID
-    handle = hid_open(m_deviceInfo->getVendorID(), m_deviceInfo->getProductID(), NULL);
+    handle = hid_open_path(m_deviceInfo->getPath().toLatin1());
 
     if (handle) {
         m_handle = handle;

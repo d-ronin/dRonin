@@ -79,6 +79,9 @@ ConfigAutotuneWidget::ConfigAutotuneWidget(ConfigGadgetWidget *parent) :
     connect(m_autotune->rateDamp, SIGNAL(valueChanged(int)), this, SLOT(recomputeStabilization()));
     connect(m_autotune->rateNoise, SIGNAL(valueChanged(int)), this, SLOT(recomputeStabilization()));
 
+    connect(m_autotune->cbUseYaw, SIGNAL(toggled(bool)), this, SLOT(onYawTuneToggled(bool)));
+    connect(m_autotune->cbUseOuterKi, SIGNAL(toggled(bool)), this, SLOT(recomputeStabilization()));
+
     addUAVObject(ModuleSettings::NAME);
 
     SystemIdent *systemIdent = SystemIdent::GetInstance(getObjectManager());
@@ -100,6 +103,7 @@ ConfigAutotuneWidget::ConfigAutotuneWidget(ConfigGadgetWidget *parent) :
 
     // force defaults in-case somebody tries to change them in UI and forgets to update this func
     resetSliders();
+    setApplyEnabled(false);
 }
 
 /**
@@ -341,16 +345,35 @@ void ConfigAutotuneWidget::recomputeStabilization()
     double beta_roll = systemIdentData.Beta[SystemIdent::BETA_ROLL];
     double beta_pitch = systemIdentData.Beta[SystemIdent::BETA_PITCH];
 
-    double wn = 1/tau;
-    double tau_d = 0;
-    for (int i = 0; i < 30; i++) {
+    double wn = 1/tau, wn_last = 1/tau + 10;
+    double tau_d = 0, tau_d_last = 1000;
+
+    const int iteration_limit = 100, stability_limit = 5;
+    converged = false;
+    iterations = 0;
+    int stable_iterations = 0;
+
+    while (++iterations <= iteration_limit && !converged) {
         double tau_d_roll = (2*damp*tau*wn - 1)/(4*tau*damp*damp*wn*wn - 2*damp*wn - tau*wn*wn + exp(beta_roll)*ghf);
         double tau_d_pitch = (2*damp*tau*wn - 1)/(4*tau*damp*damp*wn*wn - 2*damp*wn - tau*wn*wn + exp(beta_pitch)*ghf);
 
         // Select the slowest filter property
         tau_d = (tau_d_roll > tau_d_pitch) ? tau_d_roll : tau_d_pitch;
         wn = (tau + tau_d) / (tau*tau_d) / (2 * damp + 2);
+
+        // check for convergence
+        if (fabs(tau_d - tau_d_last) <= 0.00001 && fabs(wn - wn_last) <= 0.00001) {
+            if (++stable_iterations >= stability_limit)
+                converged = true;
+        } else {
+            stable_iterations = 0;
+        }
+        tau_d_last = tau_d;
+        wn_last = wn;
     }
+    --iterations; // make the number right for tune share etc.
+
+    setApplyEnabled(converged);
 
     // Set the real pole position. The first pole is quite slow, which
     // prevents the integral being too snappy and driving too much
@@ -367,14 +390,30 @@ void ConfigAutotuneWidget::recomputeStabilization()
     // critically damped;
     const double zeta_o = 1.3;
     const double kp_o = 1 / 4.0 / (zeta_o * zeta_o) / (1/wn);
+    const double ki_o = (m_autotune->cbUseOuterKi->isChecked()) ? (0.75 * kp_o / (2 * M_PI * tau * 10.0)) : 0.0;
 
     // For now just run over roll and pitch
-    for (int i = 0; i < 2; i++) {
+    for (int i = 0; i < 3; i++) {
         double beta = exp(systemIdentData.Beta[i]);
 
-        double ki = a * b * wn * wn * tau * tau_d / beta;
-        double kp = tau * tau_d * ((a+b)*wn*wn + 2*a*b*damp*wn) / beta - ki*tau_d;
-        double kd = (tau * tau_d * (a*b + wn*wn + (a+b)*2*damp*wn) - 1) / beta - kp * tau_d;
+        double ki;
+        double kp;
+        double kd;
+
+        switch (i) {
+        case 0: // Roll
+        case 1: // Pitch
+            ki = a * b * wn * wn * tau * tau_d / beta;
+            kp = tau * tau_d * ((a+b)*wn*wn + 2*a*b*damp*wn) / beta - ki*tau_d;
+            kd = (tau * tau_d * (a*b + wn*wn + (a+b)*2*damp*wn) - 1) / beta - kp * tau_d;
+            break;
+        case 2: // Yaw
+            beta = exp(0.6 * (systemIdentData.Beta[SystemIdent::BETA_PITCH] - systemIdentData.Beta[SystemIdent::BETA_YAW]));
+            kp = stabSettings.PitchRatePID[StabilizationSettings::PITCHRATEPID_KP] * beta;
+            ki = 0.8 * stabSettings.PitchRatePID[StabilizationSettings::PITCHRATEPID_KI] * beta;
+            kd = 0.8 * stabSettings.PitchRatePID[StabilizationSettings::PITCHRATEPID_KD] * beta;
+            break;
+        }
 
         switch(i) {
         case 0: // Roll
@@ -382,14 +421,23 @@ void ConfigAutotuneWidget::recomputeStabilization()
             stabSettings.RollRatePID[StabilizationSettings::ROLLRATEPID_KI] = ki;
             stabSettings.RollRatePID[StabilizationSettings::ROLLRATEPID_KD] = kd;
             stabSettings.RollPI[StabilizationSettings::ROLLPI_KP] = kp_o;
-            stabSettings.RollPI[StabilizationSettings::ROLLPI_KI] = 0;
+            stabSettings.RollPI[StabilizationSettings::ROLLPI_KI] = ki_o;
             break;
         case 1: // Pitch
             stabSettings.PitchRatePID[StabilizationSettings::PITCHRATEPID_KP] = kp;
             stabSettings.PitchRatePID[StabilizationSettings::PITCHRATEPID_KI] = ki;
             stabSettings.PitchRatePID[StabilizationSettings::PITCHRATEPID_KD] = kd;
             stabSettings.PitchPI[StabilizationSettings::PITCHPI_KP] = kp_o;
-            stabSettings.PitchPI[StabilizationSettings::PITCHPI_KI] = 0;
+            stabSettings.PitchPI[StabilizationSettings::PITCHPI_KI] = ki_o;
+            break;
+        case 2: // Yaw
+            if (m_autotune->cbUseYaw->isChecked() && systemIdentData.Beta[SystemIdent::BETA_YAW] >= 6.3) {
+                stabSettings.YawRatePID[StabilizationSettings::YAWRATEPID_KP] = kp;
+                stabSettings.YawRatePID[StabilizationSettings::YAWRATEPID_KI] = ki;
+                stabSettings.YawRatePID[StabilizationSettings::YAWRATEPID_KD] = kd;
+                //stabSettings.YawPI[StabilizationSettings::YAWPI_KP] = kp_o;
+                //stabSettings.YawPI[StabilizationSettings::YAWPI_KI] = ki_o;
+            }
             break;
         }
     }
@@ -402,7 +450,17 @@ void ConfigAutotuneWidget::recomputeStabilization()
     m_autotune->pitchRateKp->setText(QString::number(stabSettings.PitchRatePID[StabilizationSettings::PITCHRATEPID_KP]));
     m_autotune->pitchRateKi->setText(QString::number(stabSettings.PitchRatePID[StabilizationSettings::PITCHRATEPID_KI]));
     m_autotune->pitchRateKd->setText(QString::number(stabSettings.PitchRatePID[StabilizationSettings::PITCHRATEPID_KD]));
+    if (m_autotune->cbUseYaw->isChecked() && systemIdentData.Beta[SystemIdent::BETA_YAW] >= 6.3) {
+        m_autotune->yawRateKp->setText(QString::number(stabSettings.YawRatePID[StabilizationSettings::YAWRATEPID_KP]));
+        m_autotune->yawRateKi->setText(QString::number(stabSettings.YawRatePID[StabilizationSettings::YAWRATEPID_KI]));
+        m_autotune->yawRateKd->setText(QString::number(stabSettings.YawRatePID[StabilizationSettings::YAWRATEPID_KD]));
+    } else {
+        m_autotune->yawRateKp->setText("-");
+        m_autotune->yawRateKi->setText("-");
+        m_autotune->yawRateKd->setText("-");
+    }
     m_autotune->lblOuterKp->setText(QString::number(stabSettings.RollPI[StabilizationSettings::ROLLPI_KP]));
+    m_autotune->lblOuterKi->setText(QString::number(stabSettings.RollPI[StabilizationSettings::ROLLPI_KI]));
 
     m_autotune->derivativeCutoff->setText(QString::number(stabSettings.DerivativeCutoff));
     m_autotune->rollTau->setText(QString::number(tau,'g',3));
@@ -501,19 +559,26 @@ QString ConfigAutotuneWidget::getResultsPlainText()
             .arg(m_autotune->wn->text()); // 9
     QString message2 = tr(
                 "Computed values:\n"
+                "Converged:\t%0\n"
                 "\t\t\tRateKp\t\tRateKi\t\tRateKd\n"
-                "Roll:\t\t%0\t%1\t%2\n"
-                "Pitch:\t\t%3\t%4\t%5\n"
-                "Outer Kp:\t%6\t\t-\t\t\t-\n"
-                "Derivative cutoff:\t%7")
-            .arg(m_autotune->rollRateKp->text()) // 0
-            .arg(m_autotune->rollRateKi->text()) // 1
-            .arg(m_autotune->rollRateKd->text()) // 2
-            .arg(m_autotune->pitchRateKp->text()) // 3
-            .arg(m_autotune->pitchRateKi->text()) // 4
-            .arg(m_autotune->pitchRateKd->text()) // 5
-            .arg(m_autotune->lblOuterKp->text()) // 6
-            .arg(m_autotune->derivativeCutoff->text()); // 7
+                "Roll:\t\t%1\t%2\t%3\n"
+                "Pitch:\t\t%4\t%5\t%6\n"
+                "Yaw:\t\t%7\t%8\t%9\n"
+                "Outer:\t\t%10\t\t%11\t\t-\n"
+                "Derivative cutoff:\t%12")
+            .arg(converged ? "Yes" : "No") // 0
+            .arg(m_autotune->rollRateKp->text()) // 1
+            .arg(m_autotune->rollRateKi->text()) // 2
+            .arg(m_autotune->rollRateKd->text()) // 3
+            .arg(m_autotune->pitchRateKp->text()) // 4
+            .arg(m_autotune->pitchRateKi->text()) // 5
+            .arg(m_autotune->pitchRateKd->text()) // 6
+            .arg(m_autotune->yawRateKp->text()) // 7
+            .arg(m_autotune->yawRateKi->text()) // 8
+            .arg(m_autotune->yawRateKd->text()) // 9
+            .arg(m_autotune->lblOuterKp->text()) // 10
+            .arg(m_autotune->lblOuterKi->text()) // 11
+            .arg(m_autotune->derivativeCutoff->text()); // 12
 
     return message0 + message1 + message2;
 }
@@ -530,7 +595,7 @@ QJsonDocument ConfigAutotuneWidget::getResultsJson()
     QJsonObject rawSettings;
 
     QJsonObject json;
-    json["dataVersion"] = 1;
+    json["dataVersion"] = 3;
     json["uniqueId"] = QString(QCryptographicHash::hash(utilMngr->getBoardCPUSerial(), QCryptographicHash::Sha256).toHex());
 
     QJsonObject vehicle, fw;
@@ -628,9 +693,11 @@ QJsonDocument ConfigAutotuneWidget::getResultsJson()
     tuning["parameters"] = parameters;
     computed["naturalFrequency"] = m_autotune->wn->text().toDouble();
     computed["derivativeCutoff"] = m_autotune->derivativeCutoff->text().toDouble();
+    computed["converged"] = converged;
+    computed["iterations"] = iterations;
 
     QJsonObject gains;
-    QJsonObject roll_gain, pitch_gain, outer_gain;
+    QJsonObject roll_gain, pitch_gain, yaw_gain, outer_gain;
     roll_gain["kp"] = m_autotune->rollRateKp->text().toDouble();
     roll_gain["ki"] = m_autotune->rollRateKi->text().toDouble();
     roll_gain["kd"] = m_autotune->rollRateKd->text().toDouble();
@@ -639,7 +706,12 @@ QJsonDocument ConfigAutotuneWidget::getResultsJson()
     pitch_gain["ki"] = m_autotune->pitchRateKi->text().toDouble();
     pitch_gain["kd"] = m_autotune->pitchRateKd->text().toDouble();
     gains["pitch"] = pitch_gain;
+    yaw_gain["kp"] = m_autotune->yawRateKp->text().toDouble();
+    yaw_gain["ki"] = m_autotune->yawRateKi->text().toDouble();
+    yaw_gain["kd"] = m_autotune->yawRateKd->text().toDouble();
+    gains["yaw"] = yaw_gain;
     outer_gain["kp"] = m_autotune->lblOuterKp->text().toDouble();
+    outer_gain["ki"] = m_autotune->lblOuterKi->text().toDouble();
     gains["outer"] = outer_gain;
     computed["gains"] = gains;
     tuning["computed"] = computed;
@@ -654,4 +726,52 @@ void ConfigAutotuneWidget::resetSliders()
 {
     m_autotune->rateDamp->setValue(110);
     m_autotune->rateNoise->setValue(10);
+}
+
+void ConfigAutotuneWidget::onYawTuneToggled(bool checked)
+{
+    StabilizationSettings *stabilizationSettings = StabilizationSettings::GetInstance(getObjectManager());
+    Q_ASSERT(stabilizationSettings);
+    if(!stabilizationSettings)
+        return;
+    stabSettings = stabilizationSettings->getData();
+
+    // save previous settings when yaw tuning is enabled
+    if (checked) {
+        if(!m_autotune->yawRateKp->property("Backup").isValid()) {
+            m_autotune->yawRateKp->setProperty("Backup", stabSettings.YawRatePID[StabilizationSettings::YAWRATEPID_KP]);
+            m_autotune->yawRateKi->setProperty("Backup", stabSettings.YawRatePID[StabilizationSettings::YAWRATEPID_KI]);
+            m_autotune->yawRateKd->setProperty("Backup", stabSettings.YawRatePID[StabilizationSettings::YAWRATEPID_KD]);
+            connect(stabilizationSettings, SIGNAL(objectUpdated(UAVObject*)), this, SLOT(onStabSettingsUpdated(UAVObject*)));
+        }
+    }
+
+    // now we need to compute the gains and update UI
+    recomputeStabilization();
+
+    // restore previous settings when yaw tuning is disabled
+    if (!checked) {
+        if(m_autotune->yawRateKp->property("Backup").isValid())
+            stabSettings.YawRatePID[StabilizationSettings::YAWRATEPID_KP] = m_autotune->yawRateKp->property("Backup").toDouble();
+        if(m_autotune->yawRateKi->property("Backup").isValid())
+            stabSettings.YawRatePID[StabilizationSettings::YAWRATEPID_KI] = m_autotune->yawRateKi->property("Backup").toDouble();
+        if(m_autotune->yawRateKd->property("Backup").isValid())
+            stabSettings.YawRatePID[StabilizationSettings::YAWRATEPID_KD] = m_autotune->yawRateKd->property("Backup").toDouble();
+    }
+}
+
+void ConfigAutotuneWidget::onStabSettingsUpdated(UAVObject *obj)
+{
+    // set the previous settings to new UAVO values
+    stabSettings = static_cast<StabilizationSettings *>(obj)->getData();
+    m_autotune->yawRateKp->setProperty("Backup", stabSettings.YawRatePID[StabilizationSettings::YAWRATEPID_KP]);
+    m_autotune->yawRateKi->setProperty("Backup", stabSettings.YawRatePID[StabilizationSettings::YAWRATEPID_KI]);
+    m_autotune->yawRateKd->setProperty("Backup", stabSettings.YawRatePID[StabilizationSettings::YAWRATEPID_KD]);
+}
+
+void ConfigAutotuneWidget::setApplyEnabled(const bool enable)
+{
+    m_autotune->useComputedValues->setEnabled(enable);
+    m_autotune->gbxComputed->setVisible(enable);
+    m_autotune->gbxFailure->setVisible(!enable);
 }
