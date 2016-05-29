@@ -451,9 +451,7 @@ void ConfigOsdWidget::setupOsdPage(Ui::OsdPage * page, QWidget * page_widget, UA
     addUAVObjectToWidgetRelation(name, "BatteryChargeStatePosY", page->BatteryChargeStateY);
 
     // Center Mark
-    addUAVObjectToWidgetRelation(name, "CenterMark", page->CenterMarkEnabled);
-    page->CenterMarkEnabled->setProperty(trueString.toLatin1(), "Enabled");
-    page->CenterMarkEnabled->setProperty(falseString.toLatin1(), "Disabled");
+    addUAVObjectToWidgetRelation(name, "CenterMark", page->CenterMarkMode);
 
     // Climb rate
     addUAVObjectToWidgetRelation(name, "ClimbRate", page->ClimbRateEnabled);
