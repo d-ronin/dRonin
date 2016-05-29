@@ -1,5 +1,7 @@
 <RCC>
     <qresource prefix="/brainfpv">
         <file>images/brain.png</file>
+        <file>images/brainre1.png</file>
+        <file>images/brainre1-connection-diagram.svg</file>
     </qresource>
 </RCC>

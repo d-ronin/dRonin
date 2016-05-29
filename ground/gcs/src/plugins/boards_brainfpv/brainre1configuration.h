@@ -1,8 +1,8 @@
 /**
  ******************************************************************************
  *
- * @file       brainfpvplugin.h
- * @author     Tau Labs, http://taulabs.org, Copyright (C) 2013-2014
+ * @file       brainconfiguration.h
+ * @author     Tau Labs, http://taulabs.org, Copyright (C) 2014
  *
  * @addtogroup GCSPlugins GCS Plugins
  * @{
@@ -26,42 +26,38 @@
  * 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
  */
 
-#include "brainfpvplugin.h"
-#include "brain.h"
-#include "brainre1.h"
-#include <QtPlugin>
+#ifndef BRAINRE1CONFIGURATION_H
+#define BRAINRE1CONFIGURATION_H
 
+#include <QPixmap>
+#include "configtaskwidget.h"
+#include "hwbrainre1.h"
 
-BrainFPVPlugin::BrainFPVPlugin()
-{
-   // Do nothing
+namespace Ui {
+class BrainRE1Configuration;
 }
 
-BrainFPVPlugin::~BrainFPVPlugin()
+class BrainRE1Configuration : public ConfigTaskWidget
 {
-   // Do nothing
-}
+    Q_OBJECT
+    
+public:
+    explicit BrainRE1Configuration(QWidget *parent = 0);
+    ~BrainRE1Configuration();
 
-bool BrainFPVPlugin::initialize(const QStringList& args, QString *errMsg)
-{
-   Q_UNUSED(args);
-   Q_UNUSED(errMsg);
-   return true;
-}
+private slots:
+    void openHelp();
+    void generateILapID();
+    void generateTrackmateID();
+    void getCustomLedColor();
+    void setCustomLedColor(const QColor);
 
-void BrainFPVPlugin::extensionsInitialized()
-{
-    /**
-     * Create the board objects here.
-     *
-     */
-    Brain* brain = new Brain();
-    addAutoReleasedObject(brain);
-    BrainRE1* brainre1 = new BrainRE1();
-    addAutoReleasedObject(brainre1);
-}
+private:
+    Ui::BrainRE1Configuration *ui;
+    HwBrainRE1 * re1_settings_obj;
 
-void BrainFPVPlugin::shutdown()
-{
-}
+    QPixmap img;
+    int generateRandomNumber(int max);
+};
 
+#endif // BRAINRE1CONFIGURATION_H
