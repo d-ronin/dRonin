@@ -167,7 +167,8 @@ static void at_new_gyro_data(UAVObjEvent * ev, void *ctx, void *obj, int len) {
 		}
 	}
 
-	struct at_queued_data *q_item = circ_queue_cur_write_pos(at_queue);
+	struct at_queued_data *q_item = circ_queue_write_pos(at_queue,
+			NULL, NULL);
 
 	q_item->raw_time = PIOS_DELAY_GetRaw();
 
@@ -341,9 +342,7 @@ static void AutotuneTask(void *parameters)
 					last_time = PIOS_DELAY_GetRaw();
 
 					/* Drain the queue of all current data */
-					while (circ_queue_read_pos(at_queue)) {
-						circ_queue_read_completed(at_queue);
-					}
+					circ_queue_clear(at_queue);
 
 					/* And reset the point spill counter */
 
@@ -370,7 +369,7 @@ static void AutotuneTask(void *parameters)
 					struct at_queued_data *pt;
 
 					/* Grab an autotune point */
-					pt = circ_queue_read_pos(at_queue);
+					pt = circ_queue_read_pos(at_queue, NULL, NULL);
 
 					if (!pt) {
 						/* We've drained the buffer
@@ -403,15 +402,15 @@ static void AutotuneTask(void *parameters)
 					//This will work up to 8kHz with an 89% throttle position before overflow
 					throttle_accumulator += 10000 * pt->throttle;
 
+					/* Free the buffer containing an AT point */
+					circ_queue_read_completed(at_queue);
+
 					// Update uavo every 256 cycles to avoid
 					// telemetry spam
 					if (!((update_counter++) & 0xff)) {
 						float hover_throttle = ((float)(throttle_accumulator/update_counter))/10000.0f;
 						UpdateSystemIdent(X, noise, dT_s, update_counter, at_points_spilled, hover_throttle);
 					}
-
-					/* Free the buffer containing an AT point */
-					circ_queue_read_completed(at_queue);
 				}
 
 				if (diff_time > MEASURE_TIME) { // Move on to next state

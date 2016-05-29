@@ -34,7 +34,6 @@
 #include <pios.h>
 #include <pios_stm32.h>
 #include <pios_internal_adc.h>
-#include <fifo_buffer.h>
 
 extern const struct pios_adc_driver pios_internal_adc_driver;
 

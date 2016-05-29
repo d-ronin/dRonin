@@ -143,10 +143,8 @@ int32_t LoggingInitialize(void)
 		}
 
 		const uint32_t LOG_BUF_LEN = 768;
-		uint8_t *log_tx_buffer = PIOS_malloc(LOG_BUF_LEN);
 		if (PIOS_COM_Init(&logging_com_id, &pios_streamfs_com_driver,
-					streamfs_id, NULL, 0,
-					log_tx_buffer, LOG_BUF_LEN) != 0) {
+				streamfs_id, 0, LOG_BUF_LEN) != 0) {
 			module_enabled = false;
 			return -1;
 		}

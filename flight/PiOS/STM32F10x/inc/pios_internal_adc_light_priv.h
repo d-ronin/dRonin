@@ -34,7 +34,6 @@
 #include <pios_stm32.h>
 #include <pios_internal_adc.h>
 #include <pios_internal_adc_priv.h>
-#include <fifo_buffer.h>
 
 extern int32_t PIOS_INTERNAL_ADC_LIGHT_Init(uint32_t *internal_adc_id,
 		const struct pios_internal_adc_cfg *cfg,

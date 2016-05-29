@@ -39,7 +39,7 @@
 
 #if defined(PIOS_INCLUDE_COM)
 
-#include "fifo_buffer.h"
+#include <circqueue.h>
 #include <pios_com_priv.h>
 
 #if !defined(PIOS_INCLUDE_FREERTOS) && !defined(PIOS_INCLUDE_CHIBIOS)
@@ -64,11 +64,8 @@ struct pios_com_dev {
 	struct pios_mutex *sendbuffer_mtx;
 #endif
 
-	bool has_rx;
-	bool has_tx;
-
-	t_fifo_buffer rx;
-	t_fifo_buffer tx;
+	circ_queue_t rx;
+	circ_queue_t tx;
 };
 
 static bool PIOS_COM_validate(struct pios_com_dev *com_dev)
@@ -100,16 +97,14 @@ static void PIOS_COM_UnblockTx(struct pios_com_dev *com_dev, bool * need_yield);
   * \param[in] id
   * \return < 0 if initialisation failed
   */
-int32_t PIOS_COM_Init(uintptr_t * com_id, const struct pios_com_driver * driver, uintptr_t lower_id, uint8_t * rx_buffer, uint16_t rx_buffer_len, uint8_t * tx_buffer, uint16_t tx_buffer_len)
+int32_t PIOS_COM_Init(uintptr_t * com_id, const struct pios_com_driver * driver, uintptr_t lower_id, uint16_t rx_buffer_len, uint16_t tx_buffer_len)
 {
 	PIOS_Assert(com_id);
 	PIOS_Assert(driver);
 
-	bool has_rx = (rx_buffer && rx_buffer_len > 0);
-	bool has_tx = (tx_buffer && tx_buffer_len > 0);
-	PIOS_Assert(has_rx || has_tx);
-	PIOS_Assert(driver->bind_tx_cb || !has_tx);
-	PIOS_Assert(driver->bind_rx_cb || !has_rx);
+	PIOS_Assert(rx_buffer_len || tx_buffer_len);
+	PIOS_Assert(driver->bind_tx_cb || !tx_buffer_len);
+	PIOS_Assert(driver->bind_rx_cb || !rx_buffer_len);
 
 	struct pios_com_dev *com_dev;
 
@@ -118,12 +113,13 @@ int32_t PIOS_COM_Init(uintptr_t * com_id, const struct pios_com_driver * driver,
 
 	com_dev->driver   = driver;
 	com_dev->lower_id = lower_id;
+	com_dev->rx = NULL;
+	com_dev->tx = NULL;
 
-	com_dev->has_rx = has_rx;
-	com_dev->has_tx = has_tx;
+	if (rx_buffer_len) {
+		com_dev->rx = circ_queue_new(1, rx_buffer_len);
 
-	if (has_rx) {
-		fifoBuf_init(&com_dev->rx, rx_buffer, rx_buffer_len);
+		if (!com_dev->rx) goto out_fail;
 #if defined(PIOS_INCLUDE_FREERTOS) || defined(PIOS_INCLUDE_CHIBIOS)
 		com_dev->rx_sem = PIOS_Semaphore_Create();
 #endif	/* PIOS_INCLUDE_FREERTOS */
@@ -131,12 +127,13 @@ int32_t PIOS_COM_Init(uintptr_t * com_id, const struct pios_com_driver * driver,
 		if (com_dev->driver->rx_start) {
 			/* Start the receiver */
 			(com_dev->driver->rx_start)(com_dev->lower_id,
-						    fifoBuf_getFree(&com_dev->rx));
+						    rx_buffer_len - 1);
 		}
 	}
 
-	if (has_tx) {
-		fifoBuf_init(&com_dev->tx, tx_buffer, tx_buffer_len);
+	if (tx_buffer_len) {
+		com_dev->tx = circ_queue_new(1, tx_buffer_len);
+		if (!com_dev->tx) goto out_fail;
 #if defined(PIOS_INCLUDE_FREERTOS) || defined(PIOS_INCLUDE_CHIBIOS)
 		com_dev->tx_sem = PIOS_Semaphore_Create();
 #endif	/* PIOS_INCLUDE_FREERTOS */
@@ -179,9 +176,10 @@ static uint16_t PIOS_COM_RxInCallback(uintptr_t context, uint8_t * buf, uint16_t
 
 	bool valid = PIOS_COM_validate(com_dev);
 	PIOS_Assert(valid);
-	PIOS_Assert(com_dev->has_rx);
+	PIOS_Assert(com_dev->rx);
 
-	uint16_t bytes_into_fifo = fifoBuf_putData(&com_dev->rx, buf, buf_len);
+	uint16_t bytes_into_fifo = circ_queue_write_data(com_dev->rx,
+			buf, buf_len);
 
 	if (bytes_into_fifo > 0) {
 		/* Data has been added to the buffer */
@@ -189,7 +187,7 @@ static uint16_t PIOS_COM_RxInCallback(uintptr_t context, uint8_t * buf, uint16_t
 	}
 
 	if (headroom) {
-		*headroom = fifoBuf_getFree(&com_dev->rx);
+		circ_queue_write_pos(com_dev->rx, NULL, headroom);
 	}
 
 	return (bytes_into_fifo);
@@ -203,9 +201,10 @@ static uint16_t PIOS_COM_TxOutCallback(uintptr_t context, uint8_t * buf, uint16_
 	PIOS_Assert(valid);
 	PIOS_Assert(buf);
 	PIOS_Assert(buf_len);
-	PIOS_Assert(com_dev->has_tx);
+	PIOS_Assert(com_dev->tx);
 
-	uint16_t bytes_from_fifo = fifoBuf_getData(&com_dev->tx, buf, buf_len);
+	uint16_t bytes_from_fifo = circ_queue_read_data(com_dev->tx,
+			buf, buf_len);
 
 	if (bytes_from_fifo > 0) {
 		/* More space has been made in the buffer */
@@ -213,7 +212,7 @@ static uint16_t PIOS_COM_TxOutCallback(uintptr_t context, uint8_t * buf, uint16_
 	}
 
 	if (headroom) {
-		*headroom = fifoBuf_getUsed(&com_dev->tx);
+		circ_queue_read_pos(com_dev->tx, NULL, headroom);
 	}
 
 	return (bytes_from_fifo);
@@ -243,19 +242,7 @@ int32_t PIOS_COM_ChangeBaud(uintptr_t com_id, uint32_t baud)
 	return 0;
 }
 
-/**
-* Sends a package over given port
-* \param[in] port COM port
-* \param[in] buffer character buffer
-* \param[in] len buffer length
-* \return -1 if port not available
-* \return -2 if non-blocking mode activated: buffer is full
-*            caller should retry until buffer is free again
-* \return -3 another thread is already sending, caller should
-*            retry until com is available again
-* \return number of bytes transmitted on success
-*/
-int32_t PIOS_COM_SendBufferNonBlocking(uintptr_t com_id, const uint8_t *buffer, uint16_t len)
+static int32_t SendBufferNonBlockingImpl(uintptr_t com_id, const uint8_t *buffer, uint16_t len, bool all_or_nothing)
 {
 	struct pios_com_dev *com_dev = (struct pios_com_dev *)com_id;
 
@@ -264,7 +251,7 @@ int32_t PIOS_COM_SendBufferNonBlocking(uintptr_t com_id, const uint8_t *buffer, 
 		return -1;
 	}
 
-	PIOS_Assert(com_dev->has_tx);
+	PIOS_Assert(com_dev->tx);
 
 #if defined(PIOS_INCLUDE_FREERTOS) || defined(PIOS_INCLUDE_CHIBIOS)
 	if (PIOS_Mutex_Lock(com_dev->sendbuffer_mtx, 0) != true) {
@@ -279,7 +266,10 @@ int32_t PIOS_COM_SendBufferNonBlocking(uintptr_t com_id, const uint8_t *buffer, 
 		 * possibly having the caller block trying to send to a device that's
 		 * no longer accepting data.
 		 */
-		fifoBuf_clearData(&com_dev->tx);
+		/* This call uses queue "reader" state, so it is required that
+		 * no one actually be reading the tx queue at the time or
+		 * undefined behavior may result */
+		circ_queue_clear(com_dev->tx);
 #if defined(PIOS_INCLUDE_FREERTOS) || defined(PIOS_INCLUDE_CHIBIOS)
 		PIOS_Mutex_Unlock(com_dev->sendbuffer_mtx);
 #endif /* PIOS_INCLUDE_FREERTOS */
@@ -287,21 +277,32 @@ int32_t PIOS_COM_SendBufferNonBlocking(uintptr_t com_id, const uint8_t *buffer, 
 		return len;
 	}
 
-	if (len > fifoBuf_getFree(&com_dev->tx)) {
+	if (all_or_nothing) {
+		// atomic-check
+		uint16_t tot_avail;
+
+		circ_queue_write_pos(com_dev->tx, NULL, &tot_avail);
+		if (len > tot_avail) {
 #if defined(PIOS_INCLUDE_FREERTOS) || defined(PIOS_INCLUDE_CHIBIOS)
-		PIOS_Mutex_Unlock(com_dev->sendbuffer_mtx);
+			PIOS_Mutex_Unlock(com_dev->sendbuffer_mtx);
 #endif /* PIOS_INCLUDE_FREERTOS */
-		/* Buffer cannot accept all requested bytes (retry) */
-		return -2;
+			/* Buffer cannot accept all requested bytes (retry) */
+			return -2;
+		}
 	}
 
-	uint16_t bytes_into_fifo = fifoBuf_putData(&com_dev->tx, buffer, len);
+	uint16_t bytes_into_fifo = circ_queue_write_data(com_dev->tx,
+			buffer, len);
 
 	if (bytes_into_fifo > 0) {
 		/* More data has been put in the tx buffer, make sure the tx is started */
+
 		if (com_dev->driver->tx_start) {
+			uint16_t tx_avail;
+
+			circ_queue_read_pos(com_dev->tx, NULL, &tx_avail);
 			com_dev->driver->tx_start(com_dev->lower_id,
-						  fifoBuf_getUsed(&com_dev->tx));
+						  tx_avail);
 		}
 	}
 
@@ -309,6 +310,23 @@ int32_t PIOS_COM_SendBufferNonBlocking(uintptr_t com_id, const uint8_t *buffer, 
 	PIOS_Mutex_Unlock(com_dev->sendbuffer_mtx);
 #endif /* PIOS_INCLUDE_FREERTOS */
 	return (bytes_into_fifo);
+}
+
+/**
+* Sends a package over given port
+* \param[in] port COM port
+* \param[in] buffer character buffer
+* \param[in] len buffer length
+* \return -1 if port not available
+* \return -2 if non-blocking mode activated: buffer is full
+*            caller should retry until buffer is free again
+* \return -3 another thread is already sending, caller should
+*            retry until com is available again
+* \return number of bytes transmitted on success
+*/
+int32_t PIOS_COM_SendBufferNonBlocking(uintptr_t com_id, const uint8_t *buffer, uint16_t len)
+{
+	return SendBufferNonBlockingImpl(com_id, buffer, len, true);
 }
 
 /**
@@ -329,39 +347,30 @@ int32_t PIOS_COM_SendBuffer(uintptr_t com_id, const uint8_t *buffer, uint16_t le
 		return -1;
 	}
 
-	PIOS_Assert(com_dev->has_tx);
+	PIOS_Assert(com_dev->tx);
 
-	uint32_t max_frag_len = fifoBuf_getSize(&com_dev->tx);
-	uint32_t bytes_to_send = len;
-	while (bytes_to_send) {
-		uint32_t frag_size;
-
-		if (bytes_to_send > max_frag_len) {
-			frag_size = max_frag_len;
-		} else {
-			frag_size = bytes_to_send;
-		}
-		int32_t rc = PIOS_COM_SendBufferNonBlocking(com_id, buffer, frag_size);
-		if (rc >= 0) {
-			bytes_to_send -= rc;
+	uint16_t sent = 0;
+	while (sent < len) {
+		int32_t rc = SendBufferNonBlockingImpl(com_id, buffer,
+				len - sent, false);
+		if (rc > 0) {
 			buffer += rc;
+			sent += rc;
+		} else if (rc == 0) {
+			/* Block... for 5 seconds? */
+			if (PIOS_Semaphore_Take(com_dev->tx_sem, 5000) != true) {
+				return -3;
+			}
 		} else {
+			// If we succeeded some, report that back.
+			if (sent) break;
+
 			switch (rc) {
 			case -1:
 				/* Device is invalid, this will never work */
 				return -1;
 			case -2:
-				/* Device is busy, wait for the underlying device to free some space and retry */
-				/* Make sure the transmitter is running while we wait */
-				if (com_dev->driver->tx_start) {
-					(com_dev->driver->tx_start)(com_dev->lower_id,
-								fifoBuf_getUsed(&com_dev->tx));
-				}
-#if defined(PIOS_INCLUDE_FREERTOS) || defined(PIOS_INCLUDE_CHIBIOS)
-				if (PIOS_Semaphore_Take(com_dev->tx_sem, 5000) != true) {
-					return -3;
-				}
-#endif
+				PIOS_Assert(0);
 				continue;
 			default:
 				/* Unhandled return code */
@@ -370,7 +379,7 @@ int32_t PIOS_COM_SendBuffer(uintptr_t com_id, const uint8_t *buffer, uint16_t le
 		}
 	}
 
-	return len;
+	return sent;
 }
 
 /**
@@ -480,21 +489,31 @@ uint16_t PIOS_COM_GetNumReceiveBytesPending(uintptr_t com_id) {
 		PIOS_Assert(0);
 	}
 
-	PIOS_Assert(com_dev->has_rx);
+	PIOS_Assert(com_dev->rx);
 
-	uint16_t bytes_from_fifo = fifoBuf_getUsed(&com_dev->rx);
+	uint16_t rx_pending;
 
-	if (bytes_from_fifo == 0) {
+	circ_queue_read_pos(com_dev->rx, NULL, &rx_pending);
+
+	if (rx_pending == 0) {
 		/* No more bytes in receive buffer */
 		/* Make sure the receiver is running */
 		if (com_dev->driver->rx_start) {
+			uint16_t bytes_available = 0;
+
+			/* Find out how much room in rx buffer */
+			circ_queue_write_pos(com_dev->rx, NULL,
+					&bytes_available);
 			/* Notify the lower layer that there is now room in the rx buffer */
 			(com_dev->driver->rx_start)(com_dev->lower_id,
-						    fifoBuf_getFree(&com_dev->rx));
+					bytes_available);
 		}
+
+		/* Recheck, just in case something happened */
+		circ_queue_read_pos(com_dev->rx, NULL, &rx_pending);
 	}
 
-	return fifoBuf_getUsed(&com_dev->rx);
+	return rx_pending;
 }
 
 /**
@@ -514,21 +533,25 @@ uint16_t PIOS_COM_ReceiveBuffer(uintptr_t com_id, uint8_t * buf, uint16_t buf_le
 		/* Undefined COM port for this board (see pios_board.c) */
 		PIOS_Assert(0);
 	}
-	PIOS_Assert(com_dev->has_rx);
+	PIOS_Assert(com_dev->rx);
 
 	/* Clear any pending RX wakeup */
 	PIOS_Semaphore_Take(com_dev->rx_sem, 0);
 
 check_again:
-	bytes_from_fifo = fifoBuf_getData(&com_dev->rx, buf, buf_len);
+	bytes_from_fifo = circ_queue_read_data(com_dev->rx, buf, buf_len);
 
 	if (bytes_from_fifo == 0) {
 		/* No more bytes in receive buffer */
 		/* Make sure the receiver is running while we wait */
 		if (com_dev->driver->rx_start) {
 			/* Notify the lower layer that there is now room in the rx buffer */
+			uint16_t rx_space_avail;
+
+			circ_queue_write_pos(com_dev->rx, NULL,
+					&rx_space_avail);
 			(com_dev->driver->rx_start)(com_dev->lower_id,
-						    fifoBuf_getFree(&com_dev->rx));
+						    rx_space_avail);
 		}
 		if (timeout_ms > 0) {
 #if defined(PIOS_INCLUDE_FREERTOS) || defined(PIOS_INCLUDE_CHIBIOS)
