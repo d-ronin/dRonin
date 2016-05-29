@@ -513,8 +513,10 @@ void hud_draw_linear_compass(int v, int home_dir, int range, int width, int x, i
 #define CENTER_WING       7
 #define CENTER_RUDDER     5
 #define PITCH_STEP       10
-void simple_artificial_horizon(float roll, float pitch, int16_t x, int16_t y, int16_t width, int16_t height,
-		int8_t max_pitch, uint8_t n_pitch_steps, bool show_horizon, bool center_mark)
+void simple_artificial_horizon(float roll, float pitch, int16_t x, int16_t y,
+		int16_t width, int16_t height, int8_t max_pitch,
+		uint8_t n_pitch_steps, bool show_horizon,
+		OnScreenDisplayPageSettingsCenterMarkOptions center_mark)
 {
 	float camera_tilt;
 
@@ -599,16 +601,22 @@ void simple_artificial_horizon(float roll, float pitch, int16_t x, int16_t y, in
 		}
 	}
 
-	/* Force the plane onto the screen... meh.  Should not be necessary */
-	if (camera_tilt > max_pitch) {
-		camera_tilt = max_pitch;
-	}
-
-	camera_tilt /= max_pitch;
-	camera_tilt *= height;
-
 	// Center mark
-	if (center_mark) {
+	if ((center_mark == ONSCREENDISPLAYPAGESETTINGS_CENTERMARK_MIDDLE) ||
+			(center_mark == ONSCREENDISPLAYPAGESETTINGS_CENTERMARK_CAMERAPITCH)) {
+		if (center_mark == ONSCREENDISPLAYPAGESETTINGS_CENTERMARK_CAMERAPITCH) {
+			/* Force the plane onto the screen... meh.
+			 * Should not be necessary */
+			if (camera_tilt > max_pitch) {
+				camera_tilt = max_pitch;
+			}
+
+			camera_tilt /= max_pitch;
+			camera_tilt *= height;
+		} else {
+			camera_tilt = 0;
+		}
+
 		write_line_outlined(GRAPHICS_X_MIDDLE - CENTER_WING - CENTER_BODY, GRAPHICS_Y_MIDDLE + camera_tilt,
 				GRAPHICS_X_MIDDLE - CENTER_BODY, GRAPHICS_Y_MIDDLE + camera_tilt, 2, 0, 0, 1);
 		write_line_outlined(GRAPHICS_X_MIDDLE + 1 + CENTER_BODY, GRAPHICS_Y_MIDDLE + camera_tilt,

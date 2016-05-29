@@ -1,6 +1,6 @@
 <xml>
 	<object name="OnScreenDisplaySettings" singleinstance="true" settings="true">
-		<description>On Sreen Display Settings</description>
+		<description>On Screen Display Settings</description>
 		<field name="OSDEnabled" units="" type="enum" elements="1" options="Disabled,Enabled" defaultvalue="Enabled"/>
 		<field name="Units" units="" type="enum" elements="1" options="Metric,Imperial" defaultvalue="Metric"/>
 		<field name="PALWhite" units=""  type="uint8"  elements="1" defaultvalue="110"/>
