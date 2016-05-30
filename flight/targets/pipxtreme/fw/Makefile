@@ -174,7 +174,6 @@ SRC += $(PIOSCOMMON)/pios_modules.c
 
 
 ## Libraries for flight calculations
-SRC += $(FLIGHTLIB)/fifo_buffer.c
 SRC += $(FLIGHTLIB)/taskmonitor.c
 ## The Reed-Solomon FEC library
 SRC += $(FLIGHTLIB)/rscode/rs.c

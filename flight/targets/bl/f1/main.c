@@ -33,7 +33,6 @@
 #include "op_dfu.h"
 #include "usb_lib.h"
 #include "pios_iap.h"
-#include "fifo_buffer.h"
 #include "pios_com_msg.h"
 /* Prototype of PIOS_Board_Init() function */
 extern void PIOS_Board_Init(void);

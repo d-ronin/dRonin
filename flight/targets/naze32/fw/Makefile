@@ -212,7 +212,6 @@ SRC += $(PIOSCOMMON)/pios_modules.c
 SRC += $(PIOSCOMMON)/pios_board_info.c
 
 ## Libraries for flight calculations
-SRC += $(FLIGHTLIB)/fifo_buffer.c
 SRC += $(FLIGHTLIB)/taskmonitor.c
 SRC += $(FLIGHTLIB)/sanitycheck.c
 SRC += $(FLIGHTLIB)/circqueue.c

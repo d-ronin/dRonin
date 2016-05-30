@@ -34,7 +34,6 @@
 #define PIOS_RFM22B_PRIV_H
 
 #include <pios.h>
-#include <fifo_buffer.h>
 #include <uavobjectmanager.h>
 #include <rfm22bstatus.h>
 #include "pios_rfm22b.h"

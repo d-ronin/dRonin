@@ -20,7 +20,11 @@ The full text of the various licences used in the project can be found here:
 * Various 3-clause BSD: <https://github.com/d-ronin/dRonin/search?q=Redistributions>
 
 Flight and GCS code are licensed under the GPLv3, except for some components
-from outside projects.
+from outside projects.  Note that STM32 hardware support in the flight code is
+provided by the STM32 StdPeriph libraries under a restrictive license that only
+permits their use on STM32 hardware.  Contributors to dRonin hereby agree that
+it is permitted to combine their contribution with the STM32 StdPeriph
+libraries.
 
 The python API code in the python/dronin subtree is licensed under the LPGLv2.1
 or any later version.

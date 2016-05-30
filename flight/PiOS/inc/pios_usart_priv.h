@@ -33,7 +33,6 @@
 
 #include <pios.h>
 #include <pios_stm32.h>
-#include "fifo_buffer.h"
 #include "pios_usart.h"
 
 extern const struct pios_com_driver pios_usart_com_driver;

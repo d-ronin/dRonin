@@ -52,7 +52,7 @@
 		<field name="BatteryChargeStatePosX" units="" type="int16" elements="1" defaultvalue="325"/>
 		<field name="BatteryChargeStatePosY" units="" type="int16" elements="1" defaultvalue="38"/>
 
-		<field name="CenterMark" units="" type="enum" elements="1" options="Disabled,Enabled" defaultvalue="Enabled"/>
+		<field name="CenterMark" units="" type="enum" elements="1" options="Disabled,Middle,CameraPitch" defaultvalue="Middle"/>
 
 		<field name="ClimbRate" units="" type="enum" elements="1" options="Disabled,Enabled" defaultvalue="Enabled"/>
 		<field name="ClimbRatePosX" units="" type="int16" elements="1" defaultvalue="350"/>

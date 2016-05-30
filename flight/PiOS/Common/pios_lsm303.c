@@ -38,8 +38,6 @@
 #define LSM303_TASK_PRIORITY	PIOS_THREAD_PRIO_HIGHEST
 #define LSM303_TASK_STACK_BYTES	512
 
-#include "fifo_buffer.h"
-
 /* Global Variables */
 
 enum pios_lsm303_dev_magic {

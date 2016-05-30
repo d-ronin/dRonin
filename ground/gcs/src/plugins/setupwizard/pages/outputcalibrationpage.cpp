@@ -153,9 +153,14 @@ void OutputCalibrationPage::startWizard()
     ui->calibrationStack->setCurrentIndex(m_wizardIndexes[0]);
     setupVehicleHighlightedPart();
 
-    if (getWizard()->getESCType() == SetupWizard::ESC_ONESHOT) {
+    if (getWizard()->getESCType() == SetupWizard::ESC_ONESHOT125) {
         ui->motorNeutralSlider->setMinimum(125);
         ui->motorNeutralSlider->setMaximum(140);
+        ui->motorNeutralSlider->setPageStep(1);
+        ui->motorNeutralSlider->setSingleStep(1);
+    } else if (getWizard()->getESCType() == SetupWizard::ESC_ONESHOT42) {
+        ui->motorNeutralSlider->setMinimum(125/3);
+        ui->motorNeutralSlider->setMaximum(140/3);
         ui->motorNeutralSlider->setPageStep(1);
         ui->motorNeutralSlider->setSingleStep(1);
     }
