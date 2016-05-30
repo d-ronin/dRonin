@@ -57,8 +57,8 @@ DTFc::DTFc(void)
     // Define the bank of channels that are connected to a given timer
     channelBanks.resize(3);
     channelBanks[0] = QVector<int> () << 1 << 2; // TIM4
-	channelBanks[1] = QVector<int> () << 3 << 4 << 5 << 6; // TIM2
-	channelBanks[2] = QVector<int> () << 7 << 8; // TIM3
+    channelBanks[1] = QVector<int> () << 3 << 4 << 5 << 6; // TIM2
+    channelBanks[2] = QVector<int> () << 7 << 8; // TIM3
 }
 
 DTFc::~DTFc()
@@ -203,7 +203,7 @@ enum Core::IBoardType::InputType DTFc::getInputType()
     case HwDTFc::UART1_HOTTSUMD:
         return INPUT_TYPE_HOTTSUMD;
     }
-    switch(settings.Uart1) {
+    switch(settings.Uart2) {
     case HwDTFc::UART2_SBUS:
     case HwDTFc::UART2_SBUSNONINVERTED:
         return INPUT_TYPE_SBUS;
