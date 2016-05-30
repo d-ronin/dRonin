@@ -52,7 +52,6 @@
 #define PIOS_INCLUDE_EXTI
 #define PIOS_INCLUDE_RTC
 #define PIOS_INCLUDE_WDG
-#define PIOS_INCLUDE_HPWM
 #define PIOS_INCLUDE_SPI
 
 /* Select the sensors to include */

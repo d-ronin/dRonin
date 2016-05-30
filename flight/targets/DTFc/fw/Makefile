@@ -113,7 +113,6 @@ SRC += $(DEBUG_CM3_DIR)/cm3_fault_handlers.c
 endif
 
 SRC += $(FLIGHTLIB)/paths.c
-SRC += $(FLIGHTLIB)/fifo_buffer.c
 SRC += $(FLIGHTLIB)/WorldMagModel.c
 SRC += $(FLIGHTLIB)/insgps14state.c
 SRC += $(FLIGHTLIB)/taskmonitor.c
