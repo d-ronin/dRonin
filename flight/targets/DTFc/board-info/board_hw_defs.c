@@ -894,6 +894,49 @@ const struct pios_usb_cdc_cfg pios_usb_cdc_cfg = {
 #endif	/* PIOS_INCLUDE_USB_CDC */
 
 /**
+ * Configuration for the Invensense ICM-20608-G chip
+ */
+#if defined(PIOS_INCLUDE_MPU)
+#include "pios_mpu.h"
+static const struct pios_exti_cfg pios_exti_mpu_cfg __exti_config = {
+    .vector = PIOS_MPU_IRQHandler,
+    .line = EXTI_Line13,
+    .pin = {
+        .gpio = GPIOC,
+        .init = {
+            .GPIO_Pin = GPIO_Pin_13,
+            .GPIO_Speed = GPIO_Speed_50MHz,
+            .GPIO_Mode = GPIO_Mode_IN,
+            .GPIO_OType = GPIO_OType_OD,
+            .GPIO_PuPd = GPIO_PuPd_NOPULL,
+        },
+    },
+    .irq = {
+        .init = {
+            .NVIC_IRQChannel = EXTI15_10_IRQn,
+            .NVIC_IRQChannelPreemptionPriority = PIOS_IRQ_PRIO_HIGH,
+            .NVIC_IRQChannelSubPriority = 0,
+            .NVIC_IRQChannelCmd = ENABLE,
+        },
+    },
+    .exti = {
+        .init = {
+            .EXTI_Line = EXTI_Line13, // matches above GPIO pin
+            .EXTI_Mode = EXTI_Mode_Interrupt,
+            .EXTI_Trigger = EXTI_Trigger_Rising,
+            .EXTI_LineCmd = ENABLE,
+        },
+    },
+};
+
+static struct pios_mpu_cfg pios_mpu_cfg = {
+    .exti_cfg = &pios_exti_mpu_cfg,
+    .default_samplerate = 1000,
+    .orientation = PIOS_MPU_TOP_180DEG
+};
+#endif /* PIOS_INCLUDE_MPU */
+
+/**
  * @}
  * @}
  */

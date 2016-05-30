@@ -47,54 +47,6 @@
 #include "modulesettings.h"
 #include "flightbatterysettings.h"
 
-/**
- * Configuration for the MPU9250 chip
- */
-#if defined(PIOS_INCLUDE_MPU9250_SPI)
-#include "pios_mpu9250.h"
-static const struct pios_exti_cfg pios_exti_icm20608g_cfg __exti_config = {
-    .vector = PIOS_MPU9250_IRQHandler,
-    .line = EXTI_Line13,
-    .pin = {
-        .gpio = GPIOC,
-        .init = {
-            .GPIO_Pin = GPIO_Pin_13,
-            .GPIO_Speed = GPIO_Speed_50MHz,
-            .GPIO_Mode = GPIO_Mode_IN,
-            .GPIO_OType = GPIO_OType_OD,
-            .GPIO_PuPd = GPIO_PuPd_NOPULL,
-        },
-    },
-    .irq = {
-        .init = {
-            .NVIC_IRQChannel = EXTI15_10_IRQn,
-            .NVIC_IRQChannelPreemptionPriority = PIOS_IRQ_PRIO_HIGH,
-            .NVIC_IRQChannelSubPriority = 0,
-            .NVIC_IRQChannelCmd = ENABLE,
-        },
-    },
-    .exti = {
-        .init = {
-            .EXTI_Line = EXTI_Line13, // matches above GPIO pin
-            .EXTI_Mode = EXTI_Mode_Interrupt,
-            .EXTI_Trigger = EXTI_Trigger_Rising,
-            .EXTI_LineCmd = ENABLE,
-        },
-    },
-};
-
-static struct pios_mpu9250_cfg pios_icm20608g_cfg = {
-    .exti_cfg = &pios_exti_icm20608g_cfg,
-    .default_samplerate = 1000,
-    .interrupt_cfg = PIOS_MPU60X0_INT_CLR_ANYRD,
-
-    .use_magnetometer = false,
-    .default_gyro_filter = PIOS_MPU9250_GYRO_LOWPASS_184_HZ,
-    .default_accel_filter = PIOS_MPU9250_ACCEL_LOWPASS_184_HZ,
-    .orientation = PIOS_MPU9250_TOP_180DEG
-};
-#endif /* PIOS_INCLUDE_MPU9250_SPI */
-
 #if defined(PIOS_INCLUDE_DEBUG_CONSOLE)
 #define PIOS_COM_DEBUGCONSOLE_TX_BUF_LEN 40
 uintptr_t pios_com_debug_id;
@@ -351,25 +303,25 @@ void PIOS_Board_Init(void)
 	PIOS_DELAY_WaitmS(200);
 	PIOS_WDG_Clear();
 
-#if defined(PIOS_INCLUDE_MPU9250_SPI)
-    if (PIOS_MPU9250_SPI_Init(pios_spi_gyro_id, 0, &pios_icm20608g_cfg) != 0)
-		PIOS_HAL_Panic(PIOS_LED_ALARM, PIOS_HAL_PANIC_IMU);
+#if defined(PIOS_INCLUDE_MPU)
+    pios_mpu_dev_t mpu_dev = NULL;
+    if (PIOS_MPU_SPI_Init(&mpu_dev, pios_spi_gyro_id, 0, &pios_mpu_cfg) != 0)
+        PIOS_HAL_Panic(PIOS_LED_ALARM, PIOS_HAL_PANIC_IMU);
 
-    // To be safe map from UAVO enum to driver enum
     HwDTFcGyroRangeOptions hw_gyro_range;
     HwDTFcGyroRangeGet(&hw_gyro_range);
     switch(hw_gyro_range) {
         case HWDTFC_GYRORANGE_250:
-            PIOS_MPU9250_SetGyroRange(PIOS_MPU60X0_SCALE_250_DEG);
+            PIOS_MPU_SetGyroRange(PIOS_MPU_SCALE_250_DEG);
             break;
         case HWDTFC_GYRORANGE_500:
-            PIOS_MPU9250_SetGyroRange(PIOS_MPU60X0_SCALE_500_DEG);
+            PIOS_MPU_SetGyroRange(PIOS_MPU_SCALE_500_DEG);
             break;
         case HWDTFC_GYRORANGE_1000:
-            PIOS_MPU9250_SetGyroRange(PIOS_MPU60X0_SCALE_1000_DEG);
+            PIOS_MPU_SetGyroRange(PIOS_MPU_SCALE_1000_DEG);
             break;
         case HWDTFC_GYRORANGE_2000:
-            PIOS_MPU9250_SetGyroRange(PIOS_MPU60X0_SCALE_2000_DEG);
+            PIOS_MPU_SetGyroRange(PIOS_MPU_SCALE_2000_DEG);
             break;
     }
 
@@ -377,56 +329,55 @@ void PIOS_Board_Init(void)
     HwDTFcAccelRangeGet(&hw_accel_range);
     switch(hw_accel_range) {
         case HWDTFC_ACCELRANGE_2G:
-            PIOS_MPU9250_SetAccelRange(PIOS_MPU60X0_ACCEL_2G);
+            PIOS_MPU_SetAccelRange(PIOS_MPU_SCALE_2G);
             break;
         case HWDTFC_ACCELRANGE_4G:
-            PIOS_MPU9250_SetAccelRange(PIOS_MPU60X0_ACCEL_4G);
+            PIOS_MPU_SetAccelRange(PIOS_MPU_SCALE_4G);
             break;
         case HWDTFC_ACCELRANGE_8G:
-            PIOS_MPU9250_SetAccelRange(PIOS_MPU60X0_ACCEL_8G);
+            PIOS_MPU_SetAccelRange(PIOS_MPU_SCALE_8G);
             break;
         case HWDTFC_ACCELRANGE_16G:
-            PIOS_MPU9250_SetAccelRange(PIOS_MPU60X0_ACCEL_16G);
+            PIOS_MPU_SetAccelRange(PIOS_MPU_SCALE_16G);
             break;
     }
 
     // the filter has to be set before rate else divisor calculation will fail
-    HwDTFcICM20608G_GyroLPFOptions hw_icm20608g_gyro_dlpf;
-    HwDTFcICM20608G_GyroLPFGet(&hw_icm20608g_gyro_dlpf);
-    enum pios_mpu9250_gyro_filter icm20608g_gyro_lpf =
-        (hw_icm20608g_gyro_dlpf == HWDTFC_ICM20608G_GYROLPF_184) ? PIOS_MPU9250_GYRO_LOWPASS_184_HZ : // is actually 176Hz
-        (hw_icm20608g_gyro_dlpf == HWDTFC_ICM20608G_GYROLPF_92) ? PIOS_MPU9250_GYRO_LOWPASS_92_HZ :
-        (hw_icm20608g_gyro_dlpf == HWDTFC_ICM20608G_GYROLPF_41) ? PIOS_MPU9250_GYRO_LOWPASS_41_HZ :
-        (hw_icm20608g_gyro_dlpf == HWDTFC_ICM20608G_GYROLPF_20) ? PIOS_MPU9250_GYRO_LOWPASS_20_HZ :
-        (hw_icm20608g_gyro_dlpf == HWDTFC_ICM20608G_GYROLPF_10) ? PIOS_MPU9250_GYRO_LOWPASS_10_HZ :
-        (hw_icm20608g_gyro_dlpf == HWDTFC_ICM20608G_GYROLPF_5) ? PIOS_MPU9250_GYRO_LOWPASS_5_HZ :
-        pios_icm20608g_cfg.default_gyro_filter;
-    PIOS_MPU9250_SetGyroLPF(icm20608g_gyro_lpf);
+    HwDTFcICM20608G_GyroLPFOptions hw_mpu_gyro_dlpf;
+    HwDTFcICM20608G_GyroLPFGet(&hw_mpu_gyro_dlpf);
+    uint16_t gyro_bandwidth =
+        (hw_mpu_gyro_dlpf == HWDTFC_ICM20608G_GYROLPF_176) ? 176 :
+        (hw_mpu_gyro_dlpf == HWDTFC_ICM20608G_GYROLPF_92)  ?  92 :
+        (hw_mpu_gyro_dlpf == HWDTFC_ICM20608G_GYROLPF_41)  ?  41 :
+        (hw_mpu_gyro_dlpf == HWDTFC_ICM20608G_GYROLPF_20)  ?  20 :
+        (hw_mpu_gyro_dlpf == HWDTFC_ICM20608G_GYROLPF_10)  ?  10 :
+        (hw_mpu_gyro_dlpf == HWDTFC_ICM20608G_GYROLPF_5)   ?   5 :
+        176;
+    PIOS_MPU_SetGyroBandwidth(gyro_bandwidth);
 
-    HwDTFcICM20608G_AccelLPFOptions hw_icm20608g_accel_dlpf;
-    HwDTFcICM20608G_AccelLPFGet(&hw_icm20608g_accel_dlpf);
-    enum pios_mpu9250_accel_filter icm20608g_accel_lpf =
-        (hw_icm20608g_accel_dlpf == HWDTFC_ICM20608G_ACCELLPF_460) ? PIOS_MPU9250_ACCEL_LOWPASS_460_HZ : // is actually 218.1Hz
-        (hw_icm20608g_accel_dlpf == HWDTFC_ICM20608G_ACCELLPF_184) ? PIOS_MPU9250_ACCEL_LOWPASS_184_HZ : // is actually 218.1Hz
-        (hw_icm20608g_accel_dlpf == HWDTFC_ICM20608G_ACCELLPF_92) ? PIOS_MPU9250_ACCEL_LOWPASS_92_HZ : // is actually 99Hz
-        (hw_icm20608g_accel_dlpf == HWDTFC_ICM20608G_ACCELLPF_41) ? PIOS_MPU9250_ACCEL_LOWPASS_41_HZ : // is actually 44Hz
-        (hw_icm20608g_accel_dlpf == HWDTFC_ICM20608G_ACCELLPF_20) ? PIOS_MPU9250_ACCEL_LOWPASS_20_HZ : // is actually 21.2Hz
-        (hw_icm20608g_accel_dlpf == HWDTFC_ICM20608G_ACCELLPF_10) ? PIOS_MPU9250_ACCEL_LOWPASS_10_HZ : // is actually 10.2Hz
-        (hw_icm20608g_accel_dlpf == HWDTFC_ICM20608G_ACCELLPF_5) ? PIOS_MPU9250_ACCEL_LOWPASS_5_HZ : // is actually 5.1Hz
-        pios_icm20608g_cfg.default_accel_filter;
-    PIOS_MPU9250_SetAccelLPF(icm20608g_accel_lpf);
+    HwDTFcICM20608G_AccelLPFOptions hw_mpu_accel_dlpf;
+    HwDTFcICM20608G_AccelLPFGet(&hw_mpu_accel_dlpf);
+    uint16_t acc_bandwidth = 
+        (hw_mpu_accel_dlpf = HWDTFC_ICM20608G_ACCELLPF_218) ? 218 :
+        (hw_mpu_accel_dlpf = HWDTFC_ICM20608G_ACCELLPF_99)  ?  99 :
+        (hw_mpu_accel_dlpf = HWDTFC_ICM20608G_ACCELLPF_45)  ?  45 :
+        (hw_mpu_accel_dlpf = HWDTFC_ICM20608G_ACCELLPF_21)  ?  21 :
+        (hw_mpu_accel_dlpf = HWDTFC_ICM20608G_ACCELLPF_10)  ?  10 :
+        (hw_mpu_accel_dlpf = HWDTFC_ICM20608G_ACCELLPF_5)   ?   5 :
+        218;
+    PIOS_MPU_SetAccelBandwidth(acc_bandwidth);
 
-    HwDTFcICM20608G_RateOptions hw_icm20608g_samplerate;
-    HwDTFcICM20608G_RateGet(&hw_icm20608g_samplerate);
-    uint16_t icm20608g_samplerate =
-        (hw_icm20608g_samplerate == HWDTFC_ICM20608G_RATE_200) ? 200 :
-        (hw_icm20608g_samplerate == HWDTFC_ICM20608G_RATE_250) ? 250 :
-        (hw_icm20608g_samplerate == HWDTFC_ICM20608G_RATE_333) ? 333 :
-        (hw_icm20608g_samplerate == HWDTFC_ICM20608G_RATE_500) ? 500 :
-        (hw_icm20608g_samplerate == HWDTFC_ICM20608G_RATE_1000) ? 1000 :
-        pios_icm20608g_cfg.default_samplerate;
-    PIOS_MPU9250_SetSampleRate(icm20608g_samplerate);
-#endif /* PIOS_INCLUDE_MPU9250_SPI */
+    HwDTFcICM20608G_RateOptions hw_mpu_samplerate;
+    HwDTFcICM20608G_RateGet(&hw_mpu_samplerate);
+    uint16_t mpu_samplerate =
+        (hw_mpu_samplerate == HWDTFC_ICM20608G_RATE_200)  ?  200 :
+        (hw_mpu_samplerate == HWDTFC_ICM20608G_RATE_250)  ?  250 :
+        (hw_mpu_samplerate == HWDTFC_ICM20608G_RATE_333)  ?  333 :
+        (hw_mpu_samplerate == HWDTFC_ICM20608G_RATE_500)  ?  500 :
+        (hw_mpu_samplerate == HWDTFC_ICM20608G_RATE_1000) ? 1000 :
+        pios_mpu_cfg.default_samplerate;
+    PIOS_MPU_SetSampleRate(mpu_samplerate);
+#endif /* PIOS_INCLUDE_MPU */
 
 	//I2C is slow, sensor init as well, reset watchdog to prevent reset here
 	PIOS_WDG_Clear();
