@@ -85,10 +85,10 @@ void PIOS_Board_Init(void)
 	PIOS_LED_Init(led_cfg);
 #endif	/* PIOS_INCLUDE_LED */
 
-    /* Set up the SPI interface to the gyro/acelerometer */
-    if (PIOS_SPI_Init(&pios_spi_gyro_id, &pios_spi_gyro_cfg)) {
-        PIOS_DEBUG_Assert(0);
-    }
+	/* Set up the SPI interface to the gyro/acelerometer */
+	if (PIOS_SPI_Init(&pios_spi_gyro_id, &pios_spi_gyro_cfg)) {
+		PIOS_DEBUG_Assert(0);
+	}
 
 #if defined(PIOS_INCLUDE_FLASH)
 	/* Inititialize all flash drivers */
@@ -282,24 +282,27 @@ void PIOS_Board_Init(void)
 #endif
 
 #if defined(PIOS_INCLUDE_ADC)
-	uint32_t internal_adc_id;
+    uint32_t internal_adc_id;
 	if (PIOS_INTERNAL_ADC_Init(&internal_adc_id, &internal_adc_cfg) < 0)
 		PIOS_HAL_Panic(PIOS_LED_ALARM, PIOS_HAL_PANIC_ADC);
 	if (PIOS_ADC_Init(&pios_internal_adc_id, &pios_internal_adc_driver, internal_adc_id) < 0)
 		PIOS_HAL_Panic(PIOS_LED_ALARM, PIOS_HAL_PANIC_ADC);
-	
+
 	// Enable battery monitor module.
 	ModuleSettingsData modulesettings;
 	ModuleSettingsGet(&modulesettings);
 	modulesettings.AdminState[MODULESETTINGS_ADMINSTATE_BATTERY] = MODULESETTINGS_ADMINSTATE_ENABLED;
 	ModuleSettingsSet(&modulesettings);
-	
-	// Set voltage/current calibration values.
+
+	// Set voltage/current calibration values, if the current settings are UAVO defaults.
 	FlightBatterySettingsInitialize();
 	FlightBatterySettingsData batterysettings;
 	FlightBatterySettingsGet(&batterysettings);
-	batterysettings.SensorCalibrationFactor[FLIGHTBATTERYSETTINGS_SENSORCALIBRATIONFACTOR_CURRENT] = (float)DTFC_CURRENT_CALIBRATION_VALUE;
-	batterysettings.SensorCalibrationFactor[FLIGHTBATTERYSETTINGS_SENSORCALIBRATIONFACTOR_VOLTAGE] = (float)DTFC_VOLTAGE_CALIBRATION_VALUE;
+
+	if(batterysettings.SensorCalibrationFactor[FLIGHTBATTERYSETTINGS_SENSORCALIBRATIONFACTOR_CURRENT] == (float)36.6)
+		batterysettings.SensorCalibrationFactor[FLIGHTBATTERYSETTINGS_SENSORCALIBRATIONFACTOR_CURRENT] = (float)DTFC_CURRENT_CALIBRATION_VALUE;
+	if(batterysettings.SensorCalibrationFactor[FLIGHTBATTERYSETTINGS_SENSORCALIBRATIONFACTOR_VOLTAGE] == (float)63.69)
+		batterysettings.SensorCalibrationFactor[FLIGHTBATTERYSETTINGS_SENSORCALIBRATIONFACTOR_VOLTAGE] = (float)DTFC_VOLTAGE_CALIBRATION_VALUE;
 	FlightBatterySettingsSet(&batterysettings);
 #endif /* PIOS_INCLUDE_ADC */
 
@@ -308,79 +311,79 @@ void PIOS_Board_Init(void)
 	PIOS_WDG_Clear();
 
 #if defined(PIOS_INCLUDE_MPU)
-    pios_mpu_dev_t mpu_dev = NULL;
-    if (PIOS_MPU_SPI_Init(&mpu_dev, pios_spi_gyro_id, 0, &pios_mpu_cfg) != 0)
-        PIOS_HAL_Panic(PIOS_LED_ALARM, PIOS_HAL_PANIC_IMU);
+	pios_mpu_dev_t mpu_dev = NULL;
+	if (PIOS_MPU_SPI_Init(&mpu_dev, pios_spi_gyro_id, 0, &pios_mpu_cfg) != 0)
+		PIOS_HAL_Panic(PIOS_LED_ALARM, PIOS_HAL_PANIC_IMU);
 
-    HwDTFcGyroRangeOptions hw_gyro_range;
-    HwDTFcGyroRangeGet(&hw_gyro_range);
-    switch(hw_gyro_range) {
-        case HWDTFC_GYRORANGE_250:
-            PIOS_MPU_SetGyroRange(PIOS_MPU_SCALE_250_DEG);
-            break;
-        case HWDTFC_GYRORANGE_500:
-            PIOS_MPU_SetGyroRange(PIOS_MPU_SCALE_500_DEG);
-            break;
-        case HWDTFC_GYRORANGE_1000:
-            PIOS_MPU_SetGyroRange(PIOS_MPU_SCALE_1000_DEG);
-            break;
-        case HWDTFC_GYRORANGE_2000:
-            PIOS_MPU_SetGyroRange(PIOS_MPU_SCALE_2000_DEG);
-            break;
-    }
+	HwDTFcGyroRangeOptions hw_gyro_range;
+	HwDTFcGyroRangeGet(&hw_gyro_range);
+	switch(hw_gyro_range) {
+		case HWDTFC_GYRORANGE_250:
+			PIOS_MPU_SetGyroRange(PIOS_MPU_SCALE_250_DEG);
+			break;
+		case HWDTFC_GYRORANGE_500:
+			PIOS_MPU_SetGyroRange(PIOS_MPU_SCALE_500_DEG);
+			break;
+		case HWDTFC_GYRORANGE_1000:
+			PIOS_MPU_SetGyroRange(PIOS_MPU_SCALE_1000_DEG);
+			break;
+		case HWDTFC_GYRORANGE_2000:
+			PIOS_MPU_SetGyroRange(PIOS_MPU_SCALE_2000_DEG);
+			break;
+	}
 
-    HwDTFcAccelRangeOptions hw_accel_range;
-    HwDTFcAccelRangeGet(&hw_accel_range);
-    switch(hw_accel_range) {
-        case HWDTFC_ACCELRANGE_2G:
-            PIOS_MPU_SetAccelRange(PIOS_MPU_SCALE_2G);
-            break;
-        case HWDTFC_ACCELRANGE_4G:
-            PIOS_MPU_SetAccelRange(PIOS_MPU_SCALE_4G);
-            break;
-        case HWDTFC_ACCELRANGE_8G:
-            PIOS_MPU_SetAccelRange(PIOS_MPU_SCALE_8G);
-            break;
-        case HWDTFC_ACCELRANGE_16G:
-            PIOS_MPU_SetAccelRange(PIOS_MPU_SCALE_16G);
-            break;
-    }
+	HwDTFcAccelRangeOptions hw_accel_range;
+	HwDTFcAccelRangeGet(&hw_accel_range);
+	switch(hw_accel_range) {
+		case HWDTFC_ACCELRANGE_2G:
+			PIOS_MPU_SetAccelRange(PIOS_MPU_SCALE_2G);
+			break;
+		case HWDTFC_ACCELRANGE_4G:
+			PIOS_MPU_SetAccelRange(PIOS_MPU_SCALE_4G);
+			break;
+		case HWDTFC_ACCELRANGE_8G:
+			PIOS_MPU_SetAccelRange(PIOS_MPU_SCALE_8G);
+			break;
+		case HWDTFC_ACCELRANGE_16G:
+			PIOS_MPU_SetAccelRange(PIOS_MPU_SCALE_16G);
+			break;
+	}
 
-    // the filter has to be set before rate else divisor calculation will fail
-    HwDTFcICM20608G_GyroLPFOptions hw_mpu_gyro_dlpf;
-    HwDTFcICM20608G_GyroLPFGet(&hw_mpu_gyro_dlpf);
-    uint16_t gyro_bandwidth =
-        (hw_mpu_gyro_dlpf == HWDTFC_ICM20608G_GYROLPF_176) ? 176 :
-        (hw_mpu_gyro_dlpf == HWDTFC_ICM20608G_GYROLPF_92)  ?  92 :
-        (hw_mpu_gyro_dlpf == HWDTFC_ICM20608G_GYROLPF_41)  ?  41 :
-        (hw_mpu_gyro_dlpf == HWDTFC_ICM20608G_GYROLPF_20)  ?  20 :
-        (hw_mpu_gyro_dlpf == HWDTFC_ICM20608G_GYROLPF_10)  ?  10 :
-        (hw_mpu_gyro_dlpf == HWDTFC_ICM20608G_GYROLPF_5)   ?   5 :
-        176;
-    PIOS_MPU_SetGyroBandwidth(gyro_bandwidth);
+	// the filter has to be set before rate else divisor calculation will fail
+	HwDTFcICM20608G_GyroLPFOptions hw_mpu_gyro_dlpf;
+	HwDTFcICM20608G_GyroLPFGet(&hw_mpu_gyro_dlpf);
+	uint16_t gyro_bandwidth =
+		(hw_mpu_gyro_dlpf == HWDTFC_ICM20608G_GYROLPF_176) ? 176 :
+		(hw_mpu_gyro_dlpf == HWDTFC_ICM20608G_GYROLPF_92)  ?  92 :
+		(hw_mpu_gyro_dlpf == HWDTFC_ICM20608G_GYROLPF_41)  ?  41 :
+		(hw_mpu_gyro_dlpf == HWDTFC_ICM20608G_GYROLPF_20)  ?  20 :
+		(hw_mpu_gyro_dlpf == HWDTFC_ICM20608G_GYROLPF_10)  ?  10 :
+		(hw_mpu_gyro_dlpf == HWDTFC_ICM20608G_GYROLPF_5)   ?   5 :
+		176;
+	PIOS_MPU_SetGyroBandwidth(gyro_bandwidth);
 
-    HwDTFcICM20608G_AccelLPFOptions hw_mpu_accel_dlpf;
-    HwDTFcICM20608G_AccelLPFGet(&hw_mpu_accel_dlpf);
-    uint16_t acc_bandwidth = 
-        (hw_mpu_accel_dlpf = HWDTFC_ICM20608G_ACCELLPF_218) ? 218 :
-        (hw_mpu_accel_dlpf = HWDTFC_ICM20608G_ACCELLPF_99)  ?  99 :
-        (hw_mpu_accel_dlpf = HWDTFC_ICM20608G_ACCELLPF_45)  ?  45 :
-        (hw_mpu_accel_dlpf = HWDTFC_ICM20608G_ACCELLPF_21)  ?  21 :
-        (hw_mpu_accel_dlpf = HWDTFC_ICM20608G_ACCELLPF_10)  ?  10 :
-        (hw_mpu_accel_dlpf = HWDTFC_ICM20608G_ACCELLPF_5)   ?   5 :
-        218;
-    PIOS_MPU_SetAccelBandwidth(acc_bandwidth);
+	HwDTFcICM20608G_AccelLPFOptions hw_mpu_accel_dlpf;
+	HwDTFcICM20608G_AccelLPFGet(&hw_mpu_accel_dlpf);
+	uint16_t acc_bandwidth = 
+		(hw_mpu_accel_dlpf = HWDTFC_ICM20608G_ACCELLPF_218) ? 218 :
+		(hw_mpu_accel_dlpf = HWDTFC_ICM20608G_ACCELLPF_99)  ?  99 :
+		(hw_mpu_accel_dlpf = HWDTFC_ICM20608G_ACCELLPF_45)  ?  45 :
+		(hw_mpu_accel_dlpf = HWDTFC_ICM20608G_ACCELLPF_21)  ?  21 :
+		(hw_mpu_accel_dlpf = HWDTFC_ICM20608G_ACCELLPF_10)  ?  10 :
+		(hw_mpu_accel_dlpf = HWDTFC_ICM20608G_ACCELLPF_5)   ?   5 :
+		218;
+	PIOS_MPU_SetAccelBandwidth(acc_bandwidth);
 
-    HwDTFcICM20608G_RateOptions hw_mpu_samplerate;
-    HwDTFcICM20608G_RateGet(&hw_mpu_samplerate);
-    uint16_t mpu_samplerate =
-        (hw_mpu_samplerate == HWDTFC_ICM20608G_RATE_200)  ?  200 :
-        (hw_mpu_samplerate == HWDTFC_ICM20608G_RATE_250)  ?  250 :
-        (hw_mpu_samplerate == HWDTFC_ICM20608G_RATE_333)  ?  333 :
-        (hw_mpu_samplerate == HWDTFC_ICM20608G_RATE_500)  ?  500 :
-        (hw_mpu_samplerate == HWDTFC_ICM20608G_RATE_1000) ? 1000 :
-        pios_mpu_cfg.default_samplerate;
-    PIOS_MPU_SetSampleRate(mpu_samplerate);
+	HwDTFcICM20608G_RateOptions hw_mpu_samplerate;
+	HwDTFcICM20608G_RateGet(&hw_mpu_samplerate);
+	uint16_t mpu_samplerate =
+		(hw_mpu_samplerate == HWDTFC_ICM20608G_RATE_200)  ?  200 :
+		(hw_mpu_samplerate == HWDTFC_ICM20608G_RATE_250)  ?  250 :
+		(hw_mpu_samplerate == HWDTFC_ICM20608G_RATE_333)  ?  333 :
+		(hw_mpu_samplerate == HWDTFC_ICM20608G_RATE_500)  ?  500 :
+		(hw_mpu_samplerate == HWDTFC_ICM20608G_RATE_1000) ? 1000 :
+		pios_mpu_cfg.default_samplerate;
+	PIOS_MPU_SetSampleRate(mpu_samplerate);
 #endif /* PIOS_INCLUDE_MPU */
 
 	//I2C is slow, sensor init as well, reset watchdog to prevent reset here
