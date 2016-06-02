@@ -208,6 +208,7 @@ SRC += $(PIOSCOMMON)/pios_queue.c
 SRC += $(PIOSCOMMON)/pios_hal.c
 SRC += $(PIOSCOMMON)/pios_servo.c
 SRC += $(PIOSCOMMON)/pios_modules.c
+SRC += $(PIOSCOMMON)/pios_srxl.c
 
 SRC += $(PIOSCOMMON)/pios_board_info.c
 
