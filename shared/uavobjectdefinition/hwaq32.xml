@@ -42,6 +42,7 @@
 				<option>FrSKY Sensor Hub</option>
 				<option>FrSKY SPort Telemetry</option>
 				<option>GPS</option>
+				<option>SRXL</option>
 				<option>HoTT SUMD</option>
 				<option>HoTT SUMH</option>
 				<option>HoTT Telemetry</option>
@@ -67,6 +68,7 @@
 				<option>FrSKY Sensor Hub</option>
 				<option>FrSKY SPort Telemetry</option>
 				<option>GPS</option>
+				<option>SRXL</option>
 				<option>HoTT SUMD</option>
 				<option>HoTT SUMH</option>
 				<option>HoTT Telemetry</option>
@@ -91,6 +93,7 @@
 				<option>FrSKY Sensor Hub</option>
 				<option>FrSKY SPort Telemetry</option>
 				<option>GPS</option>
+				<option>SRXL</option>
 				<option>HoTT SUMD</option>
 				<option>HoTT SUMH</option>
 				<option>HoTT Telemetry</option>
