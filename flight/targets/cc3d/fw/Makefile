@@ -221,6 +221,7 @@ SRC += $(PIOSCOMMON)/pios_thread.c
 SRC += $(PIOSCOMMON)/pios_queue.c
 SRC += $(PIOSCOMMON)/pios_servo.c
 SRC += $(PIOSCOMMON)/pios_modules.c
+SRC += $(PIOSCOMMON)/pios_srxl.c
 
 
 ## Libraries for flight calculations
