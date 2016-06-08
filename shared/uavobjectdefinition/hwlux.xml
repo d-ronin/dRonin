@@ -10,6 +10,7 @@
 				<option>HoTT SUMH</option>
 				<option>S.Bus</option>
 				<option>S.Bus Non Inverted</option>
+				<option>SRXL</option>
 				<option>ComBridge</option>
 				<option>DebugConsole</option>
 				<option>FrSKY Sensor Hub</option>
@@ -33,6 +34,7 @@
 				<option>ComBridge</option>
 				<option>DebugConsole</option>
 				<option>DSM</option>
+				<option>SRXL</option>
 				<option>FrSKY Sensor Hub</option>
 				<option>FrSKY SPort Telemetry</option>
 				<option>GPS</option>
@@ -56,6 +58,7 @@
 				<option>ComBridge</option>
 				<option>DebugConsole</option>
 				<option>DSM</option>
+				<option>SRXL</option>
 				<option>FrSKY Sensor Hub</option>
 				<option>FrSKY SPort Telemetry</option>
 				<option>GPS</option>

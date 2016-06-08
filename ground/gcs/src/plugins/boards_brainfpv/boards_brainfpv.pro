@@ -11,15 +11,20 @@ OTHER_FILES += TheBrainFPV.pluginspec
 HEADERS += \
     brainfpvplugin.h \
     brain.h \
-    brainconfiguration.h
+    brainconfiguration.h \
+    brainre1.h \
+    brainre1configuration.h
 
 SOURCES += \
     brainfpvplugin.cpp \
     brain.cpp \
-    brainconfiguration.cpp
+    brainconfiguration.cpp \
+    brainre1.cpp \
+    brainre1configuration.cpp
 
 RESOURCES += \
     brainfpv.qrc
 
 FORMS += \
-    brainconfiguration.ui
+    brainconfiguration.ui \
+    brainre1configuration.ui

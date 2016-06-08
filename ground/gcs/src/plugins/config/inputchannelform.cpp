@@ -154,6 +154,9 @@ void inputChannelForm::groupUpdated()
             case ManualControlSettings::CHANNELGROUPS_HOTTSUM:
                 count = 32;
                 break;
+            case ManualControlSettings::CHANNELGROUPS_SRXL:
+                count = 16;
+                break;
             case ManualControlSettings::CHANNELGROUPS_NONE:
                 count = 0;
                 break;

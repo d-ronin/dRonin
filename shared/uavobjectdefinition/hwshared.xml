@@ -10,6 +10,7 @@
 				<option>DSM</option>
 				<option>S.Bus</option>
 				<option>S.Bus Non Inverted</option>
+				<option>SRXL</option>
 				<option>DebugConsole</option>
 				<option>ComBridge</option>
 				<option>MavLinkTX</option>
