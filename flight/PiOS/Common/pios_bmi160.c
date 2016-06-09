@@ -51,6 +51,7 @@
 #define BMI160_REG_CHIPID 0x00
 #define BMI160_REG_PMU_STAT 0x03
 #define BMI160_REG_GYR_DATA_X_LSB 0x0C
+#define BMI160_REG_STATUS 0x1B
 #define BMI160_REG_TEMPERATURE_0 0x20
 #define BMI160_REG_ACC_CONF 0x40
 #define BMI160_REG_ACC_RANGE 0x41
@@ -59,6 +60,9 @@
 #define BMI160_REG_INT_EN1 0x51
 #define BMI160_REG_INT_OUT_CTRL 0x53
 #define BMI160_REG_INT_MAP1 0x56
+#define BMI160_REG_FOC_CONF 0x69
+#define BMI160_REG_CONF 0x6A
+#define BMI160_REG_OFFSET_0 0x77
 #define BMI160_REG_CMD 0x7E
 
 /* Register values */
@@ -67,6 +71,11 @@
 #define BMI160_INT_EN1_DRDY 0x10
 #define BMI160_INT_OUT_CTRL_INT1_CONFIG 0x0A
 #define BMI160_REG_INT_MAP1_INT1_DRDY 0x80
+#define BMI160_CMD_START_FOC 0x03
+#define BMI160_CMD_PROG_NVM 0xA0
+#define BMI160_REG_STATUS_NVM_RDY 0x10
+#define BMI160_REG_STATUS_FOC_RDY 0x08
+#define BMI160_REG_CONF_NVM_PROG_EN 0x02
 
 /* Global Variables */
 enum pios_bmi160_dev_magic {
@@ -92,6 +101,7 @@ static struct bmi160_dev *dev;
 
 //! Private functions
 static int32_t PIOS_BMI160_Config(const struct pios_bmi160_cfg *cfg);
+static int32_t PIOS_BMI160_do_foc(const struct pios_bmi160_cfg *cfg);
 static struct bmi160_dev *PIOS_BMI160_alloc(const struct pios_bmi160_cfg *cfg);
 static int32_t PIOS_BMI160_Validate(struct bmi160_dev *dev);
 static void PIOS_BMI160_Task(void *parameters);
@@ -105,7 +115,7 @@ static int32_t PIOS_BMI160_ReleaseBus();
  * @brief Initialize the BMI160 6-axis sensor.
  * @return 0 for success, -1 for failure to allocate, -10 for failure to get irq
  */
-int32_t PIOS_BMI160_Init(uint32_t spi_id, uint32_t slave_num, const struct pios_bmi160_cfg *cfg)
+int32_t PIOS_BMI160_Init(uint32_t spi_id, uint32_t slave_num, const struct pios_bmi160_cfg *cfg, bool do_foc)
 {
 	dev = PIOS_BMI160_alloc(cfg);
 	if (dev == NULL)
@@ -163,13 +173,20 @@ int32_t PIOS_BMI160_Init(uint32_t spi_id, uint32_t slave_num, const struct pios_
 		return -2;
 	}
 
-	/* Set up EXTI line */
-	PIOS_EXTI_Init(cfg->exti_cfg);
-
 	/* Configure the MPU9250 Sensor */
 	if (PIOS_BMI160_Config(cfg) != 0){
 		return -3;
 	}
+
+	/* Perform fast offset compensation if requested */
+	if (do_foc) {
+		if (PIOS_BMI160_do_foc(cfg) != 0) {
+			return -4;
+		}
+	}
+
+	/* Set up EXTI line */
+	PIOS_EXTI_Init(cfg->exti_cfg);
 
 	// Wait 20 ms for data ready interrupt and make sure it happens
 	// twice
@@ -235,23 +252,103 @@ static int32_t PIOS_BMI160_Config(const struct pios_bmi160_cfg *cfg)
 	}
 	PIOS_DELAY_WaitmS(1);
 
+	// Enable offset compensation
+	uint8_t val = PIOS_BMI160_ReadReg(BMI160_REG_OFFSET_0);
+	if (PIOS_BMI160_WriteReg(BMI160_REG_OFFSET_0, val | 0xC0) != 0){
+		return -7;
+	}
+
 	// Enable data ready interrupt
 	if (PIOS_BMI160_WriteReg(BMI160_REG_INT_EN1, BMI160_INT_EN1_DRDY) != 0){
-		return -7;
+		return -8;
 	}
 	PIOS_DELAY_WaitmS(1);
 
 	// Enable INT1 pin
 	if (PIOS_BMI160_WriteReg(BMI160_REG_INT_OUT_CTRL, BMI160_INT_OUT_CTRL_INT1_CONFIG) != 0){
-		return -8;
+		return -9;
 	}
 	PIOS_DELAY_WaitmS(1);
 
 	// Map data ready interrupt to INT1 pin
 	if (PIOS_BMI160_WriteReg(BMI160_REG_INT_MAP1, BMI160_REG_INT_MAP1_INT1_DRDY) != 0){
-		return -8;
+		return -10;
 	}
 	PIOS_DELAY_WaitmS(1);
+
+	return 0;
+}
+
+
+/**
+ * @brief Perform fast offset callibration and store values in NVM
+ *
+ * The flight controller has to sit level. Can only be performed a limited number
+ * of times (14 max) due to limited NVM write cycles
+ */
+static int32_t PIOS_BMI160_do_foc(const struct pios_bmi160_cfg *cfg)
+{
+	uint8_t val = 0;
+
+	// Set the orientation: 0G for x and y, +/- 1G for z
+	switch (cfg->orientation) {
+		case PIOS_BMI160_TOP_0DEG:
+		case PIOS_BMI160_TOP_90DEG:
+		case PIOS_BMI160_TOP_180DEG:
+		case PIOS_BMI160_TOP_270DEG:
+			val = 0x7D;
+			break;
+		case PIOS_BMI160_BOTTOM_0DEG:
+		case PIOS_BMI160_BOTTOM_90DEG:
+		case PIOS_BMI160_BOTTOM_180DEG:
+		case PIOS_BMI160_BOTTOM_270DEG:
+			val = 0x7E;
+	}
+
+	if (PIOS_BMI160_WriteReg(BMI160_REG_FOC_CONF, val) != 0) {
+		return -1;
+	}
+
+	// Start FOC
+	if (PIOS_BMI160_WriteReg(BMI160_REG_CMD, BMI160_CMD_START_FOC) != 0) {
+		return -2;
+	}
+
+	// Wait for FOC to complete
+	for (int i=0; i<50; i++) {
+		val = PIOS_BMI160_ReadReg(BMI160_REG_STATUS);
+		if (val & BMI160_REG_STATUS_FOC_RDY) {
+			break;
+		}
+		PIOS_DELAY_WaitmS(10);
+		PIOS_WDG_Clear();
+	}
+	if (!(val & BMI160_REG_STATUS_FOC_RDY)) {
+		return -3;
+	}
+
+	// Program NVM
+	val = PIOS_BMI160_ReadReg(BMI160_REG_CONF);
+	if (PIOS_BMI160_WriteReg(BMI160_REG_CONF, val | BMI160_REG_CONF_NVM_PROG_EN) != 0) {
+		return -4;
+	}
+
+	if (PIOS_BMI160_WriteReg(BMI160_REG_CMD, BMI160_CMD_PROG_NVM) != 0) {
+		return -5;
+	}
+
+	// Wait for NVM programming to complete
+	for (int i=0; i<50; i++) {
+		val = PIOS_BMI160_ReadReg(BMI160_REG_STATUS);
+		if (val & BMI160_REG_STATUS_NVM_RDY) {
+			break;
+		}
+		PIOS_DELAY_WaitmS(10);
+		PIOS_WDG_Clear();
+	}
+	if (!(val & BMI160_REG_STATUS_NVM_RDY)) {
+		return -6;
+	}
 
 	return 0;
 }
