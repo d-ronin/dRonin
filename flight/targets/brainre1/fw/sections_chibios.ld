@@ -70,26 +70,14 @@ SECTIONS
         *(.gcc*)
     } > flash
 
-    /* 
-     * Init section for UAVObjects.
-     */
-    .initcalluavobj.init :
-    {
-        . = ALIGN(4);
-        __uavobj_initcall_start = .;
-        KEEP(*(.initcalluavobj.init))
-        . = ALIGN(4);
-        __uavobj_initcall_end   = .;
-    } > flash
-
-    /* 
+    /*
      * Module init section section
      */
     .initcallmodule.init :
     {
         . = ALIGN(4);
         __module_initcall_start = .;
-        KEEP(*(.initcallmodule.init))
+        KEEP(*(SORT_BY_NAME(.initcall.*)))
         . = ALIGN(4);
         __module_initcall_end   = .;
     } > flash
@@ -185,13 +173,11 @@ SECTIONS
         PROVIDE(_edata = .);
     } > ram AT > flash
 
-    .bss :
+    .bss (NOLOAD) :
     {
         . = ALIGN(4);
         PROVIDE(_bss_start = .);
-        *(.bss)
-        . = ALIGN(4);
-        *(.bss.*)
+        *(SORT_BY_ALIGNMENT(.bss*))
         . = ALIGN(4);
         *(COMMON)
         . = ALIGN(4);
