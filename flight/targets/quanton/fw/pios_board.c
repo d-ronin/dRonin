@@ -581,6 +581,10 @@ void PIOS_Board_Init(void) {
 #endif
 			break;
 		case HWQUANTON_INPORT_PPMOUTPUTS:
+#ifdef PIOS_INCLUDE_SERVO
+			PIOS_Servo_Init(&pios_servo_with_rcvr_ppm_cfg);
+#endif
+			break;
 		case HWQUANTON_INPORT_OUTPUTS:
 #ifdef PIOS_INCLUDE_SERVO
 			PIOS_Servo_Init(&pios_servo_with_rcvr_cfg);
