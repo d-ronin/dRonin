@@ -91,6 +91,10 @@
 		<description>Threshold for the video sync pulse detector. It should not be necessary for the user to change this value from the default (120).</description>
 	</field>
 
+	<field name="BMI160FOC" units="" type="enum" elements="1" options="Disabled,Do_FOC" defaultvalue="Disabled">
+		<description>Peform BMI160 fast offset compensation on next boot. Should not be performed by users. Can only be done a limited number of times.</description>
+	</field>
+
 	<access gcs="readwrite" flight="readwrite"/>
 	<telemetrygcs acked="true" updatemode="onchange" period="0"/>
 	<telemetryflight acked="true" updatemode="onchange" period="0"/>

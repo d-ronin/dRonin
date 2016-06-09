@@ -497,8 +497,20 @@ void PIOS_Board_Init(void) {
 
 #if defined(PIOS_INCLUDE_SPI)
 #if defined(PIOS_INCLUDE_BMI160)
-	if(PIOS_BMI160_Init(pios_spi_gyro_id, 0, &pios_bmi160_cfg) != 0){
+	uint8_t bmi160_foc;
+	HwBrainRE1BMI160FOCGet(&bmi160_foc);
+
+	bool do_foc = (bmi160_foc == HWBRAINRE1_BMI160FOC_DO_FOC);
+
+	if(PIOS_BMI160_Init(pios_spi_gyro_id, 0, &pios_bmi160_cfg, do_foc) != 0){
 		PIOS_HAL_Panic(PIOS_LED_ALARM, PIOS_HAL_PANIC_IMU);
+	}
+
+	/* Disable FOC. We only do this once. */
+	if (do_foc) {
+		bmi160_foc = HWBRAINRE1_BMI160FOC_DISABLED;
+		HwBrainRE1BMI160FOCSet(&bmi160_foc);
+		UAVObjSave(HwBrainRE1Handle(), 0);
 	}
 #endif /* PIOS_INCLUDE_BMI160 */
 #endif /* PIOS_INCLUDE_SPI */
