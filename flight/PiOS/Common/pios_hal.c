@@ -487,6 +487,10 @@ void PIOS_HAL_ConfigurePort(HwSharedPortTypesOptions port_type,
 		usart_port_params.single_wire = true;
 #endif // STM32F30X
 
+#if defined(USE_STM32F4xx_BRAINFPVRE1)
+		usart_port_params.single_wire = true;
+#endif // USE_STM32F4xx_BRAINFPVRE1
+
 		PIOS_HAL_ConfigureCom(usart_port_cfg, &usart_port_params, PIOS_COM_FRSKYSPORT_RX_BUF_LEN, PIOS_COM_FRSKYSPORT_TX_BUF_LEN, com_driver, &port_driver_id);
 		target = &pios_com_frsky_sport_id;
 		PIOS_Modules_Enable(PIOS_MODULE_UAVOFRSKYSPORTBRIDGE);
