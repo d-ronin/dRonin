@@ -140,8 +140,7 @@ static void settingdUpdatedCb(UAVObjEvent * ev, void *ctx, void *obj, int len)
 
 	/* Set the colors of the RGB LEDs */
 	if (hwre1data->NumberOfLEDs > 0) {
-		uint8_t led_color[3];
-		memset(led_color, 0, 3);
+		uint8_t led_color[3] = {0};
 		switch (hwre1data->LEDColor) {
 			case HWBRAINRE1_LEDCOLOR_CUSTOM:
 				led_color[0] = hwre1data->CustomLEDColor[0];
