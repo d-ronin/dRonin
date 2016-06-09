@@ -248,7 +248,7 @@ extern uint32_t pios_packet_handler;
 #define PIOS_ADC_MAX_OVERSAMPLING       1
 #define PIOS_ADC_USE_ADC2               0
 
-#define VREF_PLUS			3.3
+#define VREF_PLUS			3.275
 
 #define PIOS_ADC_SUB_DRIVER_MAX_INSTANCES       3
 

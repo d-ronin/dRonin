@@ -48,10 +48,12 @@
 #include <misc_math.h>
 #include <uavobjectsinit.h>
 #include "hwbrainre1.h"
+#include "flightbatterysettings.h"
 #include "flightstatus.h"
 #include "modulesettings.h"
 #include "manualcontrolsettings.h"
 #include "onscreendisplaysettings.h"
+
 
 #include "pios_ir_transponder.h"
 
@@ -500,6 +502,19 @@ void PIOS_Board_Init(void) {
 	}
 #endif /* PIOS_INCLUDE_BMI160 */
 #endif /* PIOS_INCLUDE_SPI */
+
+	/* Set voltage/current calibration values, if the current settings are UAVO defaults.*/
+	FlightBatterySettingsInitialize();
+	FlightBatterySettingsData batterysettings;
+	FlightBatterySettingsGet(&batterysettings);
+	if(batterysettings.SensorCalibrationFactor[FLIGHTBATTERYSETTINGS_SENSORCALIBRATIONFACTOR_CURRENT] == 36.6f) {
+		batterysettings.SensorCalibrationFactor[FLIGHTBATTERYSETTINGS_SENSORCALIBRATIONFACTOR_CURRENT] = 25.0f;
+	}
+
+	if(batterysettings.SensorCalibrationFactor[FLIGHTBATTERYSETTINGS_SENSORCALIBRATIONFACTOR_VOLTAGE] == 63.69f) {
+		batterysettings.SensorCalibrationFactor[FLIGHTBATTERYSETTINGS_SENSORCALIBRATIONFACTOR_VOLTAGE] = 152.0f;
+	}
+	FlightBatterySettingsSet(&batterysettings);
 }
 
 /**
