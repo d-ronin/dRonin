@@ -70,6 +70,24 @@
 
 	<field name="Mixer10Type"   cloneof="Mixer1Type"/>
 	<field name="Mixer10Vector" cloneof="Mixer1Vector"/>
+        
+        <field name="Mixer11Type"   cloneof="Mixer1Type"/>
+	<field name="Mixer11Vector" cloneof="Mixer1Vector"/>
+        
+        <field name="Mixer12Type"   cloneof="Mixer1Type"/>
+	<field name="Mixer12Vector" cloneof="Mixer1Vector"/>
+        
+        <field name="Mixer13Type"   cloneof="Mixer1Type"/>
+	<field name="Mixer13Vector" cloneof="Mixer1Vector"/>
+        
+        <field name="Mixer14Type"   cloneof="Mixer1Type"/>
+	<field name="Mixer14Vector" cloneof="Mixer1Vector"/>
+        
+        <field name="Mixer15Type"   cloneof="Mixer1Type"/>
+	<field name="Mixer15Vector" cloneof="Mixer1Vector"/>
+        
+        <field name="Mixer16Type"   cloneof="Mixer1Type"/>
+	<field name="Mixer16Vector" cloneof="Mixer1Vector"/>
 
         <access gcs="readwrite" flight="readwrite"/>
         <telemetrygcs acked="true" updatemode="onchange" period="0"/>
