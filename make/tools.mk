@@ -489,7 +489,7 @@ libkml_clean:
 	$(V1) [ ! -d "$(LIBKML_BUILD_DIR)" ] || $(RM) -rf "$(LIBKML_BUILD_DIR)"
 
 # ZIP download URL
-zip_install: ZIP_URL  := ftp://ftp.info-zip.org/pub/infozip/src/zip30.tgz
+zip_install: ZIP_URL  := http://pkgs.fedoraproject.org/repo/pkgs/zip/zip30.tar.gz/7b74551e63f8ee6aab6fbc86676c0d37/zip30.tar.gz 
 
 zip_install: ZIP_FILE := $(notdir $(ZIP_URL))
 
@@ -578,7 +578,7 @@ endif
 
 # OPENSSL download URL
 ifdef WINDOWS
-  openssl_install: OPENSSL_URL  := https://slproweb.com/download/Win32OpenSSL-1_0_2g.exe
+  openssl_install: OPENSSL_URL  := https://slproweb.com/download/Win32OpenSSL-1_0_2h.exe
 
 openssl_install: OPENSSL_FILE := $(notdir $(OPENSSL_URL))
 OPENSSL_DIR = $(TOOLS_DIR)/win32openssl
