@@ -1,6 +1,7 @@
 <xml>
 	<object name="SystemIdent" singleinstance="true" settings="true">
 		<description>The input to the PID tuning.</description>
+		<field name="NewTune" units="" type="enum" elements="1" options="FALSE,TRUE" defaultvalue="FALSE"/>
 		<field name="Tau" units="s" type="float" elements="1" defaultvalue="0"/>
 		<field name="Beta" units="" type="float" elementnames="Roll,Pitch,Yaw" defaultvalue="0"/>
 		<field name="Bias" units="" type="float" elementnames="Roll,Pitch,Yaw" defaultvalue="0"/>

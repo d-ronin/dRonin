@@ -193,8 +193,12 @@ static void at_new_gyro_data(UAVObjEvent * ev, void *ctx, void *obj, int len) {
 }
 
 static void UpdateSystemIdent(const float *X, const float *noise,
-		float dT_s, uint32_t predicts, uint32_t spills, float hover_throttle) {
+		float dT_s, uint32_t predicts, uint32_t spills,
+		float hover_throttle, bool new_tune) {
 	SystemIdentData system_ident;
+
+	system_ident.NewTune                        = new_tune;
+
 	system_ident.Beta[SYSTEMIDENT_BETA_ROLL]    = X[6];
 	system_ident.Beta[SYSTEMIDENT_BETA_PITCH]   = X[7];
 	system_ident.Beta[SYSTEMIDENT_BETA_YAW]     = X[8];
@@ -203,11 +207,10 @@ static void UpdateSystemIdent(const float *X, const float *noise,
 	system_ident.Bias[SYSTEMIDENT_BIAS_YAW]     = X[12];
 	system_ident.Tau                            = X[9];
 
-	if (noise) {
-		system_ident.Noise[SYSTEMIDENT_NOISE_ROLL]  = noise[0];
-		system_ident.Noise[SYSTEMIDENT_NOISE_PITCH] = noise[1];
-		system_ident.Noise[SYSTEMIDENT_NOISE_YAW]   = noise[2];
-	}
+	system_ident.Noise[SYSTEMIDENT_NOISE_ROLL]  = noise[0];
+	system_ident.Noise[SYSTEMIDENT_NOISE_PITCH] = noise[1];
+	system_ident.Noise[SYSTEMIDENT_NOISE_YAW]   = noise[2];
+
 	system_ident.Period = dT_s * 1000.0f;
 
 	system_ident.NumAfPredicts = predicts;
@@ -325,8 +328,6 @@ static void AutotuneTask(void *parameters)
 
 					af_init(X,P);
 
-					UpdateSystemIdent(X, NULL, 0.0f, 0, 0, 0.0f);
-
 					state = AT_START;
 
 				}
@@ -409,7 +410,7 @@ static void AutotuneTask(void *parameters)
 					// telemetry spam
 					if (!((update_counter++) & 0xff)) {
 						float hover_throttle = ((float)(throttle_accumulator/update_counter))/10000.0f;
-						UpdateSystemIdent(X, noise, dT_s, update_counter, at_points_spilled, hover_throttle);
+						UpdateSystemIdent(X, noise, dT_s, update_counter, at_points_spilled, hover_throttle, false);
 					}
 				}
 
@@ -425,7 +426,7 @@ static void AutotuneTask(void *parameters)
 				// Wait until disarmed and landed before saving the settings
 
 				float hover_throttle = ((float)(throttle_accumulator/update_counter))/10000.0f;
-				UpdateSystemIdent(X, noise, 0, update_counter, at_points_spilled, hover_throttle);
+				UpdateSystemIdent(X, noise, 0, update_counter, at_points_spilled, hover_throttle, true);
 
 				save_needed = true;
 				state = AT_WAITING;
