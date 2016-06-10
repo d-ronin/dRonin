@@ -37,7 +37,7 @@
 
 //! Private variables
 static float vbar_integral[MAX_AXES];
-static float vbar_decay = 0.991f;
+extern float vbar_decay;
 
 //! Private methods
 static float bound(float val, float range);
