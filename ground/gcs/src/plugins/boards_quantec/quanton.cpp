@@ -51,11 +51,15 @@ Quanton::Quanton(void)
     boardType = 0x86;
 
     // Define the bank of channels that are connected to a given timer
-    channelBanks.resize(6);
-    channelBanks[0] = QVector<int> () << 1 << 2 << 3 << 4;
-    channelBanks[1] = QVector<int> () << 5 << 6;
-    channelBanks[2] = QVector<int> () << 7;
-    channelBanks[3] = QVector<int> () << 8;
+    channelBanks.resize(8);
+    channelBanks[0] = QVector<int> () << 1 << 2 << 3 << 4; //TIM3
+    channelBanks[1] = QVector<int> () << 5 << 6; //TIM12
+    channelBanks[2] = QVector<int> () << 7; //TIM10
+    channelBanks[3] = QVector<int> () << 8; //TIM11
+    channelBanks[4] = QVector<int> () << 9; //TIM1
+    channelBanks[5] = QVector<int> () << 10 << 11 << 12; //TIM8
+    channelBanks[6] = QVector<int> () << 13 << 14; //TIM2
+    channelBanks[7] = QVector<int> () << 15 << 16; //TIM5
 }
 
 Quanton::~Quanton()

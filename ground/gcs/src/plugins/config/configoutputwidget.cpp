@@ -109,6 +109,8 @@ ConfigOutputWidget::ConfigOutputWidget(QWidget *parent) : ConfigTaskWidget(paren
     addUAVObject("ActuatorSettings");
 
     // Associate the buttons with their UAVO fields
+    addWidget(m_config->cb_outputRate8);
+    addWidget(m_config->cb_outputRate7);
     addWidget(m_config->cb_outputRate6);
     addWidget(m_config->cb_outputRate5);
     addWidget(m_config->cb_outputRate4);
@@ -120,10 +122,11 @@ ConfigOutputWidget::ConfigOutputWidget(QWidget *parent) : ConfigTaskWidget(paren
     // Cache all the combo boxes and labels
     lblList.clear();
     lblList << m_config->chBank1 << m_config->chBank2 << m_config->chBank3 << m_config->chBank4
-               << m_config->chBank5 << m_config->chBank6;
+               << m_config->chBank5 << m_config->chBank6 << m_config->chBank7 << m_config->chBank8;
     rateList.clear();
     rateList << m_config->cb_outputRate1 << m_config->cb_outputRate2 << m_config->cb_outputRate3
-               << m_config->cb_outputRate4 << m_config->cb_outputRate5 << m_config->cb_outputRate6;
+               << m_config->cb_outputRate4 << m_config->cb_outputRate5 << m_config->cb_outputRate6
+                  << m_config->cb_outputRate7 << m_config->cb_outputRate8;
 
     QList<QComboBox*>::iterator rateIter;
     for (rateIter = rateList.begin(); rateIter != rateList.end(); rateIter++) {
@@ -438,7 +441,7 @@ void ConfigOutputWidget::refreshWidgetsValues(UAVObject * obj)
 
             // First reset & disable all channel fields/outputs, then repopulate (because
             // we might be for instance connecting various board types one after another)
-            for (int i=0; i < 6; i++) {
+            for (int i=0; i < lblList.length(); i++) {
                 lblList.at(i)->setText("-");
                 rateList.at(i)->setEnabled(false);
             }
@@ -562,6 +565,8 @@ void ConfigOutputWidget::updateObjectsFromWidgets()
         actuatorSettingsData.TimerUpdateFreq[3] = timerStringToFreq(m_config->cb_outputRate4->currentText());
         actuatorSettingsData.TimerUpdateFreq[4] = timerStringToFreq(m_config->cb_outputRate5->currentText());
         actuatorSettingsData.TimerUpdateFreq[5] = timerStringToFreq(m_config->cb_outputRate6->currentText());
+        actuatorSettingsData.TimerUpdateFreq[6] = timerStringToFreq(m_config->cb_outputRate7->currentText());
+        actuatorSettingsData.TimerUpdateFreq[7] = timerStringToFreq(m_config->cb_outputRate8->currentText());
 
         actuatorSettingsData.MotorInputOutputCurveFit = m_config->motorCurveFit->value();
 
