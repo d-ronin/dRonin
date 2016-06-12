@@ -47,7 +47,6 @@ HEADERS += calibration.h \
     configmodulewidget.h \
     configosdwidget.h \
     expocurve.h \
-    autotuneshareform.h \
     qreadonlycheckbox.h
 
 SOURCES += calibration.cpp \
@@ -80,8 +79,7 @@ SOURCES += calibration.cpp \
     vehicletrim.cpp \
     configmodulewidget.cpp \
     configosdwidget.cpp \
-    expocurve.cpp \
-    autotuneshareform.cpp
+    expocurve.cpp
 
 FORMS += airframe.ui \
     ccpm.ui \
@@ -99,7 +97,9 @@ FORMS += airframe.ui \
     modules.ui \
     osd.ui \
     osdpage.ui \
-    autotuneshareform.ui
+    autotuneproperties.ui \
+    autotunesliders.ui \
+    autotunefinalpage.ui
 
 RESOURCES += configgadget.qrc
 
@@ -107,8 +107,4 @@ linux-g++* {
     # Hax to stop eigen failing to compile, workaround for #664
     QMAKE_CXXFLAGS_WARN_ON += -Wno-deprecated-declarations
 }
-
-
-
-
 
