@@ -389,7 +389,7 @@
              <stringlist>
               <string>objname:TaskInfo</string>
               <string>fieldname:Running</string>
-              <string>element:UAVOFrSKYSPortBridge</string>
+              <string>element:UAVOFrSkySPortBridge</string>
              </stringlist>
             </property>
            </widget>
