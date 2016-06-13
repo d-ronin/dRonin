@@ -223,10 +223,13 @@ void ConfigAutotuneWidget::openAutotuneDialog(bool autoOpened)
 
     wizard.addPage(beginning);
 
+    // Needed for sliders page to communicate with final page and end of wiz
+    struct AutotunedValues av;
+
     if (dataValid) {
         wizard.addPage(new AutotuneMeasuredPropertiesPage(NULL, systemIdentData));
-        wizard.addPage(new AutotuneSlidersPage(NULL));
-        wizard.addPage(new AutotuneFinalPage(NULL));
+        wizard.addPage(new AutotuneSlidersPage(NULL, systemIdentData, &av));
+        wizard.addPage(new AutotuneFinalPage(NULL, &av));
     }
 
     wizard.setWindowTitle("Autotune Wizard");
@@ -271,14 +274,22 @@ void AutotuneMeasuredPropertiesPage::initializePage()
             QString::number(sysIdent.Noise[SystemIdent::NOISE_YAW], 'f', 2));
 }
 
-AutotuneSlidersPage::AutotuneSlidersPage(QWidget *parent) :
+AutotuneSlidersPage::AutotuneSlidersPage(QWidget *parent,
+        SystemIdent::DataFields &systemIdentData,
+        struct AutotunedValues *autoValues) :
     QWizardPage(parent)
 {
     setupUi(this);
+
+    sysIdent = systemIdentData;
+    av = autoValues;
 }
 
-AutotuneFinalPage::AutotuneFinalPage(QWidget *parent) :
+AutotuneFinalPage::AutotuneFinalPage(QWidget *parent,
+        struct AutotunedValues *autoValues) :
     QWizardPage(parent)
 {
     setupUi(this);
+
+    av = autoValues;
 }

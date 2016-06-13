@@ -47,6 +47,21 @@
 #include "autotuneshareform.h"
 #include "configgadgetwidget.h"
 
+struct AutotunedValues
+{
+    bool converged;
+
+    float kp[3];
+    float ki[3];
+    float kd[3];
+
+    float derivativeCutoff;
+    float naturalFreq;
+
+    float outerKp;
+    float outerKi;
+};
+
 class AutotuneMeasuredPropertiesPage : public QWizardPage,
         private Ui::AutotuneProperties
 {
@@ -67,7 +82,13 @@ class AutotuneSlidersPage : public QWizardPage,
     Q_OBJECT
 
 public:
-    explicit AutotuneSlidersPage(QWidget *parent);
+    explicit AutotuneSlidersPage(QWidget *parent,
+            SystemIdent::DataFields &systemIdentData,
+            struct AutotunedValues *autoValues);
+
+private:
+    SystemIdent::DataFields sysIdent;
+    AutotunedValues *av;
 };
 
 class AutotuneFinalPage : public QWizardPage,
@@ -76,7 +97,11 @@ class AutotuneFinalPage : public QWizardPage,
     Q_OBJECT
 
 public:
-    explicit AutotuneFinalPage(QWidget *parent);
+    explicit AutotuneFinalPage(QWidget *parent,
+            struct AutotunedValues *autoValues);
+
+private:
+    AutotunedValues *av;
 };
 
 class ConfigAutotuneWidget : public ConfigTaskWidget
