@@ -46,6 +46,11 @@ enum pios_srxl_sync {
 	PIOS_SRXL_SYNC_16CHAN = 0xA2,
 };
 
+struct pios_srxl_frame {
+	uint8_t sync;
+	uint16_t chan[0];
+} __attribute__((packed));
+
 struct pios_srxl_frame_12chan {
 	uint8_t sync;
 	uint16_t chan[12];
@@ -228,25 +233,23 @@ static void PIOS_SRXL_ParseFrame(struct pios_srxl_dev *dev)
 		return;
 
 	if (dev->crc == 0) {
-		switch (dev->rx_buffer[0]) {
+		struct pios_srxl_frame *frame =
+					(struct pios_srxl_frame *)dev->rx_buffer;
+
+		int nchans = 0;
+
+		switch (frame->sync) {
 		case PIOS_SRXL_SYNC_16CHAN:
-			{
-				struct pios_srxl_frame_16chan *frame =
-					(struct pios_srxl_frame_16chan *)dev->rx_buffer;
-				/* divide by 4095 would be correct but 4096 will end up a 12 bit shift */
-				for (int i = 0; i < 16; i++)
-					dev->channels[i] = 800 + (frame->chan[i] >> 8 | (frame->chan[i] & 0xf) << 8) * 1400 / 4096;
-			}
+			nchans = 16;
 			break;
 		case PIOS_SRXL_SYNC_12CHAN:
-			{
-				struct pios_srxl_frame_12chan *frame =
-					(struct pios_srxl_frame_12chan *)dev->rx_buffer;
-				for (int i = 0; i < 12; i++)
-					dev->channels[i] = 800 + (frame->chan[i] >> 8 | (frame->chan[i] & 0xf) << 8) * 1400 / 4096;
-			}
+			nchans = 12;
 			break;
 		}
+
+		for (int i = 0; i < nchans; i++)
+			dev->channels[i] = ntohs(frame->chan[i]);
+
 		dev->failsafe_timer = 0;
 	}
 
