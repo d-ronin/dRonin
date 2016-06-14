@@ -106,9 +106,13 @@ class AutotuneFinalPage : public QWizardPage,
 public:
     explicit AutotuneFinalPage(QWidget *parent,
             struct AutotunedValues *autoValues);
+    void initializePage();
 
 private:
     AutotunedValues *av;
+
+private slots:
+    void finished(int status);
 };
 
 class ConfigAutotuneWidget : public ConfigTaskWidget

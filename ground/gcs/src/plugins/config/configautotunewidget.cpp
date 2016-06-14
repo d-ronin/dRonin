@@ -204,9 +204,9 @@ void ConfigAutotuneWidget::openAutotuneDialog(bool autoOpened)
     beginning->setTitle(tr("Examining autotune..."));
 
     if (autoOpened) {
-        beginning->setSubTitle(tr("It looks like you have run a new autotune since you last connected to the flight controller.  This wizard will assist you in applying an autotune's measurement to your aircraft."));
+        beginning->setSubTitle(tr("It looks like you have run a new autotune since you last connected to the flight controller.  This wizard will assist you in applying a set of autotune measurements to your aircraft."));
     } else {
-        beginning->setSubTitle(tr("This wizard will assist you in applying an autotune's measurement to your aircraft."));
+        beginning->setSubTitle(tr("This wizard will assist you in applying a set of autotune measurements to your aircraft."));
     }
 
     QLabel *status = new QLabel(initialWarnings);
@@ -226,6 +226,8 @@ void ConfigAutotuneWidget::openAutotuneDialog(bool autoOpened)
     // Needed for sliders page to communicate with final page and end of wiz
     struct AutotunedValues av;
 
+    av.converged = false;
+
     if (dataValid) {
         wizard.addPage(new AutotuneMeasuredPropertiesPage(NULL, systemIdentData));
         wizard.addPage(new AutotuneSlidersPage(NULL, systemIdentData, &av));
@@ -234,6 +236,10 @@ void ConfigAutotuneWidget::openAutotuneDialog(bool autoOpened)
 
     wizard.setWindowTitle("Autotune Wizard");
     wizard.exec();
+
+    if ((wizard.result() == QDialog::Accepted) && av.converged) {
+        // XXX TODO apply / save to board
+    }
 }
 
 AutotuneMeasuredPropertiesPage::AutotuneMeasuredPropertiesPage(QWidget *parent,
@@ -284,7 +290,7 @@ AutotuneSlidersPage::AutotuneSlidersPage(QWidget *parent,
     sysIdent = systemIdentData;
     av = autoValues;
 
-    // XXX disable yaw box based on observed beta
+    // XXX TODO disable yaw box based on observed beta
  
     // connect sliders to computation
     connect(rateDamp, SIGNAL(valueChanged(int)), this, SLOT(compute()));
@@ -332,7 +338,7 @@ void AutotuneSlidersPage::compute()
     int iterations = 0;
     int stable_iterations = 0;
 
-    while (++iterations <= iteration_limit && !converged) {
+    while (!converged && (++iterations <= iteration_limit)) {
         double tau_d_roll = (2*damp*tau*wn - 1)/(4*tau*damp*damp*wn*wn - 2*damp*wn - tau*wn*wn + exp(beta_roll)*ghf);
         double tau_d_pitch = (2*damp*tau*wn - 1)/(4*tau*damp*damp*wn*wn - 2*damp*wn - tau*wn*wn + exp(beta_pitch)*ghf);
 
@@ -350,8 +356,8 @@ void AutotuneSlidersPage::compute()
         tau_d_last = tau_d;
         wn_last = wn;
     }
-    --iterations; // make the number right for tune share etc.
 
+    av->iterations = iterations;
     av->converged = converged;
 
     if (!converged) {
@@ -438,4 +444,17 @@ AutotuneFinalPage::AutotuneFinalPage(QWidget *parent,
     setupUi(this);
 
     av = autoValues;
+}
+
+void AutotuneFinalPage::initializePage()
+{
+    connect(wizard(), SIGNAL(finished(int)), this, SLOT(finished(int)),
+            Qt::UniqueConnection);
+}
+
+void AutotuneFinalPage::finished(int status)
+{
+    qDebug() << "Completed atfinal; " << status;
+
+    // XXX TODO: just share here, if enabled for that.
 }
