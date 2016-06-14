@@ -369,7 +369,7 @@ static void msp_send_raw_gps(struct msp_bridge *m)
 		data.raw_gps.lat           = gps_data.Latitude;
 		data.raw_gps.lon           = gps_data.Longitude;
 		data.raw_gps.alt           = (uint16_t)gps_data.Altitude;
-		data.raw_gps.speed         = (uint16_t)gps_data.Groundspeed;
+		data.raw_gps.speed         = (uint16_t)(gps_data.Groundspeed * 100.0f);
 		data.raw_gps.ground_course = (int16_t)(gps_data.Heading * 10.0f);
 	}
 	else
@@ -457,8 +457,10 @@ static void msp_send_altitude(struct msp_bridge *m)
 	if (BaroAltitudeHandle() != NULL)
 		BaroAltitudeAltitudeGet(&tmp);
 #else
-	if (PositionActualHandle() != NULL)
+	if (PositionActualHandle() != NULL) {
 		PositionActualDownGet(&tmp);
+		tmp = -tmp;
+	}
 #endif
 
 	data.baro.alt = (int32_t)roundf(tmp * 100.0f);
