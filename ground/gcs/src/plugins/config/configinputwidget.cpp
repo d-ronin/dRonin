@@ -326,17 +326,13 @@ ConfigInputWidget::ConfigInputWidget(QWidget *parent) : ConfigTaskWidget(parent)
                         ManualControlSettings::CHANNELGROUPS_ACCESSORY2 <<
                         ManualControlSettings::CHANNELGROUPS_ARMING;
 
-    for (int i = 1; i <= 6; i++) {
-        QComboBox *child = this->findChild<QComboBox *>(QString("fmsModePos%1").arg(i));
-        if (child)
-            connect(child, SIGNAL(currentTextChanged(QString)), this, SLOT(checkFlightMode(QString)));
-    }
-    const QStringList axes({"Roll", "Pitch", "Yaw"});
+    // check reprojection settings
+    const QStringList axes({"Roll", "Pitch", "Yaw", "Rep"});
     for (int i = 1; i <= 3; i++) {
         foreach (const QString &axis, axes) {
             QComboBox *child = this->findChild<QComboBox *>(QString("fmsSsPos%1%2").arg(i).arg(axis));
             if (child)
-                connect(child, SIGNAL(currentTextChanged(QString)), this, SLOT(checkFlightMode(QString)));
+                connect(child, SIGNAL(currentTextChanged(QString)), this, SLOT(checkReprojection()));
         }
     }
 
@@ -1765,12 +1761,6 @@ void ConfigInputWidget::checkArmingConfig(QString option)
     checkHangtimeConfig();
 }
 
-void ConfigInputWidget::checkFlightMode(QString option)
-{
-    Q_UNUSED(option);
-    // No verification currently required here with the removal of mwrate
-}
-
 void ConfigInputWidget::checkHangtimeConfig()
 {
     bool warn = true;
@@ -1783,4 +1773,65 @@ void ConfigInputWidget::checkHangtimeConfig()
     warn &= !option.startsWith("Switch") && option != "Always Disarmed";
 
     m_config->lblHangTimeWarning->setVisible(warn);
+}
+
+void ConfigInputWidget::clearMessages(QWidget *widget, const QString type)
+{
+    QLabel *lbl = findChild<QLabel *>("lblMessage" + type);
+    if (lbl) {
+        widget->layout()->removeWidget(lbl);
+        delete lbl;
+    }
+}
+
+void ConfigInputWidget::addMessage(QWidget *widget, const QString type, const QString msg)
+{
+    QLabel *lbl = findChild<QLabel *>("lblMessage" + type);
+    if (!lbl) {
+        lbl = new QLabel(this);
+        lbl->setObjectName("lblMessage" + type);
+        lbl->setWordWrap(true);
+        widget->layout()->addWidget(lbl);
+    }
+
+    lbl->setText(lbl->text() + msg + "\n");
+}
+
+void ConfigInputWidget::checkReprojection()
+{
+    const QString prefix = sender()->objectName().left(9); // this is a little fragile
+    QComboBox *rep = findChild<QComboBox *>(prefix + "Rep");
+    Q_ASSERT(rep);
+
+    clearMessages(m_config->gbxFMMessages, prefix);
+
+    QStringList axes;
+    QStringList allowed_modes;
+    if (rep->currentText() == "CameraAngle") {
+        axes << "Roll" << "Yaw";
+        allowed_modes << "AxisLock" << "Rate" << "WeakLevelling" << "AcroPlus";
+    } else if (rep->currentText() == "HeadFree") {
+        axes << "Roll" << "Pitch";
+        allowed_modes << "AxisLock" << "Rate" << "WeakLevelling" << "AcroPlus" << "Attitude" << "Horizon";
+    } else {
+        return;
+    }
+
+    QString selected_mode;
+    foreach (const QString axis_name, axes) {
+        QComboBox *axis = findChild<QComboBox *>(prefix + axis_name);
+        Q_ASSERT(axis);
+
+        // make sure only allowed modes are used
+        if (!allowed_modes.contains(axis->currentText()))
+            addMessage(m_config->gbxFMMessages, prefix, QString("Stabilized%0: When using %1 reprojection, only the following stabilization modes are allowed on axes %2: %3")
+                          .arg(prefix.right(1)).arg(rep->currentText()).arg(axes.join(", ")).arg(allowed_modes.join(", ")));
+
+        // axes must match
+        if (selected_mode.length() < 1)
+            selected_mode = axis->currentText();
+        if (selected_mode != axis->currentText())
+            addMessage(m_config->gbxFMMessages, prefix, QString("Stabilized%0: When using %1 reprojection, stabilization modes must match for %2 axes!")
+                          .arg(prefix.right(1)).arg(rep->currentText()).arg(axes.join(", ")));
+    }
 }

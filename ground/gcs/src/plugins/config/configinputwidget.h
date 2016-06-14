@@ -196,12 +196,14 @@ private slots:
         void simpleCalibration(bool state);
         void updateCalibration();
         void checkArmingConfig(QString option);
-        void checkFlightMode(QString option);
         void checkHangtimeConfig();
+        void checkReprojection();
 
 protected:
         void resizeEvent(QResizeEvent *event);
         virtual void enableControls(bool enable);
+        void addMessage(QWidget *widget, const QString type, const QString msg);
+        void clearMessages(QWidget *widget, const QString type);
 };
 
 #endif

@@ -1366,6 +1366,26 @@ margin:1px;</string>
             </widget>
            </item>
            <item>
+            <widget class="QGroupBox" name="gbxFMMessages">
+             <property name="sizePolicy">
+              <sizepolicy hsizetype="Preferred" vsizetype="Minimum">
+               <horstretch>0</horstretch>
+               <verstretch>0</verstretch>
+              </sizepolicy>
+             </property>
+             <property name="minimumSize">
+              <size>
+               <width>0</width>
+               <height>50</height>
+              </size>
+             </property>
+             <property name="title">
+              <string>Messages</string>
+             </property>
+             <layout class="QVBoxLayout" name="verticalLayout_15"/>
+            </widget>
+           </item>
+           <item>
             <spacer name="verticalSpacer_5">
              <property name="orientation">
               <enum>Qt::Vertical</enum>
@@ -1481,8 +1501,8 @@ margin:1px;</string>
            <rect>
             <x>0</x>
             <y>0</y>
-            <width>865</width>
-            <height>769</height>
+            <width>579</width>
+            <height>818</height>
            </rect>
           </property>
           <layout class="QVBoxLayout" name="verticalLayout_2">
