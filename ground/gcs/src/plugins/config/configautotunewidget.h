@@ -92,9 +92,10 @@ public:
 private:
     SystemIdent::DataFields sysIdent;
     AutotunedValues *av;
+    void setText(QLabel *lbl, double value, int precision);
 
 private slots:
-    void Compute();
+    void compute();
 };
 
 class AutotuneFinalPage : public QWizardPage,

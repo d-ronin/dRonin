@@ -284,10 +284,28 @@ AutotuneSlidersPage::AutotuneSlidersPage(QWidget *parent,
     sysIdent = systemIdentData;
     av = autoValues;
 
-    // XXX TODO : connect sliders to computation, override ready
+    // XXX disable yaw box based on observed beta
+ 
+    // connect sliders to computation
+    connect(rateDamp, SIGNAL(valueChanged(int)), this, SLOT(compute()));
+    connect(rateNoise, SIGNAL(valueChanged(int)), this, SLOT(compute()));
+    connect(cbUseYaw, SIGNAL(toggled(bool)), this, SLOT(compute()));
+    connect(cbUseOuterKi, SIGNAL(toggled(bool)), this, SLOT(compute()));
+
+    compute();
 }
 
-void AutotuneSlidersPage::Compute() {
+void AutotuneSlidersPage::setText(QLabel *lbl, double value, int precision)
+{
+    if (value < 0) {
+        lbl->setText("–");
+    } else { 
+        lbl->setText(QString::number(value, 'f', precision));
+    }
+}
+
+void AutotuneSlidersPage::compute()
+{
     // These three parameters define the desired response properties
     // - rate scale in the fraction of the natural speed of the system
     //   to strive for.
@@ -341,7 +359,7 @@ void AutotuneSlidersPage::Compute() {
     }
 
     av->derivativeCutoff = 1 / (2*M_PI*tau_d);
-    av->naturalFreq = wn;
+    av->naturalFreq = wn / 2 / M_PI;
 
     // Set the real pole position. The first pole is quite slow, which
     // prevents the integral being too snappy and driving too much
@@ -390,7 +408,27 @@ void AutotuneSlidersPage::Compute() {
         av->kp[2] = -1;  av->ki[2] = -1;  av->kd[2] = -1;
     }
 
-    // XXX TODO update output labels
+    // XXX TODO -- relo somewhere nicer
+    // XXX TODO -- and handle non-convergence case
+    // XXX TODO -- and whether able to continue
+    setText(rollRateKp, av->kp[0], 5);
+    setText(rollRateKi, av->ki[0], 5);
+    setText(rollRateKd, av->kd[0], 6);
+
+    setText(pitchRateKp, av->kp[1], 5);
+    setText(pitchRateKi, av->ki[1], 5);
+    setText(pitchRateKd, av->kd[1], 6);
+
+    setText(yawRateKp, av->kp[2], 5);
+    setText(yawRateKi, av->ki[2], 5);
+    setText(yawRateKd, av->kd[2], 6);
+
+    setText(lblOuterKp, av->outerKp, 2);
+    setText(lblOuterKi, av->outerKi, 2);
+    setText(derivativeCutoff, av->derivativeCutoff, 1);
+    setText(this->wn, av->naturalFreq, 1);
+    setText(lblDamp, damp, 2);
+    lblNoise->setText(QString::number(ghf * 100, 'f', 1) + " %");
 }
 
 AutotuneFinalPage::AutotuneFinalPage(QWidget *parent,
