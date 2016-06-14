@@ -283,6 +283,114 @@ AutotuneSlidersPage::AutotuneSlidersPage(QWidget *parent,
 
     sysIdent = systemIdentData;
     av = autoValues;
+
+    // XXX TODO : connect sliders to computation, override ready
+}
+
+void AutotuneSlidersPage::Compute() {
+    // These three parameters define the desired response properties
+    // - rate scale in the fraction of the natural speed of the system
+    //   to strive for.
+    // - damp is the amount of damping in the system. higher values
+    //   make oscillations less likely
+    // - ghf is the amount of high frequency gain and limits the influence
+    //   of noise
+
+    const double ghf = rateNoise->value() / 1000.0;
+    const double damp = rateDamp->value() / 100.0;
+
+    bool doYaw = cbUseYaw->isChecked();
+    bool doOuterKi = cbUseOuterKi->isChecked();
+
+    double tau = exp(sysIdent.Tau);
+    double beta_roll = sysIdent.Beta[SystemIdent::BETA_ROLL];
+    double beta_pitch = sysIdent.Beta[SystemIdent::BETA_PITCH];
+
+    double wn = 1/tau, wn_last = 1/tau + 10;
+    double tau_d = 0, tau_d_last = 1000;
+
+    const int iteration_limit = 100, stability_limit = 5;
+    bool converged = false;
+    int iterations = 0;
+    int stable_iterations = 0;
+
+    while (++iterations <= iteration_limit && !converged) {
+        double tau_d_roll = (2*damp*tau*wn - 1)/(4*tau*damp*damp*wn*wn - 2*damp*wn - tau*wn*wn + exp(beta_roll)*ghf);
+        double tau_d_pitch = (2*damp*tau*wn - 1)/(4*tau*damp*damp*wn*wn - 2*damp*wn - tau*wn*wn + exp(beta_pitch)*ghf);
+
+        // Select the slowest filter property
+        tau_d = (tau_d_roll > tau_d_pitch) ? tau_d_roll : tau_d_pitch;
+        wn = (tau + tau_d) / (tau*tau_d) / (2 * damp + 2);
+
+        // check for convergence
+        if (fabs(tau_d - tau_d_last) <= 0.00001 && fabs(wn - wn_last) <= 0.00001) {
+            if (++stable_iterations >= stability_limit)
+                converged = true;
+        } else {
+            stable_iterations = 0;
+        }
+        tau_d_last = tau_d;
+        wn_last = wn;
+    }
+    --iterations; // make the number right for tune share etc.
+
+    av->converged = converged;
+
+    if (!converged) {
+        return;
+    }
+
+    av->derivativeCutoff = 1 / (2*M_PI*tau_d);
+    av->naturalFreq = wn;
+
+    // Set the real pole position. The first pole is quite slow, which
+    // prevents the integral being too snappy and driving too much
+    // overshoot.
+    const double a = ((tau+tau_d) / tau / tau_d - 2 * damp * wn) / 20.0;
+    const double b = ((tau+tau_d) / tau / tau_d - 2 * damp * wn - a);
+
+    CONF_ATUNE_QXTLOG_DEBUG("ghf: ", ghf);
+    CONF_ATUNE_QXTLOG_DEBUG("wn: ", wn, "tau_d: ", tau_d);
+    CONF_ATUNE_QXTLOG_DEBUG("a: ", a, " b: ", b);
+
+    // Calculate the gain for the outer loop by approximating the
+    // inner loop as a single order lpf. Set the outer loop to be
+    // critically damped;
+    const double zeta_o = 1.3;
+    av->outerKp = 1 / 4.0 / (zeta_o * zeta_o) / (1/wn);
+
+    if (doOuterKi) {
+        av->outerKi = 0.75 * av->outerKp / (2 * M_PI * tau * 10.0);
+    } else {
+        av->outerKi = 0;
+    }
+
+    for (int i = 0; i < 2; i++) {
+        double beta = exp(sysIdent.Beta[i]);
+
+        double ki;
+        double kp;
+        double kd;
+
+        ki = a * b * wn * wn * tau * tau_d / beta;
+        kp = tau * tau_d * ((a+b)*wn*wn + 2*a*b*damp*wn) / beta - ki*tau_d;
+        kd = (tau * tau_d * (a*b + wn*wn + (a+b)*2*damp*wn) - 1) / beta - kp * tau_d;
+
+        av->kp[i] = kp;
+        av->ki[i] = ki;
+        av->kd[i] = kd;
+    }
+
+    if (doYaw) {
+        double scale = exp(0.6 * (sysIdent.Beta[0] - sysIdent.Beta[2]));
+        av->kp[2] = av->kp[0] * scale;
+        av->ki[2] = 0.8 * av->ki[0] * scale;
+        av->kd[2] = 0.8 * av->kd[0] * scale;
+    } else {
+        av->kp[2] = -1;  av->ki[2] = -1;  av->kd[2] = -1;
+    }
+
+    // XXX TODO update output labels
 }
 
 AutotuneFinalPage::AutotuneFinalPage(QWidget *parent,

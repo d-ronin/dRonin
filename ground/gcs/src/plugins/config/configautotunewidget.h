@@ -51,6 +51,9 @@ struct AutotunedValues
 {
     bool converged;
 
+    int iterations;
+
+    // -1 means "not calculated"; (don't change)
     float kp[3];
     float ki[3];
     float kd[3];
@@ -89,6 +92,9 @@ public:
 private:
     SystemIdent::DataFields sysIdent;
     AutotunedValues *av;
+
+private slots:
+    void Compute();
 };
 
 class AutotuneFinalPage : public QWizardPage,
