@@ -251,7 +251,7 @@
               <enum>QFrame::NoFrame</enum>
              </property>
              <property name="currentIndex">
-              <number>1</number>
+              <number>4</number>
              </property>
              <widget class="QWidget" name="fixedWing">
               <property name="enabled">
@@ -1717,8 +1717,8 @@ margin:1px;</string>
                    <rect>
                     <x>0</x>
                     <y>0</y>
-                    <width>773</width>
-                    <height>226</height>
+                    <width>808</width>
+                    <height>318</height>
                    </rect>
                   </property>
                   <layout class="QVBoxLayout" name="verticalLayout_11">
@@ -2320,6 +2320,9 @@ margin:1px;</string>
                    <property name="alternatingRowColors">
                     <bool>true</bool>
                    </property>
+                   <property name="columnCount">
+                    <number>16</number>
+                   </property>
                    <attribute name="horizontalHeaderDefaultSectionSize">
                     <number>50</number>
                    </attribute>
@@ -2406,6 +2409,36 @@ margin:1px;</string>
                      <string>Ch 10</string>
                     </property>
                    </column>
+                   <column>
+                    <property name="text">
+                     <string>Ch 11</string>
+                    </property>
+                   </column>
+                   <column>
+                    <property name="text">
+                     <string>Ch 12</string>
+                    </property>
+                   </column>
+                   <column>
+                    <property name="text">
+                     <string>Ch 13</string>
+                    </property>
+                   </column>
+                   <column>
+                    <property name="text">
+                     <string>Ch 14</string>
+                    </property>
+                   </column>
+                   <column>
+                    <property name="text">
+                     <string>Ch 15</string>
+                    </property>
+                   </column>
+                   <column>
+                    <property name="text">
+                     <string>Ch 16</string>
+                    </property>
+                   </column>
                    <item row="0" column="0">
                     <property name="text">
                      <string>-</string>
@@ -2484,6 +2517,36 @@ margin:1px;</string>
                     </property>
                     <property name="textAlignment">
                      <set>AlignCenter</set>
+                    </property>
+                   </item>
+                   <item row="0" column="10">
+                    <property name="text">
+                     <string>-</string>
+                    </property>
+                   </item>
+                   <item row="0" column="11">
+                    <property name="text">
+                     <string>-</string>
+                    </property>
+                   </item>
+                   <item row="0" column="12">
+                    <property name="text">
+                     <string>-</string>
+                    </property>
+                   </item>
+                   <item row="0" column="13">
+                    <property name="text">
+                     <string>-</string>
+                    </property>
+                   </item>
+                   <item row="0" column="14">
+                    <property name="text">
+                     <string>-</string>
+                    </property>
+                   </item>
+                   <item row="0" column="15">
+                    <property name="text">
+                     <string>-</string>
                     </property>
                    </item>
                    <item row="1" column="0">
@@ -2566,6 +2629,36 @@ margin:1px;</string>
                      <set>AlignCenter</set>
                     </property>
                    </item>
+                   <item row="1" column="10">
+                    <property name="text">
+                     <string>-</string>
+                    </property>
+                   </item>
+                   <item row="1" column="11">
+                    <property name="text">
+                     <string>-</string>
+                    </property>
+                   </item>
+                   <item row="1" column="12">
+                    <property name="text">
+                     <string>-</string>
+                    </property>
+                   </item>
+                   <item row="1" column="13">
+                    <property name="text">
+                     <string>-</string>
+                    </property>
+                   </item>
+                   <item row="1" column="14">
+                    <property name="text">
+                     <string>-</string>
+                    </property>
+                   </item>
+                   <item row="1" column="15">
+                    <property name="text">
+                     <string>-</string>
+                    </property>
+                   </item>
                    <item row="2" column="0">
                     <property name="text">
                      <string>-</string>
@@ -2644,6 +2737,36 @@ margin:1px;</string>
                     </property>
                     <property name="textAlignment">
                      <set>AlignCenter</set>
+                    </property>
+                   </item>
+                   <item row="2" column="10">
+                    <property name="text">
+                     <string>-</string>
+                    </property>
+                   </item>
+                   <item row="2" column="11">
+                    <property name="text">
+                     <string>-</string>
+                    </property>
+                   </item>
+                   <item row="2" column="12">
+                    <property name="text">
+                     <string>-</string>
+                    </property>
+                   </item>
+                   <item row="2" column="13">
+                    <property name="text">
+                     <string>-</string>
+                    </property>
+                   </item>
+                   <item row="2" column="14">
+                    <property name="text">
+                     <string>-</string>
+                    </property>
+                   </item>
+                   <item row="2" column="15">
+                    <property name="text">
+                     <string>-</string>
                     </property>
                    </item>
                    <item row="3" column="0">
@@ -2726,6 +2849,36 @@ margin:1px;</string>
                      <set>AlignCenter</set>
                     </property>
                    </item>
+                   <item row="3" column="10">
+                    <property name="text">
+                     <string>-</string>
+                    </property>
+                   </item>
+                   <item row="3" column="11">
+                    <property name="text">
+                     <string>-</string>
+                    </property>
+                   </item>
+                   <item row="3" column="12">
+                    <property name="text">
+                     <string>-</string>
+                    </property>
+                   </item>
+                   <item row="3" column="13">
+                    <property name="text">
+                     <string>-</string>
+                    </property>
+                   </item>
+                   <item row="3" column="14">
+                    <property name="text">
+                     <string>-</string>
+                    </property>
+                   </item>
+                   <item row="3" column="15">
+                    <property name="text">
+                     <string>-</string>
+                    </property>
+                   </item>
                    <item row="4" column="0">
                     <property name="text">
                      <string>-</string>
@@ -2806,6 +2959,36 @@ margin:1px;</string>
                      <set>AlignCenter</set>
                     </property>
                    </item>
+                   <item row="4" column="10">
+                    <property name="text">
+                     <string>-</string>
+                    </property>
+                   </item>
+                   <item row="4" column="11">
+                    <property name="text">
+                     <string>-</string>
+                    </property>
+                   </item>
+                   <item row="4" column="12">
+                    <property name="text">
+                     <string>-</string>
+                    </property>
+                   </item>
+                   <item row="4" column="13">
+                    <property name="text">
+                     <string>-</string>
+                    </property>
+                   </item>
+                   <item row="4" column="14">
+                    <property name="text">
+                     <string>-</string>
+                    </property>
+                   </item>
+                   <item row="4" column="15">
+                    <property name="text">
+                     <string>-</string>
+                    </property>
+                   </item>
                    <item row="5" column="0">
                     <property name="text">
                      <string>-</string>
@@ -2884,6 +3067,36 @@ margin:1px;</string>
                     </property>
                     <property name="textAlignment">
                      <set>AlignCenter</set>
+                    </property>
+                   </item>
+                   <item row="5" column="10">
+                    <property name="text">
+                     <string>-</string>
+                    </property>
+                   </item>
+                   <item row="5" column="11">
+                    <property name="text">
+                     <string>-</string>
+                    </property>
+                   </item>
+                   <item row="5" column="12">
+                    <property name="text">
+                     <string>-</string>
+                    </property>
+                   </item>
+                   <item row="5" column="13">
+                    <property name="text">
+                     <string>-</string>
+                    </property>
+                   </item>
+                   <item row="5" column="14">
+                    <property name="text">
+                     <string>-</string>
+                    </property>
+                   </item>
+                   <item row="5" column="15">
+                    <property name="text">
+                     <string>-</string>
                     </property>
                    </item>
                   </widget>

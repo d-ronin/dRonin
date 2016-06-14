@@ -46,6 +46,8 @@ const qint16 VehicleConfigurationHelper::ONESHOT_ESC_FREQUENCY  = 0; // Triggers
 
 const float VehicleConfigurationHelper::DEFAULT_ENABLED_ACCEL_TAU = 0.1;
 
+const int NUM_GCS_OUTPUT_CHANNELS = 16;
+
 VehicleConfigurationHelper::VehicleConfigurationHelper(VehicleConfigurationSource *configSource)
     : m_configSource(configSource), m_uavoManager(0),
     m_transactionOK(false), m_transactionTimeout(false), m_currentTransactionObjectID(-1),
@@ -326,7 +328,7 @@ void VehicleConfigurationHelper::applyMixerConfiguration(mixerChannelSettings ch
     // Set Mixer types and values
     QString mixerTypePattern   = "Mixer%1Type";
     QString mixerVectorPattern = "Mixer%1Vector";
-    for (int i = 0; i < 10; i++) {
+    for (int i = 0; i < NUM_GCS_OUTPUT_CHANNELS; i++) {
         UAVObjectField *field = mSettings->getField(mixerTypePattern.arg(i + 1));
         Q_ASSERT(field);
         field->setValue(field->getOptions().at(channels[i].type));
@@ -536,7 +538,7 @@ void VehicleConfigurationHelper::resetVehicleConfig()
     // Reset Mixer types and values
     QString mixerTypePattern   = "Mixer%1Type";
     QString mixerVectorPattern = "Mixer%1Vector";
-    for (int i = 1; i <= 10; i++) {
+    for (int i = 1; i <= NUM_GCS_OUTPUT_CHANNELS; i++) {
         UAVObjectField *field = mSettings->getField(mixerTypePattern.arg(i));
         Q_ASSERT(field);
         field->setValue(field->getOptions().at(0));
@@ -575,7 +577,7 @@ void VehicleConfigurationHelper::setupTriCopter()
     // 2. Setup GUI data
     // 3. Apply changes
 
-    mixerChannelSettings channels[10];
+    mixerChannelSettings channels[NUM_GCS_OUTPUT_CHANNELS];
     GUIConfigDataUnion guiSettings = getGUIConfigData();
 
     channels[0].type      = MIXER_TYPE_MOTOR;
@@ -628,7 +630,7 @@ GUIConfigDataUnion VehicleConfigurationHelper::getGUIConfigData()
 
 void VehicleConfigurationHelper::setupQuadCopter()
 {
-    mixerChannelSettings channels[10];
+    mixerChannelSettings channels[NUM_GCS_OUTPUT_CHANNELS];
     GUIConfigDataUnion guiSettings = getGUIConfigData();
     SystemSettings::AirframeTypeOptions frame = SystemSettings::AIRFRAMETYPE_QUADP;
 
@@ -718,7 +720,7 @@ void VehicleConfigurationHelper::setupQuadCopter()
 
 void VehicleConfigurationHelper::setupHexaCopter()
 {
-    mixerChannelSettings channels[10];
+    mixerChannelSettings channels[NUM_GCS_OUTPUT_CHANNELS];
     GUIConfigDataUnion guiSettings = getGUIConfigData();
     SystemSettings::AirframeTypeOptions frame = SystemSettings::AIRFRAMETYPE_HEXA;
 
@@ -897,7 +899,7 @@ void VehicleConfigurationHelper::setupHexaCopter()
 
 void VehicleConfigurationHelper::setupOctoCopter()
 {
-    mixerChannelSettings channels[10];
+    mixerChannelSettings channels[NUM_GCS_OUTPUT_CHANNELS];
     GUIConfigDataUnion guiSettings = getGUIConfigData();
     SystemSettings::AirframeTypeOptions frame = SystemSettings::AIRFRAMETYPE_OCTO;
 

@@ -936,7 +936,13 @@ void ConfigCcpmWidget::setMixer()
         mixerSettingsData.Mixer7Vector,
         mixerSettingsData.Mixer8Vector,
         mixerSettingsData.Mixer9Vector,
-        mixerSettingsData.Mixer10Vector
+        mixerSettingsData.Mixer10Vector,
+        mixerSettingsData.Mixer11Vector,
+        mixerSettingsData.Mixer12Vector,
+        mixerSettingsData.Mixer13Vector,
+        mixerSettingsData.Mixer14Vector,
+        mixerSettingsData.Mixer15Vector,
+        mixerSettingsData.Mixer16Vector
     };
 
     decltype(&mixerSettingsData.Mixer1Type) mixerTypes[] = {
@@ -949,7 +955,13 @@ void ConfigCcpmWidget::setMixer()
         &mixerSettingsData.Mixer7Type,
         &mixerSettingsData.Mixer8Type,
         &mixerSettingsData.Mixer9Type,
-        &mixerSettingsData.Mixer10Type
+        &mixerSettingsData.Mixer10Type,
+        &mixerSettingsData.Mixer11Type,
+        &mixerSettingsData.Mixer12Type,
+        &mixerSettingsData.Mixer13Type,
+        &mixerSettingsData.Mixer14Type,
+        &mixerSettingsData.Mixer15Type,
+        &mixerSettingsData.Mixer16Type
     };
 
     //reset all to Disabled

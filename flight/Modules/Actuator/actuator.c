@@ -839,10 +839,29 @@ static MixerSettingsMixer1TypeOptions get_mixer_type(int idx)
 	case 9:
 		return mixerSettings.Mixer10Type;
 		break;
+    case 10:
+        return mixerSettings.Mixer11Type;
+        break;
+    case 11:
+        return mixerSettings.Mixer12Type;
+        break;
+    case 12:
+        return mixerSettings.Mixer13Type;
+        break;
+    case 13:
+        return mixerSettings.Mixer14Type;
+        break;
+    case 14:
+        return mixerSettings.Mixer15Type;
+        break;
+    case 15:
+        return mixerSettings.Mixer16Type;
+        break;
 	default:
 		// We can never get here unless there are mixer channels not handled in the above. Fail out.
 		PIOS_Assert(0);
 	}
+    return MIXERSETTINGS_MIXER1TYPE_DISABLED;
 }
 
 static typeof(mixerSettings.Mixer1Vector) *get_mixer_vec(int idx)
@@ -878,6 +897,24 @@ static typeof(mixerSettings.Mixer1Vector) *get_mixer_vec(int idx)
 	case 9:
 		return &mixerSettings.Mixer10Vector;
 		break;
+    case 10:
+        return &mixerSettings.Mixer11Vector;
+        break;
+    case 11:
+        return &mixerSettings.Mixer12Vector;
+        break;
+    case 12:
+        return &mixerSettings.Mixer13Vector;
+        break;
+    case 13:
+        return &mixerSettings.Mixer14Vector;
+        break;
+    case 14:
+        return &mixerSettings.Mixer15Vector;
+        break;
+    case 15:
+        return &mixerSettings.Mixer16Vector;
+        break;
 	default:
 		// We can never get here unless there are mixer channels not handled in the above. Fail out.
 		PIOS_Assert(0);
