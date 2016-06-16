@@ -455,6 +455,7 @@ void PIOS_Board_Init(void) {
 		break;
 
 	case HWBRAIN_RXPORT_UART:
+	case HWBRAIN_RXPORT_UARTOUTPUTS:
 		use_rxport_usart = true;
 		break;
 
@@ -523,6 +524,7 @@ void PIOS_Board_Init(void) {
 #endif
 		break;
 	case HWBRAIN_RXPORT_PPMUARTOUTPUTS:
+	case HWBRAIN_RXPORT_UARTOUTPUTS:
 #ifdef PIOS_INCLUDE_SERVO
 		PIOS_Servo_Init(&pios_servo_rcvr_ppm_uart_out_cfg);
 #endif
