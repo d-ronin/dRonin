@@ -87,6 +87,20 @@
          <layout class="QVBoxLayout" name="verticalLayout_3">
           <item>
            <layout class="QGridLayout" name="gridLayout">
+            <item row="5" column="1">
+             <widget class="QSpinBox" name="sb_ntsc_xscale">
+              <property name="toolTip">
+               <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;OSD X scaling for NTSC. Not supported by all OSDs.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+              </property>
+             </widget>
+            </item>
+            <item row="5" column="3">
+             <widget class="QSpinBox" name="sb_pal_xscale">
+              <property name="toolTip">
+               <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;OSD X scaling for PAL. Not supported by all OSDs.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+              </property>
+             </widget>
+            </item>
             <item row="4" column="3">
              <widget class="QSpinBox" name="sb_y_offset">
               <property name="toolTip">
@@ -97,6 +111,13 @@
               </property>
               <property name="maximum">
                <number>20</number>
+              </property>
+             </widget>
+            </item>
+            <item row="5" column="0">
+             <widget class="QLabel" name="label_15">
+              <property name="text">
+               <string>NTSC X Scale</string>
               </property>
              </widget>
             </item>
@@ -137,6 +158,19 @@
               </property>
              </widget>
             </item>
+            <item row="4" column="1">
+             <widget class="QSpinBox" name="sb_x_offset">
+              <property name="toolTip">
+               <string>Shift the video horizontally. Note: Large values can cause sync problems.</string>
+              </property>
+              <property name="minimum">
+               <number>-20</number>
+              </property>
+              <property name="maximum">
+               <number>20</number>
+              </property>
+             </widget>
+            </item>
             <item row="2" column="0">
              <widget class="QLabel" name="label_4">
               <property name="text">
@@ -148,19 +182,6 @@
              <widget class="QLabel" name="label">
               <property name="text">
                <string>PAL Black Level</string>
-              </property>
-             </widget>
-            </item>
-            <item row="4" column="1">
-             <widget class="QSpinBox" name="sb_x_offset">
-              <property name="toolTip">
-               <string>Shift the video horizontally. Note: Large values can cause sync problems.</string>
-              </property>
-              <property name="minimum">
-               <number>-20</number>
-              </property>
-              <property name="maximum">
-               <number>20</number>
               </property>
              </widget>
             </item>
@@ -207,6 +228,41 @@
                </size>
               </property>
              </spacer>
+            </item>
+            <item row="5" column="2">
+             <widget class="QLabel" name="label_16">
+              <property name="text">
+               <string>PAL X Scale</string>
+              </property>
+             </widget>
+            </item>
+            <item row="6" column="0">
+             <widget class="QLabel" name="label_17">
+              <property name="text">
+               <string>3D OSD Mode</string>
+              </property>
+             </widget>
+            </item>
+            <item row="6" column="1">
+             <widget class="QComboBox" name="cb_3d_osd_mode">
+              <property name="toolTip">
+               <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;OSD 3D mode, e.g. side-by-side 3D for use with NerdCam 3D FPV camera. Not supported by all OSDs.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+              </property>
+             </widget>
+            </item>
+            <item row="6" column="2">
+             <widget class="QLabel" name="label_18">
+              <property name="text">
+               <string>3D Mode Right Eye Offset</string>
+              </property>
+             </widget>
+            </item>
+            <item row="6" column="3">
+             <widget class="QSpinBox" name="sb_3d_right_eye_xshift">
+              <property name="toolTip">
+               <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Offset of the right-eye OSD output when side-by-side 3D mode is enabled.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+              </property>
+             </widget>
             </item>
            </layout>
           </item>
