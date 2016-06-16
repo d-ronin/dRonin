@@ -1103,47 +1103,47 @@ void render_user_page(OnScreenDisplayPageSettingsData * page)
 
 	// Altitude Scale
 	if (page->AltitudeScale) {
+		bool valid_altitude = false;
 		if (page->AltitudeScaleSource == ONSCREENDISPLAYPAGESETTINGS_ALTITUDESCALESOURCE_BARO) {
 			if (BaroAltitudeHandle()){
 				BaroAltitudeAltitudeGet(&tmp);
 				tmp -= home_baro_altitude;
-			}
-			else {
-				tmp =0;
+				valid_altitude = true;
 			}
 		} else if (PositionActualHandle()) {
 			PositionActualDownGet(&tmp);
 			tmp *= -1.0f;
-		} else {
-			tmp = 0.f;
+			valid_altitude = true;
 		}
-		if (page->AltitudeScaleAlign == ONSCREENDISPLAYPAGESETTINGS_ALTITUDESCALEALIGN_LEFT)
-			hud_draw_vertical_scale(tmp * convert_distance, 100, -1, page->AltitudeScalePos, GRAPHICS_Y_MIDDLE, 120, 10, 20, 5, 8,
-					11, 10000, 0);
-		else
-			hud_draw_vertical_scale(tmp * convert_distance, 100, 1, page->AltitudeScalePos, GRAPHICS_Y_MIDDLE, 120, 10, 20, 5, 8,
-					11, 10000, 0);
+		if (valid_altitude) {
+			if (page->AltitudeScaleAlign == ONSCREENDISPLAYPAGESETTINGS_ALTITUDESCALEALIGN_LEFT)
+				hud_draw_vertical_scale(tmp * convert_distance, 100, -1, page->AltitudeScalePos, GRAPHICS_Y_MIDDLE, 120, 10, 20, 5, 8,
+						11, 10000, 0);
+			else
+				hud_draw_vertical_scale(tmp * convert_distance, 100, 1, page->AltitudeScalePos, GRAPHICS_Y_MIDDLE, 120, 10, 20, 5, 8,
+						11, 10000, 0);
+		}
 	}
 
 	// Altitude Numeric
 	if (page->AltitudeNumeric) {
+		bool valid_altitude = false;
 		if (page->AltitudeNumericSource == ONSCREENDISPLAYPAGESETTINGS_ALTITUDENUMERICSOURCE_BARO) {
 			if (BaroAltitudeHandle()) {
 				BaroAltitudeAltitudeGet(&tmp);
 				tmp -= home_baro_altitude;
-			}
-			else {
-				tmp = 0;
+				valid_altitude = true;
 			}
 		} else if (PositionActualHandle()) {
 			PositionActualDownGet(&tmp);
 			tmp *= -1.0f;
-		} else {
-			tmp = 0.f;
+			valid_altitude = true;
 		}
-		sprintf(tmp_str, "%d", (int)(tmp * convert_distance));
-		write_string(tmp_str, page->AltitudeNumericPosX, page->AltitudeNumericPosY, 0, 0, TEXT_VA_TOP, (int)page->AltitudeNumericAlign,
-				0, page->AltitudeNumericFont);
+		if (valid_altitude) {
+			sprintf(tmp_str, "%d", (int)(tmp * convert_distance));
+			write_string(tmp_str, page->AltitudeNumericPosX, page->AltitudeNumericPosY, 0, 0, TEXT_VA_TOP, (int)page->AltitudeNumericAlign,
+					0, page->AltitudeNumericFont);
+		}
 	}
 
 	// Arming Status
@@ -1191,7 +1191,7 @@ void render_user_page(OnScreenDisplayPageSettingsData * page)
 	}
 
 	// Climb rate
-	if (page->ClimbRate && VelocityActualHandle()) {
+	if (page->ClimbRate && VelocityActualHandle() && BaroAltitudeHandle()) {
 		VelocityActualDownGet(&tmp);
 		sprintf(tmp_str, "%0.1f", (double)(-1.f * convert_distance * tmp));
 		write_string(tmp_str, page->ClimbRatePosX, page->ClimbRatePosY, 0, 0, TEXT_VA_TOP, (int)page->ClimbRateAlign, 0,
