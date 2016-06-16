@@ -1438,6 +1438,11 @@ static void check_home_location()
 	if (homeLocation.Set == HOMELOCATION_SET_TRUE)
 		return;
 
+	// We need GPS
+	if (!GPSPositionHandle()) {
+		return;
+	}
+
 	GPSPositionData gps;
 	GPSPositionGet(&gps);
 	GPSTimeData gpsTime;
