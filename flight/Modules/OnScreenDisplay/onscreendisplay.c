@@ -1491,15 +1491,17 @@ int render_stats()
 		y_pos += STATS_LINE_SPACING;
 	}
 
-	tmp = convert_distance * stats.MaxClimbRate;
-	sprintf(tmp_str, "Maximum climb rate:       %0.2f %s/s", (double)tmp, dist_unit_short);
-	write_string(tmp_str, STATS_LINE_X, y_pos, 0, 0, TEXT_VA_TOP, TEXT_HA_LEFT, 0, STATS_FONT);
-	y_pos += STATS_LINE_SPACING;
+	if (BaroAltitudeHandle()) {
+		tmp = convert_distance * stats.MaxClimbRate;
+		sprintf(tmp_str, "Maximum climb rate:       %0.2f %s/s", (double)tmp, dist_unit_short);
+		write_string(tmp_str, STATS_LINE_X, y_pos, 0, 0, TEXT_VA_TOP, TEXT_HA_LEFT, 0, STATS_FONT);
+		y_pos += STATS_LINE_SPACING;
 
-	tmp = convert_distance * stats.MaxDescentRate;
-	sprintf(tmp_str, "Maximum descent rate:     %0.2f %s/s", (double)tmp, dist_unit_short);
-	write_string(tmp_str, STATS_LINE_X, y_pos, 0, 0, TEXT_VA_TOP, TEXT_HA_LEFT, 0, STATS_FONT);
-	y_pos += 2 * STATS_LINE_SPACING;
+		tmp = convert_distance * stats.MaxDescentRate;
+		sprintf(tmp_str, "Maximum descent rate:     %0.2f %s/s", (double)tmp, dist_unit_short);
+		write_string(tmp_str, STATS_LINE_X, y_pos, 0, 0, TEXT_VA_TOP, TEXT_HA_LEFT, 0, STATS_FONT);
+		y_pos += 2 * STATS_LINE_SPACING;
+	}
 
 	sprintf(tmp_str, "Maximum roll rate:        %d deg/s", stats.MaxRollRate);
 	write_string(tmp_str, STATS_LINE_X, y_pos, 0, 0, TEXT_VA_TOP, TEXT_HA_LEFT, 0, STATS_FONT);
