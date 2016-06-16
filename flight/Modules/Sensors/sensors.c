@@ -141,7 +141,6 @@ static int32_t SensorsInitialize(void)
 	if (GyrosInitialize() == -1 \
 		|| GyrosBiasInitialize() == -1 \
 		|| AccelsInitialize() == -1 \
-		|| BaroAltitudeInitialize() == -1 \
 		|| MagnetometerInitialize() == -1 \
 		|| MagBiasInitialize() == -1 \
 		|| AttitudeSettingsInitialize() == -1 \
@@ -277,6 +276,9 @@ static void SensorsTask(void *parameters)
 
 		queue = PIOS_SENSORS_GetQueue(PIOS_SENSOR_BARO);
 		if (queue != NULL) {
+			if (!BaroAltitudeHandle()) {
+				BaroAltitudeInitialize();
+			}
 			if (PIOS_Queue_Receive(queue, &baro, 0) != false) {
 				// we can use the timeval because it contains the current time stamp (PIOS_DELAY_GetRaw())
 				last_baro_update_time = timeval;
