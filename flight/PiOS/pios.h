@@ -48,6 +48,8 @@
 #include <string.h>
 #include <math.h>
 
+#ifndef SIM_POSIX
+
 /* STM32 Std Perf Lib */
 #if defined(STM32F4XX)
 # include <stm32f4xx.h>
@@ -62,19 +64,20 @@
 #include <stm32f10x.h>
 #endif
 
+#endif //SIM_POSIX
+
+/* PIOS Board Specific Device Configuration */
+#include "pios_board.h"
+
 /* Generic initcall infrastructure */
 #if defined(PIOS_INCLUDE_INITCALL)
 #include "pios_initcall.h"
 #endif
 
-/* PIOS Board Specific Device Configuration */
-#include "pios_board.h"
-
-/* PIOS Hardware Includes (STM32F10x) */
+/* PIOS Hardware Includes */
 #include <pios_sys.h>
 #include <pios_delay.h>
 #include <pios_led.h>
-#include <pios_usart.h>
 #include <pios_irq.h>
 #include <pios_adc.h>
 #include <pios_internal_adc.h>
@@ -96,12 +99,19 @@
 #include <pios_dsm.h>
 #include <pios_sbus.h>
 #include <pios_usb_hid.h>
-#include <pios_debug.h>
 #include <pios_gpio.h>
-#include <pios_exti.h>
 #include <pios_wdg.h>
 
+#ifdef SIM_POSIX
+#include <pios_posix.h>
+
+#else
+#include <pios_exti.h>
+#include <pios_usart.h>
+#endif  // SIM_POSIX
+
 /* PIOS Hardware Includes (Common) */
+#include <pios_debug.h>
 #include <pios_heap.h>
 #include <pios_com.h>
 #if defined(PIOS_INCLUDE_MPXV7002)

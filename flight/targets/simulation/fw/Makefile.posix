@@ -115,7 +115,7 @@ FLIGHTLIBINC = $(FLIGHTLIB)/inc
 MATHLIB = $(FLIGHTLIB)/math
 MATHLIBINC = $(MATHLIB)
 PIOSPOSIX = $(PIOS)/posix
-PIOSCOMMON = $(ROOT_DIR)/flight/PiOS/Common
+PIOSCOMMON = $(PIOS)/Common
 PIOSCOMMONLIB = $(PIOSCOMMON)/Libraries
 PIOSBOARDS = $(PIOS)/Boards
 PIOSPOSIXLIB = $(PIOSPOSIX)/Libraries
@@ -139,7 +139,7 @@ SRC += ${foreach MOD, ${MODULES}, ${wildcard ${OPMODULEDIR}/${MOD}/*.c}}
 ## OPENPILOT CORE:
 SRC += ${OPMODULEDIR}/System/systemmod.c
 SRC += main.c
-SRC += pios_board_sim.c
+SRC += pios_board.c
 SRC += board.c
 SRC += $(FLIGHTLIB)/alarms.c
 SRC += $(OPUAVTALK)/uavtalk.c
@@ -191,7 +191,6 @@ SRC += $(PIOSPOSIX)/pios_debug.c
 SRC += $(PIOSPOSIX)/pios_heap.c
 SRC += $(PIOSPOSIX)/pios_irq.c
 
-EXTRAINCDIRS += $(PIOSCOMMON)/inc
 
 ## PIOS Hardware (Common)
 SRC += $(PIOSPOSIX)/../../tests/logfs/pios_flash_posix.c
@@ -213,10 +212,12 @@ CPPSRCARM =
 
 # List any extra directories to look for include files here.
 #    Each directory must be seperated by a space.
+EXTRAINCDIRS  += $(ROOT_DIR)/flight/PiOS.posix/inc
 EXTRAINCDIRS  += $(SHAREDAPIDIR)
 EXTRAINCDIRS  += .
 EXTRAINCDIRS  += $(PIOS)
 EXTRAINCDIRS  += $(PIOSINC)
+EXTRAINCDIRS += $(PIOSCOMMON)/inc
 EXTRAINCDIRS  += $(ROOT_DIR)/flight/PiOS/inc
 EXTRAINCDIRS  += $(OPUAVTALK)
 EXTRAINCDIRS  += $(OPUAVTALKINC)

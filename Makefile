@@ -588,8 +588,6 @@ sim_$(4): uavobjects
 		TARGET=$$(TARGET) \
 		OUTDIR=$$(OUTDIR) \
 		\
-		PIOS=$(PIOS).$(4) \
-		\
 		$$*
 
 .PHONY: sim_$(4)_clean
