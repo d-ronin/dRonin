@@ -89,6 +89,7 @@
 #include "gpssatellites.h"
 #include "gpsvelocity.h"
 #include "homelocation.h"
+#include "magnetometer.h"
 #include "manualcontrolcommand.h"
 #include "modulesettings.h"
 #include "stabilizationsettings.h"
@@ -1199,7 +1200,7 @@ void render_user_page(OnScreenDisplayPageSettingsData * page)
 	}
 
 	// Compass
-	if (page->Compass) {
+	if (page->Compass && MagnetometerHandle()) {
 		AttitudeActualYawGet(&tmp);
 		if (tmp < 0)
 			tmp += 360;
