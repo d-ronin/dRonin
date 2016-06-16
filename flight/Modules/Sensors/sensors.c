@@ -141,8 +141,6 @@ static int32_t SensorsInitialize(void)
 	if (GyrosInitialize() == -1 \
 		|| GyrosBiasInitialize() == -1 \
 		|| AccelsInitialize() == -1 \
-		|| MagnetometerInitialize() == -1 \
-		|| MagBiasInitialize() == -1 \
 		|| AttitudeSettingsInitialize() == -1 \
 		|| SensorSettingsInitialize() == -1 \
 		|| INSSettingsInitialize() == -1) {
@@ -271,6 +269,8 @@ static void SensorsTask(void *parameters)
 
 		queue = PIOS_SENSORS_GetQueue(PIOS_SENSOR_MAG);
 		if (queue != NULL && PIOS_Queue_Receive(queue, &mags, 0) != false) {
+			MagnetometerInitialize();
+			MagBiasInitialize();
 			update_mags(&mags);
 		}
 
@@ -710,12 +710,14 @@ static void settingsUpdatedCb(UAVObjEvent * objEv, void *ctx, void *obj, int len
 	z_accel_offset  =  sensorSettings.ZAccelOffset;
 
 	// Zero out any adaptive tracking
-	MagBiasData magBias;
-	MagBiasGet(&magBias);
-	magBias.x = 0;
-	magBias.y = 0;
-	magBias.z = 0;
-	MagBiasSet(&magBias);
+	if (MagBiasHandle()){
+		MagBiasData magBias;
+		MagBiasGet(&magBias);
+		magBias.x = 0;
+		magBias.y = 0;
+		magBias.z = 0;
+		MagBiasSet(&magBias);
+	}
 
 	uint8_t bias_correct;
 	AttitudeSettingsBiasCorrectGyroGet(&bias_correct);
