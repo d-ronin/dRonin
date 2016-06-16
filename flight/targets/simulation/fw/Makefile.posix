@@ -257,6 +257,12 @@ else
 CFLAGS += -Os
 endif
 
+ifneq ($(PI_CROSS_SIM)x,x)
+CC=arm-linux-gnueabihf-gcc
+LDFLAGS += -static
+endif
+
+
 # common architecture-specific flags from the device-specific library makefile
 CFLAGS += $(ARCHFLAGS)
 CFLAGS += $(UAVOBJDEFINE)
