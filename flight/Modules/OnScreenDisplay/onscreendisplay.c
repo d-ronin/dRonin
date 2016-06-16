@@ -1348,70 +1348,80 @@ void render_user_page(OnScreenDisplayPageSettingsData * page)
 	// Speed Scale
 	if (page->SpeedScale) {
 		tmp = 0.f;
+		bool speed_valid = false;
 		switch (page->SpeedScaleSource)
 		{
-			tmp = 0.f;
-		case ONSCREENDISPLAYPAGESETTINGS_SPEEDSCALESOURCE_NAV:
-			if (VelocityActualHandle()) {
-				VelocityActualNorthGet(&tmp);
-				VelocityActualEastGet(&tmp1);
-				tmp = sqrt(tmp * tmp + tmp1 * tmp1);
-			}
-			sprintf(tmp_str, "%s", "GND");
-			break;
-		case ONSCREENDISPLAYPAGESETTINGS_SPEEDSCALESOURCE_GPS:
-			if (GPSVelocityHandle()) {
-				GPSVelocityNorthGet(&tmp);
-				GPSVelocityEastGet(&tmp1);
-				tmp = sqrt(tmp * tmp + tmp1 * tmp1);
-			}
-			sprintf(tmp_str, "%s", "GND");
-			break;
-		case ONSCREENDISPLAYPAGESETTINGS_SPEEDSCALESOURCE_AIRSPEED:
-			if (AirspeedActualHandle()) {
-				AirspeedActualTrueAirspeedGet(&tmp);
-			}
-			sprintf(tmp_str, "%s", "AIR");
+			case ONSCREENDISPLAYPAGESETTINGS_SPEEDSCALESOURCE_NAV:
+				if (VelocityActualHandle()) {
+					VelocityActualNorthGet(&tmp);
+					VelocityActualEastGet(&tmp1);
+					tmp = sqrt(tmp * tmp + tmp1 * tmp1);
+					speed_valid = true;
+				}
+				sprintf(tmp_str, "%s", "GND");
+				break;
+			case ONSCREENDISPLAYPAGESETTINGS_SPEEDSCALESOURCE_GPS:
+				if (GPSVelocityHandle()) {
+					GPSVelocityNorthGet(&tmp);
+					GPSVelocityEastGet(&tmp1);
+					tmp = sqrt(tmp * tmp + tmp1 * tmp1);
+					speed_valid = true;
+				}
+				sprintf(tmp_str, "%s", "GND");
+				break;
+			case ONSCREENDISPLAYPAGESETTINGS_SPEEDSCALESOURCE_AIRSPEED:
+				if (AirspeedActualHandle()) {
+					AirspeedActualTrueAirspeedGet(&tmp);
+					speed_valid = true;
+				}
+				sprintf(tmp_str, "%s", "AIR");
 		}
-		if (page->SpeedScaleAlign == ONSCREENDISPLAYPAGESETTINGS_SPEEDSCALEALIGN_LEFT) {
-			hud_draw_vertical_scale(tmp * convert_speed, 30, -1,  page->SpeedScalePos, GRAPHICS_Y_MIDDLE, 120, 10, 20, 5, 8, 11,
-					100, 0);
-			write_string(tmp_str, page->SpeedScalePos + 10, 200, 0, 0, TEXT_VA_MIDDLE, TEXT_HA_LEFT, 0, FONT_OUTLINED8X8);
-		} else {
-			hud_draw_vertical_scale(tmp * convert_speed, 30, 1,  page->SpeedScalePos, GRAPHICS_Y_MIDDLE, 120, 10, 20, 5, 8, 11, 100,
-					0);
-			write_string(tmp_str, page->SpeedScalePos - 30, 200, 0, 0, TEXT_VA_MIDDLE, TEXT_HA_LEFT, 0, FONT_OUTLINED8X8);
+		if (speed_valid){
+			if (page->SpeedScaleAlign == ONSCREENDISPLAYPAGESETTINGS_SPEEDSCALEALIGN_LEFT) {
+				hud_draw_vertical_scale(tmp * convert_speed, 30, -1,  page->SpeedScalePos, GRAPHICS_Y_MIDDLE, 120, 10, 20, 5, 8, 11,
+						100, 0);
+				write_string(tmp_str, page->SpeedScalePos + 10, 200, 0, 0, TEXT_VA_MIDDLE, TEXT_HA_LEFT, 0, FONT_OUTLINED8X8);
+			} else {
+				hud_draw_vertical_scale(tmp * convert_speed, 30, 1,  page->SpeedScalePos, GRAPHICS_Y_MIDDLE, 120, 10, 20, 5, 8, 11, 100,
+						0);
+				write_string(tmp_str, page->SpeedScalePos - 30, 200, 0, 0, TEXT_VA_MIDDLE, TEXT_HA_LEFT, 0, FONT_OUTLINED8X8);
+			}
 		}
 	}
 
 	// Speed Numeric
 	if (page->SpeedNumeric) {
 		tmp = 0.f;
+		bool speed_valid = false;
 		switch (page->SpeedNumericSource)
 		{
-			tmp = 0.f;
-		case ONSCREENDISPLAYPAGESETTINGS_SPEEDNUMERICSOURCE_NAV:
-			if (VelocityActualHandle()) {
-				VelocityActualNorthGet(&tmp);
-				VelocityActualEastGet(&tmp1);
-			}
-			tmp = sqrt(tmp * tmp + tmp1 * tmp1);
-			break;
-		case ONSCREENDISPLAYPAGESETTINGS_SPEEDNUMERICSOURCE_GPS:
-			if (GPSVelocityHandle()) {
-				GPSVelocityNorthGet(&tmp);
-				GPSVelocityEastGet(&tmp1);
+			case ONSCREENDISPLAYPAGESETTINGS_SPEEDNUMERICSOURCE_NAV:
+				if (VelocityActualHandle()) {
+					VelocityActualNorthGet(&tmp);
+					VelocityActualEastGet(&tmp1);
+					speed_valid = true;
+				}
 				tmp = sqrt(tmp * tmp + tmp1 * tmp1);
-			}
-			break;
-		case ONSCREENDISPLAYPAGESETTINGS_SPEEDNUMERICSOURCE_AIRSPEED:
-			if (AirspeedActualHandle()) {
-				AirspeedActualTrueAirspeedGet(&tmp);
-			}
+				break;
+			case ONSCREENDISPLAYPAGESETTINGS_SPEEDNUMERICSOURCE_GPS:
+				if (GPSVelocityHandle()) {
+					GPSVelocityNorthGet(&tmp);
+					GPSVelocityEastGet(&tmp1);
+					tmp = sqrt(tmp * tmp + tmp1 * tmp1);
+					speed_valid = true;
+				}
+				break;
+			case ONSCREENDISPLAYPAGESETTINGS_SPEEDNUMERICSOURCE_AIRSPEED:
+				if (AirspeedActualHandle()) {
+					AirspeedActualTrueAirspeedGet(&tmp);
+					speed_valid = true;
+				}
 		}
-		sprintf(tmp_str, "%d", (int)(tmp * convert_speed));
-		write_string(tmp_str, page->SpeedNumericPosX, page->SpeedNumericPosY, 0, 0, (int)page->SpeedNumericAlign, TEXT_HA_LEFT, 0,
-				page->SpeedNumericFont);
+		if (speed_valid) {
+			sprintf(tmp_str, "%d", (int)(tmp * convert_speed));
+			write_string(tmp_str, page->SpeedNumericPosX, page->SpeedNumericPosY, 0, 0, (int)page->SpeedNumericAlign, TEXT_HA_LEFT, 0,
+					page->SpeedNumericFont);
+		}
 	}
 
 	// Time
