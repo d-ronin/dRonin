@@ -224,6 +224,18 @@
    </item>
   </layout>
  </widget>
+ <tabstops>
+  <tabstop>shareBox</tabstop>
+  <tabstop>acType</tabstop>
+  <tabstop>acBoard</tabstop>
+  <tabstop>acWeight</tabstop>
+  <tabstop>acBatteryCells</tabstop>
+  <tabstop>acVehicleSize</tabstop>
+  <tabstop>acMotors</tabstop>
+  <tabstop>acEscs</tabstop>
+  <tabstop>acProps</tabstop>
+  <tabstop>teObservations</tabstop>
+ </tabstops>
  <resources>
   <include location="configgadget.qrc"/>
  </resources>

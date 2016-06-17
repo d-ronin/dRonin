@@ -50,7 +50,6 @@
 struct AutotunedValues
 {
     // Inputs
-    // XXX TODO fill in
     float damping;
     float noiseSens;
 
@@ -95,13 +94,17 @@ public:
             SystemIdent::DataFields &systemIdentData,
             struct AutotunedValues *autoValues);
 
+    bool isComplete() const;
+
 private:
     SystemIdent::DataFields sysIdent;
     AutotunedValues *av;
+
     void setText(QLabel *lbl, double value, int precision);
 
 private slots:
     void compute();
+    void resetSliders();
 };
 
 class AutotuneFinalPage : public QWizardPage,
@@ -123,6 +126,7 @@ private:
     Ui_AutotuneWidget *m_autotune;
     UAVObjectUtilManager* utilMngr;
     ConfigGadgetWidget *parentConfigWidget;
+    static const QString databaseUrl;
 
     QString systemIdentValid(SystemIdent::DataFields &data, bool *okToContinue);
 
@@ -130,6 +134,7 @@ private:
             struct AutotunedValues *av);
 
     void stuffShareForm(AutotuneFinalPage *autotuneShareForm);
+    void persistShareForm(AutotuneFinalPage *autotuneShareForm);
 
 signals:
 

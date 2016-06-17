@@ -63,6 +63,8 @@
 #define CONF_ATUNE_QXTLOG_DEBUG(...)
 #endif	// CONF_ATUNE_DEBUG
 
+const QString ConfigAutotuneWidget::databaseUrl = QString("http://dronin-autotown.appspot.com/storeTune"); 
+
 ConfigAutotuneWidget::ConfigAutotuneWidget(ConfigGadgetWidget *parent) :
     ConfigTaskWidget(parent)
 {
@@ -192,8 +194,8 @@ QString ConfigAutotuneWidget::systemIdentValid(SystemIdent::DataFields &data,
  * @brief ConfigAutotuneWidget::generateResultsJson
  * @return QJsonDocument containing autotune result data
  */
-QJsonDocument ConfigAutotuneWidget::getResultsJson(AutotuneFinalPage *autotuneShareForm,
-        struct AutotunedValues *av)
+QJsonDocument ConfigAutotuneWidget::getResultsJson(
+        AutotuneFinalPage *autotuneShareForm, struct AutotunedValues *av)
 {
     deviceDescriptorStruct firmware;
     utilMngr->getBoardDescriptionStruct(firmware);
@@ -285,7 +287,7 @@ QJsonDocument ConfigAutotuneWidget::getResultsJson(AutotuneFinalPage *autotuneSh
     yaw_ident["noise"] = data.Noise[SystemIdent::BIAS_YAW];
     identification["yaw"] = yaw_ident;
 
-    identification["tau"] = data.Tau;
+    identification["tau"] = exp(data.Tau);
     json["identification"] = identification;
 
     QJsonObject tuning, parameters, computed, misc;
@@ -322,6 +324,21 @@ QJsonDocument ConfigAutotuneWidget::getResultsJson(AutotuneFinalPage *autotuneSh
     json["rawSettings"] = rawSettings;
 
     return QJsonDocument(json);
+}
+
+void ConfigAutotuneWidget::persistShareForm(AutotuneFinalPage *autotuneShareForm)
+{
+    ExtensionSystem::PluginManager *pm = ExtensionSystem::PluginManager::instance();
+    Core::Internal::GeneralSettings *settings = pm->getObject<Core::Internal::GeneralSettings>();
+    settings->setObservations(autotuneShareForm->teObservations->toPlainText());
+    settings->setBoardType(autotuneShareForm->acBoard->text());
+    settings->setMotors(autotuneShareForm->acMotors->text());
+    settings->setESCs(autotuneShareForm->acEscs->text());
+    settings->setProps(autotuneShareForm->acProps->text());
+    settings->setWeight(autotuneShareForm->acWeight->text().toInt());
+    settings->setVehicleSize(autotuneShareForm->acWeight->text().toInt());
+    settings->setVehicleType(autotuneShareForm->acType->currentText());
+    settings->setBatteryCells(autotuneShareForm->acBatteryCells->currentText().toInt());
 }
 
 void ConfigAutotuneWidget::stuffShareForm(AutotuneFinalPage *autotuneShareForm)
@@ -409,6 +426,8 @@ void ConfigAutotuneWidget::openAutotuneDialog(bool autoOpened)
         wizard.addPage(new AutotuneMeasuredPropertiesPage(NULL, systemIdentData));
         wizard.addPage(new AutotuneSlidersPage(NULL, systemIdentData, &av));
 
+        stuffShareForm(pg);
+
         wizard.addPage(pg);
     }
 
@@ -416,10 +435,50 @@ void ConfigAutotuneWidget::openAutotuneDialog(bool autoOpened)
     wizard.exec();
 
     if (dataValid && (wizard.result() == QDialog::Accepted) && av.converged) {
-        // XXX TODO apply / save to board
-        qDebug() << "Would apply to board";
+        // Apply and save data to board.
+        StabilizationSettings *stabilizationSettings = StabilizationSettings::GetInstance(getObjectManager());
+        Q_ASSERT(stabilizationSettings);
+        if(!stabilizationSettings)
+            return;
+
+        StabilizationSettings::DataFields stabData = stabilizationSettings->getData();
+
+        stabData.RollRatePID[StabilizationSettings::ROLLRATEPID_KP] = av.kp[0];
+        stabData.RollRatePID[StabilizationSettings::ROLLRATEPID_KI] = av.ki[0];
+        stabData.RollRatePID[StabilizationSettings::ROLLRATEPID_KD] = av.kd[0];
+        stabData.PitchRatePID[StabilizationSettings::PITCHRATEPID_KP] = av.kp[1];
+        stabData.PitchRatePID[StabilizationSettings::PITCHRATEPID_KI] = av.ki[1];
+        stabData.PitchRatePID[StabilizationSettings::PITCHRATEPID_KD] = av.kd[1];
+        if (av.kp[2] > 0) {
+            stabData.YawRatePID[StabilizationSettings::YAWRATEPID_KP] = av.kp[2];
+            stabData.YawRatePID[StabilizationSettings::YAWRATEPID_KI] = av.ki[2];
+            stabData.YawRatePID[StabilizationSettings::YAWRATEPID_KD] = av.kd[2];
+        }
+
+        stabData.DerivativeCutoff = av.derivativeCutoff;
+
+        stabData.RollPI[StabilizationSettings::ROLLPI_KP] = av.outerKp;
+        stabData.RollPI[StabilizationSettings::ROLLPI_KI] = av.outerKi;
+
+        stabilizationSettings->setData(stabData);
+        stabilizationSettings->updated();
+
+        saveObjectToSD(stabilizationSettings);
+
         if (pg->shareBox->isChecked()) {
-            qDebug() << "Would share to autotown.";
+            persistShareForm(pg);
+
+            // share to autotown
+
+            QJsonDocument json = getResultsJson(pg, &av);
+
+            // Do this in the background, completely async.
+            QUrl url(databaseUrl);
+            QNetworkRequest request(url);
+            request.setHeader(QNetworkRequest::ContentTypeHeader, "application/json; charset=utf-8");
+            QNetworkAccessManager *manager = new QNetworkAccessManager(this);
+            QNetworkReply *reply = manager->post(request, json.toJson());
+            connect(reply, &QNetworkReply::finished, reply, &QNetworkReply::deleteLater);
         }
     }
 }
@@ -472,15 +531,27 @@ AutotuneSlidersPage::AutotuneSlidersPage(QWidget *parent,
     sysIdent = systemIdentData;
     av = autoValues;
 
-    // XXX TODO disable yaw box based on observed beta
- 
     // connect sliders to computation
     connect(rateDamp, SIGNAL(valueChanged(int)), this, SLOT(compute()));
     connect(rateNoise, SIGNAL(valueChanged(int)), this, SLOT(compute()));
     connect(cbUseYaw, SIGNAL(toggled(bool)), this, SLOT(compute()));
     connect(cbUseOuterKi, SIGNAL(toggled(bool)), this, SLOT(compute()));
 
+    connect(btnResetSliders, SIGNAL(pressed()), this, SLOT(resetSliders()));
+
     compute();
+}
+
+void AutotuneSlidersPage::resetSliders()
+{
+    rateDamp->setValue(110);
+    rateNoise->setValue(10);
+
+    compute();
+}
+
+bool AutotuneSlidersPage::isComplete() const {
+    return av->converged;
 }
 
 void AutotuneSlidersPage::setText(QLabel *lbl, double value, int precision)
@@ -505,12 +576,25 @@ void AutotuneSlidersPage::compute()
     const double ghf = rateNoise->value() / 1000.0;
     const double damp = rateDamp->value() / 100.0;
 
-    bool doYaw = cbUseYaw->isChecked();
-    bool doOuterKi = cbUseOuterKi->isChecked();
+    av->damping = damp;
+    av->noiseSens = ghf;
 
     double tau = exp(sysIdent.Tau);
     double beta_roll = sysIdent.Beta[SystemIdent::BETA_ROLL];
     double beta_pitch = sysIdent.Beta[SystemIdent::BETA_PITCH];
+    double beta_yaw = sysIdent.Beta[SystemIdent::BETA_YAW];
+
+    // First clear out warnings..
+    lblWarnings->setText("");
+
+    if (beta_yaw < 6.8) {
+        lblWarnings->setText(tr("Unable to auto-calculate yaw gains for this craft."));
+        cbUseYaw->setChecked(false);
+        cbUseYaw->setEnabled(false);
+    }
+
+    bool doYaw = cbUseYaw->isChecked();
+    bool doOuterKi = cbUseOuterKi->isChecked();
 
     double wn = 1/tau, wn_last = 1/tau + 10;
     double tau_d = 0, tau_d_last = 1000;
@@ -541,10 +625,6 @@ void AutotuneSlidersPage::compute()
 
     av->iterations = iterations;
     av->converged = converged;
-
-    if (!converged) {
-        return;
-    }
 
     av->derivativeCutoff = 1 / (2*M_PI*tau_d);
     av->naturalFreq = wn / 2 / M_PI;
@@ -603,9 +683,13 @@ void AutotuneSlidersPage::compute()
         av->kp[2] = -1;  av->ki[2] = -1;  av->kd[2] = -1;
     }
 
-    // XXX TODO -- relo somewhere nicer
-    // XXX TODO -- and handle non-convergence case
-    // XXX TODO -- and whether able to continue
+    // handle non-convergence case.  Takes precedence over all else.
+    if (!converged) {
+        lblWarnings->setText(tr("Tune didn't converge!  Check noise and damping sliders."));
+    }
+
+    emit completeChanged();
+
     setText(rollRateKp, av->kp[0], 5);
     setText(rollRateKi, av->ki[0], 5);
     setText(rollRateKd, av->kd[0], 6);
