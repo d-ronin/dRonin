@@ -449,7 +449,7 @@ static int32_t updateAttitudeComplementary(bool first_run, bool secondary, bool 
 		magData.z = 0;
 
 		// Wait for a mag reading if a magnetometer was registered
-		if ((PIOS_SENSORS_GetQueue(PIOS_SENSOR_MAG) != NULL) && (MagnetometerHandle() != NULL)) {
+		if (MagnetometerHandle() != NULL) {
 			if (!secondary && PIOS_Queue_Receive(magQueue, &ev, 20) != true) {
 				return -1;
 			}
