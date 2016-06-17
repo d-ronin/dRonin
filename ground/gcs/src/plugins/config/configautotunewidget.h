@@ -49,10 +49,16 @@
 
 struct AutotunedValues
 {
-    bool converged;
+    // Inputs
+    // XXX TODO fill in
+    float damping;
+    float noiseSens;
 
+    // Computation status
+    bool converged;
     int iterations;
 
+    // Results...
     // -1 means "not calculated"; (don't change)
     float kp[3];
     float ki[3];
@@ -99,20 +105,12 @@ private slots:
 };
 
 class AutotuneFinalPage : public QWizardPage,
-        private Ui::AutotuneFinalPage
+        public Ui::AutotuneFinalPage
 {
     Q_OBJECT
 
 public:
-    explicit AutotuneFinalPage(QWidget *parent,
-            struct AutotunedValues *autoValues);
-    void initializePage();
-
-private:
-    AutotunedValues *av;
-
-private slots:
-    void finished(int status);
+    explicit AutotuneFinalPage(QWidget *parent);
 };
 
 class ConfigAutotuneWidget : public ConfigTaskWidget
@@ -127,6 +125,11 @@ private:
     ConfigGadgetWidget *parentConfigWidget;
 
     QString systemIdentValid(SystemIdent::DataFields &data, bool *okToContinue);
+
+    QJsonDocument getResultsJson(AutotuneFinalPage *autotuneShareForm,
+            struct AutotunedValues *av);
+
+    void stuffShareForm(AutotuneFinalPage *autotuneShareForm);
 
 signals:
 

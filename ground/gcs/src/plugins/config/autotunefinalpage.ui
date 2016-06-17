@@ -25,7 +25,7 @@
     </widget>
    </item>
    <item>
-    <widget class="QGroupBox" name="groupBox">
+    <widget class="QGroupBox" name="shareBox">
      <property name="title">
       <string>Share Tune and Vehicle Data to Cloud Service</string>
      </property>

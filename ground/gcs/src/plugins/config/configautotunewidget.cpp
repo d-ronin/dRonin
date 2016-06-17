@@ -104,7 +104,7 @@ void ConfigAutotuneWidget::checkNewAutotune()
         saveObjectToSD(systemIdent);
 
         // Now let's get that dialog open.
-        openAutotuneDialog();
+        openAutotuneDialog(true);
     }
 }
 
@@ -188,7 +188,182 @@ QString ConfigAutotuneWidget::systemIdentValid(SystemIdent::DataFields &data,
     return retVal;
 }
 
-// XXX TODO change first screen text based on whether auto-opened
+/**
+ * @brief ConfigAutotuneWidget::generateResultsJson
+ * @return QJsonDocument containing autotune result data
+ */
+QJsonDocument ConfigAutotuneWidget::getResultsJson(AutotuneFinalPage *autotuneShareForm,
+        struct AutotunedValues *av)
+{
+    deviceDescriptorStruct firmware;
+    utilMngr->getBoardDescriptionStruct(firmware);
+
+    QJsonObject rawSettings;
+
+    QJsonObject json;
+    json["dataVersion"] = 3;
+    json["uniqueId"] = QString(QCryptographicHash::hash(utilMngr->getBoardCPUSerial(), QCryptographicHash::Sha256).toHex());
+
+    QJsonObject vehicle, fw;
+    Core::IBoardType *board = utilMngr->getBoardType();
+    if(board) {
+        fw["board"] = board->shortName();
+    }
+
+    fw["tag"] = firmware.gitTag;
+    fw["commit"] = firmware.gitHash;
+    QDateTime fwDate = QDateTime::fromString(firmware.gitDate, "yyyyMMdd hh:mm");
+    fwDate.setTimeSpec(Qt::UTC); // this makes it append a Z to the string indicating UTC
+    fw["date"] = fwDate.toString(Qt::ISODate);
+    vehicle["firmware"] = fw;
+
+    SystemSettings *sysSettings = SystemSettings::GetInstance(getObjectManager());
+
+    rawSettings[sysSettings->getName()] = sysSettings->getJsonRepresentation();
+
+    ActuatorSettings *actSettings = ActuatorSettings::GetInstance(getObjectManager());
+    rawSettings[actSettings->getName()] = actSettings->getJsonRepresentation();
+
+    StabilizationSettings *stabSettings = StabilizationSettings::GetInstance(getObjectManager());
+    rawSettings[stabSettings->getName()] = stabSettings->getJsonRepresentation();
+
+    SystemIdent *systemIdent = SystemIdent::GetInstance(getObjectManager());
+    rawSettings[systemIdent->getName()] = systemIdent->getJsonRepresentation();
+
+    SensorSettings *senSettings = SensorSettings::GetInstance(getObjectManager());
+    rawSettings[senSettings->getName()] = senSettings->getJsonRepresentation();
+
+    ManualControlSettings *manSettings = ManualControlSettings::GetInstance(getObjectManager());
+    rawSettings[manSettings->getName()] = manSettings->getJsonRepresentation();
+
+    MixerSettings *mixSettings = MixerSettings::GetInstance(getObjectManager());
+    rawSettings[mixSettings->getName()] = mixSettings->getJsonRepresentation();
+
+    // Query the board plugin for the connected board to get the specific
+    // hw settings object
+    ExtensionSystem::PluginManager *pm = ExtensionSystem::PluginManager::instance();
+    if (pm != NULL) {
+        UAVObjectUtilManager* uavoUtilManager = pm->getObject<UAVObjectUtilManager>();
+        Core::IBoardType* board = uavoUtilManager->getBoardType();
+        if (board != NULL) {
+            QString hwSettingsName = board->getHwUAVO();
+
+            UAVObject *hwSettings = getObjectManager()->getObject(hwSettingsName);
+            rawSettings[hwSettings->getName()] = hwSettings->getJsonRepresentation();
+        }
+    }
+
+    vehicle["type"] = autotuneShareForm->acType->currentText();
+    vehicle["size"] = autotuneShareForm->acVehicleSize->text();
+    vehicle["weight"] = autotuneShareForm->acWeight->text();
+    vehicle["batteryCells"] = autotuneShareForm->acBatteryCells->currentText();
+    vehicle["esc"] = autotuneShareForm->acEscs->text();
+    vehicle["motor"] = autotuneShareForm->acMotors->text();
+    vehicle["props"] = autotuneShareForm->acProps->text();
+    json["vehicle"] = vehicle;
+
+    json["userObservations"] = autotuneShareForm->teObservations->toPlainText();
+
+    SystemIdent::DataFields data = systemIdent->getData();
+
+    QJsonObject identification;
+    QJsonObject roll_ident;
+    roll_ident["gain"] = data.Beta[SystemIdent::BETA_ROLL];
+    roll_ident["bias"] = data.Bias[SystemIdent::BIAS_ROLL];
+    roll_ident["noise"] = data.Noise[SystemIdent::NOISE_ROLL];
+    identification["roll"] = roll_ident;
+
+    QJsonObject pitch_ident;
+    pitch_ident["gain"] = data.Beta[SystemIdent::BETA_PITCH];
+    pitch_ident["bias"] = data.Bias[SystemIdent::BIAS_PITCH];
+    pitch_ident["noise"] = data.Noise[SystemIdent::BIAS_PITCH];
+    identification["pitch"] = pitch_ident;
+
+    QJsonObject yaw_ident;
+    yaw_ident["gain"] = data.Beta[SystemIdent::BETA_YAW];
+    yaw_ident["bias"] = data.Bias[SystemIdent::BIAS_YAW];
+    yaw_ident["noise"] = data.Noise[SystemIdent::BIAS_YAW];
+    identification["yaw"] = yaw_ident;
+
+    identification["tau"] = data.Tau;
+    json["identification"] = identification;
+
+    QJsonObject tuning, parameters, computed, misc;
+    parameters["damping"] = av->damping;
+    parameters["noiseSensitivity"] = av->noiseSens;
+
+    tuning["parameters"] = parameters;
+    computed["naturalFrequency"] = av->naturalFreq;
+    computed["derivativeCutoff"] = av->derivativeCutoff;
+    computed["converged"] = av->converged;
+    computed["iterations"] = av->iterations;
+
+    QJsonObject gains;
+    QJsonObject roll_gain, pitch_gain, yaw_gain, outer_gain;
+    roll_gain["kp"] = av->kp[0]; 
+    roll_gain["ki"] = av->ki[0];
+    roll_gain["kd"] = av->kd[0];
+    gains["roll"] = roll_gain;
+    pitch_gain["kp"] = av->kp[1];
+    pitch_gain["ki"] = av->ki[1];
+    pitch_gain["kd"] = av->kd[1];
+    gains["pitch"] = pitch_gain;
+    yaw_gain["kp"] = av->kp[2];
+    yaw_gain["ki"] = av->ki[2];
+    yaw_gain["kd"] = av->kd[2];
+    gains["yaw"] = yaw_gain;
+    outer_gain["kp"] = av->outerKp;
+    outer_gain["ki"] = av->outerKi;
+    gains["outer"] = outer_gain;
+    computed["gains"] = gains;
+    tuning["computed"] = computed;
+    json["tuning"] = tuning;
+
+    json["rawSettings"] = rawSettings;
+
+    return QJsonDocument(json);
+}
+
+void ConfigAutotuneWidget::stuffShareForm(AutotuneFinalPage *autotuneShareForm)
+{
+    ExtensionSystem::PluginManager *pm = ExtensionSystem::PluginManager::instance();
+    Core::Internal::GeneralSettings *settings = pm->getObject<Core::Internal::GeneralSettings>();
+
+    autotuneShareForm->teObservations->setText(settings->getObservations());
+    autotuneShareForm->acBoard->setText(settings->getBoardType());
+    autotuneShareForm->acMotors->setText(settings->getMotors());
+    autotuneShareForm->acEscs->setText(settings->getESCs());
+    autotuneShareForm->acProps->setText(settings->getProps());
+    autotuneShareForm->acWeight->setText(QString::number(settings->getWeight()));
+    autotuneShareForm->acVehicleSize->setText(QString::number(settings->getVehicleSize()));
+    autotuneShareForm->acType->setCurrentText(settings->getVehicleType());
+    autotuneShareForm->acBatteryCells->setCurrentText(QString::number(settings->getBatteryCells()));
+
+    SystemSettings *sysSettings = SystemSettings::GetInstance(getObjectManager());
+    if(sysSettings) {
+        UAVObjectField *frameType = sysSettings->getField("AirframeType");
+        if (frameType) {
+            autotuneShareForm->acType->clear();
+            autotuneShareForm->acType->addItems(frameType->getOptions());
+
+            QString currentFrameType;
+            currentFrameType = frameType->getValue().toString();
+            if(!currentFrameType.isNull()) {
+                autotuneShareForm->acType->setEditable(false);
+                autotuneShareForm->acType->setCurrentText(currentFrameType);
+            }
+        }
+    }
+
+    Core::IBoardType *board = utilMngr->getBoardType();
+
+    if(board) {
+        autotuneShareForm->acBoard->setText(board->shortName());
+        autotuneShareForm->acBoard->setEnabled(false);
+    }
+
+}
+
 void ConfigAutotuneWidget::openAutotuneDialog(bool autoOpened)
 {
     QWizard wizard;
@@ -228,17 +403,24 @@ void ConfigAutotuneWidget::openAutotuneDialog(bool autoOpened)
 
     av.converged = false;
 
+    AutotuneFinalPage *pg = new AutotuneFinalPage(NULL);
+
     if (dataValid) {
         wizard.addPage(new AutotuneMeasuredPropertiesPage(NULL, systemIdentData));
         wizard.addPage(new AutotuneSlidersPage(NULL, systemIdentData, &av));
-        wizard.addPage(new AutotuneFinalPage(NULL, &av));
+
+        wizard.addPage(pg);
     }
 
     wizard.setWindowTitle("Autotune Wizard");
     wizard.exec();
 
-    if ((wizard.result() == QDialog::Accepted) && av.converged) {
+    if (dataValid && (wizard.result() == QDialog::Accepted) && av.converged) {
         // XXX TODO apply / save to board
+        qDebug() << "Would apply to board";
+        if (pg->shareBox->isChecked()) {
+            qDebug() << "Would share to autotown.";
+        }
     }
 }
 
@@ -406,6 +588,13 @@ void AutotuneSlidersPage::compute()
     }
 
     if (doYaw) {
+        // Don't take yaw beta completely seriously.  Why?
+        // 1) It's got two different time constants and magnitudes of
+        // effect (reaction wheel vs. drag).  Don't want to overcontrol.
+        // 2) Far better to be undertuned on yaw than to get into weird
+        // scenarios from coupling between axes.  If yaw is far less
+        // powerful than other axes, even a small amount of nonlinearity
+        // or cross-axis coupling will excite pitch and roll.
         double scale = exp(0.6 * (sysIdent.Beta[0] - sysIdent.Beta[2]));
         av->kp[2] = av->kp[0] * scale;
         av->ki[2] = 0.8 * av->ki[0] * scale;
@@ -437,24 +626,8 @@ void AutotuneSlidersPage::compute()
     lblNoise->setText(QString::number(ghf * 100, 'f', 1) + " %");
 }
 
-AutotuneFinalPage::AutotuneFinalPage(QWidget *parent,
-        struct AutotunedValues *autoValues) :
+AutotuneFinalPage::AutotuneFinalPage(QWidget *parent) :
     QWizardPage(parent)
 {
     setupUi(this);
-
-    av = autoValues;
-}
-
-void AutotuneFinalPage::initializePage()
-{
-    connect(wizard(), SIGNAL(finished(int)), this, SLOT(finished(int)),
-            Qt::UniqueConnection);
-}
-
-void AutotuneFinalPage::finished(int status)
-{
-    qDebug() << "Completed atfinal; " << status;
-
-    // XXX TODO: just share here, if enabled for that.
 }
