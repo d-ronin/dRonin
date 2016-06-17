@@ -70,6 +70,12 @@ ConfigOsdWidget::ConfigOsdWidget(QWidget *parent) : ConfigTaskWidget(parent)
     addUAVObjectToWidgetRelation(osdSettingsName, "NTSCBlack", ui->sb_black_ntsc);
     addUAVObjectToWidgetRelation(osdSettingsName, "XOffset", ui->sb_x_offset);
     addUAVObjectToWidgetRelation(osdSettingsName, "YOffset", ui->sb_y_offset);
+
+    addUAVObjectToWidgetRelation(osdSettingsName, "PALXScale", ui->sb_pal_xscale);
+    addUAVObjectToWidgetRelation(osdSettingsName, "NTSCXScale", ui->sb_ntsc_xscale);
+    addUAVObjectToWidgetRelation(osdSettingsName, "ThreeDMode", ui->cb_3d_osd_mode);
+    addUAVObjectToWidgetRelation(osdSettingsName, "ThreeDRightEyeXShift", ui->sb_3d_right_eye_xshift);
+
     addUAVObjectToWidgetRelation(osdSettingsName, "Units", ui->cb_units);
 
     addUAVObjectToWidgetRelation(osdSettingsName, "NumPages", ui->sb_num_pages);
