@@ -81,9 +81,20 @@ ConfigAutotuneWidget::ConfigAutotuneWidget(ConfigGadgetWidget *parent) :
     ExtensionSystem::PluginManager *pm = ExtensionSystem::PluginManager::instance();
     utilMngr = pm->getObject<UAVObjectUtilManager>();
 
-    connect(this, SIGNAL(autoPilotConnected()), this, SLOT(checkNewAutotune()));
+    connect(this, SIGNAL(autoPilotConnected()), this, SLOT(atConnected()));
+    connect(this, SIGNAL(autoPilotDisconnected()), this, SLOT(atDisconnected()));
     connect(m_autotune->adjustTune, SIGNAL(pressed()), this, SLOT(openAutotuneDialog()));
 
+    m_autotune->adjustTune->setEnabled(isAutopilotConnected());
+}
+
+void ConfigAutotuneWidget::atConnected() {
+    m_autotune->adjustTune->setEnabled(true);
+    checkNewAutotune();
+}
+
+void ConfigAutotuneWidget::atDisconnected() {
+    m_autotune->adjustTune->setEnabled(false);
 }
 
 void ConfigAutotuneWidget::checkNewAutotune()

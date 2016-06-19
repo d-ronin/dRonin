@@ -135,12 +135,13 @@ private:
 
     void stuffShareForm(AutotuneFinalPage *autotuneShareForm);
     void persistShareForm(AutotuneFinalPage *autotuneShareForm);
-
-signals:
+    void checkNewAutotune();
 
 private slots:
-    void checkNewAutotune();
     void openAutotuneDialog(bool autoOpened = false);
+
+    void atConnected();
+    void atDisconnected();
 };
 
 #endif // CONFIGAUTOTUNE_H
