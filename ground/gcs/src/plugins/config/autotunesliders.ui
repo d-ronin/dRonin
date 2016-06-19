@@ -80,7 +80,7 @@
         <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Sensitivity affects how much the quadcopter responds to both signal and noise from the sensors.&lt;/p&gt;&lt;p&gt;The default value of 1.0% is good for most uses. Increase this for snappier flight, but you may also need to increase damping slightly to prevent oscillation.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
        </property>
        <property name="minimum">
-        <number>0</number>
+        <number>5</number>
        </property>
        <property name="maximum">
         <number>30</number>
