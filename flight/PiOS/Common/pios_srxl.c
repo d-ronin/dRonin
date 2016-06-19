@@ -42,29 +42,34 @@ enum pios_srxl_magic {
 };
 
 enum pios_srxl_sync {
-	PIOS_SRXL_SYNC_12CHAN = 0xA1,
-	PIOS_SRXL_SYNC_16CHAN = 0xA2,
+	PIOS_SRXL_SYNC_MULTIPLEX12 = 0xA1,
+	PIOS_SRXL_SYNC_MULTIPLEX16 = 0xA2,
+	PIOS_SRXL_SYNC_WEATRONIC16 = 0xA6,
 };
 
-struct pios_srxl_frame {
-	uint8_t sync;
-	uint16_t chan[0];
-} __attribute__((packed));
-
-struct pios_srxl_frame_12chan {
+struct pios_srxl_frame_multiplex12 {
 	uint8_t sync;
 	uint16_t chan[12];
 	uint16_t crc;
 } __attribute__((packed));
 
-struct pios_srxl_frame_16chan {
+struct pios_srxl_frame_multiplex16 {
 	uint8_t sync;
 	uint16_t chan[16];
 	uint16_t crc;
 } __attribute__((packed));
 
-/* 12 bits/chan, 1 byte header, 2 byte CRC */
-#define PIOS_SRXL_RXBUF_LEN (PIOS_SRXL_MAX_CHANNELS * 2 + 3)
+struct pios_srxl_frame_weatronic16 {
+	uint8_t sync;
+	uint8_t junk0[3]; // unknown at this stage
+	uint8_t status; // bit 4 seems to be failsafe flag
+	uint8_t junk1; // unknown
+	int16_t chan[16];
+	uint16_t crc;
+} __attribute__((packed));
+
+/* weatronic 16 is currently the largest */
+#define PIOS_SRXL_RXBUF_LEN (40)
 
 struct pios_srxl_dev {
 	enum pios_srxl_magic magic;
@@ -205,10 +210,12 @@ static uint16_t PIOS_SRXL_RxCallback(uintptr_t context, uint8_t *buf,
 	for (int i = 0; i < buf_len; i++) {
 		if (dev->rx_buffer_pos == 0) {
 			dev->crc = 0;
-			if (buf[i] == PIOS_SRXL_SYNC_12CHAN) {
-				dev->frame_length = sizeof(struct pios_srxl_frame_12chan);
-			} else if (buf[i] == PIOS_SRXL_SYNC_16CHAN) {
-				dev->frame_length = sizeof(struct pios_srxl_frame_16chan);
+			if (buf[i] == PIOS_SRXL_SYNC_MULTIPLEX12) {
+				dev->frame_length = sizeof(struct pios_srxl_frame_multiplex12);
+			} else if (buf[i] == PIOS_SRXL_SYNC_MULTIPLEX16) {
+				dev->frame_length = sizeof(struct pios_srxl_frame_multiplex16);
+			} else if (buf[i] == PIOS_SRXL_SYNC_WEATRONIC16) {
+				dev->frame_length = sizeof(struct pios_srxl_frame_weatronic16);
 			} else {
 				continue;
 			}
@@ -233,24 +240,45 @@ static void PIOS_SRXL_ParseFrame(struct pios_srxl_dev *dev)
 		return;
 
 	if (dev->crc == 0) {
-		struct pios_srxl_frame *frame =
-					(struct pios_srxl_frame *)dev->rx_buffer;
+		bool failsafe = false; // only used by variants with failsafe flag
 
-		int nchans = 0;
-
-		switch (frame->sync) {
-		case PIOS_SRXL_SYNC_16CHAN:
-			nchans = 16;
+		switch (dev->rx_buffer[0]) {
+		case PIOS_SRXL_SYNC_MULTIPLEX16:
+		{
+			struct pios_srxl_frame_multiplex16 *frame =
+					(struct pios_srxl_frame_multiplex16 *)dev->rx_buffer;
+			for (int i = 0; i < 16; i++)
+				dev->channels[i] = ntohs(frame->chan[i]);
+		}
 			break;
-		case PIOS_SRXL_SYNC_12CHAN:
-			nchans = 12;
+		case PIOS_SRXL_SYNC_MULTIPLEX12:
+		{
+			struct pios_srxl_frame_multiplex12 *frame =
+					(struct pios_srxl_frame_multiplex12 *)dev->rx_buffer;
+			for (int i = 0; i < 12; i++)
+				dev->channels[i] = ntohs(frame->chan[i]);
+		}
+			break;
+		case PIOS_SRXL_SYNC_WEATRONIC16:
+		{
+			struct pios_srxl_frame_weatronic16 *frame =
+					(struct pios_srxl_frame_weatronic16 *)dev->rx_buffer;
+			for (int i = 0; i < 16; i++) {
+				int16_t value = 2000 + ntohs(frame->chan[i]); // centre values around 2000
+				if (value < 0 || value > 4000)
+					dev->channels[i] = PIOS_RCVR_INVALID;
+				else
+					dev->channels[i] = (uint16_t)value;
+			}
+			failsafe = (frame->status & 0x10) > 0;
+		}
 			break;
 		}
 
-		for (int i = 0; i < nchans; i++)
-			dev->channels[i] = ntohs(frame->chan[i]);
-
-		dev->failsafe_timer = 0;
+		if (failsafe)
+			PIOS_SRXL_ResetChannels(dev, PIOS_RCVR_TIMEOUT);
+		else
+			dev->failsafe_timer = 0;
 	}
 
 	dev->rx_buffer_pos = 0;
@@ -291,8 +319,9 @@ void PIOS_SRXL_Supervisor(uintptr_t id)
 		PIOS_SRXL_ResetChannels(dev, PIOS_RCVR_TIMEOUT);
 }
 
-DONT_BUILD_IF(sizeof(struct pios_srxl_frame_12chan) > PIOS_SRXL_RXBUF_LEN, SRXLBufferSize);
-DONT_BUILD_IF(sizeof(struct pios_srxl_frame_16chan) > PIOS_SRXL_RXBUF_LEN, SRXLBufferSize);
+DONT_BUILD_IF(sizeof(struct pios_srxl_frame_multiplex12) > PIOS_SRXL_RXBUF_LEN, SRXLBufferSize);
+DONT_BUILD_IF(sizeof(struct pios_srxl_frame_multiplex16) > PIOS_SRXL_RXBUF_LEN, SRXLBufferSize);
+DONT_BUILD_IF(sizeof(struct pios_srxl_frame_weatronic16) > PIOS_SRXL_RXBUF_LEN, SRXLBufferSize);
 
 #endif /* defined(PIOS_INCLUDE_SRXL) */
 
