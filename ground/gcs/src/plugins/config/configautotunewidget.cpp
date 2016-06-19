@@ -396,6 +396,8 @@ void ConfigAutotuneWidget::openAutotuneDialog(bool autoOpened)
 {
     QWizard wizard;
 
+    wizard.setPixmap(QWizard::BackgroundPixmap, QPixmap(":/configgadget/images/autotunebg.png"));
+
     SystemIdent *systemIdent = SystemIdent::GetInstance(getObjectManager());
     SystemIdent::DataFields systemIdentData = systemIdent->getData();
 

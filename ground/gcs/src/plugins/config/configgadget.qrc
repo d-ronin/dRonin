@@ -33,5 +33,6 @@
         <file>images/osd_selected.png</file>
         <file>images/ic_cloud_upload_48px.svg</file>
         <file>images/ic_content_paste_48px.svg</file>
+        <file>images/autotunebg.png</file>
     </qresource>
 </RCC>
