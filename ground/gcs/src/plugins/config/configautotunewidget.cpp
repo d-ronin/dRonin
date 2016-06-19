@@ -727,4 +727,9 @@ AutotuneFinalPage::AutotuneFinalPage(QWidget *parent) :
     QWizardPage(parent)
 {
     setupUi(this);
+
+#ifdef Q_OS_MAC
+    lblCongrats->setText(lblCongrats->text().replace(tr("\"Finish\""),
+                tr("\"Done\"")));
+#endif
 }
