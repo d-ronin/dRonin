@@ -95,6 +95,7 @@
 #endif
 #include <pios_dsm.h>
 #include <pios_sbus.h>
+#include <pios_srxl.h>
 #include <pios_usb_hid.h>
 #include <pios_debug.h>
 #include <pios_gpio.h>
@@ -193,6 +194,21 @@
 #include <pios_crc.h>
 
 #define NELEMENTS(x) (sizeof(x) / sizeof(*(x)))
+
+/* byte-ordering macros */
+#define ntohl(v) (				\
+	(((v) & 0xFF000000) >> 24) |		\
+	(((v) & 0x00FF0000) >>  8) |		\
+	(((v) & 0x0000FF00) <<  8) |		\
+	(((v) & 0x000000FF) << 24))
+
+#define ntohs(v) (				\
+	(((v) & 0xFF00) >> 8) |			\
+	(((v) & 0x00FF) << 8))
+
+#define htonl(v) ntohl((v))
+
+#define htons(v) ntohs((v))
 
 #endif /* PIOS_H */
 
