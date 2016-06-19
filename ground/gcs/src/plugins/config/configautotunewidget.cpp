@@ -63,7 +63,7 @@
 #define CONF_ATUNE_QXTLOG_DEBUG(...)
 #endif	// CONF_ATUNE_DEBUG
 
-const QString ConfigAutotuneWidget::databaseUrl = QString("http://dronin-autotown.appspot.com/storeTune"); 
+const QString ConfigAutotuneWidget::databaseUrl = QString("http://dronin-autotown.appspot.com/storeTune");
 
 ConfigAutotuneWidget::ConfigAutotuneWidget(ConfigGadgetWidget *parent) :
     ConfigTaskWidget(parent)
@@ -411,7 +411,7 @@ void ConfigAutotuneWidget::openAutotuneDialog(bool autoOpened)
     // Keep a cancel button, even on OS X. 
     wizard.setOption(QWizard::NoCancelButton, false);
 
-    wizard.setMinimumSize(688, 480);
+    wizard.setMinimumSize(735, 480);
 
     wizard.addPage(beginning);
 
@@ -685,7 +685,7 @@ void AutotuneSlidersPage::compute()
 
     // handle non-convergence case.  Takes precedence over all else.
     if (!converged) {
-        lblWarnings->setText(tr("Tune didn't converge!  Check noise and damping sliders."));
+        lblWarnings->setText(tr("<font color=\"red\">Error:</font> Tune didn't converge!  Check noise and damping sliders."));
     }
 
     emit completeChanged();
