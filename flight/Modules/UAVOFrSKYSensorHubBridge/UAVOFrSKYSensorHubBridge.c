@@ -206,7 +206,7 @@ static int32_t uavoFrSKYSensorHubBridgeStart(void)
 		shub_global->task_handle = PIOS_Thread_Create(
 				uavoFrSKYSensorHubBridgeTask, "uavoFrSKYSensorHubBridge",
 				STACK_SIZE_BYTES, NULL, TASK_PRIORITY);
-		TaskMonitorAdd(TASKINFO_RUNNING_UAVOFRSKYSBRIDGE,
+		TaskMonitorAdd(TASKINFO_RUNNING_UAVOFRSKYSENSORHUBBRIDGE,
 				shub_global->task_handle);
 		return 0;
 	}
