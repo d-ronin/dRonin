@@ -394,7 +394,8 @@ void ConfigAutotuneWidget::stuffShareForm(AutotuneFinalPage *autotuneShareForm)
 
 void ConfigAutotuneWidget::openAutotuneDialog(bool autoOpened)
 {
-    QWizard wizard;
+    QWizard wizard(NULL, Qt::Dialog | Qt::CustomizeWindowHint |
+            Qt::WindowTitleHint | Qt::WindowCloseButtonHint);
 
     wizard.setPixmap(QWizard::BackgroundPixmap, QPixmap(":/configgadget/images/autotunebg.png"));
 
