@@ -89,6 +89,7 @@
 #include "gpssatellites.h"
 #include "gpsvelocity.h"
 #include "homelocation.h"
+#include "magnetometer.h"
 #include "manualcontrolcommand.h"
 #include "modulesettings.h"
 #include "stabilizationsettings.h"
@@ -1103,47 +1104,47 @@ void render_user_page(OnScreenDisplayPageSettingsData * page)
 
 	// Altitude Scale
 	if (page->AltitudeScale) {
+		bool valid_altitude = false;
 		if (page->AltitudeScaleSource == ONSCREENDISPLAYPAGESETTINGS_ALTITUDESCALESOURCE_BARO) {
 			if (BaroAltitudeHandle()){
 				BaroAltitudeAltitudeGet(&tmp);
 				tmp -= home_baro_altitude;
-			}
-			else {
-				tmp =0;
+				valid_altitude = true;
 			}
 		} else if (PositionActualHandle()) {
 			PositionActualDownGet(&tmp);
 			tmp *= -1.0f;
-		} else {
-			tmp = 0.f;
+			valid_altitude = true;
 		}
-		if (page->AltitudeScaleAlign == ONSCREENDISPLAYPAGESETTINGS_ALTITUDESCALEALIGN_LEFT)
-			hud_draw_vertical_scale(tmp * convert_distance, 100, -1, page->AltitudeScalePos, GRAPHICS_Y_MIDDLE, 120, 10, 20, 5, 8,
-					11, 10000, 0);
-		else
-			hud_draw_vertical_scale(tmp * convert_distance, 100, 1, page->AltitudeScalePos, GRAPHICS_Y_MIDDLE, 120, 10, 20, 5, 8,
-					11, 10000, 0);
+		if (valid_altitude) {
+			if (page->AltitudeScaleAlign == ONSCREENDISPLAYPAGESETTINGS_ALTITUDESCALEALIGN_LEFT)
+				hud_draw_vertical_scale(tmp * convert_distance, 100, -1, page->AltitudeScalePos, GRAPHICS_Y_MIDDLE, 120, 10, 20, 5, 8,
+						11, 10000, 0);
+			else
+				hud_draw_vertical_scale(tmp * convert_distance, 100, 1, page->AltitudeScalePos, GRAPHICS_Y_MIDDLE, 120, 10, 20, 5, 8,
+						11, 10000, 0);
+		}
 	}
 
 	// Altitude Numeric
 	if (page->AltitudeNumeric) {
+		bool valid_altitude = false;
 		if (page->AltitudeNumericSource == ONSCREENDISPLAYPAGESETTINGS_ALTITUDENUMERICSOURCE_BARO) {
 			if (BaroAltitudeHandle()) {
 				BaroAltitudeAltitudeGet(&tmp);
 				tmp -= home_baro_altitude;
-			}
-			else {
-				tmp = 0;
+				valid_altitude = true;
 			}
 		} else if (PositionActualHandle()) {
 			PositionActualDownGet(&tmp);
 			tmp *= -1.0f;
-		} else {
-			tmp = 0.f;
+			valid_altitude = true;
 		}
-		sprintf(tmp_str, "%d", (int)(tmp * convert_distance));
-		write_string(tmp_str, page->AltitudeNumericPosX, page->AltitudeNumericPosY, 0, 0, TEXT_VA_TOP, (int)page->AltitudeNumericAlign,
-				0, page->AltitudeNumericFont);
+		if (valid_altitude) {
+			sprintf(tmp_str, "%d", (int)(tmp * convert_distance));
+			write_string(tmp_str, page->AltitudeNumericPosX, page->AltitudeNumericPosY, 0, 0, TEXT_VA_TOP, (int)page->AltitudeNumericAlign,
+					0, page->AltitudeNumericFont);
+		}
 	}
 
 	// Arming Status
@@ -1191,7 +1192,7 @@ void render_user_page(OnScreenDisplayPageSettingsData * page)
 	}
 
 	// Climb rate
-	if (page->ClimbRate && VelocityActualHandle()) {
+	if (page->ClimbRate && VelocityActualHandle() && BaroAltitudeHandle()) {
 		VelocityActualDownGet(&tmp);
 		sprintf(tmp_str, "%0.1f", (double)(-1.f * convert_distance * tmp));
 		write_string(tmp_str, page->ClimbRatePosX, page->ClimbRatePosY, 0, 0, TEXT_VA_TOP, (int)page->ClimbRateAlign, 0,
@@ -1199,7 +1200,7 @@ void render_user_page(OnScreenDisplayPageSettingsData * page)
 	}
 
 	// Compass
-	if (page->Compass) {
+	if (page->Compass && MagnetometerHandle()) {
 		AttitudeActualYawGet(&tmp);
 		if (tmp < 0)
 			tmp += 360;
@@ -1347,70 +1348,80 @@ void render_user_page(OnScreenDisplayPageSettingsData * page)
 	// Speed Scale
 	if (page->SpeedScale) {
 		tmp = 0.f;
+		bool speed_valid = false;
 		switch (page->SpeedScaleSource)
 		{
-			tmp = 0.f;
-		case ONSCREENDISPLAYPAGESETTINGS_SPEEDSCALESOURCE_NAV:
-			if (VelocityActualHandle()) {
-				VelocityActualNorthGet(&tmp);
-				VelocityActualEastGet(&tmp1);
-				tmp = sqrt(tmp * tmp + tmp1 * tmp1);
-			}
-			sprintf(tmp_str, "%s", "GND");
-			break;
-		case ONSCREENDISPLAYPAGESETTINGS_SPEEDSCALESOURCE_GPS:
-			if (GPSVelocityHandle()) {
-				GPSVelocityNorthGet(&tmp);
-				GPSVelocityEastGet(&tmp1);
-				tmp = sqrt(tmp * tmp + tmp1 * tmp1);
-			}
-			sprintf(tmp_str, "%s", "GND");
-			break;
-		case ONSCREENDISPLAYPAGESETTINGS_SPEEDSCALESOURCE_AIRSPEED:
-			if (AirspeedActualHandle()) {
-				AirspeedActualTrueAirspeedGet(&tmp);
-			}
-			sprintf(tmp_str, "%s", "AIR");
+			case ONSCREENDISPLAYPAGESETTINGS_SPEEDSCALESOURCE_NAV:
+				if (VelocityActualHandle()) {
+					VelocityActualNorthGet(&tmp);
+					VelocityActualEastGet(&tmp1);
+					tmp = sqrt(tmp * tmp + tmp1 * tmp1);
+					speed_valid = true;
+				}
+				sprintf(tmp_str, "%s", "GND");
+				break;
+			case ONSCREENDISPLAYPAGESETTINGS_SPEEDSCALESOURCE_GPS:
+				if (GPSVelocityHandle()) {
+					GPSVelocityNorthGet(&tmp);
+					GPSVelocityEastGet(&tmp1);
+					tmp = sqrt(tmp * tmp + tmp1 * tmp1);
+					speed_valid = true;
+				}
+				sprintf(tmp_str, "%s", "GND");
+				break;
+			case ONSCREENDISPLAYPAGESETTINGS_SPEEDSCALESOURCE_AIRSPEED:
+				if (AirspeedActualHandle()) {
+					AirspeedActualTrueAirspeedGet(&tmp);
+					speed_valid = true;
+				}
+				sprintf(tmp_str, "%s", "AIR");
 		}
-		if (page->SpeedScaleAlign == ONSCREENDISPLAYPAGESETTINGS_SPEEDSCALEALIGN_LEFT) {
-			hud_draw_vertical_scale(tmp * convert_speed, 30, -1,  page->SpeedScalePos, GRAPHICS_Y_MIDDLE, 120, 10, 20, 5, 8, 11,
-					100, 0);
-			write_string(tmp_str, page->SpeedScalePos + 10, 200, 0, 0, TEXT_VA_MIDDLE, TEXT_HA_LEFT, 0, FONT_OUTLINED8X8);
-		} else {
-			hud_draw_vertical_scale(tmp * convert_speed, 30, 1,  page->SpeedScalePos, GRAPHICS_Y_MIDDLE, 120, 10, 20, 5, 8, 11, 100,
-					0);
-			write_string(tmp_str, page->SpeedScalePos - 30, 200, 0, 0, TEXT_VA_MIDDLE, TEXT_HA_LEFT, 0, FONT_OUTLINED8X8);
+		if (speed_valid){
+			if (page->SpeedScaleAlign == ONSCREENDISPLAYPAGESETTINGS_SPEEDSCALEALIGN_LEFT) {
+				hud_draw_vertical_scale(tmp * convert_speed, 30, -1,  page->SpeedScalePos, GRAPHICS_Y_MIDDLE, 120, 10, 20, 5, 8, 11,
+						100, 0);
+				write_string(tmp_str, page->SpeedScalePos + 10, 200, 0, 0, TEXT_VA_MIDDLE, TEXT_HA_LEFT, 0, FONT_OUTLINED8X8);
+			} else {
+				hud_draw_vertical_scale(tmp * convert_speed, 30, 1,  page->SpeedScalePos, GRAPHICS_Y_MIDDLE, 120, 10, 20, 5, 8, 11, 100,
+						0);
+				write_string(tmp_str, page->SpeedScalePos - 30, 200, 0, 0, TEXT_VA_MIDDLE, TEXT_HA_LEFT, 0, FONT_OUTLINED8X8);
+			}
 		}
 	}
 
 	// Speed Numeric
 	if (page->SpeedNumeric) {
 		tmp = 0.f;
+		bool speed_valid = false;
 		switch (page->SpeedNumericSource)
 		{
-			tmp = 0.f;
-		case ONSCREENDISPLAYPAGESETTINGS_SPEEDNUMERICSOURCE_NAV:
-			if (VelocityActualHandle()) {
-				VelocityActualNorthGet(&tmp);
-				VelocityActualEastGet(&tmp1);
-			}
-			tmp = sqrt(tmp * tmp + tmp1 * tmp1);
-			break;
-		case ONSCREENDISPLAYPAGESETTINGS_SPEEDNUMERICSOURCE_GPS:
-			if (GPSVelocityHandle()) {
-				GPSVelocityNorthGet(&tmp);
-				GPSVelocityEastGet(&tmp1);
+			case ONSCREENDISPLAYPAGESETTINGS_SPEEDNUMERICSOURCE_NAV:
+				if (VelocityActualHandle()) {
+					VelocityActualNorthGet(&tmp);
+					VelocityActualEastGet(&tmp1);
+					speed_valid = true;
+				}
 				tmp = sqrt(tmp * tmp + tmp1 * tmp1);
-			}
-			break;
-		case ONSCREENDISPLAYPAGESETTINGS_SPEEDNUMERICSOURCE_AIRSPEED:
-			if (AirspeedActualHandle()) {
-				AirspeedActualTrueAirspeedGet(&tmp);
-			}
+				break;
+			case ONSCREENDISPLAYPAGESETTINGS_SPEEDNUMERICSOURCE_GPS:
+				if (GPSVelocityHandle()) {
+					GPSVelocityNorthGet(&tmp);
+					GPSVelocityEastGet(&tmp1);
+					tmp = sqrt(tmp * tmp + tmp1 * tmp1);
+					speed_valid = true;
+				}
+				break;
+			case ONSCREENDISPLAYPAGESETTINGS_SPEEDNUMERICSOURCE_AIRSPEED:
+				if (AirspeedActualHandle()) {
+					AirspeedActualTrueAirspeedGet(&tmp);
+					speed_valid = true;
+				}
 		}
-		sprintf(tmp_str, "%d", (int)(tmp * convert_speed));
-		write_string(tmp_str, page->SpeedNumericPosX, page->SpeedNumericPosY, 0, 0, (int)page->SpeedNumericAlign, TEXT_HA_LEFT, 0,
-				page->SpeedNumericFont);
+		if (speed_valid) {
+			sprintf(tmp_str, "%d", (int)(tmp * convert_speed));
+			write_string(tmp_str, page->SpeedNumericPosX, page->SpeedNumericPosY, 0, 0, (int)page->SpeedNumericAlign, TEXT_HA_LEFT, 0,
+					page->SpeedNumericFont);
+		}
 	}
 
 	// Time
@@ -1490,15 +1501,17 @@ int render_stats()
 		y_pos += STATS_LINE_SPACING;
 	}
 
-	tmp = convert_distance * stats.MaxClimbRate;
-	sprintf(tmp_str, "Maximum climb rate:       %0.2f %s/s", (double)tmp, dist_unit_short);
-	write_string(tmp_str, STATS_LINE_X, y_pos, 0, 0, TEXT_VA_TOP, TEXT_HA_LEFT, 0, STATS_FONT);
-	y_pos += STATS_LINE_SPACING;
+	if (BaroAltitudeHandle()) {
+		tmp = convert_distance * stats.MaxClimbRate;
+		sprintf(tmp_str, "Maximum climb rate:       %0.2f %s/s", (double)tmp, dist_unit_short);
+		write_string(tmp_str, STATS_LINE_X, y_pos, 0, 0, TEXT_VA_TOP, TEXT_HA_LEFT, 0, STATS_FONT);
+		y_pos += STATS_LINE_SPACING;
 
-	tmp = convert_distance * stats.MaxDescentRate;
-	sprintf(tmp_str, "Maximum descent rate:     %0.2f %s/s", (double)tmp, dist_unit_short);
-	write_string(tmp_str, STATS_LINE_X, y_pos, 0, 0, TEXT_VA_TOP, TEXT_HA_LEFT, 0, STATS_FONT);
-	y_pos += 2 * STATS_LINE_SPACING;
+		tmp = convert_distance * stats.MaxDescentRate;
+		sprintf(tmp_str, "Maximum descent rate:     %0.2f %s/s", (double)tmp, dist_unit_short);
+		write_string(tmp_str, STATS_LINE_X, y_pos, 0, 0, TEXT_VA_TOP, TEXT_HA_LEFT, 0, STATS_FONT);
+		y_pos += 2 * STATS_LINE_SPACING;
+	}
 
 	sprintf(tmp_str, "Maximum roll rate:        %d deg/s", stats.MaxRollRate);
 	write_string(tmp_str, STATS_LINE_X, y_pos, 0, 0, TEXT_VA_TOP, TEXT_HA_LEFT, 0, STATS_FONT);

@@ -130,11 +130,7 @@ int32_t GPSInitialize(void)
 	module_enabled = PIOS_Modules_IsEnabled(PIOS_MODULE_GPS);
 #endif
 
-	// These things are only conditional on small F1 targets.
-	// Expected to be always present otherwise.
-#ifdef SMALLF1
 	if (gpsPort && module_enabled) {
-#endif
 		if (GPSPositionInitialize() == -1 \
 			|| GPSVelocityInitialize() == -1) {
 			
@@ -157,9 +153,7 @@ int32_t GPSInitialize(void)
 		}
 #endif
 		updateSettings();
-#ifdef SMALLF1
 	}
-#endif
 
 	if (gpsPort && module_enabled) {
 		ModuleSettingsGPSDataProtocolGet(&gpsProtocol);

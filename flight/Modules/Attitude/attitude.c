@@ -449,7 +449,7 @@ static int32_t updateAttitudeComplementary(bool first_run, bool secondary, bool 
 		magData.z = 0;
 
 		// Wait for a mag reading if a magnetometer was registered
-		if (PIOS_SENSORS_GetQueue(PIOS_SENSOR_MAG) != NULL) {
+		if (MagnetometerHandle() != NULL) {
 			if (!secondary && PIOS_Queue_Receive(magQueue, &ev, 20) != true) {
 				return -1;
 			}
@@ -495,9 +495,11 @@ static int32_t updateAttitudeComplementary(bool first_run, bool secondary, bool 
 
 		complementary_filter_state.arming_count = 0;
 
-		float baro;
-		BaroAltitudeAltitudeGet(&baro);
-		cfvert_reset(&cfvert, baro, attitudeSettings.VertPositionTau);
+		if (BaroAltitudeHandle()) {
+			float baro;
+			BaroAltitudeAltitudeGet(&baro);
+			cfvert_reset(&cfvert, baro, attitudeSettings.VertPositionTau);
+		}
 
 		return 0;
 	}
@@ -549,9 +551,11 @@ static int32_t updateAttitudeComplementary(bool first_run, bool secondary, bool 
 		}
 
 		// Reset the filter for barometric data
-		float baro;
-		BaroAltitudeAltitudeGet(&baro);
-		cfvert_reset(&cfvert, baro, attitudeSettings.VertPositionTau);
+		if (BaroAltitudeHandle()) {
+			float baro;
+			BaroAltitudeAltitudeGet(&baro);
+			cfvert_reset(&cfvert, baro, attitudeSettings.VertPositionTau);
+		}
 
 	} else if (complementary_filter_state.initialization == CF_ARMING ||
 	           complementary_filter_state.initialization == CF_INITIALIZING) {
@@ -572,10 +576,11 @@ static int32_t updateAttitudeComplementary(bool first_run, bool secondary, bool 
 		complementary_filter_state.initialization = CF_NORMAL;
 
 		// Reset the filter for barometric data
-		float baro;
-		BaroAltitudeAltitudeGet(&baro);
-		cfvert_reset(&cfvert, baro, attitudeSettings.VertPositionTau);
-
+		if (BaroAltitudeHandle()) {
+			float baro;
+			BaroAltitudeAltitudeGet(&baro);
+			cfvert_reset(&cfvert, baro, attitudeSettings.VertPositionTau);
+		}
 	}
 
 	GyrosGet(&gyrosData);
@@ -626,7 +631,7 @@ static int32_t updateAttitudeComplementary(bool first_run, bool secondary, bool 
 	}
 
 	float mag_err[3];
-	if (secondary || PIOS_Queue_Receive(magQueue, &ev, 0) == true)
+	if (MagnetometerHandle() && (secondary || PIOS_Queue_Receive(magQueue, &ev, 0) == true))
 	{
 		MagnetometerData mag;
 		MagnetometerGet(&mag);
@@ -730,7 +735,7 @@ static int32_t updateAttitudeComplementary(bool first_run, bool secondary, bool 
 		// When this is the only filter compute th vertical state from baro data
 		// Reset the filter for barometric data
 		cfvert_predict_pos(&cfvert, z_accel, dT);
-		if (PIOS_Queue_Receive(baroQueue, &ev, 0) == true) {
+		if ((PIOS_Queue_Receive(baroQueue, &ev, 0) == true) && BaroAltitudeHandle()) {
 			float baro;
 			BaroAltitudeAltitudeGet(&baro);
 			cfvert_update_baro(&cfvert, baro, dT);
@@ -1432,6 +1437,11 @@ static void check_home_location()
 	// Do not calculate if already set
 	if (homeLocation.Set == HOMELOCATION_SET_TRUE)
 		return;
+
+	// We need GPS
+	if (!GPSPositionHandle()) {
+		return;
+	}
 
 	GPSPositionData gps;
 	GPSPositionGet(&gps);
