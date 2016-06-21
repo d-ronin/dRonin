@@ -77,6 +77,12 @@ public:
      */
     QWidget *getBoardConfiguration(QWidget *parent, bool connected);
 
+    /**
+     * @brief getConnectionDiagram get the connection diagram for this board
+     * @return a string with the name of the resource for this board diagram
+     */
+    virtual QString getConnectionDiagram() { return ":/dtf/images/dtfc-connection.svg"; }
+
 };
 
 
