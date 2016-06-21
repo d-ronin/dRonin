@@ -2,5 +2,6 @@
     <qresource prefix="/dtf">
         <file>images/dtfc.png</file>
         <file>images/peek.png</file>
+        <file>images/dtfc-connection.svg</file>
     </qresource>
 </RCC>

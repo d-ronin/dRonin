@@ -41,10 +41,10 @@
 #include "dtfcconfiguration.h"
 
 /**
- * @brief DTFc:DTFc
+ * @brief Dtfc:Dtfc
  *  This is the DTFc board definition
  */
-DTFc::DTFc(void)
+Dtfc::Dtfc(void)
 {
     // Initialize our USB Structure definition here:
     USBInfo board;
@@ -61,23 +61,23 @@ DTFc::DTFc(void)
     channelBanks[2] = QVector<int> () << 7 << 8; // TIM3
 }
 
-DTFc::~DTFc()
+Dtfc::~Dtfc()
 {
 
 }
 
-QString DTFc::shortName()
+QString Dtfc::shortName()
 {
     return QString("DTFc");
 }
 
-QString DTFc::boardDescription()
+QString Dtfc::boardDescription()
 {
     return QString("DTFc Flight Controller");
 }
 
 //! Return which capabilities this board has
-bool DTFc::queryCapabilities(BoardCapabilities capability)
+bool Dtfc::queryCapabilities(BoardCapabilities capability)
 {
     switch(capability) {
     case BOARD_CAPABILITIES_GYROS:
@@ -99,28 +99,28 @@ bool DTFc::queryCapabilities(BoardCapabilities capability)
 }
 
 /**
- * @brief DTFc::getSupportedProtocols
+ * @brief Dtfc::getSupportedProtocols
  *  TODO: this is just a stub, we'll need to extend this a lot with multi protocol support
  * @return
  */
-QStringList DTFc::getSupportedProtocols()
+QStringList Dtfc::getSupportedProtocols()
 {
 
     return QStringList("uavtalk");
 }
 
-QPixmap DTFc::getBoardPicture()
+QPixmap Dtfc::getBoardPicture()
 {
     return QPixmap(":/dtf/images/dtfc.png");
 }
 
-QString DTFc::getHwUAVO()
+QString Dtfc::getHwUAVO()
 {
-    return "HwDTFc";
+    return "HwDtfc";
 }
 
 //! Determine if this board supports configuring the receiver
-bool DTFc::isInputConfigurationSupported(enum InputType type = INPUT_TYPE_ANY)
+bool Dtfc::isInputConfigurationSupported(enum InputType type = INPUT_TYPE_ANY)
 {
     switch (type) {
     case INPUT_TYPE_PWM:
@@ -135,119 +135,119 @@ bool DTFc::isInputConfigurationSupported(enum InputType type = INPUT_TYPE_ANY)
  * @param type the type of receiver to use
  * @return true if successfully configured or false otherwise
  */
-bool DTFc::setInputType(enum InputType type)
+bool Dtfc::setInputType(enum InputType type)
 {
     ExtensionSystem::PluginManager *pm = ExtensionSystem::PluginManager::instance();
     UAVObjectManager *uavoManager = pm->getObject<UAVObjectManager>();
-    HwDTFc *hwDTFc = HwDTFc::GetInstance(uavoManager);
-    Q_ASSERT(hwDTFc);
-    if (!hwDTFc)
+    HwDtfc *hwDtfc = HwDtfc::GetInstance(uavoManager);
+    Q_ASSERT(hwDtfc);
+    if (!hwDtfc)
         return false;
 
-    HwDTFc::DataFields settings = hwDTFc->getData();
+    HwDtfc::DataFields settings = hwDtfc->getData();
 
     switch(type) {
     case INPUT_TYPE_PPM:
-        settings.RcvrPort = HwDTFc::RCVRPORT_PPM;
+        settings.RcvrPort = HwDtfc::RCVRPORT_PPM;
         break;
     case INPUT_TYPE_SBUS:
-        settings.RcvrPort = HwDTFc::RCVRPORT_SBUS;
+        settings.RcvrPort = HwDtfc::RCVRPORT_SBUS;
         break;
     case INPUT_TYPE_DSM:
-        settings.RcvrPort = HwDTFc::RCVRPORT_DSM;
+        settings.RcvrPort = HwDtfc::RCVRPORT_DSM;
         break;
     case INPUT_TYPE_HOTTSUMD:
-        settings.RcvrPort = HwDTFc::RCVRPORT_HOTTSUMD;
+        settings.RcvrPort = HwDtfc::RCVRPORT_HOTTSUMD;
         break;
     default:
         return false;
     }
 
-    hwDTFc->setData(settings);
+    hwDtfc->setData(settings);
 
     return true;
 }
 
 /**
- * @brief DTFc::getInputOnPort fetch the currently selected input type
+ * @brief Dtfc::getInputOnPort fetch the currently selected input type
  * @return the selected input type
  */
-enum Core::IBoardType::InputType DTFc::getInputType()
+enum Core::IBoardType::InputType Dtfc::getInputType()
 {
     ExtensionSystem::PluginManager *pm = ExtensionSystem::PluginManager::instance();
     UAVObjectManager *uavoManager = pm->getObject<UAVObjectManager>();
-    HwDTFc *hwDTFc = HwDTFc::GetInstance(uavoManager);
-    Q_ASSERT(hwDTFc);
-    if (!hwDTFc)
+    HwDtfc *hwDtfc = HwDtfc::GetInstance(uavoManager);
+    Q_ASSERT(hwDtfc);
+    if (!hwDtfc)
         return INPUT_TYPE_UNKNOWN;
 
-    HwDTFc::DataFields settings = hwDTFc->getData();
+    HwDtfc::DataFields settings = hwDtfc->getData();
 
     switch(settings.RcvrPort) {
-    case HwDTFc::RCVRPORT_PPM:
+    case HwDtfc::RCVRPORT_PPM:
         return INPUT_TYPE_PPM;
-    case HwDTFc::RCVRPORT_SBUS:
-    case HwDTFc::RCVRPORT_SBUSNONINVERTED:
+    case HwDtfc::RCVRPORT_SBUS:
+    case HwDtfc::RCVRPORT_SBUSNONINVERTED:
         return INPUT_TYPE_SBUS;
-    case HwDTFc::RCVRPORT_DSM:
+    case HwDtfc::RCVRPORT_DSM:
         return INPUT_TYPE_DSM;
-    case HwDTFc::RCVRPORT_HOTTSUMD:
+    case HwDtfc::RCVRPORT_HOTTSUMD:
         return INPUT_TYPE_HOTTSUMD;
     }
     switch(settings.Uart1) {
-    case HwDTFc::UART1_SBUS:
-    case HwDTFc::UART1_SBUSNONINVERTED:
+    case HwDtfc::UART1_SBUS:
+    case HwDtfc::UART1_SBUSNONINVERTED:
         return INPUT_TYPE_SBUS;
-    case HwDTFc::UART1_DSM:
+    case HwDtfc::UART1_DSM:
         return INPUT_TYPE_DSM;
-    case HwDTFc::UART1_HOTTSUMD:
+    case HwDtfc::UART1_HOTTSUMD:
         return INPUT_TYPE_HOTTSUMD;
     }
     switch(settings.Uart2) {
-    case HwDTFc::UART2_SBUS:
-    case HwDTFc::UART2_SBUSNONINVERTED:
+    case HwDtfc::UART2_SBUS:
+    case HwDtfc::UART2_SBUSNONINVERTED:
         return INPUT_TYPE_SBUS;
-    case HwDTFc::UART2_DSM:
+    case HwDtfc::UART2_DSM:
         return INPUT_TYPE_DSM;
-    case HwDTFc::UART2_HOTTSUMD:
+    case HwDtfc::UART2_HOTTSUMD:
         return INPUT_TYPE_HOTTSUMD;
     }
     
     return INPUT_TYPE_UNKNOWN;
 }
 
-int DTFc::queryMaxGyroRate()
+int Dtfc::queryMaxGyroRate()
 {
     ExtensionSystem::PluginManager *pm = ExtensionSystem::PluginManager::instance();
     UAVObjectManager *uavoManager = pm->getObject<UAVObjectManager>();
-    HwDTFc *hwDTFc = HwDTFc::GetInstance(uavoManager);
-    Q_ASSERT(hwDTFc);
-    if (!hwDTFc)
+    HwDtfc *hwDtfc = HwDtfc::GetInstance(uavoManager);
+    Q_ASSERT(hwDtfc);
+    if (!hwDtfc)
         return 0;
 
-    HwDTFc::DataFields settings = hwDTFc->getData();
+    HwDtfc::DataFields settings = hwDtfc->getData();
 
     switch(settings.GyroRange) {
-    case HwDTFc::GYRORANGE_250:
+    case HwDtfc::GYRORANGE_250:
         return 250;
-    case HwDTFc::GYRORANGE_500:
+    case HwDtfc::GYRORANGE_500:
         return 500;
-    case HwDTFc::GYRORANGE_1000:
+    case HwDtfc::GYRORANGE_1000:
         return 1000;
-    case HwDTFc::GYRORANGE_2000:
+    case HwDtfc::GYRORANGE_2000:
         return 2000;
     default:
         return 500;
     }
 }
 
-QStringList DTFc::getAdcNames()
+QStringList Dtfc::getAdcNames()
 {
     return QStringList() << "Current" << "Battery";
 }
 
-QWidget *DTFc::getBoardConfiguration(QWidget *parent, bool connected)
+QWidget *Dtfc::getBoardConfiguration(QWidget *parent, bool connected)
 {
     Q_UNUSED(connected);
-    return new DTFcConfiguration(parent);
+    return new DtfcConfiguration(parent);
 }

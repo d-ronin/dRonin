@@ -34,9 +34,9 @@
 
 #include "hwdtfc.h"
 
-DTFcConfiguration::DTFcConfiguration(QWidget *parent) :
+DtfcConfiguration::DtfcConfiguration(QWidget *parent) :
     ConfigTaskWidget(parent),
-    ui(new Ui::DTFcConfiguration)
+    ui(new Ui::DtfcConfiguration)
 {
     ui->setupUi(this);
     
@@ -50,7 +50,7 @@ DTFcConfiguration::DTFcConfiguration(QWidget *parent) :
     forceConnectedState();
 }
 
-DTFcConfiguration::~DTFcConfiguration()
+DtfcConfiguration::~DtfcConfiguration()
 {
     delete ui;
 }

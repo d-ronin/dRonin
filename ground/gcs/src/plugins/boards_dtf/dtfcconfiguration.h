@@ -36,19 +36,19 @@
 #include "configtaskwidget.h"
 
 namespace Ui {
-class DTFcConfiguration;
+class DtfcConfiguration;
 }
 
-class DTFcConfiguration : public ConfigTaskWidget
+class DtfcConfiguration : public ConfigTaskWidget
 {
     Q_OBJECT
     
 public:
-    explicit DTFcConfiguration(QWidget *parent = 0);
-    ~DTFcConfiguration();
+    explicit DtfcConfiguration(QWidget *parent = 0);
+    ~DtfcConfiguration();
 
 private:
-    Ui::DTFcConfiguration *ui;
+    Ui::DtfcConfiguration *ui;
 
     QPixmap img;
 };

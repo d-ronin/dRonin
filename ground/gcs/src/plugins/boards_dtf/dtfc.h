@@ -38,11 +38,11 @@
 
 class IBoardType;
 
-class DTFc : public Core::IBoardType
+class Dtfc : public Core::IBoardType
 {
 public:
-    DTFc();
-    virtual ~DTFc();
+    Dtfc();
+    virtual ~Dtfc();
 
     virtual QString shortName();
     virtual QString boardDescription();
@@ -76,6 +76,12 @@ public:
      * @return Configuration widget handle or NULL on failure
      */
     QWidget *getBoardConfiguration(QWidget *parent, bool connected);
+
+    /**
+     * @brief getConnectionDiagram get the connection diagram for this board
+     * @return a string with the name of the resource for this board diagram
+     */
+    virtual QString getConnectionDiagram() { return ":/dtf/images/dtfc-connection.svg"; }
 
 };
 
