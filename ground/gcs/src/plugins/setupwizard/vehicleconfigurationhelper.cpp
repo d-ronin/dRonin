@@ -377,6 +377,7 @@ void VehicleConfigurationHelper::applyManualControlDefaults()
         channelType = ManualControlSettings::CHANNELGROUPS_PPM;
         break;
     case Core::IBoardType::INPUT_TYPE_SBUS:
+    case Core::IBoardType::INPUT_TYPE_SBUSNONINVERTED:
         channelType = ManualControlSettings::CHANNELGROUPS_SBUS;
         break;
     case Core::IBoardType::INPUT_TYPE_DSM:
@@ -386,7 +387,14 @@ void VehicleConfigurationHelper::applyManualControlDefaults()
     case Core::IBoardType::INPUT_TYPE_HOTTSUMH:
         channelType = ManualControlSettings::CHANNELGROUPS_HOTTSUM;
         break;
-    default:
+    case Core::IBoardType::INPUT_TYPE_IBUS:
+        channelType = ManualControlSettings::CHANNELGROUPS_IBUS;
+        break;
+    case Core::IBoardType::INPUT_TYPE_UNKNOWN:
+    case Core::IBoardType::INPUT_TYPE_DISABLED:
+        channelType = ManualControlSettings::CHANNELGROUPS_NONE;
+        break;
+    case Core::IBoardType::INPUT_TYPE_ANY:
         break;
     }
 

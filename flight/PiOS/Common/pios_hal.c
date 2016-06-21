@@ -389,6 +389,35 @@ static void PIOS_HAL_ConfigureSRXL(const struct pios_usart_cfg *usart_srxl_cfg,
 
 #endif // PIOS_INCLUDE_SRXL
 
+#ifdef PIOS_INCLUDE_IBUS
+/**
+ * @brief Configures an IBus receiver
+ *
+ * @param[in] usart_ibus_cfg Configuration for the USART for IBus
+ * @param[in] usart_port_params USART port parameters
+ * @param[in] usart_com_driver The COM driver for this USART
+ */
+static void PIOS_HAL_ConfigureIBus(const struct pios_usart_cfg *usart_ibus_cfg,
+		struct pios_usart_params *usart_port_params,
+		const struct pios_com_driver *usart_com_driver)
+{
+	uintptr_t usart_ibus_id;
+	if (PIOS_USART_Init(&usart_ibus_id, usart_ibus_cfg, usart_port_params))
+		PIOS_Assert(0);
+
+	uintptr_t ibus_id;
+	if (PIOS_IBus_Init(&ibus_id, usart_com_driver, usart_ibus_id))
+		PIOS_Assert(0);
+
+	uintptr_t ibus_rcvr_id;
+	if (PIOS_RCVR_Init(&ibus_rcvr_id, &pios_ibus_rcvr_driver, ibus_id))
+		PIOS_Assert(0);
+
+	PIOS_HAL_SetReceiver(MANUALCONTROLSETTINGS_CHANNELGROUPS_IBUS,
+			ibus_rcvr_id);
+}
+#endif
+
 /** @brief Configure a [flexi/main/rcvr/etc] port.
  *
  * Not all of these parameters will be defined for each port.  Caller may pass
@@ -711,6 +740,7 @@ void PIOS_HAL_ConfigurePort(HwSharedPortTypesOptions port_type,
 		PIOS_HAL_ConfigureCom(usart_port_cfg, &usart_port_params, PIOS_COM_TELEM_RF_RX_BUF_LEN, PIOS_COM_TELEM_RF_TX_BUF_LEN, com_driver, &port_driver_id);
 		target = &pios_com_telem_serial_id;
 		break;
+
 	case HWSHARED_PORTTYPES_SRXL:
 #if defined(PIOS_INCLUDE_SRXL)
 		if (usart_port_cfg) {
@@ -724,6 +754,21 @@ void PIOS_HAL_ConfigurePort(HwSharedPortTypesOptions port_type,
 			PIOS_HAL_ConfigureSRXL(usart_port_cfg, &usart_port_params, com_driver);
 		}
 #endif  /* PIOS_INCLUDE_SRXL */
+		break;
+
+	case HWSHARED_PORTTYPES_IBUS:
+#if defined(PIOS_INCLUDE_IBUS)
+		if (usart_port_cfg) {
+			usart_port_params.init.USART_BaudRate            = 115200;
+			usart_port_params.init.USART_WordLength          = USART_WordLength_8b;
+			usart_port_params.init.USART_Parity              = USART_Parity_No;
+			usart_port_params.init.USART_StopBits            = USART_StopBits_1;
+			usart_port_params.init.USART_HardwareFlowControl = USART_HardwareFlowControl_None;
+			usart_port_params.init.USART_Mode                = USART_Mode_Rx;
+
+			PIOS_HAL_ConfigureIBus(usart_port_cfg, &usart_port_params, com_driver);
+		}
+#endif  /* PIOS_INCLUDE_IBUS */
 		break;
 
 	} /* port_type */

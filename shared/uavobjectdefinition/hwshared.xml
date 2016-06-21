@@ -11,6 +11,7 @@
 				<option>S.Bus</option>
 				<option>S.Bus Non Inverted</option>
 				<option>SRXL</option>
+				<option>IBus</option>
 				<option>DebugConsole</option>
 				<option>ComBridge</option>
 				<option>MavLinkTX</option>

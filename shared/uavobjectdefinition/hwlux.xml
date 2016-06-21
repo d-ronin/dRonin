@@ -11,6 +11,7 @@
 				<option>S.Bus</option>
 				<option>S.Bus Non Inverted</option>
 				<option>SRXL</option>
+				<option>IBus</option>
 				<option>ComBridge</option>
 				<option>DebugConsole</option>
 				<option>FrSKY Sensor Hub</option>
@@ -49,6 +50,7 @@
 				<option>S.Bus Non Inverted</option>
 				<option>Storm32Bgc</option>
 				<option>Telemetry</option>
+				<option>IBus</option>
 			</options>
 		</field>
 
@@ -72,6 +74,7 @@
 				<option>S.Bus Non Inverted</option>
 				<option>Storm32Bgc</option>
 				<option>Telemetry</option>
+				<option>IBus</option>
 			</options>
 		</field>
 

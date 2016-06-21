@@ -43,6 +43,7 @@
 				<option>S.Bus Non Inverted</option>
 				<option>Storm32Bgc</option>
 				<option>Telemetry</option>
+				<option>IBus</option>
 			</options>
 		</field>
 
@@ -69,6 +70,7 @@
 				<option>S.Bus Non Inverted</option>
 				<option>Storm32Bgc</option>
 				<option>Telemetry</option>
+				<option>IBus</option>
 			</options>
 		</field>
 
@@ -95,6 +97,7 @@
 				<option>S.Bus Non Inverted</option>
 				<option>Storm32Bgc</option>
 				<option>Telemetry</option>
+				<option>IBus</option>
 			</options>
 		</field>
 
@@ -121,6 +124,7 @@
 				<option>S.Bus Non Inverted</option>
 				<option>Storm32Bgc</option>
 				<option>Telemetry</option>
+				<option>IBus</option>
 			</options>
 		</field>
 
@@ -146,6 +150,7 @@
 				<option>S.Bus Non Inverted</option>
 				<option>Storm32Bgc</option>
 				<option>Telemetry</option>
+				<option>IBus</option>
 			</options>
 		</field>
 
@@ -171,6 +176,7 @@
 				<option>S.Bus Non Inverted</option>
 				<option>Storm32Bgc</option>
 				<option>Telemetry</option>
+				<option>IBus</option>
 			</options>
 		</field>
 
