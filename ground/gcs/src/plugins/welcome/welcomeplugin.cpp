@@ -71,7 +71,11 @@ bool WelcomePlugin::initialize(const QStringList &arguments, QString *error_mess
     Q_UNUSED(arguments)
     Q_UNUSED(error_message)
 
-    m_welcomeMode = new WelcomeMode;
+    QSettings *qSettings = Core::ICore::instance()->settings();
+
+    QString instUUID = qSettings->value("Plugins/UsageStatsPlugin/data/UsageStatistics/InstallationUUID").toString();
+
+    m_welcomeMode = new WelcomeMode(instUUID);
     addObject(m_welcomeMode);
 
     return true;

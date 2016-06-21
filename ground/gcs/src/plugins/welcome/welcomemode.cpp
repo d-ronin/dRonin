@@ -69,13 +69,20 @@ WelcomeModePrivate::WelcomeModePrivate()
 }
 
 // ---  WelcomeMode
-WelcomeMode::WelcomeMode() :
+// instUUID is used to hash-- to determine if we're in the fraction of users
+// that should get a staggered announcement.  It may be bogus on first run,
+// but no big deal.
+WelcomeMode::WelcomeMode(QString instUUID) :
     m_d(new WelcomeModePrivate),
     m_priority(Core::Constants::P_MODE_WELCOME)
 {
     m_d->quickView = new QQuickView;
     m_d->quickView->setResizeMode(QQuickView::SizeRootObjectToView);
     m_d->quickView->engine()->rootContext()->setContextProperty("welcomePlugin", this);
+
+    m_d->quickView->engine()->rootContext()->setContextProperty("instHash", QVariant(qHash(instUUID)));
+
+    m_d->quickView->engine()->rootContext()->setContextProperty("gitHash", QVariant(Core::Constants::GCS_REVISION_SHORT_STR));
     QString fn = Utils::PathUtils().InsertDataPath(QString("%%DATAPATH%%/welcome/main.qml"));
     m_d->quickView->setSource(QUrl::fromLocalFile(fn));
     m_container = NULL;

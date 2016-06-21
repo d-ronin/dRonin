@@ -29,7 +29,7 @@
 #ifndef WELCOMEPLUGIN_H
 #define WELCOMEPLUGIN_H
 
-#include <extensionsystem/iplugin.h>
+#include <coreplugin/iconfigurableplugin.h>
 
 namespace Welcome {
 
