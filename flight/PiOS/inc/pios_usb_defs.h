@@ -348,6 +348,7 @@ enum usb_cdc_notification {
 #define USB_VENDOR_ID_OPENPILOT    USB_VENDOR_ID_CLAYLOGIC
 #define USB_VENDOR_ID_TAULABS      USB_VENDOR_ID_CLAYLOGIC
 #define USB_VENDOR_ID_PIDCODES     0x1209
+#define USB_VENDOR_ID_MCS          0x16D0
 
 /*
  * These USB Product IDs are allocated along with the purchase
@@ -382,8 +383,17 @@ enum usb_product_ids {
  * FOSS software stacks like this one.
  */
 enum usb_product_ids_pidcodes {
-	/* BroTronics boards */
 	USB_PRODUCT_ID_LUX            = 0xf3fc,
+} __attribute__((packed));
+
+
+/*
+ * MCS Electronics sells reserved, but not USB-approved PIDs under its revoked VID.
+ * More information is available at this URL:
+ * http://www.mcselec.com/index.php?page=shop.product_details&flypage=shop.flypage&product_id=92&category_id=20&option=com_phpshop&Itemid=1
+ */
+enum usb_product_id_mcs {
+	USB_PRODUCT_ID_DTFC           = 0xd7fc,
 } __attribute__((packed));
 
 enum usb_op_board_ids {

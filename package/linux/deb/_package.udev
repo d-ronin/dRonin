@@ -3,7 +3,7 @@
 #
 
 # OpenPilot Flight Control board
-KERNEL=="hidraw*", ATTRS{idVendor}=="20a0", ATTRS{idProduct}=="4117", MODE="0664", GROUP="plugdev"
+KERNEL=="hidraw*"KERNEL=="hidraw*", ATTRS{idVendor}=="20a0", ATTRS{idProduct}=="4117", MODE="0664", GROUP="plugdev"
 # OpenPilot OP board
 KERNEL=="hidraw*", ATTRS{idVendor}=="20a0", ATTRS{idProduct}=="415a", MODE="0664", GROUP="plugdev"
 # OpenPilot CopterControl flight control board
@@ -76,3 +76,10 @@ KERNEL=="hidraw*", ATTRS{idVendor}=="20a0", ATTRS{idProduct}=="4284", MODE="0664
 
 # Lumenier LUX flight controller
 KERNEL=="hidraw*", ATTRS{idVendor}=="1209", ATTRS{idProduct}=="f3fc", MODE="0664", GROUP="plugdev"
+
+#
+# DTFUHF
+#
+
+# DTFUHF DTFc flight controller
+KERNEL=="hidraw*", ATTRS{idVendor}=="16d0", ATTRS{idProduct}=="d7fc", MODE="0664", GROUP="plugdev"

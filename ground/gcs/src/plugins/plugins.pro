@@ -359,3 +359,11 @@ plugin_boards_dronin.depends = plugin_uavobjects
 plugin_boards_dronin.depends += plugin_uavobjectutil
 plugin_boards_dronin.depends += plugin_uavobjectwidgetutils
 SUBDIRS += plugin_boards_dronin
+
+# DTF UHF
+plugin_boards_dtf.subdir = boards_dtf
+plugin_boards_dtf.depends = plugin_coreplugin
+plugin_boards_dtf.depends += plugin_uavobjects
+plugin_boards_dtf.depends += plugin_uavobjectutil
+plugin_boards_dtf.depends += plugin_uavobjectwidgetutils
+SUBDIRS += plugin_boards_dtf
