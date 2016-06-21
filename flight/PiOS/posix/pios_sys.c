@@ -39,6 +39,7 @@
 #define _GNU_SOURCE
 #endif /* !defined(_GNU_SOURCE) */
 
+#include <unistd.h>
 #include "pios.h"
 
 #if defined(PIOS_INCLUDE_SYS)
