@@ -46,7 +46,6 @@
 #include "homelocation.h"
 #include "gpsposition.h"
 
-#include "../../../../../build/ground/gcs/gcsversioninfo.h"
 #include <coreplugin/coreconstants.h>
 
 #ifdef UAVOBJECTUTIL_DEBUG

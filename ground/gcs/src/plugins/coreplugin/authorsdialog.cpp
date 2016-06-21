@@ -63,14 +63,9 @@ AuthorsDialog::AuthorsDialog(QWidget *parent)
     QString version = QLatin1String(GCS_VERSION_LONG);
     version += QDate(2007, 25, 10).toString(Qt::SystemLocaleDate);
 
-#ifdef GCS_REVISION
-     //: This gets conditionally inserted as argument %8 into the description string.
-     ideRev = tr("From revision %1<br/>").arg(QString::fromLatin1(GCS_REVISION_STR).left(10));
-#endif
-
-     const QString description = tr(
-        "Proudly brought to you by this fine team:<br/>"
-        );
+    const QString description = tr(
+            "Proudly brought to you by this fine team:<br/>"
+            );
 
     QLabel *copyRightLabel = new QLabel(description);
     copyRightLabel->setWordWrap(true);

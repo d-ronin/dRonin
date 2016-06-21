@@ -35,7 +35,6 @@
 #include <extensionsystem/iplugin.h>
 #include "uavobjectutil/uavobjectutilmanager.h"
 #include "uavsettingsimportexport_global.h"
-#include "../../../../../build/ground/gcs/gcsversioninfo.h"
 #include "uavsettingsimportexportmanager.h"
 class UAVSETTINGSIMPORTEXPORT_EXPORT UAVSettingsImportExportPlugin : public ExtensionSystem::IPlugin
 {

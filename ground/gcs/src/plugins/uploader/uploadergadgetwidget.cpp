@@ -45,7 +45,6 @@
 #include <coreplugin/modemanager.h>
 #include <coreplugin/actionmanager/actionmanager.h>
 #include "rawhid/rawhidplugin.h"
-#include "../../../../../build/ground/gcs/gcsversioninfo.h"
 
 using namespace uploader;
 
