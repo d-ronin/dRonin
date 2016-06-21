@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ui version="4.0">
- <class>DTFcConfiguration</class>
- <widget class="QWidget" name="DTFcConfiguration">
+ <class>DtfcConfiguration</class>
+ <widget class="QWidget" name="DtfcConfiguration">
   <property name="geometry">
    <rect>
     <x>0</x>
@@ -105,7 +105,7 @@
                   <widget class="QComboBox" name="cmbRcvrPort">
                    <property name="objrelation" stdset="0">
                     <stringlist>
-                     <string>objname:HwDTFc</string>
+                     <string>objname:HwDtfc</string>
                      <string>fieldname:RcvrPort</string>
                      <string>buttongroup:1</string>
                     </stringlist>
@@ -153,7 +153,7 @@
                   <widget class="QComboBox" name="cmbUART2">
                    <property name="objrelation" stdset="0">
                     <stringlist notr="true">
-                     <string>objname:HwDTFc</string>
+                     <string>objname:HwDtfc</string>
                      <string>fieldname:Uart1</string>
                      <string>buttongroup:1</string>
                     </stringlist>
@@ -201,7 +201,7 @@
                   <widget class="QComboBox" name="cmbUART3">
                    <property name="objrelation" stdset="0">
                     <stringlist>
-                     <string>objname:HwDTFc</string>
+                     <string>objname:HwDtfc</string>
                      <string>fieldname:Uart2</string>
                      <string>buttongroup:1</string>
                     </stringlist>
@@ -353,7 +353,7 @@
             </property>
             <property name="objrelation" stdset="0">
              <stringlist>
-              <string>objname:HwDTFc</string>
+              <string>objname:HwDtfc</string>
               <string>fieldname:ICM20608G_AccelLPF</string>
               <string>buttongroup:1</string>
              </stringlist>
@@ -383,7 +383,7 @@
             </property>
             <property name="objrelation" stdset="0">
              <stringlist>
-              <string>objname:HwDTFc</string>
+              <string>objname:HwDtfc</string>
               <string>fieldname:AccelRange</string>
               <string>buttongroup:1</string>
              </stringlist>
@@ -436,7 +436,7 @@
             </property>
             <property name="objrelation" stdset="0">
              <stringlist>
-              <string>objname:HwDTFc</string>
+              <string>objname:HwDtfc</string>
               <string>fieldname:ICM20608G_GyroLPF</string>
               <string>buttongroup:1</string>
              </stringlist>
@@ -453,7 +453,7 @@
             </property>
             <property name="objrelation" stdset="0">
              <stringlist>
-              <string>objname:HwDTFc</string>
+              <string>objname:HwDtfc</string>
               <string>fieldname:USB_HIDPort</string>
               <string>buttongroup:1</string>
              </stringlist>
@@ -464,7 +464,7 @@
            <widget class="QComboBox" name="cmbDsmxMode">
             <property name="objrelation" stdset="0">
              <stringlist>
-              <string>objname:HwDTFc</string>
+              <string>objname:HwDtfc</string>
               <string>fieldname:DSMxMode</string>
               <string>buttongroup:1</string>
              </stringlist>
@@ -481,7 +481,7 @@
             </property>
             <property name="objrelation" stdset="0">
              <stringlist>
-              <string>objname:HwDTFc</string>
+              <string>objname:HwDtfc</string>
               <string>fieldname:GyroRange</string>
               <string>buttongroup:1</string>
              </stringlist>
@@ -498,7 +498,7 @@
             </property>
             <property name="objrelation" stdset="0">
              <stringlist>
-              <string>objname:HwDTFc</string>
+              <string>objname:HwDtfc</string>
               <string>fieldname:USB_VCPPort</string>
               <string>buttongroup:1</string>
              </stringlist>
@@ -557,7 +557,7 @@
             </property>
             <property name="objrelation" stdset="0">
              <stringlist>
-              <string>objname:HwDTFc</string>
+              <string>objname:HwDtfc</string>
               <string>fieldname:ICM20608G_Rate</string>
               <string>buttongroup:1</string>
              </stringlist>

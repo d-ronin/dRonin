@@ -1,8 +1,9 @@
 <xml>
-	<object name="HwDTFc" singleinstance="true" settings="true" category="HardwareSettings">
+	<object name="HwDtfc" singleinstance="true" settings="true" category="HardwareSettings">
 		<description>Selection of optional hardware configurations.</description>
 
 		<field name="RcvrPort" units="function" type="enum" elements="1" parent="HwShared.PortTypes" defaultvalue="PPM">
+			<description>The port labelled "UART3", with pins labelled "PPMRX" and "TX".</description>
 			<options>
 				<option>Disabled</option>
 				<option>PPM</option>
@@ -27,6 +28,7 @@
 		</field>
 
 		<field name="Uart1" units="function" type="enum" elements="1" parent="HwShared.PortTypes" defaultvalue="Disabled">
+			<description>The "RX" and "TX" pins near the centre of the board. These can be used for stacking OSDoge.</description>
 			<options>
 				<option>Disabled</option>
 				<option>Telemetry</option>
@@ -50,6 +52,7 @@
 		</field>
 		
 		<field name="Uart2" units="function" type="enum" elements="1" parent="HwShared.PortTypes" defaultvalue="Disabled">
+			<description>The port labelled "UART2".</description>
 			<options>
 				<option>Disabled</option>
 				<option>Telemetry</option>
@@ -84,15 +87,60 @@
 
 		<field name="DSMxMode" units="mode" type="enum" elements="1" parent="HwShared.DSMxMode" defaultvalue="Autodetect"/>
 
-        <field name="GyroRange" units="deg/s" type="enum" elements="1" options="250,500,1000,2000" defaultvalue="2000"/>
-        <field name="AccelRange" units="*gravity m/s^2" type="enum" elements="1" options="2G,4G,8G,16G" defaultvalue="8G"/>
-        <field name="ICM20608G_Rate" units="Hz" type="enum" elements="1" options="200,250,333,500,1000" defaultvalue="1000"/>
-        <field name="ICM20608G_GyroLPF" units="Hz" type="enum" elements="1" options="176,92,41,20,10,5" defaultvalue="176"/>
-        <field name="ICM20608G_AccelLPF" units="Hz" type="enum" elements="1" options="218,99,45,21,10,5" defaultvalue="99"/>
+		<field name="GyroRange" units="deg/s" type="enum" elements="1" defaultvalue="2000">
+			<description>Maximum measurement range for the gyros, should never rotate faster than about 85% of this.</description>
+			<options>
+				<option>250</option>
+				<option>500</option>
+				<option>1000</option>
+				<option>2000</option>
+			</options>
+		</field>
+		<field name="AccelRange" units="*gravity m/s^2" type="enum" elements="1" defaultvalue="8G">
+			<description>The maximum measure range for the accelerometers, should never exceed this.</description>
+			<options>
+				<option>2G</option>
+				<option>4G</option>
+				<option>8G</option>
+				<option>16G</option>
+			</options>
+		</field>
+		<field name="ICM20608G_Rate" units="Hz" type="enum" elements="1" defaultvalue="1000">
+			<description>The gyro sampling rate.</description>
+			<options>
+				<option>200</option>
+				<option>250</option>
+				<option>333</option>
+				<option>500</option>
+				<option>1000</option>
+			</options>
+		</field>
+		<field name="ICM20608G_GyroLPF" units="Hz" type="enum" elements="1" defaultvalue="176">
+			<description>Gyro filter cutoff frequency.</description>
+			<options>
+				<option>176</option>
+				<option>92</option>
+				<option>41</option>
+				<option>20</option>
+				<option>10</option>
+				<option>5</option>
+			</options>
+		</field>
+		<field name="ICM20608G_AccelLPF" units="Hz" type="enum" elements="1" defaultvalue="99">
+			<description>Accelerometer filter cutoff frequency.</description>
+			<options>
+				<option>218</option>
+				<option>99</option>
+				<option>45</option>
+				<option>21</option>
+				<option>10</option>
+				<option>5</option>
+			</options>
+		</field>
 
 		<access gcs="readwrite" flight="readwrite"/>
 		<telemetrygcs acked="true" updatemode="onchange" period="0"/>
 		<telemetryflight acked="true" updatemode="onchange" period="0"/>
 		<logging updatemode="manual" period="0"/>
-    </object>
+	</object>
 </xml>

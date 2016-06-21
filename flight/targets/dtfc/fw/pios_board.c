@@ -121,7 +121,7 @@ void PIOS_Board_Init(void)
 	PIOS_RESET_Clear(); // Clear the RCC reset flags after use.
 
 	/* Initialize the hardware UAVOs */
-	HwDTFcInitialize();
+	HwDtfcInitialize();
 	ModuleSettingsInitialize();
 
 #if defined(PIOS_INCLUDE_RTC)
@@ -155,7 +155,7 @@ void PIOS_Board_Init(void)
 		AlarmsClear(SYSTEMALARMS_ALARM_BOOTFAULT);
 	} else {
 		/* Too many failed boot attempts, force hw config to defaults */
-		HwDTFcSetDefaults(HwDTFcHandle(), 0);
+		HwDtfcSetDefaults(HwDtfcHandle(), 0);
 		ModuleSettingsSetDefaults(ModuleSettingsHandle(), 0);
 		AlarmsSet(SYSTEMALARMS_ALARM_BOOTFAULT, SYSTEMALARMS_ALARM_CRITICAL);
 	}
@@ -186,9 +186,9 @@ void PIOS_Board_Init(void)
 
 #if defined(PIOS_INCLUDE_USB_CDC)
 
-	HwDTFcUSB_VCPPortOptions hw_usb_vcpport;
+	HwDtfcUSB_VCPPortOptions hw_usb_vcpport;
 	/* Configure the USB VCP port */
-	HwDTFcUSB_VCPPortGet(&hw_usb_vcpport);
+	HwDtfcUSB_VCPPortGet(&hw_usb_vcpport);
 
 	if (!usb_cdc_present) {
 		/* Force VCP port function to disabled if we haven't advertised VCP in our USB descriptor */
@@ -200,8 +200,8 @@ void PIOS_Board_Init(void)
 
 #if defined(PIOS_INCLUDE_USB_HID)
 	/* Configure the usb HID port */
-	HwDTFcUSB_HIDPortOptions hw_usb_hidport;
-	HwDTFcUSB_HIDPortGet(&hw_usb_hidport);
+	HwDtfcUSB_HIDPortOptions hw_usb_hidport;
+	HwDtfcUSB_HIDPortGet(&hw_usb_hidport);
 
 	if (!usb_hid_present) {
 		/* Force HID port function to disabled if we haven't advertised HID in our USB descriptor */
@@ -215,11 +215,11 @@ void PIOS_Board_Init(void)
 
 	/* Configure the IO ports */
 	HwSharedDSMxModeOptions hw_DSMxMode;
-	HwDTFcDSMxModeGet(&hw_DSMxMode);
+	HwDtfcDSMxModeGet(&hw_DSMxMode);
 
 	/* Configure the rcvr port */
 	HwSharedPortTypesOptions hw_rcvrport;
-	HwDTFcRcvrPortGet(&hw_rcvrport);
+	HwDtfcRcvrPortGet(&hw_rcvrport);
 	PIOS_HAL_ConfigurePort(hw_rcvrport, // port_type
 						&pios_uart3_usart_cfg, // usart_port_cfg
 						&pios_usart_com_driver, // com_driver
@@ -234,7 +234,7 @@ void PIOS_Board_Init(void)
 	
 	/* Configure Uart1 */
 	HwSharedPortTypesOptions hw_uart1;
-	HwDTFcUart1Get(&hw_uart1);
+	HwDtfcUart1Get(&hw_uart1);
 	PIOS_HAL_ConfigurePort(hw_uart1, // port_type
 						&pios_uart1_usart_cfg, // usart_port_cfg
 						&pios_usart_com_driver, // com_driver
@@ -249,7 +249,7 @@ void PIOS_Board_Init(void)
 	
 	/* Configure Uart2 */
 	HwSharedPortTypesOptions hw_uart2;
-	HwDTFcUart2Get(&hw_uart2);
+	HwDtfcUart2Get(&hw_uart2);
 	PIOS_HAL_ConfigurePort(hw_uart2, // port_type
 						&pios_uart2_usart_cfg, // usart_port_cfg
 						&pios_usart_com_driver, // com_driver
@@ -315,8 +315,8 @@ void PIOS_Board_Init(void)
 	if (PIOS_MPU_SPI_Init(&mpu_dev, pios_spi_gyro_id, 0, &pios_mpu_cfg) != 0)
 		PIOS_HAL_Panic(PIOS_LED_ALARM, PIOS_HAL_PANIC_IMU);
 
-	HwDTFcGyroRangeOptions hw_gyro_range;
-	HwDTFcGyroRangeGet(&hw_gyro_range);
+	HwDtfcGyroRangeOptions hw_gyro_range;
+	HwDtfcGyroRangeGet(&hw_gyro_range);
 	switch(hw_gyro_range) {
 		case HWDTFC_GYRORANGE_250:
 			PIOS_MPU_SetGyroRange(PIOS_MPU_SCALE_250_DEG);
@@ -332,8 +332,8 @@ void PIOS_Board_Init(void)
 			break;
 	}
 
-	HwDTFcAccelRangeOptions hw_accel_range;
-	HwDTFcAccelRangeGet(&hw_accel_range);
+	HwDtfcAccelRangeOptions hw_accel_range;
+	HwDtfcAccelRangeGet(&hw_accel_range);
 	switch(hw_accel_range) {
 		case HWDTFC_ACCELRANGE_2G:
 			PIOS_MPU_SetAccelRange(PIOS_MPU_SCALE_2G);
@@ -350,8 +350,8 @@ void PIOS_Board_Init(void)
 	}
 
 	// the filter has to be set before rate else divisor calculation will fail
-	HwDTFcICM20608G_GyroLPFOptions hw_mpu_gyro_dlpf;
-	HwDTFcICM20608G_GyroLPFGet(&hw_mpu_gyro_dlpf);
+	HwDtfcICM20608G_GyroLPFOptions hw_mpu_gyro_dlpf;
+	HwDtfcICM20608G_GyroLPFGet(&hw_mpu_gyro_dlpf);
 	uint16_t gyro_bandwidth =
 		(hw_mpu_gyro_dlpf == HWDTFC_ICM20608G_GYROLPF_176) ? 176 :
 		(hw_mpu_gyro_dlpf == HWDTFC_ICM20608G_GYROLPF_92)  ?  92 :
@@ -362,8 +362,8 @@ void PIOS_Board_Init(void)
 		176;
 	PIOS_MPU_SetGyroBandwidth(gyro_bandwidth);
 
-	HwDTFcICM20608G_AccelLPFOptions hw_mpu_accel_dlpf;
-	HwDTFcICM20608G_AccelLPFGet(&hw_mpu_accel_dlpf);
+	HwDtfcICM20608G_AccelLPFOptions hw_mpu_accel_dlpf;
+	HwDtfcICM20608G_AccelLPFGet(&hw_mpu_accel_dlpf);
 	uint16_t acc_bandwidth = 
 		(hw_mpu_accel_dlpf = HWDTFC_ICM20608G_ACCELLPF_218) ? 218 :
 		(hw_mpu_accel_dlpf = HWDTFC_ICM20608G_ACCELLPF_99)  ?  99 :
@@ -374,8 +374,8 @@ void PIOS_Board_Init(void)
 		218;
 	PIOS_MPU_SetAccelBandwidth(acc_bandwidth);
 
-	HwDTFcICM20608G_RateOptions hw_mpu_samplerate;
-	HwDTFcICM20608G_RateGet(&hw_mpu_samplerate);
+	HwDtfcICM20608G_RateOptions hw_mpu_samplerate;
+	HwDtfcICM20608G_RateGet(&hw_mpu_samplerate);
 	uint16_t mpu_samplerate =
 		(hw_mpu_samplerate == HWDTFC_ICM20608G_RATE_200)  ?  200 :
 		(hw_mpu_samplerate == HWDTFC_ICM20608G_RATE_250)  ?  250 :

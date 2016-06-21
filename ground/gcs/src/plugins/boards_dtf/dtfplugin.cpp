@@ -59,7 +59,7 @@ void DTFPlugin::extensionsInitialized()
      * Create the board objects here.
      *
      */
-    DTFc* dtfc = new DTFc();
+    Dtfc* dtfc = new Dtfc();
     addAutoReleasedObject(dtfc);
 
 }

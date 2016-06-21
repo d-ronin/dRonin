@@ -38,11 +38,11 @@
 
 class IBoardType;
 
-class DTFc : public Core::IBoardType
+class Dtfc : public Core::IBoardType
 {
 public:
-    DTFc();
-    virtual ~DTFc();
+    Dtfc();
+    virtual ~Dtfc();
 
     virtual QString shortName();
     virtual QString boardDescription();
