@@ -33,9 +33,9 @@
 #ifdef PIOS_INCLUDE_IBUS
 
 // private
-#define PIOS_IBUS_CHANNELS 8
-// 1 sync byte, 1 unknown byte, 8x channels (uint16_t), 12 unknown bytes, 2 crc bytes
-#define PIOS_IBUS_BUFLEN (1 + 1 + PIOS_IBUS_CHANNELS * 2 + 12 + 2)
+#define PIOS_IBUS_CHANNELS 10
+// 1 sync byte, 1 unknown byte, 10x channels (uint16_t), 8 unknown bytes, 2 crc bytes
+#define PIOS_IBUS_BUFLEN (1 + 1 + PIOS_IBUS_CHANNELS * 2 + 8 + 2)
 #define PIOS_IBUS_SYNCBYTE 0x20
 #define PIOS_IBUS_MAGIC 0x84fd9a39
 
