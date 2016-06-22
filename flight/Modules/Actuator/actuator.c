@@ -55,6 +55,9 @@
 #include "pios_thread.h"
 #include "pios_queue.h"
 #include "misc_math.h"
+#include "triflight.h"
+#include "triflightsettings.h"
+#include "triflightstatus.h"
 
 // Private constants
 #define MAX_QUEUE_SIZE 2
@@ -83,12 +86,17 @@ static bool manualControlCommandUpdated = true;
 // set true to ensure they're fetched on first run
 static volatile bool actuator_settings_updated = true;
 static volatile bool mixer_settings_updated = true;
+static volatile bool triflight_settings_updated = true;
 
 // The actual mixer settings data, pulled at the top of the actuator thread
 static MixerSettingsData mixerSettings;
 
 // Ditto, for the actuator settings.
 static ActuatorSettingsData actuatorSettings;
+
+// Ditto, for triflight settings and status
+static TriflightSettingsData triflightSettings;
+static TriflightStatusData   triflightStatus;
 
 // Private functions
 static void actuator_task(void* parameters);
@@ -140,6 +148,12 @@ int32_t ActuatorInitialize()
 	}
 	MixerSettingsConnectCallbackCtx(UAVObjCbSetFlag, &mixer_settings_updated);
 
+	// Register for notifications of changes to TriFlightSettings
+	if (TriflightSettingsInitialize() == -1) {
+		return -1;
+	}
+	TriflightSettingsConnectCallbackCtx(UAVObjCbSetFlag, &triflight_settings_updated);
+
 	// Listen for ActuatorDesired updates (Primary input to this module)
 	if (ActuatorDesiredInitialize()  == -1) {
 		return -1;
@@ -150,6 +164,10 @@ int32_t ActuatorInitialize()
 
 	// Primary output of this module
 	if (ActuatorCommandInitialize() == -1) {
+		return -1;
+	}
+
+	if (TriflightStatusInitialize() == -1) {
 		return -1;
 	}
 
@@ -252,11 +270,72 @@ static void actuator_task(void* parameters)
 			actuator_settings_updated = false;
 			ActuatorSettingsGet(&actuatorSettings);
 			actuator_set_servo_mode();
+
+			triflight_settings_updated = true;
 		}
+
 		if (mixer_settings_updated) {
 			mixer_settings_updated = false;
 			MixerSettingsGet(&mixerSettings);
 			SystemSettingsAirframeTypeGet(&airframe_type);
+
+			triflight_settings_updated = true;
+		}
+
+		if (triflight_settings_updated) {
+			triflight_settings_updated = false;
+
+			TriflightSettingsGet(&triflightSettings);
+
+			if ((triflightSettings.UseTriFlight == 1) && (airframe_type == SYSTEMSETTINGS_AIRFRAMETYPE_TRI))
+			{
+				// Find which output channel is yaw servo
+				for (uint8_t channel = 0; channel < ACTUATORCOMMAND_CHANNEL_NUMELEM; channel++) {
+					if (get_mixer_type(channel) == MIXERSETTINGS_MIXER1TYPE_SERVO)
+					{
+						triflightStatus.ServoChannel = channel;
+						break;
+					}
+				}
+
+				// Find which output is rear motor
+				for (uint8_t channel = 0; channel < ACTUATORCOMMAND_CHANNEL_NUMELEM; channel++) {
+					if (get_mixer_type(channel) == MIXERSETTINGS_MIXER1TYPE_MOTOR)
+					{
+						typeof(mixerSettings.Mixer1Vector) *vector = get_mixer_vec(channel);
+
+						if ((*vector)[MIXERSETTINGS_MIXER1VECTOR_ROLL] == 0)
+						{
+							triflightStatus.RearMotorChannel = channel;
+							break;
+						}
+					}
+				}
+
+				// Find which output channel is yaw servo
+				triflightStatus.BuzzerChannel = 255;
+
+				for (uint8_t channel = 0; channel < ACTUATORSETTINGS_CHANNELTYPE_NUMELEM; channel++) {
+					if (actuatorSettings.ChannelType[channel] == ACTUATORSETTINGS_CHANNELTYPE_PWMALARM)
+					{
+						triflightStatus.BuzzerChannel = channel;
+						break;
+					}
+				}
+
+				// Call TriFlight Initialization
+				triflightInit(&actuatorSettings, &triflightSettings, &triflightStatus);
+
+				// Set TriFlight Initialized
+				triflightStatus.Initialized = 1;
+			}
+			else
+			{
+				// Set TriFlight Uninitialized
+				triflightStatus.Initialized = 0;
+			}
+
+			TriflightStatusSet(&triflightStatus);
 		}
 
 		if (rc != true) {
@@ -323,7 +402,7 @@ static void actuator_task(void* parameters)
 			throttle_source = desired.Thrust;
 		}
 
-		bool stabilize_now = armed && (throttle_source > 0.0f);
+		bool stabilize_now = armed && throttle_source > 0.0f;
 
 		static uint32_t last_pos_throttle_time = 0;
 
@@ -439,6 +518,74 @@ static void actuator_task(void* parameters)
 			}
 
 			command.Channel[ct] = scale_channel(status[ct], ct);
+		}
+
+		if (triflightStatus.Initialized == 1)
+		{
+			triflightStatus.UncorrectedServoCmd = command.Channel[triflightStatus.ServoChannel];
+
+			command.Channel[triflightStatus.ServoChannel] = getCorrectedServoValue(&actuatorSettings,
+                                                                                   &triflightSettings,
+                                                                                   &triflightStatus,
+                                                                                   command.Channel[triflightStatus.ServoChannel]);
+
+			// Make sure corrected servo command with in PWM range after correction is applied
+			if (actuatorSettings.ChannelMin[triflightStatus.ServoChannel] < actuatorSettings.ChannelMax[triflightStatus.ServoChannel])
+				command.Channel[triflightStatus.ServoChannel] = bound_min_max(command.Channel[triflightStatus.ServoChannel],
+				                                                              actuatorSettings.ChannelMin[triflightStatus.ServoChannel],
+				                                                              actuatorSettings.ChannelMax[triflightStatus.ServoChannel]);
+			else
+				command.Channel[triflightStatus.ServoChannel] = bound_min_max(command.Channel[triflightStatus.ServoChannel],
+				                                                              actuatorSettings.ChannelMax[triflightStatus.ServoChannel],
+				                                                              actuatorSettings.ChannelMin[triflightStatus.ServoChannel]);
+
+			triflightStatus.CorrectedServoCmd = command.Channel[triflightStatus.ServoChannel];
+
+			if ((triflightSettings.VirtualServo == 1) || (triflightSettings.ServoFdbkPin == TRIFLIGHTSETTINGS_SERVOFDBKPIN_NONE))
+				triflightStatus.ServoAngle = virtualServoStep(&actuatorSettings,
+				                                              &triflightSettings,
+				                                              &triflightStatus,
+				                                              dT,
+				                                              command.Channel[triflightStatus.ServoChannel]);
+			else
+#if !defined(ARCH_POSIX) && !defined(ARCH_WIN32)
+				feedbackServoStep(&triflightSettings, &triflightStatus, dT);
+#else
+				triflightStatus.ServoAngle = 90.0f;
+#endif
+
+			// Compute tail motor correction based on throttle input range of 0-1
+			triflightStatus.MotorCorrection = triGetMotorCorrection(&actuatorSettings,
+			                                                        &triflightSettings,
+			                                                        &triflightStatus,
+			                                                        command.Channel[triflightStatus.ServoChannel],
+			                                                        curve1);
+
+			// Scale tail motor correction to tail motor PWM range, 0 based
+			triflightStatus.MotorCorrection = scale_channel(triflightStatus.MotorCorrection,
+			                                                triflightStatus.RearMotorChannel) - actuatorSettings.ChannelNeutral[triflightStatus.RearMotorChannel];
+
+			if (armed) {
+				// Add in tail motor correciton
+				command.Channel[triflightStatus.RearMotorChannel] += triflightStatus.MotorCorrection;
+
+				// Make sure corrected motor command with in PWM range after correction is applied
+				command.Channel[triflightStatus.RearMotorChannel] = bound_min_max(command.Channel[triflightStatus.RearMotorChannel],
+				                                                                  actuatorSettings.ChannelMin[triflightStatus.RearMotorChannel],
+				                                                                  actuatorSettings.ChannelMax[triflightStatus.RearMotorChannel]);
+			}
+
+#if !defined(ARCH_POSIX) && !defined(ARCH_WIN32)
+			triTailTuneStep(&actuatorSettings,
+			                &flightStatus,
+                            &triflightSettings,
+                            &triflightStatus,
+                            &command.Channel[triflightStatus.ServoChannel],
+                            armed,
+                            dT);
+#endif
+
+			TriflightStatusSet(&triflightStatus);
 		}
 
 		// Store update time
@@ -601,6 +748,9 @@ static void set_failsafe()
 
 static bool set_channel(uint8_t mixer_channel, float value)
 {
+	FlightStatusData flightStatus;
+	FlightStatusGet(&flightStatus);
+
 	switch (actuatorSettings.ChannelType[mixer_channel]) {
 	case ACTUATORSETTINGS_CHANNELTYPE_PWMALARM:
 	case ACTUATORSETTINGS_CHANNELTYPE_ARMINGLED:
@@ -701,8 +851,11 @@ static bool set_channel(uint8_t mixer_channel, float value)
 				lastSysTime = thisSysTime;
 			}
 		}
-		PIOS_Servo_Set(mixer_channel,
-					buzzOn ? actuatorSettings.ChannelMax[mixer_channel] : actuatorSettings.ChannelMin[mixer_channel]);
+
+		if (flightStatus.FlightMode != FLIGHTSTATUS_FLIGHTMODE_TAILTUNE)
+			PIOS_Servo_Set(mixer_channel,
+					       buzzOn ? actuatorSettings.ChannelMax[mixer_channel] :
+						            actuatorSettings.ChannelMin[mixer_channel]);
 		return true;
 	}
 	case ACTUATORSETTINGS_CHANNELTYPE_PWM:
