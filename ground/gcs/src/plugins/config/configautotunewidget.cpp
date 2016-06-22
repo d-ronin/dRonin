@@ -128,7 +128,7 @@ QString ConfigAutotuneWidget::systemIdentValid(SystemIdent::DataFields &data,
         // Invalid / no tune.
 
         *okToContinue = false;
-        return tr("<font color=\"crimson\">It doesn't appear an autotune was successfully completed and saved; we are unable to continue.</font>");
+        return tr("<span style=\"color: red\">It doesn't appear an autotune was successfully completed and saved; we are unable to continue.</span>");
     }
 
     QString retVal;
@@ -186,7 +186,7 @@ QString ConfigAutotuneWidget::systemIdentValid(SystemIdent::DataFields &data,
         *okToContinue = false;
     }
 
-    retVal.replace(QRegExp("(\\w+:)"), "<font color=\"crimson\"><b>\\1</b></font>");
+    retVal.replace(QRegExp("(\\w+:)"), "<span style=\"color: red\"><b>\\1</b></span>");
 
     if (*okToContinue) {
         if (retVal.isEmpty()) {
@@ -699,7 +699,7 @@ void AutotuneSlidersPage::compute()
 
     // handle non-convergence case.  Takes precedence over all else.
     if (!converged) {
-        lblWarnings->setText(tr("<font color=\"red\">Error:</font> Tune didn't converge!  Check noise and damping sliders."));
+        lblWarnings->setText(tr("<span style=\"color: red\">Error:</span> Tune didn't converge!  Check noise and damping sliders."));
     }
 
     emit completeChanged();
