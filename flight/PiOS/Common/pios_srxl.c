@@ -143,6 +143,21 @@ const struct pios_rcvr_driver pios_srxl_rcvr_driver = {
 
 /* Implementation */
 
+/* byte-ordering macros */
+#define ntohl(v) (				\
+	(((v) & 0xFF000000) >> 24) |		\
+	(((v) & 0x00FF0000) >>  8) |		\
+	(((v) & 0x0000FF00) <<  8) |		\
+	(((v) & 0x000000FF) << 24))
+
+#define ntohs(v) (				\
+	(((v) & 0xFF00) >> 8) |			\
+	(((v) & 0x00FF) << 8))
+
+#define htonl(v) ntohl((v))
+
+#define htons(v) ntohs((v))
+
 int32_t PIOS_SRXL_Init(uintptr_t *srxl_id,
 	const struct pios_com_driver *driver, uintptr_t lower_id)
 {
