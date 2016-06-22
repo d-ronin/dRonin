@@ -11,6 +11,7 @@
 				<option>DebugConsole</option>
 				<option>ComBridge</option>
 				<option>GPS</option>
+				<option>SRXL</option>
 				<option>S.Bus</option>
 				<option>S.Bus Non Inverted</option>
 				<option>DSM</option>
@@ -24,6 +25,7 @@
 				<option>OpenLog</option>
 				<option>HoTT SUMD</option>
 				<option>HoTT SUMH</option>
+				<option>IBus</option>
 			</options>
 		</field>
 
@@ -35,6 +37,7 @@
 				<option>DebugConsole</option>
 				<option>ComBridge</option>
 				<option>GPS</option>
+				<option>SRXL</option>
 				<option>S.Bus</option>
 				<option>S.Bus Non Inverted</option>
 				<option>DSM</option>
@@ -48,6 +51,7 @@
 				<option>OpenLog</option>
 				<option>HoTT SUMD</option>
 				<option>HoTT SUMH</option>
+				<option>IBus</option>
 			</options>
 		</field>
 		
@@ -59,6 +63,7 @@
 				<option>DebugConsole</option>
 				<option>ComBridge</option>
 				<option>GPS</option>
+				<option>SRXL</option>
 				<option>S.Bus</option>
 				<option>S.Bus Non Inverted</option>
 				<option>DSM</option>
@@ -72,6 +77,7 @@
 				<option>OpenLog</option>
 				<option>HoTT SUMD</option>
 				<option>HoTT SUMH</option>
+				<option>IBus</option>
 			</options>
 		</field>
 
