@@ -8,6 +8,58 @@ Item {
 
     signal clicked(string url)
 
+    // If we set this to visible, preempt / draw over github activity.
+    Rectangle {
+        color: "#efefef"
+        id: upgradeRect
+        Text {
+            id: upgradeInfo
+            text: ""
+            wrapMode: Text.Wrap
+
+            width: parent.width
+            anchors { top: parent.top; bottom: parent.bottom }
+            onLinkActivated: Qt.openUrlExternally(link)
+        }
+
+        visible: false
+
+        function request(url, callback) {
+            var xhr = new XMLHttpRequest();
+            xhr.onreadystatechange = (function(myxhr) {
+                    return function() {
+                    callback(myxhr);
+                    }
+                    })(xhr);
+            xhr.open('GET', url, true);
+            xhr.send('');
+        }
+
+        Component.onCompleted: {
+            request('http://dronin.org/relAnnounce/' + gitHash + '.json', function (o) {
+                if (o.readyState != 4) {
+                    return;
+                }
+
+                if (o.status != 200) {
+                    return;
+                }
+
+                var d = JSON.parse(o.responseText);
+
+                if ((instHash % 997) < d.thresh) {
+                    upgradeInfo.text = d.text;
+                    upgradeRect.visible = true;
+                    view.visible = false;
+                }
+            })
+        }
+
+        width: parent.width
+        z: 100
+        anchors { top: parent.top; bottom: parent.bottom }
+    }
+
     Text {
         id: header
         text: "GitHub Activity"
@@ -21,7 +73,7 @@ Item {
 
     ListView {
         id: view
-        width: parent.width
+        width: parent.width - 2
         anchors { top: header.bottom; topMargin: 14; bottom: parent.bottom }
         model: xmlModel
         delegate: listDelegate
@@ -47,7 +99,7 @@ Item {
     Component {
         id: listDelegate
         Item  {
-            width: view.width
+            width: view.width - 2
             height: column.height + 8
 
             MouseArea {

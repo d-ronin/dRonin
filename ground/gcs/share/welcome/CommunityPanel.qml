@@ -13,7 +13,7 @@ Item {
         source: "images/welcome-news-bg.png"
     }
 
-    GitHubNewsPanel {
+    NewsPanel {
         id: gitHubNewsPanel
         anchors.left: parent.left
         anchors.top: parent.top

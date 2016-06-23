@@ -31,6 +31,8 @@
 #ifndef CORECONSTANTS_H
 #define CORECONSTANTS_H
 
+#include "../../../../../build/ground/gcs/gcsversioninfo.h"
+
 namespace Core {
 namespace Constants {
 

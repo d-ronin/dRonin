@@ -49,7 +49,7 @@ class WELCOME_EXPORT WelcomeMode : public Core::IMode
     Q_OBJECT
 
 public:
-    WelcomeMode();
+    WelcomeMode(QString instUUID);
     ~WelcomeMode();
 
     // IMode

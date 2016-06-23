@@ -52,7 +52,6 @@
 #include "uavdataobject.h"
 #include "uavmetaobject.h"
 #include "uavobjectutil/uavobjectutilmanager.h"
-#include "../../../../../build/ground/gcs/gcsversioninfo.h"
 #include <coreplugin/coreconstants.h>
 #include <coreplugin/generalsettings.h>
 #include <QMenu>
