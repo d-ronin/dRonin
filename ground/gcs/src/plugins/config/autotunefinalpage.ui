@@ -17,12 +17,28 @@
    <item>
     <widget class="QLabel" name="lblCongrats">
      <property name="text">
-      <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Congratulations! You've reached the end of the Autotune process.&lt;/p&gt;&lt;p&gt;By clicking the "Finish" button, the values calculated in the previous step will be saved to the board. &lt;/p&gt;&lt;p&gt;In addition, if you select the sharing checkbox, the vehicle data will be shared with the dRonin Cloud Service.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+      <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Congratulations! You've reached the end of the Autotune process.&lt;/p&gt;&lt;p&gt;By clicking the &quot;Finish&quot; button, the values calculated in the previous step will be saved to the board. &lt;/p&gt;&lt;p&gt;In addition, if you select the sharing checkbox, the vehicle data will be shared with the dRonin Cloud Service.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
      </property>
      <property name="wordWrap">
       <bool>true</bool>
      </property>
     </widget>
+   </item>
+   <item>
+    <spacer name="verticalSpacer">
+     <property name="orientation">
+      <enum>Qt::Vertical</enum>
+     </property>
+     <property name="sizeType">
+      <enum>QSizePolicy::MinimumExpanding</enum>
+     </property>
+     <property name="sizeHint" stdset="0">
+      <size>
+       <width>20</width>
+       <height>5</height>
+      </size>
+     </property>
+    </spacer>
    </item>
    <item>
     <widget class="QGroupBox" name="shareBox">
