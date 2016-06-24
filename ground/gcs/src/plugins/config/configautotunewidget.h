@@ -29,6 +29,9 @@
 #define CONFIGAUTOTUNE_H
 
 #include "ui_autotune.h"
+#include "ui_autotuneproperties.h"
+#include "ui_autotunesliders.h"
+#include "ui_autotunefinalpage.h"
 #include "../uavobjectwidgetutils/configtaskwidget.h"
 #include "extensionsystem/pluginmanager.h"
 #include "uavobjectmanager.h"
@@ -38,9 +41,79 @@
 #include "systemident.h"
 #include <QWidget>
 #include <QTimer>
+#include <QWizardPage>
 #include <QtNetwork/QNetworkReply>
-#include "autotuneshareform.h"
+
 #include "configgadgetwidget.h"
+
+struct AutotunedValues
+{
+    // Inputs
+    float damping;
+    float noiseSens;
+
+    // Computation status
+    bool converged;
+    int iterations;
+
+    // Results...
+    // -1 means "not calculated"; (don't change)
+    float kp[3];
+    float ki[3];
+    float kd[3];
+
+    float derivativeCutoff;
+    float naturalFreq;
+
+    float outerKp;
+    float outerKi;
+};
+
+class AutotuneMeasuredPropertiesPage : public QWizardPage,
+        private Ui::AutotuneProperties
+{
+    Q_OBJECT
+
+public:
+    explicit AutotuneMeasuredPropertiesPage(QWidget *parent,
+            SystemIdent::DataFields &systemIdentData);
+    void initializePage();
+
+private:
+    SystemIdent::DataFields sysIdent;
+};
+
+class AutotuneSlidersPage : public QWizardPage,
+        private Ui::AutotuneSliders
+{
+    Q_OBJECT
+
+public:
+    explicit AutotuneSlidersPage(QWidget *parent,
+            SystemIdent::DataFields &systemIdentData,
+            struct AutotunedValues *autoValues);
+
+    bool isComplete() const;
+
+private:
+    SystemIdent::DataFields sysIdent;
+    AutotunedValues *av;
+
+    void setText(QLabel *lbl, double value, int precision);
+
+private slots:
+    void compute();
+    void resetSliders();
+};
+
+class AutotuneFinalPage : public QWizardPage,
+        public Ui::AutotuneFinalPage
+{
+    Q_OBJECT
+
+public:
+    explicit AutotuneFinalPage(QWidget *parent);
+};
 
 class ConfigAutotuneWidget : public ConfigTaskWidget
 {
@@ -50,37 +123,24 @@ public:
 
 private:
     Ui_AutotuneWidget *m_autotune;
-    StabilizationSettings::DataFields stabSettings;
     UAVObjectUtilManager* utilMngr;
-    AutotuneShareForm *autotuneShareForm;
     ConfigGadgetWidget *parentConfigWidget;
-    int iterations;
-    bool converged;
-
-    bool approveSettings(SystemIdent::DataFields systemIdentData);
-    QJsonDocument getResultsJson();
-    QString getResultsPlainText();
-    void saveUserData();
-    void loadUserData();
-    void setApplyEnabled(const bool enable);
-
     static const QString databaseUrl;
 
-signals:
+    QString systemIdentValid(SystemIdent::DataFields &data, bool *okToContinue);
 
-public slots:
-    void refreshWidgetsValues(UAVObject *obj);
-    void updateObjectsFromWidgets();
-    void resetSliders();
+    QJsonDocument getResultsJson(AutotuneFinalPage *autotuneShareForm,
+            struct AutotunedValues *av);
+
+    void stuffShareForm(AutotuneFinalPage *autotuneShareForm);
+    void persistShareForm(AutotuneFinalPage *autotuneShareForm);
+    void checkNewAutotune();
+
 private slots:
-    void recomputeStabilization();
-    void saveStabilization();
-    void onShareData();
-    void onShareToDatabase();
-    void onShareToClipboard();
-    void onShareToDatabaseComplete(QNetworkReply *reply);
-    void onYawTuneToggled(bool checked);
-    void onStabSettingsUpdated(UAVObject *obj);
+    void openAutotuneDialog(bool autoOpened = false);
+
+    void atConnected();
+    void atDisconnected();
 };
 
 #endif // CONFIGAUTOTUNE_H

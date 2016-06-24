@@ -2,7 +2,7 @@
  ******************************************************************************
  *
  * @file       configautotunewidget.cpp
- * @author     dRonin, http://dronin.org, Copyright (C) 2015
+ * @author     dRonin, http://dronin.org, Copyright (C) 2015-2016
  * @author     The OpenPilot Team, http://www.openpilot.org Copyright (C) 2012.
  * @addtogroup GCSPlugins GCS Plugins
  * @{
@@ -41,8 +41,10 @@
 #include <QList>
 #include <QMessageBox>
 #include <QClipboard>
+#include <QWizard>
 #include <QtNetwork/QNetworkAccessManager>
 #include <QtNetwork/QNetworkRequest>
+
 #include "manualcontrolsettings.h"
 #include "mixersettings.h"
 #include "modulesettings.h"
@@ -61,7 +63,6 @@
 #define CONF_ATUNE_QXTLOG_DEBUG(...)
 #endif	// CONF_ATUNE_DEBUG
 
-
 const QString ConfigAutotuneWidget::databaseUrl = QString("http://dronin-autotown.appspot.com/storeTune");
 
 ConfigAutotuneWidget::ConfigAutotuneWidget(ConfigGadgetWidget *parent) :
@@ -75,519 +76,137 @@ ConfigAutotuneWidget::ConfigAutotuneWidget(ConfigGadgetWidget *parent) :
     autoLoadWidgets();
     disableMouseWheelEvents();
 
-    // Whenever any value changes compute new potential stabilization settings
-    connect(m_autotune->rateDamp, SIGNAL(valueChanged(int)), this, SLOT(recomputeStabilization()));
-    connect(m_autotune->rateNoise, SIGNAL(valueChanged(int)), this, SLOT(recomputeStabilization()));
-
-    connect(m_autotune->cbUseYaw, SIGNAL(toggled(bool)), this, SLOT(onYawTuneToggled(bool)));
-    connect(m_autotune->cbUseOuterKi, SIGNAL(toggled(bool)), this, SLOT(recomputeStabilization()));
-
-    addUAVObject(ModuleSettings::NAME);
-
-    SystemIdent *systemIdent = SystemIdent::GetInstance(getObjectManager());
+    autoLoadWidgets();
 
     ExtensionSystem::PluginManager *pm = ExtensionSystem::PluginManager::instance();
     utilMngr = pm->getObject<UAVObjectUtilManager>();
 
-    addWidget(m_autotune->enableAutoTune);
+    connect(this, SIGNAL(autoPilotConnected()), this, SLOT(atConnected()));
+    connect(this, SIGNAL(autoPilotDisconnected()), this, SLOT(atDisconnected()));
+    connect(m_autotune->adjustTune, SIGNAL(pressed()), this, SLOT(openAutotuneDialog()));
 
-    connect(systemIdent, SIGNAL(objectUpdated(UAVObject*)), this, SLOT(recomputeStabilization()));
-
-    // Connect the apply button for the stabilization settings
-    connect(m_autotune->useComputedValues, SIGNAL(pressed()), this, SLOT(saveStabilization()));
-
-    connect(m_autotune->shareDataPB, SIGNAL(pressed()),this, SLOT(onShareData()));
-    connect(m_autotune->btnResetSliders, SIGNAL(pressed()), this, SLOT(resetSliders()));
-
-    setNotMandatory(systemIdent->getName());
-
-    // force defaults in-case somebody tries to change them in UI and forgets to update this func
-    resetSliders();
-    setApplyEnabled(false);
+    m_autotune->adjustTune->setEnabled(isAutopilotConnected());
 }
 
-/**
-  * Apply the stabilization settings computed
-  */
-void ConfigAutotuneWidget::saveStabilization()
-{
-    StabilizationSettings *stabilizationSettings = StabilizationSettings::GetInstance(getObjectManager());
-    Q_ASSERT(stabilizationSettings);
-    if(!stabilizationSettings)
-        return;
-
-    // Check the settings are reasonable, or if not have the
-    // user confirm they want to continue.
-    SystemIdent *systemIdent = SystemIdent::GetInstance(getObjectManager());
-    Q_ASSERT(systemIdent);
-    if(!systemIdent)
-        return;
-
-    // Make sure to recompute in case the other stab settings changed since
-    // the last time
-    recomputeStabilization();
-
-    if (approveSettings(systemIdent->getData()) == false)
-        return;
-
-    // Apply this data to the board
-    stabilizationSettings->setData(stabSettings);
-    stabilizationSettings->updated();
-
-    QMessageBox::information(this,tr("Tune values updated"),
-            tr("The calculated autotune values have been entered on the "
-                "stabilization settings pane and applied to RAM on the "
-	        "flight controller.  Please review and then "
-                "permanently save them.\n\n"
-                "You will now be taken to the stabilization settings pane."));
-
-    parentConfigWidget->changeTab(ConfigGadgetWidget::stabilization);
+void ConfigAutotuneWidget::atConnected() {
+    m_autotune->adjustTune->setEnabled(true);
+    checkNewAutotune();
 }
 
-void ConfigAutotuneWidget::onShareData()
-{
-    autotuneShareForm = new AutotuneShareForm();
-    autotuneShareForm->setAttribute(Qt::WA_DeleteOnClose, true);
-    connect(autotuneShareForm, SIGNAL(ClipboardRequest()), this, SLOT(onShareToClipboard()));
-    connect(autotuneShareForm, SIGNAL(DatabaseRequest()), this, SLOT(onShareToDatabase()));
-
-    QString currentFrameType;
-    SystemSettings *sysSettings = SystemSettings::GetInstance(getObjectManager());
-    if(sysSettings) {
-        UAVObjectField *frameType = sysSettings->getField("AirframeType");
-        if(frameType) {
-            autotuneShareForm->setVehicleTypeOptions(frameType->getOptions());
-            currentFrameType = frameType->getValue().toString();
-        }
-    }
-    // would be nice to set board type dropdown too but too hard to get a list (for now)
-
-    // fetch last shared data
-    loadUserData();
-
-    // we will overwrite some things though
-    Core::IBoardType *board = utilMngr->getBoardType();
-    if(board) {
-        autotuneShareForm->setBoardType(board->shortName());
-        autotuneShareForm->disableBoardType(true);
-    }
-    if(!currentFrameType.isNull()) {
-        autotuneShareForm->setVehicleType(currentFrameType);
-        autotuneShareForm->disableVehicleType(true);
-    }
-
-    autotuneShareForm->show();
-    autotuneShareForm->raise();
-    autotuneShareForm->activateWindow();
+void ConfigAutotuneWidget::atDisconnected() {
+    m_autotune->adjustTune->setEnabled(false);
 }
 
-void ConfigAutotuneWidget::onShareToDatabase()
-{
-    autotuneShareForm->disableDatabase(true);
-    // save data for next time the form is used
-    saveUserData();
-
-    autotuneShareForm->hideProgress(false);
-    autotuneShareForm->setProgress(0, 0);
-
-    QJsonDocument json = getResultsJson();
-
-    QUrl url(databaseUrl);
-    QNetworkRequest request(url);
-    request.setHeader(QNetworkRequest::ContentTypeHeader, "application/json; charset=utf-8");
-    QNetworkAccessManager *manager = new QNetworkAccessManager(this);
-
-    connect(manager, SIGNAL(finished(QNetworkReply*)),
-                this, SLOT(onShareToDatabaseComplete(QNetworkReply*)));
-
-    QNetworkReply *reply = manager->post(request, json.toJson());
-    connect(reply, SIGNAL(uploadProgress(qint64,qint64)), autotuneShareForm, SLOT(setProgress(qint64,qint64)));
-}
-
-void ConfigAutotuneWidget::onShareToDatabaseComplete(QNetworkReply *reply)
-{
-    disconnect(reply, SIGNAL(uploadProgress(qint64,qint64)), autotuneShareForm, SLOT(setProgress(qint64,qint64)));
-    if(reply->error() != QNetworkReply::NoError) {
-        qWarning() << "[ConfigAutotuneWidget::onShareToDatabaseComplete]HTTP Error: " << reply->errorString();
-        autotuneShareForm->hideProgress(true);
-        autotuneShareForm->disableDatabase(false);
-        QMessageBox msgBox;
-        msgBox.setText(tr("An error occured!"));
-        msgBox.setInformativeText(tr("Your results could not be shared to the database. Please try again later."));
-        msgBox.setDetailedText(QString("URL: %1\nReply: %2\n")
-                               .arg(reply->url().toString())
-                               .arg(reply->errorString()));
-        msgBox.setIcon(QMessageBox::Icon::Critical);
-        msgBox.exec();
-    }
-    else {
-        autotuneShareForm->setProgress(100, 100);
-        // database share button remains disabled, no need to send twice
-    }
-    reply->deleteLater();
-}
-
-void ConfigAutotuneWidget::onShareToClipboard()
-{
-    // save data for next time the form is used
-    saveUserData();
-
-    QString message = getResultsPlainText();
-
-    QClipboard *clipboard = QApplication::clipboard();
-    clipboard->setText(message);
-}
-
-void ConfigAutotuneWidget::loadUserData()
-{
-    ExtensionSystem::PluginManager *pm = ExtensionSystem::PluginManager::instance();
-    Core::Internal::GeneralSettings *settings = pm->getObject<Core::Internal::GeneralSettings>();
-
-    autotuneShareForm->setObservations(settings->getObservations());
-    autotuneShareForm->setVehicleType(settings->getVehicleType());
-    autotuneShareForm->setBoardType(settings->getBoardType());
-    autotuneShareForm->setWeight(settings->getWeight());
-    autotuneShareForm->setVehicleSize(settings->getVehicleSize());
-    autotuneShareForm->setBatteryCells(settings->getBatteryCells());
-    autotuneShareForm->setMotors(settings->getMotors());
-    autotuneShareForm->setESCs(settings->getESCs());
-    autotuneShareForm->setProps(settings->getProps());
-}
-
-void ConfigAutotuneWidget::saveUserData()
-{
-    ExtensionSystem::PluginManager *pm = ExtensionSystem::PluginManager::instance();
-    Core::Internal::GeneralSettings *settings = pm->getObject<Core::Internal::GeneralSettings>();
-    settings->setObservations(autotuneShareForm->getObservations());
-    settings->setVehicleType(autotuneShareForm->getVehicleType());
-    settings->setBoardType(autotuneShareForm->getBoardType());
-    settings->setWeight(autotuneShareForm->getWeight());
-    settings->setVehicleSize(autotuneShareForm->getVehicleSize());
-    settings->setBatteryCells(autotuneShareForm->getBatteryCells());
-    settings->setMotors(autotuneShareForm->getMotors());
-    settings->setESCs(autotuneShareForm->getESCs());
-    settings->setProps(autotuneShareForm->getProps());
-}
-
-/**
- * @brief ConfigAutotuneWidget::approveSettings
- * @param data The system ident values
- * @return True if these are ok, False if not
- *
- * For values that seem potentially problematic
- * a dialog will explicitly check the user wants
- * to apply them.
- */
-bool ConfigAutotuneWidget::approveSettings(
-        SystemIdent::DataFields systemIdentData)
-{
-    // Check the axis gains
-    if (systemIdentData.Beta[SystemIdent::BETA_ROLL] < 6 ||
-        systemIdentData.Beta[SystemIdent::BETA_PITCH] < 6) {
-
-        int ans = QMessageBox::warning(this,tr("Extreme values"),
-                                     tr("Your roll or pitch gain was lower than expected. This will result in large PID values. "
-                                                           "Do you still want to proceed?"), QMessageBox::Yes,QMessageBox::No);
-        if (ans == QMessageBox::No)
-            return false;
-    }
-
-    // Check the response speed
-    if (exp(systemIdentData.Tau) > 0.1) {
-
-        int ans = QMessageBox::warning(this,tr("Extreme values"),
-                                     tr("Your estimated response speed (tau) is slower than normal. This will result in large PID values. "
-                                                           "Do you still want to proceed?"), QMessageBox::Yes,QMessageBox::No);
-        if (ans == QMessageBox::No)
-            return false;
-    } else if (exp(systemIdentData.Tau) < 0.008) {
-
-        int ans = QMessageBox::warning(this,tr("Extreme values"),
-                                     tr("Your estimated response speed (tau) is faster than normal. This will result in large PID values. "
-                                                           "Do you still want to proceed?"), QMessageBox::Yes,QMessageBox::No);
-        if (ans == QMessageBox::No)
-            return false;
-    }
-
-    return true;
-}
-
-/**
-  * Called whenever the gain ratios or measured values
-  * are changed
-  */
-void ConfigAutotuneWidget::recomputeStabilization()
+void ConfigAutotuneWidget::checkNewAutotune()
 {
     SystemIdent *systemIdent = SystemIdent::GetInstance(getObjectManager());
-    Q_ASSERT(systemIdent);
-    if(!systemIdent)
-        return;
-
-    StabilizationSettings *stabilizationSettings = StabilizationSettings::GetInstance(getObjectManager());
-    Q_ASSERT(stabilizationSettings);
-    if(!stabilizationSettings)
-        return;
 
     SystemIdent::DataFields systemIdentData = systemIdent->getData();
-    stabSettings = stabilizationSettings->getData();
 
-    // These three parameters define the desired response properties
-    // - rate scale in the fraction of the natural speed of the system
-    //   to strive for.
-    // - damp is the amount of damping in the system. higher values
-    //   make oscillations less likely
-    // - ghf is the amount of high frequency gain and limits the influence
-    //   of noise
-    const double ghf = m_autotune->rateNoise->value() / 1000.0;
-    const double damp = m_autotune->rateDamp->value() / 100.0;
+    if (systemIdentData.NewTune) {
+        // There's a new tune!  Let's talk to the user about it.
 
-    double tau = exp(systemIdentData.Tau);
-    double beta_roll = systemIdentData.Beta[SystemIdent::BETA_ROLL];
-    double beta_pitch = systemIdentData.Beta[SystemIdent::BETA_PITCH];
+        // First though, cue resetting this flag to false.
+        systemIdentData.NewTune = false;
 
-    double wn = 1/tau, wn_last = 1/tau + 10;
-    double tau_d = 0, tau_d_last = 1000;
+        systemIdent->setData(systemIdentData);
 
-    const int iteration_limit = 100, stability_limit = 5;
-    converged = false;
-    iterations = 0;
-    int stable_iterations = 0;
+        systemIdent->updated();
 
-    while (++iterations <= iteration_limit && !converged) {
-        double tau_d_roll = (2*damp*tau*wn - 1)/(4*tau*damp*damp*wn*wn - 2*damp*wn - tau*wn*wn + exp(beta_roll)*ghf);
-        double tau_d_pitch = (2*damp*tau*wn - 1)/(4*tau*damp*damp*wn*wn - 2*damp*wn - tau*wn*wn + exp(beta_pitch)*ghf);
+        // And persist it, so we're good for next time.
+        saveObjectToSD(systemIdent);
 
-        // Select the slowest filter property
-        tau_d = (tau_d_roll > tau_d_pitch) ? tau_d_roll : tau_d_pitch;
-        wn = (tau + tau_d) / (tau*tau_d) / (2 * damp + 2);
+        // Now let's get that dialog open.
+        openAutotuneDialog(true);
+    }
+}
 
-        // check for convergence
-        if (fabs(tau_d - tau_d_last) <= 0.00001 && fabs(wn - wn_last) <= 0.00001) {
-            if (++stable_iterations >= stability_limit)
-                converged = true;
+QString ConfigAutotuneWidget::systemIdentValid(SystemIdent::DataFields &data,
+        bool *okToContinue)
+{
+    if (data.Tau == 0) {
+        // Invalid / no tune.
+
+        *okToContinue = false;
+        return tr("<span style=\"color: red\">It doesn't appear an autotune was successfully completed and saved; we are unable to continue.</span>");
+    }
+
+    QString retVal;
+
+    *okToContinue = true;
+
+    if (data.NumAfPredicts < 5000) {
+        // Wayyyyy too few points to be plausible.  CC3D is expected to do
+        // 333 * 60 = 20000 give or take a bit, with most other platforms way
+        // more.  If you don't get this many, it doesn't make sense.
+
+        retVal.append(tr("Error: Too few measurements were obtained to successfully autotune this craft."));
+        retVal.append("<br/>");
+        *okToContinue = false;
+    }
+
+    if (data.NumSpilledPts > (data.NumAfPredicts / 8)) {
+        // Greater than 12.5% points spilled / not processed.  You're not going
+        // to have a good time.
+
+        retVal.append(tr("Error: Many measurements were lost because the flight controller was unable to keep up with the tuning process."));
+        retVal.append("<br/>");
+        *okToContinue = false;
+    } else if (data.NumSpilledPts > 10) {
+        // We shouldn't spill points at all.  Warn!
+        retVal.append(tr("Warning: Some measurements were lost because the flight controller was unable to keep up with the tuning process."));
+        retVal.append("<br/>");
+    }
+
+    if (data.Tau < -5.3) {
+        // Too low of tau to be plausible. (5ms)
+        retVal.append(tr("Error: Autotune did not measure valid values for this craft (low tau).  Consider slightly lowering the starting roll/pitch rate P values or slightly decreasing Motor Input/Output Curve Fit on the output pane."));
+        retVal.append("<br/>");
+        *okToContinue = false;
+    } else if (data.Tau < -4.9) {
+        // Probably too low to be real-- 7.4ms-- warn!
+        retVal.append(tr("Warning: The tau value measured for this craft is very low."));
+        retVal.append("<br/>");
+    } else if (data.Tau > -1.4) {
+        // Too high of a tau to be plausible / accurate (247ms)-- warn!
+        retVal.append(tr("Warning: The tau value measured for this craft is very high."));
+        retVal.append("<br/>");
+    }
+
+    // Lowest valid gains seen have been 7.9, with most values in the range 9..11
+    if (data.Beta[SystemIdent::BETA_ROLL] < 7.25) {
+        retVal.append(tr("Error: Autotune did not measure valid values for this craft (low roll gain)."));
+        retVal.append("<br/>");
+        *okToContinue = false;
+    }
+
+    if (data.Beta[SystemIdent::BETA_PITCH] < 7.25) {
+        retVal.append(tr("Error: Autotune did not measure valid values for this craft (low pitch gain)."));
+        retVal.append("<br/>");
+        *okToContinue = false;
+    }
+
+    retVal.replace(QRegExp("(\\w+:)"), "<span style=\"color: red\"><b>\\1</b></span>");
+
+    if (*okToContinue) {
+        if (retVal.isEmpty()) {
+            retVal.append(tr("Everything checks out, and we're ready to proceed!"));
         } else {
-            stable_iterations = 0;
+            retVal.append(tr("<br/>These warnings may result in an invalid tune.  Proceed with caution."));
         }
-        tau_d_last = tau_d;
-        wn_last = wn;
-    }
-    --iterations; // make the number right for tune share etc.
-
-    setApplyEnabled(converged);
-
-    // Set the real pole position. The first pole is quite slow, which
-    // prevents the integral being too snappy and driving too much
-    // overshoot.
-    const double a = ((tau+tau_d) / tau / tau_d - 2 * damp * wn) / 20.0;
-    const double b = ((tau+tau_d) / tau / tau_d - 2 * damp * wn - a);
-
-    CONF_ATUNE_QXTLOG_DEBUG("ghf: ", ghf);
-    CONF_ATUNE_QXTLOG_DEBUG("wn: ", wn, "tau_d: ", tau_d);
-    CONF_ATUNE_QXTLOG_DEBUG("a: ", a, " b: ", b);
-
-    // Calculate the gain for the outer loop by approximating the
-    // inner loop as a single order lpf. Set the outer loop to be
-    // critically damped;
-    const double zeta_o = 1.3;
-    const double kp_o = 1 / 4.0 / (zeta_o * zeta_o) / (1/wn);
-    const double ki_o = (m_autotune->cbUseOuterKi->isChecked()) ? (0.75 * kp_o / (2 * M_PI * tau * 10.0)) : 0.0;
-
-    // For now just run over roll and pitch
-    for (int i = 0; i < 3; i++) {
-        double beta = exp(systemIdentData.Beta[i]);
-
-        double ki;
-        double kp;
-        double kd;
-
-        switch (i) {
-        case 0: // Roll
-        case 1: // Pitch
-            ki = a * b * wn * wn * tau * tau_d / beta;
-            kp = tau * tau_d * ((a+b)*wn*wn + 2*a*b*damp*wn) / beta - ki*tau_d;
-            kd = (tau * tau_d * (a*b + wn*wn + (a+b)*2*damp*wn) - 1) / beta - kp * tau_d;
-            break;
-        case 2: // Yaw
-            beta = exp(0.6 * (systemIdentData.Beta[SystemIdent::BETA_PITCH] - systemIdentData.Beta[SystemIdent::BETA_YAW]));
-            kp = stabSettings.PitchRatePID[StabilizationSettings::PITCHRATEPID_KP] * beta;
-            ki = 0.8 * stabSettings.PitchRatePID[StabilizationSettings::PITCHRATEPID_KI] * beta;
-            kd = 0.8 * stabSettings.PitchRatePID[StabilizationSettings::PITCHRATEPID_KD] * beta;
-            break;
-        }
-
-        switch(i) {
-        case 0: // Roll
-            stabSettings.RollRatePID[StabilizationSettings::ROLLRATEPID_KP] = kp;
-            stabSettings.RollRatePID[StabilizationSettings::ROLLRATEPID_KI] = ki;
-            stabSettings.RollRatePID[StabilizationSettings::ROLLRATEPID_KD] = kd;
-            stabSettings.RollPI[StabilizationSettings::ROLLPI_KP] = kp_o;
-            stabSettings.RollPI[StabilizationSettings::ROLLPI_KI] = ki_o;
-            break;
-        case 1: // Pitch
-            stabSettings.PitchRatePID[StabilizationSettings::PITCHRATEPID_KP] = kp;
-            stabSettings.PitchRatePID[StabilizationSettings::PITCHRATEPID_KI] = ki;
-            stabSettings.PitchRatePID[StabilizationSettings::PITCHRATEPID_KD] = kd;
-            stabSettings.PitchPI[StabilizationSettings::PITCHPI_KP] = kp_o;
-            stabSettings.PitchPI[StabilizationSettings::PITCHPI_KI] = ki_o;
-            break;
-        case 2: // Yaw
-            if (m_autotune->cbUseYaw->isChecked() && systemIdentData.Beta[SystemIdent::BETA_YAW] >= 6.3) {
-                stabSettings.YawRatePID[StabilizationSettings::YAWRATEPID_KP] = kp;
-                stabSettings.YawRatePID[StabilizationSettings::YAWRATEPID_KI] = ki;
-                stabSettings.YawRatePID[StabilizationSettings::YAWRATEPID_KD] = kd;
-                //stabSettings.YawPI[StabilizationSettings::YAWPI_KP] = kp_o;
-                //stabSettings.YawPI[StabilizationSettings::YAWPI_KI] = ki_o;
-            }
-            break;
-        }
-    }
-    stabSettings.DerivativeCutoff = 1 / (2*M_PI*tau_d);
-
-    // Display these computed settings
-    m_autotune->rollRateKp->setText(QString::number(stabSettings.RollRatePID[StabilizationSettings::ROLLRATEPID_KP]));
-    m_autotune->rollRateKi->setText(QString::number(stabSettings.RollRatePID[StabilizationSettings::ROLLRATEPID_KI]));
-    m_autotune->rollRateKd->setText(QString::number(stabSettings.RollRatePID[StabilizationSettings::ROLLRATEPID_KD]));
-    m_autotune->pitchRateKp->setText(QString::number(stabSettings.PitchRatePID[StabilizationSettings::PITCHRATEPID_KP]));
-    m_autotune->pitchRateKi->setText(QString::number(stabSettings.PitchRatePID[StabilizationSettings::PITCHRATEPID_KI]));
-    m_autotune->pitchRateKd->setText(QString::number(stabSettings.PitchRatePID[StabilizationSettings::PITCHRATEPID_KD]));
-    if (m_autotune->cbUseYaw->isChecked() && systemIdentData.Beta[SystemIdent::BETA_YAW] >= 6.3) {
-        m_autotune->yawRateKp->setText(QString::number(stabSettings.YawRatePID[StabilizationSettings::YAWRATEPID_KP]));
-        m_autotune->yawRateKi->setText(QString::number(stabSettings.YawRatePID[StabilizationSettings::YAWRATEPID_KI]));
-        m_autotune->yawRateKd->setText(QString::number(stabSettings.YawRatePID[StabilizationSettings::YAWRATEPID_KD]));
     } else {
-        m_autotune->yawRateKp->setText("-");
-        m_autotune->yawRateKi->setText("-");
-        m_autotune->yawRateKd->setText("-");
-    }
-    m_autotune->lblOuterKp->setText(QString::number(stabSettings.RollPI[StabilizationSettings::ROLLPI_KP]));
-    m_autotune->lblOuterKi->setText(QString::number(stabSettings.RollPI[StabilizationSettings::ROLLPI_KI]));
-
-    m_autotune->derivativeCutoff->setText(QString::number(stabSettings.DerivativeCutoff));
-    m_autotune->rollTau->setText(QString::number(tau,'g',3));
-    m_autotune->pitchTau->setText(QString::number(tau,'g',3));
-    m_autotune->wn->setText(QString::number(wn / 2 / M_PI, 'f', 1));
-    m_autotune->lblDamp->setText(QString::number(damp, 'f', 2));
-    m_autotune->lblNoise->setText(QString::number(ghf * 100, 'f', 1) + " %");
-
-}
-
-void ConfigAutotuneWidget::refreshWidgetsValues(UAVObject *obj)
-{
-    ModuleSettings *moduleSettings = ModuleSettings::GetInstance(getObjectManager());
-    if(obj==moduleSettings)
-    {
-        bool dirtyBack=isDirty();
-        ModuleSettings::DataFields moduleSettingsData = moduleSettings->getData();
-        m_autotune->enableAutoTune->setChecked(
-            moduleSettingsData.AdminState[ModuleSettings::ADMINSTATE_AUTOTUNE] == ModuleSettings::ADMINSTATE_ENABLED);
-        setDirty(dirtyBack);
-    }
-    ConfigTaskWidget::refreshWidgetsValues(obj);
-}
-void ConfigAutotuneWidget::updateObjectsFromWidgets()
-{
-    ModuleSettings *moduleSettings = ModuleSettings::GetInstance(getObjectManager());
-    ModuleSettings::DataFields moduleSettingsData = moduleSettings->getData();
-    moduleSettingsData.AdminState[ModuleSettings::ADMINSTATE_AUTOTUNE] =
-         m_autotune->enableAutoTune->isChecked() ? ModuleSettings::ADMINSTATE_ENABLED : ModuleSettings::ADMINSTATE_DISABLED;
-    moduleSettings->setData(moduleSettingsData);
-    ConfigTaskWidget::updateObjectsFromWidgets();
-}
-
-/**
- * @brief ConfigAutotuneWidget::generateResultsPlainText
- * @return
- */
-QString ConfigAutotuneWidget::getResultsPlainText()
-{
-    deviceDescriptorStruct firmware;
-    utilMngr->getBoardDescriptionStruct(firmware);
-
-    SystemSettings *sysSettings = SystemSettings::GetInstance(getObjectManager());
-    UAVObjectField *afTypeField = sysSettings->getField("AirframeType");
-    QString afType;
-    if(afTypeField) {
-        QStringList vehicleTypes = afTypeField->getOptions();
-        afType = vehicleTypes[sysSettings->getAirframeType()];
+        retVal.append(tr("<br/>Unable to complete the autotune process because of the above error(s)."));
     }
 
-    QString message0 = tr(
-                "Flight controller:\t%0\n"
-                "Firmware tag:\t\t%1\n"
-                "Firmware commit:\t%2\n"
-                "Firmware date:\t\t%3\n\n"
-                "Vehicle description:\n"
-                "Type:\t\t\t%4\n"
-                "Weight (AUW):\t%5 g\n"
-                "Size:\t\t\t%6\n"
-                "Battery:\t\t%7S\n"
-                "Motors:\t\t\t%8\n"
-                "ESCs:\t\t\t%9\n"
-                "Propellers:\t\t%10\n\n"
-                "Observations:\n%11\n\n")
-            .arg(autotuneShareForm->getBoardType()) // 0
-            .arg(firmware.gitTag) // 1
-            .arg(firmware.gitHash.left(7)) // 2
-            .arg(firmware.gitDate + " UTC") // 3
-            .arg(afType) // 4
-            .arg(autotuneShareForm->getWeight()) // 5
-            .arg(autotuneShareForm->getVehicleSize()) // 6
-            .arg(autotuneShareForm->getBatteryCells()) // 7
-            .arg(autotuneShareForm->getMotors()) // 8
-            .arg(autotuneShareForm->getESCs()) // 9
-            .arg(autotuneShareForm->getProps()) // 10
-            .arg(autotuneShareForm->getObservations()); // 11
-    QString message1 = tr(
-                "Measured properties:\n"
-                "\t\tGain\t\tBias\t\tNoise\n"
-                "Roll:\t%0\t\t%1\t%2\n"
-                "Pitch:\t%3\t\t%4\t%5\n"
-                "Tau:\t%6 ms\n\n"
-                "Tuning aggressiveness:\n"
-                "Damping:\t\t\t%7\n"
-                "Noise sensitivity:\t%8\n"
-                "Natural frequency:\t%9\n\n")
-            .arg(m_autotune->measuredRollGain->text()) // 0
-            .arg(m_autotune->measuredRollBias->text()) // 1
-            .arg(m_autotune->measuredRollNoise->text()) // 2
-            .arg(m_autotune->measuredPitchGain->text()) // 3
-            .arg(m_autotune->measuredPitchBias->text()) // 4
-            .arg(m_autotune->measuredPitchNoise->text()) // 5
-            .arg(m_autotune->rollTau->text().toDouble()*1000.0) // 6
-            .arg(m_autotune->lblDamp->text()) // 7
-            .arg(m_autotune->lblNoise->text()) // 8
-            .arg(m_autotune->wn->text()); // 9
-    QString message2 = tr(
-                "Computed values:\n"
-                "Converged:\t%0\n"
-                "\t\t\tRateKp\t\tRateKi\t\tRateKd\n"
-                "Roll:\t\t%1\t%2\t%3\n"
-                "Pitch:\t\t%4\t%5\t%6\n"
-                "Yaw:\t\t%7\t%8\t%9\n"
-                "Outer:\t\t%10\t\t%11\t\t-\n"
-                "Derivative cutoff:\t%12")
-            .arg(converged ? "Yes" : "No") // 0
-            .arg(m_autotune->rollRateKp->text()) // 1
-            .arg(m_autotune->rollRateKi->text()) // 2
-            .arg(m_autotune->rollRateKd->text()) // 3
-            .arg(m_autotune->pitchRateKp->text()) // 4
-            .arg(m_autotune->pitchRateKi->text()) // 5
-            .arg(m_autotune->pitchRateKd->text()) // 6
-            .arg(m_autotune->yawRateKp->text()) // 7
-            .arg(m_autotune->yawRateKi->text()) // 8
-            .arg(m_autotune->yawRateKd->text()) // 9
-            .arg(m_autotune->lblOuterKp->text()) // 10
-            .arg(m_autotune->lblOuterKi->text()) // 11
-            .arg(m_autotune->derivativeCutoff->text()); // 12
-
-    return message0 + message1 + message2;
+    return retVal;
 }
 
 /**
  * @brief ConfigAutotuneWidget::generateResultsJson
  * @return QJsonDocument containing autotune result data
  */
-QJsonDocument ConfigAutotuneWidget::getResultsJson()
+QJsonDocument ConfigAutotuneWidget::getResultsJson(
+        AutotuneFinalPage *autotuneShareForm, struct AutotunedValues *av)
 {
     deviceDescriptorStruct firmware;
     utilMngr->getBoardDescriptionStruct(firmware);
@@ -599,7 +218,11 @@ QJsonDocument ConfigAutotuneWidget::getResultsJson()
     json["uniqueId"] = QString(QCryptographicHash::hash(utilMngr->getBoardCPUSerial(), QCryptographicHash::Sha256).toHex());
 
     QJsonObject vehicle, fw;
-    fw["board"] = autotuneShareForm->getBoardType();
+    Core::IBoardType *board = utilMngr->getBoardType();
+    if(board) {
+        fw["board"] = board->shortName();
+    }
+
     fw["tag"] = firmware.gitTag;
     fw["commit"] = firmware.gitHash;
     QDateTime fwDate = QDateTime::fromString(firmware.gitDate, "yyyyMMdd hh:mm");
@@ -608,12 +231,6 @@ QJsonDocument ConfigAutotuneWidget::getResultsJson()
     vehicle["firmware"] = fw;
 
     SystemSettings *sysSettings = SystemSettings::GetInstance(getObjectManager());
-    UAVObjectField *afTypeField = sysSettings->getField("AirframeType");
-    QString afType;
-    if(afTypeField) {
-        QStringList vehicleTypes = afTypeField->getOptions();
-        afType = vehicleTypes[sysSettings->getAirframeType()];
-    }
 
     rawSettings[sysSettings->getName()] = sysSettings->getJsonRepresentation();
 
@@ -649,69 +266,67 @@ QJsonDocument ConfigAutotuneWidget::getResultsJson()
         }
     }
 
-    vehicle["type"] = afType;
-    vehicle["size"] = autotuneShareForm->getVehicleSize();
-    vehicle["weight"] = autotuneShareForm->getWeight();
-    vehicle["batteryCells"] = autotuneShareForm->getBatteryCells();
-    vehicle["esc"] = autotuneShareForm->getESCs();
-    vehicle["motor"] = autotuneShareForm->getMotors();
-    vehicle["props"] = autotuneShareForm->getProps();
+    vehicle["type"] = autotuneShareForm->acType->currentText();
+    vehicle["size"] = autotuneShareForm->acVehicleSize->text();
+    vehicle["weight"] = autotuneShareForm->acWeight->text();
+    vehicle["batteryCells"] = autotuneShareForm->acBatteryCells->currentText();
+    vehicle["esc"] = autotuneShareForm->acEscs->text();
+    vehicle["motor"] = autotuneShareForm->acMotors->text();
+    vehicle["props"] = autotuneShareForm->acProps->text();
     json["vehicle"] = vehicle;
 
-    json["userObservations"] = autotuneShareForm->getObservations();
+    json["userObservations"] = autotuneShareForm->teObservations->toPlainText();
+
+    SystemIdent::DataFields data = systemIdent->getData();
 
     QJsonObject identification;
-    // this stuff should be stored in an array so we can iterate :/
     QJsonObject roll_ident;
-    roll_ident["gain"] = m_autotune->measuredRollGain->text().toDouble();
-    roll_ident["bias"] = m_autotune->measuredRollBias->text().toDouble();
-    roll_ident["noise"] = m_autotune->measuredRollNoise->text().toDouble();
+    roll_ident["gain"] = data.Beta[SystemIdent::BETA_ROLL];
+    roll_ident["bias"] = data.Bias[SystemIdent::BIAS_ROLL];
+    roll_ident["noise"] = data.Noise[SystemIdent::NOISE_ROLL];
     identification["roll"] = roll_ident;
+
     QJsonObject pitch_ident;
-    pitch_ident["gain"] = m_autotune->measuredPitchGain->text().toDouble();
-    pitch_ident["bias"] = m_autotune->measuredPitchBias->text().toDouble();
-    pitch_ident["noise"] = m_autotune->measuredPitchNoise->text().toDouble();
+    pitch_ident["gain"] = data.Beta[SystemIdent::BETA_PITCH];
+    pitch_ident["bias"] = data.Bias[SystemIdent::BIAS_PITCH];
+    pitch_ident["noise"] = data.Noise[SystemIdent::BIAS_PITCH];
     identification["pitch"] = pitch_ident;
+
     QJsonObject yaw_ident;
-    yaw_ident["gain"] = m_autotune->measuredYawGain->text().toDouble();
-    yaw_ident["bias"] = m_autotune->measuredYawBias->text().toDouble();
-    yaw_ident["noise"] = m_autotune->measuredYawNoise->text().toDouble();
+    yaw_ident["gain"] = data.Beta[SystemIdent::BETA_YAW];
+    yaw_ident["bias"] = data.Bias[SystemIdent::BIAS_YAW];
+    yaw_ident["noise"] = data.Noise[SystemIdent::BIAS_YAW];
     identification["yaw"] = yaw_ident;
 
-    identification["tau"] = m_autotune->rollTau->text().toDouble();
+    identification["tau"] = exp(data.Tau);
     json["identification"] = identification;
 
     QJsonObject tuning, parameters, computed, misc;
-    parameters["damping"] = m_autotune->lblDamp->text().toDouble();
-
-    QStringList noiseSens =  m_autotune->lblNoise->text().split(" ");
-
-    if (!noiseSens.isEmpty()) {
-        parameters["noiseSensitivity"] = noiseSens.first().toDouble();
-    }
+    parameters["damping"] = av->damping;
+    parameters["noiseSensitivity"] = av->noiseSens;
 
     tuning["parameters"] = parameters;
-    computed["naturalFrequency"] = m_autotune->wn->text().toDouble();
-    computed["derivativeCutoff"] = m_autotune->derivativeCutoff->text().toDouble();
-    computed["converged"] = converged;
-    computed["iterations"] = iterations;
+    computed["naturalFrequency"] = av->naturalFreq;
+    computed["derivativeCutoff"] = av->derivativeCutoff;
+    computed["converged"] = av->converged;
+    computed["iterations"] = av->iterations;
 
     QJsonObject gains;
     QJsonObject roll_gain, pitch_gain, yaw_gain, outer_gain;
-    roll_gain["kp"] = m_autotune->rollRateKp->text().toDouble();
-    roll_gain["ki"] = m_autotune->rollRateKi->text().toDouble();
-    roll_gain["kd"] = m_autotune->rollRateKd->text().toDouble();
+    roll_gain["kp"] = av->kp[0]; 
+    roll_gain["ki"] = av->ki[0];
+    roll_gain["kd"] = av->kd[0];
     gains["roll"] = roll_gain;
-    pitch_gain["kp"] = m_autotune->pitchRateKp->text().toDouble();
-    pitch_gain["ki"] = m_autotune->pitchRateKi->text().toDouble();
-    pitch_gain["kd"] = m_autotune->pitchRateKd->text().toDouble();
+    pitch_gain["kp"] = av->kp[1];
+    pitch_gain["ki"] = av->ki[1];
+    pitch_gain["kd"] = av->kd[1];
     gains["pitch"] = pitch_gain;
-    yaw_gain["kp"] = m_autotune->yawRateKp->text().toDouble();
-    yaw_gain["ki"] = m_autotune->yawRateKi->text().toDouble();
-    yaw_gain["kd"] = m_autotune->yawRateKd->text().toDouble();
+    yaw_gain["kp"] = av->kp[2];
+    yaw_gain["ki"] = av->ki[2];
+    yaw_gain["kd"] = av->kd[2];
     gains["yaw"] = yaw_gain;
-    outer_gain["kp"] = m_autotune->lblOuterKp->text().toDouble();
-    outer_gain["ki"] = m_autotune->lblOuterKi->text().toDouble();
+    outer_gain["kp"] = av->outerKp;
+    outer_gain["ki"] = av->outerKi;
     gains["outer"] = outer_gain;
     computed["gains"] = gains;
     tuning["computed"] = computed;
@@ -722,56 +337,400 @@ QJsonDocument ConfigAutotuneWidget::getResultsJson()
     return QJsonDocument(json);
 }
 
-void ConfigAutotuneWidget::resetSliders()
+void ConfigAutotuneWidget::persistShareForm(AutotuneFinalPage *autotuneShareForm)
 {
-    m_autotune->rateDamp->setValue(110);
-    m_autotune->rateNoise->setValue(10);
+    ExtensionSystem::PluginManager *pm = ExtensionSystem::PluginManager::instance();
+    Core::Internal::GeneralSettings *settings = pm->getObject<Core::Internal::GeneralSettings>();
+    settings->setObservations(autotuneShareForm->teObservations->toPlainText());
+    settings->setBoardType(autotuneShareForm->acBoard->text());
+    settings->setMotors(autotuneShareForm->acMotors->text());
+    settings->setESCs(autotuneShareForm->acEscs->text());
+    settings->setProps(autotuneShareForm->acProps->text());
+    settings->setWeight(autotuneShareForm->acWeight->text().toInt());
+    settings->setVehicleSize(autotuneShareForm->acWeight->text().toInt());
+    settings->setVehicleType(autotuneShareForm->acType->currentText());
+    settings->setBatteryCells(autotuneShareForm->acBatteryCells->currentText().toInt());
 }
 
-void ConfigAutotuneWidget::onYawTuneToggled(bool checked)
+void ConfigAutotuneWidget::stuffShareForm(AutotuneFinalPage *autotuneShareForm)
 {
-    StabilizationSettings *stabilizationSettings = StabilizationSettings::GetInstance(getObjectManager());
-    Q_ASSERT(stabilizationSettings);
-    if(!stabilizationSettings)
-        return;
-    stabSettings = stabilizationSettings->getData();
+    ExtensionSystem::PluginManager *pm = ExtensionSystem::PluginManager::instance();
+    Core::Internal::GeneralSettings *settings = pm->getObject<Core::Internal::GeneralSettings>();
 
-    // save previous settings when yaw tuning is enabled
-    if (checked) {
-        if(!m_autotune->yawRateKp->property("Backup").isValid()) {
-            m_autotune->yawRateKp->setProperty("Backup", stabSettings.YawRatePID[StabilizationSettings::YAWRATEPID_KP]);
-            m_autotune->yawRateKi->setProperty("Backup", stabSettings.YawRatePID[StabilizationSettings::YAWRATEPID_KI]);
-            m_autotune->yawRateKd->setProperty("Backup", stabSettings.YawRatePID[StabilizationSettings::YAWRATEPID_KD]);
-            connect(stabilizationSettings, SIGNAL(objectUpdated(UAVObject*)), this, SLOT(onStabSettingsUpdated(UAVObject*)));
+    autotuneShareForm->teObservations->setText(settings->getObservations());
+    autotuneShareForm->acBoard->setText(settings->getBoardType());
+    autotuneShareForm->acMotors->setText(settings->getMotors());
+    autotuneShareForm->acEscs->setText(settings->getESCs());
+    autotuneShareForm->acProps->setText(settings->getProps());
+    autotuneShareForm->acWeight->setText(QString::number(settings->getWeight()));
+    autotuneShareForm->acVehicleSize->setText(QString::number(settings->getVehicleSize()));
+    autotuneShareForm->acType->setCurrentText(settings->getVehicleType());
+    autotuneShareForm->acBatteryCells->setCurrentText(QString::number(settings->getBatteryCells()));
+
+    SystemSettings *sysSettings = SystemSettings::GetInstance(getObjectManager());
+    if(sysSettings) {
+        UAVObjectField *frameType = sysSettings->getField("AirframeType");
+        if (frameType) {
+            autotuneShareForm->acType->clear();
+            autotuneShareForm->acType->addItems(frameType->getOptions());
+
+            QString currentFrameType;
+            currentFrameType = frameType->getValue().toString();
+            if(!currentFrameType.isNull()) {
+                autotuneShareForm->acType->setEditable(false);
+                autotuneShareForm->acType->setCurrentText(currentFrameType);
+            }
         }
     }
 
-    // now we need to compute the gains and update UI
-    recomputeStabilization();
+    Core::IBoardType *board = utilMngr->getBoardType();
 
-    // restore previous settings when yaw tuning is disabled
-    if (!checked) {
-        if(m_autotune->yawRateKp->property("Backup").isValid())
-            stabSettings.YawRatePID[StabilizationSettings::YAWRATEPID_KP] = m_autotune->yawRateKp->property("Backup").toDouble();
-        if(m_autotune->yawRateKi->property("Backup").isValid())
-            stabSettings.YawRatePID[StabilizationSettings::YAWRATEPID_KI] = m_autotune->yawRateKi->property("Backup").toDouble();
-        if(m_autotune->yawRateKd->property("Backup").isValid())
-            stabSettings.YawRatePID[StabilizationSettings::YAWRATEPID_KD] = m_autotune->yawRateKd->property("Backup").toDouble();
+    if(board) {
+        autotuneShareForm->acBoard->setText(board->shortName());
+        autotuneShareForm->acBoard->setEnabled(false);
+    }
+
+}
+
+void ConfigAutotuneWidget::openAutotuneDialog(bool autoOpened)
+{
+    QWizard wizard(NULL, Qt::Dialog | Qt::CustomizeWindowHint |
+            Qt::WindowTitleHint | Qt::WindowCloseButtonHint);
+
+    wizard.setPixmap(QWizard::BackgroundPixmap, QPixmap(":/configgadget/images/autotunebg.png"));
+
+    SystemIdent *systemIdent = SystemIdent::GetInstance(getObjectManager());
+    SystemIdent::DataFields systemIdentData = systemIdent->getData();
+
+    bool dataValid;
+    QString initialWarnings = systemIdentValid(systemIdentData, &dataValid);
+
+    // The first page is simple; construct it from scratch.
+    QWizardPage *beginning = new QWizardPage;
+    beginning->setTitle(tr("Examining autotune..."));
+
+    if (autoOpened) {
+        beginning->setSubTitle(tr("It looks like you have run a new autotune since you last connected to the flight controller.  This wizard will assist you in applying a set of autotune measurements to your aircraft."));
+    } else {
+        beginning->setSubTitle(tr("This wizard will assist you in applying a set of autotune measurements to your aircraft."));
+    }
+
+    QLabel *status = new QLabel(initialWarnings);
+    status->setWordWrap(true);
+
+    QVBoxLayout *layout = new QVBoxLayout;
+    layout->addWidget(status);
+    beginning->setLayout(layout);
+
+    // Keep a cancel button, even on OS X. 
+    wizard.setOption(QWizard::NoCancelButton, false);
+
+    wizard.setMinimumSize(735, 600);
+
+    wizard.addPage(beginning);
+
+    // Needed for sliders page to communicate with final page and end of wiz
+    struct AutotunedValues av;
+
+    av.converged = false;
+
+    AutotuneFinalPage *pg = new AutotuneFinalPage(NULL);
+
+    if (dataValid) {
+        wizard.addPage(new AutotuneMeasuredPropertiesPage(NULL, systemIdentData));
+        wizard.addPage(new AutotuneSlidersPage(NULL, systemIdentData, &av));
+
+        stuffShareForm(pg);
+
+        wizard.addPage(pg);
+    }
+
+    wizard.setWindowTitle("Autotune Wizard");
+    wizard.exec();
+
+    if (dataValid && (wizard.result() == QDialog::Accepted) && av.converged) {
+        // Apply and save data to board.
+        StabilizationSettings *stabilizationSettings = StabilizationSettings::GetInstance(getObjectManager());
+        Q_ASSERT(stabilizationSettings);
+        if(!stabilizationSettings)
+            return;
+
+        StabilizationSettings::DataFields stabData = stabilizationSettings->getData();
+
+        stabData.RollRatePID[StabilizationSettings::ROLLRATEPID_KP] = av.kp[0];
+        stabData.RollRatePID[StabilizationSettings::ROLLRATEPID_KI] = av.ki[0];
+        stabData.RollRatePID[StabilizationSettings::ROLLRATEPID_KD] = av.kd[0];
+        stabData.PitchRatePID[StabilizationSettings::PITCHRATEPID_KP] = av.kp[1];
+        stabData.PitchRatePID[StabilizationSettings::PITCHRATEPID_KI] = av.ki[1];
+        stabData.PitchRatePID[StabilizationSettings::PITCHRATEPID_KD] = av.kd[1];
+        if (av.kp[2] > 0) {
+            stabData.YawRatePID[StabilizationSettings::YAWRATEPID_KP] = av.kp[2];
+            stabData.YawRatePID[StabilizationSettings::YAWRATEPID_KI] = av.ki[2];
+            stabData.YawRatePID[StabilizationSettings::YAWRATEPID_KD] = av.kd[2];
+        }
+
+        stabData.DerivativeCutoff = av.derivativeCutoff;
+
+        stabData.RollPI[StabilizationSettings::ROLLPI_KP] = av.outerKp;
+        stabData.RollPI[StabilizationSettings::ROLLPI_KI] = av.outerKi;
+
+        stabilizationSettings->setData(stabData);
+        stabilizationSettings->updated();
+
+        saveObjectToSD(stabilizationSettings);
+
+        if (pg->shareBox->isChecked()) {
+            persistShareForm(pg);
+
+            // share to autotown
+
+            QJsonDocument json = getResultsJson(pg, &av);
+
+            // Do this in the background, completely async.
+            QUrl url(databaseUrl);
+            QNetworkRequest request(url);
+            request.setHeader(QNetworkRequest::ContentTypeHeader, "application/json; charset=utf-8");
+            QNetworkAccessManager *manager = new QNetworkAccessManager(this);
+            QNetworkReply *reply = manager->post(request, json.toJson());
+            connect(reply, &QNetworkReply::finished, reply, &QNetworkReply::deleteLater);
+        }
     }
 }
 
-void ConfigAutotuneWidget::onStabSettingsUpdated(UAVObject *obj)
+AutotuneMeasuredPropertiesPage::AutotuneMeasuredPropertiesPage(QWidget *parent,
+        SystemIdent::DataFields &systemIdentData) :
+    QWizardPage(parent)
 {
-    // set the previous settings to new UAVO values
-    stabSettings = static_cast<StabilizationSettings *>(obj)->getData();
-    m_autotune->yawRateKp->setProperty("Backup", stabSettings.YawRatePID[StabilizationSettings::YAWRATEPID_KP]);
-    m_autotune->yawRateKi->setProperty("Backup", stabSettings.YawRatePID[StabilizationSettings::YAWRATEPID_KI]);
-    m_autotune->yawRateKd->setProperty("Backup", stabSettings.YawRatePID[StabilizationSettings::YAWRATEPID_KD]);
+    setupUi(this);
+
+    this->sysIdent = systemIdentData;
 }
 
-void ConfigAutotuneWidget::setApplyEnabled(const bool enable)
+void AutotuneMeasuredPropertiesPage::initializePage()
 {
-    m_autotune->useComputedValues->setEnabled(enable);
-    m_autotune->gbxComputed->setVisible(enable);
-    m_autotune->gbxFailure->setVisible(!enable);
+    measuredRollGain->setText(
+            QString::number(sysIdent.Beta[SystemIdent::BETA_ROLL], 'f', 2));
+    measuredPitchGain->setText(
+            QString::number(sysIdent.Beta[SystemIdent::BETA_PITCH], 'f', 2));
+    measuredYawGain->setText(
+            QString::number(sysIdent.Beta[SystemIdent::BETA_YAW], 'f', 2));
+
+    measuredRollBias->setText(
+            QString::number(sysIdent.Bias[SystemIdent::BIAS_ROLL], 'f', 3));
+    measuredPitchBias->setText(
+            QString::number(sysIdent.Bias[SystemIdent::BIAS_PITCH], 'f', 3));
+    measuredYawBias->setText(
+            QString::number(sysIdent.Bias[SystemIdent::BIAS_YAW], 'f', 3));
+
+    double tau = exp(sysIdent.Tau);
+
+    rollTau->setText(QString::number(tau, 'f', 4));
+    pitchTau->setText(QString::number(tau, 'f', 4));
+
+    measuredRollNoise->setText(
+            QString::number(sysIdent.Noise[SystemIdent::NOISE_ROLL], 'f', 2));
+    measuredPitchNoise->setText(
+            QString::number(sysIdent.Noise[SystemIdent::NOISE_PITCH], 'f', 2));
+    measuredYawNoise->setText(
+            QString::number(sysIdent.Noise[SystemIdent::NOISE_YAW], 'f', 2));
+}
+
+AutotuneSlidersPage::AutotuneSlidersPage(QWidget *parent,
+        SystemIdent::DataFields &systemIdentData,
+        struct AutotunedValues *autoValues) :
+    QWizardPage(parent)
+{
+    setupUi(this);
+
+    sysIdent = systemIdentData;
+    av = autoValues;
+
+    // connect sliders to computation
+    connect(rateDamp, SIGNAL(valueChanged(int)), this, SLOT(compute()));
+    connect(rateNoise, SIGNAL(valueChanged(int)), this, SLOT(compute()));
+    connect(cbUseYaw, SIGNAL(toggled(bool)), this, SLOT(compute()));
+    connect(cbUseOuterKi, SIGNAL(toggled(bool)), this, SLOT(compute()));
+
+    connect(btnResetSliders, SIGNAL(pressed()), this, SLOT(resetSliders()));
+
+    compute();
+}
+
+void AutotuneSlidersPage::resetSliders()
+{
+    rateDamp->setValue(110);
+    rateNoise->setValue(10);
+
+    compute();
+}
+
+bool AutotuneSlidersPage::isComplete() const {
+    return av->converged;
+}
+
+void AutotuneSlidersPage::setText(QLabel *lbl, double value, int precision)
+{
+    if (value < 0) {
+        lbl->setText("–");
+    } else { 
+        lbl->setText(QString::number(value, 'f', precision));
+    }
+}
+
+void AutotuneSlidersPage::compute()
+{
+    // These three parameters define the desired response properties
+    // - rate scale in the fraction of the natural speed of the system
+    //   to strive for.
+    // - damp is the amount of damping in the system. higher values
+    //   make oscillations less likely
+    // - ghf is the amount of high frequency gain and limits the influence
+    //   of noise
+
+    const double ghf = rateNoise->value() / 1000.0;
+    const double damp = rateDamp->value() / 100.0;
+
+    av->damping = damp;
+    av->noiseSens = ghf;
+
+    double tau = exp(sysIdent.Tau);
+    double beta_roll = sysIdent.Beta[SystemIdent::BETA_ROLL];
+    double beta_pitch = sysIdent.Beta[SystemIdent::BETA_PITCH];
+    double beta_yaw = sysIdent.Beta[SystemIdent::BETA_YAW];
+
+    // First clear out warnings..
+    lblWarnings->setText("");
+
+    if (beta_yaw < 6.8) {
+        lblWarnings->setText(tr("Unable to auto-calculate yaw gains for this craft."));
+        cbUseYaw->setChecked(false);
+        cbUseYaw->setEnabled(false);
+    }
+
+    bool doYaw = cbUseYaw->isChecked();
+    bool doOuterKi = cbUseOuterKi->isChecked();
+
+    double wn = 1/tau, wn_last = 1/tau + 10;
+    double tau_d = 0, tau_d_last = 1000;
+
+    const int iteration_limit = 100, stability_limit = 5;
+    bool converged = false;
+    int iterations = 0;
+    int stable_iterations = 0;
+
+    while (!converged && (++iterations <= iteration_limit)) {
+        double tau_d_roll = (2*damp*tau*wn - 1)/(4*tau*damp*damp*wn*wn - 2*damp*wn - tau*wn*wn + exp(beta_roll)*ghf);
+        double tau_d_pitch = (2*damp*tau*wn - 1)/(4*tau*damp*damp*wn*wn - 2*damp*wn - tau*wn*wn + exp(beta_pitch)*ghf);
+
+        // Select the slowest filter property
+        tau_d = (tau_d_roll > tau_d_pitch) ? tau_d_roll : tau_d_pitch;
+        wn = (tau + tau_d) / (tau*tau_d) / (2 * damp + 2);
+
+        // check for convergence
+        if (fabs(tau_d - tau_d_last) <= 0.00001 && fabs(wn - wn_last) <= 0.00001) {
+            if (++stable_iterations >= stability_limit)
+                converged = true;
+        } else {
+            stable_iterations = 0;
+        }
+        tau_d_last = tau_d;
+        wn_last = wn;
+    }
+
+    av->iterations = iterations;
+    av->converged = converged;
+
+    av->derivativeCutoff = 1 / (2*M_PI*tau_d);
+    av->naturalFreq = wn / 2 / M_PI;
+
+    // Set the real pole position. The first pole is quite slow, which
+    // prevents the integral being too snappy and driving too much
+    // overshoot.
+    const double a = ((tau+tau_d) / tau / tau_d - 2 * damp * wn) / 20.0;
+    const double b = ((tau+tau_d) / tau / tau_d - 2 * damp * wn - a);
+
+    CONF_ATUNE_QXTLOG_DEBUG("ghf: ", ghf);
+    CONF_ATUNE_QXTLOG_DEBUG("wn: ", wn, "tau_d: ", tau_d);
+    CONF_ATUNE_QXTLOG_DEBUG("a: ", a, " b: ", b);
+
+    // Calculate the gain for the outer loop by approximating the
+    // inner loop as a single order lpf. Set the outer loop to be
+    // critically damped;
+    const double zeta_o = 1.3;
+    av->outerKp = 1 / 4.0 / (zeta_o * zeta_o) / (1/wn);
+
+    if (doOuterKi) {
+        av->outerKi = 0.75 * av->outerKp / (2 * M_PI * tau * 10.0);
+    } else {
+        av->outerKi = 0;
+    }
+
+    for (int i = 0; i < 2; i++) {
+        double beta = exp(sysIdent.Beta[i]);
+
+        double ki;
+        double kp;
+        double kd;
+
+        ki = a * b * wn * wn * tau * tau_d / beta;
+        kp = tau * tau_d * ((a+b)*wn*wn + 2*a*b*damp*wn) / beta - ki*tau_d;
+        kd = (tau * tau_d * (a*b + wn*wn + (a+b)*2*damp*wn) - 1) / beta - kp * tau_d;
+
+        av->kp[i] = kp;
+        av->ki[i] = ki;
+        av->kd[i] = kd;
+    }
+
+    if (doYaw) {
+        // Don't take yaw beta completely seriously.  Why?
+        // 1) It's got two different time constants and magnitudes of
+        // effect (reaction wheel vs. drag).  Don't want to overcontrol.
+        // 2) Far better to be undertuned on yaw than to get into weird
+        // scenarios from coupling between axes.  If yaw is far less
+        // powerful than other axes, even a small amount of nonlinearity
+        // or cross-axis coupling will excite pitch and roll.
+        double scale = exp(0.6 * (sysIdent.Beta[0] - sysIdent.Beta[2]));
+        av->kp[2] = av->kp[0] * scale;
+        av->ki[2] = 0.8 * av->ki[0] * scale;
+        av->kd[2] = 0.8 * av->kd[0] * scale;
+    } else {
+        av->kp[2] = -1;  av->ki[2] = -1;  av->kd[2] = -1;
+    }
+
+    // handle non-convergence case.  Takes precedence over all else.
+    if (!converged) {
+        lblWarnings->setText(tr("<span style=\"color: red\">Error:</span> Tune didn't converge!  Check noise and damping sliders."));
+    }
+
+    emit completeChanged();
+
+    setText(rollRateKp, av->kp[0], 5);
+    setText(rollRateKi, av->ki[0], 5);
+    setText(rollRateKd, av->kd[0], 6);
+
+    setText(pitchRateKp, av->kp[1], 5);
+    setText(pitchRateKi, av->ki[1], 5);
+    setText(pitchRateKd, av->kd[1], 6);
+
+    setText(yawRateKp, av->kp[2], 5);
+    setText(yawRateKi, av->ki[2], 5);
+    setText(yawRateKd, av->kd[2], 6);
+
+    setText(lblOuterKp, av->outerKp, 2);
+    setText(lblOuterKi, av->outerKi, 2);
+    setText(derivativeCutoff, av->derivativeCutoff, 1);
+    setText(this->wn, av->naturalFreq, 1);
+    setText(lblDamp, damp, 2);
+    lblNoise->setText(QString::number(ghf * 100, 'f', 1) + " %");
+}
+
+AutotuneFinalPage::AutotuneFinalPage(QWidget *parent) :
+    QWizardPage(parent)
+{
+    setupUi(this);
+
+#ifdef Q_OS_MAC
+    lblCongrats->setText(lblCongrats->text().replace(tr("\"Finish\""),
+                tr("\"Done\"")));
+#endif
 }
