@@ -76,7 +76,7 @@ ConfigAutotuneWidget::ConfigAutotuneWidget(ConfigGadgetWidget *parent) :
     autoLoadWidgets();
     disableMouseWheelEvents();
 
-    addUAVObject(ModuleSettings::NAME);
+    autoLoadWidgets();
 
     ExtensionSystem::PluginManager *pm = ExtensionSystem::PluginManager::instance();
     utilMngr = pm->getObject<UAVObjectUtilManager>();
