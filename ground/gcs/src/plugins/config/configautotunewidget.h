@@ -44,7 +44,6 @@
 #include <QWizardPage>
 #include <QtNetwork/QNetworkReply>
 
-#include "autotuneshareform.h"
 #include "configgadgetwidget.h"
 
 struct AutotunedValues
