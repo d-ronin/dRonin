@@ -301,6 +301,43 @@ static void stabilizationTask(void* parameters)
 
 		actuatorDesired.Thrust = stabDesired.Thrust;
 
+		// Re-project axes if necessary prior to running stabilization algorithms.
+		uint8_t reprojection = stabDesired.ReprojectionMode;
+		static uint8_t previous_reprojection = 255;
+
+		if (reprojection == STABILIZATIONDESIRED_REPROJECTIONMODE_CAMERAANGLE) {
+			float camera_tilt_angle = settings.CameraTilt;
+			if (camera_tilt_angle) {
+				float roll = stabDesired.Roll;
+				float yaw = stabDesired.Yaw;
+				// The roll input should be the cosine of the camera angle multiplied by the roll,
+				// added to the sine of camera angle multiplied by yaw.
+				stabDesired.Roll = (cosf(DEG2RAD * camera_tilt_angle) * roll +
+						(sinf(DEG2RAD * camera_tilt_angle) * yaw));
+				// Yaw is similar but uses the negative sine of the camera angle, multiplied by roll,
+				// added to the cosine of the camera angle, times the yaw
+				stabDesired.Yaw = (-1 * sinf(DEG2RAD * camera_tilt_angle) * roll) +
+						(cosf(DEG2RAD * camera_tilt_angle) * yaw);
+			}
+		} else if (reprojection == STABILIZATIONDESIRED_REPROJECTIONMODE_HEADFREE) {
+			static float reference_yaw;
+
+			if (previous_reprojection != reprojection) {
+				reference_yaw = attitudeActual.Yaw;
+			}
+
+			float rotation_angle = attitudeActual.Yaw - reference_yaw;
+			float roll = stabDesired.Roll;
+			float pitch = stabDesired.Pitch;
+
+			stabDesired.Roll = cosf(DEG2RAD * rotation_angle) * roll
+					+ sinf(DEG2RAD * rotation_angle) * pitch;
+			stabDesired.Pitch = cosf(DEG2RAD * rotation_angle) * pitch
+					+ sinf(DEG2RAD * rotation_angle) * -roll;
+		}
+
+		previous_reprojection = reprojection;
+
 #if defined(RATEDESIRED_DIAGNOSTICS)
 		RateDesiredGet(&rateDesired);
 #endif
@@ -377,24 +414,6 @@ static void stabilizationTask(void* parameters)
 		// A flag to track which stabilization mode each axis is in
 		static uint8_t previous_mode[MAX_AXES] = {255,255,255};
 		bool error = false;
-
-		// Re-project axes if necessary prior to running stabilization algorithms.
-		uint8_t reprojection = stabDesired.ReprojectionMode;
-		if (reprojection == STABILIZATIONDESIRED_REPROJECTIONMODE_CAMERAANGLE) {
-			float camera_tilt_angle = settings.CameraTilt;
-			if (camera_tilt_angle) {
-				float roll = stabDesired.Roll;
-				float yaw = stabDesired.Yaw;
-				// The roll input should be the cosine of the camera angle multiplied by the roll,
-				// added to the sine of camera angle multiplied by yaw.
-				stabDesired.Roll = (cosf(DEG2RAD * camera_tilt_angle) * roll +
-						(sinf(DEG2RAD * camera_tilt_angle) * yaw));
-				// Yaw is similar but uses the negative sine of the camera angle, multiplied by roll,
-				// added to the cosine of the camera angle, times the yaw
-				stabDesired.Yaw = (-1 * sinf(DEG2RAD * camera_tilt_angle) * roll) +
-						(cosf(DEG2RAD * camera_tilt_angle) * yaw);
-			}
-		}
 
 		//Run the selected stabilization algorithm on each axis:
 		for(uint8_t i=0; i< MAX_AXES; i++)
