@@ -425,7 +425,7 @@ void ConfigAutotuneWidget::openAutotuneDialog(bool autoOpened)
     // Keep a cancel button, even on OS X. 
     wizard.setOption(QWizard::NoCancelButton, false);
 
-    wizard.setMinimumSize(735, 480);
+    wizard.setMinimumSize(735, 600);
 
     wizard.addPage(beginning);
 
