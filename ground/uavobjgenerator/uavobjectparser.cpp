@@ -674,14 +674,6 @@ QString UAVObjectParser::processObjectFields(QDomNode& childNode, ObjectInfo* in
         field->name = name;
     }
 
-    // Get units attribute
-    elemAttr = elemAttributes.namedItem("units");
-    if ( elemAttr.isNull() )
-        return QString("Object:field:units attribute is missing");
-
-    field->units = elemAttr.nodeValue();
-    all_units << field->units;
-
     // Get type attribute
     elemAttr = elemAttributes.namedItem("type");
     if ( elemAttr.isNull() )
@@ -695,6 +687,20 @@ QString UAVObjectParser::processObjectFields(QDomNode& childNode, ObjectInfo* in
     else {
         return QString("Object:field:type attribute value is invalid");
     }
+
+    // Get units attribute
+    elemAttr = elemAttributes.namedItem("units");
+    if ( elemAttr.isNull() ) {
+        if (field->type != FIELDTYPE_ENUM) {
+            return QString("Object:field:units attribute is missing");
+        }
+
+        field->units = "";
+    } else {
+        field->units = elemAttr.nodeValue();
+    }
+
+    all_units << field->units;
 
     // Get numelements or elementnames attribute
     field->numElements = 0;
