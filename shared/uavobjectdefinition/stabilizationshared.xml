@@ -1,0 +1,11 @@
+<xml>
+	<object name="StabilizationShared" singleinstance="true" settings="false">
+		<description>Common enums used across manualcontrol and stabilizationdesired</description>
+		<field name="StabilizationMode" units="" type="enum" elementnames="Roll,Pitch,Yaw" options="Manual,Rate,Attitude,AxisLock,WeakLeveling,VirtualBar,Horizon,SystemIdent,POI,CoordinatedFlight,AcroPlus,Disabled,Failsafe"/>
+		<field name="ReprojectionMode" units="" type="enum" elements="1" options="None,CameraAngle"/>
+		<access gcs="readwrite" flight="readwrite"/>
+		<telemetrygcs acked="false" updatemode="manual" period="0"/>
+		<telemetryflight acked="false" updatemode="throttled" period="1000"/>
+		<logging updatemode="periodic" period="500"/>
+	</object>
+</xml>
