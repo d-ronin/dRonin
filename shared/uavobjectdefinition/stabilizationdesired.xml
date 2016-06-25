@@ -5,9 +5,8 @@
 		<field name="Pitch" units="degrees" type="float" elements="1"/>
 		<field name="Yaw" units="degrees" type="float" elements="1"/>
 		<field name="Thrust" units="%" type="float" elements="1"/>
-		<!-- These values should match those in ManualControlCommand.Stabilization{1,2,3}Settings -->
-		<field name="StabilizationMode" units="" type="enum" elementnames="Roll,Pitch,Yaw" options="Manual,Rate,Attitude,AxisLock,WeakLeveling,VirtualBar,Horizon,SystemIdent,POI,CoordinatedFlight,AcroPlus,Disabled,Failsafe"/>
-		<field name="ReprojectionMode" units="" type="enum" elements="1" options="None,CameraAngle"/>
+		<field name="StabilizationMode" parent="StabilizationShared.StabilizationMode" type="enum" elementnames="Roll,Pitch,Yaw"/>
+		<field name="ReprojectionMode" parent="StabilizationShared.ReprojectionMode" type="enum" elements="1"/>
 		<access gcs="readwrite" flight="readwrite"/>
 		<telemetrygcs acked="false" updatemode="manual" period="0"/>
 		<telemetryflight acked="false" updatemode="throttled" period="1000"/>
