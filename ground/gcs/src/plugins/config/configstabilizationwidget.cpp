@@ -235,66 +235,66 @@ void ConfigStabilizationWidget::showExpoPlot()
     // test if this function is called from a Signal of one of the edit fields in UI (Spin Boxes)
     if(QObject* obj = sender()) {
         // set the flags to update the plots that rely on the changed data
-        if ( (obj == m_stabilization->horizonRollExpo) || (obj == m_stabilization->rateRollKp_3) ) {
+        if (obj == m_stabilization->horizonRollExpo || obj == m_stabilization->rateRollKp_3) {
            update_exp.HorizonAttitudeRoll = true;
-           if ( (obj == m_stabilization->horizonRollExpo) ) {
+           if (obj == m_stabilization->horizonRollExpo) {
             update_exp.HorizonRateRoll = true;
            }
-           if ( (obj == m_stabilization->rateRollKp_3) ) {
+           if (obj == m_stabilization->rateRollKp_3) {
             update_exp.AttitudeRoll = true;
            }
         }
 
-        else if ( (obj == m_stabilization->horizonPitchExpo) || (obj == m_stabilization->ratePitchKp_4) ) {
+        else if (obj == m_stabilization->horizonPitchExpo || obj == m_stabilization->ratePitchKp_4) {
            update_exp.HorizonAttitudePitch = true;
-           if ( (obj == m_stabilization->horizonPitchExpo) ) {
+           if (obj == m_stabilization->horizonPitchExpo) {
             update_exp.HorizonRatePitch = true;
            }
-           if ( (obj == m_stabilization->ratePitchKp_4) ) {
+           if (obj == m_stabilization->ratePitchKp_4) {
                update_exp.AttitudePitch = true;
            }
         }
 
-        else if ( (obj == m_stabilization->horizonYawExpo) || (obj == m_stabilization->rateYawKp_3) ) {
+        else if (obj == m_stabilization->horizonYawExpo || obj == m_stabilization->rateYawKp_3) {
            update_exp.HorizonAttitudeYaw = true;
-           if ( (obj == m_stabilization->horizonYawExpo) ) {
+           if (obj == m_stabilization->horizonYawExpo) {
             update_exp.HorizonRateYaw = true;
            }
-           if ( (obj == m_stabilization->rateYawKp_3) ) {
+           if (obj == m_stabilization->rateYawKp_3) {
             update_exp.AttitudeYaw = true;
            }
         }
 
-        else if ( (obj == m_stabilization->rateRollExpo) || (obj == m_stabilization->fullStickRateRoll) ) {
+        else if (obj == m_stabilization->rateRollExpo || obj == m_stabilization->fullStickRateRoll) {
            update_exp.RateRoll = true;
-           if ( (obj == m_stabilization->fullStickRateRoll) ) {
+           if (obj == m_stabilization->fullStickRateRoll) {
             update_exp.HorizonRateRoll = true;
            }
         }
 
-        else if ( (obj == m_stabilization->ratePitchExpo) || (obj == m_stabilization->fullStickRatePitch) ) {
+        else if (obj == m_stabilization->ratePitchExpo || obj == m_stabilization->fullStickRatePitch) {
            update_exp.RatePitch = true;
-           if ( (obj == m_stabilization->fullStickRatePitch) ) {
+           if (obj == m_stabilization->fullStickRatePitch) {
             update_exp.HorizonRatePitch = true;
            }
         }
 
-        else if ( (obj == m_stabilization->rateYawExpo) || (obj == m_stabilization->fullStickRateYaw) ) {
+        else if (obj == m_stabilization->rateYawExpo || obj == m_stabilization->fullStickRateYaw) {
            update_exp.RateYaw = true;
 
-           if ( (obj == m_stabilization->fullStickRateYaw) ) {
+           if (obj == m_stabilization->fullStickRateYaw) {
             update_exp.HorizonRateYaw = true;
            }
         }
-        else if ( (obj == m_stabilization->attitudeRollExpo) ) {
+        else if (obj == m_stabilization->attitudeRollExpo) {
            update_exp.AttitudeRoll = true;
         }
 
-        else if ( (obj == m_stabilization->attitudePitchExpo) ) {
+        else if (obj == m_stabilization->attitudePitchExpo) {
            update_exp.AttitudePitch = true;
         }
 
-        else if ( (obj == m_stabilization->attitudeYawExpo) ) {
+        else if (obj == m_stabilization->attitudeYawExpo) {
            update_exp.AttitudeYaw = true;
         }
     }
