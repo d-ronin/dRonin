@@ -473,6 +473,8 @@ void ConfigAutotuneWidget::openAutotuneDialog(bool autoOpened)
 
         stabData.RollPI[StabilizationSettings::ROLLPI_KP] = av.outerKp;
         stabData.RollPI[StabilizationSettings::ROLLPI_KI] = av.outerKi;
+        stabData.PitchPI[StabilizationSettings::PITCHPI_KP] = av.outerKp;
+        stabData.PitchPI[StabilizationSettings::PITCHPI_KI] = av.outerKi;
 
         stabilizationSettings->setData(stabData);
         stabilizationSettings->updated();
