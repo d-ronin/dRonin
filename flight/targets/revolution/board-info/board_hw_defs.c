@@ -1956,6 +1956,49 @@ const struct pios_frsky_rssi_cfg pios_frsky_rssi_cfg = {
 #endif /* PIOS_INCLUDE_FRSKY_RSSI */
 
 /**
+ * Configuration for the MPU chip
+ */
+#if defined(PIOS_INCLUDE_MPU)
+#include "pios_mpu.h"
+static const struct pios_exti_cfg pios_exti_mpu_cfg __exti_config = {
+	.vector = PIOS_MPU_IRQHandler,
+	.line = EXTI_Line4,
+	.pin = {
+		.gpio = GPIOC,
+		.init = {
+			.GPIO_Pin = GPIO_Pin_4,
+			.GPIO_Speed = GPIO_Speed_100MHz,
+			.GPIO_Mode = GPIO_Mode_IN,
+			.GPIO_OType = GPIO_OType_OD,
+			.GPIO_PuPd = GPIO_PuPd_NOPULL,
+		},
+	},
+	.irq = {
+		.init = {
+			.NVIC_IRQChannel = EXTI4_IRQn,
+			.NVIC_IRQChannelPreemptionPriority = PIOS_IRQ_PRIO_HIGH,
+			.NVIC_IRQChannelSubPriority = 0,
+			.NVIC_IRQChannelCmd = ENABLE,
+		},
+	},
+	.exti = {
+		.init = {
+			.EXTI_Line = EXTI_Line4, // matches above GPIO pin
+			.EXTI_Mode = EXTI_Mode_Interrupt,
+			.EXTI_Trigger = EXTI_Trigger_Rising,
+			.EXTI_LineCmd = ENABLE,
+		},
+	},
+};
+
+static const struct pios_mpu_cfg pios_mpu_cfg = {
+	.exti_cfg           = &pios_exti_mpu_cfg,
+	.default_samplerate = 500,
+	.orientation        = PIOS_MPU_TOP_180DEG,
+};
+#endif /* PIOS_INCLUDE_MPU */
+
+/**
  * @}
  * @}
  */
