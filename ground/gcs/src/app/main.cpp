@@ -60,6 +60,7 @@
 #include <QBitmap>
 #include <QCommandLineParser>
 #include <QCommandLineOption>
+#include <QStandardPaths>
 
 #include "libcrashreporter-qt/libcrashreporter-handler/Handler.h"
 
@@ -168,6 +169,16 @@ static inline QStringList getPluginPaths()
     pluginPath += QLatin1Char('/');
     pluginPath += QLatin1String("Plugins");
     rc.push_back(pluginPath);
+    // 4) add-on plugins (e.g. 3rd party/out-of-tree board plugins)
+    QStringList docPaths = QStandardPaths::standardLocations(QStandardPaths::DocumentsLocation);
+    if (docPaths.length() > 0) {
+        pluginPath = docPaths.at(0);
+        pluginPath += QLatin1Char('/');
+        pluginPath += QLatin1String(GCS_PROJECT_BRANDING_PRETTY);
+        pluginPath += QLatin1Char('/');
+        pluginPath += QLatin1String("addons");
+        rc.push_back(pluginPath);
+    }
     return rc;
 }
 
