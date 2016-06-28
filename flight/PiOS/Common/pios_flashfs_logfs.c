@@ -957,6 +957,8 @@ out_exit:
  * @retval -3 if object not found in filesystem
  * @retval -4 if object size in filesystem does not exactly match buffer size
  * @retval -5 if reading the object data from flash fails
+ * @retval -6 if reading the CRC from flash fails
+ * @retval -7 if CRC is incorrect
  */
 int32_t PIOS_FLASHFS_ObjLoad(uintptr_t fs_id, uint32_t obj_id, uint16_t obj_inst_id, uint8_t *obj_data, uint16_t obj_size)
 {
