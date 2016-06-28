@@ -147,20 +147,6 @@ int32_t tbsvtx_get_state(uintptr_t usart_id, VTXInfoData *info)
 	}
 
 	info->Model = VTXINFO_MODEL_TBSUNIFYPRO5G8;
-	info->SupporedPowerLevels[0] = VTXINFO_SUPPOREDPOWERLEVELS_25MW;
-	info->SupporedPowerLevels[1] = VTXINFO_SUPPOREDPOWERLEVELS_200MW;
-	info->SupporedPowerLevels[2] = VTXINFO_SUPPOREDPOWERLEVELS_500MW;
-	info->SupporedPowerLevels[3] = VTXINFO_SUPPOREDPOWERLEVELS_800MW;
-	info->SupporedPowerLevels[4] = VTXINFO_SUPPOREDPOWERLEVELS_NONE;
-
-	info->SupportedBands[0] = VTXINFO_SUPPORTEDBANDS_5G8BANDA;
-	info->SupportedBands[1] = VTXINFO_SUPPORTEDBANDS_5G8BANDB;
-	info->SupportedBands[2] = VTXINFO_SUPPORTEDBANDS_5G8BANDE;
-	info->SupportedBands[3] = VTXINFO_SUPPORTEDBANDS_5G8AIRWAVE;
-	info->SupportedBands[4] = VTXINFO_SUPPORTEDBANDS_5G8RACEBAND;
-	info->SupportedBands[5] = VTXINFO_SUPPORTEDBANDS_NONE;
-
-	memcpy(info->RxBytes, (void*)&info_msg, 8);
 
 	return 0;
 }

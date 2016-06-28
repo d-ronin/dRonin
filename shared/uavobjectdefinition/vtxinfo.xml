@@ -2,29 +2,9 @@
     <object name="VTXInfo" singleinstance="true" settings="false">
         <description>Video transmitter information.</description>
 	<field name="Model" units="" type="enum" elements="1" options="None,TBS Unify Pro 5G8,TBS Unify Pro 5G8 HV"/> 
-        <field name="SupportedBands" units="" type="enum" elements="6" defaultvalue="None">
-			<options>
-				<option>None</option>
-				<option>5G8 Band A</option>
-				<option>5G8 Band B</option>
-				<option>5G8 Band E</option>
-				<option>5G8 Airwave</option>
-				<option>5G8 Raceband</option>
-			</options>
-		</field>
-		<field name="SupporedPowerLevels" units="" type="enum" elements="6" defaultvalue="None">
-			<options>
-				<option>None</option>
-				<option>25mW</option>
-				<option>200mW</option>
-				<option>500mW</option>
-				<option>800mW</option>
-			</options>
-		</field>
 	<field name="Frequency" units="MHz" type="uint16" elements="1" defaultvalue="0"/>
 	<field name="Power" units="mW" type="uint16" elements="1" defaultvalue="0"/>
 	<field name="State" units='' type="enum" elements="1" options="Disconnected,Connected" defaultvalue="Disconnected"/>
-        <field name="RxBytes" units="" type="uint8" elements="11" defaultvalue="0"/>
         <access gcs="readwrite" flight="readwrite"/>
         <telemetrygcs acked="true" updatemode="onchange" period="0"/>
         <telemetryflight acked="true" updatemode="onchange" period="0"/>
