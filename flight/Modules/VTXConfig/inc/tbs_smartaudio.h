@@ -1,12 +1,16 @@
 /**
  ******************************************************************************
- * @file       pios_modules.h
+ * @addtogroup TauLabsModules Tau Labs Modules
+ * @{ 
+ * @addtogroup VTXConfig Module
+ * @{ 
+ *
+ * @file       tbs_smartaudio.h
  * @author     dRonin, http://dRonin.org/, Copyright (C) 2016
- * @addtogroup PIOS PIOS Core hardware abstraction layer
- * @{
- * @addtogroup PIOS_Modules Module Functions
- * @{
- * @brief Allows control of module enable/disable from PiOS
+ *
+ * @brief      This module configures the video transmitter
+ * @see        The GNU Public License (GPL) Version 3
+ *
  *****************************************************************************/
 /*
  * This program is free software; you can redistribute it and/or modify
@@ -28,29 +32,16 @@
  * of this source file; otherwise redistribution is prohibited.
  */
 
-#ifndef PIOS_MODULES_H_
-#define PIOS_MODULES_H_
 
-enum pios_modules {
-	PIOS_MODULE_COMUSBBRIDGE,
-	PIOS_MODULE_GPS,
-	PIOS_MODULE_STORM32BGC,
-	PIOS_MODULE_UAVOFRSKYSENSORHUBBRIDGE,
-	PIOS_MODULE_UAVOFRSKYSPORTBRIDGE,
-	PIOS_MODULE_UAVOHOTTBRIDGE,
-	PIOS_MODULE_UAVOLIGHTTELEMETRYBRIDGE,
-	PIOS_MODULE_UAVOMAVLINKBRIDGE,
-	PIOS_MODULE_UAVOMSPBRIDGE,
-	PIOS_MODULE_VTXCONFIG,
-	PIOS_MODULE_NUM
-};
+#ifndef TBS_SMARTAUDIO_H
+#define TBS_SMARTAUDIO_H
 
-void PIOS_Modules_Enable(enum pios_modules module);
-bool PIOS_Modules_IsEnabled(enum pios_modules module);
+#include "vtxinfo.h"
 
-#endif // PIOS_MODULES_H_
+int32_t tbsvtx_get_state(uintptr_t usart_id, VTXInfoData *info);
+int32_t tbsvtx_set_freq(uintptr_t usart_id, uint16_t frequency);
+int32_t tbsvtx_set_power(uintptr_t usart_id, uint16_t power);
 
-/**
- * @ }
- * @ }
- */
+#endif /* defined(TBS_SMARTAUDIO_H) */
+
+
