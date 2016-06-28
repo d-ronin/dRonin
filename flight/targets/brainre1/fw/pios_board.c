@@ -47,6 +47,8 @@
 #include <openpilot.h>
 #include <misc_math.h>
 #include <uavobjectsinit.h>
+#include "pios_flash_jedec_priv.h"
+
 #include "hwbrainre1.h"
 #include "flightbatterysettings.h"
 #include "flightstatus.h"
@@ -286,6 +288,11 @@ void PIOS_Board_Init(void) {
 	/* Set the HW revision, this also invokes the callback */
 	uint8_t hw_rev = PIOS_RE1FPGA_GetHWRevision();
 	HwBrainRE1HWRevisionSet(&hw_rev);
+
+	/* Get the flash ID (random number) */
+	uint8_t flashid[16] = {0};
+	PIOS_Flash_Jedec_ReadOPTData(pios_external_flash_id, 0, flashid, 16);
+	HwBrainRE1FlashIDSet(flashid);
 
 	/* Connect callback for buzzer */
 	FlightStatusInitialize();
