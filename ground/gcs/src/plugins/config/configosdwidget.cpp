@@ -631,6 +631,16 @@ void ConfigOsdWidget::setupOsdPage(Ui::OsdPage * page, QWidget * page_widget, UA
     addUAVObjectToWidgetRelation(name, "MapHeightMeters", page->mapHeightMeters);
     addUAVObjectToWidgetRelation(name, "MapWidthPixels", page->mapWidthPixels);
     addUAVObjectToWidgetRelation(name, "MapHeightPixels", page->mapHeightPixels);
+
+    // VTXFreq
+    addUAVObjectToWidgetRelation(name, "VTXFreq", page->VTXFreqEnabled);
+    page->VTXFreqEnabled->setProperty(trueString.toLatin1(), "Enabled");
+    page->VTXFreqEnabled->setProperty(falseString.toLatin1(), "Disabled");
+    addUAVObjectToWidgetRelation(name, "VTXFreqPosX", page->VTXFreqX);
+    addUAVObjectToWidgetRelation(name, "VTXFreqPosY", page->VTXFreqY);
+    addUAVObjectToWidgetRelation(name, "VTXFreqFont", page->VTXFreqFont);
+    addUAVObjectToWidgetRelation(name, "VTXFreqAlign", page->VTXFreqAlign);
+
 }
 
 void ConfigOsdWidget::copyOsdPage(int to, int from)

@@ -59,8 +59,8 @@
        <rect>
         <x>0</x>
         <y>0</y>
-        <width>924</width>
-        <height>1149</height>
+        <width>932</width>
+        <height>966</height>
        </rect>
       </property>
       <layout class="QVBoxLayout" name="verticalLayout_3">
@@ -108,16 +108,10 @@
               </property>
              </widget>
             </item>
-            <item row="0" column="4">
-             <widget class="QLabel" name="label_5">
-              <property name="font">
-               <font>
-                <weight>75</weight>
-                <bold>true</bold>
-               </font>
-              </property>
-              <property name="text">
-               <string>Align</string>
+            <item row="4" column="3">
+             <widget class="QSpinBox" name="ArmStatusY">
+              <property name="maximum">
+               <number>265</number>
               </property>
              </widget>
             </item>
@@ -128,10 +122,16 @@
               </property>
              </widget>
             </item>
-            <item row="4" column="3">
-             <widget class="QSpinBox" name="ArmStatusY">
-              <property name="maximum">
-               <number>265</number>
+            <item row="0" column="4">
+             <widget class="QLabel" name="label_5">
+              <property name="font">
+               <font>
+                <weight>75</weight>
+                <bold>true</bold>
+               </font>
+              </property>
+              <property name="text">
+               <string>Align</string>
               </property>
              </widget>
             </item>
@@ -169,6 +169,13 @@
             <item row="24" column="4">
              <widget class="QComboBox" name="SpeedScaleAlign"/>
             </item>
+            <item row="7" column="2">
+             <widget class="QSpinBox" name="BatteryCurrentX">
+              <property name="maximum">
+               <number>360</number>
+              </property>
+             </widget>
+            </item>
             <item row="13" column="2">
              <widget class="QSpinBox" name="CpuX">
               <property name="maximum">
@@ -176,10 +183,17 @@
               </property>
              </widget>
             </item>
-            <item row="7" column="2">
-             <widget class="QSpinBox" name="BatteryCurrentX">
+            <item row="15" column="1">
+             <widget class="QCheckBox" name="FlightModeEnabled">
+              <property name="text">
+               <string/>
+              </property>
+             </widget>
+            </item>
+            <item row="8" column="3">
+             <widget class="QSpinBox" name="BatteryConsumedY">
               <property name="maximum">
-               <number>360</number>
+               <number>265</number>
               </property>
              </widget>
             </item>
@@ -199,25 +213,20 @@
               </property>
              </widget>
             </item>
-            <item row="15" column="1">
-             <widget class="QCheckBox" name="FlightModeEnabled">
-              <property name="text">
-               <string/>
-              </property>
-             </widget>
-            </item>
-            <item row="8" column="3">
-             <widget class="QSpinBox" name="BatteryConsumedY">
-              <property name="maximum">
-               <number>265</number>
-              </property>
-             </widget>
-            </item>
             <item row="27" column="4">
              <widget class="QComboBox" name="TimeAlign"/>
             </item>
             <item row="27" column="5">
              <widget class="QComboBox" name="TimeFont"/>
+            </item>
+            <item row="6" column="4">
+             <widget class="QComboBox" name="BatteryVoltAlign"/>
+            </item>
+            <item row="1" column="4">
+             <widget class="QComboBox" name="AlarmAlign"/>
+            </item>
+            <item row="13" column="4">
+             <widget class="QComboBox" name="CpuAlign"/>
             </item>
             <item row="12" column="6">
              <layout class="QHBoxLayout" name="horizontalLayout_2">
@@ -233,6 +242,13 @@
               </item>
              </layout>
             </item>
+            <item row="8" column="2">
+             <widget class="QSpinBox" name="BatteryConsumedX">
+              <property name="maximum">
+               <number>360</number>
+              </property>
+             </widget>
+            </item>
             <item row="8" column="0">
              <widget class="QLabel" name="label_15">
               <property name="font">
@@ -246,32 +262,6 @@
               </property>
               <property name="text">
                <string>Battery Consumed</string>
-              </property>
-             </widget>
-            </item>
-            <item row="1" column="4">
-             <widget class="QComboBox" name="AlarmAlign"/>
-            </item>
-            <item row="8" column="2">
-             <widget class="QSpinBox" name="BatteryConsumedX">
-              <property name="maximum">
-               <number>360</number>
-              </property>
-             </widget>
-            </item>
-            <item row="6" column="0">
-             <widget class="QLabel" name="label_13">
-              <property name="font">
-               <font>
-                <weight>75</weight>
-                <bold>true</bold>
-               </font>
-              </property>
-              <property name="toolTip">
-               <string>Note: Needs Battery Module</string>
-              </property>
-              <property name="text">
-               <string>Battery Voltage</string>
               </property>
              </widget>
             </item>
@@ -291,10 +281,42 @@
               </property>
              </widget>
             </item>
+            <item row="6" column="0">
+             <widget class="QLabel" name="label_13">
+              <property name="font">
+               <font>
+                <weight>75</weight>
+                <bold>true</bold>
+               </font>
+              </property>
+              <property name="toolTip">
+               <string>Note: Needs Battery Module</string>
+              </property>
+              <property name="text">
+               <string>Battery Voltage</string>
+              </property>
+             </widget>
+            </item>
             <item row="5" column="1">
              <widget class="QCheckBox" name="ArtificialHorizonEnabled">
               <property name="text">
                <string/>
+              </property>
+             </widget>
+            </item>
+            <item row="14" column="4">
+             <widget class="QComboBox" name="CustomTextAlign"/>
+            </item>
+            <item row="4" column="0">
+             <widget class="QLabel" name="label_11">
+              <property name="font">
+               <font>
+                <weight>75</weight>
+                <bold>true</bold>
+               </font>
+              </property>
+              <property name="text">
+               <string>Arming Status</string>
               </property>
              </widget>
             </item>
@@ -311,8 +333,8 @@
               </property>
              </widget>
             </item>
-            <item row="4" column="0">
-             <widget class="QLabel" name="label_11">
+            <item row="10" column="0">
+             <widget class="QLabel" name="label_45">
               <property name="font">
                <font>
                 <weight>75</weight>
@@ -320,9 +342,12 @@
                </font>
               </property>
               <property name="text">
-               <string>Arming Status</string>
+               <string>Center Mark</string>
               </property>
              </widget>
+            </item>
+            <item row="2" column="4">
+             <widget class="QComboBox" name="AltitudeScaleAlign"/>
             </item>
             <item row="13" column="3">
              <widget class="QSpinBox" name="CpuY">
@@ -330,9 +355,6 @@
                <number>265</number>
               </property>
              </widget>
-            </item>
-            <item row="2" column="4">
-             <widget class="QComboBox" name="AltitudeScaleAlign"/>
             </item>
             <item row="16" column="3">
              <widget class="QSpinBox" name="GForceY">
@@ -345,6 +367,26 @@
              <widget class="QCheckBox" name="AlarmEnabled">
               <property name="text">
                <string/>
+              </property>
+             </widget>
+            </item>
+            <item row="1" column="0">
+             <widget class="QLabel" name="label_8">
+              <property name="font">
+               <font>
+                <weight>75</weight>
+                <bold>true</bold>
+               </font>
+              </property>
+              <property name="text">
+               <string>Alarms</string>
+              </property>
+             </widget>
+            </item>
+            <item row="12" column="3">
+             <widget class="QSpinBox" name="CompassY">
+              <property name="maximum">
+               <number>265</number>
               </property>
              </widget>
             </item>
@@ -389,30 +431,27 @@
               </item>
              </layout>
             </item>
-            <item row="1" column="0">
-             <widget class="QLabel" name="label_8">
-              <property name="font">
-               <font>
-                <weight>75</weight>
-                <bold>true</bold>
-               </font>
-              </property>
-              <property name="text">
-               <string>Alarms</string>
-              </property>
-             </widget>
-            </item>
-            <item row="12" column="3">
-             <widget class="QSpinBox" name="CompassY">
-              <property name="maximum">
-               <number>265</number>
-              </property>
-             </widget>
-            </item>
             <item row="11" column="2">
              <widget class="QSpinBox" name="ClimbRateX">
               <property name="maximum">
                <number>360</number>
+              </property>
+             </widget>
+            </item>
+            <item row="7" column="0">
+             <widget class="QLabel" name="label_14">
+              <property name="font">
+               <font>
+                <weight>75</weight>
+                <italic>false</italic>
+                <bold>true</bold>
+               </font>
+              </property>
+              <property name="toolTip">
+               <string>Note: Needs Battery Module</string>
+              </property>
+              <property name="text">
+               <string>Battery Current</string>
               </property>
              </widget>
             </item>
@@ -434,23 +473,23 @@
               </item>
              </layout>
             </item>
-            <item row="6" column="4">
-             <widget class="QComboBox" name="BatteryVoltAlign"/>
+            <item row="26" column="1">
+             <widget class="QCheckBox" name="ThrottleEnabled">
+              <property name="text">
+               <string/>
+              </property>
+             </widget>
             </item>
-            <item row="7" column="0">
-             <widget class="QLabel" name="label_14">
+            <item row="0" column="3">
+             <widget class="QLabel" name="label_4">
               <property name="font">
                <font>
                 <weight>75</weight>
-                <italic>false</italic>
                 <bold>true</bold>
                </font>
               </property>
-              <property name="toolTip">
-               <string>Note: Needs Battery Module</string>
-              </property>
               <property name="text">
-               <string>Battery Current</string>
+               <string>Y-Pos</string>
               </property>
              </widget>
             </item>
@@ -468,24 +507,15 @@
               </item>
              </layout>
             </item>
-            <item row="0" column="3">
-             <widget class="QLabel" name="label_4">
-              <property name="font">
-               <font>
-                <weight>75</weight>
-                <bold>true</bold>
-               </font>
-              </property>
-              <property name="text">
-               <string>Y-Pos</string>
-              </property>
-             </widget>
-            </item>
-            <item row="13" column="4">
-             <widget class="QComboBox" name="CpuAlign"/>
-            </item>
             <item row="16" column="4">
              <widget class="QComboBox" name="GForceAlign"/>
+            </item>
+            <item row="27" column="3">
+             <widget class="QSpinBox" name="TimeY">
+              <property name="maximum">
+               <number>265</number>
+              </property>
+             </widget>
             </item>
             <item row="16" column="5">
              <widget class="QComboBox" name="GForceFont"/>
@@ -506,11 +536,15 @@
               </property>
              </widget>
             </item>
-            <item row="14" column="4">
-             <widget class="QComboBox" name="CustomTextAlign"/>
-            </item>
             <item row="14" column="5">
              <widget class="QComboBox" name="CustomTextFont"/>
+            </item>
+            <item row="25" column="1">
+             <widget class="QCheckBox" name="SpeedNumericEnabled">
+              <property name="text">
+               <string/>
+              </property>
+             </widget>
             </item>
             <item row="6" column="5">
              <widget class="QComboBox" name="BatteryVoltFont"/>
@@ -532,23 +566,17 @@
               </property>
              </widget>
             </item>
-            <item row="10" column="0">
-             <widget class="QLabel" name="label_45">
-              <property name="font">
-               <font>
-                <weight>75</weight>
-                <bold>true</bold>
-               </font>
-              </property>
-              <property name="text">
-               <string>Center Mark</string>
-              </property>
-             </widget>
-            </item>
             <item row="11" column="3">
              <widget class="QSpinBox" name="ClimbRateY">
               <property name="maximum">
                <number>265</number>
+              </property>
+             </widget>
+            </item>
+            <item row="23" column="6">
+             <widget class="QCheckBox" name="RssiShowIcon">
+              <property name="text">
+               <string>Show icon</string>
               </property>
              </widget>
             </item>
@@ -621,21 +649,11 @@
               </property>
              </widget>
             </item>
-            <item row="4" column="4">
-             <widget class="QComboBox" name="ArmStatusAlign"/>
-            </item>
             <item row="20" column="5">
              <widget class="QComboBox" name="GpsMgrsFont"/>
             </item>
-            <item row="21" column="0">
-             <widget class="QLabel" name="label_22">
-              <property name="toolTip">
-               <string>Note: NavigationFilter in StateEstimation settings has to be set</string>
-              </property>
-              <property name="text">
-               <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;Home Distance&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-              </property>
-             </widget>
+            <item row="4" column="4">
+             <widget class="QComboBox" name="ArmStatusAlign"/>
             </item>
             <item row="23" column="1">
              <widget class="QCheckBox" name="RssiEnabled">
@@ -648,6 +666,16 @@
              <widget class="QSpinBox" name="RssiX">
               <property name="maximum">
                <number>360</number>
+              </property>
+             </widget>
+            </item>
+            <item row="21" column="0">
+             <widget class="QLabel" name="label_22">
+              <property name="toolTip">
+               <string>Note: NavigationFilter in StateEstimation settings has to be set</string>
+              </property>
+              <property name="text">
+               <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;Home Distance&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
               </property>
              </widget>
             </item>
@@ -852,20 +880,6 @@
             <item row="25" column="5">
              <widget class="QComboBox" name="SpeedNumericFont"/>
             </item>
-            <item row="25" column="6">
-             <layout class="QHBoxLayout" name="horizontalLayout_6">
-              <item>
-               <widget class="QLabel" name="label_46">
-                <property name="text">
-                 <string>Source:</string>
-                </property>
-               </widget>
-              </item>
-              <item>
-               <widget class="QComboBox" name="SpeedNumericSource"/>
-              </item>
-             </layout>
-            </item>
             <item row="26" column="0">
              <widget class="QLabel" name="label_47">
               <property name="font">
@@ -882,19 +896,19 @@
               </property>
              </widget>
             </item>
-            <item row="26" column="1">
-             <widget class="QCheckBox" name="ThrottleEnabled">
-              <property name="text">
-               <string/>
-              </property>
-             </widget>
-            </item>
-            <item row="27" column="0">
-             <widget class="QLabel" name="label_26">
-              <property name="text">
-               <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;Time&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-              </property>
-             </widget>
+            <item row="25" column="6">
+             <layout class="QHBoxLayout" name="horizontalLayout_6">
+              <item>
+               <widget class="QLabel" name="label_46">
+                <property name="text">
+                 <string>Source:</string>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <widget class="QComboBox" name="SpeedNumericSource"/>
+              </item>
+             </layout>
             </item>
             <item row="27" column="1">
              <widget class="QCheckBox" name="TimeEnabled">
@@ -910,10 +924,10 @@
               </property>
              </widget>
             </item>
-            <item row="27" column="3">
-             <widget class="QSpinBox" name="TimeY">
-              <property name="maximum">
-               <number>265</number>
+            <item row="27" column="0">
+             <widget class="QLabel" name="label_26">
+              <property name="text">
+               <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;Time&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
               </property>
              </widget>
             </item>
@@ -950,6 +964,19 @@
               </property>
              </widget>
             </item>
+            <item row="25" column="0">
+             <widget class="QLabel" name="label_44">
+              <property name="font">
+               <font>
+                <weight>75</weight>
+                <bold>true</bold>
+               </font>
+              </property>
+              <property name="text">
+               <string>Speed Number</string>
+              </property>
+             </widget>
+            </item>
             <item row="24" column="6">
              <layout class="QHBoxLayout" name="horizontalLayout_3">
               <item>
@@ -968,26 +995,6 @@
               </item>
              </layout>
             </item>
-            <item row="25" column="0">
-             <widget class="QLabel" name="label_44">
-              <property name="font">
-               <font>
-                <weight>75</weight>
-                <bold>true</bold>
-               </font>
-              </property>
-              <property name="text">
-               <string>Speed Number</string>
-              </property>
-             </widget>
-            </item>
-            <item row="25" column="1">
-             <widget class="QCheckBox" name="SpeedNumericEnabled">
-              <property name="text">
-               <string/>
-              </property>
-             </widget>
-            </item>
             <item row="7" column="1">
              <widget class="QCheckBox" name="BatteryCurrentEnabled">
               <property name="text">
@@ -998,12 +1005,8 @@
             <item row="23" column="5">
              <widget class="QComboBox" name="RssiFont"/>
             </item>
-            <item row="23" column="6">
-             <widget class="QCheckBox" name="RssiShowIcon">
-              <property name="text">
-               <string>Show icon</string>
-              </property>
-             </widget>
+            <item row="18" column="5">
+             <widget class="QComboBox" name="GpsLatFont"/>
             </item>
             <item row="24" column="0">
              <widget class="QLabel" name="label_24">
@@ -1012,8 +1015,11 @@
               </property>
              </widget>
             </item>
-            <item row="18" column="5">
-             <widget class="QComboBox" name="GpsLatFont"/>
+            <item row="15" column="4">
+             <widget class="QComboBox" name="FlightModeAlign"/>
+            </item>
+            <item row="15" column="5">
+             <widget class="QComboBox" name="FlightModeFont"/>
             </item>
             <item row="19" column="0">
              <widget class="QLabel" name="label_21">
@@ -1024,12 +1030,6 @@
                <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;GPS Longitude&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
               </property>
              </widget>
-            </item>
-            <item row="15" column="4">
-             <widget class="QComboBox" name="FlightModeAlign"/>
-            </item>
-            <item row="15" column="5">
-             <widget class="QComboBox" name="FlightModeFont"/>
             </item>
             <item row="19" column="3">
              <widget class="QSpinBox" name="GpsLonY">
@@ -1078,6 +1078,13 @@
               </property>
              </widget>
             </item>
+            <item row="17" column="1">
+             <widget class="QCheckBox" name="GpsStatusEnabled">
+              <property name="text">
+               <string/>
+              </property>
+             </widget>
+            </item>
             <item row="17" column="0">
              <widget class="QLabel" name="label_19">
               <property name="toolTip">
@@ -1088,8 +1095,8 @@
               </property>
              </widget>
             </item>
-            <item row="17" column="1">
-             <widget class="QCheckBox" name="GpsStatusEnabled">
+            <item row="16" column="1">
+             <widget class="QCheckBox" name="GForceEnabled">
               <property name="text">
                <string/>
               </property>
@@ -1105,13 +1112,6 @@
               </property>
               <property name="text">
                <string>G Force</string>
-              </property>
-             </widget>
-            </item>
-            <item row="16" column="1">
-             <widget class="QCheckBox" name="GForceEnabled">
-              <property name="text">
-               <string/>
               </property>
              </widget>
             </item>
@@ -1145,13 +1145,6 @@
               </property>
              </widget>
             </item>
-            <item row="23" column="0">
-             <widget class="QLabel" name="label_23">
-              <property name="text">
-               <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;RSSI&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-              </property>
-             </widget>
-            </item>
             <item row="4" column="2">
              <widget class="QSpinBox" name="ArmStatusX">
               <property name="maximum">
@@ -1161,6 +1154,13 @@
             </item>
             <item row="3" column="5">
              <widget class="QComboBox" name="AltitudeNumericFont"/>
+            </item>
+            <item row="23" column="0">
+             <widget class="QLabel" name="label_23">
+              <property name="text">
+               <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;RSSI&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+              </property>
+             </widget>
             </item>
             <item row="14" column="2">
              <widget class="QSpinBox" name="CustomTextX">
@@ -1206,16 +1206,6 @@
             <item row="17" column="5">
              <widget class="QComboBox" name="GpsStatusFont"/>
             </item>
-            <item row="18" column="0">
-             <widget class="QLabel" name="label_20">
-              <property name="toolTip">
-               <string>Note: Needs GPS Module</string>
-              </property>
-              <property name="text">
-               <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;GPS Latitude&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-              </property>
-             </widget>
-            </item>
             <item row="18" column="1">
              <widget class="QCheckBox" name="GpsLatEnabled">
               <property name="text">
@@ -1227,6 +1217,16 @@
              <widget class="QSpinBox" name="GpsLatX">
               <property name="maximum">
                <number>360</number>
+              </property>
+             </widget>
+            </item>
+            <item row="18" column="0">
+             <widget class="QLabel" name="label_20">
+              <property name="toolTip">
+               <string>Note: Needs GPS Module</string>
+              </property>
+              <property name="text">
+               <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;GPS Latitude&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
               </property>
              </widget>
             </item>
@@ -1287,6 +1287,46 @@
                <widget class="QComboBox" name="CenterMarkMode"/>
               </item>
              </layout>
+            </item>
+            <item row="28" column="0">
+             <widget class="QLabel" name="label_49">
+              <property name="font">
+               <font>
+                <weight>75</weight>
+                <bold>true</bold>
+               </font>
+              </property>
+              <property name="text">
+               <string>VTX Frequency</string>
+              </property>
+             </widget>
+            </item>
+            <item row="28" column="1">
+             <widget class="QCheckBox" name="VTXFreqEnabled">
+              <property name="text">
+               <string/>
+              </property>
+             </widget>
+            </item>
+            <item row="28" column="2">
+             <widget class="QSpinBox" name="VTXFreqX">
+              <property name="maximum">
+               <number>360</number>
+              </property>
+             </widget>
+            </item>
+            <item row="28" column="3">
+             <widget class="QSpinBox" name="VTXFreqY">
+              <property name="maximum">
+               <number>265</number>
+              </property>
+             </widget>
+            </item>
+            <item row="28" column="4">
+             <widget class="QComboBox" name="VTXFreqAlign"/>
+            </item>
+            <item row="28" column="5">
+             <widget class="QComboBox" name="VTXFreqFont"/>
             </item>
            </layout>
           </item>
