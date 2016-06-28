@@ -29,6 +29,7 @@
 			<option>LighttelemetryTx</option>
 			<option>MavLinkTX</option>
 			<option>MavLinkTX_GPS_RX</option>
+			<option>VTX Config TBS SmartAudio</option>
 		</options>
 	</field>
 

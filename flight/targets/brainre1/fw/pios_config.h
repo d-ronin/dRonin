@@ -61,6 +61,7 @@
 #define PIOS_INCLUDE_WDG
 #define PIOS_INCLUDE_HPWM
 #define PIOS_INCLUDE_FRSKY_RSSI
+#define PIOS_INCLUDE_TBSVTXCONFIG
 
 /* Select the sensors to include */
 #define PIOS_INCLUDE_BMI160
