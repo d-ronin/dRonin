@@ -56,6 +56,8 @@
 #define JEDEC_STATUS_SEC             0x40
 #define JEDEC_STATUS_SRP0            0x80
 
+#define JEDED_READ_OPT_DATA          0x4B
+
 enum pios_jedec_dev_magic {
 	PIOS_JEDEC_DEV_MAGIC = 0xcb55aa55,
 };
@@ -438,6 +440,49 @@ static int32_t PIOS_Flash_Jedec_ReadData(uintptr_t chip_id, uint32_t chip_offset
 	/* Execute read command and clock in address.  Keep CS asserted */
 	uint8_t out[] = {
 		JEDEC_READ_DATA,
+		(chip_offset >> 16) & 0xff,
+		(chip_offset >>  8) & 0xff,
+		(chip_offset >>  0) & 0xff,
+	};
+
+	if (PIOS_SPI_TransferBlock(flash_dev->spi_id,out,NULL,sizeof(out),NULL) < 0) {
+		PIOS_Flash_Jedec_ReleaseBus(flash_dev);
+		return -2;
+	}
+
+	/* Copy the transfer data to the buffer */
+	if (PIOS_SPI_TransferBlock(flash_dev->spi_id,NULL,data,len,NULL) < 0) {
+		PIOS_Flash_Jedec_ReleaseBus(flash_dev);
+		return -3;
+	}
+
+	PIOS_Flash_Jedec_ReleaseBus(flash_dev);
+
+	return 0;
+}
+
+/**
+ * @brief Read one-time progammable data from a location in flash memory
+ * @param[in] chip_id the opaque handle for the chip that this operation should be applied to
+ * @param[in] chip_offset Address within flash to write to
+ * @param[in] data Pointer to data to write from flash
+ * @param[in] len Length of data to write (max 256 bytes)
+ * @return Zero if success or error code
+ * @retval -1 Unable to claim SPI bus
+ */
+int32_t PIOS_Flash_Jedec_ReadOPTData(uintptr_t chip_id, uint32_t chip_offset, uint8_t *data, uint16_t len)
+{
+	struct jedec_flash_dev *flash_dev = (struct jedec_flash_dev *)chip_id;
+
+	if (PIOS_Flash_Jedec_Validate(flash_dev) != 0)
+		return -1;
+
+	if (PIOS_Flash_Jedec_ClaimBus(flash_dev) == -1)
+		return -1;
+
+	/* Execute read command and clock in address.  Keep CS asserted */
+	uint8_t out[] = {
+		JEDED_READ_OPT_DATA,
 		(chip_offset >> 16) & 0xff,
 		(chip_offset >>  8) & 0xff,
 		(chip_offset >>  0) & 0xff,
