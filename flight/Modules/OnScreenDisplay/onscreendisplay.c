@@ -100,6 +100,7 @@
 #include "tabletinfo.h"
 #include "taskinfo.h"
 #include "velocityactual.h"
+#include "vtxinfo.h"
 #include "waypoint.h"
 #include "waypointactive.h"
 
@@ -1456,6 +1457,15 @@ void render_user_page(OnScreenDisplayPageSettingsData * page)
 
 		write_string(tmp_str, page->ThrottlePosX, page->ThrottlePosY, 0, 0, TEXT_VA_TOP, (int)page->ThrottleAlign, 0,
 				page->ThrottleFont);
+	}
+
+	// Video Transmitter Frequency
+	if (page->VTXFreq && VTXInfoHandle()) {
+		uint16_t freq;
+		VTXInfoFrequencyGet(&freq);
+		sprintf(tmp_str, "%d", freq);
+		write_string(tmp_str, page->VTXFreqPosX, page->VTXFreqPosY, 0, 0, TEXT_VA_TOP, (int)page->VTXFreqAlign, 0,
+				page->VTXFreqFont);
 	}
 }
 
