@@ -259,7 +259,7 @@ QJsonDocument ConfigAutotuneWidget::getResultsJson(
         UAVObjectUtilManager* uavoUtilManager = pm->getObject<UAVObjectUtilManager>();
         Core::IBoardType* board = uavoUtilManager->getBoardType();
         if (board != NULL) {
-            QString hwSettingsName = board->getHwUAVO();
+            QString hwSettingsName = board->getHwUavoName();
 
             UAVObject *hwSettings = getObjectManager()->getObject(hwSettingsName);
             rawSettings[hwSettings->getName()] = hwSettings->getJsonRepresentation();

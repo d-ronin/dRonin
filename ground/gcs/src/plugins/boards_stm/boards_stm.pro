@@ -8,11 +8,13 @@ OTHER_FILES += Stm.pluginspec
 
 HEADERS += \
     stmplugin.h \
-    discoveryf4.h
+    discoveryf4.h \
+    $$UAVOBJECT_SYNTHETICS/hwdiscoveryf4.h
 
 SOURCES += \
     stmplugin.cpp \
-    discoveryf4.cpp
+    discoveryf4.cpp \
+    $$UAVOBJECT_SYNTHETICS/hwdiscoveryf4.cpp
 
 RESOURCES += \
     stm.qrc

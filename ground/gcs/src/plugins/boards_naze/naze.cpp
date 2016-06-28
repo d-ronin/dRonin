@@ -96,17 +96,14 @@ QPixmap Naze::getBoardPicture()
     return QPixmap(":/naze/images/nazev6.png");
 }
 
-QString Naze::getHwUAVO()
+QString Naze::getHwUavoName()
 {
     return "HwNaze";
 }
 
 int Naze::queryMaxGyroRate()
 {
-    ExtensionSystem::PluginManager *pm = ExtensionSystem::PluginManager::instance();
-    UAVObjectManager *uavoManager = pm->getObject<UAVObjectManager>();
-    HwNaze *hwNaze = HwNaze::GetInstance(uavoManager);
-    Q_ASSERT(hwNaze);
+    HwNaze *hwNaze = getHwUavo<HwNaze>();
     if (!hwNaze)
         return 0;
 
@@ -141,10 +138,7 @@ bool Naze::isInputConfigurationSupported(enum InputType type = INPUT_TYPE_ANY)
  */
 bool Naze::setInputType(enum InputType type)
 {
-    ExtensionSystem::PluginManager *pm = ExtensionSystem::PluginManager::instance();
-    UAVObjectManager *uavoManager = pm->getObject<UAVObjectManager>();
-    HwNaze *hwNaze = HwNaze::GetInstance(uavoManager);
-    Q_ASSERT(hwNaze);
+    HwNaze *hwNaze = getHwUavo<HwNaze>();
     if (!hwNaze)
         return false;
 
@@ -183,10 +177,7 @@ bool Naze::setInputType(enum InputType type)
  */
 enum Core::IBoardType::InputType Naze::getInputType()
 {
-    ExtensionSystem::PluginManager *pm = ExtensionSystem::PluginManager::instance();
-    UAVObjectManager *uavoManager = pm->getObject<UAVObjectManager>();
-    HwNaze *hwNaze = HwNaze::GetInstance(uavoManager);
-    Q_ASSERT(hwNaze);
+    HwNaze *hwNaze = getHwUavo<HwNaze>();
     if (!hwNaze)
         return INPUT_TYPE_UNKNOWN;
 
@@ -214,10 +205,7 @@ enum Core::IBoardType::InputType Naze::getInputType()
 
 QStringList Naze::getAdcNames()
 {
-    ExtensionSystem::PluginManager *pm = ExtensionSystem::PluginManager::instance();
-    UAVObjectManager *uavoManager = pm->getObject<UAVObjectManager>();
-    HwNaze *hwNaze = HwNaze::GetInstance(uavoManager);
-    Q_ASSERT(hwNaze);
+    HwNaze *hwNaze = getHwUavo<HwNaze>();
     if (!hwNaze)
         return QStringList();
 

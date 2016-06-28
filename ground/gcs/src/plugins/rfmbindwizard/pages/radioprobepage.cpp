@@ -49,7 +49,7 @@ RadioProbePage::RadioProbePage(RfmBindWizard *wizard, QWidget *parent) :
     boardPluginMap.clear();
     foreach (Core::IBoardType *board, boards) {
         if (board->queryCapabilities(Core::IBoardType::BOARD_CAPABILITIES_RADIO) ) {
-            UAVObject *obj = objMngr->getObject(board->getHwUAVO());
+            UAVObject *obj = objMngr->getObject(board->getHwUavoName());
             if (obj != NULL) {
                 boardPluginMap.insert(obj, board);
                 connect(obj, SIGNAL(transactionCompleted(UAVObject*,bool)),

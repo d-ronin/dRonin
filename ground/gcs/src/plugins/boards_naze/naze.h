@@ -43,7 +43,7 @@ public:
     virtual bool queryCapabilities(BoardCapabilities capability);
     virtual QStringList getSupportedProtocols();
     virtual QPixmap getBoardPicture();
-    virtual QString getHwUAVO();
+    virtual QString getHwUavoName();
     virtual int queryMaxGyroRate();
     virtual bool isInputConfigurationSupported(enum InputType type);
     virtual bool setInputType(enum InputType type);

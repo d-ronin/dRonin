@@ -46,7 +46,7 @@ public:
     virtual bool queryCapabilities(BoardCapabilities capability);
     virtual QStringList getSupportedProtocols();
     virtual QPixmap getBoardPicture();
-    virtual QString getHwUAVO();
+    virtual QString getHwUavoName();
     QWidget *getBoardConfiguration(QWidget *parent, bool connected);
 
 };
