@@ -735,7 +735,9 @@ static bool set_channel(uint8_t mixer_channel, float value)
 static void actuator_set_servo_mode(void)
 {
 	PIOS_Servo_SetMode(actuatorSettings.TimerUpdateFreq,
-			ACTUATORSETTINGS_TIMERUPDATEFREQ_NUMELEM, actuatorSettings.ChannelMax);
+			ACTUATORSETTINGS_TIMERUPDATEFREQ_NUMELEM,
+			actuatorSettings.ChannelMax,
+			actuatorSettings.ChannelMin);
 }
 
 static float mix_channel(int ct, ActuatorDesiredData *desired,
