@@ -123,7 +123,7 @@ int32_t PIOS_Servo_Init(const struct pios_servo_cfg *cfg)
  * @param banks maximum number of banks
  * @param channel_max array of max pulse lengths, number of channels elements
  */
-void PIOS_Servo_SetMode(const uint16_t *out_rate, const int banks, const uint16_t *channel_max)
+void PIOS_Servo_SetMode(const uint16_t *out_rate, const int banks, const uint16_t *channel_max, const uint16_t *channel_min)
 {
 	if (!servo_cfg || banks > PIOS_SERVO_MAX_BANKS)
 		return;
@@ -153,6 +153,7 @@ void PIOS_Servo_SetMode(const uint16_t *out_rate, const int banks, const uint16_
 
 		timer_banks[bank].timer = chan->timer;
 		timer_banks[bank].max_pulse = MAX(timer_banks[bank].max_pulse, channel_max[i]);
+		timer_banks[bank].max_pulse = MAX(timer_banks[bank].max_pulse, channel_min[i]);
 	}
 
 	// configure timers/banks

@@ -53,7 +53,7 @@ void PIOS_Servo_Init(void)
  * @param banks maximum number of banks
  * @param channel_max array of max pulse lengths, number of channels elements
  */
-void PIOS_Servo_SetMode(const uint16_t *out_rate, const int banks, const uint16_t *channel_max)
+void PIOS_Servo_SetMode(const uint16_t *out_rate, const int banks, const uint16_t *channel_max, const uint16_t *channel_min)
 {
 }
 
