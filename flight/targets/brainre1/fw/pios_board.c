@@ -291,7 +291,7 @@ void PIOS_Board_Init(void) {
 
 	/* Get the flash ID (random number) */
 	uint8_t flashid[16] = {0};
-	PIOS_Flash_Jedec_ReadOPTData(pios_external_flash_id, 0, flashid, 16);
+	PIOS_Flash_Jedec_ReadOTPData(pios_external_flash_id, 0, flashid, 16);
 	HwBrainRE1FlashIDSet(flashid);
 
 	/* Connect callback for buzzer */

@@ -470,7 +470,7 @@ static int32_t PIOS_Flash_Jedec_ReadData(uintptr_t chip_id, uint32_t chip_offset
  * @return Zero if success or error code
  * @retval -1 Unable to claim SPI bus
  */
-int32_t PIOS_Flash_Jedec_ReadOPTData(uintptr_t chip_id, uint32_t chip_offset, uint8_t *data, uint16_t len)
+int32_t PIOS_Flash_Jedec_ReadOTPData(uintptr_t chip_id, uint32_t chip_offset, uint8_t *data, uint16_t len)
 {
 	struct jedec_flash_dev *flash_dev = (struct jedec_flash_dev *)chip_id;
 
