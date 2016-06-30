@@ -43,7 +43,6 @@ MODULES += Telemetry
 
 OPTMODULES += GPS
 OPTMODULES += PathPlanner
-OPTMODULES += AltitudeHold
 OPTMODULES += VtolPathFollower
 OPTMODULES += FixedWingPathFollower
 OPTMODULES += FlightStats
