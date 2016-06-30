@@ -406,6 +406,7 @@ struct hid_device_info HID_API_EXPORT *hid_enumerate(unsigned short vendor_id, u
 
 			len = make_path(dev, cbuf, sizeof(cbuf));
 
+#if 0
 			tmp = remove_from_list_by_path(&prev_enumeration,
 					cbuf);
 
@@ -423,6 +424,7 @@ struct hid_device_info HID_API_EXPORT *hid_enumerate(unsigned short vendor_id, u
 
 				continue;
 			}
+#endif
 
 			/* VID/PID match. Create the record. */
 			tmp = malloc(sizeof(struct hid_device_info));
