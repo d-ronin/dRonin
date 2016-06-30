@@ -1463,9 +1463,28 @@ void render_user_page(OnScreenDisplayPageSettingsData * page)
 	if (page->VTXFreq && VTXInfoHandle()) {
 		uint16_t freq;
 		VTXInfoFrequencyGet(&freq);
-		sprintf(tmp_str, "%d", freq);
+		if (page->VTXFreqShowUnit) {
+			sprintf(tmp_str, "%dMHz", freq);
+		}
+		else {
+			sprintf(tmp_str, "%d", freq);
+		}
 		write_string(tmp_str, page->VTXFreqPosX, page->VTXFreqPosY, 0, 0, TEXT_VA_TOP, (int)page->VTXFreqAlign, 0,
 				page->VTXFreqFont);
+	}
+
+	// Video Transmitter Power
+	if (page->VTXPower && VTXInfoHandle()) {
+		uint16_t power;
+		VTXInfoPowerGet(&power);
+		if (page->VTXPowerShowUnit) {
+			sprintf(tmp_str, "%dmW", power);
+		}
+		else {
+			sprintf(tmp_str, "%d", power);
+		}
+		write_string(tmp_str, page->VTXPowerPosX, page->VTXPowerPosY, 0, 0, TEXT_VA_TOP, (int)page->VTXPowerAlign, 0,
+				page->VTXPowerFont);
 	}
 }
 
