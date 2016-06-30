@@ -95,6 +95,7 @@
 	<field name="BMI160FOC" units="" type="enum" elements="1" options="Disabled,Do_FOC" defaultvalue="Disabled">
 		<description>Peform BMI160 fast offset compensation on next boot. Should not be performed by users. Can only be done a limited number of times.</description>
 	</field>
+	<field name="FlashID" units="" type="uint8" elements="16" defaultvalue="0"/>
 
 	<access gcs="readwrite" flight="readwrite"/>
 	<telemetrygcs acked="true" updatemode="onchange" period="0"/>
