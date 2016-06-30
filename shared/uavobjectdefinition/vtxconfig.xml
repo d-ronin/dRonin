@@ -3,7 +3,7 @@
 		<description>Video transmitter settings.</description>
 
 	<field name="Mode" units="" type="enum" elements="1" options="Active,Passive" defaultvalue="Active" description="Passive just monitors the VTx state while active modifies settings"/>
-	<field name="Power" units="mW" type="enum" elements="1" options="0,25,200,500,800" defaultvalue="25"/>
+	<field name="Power" units="mW" type="enum" elements="1" options="25,200,500,800" defaultvalue="25"/>
 	<field name="Band" units="" type="enum" elements="1" defaultvalue="Band 5G8 A">
 			<options>
 				<option>Band 5G8 A</option>

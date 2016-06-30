@@ -47,6 +47,11 @@ const uint16_t TBS_CH[NUM_TBS_CH] = {
 	5658, 5695, 5732, 5769, 5806, 5843, 5880, 5917  // Raceband
 };
 
+enum TBS_VTX_PROTOCOL {
+	UNKNOWN,
+	TBS_SMARTAUDIO_1,
+	TBS_SMARTAUDIO_2
+};
 
 
 typedef struct {
@@ -77,6 +82,32 @@ typedef struct {
 	uint8_t crc;
 } __attribute__((packed)) SET_POWER;
 
+typedef struct {
+	uint8_t command;
+	uint8_t length;
+	uint8_t mode;
+	uint8_t crc;
+} __attribute__((packed)) SET_MODE;
+
+
+static enum TBS_VTX_PROTOCOL vtx_protocol = UNKNOWN;
+
+
+static int32_t tbsvtx_tx_msg(uintptr_t usart_id, uint8_t *buff, uint8_t n_bytes)
+{
+	// The CRC is the second last byte, the first byte is dummy
+	buff[n_bytes - 2] = PIOS_CRC_updateCRC_TBS(0, &buff[1], n_bytes - 3);
+
+	if (PIOS_COM_SendBuffer(usart_id, buff, n_bytes) < 0) {
+		return -1;
+	}
+	// this is single wire, so flush the same number of bytes out of the rx buffer
+	uint8_t c;
+	for (int i=0; i<n_bytes; i++) {
+		PIOS_COM_ReceiveBuffer(usart_id, &c, 1, 2);
+	}
+	return 0;
+}
 
 int32_t tbsvtx_rx_msg(uintptr_t usart_id, uint8_t n_bytes, uint8_t *buff, uint16_t timeout)
 {
@@ -90,7 +121,8 @@ int32_t tbsvtx_rx_msg(uintptr_t usart_id, uint8_t n_bytes, uint8_t *buff, uint16
 		if (PIOS_Thread_Systime() - start > timeout) {
 			return - 1;
 		}
-	} while (c != 0xd5);
+	} while ((c != 0xd5) && (c != 0x55));
+
 
 	while(bytes_rx < n_bytes) {
 		if (PIOS_COM_ReceiveBuffer(usart_id, &c, 1, 2) > 0) {
@@ -115,8 +147,11 @@ int32_t tbsvtx_rx_msg(uintptr_t usart_id, uint8_t n_bytes, uint8_t *buff, uint16
 int32_t tbsvtx_get_state(uintptr_t usart_id, VTXInfoData *info)
 {
 	// Send dummy 00 byte before, so line goes high
-	uint8_t msg[5] = {0x00, 0xAA, 0x55, 0x03, 0x00};
-	PIOS_COM_SendBuffer(usart_id, msg, 5);
+	uint8_t msg[7] = {0x00, 0xAA, 0x55, 0x03, 0x00, 0x00, 0x00};
+	//msg[5] = PIOS_CRC_updateCRC_TBS(0, &msg[1], 4);
+	tbsvtx_tx_msg(usart_id, msg, 7);
+	//uint8_t msg[5] = {0x00, 0xAA, 0x55, 0x03, 0x00};
+	//PIOS_COM_SendBuffer(usart_id, msg, 5);
 
 	GET_INFO info_msg;
 	if (tbsvtx_rx_msg(usart_id, sizeof(info_msg), (uint8_t*)&info_msg, 200) < 0) {
@@ -124,29 +159,73 @@ int32_t tbsvtx_get_state(uintptr_t usart_id, VTXInfoData *info)
 	}
 
 	// Do some additional sanity checks
-	if ((info_msg.command != 0x01) || (info_msg.length != 6) || (info_msg.channel >= NUM_TBS_CH)) {
+	if (((info_msg.command & 0x07) != 0x01) || (info_msg.length != 6) || (info_msg.channel >= NUM_TBS_CH)) {
 		return -2;
 	}
 
-	info->Frequency = TBS_CH[info_msg.channel];
-	switch(info_msg.pwr_level) {
-		case 0x07:
-			info->Power = 25;
+	switch ((info_msg.command >> 3) & 0x1F) {
+		case 0x00:
+			info->Model = VTXINFO_MODEL_TBSUNIFYPRO5G8;
+			vtx_protocol = TBS_SMARTAUDIO_1;
 			break;
-		case 0x10:
-			info->Power = 200;
-			break;
-		case 0x19:
-			info->Power = 500;
-			break;
-		case 0x28:
-			info->Power = 800;
+		case 0x01:
+			info->Model = VTXINFO_MODEL_TBSUNIFYPRO5G8HV;
+			vtx_protocol = TBS_SMARTAUDIO_2;
 			break;
 		default:
-			info->Power = 25;
+			info->Model = VTXINFO_MODEL_NONE;
+			vtx_protocol = UNKNOWN;
+			return -3;
 	}
 
-	info->Model = VTXINFO_MODEL_TBSUNIFYPRO5G8;
+	info->Frequency = TBS_CH[info_msg.channel];
+
+	switch (vtx_protocol) {
+		case TBS_SMARTAUDIO_1:
+			switch(info_msg.pwr_level) {
+				case 0x07:
+					info->Power = 25;
+					break;
+				case 0x10:
+					info->Power = 200;
+					break;
+				case 0x19:
+					info->Power = 500;
+					break;
+				case 0x28:
+					info->Power = 800;
+					break;
+				default:
+					info->Power = 25;
+			}
+			break;
+		case TBS_SMARTAUDIO_2:
+			if (info_msg.operation_mode & 0x02) {
+				// Pit mode active, report 0mW
+				info->Power = 0;
+			}
+			else {
+				switch(info_msg.pwr_level) {
+					case 0x00:
+						info->Power = 25;
+						break;
+					case 0x01:
+						info->Power = 200;
+						break;
+					case 0x02:
+						info->Power = 500;
+						break;
+					case 0x03:
+						info->Power = 800;
+						break;
+					default:
+						info->Power = 25;
+				}
+			}
+			break;
+		case UNKNOWN:
+			info->Power = 0;
+	}
 
 	return 0;
 }
@@ -166,9 +245,9 @@ int32_t tbsvtx_set_freq(uintptr_t usart_id, uint16_t frequency)
 		return -1;
 	}
 
-	uint8_t set_ch_msg[7] = {0x00, 0xAA, 0x55, 0x07, 0x01, 0x00, 0x00};
+	uint8_t set_ch_msg[8] = {0x00, 0xAA, 0x55, 0x07, 0x01, 0x00, 0x00, 0x00};
 	set_ch_msg[5] = channel;
-	PIOS_COM_SendBuffer(usart_id, set_ch_msg, 7);
+	tbsvtx_tx_msg(usart_id, set_ch_msg, 8);
 
 	SET_CHANNEL set_ch_resp;
 	if (tbsvtx_rx_msg(usart_id, sizeof(set_ch_resp), (uint8_t*)&set_ch_resp, 200) < 0) {
@@ -183,38 +262,87 @@ int32_t tbsvtx_set_freq(uintptr_t usart_id, uint16_t frequency)
 	return 0;
 }
 
-int32_t tbsvtx_set_power(uintptr_t usart_id, uint16_t power)
+static int32_t tbsvtx_set_mode(uintptr_t usart_id, uint8_t mode)
 {
-	uint8_t power_byte;
-	switch (power) {
-		case 25:
-			power_byte = 0x07;
-			break;
-		case 200:
-			power_byte = 0x10;
-			break;
-		case 500:
-			power_byte = 0x19;
-			break;
-		case 800:
-			power_byte = 0x28;
-			break;
-		default:
-			return -1;
+	uint8_t mode_msg[8] = {0x00, 0xAA, 0x55, 0x0B, 0x01, 0x00, 0x00, 0x00};
+	mode_msg[5] = mode;
+	tbsvtx_tx_msg(usart_id, mode_msg, 8);
+
+	SET_MODE set_mode_resp;
+	if (tbsvtx_rx_msg(usart_id, sizeof(set_mode_resp), (uint8_t*)&set_mode_resp, 200) < 0) {
+		return -1;
 	}
 
-	uint8_t set_pwr_msg[7] = {0x00, 0xAA, 0x55, 0x05, 0x01, 0x07, 0x00};
+	// Do some sanity checks
+	if ((set_mode_resp.command != 0x05) || (set_mode_resp.length != 0x03) || (set_mode_resp.mode != mode)) {
+		return -2;
+	}
+
+	return 0;
+}
+
+int32_t tbsvtx_set_power(uintptr_t usart_id, uint16_t power)
+{
+	// Make sure the VTX is unlocked
+	if ((vtx_protocol == TBS_SMARTAUDIO_2) && (power > 25)){
+		tbsvtx_set_mode(usart_id, 0x10);
+		PIOS_Thread_Sleep(200);
+	}
+
+	uint8_t power_byte;
+	switch (vtx_protocol) {
+		case TBS_SMARTAUDIO_1:
+			switch (power) {
+				case 25:
+					power_byte = 0x07;
+					break;
+				case 200:
+					power_byte = 0x10;
+					break;
+				case 500:
+					power_byte = 0x19;
+					break;
+				case 800:
+					power_byte = 0x28;
+					break;
+				default:
+					return -2;
+			}
+			break;
+		case TBS_SMARTAUDIO_2:
+			switch (power) {
+				case 25:
+					power_byte = 0x00;
+					break;
+				case 200:
+					power_byte = 0x01;
+					break;
+				case 500:
+					power_byte = 0x02;
+					break;
+				case 800:
+					power_byte = 0x03;
+					break;
+				default:
+					return -2;
+			}
+			break;
+		default:
+			return -4;
+	}
+
+	uint8_t set_pwr_msg[8] = {0x00, 0xAA, 0x55, 0x05, 0x01, 0x00, 0x00, 0x00};
 	set_pwr_msg[5] = power_byte;
-	PIOS_COM_SendBuffer(usart_id, set_pwr_msg, 7);
+	tbsvtx_tx_msg(usart_id, set_pwr_msg, 8);
 
 	SET_POWER set_pwr_resp;
 	if (tbsvtx_rx_msg(usart_id, sizeof(set_pwr_resp), (uint8_t*)&set_pwr_resp, 200) < 0) {
-		return -2;
+		return -5;
 	}
 
 	// Do some sanity checks
 	if ((set_pwr_resp.command != 0x02) || (set_pwr_resp.length != 0x03) || (set_pwr_resp.pwr != power_byte)) {
-		return -3;
+		return -6;
 	}
 
 	return 0;

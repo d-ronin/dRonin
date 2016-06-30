@@ -125,7 +125,6 @@ static const uint16_t RACEBAND_FREQS[VTXSETTINGS_RACEBAND_FREQUENCY_MAXOPTVAL + 
 };
 
 static const uint16_t VTX_POWER[VTXSETTINGS_POWER_GLOBAL_MAXOPTVAL + 1] = {
-	[VTXSETTINGS_POWER_0]   = 0,
 	[VTXSETTINGS_POWER_25]  = 25,
 	[VTXSETTINGS_POWER_200] = 200,
 	[VTXSETTINGS_POWER_500] = 500,
@@ -280,13 +279,15 @@ static void vtxConfigTask(void *parameters)
 					update_vtx = false;
 					if (frequency != info.Frequency) {
 						if (tbsvtx_set_freq(vtxConfigPort, frequency) < 0) {
-							// somethign went wrong, we need to re-try again
+							// something went wrong, we need to re-try again
 							update_vtx = true;
 						}
 						PIOS_Thread_Sleep(500);
 					}
 
-					if (VTX_POWER[settings.Power] != info.Power) {
+					// Don't increase the power if the VTX reports 0mW. This is a special mode
+					// e.g. "pit mode" for TBS and the user requested to transmit at low power.
+					if ((info.Power != 0) && (VTX_POWER[settings.Power] != info.Power)) {
 						if (tbsvtx_set_power(vtxConfigPort, VTX_POWER[settings.Power]) < 0) {
 							// somethign went wrong, we need to re-try again
 							update_vtx = true;
