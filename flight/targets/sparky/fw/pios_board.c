@@ -392,7 +392,7 @@ void PIOS_Board_Init(void)
 	/* Configure the rcvr port */
 	uint8_t hw_rcvrport;
 	HwSparkyRcvrPortGet(&hw_rcvrport);
-	
+
 	PIOS_HAL_ConfigurePort(hw_rcvrport,          // port type protocol
 	        &pios_rcvr_usart_cfg,                // usart_port_cfg
 	        &pios_usart_com_driver,              // com_driver
@@ -451,10 +451,16 @@ void PIOS_Board_Init(void)
 		PIOS_Assert(0);
 		break;
 	}
+
 #ifndef PIOS_DEBUG_ENABLE_DEBUG_PINS
 #ifdef PIOS_INCLUDE_SERVO
 	pios_servo_cfg.num_channels = number_of_pwm_outputs;
-	PIOS_Servo_Init(&pios_servo_cfg);
+
+	if (hw_rcvrport != HWSHARED_PORTTYPES_PPM) {
+		PIOS_Servo_Init(&pios_servo_cfg);
+	} else {
+		PIOS_Servo_Init(&pios_servo_slow_cfg);
+	}
 #endif
 #else
 	PIOS_DEBUG_Init(&pios_tim_servo_all_channels, NELEMENTS(pios_tim_servo_all_channels));
