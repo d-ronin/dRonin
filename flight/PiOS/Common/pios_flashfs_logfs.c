@@ -29,6 +29,7 @@
 
 #include "pios_flash.h"		     /* PIOS_FLASH_* */
 #include "pios_flashfs_logfs_priv.h" /* Internal API */
+#include "pios_crc.h"
 
 #include <stdbool.h>
 #include <stddef.h>		/* NULL */
@@ -818,6 +819,17 @@ static int8_t logfs_append_to_log (struct logfs_state *logfs, uint32_t obj_id, u
 			/* Failed to write the object data to the slot */
 			return -2;
 		}
+
+		/* Calculate CRC and write it after object data */
+		uint16_t crc = PIOS_CRC16_updateCRC(0, obj_data, obj_size);
+
+		if (PIOS_FLASH_write_data(logfs->partition_id,
+						slot_addr + slot_offset + obj_size,
+						(uint8_t *)&crc,
+						2) != 0) {
+			/* Failed to write CRC to slot */
+			return -3;
+		}
 	}
 
 	/* Mark this slot active in one atomic step */
@@ -870,7 +882,8 @@ int32_t PIOS_FLASHFS_ObjSave(uintptr_t fs_id, uint32_t obj_id, uint16_t obj_inst
 		goto out_exit;
 	}
 
-	PIOS_Assert(obj_size <= (logfs->cfg->slot_size - sizeof(struct slot_header)));
+	// Needs space for object, header, CRC
+	PIOS_Assert(obj_size <= (logfs->cfg->slot_size - sizeof(struct slot_header) - 2));
 
 	if (PIOS_FLASH_start_transaction(logfs->partition_id) != 0) {
 		rc = -2;
@@ -944,6 +957,8 @@ out_exit:
  * @retval -3 if object not found in filesystem
  * @retval -4 if object size in filesystem does not exactly match buffer size
  * @retval -5 if reading the object data from flash fails
+ * @retval -6 if reading the CRC from flash fails
+ * @retval -7 if CRC is incorrect
  */
 int32_t PIOS_FLASHFS_ObjLoad(uintptr_t fs_id, uint32_t obj_id, uint16_t obj_inst_id, uint8_t *obj_data, uint16_t obj_size)
 {
@@ -956,7 +971,7 @@ int32_t PIOS_FLASHFS_ObjLoad(uintptr_t fs_id, uint32_t obj_id, uint16_t obj_inst
 		goto out_exit;
 	}
 
-	PIOS_Assert(obj_size <= (logfs->cfg->slot_size - sizeof(struct slot_header)));
+	PIOS_Assert(obj_size <= (logfs->cfg->slot_size - sizeof(struct slot_header) - 2));
 
 	if (PIOS_FLASH_start_transaction(logfs->partition_id) != 0) {
 		rc = -2;
@@ -989,6 +1004,26 @@ int32_t PIOS_FLASHFS_ObjLoad(uintptr_t fs_id, uint32_t obj_id, uint16_t obj_inst
 			/* Failed to read object data from the log */
 			rc = -5;
 			goto out_end_trans;
+		}
+
+		/* Check the CRC */
+		uint16_t crc_fromfs;
+		if (PIOS_FLASH_read_data(logfs->partition_id,
+						slot_addr + sizeof(slot_hdr) + obj_size,
+						(uint8_t *)&crc_fromfs,
+						2) != 0) {
+			/* Failed to read CRC */
+			rc = -6;
+			goto out_end_trans;
+		}
+
+		/* For now, we also accept 0xFFFF for backwards compatability */
+		if (crc_fromfs != 0xFFFF) {
+			uint16_t crc = PIOS_CRC16_updateCRC(0, obj_data, obj_size);
+			if (crc_fromfs != crc) {
+				rc = -7;
+				goto out_end_trans;
+			}
 		}
 	}
 
