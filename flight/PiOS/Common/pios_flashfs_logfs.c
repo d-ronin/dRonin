@@ -824,9 +824,9 @@ static int8_t logfs_append_to_log (struct logfs_state *logfs, uint32_t obj_id, u
 		uint16_t crc = PIOS_CRC16_updateCRC(0, obj_data, obj_size);
 
 		if (PIOS_FLASH_write_data(logfs->partition_id,
-						slot_addr + slot_offset + obj_size,
+						slot_addr + logfs->cfg->slot_size - sizeof(uint16_t),
 						(uint8_t *)&crc,
-						2) != 0) {
+						sizeof(uint16_t)) != 0) {
 			/* Failed to write CRC to slot */
 			return -3;
 		}
@@ -1009,9 +1009,9 @@ int32_t PIOS_FLASHFS_ObjLoad(uintptr_t fs_id, uint32_t obj_id, uint16_t obj_inst
 		/* Check the CRC */
 		uint16_t crc_fromfs;
 		if (PIOS_FLASH_read_data(logfs->partition_id,
-						slot_addr + sizeof(slot_hdr) + obj_size,
+						slot_addr + logfs->cfg->slot_size - sizeof(uint16_t),
 						(uint8_t *)&crc_fromfs,
-						2) != 0) {
+						sizeof(uint16_t)) != 0) {
 			/* Failed to read CRC */
 			rc = -6;
 			goto out_end_trans;
