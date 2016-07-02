@@ -112,20 +112,30 @@ static int32_t tbsvtx_tx_msg(uintptr_t usart_id, uint8_t *buff, uint8_t n_bytes)
 int32_t tbsvtx_rx_msg(uintptr_t usart_id, uint8_t n_bytes, uint8_t *buff, uint16_t timeout)
 {
 	uint32_t start = PIOS_Thread_Systime();
-	uint8_t c;
-	uint8_t bytes_rx = 0;
+	uint8_t c = 0;
+	uint8_t c_prev;
+	uint8_t bytes_rx = 2;
+	bool rx_ok = false;
 
-	// Wait for second byte of start sequence. Should be 0x55 but is received as 0xd5 by STM32
-	do {
-		PIOS_COM_ReceiveBuffer(usart_id, &c, 1, 2);
-		if (PIOS_Thread_Systime() - start > timeout) {
-			return - 1;
+	// Due to the non-standard signal levels (0.9V when idle) the first two bytes are often garbled,
+	// so we match directly for the length field.
+	while (PIOS_Thread_Systime() - start < timeout) {
+		c_prev = c;
+		if (PIOS_COM_ReceiveBuffer(usart_id, &c, 1, 4) > 0) {
+			if (c == n_bytes - 2) {
+				rx_ok = true;
+				break;
+			}
 		}
-	} while ((c != 0xd5) && (c != 0x55));
-
+	}
+	if (!rx_ok) {
+		return -1;
+	}
+	buff[0] = c_prev;
+	buff[1] = c;
 
 	while(bytes_rx < n_bytes) {
-		if (PIOS_COM_ReceiveBuffer(usart_id, &c, 1, 2) > 0) {
+		if (PIOS_COM_ReceiveBuffer(usart_id, &c, 1, 4) > 0) {
 			buff[bytes_rx++] = c;
 		}
 		if (PIOS_Thread_Systime() - start > timeout) {
@@ -159,7 +169,7 @@ int32_t tbsvtx_get_state(uintptr_t usart_id, VTXInfoData *info)
 	}
 
 	// Do some additional sanity checks
-	if (((info_msg.command & 0x07) != 0x01) || (info_msg.length != 6) || (info_msg.channel >= NUM_TBS_CH)) {
+	if (((info_msg.command & 0x07) != 0x01) || (info_msg.channel >= NUM_TBS_CH)) {
 		return -2;
 	}
 
@@ -255,7 +265,7 @@ int32_t tbsvtx_set_freq(uintptr_t usart_id, uint16_t frequency)
 	}
 
 	// Do some sanity checks
-	if ((set_ch_resp.command != 0x03) || (set_ch_resp.length != 0x03) || (set_ch_resp.channel != channel)) {
+	if ((set_ch_resp.command != 0x03) || (set_ch_resp.channel != channel)) {
 		return -3;
 	}
 
@@ -274,7 +284,7 @@ static int32_t tbsvtx_set_mode(uintptr_t usart_id, uint8_t mode)
 	}
 
 	// Do some sanity checks
-	if ((set_mode_resp.command != 0x05) || (set_mode_resp.length != 0x03) || (set_mode_resp.mode != mode)) {
+	if ((set_mode_resp.command != 0x05) || (set_mode_resp.mode != mode)) {
 		return -2;
 	}
 
@@ -341,7 +351,7 @@ int32_t tbsvtx_set_power(uintptr_t usart_id, uint16_t power)
 	}
 
 	// Do some sanity checks
-	if ((set_pwr_resp.command != 0x02) || (set_pwr_resp.length != 0x03) || (set_pwr_resp.pwr != power_byte)) {
+	if ((set_pwr_resp.command != 0x02) || (set_pwr_resp.pwr != power_byte)) {
 		return -6;
 	}
 

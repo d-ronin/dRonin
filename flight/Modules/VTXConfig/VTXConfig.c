@@ -219,10 +219,16 @@ static void vtxConfigTask(void *parameters)
 	// Wait for power to stabilize before talking to external devices
 	PIOS_Thread_Sleep(1000);
 
-
 	// Loop forever
 	while (1) {
-		PIOS_Thread_Sleep(1000);
+		// Try to connect faster when disconnected
+		if (state == CONNECTED) {
+			PIOS_Thread_Sleep(1000);
+		}
+		else {
+			PIOS_Thread_Sleep(500);
+		}
+
 		if (settings_updated) {
 			VTXSettingsGet(&settings);
 			settings_updated = false;
@@ -299,7 +305,7 @@ static void vtxConfigTask(void *parameters)
 		else {
 			// Cycle through different baud rates. The spec says 4.8kbps, but it can deviate
 			if (baud_rate < TBS_MAX_BAUD) {
-				baud_rate += 100;
+				baud_rate += 50;
 			}
 			else {
 				baud_rate = TBS_MIN_BAUD;
