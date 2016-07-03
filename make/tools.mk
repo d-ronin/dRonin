@@ -94,8 +94,12 @@ qt_sdk_install: QT_SDK_FILE := $(notdir $(QT_SDK_URL))
 # order-only prereq on directory existance:
 qt_sdk_install : | $(DL_DIR) $(TOOLS_DIR)
 qt_sdk_install: qt_sdk_clean
-        # download the source only if it's newer than what we already have
+	# download the source only if it's newer than what we already have
+ifneq ($(OSFAMILY), windows)
 	$(V1) wget -N -P "$(DL_DIR)" "$(QT_SDK_URL)"
+else
+	$(V1) curl -L -k -o "$(DL_DIR)/$(QT_SDK_FILE)" "$(QT_SDK_URL)"
+endif
         # tell the user exactly which path they should select in the GUI
 	$(V1) echo "*** NOTE NOTE NOTE ***"
 	$(V1) echo "*"
