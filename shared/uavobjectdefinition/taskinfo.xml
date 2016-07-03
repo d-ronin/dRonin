@@ -42,6 +42,7 @@
 			<elementname>FlightStats</elementname>
 			<elementname>Storm32Bgc</elementname>
 			<elementname>IMU</elementname>
+			<elementname>AudibleAlarms</elementname>
 		</elementnames>
 		<description>The remaining free space in each task's stack. Disabled tasks will show 0 bytes free.</description>
 	</field> 
@@ -86,6 +87,7 @@
 			<elementname>FlightStats</elementname>
 			<elementname>Storm32Bgc</elementname>
 			<elementname>IMU</elementname>
+			<elementname>AudibleAlarms</elementname>
 		</elementnames>
 		<options>
 			<option>FALSE</option>
@@ -134,6 +136,7 @@
 			<elementname>FlightStats</elementname>
 			<elementname>Storm32Bgc</elementname>
 			<elementname>IMU</elementname>
+			<elementname>AudibleAlarms</elementname>
 		</elementnames>
 		<description>The percentage of CPU time used by each task.</description>
 	</field> 

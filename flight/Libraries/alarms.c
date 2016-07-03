@@ -396,6 +396,40 @@ int32_t AlarmString(SystemAlarmsData *alarm, char *buf, size_t buflen, bool blin
 }
 
 /**
+ * Return severity of top active alarm type user is not ignoring
+ */
+uint8_t getTopAlarmSeverity(SystemAlarmsData *alarm, uint32_t ignores)
+{
+        uint8_t severity = SYSTEMALARMS_ALARM_OK;
+
+        // walk through all alarm types and check if active
+        for (int i = 0; i < SYSTEMALARMS_ALARM_NUMELEM; i++) {
+                if (((alarm->Alarm[i] == SYSTEMALARMS_ALARM_WARNING) ||
+                     (alarm->Alarm[i] == SYSTEMALARMS_ALARM_ERROR) ||
+                     (alarm->Alarm[i] == SYSTEMALARMS_ALARM_CRITICAL))) {
+
+                        if (!alarm_names[i][0]) {
+                                // zero-length alarm names indicate the alarm is
+                                // explicitly ignored
+                                continue;
+                        }
+
+                        // check is user wants to ignore this alarm type
+                        if( (ignores >> i) & 0x1 )
+                                continue;
+
+
+                        // check if severity higher than any previous alarms
+                        if (alarm->Alarm[i] > severity) {
+                                severity = alarm->Alarm[i];
+                        }
+                }
+        }
+        return severity;
+}
+
+
+/**
  * @}
  */
 
