@@ -80,6 +80,8 @@ QString Dtfc::boardDescription()
 bool Dtfc::queryCapabilities(BoardCapabilities capability)
 {
     switch(capability) {
+    case BOARD_CAPABILITIES_UPGRADEABLE:
+        return true;
     case BOARD_CAPABILITIES_GYROS:
         return true;
     case BOARD_CAPABILITIES_ACCELS:
