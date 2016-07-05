@@ -69,6 +69,7 @@ BrainRE1Configuration::BrainRE1Configuration(QWidget *parent) :
     connect(ui->clrbCustomLEDColor, SIGNAL(colorChanged(const QColor)), this, SLOT(setCustomLedColor(const QColor)));
 
     addUAVObjectToWidgetRelation("HwBrainRE1", "FailsafeBuzzer", ui->cmbFailsafeBuzzer);
+    addUAVObjectToWidgetRelation("HwBrainRE1", "VideoSyncDetectorThreshold", ui->sbVideoSyncDetectorThreshold);
 
     // Load UAVObjects to widget relations from UI file
     // using objrelation dynamic property
