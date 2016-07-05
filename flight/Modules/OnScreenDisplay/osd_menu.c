@@ -864,9 +864,7 @@ void draw_menu_title(char* title)
 
 void draw_selected_icon(int x, int y)
 {
-	write_vline_lm(x - 5, y - 3, y + 3, 1, 1);
-	write_line_lm(x - 5, y - 3, x, y + 1, 1, 1);
-	write_line_lm(x - 5, y + 3, x, y - 1, 1, 1);
+	draw_image(x - 5, y - image_menu_icon.height / 2, &image_menu_icon);
 }
 
 void main_menu(void)
