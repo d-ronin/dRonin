@@ -557,6 +557,51 @@
          </layout>
         </widget>
        </item>
+       <item row="4" column="0">
+        <widget class="QGroupBox" name="groupBox_4">
+         <property name="title">
+          <string>Video System</string>
+         </property>
+         <layout class="QHBoxLayout" name="horizontalLayout_9">
+          <item>
+           <widget class="QLabel" name="label_15">
+            <property name="text">
+             <string>Video Sync Detector Threshold</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QSpinBox" name="sbVideoSyncDetectorThreshold">
+            <property name="toolTip">
+             <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;RE1 needs to detect &amp;quot;sync pulses&amp;quot; in the incoming video in order to overlay the OSD. To do so, it uses a video sync detector with a configurable threshold. A threshold of 120 works well for most cameras. If the OSD does not show up or flickers during fast dark/bright transitions, adjust the threshold as follows:&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;1.&lt;/span&gt; Find the minimum value that works: Reduce the threshold  by 1 and click Apply, then hold the video camera towards a bright light and quickly cover/uncover it with your finger. The OSD should remain stable (no flickering) during the transition. Values lower than 115 are very uncommon. Write down the lowest value where the OSD still works, e.g., min=115.&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;2.&lt;/span&gt; Do the same to find the maximum value, i.e., increase the threshold by one until the OSD starts to flicker. Values above 130 are very uncommon. Write down the value, e.g., max=119.&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;3.&lt;/span&gt; Set the threshold in the middle between the minimum and maximum you found. In our example: threshold = (115 + 119) / 2 = 117.&lt;/p&gt;&lt;p&gt;DONE :)&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+            </property>
+            <property name="minimum">
+             <number>105</number>
+            </property>
+            <property name="maximum">
+             <number>135</number>
+            </property>
+            <property name="value">
+             <number>120</number>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <spacer name="horizontalSpacer_10">
+            <property name="orientation">
+             <enum>Qt::Horizontal</enum>
+            </property>
+            <property name="sizeHint" stdset="0">
+             <size>
+              <width>40</width>
+              <height>20</height>
+             </size>
+            </property>
+           </spacer>
+          </item>
+         </layout>
+        </widget>
+       </item>
       </layout>
      </item>
     </layout>
