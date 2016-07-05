@@ -896,6 +896,7 @@ const static struct menu_fsm_transition menu_fsm[FSM_STATE_NUM_STATES] = {
 		.next_state = {
 			[FSM_EVENT_UP] = FSM_STATE_VTX_APPLY,
 			[FSM_EVENT_DOWN] = FSM_STATE_VTX_EXIT,
+			[FSM_EVENT_RIGHT] = FSM_STATE_MAIN_VTX,
 		},
 	},
 	[FSM_STATE_VTX_EXIT] = {
