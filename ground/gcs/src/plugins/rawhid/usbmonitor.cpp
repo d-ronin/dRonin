@@ -130,6 +130,7 @@ void USBMonitor::periodic() {
 
 QList<USBPortInfo> USBMonitor::availableDevices()
 {
+    periodic();
     return knowndevices;
 }
 
@@ -146,6 +147,8 @@ QList<USBPortInfo> USBMonitor::availableDevices()
   */
 QList<USBPortInfo> USBMonitor::availableDevices(int vid, int pid, int bcdDeviceMSB, int bcdDeviceLSB)
 {
+    periodic();
+
     QList<USBPortInfo> thePortsWeWant;
 
     foreach (USBPortInfo port, knowndevices) {
