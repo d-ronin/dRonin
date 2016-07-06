@@ -31320,6 +31320,7 @@ border-radius: 5;</string>
                       <stringlist>
                        <string>objname:StabilizationSettings</string>
                        <string>fieldname:CameraTilt</string>
+                       <string>haslimits:yes</string>
                        <string>buttongroup:20</string>
                       </stringlist>
                      </property>
