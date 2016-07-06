@@ -615,8 +615,8 @@
            <rect>
             <x>0</x>
             <y>0</y>
-            <width>1006</width>
-            <height>890</height>
+            <width>1008</width>
+            <height>892</height>
            </rect>
           </property>
           <layout class="QVBoxLayout" name="verticalLayout_12">
@@ -10497,9 +10497,9 @@ border-radius: 5;</string>
           <property name="geometry">
            <rect>
             <x>0</x>
-            <y>0</y>
-            <width>1006</width>
-            <height>967</height>
+            <y>-48</y>
+            <width>992</width>
+            <height>940</height>
            </rect>
           </property>
           <property name="autoFillBackground">
@@ -25837,8 +25837,8 @@ border-radius: 5;</string>
            <rect>
             <x>0</x>
             <y>0</y>
-            <width>1006</width>
-            <height>1346</height>
+            <width>992</width>
+            <height>1409</height>
            </rect>
           </property>
           <layout class="QVBoxLayout" name="verticalLayout_9">
@@ -31234,6 +31234,115 @@ border-radius: 5;</string>
                     <string>buttongroup:13</string>
                    </stringlist>
                   </property>
+                 </widget>
+                </item>
+               </layout>
+              </widget>
+             </item>
+             <item>
+              <spacer name="verticalSpacer_4">
+               <property name="orientation">
+                <enum>Qt::Vertical</enum>
+               </property>
+               <property name="sizeHint" stdset="0">
+                <size>
+                 <width>20</width>
+                 <height>40</height>
+                </size>
+               </property>
+              </spacer>
+             </item>
+             <item>
+              <widget class="QGroupBox" name="gbReprojection">
+               <property name="title">
+                <string>Reprojection</string>
+               </property>
+               <layout class="QGridLayout" name="gridLayout_15">
+                <item row="0" column="0">
+                 <spacer name="horizontalSpacer_34">
+                  <property name="orientation">
+                   <enum>Qt::Horizontal</enum>
+                  </property>
+                  <property name="sizeHint" stdset="0">
+                   <size>
+                    <width>40</width>
+                    <height>20</height>
+                   </size>
+                  </property>
+                 </spacer>
+                </item>
+                <item row="0" column="1">
+                 <widget class="QPushButton" name="btnReprojectionDefault">
+                  <property name="text">
+                   <string>Default</string>
+                  </property>
+                  <property name="objrelation" stdset="0">
+                   <stringlist>
+                    <string>objname:StabilizationSettings</string>
+                    <string>button:default</string>
+                    <string>buttongroup:20</string>
+                   </stringlist>
+                  </property>
+                 </widget>
+                </item>
+                <item row="1" column="0" colspan="2">
+                 <widget class="QGroupBox" name="gbReprojectionSettings">
+                  <layout class="QGridLayout" name="gridLayout_14">
+                   <item row="0" column="3">
+                    <spacer name="horizontalSpacer_37">
+                     <property name="orientation">
+                      <enum>Qt::Horizontal</enum>
+                     </property>
+                     <property name="sizeHint" stdset="0">
+                      <size>
+                       <width>40</width>
+                       <height>20</height>
+                      </size>
+                     </property>
+                    </spacer>
+                   </item>
+                   <item row="0" column="0">
+                    <widget class="QLabel" name="lblCamTilt">
+                     <property name="text">
+                      <string>Camera Tilt</string>
+                     </property>
+                     <property name="alignment">
+                      <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+                     </property>
+                    </widget>
+                   </item>
+                   <item row="0" column="2">
+                    <widget class="QDoubleSpinBox" name="sbCamTilt">
+                     <property name="suffix">
+                      <string> degrees</string>
+                     </property>
+                     <property name="objrelation" stdset="0">
+                      <stringlist>
+                       <string>objname:StabilizationSettings</string>
+                       <string>fieldname:CameraTilt</string>
+                       <string>haslimits:yes</string>
+                       <string>buttongroup:20</string>
+                      </stringlist>
+                     </property>
+                    </widget>
+                   </item>
+                   <item row="0" column="1">
+                    <spacer name="horizontalSpacer_40">
+                     <property name="orientation">
+                      <enum>Qt::Horizontal</enum>
+                     </property>
+                     <property name="sizeType">
+                      <enum>QSizePolicy::Fixed</enum>
+                     </property>
+                     <property name="sizeHint" stdset="0">
+                      <size>
+                       <width>10</width>
+                       <height>20</height>
+                      </size>
+                     </property>
+                    </spacer>
+                   </item>
+                  </layout>
                  </widget>
                 </item>
                </layout>

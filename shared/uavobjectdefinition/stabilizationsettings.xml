@@ -45,7 +45,9 @@
 		<description>Only applicable to Acro+ flight mode. Controls the amount of stick input fed directly to the actuators (AKA "gyro suppression"), 100% results in full manual control at full stick deflection. Note: the rate settings are no longer directly applicable, especially with high insanity factors.</description>
 	</field>
 
-	<field name="CameraTilt" units="deg" type="float" elements="1" defaultvalue="0" limits="%BE:0:85"/>
+	<field name="CameraTilt" units="deg" type="float" elements="1" defaultvalue="0" limits="%BE:-85:85">
+		<description>Only applicable when CameraAngle selected as Reprojection mode in Input settings. This should be the actual tilt angle of your camera. If your camera is tilted upwards, use positive tilt.</description>
+	</field>
   
 	<access gcs="readwrite" flight="readwrite"/>
 	<telemetrygcs acked="true" updatemode="onchange" period="0"/>
