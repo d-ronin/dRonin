@@ -161,6 +161,19 @@
 		<field name="ThrottleFont" units="" type="enum" elements="1" options="Small,Normal,Large" defaultvalue="Small"/>
 		<field name="ThrottleAlign" units="" type="enum" elements="1" options="Left,Center,Right" defaultvalue="Right"/>
 
+		<field name="VTXFreq" units="" type="enum" elements="1" options="Disabled,Enabled" defaultvalue="Enabled"/>
+		<field name="VTXFreqPosX" units="" type="int16" elements="1" defaultvalue="220"/>
+		<field name="VTXFreqPosY" units="" type="int16" elements="1" defaultvalue="220"/>
+		<field name="VTXFreqFont" units="" type="enum" elements="1" options="Small,Normal,Large" defaultvalue="Small"/>
+		<field name="VTXFreqAlign" units="" type="enum" elements="1" options="Left,Center,Right" defaultvalue="Right"/>
+		<field name="VTXFreqShowUnit" units="" type="enum" elements="1" options="Disabled,Enabled" defaultvalue="Enabled"/>
+
+		<field name="VTXPower" units="" type="enum" elements="1" options="Disabled,Enabled" defaultvalue="Enabled"/>
+		<field name="VTXPowerPosX" units="" type="int16" elements="1" defaultvalue="280"/>
+		<field name="VTXPowerPosY" units="" type="int16" elements="1" defaultvalue="220"/>
+		<field name="VTXPowerFont" units="" type="enum" elements="1" options="Small,Normal,Large" defaultvalue="Small"/>
+		<field name="VTXPowerAlign" units="" type="enum" elements="1" options="Left,Center,Right" defaultvalue="Right"/>
+		<field name="VTXPowerShowUnit" units="" type="enum" elements="1" options="Disabled,Enabled" defaultvalue="Enabled"/>
 	<access gcs="readwrite" flight="readwrite"/>
 	<telemetrygcs acked="true" updatemode="onchange" period="0"/>
 	<telemetryflight acked="true" updatemode="onchange" period="0"/>

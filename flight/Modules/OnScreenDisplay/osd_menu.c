@@ -42,6 +42,77 @@
 #include "manualcontrolsettings.h"
 #include "stabilizationsettings.h"
 #include "stateestimation.h"
+#include "vtxinfo.h"
+#include "vtxsettings.h"
+
+// These are allocated in the VTXConfig module
+//extern const uint16_t *BAND_5G8_A_FREQS;
+//extern const uint16_t *BAND_5G8_B_FREQS;
+//extern const uint16_t *BAND_5G8_E_FREQS;
+//extern const uint16_t *AIRWAVE_FREQS;
+//extern const uint16_t *RACEBAND_FREQS;
+
+static const uint16_t BAND_5G8_A_FREQS[VTXSETTINGS_BAND_5G8_A_FREQUENCY_MAXOPTVAL + 1] = {
+	[VTXSETTINGS_BAND_5G8_A_FREQUENCY_CH15865] = 5865,
+	[VTXSETTINGS_BAND_5G8_A_FREQUENCY_CH25845] = 5845,
+	[VTXSETTINGS_BAND_5G8_A_FREQUENCY_CH35825] = 5825,
+	[VTXSETTINGS_BAND_5G8_A_FREQUENCY_CH45805] = 5805,
+	[VTXSETTINGS_BAND_5G8_A_FREQUENCY_CH55785] = 5785,
+	[VTXSETTINGS_BAND_5G8_A_FREQUENCY_CH65765] = 5765,
+	[VTXSETTINGS_BAND_5G8_A_FREQUENCY_CH75745] = 5745,
+	[VTXSETTINGS_BAND_5G8_A_FREQUENCY_CH85725] = 5725
+};
+
+static const uint16_t BAND_5G8_B_FREQS[VTXSETTINGS_BAND_5G8_B_FREQUENCY_MAXOPTVAL + 1] = {
+	[VTXSETTINGS_BAND_5G8_B_FREQUENCY_CH15733] = 5733,
+	[VTXSETTINGS_BAND_5G8_B_FREQUENCY_CH25752] = 5752,
+	[VTXSETTINGS_BAND_5G8_B_FREQUENCY_CH35771] = 5771,
+	[VTXSETTINGS_BAND_5G8_B_FREQUENCY_CH45790] = 5790,
+	[VTXSETTINGS_BAND_5G8_B_FREQUENCY_CH55809] = 5809,
+	[VTXSETTINGS_BAND_5G8_B_FREQUENCY_CH65828] = 5828,
+	[VTXSETTINGS_BAND_5G8_B_FREQUENCY_CH75847] = 5847,
+	[VTXSETTINGS_BAND_5G8_B_FREQUENCY_CH85866] = 5866
+};
+
+static const uint16_t BAND_5G8_E_FREQS[VTXSETTINGS_BAND_5G8_E_FREQUENCY_MAXOPTVAL + 1] = {
+	[VTXSETTINGS_BAND_5G8_E_FREQUENCY_CH15705] = 5705,
+	[VTXSETTINGS_BAND_5G8_E_FREQUENCY_CH25685] = 5685,
+	[VTXSETTINGS_BAND_5G8_E_FREQUENCY_CH35665] = 5665,
+	[VTXSETTINGS_BAND_5G8_E_FREQUENCY_CH45645] = 5645,
+	[VTXSETTINGS_BAND_5G8_E_FREQUENCY_CH55885] = 5885,
+	[VTXSETTINGS_BAND_5G8_E_FREQUENCY_CH65905] = 5905,
+	[VTXSETTINGS_BAND_5G8_E_FREQUENCY_CH75925] = 5925,
+	[VTXSETTINGS_BAND_5G8_E_FREQUENCY_CH85945] = 5945
+};
+
+static const uint16_t AIRWAVE_FREQS[VTXSETTINGS_AIRWAVE_FREQUENCY_MAXOPTVAL + 1] = {
+	[VTXSETTINGS_AIRWAVE_FREQUENCY_CH15740] = 5740,
+	[VTXSETTINGS_AIRWAVE_FREQUENCY_CH25760] = 5760,
+	[VTXSETTINGS_AIRWAVE_FREQUENCY_CH35780] = 5780,
+	[VTXSETTINGS_AIRWAVE_FREQUENCY_CH45800] = 5800,
+	[VTXSETTINGS_AIRWAVE_FREQUENCY_CH55820] = 5820,
+	[VTXSETTINGS_AIRWAVE_FREQUENCY_CH65840] = 5840,
+	[VTXSETTINGS_AIRWAVE_FREQUENCY_CH75860] = 5860,
+	[VTXSETTINGS_AIRWAVE_FREQUENCY_CH85880] = 5880
+};
+
+static const uint16_t RACEBAND_FREQS[VTXSETTINGS_RACEBAND_FREQUENCY_MAXOPTVAL + 1] = {
+	[VTXSETTINGS_RACEBAND_FREQUENCY_CH15658] = 5658,
+	[VTXSETTINGS_RACEBAND_FREQUENCY_CH25696] = 5696,
+	[VTXSETTINGS_RACEBAND_FREQUENCY_CH35732] = 5732,
+	[VTXSETTINGS_RACEBAND_FREQUENCY_CH45769] = 5769,
+	[VTXSETTINGS_RACEBAND_FREQUENCY_CH55806] = 5806,
+	[VTXSETTINGS_RACEBAND_FREQUENCY_CH65843] = 5843,
+	[VTXSETTINGS_RACEBAND_FREQUENCY_CH75880] = 5880,
+	[VTXSETTINGS_RACEBAND_FREQUENCY_CH85917] = 5917
+};
+
+static const uint16_t VTX_POWER[VTXSETTINGS_POWER_GLOBAL_MAXOPTVAL + 1] = {
+	[VTXSETTINGS_POWER_25]  = 25,
+	[VTXSETTINGS_POWER_200] = 200,
+	[VTXSETTINGS_POWER_500] = 500,
+	[VTXSETTINGS_POWER_800] = 800,
+};
 
 // Events that can be be injected into the FSM and trigger state changes
 enum menu_fsm_event {
@@ -66,7 +137,8 @@ enum menu_fsm_state {
 	FSM_STATE_MAIN_PIDRATE,     /*!< PID Rate*/
 	FSM_STATE_MAIN_PIDATT,      /*!< PID Attitude*/
 	FSM_STATE_MAIN_STICKLIMITS, /*!< Stick Range and Limits */
-	FSM_STATE_MAIN_STATS, /*!< Flight Stats */
+	FSM_STATE_MAIN_VTX,         /*!< Video Transmitter */
+	FSM_STATE_MAIN_STATS,       /*!< Flight Stats */
 /*------------------------------------------------------------------------------------------*/
 #if defined(USE_STM32F4xx_BRAINFPVRE1)
 	FSM_STATE_RE1_IDLE,           /*!< Dummy state with nothing selected */
@@ -147,6 +219,14 @@ enum menu_fsm_state {
 	FSM_STATE_STICKLIMITS_SAVEEXIT, /*!< Save & Exit */
 	FSM_STATE_STICKLIMITS_EXIT,     /*!< Exit */
 /*------------------------------------------------------------------------------------------*/
+	FSM_STATE_VTX_IDLE,             /*!< Dummy state with nothing selected */
+	FSM_STATE_VTX_BAND,             /*!< Set Band */
+	FSM_STATE_VTX_CH,               /*!< Set Channel */
+	FSM_STATE_VTX_POWER,            /*!< Set Power */
+	FSM_STATE_VTX_APPLY,            /*!< Apply Settig */
+	FSM_STATE_VTX_SAVEEXIT,         /*!< Save & Exit */
+	FSM_STATE_VTX_EXIT,             /*!< Exit */
+/*------------------------------------------------------------------------------------------*/
 	FSM_STATE_STATS_IDLE,           /*!< Dummy state with nothing selected */
 	FSM_STATE_STATS_EXIT,           /*!< Exit */
 /*------------------------------------------------------------------------------------------*/
@@ -179,6 +259,7 @@ static void homeloc_menu(void);
 static void pidrate_menu(void);
 static void pidatt_menu(void);
 static void sticklimits_menu(void);
+static void vtx_menu();
 static void stats_menu(void);
 
 
@@ -242,14 +323,22 @@ const static struct menu_fsm_transition menu_fsm[FSM_STATE_NUM_STATES] = {
 		.menu_fn = main_menu,
 		.next_state = {
 			[FSM_EVENT_UP] = FSM_STATE_MAIN_PIDATT,
-			[FSM_EVENT_DOWN] = FSM_STATE_MAIN_STATS,
+			[FSM_EVENT_DOWN] = FSM_STATE_MAIN_VTX,
 			[FSM_EVENT_RIGHT] = FSM_STATE_STICKLIMITS_IDLE,
+		},
+	},
+	[FSM_STATE_MAIN_VTX] = {
+		.menu_fn = main_menu,
+		.next_state = {
+			[FSM_EVENT_UP] = FSM_STATE_MAIN_STICKLIMITS,
+			[FSM_EVENT_DOWN] = FSM_STATE_MAIN_STATS,
+			[FSM_EVENT_RIGHT] = FSM_STATE_VTX_IDLE,
 		},
 	},
 	[FSM_STATE_MAIN_STATS] = {
 		.menu_fn = main_menu,
 		.next_state = {
-			[FSM_EVENT_UP] = FSM_STATE_MAIN_STICKLIMITS,
+			[FSM_EVENT_UP] = FSM_STATE_MAIN_VTX,
 			[FSM_EVENT_DOWN] = FSM_STATE_TOP,
 			[FSM_EVENT_RIGHT] = FSM_STATE_STATS_IDLE,
 		},
@@ -767,6 +856,58 @@ const static struct menu_fsm_transition menu_fsm[FSM_STATE_NUM_STATES] = {
 		},
 	},
 /*------------------------------------------------------------------------------------------*/
+	[FSM_STATE_VTX_IDLE] = {
+		.menu_fn = vtx_menu,
+		.next_state = {
+			[FSM_EVENT_UP] = FSM_STATE_VTX_EXIT,
+			[FSM_EVENT_DOWN] = FSM_STATE_VTX_BAND,
+		},
+	},
+	[FSM_STATE_VTX_BAND] = {
+		.menu_fn = vtx_menu,
+		.next_state = {
+			[FSM_EVENT_UP] = FSM_STATE_VTX_EXIT,
+			[FSM_EVENT_DOWN] = FSM_STATE_VTX_CH,
+		},
+	},
+	[FSM_STATE_VTX_CH] = {
+		.menu_fn = vtx_menu,
+		.next_state = {
+			[FSM_EVENT_UP] = FSM_STATE_VTX_BAND,
+			[FSM_EVENT_DOWN] = FSM_STATE_VTX_POWER,
+		},
+	},
+	[FSM_STATE_VTX_POWER] = {
+		.menu_fn = vtx_menu,
+		.next_state = {
+			[FSM_EVENT_UP] = FSM_STATE_VTX_CH,
+			[FSM_EVENT_DOWN] = FSM_STATE_VTX_APPLY,
+		},
+	},
+	[FSM_STATE_VTX_APPLY] = {
+		.menu_fn = vtx_menu,
+		.next_state = {
+			[FSM_EVENT_UP] = FSM_STATE_VTX_POWER,
+			[FSM_EVENT_DOWN] = FSM_STATE_VTX_SAVEEXIT,
+		},
+	},
+	[FSM_STATE_VTX_SAVEEXIT] = {
+		.menu_fn = vtx_menu,
+		.next_state = {
+			[FSM_EVENT_UP] = FSM_STATE_VTX_APPLY,
+			[FSM_EVENT_DOWN] = FSM_STATE_VTX_EXIT,
+			[FSM_EVENT_RIGHT] = FSM_STATE_MAIN_VTX,
+		},
+	},
+	[FSM_STATE_VTX_EXIT] = {
+		.menu_fn = vtx_menu,
+		.next_state = {
+			[FSM_EVENT_UP] = FSM_STATE_VTX_SAVEEXIT,
+			[FSM_EVENT_DOWN] = FSM_STATE_VTX_BAND,
+			[FSM_EVENT_RIGHT] = FSM_STATE_MAIN_VTX,
+		},
+	},
+/*------------------------------------------------------------------------------------------*/
 	[FSM_STATE_STATS_IDLE] = {
 		.menu_fn = stats_menu,
 		.next_state = {
@@ -782,6 +923,8 @@ const static struct menu_fsm_transition menu_fsm[FSM_STATE_NUM_STATES] = {
 			[FSM_EVENT_RIGHT] = FSM_STATE_MAIN_STATS,
 		},
 	},
+	/*------------------------------------------------------------------------------------------*/
+
 };
 
 
@@ -900,6 +1043,9 @@ void main_menu(void)
 				break;
 			case FSM_STATE_MAIN_STICKLIMITS:
 				write_string("Stick Limits and Expo", MENU_LINE_X, y_pos, 0, 0, TEXT_VA_TOP, TEXT_HA_LEFT, 0, MENU_FONT);
+				break;
+			case FSM_STATE_MAIN_VTX:
+				write_string("Video Transmitter", MENU_LINE_X, y_pos, 0, 0, TEXT_VA_TOP, TEXT_HA_LEFT, 0, MENU_FONT);
 				break;
 			case FSM_STATE_MAIN_STATS:
 				write_string("Flight Statistics", MENU_LINE_X, y_pos, 0, 0, TEXT_VA_TOP, TEXT_HA_LEFT, 0, MENU_FONT);
@@ -1668,6 +1814,195 @@ void sticklimits_menu(void)
 		draw_selected_icon(MENU_LINE_X - 4, y_pos + 4);
 	}
 }
+
+void vtx_menu()
+{
+	const char *vtx_strings[] = {
+		[VTXINFO_MODEL_NONE] = "No VTX detected",
+		[VTXINFO_MODEL_TBSUNIFYPRO5G8] = "TBS Unify Pro 5G8",
+		[VTXINFO_MODEL_TBSUNIFYPRO5G8HV] = "TBS Unify Pro 5G8 HV",
+	};
+
+	const char *band_strings[] = {
+		[VTXSETTINGS_BAND_BAND5G8A] = "A",
+		[VTXSETTINGS_BAND_BAND5G8B] = "B",
+		[VTXSETTINGS_BAND_BAND5G8E] = "E",
+		[VTXSETTINGS_BAND_AIRWAVE] = "Airwave",
+		[VTXSETTINGS_BAND_RACEBAND] = "Raceband",
+	};
+
+	// this is a special case, we need a local copy as the user has to use "apply" to set the new settings
+	static VTXSettingsData settings;
+
+	draw_menu_title("Video Transmitter");
+	int y_pos = MENU_LINE_Y;
+
+	if ((VTXSettingsHandle() == NULL) || (VTXInfoHandle() == NULL)) {
+		write_string("VTX Config Module not running!", MENU_LINE_X, y_pos, 0, 0, TEXT_VA_TOP, TEXT_HA_LEFT, 0, MENU_FONT);
+		y_pos += MENU_LINE_SPACING;
+		current_state = FSM_STATE_VTX_EXIT;
+	}
+	else {
+		VTXInfoData vtxInfo;
+		VTXInfoGet(&vtxInfo);
+		char tmp_str[100] = {0};
+
+		if (current_state == FSM_STATE_VTX_IDLE) {
+			VTXSettingsGet(&settings);
+		}
+
+		y_pos += MENU_LINE_SPACING;
+		sprintf(tmp_str, "VTX Type: %s", vtx_strings[vtxInfo.Model]);
+		write_string(tmp_str, MENU_LINE_X, y_pos, 0, 0, TEXT_VA_TOP, TEXT_HA_LEFT, 0, MENU_FONT);
+
+		y_pos += 2 * MENU_LINE_SPACING;
+		write_string("Current:", MENU_LINE_X, y_pos, 0, 0, TEXT_VA_TOP, TEXT_HA_LEFT, 0, MENU_FONT);
+
+		y_pos += MENU_LINE_SPACING;
+		sprintf(tmp_str, "   Frequency: %d MHz", vtxInfo.Frequency);
+		write_string(tmp_str, MENU_LINE_X, y_pos, 0, 0, TEXT_VA_TOP, TEXT_HA_LEFT, 0, MENU_FONT);
+
+		y_pos += MENU_LINE_SPACING;
+		sprintf(tmp_str, "   Power:     %d mW", vtxInfo.Power);
+		write_string(tmp_str, MENU_LINE_X, y_pos, 0, 0, TEXT_VA_TOP, TEXT_HA_LEFT, 0, MENU_FONT);
+
+		y_pos += 2 * MENU_LINE_SPACING;
+		write_string("New:", MENU_LINE_X, y_pos, 0, 0, TEXT_VA_TOP, TEXT_HA_LEFT, 0, MENU_FONT);
+
+		y_pos += MENU_LINE_SPACING;
+		sprintf(tmp_str, "    Band:    %s", band_strings[settings.Band]);
+		write_string(tmp_str, MENU_LINE_X, y_pos, 0, 0, TEXT_VA_TOP, TEXT_HA_LEFT, 0, MENU_FONT);
+		if (current_state == FSM_STATE_VTX_BAND) {
+			draw_selected_icon(MENU_LINE_X - 4, y_pos + 4);
+
+			if (current_event == FSM_EVENT_RIGHT) {
+				if (settings.Band == VTXSETTINGS_BAND_MAXOPTVAL) {
+					settings.Band = 0;
+				}
+				else {
+					settings.Band += 1;
+				}
+			}
+			if (current_event == FSM_EVENT_LEFT) {
+				if (settings.Band == 0) {
+					settings.Band = VTXSETTINGS_BAND_MAXOPTVAL;
+				}
+				else {
+					settings.Band -= 1;
+				}
+			}
+		}
+
+		uint8_t *target;
+		uint8_t max_val;
+		const uint16_t *band_ptr;
+		switch(settings.Band) {
+			case VTXSETTINGS_BAND_BAND5G8A:
+				band_ptr = BAND_5G8_A_FREQS;
+				max_val = VTXSETTINGS_BAND_5G8_A_FREQUENCY_MAXOPTVAL;
+				target = &settings.Band_5G8_A_Frequency;
+				break;
+			case VTXSETTINGS_BAND_BAND5G8B:
+				band_ptr = BAND_5G8_B_FREQS;
+				max_val = VTXSETTINGS_BAND_5G8_B_FREQUENCY_MAXOPTVAL;
+				target = &settings.Band_5G8_B_Frequency;
+				break;
+			case VTXSETTINGS_BAND_BAND5G8E:
+				band_ptr = BAND_5G8_E_FREQS;
+				max_val = VTXSETTINGS_BAND_5G8_E_FREQUENCY_MAXOPTVAL;
+				target = &settings.Band_5G8_E_Frequency;
+				break;
+			case VTXSETTINGS_BAND_AIRWAVE:
+				band_ptr = AIRWAVE_FREQS;
+				max_val = VTXSETTINGS_AIRWAVE_FREQUENCY_MAXOPTVAL;
+				target = &settings.Airwave_Frequency;
+				break;
+			default:
+			case VTXSETTINGS_BAND_RACEBAND:
+				band_ptr = RACEBAND_FREQS;
+				max_val = VTXSETTINGS_RACEBAND_FREQUENCY_MAXOPTVAL;
+				target = &settings.Raceband_Frequency;
+				break;
+		}
+		y_pos += MENU_LINE_SPACING;
+
+		sprintf(tmp_str, "    Channel: CH %d %d MHz", *target + 1, band_ptr[*target]);
+		write_string(tmp_str, MENU_LINE_X, y_pos, 0, 0, TEXT_VA_TOP, TEXT_HA_LEFT, 0, MENU_FONT);
+
+		if (current_state == FSM_STATE_VTX_CH) {
+			draw_selected_icon(MENU_LINE_X - 4, y_pos + 4);
+
+			if (current_event == FSM_EVENT_RIGHT) {
+				if (*target == max_val) {
+					*target = 0;
+				}
+				else {
+					*target += 1;
+				}
+			}
+			if (current_event == FSM_EVENT_LEFT) {
+				if (*target == 0) {
+					*target = max_val;
+				}
+				else {
+					*target -= 1;
+				}
+			}
+		}
+
+		y_pos += MENU_LINE_SPACING;
+		sprintf(tmp_str, "    Power:   %d mW", VTX_POWER[settings.Power]);
+		write_string(tmp_str, MENU_LINE_X, y_pos, 0, 0, TEXT_VA_TOP, TEXT_HA_LEFT, 0, MENU_FONT);
+
+		if (current_state == FSM_STATE_VTX_POWER) {
+			draw_selected_icon(MENU_LINE_X - 4, y_pos + 4);
+
+			if (current_event == FSM_EVENT_RIGHT) {
+				if (settings.Power == VTXSETTINGS_POWER_MAXOPTVAL) {
+					settings.Power = 0;
+				}
+				else {
+					settings.Power += 1;
+				}
+			}
+			if (current_event == FSM_EVENT_LEFT) {
+				if (settings.Power == 0) {
+					settings.Power = VTXSETTINGS_POWER_MAXOPTVAL;
+				}
+				else {
+					settings.Power -= 1;
+				}
+			}
+		}
+	}
+
+	y_pos += 2 * MENU_LINE_SPACING;
+	write_string("Apply", MENU_LINE_X, y_pos, 0, 0, TEXT_VA_TOP, TEXT_HA_LEFT, 0, MENU_FONT);
+	if (current_state == FSM_STATE_VTX_APPLY) {
+		draw_selected_icon(MENU_LINE_X - 4, y_pos + 4);
+		if (current_event == FSM_EVENT_RIGHT) {
+			VTXSettingsSet(&settings);
+		}
+	}
+
+	y_pos += MENU_LINE_SPACING;
+	write_string("Save and Exit", MENU_LINE_X, y_pos, 0, 0, TEXT_VA_TOP, TEXT_HA_LEFT, 0, MENU_FONT);
+	if (current_state == FSM_STATE_VTX_SAVEEXIT) {
+		draw_selected_icon(MENU_LINE_X - 4, y_pos + 4);
+		if (current_event == FSM_EVENT_RIGHT) {
+			VTXSettingsSet(&settings);
+			UAVObjSave(VTXSettingsHandle(), 0);
+		}
+	}
+
+	y_pos += MENU_LINE_SPACING;
+	write_string("Exit", MENU_LINE_X, y_pos, 0, 0, TEXT_VA_TOP, TEXT_HA_LEFT, 0, MENU_FONT);
+	if (current_state == FSM_STATE_VTX_EXIT) {
+		draw_selected_icon(MENU_LINE_X - 4, y_pos + 4);
+	}
+
+}
+
 
 void stats_menu()
 {

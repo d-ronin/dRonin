@@ -62,6 +62,7 @@ OPTMODULES += UAVOLighttelemetryBridge
 OPTMODULES += PicoC
 OPTMODULES += Geofence
 OPTMODULES += Logging
+OPTMODULES += VTXConfig
 OPTMODULES += OnScreenDisplay
 
 # Paths

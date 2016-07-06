@@ -44,6 +44,8 @@ UAVOBJSRCFILENAMES += altitudeholdstate
 UAVOBJSRCFILENAMES += hottsettings
 UAVOBJSRCFILENAMES += picocsettings
 UAVOBJSRCFILENAMES += picocstatus
+UAVOBJSRCFILENAMES += vtxinfo
+UAVOBJSRCFILENAMES += vtxsettings
 
 UAVOBJSRCFILENAMES += onscreendisplaysettings
 UAVOBJSRCFILENAMES += onscreendisplaypagesettings

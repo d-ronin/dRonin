@@ -470,11 +470,11 @@ void PIOS_Board_Init(void) {
 #endif /* PIOS_INCLUDE_FRSKY_RSSI */
 			break;
 		case HWBRAINRE1_MULTIPORT_FRSKYSPORTTELEMETRY:
-			PIOS_RE1FPGA_MPTxPinMode(true, true);
-			PIOS_RE1FPGA_MPTxPinPullUpDown(true, false);
 #if defined(PIOS_INCLUDE_FRSKY_RSSI)
 			PIOS_FrSkyRssi_Init(&pios_frsky_rssi_cfg);
 #endif /* PIOS_INCLUDE_FRSKY_RSSI */
+			PIOS_RE1FPGA_MPTxPinMode(true, true);
+			PIOS_RE1FPGA_MPTxPinPullUpDown(true, false);
 			break;
 	}
 

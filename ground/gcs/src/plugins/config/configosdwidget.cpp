@@ -631,6 +631,30 @@ void ConfigOsdWidget::setupOsdPage(Ui::OsdPage * page, QWidget * page_widget, UA
     addUAVObjectToWidgetRelation(name, "MapHeightMeters", page->mapHeightMeters);
     addUAVObjectToWidgetRelation(name, "MapWidthPixels", page->mapWidthPixels);
     addUAVObjectToWidgetRelation(name, "MapHeightPixels", page->mapHeightPixels);
+
+    // VTXFreq
+    addUAVObjectToWidgetRelation(name, "VTXFreq", page->VTXFreqEnabled);
+    page->VTXFreqEnabled->setProperty(trueString.toLatin1(), "Enabled");
+    page->VTXFreqEnabled->setProperty(falseString.toLatin1(), "Disabled");
+    addUAVObjectToWidgetRelation(name, "VTXFreqPosX", page->VTXFreqX);
+    addUAVObjectToWidgetRelation(name, "VTXFreqPosY", page->VTXFreqY);
+    addUAVObjectToWidgetRelation(name, "VTXFreqFont", page->VTXFreqFont);
+    addUAVObjectToWidgetRelation(name, "VTXFreqAlign", page->VTXFreqAlign);
+    addUAVObjectToWidgetRelation(name, "VTXFreqShowUnit", page->VTXFreqShowUnit);
+    page->VTXFreqShowUnit->setProperty(trueString.toLatin1(), "Enabled");
+    page->VTXFreqShowUnit->setProperty(falseString.toLatin1(), "Disabled");
+
+    // VTXPower
+    addUAVObjectToWidgetRelation(name, "VTXPower", page->VTXPowerEnabled);
+    page->VTXPowerEnabled->setProperty(trueString.toLatin1(), "Enabled");
+    page->VTXPowerEnabled->setProperty(falseString.toLatin1(), "Disabled");
+    addUAVObjectToWidgetRelation(name, "VTXPowerPosX", page->VTXPowerX);
+    addUAVObjectToWidgetRelation(name, "VTXPowerPosY", page->VTXPowerY);
+    addUAVObjectToWidgetRelation(name, "VTXPowerFont", page->VTXPowerFont);
+    addUAVObjectToWidgetRelation(name, "VTXPowerAlign", page->VTXPowerAlign);
+    addUAVObjectToWidgetRelation(name, "VTXPowerShowUnit", page->VTXPowerShowUnit);
+    page->VTXPowerShowUnit->setProperty(trueString.toLatin1(), "Enabled");
+    page->VTXPowerShowUnit->setProperty(falseString.toLatin1(), "Disabled");
 }
 
 void ConfigOsdWidget::copyOsdPage(int to, int from)

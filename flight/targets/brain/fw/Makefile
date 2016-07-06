@@ -67,6 +67,7 @@ OPTMODULES += UAVOLighttelemetryBridge
 OPTMODULES += PicoC
 OPTMODULES += Geofence
 OPTMODULES += Logging
+OPTMODULES += VTXConfig
 OPTMODULES += OnScreenDisplay
 OPTMODULES += Storm32Bgc
 

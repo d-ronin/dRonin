@@ -92,6 +92,10 @@ uintptr_t pios_com_picoc_id;
 uintptr_t pios_com_storm32bgc_id;
 #endif
 
+#if defined(PIOS_INCLUDE_TBSVTXCONFIG)
+uintptr_t pios_com_tbsvtxconfig_id;
+#endif
+
 #if defined(PIOS_INCLUDE_USB_HID) || defined(PIOS_INCLUDE_USB_CDC)
 uintptr_t pios_com_telem_usb_id;
 #endif
@@ -201,6 +205,14 @@ uintptr_t pios_com_debug_id;
 
 #ifndef PIOS_COM_STORM32BGC_TX_BUF_LEN
 #define PIOS_COM_STORM32BGC_TX_BUF_LEN 32
+#endif
+
+#ifndef PIOS_COM_TBSVTXCONFIG_TX_BUF_LEN
+#define PIOS_COM_TBSVTXCONFIG_TX_BUF_LEN 32
+#endif
+
+#ifndef PIOS_COM_TBSVTXCONFIG_RX_BUF_LEN
+#define PIOS_COM_TBSVTXCONFIG_RX_BUF_LEN 32
 #endif
 
 /**
@@ -662,7 +674,21 @@ void PIOS_HAL_ConfigurePort(HwSharedPortTypesOptions port_type,
 #endif /* PIOS_INCLUDE_PICOC */
 		break;
 
-		case HWSHARED_PORTTYPES_PPM:
+	case HWSHARED_PORTTYPES_VTXCONFIGTBSSMARTAUDIO:
+#if defined(PIOS_INCLUDE_TBSVTXCONFIG)
+		if (usart_port_cfg) {
+			usart_port_params.init.USART_BaudRate = 5000;
+			usart_port_params.init.USART_StopBits = USART_StopBits_2;
+			usart_port_params.init.USART_Parity   = USART_Parity_No;
+			usart_port_params.single_wire         = true;
+			PIOS_HAL_ConfigureCom(usart_port_cfg, &usart_port_params, PIOS_COM_TBSVTXCONFIG_RX_BUF_LEN, PIOS_COM_TBSVTXCONFIG_TX_BUF_LEN, com_driver, &port_driver_id);
+			target = &pios_com_tbsvtxconfig_id;
+			PIOS_Modules_Enable(PIOS_MODULE_VTXCONFIG);
+		}
+#endif /* PIOS_INCLUDE_TBSVTXCONFIG */
+		break;
+
+	case HWSHARED_PORTTYPES_PPM:
 #if defined(PIOS_INCLUDE_PPM)
 		if (ppm_cfg) {
 			uintptr_t ppm_id;

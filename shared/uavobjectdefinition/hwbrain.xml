@@ -41,6 +41,7 @@
 				<option>Telemetry</option>
 				<option>OpenLog</option>
 				<option>IBus</option>
+				<option>VTX Config TBS SmartAudio</option>
 			</options>
 		</field>
 
@@ -67,6 +68,7 @@
 				<option>Telemetry</option>
 				<option>OpenLog</option>
 				<option>IBus</option>
+				<option>VTX Config TBS SmartAudio</option>
 			</options>
 		</field>
 
@@ -92,6 +94,7 @@
 				<option>Telemetry</option>
 				<option>OpenLog</option>
 				<option>IBus</option>
+				<option>VTX Config TBS SmartAudio</option>
 			</options>
 		</field>
 
