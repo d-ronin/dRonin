@@ -269,6 +269,7 @@ static int make_path(IOHIDDeviceRef device, char *buf, size_t len)
 {
 	int res;
 	unsigned short vid, pid;
+	int rel_num;
 	char transport[32];
 	int32_t location;
 
@@ -285,9 +286,10 @@ static int make_path(IOHIDDeviceRef device, char *buf, size_t len)
 	vid = get_vendor_id(device);
 	pid = get_product_id(device);
 
-	res = snprintf(buf, len, "%s_%04hx_%04hx_%x",
-			transport, vid, pid, location);
+	rel_num = get_int_property(device, CFSTR(kIOHIDVersionNumberKey));
 
+	res = snprintf(buf, len, "%s_%04hx_%04hx_%x_%x",
+			transport, vid, pid, location, rel_num);
 
 	buf[len-1] = '\0';
 	return res+1;
