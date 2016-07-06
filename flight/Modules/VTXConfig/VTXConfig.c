@@ -136,7 +136,7 @@ static const uint16_t VTX_POWER[VTXSETTINGS_POWER_GLOBAL_MAXOPTVAL + 1] = {
 
 static uint32_t vtxConfigPort;
 static bool module_enabled = false;
-static bool settings_updated = false;
+static volatile bool settings_updated = false;
 static struct pios_thread *vtxConfigTaskHandle;
 
 static enum VTXTYPE vtx_type = VTX_NONE;
