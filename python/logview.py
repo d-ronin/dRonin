@@ -9,18 +9,15 @@ from logviewer.plotdockarea import PlotDockArea
 from pyqtgraph.dockarea import *
 
 # Create our application, consisting of dockarea stuff.
-# For now fix the size at 1024x600, so that we can make it work well in this
+# For now fix the size at 1024x680, so that we can make it work well in this
 # size
 app = QtGui.QApplication([])
 win = QtGui.QMainWindow()
 area = PlotDockArea()
 win.setCentralWidget(area)
-win.resize(1024, 600)
+win.resize(1024, 680)
 
 menubar = win.menuBar()
-
-quitAction = QtGui.QAction('&Quit', win)
-quitAction.triggered.connect(app.quit)
 
 win_num = 0
 
@@ -86,8 +83,6 @@ def plot_vs_time(obj_name, fields):
 def clear_plots(skip=None):
     containers, docks = area.findAll()
 
-    print docks
-
     for d in docks.values():
         if skip is not None and d in skip:
             continue
@@ -140,7 +135,7 @@ def handle_open():
             dlg.setLabelText("%d objects read..." % n_objs)
 
         t = telemetry.FileTelemetry(f, parse_header=True, service_in_iter=True,
-                    gcs_timestamps=False, name='test.drlog', progress_callback=cb)
+                    gcs_timestamps=None, name=fname, progress_callback=cb)
 
         global series, objtyps
         series = {}
@@ -150,19 +145,29 @@ def handle_open():
             short_name = typ._name[5:]
             objtyps[short_name] = typ
 
-        clear_plots()
         global last_plot
         last_plot = None
 
         plot_vs_time('ManualControlCommand', 'Throttle')
+
+        clear_plots(skip=[last_plot])
+
+        dlg.setValue(925)
         plot_vs_time('AttitudeActual', ['Yaw', 'Roll', 'Pitch'])
+        dlg.setValue(950)
         plot_vs_time('Gyros', 'z')
+        dlg.setValue(975)
         plot_vs_time('Accels', 'z')
 
 openAction = QtGui.QAction("&Open", win)
+openAction.setShortcut(QtGui.QKeySequence.Open)
 openAction.triggered.connect(handle_open)
-fileMenu = menubar.addMenu('&File')
 
+quitAction = QtGui.QAction('&Quit', win)
+quitAction.setShortcut(QtGui.QKeySequence.Quit)
+quitAction.triggered.connect(app.quit)
+
+fileMenu = menubar.addMenu('&File')
 
 fileMenu.addAction(openAction)
 fileMenu.addAction(quitAction)
