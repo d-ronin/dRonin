@@ -26,7 +26,7 @@ class TelemetryBase():
 
     def __init__(self, githash=None, service_in_iter=True,
             iter_blocks=True, use_walltime=True, do_handshaking=False,
-            gcs_timestamps=False, name=None):
+            gcs_timestamps=False, name=None, progress_callback=None):
 
         """Instantiates a telemetry instance.  Called only by derived classes.
          - githash: revision control id of the UAVO's used to communicate.
@@ -44,6 +44,8 @@ class TelemetryBase():
          - gcs_timestamps: if true, this means we are reading from a file with
              the GCS timestamp protocol.
          - name: a filename to store into .filename for legacy purposes
+         - progress_callback: a function to call periodically with progress
+             information
         """
 
         uavo_defs = uavo_collection.UAVOCollection()
@@ -59,7 +61,8 @@ class TelemetryBase():
 
         self.uavo_defs = uavo_defs
         self.uavtalk_generator = uavtalk.process_stream(uavo_defs,
-            use_walltime=use_walltime, gcs_timestamps=gcs_timestamps)
+            use_walltime=use_walltime, gcs_timestamps=gcs_timestamps,
+            progress_callback=progress_callback)
 
         self.uavtalk_generator.send(None)
 

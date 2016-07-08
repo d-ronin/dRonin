@@ -54,7 +54,8 @@ crc_table = [
     0xde, 0xd9, 0xd0, 0xd7, 0xc2, 0xc5, 0xcc, 0xcb, 0xe6, 0xe1, 0xe8, 0xef, 0xfa, 0xfd, 0xf4, 0xf3
 ]
 
-def process_stream(uavo_defs, use_walltime=False, gcs_timestamps=False):
+def process_stream(uavo_defs, use_walltime=False, gcs_timestamps=False,
+        progress_callback=None):
     """Generator function that parses uavotalk stream.
     
     You are expected to send more bytes, or '' to it, until EOF.  Then send
@@ -70,6 +71,8 @@ def process_stream(uavo_defs, use_walltime=False, gcs_timestamps=False):
     buf = ''
     buf_offset = 0
 
+    past_bytes = 0
+
     pending_pieces = []
 
     while True:
@@ -82,6 +85,8 @@ def process_stream(uavo_defs, use_walltime=False, gcs_timestamps=False):
         # 10k chosen here to be bigger than any plausible uavo; could calculate
         # this instead from our known uav objects
         if len(buf) - buf_offset < 10240:
+            past_bytes += buf_offset
+
             #print "stitch pp=%d"%(len(pending_pieces))
             pending_pieces.insert(0, buf[buf_offset:])
             buf_offset = 0
@@ -245,7 +250,9 @@ def process_stream(uavo_defs, use_walltime=False, gcs_timestamps=False):
             offset = header_fmt.size + instance_len + timestamp_len + buf_offset
             objInstance = obj.from_bytes(buf, timestamp, instance_id, offset=offset)
             received += 1
-            if not (received % 20000):
+            if not (received % 10000):
+                if progress_callback is not None:
+                    progress_callback(received, past_bytes + buf_offset + calc_size + 1)
                 print "received %d objs"%(received)
 
             next_recv = yield objInstance
