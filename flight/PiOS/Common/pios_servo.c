@@ -161,6 +161,10 @@ void PIOS_Servo_SetMode(const uint16_t *out_rate, const int banks, const uint16_
 	TIM_TimeBaseStructure.TIM_ClockDivision = TIM_CKD_DIV1;
 	TIM_TimeBaseStructure.TIM_CounterMode = TIM_CounterMode_Up;
 	for (int i = 0; i < banks_found; i++) {
+		// Skip the bank if no outputs are configured
+		if (timer_banks[i].max_pulse == 0)
+			continue;
+
 		/* Calculate the maximum clock frequency for the timer */
 		uint32_t max_tim_clock = max_timer_clock(timer_banks[i].timer);
 		// check if valid timer

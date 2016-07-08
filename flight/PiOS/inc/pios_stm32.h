@@ -63,6 +63,11 @@ struct stm32_gpio {
 	uint8_t pin_source;
 };
 
+#if defined(STM32F40_41xxx) || defined(STM32F446xx) /*  F4 */
+#define PIOS_PERIPHERAL_APB1_COUNTER_CLOCK (PIOS_PERIPHERAL_APB1_CLOCK * 2)
+#define PIOS_PERIPHERAL_APB2_COUNTER_CLOCK (PIOS_PERIPHERAL_APB2_CLOCK * 2)
+#endif
+
 /**
   * @}
   * @}
