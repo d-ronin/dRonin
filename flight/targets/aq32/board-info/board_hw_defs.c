@@ -991,7 +991,7 @@ void PIOS_RTC_IRQ_Handler (void)
 
 // Set up timers that only have outputs on APB1
 static const TIM_TimeBaseInitTypeDef tim_4_time_base = {
-	.TIM_Prescaler = (PIOS_PERIPHERAL_APB1_CLOCK / 1000000) - 1,
+	.TIM_Prescaler = (PIOS_PERIPHERAL_APB1_COUNTER_CLOCK / 1000000) - 1,
 	.TIM_ClockDivision = TIM_CKD_DIV1,
 	.TIM_CounterMode = TIM_CounterMode_Up,
 	.TIM_Period = 0xFFFF,
@@ -1015,7 +1015,7 @@ static const struct pios_tim_clock_cfg tim_4_cfg = {
 
 // Set up timers that only have outputs on APB1
 static const TIM_TimeBaseInitTypeDef tim_2_3_time_base = {
-	.TIM_Prescaler         = (PIOS_PERIPHERAL_APB1_CLOCK / 1000000) - 1,
+	.TIM_Prescaler         = (PIOS_PERIPHERAL_APB1_COUNTER_CLOCK / 1000000) - 1,
 	.TIM_ClockDivision     = TIM_CKD_DIV1,
 	.TIM_CounterMode       = TIM_CounterMode_Up,
 	.TIM_Period            = ((1000000 / PIOS_SERVO_UPDATE_HZ) - 1),
@@ -1024,7 +1024,7 @@ static const TIM_TimeBaseInitTypeDef tim_2_3_time_base = {
 
 // Set up timers that only have outputs on APB2
 static const TIM_TimeBaseInitTypeDef tim_1_8_time_base = {
-	.TIM_Prescaler         = (PIOS_PERIPHERAL_APB2_CLOCK / 1000000) - 1,
+	.TIM_Prescaler         = (PIOS_PERIPHERAL_APB2_COUNTER_CLOCK / 1000000) - 1,
 	.TIM_ClockDivision     = TIM_CKD_DIV1,
 	.TIM_CounterMode       = TIM_CounterMode_Up,
 	.TIM_Period            = ((1000000 / PIOS_SERVO_UPDATE_HZ) - 1),
