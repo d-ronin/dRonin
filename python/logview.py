@@ -17,38 +17,85 @@ area = PlotDockArea()
 win.setCentralWidget(area)
 win.resize(1024, 600)
 
-win.statusBar().showMessage('Load a file to begin analysis...')
 menubar = win.menuBar()
 
 quitAction = QtGui.QAction('&Quit', win)
 quitAction.triggered.connect(app.quit)
 
-def add_plot_area(obj_name, fields):
-    dock = Dock("TimeSeries", size=(800,300))
+win_num = 0
+
+def get_data_series(obj_name, fields):
+    data = get_series(obj_name)
+
+    return data[fields].view(dtype='float').reshape(-1, 2)
+
+def add_plot_area(data_series, dock_name, axis_label, legend=False, **kwargs):
+    dock = Dock(dock_name, size=(800, 300))
 
     pw = pg.PlotWidget()
 
-    data = get_series(obj_name)
+    if legend:
+        pw.addLegend()
 
-    view = data[fields].view(dtype='float').reshape(-1, 2)
+    colors = [ 'w', 'm', 'y', 'c' ]
+    idx = 0
 
-#    pw.addLegend(offset=(-20, -20))
+    for plot_name, data in data_series.iteritems():
+        pw.plot(data, antialias=True, name='&nbsp;'+plot_name, pen=pg.mkPen(colors[idx]), **kwargs)
+        idx += 1
 
-    plot_name = obj_name + '.' + fields[1]
+    # pen=None, symbol='o', symbolSize=2.5
 
-    pw.plot(view, antialias=True, name=plot_name)
-    #pw.plot(view, antialias=False, pen=None, symbol='o', name=plot_name,
-    #        symbolSize=2.5)
-
-    left_axis_label = '%s<br>%s<br>%s' % (obj_name, fields[1], objtyps[obj_name]._units[fields[1]])
-    pw.setLabel('left', left_axis_label)
+    pw.setLabel('left', axis_label)
 
     pw.setMenuEnabled(False)
 
     dock.addWidget(pw)
 
-    global dl
-    area.addDock(dock, 'bottom', dl) 
+    global last_plot
+
+    if last_plot != None:
+        area.addDock(dock, 'bottom', last_plot)
+    else:
+        area.addDock(dock, 'left', dui)
+
+    last_plot = dock
+
+def plot_vs_time(obj_name, fields):
+    if not isinstance(fields, list):
+        fields = [fields]
+
+    if len(fields) > 1:
+        left_axis_label = '%s<br>&nbsp;<br>&nbsp;' % (obj_name)
+        legend = True
+    else:
+        left_axis_label = '%s<br>%s<br>%s' % (obj_name, fields[0], objtyps[obj_name]._units[fields[0]])
+        legend = False
+
+    data_series = {}
+    for f in fields:
+        data_series[obj_name + '.' + f] = get_data_series(obj_name, ['time', f])
+
+    global win_num
+
+    win_num += 1
+    dock_name = "TimeSeries%d" % (win_num)
+
+    add_plot_area(data_series, dock_name, left_axis_label, legend=legend)
+
+def clear_plots(skip=None):
+    containers, docks = area.findAll()
+
+    print docks
+
+    for d in docks.values():
+        if skip is not None and d in skip:
+            continue
+
+        if (not d.name().startswith("TimeSeries")) and (d.name() != "Waiting..."):
+            continue
+
+        d.close()
 
 def get_series(name):
     global series
@@ -65,11 +112,11 @@ def get_series(name):
 def handle_open():
     from dronin import telemetry, uavo
 
-    with pg.ProgressDialog("Loading objects...", wait=1, cancelText=None) as dlg:
+    fname = QtGui.QFileDialog.getOpenFileName(win, 'Open file', filter="Log files (*.drlog *.txt)")
+    with pg.ProgressDialog("0 objects read...", wait=500, maximum=1000, cancelText=None) as dlg:
         global t
 
-        f = open('test.drlog', 'rb')
-
+        f = open(fname, 'rb')
         num_bytes = 1000000000
 
         try:
@@ -85,10 +132,12 @@ def handle_open():
         def cb(n_objs, n_bytes):
             # Top out at 90%, so the dialog doesn't hang at 100%
             # during the non-reading operations...
-            perc = (n_bytes * 90.0) / num_bytes
-            
-            if (perc > 90.0): perc = 90.0
-            dlg.setValue(perc)
+            permille = (n_bytes * 900.0) / num_bytes
+
+            # should not happen, but cover the case anyways
+            if (permille > 900.0): permille = 900.0
+            dlg.setValue(permille)
+            dlg.setLabelText("%d objects read..." % n_objs)
 
         t = telemetry.FileTelemetry(f, parse_header=True, service_in_iter=True,
                     gcs_timestamps=False, name='test.drlog', progress_callback=cb)
@@ -101,12 +150,14 @@ def handle_open():
             short_name = typ._name[5:]
             objtyps[short_name] = typ
 
-        add_plot_area('AttitudeActual', ['time', 'Yaw'])
-        add_plot_area('AttitudeActual', ['time', 'Roll'])
-        add_plot_area('AttitudeActual', ['time', 'Pitch'])
-        add_plot_area('Gyros', ['time', 'z'])
-        add_plot_area('Accels', ['time', 'z'])
+        clear_plots()
+        global last_plot
+        last_plot = None
 
+        plot_vs_time('ManualControlCommand', 'Throttle')
+        plot_vs_time('AttitudeActual', ['Yaw', 'Roll', 'Pitch'])
+        plot_vs_time('Gyros', 'z')
+        plot_vs_time('Accels', 'z')
 
 openAction = QtGui.QAction("&Open", win)
 openAction.triggered.connect(handle_open)
@@ -118,8 +169,6 @@ fileMenu.addAction(quitAction)
 
 ## Create docks, place them into the window.
 dl = Dock("Waiting...", size=(800, 1))
-
-#dg1 = Dock("TimeSeries", size=(800, 300))
 
 dui = Dock("UI", size=(224, 300))
 
@@ -135,33 +184,11 @@ Go
 Here
 Soon.
 """)
-saveBtn = QtGui.QPushButton('Save dock state')
-restoreBtn = QtGui.QPushButton('Restore dock state')
-restoreBtn.setEnabled(False)
 w1.addWidget(label, row=0, col=0)
-w1.addWidget(saveBtn, row=1, col=0)
-w1.addWidget(restoreBtn, row=2, col=0)
 dui.addWidget(w1)
 
-state = None
-def save():
-    global state
-    state = area.saveState()
-    restoreBtn.setEnabled(True)
-def load():
-    global state
-    area.restoreState(state)
-saveBtn.clicked.connect(save)
-restoreBtn.clicked.connect(load)
-#w5 = pg.ImageView()
-#w5.setImage(np.random.normal(size=(100,100)))
-#d5.addWidget(w5)
-
-#w6 = pg.PlotWidget(title="Dock 6 plot")
-#w6.plot(np.random.normal(size=100))
-#d6.addWidget(w6)
-
 win.show()
+
 
 ## Start Qt event loop unless running in interactive mode or using pyside.
 if __name__ == '__main__':

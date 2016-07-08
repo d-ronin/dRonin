@@ -51,7 +51,7 @@ class PlotDockArea(DockArea):
             if not isinstance(dock, Dock):
                 continue
 
-            if dock.name() != 'TimeSeries':
+            if not dock.name().startswith('TimeSeries'):
                 continue
 
             for w in dock.widgets:
