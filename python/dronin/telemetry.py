@@ -529,15 +529,14 @@ class FileTelemetry(TelemetryBase):
             uavohash = self.f.readline()
             divider = self.f.readline()
 
-            TelemetryBase.__init__(self, service_in_iter=False, iter_blocks=True,
+            TelemetryBase.__init__(self, iter_blocks=True,
                 do_handshaking=False, githash=githash, use_walltime=False,
                 *args, **kwargs)
         else:
-            TelemetryBase.__init__(self, service_in_iter=False, iter_blocks=True,
+            TelemetryBase.__init__(self, iter_blocks=True,
                 do_handshaking=False, use_walltime=False, *args, **kwargs)
 
         self.done=False
-        self.start_thread()
 
     def _receive(self, finish_time):
         """ Fetch available data from file """
