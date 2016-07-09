@@ -22,6 +22,7 @@ menubar = win.menuBar()
 win_num = 0
 
 def get_data_series(obj_name, fields):
+    # XXX TODO -- need to copy when the field is not a float.
     data = get_series(obj_name)
 
     return data[fields].view(dtype='float').reshape(-1, 2)
@@ -148,16 +149,25 @@ def handle_open():
         global last_plot
         last_plot = None
 
-        plot_vs_time('ManualControlCommand', 'Throttle')
+        plot_vs_time('StabilizationDesired', 'Thrust')
 
         clear_plots(skip=[last_plot])
 
         dlg.setValue(925)
         plot_vs_time('AttitudeActual', ['Yaw', 'Roll', 'Pitch'])
-        dlg.setValue(950)
-        plot_vs_time('Gyros', 'z')
         dlg.setValue(975)
-        plot_vs_time('Accels', 'z')
+        plot_vs_time('Gyros', ['x', 'y', 'z'])
+
+        objtyps = { k:v for k,v in objtyps.iteritems() if v in t.last_values }
+
+        #add all non-settings objects, and autotune, to the keys.
+        objSel.clear()
+
+        for typnam in sorted(objtyps.keys()):
+            if typnam == "SystemIdent" or not objtyps[typnam]._is_settings:
+                objSel.addItem(typnam)
+
+        objSel.setEnabled(True)
 
 openAction = QtGui.QAction("&Open", win)
 openAction.setShortcut(QtGui.QKeySequence.Open)
@@ -180,17 +190,36 @@ dui = Dock("UI", size=(224, 300))
 area.addDock(dui, 'right')     ## place d2 at right edge of dock area
 area.addDock(dl, 'left') 
 
-w1 = pg.LayoutWidget()
-label = QtGui.QLabel("""The
-Real
-UI
-Will
-Go
-Here
-Soon.
-""")
-w1.addWidget(label, row=0, col=0)
-dui.addWidget(w1)
+dui.addWidget(QtGui.QLabel("Obj:"), 0, 0)
+
+objSel = QtGui.QComboBox()
+objSel.setEnabled(False)
+dui.addWidget(objSel, 0, 1)
+
+dui.addWidget(QtGui.QLabel("Item:"), 1, 0)
+
+itemSel = QtGui.QComboBox()
+itemSel.setEnabled(False)
+addPlotBtn = QtGui.QPushButton("&Add time-series plot")
+addPlotBtn.setEnabled(False)
+
+dui.addWidget(itemSel, 1, 1)
+dui.addWidget(addPlotBtn, 2, 0, 1, 2)
+dui.layout.addItem(QtGui.QSpacerItem(20, 20, QtGui.QSizePolicy.Minimum, QtGui.QSizePolicy.Expanding), 3, 0)
+
+def updateItems(i):
+    uavo = objtyps[str(objSel.currentText())]
+
+    itemSel.clear()
+    itemSel.addItems(uavo._fields[3:])
+    itemSel.setEnabled(True)
+    addPlotBtn.setEnabled(True)
+
+def addTimeSeries():
+    plot_vs_time(str(objSel.currentText()), str(itemSel.currentText()))
+
+objSel.currentIndexChanged.connect(updateItems)
+addPlotBtn.clicked.connect(addTimeSeries)
 
 win.show()
 
