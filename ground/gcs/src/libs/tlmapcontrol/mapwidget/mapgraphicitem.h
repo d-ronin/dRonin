@@ -122,15 +122,7 @@ namespace mapcontrol
         * @param value zoom value
         */
         void SetZoomStep(qint32 const& value);
-
-        /**
-        * @brief Ask Stacey
-        *
-        * @param value
-        */
-        void SetShowDragons(bool const& value);
     private:
-        bool showDragons;
         bool SetZoomToFitRect(internals::RectLatLng const& rect);
         internals::Core *core;
         Configuration *config;

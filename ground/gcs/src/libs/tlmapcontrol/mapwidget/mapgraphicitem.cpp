@@ -68,6 +68,16 @@ namespace mapcontrol
             this->setRotation(rotation);
         }
 
+        if ((maprect.width() > 1024) || (maprect.height() > 1024)) {
+            minZoom = 3;
+        } else {
+            minZoom = 2;
+        }
+
+        if (Zoom() < minZoom) {
+            SetZoom(minZoom);
+        }
+
         core->OnMapSizeChanged(maprect.width(),maprect.height());
         core->SetCurrentRegion(internals::Rectangle(0, 0, maprect.width(), maprect.height()));
         if(isVisible())
