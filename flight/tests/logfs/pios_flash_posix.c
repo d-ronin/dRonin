@@ -48,9 +48,9 @@ int32_t PIOS_Flash_Posix_Init(uintptr_t * chip_id, const struct pios_flash_posix
 		return -1;
 	}
 
-	if (fseek (flash_dev->flash_file, flash_dev->cfg->size_of_flash, SEEK_SET) != 0) {
+	fseek(flash_dev->flash_file, 0, SEEK_END); // SEEK_END not portable
+	if (ftell(flash_dev->flash_file) != flash_dev->cfg->size_of_flash)
 		return -2;
-	}
 
 	*chip_id = (uintptr_t)flash_dev;
 
