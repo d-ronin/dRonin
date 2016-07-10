@@ -15,7 +15,7 @@
 				<elementname>Accessory2</elementname>
 				<elementname>Arming</elementname>
 			</elementnames>
-			<!-- these options should match those in ReceiverActivity -->
+			<!-- ReceiverActivity inherits these -->
 			<options>
 				<option>PWM</option>
 				<option>PPM</option>

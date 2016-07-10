@@ -863,44 +863,7 @@ static bool updateRcvrActivityCompare(uintptr_t rcvr_id, struct rcvr_activity_fs
 
 		if (delta > RCVR_ACTIVITY_MONITOR_MIN_RANGE) {
 			/* Mark this channel as active */
-			ReceiverActivityActiveGroupOptions group;
-
-			/* Don't assume manualcontrolsettings and receiveractivity are in the same order. */
-			switch (fsm->group) {
-			case MANUALCONTROLSETTINGS_CHANNELGROUPS_PWM:
-				group = RECEIVERACTIVITY_ACTIVEGROUP_PWM;
-				break;
-			case MANUALCONTROLSETTINGS_CHANNELGROUPS_PPM:
-				group = RECEIVERACTIVITY_ACTIVEGROUP_PPM;
-				break;
-			case MANUALCONTROLSETTINGS_CHANNELGROUPS_DSM:
-				group = RECEIVERACTIVITY_ACTIVEGROUP_DSM;
-				break;
-			case MANUALCONTROLSETTINGS_CHANNELGROUPS_SBUS:
-				group = RECEIVERACTIVITY_ACTIVEGROUP_SBUS;
-				break;
-			case MANUALCONTROLSETTINGS_CHANNELGROUPS_RFM22B:
-				group = RECEIVERACTIVITY_ACTIVEGROUP_RFM22B;
-				break;
-			case MANUALCONTROLSETTINGS_CHANNELGROUPS_OPENLRS:
-				group = RECEIVERACTIVITY_ACTIVEGROUP_OPENLRS;
-				break;
-			case MANUALCONTROLSETTINGS_CHANNELGROUPS_GCS:
-				group = RECEIVERACTIVITY_ACTIVEGROUP_GCS;
-				break;
-			case MANUALCONTROLSETTINGS_CHANNELGROUPS_HOTTSUM:
-				group = RECEIVERACTIVITY_ACTIVEGROUP_HOTTSUM;
-				break;
-			case MANUALCONTROLSETTINGS_CHANNELGROUPS_SRXL:
-				group = RECEIVERACTIVITY_ACTIVEGROUP_SRXL;
-				break;
-			default:
-				set_manual_control_error(SYSTEMALARMS_MANUALCONTROL_UNDEFINED);
-				group = RECEIVERACTIVITY_ACTIVEGROUP_PWM;
-				break;
-			}
-
-			ReceiverActivityActiveGroupSet((uint8_t*)&group);
+			ReceiverActivityActiveGroupSet((uint8_t *)&fsm->group);
 			ReceiverActivityActiveChannelSet(&channel);
 			activity_updated = true;
 		}
