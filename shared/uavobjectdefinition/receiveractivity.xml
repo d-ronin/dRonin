@@ -2,7 +2,6 @@
 	<object name="ReceiverActivity" singleinstance="true" settings="false">
 		<description>Monitors which receiver channels have been active within the last second.</description>
 
-	<!-- these options should match those in ReceiverActivity -->
 		<field name="ActiveGroup" units="Channel Group" type="enum" elements="1" defaultvalue="None" parent="ManualControlSettings.ChannelGroups">
 			<description>Last active channel group, where active implies that a channel value changed</description>
 		</field>
