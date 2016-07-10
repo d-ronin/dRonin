@@ -131,5 +131,6 @@ private:
 
     struct hid_device_info *prevDevList;
 
+    bool enumerating;
 };
 #endif // USBMONITOR_H

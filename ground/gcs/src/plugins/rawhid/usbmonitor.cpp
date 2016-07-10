@@ -62,6 +62,7 @@ USBMonitor::USBMonitor(QObject *parent) : QObject(parent) {
     periodicTimer.setSingleShot(true);
     periodicTimer.start(150);
 
+    enumerating = false;
     prevDevList = NULL;
 }
 
@@ -71,6 +72,14 @@ USBMonitor::~USBMonitor()
 }
 
 void USBMonitor::periodic() {
+    // This is here to catch recursion, from the process_pending_events in
+    // hidapi on OS X.
+    if (enumerating) {
+        return;
+    }
+
+    enumerating = true;
+
     struct hid_device_info *hidDevList = hid_enumerate(0, 0, prevDevList);
 
     QList<USBPortInfo> unseenDevices = knowndevices;
@@ -97,6 +106,8 @@ void USBMonitor::periodic() {
     }
 
     prevDevList = hidDevList;
+
+    enumerating = false;
 
     foreach (USBPortInfo item, unseenDevices) {
         didAnything = true;
