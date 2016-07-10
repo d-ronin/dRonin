@@ -26,7 +26,7 @@ class TelemetryBase():
 
     def __init__(self, githash=None, service_in_iter=True,
             iter_blocks=True, use_walltime=True, do_handshaking=False,
-            gcs_timestamps=False, name=None):
+            gcs_timestamps=False, name=None, progress_callback=None):
 
         """Instantiates a telemetry instance.  Called only by derived classes.
          - githash: revision control id of the UAVO's used to communicate.
@@ -42,8 +42,10 @@ class TelemetryBase():
              where we should speak the UAVO_GCSTelemetryStats connection status
              protocol.
          - gcs_timestamps: if true, this means we are reading from a file with
-             the GCS timestamp protocol.
+             the GCS timestamp protocol.  if None, request autodetection
          - name: a filename to store into .filename for legacy purposes
+         - progress_callback: a function to call periodically with progress
+             information
         """
 
         uavo_defs = uavo_collection.UAVOCollection()
@@ -59,7 +61,8 @@ class TelemetryBase():
 
         self.uavo_defs = uavo_defs
         self.uavtalk_generator = uavtalk.process_stream(uavo_defs,
-            use_walltime=use_walltime, gcs_timestamps=gcs_timestamps)
+            use_walltime=use_walltime, gcs_timestamps=gcs_timestamps,
+            progress_callback=progress_callback)
 
         self.uavtalk_generator.send(None)
 
@@ -499,7 +502,7 @@ class FileTelemetry(TelemetryBase):
             #    First line is "dRonin git hash:" or "Tau Labs git hash:"
             #    Second line is the actual git hash
             #    Third line is the UAVO hash
-            #    Fourth line is "##"a
+            #    Fourth line is "##" (only from GCS)
 
             # Scan up to 100 "lines" looking for the signature, in case
             # there's garbage at the beginning of the log
@@ -524,17 +527,18 @@ class FileTelemetry(TelemetryBase):
             print "Log file is based on git hash: %s" % githash
 
             uavohash = self.f.readline()
-            divider = self.f.readline()
+            # divider only occurs on GCS-type streams.  This causes us to
+            # miss first objects in telemetry-type streams
+            # divider = self.f.readline()
 
-            TelemetryBase.__init__(self, service_in_iter=False, iter_blocks=True,
+            TelemetryBase.__init__(self, iter_blocks=True,
                 do_handshaking=False, githash=githash, use_walltime=False,
                 *args, **kwargs)
         else:
-            TelemetryBase.__init__(self, service_in_iter=False, iter_blocks=True,
+            TelemetryBase.__init__(self, iter_blocks=True,
                 do_handshaking=False, use_walltime=False, *args, **kwargs)
 
         self.done=False
-        self.start_thread()
 
     def _receive(self, finish_time):
         """ Fetch available data from file """
@@ -555,7 +559,7 @@ def get_telemetry_by_args(desc="Process telemetry", service_in_iter=True,
     # instead of as part of the packet
     parser.add_argument("-t", "--timestamped",
                         action  = 'store_false',
-                        default = True,
+                        default = None,
                         help    = "indicate that this is not timestamped in GCS format")
 
     parser.add_argument("-g", "--githash",

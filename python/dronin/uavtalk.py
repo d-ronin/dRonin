@@ -54,7 +54,8 @@ crc_table = [
     0xde, 0xd9, 0xd0, 0xd7, 0xc2, 0xc5, 0xcc, 0xcb, 0xe6, 0xe1, 0xe8, 0xef, 0xfa, 0xfd, 0xf4, 0xf3
 ]
 
-def process_stream(uavo_defs, use_walltime=False, gcs_timestamps=False):
+def process_stream(uavo_defs, use_walltime=False, gcs_timestamps=None,
+        progress_callback=None):
     """Generator function that parses uavotalk stream.
     
     You are expected to send more bytes, or '' to it, until EOF.  Then send
@@ -70,6 +71,8 @@ def process_stream(uavo_defs, use_walltime=False, gcs_timestamps=False):
     buf = ''
     buf_offset = 0
 
+    past_bytes = 0
+
     pending_pieces = []
 
     while True:
@@ -82,6 +85,8 @@ def process_stream(uavo_defs, use_walltime=False, gcs_timestamps=False):
         # 10k chosen here to be bigger than any plausible uavo; could calculate
         # this instead from our known uav objects
         if len(buf) - buf_offset < 10240:
+            past_bytes += buf_offset
+
             #print "stitch pp=%d"%(len(pending_pieces))
             pending_pieces.insert(0, buf[buf_offset:])
             buf_offset = 0
@@ -89,8 +94,8 @@ def process_stream(uavo_defs, use_walltime=False, gcs_timestamps=False):
             buf = ''.join(pending_pieces)
             pending_pieces = []
 
-        if gcs_timestamps:
-            while len(buf) < logheader_fmt.size + buf_offset:
+        if gcs_timestamps is None or gcs_timestamps == True:
+            while len(buf) < (header_fmt.size + logheader_fmt.size + buf_offset):
                 rx = yield None
 
                 if rx is None:
@@ -100,7 +105,24 @@ def process_stream(uavo_defs, use_walltime=False, gcs_timestamps=False):
 
             overrideTimestamp, logHdrLen = logheader_fmt.unpack_from(buf,buf_offset)
 
-            buf_offset += logheader_fmt.size
+            if gcs_timestamps is None:
+                if ((logHdrLen > 1000) or ( overrideTimestamp > 100000000)):
+                    if buf[buf_offset] == chr(SYNC_VAL):
+                        print "Autodetect: no gcs-type timestamps"
+                        gcs_timestamps = False
+                    else:
+                        print "Autodetect: punting to next cycle"
+                        buf_offset += 1
+                        continue
+                else:
+                    if buf[buf_offset + logheader_fmt.size] == chr(SYNC_VAL):
+                        print "Autodetect: GCS-type timestamps likely"
+                        gcs_timestamps = True
+                        buf_offset += logheader_fmt.size
+                    else:
+                        print "Autodetect: punting to next cycle"
+            else:
+                buf_offset += logheader_fmt.size
 
         # Ensure we have enough room for all the
         # plain required fields to avoid duplicating
@@ -245,7 +267,9 @@ def process_stream(uavo_defs, use_walltime=False, gcs_timestamps=False):
             offset = header_fmt.size + instance_len + timestamp_len + buf_offset
             objInstance = obj.from_bytes(buf, timestamp, instance_id, offset=offset)
             received += 1
-            if not (received % 20000):
+            if not (received % 10000):
+                if progress_callback is not None:
+                    progress_callback(received, past_bytes + buf_offset + calc_size + 1)
                 print "received %d objs"%(received)
 
             next_recv = yield objInstance

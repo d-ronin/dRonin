@@ -323,7 +323,7 @@ def make_class(collection, xml_file, update_globals=True):
 
     for field in fields:
         hash_calc.update_hash_string(field['name'])
-        hash_calc.update_hash_byte(int(field['elements']))
+        hash_calc.update_hash_byte(field['elements'])
         hash_calc.update_hash_byte(field['type_val'])
         if field['type'] == 'enum':
             next_idx = 0
@@ -359,8 +359,10 @@ def make_class(collection, xml_file, update_globals=True):
         dtype += ('inst_id', 'uint'),
 
     for f in fields:
-        dtype += [(f['name'], '(' + `f['elements']` + ",)" + type_numpy_map[f['type']])]
-
+        if f['elements'] != 1:
+            dtype += [(f['name'], '(' + `f['elements']` + ",)" + type_numpy_map[f['type']])]
+        else:
+            dtype += [(f['name'], type_numpy_map[f['type']])]
 
     ##### DYNAMICALLY CREATE A CLASS TO CONTAIN THIS OBJECT #####
     tuple_fields = ['name', 'time', 'uavo_id']
@@ -380,6 +382,7 @@ def make_class(collection, xml_file, update_globals=True):
         _num_subelems = num_subelems
         _dtype = dtype
         _is_settings = is_settings
+        _units = {f['name'] : f['units'] for f in fields}
 
     # This is magic for two reasons.  First, we create the class to have
     # the proper dynamic name.  Second, we override __slots__, so that
