@@ -8,7 +8,8 @@
  *
  * @file       pios_spi.c
  * @author     The OpenPilot Team, http://www.openpilot.org Copyright (C) 2012.
- * @author     Tau Labs, http://taulabs.org, Copyright (C) 2013
+ * @author     Tau Labs, http://taulabs.org, Copyright (C) 2012-2013
+ * @author     dRonin, http://dronin.org, Copyright (C) 2016
  * @brief      Hardware Abstraction Layer for SPI ports of STM32
  * @see        The GNU Public License (GPL) Version 3
  * @notes
@@ -35,15 +36,12 @@
  */
 /*
  * @todo	Clocking is wrong (interface is badly defined, should be speed not prescaler magic numbers)
- * @todo	DMA doesn't work.  Fix it. (This statement has to be checked. SPI seems to be working with DMA.)
  */
 #include <pios.h>
 
 #if defined(PIOS_INCLUDE_SPI)
 
 #include <pios_spi_priv.h>
-
-#define SPI_MAX_BLOCK_PIO	128
 
 static bool PIOS_SPI_validate(struct pios_spi_dev *com_dev)
 {
@@ -77,9 +75,6 @@ int32_t PIOS_SPI_Init(uint32_t *spi_id, const struct pios_spi_cfg *cfg)
 	spi_dev->cfg = cfg;
 
 	spi_dev->busy = PIOS_Semaphore_Create();
-
-	/* Disable callback function */
-	spi_dev->callback = NULL;
 
 	/* Set rx/tx dummy bytes to a known value */
 	spi_dev->rx_dummy_byte = 0xFF;
@@ -141,18 +136,8 @@ int32_t PIOS_SPI_Init(uint32_t *spi_id, const struct pios_spi_cfg *cfg)
 		}
 	}
 
-	/* Configure DMA for SPI Rx */
-	DMA_DeInit(spi_dev->cfg->dma.rx.channel);
-	DMA_Cmd(spi_dev->cfg->dma.rx.channel, DISABLE);
-	DMA_Init(spi_dev->cfg->dma.rx.channel, (DMA_InitTypeDef *) & (spi_dev->cfg->dma.rx.init));
-
-	/* Configure DMA for SPI Tx */
-	DMA_DeInit(spi_dev->cfg->dma.tx.channel);
-	DMA_Cmd(spi_dev->cfg->dma.tx.channel, DISABLE);
-	DMA_Init(spi_dev->cfg->dma.tx.channel, (DMA_InitTypeDef *) & (spi_dev->cfg->dma.tx.init));
-
 	/* Initialize the SPI block */
-	SPI_DeInit(spi_dev->cfg->regs);
+	SPI_I2S_DeInit(spi_dev->cfg->regs);
 	SPI_Init(spi_dev->cfg->regs, (SPI_InitTypeDef *) & (spi_dev->cfg->init));
 
 	/* Configure CRC calculation */
@@ -165,14 +150,8 @@ int32_t PIOS_SPI_Init(uint32_t *spi_id, const struct pios_spi_cfg *cfg)
 	/* Enable SPI */
 	SPI_Cmd(spi_dev->cfg->regs, ENABLE);
 
-	/* Enable SPI interrupts to DMA */
-	SPI_I2S_DMACmd(spi_dev->cfg->regs, SPI_I2S_DMAReq_Tx | SPI_I2S_DMAReq_Rx, ENABLE);
-
 	/* Must store this before enabling interrupt */
 	*spi_id = (uint32_t)spi_dev;
-
-	/* Configure DMA interrupt */
-	NVIC_Init((NVIC_InitTypeDef *) & (spi_dev->cfg->dma.irq.init));
 
 	return (0);
 
@@ -216,7 +195,7 @@ int32_t PIOS_SPI_SetClockSpeed(uint32_t spi_id, uint32_t spi_speed)
 	if(spi_dev->cfg->regs == SPI1)
 		spiBusClock = PIOS_SYSCLK / 2;
 	else
-		spiBusClock = PIOS_SYSCLK / 4;
+		spiBusClock = PIOS_SYSCLK;
 
 	//The needed prescaler for desired speed
 	float desiredPrescaler=(float) spiBusClock / spi_speed;
@@ -365,7 +344,6 @@ int32_t PIOS_SPI_TransferByte(uint32_t spi_id, uint8_t b)
 	bool valid = PIOS_SPI_validate(spi_dev);
 	PIOS_Assert(valid)
 
-//	uint8_t dummy;
 	uint8_t rx_byte;
 
 	/*
@@ -373,182 +351,28 @@ int32_t PIOS_SPI_TransferByte(uint32_t spi_id, uint8_t b)
 	 */
 
 	/* Make sure the RXNE flag is cleared by reading the DR register */
-	/*dummy =*/
 	(void)spi_dev->cfg->regs->DR;
+
+	/* Wait until the TXE goes high */
+	while (SPI_I2S_GetFlagStatus(spi_dev->cfg->regs, SPI_I2S_FLAG_TXE) == RESET);
 
 	/* Start the transfer */
 	spi_dev->cfg->regs->DR = b;
 
 	/* Wait until there is a byte to read */
-	while (!(spi_dev->cfg->regs->SR & SPI_I2S_FLAG_RXNE)) ;
+	while (SPI_I2S_GetFlagStatus(spi_dev->cfg->regs, SPI_I2S_FLAG_RXNE) == RESET);
 
 	/* Read the rx'd byte */
 	rx_byte = spi_dev->cfg->regs->DR;
 
 	/* Wait until the TXE goes high */
-	while (!(spi_dev->cfg->regs->SR & SPI_I2S_FLAG_TXE)) ;
+	while (!(spi_dev->cfg->regs->SR & SPI_I2S_FLAG_TXE));
 
 	/* Wait for SPI transfer to have fully completed */
-	while (spi_dev->cfg->regs->SR & SPI_I2S_FLAG_BSY) ;
+	while (spi_dev->cfg->regs->SR & SPI_I2S_FLAG_BSY);
 
 	/* Return received byte */
 	return rx_byte;
-}
-
-/**
-* Transfers a block of bytes via DMA.
-* \param[in] spi SPI number (0 or 1)
-* \param[in] send_buffer pointer to buffer which should be sent.<BR>
-* If NULL, 0xff (all-one) will be sent.
-* \param[in] receive_buffer pointer to buffer which should get the received values.<BR>
-* If NULL, received bytes will be discarded.
-* \param[in] len number of bytes which should be transfered
-* \param[in] callback pointer to callback function which will be executed
-* from DMA channel interrupt once the transfer is finished.
-* If NULL, no callback function will be used, and PIOS_SPI_TransferBlock() will
-* block until the transfer is finished.
-* \return >= 0 if no error during transfer
-* \return -1 if disabled SPI port selected
-* \return -3 if function has been called during an ongoing DMA transfer
-*/
-static int32_t SPI_DMA_TransferBlock(uint32_t spi_id, const uint8_t *send_buffer, uint8_t *receive_buffer, uint16_t len, void *callback)
-{
-	struct pios_spi_dev *spi_dev = (struct pios_spi_dev *)spi_id;
-
-	bool valid = PIOS_SPI_validate(spi_dev);
-	PIOS_Assert(valid)
-
-	DMA_InitTypeDef       dma_init;
-
-	/* Exit if ongoing transfer */
-	if (DMA_GetCurrDataCounter(spi_dev->cfg->dma.rx.channel)) {
-		return -3;
-	}
-
-	/* Disable the DMA channels */
-	DMA_Cmd(spi_dev->cfg->dma.rx.channel, DISABLE);
-	DMA_Cmd(spi_dev->cfg->dma.tx.channel, DISABLE);
-
-	while (DMA_GetCmdStatus(spi_dev->cfg->dma.rx.channel) == ENABLE);
-	while (DMA_GetCmdStatus(spi_dev->cfg->dma.tx.channel) == ENABLE);
-
-	/* Disable the SPI peripheral */
-	/* Initialize the SPI block */
-	SPI_DeInit(spi_dev->cfg->regs);
-	SPI_Init(spi_dev->cfg->regs, (SPI_InitTypeDef *) & (spi_dev->cfg->init));
-	SPI_Cmd(spi_dev->cfg->regs, DISABLE);
-	/* Configure CRC calculation */
-	if (spi_dev->cfg->use_crc) {
-		SPI_CalculateCRC(spi_dev->cfg->regs, ENABLE);
-	} else {
-		SPI_CalculateCRC(spi_dev->cfg->regs, DISABLE);
-	}
-
-	/* Enable SPI interrupts to DMA */
-	SPI_I2S_DMACmd(spi_dev->cfg->regs, SPI_I2S_DMAReq_Tx | SPI_I2S_DMAReq_Rx, ENABLE);
-
-	/* Set callback function */
-	spi_dev->callback = callback;
-
-	/*
-	 * Configure Rx channel
-	 */
-
-	/* Start with the default configuration for this peripheral */
-	dma_init = spi_dev->cfg->dma.rx.init;
-	DMA_DeInit(spi_dev->cfg->dma.rx.channel);
-	if (receive_buffer != NULL) {
-		/* Enable memory addr. increment - bytes written into receive buffer */
-		dma_init.DMA_Memory0BaseAddr = (uint32_t) receive_buffer;
-		dma_init.DMA_MemoryInc = DMA_MemoryInc_Enable;
-	} else {
-		/* Disable memory addr. increment - bytes written into dummy buffer */
-		spi_dev->rx_dummy_byte = 0xFF;
-		dma_init.DMA_Memory0BaseAddr = (uint32_t) &spi_dev->rx_dummy_byte;
-		dma_init.DMA_MemoryInc = DMA_MemoryInc_Disable;
-	}
-	if (spi_dev->cfg->use_crc) {
-		/* Make sure the CRC error flag is cleared before we start */
-		SPI_I2S_ClearFlag(spi_dev->cfg->regs, SPI_FLAG_CRCERR);
-	}
-
-	dma_init.DMA_BufferSize = len;
-	DMA_Init(spi_dev->cfg->dma.rx.channel, &(dma_init));
-
-	/*
-	 * Configure Tx channel
-	 */
-
-	/* Start with the default configuration for this peripheral */
-	dma_init = spi_dev->cfg->dma.tx.init;
-	DMA_DeInit(spi_dev->cfg->dma.tx.channel);
-	if (send_buffer != NULL) {
-		/* Enable memory addr. increment - bytes written into receive buffer */
-		dma_init.DMA_Memory0BaseAddr = (uint32_t) send_buffer;
-		dma_init.DMA_MemoryInc = DMA_MemoryInc_Enable;
-	} else {
-		/* Disable memory addr. increment - bytes written into dummy buffer */
-		spi_dev->tx_dummy_byte = 0xFF;
-		dma_init.DMA_Memory0BaseAddr = (uint32_t) &spi_dev->tx_dummy_byte;
-		dma_init.DMA_MemoryInc = DMA_MemoryInc_Disable;
-	}
-
-	if (spi_dev->cfg->use_crc) {
-		/* The last byte of the payload will be replaced with the CRC8 */
-		dma_init.DMA_BufferSize = len - 1;
-	} else {
-		dma_init.DMA_BufferSize = len;
-	}
-
-	DMA_Init(spi_dev->cfg->dma.tx.channel, &(dma_init));
-
-	/* Enable DMA interrupt if callback function active */
-	DMA_ITConfig(spi_dev->cfg->dma.rx.channel, DMA_IT_TC, (callback != NULL) ? ENABLE : DISABLE);
-
-	/* Flush out the CRC registers */
-	SPI_CalculateCRC(spi_dev->cfg->regs, DISABLE);
-	(void)SPI_GetCRC(spi_dev->cfg->regs, SPI_CRC_Rx);
-	SPI_I2S_ClearFlag(spi_dev->cfg->regs, SPI_FLAG_CRCERR);
-
-	/* Make sure to flush out the receive buffer */
-	(void)SPI_I2S_ReceiveData(spi_dev->cfg->regs);
-
-	if (spi_dev->cfg->use_crc) {
-		/* Need a 0->1 transition to reset the CRC logic */
-		SPI_CalculateCRC(spi_dev->cfg->regs, ENABLE);
-	}
-
-	/* Start DMA transfers */
-	DMA_Cmd(spi_dev->cfg->dma.rx.channel, ENABLE);
-	DMA_Cmd(spi_dev->cfg->dma.tx.channel, ENABLE);
-
-	/* Reenable the SPI device */
-	SPI_Cmd(spi_dev->cfg->regs, ENABLE);
-
-	if (callback) {
-		/* User has requested a callback, don't wait for the transfer to complete. */
-		return 0;
-	}
-
-	/* Wait until all bytes have been transmitted/received */
-	while (DMA_GetCurrDataCounter(spi_dev->cfg->dma.rx.channel));
-
-	/* Wait for the final bytes of the transfer to complete, including CRC byte(s). */
-	while (!(SPI_I2S_GetFlagStatus(spi_dev->cfg->regs, SPI_I2S_FLAG_TXE)));
-
-	/* Wait for the final bytes of the transfer to complete, including CRC byte(s). */
-	while (SPI_I2S_GetFlagStatus(spi_dev->cfg->regs, SPI_I2S_FLAG_BSY));
-
-	/* Check the CRC on the transfer if enabled. */
-	if (spi_dev->cfg->use_crc) {
-		/* Check the SPI CRC error flag */
-		if (SPI_I2S_GetFlagStatus(spi_dev->cfg->regs, SPI_FLAG_CRCERR)) {
-			return -4;
-		}
-	}
-
-	/* No error */
-	return 0;
 }
 
 /**
@@ -562,7 +386,6 @@ static int32_t SPI_DMA_TransferBlock(uint32_t spi_id, const uint8_t *send_buffer
 * \param[in] len number of bytes which should be transfered
 * \return >= 0 if no error during transfer
 * \return -1 if disabled SPI port selected
-* \return -3 if function has been called during an ongoing DMA transfer
 */
 static int32_t SPI_PIO_TransferBlock(uint32_t spi_id, const uint8_t *send_buffer, uint8_t *receive_buffer, uint16_t len)
 {
@@ -572,23 +395,18 @@ static int32_t SPI_PIO_TransferBlock(uint32_t spi_id, const uint8_t *send_buffer
 	bool valid = PIOS_SPI_validate(spi_dev);
 	PIOS_Assert(valid)
 
-	/* Exit if ongoing transfer */
-	if (DMA_GetCurrDataCounter(spi_dev->cfg->dma.rx.channel)) {
-		return -3;
-	}
-
-	/* Make sure the RXNE flag is cleared by reading the DR register */
-	b = spi_dev->cfg->regs->DR;
-
 	while (len--) {
 		/* get the byte to send */
 		b = send_buffer ? *(send_buffer++) : 0xff;
+
+		/* Wait until the TXE goes high */
+		while (SPI_I2S_GetFlagStatus(spi_dev->cfg->regs, SPI_I2S_FLAG_TXE) == RESET);
 
 		/* Start the transfer */
 		spi_dev->cfg->regs->DR = b;
 
 		/* Wait until there is a byte to read */
-		while (!(spi_dev->cfg->regs->SR & SPI_I2S_FLAG_RXNE)) ;
+		while (SPI_I2S_GetFlagStatus(spi_dev->cfg->regs, SPI_I2S_FLAG_RXNE) == RESET);
 
 		/* Read the rx'd byte */
 		b = spi_dev->cfg->regs->DR;
@@ -596,39 +414,28 @@ static int32_t SPI_PIO_TransferBlock(uint32_t spi_id, const uint8_t *send_buffer
 		/* save the received byte */
 		if (receive_buffer)
 			*(receive_buffer++) = b;
-
-		/* Wait until the TXE goes high */
-		while (!(spi_dev->cfg->regs->SR & SPI_I2S_FLAG_TXE)) ;
 	}
 
 	/* Wait for SPI transfer to have fully completed */
-	while (spi_dev->cfg->regs->SR & SPI_I2S_FLAG_BSY) ;
+	while (spi_dev->cfg->regs->SR & SPI_I2S_FLAG_BSY);
 
 	return 0;
 }
 
 
 /**
-* Transfers a block of bytes via PIO or DMA.
+* Transfers a block of bytes
 * \param[in] spi_id SPI device handle
 * \param[in] send_buffer pointer to buffer which should be sent.<BR>
 * If NULL, 0xff (all-one) will be sent.
 * \param[in] receive_buffer pointer to buffer which should get the received values.<BR>
 * If NULL, received bytes will be discarded.
 * \param[in] len number of bytes which should be transfered
-* \param[in] callback pointer to callback function which will be executed
-* from DMA channel interrupt once the transfer is finished.
-* If NULL, no callback function will be used, and PIOS_SPI_TransferBlock() will
-* block until the transfer is finished.
 * \return >= 0 if no error during transfer
 * \return -1 if disabled SPI port selected
-* \return -3 if function has been called during an ongoing DMA transfer
 */
-int32_t PIOS_SPI_TransferBlock(uint32_t spi_id, const uint8_t *send_buffer, uint8_t *receive_buffer, uint16_t len, void *callback)
+int32_t PIOS_SPI_TransferBlock(uint32_t spi_id, const uint8_t *send_buffer, uint8_t *receive_buffer, uint16_t len)
 {
-	if (callback || len > SPI_MAX_BLOCK_PIO) {
-		return SPI_DMA_TransferBlock(spi_id, send_buffer, receive_buffer, len, callback);
-	}
 	return SPI_PIO_TransferBlock(spi_id, send_buffer, receive_buffer, len);
 }
 
@@ -636,9 +443,7 @@ int32_t PIOS_SPI_TransferBlock(uint32_t spi_id, const uint8_t *send_buffer, uint
 * Check if a transfer is in progress
 * \param[in] spi SPI number (0 or 1)
 * \return >= 0 if no transfer is in progress
-* \return -1 if disabled SPI port selected
-* \return -2 if unsupported SPI port selected
-* \return -3 if function has been called during an ongoing DMA transfer
+* \return -3 if transfer in progress
 */
 int32_t PIOS_SPI_Busy(uint32_t spi_id)
 {
@@ -647,9 +452,7 @@ int32_t PIOS_SPI_Busy(uint32_t spi_id)
 	bool valid = PIOS_SPI_validate(spi_dev);
 	PIOS_Assert(valid)
 
-	/* DMA buffer has data or SPI transmit register not empty or SPI is busy*/
-	if (DMA_GetCurrDataCounter(spi_dev->cfg->dma.rx.channel) ||
-	    !SPI_I2S_GetFlagStatus(spi_dev->cfg->regs, SPI_I2S_FLAG_TXE) ||
+	if (!SPI_I2S_GetFlagStatus(spi_dev->cfg->regs, SPI_I2S_FLAG_TXE) ||
 	    SPI_I2S_GetFlagStatus(spi_dev->cfg->regs, SPI_I2S_FLAG_BSY)) {
 		return -3;
 	}
@@ -668,27 +471,12 @@ void PIOS_SPI_IRQ_Handler(uint32_t spi_id)
 	bool valid = PIOS_SPI_validate(spi_dev);
 	PIOS_Assert(valid)
 
-	// FIXME XXX Only RX channel or better clear flags for both channels?
-	DMA_ClearFlag(spi_dev->cfg->dma.rx.channel, spi_dev->cfg->dma.irq.flags);
-
 	if (spi_dev->cfg->init.SPI_Mode == SPI_Mode_Master) {
 		/* Wait for the final bytes of the transfer to complete, including CRC byte(s). */
 		while (!(SPI_I2S_GetFlagStatus(spi_dev->cfg->regs, SPI_I2S_FLAG_TXE))) ;
 
 		/* Wait for the final bytes of the transfer to complete, including CRC byte(s). */
 		while (SPI_I2S_GetFlagStatus(spi_dev->cfg->regs, SPI_I2S_FLAG_BSY)) ;
-	}
-
-	if (spi_dev->callback != NULL) {
-		bool crc_ok = true;
-		uint8_t crc_val;
-
-		if (SPI_I2S_GetFlagStatus(spi_dev->cfg->regs, SPI_FLAG_CRCERR)) {
-			crc_ok = false;
-			SPI_I2S_ClearFlag(spi_dev->cfg->regs, SPI_FLAG_CRCERR);
-		}
-		crc_val = SPI_GetCRC(spi_dev->cfg->regs, SPI_CRC_Rx);
-		spi_dev->callback(crc_ok, crc_val);
 	}
 
 #if defined(PIOS_INCLUDE_CHIBIOS)

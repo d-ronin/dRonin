@@ -706,7 +706,7 @@ static uint8_t pios_openlrs_bind_receive(struct pios_openlrs_dev *openlrs_dev, u
 			rxb = PIOS_SPI_TransferByte(openlrs_dev->spi_id, 0x00);
 			if (rxb == 'b') {
 				PIOS_SPI_TransferBlock(openlrs_dev->spi_id, OUT_FF,
-			      (uint8_t*) &openlrs_dev->bind_data, sizeof(struct bind_data), NULL);
+			      (uint8_t*) &openlrs_dev->bind_data, sizeof(struct bind_data));
 				rfm22_deassertCs(openlrs_dev);
 				rfm22_releaseBus(openlrs_dev);
 				
@@ -868,7 +868,7 @@ static void pios_openlrs_rx_loop(struct pios_openlrs_dev *openlrs_dev)
 		PIOS_SPI_TransferByte(openlrs_dev->spi_id, 0x7F);
 		uint32_t packet_size = getPacketSize(&openlrs_dev->bind_data);
 		PIOS_SPI_TransferBlock(openlrs_dev->spi_id, OUT_FF,
-			      openlrs_dev->rx_buf, packet_size, NULL);
+			      openlrs_dev->rx_buf, packet_size);
 		rfm22_deassertCs(openlrs_dev);
 		rfm22_releaseBus(openlrs_dev);
 
@@ -1431,8 +1431,7 @@ static void rfm22_write_claim(struct pios_openlrs_dev *openlrs_dev,
 	rfm22_claimBus(openlrs_dev);
 	rfm22_assertCs(openlrs_dev);
 	uint8_t buf[2] = { addr | 0x80, data };
-	PIOS_SPI_TransferBlock(openlrs_dev->spi_id, buf, NULL, sizeof(buf),
-			       NULL);
+	PIOS_SPI_TransferBlock(openlrs_dev->spi_id, buf, NULL, sizeof(buf));
 	rfm22_deassertCs(openlrs_dev);
 	rfm22_releaseBus(openlrs_dev);
 }
@@ -1452,8 +1451,7 @@ static uint8_t rfm22_read_claim(struct pios_openlrs_dev *openlrs_dev,
 
 	rfm22_claimBus(openlrs_dev);
 	rfm22_assertCs(openlrs_dev);
-	PIOS_SPI_TransferBlock(openlrs_dev->spi_id, out, in, sizeof(out),
-			       NULL);
+	PIOS_SPI_TransferBlock(openlrs_dev->spi_id, out, in, sizeof(out));
 	rfm22_deassertCs(openlrs_dev);
 	rfm22_releaseBus(openlrs_dev);
 	return in[1];
@@ -1471,8 +1469,7 @@ static void rfm22_write(struct pios_openlrs_dev *openlrs_dev, uint8_t addr,
 {
 	rfm22_assertCs(openlrs_dev);
 	uint8_t buf[2] = { addr | 0x80, data };
-	PIOS_SPI_TransferBlock(openlrs_dev->spi_id, buf, NULL, sizeof(buf),
-			       NULL);
+	PIOS_SPI_TransferBlock(openlrs_dev->spi_id, buf, NULL, sizeof(buf));
 	rfm22_deassertCs(openlrs_dev);
 }
 
@@ -1489,8 +1486,7 @@ static uint8_t rfm22_read(struct pios_openlrs_dev *openlrs_dev, uint8_t addr)
 	uint8_t in[2];
 
 	rfm22_assertCs(openlrs_dev);
-	PIOS_SPI_TransferBlock(openlrs_dev->spi_id, out, in, sizeof(out),
-			       NULL);
+	PIOS_SPI_TransferBlock(openlrs_dev->spi_id, out, in, sizeof(out));
 	rfm22_deassertCs(openlrs_dev);
 	return in[1];
 }

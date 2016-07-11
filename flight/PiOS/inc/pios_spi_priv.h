@@ -51,7 +51,6 @@ struct pios_spi_cfg {
 
 struct pios_spi_dev {
 	const struct pios_spi_cfg * cfg;
-	void (*callback) (uint8_t, uint8_t);
 	uint8_t tx_dummy_byte;
 	uint8_t rx_dummy_byte;
 	struct pios_semaphore *busy;

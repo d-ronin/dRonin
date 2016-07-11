@@ -656,7 +656,7 @@ static void PIOS_MPU9250_Task(void *parameters)
 		if (PIOS_MPU9250_ClaimBus(false) != 0)
 			continue;
 
-		if (PIOS_SPI_TransferBlock(dev->spi_id, mpu9250_tx_buf, mpu9250_rec_buf, transfer_size, 0) < 0) {
+		if (PIOS_SPI_TransferBlock(dev->spi_id, mpu9250_tx_buf, mpu9250_rec_buf, transfer_size) < 0) {
 			PIOS_MPU9250_ReleaseBus(false);
 			continue;
 		}

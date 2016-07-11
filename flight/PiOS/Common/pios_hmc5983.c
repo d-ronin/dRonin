@@ -406,7 +406,7 @@ static int32_t PIOS_HMC5983_Read(uint8_t address, uint8_t *buffer, uint8_t len)
 		return -1;
 
 	PIOS_SPI_TransferByte(dev->spi_id, PIOS_HMC5983_READ_MODE | address);
-	if (PIOS_SPI_TransferBlock(dev->spi_id, NULL, buffer, len, NULL) < 0) {
+	if (PIOS_SPI_TransferBlock(dev->spi_id, NULL, buffer, len) < 0) {
 		PIOS_HMC5983_ReleaseBus();
 		return -2;
 	}
