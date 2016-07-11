@@ -52,6 +52,7 @@
 #include "mixerstatus.h"
 #include "cameradesired.h"
 #include "manualcontrolcommand.h"
+#include "pios_config.h"
 #include "pios_thread.h"
 #include "pios_queue.h"
 #include "misc_math.h"
@@ -86,7 +87,10 @@ static bool manualControlCommandUpdated = true;
 // set true to ensure they're fetched on first run
 static volatile bool actuator_settings_updated = true;
 static volatile bool mixer_settings_updated = true;
+
+#ifndef SMALLF1
 static volatile bool triflight_settings_updated = true;
+#endif // ifndef SMALLF1
 
 // The actual mixer settings data, pulled at the top of the actuator thread
 static MixerSettingsData mixerSettings;
@@ -94,9 +98,11 @@ static MixerSettingsData mixerSettings;
 // Ditto, for the actuator settings.
 static ActuatorSettingsData actuatorSettings;
 
+#ifndef SMALLF1
 // Ditto, for triflight settings and status
 static TriflightSettingsData triflightSettings;
 static TriflightStatusData   triflightStatus;
+#endif // ifndef SMALLF1
 
 // Private functions
 static void actuator_task(void* parameters);
@@ -148,11 +154,13 @@ int32_t ActuatorInitialize()
 	}
 	MixerSettingsConnectCallbackCtx(UAVObjCbSetFlag, &mixer_settings_updated);
 
+#ifndef SMALLF1
 	// Register for notifications of changes to TriFlightSettings
 	if (TriflightSettingsInitialize() == -1) {
 		return -1;
 	}
 	TriflightSettingsConnectCallbackCtx(UAVObjCbSetFlag, &triflight_settings_updated);
+#endif // ifndef SMALLF1
 
 	// Listen for ActuatorDesired updates (Primary input to this module)
 	if (ActuatorDesiredInitialize()  == -1) {
@@ -167,9 +175,11 @@ int32_t ActuatorInitialize()
 		return -1;
 	}
 
+#ifndef SMALLF1
 	if (TriflightStatusInitialize() == -1) {
 		return -1;
 	}
+#endif // ifndef SMALLF1
 
 #if defined(MIXERSTATUS_DIAGNOSTICS)
 	// UAVO only used for inspecting the internal status of the mixer during debug
@@ -270,18 +280,21 @@ static void actuator_task(void* parameters)
 			actuator_settings_updated = false;
 			ActuatorSettingsGet(&actuatorSettings);
 			actuator_set_servo_mode();
-
+#ifndef SMALLF1
 			triflight_settings_updated = true;
+#endif // ifndef SMALLF1
 		}
 
 		if (mixer_settings_updated) {
 			mixer_settings_updated = false;
 			MixerSettingsGet(&mixerSettings);
 			SystemSettingsAirframeTypeGet(&airframe_type);
-
+#ifndef SMALLF1
 			triflight_settings_updated = true;
+#endif // ifndef SMALLF1
 		}
 
+#ifndef SMALLF1
 		if (triflight_settings_updated) {
 			triflight_settings_updated = false;
 
@@ -337,6 +350,7 @@ static void actuator_task(void* parameters)
 
 			TriflightStatusSet(&triflightStatus);
 		}
+#endif // ifndef SMALLF1
 
 		if (rc != true) {
 			/* Update of ActuatorDesired timed out,
@@ -520,6 +534,7 @@ static void actuator_task(void* parameters)
 			command.Channel[ct] = scale_channel(status[ct], ct);
 		}
 
+#ifndef SMALLF1
 		if (triflightStatus.Initialized == 1)
 		{
 			triflightStatus.UncorrectedServoCmd = command.Channel[triflightStatus.ServoChannel];
@@ -587,6 +602,7 @@ static void actuator_task(void* parameters)
 
 			TriflightStatusSet(&triflightStatus);
 		}
+#endif // ifndef SMALLF1
 
 		// Store update time
 		command.UpdateTime = 1000.0f*dT;

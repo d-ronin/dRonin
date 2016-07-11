@@ -36,6 +36,10 @@
  * of this source file; otherwise redistribution is prohibited.
  */
 
+#include "pios_config.h"
+
+#ifndef SMALLF1
+
 #include "openpilot.h"
 #include "triflight.h"
 #include "misc_math.h"
@@ -1016,3 +1020,5 @@ void triTailTuneStep(ActuatorSettingsData  *actuatorSettings,
  * @}
  * @}
  */
+
+#endif // ifndef SMALLF1
