@@ -600,25 +600,34 @@ endif
 openssl_clean:
 	$(V1) [ ! -d "$(OPENSSL_DIR)" ] || $(RM) -rf $(OPENSSL_DIR)
 
-
-BREAKPAD_URL := https://google-breakpad.googlecode.com/svn/trunk
-BREAKPAD_REV := 1498
+# Google Breakpad
+BREAKPAD_URL := https://chromium.googlesource.com/breakpad/breakpad
+BREAKPAD_REV := 
 BREAKPAD_DIR := $(TOOLS_DIR)/breakpad
+BREAKPAD_BUILD_DIR := $(DL_DIR)/breakpad-build
 
 .PHONY: breakpad_install
 breakpad_install: | $(DL_DIR) $(TOOLS_DIR)
 breakpad_install: breakpad_clean
 	$(V0) @echo " DOWNLOAD     $(BREAKPAD_URL) @ r$(BREAKPAD_REV)"
-	$(V1) svn export -q -r "$(BREAKPAD_REV)" "$(BREAKPAD_URL)" "$(BREAKPAD_DIR)"
+	$(V1) [ ! -d "$(BREAKPAD_BUILD_DIR)" ] || $(RM) -rf "$(BREAKPAD_BUILD_DIR)"
+	$(V1) mkdir -p "$(BREAKPAD_BUILD_DIR)"
+	$(V1) git clone -q --depth 1 "$(BREAKPAD_URL)" "$(BREAKPAD_BUILD_DIR)"
 
 	$(V0) @echo " BUILD        $(BREAKPAD_DIR)"
-	$(V1) cd "$(BREAKPAD_DIR)" ; \
-	$(V1) ./configure --prefix="$(BREAKPAD_DIR)" ; \
-	$(V1) $(MAKE) --silent ; \
-	$(V1) $(MAKE) --silent install
+	$(V1) mkdir -p "$(BREAKPAD_DIR)"
+	$(V1)  ( \
+		cd "$(BREAKPAD_BUILD_DIR)" ; \
+		./configure --prefix="$(BREAKPAD_DIR)" ; \
+		$(MAKE) --silent ; \
+		$(MAKE) --silent install ; \
+	)
+	$(V1) [ ! -d "$(BREAKPAD_BUILD_DIR)" ] || $(RM) -rf $(BREAKPAD_BUILD_DIR)
 
 .PHONY: breakpad_clean
 breakpad_clean:
+	$(V0) @echo " CLEAN        $(BREAKPAD_BUILD_DIR)"
+	$(V1) [ ! -d "$(BREAKPAD_BUILD_DIR)" ] || $(RM) -rf $(BREAKPAD_BUILD_DIR)
 	$(V0) @echo " CLEAN        $(BREAKPAD_DIR)"
 	$(V1) [ ! -d "$(BREAKPAD_DIR)" ] || $(RM) -rf $(BREAKPAD_DIR)
 
