@@ -121,6 +121,7 @@ SRC += $(PIOSCOMMON)/pios_pwm.c
 SRC += $(PIOSCOMMON)/pios_ppm.c
 SRC += $(PIOSCOMMON)/pios_debug.c
 SRC += $(PIOSCOMMON)/pios_wdg.c
+SRC += $(PIOSCOMMON)/pios_reset.c
 
 # List any extra directories to look for include files here.
 #    Each directory must be seperated by a space.

@@ -171,6 +171,7 @@ SRC += $(PIOSCOMMON)/pios_pwm.c
 SRC += $(PIOSCOMMON)/pios_ppm.c
 SRC += $(PIOSCOMMON)/pios_debug.c
 SRC += $(PIOSCOMMON)/pios_wdg.c
+SRC += $(PIOSCOMMON)/pios_reset.c
 
 ## Libraries for flight calculations
 SRC += $(FLIGHTLIB)/taskmonitor.c

@@ -170,7 +170,6 @@ SRC += $(PIOSSTM32F10X)/pios_internal_adc_light.c
 SRC += $(PIOSSTM32F10X)/pios_i2c_alt.c
 SRC += $(PIOSSTM32F10X)/pios_gpio.c
 SRC += $(PIOSSTM32F10X)/pios_exti.c
-SRC += $(PIOSSTM32F10X)/pios_reset.c
 SRC += $(PIOSSTM32F10X)/pios_rtc.c
 SRC += $(PIOSSTM32F10X)/pios_iap.c
 SRC += $(PIOSSTM32F10X)/pios_tim.c
@@ -210,6 +209,7 @@ SRC += $(PIOSCOMMON)/pios_pwm.c
 SRC += $(PIOSCOMMON)/pios_ppm.c
 SRC += $(PIOSCOMMON)/pios_debug.c
 SRC += $(PIOSCOMMON)/pios_wdg.c
+SRC += $(PIOSCOMMON)/pios_reset.c
 
 SRC += $(PIOSCOMMON)/pios_board_info.c
 
