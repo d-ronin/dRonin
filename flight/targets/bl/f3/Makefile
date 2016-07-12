@@ -71,7 +71,6 @@ SRC	+=	$(PIOS_DEVLIB)/pios_usb_hid.c
 SRC	+=	$(PIOS_DEVLIB)/pios_usb_hid_istr.c
 SRC	+=	$(PIOS_DEVLIB)/pios_usb_hid_pwr.c
 SRC	+=	$(PIOS_DEVLIB)/pios_usbhook.c
-SRC	+=	$(PIOS_DEVLIB)/pios_wdg.c
 SRC	+=	$(PIOS_DEVLIB)/startup.c
 SRC	+=	$(PIOS_DEVLIB)/vectors_stm32f30x.c
 #
@@ -97,6 +96,7 @@ SRC += $(PIOSCOMMON)/pios_heap.c
 SRC += $(PIOSCOMMON)/pios_semaphore.c
 SRC += $(PIOSCOMMON)/pios_spi.c
 SRC += $(PIOSCOMMON)/pios_irq.c
+SRC += $(PIOSCOMMON)/pios_wdg.c
 
 # List any extra directories to look for include files here.
 #    Each directory must be seperated by a space.

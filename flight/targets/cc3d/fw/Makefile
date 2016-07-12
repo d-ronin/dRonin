@@ -174,7 +174,6 @@ SRC += $(PIOSSTM32F10X)/pios_gpio.c
 SRC += $(PIOSSTM32F10X)/pios_exti.c
 SRC += $(PIOSSTM32F10X)/pios_reset.c
 SRC += $(PIOSSTM32F10X)/pios_rtc.c
-SRC += $(PIOSSTM32F10X)/pios_wdg.c
 SRC += $(PIOSSTM32F10X)/pios_iap.c
 SRC += $(PIOSSTM32F10X)/pios_tim.c
 SRC += $(PIOSSTM32F10X)/pios_bl_helper.c
@@ -223,7 +222,7 @@ SRC += $(PIOSCOMMON)/pios_irq.c
 SRC += $(PIOSCOMMON)/pios_pwm.c
 SRC += $(PIOSCOMMON)/pios_ppm.c
 SRC += $(PIOSCOMMON)/pios_debug.c
-
+SRC += $(PIOSCOMMON)/pios_wdg.c
 
 ## Libraries for flight calculations
 SRC += $(FLIGHTLIB)/taskmonitor.c

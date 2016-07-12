@@ -195,6 +195,7 @@ SRC += $(PIOSCOMMON)/pios_debug.c
 SRC += $(PIOSCOMMON)/pios_modules.c
 SRC += $(PIOSCOMMON)/pios_srxl.c
 SRC += $(PIOSCOMMON)/pios_ibus.c
+SRC += $(PIOSCOMMON)/pios_wdg.c
 
 include ./UAVObjects.inc
 SRC += $(UAVOBJSRC)

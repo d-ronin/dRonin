@@ -187,6 +187,7 @@ SRC += $(PIOSCOMMON)/pios_irq.c
 SRC += $(PIOSCOMMON)/pios_pwm.c
 SRC += $(PIOSCOMMON)/pios_ppm.c
 SRC += $(PIOSCOMMON)/pios_debug.c
+SRC += $(PIOSCOMMON)/pios_wdg.c
 
 # List C source files here which must be compiled in ARM-Mode (no -mthumb).
 # use file-extension c for "c-only"-files
