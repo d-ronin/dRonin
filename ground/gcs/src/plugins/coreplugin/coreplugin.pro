@@ -19,8 +19,6 @@ DEPENDPATH += dialogs \
 SOURCES += mainwindow.cpp \
     generalsettings.cpp \
     uniqueidmanager.cpp \
-    messagemanager.cpp \
-    messageoutputwindow.cpp \
     versiondialog.cpp \
     iuavgadget.cpp \
     uavgadgetmanager/uavgadgetmanager.cpp \
@@ -64,8 +62,6 @@ SOURCES += mainwindow.cpp \
 HEADERS += mainwindow.h \
     generalsettings.h \
     uniqueidmanager.h \
-    messagemanager.h \
-    messageoutputwindow.h \
     iuavgadget.h \
     iuavgadgetfactory.h \
     uavgadgetmanager/uavgadgetmanager.h \

@@ -54,7 +54,6 @@ public:
 
     ActionManager *actionManager() const;
     UniqueIDManager *uniqueIDManager() const;
-    MessageManager *messageManager() const;
     ConnectionManager *connectionManager() const;
     BoardManager *boardManager() const;
     GlobalMessaging *globalMessaging() const;

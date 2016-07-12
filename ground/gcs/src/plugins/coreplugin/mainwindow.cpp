@@ -42,7 +42,6 @@
 #include "coreconstants.h"
 #include "utils/mytabwidget.h"
 #include "generalsettings.h"
-#include "messagemanager.h"
 #include "modemanager.h"
 #include "plugindialog.h"
 #include "shortcutsettings.h"
@@ -198,8 +197,6 @@ MainWindow::MainWindow() :
 
     m_boardManager = new BoardManager();
 
-    m_messageManager = new MessageManager;
-
     setCentralWidget(m_modeStack);
 
     connect(QApplication::instance(), SIGNAL(focusChanged(QWidget*,QWidget*)),
@@ -233,8 +230,6 @@ MainWindow::~MainWindow()
     pm->removeObject(m_shortcutSettings);
     pm->removeObject(m_generalSettings);
     pm->removeObject(m_workspaceSettings);
-    delete m_messageManager;
-    m_messageManager = 0;
     delete m_globalMessaging;
     m_globalMessaging=0;
     delete m_shortcutSettings;
@@ -364,7 +359,6 @@ void MainWindow::extensionsInitialized()
     connect(m_uavGadgetInstanceManager,SIGNAL(splashMessages(QString)),this,SIGNAL(splashMessages(QString)));
     m_uavGadgetInstanceManager->readSettings(qs);
 
-    m_messageManager->init();
     readSettings(qs);
     updateContext();
     emit splashMessages(tr("Preparing to open core"));
@@ -899,11 +893,6 @@ ActionManager *MainWindow::actionManager() const
 UniqueIDManager *MainWindow::uniqueIDManager() const
 {
     return m_uniqueIDManager;
-}
-
-MessageManager *MainWindow::messageManager() const
-{
-    return m_messageManager;
 }
 
 GlobalMessaging *MainWindow::globalMessaging() const

@@ -99,7 +99,6 @@ public:
 
     Core::ActionManager *actionManager() const;
     Core::UniqueIDManager *uniqueIDManager() const;
-    Core::MessageManager *messageManager() const;
     Core::GlobalMessaging *globalMessaging() const;
     QList<UAVGadgetManager*> uavGadgetManagers() const;
     UAVGadgetInstanceManager *uavGadgetInstanceManager() const;
