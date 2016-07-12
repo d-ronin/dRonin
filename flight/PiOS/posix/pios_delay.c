@@ -33,8 +33,6 @@
 #include "pios.h"
 #include "time.h"
 
-#if defined(PIOS_INCLUDE_DELAY)
-
 /**
 * Initialises the Timer used by PIOS_DELAY functions<BR>
 * This is called from pios.c as part of the main() function
@@ -114,6 +112,3 @@ uint32_t PIOS_DELAY_DiffuS2(uint32_t raw, uint32_t later) {
 	return diff;
 }
 
-
-
-#endif

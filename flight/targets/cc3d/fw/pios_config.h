@@ -33,7 +33,6 @@
 #define PIOS_CONFIG_H
 
 /* Enable/Disable PiOS Modules */
-#define PIOS_INCLUDE_DELAY
 #if defined(USE_I2C)
 #define PIOS_INCLUDE_I2C
 #endif
