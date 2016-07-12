@@ -166,7 +166,6 @@ endif
 SRC += $(PIOSSTM32F10X)/pios_sys.c
 SRC += $(PIOSSTM32F10X)/pios_led.c
 SRC += $(PIOSSTM32F10X)/pios_usart.c
-SRC += $(PIOSSTM32F10X)/pios_irq.c
 SRC += $(PIOSSTM32F10X)/pios_internal_adc_light.c
 SRC += $(PIOSSTM32F10X)/pios_i2c_alt.c
 SRC += $(PIOSSTM32F10X)/pios_ppm.c
@@ -210,6 +209,7 @@ SRC += $(PIOSCOMMON)/pios_modules.c
 SRC += $(PIOSCOMMON)/pios_srxl.c
 SRC += $(PIOSCOMMON)/pios_ibus.c
 SRC += $(PIOSCOMMON)/pios_spi.c
+SRC += $(PIOSCOMMON)/pios_irq.c
 
 SRC += $(PIOSCOMMON)/pios_board_info.c
 

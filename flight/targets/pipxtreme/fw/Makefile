@@ -128,7 +128,6 @@ endif
 SRC += $(PIOSSTM32F10X)/pios_sys.c
 SRC += $(PIOSSTM32F10X)/pios_led.c
 SRC += $(PIOSSTM32F10X)/pios_usart.c
-SRC += $(PIOSSTM32F10X)/pios_irq.c
 SRC += $(PIOSSTM32F10X)/pios_flash_internal.c
 SRC += $(PIOSSTM32F10X)/pios_ppm.c
 SRC += $(PIOSSTM32F10X)/pios_debug.c
@@ -171,6 +170,7 @@ SRC += $(PIOSCOMMON)/pios_hal.c
 SRC += $(PIOSCOMMON)/pios_servo.c
 SRC += $(PIOSCOMMON)/pios_modules.c
 SRC += $(PIOSCOMMON)/pios_spi.c
+SRC += $(PIOSCOMMON)/pios_irq.c
 
 ## Libraries for flight calculations
 SRC += $(FLIGHTLIB)/taskmonitor.c

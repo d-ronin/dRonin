@@ -61,7 +61,6 @@ SRC	+=	$(PIOS_DEVLIB)/pios_exti.c
 SRC	+=	$(PIOS_DEVLIB)/pios_flash_internal.c
 SRC	+=	$(PIOS_DEVLIB)/pios_gpio.c
 SRC	+=	$(PIOS_DEVLIB)/pios_iap.c
-SRC	+=	$(PIOS_DEVLIB)/pios_irq.c
 SRC	+=	$(PIOS_DEVLIB)/pios_led.c
 SRC	+=	$(PIOS_DEVLIB)/pios_rtc.c
 SRC	+=	$(PIOS_DEVLIB)/pios_sys.c
@@ -88,6 +87,7 @@ SRC += $(PIOSCOMMON)/pios_flash_jedec.c
 SRC += $(PIOSCOMMON)/pios_heap.c
 SRC += $(PIOSCOMMON)/pios_semaphore.c
 SRC += $(PIOSCOMMON)/pios_spi.c
+SRC += $(PIOSCOMMON)/pios_irq.c
 
 # List any extra directories to look for include files here.
 #    Each directory must be seperated by a space.
