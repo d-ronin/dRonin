@@ -103,49 +103,6 @@ static const struct pios_spi_cfg pios_spi_generic_cfg = {
 		.SPI_CPHA              = SPI_CPHA_2Edge,
 		.SPI_BaudRatePrescaler = SPI_BaudRatePrescaler_8, 
 	},
-	.use_crc = false,
-	.dma = {
-		.ahb_clk  = RCC_AHBPeriph_DMA1,
-		
-		.irq = {
-			.flags   = (DMA1_FLAG_TC4 | DMA1_FLAG_TE4 | DMA1_FLAG_HT4 | DMA1_FLAG_GL4),
-			.init    = {
-				.NVIC_IRQChannel                   = DMA1_Channel4_IRQn,
-				.NVIC_IRQChannelPreemptionPriority = PIOS_IRQ_PRIO_HIGH,
-				.NVIC_IRQChannelSubPriority        = 0,
-				.NVIC_IRQChannelCmd                = ENABLE,
-			},
-		},
-		
-		.rx = {
-			.channel = DMA1_Channel4,
-			.init    = {
-				.DMA_PeripheralBaseAddr = (uint32_t)&(SPI2->DR),
-				.DMA_DIR                = DMA_DIR_PeripheralSRC,
-				.DMA_PeripheralInc      = DMA_PeripheralInc_Disable,
-				.DMA_MemoryInc          = DMA_MemoryInc_Enable,
-				.DMA_PeripheralDataSize = DMA_PeripheralDataSize_Byte,
-				.DMA_MemoryDataSize     = DMA_MemoryDataSize_Byte,
-				.DMA_Mode               = DMA_Mode_Normal,
-				.DMA_Priority           = DMA_Priority_High,
-				.DMA_M2M                = DMA_M2M_Disable,
-			},
-		},
-		.tx = {
-			.channel = DMA1_Channel5,
-			.init    = {
-				.DMA_PeripheralBaseAddr = (uint32_t)&(SPI2->DR),
-				.DMA_DIR                = DMA_DIR_PeripheralDST,
-				.DMA_PeripheralInc      = DMA_PeripheralInc_Disable,
-				.DMA_MemoryInc          = DMA_MemoryInc_Enable,
-				.DMA_PeripheralDataSize = DMA_PeripheralDataSize_Byte,
-				.DMA_MemoryDataSize     = DMA_MemoryDataSize_Byte,
-				.DMA_Mode               = DMA_Mode_Normal,
-				.DMA_Priority           = DMA_Priority_High,
-				.DMA_M2M                = DMA_M2M_Disable,
-			},
-		},
-	},
 	.sclk = {
 		.gpio = GPIOB,
 		.init = {

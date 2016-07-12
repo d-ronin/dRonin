@@ -40,19 +40,20 @@ struct pios_spi_cfg {
 	SPI_TypeDef *regs;
 	uint32_t remap;				/* GPIO_Remap_* or GPIO_AF_* */
 	SPI_InitTypeDef init;
-	bool use_crc;
-	struct stm32_dma dma;
 	struct stm32_gpio sclk;
 	struct stm32_gpio miso;
 	struct stm32_gpio mosi;
 	uint32_t slave_count;
+#ifdef PIOS_INCLUDE_VIDEO
+	// XXX Hack: pios_video uses pios_spi's config structure and expects the
+	// DMA information to be filled in properly
+	struct stm32_dma dma;
+#endif
 	struct stm32_gpio ssel[];
 };
 
 struct pios_spi_dev {
-	const struct pios_spi_cfg * cfg;
-	uint8_t tx_dummy_byte;
-	uint8_t rx_dummy_byte;
+	const struct pios_spi_cfg *cfg;
 	struct pios_semaphore *busy;
 };
 

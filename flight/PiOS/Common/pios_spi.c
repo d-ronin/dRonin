@@ -76,10 +76,6 @@ int32_t PIOS_SPI_Init(uint32_t *spi_id, const struct pios_spi_cfg *cfg)
 
 	spi_dev->busy = PIOS_Semaphore_Create();
 
-	/* Set rx/tx dummy bytes to a known value */
-	spi_dev->rx_dummy_byte = 0xFF;
-	spi_dev->tx_dummy_byte = 0xFF;
-
 	switch (spi_dev->cfg->init.SPI_NSS) {
 	case SPI_NSS_Soft:
 		if (spi_dev->cfg->init.SPI_Mode == SPI_Mode_Master) {
@@ -141,13 +137,6 @@ int32_t PIOS_SPI_Init(uint32_t *spi_id, const struct pios_spi_cfg *cfg)
 	/* Initialize the SPI block */
 	SPI_I2S_DeInit(spi_dev->cfg->regs);
 	SPI_Init(spi_dev->cfg->regs, (SPI_InitTypeDef *) & (spi_dev->cfg->init));
-
-	/* Configure CRC calculation */
-	if (spi_dev->cfg->use_crc) {
-		SPI_CalculateCRC(spi_dev->cfg->regs, ENABLE);
-	} else {
-		SPI_CalculateCRC(spi_dev->cfg->regs, DISABLE);
-	}
 
 	/* Enable SPI */
 	SPI_Cmd(spi_dev->cfg->regs, ENABLE);
