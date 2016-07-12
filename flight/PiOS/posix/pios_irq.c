@@ -32,8 +32,6 @@
 /* Project Includes */
 #include "pios.h"
 
-#if defined(PIOS_INCLUDE_IRQ)
-
 /* Private Function Prototypes */
 
 /**
@@ -65,8 +63,6 @@ bool PIOS_IRQ_InISR(void)
 {
 	return false;
 }
-
-#endif
 
 /**
   * @}

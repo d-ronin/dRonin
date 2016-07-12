@@ -39,9 +39,9 @@ struct pios_semaphore
 	uintptr_t sema_handle;
 #elif defined(PIOS_INCLUDE_CHIBIOS)
 	BinarySemaphore sema;
-#elif defined(PIOS_INCLUDE_IRQ)
+#else
 	uint32_t sema_count;
-#endif /* defined(PIOS_INCLUDE_IRQ) */
+#endif
 };
 
 /*

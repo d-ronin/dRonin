@@ -27,10 +27,6 @@
 #include "pios.h"
 #include "pios_semaphore.h"
 
-#if !defined(PIOS_INCLUDE_FREERTOS) && !defined(PIOS_INCLUDE_CHIBIOS) && !defined(PIOS_INCLUDE_IRQ)
-#error "pios_semaphore.c requires either PIOS_INCLUDE_FREERTOS, PIOS_INCLUDE_CHIBIOS or PIOS_INCLUDE_IRQ to be defined"
-#endif
-
 #if defined(PIOS_INCLUDE_FREERTOS)
 
 #include "FreeRTOS.h"
@@ -261,7 +257,7 @@ bool PIOS_Semaphore_Give_FromISR(struct pios_semaphore *sema, bool *woken)
 	return true;
 }
 
-#elif defined(PIOS_INCLUDE_IRQ)
+#else /* No RTOS */
 
 /**
  *
@@ -399,4 +395,4 @@ bool PIOS_Semaphore_Give_FromISR(struct pios_semaphore *sema, bool *woken)
 }
 #endif /* !defined(SIM_POSIX) */
 
-#endif /* defined(PIOS_INCLUDE_IRQ) */
+#endif /* no-rtos */

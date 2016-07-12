@@ -35,8 +35,6 @@
 /* Project Includes */
 #include "pios.h"
 
-#if defined(PIOS_INCLUDE_IRQ)
-
 /* Private Function Prototypes */
 
 /* Local Variables */
@@ -97,8 +95,6 @@ bool PIOS_IRQ_InISR(void)
 {
 	return (__get_IPSR() & 0xff) != 0;
 }
-
-#endif
 
 /**
   * @}

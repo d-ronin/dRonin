@@ -37,7 +37,6 @@
 #define PIOS_INCLUDE_FLASH
 #define PIOS_INCLUDE_FLASH_INTERNAL
 #define PIOS_INCLUDE_IAP
-#define PIOS_INCLUDE_IRQ
 
 #endif /* PIOS_CONFIG_H */
 /**
