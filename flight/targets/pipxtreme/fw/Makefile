@@ -129,14 +129,11 @@ SRC += $(PIOSSTM32F10X)/pios_sys.c
 SRC += $(PIOSSTM32F10X)/pios_led.c
 SRC += $(PIOSSTM32F10X)/pios_usart.c
 SRC += $(PIOSSTM32F10X)/pios_flash_internal.c
-SRC += $(PIOSSTM32F10X)/pios_ppm.c
-SRC += $(PIOSSTM32F10X)/pios_debug.c
 SRC += $(PIOSSTM32F10X)/pios_gpio.c
 SRC += $(PIOSSTM32F10X)/pios_exti.c
 SRC += $(PIOSSTM32F10X)/pios_rtc.c
 SRC += $(PIOSSTM32F10X)/pios_wdg.c
 SRC += $(PIOSSTM32F10X)/pios_tim.c
-SRC += $(PIOSSTM32F10X)/pios_pwm.c
 SRC += $(PIOSSTM32F10X)/pios_bl_helper.c
 
 # PIOS USB related files (seperated to make code maintenance more easy)
@@ -171,6 +168,9 @@ SRC += $(PIOSCOMMON)/pios_servo.c
 SRC += $(PIOSCOMMON)/pios_modules.c
 SRC += $(PIOSCOMMON)/pios_spi.c
 SRC += $(PIOSCOMMON)/pios_irq.c
+SRC += $(PIOSCOMMON)/pios_pwm.c
+SRC += $(PIOSCOMMON)/pios_ppm.c
+SRC += $(PIOSCOMMON)/pios_debug.c
 
 ## Libraries for flight calculations
 SRC += $(FLIGHTLIB)/taskmonitor.c

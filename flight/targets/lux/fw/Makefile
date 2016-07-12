@@ -158,6 +158,9 @@ SRC += $(PIOSCOMMON)/pios_srxl.c
 SRC += $(PIOSCOMMON)/pios_ibus.c
 SRC += $(PIOSCOMMON)/pios_spi.c
 SRC += $(PIOSCOMMON)/pios_irq.c
+SRC += $(PIOSCOMMON)/pios_pwm.c
+SRC += $(PIOSCOMMON)/pios_ppm.c
+SRC += $(PIOSCOMMON)/pios_debug.c
 
 # List C++ source files here.
 # use file-extension .cpp for C++-files (not .C)
