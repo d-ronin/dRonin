@@ -35,6 +35,8 @@ function generateSymbols()
   ${DUMP_SYMBOLS_TOOL} -g ${dsymfile} ${SOURCE_DIR}/${1} > ${debugfile}
   echo "Striping debug information from $1"
   strip -S "${SOURCE_DIR}/${1}"
+  echo "Removing dSYM file for $1"
+  rm -f ${dsymfile}
 }
 if [[ -f ${1} ]] ; then
   echo dump_syms tool found.
