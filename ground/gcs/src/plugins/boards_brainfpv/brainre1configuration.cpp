@@ -105,7 +105,23 @@ void BrainRE1Configuration::generateILapID()
 
 void BrainRE1Configuration::generateTrackmateID()
 {
-    ui->sbTrackmateID->setValue(generateRandomNumber(9999));
+    uint16_t trackmate_id;
+    bool valid = false;
+    while (!valid) {
+        trackmate_id = generateRandomNumber(0xFFF);
+        // It seems like the ID has some weird requirements:
+        // 1st nibble is 0, 2nd nibble is not 0, 1, 8, or F
+        // 3rd and 4th nibbles are not 0 or F
+        valid = ((trackmate_id & 0x0F00) >> 8) != 0x0;
+        valid = valid && (((trackmate_id & 0x0F00) >> 8) != 0x1);
+        valid = valid && (((trackmate_id & 0x0F00) >> 8) != 0x8);
+        valid = valid && (((trackmate_id & 0x0F00) >> 8) != 0xF);
+        valid = valid && (((trackmate_id & 0x00F0) >> 4) != 0x0);
+        valid = valid && (((trackmate_id & 0x00F0) >> 4) != 0xF);
+        valid = valid && ((trackmate_id & 0x000F) != 0x0);
+        valid = valid && ((trackmate_id & 0x000F) != 0xF);
+    }
+    ui->sbTrackmateID->setValue(trackmate_id);
 }
 
 int BrainRE1Configuration::generateRandomNumber(int max)
