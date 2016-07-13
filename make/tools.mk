@@ -600,27 +600,27 @@ endif
 openssl_clean:
 	$(V1) [ ! -d "$(OPENSSL_DIR)" ] || $(RM) -rf $(OPENSSL_DIR)
 
-
-BREAKPAD_URL := https://google-breakpad.googlecode.com/svn/trunk
-BREAKPAD_REV := 1498
+# Google Breakpad
+DUMP_SYMBOLS_TOOL := $(TOOLS_DIR)/breakpad/$(OSFAMILY)-$(ARCHFAMILY)/dump_syms
+BREAKPAD_URL := http://dronin.tracer.nz/tools/breakpad.zip
+BREAKPAD_DL_FILE := $(DL_DIR)/$(notdir $(BREAKPAD_URL))
 BREAKPAD_DIR := $(TOOLS_DIR)/breakpad
 
 .PHONY: breakpad_install
 breakpad_install: | $(DL_DIR) $(TOOLS_DIR)
 breakpad_install: breakpad_clean
-	$(V0) @echo " DOWNLOAD     $(BREAKPAD_URL) @ r$(BREAKPAD_REV)"
-	$(V1) svn export -q -r "$(BREAKPAD_REV)" "$(BREAKPAD_URL)" "$(BREAKPAD_DIR)"
-
-	$(V0) @echo " BUILD        $(BREAKPAD_DIR)"
-	$(V1) cd "$(BREAKPAD_DIR)" ; \
-	$(V1) ./configure --prefix="$(BREAKPAD_DIR)" ; \
-	$(V1) $(MAKE) --silent ; \
-	$(V1) $(MAKE) --silent install
+	$(V0) @echo " DOWNLOAD     $(BREAKPAD_URL)"
+	$(V1) $(V1) curl -L -k -z "$(BREAKPAD_DL_FILE)" -o "$(BREAKPAD_DL_FILE)" "$(BREAKPAD_URL)"
+	$(V0) @echo " EXTRACT      $(notdir $(BREAKPAD_DL_FILE))"
+	$(V1) mkdir -p "$(BREAKPAD_DIR)"
+	$(V1) unzip -q -d $(BREAKPAD_DIR) "$(BREAKPAD_DL_FILE)"
 
 .PHONY: breakpad_clean
 breakpad_clean:
 	$(V0) @echo " CLEAN        $(BREAKPAD_DIR)"
 	$(V1) [ ! -d "$(BREAKPAD_DIR)" ] || $(RM) -rf $(BREAKPAD_DIR)
+	$(V0) @echo " CLEAN        $(BREAKPAD_DL_FILE)"
+	$(V1) $(RM) -f $(BREAKPAD_DL_FILE)
 
 
 .PHONY: sdl_install
