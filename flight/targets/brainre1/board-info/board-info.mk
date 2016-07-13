@@ -3,15 +3,12 @@ BOARD_REVISION      := 0x01
 BOOTLOADER_VERSION  := 0x83
 HW_TYPE             := 0x00		# seems to be unused
 
-MCU                 := cortex-m4
 CHIP                := STM32F446RET
 BOARD               := STM32F4xx_BRAINFPVRE1
-STM32_TYPE          := STM32F446xx
 MODEL               := HD
 MODEL_SUFFIX        := 
 
-OPENOCD_JTAG_CONFIG := interface/stlink-v2-1.cfg
-OPENOCD_CONFIG      := stm32f4x.cfg
+include $(MAKE_INC_DIR)/firmware-arches.mk
 
 # Note: These must match the values in link_$(BOARD)_memory.ld
 BL_BANK_BASE        := 0x08000000  # Start of bootloader flash

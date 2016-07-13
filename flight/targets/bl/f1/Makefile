@@ -63,29 +63,29 @@ SRC += $(BLBOARDDIR)/pios_board.c
 SRC += $(BLBOARDDIR)/pios_usb_board_data.c
 
 ## PIOS Hardware (STM32F10x)
-SRC += $(PIOSSTM32F10X)/pios_sys.c
-SRC += $(PIOSSTM32F10X)/pios_led.c
-SRC += $(PIOSSTM32F10X)/pios_gpio.c
-SRC += $(PIOSSTM32F10X)/pios_iap.c
-SRC += $(PIOSSTM32F10X)/pios_bl_helper.c
+SRC += pios_sys.c
+SRC += pios_led.c
+SRC += pios_gpio.c
+SRC += pios_iap.c
+SRC += pios_bl_helper.c
 
 ## PIOS Hardware (USB)
-SRC += $(PIOSSTM32F10X)/pios_usb.c
-SRC += $(PIOSSTM32F10X)/pios_usbhook.c
-SRC += $(PIOSSTM32F10X)/pios_usb_hid.c
-SRC += $(PIOSSTM32F10X)/pios_usb_hid_istr.c
-SRC += $(PIOSSTM32F10X)/pios_usb_hid_pwr.c
+SRC += pios_usb.c
+SRC += pios_usbhook.c
+SRC += pios_usb_hid.c
+SRC += pios_usb_hid_istr.c
+SRC += pios_usb_hid_pwr.c
 
 ## PIOS Hardware (Common)
-SRC += $(PIOSCOMMON)/pios_delay.c
-SRC += $(PIOSCOMMON)/pios_board_info.c
-SRC += $(PIOSCOMMON)/pios_com_msg.c
-SRC += $(PIOSCOMMON)/printf-stdarg.c
-SRC += $(PIOSCOMMON)/pios_usb_desc_hid_only.c
-SRC += $(PIOSCOMMON)/pios_usb_util.c
-SRC += $(PIOSCOMMON)/pios_heap.c
-SRC += $(PIOSCOMMON)/pios_semaphore.c
-SRC += $(PIOSCOMMON)/pios_irq.c
+SRC += pios_delay.c
+SRC += pios_board_info.c
+SRC += pios_com_msg.c
+SRC += printf-stdarg.c
+SRC += pios_usb_desc_hid_only.c
+SRC += pios_usb_util.c
+SRC += pios_heap.c
+SRC += pios_semaphore.c
+SRC += pios_irq.c
 
 ## CMSIS for STM32
 include $(PIOSCOMMONLIB)/CMSIS3/library.mk

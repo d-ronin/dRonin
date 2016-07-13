@@ -9,7 +9,8 @@ SRC += $(wildcard $(OPUAVSYNTHDIR)/*.c )
 endif
 
 # List of all source files.
-ALLSRC     =  $(ASRC) $(SRC) $(CPPSRC)
+ALLSRC     :=  $(ASRC) $(SRC) $(CPPSRC)
+
 # List of all source files without directory and file-extension.
 ALLSRCBASE = $(notdir $(basename $(ALLSRC)))
 # Define all object files.
@@ -28,20 +29,18 @@ ifneq ($(BUILD_FWFILES), NO)
 build: hex bin lss sym
 endif
 
+# Compile: create object files from C source files.
+
 # Link: create ELF output file from object files.
 $(eval $(call LINK_TEMPLATE, $(OUTDIR)/$(TARGET).elf, $(ALLOBJ) $(LIBS)))
 
 # Assemble: create object files from assembler source files.
 $(foreach src, $(ASRC), $(eval $(call ASSEMBLE_TEMPLATE, $(src))))
 
-# Compile: create object files from C source files.
 $(foreach src, $(SRC), $(eval $(call COMPILE_C_TEMPLATE, $(src))))
 
 # Compile: create object files from C++ source files.
 $(foreach src, $(CPPSRC), $(eval $(call COMPILE_CPP_TEMPLATE, $(src))))
-
-# Compile: create assembler files from C source files. ARM/Thumb
-$(eval $(call PARTIAL_COMPILE_TEMPLATE, SRC))
 
 $(OUTDIR)/$(TARGET).bin.o: $(OUTDIR)/$(TARGET).bin
 
