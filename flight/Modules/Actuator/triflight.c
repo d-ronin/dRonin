@@ -470,6 +470,7 @@ typedef enum {
 
 typedef enum {
 	SS_IDLE = 0,
+	SS_SETUP,
 	SS_CALIB,
 } servoSetupState_e;
 
@@ -508,6 +509,7 @@ typedef struct tailTune_s {
 		servoSetupState_e state;
 
 		float servoVal;
+		uint16_t *pLimitToAdjust;
 
 		struct servoCalib_t
 		{
@@ -774,7 +776,28 @@ static void tailTuneModeServoSetup(ActuatorSettingsData  *actuatorSettings,
 	ManualControlCommandGet(&cmd);
 
 	// Check mode select
-	if ((cmd.Roll < 0.05f) && (cmd.Roll > -0.05f) && (cmd.Pitch > 0.5f))
+	if ((cmd.Pitch < 0.05f) && (cmd.Pitch > -0.05f) && (cmd.Roll > 0.5f))
+    {
+        pSS->servoVal       =  actuatorSettings->ChannelMin[triflightStatus->ServoChannel];
+        pSS->pLimitToAdjust = &actuatorSettings->ChannelMin[triflightStatus->ServoChannel];
+        //beeperConfirmationBeeps(1);
+        pSS->state          = SS_SETUP;
+    }
+    else if ((cmd.Roll < 0.05f) && (cmd.Roll > -0.05f) && (cmd.Pitch > 0.5f))
+    {
+        pSS->servoVal       = actuatorSettings->ChannelNeutral[triflightStatus->ServoChannel];
+        pSS->pLimitToAdjust = &actuatorSettings->ChannelNeutral[triflightStatus->ServoChannel];
+        //beeperConfirmationBeeps(2);
+        pSS->state          = SS_SETUP;
+    }
+    else if ((cmd.Pitch < 0.05f) && (cmd.Pitch > -0.05f) && (cmd.Roll > 0.5f))
+    {
+        pSS->servoVal       = actuatorSettings->ChannelMax[triflightStatus->ServoChannel];
+        pSS->pLimitToAdjust = &actuatorSettings->ChannelMax[triflightStatus->ServoChannel];
+        //beeperConfirmationBeeps(3);
+        pSS->state          = SS_SETUP;
+    }
+    else if ((cmd.Roll < 0.05f) && (cmd.Roll > -0.05f) && (cmd.Pitch > 0.5f))
 	{
 		pSS->state = SS_CALIB;
 		pSS->cal.state = SS_C_IDLE;
@@ -783,6 +806,15 @@ static void tailTuneModeServoSetup(ActuatorSettingsData  *actuatorSettings,
 	switch (pSS->state)
 	{
 		case SS_IDLE:
+			break;
+
+		case SS_SETUP:
+			if ((cmd.Yaw > 0.05f) && (cmd.Yaw < -0.05f))
+			{
+				pSS->servoVal += -1.0f * cmd.Yaw * dT;
+				bound_min_max(pSS->servoVal, 950, 2050);
+				*pSS->pLimitToAdjust = pSS->servoVal;
+			}
 			break;
 
 		case SS_CALIB:
