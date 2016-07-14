@@ -1,7 +1,7 @@
 <xml>
     <object name="TriflightStatus" singleinstance="true" settings="false">
         <description>Triflight Status</description>
-        <field name="Initialized" units="" type="uint8" elements="1"/>
+        <field name="Initialized" units="" type="enum" elements="1" options="False,True"/>
 		<field name="BuzzerChannel" units="" type ="uint8" elements="1"/>
         <field name="RearMotorChannel" units="" type="uint8" elements="1"/>
         <field name="ServoChannel" units="" type="uint8" elements="1"/>

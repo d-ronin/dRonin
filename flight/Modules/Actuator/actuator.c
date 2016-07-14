@@ -300,7 +300,8 @@ static void actuator_task(void* parameters)
 
 			TriflightSettingsGet(&triflightSettings);
 
-			if ((triflightSettings.UseTriFlight == 1) && (airframe_type == SYSTEMSETTINGS_AIRFRAMETYPE_TRI))
+			if ((triflightSettings.EnableTriFlight == TRIFLIGHTSETTINGS_ENABLETRIFLIGHT_ENABLE) &&
+			    (airframe_type == SYSTEMSETTINGS_AIRFRAMETYPE_TRI))
 			{
 				// Find which output channel is yaw servo
 				for (uint8_t channel = 0; channel < ACTUATORCOMMAND_CHANNEL_NUMELEM; channel++) {
@@ -340,12 +341,12 @@ static void actuator_task(void* parameters)
 				triflightInit(&actuatorSettings, &triflightSettings, &triflightStatus);
 
 				// Set TriFlight Initialized
-				triflightStatus.Initialized = 1;
+				triflightStatus.Initialized = TRIFLIGHTSTATUS_INITIALIZED_TRUE;
 			}
 			else
 			{
 				// Set TriFlight Uninitialized
-				triflightStatus.Initialized = 0;
+				triflightStatus.Initialized = TRIFLIGHTSTATUS_INITIALIZED_FALSE;
 			}
 
 			TriflightStatusSet(&triflightStatus);
@@ -535,7 +536,7 @@ static void actuator_task(void* parameters)
 		}
 
 #ifndef SMALLF1
-		if (triflightStatus.Initialized == 1)
+		if (triflightStatus.Initialized == TRIFLIGHTSTATUS_INITIALIZED_TRUE)
 		{
 			triflightStatus.UncorrectedServoCmd = command.Channel[triflightStatus.ServoChannel];
 
@@ -556,7 +557,8 @@ static void actuator_task(void* parameters)
 
 			triflightStatus.CorrectedServoCmd = command.Channel[triflightStatus.ServoChannel];
 
-			if ((triflightSettings.VirtualServo == 1) || (triflightSettings.ServoFdbkPin == TRIFLIGHTSETTINGS_SERVOFDBKPIN_NONE))
+			if ((triflightSettings.EnableVirtualServo == TRIFLIGHTSETTINGS_ENABLEVIRTUALSERVO_ENABLE) ||
+			    (triflightSettings.ServoFdbkPin == TRIFLIGHTSETTINGS_SERVOFDBKPIN_NONE))
 				triflightStatus.ServoAngle = virtualServoStep(&actuatorSettings,
 				                                              &triflightSettings,
 				                                              &triflightStatus,

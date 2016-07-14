@@ -10,8 +10,8 @@
         <field name="AdcServoFdbkMin" units="" type="float" elements="1" defaultvalue="2040"/>
 		<field name="AdcServoFdbkMid" units="" type="float" elements="1" defaultvalue="2048"/>
 		<field name="AdcServoFdbkMax" units="" type="float" elements="1" defaultvalue="2056"/>
-        <field name="VirtualServo" units="" type="uint8" elements="1" defaultvalue="1"/>
-        <field name="UseTriFlight" units="" type="uint8" elements="1" defaultvalue="0"/>
+        <field name="EnableVirtualServo" units="" type="enum" elements="1" options="Disable,Enable" defaultvalue="Enable"/>
+        <field name="EnableTriFlight" units="" type="enum" elements="1" options="Disable,Enable" defaultvalue="Disable"/>
 
         <access gcs="readwrite" flight="readwrite"/>
         <telemetrygcs acked="false" updatemode="onchange" period="0"/>
