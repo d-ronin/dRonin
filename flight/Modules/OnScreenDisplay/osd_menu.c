@@ -1082,21 +1082,50 @@ const char * ir_protocol_names[HWBRAINRE1_IRPROTOCOL_MAXOPTVAL + 1] = {
 #define MAX_ID_ILAP 9999999
 #define MAX_ID_TRACKMATE 0xfff
 
-// check if this is a valid trackmate id
+// Get the next valid trackmate id
 // It seems like the ID has some weird requirements:
 // 1st nibble is 0, 2nd nibble is not 0, 1, 8, or F
 // 3rd and 4th nibbles are not 0 or F
-bool trackmate_valid(uint16_t trackmate_id)
+uint16_t next_valid_trackmateid(uint16_t trackmate_id, int16_t step)
 {
-	bool valid = ((trackmate_id & 0x0F00) >> 8) != 0x0;
-	valid = valid && (((trackmate_id & 0x0F00) >> 8) != 0x1);
-	valid = valid && (((trackmate_id & 0x0F00) >> 8) != 0x8);
-	valid = valid && (((trackmate_id & 0x0F00) >> 8) != 0xF);
-	valid = valid && (((trackmate_id & 0x00F0) >> 4) != 0x0);
-	valid = valid && (((trackmate_id & 0x00F0) >> 4) != 0xF);
-	valid = valid && ((trackmate_id & 0x000F) != 0x0);
-	valid = valid && ((trackmate_id & 0x000F) != 0xF);
-	return valid;
+	uint8_t nibble;
+	while (1){
+		trackmate_id += step;
+		if (trackmate_id > MAX_ID_TRACKMATE) {
+			if (step > 0) {
+				trackmate_id = 0;
+			}
+			else {
+				trackmate_id = MAX_ID_TRACKMATE;
+			}
+		}
+		// Test 2nd nibble
+		nibble = (trackmate_id & 0x0F00) >> 8;
+		if ((nibble == 0x00) || (nibble == 0x01) || (nibble == 0x08) || (nibble == 0x0F)) {
+			// step through these quickly
+			if (step > 0) {
+				trackmate_id += 256;
+			}
+			else {
+				trackmate_id -= 256;
+			}
+			continue;
+		}
+		// Test 3rd nibble
+		nibble = (trackmate_id & 0x00F0) >> 4;
+		if ((nibble == 0x00) || (nibble == 0x0F)) {
+			continue;
+		}
+		// Test 4th nibble
+		nibble = trackmate_id & 0x000F;
+		if ((nibble == 0x00) || (nibble == 0x0F)) {
+			continue;
+		}
+		// We have a valid ID
+		break;
+	}
+
+	return trackmate_id;
 }
 
 void brainre1_menu(void)
@@ -1221,26 +1250,14 @@ void brainre1_menu(void)
 			break;
 		case FSM_STATE_RE1_IR_IDTRACKMATE:
 			{
-				uint16_t id = data.IRIDTrackmate;
-				int step = held_long ? 100 : 1;
-				if (current_event == FSM_EVENT_RIGHT) {
-					do {
-						id += step;
-						if (id > MAX_ID_TRACKMATE) {
-							id = 0;
-						}
-					} while (!trackmate_valid(id));
+				if ((current_event == FSM_EVENT_RIGHT) ||  (current_event == FSM_EVENT_LEFT)) {
+					int16_t step = held_long ? 100 : 1;
+					if  (current_event == FSM_EVENT_LEFT) {
+						step *= -1;
+					}
+					data.IRIDTrackmate = next_valid_trackmateid(data.IRIDTrackmate, step);
+					data_changed = true;
 				}
-				if (current_event == FSM_EVENT_LEFT) {
-					do {
-						id -= step;
-						if (id > MAX_ID_TRACKMATE) {
-							id = MAX_ID_TRACKMATE;
-						}
-					} while (!trackmate_valid(id));
-				}
-				data.IRIDTrackmate = id;
-				data_changed = true;
 			}
 			break;
 		default:
