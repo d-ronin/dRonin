@@ -12,7 +12,7 @@ QMLDIR="${APP}/Contents/Resources/welcome"
 
 pushd "${QT_SDK_BIN_PATH}"
 
-./macdeployqt "${APP}" -verbose=2 -no-strip -always-overwrite -qmldir="$QMLDIR"
+./macdeployqt "${APP}" -verbose=2 -no-strip -always-overwrite -qmldir="$QMLDIR" -executable="${APP}/Contents/MacOS/crashreporterapp"
 
 popd
 
@@ -31,6 +31,7 @@ if [ -d "../tools/SDL.framework" ]; then
 else
 	cp -r "/Library/Frameworks/SDL.framework" "${APP}/Contents/Frameworks/"
 fi
+
 # these are optional
 echo "Changing package identification of SDL"
 install_name_tool -id \
