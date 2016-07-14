@@ -9,6 +9,9 @@ ifneq (,$(filter $(ARCH), x86_64 amd64))
   X86-64 := 1
   X86_64 := 1
   AMD64 := 1
+  ARCHFAMILY := x86_64
+else
+  ARCHFAMILY := $(ARCH)
 endif
 
 # configure some variables dependent upon what type of system this is

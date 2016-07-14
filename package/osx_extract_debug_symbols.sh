@@ -25,14 +25,18 @@ function generateSymbols()
 {
   filename=$(basename "$1")
   debugfile="$debugdir/$filename.sym"
+  dsymfile="$debugdir/$filename.dSYM"
   if [ ! -d "${debugdir}" ] ; then
     echo "creating dir ${debugdir}"
     mkdir -p "${debugdir}"
   fi
   echo "Generating symbols for $1, putting them in ${debugfile}"
-  ${DUMP_SYMBOLS_TOOL} ${SOURCE_DIR}/${1} > ${debugfile}
+  dsymutil -o ${dsymfile} ${SOURCE_DIR}/${1}
+  ${DUMP_SYMBOLS_TOOL} -g ${dsymfile} ${SOURCE_DIR}/${1} > ${debugfile}
   echo "Striping debug information from $1"
   strip -S "${SOURCE_DIR}/${1}"
+  echo "Removing dSYM file for $1"
+  rm -f ${dsymfile}
 }
 if [[ -f ${1} ]] ; then
   echo dump_syms tool found.
