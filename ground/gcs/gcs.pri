@@ -167,11 +167,13 @@ unix {
 
 CONFIG += c++11
 
-# need debug info when we are collecting symbols for breakpad
-# should be stripped by packaging makefiles for release builds
-# as a temporary workaround until Jenkins script can be updated,
-# always generate debug info in release config
-#RELEASE_WITH_SYMBOLS {
-CONFIG(release, debug|release) {
-    CONFIG += force_debug_info
+unix {
+    # need debug info when we are collecting symbols for breakpad
+    # should be stripped by packaging makefiles for release builds
+    # as a temporary workaround until Jenkins script can be updated,
+    # always generate debug info in release config
+    #RELEASE_WITH_SYMBOLS {
+    CONFIG(release, debug|release) {
+        CONFIG += force_debug_info
+    }
 }
