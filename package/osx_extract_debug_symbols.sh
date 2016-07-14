@@ -33,10 +33,14 @@ function generateSymbols()
   echo "Generating symbols for $1, putting them in ${debugfile}"
   dsymutil -o ${dsymfile} ${SOURCE_DIR}/${1}
   ${DUMP_SYMBOLS_TOOL} -g ${dsymfile} ${SOURCE_DIR}/${1} > ${debugfile}
+  if [ ! -s ${debugfile} ] ; then
+    # binary didn't have debug info, have another go to get public symbols at least
+    ${DUMP_SYMBOLS_TOOL} ${SOURCE_DIR}/${1} > ${debugfile}
+  fi
+  echo "Removing dSYM file for $1"
+  rm -rf ${dsymfile}
   echo "Striping debug information from $1"
   strip -S "${SOURCE_DIR}/${1}"
-  echo "Removing dSYM file for $1"
-  rm -f ${dsymfile}
 }
 if [[ -f ${1} ]] ; then
   echo dump_syms tool found.
