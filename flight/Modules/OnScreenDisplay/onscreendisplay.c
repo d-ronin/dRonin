@@ -731,11 +731,13 @@ void draw_alarms(int x, int y, int xs, int ys, int va, int ha, int flags, int fo
 		buf[strlen(boot_reason)] = '\0';
 		pos = strlen(boot_reason);
 		buf[pos++] = ' ';
-		return;
 	}
 
 	uint8_t state;
-	int32_t len = AlarmString(&alarm, buf, sizeof(buf) - 1, blink, &state);
+	int32_t len = AlarmString(&alarm, buf + pos, sizeof(buf) - 1 - pos,
+			blink, &state);
+
+	len += pos;
 
 	if (len > 0) {
 		buf[len] = '\0';
