@@ -196,7 +196,7 @@ def make_class(collection, xml_file, update_globals=True):
 
     from lxml import etree
 
-    tree = etree.parse(xml_file)
+    tree = etree.fromstring(xml_file)
 
     subs = {
         'tree'            : tree,
