@@ -34,29 +34,45 @@ class UAVOCollection(dict):
 
         return objs
 
+    def from_file_contents(self, content_list):
+        some_processed = True
+
+        # There are dependencies here
+        while some_processed:
+            some_processed = False
+
+            unprocessed = []
+
+            # Build up the UAV objects from the xml definitions
+            for contents in content_list:
+                try:
+                    u = uavo.make_class(self, contents)
+
+                    # add this uavo definition to our dictionary
+                    self.update([('{0:08x}'.format(u._id), u)])
+
+                    some_processed = True
+                except Exception:
+                    unprocessed.append(contents)
+
+            content_list = unprocessed
+
+        if len(content_list):
+            raise Exception("Unable to parse some uavo files")
+
     def from_tar_file(self, t):
         # Get the file members
-        f_members = []
-        for f_info in t.getmembers():
-            if not f_info.isfile():
-                continue
-            # Make sure the shared definitions are parsed first
-            if op.basename(f_info.name).lower().find('shared') > 0:
-                f_members.insert(0, f_info)
-            else:
-                f_members.append(f_info)
+        content_list = []
 
-        # Build up the UAV objects from the xml definitions
-        for f_info in f_members:
+        for f_info in t.getmembers():
             if f_info.name.count("oplinksettings") > 0:
                 continue
 
             f = t.extractfile(f_info)
+            content_list.append(f.read())
+            f.close()
 
-            u = uavo.make_class(self, f)
-
-            # add this uavo definition to our dictionary
-            self.update([('{0:08x}'.format(u._id), u)])
+        self.from_file_contents(content_list)
 
     def from_tar_bytes(self, contents):
         from cStringIO import StringIO
@@ -103,17 +119,10 @@ class UAVOCollection(dict):
         import os
         import glob
 
-        # Make sure the shared definitions are parsed first
-        file_names = []
+        content_list = []
+
         for file_name in glob.glob(os.path.join(path, '*.xml')):
-            if op.basename(file_name).lower().find('shared') > 0:
-                file_names.insert(0, file_name)
-            else:
-                file_names.append(file_name)
-
-        for file_name in file_names:
             with open(file_name, 'rU') as f:
-                u = uavo.make_class(self, f)
+                content_list.append(f.read())
 
-                # add this uavo definition to our dictionary
-                self.update([('{0:08x}'.format(u._id), u)])
+        self.from_file_contents(content_list)
