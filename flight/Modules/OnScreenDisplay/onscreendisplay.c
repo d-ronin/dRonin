@@ -737,10 +737,12 @@ void draw_alarms(int x, int y, int xs, int ys, int va, int ha, int flags, int fo
 	int32_t len = AlarmString(&alarm, buf + pos, sizeof(buf) - 1 - pos,
 			blink, &state);
 
-	len += pos;
-
 	if (len > 0) {
-		buf[len] = '\0';
+		pos += len;
+	}
+
+	if (pos > 0) {
+		buf[pos] = '\0';
 		write_string(buf, x, y, xs, ys, va, ha, flags, font);
 	}
 }
