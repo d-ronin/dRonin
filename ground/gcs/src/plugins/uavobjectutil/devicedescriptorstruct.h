@@ -39,6 +39,7 @@ public:
     QString gitDate;
     QString gitTag;
     QString userDefined;
+    QString nextAncestor;
     QByteArray fwHash;
     QByteArray uavoHash;
     quint8 boardType;

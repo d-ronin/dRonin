@@ -664,16 +664,24 @@ bool UAVObjectUtilManager::descriptionToStructure(QByteArray desc, deviceDescrip
         *  26 bytes: commit tag if it is there, otherwise "Unreleased". Zero-padded
         *  20 bytes: SHA1 sum of the firmware.
         *  20 bytes: SHA1 sum of the UAVO definition files.
-        *  20 bytes: free for now.
+        *   8 bytes: git commit hash of common ancestor of the firmware with next
+        *  12 bytes: user defined string
         */
 
        // Note: the ARM binary is big-endian:
        quint32 gitCommitHash = desc.at(7) & 0xFF;
-       for (int i = 1; i < 4; i++) {
+       for (int i = 0; i < 4; i++) {
            gitCommitHash = gitCommitHash << 8;
            gitCommitHash += desc.at(7-i) & 0xFF;
        }
        struc.gitHash = QString("%1").arg(gitCommitHash, 8, 16, QChar('0'));
+
+       quint64 gitAncestorHash = 0;
+       for (int i = 0; i < 8; i++) {
+           gitAncestorHash = gitCommitHash << 8;
+           gitAncestorHash += desc.at(87-i) & 0xFF;
+       }
+       struc.nextAncestor = QString("%1").arg(gitAncestorHash, 16, 16, QChar('0'));
 
        quint32 gitDate = desc.at(11) & 0xFF;
        for (int i = 1; i < 4; i++) {
@@ -689,10 +697,8 @@ bool UAVObjectUtilManager::descriptionToStructure(QByteArray desc, deviceDescrip
        QByteArray targetPlatform = desc.mid(12,2);
        struc.boardType = (int)targetPlatform.at(0);
        struc.boardRevision = (int)targetPlatform.at(1);
-       struc.fwHash.clear();
-       struc.fwHash=desc.mid(40,20);
-       struc.uavoHash.clear();
-       struc.uavoHash=desc.mid(60,20);
+       struc.fwHash = desc.mid(40,20);
+       struc.uavoHash = desc.mid(60,20);
 
        // The git tag format used for releases is Release-yyyymmdd, optionally with a suffix
        // .[0-9] to allow multiple tags on the same day e.g. if a bug is discovered immediately
@@ -701,7 +707,7 @@ bool UAVObjectUtilManager::descriptionToStructure(QByteArray desc, deviceDescrip
            struc.certified = true;
        else
            struc.certified = false;
-       struc.userDefined = desc.mid(80, 20);
+       struc.userDefined = desc.mid(88, 12);
 
        return true;
    }

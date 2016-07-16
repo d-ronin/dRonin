@@ -465,8 +465,8 @@ bool UploaderGadgetWidget::flashFirmware(QByteArray &firmwareImage)
 
     tempArray.clear();
     tempArray.append(firmwareImage.right(100));
-    tempArray.chop(20);
-    QString user("                    ");
+    tempArray.chop(12);
+    QString user("            ");
     user = user.replace(0, m_widget->userDefined_LD_lbl->text().length(), m_widget->userDefined_LD_lbl->text());
     tempArray.append(user.toLatin1());
     setStatusInfo(tr("Starting firmware metadata upload"), uploader::STATUSICON_INFO);
