@@ -541,9 +541,9 @@ static void actuator_task(void* parameters)
 			triflightStatus.UncorrectedServoCmd = command.Channel[triflightStatus.ServoChannel];
 
 			command.Channel[triflightStatus.ServoChannel] = getCorrectedServoValue(&actuatorSettings,
-                                                                                   &triflightSettings,
-                                                                                   &triflightStatus,
-                                                                                   command.Channel[triflightStatus.ServoChannel]);
+			                                                                       &triflightSettings,
+			                                                                       &triflightStatus,
+			                                                                       command.Channel[triflightStatus.ServoChannel]);
 
 			// Make sure corrected servo command with in PWM range after correction is applied
 			if (actuatorSettings.ChannelMin[triflightStatus.ServoChannel] < actuatorSettings.ChannelMax[triflightStatus.ServoChannel])
@@ -595,11 +595,11 @@ static void actuator_task(void* parameters)
 #if !defined(ARCH_POSIX) && !defined(ARCH_WIN32)
 			triTailTuneStep(&actuatorSettings,
 			                &flightStatus,
-                            &triflightSettings,
-                            &triflightStatus,
-                            &command.Channel[triflightStatus.ServoChannel],
-                            armed,
-                            dT);
+			                &triflightSettings,
+			                &triflightStatus,
+			                &command.Channel[triflightStatus.ServoChannel],
+			                armed,
+			                dT);
 #endif
 
 			TriflightStatusSet(&triflightStatus);

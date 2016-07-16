@@ -776,29 +776,25 @@ static void tailTuneModeServoSetup(ActuatorSettingsData  *actuatorSettings,
 	ManualControlCommandGet(&cmd);
 
 	// Check mode select
-	if ((cmd.Pitch < 0.05f) && (cmd.Pitch > -0.05f) && (cmd.Roll > 0.5f))
-    {
-        pSS->servoVal       =  actuatorSettings->ChannelMin[triflightStatus->ServoChannel];
-        pSS->pLimitToAdjust = &actuatorSettings->ChannelMin[triflightStatus->ServoChannel];
-        //beeperConfirmationBeeps(1);
-        pSS->state          = SS_SETUP;
-    }
-    else if ((cmd.Roll < 0.05f) && (cmd.Roll > -0.05f) && (cmd.Pitch > 0.5f))
-    {
-        pSS->servoVal       = actuatorSettings->ChannelNeutral[triflightStatus->ServoChannel];
-        pSS->pLimitToAdjust = &actuatorSettings->ChannelNeutral[triflightStatus->ServoChannel];
-        //beeperConfirmationBeeps(2);
-        pSS->state          = SS_SETUP;
-    }
-    else if ((cmd.Pitch < 0.05f) && (cmd.Pitch > -0.05f) && (cmd.Roll > 0.5f))
-    {
-        pSS->servoVal       = actuatorSettings->ChannelMax[triflightStatus->ServoChannel];
-        pSS->pLimitToAdjust = &actuatorSettings->ChannelMax[triflightStatus->ServoChannel];
-        //beeperConfirmationBeeps(3);
-        pSS->state          = SS_SETUP;
-    }
-    else if ((cmd.Roll < 0.05f) && (cmd.Roll > -0.05f) && (cmd.Pitch > 0.5f))
-	{
+	if ((cmd.Pitch < 0.05f) && (cmd.Pitch > -0.05f) && (cmd.Roll < -0.5f)) {
+		pSS->servoVal       =  actuatorSettings->ChannelMin[triflightStatus->ServoChannel];
+		pSS->pLimitToAdjust = &actuatorSettings->ChannelMin[triflightStatus->ServoChannel];
+		pSS->state          = SS_SETUP;
+		buzzer.duration     = 20000;
+	}
+	else if ((cmd.Roll < 0.05f) && (cmd.Roll > -0.05f) && (cmd.Pitch < -0.5f)) {
+		pSS->servoVal       = actuatorSettings->ChannelNeutral[triflightStatus->ServoChannel];
+		pSS->pLimitToAdjust = &actuatorSettings->ChannelNeutral[triflightStatus->ServoChannel];
+		pSS->state          = SS_SETUP;
+		buzzer.duration     = 40000;
+	}
+	else if ((cmd.Pitch < 0.05f) && (cmd.Pitch > -0.05f) && (cmd.Roll > 0.5f)) {
+		pSS->servoVal       = actuatorSettings->ChannelMax[triflightStatus->ServoChannel];
+		pSS->pLimitToAdjust = &actuatorSettings->ChannelMax[triflightStatus->ServoChannel];
+		pSS->state          = SS_SETUP;
+		buzzer.duration     = 60000;
+	}
+	else if ((cmd.Roll < 0.05f) && (cmd.Roll > -0.05f) && (cmd.Pitch > 0.5f)) {
 		pSS->state = SS_CALIB;
 		pSS->cal.state = SS_C_IDLE;
 	}
@@ -809,10 +805,10 @@ static void tailTuneModeServoSetup(ActuatorSettingsData  *actuatorSettings,
 			break;
 
 		case SS_SETUP:
-			if ((cmd.Yaw > 0.05f) && (cmd.Yaw < -0.05f))
+			if ((cmd.Yaw > 0.05f) || (cmd.Yaw < -0.05f))
 			{
-				pSS->servoVal += -1.0f * cmd.Yaw * dT;
-				bound_min_max(pSS->servoVal, 950, 2050);
+				pSS->servoVal += 50.0f * cmd.Yaw * dT;
+				pSS->servoVal = bound_min_max(pSS->servoVal, 950, 2050);
 				*pSS->pLimitToAdjust = pSS->servoVal;
 			}
 			break;
@@ -848,6 +844,8 @@ static void tailTuneModeServoSetup(ActuatorSettingsData  *actuatorSettings,
 								break;
 
 							case SS_C_MID:
+								triflightSettings->AdcServoFdbkMid = pSS->cal.avg.result;
+
 								if (fabs(triflightSettings->AdcServoFdbkMin - triflightSettings->AdcServoFdbkMid) < 100)
 								{
 									/* Not enough difference between min and mid feedback values.
@@ -858,8 +856,6 @@ static void tailTuneModeServoSetup(ActuatorSettingsData  *actuatorSettings,
 								}
 								else
 								{
-									triflightSettings->AdcServoFdbkMid = pSS->cal.avg.result;
-
 									pSS->cal.subState = SS_C_MAX;
 									pSS->servoVal     = actuatorSettings->ChannelMax[triflightStatus->ServoChannel];
 									sample_delta      = 0;
@@ -931,6 +927,10 @@ static void tailTuneModeServoSetup(ActuatorSettingsData  *actuatorSettings,
 										triflightSettings->ServoSpeed = avgServoSpeed;
 										pSS->cal.done = true;
 										pSS->servoVal = actuatorSettings->ChannelNeutral[triflightStatus->ServoChannel];
+
+										ActuatorSettingsSet(actuatorSettings);
+										UAVObjSave(ActuatorSettingsHandle(), 0);
+
 										TriflightSettingsSet(triflightSettings);
 										UAVObjSave(TriflightSettingsHandle(), 0);
 									}
