@@ -30,6 +30,7 @@
 #define GCS_REVISION_SHORT "${HASH8}"
 #define UAVO_HASH { ${UAVOSHA1} }
 #define UAVO_HASH_STR "${UAVOSHA1}"
+#define GCS_REVISION_NEXTANCESTOR "${ANCESTOR}"
 /**
  * @}
  */

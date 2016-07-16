@@ -39,7 +39,8 @@
  *  26 bytes: commit tag if it is there, otherwise branch name. '-dirty' may be added if needed. Zero-padded.
  *  20 bytes: SHA1 sum of the firmware.
  *  20 bytes: SHA1 sum of the uavo definitions.
- *  20 bytes: free for now.
+ *  8 bytes: GIT commit tag of ancestor common with next
+ *  16 bytes: free for now.
  *
  */
 
@@ -71,6 +72,7 @@ const struct fw_version_info fw_version_blob __attribute__((used)) FW_VERS_SECTI
 	.commit_tag_name = "${FWTAG}",
 	.sha1sum = { ${SHA1} },
 	.uavosha1 = { ${UAVOSHA1} },
+	.next_ancestor_hash = 0x${ANCESTOR16},
 }; 
 
 /**
