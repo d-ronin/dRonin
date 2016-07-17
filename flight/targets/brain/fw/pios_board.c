@@ -263,8 +263,6 @@ void PIOS_Board_Init(void) {
 		PIOS_HAL_Panic(PIOS_LED_ALARM, PIOS_HAL_PANIC_FILESYS);
 #endif	/* PIOS_INCLUDE_FLASH */
 
-	RCC_ClearFlag(); // The flags cleared after use
-
 	/* Initialize UAVObject libraries */
 	UAVObjInitialize();
 
@@ -285,6 +283,7 @@ void PIOS_Board_Init(void) {
 
 	/* Initialize the alarms library */
 	AlarmsInitialize();
+	PIOS_RESET_Clear();
 
 	/* Initialize the task monitor library */
 	TaskMonitorInitialize();

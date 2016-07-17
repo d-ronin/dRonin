@@ -275,8 +275,6 @@ void PIOS_Board_Init(void) {
 
 #endif	/* PIOS_INCLUDE_FLASH */
 
-	RCC_ClearFlag(); // The flags cleared after use
-
 	/* Initialize UAVObject libraries */
 	UAVObjInitialize();
 
@@ -316,6 +314,7 @@ void PIOS_Board_Init(void) {
 
 	/* Initialize the alarms library */
 	AlarmsInitialize();
+	PIOS_RESET_Clear();
 
 	/* Initialize the task monitor library */
 	TaskMonitorInitialize();
