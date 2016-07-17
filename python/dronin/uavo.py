@@ -144,7 +144,7 @@ class UAVTupleClass():
 
             field_value = raw_dict[field_name]
 
-            if isinstance(field_value, tuple):
+            if isinstance(field_value, tuple) or isinstance(field_value, list):
                 text_value = ','.join( [ self.elem_to_string(field_name, v) for v in field_value ] )
             else:
                 text_value = self.elem_to_string(field_name, field_value)
