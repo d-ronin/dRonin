@@ -704,7 +704,7 @@ int UploaderGadgetWidget::isCloudReleaseAvailable(QString srcRelease) {
 }
 
 bool UploaderGadgetWidget::tradeSettingsWithCloud(QString srcRelease,
-        bool upgrading, QByteArray *settingsOut) {
+        QString ancestor, bool upgrading, QByteArray *settingsOut) {
     /* post to cloud service */
     QUrl url(exportUrl);
     QNetworkRequest request(url);
@@ -722,10 +722,13 @@ bool UploaderGadgetWidget::tradeSettingsWithCloud(QString srcRelease,
     // (not compatible with zlib)
     compressed.remove(0, 4);
 
-    QHttpPart githash, adaptTo, datafile;
+    QHttpPart githash, ancestorPart, adaptTo, datafile;
 
     githash.setHeader(QNetworkRequest::ContentDispositionHeader,QVariant("form-data; name=\"githash\""));
     githash.setBody(srcRelease.toLatin1());
+
+    ancestorPart.setHeader(QNetworkRequest::ContentDispositionHeader,QVariant("form-data; name=\"ancestor\""));
+    ancestorPart.setBody(ancestor.toLatin1());
 
     const QString gcsRev(GCS_REVISION);
     adaptTo.setHeader(QNetworkRequest::ContentDispositionHeader,QVariant("form-data; name=\"adaptTo\""));
@@ -736,6 +739,8 @@ bool UploaderGadgetWidget::tradeSettingsWithCloud(QString srcRelease,
     datafile.setBody(compressed);
 
     multiPart->append(githash);
+    multiPart->append(adaptTo);
+    multiPart->append(ancestorPart);
     multiPart->append(datafile);
 
     QNetworkReply *reply = netMngr->post(request, multiPart);
@@ -857,6 +862,7 @@ void UploaderGadgetWidget::doUpgradeOperation(bool blankFC, tl_dfu::device &dev)
 
     /* Save the version to convert from, so we can tell the cloud service */
     QString upgradingFrom = m_widget->gitHashOD_lbl->text();
+    QString ancestor = m_widget->ancestorHashOD_lbl->text();
 
     qDebug() << "Upgrading from " << upgradingFrom;
 
@@ -883,6 +889,10 @@ void UploaderGadgetWidget::doUpgradeOperation(bool blankFC, tl_dfu::device &dev)
         stepChangeAndDelay(loop, 400, UpgradeAssistantDialog::STEP_CHECKCLOUD);
 
         int available = isCloudReleaseAvailable(upgradingFrom);
+
+        if (available == 0) {
+            available = isCloudReleaseAvailable(ancestor);
+        }
 
         if (available < 0) {
             // Cloud service missing.  Pop up a dialog and ask user what to
@@ -1066,7 +1076,7 @@ void UploaderGadgetWidget::doUpgradeOperation(bool blankFC, tl_dfu::device &dev)
         }
 
         /* translate the settings using the cloud service */
-        if (!tradeSettingsWithCloud(upgradingFrom, true, &xmlDump)) {
+        if (!tradeSettingsWithCloud(upgradingFrom, ancestor, true, &xmlDump)) {
             upgradeError(tr("Unable to use cloud services to translate settings!"));
 
             return;
@@ -1305,8 +1315,6 @@ void UploaderGadgetWidget::onExportButtonClick()
         return;
     }
 
-    /* XXX TODO:  make sure the cloud service is there and has right git rev */
-
     /* get confirmation from user that using the cloud service is OK */
     QMessageBox msgBox;
     msgBox.setText(tr("Do you wish to export the settings partition as an XML settings file?"));
@@ -1330,8 +1338,9 @@ void UploaderGadgetWidget::onExportButtonClick()
     setStatusInfo(tr("Retrieved settings; contacting cloud..."), uploader::STATUSICON_FAIL);
 
     QString upgradingFrom = m_widget->gitHashOD_lbl->text();
+    QString ancestor = m_widget->ancestorHashOD_lbl->text();
 
-    tradeSettingsWithCloud(upgradingFrom);
+    tradeSettingsWithCloud(upgradingFrom, ancestor);
 }
 
 /**

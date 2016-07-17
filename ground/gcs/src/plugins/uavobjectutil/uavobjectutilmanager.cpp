@@ -678,7 +678,7 @@ bool UAVObjectUtilManager::descriptionToStructure(QByteArray desc, deviceDescrip
 
        quint64 gitAncestorHash = 0;
        for (int i = 0; i < 8; i++) {
-           gitAncestorHash = gitCommitHash << 8;
+           gitAncestorHash = gitAncestorHash << 8;
            gitAncestorHash += desc.at(87-i) & 0xFF;
        }
        struc.nextAncestor = QString("%1").arg(gitAncestorHash, 16, 16, QChar('0'));
