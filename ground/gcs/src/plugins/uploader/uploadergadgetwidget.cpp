@@ -243,10 +243,12 @@ void UploaderGadgetWidget::FirmwareOnDeviceUpdate(deviceDescriptorStruct firmwar
     m_widget->builtForOD_lbl->setText(Core::IBoardType::getBoardNameFromID(firmware.boardID()));
     m_widget->crcOD_lbl->setText(crc);
     m_widget->gitHashOD_lbl->setText(firmware.gitHash);
+    m_widget->ancestorHashOD_lbl->setText(firmware.nextAncestor);
     m_widget->firmwareDateOD_lbl->setText(firmware.gitDate);
     m_widget->firmwareTagOD_lbl->setText(firmware.gitTag);
     m_widget->uavosSHA_OD_lbl->setText(firmware.uavoHash.toHex().toUpper());
     m_widget->userDefined_OD_lbl->setText(firmware.userDefined);
+
     if(firmware.certified)
     {
         QPixmap pix = QPixmap(QString(":uploader/images/application-certificate.svg"));
@@ -295,6 +297,7 @@ void UploaderGadgetWidget::FirmwareLoadedUpdate(QByteArray firmwareArray)
         m_widget->crcLD_lbl->setText(QString::number(crc));
     }
     m_widget->gitHashLD_lbl->setText(firmware.gitHash);
+    m_widget->ancestorHashLD_lbl->setText(firmware.nextAncestor);
     m_widget->firmwareDateLD_lbl->setText(firmware.gitDate);
     m_widget->firmwareTagLD_lbl->setText(firmware.gitTag);
     m_widget->uavosSHA_LD_lbl->setText(firmware.uavoHash.toHex().toUpper());
