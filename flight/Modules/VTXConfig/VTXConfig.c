@@ -60,7 +60,7 @@ enum STATE {
 
 // ****************
 // Private constants
-#define STACK_SIZE_BYTES   500
+#define STACK_SIZE_BYTES   560
 #define TASK_PRIORITY      PIOS_THREAD_PRIO_LOW
 
 #define MAX_FAILS 5
