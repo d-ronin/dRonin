@@ -43,7 +43,7 @@
 
 // ****************
 // Private constants
-#define STACK_SIZE_BYTES            576
+#define STACK_SIZE_BYTES            624
 #define TASK_PRIORITY               PIOS_THREAD_PRIO_LOW
 #define SAMPLE_PERIOD_MS            500
 // Private types
