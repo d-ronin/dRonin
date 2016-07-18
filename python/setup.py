@@ -26,7 +26,7 @@ setup(
     # Versions should comply with PEP440.  For a discussion on single-sourcing
     # the version across setup.py and the project code, see
     # https://packaging.python.org/en/latest/single_source_version.html
-    version='20160718.1',
+    version='20160718.3',
 
     description='dRonin Python API',
     long_description=long_description,
@@ -70,17 +70,20 @@ setup(
 
     # You can just specify the packages manually here if your project is
     # simple. Or you can use find_packages().
-    packages = ['dronin'],
+    packages = ['dronin', 'dronin.logviewer'],
 
     # Just requires the base python system to run
     install_requires=['six'],
 
+    # PyQt4 is not in pypi, so it's not listed here.  User needs to solve
+    # this themselves.
     extras_require={
         'all': ['pyserial', 'numpy', 'matplotlib', 'pyqtgraph'],
     },
 
-    scripts = [ 'dronin-dumplog', 'dronin-halt', 'dronin-logview',
-        'dronin-getconfig', 'dronin-logfsimport', 'dronin-shell' ]
+    scripts = [ 'dronin-dumplog', 'dronin-halt',
+        'dronin-getconfig', 'dronin-logfsimport',
+        'dronin-shell' ],
 #    package_data={
 #        'sample': ['package_data.dat'],
 #    },
@@ -90,9 +93,9 @@ setup(
     # To provide executable scripts, use entry points in preference to the
     # "scripts" keyword. Entry points provide cross-platform support and allow
     # pip to create the appropriate form of executable for the target platform.
-#    entry_points={
-#        'console_scripts': [
-#            'sample=sample:main',
-#        ],
-#    },
+    entry_points={
+        'gui_scripts': [
+            'dronin-logview=dronin.logviewer.logviewer:main',
+        ],
+    },
 )
