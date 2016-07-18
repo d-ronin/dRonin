@@ -19,6 +19,8 @@ import time
 
 __all__ = [ "send_object", "process_stream" ]
 
+from six import int2byte, indexbytes, byte2int, iterbytes
+
 # Constants used for UAVTalk parsing
 (MIN_HEADER_LENGTH, MAX_HEADER_LENGTH, MAX_PAYLOAD_LENGTH) = (8, 12, (256-12))
 (SYNC_VAL) = (0x3C)
@@ -107,7 +109,7 @@ def process_stream(uavo_defs, use_walltime=False, gcs_timestamps=None,
 
             if gcs_timestamps is None:
                 if ((logHdrLen > 1000) or ( overrideTimestamp > 100000000)):
-                    if buf[buf_offset] == SYNC_VAL:
+                    if indexbytes(buf, buf_offset) == SYNC_VAL:
                         print("Autodetect: no gcs-type timestamps")
                         gcs_timestamps = False
                     else:
@@ -115,7 +117,7 @@ def process_stream(uavo_defs, use_walltime=False, gcs_timestamps=None,
                         buf_offset += 1
                         continue
                 else:
-                    if buf[buf_offset + logheader_fmt.size] == SYNC_VAL:
+                    if indexbytes(buf, buf_offset + logheader_fmt.size) == SYNC_VAL:
                         print("Autodetect: GCS-type timestamps likely")
                         gcs_timestamps = True
                         buf_offset += logheader_fmt.size
@@ -129,7 +131,7 @@ def process_stream(uavo_defs, use_walltime=False, gcs_timestamps=None,
         # this code lots.
         # sync(1) + type(1) + len(2) + objid(4)
 
-        while (len(buf) < header_fmt.size + buf_offset) or (buf[buf_offset] != SYNC_VAL):
+        while (len(buf) < header_fmt.size + buf_offset) or (indexbytes(buf, buf_offset) != SYNC_VAL):
             #print "waitingsync len=%d, offset=%d"%(len(buf), buf_offset)
 
             if len(buf) < header_fmt.size + 1 + buf_offset:
@@ -142,7 +144,7 @@ def process_stream(uavo_defs, use_walltime=False, gcs_timestamps=None,
                 buf = buf + rx
 
             for i in range(buf_offset, len(buf)):
-                if buf[i] == SYNC_VAL:
+                if indexbytes(buf, i) == SYNC_VAL:
                     break
 
             #print "skipping from %d to %d"%(buf_offset, i)
@@ -231,10 +233,10 @@ def process_stream(uavo_defs, use_walltime=False, gcs_timestamps=None,
         # check the CRC byte
 
         cs = calcCRC(buf[buf_offset:calc_size+buf_offset])
-        recv_cs = buf[buf_offset+calc_size]
+        recv_cs = indexbytes(buf, buf_offset + calc_size)
 
         if recv_cs != cs:
-            print("Bad crc. Got " + hex(ord(recv_cs)) + " but predicted " + hex(ord(cs)))
+            print("Bad crc. Got", recv_cs, "but predicted", cs)
 
             buf_offset += 1
 
@@ -303,14 +305,14 @@ def request_object(obj):
 
     return packet
 
-def calcCRC(str):
+def calcCRC(s):
     """
     Calculate a CRC consistently with how they are computed on the firmware side
     """
 
     cs = 0
 
-    for c in str:
+    for c in iterbytes(s):
         cs = crc_table[cs ^ c]
 
     return cs
