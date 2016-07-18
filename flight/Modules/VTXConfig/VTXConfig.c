@@ -187,9 +187,10 @@ int32_t VTXConfigInitialize(void)
 		module_enabled = false;
 	}
 
+	VTXSettingsInitialize();
+
 	if (module_enabled) {
 		VTXInfoInitialize();
-		VTXSettingsInitialize();
 		VTXSettingsConnectCallbackCtx(UAVObjCbSetFlag, &settings_updated);
 	}
 
@@ -301,8 +302,7 @@ static void vtxConfigTask(void *parameters)
 					}
 				}
 			}
-		}
-		else {
+		} else {
 			// Cycle through different baud rates. The spec says 4.8kbps, but it can deviate
 			if (baud_rate < TBS_MAX_BAUD) {
 				baud_rate += 50;
