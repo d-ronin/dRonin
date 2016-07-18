@@ -79,6 +79,10 @@ setup(
         'all': ['pyserial', 'numpy', 'matplotlib', 'pyqtgraph', 'pyqt4'],
     },
 
+    scripts = [ 'dronin-dumplog', 'dronin-halt', 'dronin-logview',
+        'dronin-getconfig', 'dronin-logfsimport', 'dronin-shell' ]
+
+
 #    package_data={
 #        'sample': ['package_data.dat'],
 #    },
