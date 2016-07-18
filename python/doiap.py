@@ -16,7 +16,7 @@ def main():
     time.sleep(0.9)
 
     for i in range(3):
-        print magic_value
+        print(magic_value)
         f=UAVO_FirmwareIAPObj._make_to_send(Command=magic_value,
                 Description=(0,)*100,
                 CPUSerial=(0,)*12,

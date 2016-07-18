@@ -35,9 +35,9 @@ def main():
     for s in settings_objects:
         val = tStream.last_values.get(s)
         if val is not None:
-            print val
+            print(val)
         else:
-            print "No instance of %s" % (s._name)
+            print("No instance of %s" % (s._name))
 
 #-------------------------------------------------------------------------------
 if __name__ == "__main__":

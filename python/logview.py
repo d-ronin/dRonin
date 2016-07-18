@@ -38,7 +38,7 @@ def add_plot_area(data_series, dock_name, axis_label, legend=False, **kwargs):
     colors = [ 'w', 'm', 'y', 'c' ]
     idx = 0
 
-    for plot_name, data in data_series.iteritems():
+    for plot_name, data in data_series.items():
         pw.plot(data, antialias=True, name='&nbsp;'+plot_name, pen=pg.mkPen(colors[idx]), **kwargs)
         idx += 1
 
@@ -84,7 +84,7 @@ def plot_vs_time(obj_name, fields):
 def clear_plots(skip=None):
     containers, docks = area.findAll()
 
-    for d in docks.values():
+    for d in list(docks.values()):
         if skip is not None and d in skip:
             continue
 
@@ -122,7 +122,7 @@ def handle_open():
 
             num_bytes = stat_info.st_size
         except Exception:
-            print "Couldn't stat file"
+            print("Couldn't stat file")
             pass
 
         def cb(n_objs, n_bytes):
@@ -142,7 +142,7 @@ def handle_open():
         series = {}
         objtyps = {}
 
-        for typ in t.uavo_defs.itervalues():
+        for typ in t.uavo_defs.values():
             short_name = typ._name[5:]
             objtyps[short_name] = typ
 
@@ -158,7 +158,7 @@ def handle_open():
         dlg.setValue(975)
         plot_vs_time('Gyros', ['x', 'y', 'z'])
 
-        objtyps = { k:v for k,v in objtyps.iteritems() if v in t.last_values }
+        objtyps = { k:v for k,v in objtyps.items() if v in t.last_values }
 
         #add all non-settings objects, and autotune, to the keys.
         objSel.clear()
