@@ -4,7 +4,7 @@ import pyqtgraph as pg
 from pyqtgraph.Qt import QtCore, QtGui
 import numpy as np
 
-from logviewer.plotdockarea import PlotDockArea
+from dronin.logviewer.plotdockarea import PlotDockArea
 
 from pyqtgraph.dockarea import *
 

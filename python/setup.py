@@ -26,7 +26,7 @@ setup(
     # Versions should comply with PEP440.  For a discussion on single-sourcing
     # the version across setup.py and the project code, see
     # https://packaging.python.org/en/latest/single_source_version.html
-    version='20160715',
+    version='20160718.1',
 
     description='dRonin Python API',
     long_description=long_description,
@@ -76,13 +76,11 @@ setup(
     install_requires=['six'],
 
     extras_require={
-        'all': ['pyserial', 'numpy', 'matplotlib', 'pyqtgraph', 'pyqt4'],
+        'all': ['pyserial', 'numpy', 'matplotlib', 'pyqtgraph'],
     },
 
     scripts = [ 'dronin-dumplog', 'dronin-halt', 'dronin-logview',
         'dronin-getconfig', 'dronin-logfsimport', 'dronin-shell' ]
-
-
 #    package_data={
 #        'sample': ['package_data.dat'],
 #    },
