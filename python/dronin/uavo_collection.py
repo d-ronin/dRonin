@@ -7,7 +7,7 @@ Copyright (C) 2015 dRonin, http://dronin.org
 Licensed under the GNU LGPL version 2.1 or any later version (see COPYING.LESSER)
 """
 
-import uavo
+from . import uavo
 
 import operator
 import os.path as op
@@ -22,14 +22,14 @@ class UAVOCollection(dict):
         if uavo_name[0:5]!='UAVO_':
             uavo_name = 'UAVO_' + uavo_name
 
-        for u in self.itervalues():
+        for u in self.values():
             if u._name == uavo_name:
                 return u
 
         return None
 
     def get_settings_objects(self):
-        objs = [ u for u in self.itervalues() if u._is_settings ]
+        objs = [ u for u in self.values() if u._is_settings ]
         objs.sort(key=operator.attrgetter('_name'))
 
         return objs
@@ -75,11 +75,11 @@ class UAVOCollection(dict):
         self.from_file_contents(content_list)
 
     def from_tar_bytes(self, contents):
-        from cStringIO import StringIO
+        from io import BytesIO
         import tarfile
 
         # coerce the tar file data into a file object so that tarfile likes it
-        fobj = StringIO(contents)
+        fobj = BytesIO(contents)
 
         # feed the tar file data to a tarfile object
         with tarfile.open(fileobj=fobj) as t:
@@ -108,9 +108,9 @@ class UAVOCollection(dict):
 
         #print "Error exit status, falling back to cloud"
 
-        import urllib2
+        from six.moves.urllib.request import urlopen
 
-        web_data = urllib2.urlopen("http://dronin-autotown.appspot.com/uavos/%s?altGitHash=%s" % (
+        web_data = urlopen("http://dronin-autotown.appspot.com/uavos/%s?altGitHash=%s" % (
             githash, GITHASH_OF_LAST_RESORT)).read()
 
         self.from_tar_bytes(web_data)

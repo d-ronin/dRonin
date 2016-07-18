@@ -9,11 +9,14 @@ Licensed under the GNU LGPL version 2.1 or any later version (see COPYING.LESSER
 
 import re
 from collections import namedtuple, OrderedDict
+from lxml import etree
+from xml.etree.ElementTree import Element, SubElement
+import time
 
 try:
     from struct import Struct, calcsize
 except:
-    from structshim import Struct, calcsize
+    from .structshim import Struct, calcsize
 
 RE_SPECIAL_CHARS = re.compile('[\\.\\-\\s\\+/\\(\\)]')
 
@@ -38,7 +41,6 @@ class UAVTupleClass():
         fields set properly.
         """
 
-        import time
         return cls(cls._name, round(time.time() * 1000), cls._id, *args, **kwargs)
 
     def to_bytes(self):
@@ -131,7 +133,6 @@ class UAVTupleClass():
     def to_xml_elem(self):
         munged_name = self._name[5:]
         munged_id = '0x%X' % self._id
-        from xml.etree.ElementTree import Element, SubElement
         xmlobj = Element('object', { 'name' : munged_name,
             'id' : munged_id })
 
@@ -193,8 +194,6 @@ def make_class(collection, xml_file, update_globals=True):
     fields = []
 
     ##### PARSE THE XML FILE INTO INTERNAL REPRESENTATIONS #####
-
-    from lxml import etree
 
     tree = etree.fromstring(xml_file)
 
@@ -275,11 +274,11 @@ def make_class(collection, xml_file, update_globals=True):
                 parent_class = collection.find_by_name(parent_name)
                 if len(info['options']) == 0:
                     parent_options = getattr(parent_class, 'ENUMR_' + field_name)
-                    for k, v in sorted(parent_options.iteritems(), key=lambda x: x[0]):
+                    for k, v in sorted(iter(parent_options.items()), key=lambda x: x[0]):
                         info['options'][v] = k
                 else:
                     parent_options = getattr(parent_class, 'ENUM_' + field_name)
-                    for k in info['options'].iterkeys():
+                    for k in info['options'].keys():
                         info['options'][k] = parent_options[k]
 
             # Add default values
@@ -289,7 +288,7 @@ def make_class(collection, xml_file, update_globals=True):
                         values = tuple(info['options'][v.strip()]
                                        for v in info['defaultvalue'].split(','))
                     except KeyError:
-                        print 'Invalid default value: %s.%s has no option %s' % (name, info['name'], info['defaultvalue'])
+                        print('Invalid default value: %s.%s has no option %s' % (name, info['name'], info['defaultvalue']))
                         values = (0,)
                 else:  # float or int
                     values = tuple(float(v) for v in info['defaultvalue'].split(','))
@@ -327,7 +326,7 @@ def make_class(collection, xml_file, update_globals=True):
         hash_calc.update_hash_byte(field['type_val'])
         if field['type'] == 'enum':
             next_idx = 0
-            for option, idx in field['options'].iteritems():
+            for option, idx in field['options'].items():
                 if idx != next_idx:
                     hash_calc.update_hash_byte(idx)
                 hash_calc.update_hash_string(option)
@@ -360,7 +359,7 @@ def make_class(collection, xml_file, update_globals=True):
 
     for f in fields:
         if f['elements'] != 1:
-            dtype += [(f['name'], '(' + `f['elements']` + ",)" + type_numpy_map[f['type']])]
+            dtype += [(f['name'], '(' + repr(f['elements']) + ",)" + type_numpy_map[f['type']])]
         else:
             dtype += [(f['name'], type_numpy_map[f['type']])]
 
@@ -398,8 +397,8 @@ def make_class(collection, xml_file, update_globals=True):
     for field in fields:
         if field['type'] == 'enum':
             enum = field['options']
-            mapping = dict((key, value) for key, value in enum.iteritems())
-            reverse_mapping = dict((value, key) for key, value in enum.iteritems())
+            mapping = dict((key, value) for key, value in enum.items())
+            reverse_mapping = dict((value, key) for key, value in enum.items())
             setattr(tuple_class, 'ENUM_' + field['name'], mapping)
             setattr(tuple_class, 'ENUMR_' + field['name'], reverse_mapping)
 

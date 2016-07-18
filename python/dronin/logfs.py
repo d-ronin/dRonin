@@ -111,7 +111,7 @@ class LogFSImport(dict):
 
         self.githash = githash
 
-        for id_tup,offset in obj_offsets.iteritems():
+        for id_tup,offset in obj_offsets.items():
             obj_id, inst_id = id_tup
 
             uavo_key = '{0:08x}'.format(obj_id)
