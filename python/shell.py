@@ -26,6 +26,7 @@ def main():
         'githash'   : uavo_list.githash,
         'uavo_defs' : uavo_list.uavo_defs,
         'uavo_list' : uavo_list,
+        '__name__'  : 'dronin'
         }
 
     # Extend the shell environment to include all of the uavo.UAVO_* classes that were
@@ -34,8 +35,7 @@ def main():
     user_module.__dict__.update(uavo_classes)
 
     # Instantiate an ipython shell to interact with the log data.
-    import IPython
-    from IPython.frontend.terminal.embed import InteractiveShellEmbed
+    from IPython.terminal.embed import InteractiveShellEmbed
     e = InteractiveShellEmbed(user_ns = user_ns, user_module = user_module)
     e.enable_pylab(import_all = True)
     e("Analyzing log file: %s" % uavo_list.filename)
