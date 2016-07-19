@@ -259,6 +259,8 @@ static int PIOS_HSUM_UnrollChannels(struct pios_hsum_dev *hsum_dev)
 			state->channel_data[i] = PIOS_RCVR_INVALID;
 	}
 
+	PIOS_RCVR_ActiveFromISR();
+
 	/* all channels processed */
 	return 0;
 

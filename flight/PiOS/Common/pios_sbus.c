@@ -218,6 +218,7 @@ static void PIOS_SBus_UpdateState(struct pios_sbus_state *state, uint8_t b)
 				/* data looking good */
 				PIOS_SBus_UnrollChannels(state);
 				state->failsafe_timer = 0;
+				PIOS_RCVR_ActiveFromISR();
 			}
 		} else {
 			/* discard whole frame */

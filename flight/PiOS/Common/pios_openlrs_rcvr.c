@@ -135,6 +135,9 @@ int32_t PIOS_OpenLRS_Rcvr_UpdateChannels(uintptr_t openlrs_rcvr_id, int16_t * ch
 
 	openlrs_rcvr_update_uavo(openlrs_rcvr_dev);
 
+	// This is a task, not an ISR.
+	PIOS_RCVR_Active();
+
 	// let supervisor know we have new data
 	openlrs_rcvr_dev->fresh = true;
 

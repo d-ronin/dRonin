@@ -138,6 +138,9 @@ int32_t PIOS_RFM22B_Rcvr_UpdateChannels(uintptr_t rfm22b_rcvr_id, int16_t * chan
 
 	rfm22b_rcvr_update_uavo(rfm22b_rcvr_dev);
 
+	// Runs in a task, not an ISR.
+	PIOS_RCVR_Active();
+
 	// let supervisor know we have new data
 	rfm22b_rcvr_dev->fresh = true;
 
