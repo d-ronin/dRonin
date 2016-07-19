@@ -39,6 +39,7 @@
 #include "openpilot.h"
 
 #include "pios_thread.h"
+#include "pios_rcvr.h"
 
 #include "control.h"
 #include "failsafe_control.h"
@@ -63,7 +64,6 @@
 
 // Private variables
 static struct pios_thread *taskHandle;
-static uint32_t lastSysTime;
 
 // Private functions
 static void manualControlTask(void *parameters);
@@ -120,9 +120,6 @@ static void manualControlTask(void *parameters)
 	FlightStatusGet(&flightStatus);
 	flightStatus.Armed = FLIGHTSTATUS_ARMED_DISARMED;
 	FlightStatusSet(&flightStatus);
-
-	// Main task loop
-	lastSysTime = PIOS_Thread_Systime();
 
 	// Select failsafe before run
 	failsafe_control_select(true);
@@ -198,7 +195,7 @@ static void manualControlTask(void *parameters)
 		}
 
 		// Wait until next update
-		PIOS_Thread_Sleep_Until(&lastSysTime, UPDATE_PERIOD_MS);
+		PIOS_RCVR_WaitActivity(UPDATE_PERIOD_MS);
 		PIOS_WDG_UpdateFlag(PIOS_WDG_MANUAL);
 	}
 }
