@@ -29,34 +29,29 @@ ifeq ($(USE_MSVC), YES)
 	$(V1)cp -v -f "$(VCREDIST)/msvcp140.dll" $(PACKAGE_DIR)/$(GCS_PACKAGE_NAME)/bin
 	$(V1)cp -v -f "$(VCREDIST)/vcruntime140.dll" $(PACKAGE_DIR)/$(GCS_PACKAGE_NAME)/bin
 	$(V1)cp -v -f "$(VCREDIST)/vccorlib140.dll" $(PACKAGE_DIR)/$(GCS_PACKAGE_NAME)/bin
-ifeq ($(EXPORT_SYMBOLS),YES)
-	$(V1) $(ROOT_DIR)/package/windows_extract_debug_symbols.sh $(DUMP_SYMBOLS_TOOL) $(PACKAGE_DIR)/$(GCS_PACKAGE_NAME)
-endif
 endif
 	$(V1)mv "$(PACKAGE_DIR)/$(GCS_PACKAGE_NAME)/bin/opengl32sw.dll" "$(PACKAGE_DIR)/$(GCS_PACKAGE_NAME)/bin/opengl32.dll" 
-	$(V1)find $(PACKAGE_DIR)/$(GCS_PACKAGE_NAME) -type f -name "*.pdb" -exec rm -f {} \;
 	$(V1)find $(PACKAGE_DIR)/$(GCS_PACKAGE_NAME) -type f -name "*.sym" -exec rm -f {} \;
 	$(V1)find $(PACKAGE_DIR)/$(GCS_PACKAGE_NAME) -type f -name "*.lib" -exec rm -f {} \;
 	$(V1)find $(PACKAGE_DIR)/$(GCS_PACKAGE_NAME) -type f -name "*.exp" -exec rm -f {} \;
 
 .PHONY: gcs
 gcs:
-ifeq ($(EXPORT_SYMBOLS), YES)
-	$(V1) $(MAKE) -C $(ROOT_DIR) GCS_QMAKE_OPTS="CONFIG+=RELEASE_WITH_SYMBOLS" GCS_BUILD_CONF=release $@
-else
 	$(V1) $(MAKE) -C $(ROOT_DIR) GCS_BUILD_CONF=release $@
-endif
 
 package_ground_compress: package_ground
 	$(V1)cd $(PACKAGE_DIR) && $(ZIPBIN) -r $(GCS_PACKAGE_NAME) $(GCS_PACKAGE_NAME)
-ifeq ($(EXPORT_SYMBOLS),YES)
-	$(V1)cd $(PACKAGE_DIR) && $(ZIPBIN) -r $(GCS_PACKAGE_NAME)_symbols $(GCS_PACKAGE_NAME)_symbols
-endif
 
-package_all_compress: package_all
+package_all_compress: package_all package_symbols_compress
 	$(V1)cd $(PACKAGE_DIR) && rm -rf $(GCS_PACKAGE_NAME)/firmware
 	$(V1)cd $(PACKAGE_DIR) && cp -r firmware_$(PACKAGE_LBL) $(GCS_PACKAGE_NAME)/firmware
 	$(V1)cd $(PACKAGE_DIR) && $(ZIPBIN) -r --exclude=*.zip $(BUILD_DIR)/dronin-$(PACKAGE_LBL).zip $(GCS_PACKAGE_NAME)
 
+package_symbols_compress: package_ground_symbols package_flight_symbols
+	# blow away old symbols
+	$(V1)rm -rf $(BUILD_DIR)/dronin-$(PACKAGE_LBL)-symbols.zip $(BUILD_DIR)/dronin-$(PACKAGE_LBL)-breakpad.zip
+	$(V1)cd $(PACKAGE_DIR)-symbols && $(ZIPBIN) -9 -r $(BUILD_DIR)/dronin-$(PACKAGE_LBL)-symbols.zip *
+	$(V1)cd $(PACKAGE_DIR)-symbols/breakpad && $(ZIPBIN) -9 -r $(BUILD_DIR)/dronin-$(PACKAGE_LBL)-breakpad.zip *
+
 .PHONY: standalone
-.PHONY: package_ground_compress
+.PHONY: package_ground_compress package_symbols_compress

@@ -2,6 +2,7 @@
 # MacOSX-specific packaging
 #
 
+EXE_NAME_OSX="dRonin-GCS"
 APP_NAME_OSX="dRonin-GCS.app"
 APP_PATH="${BUILD_DIR}/ground/gcs/bin/"
 TEMP_FILE="${PACKAGE_DIR}/dRonin-temp.dmg.sparseimage"
@@ -31,32 +32,31 @@ ground_package_os_specific: | standalone
 	@echo $@ starting
 	$(V1) rm -r -f $(PACKAGE_DIR)/$(GCS_PACKAGE_ROOT)
 	$(V1) mkdir -p $(PACKAGE_DIR)/$(GCS_PACKAGE_NAME)
+	# work around Qt funkiness to get main app debug symbols
+	if [ -d $(BUILD_DIR)/ground/gcs/bin/$(APP_NAME_OSX).dSYM ] ; then \
+		mv $(BUILD_DIR)/ground/gcs/bin/$(APP_NAME_OSX).dSYM $(BUILD_DIR)/ground/gcs/bin/$(APP_NAME_OSX)/Contents/MacOS/$(EXE_NAME_OSX).dSYM ; \
+	fi;
 	$(V1) cp -v -R $(BUILD_DIR)/ground/gcs/bin/$(APP_NAME_OSX) $(PACKAGE_DIR)/$(GCS_PACKAGE_NAME)
-ifeq ($(EXPORT_SYMBOLS), YES)
-	$(V1) $(ROOT_DIR)/package/osx_extract_debug_symbols.sh $(DUMP_SYMBOLS_TOOL) $(PACKAGE_DIR)/$(GCS_PACKAGE_NAME)
-endif
 .PHONY: gcs ground_package osx_package
 
-.PHONY: package_ground_compress
+.PHONY: package_ground_compress package_all_compress package_symbols_compress
 package_ground_compress: package_ground
 	$(V1)cd $(PACKAGE_DIR) && $(ZIPBIN) -9 -r $(GCS_PACKAGE_NAME) $(GCS_PACKAGE_NAME)
-ifeq ($(EXPORT_SYMBOLS),YES)
-	$(V1)cd $(PACKAGE_DIR) && $(ZIPBIN) -9 -r $(GCS_PACKAGE_NAME)_symbols $(GCS_PACKAGE_NAME)_symbols
-endif
 
-package_all_compress: package_all
+package_all_compress: package_all package_symbols_compress
 	$(V1)cd $(PACKAGE_DIR)/../ && $(ZIPBIN) -9 -r --exclude=*.zip $(BUILD_DIR)/dronin-$(PACKAGE_LBL).zip $(notdir $(PACKAGE_DIR))
 
+package_symbols_compress: package_ground_symbols package_flight_symbols
+	# blow away old symbols
+	$(V1)rm -rf $(BUILD_DIR)/dronin-$(PACKAGE_LBL)-symbols.zip $(BUILD_DIR)/dronin-$(PACKAGE_LBL)-breakpad.zip
+	$(V1)cd $(PACKAGE_DIR)-symbols && $(ZIPBIN) -9 -r $(BUILD_DIR)/dronin-$(PACKAGE_LBL)-symbols.zip *
+	$(V1)cd $(PACKAGE_DIR)-symbols/breakpad && $(ZIPBIN) -9 -r $(BUILD_DIR)/dronin-$(PACKAGE_LBL)-breakpad.zip *
+
 .PHONY: standalone installer_package
-.PHONY: package_ground_compress
 
 gcs:
 	@echo "OSX Package Make of GCS."
-ifeq ($(EXPORT_SYMBOLS), YES)
-	$(V1) $(MAKE) -C $(ROOT_DIR) GCS_QMAKE_OPTS="CONFIG+=RELEASE_WITH_SYMBOLS" GCS_BUILD_CONF=debug $@
-else
 	$(V1) $(MAKE) -C $(ROOT_DIR) GCS_BUILD_CONF=release $@
-endif
 
 matlab:
 	$(V1) $(MAKE) -C $(ROOT_DIR) $@

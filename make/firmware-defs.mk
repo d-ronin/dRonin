@@ -75,6 +75,7 @@ MSG_PADDING          = ${quote} PADDING   $(MSG_EXTRA) ${quote}
 MSG_FLASH_IMG        = ${quote} FLASH_IMG $(MSG_EXTRA) ${quote}
 MSG_GCOV             = ${quote} GCOV      $(MSG_EXTRA) ${quote}
 MSG_AR               = ${quote} AR        $(MSG_EXTRA) ${quote}
+MSG_DEBUG_SYMBOLS    = ${quote} DBG-SYM   $(MSG_EXTRA) ${quote}
 
 toprel = $(subst $(realpath $(ROOT_DIR))/,,$(abspath $(1)))
 
@@ -211,6 +212,8 @@ define LINK_TEMPLATE
 $(1):  $(2)
 	@echo $(MSG_LINKING) $$(call toprel, $$@)
 	$(V1) $(CC) $(THUMB) $$(CFLAGS) $(2) --output $$@ $$(LDFLAGS)
+	@echo $(MSG_DEBUG_SYMBOLS) $$(call toprel, $$@)
+	$(V1) $(OBJCOPY) --only-keep-debug $$@ $$(addsuffix .debug, $$(@:.elf=))
 endef
 
 # Link: create ELF output file from object files.
@@ -222,6 +225,8 @@ define LINK_CXX_TEMPLATE
 $(1):  $(2)
 	@echo $(MSG_LINKING) $$(call toprel, $$@)
 	$(V1) $(CXX) $(THUMB) $$(CFLAGS) $(2) --output $$@ $$(LDFLAGS)
+	@echo $(MSG_DEBUG_SYMBOLS) $$(call toprel, $$@)
+	$(V1) $(OBJCOPY) --only-keep-debug $$@ $$(addsuffix .debug, $$(@:.elf=))
 endef
 
 # $(1) = Name of binary image to write
