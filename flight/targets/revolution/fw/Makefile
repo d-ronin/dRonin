@@ -43,8 +43,6 @@ MODULES += Stabilization
 MODULES += Actuator
 MODULES += FirmwareIAP
 MODULES += Telemetry
-PYMODULES = 
-#FlightPlan
 
 OPTMODULES += GPS
 OPTMODULES += AltitudeHold 
@@ -239,7 +237,7 @@ EXTRAINCDIRS  += $(BOOTINC)
 EXTRAINCDIRS  += $(DEBUG_CM3_DIR_INC)
 EXTRAINCDIRS  += $(MAVLINKINC)
 
-EXTRAINCDIRS += ${foreach MOD, ${MODULES} ${OPTMODULES} ${PYMODULES}, $(OPMODULEDIR)/${MOD}/inc} ${OPMODULEDIR}/System/inc
+EXTRAINCDIRS += ${foreach MOD, ${MODULES} ${OPTMODULES}, $(OPMODULEDIR)/${MOD}/inc} ${OPMODULEDIR}/System/inc
 
 # List any extra directories to look for library files here.
 # Also add directories where the linker should search for

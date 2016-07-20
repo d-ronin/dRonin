@@ -42,8 +42,6 @@ MODULES += Stabilization
 MODULES += Actuator
 MODULES += FirmwareIAP
 MODULES += Telemetry
-PYMODULES = 
-#FlightPlan
 
 OPTMODULES += GPS
 OPTMODULES += AltitudeHold 
@@ -215,7 +213,7 @@ CPPSRCARM =
 # List Assembler source files here which must be assembled in ARM-Mode..
 ASRCARM =
 
-EXTRAINCDIRS += ${foreach MOD, ${MODULES} ${OPTMODULES} ${PYMODULES}, $(OPMODULEDIR)/${MOD}/inc} ${OPMODULEDIR}/System/inc
+EXTRAINCDIRS += ${foreach MOD, ${MODULES} ${OPTMODULES}, $(OPMODULEDIR)/${MOD}/inc} ${OPMODULEDIR}/System/inc
 
 # List any extra directories to look for include files here.
 #    Each directory must be seperated by a space.
