@@ -83,11 +83,6 @@ UniqueIDManager *CoreImpl::uniqueIDManager() const
     return m_mainwindow->uniqueIDManager();
 }
 
-MessageManager *CoreImpl::messageManager() const
-{
-    return m_mainwindow->messageManager();
-}
-
 ConnectionManager *CoreImpl::connectionManager() const
 {
     return m_mainwindow->connectionManager();
