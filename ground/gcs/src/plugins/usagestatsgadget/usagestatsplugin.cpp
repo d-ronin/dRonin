@@ -258,6 +258,7 @@ QByteArray UsageStatsPlugin::processJson() {
         b["gitDate"] = board.device.gitDate;
         b["gitHash"] = board.device.gitHash;
         b["gitTag"] = board.device.gitTag;
+        b["nextAncestor"] = board.device.nextAncestor;
         if(sendPrivateData)
             b["UUID"] = QString(QCryptographicHash::hash(QByteArray::fromHex(board.board.cpu_serial.toUtf8()), QCryptographicHash::Sha256).toHex());
         boardArray.append(b);

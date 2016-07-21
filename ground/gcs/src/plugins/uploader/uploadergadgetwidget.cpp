@@ -243,10 +243,12 @@ void UploaderGadgetWidget::FirmwareOnDeviceUpdate(deviceDescriptorStruct firmwar
     m_widget->builtForOD_lbl->setText(Core::IBoardType::getBoardNameFromID(firmware.boardID()));
     m_widget->crcOD_lbl->setText(crc);
     m_widget->gitHashOD_lbl->setText(firmware.gitHash);
+    m_widget->ancestorHashOD_lbl->setText(firmware.nextAncestor);
     m_widget->firmwareDateOD_lbl->setText(firmware.gitDate);
     m_widget->firmwareTagOD_lbl->setText(firmware.gitTag);
     m_widget->uavosSHA_OD_lbl->setText(firmware.uavoHash.toHex().toUpper());
     m_widget->userDefined_OD_lbl->setText(firmware.userDefined);
+
     if(firmware.certified)
     {
         QPixmap pix = QPixmap(QString(":uploader/images/application-certificate.svg"));
@@ -295,6 +297,7 @@ void UploaderGadgetWidget::FirmwareLoadedUpdate(QByteArray firmwareArray)
         m_widget->crcLD_lbl->setText(QString::number(crc));
     }
     m_widget->gitHashLD_lbl->setText(firmware.gitHash);
+    m_widget->ancestorHashLD_lbl->setText(firmware.nextAncestor);
     m_widget->firmwareDateLD_lbl->setText(firmware.gitDate);
     m_widget->firmwareTagLD_lbl->setText(firmware.gitTag);
     m_widget->uavosSHA_LD_lbl->setText(firmware.uavoHash.toHex().toUpper());
@@ -465,8 +468,8 @@ bool UploaderGadgetWidget::flashFirmware(QByteArray &firmwareImage)
 
     tempArray.clear();
     tempArray.append(firmwareImage.right(100));
-    tempArray.chop(20);
-    QString user("                    ");
+    tempArray.chop(12);
+    QString user("            ");
     user = user.replace(0, m_widget->userDefined_LD_lbl->text().length(), m_widget->userDefined_LD_lbl->text());
     tempArray.append(user.toLatin1());
     setStatusInfo(tr("Starting firmware metadata upload"), uploader::STATUSICON_INFO);
@@ -701,7 +704,7 @@ int UploaderGadgetWidget::isCloudReleaseAvailable(QString srcRelease) {
 }
 
 bool UploaderGadgetWidget::tradeSettingsWithCloud(QString srcRelease,
-        bool upgrading, QByteArray *settingsOut) {
+        QString ancestor, bool upgrading, QByteArray *settingsOut) {
     /* post to cloud service */
     QUrl url(exportUrl);
     QNetworkRequest request(url);
@@ -719,10 +722,13 @@ bool UploaderGadgetWidget::tradeSettingsWithCloud(QString srcRelease,
     // (not compatible with zlib)
     compressed.remove(0, 4);
 
-    QHttpPart githash, adaptTo, datafile;
+    QHttpPart githash, ancestorPart, adaptTo, datafile;
 
     githash.setHeader(QNetworkRequest::ContentDispositionHeader,QVariant("form-data; name=\"githash\""));
     githash.setBody(srcRelease.toLatin1());
+
+    ancestorPart.setHeader(QNetworkRequest::ContentDispositionHeader,QVariant("form-data; name=\"ancestor\""));
+    ancestorPart.setBody(ancestor.toLatin1());
 
     const QString gcsRev(GCS_REVISION);
     adaptTo.setHeader(QNetworkRequest::ContentDispositionHeader,QVariant("form-data; name=\"adaptTo\""));
@@ -733,6 +739,8 @@ bool UploaderGadgetWidget::tradeSettingsWithCloud(QString srcRelease,
     datafile.setBody(compressed);
 
     multiPart->append(githash);
+    multiPart->append(adaptTo);
+    multiPart->append(ancestorPart);
     multiPart->append(datafile);
 
     QNetworkReply *reply = netMngr->post(request, multiPart);
@@ -854,6 +862,7 @@ void UploaderGadgetWidget::doUpgradeOperation(bool blankFC, tl_dfu::device &dev)
 
     /* Save the version to convert from, so we can tell the cloud service */
     QString upgradingFrom = m_widget->gitHashOD_lbl->text();
+    QString ancestor = m_widget->ancestorHashOD_lbl->text();
 
     qDebug() << "Upgrading from " << upgradingFrom;
 
@@ -880,6 +889,10 @@ void UploaderGadgetWidget::doUpgradeOperation(bool blankFC, tl_dfu::device &dev)
         stepChangeAndDelay(loop, 400, UpgradeAssistantDialog::STEP_CHECKCLOUD);
 
         int available = isCloudReleaseAvailable(upgradingFrom);
+
+        if (available == 0) {
+            available = isCloudReleaseAvailable(ancestor);
+        }
 
         if (available < 0) {
             // Cloud service missing.  Pop up a dialog and ask user what to
@@ -1063,7 +1076,7 @@ void UploaderGadgetWidget::doUpgradeOperation(bool blankFC, tl_dfu::device &dev)
         }
 
         /* translate the settings using the cloud service */
-        if (!tradeSettingsWithCloud(upgradingFrom, true, &xmlDump)) {
+        if (!tradeSettingsWithCloud(upgradingFrom, ancestor, true, &xmlDump)) {
             upgradeError(tr("Unable to use cloud services to translate settings!"));
 
             return;
@@ -1302,8 +1315,6 @@ void UploaderGadgetWidget::onExportButtonClick()
         return;
     }
 
-    /* XXX TODO:  make sure the cloud service is there and has right git rev */
-
     /* get confirmation from user that using the cloud service is OK */
     QMessageBox msgBox;
     msgBox.setText(tr("Do you wish to export the settings partition as an XML settings file?"));
@@ -1327,8 +1338,9 @@ void UploaderGadgetWidget::onExportButtonClick()
     setStatusInfo(tr("Retrieved settings; contacting cloud..."), uploader::STATUSICON_FAIL);
 
     QString upgradingFrom = m_widget->gitHashOD_lbl->text();
+    QString ancestor = m_widget->ancestorHashOD_lbl->text();
 
-    tradeSettingsWithCloud(upgradingFrom);
+    tradeSettingsWithCloud(upgradingFrom, ancestor);
 }
 
 /**

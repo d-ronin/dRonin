@@ -55,6 +55,18 @@ class Repo:
             if m:
                 self._origin = m.group(1)
 
+    def _get_ancestor(self):
+        """Finds our closest ancestor in next"""
+        self._ancestor = None
+        self._exec('merge-base upstream/next HEAD')
+        if self._rc == 0:
+            self._ancestor = self._out.strip()
+            return
+        self._exec('merge-base origin/next HEAD')
+        if self._rc == 0:
+            self._ancestor = self._out.strip()
+            return
+
     def _get_time(self):
         """Get and store HEAD commit timestamp in Unix format
 
@@ -101,6 +113,7 @@ class Repo:
             self._get_tag()
             self._get_branch()
             self._get_dirty()
+            self._get_ancestor()
         else:
             self._hash = None
             self._origin = None
@@ -108,6 +121,7 @@ class Repo:
             self._tag = None
             self._branch = None
             self._dirty = None
+            self._ancestor = None
 
     def path(self):
         """Return the repository path"""
@@ -151,6 +165,13 @@ class Repo:
         else:
             return self._branch
 
+    def ancestor(self, n = 40, none = None):
+        """Return hash of the HEAD commit"""
+        if self._ancestor == None:
+            return none
+        else:
+            return self._ancestor[:n]
+
     def dirty(self, dirty = "-dirty", clean = ""):
         """Return git repository dirty state or empty string"""
         if self._dirty:
@@ -169,6 +190,7 @@ class Repo:
         print "branch:     ", self.branch()
         print "commit tag: ", self.tag('')
         print "dirty:      ", self.dirty('yes', 'no')
+        print "ancestor:   ", self.ancestor()
 
 def file_from_template(tpl_name, out_name, dict):
     """Create or update file from template using dictionary
@@ -378,6 +400,8 @@ string given.
         ORIGIN = r.origin(),
         HASH = r.hash(),
         HASH8 = r.hash(8),
+        ANCESTOR16 = r.ancestor(16),
+        ANCESTOR = r.ancestor(),
         TAG = r.tag(''),
         TAG_OR_BRANCH = r.tag(r.branch('unreleased')),
         TAG_OR_HASH8 = r.tag(r.hash(8, 'untagged')),

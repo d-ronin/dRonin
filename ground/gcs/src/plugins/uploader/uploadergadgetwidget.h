@@ -101,8 +101,8 @@ private:
     bool FirmwareCheckForUpdate(deviceDescriptorStruct device);
     void triggerPartitionDownload(int index);
     void haltOrReset(bool halting);
-    bool tradeSettingsWithCloud(QString srcRelease, bool upgrading = false,
-            QByteArray *settingsOut = NULL);
+    bool tradeSettingsWithCloud(QString srcRelease, QString ancestor,
+            bool upgrading = false, QByteArray *settingsOut = NULL);
     int isCloudReleaseAvailable(QString srcRelease);
 
     bool saveSettings(const QByteArray &settingsDump);
