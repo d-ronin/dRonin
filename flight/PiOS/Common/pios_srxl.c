@@ -294,6 +294,8 @@ static void PIOS_SRXL_ParseFrame(struct pios_srxl_dev *dev)
 			PIOS_SRXL_ResetChannels(dev, PIOS_RCVR_TIMEOUT);
 		else
 			dev->failsafe_timer = 0;
+
+		PIOS_RCVR_ActiveFromISR();
 	}
 
 	dev->rx_buffer_pos = 0;

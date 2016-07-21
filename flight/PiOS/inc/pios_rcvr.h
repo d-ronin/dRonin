@@ -37,7 +37,10 @@ struct pios_rcvr_driver {
 };
 
 /* Public Functions */
-extern int32_t PIOS_RCVR_Read(uintptr_t rcvr_id, uint8_t channel);
+int32_t PIOS_RCVR_Read(uintptr_t rcvr_id, uint8_t channel);
+bool PIOS_RCVR_WaitActivity(uint32_t timeout_ms);
+void PIOS_RCVR_Active();
+void PIOS_RCVR_ActiveFromISR();
 
 /*! Define error codes for PIOS_RCVR_Get */
 enum PIOS_RCVR_errors {

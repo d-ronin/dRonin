@@ -1,6 +1,8 @@
 /* Project Includes */
 #include "pios.h"
 
+#include "pios_semaphore.h"
+
 #if defined(PIOS_INCLUDE_RCVR)
 
 #include <pios_rcvr_priv.h>
@@ -49,6 +51,9 @@ static struct pios_rcvr_dev * PIOS_RCVR_alloc(void)
 }
 #endif
 
+static struct pios_semaphore *rcvr_activity;
+static uint32_t rcvr_last_wake;
+
 /**
   * Initialises RCVR layer
   * \param[out] handle
@@ -62,6 +67,13 @@ int32_t PIOS_RCVR_Init(uintptr_t * rcvr_id, const struct pios_rcvr_driver * driv
   PIOS_DEBUG_Assert(driver);
 
   struct pios_rcvr_dev * rcvr_dev;
+
+  // For idempotency in all environments...
+  PIOS_IRQ_Disable();
+  if (!rcvr_activity) {
+    rcvr_activity = PIOS_Semaphore_Create();
+  }
+  PIOS_IRQ_Enable();
 
   rcvr_dev = (struct pios_rcvr_dev *) PIOS_RCVR_alloc();
   if (!rcvr_dev) goto out_fail;
@@ -106,6 +118,28 @@ int32_t PIOS_RCVR_Read(uintptr_t rcvr_id, uint8_t channel)
   PIOS_DEBUG_Assert(rcvr_dev->driver->read);
 
   return rcvr_dev->driver->read(rcvr_dev->lower_id, channel);
+}
+
+#define MIN_WAKE_INTERVAL_MS 4	/* 250Hz ought to be enough for anyone*/
+
+bool PIOS_RCVR_WaitActivity(uint32_t timeout_ms) {
+  return PIOS_Semaphore_Take(rcvr_activity, timeout_ms);
+}
+
+void PIOS_RCVR_Active() {
+  if (PIOS_DELAY_DiffuS(rcvr_last_wake) >= MIN_WAKE_INTERVAL_MS) {
+    rcvr_last_wake = PIOS_DELAY_GetRaw();
+    PIOS_Semaphore_Give(rcvr_activity);
+  }
+}
+
+void PIOS_RCVR_ActiveFromISR() {
+  if (PIOS_DELAY_DiffuS(rcvr_last_wake) >= MIN_WAKE_INTERVAL_MS) {
+    bool dont_care;
+
+    rcvr_last_wake = PIOS_DELAY_GetRaw();
+    PIOS_Semaphore_Give_FromISR(rcvr_activity, &dont_care);
+  }
 }
 
 #endif

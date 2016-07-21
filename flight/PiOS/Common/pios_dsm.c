@@ -288,9 +288,11 @@ static void PIOS_DSM_UpdateState(struct pios_dsm_dev *dsm_dev, uint8_t byte)
 			state->received_data[state->byte_count++] = byte;
 			if (state->byte_count == DSM_FRAME_LENGTH) {
 				/* full frame received - process and wait for new one */
-				if (!PIOS_DSM_UnrollChannels(dsm_dev))
+				if (!PIOS_DSM_UnrollChannels(dsm_dev)) {
 					/* data looking good */
 					state->failsafe_timer = 0;
+					PIOS_RCVR_ActiveFromISR();
+				}
 
 				/* prepare for the next frame */
 				state->frame_found = 0;
