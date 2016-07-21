@@ -119,55 +119,6 @@ static const struct pios_ms5611_cfg pios_ms5611_cfg = {
 };
 #endif /* PIOS_INCLUDE_MS5611 */
 
-
-/**
- * Configuration for the MPU6000 chip
- */
-#if defined(PIOS_INCLUDE_MPU6000)
-#include "pios_mpu6000.h"
-static const struct pios_exti_cfg pios_exti_mpu6000_cfg __exti_config = {
-	.vector = PIOS_MPU6000_IRQHandler,
-	.line = EXTI_Line4,
-	.pin = {
-		.gpio = GPIOC,
-		.init = {
-			.GPIO_Pin = GPIO_Pin_4,
-			.GPIO_Speed = GPIO_Speed_100MHz,
-			.GPIO_Mode = GPIO_Mode_IN,
-			.GPIO_OType = GPIO_OType_OD,
-			.GPIO_PuPd = GPIO_PuPd_NOPULL,
-		},
-	},
-	.irq = {
-		.init = {
-			.NVIC_IRQChannel = EXTI4_IRQn,
-			.NVIC_IRQChannelPreemptionPriority = PIOS_IRQ_PRIO_HIGH,
-			.NVIC_IRQChannelSubPriority = 0,
-			.NVIC_IRQChannelCmd = ENABLE,
-		},
-	},
-	.exti = {
-		.init = {
-			.EXTI_Line = EXTI_Line4, // matches above GPIO pin
-			.EXTI_Mode = EXTI_Mode_Interrupt,
-			.EXTI_Trigger = EXTI_Trigger_Rising,
-			.EXTI_LineCmd = ENABLE,
-		},
-	},
-};
-
-static const struct pios_mpu60x0_cfg pios_mpu6000_cfg = {
-	.exti_cfg = &pios_exti_mpu6000_cfg,
-	.default_samplerate = 666,
-	.interrupt_cfg = PIOS_MPU60X0_INT_CLR_ANYRD,
-	.interrupt_en = PIOS_MPU60X0_INTEN_DATA_RDY,
-	.User_ctl = PIOS_MPU60X0_USERCTL_DIS_I2C,
-	.Pwr_mgmt_clk = PIOS_MPU60X0_PWRMGMT_PLL_Z_CLK,
-	.default_filter = PIOS_MPU60X0_LOWPASS_256_HZ,
-	.orientation = PIOS_MPU60X0_TOP_180DEG
-};
-#endif /* PIOS_INCLUDE_MPU6000 */
-
 #if defined(PIOS_INCLUDE_DEBUG_CONSOLE)
 #define PIOS_COM_DEBUGCONSOLE_TX_BUF_LEN 40
 uintptr_t pios_com_debug_id;
@@ -542,72 +493,68 @@ void PIOS_Board_Init(void) {
     PIOS_DELAY_WaitmS(200);
     PIOS_WDG_Clear();
 
-#if defined(PIOS_INCLUDE_MPU6000)
-	if (PIOS_MPU6000_Init(pios_spi_gyro_id,0, &pios_mpu6000_cfg) != 0)
+#if defined(PIOS_INCLUDE_MPU)
+	pios_mpu_dev_t mpu_dev = NULL;
+	if (PIOS_MPU_SPI_Init(&mpu_dev, pios_spi_gyro_id, 0, &pios_mpu_cfg) != 0)
 		PIOS_HAL_Panic(PIOS_LED_ALARM, PIOS_HAL_PANIC_IMU);
 
-	// To be safe map from UAVO enum to driver enum
-	uint8_t hw_gyro_range;
+	HwRevolutionGyroRangeOptions hw_gyro_range;
 	HwRevolutionGyroRangeGet(&hw_gyro_range);
 	switch(hw_gyro_range) {
 		case HWREVOLUTION_GYRORANGE_250:
-			PIOS_MPU6000_SetGyroRange(PIOS_MPU60X0_SCALE_250_DEG);
+			PIOS_MPU_SetGyroRange(PIOS_MPU_SCALE_250_DEG);
 			break;
 		case HWREVOLUTION_GYRORANGE_500:
-			PIOS_MPU6000_SetGyroRange(PIOS_MPU60X0_SCALE_500_DEG);
+			PIOS_MPU_SetGyroRange(PIOS_MPU_SCALE_500_DEG);
 			break;
 		case HWREVOLUTION_GYRORANGE_1000:
-			PIOS_MPU6000_SetGyroRange(PIOS_MPU60X0_SCALE_1000_DEG);
+			PIOS_MPU_SetGyroRange(PIOS_MPU_SCALE_1000_DEG);
 			break;
 		case HWREVOLUTION_GYRORANGE_2000:
-			PIOS_MPU6000_SetGyroRange(PIOS_MPU60X0_SCALE_2000_DEG);
+			PIOS_MPU_SetGyroRange(PIOS_MPU_SCALE_2000_DEG);
 			break;
 	}
 
-	uint8_t hw_accel_range;
+	HwRevolutionAccelRangeOptions hw_accel_range;
 	HwRevolutionAccelRangeGet(&hw_accel_range);
 	switch(hw_accel_range) {
 		case HWREVOLUTION_ACCELRANGE_2G:
-			PIOS_MPU6000_SetAccelRange(PIOS_MPU60X0_ACCEL_2G);
+			PIOS_MPU_SetAccelRange(PIOS_MPU_SCALE_2G);
 			break;
 		case HWREVOLUTION_ACCELRANGE_4G:
-			PIOS_MPU6000_SetAccelRange(PIOS_MPU60X0_ACCEL_4G);
+			PIOS_MPU_SetAccelRange(PIOS_MPU_SCALE_4G);
 			break;
 		case HWREVOLUTION_ACCELRANGE_8G:
-			PIOS_MPU6000_SetAccelRange(PIOS_MPU60X0_ACCEL_8G);
+			PIOS_MPU_SetAccelRange(PIOS_MPU_SCALE_8G);
 			break;
 		case HWREVOLUTION_ACCELRANGE_16G:
-			PIOS_MPU6000_SetAccelRange(PIOS_MPU60X0_ACCEL_16G);
+			PIOS_MPU_SetAccelRange(PIOS_MPU_SCALE_16G);
 			break;
 	}
 
 	// the filter has to be set before rate else divisor calculation will fail
-	uint8_t hw_mpu6000_dlpf;
-	HwRevolutionMPU6000DLPFGet(&hw_mpu6000_dlpf);
-	enum pios_mpu60x0_filter mpu6000_dlpf = \
-	    (hw_mpu6000_dlpf == HWREVOLUTION_MPU6000DLPF_256) ? PIOS_MPU60X0_LOWPASS_256_HZ : \
-	    (hw_mpu6000_dlpf == HWREVOLUTION_MPU6000DLPF_188) ? PIOS_MPU60X0_LOWPASS_188_HZ : \
-	    (hw_mpu6000_dlpf == HWREVOLUTION_MPU6000DLPF_98) ? PIOS_MPU60X0_LOWPASS_98_HZ : \
-	    (hw_mpu6000_dlpf == HWREVOLUTION_MPU6000DLPF_42) ? PIOS_MPU60X0_LOWPASS_42_HZ : \
-	    (hw_mpu6000_dlpf == HWREVOLUTION_MPU6000DLPF_20) ? PIOS_MPU60X0_LOWPASS_20_HZ : \
-	    (hw_mpu6000_dlpf == HWREVOLUTION_MPU6000DLPF_10) ? PIOS_MPU60X0_LOWPASS_10_HZ : \
-	    (hw_mpu6000_dlpf == HWREVOLUTION_MPU6000DLPF_5) ? PIOS_MPU60X0_LOWPASS_5_HZ : \
-	    pios_mpu6000_cfg.default_filter;
-	PIOS_MPU6000_SetLPF(mpu6000_dlpf);
+	HwRevolutionMPU6000DLPFOptions hw_mpu_dlpf;
+	HwRevolutionMPU6000DLPFGet(&hw_mpu_dlpf);
+	uint16_t bandwidth = \
+		(hw_mpu_dlpf == HWREVOLUTION_MPU6000DLPF_188) ? 188 : \
+		(hw_mpu_dlpf == HWREVOLUTION_MPU6000DLPF_98)  ? 98  : \
+		(hw_mpu_dlpf == HWREVOLUTION_MPU6000DLPF_42)  ? 42  : \
+		(hw_mpu_dlpf == HWREVOLUTION_MPU6000DLPF_20)  ? 20  : \
+		(hw_mpu_dlpf == HWREVOLUTION_MPU6000DLPF_10)  ? 10  : \
+		(hw_mpu_dlpf == HWREVOLUTION_MPU6000DLPF_5)   ? 5   : \
+		188;
+	PIOS_MPU_SetGyroBandwidth(bandwidth);
 
-	uint8_t hw_mpu6000_samplerate;
-	HwRevolutionMPU6000RateGet(&hw_mpu6000_samplerate);
-	uint16_t mpu6000_samplerate = \
-	    (hw_mpu6000_samplerate == HWREVOLUTION_MPU6000RATE_200) ? 200 : \
-	    (hw_mpu6000_samplerate == HWREVOLUTION_MPU6000RATE_333) ? 333 : \
-	    (hw_mpu6000_samplerate == HWREVOLUTION_MPU6000RATE_500) ? 500 : \
-	    (hw_mpu6000_samplerate == HWREVOLUTION_MPU6000RATE_666) ? 666 : \
-	    (hw_mpu6000_samplerate == HWREVOLUTION_MPU6000RATE_1000) ? 1000 : \
-	    (hw_mpu6000_samplerate == HWREVOLUTION_MPU6000RATE_2000) ? 2000 : \
-	    (hw_mpu6000_samplerate == HWREVOLUTION_MPU6000RATE_4000) ? 4000 : \
-	    (hw_mpu6000_samplerate == HWREVOLUTION_MPU6000RATE_8000) ? 8000 : \
-	    pios_mpu6000_cfg.default_samplerate;
-	PIOS_MPU6000_SetSampleRate(mpu6000_samplerate);
+	HwRevolutionMPU6000RateOptions hw_mpu_samplerate;
+	HwRevolutionMPU6000RateGet(&hw_mpu_samplerate);
+	uint16_t mpu_samplerate = \
+		(hw_mpu_samplerate == HWREVOLUTION_MPU6000RATE_200)  ? 200  : \
+		(hw_mpu_samplerate == HWREVOLUTION_MPU6000RATE_250)  ? 250  : \
+		(hw_mpu_samplerate == HWREVOLUTION_MPU6000RATE_333)  ? 333  : \
+		(hw_mpu_samplerate == HWREVOLUTION_MPU6000RATE_500)  ? 500  : \
+		(hw_mpu_samplerate == HWREVOLUTION_MPU6000RATE_1000) ? 1000 : \
+		pios_mpu_cfg.default_samplerate;
+	PIOS_MPU_SetSampleRate(mpu_samplerate);
 #endif
 
 #if defined(PIOS_INCLUDE_I2C)

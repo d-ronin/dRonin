@@ -61,10 +61,10 @@
  * WHOAMI ids of each device, must be same length as pios_mpu_type
  */
 static const uint8_t pios_mpu_whoami[PIOS_MPU_NUM] = {
-	[PIOS_MPU60X0] = 0x68,
-	[PIOS_MPU6500] = 0x70,
-	[PIOS_MPU9150] = 0x68,
-	[PIOS_MPU9250] = 0x71,
+	[PIOS_MPU60X0]   = 0x68,
+	[PIOS_MPU6500]   = 0x70,
+	[PIOS_MPU9150]   = 0x68,
+	[PIOS_MPU9250]   = 0x71,
 	[PIOS_ICM20608G] = 0xAF,
 };
 
@@ -96,24 +96,23 @@ enum pios_mpu_dev_magic {
  * @brief The device state struct
  */
 struct pios_mpu_dev {
-	const struct pios_mpu_cfg *cfg;      /**< Device configuration structure */
-	enum pios_mpu_type mpu_type;              /**< The IMU device type */
+	const struct pios_mpu_cfg *cfg;             /**< Device configuration structure */
+	enum pios_mpu_type mpu_type;                /**< The IMU device type */
 	enum pios_mpu_com_driver com_driver_type;   /**< Communication driver type */
-	uint32_t com_driver_id;              /**< Handle to the communication driver */
-	uint32_t com_slave_addr;             /**< The slave address (I2C) or number (SPI) */
-#ifdef PIOS_INCLUDE_MPU_MAG
-	bool use_mag;
-	struct pios_queue *mag_queue;
-#endif // PIOS_INCLUDE_MPU_MAG
+	uint32_t com_driver_id;                     /**< Handle to the communication driver */
+	uint32_t com_slave_addr;                    /**< The slave address (I2C) or number (SPI) */
 	struct pios_queue *gyro_queue;
 	struct pios_queue *accel_queue;
 	struct pios_thread *task_handle;
 	struct pios_semaphore *data_ready_sema;
 	enum pios_mpu_gyro_range gyro_range;
 	enum pios_mpu_accel_range accel_range;
-	enum pios_mpu_dev_magic magic;       /**< Magic bytes to validate the struct contents */
+	enum pios_mpu_dev_magic magic;              /**< Magic bytes to validate the struct contents */
+#ifdef PIOS_INCLUDE_MPU_MAG
+	bool use_mag;
+	struct pios_queue *mag_queue;
+#endif // PIOS_INCLUDE_MPU_MAG
 };
-
 
 //! Global structure for this device device
 static struct pios_mpu_dev *mpu_dev;
@@ -226,8 +225,10 @@ static int32_t PIOS_MPU_CheckWhoAmI(enum pios_mpu_type *detected_device)
 {
 	// mask the reserved bit
 	int32_t retval = PIOS_MPU_ReadReg(PIOS_MPU_WHOAMI);
+
 	if (retval < 0)
 		return -PIOS_MPU_ERROR_READFAILED;
+
 	for (int i = 0; i < PIOS_MPU_NUM; i++) {
 		if ((uint8_t)(retval & 0x7E) == pios_mpu_whoami[i]) {
 			*detected_device = i;
@@ -762,9 +763,8 @@ int32_t PIOS_MPU_SPI_Init(pios_mpu_dev_t *dev, uint32_t spi_id, uint32_t slave_n
 	mpu_dev->com_slave_addr = slave_num;
 	mpu_dev->cfg = cfg;
 
-	// TODO: probe MPU type
-	enum pios_mpu_type mpu_type;
-	PIOS_MPU_SPI_Probe(&mpu_type);
+	PIOS_MPU_SPI_Probe(&mpu_dev->mpu_type);
+
 	// TODO: detect mag?
 
 	return PIOS_MPU_Common_Init();
@@ -966,9 +966,9 @@ static void PIOS_MPU_Task(void *parameters)
 		float accel_x = (int16_t)(mpu_rec_buf[IDX_ACCEL_XOUT_H] << 8 | mpu_rec_buf[IDX_ACCEL_XOUT_L]);
 		float accel_y = (int16_t)(mpu_rec_buf[IDX_ACCEL_YOUT_H] << 8 | mpu_rec_buf[IDX_ACCEL_YOUT_L]);
 		float accel_z = (int16_t)(mpu_rec_buf[IDX_ACCEL_ZOUT_H] << 8 | mpu_rec_buf[IDX_ACCEL_ZOUT_L]);
-		float gyro_x = (int16_t)(mpu_rec_buf[IDX_GYRO_XOUT_H] << 8 | mpu_rec_buf[IDX_GYRO_XOUT_L]);
-		float gyro_y = (int16_t)(mpu_rec_buf[IDX_GYRO_YOUT_H] << 8 | mpu_rec_buf[IDX_GYRO_YOUT_L]);
-		float gyro_z = (int16_t)(mpu_rec_buf[IDX_GYRO_ZOUT_H] << 8 | mpu_rec_buf[IDX_GYRO_ZOUT_L]);
+		float gyro_x  = (int16_t)(mpu_rec_buf[IDX_GYRO_XOUT_H]  << 8 | mpu_rec_buf[IDX_GYRO_XOUT_L]);
+		float gyro_y  = (int16_t)(mpu_rec_buf[IDX_GYRO_YOUT_H]  << 8 | mpu_rec_buf[IDX_GYRO_YOUT_L]);
+		float gyro_z  = (int16_t)(mpu_rec_buf[IDX_GYRO_ZOUT_H]  << 8 | mpu_rec_buf[IDX_GYRO_ZOUT_L]);
 
 #ifdef PIOS_INCLUDE_MPU_MAG
 		struct pios_sensor_mag_data mag_data;
@@ -983,29 +983,29 @@ static void PIOS_MPU_Task(void *parameters)
 		// to our convention. This is true for accels and gyros. Magnetometer corresponds our convention.
 		switch (mpu_dev->cfg->orientation) {
 		case PIOS_MPU_TOP_0DEG:
-			accel_data.y = accel_x;
-			accel_data.x = accel_y;
+			accel_data.y =  accel_x;
+			accel_data.x =  accel_y;
 			accel_data.z = -accel_z;
-			gyro_data.y  = gyro_x;
-			gyro_data.x  = gyro_y;
+			gyro_data.y  =  gyro_x;
+			gyro_data.x  =  gyro_y;
 			gyro_data.z  = -gyro_z;
 #ifdef PIOS_INCLUDE_MPU_MAG
-			mag_data.x   = mag_x;
-			mag_data.y   = mag_y;
-			mag_data.z   = mag_z;
+			mag_data.x   =  mag_x;
+			mag_data.y   =  mag_y;
+			mag_data.z   =  mag_z;
 #endif // PIOS_INCLUDE_MPU_MAG
 			break;
 		case PIOS_MPU_TOP_90DEG:
 			accel_data.y = -accel_y;
-			accel_data.x = accel_x;
+			accel_data.x =  accel_x;
 			accel_data.z = -accel_z;
 			gyro_data.y  = -gyro_y;
-			gyro_data.x  = gyro_x;
+			gyro_data.x  =  gyro_x;
 			gyro_data.z  = -gyro_z;
 #ifdef PIOS_INCLUDE_MPU_MAG
 			mag_data.x   = -mag_y;
-			mag_data.y   = mag_x;
-			mag_data.z   = mag_z;
+			mag_data.y   =  mag_x;
+			mag_data.z   =  mag_z;
 #endif // PIOS_INCLUDE_MPU_MAG
 			break;
 		case PIOS_MPU_TOP_180DEG:
@@ -1018,43 +1018,43 @@ static void PIOS_MPU_Task(void *parameters)
 #ifdef PIOS_INCLUDE_MPU_MAG
 			mag_data.x   = -mag_x;
 			mag_data.y   = -mag_y;
-			mag_data.z   = mag_z;
+			mag_data.z   =  mag_z;
 #endif // PIOS_INCLUDE_MPU_MAG
 			break;
 		case PIOS_MPU_TOP_270DEG:
-			accel_data.y = accel_y;
+			accel_data.y =  accel_y;
 			accel_data.x = -accel_x;
 			accel_data.z = -accel_z;
-			gyro_data.y  = gyro_y;
+			gyro_data.y  =  gyro_y;
 			gyro_data.x  = -gyro_x;
 			gyro_data.z  = -gyro_z;
 #ifdef PIOS_INCLUDE_MPU_MAG
-			mag_data.x   = mag_y;
+			mag_data.x   =  mag_y;
 			mag_data.y   = -mag_x;
-			mag_data.z   = mag_z;
+			mag_data.z   =  mag_z;
 #endif // PIOS_INCLUDE_MPU_MAG
 			break;
 		case PIOS_MPU_BOTTOM_0DEG:
 			accel_data.y = -accel_x;
-			accel_data.x = accel_y;
-			accel_data.z = accel_z;
+			accel_data.x =  accel_y;
+			accel_data.z =  accel_z;
 			gyro_data.y  = -gyro_x;
-			gyro_data.x  = gyro_y;
-			gyro_data.z  = gyro_z;
+			gyro_data.x  =  gyro_y;
+			gyro_data.z  =  gyro_z;
 #ifdef PIOS_INCLUDE_MPU_MAG
-			mag_data.x   = mag_x;
+			mag_data.x   =  mag_x;
 			mag_data.y   = -mag_y;
 			mag_data.z   = -mag_z;
 #endif // PIOS_INCLUDE_MPU_MAG
 			break;
 
 		case PIOS_MPU_BOTTOM_90DEG:
-			accel_data.y = -accel_y;
-			accel_data.x = -accel_x;
-			accel_data.z = accel_z;
-			gyro_data.y  = -gyro_y;
-			gyro_data.x  = -gyro_x;
-			gyro_data.z  = gyro_z;
+			accel_data.y =  accel_y;
+			accel_data.x =  accel_x;
+			accel_data.z =  accel_z;
+			gyro_data.y  =  gyro_y;
+			gyro_data.x  =  gyro_x;
+			gyro_data.z  =  gyro_z;
 #ifdef PIOS_INCLUDE_MPU_MAG
 			mag_data.x   = -mag_y;
 			mag_data.y   = -mag_x;
@@ -1063,29 +1063,29 @@ static void PIOS_MPU_Task(void *parameters)
 			break;
 
 		case PIOS_MPU_BOTTOM_180DEG:
-			accel_data.y = accel_x;
+			accel_data.y =  accel_x;
 			accel_data.x = -accel_y;
-			accel_data.z = accel_z;
-			gyro_data.y  = gyro_x;
+			accel_data.z =  accel_z;
+			gyro_data.y  =  gyro_x;
 			gyro_data.x  = -gyro_y;
-			gyro_data.z  = gyro_z;
+			gyro_data.z  =  gyro_z;
 #ifdef PIOS_INCLUDE_MPU_MAG
 			mag_data.x   = -mag_x;
-			mag_data.y   = mag_y;
+			mag_data.y   =  mag_y;
 			mag_data.z   = -mag_z;
 #endif // PIOS_INCLUDE_MPU_MAG
 			break;
 
 		case PIOS_MPU_BOTTOM_270DEG:
-			accel_data.y = accel_y;
-			accel_data.x = accel_x;
-			gyro_data.y  = gyro_y;
-			gyro_data.x  = gyro_x;
-			gyro_data.z  = gyro_z;
-			accel_data.z = accel_z;
+			accel_data.y = -accel_y;
+			accel_data.x = -accel_x;
+			accel_data.z =  accel_z;
+			gyro_data.y  = -gyro_y;
+			gyro_data.x  = -gyro_x;
+			gyro_data.z  =  gyro_z;
 #ifdef PIOS_INCLUDE_MPU_MAG
-			mag_data.x   = mag_y;
-			mag_data.y   = mag_x;
+			mag_data.x   =  mag_y;
+			mag_data.y   =  mag_x;
 			mag_data.z   = -mag_z;
 #endif // PIOS_INCLUDE_MPU_MAG
 			break;
