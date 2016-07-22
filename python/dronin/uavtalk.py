@@ -292,7 +292,7 @@ def send_object(obj):
 
     packet = hdr + obj.to_bytes()
 
-    packet += calcCRC(packet)
+    packet += int2byte(calcCRC(packet))
 
     return packet
 
@@ -301,7 +301,7 @@ def request_object(obj):
     packet = header_fmt.pack(SYNC_VAL, TYPE_OBJ_REQ | TYPE_VER,
         header_fmt.size, obj._id)
 
-    packet += calcCRC(packet)
+    packet += int2byte(calcCRC(packet))
 
     return packet
 

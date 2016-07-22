@@ -294,8 +294,8 @@ class BidirTelemetry(TelemetryBase):
         TelemetryBase.__init__(self, do_handshaking=True,
                 gcs_timestamps=False,  *args, **kwargs)
 
-        self.recv_buf = ''
-        self.send_buf = ''
+        self.recv_buf = b''
+        self.send_buf = b''
 
     def _receive(self, finish_time):
         """ Fetch available data from file descriptor. """
@@ -310,7 +310,7 @@ class BidirTelemetry(TelemetryBase):
             return None
 
         ret = self.recv_buf
-        self.recv_buf = ''
+        self.recv_buf = b''
 
         return ret
 
@@ -467,7 +467,7 @@ class SerialTelemetry(BidirTelemetry):
                     if written > 0:
                         self.send_buf = self.send_buf[written:]
                         did_stuff = True
-                except pyserial.SerialTimeoutException:
+                except serial.SerialTimeoutException:
                     pass
 
             now = time.time()
