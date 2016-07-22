@@ -4,22 +4,9 @@ import pyqtgraph as pg
 from pyqtgraph.Qt import QtCore, QtGui
 import numpy as np
 
-from logviewer.plotdockarea import PlotDockArea
+from dronin.logviewer.plotdockarea import PlotDockArea
 
 from pyqtgraph.dockarea import *
-
-# Create our application, consisting of dockarea stuff.
-# For now fix the size at 1024x680, so that we can make it work well in this
-# size
-app = QtGui.QApplication([])
-win = QtGui.QMainWindow()
-area = PlotDockArea()
-win.setCentralWidget(area)
-win.resize(1024, 680)
-
-menubar = win.menuBar()
-
-win_num = 0
 
 def get_data_series(obj_name, fields):
     # XXX TODO -- need to copy when the field is not a float.
@@ -38,7 +25,7 @@ def add_plot_area(data_series, dock_name, axis_label, legend=False, **kwargs):
     colors = [ 'w', 'm', 'y', 'c' ]
     idx = 0
 
-    for plot_name, data in data_series.iteritems():
+    for plot_name, data in data_series.items():
         pw.plot(data, antialias=True, name='&nbsp;'+plot_name, pen=pg.mkPen(colors[idx]), **kwargs)
         idx += 1
 
@@ -84,7 +71,7 @@ def plot_vs_time(obj_name, fields):
 def clear_plots(skip=None):
     containers, docks = area.findAll()
 
-    for d in docks.values():
+    for d in list(docks.values()):
         if skip is not None and d in skip:
             continue
 
@@ -122,7 +109,7 @@ def handle_open():
 
             num_bytes = stat_info.st_size
         except Exception:
-            print "Couldn't stat file"
+            print("Couldn't stat file")
             pass
 
         def cb(n_objs, n_bytes):
@@ -142,7 +129,7 @@ def handle_open():
         series = {}
         objtyps = {}
 
-        for typ in t.uavo_defs.itervalues():
+        for typ in t.uavo_defs.values():
             short_name = typ._name[5:]
             objtyps[short_name] = typ
 
@@ -158,7 +145,7 @@ def handle_open():
         dlg.setValue(975)
         plot_vs_time('Gyros', ['x', 'y', 'z'])
 
-        objtyps = { k:v for k,v in objtyps.iteritems() if v in t.last_values }
+        objtyps = { k:v for k,v in objtyps.items() if v in t.last_values }
 
         #add all non-settings objects, and autotune, to the keys.
         objSel.clear()
@@ -169,6 +156,30 @@ def handle_open():
 
         objSel.setEnabled(True)
 
+def updateItems(i):
+    uavo = objtyps[str(objSel.currentText())]
+
+    itemSel.clear()
+    itemSel.addItems(uavo._fields[3:])
+    itemSel.setEnabled(True)
+    addPlotBtn.setEnabled(True)
+
+def addTimeSeries():
+    plot_vs_time(str(objSel.currentText()), str(itemSel.currentText()))
+
+# Create our application, consisting of dockarea stuff.
+# For now fix the size at 1024x680, so that we can make it work well in this
+# size
+app = QtGui.QApplication([])
+win = QtGui.QMainWindow()
+area = PlotDockArea()
+
+win.setCentralWidget(area)
+win.resize(1024, 680)
+
+menubar = win.menuBar()
+
+win_num = 0
 openAction = QtGui.QAction("&Open", win)
 openAction.setShortcut(QtGui.QKeySequence.Open)
 openAction.triggered.connect(handle_open)
@@ -207,25 +218,12 @@ dui.addWidget(itemSel, 1, 1)
 dui.addWidget(addPlotBtn, 2, 0, 1, 2)
 dui.layout.addItem(QtGui.QSpacerItem(20, 20, QtGui.QSizePolicy.Minimum, QtGui.QSizePolicy.Expanding), 3, 0)
 
-def updateItems(i):
-    uavo = objtyps[str(objSel.currentText())]
-
-    itemSel.clear()
-    itemSel.addItems(uavo._fields[3:])
-    itemSel.setEnabled(True)
-    addPlotBtn.setEnabled(True)
-
-def addTimeSeries():
-    plot_vs_time(str(objSel.currentText()), str(itemSel.currentText()))
-
 objSel.currentIndexChanged.connect(updateItems)
 addPlotBtn.clicked.connect(addTimeSeries)
 
 win.show()
 
-
-## Start Qt event loop unless running in interactive mode or using pyside.
-if __name__ == '__main__':
+def main():
     import sys
     if (sys.flags.interactive != 1) or not hasattr(QtCore, 'PYQT_VERSION'):
         QtGui.QApplication.instance().exec_()

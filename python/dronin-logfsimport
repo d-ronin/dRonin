@@ -17,7 +17,7 @@ def main():
 
     imported = LogFSImport(githash, file(srcfile, 'rb').read())
 
-    print imported.ExportXML()
+    print(imported.ExportXML())
 
 if __name__ == '__main__':
         main()

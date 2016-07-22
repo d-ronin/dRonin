@@ -31,7 +31,7 @@ def main():
 
     # Extend the shell environment to include all of the uavo.UAVO_* classes that were
     # auto-created when the uavo xml files were processed.
-    uavo_classes = [(t[0], t[1]) for t in uavo.__dict__.iteritems() if 'UAVO_' in t[0]]
+    uavo_classes = [(t[0], t[1]) for t in uavo.__dict__.items() if 'UAVO_' in t[0]]
     user_module.__dict__.update(uavo_classes)
 
     # Instantiate an ipython shell to interact with the log data.

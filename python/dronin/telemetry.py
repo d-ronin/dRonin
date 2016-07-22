@@ -10,19 +10,18 @@ import socket
 import time
 import errno
 
-import uavtalk, uavo_collection, uavo
+from . import uavtalk, uavo_collection, uavo
 
 import os
 
 from abc import ABCMeta, abstractmethod
 
-class TelemetryBase():
+from six import with_metaclass
+
+class TelemetryBase(with_metaclass(ABCMeta)):
     """
     Basic (abstract) implementation of telemetry used by all stream types.
     """
-
-    # This is not a complete implemention / must subclass
-    __metaclass__ = ABCMeta
 
     def __init__(self, githash=None, service_in_iter=True,
             iter_blocks=True, use_walltime=True, do_handshaking=False,
@@ -96,11 +95,11 @@ class TelemetryBase():
         import numpy as np
 
         # Find the subset of this list that is of the requested class
-        filtered_list = filter(lambda x: isinstance(x, match_class), self)
+        filtered_list = [x for x in self if isinstance(x, match_class)]
 
         # Perform any additional requested filtering
         if filter_cond is not None:
-            filtered_list = filter(filter_cond, filtered_list)
+            filtered_list = list(filter(filter_cond, filtered_list))
 
         # Check for an empty list
         if filtered_list == []:
@@ -164,14 +163,14 @@ class TelemetryBase():
 
             if obj.Status == obj.ENUM_Status['Disconnected']:
                 # Request handshake
-                print "Disconnected"
+                print("Disconnected")
                 send_obj = self.__make_handshake('HandshakeReq')
             elif obj.Status == obj.ENUM_Status['HandshakeAck']:
                 # Say connected
-                print "Handshake ackd"
+                print("Handshake ackd")
                 send_obj = self.__make_handshake('Connected')
             elif obj.Status == obj.ENUM_Status['Connected']:
-                print "Connected"
+                print("Connected")
                 send_obj = self.__make_handshake('Connected')
 
             self.send_object(send_obj)
@@ -202,7 +201,7 @@ class TelemetryBase():
             # for now-- in case we wanna see
             self.uavo_list.extend(objs)
 
-            if frames == '':
+            if frames == b'':
                 self.eof=True
 
             for obj in objs:
@@ -295,8 +294,8 @@ class BidirTelemetry(TelemetryBase):
         TelemetryBase.__init__(self, do_handshaking=True,
                 gcs_timestamps=False,  *args, **kwargs)
 
-        self.recv_buf = ''
-        self.send_buf = ''
+        self.recv_buf = b''
+        self.send_buf = b''
 
     def _receive(self, finish_time):
         """ Fetch available data from file descriptor. """
@@ -311,7 +310,7 @@ class BidirTelemetry(TelemetryBase):
             return None
 
         ret = self.recv_buf
-        self.recv_buf = ''
+        self.recv_buf = b''
 
         return ret
 
@@ -468,7 +467,7 @@ class SerialTelemetry(BidirTelemetry):
                     if written > 0:
                         self.send_buf = self.send_buf[written:]
                         did_stuff = True
-                except pyserial.SerialTimeoutException:
+                except serial.SerialTimeoutException:
                     pass
 
             now = time.time()
@@ -510,21 +509,21 @@ class FileTelemetry(TelemetryBase):
 
             for i in range(100):
                 sig = self.f.readline()
-                if sig.endswith('dRonin git hash:\n') or sig.endswith('Tau Labs git hash:\n'):
+                if sig.endswith(b'dRonin git hash:\n') or sig.endswith(b'Tau Labs git hash:\n'):
                     found = True
                     break;
 
             if not found:
-                print "Source file does not have a recognized header signature"
+                print("Source file does not have a recognized header signature")
                 raise IOError("no header signature")
 
             # Determine the git hash that this log file is based on
             githash = self.f.readline()[:-1]
-            if githash.find(':') != -1:
+            if githash.find(b':') != -1:
                 import re
-                githash = re.search(':(\w*)\W', githash).group(1)
+                githash = re.search(b':(\w*)\W', githash).group(1)
 
-            print "Log file is based on git hash: %s" % githash
+            print("Log file is based on git hash: %s" % githash)
 
             uavohash = self.f.readline()
             # divider only occurs on GCS-type streams.  This causes us to
@@ -608,7 +607,7 @@ def get_telemetry_by_args(desc="Process telemetry", service_in_iter=True,
     import os.path
 
     if os.path.isfile(args.source):
-        file_obj = file(args.source, 'rb')
+        file_obj = open(args.source, 'rb')
 
         if parse_header:
             t = telemetry.FileTelemetry(file_obj, parse_header=True,

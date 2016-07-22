@@ -62,12 +62,14 @@ def main():
     for s in settings_objects:
         val = tStream.last_values.get(s)
         if val is not None:
-            print val
+            print(val)
         else:
             missing.append(s._name)
 
     for s in missing:
-        print "No instance of %s" % (s)
+        print("No instance of %s" % (s))
+
 #-------------------------------------------------------------------------------
+
 if __name__ == "__main__":
     main()

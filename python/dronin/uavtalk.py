@@ -13,11 +13,13 @@ this interface.
 try:
     from struct import Struct
 except:
-    from structshim import Struct
+    from .structshim import Struct
 
 import time
 
 __all__ = [ "send_object", "process_stream" ]
+
+from six import int2byte, indexbytes, byte2int, iterbytes
 
 # Constants used for UAVTalk parsing
 (MIN_HEADER_LENGTH, MAX_HEADER_LENGTH, MAX_PAYLOAD_LENGTH) = (8, 12, (256-12))
@@ -68,7 +70,7 @@ def process_stream(uavo_defs, use_walltime=False, gcs_timestamps=None,
 
     received = 0
 
-    buf = ''
+    buf = b''
     buf_offset = 0
 
     past_bytes = 0
@@ -91,7 +93,7 @@ def process_stream(uavo_defs, use_walltime=False, gcs_timestamps=None,
             pending_pieces.insert(0, buf[buf_offset:])
             buf_offset = 0
 
-            buf = ''.join(pending_pieces)
+            buf = b''.join(pending_pieces)
             pending_pieces = []
 
         if gcs_timestamps is None or gcs_timestamps == True:
@@ -107,20 +109,20 @@ def process_stream(uavo_defs, use_walltime=False, gcs_timestamps=None,
 
             if gcs_timestamps is None:
                 if ((logHdrLen > 1000) or ( overrideTimestamp > 100000000)):
-                    if buf[buf_offset] == chr(SYNC_VAL):
-                        print "Autodetect: no gcs-type timestamps"
+                    if indexbytes(buf, buf_offset) == SYNC_VAL:
+                        print("Autodetect: no gcs-type timestamps")
                         gcs_timestamps = False
                     else:
-                        print "Autodetect: punting to next cycle"
+                        print("Autodetect: punting to next cycle")
                         buf_offset += 1
                         continue
                 else:
-                    if buf[buf_offset + logheader_fmt.size] == chr(SYNC_VAL):
-                        print "Autodetect: GCS-type timestamps likely"
+                    if indexbytes(buf, buf_offset + logheader_fmt.size) == SYNC_VAL:
+                        print("Autodetect: GCS-type timestamps likely")
                         gcs_timestamps = True
                         buf_offset += logheader_fmt.size
                     else:
-                        print "Autodetect: punting to next cycle"
+                        print("Autodetect: punting to next cycle")
             else:
                 buf_offset += logheader_fmt.size
 
@@ -129,7 +131,7 @@ def process_stream(uavo_defs, use_walltime=False, gcs_timestamps=None,
         # this code lots.
         # sync(1) + type(1) + len(2) + objid(4)
 
-        while (len(buf) < header_fmt.size + buf_offset) or (buf[buf_offset] != chr(SYNC_VAL)):
+        while (len(buf) < header_fmt.size + buf_offset) or (indexbytes(buf, buf_offset) != SYNC_VAL):
             #print "waitingsync len=%d, offset=%d"%(len(buf), buf_offset)
 
             if len(buf) < header_fmt.size + 1 + buf_offset:
@@ -141,8 +143,8 @@ def process_stream(uavo_defs, use_walltime=False, gcs_timestamps=None,
 
                 buf = buf + rx
 
-            for i in xrange(buf_offset, len(buf)):
-                if buf[i] == chr(SYNC_VAL):
+            for i in range(buf_offset, len(buf)):
+                if indexbytes(buf, i) == SYNC_VAL:
                     break
 
             #print "skipping from %d to %d"%(buf_offset, i)
@@ -153,14 +155,14 @@ def process_stream(uavo_defs, use_walltime=False, gcs_timestamps=None,
         (sync, pack_type, pack_len, objId) = header_fmt.unpack_from(buf, buf_offset)
 
         if (pack_type & TYPE_MASK) != TYPE_VER:
-            print "badver %x"%(pack_type)
+            print("badver %x"%(pack_type))
             buf_offset += 1
             continue    # go to top to look for sync
     
         pack_type &= ~ TYPE_MASK
         
         if pack_len < MIN_HEADER_LENGTH or pack_len > MAX_HEADER_LENGTH + MAX_PAYLOAD_LENGTH:
-            print "badlen %d"%(pack_len)
+            print("badlen %d"%(pack_len))
             buf_offset += 1
             continue
         
@@ -193,7 +195,7 @@ def process_stream(uavo_defs, use_walltime=False, gcs_timestamps=None,
 
         # Check length and determine next state
         if obj_len >= MAX_PAYLOAD_LENGTH:
-            print "bad len-- bad xml?"
+            print("bad len-- bad xml?")
             #should never happen; requires invalid uavo xml
             buf_offset += 1
             continue
@@ -206,8 +208,8 @@ def process_stream(uavo_defs, use_walltime=False, gcs_timestamps=None,
 
         # Check the lengths match
         if calc_size != pack_len:
-            print "mismatched size id=%s %d vs %d, type %d"%(uavo_key,
-                calc_size, pack_len, pack_type)
+            print("mismatched size id=%s %d vs %d, type %d"%(uavo_key,
+                calc_size, pack_len, pack_type))
 
             # packet error - mismatched packet size
             # Consume a byte to try syncing right after where we
@@ -231,10 +233,10 @@ def process_stream(uavo_defs, use_walltime=False, gcs_timestamps=None,
         # check the CRC byte
 
         cs = calcCRC(buf[buf_offset:calc_size+buf_offset])
-        recv_cs = buf[buf_offset+calc_size]
+        recv_cs = indexbytes(buf, buf_offset + calc_size)
 
         if recv_cs != cs:
-            print "Bad crc. Got " + hex(ord(recv_cs)) + " but predicted " + hex(ord(cs))
+            print("Bad crc. Got", recv_cs, "but predicted", cs)
 
             buf_offset += 1
 
@@ -270,7 +272,7 @@ def process_stream(uavo_defs, use_walltime=False, gcs_timestamps=None,
             if not (received % 10000):
                 if progress_callback is not None:
                     progress_callback(received, past_bytes + buf_offset + calc_size + 1)
-                print "received %d objs"%(received)
+                print("received %d objs"%(received))
 
             next_recv = yield objInstance
         else:
@@ -290,7 +292,7 @@ def send_object(obj):
 
     packet = hdr + obj.to_bytes()
 
-    packet += calcCRC(packet)
+    packet += int2byte(calcCRC(packet))
 
     return packet
 
@@ -299,18 +301,18 @@ def request_object(obj):
     packet = header_fmt.pack(SYNC_VAL, TYPE_OBJ_REQ | TYPE_VER,
         header_fmt.size, obj._id)
 
-    packet += calcCRC(packet)
+    packet += int2byte(calcCRC(packet))
 
     return packet
 
-def calcCRC(str):
+def calcCRC(s):
     """
     Calculate a CRC consistently with how they are computed on the firmware side
     """
 
     cs = 0
 
-    for c in str:
-        cs = crc_table[cs ^ ord(c)]
+    for c in iterbytes(s):
+        cs = crc_table[cs ^ c]
 
-    return chr(cs)
+    return cs
