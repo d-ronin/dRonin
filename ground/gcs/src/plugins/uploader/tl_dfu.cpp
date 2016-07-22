@@ -34,10 +34,7 @@
 #include "tl_dfu.h"
 
 #include <QApplication>
-
-extern "C" {
-#include <unistd.h>
-}
+#include <QThread>
 
 #define TL_DFU_DEBUG
 #ifdef TL_DFU_DEBUG
@@ -754,7 +751,7 @@ int DFUObject::SendData(bl_messages data)
 
         if (ret < 0) {
             qDebug() << "hid_write returned error" << ret;
-            usleep(2000);
+            QThread::usleep(2000);
         } else {
             break;
         }
