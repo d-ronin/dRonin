@@ -68,6 +68,9 @@ class UAVOCollection(dict):
             if f_info.name.count("oplinksettings") > 0:
                 continue
 
+            if not f_info.name.endswith('.xml'):
+                continue
+
             f = t.extractfile(f_info)
             content_list.append(f.read())
             f.close()
