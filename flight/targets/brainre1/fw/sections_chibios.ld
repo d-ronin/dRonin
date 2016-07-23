@@ -139,27 +139,6 @@ SECTIONS
         __main_thread_stack_end__ = .;
     } > ram
 
-    .ccm :
-    {
-        PROVIDE(_cmm_start = .);
-        . = ALIGN(4);
-        *(.bss.mainthread.*)
-        . = ALIGN(4);
-        *(.bss._idle_thread_wa)
-        . = ALIGN(4);
-        *(.bss.rlist)
-        . = ALIGN(4);
-        *(.bss.vtlist)
-        . = ALIGN(4);
-        *(.bss.endmem)
-        . = ALIGN(4);
-        *(.bss.nextmem)
-        . = ALIGN(4);
-        *(.bss.default_heap)
-        . = ALIGN(4);
-        PROVIDE(_cmm_end = .);
-    } > ram
-
     .data :
     {
         . = ALIGN(4);
