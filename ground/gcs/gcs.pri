@@ -126,10 +126,8 @@ unix {
 }
 
 
+# use ccache with gcc
 CONFIG(debug, debug|release):*-g++* {
-    # Unfortunately this is ineffective on OSX, due to
-    # https://bugreports.qt.io/browse/QTBUG-39417
-    # Should use it once upstream defect resolved
     QMAKE_CXX=$$(CCACHE_BIN) g++
 }
 
