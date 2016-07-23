@@ -92,7 +92,6 @@ RTOSPORTDIR = $(APPLIBDIR)/FreeRTOS/Source
 # List C source files here. (C dependencies are automatically generated.)
 # use file-extension c for "c-only"-files
 
-ifndef TESTAPP
 ## MODULES
 SRC += ${foreach MOD, ${MODULES} ${OPTMODULES}, ${wildcard ${OPMODULEDIR}/${MOD}/*.c}}
 ## OPENPILOT CORE:
@@ -101,14 +100,8 @@ SRC += main.c
 SRC += pios_board.c
 SRC += $(OPUAVTALK)/uavtalk.c
 SRC += $(OPUAVOBJ)/uavobjectmanager.c
-else
-## TESTCODE
-SRC += $(OPTESTS)/test_common.c
-SRC += $(OPTESTS)/$(TESTAPP).c
-endif
 
 ## UAVOBJECTS
-ifndef TESTAPP
 SRC += $(OPUAVSYNTHDIR)/gcsreceiver.c
 SRC += $(OPUAVSYNTHDIR)/hwtaulink.c
 SRC += $(OPUAVSYNTHDIR)/rfm22bstatus.c
@@ -122,7 +115,6 @@ SRC += $(OPUAVSYNTHDIR)/flightbatterystate.c
 SRC += $(OPUAVSYNTHDIR)/flightstatus.c
 SRC += $(OPUAVSYNTHDIR)/positionactual.c
 SRC += $(OPUAVSYNTHDIR)/velocityactual.c
-endif
 
 ## PIOS Hardware (STM32F10x)
 SRC += pios_sys.c
