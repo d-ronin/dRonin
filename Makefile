@@ -250,7 +250,7 @@ $(BUILD_DIR):
 
 USE_MSVC ?= NO
 ifeq ($(USE_MSVC), YES)
-QT_SPEC=win32-msvc2013
+QT_SPEC=win32-msvc2015
 endif
 .PHONY: all_ground
 all_ground: gcs
