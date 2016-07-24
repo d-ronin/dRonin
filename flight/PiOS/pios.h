@@ -205,6 +205,10 @@
 #include <pios_ibus.h>
 #endif
 
+#if defined(PIOS_INCLUDE_MAX7456)
+#include <pios_max7456.h>
+#endif
+
 #include <pios_modules.h>
 
 #include <pios_crc.h>
