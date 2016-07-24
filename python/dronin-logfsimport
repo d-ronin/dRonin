@@ -12,10 +12,10 @@ def main():
 
     arg = parser.parse_args()
 
-    githash = arg.githash
+    githashes = arg.githash.split(':')
     srcfile = arg.filename
 
-    imported = LogFSImport(githash, file(srcfile, 'rb').read())
+    imported = LogFSImport(githashes, file(srcfile, 'rb').read())
 
     print(imported.ExportXML())
 

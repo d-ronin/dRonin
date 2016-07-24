@@ -523,6 +523,9 @@ class FileTelemetry(TelemetryBase):
                 import re
                 githash = re.search(b':(\w*)\W', githash).group(1)
 
+            # For python3, convert from byte string.
+            githash = githash.decode('latin-1')
+
             print("Log file is based on git hash: %s" % githash)
 
             uavohash = self.f.readline()
