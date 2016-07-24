@@ -1,0 +1,1 @@
+The schematic can be opend by Altium Designer. 
