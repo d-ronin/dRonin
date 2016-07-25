@@ -33,6 +33,7 @@ ifeq ($(EXPORT_SYMBOLS),YES)
 	$(V1) $(ROOT_DIR)/package/windows_extract_debug_symbols.sh $(DUMP_SYMBOLS_TOOL) $(PACKAGE_DIR)/$(GCS_PACKAGE_NAME)
 endif
 endif
+	$(V1)mv "$(PACKAGE_DIR)/$(GCS_PACKAGE_NAME)/bin/opengl32sw.dll" "$(PACKAGE_DIR)/$(GCS_PACKAGE_NAME)/bin/opengl32.dll" 
 	$(V1)find $(PACKAGE_DIR)/$(GCS_PACKAGE_NAME) -type f -name "*.pdb" -exec rm -f {} \;
 	$(V1)find $(PACKAGE_DIR)/$(GCS_PACKAGE_NAME) -type f -name "*.sym" -exec rm -f {} \;
 	$(V1)find $(PACKAGE_DIR)/$(GCS_PACKAGE_NAME) -type f -name "*.lib" -exec rm -f {} \;
