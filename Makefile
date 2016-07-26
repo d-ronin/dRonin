@@ -231,7 +231,7 @@ all: all_ground all_flight matlab
 
 .PHONY: all_clean
 all_clean:
-	[ ! -d "$(BUILD_DIR)" ] || $(RM) -r "$(BUILD_DIR)"
+	[ ! -d "$(BUILD_DIR)" ] || $(RM) -rf "$(BUILD_DIR)"
 
 $(DL_DIR):
 	mkdir -p $@
@@ -283,7 +283,7 @@ endif
 .PHONY: gcs_clean
 gcs_clean:
 	$(V0) @echo " CLEAN      $@"
-	$(V1) [ ! -d "$(BUILD_DIR)/ground/gcs" ] || $(RM) -r "$(BUILD_DIR)/ground/gcs"
+	$(V1) [ ! -d "$(BUILD_DIR)/ground/gcs" ] || $(RM) -rf "$(BUILD_DIR)/ground/gcs"
 
 ifndef WINDOWS
 # unfortunately the silent linking command is broken on windows
@@ -322,7 +322,7 @@ uavobjects_test: uavobjgenerator
 
 uavobjects_clean: uavobjects_armsoftfp_clean uavobjects_armhardfp_clean
 	$(V0) @echo " CLEAN      $@"
-	$(V1) [ ! -d "$(UAVOBJ_OUT_DIR)" ] || $(RM) -r "$(UAVOBJ_OUT_DIR)"
+	$(V1) [ ! -d "$(UAVOBJ_OUT_DIR)" ] || $(RM) -rf "$(UAVOBJ_OUT_DIR)"
 
 ##############################
 #
@@ -398,7 +398,7 @@ androidgcs_install: $(ANDROIDGCS_OUT_DIR)/bin/androidgcs-$(ANDROIDGCS_BUILD_CONF
 .PHONY: androidgcs_clean
 androidgcs_clean:
 	$(V0) @echo " CLEAN      $@"
-	$(V1) [ ! -d "$(ANDROIDGCS_OUT_DIR)" ] || $(RM) -r "$(ANDROIDGCS_OUT_DIR)"
+	$(V1) [ ! -d "$(ANDROIDGCS_OUT_DIR)" ] || $(RM) -rf "$(ANDROIDGCS_OUT_DIR)"
 
 # We want to take snapshots of the UAVOs at each point that they change
 # to allow the GCS to be compatible with as many versions as possible.
@@ -532,7 +532,7 @@ uavo-collections: uavo-collections_java
 .PHONY: uavo-collections_clean
 uavo-collections_clean:
 	$(V0) @echo " CLEAN  $(UAVO_COLLECTION_DIR)"
-	$(V1) [ ! -d "$(UAVO_COLLECTION_DIR)" ] || $(RM) -r $(UAVO_COLLECTION_DIR)
+	$(V1) [ ! -d "$(UAVO_COLLECTION_DIR)" ] || $(RM) -rf $(UAVO_COLLECTION_DIR)
 
 ##############################
 #
@@ -595,7 +595,7 @@ sim_$(4)_clean: TARGET=sim_$(4)
 sim_$(4)_clean: OUTDIR=$(BUILD_DIR)/$$(TARGET)
 sim_$(4)_clean:
 	$(V0) @echo " CLEAN      $$@"
-	$(V1) [ ! -d "$$(OUTDIR)" ] || $(RM) -r "$$(OUTDIR)"
+	$(V1) [ ! -d "$$(OUTDIR)" ] || $(RM) -rf "$$(OUTDIR)"
 endef
 
 # $(1) = Canonical board name all in lower case (e.g. coptercontrol)
@@ -635,7 +635,7 @@ fw_$(1)_clean: TARGET=fw_$(1)
 fw_$(1)_clean: OUTDIR=$(BUILD_DIR)/$$(TARGET)
 fw_$(1)_clean:
 	$(V0) @echo " CLEAN      $$@"
-	$(V1) [ ! -d "$$(OUTDIR)" ] || $(RM) -r "$$(OUTDIR)"
+	$(V1) [ ! -d "$$(OUTDIR)" ] || $(RM) -rf "$$(OUTDIR)"
 endef
 
 # $(1) = Canonical board name all in lower case (e.g. coptercontrol)
@@ -680,7 +680,7 @@ bl_$(1)_clean: TARGET=bl_$(1)
 bl_$(1)_clean: OUTDIR=$(BUILD_DIR)/$$(TARGET)
 bl_$(1)_clean:
 	$(V0) @echo " CLEAN      $$@"
-	$(V1) [ ! -d "$$(OUTDIR)" ] || $(RM) -r "$$(OUTDIR)"
+	$(V1) [ ! -d "$$(OUTDIR)" ] || $(RM) -rf "$$(OUTDIR)"
 endef
 
 # $(1) = Canonical board name all in lower case (e.g. coptercontrol)
@@ -726,7 +726,7 @@ bu_$(1)_clean: TARGET=bu_$(1)
 bu_$(1)_clean: OUTDIR=$(BUILD_DIR)/$$(TARGET)
 bu_$(1)_clean:
 	$(V0) @echo " CLEAN      $$@"
-	$(V1) [ ! -d "$$(OUTDIR)" ] || $(RM) -r "$$(OUTDIR)"
+	$(V1) [ ! -d "$$(OUTDIR)" ] || $(RM) -rf "$$(OUTDIR)"
 endef
 
 # $(1) = Canonical board name all in lower case (e.g. coptercontrol)
@@ -754,7 +754,7 @@ ef_$(1)_clean: TARGET=ef_$(1)
 ef_$(1)_clean: OUTDIR=$(BUILD_DIR)/$$(TARGET)
 ef_$(1)_clean:
 	$(V0) @echo " CLEAN      $$@"
-	$(V1) [ ! -d "$$(OUTDIR)" ] || $(RM) -r "$$(OUTDIR)"
+	$(V1) [ ! -d "$$(OUTDIR)" ] || $(RM) -rf "$$(OUTDIR)"
 endef
 
 # $(1) = Canonical board name all in lower case (e.g. coptercontrol)
@@ -828,7 +828,7 @@ up_$(1)_clean: TARGET=up_$(1)
 up_$(1)_clean: OUTDIR=$(BUILD_DIR)/$$(TARGET)
 up_$(1)_clean:
 	$(V0) @echo " CLEAN      $$@"
-	$(V1) [ ! -d "$$(OUTDIR)" ] || $(RM) -r "$$(OUTDIR)"
+	$(V1) [ ! -d "$$(OUTDIR)" ] || $(RM) -rf "$$(OUTDIR)"
 endef
 
 # When building any of the "all_*" targets, tell all sub makefiles to display
@@ -872,11 +872,11 @@ uavobjects_%: uavobjects
 .PHONY: uavobjects_armsoftfp_clean uavobjects_armhardfp_clean
 uavobjects_armsoftfp_clean:
 	$(V0) @echo " CLEAN      $@"
-	$(V1) [ ! -d "$(UAVOLIB_SOFT_OUT_DIR)" ] || $(RM) -r "$(UAVOLIB_SOFT_OUT_DIR)"
+	$(V1) [ ! -d "$(UAVOLIB_SOFT_OUT_DIR)" ] || $(RM) -rf "$(UAVOLIB_SOFT_OUT_DIR)"
 
 uavobjects_armhardfp_clean:
 	$(V0) @echo " CLEAN      $@"
-	$(V1) [ ! -d "$(UAVOLIB_HARD_OUT_DIR)" ] || $(RM) -r "$(UAVOLIB_HARD_OUT_DIR)"
+	$(V1) [ ! -d "$(UAVOLIB_HARD_OUT_DIR)" ] || $(RM) -rf "$(UAVOLIB_HARD_OUT_DIR)"
 
 # $(1) = Canonical board name all in lower case (e.g. coptercontrol)
 define BOARD_PHONY_TEMPLATE
@@ -990,7 +990,7 @@ all_ut_gcov: | $(addsuffix _gcov, $(addprefix ut_, $(ALL_UNITTESTS)))
 .PHONY: all_ut_clean
 all_ut_clean:
 	$(V0) @echo " CLEAN      $@"
-	$(V1) [ ! -d "$(UT_OUT_DIR)" ] || $(RM) -r "$(UT_OUT_DIR)"
+	$(V1) [ ! -d "$(UT_OUT_DIR)" ] || $(RM) -rf "$(UT_OUT_DIR)"
 
 # $(1) = Unit test name
 define UT_TEMPLATE
@@ -1025,7 +1025,7 @@ ut_$(1)_clean: TARGET=$(1)
 ut_$(1)_clean: OUTDIR=$(UT_OUT_DIR)/$$(TARGET)
 ut_$(1)_clean:
 	$(V0) @echo " CLEAN      $(1)"
-	$(V1) [ ! -d "$$(OUTDIR)" ] || $(RM) -r "$$(OUTDIR)"
+	$(V1) [ ! -d "$$(OUTDIR)" ] || $(RM) -rf "$$(OUTDIR)"
 endef
 
 # Expand the unittest rules
@@ -1106,4 +1106,4 @@ $(DOCS_BUILD_TARGETS): docs_%: $(BUILD_DIR) uavobjects
 
 $(DOCS_CLEAN_TARGETS): docs_%_clean:
 	$(V0) @echo " CLEAN      $(call toprel,$(BUILD_DIR)/docs/$*)"
-	$(V1) [ ! -d "$(BUILD_DIR)/docs/$*" ] || $(RM) -r "$(BUILD_DIR)/docs/$*"
+	$(V1) [ ! -d "$(BUILD_DIR)/docs/$*" ] || $(RM) -rf "$(BUILD_DIR)/docs/$*"

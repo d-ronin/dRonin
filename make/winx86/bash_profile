@@ -1,46 +1,90 @@
 # bashrc for dRonin development on Windows
-# Michael Lyle
-# Copyright (C) dRonin 2016
+# Michael Lyle - 2015-2016
 
-QT_VERSION_FULL=5.5.1
+QT_VERSION_FULL=5.6.1
 QT_VERSION=`echo "$QT_VERSION_FULL" | cut -d '.' -f1-2`
 QT_BASEDIR="/C/Qt"
+
+# This is really unfortunate on the part of Qt.
+QT_MINGWVER="mingw49_32"
+QT_MINGWVERB="mingw492_32"
 
 if [ -d "$QT_BASEDIR/Qt$QT_VERSION_FULL" ] ; then
   QT_BASEDIR="$QT_BASEDIR/Qt$QT_VERSION_FULL"
 fi
 
-QT_MINGWVER="mingw492_32"
+#export USE_MSVC=YES
+
+if [ "$USE_MSVC" = "YES" ] ; then
+  QT_MSVCVER="msvc2015"
+  VS_PATH="/c/Program Files (x86)/Microsoft Visual Studio 14.0"
+  VS_INCLUDE_PATH="C:/Program Files (x86)/Microsoft Visual Studio 14.0"
+  WK_PATH="/C/Program Files (x86)/Windows Kits"
+  WK_INCLUDE_PATH="C:/Program Files (x86)/Windows Kits"
+  WK_CRT_INCLUDE_PATH="$WK_INCLUDE_PATH/10/include/10.0.10240.0/ucrt"
+  WK_CRT_LIB_PATH="$WK_INCLUDE_PATH/10/lib/10.0.10240.0/ucrt"
+fi
+
+shopt -s expand_aliases
 
 test_and_add_to_path ()
 {
-   # Optional block of code: if the thing we're looking for is already in our
-   # path, don't search for it here.  Makes some scenarios better and some
-   # worse.
-
-#  if which $2 >/dev/null 2>&1 ; then
-#    return
-#  fi
+  if which $2 >/dev/null 2>&1 ; then
+    return
+  fi
 
   if [ -f "$1/$2" ] ; then
-    PATH=$1\:$PATH
+    export PATH=$PATH\:$1
   fi
 }
 
+# Whether or not mingw build, we need mingw32-make from here
+test_and_add_to_path "$QT_BASEDIR/Tools/$QT_MINGWVERB/bin" "mingw32-make.exe"
+
+if [ "$USE_MSVC" != "YES" ] ; then
+  test_and_add_to_path "$QT_BASEDIR/Tools/$QT_MINGWVERB/bin" "gcc.exe"
+  test_and_add_to_path "$QT_BASEDIR/$QT_VERSION/$QT_MINGWVER/bin" "qmltestrunner.exe"
+else 
+  if [ $(uname -m)="x86_64" ]; then
+#   VS_PLATFORM="amd64"
+#   WK_PLATFORM="x64"
+#   VC_PLATFORM="/amd64"
+    VS_PLATFORM="amd64_x86"
+    WK_PLATFORM="x86"
+    VC_PLATFORM=""
+  else
+    VS_PLATFORM="x86"
+    WK_PLATFORM="x86"
+    VC_PLATFORM=""
+  fi
+
+  test_and_add_to_path "$VS_PATH/VC/bin/amd64" mspdb140.dll
+  test_and_add_to_path "$QT_BASEDIR/Tools/$QT_MINGWVERB/bin" "mingw32-make.exe"
+  test_and_add_to_path "$VS_PATH/VC/VCPackages" "VCProject.dll"
+
+  export PATH="$QT_BASEDIR/$QT_VERSION/$QT_MSVCVER/bin"\:$PATH
+  export PATH="$VS_PATH/VC/BIN/$VS_PLATFORM"\:$PATH
+  export PATH="$VS_PATH/VC/include"\:$PATH
+
+  test_and_add_to_path "$QT_BASEDIR/Tools/QtCreator/bin" "jom.exe"
+  test_and_add_to_path "$WK_PATH/8.1/bin/$WK_PLATFORM" "rc.exe"
+
+  export INCLUDE="$VS_INCLUDE_PATH/VC/INCLUDE;$VS_INCLUDE_PATH/VC/ATLMFC/INCLUDE;$WK_CRT_INCLUDE_PATH;$WK_INCLUDE_PATH/8.1/include/shared;$WK_INCLUDE_PATH/8.1/include/um;$WK_INCLUDE_PATH/8.1/include/winrt"
+
+  export LIB="$VS_INCLUDE_PATH/VC/LIB;$VS_INCLUDE_PATH/VC/ATLMFC/LIB;$WK_CRT_LIB_PATH/$WK_PLATFORM;$WK_INCLUDE_PATH/8.1/lib/winv6.3/um/$WK_PLATFORM;"
+
+  export MACHINE_TYPE=$(uname -m)
+  export VCINSTALLDIR="$VS_INCLUDE_PATH"
+  export VCREDIST="$VCINSTALLDIR/VC/redist/$WK_PLATFORM/Microsoft.VC140.CRT"
+fi
+
+# Anaconda adds itself to path, so it's not required here
 test_and_add_to_path "/C/Python27" "python.exe"
 test_and_add_to_path "/C/OpenOCD/0.4.0/bin/" "openocd.exe"
 test_and_add_to_path "/C/Program Files/NSIS/Unicode" "makensis.exe"
 test_and_add_to_path "/C/Program Files (x86)/NSIS/Unicode" "makensis.exe"
-test_and_add_to_path "$QT_BASEDIR/$QT_VERSION/$QT_MINGWVER/bin" "QtWebProcess.exe"
-test_and_add_to_path "$QT_BASEDIR/Tools/$QT_MINGWVER/bin" "gcc.exe"
-
 
 if ! which make >/dev/null 2>&1 ; then
   alias make=mingw32-make
 fi
-
-
-#-call :which UNSIS         "%ProgramFiles%\NSIS\Unicode"  makensis.exe
-
-#echo $PATH
 

@@ -250,7 +250,6 @@ SectionEnd
     !insertmacro MUI_DESCRIPTION_TEXT ${InSecSounds} $(DESC_InSecSounds)
     !insertmacro MUI_DESCRIPTION_TEXT ${InSecLocalization} $(DESC_InSecLocalization)
     !insertmacro MUI_DESCRIPTION_TEXT ${InSecFirmware} $(DESC_InSecFirmware)
-    !insertmacro MUI_DESCRIPTION_TEXT ${InSecUtilities} $(DESC_InSecUtilities)
     !insertmacro MUI_DESCRIPTION_TEXT ${InSecShortcuts} $(DESC_InSecShortcuts)
   !insertmacro MUI_FUNCTION_DESCRIPTION_END
 
@@ -261,9 +260,6 @@ Function .onInit
 
   SetShellVarContext all
   !insertmacro MUI_LANGDLL_DISPLAY
-
-
-
 
 FunctionEnd
 
