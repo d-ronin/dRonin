@@ -28,7 +28,6 @@
  */
 
 #include "stmplugin.h"
-#include "flyingf3.h"
 #include "discoveryf4.h"
 #include <QtPlugin>
 
@@ -56,9 +55,6 @@ void StmPlugin::extensionsInitialized()
      * Create the board objects here.
      *
      */
-    FlyingF3* flyingf3 = new FlyingF3();
-    addAutoReleasedObject(flyingf3);
-
     DiscoveryF4* discoveryf4 = new DiscoveryF4();
     addAutoReleasedObject(discoveryf4);
 }
