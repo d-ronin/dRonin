@@ -25,14 +25,16 @@ if [ "$USE_MSVC" = "YES" ] ; then
   WK_CRT_LIB_PATH="$WK_INCLUDE_PATH/10/lib/10.0.10240.0/ucrt"
 fi
 
+shopt -s expand_aliases
+
 test_and_add_to_path ()
 {
-#  if which $2 >/dev/null 2>&1 ; then
-#    return
-#  fi
+  if which $2 >/dev/null 2>&1 ; then
+    return
+  fi
 
   if [ -f "$1/$2" ] ; then
-    PATH=$PATH\:$1
+    export PATH=$PATH\:$1
   fi
 }
 
@@ -60,9 +62,9 @@ else
   test_and_add_to_path "$QT_BASEDIR/Tools/$QT_MINGWVERB/bin" "mingw32-make.exe"
   test_and_add_to_path "$VS_PATH/VC/VCPackages" "VCProject.dll"
 
-  PATH="$QT_BASEDIR/$QT_VERSION/$QT_MSVCVER/bin"\:$PATH
-  PATH="$VS_PATH/VC/BIN/$VS_PLATFORM"\:$PATH
-  PATH="$VS_PATH/VC/include"\:$PATH
+  export PATH="$QT_BASEDIR/$QT_VERSION/$QT_MSVCVER/bin"\:$PATH
+  export PATH="$VS_PATH/VC/BIN/$VS_PLATFORM"\:$PATH
+  export PATH="$VS_PATH/VC/include"\:$PATH
 
   test_and_add_to_path "$QT_BASEDIR/Tools/QtCreator/bin" "jom.exe"
   test_and_add_to_path "$WK_PATH/8.1/bin/$WK_PLATFORM" "rc.exe"
