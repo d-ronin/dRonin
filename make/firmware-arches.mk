@@ -34,7 +34,6 @@ STM32_TYPE          := STM32F0xx
 ARCH_TYPES          := STM32F0xx
 endif
 
-# TODO: This is not ideal once bootloaders start using this
 vpath % $(BOARD_ROOT_DIR)/$(BUILD_TYPE)
 
 vpath % $(foreach d,$(ARCH_TYPES) Common,$(PIOS)/$(d))
