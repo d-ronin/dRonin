@@ -425,14 +425,16 @@ static int32_t PIOS_MPU_Common_Init(void)
 	PIOS_EXTI_Init(mpu_dev->cfg->exti_cfg);
 
 	/* Wait 20 ms for data ready interrupt and make sure it happens twice */
-	for (int i=0; i<2; i++) {
-		uint32_t ref_val = mpu_dev->interrupt_count;
-		uint32_t raw_start = PIOS_DELAY_GetRaw();
+	if (!mpu_dev->cfg->skip_startup_irq_check) {
+		for (int i=0; i<2; i++) {
+			uint32_t ref_val = mpu_dev->interrupt_count;
+			uint32_t raw_start = PIOS_DELAY_GetRaw();
 
-		while (mpu_dev->interrupt_count == ref_val) {
-			if (PIOS_DELAY_DiffuS(raw_start) > 20000) {
-				PIOS_EXTI_DeInit(mpu_dev->cfg->exti_cfg);
-				return -PIOS_MPU_ERROR_NOIRQ;
+			while (mpu_dev->interrupt_count == ref_val) {
+				if (PIOS_DELAY_DiffuS(raw_start) > 20000) {
+					PIOS_EXTI_DeInit(mpu_dev->cfg->exti_cfg);
+					return -PIOS_MPU_ERROR_NOIRQ;
+				}
 			}
 		}
 	}

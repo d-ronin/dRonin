@@ -1226,6 +1226,7 @@ static const struct pios_mpu_cfg pios_mpu_cfg = {
 	.exti_cfg = &pios_exti_mpu_cfg,
 	.default_samplerate = 500,
 	.orientation = PIOS_MPU_TOP_180DEG,
+	.skip_startup_irq_check = true
 };
 #endif /* PIOS_INCLUDE_MPU */
 
