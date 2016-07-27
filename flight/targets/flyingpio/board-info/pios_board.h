@@ -28,47 +28,10 @@
  */
 
 
-#ifndef STM32103CB_NAZE32_H_
-#define STM32103CB_NAZE32_H_
+#ifndef _FLYINGPIO_PIOS_BOARD_H
+#define _FLYINGPIO_PIOS_BOARD_H
 
 #include <stdbool.h>
-
-//------------------------
-// Timers and Channels Used
-//------------------------
-/*
-Timer | Channel 1 | Channel 2 | Channel 3 | Channel 4
-------+-----------+-----------+-----------+----------
-TIM1  |  Servo 1  |           |           |  Servo 2
-TIM2  |  RC In 1  |  RC In 2  |  RC In 3  |  RC In 4
-TIM3  |  RC In 5  |  RC In 6  |  RC In 7  |  RC In 8
-TIM4  |  Servo 3  |  Servo 4  |  Servo 5  |  Servo 6
-------+-----------+-----------+-----------+----------
-*/
-
-//------------------------
-// DMA Channels Used
-//------------------------
-/* Channel 1  -                                 */
-/* Channel 2  -                                 */
-/* Channel 3  -                                 */
-/* Channel 4  -                                 */
-/* Channel 5  -                                 */
-/* Channel 6  -                                 */
-/* Channel 7  -                                 */
-/* Channel 8  -                                 */
-/* Channel 9  -                                 */
-/* Channel 10 -                                 */
-/* Channel 11 -                                 */
-/* Channel 12 -                                 */
-
-//------------------------
-// BOOTLOADER_SETTINGS
-//------------------------
-#define BOARD_READABLE					true
-#define BOARD_WRITABLE					true
-#define MAX_DEL_RETRYS					3
-
 
 //------------------------
 // PIOS_LED
@@ -189,15 +152,8 @@ extern uintptr_t pios_internal_adc_id;
 
 #define VREF_PLUS								3.3
 
-//-------------------------
-// GPIO
-//-------------------------
-#define PIOS_GPIO_PORTS				{  }
-#define PIOS_GPIO_PINS				{  }
-#define PIOS_GPIO_CLKS				{  }
-#define PIOS_GPIO_NUM				0
+#endif /* _FLYINGPIO_PIOS_BOARD_H */
 
-#endif /* STM32103CB_NAZE32_H_ */
 
 /**
  * @}
