@@ -197,6 +197,7 @@ SRC += pios_srxl.c
 SRC += pios_ibus.c
 SRC += pios_wdg.c
 SRC += pios_reset.c
+SRC += pios_led.c
 
 include ./UAVObjects.inc
 SRC += $(UAVOBJSRC)

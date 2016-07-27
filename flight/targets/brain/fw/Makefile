@@ -191,6 +191,7 @@ SRC += pios_ppm.c
 SRC += pios_debug.c
 SRC += pios_wdg.c
 SRC += pios_reset.c
+SRC += pios_led.c
 
 # List C++ source files here.
 # use file-extension .cpp for C++-files (not .C)

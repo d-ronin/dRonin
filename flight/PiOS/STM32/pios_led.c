@@ -51,7 +51,12 @@ int32_t PIOS_LED_Init(const struct pios_led_cfg * cfg)
 		const struct pios_led * led = &(cfg->leds[i]);
 		
 		if (led->remap) {
+#ifdef STM32F10X_MD
+			GPIO_PinRemapConfig(led->remap, ENABLE);
+#else
 			GPIO_PinAFConfig(led->pin.gpio, led->pin.init.GPIO_Pin, led->remap);
+#endif
+
 		}
 		
 		GPIO_Init(led->pin.gpio, (GPIO_InitTypeDef*)&led->pin.init);

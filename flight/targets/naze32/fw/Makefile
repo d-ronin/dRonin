@@ -163,18 +163,18 @@ endif
 
 
 ## PIOS Hardware (STM32F10x)
-SRC += $(PIOSSTM32F10X)/pios_sys.c
-SRC += $(PIOSSTM32F10X)/pios_led.c
-SRC += $(PIOSSTM32F10X)/pios_usart.c
-SRC += $(PIOSSTM32F10X)/pios_internal_adc_light.c
-SRC += $(PIOSSTM32F10X)/pios_i2c_alt.c
-SRC += $(PIOSSTM32F10X)/pios_gpio.c
-SRC += $(PIOSSTM32F10X)/pios_exti.c
-SRC += $(PIOSSTM32F10X)/pios_rtc.c
-SRC += $(PIOSSTM32F10X)/pios_iap.c
-SRC += $(PIOSSTM32F10X)/pios_tim.c
-SRC += $(PIOSSTM32F10X)/pios_bl_helper.c
-SRC += $(PIOSSTM32F10X)/pios_flash_internal.c
+SRC += pios_sys.c
+SRC += pios_led.c
+SRC += pios_usart.c
+SRC += pios_internal_adc_light.c
+SRC += pios_i2c_alt.c
+SRC += pios_gpio.c
+SRC += pios_exti.c
+SRC += pios_rtc.c
+SRC += pios_iap.c
+SRC += pios_tim.c
+SRC += pios_bl_helper.c
+SRC += pios_flash_internal.c
 
 ## PIOS Hardware (Common)
 SRC += pios_delay.c
