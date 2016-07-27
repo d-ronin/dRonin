@@ -1189,47 +1189,6 @@ const struct pios_usb_cdc_cfg pios_usb_cdc_cfg = {
 #endif	/* PIOS_INCLUDE_USB_CDC */
 
 /**
- * Configuration for MPU6000 chip
- */
-#if defined(PIOS_INCLUDE_MPU)
-#include "pios_mpu.h"
-static const struct pios_exti_cfg pios_exti_mpu_cfg __exti_config = {
-	.vector = PIOS_MPU_IRQHandler,
-	.line = EXTI_Line3,
-	.pin = {
-		.gpio = GPIOA,
-		.init = {
-			.GPIO_Pin   = GPIO_Pin_3,
-			.GPIO_Speed = GPIO_Speed_10MHz,
-			.GPIO_Mode  = GPIO_Mode_IN_FLOATING,
-		},
-	},
-	.irq = {
-		.init = {
-			.NVIC_IRQChannel = EXTI3_IRQn,
-			.NVIC_IRQChannelPreemptionPriority = PIOS_IRQ_PRIO_HIGH,
-			.NVIC_IRQChannelSubPriority = 0,
-			.NVIC_IRQChannelCmd = ENABLE,
-		},
-	},
-	.exti = {
-		.init = {
-			.EXTI_Line = EXTI_Line3, // matches above GPIO pin
-			.EXTI_Mode = EXTI_Mode_Interrupt,
-			.EXTI_Trigger = EXTI_Trigger_Rising,
-			.EXTI_LineCmd = ENABLE,
-		},
-	},
-};
-
-static const struct pios_mpu_cfg pios_mpu_cfg = {
-	.exti_cfg = &pios_exti_mpu_cfg,
-	.default_samplerate = 500,
-	.orientation = PIOS_MPU_TOP_180DEG
-};
-#endif /* PIOS_INCLUDE_MPU */
-
-/**
  * @}
  * @}
  */
