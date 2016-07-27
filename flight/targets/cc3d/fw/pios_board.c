@@ -341,9 +341,13 @@ void PIOS_Board_Init(void) {
 
 	PIOS_SENSORS_Init();
 
-	// Revision 2 with L3GD20 gyros, start a SPI interface and connect to it
+	// Revision 2 with MPU6000 gyros, start a SPI interface and connect to it
 	GPIO_PinRemapConfig(GPIO_Remap_SWJ_JTAGDisable, ENABLE);
 #if defined(PIOS_INCLUDE_MPU)
+	if (PIOS_SPI_Init(&pios_spi_gyro_id, &pios_spi_gyro_cfg)) {
+		PIOS_Assert(0);
+	}
+
 	pios_mpu_dev_t mpu_dev = NULL;
 	if (PIOS_MPU_SPI_Init(&mpu_dev, pios_spi_gyro_id, 0, &pios_mpu_cfg) != 0)
 		PIOS_Assert(0);
