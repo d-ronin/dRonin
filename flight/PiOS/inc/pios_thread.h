@@ -32,6 +32,8 @@
 #include <stdint.h>
 #include <stdbool.h>
 
+struct pios_thread;
+
 #if defined(PIOS_INCLUDE_FREERTOS)
 
 #include "FreeRTOSConfig.h"
@@ -70,7 +72,13 @@ struct pios_thread
 	Thread *threadp;
 };
 
-#endif /* defined(PIOS_INCLUDE_CHIBIOS) */
+#else /* defined(PIOS_INCLUDE_CHIBIOS) */
+
+enum pios_thread_prio_e
+{
+	PIOS_THREAD_PRIO_HIGHEST
+};
+#endif
 
 /*
  * The following functions implement the concept of a thread usable
