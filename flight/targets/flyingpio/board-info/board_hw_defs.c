@@ -46,7 +46,7 @@ static const struct pios_led pios_leds[] = {
 			.gpio = GPIOB,
 			.init = {
 				.GPIO_Pin   = GPIO_Pin_0,
-				.GPIO_Mode  = GPIO_Mode_Out_PP,
+				.GPIO_Mode  = GPIO_Mode_OUT,
 				.GPIO_Speed = GPIO_Speed_2MHz,
 			},
 		},

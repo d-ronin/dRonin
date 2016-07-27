@@ -31,7 +31,7 @@ OPENOCD_JTAG_CONFIG ?= stlink-v2.cfg
 OPENOCD_CONFIG      := stm32f0x.cfg
 MCU                 := cortex-m0
 STM32_TYPE          := STM32F0xx
-ARCH_TYPES          := STM32F0xx
+ARCH_TYPES          := STM32F0xx STM32
 endif
 
 vpath % $(BOARD_ROOT_DIR)/$(BUILD_TYPE)

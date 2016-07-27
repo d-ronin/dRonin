@@ -34,10 +34,13 @@
 #include "uavobjectsinit.h"
 #include "systemmod.h"
 
+void PIOS_Board_Init(void);
+
 int main()
 {
 	/* Brings up System using CMSIS functions, enables the LEDs. */
 	PIOS_SYS_Init();
+	PIOS_Board_Init();
 
 	while (1);
 

@@ -42,6 +42,7 @@
 
 /* Com systems to include */
 #define PIOS_INCLUDE_COM
+#define PIOS_INCLUDE_LED
 
 /* Supported receiver interfaces */
 //#define PIOS_INCLUDE_RCVR
