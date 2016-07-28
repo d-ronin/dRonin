@@ -42,7 +42,10 @@ int main()
 	PIOS_SYS_Init();
 	PIOS_Board_Init();
 
-	while (1);
+	while (1) {
+		for (volatile int i=0; i<10000000; i++);
+		PIOS_LED_Toggle(PIOS_LED_HEARTBEAT);
+	}
 
 	return 0;
 }

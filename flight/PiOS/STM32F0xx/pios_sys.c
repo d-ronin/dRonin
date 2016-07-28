@@ -62,6 +62,7 @@ void PIOS_SYS_Init(void)
 #if 0
 	/* Init the delay system */
 	PIOS_DELAY_Init();
+#endif
 
 	/*
 	 * Turn on all the peripheral clocks.
@@ -81,43 +82,33 @@ void PIOS_SYS_Init(void)
 			       RCC_AHBPeriph_SRAM |
 			       RCC_AHBPeriph_DMA2 |
 			       RCC_AHBPeriph_DMA1 |
-			       RCC_AHBPeriph_ADC34 |
-			       RCC_AHBPeriph_ADC12 |
 			0, ENABLE);
 
 	RCC_APB1PeriphClockCmd(
 			       RCC_APB1Periph_TIM2 |
 			       RCC_APB1Periph_TIM3 |
-			       RCC_APB1Periph_TIM4 |
 			       RCC_APB1Periph_TIM6 |
 			       RCC_APB1Periph_TIM7 |
+			       RCC_APB1Periph_TIM14 |
 			       RCC_APB1Periph_WWDG |
 			       RCC_APB1Periph_SPI2 |
-			       RCC_APB1Periph_SPI3 |
 			       RCC_APB1Periph_USART2 |
-			       RCC_APB1Periph_USART3 |
-			       RCC_APB1Periph_UART4 |
-			       RCC_APB1Periph_UART5 |
 			       RCC_APB1Periph_I2C1 |
 			       RCC_APB1Periph_I2C2 |
-			       RCC_APB1Periph_USB |
-			       RCC_APB1Periph_CAN1 |
 			       RCC_APB1Periph_PWR |
-			       RCC_APB1Periph_DAC |
 			0, ENABLE);
 
 	RCC_APB2PeriphClockCmd(
+			       RCC_APB2Periph_SYSCFG |
+			       RCC_APB2Periph_ADC1 |
 			       RCC_APB2Periph_TIM1 |
-			       RCC_APB2Periph_TIM8 |
+			       RCC_APB2Periph_SPI1 |
+			       RCC_APB2Periph_USART1 |
 			       RCC_APB2Periph_TIM15 |
 			       RCC_APB2Periph_TIM16 |
 			       RCC_APB2Periph_TIM17 |
-			       RCC_APB2Periph_USART1 |
-			       RCC_APB2Periph_SPI1 |
-			       RCC_APB2Periph_SYSCFG |
+			       RCC_APB2Periph_DBGMCU |
 			0, ENABLE);
-
-#endif
 }
 
 /**
