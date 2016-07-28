@@ -35,8 +35,6 @@
 /* Project Includes */
 #include <pios.h>
 
-#if defined(PIOS_INCLUDE_DELAY)
-
 /* cycles per microsecond */
 static uint32_t us_ticks;
 static uint32_t us_modulo;
@@ -193,9 +191,6 @@ uint32_t PIOS_DELAY_DiffuS2(uint32_t raw, uint32_t later) {
 	uint32_t diff = later - raw;
 	return diff / us_ticks;
 }
-
-
-#endif
 
 /**
   * @}

@@ -337,7 +337,7 @@ static int32_t PIOS_L3GD20_ReadGyros(struct pios_l3gd20_data *data)
 	if (PIOS_L3GD20_ClaimBus() != 0)
 		return -1;
 
-	if (PIOS_SPI_TransferBlock(pios_l3gd20_dev->spi_id, &buf[0], &rec[0], sizeof(buf), NULL) < 0) {
+	if (PIOS_SPI_TransferBlock(pios_l3gd20_dev->spi_id, &buf[0], &rec[0], sizeof(buf)) < 0) {
 		PIOS_L3GD20_ReleaseBus();
 		data->gyro_x = 0;
 		data->gyro_y = 0;

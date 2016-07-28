@@ -8,7 +8,7 @@
  *
  * @file       pios_spi.c
  * @author     Tau Labs, http://taulabs.org, Copyright (C) 2012-2016
- * @author     The OpenPilot Team, http://www.openpilot.org Copyright (C) 2010.
+ * @author     The OpenPilot Team, http://www.openpilot.org Copyright (C) 2012.
  * 	        Parts by Thorsten Klose (tk@midibox.org) (tk@midibox.org)
  * @brief      Hardware Abstraction Layer for SPI ports of STM32
  * @see        The GNU Public License (GPL) Version 3
@@ -33,9 +33,28 @@
  * 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
  */
 
+/*
+ * @todo This is virtually identical to the F1xx code and should be merged.
+ */
+
 #include "pios.h"
+#if defined(STM32F40_41xxx) || defined(STM32F446xx)  /* F4 */
+#include "stm32f4xx_iwdg.h"
+#include "stm32f4xx_dbgmcu.h"
+#include "stm32f4xx_rtc.h"
+#elif defined(STM32F30X) /* F3 */
+#include "stm32f30x_iwdg.h"
+#include "stm32f30x_dbgmcu.h"
+#include "stm32f30x_rtc.h"
+#elif defined(STM32F10X_MD) /* F1 */
 #include "stm32f10x_iwdg.h"
 #include "stm32f10x_dbgmcu.h"
+
+#define RTC_ReadBackupRegister BKP_ReadBackupRegister
+#define RTC_WriteBackupRegister BKP_WriteBackupRegister
+#else 
+#error Attempted to build on unsupported target
+#endif
 
 static struct wdg_configuration {
 	uint16_t used_flags;
@@ -53,7 +72,7 @@ static struct wdg_configuration {
  *
  * For the STM32 nominal clock rate is 32 khz, but for the maximum clock rate of
  * 60 khz and a prescaler of 4 yields a clock rate of 15 khz.  The delay that is
- * set in the watchdog assumes the nominal clock rate, but the delay for FreeRTOS
+ * set in the watchdog assumes the nominal clock rate, but the delay for RTOS
  * to use is 75% of the minimal delay.
  *
  * @returns Maximum recommended delay between updates based on PIOS_WATCHDOG_TIMEOUT constant
@@ -73,13 +92,14 @@ uint16_t PIOS_WDG_Init()
 
 	// watchdog flags now stored in backup registers
 	PWR_BackupAccessCmd(ENABLE);
-	wdg_configuration.bootup_flags = BKP_ReadBackupRegister(PIOS_WDG_REGISTER);
+
+	wdg_configuration.bootup_flags = RTC_ReadBackupRegister(PIOS_WDG_REGISTER);
 
 	/*
 	 * Start from an empty set of registered flags so previous boots
 	 * can't influence the current one
 	 */
-	BKP_WriteBackupRegister(PIOS_WDG_REGISTER, 0);
+	RTC_WriteBackupRegister(PIOS_WDG_REGISTER, 0);
 #endif
 	return delay;
 }
@@ -131,14 +151,14 @@ bool PIOS_WDG_UpdateFlag(uint16_t flag)
 	// efficiency and not blocking critical tasks.  race condition could 
 	// overwrite their flag update, but unlikely to block _all_ of them 
 	// for the timeout window
-	uint16_t cur_flags = BKP_ReadBackupRegister(PIOS_WDG_REGISTER);
+	uint16_t cur_flags = RTC_ReadBackupRegister(PIOS_WDG_REGISTER);
 	
 	if((cur_flags | flag) == wdg_configuration.used_flags) {
 		PIOS_WDG_Clear();
-		BKP_WriteBackupRegister(PIOS_WDG_REGISTER, flag);
+		RTC_WriteBackupRegister(PIOS_WDG_REGISTER, flag);
 		return true;
 	} else {
-		BKP_WriteBackupRegister(PIOS_WDG_REGISTER, cur_flags | flag);
+		RTC_WriteBackupRegister(PIOS_WDG_REGISTER, cur_flags | flag);
 		return false;
 	}
 		
@@ -166,7 +186,7 @@ uint16_t PIOS_WDG_GetBootupFlags()
  */
 uint16_t PIOS_WDG_GetActiveFlags()
 {
-	return BKP_ReadBackupRegister(PIOS_WDG_REGISTER);
+	return RTC_ReadBackupRegister(PIOS_WDG_REGISTER);
 }
 
 /**

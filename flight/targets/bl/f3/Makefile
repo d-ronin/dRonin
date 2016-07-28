@@ -56,26 +56,23 @@ SRC += $(BLBOARDDIR)/pios_usb_board_data.c
 ## PIOS Hardware (STM32F30x)
 PIOS_DEVLIB			:=	$(PIOS)/STM32F30x
 include $(PIOS_DEVLIB)/library.mk
-SRC	+=	$(PIOS_DEVLIB)/pios_bl_helper.c
-SRC	+=	$(PIOS_DEVLIB)/pios_exti.c
-SRC	+=	$(PIOS_DEVLIB)/pios_flash_internal.c
-SRC	+=	$(PIOS_DEVLIB)/pios_gpio.c
-SRC	+=	$(PIOS_DEVLIB)/pios_iap.c
-SRC	+=	$(PIOS_DEVLIB)/pios_irq.c
-SRC	+=	$(PIOS_DEVLIB)/pios_led.c
-SRC	+=	$(PIOS_DEVLIB)/pios_rtc.c
-SRC	+=	$(PIOS_DEVLIB)/pios_spi.c
-SRC	+=	$(PIOS_DEVLIB)/pios_sys.c
-SRC	+=	$(PIOS_DEVLIB)/pios_tim.c
-SRC	+=	$(PIOS_DEVLIB)/pios_usb.c
-SRC	+=	$(PIOS_DEVLIB)/pios_usb_cdc.c
-SRC	+=	$(PIOS_DEVLIB)/pios_usb_hid.c
-SRC	+=	$(PIOS_DEVLIB)/pios_usb_hid_istr.c
-SRC	+=	$(PIOS_DEVLIB)/pios_usb_hid_pwr.c
-SRC	+=	$(PIOS_DEVLIB)/pios_usbhook.c
-SRC	+=	$(PIOS_DEVLIB)/pios_wdg.c
-SRC	+=	$(PIOS_DEVLIB)/startup.c
-SRC	+=	$(PIOS_DEVLIB)/vectors_stm32f30x.c
+SRC += pios_bl_helper.c
+SRC += pios_exti.c
+SRC += pios_flash_internal.c
+SRC += pios_gpio.c
+SRC += pios_iap.c
+SRC += pios_led.c
+SRC += pios_rtc.c
+SRC += pios_sys.c
+SRC += pios_tim.c
+SRC += pios_usb.c
+SRC += pios_usb_cdc.c
+SRC += pios_usb_hid.c
+SRC += pios_usb_hid_istr.c
+SRC += pios_usb_hid_pwr.c
+SRC += pios_usbhook.c
+SRC += startup.c
+SRC += vectors_stm32f30x.c
 #
 # Hardcoded linker script names for now
 #
@@ -88,16 +85,18 @@ LINKER_SCRIPTS_BL	 =	$(PIOS_DEVLIB)/link_STM32F30x_BL_memory.ld \
 SRC					+=	$(addprefix $(USBFSLIB)/src/,$(USBFSLIB_SRC))
 
 ## PIOS Hardware (Common)
-SRC += $(PIOSCOMMON)/pios_delay.c
-SRC += $(PIOSCOMMON)/pios_board_info.c
-SRC += $(PIOSCOMMON)/pios_com_msg.c
-SRC += $(PIOSCOMMON)/printf-stdarg.c
-SRC += $(PIOSCOMMON)/pios_usb_desc_hid_only.c
-SRC += $(PIOSCOMMON)/pios_usb_util.c
-SRC += $(PIOSCOMMON)/pios_flash.c
-SRC += $(PIOSCOMMON)/pios_heap.c
-SRC += $(PIOSCOMMON)/pios_semaphore.c
-
+SRC += pios_delay.c
+SRC += pios_board_info.c
+SRC += pios_com_msg.c
+SRC += printf-stdarg.c
+SRC += pios_usb_desc_hid_only.c
+SRC += pios_usb_util.c
+SRC += pios_flash.c
+SRC += pios_heap.c
+SRC += pios_semaphore.c
+SRC += pios_spi.c
+SRC += pios_irq.c
+SRC += pios_wdg.c
 
 # List any extra directories to look for include files here.
 #    Each directory must be seperated by a space.

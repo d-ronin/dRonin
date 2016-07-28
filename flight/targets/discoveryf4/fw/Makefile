@@ -96,25 +96,33 @@ SRC += $(FLIGHTLIB)/taskmonitor.c
 include $(PIOS)/STM32F4xx/library_chibios.mk
 
 ## PIOS Hardware (Common)
-SRC += $(PIOSCOMMON)/pios_delay.c
-SRC += $(PIOSCOMMON)/pios_crc.c
-SRC += $(PIOSCOMMON)/pios_com.c
-SRC += $(PIOSCOMMON)/pios_rcvr.c
-SRC += $(PIOSCOMMON)/pios_gcsrcvr.c
-SRC += $(PIOSCOMMON)/pios_flashfs_logfs.c
-SRC += $(PIOSCOMMON)/printf-stdarg.c
-SRC += $(PIOSCOMMON)/pios_usb_desc_hid_cdc.c
-SRC += $(PIOSCOMMON)/pios_usb_desc_hid_only.c
-SRC += $(PIOSCOMMON)/pios_usb_util.c
-SRC += $(PIOSCOMMON)/pios_flash.c
-SRC += $(PIOSCOMMON)/pios_heap.c
-SRC += $(PIOSCOMMON)/pios_semaphore.c
-SRC += $(PIOSCOMMON)/pios_mutex.c
-SRC += $(PIOSCOMMON)/pios_thread.c
-SRC += $(PIOSCOMMON)/pios_queue.c
-SRC += $(PIOSCOMMON)/pios_hal.c
-SRC += $(PIOSCOMMON)/pios_servo.c
-SRC += $(PIOSCOMMON)/pios_modules.c
+SRC += pios_delay.c
+SRC += pios_crc.c
+SRC += pios_com.c
+SRC += pios_rcvr.c
+SRC += pios_gcsrcvr.c
+SRC += pios_flashfs_logfs.c
+SRC += printf-stdarg.c
+SRC += pios_usb_desc_hid_cdc.c
+SRC += pios_usb_desc_hid_only.c
+SRC += pios_usb_util.c
+SRC += pios_flash.c
+SRC += pios_heap.c
+SRC += pios_semaphore.c
+SRC += pios_mutex.c
+SRC += pios_thread.c
+SRC += pios_queue.c
+SRC += pios_hal.c
+SRC += pios_servo.c
+SRC += pios_modules.c
+SRC += pios_spi.c
+SRC += pios_irq.c
+SRC += pios_pwm.c
+SRC += pios_ppm.c
+SRC += pios_debug.c
+SRC += pios_wdg.c
+SRC += pios_reset.c
+SRC += pios_led.c
 
 # List any extra directories to look for include files here.
 #    Each directory must be seperated by a space.

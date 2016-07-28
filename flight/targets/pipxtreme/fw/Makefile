@@ -92,7 +92,6 @@ RTOSPORTDIR = $(APPLIBDIR)/FreeRTOS/Source
 # List C source files here. (C dependencies are automatically generated.)
 # use file-extension c for "c-only"-files
 
-ifndef TESTAPP
 ## MODULES
 SRC += ${foreach MOD, ${MODULES} ${OPTMODULES}, ${wildcard ${OPMODULEDIR}/${MOD}/*.c}}
 ## OPENPILOT CORE:
@@ -101,14 +100,8 @@ SRC += main.c
 SRC += pios_board.c
 SRC += $(OPUAVTALK)/uavtalk.c
 SRC += $(OPUAVOBJ)/uavobjectmanager.c
-else
-## TESTCODE
-SRC += $(OPTESTS)/test_common.c
-SRC += $(OPTESTS)/$(TESTAPP).c
-endif
 
 ## UAVOBJECTS
-ifndef TESTAPP
 SRC += $(OPUAVSYNTHDIR)/gcsreceiver.c
 SRC += $(OPUAVSYNTHDIR)/hwtaulink.c
 SRC += $(OPUAVSYNTHDIR)/rfm22bstatus.c
@@ -122,56 +115,55 @@ SRC += $(OPUAVSYNTHDIR)/flightbatterystate.c
 SRC += $(OPUAVSYNTHDIR)/flightstatus.c
 SRC += $(OPUAVSYNTHDIR)/positionactual.c
 SRC += $(OPUAVSYNTHDIR)/velocityactual.c
-endif
 
 ## PIOS Hardware (STM32F10x)
-SRC += $(PIOSSTM32F10X)/pios_sys.c
-SRC += $(PIOSSTM32F10X)/pios_led.c
-SRC += $(PIOSSTM32F10X)/pios_usart.c
-SRC += $(PIOSSTM32F10X)/pios_irq.c
-SRC += $(PIOSSTM32F10X)/pios_flash_internal.c
-SRC += $(PIOSSTM32F10X)/pios_spi.c
-SRC += $(PIOSSTM32F10X)/pios_ppm.c
-SRC += $(PIOSSTM32F10X)/pios_debug.c
-SRC += $(PIOSSTM32F10X)/pios_gpio.c
-SRC += $(PIOSSTM32F10X)/pios_exti.c
-SRC += $(PIOSSTM32F10X)/pios_rtc.c
-SRC += $(PIOSSTM32F10X)/pios_wdg.c
-SRC += $(PIOSSTM32F10X)/pios_tim.c
-SRC += $(PIOSSTM32F10X)/pios_pwm.c
-SRC += $(PIOSSTM32F10X)/pios_bl_helper.c
+SRC += pios_sys.c
+SRC += pios_led.c
+SRC += pios_usart.c
+SRC += pios_flash_internal.c
+SRC += pios_gpio.c
+SRC += pios_exti.c
+SRC += pios_rtc.c
+SRC += pios_tim.c
+SRC += pios_bl_helper.c
 
 # PIOS USB related files (seperated to make code maintenance more easy)
-SRC += $(PIOSSTM32F10X)/pios_usb.c
-SRC += $(PIOSSTM32F10X)/pios_usbhook.c
-SRC += $(PIOSSTM32F10X)/pios_usb_hid.c
-SRC += $(PIOSSTM32F10X)/pios_usb_cdc.c
-SRC += $(PIOSSTM32F10X)/pios_usb_hid_istr.c
-SRC += $(PIOSSTM32F10X)/pios_usb_hid_pwr.c
+SRC += pios_usb.c
+SRC += pios_usbhook.c
+SRC += pios_usb_hid.c
+SRC += pios_usb_cdc.c
+SRC += pios_usb_hid_istr.c
+SRC += pios_usb_hid_pwr.c
 SRC += pios_usb_board_data.c
-SRC += $(PIOSCOMMON)/pios_usb_desc_hid_cdc.c
-SRC += $(PIOSCOMMON)/pios_usb_desc_hid_only.c
-SRC += $(PIOSCOMMON)/pios_usb_util.c
+SRC += pios_usb_desc_hid_cdc.c
+SRC += pios_usb_desc_hid_only.c
+SRC += pios_usb_util.c
 
 ## PIOS Hardware (Common)
-SRC += $(PIOSCOMMON)/pios_delay.c
-SRC += $(PIOSCOMMON)/pios_crc.c
-SRC += $(PIOSCOMMON)/pios_com.c
-SRC += $(PIOSCOMMON)/pios_rcvr.c
-SRC += $(PIOSCOMMON)/pios_flash.c
-SRC += $(PIOSCOMMON)/pios_flashfs_logfs.c
-SRC += $(PIOSCOMMON)/printf-stdarg.c
-SRC += $(PIOSCOMMON)/pios_rfm22b.c
-SRC += $(PIOSCOMMON)/pios_rfm22b_com.c
-SRC += $(PIOSCOMMON)/pios_heap.c
-SRC += $(PIOSCOMMON)/pios_semaphore.c
-SRC += $(PIOSCOMMON)/pios_mutex.c
-SRC += $(PIOSCOMMON)/pios_thread.c
-SRC += $(PIOSCOMMON)/pios_queue.c
-SRC += $(PIOSCOMMON)/pios_hal.c
-SRC += $(PIOSCOMMON)/pios_servo.c
-SRC += $(PIOSCOMMON)/pios_modules.c
-
+SRC += pios_delay.c
+SRC += pios_crc.c
+SRC += pios_com.c
+SRC += pios_rcvr.c
+SRC += pios_flash.c
+SRC += pios_flashfs_logfs.c
+SRC += printf-stdarg.c
+SRC += pios_rfm22b.c
+SRC += pios_rfm22b_com.c
+SRC += pios_heap.c
+SRC += pios_semaphore.c
+SRC += pios_mutex.c
+SRC += pios_thread.c
+SRC += pios_queue.c
+SRC += pios_hal.c
+SRC += pios_servo.c
+SRC += pios_modules.c
+SRC += pios_spi.c
+SRC += pios_irq.c
+SRC += pios_pwm.c
+SRC += pios_ppm.c
+SRC += pios_debug.c
+SRC += pios_wdg.c
+SRC += pios_reset.c
 
 ## Libraries for flight calculations
 SRC += $(FLIGHTLIB)/taskmonitor.c

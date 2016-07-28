@@ -400,7 +400,7 @@ int32_t PIOS_RE1FPGA_SetLEDs(const uint8_t * led_data, uint16_t n_leds)
 	n_leds = MIN(n_leds, 1024);
 
 	PIOS_SPI_TransferByte(dev->spi_id, 0x7f & RE1FPGA_REG_LED);
-	PIOS_SPI_TransferBlock(dev->spi_id, led_data, NULL, 3 * n_leds, NULL);
+	PIOS_SPI_TransferBlock(dev->spi_id, led_data, NULL, 3 * n_leds);
 
 	PIOS_RE1FPGA_ReleaseBus();
 
@@ -430,11 +430,11 @@ int32_t PIOS_RE1FPGA_SetLEDColor(uint16_t n_leds, uint8_t red, uint8_t green, ui
 	PIOS_SPI_TransferByte(dev->spi_id, 0x7f & RE1FPGA_REG_LED);
 
 	for (int i=0; i<n_leds/LED_BLOCK_SIZE; i++) {
-		PIOS_SPI_TransferBlock(dev->spi_id, LED_DATA, NULL, 3 * LED_BLOCK_SIZE, NULL);
+		PIOS_SPI_TransferBlock(dev->spi_id, LED_DATA, NULL, 3 * LED_BLOCK_SIZE);
 	}
 
 	if (n_leds % LED_BLOCK_SIZE != 0) {
-		PIOS_SPI_TransferBlock(dev->spi_id, LED_DATA, NULL, 3 * (n_leds % LED_BLOCK_SIZE), NULL);
+		PIOS_SPI_TransferBlock(dev->spi_id, LED_DATA, NULL, 3 * (n_leds % LED_BLOCK_SIZE));
 	}
 
 	PIOS_RE1FPGA_ReleaseBus();
@@ -476,7 +476,7 @@ int32_t PIOS_RE1FPGA_SetIRData(const uint8_t * ir_data, uint8_t n_bytes)
 
 
 	PIOS_SPI_TransferByte(dev->spi_id, 0x7f & RE1FPGA_REG_IRDATA);
-	PIOS_SPI_TransferBlock(dev->spi_id, ir_data, NULL, n_bytes, NULL);
+	PIOS_SPI_TransferBlock(dev->spi_id, ir_data, NULL, n_bytes);
 
 	PIOS_RE1FPGA_ReleaseBus();
 

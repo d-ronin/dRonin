@@ -224,20 +224,6 @@ $(1):  $(2)
 	$(V1) $(CXX) $(THUMB) $$(CFLAGS) $(2) --output $$@ $$(LDFLAGS)
 endef
 
-# Compile: create assembler files from C source files. ARM/Thumb
-define PARTIAL_COMPILE_TEMPLATE
-$($(1):.c=.s) : %.s : %.c
-	@echo $(MSG_ASMFROMC) $$(call toprel, $$<)
-	$(V1) $(CC) $(THUMB) -S $$(CFLAGS) $$(CONLYFLAGS) $$< -o $$@
-endef
-
-# Compile: create assembler files from C source files. ARM only
-define PARTIAL_COMPILE_ARM_TEMPLATE
-$($(1):.c=.s) : %.s : %.c
-	@echo $(MSG_ASMFROMC_ARM) $$(call toprel, $$<)
-	$(V1) $(CC) -S $$(CFLAGS) $$(CONLYFLAGS) $$< -o $$@
-endef
-
 # $(1) = Name of binary image to write
 # $(2) = Base of flash region to write/wipe
 # $(3) = Size of flash region to write/wipe

@@ -145,51 +145,6 @@ static const struct pios_spi_cfg pios_spi_rfm22b_cfg =
 		.SPI_CPHA = SPI_CPHA_1Edge,
 		.SPI_BaudRatePrescaler = SPI_BaudRatePrescaler_16,		// slowest SCLK
 	},
-	.use_crc = false,
-
-	.dma =
-	{
-		.ahb_clk = RCC_AHBPeriph_DMA1,
-		.irq =
-		{
-		      .flags   = (DMA1_FLAG_TC2 | DMA1_FLAG_TE2 | DMA1_FLAG_HT2 | DMA1_FLAG_GL2),
-		      .init    = {
-			.NVIC_IRQChannel                   = DMA1_Channel2_IRQn,
-			.NVIC_IRQChannelPreemptionPriority = PIOS_IRQ_PRIO_HIGH,
-			.NVIC_IRQChannelSubPriority        = 0,
-			.NVIC_IRQChannelCmd                = ENABLE,
-		      },
-		    },
-
-		    .rx = {
-		      .channel = DMA1_Channel2,
-		      .init    = {
-			.DMA_PeripheralBaseAddr = (uint32_t)&(SPI1->DR),
-			.DMA_DIR                = DMA_DIR_PeripheralSRC,
-			.DMA_PeripheralInc      = DMA_PeripheralInc_Disable,
-			.DMA_MemoryInc          = DMA_MemoryInc_Enable,
-			.DMA_PeripheralDataSize = DMA_PeripheralDataSize_Byte,
-			.DMA_MemoryDataSize     = DMA_MemoryDataSize_Byte,
-			.DMA_Mode               = DMA_Mode_Normal,
-			.DMA_Priority           = DMA_Priority_Medium,
-			.DMA_M2M                = DMA_M2M_Disable,
-		      },
-		    },
-		    .tx = {
-		      .channel = DMA1_Channel3,
-		      .init    = {
-			.DMA_PeripheralBaseAddr = (uint32_t)&(SPI1->DR),
-			.DMA_DIR                = DMA_DIR_PeripheralDST,
-			.DMA_PeripheralInc      = DMA_PeripheralInc_Disable,
-			.DMA_MemoryInc          = DMA_MemoryInc_Enable,
-			.DMA_PeripheralDataSize = DMA_PeripheralDataSize_Byte,
-			.DMA_MemoryDataSize     = DMA_MemoryDataSize_Byte,
-			.DMA_Mode               = DMA_Mode_Normal,
-			.DMA_Priority           = DMA_Priority_Medium,
-			.DMA_M2M                = DMA_M2M_Disable,
-		      },
-		    },
-	},
 	.slave_count = 1,
 	.ssel =
 	{{

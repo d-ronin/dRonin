@@ -527,7 +527,7 @@ static void PIOS_BMI160_Task(void *parameters)
 		if (PIOS_BMI160_ClaimBus() != 0)
 			continue;
 
-		if (PIOS_SPI_TransferBlock(dev->spi_id, bmi160_tx_buf, bmi160_rec_buf, BUFFER_SIZE, 0) < 0) {
+		if (PIOS_SPI_TransferBlock(dev->spi_id, bmi160_tx_buf, bmi160_rec_buf, BUFFER_SIZE) < 0) {
 			PIOS_BMI160_ReleaseBus();
 			continue;
 		}
@@ -630,7 +630,7 @@ static void PIOS_BMI160_Task(void *parameters)
 
 			uint8_t bmi160_tx_buf[BUFFER_SIZE] = {BMI160_REG_TEMPERATURE_0 | 0x80, 0, 0, 0, 0, 0,
 					0, 0, 0, 0, 0, 0, 0};
-			if (PIOS_SPI_TransferBlock(dev->spi_id, bmi160_tx_buf, bmi160_rec_buf, 3, 0) < 0) {
+			if (PIOS_SPI_TransferBlock(dev->spi_id, bmi160_tx_buf, bmi160_rec_buf, 3) < 0) {
 				PIOS_BMI160_ReleaseBus();
 				continue;
 			}

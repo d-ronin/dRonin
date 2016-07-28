@@ -363,7 +363,7 @@ static int32_t PIOS_MS5611_Read(uint8_t address, uint8_t *buffer, uint8_t len)
 		goto out;
 	}
 
-	if (PIOS_SPI_TransferBlock(dev->spi_id, NULL, buffer, len, NULL) < 0) {
+	if (PIOS_SPI_TransferBlock(dev->spi_id, NULL, buffer, len) < 0) {
 		rc = -3;
 		goto out;
 	}

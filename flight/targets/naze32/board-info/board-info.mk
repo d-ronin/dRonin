@@ -5,14 +5,12 @@ HW_TYPE             := 0x01
 
 PAD_TLFW_FW_DESC    := yes
 
-MCU                 := cortex-m3
 CHIP                := STM32F103CBT
 BOARD               := STM32103CB_Naze32
 MODEL               := MD
 MODEL_SUFFIX        := _NZ
 
-OPENOCD_JTAG_CONFIG ?= stlink-v2.cfg
-OPENOCD_CONFIG      := stm32f1x.cfg
+include $(MAKE_INC_DIR)/firmware-arches.mk
 
 # Note: These must match the values in link_$(BOARD)_memory.ld
 FW_BANK_BASE        := 0x08000000  # Start of firmware flash

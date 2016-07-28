@@ -36,10 +36,8 @@
 
 /* Enable/Disable PiOS Modules */
 #define PIOS_INCLUDE_ADC
-#define PIOS_INCLUDE_DELAY
 #define PIOS_INCLUDE_I2C
 #define WDG_STATS_DIAGNOSTICS
-#define PIOS_INCLUDE_IRQ
 #define PIOS_INCLUDE_LED
 #define PIOS_INCLUDE_IAP
 #define PIOS_INCLUDE_TIM

@@ -101,57 +101,6 @@ static const struct pios_spi_cfg pios_spi_flash_cfg = {
 		.SPI_CPHA              = SPI_CPHA_2Edge,
 		.SPI_BaudRatePrescaler = SPI_BaudRatePrescaler_2,	//@ APB1 PCLK1 42MHz / 2 == 21MHz
 	},
-	.use_crc = false,
-	.dma = {
-		.irq = {
-			// Note this is the stream ID that triggers interrupts (in this case RX)
-			.flags = (DMA_IT_TCIF2 | DMA_IT_TEIF2 | DMA_IT_HTIF2),
-			.init = {
-				.NVIC_IRQChannel = DMA1_Stream2_IRQn,
-				.NVIC_IRQChannelPreemptionPriority = PIOS_IRQ_PRIO_HIGH,
-				.NVIC_IRQChannelSubPriority = 0,
-				.NVIC_IRQChannelCmd = ENABLE,
-			},
-		},
-		
-		.rx = {
-			.channel = DMA1_Stream2,
-			.init = {
-				.DMA_Channel            = DMA_Channel_0,
-				.DMA_PeripheralBaseAddr = (uint32_t) & (SPI3->DR),
-				.DMA_DIR                = DMA_DIR_PeripheralToMemory,
-				.DMA_PeripheralInc      = DMA_PeripheralInc_Disable,
-				.DMA_MemoryInc          = DMA_MemoryInc_Enable,
-				.DMA_PeripheralDataSize = DMA_PeripheralDataSize_Byte,
-				.DMA_MemoryDataSize     = DMA_MemoryDataSize_Byte,
-				.DMA_Mode               = DMA_Mode_Normal,
-				.DMA_Priority           = DMA_Priority_Medium,
-				//TODO: Enable FIFO
-				.DMA_FIFOMode           = DMA_FIFOMode_Disable,
-				.DMA_FIFOThreshold      = DMA_FIFOThreshold_Full,
-				.DMA_MemoryBurst        = DMA_MemoryBurst_Single,
-				.DMA_PeripheralBurst    = DMA_PeripheralBurst_Single,
-			},
-		},
-		.tx = {
-			.channel = DMA1_Stream7,
-			.init = {
-				.DMA_Channel            = DMA_Channel_0,
-				.DMA_PeripheralBaseAddr = (uint32_t) & (SPI3->DR),
-				.DMA_DIR                = DMA_DIR_MemoryToPeripheral,
-				.DMA_PeripheralInc      = DMA_PeripheralInc_Disable,
-				.DMA_MemoryInc          = DMA_MemoryInc_Enable,
-				.DMA_PeripheralDataSize = DMA_PeripheralDataSize_Byte,
-				.DMA_MemoryDataSize     = DMA_MemoryDataSize_Byte,
-				.DMA_Mode               = DMA_Mode_Normal,
-				.DMA_Priority           = DMA_Priority_Medium,
-				.DMA_FIFOMode           = DMA_FIFOMode_Disable,
-				.DMA_FIFOThreshold      = DMA_FIFOThreshold_Full,
-				.DMA_MemoryBurst        = DMA_MemoryBurst_Single,
-				.DMA_PeripheralBurst    = DMA_PeripheralBurst_Single,
-			},
-		},
-	},
 	.sclk = {
 		.gpio = GPIOC,
 		.init = {
@@ -1466,7 +1415,6 @@ const struct pios_video_cfg pios_video_cfg = {
 			.SPI_CPHA              = SPI_CPHA_2Edge,
 			.SPI_BaudRatePrescaler = SPI_BaudRatePrescaler_2,
 		},
-		.use_crc = false,
 		.dma     = {
 			.irq                                       = {
 				.flags = (DMA_IT_TCIF3),
@@ -1535,7 +1483,6 @@ const struct pios_video_cfg pios_video_cfg = {
 			.SPI_CPHA              = SPI_CPHA_2Edge,
 			.SPI_BaudRatePrescaler = SPI_BaudRatePrescaler_2,
 		},
-		.use_crc = false,
 		.dma     = {
 			.irq                                       = {
 				.flags = (DMA_IT_TCIF4),

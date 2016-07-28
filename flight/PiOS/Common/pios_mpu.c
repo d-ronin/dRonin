@@ -943,7 +943,7 @@ static void PIOS_MPU_Task(void *parameters)
 			if (PIOS_MPU_ClaimBus(false) != 0)
 				continue;
 
-			if (PIOS_SPI_TransferBlock(mpu_dev->com_driver_id, mpu_tx_buf, mpu_rec_buf, transfer_size, NULL) < 0) {
+			if (PIOS_SPI_TransferBlock(mpu_dev->com_driver_id, mpu_tx_buf, mpu_rec_buf, transfer_size) < 0) {
 				PIOS_MPU_ReleaseBus(false);
 				continue;
 			}

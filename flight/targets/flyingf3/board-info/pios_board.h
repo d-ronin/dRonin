@@ -67,10 +67,10 @@ TIM8  |           |           |           |
 // DMA Channels Used
 //------------------------
 /* Channel 1  -                                 */
-/* Channel 2  - SPI1 RX                         */
-/* Channel 3  - SPI1 TX                         */
-/* Channel 4  - SPI2 RX                         */
-/* Channel 5  - SPI2 TX                         */
+/* Channel 2  -                                 */
+/* Channel 3  -                                 */
+/* Channel 4  -                                 */
+/* Channel 5  -                                 */
 /* Channel 6  -                                 */
 /* Channel 7  -                                 */
 /* Channel 8  -                                 */

@@ -77,10 +77,6 @@ endif
 BLONLY_CDEFS += -DBOARD_TYPE=$(BOARD_TYPE)
 BLONLY_CDEFS += -DBOARD_REVISION=$(BOARD_REVISION)
 BLONLY_CDEFS += -DHW_TYPE=$(HW_TYPE)
-BLONLY_CDEFS += -DBOOTLOADER_VERSION=$(BOOTLOADER_VERSION)
-BLONLY_CDEFS += -DFW_BANK_BASE=$(FW_BANK_BASE)
-BLONLY_CDEFS += -DFW_BANK_SIZE=$(FW_BANK_SIZE)
-BLONLY_CDEFS += -DFW_DESC_SIZE=$(FW_DESC_SIZE)
 
 # Since we are simulating all this firmware the code needs to know what the BL would
 # normally contain
@@ -238,7 +234,7 @@ EXTRAINCDIRS  += $(RTOSSRCDIR)/portable/GCC/Posix
 
 EXTRAINCDIRS  += $(BOARD_INFO_DIR)
 
-EXTRAINCDIRS += ${foreach MOD, ${OPTMODULES} ${MODULES} ${PYMODULES}, $(OPMODULEDIR)/${MOD}/inc} ${OPMODULEDIR}/System/inc
+EXTRAINCDIRS += ${foreach MOD, ${OPTMODULES} ${MODULES}, $(OPMODULEDIR)/${MOD}/inc} ${OPMODULEDIR}/System/inc
 
 # Optimization level, can be [0, 1, 2, 3, s].
 # 0 = turn off optimization. s = optimize for size.

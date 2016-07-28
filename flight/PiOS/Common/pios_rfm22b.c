@@ -901,7 +901,7 @@ bool PIOS_RFM22B_TransmitPacket(uint32_t rfm22b_id, uint8_t * p,
 	int bytes_to_write = (rfm22b_dev->tx_data_wr - rfm22b_dev->tx_data_rd);
 	bytes_to_write = (bytes_to_write > FIFO_SIZE) ? FIFO_SIZE : bytes_to_write;
 	PIOS_SPI_TransferBlock(rfm22b_dev->spi_id, &tx_buffer[rfm22b_dev->tx_data_rd], 
-	                       NULL, bytes_to_write, NULL);
+	                       NULL, bytes_to_write);
 	rfm22b_dev->tx_data_rd += bytes_to_write;
 	rfm22_deassertCs(rfm22b_dev);
 
@@ -957,7 +957,7 @@ pios_rfm22b_int_result PIOS_RFM22B_ProcessTx(uint32_t rfm22b_id)
 		int bytes_to_write = (rfm22b_dev->tx_data_wr - rfm22b_dev->tx_data_rd);
 		bytes_to_write = (bytes_to_write > max_bytes) ? max_bytes : bytes_to_write;
 		PIOS_SPI_TransferBlock(rfm22b_dev->spi_id, &tx_buffer[rfm22b_dev->tx_data_rd],
-				       NULL, bytes_to_write, NULL);
+				       NULL, bytes_to_write);
 		rfm22b_dev->tx_data_rd += bytes_to_write;
 		rfm22_deassertCs(rfm22b_dev);
 		rfm22_releaseBus(rfm22b_dev);
@@ -1022,7 +1022,7 @@ pios_rfm22b_int_result PIOS_RFM22B_ProcessRx(uint32_t rfm22b_id)
 			rfm22b_dev->rx_buffer_wr +=
 			    (PIOS_SPI_TransferBlock(rfm22b_dev->spi_id, OUT_FF,
 			      (uint8_t *) & rx_buffer[rfm22b_dev->rx_buffer_wr],
-			      bytes_to_read, NULL) == 0) ? bytes_to_read : 0;
+			      bytes_to_read) == 0) ? bytes_to_read : 0;
 			rfm22_deassertCs(rfm22b_dev);
 		}
 		// Read the packet header (destination ID)
@@ -1072,8 +1072,8 @@ pios_rfm22b_int_result PIOS_RFM22B_ProcessRx(uint32_t rfm22b_id)
 		rfm22_assertCs(rfm22b_dev);
 		PIOS_SPI_TransferByte(rfm22b_dev->spi_id, RFM22_fifo_access & 0x7F);
 		rfm22b_dev->rx_buffer_wr += (PIOS_SPI_TransferBlock(rfm22b_dev->spi_id, OUT_FF,
-		      (uint8_t *) & rx_buffer[rfm22b_dev->rx_buffer_wr], RX_FIFO_HI_WATERMARK,
-		      NULL) == 0) ? RX_FIFO_HI_WATERMARK : 0;
+		      (uint8_t *) & rx_buffer[rfm22b_dev->rx_buffer_wr], RX_FIFO_HI_WATERMARK
+		      ) == 0) ? RX_FIFO_HI_WATERMARK : 0;
 		rfm22_deassertCs(rfm22b_dev);
 
 		// Release the SPI bus.
@@ -1758,7 +1758,7 @@ static bool pios_rfm22_readStatus(struct pios_rfm22b_dev *rfm22b_dev)
 	uint8_t read_buf[3];
 	rfm22_assertCs(rfm22b_dev);
 	PIOS_SPI_TransferBlock(rfm22b_dev->spi_id, write_buf, read_buf,
-			       sizeof(write_buf), NULL);
+			       sizeof(write_buf));
 	rfm22_deassertCs(rfm22b_dev);
 	rfm22b_dev->status_regs.int_status_1.raw = read_buf[1];
 	rfm22b_dev->status_regs.int_status_2.raw = read_buf[2];
@@ -2600,8 +2600,7 @@ static void rfm22_write_claim(struct pios_rfm22b_dev *rfm22b_dev,
 	rfm22_claimBus(rfm22b_dev);
 	rfm22_assertCs(rfm22b_dev);
 	uint8_t buf[2] = { addr | 0x80, data };
-	PIOS_SPI_TransferBlock(rfm22b_dev->spi_id, buf, NULL, sizeof(buf),
-			       NULL);
+	PIOS_SPI_TransferBlock(rfm22b_dev->spi_id, buf, NULL, sizeof(buf));
 	rfm22_deassertCs(rfm22b_dev);
 	rfm22_releaseBus(rfm22b_dev);
 }
@@ -2618,8 +2617,7 @@ static void rfm22_write(struct pios_rfm22b_dev *rfm22b_dev, uint8_t addr,
 {
 	rfm22_assertCs(rfm22b_dev);
 	uint8_t buf[2] = { addr | 0x80, data };
-	PIOS_SPI_TransferBlock(rfm22b_dev->spi_id, buf, NULL, sizeof(buf),
-			       NULL);
+	PIOS_SPI_TransferBlock(rfm22b_dev->spi_id, buf, NULL, sizeof(buf));
 	rfm22_deassertCs(rfm22b_dev);
 }
 
@@ -2636,8 +2634,7 @@ static uint8_t rfm22_read(struct pios_rfm22b_dev *rfm22b_dev, uint8_t addr)
 	uint8_t in[2];
 
 	rfm22_assertCs(rfm22b_dev);
-	PIOS_SPI_TransferBlock(rfm22b_dev->spi_id, out, in, sizeof(out),
-			       NULL);
+	PIOS_SPI_TransferBlock(rfm22b_dev->spi_id, out, in, sizeof(out));
 	rfm22_deassertCs(rfm22b_dev);
 	return in[1];
 }

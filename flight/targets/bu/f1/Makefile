@@ -59,17 +59,17 @@ SRC += $(BUCOMMONDIR)/pios_board.c
 ## Bootloader Updater (board specific implementations)
 
 ## PIOS Hardware (STM32F10x)
-SRC += $(PIOSSTM32F10X)/pios_sys.c
-SRC += $(PIOSSTM32F10X)/pios_led.c
-SRC += $(PIOSSTM32F10X)/pios_irq.c
-SRC += $(PIOSSTM32F10X)/pios_gpio.c
-SRC += $(PIOSSTM32F10X)/pios_flash_internal.c
+SRC += pios_sys.c
+SRC += pios_led.c
+SRC += pios_gpio.c
+SRC += pios_flash_internal.c
 
 ## PIOS Hardware (Common)
-SRC += $(PIOSCOMMON)/pios_delay.c
-SRC += $(PIOSCOMMON)/pios_flash.c
-SRC += $(PIOSCOMMON)/pios_heap.c
-SRC += $(PIOSCOMMON)/pios_semaphore.c
+SRC += pios_delay.c
+SRC += pios_flash.c
+SRC += pios_heap.c
+SRC += pios_semaphore.c
+SRC += pios_irq.c
 
 
 ## CMSIS for STM32

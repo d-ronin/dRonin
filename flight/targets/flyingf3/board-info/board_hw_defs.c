@@ -177,7 +177,6 @@ static const struct pios_spi_cfg pios_spi_internal_cfg = {
 		.SPI_CPHA              = SPI_CPHA_1Edge,
 		.SPI_BaudRatePrescaler = SPI_BaudRatePrescaler_8,
 	},
-	.use_crc = false,
 	.sclk = {
 		.gpio = GPIOA,
 		.init = {
@@ -254,7 +253,6 @@ static const struct pios_spi_cfg pios_spi_2_rcflyer_internal_cfg = {
 		.SPI_CPHA              = SPI_CPHA_1Edge,
 		.SPI_BaudRatePrescaler = SPI_BaudRatePrescaler_8,
 	},
-	.use_crc = false,
 	.sclk = {
 		.gpio = GPIOB,
 		.init = {
@@ -341,7 +339,6 @@ static const struct pios_spi_cfg pios_spi_2_chebuzz_external_cfg = {
 		.SPI_CPHA              = SPI_CPHA_1Edge,
 		.SPI_BaudRatePrescaler = SPI_BaudRatePrescaler_8,
 	},
-	.use_crc = false,
 	.sclk = {
 		.gpio = GPIOB,
 		.init = {
@@ -438,7 +435,6 @@ static const struct pios_spi_cfg pios_spi_3_chebuzz_internal_cfg = {
 		.SPI_CPHA              = SPI_CPHA_1Edge,
 		.SPI_BaudRatePrescaler = SPI_BaudRatePrescaler_8,
 	},
-	.use_crc = false,
 	.sclk = {
 		.gpio = GPIOB,
 		.init = {
@@ -507,7 +503,6 @@ static const struct pios_spi_cfg pios_spi_3_rcflyer_external_cfg = {
 		.SPI_CPHA              = SPI_CPHA_1Edge,
 		.SPI_BaudRatePrescaler = SPI_BaudRatePrescaler_8,
 	},
-	.use_crc = false,
 	.sclk = {
 		.gpio = GPIOB,
 		.init = {

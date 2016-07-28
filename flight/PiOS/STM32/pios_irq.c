@@ -32,8 +32,6 @@
 /* Project Includes */
 #include "pios.h"
 
-#if defined(PIOS_INCLUDE_IRQ)
-
 /* Private Function Prototypes */
 
 /* Local Variables */
@@ -49,6 +47,7 @@ static uint32_t prev_primask;
 */
 int32_t PIOS_IRQ_Disable(void)
 {
+	/* XXX TODO: This is racy */
 	/* Get current priority if nested level == 0 */
 	if (!nested_ctr) {
 		__asm volatile ("   mrs %0, primask\n":"=r" (prev_primask)
@@ -94,8 +93,6 @@ bool PIOS_IRQ_InISR(void)
 {
 	return (__get_IPSR() & 0xff) != 0;
 }
-
-#endif
 
 /**
   * @}

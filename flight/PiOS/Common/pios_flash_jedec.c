@@ -195,7 +195,7 @@ static int32_t PIOS_Flash_Jedec_WriteEnable(struct jedec_flash_dev *flash_dev)
 	uint8_t out[] = {
 		JEDEC_WRITE_ENABLE,
 	};
-	PIOS_SPI_TransferBlock(flash_dev->spi_id,out,NULL,sizeof(out),NULL);
+	PIOS_SPI_TransferBlock(flash_dev->spi_id,out,NULL,sizeof(out));
 	PIOS_Flash_Jedec_ReleaseBus(flash_dev);
 
 	return 0;
@@ -215,7 +215,7 @@ static int32_t PIOS_Flash_Jedec_ReadStatus(struct jedec_flash_dev *flash_dev)
 		0,
 	};
 	uint8_t in[2] = {0,0};
-	if (PIOS_SPI_TransferBlock(flash_dev->spi_id,out,in,sizeof(out),NULL) < 0) {
+	if (PIOS_SPI_TransferBlock(flash_dev->spi_id,out,in,sizeof(out)) < 0) {
 		PIOS_Flash_Jedec_ReleaseBus(flash_dev);
 		return -2;
 	}
@@ -240,7 +240,7 @@ static int32_t PIOS_Flash_Jedec_ReadID(struct jedec_flash_dev *flash_dev)
 		0,
 	};
 	uint8_t in[4];
-	if (PIOS_SPI_TransferBlock(flash_dev->spi_id,out,in,sizeof(out),NULL) < 0) {
+	if (PIOS_SPI_TransferBlock(flash_dev->spi_id,out,in,sizeof(out)) < 0) {
 		PIOS_Flash_Jedec_ReleaseBus(flash_dev);
 		return -3;
 	}
@@ -327,7 +327,7 @@ static int32_t PIOS_Flash_Jedec_EraseSector(uintptr_t chip_id, uint32_t chip_sec
 	if (PIOS_Flash_Jedec_ClaimBus(flash_dev) != 0)
 		return -1;
 
-	if (PIOS_SPI_TransferBlock(flash_dev->spi_id,out,NULL,sizeof(out),NULL) < 0) {
+	if (PIOS_SPI_TransferBlock(flash_dev->spi_id,out,NULL,sizeof(out)) < 0) {
 		PIOS_Flash_Jedec_ReleaseBus(flash_dev);
 		return -2;
 	}
@@ -385,13 +385,13 @@ static int32_t PIOS_Flash_Jedec_WriteData(uintptr_t chip_id, uint32_t chip_offse
 	if (PIOS_Flash_Jedec_ClaimBus(flash_dev) != 0)
 		return -1;
 
-	if (PIOS_SPI_TransferBlock(flash_dev->spi_id,out,NULL,sizeof(out),NULL) < 0) {
+	if (PIOS_SPI_TransferBlock(flash_dev->spi_id,out,NULL,sizeof(out)) < 0) {
 		PIOS_Flash_Jedec_ReleaseBus(flash_dev);
 		return -1;
 	}
 
 	/* Clock out data to flash */
-	if (PIOS_SPI_TransferBlock(flash_dev->spi_id,data,NULL,len,NULL) < 0) {
+	if (PIOS_SPI_TransferBlock(flash_dev->spi_id,data,NULL,len) < 0) {
 		PIOS_Flash_Jedec_ReleaseBus(flash_dev);
 		return -1;
 	}
@@ -445,13 +445,13 @@ static int32_t PIOS_Flash_Jedec_ReadData(uintptr_t chip_id, uint32_t chip_offset
 		(chip_offset >>  0) & 0xff,
 	};
 
-	if (PIOS_SPI_TransferBlock(flash_dev->spi_id,out,NULL,sizeof(out),NULL) < 0) {
+	if (PIOS_SPI_TransferBlock(flash_dev->spi_id,out,NULL,sizeof(out)) < 0) {
 		PIOS_Flash_Jedec_ReleaseBus(flash_dev);
 		return -2;
 	}
 
 	/* Copy the transfer data to the buffer */
-	if (PIOS_SPI_TransferBlock(flash_dev->spi_id,NULL,data,len,NULL) < 0) {
+	if (PIOS_SPI_TransferBlock(flash_dev->spi_id,NULL,data,len) < 0) {
 		PIOS_Flash_Jedec_ReleaseBus(flash_dev);
 		return -3;
 	}
@@ -488,13 +488,13 @@ int32_t PIOS_Flash_Jedec_ReadOTPData(uintptr_t chip_id, uint32_t chip_offset, ui
 		(chip_offset >>  0) & 0xff,
 	};
 
-	if (PIOS_SPI_TransferBlock(flash_dev->spi_id,out,NULL,sizeof(out),NULL) < 0) {
+	if (PIOS_SPI_TransferBlock(flash_dev->spi_id,out,NULL,sizeof(out)) < 0) {
 		PIOS_Flash_Jedec_ReleaseBus(flash_dev);
 		return -2;
 	}
 
 	/* Copy the transfer data to the buffer */
-	if (PIOS_SPI_TransferBlock(flash_dev->spi_id,NULL,data,len,NULL) < 0) {
+	if (PIOS_SPI_TransferBlock(flash_dev->spi_id,NULL,data,len) < 0) {
 		PIOS_Flash_Jedec_ReleaseBus(flash_dev);
 		return -3;
 	}

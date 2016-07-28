@@ -5,14 +5,12 @@ BOARD_REVISION      := 0x02
 BOOTLOADER_VERSION  := 0x83
 HW_TYPE             := 0x01
 
-MCU                 := cortex-m3
 CHIP                := STM32F103CBT
 BOARD               := STM32103CB_CC_Rev1
 MODEL               := MD
 MODEL_SUFFIX        := _CC
 
-OPENOCD_JTAG_CONFIG ?= stlink-v2.cfg
-OPENOCD_CONFIG      := stm32f1x.cfg
+include $(MAKE_INC_DIR)/firmware-arches.mk
 
 # Note: These must match the values in link_$(BOARD)_memory.ld
 BL_BANK_BASE        := 0x08000000  # Start of bootloader flash

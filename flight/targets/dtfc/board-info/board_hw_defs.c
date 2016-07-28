@@ -113,7 +113,6 @@ static const struct pios_spi_cfg pios_spi_gyro_cfg = {
         .SPI_CPHA              = SPI_CPHA_1Edge,
         .SPI_BaudRatePrescaler = SPI_BaudRatePrescaler_8,
     },
-    .use_crc = false,
     .sclk = {
         .gpio = GPIOB,
         .init = {

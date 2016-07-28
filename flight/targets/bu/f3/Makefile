@@ -55,17 +55,17 @@ SRC += $(BUCOMMONDIR)/pios_board.c
 PIOS_DEVLIB			:=	$(PIOS)/STM32F30x
 include $(PIOS_DEVLIB)/library.mk
 
-SRC += $(PIOS_DEVLIB)/startup.c
-SRC += $(PIOS_DEVLIB)/pios_sys.c
-SRC += $(PIOS_DEVLIB)/pios_led.c
-SRC += $(PIOS_DEVLIB)/pios_flash_internal.c
-SRC += $(PIOS_DEVLIB)/pios_irq.c
+SRC += startup.c
+SRC += pios_sys.c
+SRC += pios_led.c
+SRC += pios_flash_internal.c
 
 ## PIOS Hardware (Common)
-SRC += $(PIOSCOMMON)/pios_delay.c
-SRC += $(PIOSCOMMON)/pios_flash.c
-SRC += $(PIOSCOMMON)/pios_heap.c
-SRC += $(PIOSCOMMON)/pios_semaphore.c
+SRC += pios_delay.c
+SRC += pios_flash.c
+SRC += pios_heap.c
+SRC += pios_semaphore.c
+SRC += pios_irq.c
 
 
 # List Assembler source files here.
