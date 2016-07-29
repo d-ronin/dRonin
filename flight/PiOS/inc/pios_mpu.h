@@ -140,6 +140,7 @@ struct pios_mpu_cfg {
 
 	uint16_t default_samplerate;
 	enum pios_mpu_orientation orientation;
+	bool skip_startup_irq_check;
 #ifdef PIOS_INCLUDE_MPU_MAG
 	bool use_internal_mag;		/* Flag to indicate whether or not to use the internal mag on MPU9x50 devices */
 #endif // PIOS_INCLUDE_MPU_MAG

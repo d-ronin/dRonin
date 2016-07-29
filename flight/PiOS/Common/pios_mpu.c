@@ -112,6 +112,7 @@ struct pios_mpu_dev {
 	bool use_mag;
 	struct pios_queue *mag_queue;
 #endif // PIOS_INCLUDE_MPU_MAG
+	volatile uint32_t interrupt_count;
 };
 
 //! Global structure for this device device
@@ -424,10 +425,18 @@ static int32_t PIOS_MPU_Common_Init(void)
 	PIOS_EXTI_Init(mpu_dev->cfg->exti_cfg);
 
 	/* Wait 20 ms for data ready interrupt and make sure it happens twice */
-	if ((PIOS_Semaphore_Take(mpu_dev->data_ready_sema, 20) != true) ||
-			(PIOS_Semaphore_Take(mpu_dev->data_ready_sema, 20) != true)) {
-		PIOS_EXTI_DeInit(mpu_dev->cfg->exti_cfg);
-		return -PIOS_MPU_ERROR_NOIRQ;
+	if (!mpu_dev->cfg->skip_startup_irq_check) {
+		for (int i=0; i<2; i++) {
+			uint32_t ref_val = mpu_dev->interrupt_count;
+			uint32_t raw_start = PIOS_DELAY_GetRaw();
+
+			while (mpu_dev->interrupt_count == ref_val) {
+				if (PIOS_DELAY_DiffuS(raw_start) > 20000) {
+					PIOS_EXTI_DeInit(mpu_dev->cfg->exti_cfg);
+					return -PIOS_MPU_ERROR_NOIRQ;
+				}
+			}
+		}
 	}
 
 	mpu_dev->task_handle = PIOS_Thread_Create(
@@ -874,6 +883,8 @@ bool PIOS_MPU_IRQHandler(void)
 		return false;
 
 	bool woken = false;
+
+	mpu_dev->interrupt_count++;
 
 	PIOS_Semaphore_Give_FromISR(mpu_dev->data_ready_sema, &woken);
 
