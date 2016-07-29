@@ -53,7 +53,9 @@ void PIOS_SYS_Init(void)
 
 	/* Enable GPIOA, GPIOB, GPIOC, GPIOD, GPIOE and AFIO clocks */
 	RCC_APB2PeriphClockCmd(RCC_APB2Periph_GPIOA | RCC_APB2Periph_GPIOB | RCC_APB2Periph_GPIOC | RCC_APB2Periph_GPIOD | RCC_APB2Periph_GPIOE |
-			       RCC_APB2Periph_AFIO, ENABLE);
+			       RCC_APB2Periph_AFIO | RCC_APB2Periph_SPI1, ENABLE);
+
+	RCC_APB1PeriphClockCmd(RCC_APB1Periph_SPI2 | RCC_APB1Periph_SPI3, ENABLE);
 
 #if (PIOS_USB_ENABLED)
 	/*  Ensure that pull-up is active on detect pin */
