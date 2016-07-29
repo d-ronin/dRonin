@@ -181,12 +181,21 @@ int32_t PIOS_SPI_SetClockSpeed(uint32_t spi_id, uint32_t spi_speed)
 	SPIPrescalerTypeDef spi_prescaler;
 
 	//SPI clock is different depending on the bus
-	uint32_t spiBusClock = 0;
+	uint32_t spiBusClock = PIOS_SYSCLK;
 
+#if defined(STM32F40_41xxx) || defined(STM32F446xx)
 	if(spi_dev->cfg->regs == SPI1)
 		spiBusClock = PIOS_SYSCLK / 2;
 	else
-		spiBusClock = PIOS_SYSCLK;
+		spiBusClock = PIOS_SYSCLK / 4;
+#elif defined(STM32F30X)
+	// SPI1 runs half as a fast
+	if(spi_dev->cfg->regs == SPI1)
+		spiBusClock = PIOS_SYSCLK / 2;
+#elif !defined(STM32F10X_MD)
+	// F1 not handled explicitly --- spiBusClock is right above
+#error Unrecognized architecture
+#endif
 
 	//The needed prescaler for desired speed
 	float desiredPrescaler=(float) spiBusClock / spi_speed;
