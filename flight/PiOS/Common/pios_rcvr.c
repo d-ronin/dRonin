@@ -2,6 +2,7 @@
 #include "pios.h"
 
 #include "pios_semaphore.h"
+#include "pios_thread.h"
 
 #if defined(PIOS_INCLUDE_RCVR)
 
@@ -123,7 +124,13 @@ int32_t PIOS_RCVR_Read(uintptr_t rcvr_id, uint8_t channel)
 #define MIN_WAKE_INTERVAL_MS 4	/* 250Hz ought to be enough for anyone*/
 
 bool PIOS_RCVR_WaitActivity(uint32_t timeout_ms) {
-  return PIOS_Semaphore_Take(rcvr_activity, timeout_ms);
+  if (rcvr_activity) {
+    return PIOS_Semaphore_Take(rcvr_activity, timeout_ms);
+  } else {
+    PIOS_Thread_Sleep(timeout_ms);
+
+    return false;
+  }
 }
 
 void PIOS_RCVR_Active() {
