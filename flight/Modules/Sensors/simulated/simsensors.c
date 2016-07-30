@@ -1136,49 +1136,6 @@ static float rand_gauss (void) {
  */
 static void magOffsetEstimation(MagnetometerData *mag)
 {
-#if 0
-	RevoCalibrationData cal;
-	RevoCalibrationGet(&cal);
-
-	// Constants, to possibly go into a UAVO
-	static const float MIN_NORM_DIFFERENCE = 50;
-
-	static float B2[3] = {0, 0, 0};
-
-	MagBiasData magBias;
-	MagBiasGet(&magBias);
-
-	// Remove the current estimate of the bias
-	mag->x -= magBias.x;
-	mag->y -= magBias.y;
-	mag->z -= magBias.z;
-
-	// First call
-	if (B2[0] == 0 && B2[1] == 0 && B2[2] == 0) {
-		B2[0] = mag->x;
-		B2[1] = mag->y;
-		B2[2] = mag->z;
-		return;
-	}
-
-	float B1[3] = {mag->x, mag->y, mag->z};
-	float norm_diff = sqrtf(powf(B2[0] - B1[0],2) + powf(B2[1] - B1[1],2) + powf(B2[2] - B1[2],2));
-	if (norm_diff > MIN_NORM_DIFFERENCE) {
-		float norm_b1 = sqrtf(B1[0]*B1[0] + B1[1]*B1[1] + B1[2]*B1[2]);
-		float norm_b2 = sqrtf(B2[0]*B2[0] + B2[1]*B2[1] + B2[2]*B2[2]);
-		float scale = cal.MagBiasNullingRate * (norm_b2 - norm_b1) / norm_diff;
-		float b_error[3] = {(B2[0] - B1[0]) * scale, (B2[1] - B1[1]) * scale, (B2[2] - B1[2]) * scale};
-
-		magBias.x += b_error[0];
-		magBias.y += b_error[1];
-		magBias.z += b_error[2];
-
-		MagBiasSet(&magBias);
-
-		// Store this value to compare against next update
-		B2[0] = B1[0]; B2[1] = B1[1]; B2[2] = B1[2];
-	}
-#else
 	HomeLocationData homeLocation;
 	HomeLocationGet(&homeLocation);
 	
@@ -1228,8 +1185,6 @@ static void magOffsetEstimation(MagnetometerData *mag)
 		magBias.z += delta[2];
 		MagBiasSet(&magBias);
 	}
-#endif
-
 }
 
 /**
