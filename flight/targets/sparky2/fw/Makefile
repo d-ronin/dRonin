@@ -145,7 +145,6 @@ SRC += pios_etasv3.c
 SRC += pios_mpxv5004.c
 SRC += pios_mpxv7002.c
 SRC += pios_gcsrcvr.c
-SRC += pios_l3gd20.c
 SRC += pios_hmc5883.c
 SRC += pios_ms5611.c
 SRC += pios_crc.c
