@@ -181,21 +181,6 @@ void PIOS_Board_Init(void) {
 	}
 #endif /* PIOS_INCLUDE_TELEMETRY_RF */
 
-#if defined(PIOS_INCLUDE_TELEMETRY_RF) && 0
-	{
-		uintptr_t pios_udp_telem_rf_id;
-		if (PIOS_UDP_Init(&pios_udp_telem_rf_id, &pios_udp_telem_cfg)) {
-			PIOS_Assert(0);
-		}
-		if (PIOS_COM_Init(&pios_com_telem_rf_id, &pios_udp_com_driver, pios_udp_telem_rf_id,
-				PIOS_COM_TELEM_RF_RX_BUF_LEN,
-				PIOS_COM_TELEM_RF_TX_BUF_LEN)) {
-			PIOS_Assert(0);
-		}
-	}
-#endif /* PIOS_INCLUDE_TELEMETRY_RF */
-
-
 #if defined(PIOS_INCLUDE_GPS)
 	{
 		uintptr_t pios_tcp_gps_id;
