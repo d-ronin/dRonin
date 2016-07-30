@@ -30,6 +30,7 @@
 #include "xmlconfig.h"
 #include <qglobal.h>
 #include <QDebug>
+#include <QStandardPaths>
 
 
 namespace Utils {
@@ -153,6 +154,17 @@ QString PathUtils::getSettingsFilename()
 void PathUtils::setSettingsFilename(QString filename)
 {
     PathUtils::settingsFilename = filename;
+}
+
+QString PathUtils::getAddonPath()
+{
+    QString path;
+    QStringList docPaths = QStandardPaths::standardLocations(QStandardPaths::DocumentsLocation);
+    if (docPaths.length() > 0) {
+        path = docPaths.at(0);
+        path += "/" GCS_PROJECT_BRANDING_PRETTY "/addons";
+    }
+    return path;
 }
 
 }
