@@ -136,7 +136,7 @@ static enum mag_calibration_algo mag_calibration_algo = MAG_CALIBRATION_PRELEMAR
  * Initialise the module.  Called before the start function
  * \returns 0 on success or -1 if initialisation failed
  */
-static int32_t SensorsInitialize(void)
+int32_t SensorsInitialize(void)
 {
 	if (GyrosInitialize() == -1 \
 		|| GyrosBiasInitialize() == -1 \
@@ -201,7 +201,7 @@ static int32_t SensorsInitialize(void)
  * Start the task.  Expects all objects to be initialized by this point.
  * \returns 0 on success or -1 if initialisation failed
  */
-static int32_t SensorsStart(void)
+int32_t SensorsStart(void)
 {
 	// Watchdog must be registered before starting task
 	PIOS_WDG_RegisterFlag(PIOS_WDG_SENSORS);
@@ -213,11 +213,12 @@ static int32_t SensorsStart(void)
 	return 0;
 }
 
+#ifndef SIM_POSIX
 MODULE_HIPRI_INITCALL(SensorsInitialize, SensorsStart);
-
+#endif
 
 /**
- * The sensor task.  This polls the gyros at 500 Hz and pumps that data to
+ * The sensor task.  This polls the gyros and pumps that data to
  * stabilization and to the attitude loop
  */
 static void SensorsTask(void *parameters)

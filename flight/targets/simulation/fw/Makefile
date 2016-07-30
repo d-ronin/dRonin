@@ -63,7 +63,9 @@ MODULES += Attitude
 MODULES += FirmwareIAP
 MODULES += ManualControl
 MODULES += Sensors/simulated
-#MODULES += Sensors
+# On "sim", the simulated sensors module instead invokes the real one when
+# gyros are present.
+MODULES += Sensors
 MODULES += Stabilization
 MODULES += Telemetry
 
@@ -231,7 +233,6 @@ ifneq ($(PI_CROSS_SIM)x,x)
 CC=arm-linux-gnueabihf-gcc
 LDFLAGS += -static
 endif
-
 
 # common architecture-specific flags from the device-specific library makefile
 CFLAGS += $(ARCHFLAGS)

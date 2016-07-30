@@ -84,14 +84,30 @@ static float accel_bias[3];
 
 static float rand_gauss();
 
+static bool use_real_sensors;
+
 enum sensor_sim_type {CONSTANT, MODEL_AGNOSTIC, MODEL_QUADCOPTER, MODEL_AIRPLANE, MODEL_CAR} sensor_sim_type;
+
+extern int32_t SensorsInitialize(void);
+extern int32_t SensorsStart(void);
 
 /**
  * Initialise the module.  Called before the start function
  * \returns 0 on success or -1 if initialisation failed
  */
-int32_t SensorsInitialize(void)
+static int32_t SimSensorsInitialize(void)
 {
+	if (PIOS_SENSORS_IsRegistered(PIOS_SENSOR_GYRO)) {
+		use_real_sensors = true;
+	}
+
+	if (use_real_sensors) {
+		printf("SimSensorsInitialize: Using real sensors!\n");
+		return SensorsInitialize();
+	}
+
+	printf("SimSensorsInitialize: Using simulated sensors.\n");
+
 	// Register fake address.  Later if we really fake entire sensors then
 	// it will make sense to have real queues registered.  For now if these
 	// queues are used a crash is appropriate.
@@ -122,8 +138,15 @@ int32_t SensorsInitialize(void)
  * Start the task.  Expects all objects to be initialized by this point.
  *pick \returns 0 on success or -1 if initialisation failed
  */
-int32_t SensorsStart(void)
+static int32_t SimSensorsStart(void)
 {
+	if (use_real_sensors) {
+		printf("SimSensorsInitialize: starting REAL sensor task\n");
+		return SensorsStart();
+	}
+
+	printf("SimSensorsInitialize: starting SIMULATED sensor task\n");
+
 	// Watchdog must be registered before starting task
 	PIOS_WDG_RegisterFlag(PIOS_WDG_SENSORS);
 
@@ -134,7 +157,7 @@ int32_t SensorsStart(void)
 	return 0;
 }
 
-MODULE_INITCALL(SensorsInitialize, SensorsStart)
+MODULE_INITCALL(SimSensorsInitialize, SimSensorsStart)
 
 /**
  * Simulated sensor task.  Run a model of the airframe and produce sensor values
