@@ -158,6 +158,7 @@ SRC += pios_reset.c
 SRC += pios_servo.c
 SRC += pios_sys.c
 SRC += pios_tcp.c
+SRC += pios_fileout.c
 SRC += pios_debug.c
 SRC += pios_heap.c
 SRC += pios_irq.c
