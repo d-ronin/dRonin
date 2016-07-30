@@ -34,6 +34,8 @@
  * of this source file; otherwise redistribution is prohibited.
  */
 
+
+
 /* Project Includes */
 #if !defined(_GNU_SOURCE)
 #define _GNU_SOURCE
@@ -50,16 +52,19 @@
 
 #include "pios.h"
 
-#if defined(PIOS_INCLUDE_SYS)
+#include "pios_fileout_priv.h"
+#include "pios_com_priv.h"
 
+#if defined(PIOS_INCLUDE_SYS)
 static bool debug_fpe=false;
 static bool go_realtime=false;
 
 static void Usage(char *cmdName) {
-	printf( "usage: %s [-f] [-r]\n"
+	printf( "usage: %s [-f] [-r] [-l logfile]\n"
 		"\n"
 		"\t-f\tEnables floating point exception trapping mode\n"
-		"\t-r\tGoes realtime-class and pins all memory (requires root)\n",
+		"\t-r\tGoes realtime-class and pins all memory (requires root)\n"
+		"\t-l log\tWrites simulation data to a log\n",
 		cmdName);
 
 	exit(1);
@@ -68,7 +73,7 @@ static void Usage(char *cmdName) {
 void PIOS_SYS_Args(int argc, char *argv[]) {
 	int opt;
 
-	while ((opt = getopt(argc, argv, "fr")) != -1) {
+	while ((opt = getopt(argc, argv, "frl:")) != -1) {
 		switch (opt) {
 			case 'f':
 				debug_fpe = true;
@@ -76,6 +81,26 @@ void PIOS_SYS_Args(int argc, char *argv[]) {
 			case 'r':
 				go_realtime = true;
 				break;
+			case 'l':
+			{
+				uintptr_t tmp;
+				if (PIOS_FILEOUT_Init(&tmp,
+							optarg, "w")) {
+					printf("Couldn't open logfile %s\n",
+							optarg);
+					exit(1);
+				}
+
+				if (PIOS_COM_Init(&PIOS_COM_OPENLOG,
+							&pios_fileout_com_driver,
+							tmp,
+							0,
+							PIOS_FILEOUT_TX_BUFFER_SIZE)) {
+					printf("Couldn't init fileout com layer\n");
+					exit(1);
+				}
+				break;
+			}
 			default:
 				Usage(argv[0]);
 				break;

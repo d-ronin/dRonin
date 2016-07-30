@@ -51,6 +51,9 @@ static struct pios_thread *initTaskHandle;
 /* Function Prototypes */
 static void initTask(void *parameters);
 
+static int g_argc;
+static char **g_argv;
+
 /**
  * dRonin Main function:
  *
@@ -68,7 +71,8 @@ int main(int argc, char *argv[]) {
 	WSAStartup(MAKEWORD(2, 2), &wsaData);
 #endif
 
-	PIOS_SYS_Args(argc, argv);
+	g_argc = argc;
+	g_argv = argv;
 
 	/* NOTE: Do NOT modify the following start-up sequence */
 	/* Any new initialization functions should be added in OpenPilotInit() */
@@ -80,9 +84,6 @@ int main(int argc, char *argv[]) {
 
 	boardInit();
 #endif /* defined(PIOS_INCLUDE_CHIBIOS) */
-
-	/* Brings up System using CMSIS functions, enables the LEDs. */
-	PIOS_SYS_Init();
 
 	initTaskHandle = PIOS_Thread_Create(initTask, "init", INIT_TASK_STACK, NULL, INIT_TASK_PRIORITY);
 	PIOS_Assert(initTaskHandle != NULL);
@@ -104,6 +105,12 @@ MODULE_INITSYSTEM_DECLS;
 void initTask(void *parameters)
 {
 	printf("Initialization task running\n");
+
+	/* SYS_Init on host runs in init task, so we can use allocator etc. */
+	PIOS_SYS_Args(g_argc, g_argv);
+
+	PIOS_SYS_Init();
+
 	/* board driver init */
 	PIOS_Board_Init();
 

@@ -55,10 +55,6 @@
 #define PIOS_RCVR_MAX_DEVS              3
 #define PIOS_GCSRCVR_MAX_DEVS           3
 
-/* Defaults for Logging */
-#define LOG_FILENAME 			"PIOS.LOG"
-#define STARTUP_LOG_ENABLED		1
-
 /* COM Module */
 #define GPS_BAUDRATE			19200
 #define TELEM_BAUDRATE			19200
@@ -82,7 +78,15 @@
 // Enable POI tracking mode for camera stabilization
 #define CAMERASTAB_POI_MODE
 
+#if 0
+/* Disabled by default-- for sim, provide a log file on command line
+ * Still have the capability to enable here if you're working on / developing
+ * streamfs
+ */
 #define PIOS_INCLUDE_LOG_TO_FLASH
 #define PIOS_LOGFLASH_SECT_SIZE 0x10000   /* 64kb */
+#endif
+
+#define PIOS_INCLUDE_OPENLOG
 
 #endif /* PIOS_CONFIG_POSIX_H */

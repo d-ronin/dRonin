@@ -56,11 +56,13 @@ extern uintptr_t pios_com_telem_rf_id;
 extern uintptr_t pios_com_telem_usb_id;
 extern uintptr_t pios_com_gps_id;
 extern uintptr_t pios_com_debug_id;
+extern uintptr_t pios_com_openlog_id;
 
 #define PIOS_COM_TELEM_RF                       (pios_com_telem_rf_id)
 #define PIOS_COM_TELEM_USB                      (pios_com_telem_usb_id)
 #define PIOS_COM_GPS                            (pios_com_gps_id)
 #define PIOS_COM_DEBUG                          (pios_com_debug_id)
+#define PIOS_COM_OPENLOG                        (pios_com_openlog_id)
 
 #define PIOS_GCSRCVR_TIMEOUT_MS 200
 /**

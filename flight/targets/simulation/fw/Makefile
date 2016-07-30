@@ -61,6 +61,7 @@ CFLAGS += -D_XOPEN_SOURCE
 MODULES += Actuator
 MODULES += Attitude
 MODULES += FirmwareIAP
+MODULES += Logging
 MODULES += ManualControl
 MODULES += Sensors/simulated
 # On "sim", the simulated sensors module instead invokes the real one when
@@ -77,7 +78,6 @@ OPTMODULES += GroundPathFollower
 OPTMODULES += CameraStab
 OPTMODULES += Autotune
 OPTMODULES += Geofence
-OPTMODULES += Logging
 
 # Paths
 OPUAVTALKINC = $(OPUAVTALK)/inc
