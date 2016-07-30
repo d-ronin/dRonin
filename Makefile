@@ -898,7 +898,7 @@ BU_BOARDS      := $(BL_BOARDS)
 EF_BOARDS      := $(ALL_BOARDS)
 UP_BOARDS      := cc3d
 
-SIM_BOARDS := sim_posix
+SIM_BOARDS := sim
 
 # Generate the targets for whatever boards are left in each list
 FW_TARGETS := $(addprefix fw_, $(FW_BOARDS))

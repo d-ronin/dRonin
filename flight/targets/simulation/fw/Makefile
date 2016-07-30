@@ -22,7 +22,7 @@
 # You should have received a copy of the GNU General Public License along
 # with this program; if not, write to the Free Software Foundation, Inc.,
 # 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
-# 
+#
 # Additional note on redistribution: The copyright and license notices above
 # must be maintained in each individual source file that is a derivative work
 # of this source file; otherwise redistribution is prohibited.
@@ -40,37 +40,11 @@ include $(BOARD_INFO_DIR)/board-info.mk
 # Set to YES to compile for debugging
 DEBUG ?= YES
 
-# Include objects that are just nice information to show
-STACK_DIAGNOSTICS ?= NO
-MIXERSTATUS_DIAGNOSTICS ?= NO
-RATEDESIRED_DIAGNOSTICS ?= NO
-WDG_STATS_DIAGNOSTICS ?= NO
-DIAG_TASKS ?= NO
-
-#Or just turn on all the above diagnostics. WARNING: This consumes massive amounts of memory.
-ALL_DIAGNOSTICS ?= YES
-
-#The following Makefile command, ifneq (, $(filter) $(A), $(B) $(C)) is equivalent 
-# to the pseudocode `if(A== B || A==C)`
-ifneq (,$(filter YES,$(STACK_DIAGNOSTICS) $(ALL_DIAGNOSTICS)))
 CFLAGS += -DSTACK_DIAGNOSTICS
-endif
-
-ifneq (,$(filter YES,$(MIXERSTATUS_DIAGNOSTICS) $(ALL_DIAGNOSTICS)))
 CFLAGS += -DMIXERSTATUS_DIAGNOSTICS
-endif
-
-ifneq (,$(filter YES,$(RATEDESIRED_DIAGNOSTICS) $(ALL_DIAGNOSTICS)))
 CFLAGS += -DRATEDESIRED_DIAGNOSTICS
-endif
-
-ifneq (,$(filter YES,$(WDG_STATS_DIAGNOSTICS) $(ALL_DIAGNOSTICS)))
 CFLAGS += -DWDG_STATS_DIAGNOSTICS
-endif
-
-ifneq (,$(filter YES,$(DIAG_TASKS) $(ALL_DIAGNOSTICS)))
 CFLAGS += -DDIAG_TASKS
-endif
 
 # Since we are simulating all this firmware the code needs to know what the BL would
 # normally contain
@@ -84,23 +58,24 @@ CFLAGS += $(BLONLY_CDEFS)
 CFLAGS += -D_XOPEN_SOURCE
 
 # List of modules to include
-MODULES += Actuator ManualControl Stabilization 
+MODULES += Actuator
 MODULES += Attitude
 MODULES += FirmwareIAP
+MODULES += ManualControl
+MODULES += Sensors/simulated
+#MODULES += Sensors
+MODULES += Stabilization
+MODULES += Telemetry
 
 OPTMODULES += PathPlanner
-OPTMODULES += AltitudeHold 
-OPTMODULES += VtolPathFollower 
+OPTMODULES += AltitudeHold
+OPTMODULES += VtolPathFollower
 OPTMODULES += FixedWingPathFollower
 OPTMODULES += GroundPathFollower
 OPTMODULES += CameraStab
 OPTMODULES += Autotune
 OPTMODULES += Geofence
 OPTMODULES += Logging
-
-MODULES += Sensors/simulated
-#MODULES += Sensors
-MODULES += Telemetry
 
 # Paths
 OPUAVTALKINC = $(OPUAVTALK)/inc
@@ -338,14 +313,14 @@ CONLYFLAGS += $(CSTANDARD)
 LDFLAGS += $(patsubst %,-L%,$(EXTRA_LIBDIRS))
 LDFLAGS += $(patsubst %,-l%,$(EXTRA_LIBS))
 LDFLAGS += -lm
-LDFLAGS += -lpthread 
+LDFLAGS += -lpthread
 
 ifdef WINDOWS
 LDFLAGS += -lws2_32
 endif
 
 # To include simulation model
-LDFLAGS += -L$(OUTDIR) 
+LDFLAGS += -L$(OUTDIR)
 #LDFLAGS += -lsimmodel
 
 # Define programs and commands.
