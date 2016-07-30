@@ -92,6 +92,13 @@ enum sensor_sim_type {CONSTANT, MODEL_AGNOSTIC, MODEL_QUADCOPTER, MODEL_AIRPLANE
  */
 int32_t SensorsInitialize(void)
 {
+	// Register fake address.  Later if we really fake entire sensors then
+	// it will make sense to have real queues registered.  For now if these
+	// queues are used a crash is appropriate.
+	PIOS_SENSORS_Register(PIOS_SENSOR_ACCEL, (struct pios_queue*)1);
+	PIOS_SENSORS_Register(PIOS_SENSOR_GYRO, (struct pios_queue*)1);
+	PIOS_SENSORS_Register(PIOS_SENSOR_MAG, (struct pios_queue*)1);
+	PIOS_SENSORS_Register(PIOS_SENSOR_BARO, (struct pios_queue*)1);
 
 	accel_bias[0] = rand_gauss() / 10;
 	accel_bias[1] = rand_gauss() / 10;

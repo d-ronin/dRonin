@@ -98,9 +98,8 @@ OPTMODULES += Autotune
 OPTMODULES += Geofence
 OPTMODULES += Logging
 
-# To run simulation instead of connect to SITL
 MODULES += Sensors/simulated
-
+#MODULES += Sensors
 MODULES += Telemetry
 
 # Paths
