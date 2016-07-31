@@ -150,7 +150,7 @@ static bool PIOS_WDG_Check()
 {
 	if(PIOS_DELAY_DiffuS(wdg_cleared_time) > 250000) {
 		if(!wdg_expired)
-			fprintf(stderr, "Watchdog fired!\r\n");
+			fprintf(stderr, "Watchdog fired / %d\r\n", wdg_cleared_time);
 		wdg_expired = true;
 	}
 	return wdg_expired;

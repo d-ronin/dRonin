@@ -33,17 +33,43 @@
 #include "pios.h"
 #include "time.h"
 
+#include <time.h>
+
+/**
+ * This is the value used as a base.  Strictly not required, as times
+ * can be expected to wrap... But it makes sense to get sane numbers at
+ * first that will agree with the PIOS_Thread ones etc.
+ */
+static uint32_t base_time;
+
+static uint32_t get_monotonic_us_time(void) {
+	clockid_t id = CLOCK_MONOTONIC;
+
+#ifdef CLOCK_BOOTTIME
+	id = CLOCK_BOOTTIME;
+#endif
+
+	struct timespec tp;
+
+	if (clock_gettime(id, &tp)) {
+		perror("clock_gettime");
+		abort();
+	}
+
+	uint32_t val = tp.tv_sec * 1000000 + tp.tv_nsec / 1000;
+
+	return val;
+}
+
 /**
 * Initialises the Timer used by PIOS_DELAY functions<BR>
 * This is called from pios.c as part of the main() function
 * at system start up.
 * \return < 0 if initialisation failed
 */
-#include <time.h>
-
 int32_t PIOS_DELAY_Init(void)
 {
-	// stub
+	base_time = get_monotonic_us_time();
 
 	/* No error */
 	return 0;
@@ -98,13 +124,13 @@ int32_t PIOS_DELAY_WaitmS(uint32_t mS)
 
 uint32_t PIOS_DELAY_GetRaw()
 {
-	uint32_t raw_us = clock();
+	uint32_t raw_us = get_monotonic_us_time() - base_time;
 	return raw_us;
 }
 
 uint32_t PIOS_DELAY_DiffuS(uint32_t ref)
 {
-	return PIOS_DELAY_DiffuS2(ref, clock());
+	return PIOS_DELAY_DiffuS2(ref, PIOS_DELAY_GetRaw());
 }
 
 uint32_t PIOS_DELAY_DiffuS2(uint32_t raw, uint32_t later) {
