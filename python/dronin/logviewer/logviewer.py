@@ -92,10 +92,12 @@ def get_series(name):
 
     return series[name]
 
-def handle_open():
+def handle_open(ignored=False, fname=None):
     from dronin import telemetry, uavo
 
-    fname = QtGui.QFileDialog.getOpenFileName(win, 'Open file', filter="Log files (*.drlog *.txt)")
+    if fname is None:
+        fname = QtGui.QFileDialog.getOpenFileName(win, 'Open file', filter="Log files (*.drlog *.txt)")
+
     with pg.ProgressDialog("0 objects read...", wait=500, maximum=1000, cancelText=None) as dlg:
         global t
 
@@ -225,5 +227,9 @@ win.show()
 
 def main():
     import sys
+
+    if len(sys.argv) == 2:
+        handle_open(fname=sys.argv[1])
+
     if (sys.flags.interactive != 1) or not hasattr(QtCore, 'PYQT_VERSION'):
         QtGui.QApplication.instance().exec_()
