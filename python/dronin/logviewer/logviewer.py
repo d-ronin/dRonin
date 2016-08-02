@@ -46,6 +46,8 @@ def add_plot_area(data_series, dock_name, axis_label, legend=False, **kwargs):
 
     last_plot = dock
 
+    return pw
+
 def plot_vs_time(obj_name, fields):
     if not isinstance(fields, list):
         fields = [fields]
@@ -66,7 +68,7 @@ def plot_vs_time(obj_name, fields):
     win_num += 1
     dock_name = "TimeSeries%d" % (win_num)
 
-    add_plot_area(data_series, dock_name, left_axis_label, legend=legend)
+    return add_plot_area(data_series, dock_name, left_axis_label, legend=legend)
 
 def clear_plots(skip=None):
     containers, docks = area.findAll()
@@ -100,20 +102,24 @@ def scan_for_events(uv):
 
     for u in uv:
         if u._name == 'UAVO_FlightStatus':
+            ev = []
             # u.Armed DISARMED/ARMING/ARMED
             # u.FlightMode
 
             if u.Armed != armed:
                 armed = u.Armed
 
-                tup = (u.time, u.ENUMR_Armed[armed])
-                events.append(tup)
+                ev.append(u.ENUMR_Armed[armed])
 
             if u.FlightMode != flight_mode:
                 flight_mode = u.FlightMode
 
-                tup = (u.time, 'MODE:' + u.ENUMR_FlightMode[flight_mode])
+                ev.append('MODE:' + u.ENUMR_FlightMode[flight_mode])
+
+            if len(ev):
+                tup = (u.time, '/'.join(ev))
                 events.append(tup)
+
 
     return events
 
@@ -165,9 +171,13 @@ def handle_open(ignored=False, fname=None):
         global last_plot
         last_plot = None
 
-        plot_vs_time('StabilizationDesired', 'Thrust')
+        thrust_plot = plot_vs_time('StabilizationDesired', 'Thrust')
 
         clear_plots(skip=[last_plot])
+
+        for tm,text in event_series:
+            thrust_plot.addLine(x=tm, label=text,
+                    labelOpts={'rotateAxis' : (1,0)} )
 
         dlg.setValue(925)
         plot_vs_time('AttitudeActual', ['Yaw', 'Roll', 'Pitch'])
