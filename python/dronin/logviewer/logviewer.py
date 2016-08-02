@@ -92,6 +92,31 @@ def get_series(name):
 
     return series[name]
 
+def scan_for_events(uv):
+    flight_mode = -1
+    armed = -1
+
+    events = []
+
+    for u in uv:
+        if u._name == 'UAVO_FlightStatus':
+            # u.Armed DISARMED/ARMING/ARMED
+            # u.FlightMode
+
+            if u.Armed != armed:
+                armed = u.Armed
+
+                tup = (u.time, u.ENUMR_Armed[armed])
+                events.append(tup)
+
+            if u.FlightMode != flight_mode:
+                flight_mode = u.FlightMode
+
+                tup = (u.time, 'MODE:' + u.ENUMR_FlightMode[flight_mode])
+                events.append(tup)
+
+    return events
+
 def handle_open(ignored=False, fname=None):
     from dronin import telemetry, uavo
 
@@ -134,6 +159,8 @@ def handle_open(ignored=False, fname=None):
         for typ in t.uavo_defs.values():
             short_name = typ._name[5:]
             objtyps[short_name] = typ
+
+        event_series = scan_for_events(t)
 
         global last_plot
         last_plot = None
@@ -201,7 +228,7 @@ dl = Dock("Waiting...", size=(800, 1))
 dui = Dock("UI", size=(224, 300))
 
 area.addDock(dui, 'right')     ## place d2 at right edge of dock area
-area.addDock(dl, 'left') 
+area.addDock(dl, 'left')
 
 dui.addWidget(QtGui.QLabel("Obj:"), 0, 0)
 
