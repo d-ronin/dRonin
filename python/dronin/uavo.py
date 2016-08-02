@@ -9,7 +9,7 @@ Licensed under the GNU LGPL version 2.1 or any later version (see COPYING.LESSER
 
 import re
 from collections import namedtuple, OrderedDict
-from lxml import etree
+import xml.etree.ElementTree as etree
 from xml.etree.ElementTree import Element, SubElement
 import time
 
