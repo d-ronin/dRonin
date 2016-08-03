@@ -42,12 +42,49 @@
  */
 static uint32_t base_time;
 
+#ifdef __MACH__
+#include <mach/mach_time.h>
+
+typedef int clockid_t;
+
+#ifndef CLOCK_MONOTONIC
+#define CLOCK_MONOTONIC 1
+#endif /* CLOCK_MONOTONIC */
+
+//clock_gettime is not implemented on OSX
+int clock_gettime(int clk_id, struct timespec* t) {
+	(void) clk_id;
+
+	uint64_t tm = mach_absolute_time();
+	static int numer = 0, denom = 0;
+
+	if (!numer) {
+		mach_timebase_info_data_t tb;
+
+		kern_return_t ret = mach_timebase_info(&tb);
+
+		if (ret != KERN_SUCCESS) abort();
+
+		numer = tb.numer;
+		denom = tb.denom;
+	}
+
+	tm *= numer;
+	tm /= denom;
+
+	t->tv_nsec = tm % 1000000000;
+	t->tv_sec  = tm / 1000000000;
+
+	return 0;
+}
+#endif /* __MACH__ */
+
 static uint32_t get_monotonic_us_time(void) {
 	clockid_t id = CLOCK_MONOTONIC;
 
 #ifdef CLOCK_BOOTTIME
 	id = CLOCK_BOOTTIME;
-#endif
+#endif /* CLOCK_BOOTTIME; assumes it's a define */
 
 	struct timespec tp;
 
