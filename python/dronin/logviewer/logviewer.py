@@ -59,7 +59,7 @@ def add_plot_area(data_series, dock_name, axis_label, legend=False, **kwargs):
 
     pw.setLabel('left', axis_label)
 
-    pw.setMenuEnabled(False)
+    pw.setMenuEnabled(menus_enabled)
 
     dock.addWidget(pw)
 
@@ -243,6 +243,18 @@ def updateItems(i):
 def addTimeSeries():
     plot_vs_time(str(objSel.currentText()), str(itemSel.currentText()))
 
+def enableContextuals(enabled):
+    global menus_enabled
+
+    menus_enabled = enabled
+
+    containers, docks = area.findAll()
+
+    for dock in docks.values():
+        for w in dock.widgets:
+            if isinstance(w, pg.widgets.PlotWidget.PlotWidget):
+                w.setMenuEnabled(enabled)
+
 # Create our application, consisting of dockarea stuff.
 # For now fix the size at 1024x680, so that we can make it work well in this
 # size
@@ -256,6 +268,8 @@ win.resize(1024, 680)
 menubar = win.menuBar()
 
 win_num = 0
+menus_enabled = False
+
 openAction = QtGui.QAction("&Open", win)
 openAction.setShortcut(QtGui.QKeySequence.Open)
 openAction.triggered.connect(handle_open)
@@ -290,12 +304,18 @@ itemSel.setEnabled(False)
 addPlotBtn = QtGui.QPushButton("&Add time-series plot")
 addPlotBtn.setEnabled(False)
 
+contextualCb = QtGui.QCheckBox("Enable contextual menus")
+contextualCb.setChecked(False)
+
 dui.addWidget(itemSel, 1, 1)
 dui.addWidget(addPlotBtn, 2, 0, 1, 2)
 dui.layout.addItem(QtGui.QSpacerItem(20, 20, QtGui.QSizePolicy.Minimum, QtGui.QSizePolicy.Expanding), 3, 0)
+dui.layout.addWidget(contextualCb, 4, 0, 1, 2)
+dui.layout.addItem(QtGui.QSpacerItem(20, 20, QtGui.QSizePolicy.Minimum, QtGui.QSizePolicy.Expanding), 5, 0)
 
 objSel.currentIndexChanged.connect(updateItems)
 addPlotBtn.clicked.connect(addTimeSeries)
+contextualCb.toggled.connect(enableContextuals)
 
 win.show()
 
