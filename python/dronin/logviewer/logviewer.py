@@ -9,10 +9,23 @@ from dronin.logviewer.plotdockarea import PlotDockArea
 from pyqtgraph.dockarea import *
 
 def get_data_series(obj_name, fields):
-    # XXX TODO -- need to copy when the field is not a float.
     data = get_series(obj_name)
+    peeled = data[fields]
 
-    return data[fields].view(dtype='float').reshape(-1, 2)
+    try:
+        return peeled.view(dtype='float').reshape(-1, 2)
+    except Exception:
+        pass
+
+    rows = peeled.shape[0]
+    cols = len(fields)
+    outp = np.empty((peeled.shape[0], len(fields)))
+
+    for i in range(rows):
+        for j in range(cols):
+            outp[i,j] = float(peeled[i][j])
+
+    return outp
 
 def add_plot_area(data_series, dock_name, axis_label, legend=False, **kwargs):
     dock = Dock(dock_name, size=(800, 300))
