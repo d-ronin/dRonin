@@ -65,7 +65,7 @@ def add_plot_area(data_series, dock_name, axis_label, legend=False, **kwargs):
 
     global last_plot
 
-    if last_plot != None:
+    if (last_plot is not None) and (last_plot.isVisible()):
         area.addDock(dock, 'bottom', last_plot)
     else:
         area.addDock(dock, 'left', dui)
@@ -145,7 +145,6 @@ def scan_for_events(uv):
             if len(ev):
                 tup = (u.time, '/'.join(ev))
                 events.append(tup)
-
 
     return events
 
