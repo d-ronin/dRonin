@@ -201,8 +201,8 @@ def handle_open(ignored=False, fname=None):
         clear_plots(skip=[last_plot])
 
         for tm,text in event_series:
-            thrust_plot.addLine(x=tm, label=text,
-                    labelOpts={'rotateAxis' : (1,0)} )
+            thrust_plot.addLine(x=tm)
+            # label=text, labelOpts={'rotateAxis' : (1,0)} )
 
         dlg.setValue(925)
         plot_vs_time('AttitudeActual', ['Yaw', 'Roll', 'Pitch'])
