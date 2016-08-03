@@ -10,7 +10,9 @@ from pyqtgraph.dockarea import *
 
 def get_data_series(obj_name, fields):
     data = get_series(obj_name)
-    peeled = data[fields]
+
+    base_fields = [ f.split(':')[0] for f in fields ]
+    peeled = data[base_fields]
 
     try:
         return peeled.view(dtype='float').reshape(-1, 2)
@@ -21,9 +23,20 @@ def get_data_series(obj_name, fields):
     cols = len(fields)
     outp = np.empty((peeled.shape[0], len(fields)))
 
-    for i in range(rows):
-        for j in range(cols):
-            outp[i,j] = float(peeled[i][j])
+    for j in range(cols):
+        field_info = fields[j].split(':')
+
+        if len(field_info) > 1:
+            subs = int(field_info[1])
+            for i in range(rows):
+                val = peeled[i][j][subs]
+
+                outp[i,j] = float(val)
+        else:
+            for i in range(rows):
+                val = peeled[i][j]
+
+                outp[i,j] = float(val)
 
     return outp
 
@@ -69,7 +82,7 @@ def plot_vs_time(obj_name, fields):
         left_axis_label = '%s<br>&nbsp;<br>&nbsp;' % (obj_name)
         legend = True
     else:
-        left_axis_label = '%s<br>%s<br>%s' % (obj_name, fields[0], objtyps[obj_name]._units[fields[0]])
+        left_axis_label = '%s<br>%s<br>%s' % (obj_name, fields[0], objtyps[obj_name]._units[fields[0].split(':')[0]])
         legend = False
 
     data_series = {}
@@ -196,6 +209,7 @@ def handle_open(ignored=False, fname=None):
         plot_vs_time('AttitudeActual', ['Yaw', 'Roll', 'Pitch'])
         dlg.setValue(975)
         plot_vs_time('Gyros', ['x', 'y', 'z'])
+        plot_vs_time('ActuatorCommand', ['Channel:0', 'Channel:1', 'Channel:2', 'Channel:3'])
 
         objtyps = { k:v for k,v in objtyps.items() if v in t.last_values }
 
