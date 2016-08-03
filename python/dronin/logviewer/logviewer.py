@@ -226,7 +226,17 @@ def updateItems(i):
     uavo = objtyps[str(objSel.currentText())]
 
     itemSel.clear()
-    itemSel.addItems(uavo._fields[3:])
+
+    for i in range(0, len(uavo._num_subelems)):
+        field_name = uavo._fields[3+i]
+        num_subs = uavo._num_subelems[i]
+
+        if num_subs == 1:
+            itemSel.addItem(field_name)
+        else:
+            for j in range(0, num_subs):
+                itemSel.addItem('%s:%d'%(field_name, j))
+
     itemSel.setEnabled(True)
     addPlotBtn.setEnabled(True)
 
