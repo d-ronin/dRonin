@@ -223,8 +223,6 @@ int32_t PIOS_SPI_SetClockSpeed(uint32_t spi_id, uint32_t spi_speed)
 	/* Write back the new configuration */
 	SPI_Init(spi_dev->cfg->regs, &SPI_InitStructure);
 
-	PIOS_SPI_TransferByte(spi_id, 0xFF);
-
 	//return set speed
 	return spiBusClock >> (1 + spi_prescaler);
 }
