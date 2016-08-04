@@ -9,10 +9,36 @@ from dronin.logviewer.plotdockarea import PlotDockArea
 from pyqtgraph.dockarea import *
 
 def get_data_series(obj_name, fields):
-    # XXX TODO -- need to copy when the field is not a float.
     data = get_series(obj_name)
 
-    return data[fields].view(dtype='float').reshape(-1, 2)
+    base_fields = [ f.split(':')[0] for f in fields ]
+    peeled = data[base_fields]
+
+    try:
+        return peeled.view(dtype='float').reshape(-1, 2)
+    except Exception:
+        pass
+
+    rows = peeled.shape[0]
+    cols = len(fields)
+    outp = np.empty((peeled.shape[0], len(fields)))
+
+    for j in range(cols):
+        field_info = fields[j].split(':')
+
+        if len(field_info) > 1:
+            subs = int(field_info[1])
+            for i in range(rows):
+                val = peeled[i][j][subs]
+
+                outp[i,j] = float(val)
+        else:
+            for i in range(rows):
+                val = peeled[i][j]
+
+                outp[i,j] = float(val)
+
+    return outp
 
 def add_plot_area(data_series, dock_name, axis_label, legend=False, **kwargs):
     dock = Dock(dock_name, size=(800, 300))
@@ -33,18 +59,20 @@ def add_plot_area(data_series, dock_name, axis_label, legend=False, **kwargs):
 
     pw.setLabel('left', axis_label)
 
-    pw.setMenuEnabled(False)
+    pw.setMenuEnabled(menus_enabled)
 
     dock.addWidget(pw)
 
     global last_plot
 
-    if last_plot != None:
+    if (last_plot is not None) and (last_plot.isVisible()):
         area.addDock(dock, 'bottom', last_plot)
     else:
         area.addDock(dock, 'left', dui)
 
     last_plot = dock
+
+    return pw
 
 def plot_vs_time(obj_name, fields):
     if not isinstance(fields, list):
@@ -54,7 +82,7 @@ def plot_vs_time(obj_name, fields):
         left_axis_label = '%s<br>&nbsp;<br>&nbsp;' % (obj_name)
         legend = True
     else:
-        left_axis_label = '%s<br>%s<br>%s' % (obj_name, fields[0], objtyps[obj_name]._units[fields[0]])
+        left_axis_label = '%s<br>%s<br>%s' % (obj_name, fields[0], objtyps[obj_name]._units[fields[0].split(':')[0]])
         legend = False
 
     data_series = {}
@@ -66,7 +94,7 @@ def plot_vs_time(obj_name, fields):
     win_num += 1
     dock_name = "TimeSeries%d" % (win_num)
 
-    add_plot_area(data_series, dock_name, left_axis_label, legend=legend)
+    return add_plot_area(data_series, dock_name, left_axis_label, legend=legend)
 
 def clear_plots(skip=None):
     containers, docks = area.findAll()
@@ -92,10 +120,40 @@ def get_series(name):
 
     return series[name]
 
-def handle_open():
+def scan_for_events(uv):
+    flight_mode = -1
+    armed = -1
+
+    events = []
+
+    for u in uv:
+        if u._name == 'UAVO_FlightStatus':
+            ev = []
+            # u.Armed DISARMED/ARMING/ARMED
+            # u.FlightMode
+
+            if u.Armed != armed:
+                armed = u.Armed
+
+                ev.append(u.ENUMR_Armed[armed])
+
+            if u.FlightMode != flight_mode:
+                flight_mode = u.FlightMode
+
+                ev.append('MODE:' + u.ENUMR_FlightMode[flight_mode])
+
+            if len(ev):
+                tup = (u.time, '/'.join(ev))
+                events.append(tup)
+
+    return events
+
+def handle_open(ignored=False, fname=None):
     from dronin import telemetry, uavo
 
-    fname = QtGui.QFileDialog.getOpenFileName(win, 'Open file', filter="Log files (*.drlog *.txt)")
+    if fname is None:
+        fname = QtGui.QFileDialog.getOpenFileName(win, 'Open file', filter="Log files (*.drlog *.txt)")
+
     with pg.ProgressDialog("0 objects read...", wait=500, maximum=1000, cancelText=None) as dlg:
         global t
 
@@ -133,17 +191,24 @@ def handle_open():
             short_name = typ._name[5:]
             objtyps[short_name] = typ
 
+        event_series = scan_for_events(t)
+
         global last_plot
         last_plot = None
 
-        plot_vs_time('StabilizationDesired', 'Thrust')
+        thrust_plot = plot_vs_time('StabilizationDesired', 'Thrust')
 
         clear_plots(skip=[last_plot])
+
+        for tm,text in event_series:
+            thrust_plot.addLine(x=tm)
+            # label=text, labelOpts={'rotateAxis' : (1,0)} )
 
         dlg.setValue(925)
         plot_vs_time('AttitudeActual', ['Yaw', 'Roll', 'Pitch'])
         dlg.setValue(975)
         plot_vs_time('Gyros', ['x', 'y', 'z'])
+        plot_vs_time('ActuatorCommand', ['Channel:0', 'Channel:1', 'Channel:2', 'Channel:3'])
 
         objtyps = { k:v for k,v in objtyps.items() if v in t.last_values }
 
@@ -160,12 +225,34 @@ def updateItems(i):
     uavo = objtyps[str(objSel.currentText())]
 
     itemSel.clear()
-    itemSel.addItems(uavo._fields[3:])
+
+    for i in range(0, len(uavo._num_subelems)):
+        field_name = uavo._fields[3+i]
+        num_subs = uavo._num_subelems[i]
+
+        if num_subs == 1:
+            itemSel.addItem(field_name)
+        else:
+            for j in range(0, num_subs):
+                itemSel.addItem('%s:%d'%(field_name, j))
+
     itemSel.setEnabled(True)
     addPlotBtn.setEnabled(True)
 
 def addTimeSeries():
     plot_vs_time(str(objSel.currentText()), str(itemSel.currentText()))
+
+def enableContextuals(enabled):
+    global menus_enabled
+
+    menus_enabled = enabled
+
+    containers, docks = area.findAll()
+
+    for dock in docks.values():
+        for w in dock.widgets:
+            if isinstance(w, pg.widgets.PlotWidget.PlotWidget):
+                w.setMenuEnabled(enabled)
 
 # Create our application, consisting of dockarea stuff.
 # For now fix the size at 1024x680, so that we can make it work well in this
@@ -180,6 +267,8 @@ win.resize(1024, 680)
 menubar = win.menuBar()
 
 win_num = 0
+menus_enabled = False
+
 openAction = QtGui.QAction("&Open", win)
 openAction.setShortcut(QtGui.QKeySequence.Open)
 openAction.triggered.connect(handle_open)
@@ -199,7 +288,7 @@ dl = Dock("Waiting...", size=(800, 1))
 dui = Dock("UI", size=(224, 300))
 
 area.addDock(dui, 'right')     ## place d2 at right edge of dock area
-area.addDock(dl, 'left') 
+area.addDock(dl, 'left')
 
 dui.addWidget(QtGui.QLabel("Obj:"), 0, 0)
 
@@ -214,16 +303,26 @@ itemSel.setEnabled(False)
 addPlotBtn = QtGui.QPushButton("&Add time-series plot")
 addPlotBtn.setEnabled(False)
 
+contextualCb = QtGui.QCheckBox("Enable contextual menus")
+contextualCb.setChecked(False)
+
 dui.addWidget(itemSel, 1, 1)
 dui.addWidget(addPlotBtn, 2, 0, 1, 2)
 dui.layout.addItem(QtGui.QSpacerItem(20, 20, QtGui.QSizePolicy.Minimum, QtGui.QSizePolicy.Expanding), 3, 0)
+dui.layout.addWidget(contextualCb, 4, 0, 1, 2)
+dui.layout.addItem(QtGui.QSpacerItem(20, 20, QtGui.QSizePolicy.Minimum, QtGui.QSizePolicy.Expanding), 5, 0)
 
 objSel.currentIndexChanged.connect(updateItems)
 addPlotBtn.clicked.connect(addTimeSeries)
+contextualCb.toggled.connect(enableContextuals)
 
 win.show()
 
 def main():
     import sys
+
+    if len(sys.argv) == 2:
+        handle_open(fname=sys.argv[1])
+
     if (sys.flags.interactive != 1) or not hasattr(QtCore, 'PYQT_VERSION'):
         QtGui.QApplication.instance().exec_()
