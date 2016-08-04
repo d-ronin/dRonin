@@ -45,6 +45,18 @@
 #define SPI_ReceiveData8(regs) ((regs)->DR)
 #endif
 
+typedef enum {
+	PIOS_SPI_PRESCALER_2 = 0,
+	PIOS_SPI_PRESCALER_4 = 1,
+	PIOS_SPI_PRESCALER_8 = 2,
+	PIOS_SPI_PRESCALER_16 = 3,
+	PIOS_SPI_PRESCALER_32 = 4,
+	PIOS_SPI_PRESCALER_64 = 5,
+	PIOS_SPI_PRESCALER_128 = 6,
+	PIOS_SPI_PRESCALER_256 = 7
+} SPIPrescalerTypeDef;
+
+
 static bool PIOS_SPI_validate(struct pios_spi_dev *com_dev)
 {
 	/* Should check device magic here */
@@ -158,13 +170,6 @@ out_fail:
 	return (-1);
 }
 
-/**
- * (Re-)initialises SPI peripheral clock rate
- *
- * \param[in] spi SPI number (0 or 1)
- * \param[in] spi_speed configures the SPI speed in Hz
- * \return The actual attained/configured speed.
- */
 int32_t PIOS_SPI_SetClockSpeed(uint32_t spi_id, uint32_t spi_speed)
 {
 	struct pios_spi_dev *spi_dev = (struct pios_spi_dev *)spi_id;
@@ -227,12 +232,6 @@ int32_t PIOS_SPI_SetClockSpeed(uint32_t spi_id, uint32_t spi_speed)
 	return spiBusClock >> (1 + spi_prescaler);
 }
 
-/**
- * Claim the SPI bus semaphore.  Calling the SPI functions does not require this
- * \param[in] spi SPI number (0 or 1)
- * \return 0 if no error
- * \return -1 if timeout before claiming semaphore
- */
 int32_t PIOS_SPI_ClaimBus(uint32_t spi_id)
 {
 	struct pios_spi_dev *spi_dev = (struct pios_spi_dev *)spi_id;
@@ -246,11 +245,6 @@ int32_t PIOS_SPI_ClaimBus(uint32_t spi_id)
 	return 0;
 }
 
-/**
- * Release the SPI bus semaphore.  Calling the SPI functions does not require this
- * \param[in] spi SPI number (0 or 1)
- * \return 0 if no error
- */
 int32_t PIOS_SPI_ReleaseBus(uint32_t spi_id)
 {
 	struct pios_spi_dev *spi_dev = (struct pios_spi_dev *)spi_id;
@@ -263,13 +257,7 @@ int32_t PIOS_SPI_ReleaseBus(uint32_t spi_id)
 	return 0;
 }
 
-/**
-* Controls the RC (Register Clock alias Chip Select) pin of a SPI port
-* \param[in] spi SPI number (0 or 1)
-* \param[in] pin_value 0 or 1
-* \return 0 if no error
-*/
-int32_t PIOS_SPI_RC_PinSet(uint32_t spi_id, uint32_t slave_id, uint8_t pin_value)
+int32_t PIOS_SPI_RC_PinSet(uint32_t spi_id, uint32_t slave_id, bool pin_value)
 {
 	struct pios_spi_dev *spi_dev = (struct pios_spi_dev *)spi_id;
 
@@ -277,7 +265,6 @@ int32_t PIOS_SPI_RC_PinSet(uint32_t spi_id, uint32_t slave_id, uint8_t pin_value
 	PIOS_Assert(valid)
 	PIOS_Assert(slave_id <= spi_dev->cfg->slave_count)
 
-	/* XXX multi-slave support? */
 	if (pin_value) {
 		GPIO_SetBits(spi_dev->cfg->ssel[slave_id].gpio, spi_dev->cfg->ssel[slave_id].init.GPIO_Pin);
 	} else {
@@ -287,12 +274,7 @@ int32_t PIOS_SPI_RC_PinSet(uint32_t spi_id, uint32_t slave_id, uint8_t pin_value
 	return 0;
 }
 
-/**
-* Transfers a byte to SPI output and reads back the return value from SPI input
-* \param[in] spi SPI number (0 or 1)
-* \param[in] b the byte which should be transfered
-*/
-int32_t PIOS_SPI_TransferByte(uint32_t spi_id, uint8_t b)
+uint8_t PIOS_SPI_TransferByte(uint32_t spi_id, uint8_t b)
 {
 	struct pios_spi_dev *spi_dev = (struct pios_spi_dev *)spi_id;
 
@@ -377,18 +359,6 @@ static int32_t SPI_PIO_TransferBlock(uint32_t spi_id, const uint8_t *send_buffer
 	return 0;
 }
 
-
-/**
-* Transfers a block of bytes
-* \param[in] spi_id SPI device handle
-* \param[in] send_buffer pointer to buffer which should be sent.<BR>
-* If NULL, 0xff (all-one) will be sent.
-* \param[in] receive_buffer pointer to buffer which should get the received values.<BR>
-* If NULL, received bytes will be discarded.
-* \param[in] len number of bytes which should be transfered
-* \return >= 0 if no error during transfer
-* \return -1 if disabled SPI port selected
-*/
 int32_t PIOS_SPI_TransferBlock(uint32_t spi_id, const uint8_t *send_buffer, uint8_t *receive_buffer, uint16_t len)
 {
 	return SPI_PIO_TransferBlock(spi_id, send_buffer, receive_buffer, len);

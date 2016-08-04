@@ -36,6 +36,11 @@
 #include <pios_stm32.h>
 #include "pios_semaphore.h"
 
+struct pios_spi_dev {
+	const struct pios_spi_cfg *cfg;
+	struct pios_semaphore *busy;
+};
+
 struct pios_spi_cfg {
 	SPI_TypeDef *regs;
 	uint32_t remap;				/* GPIO_Remap_* or GPIO_AF_* */
@@ -52,12 +57,6 @@ struct pios_spi_cfg {
 	struct stm32_gpio ssel[];
 };
 
-struct pios_spi_dev {
-	const struct pios_spi_cfg *cfg;
-	struct pios_semaphore *busy;
-};
-
-extern int32_t PIOS_SPI_Init(uint32_t * spi_id, const struct pios_spi_cfg * cfg);
 #endif /* PIOS_SPI_PRIV_H */
 
 /**
