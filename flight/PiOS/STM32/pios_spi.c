@@ -226,7 +226,7 @@ int32_t PIOS_SPI_SetClockSpeed(uint32_t spi_id, uint32_t spi_speed)
 	PIOS_SPI_TransferByte(spi_id, 0xFF);
 
 	//return set speed
-	return spiBusClock / spi_prescaler;
+	return spiBusClock >> (1 + spi_prescaler);
 }
 
 /**
