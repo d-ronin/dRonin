@@ -396,27 +396,6 @@ int32_t PIOS_SPI_TransferBlock(uint32_t spi_id, const uint8_t *send_buffer, uint
 	return SPI_PIO_TransferBlock(spi_id, send_buffer, receive_buffer, len);
 }
 
-/**
-* Check if a transfer is in progress
-* \param[in] spi SPI number (0 or 1)
-* \return >= 0 if no transfer is in progress
-* \return -3 if transfer in progress
-*/
-int32_t PIOS_SPI_Busy(uint32_t spi_id)
-{
-	struct pios_spi_dev *spi_dev = (struct pios_spi_dev *)spi_id;
-
-	bool valid = PIOS_SPI_validate(spi_dev);
-	PIOS_Assert(valid)
-
-	if (!SPI_I2S_GetFlagStatus(spi_dev->cfg->regs, SPI_I2S_FLAG_TXE) ||
-	    SPI_I2S_GetFlagStatus(spi_dev->cfg->regs, SPI_I2S_FLAG_BSY)) {
-		return -3;
-	}
-
-	return (0);
-}
-
 void PIOS_SPI_IRQ_Handler(uint32_t spi_id)
 {
 #if defined(PIOS_INCLUDE_CHIBIOS)
