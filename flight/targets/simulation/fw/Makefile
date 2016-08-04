@@ -38,7 +38,7 @@ include $(BOARD_INFO_DIR)/board-info.mk
 
 # Set developer code and compile options
 # Set to YES to compile for debugging
-DEBUG ?= YES
+# DEBUG ?= YES
 
 CFLAGS += -DSTACK_DIAGNOSTICS
 CFLAGS += -DMIXERSTATUS_DIAGNOSTICS
