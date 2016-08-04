@@ -43,6 +43,11 @@
 
 #include <pios_spi_priv.h>
 
+#if !defined(STM32F30X)
+#define SPI_SendData8(regs,b) do { (regs)->DR = (b); } while (0)
+#define SPI_ReceiveData8(regs) ((regs)->DR)
+#endif
+
 static bool PIOS_SPI_validate(struct pios_spi_dev *com_dev)
 {
 	/* Should check device magic here */
@@ -137,6 +142,12 @@ int32_t PIOS_SPI_Init(uint32_t *spi_id, const struct pios_spi_cfg *cfg)
 	/* Initialize the SPI block */
 	SPI_I2S_DeInit(spi_dev->cfg->regs);
 	SPI_Init(spi_dev->cfg->regs, (SPI_InitTypeDef *) & (spi_dev->cfg->init));
+	SPI_CalculateCRC(spi_dev->cfg->regs, DISABLE);
+
+#if defined(STM32F30X)
+	/* Configure the RX FIFO Threshold -- 8 bits */
+	SPI_RxFIFOThresholdConfig(spi_dev->cfg->regs, SPI_RxFIFOThreshold_QF);
+#endif
 
 	/* Enable SPI */
 	SPI_Cmd(spi_dev->cfg->regs, ENABLE);
@@ -351,19 +362,19 @@ int32_t PIOS_SPI_TransferByte(uint32_t spi_id, uint8_t b)
 	 */
 
 	/* Make sure the RXNE flag is cleared by reading the DR register */
-	(void)spi_dev->cfg->regs->DR;
+	SPI_ReceiveData8(spi_dev->cfg->regs);
 
 	/* Wait until the TXE goes high */
 	while (SPI_I2S_GetFlagStatus(spi_dev->cfg->regs, SPI_I2S_FLAG_TXE) == RESET);
 
 	/* Start the transfer */
-	spi_dev->cfg->regs->DR = b;
+	SPI_SendData8(spi_dev->cfg->regs, b);
 
 	/* Wait until there is a byte to read */
 	while (SPI_I2S_GetFlagStatus(spi_dev->cfg->regs, SPI_I2S_FLAG_RXNE) == RESET);
 
 	/* Read the rx'd byte */
-	rx_byte = spi_dev->cfg->regs->DR;
+	rx_byte = SPI_ReceiveData8(spi_dev->cfg->regs);
 
 	/* Wait until the TXE goes high */
 	while (!(spi_dev->cfg->regs->SR & SPI_I2S_FLAG_TXE));
@@ -403,13 +414,13 @@ static int32_t SPI_PIO_TransferBlock(uint32_t spi_id, const uint8_t *send_buffer
 		while (SPI_I2S_GetFlagStatus(spi_dev->cfg->regs, SPI_I2S_FLAG_TXE) == RESET);
 
 		/* Start the transfer */
-		spi_dev->cfg->regs->DR = b;
+		SPI_SendData8(spi_dev->cfg->regs, b);
 
 		/* Wait until there is a byte to read */
 		while (SPI_I2S_GetFlagStatus(spi_dev->cfg->regs, SPI_I2S_FLAG_RXNE) == RESET);
 
 		/* Read the rx'd byte */
-		b = spi_dev->cfg->regs->DR;
+		b = SPI_ReceiveData8(spi_dev->cfg->regs);
 
 		/* save the received byte */
 		if (receive_buffer)
