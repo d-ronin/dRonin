@@ -107,6 +107,7 @@ uintptr_t pios_com_telem_rf_id;
 uintptr_t pios_com_telem_usb_id;
 uintptr_t pios_com_gps_id;
 uintptr_t pios_com_aux_id;
+uintptr_t pios_com_openlog_id;
 
 uintptr_t pios_rcvr_group_map[MANUALCONTROLSETTINGS_CHANNELGROUPS_NONE];
 
@@ -180,21 +181,6 @@ void PIOS_Board_Init(void) {
 	}
 #endif /* PIOS_INCLUDE_TELEMETRY_RF */
 
-#if defined(PIOS_INCLUDE_TELEMETRY_RF) && 0
-	{
-		uintptr_t pios_udp_telem_rf_id;
-		if (PIOS_UDP_Init(&pios_udp_telem_rf_id, &pios_udp_telem_cfg)) {
-			PIOS_Assert(0);
-		}
-		if (PIOS_COM_Init(&pios_com_telem_rf_id, &pios_udp_com_driver, pios_udp_telem_rf_id,
-				PIOS_COM_TELEM_RF_RX_BUF_LEN,
-				PIOS_COM_TELEM_RF_TX_BUF_LEN)) {
-			PIOS_Assert(0);
-		}
-	}
-#endif /* PIOS_INCLUDE_TELEMETRY_RF */
-
-
 #if defined(PIOS_INCLUDE_GPS)
 	{
 		uintptr_t pios_tcp_gps_id;
@@ -221,14 +207,6 @@ void PIOS_Board_Init(void) {
 	}
 	pios_rcvr_group_map[MANUALCONTROLSETTINGS_CHANNELGROUPS_GCS] = pios_gcsrcvr_rcvr_id;
 #endif	/* PIOS_INCLUDE_GCSRCVR */
-
-	// Register fake address.  Later if we really fake entire sensors then
-	// it will make sense to have real queues registered.  For now if these
-	// queues are used a crash is appropriate.
-	PIOS_SENSORS_Register(PIOS_SENSOR_ACCEL, (struct pios_queue*)1);
-	PIOS_SENSORS_Register(PIOS_SENSOR_GYRO, (struct pios_queue*)1);
-	PIOS_SENSORS_Register(PIOS_SENSOR_MAG, (struct pios_queue*)1);
-	PIOS_SENSORS_Register(PIOS_SENSOR_BARO, (struct pios_queue*)1);
 
 	printf("Completed PIOS_Board_Init\n");
 }

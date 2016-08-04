@@ -68,7 +68,8 @@ static inline void PIOS_SetLED(uint32_t led, uint8_t stat) {
 		leds[i] = (ledState[i] == HWSIMULATION_LEDSTATE_ON) ? '*' : '.';
 	}
 	leds[PIOS_LED_NUM] = '\0';
-	printf("LED State: [%s]\n", leds);
+	printf("LEDS\t%d\t%d\t%s\n", PIOS_Thread_Systime(),
+			PIOS_DELAY_GetRaw(), leds);
 }
 
 /**

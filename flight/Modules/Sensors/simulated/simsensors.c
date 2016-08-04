@@ -84,14 +84,37 @@ static float accel_bias[3];
 
 static float rand_gauss();
 
+static bool use_real_sensors;
+
 enum sensor_sim_type {CONSTANT, MODEL_AGNOSTIC, MODEL_QUADCOPTER, MODEL_AIRPLANE, MODEL_CAR} sensor_sim_type;
+
+extern int32_t SensorsInitialize(void);
+extern int32_t SensorsStart(void);
 
 /**
  * Initialise the module.  Called before the start function
  * \returns 0 on success or -1 if initialisation failed
  */
-int32_t SensorsInitialize(void)
+static int32_t SimSensorsInitialize(void)
 {
+	if (PIOS_SENSORS_IsRegistered(PIOS_SENSOR_GYRO)) {
+		use_real_sensors = true;
+	}
+
+	if (use_real_sensors) {
+		printf("SimSensorsInitialize: Using real sensors!\n");
+		return SensorsInitialize();
+	}
+
+	printf("SimSensorsInitialize: Using simulated sensors.\n");
+
+	// Register fake address.  Later if we really fake entire sensors then
+	// it will make sense to have real queues registered.  For now if these
+	// queues are used a crash is appropriate.
+	PIOS_SENSORS_Register(PIOS_SENSOR_ACCEL, (struct pios_queue*)1);
+	PIOS_SENSORS_Register(PIOS_SENSOR_GYRO, (struct pios_queue*)1);
+	PIOS_SENSORS_Register(PIOS_SENSOR_MAG, (struct pios_queue*)1);
+	PIOS_SENSORS_Register(PIOS_SENSOR_BARO, (struct pios_queue*)1);
 
 	accel_bias[0] = rand_gauss() / 10;
 	accel_bias[1] = rand_gauss() / 10;
@@ -115,8 +138,15 @@ int32_t SensorsInitialize(void)
  * Start the task.  Expects all objects to be initialized by this point.
  *pick \returns 0 on success or -1 if initialisation failed
  */
-int32_t SensorsStart(void)
+static int32_t SimSensorsStart(void)
 {
+	if (use_real_sensors) {
+		printf("SimSensorsInitialize: starting REAL sensor task\n");
+		return SensorsStart();
+	}
+
+	printf("SimSensorsInitialize: starting SIMULATED sensor task\n");
+
 	// Watchdog must be registered before starting task
 	PIOS_WDG_RegisterFlag(PIOS_WDG_SENSORS);
 
@@ -127,7 +157,7 @@ int32_t SensorsStart(void)
 	return 0;
 }
 
-MODULE_INITCALL(SensorsInitialize, SensorsStart)
+MODULE_INITCALL(SimSensorsInitialize, SimSensorsStart)
 
 /**
  * Simulated sensor task.  Run a model of the airframe and produce sensor values
@@ -1106,49 +1136,6 @@ static float rand_gauss (void) {
  */
 static void magOffsetEstimation(MagnetometerData *mag)
 {
-#if 0
-	RevoCalibrationData cal;
-	RevoCalibrationGet(&cal);
-
-	// Constants, to possibly go into a UAVO
-	static const float MIN_NORM_DIFFERENCE = 50;
-
-	static float B2[3] = {0, 0, 0};
-
-	MagBiasData magBias;
-	MagBiasGet(&magBias);
-
-	// Remove the current estimate of the bias
-	mag->x -= magBias.x;
-	mag->y -= magBias.y;
-	mag->z -= magBias.z;
-
-	// First call
-	if (B2[0] == 0 && B2[1] == 0 && B2[2] == 0) {
-		B2[0] = mag->x;
-		B2[1] = mag->y;
-		B2[2] = mag->z;
-		return;
-	}
-
-	float B1[3] = {mag->x, mag->y, mag->z};
-	float norm_diff = sqrtf(powf(B2[0] - B1[0],2) + powf(B2[1] - B1[1],2) + powf(B2[2] - B1[2],2));
-	if (norm_diff > MIN_NORM_DIFFERENCE) {
-		float norm_b1 = sqrtf(B1[0]*B1[0] + B1[1]*B1[1] + B1[2]*B1[2]);
-		float norm_b2 = sqrtf(B2[0]*B2[0] + B2[1]*B2[1] + B2[2]*B2[2]);
-		float scale = cal.MagBiasNullingRate * (norm_b2 - norm_b1) / norm_diff;
-		float b_error[3] = {(B2[0] - B1[0]) * scale, (B2[1] - B1[1]) * scale, (B2[2] - B1[2]) * scale};
-
-		magBias.x += b_error[0];
-		magBias.y += b_error[1];
-		magBias.z += b_error[2];
-
-		MagBiasSet(&magBias);
-
-		// Store this value to compare against next update
-		B2[0] = B1[0]; B2[1] = B1[1]; B2[2] = B1[2];
-	}
-#else
 	HomeLocationData homeLocation;
 	HomeLocationGet(&homeLocation);
 	
@@ -1198,8 +1185,6 @@ static void magOffsetEstimation(MagnetometerData *mag)
 		magBias.z += delta[2];
 		MagBiasSet(&magBias);
 	}
-#endif
-
 }
 
 /**

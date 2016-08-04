@@ -559,23 +559,18 @@ export OPUAVSYNTHDIR := $(BUILD_DIR)/uavobject-synthetics/flight
 # $(5) = Build output type (e.g. elf, exe)
 
 .PHONY: simulation
-simulation: sim_posix
-
-# Legacy for people who were using the old target name
-.PHONY: sim_posix_revolution
-sim_posix_revolution: sim_posix
+simulation: sim
 
 define SIM_TEMPLATE
 
-.PHONY: sim_$(4)
-sim_$(4): TARGET=sim_$(4)
-sim_$(4): OUTDIR=$(BUILD_DIR)/$$(TARGET)
-sim_$(4): BOARD_ROOT_DIR=$(ROOT_DIR)/flight/targets/$(1)
-sim_$(4): uavobjects
+.PHONY: sim
+sim: TARGET=sim
+sim: OUTDIR=$(BUILD_DIR)/$$(TARGET)
+sim: BOARD_ROOT_DIR=$(ROOT_DIR)/flight/targets/$(1)
+sim: uavobjects
 	$(V1) mkdir -p $$(OUTDIR)/dep
 	$(V1) cd $$(BOARD_ROOT_DIR)/fw && \
 		$$(MAKE) --no-print-directory \
-		--file=Makefile.$(4) \
 		BOARD_NAME=$(1) \
 		BOARD_SHORT_NAME=$(3) \
 		BUILD_TYPE=fw \
@@ -590,10 +585,10 @@ sim_$(4): uavobjects
 		\
 		$$*
 
-.PHONY: sim_$(4)_clean
-sim_$(4)_clean: TARGET=sim_$(4)
-sim_$(4)_clean: OUTDIR=$(BUILD_DIR)/$$(TARGET)
-sim_$(4)_clean:
+.PHONY: sim_clean
+sim_clean: TARGET=sim
+sim_clean: OUTDIR=$(BUILD_DIR)/$$(TARGET)
+sim_clean:
 	$(V0) @echo " CLEAN      $$@"
 	$(V1) [ ! -d "$$(OUTDIR)" ] || $(RM) -rf "$$(OUTDIR)"
 endef
@@ -903,7 +898,7 @@ BU_BOARDS      := $(BL_BOARDS)
 EF_BOARDS      := $(ALL_BOARDS)
 UP_BOARDS      := cc3d
 
-SIM_BOARDS := sim_posix
+SIM_BOARDS := sim
 
 # Generate the targets for whatever boards are left in each list
 FW_TARGETS := $(addprefix fw_, $(FW_BOARDS))
@@ -959,7 +954,7 @@ $(foreach board, $(EF_BOARDS), $(eval $(call EF_TEMPLATE,$(board),$($(board)_fri
 $(foreach board, $(UP_BOARDS), $(eval $(call UP_TEMPLATE,$(board),$($(board)_cpuarch),$($(board)_short))))
 
 # Expand the available simulator rules
-$(eval $(call SIM_TEMPLATE,simulation,Simulation,'sim ',posix,elf))
+$(eval $(call SIM_TEMPLATE,simulation,Simulation,'sim '))
 
 ##############################
 #

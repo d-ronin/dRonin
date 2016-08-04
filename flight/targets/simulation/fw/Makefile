@@ -22,7 +22,7 @@
 # You should have received a copy of the GNU General Public License along
 # with this program; if not, write to the Free Software Foundation, Inc.,
 # 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
-# 
+#
 # Additional note on redistribution: The copyright and license notices above
 # must be maintained in each individual source file that is a derivative work
 # of this source file; otherwise redistribution is prohibited.
@@ -38,39 +38,13 @@ include $(BOARD_INFO_DIR)/board-info.mk
 
 # Set developer code and compile options
 # Set to YES to compile for debugging
-DEBUG ?= YES
+# DEBUG ?= YES
 
-# Include objects that are just nice information to show
-STACK_DIAGNOSTICS ?= NO
-MIXERSTATUS_DIAGNOSTICS ?= NO
-RATEDESIRED_DIAGNOSTICS ?= NO
-WDG_STATS_DIAGNOSTICS ?= NO
-DIAG_TASKS ?= NO
-
-#Or just turn on all the above diagnostics. WARNING: This consumes massive amounts of memory.
-ALL_DIAGNOSTICS ?= YES
-
-#The following Makefile command, ifneq (, $(filter) $(A), $(B) $(C)) is equivalent 
-# to the pseudocode `if(A== B || A==C)`
-ifneq (,$(filter YES,$(STACK_DIAGNOSTICS) $(ALL_DIAGNOSTICS)))
 CFLAGS += -DSTACK_DIAGNOSTICS
-endif
-
-ifneq (,$(filter YES,$(MIXERSTATUS_DIAGNOSTICS) $(ALL_DIAGNOSTICS)))
 CFLAGS += -DMIXERSTATUS_DIAGNOSTICS
-endif
-
-ifneq (,$(filter YES,$(RATEDESIRED_DIAGNOSTICS) $(ALL_DIAGNOSTICS)))
 CFLAGS += -DRATEDESIRED_DIAGNOSTICS
-endif
-
-ifneq (,$(filter YES,$(WDG_STATS_DIAGNOSTICS) $(ALL_DIAGNOSTICS)))
 CFLAGS += -DWDG_STATS_DIAGNOSTICS
-endif
-
-ifneq (,$(filter YES,$(DIAG_TASKS) $(ALL_DIAGNOSTICS)))
 CFLAGS += -DDIAG_TASKS
-endif
 
 # Since we are simulating all this firmware the code needs to know what the BL would
 # normally contain
@@ -84,24 +58,26 @@ CFLAGS += $(BLONLY_CDEFS)
 CFLAGS += -D_XOPEN_SOURCE
 
 # List of modules to include
-MODULES += Actuator ManualControl Stabilization 
+MODULES += Actuator
 MODULES += Attitude
 MODULES += FirmwareIAP
+MODULES += Logging
+MODULES += ManualControl
+MODULES += Sensors/simulated
+# On "sim", the simulated sensors module instead invokes the real one when
+# gyros are present.
+MODULES += Sensors
+MODULES += Stabilization
+MODULES += Telemetry
 
 OPTMODULES += PathPlanner
-OPTMODULES += AltitudeHold 
-OPTMODULES += VtolPathFollower 
+OPTMODULES += AltitudeHold
+OPTMODULES += VtolPathFollower
 OPTMODULES += FixedWingPathFollower
 OPTMODULES += GroundPathFollower
 OPTMODULES += CameraStab
 OPTMODULES += Autotune
 OPTMODULES += Geofence
-OPTMODULES += Logging
-
-# To run simulation instead of connect to SITL
-MODULES += Sensors/simulated
-
-MODULES += Telemetry
 
 # Paths
 OPUAVTALKINC = $(OPUAVTALK)/inc
@@ -157,34 +133,35 @@ SRC += $(MATHLIB)/pid.c
 ## PIOS Hardware (STM32F4xx)
 include $(PIOS)/posix/library_chibios.mk
 
-SRC += $(PIOSCOMMON)/pios_com.c
-SRC += $(PIOSCOMMON)/pios_crc.c
-SRC += $(PIOSCOMMON)/pios_flash.c
-SRC += $(PIOSCOMMON)/pios_flashfs_logfs.c
-SRC += $(PIOSCOMMON)/pios_rcvr.c
-SRC += $(PIOSCOMMON)/pios_sensors.c
-SRC += $(PIOSCOMMON)/pios_board_info.c
-SRC += $(PIOSCOMMON)/pios_semaphore.c
-SRC += $(PIOSCOMMON)/pios_mutex.c
-SRC += $(PIOSCOMMON)/pios_thread.c
-SRC += $(PIOSCOMMON)/pios_queue.c
-SRC += $(PIOSCOMMON)/pios_streamfs.c
+SRC += pios_com.c
+SRC += pios_crc.c
+SRC += pios_flash.c
+SRC += pios_flashfs_logfs.c
+SRC += pios_rcvr.c
+SRC += pios_sensors.c
+SRC += pios_board_info.c
+SRC += pios_semaphore.c
+SRC += pios_mutex.c
+SRC += pios_thread.c
+SRC += pios_queue.c
+SRC += pios_streamfs.c
 
-SRC += $(PIOSCOMMON)/pios_modules.c
+SRC += pios_modules.c
 
-SRC += $(PIOSPOSIX)/pios_gcsrcvr.c
-SRC += $(PIOSPOSIX)/pios_delay.c
-SRC += $(PIOSPOSIX)/pios_led.c
-SRC += $(PIOSPOSIX)/pios_wdg.c
-SRC += $(PIOSPOSIX)/pios_bl_helper.c
-SRC += $(PIOSPOSIX)/pios_iap.c
-SRC += $(PIOSPOSIX)/pios_reset.c
-SRC += $(PIOSPOSIX)/pios_servo.c
-SRC += $(PIOSPOSIX)/pios_sys.c
-SRC += $(PIOSPOSIX)/pios_tcp.c
-SRC += $(PIOSPOSIX)/pios_debug.c
-SRC += $(PIOSPOSIX)/pios_heap.c
-SRC += $(PIOSPOSIX)/pios_irq.c
+SRC += pios_gcsrcvr.c
+SRC += pios_delay.c
+SRC += pios_led.c
+SRC += pios_wdg.c
+SRC += pios_bl_helper.c
+SRC += pios_iap.c
+SRC += pios_reset.c
+SRC += pios_servo.c
+SRC += pios_sys.c
+SRC += pios_tcp.c
+SRC += pios_fileout.c
+SRC += pios_debug.c
+SRC += pios_heap.c
+SRC += pios_irq.c
 
 
 ## PIOS Hardware (Common)
@@ -257,7 +234,6 @@ ifneq ($(PI_CROSS_SIM)x,x)
 CC=arm-linux-gnueabihf-gcc
 LDFLAGS += -static
 endif
-
 
 # common architecture-specific flags from the device-specific library makefile
 CFLAGS += $(ARCHFLAGS)
@@ -339,14 +315,14 @@ CONLYFLAGS += $(CSTANDARD)
 LDFLAGS += $(patsubst %,-L%,$(EXTRA_LIBDIRS))
 LDFLAGS += $(patsubst %,-l%,$(EXTRA_LIBS))
 LDFLAGS += -lm
-LDFLAGS += -lpthread 
+LDFLAGS += -lpthread
 
 ifdef WINDOWS
 LDFLAGS += -lws2_32
 endif
 
 # To include simulation model
-LDFLAGS += -L$(OUTDIR) 
+LDFLAGS += -L$(OUTDIR)
 #LDFLAGS += -lsimmodel
 
 # Define programs and commands.
