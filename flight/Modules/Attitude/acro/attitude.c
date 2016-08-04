@@ -53,7 +53,8 @@
  
 // Private constants
 #define STACK_SIZE_BYTES 616
-#define TASK_PRIORITY PIOS_THREAD_PRIO_HIGH
+#define TASK_PRIORITY    PIOS_THREAD_PRIO_HIGH
+#define SENSOR_PERIOD    6 /* this allows sensor data to arrive as slow as 166Hz */
 
 // Private types
 enum complimentary_filter_status {
@@ -265,15 +266,17 @@ static void AttitudeTask(void *parameters)
 		}
 
 		// Only update attitude when sensor data is good
-		if (retval != 0)
+		if (retval != 0) {
 			AlarmsSet(SYSTEMALARMS_ALARM_ATTITUDE, SYSTEMALARMS_ALARM_ERROR);
-		else {
-			// Do not update attitude data in simulation mode
-			if (!AttitudeActualReadOnly())
-				updateAttitude(&accels, &gyros);
-
-			AlarmsClear(SYSTEMALARMS_ALARM_ATTITUDE);
+			PIOS_Thread_Sleep(SENSOR_PERIOD);
+			continue;
 		}
+
+		// Do not update attitude data in simulation mode
+		if (!AttitudeActualReadOnly())
+			updateAttitude(&accels, &gyros);
+
+		AlarmsClear(SYSTEMALARMS_ALARM_ATTITUDE);
 	}
 }
 
@@ -289,18 +292,16 @@ static int32_t updateSensorsDigital(AccelsData * accelsData, GyrosData * gyrosDa
 	struct pios_queue *queue;
 
 	queue = PIOS_SENSORS_GetQueue(PIOS_SENSOR_GYRO);
-	if(queue == NULL || PIOS_Queue_Receive(queue, (void *) &gyros, 4) == false) {
-		return-1;
-	}
+	if (queue == NULL || PIOS_Queue_Receive(queue, (void *)&gyros, SENSOR_PERIOD) == false)
+		return -1;
 
 	// As it says below, because the rest of the code expects the accel to be ready when
 	// the gyro is we must block here too
 	queue = PIOS_SENSORS_GetQueue(PIOS_SENSOR_ACCEL);
-	if(queue == NULL || PIOS_Queue_Receive(queue, (void *) &accels, 1) == false) {
+	if (queue == NULL || PIOS_Queue_Receive(queue, (void *)&accels, 1) == false)
 		return -1;
-	}
-	else
-		update_accels(&accels, accelsData);
+	
+	update_accels(&accels, accelsData);
 
 	// Update gyros after the accels since the rest of the code expects
 	// the accels to be available first
