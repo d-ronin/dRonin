@@ -97,6 +97,7 @@ static uint16_t get_minimum_logging_period();
 static void unregister_object(UAVObjHandle obj);
 static void register_object(UAVObjHandle obj);
 static void register_default_profile();
+static void logAll(UAVObjHandle obj);
 static void logSettings(UAVObjHandle obj);
 static void writeHeader();
 static void updateSettings();
@@ -323,7 +324,9 @@ static void loggingTask(void *parameters)
 			writeHeader();
 
 			// Log settings
-			if (settings.LogSettingsOnStart == LOGGINGSETTINGS_LOGSETTINGSONSTART_TRUE){
+			if (settings.InitiallyLog == LOGGINGSETTINGS_INITIALLYLOG_ALLOBJECTS) {
+				UAVObjIterate(&logAll);
+			} else if (settings.InitiallyLog == LOGGINGSETTINGS_INITIALLYLOG_SETTINGSOBJECTS) {
 				UAVObjIterate(&logSettings);
 			}
 
@@ -421,15 +424,25 @@ static void loggingTask(void *parameters)
 }
 
 /**
- * Log all settings objects
+ * Log all objects' initial value.
  * \param[in] obj Object to log
 */
+static void logAll(UAVObjHandle obj)
+{
+	UAVTalkSendObjectTimestamped(uavTalkCon, obj, 0, false, 0);
+}
+
+ /**
+  * Log all settings objects
+  * \param[in] obj Object to log
+  */
 static void logSettings(UAVObjHandle obj)
 {
 	if (UAVObjIsSettings(obj)) {
 		UAVTalkSendObjectTimestamped(uavTalkCon, obj, 0, false, 0);
 	}
 }
+
 
 /**
  * Forward data from UAVTalk out the serial port
