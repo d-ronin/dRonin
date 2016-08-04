@@ -184,15 +184,18 @@ class TelemetryBase(with_metaclass(ABCMeta)):
     def __handle_frames(self, frames):
         objs = []
 
-        obj = self.uavtalk_generator.send(frames)
+        if frames == b'':
+            self.eof=True
+        else:
+            obj = self.uavtalk_generator.send(frames)
 
-        while obj:
-            if self.do_handshaking:
-                self.__handle_handshake(obj)
+            while obj:
+                if self.do_handshaking:
+                    self.__handle_handshake(obj)
 
-            objs.append(obj)
+                objs.append(obj)
 
-            obj = self.uavtalk_generator.send('')
+                obj = self.uavtalk_generator.send(b'')
 
         # Only traverse the lock when we've processed everything in this
         # batch.
@@ -200,9 +203,6 @@ class TelemetryBase(with_metaclass(ABCMeta)):
             # keep everything in ram forever
             # for now-- in case we wanna see
             self.uavo_list.extend(objs)
-
-            if frames == b'':
-                self.eof=True
 
             for obj in objs:
                 self.last_values[obj.__class__]=obj
