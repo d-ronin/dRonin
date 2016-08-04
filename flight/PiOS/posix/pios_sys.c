@@ -206,6 +206,9 @@ void PIOS_SYS_Init(void)
 			perror("sched_setscheduler");
 			exit(1);
 		}
+#else
+		printf("Unable to do realtime stuff on OS X\n");
+		exit(1);
 #endif
 	}
 #endif
