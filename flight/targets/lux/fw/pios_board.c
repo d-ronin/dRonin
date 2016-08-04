@@ -131,10 +131,12 @@ void PIOS_Board_Init(void)
 	PIOS_LED_Init(led_cfg);
 #endif	/* PIOS_INCLUDE_LED */
 
+#if defined(PIOS_INCLUDE_SPI)
     /* Set up the SPI interface to the gyro/acelerometer */
     if (PIOS_SPI_Init(&pios_spi_gyro_id, &pios_spi_gyro_cfg)) {
         PIOS_DEBUG_Assert(0);
     }
+#endif /* PIOS_INCLUDE_SPI */
 
 #if defined(PIOS_INCLUDE_FLASH)
 	/* Inititialize all flash drivers */
@@ -349,6 +351,10 @@ void PIOS_Board_Init(void)
 	PIOS_WDG_Clear();
 
 #if defined(PIOS_INCLUDE_MPU9250_SPI)
+#if !defined(PIOS_INCLUDE_SPI)
+    #error MPU9250_SPI requires SPI
+#endif
+    
     if (PIOS_MPU9250_SPI_Init(pios_spi_gyro_id, 0, &pios_mpu9250_cfg) != 0)
         PIOS_HAL_Panic(PIOS_LED_ALARM, PIOS_HAL_PANIC_IMU);
 
