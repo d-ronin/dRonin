@@ -34,9 +34,6 @@
  * with this program; if not, write to the Free Software Foundation, Inc.,
  * 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
  */
-/*
- * @todo	Clocking is wrong (interface is badly defined, should be speed not prescaler magic numbers)
- */
 #include <pios.h>
 
 #if defined(PIOS_INCLUDE_SPI)
@@ -165,20 +162,8 @@ out_fail:
  * (Re-)initialises SPI peripheral clock rate
  *
  * \param[in] spi SPI number (0 or 1)
- * \param[in] spi_prescaler configures the SPI speed:
- * <UL>
- *   <LI>PIOS_SPI_PRESCALER_2: sets clock rate 27.7~ nS @ 72 MHz (36 MBit/s) (only supported for spi==0, spi1 uses 4 instead)
- *   <LI>PIOS_SPI_PRESCALER_4: sets clock rate 55.5~ nS @ 72 MHz (18 MBit/s)
- *   <LI>PIOS_SPI_PRESCALER_8: sets clock rate 111.1~ nS @ 72 MHz (9 MBit/s)
- *   <LI>PIOS_SPI_PRESCALER_16: sets clock rate 222.2~ nS @ 72 MHz (4.5 MBit/s)
- *   <LI>PIOS_SPI_PRESCALER_32: sets clock rate 444.4~ nS @ 72 MHz (2.25 MBit/s)
- *   <LI>PIOS_SPI_PRESCALER_64: sets clock rate 888.8~ nS @ 72 MHz (1.125 MBit/s)
- *   <LI>PIOS_SPI_PRESCALER_128: sets clock rate 1.7~ nS @ 72 MHz (0.562 MBit/s)
- *   <LI>PIOS_SPI_PRESCALER_256: sets clock rate 3.5~ nS @ 72 MHz (0.281 MBit/s)
- * </UL>
- * \return 0 if no error
- * \return -1 if disabled SPI port selected
- * \return -3 if invalid spi_prescaler selected
+ * \param[in] spi_speed configures the SPI speed in Hz
+ * \return The actual attained/configured speed.
  */
 int32_t PIOS_SPI_SetClockSpeed(uint32_t spi_id, uint32_t spi_speed)
 {
