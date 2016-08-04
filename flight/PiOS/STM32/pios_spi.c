@@ -249,27 +249,6 @@ int32_t PIOS_SPI_ClaimBus(uint32_t spi_id)
 }
 
 /**
- * Claim the SPI bus semaphore from an ISR.  Has no timeout.
- * \param[in] spi SPI number (0 or 1)
- * \param[in] pointer which receives if a task has been woken
- * \return 0 if no error
- * \return -1 if timeout before claiming semaphore
- */
-int32_t PIOS_SPI_ClaimBusISR(uint32_t spi_id, bool *woken)
-{
-	struct pios_spi_dev *spi_dev = (struct pios_spi_dev *)spi_id;
-
-	bool valid = PIOS_SPI_validate(spi_dev);
-	PIOS_Assert(valid)
-
-	if (PIOS_Semaphore_Take_FromISR(spi_dev->busy, woken) != true)
-		return -1;
-
-	return 0;
-}
-
-
-/**
  * Release the SPI bus semaphore.  Calling the SPI functions does not require this
  * \param[in] spi SPI number (0 or 1)
  * \return 0 if no error
@@ -282,24 +261,6 @@ int32_t PIOS_SPI_ReleaseBus(uint32_t spi_id)
 	PIOS_Assert(valid)
 
 	PIOS_Semaphore_Give(spi_dev->busy);
-
-	return 0;
-}
-
-/**
- * Release the SPI bus from an ISR.
- * \param[in] spi SPI number (0 or 1)
- * \param[in] pointer which receives if a task has been woken
- * \return 0 if no error
- */
-int32_t PIOS_SPI_ReleaseBusISR(uint32_t spi_id, bool *woken)
-{
-	struct pios_spi_dev *spi_dev = (struct pios_spi_dev *)spi_id;
-
-	bool valid = PIOS_SPI_validate(spi_dev);
-	PIOS_Assert(valid)
-
-	PIOS_Semaphore_Give_FromISR(spi_dev->busy, woken);
 
 	return 0;
 }
