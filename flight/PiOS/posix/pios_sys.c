@@ -54,8 +54,10 @@
 
 #include "pios_fileout_priv.h"
 #include "pios_com_priv.h"
+
 #include "pios_spi_posix_priv.h"
 #include "pios_ms5611_priv.h"
+#include "pios_bmx055_priv.h"
 
 
 #if defined(PIOS_INCLUDE_SYS)
@@ -120,6 +122,15 @@ static int handle_device(const char *optarg) {
 		ms5611_cfg->temperature_interleaving = 1;
 
 		int ret = PIOS_MS5611_SPI_Init(spi_devs[bus_num], dev_num, ms5611_cfg);
+
+		if (ret) goto fail;
+	} else if (!strcmp(drv_name, "bmx055")) {
+		struct pios_bmx055_cfg *bmx055_cfg;
+		pios_bmx055_dev_t dev;
+
+		bmx055_cfg = PIOS_malloc(sizeof(*bmx055_cfg));
+
+		int ret = PIOS_BMX055_SPI_Init(&dev, spi_devs[bus_num], dev_num, dev_num+1, dev_num+2, bmx055_cfg);
 
 		if (ret) goto fail;
 	}
