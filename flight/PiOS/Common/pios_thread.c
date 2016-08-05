@@ -373,7 +373,9 @@ void PIOS_Thread_Sleep_Until(uint32_t *previous_ms, uint32_t increment_ms)
 			// don't try and keep on the previous timebase.
 			*previous_ms = CVT_ST2MS(now);
 		}
-	} else {
+	} else if (sleep_time > 0) {
+		// Be sure not to request a sleep_time of 0, as that's
+		// IMMEDIATE and makes chTdSleepS panic.
 		chThdSleepS(sleep_time);
 	}
 
