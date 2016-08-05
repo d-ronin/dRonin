@@ -66,7 +66,7 @@ int32_t PIOS_SPI_Init(uint32_t *spi_id, const struct pios_spi_cfg *cfg)
 	spi_dev->busy = PIOS_Semaphore_Create();
 	spi_dev->slave_count = 0;
 
-	for (int i=0; i<SPI_MAX_SUBDEV; i++) {
+	for (int i=0; i < SPI_MAX_SUBDEV; i++) {
 		char path[PATH_MAX];
 
 		snprintf(path, PATH_MAX, "%s.%d", cfg->base_path, i);
@@ -80,6 +80,13 @@ int32_t PIOS_SPI_Init(uint32_t *spi_id, const struct pios_spi_cfg *cfg)
 		spi_dev->slave_count = i+1;
 		spi_dev->fd[i] = fd;
 	}
+
+	for (int i=0; i < spi_dev->slave_count; i++) {
+		/* Twiddle / ensure slave selects are sane. */
+		PIOS_SPI_RC_PinSet((uint32_t) spi_dev, i, false);
+		PIOS_SPI_RC_PinSet((uint32_t) spi_dev, i, true);
+	}
+
 
 	printf("PIOS_SPI: Inited %s, %d subdevs\n", cfg->base_path,
 		spi_dev->slave_count);
