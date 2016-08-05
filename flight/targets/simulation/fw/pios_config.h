@@ -89,4 +89,10 @@
 
 #define PIOS_INCLUDE_OPENLOG
 
+/* Hardware support on Linux only */
+#ifdef __linux__
+#define PIOS_INCLUDE_SPI
+#define PIOS_INCLUDE_MS5611_SPI
+#endif
+
 #endif /* PIOS_CONFIG_POSIX_H */

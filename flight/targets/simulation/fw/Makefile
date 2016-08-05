@@ -162,7 +162,8 @@ SRC += pios_fileout.c
 SRC += pios_debug.c
 SRC += pios_heap.c
 SRC += pios_irq.c
-
+SRC += pios_spi.c
+SRC += pios_ms5611_spi.c
 
 ## PIOS Hardware (Common)
 SRC += $(PIOSPOSIX)/../../tests/logfs/pios_flash_posix.c
