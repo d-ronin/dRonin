@@ -106,13 +106,15 @@ void initTask(void *parameters)
 {
 	printf("Initialization task running\n");
 
-	/* SYS_Init on host runs in init task, so we can use allocator etc. */
-	PIOS_SYS_Args(g_argc, g_argv);
-
 	PIOS_SYS_Init();
 
 	/* board driver init */
 	PIOS_Board_Init();
+
+	/* SYS_Init on host runs in init task, so we can use allocator etc.
+	 * after Board_Init because hardware inited here may rely upon
+	 * task monitor, etc. */
+	PIOS_SYS_Args(g_argc, g_argv);
 
 	/* Initialize modules */
 	MODULE_INITIALISE_ALL(PIOS_WDG_Clear);
