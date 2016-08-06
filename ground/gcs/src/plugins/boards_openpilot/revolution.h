@@ -46,7 +46,8 @@ public:
     virtual bool queryCapabilities(BoardCapabilities capability);
     virtual QStringList getSupportedProtocols();
     virtual QPixmap getBoardPicture();
-    virtual QString getHwUavoName();
+    virtual QString getHwUAVO();
+    HwRevolution * getSettings();
 
     //! Determine if this board supports configuring the receiver
     virtual bool isInputConfigurationSupported(InputType type);

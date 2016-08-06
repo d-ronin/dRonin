@@ -31,9 +31,6 @@
 #include "cc3d.h"
 #include "revolution.h"
 #include <QtPlugin>
-#include "uavobjectsinit.h"
-#include "hwcoptercontrol.h"
-#include "hwrevolution.h"
 
 
 OpenPilotPlugin::OpenPilotPlugin()
@@ -48,13 +45,9 @@ OpenPilotPlugin::~OpenPilotPlugin()
 
 bool OpenPilotPlugin::initialize(const QStringList& args, QString *errMsg)
 {
-    Q_UNUSED(args);
-    Q_UNUSED(errMsg);
-
-    UAVObjectInitialize<HwCopterControl>(new HwCopterControl());
-    UAVObjectInitialize<HwRevolution>(new HwRevolution());
-
-    return true;
+   Q_UNUSED(args);
+   Q_UNUSED(errMsg);
+   return true;
 }
 
 void OpenPilotPlugin::extensionsInitialized()

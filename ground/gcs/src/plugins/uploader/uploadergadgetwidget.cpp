@@ -45,7 +45,6 @@
 #include <coreplugin/modemanager.h>
 #include <coreplugin/actionmanager/actionmanager.h>
 #include "rawhid/rawhidplugin.h"
-#include "utils/pathutils.h"
 
 using namespace uploader;
 
@@ -1448,7 +1447,7 @@ void UploaderGadgetWidget::onBootloaderDetected()
             QString name;
             m_widget->partitionBrowserGB->setEnabled(true);
             m_widget->partitionBrowserTW->setRowCount(dev.PartitionSizes.length());
-            foreach (quint32 i, dev.PartitionSizes) {
+            foreach (int i, dev.PartitionSizes) {
                 switch (index) {
                 case DFU_PARTITION_FW:
                     name = "Firmware";
@@ -1483,13 +1482,14 @@ void UploaderGadgetWidget::onBootloaderDetected()
             m_widget->partitionBrowserTW->setRowCount(0);
         }
         deviceInfo info;
-        Core::BoardManager *boardMgr = Core::ICore::instance()->boardManager();
-        if (!boardMgr) {
-            qWarning() << "UploaderGadgetWidget::onBootloaderDetected" << "Could not get BoardManager!";
-            return;
+        QList <Core::IBoardType *> boards = pm->getObjects<Core::IBoardType>();
+        foreach (Core::IBoardType *board, boards) {
+            if (board->getBoardType() == (dev.ID>>8))
+            {
+                info.board = board;
+                break;
+            }
         }
-
-        info.board = boardMgr->getBoardType(dev.ID >> 8);
         info.bl_version = QString::number(dev.BL_Version, 16);
         info.cpu_serial = "Not Available";
         info.hw_revision = QString::number(dev.HW_Rev);
@@ -1962,8 +1962,7 @@ QString UploaderGadgetWidget::getImagePath(QString boardName, QString imageType)
         << "../../../../build"                  // windows / linux build
         << "../../../../../../../build"         // OSX build
         << "../Resources/firmware"              // OSX app bundle
-        << "/usr/local/" GCS_PROJECT_BRANDING_PRETTY "/firmware" // leenucks deb
-        << Utils::PathUtils::getAddonPath() + "/firmware";       // add-on path for out-of-tree boards
+        << "/usr/local/" GCS_PROJECT_BRANDING_PRETTY "/firmware"; // leenucks deb
 
     foreach (QString path, paths) {
         QDir pathDir = QDir(QCoreApplication::applicationDirPath());
@@ -2006,47 +2005,24 @@ bool UploaderGadgetWidget::FirmwareLoadFromFile(QString filename,
 
 bool UploaderGadgetWidget::FirmwareCheckForUpdate(deviceDescriptorStruct device)
 {
-    Core::BoardManager *boardMgr = Core::ICore::instance()->boardManager();
-    if (!boardMgr) {
-        qWarning() << "UploaderGadgetWidget::FirmwareCheckForUpdate" << "BoardManager unavailable!";
-        return false;
+    const QString gcsRev(GCS_REVISION);
+    if (gcsRev.contains(':')) {
+        QString gcsShort = gcsRev.mid(gcsRev.indexOf(':') + 1, 8);
+        if ((gcsShort != device.gitHash) && (ignoredRev != device.gitHash)) {
+            QMessageBox msgBox;
+            msgBox.setText(tr("The firmware version on your board does not match this version of GCS."));
+            msgBox.setInformativeText(tr("Do you want to upgrade the firmware to a compatible version?"));
+            msgBox.setDetailedText(QString("Firmware git hash: %1\nGCS git hash: %2").arg(device.gitHash).arg(gcsShort));
+            msgBox.setStandardButtons(QMessageBox::Yes | QMessageBox::Ignore);
+            msgBox.setDefaultButton(QMessageBox::Yes);
+
+            int val = msgBox.exec();
+
+            if (val == QMessageBox::Yes)
+                return true;
+            else if (val == QMessageBox::Ignore)
+                ignoredRev = device.gitHash;
+        }
     }
-
-    Core::IBoardType *board = boardMgr->getBoardType(device.boardID() >> 8);
-    if (!board) {
-        qDebug() << "UploaderGadgetWidget::FirmwareCheckForUpdate" << "Don't know about this board";
-        return false;
-    }
-
-    QString file = getImagePath(board->shortName(), "fw");
-    if (!file.length()) {
-        qDebug() << "UploaderGadgetWidget::FirmwareCheckForUpdate" << "Don't have any firmware for this board";
-        return false;
-    }
-
-    QByteArray latestFw;
-    FirmwareLoadFromFile(file, &latestFw);
-    deviceDescriptorStruct latestDesc;
-    if(!utilMngr->descriptionToStructure(latestFw.right(100), latestDesc)) {
-        qDebug() << "UploaderGadgetWidget::FirmwareCheckForUpdate" << "Error parsing firmware metadata";
-        return false;
-    }
-
-    if ((latestDesc.gitHash != device.gitHash) && (ignoredRev != device.gitHash)) {
-        QMessageBox msgBox;
-        msgBox.setText(tr("The firmware version on your board does not match the version available with this GCS."));
-        msgBox.setInformativeText(tr("Do you want to upgrade the firmware?"));
-        msgBox.setDetailedText(QString("Board firmware git hash: %1\nGCS firmware git hash: %2").arg(device.gitHash).arg(latestDesc.gitHash));
-        msgBox.setStandardButtons(QMessageBox::Yes | QMessageBox::Ignore);
-        msgBox.setDefaultButton(QMessageBox::Yes);
-
-        int val = msgBox.exec();
-
-        if (val == QMessageBox::Yes)
-            return true;
-        else if (val == QMessageBox::Ignore)
-            ignoredRev = device.gitHash;
-    }
-
     return false;
 }

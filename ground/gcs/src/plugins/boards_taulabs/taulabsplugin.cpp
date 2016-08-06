@@ -30,10 +30,6 @@
 #include "sparky.h"
 #include "sparky2.h"
 #include "taulink.h"
-#include "uavobjectsinit.h"
-#include "hwsparky.h"
-#include "hwsparky2.h"
-#include "hwtaulink.h"
 
 
 TauLabsPlugin::TauLabsPlugin()
@@ -48,14 +44,9 @@ TauLabsPlugin::~TauLabsPlugin()
 
 bool TauLabsPlugin::initialize(const QStringList& args, QString *errMsg)
 {
-    Q_UNUSED(args);
-    Q_UNUSED(errMsg);
-
-    UAVObjectInitialize<HwSparky>(new HwSparky());
-    UAVObjectInitialize<HwSparky2>(new HwSparky2());
-    UAVObjectInitialize<HwTauLink>(new HwTauLink());
-
-    return true;
+   Q_UNUSED(args);
+   Q_UNUSED(errMsg);
+   return true;
 }
 
 void TauLabsPlugin::extensionsInitialized()

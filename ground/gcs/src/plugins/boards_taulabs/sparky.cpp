@@ -108,7 +108,7 @@ QPixmap Sparky::getBoardPicture()
     return QPixmap(":/taulabs/images/sparky.png");
 }
 
-QString Sparky::getHwUavoName()
+QString Sparky::getHwUAVO()
 {
     return "HwSparky";
 }
@@ -132,7 +132,10 @@ bool Sparky::isInputConfigurationSupported(enum InputType type = INPUT_TYPE_ANY)
  */
 bool Sparky::setInputType(enum InputType type)
 {
-    HwSparky *hwSparky = getHwUavo<HwSparky>();
+    ExtensionSystem::PluginManager *pm = ExtensionSystem::PluginManager::instance();
+    UAVObjectManager *uavoManager = pm->getObject<UAVObjectManager>();
+    HwSparky *hwSparky = HwSparky::GetInstance(uavoManager);
+    Q_ASSERT(hwSparky);
     if (!hwSparky)
         return false;
 
@@ -170,7 +173,10 @@ bool Sparky::setInputType(enum InputType type)
  */
 enum Core::IBoardType::InputType Sparky::getInputType()
 {
-    HwSparky *hwSparky = getHwUavo<HwSparky>();
+    ExtensionSystem::PluginManager *pm = ExtensionSystem::PluginManager::instance();
+    UAVObjectManager *uavoManager = pm->getObject<UAVObjectManager>();
+    HwSparky *hwSparky = HwSparky::GetInstance(uavoManager);
+    Q_ASSERT(hwSparky);
     if (!hwSparky)
         return INPUT_TYPE_UNKNOWN;
 
@@ -194,7 +200,10 @@ enum Core::IBoardType::InputType Sparky::getInputType()
 
 int Sparky::queryMaxGyroRate()
 {
-    HwSparky *hwSparky = getHwUavo<HwSparky>();
+    ExtensionSystem::PluginManager *pm = ExtensionSystem::PluginManager::instance();
+    UAVObjectManager *uavoManager = pm->getObject<UAVObjectManager>();
+    HwSparky *hwSparky = HwSparky::GetInstance(uavoManager);
+    Q_ASSERT(hwSparky);
     if (!hwSparky)
         return 0;
 
@@ -216,7 +225,10 @@ int Sparky::queryMaxGyroRate()
 
 QStringList Sparky::getAdcNames()
 {
-    HwSparky *hwSparky = getHwUavo<HwSparky>();
+    ExtensionSystem::PluginManager *pm = ExtensionSystem::PluginManager::instance();
+    UAVObjectManager *uavoManager = pm->getObject<UAVObjectManager>();
+    HwSparky *hwSparky = HwSparky::GetInstance(uavoManager);
+    Q_ASSERT(hwSparky);
     if (!hwSparky)
         return QStringList();
 

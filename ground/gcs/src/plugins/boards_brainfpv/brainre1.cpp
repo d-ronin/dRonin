@@ -116,7 +116,7 @@ bool BrainRE1::isInputConfigurationSupported(enum InputType type = INPUT_TYPE_AN
     }
 }
 
-QString BrainRE1::getHwUavoName()
+QString BrainRE1::getHwUAVO()
 {
     return "HwBrainRE1";
 }
@@ -129,7 +129,10 @@ QString BrainRE1::getHwUavoName()
  */
 bool BrainRE1::setInputType(enum InputType type)
 {
-    HwBrainRE1 *hwBrainRE1 = getHwUavo<HwBrainRE1>();
+    ExtensionSystem::PluginManager *pm = ExtensionSystem::PluginManager::instance();
+    UAVObjectManager *uavoManager = pm->getObject<UAVObjectManager>();
+    HwBrainRE1 *hwBrainRE1 = HwBrainRE1::GetInstance(uavoManager);
+    Q_ASSERT(hwBrainRE1);
     if (!hwBrainRE1)
         return false;
 
@@ -168,7 +171,10 @@ bool BrainRE1::setInputType(enum InputType type)
  */
 enum Core::IBoardType::InputType BrainRE1::getInputType()
 {
-    HwBrainRE1 *hwBrainRE1 = getHwUavo<HwBrainRE1>();
+    ExtensionSystem::PluginManager *pm = ExtensionSystem::PluginManager::instance();
+    UAVObjectManager *uavoManager = pm->getObject<UAVObjectManager>();
+    HwBrainRE1 *hwBrainRE1 = HwBrainRE1::GetInstance(uavoManager);
+    Q_ASSERT(hwBrainRE1);
     if (!hwBrainRE1)
         return INPUT_TYPE_UNKNOWN;
 

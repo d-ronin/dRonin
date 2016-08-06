@@ -51,7 +51,6 @@ public:
     QString InsertStoragePath(QString path);
     QString getSettingsFilename();
     void setSettingsFilename(QString filename);
-    static QString getAddonPath();
 private:
     static QString settingsFilename;
 };

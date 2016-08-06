@@ -37,6 +37,7 @@
 #include "uavobjectutil/uavobjectutilmanager.h"
 #include <extensionsystem/pluginmanager.h>
 
+#include "hwdtfc.h"
 #include "dtfcconfiguration.h"
 
 /**
@@ -115,7 +116,7 @@ QPixmap Dtfc::getBoardPicture()
     return QPixmap(":/dtf/images/dtfc.png");
 }
 
-QString Dtfc::getHwUavoName()
+QString Dtfc::getHwUAVO()
 {
     return "HwDtfc";
 }
@@ -138,7 +139,10 @@ bool Dtfc::isInputConfigurationSupported(enum InputType type = INPUT_TYPE_ANY)
  */
 bool Dtfc::setInputType(enum InputType type)
 {
-    HwDtfc *hwDtfc = getHwUavo<HwDtfc>();
+    ExtensionSystem::PluginManager *pm = ExtensionSystem::PluginManager::instance();
+    UAVObjectManager *uavoManager = pm->getObject<UAVObjectManager>();
+    HwDtfc *hwDtfc = HwDtfc::GetInstance(uavoManager);
+    Q_ASSERT(hwDtfc);
     if (!hwDtfc)
         return false;
 
@@ -172,7 +176,10 @@ bool Dtfc::setInputType(enum InputType type)
  */
 enum Core::IBoardType::InputType Dtfc::getInputType()
 {
-    HwDtfc *hwDtfc = getHwUavo<HwDtfc>();
+    ExtensionSystem::PluginManager *pm = ExtensionSystem::PluginManager::instance();
+    UAVObjectManager *uavoManager = pm->getObject<UAVObjectManager>();
+    HwDtfc *hwDtfc = HwDtfc::GetInstance(uavoManager);
+    Q_ASSERT(hwDtfc);
     if (!hwDtfc)
         return INPUT_TYPE_UNKNOWN;
 
@@ -213,7 +220,10 @@ enum Core::IBoardType::InputType Dtfc::getInputType()
 
 int Dtfc::queryMaxGyroRate()
 {
-    HwDtfc *hwDtfc = getHwUavo<HwDtfc>();
+    ExtensionSystem::PluginManager *pm = ExtensionSystem::PluginManager::instance();
+    UAVObjectManager *uavoManager = pm->getObject<UAVObjectManager>();
+    HwDtfc *hwDtfc = HwDtfc::GetInstance(uavoManager);
+    Q_ASSERT(hwDtfc);
     if (!hwDtfc)
         return 0;
 

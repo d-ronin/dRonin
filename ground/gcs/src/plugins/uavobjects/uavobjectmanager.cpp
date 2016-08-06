@@ -54,8 +54,6 @@ UAVObjectManager::~UAVObjectManager()
  */
 bool UAVObjectManager::registerObject(UAVDataObject* obj)
 {
-    if (!obj)
-        return false;
     // Check if this object type is already in the list
     quint32 objID = obj->getObjID();
     if (objects.contains(objID))//Known object ID

@@ -12,19 +12,13 @@ HEADERS += \
     taulabsplugin.h \
     sparky.h \
     sparky2.h \
-    taulink.h \
-    $$UAVOBJECT_SYNTHETICS/hwsparky.h \
-    $$UAVOBJECT_SYNTHETICS/hwsparky2.h \
-    $$UAVOBJECT_SYNTHETICS/hwtaulink.h
+    taulink.h
 
 SOURCES += \
     taulabsplugin.cpp \
     sparky.cpp \
     sparky2.cpp \
-    taulink.cpp \
-    $$UAVOBJECT_SYNTHETICS/hwsparky.cpp \
-    $$UAVOBJECT_SYNTHETICS/hwsparky2.cpp \
-    $$UAVOBJECT_SYNTHETICS/hwtaulink.cpp
+    taulink.cpp
 
 RESOURCES += \
     taulabs.qrc

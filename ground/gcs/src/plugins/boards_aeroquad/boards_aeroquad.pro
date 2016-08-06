@@ -8,13 +8,11 @@ OTHER_FILES += AeroQuad.json
 
 HEADERS += \
     aeroquadplugin.h \
-    aq32.h \
-    $$UAVOBJECT_SYNTHETICS/hwaq32.h
+	aq32.h
 
 SOURCES += \
     aeroquadplugin.cpp \
-    aq32.cpp \
-    $$UAVOBJECT_SYNTHETICS/hwaq32.cpp
+	aq32.cpp
 
 RESOURCES += \
     aeroquad.qrc

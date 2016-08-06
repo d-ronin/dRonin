@@ -31,8 +31,6 @@
 #include "droninplugin.h"
 #include "simulation.h"
 #include <QtPlugin>
-#include "uavobjectsinit.h"
-#include "hwsimulation.h"
 
 
 DroninPlugin::DroninPlugin()
@@ -45,12 +43,9 @@ DroninPlugin::~DroninPlugin()
 
 bool DroninPlugin::initialize(const QStringList &arguments, QString *errorString)
 {
-    Q_UNUSED(arguments);
-    Q_UNUSED(errorString);
-
-    UAVObjectInitialize<HwSimulation>(new HwSimulation());
-
-    return true;
+   Q_UNUSED(arguments);
+   Q_UNUSED(errorString);
+   return true;
 }
 
 void DroninPlugin::extensionsInitialized()

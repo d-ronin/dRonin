@@ -26,6 +26,4 @@ OTHER_FILES += UAVObjects.pluginspec \
 
 # Add in all of the synthetic/generated uavobject files
 HEADERS += $$files($$UAVOBJECT_SYNTHETICS/*.h)
-HEADERS -= $$files($$UAVOBJECT_SYNTHETICS/hw*.h)
 SOURCES += $$files($$UAVOBJECT_SYNTHETICS/*.cpp)
-SOURCES -= $$files($$UAVOBJECT_SYNTHETICS/hw*.cpp)

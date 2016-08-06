@@ -72,7 +72,7 @@ QPixmap Simulation::getBoardPicture()
     return QPixmap(":/images/gcs_logo_256.png");
 }
 
-QString Simulation::getHwUavoName()
+QString Simulation::getHwUAVO()
 {
     return "HwSimulation";
 }

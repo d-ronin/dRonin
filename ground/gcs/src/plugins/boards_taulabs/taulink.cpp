@@ -97,11 +97,22 @@ QPixmap TauLink::getBoardPicture()
     return QPixmap(":/images/taulink.png");
 }
 
-QString TauLink::getHwUavoName()
+QString TauLink::getHwUAVO()
 {
     return "HwTauLink";
 }
 
+//! Get the settings object
+HwTauLink * TauLink::getSettings()
+{
+    ExtensionSystem::PluginManager *pm = ExtensionSystem::PluginManager::instance();
+    UAVObjectManager *uavoManager = pm->getObject<UAVObjectManager>();
+
+    HwTauLink *wwTauLink = HwTauLink::GetInstance(uavoManager);
+    Q_ASSERT(wwTauLink);
+
+    return wwTauLink;
+}
 /**
  * Get the RFM22b device ID this modem
  * @return RFM22B device ID or 0 if not supported
@@ -126,10 +137,7 @@ quint32 TauLink::getRfmID()
  */
 bool TauLink::bindRadio(quint32 id, quint32 baud_rate, float rf_power, Core::IBoardType::LinkMode linkMode, quint8 min, quint8 max)
 {
-    HwTauLink *hwTauLink = getHwUavo<HwTauLink>();
-    if (!hwTauLink)
-        return false;
-    HwTauLink::DataFields settings = hwTauLink->getData();
+    HwTauLink::DataFields settings = getSettings()->getData();
 
     settings.CoordID = id;
 
@@ -201,8 +209,8 @@ bool TauLink::bindRadio(quint32 id, quint32 baud_rate, float rf_power, Core::IBo
     settings.MinChannel = min;
     settings.MaxChannel = max;
 
-    hwTauLink->setData(settings);
-    uavoUtilManager->saveObjectToFlash(hwTauLink);
+    getSettings()->setData(settings);
+    uavoUtilManager->saveObjectToFlash( getSettings());
 
     return true;
 }

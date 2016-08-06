@@ -35,7 +35,6 @@
 #define DTFC_H
 
 #include <coreplugin/iboardtype.h>
-#include "hwdtfc.h"
 
 class IBoardType;
 
@@ -50,7 +49,7 @@ public:
     virtual bool queryCapabilities(BoardCapabilities capability);
     virtual QStringList getSupportedProtocols();
     virtual QPixmap getBoardPicture();
-    virtual QString getHwUavoName();
+    virtual QString getHwUAVO();
     virtual int queryMaxGyroRate();
 
     //! Determine if this board supports configuring the receiver
@@ -83,6 +82,7 @@ public:
      * @return a string with the name of the resource for this board diagram
      */
     virtual QString getConnectionDiagram() { return ":/dtf/images/dtfc-connection.svg"; }
+
 };
 
 

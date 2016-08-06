@@ -29,24 +29,7 @@
 #define UAVOBJECTSINIT_H
 
 #include "uavobjectmanager.h"
-#include "extensionsystem/pluginmanager.h"
-#include <QtQml>
 
 void UAVObjectsInitialize(UAVObjectManager* objMngr);
-template <typename T> void UAVObjectInitialize(T *obj, UAVObjectManager *objMngr = 0)
-{
-    // register the class with QML
-    QString qmlName = obj->getName() + "Class";
-    QByteArray bytes = qmlName.toLatin1();
-    const char *cname = bytes.data();
-    qmlRegisterType<T>("com.dronin.uavo", 1, 0, cname);
-
-    // register with UAVO manager
-    if (!objMngr) {
-        ExtensionSystem::PluginManager *pm = ExtensionSystem::PluginManager::instance();
-        objMngr = pm->getObject<UAVObjectManager>();
-    }
-    objMngr->registerObject(obj);
-}
 
 #endif // UAVOBJECTSINIT_H

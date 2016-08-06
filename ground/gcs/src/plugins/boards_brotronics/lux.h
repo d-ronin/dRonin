@@ -44,7 +44,7 @@ public:
     virtual bool queryCapabilities(BoardCapabilities capability);
     virtual QStringList getSupportedProtocols();
     virtual QPixmap getBoardPicture();
-    virtual QString getHwUavoName();
+    virtual QString getHwUAVO();
     virtual int queryMaxGyroRate();
 
     //! Determine if this board supports configuring the receiver
