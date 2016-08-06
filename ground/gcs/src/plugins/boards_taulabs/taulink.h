@@ -44,8 +44,7 @@ public:
     virtual bool queryCapabilities(BoardCapabilities capability);
     virtual QStringList getSupportedProtocols();
     virtual QPixmap getBoardPicture();
-    virtual QString getHwUAVO();
-    HwTauLink * getSettings();
+    virtual QString getHwUavoName();
 
     /**
      * Get the RFM22b device ID this modem

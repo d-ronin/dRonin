@@ -277,7 +277,7 @@ void ConfigGadgetWidget::onAutopilotConnect() {
             if (qwd) {
                 valid_board = true;
             } else {
-                UAVObject *settingsObj = utilMngr->getObjectManager()->getObject(board->getHwUAVO());
+                UAVObject *settingsObj = utilMngr->getObjectManager()->getObject(board->getHwUavoName());
                 if (settingsObj) {
                     qwd = new DefaultHwSettingsWidget(settingsObj, this);
                     valid_board = true;

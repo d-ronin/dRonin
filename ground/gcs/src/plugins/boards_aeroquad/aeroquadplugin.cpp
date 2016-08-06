@@ -27,6 +27,8 @@
 
 #include "aeroquadplugin.h"
 #include "aq32.h"
+#include "uavobjectsinit.h"
+#include "hwaq32.h"
 
 AeroQuadPlugin::AeroQuadPlugin()
 {
@@ -40,9 +42,12 @@ AeroQuadPlugin::~AeroQuadPlugin()
 
 bool AeroQuadPlugin::initialize(const QStringList& args, QString *errMsg)
 {
-   Q_UNUSED(args);
-   Q_UNUSED(errMsg);
-   return true;
+    Q_UNUSED(args);
+    Q_UNUSED(errMsg);
+
+    UAVObjectInitialize<HwAQ32>(new HwAQ32());
+
+    return true;
 }
 
 void AeroQuadPlugin::extensionsInitialized()

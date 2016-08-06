@@ -68,6 +68,12 @@ public:
      */
     QList<IBoardType::USBInfo*> getKnownUSBInfo();
 
+    /**
+     * @brief Get a board plugin by type (8-bit identifier)
+     * @returns IBoardType * on success, null pointer on failure
+     */
+    IBoardType *getBoardType(qint32 type);
+
 
 
 protected:

@@ -13,13 +13,17 @@ HEADERS += \
     openpilotplugin.h \
     cc3d.h \
     config_cc_hw_widget.h \
-    revolution.h 
+    revolution.h \
+    $$UAVOBJECT_SYNTHETICS/hwcoptercontrol.h \
+    $$UAVOBJECT_SYNTHETICS/hwrevolution.h
 
 SOURCES += \
     openpilotplugin.cpp \
     cc3d.cpp \
     config_cc_hw_widget.cpp \
-    revolution.cpp 
+    revolution.cpp  \
+    $$UAVOBJECT_SYNTHETICS/hwcoptercontrol.cpp \
+    $$UAVOBJECT_SYNTHETICS/hwrevolution.cpp
 
 RESOURCES += \
     openpilot.qrc \

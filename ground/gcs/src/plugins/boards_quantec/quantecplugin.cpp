@@ -29,6 +29,8 @@
 #include "quantecplugin.h"
 #include "quanton.h"
 #include <QtPlugin>
+#include "uavobjectsinit.h"
+#include "hwquanton.h"
 
 
 QuantecPlugin::QuantecPlugin()
@@ -43,9 +45,12 @@ QuantecPlugin::~QuantecPlugin()
 
 bool QuantecPlugin::initialize(const QStringList& args, QString *errMsg)
 {
-   Q_UNUSED(args);
-   Q_UNUSED(errMsg);
-   return true;
+    Q_UNUSED(args);
+    Q_UNUSED(errMsg);
+
+    UAVObjectInitialize<HwQuanton>(new HwQuanton());
+
+    return true;
 }
 
 void QuantecPlugin::extensionsInitialized()

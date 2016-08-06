@@ -11,12 +11,14 @@ OTHER_FILES += dtfuhf.pluginspec
 HEADERS += \
     dtfplugin.h \
     dtfc.h \
-    dtfcconfiguration.h
+    dtfcconfiguration.h \
+    $$UAVOBJECT_SYNTHETICS/hwdtfc.h
 
 SOURCES += \
     dtfplugin.cpp \
     dtfc.cpp \
-    dtfcconfiguration.cpp
+    dtfcconfiguration.cpp \
+    $$UAVOBJECT_SYNTHETICS/hwdtfc.cpp
 
 RESOURCES += \
     dtfuhf.qrc

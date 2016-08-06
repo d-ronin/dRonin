@@ -30,6 +30,8 @@
 #include "stmplugin.h"
 #include "discoveryf4.h"
 #include <QtPlugin>
+#include "uavobjectsinit.h"
+#include "hwdiscoveryf4.h"
 
 
 StmPlugin::StmPlugin()
@@ -44,9 +46,12 @@ StmPlugin::~StmPlugin()
 
 bool StmPlugin::initialize(const QStringList& args, QString *errMsg)
 {
-   Q_UNUSED(args);
-   Q_UNUSED(errMsg);
-   return true;
+    Q_UNUSED(args);
+    Q_UNUSED(errMsg);
+
+    UAVObjectInitialize<HwDiscoveryF4>(new HwDiscoveryF4());
+
+    return true;
 }
 
 void StmPlugin::extensionsInitialized()

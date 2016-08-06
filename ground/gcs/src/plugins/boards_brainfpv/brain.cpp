@@ -110,7 +110,7 @@ QPixmap Brain::getBoardPicture()
     return QPixmap(":/brainfpv/images/brain.png");
 }
 
-QString Brain::getHwUAVO()
+QString Brain::getHwUavoName()
 {
     return "HwBrain";
 }
@@ -129,10 +129,7 @@ bool Brain::isInputConfigurationSupported(enum InputType type = INPUT_TYPE_ANY)
  */
 bool Brain::setInputType(enum InputType type)
 {
-    ExtensionSystem::PluginManager *pm = ExtensionSystem::PluginManager::instance();
-    UAVObjectManager *uavoManager = pm->getObject<UAVObjectManager>();
-    HwBrain *hwBrain = HwBrain::GetInstance(uavoManager);
-    Q_ASSERT(hwBrain);
+    HwBrain *hwBrain = getHwUavo<HwBrain>();
     if (!hwBrain)
         return false;
 
@@ -173,10 +170,7 @@ bool Brain::setInputType(enum InputType type)
  */
 enum Core::IBoardType::InputType Brain::getInputType()
 {
-    ExtensionSystem::PluginManager *pm = ExtensionSystem::PluginManager::instance();
-    UAVObjectManager *uavoManager = pm->getObject<UAVObjectManager>();
-    HwBrain *hwBrain = HwBrain::GetInstance(uavoManager);
-    Q_ASSERT(hwBrain);
+    HwBrain *hwBrain = getHwUavo<HwBrain>();
     if (!hwBrain)
         return INPUT_TYPE_UNKNOWN;
 
@@ -219,10 +213,7 @@ enum Core::IBoardType::InputType Brain::getInputType()
 
 int Brain::queryMaxGyroRate()
 {
-    ExtensionSystem::PluginManager *pm = ExtensionSystem::PluginManager::instance();
-    UAVObjectManager *uavoManager = pm->getObject<UAVObjectManager>();
-    HwBrain *hwBrain = HwBrain::GetInstance(uavoManager);
-    Q_ASSERT(hwBrain);
+    HwBrain *hwBrain = getHwUavo<HwBrain>();
     if (!hwBrain)
         return 0;
 

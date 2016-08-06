@@ -101,7 +101,7 @@ QPixmap Lux::getBoardPicture()
     return QPixmap(":/brotronics/images/lux.png");
 }
 
-QString Lux::getHwUAVO()
+QString Lux::getHwUavoName()
 {
     return "HwLux";
 }
@@ -125,10 +125,7 @@ bool Lux::isInputConfigurationSupported(enum InputType type = INPUT_TYPE_ANY)
  */
 bool Lux::setInputType(enum InputType type)
 {
-    ExtensionSystem::PluginManager *pm = ExtensionSystem::PluginManager::instance();
-    UAVObjectManager *uavoManager = pm->getObject<UAVObjectManager>();
-    HwLux *hwLux = HwLux::GetInstance(uavoManager);
-    Q_ASSERT(hwLux);
+    HwLux *hwLux = getHwUavo<HwLux>();
     if (!hwLux)
         return false;
 
@@ -166,10 +163,7 @@ bool Lux::setInputType(enum InputType type)
  */
 enum Core::IBoardType::InputType Lux::getInputType()
 {
-    ExtensionSystem::PluginManager *pm = ExtensionSystem::PluginManager::instance();
-    UAVObjectManager *uavoManager = pm->getObject<UAVObjectManager>();
-    HwLux *hwLux = HwLux::GetInstance(uavoManager);
-    Q_ASSERT(hwLux);
+    HwLux *hwLux = getHwUavo<HwLux>();
     if (!hwLux)
         return INPUT_TYPE_UNKNOWN;
 
@@ -191,10 +185,7 @@ enum Core::IBoardType::InputType Lux::getInputType()
 
 int Lux::queryMaxGyroRate()
 {
-    ExtensionSystem::PluginManager *pm = ExtensionSystem::PluginManager::instance();
-    UAVObjectManager *uavoManager = pm->getObject<UAVObjectManager>();
-    HwLux *hwLux = HwLux::GetInstance(uavoManager);
-    Q_ASSERT(hwLux);
+    HwLux *hwLux = getHwUavo<HwLux>();
     if (!hwLux)
         return 0;
 
