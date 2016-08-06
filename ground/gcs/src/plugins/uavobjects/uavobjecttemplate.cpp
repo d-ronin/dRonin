@@ -36,6 +36,10 @@
  * of this source file; otherwise redistribution is prohibited.
  */
 
+#ifndef UAVOBJECTS_LIBRARY
+#define UAVOBJECTS_LIBRARY
+#endif
+
 #include "$(NAMELC).h"
 #include "uavobjectfield.h"
 
