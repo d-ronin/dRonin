@@ -83,10 +83,6 @@ public:
      * @return a string with the name of the resource for this board diagram
      */
     virtual QString getConnectionDiagram() { return ":/dtf/images/dtfc-connection.svg"; }
-
-protected:
-    HwDtfc *getHwUavo();
-
 };
 
 

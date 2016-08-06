@@ -120,13 +120,6 @@ QString Dtfc::getHwUavoName()
     return "HwDtfc";
 }
 
-HwDtfc *Dtfc::getHwUavo()
-{
-    ExtensionSystem::PluginManager *pm = ExtensionSystem::PluginManager::instance();
-    UAVObjectManager *uavoManager = pm->getObject<UAVObjectManager>();
-    return qobject_cast<HwDtfc *>(uavoManager->getObject(HwDtfc::NAME));
-}
-
 //! Determine if this board supports configuring the receiver
 bool Dtfc::isInputConfigurationSupported(enum InputType type = INPUT_TYPE_ANY)
 {
@@ -145,7 +138,7 @@ bool Dtfc::isInputConfigurationSupported(enum InputType type = INPUT_TYPE_ANY)
  */
 bool Dtfc::setInputType(enum InputType type)
 {
-    HwDtfc *hwDtfc = getHwUavo();
+    HwDtfc *hwDtfc = getHwUavo<HwDtfc>();
     if (!hwDtfc)
         return false;
 
@@ -179,7 +172,7 @@ bool Dtfc::setInputType(enum InputType type)
  */
 enum Core::IBoardType::InputType Dtfc::getInputType()
 {
-    HwDtfc *hwDtfc = getHwUavo();
+    HwDtfc *hwDtfc = getHwUavo<HwDtfc>();
     if (!hwDtfc)
         return INPUT_TYPE_UNKNOWN;
 
@@ -220,7 +213,7 @@ enum Core::IBoardType::InputType Dtfc::getInputType()
 
 int Dtfc::queryMaxGyroRate()
 {
-    HwDtfc *hwDtfc = getHwUavo();
+    HwDtfc *hwDtfc = getHwUavo<HwDtfc>();
     if (!hwDtfc)
         return 0;
 
