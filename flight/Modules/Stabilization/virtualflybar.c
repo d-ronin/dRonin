@@ -54,7 +54,7 @@ int stabilization_virtual_flybar(float gyro, float command, float *output, float
 	vbar_integral[axis] = bound(vbar_integral[axis], settings->VbarMaxAngle);
 
 	// Compute the normal PID controller output
-	float pid_out = pid_apply_setpoint(pid,  0,  gyro, dT);
+	float pid_out = pid_apply_setpoint(pid, NULL,  0,  gyro, dT);
 
 	// Command signal can indicate how much to disregard the gyro feedback (fast flips)
 	if (settings->VbarGyroSuppress > 0.0f) {

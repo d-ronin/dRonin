@@ -119,6 +119,9 @@ bool lowThrottleZeroIntegral;
 float vbar_decay = 0.991f;
 float gyro_alpha = 0.6;
 struct pid pids[PID_MAX];
+#ifndef SMALLF1
+struct pid_deadband *deadbands = NULL;
+#endif
 
 volatile bool gyro_filter_updated = false;
 
@@ -132,6 +135,12 @@ static void zero_pids(void);
 static void calculate_pids(void);
 static void SettingsUpdatedCb(UAVObjEvent * objEv, void *ctx, void *obj, int len);
 static float get_throttle(StabilizationDesiredData *stabilization_desired, SystemSettingsAirframeTypeOptions *airframe_type);
+
+#ifndef SMALLF1
+#define get_deadband(axis) (deadbands ? (deadbands + axis) : NULL)
+#else
+#define get_deadband(axis) NULL
+#endif
 
 static float get_throttle(StabilizationDesiredData *stabilization_desired, SystemSettingsAirframeTypeOptions *airframe_type)
 {
@@ -479,14 +488,15 @@ static void stabilizationTask(void* parameters)
 					break;
 
 				case STABILIZATIONDESIRED_STABILIZATIONMODE_RATE:
-					if(reinit)
+					if(reinit) {
 						pids[PID_GROUP_RATE + i].iAccumulator = 0;
+					}
 
 					// Store to rate desired variable for storing to UAVO
 					rateDesiredAxis[i] = bound_sym(stabDesiredAxis[i], settings.ManualRate[i]);
 
 					// Compute the inner loop
-					actuatorDesiredAxis[i] = pid_apply_setpoint(&pids[PID_GROUP_RATE + i],  rateDesiredAxis[i],  gyro_filtered[i], dT);
+					actuatorDesiredAxis[i] = pid_apply_setpoint(&pids[PID_GROUP_RATE + i], get_deadband(i),  rateDesiredAxis[i],  gyro_filtered[i], dT);
 					actuatorDesiredAxis[i] = bound_sym(actuatorDesiredAxis[i],1.0f);
 
 					break;
@@ -494,8 +504,9 @@ static void stabilizationTask(void* parameters)
 			case STABILIZATIONDESIRED_STABILIZATIONMODE_ACROPLUS:
 					// this implementation is based on the Openpilot/Librepilot Acro+ flightmode
 					// and our previous MWRate flightmodes
-					if(reinit)
-							pids[PID_GROUP_RATE + i].iAccumulator = 0;
+					if(reinit) {
+						pids[PID_GROUP_RATE + i].iAccumulator = 0;
+					}
 
 					// The factor for gyro suppression / mixing raw stick input into the output; scaled by raw stick input
 					float factor = fabsf(raw_input) * settings.AcroInsanityFactor / 100;
@@ -505,13 +516,13 @@ static void stabilizationTask(void* parameters)
 
 					// Zero integral for aggressive maneuvers
 					if ((i < 2 && fabsf(gyro_filtered[i]) > 150.0f) ||
-											(i == 0 && fabsf(raw_input) > 0.2f)) {
+						(i == 0 && fabsf(raw_input) > 0.2f)) {
 							pids[PID_GROUP_RATE + i].iAccumulator = 0;
 							pids[PID_GROUP_RATE + i].i = 0;
 							}
 
 					// Compute the inner loop
-					actuatorDesiredAxis[i] = pid_apply_setpoint(&pids[PID_GROUP_RATE + i], rateDesiredAxis[i], gyro_filtered[i], dT);
+					actuatorDesiredAxis[i] = pid_apply_setpoint(&pids[PID_GROUP_RATE + i], get_deadband(i), rateDesiredAxis[i], gyro_filtered[i], dT);
 					actuatorDesiredAxis[i] = factor * raw_input + (1.0f - factor) * actuatorDesiredAxis[i];
 					actuatorDesiredAxis[i] = bound_sym(actuatorDesiredAxis[i], 1.0f);
 
@@ -527,7 +538,7 @@ static void stabilizationTask(void* parameters)
 					rateDesiredAxis[i] = bound_sym(rateDesiredAxis[i], settings.MaximumRate[i]);
 
 					// Compute the inner loop
-					actuatorDesiredAxis[i] = pid_apply_setpoint(&pids[PID_GROUP_RATE + i],  rateDesiredAxis[i],  gyro_filtered[i], dT);
+					actuatorDesiredAxis[i] = pid_apply_setpoint(&pids[PID_GROUP_RATE + i], get_deadband(i),  rateDesiredAxis[i],  gyro_filtered[i], dT);
 					actuatorDesiredAxis[i] = bound_sym(actuatorDesiredAxis[i],1.0f);
 
 					break;
@@ -542,22 +553,24 @@ static void stabilizationTask(void* parameters)
 					break;
 				case STABILIZATIONDESIRED_STABILIZATIONMODE_WEAKLEVELING:
 				{
-					if (reinit)
+					if (reinit) {
 						pids[PID_GROUP_RATE + i].iAccumulator = 0;
+					}
 
 					float weak_leveling = local_attitude_error[i] * weak_leveling_kp;
 					weak_leveling = bound_sym(weak_leveling, weak_leveling_max);
 
 					// Compute desired rate as input biased towards leveling
 					rateDesiredAxis[i] = stabDesiredAxis[i] + weak_leveling;
-					actuatorDesiredAxis[i] = pid_apply_setpoint(&pids[PID_GROUP_RATE + i],  rateDesiredAxis[i],  gyro_filtered[i], dT);
+					actuatorDesiredAxis[i] = pid_apply_setpoint(&pids[PID_GROUP_RATE + i], NULL,  rateDesiredAxis[i],  gyro_filtered[i], dT);
 					actuatorDesiredAxis[i] = bound_sym(actuatorDesiredAxis[i],1.0f);
 
 					break;
 				}
 				case STABILIZATIONDESIRED_STABILIZATIONMODE_AXISLOCK:
-					if (reinit)
+					if (reinit) {
 						pids[PID_GROUP_RATE + i].iAccumulator = 0;
+					}
 
 					if (fabsf(stabDesiredAxis[i]) > max_axislock_rate) {
 						// While getting strong commands act like rate mode
@@ -575,7 +588,7 @@ static void stabilizationTask(void* parameters)
 						rateDesiredAxis[i] = bound_sym(tmpRateDesired, settings.MaximumRate[i]);
 					}
 
-					actuatorDesiredAxis[i] = pid_apply_setpoint(&pids[PID_GROUP_RATE + i],  rateDesiredAxis[i],  gyro_filtered[i], dT);
+					actuatorDesiredAxis[i] = pid_apply_setpoint(&pids[PID_GROUP_RATE + i], get_deadband(i),  rateDesiredAxis[i],  gyro_filtered[i], dT);
 					actuatorDesiredAxis[i] = bound_sym(actuatorDesiredAxis[i],1.0f);
 
 					break;
@@ -601,7 +614,7 @@ static void stabilizationTask(void* parameters)
 					rateDesiredAxis[i] = bound_sym(rateDesiredAxis[i], settings.ManualRate[i]);
 
 					// Compute the inner loop
-					actuatorDesiredAxis[i] = pid_apply_setpoint(&pids[PID_GROUP_RATE + i],  rateDesiredAxis[i],  gyro_filtered[i], dT);
+					actuatorDesiredAxis[i] = pid_apply_setpoint(&pids[PID_GROUP_RATE + i], get_deadband(i),  rateDesiredAxis[i],  gyro_filtered[i], dT);
 					actuatorDesiredAxis[i] = bound_sym(actuatorDesiredAxis[i],1.0f);
 
 					break;
@@ -683,7 +696,7 @@ static void stabilizationTask(void* parameters)
 						rateDesiredAxis[i] = bound_sym(rateDesiredAxis[i], settings.MaximumRate[i]);
 
 						// Compute the inner loop
-						actuatorDesiredAxis[i] = pid_apply_setpoint(&pids[PID_GROUP_RATE + i],  rateDesiredAxis[i],  gyro_filtered[i], dT);
+						actuatorDesiredAxis[i] = pid_apply_setpoint(&pids[PID_GROUP_RATE + i], NULL, rateDesiredAxis[i],  gyro_filtered[i], dT);
 						actuatorDesiredAxis[i] += ident_offsets[i];
 						actuatorDesiredAxis[i] = bound_sym(actuatorDesiredAxis[i],1.0f);
 					} else {
@@ -691,7 +704,7 @@ static void stabilizationTask(void* parameters)
 						rateDesiredAxis[i] = bound_sym(stabDesiredAxis[i], settings.ManualRate[i]);
 
 						// Compute the inner loop only for yaw
-						actuatorDesiredAxis[i] = pid_apply_setpoint(&pids[PID_GROUP_RATE + i],  rateDesiredAxis[i],  gyro_filtered[i], dT);
+						actuatorDesiredAxis[i] = pid_apply_setpoint(&pids[PID_GROUP_RATE + i], NULL, rateDesiredAxis[i],  gyro_filtered[i], dT);
 						actuatorDesiredAxis[i] += ident_offsets[i];
 						actuatorDesiredAxis[i] = bound_sym(actuatorDesiredAxis[i],1.0f);
 					}
@@ -744,7 +757,7 @@ static void stabilizationTask(void* parameters)
 									rateDesiredAxis[YAW] = pid_apply(&pids[PID_ATT_YAW], axis_lock_accum[YAW], dT);
 									rateDesiredAxis[YAW] = bound_sym(rateDesiredAxis[YAW], settings.MaximumRate[YAW]);
 
-									actuatorDesiredAxis[YAW] = pid_apply_setpoint(&pids[PID_RATE_YAW],  rateDesiredAxis[YAW],  gyro_filtered[YAW], dT);
+									actuatorDesiredAxis[YAW] = pid_apply_setpoint(&pids[PID_RATE_YAW], NULL, rateDesiredAxis[YAW], gyro_filtered[YAW], dT);
 									actuatorDesiredAxis[YAW] = bound_sym(actuatorDesiredAxis[YAW],1.0f);
 
 									// Reset coordinated-flight integral
@@ -811,7 +824,7 @@ static void stabilizationTask(void* parameters)
 					rateDesiredAxis[i] = bound_sym(rateDesiredAxis[i], settings.PoiMaximumRate[i]);
 
 					// Compute the inner loop
-					actuatorDesiredAxis[i] = pid_apply_setpoint(&pids[PID_GROUP_RATE + i],  rateDesiredAxis[i],  gyro_filtered[i], dT);
+					actuatorDesiredAxis[i] = pid_apply_setpoint(&pids[PID_GROUP_RATE + i], NULL, rateDesiredAxis[i], gyro_filtered[i], dT);
 					actuatorDesiredAxis[i] = bound_sym(actuatorDesiredAxis[i],1.0f);
 
 					break;
@@ -951,6 +964,21 @@ static void calculate_pids()
 	// Set up the derivative term
 	pid_configure_derivative(settings.DerivativeCutoff, settings.DerivativeGamma);
 
+#ifndef SMALLF1
+	if(settings.DeadbandWidth[STABILIZATIONSETTINGS_DEADBANDWIDTH_ROLL] ||
+		settings.DeadbandWidth[STABILIZATIONSETTINGS_DEADBANDWIDTH_PITCH] ||
+		settings.DeadbandWidth[STABILIZATIONSETTINGS_DEADBANDWIDTH_YAW])
+	{
+		if(!deadbands) deadbands = PIOS_malloc(sizeof(struct pid_deadband) * MAX_AXES);
+
+		pid_configure_deadband(deadbands + PID_RATE_ROLL, (float)settings.DeadbandWidth[STABILIZATIONSETTINGS_DEADBANDWIDTH_ROLL],
+			0.01f * (float)settings.DeadbandSlope[STABILIZATIONSETTINGS_DEADBANDSLOPE_ROLL]);
+		pid_configure_deadband(deadbands + PID_RATE_PITCH, (float)settings.DeadbandWidth[STABILIZATIONSETTINGS_DEADBANDWIDTH_PITCH],
+			0.01f * (float)settings.DeadbandSlope[STABILIZATIONSETTINGS_DEADBANDSLOPE_PITCH]);
+		pid_configure_deadband(deadbands + PID_RATE_YAW, (float)settings.DeadbandWidth[STABILIZATIONSETTINGS_DEADBANDWIDTH_YAW],
+			0.01f * (float)settings.DeadbandSlope[STABILIZATIONSETTINGS_DEADBANDSLOPE_YAW]);
+	}
+#endif
 }
 
 static void SettingsUpdatedCb(UAVObjEvent * ev, void *ctx, void *obj, int len)

@@ -32,6 +32,13 @@
 #ifndef PID_H
 #define PID_H
 
+struct pid_deadband {
+	float width;				// Deadband width in degrees.
+	float slope;				// Deadband slope (0..1).
+	float cubic_weight;			// Cubic weight.
+	float integrated_response;	// Response at deadband edge.
+};
+
 //! 
 struct pid {
 	float p;
@@ -44,12 +51,13 @@ struct pid {
 };
 
 //! Methods to use the pid structures
-float pid_apply(struct pid *pid, const float err, float dT);
-float pid_apply_antiwindup(struct pid *pid, const float err, float min_bound, float max_bound, float dT);
-float pid_apply_setpoint(struct pid *pid, const float setpoint, const float measured, float dT);
+float pid_apply(struct pid *pid, float err, float dT);
+float pid_apply_antiwindup(struct pid *pid, float err, float min_bound, float max_bound, float dT);
+float pid_apply_setpoint(struct pid *pid, struct pid_deadband *deadband, const float setpoint, const float measured, float dT);
 void pid_zero(struct pid *pid);
 void pid_configure(struct pid *pid, float p, float i, float d, float iLim);
 void pid_configure_derivative(float cutoff, float gamma);
+void pid_configure_deadband(struct pid_deadband *deadband, float width, float slope);
 
 #endif /* PID_H */
 
