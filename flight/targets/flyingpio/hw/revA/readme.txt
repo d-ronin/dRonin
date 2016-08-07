@@ -10,4 +10,7 @@ https://creativecommons.org/publicdomain/zero/1.0/
 Known errata in flyingpi RevA:
 
 * Polarity marking on the second LED in the BoM is the OPPOSITE of the other
-two.  Use caution and refer to datasheet when assembling.
+two.  Use caution and refer to datasheet when assembling.  The board art
+has cathode lines, but the middle LED has an anode line on the package.
+* Schematic: text refers to receiverport pin as PB0 when it's in fact PB1.
+It's electrically fine, though.
