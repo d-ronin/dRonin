@@ -34,10 +34,6 @@
 #include "dtfplugin.h"
 #include "dtfc.h"
 #include <QtPlugin>
-#include "uavobjectsinit.h"
-#include "hwdtfc.h"
-#include "uavobjectmanager.h"
-#include "extensionsystem/pluginmanager.h"
 
 
 DTFPlugin::DTFPlugin()
@@ -52,12 +48,9 @@ DTFPlugin::~DTFPlugin()
 
 bool DTFPlugin::initialize(const QStringList& args, QString *errMsg)
 {
-    Q_UNUSED(args);
-    Q_UNUSED(errMsg);
-
-    UAVObjectInitialize<HwDtfc>(new HwDtfc());
-
-    return true;
+   Q_UNUSED(args);
+   Q_UNUSED(errMsg);
+   return true;
 }
 
 void DTFPlugin::extensionsInitialized()

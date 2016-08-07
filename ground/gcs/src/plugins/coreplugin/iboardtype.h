@@ -38,8 +38,6 @@
 #include <QPixmap>
 
 #include "core_global.h"
-#include "extensionsystem/pluginmanager.h"
-#include "uavobjects/uavobjectmanager.h"
 
 namespace Core {
 
@@ -140,7 +138,7 @@ public:
      * Get name of the HW Configuration UAVObject
      *
      */
-    virtual QString getHwUavoName() = 0;
+    virtual QString getHwUAVO() = 0;
 
     /**
      * Get USB descriptors to detect the board
@@ -258,15 +256,6 @@ protected:
 
     //! The channel groups that are driven by timers
     QVector< QVector<qint32> > channelBanks;
-
-    template <typename T> T *getHwUavo() const
-    {
-        ExtensionSystem::PluginManager *pm = ExtensionSystem::PluginManager::instance();
-        UAVObjectManager *uavoManager = pm->getObject<UAVObjectManager>();
-        T *obj = qobject_cast<T *>(uavoManager->getObject(T::NAME));
-        Q_ASSERT(obj);
-        return obj;
-    }
 
 };
 

@@ -67,11 +67,9 @@ bool UAVObjectGeneratorGCS::generate(UAVObjectParser* parser,QString templatepat
         ObjectInfo* info=parser->getObjectByIndex(objidx);
         process_object(info);
 
-        // exclude hardware settings objects (they are compiled and inited by board plugins)
-        if (!info->name.startsWith("Hw")) {
-            gcsObjInit.append("    UAVObjectInitialize<" + info->name + ">(new " + info->name + "(), objMngr);\n");
-            objInc.append("#include \"" + info->namelc + ".h\"\n");
-        }
+        gcsObjInit.append("    objMngr->registerObject( new " + info->name + "() );\n");
+        gcsObjInit.append("    qmlRegisterType<" + info->name + ">(\"com.dronin.uavo\", 1, 0, \"" + info->name + "Class\");\n");
+        objInc.append("#include \"" + info->namelc + ".h\"\n");
     }
 
     // Write the gcs object inialization files

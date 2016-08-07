@@ -120,11 +120,22 @@ QPixmap Revolution::getBoardPicture()
     return QPixmap(":/openpilot/images/revolution.png");
 }
 
-QString Revolution::getHwUavoName()
+QString Revolution::getHwUAVO()
 {
     return "HwRevolution";
 }
 
+//! Get the settings object
+HwRevolution * Revolution::getSettings()
+{
+    ExtensionSystem::PluginManager *pm = ExtensionSystem::PluginManager::instance();
+    UAVObjectManager *uavoManager = pm->getObject<UAVObjectManager>();
+
+    HwRevolution *hwRevolution = HwRevolution::GetInstance(uavoManager);
+    Q_ASSERT(hwRevolution);
+
+    return hwRevolution;
+}
 //! Determine if this board supports configuring the receiver
 bool Revolution::isInputConfigurationSupported(enum InputType type = INPUT_TYPE_ANY)
 {
@@ -139,7 +150,10 @@ bool Revolution::isInputConfigurationSupported(enum InputType type = INPUT_TYPE_
  */
 bool Revolution::setInputType(enum InputType type)
 {
-    HwRevolution *hwRevolution = getHwUavo<HwRevolution>();
+    ExtensionSystem::PluginManager *pm = ExtensionSystem::PluginManager::instance();
+    UAVObjectManager *uavoManager = pm->getObject<UAVObjectManager>();
+    HwRevolution *hwRevolution = HwRevolution::GetInstance(uavoManager);
+    Q_ASSERT(hwRevolution);
     if (!hwRevolution)
         return false;
 
@@ -180,7 +194,10 @@ bool Revolution::setInputType(enum InputType type)
  */
 enum Core::IBoardType::InputType Revolution::getInputType()
 {
-    HwRevolution *hwRevolution = getHwUavo<HwRevolution>();
+    ExtensionSystem::PluginManager *pm = ExtensionSystem::PluginManager::instance();
+    UAVObjectManager *uavoManager = pm->getObject<UAVObjectManager>();
+    HwRevolution *hwRevolution = HwRevolution::GetInstance(uavoManager);
+    Q_ASSERT(hwRevolution);
     if (!hwRevolution)
         return INPUT_TYPE_UNKNOWN;
 
@@ -228,7 +245,10 @@ enum Core::IBoardType::InputType Revolution::getInputType()
 
 int Revolution::queryMaxGyroRate()
 {
-    HwRevolution *hwRevolution = getHwUavo<HwRevolution>();
+    ExtensionSystem::PluginManager *pm = ExtensionSystem::PluginManager::instance();
+    UAVObjectManager *uavoManager = pm->getObject<UAVObjectManager>();
+    HwRevolution *hwRevolution = HwRevolution::GetInstance(uavoManager);
+    Q_ASSERT(hwRevolution);
     if (!hwRevolution)
         return 0;
 
@@ -274,10 +294,7 @@ quint32 Revolution::getRfmID()
 bool Revolution::bindRadio(quint32 id, quint32 baud_rate, float rf_power,
                          Core::IBoardType::LinkMode linkMode, quint8 min, quint8 max)
 {
-    HwRevolution *hwRevolution = getHwUavo<HwRevolution>();
-    if (!hwRevolution)
-        return false;
-    HwRevolution::DataFields settings = hwRevolution->getData();
+    HwRevolution::DataFields settings = getSettings()->getData();
 
     settings.CoordID = id;
 
@@ -349,8 +366,8 @@ bool Revolution::bindRadio(quint32 id, quint32 baud_rate, float rf_power,
     settings.MinChannel = min;
     settings.MaxChannel = max;
 
-    hwRevolution->setData(settings);
-    uavoUtilManager->saveObjectToFlash(hwRevolution);
+    getSettings()->setData(settings);
+    uavoUtilManager->saveObjectToFlash(getSettings());
 
     return true;
 }

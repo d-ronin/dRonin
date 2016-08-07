@@ -30,9 +30,6 @@
 #include "brain.h"
 #include "brainre1.h"
 #include <QtPlugin>
-#include "uavobjectsinit.h"
-#include "hwbrain.h"
-#include "hwbrainre1.h"
 
 
 BrainFPVPlugin::BrainFPVPlugin()
@@ -47,13 +44,9 @@ BrainFPVPlugin::~BrainFPVPlugin()
 
 bool BrainFPVPlugin::initialize(const QStringList& args, QString *errMsg)
 {
-    Q_UNUSED(args);
-    Q_UNUSED(errMsg);
-
-    UAVObjectInitialize<HwBrain>(new HwBrain());
-    UAVObjectInitialize<HwBrainRE1>(new HwBrainRE1());
-
-    return true;
+   Q_UNUSED(args);
+   Q_UNUSED(errMsg);
+   return true;
 }
 
 void BrainFPVPlugin::extensionsInitialized()

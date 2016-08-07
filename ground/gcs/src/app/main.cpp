@@ -168,14 +168,6 @@ static inline QStringList getPluginPaths()
     pluginPath += QLatin1Char('/');
     pluginPath += QLatin1String("Plugins");
     rc.push_back(pluginPath);
-    // 4) add-on plugins (e.g. 3rd party/out-of-tree board plugins)
-    pluginPath = Utils::PathUtils::getAddonPath();
-    if (pluginPath.length() > 0) {
-        pluginPath += QLatin1String("/plugins");
-        rc.push_back(pluginPath);
-        qDebug() << "Loading add-on plugins from: " << pluginPath;
-    }
-
     return rc;
 }
 

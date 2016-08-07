@@ -111,14 +111,17 @@ QPixmap Quanton::getBoardPicture()
     return QPixmap(":/quantec/images/quanton.png");
 }
 
-QString Quanton::getHwUavoName()
+QString Quanton::getHwUAVO()
 {
     return "HwQuanton";
 }
 
 int Quanton::queryMaxGyroRate()
 {
-    HwQuanton *hwQuanton = getHwUavo<HwQuanton>();
+    ExtensionSystem::PluginManager *pm = ExtensionSystem::PluginManager::instance();
+    UAVObjectManager *uavoManager = pm->getObject<UAVObjectManager>();
+    HwQuanton *hwQuanton = HwQuanton::GetInstance(uavoManager);
+    Q_ASSERT(hwQuanton);
     if (!hwQuanton)
         return 0;
 
@@ -140,7 +143,10 @@ int Quanton::queryMaxGyroRate()
 
 QStringList Quanton::getAdcNames()
 {
-    HwQuanton *hwQuanton = getHwUavo<HwQuanton>();
+    ExtensionSystem::PluginManager *pm = ExtensionSystem::PluginManager::instance();
+    UAVObjectManager *uavoManager = pm->getObject<UAVObjectManager>();
+    HwQuanton *hwQuanton = HwQuanton::GetInstance(uavoManager);
+    Q_ASSERT(hwQuanton);
     if (!hwQuanton)
         return QStringList();
 

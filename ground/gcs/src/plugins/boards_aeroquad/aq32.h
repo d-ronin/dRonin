@@ -43,9 +43,10 @@ public:
     virtual bool queryCapabilities(BoardCapabilities capability);
     virtual QStringList getSupportedProtocols();
     virtual QPixmap getBoardPicture();
-    virtual QString getHwUavoName();
+    virtual QString getHwUAVO();
     virtual int queryMaxGyroRate();
     virtual QStringList getAdcNames();
+
 };
 
 

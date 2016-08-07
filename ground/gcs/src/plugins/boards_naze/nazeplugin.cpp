@@ -29,8 +29,6 @@
 #include "nazeplugin.h"
 #include "naze.h"
 #include <QtPlugin>
-#include "uavobjectsinit.h"
-#include "hwnaze.h"
 
 
 NazePlugin::NazePlugin()
@@ -45,12 +43,9 @@ NazePlugin::~NazePlugin()
 
 bool NazePlugin::initialize(const QStringList& args, QString *errMsg)
 {
-    Q_UNUSED(args);
-    Q_UNUSED(errMsg);
-
-    UAVObjectInitialize<HwNaze>(new HwNaze());
-
-    return true;
+   Q_UNUSED(args);
+   Q_UNUSED(errMsg);
+   return true;
 }
 
 void NazePlugin::extensionsInitialized()

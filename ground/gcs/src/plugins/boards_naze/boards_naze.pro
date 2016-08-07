@@ -8,13 +8,11 @@ OTHER_FILES += Naze.pluginspec
 
 HEADERS += \
     nazeplugin.h \
-    naze.h \
-    $$UAVOBJECT_SYNTHETICS/hwnaze.h
+    naze.h
 
 SOURCES += \
     nazeplugin.cpp \
-    naze.cpp \
-    $$UAVOBJECT_SYNTHETICS/hwnaze.cpp
+    naze.cpp
 
 RESOURCES += \
     naze.qrc

@@ -30,8 +30,6 @@
 #include "brotronicsplugin.h"
 #include "lux.h"
 #include <QtPlugin>
-#include "uavobjectsinit.h"
-#include "hwlux.h"
 
 
 BrotronicsPlugin::BrotronicsPlugin()
@@ -46,12 +44,9 @@ BrotronicsPlugin::~BrotronicsPlugin()
 
 bool BrotronicsPlugin::initialize(const QStringList& args, QString *errMsg)
 {
-    Q_UNUSED(args);
-    Q_UNUSED(errMsg);
-
-    UAVObjectInitialize<HwLux>(new HwLux());
-
-    return true;
+   Q_UNUSED(args);
+   Q_UNUSED(errMsg);
+   return true;
 }
 
 void BrotronicsPlugin::extensionsInitialized()

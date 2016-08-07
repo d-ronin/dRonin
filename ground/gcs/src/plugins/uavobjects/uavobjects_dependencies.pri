@@ -8,5 +8,3 @@ UAVOBJECT_SYNTHETICS=$${GCS_BUILD_TREE}/../../uavobject-synthetics/gcs
 # Add the include path to the auto-generated uavobject include files.
 INCLUDEPATH *= $$UAVOBJECT_SYNTHETICS
 DEPENDPATH *= $$UAVOBJECT_SYNTHETICS
-
-QT += qml

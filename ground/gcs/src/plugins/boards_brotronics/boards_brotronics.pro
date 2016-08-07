@@ -11,14 +11,12 @@ OTHER_FILES += Brotronics.pluginspec
 HEADERS += \
     brotronicsplugin.h \
     lux.h \
-    luxconfiguration.h \
-    $$UAVOBJECT_SYNTHETICS/hwlux.h
+    luxconfiguration.h
 
 SOURCES += \
     brotronicsplugin.cpp \
     lux.cpp \
-    luxconfiguration.cpp \
-    $$UAVOBJECT_SYNTHETICS/hwlux.cpp
+    luxconfiguration.cpp
 
 RESOURCES += \
     brotronics.qrc

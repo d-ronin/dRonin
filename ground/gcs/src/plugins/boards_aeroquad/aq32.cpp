@@ -106,14 +106,17 @@ QPixmap AQ32::getBoardPicture()
     return QPixmap(":/aq32/images/aq32.png");
 }
 
-QString AQ32::getHwUavoName()
+QString AQ32::getHwUAVO()
 {
     return "HwAQ32";
 }
 
 int AQ32::queryMaxGyroRate()
 {
-    HwAQ32 *hwAQ32 = getHwUavo<HwAQ32>();
+    ExtensionSystem::PluginManager *pm = ExtensionSystem::PluginManager::instance();
+    UAVObjectManager *uavoManager = pm->getObject<UAVObjectManager>();
+    HwAQ32 *hwAQ32 = HwAQ32::GetInstance(uavoManager);
+    Q_ASSERT(hwAQ32);
     if (!hwAQ32)
         return 0;
 
@@ -135,7 +138,10 @@ int AQ32::queryMaxGyroRate()
 
 QStringList AQ32::getAdcNames()
 {
-    HwAQ32 *hwAQ32 = getHwUavo<HwAQ32>();
+    ExtensionSystem::PluginManager *pm = ExtensionSystem::PluginManager::instance();
+    UAVObjectManager *uavoManager = pm->getObject<UAVObjectManager>();
+    HwAQ32 *hwAQ32 = HwAQ32::GetInstance(uavoManager);
+    Q_ASSERT(hwAQ32);
     if (!hwAQ32)
         return QStringList();
 

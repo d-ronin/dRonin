@@ -11,14 +11,12 @@ OTHER_FILES += Dronin.pluginspec
 HEADERS += \
     droninplugin.h \
     simulation.h \
-    simulationconfiguration.h \
-    $$UAVOBJECT_SYNTHETICS/hwsimulation.h
+    simulationconfiguration.h
 
 SOURCES += \
     droninplugin.cpp \
     simulation.cpp \
-    simulationconfiguration.cpp \
-    $$UAVOBJECT_SYNTHETICS/hwsimulation.cpp
+    simulationconfiguration.cpp
 
 RESOURCES += \
     dronin.qrc

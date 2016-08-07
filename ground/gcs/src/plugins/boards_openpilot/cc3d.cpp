@@ -104,7 +104,7 @@ QPixmap CC3D::getBoardPicture()
     return QPixmap(":/openpilot/images/cc3d.png");
 }
 
-QString CC3D::getHwUavoName()
+QString CC3D::getHwUAVO()
 {
     return "HwCopterControl";
 }
@@ -124,7 +124,10 @@ bool CC3D::isInputConfigurationSupported(enum InputType type = INPUT_TYPE_ANY)
  */
 bool CC3D::setInputType(enum InputType type)
 {
-    HwCopterControl *hwCopterControl = getHwUavo<HwCopterControl>();
+    ExtensionSystem::PluginManager *pm = ExtensionSystem::PluginManager::instance();
+    UAVObjectManager *uavoManager = pm->getObject<UAVObjectManager>();
+    HwCopterControl *hwCopterControl = HwCopterControl::GetInstance(uavoManager);
+    Q_ASSERT(hwCopterControl);
     if (!hwCopterControl)
         return false;
 
@@ -165,7 +168,10 @@ bool CC3D::setInputType(enum InputType type)
  */
 enum Core::IBoardType::InputType CC3D::getInputType()
 {
-    HwCopterControl *hwCopterControl = getHwUavo<HwCopterControl>();
+    ExtensionSystem::PluginManager *pm = ExtensionSystem::PluginManager::instance();
+    UAVObjectManager *uavoManager = pm->getObject<UAVObjectManager>();
+    HwCopterControl *hwCopterControl = HwCopterControl::GetInstance(uavoManager);
+    Q_ASSERT(hwCopterControl);
     if (!hwCopterControl)
         return INPUT_TYPE_UNKNOWN;
 
@@ -202,7 +208,12 @@ enum Core::IBoardType::InputType CC3D::getInputType()
 
 int CC3D::queryMaxGyroRate()
 {
-    HwCopterControl *hwCopterControl = getHwUavo<HwCopterControl>();
+    ExtensionSystem::PluginManager *pm = ExtensionSystem::PluginManager::instance();
+    UAVObjectManager *uavoManager = pm->getObject<UAVObjectManager>();
+    HwCopterControl *hwCopterControl = HwCopterControl::GetInstance(uavoManager);
+    UAVObjectUtilManager* utilMngr = pm->getObject<UAVObjectUtilManager>();
+    Q_ASSERT(hwCopterControl);
+    Q_ASSERT(utilMngr);
     if (!hwCopterControl)
         return 0;
     HwCopterControl::DataFields settings = hwCopterControl->getData();

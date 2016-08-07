@@ -8,13 +8,11 @@ OTHER_FILES += Quantec.pluginspec
 
 HEADERS += \
     quantecplugin.h \
-    quanton.h \
-    $$UAVOBJECT_SYNTHETICS/hwquanton.h
+    quanton.h
 
 SOURCES += \
     quantecplugin.cpp \
-    quanton.cpp \
-    $$UAVOBJECT_SYNTHETICS/hwquanton.cpp
+    quanton.cpp
 
 RESOURCES += \
     quantec.qrc
