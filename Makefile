@@ -561,6 +561,10 @@ export OPUAVSYNTHDIR := $(BUILD_DIR)/uavobject-synthetics/flight
 .PHONY: simulation
 simulation: sim
 
+ifneq ($(PI_CROSS_SIM)x,x)
+SIMSUFFIX=-pi
+endif
+
 define SIM_TEMPLATE
 
 .PHONY: sim
@@ -581,7 +585,7 @@ sim: uavobjects
 		BOARD_ROOT_DIR=$$(BOARD_ROOT_DIR) \
 		BOARD_INFO_DIR=$$(BOARD_ROOT_DIR)/board-info \
 		TARGET=$$(TARGET) \
-		OUTDIR=$$(OUTDIR) \
+		OUTDIR=$$(OUTDIR)$(SIMSUFFIX) \
 		\
 		$$*
 

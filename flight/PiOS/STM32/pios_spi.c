@@ -34,9 +34,6 @@
  * with this program; if not, write to the Free Software Foundation, Inc.,
  * 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
  */
-/*
- * @todo	Clocking is wrong (interface is badly defined, should be speed not prescaler magic numbers)
- */
 #include <pios.h>
 
 #if defined(PIOS_INCLUDE_SPI)
@@ -47,6 +44,18 @@
 #define SPI_SendData8(regs,b) do { (regs)->DR = (b); } while (0)
 #define SPI_ReceiveData8(regs) ((regs)->DR)
 #endif
+
+typedef enum {
+	PIOS_SPI_PRESCALER_2 = 0,
+	PIOS_SPI_PRESCALER_4 = 1,
+	PIOS_SPI_PRESCALER_8 = 2,
+	PIOS_SPI_PRESCALER_16 = 3,
+	PIOS_SPI_PRESCALER_32 = 4,
+	PIOS_SPI_PRESCALER_64 = 5,
+	PIOS_SPI_PRESCALER_128 = 6,
+	PIOS_SPI_PRESCALER_256 = 7
+} SPIPrescalerTypeDef;
+
 
 static bool PIOS_SPI_validate(struct pios_spi_dev *com_dev)
 {
@@ -161,25 +170,6 @@ out_fail:
 	return (-1);
 }
 
-/**
- * (Re-)initialises SPI peripheral clock rate
- *
- * \param[in] spi SPI number (0 or 1)
- * \param[in] spi_prescaler configures the SPI speed:
- * <UL>
- *   <LI>PIOS_SPI_PRESCALER_2: sets clock rate 27.7~ nS @ 72 MHz (36 MBit/s) (only supported for spi==0, spi1 uses 4 instead)
- *   <LI>PIOS_SPI_PRESCALER_4: sets clock rate 55.5~ nS @ 72 MHz (18 MBit/s)
- *   <LI>PIOS_SPI_PRESCALER_8: sets clock rate 111.1~ nS @ 72 MHz (9 MBit/s)
- *   <LI>PIOS_SPI_PRESCALER_16: sets clock rate 222.2~ nS @ 72 MHz (4.5 MBit/s)
- *   <LI>PIOS_SPI_PRESCALER_32: sets clock rate 444.4~ nS @ 72 MHz (2.25 MBit/s)
- *   <LI>PIOS_SPI_PRESCALER_64: sets clock rate 888.8~ nS @ 72 MHz (1.125 MBit/s)
- *   <LI>PIOS_SPI_PRESCALER_128: sets clock rate 1.7~ nS @ 72 MHz (0.562 MBit/s)
- *   <LI>PIOS_SPI_PRESCALER_256: sets clock rate 3.5~ nS @ 72 MHz (0.281 MBit/s)
- * </UL>
- * \return 0 if no error
- * \return -1 if disabled SPI port selected
- * \return -3 if invalid spi_prescaler selected
- */
 int32_t PIOS_SPI_SetClockSpeed(uint32_t spi_id, uint32_t spi_speed)
 {
 	struct pios_spi_dev *spi_dev = (struct pios_spi_dev *)spi_id;
@@ -238,18 +228,10 @@ int32_t PIOS_SPI_SetClockSpeed(uint32_t spi_id, uint32_t spi_speed)
 	/* Write back the new configuration */
 	SPI_Init(spi_dev->cfg->regs, &SPI_InitStructure);
 
-	PIOS_SPI_TransferByte(spi_id, 0xFF);
-
 	//return set speed
-	return spiBusClock / spi_prescaler;
+	return spiBusClock >> (1 + spi_prescaler);
 }
 
-/**
- * Claim the SPI bus semaphore.  Calling the SPI functions does not require this
- * \param[in] spi SPI number (0 or 1)
- * \return 0 if no error
- * \return -1 if timeout before claiming semaphore
- */
 int32_t PIOS_SPI_ClaimBus(uint32_t spi_id)
 {
 	struct pios_spi_dev *spi_dev = (struct pios_spi_dev *)spi_id;
@@ -263,32 +245,6 @@ int32_t PIOS_SPI_ClaimBus(uint32_t spi_id)
 	return 0;
 }
 
-/**
- * Claim the SPI bus semaphore from an ISR.  Has no timeout.
- * \param[in] spi SPI number (0 or 1)
- * \param[in] pointer which receives if a task has been woken
- * \return 0 if no error
- * \return -1 if timeout before claiming semaphore
- */
-int32_t PIOS_SPI_ClaimBusISR(uint32_t spi_id, bool *woken)
-{
-	struct pios_spi_dev *spi_dev = (struct pios_spi_dev *)spi_id;
-
-	bool valid = PIOS_SPI_validate(spi_dev);
-	PIOS_Assert(valid)
-
-	if (PIOS_Semaphore_Take_FromISR(spi_dev->busy, woken) != true)
-		return -1;
-
-	return 0;
-}
-
-
-/**
- * Release the SPI bus semaphore.  Calling the SPI functions does not require this
- * \param[in] spi SPI number (0 or 1)
- * \return 0 if no error
- */
 int32_t PIOS_SPI_ReleaseBus(uint32_t spi_id)
 {
 	struct pios_spi_dev *spi_dev = (struct pios_spi_dev *)spi_id;
@@ -301,31 +257,7 @@ int32_t PIOS_SPI_ReleaseBus(uint32_t spi_id)
 	return 0;
 }
 
-/**
- * Release the SPI bus from an ISR.
- * \param[in] spi SPI number (0 or 1)
- * \param[in] pointer which receives if a task has been woken
- * \return 0 if no error
- */
-int32_t PIOS_SPI_ReleaseBusISR(uint32_t spi_id, bool *woken)
-{
-	struct pios_spi_dev *spi_dev = (struct pios_spi_dev *)spi_id;
-
-	bool valid = PIOS_SPI_validate(spi_dev);
-	PIOS_Assert(valid)
-
-	PIOS_Semaphore_Give_FromISR(spi_dev->busy, woken);
-
-	return 0;
-}
-
-/**
-* Controls the RC (Register Clock alias Chip Select) pin of a SPI port
-* \param[in] spi SPI number (0 or 1)
-* \param[in] pin_value 0 or 1
-* \return 0 if no error
-*/
-int32_t PIOS_SPI_RC_PinSet(uint32_t spi_id, uint32_t slave_id, uint8_t pin_value)
+int32_t PIOS_SPI_RC_PinSet(uint32_t spi_id, uint32_t slave_id, bool pin_value)
 {
 	struct pios_spi_dev *spi_dev = (struct pios_spi_dev *)spi_id;
 
@@ -333,7 +265,6 @@ int32_t PIOS_SPI_RC_PinSet(uint32_t spi_id, uint32_t slave_id, uint8_t pin_value
 	PIOS_Assert(valid)
 	PIOS_Assert(slave_id <= spi_dev->cfg->slave_count)
 
-	/* XXX multi-slave support? */
 	if (pin_value) {
 		GPIO_SetBits(spi_dev->cfg->ssel[slave_id].gpio, spi_dev->cfg->ssel[slave_id].init.GPIO_Pin);
 	} else {
@@ -343,12 +274,7 @@ int32_t PIOS_SPI_RC_PinSet(uint32_t spi_id, uint32_t slave_id, uint8_t pin_value
 	return 0;
 }
 
-/**
-* Transfers a byte to SPI output and reads back the return value from SPI input
-* \param[in] spi SPI number (0 or 1)
-* \param[in] b the byte which should be transfered
-*/
-int32_t PIOS_SPI_TransferByte(uint32_t spi_id, uint8_t b)
+uint8_t PIOS_SPI_TransferByte(uint32_t spi_id, uint8_t b)
 {
 	struct pios_spi_dev *spi_dev = (struct pios_spi_dev *)spi_id;
 
@@ -433,42 +359,9 @@ static int32_t SPI_PIO_TransferBlock(uint32_t spi_id, const uint8_t *send_buffer
 	return 0;
 }
 
-
-/**
-* Transfers a block of bytes
-* \param[in] spi_id SPI device handle
-* \param[in] send_buffer pointer to buffer which should be sent.<BR>
-* If NULL, 0xff (all-one) will be sent.
-* \param[in] receive_buffer pointer to buffer which should get the received values.<BR>
-* If NULL, received bytes will be discarded.
-* \param[in] len number of bytes which should be transfered
-* \return >= 0 if no error during transfer
-* \return -1 if disabled SPI port selected
-*/
 int32_t PIOS_SPI_TransferBlock(uint32_t spi_id, const uint8_t *send_buffer, uint8_t *receive_buffer, uint16_t len)
 {
 	return SPI_PIO_TransferBlock(spi_id, send_buffer, receive_buffer, len);
-}
-
-/**
-* Check if a transfer is in progress
-* \param[in] spi SPI number (0 or 1)
-* \return >= 0 if no transfer is in progress
-* \return -3 if transfer in progress
-*/
-int32_t PIOS_SPI_Busy(uint32_t spi_id)
-{
-	struct pios_spi_dev *spi_dev = (struct pios_spi_dev *)spi_id;
-
-	bool valid = PIOS_SPI_validate(spi_dev);
-	PIOS_Assert(valid)
-
-	if (!SPI_I2S_GetFlagStatus(spi_dev->cfg->regs, SPI_I2S_FLAG_TXE) ||
-	    SPI_I2S_GetFlagStatus(spi_dev->cfg->regs, SPI_I2S_FLAG_BSY)) {
-		return -3;
-	}
-
-	return (0);
 }
 
 void PIOS_SPI_IRQ_Handler(uint32_t spi_id)

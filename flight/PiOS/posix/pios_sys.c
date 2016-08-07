@@ -54,26 +54,86 @@
 
 #include "pios_fileout_priv.h"
 #include "pios_com_priv.h"
+#include "pios_spi_posix_priv.h"
+#include "pios_ms5611_priv.h"
+
 
 #if defined(PIOS_INCLUDE_SYS)
 static bool debug_fpe=false;
 static bool go_realtime=false;
 
+#define MAX_SPI_BUSES 16
+int num_spi = 0;
+uintptr_t spi_devs[16];
+
 static void Usage(char *cmdName) {
-	printf( "usage: %s [-f] [-r] [-l logfile]\n"
+	printf( "usage: %s [-f] [-r] [-l logfile] [-s spibase] [-d drvname:bus:id]\n"
 		"\n"
 		"\t-f\tEnables floating point exception trapping mode\n"
 		"\t-r\tGoes realtime-class and pins all memory (requires root)\n"
-		"\t-l log\tWrites simulation data to a log\n",
+		"\t-l log\tWrites simulation data to a log\n"
+#ifdef PIOS_INCLUDE_SPI
+		"\t-s spibase\tConfigures a SPI interface on the base path\n"
+		"\t-d drvname:bus:id\tStarts driver drvname on bus/id\n"
+		"\t\t\tAvailable drivers: ms5611_spi\n"
+#endif
+		"",
 		cmdName);
 
 	exit(1);
 }
 
+#ifdef PIOS_INCLUDE_SPI
+static int handle_device(const char *optarg) {
+	char arg_copy[128];
+
+	strncpy(arg_copy, optarg, sizeof(arg_copy));
+	arg_copy[sizeof(arg_copy)-1] = 0;
+
+	char *saveptr;
+
+	char *drv_name = strtok_r(arg_copy, ":", &saveptr);
+	if (drv_name == NULL) goto fail;
+
+	char *bus_num_str = strtok_r(NULL, ":", &saveptr);
+	if (bus_num_str == NULL) goto fail;
+
+	char *dev_num_str = strtok_r(NULL, ":", &saveptr);
+	if (dev_num_str == NULL) goto fail;
+
+	int bus_num = atoi(bus_num_str);
+	if ((bus_num < 0) || (bus_num >= num_spi)) {
+		goto fail;
+	}
+
+	int dev_num = atoi(dev_num_str);
+	if (dev_num < 0) {
+		goto fail;
+	}
+
+	if (!strcmp(drv_name, "ms5611_spi")) {
+		struct pios_ms5611_cfg *ms5611_cfg;
+
+		ms5611_cfg = PIOS_malloc(sizeof(*ms5611_cfg));
+
+		ms5611_cfg->oversampling = MS5611_OSR_512;
+		ms5611_cfg->temperature_interleaving = 1;
+
+		int ret = PIOS_MS5611_SPI_Init(spi_devs[bus_num], dev_num, ms5611_cfg);
+
+		if (ret) goto fail;
+	}
+
+	return 0;
+fail:
+	return -1;
+}
+#endif
+
 void PIOS_SYS_Args(int argc, char *argv[]) {
 	int opt;
 
-	while ((opt = getopt(argc, argv, "frl:")) != -1) {
+	while ((opt = getopt(argc, argv, "frl:s:d:")) != -1) {
 		switch (opt) {
 			case 'f':
 				debug_fpe = true;
@@ -101,6 +161,37 @@ void PIOS_SYS_Args(int argc, char *argv[]) {
 				}
 				break;
 			}
+#ifdef PIOS_INCLUDE_SPI
+			case 'd':
+				if (handle_device(optarg)) {
+					printf("Couldn't init device\n");
+					exit(1);
+				}
+				break;
+			case 's':
+			{
+				struct pios_spi_cfg *spi_cfg;
+
+				spi_cfg = PIOS_malloc(sizeof(*spi_cfg));
+
+				strncpy(spi_cfg->base_path, optarg,
+					sizeof(spi_cfg->base_path));
+
+				spi_cfg->base_path[sizeof(spi_cfg->base_path)-1] = 0;
+
+				int ret = PIOS_SPI_Init(spi_devs + num_spi,
+					spi_cfg);
+
+				if (ret < 0) {
+					printf("Couldn't init SPI\n");
+					exit(1);
+				}
+
+				num_spi++;
+				break;
+			}
+#endif
+				
 			default:
 				Usage(argv[0]);
 				break;
