@@ -147,8 +147,8 @@ QStringList AQ32::getAdcNames()
 
     HwAQ32::DataFields settings = hwAQ32->getData();
     if (settings.ADCInputs == HwAQ32::ADCINPUTS_ENABLED) {
-        return QStringList() << "BM" << "Analog AI2" << "Analog AI4";
+        return QStringList() << "AI2" << "BM" << "AI3" << "AI4" << "AI5";
     }
 
-    return QStringList() << "Disabled" << "Disabled" << "Disabled";
+    return QStringList() << "Disabled" << "Disabled" << "Disabled" << "Disabled" << "Disabled";
 }
