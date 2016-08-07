@@ -72,14 +72,10 @@ extern uintptr_t pios_com_mavlink_id;
 
 //-------------------------
 // System Settings
-// 
-// See also system_stm32f10x.c
 //-------------------------
-//These macros are deprecated
 
-#define PIOS_SYSCLK									72000000
-#define PIOS_PERIPHERAL_APB1_CLOCK					(PIOS_SYSCLK / 2)
-#define PIOS_PERIPHERAL_APB2_CLOCK					(PIOS_SYSCLK / 1)
+#define PIOS_SYSCLK				40000000
+#define PIOS_PERIPHERAL_APB1_CLOCK					(PIOS_SYSCLK)
 
 
 //-------------------------
