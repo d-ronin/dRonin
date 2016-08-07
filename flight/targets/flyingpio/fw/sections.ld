@@ -1,4 +1,5 @@
 _stack_top = 0x20001000;
+_eheap = 0x20001000;
 
 SECTIONS
 {
@@ -46,5 +47,6 @@ SECTIONS
 		*(COMMON)
 		. = ALIGN(4);
 		_ebss = .;
+		_sheap = .;
 	} >RAM
 }

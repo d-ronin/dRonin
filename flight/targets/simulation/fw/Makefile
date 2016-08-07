@@ -156,25 +156,25 @@ SRC += pios_streamfs.c
 
 SRC += pios_modules.c
 
-SRC += pios_gcsrcvr.c
-SRC += pios_delay.c
-SRC += pios_led.c
-SRC += pios_wdg.c
 SRC += pios_bl_helper.c
+SRC += pios_bmx055.c
+SRC += pios_debug.c
+SRC += pios_delay.c
+SRC += pios_fileout.c
+SRC += pios_gcsrcvr.c
+SRC += pios_hal.c
+SRC += pios_heap.c
 SRC += pios_iap.c
+SRC += pios_irq.c
+SRC += pios_led.c
+SRC += pios_ms5611_spi.c
 SRC += pios_reset.c
+SRC += pios_serial.c
 SRC += pios_servo.c
+SRC += pios_spi.c
 SRC += pios_sys.c
 SRC += pios_tcp.c
-SRC += pios_fileout.c
-SRC += pios_debug.c
-SRC += pios_heap.c
-SRC += pios_irq.c
-SRC += pios_serial.c
-SRC += pios_spi.c
-SRC += pios_hal.c
-SRC += pios_ms5611_spi.c
-SRC += pios_bmx055.c
+SRC += pios_wdg.c
 
 ## PIOS Hardware (Common)
 SRC += $(PIOSPOSIX)/../../tests/logfs/pios_flash_posix.c

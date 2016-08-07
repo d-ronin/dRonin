@@ -43,15 +43,15 @@
 /* Com systems to include */
 #define PIOS_INCLUDE_COM
 #define PIOS_INCLUDE_LED
+#define PIOS_INCLUDE_TIM
+#define PIOS_INCLUDE_SERVO
 
 /* Supported receiver interfaces */
 //#define PIOS_INCLUDE_RCVR
 //#define PIOS_INCLUDE_DSM
 //#define PIOS_INCLUDE_HSUM
 //#define PIOS_INCLUDE_SBUS
-//#define PIOS_INCLUDE_PPM
-//#define PIOS_INCLUDE_GCSRCVR
-//#define PIOS_INCLUDE_PWM
+#define PIOS_INCLUDE_PPM
 //#define PIOS_INCLUDE_SRXL
 //#define PIOS_INCLUDE_IBUS
 
