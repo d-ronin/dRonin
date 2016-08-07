@@ -175,12 +175,12 @@ static int32_t AssertReg(int slave, uint8_t address, uint8_t expect) {
 	}
 
 	if (c != expect) {
-		printf("BMX: Assertion failed: *(%d:%02x) == %02x (expect %02x)\n",
+		DEBUG_PRINTF(2, "BMX: Assertion failed: *(%d:%02x) == %02x (expect %02x)\n",
 		slave, address, c, expect);
 		return -1;
 	}
 
-	printf("BMX: Assertion passed: *(%d:%02x) == %02x\n", slave, address,
+	DEBUG_PRINTF(2, "BMX: Assertion passed: *(%d:%02x) == %02x\n", slave, address,
 		expect);
 
 	return 0;
@@ -216,7 +216,7 @@ int32_t PIOS_BMX055_SPI_Init(pios_bmx055_dev_t *dev, uint32_t spi_id, uint32_t s
 	 * init
 	 */
 
-	printf("BMX: Resetting all sensors\n");
+	DEBUG_PRINTF(2, "BMX: Resetting all sensors\n");
 
 	ret = PIOS_BMX_WriteReg(bmx_dev->spi_slave_gyro,
 			BMX055_REG_GYRO_BGW_SOFTRESET,
