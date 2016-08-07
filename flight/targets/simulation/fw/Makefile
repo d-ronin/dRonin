@@ -164,6 +164,7 @@ SRC += pios_heap.c
 SRC += pios_irq.c
 SRC += pios_spi.c
 SRC += pios_ms5611_spi.c
+SRC += pios_bmx055.c
 
 ## PIOS Hardware (Common)
 SRC += $(PIOSPOSIX)/../../tests/logfs/pios_flash_posix.c
@@ -219,7 +220,7 @@ EXTRAINCDIRS += ${foreach MOD, ${OPTMODULES} ${MODULES}, $(OPMODULEDIR)/${MOD}/i
 # (Note: 3 is not always the best optimization level. See avr-libc FAQ.)
 
 ifeq ($(DEBUG),YES)
-CFLAGS += -O0
+CFLAGS += -O0 -g
 CFLAGS += -DGENERAL_COV
 #CFLAGS += -finstrument-functions -ffixed-r10
 
@@ -228,7 +229,7 @@ CFLAGS += -fprofile-arcs -ftest-coverage
 LDFLAGS += -fprofile-arcs
 
 else
-CFLAGS += -Os
+CFLAGS += -O2 -g3
 endif
 
 ifneq ($(PI_CROSS_SIM)x,x)

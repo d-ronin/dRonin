@@ -174,6 +174,7 @@ void port_wait_for_interrupt(void) {
  */
 void port_halt(void) {
   printf("port_halt invoked-- unrecoverable error\n");
+  abort();
   port_disable();
   exit(2);
 }
