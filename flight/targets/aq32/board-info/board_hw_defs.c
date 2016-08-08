@@ -85,10 +85,6 @@ const struct pios_led_cfg * PIOS_BOARD_HW_DEFS_GetLedCfg (uint32_t board_revisio
  *      - Used for micro sd card communications
  */
 
-void PIOS_SPI_sdCard_irq_handler(void);
-
-void DMA2_Stream0_IRQHandler(void) __attribute__((alias("PIOS_SPI_sdCard_irq_handler")));
-
 static const struct pios_spi_cfg pios_spi_sdCard_cfg = {
 	.regs = SPI1,
 	.remap = GPIO_AF_SPI1,
@@ -150,19 +146,10 @@ static const struct pios_spi_cfg pios_spi_sdCard_cfg = {
 };
 
 uint32_t pios_spi_sdCard_id;
-void PIOS_SPI_sdCard_irq_handler(void)
-{
-	/* Call into the generic code to handle the IRQ for this specific device */
-	PIOS_SPI_IRQ_Handler(pios_spi_sdCard_id);
-}
 
 /* SPI2 Interface
  *      - Used for external communications
  */
-
-void PIOS_SPI_external_irq_handler(void);
-
-void DMA1_Stream3_IRQHandler(void) __attribute__((alias("PIOS_SPI_external_irq_handler")));
 
 static const struct pios_spi_cfg pios_spi_external_cfg = {
 	.regs = SPI2,
@@ -225,19 +212,10 @@ static const struct pios_spi_cfg pios_spi_external_cfg = {
 };
 
 uint32_t pios_spi_external_id;
-void PIOS_SPI_external_irq_handler(void)
-{
-	/* Call into the generic code to handle the IRQ for this specific device */
-	PIOS_SPI_IRQ_Handler(pios_spi_external_id);
-}
 
 /* SPI3 Interface
  *      - Used for gyro communications
  */
-
-void PIOS_SPI_internal_irq_handler(void);
-
-void DMA1_Stream0_IRQHandler(void) __attribute__((alias("PIOS_SPI_internal_irq_handler")));
 
 static const struct pios_spi_cfg pios_spi_internal_cfg = {
 	.regs = SPI3,
@@ -300,11 +278,6 @@ static const struct pios_spi_cfg pios_spi_internal_cfg = {
 };
 
 uint32_t pios_spi_internal_id;
-void PIOS_SPI_internal_irq_handler(void)
-{
-	/* Call into the generic code to handle the IRQ for this specific device */
-	PIOS_SPI_IRQ_Handler(pios_spi_internal_id);
-}
 
 #endif	/* PIOS_INCLUDE_SPI */
 

@@ -375,12 +375,8 @@ void PIOS_SPI_IRQ_Handler(uint32_t spi_id)
 	bool valid = PIOS_SPI_validate(spi_dev);
 	PIOS_Assert(valid)
 
-	if (spi_dev->cfg->init.SPI_Mode == SPI_Mode_Master) {
-		/* Wait for the final bytes of the transfer to complete, including CRC byte(s). */
-		while (!(SPI_I2S_GetFlagStatus(spi_dev->cfg->regs, SPI_I2S_FLAG_TXE))) ;
-
-		/* Wait for the final bytes of the transfer to complete, including CRC byte(s). */
-		while (SPI_I2S_GetFlagStatus(spi_dev->cfg->regs, SPI_I2S_FLAG_BSY)) ;
+	if (spi_dev->cfg->init.SPI_Mode != SPI_Mode_Master) {
+		/* XXX handle appropriate slave callback stuff */
 	}
 
 #if defined(PIOS_INCLUDE_CHIBIOS)
