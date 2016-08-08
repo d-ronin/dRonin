@@ -924,7 +924,7 @@ all_bl:        $(addsuffix _bin,   $(BL_TARGETS))
 all_bl_clean:  $(addsuffix _clean, $(BL_TARGETS))
 
 .PHONY: all_bu all_bu_clean
-all_bu:        $(addsuffix _tlfw,  $(BU_TARGETS))
+all_bu:        $(BU_TARGETS)
 all_bu_clean:  $(addsuffix _clean, $(BU_TARGETS))
 
 .PHONY: all_ef all_ef_clean
