@@ -31,3 +31,8 @@ EF_BANK_SIZE        := 0x00080000  # Size of the entire flash image (from bootlo
 
 OSCILLATOR_FREQ     :=   8000000
 SYSCLK_FREQ         := 168000000
+
+BU_DONT_CHECK_BOARDINFO := YES
+# Tolerate an entry of either 16k or 128k.  16k when using PX4 bootloader,
+# 128k when using ours.
+BU_PAD_AND_REPEAT_OFFS := 114688

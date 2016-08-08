@@ -207,3 +207,14 @@ ifdef ComSpec
 else
 -include $(shell mkdir -p $(OUTDIR) 2>/dev/null) $(shell mkdir $(OUTDIR)/dep 2>/dev/null) $(wildcard $(OUTDIR)/dep/*)
 endif
+
+ifneq ($(BU_PAD_AND_REPEAT_OFFS),)
+# This pads the bin to have two entry locations.  Used on PlayUAV OSD where
+# we could be running from PX4 loader (16k offset) or our loader (128k offset)
+%.padded.bin: %.bin
+	$(V1) $(OBJCOPY) --pad-to=$(BU_PAD_AND_REPEAT_OFFS) -I binary -O binary $< $@
+	$(V1) cat $< >> $@
+else
+%.padded.bin: %.bin
+	$(V1) cp $< $@
+endif
