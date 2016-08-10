@@ -34,5 +34,7 @@
 extern void PIOS_LED_On(uint32_t led_id);
 extern void PIOS_LED_Off(uint32_t led_id);
 extern void PIOS_LED_Toggle(uint32_t led_id);
+extern bool PIOS_LED_GetStatus(uint32_t led_id); // Currently sim only
+
 
 #endif /* PIOS_LED_H */

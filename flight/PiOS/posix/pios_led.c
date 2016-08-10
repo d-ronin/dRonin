@@ -35,35 +35,26 @@
 
 /* Private Function Prototypes */
 
-DONT_BUILD_IF(PIOS_LED_NUM != HWSIMULATION_LEDSTATE_NUMELEM, piosLedNumWrong);
+DONT_BUILD_IF(PIOS_LED_NUM < HWSIMULATION_LEDSTATE_NUMELEM, piosLedNumWrong);
+DONT_BUILD_IF(PIOS_LED_ALARM != HWSIMULATION_LEDSTATE_ALARM, idxMismatch1);
+DONT_BUILD_IF(PIOS_LED_HEARTBEAT != HWSIMULATION_LEDSTATE_HEARTBEAT, idxMismatch2);
 
 /* Local Variables */
-static uint8_t ledState[HWSIMULATION_LEDSTATE_NUMELEM];
-
-static int map_pios_led_to_uavo(const uint32_t led)
-{
-	switch (led) {
-	case PIOS_LED_ALARM:
-		return HWSIMULATION_LEDSTATE_ALARM;
-	case PIOS_LED_HEARTBEAT:
-		return HWSIMULATION_LEDSTATE_HEARTBEAT;
-	default:
-		PIOS_Assert(0);
-	}
-}
+static uint8_t ledState[PIOS_LED_NUM];
 
 static inline void PIOS_SetLED(uint32_t led, uint8_t stat) {
 	PIOS_Assert(led < PIOS_LED_NUM);
 
-	uint8_t old_state = ledState[map_pios_led_to_uavo(led)];
-	ledState[map_pios_led_to_uavo(led)] = stat ? HWSIMULATION_LEDSTATE_ON : HWSIMULATION_LEDSTATE_OFF;
+	uint8_t old_state = ledState[led];
+	uint8_t new_state = stat ? HWSIMULATION_LEDSTATE_ON : HWSIMULATION_LEDSTATE_OFF;
+
+	if (old_state == new_state)
+		return;
+	ledState[led] = new_state;
 
 	HwSimulationLedStateSet(ledState);
 
-	if (old_state == ledState[map_pios_led_to_uavo(led)])
-		return;
-
-	char leds[HWSIMULATION_LEDSTATE_NUMELEM + 1];
+	char leds[PIOS_LED_NUM + 1];
 	for (int i = 0; i < HWSIMULATION_LEDSTATE_NUMELEM; i++) {
 		leds[i] = (ledState[i] == HWSIMULATION_LEDSTATE_ON) ? '*' : '.';
 	}
@@ -77,8 +68,16 @@ static inline void PIOS_SetLED(uint32_t led, uint8_t stat) {
 */
 void PIOS_LED_Init(void)
 {
-	PIOS_Assert(0);
-	HwSimulationLedStateGet(ledState);
+}
+
+/**
+* returns whether a given led is on.
+*/
+bool PIOS_LED_GetStatus(uint32_t led)
+{
+	PIOS_Assert(led < PIOS_LED_NUM);
+
+	return ledState[led] == HWSIMULATION_LEDSTATE_ON;
 }
 
 
@@ -110,7 +109,7 @@ void PIOS_LED_Toggle(uint32_t led)
 {
 	PIOS_Assert(led < PIOS_LED_NUM);
 
-	PIOS_SetLED(led, ((ledState[map_pios_led_to_uavo(led)] == HWSIMULATION_LEDSTATE_ON) ? 0 : 1));
+	PIOS_SetLED(led, !PIOS_LED_GetStatus(led));
 }
 
 #endif
