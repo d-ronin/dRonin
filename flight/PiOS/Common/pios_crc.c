@@ -7,7 +7,9 @@
  *
  */
 
-#include "pios.h"
+#include <pios_crc.h>
+
+#include <stdbool.h>
 
 // CRC lookup table
 static const uint8_t crc_table[256] = {
