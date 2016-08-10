@@ -965,7 +965,8 @@ static void calculate_pids()
 	pid_configure_derivative(settings.DerivativeCutoff, settings.DerivativeGamma);
 
 #ifndef SMALLF1
-	if(settings.DeadbandWidth[STABILIZATIONSETTINGS_DEADBANDWIDTH_ROLL] ||
+	if(deadbands ||
+		settings.DeadbandWidth[STABILIZATIONSETTINGS_DEADBANDWIDTH_ROLL] ||
 		settings.DeadbandWidth[STABILIZATIONSETTINGS_DEADBANDWIDTH_PITCH] ||
 		settings.DeadbandWidth[STABILIZATIONSETTINGS_DEADBANDWIDTH_YAW])
 	{
