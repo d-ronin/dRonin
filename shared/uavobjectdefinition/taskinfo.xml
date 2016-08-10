@@ -43,6 +43,7 @@
 			<elementname>Storm32Bgc</elementname>
 			<elementname>IMU</elementname>
 			<elementname>VTXConfig</elementname>
+			<elementname>IOExpander</elementname>
 		</elementnames>
 		<description>The remaining free space in each task's stack. Disabled tasks will show 0 bytes free.</description>
 	</field> 
@@ -88,6 +89,7 @@
 			<elementname>Storm32Bgc</elementname>
 			<elementname>IMU</elementname>
 			<elementname>VTXConfig</elementname>
+			<elementname>IOExpander</elementname>
 		</elementnames>
 		<options>
 			<option>FALSE</option>
@@ -137,6 +139,7 @@
 			<elementname>Storm32Bgc</elementname>
 			<elementname>IMU</elementname>
 			<elementname>VTXConfig</elementname>
+			<elementname>IOExpander</elementname>
 		</elementnames>
 		<description>The percentage of CPU time used by each task.</description>
 	</field> 
