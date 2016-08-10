@@ -582,8 +582,6 @@ uint8_t frsky_insert_byte(uint8_t *obuff, uint16_t *chk, uint8_t byte)
 	*chk += byte;
 	*chk += (*chk) >> 8;
 	*chk &= 0x00ff;
-	*chk += (*chk) >> 8;
-	*chk &= 0x00ff;
 
 	if (byte == 0x7e || byte == 0x7d) {
 		obuff[0] = 0x7d;
