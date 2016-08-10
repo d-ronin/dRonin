@@ -60,6 +60,7 @@
 #include "pios_spi_posix_priv.h"
 #include "pios_ms5611_priv.h"
 #include "pios_bmx055_priv.h"
+#include "pios_flyingpio.h"
 
 
 #if defined(PIOS_INCLUDE_SYS)
@@ -221,6 +222,14 @@ static int handle_device(const char *optarg) {
 		int ret = PIOS_BMX055_SPI_Init(&dev, spi_devs[bus_num], dev_num, dev_num+1, dev_num+2, bmx055_cfg);
 
 		if (ret) goto fail;
+	} else if (!strcmp(drv_name, "flyingpio")) {
+		pios_flyingpio_dev_t dev;
+
+		int ret = PIOS_FLYINGPIO_SPI_Init(&dev, spi_devs[bus_num], dev_num);
+
+		if (ret) goto fail;
+	} else {
+		goto fail;
 	}
 
 	return 0;

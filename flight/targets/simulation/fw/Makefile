@@ -168,6 +168,7 @@ SRC += pios_iap.c
 SRC += pios_irq.c
 SRC += pios_led.c
 SRC += pios_ms5611_spi.c
+SRC += pios_flyingpio.c
 SRC += pios_reset.c
 SRC += pios_serial.c
 SRC += pios_servo.c
