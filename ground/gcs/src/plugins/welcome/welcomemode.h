@@ -67,7 +67,12 @@ public slots:
     void openPage(const QString &page);
     void triggerAction(const QString &actionId);
 
+private slots:
+    void modesChanged();
+
 private:
+    QStringList getModeNames();
+
     WelcomeModePrivate *m_d;
     QWidget *m_container;
     int m_priority;
