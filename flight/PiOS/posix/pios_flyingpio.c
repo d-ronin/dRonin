@@ -58,8 +58,6 @@ struct pios_flyingpio_dev {
 	enum pios_flyingpio_dev_magic magic;              /**< Magic bytes to validate the struct contents */
 	uint32_t spi_id;                            /**< Handle to the communication driver */
 	uint32_t spi_slave;                         /**< The slave number (SPI) */
-
-	struct pios_thread *task_handle;
 };
 
 //! Global structure for this device device
@@ -77,7 +75,11 @@ static struct pios_flyingpio_dev *PIOS_FLYINGPIO_Alloc();
  */
 static int32_t PIOS_FLYINGPIO_Validate(struct pios_flyingpio_dev *dev);
 
-static void PIOS_FLYINGPIO_Task(void *parameters);
+static void PIOS_FLYINGPIO_ActuatorUpdate();
+
+const struct pios_servo_callbacks flyingpio_callbacks = {
+	.update = PIOS_FLYINGPIO_ActuatorUpdate,
+};
 
 static struct pios_flyingpio_dev *PIOS_FLYINGPIO_Alloc()
 {
@@ -88,6 +90,8 @@ static struct pios_flyingpio_dev *PIOS_FLYINGPIO_Alloc()
 		return NULL;
 
 	dev->magic = PIOS_FLYINGPIO_DEV_MAGIC;
+
+	PIOS_Servo_SetCallbacks(&flyingpio_callbacks);
 
 	return dev;
 }
@@ -113,49 +117,36 @@ int32_t PIOS_FLYINGPIO_SPI_Init(pios_flyingpio_dev_t *dev, uint32_t spi_id, uint
 	fpio_dev->spi_id = spi_id;
 	fpio_dev->spi_slave = slave_idx;
 
-        fpio_dev->task_handle = PIOS_Thread_Create(
-                        PIOS_FLYINGPIO_Task, "pios_fpio",
-			PIOS_FLYINGPIO_TASK_STACK, NULL,
-			PIOS_FLYINGPIO_TASK_PRIORITY);
-
-        PIOS_Assert(fpio_dev->task_handle != NULL);
-        TaskMonitorAdd(TASKINFO_RUNNING_IOEXPANDER, fpio_dev->task_handle);
-
 	return 0;
 }
 
-static void PIOS_FLYINGPIO_Task(void *parameters)
+static void PIOS_FLYINGPIO_ActuatorUpdate() 
 {
-	(void)parameters;
 	PIOS_Assert(!PIOS_FLYINGPIO_Validate(fpio_dev));
 
-	while (true) {
-		PIOS_Thread_Sleep(1);		/* XXX */
+	if (PIOS_SPI_ClaimBus(fpio_dev->spi_id) != 0)
+		return;		/* No bueno. */
 
-		if (PIOS_SPI_ClaimBus(fpio_dev->spi_id) != 0)
-			continue;
+	PIOS_SPI_SetClockSpeed(fpio_dev->spi_id, 15000000);
 
-		PIOS_SPI_SetClockSpeed(fpio_dev->spi_id, 15000000);
+	PIOS_SPI_RC_PinSet(fpio_dev->spi_id, fpio_dev->spi_slave, 
+		false);
 
-		PIOS_SPI_RC_PinSet(fpio_dev->spi_id, fpio_dev->spi_slave, 
-			false);
+	struct flyingpi_msg tx_buf;
+	int len = 0;
 
-		struct flyingpi_msg tx_buf;
-		int len = 0;
+	tx_buf.id = FLYINGPICMD_ACTUATOR;
+	tx_buf.body.actuator_fc.led_status =
+		PIOS_LED_GetStatus(PIOS_LED_HEARTBEAT);
 
-		tx_buf.id = FLYINGPICMD_ACTUATOR;
-		tx_buf.body.actuator_fc.led_status =
-			PIOS_LED_GetStatus(PIOS_LED_HEARTBEAT);
+	flyingpi_calc_crc(&tx_buf, true, &len);
 
-		flyingpi_calc_crc(&tx_buf, true, &len);
-
-		if (!PIOS_SPI_TransferBlock(fpio_dev->spi_id, (uint8_t *)&tx_buf, NULL, len)) {
-		}
-
-		PIOS_SPI_RC_PinSet(fpio_dev->spi_id, fpio_dev->spi_slave, 
-			true);
-		PIOS_SPI_ReleaseBus(fpio_dev->spi_id);
+	if (!PIOS_SPI_TransferBlock(fpio_dev->spi_id, (uint8_t *)&tx_buf, NULL, len)) {
 	}
+
+	PIOS_SPI_RC_PinSet(fpio_dev->spi_id, fpio_dev->spi_slave, 
+		true);
+	PIOS_SPI_ReleaseBus(fpio_dev->spi_id);
 }
 
 #endif // PIOS_INCLUDE_FLYINGPIO
