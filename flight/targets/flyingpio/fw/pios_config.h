@@ -34,17 +34,12 @@
 
 /* Enable/Disable PiOS Modules */
 
-/* Select the sensors to include */
-//#define PIOS_INCLUDE_MS5611
-//#define PIOS_INCLUDE_ETASV3
-//#define PIOS_INCLUDE_MPXV5004
-//#define PIOS_INCLUDE_MPXV7002
-
 /* Com systems to include */
 #define PIOS_INCLUDE_COM
 #define PIOS_INCLUDE_LED
 #define PIOS_INCLUDE_TIM
 #define PIOS_INCLUDE_SERVO
+#define PIOS_INCLUDE_SPISLAVE
 
 /* Supported receiver interfaces */
 //#define PIOS_INCLUDE_RCVR
@@ -54,16 +49,6 @@
 #define PIOS_INCLUDE_PPM
 //#define PIOS_INCLUDE_SRXL
 //#define PIOS_INCLUDE_IBUS
-
-//#define PIOS_INCLUDE_FLASH
-//#define PIOS_INCLUDE_FLASH_INTERNAL
-//#define PIOS_INCLUDE_LOGFS_SETTINGS
-
-/* Flags that alter behaviors - mostly to lower resources for CC */
-//#define PIOS_INCLUDE_INITCALL           /* Include init call structures */
-//#define PIOS_TELEM_PRIORITY_QUEUE       /* Enable a priority queue in telemetry */
-
-//#define SUPPORTS_EXTERNAL_MAG
 
 #endif /* PIOS_CONFIG_H */
 /**

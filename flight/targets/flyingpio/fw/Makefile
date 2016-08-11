@@ -71,7 +71,6 @@ SRC += ${foreach MOD, ${MODULES} ${OPTMODULES}, ${wildcard ${OPMODULEDIR}/${MOD}
 #SRC += ${OPMODULEDIR}/System/systemmod.c
 SRC += system_stm32f0xx.c
 SRC += startup.c
-SRC += pios_board.c
 SRC += main.c
 
 SRC += pios_com.c
@@ -81,6 +80,7 @@ SRC += pios_heap.c
 SRC += pios_led.c
 SRC += pios_ppm.c
 SRC += pios_servo.c
+SRC += pios_spislave.c
 SRC += pios_sys.c
 SRC += pios_tim.c
 

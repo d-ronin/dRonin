@@ -40,6 +40,8 @@
 #include "pios_flyingpio_priv.h"
 #include "flyingpio_messages.h"
 
+#include "actuatorcommand.h"
+
 #define PIOS_FLYINGPIO_TASK_PRIORITY   PIOS_THREAD_PRIO_HIGHEST
 #define PIOS_FLYINGPIO_TASK_STACK      640
 
@@ -63,6 +65,9 @@ struct pios_flyingpio_dev {
 //! Global structure for this device device
 static struct pios_flyingpio_dev *fpio_dev;
 
+static struct flyingpi_msg actuator_cfg;
+static float channel_values[FPPROTO_MAX_SERVOS];
+
 //! Private functions
 /**
  * @brief Allocate a new device
@@ -76,10 +81,17 @@ static struct pios_flyingpio_dev *PIOS_FLYINGPIO_Alloc();
 static int32_t PIOS_FLYINGPIO_Validate(struct pios_flyingpio_dev *dev);
 
 static void PIOS_FLYINGPIO_ActuatorUpdate();
+static void PIOS_FLYINGPIO_ActuatorSetMode(const uint16_t *out_rate,
+	const int banks, const uint16_t *channel_max,
+	const uint16_t *channel_min);
+static void PIOS_FLYINGPIO_ActuatorSet(uint8_t servo, float position);
 
 const struct pios_servo_callbacks flyingpio_callbacks = {
 	.update = PIOS_FLYINGPIO_ActuatorUpdate,
+	.set_mode = PIOS_FLYINGPIO_ActuatorSetMode,
+	.set = PIOS_FLYINGPIO_ActuatorSet
 };
+
 
 static struct pios_flyingpio_dev *PIOS_FLYINGPIO_Alloc()
 {
@@ -120,33 +132,120 @@ int32_t PIOS_FLYINGPIO_SPI_Init(pios_flyingpio_dev_t *dev, uint32_t spi_id, uint
 	return 0;
 }
 
-static void PIOS_FLYINGPIO_ActuatorUpdate() 
-{
-	PIOS_Assert(!PIOS_FLYINGPIO_Validate(fpio_dev));
+static void PIOS_FLYINGPIO_SendCmd(struct flyingpi_msg *msg) {
+	int len = 0;
+
+	flyingpi_calc_crc(msg, true, &len);
 
 	if (PIOS_SPI_ClaimBus(fpio_dev->spi_id) != 0)
 		return;		/* No bueno. */
 
 	PIOS_SPI_SetClockSpeed(fpio_dev->spi_id, 15000000);
 
-	PIOS_SPI_RC_PinSet(fpio_dev->spi_id, fpio_dev->spi_slave, 
+	PIOS_SPI_RC_PinSet(fpio_dev->spi_id, fpio_dev->spi_slave,
 		false);
 
+	if (!PIOS_SPI_TransferBlock(fpio_dev->spi_id, (uint8_t *)msg, NULL, len)) {
+	}
+
+	PIOS_SPI_RC_PinSet(fpio_dev->spi_id, fpio_dev->spi_slave,
+		true);
+	PIOS_SPI_ReleaseBus(fpio_dev->spi_id);
+
+	/* XXX handle response data */
+}
+
+static void PIOS_FLYINGPIO_ActuatorUpdate()
+{
+	/* Make sure we've already been configured */
+	PIOS_Assert(actuator_cfg.id == FLYINGPICMD_CFG);
+
+	static int upd_num = 0;
+
+	upd_num++;
+
+	PIOS_Assert(!PIOS_FLYINGPIO_Validate(fpio_dev));
+
 	struct flyingpi_msg tx_buf;
-	int len = 0;
 
 	tx_buf.id = FLYINGPICMD_ACTUATOR;
+
+	struct flyingpicmd_actuator_fc *cmd = &tx_buf.body.actuator_fc;
+	struct flyingpicmd_cfg_fa *cfg = &actuator_cfg.body.cfg_fa;
+
+	for (int i=0; i < FPPROTO_MAX_SERVOS; i++) {
+		uint16_t span = cfg->actuators[i].max - cfg->actuators[i].min;
+		if (span == 0) {
+			// Prevent div by 0, this is a simple case.
+			cmd->values[i] = cfg->actuators[i].max;
+		} else {
+			float fraction = channel_values[i] -
+				cfg->actuators[i].min;
+
+			fraction /= span;
+			fraction *= 65535.0f;
+			fraction += 0.5f;
+
+			if (fraction > 65535) {
+				fraction = 65535;
+			} else if (fraction < 0) {
+				fraction = 0;
+			}
+
+			cmd->values[i] = fraction;
+
+#if 0
+			if (!(upd_num & 1023)) {
+				printf("%d %f\n", i, fraction);
+			}
+#endif
+		}
+	}
+
 	tx_buf.body.actuator_fc.led_status =
 		PIOS_LED_GetStatus(PIOS_LED_HEARTBEAT);
 
-	flyingpi_calc_crc(&tx_buf, true, &len);
+	PIOS_FLYINGPIO_SendCmd(&tx_buf);
+}
 
-	if (!PIOS_SPI_TransferBlock(fpio_dev->spi_id, (uint8_t *)&tx_buf, NULL, len)) {
+static void PIOS_FLYINGPIO_ActuatorSetMode(const uint16_t *out_rate,
+	const int banks, const uint16_t *channel_max,
+	const uint16_t *channel_min) {
+
+	actuator_cfg.id = FLYINGPICMD_CFG;
+
+	struct flyingpicmd_cfg_fa *cmd = &actuator_cfg.body.cfg_fa;
+
+	PIOS_Assert(banks >= FPPROTO_MAX_BANKS);
+
+	for (int i=0; i < FPPROTO_MAX_BANKS; i++) {
+		cmd->rate[i] = out_rate[i];
 	}
 
-	PIOS_SPI_RC_PinSet(fpio_dev->spi_id, fpio_dev->spi_slave, 
-		true);
-	PIOS_SPI_ReleaseBus(fpio_dev->spi_id);
+	for (int i=0; i < ACTUATORCOMMAND_CHANNEL_NUMELEM; i++) {
+		uint16_t true_min, true_max;
+
+		if (channel_min[i] > channel_max[i]) {
+			true_min = channel_max[i];
+			true_max = channel_min[i];
+		} else {
+			true_min = channel_min[i];
+			true_max = channel_max[i];
+		}
+
+		cmd->actuators[i].min = true_min;
+		cmd->actuators[i].max = true_max;
+	}
+
+	cmd->receiver_protocol = 0;
+
+	PIOS_FLYINGPIO_SendCmd(&actuator_cfg);
+}
+
+static void PIOS_FLYINGPIO_ActuatorSet(uint8_t servo, float position) {
+	PIOS_Assert(servo < FPPROTO_MAX_SERVOS);
+
+	channel_values[servo] = position;
 }
 
 #endif // PIOS_INCLUDE_FLYINGPIO

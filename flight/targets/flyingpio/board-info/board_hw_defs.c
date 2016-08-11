@@ -66,16 +66,23 @@ const struct pios_led_cfg * PIOS_BOARD_HW_DEFS_GetLedCfg (uint32_t board_revisio
 
 #endif	/* PIOS_INCLUDE_LED */
 
-#if defined(PIOS_INCLUDE_SPI)
+#if defined(PIOS_INCLUDE_SPISLAVE)
 
-#include <pios_spi_priv.h>
+#include "pios_spislave.h"
 
-/* Flash/Accel Interface
- * 
- * NOTE: Leave this declared as const data so that it ends up in the 
- * .rodata section (ie. Flash) rather than in the .bss section (RAM).
+#include "flyingpio_messages.h"
+
+void process_pio_message(void *ctx, int len, int *resp_len);
+
+/* SPI command link interface
+ *
+ * NOTE: Leave this declared as const data so that it ends up in the
+ * .rodata section (ie. Flash) rather than in the .data section (RAM).
  */
-static const struct pios_spi_cfg pios_spi_control_cfg = {
+struct flyingpi_msg rx_buf;
+struct flyingpi_msg tx_buf;
+
+static const struct pios_spislave_cfg pios_spislave_cfg = {
 	.regs   = SPI1,
 	.init   = {
 		.SPI_Mode              = SPI_Mode_Slave,
@@ -83,18 +90,20 @@ static const struct pios_spi_cfg pios_spi_control_cfg = {
 		.SPI_DataSize          = SPI_DataSize_8b,
 		.SPI_NSS               = SPI_NSS_Hard,
 		.SPI_FirstBit          = SPI_FirstBit_MSB,
-		.SPI_CPOL              = SPI_CPOL_High,
-		.SPI_CPHA              = SPI_CPHA_2Edge,
+		.SPI_CPOL              = SPI_CPOL_Low,
+		.SPI_CPHA              = SPI_CPHA_1Edge,
 		/* Next two not used */
 		.SPI_CRCPolynomial     = 7,
-		.SPI_BaudRatePrescaler = SPI_BaudRatePrescaler_8, 
+		.SPI_BaudRatePrescaler = SPI_BaudRatePrescaler_2,
 	},
 	.sclk = {
 		.gpio = GPIOB,
 		.init = {
 			.GPIO_Pin   = GPIO_Pin_3,
 			.GPIO_Speed = GPIO_Speed_50MHz,
-			.GPIO_Mode  = GPIO_Mode_AF_PP,
+			.GPIO_Mode  = GPIO_Mode_AF,
+			.GPIO_OType = GPIO_OType_PP,
+			.GPIO_PuPd = GPIO_PuPd_NOPULL
 		},
 	},
 	.miso = {
@@ -102,7 +111,9 @@ static const struct pios_spi_cfg pios_spi_control_cfg = {
 		.init = {
 			.GPIO_Pin   = GPIO_Pin_4,
 			.GPIO_Speed = GPIO_Speed_50MHz,
-			.GPIO_Mode  = GPIO_Mode_AF_IN,
+			.GPIO_Mode  = GPIO_Mode_AF,
+			.GPIO_OType = GPIO_OType_PP,
+			.GPIO_PuPd = GPIO_PuPd_NOPULL
 		},
 	},
 	.mosi = {
@@ -110,18 +121,68 @@ static const struct pios_spi_cfg pios_spi_control_cfg = {
 		.init = {
 			.GPIO_Pin   = GPIO_Pin_5,
 			.GPIO_Speed = GPIO_Speed_50MHz,
-			.GPIO_Mode  = GPIO_Mode_AF_PP,
+			.GPIO_Mode  = GPIO_Mode_AF,
+			.GPIO_OType = GPIO_OType_PP,
+			.GPIO_PuPd = GPIO_PuPd_NOPULL
 		},
 	},
-	.slave_count = 1,
-	.ssel = {{
+	.ssel = {
 		.gpio = GPIOA,
 		.init = {
 			.GPIO_Pin   = GPIO_Pin_4,
 			.GPIO_Speed = GPIO_Speed_50MHz,
-			.GPIO_Mode  = GPIO_Mode_AF_PP,
+			.GPIO_Mode  = GPIO_Mode_AF,
+			.GPIO_OType = GPIO_OType_PP,
+			.GPIO_PuPd = GPIO_PuPd_UP
+		}
+	},
+	.max_rx_len = sizeof(struct flyingpi_msg),
+	.tx_dma = {
+		.init = {
+			.DMA_PeripheralBaseAddr = (uint32_t) &(SPI1->DR),
+			.DMA_PeripheralInc = DMA_PeripheralInc_Disable,
+			.DMA_PeripheralDataSize = DMA_PeripheralDataSize_Byte,
+			.DMA_MemoryBaseAddr = (uint32_t) &tx_buf,
+			.DMA_MemoryInc = DMA_MemoryInc_Enable,
+			.DMA_MemoryDataSize = DMA_MemoryDataSize_Byte,
+			.DMA_DIR = DMA_DIR_PeripheralDST,
+			.DMA_Priority = DMA_Priority_High,
+			.DMA_Mode = DMA_Mode_Normal,
+			.DMA_M2M = DMA_M2M_Disable,
 		},
-	}},
+		.channel = DMA1_Channel3,
+	},
+	.rx_dma = {
+		.init = {
+			.DMA_PeripheralBaseAddr = (uint32_t) &(SPI1->DR),
+			.DMA_PeripheralInc = DMA_PeripheralInc_Disable,
+			.DMA_PeripheralDataSize = DMA_PeripheralDataSize_Byte,
+			.DMA_MemoryBaseAddr = (uint32_t) &tx_buf,
+			.DMA_MemoryInc = DMA_MemoryInc_Enable,
+			.DMA_MemoryDataSize = DMA_MemoryDataSize_Byte,
+			.DMA_DIR = DMA_DIR_PeripheralDST,
+			.DMA_Priority = DMA_Priority_High,
+			.DMA_Mode = DMA_Mode_Normal,
+			.DMA_M2M = DMA_M2M_Disable,
+		},
+		.channel = DMA1_Channel3,
+	},
+	.rx_dma = {
+		.init = {
+			.DMA_PeripheralBaseAddr = (uint32_t) &(SPI1->DR),
+			.DMA_PeripheralInc = DMA_PeripheralInc_Disable,
+			.DMA_PeripheralDataSize = DMA_PeripheralDataSize_Byte,
+			.DMA_MemoryBaseAddr = (uint32_t) &rx_buf,
+			.DMA_MemoryInc = DMA_MemoryInc_Enable,
+			.DMA_MemoryDataSize = DMA_MemoryDataSize_Byte,
+			.DMA_DIR = DMA_DIR_PeripheralSRC,
+			.DMA_Priority = DMA_Priority_High,
+			.DMA_Mode = DMA_Mode_Normal,
+			.DMA_M2M = DMA_M2M_Disable,
+		},
+		.channel = DMA1_Channel2,
+	},
+	.process_message = process_pio_message,
 };
 
 #endif	/* PIOS_INCLUDE_SPI */
@@ -228,8 +289,8 @@ static const struct pios_tim_channel pios_tim_rcvrport_pin = {
 		.gpio = GPIOB,
 		.init = {
 			.GPIO_Pin   = GPIO_Pin_1,
-                        .GPIO_Mode  = GPIO_Mode_AF,
-                        .GPIO_PuPd  = GPIO_PuPd_UP,
+			.GPIO_Mode  = GPIO_Mode_AF,
+			.GPIO_PuPd  = GPIO_PuPd_UP,
 			.GPIO_OType = GPIO_OType_PP,
 			.GPIO_Speed = GPIO_Speed_2MHz,
 		},
@@ -248,7 +309,7 @@ static const struct pios_tim_channel pios_tim_servoport_pins[] = {
 				.GPIO_Pin   = GPIO_Pin_8,
 				.GPIO_Mode  = GPIO_Mode_AF,
 				.GPIO_PuPd  = GPIO_PuPd_UP,
-                                .GPIO_OType = GPIO_OType_PP,
+				.GPIO_OType = GPIO_OType_PP,
 				.GPIO_Speed = GPIO_Speed_50MHz,
 			},
 			.pin_source = GPIO_PinSource8,
@@ -264,7 +325,7 @@ static const struct pios_tim_channel pios_tim_servoport_pins[] = {
 				.GPIO_Pin   = GPIO_Pin_9,
 				.GPIO_Mode  = GPIO_Mode_AF,
 				.GPIO_PuPd  = GPIO_PuPd_UP,
-                                .GPIO_OType = GPIO_OType_PP,
+				.GPIO_OType = GPIO_OType_PP,
 				.GPIO_Speed = GPIO_Speed_50MHz,
 			},
 			.pin_source = GPIO_PinSource9,
@@ -280,7 +341,7 @@ static const struct pios_tim_channel pios_tim_servoport_pins[] = {
 				.GPIO_Pin   = GPIO_Pin_10,
 				.GPIO_Mode  = GPIO_Mode_AF,
 				.GPIO_PuPd  = GPIO_PuPd_UP,
-                                .GPIO_OType = GPIO_OType_PP,
+				.GPIO_OType = GPIO_OType_PP,
 				.GPIO_Speed = GPIO_Speed_50MHz,
 			},
 			.pin_source = GPIO_PinSource10,
@@ -296,7 +357,7 @@ static const struct pios_tim_channel pios_tim_servoport_pins[] = {
 				.GPIO_Pin   = GPIO_Pin_11,
 				.GPIO_Mode  = GPIO_Mode_AF,
 				.GPIO_PuPd  = GPIO_PuPd_UP,
-                                .GPIO_OType = GPIO_OType_PP,
+				.GPIO_OType = GPIO_OType_PP,
 				.GPIO_Speed = GPIO_Speed_50MHz,
 			},
 			.pin_source = GPIO_PinSource11,
@@ -312,7 +373,7 @@ static const struct pios_tim_channel pios_tim_servoport_pins[] = {
 				.GPIO_Pin   = GPIO_Pin_6,
 				.GPIO_Mode  = GPIO_Mode_AF,
 				.GPIO_PuPd  = GPIO_PuPd_UP,
-                                .GPIO_OType = GPIO_OType_PP,
+				.GPIO_OType = GPIO_OType_PP,
 				.GPIO_Speed = GPIO_Speed_50MHz,
 			},
 			.pin_source = GPIO_PinSource6,
@@ -328,7 +389,7 @@ static const struct pios_tim_channel pios_tim_servoport_pins[] = {
 				.GPIO_Pin   = GPIO_Pin_7,
 				.GPIO_Mode  = GPIO_Mode_AF,
 				.GPIO_PuPd  = GPIO_PuPd_UP,
-                                .GPIO_OType = GPIO_OType_PP,
+				.GPIO_OType = GPIO_OType_PP,
 				.GPIO_Speed = GPIO_Speed_50MHz,
 			},
 			.pin_source = GPIO_PinSource7,

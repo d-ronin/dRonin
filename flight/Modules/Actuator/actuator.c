@@ -610,11 +610,6 @@ static void set_failsafe()
 }
 
 static bool set_channel(uint8_t mixer_channel, float value)
-#if defined(ARCH_POSIX) || defined(ARCH_WIN32)
-{
-	return true;
-}
-#else
 {
 	switch (actuatorSettings.ChannelType[mixer_channel]) {
 	case ACTUATORSETTINGS_CHANNELTYPE_PWMALARM:
@@ -727,7 +722,6 @@ static bool set_channel(uint8_t mixer_channel, float value)
 
 	return false;
 }
-#endif
 
 /**
  * @brief Update the servo update rate
