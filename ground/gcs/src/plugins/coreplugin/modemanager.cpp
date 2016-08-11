@@ -166,6 +166,8 @@ void ModeManager::objectAdded(QObject *obj)
 
     m_signalMapper->setMapping(shortcut, mode->uniqueModeName());
     connect(shortcut, SIGNAL(activated()), m_signalMapper, SLOT(map()));
+
+    emit modesChanged();
 }
 
 void ModeManager::setDefaultKeyshortcuts() {
@@ -216,6 +218,8 @@ void ModeManager::aboutToRemoveObject(QObject *obj)
     connect(m_modeStack, SIGNAL(currentChanged(int)), this, SLOT(currentTabChanged(int)));
 
     m_mainWindow->removeContextObject(mode);
+
+    emit modesChanged();
 }
 
 void ModeManager::addAction(Command *command, int priority, QMenu *menu)

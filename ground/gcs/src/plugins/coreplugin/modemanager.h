@@ -74,7 +74,8 @@ public:
 signals:
     void currentModeAboutToChange(Core::IMode *mode);
     void currentModeChanged(Core::IMode *mode);
-    void newModeOrder(QVector<IMode*> modes);
+    void newModeOrder(QVector<IMode *> modes);
+    void modesChanged();
 
 public slots:
     void activateMode(const QString &id);

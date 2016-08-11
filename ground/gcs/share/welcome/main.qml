@@ -61,44 +61,52 @@ Rectangle {
 
             Grid {
                 id: buttons
+                objectName: "modeButtons"
                 columns: 3
                 spacing: 4
                 anchors.verticalCenter: parent.verticalCenter
+                property variant modeNames: []
 
                 WelcomePageButton {
                     baseIconName: "flightdata"
                     label: "Flight Data"
                     onClicked: welcomePlugin.openPage("Flight data")
+                    visible: parent.modeNames.indexOf("Flight data") >= 0
                 }
 
                 WelcomePageButton {
                     baseIconName: "config"
                     label: "Configuration"
                     onClicked: welcomePlugin.openPage("Configuration")
+                    visible: parent.modeNames.indexOf("Configuration") >= 0
                 }
 
                 WelcomePageButton {
                     baseIconName: "system"
                     label: "System"
                     onClicked: welcomePlugin.openPage("System")
+                    visible: parent.modeNames.indexOf("System") >= 0
                 }
 
                WelcomePageButton {
                     baseIconName: "scopes"
                     label: "Scopes"
                     onClicked: welcomePlugin.openPage("Scopes")
+                    visible: parent.modeNames.indexOf("Scopes") >= 0
                 }
 
                 WelcomePageButton {
                     baseIconName: "advanced"
                     label: "Advanced"
                     onClicked: welcomePlugin.openPage("Advanced")
+                    visible: parent.modeNames.indexOf("Advanced") >= 0
                 }
 
                 WelcomePageButton {
                     baseIconName: "firmware"
                     label: "Firmware"
                     onClicked: welcomePlugin.openPage("Firmware")
+                    visible: parent.modeNames.indexOf("Firmware") >= 0
                 }
             } //icons grid
 

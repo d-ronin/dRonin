@@ -78,14 +78,17 @@ WelcomeMode::WelcomeMode(QString instUUID) :
 {
     m_d->quickView = new QQuickView;
     m_d->quickView->setResizeMode(QQuickView::SizeRootObjectToView);
+
     m_d->quickView->engine()->rootContext()->setContextProperty("welcomePlugin", this);
-
     m_d->quickView->engine()->rootContext()->setContextProperty("instHash", QVariant(qHash(instUUID)));
-
     m_d->quickView->engine()->rootContext()->setContextProperty("gitHash", QVariant(Core::Constants::GCS_REVISION_SHORT_STR));
+
     QString fn = Utils::PathUtils().InsertDataPath(QString("%%DATAPATH%%/welcome/main.qml"));
     m_d->quickView->setSource(QUrl::fromLocalFile(fn));
     m_container = NULL;
+
+    connect(Core::ModeManager::instance(), SIGNAL(modesChanged()), this, SLOT(modesChanged()));
+    modesChanged();
 }
 
 WelcomeMode::~WelcomeMode()
@@ -139,6 +142,21 @@ void WelcomeMode::openPage(const QString &page)
 void WelcomeMode::triggerAction(const QString &actionId)
 {
     Core::ModeManager::instance()->triggerAction(actionId);
+}
+
+void WelcomeMode::modesChanged()
+{
+    QVector<IMode *> modes = Core::ModeManager::instance()->modes();
+    QStringList modeNames;
+
+    foreach (IMode *mode, modes)
+        modeNames.append(mode->name());
+
+    auto buttons = m_d->quickView->rootObject()->findChild<QObject *>("modeButtons");
+    if (buttons)
+        buttons->setProperty("modeNames", modeNames);
+    else
+        qWarning() << "[WelcomeMode::modesChanged] Can't find mode buttons";
 }
 
 } // namespace Welcome
