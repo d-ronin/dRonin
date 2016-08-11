@@ -255,6 +255,61 @@ void PIOS_Servo_SetMode(const uint16_t *out_rate, const int banks, const uint16_
 	}
 }
 
+static void PIOS_Servo_SetRaw(uint8_t servo, uint32_t raw_position) {
+	const struct pios_tim_channel *chan = &servo_cfg->channels[servo];
+
+	// in one-pulse mode, the pulse length is ARR - CCR
+	if (output_channel_mode[servo] == SYNC_PWM) {
+		raw_position = chan->timer->ARR - raw_position;
+	}
+
+	/* Update the raw_position */
+	switch(chan->timer_chan) {
+		case TIM_Channel_1:
+			TIM_SetCompare1(chan->timer, raw_position);
+			break;
+		case TIM_Channel_2:
+			TIM_SetCompare2(chan->timer, raw_position);
+			break;
+		case TIM_Channel_3:
+			TIM_SetCompare3(chan->timer, raw_position);
+			break;
+		case TIM_Channel_4:
+			TIM_SetCompare4(chan->timer, raw_position);
+			break;
+	}
+}
+
+// Fraction: 0.16
+// max_val, min_val: microseconds (seconds * 1000000)
+void PIOS_Servo_SetFraction(uint8_t servo, uint16_t fraction,
+		uint16_t max_val, uint16_t min_val)
+{
+	/* Make sure servo exists */
+	if (!servo_cfg || servo >= servo_cfg->num_channels ||
+			output_channel_mode == UNCONFIGURED) {
+		return;
+	}
+
+	// Seconds * 1000000 : 16.0
+	uint16_t spread = max_val - min_val;
+
+	// Seconds * 1000000 : 16.16
+	uint64_t val = spread * fraction + (min_val << 16);
+
+	// Multiply by ticks/second to get: Ticks * 1000000: 36.16
+	val *= output_channel_resolution[servo];
+
+	// Ticks: 16.16
+	val /= 1000000;
+
+	// Round to nearest, 16.0
+	val += 32767;
+	val = val >> 16;
+
+	PIOS_Servo_SetRaw(servo, val);
+}
+
 /**
 * Set servo position
 * \param[in] Servo Servo number (0->num_channels-1)
@@ -268,33 +323,12 @@ void PIOS_Servo_Set(uint8_t servo, float position)
 		return;
 	}
 
-	const struct pios_tim_channel *chan = &servo_cfg->channels[servo];
-
 	/* recalculate the position value based on timer clock rate */
 	/* position is in us. */
 	float us_to_count = output_channel_resolution[servo] / 1000000.0f;
 	position = position * us_to_count;
 
-	// in one-pulse mode, the pulse length is ARR - CCR
-	if (output_channel_mode[servo] == SYNC_PWM) {
-		position = chan->timer->ARR - position;
-	}
-
-	/* Update the position */
-	switch(chan->timer_chan) {
-		case TIM_Channel_1:
-			TIM_SetCompare1(chan->timer, position);
-			break;
-		case TIM_Channel_2:
-			TIM_SetCompare2(chan->timer, position);
-			break;
-		case TIM_Channel_3:
-			TIM_SetCompare3(chan->timer, position);
-			break;
-		case TIM_Channel_4:
-			TIM_SetCompare4(chan->timer, position);
-			break;
-	}
+	PIOS_Servo_SetRaw(servo, position);
 }
 
 /**
