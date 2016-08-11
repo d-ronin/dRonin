@@ -562,7 +562,7 @@ static void stabilizationTask(void* parameters)
 
 					// Compute desired rate as input biased towards leveling
 					rateDesiredAxis[i] = stabDesiredAxis[i] + weak_leveling;
-					actuatorDesiredAxis[i] = pid_apply_setpoint(&pids[PID_GROUP_RATE + i], NULL,  rateDesiredAxis[i],  gyro_filtered[i], dT);
+					actuatorDesiredAxis[i] = pid_apply_setpoint(&pids[PID_GROUP_RATE + i], get_deadband(i),  rateDesiredAxis[i],  gyro_filtered[i], dT);
 					actuatorDesiredAxis[i] = bound_sym(actuatorDesiredAxis[i],1.0f);
 
 					break;
@@ -696,7 +696,7 @@ static void stabilizationTask(void* parameters)
 						rateDesiredAxis[i] = bound_sym(rateDesiredAxis[i], settings.MaximumRate[i]);
 
 						// Compute the inner loop
-						actuatorDesiredAxis[i] = pid_apply_setpoint(&pids[PID_GROUP_RATE + i], NULL, rateDesiredAxis[i],  gyro_filtered[i], dT);
+						actuatorDesiredAxis[i] = pid_apply_setpoint(&pids[PID_GROUP_RATE + i], get_deadband(i), rateDesiredAxis[i],  gyro_filtered[i], dT);
 						actuatorDesiredAxis[i] += ident_offsets[i];
 						actuatorDesiredAxis[i] = bound_sym(actuatorDesiredAxis[i],1.0f);
 					} else {
@@ -704,7 +704,7 @@ static void stabilizationTask(void* parameters)
 						rateDesiredAxis[i] = bound_sym(stabDesiredAxis[i], settings.ManualRate[i]);
 
 						// Compute the inner loop only for yaw
-						actuatorDesiredAxis[i] = pid_apply_setpoint(&pids[PID_GROUP_RATE + i], NULL, rateDesiredAxis[i],  gyro_filtered[i], dT);
+						actuatorDesiredAxis[i] = pid_apply_setpoint(&pids[PID_GROUP_RATE + i], get_deadband(i), rateDesiredAxis[i],  gyro_filtered[i], dT);
 						actuatorDesiredAxis[i] += ident_offsets[i];
 						actuatorDesiredAxis[i] = bound_sym(actuatorDesiredAxis[i],1.0f);
 					}
@@ -824,7 +824,7 @@ static void stabilizationTask(void* parameters)
 					rateDesiredAxis[i] = bound_sym(rateDesiredAxis[i], settings.PoiMaximumRate[i]);
 
 					// Compute the inner loop
-					actuatorDesiredAxis[i] = pid_apply_setpoint(&pids[PID_GROUP_RATE + i], NULL, rateDesiredAxis[i], gyro_filtered[i], dT);
+					actuatorDesiredAxis[i] = pid_apply_setpoint(&pids[PID_GROUP_RATE + i], get_deadband(i), rateDesiredAxis[i], gyro_filtered[i], dT);
 					actuatorDesiredAxis[i] = bound_sym(actuatorDesiredAxis[i],1.0f);
 
 					break;
