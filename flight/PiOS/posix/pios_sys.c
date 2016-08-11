@@ -62,7 +62,6 @@
 
 #if defined(PIOS_INCLUDE_SYS)
 static bool debug_fpe=false;
-static bool go_realtime=false;
 
 #define MAX_SPI_BUSES 16
 int num_spi = 0;
@@ -141,6 +140,52 @@ fail:
 }
 #endif
 
+static void go_realtime() {
+#ifndef __APPLE__
+	/* First, pin all our memory.  We don't want stuff we need
+	 * to get faulted out. */
+	int rc = mlockall(MCL_CURRENT | MCL_FUTURE);
+
+	if (rc) {
+		perror("mlockall");
+		exit(1);
+	}
+
+	/* We always run on the same processor-- why migrate when
+	 * you never yield?
+	 */
+
+	cpu_set_t allowable_cpus;
+
+	CPU_ZERO(&allowable_cpus);
+
+	CPU_SET(0, &allowable_cpus);
+
+	rc = sched_setaffinity(0, CPU_SETSIZE, &allowable_cpus);
+
+	if (rc) {
+		perror("sched_setaffinity");
+		exit(1);
+	}
+
+	/* Next, let's go hard realtime. */
+
+	struct sched_param sch_p = {
+		.sched_priority = 50
+	};
+
+	rc = sched_setscheduler(0, SCHED_RR, &sch_p);
+
+	if (rc) {
+		perror("sched_setscheduler");
+		exit(1);
+	}
+#else
+	printf("Unable to do realtime stuff on OS X\n");
+	exit(1);
+#endif
+}
+
 void PIOS_SYS_Args(int argc, char *argv[]) {
 	int opt;
 
@@ -150,7 +195,7 @@ void PIOS_SYS_Args(int argc, char *argv[]) {
 				debug_fpe = true;
 				break;
 			case 'r':
-				go_realtime = true;
+				go_realtime();
 				break;
 			case 'l':
 			{
@@ -267,52 +312,6 @@ void PIOS_SYS_Init(void)
 		exit(1);
 #endif
 	}
-
-	if (go_realtime) {
-#ifndef __APPLE__
-		/* First, pin all our memory.  We don't want stuff we need
-		 * to get faulted out. */
-		rc = mlockall(MCL_CURRENT | MCL_FUTURE);
-
-		if (rc) {
-			perror("mlockall");
-			exit(1);
-		}
-
-		/* We always run on the same processor-- why migrate when
-		 * you never yield?
-		 */
-
-		cpu_set_t allowable_cpus;
-
-		CPU_ZERO(&allowable_cpus);
-
-		CPU_SET(0, &allowable_cpus);
-
-		rc = sched_setaffinity(0, CPU_SETSIZE, &allowable_cpus);
-
-		if (rc) {
-			perror("sched_setaffinity");
-			exit(1);
-		}
-
-		/* Next, let's go hard realtime. */
-
-		struct sched_param sch_p = {
-			.sched_priority = 50
-		};
-
-		rc = sched_setscheduler(0, SCHED_RR, &sch_p);
-
-		if (rc) {
-			perror("sched_setscheduler");
-			exit(1);
-		}
-#else
-		printf("Unable to do realtime stuff on OS X\n");
-		exit(1);
-#endif
-	}
 #endif
 }
 
@@ -367,7 +366,6 @@ int32_t PIOS_SYS_SerialNumberGet(char *str)
 	/* No error */
 	return 0;
 }
-
 #endif
 
 /**
