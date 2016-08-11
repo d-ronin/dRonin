@@ -412,6 +412,8 @@ static void PIOS_BMX_Task(void *parameters)
 		uint8_t acc_buf[BMX055_REG_ACC_TEMP - BMX055_REG_ACC_X_LSB + 1];
 		uint8_t gyro_buf[BMX055_REG_GYRO_Z_MSB - BMX055_REG_GYRO_X_LSB + 1];
 
+		PIOS_SPI_SetClockSpeed(bmx_dev->spi_id, 10000000);
+
 		PIOS_SPI_RC_PinSet(bmx_dev->spi_id, bmx_dev->spi_slave_accel, 
 			false);
 

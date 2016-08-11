@@ -135,6 +135,8 @@ static void PIOS_FLYINGPIO_Task(void *parameters)
 		if (PIOS_SPI_ClaimBus(fpio_dev->spi_id) != 0)
 			continue;
 
+		PIOS_SPI_SetClockSpeed(fpio_dev->spi_id, 15000000);
+
 		PIOS_SPI_RC_PinSet(fpio_dev->spi_id, fpio_dev->spi_slave, 
 			false);
 
