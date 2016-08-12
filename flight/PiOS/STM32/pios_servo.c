@@ -325,7 +325,13 @@ void PIOS_Servo_Update(void)
  * @retval Clock frequency in Hz
  */
 
-#if defined(STM32F10X_MD) /* F1 */
+#if defined(STM32F0XX) /* F0 */
+static uint32_t timer_apb_clock(TIM_TypeDef *timer)
+{
+	return PIOS_PERIPHERAL_APB1_CLOCK;
+}
+
+#elif defined(STM32F10X_MD) /* F1 */
 
 static uint32_t timer_apb_clock(TIM_TypeDef *timer)
 {

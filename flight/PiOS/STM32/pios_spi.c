@@ -79,6 +79,7 @@ int32_t PIOS_SPI_Init(uint32_t *spi_id, const struct pios_spi_cfg *cfg)
 
 	PIOS_Assert(spi_id);
 	PIOS_Assert(cfg);
+	PIOS_Assert(cfg->init.SPI_Mode == SPI_Mode_Master);
 
 	struct pios_spi_dev *spi_dev;
 
@@ -92,23 +93,17 @@ int32_t PIOS_SPI_Init(uint32_t *spi_id, const struct pios_spi_cfg *cfg)
 
 	switch (spi_dev->cfg->init.SPI_NSS) {
 	case SPI_NSS_Soft:
-		if (spi_dev->cfg->init.SPI_Mode == SPI_Mode_Master) {
-			/* We're a master in soft NSS mode, make sure we see NSS high at all times. */
-			SPI_NSSInternalSoftwareConfig(spi_dev->cfg->regs, SPI_NSSInternalSoft_Set);
-			/* Init as many slave selects as the config advertises. */
-			init_ssel = spi_dev->cfg->slave_count;
-		} else {
-			/* We're a slave in soft NSS mode, make sure we see NSS low at all times. */
-			SPI_NSSInternalSoftwareConfig(spi_dev->cfg->regs, SPI_NSSInternalSoft_Reset);
-		}
+		/* We're a master in soft NSS mode, make sure we see NSS high at all times. */
+		SPI_NSSInternalSoftwareConfig(spi_dev->cfg->regs, SPI_NSSInternalSoft_Set);
+		/* Init as many slave selects as the config advertises. */
+		init_ssel = spi_dev->cfg->slave_count;
 		break;
 
 	case SPI_NSS_Hard:
 		/* only legal for single-slave config */
 		PIOS_Assert(spi_dev->cfg->slave_count == 1);
 		init_ssel = 1;
-		SPI_SSOutputCmd(spi_dev->cfg->regs, (spi_dev->cfg->init.SPI_Mode == SPI_Mode_Master) ? ENABLE : DISABLE);
-		/* FIXME: Should this also call SPI_SSOutputCmd()? */
+		SPI_SSOutputCmd(spi_dev->cfg->regs, ENABLE);
 		break;
 
 	default:
@@ -139,13 +134,10 @@ int32_t PIOS_SPI_Init(uint32_t *spi_id, const struct pios_spi_cfg *cfg)
 	GPIO_Init(spi_dev->cfg->mosi.gpio, (GPIO_InitTypeDef *) & (spi_dev->cfg->mosi.init));
 	GPIO_Init(spi_dev->cfg->miso.gpio, (GPIO_InitTypeDef *) & (spi_dev->cfg->miso.init));
 
-	if (spi_dev->cfg->init.SPI_NSS != SPI_NSS_Hard) {
-		for (uint32_t i = 0; i < init_ssel; i++) {
-			/* Since we're driving the SSEL pin in software, ensure that the slave is deselected */
-			/* XXX multi-slave support - maybe have another SPI_NSS_ mode? */
-			GPIO_SetBits(spi_dev->cfg->ssel[i].gpio, spi_dev->cfg->ssel[i].init.GPIO_Pin);
-			GPIO_Init(spi_dev->cfg->ssel[i].gpio, (GPIO_InitTypeDef *) & (spi_dev->cfg->ssel[i].init));
-		}
+	for (uint32_t i = 0; i < init_ssel; i++) {
+		/* Since we're driving the SSEL pin in software, ensure that the slave is deselected */
+		GPIO_SetBits(spi_dev->cfg->ssel[i].gpio, spi_dev->cfg->ssel[i].init.GPIO_Pin);
+		GPIO_Init(spi_dev->cfg->ssel[i].gpio, (GPIO_InitTypeDef *) & (spi_dev->cfg->ssel[i].init));
 	}
 
 	/* Initialize the SPI block */

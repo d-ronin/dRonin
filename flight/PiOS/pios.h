@@ -45,12 +45,14 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdarg.h>
+#include <stdint.h>
+#include <stdbool.h>
 #include <string.h>
 #include <math.h>
 
 #ifndef SIM_POSIX
 
-/* STM32 Std Perf Lib */
+/* STM32 Std Periph Lib */
 #if defined(STM32F4XX)
 # include <stm32f4xx.h>
 # include <stm32f4xx_rcc.h>
@@ -60,6 +62,8 @@
 #elif defined(STM32F2XX)
 #include <stm32f2xx.h>
 #include <stm32f2xx_syscfg.h>
+#elif defined(STM32F0XX)
+#include <stm32f0xx.h>
 #else
 #include <stm32f10x.h>
 #endif

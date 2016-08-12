@@ -58,9 +58,9 @@ struct pios_com_dev {
 	uintptr_t lower_id;
 	const struct pios_com_driver * driver;
 
-#if defined(PIOS_INCLUDE_FREERTOS) || defined(PIOS_INCLUDE_CHIBIOS)
 	struct pios_semaphore *tx_sem;
 	struct pios_semaphore *rx_sem;
+#if defined(PIOS_INCLUDE_FREERTOS) || defined(PIOS_INCLUDE_CHIBIOS)
 	struct pios_mutex *sendbuffer_mtx;
 #endif
 
