@@ -141,7 +141,7 @@ fail:
 #endif
 
 static void go_realtime() {
-#ifndef __APPLE__
+#ifdef __linux__
 	/* First, pin all our memory.  We don't want stuff we need
 	 * to get faulted out. */
 	int rc = mlockall(MCL_CURRENT | MCL_FUTURE);
@@ -181,7 +181,7 @@ static void go_realtime() {
 		exit(1);
 	}
 #else
-	printf("Unable to do realtime stuff on OS X\n");
+	printf("Only can do realtime stuff on Linux\n");
 	exit(1);
 #endif
 }
