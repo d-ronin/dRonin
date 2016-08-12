@@ -85,8 +85,6 @@ const struct pios_led_cfg * PIOS_BOARD_HW_DEFS_GetLedCfg (uint32_t board_revisio
 /* SPI3 Interface
  *      - Used for flash communications
  */
-void PIOS_SPI_flash_irq_handler(void);
-void DMA1_Stream2_IRQHandler(void) __attribute__((alias("PIOS_SPI_flash_irq_handler")));
 static const struct pios_spi_cfg pios_spi_flash_cfg = {
 	.regs = SPI3,
 	.remap = GPIO_AF_SPI3,
@@ -149,11 +147,6 @@ static const struct pios_spi_cfg pios_spi_flash_cfg = {
 };
 
 uint32_t pios_spi_flash_id;
-void PIOS_SPI_flash_irq_handler(void)
-{
-	/* Call into the generic code to handle the IRQ for this specific device */
-	PIOS_SPI_IRQ_Handler(pios_spi_flash_id);
-}
 
 #endif	/* PIOS_INCLUDE_SPI */
 

@@ -112,9 +112,6 @@ const struct pios_led_cfg * PIOS_BOARD_HW_DEFS_GetLedCfg (uint32_t board_revisio
 /* SPI1 Interface
  *      - Used for LIS302DL Accelerometer
  */
-void PIOS_SPI_accel_irq_handler(void);
-void DMA1_Stream0_IRQHandler(void) __attribute__((alias("PIOS_SPI_accel_irq_handler")));
-void DMA1_Stream5_IRQHandler(void) __attribute__((alias("PIOS_SPI_accel_irq_handler")));
 static const struct pios_spi_cfg pios_spi_accel_cfg = {
 	.regs = SPI1,
 //	.remap = GPIO_AF_SPI2,
@@ -176,11 +173,6 @@ static const struct pios_spi_cfg pios_spi_accel_cfg = {
 };
 
 uint32_t pios_spi_accel_id;
-void PIOS_SPI_accel_irq_handler(void)
-{
-	/* Call into the generic code to handle the IRQ for this specific device */
-	PIOS_SPI_IRQ_Handler(pios_spi_accel_id);
-}
 
 #endif	/* PIOS_INCLUDE_SPI */
 

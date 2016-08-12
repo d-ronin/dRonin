@@ -67,9 +67,6 @@ const struct pios_led_cfg * PIOS_BOARD_HW_DEFS_GetLedCfg (uint32_t board_revisio
 #include <pios_spi_priv.h>
 
 /* Gyro interface */
-void PIOS_SPI_gyro_irq_handler(void);
-void DMA1_Channel2_IRQHandler() __attribute__ ((alias ("PIOS_SPI_gyro_irq_handler")));
-void DMA1_Channel3_IRQHandler() __attribute__ ((alias ("PIOS_SPI_gyro_irq_handler")));
 static const struct pios_spi_cfg pios_spi_gyro_cfg = {
 	.regs   = SPI1,
 	.init   = {
@@ -118,22 +115,11 @@ static const struct pios_spi_cfg pios_spi_gyro_cfg = {
 	}},	
 };
 
-static uint32_t pios_spi_gyro_id;
-void PIOS_SPI_gyro_irq_handler(void)
-{
-	/* Call into the generic code to handle the IRQ for this specific device */
-	PIOS_SPI_IRQ_Handler(pios_spi_gyro_id);
-}
-
-
 /* Flash/Accel Interface
  * 
  * NOTE: Leave this declared as const data so that it ends up in the 
  * .rodata section (ie. Flash) rather than in the .data section (RAM).
  */
-void PIOS_SPI_flash_accel_irq_handler(void);
-void DMA1_Channel4_IRQHandler() __attribute__ ((alias ("PIOS_SPI_flash_accel_irq_handler")));
-void DMA1_Channel5_IRQHandler() __attribute__ ((alias ("PIOS_SPI_flash_accel_irq_handler")));
 static const struct pios_spi_cfg pios_spi_flash_accel_cfg_cc3d = {
 	.regs   = SPI2,
 	.init   = {
@@ -190,11 +176,6 @@ static const struct pios_spi_cfg pios_spi_flash_accel_cfg_cc3d = {
 
 
 static uint32_t pios_spi_flash_accel_id;
-void PIOS_SPI_flash_accel_irq_handler(void)
-{
-	/* Call into the generic code to handle the IRQ for this specific device */
-	PIOS_SPI_IRQ_Handler(pios_spi_flash_accel_id);
-}
 
 #endif	/* PIOS_INCLUDE_SPI */
 

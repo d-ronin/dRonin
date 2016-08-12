@@ -344,6 +344,8 @@ void PIOS_Board_Init(void) {
 	// Revision 2 with MPU6000 gyros, start a SPI interface and connect to it
 	GPIO_PinRemapConfig(GPIO_Remap_SWJ_JTAGDisable, ENABLE);
 #if defined(PIOS_INCLUDE_MPU)
+	uint32_t pios_spi_gyro_id;
+
 	if (PIOS_SPI_Init(&pios_spi_gyro_id, &pios_spi_gyro_cfg)) {
 		PIOS_Assert(0);
 	}

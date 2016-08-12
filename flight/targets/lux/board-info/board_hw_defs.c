@@ -82,7 +82,6 @@ const struct pios_led_cfg * PIOS_BOARD_HW_DEFS_GetLedCfg (uint32_t board_revisio
  * SPI1 Interface
  * Used for MPU9250 gyro, accelerometer and mag
  */
-void PIOS_SPI_gyro_irq_handler(void);
 static const struct pios_spi_cfg pios_spi_gyro_cfg = {
     .regs = SPI1,
     .remap = GPIO_AF_5,
@@ -142,13 +141,6 @@ static const struct pios_spi_cfg pios_spi_gyro_cfg = {
         },
     } },
 };
-
-static uint32_t pios_spi_gyro_id;
-void PIOS_SPI_gyro_irq_handler(void)
-{
-    /* Call into the generic code to handle the IRQ for this specific device */
-    PIOS_SPI_IRQ_Handler(pios_spi_gyro_id);
-}
 #endif
 
 #if defined(PIOS_INCLUDE_FLASH)

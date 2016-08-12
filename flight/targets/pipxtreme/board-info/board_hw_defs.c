@@ -125,9 +125,6 @@ const struct pios_led_cfg * PIOS_BOARD_HW_DEFS_GetLedCfg (uint32_t board_revisio
  * NOTE: Leave this declared as const data so that it ends up in the
  * .rodata section (ie. Flash) rather than in the .bss section (RAM).
  */
-void PIOS_SPI_port_irq_handler(void);
-void DMA1_Channel5_IRQHandler() __attribute__ ((alias ("PIOS_SPI_port_irq_handler")));
-void DMA1_Channel4_IRQHandler() __attribute__ ((alias ("PIOS_SPI_port_irq_handler")));
 
 static const struct pios_spi_cfg pios_spi_rfm22b_cfg =
 {
@@ -189,11 +186,6 @@ static const struct pios_spi_cfg pios_spi_rfm22b_cfg =
 };
 
 uint32_t pios_spi_rfm22b_id;
-void PIOS_SPI_port_irq_handler(void)
-{
-	/* Call into the generic code to handle the IRQ for this specific device */
-	PIOS_SPI_IRQ_Handler(pios_spi_rfm22b_id);
-}
 
 #endif /* PIOS_INCLUDE_SPI */
 
