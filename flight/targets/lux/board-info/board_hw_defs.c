@@ -320,7 +320,7 @@ static const struct pios_usart_cfg pios_uart2_cfg = {
 			.GPIO_Speed = GPIO_Speed_2MHz,
 			.GPIO_Mode  = GPIO_Mode_AF,
 			.GPIO_OType = GPIO_OType_PP,
-			.GPIO_PuPd  = GPIO_PuPd_UP
+			.GPIO_PuPd  = GPIO_PuPd_DOWN
 		},
 		.pin_source = GPIO_PinSource14,
 	},
@@ -355,7 +355,7 @@ static const struct pios_usart_cfg pios_uart3_cfg = {
 			.GPIO_Speed = GPIO_Speed_2MHz,
 			.GPIO_Mode  = GPIO_Mode_AF,
 			.GPIO_OType = GPIO_OType_PP,
-			.GPIO_PuPd  = GPIO_PuPd_UP
+			.GPIO_PuPd  = GPIO_PuPd_DOWN
 		},
 		.pin_source = GPIO_PinSource10,
 	},
@@ -390,7 +390,7 @@ static const struct pios_usart_cfg pios_rxport_usart_cfg = {
 			.GPIO_Speed = GPIO_Speed_2MHz,
 			.GPIO_Mode  = GPIO_Mode_AF,
 			.GPIO_OType = GPIO_OType_PP,
-			.GPIO_PuPd  = GPIO_PuPd_UP
+			.GPIO_PuPd  = GPIO_PuPd_DOWN
 		},
 		.pin_source = GPIO_PinSource4,
 	},
