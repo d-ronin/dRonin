@@ -72,7 +72,7 @@ const struct pios_led_cfg * PIOS_BOARD_HW_DEFS_GetLedCfg (uint32_t board_revisio
 
 #include "flyingpio_messages.h"
 
-void process_pio_message(void *ctx, int len, int *resp_len);
+static void process_pio_message(void *ctx, int len, int *resp_len);
 
 /* SPI command link interface
  *

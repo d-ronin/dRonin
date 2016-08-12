@@ -35,7 +35,49 @@
 
 void PIOS_Board_Init(void);
 
-void process_pio_message(void *ctx, int len, int *resp_len)
+static bool inited;
+static struct flyingpicmd_cfg_fa cfg;
+
+// The other side should give us a little time to deal with this,
+// as we need to copy stuff and initialize hardware.
+static void handle_cfg_fa(struct flyingpicmd_cfg_fa *cmd) {
+	PIOS_Assert(pios_servo_cfg.num_channels <= FPPROTO_MAX_SERVOS);
+
+	// Copy so that we can refer to this later.
+	memcpy(&cfg, cmd, sizeof(cfg));
+
+	uint16_t minimums[pios_servo_cfg.num_channels];
+	uint16_t maximums[pios_servo_cfg.num_channels];
+
+	// Annoying reformat..
+	for (int i=0; i < pios_servo_cfg.num_channels; i++) {
+		minimums[i] = cfg.actuators[i].min;
+		maximums[i] = cfg.actuators[i].max;
+	}
+
+	PIOS_Servo_SetMode(cfg.rate, FPPROTO_MAX_BANKS, maximums, minimums);
+
+	inited = true;
+}
+
+static void handle_actuator_fc(struct flyingpicmd_actuator_fc *cmd) {
+	PIOS_Assert(inited);
+
+	for (int i=0; i < pios_servo_cfg.num_channels; i++) {
+		PIOS_Servo_SetFraction(i, cmd->values[i],
+			cfg.actuators[i].max, cfg.actuators[i].min);
+	}
+
+	PIOS_Servo_Update();
+
+	if (cmd->led_status) {
+		PIOS_LED_On(PIOS_LED_HEARTBEAT);
+	} else {
+		PIOS_LED_Off(PIOS_LED_HEARTBEAT);
+	}
+}
+
+static void process_pio_message(void *ctx, int len, int *resp_len)
 {
 	(void) ctx;
 	(void) len;
@@ -46,15 +88,22 @@ void process_pio_message(void *ctx, int len, int *resp_len)
 		return;
 	}
 
-	if (rx_buf.id == FLYINGPICMD_ACTUATOR) {
-		if (rx_buf.body.actuator_fc.led_status) {
-			PIOS_LED_On(PIOS_LED_HEARTBEAT);
-		} else {
-			PIOS_LED_Off(PIOS_LED_HEARTBEAT);
-		}
+	switch (rx_buf.id) {
+		case FLYINGPICMD_ACTUATOR:
+			handle_actuator_fc(&rx_buf.body.actuator_fc);
+			break;
+		case FLYINGPICMD_CFG:
+			handle_cfg_fa(&rx_buf.body.cfg_fa);
+			break;
+		default:
+			/* We got a message with an unknown type, but valid
+			 * CRC.  no bueno. */
+			PIOS_Assert(0);
+			break;
 	}
+			
 	/* If we get an edge and no clocking.. make sure the message is
-	 * invalidated */
+	 * invalidated / not reused */
 	rx_buf.id = 0;
 }
 

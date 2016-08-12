@@ -294,8 +294,11 @@ void PIOS_Servo_SetFraction(uint8_t servo, uint16_t fraction,
 	// Seconds * 1000000 : 16.0
 	uint16_t spread = max_val - min_val;
 
+	uint64_t val = min_val;
+	val = val << 16;
 	// Seconds * 1000000 : 16.16
-	uint64_t val = spread * fraction + (min_val << 16);
+
+	val += spread * fraction;
 
 	// Multiply by ticks/second to get: Ticks * 1000000: 36.16
 	val *= output_channel_resolution[servo];
