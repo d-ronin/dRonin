@@ -98,6 +98,7 @@ class GenericSymbolDump(object):
 
 		if proc.returncode != 0:
 			warning("Invalid symbols [{0}]: {1}".format(proc.returncode, cmd[-1]))
+			warning("Command: " + " ".join(cmd))
 			warning(err)
 			return
 		elif err:
@@ -136,9 +137,11 @@ class MacOSSymbolDump(GenericSymbolDump):
 		return sig[0] == "Mach-O" and sig[2] != "dSYM"
 
 	def find_debug_symbols(self, file):
-		dsym = file + ".dSYM"
+		# TODO: make this prettier
+		dsym = os.path.join(self.debug_path, "dRonin-GCS.app", os.path.relpath(file, self.root_path) + ".dSYM")
+		debug("Looking for .dSYM: " + dsym)
 		if os.path.isdir(dsym):
-			info("Found symbol file: " + os.path.relpath(dsym, self.root_path))
+			info("Found symbol file: " + os.path.relpath(dsym, self.debug_path))
 			return os.path.realpath(dsym)
 		return None
 
@@ -229,6 +232,12 @@ def main():
 	else:
 		raise NotImplementedError("Unsupported OS")
 
+	# dumpers expect these to exist
+	mkdir_if_not_exist(breakpad_dir)
+	mkdir_if_not_exist(debug_dir)
+	dumper.set_debug_out_dir(debug_dir)
+	dumper.set_breakpad_out_dir(breakpad_dir)
+
 	if dumper.enumerate_targets() == 0:
 		error("No object files found!")
 		return 1
@@ -237,20 +246,13 @@ def main():
 	if os.path.exists(breakpad_dir):
 		info("Removing directory: " + breakpad_dir)
 		shutil.rmtree(breakpad_dir, True)
-	if os.path.exists(debug_dir):
-		info("Removing directory: " + debug_dir)
-		shutil.rmtree(debug_dir, True)
-
-	# dumpers expect these to exist
-	mkdir_if_not_exist(breakpad_dir)
-	mkdir_if_not_exist(debug_dir)
-	dumper.set_debug_out_dir(debug_dir)
-	dumper.set_breakpad_out_dir(breakpad_dir)
 
 	if args.dumpsyms:
 		dumper.set_dump_syms_path(args.dumpsyms)
 	dumper.generate_breakpad_symbols()
-	dumper.move_debug_syms()
+	# this is done earlier in build process to work around macdeployqt bug
+	if platform.system() != "Darwin":
+		dumper.move_debug_syms()
 
 	return 0
 

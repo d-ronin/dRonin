@@ -12,7 +12,10 @@ VOL_NAME="dRonin"
 GCS_PACKAGE_ROOT := $(GCS_PACKAGE_NAME)/$(APP_NAME_OSX)
 
 # calls macdeployqt and bundles the extra libraries into .app
+# first need to workaround macdeployqt bug which results in a crash if debug symbols are in the tree
 standalone: $(STANDALONE_DEPENDENCIES)
+	@echo "Moving debug symbols"
+	"${ROOT_DIR}/package/move_dsym.sh" "$(APP_PATH)" "$(PACKAGE_DIR)-symbols/debug"
 	"${ROOT_DIR}/package/osx/libraries" ${APP_PATH}/${APP_NAME_OSX}
 
 # puts the files into a dmg
@@ -33,10 +36,6 @@ ground_package_os_specific: | standalone
 	@echo $@ starting
 	$(V1) rm -r -f $(PACKAGE_DIR)/$(GCS_PACKAGE_ROOT)
 	$(V1) mkdir -p $(PACKAGE_DIR)/$(GCS_PACKAGE_NAME)
-	# work around Qt funkiness to get main app debug symbols
-	if [ -d $(BUILD_DIR)/ground/gcs/bin/$(APP_NAME_OSX).dSYM ] ; then \
-		mv $(BUILD_DIR)/ground/gcs/bin/$(APP_NAME_OSX).dSYM $(BUILD_DIR)/ground/gcs/bin/$(APP_NAME_OSX)/Contents/MacOS/$(EXE_NAME_OSX).dSYM ; \
-	fi;
 	$(V1) cp -v -R $(BUILD_DIR)/ground/gcs/bin/$(APP_NAME_OSX) $(PACKAGE_DIR)/$(GCS_PACKAGE_NAME)
 .PHONY: gcs ground_package osx_package
 
