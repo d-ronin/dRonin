@@ -79,6 +79,7 @@ class GenericSymbolDump(object):
 		self.debug_path = os.path.realpath(path)
 
 	def generate_breakpad_symbols(self):
+		info("Using dump_syms: " + self.dump_syms)
 		for t in self.targets:
 			info("Processing breakpad symbols for: " + os.path.basename(self.targets[t]["source_file"]))
 			cmd = self.get_dump_syms_cmd(self.targets[t]["source_file"], self.targets[t]["debug_symbols"])
@@ -87,7 +88,12 @@ class GenericSymbolDump(object):
 
 	def process_dump_syms(self, cmd):
 		syms = ""
-		proc = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+		try:
+			proc = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+		except OSError as e:
+			error("Cannot execute dump_syms, is it installed? (try make breakpad_install)")
+			error(str(e))
+			return
 		syms, err = proc.communicate()
 
 		if proc.returncode != 0:
