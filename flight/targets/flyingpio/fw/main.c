@@ -57,11 +57,20 @@ static void handle_cfg_fa(struct flyingpicmd_cfg_fa *cmd) {
 
 	PIOS_Servo_SetMode(cfg.rate, FPPROTO_MAX_BANKS, maximums, minimums);
 
+	/* OK, game on.  From here on out we may end up generating PWM.
+	 * so it's time to enable the watchdog. */
+
+	PIOS_WDG_Init();
 	inited = true;
 }
 
 static void handle_actuator_fc(struct flyingpicmd_actuator_fc *cmd) {
-	PIOS_Assert(inited);
+	if (!inited) {
+		/* Can happen after a watchdog reset... In which case,
+		 * wait for the upstream processor to tll us it's OK
+		 */
+		return;
+	}
 
 	for (int i=0; i < pios_servo_cfg.num_channels; i++) {
 		PIOS_Servo_SetFraction(i, cmd->values[i],
@@ -75,6 +84,8 @@ static void handle_actuator_fc(struct flyingpicmd_actuator_fc *cmd) {
 	} else {
 		PIOS_LED_Off(PIOS_LED_HEARTBEAT);
 	}
+
+	PIOS_WDG_Clear();
 }
 
 static void process_pio_message(void *ctx, int len, int *resp_len)

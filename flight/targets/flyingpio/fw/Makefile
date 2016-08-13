@@ -83,6 +83,7 @@ SRC += pios_servo.c
 SRC += pios_spislave.c
 SRC += pios_sys.c
 SRC += pios_tim.c
+SRC += pios_wdg.c
 
 #SRC += pios_dsm.c
 #SRC += pios_rcvr.c
@@ -123,7 +124,6 @@ SRC += pios_tim.c
 #SRC += pios_irq.c
 #SRC += pios_pwm.c
 #SRC += pios_debug.c
-#SRC += pios_wdg.c
 #SRC += pios_reset.c
 
 SRC += 	$(wildcard $(STMSPDSRCDIR)/*.c)

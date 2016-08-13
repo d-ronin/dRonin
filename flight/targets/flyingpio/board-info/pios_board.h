@@ -41,8 +41,7 @@
 //------------------------
 // PIOS_WDG
 //------------------------
-#define PIOS_WATCHDOG_TIMEOUT			250
-#define PIOS_WDG_REGISTER				BKP_DR4
+#define PIOS_WATCHDOG_TIMEOUT			125
 
 //------------------------
 // PIOS_I2C

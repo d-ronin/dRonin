@@ -40,6 +40,7 @@
 #define PIOS_INCLUDE_TIM
 #define PIOS_INCLUDE_SERVO
 #define PIOS_INCLUDE_SPISLAVE
+#define PIOS_INCLUDE_WDG
 
 /* Supported receiver interfaces */
 //#define PIOS_INCLUDE_RCVR
