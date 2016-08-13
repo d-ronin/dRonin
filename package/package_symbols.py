@@ -89,12 +89,13 @@ class GenericSymbolDump(object):
 		syms = ""
 		proc = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 		syms, err = proc.communicate()
-		if err:
-			debug(err)
 
 		if proc.returncode != 0:
 			warning("Invalid symbols [{0}]: {1}".format(proc.returncode, cmd[-1]))
+			warning(err)
 			return
+		elif err:
+			debug(err)
 
 		lines = syms.splitlines()
 		assert(len(lines) > 0)
