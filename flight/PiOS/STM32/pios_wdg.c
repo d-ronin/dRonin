@@ -52,14 +52,19 @@
 
 #define RTC_ReadBackupRegister BKP_ReadBackupRegister
 #define RTC_WriteBackupRegister BKP_WriteBackupRegister
+#elif defined(STM32F0XX) /* F0 */
+#include "stm32f0xx_iwdg.h"
+#include "stm32f0xx_dbgmcu.h"
 #else 
 #error Attempted to build on unsupported target
 #endif
 
+#if defined(PIOS_WDG_REGISTER)
 static struct wdg_configuration {
 	uint16_t used_flags;
 	uint16_t bootup_flags;
 } wdg_configuration;
+#endif
 
 /** 
  * @brief Initialize the watchdog timer for a specified timeout
@@ -90,6 +95,9 @@ uint16_t PIOS_WDG_Init()
 	IWDG_ReloadCounter();
 	IWDG_Enable();
 
+	// PIOS_WDG_REGISTER is used to choose whether the flag-mode is available
+	// for watchdog.. for maximal compatability with existing targets
+#ifdef PIOS_WDG_REGISTER
 	// watchdog flags now stored in backup registers
 	PWR_BackupAccessCmd(ENABLE);
 
@@ -100,10 +108,12 @@ uint16_t PIOS_WDG_Init()
 	 * can't influence the current one
 	 */
 	RTC_WriteBackupRegister(PIOS_WDG_REGISTER, 0);
+#endif // PIOS_WDG_REGISTER
 #endif
 	return delay;
 }
 
+#ifdef PIOS_WDG_REGISTER
 /**
  * @brief Register a module against the watchdog 
  * 
@@ -161,7 +171,6 @@ bool PIOS_WDG_UpdateFlag(uint16_t flag)
 		RTC_WriteBackupRegister(PIOS_WDG_REGISTER, cur_flags | flag);
 		return false;
 	}
-		
 }
 
 /** 
@@ -188,6 +197,7 @@ uint16_t PIOS_WDG_GetActiveFlags()
 {
 	return RTC_ReadBackupRegister(PIOS_WDG_REGISTER);
 }
+#endif //PIOS_WDG_REGISTER
 
 /**
  * @brief Clear the watchdog timer
