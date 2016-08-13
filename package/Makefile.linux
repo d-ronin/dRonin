@@ -68,6 +68,7 @@ ground_package_os_specific: ground_package_common
 
 installer_package: deb_build ground_package extract_firmware
 	@echo $@ starting
+	$(V1) rm -rf "$(PACKAGE_DIR)"/firmware_$(PACKAGE_LBL)/*.debug
 	$(V1) cd $(BUILD_DIR) && dpkg-buildpackage -b -us -uc
 	$(V1) mv $(ROOT_DIR)/dronin_$(VERSION_FULL)_$(PLATFORM_NAME).deb $(PACKAGE_DIR)
 	$(V1) mv $(ROOT_DIR)/dronin_$(VERSION_FULL)_$(PLATFORM_NAME).changes $(PACKAGE_DIR)

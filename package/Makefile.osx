@@ -17,6 +17,7 @@ standalone: $(STANDALONE_DEPENDENCIES)
 
 # puts the files into a dmg
 dmg: ground_package extract_firmware matlab
+	$(V1) rm -rf "$(PACKAGE_DIR)"/firmware_$(PACKAGE_LBL)/*.debug
 	ROOT_DIR="$(ROOT_DIR)" \
 	BUILD_DIR="$(BUILD_DIR)" \
 	PACKAGE_LBL="$(PACKAGE_LBL)" \
