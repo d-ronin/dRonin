@@ -606,6 +606,7 @@ $(1): fw_$(1)_tlfw
 fw_$(1): fw_$(1)_tlfw
 
 FW_FILES += $(BUILD_DIR)/fw_$(1)/fw_$(1).tlfw
+FW_FILES += $(BUILD_DIR)/fw_$(1)/fw_$(1).debug
 
 fw_$(1)_%: TARGET=fw_$(1)
 fw_$(1)_%: OUTDIR=$(BUILD_DIR)/$$(TARGET)
@@ -645,6 +646,7 @@ define BL_TEMPLATE
 bl_$(1): bl_$(1)_bin
 
 FW_FILES += $(BUILD_DIR)/bl_$(1)/bl_$(1).bin
+FW_FILES += $(BUILD_DIR)/bl_$(1)/bl_$(1).debug
 
 bl_$(1)_%: TARGET=bl_$(1)
 bl_$(1)_%: OUTDIR=$(BUILD_DIR)/$$(TARGET)
@@ -690,6 +692,7 @@ define BU_TEMPLATE
 bu_$(1): bu_$(1)_tlfw
 
 FW_FILES += $(BUILD_DIR)/bu_$(1)/bu_$(1).tlfw
+FW_FILES += $(BUILD_DIR)/bu_$(1)/bu_$(1).debug
 
 bu_$(1)_%: TARGET=bu_$(1)
 bu_$(1)_%: OUTDIR=$(BUILD_DIR)/$$(TARGET)
@@ -791,6 +794,7 @@ define UP_TEMPLATE
 up_$(1): up_$(1)_tlfw
 
 FW_FILES += $(BUILD_DIR)/up_$(1)/up_$(1).tlfw
+FW_FILES += $(BUILD_DIR)/up_$(1)/up_$(1).debug
 
 up_$(1)_%: TARGET=up_$(1)
 up_$(1)_%: OUTDIR=$(BUILD_DIR)/$$(TARGET)

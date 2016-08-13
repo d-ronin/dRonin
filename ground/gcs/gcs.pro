@@ -12,6 +12,10 @@ TEMPLATE  = subdirs
 CONFIG   += ordered
 
 SUBDIRS = src share copydata
-unix:!macx:!isEmpty(copydata):SUBDIRS += bin
+unix:!macx:!isEmpty(copydata) {
+	bin_install.target = FORCE
+	bin_install.commands = cp $$GCS_SOURCE_TREE/bin/gcs $$GCS_APP_PATH/$$GCS_APP_WRAPPER
+	QMAKE_EXTRA_TARGETS += bin_install
+}
 
 copydata.file = copydata.pro

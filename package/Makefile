@@ -73,7 +73,7 @@ $(PACKAGE_DIR):
 
 # Order-only dependencies
 
-package_ground: | ground_package
+package_ground: | ground_package package_ground_symbols
 
 package_installer: | installer_package
 
@@ -88,8 +88,17 @@ extract_firmware: $(EXTRACT_FIRMWARE_DEPENDENCIES)
 package_info:
 	$(shell $(VERSION_CMD) --uavodir=$(ROOT_DIR)/shared/uavobjectdefinition --template=$(ROOT_DIR)/make/templates/packageversioninfo.json --outfile=$(PACKAGE_DIR)/packageversioninfo.json)
 
+package_ground_symbols:
+	@echo Gathering GCS debug symbols
+	$(V1)$(PYTHON) "$(ROOT_DIR)/package/package_symbols.py" -d "$(DUMP_SYMBOLS_TOOL)" -p "$(PACKAGE_DIR)" "$(PACKAGE_DIR)/$(GCS_PACKAGE_ROOT)"
+
+package_flight_symbols: extract_firmware
+	$(V1)$(RM) -rf "$(PACKAGE_DIR)-symbols/flight"
+	$(V1)mkdir -p "$(PACKAGE_DIR)-symbols/flight"
+	$(V1)cd "$(PACKAGE_DIR)/firmware_$(PACKAGE_LBL)" && mv *.debug "$(PACKAGE_DIR)-symbols/flight"
+
 .PHONY: help
-.PHONY: package_ground package_all package_installer package_info
+.PHONY: package_ground package_all package_installer package_info package_ground_symbols package_flight_symbols
 .PHONY: extract_firmware
 
 ground_package: ground_package_os_specific

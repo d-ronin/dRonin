@@ -1,3 +1,5 @@
+include (tools.pri)
+
 isEmpty(BRANDING_PATH) {
 BRANDING_PATH = $$PWD/../../branding
 DEFINES += BRANDING_PATH=\\\"$$BRANDING_PATH\\\"
@@ -21,9 +23,7 @@ defineReplace(qtLibraryName) {
    LIBRARY_NAME = $$1
    CONFIG(debug, debug|release) {
       !debug_and_release|build_pass {
-         !RELEASE_WITH_SYMBOLS {
           mac:RET = $$member(LIBRARY_NAME, 0)_debug
-          }
           win32:RET = $$member(LIBRARY_NAME, 0)d
       }
    }
@@ -46,9 +46,6 @@ isEmpty(GCS_LIBRARY_BASENAME) {
     GCS_LIBRARY_BASENAME = lib
 }
 
-RELEASE_WITH_SYMBOLS {
-DEFINES += RELEASE_WITH_SYMBOLS
-}
 DEFINES += GCS_LIBRARY_BASENAME=\\\"$$GCS_LIBRARY_BASENAME\\\"
 
 equals(TEST, 1) {
@@ -144,11 +141,6 @@ linux-g++* {
 win32 {
     # http://gcc.gnu.org/bugzilla/show_bug.cgi?id=52991
 !win32-msvc*:QMAKE_CXXFLAGS += -mno-ms-bitfields
-    RELEASE_WITH_SYMBOLS {
-        QMAKE_CFLAGS_RELEASE += -Zi
-        QMAKE_CXXFLAGS_RELEASE += -Zi
-        QMAKE_LFLAGS_RELEASE += /DEBUG /OPT:REF
-    }
 }
 
 unix {
@@ -165,13 +157,11 @@ unix {
 
 CONFIG += c++11
 
-unix {
-    # need debug info when we are collecting symbols for breakpad
-    # should be stripped by packaging makefiles for release builds
-    # as a temporary workaround until Jenkins script can be updated,
-    # always generate debug info in release config
-    #RELEASE_WITH_SYMBOLS {
-    CONFIG(release, debug|release) {
-        CONFIG += force_debug_info
-    }
+CONFIG(release, debug|release): unix | win32-msvc* {
+    # generate debug info for:
+    # a) debugging release builds with a native debugger
+    # b) generating breakpad symbols for use with crashreporter
+    # packaging scripts should deal with this appropriately (e.g. split it off into a separate package)
+    CONFIG += force_debug_info
+    CONFIG += separate_debug_info
 }
