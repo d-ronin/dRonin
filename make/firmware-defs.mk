@@ -206,27 +206,33 @@ endef
 # Link: create ELF output file from object files.
 #   $1 = elf file to produce
 #   $2 = list of object files that make up the elf file
+# Note: OSX doesn't have objcopy out-of-box so we can't use it native builds (e.g. sim)
 define LINK_TEMPLATE
 .SECONDARY : $(1)
 .PRECIOUS : $(2)
 $(1):  $(2)
 	@echo $(MSG_LINKING) $$(call toprel, $$@)
 	$(V1) $(CC) $(THUMB) $$(CFLAGS) $(2) --output $$@ $$(LDFLAGS)
+ifneq ($(TCHAIN_PREFIX),)
 	@echo $(MSG_DEBUG_SYMBOLS) $$(call toprel, $$@)
 	$(V1) $(OBJCOPY) --only-keep-debug $$@ $$(addsuffix .debug, $$(@:.elf=))
+endif
 endef
 
 # Link: create ELF output file from object files.
 #   $1 = elf file to produce
 #   $2 = list of object files that make up the elf file
+# Note: OSX doesn't have objcopy out-of-box so we can't use it native builds (e.g. sim)
 define LINK_CXX_TEMPLATE
 .SECONDARY : $(1)
 .PRECIOUS : $(2)
 $(1):  $(2)
 	@echo $(MSG_LINKING) $$(call toprel, $$@)
 	$(V1) $(CXX) $(THUMB) $$(CFLAGS) $(2) --output $$@ $$(LDFLAGS)
+ifneq ($(TCHAIN_PREFIX),)
 	@echo $(MSG_DEBUG_SYMBOLS) $$(call toprel, $$@)
 	$(V1) $(OBJCOPY) --only-keep-debug $$@ $$(addsuffix .debug, $$(@:.elf=))
+endif
 endef
 
 # $(1) = Name of binary image to write
