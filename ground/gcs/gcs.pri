@@ -124,7 +124,7 @@ unix {
 
 
 # use ccache with gcc
-*-g++* {
+CONFIG(debug, debug|release):*-g++* {
     QMAKE_CXX=$$(CCACHE_BIN) g++
 }
 
