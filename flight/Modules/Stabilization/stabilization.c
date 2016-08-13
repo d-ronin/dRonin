@@ -507,7 +507,6 @@ static void stabilizationTask(void* parameters)
 					if ((i < 2 && fabsf(gyro_filtered[i]) > 150.0f) ||
 											(i == 0 && fabsf(raw_input) > 0.2f)) {
 							pids[PID_GROUP_RATE + i].iAccumulator = 0;
-							pids[PID_GROUP_RATE + i].i = 0;
 							}
 
 					// Compute the inner loop
