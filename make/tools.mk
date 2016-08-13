@@ -614,6 +614,9 @@ breakpad_install: breakpad_clean
 	$(V0) @echo " EXTRACT      $(notdir $(BREAKPAD_DL_FILE))"
 	$(V1) mkdir -p "$(BREAKPAD_DIR)"
 	$(V1) unzip -q -d $(BREAKPAD_DIR) "$(BREAKPAD_DL_FILE)"
+ifeq ($(OSFAMILY), windows)
+	$(V1) ln -s "$(TOOLS_DIR)/breakpad/$(OSFAMILY)-i686" "$(TOOLS_DIR)/breakpad/$(OSFAMILY)-x86_64"
+endif
 
 .PHONY: breakpad_clean
 breakpad_clean:
