@@ -58,7 +58,7 @@ struct pios_flyingpio_dev {
 	uint32_t spi_id;                            /**< Handle to the communication driver */
 	uint32_t spi_slave;                         /**< The slave number (SPI) */
 
-        uint16_t msg_num;			    /**< Expected next msg count */
+	uint16_t msg_num;			    /**< Expected next msg count */
 	uint16_t err_cnt;			    /**< The error counter */
 };
 

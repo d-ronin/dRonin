@@ -50,7 +50,7 @@ extern void PIOS_Servo_SetMode(const uint16_t *out_rate, const int banks, const 
 
 #ifndef SIM_POSIX
 extern void PIOS_Servo_SetFraction(uint8_t servo, uint16_t fraction,
-                uint16_t max_val, uint16_t min_val);
+		uint16_t max_val, uint16_t min_val);
 #endif
 
 extern void PIOS_Servo_Set(uint8_t servo, float position);

@@ -259,14 +259,14 @@ static const struct pios_tim_clock_cfg tim_3_cfg = {
 
 
 static const struct pios_tim_clock_cfg tim_14_cfg = {
-        .timer = TIM14,
-        .time_base_init = &tim_time_base,
-        .irq = {
-                .init = {
-                        .NVIC_IRQChannel                   = TIM14_IRQn,
-                        .NVIC_IRQChannelCmd                = ENABLE,
-                },
-        },
+	.timer = TIM14,
+	.time_base_init = &tim_time_base,
+	.irq = {
+		.init = {
+			.NVIC_IRQChannel                   = TIM14_IRQn,
+			.NVIC_IRQChannelCmd                = ENABLE,
+		},
+	},
 };
 
 
@@ -530,6 +530,6 @@ const struct pios_ppm_cfg pios_ppm_cfg = {
 
 const struct pios_sbus_cfg *get_sbus_cfg(enum board_revision board_rev)
 {
-    (void)board_rev;
-    return NULL;
+	(void)board_rev;
+	return NULL;
 }
