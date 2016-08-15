@@ -38,6 +38,8 @@ void PIOS_Board_Init(void);
 static bool inited;
 static struct flyingpicmd_cfg_fa cfg;
 
+static uint16_t msg_num;
+
 // The other side should give us a little time to deal with this,
 // as we need to copy stuff and initialize hardware.
 static void handle_cfg_fa(struct flyingpicmd_cfg_fa *cmd) {
@@ -60,8 +62,10 @@ static void handle_cfg_fa(struct flyingpicmd_cfg_fa *cmd) {
 	/* OK, game on.  From here on out we may end up generating PWM.
 	 * so it's time to enable the watchdog. */
 
-	PIOS_WDG_Init();
-	inited = true;
+	if (!inited) {
+		PIOS_WDG_Init();
+		inited = true;
+	}
 }
 
 static void handle_actuator_fc(struct flyingpicmd_actuator_fc *cmd) {
@@ -88,17 +92,23 @@ static void handle_actuator_fc(struct flyingpicmd_actuator_fc *cmd) {
 	PIOS_WDG_Clear();
 }
 
-static void process_pio_message(void *ctx, int len, int *resp_len)
+static void generate_status_message(int *resp_len)
 {
-	(void) ctx;
-	(void) len;
+	tx_buf.id = FLYINGPIRESP_IO;
 
-	*resp_len = 3;
+	struct flyingpiresp_io_10 *resp = &tx_buf.body.io_10;
 
-	if (!flyingpi_calc_crc(&rx_buf, false, NULL)) {
-		return;
-	}
+	bzero(resp, sizeof(*resp));
 
+	resp->valid_messages_recvd = msg_num;
+
+	flyingpi_calc_crc(&tx_buf, true, resp_len);
+
+	msg_num++;
+}
+
+static void process_pio_message_impl(int *resp_len)
+{
 	switch (rx_buf.id) {
 		case FLYINGPICMD_ACTUATOR:
 			handle_actuator_fc(&rx_buf.body.actuator_fc);
@@ -116,6 +126,20 @@ static void process_pio_message(void *ctx, int len, int *resp_len)
 	/* If we get an edge and no clocking.. make sure the message is
 	 * invalidated / not reused */
 	rx_buf.id = 0;
+}
+
+static void process_pio_message(void *ctx, int len, int *resp_len)
+{
+	(void) ctx;
+	(void) len;
+
+	*resp_len = 3;
+
+	if (flyingpi_calc_crc(&rx_buf, false, NULL)) {
+		process_pio_message_impl(resp_len);
+	}
+
+	generate_status_message(resp_len);
 }
 
 int main()
@@ -149,10 +173,26 @@ int main()
 	tx_buf.id = 0x33;
 	tx_buf.crc8 = 0x22;
 
-	PIOS_SPISLAVE_Init(&spislave_dev, &pios_spislave_cfg, 0);
+	int initial_msg_len;
+	generate_status_message(&initial_msg_len);
+
+	PIOS_SPISLAVE_Init(&spislave_dev, &pios_spislave_cfg, initial_msg_len);
+
+	uint32_t i=0;
 
 	while (1) {
 		PIOS_SPISLAVE_PollSS(spislave_dev);
+
+		i++;
+		i &= 0x3ffff;
+
+		if (!inited) {
+			// Distinctive "ready" blip when host is not controlling
+			// LED.
+			if ((i == 0xc000) || (i == 0) || (i==0x18000)) {
+				PIOS_LED_Toggle(PIOS_LED_HEARTBEAT);
+			}
+		}
 	}
 
 	return 0;

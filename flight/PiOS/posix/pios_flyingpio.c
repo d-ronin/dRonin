@@ -42,9 +42,6 @@
 
 #include "actuatorcommand.h"
 
-#define PIOS_FLYINGPIO_TASK_PRIORITY   PIOS_THREAD_PRIO_HIGHEST
-#define PIOS_FLYINGPIO_TASK_STACK      640
-
 /**
  * Magic byte sequence used to validate the device state struct.
  * Should be unique amongst all PiOS drivers!
@@ -60,7 +57,12 @@ struct pios_flyingpio_dev {
 	enum pios_flyingpio_dev_magic magic;              /**< Magic bytes to validate the struct contents */
 	uint32_t spi_id;                            /**< Handle to the communication driver */
 	uint32_t spi_slave;                         /**< The slave number (SPI) */
+
+        uint16_t msg_num;			    /**< Expected next msg count */
+	uint16_t err_cnt;			    /**< The error counter */
 };
+
+#define MAX_CONSEC_ERRS 5
 
 //! Global structure for this device device
 static struct pios_flyingpio_dev *fpio_dev;
@@ -132,27 +134,65 @@ int32_t PIOS_FLYINGPIO_SPI_Init(pios_flyingpio_dev_t *dev, uint32_t spi_id, uint
 	return 0;
 }
 
-static void PIOS_FLYINGPIO_SendCmd(struct flyingpi_msg *msg) {
+static int PIOS_FLYINGPIO_SendCmd(struct flyingpi_msg *msg) {
 	int len = 0;
+
+	int ret = 0;
 
 	flyingpi_calc_crc(msg, true, &len);
 
-	if (PIOS_SPI_ClaimBus(fpio_dev->spi_id) != 0)
-		return;		/* No bueno. */
+	if (PIOS_SPI_ClaimBus(fpio_dev->spi_id) != 0) {
+		return -1;		/* No bueno. */
+	}
 
 	PIOS_SPI_SetClockSpeed(fpio_dev->spi_id, 15000000);
 
 	PIOS_SPI_RC_PinSet(fpio_dev->spi_id, fpio_dev->spi_slave,
 		false);
 
-	if (!PIOS_SPI_TransferBlock(fpio_dev->spi_id, (uint8_t *)msg, NULL, len)) {
+	struct flyingpi_msg resp;
+	if (PIOS_SPI_TransferBlock(fpio_dev->spi_id, (uint8_t *)msg,
+			(uint8_t *)&resp, len)) {
+		ret = -1;
 	}
 
 	PIOS_SPI_RC_PinSet(fpio_dev->spi_id, fpio_dev->spi_slave,
 		true);
 	PIOS_SPI_ReleaseBus(fpio_dev->spi_id);
 
-	/* XXX handle response data */
+	/* Handle response data-- after releasing SPI */
+	if (!ret) {
+		if (!flyingpi_calc_crc(&resp, false, NULL)) {
+			printf("fpio: VERYBAD: Bad CRC on response data %d\n",
+				fpio_dev->msg_num);
+		} else if (resp.id != FLYINGPIRESP_IO) {
+			printf("fpio: VERYBAD: Unexpected response message type\n");
+		} else {
+			struct flyingpiresp_io_10 *data = &resp.body.io_10;
+			if (data->valid_messages_recvd != fpio_dev->msg_num) {
+				printf("fpio: BAD: sequence number mismatch\n");
+
+				// Signal that caller should reconfig.
+				ret = -1;
+
+				fpio_dev->msg_num = data->valid_messages_recvd;
+			} else {
+			}
+		}
+		fpio_dev->msg_num++;
+
+	}
+
+	if (!ret) {
+		fpio_dev->err_cnt = 0;
+	} else {
+		fpio_dev->err_cnt++;
+
+		PIOS_Assert(fpio_dev->err_cnt < MAX_CONSEC_ERRS);
+	}
+
+	return ret;
+
 }
 
 static void PIOS_FLYINGPIO_ActuatorUpdate()
@@ -196,7 +236,7 @@ static void PIOS_FLYINGPIO_ActuatorUpdate()
 
 #if 0
 			if (!(upd_num & 1023)) {
-				printf("%d %f\n", i, fraction);
+				printf("fpio: actuator: %d %f\n", i, fraction);
 			}
 #endif
 		}
@@ -205,13 +245,17 @@ static void PIOS_FLYINGPIO_ActuatorUpdate()
 	tx_buf.body.actuator_fc.led_status =
 		PIOS_LED_GetStatus(PIOS_LED_HEARTBEAT);
 
-	PIOS_FLYINGPIO_SendCmd(&tx_buf);
+	if (PIOS_FLYINGPIO_SendCmd(&tx_buf)) {
+		// If there's a sequence mismatch, reconfig.
+		PIOS_Thread_Sleep(2);
+		PIOS_FLYINGPIO_SendCmd(&actuator_cfg);
+		PIOS_Thread_Sleep(2);
+	}
 }
 
 static void PIOS_FLYINGPIO_ActuatorSetMode(const uint16_t *out_rate,
-	const int banks, const uint16_t *channel_max,
-	const uint16_t *channel_min) {
-
+		const int banks, const uint16_t *channel_max,
+		const uint16_t *channel_min) {
 	actuator_cfg.id = FLYINGPICMD_CFG;
 
 	struct flyingpicmd_cfg_fa *cmd = &actuator_cfg.body.cfg_fa;
@@ -239,7 +283,11 @@ static void PIOS_FLYINGPIO_ActuatorSetMode(const uint16_t *out_rate,
 
 	cmd->receiver_protocol = 0;
 
-	PIOS_FLYINGPIO_SendCmd(&actuator_cfg);
+	while (PIOS_FLYINGPIO_SendCmd(&actuator_cfg)) {	// retry until OK
+		PIOS_Thread_Sleep(3);
+	}
+
+	PIOS_Thread_Sleep(3);
 }
 
 static void PIOS_FLYINGPIO_ActuatorSet(uint8_t servo, float position) {

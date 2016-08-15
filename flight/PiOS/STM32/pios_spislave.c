@@ -31,6 +31,14 @@ static void setup_spi_dma(spislave_t slave_dev, uint32_t tx_len)
 
 int32_t PIOS_SPISLAVE_PollSS(spislave_t slave_dev)
 {
+	if (DMA_GetCurrDataCounter(slave_dev->cfg->rx_dma.channel) ==
+			slave_dev->cfg->max_rx_len) {
+		// Nothing clocked.  So even if the CS blipped, we don't
+		// care-- ignore it.
+
+		return 0;
+	}
+
 	bool pin_status = GPIO_ReadInputDataBit(slave_dev->cfg->ssel.gpio,
 		slave_dev->cfg->ssel.init.GPIO_Pin) == Bit_SET;
 

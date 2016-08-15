@@ -13,7 +13,8 @@ struct flyingpicmd_actuator_fc {
 	/* fractional values; 0 = min, 0xffff = max */
 	uint16_t values[FPPROTO_MAX_SERVOS];
 
-	uint16_t led_status :1;
+	uint16_t led_status : 1;
+	uint16_t flags_resv : 15;
 } __attribute__((__packed__));
 
 struct flyingpicmd_cfg_fa {
@@ -42,7 +43,7 @@ struct flyingpiresp_io_10 {
 	uint16_t adc_data[FPPROTO_MAX_ADCCHANS];
 
 	uint16_t valid_messages_recvd;
-	uint16_t chan_data_ver:4;
+	uint16_t flags_resv;
 } __attribute__((__packed__));
 
 /* 3 bytes header */
@@ -75,8 +76,9 @@ static inline bool flyingpi_calc_crc(struct flyingpi_msg *msg, bool fill_in,
 			return false;
 	}
 
-	uint8_t crc8 = PIOS_CRC_updateCRC(0, (uint8_t *) &msg->body,
-			len);
+	/* Fixup to include ID */
+	uint8_t crc8 = PIOS_CRC_updateCRC(0, ((uint8_t *) &msg->body) - 1,
+			len+1);
 
 	if (fill_in) {
 		msg->crc8 = crc8;
