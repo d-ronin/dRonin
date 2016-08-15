@@ -401,59 +401,32 @@ static const struct pios_tim_channel pios_tim_servoport_pins[] = {
 
 #include "pios_usart_priv.h"
 
-/* XXX XXX TODO */
-static const struct pios_usart_cfg pios_usart_main_cfg = {
+static const struct pios_usart_cfg pios_usart_rcvr_cfg = {
 	.regs  = USART1,
 	.irq = {
 		.init    = {
 			.NVIC_IRQChannel                   = USART1_IRQn,
-			.NVIC_IRQChannelPreemptionPriority = PIOS_IRQ_PRIO_MID,
-			.NVIC_IRQChannelSubPriority        = 0,
 			.NVIC_IRQChannelCmd                = ENABLE,
 		},
 	},
 	.rx   = {
-		.gpio = GPIOA,
+		.gpio = GPIOB,
 		.init = {
-			.GPIO_Pin   = GPIO_Pin_10,
-			.GPIO_Speed = GPIO_Speed_2MHz,
-			.GPIO_Mode  = GPIO_Mode_IPU,
+			.GPIO_Pin   = GPIO_Pin_7,
+			.GPIO_Mode  = GPIO_Mode_AF,
+			.GPIO_PuPd  = GPIO_PuPd_UP,
+			.GPIO_OType = GPIO_OType_PP,
+			.GPIO_Speed = GPIO_Speed_50MHz,
 		},
 	},
 	.tx   = {
-		.gpio = GPIOA,
+		.gpio = GPIOB,
 		.init = {
-			.GPIO_Pin   = GPIO_Pin_9,
-			.GPIO_Speed = GPIO_Speed_2MHz,
-			.GPIO_Mode  = GPIO_Mode_AF_PP,
-		},
-	},
-};
-
-static const struct pios_usart_cfg pios_usart_rcvrserial_cfg = {
-	.regs  = USART2,
-	.irq = {
-		.init    = {
-			.NVIC_IRQChannel                   = USART2_IRQn,
-			.NVIC_IRQChannelPreemptionPriority = PIOS_IRQ_PRIO_MID,
-			.NVIC_IRQChannelSubPriority        = 0,
-			.NVIC_IRQChannelCmd                = ENABLE,
-		},
-	},
-	.rx   = {
-		.gpio = GPIOA,
-		.init = {
-			.GPIO_Pin   = GPIO_Pin_3,
-			.GPIO_Speed = GPIO_Speed_2MHz,
-			.GPIO_Mode  = GPIO_Mode_IPU,
-		},
-	},
-	.tx   = {
-		.gpio = GPIOA,
-		.init = {
-			.GPIO_Pin   = GPIO_Pin_2,
-			.GPIO_Speed = GPIO_Speed_2MHz,
-			.GPIO_Mode  = GPIO_Mode_AF_PP,
+			.GPIO_Pin   = GPIO_Pin_6,
+			.GPIO_Mode  = GPIO_Mode_AF,
+			.GPIO_PuPd  = GPIO_PuPd_UP,
+			.GPIO_OType = GPIO_OType_PP,
+			.GPIO_Speed = GPIO_Speed_50MHz,
 		},
 	},
 };
@@ -461,13 +434,15 @@ static const struct pios_usart_cfg pios_usart_rcvrserial_cfg = {
 #if defined(PIOS_INCLUDE_DSM)
 #include <pios_dsm_priv.h>
 
-static const struct pios_dsm_cfg pios_dsm_rcvrserial_cfg = {
+static const struct pios_dsm_cfg pios_dsm_rcvr_cfg = {
 	.bind = {
-		.gpio = GPIOA,
+		.gpio = GPIOB,
 		.init = {
-			.GPIO_Pin   = GPIO_Pin_2,
-			.GPIO_Speed = GPIO_Speed_2MHz,
-			.GPIO_Mode  = GPIO_Mode_Out_PP
+			.GPIO_Pin   = GPIO_Pin_7,
+			.GPIO_Speed = GPIO_Speed_50MHz,
+			.GPIO_PuPd  = GPIO_PuPd_UP,
+			.GPIO_OType = GPIO_OType_PP,
+			.GPIO_Speed = GPIO_Speed_50MHz,
 		},
 	},
 };
