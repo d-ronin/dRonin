@@ -63,6 +63,7 @@ OPTMODULES += PicoC
 OPTMODULES += Geofence
 OPTMODULES += Logging
 OPTMODULES += VTXConfig
+OPTMODULES += Storm32Bgc
 OPTMODULES += OnScreenDisplay
 
 # Paths
