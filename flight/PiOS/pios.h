@@ -100,16 +100,13 @@
 #if defined(PIOS_INCLUDE_FREERTOS) || defined(PIOS_INCLUDE_CHIBIOS)
 #include <pios_sensors.h>
 #endif
-#include <pios_dsm.h>
-#include <pios_sbus.h>
-#include <pios_usb_hid.h>
-#include <pios_gpio.h>
 #include <pios_wdg.h>
 
 #ifdef SIM_POSIX
 #include <pios_posix.h>
 
 #else
+#include <pios_gpio.h>
 #include <pios_exti.h>
 #include <pios_usart.h>
 #include <pios_srxl.h>

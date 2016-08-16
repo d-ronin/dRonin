@@ -3,19 +3,26 @@
 
 #include <uavobjectmanager.h> /* XXX TODO */
 #include <hwshared.h>
+
+#ifdef PIOS_INCLUDE_USART
 #include <pios_usart_priv.h>
-#include <pios_sbus_priv.h>
-#include <pios_dsm_priv.h>
-#include <pios_ppm_priv.h>
-#include <pios_pwm_priv.h>
-#include <pios_i2c_priv.h>
-#include <pios_usb_cdc_priv.h>
-#include <pios_usb_hid_priv.h>
+#endif
 
 #if defined(PIOS_INCLUDE_RFM22B)
 #include <pios_rfm22b_priv.h>
 #include <pios_openlrs_priv.h>
 #endif /* PIOS_INCLUDE_RFM22B */
+
+struct pios_dsm_cfg;
+struct pios_sbus_cfg;
+struct pios_usb_cdc_cfg;
+struct pios_usb_hid_cfg;
+struct pios_usart_cfg;
+struct pios_usart_params;
+struct pios_com_driver;
+struct pios_i2c_adapter_cfg;
+struct pios_ppm_cfg;
+struct pios_pwm_cfg;
 
 /**
  * @ brief LED panic codes for hardware failure
@@ -49,7 +56,7 @@ extern uintptr_t pios_rcvr_group_map[];
 #endif
 
 /* This one is a slight overreach; not all of the above requires this but close */
-#ifndef PIOS_INCLUDE_USART
+#if !defined(PIOS_INCLUDE_USART) && !defined(PIOS_INCLUDE_SERIAL)
 #error Options defined that require PIOS_INCLUDE_USART!
 #endif
 

@@ -33,6 +33,7 @@
 #define PIOS_SBUS_PRIV_H
 
 #include <pios.h>
+
 #include <pios_stm32.h>
 #include <pios_usart_priv.h>
 
@@ -85,6 +86,8 @@ struct pios_sbus_cfg {
 	BitAction gpio_inv_disable;
 };
 
+#endif /* PIOS_INCLUDE_USART */
+
 /*
  * S.Bus protocol provides 16 proportional and 2 discrete channels.
  * Do not change unless driver code is updated accordingly.
@@ -101,8 +104,6 @@ extern int32_t PIOS_SBus_Init(uintptr_t *sbus_id,
 			      const struct pios_com_driver *driver,
 			      uintptr_t lower_id);
 
-
-#endif /* PIOS_INCLUDE_SBUS */
 
 #endif /* PIOS_SBUS_PRIV_H */
 
