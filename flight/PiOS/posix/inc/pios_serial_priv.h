@@ -35,25 +35,13 @@
 #include <stdio.h>
 #include <pthread.h>
 
-#if !(defined(_WIN32) || defined(WIN32) || defined(__MINGW32__))
-#include <sys/socket.h>
-#include <arpa/inet.h>
-#include <netinet/in.h>
-#include <netinet/tcp.h>
-#endif
-
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
 #include <fcntl.h>
 
-struct pios_tcp_cfg {
-	const char *ip;
-	uint16_t port;
-};
-
 extern const struct pios_com_driver pios_tcp_com_driver;
 
-extern int32_t PIOS_TCP_Init(uintptr_t *tcp_id, const struct pios_tcp_cfg *cfg);
+int32_t PIOS_SERIAL_Init(uintptr_t *serial_id, const char *path);
 
 #endif /* PIOS_TCP_PRIV_H */
