@@ -54,6 +54,8 @@
 
 #include "pios_fileout_priv.h"
 #include "pios_com_priv.h"
+#include "pios_serial_priv.h"
+#include "pios_tcp_priv.h"
 
 #include "pios_spi_posix_priv.h"
 #include "pios_ms5611_priv.h"
@@ -73,16 +75,103 @@ static void Usage(char *cmdName) {
 		"\t-f\tEnables floating point exception trapping mode\n"
 		"\t-r\tGoes realtime-class and pins all memory (requires root)\n"
 		"\t-l log\tWrites simulation data to a log\n"
+#ifdef PIOS_INCLUDE_SERIAL
+		"\t-S drvname:serialpath\tStarts a serial driver on serialpath\n"
+		"\t\t\tAvailable drivers: gps msp lighttelemetry telemetry\n"
+#endif
 #ifdef PIOS_INCLUDE_SPI
 		"\t-s spibase\tConfigures a SPI interface on the base path\n"
 		"\t-d drvname:bus:id\tStarts driver drvname on bus/id\n"
-		"\t\t\tAvailable drivers: ms5611_spi\n"
+		"\t\t\tAvailable drivers: ms5611 bmx055\n"
 #endif
 		"",
 		cmdName);
 
 	exit(1);
 }
+
+#ifdef PIOS_INCLUDE_SERIAL
+
+#define SERIAL_BUF_LEN 384
+static int handle_serial_device(const char *optarg) {
+	char arg_copy[128];
+
+	strncpy(arg_copy, optarg, sizeof(arg_copy));
+	arg_copy[sizeof(arg_copy)-1] = 0;
+
+	char *saveptr;
+
+	char *drv_name = strtok_r(arg_copy, ":", &saveptr);
+	if (drv_name == NULL) goto fail;
+
+	char *ser_path = strtok_r(NULL, ":", &saveptr);
+	if (ser_path == NULL) goto fail;
+
+	// If ser_path is entirely a number.. let's treat this as TCP
+	// instead!
+
+	long port;
+	char *endptr;
+
+	port = strtol(ser_path, &endptr, 10);
+
+	uintptr_t com_id;
+
+	if ((port > 0) && (port < 65536) && !(*endptr)) {
+		uint32_t tcp_id;
+		struct pios_tcp_cfg *virtserial_cfg;
+
+		virtserial_cfg = PIOS_malloc(sizeof(*virtserial_cfg));
+
+		virtserial_cfg->ip = "0.0.0.0";
+		virtserial_cfg->port = port;
+
+		if (PIOS_TCP_Init(&tcp_id, virtserial_cfg)) {
+			printf("Can't init PIOS_TCP\n");
+			goto fail;
+		}
+
+		if (PIOS_COM_Init(&com_id, &pios_tcp_com_driver,
+				tcp_id, SERIAL_BUF_LEN, SERIAL_BUF_LEN)) {
+			printf("Can't init PIOS_COM on TCP\n");
+			goto fail;
+		}
+	} else {
+		uint32_t ser_id;
+
+		if (PIOS_SERIAL_Init(&ser_id, ser_path)) {
+			printf("Can't init serial\n");
+			goto fail;
+		}
+
+		if (PIOS_COM_Init(&com_id, &pios_serial_com_driver,
+				ser_id, SERIAL_BUF_LEN, SERIAL_BUF_LEN)) {
+			printf("Can't init PIOS_COM on serial\n");
+			goto fail;
+		}
+	}
+
+	if (!strcmp(drv_name, "gps")) {
+		PIOS_Modules_Enable(PIOS_MODULE_GPS);
+		PIOS_COM_GPS = com_id;
+	} else if (!strcmp(drv_name, "msp")) {
+		PIOS_Modules_Enable(PIOS_MODULE_UAVOMSPBRIDGE);
+		PIOS_COM_MSP = com_id;
+	} else if (!strcmp(drv_name, "lighttelemetry")) {
+		PIOS_Modules_Enable(PIOS_MODULE_UAVOLIGHTTELEMETRYBRIDGE);
+		PIOS_COM_LIGHTTELEMETRY = com_id;
+	} else if (!strcmp(drv_name, "telemetry")) {
+		PIOS_COM_TELEM_USB = com_id;
+	} else {
+		printf("Unknown serial driver %s\n", drv_name);
+		goto fail;
+	}
+
+	return 0;
+fail:
+	return -1;
+}
+#endif
 
 #ifdef PIOS_INCLUDE_SPI
 static int handle_device(const char *optarg) {
@@ -112,7 +201,7 @@ static int handle_device(const char *optarg) {
 		goto fail;
 	}
 
-	if (!strcmp(drv_name, "ms5611_spi")) {
+	if (!strcmp(drv_name, "ms5611")) {
 		struct pios_ms5611_cfg *ms5611_cfg;
 
 		ms5611_cfg = PIOS_malloc(sizeof(*ms5611_cfg));
@@ -189,7 +278,7 @@ static void go_realtime() {
 void PIOS_SYS_Args(int argc, char *argv[]) {
 	int opt;
 
-	while ((opt = getopt(argc, argv, "frl:s:d:")) != -1) {
+	while ((opt = getopt(argc, argv, "frl:s:d:S:")) != -1) {
 		switch (opt) {
 			case 'f':
 				debug_fpe = true;
@@ -217,6 +306,14 @@ void PIOS_SYS_Args(int argc, char *argv[]) {
 				}
 				break;
 			}
+#ifdef PIOS_INCLUDE_SERIAL
+			case 'S':
+				if (handle_serial_device(optarg)) {
+					printf("Coudln't init device\n");
+					exit(1);
+				}
+				break;
+#endif
 #ifdef PIOS_INCLUDE_SPI
 			case 'd':
 				if (handle_device(optarg)) {

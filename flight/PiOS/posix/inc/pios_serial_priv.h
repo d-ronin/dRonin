@@ -1,10 +1,10 @@
 /**
  ******************************************************************************
  *
- * @file       pios_tcp_priv.h
+ * @file       pios_serial_priv.h
  * @author     dRonin, http://dRonin.org/, Copyright (C) 2016
  * @author     The OpenPilot Team, http://www.openpilot.org Copyright (C) 2012.
- * @brief      TCP private definitions.
+ * @brief      SERIAL private definitions.
  * @see        The GNU Public License (GPL) Version 3
  *
  *****************************************************************************/
@@ -28,8 +28,8 @@
  * of this source file; otherwise redistribution is prohibited.
  */
 
-#ifndef PIOS_TCP_PRIV_H
-#define PIOS_TCP_PRIV_H
+#ifndef PIOS_SERIAL_PRIV_H
+#define PIOS_SERIAL_PRIV_H
 
 #include <pios.h>
 #include <stdio.h>
@@ -40,8 +40,8 @@
 #include <unistd.h>
 #include <fcntl.h>
 
-extern const struct pios_com_driver pios_tcp_com_driver;
+extern const struct pios_com_driver pios_serial_com_driver;
 
 int32_t PIOS_SERIAL_Init(uintptr_t *serial_id, const char *path);
 
-#endif /* PIOS_TCP_PRIV_H */
+#endif /* PIOS_SERIAL_PRIV_H */

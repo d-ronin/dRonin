@@ -70,14 +70,21 @@ MODULES += Sensors
 MODULES += Stabilization
 MODULES += Telemetry
 
-OPTMODULES += PathPlanner
+OPTMODULES += Airspeed
 OPTMODULES += AltitudeHold
-OPTMODULES += VtolPathFollower
-OPTMODULES += FixedWingPathFollower
-OPTMODULES += GroundPathFollower
-OPTMODULES += CameraStab
 OPTMODULES += Autotune
+OPTMODULES += CameraStab
+OPTMODULES += FixedWingPathFollower
+OPTMODULES += FlightStats
 OPTMODULES += Geofence
+OPTMODULES += GroundPathFollower
+OPTMODULES += PathPlanner
+OPTMODULES += TxPID
+OPTMODULES += VtolPathFollower
+
+OPTMODULES += GPS
+OPTMODULES += UAVOLighttelemetryBridge
+OPTMODULES += UAVOMSPBridge
 
 # Paths
 OPUAVTALKINC = $(OPUAVTALK)/inc
@@ -126,6 +133,7 @@ SRC += $(FLIGHTLIB)/paths.c
 SRC += $(FLIGHTLIB)/circqueue.c
 SRC += $(FLIGHTLIB)/timeutils.c
 
+SRC += $(MATHLIB)/atmospheric_math.c
 SRC += $(MATHLIB)/coordinate_conversions.c
 SRC += $(MATHLIB)/misc_math.c
 SRC += $(MATHLIB)/pid.c
@@ -162,7 +170,9 @@ SRC += pios_fileout.c
 SRC += pios_debug.c
 SRC += pios_heap.c
 SRC += pios_irq.c
+SRC += pios_serial.c
 SRC += pios_spi.c
+SRC += pios_hal.c
 SRC += pios_ms5611_spi.c
 SRC += pios_bmx055.c
 

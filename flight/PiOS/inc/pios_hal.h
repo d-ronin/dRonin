@@ -55,8 +55,7 @@ extern uintptr_t pios_rcvr_group_map[];
 #error Options defined that require PIOS_INCLUDE_COM!
 #endif
 
-/* This one is a slight overreach; not all of the above requires this but close */
-#if !defined(PIOS_INCLUDE_USART) && !defined(PIOS_INCLUDE_SERIAL)
+#if !defined(PIOS_INCLUDE_USART) && !defined(SIM_POSIX)
 #error Options defined that require PIOS_INCLUDE_USART!
 #endif
 
