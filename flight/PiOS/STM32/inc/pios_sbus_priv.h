@@ -70,7 +70,6 @@
 #define SBUS_R7008SB_EOF_COUNTER_MASK 0xCF
 #define SBUS_R7008SB_EOF_BYTE         0x04
 
-
 /* Discrete channels represented as bits, provide values for them */
 #define	SBUS_VALUE_MIN			352
 #define	SBUS_VALUE_MAX			1696
@@ -86,16 +85,15 @@ struct pios_sbus_cfg {
 	BitAction gpio_inv_disable;
 };
 
-#endif /* PIOS_INCLUDE_USART */
-
 /*
  * S.Bus protocol provides 16 proportional and 2 discrete channels.
  * Do not change unless driver code is updated accordingly.
  */
-#ifdef PIOS_INCLUDE_SBUS
 
+#ifdef PIOS_INCLUDE_SBUS
 #if (PIOS_SBUS_NUM_INPUTS != (16+2))
 #error "S.Bus protocol provides 16 proportional and 2 discrete channels"
+#endif
 #endif
 
 extern const struct pios_rcvr_driver pios_sbus_rcvr_driver;

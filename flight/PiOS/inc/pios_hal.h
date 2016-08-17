@@ -19,7 +19,6 @@ struct pios_usb_cdc_cfg;
 struct pios_usb_hid_cfg;
 struct pios_usart_cfg;
 struct pios_usart_params;
-struct pios_com_driver;
 struct pios_i2c_adapter_cfg;
 struct pios_ppm_cfg;
 struct pios_pwm_cfg;
