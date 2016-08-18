@@ -41,6 +41,7 @@
 #include "flyingpio_messages.h"
 
 #include "actuatorcommand.h"
+#include "hwshared.h"
 
 /**
  * Magic byte sequence used to validate the device state struct.

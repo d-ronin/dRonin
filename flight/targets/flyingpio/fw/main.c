@@ -50,6 +50,25 @@ static struct flyingpicmd_cfg_fa cfg;
 
 static uint16_t msg_num;
 
+extern void TIM1_CC_IRQHandler(void);
+extern void TIM1_BRK_UP_TRG_COM_IRQHandler(void);
+extern void TIM2_IRQHandler(void);
+extern void TIM3_IRQHandler(void);
+extern void TIM14_IRQHandler(void);
+extern void TIM15_IRQHandler(void);
+extern void TIM16_IRQHandler(void);
+extern void TIM17_IRQHandler(void);
+
+const void *_interrupt_vectors[USART2_IRQn] __attribute((section(".interrupt_vectors"))) = {
+	[TIM1_BRK_UP_TRG_COM_IRQn] = TIM1_BRK_UP_TRG_COM_IRQHandler,
+	[TIM1_CC_IRQn] = TIM1_CC_IRQHandler,
+	[TIM3_IRQn] = TIM3_IRQHandler,
+	[TIM14_IRQn] = TIM14_IRQHandler,
+	[TIM15_IRQn] = TIM15_IRQHandler,
+	[TIM16_IRQn] = TIM16_IRQHandler,
+	[TIM17_IRQn] = TIM17_IRQHandler,
+};
+
 // The other side should give us a little time to deal with this,
 // as we need to copy stuff and initialize hardware.
 static void handle_cfg_fa(struct flyingpicmd_cfg_fa *cmd) {
@@ -133,7 +152,8 @@ static void generate_status_message(int *resp_len)
 	for (int i=0; i<FPPROTO_MAX_RCCHANS; i++) {
 		if (pios_rcvr_group_map[0]) {
 			resp->chan_data[i] =
-				PIOS_RCVR_Read(pios_rcvr_group_map[0], i);
+				/* 1-offset vs 0-offset grr */
+				PIOS_RCVR_Read(pios_rcvr_group_map[0], i+1);
 		} else {
 			resp->chan_data[i] = PIOS_RCVR_NODRIVER;
 		}
