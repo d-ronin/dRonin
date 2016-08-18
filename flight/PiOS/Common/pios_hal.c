@@ -37,7 +37,6 @@
 #include <pios_rcvr_priv.h>
 #include <pios_openlrs_rcvr_priv.h>
 #include <pios_rfm22b_rcvr_priv.h>
-#include <pios_hsum_priv.h>
 
 #include <pios_modules.h>
 #include <pios_sys.h>
@@ -46,6 +45,18 @@
 
 #if defined(PIOS_INCLUDE_OPENLRS_RCVR)
 #include <openlrs.h>
+#endif
+
+#ifdef PIOS_INCLUDE_USART
+#include <pios_usart_priv.h>
+#include <pios_sbus_priv.h>
+#include <pios_dsm_priv.h>
+#include <pios_ppm_priv.h>
+#include <pios_pwm_priv.h>
+#include <pios_hsum_priv.h>
+#include <pios_i2c_priv.h>
+#include <pios_usb_cdc_priv.h>
+#include <pios_usb_hid_priv.h>
 #endif
 
 #include <sanitycheck.h>
@@ -251,6 +262,7 @@ void PIOS_HAL_Panic(uint32_t led_id, enum pios_hal_panic code) {
  * @param[out] target place dedicated for this role to store device id
  * @param[in] value handle of the device to store into this role.
  */
+#if defined(PIOS_INCLUDE_USART) && defined(PIOS_INCLUDE_COM)
 static void PIOS_HAL_SetTarget(uintptr_t *target, uintptr_t value) {
 	if (target) {
 #ifndef PIOS_NO_ALARMS
@@ -273,7 +285,6 @@ static void PIOS_HAL_SetReceiver(int receiver_type, uintptr_t value) {
 	PIOS_HAL_SetTarget(pios_rcvr_group_map + receiver_type, value);
 }
 
-#if defined(PIOS_INCLUDE_USART) && defined(PIOS_INCLUDE_COM)
 /**
  * @brief Configures USART and COM subsystems.
  *
@@ -452,6 +463,8 @@ static void PIOS_HAL_ConfigureIBus(const struct pios_usart_cfg *usart_ibus_cfg,
  * @param[in] dsm_mode Mode in which to operate DSM driver; encapsulates binding
  * @param[in] sbus_cfg SBUS configuration for this port
  */
+
+#ifdef PIOS_INCLUDE_USART
 void PIOS_HAL_ConfigurePort(HwSharedPortTypesOptions port_type,
 		const struct pios_usart_cfg *usart_port_cfg,
 		const struct pios_com_driver *com_driver,
@@ -803,6 +816,7 @@ void PIOS_HAL_ConfigurePort(HwSharedPortTypesOptions port_type,
 	PIOS_HAL_SetTarget(target, port_driver_id);
 	PIOS_HAL_SetTarget(target2, port_driver_id);
 }
+#endif /* PIOS_INCLUDE_USART */
 
 #if defined(PIOS_INCLUDE_USB_CDC)
 /** @brief Configure USB CDC.

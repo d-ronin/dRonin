@@ -1,10 +1,10 @@
 /**
  ******************************************************************************
  *
- * @file       pios_tcp_priv.h
+ * @file       pios_serial_priv.h
  * @author     dRonin, http://dRonin.org/, Copyright (C) 2016
  * @author     The OpenPilot Team, http://www.openpilot.org Copyright (C) 2012.
- * @brief      TCP private definitions.
+ * @brief      SERIAL private definitions.
  * @see        The GNU Public License (GPL) Version 3
  *
  *****************************************************************************/
@@ -28,32 +28,20 @@
  * of this source file; otherwise redistribution is prohibited.
  */
 
-#ifndef PIOS_TCP_PRIV_H
-#define PIOS_TCP_PRIV_H
+#ifndef PIOS_SERIAL_PRIV_H
+#define PIOS_SERIAL_PRIV_H
 
 #include <pios.h>
 #include <stdio.h>
 #include <pthread.h>
-
-#if !(defined(_WIN32) || defined(WIN32) || defined(__MINGW32__))
-#include <sys/socket.h>
-#include <arpa/inet.h>
-#include <netinet/in.h>
-#include <netinet/tcp.h>
-#endif
 
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
 #include <fcntl.h>
 
-struct pios_tcp_cfg {
-	const char *ip;
-	uint16_t port;
-};
+extern const struct pios_com_driver pios_serial_com_driver;
 
-extern const struct pios_com_driver pios_tcp_com_driver;
+int32_t PIOS_SERIAL_Init(uintptr_t *serial_id, const char *path);
 
-extern int32_t PIOS_TCP_Init(uintptr_t *tcp_id, const struct pios_tcp_cfg *cfg);
-
-#endif /* PIOS_TCP_PRIV_H */
+#endif /* PIOS_SERIAL_PRIV_H */

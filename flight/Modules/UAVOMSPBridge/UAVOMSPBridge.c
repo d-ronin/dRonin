@@ -454,12 +454,17 @@ static void msp_send_altitude(struct msp_bridge *m)
 	float tmp;
 
 #ifdef SMALLF1
-	if (BaroAltitudeHandle() != NULL)
+	if (BaroAltitudeHandle() != NULL) {
 		BaroAltitudeAltitudeGet(&tmp);
+	} else {
+		return;
+	}
 #else
 	if (PositionActualHandle() != NULL) {
 		PositionActualDownGet(&tmp);
 		tmp = -tmp;
+	} else {
+		return;
 	}
 #endif
 

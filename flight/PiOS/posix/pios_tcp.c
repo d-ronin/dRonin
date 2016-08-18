@@ -51,6 +51,23 @@ static void PIOS_TCP_RegisterTxCallback(uintptr_t udp_id, pios_com_callback tx_o
 static void PIOS_TCP_TxStart(uintptr_t udp_id, uint16_t tx_bytes_avail);
 static void PIOS_TCP_RxStart(uintptr_t udp_id, uint16_t rx_bytes_avail);
 
+typedef struct {
+	const struct pios_tcp_cfg * cfg;
+
+	int socket;
+	struct sockaddr_in server;
+	struct sockaddr_in client;
+	int socket_connection;
+
+	pios_com_callback tx_out_cb;
+	uintptr_t tx_out_context;
+	pios_com_callback rx_in_cb;
+	uintptr_t rx_in_context;
+
+	uint8_t rx_buffer[PIOS_TCP_RX_BUFFER_SIZE];
+	uint8_t tx_buffer[PIOS_TCP_RX_BUFFER_SIZE];
+} pios_tcp_dev;
+
 const struct pios_com_driver pios_tcp_com_driver = {
 	.set_baud   = PIOS_TCP_ChangeBaud,
 	.tx_start   = PIOS_TCP_TxStart,
@@ -93,10 +110,7 @@ static void PIOS_TCP_RxTask(void *tcp_dev_n)
 	const int INCOMING_BUFFER_SIZE = 16;
 	char incoming_buffer[INCOMING_BUFFER_SIZE];
 	int error;
-	/**
-	 * com devices never get closed except by application "reboot"
-	 * we also never give up our mutex except for waiting
-	 */
+
 	while (1) {
 	
 		do

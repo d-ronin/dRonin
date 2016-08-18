@@ -34,6 +34,8 @@
 #include <stdint.h>		/* uint*_t */
 #include <stdbool.h>		/* bool */
 
+struct pios_com_driver;
+
 typedef uint16_t (*pios_com_callback)(uintptr_t context, uint8_t * buf, uint16_t buf_len, uint16_t * headroom, bool * task_woken);
 
 struct pios_com_driver {
