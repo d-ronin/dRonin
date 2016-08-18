@@ -6,7 +6,20 @@
 
 #ifdef PIOS_INCLUDE_USART
 #include <pios_usart_priv.h>
+#include <pios_sbus_priv.h>
+#include <pios_dsm_priv.h>
+#include <pios_ppm_priv.h>
+#include <pios_pwm_priv.h>
 #endif
+
+#ifdef PIOS_INCLUDE_I2C
+#include <pios_i2c_priv.h>
+#else
+struct pios_i2c_adapter_cfg;
+#endif
+
+#include <pios_usb_cdc_priv.h>
+#include <pios_usb_hid_priv.h>
 
 #if defined(PIOS_INCLUDE_RFM22B)
 #include <pios_rfm22b_priv.h>
@@ -60,11 +73,12 @@ extern uintptr_t pios_rcvr_group_map[];
 
 #endif
 
+void PIOS_HAL_Panic(uint32_t led_id, enum pios_hal_panic code);
+
+#ifdef PIOS_INCLUDE_USART
 void PIOS_HAL_ConfigureCom(const struct pios_usart_cfg *usart_port_cfg, struct pios_usart_params *usart_port_params,
 		size_t rx_buf_len, size_t tx_buf_len,
 		const struct pios_com_driver *com_driver, uintptr_t *com_id);
-
-void PIOS_HAL_Panic(uint32_t led_id, enum pios_hal_panic code);
 
 void PIOS_HAL_ConfigurePort(HwSharedPortTypesOptions port_type,
 		const struct pios_usart_cfg *usart_port_cfg,
@@ -78,6 +92,7 @@ void PIOS_HAL_ConfigurePort(HwSharedPortTypesOptions port_type,
 		const struct pios_dsm_cfg *dsm_cfg,
 		HwSharedDSMxModeOptions dsm_mode,
 		const struct pios_sbus_cfg *sbus_cfg);
+#endif
 
 void PIOS_HAL_ConfigureCDC(HwSharedUSB_VCPPortOptions port_type,
 		uintptr_t usb_id,
@@ -101,5 +116,7 @@ void PIOS_HAL_ConfigureRFM22B(HwSharedRadioPortOptions radio_type,
 
 void PIOS_HAL_ConfigureSerialSpeed(uintptr_t com_id,
 		                HwSharedSpeedBpsOptions speed);
+
+void PIOS_HAL_SetReceiver(int receiver_type, uintptr_t value);
 
 #endif

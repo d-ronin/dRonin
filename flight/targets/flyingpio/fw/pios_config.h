@@ -35,23 +35,28 @@
 
 /* Enable/Disable PiOS Modules */
 
-/* Com systems to include */
+/* Systems to include */
 #define PIOS_INCLUDE_COM
+#define PIOS_INCLUDE_IRQ
 #define PIOS_INCLUDE_LED
-#define PIOS_INCLUDE_TIM
+#define PIOS_INCLUDE_RTC	// Not really.. implemented by delay subsystem
 #define PIOS_INCLUDE_SERVO
 #define PIOS_INCLUDE_SPISLAVE
+#define PIOS_INCLUDE_TIM
 #define PIOS_INCLUDE_USART
 #define PIOS_INCLUDE_WDG
 
+#define PIOS_NO_ALARMS
+#define PIOS_NO_MODULES
+
 /* Supported receiver interfaces */
-//#define PIOS_INCLUDE_RCVR
-//#define PIOS_INCLUDE_DSM
-//#define PIOS_INCLUDE_HSUM
-//#define PIOS_INCLUDE_SBUS
+#define PIOS_INCLUDE_RCVR
+#define PIOS_INCLUDE_DSM
+#define PIOS_INCLUDE_HSUM
+#define PIOS_INCLUDE_SBUS
 #define PIOS_INCLUDE_PPM
-//#define PIOS_INCLUDE_SRXL
-//#define PIOS_INCLUDE_IBUS
+#define PIOS_INCLUDE_SRXL
+#define PIOS_INCLUDE_IBUS
 
 #endif /* PIOS_CONFIG_H */
 /**

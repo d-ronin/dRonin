@@ -45,8 +45,12 @@ enum pios_modules {
 	PIOS_MODULE_NUM
 };
 
+#ifndef PIOS_NO_MODULES
 void PIOS_Modules_Enable(enum pios_modules module);
 bool PIOS_Modules_IsEnabled(enum pios_modules module);
+#else
+#define PIOS_Modules_Enable(x) do { (void) (x); } while (0)
+#endif
 
 #endif // PIOS_MODULES_H_
 

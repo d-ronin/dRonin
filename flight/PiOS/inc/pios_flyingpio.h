@@ -29,7 +29,6 @@
 
 #include "pios.h"
 
-
 typedef struct pios_flyingpio_dev * pios_flyingpio_dev_t;
 
 /**
@@ -37,6 +36,14 @@ typedef struct pios_flyingpio_dev * pios_flyingpio_dev_t;
  * @return 0 for success, -1 for failure to allocate
  */
 int32_t PIOS_FLYINGPIO_SPI_Init(pios_flyingpio_dev_t *dev, uint32_t spi_id, uint32_t slave_idx);
+
+/**
+ * @brief Returns receiver data returned by flyingpio.
+ * @return Channel value, or an error code from pios_rcvr.h
+ */
+int32_t PIOS_FLYINGPIO_Receiver_Get(uintptr_t dev_int, uint8_t channel);
+
+extern const struct pios_rcvr_driver pios_flyingpio_rcvr_driver;
 
 #endif /* PIOS_FLYINGPIO_H */
 

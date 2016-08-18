@@ -61,7 +61,10 @@
 #include "pios_ms5611_priv.h"
 #include "pios_bmx055_priv.h"
 #include "pios_flyingpio.h"
+#include "pios_hal.h"
+#include "pios_rcvr_priv.h"
 
+#include "manualcontrolsettings.h"
 
 #if defined(PIOS_INCLUDE_SYS)
 static bool debug_fpe=false;
@@ -228,6 +231,17 @@ static int handle_device(const char *optarg) {
 		int ret = PIOS_FLYINGPIO_SPI_Init(&dev, spi_devs[bus_num], dev_num);
 
 		if (ret) goto fail;
+
+		uintptr_t rcvr_id;
+
+		if (PIOS_RCVR_Init(&rcvr_id, &pios_flyingpio_rcvr_driver,
+				(uintptr_t) dev)) {
+			PIOS_Assert(0);
+		}
+
+		/* Pretend what we get is PWM */
+		PIOS_HAL_SetReceiver(MANUALCONTROLSETTINGS_CHANNELGROUPS_PWM,
+			rcvr_id);
 	} else {
 		goto fail;
 	}

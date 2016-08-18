@@ -54,14 +54,18 @@
 #include <pios_ppm_priv.h>
 #include <pios_pwm_priv.h>
 #include <pios_hsum_priv.h>
-#include <pios_i2c_priv.h>
+
 #include <pios_usb_cdc_priv.h>
 #include <pios_usb_hid_priv.h>
 #endif
 
 #include <sanitycheck.h>
 
+#ifdef STM32F0XX
+uintptr_t pios_rcvr_group_map[1];
+#else
 uintptr_t pios_rcvr_group_map[MANUALCONTROLSETTINGS_CHANNELGROUPS_NONE];
+#endif
 
 #if defined(PIOS_INCLUDE_RFM22B)
 uint32_t pios_rfm22b_id;
@@ -262,7 +266,6 @@ void PIOS_HAL_Panic(uint32_t led_id, enum pios_hal_panic code) {
  * @param[out] target place dedicated for this role to store device id
  * @param[in] value handle of the device to store into this role.
  */
-#if defined(PIOS_INCLUDE_USART) && defined(PIOS_INCLUDE_COM)
 static void PIOS_HAL_SetTarget(uintptr_t *target, uintptr_t value) {
 	if (target) {
 #ifndef PIOS_NO_ALARMS
@@ -281,10 +284,16 @@ static void PIOS_HAL_SetTarget(uintptr_t *target, uintptr_t value) {
  * @param[in] receiver_type the receiver type index from MANUALCONTROL
  * @param[in] value handle of the device instance
  */
-static void PIOS_HAL_SetReceiver(int receiver_type, uintptr_t value) {
+void PIOS_HAL_SetReceiver(int receiver_type, uintptr_t value) {
+#ifdef STM32F0XX
+	(void) receiver_type;
+	PIOS_HAL_SetTarget(pios_rcvr_group_map, value);
+#else
 	PIOS_HAL_SetTarget(pios_rcvr_group_map + receiver_type, value);
+#endif
 }
 
+#if defined(PIOS_INCLUDE_USART) && defined(PIOS_INCLUDE_COM)
 /**
  * @brief Configures USART and COM subsystems.
  *
@@ -565,8 +574,8 @@ void PIOS_HAL_ConfigurePort(HwSharedPortTypesOptions port_type,
 
 	case HWSHARED_PORTTYPES_FRSKYSPORTTELEMETRY:
 #if defined(PIOS_INCLUDE_FRSKY_SPORT_TELEMETRY)
-#if defined(STM32F30X)
-		// F3 has internal inverters and can switch rx/tx pins
+#if defined(STM32F30X) || defined(STM32F0XX)
+		// F0 / F3 has internal inverters and can switch rx/tx pins
 		usart_port_params.rx_invert   = true;
 		usart_port_params.tx_invert   = true;
 		usart_port_params.single_wire = true;
@@ -761,7 +770,6 @@ void PIOS_HAL_ConfigurePort(HwSharedPortTypesOptions port_type,
 				PIOS_Assert(0);
 			}
 			PIOS_HAL_SetReceiver(MANUALCONTROLSETTINGS_CHANNELGROUPS_SBUS, sbus_rcvr_id);
-			pios_rcvr_group_map[MANUALCONTROLSETTINGS_CHANNELGROUPS_SBUS] = sbus_rcvr_id;
 		}
 #endif  /* PIOS_INCLUDE_SBUS */
 		break;

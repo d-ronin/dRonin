@@ -37,9 +37,15 @@
 
 #include <board_hw_defs.c>
 
+#include <pios_hal.h>
+#include <pios_rtc_priv.h>
+
+#include "hwshared.h"
+
 void PIOS_Board_Init(void);
 
 static bool inited;
+
 static struct flyingpicmd_cfg_fa cfg;
 
 static uint16_t msg_num;
@@ -48,6 +54,25 @@ static uint16_t msg_num;
 // as we need to copy stuff and initialize hardware.
 static void handle_cfg_fa(struct flyingpicmd_cfg_fa *cmd) {
 	PIOS_Assert(pios_servo_cfg.num_channels <= FPPROTO_MAX_SERVOS);
+
+	if (cfg.receiver_protocol != cmd->receiver_protocol) {
+		// This is not supposed to change types.  Assert, which will
+		// trigger watchdog, which will trigger picking up new type.
+		PIOS_Assert(!inited);
+
+		PIOS_HAL_ConfigurePort(cmd->receiver_protocol,
+			&pios_usart_rcvr_cfg,
+			&pios_usart_com_driver,
+			NULL,			// I2C
+			NULL,
+			&pios_ppm_cfg,
+			NULL,			// PWM
+			PIOS_LED_HEARTBEAT,	// It's all we have...
+			&pios_dsm_rcvr_cfg,
+			HWSHARED_DSMXMODE_AUTODETECT,
+			NULL			// sbus: we have inverters
+		);
+	}
 
 	// Copy so that we can refer to this later.
 	memcpy(&cfg, cmd, sizeof(cfg));
@@ -65,7 +90,6 @@ static void handle_cfg_fa(struct flyingpicmd_cfg_fa *cmd) {
 
 	/* OK, game on.  From here on out we may end up generating PWM.
 	 * so it's time to enable the watchdog. */
-
 	if (!inited) {
 		PIOS_WDG_Init();
 		inited = true;
@@ -106,6 +130,17 @@ static void generate_status_message(int *resp_len)
 
 	resp->valid_messages_recvd = msg_num;
 
+	for (int i=0; i<FPPROTO_MAX_RCCHANS; i++) {
+		if (pios_rcvr_group_map[0]) {
+			resp->chan_data[i] =
+				PIOS_RCVR_Read(pios_rcvr_group_map[0], i);
+		} else {
+			resp->chan_data[i] = PIOS_RCVR_NODRIVER;
+		}
+	}
+
+	// XXX resp->adc_data
+
 	flyingpi_calc_crc(&tx_buf, true, resp_len);
 
 	msg_num++;
@@ -137,8 +172,6 @@ static void process_pio_message(void *ctx, int len, int *resp_len)
 	(void) ctx;
 	(void) len;
 
-	*resp_len = 3;
-
 	if (flyingpi_calc_crc(&rx_buf, false, NULL)) {
 		process_pio_message_impl(resp_len);
 	}
@@ -160,11 +193,6 @@ int main()
 	PIOS_Assert(led_cfg);
 	PIOS_LED_Init(led_cfg);
 #endif	/* PIOS_INCLUDE_LED */
-
-#if defined(PIOS_INCLUDE_RTC)
-	/* Initialize the real-time clock and its associated tick */
-	PIOS_RTC_Init(&pios_rtc_main_cfg);
-#endif
 
 	//outputs
 	PIOS_TIM_InitClock(&tim_1_cfg);

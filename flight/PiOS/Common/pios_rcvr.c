@@ -23,7 +23,6 @@ static bool PIOS_RCVR_validate(struct pios_rcvr_dev * rcvr_dev)
   return (rcvr_dev->magic == PIOS_RCVR_DEV_MAGIC);
 }
 
-#if defined(PIOS_INCLUDE_FREERTOS) || defined(PIOS_INCLUDE_CHIBIOS)
 static struct pios_rcvr_dev * PIOS_RCVR_alloc(void)
 {
   struct pios_rcvr_dev * rcvr_dev;
@@ -34,23 +33,6 @@ static struct pios_rcvr_dev * PIOS_RCVR_alloc(void)
   rcvr_dev->magic = PIOS_RCVR_DEV_MAGIC;
   return(rcvr_dev);
 }
-#else
-static struct pios_rcvr_dev pios_rcvr_devs[PIOS_RCVR_MAX_DEVS];
-static uint8_t pios_rcvr_num_devs;
-static struct pios_rcvr_dev * PIOS_RCVR_alloc(void)
-{
-  struct pios_rcvr_dev * rcvr_dev;
-
-  if (pios_rcvr_num_devs >= PIOS_RCVR_MAX_DEVS) {
-    return (NULL);
-  }
-
-  rcvr_dev = &pios_rcvr_devs[pios_rcvr_num_devs++];
-  rcvr_dev->magic = PIOS_RCVR_DEV_MAGIC;
-
-  return (rcvr_dev);
-}
-#endif
 
 static struct pios_semaphore *rcvr_activity;
 static uint32_t rcvr_last_wake;

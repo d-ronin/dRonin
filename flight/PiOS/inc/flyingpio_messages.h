@@ -31,7 +31,7 @@ struct flyingpicmd_cfg_fa {
 	/* Rate in Hz;  0 is oneshot */
 	uint16_t rate[FPPROTO_MAX_BANKS];
 	uint16_t receiver_protocol;	/* If less than 0x100, this is from
-					 * ManualControlSettings.ChannelGroups
+					 * HwShared.PortTypes
 					 */
 	uint16_t flags_resv;	
 } __attribute__((__packed__));

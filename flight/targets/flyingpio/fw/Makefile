@@ -75,23 +75,29 @@ SRC += main.c
 
 SRC += pios_com.c
 SRC += pios_crc.c
-#SRC += pios_delay.c
+SRC += pios_delay.c
+SRC += pios_hal.c
 SRC += pios_heap.c
+SRC += pios_irq.c
 SRC += pios_led.c
 SRC += pios_ppm.c
 SRC += pios_servo.c
 SRC += pios_spislave.c
+SRC += pios_rcvr.c
+SRC += pios_semaphore.c
 SRC += pios_sys.c
 SRC += pios_tim.c
 SRC += pios_usart.c
 SRC += pios_wdg.c
 
-#SRC += pios_dsm.c
-#SRC += pios_rcvr.c
-#SRC += pios_sbus.c
-#SRC += pios_ibus.c
-#SRC += pios_hsum.c
-#SRC += pios_srxl.c
+#receiver types
+SRC += pios_dsm.c
+SRC += pios_hsum.c
+SRC += pios_ibus.c
+SRC += pios_sbus.c
+SRC += pios_srxl.c
+
+SRC += $(FLIGHTLIB)/circqueue.c
 
 #SRC += $(OPUAVTALK)/uavtalk.c
 #SRC += $(OPUAVOBJ)/uavobjectmanager.c
@@ -115,11 +121,9 @@ SRC += pios_wdg.c
 #SRC += pios_usb_util.c
 #SRC += pios_dma.c
 #SRC += pios_adc.c
-#SRC += pios_semaphore.c
 #SRC += pios_mutex.c
 #SRC += pios_thread.c
 #SRC += pios_queue.c
-#SRC += pios_hal.c
 #SRC += pios_modules.c
 #SRC += pios_ibus.c
 #SRC += pios_spi.c
