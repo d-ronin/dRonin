@@ -122,7 +122,7 @@ int32_t PIOS_SPISLAVE_Init(spislave_t *spislave_id,
 
 	return 0;
 
-	out_fail:
+out_fail:
 	return -1;
 }
 

@@ -1,13 +1,9 @@
 /**
  ******************************************************************************
- * @addtogroup TauLabsTargets Tau Labs Targets
- * @{
- * @addtogroup Naze32 family support files
- * @{
  *
  * @file       pios_board.h 
  * @author     Tau Labs, http://taulabs.org, Copyright (C) 2012-2015
- * @brief      Board header file for Naze32
+ * @brief      Board header file for FlyingPIO IO Expander
  * @see        The GNU Public License (GPL) Version 3
  * 
  *****************************************************************************/
@@ -147,9 +143,3 @@ extern uintptr_t pios_internal_adc_id;
 #define VREF_PLUS								3.3
 
 #endif /* _FLYINGPIO_PIOS_BOARD_H */
-
-
-/**
- * @}
- * @}
- */
