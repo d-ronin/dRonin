@@ -57,10 +57,6 @@ enum pios_adc_dev_magic {
 
 struct pios_internal_adc_dev {
 	const struct pios_internal_adc_cfg * cfg;
-	ADCCallback callback_function;
-#if defined(PIOS_INCLUDE_CHIBIOS)
-	struct pios_queue *data_queue;
-#endif
 	volatile int16_t *valid_data_buffer;
 	volatile uint8_t adc_oversample;
 	uint8_t dma_block_size;
@@ -88,7 +84,6 @@ static float PIOS_INTERNAL_ADC_LSB_Voltage(uint32_t internal_adc_id);
 const struct pios_adc_driver pios_internal_adc_driver = {
                 .available      = PIOS_INTERNAL_ADC_Available,
                 .get_pin        = PIOS_INTERNAL_ADC_PinGet,
-                .set_queue      = NULL,
                 .number_of_channels = PIOS_INTERNAL_ADC_Number_of_Channels,
                 .lsb_voltage = PIOS_INTERNAL_ADC_LSB_Voltage,
 };
@@ -273,13 +268,6 @@ int32_t PIOS_INTERNAL_ADC_Init(uint32_t * internal_adc_id, const struct pios_int
 		return -1;
 	
 	pios_adc_dev->cfg = cfg;
-	pios_adc_dev->callback_function = NULL;
-
-
-
-#if defined(PIOS_INCLUDE_CHIBIOS)
-	pios_adc_dev->data_queue = NULL;
-#endif
 
 #if defined(PIOS_INCLUDE_ADC)
 	init_pins();
@@ -334,16 +322,6 @@ static int32_t PIOS_INTERNAL_ADC_PinGet(uint32_t internal_adc_id, uint32_t pin)
 	return result;
 #endif
 	return -1;
-}
-
-/**
- * @brief Set a callback function that is executed whenever
- * the ADC double buffer swaps 
- * @note Not currently supported.
- */
-void PIOS_ADC_SetCallback(ADCCallback new_function)
-{
-	pios_adc_dev->callback_function = new_function;
 }
 
 /**
@@ -415,19 +393,7 @@ void accumulate(uint16_t *buffer, uint32_t count)
 		}
 	}
 	
-#if defined(PIOS_INCLUDE_CHIBIOS)
-	// XXX should do something with this
-	if (pios_adc_dev->data_queue) {
-//		bool woken = false;
-//		PIOS_Queue_Send_FromISR(adc_dev->data_queue, pios_adc_dev->downsampled_buffer, &woken);
-	}
-
 #endif
-#endif
-
-//	if(pios_adc_dev->callback_function)
-//		pios_adc_dev->callback_function(pios_adc_dev->downsampled_buffer);
-
 }
 
 /**

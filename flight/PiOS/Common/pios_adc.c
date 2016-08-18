@@ -41,17 +41,11 @@ struct pios_adc_dev {
 	const struct pios_adc_driver *driver;
 };
 
-#if defined(PIOS_INCLUDE_FREERTOS) || defined(PIOS_INCLUDE_CHIBIOS)
 struct pios_adc_dev * pios_adc_dev;
-#else
-#error "PIOS_ADC only works with freeRTOS"
-#endif
 
 // Private functions
-static struct pios_adc_dev *
-PIOS_ADC_Allocate(void);
-static bool
-PIOS_ADC_validate(struct pios_adc_dev *);
+static struct pios_adc_dev * PIOS_ADC_Allocate(void);
+static bool PIOS_ADC_validate(struct pios_adc_dev *);
 
 /* Local Variables */
 static struct sub_device_list_ {
@@ -66,7 +60,7 @@ static struct sub_device_list_ {
  */
 static bool PIOS_ADC_validate(struct pios_adc_dev *dev)
 {
-	if (dev == NULL )
+	if (dev == NULL)
 		return false;
 
 	return (dev->magic == PIOS_ADC_DEV_MAGIC);
@@ -153,23 +147,6 @@ bool PIOS_ADC_Available(uintptr_t adc_id, uint32_t device_pin)
 		return (adc_dev->driver->available)(adc_dev->lower_id, device_pin);
 	else
 		return false;
-}
-
-/**
- * @brief Set the queue to write to
- * \param[in] adc_id handle to the device
- * \param[in] data_queue handle to the queue to be used
- */
-void PIOS_ADC_SetQueue(uintptr_t adc_id, struct pios_queue *data_queue)
-{
-	struct pios_adc_dev *adc_dev = (struct pios_adc_dev *) adc_id;
-
-	if (!PIOS_ADC_validate(adc_dev)) {
-		return;
-	}
-	if (!adc_dev->driver->set_queue)
-		return;
-	(adc_dev->driver->set_queue)(adc_dev->lower_id, data_queue);
 }
 
 /**

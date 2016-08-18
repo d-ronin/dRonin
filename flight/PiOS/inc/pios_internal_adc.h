@@ -8,7 +8,7 @@
  * @file       pios_internal_adc.h
  * @author     The OpenPilot Team, http://www.openpilot.org Copyright (C) 2012.
  * @author     Tau Labs, http://taulabs.org Copyright (C) 2013.
- * @author     dRonin, http://dronin.org Copyright (C) 2015
+ * @author     dRonin, http://dronin.org Copyright (C) 2015-2016
  * @brief      ADC functions header.
  * @see        The GNU Public License (GPL) Version 3
  *
@@ -33,7 +33,6 @@
 #define PIOS_INTERNAL_ADC_H
 
 extern void PIOS_INTERNAL_ADC_DMA_Handler();
-typedef void (*ADCCallback) (float * data);
 
 #endif /* PIOS_INTERNAL_ADC_H */
 

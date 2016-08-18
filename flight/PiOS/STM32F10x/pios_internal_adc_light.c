@@ -44,7 +44,6 @@ static float PIOS_INTERNAL_ADC_LSB_Voltage(uint32_t internal_adc_id);
 const struct pios_adc_driver pios_internal_adc_driver = {
 		.available = PIOS_INTERNAL_ADC_Available,
 		.get_pin = PIOS_INTERNAL_ADC_PinGet,
-		.set_queue = NULL,
 		.number_of_channels = PIOS_INTERNAL_ADC_NumberOfChannels,
 		.lsb_voltage = PIOS_INTERNAL_ADC_LSB_Voltage,
 };
