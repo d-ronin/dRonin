@@ -126,7 +126,7 @@
 
 #define REVOLUTION
 
-#define SUPPORTS_EXTERNAL_MAG
+#define SUPPORTS_EXTERNAL_I2C_SENSOR
 
 #endif /* PIOS_CONFIG_H */
 /**

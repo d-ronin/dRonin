@@ -128,6 +128,9 @@
 #if defined(PIOS_INCLUDE_BMP085)
 #include <pios_bmp085.h>
 #endif
+#if defined(PIOS_INCLUDE_BMP280)
+#include <pios_bmp280.h>
+#endif
 #if defined(PIOS_INCLUDE_HCSR04)
 #include <pios_hcsr04.h>
 #endif

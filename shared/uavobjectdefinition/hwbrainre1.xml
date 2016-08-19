@@ -2,21 +2,29 @@
 	<object name="HwBrainRE1" singleinstance="true" settings="true" category="HardwareSettings">
 	<description>Selection of optional hardware configurations.</description>
 
-	<field name="RxPort" units="function" type="enum" elements="1" parent="HwShared.PortTypes"  defaultvalue="Disabled">
+	<field name="RxPort" units="function" type="enum" elements="1" parent="HwShared.PortTypes" defaultvalue="Disabled">
 	<options>
 		<option>Disabled</option>
-		<option>PPM</option>
-		<option>S.Bus</option>
-		<option>S.Bus Non Inverted</option>
 		<option>DSM</option>
 		<option>HoTT SUMD</option>
 		<option>HoTT SUMH</option>
-		<option>SRXL</option>
 		<option>IBus</option>
+		<option>PPM</option>
+		<option>S.Bus</option>
+		<option>S.Bus Non Inverted</option>
+		<option>SRXL</option>
 	</options>
 	</field>
 
-	<field name="SerialPort" units="function" type="enum" elements="1" parent="HwShared.PortTypes" defaultvalue="Disabled">
+	<field name="MultiPort" units="function" type="enum" elements="1" defaultvalue="PWMout6">
+		<options>
+			<option>PWMout4</option>
+			<option>PWMout6</option>
+			<option>PWMout8</option>
+		</options>
+	</field>
+
+	<field name="SerialPort1" units="function" type="enum" elements="1" parent="HwShared.PortTypes" defaultvalue="Disabled">
 		<options>
 			<option>Disabled</option>
 			<option>Telemetry</option>
@@ -34,25 +42,53 @@
 		</options>
 	</field>
 
-	<field name="MultiPort" units="function" type="enum" elements="1" parent="HwShared.PortTypes" defaultvalue="Disabled">
+	<field name="SerialPort4" units="function" type="enum" elements="1" parent="HwShared.PortTypes" defaultvalue="Disabled">
 		<options>
 			<option>Disabled</option>
-			<option>PWM</option>
-			<option>Telemetry</option>
-			<option>GPS</option>
-			<option>DebugConsole</option>
 			<option>ComBridge</option>
-			<option>OpenLog</option>
-			<option>MSP</option>
-			<option>Storm32Bgc</option>
+			<option>DebugConsole</option>
+			<option>GPS</option>
 			<option>HoTT Telemetry</option>
 			<option>LighttelemetryTx</option>
 			<option>MavLinkTX</option>
 			<option>MavLinkTX_GPS_RX</option>
-			<option>FrSKY Sensor Hub</option>
-			<option>FrSKY SPort Telemetry</option>
+			<option>MSP</option>
+			<option>OpenLog</option>
+			<option>Storm32Bgc</option>
+			<option>Telemetry</option>
 		</options>
 	</field>
+
+	<field name="SerialPort6" units="function" type="enum" elements="1" parent="HwShared.PortTypes" defaultvalue="Disabled">
+		<options>
+			<option>Disabled</option>
+			<option>ComBridge</option>
+			<option>DebugConsole</option>
+			<option>FrSKY Sensor Hub</option>
+			<option>FrSKY SPort Telemetry</option>
+			<option>GPS</option>
+			<option>HoTT Telemetry</option>
+			<option>LighttelemetryTx</option>
+			<option>MavLinkTX</option>
+			<option>MavLinkTX_GPS_RX</option>
+			<option>MSP</option>
+			<option>OpenLog</option>
+			<option>Storm32Bgc</option>
+			<option>Telemetry</option>
+		</options>
+	</field>
+
+	<field name="I2CPort" units="function" type="enum" elements="1" defaultvalue="Disabled">
+		<options>
+			<option>Disabled</option>
+			<option>ExtBaro</option>
+			<option>ExtMag</option>
+			<option>ExtBaroAndExtMag</option>
+		</options>
+	</field>
+
+	<field name="ExtBaro" units="function" type="enum" elements="1" options="BMP280,MS5611" defaultvalue="BMP280" />
+	<field name="ExtMag" units="function" type="enum" elements="1" parent="HwShared.MagOrientation" defaultvalue="Top0degCW" />
 
 	<field name="DSMxMode" units="mode" type="enum" elements="1" parent="HwShared.DSMxMode" defaultvalue="Autodetect"/>
 
