@@ -205,12 +205,12 @@ void PIOS_Board_Init(void)
 
 #if defined(PIOS_INCLUDE_CAN)
 	if (PIOS_CAN_Init(&pios_can_id, &pios_can_cfg) != 0)
-		PIOS_HAL_Panic(PIOS_LED_ALARM, PIOS_HAL_PANIC_CAN);
+		PIOS_HAL_CriticalError(PIOS_LED_ALARM, PIOS_HAL_PANIC_CAN);
 
 	if (PIOS_COM_Init(&pios_com_can_id, &pios_can_com_driver, pios_can_id,
 	                  PIOS_COM_CAN_RX_BUF_LEN,
 	                  PIOS_COM_CAN_TX_BUF_LEN))
-		PIOS_HAL_Panic(PIOS_LED_ALARM, PIOS_HAL_PANIC_CAN);
+		PIOS_HAL_CriticalError(PIOS_LED_ALARM, PIOS_HAL_PANIC_CAN);
 
 	pios_com_bridge_id = pios_com_can_id;
 #endif
@@ -218,7 +218,7 @@ void PIOS_Board_Init(void)
 #if defined(PIOS_INCLUDE_FLASH)
 	/* Inititialize all flash drivers */
 	if (PIOS_Flash_Internal_Init(&pios_internal_flash_id, &flash_internal_cfg) != 0)
-		PIOS_HAL_Panic(PIOS_LED_ALARM, PIOS_HAL_PANIC_FLASH);
+		PIOS_HAL_CriticalError(PIOS_LED_ALARM, PIOS_HAL_PANIC_FLASH);
 
 	/* Register the partition table */
 	const struct pios_flash_partition *flash_partition_table;
@@ -228,9 +228,9 @@ void PIOS_Board_Init(void)
 
 	/* Mount all filesystems */
 	if (PIOS_FLASHFS_Logfs_Init(&pios_uavo_settings_fs_id, &flashfs_internal_settings_cfg, FLASH_PARTITION_LABEL_SETTINGS) != 0)
-		PIOS_HAL_Panic(PIOS_LED_ALARM, PIOS_HAL_PANIC_FILESYS);
+		PIOS_HAL_CriticalError(PIOS_LED_ALARM, PIOS_HAL_PANIC_FILESYS);
 	if (PIOS_FLASHFS_Logfs_Init(&pios_waypoints_settings_fs_id, &flashfs_internal_waypoints_cfg, FLASH_PARTITION_LABEL_WAYPOINTS) != 0)
-		PIOS_HAL_Panic(PIOS_LED_ALARM, PIOS_HAL_PANIC_FILESYS);
+		PIOS_HAL_CriticalError(PIOS_LED_ALARM, PIOS_HAL_PANIC_FILESYS);
 
 #if defined(ERASE_FLASH)
 	PIOS_FLASHFS_Format(pios_uavo_settings_fs_id);
@@ -348,7 +348,7 @@ void PIOS_Board_Init(void)
 		PIOS_DEBUG_Assert(0);
 
 	if (PIOS_I2C_CheckClear(pios_i2c_internal_id) != 0)
-		PIOS_HAL_Panic(PIOS_LED_ALARM, PIOS_HAL_PANIC_I2C_INT);
+		PIOS_HAL_CriticalError(PIOS_LED_ALARM, PIOS_HAL_PANIC_I2C_INT);
 	else
 		if (AlarmsGet(SYSTEMALARMS_ALARM_I2C) == SYSTEMALARMS_ALARM_UNINITIALISED)
 			AlarmsSet(SYSTEMALARMS_ALARM_I2C, SYSTEMALARMS_ALARM_OK);
@@ -515,9 +515,9 @@ void PIOS_Board_Init(void)
 		int retval;
 		retval = PIOS_MPU9150_Init(pios_i2c_internal_id, PIOS_MPU9150_I2C_ADD_A0_LOW, &pios_mpu9150_cfg, use_mpu_mag);
 		if (retval == -10)
-			PIOS_HAL_Panic(PIOS_LED_ALARM, PIOS_HAL_PANIC_IMU);
+			PIOS_HAL_CriticalError(PIOS_LED_ALARM, PIOS_HAL_PANIC_IMU);
 		if (retval != 0)
-			PIOS_HAL_Panic(PIOS_LED_ALARM, PIOS_HAL_PANIC_IMU);
+			PIOS_HAL_CriticalError(PIOS_LED_ALARM, PIOS_HAL_PANIC_IMU);
 
 		// To be safe map from UAVO enum to driver enum
 		uint8_t hw_gyro_range;
@@ -587,9 +587,9 @@ void PIOS_Board_Init(void)
 #endif /* PIOS_INCLUDE_MPU9150 */
 	{
 		if (PIOS_MPU6050_Init(pios_i2c_internal_id, PIOS_MPU6050_I2C_ADD_A0_LOW, &pios_mpu6050_cfg) != 0)
-			PIOS_HAL_Panic(PIOS_LED_ALARM, PIOS_HAL_PANIC_IMU);
+			PIOS_HAL_CriticalError(PIOS_LED_ALARM, PIOS_HAL_PANIC_IMU);
 		if (PIOS_MPU6050_Test() != 0)
-			PIOS_HAL_Panic(PIOS_LED_ALARM, PIOS_HAL_PANIC_IMU);
+			PIOS_HAL_CriticalError(PIOS_LED_ALARM, PIOS_HAL_PANIC_IMU);
 
 		// To be safe map from UAVO enum to driver enum
 		uint8_t hw_gyro_range;
@@ -675,7 +675,7 @@ void PIOS_Board_Init(void)
 #if defined(PIOS_INCLUDE_MS5611)
 	PIOS_MS5611_Init(&pios_ms5611_cfg, pios_i2c_internal_id);
 	if (PIOS_MS5611_Test() != 0)
-		PIOS_HAL_Panic(PIOS_LED_ALARM, PIOS_HAL_PANIC_BARO);
+		PIOS_HAL_CriticalError(PIOS_LED_ALARM, PIOS_HAL_PANIC_BARO);
 #endif
 
 #if defined(PIOS_INCLUDE_GPIO)

@@ -235,7 +235,7 @@ uintptr_t pios_com_debug_id;
  * @param[in] led_id The LED to blink
  * @param[in] code Number of blinks to do in a row
  */
-void PIOS_HAL_Panic(uint32_t led_id, enum pios_hal_panic code) {
+void PIOS_HAL_CriticalError(uint32_t led_id, enum pios_hal_panic code) {
 #if defined(PIOS_INCLUDE_LED)
 	for (int cnt = 0; cnt < 3; cnt++) {
 		for (int32_t i = 0; i < code; i++) {

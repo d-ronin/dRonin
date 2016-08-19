@@ -73,7 +73,7 @@ extern uintptr_t pios_rcvr_group_map[];
 
 #endif
 
-void PIOS_HAL_Panic(uint32_t led_id, enum pios_hal_panic code);
+void PIOS_HAL_CriticalError(uint32_t led_id, enum pios_hal_panic code);
 
 #ifdef PIOS_INCLUDE_USART
 void PIOS_HAL_ConfigureCom(const struct pios_usart_cfg *usart_port_cfg, struct pios_usart_params *usart_port_params,
