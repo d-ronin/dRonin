@@ -3,6 +3,10 @@
  * @file       main.c
  * @author     Tau Labs, http://taulabs.org, Copyright (C) 2012-2014
  * @author     dRonin, http://dronin.org, Copyright (C) 2016
+ * @addtogroup Targets
+ * @{
+ * @addtogroup FlyingPIO Programmed-IO expansion board target
+ * @{
  * @brief      Start the RTOS and the Modules.
  * @see        The GNU Public License (GPL) Version 3
  *
@@ -197,3 +201,7 @@ int main()
 
 	return 0;
 }
+/**
+ * @}
+ * @}
+ */

@@ -5,6 +5,10 @@
  * @author     The OpenPilot Team, http://www.openpilot.org Copyright (C) 2011.
  * @author     Tau Labs, http://taulabs.org, Copyright (C) 2012-2015
  * @author     dRonin, http://dronin.org Copyright (C) 2015-2016
+ * @addtogroup Targets
+ * @{
+ * @addtogroup FlyingPIO Programmed-IO expansion board target
+ * @{
  * @brief      Defines board specific static initializers for hardware for the 
  *             FlyingPIO IO exapnder.
  * @see        The GNU Public License (GPL) Version 3
@@ -529,3 +533,7 @@ const struct pios_sbus_cfg *get_sbus_cfg(enum board_revision board_rev)
 	(void)board_rev;
 	return NULL;
 }
+/**
+ * @}
+ * @}
+ */
