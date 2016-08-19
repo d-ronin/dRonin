@@ -133,12 +133,6 @@ static const struct pios_ms5611_cfg pios_ms5611_cfg = {
 #include "pios_frsky_rssi_priv.h"
 #endif /* PIOS_INCLUDE_FRSKY_RSSI */
 
-/* One slot per selectable receiver group.
- *  eg. PWM, PPM, GCS, SPEKTRUM1, SPEKTRUM2, SBUS
- * NOTE: No slot in this map for NONE.
- */
-bool external_mag_fail;
-
 uintptr_t pios_internal_adc_id;
 uintptr_t pios_com_logging_id;
 uintptr_t pios_com_openlog_logging_id;
@@ -557,8 +551,8 @@ void PIOS_Board_Init(void) {
 	PIOS_WDG_Clear();
 
 #if defined(PIOS_INCLUDE_MS5611)
-	PIOS_MS5611_Init(&pios_ms5611_cfg, pios_i2c_internal_id);
-	if (PIOS_MS5611_Test() != 0)
+	if ((PIOS_MS5611_Init(&pios_ms5611_cfg, pios_i2c_internal_id) != 0)
+			|| (PIOS_MS5611_Test() != 0))
 		PIOS_HAL_CriticalError(PIOS_LED_ALARM, PIOS_HAL_PANIC_BARO);
 #endif
 
@@ -753,7 +747,9 @@ void PIOS_Board_Init(void) {
 #endif
 
 	// set variable so the Sensors task sets an alarm
-	external_mag_fail = !use_internal_mag && !ext_mag_init_ok;
+	if (!use_internal_mag && !ext_mag_init_ok) {
+		PIOS_SENSORS_SetMissing(PIOS_SENSOR_MAG);
+	}
 
 	/* Make sure we have at least one telemetry link configured or else fail initialization */
 	PIOS_Assert(pios_com_telem_serial_id || pios_com_telem_usb_id);

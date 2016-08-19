@@ -28,9 +28,6 @@
  * 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
  */
 
-// TODO: Make this pios driver actually create the queue and set that to the 
-// lower driver (??)
-
 #include "pios_sensors.h"
 #include <stddef.h>
 
@@ -39,7 +36,10 @@ static struct pios_queue *queues[PIOS_SENSOR_LAST];
 static uint32_t sample_rates[PIOS_SENSOR_LAST];
 static int32_t max_gyro_rate;
 
-//! Initialize the sensors interface
+#ifdef PIOS_TOLERATE_MISSING_SENSORS
+static bool missing_sensors[PIOS_SENSOR_LAST];
+#endif
+
 int32_t PIOS_SENSORS_Init()
 {
 	for (uint32_t i = 0; i < PIOS_SENSOR_LAST; i++) {
@@ -50,7 +50,6 @@ int32_t PIOS_SENSORS_Init()
 	return 0;
 }
 
-//! Register a sensor with the PIOS_SENSORS interface
 int32_t PIOS_SENSORS_Register(enum pios_sensor_type type, struct pios_queue *queue)
 {
 	if(queues[type] != NULL)
@@ -61,7 +60,6 @@ int32_t PIOS_SENSORS_Register(enum pios_sensor_type type, struct pios_queue *que
 	return 0;
 }
 
-//! Checks if a sensor type is registered with the PIOS_SENSORS interface
 bool PIOS_SENSORS_IsRegistered(enum pios_sensor_type type)
 {
 	if(type >= PIOS_SENSOR_LAST)
@@ -73,7 +71,6 @@ bool PIOS_SENSORS_IsRegistered(enum pios_sensor_type type)
 	return false;
 }
 
-//! Get the data queue for a sensor type
 struct pios_queue *PIOS_SENSORS_GetQueue(enum pios_sensor_type type)
 {
 	if (type >= PIOS_SENSOR_LAST)
@@ -82,19 +79,16 @@ struct pios_queue *PIOS_SENSORS_GetQueue(enum pios_sensor_type type)
 	return queues[type];
 }
 
-//! Set the maximum gyro rate in deg/s
 void PIOS_SENSORS_SetMaxGyro(int32_t rate)
 {
 	max_gyro_rate = rate;
 }
 
-//! Get the maximum gyro rate in deg/s
 int32_t PIOS_SENSORS_GetMaxGyro()
 {
-		return max_gyro_rate;
+	return max_gyro_rate;
 }
 
-//! Set the sample rate of a sensor (Hz)
 void PIOS_SENSORS_SetSampleRate(enum pios_sensor_type type, uint32_t sample_rate)
 {
 	if (type >= PIOS_SENSOR_LAST)
@@ -103,11 +97,29 @@ void PIOS_SENSORS_SetSampleRate(enum pios_sensor_type type, uint32_t sample_rate
 	sample_rates[type] = sample_rate;
 }
 
-//! Get the sample rate of a sensor (Hz)
 uint32_t PIOS_SENSORS_GetSampleRate(enum pios_sensor_type type)
 {
 	if (type >= PIOS_SENSOR_LAST)
 		return 0;
 
 	return sample_rates[type];
+}
+
+void PIOS_SENSORS_SetMissing(enum pios_sensor_type type)
+{
+	PIOS_Assert(type < PIOS_SENSOR_LAST);
+#ifdef PIOS_TOLERATE_MISSING_SENSORS
+	missing_sensors[type] = true;
+#endif
+}
+
+bool PIOS_SENSORS_GetMissing(enum pios_sensor_type type)
+{
+	PIOS_Assert(type < PIOS_SENSOR_LAST);
+
+#ifdef PIOS_TOLERATE_MISSING_SENSORS
+	return missing_sensors[type];
+#else
+	return false;
+#endif
 }

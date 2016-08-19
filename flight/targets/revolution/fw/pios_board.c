@@ -124,8 +124,6 @@ static const struct pios_ms5611_cfg pios_ms5611_cfg = {
 uintptr_t pios_com_debug_id;
 #endif	/* PIOS_INCLUDE_DEBUG_CONSOLE */
 
-bool external_mag_fail;
-
 uintptr_t pios_internal_adc_id = 0;
 uintptr_t pios_uavo_settings_fs_id;
 uintptr_t pios_waypoints_settings_fs_id;
@@ -568,8 +566,6 @@ void PIOS_Board_Init(void) {
 	uint8_t magnetometer;
 	HwRevolutionMagnetometerGet(&magnetometer);
 
-	external_mag_fail = false;
-
 	if (magnetometer == HWREVOLUTION_MAGNETOMETER_EXTERNALI2CFLEXIPORT)	{
 		if (PIOS_HMC5883_Init(pios_i2c_flexiport_adapter_id, &pios_hmc5883_external_cfg) == 0) {
 			if (PIOS_HMC5883_Test() == 0) {
@@ -590,19 +586,16 @@ void PIOS_Board_Init(void) {
 					(ext_mag_orientation == HWREVOLUTION_EXTMAGORIENTATION_BOTTOM270DEGCW) ? PIOS_HMC5883_BOTTOM_270DEG : \
 					pios_hmc5883_external_cfg.Default_Orientation;
 				PIOS_HMC5883_SetOrientation(hmc5883_externalOrientation);
-			}
-			else
-				external_mag_fail = true;  // External HMC5883 Test Failed
-		}
-		else
-			external_mag_fail = true;  // External HMC5883 Init Failed
+			} else
+				PIOS_SENSORS_SetMissing(PIOS_SENSOR_MAG);
+		} else
+			PIOS_SENSORS_SetMissing(PIOS_SENSOR_MAG);
 	}
 
 	if (magnetometer == HWREVOLUTION_MAGNETOMETER_INTERNAL)
 	{
-		if (PIOS_HMC5883_Init(PIOS_I2C_MAIN_ADAPTER, &pios_hmc5883_cfg) != 0)
-			PIOS_HAL_CriticalError(PIOS_LED_ALARM, PIOS_HAL_PANIC_MAG);
-		if (PIOS_HMC5883_Test() != 0)
+		if ((PIOS_HMC5883_Init(PIOS_I2C_MAIN_ADAPTER, &pios_hmc5883_cfg) != 0) ||
+				(PIOS_HMC5883_Test() != 0))
 			PIOS_HAL_CriticalError(PIOS_LED_ALARM, PIOS_HAL_PANIC_MAG);
 	}
 

@@ -112,8 +112,6 @@ static const struct pios_ms5611_cfg pios_ms5611_cfg = {
 };
 #endif /* PIOS_INCLUDE_MS5611 */
 
-bool external_mag_fail;
-
 uintptr_t pios_com_openlog_logging_id;
 uintptr_t pios_uavo_settings_fs_id;
 uintptr_t pios_waypoints_settings_fs_id;
@@ -522,8 +520,6 @@ pios_mpu_cfg.default_samplerate;
     uint8_t magnetometer;
     HwAQ32MagnetometerGet(&magnetometer);
 
-    external_mag_fail = false;
-
     if (magnetometer == HWAQ32_MAGNETOMETER_EXTERNAL)
     {
 		PIOS_HAL_ConfigurePort(HWSHARED_PORTTYPES_I2C,  // port type protocol
@@ -559,17 +555,16 @@ pios_mpu_cfg.default_samplerate;
                 PIOS_HMC5883_SetOrientation(hmc5883_externalOrientation);
             }
             else
-                external_mag_fail = true;  // External HMC5883 Test Failed
+		PIOS_SENSORS_SetMissing(PIOS_SENSOR_MAG);
         }
         else
-            external_mag_fail = true;  // External HMC5883 Init Failed
+	    PIOS_SENSORS_SetMissing(PIOS_SENSOR_MAG);
     }
 
     if (magnetometer == HWAQ32_MAGNETOMETER_INTERNAL)
     {
-        if (PIOS_HMC5883_Init(pios_i2c_internal_id, &pios_hmc5883_internal_cfg) != 0)
-            PIOS_HAL_CriticalError(PIOS_LED_ALARM, PIOS_HAL_PANIC_MAG);
-        if (PIOS_HMC5883_Test() != 0)
+        if ((PIOS_HMC5883_Init(pios_i2c_internal_id, &pios_hmc5883_internal_cfg) != 0) ||
+			(PIOS_HMC5883_Test() != 0))
             PIOS_HAL_CriticalError(PIOS_LED_ALARM, PIOS_HAL_PANIC_MAG);
     }
 
@@ -579,9 +574,8 @@ pios_mpu_cfg.default_samplerate;
     PIOS_WDG_Clear();
 
 #if defined(PIOS_INCLUDE_MS5611)
-    if (PIOS_MS5611_Init(&pios_ms5611_cfg, pios_i2c_internal_id) != 0)
-        PIOS_HAL_CriticalError(PIOS_LED_ALARM, PIOS_HAL_PANIC_BARO);
-    if (PIOS_MS5611_Test() != 0)
+    if ((PIOS_MS5611_Init(&pios_ms5611_cfg, pios_i2c_internal_id) != 0)
+		    || (PIOS_MS5611_Test() != 0))
         PIOS_HAL_CriticalError(PIOS_LED_ALARM, PIOS_HAL_PANIC_BARO);
 #endif
 

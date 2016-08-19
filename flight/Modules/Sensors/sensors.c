@@ -103,6 +103,10 @@ static AccelsData accelsData;
 // These values are initialized by settings but can be updated by the attitude algorithm
 static bool bias_correct_gyro = true;
 
+#ifdef PIOS_TOLERATE_MISSING_SENSORS
+SystemAlarmsAlarmOptions missing_sensor_severity = SYSTEMALARMS_ALARM_ERROR;
+#endif
+
 static float mag_bias[3] = {0,0,0};
 static float mag_scale[3] = {0,0,0};
 static float accel_bias[3] = {0,0,0};
@@ -116,10 +120,6 @@ static float z_accel_offset = 0;
 static float Rsb[3][3] = {{0}}; //! Rotation matrix that transforms from the body frame to the sensor board frame
 static int8_t rotate = 0;
 
-#if defined(SUPPORTS_EXTERNAL_MAG)
-// indicates whether the external mag works
-extern bool external_mag_fail;
-#endif
 //! Select the algorithm to try and null out the magnetometer bias error
 static enum mag_calibration_algo mag_calibration_algo = MAG_CALIBRATION_PRELEMARI;
 
@@ -130,7 +130,6 @@ static enum mag_calibration_algo mag_calibration_algo = MAG_CALIBRATION_PRELEMAR
  * FinalizeSensors() -- before saving the sensors modifies them based on internal state (gyro bias)
  * Update() -- queries queues and updates the attitude estiamte
  */
-
 
 /**
  * Initialise the module.  Called before the start function
@@ -271,9 +270,21 @@ static void SensorsTask(void *parameters)
 		// the accels to be available first
 		update_gyros(&gyros);
 
+		bool test_good_run = good_runs > REQUIRED_GOOD_CYCLES;
+
 		queue = PIOS_SENSORS_GetQueue(PIOS_SENSOR_MAG);
 		if (queue != NULL && PIOS_Queue_Receive(queue, &mags, 0) != false) {
 			update_mags(&mags);
+#ifdef PIOS_TOLERATE_MISSING_SENSORS
+		} else if (test_good_run) {
+			// Keep alarm asserted
+			test_good_run = false;
+
+			if (PIOS_SENSORS_GetMissing(PIOS_SENSOR_MAG)) {
+				AlarmsSet(SYSTEMALARMS_ALARM_SENSORS,
+						missing_sensor_severity);
+			}
+#endif
 		}
 
 		queue = PIOS_SENSORS_GetQueue(PIOS_SENSOR_BARO);
@@ -283,7 +294,6 @@ static void SensorsTask(void *parameters)
 				last_baro_update_time = timeval;
 				update_baro(&baro);
 				AlarmsClear(SYSTEMALARMS_ALARM_TEMPBARO);
-
 			} else {
 				// Check that we got valid sensor datas
 				uint32_t dT_baro_datas = PIOS_DELAY_DiffuS(last_baro_update_time);
@@ -293,6 +303,13 @@ static void SensorsTask(void *parameters)
 				}
 			}
 
+#ifdef PIOS_TOLERATE_MISSING_SENSORS
+		} else {
+			if (PIOS_SENSORS_GetMissing(PIOS_SENSOR_BARO)) {
+				AlarmsSet(SYSTEMALARMS_ALARM_TEMPBARO,
+						missing_sensor_severity);
+			}
+#endif
 		}
 
 #if defined(PIOS_INCLUDE_OPTICALFLOW)
@@ -310,11 +327,6 @@ static void SensorsTask(void *parameters)
 			update_rangefinder(&rangefinder);
 		}
 #endif /* PIOS_INCLUDE_RANGEFINDER */
-
-		bool test_good_run = good_runs > REQUIRED_GOOD_CYCLES;
-		#if defined(SUPPORTS_EXTERNAL_MAG)
-		test_good_run = test_good_run && !external_mag_fail;
-		#endif
 
 		if (test_good_run)
 			AlarmsClear(SYSTEMALARMS_ALARM_SENSORS);
@@ -678,6 +690,15 @@ static void settingsUpdatedCb(UAVObjEvent * objEv, void *ctx, void *obj, int len
 	SensorSettingsData sensorSettings;
 	SensorSettingsGet(&sensorSettings);
 	INSSettingsGet(&insSettings);
+
+#ifdef PIOS_TOLERATE_MISSING_SENSORS
+	if (sensorSettings.TolerateMissingSensors ==
+			SENSORSETTINGS_TOLERATEMISSINGSENSORS_YES) {
+		missing_sensor_severity = SYSTEMALARMS_ALARM_WARNING;
+	} else {
+		missing_sensor_severity = SYSTEMALARMS_ALARM_ERROR;
+	}
+#endif
 	
 	mag_bias[0] = sensorSettings.MagBias[SENSORSETTINGS_MAGBIAS_X];
 	mag_bias[1] = sensorSettings.MagBias[SENSORSETTINGS_MAGBIAS_Y];

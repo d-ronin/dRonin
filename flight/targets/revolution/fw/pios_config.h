@@ -76,6 +76,7 @@
 #define PIOS_INCLUDE_MPXV5004
 #define PIOS_INCLUDE_MPXV7002
 //#define PIOS_INCLUDE_HCSR04
+#define PIOS_TOLERATE_MISSING_SENSORS
 
 /* Com systems to include */
 #define PIOS_INCLUDE_COM
@@ -97,6 +98,8 @@
 #define PIOS_INCLUDE_GPS_NMEA_PARSER
 #define PIOS_INCLUDE_GPS_UBX_PARSER
 #define PIOS_GPS_SETS_HOMELOCATION
+
+#define PIOS_TOLERATE_MISSING_SENSORS
 
 /* Supported receiver interfaces */
 #define PIOS_INCLUDE_RCVR

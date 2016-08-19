@@ -116,4 +116,10 @@ void PIOS_SENSORS_SetSampleRate(enum pios_sensor_type type, uint32_t sample_rate
 //! Get the sample rate of a sensor (Hz)
 uint32_t PIOS_SENSORS_GetSampleRate(enum pios_sensor_type type);
 
+//! Assert that an optional (non-accel/gyro), but expected sensor is missing
+void PIOS_SENSORS_SetMissing(enum pios_sensor_type type);
+
+//! Determine if an optional but expected sensor is missing.
+bool PIOS_SENSORS_GetMissing(enum pios_sensor_type type);
+
 #endif /* PIOS_SENSOR_H */

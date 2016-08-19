@@ -107,8 +107,6 @@ static const struct pios_bmi160_cfg pios_bmi160_cfg = {
 #include "pios_frsky_rssi_priv.h"
 #endif /* PIOS_INCLUDE_FRSKY_RSSI */
 
-bool external_mag_fail;
-
 uintptr_t pios_com_logging_id;
 uintptr_t pios_com_openlog_logging_id;
 uintptr_t pios_internal_adc_id = 0;
