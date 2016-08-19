@@ -39,6 +39,7 @@
 
 #include <pios_hal.h>
 #include <pios_rtc_priv.h>
+#include <pios_internal_adc_simple.h>
 
 #include "hwshared.h"
 
@@ -48,6 +49,7 @@ static bool inited;
 
 static struct flyingpicmd_cfg_fa cfg;
 
+uintptr_t adc_id;
 static uint16_t msg_num;
 
 extern void TIM1_CC_IRQHandler(void);
@@ -159,7 +161,9 @@ static void generate_status_message(int *resp_len)
 		}
 	}
 
-	// XXX resp->adc_data
+	for (int i=0; i<FPPROTO_MAX_ADCCHANS; i++) {
+		resp->adc_data[i] = PIOS_ADC_DevicePinGet(adc_id, i);
+	}
 
 	flyingpi_calc_crc(&tx_buf, true, resp_len);
 
@@ -214,6 +218,18 @@ int main()
 	PIOS_LED_Init(led_cfg);
 #endif	/* PIOS_INCLUDE_LED */
 
+#if defined(PIOS_INCLUDE_ADC)
+	pios_internal_adc_t adc_dev;
+
+	if (PIOS_INTERNAL_ADC_Init(&adc_dev, &internal_adc_cfg)) {
+		PIOS_Assert(0);
+	}
+
+	if (PIOS_ADC_Init(&adc_id, &pios_internal_adc_driver, (uint32_t )adc_dev)) {
+		PIOS_Assert(0);
+	}
+#endif
+
 	//outputs
 	PIOS_TIM_InitClock(&tim_1_cfg);
 	PIOS_TIM_InitClock(&tim_3_cfg);
@@ -234,6 +250,7 @@ int main()
 
 	while (1) {
 		PIOS_SPISLAVE_PollSS(spislave_dev);
+		PIOS_INTERNAL_ADC_DoStep(adc_dev);
 
 		i++;
 		i &= 0x3ffff;

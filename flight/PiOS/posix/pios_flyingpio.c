@@ -198,6 +198,13 @@ static int PIOS_FLYINGPIO_SendCmd(struct flyingpi_msg *msg) {
 					fpio_dev->rcvr_value[i] = data->chan_data[i];
 				}
 
+#if 0
+				if (!(fpio_dev->msg_num & 1023)) {
+					for (int i=0; i<FPPROTO_MAX_ADCCHANS; i++) {
+						printf("%d : %d\n", i, data->adc_data[i]);
+					}
+				}
+#endif
 				/* XXX ADC */
 			}
 		}

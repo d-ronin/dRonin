@@ -119,7 +119,7 @@ int32_t PIOS_DELAY_WaituS(uint32_t us)
  * \param[in] mS delay (1..65535 milliseconds)
  * \return < 0 on errors
  */
-int32_t PIOS_DELAY_Waitms(uint32_t ms)
+int32_t PIOS_DELAY_WaitmS(uint32_t ms)
 {
 	// ~ 2147 seconds is a long time to busywait.
 	PIOS_Assert(ms < (0x8000000 / 1000));

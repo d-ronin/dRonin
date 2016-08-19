@@ -36,6 +36,7 @@
 /* Enable/Disable PiOS Modules */
 
 /* Systems to include */
+#define PIOS_INCLUDE_ADC
 #define PIOS_INCLUDE_COM
 #define PIOS_INCLUDE_IRQ
 #define PIOS_INCLUDE_LED

@@ -187,13 +187,9 @@ static const struct pios_spislave_cfg pios_spislave_cfg = {
 
 #endif	/* PIOS_INCLUDE_SPI */
 
-#if 0
-
-#if defined(PIOS_INCLUDE_ADC)
+#ifdef PIOS_INCLUDE_ADC
 #include "pios_adc_priv.h"
-#include "pios_internal_adc_light_priv.h"
-
-/* XXX TODO */
+#include "pios_internal_adc_simple.h"
 
 /**
  * ADC0 : PA4 ADC_IN4
@@ -201,29 +197,18 @@ static const struct pios_spislave_cfg pios_spislave_cfg = {
  * ADC2 : PA1 ADC_IN1
  * ADC3 : PB1 ADC_IN9
  */
-static const struct pios_internal_adc_cfg internal_adc_cfg = {
-	.dma = {
-		.ahb_clk  = RCC_AHBPeriph_DMA1,
-		.rx = {
-			.channel = DMA1_Channel1,
-			.init    = {
-				.DMA_Priority           = DMA_Priority_High,
-			},
-		}
-	},
-	.adc_pin_count = 4, // this is the max number, can be reduced at runtime (due to port config)
-	.adc_dev_master = ADC1,
+static const struct pios_internal_adc_simple_cfg internal_adc_cfg = {
+	.adc_dev = ADC1,
 	.adc_pins = {
-		{GPIOA, GPIO_Pin_4, ADC_Channel_4, true},  // VBat
-		{GPIOA, GPIO_Pin_5, ADC_Channel_5, true},  // ADC Pad
-		{GPIOA, GPIO_Pin_1, ADC_Channel_1, true},  // RC IN 2
-		{GPIOB, GPIO_Pin_1, ADC_Channel_9, true},  // RC IN 8
-	}
+		{GPIOA, GPIO_Pin_0, ADC_Channel_0 },  // VBat
+		{GPIOA, GPIO_Pin_1, ADC_Channel_1 },  // ADC Pad
+		{NULL,  0,          ADC_Channel_Vrefint },
+		{NULL,  0,          ADC_Channel_TempSensor },
+	},
+	.adc_pin_count = 4,
 };
 
 #endif /* PIOS_INCLUDE_ADC */
-
-#endif /* 0 */
 
 #include "pios_tim_priv.h"
 

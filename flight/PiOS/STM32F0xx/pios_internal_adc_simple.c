@@ -113,6 +113,14 @@ static void PIOS_INTERNAL_ADC_Converter_Config(pios_internal_adc_t adc_dev)
 {
 	ADC_DeInit(adc_dev->cfg->adc_dev);
 
+#if 0
+	/* Perform ADC calibration */
+	/* For whatever reason we don't seem to be able to do this and have
+	 * subsequent ADC operations work... */
+	ADC1->CR |= ADC_CR_ADCAL;
+	while ((ADC1->CR & ADC_CR_ADCAL) != 0);
+#endif
+
 	ADC_InitTypeDef ADC_InitStructure;
 	ADC_StructInit(&ADC_InitStructure);
 
@@ -126,10 +134,6 @@ static void PIOS_INTERNAL_ADC_Converter_Config(pios_internal_adc_t adc_dev)
 	ADC_ClockModeConfig(adc_dev->cfg->adc_dev, ADC_ClockMode_AsynClk);
 	ADC_ContinuousModeCmd(adc_dev->cfg->adc_dev, DISABLE);
 	ADC_DiscModeCmd(adc_dev->cfg->adc_dev, ENABLE);
-
-	/* Perform ADC calibration */
-	ADC1->CR |= ADC_CR_ADCAL;
-	while ((ADC1->CR & ADC_CR_ADCAL) != 0);
 
 	/* Do common ADC init */
 	ADC_TempSensorCmd(ENABLE);
