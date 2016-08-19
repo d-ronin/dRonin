@@ -61,7 +61,9 @@
 #include "pios_ms5611_priv.h"
 #include "pios_bmx055_priv.h"
 #include "pios_flyingpio.h"
+
 #include "pios_hal.h"
+#include "pios_adc_priv.h"
 #include "pios_rcvr_priv.h"
 
 #include "manualcontrolsettings.h"
@@ -242,6 +244,13 @@ static int handle_device(const char *optarg) {
 		/* Pretend what we get is PWM */
 		PIOS_HAL_SetReceiver(MANUALCONTROLSETTINGS_CHANNELGROUPS_PWM,
 			rcvr_id);
+
+		uintptr_t adc_id;
+
+		if (PIOS_ADC_Init(&adc_id, &pios_flyingpio_adc_driver,
+				(uintptr_t) dev)) {
+			PIOS_Assert(0);
+		}
 	} else {
 		goto fail;
 	}

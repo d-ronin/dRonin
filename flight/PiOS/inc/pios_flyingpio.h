@@ -44,6 +44,7 @@ int32_t PIOS_FLYINGPIO_SPI_Init(pios_flyingpio_dev_t *dev, uint32_t spi_id, uint
 int32_t PIOS_FLYINGPIO_Receiver_Get(uintptr_t dev_int, uint8_t channel);
 
 extern const struct pios_rcvr_driver pios_flyingpio_rcvr_driver;
+extern const struct pios_adc_driver pios_flyingpio_adc_driver;
 
 #endif /* PIOS_FLYINGPIO_H */
 

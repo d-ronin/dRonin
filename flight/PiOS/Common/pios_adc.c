@@ -28,7 +28,6 @@
  */
 
 #include "pios.h"
-#include <pios_internal_adc_priv.h>
 
 // Private types
 enum pios_adc_dev_magic {

@@ -32,7 +32,8 @@
 #define PIOS_BOARD_H
 
 
-
+// PIOS_ADC
+#define PIOS_ADC_SUB_DRIVER_MAX_INSTANCES	3
 
 //------------------------
 // PIOS_LED

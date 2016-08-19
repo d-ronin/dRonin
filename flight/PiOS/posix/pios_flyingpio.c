@@ -55,6 +55,17 @@ const struct pios_rcvr_driver pios_flyingpio_rcvr_driver = {
         .read = PIOS_FLYINGPIO_Receiver_Get,
 };
 
+static bool PIOS_FLYINGPIO_ADC_Available(uint32_t dev_int, uint32_t pin);
+static int32_t PIOS_FLYINGPIO_ADC_PinGet(uint32_t dev_int, uint32_t pin);
+static uint8_t PIOS_FLYINGPIO_ADC_NumberOfChannels(uint32_t dev_int);
+static float PIOS_FLYINGPIO_ADC_LSB_Voltage(uint32_t dev_int);
+
+const struct pios_adc_driver pios_flyingpio_adc_driver = {
+		.available = PIOS_FLYINGPIO_ADC_Available,
+		.get_pin = PIOS_FLYINGPIO_ADC_PinGet,
+		.number_of_channels = PIOS_FLYINGPIO_ADC_NumberOfChannels,
+		.lsb_voltage = PIOS_FLYINGPIO_ADC_LSB_Voltage,
+};
 
 /**
  * @brief The device state struct
@@ -69,6 +80,9 @@ struct pios_flyingpio_dev {
 
 	volatile uint16_t rcvr_value[FPPROTO_MAX_RCCHANS];
 						/**< Receiver/controller data */
+
+	volatile uint16_t adc_value[FPPROTO_MAX_ADCCHANS];
+						/**< ADC data */
 };
 
 #define MAX_CONSEC_ERRS 5
@@ -198,14 +212,14 @@ static int PIOS_FLYINGPIO_SendCmd(struct flyingpi_msg *msg) {
 					fpio_dev->rcvr_value[i] = data->chan_data[i];
 				}
 
+				for (int i=0; i<FPPROTO_MAX_ADCCHANS; i++) {
+					fpio_dev->adc_value[i] = data->adc_data[i];
 #if 0
-				if (!(fpio_dev->msg_num & 1023)) {
-					for (int i=0; i<FPPROTO_MAX_ADCCHANS; i++) {
+					if (!(fpio_dev->msg_num & 1023)) {
 						printf("%d : %d\n", i, data->adc_data[i]);
 					}
-				}
 #endif
-				/* XXX ADC */
+				}
 			}
 		}
 		fpio_dev->msg_num++;
@@ -309,7 +323,6 @@ static void PIOS_FLYINGPIO_ActuatorSetMode(const uint16_t *out_rate,
 		cmd->actuators[i].max = true_max;
 	}
 
-
 	/* XXX needs to be specified / configured somewhere... */
 	cmd->receiver_protocol = HWSHARED_PORTTYPES_PPM;
 
@@ -335,6 +348,34 @@ int32_t PIOS_FLYINGPIO_Receiver_Get(uintptr_t dev_int, uint8_t channel)
 	}
 
 	return dev->rcvr_value[channel];
+}
+
+static bool PIOS_FLYINGPIO_ADC_Available(uint32_t dev_int, uint32_t pin) {
+	if (pin >= FPPROTO_MAX_ADCCHANS) {
+		return false;
+	}
+
+	return true;
+}
+
+static int32_t PIOS_FLYINGPIO_ADC_PinGet(uint32_t dev_int, uint32_t pin) {
+	pios_flyingpio_dev_t dev = (pios_flyingpio_dev_t) dev_int;
+
+	if (pin >= FPPROTO_MAX_ADCCHANS) {
+		return -1;
+	}
+
+	return dev->adc_value[pin];
+}
+
+static uint8_t PIOS_FLYINGPIO_ADC_NumberOfChannels(uint32_t dev_int) {
+	return FPPROTO_MAX_ADCCHANS;
+}
+
+#define VREF_PLUS 3.3f
+static float PIOS_FLYINGPIO_ADC_LSB_Voltage(uint32_t dev_int) {
+	// Value is expected to be a fraction of 3V3
+        return VREF_PLUS / (((uint32_t)1 << 16) - 1);
 }
 
 #endif // PIOS_INCLUDE_FLYINGPIO
