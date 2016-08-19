@@ -101,7 +101,7 @@ static struct pios_usart_dev * PIOS_USART_alloc(void)
 static void PIOS_USART_generic_irq_handler(uintptr_t usart_id);
 
 static uintptr_t PIOS_USART_1_id;
-void USART1_EXTI25_IRQHandler(void) __attribute__ ((alias ("PIOS_USART_1_irq_handler")));
+void USART1_IRQHandler(void) __attribute__ ((alias ("PIOS_USART_1_irq_handler")));
 static void PIOS_USART_1_irq_handler (void)
 {
 #if defined(PIOS_INCLUDE_CHIBIOS)
@@ -109,36 +109,6 @@ static void PIOS_USART_1_irq_handler (void)
 #endif /* defined(PIOS_INCLUDE_CHIBIOS) */
 
 	PIOS_USART_generic_irq_handler (PIOS_USART_1_id);
-
-#if defined(PIOS_INCLUDE_CHIBIOS)
-	CH_IRQ_EPILOGUE();
-#endif /* defined(PIOS_INCLUDE_CHIBIOS) */
-}
-
-static uintptr_t PIOS_USART_2_id;
-void USART2_EXTI26_IRQHandler(void) __attribute__ ((alias ("PIOS_USART_2_irq_handler")));
-static void PIOS_USART_2_irq_handler (void)
-{
-#if defined(PIOS_INCLUDE_CHIBIOS)
-	CH_IRQ_PROLOGUE();
-#endif /* defined(PIOS_INCLUDE_CHIBIOS) */
-
-	PIOS_USART_generic_irq_handler (PIOS_USART_2_id);
-
-#if defined(PIOS_INCLUDE_CHIBIOS)
-	CH_IRQ_EPILOGUE();
-#endif /* defined(PIOS_INCLUDE_CHIBIOS) */
-}
-
-static uintptr_t PIOS_USART_3_id;
-void USART3_EXTI28_IRQHandler(void) __attribute__ ((alias ("PIOS_USART_3_irq_handler")));
-static void PIOS_USART_3_irq_handler (void)
-{
-#if defined(PIOS_INCLUDE_CHIBIOS)
-	CH_IRQ_PROLOGUE();
-#endif /* defined(PIOS_INCLUDE_CHIBIOS) */
-
-	PIOS_USART_generic_irq_handler (PIOS_USART_3_id);
 
 #if defined(PIOS_INCLUDE_CHIBIOS)
 	CH_IRQ_EPILOGUE();
@@ -209,12 +179,6 @@ int32_t PIOS_USART_Init(uintptr_t * usart_id, const struct pios_usart_cfg * cfg,
 	switch ((uint32_t)usart_dev->cfg->regs) {
 	case (uint32_t)USART1:
 		PIOS_USART_1_id = (uintptr_t)usart_dev;
-		break;
-	case (uint32_t)USART2:
-		PIOS_USART_2_id = (uintptr_t)usart_dev;
-		break;
-	case (uint32_t)USART3:
-		PIOS_USART_3_id = (uintptr_t)usart_dev;
 		break;
 	}
 	NVIC_Init((NVIC_InitTypeDef *)&(usart_dev->cfg->irq.init));

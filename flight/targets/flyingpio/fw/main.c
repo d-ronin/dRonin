@@ -60,6 +60,7 @@ extern void TIM14_IRQHandler(void);
 extern void TIM15_IRQHandler(void);
 extern void TIM16_IRQHandler(void);
 extern void TIM17_IRQHandler(void);
+extern void USART1_IRQHandler(void);
 
 const void *_interrupt_vectors[USART2_IRQn] __attribute((section(".interrupt_vectors"))) = {
 	[TIM1_BRK_UP_TRG_COM_IRQn] = TIM1_BRK_UP_TRG_COM_IRQHandler,
@@ -69,6 +70,7 @@ const void *_interrupt_vectors[USART2_IRQn] __attribute((section(".interrupt_vec
 	[TIM15_IRQn] = TIM15_IRQHandler,
 	[TIM16_IRQn] = TIM16_IRQHandler,
 	[TIM17_IRQn] = TIM17_IRQHandler,
+	[USART1_IRQn] = USART1_IRQHandler,
 };
 
 // The other side should give us a little time to deal with this,
