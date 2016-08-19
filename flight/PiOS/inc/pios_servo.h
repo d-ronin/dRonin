@@ -33,8 +33,26 @@
 
 #define PIOS_SERVO_MAX_BANKS 6
 
+struct pios_servo_callbacks {
+	void (*set_mode)(const uint16_t *out_rate, const int banks,
+		const uint16_t *channel_max, const uint16_t *channel_min);
+
+	void (*set)(uint8_t servo, float position);
+
+	void (*update)();
+};
+
+/* Only applicable to simulation; takes reference to cb */
+extern void PIOS_Servo_SetCallbacks(const struct pios_servo_callbacks *cb);
+
 /* Public Functions */
 extern void PIOS_Servo_SetMode(const uint16_t *out_rate, const int banks, const uint16_t *channel_max, const uint16_t *channel_min);
+
+#ifndef SIM_POSIX
+extern void PIOS_Servo_SetFraction(uint8_t servo, uint16_t fraction,
+		uint16_t max_val, uint16_t min_val);
+#endif
+
 extern void PIOS_Servo_Set(uint8_t servo, float position);
 extern void PIOS_Servo_Update(void);
 

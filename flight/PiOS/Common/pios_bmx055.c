@@ -319,6 +319,7 @@ int32_t PIOS_BMX055_SPI_Init(pios_bmx055_dev_t *dev, uint32_t spi_id, uint32_t s
 	PIOS_Assert(bmx_dev->task_handle != NULL);
 	TaskMonitorAdd(TASKINFO_RUNNING_IMU, bmx_dev->task_handle);
 
+	PIOS_SENSORS_SetMaxGyro(2000);
 	PIOS_SENSORS_Register(PIOS_SENSOR_ACCEL, bmx_dev->accel_queue);
 	PIOS_SENSORS_Register(PIOS_SENSOR_GYRO, bmx_dev->gyro_queue);
 //	PIOS_SENSORS_Register(PIOS_SENSOR_MAG, bmx_dev->mag_queue);
@@ -411,6 +412,8 @@ static void PIOS_BMX_Task(void *parameters)
 
 		uint8_t acc_buf[BMX055_REG_ACC_TEMP - BMX055_REG_ACC_X_LSB + 1];
 		uint8_t gyro_buf[BMX055_REG_GYRO_Z_MSB - BMX055_REG_GYRO_X_LSB + 1];
+
+		PIOS_SPI_SetClockSpeed(bmx_dev->spi_id, 10000000);
 
 		PIOS_SPI_RC_PinSet(bmx_dev->spi_id, bmx_dev->spi_slave_accel, 
 			false);

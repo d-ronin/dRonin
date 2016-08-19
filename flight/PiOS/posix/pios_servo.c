@@ -35,8 +35,14 @@
 
 /* Private Function Prototypes */
 
-/* Local Variables */
-static volatile uint16_t servo_position[PIOS_SERVO_NUM_TIMERS];
+static const struct pios_servo_callbacks *servo_cbs;
+
+void PIOS_Servo_SetCallbacks(const struct pios_servo_callbacks *cb) {
+	PIOS_IRQ_Disable();
+	servo_cbs = cb;
+	PIOS_IRQ_Enable();
+}
+
 
 /**
 * Initialise Servos
@@ -55,6 +61,9 @@ void PIOS_Servo_Init(void)
  */
 void PIOS_Servo_SetMode(const uint16_t *out_rate, const int banks, const uint16_t *channel_max, const uint16_t *channel_min)
 {
+	if (servo_cbs && servo_cbs->set_mode) {
+		servo_cbs->set_mode(out_rate, banks, channel_max, channel_min);
+	}
 }
 
 /**
@@ -64,14 +73,9 @@ void PIOS_Servo_SetMode(const uint16_t *out_rate, const int banks, const uint16_
 */
 void PIOS_Servo_Set(uint8_t servo, float position)
 {
-#ifndef PIOS_ENABLE_DEBUG_PINS
-	/* Make sure servo exists */
-	if (servo < PIOS_SERVO_NUM_OUTPUTS) {
-		/* Update the position */
-		servo_position[servo] = position;
-
+	if (servo_cbs && servo_cbs->set) {
+		servo_cbs->set(servo, position);
 	}
-#endif // PIOS_ENABLE_DEBUG_PINS
 }
 
 /**
@@ -79,6 +83,9 @@ void PIOS_Servo_Set(uint8_t servo, float position)
 */
 void PIOS_Servo_Update(void)
 {
+	if (servo_cbs && servo_cbs->update) {
+		servo_cbs->update();
+	}
 }
 
 #endif
