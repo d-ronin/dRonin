@@ -112,6 +112,18 @@ int32_t VtolPathFollowerInitialize()
 		return -1;
 	}
 #endif
+
+	if (!PIOS_SENSORS_GetQueue(PIOS_SENSOR_BARO)) {
+		module_enabled = false;
+		return -1;
+	}
+
+
+	if (!PIOS_SENSORS_GetQueue(PIOS_SENSOR_MAG)) {
+		module_enabled = false;
+		return -1;
+	}
+
 	if (AltitudeHoldSettingsInitialize() == -1 || VtolPathFollowerSettingsInitialize() == -1) {
 		module_enabled = false;
 		return -1;
