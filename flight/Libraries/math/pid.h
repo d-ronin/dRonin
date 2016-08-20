@@ -33,7 +33,7 @@
 #define PID_H
 
 struct pid_deadband {
-	float width;				// Deadband width in degrees.
+	float width;				// Deadband width in degrees per second.
 	float slope;				// Deadband slope (0..1).
 	float cubic_weight;			// Cubic weight.
 	float integrated_response;	// Response at deadband edge.
