@@ -685,41 +685,6 @@ static const struct pios_usart_cfg pios_usart3_cfg = {
 	}
 };
 
-static const struct pios_usart_cfg pios_usart4_cfg = {
-	.regs = UART4,
-	.remap = GPIO_AF_UART4,
-	.irq = {
-		.init = {
-			.NVIC_IRQChannel = UART4_IRQn,
-			.NVIC_IRQChannelPreemptionPriority = PIOS_IRQ_PRIO_MID,
-			.NVIC_IRQChannelSubPriority = 0,
-			.NVIC_IRQChannelCmd = ENABLE,
-		},
-	},
-	.rx = {
-		.gpio = GPIOA,
-		.init = {
-			.GPIO_Pin   = GPIO_Pin_1,
-			.GPIO_Speed = GPIO_Speed_2MHz,
-			.GPIO_Mode  = GPIO_Mode_AF,
-			.GPIO_OType = GPIO_OType_PP,
-			.GPIO_PuPd  = GPIO_PuPd_UP
-		},
-		.pin_source = GPIO_PinSource1,
-	},
-	.tx = {
-		.gpio = GPIOA,
-		.init = {
-			.GPIO_Pin   = GPIO_Pin_0,
-			.GPIO_Speed = GPIO_Speed_2MHz,
-			.GPIO_Mode  = GPIO_Mode_AF,
-			.GPIO_OType = GPIO_OType_PP,
-			.GPIO_PuPd  = GPIO_PuPd_UP
-		},
-		.pin_source = GPIO_PinSource0,
-	},
-};
-
 static const struct pios_usart_cfg pios_usart6_cfg = {
 	.regs = USART6,
 	.remap = GPIO_AF_USART6,
@@ -900,14 +865,14 @@ static const struct pios_tim_clock_cfg tim_1_cfg = {
 
 /*
  *  OUTPUTS
-	1: TIM5_CH1 (PA0)  UART4 TX
-	2: TIM5_CH2 (PA1)  UART4 RX
+	1: TIM5_CH1 (PA0)
+	2: TIM5_CH2 (PA1)
 	3: TIM5_CH3 (PA2)
 	4: TIM5_CH4 (PA3)
 	5: TIM1_CH3 (PA10)
 	6: TIM2_CH1 (PA8)
-	7: TIM8_CH1 (PC6)  UART6 TX
-	8: TIM8_CH2 (PC7)  UART6 RX
+	7: TIM8_CH1 (PC6)
+	8: TIM8_CH2 (PC7)
  */
 
 static const struct pios_tim_channel pios_tim_servoport_all_pins[] = {
@@ -1041,94 +1006,12 @@ static const struct pios_tim_channel pios_tim_servoport_all_pins[] = {
 	}
 };
 
-static const struct pios_tim_channel pios_tim_servoport_4_pins[] = {
-	{
-		.timer = TIM5,
-		.timer_chan = TIM_Channel_3,
-		.remap = GPIO_AF_TIM5,
-		.pin = {
-			.gpio = GPIOA,
-			.init = {
-				.GPIO_Pin = GPIO_Pin_2,
-				.GPIO_Speed = GPIO_Speed_2MHz,
-				.GPIO_Mode  = GPIO_Mode_AF,
-				.GPIO_OType = GPIO_OType_PP,
-				.GPIO_PuPd  = GPIO_PuPd_UP
-			},
-			.pin_source = GPIO_PinSource2,
-		},
-	},
-	{
-		.timer = TIM5,
-		.timer_chan = TIM_Channel_4,
-		.remap = GPIO_AF_TIM5,
-		.pin = {
-			.gpio = GPIOA,
-			.init = {
-				.GPIO_Pin = GPIO_Pin_3,
-				.GPIO_Speed = GPIO_Speed_2MHz,
-				.GPIO_Mode  = GPIO_Mode_AF,
-				.GPIO_OType = GPIO_OType_PP,
-				.GPIO_PuPd  = GPIO_PuPd_UP
-			},
-			.pin_source = GPIO_PinSource3,
-		},
-	},
-	{
-		.timer = TIM1,
-		.timer_chan = TIM_Channel_3,
-		.remap = GPIO_AF_TIM1,
-		.pin = {
-			.gpio = GPIOA,
-			.init = {
-				.GPIO_Pin = GPIO_Pin_10,
-				.GPIO_Speed = GPIO_Speed_2MHz,
-				.GPIO_Mode  = GPIO_Mode_AF,
-				.GPIO_OType = GPIO_OType_PP,
-				.GPIO_PuPd  = GPIO_PuPd_UP
-			},
-			.pin_source = GPIO_PinSource10,
-		},
-	},
-	{
-		.timer = TIM2,
-		.timer_chan = TIM_Channel_1,
-		.remap = GPIO_AF_TIM2,
-		.pin = {
-			.gpio = GPIOA,
-			.init = {
-				.GPIO_Pin = GPIO_Pin_15,
-				.GPIO_Speed = GPIO_Speed_2MHz,
-				.GPIO_Mode  = GPIO_Mode_AF,
-				.GPIO_OType = GPIO_OType_PP,
-				.GPIO_PuPd  = GPIO_PuPd_UP
-			},
-			.pin_source = GPIO_PinSource15,
-		},
-	},
-};
-
 /*
  * Servo outputs
  */
 #include <pios_servo_priv.h>
 
-const struct pios_servo_cfg pios_servo_4_cfg = {
-	.tim_oc_init = {
-		.TIM_OCMode = TIM_OCMode_PWM1,
-		.TIM_OutputState = TIM_OutputState_Enable,
-		.TIM_OutputNState = TIM_OutputNState_Disable,
-		.TIM_Pulse = PIOS_SERVOS_INITIAL_POSITION,
-		.TIM_OCPolarity = TIM_OCPolarity_High,
-		.TIM_OCNPolarity = TIM_OCPolarity_High,
-		.TIM_OCIdleState = TIM_OCIdleState_Reset,
-		.TIM_OCNIdleState = TIM_OCNIdleState_Reset,
-	},
-	.channels = pios_tim_servoport_4_pins,
-	.num_channels = NELEMENTS(pios_tim_servoport_4_pins),
-};
-
-const struct pios_servo_cfg pios_servo_6_cfg = {
+const struct pios_servo_cfg pios_servo_cfg = {
 	.tim_oc_init = {
 		.TIM_OCMode = TIM_OCMode_PWM1,
 		.TIM_OutputState = TIM_OutputState_Enable,
@@ -1143,7 +1026,7 @@ const struct pios_servo_cfg pios_servo_6_cfg = {
 	.num_channels = NELEMENTS(pios_tim_servoport_all_pins) - 2,
 };
 
-const struct pios_servo_cfg pios_servo_8_cfg = {
+const struct pios_servo_cfg pios_servo_all_cfg = {
 	.tim_oc_init = {
 		.TIM_OCMode = TIM_OCMode_PWM1,
 		.TIM_OutputState = TIM_OutputState_Enable,
