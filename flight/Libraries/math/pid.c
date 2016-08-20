@@ -47,7 +47,7 @@ static float deriv_gamma = 1.0;
  * @param[in] dT  The time step
  * @returns Output the computed controller value
  */
-float pid_apply(struct pid *pid, float err, float dT)
+float pid_apply(struct pid *pid, const float err, float dT)
 {	
 	if (pid->i == 0) {
 		// If Ki is zero, do not change the integrator. We do not reset to zero
@@ -82,7 +82,7 @@ float pid_apply(struct pid *pid, float err, float dT)
  * @Note based on "Feedback Systems" by Astrom and Murray, PID control
  *  chapter.
  */
-float pid_apply_antiwindup(struct pid *pid, float err,
+float pid_apply_antiwindup(struct pid *pid, const float err,
 	float min_bound, float max_bound, float dT)
 {	
 	if (pid->i == 0) {
@@ -136,7 +136,6 @@ float pid_apply_setpoint(struct pid *pid, struct pid_deadband *deadband, const f
 	float err = setpoint - measured;
 	float err_d = (deriv_gamma * setpoint - measured);
 
-#ifndef SMALLF1
 	if(deadband && deadband->width > 0)
 	{
 		err = cubic_deadband(err, deadband->width, deadband->slope, deadband->cubic_weight,
@@ -144,7 +143,6 @@ float pid_apply_setpoint(struct pid *pid, struct pid_deadband *deadband, const f
 		err_d = cubic_deadband(err_d, deadband->width, deadband->slope, deadband->cubic_weight,
 			deadband->integrated_response);
 	}
-#endif
 
 	if (pid->i == 0) {
 		// If Ki is zero, do not change the integrator. We do not reset to zero
@@ -218,7 +216,6 @@ void pid_configure(struct pid *pid, float p, float i, float d, float iLim)
  */
 void pid_configure_deadband(struct pid_deadband *deadband, float width, float slope)
 {
-#ifndef SMALLF1
 	if(!deadband)
 		return;
 
@@ -240,7 +237,6 @@ void pid_configure_deadband(struct pid_deadband *deadband, float width, float sl
 
 	cubic_deadband_setup(width, slope, &deadband->cubic_weight,
 		&deadband->integrated_response);
-#endif
 }
 
 /**

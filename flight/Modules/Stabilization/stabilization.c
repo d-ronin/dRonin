@@ -119,7 +119,7 @@ bool lowThrottleZeroIntegral;
 float vbar_decay = 0.991f;
 float gyro_alpha = 0.6;
 struct pid pids[PID_MAX];
-#ifndef SMALLF1
+#ifndef NO_CONTROL_DEADBANDS
 struct pid_deadband *deadbands = NULL;
 #endif
 
