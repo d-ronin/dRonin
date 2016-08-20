@@ -14,3 +14,6 @@ two.  Use caution and refer to datasheet when assembling.  The board art
 has cathode lines, but the middle LED has an anode line on the package.
 * Schematic: text refers to receiverport pin as PB0 when it's in fact PB1.
 It's electrically fine, though.
+* Schematic and board layout have PWM pins in opposite order.  Electrically
+correct, but PWM0 is labelled on board art (and in firmware) as Servo6,
+PWM1 as Servo5, ...

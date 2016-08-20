@@ -300,35 +300,51 @@ static const struct pios_tim_channel pios_tim_rcvrport_pin = {
 
 static const struct pios_tim_channel pios_tim_servoport_pins[] = {
 	{
-		.timer = TIM1,
-		.timer_chan = TIM_Channel_1,
-		.remap = GPIO_AF_2,
+		.timer = TIM3,
+		.timer_chan = TIM_Channel_2,
+		.remap = GPIO_AF_1,
 		.pin = {
 			.gpio = GPIOA,
 			.init = {
-				.GPIO_Pin   = GPIO_Pin_8,
+				.GPIO_Pin   = GPIO_Pin_7,
 				.GPIO_Mode  = GPIO_Mode_AF,
 				.GPIO_PuPd  = GPIO_PuPd_UP,
 				.GPIO_OType = GPIO_OType_PP,
 				.GPIO_Speed = GPIO_Speed_50MHz,
 			},
-			.pin_source = GPIO_PinSource8,
+			.pin_source = GPIO_PinSource7,
+		},
+	},
+	{
+		.timer = TIM3,
+		.timer_chan = TIM_Channel_1,
+		.remap = GPIO_AF_1,
+		.pin = {
+			.gpio = GPIOA,
+			.init = {
+				.GPIO_Pin   = GPIO_Pin_6,
+				.GPIO_Mode  = GPIO_Mode_AF,
+				.GPIO_PuPd  = GPIO_PuPd_UP,
+				.GPIO_OType = GPIO_OType_PP,
+				.GPIO_Speed = GPIO_Speed_50MHz,
+			},
+			.pin_source = GPIO_PinSource6,
 		},
 	},
 	{
 		.timer = TIM1,
-		.timer_chan = TIM_Channel_2,
+		.timer_chan = TIM_Channel_4,
 		.remap = GPIO_AF_2,
 		.pin = {
 			.gpio = GPIOA,
 			.init = {
-				.GPIO_Pin   = GPIO_Pin_9,
+				.GPIO_Pin   = GPIO_Pin_11,
 				.GPIO_Mode  = GPIO_Mode_AF,
 				.GPIO_PuPd  = GPIO_PuPd_UP,
 				.GPIO_OType = GPIO_OType_PP,
 				.GPIO_Speed = GPIO_Speed_50MHz,
 			},
-			.pin_source = GPIO_PinSource9,
+			.pin_source = GPIO_PinSource11,
 		},
 	},
 	{
@@ -349,50 +365,34 @@ static const struct pios_tim_channel pios_tim_servoport_pins[] = {
 	},
 	{
 		.timer = TIM1,
-		.timer_chan = TIM_Channel_4,
+		.timer_chan = TIM_Channel_2,
 		.remap = GPIO_AF_2,
 		.pin = {
 			.gpio = GPIOA,
 			.init = {
-				.GPIO_Pin   = GPIO_Pin_11,
+				.GPIO_Pin   = GPIO_Pin_9,
 				.GPIO_Mode  = GPIO_Mode_AF,
 				.GPIO_PuPd  = GPIO_PuPd_UP,
 				.GPIO_OType = GPIO_OType_PP,
 				.GPIO_Speed = GPIO_Speed_50MHz,
 			},
-			.pin_source = GPIO_PinSource11,
+			.pin_source = GPIO_PinSource9,
 		},
 	},
 	{
-		.timer = TIM3,
+		.timer = TIM1,
 		.timer_chan = TIM_Channel_1,
-		.remap = GPIO_AF_1,
+		.remap = GPIO_AF_2,
 		.pin = {
 			.gpio = GPIOA,
 			.init = {
-				.GPIO_Pin   = GPIO_Pin_6,
+				.GPIO_Pin   = GPIO_Pin_8,
 				.GPIO_Mode  = GPIO_Mode_AF,
 				.GPIO_PuPd  = GPIO_PuPd_UP,
 				.GPIO_OType = GPIO_OType_PP,
 				.GPIO_Speed = GPIO_Speed_50MHz,
 			},
-			.pin_source = GPIO_PinSource6,
-		},
-	},
-	{
-		.timer = TIM3,
-		.timer_chan = TIM_Channel_2,
-		.remap = GPIO_AF_1,
-		.pin = {
-			.gpio = GPIOA,
-			.init = {
-				.GPIO_Pin   = GPIO_Pin_7,
-				.GPIO_Mode  = GPIO_Mode_AF,
-				.GPIO_PuPd  = GPIO_PuPd_UP,
-				.GPIO_OType = GPIO_OType_PP,
-				.GPIO_Speed = GPIO_Speed_50MHz,
-			},
-			.pin_source = GPIO_PinSource7,
+			.pin_source = GPIO_PinSource8,
 		},
 	},
 };
