@@ -136,7 +136,7 @@ static void calculate_pids(void);
 static void SettingsUpdatedCb(UAVObjEvent * objEv, void *ctx, void *obj, int len);
 static float get_throttle(StabilizationDesiredData *stabilization_desired, SystemSettingsAirframeTypeOptions *airframe_type);
 
-#ifndef SMALLF1
+#ifndef NO_CONTROL_DEADBANDS
 #define get_deadband(axis) (deadbands ? (deadbands + axis) : NULL)
 #else
 #define get_deadband(axis) NULL
@@ -964,7 +964,7 @@ static void calculate_pids()
 	// Set up the derivative term
 	pid_configure_derivative(settings.DerivativeCutoff, settings.DerivativeGamma);
 
-#ifndef SMALLF1
+#ifndef NO_CONTROL_DEADBANDS	
 	if(deadbands ||
 		settings.DeadbandWidth[STABILIZATIONSETTINGS_DEADBANDWIDTH_ROLL] ||
 		settings.DeadbandWidth[STABILIZATIONSETTINGS_DEADBANDWIDTH_PITCH] ||
