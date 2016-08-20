@@ -40,6 +40,13 @@
 Simulation::Simulation(void)
 {
     boardType = 0x7F;
+
+    /* For now assuming flyingpio bank configuration.  This may not hold
+     * true in the long term...
+     */
+    channelBanks.resize(2);
+    channelBanks[0] = QVector<int> () << 1 << 2;      // TIM3
+    channelBanks[1] = QVector<int> () << 3 << 4 << 5 << 6; // TIM1
 }
 
 Simulation::~Simulation()
