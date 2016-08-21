@@ -68,6 +68,12 @@ public:
      */
     QList<IBoardType::USBInfo*> getKnownUSBInfo();
 
+    /**
+     * @brief Find a board from it's type
+     * @return IBoardType* on success, Q_NULLPTR on failure
+     */
+    IBoardType *getBoard(int type);
+
 
 
 protected:
@@ -94,3 +100,8 @@ private:
 
 } //namespace Core
 #endif // BOARDMANAGER_H
+
+/**
+ * @}
+ * @}
+ */

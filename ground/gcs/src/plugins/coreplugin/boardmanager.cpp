@@ -118,6 +118,16 @@ void BoardManager::aboutToRemoveObject(QObject *obj)
         m_boardTypesList.removeAt(m_boardTypesList.indexOf(board));
 }
 
+IBoardType *BoardManager::getBoard(int type)
+{
+    foreach (IBoardType *board, m_boardTypesList) {
+        if (board->getBoardType() == type) {
+            return board;
+        }
+    }
+    return Q_NULLPTR;
+}
+
 
 
 } // Core
