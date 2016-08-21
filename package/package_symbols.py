@@ -112,7 +112,7 @@ class GenericSymbolDump(object):
 			return
 		osys, arch, uuid, name = module[1:]
 		
-		out_path = os.path.join(self.breakpad_path, name, uuid, name + ".sym")
+		out_path = os.path.join(self.breakpad_path, name, uuid, self.get_symbol_name(name))
 		mkdir_if_not_exist(os.path.dirname(out_path))
 		with open(out_path, "wb") as fp:
 			fp.write(syms)
@@ -153,6 +153,9 @@ class MacOSSymbolDump(GenericSymbolDump):
 		cmd.append(objpath)
 		return cmd
 
+	def get_symbol_name(self, objname):
+		return objname + '.sym'
+
 class WindowsSymbolDump(GenericSymbolDump):
 	def __init__(self, path):
 		self.init(path)
@@ -162,7 +165,6 @@ class WindowsSymbolDump(GenericSymbolDump):
 			return False
 		# windows dump_syms can only dump from pdbs, so just find them
 		return sig[0] == "MSVC" and sig[2] == "database"
-
 
 	def find_debug_symbols(self, file):
 		name, ext = os.path.splitext(file)
@@ -179,6 +181,10 @@ class WindowsSymbolDump(GenericSymbolDump):
 		cmd = [self.dump_syms]
 		cmd.append(sympath)
 		return cmd
+
+	def get_symbol_name(self, objname):
+		name, ext = os.path.splitext(objname)
+		return name + '.sym'
 
 
 class LinuxSymbolDump(GenericSymbolDump):
@@ -205,6 +211,9 @@ class LinuxSymbolDump(GenericSymbolDump):
 		if sympath != None:
 			cmd.append(os.path.dirname(sympath))
 		return cmd
+
+	def get_symbol_name(self, objname):
+		return objname + '.sym'
 
 
 def main():
