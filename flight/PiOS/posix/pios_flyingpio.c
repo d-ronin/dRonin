@@ -289,9 +289,9 @@ static void PIOS_FLYINGPIO_ActuatorUpdate()
 
 	if (PIOS_FLYINGPIO_SendCmd(&tx_buf)) {
 		// If there's a sequence mismatch, reconfig.
-		PIOS_Thread_Sleep(2);
+		PIOS_Thread_Sleep(4);
 		PIOS_FLYINGPIO_SendCmd(&actuator_cfg);
-		PIOS_Thread_Sleep(2);
+		PIOS_Thread_Sleep(4);
 	}
 }
 
@@ -327,10 +327,10 @@ static void PIOS_FLYINGPIO_ActuatorSetMode(const uint16_t *out_rate,
 	cmd->receiver_protocol = HWSHARED_PORTTYPES_PPM;
 
 	while (PIOS_FLYINGPIO_SendCmd(&actuator_cfg)) {	// retry until OK
-		PIOS_Thread_Sleep(3);
+		PIOS_Thread_Sleep(5);
 	}
 
-	PIOS_Thread_Sleep(3);
+	PIOS_Thread_Sleep(4);
 }
 
 static void PIOS_FLYINGPIO_ActuatorSet(uint8_t servo, float position) {
