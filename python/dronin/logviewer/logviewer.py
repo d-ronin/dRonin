@@ -14,10 +14,11 @@ def get_data_series(obj_name, fields):
     base_fields = [ f.split(':')[0] for f in fields ]
     peeled = data[base_fields]
 
-    try:
-        return peeled.view(dtype='float').reshape(-1, 2)
-    except Exception:
-        pass
+    if ':' not in ''.join(fields):
+        try:
+            return peeled.view(dtype='float').reshape(-1, 2)
+        except Exception:
+            pass
 
     rows = peeled.shape[0]
     cols = len(fields)
