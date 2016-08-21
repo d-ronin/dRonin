@@ -48,6 +48,13 @@
 	<field name="CameraTilt" units="deg" type="float" elements="1" defaultvalue="0" limits="%BE:-85:85">
 		<description>Only applicable when CameraAngle selected as Reprojection mode in Input settings. This should be the actual tilt angle of your camera. If your camera is tilted upwards, use positive tilt.</description>
 	</field>
+
+	<field name="DeadbandWidth" units="deg/s" type="uint8" elementnames="Roll,Pitch,Yaw" defaultvalue="0,0,0" limits="%BE:0:20,%BE:0:20,%BE:0:20">
+		<description>Sets the width of the deadband in the PID controller. An axis set to zero disables the relevant deadband.</description>
+	</field>
+	<field name="DeadbandSlope" units="%" type="uint8" elementnames="Roll,Pitch,Yaw" defaultvalue="60,60,50" limits="%BE:0:100,%BE:0:100,%BE:0:100">
+		<description>Sets the slope of the deadband area in the PID controller.</description>
+	</field>
   
 	<access gcs="readwrite" flight="readwrite"/>
 	<telemetrygcs acked="true" updatemode="onchange" period="0"/>

@@ -130,10 +130,20 @@ float pid_apply_antiwindup(struct pid *pid, const float err,
  * This version of apply uses setpoint weighting for the derivative component so the gain
  * on the gyro derivative can be different than the gain on the setpoint derivative
  */
-float pid_apply_setpoint(struct pid *pid, const float setpoint, const float measured, float dT)
+float pid_apply_setpoint(struct pid *pid, struct pid_deadband *deadband, const float setpoint,
+	const float measured, float dT)
 {
 	float err = setpoint - measured;
-	
+	float err_d = (deriv_gamma * setpoint - measured);
+
+	if(deadband && deadband->width > 0)
+	{
+		err = cubic_deadband(err, deadband->width, deadband->slope, deadband->cubic_weight,
+			deadband->integrated_response);
+		err_d = cubic_deadband(err_d, deadband->width, deadband->slope, deadband->cubic_weight,
+			deadband->integrated_response);
+	}
+
 	if (pid->i == 0) {
 		// If Ki is zero, do not change the integrator. We do not reset to zero
 		// because sometimes the accumulator term is set externally
@@ -144,8 +154,8 @@ float pid_apply_setpoint(struct pid *pid, const float setpoint, const float meas
 
 	// Calculate DT1 term,
 	float dterm = 0;
-	float diff = ((deriv_gamma * setpoint - measured) - pid->lastErr);
-	pid->lastErr = (deriv_gamma * setpoint - measured);
+	float diff = (err_d - pid->lastErr);
+	pid->lastErr = err_d;
 	if(pid->d && dT)
 	{
 		dterm = pid->lastDer +  dT / ( dT + deriv_tau) * ((diff * pid->d / dT) - pid->lastDer);
@@ -196,6 +206,37 @@ void pid_configure(struct pid *pid, float p, float i, float d, float iLim)
 	pid->i = i;
 	pid->d = d;
 	pid->iLim = iLim;
+}
+
+/**
+ * Set the deadband values
+ * @param[out] pid The PID structure to configure
+ * @param[in] deadband Deadband width in degrees per second
+ * @param[in] slope Deadband slope (0..1)
+ */
+void pid_configure_deadband(struct pid_deadband *deadband, float width, float slope)
+{
+	if(!deadband)
+		return;
+
+	if(width < 0.1f)
+	{
+		// Below 0.1deg/s, we can assume that we don't want it.
+		// Also something something float zeroes...
+		deadband->width = deadband->slope = deadband->cubic_weight =
+			deadband->integrated_response = 0;
+		return;
+	}
+
+	// Clamp slope to positive, otherwise it'll cause drama.
+	if(slope < 0.0f) slope = 0.0f;
+	else if(slope > 1.0f) slope = 1.0f;
+
+	deadband->width = width;
+	deadband->slope = slope;
+
+	cubic_deadband_setup(width, slope, &deadband->cubic_weight,
+		&deadband->integrated_response);
 }
 
 /**
