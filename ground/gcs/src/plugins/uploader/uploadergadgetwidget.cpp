@@ -1482,13 +1482,10 @@ void UploaderGadgetWidget::onBootloaderDetected()
             m_widget->partitionBrowserTW->setRowCount(0);
         }
         deviceInfo info;
-        QList <Core::IBoardType *> boards = pm->getObjects<Core::IBoardType>();
-        foreach (Core::IBoardType *board, boards) {
-            if (board->getBoardType() == (dev.ID>>8))
-            {
-                info.board = board;
-                break;
-            }
+        info.board = brdMgr->getBoard(dev.ID >> 8);
+        if (!info.board) {
+            setStatusInfo(tr("Board not supported!"), uploader::STATUSICON_FAIL);
+            return;
         }
         info.bl_version = QString::number(dev.BL_Version, 16);
         info.cpu_serial = "Not Available";
