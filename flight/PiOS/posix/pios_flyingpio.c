@@ -191,8 +191,17 @@ static int PIOS_FLYINGPIO_SendCmd(struct flyingpi_msg *msg) {
 	/* Handle response data-- after releasing SPI */
 	if (!ret) {
 		if (!flyingpi_calc_crc(&resp, false, NULL)) {
-			printf("fpio: VERYBAD: Bad CRC on response data %d\n",
+			printf("fpio: VERYBAD: Bad CRC on response data %d\n\t",
 				fpio_dev->msg_num);
+
+			uint8_t *msg_data = (void *) &resp;
+
+			for (int i=0; i<16; i++) {
+				printf("%02x ", msg_data[i]);
+			}
+
+			printf("\n");
+
 			ret = -1;
 
 		} else if (resp.id != FLYINGPIRESP_IO) {
@@ -201,7 +210,7 @@ static int PIOS_FLYINGPIO_SendCmd(struct flyingpi_msg *msg) {
 		} else {
 			struct flyingpiresp_io_10 *data = &resp.body.io_10;
 			if (data->valid_messages_recvd != fpio_dev->msg_num) {
-				printf("fpio: BAD: sequence number mismatch\n");
+				printf("fpio: BAD: sequence number mismatch %d vs %d\n", data->valid_messages_recvd, fpio_dev->msg_num);
 
 				// Signal that caller should reconfig.
 				ret = -1;
