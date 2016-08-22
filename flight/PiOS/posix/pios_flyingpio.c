@@ -72,11 +72,11 @@ const struct pios_adc_driver pios_flyingpio_adc_driver = {
  */
 struct pios_flyingpio_dev {
 	enum pios_flyingpio_dev_magic magic;    /**< Magic bytes to validate the struct contents */
-	uint32_t spi_id;		/**< Handle to the communication driver */
+	uint32_t spi_id;                        /**< Handle to the communication driver */
 	uint32_t spi_slave;                     /**< The slave number (SPI) */
 
-	uint16_t msg_num;			/**< Expected next msg count */
-	uint16_t err_cnt;			/**< The error counter */
+	uint16_t msg_num;                       /**< Expected next msg count */
+	uint16_t err_cnt;                       /**< The error counter */
 
 	volatile uint16_t rcvr_value[FPPROTO_MAX_RCCHANS];
 						/**< Receiver/controller data */
@@ -154,7 +154,7 @@ int32_t PIOS_FLYINGPIO_SPI_Init(pios_flyingpio_dev_t *dev, uint32_t spi_id, uint
 	fpio_dev->spi_id = spi_id;
 	fpio_dev->spi_slave = slave_idx;
 
-	for (int i=0; i<FPPROTO_MAX_RCCHANS; i++) {
+	for (int i=0; i < FPPROTO_MAX_RCCHANS; i++) {
 		// Just for a very short time; remote end will take this over
 		fpio_dev->rcvr_value[i] = PIOS_RCVR_TIMEOUT;
 	}
@@ -217,7 +217,7 @@ static int PIOS_FLYINGPIO_SendCmd(struct flyingpi_msg *msg) {
 
 				fpio_dev->msg_num = data->valid_messages_recvd;
 			} else {
-				for (int i=0; i<FPPROTO_MAX_RCCHANS; i++) {
+				for (int i=0; i < FPPROTO_MAX_RCCHANS; i++) {
 					fpio_dev->rcvr_value[i] = data->chan_data[i];
 				}
 
