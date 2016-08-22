@@ -163,6 +163,7 @@ void port_enable(void) {
  *          modes.
  */
 void port_wait_for_interrupt(void) {
+	select(0, NULL, NULL, NULL, NULL);
 }
 
 /**
