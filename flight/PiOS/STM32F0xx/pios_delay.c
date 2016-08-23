@@ -185,7 +185,7 @@ float PIOS_RTC_MsPerTick()
 
 bool PIOS_RTC_RegisterTickCallback(void (*fn)(uintptr_t id), uintptr_t data)
 {
-	for (int i=0; i < PIOS_RTC_MAX_CALLBACKS; i++) {
+	for (int i = 0; i < PIOS_RTC_MAX_CALLBACKS; i++) {
 		if (!rtc_callback_list[i].fn) {
 			struct rtc_callback_entry *cb;
 
@@ -203,7 +203,7 @@ bool PIOS_RTC_RegisterTickCallback(void (*fn)(uintptr_t id), uintptr_t data)
 
 static void PIOS_RTC_Tick()
 {
-	for (int i=0; i < PIOS_RTC_MAX_CALLBACKS; i++) {
+	for (int i = 0; i < PIOS_RTC_MAX_CALLBACKS; i++) {
 		if (rtc_callback_list[i].fn) {
 			rtc_callback_list[i].fn(rtc_callback_list[i].data);
 		}

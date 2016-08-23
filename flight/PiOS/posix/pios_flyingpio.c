@@ -154,7 +154,7 @@ int32_t PIOS_FLYINGPIO_SPI_Init(pios_flyingpio_dev_t *dev, uint32_t spi_id, uint
 	fpio_dev->spi_id = spi_id;
 	fpio_dev->spi_slave = slave_idx;
 
-	for (int i=0; i < FPPROTO_MAX_RCCHANS; i++) {
+	for (int i = 0; i < FPPROTO_MAX_RCCHANS; i++) {
 		// Just for a very short time; remote end will take this over
 		fpio_dev->rcvr_value[i] = PIOS_RCVR_TIMEOUT;
 	}
@@ -196,7 +196,7 @@ static int PIOS_FLYINGPIO_SendCmd(struct flyingpi_msg *msg) {
 
 			uint8_t *msg_data = (void *) &resp;
 
-			for (int i=0; i<16; i++) {
+			for (int i = 0; i < 16; i++) {
 				printf("%02x ", msg_data[i]);
 			}
 
@@ -217,11 +217,11 @@ static int PIOS_FLYINGPIO_SendCmd(struct flyingpi_msg *msg) {
 
 				fpio_dev->msg_num = data->valid_messages_recvd;
 			} else {
-				for (int i=0; i < FPPROTO_MAX_RCCHANS; i++) {
+				for (int i = 0; i < FPPROTO_MAX_RCCHANS; i++) {
 					fpio_dev->rcvr_value[i] = data->chan_data[i];
 				}
 
-				for (int i=0; i<FPPROTO_MAX_ADCCHANS; i++) {
+				for (int i = 0; i < FPPROTO_MAX_ADCCHANS; i++) {
 					fpio_dev->adc_value[i] = data->adc_data[i];
 #if 0
 					if (!(fpio_dev->msg_num & 1023)) {
@@ -265,7 +265,7 @@ static void PIOS_FLYINGPIO_ActuatorUpdate()
 	struct flyingpicmd_actuator_fc *cmd = &tx_buf.body.actuator_fc;
 	struct flyingpicmd_cfg_fa *cfg = &actuator_cfg.body.cfg_fa;
 
-	for (int i=0; i < FPPROTO_MAX_SERVOS; i++) {
+	for (int i = 0; i < FPPROTO_MAX_SERVOS; i++) {
 		uint16_t span = cfg->actuators[i].max - cfg->actuators[i].min;
 		if (span == 0) {
 			// Prevent div by 0, this is a simple case.
@@ -313,11 +313,11 @@ static void PIOS_FLYINGPIO_ActuatorSetMode(const uint16_t *out_rate,
 
 	PIOS_Assert(banks >= FPPROTO_MAX_BANKS);
 
-	for (int i=0; i < FPPROTO_MAX_BANKS; i++) {
+	for (int i = 0; i < FPPROTO_MAX_BANKS; i++) {
 		cmd->rate[i] = out_rate[i];
 	}
 
-	for (int i=0; i < ACTUATORCOMMAND_CHANNEL_NUMELEM; i++) {
+	for (int i = 0; i < ACTUATORCOMMAND_CHANNEL_NUMELEM; i++) {
 		uint16_t true_min, true_max;
 
 		if (channel_min[i] > channel_max[i]) {
