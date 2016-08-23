@@ -41,6 +41,7 @@
 #include "flyingpio_messages.h"
 
 #include "actuatorcommand.h"
+#include "hwshared.h"
 
 /**
  * Magic byte sequence used to validate the device state struct.
@@ -50,16 +51,38 @@ enum pios_flyingpio_dev_magic {
 	PIOS_FLYINGPIO_DEV_MAGIC = 0x4f497046 /**< Unique byte sequence 'FpIO' */
 };
 
+const struct pios_rcvr_driver pios_flyingpio_rcvr_driver = {
+        .read = PIOS_FLYINGPIO_Receiver_Get,
+};
+
+static bool PIOS_FLYINGPIO_ADC_Available(uint32_t dev_int, uint32_t pin);
+static int32_t PIOS_FLYINGPIO_ADC_PinGet(uint32_t dev_int, uint32_t pin);
+static uint8_t PIOS_FLYINGPIO_ADC_NumberOfChannels(uint32_t dev_int);
+static float PIOS_FLYINGPIO_ADC_LSB_Voltage(uint32_t dev_int);
+
+const struct pios_adc_driver pios_flyingpio_adc_driver = {
+		.available = PIOS_FLYINGPIO_ADC_Available,
+		.get_pin = PIOS_FLYINGPIO_ADC_PinGet,
+		.number_of_channels = PIOS_FLYINGPIO_ADC_NumberOfChannels,
+		.lsb_voltage = PIOS_FLYINGPIO_ADC_LSB_Voltage,
+};
+
 /**
  * @brief The device state struct
  */
 struct pios_flyingpio_dev {
-	enum pios_flyingpio_dev_magic magic;              /**< Magic bytes to validate the struct contents */
-	uint32_t spi_id;                            /**< Handle to the communication driver */
-	uint32_t spi_slave;                         /**< The slave number (SPI) */
+	enum pios_flyingpio_dev_magic magic;    /**< Magic bytes to validate the struct contents */
+	uint32_t spi_id;                        /**< Handle to the communication driver */
+	uint32_t spi_slave;                     /**< The slave number (SPI) */
 
-	uint16_t msg_num;			    /**< Expected next msg count */
-	uint16_t err_cnt;			    /**< The error counter */
+	uint16_t msg_num;                       /**< Expected next msg count */
+	uint16_t err_cnt;                       /**< The error counter */
+
+	volatile uint16_t rcvr_value[FPPROTO_MAX_RCCHANS];
+						/**< Receiver/controller data */
+
+	volatile uint16_t adc_value[FPPROTO_MAX_ADCCHANS];
+						/**< ADC data */
 };
 
 #define MAX_CONSEC_ERRS 5
@@ -131,6 +154,11 @@ int32_t PIOS_FLYINGPIO_SPI_Init(pios_flyingpio_dev_t *dev, uint32_t spi_id, uint
 	fpio_dev->spi_id = spi_id;
 	fpio_dev->spi_slave = slave_idx;
 
+	for (int i = 0; i < FPPROTO_MAX_RCCHANS; i++) {
+		// Just for a very short time; remote end will take this over
+		fpio_dev->rcvr_value[i] = PIOS_RCVR_TIMEOUT;
+	}
+
 	return 0;
 }
 
@@ -163,20 +191,44 @@ static int PIOS_FLYINGPIO_SendCmd(struct flyingpi_msg *msg) {
 	/* Handle response data-- after releasing SPI */
 	if (!ret) {
 		if (!flyingpi_calc_crc(&resp, false, NULL)) {
-			printf("fpio: VERYBAD: Bad CRC on response data %d\n",
+			printf("fpio: VERYBAD: Bad CRC on response data %d\n\t",
 				fpio_dev->msg_num);
+
+			uint8_t *msg_data = (void *) &resp;
+
+			for (int i = 0; i < 16; i++) {
+				printf("%02x ", msg_data[i]);
+			}
+
+			printf("\n");
+
+			ret = -1;
+
 		} else if (resp.id != FLYINGPIRESP_IO) {
 			printf("fpio: VERYBAD: Unexpected response message type\n");
+			ret = -1;
 		} else {
 			struct flyingpiresp_io_10 *data = &resp.body.io_10;
 			if (data->valid_messages_recvd != fpio_dev->msg_num) {
-				printf("fpio: BAD: sequence number mismatch\n");
+				printf("fpio: BAD: sequence number mismatch %d vs %d\n", data->valid_messages_recvd, fpio_dev->msg_num);
 
 				// Signal that caller should reconfig.
 				ret = -1;
 
 				fpio_dev->msg_num = data->valid_messages_recvd;
 			} else {
+				for (int i = 0; i < FPPROTO_MAX_RCCHANS; i++) {
+					fpio_dev->rcvr_value[i] = data->chan_data[i];
+				}
+
+				for (int i = 0; i < FPPROTO_MAX_ADCCHANS; i++) {
+					fpio_dev->adc_value[i] = data->adc_data[i];
+#if 0
+					if (!(fpio_dev->msg_num & 1023)) {
+						printf("%d : %d\n", i, data->adc_data[i]);
+					}
+#endif
+				}
 			}
 		}
 		fpio_dev->msg_num++;
@@ -213,7 +265,7 @@ static void PIOS_FLYINGPIO_ActuatorUpdate()
 	struct flyingpicmd_actuator_fc *cmd = &tx_buf.body.actuator_fc;
 	struct flyingpicmd_cfg_fa *cfg = &actuator_cfg.body.cfg_fa;
 
-	for (int i=0; i < FPPROTO_MAX_SERVOS; i++) {
+	for (int i = 0; i < FPPROTO_MAX_SERVOS; i++) {
 		uint16_t span = cfg->actuators[i].max - cfg->actuators[i].min;
 		if (span == 0) {
 			// Prevent div by 0, this is a simple case.
@@ -242,14 +294,13 @@ static void PIOS_FLYINGPIO_ActuatorUpdate()
 		}
 	}
 
-	tx_buf.body.actuator_fc.led_status =
-		PIOS_LED_GetStatus(PIOS_LED_HEARTBEAT);
+	cmd->led_status = PIOS_LED_GetStatus(PIOS_LED_HEARTBEAT);
 
 	if (PIOS_FLYINGPIO_SendCmd(&tx_buf)) {
 		// If there's a sequence mismatch, reconfig.
-		PIOS_Thread_Sleep(2);
+		PIOS_Thread_Sleep(4);
 		PIOS_FLYINGPIO_SendCmd(&actuator_cfg);
-		PIOS_Thread_Sleep(2);
+		PIOS_Thread_Sleep(4);
 	}
 }
 
@@ -262,11 +313,11 @@ static void PIOS_FLYINGPIO_ActuatorSetMode(const uint16_t *out_rate,
 
 	PIOS_Assert(banks >= FPPROTO_MAX_BANKS);
 
-	for (int i=0; i < FPPROTO_MAX_BANKS; i++) {
+	for (int i = 0; i < FPPROTO_MAX_BANKS; i++) {
 		cmd->rate[i] = out_rate[i];
 	}
 
-	for (int i=0; i < ACTUATORCOMMAND_CHANNEL_NUMELEM; i++) {
+	for (int i = 0; i < ACTUATORCOMMAND_CHANNEL_NUMELEM; i++) {
 		uint16_t true_min, true_max;
 
 		if (channel_min[i] > channel_max[i]) {
@@ -281,19 +332,59 @@ static void PIOS_FLYINGPIO_ActuatorSetMode(const uint16_t *out_rate,
 		cmd->actuators[i].max = true_max;
 	}
 
-	cmd->receiver_protocol = 0;
+	/* XXX needs to be specified / configured somewhere... */
+	cmd->receiver_protocol = HWSHARED_PORTTYPES_PPM;
 
 	while (PIOS_FLYINGPIO_SendCmd(&actuator_cfg)) {	// retry until OK
-		PIOS_Thread_Sleep(3);
+		PIOS_Thread_Sleep(5);
 	}
 
-	PIOS_Thread_Sleep(3);
+	PIOS_Thread_Sleep(4);
 }
 
 static void PIOS_FLYINGPIO_ActuatorSet(uint8_t servo, float position) {
 	PIOS_Assert(servo < FPPROTO_MAX_SERVOS);
 
 	channel_values[servo] = position;
+}
+
+int32_t PIOS_FLYINGPIO_Receiver_Get(uintptr_t dev_int, uint8_t channel)
+{
+	pios_flyingpio_dev_t dev = (pios_flyingpio_dev_t) dev_int;
+
+	if (channel >= FPPROTO_MAX_RCCHANS) {
+		return PIOS_RCVR_INVALID;
+	}
+
+	return dev->rcvr_value[channel];
+}
+
+static bool PIOS_FLYINGPIO_ADC_Available(uint32_t dev_int, uint32_t pin) {
+	if (pin >= FPPROTO_MAX_ADCCHANS) {
+		return false;
+	}
+
+	return true;
+}
+
+static int32_t PIOS_FLYINGPIO_ADC_PinGet(uint32_t dev_int, uint32_t pin) {
+	pios_flyingpio_dev_t dev = (pios_flyingpio_dev_t) dev_int;
+
+	if (pin >= FPPROTO_MAX_ADCCHANS) {
+		return -1;
+	}
+
+	return dev->adc_value[pin];
+}
+
+static uint8_t PIOS_FLYINGPIO_ADC_NumberOfChannels(uint32_t dev_int) {
+	return FPPROTO_MAX_ADCCHANS;
+}
+
+#define VREF_PLUS 3.3f
+static float PIOS_FLYINGPIO_ADC_LSB_Voltage(uint32_t dev_int) {
+	// Value is expected to be a fraction of 3V3
+        return VREF_PLUS / (((uint32_t)1 << 16) - 1);
 }
 
 #endif // PIOS_INCLUDE_FLYINGPIO

@@ -28,7 +28,6 @@
 #define PIOS_HSUM_PRIV_H
 
 #include <pios.h>
-#include <pios_usart_priv.h>
 
 /* HSUM protocol variations */
 enum pios_hsum_proto {

@@ -73,58 +73,37 @@ SRC += system_stm32f0xx.c
 SRC += startup.c
 SRC += main.c
 
+SRC += pios_adc.c
 SRC += pios_com.c
 SRC += pios_crc.c
-#SRC += pios_delay.c
+SRC += pios_delay.c
+SRC += pios_hal.c
 SRC += pios_heap.c
+SRC += pios_internal_adc_simple.c
+SRC += pios_irq.c
 SRC += pios_led.c
 SRC += pios_ppm.c
 SRC += pios_servo.c
 SRC += pios_spislave.c
+SRC += pios_rcvr.c
+SRC += pios_semaphore.c
 SRC += pios_sys.c
 SRC += pios_tim.c
+SRC += pios_usart.c
 SRC += pios_wdg.c
 
-#SRC += pios_dsm.c
-#SRC += pios_rcvr.c
-#SRC += pios_sbus.c
+#receiver types
+SRC += pios_dsm.c
+SRC += pios_hsum.c
+SRC += pios_ibus.c
+SRC += pios_sbus.c
+SRC += pios_srxl.c
 
-#SRC += $(OPUAVTALK)/uavtalk.c
-#SRC += $(OPUAVOBJ)/uavobjectmanager.c
+SRC += $(FLIGHTLIB)/circqueue.c
 
 #SRC += $(MATHLIB)/coordinate_conversions.c
 #SRC += $(MATHLIB)/misc_math.c
 #SRC += $(MATHLIB)/pid.c
-
-## PIOS Hardware (Common)
-#SRC += pios_ms5611.c
-#SRC += pios_etasv3.c
-#SRC += pios_mpxv5004.c
-#SRC += pios_mpxv7002.c
-#SRC += pios_hmc5883.c
-#SRC += pios_hsum.c
-#SRC += pios_sensors.c
-#SRC += pios_gcsrcvr.c
-#SRC += pios_flash.c
-#SRC += pios_flashfs_logfs.c
-#SRC += printf-stdarg.c
-#SRC += pios_usb_desc_hid_cdc.c
-#SRC += pios_usb_util.c
-#SRC += pios_dma.c
-#SRC += pios_adc.c
-#SRC += pios_semaphore.c
-#SRC += pios_mutex.c
-#SRC += pios_thread.c
-#SRC += pios_queue.c
-#SRC += pios_hal.c
-#SRC += pios_modules.c
-#SRC += pios_srxl.c
-#SRC += pios_ibus.c
-#SRC += pios_spi.c
-#SRC += pios_irq.c
-#SRC += pios_pwm.c
-#SRC += pios_debug.c
-#SRC += pios_reset.c
 
 SRC += 	$(wildcard $(STMSPDSRCDIR)/*.c)
 

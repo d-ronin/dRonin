@@ -187,13 +187,9 @@ static const struct pios_spislave_cfg pios_spislave_cfg = {
 
 #endif	/* PIOS_INCLUDE_SPI */
 
-#if 0
-
-#if defined(PIOS_INCLUDE_ADC)
+#ifdef PIOS_INCLUDE_ADC
 #include "pios_adc_priv.h"
-#include "pios_internal_adc_light_priv.h"
-
-/* XXX TODO */
+#include "pios_internal_adc_simple.h"
 
 /**
  * ADC0 : PA4 ADC_IN4
@@ -201,29 +197,18 @@ static const struct pios_spislave_cfg pios_spislave_cfg = {
  * ADC2 : PA1 ADC_IN1
  * ADC3 : PB1 ADC_IN9
  */
-static const struct pios_internal_adc_cfg internal_adc_cfg = {
-	.dma = {
-		.ahb_clk  = RCC_AHBPeriph_DMA1,
-		.rx = {
-			.channel = DMA1_Channel1,
-			.init    = {
-				.DMA_Priority           = DMA_Priority_High,
-			},
-		}
-	},
-	.adc_pin_count = 4, // this is the max number, can be reduced at runtime (due to port config)
-	.adc_dev_master = ADC1,
+static const struct pios_internal_adc_simple_cfg internal_adc_cfg = {
+	.adc_dev = ADC1,
 	.adc_pins = {
-		{GPIOA, GPIO_Pin_4, ADC_Channel_4, true},  // VBat
-		{GPIOA, GPIO_Pin_5, ADC_Channel_5, true},  // ADC Pad
-		{GPIOA, GPIO_Pin_1, ADC_Channel_1, true},  // RC IN 2
-		{GPIOB, GPIO_Pin_1, ADC_Channel_9, true},  // RC IN 8
-	}
+		{GPIOA, GPIO_Pin_0, ADC_Channel_0 },  // VBat
+		{GPIOA, GPIO_Pin_1, ADC_Channel_1 },  // ADC Pad
+		{NULL,  0,          ADC_Channel_Vrefint },
+		{NULL,  0,          ADC_Channel_TempSensor },
+	},
+	.adc_pin_count = 4,
 };
 
 #endif /* PIOS_INCLUDE_ADC */
-
-#endif /* 0 */
 
 #include "pios_tim_priv.h"
 
@@ -401,59 +386,32 @@ static const struct pios_tim_channel pios_tim_servoport_pins[] = {
 
 #include "pios_usart_priv.h"
 
-/* XXX XXX TODO */
-static const struct pios_usart_cfg pios_usart_main_cfg = {
+static const struct pios_usart_cfg pios_usart_rcvr_cfg = {
 	.regs  = USART1,
 	.irq = {
 		.init    = {
 			.NVIC_IRQChannel                   = USART1_IRQn,
-			.NVIC_IRQChannelPreemptionPriority = PIOS_IRQ_PRIO_MID,
-			.NVIC_IRQChannelSubPriority        = 0,
 			.NVIC_IRQChannelCmd                = ENABLE,
 		},
 	},
 	.rx   = {
-		.gpio = GPIOA,
+		.gpio = GPIOB,
 		.init = {
-			.GPIO_Pin   = GPIO_Pin_10,
-			.GPIO_Speed = GPIO_Speed_2MHz,
-			.GPIO_Mode  = GPIO_Mode_IPU,
+			.GPIO_Pin   = GPIO_Pin_7,
+			.GPIO_Mode  = GPIO_Mode_AF,
+			.GPIO_PuPd  = GPIO_PuPd_UP,
+			.GPIO_OType = GPIO_OType_PP,
+			.GPIO_Speed = GPIO_Speed_50MHz,
 		},
 	},
 	.tx   = {
-		.gpio = GPIOA,
+		.gpio = GPIOB,
 		.init = {
-			.GPIO_Pin   = GPIO_Pin_9,
-			.GPIO_Speed = GPIO_Speed_2MHz,
-			.GPIO_Mode  = GPIO_Mode_AF_PP,
-		},
-	},
-};
-
-static const struct pios_usart_cfg pios_usart_rcvrserial_cfg = {
-	.regs  = USART2,
-	.irq = {
-		.init    = {
-			.NVIC_IRQChannel                   = USART2_IRQn,
-			.NVIC_IRQChannelPreemptionPriority = PIOS_IRQ_PRIO_MID,
-			.NVIC_IRQChannelSubPriority        = 0,
-			.NVIC_IRQChannelCmd                = ENABLE,
-		},
-	},
-	.rx   = {
-		.gpio = GPIOA,
-		.init = {
-			.GPIO_Pin   = GPIO_Pin_3,
-			.GPIO_Speed = GPIO_Speed_2MHz,
-			.GPIO_Mode  = GPIO_Mode_IPU,
-		},
-	},
-	.tx   = {
-		.gpio = GPIOA,
-		.init = {
-			.GPIO_Pin   = GPIO_Pin_2,
-			.GPIO_Speed = GPIO_Speed_2MHz,
-			.GPIO_Mode  = GPIO_Mode_AF_PP,
+			.GPIO_Pin   = GPIO_Pin_6,
+			.GPIO_Mode  = GPIO_Mode_AF,
+			.GPIO_PuPd  = GPIO_PuPd_UP,
+			.GPIO_OType = GPIO_OType_PP,
+			.GPIO_Speed = GPIO_Speed_50MHz,
 		},
 	},
 };
@@ -461,13 +419,15 @@ static const struct pios_usart_cfg pios_usart_rcvrserial_cfg = {
 #if defined(PIOS_INCLUDE_DSM)
 #include <pios_dsm_priv.h>
 
-static const struct pios_dsm_cfg pios_dsm_rcvrserial_cfg = {
+static const struct pios_dsm_cfg pios_dsm_rcvr_cfg = {
 	.bind = {
-		.gpio = GPIOA,
+		.gpio = GPIOB,
 		.init = {
-			.GPIO_Pin   = GPIO_Pin_2,
-			.GPIO_Speed = GPIO_Speed_2MHz,
-			.GPIO_Mode  = GPIO_Mode_Out_PP
+			.GPIO_Pin   = GPIO_Pin_7,
+			.GPIO_Speed = GPIO_Speed_50MHz,
+			.GPIO_PuPd  = GPIO_PuPd_UP,
+			.GPIO_OType = GPIO_OType_PP,
+			.GPIO_Speed = GPIO_Speed_50MHz,
 		},
 	},
 };
@@ -480,6 +440,33 @@ static const struct pios_dsm_cfg pios_dsm_rcvrserial_cfg = {
 #include "pios_com_priv.h"
 
 #endif	/* PIOS_INCLUDE_COM */
+
+#if defined(PIOS_INCLUDE_RTC)
+// XXX XXX RTC.
+/*
+ * Realtime Clock (RTC)
+ */
+#include <pios_rtc_priv.h>
+
+void PIOS_RTC_IRQ_Handler (void);
+void RTC_WKUP_IRQHandler() __attribute__ ((alias ("PIOS_RTC_IRQ_Handler")));
+static const struct pios_rtc_cfg pios_rtc_main_cfg = {
+	.clksrc = RCC_RTCCLKSource_HSE_Div32,
+	.prescaler = 25 - 1, // 8MHz / 32 / 16 / 25 == 625Hz
+	.irq = {
+		.init = {
+			.NVIC_IRQChannel                   = RTC_IRQn,
+			.NVIC_IRQChannelCmd                = ENABLE,
+		},
+	},
+};
+
+void PIOS_RTC_IRQ_Handler (void)
+{
+	PIOS_RTC_irq_handler ();
+}
+
+#endif
 
 #if defined(PIOS_INCLUDE_SERVO) && defined(PIOS_INCLUDE_TIM)
 /* 

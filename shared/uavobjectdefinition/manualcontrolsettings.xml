@@ -15,7 +15,11 @@
 				<elementname>Accessory2</elementname>
 				<elementname>Arming</elementname>
 			</elementnames>
-			<!-- ReceiverActivity inherits these -->
+			<!-- ReceiverActivity inherits these.
+			     It would be nice to have commonality with
+			     HwShared.PortTypes of some kind.
+			     Alternatively, it would save memory for these to
+			     be port names -->
 			<options>
 				<option>PWM</option>
 				<option>PPM</option>

@@ -37,17 +37,65 @@
 
 #include <board_hw_defs.c>
 
+#include <pios_hal.h>
+#include <pios_rtc_priv.h>
+#include <pios_internal_adc_simple.h>
+
+#include "hwshared.h"
+
 void PIOS_Board_Init(void);
 
 static bool inited;
+
 static struct flyingpicmd_cfg_fa cfg;
 
+uintptr_t adc_id;
 static uint16_t msg_num;
+
+extern void TIM1_CC_IRQHandler(void);
+extern void TIM1_BRK_UP_TRG_COM_IRQHandler(void);
+extern void TIM2_IRQHandler(void);
+extern void TIM3_IRQHandler(void);
+extern void TIM14_IRQHandler(void);
+extern void TIM15_IRQHandler(void);
+extern void TIM16_IRQHandler(void);
+extern void TIM17_IRQHandler(void);
+extern void USART1_IRQHandler(void);
+
+const void *_interrupt_vectors[USART2_IRQn] __attribute((section(".interrupt_vectors"))) = {
+	[TIM1_BRK_UP_TRG_COM_IRQn] = TIM1_BRK_UP_TRG_COM_IRQHandler,
+	[TIM1_CC_IRQn] = TIM1_CC_IRQHandler,
+	[TIM3_IRQn] = TIM3_IRQHandler,
+	[TIM14_IRQn] = TIM14_IRQHandler,
+	[TIM15_IRQn] = TIM15_IRQHandler,
+	[TIM16_IRQn] = TIM16_IRQHandler,
+	[TIM17_IRQn] = TIM17_IRQHandler,
+	[USART1_IRQn] = USART1_IRQHandler,
+};
 
 // The other side should give us a little time to deal with this,
 // as we need to copy stuff and initialize hardware.
 static void handle_cfg_fa(struct flyingpicmd_cfg_fa *cmd) {
 	PIOS_Assert(pios_servo_cfg.num_channels <= FPPROTO_MAX_SERVOS);
+
+	if (cfg.receiver_protocol != cmd->receiver_protocol) {
+		// This is not supposed to change types.  Assert, which will
+		// trigger watchdog, which will trigger picking up new type.
+		PIOS_Assert(!inited);
+
+		PIOS_HAL_ConfigurePort(cmd->receiver_protocol,
+			&pios_usart_rcvr_cfg,
+			&pios_usart_com_driver,
+			NULL,			// I2C
+			NULL,
+			&pios_ppm_cfg,
+			NULL,			// PWM
+			PIOS_LED_HEARTBEAT,	// It's all we have...
+			&pios_dsm_rcvr_cfg,
+			HWSHARED_DSMXMODE_AUTODETECT,
+			NULL			// sbus: we have inverters
+		);
+	}
 
 	// Copy so that we can refer to this later.
 	memcpy(&cfg, cmd, sizeof(cfg));
@@ -65,7 +113,6 @@ static void handle_cfg_fa(struct flyingpicmd_cfg_fa *cmd) {
 
 	/* OK, game on.  From here on out we may end up generating PWM.
 	 * so it's time to enable the watchdog. */
-
 	if (!inited) {
 		PIOS_WDG_Init();
 		inited = true;
@@ -106,6 +153,20 @@ static void generate_status_message(int *resp_len)
 
 	resp->valid_messages_recvd = msg_num;
 
+	for (int i=0; i<FPPROTO_MAX_RCCHANS; i++) {
+		if (pios_rcvr_group_map[0]) {
+			resp->chan_data[i] =
+				/* 1-offset vs 0-offset grr */
+				PIOS_RCVR_Read(pios_rcvr_group_map[0], i+1);
+		} else {
+			resp->chan_data[i] = PIOS_RCVR_NODRIVER;
+		}
+	}
+
+	for (int i=0; i<FPPROTO_MAX_ADCCHANS; i++) {
+		resp->adc_data[i] = PIOS_ADC_DevicePinGet(adc_id, i);
+	}
+
 	flyingpi_calc_crc(&tx_buf, true, resp_len);
 
 	msg_num++;
@@ -137,8 +198,6 @@ static void process_pio_message(void *ctx, int len, int *resp_len)
 	(void) ctx;
 	(void) len;
 
-	*resp_len = 3;
-
 	if (flyingpi_calc_crc(&rx_buf, false, NULL)) {
 		process_pio_message_impl(resp_len);
 	}
@@ -161,9 +220,16 @@ int main()
 	PIOS_LED_Init(led_cfg);
 #endif	/* PIOS_INCLUDE_LED */
 
-#if defined(PIOS_INCLUDE_RTC)
-	/* Initialize the real-time clock and its associated tick */
-	PIOS_RTC_Init(&pios_rtc_main_cfg);
+#if defined(PIOS_INCLUDE_ADC)
+	pios_internal_adc_t adc_dev;
+
+	if (PIOS_INTERNAL_ADC_Init(&adc_dev, &internal_adc_cfg)) {
+		PIOS_Assert(0);
+	}
+
+	if (PIOS_ADC_Init(&adc_id, &pios_internal_adc_driver, (uint32_t )adc_dev)) {
+		PIOS_Assert(0);
+	}
 #endif
 
 	//outputs
@@ -186,6 +252,7 @@ int main()
 
 	while (1) {
 		PIOS_SPISLAVE_PollSS(spislave_dev);
+		PIOS_INTERNAL_ADC_DoStep(adc_dev);
 
 		i++;
 		i &= 0x3ffff;

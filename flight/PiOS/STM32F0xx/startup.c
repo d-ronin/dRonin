@@ -52,17 +52,17 @@ void _start(void)
 const void *_vectors[] __attribute((section(".vectors"))) = {
 	&_stack_top,
 	_start,
-	0,	/* XXX: NMI_Handler */
-	0,	/* XXX: HardFault_Handler */
-	0,	/* XXX: MemManage_Handler */
-	0,	/* XXX: BusFault_Handler */
-	0,	/* XXX: UsageFault_Handler */
-	0,	/* 4 reserved */
-	0,
-	0,
-	0,
-	0,	/* SVCall */
-	0,	/* Reserved for debug */
-	0,	/* Reserved */
-	0,	/* PendSV */
+	0,	/* 08: XXX: NMI_Handler */
+	0,	/* 0c: XXX: HardFault_Handler */
+	0,	/* 10 reserved */
+	0,	/* 14 reserved */
+	0,	/* 18 reserved */
+	0,	/* 1c reserved */
+	0,	/* 20 reserved */
+	0,	/* 24 reserved */
+	0,	/* 28 reserved */
+	0,	/* 2c SVCall */
+	0,	/* 30 reserved */
+	0,	/* 34 reserved */
+	0,	/* 38 PendSV */
 };

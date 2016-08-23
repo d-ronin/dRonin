@@ -73,6 +73,7 @@ MODULES += Telemetry
 OPTMODULES += Airspeed
 OPTMODULES += AltitudeHold
 OPTMODULES += Autotune
+OPTMODULES += Battery
 OPTMODULES += CameraStab
 OPTMODULES += FixedWingPathFollower
 OPTMODULES += FlightStats
@@ -156,6 +157,7 @@ SRC += pios_streamfs.c
 
 SRC += pios_modules.c
 
+SRC += pios_adc.c
 SRC += pios_bl_helper.c
 SRC += pios_bmx055.c
 SRC += pios_debug.c

@@ -59,10 +59,8 @@ void PIOS_SYS_Init(void)
 	/* do this early to ensure that we take exceptions in the right place */
 	NVIC_Configuration();
 
-#if 0
 	/* Init the delay system */
 	PIOS_DELAY_Init();
-#endif
 
 	/*
 	 * Turn on all the peripheral clocks.
