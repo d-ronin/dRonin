@@ -693,7 +693,7 @@ static void settingsUpdatedCb(UAVObjEvent * objEv, void *ctx, void *obj, int len
 
 #ifdef PIOS_TOLERATE_MISSING_SENSORS
 	if (sensorSettings.TolerateMissingSensors ==
-			SENSORSETTINGS_TOLERATEMISSINGSENSORS_YES) {
+			SENSORSETTINGS_TOLERATEMISSINGSENSORS_TRUE) {
 		missing_sensor_severity = SYSTEMALARMS_ALARM_WARNING;
 	} else {
 		missing_sensor_severity = SYSTEMALARMS_ALARM_ERROR;
