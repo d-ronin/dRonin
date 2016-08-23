@@ -2002,6 +2002,14 @@ bool UploaderGadgetWidget::FirmwareLoadFromFile(QString filename,
 
 bool UploaderGadgetWidget::FirmwareCheckForUpdate(deviceDescriptorStruct device)
 {
+    if (currentBoard.board) {
+        bool canBeUpgraded = currentBoard.board->queryCapabilities(Core::IBoardType::BOARD_CAPABILITIES_UPGRADEABLE);
+
+        if (!canBeUpgraded) {
+            return false;
+        }
+    }
+
     const QString gcsRev(GCS_REVISION);
     if (gcsRev.contains(':')) {
         QString gcsShort = gcsRev.mid(gcsRev.indexOf(':') + 1, 8);

@@ -90,6 +90,12 @@ QWidget *Simulation::getBoardConfiguration(QWidget *parent, bool connected)
     return new SimulationConfiguration(parent);
 }
 
+int Simulation::queryMaxGyroRate()
+{
+    /* Correct for flyingpi and reasonable for simulation. */
+    return 2000;
+}
+
 /**
  * @}
  * @}
