@@ -1,12 +1,14 @@
 #!/usr/bin/env python
 
-import pyqtgraph as pg
-from pyqtgraph.Qt import QtCore, QtGui
+import dronin_pyqtgraph as pg
+from dronin_pyqtgraph.Qt import QtCore, QtGui
 import numpy as np
 
 from dronin.logviewer.plotdockarea import PlotDockArea
 
-from pyqtgraph.dockarea import *
+from dronin_pyqtgraph.dockarea import *
+
+import six
 
 def get_data_series(obj_name, fields):
     data = get_series(obj_name)
@@ -157,6 +159,9 @@ def handle_open(ignored=False, fname=None):
 
     with pg.ProgressDialog("0 objects read...", wait=500, maximum=1000, cancelText=None) as dlg:
         global t
+
+        if not isinstance(fname, six.string_types):
+            fname = fname[0]
 
         f = open(fname, 'rb')
         num_bytes = 1000000000
