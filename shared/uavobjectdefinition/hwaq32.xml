@@ -20,6 +20,7 @@
 				<option>LighttelemetryTx</option>
 				<option>MavLinkTX</option>
 				<option>MSP</option>
+				<option>OpenLog</option>
 				<option>PicoC</option>
 				<option>Storm32Bgc</option>
 				<option>Telemetry</option>
@@ -30,6 +31,7 @@
 			<options>
 				<option>Disabled</option>
 				<option>GPS</option>
+				<option>OpenLog</option>
 				<option>MavLinkTX_GPS_RX</option>
 			</options>
 		</field>
