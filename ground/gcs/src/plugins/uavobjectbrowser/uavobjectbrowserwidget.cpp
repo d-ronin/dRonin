@@ -307,7 +307,7 @@ void UAVObjectBrowserWidget::refreshHiddenObjects()
     {
         QModelIndex proxyModelindex = proxyModel->mapFromSource(modelIndex);
 
-        TreeItem *item = static_cast<TreeItem*>(proxyModelindex.internalPointer());
+        TreeItem *item = static_cast<TreeItem*>(modelIndex.internalPointer());
         if(item)
             treeView->setRowHidden(proxyModelindex.row(), proxyModelindex.parent(), m_viewoptions->cbHideNotPresent->isChecked() && !item->getIsPresentOnHardware());
     }
