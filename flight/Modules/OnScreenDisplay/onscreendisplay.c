@@ -93,6 +93,7 @@
 #include "magnetometer.h"
 #include "manualcontrolcommand.h"
 #include "modulesettings.h"
+#include "stabilizationdesired.h"
 #include "stabilizationsettings.h"
 #include "stateestimation.h"
 #include "systemalarms.h"
@@ -1061,6 +1062,95 @@ void showVideoType(int16_t x, int16_t y)
 	}
 }
 
+// XXX right now looks at command and does not consider at all
+// "what's happening" -- should weight both [with filtering]
+// XXX for now assumes reprojection-- should inverse-reproject if no reproj
+// XXX assumes angles are small and doesn't integrate the 3D rotation
+// properly
+static void plot_trend_centermark(int max_pitch)
+{
+#define INNER_GAP 2
+#define INNER_MARK_LEN 2
+#define OUTER_GAP 4
+#define OUTER_MARK_LEN 3
+
+#define TREND_FORECAST_LEN 0.3f
+
+	write_line_outlined(GRAPHICS_X_MIDDLE - INNER_GAP - INNER_MARK_LEN,
+			GRAPHICS_Y_MIDDLE,
+			GRAPHICS_X_MIDDLE - INNER_GAP,
+			GRAPHICS_Y_MIDDLE,
+			2, 2, 0, 1);
+	write_line_outlined(GRAPHICS_X_MIDDLE + INNER_GAP + INNER_MARK_LEN,
+			GRAPHICS_Y_MIDDLE,
+			GRAPHICS_X_MIDDLE + INNER_GAP,
+			GRAPHICS_Y_MIDDLE,
+			2, 2, 0, 1);
+	write_line_outlined(GRAPHICS_X_MIDDLE,
+			GRAPHICS_Y_MIDDLE - INNER_GAP - INNER_MARK_LEN,
+			GRAPHICS_X_MIDDLE,
+			GRAPHICS_Y_MIDDLE - INNER_GAP,
+			2, 2, 0, 1);
+	write_line_outlined(GRAPHICS_X_MIDDLE,
+			GRAPHICS_Y_MIDDLE + INNER_GAP + INNER_MARK_LEN,
+			GRAPHICS_X_MIDDLE,
+			GRAPHICS_Y_MIDDLE + INNER_GAP,
+			2, 2, 0, 1);
+
+	float camera_tilt, roll, pitch, yaw;
+
+	// pixels per degree
+	float fov_scale = GRAPHICS_Y_MIDDLE / ((float) max_pitch);
+
+	StabilizationSettingsCameraTiltGet(&camera_tilt);
+
+	StabilizationDesiredRollGet(&roll);
+	StabilizationDesiredPitchGet(&pitch);
+	StabilizationDesiredYawGet(&yaw);
+
+	float cos_roll = cosf(roll * TREND_FORECAST_LEN * DEG2RAD);
+	float sin_roll = sinf(roll * TREND_FORECAST_LEN * DEG2RAD);
+
+#define OUTER_LINE_BEGIN (INNER_GAP+INNER_MARK_LEN+OUTER_GAP+OUTER_MARK_LEN)
+#define OUTER_LINE_END (INNER_GAP+INNER_MARK_LEN+OUTER_GAP)
+
+	float x_mid = GRAPHICS_X_MIDDLE + yaw * TREND_FORECAST_LEN * fov_scale;
+	float y_mid = GRAPHICS_Y_MIDDLE - pitch * TREND_FORECAST_LEN * fov_scale;
+
+	// Vertical line, "above".
+	write_line_outlined(x_mid + sin_roll * OUTER_LINE_BEGIN,
+			y_mid - cos_roll * OUTER_LINE_BEGIN,
+			x_mid + sin_roll * OUTER_LINE_END,
+			y_mid - cos_roll * OUTER_LINE_END,
+			2, 2, 0, 1);
+
+	// Vertical line, "below".
+	write_line_outlined(x_mid - sin_roll * OUTER_LINE_BEGIN,
+			y_mid + cos_roll * OUTER_LINE_BEGIN,
+			x_mid - sin_roll * OUTER_LINE_END,
+			y_mid + cos_roll * OUTER_LINE_END,
+			2, 2, 0, 1);
+
+	// Horizontal line, "left".
+	write_line_outlined(x_mid + cos_roll * OUTER_LINE_BEGIN,
+			y_mid + sin_roll * OUTER_LINE_BEGIN,
+			x_mid + cos_roll * OUTER_LINE_END,
+			y_mid + sin_roll * OUTER_LINE_END,
+			2, 2, 0, 1);
+
+	// Horizontal line, "right".
+	write_line_outlined(x_mid - cos_roll * OUTER_LINE_BEGIN,
+			y_mid - sin_roll * OUTER_LINE_BEGIN,
+			x_mid - cos_roll * OUTER_LINE_END,
+			y_mid - sin_roll * OUTER_LINE_END,
+			2, 2, 0, 1);
+}
+
+bool is_rate_mode()
+{
+	return true;	// Haha topkek
+}
+
 void render_user_page(OnScreenDisplayPageSettingsData * page)
 {
 	char tmp_str[100] = { 0 };
@@ -1164,7 +1254,10 @@ void render_user_page(OnScreenDisplayPageSettingsData * page)
 	}
 
 	// Artificial Horizon (and centermark)
-	if (page->ArtificialHorizon || page->CenterMark) {
+	if (page->CenterMark == ONSCREENDISPLAYPAGESETTINGS_CENTERMARK_TREND &&
+			is_rate_mode()) {
+		plot_trend_centermark(page->ArtificialHorizonMaxPitch);
+	} else if (page->ArtificialHorizon || page->CenterMark) {
 		AttitudeActualRollGet(&tmp);
 		AttitudeActualPitchGet(&tmp1);
 		simple_artificial_horizon(tmp, tmp1, GRAPHICS_X_MIDDLE, GRAPHICS_Y_MIDDLE, GRAPHICS_BOTTOM * 0.8f, GRAPHICS_RIGHT * 0.8f,
