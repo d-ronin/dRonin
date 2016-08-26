@@ -403,13 +403,13 @@ static const struct pios_flash_jedec_cfg flash_m25p_cfg = {
 	.sector_erase        = 0xD8,
 };
 
-/* This larger NOR flash has been shipping on some clone Revolution boards
- * without full sensor suite.  Tolerate it, in anticipation of changes to
- * tolerate not-full sensor suite being present.
+/* Larger NOR flash has been shipping on some clone Revolution boards
+ * without full sensor suite.  Tolerate any 128mbit NOR flash, and assume
+ * it has 64k blocks with an erase command of 0xD8.
  */
 static const struct pios_flash_jedec_cfg flash_n25q128_cfg = {
-	.expect_manufacturer = JEDEC_MANUFACTURER_MICRON,
-	.expect_memorytype   = 0xba,
+	.expect_manufacturer = JEDEC_MANUFACTURER_ANY,
+	.expect_memorytype   = JEDEC_MEMORYTYPE_ANY,
 	.expect_capacity     = 0x18,
 	.sector_erase        = 0xD8,
 };
