@@ -229,7 +229,6 @@ static void SensorsTask(void *parameters)
 	UAVObjEvent ev;
 	settingsUpdatedCb(&ev, NULL, NULL, 0);
 
-
 	// Main task loop
 	lastSysTime = PIOS_Thread_Systime();
 	uint32_t good_runs = 1;
@@ -277,10 +276,10 @@ static void SensorsTask(void *parameters)
 			update_mags(&mags);
 #ifdef PIOS_TOLERATE_MISSING_SENSORS
 		} else if (test_good_run) {
-			// Keep alarm asserted
-			test_good_run = false;
-
 			if (PIOS_SENSORS_GetMissing(PIOS_SENSOR_MAG)) {
+				// Keep alarm asserted
+				test_good_run = false;
+
 				AlarmsSet(SYSTEMALARMS_ALARM_SENSORS,
 						missing_sensor_severity);
 			}
@@ -306,6 +305,9 @@ static void SensorsTask(void *parameters)
 #ifdef PIOS_TOLERATE_MISSING_SENSORS
 		} else {
 			if (PIOS_SENSORS_GetMissing(PIOS_SENSOR_BARO)) {
+				// Keep alarm asserted
+				test_good_run = false;
+
 				AlarmsSet(SYSTEMALARMS_ALARM_TEMPBARO,
 						missing_sensor_severity);
 			}
