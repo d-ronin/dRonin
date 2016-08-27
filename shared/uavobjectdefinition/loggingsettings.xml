@@ -3,7 +3,7 @@
 		<description>Settings for the logging module</description>
 		<field name="LogBehavior" units="" type="enum" options="LogOnStart,LogOnArm,LogOff" elements="1" defaultvalue="LogOnArm"/>
 		<field name="InitiallyLog" units="" type="enum" options="AllObjects,SettingsObjects,None" elements="1" defaultvalue="AllObjects"/>
-		<field name="MaxLogRate" units="Hz" type="enum" options="5,10,25,50,100,250,500,1000" elements="1" defaultvalue="25"/>
+		<field name="MaxLogRate" units="Hz" type="enum" options="5,10,25,50,100,166,250,333,500,1000" elements="1" defaultvalue="25"/>
 		<field name="Profile" units="" type="enum" options="Default,Custom,Fullbore" elements="1" defaultvalue="Default"/>
 		<access gcs="readwrite" flight="readwrite"/>
 		<telemetrygcs acked="true" updatemode="onchange" period="0"/>

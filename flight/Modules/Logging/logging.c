@@ -511,8 +511,14 @@ static uint16_t get_minimum_logging_period()
 		case LOGGINGSETTINGS_MAXLOGRATE_100:
 			min_period = 10;
 			break;
+		case LOGGINGSETTINGS_MAXLOGRATE_166:
+			min_period = 6;
+			break;
 		case LOGGINGSETTINGS_MAXLOGRATE_250:
 			min_period = 4;
+			break;
+		case LOGGINGSETTINGS_MAXLOGRATE_333:
+			min_period = 3;
 			break;
 		case LOGGINGSETTINGS_MAXLOGRATE_500:
 			min_period = 2;
