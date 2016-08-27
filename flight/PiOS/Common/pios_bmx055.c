@@ -29,6 +29,12 @@
  * of this source file; otherwise redistribution is prohibited.
  */
 
+/* The PIOS_BMX055 contains several sensors integrated into one package.
+ * The accelerometer and gyro are supported here.  The magnetomter is supported
+ * by the BMM150 driver, due to its different characteristics and the fac that
+ * you might want to skip it if you're using an external mag.
+ */
+
 #include "openpilot.h"
 #include "pios.h"
 
@@ -67,11 +73,9 @@ struct pios_bmx055_dev {
 	uint32_t spi_id;                            /**< Handle to the communication driver */
 	uint32_t spi_slave_gyro;                    /**< The slave number (SPI) */
 	uint32_t spi_slave_accel;
-	uint32_t spi_slave_mag;
 
 	struct pios_queue *gyro_queue;
 	struct pios_queue *accel_queue;
-	struct pios_queue *mag_queue;
 
 	struct pios_thread *task_handle;
 	struct pios_semaphore *data_ready_sema;
@@ -133,16 +137,6 @@ static struct pios_bmx055_dev *PIOS_BMX_Alloc(const struct pios_bmx055_cfg *cfg)
 		return NULL;
 	}
 
-#if 0
-	dev->mag_queue = PIOS_Queue_Create(PIOS_BMX_QUEUE_LEN, sizeof(struct pios_sensor_mag_data));
-	if (dev->mag_queue == NULL) {
-		PIOS_Queue_Delete(dev->accel_queue);
-		PIOS_Queue_Delete(dev->gyro_queue);
-		PIOS_free(dev)
-		return NULL;
-	}
-#endif
-
 	dev->data_ready_sema = PIOS_Semaphore_Create();
 	if (dev->data_ready_sema == NULL) {
 		PIOS_Queue_Delete(dev->accel_queue);
@@ -186,7 +180,7 @@ static int32_t AssertReg(int slave, uint8_t address, uint8_t expect) {
 	return 0;
 }
 
-int32_t PIOS_BMX055_SPI_Init(pios_bmx055_dev_t *dev, uint32_t spi_id, uint32_t slave_gyro, uint32_t slave_accel, uint32_t slave_mag, const struct pios_bmx055_cfg *cfg)
+int32_t PIOS_BMX055_SPI_Init(pios_bmx055_dev_t *dev, uint32_t spi_id, uint32_t slave_gyro, uint32_t slave_accel, const struct pios_bmx055_cfg *cfg)
 {
 	bmx_dev = PIOS_BMX_Alloc(cfg);
 	if (bmx_dev == NULL)
@@ -196,7 +190,6 @@ int32_t PIOS_BMX055_SPI_Init(pios_bmx055_dev_t *dev, uint32_t spi_id, uint32_t s
 	bmx_dev->spi_id = spi_id;
 	bmx_dev->spi_slave_gyro = slave_gyro;
 	bmx_dev->spi_slave_accel = slave_accel;
-	bmx_dev->spi_slave_mag = slave_mag;
 	bmx_dev->cfg = cfg;
 
 	int32_t ret;
@@ -212,11 +205,7 @@ int32_t PIOS_BMX055_SPI_Init(pios_bmx055_dev_t *dev, uint32_t spi_id, uint32_t s
 
 	if (ret) return ret;
 
-	/* Unfortunately can't check mag right away, so proceed with
-	 * init
-	 */
-
-	DEBUG_PRINTF(2, "BMX: Resetting all sensors\n");
+	DEBUG_PRINTF(2, "BMX: Resetting sensors\n");
 
 	ret = PIOS_BMX_WriteReg(bmx_dev->spi_slave_gyro,
 			BMX055_REG_GYRO_BGW_SOFTRESET,
@@ -230,22 +219,8 @@ int32_t PIOS_BMX055_SPI_Init(pios_bmx055_dev_t *dev, uint32_t spi_id, uint32_t s
 
 	if (ret) return ret;
 
-	ret = PIOS_BMX_WriteReg(bmx_dev->spi_slave_mag,
-			BMX055_REG_MAG_POWER_CONTROL,
-			BMX055_VAL_MAG_POWER_CONTROL_POWEROFF);
-
-	if (ret) return ret;
-
 	/* Gyro is very slow to wake up, so a big total delay here */
-	PIOS_DELAY_WaitmS(30);
-
-	ret = PIOS_BMX_WriteReg(bmx_dev->spi_slave_mag,
-			BMX055_REG_MAG_POWER_CONTROL,
-			BMX055_VAL_MAG_POWER_CONTROL_POWERON);
-
-	if (ret) return ret;
-
-	PIOS_DELAY_WaitmS(30);
+	PIOS_DELAY_WaitmS(50);
 
 	/* Verify presence/chip selects again */
 	ret = AssertReg(bmx_dev->spi_slave_gyro,
@@ -257,12 +232,6 @@ int32_t PIOS_BMX055_SPI_Init(pios_bmx055_dev_t *dev, uint32_t spi_id, uint32_t s
 	ret = AssertReg(bmx_dev->spi_slave_accel,
 			BMX055_REG_ACC_CHIPID,
 			BMX055_VAL_ACC_CHIPID);
-
-	if (ret) return ret;
-
-	ret = AssertReg(bmx_dev->spi_slave_mag,
-			BMX055_REG_MAG_CHIPID,
-			BMX055_VAL_MAG_CHIPID);
 
 	if (ret) return ret;
 
@@ -322,7 +291,6 @@ int32_t PIOS_BMX055_SPI_Init(pios_bmx055_dev_t *dev, uint32_t spi_id, uint32_t s
 	PIOS_SENSORS_SetMaxGyro(2000);
 	PIOS_SENSORS_Register(PIOS_SENSOR_ACCEL, bmx_dev->accel_queue);
 	PIOS_SENSORS_Register(PIOS_SENSOR_GYRO, bmx_dev->gyro_queue);
-//	PIOS_SENSORS_Register(PIOS_SENSOR_MAG, bmx_dev->mag_queue);
 
 	return 0;
 }
@@ -442,7 +410,6 @@ static void PIOS_BMX_Task(void *parameters)
 
 		struct pios_sensor_accel_data accel_data;
 		struct pios_sensor_gyro_data gyro_data;
-		struct pios_sensor_mag_data mag_data;
 
 #define PACK_REG12_ADDR_OFFSET(b, reg, off) (int16_t) ( (b[reg-off] & 0xf0) | (b[reg-off+1] << 8) )
 #define PACK_REG16_ADDR_OFFSET(b, reg, off) (int16_t) ( (b[reg-off]) | (b[reg-off+1] << 8) )
@@ -455,8 +422,6 @@ static void PIOS_BMX_Task(void *parameters)
 		float gyro_y = PACK_REG16_ADDR_OFFSET(gyro_buf, BMX055_REG_GYRO_Y_LSB, BMX055_REG_GYRO_X_LSB);
 		float gyro_z = PACK_REG16_ADDR_OFFSET(gyro_buf, BMX055_REG_GYRO_Z_LSB, BMX055_REG_GYRO_X_LSB);
 
-		float mag_x = 0, mag_y = 0, mag_z = 0;
-
 		// Rotate the sensor to our convention.  The datasheet defines X as towards the right
 		// and Y as forward. Our convention transposes this.  Also the Z is defined negatively
 		// to our convention. This is true for accels and gyros. Magnetometer corresponds our convention.
@@ -468,9 +433,6 @@ static void PIOS_BMX_Task(void *parameters)
 			gyro_data.y  =  gyro_x;
 			gyro_data.x  =  gyro_y;
 			gyro_data.z  = -gyro_z;
-			mag_data.x   =  mag_x;
-			mag_data.y   =  mag_y;
-			mag_data.z   =  mag_z;
 			break;
 		case PIOS_BMX_TOP_90DEG:
 			accel_data.y = -accel_y;
@@ -479,9 +441,6 @@ static void PIOS_BMX_Task(void *parameters)
 			gyro_data.y  = -gyro_y;
 			gyro_data.x  =  gyro_x;
 			gyro_data.z  = -gyro_z;
-			mag_data.x   = -mag_y;
-			mag_data.y   =  mag_x;
-			mag_data.z   =  mag_z;
 			break;
 		case PIOS_BMX_TOP_180DEG:
 			accel_data.y = -accel_x;
@@ -490,9 +449,6 @@ static void PIOS_BMX_Task(void *parameters)
 			gyro_data.y  = -gyro_x;
 			gyro_data.x  = -gyro_y;
 			gyro_data.z  = -gyro_z;
-			mag_data.x   = -mag_x;
-			mag_data.y   = -mag_y;
-			mag_data.z   =  mag_z;
 			break;
 		case PIOS_BMX_TOP_270DEG:
 			accel_data.y =  accel_y;
@@ -501,9 +457,6 @@ static void PIOS_BMX_Task(void *parameters)
 			gyro_data.y  =  gyro_y;
 			gyro_data.x  = -gyro_x;
 			gyro_data.z  = -gyro_z;
-			mag_data.x   =  mag_y;
-			mag_data.y   = -mag_x;
-			mag_data.z   =  mag_z;
 			break;
 		case PIOS_BMX_BOTTOM_0DEG:
 			accel_data.y = -accel_x;
@@ -512,11 +465,7 @@ static void PIOS_BMX_Task(void *parameters)
 			gyro_data.y  = -gyro_x;
 			gyro_data.x  =  gyro_y;
 			gyro_data.z  =  gyro_z;
-			mag_data.x   =  mag_x;
-			mag_data.y   = -mag_y;
-			mag_data.z   = -mag_z;
 			break;
-
 		case PIOS_BMX_BOTTOM_90DEG:
 			accel_data.y =  accel_y;
 			accel_data.x =  accel_x;
@@ -524,11 +473,7 @@ static void PIOS_BMX_Task(void *parameters)
 			gyro_data.y  =  gyro_y;
 			gyro_data.x  =  gyro_x;
 			gyro_data.z  =  gyro_z;
-			mag_data.x   = -mag_y;
-			mag_data.y   = -mag_x;
-			mag_data.z   = -mag_z;
 			break;
-
 		case PIOS_BMX_BOTTOM_180DEG:
 			accel_data.y =  accel_x;
 			accel_data.x = -accel_y;
@@ -536,11 +481,7 @@ static void PIOS_BMX_Task(void *parameters)
 			gyro_data.y  =  gyro_x;
 			gyro_data.x  = -gyro_y;
 			gyro_data.z  =  gyro_z;
-			mag_data.x   = -mag_x;
-			mag_data.y   =  mag_y;
-			mag_data.z   = -mag_z;
 			break;
-
 		case PIOS_BMX_BOTTOM_270DEG:
 			accel_data.y = -accel_y;
 			accel_data.x = -accel_x;
@@ -548,9 +489,6 @@ static void PIOS_BMX_Task(void *parameters)
 			gyro_data.y  = -gyro_y;
 			gyro_data.x  = -gyro_x;
 			gyro_data.z  =  gyro_z;
-			mag_data.x   =  mag_y;
-			mag_data.y   =  mag_x;
-			mag_data.z   = -mag_z;
 			break;
 		}
 
@@ -572,15 +510,6 @@ static void PIOS_BMX_Task(void *parameters)
 
 		PIOS_Queue_Send(bmx_dev->accel_queue, &accel_data, 0);
 		PIOS_Queue_Send(bmx_dev->gyro_queue, &gyro_data, 0);
-		(void) mag_data;
-
-#if 0
-		float mag_scale = 33.0f;	/* XXX */
-		mag_data.x *= mag_scale;
-		mag_data.y *= mag_scale;
-		mag_data.z *= mag_scale;
-		PIOS_Queue_Send(bmx_dev->mag_queue, &mag_data, 0);
-#endif
 	}
 }
 

@@ -224,7 +224,7 @@ static int handle_device(const char *optarg) {
 
 		bmx055_cfg = PIOS_malloc(sizeof(*bmx055_cfg));
 
-		int ret = PIOS_BMX055_SPI_Init(&dev, spi_devs[bus_num], dev_num, dev_num+1, dev_num+2, bmx055_cfg);
+		int ret = PIOS_BMX055_SPI_Init(&dev, spi_devs[bus_num], dev_num, dev_num+1, bmx055_cfg);
 
 		if (ret) goto fail;
 	} else if (!strcmp(drv_name, "flyingpio")) {
