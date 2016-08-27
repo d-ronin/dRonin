@@ -107,8 +107,6 @@ static const struct pios_bmi160_cfg pios_bmi160_cfg = {
 #include "pios_frsky_rssi_priv.h"
 #endif /* PIOS_INCLUDE_FRSKY_RSSI */
 
-bool external_mag_fail;
-
 uintptr_t pios_com_logging_id;
 uintptr_t pios_com_openlog_logging_id;
 uintptr_t pios_internal_adc_id = 0;
@@ -246,30 +244,30 @@ void PIOS_Board_Init(void) {
 		PIOS_DEBUG_Assert(0);
 	}
 	if (PIOS_I2C_CheckClear(pios_i2c_external_id) != 0)
-		PIOS_HAL_Panic(PIOS_LED_ALARM, PIOS_HAL_PANIC_I2C_EXT);
+		PIOS_HAL_CriticalError(PIOS_LED_ALARM, PIOS_HAL_PANIC_I2C_EXT);
 #endif /* defined(PIOS_INCLUDE_I2C) */
 
 #if defined(PIOS_INCLUDE_RE1_FPGA)
 	if (PIOS_RE1FPGA_Init(pios_spi_flash_id, 1, &pios_re1fpga_cfg, false) != 0) {
-		PIOS_HAL_Panic(PIOS_LED_ALARM, PIOS_HAL_PANIC_CAN); // XXX need to add custom code
+		PIOS_HAL_CriticalError(PIOS_LED_ALARM, PIOS_HAL_PANIC_CAN); // XXX need to add custom code
 	}
 #endif /* defined(PIOS_INCLUDE_RE1_FPGA) */
 
 #if defined(PIOS_INCLUDE_FLASH)
 	/* Inititialize all flash drivers */
 	if (PIOS_Flash_Internal_Init(&pios_internal_flash_id, &flash_internal_cfg) != 0)
-		PIOS_HAL_Panic(PIOS_LED_ALARM, PIOS_HAL_PANIC_FLASH);
+		PIOS_HAL_CriticalError(PIOS_LED_ALARM, PIOS_HAL_PANIC_FLASH);
 	if (PIOS_Flash_Jedec_Init(&pios_external_flash_id, pios_spi_flash_id, 0, &flash_s25fl127_cfg) != 0)
-		PIOS_HAL_Panic(PIOS_LED_ALARM, PIOS_HAL_PANIC_FLASH);
+		PIOS_HAL_CriticalError(PIOS_LED_ALARM, PIOS_HAL_PANIC_FLASH);
 
 	/* Register the partition table */
 	PIOS_FLASH_register_partition_table(pios_flash_partition_table, NELEMENTS(pios_flash_partition_table));
 
 	/* Mount all filesystems */
 	if (PIOS_FLASHFS_Logfs_Init(&pios_uavo_settings_fs_id, &flashfs_settings_cfg, FLASH_PARTITION_LABEL_SETTINGS) != 0)
-		PIOS_HAL_Panic(PIOS_LED_ALARM, PIOS_HAL_PANIC_FILESYS);
+		PIOS_HAL_CriticalError(PIOS_LED_ALARM, PIOS_HAL_PANIC_FILESYS);
 	if (PIOS_FLASHFS_Logfs_Init(&pios_waypoints_settings_fs_id, &flashfs_waypoints_cfg, FLASH_PARTITION_LABEL_WAYPOINTS) != 0)
-		PIOS_HAL_Panic(PIOS_LED_ALARM, PIOS_HAL_PANIC_FILESYS);
+		PIOS_HAL_CriticalError(PIOS_LED_ALARM, PIOS_HAL_PANIC_FILESYS);
 
 #if defined(ERASE_FLASH)
 	PIOS_FLASHFS_Format(pios_uavo_settings_fs_id);
@@ -510,7 +508,7 @@ void PIOS_Board_Init(void) {
 	bool do_foc = (bmi160_foc == HWBRAINRE1_BMI160FOC_DO_FOC);
 
 	if(PIOS_BMI160_Init(pios_spi_gyro_id, 0, &pios_bmi160_cfg, do_foc) != 0){
-		PIOS_HAL_Panic(PIOS_LED_ALARM, PIOS_HAL_PANIC_IMU);
+		PIOS_HAL_CriticalError(PIOS_LED_ALARM, PIOS_HAL_PANIC_IMU);
 	}
 
 	/* Disable FOC. We only do this once. */

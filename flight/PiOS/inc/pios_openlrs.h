@@ -34,6 +34,10 @@
 
 #include <hwshared.h>
 
+struct pios_openlrs_cfg;
+
+#ifdef PIOS_INCLUDE_OPENLRS
+
 /* Global Types */
 struct pios_openlrs_cfg {
   const struct pios_spi_cfg *spi_cfg; /* Pointer to SPI interface configuration */
@@ -47,6 +51,8 @@ extern int32_t PIOS_OpenLRS_Init(uintptr_t * openlrs_id, uint32_t spi_id,
 
 extern void PIOS_OpenLRS_RegisterRcvr(uintptr_t openlrs_id, uintptr_t rfm22b_rcvr_id);
 extern uint8_t PIOS_OpenLRS_RSSI_Get(void);
+
+#endif
 #endif /* PIOS_OPENLRS_H */
 /**
  * @}

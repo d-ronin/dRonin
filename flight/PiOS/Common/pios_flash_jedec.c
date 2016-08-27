@@ -133,10 +133,23 @@ int32_t PIOS_Flash_Jedec_Init(uintptr_t *chip_id, uint32_t spi_id, uint32_t slav
 	flash_dev->cfg = cfg;
 
 	(void) PIOS_Flash_Jedec_ReadID(flash_dev);
-	if ((flash_dev->manufacturer != flash_dev->cfg->expect_manufacturer) ||
-		(flash_dev->memorytype != flash_dev->cfg->expect_memorytype) ||
-		(flash_dev->capacity != flash_dev->cfg->expect_capacity)) {
+
+	if (flash_dev->manufacturer != flash_dev->cfg->expect_manufacturer) {
 		/* Mismatched device has been discovered */
+		if (flash_dev->cfg->expect_manufacturer !=
+				JEDEC_MANUFACTURER_ANY) {
+			return -1;
+		}
+	}
+
+	if (flash_dev->memorytype != flash_dev->cfg->expect_memorytype) {
+		if (flash_dev->cfg->expect_memorytype !=
+				JEDEC_MEMORYTYPE_ANY) {
+			return -1;
+		}
+	}
+
+	if (flash_dev->capacity != flash_dev->cfg->expect_capacity) {
 		return -1;
 	}
 

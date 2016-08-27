@@ -35,10 +35,14 @@
 
 extern const struct pios_flash_driver pios_jedec_flash_driver;
 
+#define JEDEC_MANUFACTURER_ANY      0x00
 #define JEDEC_MANUFACTURER_ST       0x20
 #define JEDEC_MANUFACTURER_MACRONIX 0xC2
 #define JEDEC_MANUFACTURER_WINBOND  0xEF
 #define JEDEC_MANUFACTURER_SPANSION 0x01
+#define JEDEC_MANUFACTURER_MICRON   0x20
+
+#define JEDEC_MEMORYTYPE_ANY        0x00
 
 struct pios_flash_jedec_cfg {
 	uint8_t expect_manufacturer;

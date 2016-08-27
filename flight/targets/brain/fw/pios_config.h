@@ -64,6 +64,7 @@
 #define PIOS_INCLUDE_HMC5983_I2C
 #define PIOS_INCLUDE_ETASV3
 #define PIOS_I2C_ETASV3_ADAPTER pios_i2c_flexi_id
+#define PIOS_TOLERATE_MISSING_SENSORS
 
 /* Com systems to include */
 #define PIOS_INCLUDE_COM

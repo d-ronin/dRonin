@@ -124,8 +124,6 @@ static const struct pios_ms5611_cfg pios_ms5611_cfg = {
 uintptr_t pios_com_debug_id;
 #endif	/* PIOS_INCLUDE_DEBUG_CONSOLE */
 
-bool external_mag_fail;
-
 uintptr_t pios_internal_adc_id = 0;
 uintptr_t pios_uavo_settings_fs_id;
 uintptr_t pios_waypoints_settings_fs_id;
@@ -141,6 +139,8 @@ uintptr_t pios_com_openlog_logging_id;
 
 void PIOS_Board_Init(void) {
 	bool use_rxport_usart = false;
+
+	bool is_modified_clone = false;
 
 	/* Delay system */
 	PIOS_DELAY_Init();
@@ -166,8 +166,14 @@ void PIOS_Board_Init(void) {
 
 #if defined(PIOS_INCLUDE_FLASH)
 	/* Inititialize all flash drivers */
-	if(PIOS_Flash_Jedec_Init(&pios_external_flash_id, pios_spi_telem_flash_id, 1, &flash_m25p_cfg) != 0)
-		PIOS_HAL_Panic(PIOS_LED_ALARM, PIOS_HAL_PANIC_FLASH);
+	if (PIOS_Flash_Jedec_Init(&pios_external_flash_id, pios_spi_telem_flash_id, 1, &flash_m25p_cfg) != 0) {
+		if (PIOS_Flash_Jedec_Init(&pios_external_flash_id, pios_spi_telem_flash_id, 1, &flash_n25q128_cfg) != 0) {
+			PIOS_HAL_CriticalError(PIOS_LED_HEARTBEAT, PIOS_HAL_PANIC_FLASH);
+		} else {
+			is_modified_clone = true;
+		}
+	}
+
 	PIOS_Flash_Internal_Init(&pios_internal_flash_id, &flash_internal_cfg);
 
 	/* Register the partition table */
@@ -178,10 +184,9 @@ void PIOS_Board_Init(void) {
 
 	/* Mount all filesystems */
 	if(PIOS_FLASHFS_Logfs_Init(&pios_uavo_settings_fs_id, &flashfs_settings_cfg, FLASH_PARTITION_LABEL_SETTINGS) != 0)
-		PIOS_HAL_Panic(PIOS_LED_ALARM, PIOS_HAL_PANIC_FILESYS);
+		PIOS_HAL_CriticalError(PIOS_LED_HEARTBEAT, PIOS_HAL_PANIC_FILESYS);
 	if(PIOS_FLASHFS_Logfs_Init(&pios_waypoints_settings_fs_id, &flashfs_waypoints_cfg, FLASH_PARTITION_LABEL_WAYPOINTS) != 0)
-		PIOS_HAL_Panic(PIOS_LED_ALARM, PIOS_HAL_PANIC_FILESYS);
-
+		PIOS_HAL_CriticalError(PIOS_LED_HEARTBEAT, PIOS_HAL_PANIC_FILESYS);
 #endif	/* PIOS_INCLUDE_FLASH */
 
 	/* Initialize the task monitor library */
@@ -293,7 +298,7 @@ void PIOS_Board_Init(void) {
 		PIOS_DEBUG_Assert(0);
 
 	if (PIOS_I2C_CheckClear(pios_i2c_mag_pressure_adapter_id) != 0)
-		PIOS_HAL_Panic(PIOS_LED_ALARM, PIOS_HAL_PANIC_I2C_INT);
+		PIOS_HAL_CriticalError(PIOS_LED_HEARTBEAT, PIOS_HAL_PANIC_I2C_INT);
 	else
 		if (AlarmsGet(SYSTEMALARMS_ALARM_I2C) == SYSTEMALARMS_ALARM_UNINITIALISED)
 			AlarmsSet(SYSTEMALARMS_ALARM_I2C, SYSTEMALARMS_ALARM_OK);
@@ -314,7 +319,7 @@ void PIOS_Board_Init(void) {
 			NULL,                                // i2c_cfg
 			NULL,                                // ppm_cfg
 			NULL,                                // pwm_cfg
-			PIOS_LED_ALARM,                      // led_id
+			PIOS_LED_HEARTBEAT,                      // led_id
 			&pios_dsm_main_cfg,                  // dsm_cfg
 			hw_DSMxMode >= HWREVOLUTION_DSMXMODE_BIND3PULSES ? HWREVOLUTION_DSMXMODE_AUTODETECT : hw_DSMxMode /* No bind on main port */, 
 			&pios_sbus_cfg);                     // sbus_cfg
@@ -330,7 +335,7 @@ void PIOS_Board_Init(void) {
 			&pios_i2c_flexiport_adapter_cfg,     // i2c_cfg
 			NULL,                                // ppm_cfg
 			NULL,                                // pwm_cfg
-			PIOS_LED_ALARM,                      // led_id
+			PIOS_LED_HEARTBEAT,                      // led_id
 			&pios_dsm_flexi_cfg,                 // dsm_cfg
 			hw_DSMxMode,                         // dsm_mode
 			NULL);                               // sbus_cfg
@@ -351,7 +356,7 @@ void PIOS_Board_Init(void) {
 				NULL,                                   // i2c_cfg
 				NULL,                                   // ppm_cfg
 				&pios_pwm_cfg,                          // pwm_cfg
-				PIOS_LED_ALARM,                         // led_id
+				PIOS_LED_HEARTBEAT,                         // led_id
 				NULL,                                   // dsm_cfg
 				0,                                      // dsm_mode
 				NULL);                                  // sbus_cfg
@@ -366,7 +371,7 @@ void PIOS_Board_Init(void) {
 				NULL,                                              // i2c_cfg
 				NULL,                                              // ppm_cfg
 				NULL,                                              // pwm_cfg
-				PIOS_LED_ALARM,                                    // led_id
+				PIOS_LED_HEARTBEAT,                                    // led_id
 				NULL,                                              // dsm_cfg
 				0,                                                 // dsm_mode
 				NULL);                                             // sbus_cfg
@@ -380,7 +385,7 @@ void PIOS_Board_Init(void) {
 				NULL,                                   // i2c_cfg
 				&pios_ppm_cfg,                          // ppm_cfg
 				NULL,                                   // pwm_cfg
-				PIOS_LED_ALARM,                         // led_id
+				PIOS_LED_HEARTBEAT,                         // led_id
 				NULL,                                   // dsm_cfg
 				0,                                      // dsm_mode
 				NULL);                                  // sbus_cfg
@@ -400,7 +405,7 @@ void PIOS_Board_Init(void) {
 				NULL,                                   // i2c_cfg
 				&pios_ppm_cfg,                          // ppm_cfg
 				NULL,                                   // pwm_cfg
-				PIOS_LED_ALARM,                         // led_id
+				PIOS_LED_HEARTBEAT,                         // led_id
 				NULL,                                   // dsm_cfg
 				0,                                      // dsm_mode
 				NULL);                                  // sbus_cfg
@@ -419,7 +424,7 @@ void PIOS_Board_Init(void) {
 				NULL,                                // i2c_cfg
 				NULL,                                // ppm_cfg
 				NULL,                                // pwm_cfg
-				PIOS_LED_ALARM,                      // led_id
+				PIOS_LED_HEARTBEAT,                      // led_id
 				&pios_rxportusart_dsm_aux_cfg,       // dsm_cfg
 				hw_DSMxMode,                         // dsm_mode
 				NULL);                               // sbus_cfg
@@ -497,7 +502,7 @@ void PIOS_Board_Init(void) {
 #if defined(PIOS_INCLUDE_MPU)
 	pios_mpu_dev_t mpu_dev = NULL;
 	if (PIOS_MPU_SPI_Init(&mpu_dev, pios_spi_gyro_id, 0, &pios_mpu_cfg) != 0)
-		PIOS_HAL_Panic(PIOS_LED_ALARM, PIOS_HAL_PANIC_IMU);
+		PIOS_HAL_CriticalError(PIOS_LED_HEARTBEAT, PIOS_HAL_PANIC_IMU);
 
 	HwRevolutionGyroRangeOptions hw_gyro_range;
 	HwRevolutionGyroRangeGet(&hw_gyro_range);
@@ -565,8 +570,6 @@ void PIOS_Board_Init(void) {
 	uint8_t magnetometer;
 	HwRevolutionMagnetometerGet(&magnetometer);
 
-	external_mag_fail = false;
-
 	if (magnetometer == HWREVOLUTION_MAGNETOMETER_EXTERNALI2CFLEXIPORT)	{
 		if (PIOS_HMC5883_Init(pios_i2c_flexiport_adapter_id, &pios_hmc5883_external_cfg) == 0) {
 			if (PIOS_HMC5883_Test() == 0) {
@@ -587,20 +590,20 @@ void PIOS_Board_Init(void) {
 					(ext_mag_orientation == HWREVOLUTION_EXTMAGORIENTATION_BOTTOM270DEGCW) ? PIOS_HMC5883_BOTTOM_270DEG : \
 					pios_hmc5883_external_cfg.Default_Orientation;
 				PIOS_HMC5883_SetOrientation(hmc5883_externalOrientation);
-			}
-			else
-				external_mag_fail = true;  // External HMC5883 Test Failed
-		}
-		else
-			external_mag_fail = true;  // External HMC5883 Init Failed
+			} else
+				PIOS_SENSORS_SetMissing(PIOS_SENSOR_MAG);
+		} else
+			PIOS_SENSORS_SetMissing(PIOS_SENSOR_MAG);
 	}
 
 	if (magnetometer == HWREVOLUTION_MAGNETOMETER_INTERNAL)
 	{
-		if (PIOS_HMC5883_Init(PIOS_I2C_MAIN_ADAPTER, &pios_hmc5883_cfg) != 0)
-			PIOS_HAL_Panic(PIOS_LED_ALARM, PIOS_HAL_PANIC_MAG);
-		if (PIOS_HMC5883_Test() != 0)
-			PIOS_HAL_Panic(PIOS_LED_ALARM, PIOS_HAL_PANIC_MAG);
+		if ((PIOS_HMC5883_Init(PIOS_I2C_MAIN_ADAPTER, &pios_hmc5883_cfg) != 0) ||
+				(PIOS_HMC5883_Test() != 0)) {
+			if (!is_modified_clone) {
+				PIOS_HAL_CriticalError(PIOS_LED_HEARTBEAT, PIOS_HAL_PANIC_MAG);
+			}
+		}
 	}
 
 #endif  // PIOS_INCLUDE_HMC5883
@@ -609,10 +612,11 @@ void PIOS_Board_Init(void) {
     PIOS_WDG_Clear();
 
 #if defined(PIOS_INCLUDE_MS5611)
-	if (PIOS_MS5611_Init(&pios_ms5611_cfg, pios_i2c_mag_pressure_adapter_id) != 0)
-		PIOS_HAL_Panic(PIOS_LED_ALARM, PIOS_HAL_PANIC_BARO);
-	if (PIOS_MS5611_Test() != 0)
-		PIOS_HAL_Panic(PIOS_LED_ALARM, PIOS_HAL_PANIC_BARO);
+	if ((PIOS_MS5611_Init(&pios_ms5611_cfg, pios_i2c_mag_pressure_adapter_id) != 0) || (PIOS_MS5611_Test() != 0)) {
+		if (!is_modified_clone) {
+			PIOS_HAL_CriticalError(PIOS_LED_HEARTBEAT, PIOS_HAL_PANIC_BARO);
+		}
+	}
 #endif
 
     //I2C is slow, sensor init as well, reset watchdog to prevent reset here

@@ -109,9 +109,14 @@ int32_t AltitudeHoldInitialize()
 	}
 #endif
 
+	if (!PIOS_SENSORS_GetQueue(PIOS_SENSOR_BARO)) {
+		module_enabled = false;
+		return -1;
+	}
+
 	if (AltitudeHoldSettingsInitialize() == -1) {
-			module_enabled = false;
-			return -1;
+		module_enabled = false;
+		return -1;
 	}
 
 	if(module_enabled) {

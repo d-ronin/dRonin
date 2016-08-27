@@ -127,22 +127,31 @@ int32_t FixedWingPathFollowerInitialize()
 	if (module_state[MODULESETTINGS_ADMINSTATE_FIXEDWINGPATHFOLLOWER] == MODULESETTINGS_ADMINSTATE_ENABLED) {
 		module_enabled = true;
 	} else {
-		module_enabled = false;
+		return 0;
 	}
 #endif
+ 
+	if (!PIOS_SENSORS_GetQueue(PIOS_SENSOR_BARO)) {
+		module_enabled = false;
+		return -1;
+	}
 
-	if (module_enabled) {
-		if (FixedWingPathFollowerSettingsInitialize() == -1 \
-			|| FixedWingAirspeedsInitialize() == -1 \
-			|| FixedWingPathFollowerStatusInitialize() == -1 \
-			|| PathDesiredInitialize() == -1 \
-			|| PathStatusInitialize() == -1 \
-			|| VelocityDesiredInitialize() == -1 \
-			|| AirspeedActualInitialize() == -1 ){
-			
-			module_enabled = false;
-			return -1;
-		}
+
+	if (!PIOS_SENSORS_GetQueue(PIOS_SENSOR_MAG)) {
+		module_enabled = false;
+		return -1;
+	}
+
+	if (FixedWingPathFollowerSettingsInitialize() == -1 \
+		|| FixedWingAirspeedsInitialize() == -1 \
+		|| FixedWingPathFollowerStatusInitialize() == -1 \
+		|| PathDesiredInitialize() == -1 \
+		|| PathStatusInitialize() == -1 \
+		|| VelocityDesiredInitialize() == -1 \
+		|| AirspeedActualInitialize() == -1 ){
+		
+		module_enabled = false;
+		return -1;
 	}
 
 	return 0;
