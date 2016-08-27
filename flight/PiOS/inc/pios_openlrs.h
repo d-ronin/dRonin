@@ -34,6 +34,8 @@
 
 #include <hwshared.h>
 
+struct pios_openlrs_cfg;
+
 #ifdef PIOS_INCLUDE_OPENLRS
 
 /* Global Types */

@@ -34,6 +34,8 @@
 
 #include "pios_openlrs.h"
 
+#ifdef PIOS_INCLUDE_OPENLRS
+
 #define OPENLRSNG_VERSION 0x0382
  
 #define MAXHOPS      24
@@ -195,6 +197,8 @@ struct pios_openlrs_dev {
 };
 
 bool PIOS_OpenLRS_EXT_Int(void);
+
+#endif /* PIOS_INCLUDE_OPENLRS */
 
 #endif /* PIOS_OPENLRS_PRIV_H */
 /**
