@@ -347,7 +347,7 @@ void ConfigAutotuneWidget::persistShareForm(AutotuneFinalPage *autotuneShareForm
     settings->setESCs(autotuneShareForm->acEscs->text());
     settings->setProps(autotuneShareForm->acProps->text());
     settings->setWeight(autotuneShareForm->acWeight->text().toInt());
-    settings->setVehicleSize(autotuneShareForm->acWeight->text().toInt());
+    settings->setVehicleSize(autotuneShareForm->acVehicleSize->text().toInt());
     settings->setVehicleType(autotuneShareForm->acType->currentText());
     settings->setBatteryCells(autotuneShareForm->acBatteryCells->currentText().toInt());
 }
