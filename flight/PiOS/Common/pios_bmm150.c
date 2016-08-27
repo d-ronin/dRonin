@@ -63,14 +63,30 @@ enum pios_bmm150_dev_magic {
  * @brief The device state struct
  */
 struct pios_bmm150_dev {
-	enum pios_bmm150_dev_magic magic;              /**< Magic bytes to validate the struct contents */
-	const struct pios_bmm150_cfg *cfg;             /**< Device configuration structure */
-	uint32_t spi_id;                            /**< Handle to the communication driver */
-	uint32_t spi_slave_mag;                    /**< The slave number (SPI) */
+	enum pios_bmm150_dev_magic magic;       /**< Magic bytes to validate the struct contents */
+	const struct pios_bmm150_cfg *cfg;      /**< Device configuration structure */
+	uint32_t spi_id;                        /**< Handle to the communication driver */
+	uint32_t spi_slave_mag;                 /**< The slave number (SPI) */
 
 	struct pios_queue *mag_queue;
 
 	struct pios_thread *task_handle;
+
+	int8_t dig_x1;     /**< trim x1 data */
+	int8_t dig_y1;     /**< trim y1 data */
+
+	int8_t dig_x2;     /**< trim x2 data */
+	int8_t dig_y2;     /**< trim y2 data */
+
+	uint16_t dig_z1;   /**< trim z1 data */
+	int16_t dig_z2;    /**< trim z2 data */
+	int16_t dig_z3;    /**< trim z3 data */
+	int16_t dig_z4;    /**< trim z4 data */
+
+	uint8_t dig_xy1;   /**< trim xy1 data */
+	int8_t dig_xy2;    /**< trim xy2 data */
+
+	uint16_t dig_xyz1; /**< trim xyz1 data */
 };
 
 //! Global structure for this device device
@@ -90,6 +106,12 @@ static int32_t PIOS_BMM_Validate(struct pios_bmm150_dev *dev);
 
 static void PIOS_BMM_Task(void *parameters);
 
+static inline float bmm050_compensate_X_float(pios_bmm150_dev_t p_bmm050,
+		int16_t mag_data_x, uint16_t data_r);
+static inline float bmm050_compensate_Y_float(pios_bmm150_dev_t p_bmm050,
+		int16_t mag_data_y, uint16_t data_r);
+static inline float bmm050_compensate_Z_float(pios_bmm150_dev_t p_bmm050,
+		int16_t mag_data_z, uint16_t data_r);
 /**
  * @brief Claim the SPI bus for the communications and select this chip
  * @return 0 if successful, -1 for invalid device, -2 if unable to claim bus
@@ -329,6 +351,161 @@ static void PIOS_BMM_Task(void *parameters)
 		mag_data.z *= mag_scale;
 		PIOS_Queue_Send(bmm_dev->mag_queue, &mag_data, 0);
 	}
+}
+
+/* The following code originally comes from the Bosch SensorTec BMM050 driver:
+* https://github.com/BoschSensortec/BMM050_driver/
+*
+****************************************************************************
+* Copyright (C) 2015 - 2016 Bosch Sensortec GmbH
+* Copyright (C) 2016 dRonin
+*
+* bmm050.c
+* Date: 2016/03/17
+* Revision: 2.0.6 $
+*
+* Usage: Sensor Driver for  BMM050 and BMM150 sensor
+*
+****************************************************************************
+* License:
+*
+* Redistribution and use in source and binary forms, with or without
+* modification, are permitted provided that the following conditions are met:
+*
+*   Redistributions of source code must retain the above copyright
+*   notice, this list of conditions and the following disclaimer.
+*
+*   Redistributions in binary form must reproduce the above copyright
+*   notice, this list of conditions and the following disclaimer in the
+*   documentation and/or other materials provided with the distribution.
+*
+*   Neither the name of the copyright holder nor the names of the
+*   contributors may be used to endorse or promote products derived from
+*   this software without specific prior written permission.
+*/
+
+/*!
+ *	@brief This API used to get the compensated X data
+ *	the out put of X as float
+ *
+ *
+ *
+ *  @param  mag_data_x : The value of raw X data
+ *	@param  data_r : The value of R data
+ *
+ *	@return results of compensated X data value output as float
+ *
+*/
+static inline float bmm050_compensate_X_float(pios_bmm150_dev_t p_bmm050,
+		int16_t mag_data_x, uint16_t data_r)
+{
+	float inter_retval;
+
+	if (mag_data_x != BMM050_FLIP_OVERFLOW_ADCVAL	/* no overflow */
+	   ) {
+		if ((data_r != BMM050_INIT_VALUE)
+		&& (p_bmm050->dig_xyz1 != BMM050_INIT_VALUE)) {
+			inter_retval = ((((float)p_bmm050->dig_xyz1)
+			* 16384.0 / data_r) - 16384.0);
+		} else {
+			inter_retval = BMM050_OVERFLOW_OUTPUT_FLOAT;
+			return inter_retval;
+		}
+		inter_retval = (((mag_data_x * ((((((float)p_bmm050->dig_xy2) *
+			(inter_retval*inter_retval /
+			268435456.0) +
+			inter_retval * ((float)p_bmm050->dig_xy1)
+			/ 16384.0)) + 256.0) *
+			(((float)p_bmm050->dig_x2) + 160.0)))
+			/ 8192.0)
+			+ (((float)p_bmm050->dig_x1) *
+			8.0)) / 16.0;
+	} else {
+		inter_retval = BMM050_OVERFLOW_OUTPUT_FLOAT;
+	}
+	return inter_retval;
+}
+
+/*!
+ *	@brief This API used to get the compensated Y data
+ *	the out put of Y as float
+ *
+ *
+ *
+ *  @param  mag_data_y : The value of raw Y data
+ *	@param  data_r : The value of R data
+ *
+ *	@return results of compensated Y data value output as float
+ *
+*/
+static inline float bmm050_compensate_Y_float(pios_bmm150_dev_t p_bmm050,
+		int16_t mag_data_y, uint16_t data_r)
+{
+	float inter_retval;
+
+	if (mag_data_y != BMM050_FLIP_OVERFLOW_ADCVAL /* no overflow */
+	   ) {
+		if ((data_r != BMM050_INIT_VALUE)
+		&& (p_bmm050->dig_xyz1 != BMM050_INIT_VALUE)) {
+			inter_retval = ((((float)p_bmm050->dig_xyz1)
+			* 16384.0
+			/data_r) - 16384.0);
+		} else {
+			inter_retval = BMM050_OVERFLOW_OUTPUT_FLOAT;
+			return inter_retval;
+		}
+		inter_retval = (((mag_data_y * ((((((float)p_bmm050->dig_xy2) *
+			(inter_retval*inter_retval
+			/ 268435456.0) +
+			inter_retval * ((float)p_bmm050->dig_xy1)
+			/ 16384.0)) +
+			256.0) *
+			(((float)p_bmm050->dig_y2) + 160.0)))
+			/ 8192.0) +
+			(((float)p_bmm050->dig_y1) * 8.0))
+			/ 16.0;
+	} else {
+		/* overflow, set output to 0.0f */
+		inter_retval = BMM050_OVERFLOW_OUTPUT_FLOAT;
+	}
+	return inter_retval;
+}
+
+/*!
+ *	@brief This API used to get the compensated Z data
+ *	the out put of Z as float
+ *
+ *
+ *
+ *  @param  mag_data_z : The value of raw Z data
+ *	@param  data_r : The value of R data
+ *
+ *	@return results of compensated Z data value output as float
+ *
+*/
+static inline float bmm050_compensate_Z_float(pios_bmm150_dev_t p_bmm050,
+		int16_t mag_data_z, uint16_t data_r)
+{
+	float inter_retval;
+	 /* no overflow */
+	if (mag_data_z != BMM050_HALL_OVERFLOW_ADCVAL) {
+		if ((p_bmm050->dig_z2 != BMM050_INIT_VALUE)
+		&& (p_bmm050->dig_z1 != BMM050_INIT_VALUE)
+		&& (p_bmm050->dig_xyz1 != BMM050_INIT_VALUE)
+		&& (data_r != BMM050_INIT_VALUE)) {
+			inter_retval = ((((((float)mag_data_z)-
+			((float)p_bmm050->dig_z4)) * 131072.0)-
+			(((float)p_bmm050->dig_z3)*(((float)data_r)
+			-((float)p_bmm050->dig_xyz1))))
+			/((((float)p_bmm050->dig_z2)+
+			((float)p_bmm050->dig_z1)*((float)data_r) /
+			32768.0) * 4.0)) / 16.0;
+		}
+	} else {
+		/* overflow, set output to 0.0f */
+		inter_retval = BMM050_OVERFLOW_OUTPUT_FLOAT;
+	}
+	return inter_retval;
 }
 
 #endif // PIOS_INCLUDE_BMM150
