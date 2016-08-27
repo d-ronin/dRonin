@@ -140,6 +140,8 @@ uintptr_t pios_com_openlog_logging_id;
 void PIOS_Board_Init(void) {
 	bool use_rxport_usart = false;
 
+	bool is_modified_clone = false;
+
 	/* Delay system */
 	PIOS_DELAY_Init();
 
@@ -164,9 +166,12 @@ void PIOS_Board_Init(void) {
 
 #if defined(PIOS_INCLUDE_FLASH)
 	/* Inititialize all flash drivers */
-	if((PIOS_Flash_Jedec_Init(&pios_external_flash_id, pios_spi_telem_flash_id, 1, &flash_m25p_cfg) != 0) &&
-			(PIOS_Flash_Jedec_Init(&pios_external_flash_id, pios_spi_telem_flash_id, 1, &flash_n25q128_cfg) != 0)) {
-		PIOS_HAL_CriticalError(PIOS_LED_HEARTBEAT, PIOS_HAL_PANIC_FLASH);
+	if (PIOS_Flash_Jedec_Init(&pios_external_flash_id, pios_spi_telem_flash_id, 1, &flash_m25p_cfg) != 0) {
+		if (PIOS_Flash_Jedec_Init(&pios_external_flash_id, pios_spi_telem_flash_id, 1, &flash_n25q128_cfg) != 0) {
+			PIOS_HAL_CriticalError(PIOS_LED_HEARTBEAT, PIOS_HAL_PANIC_FLASH);
+		} else {
+			is_modified_clone = true;
+		}
 	}
 
 	PIOS_Flash_Internal_Init(&pios_internal_flash_id, &flash_internal_cfg);
@@ -594,8 +599,11 @@ void PIOS_Board_Init(void) {
 	if (magnetometer == HWREVOLUTION_MAGNETOMETER_INTERNAL)
 	{
 		if ((PIOS_HMC5883_Init(PIOS_I2C_MAIN_ADAPTER, &pios_hmc5883_cfg) != 0) ||
-				(PIOS_HMC5883_Test() != 0))
-			PIOS_HAL_CriticalError(PIOS_LED_HEARTBEAT, PIOS_HAL_PANIC_MAG);
+				(PIOS_HMC5883_Test() != 0)) {
+			if (!is_modified_clone) {
+				PIOS_HAL_CriticalError(PIOS_LED_HEARTBEAT, PIOS_HAL_PANIC_MAG);
+			}
+		}
 	}
 
 #endif  // PIOS_INCLUDE_HMC5883
@@ -604,8 +612,11 @@ void PIOS_Board_Init(void) {
     PIOS_WDG_Clear();
 
 #if defined(PIOS_INCLUDE_MS5611)
-	if ((PIOS_MS5611_Init(&pios_ms5611_cfg, pios_i2c_mag_pressure_adapter_id) != 0) || (PIOS_MS5611_Test() != 0))
-		PIOS_HAL_CriticalError(PIOS_LED_HEARTBEAT, PIOS_HAL_PANIC_BARO);
+	if ((PIOS_MS5611_Init(&pios_ms5611_cfg, pios_i2c_mag_pressure_adapter_id) != 0) || (PIOS_MS5611_Test() != 0)) {
+		if (!is_modified_clone) {
+			PIOS_HAL_CriticalError(PIOS_LED_HEARTBEAT, PIOS_HAL_PANIC_BARO);
+		}
+	}
 #endif
 
     //I2C is slow, sensor init as well, reset watchdog to prevent reset here
