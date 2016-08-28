@@ -53,44 +53,32 @@ public:
 
     typedef struct ExpoPlotElements {
       QwtPlotCurve Curve;
-      QwtPlotMarker Mark;
-      QwtPlotMarker Mark_;
-      QwtPlotCurve Curve2;
-      QwtPlotMarker Mark2;
-      QwtPlotMarker Mark2_;
     } ExpoPlotElements_t;
 
-    enum axis_mode {Y_Left, Y_Right};
-    enum label_mode {RateCurve, AttitudeCurve, HorizonCurve};
-
-    //! Set label for the stick channels
-    void init(label_mode lbl_mode, int h_transistion);
+    void init();
 
     //! Show expo data for one of the stick channels
-    void plotData(int value, int max, ExpoPlotElements_t &plot_elements, axis_mode mode);
+    void plotData(int value, int max, ExpoPlotElements_t &plot_elements);
 
 public slots:
 
     //! Show expo data for roll
-    void plotDataRoll(double value, int max, axis_mode mode);
+    void plotDataRoll(double value, int max);
 
     //! Show expo data for pitch
-    void plotDataPitch(double value, int max, axis_mode mode);
+    void plotDataPitch(double value, int max);
 
     //! Show expo data for yaw
-    void plotDataYaw(double value, int max, axis_mode mode);
+    void plotDataYaw(double value, int max);
 
     //! Show/Hide a expo curve and markers
     void showCurve(const QVariant & itemInfo, bool on, int index);
 
 signals:
 
-public slots:
-
 private:
 
     int steps;
-    int horizon_transition;
     int curve_cnt;
     double *x_data;
     double *y_data;
@@ -98,9 +86,6 @@ private:
     ExpoPlotElements_t roll_elements;
     ExpoPlotElements_t pitch_elements;
     ExpoPlotElements_t yaw_elements;
-
-    //! Inverse expo function
-    double invers_expo3(double y, int g);
 };
 
 #endif // EXPOCURVE_H

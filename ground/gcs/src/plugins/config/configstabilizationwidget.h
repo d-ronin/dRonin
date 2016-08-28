@@ -49,21 +49,6 @@ public:
 private:
     Ui_StabilizationWidget *m_stabilization;
 
-    struct UpdateExpoFlags {
-      bool RateRoll;
-      bool RatePitch;
-      bool RateYaw;
-      bool AttitudeRoll;
-      bool AttitudePitch;
-      bool AttitudeYaw;
-      bool HorizonAttitudeRoll;
-      bool HorizonAttitudePitch;
-      bool HorizonAttitudeYaw;
-      bool HorizonRateRoll;
-      bool HorizonRatePitch;
-      bool HorizonRateYaw;
-    } update_exp;
-
     UAVObject *manualControlSettings;
 
 private slots:
@@ -71,7 +56,6 @@ private slots:
     void processLinkedWidgets(QWidget*);
     void applyRateLimits();
 
-    void showExpoPlot();
     void hangtimeDurationChanged();
     void hangtimeToggle(bool enabled);
 };
