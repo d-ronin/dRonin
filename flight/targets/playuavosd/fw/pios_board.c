@@ -147,14 +147,14 @@ void PIOS_Board_Init(void) {
 #if defined(PIOS_INCLUDE_FLASH)
 	/* Inititialize all flash drivers */
 	if (PIOS_Flash_Internal_Init(&pios_internal_flash_id, &flash_internal_cfg) != 0)
-		PIOS_HAL_Panic(PIOS_LED_ALARM, PIOS_HAL_PANIC_FLASH);
+		PIOS_HAL_CriticalError(PIOS_LED_ALARM, PIOS_HAL_PANIC_FLASH);
 
 	/* Register the partition table */
 	PIOS_FLASH_register_partition_table(pios_flash_partition_table_internal, NELEMENTS(pios_flash_partition_table_internal));
 
 	/* Mount all filesystems */
 	if (PIOS_FLASHFS_Logfs_Init(&pios_uavo_settings_fs_id, &flashfs_settings_internal_cfg, FLASH_PARTITION_LABEL_SETTINGS) != 0)
-		PIOS_HAL_Panic(PIOS_LED_ALARM, PIOS_HAL_PANIC_FILESYS);
+		PIOS_HAL_CriticalError(PIOS_LED_ALARM, PIOS_HAL_PANIC_FILESYS);
 #endif	/* PIOS_INCLUDE_FLASH */
 
 	/* Initialize UAVObject libraries */
@@ -298,7 +298,7 @@ void PIOS_Board_Init(void) {
 #if defined (PIOS_INCLUDE_MAX7456)
 	struct pios_max7456_dev *max7456;
 	if (PIOS_MAX7456_Init(&max7456, (struct pios_spi_dev *)pios_spi_max7456_id, 0, &max7456_cfg))
-		PIOS_HAL_Panic(PIOS_LED_ALARM, PIOS_HAL_PANIC_OSD);
+		PIOS_HAL_CriticalError(PIOS_LED_ALARM, PIOS_HAL_PANIC_OSD);
 
 	enum pios_max7456_video_type vid_type = PIOS_MAX7456_GetVideoType(max7456);
 	PIOS_MAX7456_SetOutputType(max7456, vid_type);
