@@ -1072,7 +1072,7 @@ static void plot_trend_centermark(int max_pitch)
 #define INNER_GAP 2
 #define INNER_MARK_LEN 2
 #define OUTER_GAP 4
-#define OUTER_MARK_LEN 3
+#define OUTER_MARK_LEN 6
 
 #define TREND_FORECAST_LEN 0.3f
 
