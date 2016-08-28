@@ -67,7 +67,7 @@
 			</options>
 			<description>Automatically configure the GPS with appropriate baud-rate and settings for UAV navigation. Note: some of the other GPS settings affect the configuration.</description>
 		</field>
-		<field name="GPSConstellation" units="" type="enum" elements="1" defaultvalue="GPS">
+		<field name="GPSConstellation" units="" type="enum" elements="1" defaultvalue="All">
 			<options>
 				<option>All</option>
 				<option>GPS</option>
