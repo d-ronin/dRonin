@@ -473,6 +473,7 @@ int32_t transmitter_control_select(bool reset_controller)
 		break;
 	case FLIGHTSTATUS_FLIGHTMODE_POSITIONHOLD:
 		set_loiter_command(&cmd, &airframe_type);
+		break;
 	case FLIGHTSTATUS_FLIGHTMODE_RETURNTOHOME:
 		// The path planner module processes data here
 		break;
@@ -935,10 +936,12 @@ static inline float scale_stabilization(StabilizationSettingsData *stabSettings,
 		case SHAREDDEFS_STABILIZATIONMODE_RATE:
 		case SHAREDDEFS_STABILIZATIONMODE_WEAKLEVELING:
 		case SHAREDDEFS_STABILIZATIONMODE_AXISLOCK:
-			cmd = expo3(cmd, stabSettings->RateExpo[axis]);
+			cmd = expoM(cmd, stabSettings->RateExpo[axis],
+					stabSettings->RateExponent[axis]*0.1f);
 			return cmd * stabSettings->ManualRate[axis];
 		case SHAREDDEFS_STABILIZATIONMODE_ACROPLUS:
-			cmd = expo3(cmd, stabSettings->RateExpo[axis]);
+			cmd = expoM(cmd, stabSettings->RateExpo[axis],
+					stabSettings->RateExponent[axis]*0.1f);
 			return cmd;
 		case SHAREDDEFS_STABILIZATIONMODE_ATTITUDE:
 			return cmd * stabSettings->MaxLevelAngle[axis];

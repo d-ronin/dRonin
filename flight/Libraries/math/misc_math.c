@@ -114,6 +114,26 @@ float expo3(float x, int32_t g)
 	return (x * ((100 - g) / 100.0f) + powf(x, 3) * (g / 100.0f));
 }
 
+float expoM(float x, int32_t g, float exponent) {
+	float out = x * (100 - g) * .01f;
+
+	if (x > 0) {
+		out += powapprox(x, exponent) * g * 0.01f;
+	} else {
+		out -= powapprox(-x, exponent) * g * 0.01f;
+	}
+
+	if (out < -1) {
+		return -1;
+	}
+
+	if (out > 1) {
+		return 1;
+	}
+
+	return out;
+}
+
 /**
  * Interpolate values (groundspeeds, altitudes) over flight legs
  * @param[in] fraction how far we are through the leg
