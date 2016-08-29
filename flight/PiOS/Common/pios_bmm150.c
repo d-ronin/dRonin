@@ -292,6 +292,39 @@ int32_t PIOS_BMM150_SPI_Init(pios_bmm150_dev_t *dev, uint32_t spi_id,
 		return ret;
 	}
 
+	/* We choose a point between "Enhanced Regular preset"
+	 * nXy=15, nZ=27, max ODR=60  (calc by data sheet formula 60.04)
+	 * and "High accuracy preset"
+	 * nXY=47, nZ=83, max ODR=20. (calc by data sheet formula 20.29)
+	 *
+	 * nXy=29, nZ=54.  yields ODR>31.   Which makes ODR 30 safe.
+	 * A little more data in exchange for a little more RMS noise,
+	 * which we can smooth out somewhat anyways.
+	 */
+
+	/* 14 * 2 + 1 = 29, per above */
+	ret = PIOS_BMM_WriteReg(BMM150_REG_MAG_X_Y_AXIS_REP, 14);
+
+	if (ret) {
+		return ret;
+	}
+
+	/* 53 + 1 = 54, per above */
+	ret = PIOS_BMM_WriteReg(BMM150_REG_MAG_Z_AXIS_REP, 53);
+
+	if (ret) {
+		return ret;
+	}
+
+	/* Start the sensor in normal mode, ODR=30 */
+	ret = PIOS_BMM_WriteReg(BMM150_REG_MAG_OPERATION_MODE,
+			BMM150_VAL_MAG_OPERATION_MODE_ODR30 |
+			BMM150_VAL_MAG_OPERATION_MODE_OPMODE_NORMAL);
+
+	if (ret) {
+		return ret;
+	}
+
 	bmm_dev->task_handle = PIOS_Thread_Create(
 			PIOS_BMM_Task, "pios_bmm", PIOS_BMM_TASK_STACK,
 			NULL, PIOS_BMM_TASK_PRIORITY);
@@ -301,7 +334,7 @@ int32_t PIOS_BMM150_SPI_Init(pios_bmm150_dev_t *dev, uint32_t spi_id,
 	return 0;
 }
 
-static int32_t PIOS_BMM_ClaimBus(int slave)
+static int32_t PIOS_BMM_ClaimBus()
 {
 	if (PIOS_BMM_Validate(bmm_dev) != 0)
 		return -1;
@@ -311,10 +344,12 @@ static int32_t PIOS_BMM_ClaimBus(int slave)
 
 	PIOS_SPI_RC_PinSet(bmm_dev->spi_id, bmm_dev->spi_slave_mag, false);
 
+	PIOS_SPI_SetClockSpeed(bmm_dev->spi_id, 10000000);
+
 	return 0;
 }
 
-static int32_t PIOS_BMM_ReleaseBus(int slave)
+static int32_t PIOS_BMM_ReleaseBus()
 {
 	if (PIOS_BMM_Validate(bmm_dev) != 0)
 		return -1;
@@ -328,26 +363,26 @@ static int32_t PIOS_BMM_ReleaseBus(int slave)
 
 static int32_t PIOS_BMM_ReadReg(uint8_t address, uint8_t *buffer)
 {
-	if (PIOS_BMM_ClaimBus(bmm_dev->spi_slave_mag) != 0)
+	if (PIOS_BMM_ClaimBus() != 0)
 		return -1;
 
 	PIOS_SPI_TransferByte(bmm_dev->spi_id, 0x80 | address); // request byte
 	*buffer = PIOS_SPI_TransferByte(bmm_dev->spi_id, 0);   // receive response
 
-	PIOS_BMM_ReleaseBus(bmm_dev->spi_slave_mag);
+	PIOS_BMM_ReleaseBus();
 
 	return 0;
 }
 
 static int32_t PIOS_BMM_WriteReg(uint8_t address, uint8_t buffer)
 {
-	if (PIOS_BMM_ClaimBus(bmm_dev->spi_slave_mag) != 0)
+	if (PIOS_BMM_ClaimBus() != 0)
 		return -1;
 
 	PIOS_SPI_TransferByte(bmm_dev->spi_id, 0x7f & address);
 	PIOS_SPI_TransferByte(bmm_dev->spi_id, buffer);
 
-	PIOS_BMM_ReleaseBus(bmm_dev->spi_slave_mag);
+	PIOS_BMM_ReleaseBus();
 
 	return 0;
 }
@@ -357,22 +392,86 @@ static void PIOS_BMM_Task(void *parameters)
 	(void)parameters;
 
 	while (true) {
-		PIOS_Thread_Sleep(30);		/* XXX */
+		PIOS_Thread_Sleep(6);		/* XXX */
 
-		// claim bus in high speed mode
-		if (PIOS_SPI_ClaimBus(bmm_dev->spi_id) != 0)
+		uint8_t drdy;
+
+		if (PIOS_BMM_ReadReg(BMM150_REG_MAG_HALL_RESISTANCE_LSB,
+					&drdy))
 			continue;
 
-		PIOS_SPI_SetClockSpeed(bmm_dev->spi_id, 10000000);
+		/* Check if there's any new data.  If not.. wait 6 more ms
+		 * (we expect it at 33ms intervals).
+		 * At the end of this we sleep 24, which results in a first
+		 * drdy check at 30ms [3ms early] and the next check at 36ms
+		 * [3ms late].  Should keep us disciplined very close to
+		 * measurements so they're not sitting around long.
+		 */
+		if (!(drdy & BMM150_VAL_MAG_HALL_RESISTANCE_LSB_DRDY))
+			continue;
+
+		if (PIOS_BMM_ClaimBus() != 0)
+			continue;
+
+		uint8_t sensor_buf[BMM150_REG_MAG_HALL_RESISTANCE_MSB -
+			BMM150_REG_MAG_X_LSB + 1];
+
+		PIOS_SPI_TransferByte(bmm_dev->spi_id,
+				0x80 | BMM150_REG_MAG_X_LSB);
+
+		if (PIOS_SPI_TransferBlock(bmm_dev->spi_id, NULL, sensor_buf,
+					sizeof(sensor_buf)) < 0) {
+			PIOS_BMM_ReleaseBus();
+			continue;
+		}
+
+		PIOS_BMM_ReleaseBus();
+
+		/* The Bosch compensation functions appear to expect this data
+		 * right-aligned, signed.  The unpacking functions in the 
+		 * library are rather obtuse, but they do sign extension
+		 * on the right align operation.
+		 *
+		 * We form them into a 16 bit left aligned signed value,
+		 * then shift them right to right align and sign extend.
+		 * Hopefully this is clearer.
+		 */
+
+#define PACK_REG13_ADDR_OFFSET(b, reg, off) ((int16_t) ( (b[reg-off] & 0xf8) | (b[reg-off+1] << 8) ))
+#define PACK_REG14_ADDR_OFFSET(b, reg, off) ((int16_t) ( (b[reg-off] & 0xfc) | (b[reg-off+1] << 8) ))
+#define PACK_REG15_ADDR_OFFSET(b, reg, off) ((int16_t) ( (b[reg-off] & 0xfe) | (b[reg-off+1] << 8) ))
+
+		int16_t raw_x, raw_y, raw_z, raw_r;
+		raw_x = PACK_REG13_ADDR_OFFSET(sensor_buf, BMM150_REG_MAG_X_LSB,
+				BMM150_REG_MAG_X_LSB);
+		raw_x >>= 3;
+		raw_y = PACK_REG13_ADDR_OFFSET(sensor_buf, BMM150_REG_MAG_Y_LSB,
+				BMM150_REG_MAG_X_LSB);
+		raw_y >>= 3;
+		raw_z = PACK_REG15_ADDR_OFFSET(sensor_buf, BMM150_REG_MAG_Z_LSB,
+				BMM150_REG_MAG_X_LSB);
+		raw_z >>= 1;
+		raw_r = PACK_REG14_ADDR_OFFSET(sensor_buf,
+				BMM150_REG_MAG_HALL_RESISTANCE_LSB,
+				BMM150_REG_MAG_X_LSB);
+		raw_r >>= 2;
+
+		// Datasheet is typical res 0.3 uT.  X/Y -4096 to 4095,
+		// Z -16384 to 16383.  .3*4095 checks out with expected range
+		// (+/- 1228 uT vs datasheet +/- 1300uT)
+		// .3 * 16384 is off by a factor of 2 though
+		// (+/- 4915 uT vs datasheet +/- 2500uT)
 
 		struct pios_sensor_mag_data mag_data;
 
-#define PACK_REG12_ADDR_OFFSET(b, reg, off) (int16_t) ( (b[reg-off] & 0xf0) | (b[reg-off+1] << 8) )
-#define PACK_REG16_ADDR_OFFSET(b, reg, off) (int16_t) ( (b[reg-off]) | (b[reg-off+1] << 8) )
+		float mag_x = bmm050_compensate_X_float(bmm_dev,
+				raw_x, raw_r);
+		float mag_y = bmm050_compensate_Y_float(bmm_dev,
+				raw_y, raw_r);
+		float mag_z = bmm050_compensate_Z_float(bmm_dev,
+				raw_z, raw_r);
 
-		// XXX TODO Verify all this
-		float mag_x = 0, mag_y = 0, mag_z = 0;
-
+		/* XXX verify all this */
 		switch (bmm_dev->cfg->orientation) {
 		case PIOS_BMM_TOP_0DEG:
 			mag_data.x   =  mag_x;
@@ -416,11 +515,14 @@ static void PIOS_BMM_Task(void *parameters)
 			break;
 		}
 
-		float mag_scale = 33.0f;	/* XXX */
+		/* XXX scale / units? */
+		float mag_scale = 1.0f;
 		mag_data.x *= mag_scale;
 		mag_data.y *= mag_scale;
 		mag_data.z *= mag_scale;
 		PIOS_Queue_Send(bmm_dev->mag_queue, &mag_data, 0);
+
+		PIOS_Thread_Sleep(24);
 	}
 }
 
@@ -477,20 +579,20 @@ static inline float bmm050_compensate_X_float(pios_bmm150_dev_t p_bmm050,
 		if ((data_r != BMM050_INIT_VALUE)
 		&& (p_bmm050->dig_xyz1 != BMM050_INIT_VALUE)) {
 			inter_retval = ((((float)p_bmm050->dig_xyz1)
-			* 16384.0 / data_r) - 16384.0);
+			* 16384.0f / data_r) - 16384.0f);
 		} else {
 			inter_retval = BMM050_OVERFLOW_OUTPUT_FLOAT;
 			return inter_retval;
 		}
 		inter_retval = (((mag_data_x * ((((((float)p_bmm050->dig_xy2) *
 			(inter_retval*inter_retval /
-			268435456.0) +
+			268435456.0f) +
 			inter_retval * ((float)p_bmm050->dig_xy1)
-			/ 16384.0)) + 256.0) *
-			(((float)p_bmm050->dig_x2) + 160.0)))
-			/ 8192.0)
+			/ 16384.0f)) + 256.0f) *
+			(((float)p_bmm050->dig_x2) + 160.0f)))
+			/ 8192.0f)
 			+ (((float)p_bmm050->dig_x1) *
-			8.0)) / 16.0;
+			8.0f)) / 16.0f;
 	} else {
 		inter_retval = BMM050_OVERFLOW_OUTPUT_FLOAT;
 	}
@@ -519,22 +621,22 @@ static inline float bmm050_compensate_Y_float(pios_bmm150_dev_t p_bmm050,
 		if ((data_r != BMM050_INIT_VALUE)
 		&& (p_bmm050->dig_xyz1 != BMM050_INIT_VALUE)) {
 			inter_retval = ((((float)p_bmm050->dig_xyz1)
-			* 16384.0
-			/data_r) - 16384.0);
+			* 16384.0f
+			/data_r) - 16384.0f);
 		} else {
 			inter_retval = BMM050_OVERFLOW_OUTPUT_FLOAT;
 			return inter_retval;
 		}
 		inter_retval = (((mag_data_y * ((((((float)p_bmm050->dig_xy2) *
 			(inter_retval*inter_retval
-			/ 268435456.0) +
+			/ 268435456.0f) +
 			inter_retval * ((float)p_bmm050->dig_xy1)
-			/ 16384.0)) +
-			256.0) *
-			(((float)p_bmm050->dig_y2) + 160.0)))
-			/ 8192.0) +
-			(((float)p_bmm050->dig_y1) * 8.0))
-			/ 16.0;
+			/ 16384.0f)) +
+			256.0f) *
+			(((float)p_bmm050->dig_y2) + 160.0f)))
+			/ 8192.0f) +
+			(((float)p_bmm050->dig_y1) * 8.0f))
+			/ 16.0f;
 	} else {
 		/* overflow, set output to 0.0f */
 		inter_retval = BMM050_OVERFLOW_OUTPUT_FLOAT;
@@ -557,7 +659,7 @@ static inline float bmm050_compensate_Y_float(pios_bmm150_dev_t p_bmm050,
 static inline float bmm050_compensate_Z_float(pios_bmm150_dev_t p_bmm050,
 		int16_t mag_data_z, uint16_t data_r)
 {
-	float inter_retval;
+	float inter_retval = BMM050_OVERFLOW_OUTPUT_FLOAT;
 	 /* no overflow */
 	if (mag_data_z != BMM050_HALL_OVERFLOW_ADCVAL) {
 		if ((p_bmm050->dig_z2 != BMM050_INIT_VALUE)
@@ -565,17 +667,15 @@ static inline float bmm050_compensate_Z_float(pios_bmm150_dev_t p_bmm050,
 		&& (p_bmm050->dig_xyz1 != BMM050_INIT_VALUE)
 		&& (data_r != BMM050_INIT_VALUE)) {
 			inter_retval = ((((((float)mag_data_z)-
-			((float)p_bmm050->dig_z4)) * 131072.0)-
+			((float)p_bmm050->dig_z4)) * 131072.0f)-
 			(((float)p_bmm050->dig_z3)*(((float)data_r)
 			-((float)p_bmm050->dig_xyz1))))
 			/((((float)p_bmm050->dig_z2)+
 			((float)p_bmm050->dig_z1)*((float)data_r) /
-			32768.0) * 4.0)) / 16.0;
+			32768.0f) * 4.0f)) / 16.0f;
 		}
-	} else {
-		/* overflow, set output to 0.0f */
-		inter_retval = BMM050_OVERFLOW_OUTPUT_FLOAT;
-	}
+	} 
+
 	return inter_retval;
 }
 
