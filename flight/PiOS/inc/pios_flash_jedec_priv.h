@@ -53,5 +53,6 @@ struct pios_flash_jedec_cfg {
 
 int32_t PIOS_Flash_Jedec_Init(uintptr_t *flash_id, uint32_t spi_id, uint32_t slave_num, const struct pios_flash_jedec_cfg *cfg);
 int32_t PIOS_Flash_Jedec_ReadOTPData(uintptr_t chip_id, uint32_t chip_offset, uint8_t *data, uint16_t len);
+uint32_t PIOS_Flash_Jedec_GetCapacity(uintptr_t chip_id);
 
 #endif	/* PIOS_FLASH_JEDEC_H_ */

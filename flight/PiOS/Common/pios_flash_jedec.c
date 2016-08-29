@@ -66,6 +66,7 @@ enum pios_jedec_dev_magic {
 struct jedec_flash_dev {
 	uint32_t spi_id;
 	uint32_t slave_num;
+	uint32_t capacity_bytes;
 
 	uint8_t manufacturer;
 	uint8_t memorytype;
@@ -113,6 +114,16 @@ static int32_t PIOS_Flash_Jedec_Validate(struct jedec_flash_dev *flash_dev) {
 	if (flash_dev->spi_id == 0)
 		return -3;
 	return 0;
+}
+
+uint32_t PIOS_Flash_Jedec_GetCapacity(uintptr_t chip_id)
+{
+	struct jedec_flash_dev *flash_dev = (struct jedec_flash_dev *)chip_id;
+
+	if (PIOS_Flash_Jedec_Validate(flash_dev) != 0)
+		return 0;
+
+	return flash_dev->capacity_bytes;
 }
 
 /**
@@ -263,6 +274,8 @@ static int32_t PIOS_Flash_Jedec_ReadID(struct jedec_flash_dev *flash_dev)
 	flash_dev->manufacturer = in[1];
 	flash_dev->memorytype   = in[2];
 	flash_dev->capacity     = in[3];
+
+	flash_dev->capacity_bytes = 1 << flash_dev->capacity;
 
 	return flash_dev->manufacturer;
 }
