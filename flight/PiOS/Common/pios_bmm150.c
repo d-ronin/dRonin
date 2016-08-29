@@ -124,8 +124,8 @@ static int32_t PIOS_BMM_ClaimBus();
  */
 static int32_t PIOS_BMM_ReleaseBus();
 
-static int32_t PIOS_BMM_ReadReg(int slave, uint8_t address, uint8_t *buffer);
-static int32_t PIOS_BMM_WriteReg(int slave, uint8_t address, uint8_t buffer);
+static int32_t PIOS_BMM_ReadReg(uint8_t address, uint8_t *buffer);
+static int32_t PIOS_BMM_WriteReg(uint8_t address, uint8_t buffer);
 
 static struct pios_bmm150_dev *PIOS_BMM_Alloc(const struct pios_bmm150_cfg *cfg)
 {
@@ -157,23 +157,91 @@ static int32_t PIOS_BMM_Validate(struct pios_bmm150_dev *dev)
 	return 0;
 }
 
-static int32_t AssertReg(int slave, uint8_t address, uint8_t expect) {
+static int32_t AssertReg(uint8_t address, uint8_t expect) {
 	uint8_t c;
 
-	int32_t ret = PIOS_BMM_ReadReg(slave, address, &c);
+	int32_t ret = PIOS_BMM_ReadReg(address, &c);
 
 	if (ret) {
 		return ret;
 	}
 
 	if (c != expect) {
-		DEBUG_PRINTF(2, "BMM: Assertion failed: *(%d:%02x) == %02x (expect %02x)\n",
-		slave, address, c, expect);
+		DEBUG_PRINTF(2, "BMM: Assertion failed: *(%02x) == %02x (expect %02x)\n",
+		address, c, expect);
 		return -1;
 	}
 
-	DEBUG_PRINTF(2, "BMM: Assertion passed: *(%d:%02x) == %02x\n", slave, address,
+	DEBUG_PRINTF(2, "BMM: Assertion passed: *(%02x) == %02x\n", address,
 		expect);
+
+	return 0;
+}
+
+static int32_t PIOS_BMM150_ReadTrims(pios_bmm150_dev_t dev)
+{
+	int ret;
+	
+	ret = PIOS_BMM_ReadReg(BMM150_DIG_X1, (uint8_t *) &dev->dig_x1);
+	if (ret) return ret;
+
+	ret = PIOS_BMM_ReadReg(BMM150_DIG_X2, (uint8_t *) &dev->dig_x2);
+	if (ret) return ret;
+
+	ret = PIOS_BMM_ReadReg(BMM150_DIG_Y1, (uint8_t *) &dev->dig_y1);
+	if (ret) return ret;
+
+	ret = PIOS_BMM_ReadReg(BMM150_DIG_Y2, (uint8_t *) &dev->dig_y2);
+	if (ret) return ret;
+
+	ret = PIOS_BMM_ReadReg(BMM150_DIG_X1, &dev->dig_xy1);
+	if (ret) return ret;
+
+	ret = PIOS_BMM_ReadReg(BMM150_DIG_X2, (uint8_t *) &dev->dig_xy2);
+	if (ret) return ret;
+
+	/* Sensor is little endian; all supported platforms are little endian
+	 * presently, but try to do the right thing anyways */
+
+	uint8_t tmp[2];
+
+	ret = PIOS_BMM_ReadReg(BMM150_DIG_Z1_LSB, tmp);
+	if (ret) return ret;
+	ret = PIOS_BMM_ReadReg(BMM150_DIG_Z1_MSB, tmp+1);
+	if (ret) return ret;
+	dev->dig_z1 = (tmp[1] << 8) | tmp[0];
+
+	ret = PIOS_BMM_ReadReg(BMM150_DIG_Z2_LSB, tmp);
+	if (ret) return ret;
+	ret = PIOS_BMM_ReadReg(BMM150_DIG_Z2_MSB, tmp+1);
+	if (ret) return ret;
+	dev->dig_z2 = (tmp[1] << 8) | tmp[0];
+
+	ret = PIOS_BMM_ReadReg(BMM150_DIG_Z3_LSB, tmp);
+	if (ret) return ret;
+	ret = PIOS_BMM_ReadReg(BMM150_DIG_Z3_MSB, tmp+1);
+	if (ret) return ret;
+	dev->dig_z3 = (tmp[1] << 8) | tmp[0];
+
+	ret = PIOS_BMM_ReadReg(BMM150_DIG_Z4_LSB, tmp);
+	if (ret) return ret;
+	ret = PIOS_BMM_ReadReg(BMM150_DIG_Z4_MSB, tmp+1);
+	if (ret) return ret;
+	dev->dig_z4 = (tmp[1] << 8) | tmp[0];
+
+	ret = PIOS_BMM_ReadReg(BMM150_DIG_XYZ1_LSB, tmp);
+	if (ret) return ret;
+	ret = PIOS_BMM_ReadReg(BMM150_DIG_XYZ1_MSB, tmp+1);
+	if (ret) return ret;
+	dev->dig_xyz1 = (tmp[1] << 8) | tmp[0];
+
+	DEBUG_PRINTF(2, "BMM: x1=%d y1=%d x2=%d y2=%d xy1=%d xy2=%d\n",
+			dev->dig_x1, dev->dig_y1, dev->dig_x2, dev->dig_y2,
+			dev->dig_xy1, dev->dig_xy2);
+
+	DEBUG_PRINTF(2, "BMM: z1=%d z2=%d z3=%d z4=%d xyz1=%d\n",
+			dev->dig_z1, dev->dig_z2, dev->dig_z3, dev->dig_z4,
+			dev->dig_xyz1);
 
 	return 0;
 }
@@ -198,16 +266,14 @@ int32_t PIOS_BMM150_SPI_Init(pios_bmm150_dev_t *dev, uint32_t spi_id,
 
 	DEBUG_PRINTF(2, "BMM: Resetting sensor\n");
 
-	ret = PIOS_BMM_WriteReg(bmm_dev->spi_slave_mag,
-			BMM150_REG_MAG_POWER_CONTROL,
+	ret = PIOS_BMM_WriteReg(BMM150_REG_MAG_POWER_CONTROL,
 			BMM150_VAL_MAG_POWER_CONTROL_POWEROFF);
 
 	if (ret) return ret;
 
 	PIOS_DELAY_WaitmS(20);
 
-	ret = PIOS_BMM_WriteReg(bmm_dev->spi_slave_mag,
-			BMM150_REG_MAG_POWER_CONTROL,
+	ret = PIOS_BMM_WriteReg(BMM150_REG_MAG_POWER_CONTROL,
 			BMM150_VAL_MAG_POWER_CONTROL_POWERON);
 
 	if (ret) return ret;
@@ -215,11 +281,16 @@ int32_t PIOS_BMM150_SPI_Init(pios_bmm150_dev_t *dev, uint32_t spi_id,
 	PIOS_DELAY_WaitmS(30);
 
 	/* Verify expected chip id. */	
-	ret = AssertReg(bmm_dev->spi_slave_mag,
-			BMM150_REG_MAG_CHIPID,
-			BMM150_VAL_MAG_CHIPID);
+	ret = AssertReg(BMM150_REG_MAG_CHIPID, BMM150_VAL_MAG_CHIPID);
 
 	if (ret) return ret;
+
+	ret = PIOS_BMM150_ReadTrims(bmm_dev);
+
+	if (ret) {
+		DEBUG_PRINTF(2, "BMM: Unable to read trims!\n");
+		return ret;
+	}
 
 	bmm_dev->task_handle = PIOS_Thread_Create(
 			PIOS_BMM_Task, "pios_bmm", PIOS_BMM_TASK_STACK,
@@ -255,28 +326,28 @@ static int32_t PIOS_BMM_ReleaseBus(int slave)
 	return 0;
 }
 
-static int32_t PIOS_BMM_ReadReg(int slave, uint8_t address, uint8_t *buffer)
+static int32_t PIOS_BMM_ReadReg(uint8_t address, uint8_t *buffer)
 {
-	if (PIOS_BMM_ClaimBus(slave) != 0)
+	if (PIOS_BMM_ClaimBus(bmm_dev->spi_slave_mag) != 0)
 		return -1;
 
 	PIOS_SPI_TransferByte(bmm_dev->spi_id, 0x80 | address); // request byte
 	*buffer = PIOS_SPI_TransferByte(bmm_dev->spi_id, 0);   // receive response
 
-	PIOS_BMM_ReleaseBus(slave);
+	PIOS_BMM_ReleaseBus(bmm_dev->spi_slave_mag);
 
 	return 0;
 }
 
-static int32_t PIOS_BMM_WriteReg(int slave, uint8_t address, uint8_t buffer)
+static int32_t PIOS_BMM_WriteReg(uint8_t address, uint8_t buffer)
 {
-	if (PIOS_BMM_ClaimBus(slave) != 0)
+	if (PIOS_BMM_ClaimBus(bmm_dev->spi_slave_mag) != 0)
 		return -1;
 
 	PIOS_SPI_TransferByte(bmm_dev->spi_id, 0x7f & address);
 	PIOS_SPI_TransferByte(bmm_dev->spi_id, buffer);
 
-	PIOS_BMM_ReleaseBus(slave);
+	PIOS_BMM_ReleaseBus(bmm_dev->spi_slave_mag);
 
 	return 0;
 }
