@@ -941,11 +941,13 @@ static inline float scale_stabilization(StabilizationSettingsData *stabSettings,
 			cmd = expo3(cmd, stabSettings->RateExpo[axis]);
 			return cmd;
 		case SHAREDDEFS_STABILIZATIONMODE_ATTITUDE:
-		case SHAREDDEFS_STABILIZATIONMODE_SYSTEMIDENT:
 			return cmd * stabSettings->MaxLevelAngle[axis];
 		case SHAREDDEFS_STABILIZATIONMODE_HORIZON:
 			cmd = expo3(cmd, stabSettings->HorizonExpo[axis]);
 			return cmd;
+		case SHAREDDEFS_STABILIZATIONMODE_SYSTEMIDENT:
+			PIOS_Assert(false);
+			break;
 	}
 
 	PIOS_Assert(false);
