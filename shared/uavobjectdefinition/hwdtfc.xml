@@ -54,7 +54,7 @@
 				<option>IBus</option>
 			</options>
 		</field>
-		
+
 		<field name="Uart2" units="function" type="enum" elements="1" parent="HwShared.PortTypes" defaultvalue="Disabled">
 			<description>The port labelled "UART2".</description>
 			<options>
@@ -81,8 +81,11 @@
 			</options>
 		</field>
 
-		<field name="USB_HIDPort" units="function" type="enum" elements="1" parent="HwShared.USB_HIDPort" defaultvalue="USBTelemetry"/>
+		<field name="USB_HIDPort" units="function" type="enum" elements="1" parent="HwShared.USB_HIDPort" defaultvalue="USBTelemetry">
+			<description/>
+		</field>
 		<field name="USB_VCPPort" units="function" type="enum" elements="1" parent="HwShared.USB_VCPPort" defaultvalue="Disabled">
+			<description/>
 			<options>
 				<option>Disabled</option>
 				<option>USBTelemetry</option>
@@ -91,7 +94,9 @@
 			</options>
 		</field>
 
-		<field name="DSMxMode" units="mode" type="enum" elements="1" parent="HwShared.DSMxMode" defaultvalue="Autodetect"/>
+		<field name="DSMxMode" units="mode" type="enum" elements="1" parent="HwShared.DSMxMode" defaultvalue="Autodetect">
+			<description/>
+		</field>
 
 		<field name="GyroRange" units="deg/s" type="enum" elements="1" defaultvalue="2000">
 			<description>Maximum measurement range for the gyros, should never rotate faster than about 85% of this.</description>
