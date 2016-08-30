@@ -236,6 +236,8 @@ static int handle_device(const char *optarg) {
 		bmm150_cfg = PIOS_malloc(sizeof(*bmm150_cfg));
 		bzero(bmm150_cfg, sizeof(*bmm150_cfg));
 
+		bmm150_cfg->orientation = PIOS_BMM_TOP_90DEG;
+
 		int ret = PIOS_BMM150_SPI_Init(&dev, spi_devs[bus_num], dev_num, bmm150_cfg);
 
 		if (ret) goto fail;

@@ -471,55 +471,56 @@ static void PIOS_BMM_Task(void *parameters)
 		float mag_z = bmm050_compensate_Z_float(bmm_dev,
 				raw_z, raw_r);
 
-		/* XXX verify all this */
 		switch (bmm_dev->cfg->orientation) {
-		case PIOS_BMM_TOP_0DEG:
-			mag_data.x   =  mag_x;
-			mag_data.y   =  mag_y;
-			mag_data.z   =  mag_z;
-			break;
-		case PIOS_BMM_TOP_90DEG:
-			mag_data.x   = -mag_y;
-			mag_data.y   =  mag_x;
-			mag_data.z   =  mag_z;
-			break;
-		case PIOS_BMM_TOP_180DEG:
-			mag_data.x   = -mag_x;
-			mag_data.y   = -mag_y;
-			mag_data.z   =  mag_z;
-			break;
-		case PIOS_BMM_TOP_270DEG:
-			mag_data.x   =  mag_y;
-			mag_data.y   = -mag_x;
-			mag_data.z   =  mag_z;
-			break;
-		case PIOS_BMM_BOTTOM_0DEG:
-			mag_data.x   =  mag_x;
-			mag_data.y   = -mag_y;
-			mag_data.z   = -mag_z;
-			break;
-		case PIOS_BMM_BOTTOM_90DEG:
-			mag_data.x   = -mag_y;
-			mag_data.y   = -mag_x;
-			mag_data.z   = -mag_z;
-			break;
-		case PIOS_BMM_BOTTOM_180DEG:
-			mag_data.x   = -mag_x;
-			mag_data.y   =  mag_y;
-			mag_data.z   = -mag_z;
-			break;
-		case PIOS_BMM_BOTTOM_270DEG:
-			mag_data.x   =  mag_y;
-			mag_data.y   =  mag_x;
-			mag_data.z   = -mag_z;
-			break;
+			case PIOS_BMM_TOP_0DEG:
+				mag_data.y  =  mag_x;
+				mag_data.x  =  mag_y;
+				mag_data.z  = -mag_z;
+				break;
+			case PIOS_BMM_TOP_90DEG:
+				mag_data.y  = -mag_y;
+				mag_data.x  =  mag_x;
+				mag_data.z  = -mag_z;
+				break;
+			case PIOS_BMM_TOP_180DEG:
+				mag_data.y  = -mag_x;
+				mag_data.x  = -mag_y;
+				mag_data.z  = -mag_z;
+				break;
+			case PIOS_BMM_TOP_270DEG:
+				mag_data.y  =  mag_y;
+				mag_data.x  = -mag_x;
+				mag_data.z  = -mag_z;
+				break;
+			case PIOS_BMM_BOTTOM_0DEG:
+				mag_data.y  = -mag_x;
+				mag_data.x  =  mag_y;
+				mag_data.z  =  mag_z;
+				break;
+			case PIOS_BMM_BOTTOM_90DEG:
+				mag_data.y  =  mag_y;
+				mag_data.x  =  mag_x;
+				mag_data.z  =  mag_z;
+				break;
+			case PIOS_BMM_BOTTOM_180DEG:
+				mag_data.y  =  mag_x;
+				mag_data.x  = -mag_y;
+				mag_data.z  =  mag_z;
+				break;
+			case PIOS_BMM_BOTTOM_270DEG:
+				mag_data.y  = -mag_y;
+				mag_data.x  = -mag_x;
+				mag_data.z  =  mag_z;
+				break;
 		}
 
-		/* XXX scale / units? */
-		float mag_scale = 1.0f;
+		/* scale-- it reads in microtesla.  we want milligauss */
+		float mag_scale = 10.0f;
+
 		mag_data.x *= mag_scale;
 		mag_data.y *= mag_scale;
 		mag_data.z *= mag_scale;
+
 		PIOS_Queue_Send(bmm_dev->mag_queue, &mag_data, 0);
 
 		PIOS_Thread_Sleep(24);
