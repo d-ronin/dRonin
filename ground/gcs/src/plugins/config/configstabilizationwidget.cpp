@@ -54,6 +54,7 @@ ConfigStabilizationWidget::ConfigStabilizationWidget(QWidget *parent) : ConfigTa
     m_stabilization = new Ui_StabilizationWidget();
     m_stabilization->setupUi(this);
 
+    updateInProgress=false;
 
     ExtensionSystem::PluginManager *pm=ExtensionSystem::PluginManager::instance();
     Core::Internal::GeneralSettings * settings=pm->getObject<Core::Internal::GeneralSettings>();
@@ -76,13 +77,70 @@ ConfigStabilizationWidget::ConfigStabilizationWidget(QWidget *parent) : ConfigTa
     connect(m_stabilization->checkBox_8,SIGNAL(stateChanged(int)),this,SLOT(linkCheckBoxes(int)));
     connect(m_stabilization->checkBox_3,SIGNAL(stateChanged(int)),this,SLOT(linkCheckBoxes(int)));
 
+    connect(m_stabilization->sliderLTRoll, SIGNAL(valueChanged(int)),
+                m_stabilization->rateRollLT, SLOT(setValue(int)));
+    connect(m_stabilization->rateRollLT, SIGNAL(valueChanged(int)),
+                m_stabilization->sliderLTRoll, SLOT(setValue(int)));
+    connect(m_stabilization->sliderLTPitch, SIGNAL(valueChanged(int)),
+                m_stabilization->ratePitchLT, SLOT(setValue(int)));
+    connect(m_stabilization->ratePitchLT, SIGNAL(valueChanged(int)),
+                m_stabilization->sliderLTPitch, SLOT(setValue(int)));
+    connect(m_stabilization->sliderLTYaw, SIGNAL(valueChanged(int)),
+                m_stabilization->rateYawLT, SLOT(setValue(int)));
+    connect(m_stabilization->rateYawLT, SIGNAL(valueChanged(int)),
+                m_stabilization->sliderLTYaw, SLOT(setValue(int)));
+
+    connect(m_stabilization->fullStickRateRoll, SIGNAL(valueChanged(double)),
+            this, SLOT(setMaximums()));
+    connect(m_stabilization->fullStickRatePitch, SIGNAL(valueChanged(double)),
+            this, SLOT(setMaximums()));
+    connect(m_stabilization->fullStickRateYaw, SIGNAL(valueChanged(double)),
+            this, SLOT(setMaximums()));
+    connect(m_stabilization->centerStickRateRoll, SIGNAL(valueChanged(int)),
+            this, SLOT(derivedValuesChanged()));
+    connect(m_stabilization->centerStickRatePitch, SIGNAL(valueChanged(int)),
+            this, SLOT(derivedValuesChanged()));
+    connect(m_stabilization->centerStickRateYaw, SIGNAL(valueChanged(int)),
+            this, SLOT(derivedValuesChanged()));
+    connect(m_stabilization->rateRollLT, SIGNAL(valueChanged(int)),
+            this, SLOT(derivedValuesChanged()));
+    connect(m_stabilization->ratePitchLT, SIGNAL(valueChanged(int)),
+            this, SLOT(derivedValuesChanged()));
+    connect(m_stabilization->rateYawLT, SIGNAL(valueChanged(int)),
+            this, SLOT(derivedValuesChanged()));
+
+    connect(m_stabilization->sliderCRateRoll, SIGNAL(valueChanged(int)),
+                m_stabilization->centerStickRateRoll, SLOT(setValue(int)));
+    connect(m_stabilization->centerStickRateRoll, SIGNAL(valueChanged(int)),
+                m_stabilization->sliderCRateRoll, SLOT(setValue(int)));
+    connect(m_stabilization->sliderCRatePitch, SIGNAL(valueChanged(int)),
+                m_stabilization->centerStickRatePitch, SLOT(setValue(int)));
+    connect(m_stabilization->centerStickRatePitch, SIGNAL(valueChanged(int)),
+                m_stabilization->sliderCRatePitch, SLOT(setValue(int)));
+    connect(m_stabilization->sliderCRateYaw, SIGNAL(valueChanged(int)),
+                m_stabilization->centerStickRateYaw, SLOT(setValue(int)));
+    connect(m_stabilization->centerStickRateYaw, SIGNAL(valueChanged(int)),
+                m_stabilization->sliderCRateYaw, SLOT(setValue(int)));
+
+    connect(m_stabilization->rateRollExpo, SIGNAL(valueChanged(double)),
+                this, SLOT(sourceValuesChanged()));
+    connect(m_stabilization->ratePitchExpo, SIGNAL(valueChanged(double)),
+                this, SLOT(sourceValuesChanged()));
+    connect(m_stabilization->rateYawExpo, SIGNAL(valueChanged(double)),
+                this, SLOT(sourceValuesChanged()));
+
+    connect(m_stabilization->rateRollExponent, SIGNAL(valueChanged(double)),
+                this, SLOT(sourceValuesChanged()));
+    connect(m_stabilization->ratePitchExponent, SIGNAL(valueChanged(double)),
+                this, SLOT(sourceValuesChanged()));
+    connect(m_stabilization->rateYawExponent, SIGNAL(valueChanged(double)),
+                this, SLOT(sourceValuesChanged()));
+
     connect(this,SIGNAL(widgetContentsChanged(QWidget*)),this,SLOT(processLinkedWidgets(QWidget*)));
 
     disableMouseWheelEvents();
 
     connect(this,SIGNAL(autoPilotConnected()),this,SLOT(applyRateLimits()));
-
-
 }
 
 ConfigStabilizationWidget::~ConfigStabilizationWidget()
@@ -100,6 +158,103 @@ void ConfigStabilizationWidget::linkCheckBoxes(int value)
         m_stabilization->checkBox_2->setCheckState((Qt::CheckState)value);
     else if(sender()== m_stabilization->checkBox_2)
         m_stabilization->checkBox_8->setCheckState((Qt::CheckState)value);
+}
+
+void ConfigStabilizationWidget::setMaximums()
+{
+    m_stabilization->centerStickRateRoll->setMaximum(
+            m_stabilization->fullStickRateRoll->value());
+    m_stabilization->centerStickRatePitch->setMaximum(
+            m_stabilization->fullStickRatePitch->value());
+    m_stabilization->centerStickRateYaw->setMaximum(
+            m_stabilization->fullStickRateYaw->value());
+
+    m_stabilization->sliderCRateRoll->setMaximum(
+            m_stabilization->fullStickRateRoll->value());
+    m_stabilization->sliderCRatePitch->setMaximum(
+            m_stabilization->fullStickRatePitch->value());
+    m_stabilization->sliderCRateYaw->setMaximum(
+            m_stabilization->fullStickRateYaw->value());
+
+    derivedValuesChanged();
+    updateGraphs();
+}
+
+void ConfigStabilizationWidget::sourceValuesChanged()
+{
+    if (updateInProgress) {
+        return;
+    }
+
+    updateInProgress = true;
+
+    /* invert 'derived' math / operations */
+    m_stabilization->centerStickRateRoll->setValue(
+            m_stabilization->fullStickRateRoll->value() * 
+            (100 - m_stabilization->rateRollExpo->value()) / 100);
+    m_stabilization->centerStickRatePitch->setValue(
+            m_stabilization->fullStickRatePitch->value() * 
+            (100 - m_stabilization->ratePitchExpo->value()) / 100);
+    m_stabilization->centerStickRateYaw->setValue(
+            m_stabilization->fullStickRateYaw->value() * 
+            (100 - m_stabilization->rateYawExpo->value()) / 100);
+
+    m_stabilization->rateRollLT->setValue(100 * 
+            exp(log(0.01) / m_stabilization->rateRollExponent->value()));
+    m_stabilization->ratePitchLT->setValue(100 * 
+            exp(log(0.01) / m_stabilization->ratePitchExponent->value()));
+    m_stabilization->rateYawLT->setValue(100 * 
+            exp(log(0.01) / m_stabilization->rateYawExponent->value()));
+
+    updateInProgress = false;
+
+    updateGraphs();
+}
+
+void ConfigStabilizationWidget::derivedValuesChanged()
+{
+    if (updateInProgress) {
+        return;
+    }
+
+    updateInProgress = true;
+
+    m_stabilization->rateRollExpo->setValue(100 -
+            m_stabilization->centerStickRateRoll->value() * 100 /
+            m_stabilization->fullStickRateRoll->value());
+    m_stabilization->ratePitchExpo->setValue(100 -
+            m_stabilization->centerStickRatePitch->value() * 100 /
+            m_stabilization->fullStickRatePitch->value());
+    m_stabilization->rateYawExpo->setValue(100 -
+            m_stabilization->centerStickRateYaw->value() * 100 /
+            m_stabilization->fullStickRateYaw->value());
+
+    m_stabilization->rateRollExponent->setValue(log(0.01) /
+            log((m_stabilization->rateRollLT->value() / 100.0f)));
+    m_stabilization->ratePitchExponent->setValue(log(0.01) /
+            log((m_stabilization->ratePitchLT->value() / 100.0f)));
+    m_stabilization->rateYawExponent->setValue(log(0.01) /
+            log((m_stabilization->rateYawLT->value() / 100.0f)));
+
+    updateInProgress = false;
+
+    updateGraphs();
+}
+
+void ConfigStabilizationWidget::updateGraphs()
+{
+    m_stabilization->expoPlot->plotDataRoll(
+            m_stabilization->rateRollExpo->value(),
+            m_stabilization->fullStickRateRoll->value(),
+            m_stabilization->rateRollExponent->value() * 10.0);
+    m_stabilization->expoPlot->plotDataPitch(
+            m_stabilization->ratePitchExpo->value(),
+            m_stabilization->fullStickRatePitch->value(),
+            m_stabilization->ratePitchExponent->value() * 10.0);
+    m_stabilization->expoPlot->plotDataYaw(
+            m_stabilization->rateYawExpo->value(),
+            m_stabilization->fullStickRateYaw->value(),
+            m_stabilization->rateYawExponent->value() * 10.0);
 }
 
 void ConfigStabilizationWidget::processLinkedWidgets(QWidget * widget)

@@ -1710,7 +1710,7 @@
                     </sizepolicy>
                    </property>
                    <property name="toolTip">
-                    <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;The roll rate in degrees per second at full stick deflection.&lt;/p&gt;&lt;p&gt;Note: This is limited to 85% of the gyro range selected (see Hardware tab).&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                    <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;The roll rate in degrees per second at full stick deflection.  To complete fast rolls, values of 600 or higher may be needed.&lt;/p&gt;&lt;p&gt;Note: This is limited to 85% of the gyro range selected (see Hardware tab).&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
                    </property>
                    <property name="minimum">
                     <number>100</number>
@@ -2283,26 +2283,10 @@ border-radius: 5;</string>
                    </property>
                   </widget>
                  </item>
-                 <item row="0" column="1">
-                  <spacer name="horizontalSpacer_39">
-                   <property name="orientation">
-                    <enum>Qt::Horizontal</enum>
-                   </property>
-                   <property name="sizeType">
-                    <enum>QSizePolicy::Fixed</enum>
-                   </property>
-                   <property name="sizeHint" stdset="0">
-                    <size>
-                     <width>150</width>
-                     <height>16</height>
-                    </size>
-                   </property>
-                  </spacer>
-                 </item>
                  <item row="6" column="6">
                   <widget class="QSlider" name="horizontalSlider_6">
                    <property name="toolTip">
-                    <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Inverse exponential scaling applied to stick input. Can make the vehicle more controllable around middle stick.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                    <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Exponential scaling applied to stick input.  Calculated from center linear slope and full stick rate, but can also be entered directly.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
                    </property>
                    <property name="minimum">
                     <number>100</number>
@@ -2357,6 +2341,9 @@ border-radius: 5;</string>
                    <property name="decimals">
                     <number>0</number>
                    </property>
+                   <property name="minimum">
+                    <double>100.000000000000000</double>
+                   </property>
                    <property name="maximum">
                     <double>1000000.000000000000000</double>
                    </property>
@@ -2396,7 +2383,7 @@ border-radius: 5;</string>
                     <string notr="true"/>
                    </property>
                    <property name="text">
-                    <string>Center linear rate (deg/s)</string>
+                    <string>Center slope (deg/s)</string>
                    </property>
                    <property name="alignment">
                     <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
@@ -2462,52 +2449,6 @@ border-radius: 5;</string>
                      <string>scale:1</string>
                      <string>buttongroup:3,10</string>
                     </stringlist>
-                   </property>
-                  </widget>
-                 </item>
-                 <item row="3" column="3">
-                  <widget class="QDoubleSpinBox" name="centerStickRateRoll">
-                   <property name="sizePolicy">
-                    <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
-                     <horstretch>0</horstretch>
-                     <verstretch>0</verstretch>
-                    </sizepolicy>
-                   </property>
-                   <property name="minimumSize">
-                    <size>
-                     <width>60</width>
-                     <height>22</height>
-                    </size>
-                   </property>
-                   <property name="maximumSize">
-                    <size>
-                     <width>60</width>
-                     <height>22</height>
-                    </size>
-                   </property>
-                   <property name="focusPolicy">
-                    <enum>Qt::StrongFocus</enum>
-                   </property>
-                   <property name="toolTip">
-                    <string/>
-                   </property>
-                   <property name="styleSheet">
-                    <string notr="true"/>
-                   </property>
-                   <property name="alignment">
-                    <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-                   </property>
-                   <property name="decimals">
-                    <number>0</number>
-                   </property>
-                   <property name="maximum">
-                    <double>1700.000000000000000</double>
-                   </property>
-                   <property name="singleStep">
-                    <double>1.000000000000000</double>
-                   </property>
-                   <property name="value">
-                    <double>175.000000000000000</double>
                    </property>
                   </widget>
                  </item>
@@ -3096,6 +3037,9 @@ border-radius: 5;</string>
                    <property name="decimals">
                     <number>0</number>
                    </property>
+                   <property name="minimum">
+                    <double>100.000000000000000</double>
+                   </property>
                    <property name="maximum">
                     <double>1000000.000000000000000</double>
                    </property>
@@ -3176,13 +3120,16 @@ border-radius: 5;</string>
                  <item row="3" column="4">
                   <widget class="QSlider" name="sliderCRatePitch">
                    <property name="toolTip">
-                    <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;The roll rate in degrees per second at full stick deflection.&lt;/p&gt;&lt;p&gt;Note: This is limited to 85% of the gyro range selected (see Hardware tab).&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                    <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;This is the slope of the roll response when the control stick is near the center (in the region below the linear transition point).  Most pilots like values between 150 and 250.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
                    </property>
                    <property name="minimum">
                     <number>100</number>
                    </property>
                    <property name="maximum">
-                    <number>1700</number>
+                    <number>800</number>
+                   </property>
+                   <property name="value">
+                    <number>175</number>
                    </property>
                    <property name="orientation">
                     <enum>Qt::Horizontal</enum>
@@ -3192,29 +3139,44 @@ border-radius: 5;</string>
                  <item row="7" column="2">
                   <widget class="QSlider" name="sliderExponentRoll">
                    <property name="toolTip">
-                    <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Inverse exponential scaling applied to stick input. Can make the vehicle more controllable around middle stick.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                    <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;The exponent used in stick scaling.  It is calculated from the above &quot;linear transition&quot; value, but can also be adjusted directly.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
                    </property>
                    <property name="minimum">
-                    <number>100</number>
+                    <number>25</number>
                    </property>
                    <property name="maximum">
-                    <number>1700</number>
+                    <number>160</number>
+                   </property>
+                   <property name="value">
+                    <number>30</number>
                    </property>
                    <property name="orientation">
                     <enum>Qt::Horizontal</enum>
+                   </property>
+                   <property name="objrelation" stdset="0">
+                    <stringlist>
+                     <string>objname:StabilizationSettings</string>
+                     <string>fieldname:RateExponent</string>
+                     <string>element:Roll</string>
+                     <string>haslimits:yes</string>
+                     <string>scale:1</string>
+                    </stringlist>
                    </property>
                   </widget>
                  </item>
                  <item row="3" column="2">
                   <widget class="QSlider" name="sliderCRateRoll">
                    <property name="toolTip">
-                    <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;The roll rate in degrees per second at full stick deflection.&lt;/p&gt;&lt;p&gt;Note: This is limited to 85% of the gyro range selected (see Hardware tab).&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                    <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;This is the slope of the roll response when the control stick is near the center (in the region below the linear transition point).  Most pilots like values between 150 and 250.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
                    </property>
                    <property name="minimum">
                     <number>100</number>
                    </property>
                    <property name="maximum">
-                    <number>1700</number>
+                    <number>800</number>
+                   </property>
+                   <property name="value">
+                    <number>175</number>
                    </property>
                    <property name="orientation">
                     <enum>Qt::Horizontal</enum>
@@ -3224,59 +3186,28 @@ border-radius: 5;</string>
                  <item row="7" column="4">
                   <widget class="QSlider" name="sliderExponentPitch">
                    <property name="toolTip">
-                    <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Inverse exponential scaling applied to stick input. Can make the vehicle more controllable around middle stick.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                    <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;The exponent used in stick scaling.  It is calculated from the above &quot;linear transition&quot; value, but can also be adjusted directly.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
                    </property>
                    <property name="minimum">
-                    <number>100</number>
+                    <number>25</number>
                    </property>
                    <property name="maximum">
-                    <number>1700</number>
+                    <number>160</number>
+                   </property>
+                   <property name="value">
+                    <number>30</number>
                    </property>
                    <property name="orientation">
                     <enum>Qt::Horizontal</enum>
                    </property>
-                  </widget>
-                 </item>
-                 <item row="3" column="5">
-                  <widget class="QDoubleSpinBox" name="centerStickRatePitch">
-                   <property name="sizePolicy">
-                    <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
-                     <horstretch>0</horstretch>
-                     <verstretch>0</verstretch>
-                    </sizepolicy>
-                   </property>
-                   <property name="minimumSize">
-                    <size>
-                     <width>60</width>
-                     <height>22</height>
-                    </size>
-                   </property>
-                   <property name="maximumSize">
-                    <size>
-                     <width>60</width>
-                     <height>22</height>
-                    </size>
-                   </property>
-                   <property name="focusPolicy">
-                    <enum>Qt::StrongFocus</enum>
-                   </property>
-                   <property name="styleSheet">
-                    <string notr="true"/>
-                   </property>
-                   <property name="alignment">
-                    <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-                   </property>
-                   <property name="decimals">
-                    <number>0</number>
-                   </property>
-                   <property name="maximum">
-                    <double>1000000.000000000000000</double>
-                   </property>
-                   <property name="singleStep">
-                    <double>1.000000000000000</double>
-                   </property>
-                   <property name="value">
-                    <double>175.000000000000000</double>
+                   <property name="objrelation" stdset="0">
+                    <stringlist>
+                     <string>objname:StabilizationSettings</string>
+                     <string>fieldname:RateExponent</string>
+                     <string>element:Pitch</string>
+                     <string>haslimits:yes</string>
+                     <string>scale:1</string>
+                    </stringlist>
                    </property>
                   </widget>
                  </item>
@@ -3321,14 +3252,26 @@ border-radius: 5;</string>
                    <property name="decimals">
                     <number>1</number>
                    </property>
+                   <property name="minimum">
+                    <double>2.500000000000000</double>
+                   </property>
                    <property name="maximum">
-                    <double>1000000.000000000000000</double>
+                    <double>16.000000000000000</double>
                    </property>
                    <property name="singleStep">
                     <double>0.100000000000000</double>
                    </property>
                    <property name="value">
                     <double>3.000000000000000</double>
+                   </property>
+                   <property name="objrelation" stdset="0">
+                    <stringlist>
+                     <string>objname:StabilizationSettings</string>
+                     <string>fieldname:RateExponent</string>
+                     <string>element:Roll</string>
+                     <string>haslimits:yes</string>
+                     <string>scale:10</string>
+                    </stringlist>
                    </property>
                   </widget>
                  </item>
@@ -3392,8 +3335,11 @@ border-radius: 5;</string>
                    <property name="decimals">
                     <number>1</number>
                    </property>
+                   <property name="minimum">
+                    <double>2.500000000000000</double>
+                   </property>
                    <property name="maximum">
-                    <double>1000000.000000000000000</double>
+                    <double>16.000000000000000</double>
                    </property>
                    <property name="singleStep">
                     <double>0.100000000000000</double>
@@ -3401,51 +3347,14 @@ border-radius: 5;</string>
                    <property name="value">
                     <double>3.000000000000000</double>
                    </property>
-                  </widget>
-                 </item>
-                 <item row="3" column="7">
-                  <widget class="QDoubleSpinBox" name="centerStickRateYaw">
-                   <property name="sizePolicy">
-                    <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
-                     <horstretch>0</horstretch>
-                     <verstretch>0</verstretch>
-                    </sizepolicy>
-                   </property>
-                   <property name="minimumSize">
-                    <size>
-                     <width>60</width>
-                     <height>22</height>
-                    </size>
-                   </property>
-                   <property name="maximumSize">
-                    <size>
-                     <width>60</width>
-                     <height>22</height>
-                    </size>
-                   </property>
-                   <property name="focusPolicy">
-                    <enum>Qt::StrongFocus</enum>
-                   </property>
-                   <property name="toolTip">
-                    <string/>
-                   </property>
-                   <property name="styleSheet">
-                    <string notr="true"/>
-                   </property>
-                   <property name="alignment">
-                    <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-                   </property>
-                   <property name="decimals">
-                    <number>0</number>
-                   </property>
-                   <property name="maximum">
-                    <double>1000000.000000000000000</double>
-                   </property>
-                   <property name="singleStep">
-                    <double>1.000000000000000</double>
-                   </property>
-                   <property name="value">
-                    <double>175.000000000000000</double>
+                   <property name="objrelation" stdset="0">
+                    <stringlist>
+                     <string>objname:StabilizationSettings</string>
+                     <string>fieldname:RateExponent</string>
+                     <string>element:Pitch</string>
+                     <string>haslimits:yes</string>
+                     <string>scale:10</string>
+                    </stringlist>
                    </property>
                   </widget>
                  </item>
@@ -3481,8 +3390,11 @@ border-radius: 5;</string>
                    <property name="decimals">
                     <number>1</number>
                    </property>
+                   <property name="minimum">
+                    <double>2.500000000000000</double>
+                   </property>
                    <property name="maximum">
-                    <double>1000000.000000000000000</double>
+                    <double>16.000000000000000</double>
                    </property>
                    <property name="singleStep">
                     <double>0.100000000000000</double>
@@ -3490,21 +3402,42 @@ border-radius: 5;</string>
                    <property name="value">
                     <double>3.000000000000000</double>
                    </property>
+                   <property name="objrelation" stdset="0">
+                    <stringlist>
+                     <string>objname:StabilizationSettings</string>
+                     <string>fieldname:RateExponent</string>
+                     <string>element:Yaw</string>
+                     <string>haslimits:yes</string>
+                     <string>scale:10</string>
+                    </stringlist>
+                   </property>
                   </widget>
                  </item>
                  <item row="7" column="6">
                   <widget class="QSlider" name="sliderExponentYaw">
                    <property name="toolTip">
-                    <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Inverse exponential scaling applied to stick input. Can make the vehicle more controllable around middle stick.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                    <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;The exponent used in stick scaling.  It is calculated from the above &quot;linear transition&quot; value, but can also be adjusted directly.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
                    </property>
                    <property name="minimum">
-                    <number>100</number>
+                    <number>25</number>
                    </property>
                    <property name="maximum">
-                    <number>1700</number>
+                    <number>160</number>
+                   </property>
+                   <property name="value">
+                    <number>30</number>
                    </property>
                    <property name="orientation">
                     <enum>Qt::Horizontal</enum>
+                   </property>
+                   <property name="objrelation" stdset="0">
+                    <stringlist>
+                     <string>objname:StabilizationSettings</string>
+                     <string>fieldname:RateExponent</string>
+                     <string>element:Yaw</string>
+                     <string>haslimits:yes</string>
+                     <string>scale:1</string>
+                    </stringlist>
                    </property>
                   </widget>
                  </item>
@@ -3536,13 +3469,16 @@ border-radius: 5;</string>
                  <item row="2" column="4">
                   <widget class="QSlider" name="sliderLTPitch">
                    <property name="toolTip">
-                    <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Inverse exponential scaling applied to stick input. Can make the vehicle more controllable around middle stick.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                    <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Below this stick deflection, the vehicle responds linearly.  After this point the stick &quot;breaks&quot; and rates increase rapidly (depending on the settings for center slope and full stick rate).  &quot;Normal&quot; cubic exponential has a linear transition of 21%, but many pilots will find numbers of 30-40% more comfortable.  &lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
                    </property>
                    <property name="minimum">
-                    <number>100</number>
+                    <number>16</number>
                    </property>
                    <property name="maximum">
-                    <number>1700</number>
+                    <number>75</number>
+                   </property>
+                   <property name="value">
+                    <number>23</number>
                    </property>
                    <property name="orientation">
                     <enum>Qt::Horizontal</enum>
@@ -3558,7 +3494,7 @@ border-radius: 5;</string>
                     </sizepolicy>
                    </property>
                    <property name="toolTip">
-                    <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;The roll rate in degrees per second at full stick deflection.&lt;/p&gt;&lt;p&gt;Note: This is limited to 85% of the gyro range selected (see Hardware tab).&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                    <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;The roll rate in degrees per second at full stick deflection.  To complete fast rolls, values of 600 or higher may be needed.&lt;/p&gt;&lt;p&gt;Note: This is limited to 85% of the gyro range selected (see Hardware tab).&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
                    </property>
                    <property name="minimum">
                     <number>100</number>
@@ -3584,7 +3520,7 @@ border-radius: 5;</string>
                  <item row="6" column="4">
                   <widget class="QSlider" name="horizontalSlider_4">
                    <property name="toolTip">
-                    <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Inverse exponential scaling applied to stick input. Can make the vehicle more controllable around middle stick.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                    <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Exponential scaling applied to stick input.  Calculated from center linear slope and full stick rate, but can also be entered directly.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
                    </property>
                    <property name="minimum">
                     <number>100</number>
@@ -3629,55 +3565,6 @@ border-radius: 5;</string>
                    </property>
                    <property name="alignment">
                     <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-                   </property>
-                  </widget>
-                 </item>
-                 <item row="2" column="7">
-                  <widget class="QDoubleSpinBox" name="rateYawLT">
-                   <property name="sizePolicy">
-                    <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
-                     <horstretch>0</horstretch>
-                     <verstretch>0</verstretch>
-                    </sizepolicy>
-                   </property>
-                   <property name="minimumSize">
-                    <size>
-                     <width>60</width>
-                     <height>22</height>
-                    </size>
-                   </property>
-                   <property name="maximumSize">
-                    <size>
-                     <width>60</width>
-                     <height>22</height>
-                    </size>
-                   </property>
-                   <property name="focusPolicy">
-                    <enum>Qt::StrongFocus</enum>
-                   </property>
-                   <property name="toolTip">
-                    <string/>
-                   </property>
-                   <property name="styleSheet">
-                    <string notr="true"/>
-                   </property>
-                   <property name="alignment">
-                    <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-                   </property>
-                   <property name="suffix">
-                    <string>%</string>
-                   </property>
-                   <property name="decimals">
-                    <number>0</number>
-                   </property>
-                   <property name="maximum">
-                    <double>1000000.000000000000000</double>
-                   </property>
-                   <property name="singleStep">
-                    <double>1.000000000000000</double>
-                   </property>
-                   <property name="value">
-                    <double>100.000000000000000</double>
                    </property>
                   </widget>
                  </item>
@@ -4234,13 +4121,16 @@ border-radius: 5;</string>
                  <item row="2" column="6">
                   <widget class="QSlider" name="sliderLTYaw">
                    <property name="toolTip">
-                    <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Inverse exponential scaling applied to stick input. Can make the vehicle more controllable around middle stick.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                    <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Below this stick deflection, the vehicle responds linearly.  After this point the stick &quot;breaks&quot; and rates increase rapidly (depending on the settings for center slope and full stick rate).  &quot;Normal&quot; cubic exponential has a linear transition of 21%, but many pilots will find numbers of 30-40% more comfortable.  &lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
                    </property>
                    <property name="minimum">
-                    <number>100</number>
+                    <number>16</number>
                    </property>
                    <property name="maximum">
-                    <number>1700</number>
+                    <number>75</number>
+                   </property>
+                   <property name="sliderPosition">
+                    <number>23</number>
                    </property>
                    <property name="orientation">
                     <enum>Qt::Horizontal</enum>
@@ -4250,13 +4140,16 @@ border-radius: 5;</string>
                  <item row="3" column="6">
                   <widget class="QSlider" name="sliderCRateYaw">
                    <property name="toolTip">
-                    <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;The roll rate in degrees per second at full stick deflection.&lt;/p&gt;&lt;p&gt;Note: This is limited to 85% of the gyro range selected (see Hardware tab).&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                    <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;This is the slope of the roll response when the control stick is near the center (in the region below the linear transition point).  Most pilots like values between 150 and 250.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
                    </property>
                    <property name="minimum">
                     <number>100</number>
                    </property>
                    <property name="maximum">
-                    <number>1700</number>
+                    <number>800</number>
+                   </property>
+                   <property name="value">
+                    <number>175</number>
                    </property>
                    <property name="orientation">
                     <enum>Qt::Horizontal</enum>
@@ -4266,13 +4159,16 @@ border-radius: 5;</string>
                  <item row="2" column="2">
                   <widget class="QSlider" name="sliderLTRoll">
                    <property name="toolTip">
-                    <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Inverse exponential scaling applied to stick input. Can make the vehicle more controllable around middle stick.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                    <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Below this stick deflection, the vehicle responds linearly.  After this point the stick &quot;breaks&quot; and rates increase rapidly (depending on the settings for center slope and full stick rate).  &quot;Normal&quot; cubic exponential has a linear transition of 21%, but many pilots will find numbers of 30-40% more comfortable.  &lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
                    </property>
                    <property name="minimum">
-                    <number>100</number>
+                    <number>16</number>
                    </property>
                    <property name="maximum">
-                    <number>1700</number>
+                    <number>75</number>
+                   </property>
+                   <property name="value">
+                    <number>23</number>
                    </property>
                    <property name="orientation">
                     <enum>Qt::Horizontal</enum>
@@ -4313,7 +4209,7 @@ border-radius: 5;</string>
                     </sizepolicy>
                    </property>
                    <property name="toolTip">
-                    <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;The roll rate in degrees per second at full stick deflection.&lt;/p&gt;&lt;p&gt;Note: This is limited to 85% of the gyro range selected (see Hardware tab).&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                    <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;The roll rate in degrees per second at full stick deflection.  To complete fast rolls, values of 600 or higher may be needed.&lt;/p&gt;&lt;p&gt;Note: This is limited to 85% of the gyro range selected (see Hardware tab).&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
                    </property>
                    <property name="minimum">
                     <number>100</number>
@@ -4333,52 +4229,6 @@ border-radius: 5;</string>
                      <string>scale:1</string>
                      <string>buttongroup:3,10</string>
                     </stringlist>
-                   </property>
-                  </widget>
-                 </item>
-                 <item row="2" column="5">
-                  <widget class="QDoubleSpinBox" name="ratePitchLT">
-                   <property name="sizePolicy">
-                    <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
-                     <horstretch>0</horstretch>
-                     <verstretch>0</verstretch>
-                    </sizepolicy>
-                   </property>
-                   <property name="minimumSize">
-                    <size>
-                     <width>60</width>
-                     <height>22</height>
-                    </size>
-                   </property>
-                   <property name="maximumSize">
-                    <size>
-                     <width>60</width>
-                     <height>22</height>
-                    </size>
-                   </property>
-                   <property name="focusPolicy">
-                    <enum>Qt::StrongFocus</enum>
-                   </property>
-                   <property name="styleSheet">
-                    <string notr="true"/>
-                   </property>
-                   <property name="alignment">
-                    <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-                   </property>
-                   <property name="suffix">
-                    <string>%</string>
-                   </property>
-                   <property name="decimals">
-                    <number>0</number>
-                   </property>
-                   <property name="maximum">
-                    <double>1000000.000000000000000</double>
-                   </property>
-                   <property name="singleStep">
-                    <double>1.000000000000000</double>
-                   </property>
-                   <property name="value">
-                    <double>100.000000000000000</double>
                    </property>
                   </widget>
                  </item>
@@ -4417,6 +4267,9 @@ border-radius: 5;</string>
                    <property name="decimals">
                     <number>0</number>
                    </property>
+                   <property name="minimum">
+                    <double>100.000000000000000</double>
+                   </property>
                    <property name="maximum">
                     <double>1700.000000000000000</double>
                    </property>
@@ -4435,58 +4288,6 @@ border-radius: 5;</string>
                      <string>scale:1</string>
                      <string>buttongroup:3,10</string>
                     </stringlist>
-                   </property>
-                  </widget>
-                 </item>
-                 <item row="2" column="3">
-                  <widget class="QDoubleSpinBox" name="rateRollLT">
-                   <property name="sizePolicy">
-                    <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
-                     <horstretch>0</horstretch>
-                     <verstretch>0</verstretch>
-                    </sizepolicy>
-                   </property>
-                   <property name="minimumSize">
-                    <size>
-                     <width>60</width>
-                     <height>22</height>
-                    </size>
-                   </property>
-                   <property name="maximumSize">
-                    <size>
-                     <width>60</width>
-                     <height>22</height>
-                    </size>
-                   </property>
-                   <property name="focusPolicy">
-                    <enum>Qt::StrongFocus</enum>
-                   </property>
-                   <property name="toolTip">
-                    <string/>
-                   </property>
-                   <property name="styleSheet">
-                    <string notr="true"/>
-                   </property>
-                   <property name="alignment">
-                    <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-                   </property>
-                   <property name="buttonSymbols">
-                    <enum>QAbstractSpinBox::UpDownArrows</enum>
-                   </property>
-                   <property name="suffix">
-                    <string>%</string>
-                   </property>
-                   <property name="decimals">
-                    <number>0</number>
-                   </property>
-                   <property name="maximum">
-                    <double>1000000.000000000000000</double>
-                   </property>
-                   <property name="singleStep">
-                    <double>1.000000000000000</double>
-                   </property>
-                   <property name="value">
-                    <double>100.000000000000000</double>
                    </property>
                   </widget>
                  </item>
@@ -4552,7 +4353,7 @@ border-radius: 5;</string>
                  <item row="6" column="2">
                   <widget class="QSlider" name="horizontalSlider_2">
                    <property name="toolTip">
-                    <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Inverse exponential scaling applied to stick input. Can make the vehicle more controllable around middle stick.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                    <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Exponential scaling applied to stick input.  Calculated from center linear slope and full stick rate, but can also be entered directly.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
                    </property>
                    <property name="minimum">
                     <number>100</number>
@@ -4589,6 +4390,9 @@ border-radius: 5;</string>
                      <height>160</height>
                     </size>
                    </property>
+                   <property name="autoFillBackground">
+                    <bool>false</bool>
+                   </property>
                   </widget>
                  </item>
                  <item row="5" column="2" colspan="6">
@@ -4604,6 +4408,264 @@ border-radius: 5;</string>
                    </property>
                    <property name="alignment">
                     <set>Qt::AlignCenter</set>
+                   </property>
+                  </widget>
+                 </item>
+                 <item row="2" column="3">
+                  <widget class="QSpinBox" name="rateRollLT">
+                   <property name="sizePolicy">
+                    <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+                     <horstretch>0</horstretch>
+                     <verstretch>0</verstretch>
+                    </sizepolicy>
+                   </property>
+                   <property name="minimumSize">
+                    <size>
+                     <width>60</width>
+                     <height>22</height>
+                    </size>
+                   </property>
+                   <property name="maximumSize">
+                    <size>
+                     <width>60</width>
+                     <height>22</height>
+                    </size>
+                   </property>
+                   <property name="focusPolicy">
+                    <enum>Qt::StrongFocus</enum>
+                   </property>
+                   <property name="toolTip">
+                    <string/>
+                   </property>
+                   <property name="styleSheet">
+                    <string notr="true"/>
+                   </property>
+                   <property name="alignment">
+                    <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+                   </property>
+                   <property name="buttonSymbols">
+                    <enum>QAbstractSpinBox::UpDownArrows</enum>
+                   </property>
+                   <property name="suffix">
+                    <string>%</string>
+                   </property>
+                   <property name="minimum">
+                    <number>16</number>
+                   </property>
+                   <property name="maximum">
+                    <number>75</number>
+                   </property>
+                   <property name="value">
+                    <number>23</number>
+                   </property>
+                  </widget>
+                 </item>
+                 <item row="2" column="5">
+                  <widget class="QSpinBox" name="ratePitchLT">
+                   <property name="sizePolicy">
+                    <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+                     <horstretch>0</horstretch>
+                     <verstretch>0</verstretch>
+                    </sizepolicy>
+                   </property>
+                   <property name="minimumSize">
+                    <size>
+                     <width>60</width>
+                     <height>22</height>
+                    </size>
+                   </property>
+                   <property name="maximumSize">
+                    <size>
+                     <width>60</width>
+                     <height>22</height>
+                    </size>
+                   </property>
+                   <property name="focusPolicy">
+                    <enum>Qt::StrongFocus</enum>
+                   </property>
+                   <property name="styleSheet">
+                    <string notr="true"/>
+                   </property>
+                   <property name="alignment">
+                    <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+                   </property>
+                   <property name="suffix">
+                    <string>%</string>
+                   </property>
+                   <property name="minimum">
+                    <number>16</number>
+                   </property>
+                   <property name="maximum">
+                    <number>75</number>
+                   </property>
+                   <property name="value">
+                    <number>23</number>
+                   </property>
+                  </widget>
+                 </item>
+                 <item row="2" column="7">
+                  <widget class="QSpinBox" name="rateYawLT">
+                   <property name="sizePolicy">
+                    <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+                     <horstretch>0</horstretch>
+                     <verstretch>0</verstretch>
+                    </sizepolicy>
+                   </property>
+                   <property name="minimumSize">
+                    <size>
+                     <width>60</width>
+                     <height>22</height>
+                    </size>
+                   </property>
+                   <property name="maximumSize">
+                    <size>
+                     <width>60</width>
+                     <height>22</height>
+                    </size>
+                   </property>
+                   <property name="focusPolicy">
+                    <enum>Qt::StrongFocus</enum>
+                   </property>
+                   <property name="toolTip">
+                    <string/>
+                   </property>
+                   <property name="styleSheet">
+                    <string notr="true"/>
+                   </property>
+                   <property name="alignment">
+                    <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+                   </property>
+                   <property name="suffix">
+                    <string>%</string>
+                   </property>
+                   <property name="value">
+                    <number>23</number>
+                   </property>
+                  </widget>
+                 </item>
+                 <item row="3" column="3">
+                  <widget class="QSpinBox" name="centerStickRateRoll">
+                   <property name="sizePolicy">
+                    <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+                     <horstretch>0</horstretch>
+                     <verstretch>0</verstretch>
+                    </sizepolicy>
+                   </property>
+                   <property name="minimumSize">
+                    <size>
+                     <width>60</width>
+                     <height>22</height>
+                    </size>
+                   </property>
+                   <property name="maximumSize">
+                    <size>
+                     <width>60</width>
+                     <height>22</height>
+                    </size>
+                   </property>
+                   <property name="focusPolicy">
+                    <enum>Qt::StrongFocus</enum>
+                   </property>
+                   <property name="toolTip">
+                    <string/>
+                   </property>
+                   <property name="styleSheet">
+                    <string notr="true"/>
+                   </property>
+                   <property name="alignment">
+                    <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+                   </property>
+                   <property name="minimum">
+                    <number>100</number>
+                   </property>
+                   <property name="maximum">
+                    <number>800</number>
+                   </property>
+                   <property name="value">
+                    <number>175</number>
+                   </property>
+                  </widget>
+                 </item>
+                 <item row="3" column="5">
+                  <widget class="QSpinBox" name="centerStickRatePitch">
+                   <property name="sizePolicy">
+                    <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+                     <horstretch>0</horstretch>
+                     <verstretch>0</verstretch>
+                    </sizepolicy>
+                   </property>
+                   <property name="minimumSize">
+                    <size>
+                     <width>60</width>
+                     <height>22</height>
+                    </size>
+                   </property>
+                   <property name="maximumSize">
+                    <size>
+                     <width>60</width>
+                     <height>22</height>
+                    </size>
+                   </property>
+                   <property name="focusPolicy">
+                    <enum>Qt::StrongFocus</enum>
+                   </property>
+                   <property name="styleSheet">
+                    <string notr="true"/>
+                   </property>
+                   <property name="alignment">
+                    <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+                   </property>
+                   <property name="minimum">
+                    <number>100</number>
+                   </property>
+                   <property name="maximum">
+                    <number>800</number>
+                   </property>
+                   <property name="value">
+                    <number>175</number>
+                   </property>
+                  </widget>
+                 </item>
+                 <item row="3" column="7">
+                  <widget class="QSpinBox" name="centerStickRateYaw">
+                   <property name="sizePolicy">
+                    <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+                     <horstretch>0</horstretch>
+                     <verstretch>0</verstretch>
+                    </sizepolicy>
+                   </property>
+                   <property name="minimumSize">
+                    <size>
+                     <width>60</width>
+                     <height>22</height>
+                    </size>
+                   </property>
+                   <property name="maximumSize">
+                    <size>
+                     <width>60</width>
+                     <height>22</height>
+                    </size>
+                   </property>
+                   <property name="focusPolicy">
+                    <enum>Qt::StrongFocus</enum>
+                   </property>
+                   <property name="toolTip">
+                    <string/>
+                   </property>
+                   <property name="styleSheet">
+                    <string notr="true"/>
+                   </property>
+                   <property name="alignment">
+                    <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+                   </property>
+                   <property name="minimum">
+                    <number>100</number>
+                   </property>
+                   <property name="maximum">
+                    <number>800</number>
+                   </property>
+                   <property name="value">
+                    <number>175</number>
                    </property>
                   </widget>
                  </item>
@@ -26882,7 +26944,6 @@ border-radius: 5;</string>
                     </spacer>
                    </item>
                   </layout>
-                  <zorder>horizontalSpacer_62</zorder>
                   <zorder>label_62</zorder>
                   <zorder>label_69</zorder>
                   <zorder>label_68</zorder>
@@ -26890,9 +26951,6 @@ border-radius: 5;</string>
                   <zorder>horizonRollExpo</zorder>
                   <zorder>horizonPitchExpo</zorder>
                   <zorder>horizonYawExpo</zorder>
-                  <zorder>horizontalSpacer_63</zorder>
-                  <zorder>horizontalSpacer_61</zorder>
-                  <zorder>horizontalSpacer_64</zorder>
                  </widget>
                 </item>
                 <item row="1" column="3">

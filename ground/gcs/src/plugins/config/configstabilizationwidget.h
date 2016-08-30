@@ -51,9 +51,16 @@ private:
 
     UAVObject *manualControlSettings;
 
+    bool updateInProgress;
+
+    void updateGraphs();
 private slots:
     void linkCheckBoxes(int value);
     void processLinkedWidgets(QWidget*);
+    void setMaximums();
+    void derivedValuesChanged();
+    void sourceValuesChanged();
+
     void applyRateLimits();
 
     void hangtimeDurationChanged();

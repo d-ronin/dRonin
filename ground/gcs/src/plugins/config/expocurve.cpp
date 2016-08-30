@@ -81,10 +81,9 @@ ExpoCurve::ExpoCurve(QWidget *parent) :
     insertLegend(m_legend, QwtPlot::RightLegend);
 
     steps = 150;
-    x_data =  new double[steps];
-    y_data =  new double[steps];
+    x_data = new double[steps];
+    y_data = new double[steps];
 
-    //static void       setRoundingAlignment (bool)
     //double step = 2 * 1.0 / (steps - 1);
     double step = 1.0 / (steps - 1);
     for (int i = 0; i < steps; i++) {
@@ -101,7 +100,7 @@ ExpoCurve::ExpoCurve(QWidget *parent) :
     axis_title_font.setPointSize(10);
     axis_title.setFont(axis_title_font);
 
-    axis_title.setText(tr(" normalized stick input"));
+    axis_title.setText(tr("normalized stick input"));
     this->setAxisTitle(QwtPlot::xBottom, axis_title);
 
     roll_elements.Curve.setTitle(tr("Roll"));
@@ -110,10 +109,6 @@ ExpoCurve::ExpoCurve(QWidget *parent) :
 
     axis_title.setText(tr("rate (deg/s)"));
     this->setAxisTitle(QwtPlot::yLeft, axis_title);
-
-    // XXX temporary
-    // XXX needs to get max from "biggest" axis
-    setAxisScale(yLeft, 0, 720, 180);
 
     plotDataRoll(50, 720, 50);
     plotDataPitch(50, 720, 50);
@@ -138,6 +133,12 @@ void ExpoCurve::plotData(int value, int max, int exponent,
 
     plot_elements.Curve.setSamples(x_data, y_data, steps);
     plot_elements.Curve.show();
+
+    // Surely there is a less costly way to do this!
+    setAxisAutoScale(yLeft, true);
+    updateAxes();
+    const QwtScaleDiv &div = axisScaleDiv(yLeft);
+    setAxisScale(yLeft, 0, div.upperBound(), 180);
 
     this->replot();
 }
