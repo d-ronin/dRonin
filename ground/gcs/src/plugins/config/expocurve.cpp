@@ -24,11 +24,14 @@
  * 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
  */
 
+#include "qwt/src/qwt_painter.h"
 #include "expocurve.h"
 
 ExpoCurve::ExpoCurve(QWidget *parent) :
     QwtPlot(parent)
 {
+    QwtPainter::setPolylineSplitting(false);
+    QwtPainter::setRoundingAlignment(false);
     setMouseTracking(true);
 
     setMinimumSize(64, 64);
@@ -43,23 +46,27 @@ ExpoCurve::ExpoCurve(QWidget *parent) :
     grid->setPen(QPen(Qt::darkGray, 1, Qt::DotLine));
     grid->attach(this);
 
+
     roll_elements.Curve.setRenderHint(QwtPlotCurve::RenderAntialiased);
-    roll_elements.Curve.setPen(QPen(QColor(Qt::blue), 1.0));
+    roll_elements.Curve.setPen(QPen(QColor(Qt::blue), 1.0, Qt::SolidLine,
+                Qt::FlatCap));
     roll_elements.Curve.attach(this);
 
     pitch_elements.Curve.setRenderHint(QwtPlotCurve::RenderAntialiased);
-    pitch_elements.Curve.setPen(QPen(QColor(Qt::red), 1.0));
+    pitch_elements.Curve.setPen(QPen(QColor(Qt::red), 1.0, Qt::SolidLine,
+                Qt::FlatCap));
     pitch_elements.Curve.attach(this);
 
     yaw_elements.Curve.setRenderHint(QwtPlotCurve::RenderAntialiased);
-    yaw_elements.Curve.setPen(QPen(QColor(Qt::green), 1.0));
+    yaw_elements.Curve.setPen(QPen(QColor(Qt::green), 1.0, Qt::SolidLine,
+                Qt::FlatCap));
     yaw_elements.Curve.attach(this);
 
     // legend
     // Show a legend at the top
     QwtLegend *m_legend = new QwtLegend(this);
     m_legend->setDefaultItemMode(QwtLegendData::Checkable);
-    m_legend->setFrameStyle(QFrame::Box | QFrame::Sunken);
+    //m_legend->setFrameStyle(QFrame::Box | QFrame::Sunken);
     m_legend->setToolTip(tr("Click legend to show/hide expo curve"));
 
     // connect signal when clicked on legend entry to function that shows/hides the curve
@@ -69,29 +76,22 @@ ExpoCurve::ExpoCurve(QWidget *parent) :
     pal.setColor(m_legend->backgroundRole(), QColor(100, 100, 100));	// background colour
     pal.setColor(QPalette::Text, QColor(0, 0, 0));			// text colour
     m_legend->setPalette(pal);
+    m_legend->setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Expanding);
 
-    insertLegend(m_legend, QwtPlot::TopLegend);
-    // QwtPlot::insertLegend() changes the max columns attribute, so you have to set it to the desired number after the statement
-    m_legend->setMaxColumns(3);
+    insertLegend(m_legend, QwtPlot::RightLegend);
 
-
-    steps = 1000;
+    steps = 150;
     x_data =  new double[steps];
     y_data =  new double[steps];
 
-    double step = 2 * 1.0 / (steps - 1);
+    //static void       setRoundingAlignment (bool)
+    //double step = 2 * 1.0 / (steps - 1);
+    double step = 1.0 / (steps - 1);
     for (int i = 0; i < steps; i++) {
-        x_data[i] = (i * step) - 1.0;
+        //x_data[i] = (i * step) - 1.0;
+        x_data[i] = (i * step);
     }
-}
 
-/**
- * @brief ExpoCurve::init Init labels, titels, horizin transition,...
- * @param lbl_mode Chose the mode of this widget; RateCurve: for rate mode, AttitudeCurve for Attitude mode, HorizonCurve: for horizon mode
- * @param horizon_transitions value for the horizon transition markers in the plot; 0: disabled, >0: horizon transitions in % horizon (should be the same as defined in /flight/Modules/Stabilization/stabilization.c)
- */
-void ExpoCurve::init()
-{
     //  setup of the axis title
     QwtText axis_title;
 
@@ -101,18 +101,23 @@ void ExpoCurve::init()
     axis_title_font.setPointSize(10);
     axis_title.setFont(axis_title_font);
 
-    this->enableAxis(QwtPlot::yRight);
-
     axis_title.setText(tr(" normalized stick input"));
     this->setAxisTitle(QwtPlot::xBottom, axis_title);
 
-    roll_elements.Curve.setTitle(tr("Roll rate (deg/s)"));
-    pitch_elements.Curve.setTitle(tr("Pitch rate (deg/s)"));
-    yaw_elements.Curve.setTitle(tr("Yaw rate (deg/s)"));
+    roll_elements.Curve.setTitle(tr("Roll"));
+    pitch_elements.Curve.setTitle(tr("Pitch"));
+    yaw_elements.Curve.setTitle(tr("Yaw"));
 
     axis_title.setText(tr("rate (deg/s)"));
-    this->setAxisTitle(QwtPlot::yRight, axis_title);
     this->setAxisTitle(QwtPlot::yLeft, axis_title);
+
+    // XXX temporary
+    // XXX needs to get max from "biggest" axis
+    setAxisScale(yLeft, 0, 720, 180);
+
+    plotDataRoll(50, 720, 50);
+    plotDataPitch(50, 720, 50);
+    plotDataYaw(50, 720, 30);
 }
 
 /**
@@ -124,18 +129,16 @@ void ExpoCurve::init()
  * The math here is copied/ the same as in the expo3() function in /flight/Libraries/math/misc_math.c
  * Please be aware of changes that are made there.
  */
-void ExpoCurve::plotData(int value, int max, ExpoPlotElements_t &plot_elements)
+void ExpoCurve::plotData(int value, int max, int exponent,
+        ExpoPlotElements_t &plot_elements)
 {
     for (int i = 0; i < steps; i++) {
-        y_data[i] = max * (x_data[i]  * ((100 - value) / 100.0) + pow(x_data[i], 3) * (value / 100.0));
+        y_data[i] = max * (x_data[i]  * ((100 - value) / 100.0) + pow(x_data[i], exponent/10.0f) * (value / 100.0));
     }
 
     plot_elements.Curve.setSamples(x_data, y_data, steps);
     plot_elements.Curve.show();
 
-    this->replot();
-
-    this->setAxisScaleDiv(yRight, this->axisScaleDiv(yLeft));
     this->replot();
 }
 
@@ -144,9 +147,9 @@ void ExpoCurve::plotData(int value, int max, ExpoPlotElements_t &plot_elements)
  * @param value The expo coefficient; sets the exponential amount [0,100]
  * @param max   The max. scaling for the axis in physical units
  */
-void ExpoCurve::plotDataRoll(double value, int max)
+void ExpoCurve::plotDataRoll(int value, int max, int exponent)
 {
-    plotData((int)value, max, this->roll_elements);
+    plotData(value, max, exponent, this->roll_elements);
 }
 
 /**
@@ -154,9 +157,9 @@ void ExpoCurve::plotDataRoll(double value, int max)
  * @param value The expo coefficient; sets the exponential amount [0,100]
  * @param max   The max. scaling for the axis in physical units
  */
-void ExpoCurve::plotDataPitch(double value, int max)
+void ExpoCurve::plotDataPitch(int value, int max, int exponent)
 {
-    plotData((int)value, max, this->pitch_elements);
+    plotData(value, max, exponent, this->pitch_elements);
 }
 
 /**
@@ -164,9 +167,9 @@ void ExpoCurve::plotDataPitch(double value, int max)
  * @param value The expo coefficient; sets the exponential amount [0,100]
  * @param max   The max. scaling for the axis in physical units
  */
-void ExpoCurve::plotDataYaw(double value, int max)
+void ExpoCurve::plotDataYaw(int value, int max, int exponent)
 {
-    plotData((int)value, max, this->yaw_elements);
+    plotData(value, max, exponent, this->yaw_elements);
 }
 
 /**

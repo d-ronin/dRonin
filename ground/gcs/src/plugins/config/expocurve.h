@@ -58,18 +58,19 @@ public:
     void init();
 
     //! Show expo data for one of the stick channels
-    void plotData(int value, int max, ExpoPlotElements_t &plot_elements);
+    void plotData(int value, int max, int exponent,
+            ExpoPlotElements_t &plot_elements);
 
 public slots:
 
     //! Show expo data for roll
-    void plotDataRoll(double value, int max);
+    void plotDataRoll(int value, int max, int exponent);
 
     //! Show expo data for pitch
-    void plotDataPitch(double value, int max);
+    void plotDataPitch(int value, int max, int exponent);
 
     //! Show expo data for yaw
-    void plotDataYaw(double value, int max);
+    void plotDataYaw(int value, int max, int exponent);
 
     //! Show/Hide a expo curve and markers
     void showCurve(const QVariant & itemInfo, bool on, int index);
