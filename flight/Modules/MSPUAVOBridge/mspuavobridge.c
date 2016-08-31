@@ -56,8 +56,8 @@ struct msp_bridge {
 	struct pios_com_dev *com;
 	struct msp_parser *parser;
 
-	volatile enum msp_message_id expected;
-	volatile bool done;
+	enum msp_message_id expected;
+	bool done;
 };
 
 static struct msp_message_list_item {
