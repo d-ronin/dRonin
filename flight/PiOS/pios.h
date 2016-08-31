@@ -32,6 +32,10 @@
 #ifndef PIOS_H
 #define PIOS_H
 
+#ifdef SIM_POSIX
+#include <pios_posix.h>
+#endif
+
 /* PIOS Feature Selection */
 #include "pios_config.h"
 
@@ -102,10 +106,7 @@
 #endif
 #include <pios_wdg.h>
 
-#ifdef SIM_POSIX
-#include <pios_posix.h>
-
-#else
+#ifndef SIM_POSIX
 #include <pios_gpio.h>
 #include <pios_exti.h>
 #include <pios_usart.h>
