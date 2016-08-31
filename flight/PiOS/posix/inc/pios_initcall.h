@@ -42,6 +42,8 @@ typedef struct {
 /* Init module section */
 extern initmodule_t *__module_initcall_start, *__module_initcall_end;
 
+extern initmodule_t *__module_hipriinitcall_start, *__module_hipriinitcall_end;
+
 #define MODULE_INITCALL(ifn, sfn) \
 static void _add_init_fn(void) __attribute__((constructor)); \
 static void _add_init_fn(void) { \
@@ -51,24 +53,44 @@ static void _add_init_fn(void) { \
 }
 
 #define MODULE_HIPRI_INITCALL(ifn, sfn) \
-	MODULE_INITCALL(ifn, sfn)
+static void _add_init_fn(void) __attribute__((constructor)); \
+static void _add_init_fn(void) { \
+	__module_hipriinitcall_end->fn_minit = (ifn); \
+	__module_hipriinitcall_end->fn_tinit = (sfn); \
+	__module_hipriinitcall_end++; \
+}
 
 #define MODULE_INITSYSTEM_DECLS \
 static initmodule_t __module_initcalls[256]; \
+static initmodule_t __module_hipriinitcalls[256]; \
 initmodule_t *__module_initcall_start = __module_initcalls; \
-initmodule_t *__module_initcall_end = __module_initcalls;
+initmodule_t *__module_initcall_end = __module_initcalls; \
+initmodule_t *__module_hipriinitcall_start = __module_hipriinitcalls; \
+initmodule_t *__module_hipriinitcall_end = __module_hipriinitcalls;
 
 #define MODULE_INITIALISE_ALL(wdgfn)  { \
+	for (initmodule_t *fn = __module_hipriinitcall_start; fn < __module_hipriinitcall_end; fn++) { \
+		if (fn->fn_minit)                               \
+		(fn->fn_minit)();                               \
+		(wdgfn)();                                      \
+	} ;                                                     \
 	for (initmodule_t *fn = __module_initcall_start; fn < __module_initcall_end; fn++) { \
 		if (fn->fn_minit)                               \
-		(fn->fn_minit)();                       \
+		(fn->fn_minit)();                               \
 		(wdgfn)();                                      \
 	}                                                       \
 }
 
-#define MODULE_TASKCREATE_ALL  { for (initmodule_t *fn = __module_initcall_start; fn < __module_initcall_end; fn++) \
-	if (fn->fn_tinit) \
-	(fn->fn_tinit)(); }
+#define MODULE_TASKCREATE_ALL { \
+	for (initmodule_t *fn = __module_hipriinitcall_start; fn < __module_hipriinitcall_end; fn++) { \
+		if (fn->fn_tinit)                              \
+			(fn->fn_tinit)();                      \
+	}                                                      \
+	for (initmodule_t *fn = __module_initcall_start; fn < __module_initcall_end; fn++) { \
+		if (fn->fn_tinit)                              \
+			(fn->fn_tinit)();                      \
+	}                                                      \
+}
 
 
 #endif	/* PIOS_INITCALL_H */

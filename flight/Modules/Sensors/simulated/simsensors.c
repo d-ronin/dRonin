@@ -157,7 +157,7 @@ static int32_t SimSensorsStart(void)
 	return 0;
 }
 
-MODULE_INITCALL(SimSensorsInitialize, SimSensorsStart)
+MODULE_HIPRI_INITCALL(SimSensorsInitialize, SimSensorsStart)
 
 /**
  * Simulated sensor task.  Run a model of the airframe and produce sensor values

@@ -118,7 +118,6 @@ int32_t VtolPathFollowerInitialize()
 		return -1;
 	}
 
-
 	if (!PIOS_SENSORS_GetQueue(PIOS_SENSOR_MAG)) {
 		module_enabled = false;
 		return -1;
