@@ -36,6 +36,8 @@
                           + 1 /* command */ \
                           + 1 /* checksum */)
 
+#define MSP_PARSER_MAGIC 0x32aedc07 
+
 enum msp_state {
 	MSP_STATE_IDLE,
 	MSP_STATE_PREAMBLE,
@@ -48,6 +50,8 @@ enum msp_state {
 };
 
 struct msp_parser {
+	uint32_t magic;
+
 	msp_handler_t handler;
 	void *handler_context;
 
@@ -63,7 +67,7 @@ struct msp_parser {
 
 static bool parser_validate(struct msp_parser *p)
 {
-	return p != NULL;
+	return p != NULL && p->magic == MSP_PARSER_MAGIC;
 }
 
 static bool call_handler(struct msp_parser *p, enum msp_message_id id, void *buf, uint8_t len)
@@ -138,7 +142,9 @@ static enum msp_state msp_parse_data(struct msp_parser *p, uint8_t b)
 
 static enum msp_state msp_parse_checksum(struct msp_parser *p, uint8_t b)
 {
-	call_handler(p, p->command, p->data_rcvd ? p->data_buf : NULL, p->data_rcvd);
+	p->checksum ^= b;
+	if (!p->checksum)
+		call_handler(p, p->command, p->data_rcvd ? p->data_buf : NULL, p->data_rcvd);
 
 	return MSP_STATE_IDLE;
 }
@@ -195,6 +201,7 @@ struct msp_parser *msp_parser_init(enum msp_parser_type type)
 
 	p->state = MSP_STATE_IDLE;
 	p->type = type;
+	p->magic = MSP_PARSER_MAGIC;
 
 	return p;
 }

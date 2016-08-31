@@ -47,9 +47,12 @@
 
 /* time to wait for a reply */
 #define MSP_TIMEOUT 10 // ms
+#define MSP_BRIDGE_MAGIC 0x97a4dc58 
 
 
 struct msp_bridge {
+	uint32_t magic;
+
 	struct pios_com_dev *com;
 	struct msp_parser *parser;
 
@@ -73,6 +76,12 @@ static struct msp_bridge *msp;
 
 // TODO: ick, use a real pointer
 extern uintptr_t pios_com_msp_id;
+
+
+static bool msp_bridge_validate(struct msp_bridge *m)
+{
+	return m != NULL && m->magic == MSP_BRIDGE_MAGIC;
+}
 
 static bool msp_unpack_attitude(void *data, uint8_t len)
 {
@@ -138,6 +147,7 @@ static bool msp_unpack_analog(void *data, uint8_t len)
 
 static void set_baudrate(struct msp_bridge *m)
 {
+	PIOS_Assert(msp_bridge_validate(m));
 	if (!m->com)
 		return;
 
@@ -149,9 +159,9 @@ static void set_baudrate(struct msp_bridge *m)
 
 static bool msp_handler(enum msp_message_id msg_id, void *data, uint8_t len, void *context)
 {
-	if (!context)
+	struct msp_bridge *m = context;
+	if (!msp_bridge_validate(m))
 		return false;
-	struct msp_bridge *msp = context;
 
 	bool retval = false;
 	switch (msg_id) {
@@ -168,8 +178,8 @@ static bool msp_handler(enum msp_message_id msg_id, void *data, uint8_t len, voi
 		break;
 	}
 
-	if (msg_id == msp->expected)
-		msp->done = true;
+	if (msg_id == m->expected)
+		m->done = true;
 
 	return retval;
 }
@@ -196,6 +206,7 @@ static void mspUavoBridge_Task(void *parameters)
 	msp_register_handler(msp->parser, msp_handler, msp);
 
 	while(true) {
+		PIOS_Assert(msp_bridge_validate(msp));
 		msp->done = false;
 
 		while (!(msp->expected = get_next_message()))
@@ -218,18 +229,22 @@ static void mspUavoBridge_Task(void *parameters)
  * @brief Start the MSP to UAVO bridge module
  * @retval 0 success
  * @retval -1 module not enabled
- * @retval -2 failed to create task
+ * @retval -2 invalid msp bridge state, somebody else blew stack?
+ * @retval -3 failed to create task
  */
 static int32_t mspUavoBridge_Start(void)
 {
 	if (!module_enabled)
 		return -1;
 
+	if (!msp_bridge_validate(msp))
+		return -2;
+
 	struct pios_thread *task = PIOS_Thread_Create(mspUavoBridge_Task,
 		"MspUavoBridge", STACK_SIZE_BYTES, NULL, THREAD_PRIORITY);
 
 	if (!task)
-		return -2;
+		return -3;
 
 	TaskMonitorAdd(TASKINFO_RUNNING_MSPUAVOBRIDGE, task);
 
@@ -273,6 +288,8 @@ static int32_t mspUavoBridge_Init(void)
 
 	if (!(AccelsHandle() && GyrosHandle() && FlightBatteryStateHandle()))
 		return -3;
+
+	msp->magic = MSP_BRIDGE_MAGIC;
 
 	return 0;
 }
