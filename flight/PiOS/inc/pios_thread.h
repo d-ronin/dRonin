@@ -82,9 +82,7 @@ enum pios_thread_prio_e
 
 /*
  * The following functions implement the concept of a thread usable
- * with PIOS_INCLUDE_FREERTOS.
- *
- * see FreeRTOS documentation for details: http://www.freertos.org/a00019.html
+ * with either FreeRTOS or ChibiOS
  */
 
 struct pios_thread *PIOS_Thread_Create(void (*fp)(void *), const char *namep, size_t stack_bytes, void *argp, enum pios_thread_prio_e prio);
@@ -96,6 +94,17 @@ uint32_t PIOS_Thread_Get_Stack_Usage(struct pios_thread *threadp);
 uint32_t PIOS_Thread_Get_Runtime(struct pios_thread *threadp);
 void PIOS_Thread_Scheduler_Suspend(void);
 void PIOS_Thread_Scheduler_Resume(void);
+
+/* 
+ * The following functions are provided to assist with common thread timing uses
+ */
+/**
+ * @brief Determine if a period has elapsed since a datum
+ * @param[in] prev_systime Opaque timestamp (at least in future) from PIOS_Thread_Systime()
+ * @param[in] increment_ms The period in ms
+ * @retval true if period has elapsed, false otherwise
+ */
+bool PIOS_Thread_Period_Elapsed(const uint32_t prev_systime, const uint32_t increment_ms);
 
 #endif /* PIOS_THREAD_H_ */
 
