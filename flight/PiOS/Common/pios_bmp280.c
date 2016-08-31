@@ -1,17 +1,14 @@
 /**
  ******************************************************************************
+ * @file       pios_bmp280.c
+ * @author     dRonin, http://dRonin.org/, Copyright (C) 2015-2016
+ * @author     Tau Labs, http://taulabs.org, Copyright (C) 2012-2014
  * @addtogroup PIOS PIOS Core hardware abstraction layer
  * @{
  * @addtogroup PIOS_BMP280 BMP280 Functions
- * @brief Hardware functions to deal with the altitude pressure sensor
  * @{
- *
- * @file       pios_bmp280.c
- * @author     Tau Labs, http://taulabs.org, Copyright (C) 2012-2014
- * @brief      BMP280 Pressure Sensor Routines
- * @see        The GNU Public License (GPL) Version 3
- ******************************************************************************/
-
+ * @brief Driver for BMP280
+ *****************************************************************************/
 /*
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -26,6 +23,10 @@
  * You should have received a copy of the GNU General Public License along
  * with this program; if not, write to the Free Software Foundation, Inc.,
  * 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
+ *
+ * Additional note on redistribution: The copyright and license notices above
+ * must be maintained in each individual source file that is a derivative work
+ * of this source file; otherwise redistribution is prohibited.
  */
 
 /* Project Includes */
@@ -439,3 +440,7 @@ static void PIOS_BMP280_Task(void *parameters)
 }
 
 #endif /* PIOS_INCLUDE_BMP280 */
+/**
+ * @}
+ * @}
+ */

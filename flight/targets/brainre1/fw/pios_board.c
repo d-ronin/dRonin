@@ -544,8 +544,6 @@ void PIOS_Board_Init(void) {
 	uint8_t hw_i2c;
 	HwBrainRE1I2CPortGet(&hw_i2c);
 
-	external_i2c_sensor_fail = false;
-
 	if (hw_i2c != HWBRAINRE1_I2CPORT_DISABLED) {
 #if defined(PIOS_INCLUDE_I2C)
 		if (PIOS_I2C_Init(&pios_i2c_external_id, &pios_i2c_external_cfg)) {
