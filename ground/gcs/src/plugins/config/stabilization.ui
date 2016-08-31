@@ -3160,6 +3160,7 @@ border-radius: 5;</string>
                      <string>element:Roll</string>
                      <string>haslimits:yes</string>
                      <string>scale:1</string>
+                     <string>buttongroup:3,10</string>
                     </stringlist>
                    </property>
                   </widget>
@@ -3207,6 +3208,7 @@ border-radius: 5;</string>
                      <string>element:Pitch</string>
                      <string>haslimits:yes</string>
                      <string>scale:1</string>
+                     <string>buttongroup:3,10</string>
                     </stringlist>
                    </property>
                   </widget>
@@ -3271,6 +3273,7 @@ border-radius: 5;</string>
                      <string>element:Roll</string>
                      <string>haslimits:yes</string>
                      <string>scale:10</string>
+                     <string>buttongroup:3,10</string>
                     </stringlist>
                    </property>
                   </widget>
@@ -3354,6 +3357,7 @@ border-radius: 5;</string>
                      <string>element:Pitch</string>
                      <string>haslimits:yes</string>
                      <string>scale:10</string>
+                     <string>buttongroup:3,10</string>
                     </stringlist>
                    </property>
                   </widget>
@@ -3409,6 +3413,7 @@ border-radius: 5;</string>
                      <string>element:Yaw</string>
                      <string>haslimits:yes</string>
                      <string>scale:10</string>
+                     <string>buttongroup:3,10</string>
                     </stringlist>
                    </property>
                   </widget>
@@ -3437,6 +3442,7 @@ border-radius: 5;</string>
                      <string>element:Yaw</string>
                      <string>haslimits:yes</string>
                      <string>scale:1</string>
+                     <string>buttongroup:3,10</string>
                     </stringlist>
                    </property>
                   </widget>
