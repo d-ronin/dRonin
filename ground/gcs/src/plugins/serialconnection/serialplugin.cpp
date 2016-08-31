@@ -146,7 +146,11 @@ QList <IDevice *> SerialConnection::availableDevices()
             }
             if(!port_exists) {
                 SerialDevice* d = new SerialDevice();
-                d->setDisplayName(port.portName());
+                QStringList disp;
+                if (port.description().length())
+                    disp.append(port.description());
+                disp.append(port.portName());
+                d->setDisplayName(disp.join(" - "));
                 d->setName(port.portName());
                 m_available_device_list.append(d);
             }
