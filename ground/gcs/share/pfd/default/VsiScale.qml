@@ -20,10 +20,12 @@ Item {
             sceneSize: sceneItem.sceneSize
 
             //the scale in 1000 ft/min with height == 5200 ft/min
-            height: (-VelocityActual.Down*3.28*60/1000)*vsi_scale.unitHeight
+            height: (Math.abs(VelocityActual.Down)*3.28*60/1000)*vsi_scale.unitHeight
 
+            anchors.verticalCenterOffset: (VelocityActual.Down*3.28*60/1000)*vsi_scale.unitHeight / 2.0
 
-            anchors.bottom: parent.verticalCenter
+            anchors.verticalCenter: parent.verticalCenter
+
             anchors.left: parent.left
         }
 
