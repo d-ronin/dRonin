@@ -56,6 +56,7 @@
 #include "pios_com_priv.h"
 #include "pios_serial_priv.h"
 #include "pios_tcp_priv.h"
+#include "pios_thread.h"
 
 #include "pios_spi_posix_priv.h"
 #include "pios_ms5611_priv.h"
@@ -307,7 +308,13 @@ static void go_realtime() {
 #endif
 }
 
+static int saved_argc;
+static char **saved_argv;
+
 void PIOS_SYS_Args(int argc, char *argv[]) {
+	saved_argc = argc;
+	saved_argv = argv;
+
 	int opt;
 
 	while ((opt = getopt(argc, argv, "frl:s:d:S:")) != -1) {
@@ -456,7 +463,36 @@ void PIOS_SYS_Init(void)
 */
 int32_t PIOS_SYS_Reset(void)
 {
-	/* We will never reach this point */
+	PIOS_Thread_Scheduler_Suspend();
+
+	char *argv[128];
+
+	/* Sigh, ensure NULL termination of array like execvpe(3) expects*/
+	int num = saved_argc;
+	int i = 0;
+
+	if (num > 128) {
+		num = 127;
+	}
+
+	for (i = 0; i < num; i++) {
+		argv[i] = saved_argv[i];
+	}
+
+	argv[i] = 0;
+
+	// Close out all fds-- open or not.
+	// We don't want our existing listening socket leaking, etc.
+	// Note that we should really be using FD_CLOEXEC, but it's really
+	// tricky.. and even if we do, we should leave this to be safe.
+	for (i = STDERR_FILENO+1; i < 1024; i++) {
+		close(i);
+	}
+
+	execvp(argv[0], argv);
+
+	abort();
+
 	return -1;
 }
 
