@@ -266,12 +266,21 @@ int32_t transmitter_control_update()
 #endif /* PIOS_INCLUDE_HSUM */
 			break;
 		}
-		if(value < 0)
-			value = 0;
-		if (settings.RssiMax == settings.RssiMin)
+
+		if (value < settings.RssiMin) {
 			cmd.Rssi = 0;
-		else
+		} else if (settings.RssiMax == settings.RssiMin) {
+			cmd.Rssi = 0;
+		} else if (value > settings.RssiMax) {
+			if (value > (settings.RssiMax + settings.RssiMax/4)) {
+				cmd.Rssi = 0;
+			} else {
+				cmd.Rssi = 100;
+			}
+		} else {
 			cmd.Rssi = ((float)(value - settings.RssiMin)/((float)settings.RssiMax-settings.RssiMin)) * 100;
+		}
+
 		cmd.RawRssi = value;
 	}
 
