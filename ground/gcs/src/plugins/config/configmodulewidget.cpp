@@ -83,14 +83,9 @@ ConfigModuleWidget::ConfigModuleWidget(QWidget *parent) : ConfigTaskWidget(paren
     connect(ui->gb_airspeedGPS, SIGNAL(clicked(bool)), this, SLOT(enableAirspeedTypeGPS(bool)));
     connect(ui->gb_airspeedPitot, SIGNAL(clicked(bool)), this, SLOT(enableAirspeedTypePitot(bool)));
 
-    // Link the fields
-    connect(ui->pb_startVibrationTest, SIGNAL(clicked()), this, SLOT(toggleVibrationTest()));
-
     enableBatteryTab(false);
     enableAirspeedTab(false);
-    enableVibrationTab(false);
     enableHoTTTelemetryTab(false);
-    enableGeofenceTab(false);
     enablePicoCTab(false);
     enableGpsTab(false);
     enableLoggingTab(false);
@@ -107,10 +102,8 @@ ConfigModuleWidget::ConfigModuleWidget(QWidget *parent) : ConfigTaskWidget(paren
 
     setNotMandatory(FlightBatterySettings::NAME);
     setNotMandatory(AirspeedSettings::NAME);
-    setNotMandatory(VibrationAnalysisSettings::NAME);
     setNotMandatory(HoTTSettings::NAME);
     setNotMandatory(PicoCSettings::NAME);
-    setNotMandatory(GeoFenceSettings::NAME);
     setNotMandatory(LoggingSettings::NAME);
 }
 
@@ -152,10 +145,6 @@ void ConfigModuleWidget::recheckTabs()
     connect(obj, SIGNAL(transactionCompleted(UAVObject*,bool)), this, SLOT(objectUpdated(UAVObject*,bool)), Qt::UniqueConnection);
     obj->requestUpdate();
 
-    obj = getObjectManager()->getObject(VibrationAnalysisSettings::NAME);
-    connect(obj, SIGNAL(transactionCompleted(UAVObject*,bool)), this, SLOT(objectUpdated(UAVObject*,bool)), Qt::UniqueConnection);
-    obj->requestUpdate();
-
     obj = getObjectManager()->getObject(HoTTSettings::NAME);
     connect(obj, SIGNAL(transactionCompleted(UAVObject*,bool)), this, SLOT(objectUpdated(UAVObject*,bool)), Qt::UniqueConnection);
     TaskInfo *taskInfo = qobject_cast<TaskInfo *>(getObjectManager()->getObject(TaskInfo::NAME));
@@ -165,10 +154,6 @@ void ConfigModuleWidget::recheckTabs()
     } else {
         obj->requestUpdate();
     }
-
-    obj = getObjectManager()->getObject(GeoFenceSettings::NAME);
-    connect(obj, SIGNAL(transactionCompleted(UAVObject*,bool)), this, SLOT(objectUpdated(UAVObject*,bool)), Qt::UniqueConnection);
-    obj->requestUpdate();
 
     obj = getObjectManager()->getObject(PicoCSettings::NAME);
     connect(obj, SIGNAL(transactionCompleted(UAVObject*,bool)), this, SLOT(objectUpdated(UAVObject*,bool)), Qt::UniqueConnection);
@@ -206,12 +191,8 @@ void ConfigModuleWidget::objectUpdated(UAVObject * obj, bool success)
     } else if (objName.compare(FlightBatterySettings::NAME) == 0) {
         enableBatteryTab(success && moduleSettings->getAdminState_Battery() == ModuleSettings::ADMINSTATE_ENABLED);
         refreshAdcNames();
-    } else if (objName.compare(VibrationAnalysisSettings::NAME) == 0) {
-        enableVibrationTab(success && moduleSettings->getAdminState_VibrationAnalysis() == ModuleSettings::ADMINSTATE_ENABLED);
     } else if (objName.compare(HoTTSettings::NAME) == 0) {
         enableHoTTTelemetryTab(success && enableHott);
-    } else if (objName.compare(GeoFenceSettings::NAME) == 0) {
-        enableGeofenceTab(success && moduleSettings->getAdminState_Geofence() == ModuleSettings::ADMINSTATE_ENABLED);
     } else if (objName.compare(PicoCSettings::NAME) == 0) {
         enablePicoCTab(success && moduleSettings->getAdminState_PicoC() == ModuleSettings::ADMINSTATE_ENABLED);
     } else if (objName.compare(LoggingSettings::NAME) == 0) {
@@ -223,24 +204,6 @@ void ConfigModuleWidget::objectUpdated(UAVObject * obj, bool success)
     ui->lblAutoHaveTaskInfo->setVisible(haveTaskInfo);
     ui->lblAutoNoTaskInfo->setVisible(!haveTaskInfo);
     ui->gbAutoModules->setEnabled(haveTaskInfo);
-}
-
-void ConfigModuleWidget::toggleVibrationTest()
-{
-    VibrationAnalysisSettings *vibrationAnalysisSettings;
-    vibrationAnalysisSettings = VibrationAnalysisSettings::GetInstance(getObjectManager());
-    VibrationAnalysisSettings::DataFields vibrationAnalysisSettingsData;
-    vibrationAnalysisSettingsData = vibrationAnalysisSettings->getData();
-
-    // Toggle state
-    if (vibrationAnalysisSettingsData.TestingStatus == VibrationAnalysisSettings::TESTINGSTATUS_ON)
-        vibrationAnalysisSettingsData.TestingStatus = VibrationAnalysisSettings::TESTINGSTATUS_OFF;
-    else
-        vibrationAnalysisSettingsData.TestingStatus = VibrationAnalysisSettings::TESTINGSTATUS_ON;
-
-    // Send data
-    vibrationAnalysisSettings->setData(vibrationAnalysisSettingsData);
-    vibrationAnalysisSettings->updated();
 }
 
 /**
@@ -343,24 +306,10 @@ void ConfigModuleWidget::enableAirspeedTab(bool enabled)
     ui->moduleTab->setTabEnabled(idx,enabled);
 }
 
-//! Enable or disable the vibration tab
-void ConfigModuleWidget::enableVibrationTab(bool enabled)
-{
-    int idx = ui->moduleTab->indexOf(ui->tabVibration);
-    ui->moduleTab->setTabEnabled(idx,enabled);
-}
-
 //! Enable or disable the HoTT telemetrie tab
 void ConfigModuleWidget::enableHoTTTelemetryTab(bool enabled)
 {
     int idx = ui->moduleTab->indexOf(ui->tabHoTTTelemetry);
-    ui->moduleTab->setTabEnabled(idx,enabled);
-}
-
-//! Enable or disable the geofence tab
-void ConfigModuleWidget::enableGeofenceTab(bool enabled)
-{
-    int idx = ui->moduleTab->indexOf(ui->tabGeofence);
     ui->moduleTab->setTabEnabled(idx,enabled);
 }
 
