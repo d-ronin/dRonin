@@ -702,11 +702,12 @@ void ConfigOsdWidget::enableControls(bool enable)
 
 /**
  * @brief ModuleSettingsForm::getWidgetFromVariant Reimplements getWidgetFromVariant. This version supports "FalseString".
+ * TODO: remove this since it's supported by UAVO relations now
  * @param widget pointer to the widget from where to get the value
  * @param scale scale to be used on the assignement
  * @return returns the value of the widget times the scale
  */
-QVariant ConfigOsdWidget::getVariantFromWidget(QWidget * widget, double scale)
+QVariant ConfigOsdWidget::getVariantFromWidget(QWidget *widget, double scale, bool usesUnits)
 {
     if(QGroupBox * groupBox=qobject_cast<QGroupBox *>(widget)) {
         QString ret;
@@ -740,18 +741,19 @@ QVariant ConfigOsdWidget::getVariantFromWidget(QWidget * widget, double scale)
 
         return ret;
     } else {
-        return ConfigTaskWidget::getVariantFromWidget(widget, scale);
+        return ConfigTaskWidget::getVariantFromWidget(widget, scale, usesUnits);
     }
 }
 
 /**
  * @brief ModuleSettingsForm::setWidgetFromVariant Reimplements setWidgetFromVariant. This version supports "FalseString".
+ * TODO: remove this since it's supported by UAVO relations now
  * @param widget pointer for the widget to set
  * @param scale scale to be used on the assignement
  * @param value value to be used on the assignement
  * @return returns true if the assignement was successfull
  */
-bool ConfigOsdWidget::setWidgetFromVariant(QWidget *widget, QVariant value, double scale)
+bool ConfigOsdWidget::setWidgetFromVariant(QWidget *widget, QVariant value, double scale, QString units)
 {
     if(QGroupBox * groupBox=qobject_cast<QGroupBox *>(widget)) {
         bool bvalue;
@@ -774,7 +776,7 @@ bool ConfigOsdWidget::setWidgetFromVariant(QWidget *widget, QVariant value, doub
         checkBox->setChecked(bvalue);
         return true;
     } else {
-        return ConfigTaskWidget::setWidgetFromVariant(widget, value, scale);
+        return ConfigTaskWidget::setWidgetFromVariant(widget, value, scale, units);
     }
 }
 /**

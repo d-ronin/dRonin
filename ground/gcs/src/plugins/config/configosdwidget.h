@@ -83,8 +83,8 @@ private:
     void setupOsdPage(Ui::OsdPage * page, QWidget * page_widget, UAVObject * settings);
     void copyOsdPage(int to, int from);
     quint8 scaleSwitchChannel(quint8 channelNumber, quint8 switchPositions);
-    QVariant getVariantFromWidget(QWidget * widget, double scale);
-    bool setWidgetFromVariant(QWidget *widget, QVariant value, double scale);
+    QVariant getVariantFromWidget(QWidget *widget, double scale, bool usesUnits = false);
+    bool setWidgetFromVariant(QWidget *widget, QVariant value, double scale, QString units = "");
 
 
     static QString trueString;
