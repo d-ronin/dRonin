@@ -216,6 +216,7 @@ int32_t transmitter_control_update()
 			lastActivityTime = lastSysTime;
 		}
 	}
+
 	if (timeDifferenceMs(lastActivityTime, lastSysTime) > 5000) {
 		resetRcvrActivity(&activity_fsm);
 		lastActivityTime = lastSysTime;
@@ -510,6 +511,7 @@ enum control_events transmitter_control_get_events()
 {
 	enum control_events to_return = pending_control_event;
 	pending_control_event = CONTROL_EVENTS_NONE;
+
 	return to_return;
 }
 
@@ -807,12 +809,12 @@ static void set_flight_mode()
 {
 	uint8_t new_mode = transmitter_control_get_flight_mode();
 
-	FlightStatusData flightStatus;
-	FlightStatusGet(&flightStatus);
+	FlightStatusFlightModeOptions cur_mode;
 
-	if (flightStatus.FlightMode != new_mode) {
-		flightStatus.FlightMode = new_mode;
-		FlightStatusSet(&flightStatus);
+	FlightStatusFlightModeGet(&cur_mode);
+
+	if (cur_mode != new_mode) {
+		FlightStatusFlightModeSet(&new_mode);
 	}
 }
 
