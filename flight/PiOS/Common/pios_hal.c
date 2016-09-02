@@ -1243,7 +1243,7 @@ static int PIOS_HAL_ConfigureI2C(uint32_t *id,
 		}
 	}
 
-	if (PIOS_I2C_CheckClear(pios_i2c_external_id) != 0) {
+	if (PIOS_I2C_CheckClear(*id) != 0) {
 		AlarmsSet(SYSTEMALARMS_ALARM_I2C, SYSTEMALARMS_ALARM_CRITICAL);
 		return -2;
 	}
@@ -1328,7 +1328,7 @@ int PIOS_HAL_ConfigureExternalMag(HwSharedExtMagOptions mag,
 	switch (mag) {
 #ifdef PIOS_INCLUDE_HMC5883
 	case HWSHARED_EXTBARO_MS5611:
-		ret = PIOS_HMC5883_Init(pios_i2c_external_id,
+		ret = PIOS_HMC5883_Init(*i2c_id,
 				&external_hmc5883_cfg);
 
 		if (ret) goto done;
