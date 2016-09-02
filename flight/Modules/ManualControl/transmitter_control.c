@@ -102,6 +102,15 @@ static uint32_t               lastSysTime;
 static float                      flight_mode_value;
 static enum control_events        pending_control_event;
 static bool                       settings_updated;
+enum arm_state {
+	ARM_STATE_DISARMED,
+	ARM_STATE_ARMING,
+	ARM_STATE_ARMED_STILL_HOLDING,
+	ARM_STATE_ARMED,
+	ARM_STATE_DISARMING,
+	ARM_STATE_DISARMED_STILL_HOLDING
+};
+static enum arm_state arm_state = ARM_STATE_DISARMED;
 
 // Private functions
 static float get_thrust_source(ManualControlCommandData *manual_control_command, SystemSettingsAirframeTypeOptions * airframe_type, bool normalize_positive);
@@ -117,6 +126,7 @@ static void applyDeadband(float *value, float deadband);
 static void resetRcvrActivity(struct rcvr_activity_fsm * fsm);
 static bool updateRcvrActivity(struct rcvr_activity_fsm * fsm);
 static void set_loiter_command(ManualControlCommandData *cmd, SystemSettingsAirframeTypeOptions *airframe_type);
+static void set_armed_if_changed(uint8_t new_arm);
 
 // Exposed from manualcontrol to prevent attempts to arm when unsafe
 extern bool ok_to_arm();
@@ -333,7 +343,8 @@ int32_t transmitter_control_update()
 
 		// Need to do this here since we don't process armed status.  Since this shouldn't happen in flight (changed config)
 		// immediately disarm
-		pending_control_event = CONTROL_EVENTS_DISARM;
+		arm_state = FLIGHTSTATUS_ARMED_DISARMED;
+		set_armed_if_changed(arm_state);
 
 		return -1;
 	}
@@ -634,15 +645,6 @@ static void process_transmitter_events(ManualControlCommandData * cmd, ManualCon
 	  DISARMED_STILL_HOLDING: wait for release
 	*/
 
-	enum arm_state {
-		ARM_STATE_DISARMED,
-		ARM_STATE_ARMING,
-		ARM_STATE_ARMED_STILL_HOLDING,
-		ARM_STATE_ARMED,
-		ARM_STATE_DISARMING,
-		ARM_STATE_DISARMED_STILL_HOLDING
-	};
-	static enum arm_state arm_state = ARM_STATE_DISARMED;
 	static uint32_t armedDisarmStart;
 
 	valid &= cmd->Connected == MANUALCONTROLCOMMAND_CONNECTED_TRUE;
