@@ -159,6 +159,7 @@ SRC += pios_modules.c
 
 SRC += pios_adc.c
 SRC += pios_bl_helper.c
+SRC += pios_bmm150.c
 SRC += pios_bmx055.c
 SRC += pios_debug.c
 SRC += pios_delay.c
