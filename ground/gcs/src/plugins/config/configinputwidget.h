@@ -90,6 +90,7 @@ protected:
             QString disarmName;
             bool isSwitch;
             bool isStick;
+            bool isFixed;
         };
 
         static const QVector<ArmingMethod> armingMethods;
@@ -223,12 +224,16 @@ private slots:
         void updateCalibration();
         void checkArmingConfig();
         void checkReprojection();
+        void updateArmingConfig(UAVObject *manualControlSettings);
+        void timeoutCheckboxChanged();
 
 protected:
         void resizeEvent(QResizeEvent *event);
         virtual void enableControls(bool enable);
-        void addMessage(QWidget *widget, const QString type, const QString msg);
+        void addMessage(QWidget *target, const QString type, const QString msg);
+        void addWarning(QWidget *target, QWidget *cause, const QString msg);
         void clearMessages(QWidget *widget, const QString type);
+        void clearWarnings(QWidget *target, QWidget *causesParent);
 };
 
 #endif

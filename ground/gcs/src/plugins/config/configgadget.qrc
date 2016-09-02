@@ -34,5 +34,6 @@
         <file>images/ic_cloud_upload_48px.svg</file>
         <file>images/ic_content_paste_48px.svg</file>
         <file>images/autotunebg.png</file>
+        <file>images/ic_warning_black_24px_trans.png</file>
     </qresource>
 </RCC>
