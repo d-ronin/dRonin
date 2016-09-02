@@ -70,6 +70,30 @@ public:
         enum failsafeDetection {FS_AWAITING_CONNECTION, FS_AWAITING_FAILSAFE, FS_AWAITING_RECONNECT};
         void startInputWizard() { goToWizard(); }
 
+protected:
+        // Note: must match armingNames
+        enum ArmingMethodIndex {
+            ARM_ALWAYS_DISARMED,
+            ARM_ALWAYS_ARMED,
+            ARM_SWITCH,
+            ARM_ROLL_LEFT,
+            ARM_ROLL_RIGHT,
+            ARM_YAW_LEFT,
+            ARM_YAW_RIGHT,
+            ARM_CORNERS,
+        };
+
+        struct ArmingMethod {
+            enum ArmingMethodIndex method;
+            QString name;
+            QString armName;
+            QString disarmName;
+            bool isSwitch;
+            bool isStick;
+        };
+
+        static const QVector<ArmingMethod> armingMethods;
+
 private:
         // This was set through trial and error. Extensive testing
         // will have to be done before changing it. At a minimum,
@@ -177,6 +201,9 @@ private:
         TelemetryManager* telMngr;
         quint8 scaleSwitchChannel(quint8 channelNumber, quint8 switchPositions);
 
+        const ArmingMethod armingMethodFromArmName(const QString name);
+        void fillArmingComboBox();
+
 private slots:
         void wzNext();
         void wzBack();
@@ -194,8 +221,7 @@ private slots:
         void invertControls();
         void simpleCalibration(bool state);
         void updateCalibration();
-        void checkArmingConfig(QString option);
-        void checkHangtimeConfig();
+        void checkArmingConfig();
         void checkReprojection();
 
 protected:

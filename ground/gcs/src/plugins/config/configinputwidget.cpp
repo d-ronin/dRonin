@@ -70,6 +70,18 @@
 // movements.   Also, life the universe and everything.
 #define INITIAL_OFFSET 42
 
+/* TODO: confirm disarms */
+const QVector<ConfigInputWidget::ArmingMethod> ConfigInputWidget::armingMethods = {
+    {ConfigInputWidget::ARM_ALWAYS_DISARMED, "always disarmed", "always disarmed", "always disarmed", false, false},
+    {ConfigInputWidget::ARM_ALWAYS_ARMED,    "always armed", "always armed", "always armed", false, false},
+    {ConfigInputWidget::ARM_SWITCH,          "switch", "a switch" ,"a switch", true, false},
+    {ConfigInputWidget::ARM_ROLL_LEFT,       "roll left", "roll left", "roll right", false, true},
+    {ConfigInputWidget::ARM_ROLL_RIGHT,      "roll right", "roll right", "roll left", false, true},
+    {ConfigInputWidget::ARM_YAW_LEFT,        "yaw left", "yaw left", "yaw right", false, true},
+    {ConfigInputWidget::ARM_YAW_RIGHT,       "yaw right", "yaw right", "yaw left", false, true},
+    {ConfigInputWidget::ARM_CORNERS,         "corners", "roll left and yaw right", "roll right and yaw left", false, true},
+};
+
 ConfigInputWidget::ConfigInputWidget(QWidget *parent) : ConfigTaskWidget(parent),wizardStep(wizardNone),transmitterType(heli),loop(NULL),skipflag(false)
 {
     manualCommandObj = ManualControlCommand::GetInstance(getObjectManager());
@@ -155,11 +167,26 @@ ConfigInputWidget::ConfigInputWidget(QWidget *parent) : ConfigTaskWidget(parent)
     addUAVObjectToWidgetRelation("ManualControlSettings","Stabilization3Reprojection",m_config->fmsSsPos3Rep);
 
     // connect this before the widgets are populated to ensure it always fires
-    connect(m_config->armControl, SIGNAL(currentTextChanged(QString)), this, SLOT(checkArmingConfig(QString)));
-    addUAVObjectToWidgetRelation("ManualControlSettings","Arming",m_config->armControl);
-    addUAVObjectToWidgetRelation("ManualControlSettings","ArmedTimeout",m_config->armTimeout,0,1000);
     connect( ManualControlCommand::GetInstance(getObjectManager()),SIGNAL(objectUpdated(UAVObject*)),this,SLOT(moveFMSlider()));
     connect( ManualControlSettings::GetInstance(getObjectManager()),SIGNAL(objectUpdated(UAVObject*)),this,SLOT(updatePositionSlider()));
+
+    // check reprojection settings
+    const QStringList axes({"Roll", "Pitch", "Yaw", "Rep"});
+    for (int i = 1; i <= 3; i++) {
+        foreach (const QString &axis, axes) {
+            QComboBox *child = this->findChild<QComboBox *>(QString("fmsSsPos%1%2").arg(i).arg(axis));
+            if (child)
+                connect(child, SIGNAL(currentTextChanged(QString)), this, SLOT(checkReprojection()));
+        }
+    }
+
+    // check things that affect arming config
+    fillArmingComboBox();
+    ActuatorSettings *actuatorSettings = qobject_cast<ActuatorSettings *>(getObjectManager()->getObject(ActuatorSettings::NAME));
+    if (actuatorSettings)
+        connect(actuatorSettings, SIGNAL(objectUpdated(UAVObject *)), this, SLOT(checkArmingConfig()));
+    connect(m_config->cbArmMethod, SIGNAL(currentIndexChanged(int)), this, SLOT(checkArmingConfig()));
+
     enableControls(false);
 
     populateWidgets();
@@ -324,21 +351,6 @@ ConfigInputWidget::ConfigInputWidget(QWidget *parent) : ConfigTaskWidget(parent)
                         ManualControlSettings::CHANNELGROUPS_ACCESSORY1 <<
                         ManualControlSettings::CHANNELGROUPS_ACCESSORY2 <<
                         ManualControlSettings::CHANNELGROUPS_ARMING;
-
-    // check reprojection settings
-    const QStringList axes({"Roll", "Pitch", "Yaw", "Rep"});
-    for (int i = 1; i <= 3; i++) {
-        foreach (const QString &axis, axes) {
-            QComboBox *child = this->findChild<QComboBox *>(QString("fmsSsPos%1%2").arg(i).arg(axis));
-            if (child)
-                connect(child, SIGNAL(currentTextChanged(QString)), this, SLOT(checkReprojection()));
-        }
-    }
-
-    // display warning if hangtime is enabled but not using switch arming
-    ActuatorSettings *actuatorSettings = qobject_cast<ActuatorSettings *>(getObjectManager()->getObject(ActuatorSettings::NAME));
-    if (actuatorSettings)
-        connect(actuatorSettings, SIGNAL(objectUpdated(UAVObject *)), this, SLOT(checkHangtimeConfig()));
 }
 void ConfigInputWidget::resetTxControls()
 {
@@ -1740,31 +1752,6 @@ void ConfigInputWidget::simpleCalibration(bool enable)
     }
 }
 
-void ConfigInputWidget::checkArmingConfig(QString option)
-{
-    if(!m_config->armControl->isEnabled() || option.contains("+Throttle") || option == "Always Disarmed")
-        m_config->lblThrottleCheckWarn->hide();
-    else
-        m_config->lblThrottleCheckWarn->show();
-
-    // display warning if hangtime is enabled but not using switch arming
-    checkHangtimeConfig();
-}
-
-void ConfigInputWidget::checkHangtimeConfig()
-{
-    bool warn = true;
-
-    ActuatorSettings *actuatorSettings = qobject_cast<ActuatorSettings *>(getObjectManager()->getObject(ActuatorSettings::NAME));
-    if (actuatorSettings)
-        warn &= actuatorSettings->getLowPowerStabilizationMaxTime() > 0.0f;
-
-    const QString option = m_config->armControl->currentText();
-    warn &= !option.startsWith("Switch") && option != "Always Disarmed";
-
-    m_config->lblHangTimeWarning->setVisible(warn);
-}
-
 void ConfigInputWidget::clearMessages(QWidget *widget, const QString type)
 {
     QLabel *lbl = findChild<QLabel *>("lblMessage" + type);
@@ -1824,4 +1811,51 @@ void ConfigInputWidget::checkReprojection()
             addMessage(m_config->gbxFMMessages, prefix, QString("Stabilized%0: When using %1 reprojection, stabilization modes must match for %2 axes!")
                           .arg(prefix.right(1)).arg(rep->currentText()).arg(axes.join(", ")));
     }
+}
+
+const ConfigInputWidget::ArmingMethod ConfigInputWidget::armingMethodFromArmName(const QString name)
+{
+    foreach (const ArmingMethod &method, armingMethods) {
+        if (method.armName == name)
+            return method;
+    }
+    Q_ASSERT(false);
+    // default to always disarmed
+    return armingMethods.at(0);
+}
+
+void ConfigInputWidget::checkArmingConfig()
+{
+    // clear existing warnings
+    clearMessages(m_config->gbWarnings, "Arming");
+
+    const ArmingMethod arming = armingMethodFromArmName(m_config->cbArmMethod->currentText());
+    m_config->lblDisarmMethod->setText(arming.disarmName);
+
+    // check hangtime, recommend switch arming if enabled
+    bool hangtime = false;
+    ActuatorSettings *actuatorSettings = qobject_cast<ActuatorSettings *>(getObjectManager()->getObject(ActuatorSettings::NAME));
+    Q_ASSERT(actuatorSettings);
+    if (actuatorSettings)
+        hangtime = actuatorSettings->getLowPowerStabilizationMaxTime() > 0.0f;
+
+    if (hangtime) {
+        m_config->lblRecommendedArm->setText(tr("switch arming"));
+        if (arming.method != ARM_ALWAYS_DISARMED && !arming.isSwitch)
+            addMessage(m_config->gbWarnings, "Arming", tr("Switch arming is recommended when hangtime is enabled."));
+    } else {
+        // TODO: recommend switch or stick for multi, any for planes etc.
+        m_config->lblRecommendedArm->setText(tr("any"));
+    }
+
+    m_config->lblStickArmTime->setVisible(arming.isStick);
+    m_config->cbCalibrateGyros->setVisible(arming.isSwitch);
+    m_config->cbArmTime->setVisible(arming.isStick || arming.isSwitch);
+}
+
+void ConfigInputWidget::fillArmingComboBox()
+{
+    m_config->cbArmMethod->clear();
+    foreach (const ArmingMethod &method, armingMethods)
+        m_config->cbArmMethod->addItem(method.armName, method.method);
 }
