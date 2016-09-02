@@ -1267,7 +1267,7 @@ int PIOS_HAL_ConfigureExternalBaro(HwSharedExtBaroOptions baro,
 	return -1;
 #else
 	if (baro == HWSHARED_EXTBARO_NONE) {
-		return 0;
+		return 1;
 	}
 
 	int ret = PIOS_HAL_ConfigureI2C(i2c_id, i2c_cfg);
@@ -1284,6 +1284,8 @@ int PIOS_HAL_ConfigureExternalBaro(HwSharedExtBaroOptions baro,
 		ret = PIOS_BMP280_Test();
 
 		if (ret) goto done;
+
+		break;
 #endif // PIOS_INCLUDE_BMP280
 
 #if defined(PIOS_INCLUDE_MS5611)
@@ -1295,6 +1297,8 @@ int PIOS_HAL_ConfigureExternalBaro(HwSharedExtBaroOptions baro,
 
 		if (ret) goto done;
 #endif // PIOS_INCLUDE_MS5611
+		
+		break;
 
 	default:
 		PIOS_Assert(0);	// Should be unreachable
@@ -1318,7 +1322,7 @@ int PIOS_HAL_ConfigureExternalMag(HwSharedExtMagOptions mag,
 	return -1;
 #else
 	if (mag == HWSHARED_EXTMAG_NONE) {
-		return 0;
+		return 1;
 	}
 
 	int ret = PIOS_HAL_ConfigureI2C(i2c_id, i2c_cfg);
@@ -1327,7 +1331,7 @@ int PIOS_HAL_ConfigureExternalMag(HwSharedExtMagOptions mag,
 
 	switch (mag) {
 #ifdef PIOS_INCLUDE_HMC5883
-	case HWSHARED_EXTBARO_MS5611:
+	case HWSHARED_EXTMAG_HMC5883:
 		ret = PIOS_HMC5883_Init(*i2c_id,
 				&external_hmc5883_cfg);
 
@@ -1350,6 +1354,7 @@ int PIOS_HAL_ConfigureExternalMag(HwSharedExtMagOptions mag,
 			external_hmc5883_cfg.Default_Orientation;
 
 		PIOS_HMC5883_SetOrientation(hmc5883_orientation);
+		break;
 #endif /* PIOS_INCLUDE_HMC5883 */
 
 	default:
