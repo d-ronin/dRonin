@@ -42,6 +42,7 @@ MODULES += FirmwareIAP
 MODULES += Telemetry
 
 OPTMODULES += GPS
+OPTMODULES += AltitudeHold
 OPTMODULES += PathPlanner
 OPTMODULES += VtolPathFollower
 OPTMODULES += FixedWingPathFollower
@@ -156,6 +157,9 @@ SRC += $(RSCODE)/rs.c
 SRC += pios_delay.c
 SRC += pios_gcsrcvr.c
 SRC += pios_bmi160.c
+SRC += pios_bmp280.c
+SRC += pios_ms5611.c
+SRC += pios_hmc5883.c
 SRC += pios_etasv3.c
 SRC += pios_mpxv5004.c
 SRC += pios_mpxv7002.c

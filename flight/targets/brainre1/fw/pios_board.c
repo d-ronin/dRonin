@@ -103,6 +103,35 @@ static const struct pios_bmi160_cfg pios_bmi160_cfg = {
 };
 #endif /* PIOS_INCLUDE_BMI160 */
 
+#if defined(PIOS_INCLUDE_BMP280)
+#include "pios_bmp280_priv.h"
+static const struct pios_bmp280_cfg pios_bmp280_cfg = {
+	.oversampling = BMP280_HIGH_RESOLUTION,
+	.temperature_interleaving = 1,
+};
+#endif /* PIOS_INCLUDE_BMP280 */
+
+#if defined(PIOS_INCLUDE_MS5611)
+#include "pios_ms5611_priv.h"
+static const struct pios_ms5611_cfg pios_ms5611_cfg = {
+    .oversampling             = MS5611_OSR_4096,
+    .temperature_interleaving = 1,
+    .use_0x76_address         = false,
+};
+#endif /* PIOS_INCLUDE_MS5611 */
+
+#if defined(PIOS_INCLUDE_HMC5883)
+#include "pios_hmc5883_priv.h"
+static const struct pios_hmc5883_cfg pios_hmc5883_external_cfg = {
+       .exti_cfg            = NULL,
+       .M_ODR               = PIOS_HMC5883_ODR_75,
+       .Meas_Conf           = PIOS_HMC5883_MEASCONF_NORMAL,
+       .Gain                = PIOS_HMC5883_GAIN_1_9,
+       .Mode                = PIOS_HMC5883_MODE_SINGLE,
+       .Default_Orientation = PIOS_HMC5883_TOP_0DEG,
+};
+#endif /* PIOS_INCLUDE_HMC5883 */
+
 #if defined(PIOS_INCLUDE_FRSKY_RSSI)
 #include "pios_frsky_rssi_priv.h"
 #endif /* PIOS_INCLUDE_FRSKY_RSSI */
@@ -238,14 +267,6 @@ void PIOS_Board_Init(void) {
 		PIOS_DEBUG_Assert(0);
 	}
 #endif
-
-#if defined(PIOS_INCLUDE_I2C)
-	if (PIOS_I2C_Init(&pios_i2c_external_id, &pios_i2c_external_cfg)) {
-		PIOS_DEBUG_Assert(0);
-	}
-	if (PIOS_I2C_CheckClear(pios_i2c_external_id) != 0)
-		PIOS_HAL_CriticalError(PIOS_LED_ALARM, PIOS_HAL_PANIC_I2C_EXT);
-#endif /* defined(PIOS_INCLUDE_I2C) */
 
 #if defined(PIOS_INCLUDE_RE1_FPGA)
 	if (PIOS_RE1FPGA_Init(pios_spi_flash_id, 1, &pios_re1fpga_cfg, false) != 0) {
@@ -405,16 +426,16 @@ void PIOS_Board_Init(void) {
 	uint8_t hw_rxport;
 	HwBrainRE1RxPortGet(&hw_rxport);
 
-	PIOS_HAL_ConfigurePort(hw_rxport, // port type protocol
-			&pios_usart3_cfg, // usart_port_cfg
-			&pios_usart_com_driver,
-			NULL, // i2c_id
-			NULL, // i2c_cfg
-			&pios_ppm_cfg, // ppm_cfg
-			NULL, // pwm_cfg
-			PIOS_LED_ALARM, // led_id
-			&pios_rxport_dsm_cfg, // dsm_cfg
-			hw_DSMxMode, // dsm_mode
+	PIOS_HAL_ConfigurePort(hw_rxport,            // port type protocol
+			&pios_usart3_cfg,                    // usart_port_cfg
+			&pios_usart_com_driver,              // com_driver
+			NULL,                                // i2c_id
+			NULL,                                // i2c_cfg
+			&pios_ppm_cfg,                       // ppm_cfg
+			NULL,                                // pwm_cfg
+			PIOS_LED_ALARM,                      // led_id
+			&pios_rxport_dsm_cfg,                // dsm_cfg
+			hw_DSMxMode,                         // dsm_mode
 			NULL);
 
 	if (hw_rxport == HWSHARED_PORTTYPES_SBUS) {
@@ -519,6 +540,94 @@ void PIOS_Board_Init(void) {
 	}
 #endif /* PIOS_INCLUDE_BMI160 */
 #endif /* PIOS_INCLUDE_SPI */
+
+	uint8_t hw_i2c;
+	HwBrainRE1I2CPortGet(&hw_i2c);
+
+	if (hw_i2c != HWBRAINRE1_I2CPORT_DISABLED) {
+#if defined(PIOS_INCLUDE_I2C)
+		if (PIOS_I2C_Init(&pios_i2c_external_id, &pios_i2c_external_cfg)) {
+			PIOS_DEBUG_Assert(0);
+			AlarmsSet(SYSTEMALARMS_ALARM_I2C, SYSTEMALARMS_ALARM_CRITICAL);
+		}
+		if (PIOS_I2C_CheckClear(pios_i2c_external_id) != 0) {
+			AlarmsSet(SYSTEMALARMS_ALARM_I2C, SYSTEMALARMS_ALARM_CRITICAL);
+		}
+
+		if (AlarmsGet(SYSTEMALARMS_ALARM_I2C) == SYSTEMALARMS_ALARM_UNINITIALISED)
+				AlarmsSet(SYSTEMALARMS_ALARM_I2C, SYSTEMALARMS_ALARM_OK);
+#endif // PIOS_INCLUDE_I2C
+	}
+
+	PIOS_WDG_Clear();
+
+	uint8_t hw_ext_baro;
+	HwBrainRE1ExtBaroGet(&hw_ext_baro);
+
+	if (((hw_i2c == HWBRAINRE1_I2CPORT_EXTBARO) || (hw_i2c == HWBRAINRE1_I2CPORT_EXTBAROANDEXTMAG)) &&
+	    (hw_ext_baro == HWBRAINRE1_EXTBARO_BMP280)) {
+#if defined(PIOS_INCLUDE_I2C)
+#if defined(PIOS_INCLUDE_BMP280)
+		if (PIOS_BMP280_Init(&pios_bmp280_cfg, pios_i2c_external_id) == 0) {
+			if (PIOS_BMP280_Test() != 0) {
+				PIOS_SENSORS_SetMissing(PIOS_SENSOR_BARO);
+			}
+		}
+		else {
+			PIOS_SENSORS_SetMissing(PIOS_SENSOR_BARO);
+		}
+#endif // PIOS_INCLUDE_BMP280
+#endif // PIOS_INCLUDE_I2C
+	}
+
+	if (((hw_i2c == HWBRAINRE1_I2CPORT_EXTBARO) || (hw_i2c == HWBRAINRE1_I2CPORT_EXTBAROANDEXTMAG)) &&
+	    (hw_ext_baro == HWBRAINRE1_EXTBARO_MS5611)) {
+#if defined(PIOS_INCLUDE_I2C)
+#if defined(PIOS_INCLUDE_MS5611)
+		if (PIOS_MS5611_Init(&pios_ms5611_cfg, pios_i2c_external_id) == 0) {
+			if (PIOS_MS5611_Test() != 0) {
+				PIOS_SENSORS_SetMissing(PIOS_SENSOR_BARO);
+			}
+		}
+		else {
+			PIOS_SENSORS_SetMissing(PIOS_SENSOR_BARO);
+		}
+#endif // PIOS_INCLUDE_MS5611
+#endif // PIOS_INCLUDE_I2C
+	}
+
+	if ((hw_i2c == HWBRAINRE1_I2CPORT_EXTMAG) || (hw_i2c == HWBRAINRE1_I2CPORT_EXTBAROANDEXTMAG)) {
+#if defined(PIOS_INCLUDE_I2C)
+#if defined(PIOS_INCLUDE_HMC5883)
+		if (PIOS_HMC5883_Init(pios_i2c_external_id, &pios_hmc5883_external_cfg) == 0) {
+			if (PIOS_HMC5883_Test() == 0) {
+				// External mag configuration was successful
+
+				// setup sensor orientation
+				uint8_t ext_mag;
+				HwBrainRE1ExtMagGet(&ext_mag);
+
+				enum pios_hmc5883_orientation hmc5883_orientation = \
+					(ext_mag == HWBRAINRE1_EXTMAG_TOP0DEGCW)      ? PIOS_HMC5883_TOP_0DEG      : \
+					(ext_mag == HWBRAINRE1_EXTMAG_TOP90DEGCW)     ? PIOS_HMC5883_TOP_90DEG     : \
+					(ext_mag == HWBRAINRE1_EXTMAG_TOP180DEGCW)    ? PIOS_HMC5883_TOP_180DEG    : \
+					(ext_mag == HWBRAINRE1_EXTMAG_TOP270DEGCW)    ? PIOS_HMC5883_TOP_270DEG    : \
+					(ext_mag == HWBRAINRE1_EXTMAG_BOTTOM0DEGCW)   ? PIOS_HMC5883_BOTTOM_0DEG   : \
+					(ext_mag == HWBRAINRE1_EXTMAG_BOTTOM90DEGCW)  ? PIOS_HMC5883_BOTTOM_90DEG  : \
+					(ext_mag == HWBRAINRE1_EXTMAG_BOTTOM180DEGCW) ? PIOS_HMC5883_BOTTOM_180DEG : \
+					(ext_mag == HWBRAINRE1_EXTMAG_BOTTOM270DEGCW) ? PIOS_HMC5883_BOTTOM_270DEG : \
+					pios_hmc5883_external_cfg.Default_Orientation;
+				PIOS_HMC5883_SetOrientation(hmc5883_orientation);
+			}
+			else
+				PIOS_SENSORS_SetMissing(PIOS_SENSOR_MAG);
+		}
+		else
+			PIOS_SENSORS_SetMissing(PIOS_SENSOR_MAG);
+
+#endif  // PIOS_INCLUDE_HMC5883
+#endif  // PIOS_INCLUDE_I2C
+	}
 
 	/* Set voltage/current calibration values, if the current settings are UAVO defaults.*/
 	FlightBatterySettingsInitialize();

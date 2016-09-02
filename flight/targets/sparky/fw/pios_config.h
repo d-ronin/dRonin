@@ -133,8 +133,6 @@
 
 #define PIOS_INCLUDE_FASTHEAP
 
-#define SUPPORTS_EXTERNAL_MAG
-
 #endif /* PIOS_CONFIG_H */
 /**
  * @}
