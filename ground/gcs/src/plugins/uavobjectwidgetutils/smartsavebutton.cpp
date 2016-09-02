@@ -134,7 +134,7 @@ void smartSaveButton::processOperation(QPushButton * button,bool save)
 
         // We only allow to send/save Settings objects using this method
         if (!obj->isSettings()) {
-            qDebug() << "[smartsavebutton.cpp] Error, tried to apply/save a non-settings object";
+            qDebug() << "[smartsavebutton.cpp] Error, tried to apply/save a non-settings object: " << obj->getName();
             continue;
         }
 
