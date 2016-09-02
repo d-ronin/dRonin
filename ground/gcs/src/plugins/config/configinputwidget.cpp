@@ -126,7 +126,6 @@ ConfigInputWidget::ConfigInputWidget(QWidget *parent) : ConfigTaskWidget(parent)
     addUAVObjectToWidgetRelation("ManualControlSettings", "Deadband", m_config->deadband, 0, 0.01f);
 
     connect(m_config->configurationWizard,SIGNAL(clicked()),this,SLOT(goToWizard()));
-    connect(m_config->stackedWidget,SIGNAL(currentChanged(int)),this,SLOT(disableWizardButton(int)));
     connect(m_config->runCalibration,SIGNAL(toggled(bool)),this, SLOT(simpleCalibration(bool)));
 
     connect(m_config->wzNext,SIGNAL(clicked()),this,SLOT(wzNext()));
@@ -400,14 +399,6 @@ void ConfigInputWidget::goToWizard()
     default:
         break;
     }
-}
-
-void ConfigInputWidget::disableWizardButton(int value)
-{
-    if(value!=0)
-        m_config->configurationWizard->setVisible(false);
-    else
-        m_config->configurationWizard->setVisible(true);
 }
 
 void ConfigInputWidget::wzCancel()
@@ -1535,7 +1526,6 @@ void ConfigInputWidget::enableControls(bool enable)
     m_config->runCalibration->setEnabled(enable);
 
     ConfigTaskWidget::enableControls(enable);
-
 }
 
 void ConfigInputWidget::invertControls()
