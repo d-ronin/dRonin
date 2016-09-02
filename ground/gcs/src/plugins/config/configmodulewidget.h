@@ -49,7 +49,6 @@ private slots:
     void updateAirspeedGroupbox(UAVObject *);
     void enableAirspeedTypeGPS(bool);
     void enableAirspeedTypePitot(bool);
-    void toggleVibrationTest();
     void toggleBatteryMonitoringPin();
     void toggleBatteryMonitoringGb();
     void updateVoltageRatio();
