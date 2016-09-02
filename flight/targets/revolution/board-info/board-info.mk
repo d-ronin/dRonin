@@ -3,7 +3,8 @@ BOARD_REVISION      := 0x03
 # Previous version was 0x081, 0x082 introduces partition extensions
 # and forced boot from bkp registers; 0x83 changed bootdelay to 2ms for dsm bind
 # 0x84 increases firmware to 384k
-BOOTLOADER_VERSION  := 0x85
+# 0x86 allows custom 128mbit flash
+BOOTLOADER_VERSION  := 0x86
 HW_TYPE             := 0x00
 
 CHIP                := STM32F405RGT

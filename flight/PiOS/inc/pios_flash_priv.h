@@ -99,4 +99,11 @@ struct pios_flash_partition {
 
 extern void PIOS_FLASH_register_partition_table(const struct pios_flash_partition partition_table[], uint8_t num_partitions);
 
+void PIOS_FLASH_fixup_partitions_for_capacity(
+		struct pios_flash_partition *partition_table,
+		uint8_t partition_table_len,
+		const struct pios_flash_chip *descriptor,
+		struct pios_flash_sector_range *sectors,
+		uint32_t num_bytes);
+
 #endif	/* PIOS_FLASH_PRIV_H_ */

@@ -455,7 +455,7 @@ static const struct pios_flash_chip pios_flash_chip_internal = {
 #endif	/* PIOS_INCLUDE_FLASH_INTERNAL */
 
 #if defined(PIOS_INCLUDE_FLASH_JEDEC)
-static const struct pios_flash_sector_range m25p16_sectors[] = {
+static struct pios_flash_sector_range m25p16_sectors[] = {
 	{
 		.base_sector = 0,
 		.last_sector = 31,
@@ -473,7 +473,7 @@ static const struct pios_flash_chip pios_flash_chip_external = {
 };
 #endif /* PIOS_INCLUDE_FLASH_JEDEC */
 
-static const struct pios_flash_partition pios_flash_partition_table[] = {
+static struct pios_flash_partition pios_flash_partition_table[] = {
 #if defined(PIOS_INCLUDE_FLASH_INTERNAL)
 	{
 		.label        = FLASH_PARTITION_LABEL_BL,
@@ -534,6 +534,17 @@ const struct pios_flash_partition * PIOS_BOARD_HW_DEFS_GetPartitionTable (uint32
 	PIOS_Assert(num_partitions);
 
 	*num_partitions = NELEMENTS(pios_flash_partition_table);
+
+#ifdef PIOS_INCLUDE_FLASH_JEDEC
+	uint32_t capacity = PIOS_Flash_Jedec_GetCapacity(pios_external_flash_id);
+
+	PIOS_FLASH_fixup_partitions_for_capacity(pios_flash_partition_table,
+			NELEMENTS(pios_flash_partition_table),
+			&pios_flash_chip_external,
+			m25p16_sectors,
+			capacity);
+#endif
+
 	return pios_flash_partition_table;
 }
 
