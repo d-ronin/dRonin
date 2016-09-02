@@ -38,19 +38,27 @@ class QReadOnlyCheckBox : public QCheckBox
 {
     Q_OBJECT
 public:
-    QReadOnlyCheckBox(QWidget *parent = 0) : QCheckBox(parent)
+    QReadOnlyCheckBox(QWidget *parent = 0) : QCheckBox(parent), readOnly(true)
     {
+    }
+    void setReadOnly(bool enabled)
+    {
+        readOnly = enabled;
     }
 
 protected:
     void mousePressEvent(QMouseEvent *event)
     {
-        Q_UNUSED(event);
+        if (!readOnly)
+            QCheckBox::mousePressEvent(event);
     }
     void mouseReleaseEvent(QMouseEvent *event)
     {
-        Q_UNUSED(event);
+        if (!readOnly)
+            QCheckBox::mouseReleaseEvent(event);
     }
+
+    bool readOnly;
 };
 
 #endif // QREADONLYCHECKBOX_H
