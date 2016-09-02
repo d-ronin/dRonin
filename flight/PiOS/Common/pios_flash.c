@@ -61,7 +61,7 @@ void PIOS_FLASH_fixup_partitions_for_capacity(
 
 	uint32_t basic_capacity = 0;
 
-	for (int i=0; i < descriptor->num_blocks; i++) {
+	for (int i = 0; i < descriptor->num_blocks; i++) {
 		basic_capacity +=
 			(sectors[i].last_sector - sectors[i].base_sector + 1) *
 			sectors[i].sector_size;
