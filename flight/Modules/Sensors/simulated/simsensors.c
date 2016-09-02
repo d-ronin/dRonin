@@ -157,7 +157,7 @@ static int32_t SimSensorsStart(void)
 	return 0;
 }
 
-MODULE_INITCALL(SimSensorsInitialize, SimSensorsStart)
+MODULE_HIPRI_INITCALL(SimSensorsInitialize, SimSensorsStart)
 
 /**
  * Simulated sensor task.  Run a model of the airframe and produce sensor values
@@ -352,8 +352,11 @@ static void simulateModelQuadcopter()
 	static uint32_t last_time;
 	
 	float dT = (PIOS_DELAY_DiffuS(last_time) / 1e6);
-	if(dT < 1e-3)
+	if(dT < 1e-3) {
 		dT = 2e-3;
+	} else if (dT > 1e-1) {
+		dT = 1e-1;
+	}
 	last_time = PIOS_DELAY_GetRaw();
 	
 	FlightStatusData flightStatus;
@@ -480,6 +483,8 @@ static void simulateModelQuadcopter()
 		homeLocation.Be[1] = 0;
 		homeLocation.Be[2] = 400;
 		homeLocation.Set = HOMELOCATION_SET_TRUE;
+
+		HomeLocationSet(&homeLocation);
 	}
 
 	static float gps_vel_drift[3] = {0,0,0};
@@ -593,8 +598,11 @@ static void simulateModelAirplane()
 	static uint32_t last_time;
 	
 	float dT = (PIOS_DELAY_DiffuS(last_time) / 1e6);
-	if(dT < 1e-3)
+	if(dT < 1e-3) {
 		dT = 2e-3;
+	} else if (dT > 1e-1) {
+		dT = 1e-1;
+	}
 	last_time = PIOS_DELAY_GetRaw();
 	
 	FlightStatusData flightStatus;
@@ -781,6 +789,8 @@ static void simulateModelAirplane()
 		homeLocation.Be[1] = 0;
 		homeLocation.Be[2] = 400;
 		homeLocation.Set = HOMELOCATION_SET_TRUE;
+
+		HomeLocationSet(&homeLocation);
 	}
 	
 	static float gps_vel_drift[3] = {0,0,0};
@@ -885,8 +895,11 @@ static void simulateModelCar()
 	static uint32_t last_time;
 	
 	float dT = (PIOS_DELAY_DiffuS(last_time) / 1e6);
-	if(dT < 1e-3)
+	if(dT < 1e-3) {
 		dT = 2e-3;
+	} else if (dT > 1e-1) {
+		dT = 1e-1;
+	}
 	last_time = PIOS_DELAY_GetRaw();
 	
 	FlightStatusData flightStatus;
@@ -1038,6 +1051,8 @@ static void simulateModelCar()
 		homeLocation.Be[1] = 0;
 		homeLocation.Be[2] = 400;
 		homeLocation.Set = HOMELOCATION_SET_TRUE;
+
+		HomeLocationSet(&homeLocation);
 	}
 	
 	static float gps_vel_drift[3] = {0,0,0};
