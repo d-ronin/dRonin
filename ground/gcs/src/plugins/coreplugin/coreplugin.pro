@@ -131,4 +131,4 @@ unix:!macx {
 OTHER_FILES += Core.pluginspec \
     coreplugin.json
 
-include(gcsversioninfo.pri)
+include(../../../gcsversioninfo.pri)
