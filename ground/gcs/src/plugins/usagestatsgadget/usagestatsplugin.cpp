@@ -40,7 +40,6 @@
 #include <QJsonObject>
 #include <QJsonDocument>
 #include <QJsonArray>
-#include GCS_VERSION_INFO_FILE
 #include "coreplugin/coreconstants.h"
 #include <QTimer>
 #include <QScrollBar>

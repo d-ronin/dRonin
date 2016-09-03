@@ -44,6 +44,7 @@
 #include <QPushButton>
 #include <QTextBrowser>
 #include <QApplication>
+#include <QDebug>
 
 using namespace Core;
 using namespace Core::Internal;
@@ -64,8 +65,12 @@ VersionDialog::VersionDialog(QWidget *parent)
     QString versionHash;
 
     QString versionData = QLatin1String(GCS_REVISION_PRETTY_STR);
-    versionName = versionData.split("%@%").at(0);
-    versionHash = versionData.split("%@%").at(1);
+    if (versionData.split(QLatin1String("%@%")).length() >= 2) {
+        versionName = versionData.split(QLatin1String("%@%")).at(0);
+        versionHash = versionData.split(QLatin1String("%@%")).at(1);
+    } else {
+        qWarning() << "Invalid GCS version information:" << versionData;
+    }
 
     QString ideRev;
 #ifdef GCS_REVISION
