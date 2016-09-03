@@ -146,6 +146,12 @@ void PIOS_Thread_Sleep_Until(uint32_t *previous_ms, uint32_t increment_ms)
 #error "PIOS_Thread_Sleep requires INCLUDE_vTaskDelayUntil to be defined 1"
 #endif /* (INCLUDE_vTaskDelayUntil == 1) */
 
+bool PIOS_Thread_Period_Elapsed(const uint32_t prev_systime, const uint32_t increment_ms)
+{
+	/* TODO: make PIOS_Thread_Systime return opaque type to avoid ms conversion */
+	return (xTaskGetTickCount() - MS2TICKS(prev_systime)) >= MS2TICKS(increment_ms);
+}
+
 /**
  *
  * @brief   Returns stack usage of a thread.
@@ -380,6 +386,12 @@ void PIOS_Thread_Sleep_Until(uint32_t *previous_ms, uint32_t increment_ms)
 	}
 
 	chSysUnlock();
+}
+
+bool PIOS_Thread_Period_Elapsed(const uint32_t prev_systime, const uint32_t increment_ms)
+{
+	/* TODO: make PIOS_Thread_Systime return opaque type to avoid ms conversion */
+	return CVT_MS2ST(increment_ms) <= chTimeElapsedSince(CVT_MS2ST(prev_systime));
 }
 
 /**
