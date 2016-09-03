@@ -126,6 +126,7 @@ void ConfigModuleWidget::enableControls(bool enable)
 void ConfigModuleWidget::recheckTabs()
 {
     // clear checkboxes in-case taskinfo object doesn't exist (it will look like the last connected board's modules are still enabled)
+    bool dirty = isDirty();
     ui->cbComBridge->setChecked(false);
     ui->cbGPS->setChecked(false);
     ui->cbUavoMavlink->setChecked(false);
@@ -134,6 +135,7 @@ void ConfigModuleWidget::recheckTabs()
     ui->cbUAVOFrskyBridge->setChecked(false);
     ui->cbUAVOMSPBridge->setChecked(false);
     ui->cbUAVOFrSkySPortBridge->setChecked(false);
+    setDirty(dirty);
 
     UAVObject * obj;
 
