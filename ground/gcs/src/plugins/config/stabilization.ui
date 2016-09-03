@@ -631,7 +631,7 @@
              <property name="minimumSize">
               <size>
                <width>0</width>
-               <height>0</height>
+               <height>340</height>
               </size>
              </property>
              <property name="maximumSize">
@@ -1255,7 +1255,7 @@
               <item row="1" column="1" colspan="2">
                <widget class="QGroupBox" name="RateStabilizationGroup_25">
                 <property name="sizePolicy">
-                 <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+                 <sizepolicy hsizetype="Preferred" vsizetype="Expanding">
                   <horstretch>0</horstretch>
                   <verstretch>0</verstretch>
                  </sizepolicy>
@@ -1263,7 +1263,7 @@
                 <property name="minimumSize">
                  <size>
                   <width>0</width>
-                  <height>110</height>
+                  <height>225</height>
                  </size>
                 </property>
                 <property name="palette">
@@ -1694,13 +1694,6 @@
                  <bool>true</bool>
                 </property>
                 <layout class="QGridLayout" name="gridLayout_6">
-                 <item row="4" column="1" colspan="7">
-                  <widget class="Line" name="line">
-                   <property name="orientation">
-                    <enum>Qt::Horizontal</enum>
-                   </property>
-                  </widget>
-                 </item>
                  <item row="1" column="6">
                   <widget class="QSlider" name="horizontalSlider_5">
                    <property name="sizePolicy">
@@ -4403,6 +4396,12 @@ border-radius: 5;</string>
                  </item>
                  <item row="5" column="2" colspan="6">
                   <widget class="QLabel" name="label">
+                   <property name="sizePolicy">
+                    <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+                     <horstretch>0</horstretch>
+                     <verstretch>0</verstretch>
+                    </sizepolicy>
+                   </property>
                    <property name="font">
                     <font>
                      <pointsize>11</pointsize>
@@ -4675,6 +4674,19 @@ border-radius: 5;</string>
                    </property>
                   </widget>
                  </item>
+                 <item row="4" column="4">
+                  <spacer name="verticalSpacer_13">
+                   <property name="orientation">
+                    <enum>Qt::Vertical</enum>
+                   </property>
+                   <property name="sizeHint" stdset="0">
+                    <size>
+                     <width>20</width>
+                     <height>40</height>
+                    </size>
+                   </property>
+                  </spacer>
+                 </item>
                 </layout>
                </widget>
               </item>
@@ -4714,7 +4726,7 @@ border-radius: 5;</string>
              <property name="maximumSize">
               <size>
                <width>16777215</width>
-               <height>195</height>
+               <height>16777215</height>
               </size>
              </property>
              <property name="title">
@@ -4801,7 +4813,7 @@ border-radius: 5;</string>
               <item row="1" column="0" colspan="3">
                <widget class="QGroupBox" name="RateStabilizationGroup_16">
                 <property name="sizePolicy">
-                 <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+                 <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
                   <horstretch>0</horstretch>
                   <verstretch>0</verstretch>
                  </sizepolicy>
@@ -4809,7 +4821,7 @@ border-radius: 5;</string>
                 <property name="minimumSize">
                  <size>
                   <width>0</width>
-                  <height>131</height>
+                  <height>140</height>
                  </size>
                 </property>
                 <property name="palette">
