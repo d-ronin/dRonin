@@ -369,6 +369,19 @@ void VehicleConfigurationHelper::applyManualControlDefaults()
     ManualControlSettings::DataFields cData = mcSettings->getData();
 
     ManualControlSettings::ChannelGroupsOptions channelType = ManualControlSettings::CHANNELGROUPS_PWM;
+
+    /* For all of these -- minVal and maxVal gathered from multiple autotune
+     * configuration shares.  neutVal is the true midpoint.   throtNeutVal
+     * is 4% up from min-- which is more than we usually do but conservative
+     * for auto-setup.  There are exceptions / cases where this is not right,
+     * like for openLRS s.bus.  But it's a decent start for people who will
+     * enter their ranges by hand.
+     */
+    uint16_t minVal = 1000;
+    uint16_t maxVal = 2000;
+    uint16_t neutVal = 1500;
+    uint16_t throtNeutVal = 1040;
+
     switch (m_configSource->getInputType()) {
     case Core::IBoardType::INPUT_TYPE_PWM:
         channelType = ManualControlSettings::CHANNELGROUPS_PWM;
@@ -378,16 +391,33 @@ void VehicleConfigurationHelper::applyManualControlDefaults()
         break;
     case Core::IBoardType::INPUT_TYPE_SBUS:
     case Core::IBoardType::INPUT_TYPE_SBUSNONINVERTED:
+        minVal = 172;
+        maxVal = 1811;
+        neutVal = 991;
+        throtNeutVal = 238;
         channelType = ManualControlSettings::CHANNELGROUPS_SBUS;
         break;
     case Core::IBoardType::INPUT_TYPE_DSM:
+        // Sadly this is the worse one-- it depends upon resolution.
+        // 74-950, 64-940 seen for 10 bit.  192-1856, 23-2025 for 11 bit.
+        minVal = 70; 
+        maxVal = 940;
+        neutVal = 505;
+        throtNeutVal = 106;
+
         channelType = ManualControlSettings::CHANNELGROUPS_DSM;
         break;
     case Core::IBoardType::INPUT_TYPE_HOTTSUMD:
     case Core::IBoardType::INPUT_TYPE_HOTTSUMH:
+        minVal = 858;
+        maxVal = 2138;
+        neutVal = 1498;
+        throtNeutVal = 909;
+
         channelType = ManualControlSettings::CHANNELGROUPS_HOTTSUM;
         break;
     case Core::IBoardType::INPUT_TYPE_IBUS:
+        /* Seems to be 1000..2000 */
         channelType = ManualControlSettings::CHANNELGROUPS_IBUS;
         break;
     case Core::IBoardType::INPUT_TYPE_UNKNOWN:
@@ -398,15 +428,19 @@ void VehicleConfigurationHelper::applyManualControlDefaults()
         break;
     }
 
-    cData.ChannelGroups[ManualControlSettings::CHANNELGROUPS_THROTTLE]   = channelType;
-    cData.ChannelGroups[ManualControlSettings::CHANNELGROUPS_ROLL]       = channelType;
-    cData.ChannelGroups[ManualControlSettings::CHANNELGROUPS_YAW] = channelType;
-    cData.ChannelGroups[ManualControlSettings::CHANNELGROUPS_PITCH]      = channelType;
-    cData.ChannelGroups[ManualControlSettings::CHANNELGROUPS_FLIGHTMODE] = channelType;
+    for (int i = 0; i < ManualControlSettings::CHANNELGROUPS_NUMELEM; i++) {
+        cData.ChannelGroups[i] = channelType;
+        cData.ChannelNumber[i] = 0;
+        cData.ChannelMin[i] = minVal;
+        cData.ChannelMax[i] = maxVal;
+        cData.ChannelNeutral[i] = neutVal;
+    }
 
     cData.ChannelNumber[ManualControlSettings::CHANNELGROUPS_THROTTLE]   = 1;
+    cData.ChannelNeutral[ManualControlSettings::CHANNELNEUTRAL_THROTTLE] =
+            throtNeutVal;
     cData.ChannelNumber[ManualControlSettings::CHANNELGROUPS_ROLL]       = 2;
-    cData.ChannelNumber[ManualControlSettings::CHANNELGROUPS_YAW] = 3;
+    cData.ChannelNumber[ManualControlSettings::CHANNELGROUPS_YAW]        = 3;
     cData.ChannelNumber[ManualControlSettings::CHANNELGROUPS_PITCH]      = 4;
     cData.ChannelNumber[ManualControlSettings::CHANNELGROUPS_FLIGHTMODE] = 5;
 
