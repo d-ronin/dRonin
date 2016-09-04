@@ -2,7 +2,7 @@
  ******************************************************************************
  *
  * @file       usagestatsplugin.cpp
- * @author     dRonin, http://dRonin.org/, Copyright (C) 2015
+ * @author     dRonin, http://dRonin.org/, Copyright (C) 2015, 2016
  * @addtogroup GCSPlugins GCS Plugins
  * @{
  * @addtogroup UsageStatsGadgetPlugin UsageStats Gadget Plugin
@@ -46,7 +46,7 @@
 #include <QSysInfo>
 #include "usagestatsoptionpage.h"
 
-UsageStatsPlugin::UsageStatsPlugin(): sendUsageStats(true), sendPrivateData(true), installationUUID("")
+UsageStatsPlugin::UsageStatsPlugin(): sendUsageStats(true), sendPrivateData(true), installationUUID(""), debugLogLevel(DebugEngine::WARNING)
 {
     loop = new QEventLoop(this);
     connect(&netMngr, SIGNAL(finished(QNetworkReply*)), loop, SLOT(quit()));
@@ -68,6 +68,7 @@ void UsageStatsPlugin::readConfig(QSettings *qSettings, Core::UAVConfigInfo *con
     if (installationUUID.isNull()) { //Create new UUID
         installationUUID = QUuid::createUuid();
     }
+    debugLogLevel = (qSettings->value(QLatin1String("DebugLogLevel"), debugLogLevel).toInt());
 
     qSettings->endGroup();
 }
@@ -79,6 +80,7 @@ void UsageStatsPlugin::saveConfig(QSettings *qSettings, Core::UAVConfigInfo *con
     qSettings->setValue(QLatin1String("SendUsageStats"), sendUsageStats);
     qSettings->setValue(QLatin1String("SendPrivateData"), sendPrivateData);
     qSettings->setValue(QLatin1String("InstallationUUID"), installationUUID.toString());
+    qSettings->setValue(QLatin1String("DebugLogLevel"), debugLogLevel);
 
     qSettings->endGroup();
 }
@@ -128,18 +130,19 @@ void UsageStatsPlugin::updateSettings()
 {
     UploaderGadgetFactory *uploader = pluginManager->getObject<UploaderGadgetFactory>();
     QMainWindow *mw = Core::ICore::instance()->mainWindow();
-    if(sendUsageStats) {
-        if(uploader) {
-            if(sendUsageStats) {
-                connect(uploader, SIGNAL(newBoardSeen(deviceInfo,deviceDescriptorStruct)), this, SLOT(addNewBoardSeen(deviceInfo, deviceDescriptorStruct)), Qt::UniqueConnection);
-            }
-            else {
-                disconnect(uploader, SIGNAL(newBoardSeen(deviceInfo,deviceDescriptorStruct)), this, SLOT(addNewBoardSeen(deviceInfo, deviceDescriptorStruct)));
-            }
-    }
-        if(mw) {
-        searchForWidgets(mw, sendUsageStats);
-        }
+    if (sendUsageStats) {
+        connect(DebugEngine::getInstance(), SIGNAL(message(DebugEngine::Level, const QString &, const QString &, const int, const QString &)),
+                this, SLOT(onDebugMessage(DebugEngine::Level, const QString &, const QString &, const int, const QString &)),
+                static_cast<Qt::ConnectionType>(Qt::QueuedConnection | Qt::UniqueConnection) /* sigh */);
+        if (uploader)
+            connect(uploader, SIGNAL(newBoardSeen(deviceInfo, deviceDescriptorStruct)), this, SLOT(addNewBoardSeen(deviceInfo, deviceDescriptorStruct)), Qt::UniqueConnection);
+        if (mw)
+            searchForWidgets(mw, true);
+    } else {
+        if (uploader)
+            disconnect(uploader, SIGNAL(newBoardSeen(deviceInfo, deviceDescriptorStruct)), this, SLOT(addNewBoardSeen(deviceInfo, deviceDescriptorStruct)));
+        if (mw)
+            searchForWidgets(mw, false);
     }
     Core::ICore::instance()->saveSettings(this);
 }
@@ -288,6 +291,21 @@ QByteArray UsageStatsPlugin::processJson() {
         widgetArray.append(j);
     }
     json["widgets"] = widgetArray;
+
+    QJsonArray debugLogArray;
+    foreach (const DebugMessage msg, debugMessageList) {
+        QJsonObject d;
+        d["level"] = msg.level;
+        d["levelString"] = msg.levelString;
+        d["message"] = msg.message;
+        d["file"] = msg.file;
+        d["line"] = msg.line;
+        d["function"] = msg.function;
+        debugLogArray.append(d);
+    }
+    json["debugLog"] = debugLogArray;
+    json["debugLevel"] = debugLogLevel;
+
     return QJsonDocument(json).toJson();
 }
 bool UsageStatsPlugin::getSendPrivateData() const
@@ -314,6 +332,49 @@ void UsageStatsPlugin::setSendUsageStats(bool value)
 QString UsageStatsPlugin::getInstallationUUID() const
 {
     return installationUUID.toString().remove(QRegExp("[{}]*"));
+}
+
+int UsageStatsPlugin::getDebugLogLevel() const
+{
+    return debugLogLevel;
+}
+
+void UsageStatsPlugin::setDebugLogLevel(int value)
+{
+    debugLogLevel = value;
+}
+
+void UsageStatsPlugin::onDebugMessage(DebugEngine::Level level, const QString &msg, const QString &file, const int line, const QString &function)
+{
+    if (level < debugLogLevel)
+        return;
+
+    DebugMessage info;
+    switch (level) {
+    case DebugEngine::DEBUG:
+        info.levelString = "debug";
+        break;
+    case DebugEngine::INFO:
+        info.levelString = "info";
+        break;
+    case DebugEngine::WARNING:
+        info.levelString = "warning";
+        break;
+    case DebugEngine::CRITICAL:
+        info.levelString = "critical";
+        break;
+    case DebugEngine::FATAL:
+        info.levelString = "fatal";
+        break;
+    }
+
+    info.level = level;
+    info.message = msg;
+    info.file = file;
+    info.line = line;
+    info.function = function;
+
+    debugMessageList.append(info);
 }
 
 AppCloseHook::AppCloseHook(UsageStatsPlugin *parent) : Core::ICoreListener(parent), m_parent(parent)

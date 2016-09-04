@@ -2,6 +2,7 @@
  ******************************************************************************
  *
  * @file       debuggadgetfactory.cpp
+ * @author     dRonin, http://dRonin.org/, Copyright (C) 2016
  * @author     The OpenPilot Team, http://www.openpilot.org Copyright (C) 2010.
  * @addtogroup GCSPlugins GCS Plugins
  * @{
@@ -33,26 +34,28 @@
 
 void customMessageHandler(QtMsgType type, const QMessageLogContext &context, const QString &msg)
 {
-    Q_UNUSED(context)
+    DebugEngine::Level level;
     switch (type) {
     case QtDebugMsg:
-        debugengine::getInstance()->writeDebug(msg);
+        level = DebugEngine::DEBUG;
+        break;
+    case QtInfoMsg:
+        level = DebugEngine::INFO;
         break;
     case QtWarningMsg:
-        debugengine::getInstance()->writeWarning(msg);
+        level = DebugEngine::WARNING;
         QTextStream(stderr) << "[Warning] " << msg << endl;
         break;
     case QtCriticalMsg:
-        debugengine::getInstance()->writeCritical(msg);
+        level = DebugEngine::CRITICAL;
         QTextStream(stderr) << "[Critical] " << msg << endl;
         break;
     case QtFatalMsg:
-        debugengine::getInstance()->writeFatal(msg);
+        level = DebugEngine::FATAL;
         QTextStream(stderr) << "[FATAL] " << msg << endl;
         break;
-    default:
-        debugengine::getInstance()->writeDebug(msg);
     }
+    DebugEngine::getInstance()->message(level, msg, QString(context.file), context.line, QString(context.function));
 }
 
 DebugGadgetFactory::DebugGadgetFactory(QObject *parent) :
@@ -68,7 +71,7 @@ IUAVGadget *DebugGadgetFactory::createGadget(QWidget *parent)
 {
     QProcessEnvironment env = QProcessEnvironment::systemEnvironment();
     if (env.contains("NO_DEBUG_GADGET"))
-        debugengine::getInstance()->writeDebug("Debug gadget disabled by NO_DEBUG_GADGET env. var.");
+        DebugEngine::getInstance()->message(DebugEngine::INFO, "Debug gadget disabled by NO_DEBUG_GADGET env. var.");
     else
         qInstallMessageHandler(customMessageHandler);
 
@@ -76,3 +79,8 @@ IUAVGadget *DebugGadgetFactory::createGadget(QWidget *parent)
 
     return new DebugGadget(QString("DebugGadget"), gadgetWidget, parent);
 }
+
+/**
+ * @}
+ * @}
+ */

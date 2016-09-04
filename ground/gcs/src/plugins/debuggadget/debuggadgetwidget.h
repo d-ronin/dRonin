@@ -2,6 +2,7 @@
  ******************************************************************************
  *
  * @file       debuggadgetwidget.h
+ * @author     dRonin, http://dRonin.org/, Copyright (C) 2016
  * @author     The OpenPilot Team, http://www.openpilot.org Copyright (C) 2010.
  * @addtogroup GCSPlugins GCS Plugins
  * @{
@@ -42,10 +43,11 @@ private:
 private slots:
     void saveLog();
     void clearLog();
-    void dbgMsgDebug(QString msg);
-    void dbgMsgWarning(QString msg);
-    void dbgMsgCritical(QString msg);
-    void dbgMsgFatal(QString msg);
-
+    void message(DebugEngine::Level level, const QString &msg, const QString &file, const int line, const QString &function);
 };
 #endif /* DEBUGGADGETWIDGET_H_ */
+
+/**
+ * @}
+ * @}
+ */

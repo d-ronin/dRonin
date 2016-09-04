@@ -2,6 +2,7 @@
  ******************************************************************************
  *
  * @file       debuggadgetwidget.cpp
+ * @author     dRonin, http://dRonin.org/, Copyright (C) 2016
  * @author     The OpenPilot Team, http://www.openpilot.org Copyright (C) 2010.
  * @addtogroup GCSPlugins GCS Plugins
  * @{
@@ -43,12 +44,10 @@ DebugGadgetWidget::DebugGadgetWidget(QWidget *parent) : QLabel(parent)
 {
     m_config = new Ui_Form();
     m_config->setupUi(this);
-    debugengine *de = debugengine::getInstance();
-
-    connect(de, SIGNAL(debug(QString)), this, SLOT(dbgMsgDebug(QString)),Qt::QueuedConnection);
-    connect(de, SIGNAL(warning(QString)), this, SLOT(dbgMsgWarning(QString)),Qt::QueuedConnection);
-    connect(de, SIGNAL(critical(QString)), this, SLOT(dbgMsgCritical(QString)),Qt::QueuedConnection);
-    connect(de, SIGNAL(fatal(QString)), this, SLOT(dbgMsgFatal(QString)),Qt::QueuedConnection);
+    DebugEngine *de = DebugEngine::getInstance();
+    connect(de, SIGNAL(message(DebugEngine::Level, const QString &, const QString &, const int, const QString &)),
+                this, SLOT(message(DebugEngine::Level, const QString &, const QString &, const int, const QString &)),
+                Qt::QueuedConnection);
     connect(m_config->saveToFile, SIGNAL(clicked()), this, SLOT(saveLog()));
     connect(m_config->clearLog, SIGNAL(clicked()), this, SLOT(clearLog()));
 }
@@ -58,53 +57,13 @@ DebugGadgetWidget::~DebugGadgetWidget()
     // Do nothing
 }
 
-void DebugGadgetWidget::dbgMsgDebug(QString msg)
-{
-    m_config->plainTextEdit->setTextColor(Qt::blue);
-
-    m_config->plainTextEdit->append(QString("%0[DEBUG]%1").arg(QTime::currentTime().toString()).arg(msg));
-
-    QScrollBar *sb = m_config->plainTextEdit->verticalScrollBar();
-    sb->setValue(sb->maximum());
-}
-
-void DebugGadgetWidget::dbgMsgWarning(QString msg)
-{
-    m_config->plainTextEdit->setTextColor(Qt::red);
-
-    m_config->plainTextEdit->append(QString("%0[WARNING]%1").arg(QTime::currentTime().toString()).arg(msg));
-
-    QScrollBar *sb = m_config->plainTextEdit->verticalScrollBar();
-    sb->setValue(sb->maximum());
-}
-
-void DebugGadgetWidget::dbgMsgCritical(QString msg)
-{
-    m_config->plainTextEdit->setTextColor(Qt::red);
-
-    m_config->plainTextEdit->append(QString("%0[CRITICAL]%1").arg(QTime::currentTime().toString()).arg(msg));
-
-    QScrollBar *sb = m_config->plainTextEdit->verticalScrollBar();
-    sb->setValue(sb->maximum());
-}
-
-void DebugGadgetWidget::dbgMsgFatal(QString msg)
-{
-    m_config->plainTextEdit->setTextColor(Qt::red);
-
-    m_config->plainTextEdit->append(QString("%0[FATAL]%1").arg(QTime::currentTime().toString()).arg(msg));
-
-    QScrollBar *sb = m_config->plainTextEdit->verticalScrollBar();
-    sb->setValue(sb->maximum());
-}
-
 void DebugGadgetWidget::saveLog()
 {
-    QString fileName = QFileDialog::getSaveFileName(0, tr("Save log File As"), "");
-
-    if (fileName.isEmpty()) {
+    QString fileName = QFileDialog::getSaveFileName(nullptr, tr("Save log File As"),
+                                                    QString("gcs-debug-log-%0.html").arg(QDateTime::currentDateTime().toString("yyyyMMdd-hhmmss")),
+                                                    tr("HTML (*.html)"));
+    if (fileName.isEmpty())
         return;
-    }
 
     QFile file(fileName);
     if (file.open(QIODevice::WriteOnly) &&
@@ -123,3 +82,47 @@ void DebugGadgetWidget::clearLog()
 {
     m_config->plainTextEdit->clear();
 }
+
+void DebugGadgetWidget::message(DebugEngine::Level level, const QString &msg, const QString &file, const int line, const QString &function)
+{
+    QColor color;
+    QString type;
+    switch (level) {
+    case DebugEngine::DEBUG:
+        color = Qt::blue;
+        type = "debug";
+        break;
+    case DebugEngine::INFO:
+        color = Qt::black;
+        type = "info";
+        break;
+    case DebugEngine::WARNING:
+        color = Qt::red;
+        type = "WARNING";
+        break;
+    case DebugEngine::CRITICAL:
+        color = Qt::red;
+        type = "CRITICAL";
+        break;
+    case DebugEngine::FATAL:
+        color = Qt::red;
+        type = "FATAL";
+        break;
+    }
+
+    QString source;
+#ifdef QT_DEBUG // only display this extended info to devs
+    source = QString("[%0:%1 %2]").arg(file).arg(line).arg(function);
+#endif
+
+    m_config->plainTextEdit->setTextColor(color);
+    m_config->plainTextEdit->append(QString("%0[%1]%2 %3").arg(QTime::currentTime().toString()).arg(type).arg(source).arg(msg));
+
+    QScrollBar *sb = m_config->plainTextEdit->verticalScrollBar();
+    sb->setValue(sb->maximum());
+}
+
+/**
+ * @}
+ * @}
+ */

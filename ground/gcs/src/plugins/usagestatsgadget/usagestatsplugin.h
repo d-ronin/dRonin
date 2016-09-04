@@ -2,7 +2,7 @@
  ******************************************************************************
  *
  * @file       usagestatsplugin.h
- * @author     dRonin, http://dRonin.org/, Copyright (C) 2015
+ * @author     dRonin, http://dRonin.org/, Copyright (C) 2015, 2016
  * @addtogroup GCSPlugins GCS Plugins
  * @{
  * @addtogroup UsageStatsGadgetPlugin UsageStats Gadget Plugin
@@ -33,6 +33,7 @@
 #include <extensionsystem/iplugin.h>
 #include "uploader/uploader_global.h"
 #include "uavobjectutil/devicedescriptorstruct.h"
+#include "debuggadget/debugengine.h"
 #include <QDateTime>
 #include <QAbstractButton>
 #include <QNetworkReply>
@@ -57,6 +58,14 @@ typedef struct widgetActionInfoType {
     QString data1;
     QString data2;
 } widgetActionInfo;
+typedef struct debugMessageStruct {
+    int level;
+    QString levelString;
+    QString message;
+    QString file;
+    int line;
+    QString function;
+} DebugMessage;
 
 class UsageStatsPlugin :  public Core::IConfigurablePlugin {
     Q_OBJECT
@@ -73,9 +82,10 @@ public:
     bool coreAboutToClose();
     bool getSendUsageStats() const;
     void setSendUsageStats(bool value);
-
     bool getSendPrivateData() const;
     void setSendPrivateData(bool value);
+    int getDebugLogLevel() const;
+    void setDebugLogLevel(int value);
 
     QString getInstallationUUID() const;
 public slots:
@@ -84,6 +94,7 @@ private:
     ExtensionSystem::PluginManager *pluginManager;
     QList<boardLog> boardLogList;
     QList<widgetActionInfo> widgetLogList;
+    QList<DebugMessage> debugMessageList;
     QByteArray processJson();
     QString externalIP;
     QNetworkAccessManager netMngr;
@@ -91,6 +102,7 @@ private:
     bool sendUsageStats;
     bool sendPrivateData;
     QUuid installationUUID;
+    int debugLogLevel;
 private slots:
     void pluginsLoadEnded();
     void addNewBoardSeen(deviceInfo, deviceDescriptorStruct);
@@ -98,6 +110,7 @@ private slots:
     void onButtonClicked();
     void onSliderValueChanged(int);
     void onTabCurrentChanged(int);
+    void onDebugMessage(DebugEngine::Level, const QString &, const QString &, const int, const QString &);
 };
 class AppCloseHook : public Core::ICoreListener {
     Q_OBJECT
