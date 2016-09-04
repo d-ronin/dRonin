@@ -1,3 +1,5 @@
+include(../tools.pri)
+
 QT += xml
 QT -= gui
 
@@ -6,11 +8,6 @@ macx {
 }
 
 cache()
-
-# use ccache with gcc
-*-g++* {
-    QMAKE_CXX=$$(CCACHE_BIN) g++
-}
 
 TARGET = uavobjgenerator
 CONFIG += console

@@ -7,6 +7,8 @@ contains(QT_VERSION, ^[0-4]\\..*) {
 cache()
 
 include(gcs.pri)
+!build_pass:message("QMAKE_CXX = $$QMAKE_CXX")
+!build_pass:message("QMAKE_CC = $$QMAKE_CC")
 
 TEMPLATE  = subdirs
 CONFIG   += ordered
