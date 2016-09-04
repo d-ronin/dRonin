@@ -34,7 +34,7 @@
 
 void customMessageHandler(QtMsgType type, const QMessageLogContext &context, const QString &msg)
 {
-    DebugEngine::Level level;
+    DebugEngine::Level level = DebugEngine::DEBUG;
     switch (type) {
     case QtDebugMsg:
         level = DebugEngine::DEBUG;
