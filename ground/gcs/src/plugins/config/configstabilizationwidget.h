@@ -54,6 +54,8 @@ private:
     bool updateInProgress;
 
     void updateGraphs();
+    void setDerivedControlsEnabled(bool enable);
+
 private slots:
     void linkCheckBoxes(int value);
     void ratesLink(int value);
@@ -67,6 +69,8 @@ private slots:
 
     void hangtimeDurationChanged();
     void hangtimeToggle(bool enabled);
+    void enableDerivedControls();
+    void disableDerivedControls();
 };
 
 #endif // ConfigStabilizationWidget_H

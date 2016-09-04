@@ -143,6 +143,37 @@ ConfigStabilizationWidget::ConfigStabilizationWidget(QWidget *parent) : ConfigTa
     disableMouseWheelEvents();
 
     connect(this,SIGNAL(autoPilotConnected()),this,SLOT(applyRateLimits()));
+
+    connect(this,SIGNAL(autoPilotConnected()),this,SLOT(enableDerivedControls()));
+    connect(this,SIGNAL(autoPilotDisconnected()),this,SLOT(disableDerivedControls()));
+
+    disableDerivedControls();
+}
+
+void ConfigStabilizationWidget::setDerivedControlsEnabled(bool enable)
+{
+    m_stabilization->sliderLTRoll->setEnabled(enable);
+    m_stabilization->rateRollLT->setEnabled(enable);
+    m_stabilization->sliderLTPitch->setEnabled(enable);
+    m_stabilization->ratePitchLT->setEnabled(enable);
+    m_stabilization->sliderLTYaw->setEnabled(enable);
+    m_stabilization->rateYawLT->setEnabled(enable);
+    m_stabilization->sliderCRateRoll->setEnabled(enable);
+    m_stabilization->centerStickRateRoll->setEnabled(enable);
+    m_stabilization->sliderCRatePitch->setEnabled(enable);
+    m_stabilization->centerStickRatePitch->setEnabled(enable);
+    m_stabilization->sliderCRateYaw->setEnabled(enable);
+    m_stabilization->centerStickRateYaw->setEnabled(enable);
+}
+
+void ConfigStabilizationWidget::enableDerivedControls()
+{
+    setDerivedControlsEnabled(true);
+}
+
+void ConfigStabilizationWidget::disableDerivedControls()
+{
+    setDerivedControlsEnabled(false);
 }
 
 ConfigStabilizationWidget::~ConfigStabilizationWidget()
