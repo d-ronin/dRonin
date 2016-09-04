@@ -96,9 +96,6 @@ CMSISDIR = $(STMLIBDIR)/CMSIS/Device/ST/STM32F4xx/Include
 
 # optional component libraries
 include $(APPLIBDIR)/ChibiOS/library.mk
-#include $(PIOSCOMMONLIB)/dosfs/library.mk
-include $(FLIGHTLIB)/CMSIS3/DSP_Lib/library.mk
-
 
 # List C source files here. (C dependencies are automatically generated.)
 # use file-extension c for "c-only"-files
