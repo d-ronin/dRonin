@@ -1,4 +1,4 @@
-include (tools.pri)
+include (../tools.pri)
 
 isEmpty(BRANDING_PATH) {
 BRANDING_PATH = $$PWD/../../branding
@@ -120,18 +120,13 @@ unix {
     UI_DIR = $${OUT_PWD}/.uic
 }
 
-
-# use ccache with gcc
-CONFIG(debug, debug|release):*-g++* {
-    QMAKE_CXX=$$(CCACHE_BIN) g++
-}
-
-
-linux-g++* {
+linux {
     # Bail out on non-selfcontained libraries. Just a security measure
     # to prevent checking in code that does not compile on other platforms.
     QMAKE_LFLAGS += -Wl,--allow-shlib-undefined -Wl,--no-undefined
+}
 
+linux-g++* {
     # Enable -Werror on Linux, should do this for all platforms once warnings are all eliminated
     QMAKE_CXXFLAGS_WARN_ON += -Werror
 }

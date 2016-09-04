@@ -7,3 +7,9 @@ isEmpty(PYTHON_LOCAL) {
     win32: PYTHON_LOCAL = python
     macx: PYTHON_LOCAL = python
 }
+
+# use ccache with gcc and clang in debug config
+CONFIG(debug, debug|release):*-g++*|*-clang* {
+    QMAKE_CC=$$(CCACHE_BIN) $$QMAKE_CC
+    QMAKE_CXX=$$(CCACHE_BIN) $$QMAKE_CXX
+}
