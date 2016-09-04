@@ -56,6 +56,8 @@ private:
     void updateGraphs();
 private slots:
     void linkCheckBoxes(int value);
+    void ratesLink(int value);
+
     void processLinkedWidgets(QWidget*);
     void setMaximums();
     void derivedValuesChanged();

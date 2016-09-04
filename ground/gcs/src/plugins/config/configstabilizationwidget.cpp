@@ -69,13 +69,15 @@ ConfigStabilizationWidget::ConfigStabilizationWidget(QWidget *parent) : ConfigTa
         connect(manualControlSettings, SIGNAL(objectUpdated(UAVObject*)), this, SLOT(hangtimeDurationChanged()));
     connect(m_stabilization->gbHangtime, SIGNAL(toggled(bool)), this, SLOT(hangtimeToggle(bool)));
 
-
     autoLoadWidgets();
 
     connect(m_stabilization->checkBox_7,SIGNAL(stateChanged(int)),this,SLOT(linkCheckBoxes(int)));
     connect(m_stabilization->checkBox_2,SIGNAL(stateChanged(int)),this,SLOT(linkCheckBoxes(int)));
     connect(m_stabilization->checkBox_8,SIGNAL(stateChanged(int)),this,SLOT(linkCheckBoxes(int)));
     connect(m_stabilization->checkBox_3,SIGNAL(stateChanged(int)),this,SLOT(linkCheckBoxes(int)));
+
+    connect(m_stabilization->cbLinkRateRollYaw,SIGNAL(stateChanged(int)),this,SLOT(ratesLink(int)));
+    connect(m_stabilization->cbLinkRateRollPitch,SIGNAL(stateChanged(int)),this,SLOT(ratesLink(int)));
 
     connect(m_stabilization->sliderLTRoll, SIGNAL(valueChanged(int)),
                 m_stabilization->rateRollLT, SLOT(setValue(int)));
@@ -148,6 +150,52 @@ ConfigStabilizationWidget::~ConfigStabilizationWidget()
     // Do nothing
 }
 
+void ConfigStabilizationWidget::ratesLink(int value)
+{
+    Q_UNUSED(value);
+
+    bool hideYaw = m_stabilization->cbLinkRateRollYaw->isChecked();
+    bool hidePitch = m_stabilization->cbLinkRateRollPitch->isChecked();
+
+    m_stabilization->lblYawRate->setHidden(hideYaw);
+    m_stabilization->sliderFullStickRateYaw->setHidden(hideYaw);
+    m_stabilization->sliderLTYaw->setHidden(hideYaw);
+    m_stabilization->sliderCRateYaw->setHidden(hideYaw);
+    m_stabilization->fullStickRateYaw->setHidden(hideYaw);
+    m_stabilization->rateYawLT->setHidden(hideYaw);
+    m_stabilization->centerStickRateYaw->setHidden(hideYaw);
+    m_stabilization->sliderRateYawExpo->setHidden(hideYaw);
+    m_stabilization->rateYawExpo->setHidden(hideYaw);
+    m_stabilization->sliderExponentYaw->setHidden(hideYaw);
+    m_stabilization->rateYawExponent->setHidden(hideYaw);
+    
+    m_stabilization->lblPitchRate->setHidden(hidePitch);
+    m_stabilization->sliderFullStickRatePitch->setHidden(hidePitch);
+    m_stabilization->sliderLTPitch->setHidden(hidePitch);
+    m_stabilization->sliderCRatePitch->setHidden(hidePitch);
+    m_stabilization->fullStickRatePitch->setHidden(hidePitch);
+    m_stabilization->ratePitchLT->setHidden(hidePitch);
+    m_stabilization->centerStickRatePitch->setHidden(hidePitch);
+    m_stabilization->sliderRatePitchExpo->setHidden(hidePitch);
+    m_stabilization->ratePitchExpo->setHidden(hidePitch);
+    m_stabilization->sliderExponentPitch->setHidden(hidePitch);
+    m_stabilization->ratePitchExponent->setHidden(hidePitch);
+
+    QString rollLbl = QString(tr("Roll"));
+
+    if (hidePitch) {
+        rollLbl += tr(" & Pitch");
+    }
+
+    if (hideYaw) {
+        rollLbl += tr(" & Yaw");
+    }
+
+    m_stabilization->lblRollRate->setText(rollLbl);
+
+    sourceValuesChanged();
+}
+
 void ConfigStabilizationWidget::linkCheckBoxes(int value)
 {
     if(sender()== m_stabilization->checkBox_7)
@@ -188,6 +236,21 @@ void ConfigStabilizationWidget::sourceValuesChanged()
 
     updateInProgress = true;
 
+    bool hideYaw = m_stabilization->cbLinkRateRollYaw->isChecked();
+    bool hidePitch = m_stabilization->cbLinkRateRollPitch->isChecked();
+
+    if (hideYaw) {
+        m_stabilization->fullStickRateYaw->setValue(m_stabilization->fullStickRateRoll->value());
+        m_stabilization->rateYawExpo->setValue(m_stabilization->rateRollExpo->value());
+        m_stabilization->rateYawExponent->setValue(m_stabilization->rateRollExponent->value());
+    }
+
+    if (hidePitch) {
+        m_stabilization->fullStickRatePitch->setValue(m_stabilization->fullStickRateRoll->value());
+        m_stabilization->ratePitchExpo->setValue(m_stabilization->rateRollExpo->value());
+        m_stabilization->ratePitchExponent->setValue(m_stabilization->rateRollExponent->value());
+    }
+
     /* invert 'derived' math / operations */
     m_stabilization->centerStickRateRoll->setValue(
             m_stabilization->fullStickRateRoll->value() * 
@@ -218,6 +281,21 @@ void ConfigStabilizationWidget::derivedValuesChanged()
     }
 
     updateInProgress = true;
+
+    bool hideYaw = m_stabilization->cbLinkRateRollYaw->isChecked();
+    bool hidePitch = m_stabilization->cbLinkRateRollPitch->isChecked();
+
+    if (hideYaw) {
+        m_stabilization->fullStickRateYaw->setValue(m_stabilization->fullStickRateRoll->value());
+        m_stabilization->centerStickRateYaw->setValue(m_stabilization->centerStickRateRoll->value());
+        m_stabilization->rateYawLT->setValue(m_stabilization->rateRollLT->value());
+    }
+
+    if (hidePitch) {
+        m_stabilization->fullStickRatePitch->setValue(m_stabilization->fullStickRateRoll->value());
+        m_stabilization->centerStickRatePitch->setValue(m_stabilization->centerStickRateRoll->value());
+        m_stabilization->ratePitchLT->setValue(m_stabilization->rateRollLT->value());
+    }
 
     m_stabilization->rateRollExpo->setValue(100 -
             m_stabilization->centerStickRateRoll->value() * 100 /
