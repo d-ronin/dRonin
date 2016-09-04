@@ -428,7 +428,8 @@ void VehicleConfigurationHelper::applyManualControlDefaults()
         break;
     }
 
-    for (int i = 0; i < ManualControlSettings::CHANNELGROUPS_NUMELEM; i++) {
+    for (unsigned int i = 0; i < ManualControlSettings::CHANNELGROUPS_NUMELEM;
+                i++) {
         cData.ChannelGroups[i] = channelType;
         cData.ChannelNumber[i] = 0;
         cData.ChannelMin[i] = minVal;
