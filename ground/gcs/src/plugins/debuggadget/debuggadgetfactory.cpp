@@ -29,6 +29,7 @@
 #include "debuggadget.h"
 #include <coreplugin/iuavgadget.h>
 #include <QTextStream>
+#include <QProcessEnvironment>
 
 void customMessageHandler(QtMsgType type, const QMessageLogContext &context, const QString &msg)
 {
@@ -48,6 +49,7 @@ void customMessageHandler(QtMsgType type, const QMessageLogContext &context, con
     case QtFatalMsg:
         debugengine::getInstance()->writeFatal(msg);
         QTextStream(stderr) << "[FATAL] " << msg << endl;
+        break;
     default:
         debugengine::getInstance()->writeDebug(msg);
     }
@@ -64,7 +66,11 @@ DebugGadgetFactory::~DebugGadgetFactory()
 
 IUAVGadget *DebugGadgetFactory::createGadget(QWidget *parent)
 {
-    qInstallMessageHandler(customMessageHandler);
+    QProcessEnvironment env = QProcessEnvironment::systemEnvironment();
+    if (env.contains("NO_DEBUG_GADGET"))
+        debugengine::getInstance()->writeDebug("Debug gadget disabled by NO_DEBUG_GADGET env. var.");
+    else
+        qInstallMessageHandler(customMessageHandler);
 
     DebugGadgetWidget *gadgetWidget = new DebugGadgetWidget(parent);
 
