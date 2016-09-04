@@ -113,6 +113,8 @@ void DebugGadgetWidget::message(DebugEngine::Level level, const QString &msg, co
     QString source;
 #ifdef QT_DEBUG // only display this extended info to devs
     source = QString("[%0:%1 %2]").arg(file).arg(line).arg(function);
+#else
+    Q_UNUSED(file); Q_UNUSED(line); Q_UNUSED(function);
 #endif
 
     m_config->plainTextEdit->setTextColor(color);
