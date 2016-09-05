@@ -49,10 +49,12 @@
 #define TRI_TAIL_SERVO_ANGLE_MAX  50.0f
 #define TRI_YAW_FORCE_CURVE_SIZE  100
 
+static float motor_acceleration = 0.0f;
 static float tail_motor_acceleration_delay_angle;
 static float tail_motor_deceleration_delay_angle;
 static float tail_motor_pitch_zero_angle;
 static float tail_servo_max_yaw_force = 0.0f;
+static float throttle_range = 0.0f;
 static float yaw_force_curve[TRI_YAW_FORCE_CURVE_SIZE];
 
 /**
@@ -105,6 +107,13 @@ void triflightInit(ActuatorSettingsData  *actuatorSettings,
 
 	tail_motor_acceleration_delay_angle = (triflightSettings->MotorAccelDelayMs / 1000.0f) * triflightSettings->ServoSpeed;
     tail_motor_deceleration_delay_angle = (triflightSettings->MotorDecelDelayMs / 1000.0f) * triflightSettings->ServoSpeed;
+
+		throttle_range = actuatorSettings->ChannelMax[triflightStatus->RearMotorChannel] -
+	                 actuatorSettings->ChannelNeutral[triflightStatus->RearMotorChannel];
+
+	motor_acceleration = throttle_range / triflightSettings->MotorAcceleration;
+
+	triflightStatus->DynamicYawGain = 1.0f;
 }
 
 /**
@@ -223,13 +232,10 @@ float getCorrectedServoValue(ActuatorSettingsData  *actuatorSettings,
 	return getServoValueAtAngle(actuatorSettings, triflightSettings, triflightStatus, corrected_angle);
 }
 
-#if !defined(ARCH_POSIX) && !defined(ARCH_WIN32)
 typedef struct filterStatePt1_s {
 	float state;
 	float RC;
 } filterStatePt1_t;
-
-static filterStatePt1_t servoFdbkFilter;
 
 /**
  *
@@ -247,10 +253,13 @@ float filterApplyPt1(float input, filterStatePt1_t *filter, float f_cut, float d
     return filter->state;
 }
 
+#if !defined(ARCH_POSIX) && !defined(ARCH_WIN32)
 /**
  *
  *
  */
+static filterStatePt1_t servoFdbkFilter;
+
 void feedbackServoStep(TriflightSettingsData *triflightSettings,
                        TriflightStatusData   *triflightStatus,
                        float dT)
@@ -409,8 +418,7 @@ float getPitchCorrectionMaxPhaseShift(float servo_angle,
 float triGetMotorCorrection(ActuatorSettingsData  *actuatorSettings,
                             TriflightSettingsData *triflightSettings,
                             TriflightStatusData   *triflightStatus,
-                            uint16_t servo_value,
-                            float throttle)
+                            uint16_t servo_value)
 {
 	// Adjust tail motor speed based on servo angle. Check how much to adjust speed from pitch force curve based on servo angle.
 	// Take motor speed up lag into account by shifting the phase of the curve
@@ -435,9 +443,109 @@ float triGetMotorCorrection(ActuatorSettingsData  *actuatorSettings,
 	                                         TRI_TAIL_SERVO_ANGLE_MID - triflightSettings->ServoMaxAngle,
 	                                         TRI_TAIL_SERVO_ANGLE_MID + triflightSettings->ServoMaxAngle);
 
-	float correction = (throttle * getPitchCorrectionAtTailAngle(DEG2RAD * future_servo_angle, triflightSettings->MotorThrustFactor)) - throttle;
+	float throttle_motor_output = triflightStatus->VirtualTailMotor - actuatorSettings->ChannelMin[triflightStatus->RearMotorChannel];
+
+	// Increased yaw authority at min throttle, always calculate the pitch
+	// correction on at least half motor output. This produces a little bit
+	// more forward pitch, but tested to be negligible.
+
+	// TODO: this is not the best way to achieve this, but how could the min_throttle
+	// pitch correction be calculated, as the thrust is zero?
+
+	throttle_motor_output = bound_min_max(throttle_motor_output,
+	                                      actuatorSettings->ChannelMin[triflightStatus->RearMotorChannel] + throttle_range * 2.0f / 3.0f,    // HJI: Looks like 2/3 motor output....
+	                                      actuatorSettings->ChannelMax[triflightStatus->RearMotorChannel]);
+
+	float pitch_correction = getPitchCorrectionAtTailAngle(DEG2RAD * future_servo_angle, triflightSettings->MotorThrustFactor);
+
+	if (pitch_correction < 1.0f) pitch_correction = 1.0f;
+
+	float correction = (throttle_motor_output * pitch_correction) - throttle_motor_output;
+
+	triflightStatus->testFloat1 = throttle_motor_output;
+	triflightStatus->testFloat2 = pitch_correction;
 
 	return correction;
+}
+
+/**
+ *
+ *
+ */
+void dynamicYaw(ActuatorSettingsData  *actuatorSettings,
+                TriflightSettingsData *triflightSettings,
+                TriflightStatusData   *triflightStatus)
+{
+	float half_range = throttle_range / 2.0f;
+
+	float midpoint = actuatorSettings->ChannelMin[triflightStatus->RearMotorChannel] + half_range;
+
+	float gain;
+
+	// Select the yaw gain based on tail motor speed
+	if (triflightStatus->VirtualTailMotor < midpoint)
+	{
+		// Below midpoint, gain is increasing the output.
+		// e.g. 1.50 increases the yaw output at min throttle by 150 % (1.5x)
+		// e.g. 2.50 increases the yaw output at min throttle by 250 % (2.5x)
+
+		gain = triflightSettings->DynamicYawMinThrottle - 1.0f;
+	}
+	else
+	{
+		// Above midpoint, gain is decreasing the output.
+		// e.g. 0.75 reduces the yaw output at max throttle by 25 % (0.75x)
+		// e.g. 0.20 reduces the yaw output at max throttle by 80 % (0.2x)
+
+		gain = 1.0f - triflightSettings->DynamicYawMaxThrottle;
+	}
+
+	float distance_from_mid = (triflightStatus->VirtualTailMotor - midpoint);
+
+	triflightStatus->DynamicYawGain = (1.0f - distance_from_mid * gain / half_range);
+}
+
+/**
+ *
+ *
+ */
+static filterStatePt1_t motor_filter;
+
+void virtualTailMotorStep(ActuatorSettingsData  *actuatorSettings,
+                          TriflightSettingsData *triflightSettings,
+                          TriflightStatusData   *triflightStatus,
+                          float setpoint,
+                          float dT)
+{
+	static float current =  0.0f;
+
+	if (current == 0.0f)
+		current = actuatorSettings->ChannelMin[triflightStatus->RearMotorChannel];
+
+	float dS = dT * motor_acceleration;  // Max change of speed since last check
+
+	if (fabsf(current - setpoint) < dS)
+	{
+		// At set-point after this moment
+		current = setpoint;
+	}
+
+	else if (current < setpoint)
+	{
+		current += dS;
+	}
+	else
+	{
+		current -= dS;
+	}
+
+	// Use a PT1 low-pass filter to add "slowness" to the virtual motor feedback.
+	// Cut-off to delay:
+	// 2  Hz -> 25 ms
+	// 5  Hz -> 14 ms
+	// 10 Hz -> 9  ms
+
+	triflightStatus->VirtualTailMotor = filterApplyPt1(current, &motor_filter, 5.0f, dT);
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -588,16 +696,23 @@ static void buzzerControl(ActuatorSettingsData  *actuatorSettings,
  * @}
  * @}
  */
+static filterStatePt1_t yaw_rate_filter;
+
 static void tailTuneModeThrustTorque(TriflightSettingsData *triflightSettings,
                                      TriflightStatusData   *triflightStatus,
                                      struct thrustTorque_t *pTT,
-                                     bool                  armed)
+                                     bool                  armed,
+                                     float                 dT)
 {
 	ManualControlCommandData cmd;
 	ManualControlCommandGet(&cmd);
 
 	GyrosData gyrosData;
 	GyrosGet(&gyrosData);
+
+	float filtered_yaw_rate;
+
+	filtered_yaw_rate = filterApplyPt1(gyrosData.z, &yaw_rate_filter, 66.0f, dT);
 
 	bool is_throttle_high = cmd.Throttle > 0.1f;
 
@@ -649,7 +764,7 @@ static void tailTuneModeThrustTorque(TriflightSettingsData *triflightSettings,
 			   (fabsf(cmd.Roll)    <= 0.05f) &&
 			   (fabsf(cmd.Pitch)   <= 0.05f) &&
 			   (fabsf(cmd.Yaw)     <= 0.05f) &&
-			   (fabsf(gyrosData.z) <= 45.0f))    // This value needs to be refined, 45 DPS seems too high - JI
+			   (fabsf(filtered_yaw_rate) <= 20.0f))
 			{
 				if (PIOS_DELAY_GetuSSince(pTT->timestamp_us) >= 250000)
 				{
@@ -660,9 +775,6 @@ static void tailTuneModeThrustTorque(TriflightSettingsData *triflightSettings,
 
 						pTT->servoAvgAngle.sum += triflightStatus->ServoAngle;
 						pTT->servoAvgAngle.num_of++;
-
-						triflightStatus->testFloat1 = pTT->servoAvgAngle.sum;
-						triflightStatus->testFloat2 = pTT->servoAvgAngle.num_of;
 
 						if (pTT->servoAvgAngle.num_of >= 300)
 						{
@@ -1030,7 +1142,8 @@ void triTailTuneStep(ActuatorSettingsData  *actuatorSettings,
 			tailTuneModeThrustTorque(triflightSettings,
 			                         triflightStatus,
 			                         &tailTune.tt,
-			                         armed);
+			                         armed,
+			                         dT);
 			break;
 
 		case TT_MODE_SERVO_SETUP:

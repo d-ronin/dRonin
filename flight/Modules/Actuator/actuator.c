@@ -446,6 +446,13 @@ static void actuator_task(void* parameters)
 				mixerSettings.ThrottleCurve2,
 				MIXERSETTINGS_THROTTLECURVE2_NUMELEM);
 
+#ifndef SMALLF1
+		if (triflightStatus.Initialized == TRIFLIGHTSTATUS_INITIALIZED_TRUE) {
+			desired.Yaw *= triflightStatus.DynamicYawGain;
+			desired.Yaw = bound_sym(desired.Yaw, 1.0f);
+		}
+#endif
+
 		float * status = (float *)&mixerStatus; //access status objects as an array of floats
 
 		float min_chan = INFINITY;
@@ -571,16 +578,11 @@ static void actuator_task(void* parameters)
 				triflightStatus.ServoAngle = 90.0f;
 #endif
 
-			// Compute tail motor correction based on throttle input range of 0-1
+			// Compute tail motor correction
 			triflightStatus.MotorCorrection = triGetMotorCorrection(&actuatorSettings,
 			                                                        &triflightSettings,
 			                                                        &triflightStatus,
-			                                                        command.Channel[triflightStatus.ServoChannel],
-			                                                        curve1);
-
-			// Scale tail motor correction to tail motor PWM range, 0 based
-			triflightStatus.MotorCorrection = scale_channel(triflightStatus.MotorCorrection,
-			                                                triflightStatus.RearMotorChannel) - actuatorSettings.ChannelNeutral[triflightStatus.RearMotorChannel];
+			                                                        command.Channel[triflightStatus.ServoChannel]);
 
 			if (armed) {
 				// Add in tail motor correciton
@@ -601,6 +603,14 @@ static void actuator_task(void* parameters)
 			                armed,
 			                dT);
 #endif
+
+			virtualTailMotorStep(&actuatorSettings,
+			                     &triflightSettings,
+			                     &triflightStatus,
+			                     command.Channel[triflightStatus.RearMotorChannel],
+			                     dT);
+
+			dynamicYaw(&actuatorSettings, &triflightSettings, &triflightStatus);
 
 			TriflightStatusSet(&triflightStatus);
 		}

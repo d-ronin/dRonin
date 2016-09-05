@@ -67,8 +67,7 @@ float virtualServoStep(ActuatorSettingsData  *actuatorSettings,
 float triGetMotorCorrection(ActuatorSettingsData  *actuatorSettings,
                             TriflightSettingsData *triflightSettings,
                             TriflightStatusData   *triflightStatus,
-                            uint16_t servo_value,
-                            float throttle);
+                            uint16_t servo_value);
 
 void triTailTuneStep(ActuatorSettingsData  *actuatorSettings,
                      FlightStatusData      *flightStatus,
@@ -77,6 +76,16 @@ void triTailTuneStep(ActuatorSettingsData  *actuatorSettings,
                      float                 *pServoVal,
                      bool armed,
                      float dT);
+
+void virtualTailMotorStep(ActuatorSettingsData  *actuatorSettings,
+                          TriflightSettingsData *triflightSettings,
+                          TriflightStatusData   *triflightStatus,
+                          float setpoint,
+                          float dT);
+
+void dynamicYaw(ActuatorSettingsData  *actuatorSettings,
+                TriflightSettingsData *triflightSettings,
+                TriflightStatusData   *triflightStatus);
 /**
  * @}
  * @}

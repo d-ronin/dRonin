@@ -1,6 +1,9 @@
 <xml>
     <object name="TriflightSettings" singleinstance="true" settings="true">
         <description>Triflight Settings</description>
+        <field name="DynamicYawMinThrottle" units="" type="float" elements="1" defaultvalue="2.9"/>
+        <field name="DynamicYawMaxThrottle" units="" type="float" elements="1" defaultvalue="1.0"/>
+        <field name="MotorAcceleration" units="" type="float" elements="1" defaultvalue="0.18"/>
         <field name="MotorAccelDelayMs" units="mSec" type="float" elements="1" defaultvalue="30.0"/>
         <field name="MotorDecelDelayMs" units="mSec" type="float" elements="1" defaultvalue="100.0"/>
         <field name="MotorThrustFactor" units="" type="float" elements="1" defaultvalue="13.8"/>
