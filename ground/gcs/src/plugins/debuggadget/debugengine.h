@@ -1,27 +1,61 @@
+/**
+ ******************************************************************************
+ *
+ * @file       debugengine.h
+ * @author     dRonin, http://dRonin.org/, Copyright (C) 2016
+ * @author     The OpenPilot Team, http://www.openpilot.org Copyright (C) 2010.
+ * @addtogroup GCSPlugins GCS Plugins
+ * @{
+ * @addtogroup DebugGadgetPlugin Debug Gadget Plugin
+ * @{
+ * @brief A place holder gadget plugin
+ *****************************************************************************/
+/*
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful, but
+ * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
+ * or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License
+ * for more details.
+ *
+ * You should have received a copy of the GNU General Public License along
+ * with this program; if not, write to the Free Software Foundation, Inc.,
+ * 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
+ */
+
 #ifndef DEBUGENGINE_H
 #define DEBUGENGINE_H
 #include <QTextBrowser>
 #include <QPointer>
 #include <QObject>
+#include "debuggadget_global.h"
 
 
-class debugengine : public QObject {
+class DEBUGGADGET_EXPORT DebugEngine : public QObject {
     Q_OBJECT
     // Add all missing constructor etc... to have singleton
-    debugengine();
+    DebugEngine();
 public:
-    static debugengine *getInstance();
-    void writeWarning(const QString &message);
-    void writeDebug(const QString &message);
-    void writeCritical(const QString &message);
-    void writeFatal(const QString &message);
+    enum Level {
+        DEBUG,
+        INFO,
+        WARNING,
+        CRITICAL,
+        FATAL,
+    };
+
+    static DebugEngine *getInstance();
 
 signals:
-    void warning(QString);
-    void debug(QString);
-    void critical(QString);
-    void fatal(QString);
-
+    void message(DebugEngine::Level level, const QString &msg, const QString &file = "", const int line = 0, const QString &function = "");
 };
 
 #endif // DEBUGENGINE_H
+
+/**
+ * @}
+ * @}
+ */

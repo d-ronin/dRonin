@@ -2,6 +2,7 @@ QT += network
 TEMPLATE = lib
 TARGET = UsageStats
 DEFINES += USAGESTATS_LIBRARY
+include(../../gcsplugin.pri)
 include(usagestats_dependencies.pri)
 HEADERS += \
     usagestatsplugin.h \

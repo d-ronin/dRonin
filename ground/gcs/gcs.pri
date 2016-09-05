@@ -109,6 +109,9 @@ DEFINES += QT_NO_CAST_TO_ASCII
 #DEFINES += QT_USE_FAST_OPERATOR_PLUS
 #DEFINES += QT_USE_FAST_CONCATENATION
 
+# include additional information in debug log (file/line/function)
+DEFINES += QT_MESSAGELOGCONTEXT
+
 unix {
     CONFIG(debug, debug|release):OBJECTS_DIR = $${OUT_PWD}/.obj/debug-shared
     CONFIG(release, debug|release):OBJECTS_DIR = $${OUT_PWD}/.obj/release-shared
