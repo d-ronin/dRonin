@@ -62,19 +62,19 @@ DebugGadgetFactory::DebugGadgetFactory(QObject *parent) :
     IUAVGadgetFactory(QString("DebugGadget"),
                       tr("DebugGadget"),
                       parent)
-{}
-
-DebugGadgetFactory::~DebugGadgetFactory()
-{}
-
-IUAVGadget *DebugGadgetFactory::createGadget(QWidget *parent)
 {
     QProcessEnvironment env = QProcessEnvironment::systemEnvironment();
     if (env.contains("NO_DEBUG_GADGET"))
         DebugEngine::getInstance()->message(DebugEngine::INFO, "Debug gadget disabled by NO_DEBUG_GADGET env. var.");
     else
         qInstallMessageHandler(customMessageHandler);
+}
 
+DebugGadgetFactory::~DebugGadgetFactory()
+{}
+
+IUAVGadget *DebugGadgetFactory::createGadget(QWidget *parent)
+{
     DebugGadgetWidget *gadgetWidget = new DebugGadgetWidget(parent);
 
     return new DebugGadget(QString("DebugGadget"), gadgetWidget, parent);
