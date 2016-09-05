@@ -32,8 +32,8 @@ namespace draw
 	 * 3 7
 	 * 456
 	 */
-	const uint8_t _rect_thin [] PROGMEM = {0xd0, 0xd1, 0xd2, 0xd3, 0xd4, 0xd5, 0xd6, 0xd7};
-	const uint8_t _rect_fill [] PROGMEM = {0xd8, 0xd9, 0xda, 0xdb, 0xdc, 0xdd, 0xde, 0xdf};
+	const uint8_t _rect_thin [] = {0xd0, 0xd1, 0xd2, 0xd3, 0xd4, 0xd5, 0xd6, 0xd7};
+	const uint8_t _rect_fill [] = {0xd8, 0xd9, 0xda, 0xdb, 0xdc, 0xdd, 0xde, 0xdf};
 
 	void rect (uint8_t l, uint8_t t, uint8_t w, uint8_t h, bool filled, uint8_t attr)
 	{
@@ -83,7 +83,7 @@ namespace draw
 		max7456::put (x + 1, y, chr + 1, attr);
 	}
 
-	const char err_str [] PROGMEM = "---";
+	const char err_str [] = "---";
 
 	void battery_voltage (uint8_t x, uint8_t y, uint8_t symbol_offset, telemetry::battery::battery_t *bat)
 	{
@@ -102,7 +102,7 @@ namespace panels
 
 #define DECLARE_BUF(n) char buffer [n];
 
-#define PANEL_NAME(__name) const char name [] PROGMEM = __name;
+#define PANEL_NAME(__name) const char name [] = __name;
 
 #define STD_DRAW void draw (uint8_t x, uint8_t y) \
 { \
@@ -287,8 +287,8 @@ namespace horizon
 
 	PANEL_NAME ("Horizon");
 
-	const char _line [PANEL_HORIZON_WIDTH + 1] PROGMEM   = "\xb8            \xb9";
-	const char _center [PANEL_HORIZON_WIDTH + 1] PROGMEM = "\xc8            \xc9";
+	const char _line [PANEL_HORIZON_WIDTH + 1]   = "\xb8            \xb9";
+	const char _center [PANEL_HORIZON_WIDTH + 1] = "\xc8            \xc9";
 	char buffer [PANEL_HORIZON_HEIGHT][PANEL_HORIZON_WIDTH + 1];
 
 	float __attribute__ ((noinline)) deg2rad (float deg)
@@ -491,14 +491,14 @@ namespace rssi
 
 	PANEL_NAME ("RSSI");
 
-	const char _l0 [] PROGMEM = "\xe5\xe8\xe8";
-	const char _l1 [] PROGMEM = "\xe2\xe8\xe8";
-	const char _l2 [] PROGMEM = "\xe2\xe6\xe8";
-	const char _l3 [] PROGMEM = "\xe2\xe3\xe8";
-	const char _l4 [] PROGMEM = "\xe2\xe3\xe7";
-	const char _l5 [] PROGMEM = "\xe2\xe3\xe4";
+	const char _l0 [] = "\xe5\xe8\xe8";
+	const char _l1 [] = "\xe2\xe8\xe8";
+	const char _l2 [] = "\xe2\xe6\xe8";
+	const char _l3 [] = "\xe2\xe3\xe8";
+	const char _l4 [] = "\xe2\xe3\xe7";
+	const char _l5 [] = "\xe2\xe3\xe4";
 
-	const char * const levels [] PROGMEM = { _l0, _l1, _l2, _l3, _l4, _l5 };
+	const char * const levels [] = { _l0, _l1, _l2, _l3, _l4, _l5 };
 
 	const char *scale = NULL;
 
@@ -523,7 +523,7 @@ namespace compass
 	PANEL_NAME ("Compass");
 
 	// Code from MinOpOSD
-	const uint8_t ruler [] PROGMEM = {
+	const uint8_t ruler [] = {
 		0xc2, 0xc0, 0xc1, 0xc0,
 		0xc4, 0xc0, 0xc1, 0xc0,
 		0xc3, 0xc0, 0xc1, 0xc0,
@@ -588,7 +588,7 @@ namespace panel
 
 #define declare_panel(NS) { osd::panels:: NS ::name, osd::panels:: NS ::update, osd::panels:: NS ::draw }
 
-const panel_t panels [] PROGMEM = {
+const panel_t panels [] = {
 	declare_panel (alt),
 	declare_panel (climb),
 	declare_panel (flight_mode),

@@ -78,14 +78,14 @@ void draw ()
 namespace settings
 {
 
-const panel_pos_t _default_screen_0 [] PROGMEM = { SCR_DEFAULT_0 };
+const panel_pos_t _default_screen_0 [] = { SCR_DEFAULT_0 };
 
 #if OSD_MAX_SCREENS > 1
-const panel_pos_t _default_screen_1 [] PROGMEM = { SCR_DEFAULT_1 };
+const panel_pos_t _default_screen_1 [] = { SCR_DEFAULT_1 };
 #endif
 
 #if OSD_MAX_SCREENS > 2
-const panel_pos_t _default_screen_2 [] PROGMEM = { SCR_DEFAULT_2 };
+const panel_pos_t _default_screen_2 [] = { SCR_DEFAULT_2 };
 #endif
 
 void reset_screen (uint8_t num, const panel_pos_t screen [], uint8_t len)

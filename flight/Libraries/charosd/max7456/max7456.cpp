@@ -58,10 +58,10 @@ namespace settings
 #define EEPROM_ADDR_MODE       _eeprom_byte (MAX7456_EEPROM_OFFSET)
 #define EEPROM_ADDR_BRIGHTNESS _eeprom_byte (MAX7456_EEPROM_OFFSET + 1)
 
-const char __opt_mode [] PROGMEM = "VMODE";
-const char __opt_brightness [] PROGMEM = "VBRIGHT";
+const char __opt_mode [] = "VMODE";
+const char __opt_brightness [] = "VBRIGHT";
 
-const ::settings::option_t __settings [] PROGMEM = {
+const ::settings::option_t __settings [] = {
 	declare_uint8_option (__opt_mode, EEPROM_ADDR_MODE),
 	declare_uint8_option (__opt_brightness, EEPROM_ADDR_BRIGHTNESS),
 };

@@ -66,7 +66,7 @@ namespace panel
 	};
 
 	// panels collection
-	extern const panel_t panels [] PROGMEM;
+	extern const panel_t panels [];
 	extern const uint8_t count;
 
 	inline const char *name_p (uint8_t panel)

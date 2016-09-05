@@ -37,14 +37,14 @@ namespace settings
 #define EEPROM_ADDR_SELECTOR_MAX       _eeprom_word (OSD_EEPROM_OFFSET + 5)
 #define EEPROM_ADDR_TOGGLE_TRESHOLD    _eeprom_word (OSD_EEPROM_OFFSET + 7)
 
-const char __opt_screens [] PROGMEM = "SCREENS";
-const char __opt_switch  [] PROGMEM = "SWM";
-const char __opt_swch    [] PROGMEM = "SWCH";
-const char __opt_selmin  [] PROGMEM = "SELMIN";
-const char __opt_selmax  [] PROGMEM = "SELMAX";
-const char __opt_tgtresh [] PROGMEM = "TGTRESH";
+const char __opt_screens [] = "SCREENS";
+const char __opt_switch  [] = "SWM";
+const char __opt_swch    [] = "SWCH";
+const char __opt_selmin  [] = "SELMIN";
+const char __opt_selmax  [] = "SELMAX";
+const char __opt_tgtresh [] = "TGTRESH";
 
-const ::settings::option_t __settings [] PROGMEM = {
+const ::settings::option_t __settings [] = {
 	declare_uint8_option  (__opt_screens, EEPROM_ADDR_SCREENS),
 	declare_uint8_option  (__opt_switch,  EEPROM_ADDR_SWITCH_MODE),
 	declare_uint8_option  (__opt_swch,    EEPROM_ADDR_SWITCH_CHANNEL),
