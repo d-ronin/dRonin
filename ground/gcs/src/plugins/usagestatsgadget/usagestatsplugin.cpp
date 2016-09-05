@@ -295,6 +295,7 @@ QByteArray UsageStatsPlugin::processJson() {
     QJsonArray debugLogArray;
     foreach (const DebugMessage msg, debugMessageList) {
         QJsonObject d;
+        d["time"] = msg.time.toUTC().toString("yyyy-MM-ddThh:mm:ss.zzzZ");
         d["level"] = msg.level;
         d["levelString"] = msg.levelString;
         d["message"] = msg.message;
@@ -368,6 +369,7 @@ void UsageStatsPlugin::onDebugMessage(DebugEngine::Level level, const QString &m
         break;
     }
 
+    info.time = QDateTime::currentDateTime();
     info.level = level;
     info.message = msg;
     info.file = file;

@@ -59,6 +59,7 @@ typedef struct widgetActionInfoType {
     QString data2;
 } widgetActionInfo;
 typedef struct debugMessageStruct {
+    QDateTime time;
     int level;
     QString levelString;
     QString message;
