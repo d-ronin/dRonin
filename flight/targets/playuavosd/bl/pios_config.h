@@ -1,12 +1,12 @@
 /**
  ******************************************************************************
- * @file       droninplugin.cpp
+ * @file       playuavosd/bl/pios_config.h
  * @author     dRonin, http://dRonin.org/, Copyright (C) 2016
- * @addtogroup GCSPlugins GCS Plugins
+ * @addtogroup Bootloader Bootloaders
  * @{
- * @addtogroup Boards_dRonin dRonin board support plugin
+ * @addtogroup PlayUavOsd
  * @{
- * @brief Supports dRonin board configuration
+ * @brief Bootloader for PlayUAVOSD board
  *****************************************************************************/
 /*
  * This program is free software; you can redistribute it and/or modify
@@ -28,40 +28,24 @@
  * of this source file; otherwise redistribution is prohibited.
  */
 
-#include "droninplugin.h"
-#include "simulation.h"
-#include "playuavosd.h"
-#include <QtPlugin>
+#ifndef PIOS_CONFIG_H
+#define PIOS_CONFIG_H
 
+/* Enable/Disable PiOS Modules */
+#define PIOS_INCLUDE_DELAY
+#define PIOS_INCLUDE_IRQ
+#define PIOS_INCLUDE_LED
+#define PIOS_INCLUDE_SYS
+#define PIOS_INCLUDE_IAP
+#define PIOS_INCLUDE_USB
+#define PIOS_INCLUDE_USB_HID
+#define PIOS_INCLUDE_COM_MSG
+#define PIOS_INCLUDE_FLASH
+#define PIOS_INCLUDE_FLASH_INTERNAL
 
-DroninPlugin::DroninPlugin()
-{
-}
-
-DroninPlugin::~DroninPlugin()
-{
-}
-
-bool DroninPlugin::initialize(const QStringList &arguments, QString *errorString)
-{
-   Q_UNUSED(arguments);
-   Q_UNUSED(errorString);
-   return true;
-}
-
-void DroninPlugin::extensionsInitialized()
-{
-    // Init boards
-    Simulation *sim = new Simulation();
-    addAutoReleasedObject(sim);
-
-    PlayUavOsd *playuav = new PlayUavOsd();
-    addAutoReleasedObject(playuav);
-}
-
-void DroninPlugin::shutdown()
-{
-}
+#define BOOTLOADER_PAUSE_DELAY 500
+ 
+#endif /* PIOS_CONFIG_H */
 
 /**
  * @}

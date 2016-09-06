@@ -1,6 +1,6 @@
 /**
  ******************************************************************************
- * @file       droninplugin.cpp
+ * @file       playuavosd.cpp
  * @author     dRonin, http://dRonin.org/, Copyright (C) 2016
  * @addtogroup GCSPlugins GCS Plugins
  * @{
@@ -28,39 +28,64 @@
  * of this source file; otherwise redistribution is prohibited.
  */
 
-#include "droninplugin.h"
-#include "simulation.h"
 #include "playuavosd.h"
-#include <QtPlugin>
 
+#include "hwsimulation.h"
+#include "simulationconfiguration.h"
 
-DroninPlugin::DroninPlugin()
+/**
+ * @brief PlayUavOsd:PlayUavOsd
+ *  This is the PlayUavOsd board definition
+ */
+PlayUavOsd::PlayUavOsd(void)
+{
+    boardType = 0xCB;
+
+    USBInfo board;
+    board.vendorID = 0x20A0;
+    board.productID = 0x4250;
+
+    setUSBInfo(board);
+}
+
+PlayUavOsd::~PlayUavOsd()
 {
 }
 
-DroninPlugin::~DroninPlugin()
+QString PlayUavOsd::shortName()
 {
+    return QString("PlayUAVOSD");
 }
 
-bool DroninPlugin::initialize(const QStringList &arguments, QString *errorString)
+QString PlayUavOsd::boardDescription()
 {
-   Q_UNUSED(arguments);
-   Q_UNUSED(errorString);
-   return true;
+    return QString("PlayUAVOSD running dRonin firmware");
 }
 
-void DroninPlugin::extensionsInitialized()
+bool PlayUavOsd::queryCapabilities(BoardCapabilities capability)
 {
-    // Init boards
-    Simulation *sim = new Simulation();
-    addAutoReleasedObject(sim);
-
-    PlayUavOsd *playuav = new PlayUavOsd();
-    addAutoReleasedObject(playuav);
+    switch (capability) {
+    case BOARD_CAPABILITIES_OSD:
+        return true;
+    default:
+        break;
+    }
+    return false;
 }
 
-void DroninPlugin::shutdown()
+QStringList PlayUavOsd::getSupportedProtocols()
 {
+    return QStringList("uavtalk");
+}
+
+QPixmap PlayUavOsd::getBoardPicture()
+{
+    return QPixmap(":/images/gcs_logo_256.png");
+}
+
+QString PlayUavOsd::getHwUAVO()
+{
+    return "HwPlayUavOsd";
 }
 
 /**

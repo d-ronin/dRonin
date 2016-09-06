@@ -1,6 +1,6 @@
 /**
  ******************************************************************************
- * @addtogroup Tau Labs Modules
+ * @addtogroup Modules Flight Modules
  * @{
  * @addtogroup OnScreenDisplay OSD Module
  * @brief Process OSD information
@@ -1618,12 +1618,13 @@ int32_t OnScreenDisplayInitialize(void)
 	has_gps = PIOS_Modules_IsEnabled(PIOS_MODULE_GPS);
 	has_battery = module_settings.AdminState[MODULESETTINGS_ADMINSTATE_BATTERY];
 
-	uint8_t filter;
-	StateEstimationNavigationFilterGet(&filter);
-	if (filter != STATEESTIMATION_NAVIGATIONFILTER_NONE) {
-		has_nav = true;
-	} else {
-		has_nav = false;
+	has_nav = false;
+	if (StateEstimationHandle()) {
+		uint8_t filter;
+		StateEstimationNavigationFilterGet(&filter);
+		if (filter != STATEESTIMATION_NAVIGATIONFILTER_NONE) {
+			has_nav = true;
+		}
 	}
 
 	if (OnScreenDisplayPageSettingsInitialize() == -1 \
@@ -1877,3 +1878,8 @@ static void onScreenDisplayTask(__attribute__((unused)) void *parameters)
 		}
 	}
 }
+
+/**
+ * @}
+ * @}
+ */
