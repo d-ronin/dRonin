@@ -50,6 +50,7 @@
 #include "manualcontrolsettings.h"
 #include "modulesettings.h"
 #include <rfm22bstatus.h>
+#include <pios_max7456.h>
 #include <pios_rfm22b_rcvr_priv.h>
 #include <pios_openlrs_rcvr_priv.h>
 
@@ -480,6 +481,17 @@ void PIOS_Board_Init(void) {
 
 	HwRevolutionData hwRevoMini;
 	HwRevolutionGet(&hwRevoMini);
+
+#ifdef PIOS_INCLUDE_MAX7456
+	max7456_dev_t pios_max7456_id;
+
+	if (!PIOS_MAX7456_init(&pios_max7456_id, pios_spi_telem_flash_id,
+			0)) {
+		const char dumb_string[] = { 1, 2, 3, 4, 'a', 'b', 'c', 0 };
+		PIOS_MAX7456_puts(pios_max7456_id,
+				10, 5, dumb_string, MAX7456_ATTR_NONE);
+	}
+#endif
 
 #ifdef PIOS_INCLUDE_RFM22B
 	const struct pios_openlrs_cfg *openlrs_cfg = PIOS_BOARD_HW_DEFS_GetOpenLRSCfg(bdinfo->board_rev);
