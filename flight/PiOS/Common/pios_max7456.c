@@ -172,6 +172,8 @@ int PIOS_MAX7456_init (max7456_dev_t *dev_out,
 
 	bzero(dev, sizeof(*dev));
 	dev->magic = MAX7456_MAGIC;
+	dev->spi_id = spi_handle;
+	dev->slave_id = slave_idx;
 
 	chip_select (dev);
 	write_register (dev, MAX7456_REG_VM0, BV (1));
