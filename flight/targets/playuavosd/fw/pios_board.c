@@ -45,8 +45,8 @@
 #include <uavobjectsinit.h>
 #include "hwplayuavosd.h"
 #include "modulesettings.h"
-#include "manualcontrolsettings.h"
 #include "onscreendisplaysettings.h"
+#include "attitudeactual.h"
 
 
 uintptr_t pios_uavo_settings_fs_id;
@@ -323,6 +323,8 @@ void PIOS_Board_Init(void) {
 
 	/* Make sure we have at least one telemetry link configured or else fail initialization */
 	PIOS_Assert(pios_com_telem_serial_id || pios_com_telem_usb_id);
+
+	AttitudeActualInitialize();
 }
 
 /**

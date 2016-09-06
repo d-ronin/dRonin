@@ -43,16 +43,12 @@ MODULES += Telemetry
 OPTMODULES += GPS
 OPTMODULES += FlightStats
 OPTMODULES += TxPID
-OPTMODULES += UAVOMavlinkBridge
 OPTMODULES += ComUsbBridge
-OPTMODULES += UAVOHoTTBridge
-OPTMODULES += UAVOFrSKYSensorHubBridge
-OPTMODULES += UAVOFrSKYSPortBridge
-OPTMODULES += UAVOLighttelemetryBridge
 #OPTMODULES += PicoC
 OPTMODULES += Logging
 OPTMODULES += VTXConfig
 OPTMODULES += OnScreenDisplay
+OPTMODULES += MSPUAVOBridge
 
 # Paths
 OPUAVTALKINC = $(OPUAVTALK)/inc
@@ -79,7 +75,7 @@ OPUAVOBJINC = $(OPUAVOBJ)/inc
 FLIGHTPLANLIB = $(OPMODULEDIR)/FlightPlan/lib
 FLIGHTPLANS = $(OPMODULEDIR)/FlightPlan/flightplans
 MAVLINKINC = $(FLIGHTLIB)/mavlink/v1.0/common
-
+MSPLIB = $(FLIGHTLIB)/msp
 
 # optional component libraries
 include $(APPLIBDIR)/ChibiOS/library.mk
@@ -125,6 +121,9 @@ SRC += $(MGRSLIB)/utm.c
 SRC += $(MGRSLIB)/ups.c
 SRC += $(MGRSLIB)/tranmerc.c
 SRC += $(MGRSLIB)/polarst.c
+
+# MSP protocol lib
+SRC += $(MSPLIB)/msp.c
 
 ## PIOS Hardware (STM32F4xx)
 include $(PIOS)/STM32F4xx/library_chibios.mk
@@ -197,6 +196,7 @@ EXTRAINCDIRS += $(BOOTINC)
 EXTRAINCDIRS += $(DEBUG_CM3_DIR_INC)
 EXTRAINCDIRS += $(MAVLINKINC)
 EXTRAINCDIRS += $(MGRSLIBINC)
+EXTRAINCDIRS += $(MSPLIB)
 
 
 EXTRAINCDIRS += ${foreach MOD, ${MODULES} ${OPTMODULES}, $(OPMODULEDIR)/${MOD}/inc} ${OPMODULEDIR}/System/inc
