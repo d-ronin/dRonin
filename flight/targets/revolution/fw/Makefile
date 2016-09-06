@@ -186,6 +186,7 @@ SRC += pios_debug.c
 SRC += pios_wdg.c
 SRC += pios_reset.c
 SRC += pios_annunc.c
+SRC += pios_max7456.c
 
 # List C source files here which must be compiled in ARM-Mode (no -mthumb).
 # use file-extension c for "c-only"-files

@@ -68,6 +68,9 @@
 #define PIOS_INCLUDE_RFM22B_COM
 #define PIOS_INCLUDE_OPENLRS
 
+/* Or the OSD on clones */
+#define PIOS_INCLUDE_MAX7456
+
 /* Select the sensors to include */
 #define PIOS_INCLUDE_HMC5883
 #define PIOS_INCLUDE_MPU
