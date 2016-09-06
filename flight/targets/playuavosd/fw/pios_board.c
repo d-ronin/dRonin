@@ -46,10 +46,25 @@
 #include "hwplayuavosd.h"
 #include "modulesettings.h"
 #include "onscreendisplaysettings.h"
-#include "attitudeactual.h"
 
+/* TODO: something nicer about these */
+#include "attitudeactual.h"
+#include "accels.h"
+#include "accessorydesired.h"
+#include "baroaltitude.h"
+#include "flightstatus.h"
+#include "manualcontrolcommand.h"
+#include "positionactual.h"
+#include "stabilizationsettings.h"
+#include "tabletinfo.h"
 
 uintptr_t pios_uavo_settings_fs_id;
+
+/**
+ * Initialise UAVOs required by OSD module so board can boot
+ * TODO: something nicer about this
+ */
+static void PIOS_BOARD_Init_Uavos(void);
 
 /**
 * Initialise PWM Output for black/white level setting
@@ -324,7 +339,20 @@ void PIOS_Board_Init(void) {
 	/* Make sure we have at least one telemetry link configured or else fail initialization */
 	PIOS_Assert(pios_com_telem_serial_id || pios_com_telem_usb_id);
 
+	PIOS_BOARD_Init_Uavos();
+}
+
+static void PIOS_BOARD_Init_Uavos(void)
+{
 	AttitudeActualInitialize();
+	AccelsInitialize();
+	AccessoryDesiredInitialize();
+	BaroAltitudeInitialize();
+	FlightStatusInitialize();
+	ManualControlCommandInitialize();
+	PositionActualInitialize();
+	StabilizationSettingsInitialize();
+	TabletInfoInitialize();
 }
 
 /**
