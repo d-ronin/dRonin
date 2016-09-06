@@ -79,7 +79,7 @@ int32_t PIOS_USB_BOARD_DATA_Init(void)
 	PIOS_SYS_SerialNumberGet((char *)sn);
 
 	/* Concatenate the device serial number and the appropriate suffix ("+BL" or "+FW") into the USB serial number */
-	uint8_t * utf8 = &(usb_serial_number[2]);
+	uint8_t *utf8 = &(usb_serial_number[2]);
 	utf8 = PIOS_USB_UTIL_AsciiToUtf8(utf8, sn, PIOS_SYS_SERIAL_NUM_ASCII_LEN);
 	utf8 = PIOS_USB_UTIL_AsciiToUtf8(utf8, (uint8_t *)PIOS_USB_BOARD_SN_SUFFIX, sizeof(PIOS_USB_BOARD_SN_SUFFIX)-1);
 

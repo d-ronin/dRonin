@@ -53,6 +53,7 @@ enum pios_hal_panic {
 	PIOS_HAL_PANIC_SPI       = 9,
 	PIOS_HAL_PANIC_CAN       = 10,
 	PIOS_HAL_PANIC_ADC       = 11,
+	PIOS_HAL_PANIC_OSD       = 12,
 };
 
 /* One slot per selectable receiver group.

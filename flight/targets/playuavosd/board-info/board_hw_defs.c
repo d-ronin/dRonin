@@ -159,6 +159,15 @@ static const struct pios_flash_partition pios_flash_partition_table_internal[] =
 #endif /* PIOS_INCLUDE_FLASH_INTERNAL */
 };
 
+//! Get the partition table
+const struct pios_flash_partition *PIOS_BOARD_HW_DEFS_GetPartitionTable (uint32_t board_revision, uint32_t *num_partitions)
+{
+	(void)board_revision;
+	PIOS_Assert(num_partitions);
+	*num_partitions = NELEMENTS(pios_flash_partition_table_internal);
+	return pios_flash_partition_table_internal;
+}
+
 #endif	/* PIOS_INCLUDE_FLASH */
 
 #include <pios_usart_priv.h>
@@ -401,31 +410,31 @@ struct pios_can_cfg pios_can_cfg = {
 	.init = {
 		// To make it easy to use both F3 and F4 use the other APB1 bus rate
 		// divided by 2. This matches the baud rate across devices
-  		.CAN_Prescaler = 21-1,   /*!< Specifies the length of a time quantum. 
-                                 It ranges from 1 to 1024. */
-  		.CAN_Mode = CAN_Mode_Normal,         /*!< Specifies the CAN operating mode.
-                                 This parameter can be a value of @ref CAN_operating_mode */
-  		.CAN_SJW = CAN_SJW_1tq,          /*!< Specifies the maximum number of time quanta 
-                                 the CAN hardware is allowed to lengthen or 
-                                 shorten a bit to perform resynchronization.
-                                 This parameter can be a value of @ref CAN_synchronisation_jump_width */
-  		.CAN_BS1 = CAN_BS1_9tq,          /*!< Specifies the number of time quanta in Bit 
-                                 Segment 1. This parameter can be a value of 
-                                 @ref CAN_time_quantum_in_bit_segment_1 */
-  		.CAN_BS2 = CAN_BS2_8tq,          /*!< Specifies the number of time quanta in Bit Segment 2.
-                                 This parameter can be a value of @ref CAN_time_quantum_in_bit_segment_2 */
-  		.CAN_TTCM = DISABLE, /*!< Enable or disable the time triggered communication mode.
-                                This parameter can be set either to ENABLE or DISABLE. */
-  		.CAN_ABOM = DISABLE,  /*!< Enable or disable the automatic bus-off management.
-                                  This parameter can be set either to ENABLE or DISABLE. */
-  		.CAN_AWUM = DISABLE,  /*!< Enable or disable the automatic wake-up mode. 
-                                  This parameter can be set either to ENABLE or DISABLE. */
-  		.CAN_NART = ENABLE,  /*!< Enable or disable the non-automatic retransmission mode.
-                                  This parameter can be set either to ENABLE or DISABLE. */
-  		.CAN_RFLM = DISABLE,  /*!< Enable or disable the Receive FIFO Locked mode.
-                                  This parameter can be set either to ENABLE or DISABLE. */
-  		.CAN_TXFP = DISABLE,  /*!< Enable or disable the transmit FIFO priority.
-                                  This parameter can be set either to ENABLE or DISABLE. */
+		.CAN_Prescaler = 21-1,   /*!< Specifies the length of a time quantum. 
+								 It ranges from 1 to 1024. */
+		.CAN_Mode = CAN_Mode_Normal,         /*!< Specifies the CAN operating mode.
+								 This parameter can be a value of @ref CAN_operating_mode */
+		.CAN_SJW = CAN_SJW_1tq,          /*!< Specifies the maximum number of time quanta 
+								 the CAN hardware is allowed to lengthen or 
+								 shorten a bit to perform resynchronization.
+								 This parameter can be a value of @ref CAN_synchronisation_jump_width */
+		.CAN_BS1 = CAN_BS1_9tq,          /*!< Specifies the number of time quanta in Bit 
+								 Segment 1. This parameter can be a value of 
+								 @ref CAN_time_quantum_in_bit_segment_1 */
+		.CAN_BS2 = CAN_BS2_8tq,          /*!< Specifies the number of time quanta in Bit Segment 2.
+								 This parameter can be a value of @ref CAN_time_quantum_in_bit_segment_2 */
+		.CAN_TTCM = DISABLE, /*!< Enable or disable the time triggered communication mode.
+								This parameter can be set either to ENABLE or DISABLE. */
+		.CAN_ABOM = DISABLE,  /*!< Enable or disable the automatic bus-off management.
+								  This parameter can be set either to ENABLE or DISABLE. */
+		.CAN_AWUM = DISABLE,  /*!< Enable or disable the automatic wake-up mode. 
+								  This parameter can be set either to ENABLE or DISABLE. */
+		.CAN_NART = ENABLE,  /*!< Enable or disable the non-automatic retransmission mode.
+								  This parameter can be set either to ENABLE or DISABLE. */
+		.CAN_RFLM = DISABLE,  /*!< Enable or disable the Receive FIFO Locked mode.
+								  This parameter can be set either to ENABLE or DISABLE. */
+		.CAN_TXFP = DISABLE,  /*!< Enable or disable the transmit FIFO priority.
+								  This parameter can be set either to ENABLE or DISABLE. */
 	},
 	.remap = GPIO_AF_CAN1,
 	.tx = {
@@ -494,7 +503,7 @@ static const struct pios_exti_cfg pios_exti_vsync_cfg __exti_config = {
 	},
 	.irq = {
 		.init = {
-			.NVIC_IRQChannel                   =  EXTI1_IRQn,
+			.NVIC_IRQChannel                   = EXTI1_IRQn,
 			.NVIC_IRQChannelPreemptionPriority = PIOS_IRQ_PRIO_HIGHEST,
 			.NVIC_IRQChannelSubPriority        = 0,
 			.NVIC_IRQChannelCmd                = ENABLE,
@@ -702,6 +711,145 @@ const struct pios_video_cfg pios_video_cfg = {
 };
 
 #endif /* if defined(PIOS_INCLUDE_VIDEO) */
+
+#if defined(PIOS_INCLUDE_SPI)
+#include <pios_spi_priv.h>
+
+/*
+ * SPI3 Interface
+ * Used for MAX7456
+ */
+void PIOS_SPI_telem_flash_irq_handler(void);
+void DMA1_Stream0_IRQHandler(void) __attribute__((alias("PIOS_SPI_max7456_irq_handler")));
+void DMA1_Stream5_IRQHandler(void) __attribute__((alias("PIOS_SPI_max7456_irq_handler")));
+static const struct pios_spi_cfg pios_spi_max7456_cfg = {
+	.regs = SPI3,
+	.remap = GPIO_AF_SPI3,
+	.init = {
+		.SPI_Mode              = SPI_Mode_Master,
+		.SPI_Direction         = SPI_Direction_2Lines_FullDuplex,
+		.SPI_DataSize          = SPI_DataSize_8b,
+		.SPI_NSS               = SPI_NSS_Soft,
+		.SPI_FirstBit          = SPI_FirstBit_MSB,
+		.SPI_CRCPolynomial     = 7,
+		.SPI_CPOL              = SPI_CPOL_Low,
+		.SPI_CPHA              = SPI_CPHA_1Edge,
+		.SPI_BaudRatePrescaler = SPI_BaudRatePrescaler_8,
+	},
+	.use_crc = false,
+	.dma = {
+		.irq = {
+			// Note this is the stream ID that triggers interrupts (in this case RX)
+			.flags = (DMA_IT_TCIF0 | DMA_IT_TEIF0 | DMA_IT_HTIF0),
+			.init = {
+				.NVIC_IRQChannel = DMA1_Stream0_IRQn,
+				.NVIC_IRQChannelPreemptionPriority = PIOS_IRQ_PRIO_HIGH,
+				.NVIC_IRQChannelSubPriority = 0,
+				.NVIC_IRQChannelCmd = ENABLE,
+			},
+		},
+		
+		.rx = {
+			.channel = DMA1_Stream0,
+			.init = {
+				.DMA_Channel            = DMA_Channel_0,
+				.DMA_PeripheralBaseAddr = (uint32_t) &(SPI3->DR),
+				.DMA_DIR                = DMA_DIR_PeripheralToMemory,
+				.DMA_PeripheralInc      = DMA_PeripheralInc_Disable,
+				.DMA_MemoryInc          = DMA_MemoryInc_Enable,
+				.DMA_PeripheralDataSize = DMA_PeripheralDataSize_Byte,
+				.DMA_MemoryDataSize     = DMA_MemoryDataSize_Byte,
+				.DMA_Mode               = DMA_Mode_Normal,
+				.DMA_Priority           = DMA_Priority_Medium,
+				//TODO: Enable FIFO
+				.DMA_FIFOMode           = DMA_FIFOMode_Disable,
+				.DMA_FIFOThreshold      = DMA_FIFOThreshold_Full,
+				.DMA_MemoryBurst        = DMA_MemoryBurst_Single,
+				.DMA_PeripheralBurst    = DMA_PeripheralBurst_Single,
+			},
+		},
+		.tx = {
+			.channel = DMA1_Stream5,
+			.init = {
+				.DMA_Channel            = DMA_Channel_0,
+				.DMA_PeripheralBaseAddr = (uint32_t) & (SPI3->DR),
+				.DMA_DIR                = DMA_DIR_MemoryToPeripheral,
+				.DMA_PeripheralInc      = DMA_PeripheralInc_Disable,
+				.DMA_MemoryInc          = DMA_MemoryInc_Enable,
+				.DMA_PeripheralDataSize = DMA_PeripheralDataSize_Byte,
+				.DMA_MemoryDataSize     = DMA_MemoryDataSize_Byte,
+				.DMA_Mode               = DMA_Mode_Normal,
+				.DMA_Priority           = DMA_Priority_Medium,
+				.DMA_FIFOMode           = DMA_FIFOMode_Disable,
+				.DMA_FIFOThreshold      = DMA_FIFOThreshold_Full,
+				.DMA_MemoryBurst        = DMA_MemoryBurst_Single,
+				.DMA_PeripheralBurst    = DMA_PeripheralBurst_Single,
+			},
+		},
+	},
+	.sclk = {
+		.gpio = GPIOC,
+		.init = {
+			.GPIO_Pin = GPIO_Pin_10,
+			.GPIO_Speed = GPIO_Speed_100MHz,
+			.GPIO_Mode = GPIO_Mode_AF,
+			.GPIO_OType = GPIO_OType_PP,
+			.GPIO_PuPd = GPIO_PuPd_NOPULL
+		},
+	},
+	.miso = {
+		.gpio = GPIOC,
+		.init = {
+			.GPIO_Pin = GPIO_Pin_11,
+			.GPIO_Speed = GPIO_Speed_50MHz,
+			.GPIO_Mode = GPIO_Mode_AF,
+			.GPIO_OType = GPIO_OType_PP,
+			.GPIO_PuPd = GPIO_PuPd_NOPULL
+		},
+	},
+	.mosi = {
+		.gpio = GPIOC,
+		.init = {
+			.GPIO_Pin = GPIO_Pin_12,
+			.GPIO_Speed = GPIO_Speed_50MHz,
+			.GPIO_Mode = GPIO_Mode_AF,
+			.GPIO_OType = GPIO_OType_PP,
+			.GPIO_PuPd = GPIO_PuPd_NOPULL
+		},
+	},
+	.slave_count = 1,
+	.ssel = { 
+		{ // MAX7456
+			.gpio = GPIOA,
+			.init = {
+				.GPIO_Pin = GPIO_Pin_15,
+				.GPIO_Speed = GPIO_Speed_50MHz,
+				.GPIO_Mode  = GPIO_Mode_OUT,
+				.GPIO_OType = GPIO_OType_PP,
+				.GPIO_PuPd = GPIO_PuPd_UP
+			}
+		},
+	},
+};
+
+uint32_t pios_spi_max7456_id;
+void PIOS_SPI_max7456_irq_handler(void)
+{
+	/* Call into the generic code to handle the IRQ for this specific device */
+	PIOS_SPI_IRQ_Handler(pios_spi_max7456_id);
+}
+
+
+#if defined(PIOS_INCLUDE_MAX7456)
+#include "pios_max7456_cfg.h"
+
+const struct pios_max7456_cfg max7456_cfg = {
+
+};
+
+#endif // defined(PIOS_INCLUDE_MAX7456)
+
+#endif // defined(PIOS_INCLUDE_SPI)
 
 /**
  * @}

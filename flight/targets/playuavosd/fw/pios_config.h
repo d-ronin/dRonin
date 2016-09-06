@@ -84,6 +84,7 @@
 #define PIOS_VIDEO_SPLITBUFFER
 #define MODULE_FLIGHTSTATS_BUILTIN
 #define PIOS_INCLUDE_DEBUG_CONSOLE
+#define PIOS_INCLUDE_MAX7456
 
 /* Flags that alter behaviors - mostly to lower resources for CC */
 #define PIOS_INCLUDE_INITCALL           /* Include init call structures */

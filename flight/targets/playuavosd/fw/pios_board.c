@@ -126,6 +126,7 @@ void OSD_configure_bw_levels(void)
 #include <pios_board_info.h>
 
 void PIOS_Board_Init(void) {
+	// Drive USB re-enumerate pin low (so it doesn't pull DP down!)
 	GPIO_InitTypeDef GPIO_InitStructure;
 	GPIO_StructInit(&GPIO_InitStructure);
 	GPIO_InitStructure.GPIO_Pin = GPIO_Pin_12;
@@ -135,6 +136,7 @@ void PIOS_Board_Init(void) {
 	GPIO_InitStructure.GPIO_Speed = GPIO_Speed_2MHz;
 	GPIO_Init(GPIOB, &GPIO_InitStructure);
 	GPIO_ResetBits(GPIOB, GPIO_Pin_12);
+	
 	/* Delay system */
 	PIOS_DELAY_Init();
 
@@ -278,6 +280,32 @@ void PIOS_Board_Init(void) {
 	//I2C is slow, sensor init as well, reset watchdog to prevent reset here
 	PIOS_WDG_Clear();
 
+#if defined(PIOS_INCLUDE_SPI)
+	if (PIOS_SPI_Init(&pios_spi_max7456_id, &pios_spi_max7456_cfg))
+		PIOS_DEBUG_Assert(0);
+
+	GPIO_StructInit(&GPIO_InitStructure);
+	GPIO_InitStructure.GPIO_Pin = GPIO_Pin_0;
+	GPIO_InitStructure.GPIO_Mode = GPIO_Mode_OUT;
+	GPIO_InitStructure.GPIO_OType = GPIO_OType_PP;
+	GPIO_InitStructure.GPIO_PuPd = GPIO_PuPd_NOPULL;
+	GPIO_InitStructure.GPIO_Speed = GPIO_Speed_2MHz;
+	GPIO_Init(GPIOC, &GPIO_InitStructure);
+	GPIO_SetBits(GPIOC, GPIO_Pin_0);
+	GPIO_Init(GPIOA, &GPIO_InitStructure);
+	GPIO_ResetBits(GPIOA, GPIO_Pin_0);
+
+#if defined (PIOS_INCLUDE_MAX7456)
+	struct pios_max7456_dev *max7456;
+	if (PIOS_MAX7456_Init(&max7456, (struct pios_spi_dev *)pios_spi_max7456_id, 0, &max7456_cfg))
+		PIOS_HAL_Panic(PIOS_LED_ALARM, PIOS_HAL_PANIC_OSD);
+
+	enum pios_max7456_video_type vid_type = PIOS_MAX7456_GetVideoType(max7456);
+	PIOS_MAX7456_SetOutputType(max7456, vid_type);
+#endif // defined (PIOS_INCLUDE_MAX7456)
+
+#endif // defined(PIOS_INCLUDE_SPI)
+
 #if defined(PIOS_INCLUDE_VIDEO)
 	// make sure the mask pin is low
 	GPIO_Init(pios_video_cfg.mask.miso.gpio, (GPIO_InitTypeDef*)&pios_video_cfg.mask.miso.init);
@@ -291,7 +319,7 @@ void PIOS_Board_Init(void) {
 	if (osd_state == ONSCREENDISPLAYSETTINGS_OSDENABLED_ENABLED) {
 		OSD_configure_bw_levels();
 	}
-#endif
+#endif // defined(PIOS_INCLUDE_VIDEO)
 
 	/* Make sure we have at least one telemetry link configured or else fail initialization */
 	PIOS_Assert(pios_com_telem_serial_id || pios_com_telem_usb_id);
