@@ -1,3 +1,8 @@
+/* Imported from MultiOSD (https://github.com/UncleRus/MultiOSD/)
+ * Altered for use on STM32 Flight controllers by dRonin
+ * Copyright (C) dRonin 2016
+ */
+
 /*
  * This file is part of MultiOSD <https://github.com/UncleRus/MultiOSD>
  *
