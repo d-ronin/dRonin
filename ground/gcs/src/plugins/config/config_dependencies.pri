@@ -1,4 +1,3 @@
-include(../../gcsplugin.pri)
 include(../../libs/qwt/qwt.pri)
 include(../../libs/utils/utils.pri)
 include(../../plugins/uavtalk/uavtalk.pri)
