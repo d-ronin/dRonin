@@ -26,8 +26,8 @@
 /*
  * Board identifier.
  */
-#define BOARD_SPARKY2
-#define BOARD_NAME                  "sparky2 flight control"
+#define BOARD_PLAYUAVOSD
+#define BOARD_NAME                  "PlayUAVOSD"
 
 
 /*
