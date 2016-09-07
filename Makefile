@@ -970,6 +970,8 @@ bu_playuavosd_px4: bu_playuavosd_tlfw
 	$(V0) @echo "PX4_MKFW    $*"
 	$(V1) $(BOARD_ROOT_DIR)/px_mkfw.py --image $(OUTDIR)/bu_playuavosd.padded.bin --board_id 90 > $(OUTDIR)/bu_playuavosd.px4
 
+FW_FILES += $(BUILD_DIR)/bu_playuavosd/bu_playuavosd.px4
+
 # Expand the available simulator rules
 $(eval $(call SIM_TEMPLATE,simulation,Simulation,'sim '))
 
