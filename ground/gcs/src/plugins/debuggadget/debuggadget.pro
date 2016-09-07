@@ -1,4 +1,4 @@
-TEMPLATE = lib 
+TEMPLATE = lib
 TARGET = DebugGadget
 QT += widgets
 

@@ -199,6 +199,7 @@ SUBDIRS += plugin_importexport
 plugin_logging.subdir = logging
 plugin_logging.depends = plugin_coreplugin
 plugin_logging.depends += plugin_uavobjects
+plugin_logging.depends += plugin_uavobjectutil
 plugin_logging.depends += plugin_uavtalk
 plugin_logging.depends += plugin_scope
 SUBDIRS += plugin_logging
@@ -226,6 +227,7 @@ KML {
     plugin_gcscontrolplugin.subdir = gcscontrolplugin
     plugin_gcscontrolplugin.depends = plugin_coreplugin
     plugin_gcscontrolplugin.depends += plugin_uavobjects
+    plugin_gcscontrolplugin.depends += plugin_uavobjectutil
     SUBDIRS += plugin_gcscontrolplugin
 }
 
@@ -263,6 +265,7 @@ SUBDIRS += plugin_uavobjectwidgetutils
 plugin_setupwizard.subdir = setupwizard
 plugin_setupwizard.depends = plugin_coreplugin
 plugin_setupwizard.depends += plugin_uavobjectutil
+plugin_setupwizard.depends += plugin_uavobjectwidgetutils
 plugin_setupwizard.depends += plugin_config
 plugin_setupwizard.depends += plugin_uploader
 SUBDIRS += plugin_setupwizard
@@ -271,6 +274,7 @@ SUBDIRS += plugin_setupwizard
 plugin_rfmbindwizard.subdir = rfmbindwizard
 plugin_rfmbindwizard.depends = plugin_coreplugin
 plugin_rfmbindwizard.depends += plugin_uavobjectutil
+plugin_setupwizard.depends += plugin_uavobjectwidgetutils
 plugin_rfmbindwizard.depends += plugin_config
 plugin_rfmbindwizard.depends += plugin_uploader
 SUBDIRS += plugin_rfmbindwizard
@@ -287,6 +291,7 @@ plugin_usagestatsgadget.subdir = usagestatsgadget
 plugin_usagestatsgadget.depends = plugin_coreplugin
 plugin_usagestatsgadget.depends += plugin_uploader
 plugin_usagestatsgadget.depends += plugin_uavobjectutil
+plugin_usagestatsgadget.depends += plugin_debuggadget
 SUBDIRS += plugin_usagestatsgadget
 
 ############################
