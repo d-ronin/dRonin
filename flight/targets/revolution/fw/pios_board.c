@@ -130,6 +130,10 @@ uintptr_t pios_uavo_settings_fs_id;
 uintptr_t pios_waypoints_settings_fs_id;
 uintptr_t pios_com_openlog_logging_id;
 
+#ifdef PIOS_INCLUDE_MAX7456
+max7456_dev_t pios_max7456_id;
+#endif
+
 /**
  * PIOS_Board_Init()
  * initializes all the core subsystems on this specific hardware
@@ -483,8 +487,6 @@ void PIOS_Board_Init(void) {
 	HwRevolutionGet(&hwRevoMini);
 
 #ifdef PIOS_INCLUDE_MAX7456
-	max7456_dev_t pios_max7456_id;
-
 	if (!PIOS_MAX7456_init(&pios_max7456_id, pios_spi_telem_flash_id,
 			0)) {
 		const char dumb_string[] = { 1, 2, 3, 4, 'a', 'b', 'c', 0 };

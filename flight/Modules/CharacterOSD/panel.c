@@ -22,12 +22,10 @@
  */
 
 #include <openpilot.h>
-#include "panel.h"
-#include "pios_max7456.h"
 #include <math.h>
 #include <string.h>
 
-#include "charonscreendisplaysettings.h"
+#include "charosd.h"
 
 /*
  * 012
@@ -393,9 +391,9 @@ static void compass_draw (uint8_t x, uint8_t y)
 /* Airspeed */
 STD_PANEL (AIRSPEED, 7, "\x88%d\x81", (int16_t) (/*XXX:telemetry::stable::airspeed*/ 0 * 3.6));
 
-#define declare_panel(__name) [CHARONSCREENDISPLAYSETTINGS_PANELTYPE_ ## __name] = { # __name, __name ## _update }
+#define declare_panel(__name) [CHARONSCREENDISPLAYSETTINGS_PANELTYPE_ ## __name] = { __name ## _update }
 
-const panel_t panels [] = {
+const panel_t panels [CHARONSCREENDISPLAYSETTINGS_PANELTYPE_MAXOPTVAL+1] = {
 	declare_panel (AIRSPEED),
 	declare_panel (ALTITUDE),
 	declare_panel (ARMEDFLAG),
