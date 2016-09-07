@@ -254,6 +254,8 @@ static void BATTERYVOLT_update (charosd_state_t state, uint8_t x, uint8_t y)
 
 	snprintf (buffer, sizeof (buffer), "%.2f\x8e", /*bat->voltage*/ 0.0); 
 
+	terminate_buffer ();
+
 	// XXX symbol offset?
 //	PIOS_MAX7456_put (state->dev, x, y, symbol_offset + (uint8_t) round (/*bat->level*/ 0.0 / 20.0), /*bat->low*/ true ? MAX7456_ATTR_BLINK : 0);
 	PIOS_MAX7456_puts (state->dev, x + 1, y, buffer, 0);

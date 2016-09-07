@@ -155,7 +155,7 @@ static inline void detect_mode (max7456_dev_t dev)
 	}
 
 	// Give up / guess PAL
-	set_mode (dev, MAX7456_MODE_PAL);
+	set_mode (dev, MAX7456_MODE_NTSC); // XXX
 }
 
 int PIOS_MAX7456_init (max7456_dev_t *dev_out,
@@ -309,8 +309,6 @@ void PIOS_MAX7456_put (max7456_dev_t dev,
 		uint8_t col, uint8_t row, uint8_t chr, uint8_t attr)
 {
 	PIOS_Assert(!dev->opened);
-
-	PIOS_MAX7456_close (dev);
 
 	chip_select (dev);
 	set_offset (dev, col, row);
