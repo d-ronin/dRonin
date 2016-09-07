@@ -104,51 +104,64 @@ enum pios_max7456_read_reg {
 
 
 /* Video Mode 0 Register */
-#define PIOS_MAX7456_VM0_VBE_R(val)    (val & 0b1)
-#define PIOS_MAX7456_VM0_VBE_W(val)    (val & 0b1)
+#define PIOS_MAX7456_VM0_VBE_MASK      (0b1)
+#define PIOS_MAX7456_VM0_VBE_R(val)    (val & PIOS_MAX7456_VM0_VBE_MASK)
+#define PIOS_MAX7456_VM0_VBE_W(regval, val) ((regval & ~PIOS_MAX7456_VM0_VBE_MASK) | (val & PIOS_MAX7456_VM0_VBE_MASK))
 #define PIOS_MAX7456_VM0_VBE_ENABLE    0b0
 #define PIOS_MAX7456_VM0_VBE_DISABLE   0b1
 
-#define PIOS_MAX7456_VM0_SRB_MASK      (1 << 1)
-#define PIOS_MAX7456_VM0_SRB_R(val)    ((val >> 1) & 0b1)
-#define PIOS_MAX7456_VM0_SRB_W(regval, val) ((regval & ~PIOS_MAX7456_VM0_SRB_MASK) | ((val & 0b1) << 1))
+#define PIOS_MAX7456_VM0_SRB_MASK      (0b1 << 1)
+#define PIOS_MAX7456_VM0_SRB_R(val)    ((val & PIOS_MAX7456_VM0_SRB_MASK) >> 1)
+#define PIOS_MAX7456_VM0_SRB_W(regval, val) ((regval & ~PIOS_MAX7456_VM0_SRB_MASK) | (val << 1 & PIOS_MAX7456_VM0_SRB_MASK))
 #define PIOS_MAX7456_VM0_SRB_RESET     0b1
 #define PIOS_MAX7456_VM0_SRB_CLEAR     0b0
 
-#define PIOS_MAX7456_VM0_VS_R(val)     ((val >> 2) & 0b1)
-#define PIOS_MAX7456_VM0_VS_W(val)     ((val & 0b1) << 2)
+#define PIOS_MAX7456_VM0_VS_MASK       (0b1 << 2)
+#define PIOS_MAX7456_VM0_VS_R(val)     ((val & PIOS_MAX7456_VM0_VS_MASK) >> 2)
+#define PIOS_MAX7456_VM0_VS_W(regval, val) ((regval & ~PIOS_MAX7456_VM0_VS_MASK) | (val << 2 & PIOS_MAX7456_VM0_VS_MASK))
 #define PIOS_MAX7456_VM0_VS_VSYNC      0b1
 #define PIOS_MAX7456_VM0_VS_IMMEDIATE  0b0
 
-#define PIOS_MAX7456_VM0_OSD_R(val)    ((val >> 3) & 0b1)
+#define PIOS_MAX7456_VM0_OSD_MASK      (0b1 << 3)
+#define PIOS_MAX7456_VM0_OSD_R(val)    ((val & PIOS_MAX7456_VM0_OSD_MASK) >> 3)
+#define PIOS_MAX7456_VM0_OSD_W(regval, val) ((regval & ~PIOS_MAX7456_VM0_OSD_MASK) | (val << 3 & PIOS_MAX7456_VM0_OSD_MASK))
 #define PIOS_MAX7456_VM0_OSD_ENABLE    0b1
 #define PIOS_MAX7456_VM0_OSD_DISABLE   0b0
 
-#define PIOS_MAX7456_VM0_SYNC_R(val)   ((val >> 4) & 0b11)
+
+#define PIOS_MAX7456_VM0_SYNC_MASK     (0b1 << 4)
+#define PIOS_MAX7456_VM0_SYNC_R(val)   ((val & PIOS_MAX7456_VM0_SYNC_MASK) >> 4)
+#define PIOS_MAX7456_VM0_SYNC_W(regval, val) ((regval & ~PIOS_MAX7456_VM0_SYNC_MASK) | (val << 4 & PIOS_MAX7456_VM0_SYNC_MASK))
 #define PIOS_MAX7456_VM0_SYNC_AUTO     0b00
 #define PIOS_MAX7456_VM0_SYNC_EXT      0b10
 #define PIOS_MAX7456_VM0_SYNC_INT      0b11
 
-#define PIOS_MAX7456_VM0_VSS_MASK      (1 << 6)
-#define PIOS_MAX7456_VM0_VSS_R(val)    ((val >> 6) & 0b1)
-#define PIOS_MAX7456_VM0_VSS_W(regval, val) ((regval & ~PIOS_MAX7456_VM0_VSS_MASK) | ((val & 0b1) << 6))
+#define PIOS_MAX7456_VM0_VSS_MASK      (0b1 << 6)
+#define PIOS_MAX7456_VM0_VSS_R(val)    ((val & PIOS_MAX7456_VM0_VSS_MASK) >> 6)
+#define PIOS_MAX7456_VM0_VSS_W(regval, val) ((regval & ~PIOS_MAX7456_VM0_VSS_MASK) | (val << 6 & PIOS_MAX7456_VM0_VSS_MASK))
 #define PIOS_MAX7456_VM0_VSS_PAL       0b1
 #define PIOS_MAX7456_VM0_VSS_NTSC      0b0
 
 /* Video Mode 1 Register */
-#define PIOS_MAX7456_VM1_BDUTY_R(val)  (val & 0b11)
+#define PIOS_MAX7456_VM1_BDUTY_MASK    (0b11)
+#define PIOS_MAX7456_VM1_BDUTY_R(val)  (val & PIOS_MAX7456_VM1_BDUTY_MASK)
+#define PIOS_MAX7456_VM1_BDUTY_W(val)  ((regval & ~PIOS_MAX7456_VM1_BDUTY_MASK) | (val & PIOS_MAX7456_VM1_BDUTY_MASK))
 #define PIOS_MAX7456_VM1_BDUTY_BT      0b00
 #define PIOS_MAX7456_VM1_BDUTY_2BT     0b01
 #define PIOS_MAX7456_VM1_BDUTY_3BT     0b10
 #define PIOS_MAX7456_VM1_BDUTY_13BT    0b11
 
-#define PIOS_MAX7456_VM1_BTIME_R(val)  ((val >> 2) & 0b11)
+#define PIOS_MAX7456_VM1_BTIME_MASK    (0b11 << 2)
+#define PIOS_MAX7456_VM1_BTIME_R(val)  ((val & PIOS_MAX7456_VM1_BTIME_MASK) >> 2)
+#define PIOS_MAX7456_VM1_BTIME_W(regval, val) ((regval & ~PIOS_MAX7456_VM1_BTIME_MASK) | (val << 2 & PIOS_MAX7456_VM1_BTIME_MASK))
 #define PIOS_MAX7456_VM1_BTIME_2FIELD  0b00
 #define PIOS_MAX7456_VM1_BTIME_4FIELD  0b01
 #define PIOS_MAX7456_VM1_BTIME_6FIELD  0b10
 #define PIOS_MAX7456_VM1_BTIME_8FIELD  0b11
 
-#define PIOS_MAX7456_VM1_BGLVL_R(val)  ((val >> 4) & 0b111)
+#define PIOS_MAX7456_VM1_BGLVL_MASK    (0b111 << 4)
+#define PIOS_MAX7456_VM1_BGLVL_R(val)  ((val & PIOS_MAX7456_VM1_BGLVL_MASK) >> 4)
+#define PIOS_MAX7456_VM1_BGLVL_W(regval, val) ((regval & ~PIOS_MAX7456_VM1_BGLVL_MASK) | (val << 4 & PIOS_MAX7456_VM1_BGLVL_MASK))
 #define PIOS_MAX7456_VM1_BGLVL_0       0b000
 #define PIOS_MAX7456_VM1_BGLVL_7       0b001
 #define PIOS_MAX7456_VM1_BGLVL_14      0b010
@@ -158,27 +171,33 @@ enum pios_max7456_read_reg {
 #define PIOS_MAX7456_VM1_BGLVL_42      0b110
 #define PIOS_MAX7456_VM1_BGLVL_49      0b111
 
-#define PIOS_MAX7456_VM1_BGMODE_R(val) ((val >> 7) & 0b1)
+#define PIOS_MAX7456_VM1_BGMODE_MASK   (0b1 << 7)
+#define PIOS_MAX7456_VM1_BGMODE_R(val) ((val & PIOS_MAX7456_VM1_BGMODE_MASK) >> 7)
+#define PIOS_MAX7456_VM1_BGMODE_W(regval, val) ((regval & ~PIOS_MAX7456_VM1_BGMODE_MASK) | (val << 7 & PIOS_MAX7456_VM1_BGMODE_MASK))
 #define PIOS_MAX7456_VM1_BGMODE_LOCAL  0b0
 #define PIOS_MAX7456_VM1_BGMODE_GRAY   0b1
 
 /* Horizontal Offset Register */
-#define PIOS_MAX7456_HOS_POS_R(val)    (val & 0x3f)
+#define PIOS_MAX7456_HOS_POS_MASK      (0x3f)
+#define PIOS_MAX7456_HOS_POS_R(val)    (val & PIOS_MAX7456_HOS_POS_MASK)
+#define PIOS_MAX7456_HOS_POS_W(regval, val) (val & PIOS_MAX7456_HOS_POS_MASK)
 
 /* Vertical Offset Register */
-#define PIOS_MAX7456_VOS_POS_R(val)    (val & 0x3f)
+#define PIOS_MAX7456_VOS_POS_MASK      (0x3f)
+#define PIOS_MAX7456_VOS_POS_R(val)    (val & PIOS_MAX7456_VOS_POS_MASK)
+#define PIOS_MAX7456_VOS_POS_W(regval, val) (val & PIOS_MAX7456_VOS_POS_MASK)
 
 /* Display Memory Mode Register */
-#define PIOS_MAX7456_DMM_CLR_MASK      (1 << 2)
-#define PIOS_MAX7456_DMM_CLR_R(val)    ((val >> 2) & 0b1)
-#define PIOS_MAX7456_DMM_CLR_W(regval, val) ((regval & ~PIOS_MAX7456_DMM_CLR_MASK) | ((val & 0b1) << 2))
+#define PIOS_MAX7456_DMM_CLR_MASK      (0b1 << 2)
+#define PIOS_MAX7456_DMM_CLR_R(val)    ((val & PIOS_MAX7456_DMM_CLR_MASK) >> 2)
+#define PIOS_MAX7456_DMM_CLR_W(regval, val) ((regval & ~PIOS_MAX7456_DMM_CLR_MASK) | (val << 2 & PIOS_MAX7456_DMM_CLR_MASK))
 #define PIOS_MAX7456_DMM_CLR_CLEAR     0b1
 #define PIOS_MAX7456_DMM_CLR_READY     0b0
 
 /* OSD Black Level Register */
-#define PIOS_MAX7456_OSDBL_CTL_MASK    (1 << 4)
-#define PIOS_MAX7456_OSDBL_CTL_R(val)  ((val >> 4) & 0b1)
-#define PIOS_MAX7456_OSDBL_CTL_W(regval, val) ((regval & ~PIOS_MAX7456_OSDBL_CTL_MASK) | ((val & 0b1) << 4))
+#define PIOS_MAX7456_OSDBL_CTL_MASK    (0b1 << 4)
+#define PIOS_MAX7456_OSDBL_CTL_R(val)  ((val & PIOS_MAX7456_OSDBL_CTL_MASK)  >> 4)
+#define PIOS_MAX7456_OSDBL_CTL_W(regval, val) ((regval & ~PIOS_MAX7456_OSDBL_CTL_MASK) | (val << 4 & PIOS_MAX7456_OSDBL_CTL_MASK))
 #define PIOS_MAX7456_OSDBL_CTL_ENABLE  0b0
 #define PIOS_MAX7456_OSDBL_CTL_DISABLE 0b1
 
@@ -204,7 +223,6 @@ enum pios_max7456_read_reg {
 #define PIOS_MAX7456_STAT_RESET_R(val) ((val >> 6) & 0b1)
 #define PIOS_MAX7456_STAT_RESET_DONE   0b0
 #define PIOS_MAX7456_STAT_RESET_BUSY   0b1
-
 
 #define PIOS_MAX7456_MAGIC 0xf3fc51c4
 
