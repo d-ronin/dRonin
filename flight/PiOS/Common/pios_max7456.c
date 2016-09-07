@@ -33,6 +33,8 @@
 
 // MAX7456 reg read addresses
 #define MAX7456_REG_STAT  0x20 // 0xa0 Status
+#define MAX7456_FLAG_STAT_VSYNC 0x10
+
 #define MAX7456_REG_DMDO  0x30 // 0xb0 Display Memory Data Out
 #define MAX7456_REG_CMDO  0x40 // 0xc0 Character Memory Data Out
 
@@ -53,7 +55,7 @@
 #define MAX7456_REG_CMDI  0x0b
 
 #define MAX7456_MASK_PAL  0x40 // PAL mask 01000000
-#define MAX7456_MASK_NTCS 0x00 // NTSC mask 00000000
+#define MAX7456_MASK_NTSC 0x00 // NTSC mask 00000000
 
 #define bis(var, bit) (var & BV (bit))
 
@@ -122,7 +124,7 @@ static inline void set_mode (max7456_dev_t dev, uint8_t value)
 	dev->mode = value;
 	if (value == MAX7456_MODE_NTSC)
 	{
-		dev->mask = MAX7456_MASK_NTCS;
+		dev->mask = MAX7456_MASK_NTSC;
 		dev->right = MAX7456_NTSC_COLUMNS - 1;
 		dev->bottom = MAX7456_NTSC_ROWS - 1;
 		dev->hcenter = MAX7456_NTSC_HCENTER;
@@ -303,6 +305,19 @@ static inline void set_offset (max7456_dev_t dev, uint8_t col, uint8_t row)
 	uint16_t offset = (row * 30 + col) & 0x1ff;
 	write_register (dev, MAX7456_REG_DMAH, offset >> 8);
 	write_register (dev, MAX7456_REG_DMAL, (uint8_t) offset);
+}
+
+bool PIOS_MAX7456_poll_vsync_spi (max7456_dev_t dev)
+{
+	chip_select (dev);
+	uint8_t status = read_register (dev, MAX7456_REG_STAT);
+	chip_unselect (dev);
+
+	if (status & MAX7456_FLAG_STAT_VSYNC) {
+		return true;
+	} else {
+		return false;
+	}
 }
 
 void PIOS_MAX7456_put (max7456_dev_t dev, 

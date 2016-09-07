@@ -68,4 +68,6 @@ void PIOS_MAX7456_get_extents(max7456_dev_t dev,
 		uint8_t *mode, uint8_t *right, uint8_t *bottom,
 		uint8_t *hcenter, uint8_t *vcenter);
 
+bool PIOS_MAX7456_poll_vsync_spi (max7456_dev_t dev);
+
 #endif /* LIB_MAX7456_MAX7456_H_ */
