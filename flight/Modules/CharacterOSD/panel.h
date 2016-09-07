@@ -20,42 +20,37 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-#ifndef OSD_SCREEN_H_
-#define OSD_SCREEN_H_
+#ifndef OSD_PANEL_H_
+#define OSD_PANEL_H_
 
 #include <stdint.h>
+#include <stdbool.h>
 
-namespace osd
+#include <openpilot.h>
+#include <pios_max7456.h>
+#include "charosd.h"
+
+typedef void (*update_t) (charosd_state_t state, uint8_t x, uint8_t y);
+
+typedef struct 
 {
+	const char *name;
+	update_t update;
+} panel_t;
 
-namespace screen
+// panels collection
+extern const panel_t panels [];
+extern const uint8_t panels_count;
+
+const char *panel_name (uint8_t panel)
 {
-
-	struct panel_pos_t
-	{
-		uint8_t panel;
-		uint8_t x;
-		uint8_t y;
-	};
-
-	void load (uint8_t num);
-	void update ();
-	void draw ();
-
-	extern volatile bool updated;
-
-	uint8_t *eeprom_offset (uint8_t num, uint8_t panel = 0)  __attribute__ ((noinline));
-
-	namespace settings
-	{
-
-		void reset ();
-
-	}  // namespace settings
-
-}  // namespace screen
-
+	return panels [panel].name;
 }
 
+void panel_draw (charosd_state_t state, uint8_t panel, uint8_t x, uint8_t y)
+{
+	panels [panel].update(state, x, y);
+}
 
-#endif /* OSD_SCREEN_H_ */
+#endif /* OSD_PANEL_H_ */
+
