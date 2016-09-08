@@ -8,7 +8,7 @@ macx {
 }
 
 !equals(QT_MAJOR_VERSION, 5) {
-error("Use QT5 (make qt_sdk_install).")
+    error("Use QT5 (make qt_sdk_install).")
 }
 
 cache()
