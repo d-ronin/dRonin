@@ -25,14 +25,11 @@ endif
 QT_VERSION := 5.6.1
 QT_SDK_DIR := $(TOOLS_DIR)/Qt$(QT_VERSION)
 
-ifndef IGNORE_MISSING_TOOLCHAIN
-  # On any platform except windows
-  ifndef WINDOWS
-    # Check for a current QT SDK dir, abort without
-    ifeq ($(wildcard $(QT_SDK_DIR)/*),)
-      ifeq (,$(findstring _install,$(MAKECMDGOALS)))
-        $(error "QT SDK not found, please run `make qt_sdk_install`")
-      endif
+ifndef WINDOWS
+# Check for a current QT SDK dir, abort without
+  ifeq ($(wildcard $(QT_SDK_DIR)/*),)
+    ifeq (,$(findstring _install,$(MAKECMDGOALS)))
+      $(warning "QT SDK not found, please run `make qt_sdk_install`")
     endif
   endif
 endif
@@ -642,6 +639,3 @@ sdl_install:
 	$(V1) hdiutil detach /Volumes/SDL;
 	$(V1) rm $(DL_DIR)/$(SDL_FILE);
 endif
-
-
-
