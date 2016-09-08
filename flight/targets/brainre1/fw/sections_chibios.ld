@@ -189,3 +189,10 @@ _end            = .;
 
 __heap_base__   = _end;
 __heap_end__    = __ram_end__;
+
+/* confirmed that fill32 does the right thing when start == end.
+ * There's no CCM-SRAM on RE1, but work with the other F4 startup code that
+ * has it.
+ */
+_cmm_start = _end;
+_cmm_end = _end;
