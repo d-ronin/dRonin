@@ -290,6 +290,7 @@ static void PIOS_HAL_SetTarget(uintptr_t *target, uintptr_t value) {
 	}
 }
 
+#ifdef PIOS_INCLUDE_RCVR
 /**
  * @brief Assign a device instance into the receiver map
  *
@@ -304,6 +305,7 @@ void PIOS_HAL_SetReceiver(int receiver_type, uintptr_t value) {
 	PIOS_HAL_SetTarget(pios_rcvr_group_map + receiver_type, value);
 #endif
 }
+#endif // PIOS_INCLUDE_RCVR
 
 #if defined(PIOS_INCLUDE_USART) && defined(PIOS_INCLUDE_COM)
 /**

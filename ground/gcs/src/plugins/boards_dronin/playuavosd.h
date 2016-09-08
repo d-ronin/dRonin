@@ -1,6 +1,6 @@
 /**
  ******************************************************************************
- * @file       droninplugin.cpp
+ * @file       playuavosd.h
  * @author     dRonin, http://dRonin.org/, Copyright (C) 2016
  * @addtogroup GCSPlugins GCS Plugins
  * @{
@@ -28,40 +28,28 @@
  * of this source file; otherwise redistribution is prohibited.
  */
 
-#include "droninplugin.h"
-#include "simulation.h"
-#include "playuavosd.h"
-#include <QtPlugin>
+#ifndef PLAYUAVOSD_H_
+#define PLAYUAVOSD_H_
 
+#include <coreplugin/iboardtype.h>
 
-DroninPlugin::DroninPlugin()
+class IBoardType;
+
+class PlayUavOsd : public Core::IBoardType
 {
-}
+public:
+    PlayUavOsd();
+    virtual ~PlayUavOsd();
 
-DroninPlugin::~DroninPlugin()
-{
-}
+    virtual QString shortName();
+    virtual QString boardDescription();
+    virtual bool queryCapabilities(BoardCapabilities capability);
+    virtual QStringList getSupportedProtocols();
+    virtual QPixmap getBoardPicture();
+    virtual QString getHwUAVO();
+};
 
-bool DroninPlugin::initialize(const QStringList &arguments, QString *errorString)
-{
-   Q_UNUSED(arguments);
-   Q_UNUSED(errorString);
-   return true;
-}
-
-void DroninPlugin::extensionsInitialized()
-{
-    // Init boards
-    Simulation *sim = new Simulation();
-    addAutoReleasedObject(sim);
-
-    PlayUavOsd *playuav = new PlayUavOsd();
-    addAutoReleasedObject(playuav);
-}
-
-void DroninPlugin::shutdown()
-{
-}
+#endif // PLAYUAVOSD_H_
 
 /**
  * @}

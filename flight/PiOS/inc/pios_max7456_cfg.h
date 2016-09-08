@@ -1,12 +1,12 @@
 /**
  ******************************************************************************
- * @file       droninplugin.cpp
+ * @file       pios_max7456_cfg.h
  * @author     dRonin, http://dRonin.org/, Copyright (C) 2016
- * @addtogroup GCSPlugins GCS Plugins
+ * @addtogroup PIOS PIOS Core hardware abstraction layer
  * @{
- * @addtogroup Boards_dRonin dRonin board support plugin
+ * @addtogroup PIOS_Max7456 PiOS MAX7456 Driver
  * @{
- * @brief Supports dRonin board configuration
+ * @brief Driver for MAX7456 OSD
  *****************************************************************************/
 /*
  * This program is free software; you can redistribute it and/or modify
@@ -28,40 +28,14 @@
  * of this source file; otherwise redistribution is prohibited.
  */
 
-#include "droninplugin.h"
-#include "simulation.h"
-#include "playuavosd.h"
-#include <QtPlugin>
+#ifndef PIOS_MAX7456_CFG_H_
+#define PIOS_MAX7456_CFG_H_
 
+struct pios_max7456_cfg {
 
-DroninPlugin::DroninPlugin()
-{
-}
+};
 
-DroninPlugin::~DroninPlugin()
-{
-}
-
-bool DroninPlugin::initialize(const QStringList &arguments, QString *errorString)
-{
-   Q_UNUSED(arguments);
-   Q_UNUSED(errorString);
-   return true;
-}
-
-void DroninPlugin::extensionsInitialized()
-{
-    // Init boards
-    Simulation *sim = new Simulation();
-    addAutoReleasedObject(sim);
-
-    PlayUavOsd *playuav = new PlayUavOsd();
-    addAutoReleasedObject(playuav);
-}
-
-void DroninPlugin::shutdown()
-{
-}
+#endif // PIOS_MAX7456_CFG_H_
 
 /**
  * @}

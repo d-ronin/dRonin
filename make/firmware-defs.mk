@@ -145,13 +145,6 @@ $(1).firmwareinfo.c: $(1) $(ROOT_DIR)/make/templates/firmwareinfotemplate.c FORC
 
 $(eval $(call COMPILE_C_TEMPLATE, $(1).firmwareinfo.c))
 
-# This pads the bin up to the firmware description blob base
-# Required for boards which don't use the TL bootloader to put
-# the blob at the correct location, if pad location($(4)) is
-# less than bin length this is ineffective
-%.padded.bin: %.elf
-	$(V1) $(OBJCOPY) --pad-to=$(4) -O binary $$< $$@
-
 $(OUTDIR)/$(notdir $(basename $(1))).tlfw: $(1:.bin=.padded.bin) $(1).firmwareinfo.bin
 	@echo $(MSG_TLFIRMWARE) $$(call toprel, $$@)
 	$(V1) cat $$^ > $$@
@@ -301,3 +294,11 @@ $(OUTDIR)/$(1).gcov: $(OUTDIR)/$$(basename $(1)).gcda
 	)
 endef
 
+ifneq ($(BUILD_TYPE),bu)
+# This pads the bin up to the firmware description blob base
+# Required for boards which don't use the TL bootloader to put
+# the blob at the correct location, if pad location($(4)) is
+# less than bin length this is ineffective
+%.padded.bin: %.bin
+	$(V1) $(OBJCOPY) --pad-to=$(FW_DESC_BASE) -I binary -O binary $< $@
+endif

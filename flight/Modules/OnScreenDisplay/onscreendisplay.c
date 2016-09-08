@@ -1,6 +1,6 @@
 /**
  ******************************************************************************
- * @addtogroup Tau Labs Modules
+ * @addtogroup Modules Flight Modules
  * @{
  * @addtogroup OnScreenDisplay OSD Module
  * @brief Process OSD information
@@ -121,7 +121,6 @@ static void onScreenDisplayTask(void *parameters);
 
 // ****************
 // Private constants
-#define LONG_TIME        0xffff
 #define STACK_SIZE_BYTES 2048
 #define TASK_PRIORITY    PIOS_THREAD_PRIO_LOW
 #define BLINK_INTERVAL_FRAMES 12
@@ -1580,8 +1579,12 @@ int32_t OnScreenDisplayStart(void)
 {
 	if (module_enabled) {
 		onScreenDisplaySemaphore = PIOS_Semaphore_Create();
+		if (!onScreenDisplaySemaphore)
+			return -2;
 
 		taskHandle = PIOS_Thread_Create(onScreenDisplayTask, "OnScreenDisplay", STACK_SIZE_BYTES, NULL, TASK_PRIORITY);
+		if (!taskHandle)
+			return -3;
 		TaskMonitorAdd(TASKINFO_RUNNING_ONSCREENDISPLAY, taskHandle);
 
 #if defined(PIOS_INCLUDE_WDG) && defined(OSD_USE_WDG)
@@ -1618,12 +1621,13 @@ int32_t OnScreenDisplayInitialize(void)
 	has_gps = PIOS_Modules_IsEnabled(PIOS_MODULE_GPS);
 	has_battery = module_settings.AdminState[MODULESETTINGS_ADMINSTATE_BATTERY];
 
-	uint8_t filter;
-	StateEstimationNavigationFilterGet(&filter);
-	if (filter != STATEESTIMATION_NAVIGATIONFILTER_NONE) {
-		has_nav = true;
-	} else {
-		has_nav = false;
+	has_nav = false;
+	if (StateEstimationHandle()) {
+		uint8_t filter;
+		StateEstimationNavigationFilterGet(&filter);
+		if (filter != STATEESTIMATION_NAVIGATIONFILTER_NONE) {
+			has_nav = true;
+		}
 	}
 
 	if (OnScreenDisplayPageSettingsInitialize() == -1 \
@@ -1708,7 +1712,7 @@ static void onScreenDisplayTask(__attribute__((unused)) void *parameters)
 
 	// intro
 	while (PIOS_Thread_Systime() <= BLANK_TIME + INTRO_TIME) {
-		if (PIOS_Semaphore_Take(onScreenDisplaySemaphore, LONG_TIME) == true) {
+		if (PIOS_Semaphore_Take(onScreenDisplaySemaphore, PIOS_SEMAPHORE_TIMEOUT_MAX) == true) {
 			clearGraphics();
 			if (PIOS_Video_GetType() == VIDEO_TYPE_NTSC) {
 				introGraphics(GRAPHICS_RIGHT / 2, GRAPHICS_BOTTOM / 2 - 20);
@@ -1734,7 +1738,7 @@ static void onScreenDisplayTask(__attribute__((unused)) void *parameters)
 	home_baro_altitude /= frame_counter;
 
 	while (1) {
-		if (PIOS_Semaphore_Take(onScreenDisplaySemaphore, LONG_TIME) == true) {
+		if (PIOS_Semaphore_Take(onScreenDisplaySemaphore, PIOS_SEMAPHORE_TIMEOUT_MAX) == true) {
 			now = PIOS_Thread_Systime();
 #ifdef DEBUG_TIMING
 			in_ticks = PIOS_Thread_Systime();
@@ -1877,3 +1881,8 @@ static void onScreenDisplayTask(__attribute__((unused)) void *parameters)
 		}
 	}
 }
+
+/**
+ * @}
+ * @}
+ */

@@ -52,7 +52,8 @@ FW_DESC_BASE := $(shell echo $$(($(FW_BANK_BASE)+$(FW_BANK_SIZE)-$(FW_DESC_SIZE)
 else 
 FW_DESC_BASE = 0
 endif
-$(eval $(call TLFW_TEMPLATE,$(OUTDIR)/$(TARGET).bin,$(BOARD_TYPE),$(BOARD_REVISION),$(FW_DESC_BASE)))
+
+$(eval $(call TLFW_TEMPLATE,$(OUTDIR)/$(TARGET).bin,$(BOARD_TYPE),$(BOARD_REVISION)))
 
 # Add jtag targets (program and wipe)
 $(eval $(call JTAG_TEMPLATE,$(OUTDIR)/$(TARGET).elf,$(FW_BANK_BASE),$(FW_BANK_SIZE),$(OPENOCD_JTAG_CONFIG),$(OPENOCD_CONFIG)))
@@ -68,25 +69,6 @@ tlfw: $(OUTDIR)/$(TARGET).tlfw
 
 # Display sizes of sections.
 $(eval $(call SIZE_TEMPLATE, $(OUTDIR)/$(TARGET).elf))
-
-# Target: clean project.
-clean: clean_list
-
-clean_list :
-	@echo $(MSG_CLEANING)
-	$(V1) $(REMOVE) $(OUTDIR)/$(TARGET).map
-	$(V1) $(REMOVE) $(OUTDIR)/$(TARGET).elf
-	$(V1) $(REMOVE) $(OUTDIR)/$(TARGET).hex
-	$(V1) $(REMOVE) $(OUTDIR)/$(TARGET).bin
-	$(V1) $(REMOVE) $(OUTDIR)/$(TARGET).padded.bin
-	$(V1) $(REMOVE) $(OUTDIR)/$(TARGET).sym
-	$(V1) $(REMOVE) $(OUTDIR)/$(TARGET).lss
-	$(V1) $(REMOVE) $(OUTDIR)/$(TARGET).bin.o
-	$(V1) $(REMOVE) $(ALLOBJ)
-	$(V1) $(REMOVE) $(LSTFILES)
-	$(V1) $(REMOVE) $(DEPFILES)
-	$(V1) $(REMOVE) $(SRC:.c=.s)
-	$(V1) $(REMOVE) $(CPPSRC:.cpp=.s)
 
 # Create output files directory
 # all known MS Windows OS define the ComSpec environment variable

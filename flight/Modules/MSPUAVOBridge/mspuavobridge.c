@@ -30,6 +30,7 @@
 
 #include "openpilot.h"
 #include "pios_hal.h"
+#include "coordinate_conversions.h"
 #include "msp.h"
 
 #include "modulesettings.h"
@@ -37,6 +38,7 @@
 #include "accels.h"
 #include "gyros.h"
 #include "flightbatterystate.h"
+#include "manualcontrolcommand.h"
 
 #if defined(PIOS_MSP_STACK_SIZE)
 #define STACK_SIZE_BYTES PIOS_MSP_STACK_SIZE
@@ -92,11 +94,21 @@ static bool msp_unpack_attitude(void *data, uint8_t len)
 	AttitudeActualData attActual;
 	AttitudeActualGet(&attActual);
 
-	// Roll and Pitch are in 10ths of a degree.
-	attActual.Roll = (float)att->angx / 10.0f;
-	attActual.Pitch = (float)att->angy / -10.0f;
-	// Yaw is just -180 -> 180
-	attActual.Yaw = att->heading;
+	const float rpy[3] = {
+		(float)att->angx / 10.0f, /* [-1800:1800] 1/10 deg */
+		(float)att->angy / -10.0f, /* [-900:900] 1/10 deg */
+		att->heading /* [-180:180] deg */
+	};
+	attActual.Roll = rpy[0];
+	attActual.Pitch = rpy[1];
+	attActual.Yaw = rpy[2];
+
+	float q[4];
+	RPY2Quaternion(rpy, q);
+	attActual.q1 = q[0];
+	attActual.q2 = q[1];
+	attActual.q3 = q[2];
+	attActual.q4 = q[3];
 
 	AttitudeActualSet(&attActual);
 
@@ -141,6 +153,12 @@ static bool msp_unpack_analog(void *data, uint8_t len)
 	batt.Current = (float)analog->amperage;
 	batt.ConsumedEnergy = (float)analog->power_meter_sum;
 	FlightBatteryStateSet(&batt);
+
+	ManualControlCommandData cntrl;
+	ManualControlCommandGet(&cntrl);
+	cntrl.RawRssi = analog->rssi;
+	cntrl.Rssi = analog->rssi * 100 / 1024; /* [0:1023] */
+	ManualControlCommandSet(&cntrl);
 
 	return true;
 }
@@ -282,11 +300,15 @@ static int32_t mspUavoBridge_Init(void)
 	msp->com = (struct pios_com_dev *)pios_com_msp_id;
 
 	/* Init these in case they aren't already (we don't want to die) */
-	AccelsInitialize();
-	GyrosInitialize();
-	FlightBatteryStateInitialize();
-
-	if (!(AccelsHandle() && GyrosHandle() && FlightBatteryStateHandle()))
+	bool check = true;
+	/* WARNING: this macro has side-effects! */
+	#define INIT_CHECK_UAVO(name) name##Initialize(); check &= (name##Handle() != NULL)
+	INIT_CHECK_UAVO(Accels);
+	INIT_CHECK_UAVO(AttitudeActual);
+	INIT_CHECK_UAVO(Gyros);
+	INIT_CHECK_UAVO(FlightBatteryState);
+	INIT_CHECK_UAVO(ManualControlCommand);
+	if (!check)
 		return -3;
 
 	msp->magic = MSP_BRIDGE_MAGIC;
