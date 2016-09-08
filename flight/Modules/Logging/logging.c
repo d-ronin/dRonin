@@ -332,7 +332,7 @@ static void loggingTask(void *parameters)
 
 			// Register objects to be logged
 			switch (settings.Profile) {
-				case LOGGINGSETTINGS_PROFILE_DEFAULT:
+				case LOGGINGSETTINGS_PROFILE_BASIC:
 					register_default_profile();
 					break;
 				case LOGGINGSETTINGS_PROFILE_CUSTOM:
