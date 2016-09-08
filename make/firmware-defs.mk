@@ -207,12 +207,14 @@ endef
 #   $1 = elf file to produce
 #   $2 = list of object files that make up the elf file
 # Note: OSX doesn't have objcopy out-of-box so we can't use it native builds (e.g. sim)
+# Note: header include flags are filtered out to avoid Windows CreateProcess char limit (32768)
 define LINK_TEMPLATE
-.SECONDARY : $(1)
-.PRECIOUS : $(2)
-$(1):  $(2)
+.SECONDARY: $(1)
+.PRECIOUS: $(2)
+$(1): CFLAGS_LINK = $$(filter-out -I%,$$(CFLAGS))
+$(1): $(2)
 	@echo $(MSG_LINKING) $$(call toprel, $$@)
-	$(V1) $(CC) $(THUMB) $$(CFLAGS) $(2) --output $$@ $$(LDFLAGS)
+	$(V1) $(CC) $(THUMB) $$(CFLAGS_LINK) $(2) --output $$@ $$(LDFLAGS)
 ifneq ($(TCHAIN_PREFIX),)
 	@echo $(MSG_DEBUG_SYMBOLS) $$(call toprel, $$@)
 	$(V1) $(OBJCOPY) --only-keep-debug $$@ $$(addsuffix .debug, $$(@:.elf=))
