@@ -185,18 +185,13 @@ void VehicleConfigurationHelper::applyActuatorConfiguration()
         ActuatorSettings::DataFields data = actSettings->getData();
 
         QList<actuatorChannelSettings> actuatorSettings = m_configSource->getActuatorSettings();
-        for (quint16 i = 0; i < ActuatorSettings::CHANNELMAX_NUMELEM; i++) {
-            data.ChannelType[i]    = ActuatorSettings::CHANNELTYPE_PWM;
-            data.ChannelMin[i]     = actuatorSettings[i].channelMin;
-            data.ChannelNeutral[i] = actuatorSettings[i].channelNeutral;
-            data.ChannelMax[i]     = actuatorSettings[i].channelMax;
-        }
-
         data.MotorsSpinWhileArmed = ActuatorSettings::MOTORSSPINWHILEARMED_FALSE;
 
         for (quint16 i = 0; i < ActuatorSettings::TIMERUPDATEFREQ_NUMELEM; i++) {
             data.TimerUpdateFreq[i] = LEGACY_ESC_FREQUENCY;
         }
+
+        int max_motors = 0;
 
         qint16 updateFrequency = LEGACY_ESC_FREQUENCY;
         switch (m_configSource->getESCType()) {
@@ -219,6 +214,10 @@ void VehicleConfigurationHelper::applyActuatorConfiguration()
         case VehicleConfigurationSource::MULTI_ROTOR_TRI_Y:
             data.TimerUpdateFreq[0] = updateFrequency;
             data.TimerUpdateFreq[1] = updateFrequency;
+
+            // Ignore the servo for now.
+            max_motors = 3;
+
             data.MotorsSpinWhileArmed = ActuatorSettings::MOTORSSPINWHILEARMED_TRUE;
             break;
         case VehicleConfigurationSource::MULTI_ROTOR_QUAD_X:
@@ -226,11 +225,25 @@ void VehicleConfigurationHelper::applyActuatorConfiguration()
             data.TimerUpdateFreq[0] = updateFrequency;
             data.TimerUpdateFreq[1] = updateFrequency;
             data.TimerUpdateFreq[2] = updateFrequency;
+
+            max_motors = 4;
+
             data.MotorsSpinWhileArmed = ActuatorSettings::MOTORSSPINWHILEARMED_TRUE;
             break;
         case VehicleConfigurationSource::MULTI_ROTOR_HEXA:
         case VehicleConfigurationSource::MULTI_ROTOR_HEXA_COAX_Y:
         case VehicleConfigurationSource::MULTI_ROTOR_HEXA_H:
+
+            data.TimerUpdateFreq[0] = updateFrequency;
+            data.TimerUpdateFreq[1] = updateFrequency;
+            data.TimerUpdateFreq[2] = updateFrequency;
+            data.TimerUpdateFreq[3] = updateFrequency;
+
+            max_motors = 6;
+
+            data.MotorsSpinWhileArmed = ActuatorSettings::MOTORSSPINWHILEARMED_TRUE;
+
+            break;
         case VehicleConfigurationSource::MULTI_ROTOR_OCTO:
         case VehicleConfigurationSource::MULTI_ROTOR_OCTO_COAX_X:
         case VehicleConfigurationSource::MULTI_ROTOR_OCTO_COAX_PLUS:
@@ -239,11 +252,29 @@ void VehicleConfigurationHelper::applyActuatorConfiguration()
             data.TimerUpdateFreq[1] = updateFrequency;
             data.TimerUpdateFreq[2] = updateFrequency;
             data.TimerUpdateFreq[3] = updateFrequency;
+
+            max_motors = 8;
+
             data.MotorsSpinWhileArmed = ActuatorSettings::MOTORSSPINWHILEARMED_TRUE;
             break;
         default:
             break;
         }
+
+        for (quint16 i = 0; i < ActuatorSettings::CHANNELMAX_NUMELEM; i++) {
+            data.ChannelType[i]    = ActuatorSettings::CHANNELTYPE_PWM;
+
+            if (i < max_motors) {
+                data.ChannelMin[i]     = actuatorSettings[i].channelMin;
+                data.ChannelNeutral[i] = actuatorSettings[i].channelNeutral;
+                data.ChannelMax[i]     = actuatorSettings[i].channelMax;
+            } else {
+                data.ChannelMin[i]     = 0;
+                data.ChannelNeutral[i] = 0;
+                data.ChannelMax[i]     = 0;
+            }
+        }
+
         actSettings->setData(data);
         addModifiedObject(actSettings, tr("Writing actuator settings"));
         break;
