@@ -353,7 +353,7 @@ int32_t transmitter_control_update()
 
 		// Need to do this here since we don't process armed status.  Since this shouldn't happen in flight (changed config)
 		// immediately disarm
-		arm_state = FLIGHTSTATUS_ARMED_DISARMED;
+		arm_state = ARM_STATE_DISARMED;
 		set_armed_if_changed(arm_state);
 
 		return -1;
