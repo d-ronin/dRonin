@@ -14,11 +14,11 @@
 ##############################
 # Checking for $(OPENOCD_FTDI) to be sane
 ifdef OPENOCD_FTDI
- ifneq ($(OPENOCD_FTDI),yes)
-  ifneq ($(OPENOCD_FTDI),no)
-   $(error Only yes or no are allowed for OPENOCD_FTDI)
+  ifneq ($(OPENOCD_FTDI),yes)
+    ifneq ($(OPENOCD_FTDI),no)
+      $(error Only yes or no are allowed for OPENOCD_FTDI)
+    endif
   endif
- endif
 endif
 
 # Set up QT toolchain
@@ -511,6 +511,101 @@ endif
 zip_clean:
 	$(V1) [ ! -d "$(ZIP_DIR)" ] || $(RM) -rf $(ZIP_DIR)
 
+
+# Google depot-tools, used to build breakpad on Mac/Linux
+DEPOT_TOOLS_REPO := https://chromium.googlesource.com/chromium/tools/depot_tools.git
+DEPOT_TOOLS_REV := master
+DEPOT_TOOLS_DIR := $(TOOLS_DIR)/depot-tools
+
+.PHONY: depot_tools_install depot_tools_clean
+depot_tools_install: | $(TOOLS_DIR)
+	$(V0) @echo " DOWNLOAD     $(DEPOT_TOOLS_REPO)"
+	$(V1) ( \
+		if [ ! -d "$(DEPOT_TOOLS_DIR)" ] ; then \
+			mkdir -p "$(DEPOT_TOOLS_DIR)" ; \
+			cd "$(DEPOT_TOOLS_DIR)" ; \
+			git init -q ; \
+			git remote add origin $(DEPOT_TOOLS_REPO) ; \
+		fi ; \
+		cd "$(DEPOT_TOOLS_DIR)" ; \
+		git fetch -q --depth=1 origin $(DEPOT_TOOLS_REV) ; \
+		git checkout -q -f FETCH_HEAD ; \
+		git clean -q -f -d -x ; \
+	)
+
+depot_tools_clean:
+	$(V0) @echo " CLEAN        $(DEPOT_TOOLS_DIR)"
+	$(V1) [ ! -d "$(DEPOT_TOOLS_DIR)" ] || $(RM) -rf $(DEPOT_TOOLS_DIR)
+
+# Google breakpad
+BREAKPAD_REPO := https://github.com/d-ronin/breakpad.git
+BREAKPAD_REV := 20160909
+BREAKPAD_DIR := $(TOOLS_DIR)/breakpad
+BREAKPAD_BUILD_DIR := $(DL_DIR)/breakpad
+
+.PHONY: breakpad_install breakpad_clean breakpad_build_clean
+
+ifndef WINDOWS
+
+breakpad_install: | $(DL_DIR) $(TOOLS_DIR)
+breakpad_install: | breakpad_clean
+	$(V0) @echo " DOWNLOAD     $(BREAKPAD_REPO) @ $(BREAKPAD_REV)"
+	$(V1) mkdir -p "$(BREAKPAD_BUILD_DIR)"
+
+	$(V1) ( \
+		cd $(BREAKPAD_BUILD_DIR) ; \
+		export PATH="$(DEPOT_TOOLS_DIR):$(PATH)" ; \
+		gclient config --name=src "$(BREAKPAD_REPO)" ; \
+		gclient sync --with_tags --no-history -r refs/tags/$(BREAKPAD_REV) ; \
+	)
+
+	$(V0) @echo " BUILD        $(BREAKPAD_DIR)"
+	$(V1) ( \
+		cd "$(BREAKPAD_BUILD_DIR)/src/src" ; \
+		$(MAKE) distclean ; \
+		../configure --prefix="$(BREAKPAD_DIR)"; \
+		$(MAKE) ; \
+		$(MAKE) install ; \
+	)
+
+ifdef MACOSX
+	$(V1) ( \
+		cd "$(BREAKPAD_BUILD_DIR)/src/src/tools/mac/dump_syms" ; \
+		xcodebuild ; \
+		cp build/Release/dump_syms "$(BREAKPAD_DIR)/bin"; \
+	)
+endif
+
+else # WINDOWS
+
+breakpad_install: | $(DL_DIR) $(TOOLS_DIR)
+breakpad_install: | breakpad_clean
+	$(V0) @echo " DOWNLOAD     $(BREAKPAD_REPO) @ $(BREAKPAD_REV)"
+	$(V1) mkdir -p "$(BREAKPAD_BUILD_DIR)"
+
+	$(V1) ( \
+		cd "$(BREAKPAD_BUILD_DIR)" ; \
+		if [ ! -d "$(BREAKPAD_BUILD_DIR)/.git" ] ; then \
+			git init -q ; \
+			git remote add origin $(BREAKPAD_REPO) ; \
+		fi ; \
+		git fetch -q --depth=1 origin $(BREAKPAD_REV) ; \
+		git checkout -q -f FETCH_HEAD ; \
+		mkdir -p "$(BREAKPAD_DIR)/bin" ; \
+		cp "$(BREAKPAD_BUILD_DIR)/src/tools/windows/binaries/"* "$(BREAKPAD_DIR)/bin" ; \
+	)
+
+endif # WINDOWS
+
+breakpad_build_clean:
+	$(V0) @echo " CLEAN        $(BREAKPAD_BUILD_DIR)"
+	$(V1) [ ! -d "$(BREAKPAD_BUILD_DIR)" ] || $(RM) -rf $(BREAKPAD_BUILD_DIR)
+
+breakpad_clean:
+	$(V0) @echo " CLEAN        $(BREAKPAD_DIR)"
+	$(V1) [ ! -d "$(BREAKPAD_DIR)" ] || $(RM) -rf $(BREAKPAD_DIR)
+
+
 ##############################
 #
 # Set up paths to tools
@@ -574,6 +669,11 @@ else
   UNCRUSTIFY ?= uncrustify
 endif
 
+ifeq ($(shell [ -d "$(BREAKPAD_DIR)" ] && echo "exists"), exists)
+  DUMP_SYMBOLS_TOOL := $(BREAKPAD_DIR)/bin/dump_syms
+else
+  DUMP_SYMBOLS_TOOL := dump_syms
+endif
 
 .PHONY: openssl_install
 
@@ -596,32 +696,6 @@ endif
 .PHONY: openssl_clean
 openssl_clean:
 	$(V1) [ ! -d "$(OPENSSL_DIR)" ] || $(RM) -rf $(OPENSSL_DIR)
-
-# Google Breakpad
-DUMP_SYMBOLS_TOOL := $(TOOLS_DIR)/breakpad/$(OSFAMILY)-$(ARCHFAMILY)/dump_syms
-BREAKPAD_URL := http://dronin.tracer.nz/tools/breakpad.zip
-BREAKPAD_DL_FILE := $(DL_DIR)/$(notdir $(BREAKPAD_URL))
-BREAKPAD_DIR := $(TOOLS_DIR)/breakpad
-
-.PHONY: breakpad_install
-breakpad_install: | $(DL_DIR) $(TOOLS_DIR)
-breakpad_install: breakpad_clean
-	$(V0) @echo " DOWNLOAD     $(BREAKPAD_URL)"
-	$(V1) $(V1) curl -L -k -z "$(BREAKPAD_DL_FILE)" -o "$(BREAKPAD_DL_FILE)" "$(BREAKPAD_URL)"
-	$(V0) @echo " EXTRACT      $(notdir $(BREAKPAD_DL_FILE))"
-	$(V1) mkdir -p "$(BREAKPAD_DIR)"
-	$(V1) unzip -q -d $(BREAKPAD_DIR) "$(BREAKPAD_DL_FILE)"
-ifeq ($(OSFAMILY), windows)
-	$(V1) ln -s "$(TOOLS_DIR)/breakpad/$(OSFAMILY)-i686" "$(TOOLS_DIR)/breakpad/$(OSFAMILY)-x86_64"
-endif
-
-.PHONY: breakpad_clean
-breakpad_clean:
-	$(V0) @echo " CLEAN        $(BREAKPAD_DIR)"
-	$(V1) [ ! -d "$(BREAKPAD_DIR)" ] || $(RM) -rf $(BREAKPAD_DIR)
-	$(V0) @echo " CLEAN        $(BREAKPAD_DL_FILE)"
-	$(V1) $(RM) -f $(BREAKPAD_DL_FILE)
-
 
 .PHONY: sdl_install
 
