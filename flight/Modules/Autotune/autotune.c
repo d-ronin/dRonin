@@ -490,9 +490,9 @@ __attribute__((always_inline)) static inline void af_predict(float X[AF_NUMX], f
 	const float bias3 = X[12];       // bias in the yaw torque
 
 	// inputs to the system (roll, pitch, yaw)
-	const float u1_in = 4*t_in*u_in[0];
-	const float u2_in = 4*t_in*u_in[1];
-	const float u3_in = 4*t_in*u_in[2];
+	const float u1_in = u_in[0];
+	const float u2_in = u_in[1];
+	const float u3_in = u_in[2];
 
 	// measurements from gyro
 	const float gyro_x = gyro[0];
