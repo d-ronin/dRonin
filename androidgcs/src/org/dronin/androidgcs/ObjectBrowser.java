@@ -187,7 +187,12 @@ public class ObjectBrowser extends ObjectManagerActivity
 
 				if (selected_index > 0 && objPer != null) {
 					objPer.getField("Operation").setValue("Load");
-					objPer.getField("Selection").setValue("SingleObject");
+					try {
+						objPer.getField("Selection").setValue("SingleObject");
+					} catch (NullPointerException e) {
+						// No longer used.
+					}
+
 					Log.d(TAG,"Loading with object id: " + allObjects.get(selected_index).getObjID());
 					objPer.getField("ObjectID").setValue(allObjects.get(selected_index).getObjID());
 					objPer.getField("InstanceID").setValue(0);
