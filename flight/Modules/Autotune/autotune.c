@@ -245,8 +245,8 @@ static void UpdateStabilizationDesired(bool doingIdent) {
 	ManualControlCommandData manual_control_command;
 	ManualControlCommandGet(&manual_control_command);
 
-	stabDesired.Roll = manual_control_command.Roll * rollMax;
-	stabDesired.Pitch = manual_control_command.Pitch * pitchMax;
+	stabDesired.Roll = manual_control_command.Roll * manualRate[STABILIZATIONSETTINGS_MANUALRATE_ROLL];
+	stabDesired.Pitch = manual_control_command.Pitch * manualRate[STABILIZATIONSETTINGS_MANUALRATE_PITCH];
 	stabDesired.Yaw = manual_control_command.Yaw * manualRate[STABILIZATIONSETTINGS_MANUALRATE_YAW];
 
 	if (doingIdent) {
@@ -254,8 +254,8 @@ static void UpdateStabilizationDesired(bool doingIdent) {
 		stabDesired.StabilizationMode[STABILIZATIONDESIRED_STABILIZATIONMODE_PITCH] = STABILIZATIONDESIRED_STABILIZATIONMODE_SYSTEMIDENT;
 		stabDesired.StabilizationMode[STABILIZATIONDESIRED_STABILIZATIONMODE_YAW] = STABILIZATIONDESIRED_STABILIZATIONMODE_SYSTEMIDENT;
 	} else {
-		stabDesired.StabilizationMode[STABILIZATIONDESIRED_STABILIZATIONMODE_ROLL]  = STABILIZATIONDESIRED_STABILIZATIONMODE_ATTITUDE;
-		stabDesired.StabilizationMode[STABILIZATIONDESIRED_STABILIZATIONMODE_PITCH] = STABILIZATIONDESIRED_STABILIZATIONMODE_ATTITUDE;
+		stabDesired.StabilizationMode[STABILIZATIONDESIRED_STABILIZATIONMODE_ROLL]  = STABILIZATIONDESIRED_STABILIZATIONMODE_RATE;
+		stabDesired.StabilizationMode[STABILIZATIONDESIRED_STABILIZATIONMODE_PITCH] = STABILIZATIONDESIRED_STABILIZATIONMODE_RATE;
 		stabDesired.StabilizationMode[STABILIZATIONDESIRED_STABILIZATIONMODE_YAW] = STABILIZATIONDESIRED_STABILIZATIONMODE_RATE;
 	}
 
