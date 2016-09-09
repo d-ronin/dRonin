@@ -255,16 +255,13 @@ void VehicleConfigurationHelper::applyActuatorConfiguration()
                 data.ChannelMin[i]     = actuatorSettings[i].channelMin;
                 data.ChannelNeutral[i] = actuatorSettings[i].channelNeutral;
                 data.ChannelMax[i]     = actuatorSettings[i].channelMax;
-                
-                int bankNum = boardPlugin->getBankFromOutputChannel(i);
 
-                Q_ASSERT(bankNum >= 0);
+                // Channels are 1-indexed in boardplugin and UI. :(
+                int bankNum = boardPlugin->getBankFromOutputChannel(i+1);
 
-                if (bankNum < 0) {
-                    return;
+                if (bankNum >= 0) {
+                    data.TimerUpdateFreq[bankNum] = updateFrequency;
                 }
-
-                data.TimerUpdateFreq[bankNum] = updateFrequency;
             } else {
                 data.ChannelMin[i]     = 0;
                 data.ChannelNeutral[i] = 0;
