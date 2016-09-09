@@ -84,6 +84,9 @@ static void AutotuneTask(void *parameters);
 static void af_predict(float X[AF_NUMX], float P[AF_NUMP], const float u_in[3], const float gyro[3], const float dT_s, const float t_in);
 static void af_init(float X[AF_NUMX], float P[AF_NUMP]);
 
+// Get the gyro alpha from the stabilization task
+extern float gyro_alpha;
+
 #ifndef AT_QUEUE_NUMELEM
 
 #ifdef SMALLF1
@@ -265,6 +268,8 @@ static void UpdateStabilizationDesired(bool doingIdent) {
 
 #define MAX_PTS_PER_CYCLE 4
 
+float fgyro[3];
+
 /**
  * Module thread, should not return.
  */
@@ -399,11 +404,15 @@ static void AutotuneTask(void *parameters)
 
 					last_time = pt->raw_time;
 
-					af_predict(X, P, pt->u, pt->y, dT_s, pt->throttle);
+					fgyro[0] = fgyro[0] * gyro_alpha + pt->y[0] * (1 - gyro_alpha);
+					fgyro[1] = fgyro[1] * gyro_alpha + pt->y[1] * (1 - gyro_alpha);
+					fgyro[2] = fgyro[2] * gyro_alpha + pt->y[2] * (1 - gyro_alpha);
+
+					af_predict(X, P, pt->u, fgyro, dT_s, pt->throttle);
 
 					for (uint32_t i = 0; i < 3; i++) {
 						const float NOISE_ALPHA = 0.9997f;  // 10 second time constant at 300 Hz
-						noise[i] = NOISE_ALPHA * noise[i] + (1-NOISE_ALPHA) * (pt->y[i] - X[i]) * (pt->y[i] - X[i]);
+						noise[i] = NOISE_ALPHA * noise[i] + (1-NOISE_ALPHA) * (fgyro[i] - X[i]) * (fgyro[i] - X[i]);
 					}
 
 					//This will work up to 8kHz with an 89% throttle position before overflow
