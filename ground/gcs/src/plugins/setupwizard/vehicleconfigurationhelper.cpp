@@ -179,6 +179,11 @@ void VehicleConfigurationHelper::applyActuatorConfiguration()
 {
     ActuatorSettings *actSettings = ActuatorSettings::GetInstance(m_uavoManager);
 
+    Core::IBoardType* boardPlugin = m_configSource->getControllerType();
+    Q_ASSERT(boardPlugin);
+    if (!boardPlugin)
+        return;
+
     switch (m_configSource->getVehicleType()) {
     case VehicleConfigurationSource::VEHICLE_MULTI:
     {
@@ -212,9 +217,6 @@ void VehicleConfigurationHelper::applyActuatorConfiguration()
         // TOOD: vehicle specific sets of update frequencies
         switch (m_configSource->getVehicleSubType()) {
         case VehicleConfigurationSource::MULTI_ROTOR_TRI_Y:
-            data.TimerUpdateFreq[0] = updateFrequency;
-            data.TimerUpdateFreq[1] = updateFrequency;
-
             // Ignore the servo for now.
             max_motors = 3;
 
@@ -222,10 +224,6 @@ void VehicleConfigurationHelper::applyActuatorConfiguration()
             break;
         case VehicleConfigurationSource::MULTI_ROTOR_QUAD_X:
         case VehicleConfigurationSource::MULTI_ROTOR_QUAD_PLUS:
-            data.TimerUpdateFreq[0] = updateFrequency;
-            data.TimerUpdateFreq[1] = updateFrequency;
-            data.TimerUpdateFreq[2] = updateFrequency;
-
             max_motors = 4;
 
             data.MotorsSpinWhileArmed = ActuatorSettings::MOTORSSPINWHILEARMED_TRUE;
@@ -233,12 +231,6 @@ void VehicleConfigurationHelper::applyActuatorConfiguration()
         case VehicleConfigurationSource::MULTI_ROTOR_HEXA:
         case VehicleConfigurationSource::MULTI_ROTOR_HEXA_COAX_Y:
         case VehicleConfigurationSource::MULTI_ROTOR_HEXA_H:
-
-            data.TimerUpdateFreq[0] = updateFrequency;
-            data.TimerUpdateFreq[1] = updateFrequency;
-            data.TimerUpdateFreq[2] = updateFrequency;
-            data.TimerUpdateFreq[3] = updateFrequency;
-
             max_motors = 6;
 
             data.MotorsSpinWhileArmed = ActuatorSettings::MOTORSSPINWHILEARMED_TRUE;
@@ -248,11 +240,6 @@ void VehicleConfigurationHelper::applyActuatorConfiguration()
         case VehicleConfigurationSource::MULTI_ROTOR_OCTO_COAX_X:
         case VehicleConfigurationSource::MULTI_ROTOR_OCTO_COAX_PLUS:
         case VehicleConfigurationSource::MULTI_ROTOR_OCTO_V:
-            data.TimerUpdateFreq[0] = updateFrequency;
-            data.TimerUpdateFreq[1] = updateFrequency;
-            data.TimerUpdateFreq[2] = updateFrequency;
-            data.TimerUpdateFreq[3] = updateFrequency;
-
             max_motors = 8;
 
             data.MotorsSpinWhileArmed = ActuatorSettings::MOTORSSPINWHILEARMED_TRUE;
@@ -268,6 +255,16 @@ void VehicleConfigurationHelper::applyActuatorConfiguration()
                 data.ChannelMin[i]     = actuatorSettings[i].channelMin;
                 data.ChannelNeutral[i] = actuatorSettings[i].channelNeutral;
                 data.ChannelMax[i]     = actuatorSettings[i].channelMax;
+                
+                int bankNum = boardPlugin->getBankFromOutputChannel(i);
+
+                Q_ASSERT(bankNum >= 0);
+
+                if (bankNum < 0) {
+                    return;
+                }
+
+                data.TimerUpdateFreq[bankNum] = updateFrequency;
             } else {
                 data.ChannelMin[i]     = 0;
                 data.ChannelNeutral[i] = 0;
