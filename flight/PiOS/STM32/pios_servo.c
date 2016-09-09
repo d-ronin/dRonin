@@ -248,7 +248,7 @@ void PIOS_Servo_SetMode(const uint16_t *out_rate, const int banks, const uint16_
 			const struct pios_tim_channel *chan = &servo_cfg->channels[j];
 			if (timer_banks[i].timer == chan->timer) {
 				/* save the frequency for these channels */
-				output_channel_mode[j] = (out_rate[i] == 0) ? SYNC_PWM : REGULAR_PWM;
+				output_channel_mode[j] = (rate == 0) ? SYNC_PWM : REGULAR_PWM;
 				output_channel_resolution[j] = timer_banks[i].clk_rate;
 			}
 		}
