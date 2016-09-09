@@ -400,6 +400,16 @@ androidgcs_clean:
 	$(V0) @echo " CLEAN      $@"
 	$(V1) [ ! -d "$(ANDROIDGCS_OUT_DIR)" ] || $(RM) -rf "$(ANDROIDGCS_OUT_DIR)"
 
+.PHONY: androidgcs_sign
+
+# This is intended for manual/after the fact signing of a release artifact
+# out of band from CI/release infrastructure.  It can be made more elegant
+# later as things mature.  Better some documentation than no documentation.
+androidgcs_sign:
+	$(V0) @echo " SIGNING    $@"
+	jarsigner -verbose -sigalg SHA1withRSA -digestalg SHA1 -keystore dronin.keystore androidgcs-release-unsigned.apk dronin
+	$(ANDROID_SDK_DIR)/build-tools/20.0.0/zipalign -v 4 androidgcs-release-unsigned.apk androidgcs-release.apk
+
 # We want to take snapshots of the UAVOs at each point that they change
 # to allow the GCS to be compatible with as many versions as possible.
 #
