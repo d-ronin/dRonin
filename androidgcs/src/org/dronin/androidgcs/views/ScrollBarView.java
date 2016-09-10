@@ -80,7 +80,7 @@ public class ScrollBarView extends GridLayout implements ObjectFieldMappable {
 			public void onProgressChanged(SeekBar seekBar, int progress,
 					boolean fromUser) {
 				value = progress / SCALE;
-				edit.setText(Double.toString(value));
+				edit.setText(String.format("%.7f", value));
 				if (changeListener != null && localUpdate == false)
 					changeListener.run();
 			}
@@ -151,7 +151,7 @@ public class ScrollBarView extends GridLayout implements ObjectFieldMappable {
 	public void setValue(double val) {
 		localUpdate = true;
 		value = val;
-		edit.setText(Float.toString((float) value));
+		edit.setText(String.format("%.7f", value));
 		bar.setProgress((int) (SCALE * value));
 		localUpdate = false;
 	}
