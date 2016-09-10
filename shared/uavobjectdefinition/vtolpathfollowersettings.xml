@@ -3,10 +3,10 @@
 		<description>Settings for the @ref VtolPathFollowerModule</description>
 		
 		<field name="HorizontalVelMax" units="m/s" type="uint16" elements="1" defaultvalue="10">
-			<description/>
+			<description>Maximum Horizontal Velocity</description>
 		</field>
 		<field name="VerticalVelMax" units="m/s" type="uint16" elements="1" defaultvalue="2">
-			<description/>
+			<description>Maximum Vertical Velocity</description>
 		</field>
 		<field name="HorizontalPosPI" units="(m/s)/m" type="float" elementnames="Kp,Ki,ILimit" defaultvalue="1,0,2">
 			<description/>
@@ -15,14 +15,14 @@
 			<description/>
 		</field>
 		<field name="VelocityFeedforward" units="deg/(m/s)" type="float" elements="1" defaultvalue="0">
-			<description/>
+			<description>Feedforward Velocity</description>
 		</field>
 		<field name="ThrottleControl" units="" type="enum" elements="1" options="FALSE,TRUE" defaultvalue="FALSE">
-			<description/>
+			<description>Enable/Disable Throttle Control</description>
 		</field>
 		<!-- 0.4-0.6 seconds seems like a good value in most cases, this is conservative -->
 		<field name="PositionFeedforward" units="s" type="float" elements="1" defaultvalue="0.45">
-			<description/>
+			<description>Feedforward Position</description>
 		</field>
 		<field name="EndpointDeadbandWidth" units="m" type="float" elements="1" defaultvalue="0.45">
 			<description/>
@@ -43,14 +43,12 @@
 			<description/>
 		</field>
 
-		<!-- The distance within the endpoint (horizontally) that should be achieved to mark completed -->
 		<field name="EndpointRadius" units="m" type="float" elements="1" defaultvalue="2.0">
-			<description/>
+			<description>The distance within the endpoint (horizontally) that should be achieved to mark completed</description>
 		</field>
 
-		<!-- The distance that we can be below a waypoint and still mark it as completed.  Silently ignored if ThrottleControl == false -->
 		<field name="WaypointAltitudeTol" units="m" type="float" elements="1" defaultvalue="2.0">
-			<description/>
+			<description>The distance that we can be below a waypoint and still mark it as completed.  Silently ignored if ThrottleControl == false</description>
 		</field>
 
 		<field name="UpdatePeriod" units="ms" type="int32" elements="1" defaultvalue="50">
@@ -60,7 +58,7 @@
 			<description/>
 		</field>
 		<field name="LandingRate" units="m/s" type="float" elements="1" defaultvalue="0.5">
-			<description/>
+			<description>Landing Speed</description>
 		</field>
 
 		<!-- Loiter mode configuration -->
@@ -85,7 +83,7 @@
 		</field>
 
 		<field name="ReturnToHomeVel" units="m/s" type="float" elements="1" defaultvalue="3.0">
-			<description/>
+			<description>Return To Home velocity</description>
 		</field>
 
 		<access gcs="readwrite" flight="readwrite"/>

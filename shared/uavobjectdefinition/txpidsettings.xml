@@ -1,9 +1,9 @@
 <xml>
 	<object name="TxPIDSettings" singleinstance="true" settings="true">
 		<description>Settings used by @ref TxPID optional module to tune PID settings using R/C transmitter</description>
-		
+
 		<field name="UpdateMode" units="option" type="enum" elements="1" options="Never,When Armed,Always" defaultvalue="When Armed">
-			<description/>
+			<description>When to update the mode</description>
 		</field>
 		<field name="Inputs" units="channel" type="enum"
 		elementnames="Instance1,Instance2,Instance3"
@@ -12,7 +12,7 @@
 			<description/>
 		</field>
 		<field name="ThrottleRange" units="%" type="float" elements="2" elementnames="Min,Max" defaultvalue="0.20,0.80">
-			<description/>
+			<description>Range of throttle</description>
 		</field>
 		<field name="PIDs" units="option" type="enum"
 		elementnames="Instance1,Instance2,Instance3"
@@ -35,10 +35,10 @@
 			<description/>
 		</field>
 		<field name="MinPID" units="" type="float" elementnames="Instance1,Instance2,Instance3" defaultvalue="0">
-			<description/>
+			<description>Minimum PID value</description>
 		</field>
 		<field name="MaxPID" units="" type="float" elementnames="Instance1,Instance2,Instance3" defaultvalue="0">
-			<description/>
+			<description>Maximum PID value</description>
 		</field>
 
 		<access gcs="readwrite" flight="readwrite"/>

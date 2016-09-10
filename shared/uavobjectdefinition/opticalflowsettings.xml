@@ -3,13 +3,13 @@
 		<description>The optical flow sensor settings.</description>
 		
 		<field name="SensorType" units="" type="enum" elements="1" options="None, PX4Flow" defaultvalue="None">
-			<description/>
+			<description>Sensor Type</description>
 		</field>
 		<field name="SensorRotation" units="deg*100" type="int16" elementnames="Roll,Pitch,Yaw" defaultvalue="0,0,0">
-			<description/>
+			<description>Sensor Rotation</description>
 		</field>
 		<field name="Quality" units="" type="uint8" elements="1" defaultvalue="0">
-			<description/>
+			<description>Quality</description>
 		</field>
 
 		<access gcs="readwrite" flight="readwrite"/>

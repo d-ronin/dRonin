@@ -3,7 +3,7 @@
 		<description>Settings for the FlightStats module</description>
 		
 		<field name="StatsBehavior" units="" type="enum" options="ResetOnArm,ResetOnBoot" elements="1" defaultvalue="ResetOnArm">
-			<description/>
+			<description>Specifies when the statistics should be reset</description>
 		</field>
 
 		<access gcs="readwrite" flight="readwrite"/>

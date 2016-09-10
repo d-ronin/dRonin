@@ -3,19 +3,19 @@
 		<description>Settings for the @ref PicoC Interpreter Module</description>
 		
 		<field name="MaxFileSize" units="bytes [be careful!]" type="uint32" elements="1" defaultvalue="2048">
-			<description/>
+			<description>Maximum File Size</description>
 		</field>
 		<field name="TaskStackSize" units="bytes [be careful!]" type="uint32" elements="1" defaultvalue="16384">
-			<description/>
+			<description>Task Stack Size</description>
 		</field>
 		<field name="PicoCStackSize" units="bytes [be careful!]" type="uint32" elements="1" defaultvalue="16384">
-			<description/>
+			<description>PicoC Stack Size</description>
 		</field>
 		<field name="BootFileID" units="" type="uint8" elements="1" defaultvalue="0">
-			<description/>
+			<description>Boot File ID</description>
 		</field>
 		<field name="Startup" units="" type="enum" elements="1" defaultvalue="Disabled">
-			<description/>
+			<description>Startup time</description>
 			<options>
 				<option>Disabled</option>
 				<option>OnBoot</option>
@@ -32,7 +32,7 @@
 			</options>
 		</field>
 		<field name="ComSpeed" units="bps" type="enum" parent="HwShared.SpeedBps" elements="1" defaultvalue="115200">
-			<description/>
+			<description>Communication Speed</description>
 			<options>
 				<option>2400</option>
 				<option>4800</option>

@@ -30,7 +30,7 @@
 			<description/>
 		</field>
 		<field name="TolerateMissingSensors" units="" type="enum" elements="1" defaultvalue="FALSE">
-			<description/>
+			<description>Tolerate Missing Sensors</description>
 			<options>
 				<option>FALSE</option>
 				<option>TRUE</option>

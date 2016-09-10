@@ -33,7 +33,7 @@
 			<description>Apply a calculated bias correction to the gyro when enabled.</description>
 		</field>
 		<field name="FilterChoice" units="channel" type="enum" elements="1" options="CCC,PREMERLANI,PREMERLANI_GPS" defaultvalue="CCC">
-			<description/>
+			<description>The type of filter to be used</description>
 		</field>
 
 		<access gcs="readwrite" flight="readwrite"/>

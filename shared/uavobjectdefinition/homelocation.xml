@@ -18,10 +18,10 @@
 			<description/>
 		</field>
 		<field name="GroundTemperature" units="deg C * 10" type="int16" elements="1" defaultvalue="150">
-			<description/>
+			<description>Temperature measured at ground</description>
 		</field>
 		<field name="SeaLevelPressure" units="millibar" type="uint16" elements="1" defaultvalue="1013">
-			<description/>
+			<description>Barometric pressure measured at sea level</description>
 		</field>
 
 		<access gcs="readwrite" flight="readwrite"/>

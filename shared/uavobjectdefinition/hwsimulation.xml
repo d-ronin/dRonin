@@ -3,7 +3,7 @@
 		<description>Simulation status.</description>
 
 		<field name="LedState" units="" type="enum" elements="2" defaultvalue="Off">
-			<description/>
+			<description>Status of the board LEDs</description>
 			<elementnames>
 				<elementname>Heartbeat</elementname>
 				<elementname>Alarm</elementname>
@@ -11,8 +11,7 @@
 			<options>
 				<option>Off</option>
 				<option>On</option>
-			</options>
-			<description>Status of the board LEDs</description>
+			</options>			
 		</field>
 
 		<access gcs="readwrite" flight="readwrite"/>

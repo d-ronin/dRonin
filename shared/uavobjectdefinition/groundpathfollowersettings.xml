@@ -18,21 +18,20 @@
 			<description/>
 		</field>
 		<field name="ThrottleControl" units="" type="enum" elements="1" options="MANUAL,PROPORTIONAL,AUTO" defaultvalue="PROPORTIONAL">
-			<description/>
+			<description>The type of throttle control that should be used</description>
 		</field>
 		<field name="VelocitySource" units="" type="enum" elements="1" options="EKF,NEDVEL,GPSPOS" defaultvalue="EKF">
-			<description/>
+			<description>The source of the velocity used</description>
 		</field>
 		<field name="PositionSource" units="" type="enum" elements="1" options="EKF,GPSPOS" defaultvalue="EKF">
-			<description/>
+			<description>The source of the position used</description>
 		</field>
 		<field name="MaxThrottle" units="%" type="float" elements="1" defaultvalue="1">
-			<description/>
+			<description>Maximum throttle that may be used</description>
 		</field>
 
-		<!-- The distance within the waypoint (horizontally) that should be achieved to mark completed -->
 		<field name="EndpointRadius" units="m" type="uint8" elements="1" defaultvalue="2">
-			<description/>
+			<description>The distance within the waypoint (horizontally) that should be achieved to mark completed</description>
 		</field>
 
 		<field name="UpdatePeriod" units="ms" type="int32" elements="1" defaultvalue="100">

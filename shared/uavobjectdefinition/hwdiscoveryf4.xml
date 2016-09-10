@@ -10,7 +10,7 @@
 			<description/>
 		</field>
 		<field name="USB_VCPPort" units="function" type="enum" elements="1" parent="HwShared.USB_VCPPort" defaultvalue="Disabled">
-			<description/>
+			<description>Virtual COM Port protocol</description>
 		</field>
 
 		<access gcs="readwrite" flight="readwrite"/>

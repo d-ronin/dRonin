@@ -1,9 +1,9 @@
 <xml>
 	<object name="HwDtfc" singleinstance="true" settings="true" category="HardwareSettings">
-		<description>Selection of optional hardware configurations.</description>
+		<description>Selection of optional hardware configurations</description>
 
 		<field name="RcvrPort" units="function" type="enum" elements="1" parent="HwShared.PortTypes" defaultvalue="PPM">
-			<description>The port labelled "UART3", with pins labelled "PPMRX" and "TX".</description>
+			<description>The port labelled "UART3", with pins labelled "PPMRX" and "TX"</description>
 			<options>
 				<option>Disabled</option>
 				<option>PPM</option>
@@ -30,7 +30,7 @@
 		</field>
 
 		<field name="Uart1" units="function" type="enum" elements="1" parent="HwShared.PortTypes" defaultvalue="Disabled">
-			<description>The "RX" and "TX" pins near the centre of the board. These can be used for stacking OSDoge.</description>
+			<description>The "RX" and "TX" pins near the centre of the board. These can be used for stacking OSDoge</description>
 			<options>
 				<option>Disabled</option>
 				<option>Telemetry</option>
@@ -56,7 +56,7 @@
 		</field>
 
 		<field name="Uart2" units="function" type="enum" elements="1" parent="HwShared.PortTypes" defaultvalue="Disabled">
-			<description>The port labelled "UART2".</description>
+			<description>The port labelled "UART2"</description>
 			<options>
 				<option>Disabled</option>
 				<option>Telemetry</option>
@@ -85,7 +85,7 @@
 			<description/>
 		</field>
 		<field name="USB_VCPPort" units="function" type="enum" elements="1" parent="HwShared.USB_VCPPort" defaultvalue="Disabled">
-			<description/>
+			<description>Virtual COM Port protocol</description>
 			<options>
 				<option>Disabled</option>
 				<option>USBTelemetry</option>
@@ -99,7 +99,7 @@
 		</field>
 
 		<field name="GyroRange" units="deg/s" type="enum" elements="1" defaultvalue="2000">
-			<description>Maximum measurement range for the gyros, should never rotate faster than about 85% of this.</description>
+			<description>Maximum measurement range for the gyros, should never rotate faster than about 85% of this</description>
 			<options>
 				<option>250</option>
 				<option>500</option>
@@ -108,7 +108,7 @@
 			</options>
 		</field>
 		<field name="AccelRange" units="*gravity m/s^2" type="enum" elements="1" defaultvalue="8G">
-			<description>The maximum measure range for the accelerometers, should never exceed this.</description>
+			<description>The maximum measure range for the accelerometers, should never exceed this</description>
 			<options>
 				<option>2G</option>
 				<option>4G</option>
@@ -117,7 +117,7 @@
 			</options>
 		</field>
 		<field name="ICM20608G_Rate" units="Hz" type="enum" elements="1" defaultvalue="1000">
-			<description>The gyro sampling rate.</description>
+			<description>The gyro sampling rate</description>
 			<options>
 				<option>200</option>
 				<option>250</option>
@@ -127,7 +127,7 @@
 			</options>
 		</field>
 		<field name="ICM20608G_GyroLPF" units="Hz" type="enum" elements="1" defaultvalue="176">
-			<description>Gyro filter cutoff frequency.</description>
+			<description>Gyro filter cutoff frequency</description>
 			<options>
 				<option>176</option>
 				<option>92</option>
@@ -138,7 +138,7 @@
 			</options>
 		</field>
 		<field name="ICM20608G_AccelLPF" units="Hz" type="enum" elements="1" defaultvalue="99">
-			<description>Accelerometer filter cutoff frequency.</description>
+			<description>Accelerometer filter cutoff frequency</description>
 			<options>
 				<option>218</option>
 				<option>99</option>

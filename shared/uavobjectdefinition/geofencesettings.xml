@@ -3,10 +3,10 @@
 		<description>Radius for simple geofence boundaries</description>
 		
 		<field name="WarningRadius" units="m" type="uint16" elements="1" defaultvalue="200">
-			<description/>
+			<description>Specifies on which radius a warning should be triggered</description>
 		</field>
 		<field name="ErrorRadius" units="m" type="uint16" elements="1" defaultvalue="250">
-			<description/>
+			<description>Specifies on which radius an error should be triggered</description>
 		</field>
 
 		<access gcs="readwrite" flight="readwrite"/>

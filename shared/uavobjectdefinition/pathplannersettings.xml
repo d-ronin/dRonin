@@ -3,10 +3,10 @@
 		<description>Settings for the @ref PathPlanner Module</description>
 		
 		<field name="PreprogrammedPath" units="" type="enum" elements="1" options="NONE,10M_BOX,LOGO" defaultvalue="NONE">
-			<description/>
+			<description>Preprogrammed path that will be followed</description>
 		</field>
 		<field name="FlashOperation" units="" type="enum" elements="1" defaultvalue="NONE">
-			<description/>
+			<description>Flash Operation</description>
 			<options>
 				<option>NONE</option>
 				<option>FAILED</option>

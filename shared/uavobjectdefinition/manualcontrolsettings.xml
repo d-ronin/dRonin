@@ -37,7 +37,7 @@
 		</field>
 
 		<field name="RssiType" units="Rssi Type" type="enum" elements="1" defaultvalue="None">
-			<description/>
+			<description>Type of RSSI input</description>
 			<options>
 				<option>None</option>
 				<option>PWM</option>
@@ -50,17 +50,17 @@
 			</options>
 		</field>
 		<field name="RssiChannelNumber" units="channel" type="uint8" elements="1" defaultvalue="0">
-			<description/>
+			<description>RSSI channel number</description>
 		</field>
 		<field name="RssiMax" units="" type="int16" elements="1" defaultvalue="2000">
-			<description/>
+			<description>Maximum RSSI value</description>
 		</field>
 		<field name="RssiMin" units="" type="int16" elements="1" defaultvalue="1000">
-			<description/>
+			<description>Minimum RSSI value</description>
 		</field>
 
 		<field name="ChannelNumber" units="channel" type="uint8" defaultvalue="0">
-			<description/>
+			<description>Channel number</description>
 			<elementnames>
 				<elementname>Throttle</elementname>
 				<elementname>Roll</elementname>
@@ -75,7 +75,7 @@
 			</elementnames>
 		</field>
 		<field name="ChannelMin" units="us" type="int16" defaultvalue="1000">
-			<description/>
+			<description>Minimum channel value</description>
 			<elementnames>
 				<elementname>Throttle</elementname>
 				<elementname>Roll</elementname>
@@ -90,7 +90,7 @@
 			</elementnames>
 		</field>
 		<field name="ChannelNeutral" units="us" type="int16" defaultvalue="1500">
-			<description/>
+			<description>Neutral channel value</description>
 			<elementnames>
 				<elementname>Throttle</elementname>
 				<elementname>Roll</elementname>
@@ -105,7 +105,7 @@
 			</elementnames>
 		</field>
 		<field name="ChannelMax" units="us" type="int16" defaultvalue="2000">
-			<description/>
+			<description>Maximum channel value</description>
 			<elementnames>
 				<elementname>Throttle</elementname>
 				<elementname>Roll</elementname>
@@ -121,11 +121,11 @@
 		</field>
 
 		<field name="Deadband" units="%" type="float" elements="1" defaultvalue="0">
-			<description/>
+			<description>Deadband around neutral value</description>
 		</field>
 
 		<field name="Arming" units="" type="enum" elements="1" defaultvalue="Always Disarmed">
-			<description/>
+			<description>Combination to arm</description>
 			<options>
 				<option>Always Disarmed</option>
 				<option>Always Armed</option>
@@ -142,51 +142,51 @@
 			</options>
 		</field>
 		<field name="ArmTime" units="ms" type="enum" elements="1" options="250,500,1000,2000" defaultvalue="1000">
-			<description/>
+			<description>Arm time</description>
 		</field>
 		<field name="DisarmTime" units="ms" type="enum" elements="1" options="250,500,1000,2000" defaultvalue="1000">
-			<description/>
+			<description>Disarm time</description>
 		</field>
 
 		<!-- Note these options should be identical to those in StabilizationDesired.StabilizationMode -->
 		<field name="Stabilization1Settings" parent="SharedDefs.StabilizationMode" type="enum" elementnames="Roll,Pitch,Yaw" defaultvalue="Attitude,Attitude,Rate">
-			<description/>
+			<description>Stabilization 1 settings</description>
 		</field>
 		<field name="Stabilization2Settings" parent="SharedDefs.StabilizationMode" type="enum" elementnames="Roll,Pitch,Yaw" defaultvalue="Attitude,Attitude,Rate">
-			<description/>
+			<description>Stabilization 2 settings</description>
 		</field>
 		<field name="Stabilization3Settings" parent="SharedDefs.StabilizationMode" type="enum" elementnames="Roll,Pitch,Yaw" defaultvalue="Attitude,Attitude,Rate">
-			<description/>
+			<description>Stabilization 3 settings</description>
 		</field>
 
 		<field name="Stabilization1Reprojection" parent="SharedDefs.ReprojectionMode" type="enum" elements="1" defaultvalue="None">
-			<description/>
+			<description>Stabilization 1 reprojection</description>
 		</field>
 		<field name="Stabilization2Reprojection" parent="SharedDefs.ReprojectionMode" type="enum" elements="1" defaultvalue="None">
-			<description/>
+			<description>Stabilization 2 reprojection</description>
 		</field>
 		<field name="Stabilization3Reprojection" parent="SharedDefs.ReprojectionMode" type="enum" elements="1" defaultvalue="None">
-			<description/>
+			<description>Stabilization 3 reprojection</description>
 		</field>
 
 		<!-- Note these options values should be identical to those defined in FlightMode -->
 		<field name="FlightModeNumber" units="" type="uint8" elements="1" defaultvalue="3">
-			<description/>
+			<description>Number of flight modes</description>
 		</field>
 		<field name="FlightModePosition" units="" type="enum" elements="6" parent="SharedDefs.FlightMode" defaultvalue="Leveling,Leveling,Leveling,Horizon,ReturnToHome,PositionHold">
-			<description/>
+			<description>Flight mode per position</description>
 		</field>
 
 		<!-- This option prevents timing out arming when disabled and in autonomous modes.
                      It is enabled by default for additional safety to prevent flyaways -->
 		<field name="ArmTimeoutAutonomous" units="" type="enum" elements="1" options="DISABLED,ENABLED" defaultvalue="ENABLED">
-			<description/>
+			<description>Arm timeout in autonomous modes</description>
 		</field>
 		<field name="ArmedTimeout" units="ms" type="uint16" elements="1" defaultvalue="30000">
-			<description/>
+			<description>Time in armed + idle throttle before disarm</description>
 		</field>
 		<field name="InvalidRXArmedTimeout" units="ms" type="uint16" elements="1" defaultvalue="0">
-			<description/>
+			<description>Invalid receiver armed timeout</description>
 		</field>
 
 		<access gcs="readwrite" flight="readwrite"/>
