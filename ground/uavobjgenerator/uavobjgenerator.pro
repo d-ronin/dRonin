@@ -1,3 +1,5 @@
+include(../tools.pri)
+
 QT += xml
 QT -= gui
 
@@ -5,12 +7,11 @@ macx {
     QMAKE_MACOSX_DEPLOYMENT_TARGET=10.9
 }
 
-cache()
-
-# use ccache with gcc
-*-g++* {
-    QMAKE_CXX=$$(CCACHE_BIN) g++
+!equals(QT_MAJOR_VERSION, 5) {
+    error("Use QT5 (make qt_sdk_install).")
 }
+
+cache()
 
 TARGET = uavobjgenerator
 CONFIG += console

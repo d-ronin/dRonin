@@ -184,7 +184,7 @@ void ImportSummaryDialog::doTheApplySaving()
             quint8* data = new quint8[importedObj->getNumBytes()];
             importedObj->pack(data);
             boardObj->unpack(data);
-            delete data;
+            delete[] data;
 
             boardObj->updated();
 

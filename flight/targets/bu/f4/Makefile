@@ -94,6 +94,10 @@ CDEFS += -DMEM_SIZE=$(FW_BANK_SIZE)
 CDEFS += -DUSE_$(BOARD)
 CDEFS += -DBU_PAYLOAD_FILE=$(PAYLOAD_FILE)
 
+ifneq ($(BU_DONT_CHECK_BOARDINFO),)
+CDEFS += -DBU_DONT_CHECK_BOARDINFO
+endif
+
 # This exists to prevent ccache from caching compilation results when the file
 # has changed.  md5sum is used on linux and Windows; cksum is used on mac.
 CDEFS += -DBU_HASH=$(shell md5sum "$(PAYLOAD_FILE)" 2>/dev/null | cut -d ' ' -f 1 || cksum "$(PAYLOAD_FILE)" | cut -d ' ' -f 1)
@@ -208,3 +212,13 @@ else
 -include $(shell mkdir -p $(OUTDIR) 2>/dev/null) $(shell mkdir $(OUTDIR)/dep 2>/dev/null) $(wildcard $(OUTDIR)/dep/*)
 endif
 
+ifneq ($(BU_PAD_AND_REPEAT_OFFS),)
+# This pads the bin to have two entry locations.  Used on PlayUAV OSD where
+# we could be running from PX4 loader (16k offset) or our loader (128k offset)
+%.padded.bin: %.bin
+	$(V1) $(OBJCOPY) --pad-to=$(BU_PAD_AND_REPEAT_OFFS) -I binary -O binary $< $@
+	$(V1) cat $< >> $@
+else
+%.padded.bin: %.bin
+	$(V1) cp $< $@
+endif

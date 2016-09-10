@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>811</width>
-    <height>677</height>
+    <height>921</height>
    </rect>
   </property>
   <property name="sizePolicy">
@@ -96,7 +96,7 @@
           <item>
            <layout class="QVBoxLayout" name="verticalLayout_5">
             <item>
-             <spacer name="verticalSpacer">
+             <spacer name="verticalSpacer_7">
               <property name="orientation">
                <enum>Qt::Vertical</enum>
               </property>
@@ -105,25 +105,137 @@
               </property>
               <property name="sizeHint" stdset="0">
                <size>
-                <width>10</width>
-                <height>170</height>
+                <width>20</width>
+                <height>15</height>
                </size>
               </property>
              </spacer>
             </item>
             <item>
              <widget class="QLabel" name="label_2">
+              <property name="font">
+               <font>
+                <weight>75</weight>
+                <bold>true</bold>
+               </font>
+              </property>
               <property name="text">
                <string>MultiPort</string>
               </property>
              </widget>
             </item>
             <item>
-             <layout class="QVBoxLayout" name="verticalLayout">
-              <item>
-               <widget class="QComboBox" name="cmbMultiPort"/>
-              </item>
-             </layout>
+             <widget class="QComboBox" name="cmbMultiPort"/>
+            </item>
+            <item>
+             <spacer name="verticalSpacer_10">
+              <property name="orientation">
+               <enum>Qt::Vertical</enum>
+              </property>
+              <property name="sizeType">
+               <enum>QSizePolicy::Fixed</enum>
+              </property>
+              <property name="sizeHint" stdset="0">
+               <size>
+                <width>20</width>
+                <height>15</height>
+               </size>
+              </property>
+             </spacer>
+            </item>
+            <item>
+             <widget class="QLabel" name="label_19">
+              <property name="font">
+               <font>
+                <weight>75</weight>
+                <bold>true</bold>
+               </font>
+              </property>
+              <property name="text">
+               <string>I2C</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QComboBox" name="cmbI2CPort">
+              <property name="font">
+               <font>
+                <weight>50</weight>
+                <bold>false</bold>
+               </font>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <spacer name="verticalSpacer_11">
+              <property name="orientation">
+               <enum>Qt::Vertical</enum>
+              </property>
+              <property name="sizeType">
+               <enum>QSizePolicy::Fixed</enum>
+              </property>
+              <property name="sizeHint" stdset="0">
+               <size>
+                <width>20</width>
+                <height>15</height>
+               </size>
+              </property>
+             </spacer>
+            </item>
+            <item>
+             <widget class="QLabel" name="label_20">
+              <property name="font">
+               <font>
+                <weight>75</weight>
+                <bold>true</bold>
+               </font>
+              </property>
+              <property name="text">
+               <string>ExtBaro</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QComboBox" name="cmbExtBaro">
+              <property name="font">
+               <font>
+                <weight>50</weight>
+                <bold>false</bold>
+               </font>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <spacer name="verticalSpacer_12">
+              <property name="orientation">
+               <enum>Qt::Vertical</enum>
+              </property>
+              <property name="sizeType">
+               <enum>QSizePolicy::Fixed</enum>
+              </property>
+              <property name="sizeHint" stdset="0">
+               <size>
+                <width>20</width>
+                <height>15</height>
+               </size>
+              </property>
+             </spacer>
+            </item>
+            <item>
+             <widget class="QLabel" name="label_18">
+              <property name="font">
+               <font>
+                <weight>75</weight>
+                <bold>true</bold>
+               </font>
+              </property>
+              <property name="text">
+               <string>ExtMag</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QComboBox" name="cmbExtMag"/>
             </item>
             <item>
              <spacer name="verticalSpacer_8">
@@ -131,12 +243,12 @@
                <enum>Qt::Vertical</enum>
               </property>
               <property name="sizeType">
-               <enum>QSizePolicy::Expanding</enum>
+               <enum>QSizePolicy::Fixed</enum>
               </property>
               <property name="sizeHint" stdset="0">
                <size>
                 <width>40</width>
-                <height>150</height>
+                <height>139</height>
                </size>
               </property>
              </spacer>
@@ -215,13 +327,33 @@
                </spacer>
               </item>
               <item row="1" column="2">
-               <widget class="QComboBox" name="cmbDSMxMode"/>
+               <widget class="QComboBox" name="cmbDSMxMode">
+                <property name="font">
+                 <font>
+                  <weight>50</weight>
+                  <bold>false</bold>
+                 </font>
+                </property>
+               </widget>
               </item>
               <item row="0" column="2">
-               <widget class="QComboBox" name="cmbRxPort"/>
+               <widget class="QComboBox" name="cmbRxPort">
+                <property name="font">
+                 <font>
+                  <weight>50</weight>
+                  <bold>false</bold>
+                 </font>
+                </property>
+               </widget>
               </item>
               <item row="1" column="1">
                <widget class="QLabel" name="label_5">
+                <property name="font">
+                 <font>
+                  <weight>75</weight>
+                  <bold>true</bold>
+                 </font>
+                </property>
                 <property name="text">
                  <string>DSMx Mode</string>
                 </property>
@@ -229,6 +361,12 @@
               </item>
               <item row="0" column="1">
                <widget class="QLabel" name="label">
+                <property name="font">
+                 <font>
+                  <weight>75</weight>
+                  <bold>true</bold>
+                 </font>
+                </property>
                 <property name="text">
                  <string>Receiver Type</string>
                 </property>
@@ -277,8 +415,8 @@
                  <widget class="QLabel" name="label_6">
                   <property name="font">
                    <font>
-                    <weight>50</weight>
-                    <bold>false</bold>
+                    <weight>75</weight>
+                    <bold>true</bold>
                    </font>
                   </property>
                   <property name="text">
@@ -290,8 +428,8 @@
                  <widget class="QLabel" name="label_7">
                   <property name="font">
                    <font>
-                    <weight>50</weight>
-                    <bold>false</bold>
+                    <weight>75</weight>
+                    <bold>true</bold>
                    </font>
                   </property>
                   <property name="text">
@@ -334,6 +472,12 @@
                 </item>
                 <item row="5" column="0">
                  <widget class="QLabel" name="label_3">
+                  <property name="font">
+                   <font>
+                    <weight>75</weight>
+                    <bold>true</bold>
+                   </font>
+                  </property>
                   <property name="text">
                    <string>SerialPort</string>
                   </property>

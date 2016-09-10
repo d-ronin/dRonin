@@ -372,6 +372,9 @@ enum usb_product_ids {
 	/* BrainFPV Boards */
 	USB_PRODUCT_ID_BRAIN          = 0x4242,
 
+	/* PlayUAVOSD */
+	USB_PRODUCT_ID_PLAYUAVOSD     = 0x4250,
+
 	/* ST Eval Boards */
 	USB_PRODUCT_ID_DISCOVERYF4    = USB_PRODUCT_ID_SPARE,
 	USB_PRODUCT_ID_FLYINGF4       = USB_PRODUCT_ID_SPARE,

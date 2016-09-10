@@ -55,8 +55,8 @@ typedef struct {
 	const struct pios_tcp_cfg * cfg;
 
 	int socket;
-	struct sockaddr_in server;
-	struct sockaddr_in client;
+	struct sockaddr_in6 server;
+	struct sockaddr_in6 client;
 	int socket_connection;
 
 	pios_com_callback tx_out_cb;
@@ -195,7 +195,7 @@ int32_t PIOS_TCP_Init(uintptr_t *tcp_id, const struct pios_tcp_cfg * cfg)
 	tcp_dev->cfg=cfg;
 	
 	/* assign socket */
-	tcp_dev->socket = socket(PF_INET, SOCK_STREAM, IPPROTO_TCP);
+	tcp_dev->socket = socket(PF_INET6, SOCK_STREAM, IPPROTO_TCP);
 	tcp_dev->socket_connection = INVALID_SOCKET;
 
 #if defined(_WIN32) || defined(WIN32) || defined(__MINGW32__)
@@ -213,9 +213,9 @@ int32_t PIOS_TCP_Init(uintptr_t *tcp_id, const struct pios_tcp_cfg * cfg)
 	memset(&tcp_dev->server, 0, sizeof(tcp_dev->server));
 	memset(&tcp_dev->client, 0, sizeof(tcp_dev->client));
 
-	tcp_dev->server.sin_family = AF_INET;
-	tcp_dev->server.sin_addr.s_addr = INADDR_ANY; //inet_addr(tcp_dev->cfg->ip);
-	tcp_dev->server.sin_port = htons(tcp_dev->cfg->port);
+	tcp_dev->server.sin6_family = AF_INET6;
+	tcp_dev->server.sin6_addr = in6addr_any;
+	tcp_dev->server.sin6_port = htons(tcp_dev->cfg->port);
 
 	/* set socket options */
 	int value = 1;

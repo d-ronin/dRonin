@@ -63,8 +63,9 @@
 
 /* Select the sensors to include */
 #define PIOS_INCLUDE_BMI160
-#define PIOS_INCLUDE_ETASV3
-#define PIOS_I2C_ETASV3_ADAPTER pios_i2c_external_id
+#define PIOS_INCLUDE_BMP280
+#define PIOS_INCLUDE_MS5611
+#define PIOS_INCLUDE_HMC5883
 #define PIOS_TOLERATE_MISSING_SENSORS
 
 #define FLASH_FREERTOS

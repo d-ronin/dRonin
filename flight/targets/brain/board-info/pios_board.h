@@ -247,9 +247,6 @@ extern uintptr_t pios_com_debug_id;
 //-------------------------
 #define PIOS_USB_ENABLED				1 /* Should remove all references to this */
 
-#endif /* STM3210E_INS_H_ */
-
-
 #if defined(PIOS_INCLUDE_VIDEO)
 #include <pios.h>
 #include <pios_stm32.h>
@@ -264,7 +261,7 @@ struct pios_osd_bw_cfg_t {
 };
 #endif /* PIOS_INCLUDE_VIDEO */
 
-
+#endif /* STM3210E_INS_H_ */
 /**
  * @}
  * @}

@@ -42,6 +42,63 @@ static uint8_t num_partitions;
 #define PIOS_Assert(x) do { } while (!(x))
 #define MIN(x,y) ((x) < (y) ? (x) : (y))
 
+/** Adjust partition tables to extend to the end of a variable-sized flash.
+ * Used on platforms with variable-length flash.  Requires that the partition
+ * table be mutable (not const/in flash).
+ * @param partition_table the partition table
+ * @param partition_table_len the number of entries in the partition table
+ * @param descriptor the descriptor of the variable-length flash
+ * @param num_bytes the actual length of the flash
+ */
+void PIOS_FLASH_fixup_partitions_for_capacity(
+		struct pios_flash_partition *partition_table,
+		uint8_t partition_table_len,
+		const struct pios_flash_chip *descriptor,
+		struct pios_flash_sector_range *sectors,
+		uint32_t num_bytes)
+{
+	PIOS_Assert(descriptor->sector_blocks == sectors);
+
+	uint32_t basic_capacity = 0;
+
+	for (int i = 0; i < descriptor->num_blocks; i++) {
+		basic_capacity +=
+			(sectors[i].last_sector - sectors[i].base_sector + 1) *
+			sectors[i].sector_size;
+	}
+
+	PIOS_Assert(num_bytes >= basic_capacity);
+
+	if (num_bytes == basic_capacity) {
+		return;		// nothing to see here.
+	}
+
+	/* Select the last group of sectors */
+	sectors += descriptor->num_blocks - 1;
+
+	uint32_t old_last_sector = sectors->last_sector;
+
+	uint32_t additional_bytes = num_bytes - basic_capacity;
+	uint32_t additional_sectors = additional_bytes / sectors->sector_size;
+
+	PIOS_Assert(additional_bytes ==
+			(additional_sectors * sectors->sector_size));
+
+	sectors->last_sector += additional_sectors;
+
+	// iterate partitions.. where descriptor and old last sector
+	// matches, increase the size.
+	for (int i = 0; i < partition_table_len; i++) {
+		if (partition_table[i].last_sector == old_last_sector) {
+			if (partition_table[i].chip_desc == descriptor) {
+				partition_table[i].last_sector =
+					sectors->last_sector;
+				partition_table[i].size += additional_bytes;
+			}
+		}
+	}
+}
+
 /**
  * @brief Registers a new partition table with the block device layer
  * @param[in] partition_table array of partitions to be registered

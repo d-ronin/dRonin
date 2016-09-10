@@ -1,0 +1,23 @@
+<xml>
+	<object name="HwPlayUavOsd" singleinstance="true" settings="true" category="HardwareSettings">
+		<description>Selection of optional hardware configurations.</description>
+
+		<field name="MainPort" units="function" type="enum" elements="1" parent="HwShared.PortTypes" defaultvalue="MSP">
+			<options>
+				<option>Disabled</option>
+				<option>ComBridge</option>
+				<option>DebugConsole</option>
+				<option>Telemetry</option>
+				<option>MSP</option>
+			</options>
+		</field>
+
+		<field name="USB_HIDPort" units="function" type="enum" elements="1" options="USBTelemetry,RCTransmitter,Disabled" defaultvalue="USBTelemetry"/>
+		<field name="USB_VCPPort" units="function" type="enum" elements="1" options="USBTelemetry,ComBridge,DebugConsole,Disabled" defaultvalue="Disabled"/>
+
+	<access gcs="readwrite" flight="readwrite"/>
+	<telemetrygcs acked="true" updatemode="onchange" period="0"/>
+	<telemetryflight acked="true" updatemode="onchange" period="0"/>
+	<logging updatemode="manual" period="0"/>
+	</object>
+</xml>

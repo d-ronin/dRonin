@@ -32,6 +32,8 @@
 
 struct pios_spi_cfg;
 
+struct pios_spi_dev;
+
 /* Public Functions */
 
 /**

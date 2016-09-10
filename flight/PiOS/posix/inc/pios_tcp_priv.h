@@ -40,6 +40,8 @@
 #include <arpa/inet.h>
 #include <netinet/in.h>
 #include <netinet/tcp.h>
+#else
+#include <ws2tcpip.h>
 #endif
 
 #include <stdlib.h>

@@ -1,9 +1,11 @@
-TEMPLATE = lib 
+TEMPLATE = lib
 TARGET = DebugGadget
 QT += widgets
 
 include(../../gcsplugin.pri)
 include(../../plugins/coreplugin/coreplugin.pri)
+
+DEFINES += DEBUGGADGET_LIBRARY
 
 HEADERS += debugplugin.h \
     debugengine.h

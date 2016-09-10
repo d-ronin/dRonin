@@ -1,4 +1,4 @@
-include (tools.pri)
+include (../tools.pri)
 
 isEmpty(BRANDING_PATH) {
 BRANDING_PATH = $$PWD/../../branding
@@ -91,8 +91,6 @@ macx {
     GCS_DOC_PATH     = $$GCS_BUILD_TREE/share/doc
     !isEqual(GCS_SOURCE_TREE, $$GCS_BUILD_TREE):copydata = 1
 }
-GCS_VERSION_INFO_FILE = $$GCS_BUILD_TREE/gcsversioninfo.h
-DEFINES += 'GCS_VERSION_INFO_FILE=\\\"$$GCS_VERSION_INFO_FILE\\\"'
 DEFINES += 'GCS_DATA_BASENAME=\\\"$$GCS_DATA_BASENAME\\\"'
 # Include path to shared API directory
 INCLUDEPATH *= \
@@ -111,6 +109,9 @@ DEFINES += QT_NO_CAST_TO_ASCII
 #DEFINES += QT_USE_FAST_OPERATOR_PLUS
 #DEFINES += QT_USE_FAST_CONCATENATION
 
+# include additional information in debug log (file/line/function)
+DEFINES += QT_MESSAGELOGCONTEXT
+
 unix {
     CONFIG(debug, debug|release):OBJECTS_DIR = $${OUT_PWD}/.obj/debug-shared
     CONFIG(release, debug|release):OBJECTS_DIR = $${OUT_PWD}/.obj/release-shared
@@ -122,18 +123,13 @@ unix {
     UI_DIR = $${OUT_PWD}/.uic
 }
 
-
-# use ccache with gcc
-CONFIG(debug, debug|release):*-g++* {
-    QMAKE_CXX=$$(CCACHE_BIN) g++
-}
-
-
-linux-g++* {
+linux {
     # Bail out on non-selfcontained libraries. Just a security measure
     # to prevent checking in code that does not compile on other platforms.
     QMAKE_LFLAGS += -Wl,--allow-shlib-undefined -Wl,--no-undefined
+}
 
+linux-g++* {
     # Enable -Werror on Linux, should do this for all platforms once warnings are all eliminated
     QMAKE_CXXFLAGS_WARN_ON += -Werror
 }

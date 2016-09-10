@@ -49,6 +49,7 @@ int main(void) {
 	PIOS_DELAY_WaitmS(1000);
 	PIOS_LED_Off(PIOS_LED_HEARTBEAT);
 
+#ifndef BU_DONT_CHECK_BOARDINFO
 	/*
 	 * Make sure the bootloader we're carrying is for the same
 	 * board type and board revision as the one we're running on.
@@ -70,6 +71,7 @@ int main(void) {
 		(pios_board_info_blob.board_rev != new_board_info_blob->board_rev)) {
 		error(PIOS_LED_HEARTBEAT);
 	}
+#endif
 
 	/* Embedded bootloader looks like it's the right one for this HW, proceed... */
 

@@ -34,6 +34,7 @@
 
 #define CHANNEL_MAX     2000
 #define CHANNEL_NEUTRAL 1500
+#define CHANNEL_THROTNEUTRAL 1100
 #define CHANNEL_MIN     1000
 bool GCSControl::firstInstance = true;
 
@@ -125,13 +126,19 @@ bool GCSControl::beginGCSControl()
         quint8 x = channels[i];
 
         // Assign this channel to GCS control
-        manControlSettingsUAVO->setChannelGroups(x,ManualControlSettings::CHANNELGROUPS_GCS);
+        manControlSettingsUAVO->setChannelGroups(x, ManualControlSettings::CHANNELGROUPS_GCS);
 
         // Set the ranges to match what the widget produces
-        manControlSettingsUAVO->setChannelNumber(x,x+1);
-        manControlSettingsUAVO->setChannelMax(x,CHANNEL_MAX);
-        manControlSettingsUAVO->setChannelNeutral(x,CHANNEL_NEUTRAL);
-        manControlSettingsUAVO->setChannelMin(x,CHANNEL_MIN);
+        manControlSettingsUAVO->setChannelNumber(x, x+1);
+        manControlSettingsUAVO->setChannelMax(x, CHANNEL_MAX);
+
+        if (x == ManualControlSettings::CHANNELGROUPS_THROTTLE) {
+            manControlSettingsUAVO->setChannelNeutral(x, CHANNEL_THROTNEUTRAL);
+        } else {
+            manControlSettingsUAVO->setChannelNeutral(x, CHANNEL_NEUTRAL);
+        }
+
+        manControlSettingsUAVO->setChannelMin(x, CHANNEL_MIN);
     }
 
     manControlSettingsUAVO->setDeadband(0);

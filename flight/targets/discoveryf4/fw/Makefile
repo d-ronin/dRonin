@@ -63,8 +63,6 @@ SRC =
 # optional component libraries
 #include $(PIOSCOMMONLIB)/FreeRTOS/library.mk
 include $(APPLIBDIR)/ChibiOS/library.mk
-include $(FLIGHTLIB)/CMSIS3/DSP_Lib/library.mk
-
 
 # List C source files here. (C dependencies are automatically generated.)
 # use file-extension c for "c-only"-files

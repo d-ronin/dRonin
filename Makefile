@@ -924,7 +924,7 @@ all_bl:        $(addsuffix _bin,   $(BL_TARGETS))
 all_bl_clean:  $(addsuffix _clean, $(BL_TARGETS))
 
 .PHONY: all_bu all_bu_clean
-all_bu:        $(addsuffix _tlfw,  $(BU_TARGETS))
+all_bu:        $(BU_TARGETS)
 all_bu_clean:  $(addsuffix _clean, $(BU_TARGETS))
 
 .PHONY: all_ef all_ef_clean
@@ -960,6 +960,17 @@ $(foreach board, $(EF_BOARDS), $(eval $(call EF_TEMPLATE,$(board),$($(board)_fri
 
 # Expand the upgrader rules
 $(foreach board, $(UP_BOARDS), $(eval $(call UP_TEMPLATE,$(board),$($(board)_cpuarch),$($(board)_short))))
+
+bu_playuavosd: bu_playuavosd_px4
+
+.PHONY: bu_playuavosd_px4
+bu_playuavosd_px4: BOARD_ROOT_DIR=$(ROOT_DIR)/flight/targets/playuavosd
+bu_playuavosd_px4: OUTDIR=$(BUILD_DIR)/bu_playuavosd
+bu_playuavosd_px4: bu_playuavosd_tlfw
+	$(V0) @echo "PX4_MKFW    $*"
+	$(V1) $(BOARD_ROOT_DIR)/px_mkfw.py --image $(OUTDIR)/bu_playuavosd.padded.bin --board_id 90 > $(OUTDIR)/bu_playuavosd.px4
+
+FW_FILES += $(BUILD_DIR)/bu_playuavosd/bu_playuavosd.px4
 
 # Expand the available simulator rules
 $(eval $(call SIM_TEMPLATE,simulation,Simulation,'sim '))

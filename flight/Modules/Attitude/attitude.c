@@ -585,6 +585,12 @@ static int32_t updateAttitudeComplementary(bool first_run, bool secondary, bool 
 	dT = PIOS_DELAY_DiffuS(timeval) / 1000000.0f;
 	timeval = PIOS_DELAY_GetRaw();
 
+	// This should only happen at start up or at mode switches
+	if(dT > 0.01f)
+		dT = 0.01f;
+	else if(dT <= 0.0005f)
+		dT = 0.0005f;
+
 	float grot[3];
 	float accel_err[3];
 	float *grot_filtered = complementary_filter_state.grot_filtered;
@@ -1174,8 +1180,8 @@ static int32_t updateAttitudeINSGPS(bool first_run, bool outdoor_mode)
 	// This should only happen at start up or at mode switches
 	if(dT > 0.01f)
 		dT = 0.01f;
-	else if(dT <= 0.001f)
-		dT = 0.001f;
+	else if(dT <= 0.0005f)
+		dT = 0.0005f;
 
 	// When the sensor settings are updated, reset the biases. Also
 	// while warming up, lock these at zero.

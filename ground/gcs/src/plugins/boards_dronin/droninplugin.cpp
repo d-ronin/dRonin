@@ -30,6 +30,7 @@
 
 #include "droninplugin.h"
 #include "simulation.h"
+#include "playuavosd.h"
 #include <QtPlugin>
 
 
@@ -51,9 +52,11 @@ bool DroninPlugin::initialize(const QStringList &arguments, QString *errorString
 void DroninPlugin::extensionsInitialized()
 {
     // Init boards
-    Simulation* sim = new Simulation();
+    Simulation *sim = new Simulation();
     addAutoReleasedObject(sim);
 
+    PlayUavOsd *playuav = new PlayUavOsd();
+    addAutoReleasedObject(playuav);
 }
 
 void DroninPlugin::shutdown()

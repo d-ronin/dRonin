@@ -356,6 +356,11 @@ Leave at 50Hz for fixed wing.</string>
                 </item>
                 <item>
                  <property name="text">
+                  <string>560</string>
+                 </property>
+                </item>
+                <item>
+                 <property name="text">
                   <string>1000</string>
                  </property>
                 </item>
@@ -446,6 +451,11 @@ Leave at 50Hz for fixed wing.</string>
                 <item>
                  <property name="text">
                   <string>400</string>
+                 </property>
+                </item>
+                <item>
+                 <property name="text">
+                  <string>560</string>
                  </property>
                 </item>
                 <item>
@@ -544,6 +554,11 @@ Leave at 50Hz for fixed wing.</string>
                 </item>
                 <item>
                  <property name="text">
+                  <string>560</string>
+                 </property>
+                </item>
+                <item>
+                 <property name="text">
                   <string>1000</string>
                  </property>
                 </item>
@@ -634,6 +649,11 @@ Leave at 50Hz for fixed wing.</string>
                 <item>
                  <property name="text">
                   <string>400</string>
+                 </property>
+                </item>
+                <item>
+                 <property name="text">
+                  <string>560</string>
                  </property>
                 </item>
                 <item>
@@ -738,6 +758,11 @@ Leave at 50Hz for fixed wing.</string>
                 </item>
                 <item>
                  <property name="text">
+                  <string>560</string>
+                 </property>
+                </item>
+                <item>
+                 <property name="text">
                   <string>1000</string>
                  </property>
                 </item>
@@ -831,6 +856,11 @@ Leave at 50Hz for fixed wing.</string>
                 <item>
                  <property name="text">
                   <string>400</string>
+                 </property>
+                </item>
+                <item>
+                 <property name="text">
+                  <string>560</string>
                  </property>
                 </item>
                 <item>

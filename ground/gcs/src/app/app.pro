@@ -1,4 +1,5 @@
 include(../../gcs.pri)
+include(../../gcsversioninfo.pri)
 
 TEMPLATE = app
 TARGET = $$GCS_APP_TARGET
