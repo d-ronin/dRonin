@@ -388,7 +388,7 @@ $(ANDROIDGCS_OUT_DIR)/bin/androidgcs-$(ANDROIDGCS_BUILD_CONF).apk: uavo-collecti
 .PHONY: androidgcs_run
 androidgcs_run: androidgcs_install
 	$(V0) @echo " AGCS RUN "
-	$(V1) $(ANDROID_ADB) shell am start -n org.dronin.androidgcs/.HomePage
+	$(V1) $(ANDROID_ADB) shell am start -n org.dronin.androidgcs/.MainActivity
 
 .PHONY: androidgcs_install
 androidgcs_install: $(ANDROIDGCS_OUT_DIR)/bin/androidgcs-$(ANDROIDGCS_BUILD_CONF).apk

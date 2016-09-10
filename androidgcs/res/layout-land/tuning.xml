@@ -19,8 +19,8 @@
           <org.dronin.androidgcs.views.ScrollBarView android:id="@+id/yawRateKd" android:layout_width="match_parent" android:layout_height="wrap_content" setting_attributes:max_value="0.001" setting_attributes:setting_name="Inner- Yaw D"/>
         </LinearLayout>
         <LinearLayout android:id="@+id/linearLayout2" android:layout_width="match_parent" android:layout_height="wrap_content">
-          <org.dronin.androidgcs.views.ScrollBarView android:id="@+id/rollKp" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_weight="0.5" setting_attributes:max_value="5" setting_attributes:setting_name="Outer- Roll P"/>
-          <org.dronin.androidgcs.views.ScrollBarView android:id="@+id/pitchKp" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_weight="0.5" setting_attributes:max_value="5" setting_attributes:setting_name="Outer- Pitch P"/>
+          <org.dronin.androidgcs.views.ScrollBarView android:id="@+id/rollKp" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_weight="0.5" setting_attributes:max_value="8" setting_attributes:setting_name="Outer- Roll P"/>
+          <org.dronin.androidgcs.views.ScrollBarView android:id="@+id/pitchKp" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_weight="0.5" setting_attributes:max_value="8" setting_attributes:setting_name="Outer- Pitch P"/>
         </LinearLayout>
       </LinearLayout>
     </ScrollView>

@@ -90,14 +90,14 @@
                     android:id="@+id/rollKp"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    setting_attributes:max_value="5"
+                    setting_attributes:max_value="8"
                     setting_attributes:setting_name="Outer- Roll P" />
 
                 <org.dronin.androidgcs.views.ScrollBarView
                     android:id="@+id/pitchKp"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    setting_attributes:max_value="5"
+                    setting_attributes:max_value="8"
                     setting_attributes:setting_name="Outer- Pitch P" />
             </LinearLayout>
         </ScrollView>
