@@ -6,17 +6,17 @@
         <LinearLayout android:id="@+id/linearLayout3" android:layout_width="match_parent" android:layout_height="wrap_content">
           <org.dronin.androidgcs.views.ScrollBarView android:id="@+id/rollRateKp" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_weight="0.5" setting_attributes:max_value="0.01" setting_attributes:setting_name="Inner- Roll P"/>
           <org.dronin.androidgcs.views.ScrollBarView android:id="@+id/pitchRateKp" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_weight="0.5" setting_attributes:max_value="0.01" setting_attributes:setting_name="Inner- Pitch P"/>
-          <org.dronin.androidgcs.views.ScrollBarView android:id="@+id/yawRateKp" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_weight="0.5" setting_attributes:max_value="0.01" setting_attributes:setting_name="Inner- Yaw P"/>
+          <org.dronin.androidgcs.views.ScrollBarView android:id="@+id/yawRateKp" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_weight="0.5" setting_attributes:max_value="0.01" setting_attributes:setting_name="Inner- Yaw P"/>
         </LinearLayout>
         <LinearLayout android:id="@+id/linearLayout1" android:layout_width="match_parent" android:layout_height="wrap_content">
           <org.dronin.androidgcs.views.ScrollBarView android:id="@+id/rollRateKi" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_weight="0.5" setting_attributes:max_value="0.05" setting_attributes:setting_name="Inner- Roll I"/>
           <org.dronin.androidgcs.views.ScrollBarView android:id="@+id/pitchRateKi" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_weight="0.5" setting_attributes:max_value="0.05" setting_attributes:setting_name="Inner- Pitch I"/>
-          <org.dronin.androidgcs.views.ScrollBarView android:id="@+id/yawRateKi" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_weight="0.5" setting_attributes:max_value="0.05" setting_attributes:setting_name="Inner- Yaw I"/>
+          <org.dronin.androidgcs.views.ScrollBarView android:id="@+id/yawRateKi" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_weight="0.5" setting_attributes:max_value="0.05" setting_attributes:setting_name="Inner- Yaw I"/>
         </LinearLayout>
         <LinearLayout android:id="@+id/linearLayout4" android:layout_width="match_parent" android:layout_height="wrap_content">
           <org.dronin.androidgcs.views.ScrollBarView android:id="@+id/rollRateKd" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_weight="0.5" setting_attributes:max_value="0.001" setting_attributes:setting_name="Inner- Roll D"/>
           <org.dronin.androidgcs.views.ScrollBarView android:id="@+id/pitchRateKd" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_weight="0.5" setting_attributes:max_value="0.001" setting_attributes:setting_name="Inner- Pitch D"/>
-          <org.dronin.androidgcs.views.ScrollBarView android:id="@+id/yawRateKd" android:layout_width="match_parent" android:layout_height="wrap_content" setting_attributes:max_value="0.001" setting_attributes:setting_name="Inner- Yaw D"/>
+          <org.dronin.androidgcs.views.ScrollBarView android:id="@+id/yawRateKd" android:layout_width="wrap_content" android:layout_height="wrap_content" setting_attributes:max_value="0.001" setting_attributes:setting_name="Inner- Yaw D"/>
         </LinearLayout>
         <LinearLayout android:id="@+id/linearLayout2" android:layout_width="match_parent" android:layout_height="wrap_content">
           <org.dronin.androidgcs.views.ScrollBarView android:id="@+id/rollKp" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_weight="0.5" setting_attributes:max_value="8" setting_attributes:setting_name="Outer- Roll P"/>
