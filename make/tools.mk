@@ -540,15 +540,15 @@ depot_tools_clean:
 # Google breakpad
 BREAKPAD_REPO := https://github.com/d-ronin/breakpad.git
 BREAKPAD_REV := 20160909
-BREAKPAD_DIR := $(TOOLS_DIR)/breakpad
+BREAKPAD_DIR := $(TOOLS_DIR)/breakpad/$(BREAKPAD_REV)
 BREAKPAD_BUILD_DIR := $(DL_DIR)/breakpad
 
-.PHONY: breakpad_install breakpad_clean breakpad_build_clean
+.PHONY: breakpad_install breakpad_clean breakpad_dist_clean
 
 ifndef WINDOWS
 
 breakpad_install: | $(DL_DIR) $(TOOLS_DIR)
-breakpad_install: | breakpad_clean
+breakpad_install: | breakpad_clean depot_tools_install
 	$(V0) @echo " DOWNLOAD     $(BREAKPAD_REPO) @ $(BREAKPAD_REV)"
 	$(V1) mkdir -p "$(BREAKPAD_BUILD_DIR)"
 
@@ -562,7 +562,7 @@ breakpad_install: | breakpad_clean
 	$(V0) @echo " BUILD        $(BREAKPAD_DIR)"
 	$(V1) ( \
 		cd "$(BREAKPAD_BUILD_DIR)/src/src" ; \
-		$(MAKE) distclean ; \
+		$(MAKE) distclean > /dev/null 2>&1 ; \
 		../configure --prefix="$(BREAKPAD_DIR)"; \
 		$(MAKE) ; \
 		$(MAKE) install ; \
@@ -597,7 +597,7 @@ breakpad_install: | breakpad_clean
 
 endif # WINDOWS
 
-breakpad_build_clean:
+breakpad_dist_clean:
 	$(V0) @echo " CLEAN        $(BREAKPAD_BUILD_DIR)"
 	$(V1) [ ! -d "$(BREAKPAD_BUILD_DIR)" ] || $(RM) -rf $(BREAKPAD_BUILD_DIR)
 
@@ -672,6 +672,11 @@ endif
 ifeq ($(shell [ -d "$(BREAKPAD_DIR)" ] && echo "exists"), exists)
   DUMP_SYMBOLS_TOOL := $(BREAKPAD_DIR)/bin/dump_syms
 else
+  ifndef IGNORE_MISSING_TOOLCHAIN
+    ifneq (,$(filter package%, $(MAKECMDGOALS)))
+      $(error **ERROR** breakpad not in $(BREAKPAD_DIR)! Please run 'make breakpad_install')
+    endif
+  endif
   DUMP_SYMBOLS_TOOL := dump_syms
 endif
 
