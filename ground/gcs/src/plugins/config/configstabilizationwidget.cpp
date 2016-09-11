@@ -54,6 +54,7 @@ ConfigStabilizationWidget::ConfigStabilizationWidget(QWidget *parent) : ConfigTa
     m_stabilization = new Ui_StabilizationWidget();
     m_stabilization->setupUi(this);
 
+    updateInProgress=false;
 
     ExtensionSystem::PluginManager *pm=ExtensionSystem::PluginManager::instance();
     Core::Internal::GeneralSettings * settings=pm->getObject<Core::Internal::GeneralSettings>();
@@ -68,7 +69,6 @@ ConfigStabilizationWidget::ConfigStabilizationWidget(QWidget *parent) : ConfigTa
         connect(manualControlSettings, SIGNAL(objectUpdated(UAVObject*)), this, SLOT(hangtimeDurationChanged()));
     connect(m_stabilization->gbHangtime, SIGNAL(toggled(bool)), this, SLOT(hangtimeToggle(bool)));
 
-
     autoLoadWidgets();
 
     connect(m_stabilization->checkBox_7,SIGNAL(stateChanged(int)),this,SLOT(linkCheckBoxes(int)));
@@ -76,62 +76,155 @@ ConfigStabilizationWidget::ConfigStabilizationWidget(QWidget *parent) : ConfigTa
     connect(m_stabilization->checkBox_8,SIGNAL(stateChanged(int)),this,SLOT(linkCheckBoxes(int)));
     connect(m_stabilization->checkBox_3,SIGNAL(stateChanged(int)),this,SLOT(linkCheckBoxes(int)));
 
+    connect(m_stabilization->cbLinkRateRollYaw,SIGNAL(stateChanged(int)),this,SLOT(ratesLink(int)));
+    connect(m_stabilization->cbLinkRateRollPitch,SIGNAL(stateChanged(int)),this,SLOT(ratesLink(int)));
+
+    connect(m_stabilization->sliderLTRoll, SIGNAL(valueChanged(int)),
+                m_stabilization->rateRollLT, SLOT(setValue(int)));
+    connect(m_stabilization->rateRollLT, SIGNAL(valueChanged(int)),
+                m_stabilization->sliderLTRoll, SLOT(setValue(int)));
+    connect(m_stabilization->sliderLTPitch, SIGNAL(valueChanged(int)),
+                m_stabilization->ratePitchLT, SLOT(setValue(int)));
+    connect(m_stabilization->ratePitchLT, SIGNAL(valueChanged(int)),
+                m_stabilization->sliderLTPitch, SLOT(setValue(int)));
+    connect(m_stabilization->sliderLTYaw, SIGNAL(valueChanged(int)),
+                m_stabilization->rateYawLT, SLOT(setValue(int)));
+    connect(m_stabilization->rateYawLT, SIGNAL(valueChanged(int)),
+                m_stabilization->sliderLTYaw, SLOT(setValue(int)));
+
+    connect(m_stabilization->fullStickRateRoll, SIGNAL(valueChanged(double)),
+            this, SLOT(setMaximums()));
+    connect(m_stabilization->fullStickRatePitch, SIGNAL(valueChanged(double)),
+            this, SLOT(setMaximums()));
+    connect(m_stabilization->fullStickRateYaw, SIGNAL(valueChanged(double)),
+            this, SLOT(setMaximums()));
+    connect(m_stabilization->centerStickRateRoll, SIGNAL(valueChanged(int)),
+            this, SLOT(derivedValuesChanged()));
+    connect(m_stabilization->centerStickRatePitch, SIGNAL(valueChanged(int)),
+            this, SLOT(derivedValuesChanged()));
+    connect(m_stabilization->centerStickRateYaw, SIGNAL(valueChanged(int)),
+            this, SLOT(derivedValuesChanged()));
+    connect(m_stabilization->rateRollLT, SIGNAL(valueChanged(int)),
+            this, SLOT(derivedValuesChanged()));
+    connect(m_stabilization->ratePitchLT, SIGNAL(valueChanged(int)),
+            this, SLOT(derivedValuesChanged()));
+    connect(m_stabilization->rateYawLT, SIGNAL(valueChanged(int)),
+            this, SLOT(derivedValuesChanged()));
+
+    connect(m_stabilization->sliderCRateRoll, SIGNAL(valueChanged(int)),
+                m_stabilization->centerStickRateRoll, SLOT(setValue(int)));
+    connect(m_stabilization->centerStickRateRoll, SIGNAL(valueChanged(int)),
+                m_stabilization->sliderCRateRoll, SLOT(setValue(int)));
+    connect(m_stabilization->sliderCRatePitch, SIGNAL(valueChanged(int)),
+                m_stabilization->centerStickRatePitch, SLOT(setValue(int)));
+    connect(m_stabilization->centerStickRatePitch, SIGNAL(valueChanged(int)),
+                m_stabilization->sliderCRatePitch, SLOT(setValue(int)));
+    connect(m_stabilization->sliderCRateYaw, SIGNAL(valueChanged(int)),
+                m_stabilization->centerStickRateYaw, SLOT(setValue(int)));
+    connect(m_stabilization->centerStickRateYaw, SIGNAL(valueChanged(int)),
+                m_stabilization->sliderCRateYaw, SLOT(setValue(int)));
+
+    connect(m_stabilization->rateRollExpo, SIGNAL(valueChanged(double)),
+                this, SLOT(sourceValuesChanged()));
+    connect(m_stabilization->ratePitchExpo, SIGNAL(valueChanged(double)),
+                this, SLOT(sourceValuesChanged()));
+    connect(m_stabilization->rateYawExpo, SIGNAL(valueChanged(double)),
+                this, SLOT(sourceValuesChanged()));
+
+    connect(m_stabilization->rateRollExponent, SIGNAL(valueChanged(double)),
+                this, SLOT(sourceValuesChanged()));
+    connect(m_stabilization->ratePitchExponent, SIGNAL(valueChanged(double)),
+                this, SLOT(sourceValuesChanged()));
+    connect(m_stabilization->rateYawExponent, SIGNAL(valueChanged(double)),
+                this, SLOT(sourceValuesChanged()));
+
     connect(this,SIGNAL(widgetContentsChanged(QWidget*)),this,SLOT(processLinkedWidgets(QWidget*)));
 
     disableMouseWheelEvents();
 
     connect(this,SIGNAL(autoPilotConnected()),this,SLOT(applyRateLimits()));
 
+    connect(this,SIGNAL(autoPilotConnected()),this,SLOT(enableDerivedControls()));
+    connect(this,SIGNAL(autoPilotDisconnected()),this,SLOT(disableDerivedControls()));
 
-    // -----------------------------
-    // Expo Plots
-    //------------------------------
+    disableDerivedControls();
+}
 
-    m_stabilization->rateStickExpoPlot->init(ExpoCurve::RateCurve, 0);
-    connect(m_stabilization->rateRollExpo, SIGNAL(valueChanged(double)), this, SLOT(showExpoPlot()));
-    connect(m_stabilization->ratePitchExpo, SIGNAL(valueChanged(double)), this, SLOT(showExpoPlot()));
-    connect(m_stabilization->rateYawExpo, SIGNAL(valueChanged(double)), this, SLOT(showExpoPlot()));
-    connect(m_stabilization->fullStickRateRoll, SIGNAL(valueChanged(double)), this, SLOT(showExpoPlot()));
-    connect(m_stabilization->fullStickRatePitch, SIGNAL(valueChanged(double)), this, SLOT(showExpoPlot()));
-    connect(m_stabilization->fullStickRateYaw, SIGNAL(valueChanged(double)), this, SLOT(showExpoPlot()));
+void ConfigStabilizationWidget::setDerivedControlsEnabled(bool enable)
+{
+    m_stabilization->sliderLTRoll->setEnabled(enable);
+    m_stabilization->rateRollLT->setEnabled(enable);
+    m_stabilization->sliderLTPitch->setEnabled(enable);
+    m_stabilization->ratePitchLT->setEnabled(enable);
+    m_stabilization->sliderLTYaw->setEnabled(enable);
+    m_stabilization->rateYawLT->setEnabled(enable);
+    m_stabilization->sliderCRateRoll->setEnabled(enable);
+    m_stabilization->centerStickRateRoll->setEnabled(enable);
+    m_stabilization->sliderCRatePitch->setEnabled(enable);
+    m_stabilization->centerStickRatePitch->setEnabled(enable);
+    m_stabilization->sliderCRateYaw->setEnabled(enable);
+    m_stabilization->centerStickRateYaw->setEnabled(enable);
+}
 
-    m_stabilization->attitudeStickExpoPlot->init(ExpoCurve::AttitudeCurve, 0);
-    connect(m_stabilization->attitudeRollExpo, SIGNAL(valueChanged(double)), this, SLOT(showExpoPlot()));
-    connect(m_stabilization->attitudePitchExpo, SIGNAL(valueChanged(double)), this, SLOT(showExpoPlot()));
-    connect(m_stabilization->attitudeYawExpo, SIGNAL(valueChanged(double)), this, SLOT(showExpoPlot()));
-    connect(m_stabilization->rateRollKp_3, SIGNAL(valueChanged(double)), this, SLOT(showExpoPlot()));
-    connect(m_stabilization->ratePitchKp_4, SIGNAL(valueChanged(double)), this, SLOT(showExpoPlot()));
-    connect(m_stabilization->rateYawKp_3, SIGNAL(valueChanged(double)), this, SLOT(showExpoPlot()));
+void ConfigStabilizationWidget::enableDerivedControls()
+{
+    setDerivedControlsEnabled(true);
+}
 
-    /* The init value for horizontransisition of 85% / 0.85 as used in  here is copied/ the same as in the defined in /flight/Modules/Stabilization/stabilization.c
-     * Please be aware of changes that are made there. */
-    m_stabilization->horizonStickExpoPlot->init(ExpoCurve::HorizonCurve, 85);
-    connect(m_stabilization->horizonRollExpo, SIGNAL(valueChanged(double)), this, SLOT(showExpoPlot()));
-    connect(m_stabilization->horizonPitchExpo, SIGNAL(valueChanged(double)), this, SLOT(showExpoPlot()));
-    connect(m_stabilization->horizonYawExpo, SIGNAL(valueChanged(double)), this, SLOT(showExpoPlot()));
-
-    // set the flags for all Expo Plots, so that they get updatet after initialization
-    update_exp.RateRoll = true;
-    update_exp.RatePitch = true;
-    update_exp.RateYaw = true;
-    update_exp.AttitudeRoll = true;
-    update_exp.AttitudePitch = true;
-    update_exp.AttitudeYaw = true;
-    update_exp.HorizonAttitudeRoll = true;
-    update_exp.HorizonAttitudePitch = true;
-    update_exp.HorizonAttitudeYaw = true;
-    update_exp.HorizonRateRoll = true;
-    update_exp.HorizonRatePitch = true;
-    update_exp.HorizonRateYaw = true;
-
-    //  update the Expo Plots
-    showExpoPlot();
-
+void ConfigStabilizationWidget::disableDerivedControls()
+{
+    setDerivedControlsEnabled(false);
 }
 
 ConfigStabilizationWidget::~ConfigStabilizationWidget()
 {
     // Do nothing
+}
+
+void ConfigStabilizationWidget::ratesLink(int value)
+{
+    Q_UNUSED(value);
+
+    bool hideYaw = m_stabilization->cbLinkRateRollYaw->isChecked();
+    bool hidePitch = m_stabilization->cbLinkRateRollPitch->isChecked();
+
+    m_stabilization->lblYawRate->setHidden(hideYaw);
+    m_stabilization->sliderFullStickRateYaw->setHidden(hideYaw);
+    m_stabilization->sliderLTYaw->setHidden(hideYaw);
+    m_stabilization->sliderCRateYaw->setHidden(hideYaw);
+    m_stabilization->fullStickRateYaw->setHidden(hideYaw);
+    m_stabilization->rateYawLT->setHidden(hideYaw);
+    m_stabilization->centerStickRateYaw->setHidden(hideYaw);
+    m_stabilization->sliderRateYawExpo->setHidden(hideYaw);
+    m_stabilization->rateYawExpo->setHidden(hideYaw);
+    m_stabilization->sliderExponentYaw->setHidden(hideYaw);
+    m_stabilization->rateYawExponent->setHidden(hideYaw);
+    
+    m_stabilization->lblPitchRate->setHidden(hidePitch);
+    m_stabilization->sliderFullStickRatePitch->setHidden(hidePitch);
+    m_stabilization->sliderLTPitch->setHidden(hidePitch);
+    m_stabilization->sliderCRatePitch->setHidden(hidePitch);
+    m_stabilization->fullStickRatePitch->setHidden(hidePitch);
+    m_stabilization->ratePitchLT->setHidden(hidePitch);
+    m_stabilization->centerStickRatePitch->setHidden(hidePitch);
+    m_stabilization->sliderRatePitchExpo->setHidden(hidePitch);
+    m_stabilization->ratePitchExpo->setHidden(hidePitch);
+    m_stabilization->sliderExponentPitch->setHidden(hidePitch);
+    m_stabilization->ratePitchExponent->setHidden(hidePitch);
+
+    QString rollLbl = QString(tr("Roll"));
+
+    if (hidePitch) {
+        rollLbl += tr(" & Pitch");
+    }
+
+    if (hideYaw) {
+        rollLbl += tr(" & Yaw");
+    }
+
+    m_stabilization->lblRollRate->setText(rollLbl);
+
+    sourceValuesChanged();
 }
 
 void ConfigStabilizationWidget::linkCheckBoxes(int value)
@@ -146,33 +239,160 @@ void ConfigStabilizationWidget::linkCheckBoxes(int value)
         m_stabilization->checkBox_8->setCheckState((Qt::CheckState)value);
 }
 
+void ConfigStabilizationWidget::setMaximums()
+{
+    m_stabilization->centerStickRateRoll->setMaximum(
+            m_stabilization->fullStickRateRoll->value());
+    m_stabilization->centerStickRatePitch->setMaximum(
+            m_stabilization->fullStickRatePitch->value());
+    m_stabilization->centerStickRateYaw->setMaximum(
+            m_stabilization->fullStickRateYaw->value());
+
+    m_stabilization->sliderCRateRoll->setMaximum(
+            m_stabilization->fullStickRateRoll->value());
+    m_stabilization->sliderCRatePitch->setMaximum(
+            m_stabilization->fullStickRatePitch->value());
+    m_stabilization->sliderCRateYaw->setMaximum(
+            m_stabilization->fullStickRateYaw->value());
+
+    derivedValuesChanged();
+    updateGraphs();
+}
+
+void ConfigStabilizationWidget::sourceValuesChanged()
+{
+    if (updateInProgress) {
+        return;
+    }
+
+    updateInProgress = true;
+
+    bool hideYaw = m_stabilization->cbLinkRateRollYaw->isChecked();
+    bool hidePitch = m_stabilization->cbLinkRateRollPitch->isChecked();
+
+    if (hideYaw) {
+        m_stabilization->fullStickRateYaw->setValue(m_stabilization->fullStickRateRoll->value());
+        m_stabilization->rateYawExpo->setValue(m_stabilization->rateRollExpo->value());
+        m_stabilization->rateYawExponent->setValue(m_stabilization->rateRollExponent->value());
+    }
+
+    if (hidePitch) {
+        m_stabilization->fullStickRatePitch->setValue(m_stabilization->fullStickRateRoll->value());
+        m_stabilization->ratePitchExpo->setValue(m_stabilization->rateRollExpo->value());
+        m_stabilization->ratePitchExponent->setValue(m_stabilization->rateRollExponent->value());
+    }
+
+    /* invert 'derived' math / operations */
+    m_stabilization->centerStickRateRoll->setValue(
+            m_stabilization->fullStickRateRoll->value() * 
+            (100 - m_stabilization->rateRollExpo->value()) / 100);
+    m_stabilization->centerStickRatePitch->setValue(
+            m_stabilization->fullStickRatePitch->value() * 
+            (100 - m_stabilization->ratePitchExpo->value()) / 100);
+    m_stabilization->centerStickRateYaw->setValue(
+            m_stabilization->fullStickRateYaw->value() * 
+            (100 - m_stabilization->rateYawExpo->value()) / 100);
+
+    m_stabilization->rateRollLT->setValue(100 * 
+            exp(log(0.01) / m_stabilization->rateRollExponent->value()));
+    m_stabilization->ratePitchLT->setValue(100 * 
+            exp(log(0.01) / m_stabilization->ratePitchExponent->value()));
+    m_stabilization->rateYawLT->setValue(100 * 
+            exp(log(0.01) / m_stabilization->rateYawExponent->value()));
+
+    updateInProgress = false;
+
+    updateGraphs();
+}
+
+void ConfigStabilizationWidget::derivedValuesChanged()
+{
+    if (updateInProgress) {
+        return;
+    }
+
+    updateInProgress = true;
+
+    bool hideYaw = m_stabilization->cbLinkRateRollYaw->isChecked();
+    bool hidePitch = m_stabilization->cbLinkRateRollPitch->isChecked();
+
+    if (hideYaw) {
+        m_stabilization->fullStickRateYaw->setValue(m_stabilization->fullStickRateRoll->value());
+        m_stabilization->centerStickRateYaw->setValue(m_stabilization->centerStickRateRoll->value());
+        m_stabilization->rateYawLT->setValue(m_stabilization->rateRollLT->value());
+    }
+
+    if (hidePitch) {
+        m_stabilization->fullStickRatePitch->setValue(m_stabilization->fullStickRateRoll->value());
+        m_stabilization->centerStickRatePitch->setValue(m_stabilization->centerStickRateRoll->value());
+        m_stabilization->ratePitchLT->setValue(m_stabilization->rateRollLT->value());
+    }
+
+    m_stabilization->rateRollExpo->setValue(100 -
+            m_stabilization->centerStickRateRoll->value() * 100 /
+            m_stabilization->fullStickRateRoll->value());
+    m_stabilization->ratePitchExpo->setValue(100 -
+            m_stabilization->centerStickRatePitch->value() * 100 /
+            m_stabilization->fullStickRatePitch->value());
+    m_stabilization->rateYawExpo->setValue(100 -
+            m_stabilization->centerStickRateYaw->value() * 100 /
+            m_stabilization->fullStickRateYaw->value());
+
+    m_stabilization->rateRollExponent->setValue(log(0.01) /
+            log((m_stabilization->rateRollLT->value() / 100.0f)));
+    m_stabilization->ratePitchExponent->setValue(log(0.01) /
+            log((m_stabilization->ratePitchLT->value() / 100.0f)));
+    m_stabilization->rateYawExponent->setValue(log(0.01) /
+            log((m_stabilization->rateYawLT->value() / 100.0f)));
+
+    updateInProgress = false;
+
+    updateGraphs();
+}
+
+void ConfigStabilizationWidget::updateGraphs()
+{
+    m_stabilization->expoPlot->plotDataRoll(
+            m_stabilization->rateRollExpo->value(),
+            m_stabilization->fullStickRateRoll->value(),
+            m_stabilization->rateRollExponent->value() * 10.0);
+    m_stabilization->expoPlot->plotDataPitch(
+            m_stabilization->ratePitchExpo->value(),
+            m_stabilization->fullStickRatePitch->value(),
+            m_stabilization->ratePitchExponent->value() * 10.0);
+    m_stabilization->expoPlot->plotDataYaw(
+            m_stabilization->rateYawExpo->value(),
+            m_stabilization->fullStickRateYaw->value(),
+            m_stabilization->rateYawExponent->value() * 10.0);
+}
+
 void ConfigStabilizationWidget::processLinkedWidgets(QWidget * widget)
 {
     if(m_stabilization->checkBox_7->checkState()==Qt::Checked)
     {
-        if(widget== m_stabilization->RateRollKp_2)
+        if(widget== m_stabilization->RateRollKp)
         {
-            m_stabilization->RatePitchKp->setValue(m_stabilization->RateRollKp_2->value());
+            m_stabilization->RatePitchKp->setValue(m_stabilization->RateRollKp->value());
         }
-        else if(widget== m_stabilization->RateRollKi_2)
+        else if(widget== m_stabilization->RateRollKi)
         {
-            m_stabilization->RatePitchKi->setValue(m_stabilization->RateRollKi_2->value());
+            m_stabilization->RatePitchKi->setValue(m_stabilization->RateRollKi->value());
         }
-        else if(widget== m_stabilization->RateRollILimit_2)
+        else if(widget== m_stabilization->RateRollILimit)
         {
-            m_stabilization->RatePitchILimit->setValue(m_stabilization->RateRollILimit_2->value());
+            m_stabilization->RatePitchILimit->setValue(m_stabilization->RateRollILimit->value());
         }
         else if(widget== m_stabilization->RatePitchKp)
         {
-            m_stabilization->RateRollKp_2->setValue(m_stabilization->RatePitchKp->value());
+            m_stabilization->RateRollKp->setValue(m_stabilization->RatePitchKp->value());
         }
         else if(widget== m_stabilization->RatePitchKi)
         {
-            m_stabilization->RateRollKi_2->setValue(m_stabilization->RatePitchKi->value());
+            m_stabilization->RateRollKi->setValue(m_stabilization->RatePitchKi->value());
         }
         else if(widget== m_stabilization->RatePitchILimit)
         {
-            m_stabilization->RateRollILimit_2->setValue(m_stabilization->RatePitchILimit->value());
+            m_stabilization->RateRollILimit->setValue(m_stabilization->RatePitchILimit->value());
         }
         else if(widget== m_stabilization->RollRateKd)
         {
@@ -187,27 +407,27 @@ void ConfigStabilizationWidget::processLinkedWidgets(QWidget * widget)
     {
         if(widget== m_stabilization->AttitudeRollKp)
         {
-            m_stabilization->AttitudePitchKp_2->setValue(m_stabilization->AttitudeRollKp->value());
+            m_stabilization->AttitudePitchKp->setValue(m_stabilization->AttitudeRollKp->value());
         }
         else if(widget== m_stabilization->AttitudeRollKi)
         {
-            m_stabilization->AttitudePitchKi_2->setValue(m_stabilization->AttitudeRollKi->value());
+            m_stabilization->AttitudePitchKi->setValue(m_stabilization->AttitudeRollKi->value());
         }
         else if(widget== m_stabilization->AttitudeRollILimit)
         {
-            m_stabilization->AttitudePitchILimit_2->setValue(m_stabilization->AttitudeRollILimit->value());
+            m_stabilization->AttitudePitchILimit->setValue(m_stabilization->AttitudeRollILimit->value());
         }
-        else if(widget== m_stabilization->AttitudePitchKp_2)
+        else if(widget== m_stabilization->AttitudePitchKp)
         {
-            m_stabilization->AttitudeRollKp->setValue(m_stabilization->AttitudePitchKp_2->value());
+            m_stabilization->AttitudeRollKp->setValue(m_stabilization->AttitudePitchKp->value());
         }
-        else if(widget== m_stabilization->AttitudePitchKi_2)
+        else if(widget== m_stabilization->AttitudePitchKi)
         {
-            m_stabilization->AttitudeRollKi->setValue(m_stabilization->AttitudePitchKi_2->value());
+            m_stabilization->AttitudeRollKi->setValue(m_stabilization->AttitudePitchKi->value());
         }
-        else if(widget== m_stabilization->AttitudePitchILimit_2)
+        else if(widget== m_stabilization->AttitudePitchILimit)
         {
-            m_stabilization->AttitudeRollILimit->setValue(m_stabilization->AttitudePitchILimit_2->value());
+            m_stabilization->AttitudeRollILimit->setValue(m_stabilization->AttitudePitchILimit->value());
         }
     }
 }
@@ -223,135 +443,6 @@ void ConfigStabilizationWidget::applyRateLimits()
     m_stabilization->fullStickRateRoll->setMaximum(maxRate);
     m_stabilization->fullStickRatePitch->setMaximum(maxRate);
     m_stabilization->fullStickRateYaw->setMaximum(maxRate);
-}
-
-/**
- * @brief ConfigStabilizationWidget::showExpoPlot() Gets the data from the data fileds in UI, and calls the corresponding functions to plot the data.
- * Can be used as a slot or normal function
- * Tests if its called as a Slot from a Signal or not, checks the flags, reads the corresponding data and calls the plot functions
- */
-void ConfigStabilizationWidget::showExpoPlot()
-{
-    // test if this function is called from a Signal of one of the edit fields in UI (Spin Boxes)
-    if(QObject* obj = sender()) {
-        // set the flags to update the plots that rely on the changed data
-        if (obj == m_stabilization->horizonRollExpo || obj == m_stabilization->rateRollKp_3) {
-           update_exp.HorizonAttitudeRoll = true;
-           if (obj == m_stabilization->horizonRollExpo) {
-            update_exp.HorizonRateRoll = true;
-           }
-           if (obj == m_stabilization->rateRollKp_3) {
-            update_exp.AttitudeRoll = true;
-           }
-        }
-
-        else if (obj == m_stabilization->horizonPitchExpo || obj == m_stabilization->ratePitchKp_4) {
-           update_exp.HorizonAttitudePitch = true;
-           if (obj == m_stabilization->horizonPitchExpo) {
-            update_exp.HorizonRatePitch = true;
-           }
-           if (obj == m_stabilization->ratePitchKp_4) {
-               update_exp.AttitudePitch = true;
-           }
-        }
-
-        else if (obj == m_stabilization->horizonYawExpo || obj == m_stabilization->rateYawKp_3) {
-           update_exp.HorizonAttitudeYaw = true;
-           if (obj == m_stabilization->horizonYawExpo) {
-            update_exp.HorizonRateYaw = true;
-           }
-           if (obj == m_stabilization->rateYawKp_3) {
-            update_exp.AttitudeYaw = true;
-           }
-        }
-
-        else if (obj == m_stabilization->rateRollExpo || obj == m_stabilization->fullStickRateRoll) {
-           update_exp.RateRoll = true;
-           if (obj == m_stabilization->fullStickRateRoll) {
-            update_exp.HorizonRateRoll = true;
-           }
-        }
-
-        else if (obj == m_stabilization->ratePitchExpo || obj == m_stabilization->fullStickRatePitch) {
-           update_exp.RatePitch = true;
-           if (obj == m_stabilization->fullStickRatePitch) {
-            update_exp.HorizonRatePitch = true;
-           }
-        }
-
-        else if (obj == m_stabilization->rateYawExpo || obj == m_stabilization->fullStickRateYaw) {
-           update_exp.RateYaw = true;
-
-           if (obj == m_stabilization->fullStickRateYaw) {
-            update_exp.HorizonRateYaw = true;
-           }
-        }
-        else if (obj == m_stabilization->attitudeRollExpo) {
-           update_exp.AttitudeRoll = true;
-        }
-
-        else if (obj == m_stabilization->attitudePitchExpo) {
-           update_exp.AttitudePitch = true;
-        }
-
-        else if (obj == m_stabilization->attitudeYawExpo) {
-           update_exp.AttitudeYaw = true;
-        }
-    }
-
-    // update the Plots with latest data if the correspopnding flag is set
-    // Horizon Attitude Curves
-    if (update_exp.HorizonAttitudeRoll) {
-      m_stabilization->horizonStickExpoPlot->plotDataRoll(m_stabilization->horizonRollExpo->value(), m_stabilization->rateRollKp_3->value(), ExpoCurve::Y_Left);
-      update_exp.HorizonAttitudeRoll = false;
-    }
-    if (update_exp.HorizonAttitudePitch) {
-      m_stabilization->horizonStickExpoPlot->plotDataPitch(m_stabilization->horizonPitchExpo->value(), m_stabilization->ratePitchKp_4->value(), ExpoCurve::Y_Left);
-      update_exp.HorizonAttitudePitch = false;
-    }
-    if (update_exp.HorizonAttitudeYaw) {
-      m_stabilization->horizonStickExpoPlot->plotDataYaw(m_stabilization->horizonYawExpo->value(), m_stabilization->rateYawKp_3->value(), ExpoCurve::Y_Left);
-      update_exp.HorizonAttitudeYaw = false;
-    }
-    // Horizon Rate Curves
-    if (update_exp.HorizonRateRoll) {
-      m_stabilization->horizonStickExpoPlot->plotDataRoll(m_stabilization->horizonRollExpo->value(), m_stabilization->fullStickRateRoll->value(), ExpoCurve::Y_Right);
-      update_exp.HorizonRateRoll = false;
-    }
-    if (update_exp.HorizonRatePitch) {
-      m_stabilization->horizonStickExpoPlot->plotDataPitch(m_stabilization->horizonPitchExpo->value(), m_stabilization->fullStickRatePitch->value(), ExpoCurve::Y_Right);
-      update_exp.HorizonRatePitch = false;
-    }
-    if (update_exp.HorizonRateYaw) {
-      m_stabilization->horizonStickExpoPlot->plotDataYaw(m_stabilization->horizonYawExpo->value(), m_stabilization->fullStickRateYaw->value(), ExpoCurve::Y_Right);
-      update_exp.HorizonRateYaw = false;
-    }
-    // Rate Curves
-    if (update_exp.RateRoll) {
-      m_stabilization->rateStickExpoPlot->plotDataRoll(m_stabilization->rateRollExpo->value(), m_stabilization->fullStickRateRoll->value(), ExpoCurve::Y_Left);
-      update_exp.RateRoll = false;
-    }
-    if (update_exp.RatePitch) {
-      m_stabilization->rateStickExpoPlot->plotDataPitch(m_stabilization->ratePitchExpo->value(), m_stabilization->fullStickRatePitch->value(), ExpoCurve::Y_Left);
-      update_exp.RatePitch = false;
-    }
-    if (update_exp.RateYaw) {
-      m_stabilization->rateStickExpoPlot->plotDataYaw(m_stabilization->rateYawExpo->value(), m_stabilization->fullStickRateYaw->value(), ExpoCurve::Y_Left);
-      update_exp.RateYaw = false;
-    }
-    // Attitude Curves
-    if (update_exp.AttitudeRoll) {
-      m_stabilization->attitudeStickExpoPlot->plotDataRoll(m_stabilization->attitudeRollExpo->value(), m_stabilization->rateRollKp_3->value(), ExpoCurve::Y_Left);
-      update_exp.RateRoll = false;
-    }
-    if (update_exp.AttitudePitch) {
-      m_stabilization->attitudeStickExpoPlot->plotDataPitch(m_stabilization->attitudePitchExpo->value(), m_stabilization->ratePitchKp_4->value(), ExpoCurve::Y_Left);
-      update_exp.RatePitch = false;
-    }
-    if (update_exp.AttitudeYaw) {
-      m_stabilization->attitudeStickExpoPlot->plotDataYaw(m_stabilization->attitudeYawExpo->value(), m_stabilization->rateYawKp_3->value(), ExpoCurve::Y_Left);
-      update_exp.RateYaw = false;
-    }
 }
 
 void ConfigStabilizationWidget::hangtimeDurationChanged()

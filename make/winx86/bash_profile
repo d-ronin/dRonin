@@ -13,7 +13,7 @@ if [ -d "$QT_BASEDIR/Qt$QT_VERSION_FULL" ] ; then
   QT_BASEDIR="$QT_BASEDIR/Qt$QT_VERSION_FULL"
 fi
 
-#export USE_MSVC=YES
+export USE_MSVC=YES
 
 if [ "$USE_MSVC" = "YES" ] ; then
   QT_MSVCVER="msvc2015"

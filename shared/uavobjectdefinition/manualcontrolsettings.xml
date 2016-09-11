@@ -130,6 +130,7 @@
 		<field name="DisarmTime" units="ms" type="enum" elements="1" options="250,500,1000,2000" defaultvalue="1000"/>
 
 		<!-- Note these options should be identical to those in StabilizationDesired.StabilizationMode -->
+		<!-- XXX except we need to prohibit systemident! -->
 		<field name="Stabilization1Settings" parent="SharedDefs.StabilizationMode" type="enum" elementnames="Roll,Pitch,Yaw" defaultvalue="Attitude,Attitude,Rate"/>
 		<field name="Stabilization2Settings" parent="SharedDefs.StabilizationMode" type="enum" elementnames="Roll,Pitch,Yaw" defaultvalue="Attitude,Attitude,Rate"/>
 		<field name="Stabilization3Settings" parent="SharedDefs.StabilizationMode" type="enum" elementnames="Roll,Pitch,Yaw" defaultvalue="Attitude,Attitude,Rate"/>

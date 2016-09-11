@@ -54,6 +54,7 @@ float circular_modulus_rad(float err);
 
 //! Approximation an exponential scale curve
 float expo3(float x, int32_t g);
+float expoM(float x, int32_t g, float exponent);
 
 float interpolate_value(const float fraction, const float beginVal,
 			const float endVal);
