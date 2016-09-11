@@ -1,5 +1,7 @@
 #!/usr/bin/env bash
 
+set -e
+
 # Information about dmg generation: http://stackoverflow.com/questions/96882/how-do-i-create-a-nice-looking-dmg-for-mac-os-x-using-command-line-tools
 
 # the following environment variables must be set
@@ -41,11 +43,6 @@ cp "${ROOT_DIR}/LICENSE.txt" "/Volumes/${VOL_NAME}"
 
 echo "Changing mounted folder icons"
 
-# Set the icon for the mounted DMG.
-# Inspired from http://stackoverflow.com/questions/988920/where-to-find-volume-mount-icon-on-leopard
-#cp "${ROOT_DIR}/package/osx/VolumeIcon.icns" "/Volumes/${VOL_NAME}/.VolumeIcon.icns"
-#SetFile -a C "/Volumes/${VOL_NAME}"
-	
 echo "Laying out dmg..."
 
 echo '
