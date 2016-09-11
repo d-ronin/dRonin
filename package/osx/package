@@ -27,14 +27,14 @@ device=$(hdiutil attach  "${TEMP_FILE}" | \
          egrep '^/dev/' | sed 1q | awk '{print $1}')
 
 # packaging goes here
-mkdir "/Volumes/${VOL_NAME}/Firmware"
-mkdir "${APP_PATH}/${APP_NAME_IN}/Contents/Resources/firmware"
+mkdir -p "/Volumes/${VOL_NAME}/Firmware"
+mkdir -p "${APP_PATH}/${APP_NAME_IN}/Contents/Resources/firmware"
 cp -rp "${FW_DIR}"/* "${APP_PATH}/${APP_NAME_IN}/Contents/Resources/firmware"
-mkdir "/Volumes/${VOL_NAME}/Utilities"
+mkdir -p "/Volumes/${VOL_NAME}/Utilities"
 cp -r "${APP_PATH}/${APP_NAME_IN}" "/Volumes/${VOL_NAME}/${APP_NAME_OUT}"
 cp -rp "${FW_DIR}"/* "/Volumes/${VOL_NAME}/Firmware"
 
-mkdir "/Volumes/${VOL_NAME}/.background"
+mkdir -p "/Volumes/${VOL_NAME}/.background"
 
 cp "${ROOT_DIR}/branding/${BG_PIC_NAME}" "/Volumes/${VOL_NAME}/.background/"
 
