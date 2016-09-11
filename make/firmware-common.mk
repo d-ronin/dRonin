@@ -48,7 +48,7 @@ $(OUTDIR)/$(TARGET).bin.o: $(OUTDIR)/$(TARGET).bin
 # Required for boards which don't use the TL bootloader to put
 # the blob at the correct location
 ifdef PAD_TLFW_FW_DESC
-FW_DESC_BASE := $(shell echo $$(($(FW_BANK_BASE)+$(FW_BANK_SIZE)-$(FW_DESC_SIZE))))
+FW_DESC_BASE := $(shell echo $$(($(FW_BANK_SIZE)-$(FW_DESC_SIZE))))
 else 
 FW_DESC_BASE = 0
 endif
