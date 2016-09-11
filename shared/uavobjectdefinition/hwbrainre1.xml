@@ -57,6 +57,23 @@
 			</options>
 		</field>
 
+		<field name="I2CPort" units="function" type="enum" elements="1" defaultvalue="Disabled">
+			<description>Pheriphals connected to I2C bus</description>
+			<options>
+				<option>Disabled</option>
+				<option>ExtBaro</option>
+				<option>ExtMag</option>
+				<option>ExtBaroAndExtMag</option>
+			</options>
+		</field>
+
+		<field name="ExtBaro" units="function" type="enum" elements="1" options="BMP280,MS5611" defaultvalue="BMP280">
+			<description>Type of external barometer connected</description>
+		</field>
+		<field name="ExtMag" units="function" type="enum" elements="1" parent="HwShared.MagOrientation" defaultvalue="Top0degCW">
+			<description>Type of external magnetometer connected</description>
+		</field>
+
 		<field name="DSMxMode" units="mode" type="enum" elements="1" parent="HwShared.DSMxMode" defaultvalue="Autodetect">
 			<description/>
 		</field>
