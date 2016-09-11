@@ -86,6 +86,8 @@ struct rcvr_activity_fsm {
 	uint8_t sample_count;
 };
 
+extern uintptr_t pios_rcvr_group_map[];
+
 // Private variables
 static ManualControlCommandData   cmd;
 static ManualControlSettingsData  settings;
@@ -126,6 +128,22 @@ static void set_armed_if_changed(uint8_t new_arm);
 
 // Exposed from manualcontrol to prevent attempts to arm when unsafe
 extern bool ok_to_arm();
+
+//! Convert a rssi type to the associated channel group.
+int rssitype_to_channelgroup() {
+	switch (settings.RssiType) {
+		case MANUALCONTROLSETTINGS_RSSITYPE_PWM:
+			return MANUALCONTROLSETTINGS_CHANNELGROUPS_PWM;
+		case MANUALCONTROLSETTINGS_RSSITYPE_PPM:
+			return MANUALCONTROLSETTINGS_CHANNELGROUPS_PPM;
+		case MANUALCONTROLSETTINGS_RSSITYPE_SBUS:
+			return MANUALCONTROLSETTINGS_CHANNELGROUPS_SBUS;
+		case MANUALCONTROLSETTINGS_RSSITYPE_HOTTSUM:
+			return MANUALCONTROLSETTINGS_CHANNELGROUPS_HOTTSUM;
+		default:
+			return -1;
+	}
+}
 
 //! Initialize the transmitter control mode
 int32_t transmitter_control_initialize()
@@ -232,14 +250,8 @@ int32_t transmitter_control_update()
 
 	if (settings.RssiType != MANUALCONTROLSETTINGS_RSSITYPE_NONE) {
 		int32_t value = 0;
-		extern uintptr_t pios_rcvr_group_map[];
+
 		switch (settings.RssiType) {
-		case MANUALCONTROLSETTINGS_RSSITYPE_PWM:
-			value = PIOS_RCVR_Read(pios_rcvr_group_map[MANUALCONTROLSETTINGS_CHANNELGROUPS_PWM], settings.RssiChannelNumber);
-			break;
-		case MANUALCONTROLSETTINGS_RSSITYPE_PPM:
-			value = PIOS_RCVR_Read(pios_rcvr_group_map[MANUALCONTROLSETTINGS_CHANNELGROUPS_PPM], settings.RssiChannelNumber);
-			break;
 		case MANUALCONTROLSETTINGS_RSSITYPE_ADC:
 #if defined(PIOS_INCLUDE_ADC)
 			if (settings.RssiChannelNumber > 0) {
@@ -259,15 +271,16 @@ int32_t transmitter_control_update()
 			value = PIOS_FrSkyRssi_Get();
 #endif /* PIOS_INCLUDE_FRSKY_RSSI */
 			break;
-		case MANUALCONTROLSETTINGS_RSSITYPE_SBUS:
-#if defined(PIOS_INCLUDE_SBUS)
-			value = PIOS_RCVR_Read(pios_rcvr_group_map[MANUALCONTROLSETTINGS_CHANNELGROUPS_SBUS], settings.RssiChannelNumber);
-#endif /* PIOS_INCLUDE_SBUS */
-			break;
-		case MANUALCONTROLSETTINGS_RSSITYPE_HOTTSUM:
-#if defined(PIOS_INCLUDE_HSUM)
-			value = PIOS_RCVR_Read(pios_rcvr_group_map[MANUALCONTROLSETTINGS_CHANNELGROUPS_HOTTSUM], settings.RssiChannelNumber);
-#endif /* PIOS_INCLUDE_HSUM */
+		default:
+			(void) 0 ;
+			int mapped = rssitype_to_channelgroup();
+
+			if (mapped >= 0) {
+				value = PIOS_RCVR_Read(
+						pios_rcvr_group_map[mapped],
+						settings.RssiChannelNumber);
+			}
+
 			break;
 		}
 
@@ -294,7 +307,6 @@ int32_t transmitter_control_update()
 	for (uint8_t n = 0;
 	     n < MANUALCONTROLSETTINGS_CHANNELGROUPS_NUMELEM && n < MANUALCONTROLCOMMAND_CHANNEL_NUMELEM;
 	     ++n) {
-		extern uintptr_t pios_rcvr_group_map[];
 
 		if (settings.ChannelGroups[n] >= MANUALCONTROLSETTINGS_CHANNELGROUPS_NONE) {
 			cmd.Channel[n] = PIOS_RCVR_INVALID;
@@ -853,12 +865,30 @@ static void updateRcvrActivitySample(uintptr_t rcvr_id, uint16_t samples[], uint
 
 static bool updateRcvrActivityCompare(uintptr_t rcvr_id, struct rcvr_activity_fsm * fsm)
 {
-	bool activity_updated = false;
+	uint8_t active_channel = 0;
+
+	int threshold = RCVR_ACTIVITY_MONITOR_MIN_RANGE;
+
+	int rssi_channel = 0;
+
+	/* Start off figuring out if there's a receive-rssi-injection channel */
+	int rssi_group = rssitype_to_channelgroup();
+
+	/* If so, see if it's what we're processing */
+	if (pios_rcvr_group_map[rssi_group] == rcvr_id) {
+		// Yup.  So let's skip the configured RSSI channel
+		rssi_channel = settings.RssiChannelNumber;
+	}
 
 	/* Compare the current value to the previous sampled value */
 	for (uint8_t channel = 1;
 	     channel <= RCVR_ACTIVITY_MONITOR_CHANNELS_PER_GROUP;
 	     channel++) {
+		if (rssi_channel == channel) {
+			// Don't spot activity on the configured RSSI channel
+			continue;
+		}
+
 		uint16_t delta;
 		uint16_t prev = fsm->prev[channel - 1];   // Subtract 1 because channels are 1 indexed
 		uint16_t curr = PIOS_RCVR_Read(rcvr_id, channel);
@@ -868,14 +898,24 @@ static bool updateRcvrActivityCompare(uintptr_t rcvr_id, struct rcvr_activity_fs
 			delta = prev - curr;
 		}
 
-		if (delta > RCVR_ACTIVITY_MONITOR_MIN_RANGE) {
-			/* Mark this channel as active */
-			ReceiverActivityActiveGroupSet((uint8_t *)&fsm->group);
-			ReceiverActivityActiveChannelSet(&channel);
-			activity_updated = true;
+		if (delta > threshold) {
+			active_channel = channel;
+
+			// This is the best channel so far.  Only look for
+			// "more active" channels now.
+			threshold = delta;
 		}
 	}
-	return (activity_updated);
+
+	if (active_channel) {
+		/* Mark this channel as active */
+		ReceiverActivityActiveGroupSet((uint8_t *)&fsm->group);
+		ReceiverActivityActiveChannelSet(&active_channel);
+
+		return true;
+	}
+
+	return false;
 }
 
 static bool updateRcvrActivity(struct rcvr_activity_fsm * fsm)
@@ -887,7 +927,6 @@ static bool updateRcvrActivity(struct rcvr_activity_fsm * fsm)
 		resetRcvrActivity(fsm);
 	}
 
-	extern uintptr_t pios_rcvr_group_map[];
 	if (!pios_rcvr_group_map[fsm->group]) {
 		/* Unbound group, skip it */
 		goto group_completed;
