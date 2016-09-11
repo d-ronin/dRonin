@@ -1,119 +1,149 @@
 <xml>
 	<object name="HwBrainRE1" singleinstance="true" settings="true" category="HardwareSettings">
-	<description>Selection of optional hardware configurations.</description>
+		<description>Selection of optional hardware configurations.</description>
 
-	<field name="RxPort" units="function" type="enum" elements="1" parent="HwShared.PortTypes" defaultvalue="Disabled">
-	<options>
-		<option>Disabled</option>
-		<option>PPM</option>
-		<option>S.Bus</option>
-		<option>S.Bus Non Inverted</option>
-		<option>DSM</option>
-		<option>HoTT SUMD</option>
-		<option>HoTT SUMH</option>
-		<option>SRXL</option>
-		<option>IBus</option>
-	</options>
-	</field>
+		<field name="RxPort" units="function" type="enum" elements="1" parent="HwShared.PortTypes"  defaultvalue="Disabled">
+			<description>The port next to the serial port</description>
+			<options>
+				<option>Disabled</option>
+				<option>PPM</option>
+				<option>S.Bus</option>
+				<option>S.Bus Non Inverted</option>
+				<option>DSM</option>
+				<option>HoTT SUMD</option>
+				<option>HoTT SUMH</option>
+				<option>SRXL</option>
+				<option>IBus</option>
+			</options>
+		</field>
 
-	<field name="SerialPort" units="function" type="enum" elements="1" parent="HwShared.PortTypes" defaultvalue="Disabled">
-		<options>
-			<option>Disabled</option>
-			<option>Telemetry</option>
-			<option>GPS</option>
-			<option>DebugConsole</option>
-			<option>ComBridge</option>
-			<option>OpenLog</option>
-			<option>MSP</option>
-			<option>Storm32Bgc</option>
-			<option>HoTT Telemetry</option>
-			<option>LighttelemetryTx</option>
-			<option>MavLinkTX</option>
-			<option>MavLinkTX_GPS_RX</option>
-			<option>VTX Config TBS SmartAudio</option>
-		</options>
-	</field>
+		<field name="SerialPort" units="function" type="enum" elements="1" parent="HwShared.PortTypes" defaultvalue="Disabled">
+			<description>The port next to the USB socket</description>
+			<options>
+				<option>Disabled</option>
+				<option>Telemetry</option>
+				<option>GPS</option>
+				<option>DebugConsole</option>
+				<option>ComBridge</option>
+				<option>OpenLog</option>
+				<option>MSP</option>
+				<option>Storm32Bgc</option>
+				<option>HoTT Telemetry</option>
+				<option>LighttelemetryTx</option>
+				<option>MavLinkTX</option>
+				<option>MavLinkTX_GPS_RX</option>
+				<option>VTX Config TBS SmartAudio</option>
+			</options>
+		</field>
 
-	<field name="MultiPort" units="function" type="enum" elements="1" parent="HwShared.PortTypes" defaultvalue="Disabled">
-		<options>
-			<option>Disabled</option>
-			<option>PWM</option>
-			<option>Telemetry</option>
-			<option>GPS</option>
-			<option>DebugConsole</option>
-			<option>ComBridge</option>
-			<option>OpenLog</option>
-			<option>MSP</option>
-			<option>Storm32Bgc</option>
-			<option>HoTT Telemetry</option>
-			<option>LighttelemetryTx</option>
-			<option>MavLinkTX</option>
-			<option>MavLinkTX_GPS_RX</option>
-			<option>FrSKY Sensor Hub</option>
-			<option>FrSKY SPort Telemetry</option>
-		</options>
-	</field>
+		<field name="MultiPort" units="function" type="enum" elements="1" parent="HwShared.PortTypes" defaultvalue="Disabled">
+			<description>The port opposite of the USB socket</description>
+			<options>
+				<option>Disabled</option>
+				<option>PWM</option>
+				<option>Telemetry</option>
+				<option>GPS</option>
+				<option>DebugConsole</option>
+				<option>ComBridge</option>
+				<option>OpenLog</option>
+				<option>MSP</option>
+				<option>Storm32Bgc</option>
+				<option>HoTT Telemetry</option>
+				<option>LighttelemetryTx</option>
+				<option>MavLinkTX</option>
+				<option>MavLinkTX_GPS_RX</option>
+				<option>FrSKY Sensor Hub</option>
+				<option>FrSKY SPort Telemetry</option>
+			</options>
+		</field>
 
-	<field name="I2CPort" units="function" type="enum" elements="1" defaultvalue="Disabled">
-		<options>
-			<option>Disabled</option>
-			<option>ExtBaro</option>
-			<option>ExtMag</option>
-			<option>ExtBaroAndExtMag</option>
-		</options>
-	</field>
+		<field name="I2CPort" units="function" type="enum" elements="1" defaultvalue="Disabled">
+			<description>Pheriphals connected to I2C bus</description>
+			<options>
+				<option>Disabled</option>
+				<option>ExtBaro</option>
+				<option>ExtMag</option>
+				<option>ExtBaroAndExtMag</option>
+			</options>
+		</field>
 
-	<field name="ExtBaro" units="function" type="enum" elements="1" options="BMP280,MS5611" defaultvalue="BMP280" />
-	<field name="ExtMag" units="function" type="enum" elements="1" parent="HwShared.MagOrientation" defaultvalue="Top0degCW" />
+		<field name="ExtBaro" units="function" type="enum" elements="1" options="BMP280,MS5611" defaultvalue="BMP280">
+			<description>Type of external barometer connected</description>
+		</field>
+		<field name="ExtMag" units="function" type="enum" elements="1" parent="HwShared.MagOrientation" defaultvalue="Top0degCW">
+			<description>Type of external magnetometer connected</description>
+		</field>
 
-	<field name="DSMxMode" units="mode" type="enum" elements="1" parent="HwShared.DSMxMode" defaultvalue="Autodetect"/>
+		<field name="DSMxMode" units="mode" type="enum" elements="1" parent="HwShared.DSMxMode" defaultvalue="Autodetect">
+			<description/>
+		</field>
 
-	<field name="USB_HIDPort" units="function" type="enum" elements="1" parent="HwShared.USB_HIDPort" defaultvalue="USBTelemetry"/>
-	<field name="USB_VCPPort" units="function" type="enum" elements="1" parent="HwShared.USB_VCPPort" defaultvalue="Disabled"/>
-	
-	<field name="NumberOfLEDs" units="" type="uint16" elements="1" defaultvalue="0" limits="%BE:0:1024"/>
-	<field name="CustomLEDColor" units="" type="uint8" elements="3" defaultvalue="255,0,0"/>
-	<field name="LEDColor" units="function" type="enum" elements="1" defaultvalue="Red">
-		<options>
-			<option>Off</option>
-			<option>Custom</option>
-			<option>White</option>
-			<option>Red</option>
-			<option>Orange</option>
-			<option>Yellow</option>
-			<option>Green</option>
-			<option>Aqua</option>
-			<option>Blue</option>
-			<option>Purple</option>
-		</options>
-	</field>
+		<field name="USB_HIDPort" units="function" type="enum" elements="1" parent="HwShared.USB_HIDPort" defaultvalue="USBTelemetry">
+			<description/>
+		</field>
+		<field name="USB_VCPPort" units="function" type="enum" elements="1" parent="HwShared.USB_VCPPort" defaultvalue="Disabled">
+			<description>Virtual COM Port protocol</description>
+		</field>
 
-	<field name="IRProtocol" units="function" type="enum" elements="1" defaultvalue="Disabled">
-		<options>
-			<option>Disabled</option>
-			<option>ILap</option>
-			<option>Trackmate</option>
-		</options>
-	</field>
+		<field name="NumberOfLEDs" units="" type="uint16" elements="1" defaultvalue="0" limits="%BE:0:1024">
+			<description>Number of leds connected</description>
+		</field>
+		<field name="CustomLEDColor" units="" type="uint8" elements="3" defaultvalue="255,0,0">
+			<description>Definition of custom LED color</description>
+		</field>
+		<field name="LEDColor" units="function" type="enum" elements="1" defaultvalue="Red">
+			<description>Definition of standard LED colors</description>
+			<options>
+				<option>Off</option>
+				<option>Custom</option>
+				<option>White</option>
+				<option>Red</option>
+				<option>Orange</option>
+				<option>Yellow</option>
+				<option>Green</option>
+				<option>Aqua</option>
+				<option>Blue</option>
+				<option>Purple</option>
+			</options>
+		</field>
 
-	<field name="IRIDTrackmate" units="" type="uint16" elements="1" defaultvalue="0" limits="%BE:0:9999"/>
-	<field name="IRIDILap" units="" type="uint32" elements="1" defaultvalue="0" limits="%BE:0:9999999"/>
-	<field name="FailsafeBuzzer" units="" type="enum" elements="1" options="Disabled,DC_Buzzer,4kHz_Buzzer" defaultvalue="Disabled"/>
+		<field name="IRProtocol" units="function" type="enum" elements="1" defaultvalue="Disabled">
+			<description>Protocol to use on IR leds</description>
+			<options>
+				<option>Disabled</option>
+				<option>ILap</option>
+				<option>Trackmate</option>
+			</options>
+		</field>
 
-	<field name="HWRevision" units="" type="uint8" elements="1" defaultvalue="0"/>
+		<field name="IRIDTrackmate" units="" type="uint16" elements="1" defaultvalue="0" limits="%BE:0:9999">
+			<description>Identification number on Trackmate</description>
+		</field>
+		<field name="IRIDILap" units="" type="uint32" elements="1" defaultvalue="0" limits="%BE:0:9999999">
+			<description>Identification number on ILap</description>
+		</field>
+		<field name="FailsafeBuzzer" units="" type="enum" elements="1" options="Disabled,DC_Buzzer,4kHz_Buzzer" defaultvalue="Disabled">
+			<description>Buzzer type</description>
+		</field>
 
-	<field name="VideoSyncDetectorThreshold" units="" type="uint8" elements="1" defaultvalue="120">
-		<description>Threshold for the video sync pulse detector. It should not be necessary for the user to change this value from the default (120).</description>
-	</field>
+		<field name="HWRevision" units="" type="uint8" elements="1" defaultvalue="0">
+			<description>Revision of the hardware</description>
+		</field>
 
-	<field name="BMI160FOC" units="" type="enum" elements="1" options="Disabled,Do_FOC" defaultvalue="Disabled">
-		<description>Peform BMI160 fast offset compensation on next boot. Should not be performed by users. Can only be done a limited number of times.</description>
-	</field>
-	<field name="FlashID" units="" type="uint8" elements="16" defaultvalue="0"/>
+		<field name="VideoSyncDetectorThreshold" units="" type="uint8" elements="1" defaultvalue="120">
+			<description>Threshold for the video sync pulse detector. It should not be necessary for the user to change this value from the default (120).</description>
+		</field>
 
-	<access gcs="readwrite" flight="readwrite"/>
-	<telemetrygcs acked="true" updatemode="onchange" period="0"/>
-	<telemetryflight acked="true" updatemode="onchange" period="0"/>
-	<logging updatemode="manual" period="0"/>
+		<field name="BMI160FOC" units="" type="enum" elements="1" options="Disabled,Do_FOC" defaultvalue="Disabled">
+			<description>Peform BMI160 fast offset compensation on next boot. Should not be performed by users. Can only be done a limited number of times.</description>
+		</field>
+		<field name="FlashID" units="" type="uint8" elements="16" defaultvalue="0">
+			<description>ID of the flash chip</description>
+		</field>
+
+		<access gcs="readwrite" flight="readwrite"/>
+		<telemetrygcs acked="true" updatemode="onchange" period="0"/>
+		<telemetryflight acked="true" updatemode="onchange" period="0"/>
+		<logging updatemode="manual" period="0"/>
 	</object>
 </xml>
