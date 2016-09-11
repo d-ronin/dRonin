@@ -71,7 +71,7 @@ echo '
 ' | osascript
 
 
-chmod -Rf go-w /Volumes/"${VOL_NAME}"
+chmod -Rf go-w /Volumes/"${VOL_NAME}" || true
 sync
 
 hdiutil detach ${device}
