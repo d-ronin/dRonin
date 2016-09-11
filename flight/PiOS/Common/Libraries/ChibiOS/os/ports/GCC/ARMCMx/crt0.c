@@ -191,6 +191,18 @@ extern uint32_t _bss_start;
 extern uint32_t _bss_end;
 
 /**
+ * @brief   CCM BSS segment start.
+ * @pre     The symbol must be aligned to a 32 bits boundary.
+ */
+extern uint32_t _cmm_start;
+
+/**
+ * @brief   CCM BSS segment end.
+ * @pre     The symbol must be aligned to a 32 bits boundary.
+ */
+extern uint32_t _cmm_end;
+
+/**
  * @brief   Constructors table start.
  * @pre     The symbol must be aligned to a 32 bits boundary.
  */
@@ -324,6 +336,9 @@ void ResetHandler(void) {
 #if CRT0_INIT_BSS
   /* BSS segment initialization.*/
   fill32(&_bss_start, &_bss_end, 0);
+
+  /* CCM-SRAM BSS initialization */
+  fill32(&_cmm_start, &_cmm_end, 0);
 #endif
 
   /* Late initialization hook invocation.*/
