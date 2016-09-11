@@ -541,9 +541,9 @@ void ConfigInputWidget::wizardSetUpStep(enum wizardSteps step)
 
         manualSettingsObj->setData(manualSettingsData);
         m_config->wzText->setText(tr("Welcome to the inputs configuration wizard.\n"
-                                     "Please follow the instructions on the screen and only move your controls when asked to.\n"
-                                     "Make sure you already configured your hardware settings on the proper tab and restarted your board.\n"
-                                     "You can press 'back' at any time to return to the previous screen or press 'Cancel' to quit the wizard.\n"));
+                                     "Please follow the instructions on the screen and move controls when asked to.\n"
+                                     "Make sure you have already configured your hardware settings on the proper tab and restarted your board.\n"
+                                     "Note: if you are using RSSI injection to S.Bus, HSUM or PPM, please configure that on the input screen and save before proceeding with this wizard.\n"));
         m_config->stackedWidget->setCurrentIndex(1);
         m_config->wzBack->setEnabled(false);
         m_config->wzNext->setEnabled(true);
