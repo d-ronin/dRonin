@@ -19,7 +19,7 @@ VOL_NAME="dRonin"
 rm -f "${TEMP_FILE}"
 rm -f "${OUT_FILE}"
 
-hdiutil create -size 500M -type SPARSE -volname "${VOL_NAME}" -fs HFS+ "${TEMP_FILE}"
+hdiutil create -size 750M -type SPARSE -volname "${VOL_NAME}" -fs HFS+ "${TEMP_FILE}"
 
 device=$(hdiutil attach  "${TEMP_FILE}" | \
          egrep '^/dev/' | sed 1q | awk '{print $1}')
