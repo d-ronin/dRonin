@@ -131,6 +131,10 @@ help:
 	@echo "     uncrustify_install   - Install the uncrustify code formatter"
 	@echo "     openssl_install      - Install the openssl libraries on windows machines"	
 	@echo "     sdl_install          - Install the SDL libraries"
+ifndef WINDOWS
+	@echo "     depot_tools_install  - Install Google depot-tools for building breakpad tools"
+endif
+	@echo "     breakpad_install     - Install Google Breakpad tools for GCS crash symbol generation"
 
 	@echo
 	@echo "   [Big Hammer]"
