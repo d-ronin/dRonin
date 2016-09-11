@@ -49,31 +49,28 @@ public:
 private:
     Ui_StabilizationWidget *m_stabilization;
 
-    struct UpdateExpoFlags {
-      bool RateRoll;
-      bool RatePitch;
-      bool RateYaw;
-      bool AttitudeRoll;
-      bool AttitudePitch;
-      bool AttitudeYaw;
-      bool HorizonAttitudeRoll;
-      bool HorizonAttitudePitch;
-      bool HorizonAttitudeYaw;
-      bool HorizonRateRoll;
-      bool HorizonRatePitch;
-      bool HorizonRateYaw;
-    } update_exp;
-
     UAVObject *manualControlSettings;
+
+    bool updateInProgress;
+
+    void updateGraphs();
+    void setDerivedControlsEnabled(bool enable);
 
 private slots:
     void linkCheckBoxes(int value);
+    void ratesLink(int value);
+
     void processLinkedWidgets(QWidget*);
+    void setMaximums();
+    void derivedValuesChanged();
+    void sourceValuesChanged();
+
     void applyRateLimits();
 
-    void showExpoPlot();
     void hangtimeDurationChanged();
     void hangtimeToggle(bool enabled);
+    void enableDerivedControls();
+    void disableDerivedControls();
 };
 
 #endif // ConfigStabilizationWidget_H
