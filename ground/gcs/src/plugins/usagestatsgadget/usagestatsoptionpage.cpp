@@ -4,9 +4,9 @@
  * @author     dRonin, http://dRonin.org/, Copyright (C) 2015, 2016
  * @addtogroup GCSPlugins GCS Plugins
  * @{
- * @addtogroup UsageStatsOptionPage
+ * @addtogroup UsageStatsPlugin UsageStats Gadget Plugin
  * @{
- * @brief [Brief]
+ * @brief Usage stats collection plugin
  *****************************************************************************/
 /*
  * This program is free software; you can redistribute it and/or modify
