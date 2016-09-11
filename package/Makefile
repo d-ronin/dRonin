@@ -135,7 +135,7 @@ ground_package_common: standalone
 .PHONY: package_flight
 package_flight: $(FLIGHTPKGNAME)
 
-$(FLIGHTPKGNAME): $(PACKAGE_DIR)
-	$(ZIPBIN) -j $@ $(FW_FILES)
+$(FLIGHTPKGNAME): $(PACKAGE_DIR) $(FW_FILES)
+	$(ZIPBIN) -j --must-match $@ $(FW_FILES)
 
 include $(WHEREAMI)/Makefile.$(PLATFORM)
