@@ -35,11 +35,7 @@ macx {
     LIBS += -framework IOKit \
         -framework CoreFoundation
 }
-linux-g++ {
-    SOURCES += hidapi/hidapi_linux.c
-    LIBS += -ludev -lrt
-}
-linux-g++-64 {
+linux {
     SOURCES += hidapi/hidapi_linux.c
     LIBS += -ludev -lrt
 }

@@ -56,9 +56,11 @@
 #include "pios_com_priv.h"
 #include "pios_serial_priv.h"
 #include "pios_tcp_priv.h"
+#include "pios_thread.h"
 
 #include "pios_spi_posix_priv.h"
 #include "pios_ms5611_priv.h"
+#include "pios_bmm150_priv.h"
 #include "pios_bmx055_priv.h"
 #include "pios_flyingpio.h"
 
@@ -88,7 +90,7 @@ static void Usage(char *cmdName) {
 #ifdef PIOS_INCLUDE_SPI
 		"\t-s spibase\tConfigures a SPI interface on the base path\n"
 		"\t-d drvname:bus:id\tStarts driver drvname on bus/id\n"
-		"\t\t\tAvailable drivers: ms5611 bmx055\n"
+		"\t\t\tAvailable drivers: bmm150 bmx055 flyingpio ms5611\n"
 #endif
 		"",
 		cmdName);
@@ -223,8 +225,21 @@ static int handle_device(const char *optarg) {
 		pios_bmx055_dev_t dev;
 
 		bmx055_cfg = PIOS_malloc(sizeof(*bmx055_cfg));
+		bzero(bmx055_cfg, sizeof(*bmx055_cfg));
 
-		int ret = PIOS_BMX055_SPI_Init(&dev, spi_devs[bus_num], dev_num, dev_num+1, dev_num+2, bmx055_cfg);
+		int ret = PIOS_BMX055_SPI_Init(&dev, spi_devs[bus_num], dev_num, dev_num+1, bmx055_cfg);
+
+		if (ret) goto fail;
+	} else if (!strcmp(drv_name, "bmm150")) {
+		struct pios_bmm150_cfg *bmm150_cfg;
+		pios_bmm150_dev_t dev;
+
+		bmm150_cfg = PIOS_malloc(sizeof(*bmm150_cfg));
+		bzero(bmm150_cfg, sizeof(*bmm150_cfg));
+
+		bmm150_cfg->orientation = PIOS_BMM_TOP_90DEG;
+
+		int ret = PIOS_BMM150_SPI_Init(&dev, spi_devs[bus_num], dev_num, bmm150_cfg);
 
 		if (ret) goto fail;
 	} else if (!strcmp(drv_name, "flyingpio")) {
@@ -307,7 +322,13 @@ static void go_realtime() {
 #endif
 }
 
+static int saved_argc;
+static char **saved_argv;
+
 void PIOS_SYS_Args(int argc, char *argv[]) {
+	saved_argc = argc;
+	saved_argv = argv;
+
 	int opt;
 
 	while ((opt = getopt(argc, argv, "frl:s:d:S:")) != -1) {
@@ -456,7 +477,36 @@ void PIOS_SYS_Init(void)
 */
 int32_t PIOS_SYS_Reset(void)
 {
-	/* We will never reach this point */
+	PIOS_Thread_Scheduler_Suspend();
+
+	char *argv[128];
+
+	/* Sigh, ensure NULL termination of array like execvpe(3) expects*/
+	int num = saved_argc;
+	int i = 0;
+
+	if (num > 128) {
+		num = 127;
+	}
+
+	for (i = 0; i < num; i++) {
+		argv[i] = saved_argv[i];
+	}
+
+	argv[i] = 0;
+
+	// Close out all fds-- open or not.
+	// We don't want our existing listening socket leaking, etc.
+	// Note that we should really be using FD_CLOEXEC, but it's really
+	// tricky.. and even if we do, we should leave this to be safe.
+	for (i = STDERR_FILENO+1; i < 1024; i++) {
+		close(i);
+	}
+
+	execvp(argv[0], argv);
+
+	abort();
+
 	return -1;
 }
 

@@ -4,6 +4,7 @@ DEFINES += UPLOADER_LIBRARY
 QT += svg widgets
 QT += testlib
 QT += network
+include(../../gcsplugin.pri)
 include(uploader_dependencies.pri)
 include(../../libs/glc_lib/glc_lib.pri)
 

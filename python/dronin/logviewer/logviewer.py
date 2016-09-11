@@ -13,6 +13,9 @@ import six
 def get_data_series(obj_name, fields):
     data = get_series(obj_name)
 
+    if (len(data) < 1):
+        return []
+
     base_fields = [ f.split(':')[0] for f in fields ]
     peeled = data[base_fields]
 

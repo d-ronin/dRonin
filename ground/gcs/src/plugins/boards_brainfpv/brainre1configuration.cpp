@@ -51,6 +51,10 @@ BrainRE1Configuration::BrainRE1Configuration(QWidget *parent) :
     addUAVObjectToWidgetRelation("HwBrainRE1", "SerialPort",ui->cmbSerialPort);
     addUAVObjectToWidgetRelation("HwBrainRE1", "MultiPort",ui->cmbMultiPort);
 
+	addUAVObjectToWidgetRelation("HwBrainRE1", "I2CPort",ui->cmbI2CPort);
+	addUAVObjectToWidgetRelation("HwBrainRE1", "ExtBaro",ui->cmbExtBaro);
+	addUAVObjectToWidgetRelation("HwBrainRE1", "ExtMag",ui->cmbExtMag);
+
     addUAVObjectToWidgetRelation("HwBrainRE1", "USB_HIDPort", ui->cmbUsbHidPort);
     addUAVObjectToWidgetRelation("HwBrainRE1", "USB_VCPPort", ui->cmbUsbVcpPort);
 

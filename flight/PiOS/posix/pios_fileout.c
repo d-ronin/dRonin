@@ -115,7 +115,6 @@ static void PIOS_FILEOUT_TxStart(uintptr_t file_id, uint16_t tx_bytes_avail)
 
 static void PIOS_FILEOUT_RegisterTxCallback(uintptr_t file_id, pios_com_callback tx_out_cb, uintptr_t context)
 {
-	printf("reggie\n");
 	pios_fileout_dev *file_dev = find_file_dev_by_id(file_id);
 	
 	PIOS_Assert(file_dev);

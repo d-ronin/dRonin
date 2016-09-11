@@ -6,6 +6,7 @@ DEFINES += QWT_DLL
 QT += svg
 QT += network
 
+include(../../gcsplugin.pri)
 include(config_dependencies.pri)
 LIBS *= -l$$qtLibraryName(Qwt)
 

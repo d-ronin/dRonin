@@ -65,7 +65,15 @@ QString Simulation::boardDescription()
 
 bool Simulation::queryCapabilities(BoardCapabilities capability)
 {
-    Q_UNUSED(capability);
+    switch(capability) {
+        case BOARD_CAPABILITIES_GYROS:
+        case BOARD_CAPABILITIES_ACCELS:
+        case BOARD_CAPABILITIES_MAGS:
+        case BOARD_CAPABILITIES_BAROS:
+            return true;
+        default:
+            return false;
+    }
     return false;
 }
 

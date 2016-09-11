@@ -126,8 +126,6 @@
 
 #define REVOLUTION
 
-#define SUPPORTS_EXTERNAL_MAG
-
 #endif /* PIOS_CONFIG_H */
 /**
  * @}

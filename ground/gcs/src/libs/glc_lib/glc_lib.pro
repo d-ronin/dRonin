@@ -490,6 +490,8 @@ OTHER_FILES += \
     qtc_packaging/debian_harmattan/compat \
     qtc_packaging/debian_harmattan/changelog
 
-win32 {
-    LIBS += -lopengl32
+win32-msvc* {
+	LIBS += opengl32.lib
+} else:win32 {
+	LIBS += -lopengl32
 }

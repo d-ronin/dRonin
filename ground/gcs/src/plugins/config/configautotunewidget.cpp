@@ -661,8 +661,20 @@ void AutotuneSlidersPage::compute()
     const double zeta_o = 1.3;
     av->outerKp = 1 / 4.0 / (zeta_o * zeta_o) / (1/wn);
 
+    // Except, if this is very high, we may be slew rate limited and pick
+    // up oscillation that way.  Fix it with very soft clamping.
+    // MaximumRate defaults to 350, 6.5 corresponds to where we begin
+    // clamping rate ourselves.  ESCs, etc, it depends upon gains
+    // and any pre-emphasis they do.   Still give ourselves partial credit
+    // for inner loop bandwidth.
+    if (av->outerKp > 6.5) {
+        av->outerKp = 6.5 - sqrt(6.5) + sqrt(av->outerKp);
+    }
+
     if (doOuterKi) {
-        av->outerKi = 0.75 * av->outerKp / (2 * M_PI * tau * 10.0);
+        av->outerKp *= 0.95;	// Pick up some margin.
+        // Add a zero at 1/15th the innermost bandwidth.
+        av->outerKi = 0.75 * av->outerKp / (2 * M_PI * tau * 15.0);
     } else {
         av->outerKi = 0;
     }

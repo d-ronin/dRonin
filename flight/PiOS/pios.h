@@ -32,6 +32,10 @@
 #ifndef PIOS_H
 #define PIOS_H
 
+#ifdef SIM_POSIX
+#include <pios_posix.h>
+#endif
+
 /* PIOS Feature Selection */
 #include "pios_config.h"
 
@@ -102,10 +106,7 @@
 #endif
 #include <pios_wdg.h>
 
-#ifdef SIM_POSIX
-#include <pios_posix.h>
-
-#else
+#ifndef SIM_POSIX
 #include <pios_gpio.h>
 #include <pios_exti.h>
 #include <pios_usart.h>
@@ -127,6 +128,9 @@
 #endif
 #if defined(PIOS_INCLUDE_BMP085)
 #include <pios_bmp085.h>
+#endif
+#if defined(PIOS_INCLUDE_BMP280)
+#include <pios_bmp280.h>
 #endif
 #if defined(PIOS_INCLUDE_HCSR04)
 #include <pios_hcsr04.h>
@@ -199,6 +203,10 @@
 
 #if defined(PIOS_INCLUDE_IBUS)
 #include <pios_ibus.h>
+#endif
+
+#if defined(PIOS_INCLUDE_MAX7456)
+#include <pios_max7456.h>
 #endif
 
 #include <pios_modules.h>

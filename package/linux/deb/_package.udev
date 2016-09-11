@@ -83,3 +83,10 @@ KERNEL=="hidraw*", ATTRS{idVendor}=="1209", ATTRS{idProduct}=="f3fc", MODE="0664
 
 # DTFUHF DTFc flight controller
 KERNEL=="hidraw*", ATTRS{idVendor}=="16d0", ATTRS{idProduct}=="d7fc", MODE="0664", GROUP="plugdev"
+
+#
+# dRonin
+#
+
+# PlayUAVOSD board
+KERNEL=="hidraw*", ATTRS{idVendor}=="20a0", ATTRS{idProduct}=="4250", MODE="0664", GROUP="plugdev"

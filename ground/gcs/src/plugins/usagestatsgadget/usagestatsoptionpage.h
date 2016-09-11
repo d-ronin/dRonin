@@ -1,7 +1,7 @@
 /**
  ******************************************************************************
  * @file       usagestatsoptionpage.h
- * @author     dRonin, http://dRonin.org/, Copyright (C) 2015
+ * @author     dRonin, http://dRonin.org/, Copyright (C) 2015, 2016
  * @addtogroup [Group]
  * @{
  * @addtogroup UsageStatsOptionPage
