@@ -33,7 +33,7 @@
 			<description>Switch to use to switch between OSD pages</description>
 		</field>
 		<field name="PageConfig" units="" type="enum" elements="6" options="Custom1,Custom2,Custom3,Custom4,Menu,Statistics,Off"
-		       defaultvalue="Custom1,Custom1,Custom1,Custom1,Custom1,Custom1">
+			   defaultvalue="Custom1,Custom1,Custom1,Custom1,Custom1,Custom1">
 			<description/>
 		</field>
 		<field name="DisableMenuWhenArmed" units="" type="enum" elements="1" options="Disabled,Enabled" defaultvalue="Enabled">

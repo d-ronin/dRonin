@@ -178,7 +178,7 @@
 		</field>
 
 		<!-- This option prevents timing out arming when disabled and in autonomous modes.
-                     It is enabled by default for additional safety to prevent flyaways -->
+					 It is enabled by default for additional safety to prevent flyaways -->
 		<field name="ArmTimeoutAutonomous" units="" type="enum" elements="1" options="DISABLED,ENABLED" defaultvalue="ENABLED">
 			<description>Arm timeout in autonomous modes</description>
 		</field>

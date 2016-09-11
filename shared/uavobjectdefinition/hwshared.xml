@@ -28,7 +28,7 @@
 				<option>OpenLog</option>
 				<option>Storm32Bgc</option>
 				<option>VTX Config TBS SmartAudio</option>
-				<!-- These last couple are special cases, really.  le sigh -->
+<!-- These last couple are special cases, really.  le sigh -->
 				<option>I2C</option>
 				<option>PPM</option>
 				<option>PWM</option>
@@ -83,5 +83,5 @@
 		<telemetrygcs acked="true" updatemode="onchange" period="0"/>
 		<telemetryflight acked="true" updatemode="onchange" period="0"/>
 		<logging updatemode="manual" period="0"/>
-	</object>
+    </object>
 </xml>
