@@ -189,7 +189,11 @@ public class SmartSave {
 			if (DEBUG) Log.d(TAG, "Saving object ID: " + objId);
 			persistence.getField("ObjectID").setValue(objId);
 			persistence.getField("Operation").setValue("Save");
-			persistence.getField("Selection").setValue("SingleObject");
+			try {
+				persistence.getField("Selection").setValue("SingleObject");
+			} catch (NullPointerException e) {
+				// Ignore; field is no longer used.
+			}
 
 			// 4. Wait for ack
 			int attempts = 0;
@@ -341,7 +345,11 @@ public class SmartSave {
 			if (DEBUG) Log.d(TAG, "Load object ID: " + objId);
 			persistence.getField("ObjectID").setValue(objId);
 			persistence.getField("Operation").setValue("Load");
-			persistence.getField("Selection").setValue("SingleObject");
+			try {
+				persistence.getField("Selection").setValue("SingleObject");
+			} catch (NullPointerException e) {
+				// Ignore; field is no longer used.
+			}
 
 			// 4. Wait for the update
 			int attempts = 0;
