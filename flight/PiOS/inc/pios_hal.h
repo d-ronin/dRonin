@@ -77,6 +77,8 @@ extern uintptr_t pios_rcvr_group_map[];
 void PIOS_HAL_CriticalError(uint32_t led_id, enum pios_hal_panic code);
 
 #ifdef PIOS_INCLUDE_USART
+/* USART here is used as a proxy for hardware-ish capabilities... Hacky */
+
 void PIOS_HAL_ConfigureCom(const struct pios_usart_cfg *usart_port_cfg, struct pios_usart_params *usart_port_params,
 		size_t rx_buf_len, size_t tx_buf_len,
 		const struct pios_com_driver *com_driver, uintptr_t *com_id);
@@ -93,6 +95,15 @@ void PIOS_HAL_ConfigurePort(HwSharedPortTypesOptions port_type,
 		const struct pios_dsm_cfg *dsm_cfg,
 		HwSharedDSMxModeOptions dsm_mode,
 		const struct pios_sbus_cfg *sbus_cfg);
+
+int PIOS_HAL_ConfigureExternalBaro(HwSharedExtBaroOptions baro,
+		uint32_t *i2c_id,
+		const struct pios_i2c_adapter_cfg *i2c_cfg);
+
+int PIOS_HAL_ConfigureExternalMag(HwSharedExtMagOptions mag,
+		HwSharedMagOrientationOptions orientation,
+		uint32_t *i2c_id,
+		const struct pios_i2c_adapter_cfg *i2c_cfg);
 #endif
 
 void PIOS_HAL_ConfigureCDC(HwSharedUSB_VCPPortOptions port_type,
