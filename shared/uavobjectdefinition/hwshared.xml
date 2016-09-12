@@ -54,8 +54,8 @@
 		<field name="ExtBaro" units="function" type="enum" elements="1" defaultvalue="None">
 			<options>
 				<option>None</option>
-				<option>MS5611</option>
 				<option>BMP280</option>
+				<option>MS5611</option>
 			</options>
 		</field>
 
