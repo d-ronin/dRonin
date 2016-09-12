@@ -98,6 +98,10 @@ static void screen_draw (charosd_state_t state, CharOnScreenDisplaySettingsData 
 	}
 }
 
+static const uint8_t charosd_font_data[] = {
+#include "charosd-font.h"
+};
+
 /**
  * Main osd task. It does not return.
  */
