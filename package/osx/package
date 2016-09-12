@@ -1,5 +1,7 @@
 #!/usr/bin/env bash
 
+set -e
+
 # Information about dmg generation: http://stackoverflow.com/questions/96882/how-do-i-create-a-nice-looking-dmg-for-mac-os-x-using-command-line-tools
 
 # the following environment variables must be set
@@ -19,20 +21,20 @@ VOL_NAME="dRonin"
 rm -f "${TEMP_FILE}"
 rm -f "${OUT_FILE}"
 
-hdiutil create -size 500M -type SPARSE -volname "${VOL_NAME}" -fs HFS+ "${TEMP_FILE}"
+hdiutil create -size 750M -type SPARSE -volname "${VOL_NAME}" -fs HFS+ "${TEMP_FILE}"
 
 device=$(hdiutil attach  "${TEMP_FILE}" | \
          egrep '^/dev/' | sed 1q | awk '{print $1}')
 
 # packaging goes here
-mkdir "/Volumes/${VOL_NAME}/Firmware"
-mkdir "${APP_PATH}/${APP_NAME_IN}/Contents/Resources/firmware"
+mkdir -p "/Volumes/${VOL_NAME}/Firmware"
+mkdir -p "${APP_PATH}/${APP_NAME_IN}/Contents/Resources/firmware"
 cp -rp "${FW_DIR}"/* "${APP_PATH}/${APP_NAME_IN}/Contents/Resources/firmware"
-mkdir "/Volumes/${VOL_NAME}/Utilities"
+mkdir -p "/Volumes/${VOL_NAME}/Utilities"
 cp -r "${APP_PATH}/${APP_NAME_IN}" "/Volumes/${VOL_NAME}/${APP_NAME_OUT}"
 cp -rp "${FW_DIR}"/* "/Volumes/${VOL_NAME}/Firmware"
 
-mkdir "/Volumes/${VOL_NAME}/.background"
+mkdir -p "/Volumes/${VOL_NAME}/.background"
 
 cp "${ROOT_DIR}/branding/${BG_PIC_NAME}" "/Volumes/${VOL_NAME}/.background/"
 
@@ -41,11 +43,6 @@ cp "${ROOT_DIR}/LICENSE.txt" "/Volumes/${VOL_NAME}"
 
 echo "Changing mounted folder icons"
 
-# Set the icon for the mounted DMG.
-# Inspired from http://stackoverflow.com/questions/988920/where-to-find-volume-mount-icon-on-leopard
-#cp "${ROOT_DIR}/package/osx/VolumeIcon.icns" "/Volumes/${VOL_NAME}/.VolumeIcon.icns"
-#SetFile -a C "/Volumes/${VOL_NAME}"
-	
 echo "Laying out dmg..."
 
 echo '
@@ -74,7 +71,7 @@ echo '
 ' | osascript
 
 
-chmod -Rf go-w /Volumes/"${VOL_NAME}"
+chmod -Rf go-w /Volumes/"${VOL_NAME}" || true
 sync
 
 hdiutil detach ${device}

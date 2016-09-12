@@ -131,6 +131,10 @@ help:
 	@echo "     uncrustify_install   - Install the uncrustify code formatter"
 	@echo "     openssl_install      - Install the openssl libraries on windows machines"	
 	@echo "     sdl_install          - Install the SDL libraries"
+ifndef WINDOWS
+	@echo "     depot_tools_install  - Install Google depot-tools for building breakpad tools"
+endif
+	@echo "     breakpad_install     - Install Google Breakpad tools for GCS crash symbol generation"
 
 	@echo
 	@echo "   [Big Hammer]"
@@ -388,7 +392,7 @@ $(ANDROIDGCS_OUT_DIR)/bin/androidgcs-$(ANDROIDGCS_BUILD_CONF).apk: uavo-collecti
 .PHONY: androidgcs_run
 androidgcs_run: androidgcs_install
 	$(V0) @echo " AGCS RUN "
-	$(V1) $(ANDROID_ADB) shell am start -n org.dronin.androidgcs/.HomePage
+	$(V1) $(ANDROID_ADB) shell am start -n org.dronin.androidgcs/.MainActivity
 
 .PHONY: androidgcs_install
 androidgcs_install: $(ANDROIDGCS_OUT_DIR)/bin/androidgcs-$(ANDROIDGCS_BUILD_CONF).apk
@@ -400,12 +404,24 @@ androidgcs_clean:
 	$(V0) @echo " CLEAN      $@"
 	$(V1) [ ! -d "$(ANDROIDGCS_OUT_DIR)" ] || $(RM) -rf "$(ANDROIDGCS_OUT_DIR)"
 
+.PHONY: androidgcs_sign
+
+# This is intended for manual/after the fact signing of a release artifact
+# out of band from CI/release infrastructure.  It can be made more elegant
+# later as things mature.  Better some documentation than no documentation.
+androidgcs_sign:
+	$(V0) @echo " SIGNING    $@"
+	jarsigner -verbose -sigalg SHA1withRSA -digestalg SHA1 -keystore dronin.keystore androidgcs-release-unsigned.apk dronin
+	$(ANDROID_SDK_DIR)/build-tools/20.0.0/zipalign -v 4 androidgcs-release-unsigned.apk androidgcs-release.apk
+
 # We want to take snapshots of the UAVOs at each point that they change
 # to allow the GCS to be compatible with as many versions as possible.
 #
-# Find the git hashes of each commit that changes uavobjects with:
-#   git log --format=%h -- shared/uavobjectdefinition/ | head -n 6 | tr '\n' ' '
-UAVO_GIT_VERSIONS := HEAD 
+# Supply the git hashes of all recent releases here.  Note if UAVOs do not
+# change in a hotfix the release does not need to be listed here.
+UAVO_GIT_VERSIONS := HEAD \
+	Release-20160720.1 \
+	Release-20160409.2
 
 # All versions includes a pseudo collection called "working" which represents
 # the UAVOs in the source tree

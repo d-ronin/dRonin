@@ -84,7 +84,7 @@ public class SerialUAVTalk extends TelemetryTask {
 		mSerialDevice = driver;
 		try {
 			driver.open();
-			driver.setParameters(57600,UsbSerialDriver.DATABITS_8,UsbSerialDriver.STOPBITS_1,
+			driver.setParameters(115200,UsbSerialDriver.DATABITS_8,UsbSerialDriver.STOPBITS_1,
 					UsbSerialDriver.PARITY_NONE);
 		} catch (IOException e1) {
 			if (DEBUG) Log.e(TAG, "Failed to open detected serial port");

@@ -2,10 +2,10 @@
 <PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
 	<PreferenceCategory android:title="Connection Settings">
 		<CheckBoxPreference android:title="@string/preference_checkbox_autoconnect"
-			android:key="autoconnect" />
+			android:key="do_autoconnect" />
 		<ListPreference android:title="@string/preference_checkbox_connection_type"
-			android:key="connection_type" android:summary="@string/preference_connection_method_summary"
-			android:defaultValue="0" android:entries="@array/connectTypeArray"
+			android:key="uavtalk_connection_type" android:summary="@string/preference_connection_method_summary"
+			android:defaultValue="4" android:entries="@array/connectTypeArray"
 			android:entryValues="@array/connectTypeValues" />
 		<EditTextPreference android:name="ip_address"
 			android:summary="Enter a TCP/IP address here"

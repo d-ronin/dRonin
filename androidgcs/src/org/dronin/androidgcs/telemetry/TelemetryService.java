@@ -138,14 +138,12 @@ public class TelemetryService extends Service {
 			int connection_type;
 			SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(TelemetryService.this);
 			try {
-				connection_type = Integer.decode(prefs.getString("connection_type", ""));
+				connection_type = Integer.decode(prefs.getString("uavtalk_connection_type", ""));
 			} catch (NumberFormatException e) {
 				connection_type = 0;
 			}
 
 			switch(connection_type) {
-			case 0: // No connection
-				return;
 			case 2:
 				Toast.makeText(getApplicationContext(), "Attempting BT connection", Toast.LENGTH_SHORT).show();
 				telemTask = new BluetoothUAVTalk(this);
@@ -156,6 +154,7 @@ public class TelemetryService extends Service {
 				telemTask = new TcpUAVTalk(this);
 				activeTelem = new Thread(telemTask, "Tcp telemetry thread");
 				break;
+			case 0:
 			case 4:
 				Toast.makeText(getApplicationContext(), "Attempting USB HID connection", Toast.LENGTH_SHORT).show();
 				telemTask = new HidUAVTalk(this);
@@ -282,7 +281,7 @@ public class TelemetryService extends Service {
 		mServiceHandler = new ServiceHandler(this, mServiceLooper);
 
 		SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(TelemetryService.this);
-		if(prefs.getBoolean("autoconnect", false)) {
+		if(prefs.getBoolean("do_autoconnect", true)) {
 			Message msg = mServiceHandler.obtainMessage();
 			msg.arg1 = MSG_CONNECT;
 			msg.arg2 = 0;

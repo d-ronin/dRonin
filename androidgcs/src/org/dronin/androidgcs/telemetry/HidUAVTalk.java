@@ -75,7 +75,8 @@ public class HidUAVTalk extends TelemetryTask {
 	private static final int MAX_HID_PACKET_SIZE = 64;
 	static final int CLAYLOGIC_VENDOR_ID    = 0x20A0;
 	static final int QUANTEC_VENDOR_ID      = 0x0DFA;
-
+	static final int PIDCODES_VENDOR_ID     = 0x1209;
+	static final int MCS_VENDOR_ID          = 0x16D0;
 
 	private static final String ACTION_USB_PERMISSION = "com.access.device.USB_PERMISSION";
 
@@ -310,11 +311,15 @@ public class HidUAVTalk extends TelemetryTask {
 	 * @return
 	 */
 	boolean ValidateFoundDevice(UsbDevice searchDevice) {
-		//A vendor id is a global identifier for the manufacturer. A product id refers to the product itself, and is unique to the manufacturer. The vendor id, product id combination refers to a particular product manufactured by a vendor.
 		if (DEBUG) Log.d(TAG, "ValidateFoundDevice: " + searchDevice );
 
+		// What would be really nice is to verify that serial
+		// number ends with +FW so we don't try to connect to
+		// bootloader.  Android has a call, but not in our api ver
 		if ( searchDevice.getVendorId() == CLAYLOGIC_VENDOR_ID ||
-		     searchDevice.getVendorId() == QUANTEC_VENDOR_ID) {
+		     searchDevice.getVendorId() == QUANTEC_VENDOR_ID ||
+		     searchDevice.getVendorId() == PIDCODES_VENDOR_ID ||
+		     searchDevice.getVendorId() == MCS_VENDOR_ID) {
 			//Requesting permission
 			if (DEBUG) Log.d(TAG, "Device: " + searchDevice );
 			return true;
