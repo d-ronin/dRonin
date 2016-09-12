@@ -153,6 +153,7 @@ bool AQ32::setInputType(enum InputType type)
 	case INPUT_TYPE_SBUSNONINVERTED:
         settings.Uart3 = HwAQ32::UART3_SBUSNONINVERTED;
         break;
+	case INPUT_TYPE_IBUS: // Is not selectable yet in the Vehicle Setup Wizard, but if it ends up there, this is already in place.
         settings.Uart3 = HwAQ32::UART3_IBUS;
         break;
     case INPUT_TYPE_DSM:
@@ -202,6 +203,7 @@ enum Core::IBoardType::InputType AQ32::getInputType()
 		return INPUT_TYPE_SBUS;
 	case HwAQ32::UART3_SBUSNONINVERTED:
 		return INPUT_TYPE_SBUSNONINVERTED;	
+	case HwAQ32::UART3_IBUS: // None of the other targets have IBUS in getInputType, but seems to be no problem.
 		return INPUT_TYPE_IBUS;
 	}
 
@@ -214,6 +216,7 @@ enum Core::IBoardType::InputType AQ32::getInputType()
         return INPUT_TYPE_HOTTSUMH;
 	case HwAQ32::UART4_SBUSNONINVERTED:
 		return INPUT_TYPE_SBUSNONINVERTED;	
+	case HwAQ32::UART4_IBUS: // None of the other targets have IBUS in getInputType, but seems to be no problem.
 		return INPUT_TYPE_IBUS;
 	}
 
@@ -226,6 +229,7 @@ enum Core::IBoardType::InputType AQ32::getInputType()
         return INPUT_TYPE_HOTTSUMH;
 	case HwAQ32::UART6_SBUSNONINVERTED:
 		return INPUT_TYPE_SBUSNONINVERTED;	
+	case HwAQ32::UART6_IBUS: // None of the other targets have IBUS in getInputType, but seems to be no problem.
 		return INPUT_TYPE_IBUS;
 	}
 
