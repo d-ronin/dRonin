@@ -225,7 +225,7 @@ void PIOS_MAX7456_clear (max7456_dev_t dev)
 }
 
 void PIOS_MAX7456_upload_char (max7456_dev_t dev, uint8_t char_index,
-		uint8_t data [])
+		const uint8_t *data)
 {
 	chip_select (dev);
 	disable_osd (dev);
@@ -256,13 +256,12 @@ void PIOS_MAX7456_upload_char (max7456_dev_t dev, uint8_t char_index,
 		chip_select (dev);
 	}
 
-
 	enable_osd (dev);
 	chip_unselect (dev);
 }
 
 void PIOS_MAX7456_download_char (max7456_dev_t dev, uint8_t char_index,
-		uint8_t data [])
+		uint8_t *data)
 {
 	chip_select (dev);
 	disable_osd (dev);

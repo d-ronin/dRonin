@@ -102,6 +102,34 @@ static const uint8_t charosd_font_data[] = {
 #include "charosd-font.h"
 };
 
+/* 12 x 18 x 2bpp */
+#define FONT_CHAR_SIZE ((12 * 18 * 2) / 8)
+
+static void program_characters(charosd_state_t state)
+{
+	/* Check on font data, replacing chars as appropriate. */
+	for (int i = 0; i < 256; i++) {
+		const uint8_t *this_char =
+			& charosd_font_data[i * FONT_CHAR_SIZE];
+		/* Every 8 characters, take a break, let other lowprio
+		 * tasks run */
+		if ((i & 0x7) == 0) {
+			PIOS_Thread_Sleep(2);
+		}
+
+		uint8_t nvm_char[FONT_CHAR_SIZE];
+
+		PIOS_MAX7456_download_char(state->dev, i, nvm_char);
+
+		/* Only do this when necessary, because it's slow and wears
+		 * NVRAM. */
+		if (memcmp(nvm_char, this_char, FONT_CHAR_SIZE)) {
+			PIOS_MAX7456_upload_char(state->dev, i,
+					this_char);
+		}
+	}
+}
+
 /**
  * Main osd task. It does not return.
  */
@@ -113,6 +141,8 @@ static void CharOnScreenDisplayTask(void *parameters)
 
 	state = PIOS_malloc(sizeof(*state));
 	state->dev = pios_max7456_id;
+
+	program_characters(state);
 
 	while (1) {
 		CharOnScreenDisplaySettingsData page;
