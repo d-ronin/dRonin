@@ -74,6 +74,8 @@
 /* Generates an armed LED blink of 4.4Hz, close to the previous 5, and is
  * a nice prime number to not generate as nasty beat frequencies as other
  * choices */
+
+/* When we're blinking morse code, this works out to 10.6 WPM */
 #define SYSTEM_UPDATE_PERIOD_MS 113
 
 // Private types
