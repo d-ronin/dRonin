@@ -17,7 +17,7 @@
    <item>
     <widget class="QLabel" name="lblCongrats">
      <property name="text">
-      <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Congratulations! You've reached the end of the Autotune process.&lt;/p&gt;&lt;p&gt;By clicking the &quot;Finish&quot; button, the values calculated in the previous step will be saved to the board. &lt;/p&gt;&lt;p&gt;In addition, if you select the sharing checkbox, the vehicle data will be shared with the dRonin Cloud Service.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+      <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Congratulations! You've reached the end of the Autotune process.&lt;/p&gt;&lt;p&gt;By clicking the &amp;quot;Finish&amp;quot; button, the values calculated in the previous step will be saved to the board.&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600; color:#b40000;&quot;&gt;Note: Autotune doesn't change rates!&lt;/span&gt;&lt;span style=&quot; color:#000000;&quot;&gt; To adjust rotation rates, go to the Stabilization pane after saving changes.&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
      </property>
      <property name="wordWrap">
       <bool>true</bool>
@@ -43,7 +43,7 @@
    <item>
     <widget class="QGroupBox" name="shareBox">
      <property name="title">
-      <string>Share Tune and Vehicle Data to Cloud Service</string>
+      <string>Share Tune and Vehicle Data with dRonin Cloud Service</string>
      </property>
      <property name="checkable">
       <bool>true</bool>
