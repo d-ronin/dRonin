@@ -130,6 +130,22 @@ static void program_characters(charosd_state_t state)
 	}
 }
 
+static void update_telemetry(telemetry_t *telemetry)
+{
+	if (FlightBatteryStateHandle()) {
+		FlightBatteryStateGet(&telemetry->battery);
+	}
+	SystemStatsFlightTimeGet(&telemetry->system.flight_time);
+	AttitudeActualRollGet(&telemetry->actual.roll);
+	AttitudeActualPitchGet(&telemetry->actual.pitch);
+	PositionActualDownGet(&telemetry->actual.down);
+	GPSPositionGet(&telemetry->gps_position);
+	ManualControlCommandRssiGet(&telemetry->manual.rssi);
+	ManualControlCommandThrottleGet(&telemetry->manual.throttle);
+	FlightStatusArmedGet(&telemetry->flight_status.arm_status);
+	FlightStatusFlightModeGet(&telemetry->flight_status.mode);
+}
+
 /**
  * Main osd task. It does not return.
  */
@@ -145,8 +161,12 @@ static void CharOnScreenDisplayTask(void *parameters)
 	program_characters(state);
 
 	while (1) {
+		update_telemetry(&state->telemetry);
+
 		CharOnScreenDisplaySettingsData page;
 		CharOnScreenDisplaySettingsGet(&page);
+
+		state->custom_text = (char*)page.CustomText;
 
 		screen_draw(state, &page);
 		PIOS_Thread_Sleep(10);

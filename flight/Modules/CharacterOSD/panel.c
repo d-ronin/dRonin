@@ -27,6 +27,9 @@
 
 #include "charosd.h"
 
+#include "flightstatus.h"
+
+
 /*
  * 012
  * 3 7
@@ -104,7 +107,7 @@ static void draw_arrow (charosd_state_t state, uint8_t x, uint8_t y, uint16_t di
 
 
 /* Alt */
-STD_PANEL (ALTITUDE, 8, "\x85%d\x8d", (int16_t) round (/*XXX:telemetry::stable::altitude*/ 0));
+STD_PANEL (ALTITUDE, 8, "\x85%d\x8d", (int16_t) round (-state->telemetry.actual.down));
 
 /* Climb */
 #define _PAN_CLIMB_SYMB 0x03
@@ -130,27 +133,103 @@ static void CLIMB_update (charosd_state_t state, uint8_t x, uint8_t y)
 
 static void FLIGHTMODE_update (charosd_state_t state, uint8_t x, uint8_t y)
 {
-	draw_rect (state, x, y, 6, 3, 0, 0);
+	const char *mode = "INIT";
 
-	PIOS_MAX7456_puts (state->dev, x + 1, y + 1, /*XXX:telemetry::status::flight_mode_name*/ "HI", 0);
+	switch (state->telemetry.flight_status.mode) {
+	case FLIGHTSTATUS_FLIGHTMODE_MANUAL:
+		mode = "MAN";
+		break;
+	case FLIGHTSTATUS_FLIGHTMODE_ACRO:
+		mode = "ACRO";
+		break;
+	case FLIGHTSTATUS_FLIGHTMODE_ACROPLUS:
+		mode = "ACR+";
+		break;
+	case FLIGHTSTATUS_FLIGHTMODE_LEVELING:
+		mode = "LVL";
+		break;
+	case FLIGHTSTATUS_FLIGHTMODE_HORIZON:
+		mode = "HRZN";
+		break;
+	case FLIGHTSTATUS_FLIGHTMODE_AXISLOCK:
+		mode = "ALCK";
+		break;
+	case FLIGHTSTATUS_FLIGHTMODE_VIRTUALBAR:
+		mode = "VBAR";
+		break;
+	case FLIGHTSTATUS_FLIGHTMODE_STABILIZED1:
+		mode = "ST1";
+		break;
+	case FLIGHTSTATUS_FLIGHTMODE_STABILIZED2:
+		mode = "ST2";
+		break;
+	case FLIGHTSTATUS_FLIGHTMODE_STABILIZED3:
+		mode = "ST3";
+		break;
+	case FLIGHTSTATUS_FLIGHTMODE_AUTOTUNE:
+		mode = "TUNE";
+		break;
+	case FLIGHTSTATUS_FLIGHTMODE_ALTITUDEHOLD:
+		mode = "AHLD";
+		break;
+	case FLIGHTSTATUS_FLIGHTMODE_POSITIONHOLD:
+		mode = "PHLD";
+		break;
+	case FLIGHTSTATUS_FLIGHTMODE_RETURNTOHOME:
+		mode = "RTH";
+		break;
+	case FLIGHTSTATUS_FLIGHTMODE_PATHPLANNER:
+		mode = "PLAN";
+		break;
+	case FLIGHTSTATUS_FLIGHTMODE_FAILSAFE:
+		mode = "FAIL";
+		break;
+	case FLIGHTSTATUS_FLIGHTMODE_TABLETCONTROL:
+		// There are many sub modes here that could be filled in.
+		mode = "TAB";
+		break;
+	}
+
+	draw_rect (state, x, y, 6, 3, 0, 0);
+	PIOS_MAX7456_puts (state->dev, x + 1, y + 1, mode, 0);
 }
 
 /* ArmedFlag */
 static void ARMEDFLAG_update (charosd_state_t state, uint8_t x, uint8_t y)
 {
-	uint8_t attr = /*XXX:telemetry::status::armed*/ 0 ? 0 : MAX7456_ATTR_INVERT;
+	uint8_t attr = state->telemetry.flight_status.arm_status == FLIGHTSTATUS_ARMED_ARMED ? 0 : MAX7456_ATTR_INVERT;
 	draw_rect (state, x, y, 3, 3, true, attr);
 	PIOS_MAX7456_put (state->dev, x + 1, y + 1, 0xe0, attr);
 }
 
-/* FlightTime */
-STD_PANEL (FLIGHTTIME, 8, "\xb3%02u:%02u", /*XXX:telemetry::status::flight_time*/ 0 / 60, /*XXX:telemetry::status::flight_time*/ 0 % 60);
+#define TIME_SYM 0xfa
+
+static void FLIGHTTIME_update (charosd_state_t state, uint8_t x, uint8_t y) {
+       char buffer[10];
+       uint32_t time = state->telemetry.system.flight_time;
+       int min, sec;
+
+       uint16_t hours = (time / 3600000); // hours
+       if (hours == 0) {
+               min = time / 60000;
+               sec = (time / 1000) - 60 * min;
+               sprintf (buffer, "%c%02d:%02d", TIME_SYM, (int)min, (int)sec);
+       } else {
+               min = time / 60000 - 60 * hours;
+               sec = (time / 1000) - 60 * min - 3600 * hours;
+               sprintf (buffer, "%c%02d:%02d:%02d", TIME_SYM, (int)hours, (int)min, (int)sec);
+       }
+
+       terminate_buffer ();
+
+       PIOS_MAX7456_puts (state->dev, x + 1, y + 1, buffer, 0);
+}
 
 /* Roll */
-STD_PANEL (ROLL, 7, "\xb2%d\xb0", (int16_t) /*XXX:telemetry::attitude::roll*/ 0);
+STD_PANEL (ROLL, 7, "\xb2%d\xb0", (int16_t) state->telemetry.actual.roll);
 
 /* Pitch */
-STD_PANEL (PITCH, 7, "\xb1%d\xb0", (int16_t) /*XXX:telemetry::attitude::pitch*/ 0);
+STD_PANEL (PITCH, 7, "\xb1%d\xb0", (int16_t) state->telemetry.actual.pitch);
 
 /* GPS */
 
@@ -161,21 +240,21 @@ static void GPS_update (charosd_state_t state, uint8_t x, uint8_t y)
 {
 	char buffer[4];
 
-	snprintf (buffer, sizeof (buffer), "%d", /*XXX:telemetry::gps::satellites*/ 0); 
+	snprintf(buffer, sizeof (buffer), "%d", state->telemetry.gps_position.Satellites); 
 	terminate_buffer ();
-	bool err = /*XXX:telemetry::gps::state*/ 0 == /*XXX:telemetry::GPS_STATE_NO_FIX*/ 0;
+	bool err = state->telemetry.gps_position.Status < GPSPOSITION_STATUS_FIX2D;
 	PIOS_MAX7456_puts (state->dev, x, y, "\x10\x11", err ? MAX7456_ATTR_INVERT : 0);
-	PIOS_MAX7456_put (state->dev, x + 2, y, /*XXX:telemetry::gps::state*/ 0 < /*XXX:telemetry::GPS_STATE_3D*/ 0 ? _PAN_GPS_2D : _PAN_GPS_3D,
-		err ? MAX7456_ATTR_INVERT : (/*XXX:telemetry::gps::state*/ 0 < /*XXX:telemetry::GPS_STATE_2D*/ 0 ? MAX7456_ATTR_BLINK : 0));
+	PIOS_MAX7456_put (state->dev, x + 2, y, state->telemetry.gps_position.Status < GPSPOSITION_STATUS_FIX3D ? _PAN_GPS_2D : _PAN_GPS_3D,
+		err ? MAX7456_ATTR_INVERT : (state->telemetry.gps_position.Status < GPSPOSITION_STATUS_FIX2D ? MAX7456_ATTR_BLINK : 0));
 	if (err) PIOS_MAX7456_puts (state->dev, x + 3, y, ERR_STR, MAX7456_ATTR_INVERT);
 	else PIOS_MAX7456_puts (state->dev, x + 3, y, buffer, 0);
 }
 
 /* Lat */
-STD_PANEL (LATITUDE, 11, "\x83%02.6f", /*XXX:telemetry::gps::latitude*/ 0.0);
+STD_PANEL (LATITUDE, 11, "\x83%02.6f", (double)state->telemetry.gps_position.Latitude / 10000000.0);
 
 /* Lon */
-STD_PANEL (LONGITUDE, 11, "\x84%02.6f", /*XXX:telemetry::gps::longitude*/ 0.0);
+STD_PANEL (LONGITUDE, 11, "\x84%02.6f", (double)state->telemetry.gps_position.Longitude / 10000000.0);
 
 #if 0
 namespace horizon
@@ -242,35 +321,25 @@ namespace horizon
 #endif
 
 /* Throttle */
-STD_PANEL (THROTTLE, 7, "\x87%d%%", /*XXX:telemetry::input::throttle*/ 0);
+STD_PANEL (THROTTLE, 7, "\x87%d%%", (int)state->telemetry.manual.throttle);
 
 /* GroundSpeed */
 STD_PANEL (GROUNDSPEED, 7, "\x80%d\x81", (int16_t) (/*XXX:telemetry::stable::groundspeed*/ 0 * 3.6));
 
-/* BatVolt */
-static void BATTERYVOLT_update (charosd_state_t state, uint8_t x, uint8_t y)
-{
-	char buffer[8];
-
-	snprintf (buffer, sizeof (buffer), "%.2f\x8e", /*bat->voltage*/ 0.0); 
-
-	terminate_buffer ();
-
-	// XXX symbol offset?
-//	PIOS_MAX7456_put (state->dev, x, y, symbol_offset + (uint8_t) round (/*bat->level*/ 0.0 / 20.0), /*bat->low*/ true ? MAX7456_ATTR_BLINK : 0);
-	PIOS_MAX7456_puts (state->dev, x + 1, y, buffer, 0);
-}
+STD_PANEL (BATTERYVOLT, 8, "%.2f\x8e", (double)state->telemetry.battery.Voltage);
 
 /* BatCurrent */
-STD_PANEL (BATTERYCURRENT, 8, "\xfa%.2f\x8f", /*XXX:telemetry::battery::battery*/ 0.0);
+STD_PANEL (BATTERYCURRENT, 8, "%.2f\x8f", (double)state->telemetry.battery.Current);
 
 /* BatConsumed */
-STD_PANEL (BATTERYCONSUMED, 8, "\xfb%u\x82", (uint16_t) /*XXX:telemetry::battery::battery*/ 0.0);
+STD_PANEL (BATTERYCONSUMED, 8, "\xfb%u\x82", (uint16_t) state->telemetry.battery.ConsumedEnergy);
 
 /* RSSIFlag */
 static void RSSIFLAG_update (charosd_state_t state, uint8_t x, uint8_t y)
 {
-	if (/*XXX:telemetry::input::rssi*/ 0) PIOS_MAX7456_put (state->dev, x, y, 0xb4, MAX7456_ATTR_BLINK);
+	if (state->telemetry.manual.rssi < 50) {
+		PIOS_MAX7456_put (state->dev, x, y, 0xb4, MAX7456_ATTR_BLINK);
+	}
 }
 
 #if 0
@@ -311,10 +380,7 @@ static void HOMEDIRECTION_update (charosd_state_t state, uint8_t x, uint8_t y)
 }
 
 /* Callsign */
-static void CALLSIGN_update (charosd_state_t state, uint8_t x, uint8_t y)
-{
-	PIOS_MAX7456_puts (state->dev, x, y, "hi", 0);
-}
+STD_PANEL(CALLSIGN, 11, "%s", state->custom_text);
 
 /* Temperature */
 STD_PANEL (TEMPERATURE, 9, "\xfd%.1f\x8a", /*XXX:telemetry::environment::temperature*/ 0.0);
@@ -331,8 +397,8 @@ static void RSSI_update (charosd_state_t state, uint8_t x, uint8_t y)
 
 	const char * const levels [] = { _l0, _l1, _l2, _l3, _l4, _l5 };
 
-	uint8_t level = round (/*XXX:telemetry::input::rssi*/ 0 / 20.0);
-	if (level == 0 && /*XXX:telemetry::input::rssi*/ 0 > 0) level = 1;
+	uint8_t level = round (state->telemetry.manual.rssi / 20.0);
+	if (level == 0 && state->telemetry.manual.rssi > 0) level = 1;
 	if (level > 5) level = 5;
 
 	PIOS_MAX7456_puts (state->dev, x, y, levels[level], 0);

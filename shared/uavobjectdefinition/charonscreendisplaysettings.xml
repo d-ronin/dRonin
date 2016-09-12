@@ -2,6 +2,8 @@
 	<object name="CharOnScreenDisplaySettings" singleinstance="true" settings="true">
 		<description>Character On Screen Display Settings</description>
 
+        <field name="CustomText" units="" type="uint8" elements="10" defaultvalue="100,82,111,110,105,110,0,0,0,0"/>
+
 		<field name="PanelType" units="Panel" type="enum" defaultvalue="GPS,Latitude,Longitude,ArmedFlag,RSSI,FlightMode,Pitch,Horizon,Throttle,GroundSpeed,Altitude,Roll,FlightTime,HomeDistance,HomeDirection,BatteryVolt,BatteryCurrent,BatteryConsumed,Disabled,Disabled,Disabled,Disabled,Disabled,Disabled" elements="24">
 			<options>
 				<option>Disabled</option>
