@@ -86,9 +86,9 @@ TIM8  |           |           |           |
 #define PIOS_LED_ALARM		PIOS_LED_RED
 #define PIOS_LED_USB		PIOS_LED_GREEN
 
-#define USB_LED_ON			PIOS_LED_On(PIOS_LED_USB)
-#define USB_LED_OFF			PIOS_LED_Off(PIOS_LED_USB)
-#define USB_LED_TOGGLE		PIOS_LED_Toggle(PIOS_LED_USB)
+#define USB_LED_ON			PIOS_ANNUNC_On(PIOS_LED_USB)
+#define USB_LED_OFF			PIOS_ANNUNC_Off(PIOS_LED_USB)
+#define USB_LED_TOGGLE		PIOS_ANNUNC_Toggle(PIOS_LED_USB)
 
 
 //------------------------

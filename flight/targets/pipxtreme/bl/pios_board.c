@@ -52,9 +52,9 @@ void PIOS_Board_Init(void)
 	/* Initialize the PiOS library */
 	PIOS_GPIO_Init();
 
-#if defined(PIOS_INCLUDE_LED)
- 	PIOS_LED_Init(&pios_led_cfg);
-#endif	/* PIOS_INCLUDE_LED */
+#if defined(PIOS_INCLUDE_ANNUNC)
+ 	PIOS_ANNUNC_Init(&pios_annunc_cfg);
+#endif	/* PIOS_INCLUDE_ANNUNC */
 
 #if defined(PIOS_INCLUDE_USB)
 	/* Initialize board specific USB data */

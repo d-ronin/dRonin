@@ -121,7 +121,7 @@ SRC += pios_ppm.c
 SRC += pios_debug.c
 SRC += pios_wdg.c
 SRC += pios_reset.c
-SRC += pios_led.c
+SRC += pios_annunc.c
 
 # List any extra directories to look for include files here.
 #    Each directory must be seperated by a space.

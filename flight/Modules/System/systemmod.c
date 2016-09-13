@@ -249,7 +249,7 @@ static void systemTask(void *parameters)
 	}
 }
 
-#if defined(PIOS_INCLUDE_LED) && defined(PIOS_LED_ALARM)
+#if defined(PIOS_INCLUDE_ANNUNC) && defined(PIOS_LED_ALARM)
 /**
  * Indicate there are conditions worth an error LED
  */
@@ -313,7 +313,7 @@ static void systemPeriodicCb(UAVObjEvent *ev, void *ctx, void *obj_data, int len
 #endif
 
 
-#if defined(PIOS_INCLUDE_LED) && defined(PIOS_LED_HEARTBEAT)
+#if defined(PIOS_INCLUDE_ANNUNC) && defined(PIOS_LED_HEARTBEAT)
 		// Flash the heartbeat LED
 
 		FlightStatusData flightStatus;
@@ -324,16 +324,16 @@ static void systemPeriodicCb(UAVObjEvent *ev, void *ctx, void *obj_data, int len
 			1 : 7;
 
 		if (!(counter & mask)) {
-			PIOS_LED_Toggle(PIOS_LED_HEARTBEAT);
+			PIOS_ANNUNC_Toggle(PIOS_LED_HEARTBEAT);
 			DEBUG_MSG("+ 0x%08x\r\n", 0xDEADBEEF);
 		}
 
-#if defined(PIOS_INCLUDE_LED) && defined(PIOS_LED_ALARM)
+#if defined(PIOS_INCLUDE_ANNUNC) && defined(PIOS_LED_ALARM)
 		// Turn on the error LED if an alarm is set
 		if (indicateError()) {
-			PIOS_LED_On(PIOS_LED_ALARM);
+			PIOS_ANNUNC_On(PIOS_LED_ALARM);
 		} else {
-			PIOS_LED_Off(PIOS_LED_ALARM);
+			PIOS_ANNUNC_Off(PIOS_LED_ALARM);
 		}
 #endif	/* PIOS_LED_ALARM */
 

@@ -167,7 +167,7 @@ endif
 
 ## PIOS Hardware (STM32F10x)
 SRC += pios_sys.c
-SRC += pios_led.c
+SRC += pios_annunc.c
 SRC += pios_usart.c
 SRC += pios_i2c.c
 SRC += pios_gpio.c

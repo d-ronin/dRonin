@@ -1,11 +1,11 @@
 /**
  ******************************************************************************
  *
- * @file       pios_led.c   
+ * @file       pios_annunc.c   
  * @author     The OpenPilot Team, http://www.openpilot.org Copyright (C) 2010.
- * @brief      LED functions, init, toggle, on & off.
+ * @brief      Annunciator functions, init, toggle, on & off.
  * @see        The GNU Public License (GPL) Version 3
- * @defgroup   PIOS_LED LED Functions
+ * @defgroup   PIOS_ANNUNC Annunciator functions
  * @{
  *
  *****************************************************************************/
@@ -31,19 +31,19 @@
 #include "openpilot.h"
 #include "hwsimulation.h"
 
-#if defined(PIOS_INCLUDE_LED)
+#if defined(PIOS_INCLUDE_ANNUNC)
 
 /* Private Function Prototypes */
 
-DONT_BUILD_IF(PIOS_LED_NUM < HWSIMULATION_LEDSTATE_NUMELEM, piosLedNumWrong);
+DONT_BUILD_IF(PIOS_ANNUNC_NUM < HWSIMULATION_LEDSTATE_NUMELEM, piosLedNumWrong);
 DONT_BUILD_IF(PIOS_LED_ALARM != HWSIMULATION_LEDSTATE_ALARM, idxMismatch1);
 DONT_BUILD_IF(PIOS_LED_HEARTBEAT != HWSIMULATION_LEDSTATE_HEARTBEAT, idxMismatch2);
 
 /* Local Variables */
-static uint8_t ledState[PIOS_LED_NUM];
+static uint8_t ledState[PIOS_ANNUNC_NUM];
 
-static inline void PIOS_SetLED(uint32_t led, uint8_t stat) {
-	PIOS_Assert(led < PIOS_LED_NUM);
+static inline void set_led(uint32_t led, uint8_t stat) {
+	PIOS_Assert(led < PIOS_ANNUNC_NUM);
 
 	uint8_t old_state = ledState[led];
 	uint8_t new_state = stat ? HWSIMULATION_LEDSTATE_ON : HWSIMULATION_LEDSTATE_OFF;
@@ -54,11 +54,11 @@ static inline void PIOS_SetLED(uint32_t led, uint8_t stat) {
 
 	HwSimulationLedStateSet(ledState);
 
-	char leds[PIOS_LED_NUM + 1];
+	char leds[PIOS_ANNUNC_NUM + 1];
 	for (int i = 0; i < HWSIMULATION_LEDSTATE_NUMELEM; i++) {
 		leds[i] = (ledState[i] == HWSIMULATION_LEDSTATE_ON) ? '*' : '.';
 	}
-	leds[PIOS_LED_NUM] = '\0';
+	leds[PIOS_ANNUNC_NUM] = '\0';
 	printf("LEDS\t%d\t%d\t%s\n", PIOS_Thread_Systime(),
 			PIOS_DELAY_GetRaw(), leds);
 }
@@ -66,28 +66,27 @@ static inline void PIOS_SetLED(uint32_t led, uint8_t stat) {
 /**
 * Initialises all the LED's
 */
-void PIOS_LED_Init(void)
+void PIOS_ANNUNC_Init(void)
 {
 }
 
 /**
 * returns whether a given led is on.
 */
-bool PIOS_LED_GetStatus(uint32_t led)
+bool PIOS_ANNUNC_GetStatus(uint32_t led)
 {
-	PIOS_Assert(led < PIOS_LED_NUM);
+	PIOS_Assert(led < PIOS_ANNUNC_NUM);
 
 	return ledState[led] == HWSIMULATION_LEDSTATE_ON;
 }
-
 
 /**
 * Turn on LED
 * \param[in] LED LED Name (LED1, LED2)
 */
-void PIOS_LED_On(uint32_t led)
+void PIOS_ANNUNC_On(uint32_t led)
 {
-	PIOS_SetLED(led, 1);
+	set_led(led, 1);
 }
 
 
@@ -95,9 +94,9 @@ void PIOS_LED_On(uint32_t led)
 * Turn off LED
 * \param[in] LED LED Name (LED1, LED2)
 */
-void PIOS_LED_Off(uint32_t led)
+void PIOS_ANNUNC_Off(uint32_t led)
 {
-	PIOS_SetLED(led, 0);
+	set_led(led, 0);
 }
 
 
@@ -105,11 +104,11 @@ void PIOS_LED_Off(uint32_t led)
 * Toggle LED on/off
 * \param[in] LED LED Name (LED1, LED2)
 */
-void PIOS_LED_Toggle(uint32_t led)
+void PIOS_ANNUNC_Toggle(uint32_t led)
 {
-	PIOS_Assert(led < PIOS_LED_NUM);
+	PIOS_Assert(led < PIOS_ANNUNC_NUM);
 
-	PIOS_SetLED(led, !PIOS_LED_GetStatus(led));
+	set_led(led, !PIOS_ANNUNC_GetStatus(led));
 }
 
 #endif

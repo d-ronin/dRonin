@@ -40,7 +40,7 @@
 //------------------------
 #define PIOS_LED_HEARTBEAT 0
 #define PIOS_LED_ALARM 1
-#define PIOS_LED_NUM 2
+#define PIOS_ANNUNC_NUM 2
 
 //-------------------------
 // COM

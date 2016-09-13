@@ -91,10 +91,10 @@ int main()
 	vTaskStartScheduler();
 
 	/* If all is well we will never reach here as the scheduler will now be running. */
-	/* Do some PIOS_LED_HEARTBEAT to user that something bad just happened */
-	PIOS_LED_Off(PIOS_LED_HEARTBEAT); \
+	/* Do some PIOS_ANNUNC_HEARTBEAT to user that something bad just happened */
+	PIOS_ANNUNC_Off(PIOS_ANNUNC_HEARTBEAT); \
 	for(;;) { \
-		PIOS_LED_Toggle(PIOS_LED_HEARTBEAT); \
+		PIOS_ANNUNC_Toggle(PIOS_ANNUNC_HEARTBEAT); \
 		PIOS_DELAY_WaitmS(100); \
 	};
 #elif defined(PIOS_INCLUDE_CHIBIOS)

@@ -100,15 +100,15 @@ bool led_pwm_update_leds(const struct led_pwm_state *leds)
 	 */
 
 	if (pwm_1_led_state) {
-		PIOS_LED_On(PIOS_LED_HEARTBEAT);
+		PIOS_ANNUNC_On(PIOS_LED_HEARTBEAT);
 	} else {
-		PIOS_LED_Off(PIOS_LED_HEARTBEAT);
+		PIOS_ANNUNC_Off(PIOS_LED_HEARTBEAT);
 	}
 
 	if (pwm_2_led_state) {
-		PIOS_LED_On(PIOS_LED_HEARTBEAT);
+		PIOS_ANNUNC_On(PIOS_LED_HEARTBEAT);
 	} else {
-		PIOS_LED_Off(PIOS_LED_HEARTBEAT);
+		PIOS_ANNUNC_Off(PIOS_LED_HEARTBEAT);
 	}
 
 	return true;

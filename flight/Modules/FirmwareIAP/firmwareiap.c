@@ -237,12 +237,12 @@ static void resetTask(UAVObjEvent * ev, void *ctx, void *obj, int len)
 {
 	(void) ctx; (void) obj; (void) len;
 
-#if defined(PIOS_INCLUDE_LED) && defined(PIOS_LED_HEARTBEAT)
-	PIOS_LED_Toggle(PIOS_LED_HEARTBEAT);
+#if defined(PIOS_INCLUDE_ANNUNC) && defined(PIOS_LED_HEARTBEAT)
+	PIOS_ANNUNC_Toggle(PIOS_LED_HEARTBEAT);
 #endif	/* PIOS_LED_HEARTBEAT */
 
-#if defined(PIOS_INCLUDE_LED) && defined(PIOS_LED_ALARM)
-	PIOS_LED_Toggle(PIOS_LED_ALARM);
+#if defined(PIOS_INCLUDE_ANNUNC) && defined(PIOS_LED_ALARM)
+	PIOS_ANNUNC_Toggle(PIOS_LED_ALARM);
 #endif	/* PIOS_LED_ALARM */
 
 	FirmwareIAPObjData data;

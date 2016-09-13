@@ -262,9 +262,9 @@ void PIOS_Board_Init(void) {
 	/* Delay system */
 	PIOS_DELAY_Init();
 
-#if defined(PIOS_INCLUDE_LED)
-	PIOS_LED_Init(&pios_led_cfg);
-#endif	/* PIOS_INCLUDE_LED */
+#if defined(PIOS_INCLUDE_ANNUNC)
+	PIOS_ANNUNC_Init(&pios_annunc_cfg);
+#endif	/* PIOS_INCLUDE_ANNUNC */
 
 #if defined(PIOS_INCLUDE_SPI)
 	uint32_t pios_spi_gyro_id;

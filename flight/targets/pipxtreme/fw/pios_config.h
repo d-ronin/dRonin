@@ -33,7 +33,7 @@
 #define PIOS_CONFIG_H
 
 /* Enable/Disable PiOS Modules */
-#define PIOS_INCLUDE_LED
+#define PIOS_INCLUDE_ANNUNC
 #define PIOS_INCLUDE_RFM22B
 #define PIOS_INCLUDE_RFM22B_COM
 #define PIOS_INCLUDE_RCVR

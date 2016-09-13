@@ -118,7 +118,7 @@ SRC += $(OPUAVSYNTHDIR)/velocityactual.c
 
 ## PIOS Hardware (STM32F10x)
 SRC += pios_sys.c
-SRC += pios_led.c
+SRC += pios_annunc.c
 SRC += pios_usart.c
 SRC += pios_flash_internal.c
 SRC += pios_gpio.c

@@ -36,7 +36,7 @@
 #if defined(USE_I2C)
 #define PIOS_INCLUDE_I2C
 #endif
-#define PIOS_INCLUDE_LED
+#define PIOS_INCLUDE_ANNUNC
 #define PIOS_INCLUDE_IAP
 #define PIOS_INCLUDE_TIM
 
