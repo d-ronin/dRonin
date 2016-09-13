@@ -1290,13 +1290,17 @@ void UploaderGadgetWidget::onExportButtonClick()
         /* select the UAV-oriented export thing */
         Core::ActionManager *am = Core::ICore::instance()->actionManager();
 
-        if (!am) return;
+        if (!am) {
+            qWarning() << "Could not get ActionManager instance!";
+            return;
+        }
 
         Core::Command *cmd = am->command("UAVSettingsImportExportPlugin.UAVSettingsExport");
 
-        if (cmd) {
-            cmd->action();
-        }
+        if (cmd)
+            cmd->action()->trigger();
+        else
+            qWarning() << "Could find UAVSettingsExport action!";
 
         return;
     }
