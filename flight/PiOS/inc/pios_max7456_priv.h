@@ -94,7 +94,7 @@ enum pios_max7456_reg {
 #define MAX7456_VM0_OSD_DISABLE   0b0
 
 
-#define MAX7456_VM0_SYNC_MASK     (0b1 << 4)
+#define MAX7456_VM0_SYNC_MASK     (0b11 << 4)
 #define MAX7456_VM0_SYNC_R(val)   ((val & MAX7456_VM0_SYNC_MASK) >> 4)
 #define MAX7456_VM0_SYNC_W(regval, val) ((regval & ~MAX7456_VM0_SYNC_MASK) | (val << 4 & MAX7456_VM0_SYNC_MASK))
 #define MAX7456_VM0_SYNC_AUTO     0b00
@@ -110,7 +110,7 @@ enum pios_max7456_reg {
 /* Video Mode 1 Register */
 #define MAX7456_VM1_BDUTY_MASK    (0b11)
 #define MAX7456_VM1_BDUTY_R(val)  (val & MAX7456_VM1_BDUTY_MASK)
-#define MAX7456_VM1_BDUTY_W(val)  ((regval & ~MAX7456_VM1_BDUTY_MASK) | (val & MAX7456_VM1_BDUTY_MASK))
+#define MAX7456_VM1_BDUTY_W(regval, val)  ((regval & ~MAX7456_VM1_BDUTY_MASK) | (val & MAX7456_VM1_BDUTY_MASK))
 #define MAX7456_VM1_BDUTY_BT      0b00
 #define MAX7456_VM1_BDUTY_2BT     0b01
 #define MAX7456_VM1_BDUTY_3BT     0b10
@@ -188,6 +188,15 @@ enum pios_max7456_reg {
 #define MAX7456_STAT_RESET_R(val) ((val >> 6) & 0b1)
 #define MAX7456_STAT_RESET_DONE   0b0
 #define MAX7456_STAT_RESET_BUSY   0b1
+
+/* Display memory data register magical 'no autoincrement' value */
+#define MAX7456_DMDI_AUTOINCREMENT_STOP 0xff
+
+/* Magical "write to NVM array" command */
+#define MAX7456_CMM_WRITE_NVM           0xa0
+
+/* "read char from NVM array" command */
+#define MAX7456_CMM_READ_NVM            0x50
 
 #endif // PIOS_MAX7456_PRIV_H_
 

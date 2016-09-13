@@ -32,8 +32,8 @@
 
 #define MAX7456_DEFAULT_BRIGHTNESS 0x00
 
-#define MAX7456_MASK_PAL  0x40 // PAL mask 01000000   XXX
-#define MAX7456_MASK_NTSC 0x00 // NTSC mask 00000000  XXX
+#define MAX7456_MASK_PAL  MAX7456_VM0_VSS_MASK
+#define MAX7456_MASK_NTSC 0x00 
 
 #define SYNC_INTERVAL_NTSC 16683
 #define SYNC_INTERVAL_PAL  20000
@@ -81,8 +81,7 @@ static inline void chip_unselect(max7456_dev_t dev)
 
 // Write VM0[3] = 1 to enable the display of the OSD image.
 // mode | autosync | vsync on | enable OSD
-// XXX todo
-#define enable_osd(dev) do { write_register_sel(dev, MAX7456_REG_VM0, dev->mask | 0x0c); } while (0)
+#define enable_osd(dev) do { write_register_sel(dev, MAX7456_REG_VM0, dev->mask | MAX7456_VM0_OSD_MASK | MAX7456_VM0_VS_MASK); } while (0)
 #define disable_osd(dev) do { write_register_sel(dev, MAX7456_REG_VM0, 0); } while (0)
 
 // Would be nice to collapse these to single transactions through the spi
@@ -241,14 +240,22 @@ int PIOS_MAX7456_init (max7456_dev_t *dev_out,
 
 	auto_black_level(dev, true);
 
-	write_register_sel(dev, MAX7456_REG_VM1, 0x7f);	// XXX TODO
+	uint8_t vm1 = 0;
+	vm1 = MAX7456_VM1_BDUTY_W(vm1, MAX7456_VM1_BDUTY_13BT);
+	vm1 = MAX7456_VM1_BTIME_W(vm1, MAX7456_VM1_BTIME_6FIELD);
+	vm1 = MAX7456_VM1_BGLVL_W(vm1, MAX7456_VM1_BGLVL_42);
+	vm1 = MAX7456_VM1_BGMODE_W(vm1, MAX7456_VM1_BGMODE_LOCAL);
+
+	write_register_sel(dev, MAX7456_REG_VM1, vm1);
 
 	enable_osd(dev);
 
 	// set all rows to the same character brightness black/white level
 	uint8_t brightness = MAX7456_DEFAULT_BRIGHTNESS;
-	for (uint8_t r = 0; r < 16; ++ r)
-		write_register_sel(dev, 0x10 + r, brightness); // XXX TODO
+
+	for (uint8_t r = MAX7456_REG_RB0; r < MAX7456_REG_RB15; r++) {
+		write_register_sel(dev, r, brightness);
+	}
 
 	PIOS_MAX7456_clear(dev);
 
@@ -295,7 +302,7 @@ void PIOS_MAX7456_upload_char (max7456_dev_t dev, uint8_t char_index,
 	}
 
 	// Write CMM[7:0] = 1010xxxx to write to the NVM array from the shadow RAM
-	write_register_sel(dev, MAX7456_REG_CMM, 0xa0);	// XXX TODO
+	write_register_sel(dev, MAX7456_REG_CMM, MAX7456_CMM_WRITE_NVM);
 
 	/*
 	The character memory is busy for approximately 12ms during this operation.
@@ -324,8 +331,7 @@ void PIOS_MAX7456_download_char (max7456_dev_t dev, uint8_t char_index,
 	write_register_sel(dev, MAX7456_REG_CMAH, char_index);
 
 	// Write CMM[7:0] = 0101xxxx to read the character data from the NVM to the shadow RAM
-	// XXX TODO
-	write_register_sel(dev, MAX7456_REG_CMM, 0x50);
+	write_register_sel(dev, MAX7456_REG_CMM, MAX7456_CMM_READ_NVM);
 	/*
 	 * The character memory is busy for approximately 12ms during this operation.
 	 * The Character Memory Mode register is cleared and STAT[5] is reset to 0 after
@@ -408,18 +414,14 @@ void PIOS_MAX7456_close (max7456_dev_t dev)
 
 	PIOS_Assert(dev->opened);
 
-
 	// terminate autoincrement mode
-	// XXX TODO
-	write_register(dev, MAX7456_REG_DMDI, 0xff);
+	write_register(dev, MAX7456_REG_DMDI, MAX7456_DMDI_AUTOINCREMENT_STOP);
 
 	chip_unselect(dev);
 	dev->opened = false;
 }
 
-// 0xff terminates autoincrement mode
-#define valid_char(c) (c == 0xff ? 0x00 : c)
-
+#define valid_char(c) (c == MAX7456_DMDI_AUTOINCREMENT_STOP ? 0x00 : c)
 void PIOS_MAX7456_puts (max7456_dev_t dev, uint8_t col, uint8_t row, const char *s, uint8_t attr)
 {
 	PIOS_Assert(dev->magic == MAX7456_MAGIC);
