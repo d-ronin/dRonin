@@ -187,8 +187,6 @@ static void CharOnScreenDisplayTask(void *parameters)
 
 		screen_draw(state, &page);
 
-		PIOS_Thread_Sleep(10);
-
 		PIOS_MAX7456_wait_vsync(state->dev);
 	}
 }

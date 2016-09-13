@@ -35,6 +35,9 @@
 #define MAX7456_MASK_PAL  0x40 // PAL mask 01000000   XXX
 #define MAX7456_MASK_NTSC 0x00 // NTSC mask 00000000  XXX
 
+#define SYNC_INTERVAL_NTSC 16683
+#define SYNC_INTERVAL_PAL  20000
+
 #define bis(var, bit) (var & BV (bit))
 
 #define BV(bit) (1 << (bit))
@@ -51,12 +54,14 @@ struct max7456_dev_s {
 
 	uint8_t mask;
 	bool opened;
+
+	uint32_t next_sync_expected;
 };
 
 /* Max7456 says 100ns period (10MHz) is OK.  But it may be off-board in
  * some circumstances, so let's not push our luck.
  */
-#define MAX7456_SPI_SPEED 8000000
+#define MAX7456_SPI_SPEED 9000000
 
 static inline void chip_select(max7456_dev_t dev)
 {
@@ -150,13 +155,13 @@ static inline void detect_mode (max7456_dev_t dev)
 	// read STAT and auto detect video mode PAL/NTSC
 	uint8_t stat = read_register_sel(dev, MAX7456_REG_STAT);
 
-	// XXX TODO
-	if (bis (stat, 0))
+	if (MAX7456_STAT_PAL_R(stat) == MAX7456_STAT_PAL_TRUE)
 	{
 		set_mode(dev, MAX7456_MODE_PAL);
 		return;
 	}
-	if (bis (stat, 1))
+
+	if (MAX7456_STAT_NTSC_R(stat) == MAX7456_STAT_NTSC_TRUE)
 	{
 		set_mode(dev, MAX7456_MODE_NTSC);
 		return;
@@ -182,9 +187,36 @@ void PIOS_MAX7456_wait_vsync(max7456_dev_t dev)
 {
 	PIOS_Assert(dev->magic == MAX7456_MAGIC);
 
-	while (!PIOS_MAX7456_poll_vsync_spi(dev)) {
-		PIOS_Thread_Sleep(1);
+	uint32_t now = PIOS_DELAY_GetuS();
+	uint32_t sync_interval =
+		dev->mode == MAX7456_MODE_NTSC ? SYNC_INTERVAL_NTSC :
+			SYNC_INTERVAL_PAL;
+
+	if (now > dev->next_sync_expected) {
+		// Oh. we maybe missed it.  Update...
+		dev->next_sync_expected += sync_interval;
 	}
+
+	if (now > dev->next_sync_expected) {
+		// We're *REALLY* late
+		dev->next_sync_expected = now + sync_interval;
+	}
+
+	while (!PIOS_MAX7456_poll_vsync_spi(dev)) {
+		now = PIOS_DELAY_GetuS();
+
+		if (now + 200 > (dev->next_sync_expected + sync_interval)) {
+			/* We missed at least one vsync in this loop.
+			 * Draw open-loop, hoping we're at about the right
+			 * time.
+			 */
+			break;
+		} else {
+			PIOS_Thread_Sleep(1);
+		}
+	}
+
+	dev->next_sync_expected = now + sync_interval;
 }
 
 int PIOS_MAX7456_init (max7456_dev_t *dev_out,
@@ -270,8 +302,9 @@ void PIOS_MAX7456_upload_char (max7456_dev_t dev, uint8_t char_index,
 	STAT[5] can be read to verify that the NVM writing process is complete.
 	*/
 
-	// XXX TODO
-	while (read_register_sel(dev, MAX7456_REG_STAT) & 0x20) {
+	while (MAX7456_STAT_CHMEM_R(
+				read_register_sel(dev, MAX7456_REG_STAT)) ==
+		       MAX7456_STAT_CHMEM_BUSY)	{
 		PIOS_Thread_Sleep(1);
 	}
 
@@ -301,8 +334,9 @@ void PIOS_MAX7456_download_char (max7456_dev_t dev, uint8_t char_index,
 	 * note: MPL: I don't see this being required in the datasheet for
 	 * read operations.  But it doesnt hurt.
 	 */
-	// XXX TODO
-	while (read_register_sel(dev, MAX7456_REG_STAT) & 0x20) {
+	while (MAX7456_STAT_CHMEM_R(
+				read_register_sel(dev, MAX7456_REG_STAT)) ==
+		       MAX7456_STAT_CHMEM_BUSY)	{
 		PIOS_Thread_Sleep(1);
 	}
 
@@ -365,7 +399,6 @@ void PIOS_MAX7456_open (max7456_dev_t dev, uint8_t col, uint8_t row, uint8_t att
 	set_offset(dev, col > dev->right ? 0 : col, row > dev->bottom ? 0 : row);
 
 	// 16 bits operating mode, char attributes, autoincrement
-	// XXX TODO
 	write_register(dev, MAX7456_REG_DMM, ((attr & 0x07) << 3) | 0x01);
 }
 
@@ -375,9 +408,11 @@ void PIOS_MAX7456_close (max7456_dev_t dev)
 
 	PIOS_Assert(dev->opened);
 
+
 	// terminate autoincrement mode
 	// XXX TODO
 	write_register(dev, MAX7456_REG_DMDI, 0xff);
+
 	chip_unselect(dev);
 	dev->opened = false;
 }
