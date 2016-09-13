@@ -188,7 +188,7 @@ void PIOS_MAX7456_wait_vsync(max7456_dev_t dev)
 
 	uint32_t now = PIOS_DELAY_GetuS();
 	uint32_t sync_interval =
-		dev->mode == MAX7456_MODE_NTSC ? SYNC_INTERVAL_NTSC :
+		(dev->mode == MAX7456_MODE_NTSC) ? SYNC_INTERVAL_NTSC :
 			SYNC_INTERVAL_PAL;
 
 	if (now > dev->next_sync_expected) {
