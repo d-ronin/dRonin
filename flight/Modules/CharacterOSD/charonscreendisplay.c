@@ -77,6 +77,8 @@
 #define STACK_SIZE_BYTES 3072
 #define TASK_PRIORITY PIOS_THREAD_PRIO_LOW
 
+#define SPLASH_TIME_MS (5*1000)
+
 bool module_enabled;
 
 static void panel_draw (charosd_state_t state, uint8_t panel, uint8_t x, uint8_t y)
@@ -146,6 +148,19 @@ static void update_telemetry(telemetry_t *telemetry)
 	FlightStatusFlightModeGet(&telemetry->flight_status.mode);
 }
 
+static void splash_screen(charosd_state_t state)
+{
+	const char *welcome_msg = "Welcome to dRonin";
+
+	SystemAlarmsData alarm;
+	SystemAlarmsGet(&alarm);
+	const char *boot_reason = AlarmBootReason(alarm.RebootCause);
+	PIOS_MAX7456_puts(state->dev, CENTER_STR(welcome_msg), 4, welcome_msg, 0);
+	PIOS_MAX7456_puts(state->dev, CENTER_STR(boot_reason), 6, boot_reason, 0);
+
+	PIOS_Thread_Sleep(SPLASH_TIME_MS);
+}
+
 /**
  * Main osd task. It does not return.
  */
@@ -159,6 +174,8 @@ static void CharOnScreenDisplayTask(void *parameters)
 	state->dev = pios_max7456_id;
 
 	program_characters(state);
+
+	splash_screen(state);
 
 	while (1) {
 		update_telemetry(&state->telemetry);
