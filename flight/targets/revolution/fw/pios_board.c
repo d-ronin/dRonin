@@ -489,9 +489,7 @@ void PIOS_Board_Init(void) {
 #ifdef PIOS_INCLUDE_MAX7456
 	if (!PIOS_MAX7456_init(&pios_max7456_id, pios_spi_telem_flash_id,
 			0)) {
-		const char dumb_string[] = { 1, 2, 3, 4, 'a', 'b', 'c', 0 };
-		PIOS_MAX7456_puts(pios_max7456_id,
-				10, 5, dumb_string, MAX7456_ATTR_NONE);
+		// XXX do something?
 	}
 #endif
 
