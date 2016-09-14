@@ -29,6 +29,7 @@
 #include "charosd.h"
 
 #include "flightstatus.h"
+#include "systemalarms.h"
 
 
 /*
@@ -460,6 +461,19 @@ STD_PANEL (AIRSPEED, 7, "\x88%d\x81", (int16_t) (/*XXX:telemetry::stable::airspe
 
 STD_PANEL(CROSSHAIR, 2, "%c", 0x0a);
 
+#define MAX_ALARM_LEN 30
+
+static void ALARMS_update(charosd_state_t state, uint8_t x, uint8_t y)
+{
+	SystemAlarmsData alarm;
+	SystemAlarmsGet(&alarm);
+	char buffer[MAX_ALARM_LEN];
+
+	uint8_t alarm_state;
+	AlarmString(&alarm, buffer, sizeof(buffer), false, &alarm_state);
+	PIOS_MAX7456_puts(state->dev, x, y, buffer, 0);
+}
+
 #define declare_panel(__name) [CHARONSCREENDISPLAYSETTINGS_PANELTYPE_ ## __name] = { __name ## _update }
 
 const panel_t panels [CHARONSCREENDISPLAYSETTINGS_PANELTYPE_MAXOPTVAL+1] = {
@@ -488,6 +502,7 @@ const panel_t panels [CHARONSCREENDISPLAYSETTINGS_PANELTYPE_MAXOPTVAL+1] = {
 	declare_panel(TEMPERATURE),
 	declare_panel(THROTTLE),
 	declare_panel(CROSSHAIR),
+	declare_panel(ALARMS),
 };
 
 const uint8_t count = sizeof (panels) / sizeof (panel_t);
