@@ -8,9 +8,14 @@
 PIOS_DEVLIB			:=	$(dir $(lastword $(MAKEFILE_LIST)))
 
 #
-# Hardcoded linker script names for now
+# Linker script depending on STM32 type
 #
+ifneq "$(findstring STM32F40_41xxx,$(STM32_TYPE))" ""
 LINKER_SCRIPTS_APP	 =	$(PIOS_DEVLIB)/sections_chibios.ld
+else ifneq "$(findstring STM32F446xx,$(STM32_TYPE))" ""
+LINKER_SCRIPTS_APP	 =	$(PIOS_DEVLIB)/sections_chibios_STM32F446xx.ld
+endif
+
 
 #
 # Compiler options implied by the F4xx

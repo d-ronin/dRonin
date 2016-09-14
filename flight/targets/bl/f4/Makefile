@@ -71,8 +71,14 @@ SRC += pios_usb_hid.c
 SRC += pios_usbhook.c
 SRC += startup.c
 SRC += vectors_stm32f4xx.c
+
+ifneq "$(findstring STM32F40_41xxx,$(STM32_TYPE))" ""
 LINKER_SCRIPTS_BL	 =	$(PIOS_DEVLIB)/link_STM32F4xx_BL_memory.ld \
-						$(PIOS_DEVLIB)/link_STM32F4xx_sections.ld
+                        $(PIOS_DEVLIB)/link_STM32F4xx_sections.ld
+else ifneq "$(findstring STM32F446xx,$(STM32_TYPE))" ""
+LINKER_SCRIPTS_BL	 =	$(PIOS_DEVLIB)/link_STM32F446xx_BL_memory.ld \
+                        $(PIOS_DEVLIB)/link_STM32F446xx_sections.ld
+endif
 
 ## PIOS Hardware (Common)
 SRC += pios_delay.c

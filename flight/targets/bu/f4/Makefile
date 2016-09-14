@@ -158,8 +158,14 @@ LDFLAGS += -Wl,--warn-common
 LDFLAGS += -Wl,--fatal-warnings
 
 # Linker scripts
+ifneq "$(findstring STM32F40_41xxx,$(STM32_TYPE))" ""
 LINKER_SCRIPTS_APP	 =	$(PIOS_DEVLIB)/link_STM32F4xx_OP_memory.ld \
-						$(PIOS_DEVLIB)/link_STM32F4xx_sections.ld
+                        $(PIOS_DEVLIB)/link_STM32F4xx_sections.ld
+else ifneq "$(findstring STM32F446xx,$(STM32_TYPE))" ""
+LINKER_SCRIPTS_APP	 =	$(PIOS_DEVLIB)/link_STM32F446xx_OP_memory.ld \
+                        $(PIOS_DEVLIB)/link_STM32F446xx_sections.ld
+endif
+
 LDFLAGS += $(addprefix -T,$(LINKER_SCRIPTS_APP))
 
 # List of all source files.

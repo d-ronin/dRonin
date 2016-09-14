@@ -121,6 +121,17 @@ HANDLER(CRYP_IRQHandler);                 // CRYP crypto
 HANDLER(HASH_RNG_IRQHandler);             // Hash and Rng
 HANDLER(FPU_IRQHandler);                  // FPU
 
+#if defined(STM32F446xx)
+HANDLER(SPI4_IRQHandler);                 // SPI4
+HANDLER(SAI1_IRQHandler);                 // SAI1
+HANDLER(SAI2_IRQHandler);                 // SAI2
+HANDLER(QuadSPI_IRQHandler);              // QuadSPI
+HANDLER(CEC_IRQHandler);                  // CEC
+HANDLER(SPDIF_RX_IRQHandler);             // SPDIF RX
+HANDLER(FMPI2C1_Event_IRQHandler);        // I2C 4 Event
+HANDLER(FMPI2C1_Error_IRQHandler);        // I2C 4 Error
+#endif /* defined(STM32F446xx) */
+
 /** stm32f4xx interrupt vector table */
 vector *io_vectors[] __attribute__((section(".io_vectors"))) = {
 	WWDG_IRQHandler,                   // Window WatchDog
@@ -205,6 +216,23 @@ vector *io_vectors[] __attribute__((section(".io_vectors"))) = {
 	CRYP_IRQHandler,                   // CRYP crypto
 	HASH_RNG_IRQHandler,               // Hash and Rng
 	FPU_IRQHandler,                    // FPU
+#if defined(STM32F446xx)
+	0,                                 // Reserved
+	0,                                 // Reserved
+	SPI4_IRQHandler,                   // SPI4
+	0,                                 // Reserved
+	0,                                 // Reserved
+	SAI1_IRQHandler,                   // SAI1
+	0,                                 // Reserved
+	0,                                 // Reserved
+	0,                                 // Reserved
+	SAI2_IRQHandler,                   // SAI2
+	QuadSPI_IRQHandler,                // QuadSPI
+	CEC_IRQHandler,                    // CEC
+	SPDIF_RX_IRQHandler,               // SPDIF RX
+	FMPI2C1_Event_IRQHandler,          // I2C 4 Event
+	FMPI2C1_Error_IRQHandler,          // I2C 4 Error
+#endif /* defined(STM32F446xx) */
 };
 
 /**
