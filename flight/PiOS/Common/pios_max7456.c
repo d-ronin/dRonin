@@ -35,8 +35,8 @@
 #define MAX7456_MASK_PAL  MAX7456_VM0_VSS_MASK
 #define MAX7456_MASK_NTSC 0x00 
 
-#define SYNC_INTERVAL_NTSC 16683
-#define SYNC_INTERVAL_PAL  20000
+#define SYNC_INTERVAL_NTSC 33366
+#define SYNC_INTERVAL_PAL  40000
 
 #define bis(var, bit) (var & BV (bit))
 
@@ -422,7 +422,7 @@ void PIOS_MAX7456_close (max7456_dev_t dev)
 }
 
 #define valid_char(c) (c == MAX7456_DMDI_AUTOINCREMENT_STOP ? 0x00 : c)
-void PIOS_MAX7456_puts (max7456_dev_t dev, uint8_t col, uint8_t row, const char *s, uint8_t attr)
+void PIOS_MAX7456_puts(max7456_dev_t dev, uint8_t col, uint8_t row, const char *s, uint8_t attr)
 {
 	PIOS_Assert(dev->magic == MAX7456_MAGIC);
 
