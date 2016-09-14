@@ -203,8 +203,6 @@ static void ARMEDFLAG_update (charosd_state_t state, uint8_t x, uint8_t y)
 	PIOS_MAX7456_put (state->dev, x + 1, y + 1, 0xe0, attr);
 }
 
-#define TIME_SYM 0xfa
-
 static void FLIGHTTIME_update (charosd_state_t state, uint8_t x, uint8_t y) {
        char buffer[10];
        uint32_t time = state->telemetry.system.flight_time;
@@ -214,11 +212,11 @@ static void FLIGHTTIME_update (charosd_state_t state, uint8_t x, uint8_t y) {
        if (hours == 0) {
                min = time / 60000;
                sec = (time / 1000) - 60 * min;
-               sprintf (buffer, "%c%02d:%02d", TIME_SYM, (int)min, (int)sec);
+               sprintf (buffer, "%02d:%02d", (int)min, (int)sec);
        } else {
                min = time / 60000 - 60 * hours;
                sec = (time / 1000) - 60 * min - 3600 * hours;
-               sprintf (buffer, "%c%02d:%02d:%02d", TIME_SYM, (int)hours, (int)min, (int)sec);
+               sprintf (buffer, "%02d:%02d:%02d", (int)hours, (int)min, (int)sec);
        }
 
        terminate_buffer ();
@@ -333,7 +331,7 @@ STD_PANEL (BATTERYVOLT, 8, "%.2f\x8e", (double)state->telemetry.battery.Voltage)
 STD_PANEL (BATTERYCURRENT, 8, "%.2f\x8f", (double)state->telemetry.battery.Current);
 
 /* BatConsumed */
-STD_PANEL (BATTERYCONSUMED, 8, "\xfb%u\x82", (uint16_t) state->telemetry.battery.ConsumedEnergy);
+STD_PANEL (BATTERYCONSUMED, 8, "%u\x82", (uint16_t) state->telemetry.battery.ConsumedEnergy);
 
 /* RSSIFlag */
 static void RSSIFLAG_update (charosd_state_t state, uint8_t x, uint8_t y)
