@@ -67,6 +67,7 @@ OPTMODULES += UAVOFrSKYSPortBridge
 OPTMODULES += Geofence
 OPTMODULES += Logging
 OPTMODULES += Storm32Bgc
+OPTMODULES += CharacterOSD
 
 # Paths
 OPUAVTALKINC = $(OPUAVTALK)/inc
@@ -167,6 +168,7 @@ SRC += pios_spi.c
 SRC += pios_irq.c
 SRC += pios_pwm.c
 SRC += pios_ppm.c
+SRC += pios_max7456.c
 SRC += pios_debug.c
 SRC += pios_wdg.c
 SRC += pios_reset.c

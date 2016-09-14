@@ -117,6 +117,10 @@ uintptr_t pios_uavo_settings_fs_id;
 uintptr_t pios_waypoints_settings_fs_id;
 uintptr_t pios_internal_adc_id;
 
+#ifdef PIOS_INCLUDE_MAX7456
+max7456_dev_t pios_max7456_id;
+#endif
+
 /**
  * PIOS_Board_Init()
  * initializes all the core subsystems on this specific hardware
@@ -141,7 +145,7 @@ void PIOS_Board_Init(void) {
     if (PIOS_SPI_Init(&pios_spi_internal_id, &pios_spi_internal_cfg)) {
         PIOS_Assert(0);
     }
-    #endif
+#endif
 
 #if defined(PIOS_INCLUDE_FLASH)
     /* Initialize all flash drivers */
@@ -194,6 +198,34 @@ void PIOS_Board_Init(void) {
     PIOS_TIM_InitClock(&tim_2_cfg);
     PIOS_TIM_InitClock(&tim_3_cfg);
     PIOS_TIM_InitClock(&tim_8_cfg);
+
+#ifdef PIOS_INCLUDE_SPI
+    uint32_t pios_spi_external_id;
+
+    uint8_t hw_osdport;
+
+    HwAQ32OSDPortGet(&hw_osdport);
+
+    if (hw_osdport != HWAQ32_OSDPORT_DISABLED) {
+        if (PIOS_SPI_Init(&pios_spi_external_id, &pios_spi_external_cfg)) {
+            PIOS_Assert(0);
+        }
+
+        switch (hw_osdport) {
+#ifdef PIOS_INCLUDE_MAX7456
+            case HWAQ32_OSDPORT_MAX7456OSD:
+                if (!PIOS_MAX7456_init(&pios_max7456_id,
+                        pios_spi_external_id, 0)) {
+                    // XXX do something?
+                }
+                break;
+#endif
+            default:
+                PIOS_Assert(0);
+                break;
+	}
+    }
+#endif /* PIOS_INCLUDE_SPI */
 
     // Timers used for inputs or outputs (1)
     // Configure TIM_Period (ARR) accordingly

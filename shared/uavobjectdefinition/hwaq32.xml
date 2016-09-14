@@ -118,6 +118,13 @@
 				<option>Enabled</option>
 			</options>
 		</field>
+
+		<field name="OSDPort" units="function" type="enum" elements="1" defaultvalue="Disabled">
+			<options>
+				<option>Disabled</option>
+				<option>MAX7456 OSD</option>
+			</options>
+		</field>
 		
 		<field name="USB_HIDPort" units="function" type="enum" elements="1" options="USBTelemetry,Disabled" defaultvalue="USBTelemetry"/>
 		<field name="USB_VCPPort" units="function" type="enum" elements="1" options="USBTelemetry,ComBridge,DebugConsole,PicoC,Disabled" defaultvalue="Disabled"/>
