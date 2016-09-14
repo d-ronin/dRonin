@@ -460,33 +460,36 @@ static void compass_draw (uint8_t x, uint8_t y)
 /* Airspeed */
 STD_PANEL (AIRSPEED, 7, "\x88%d\x81", (int16_t) (/*XXX:telemetry::stable::airspeed*/ 0 * 3.6));
 
+STD_PANEL(CROSSHAIR, 2, "%c", 0x0a);
+
 #define declare_panel(__name) [CHARONSCREENDISPLAYSETTINGS_PANELTYPE_ ## __name] = { __name ## _update }
 
 const panel_t panels [CHARONSCREENDISPLAYSETTINGS_PANELTYPE_MAXOPTVAL+1] = {
-	declare_panel (AIRSPEED),
-	declare_panel (ALTITUDE),
-	declare_panel (ARMEDFLAG),
-	declare_panel (BATTERYVOLT),
-	declare_panel (BATTERYCURRENT),
-	declare_panel (BATTERYCONSUMED),
-	declare_panel (CALLSIGN),
-	declare_panel (CLIMB),
-//	declare_panel (COMPASS),
-	declare_panel (FLIGHTMODE),
-	declare_panel (FLIGHTTIME),
-	declare_panel (GROUNDSPEED),
-	declare_panel (GPS),
-//	declare_panel (home_distance),
-	declare_panel (HOMEDIRECTION),
-//	declare_panel (horizon),
-	declare_panel (LATITUDE),
-	declare_panel (LONGITUDE),
-	declare_panel (PITCH),
-	declare_panel (ROLL),
-	declare_panel (RSSIFLAG),
-	declare_panel (RSSI),
-	declare_panel (TEMPERATURE),
-	declare_panel (THROTTLE),
+	declare_panel(AIRSPEED),
+	declare_panel(ALTITUDE),
+	declare_panel(ARMEDFLAG),
+	declare_panel(BATTERYVOLT),
+	declare_panel(BATTERYCURRENT),
+	declare_panel(BATTERYCONSUMED),
+	declare_panel(CALLSIGN),
+	declare_panel(CLIMB),
+//	declare_panel(COMPASS),
+	declare_panel(FLIGHTMODE),
+	declare_panel(FLIGHTTIME),
+	declare_panel(GROUNDSPEED),
+	declare_panel(GPS),
+//	declare_panel(home_distance),
+	declare_panel(HOMEDIRECTION),
+//	declare_panel(horizon),
+	declare_panel(LATITUDE),
+	declare_panel(LONGITUDE),
+	declare_panel(PITCH),
+	declare_panel(ROLL),
+	declare_panel(RSSIFLAG),
+	declare_panel(RSSI),
+	declare_panel(TEMPERATURE),
+	declare_panel(THROTTLE),
+	declare_panel(CROSSHAIR),
 };
 
 const uint8_t count = sizeof (panels) / sizeof (panel_t);
