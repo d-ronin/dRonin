@@ -24,6 +24,7 @@
 #include <openpilot.h>
 #include <math.h>
 #include <string.h>
+#include <misc_math.h>
 
 #include "charosd.h"
 
@@ -321,7 +322,7 @@ namespace horizon
 #endif
 
 /* Throttle */
-STD_PANEL (THROTTLE, 7, "\x87%d%%", (int)state->telemetry.manual.throttle);
+STD_PANEL (THROTTLE, 7, "\x87%d%%", (int)MAX(0, state->telemetry.manual.throttle*100));
 
 /* GroundSpeed */
 STD_PANEL (GROUNDSPEED, 7, "\x80%d\x81", (int16_t) (/*XXX:telemetry::stable::groundspeed*/ 0 * 3.6));
