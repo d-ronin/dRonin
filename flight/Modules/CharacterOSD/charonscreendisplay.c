@@ -104,15 +104,38 @@ static const uint8_t charosd_font_data[] = {
 #include "charosd-font.h"
 };
 
+static const uint8_t charosd_font_small_data[] = {
+#include "charosd-font-small.h"
+};
+
+static const uint8_t charosd_font_thin_data[] = {
+#include "charosd-font-thin.h"
+};
+
 /* 12 x 18 x 2bpp */
 #define FONT_CHAR_SIZE ((12 * 18 * 2) / 8)
 
-static void program_characters(charosd_state_t state)
+static void program_characters(charosd_state_t state, uint8_t font)
 {
+	PIOS_MAX7456_puts(state->dev, 1, 1, "loading font", 0);
+
+	const uint8_t *font_data = charosd_font_data;
+
+	switch (font) {
+	case CHARONSCREENDISPLAYSETTINGS_FONT_REGULAR:
+		font_data = charosd_font_data;
+		break;
+	case CHARONSCREENDISPLAYSETTINGS_FONT_THIN:
+		font_data = charosd_font_small_data;
+		break;
+	case CHARONSCREENDISPLAYSETTINGS_FONT_SMALL:
+		font_data = charosd_font_small_data;
+		break;
+	}
+
 	/* Check on font data, replacing chars as appropriate. */
 	for (int i = 0; i < 256; i++) {
-		const uint8_t *this_char =
-			& charosd_font_data[i * FONT_CHAR_SIZE];
+		const uint8_t *this_char = &font_data[i * FONT_CHAR_SIZE];
 		/* Every 8 characters, take a break, let other lowprio
 		 * tasks run */
 		if ((i & 0x7) == 0) {
@@ -130,6 +153,7 @@ static void program_characters(charosd_state_t state)
 					this_char);
 		}
 	}
+	state->prev_font = font;
 }
 
 static void update_telemetry(telemetry_t *telemetry)
@@ -172,16 +196,23 @@ static void CharOnScreenDisplayTask(void *parameters)
 
 	state = PIOS_malloc(sizeof(*state));
 	state->dev = pios_max7456_id;
+	state->prev_font = 0xff;
 
-	program_characters(state);
+	CharOnScreenDisplaySettingsData page;
+	CharOnScreenDisplaySettingsGet(&page);
+
+	program_characters(state, page.Font);
 
 	splash_screen(state);
 
 	while (1) {
 		update_telemetry(&state->telemetry);
 
-		CharOnScreenDisplaySettingsData page;
 		CharOnScreenDisplaySettingsGet(&page);
+
+		if (state->prev_font != page.Font) {
+			program_characters(state, page.Font);
+		}
 
 		state->custom_text = (char*)page.CustomText;
 
@@ -198,7 +229,7 @@ int32_t CharOnScreenDisplayInitialize(void)
 {
 	CharOnScreenDisplaySettingsInitialize();
 
-	if (pios_max7456_id) {	
+	if (pios_max7456_id) {
 		module_enabled = true;
 	}
 

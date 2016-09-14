@@ -4,6 +4,14 @@
 
         <field name="CustomText" units="" type="uint8" elements="10" defaultvalue="100,82,111,110,105,110,0,0,0,0"/>
 
+        <field name="Font" units="" type="enum" elements="1" defaultvalue="Regular">
+          <options>
+            <option>Regular</option>
+            <option>Thin</option>
+            <option>Small</option>
+          </options>
+        </field>
+
 		<field name="PanelType" units="Panel" type="enum" defaultvalue="GPS,Latitude,Longitude,ArmedFlag,RSSI,FlightMode,Pitch,Horizon,Throttle,GroundSpeed,Altitude,Roll,FlightTime,HomeDistance,HomeDirection,BatteryVolt,BatteryCurrent,BatteryConsumed,Crosshair,Disabled,Disabled,Disabled,Disabled,Disabled" elements="24">
 			<options>
 				<option>Disabled</option>

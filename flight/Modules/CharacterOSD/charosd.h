@@ -34,6 +34,7 @@ typedef struct {
 
 	telemetry_t telemetry;
 	char *custom_text;
+	uint8_t prev_font;
 } * charosd_state_t;
 
 typedef void (*update_t) (charosd_state_t state, uint8_t x, uint8_t y);
