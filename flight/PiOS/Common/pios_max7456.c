@@ -231,6 +231,8 @@ int PIOS_MAX7456_init (max7456_dev_t *dev_out,
 	dev->spi_id = spi_handle;
 	dev->slave_id = slave_idx;
 
+	dev->next_sync_expected = 0;
+
 	write_register_sel(dev, MAX7456_REG_VM0, BV(1));
 
 	PIOS_DELAY_WaituS(100);
