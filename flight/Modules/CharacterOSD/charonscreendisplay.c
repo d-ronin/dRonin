@@ -117,19 +117,23 @@ static const uint8_t charosd_font_thin_data[] = {
 
 static void program_characters(charosd_state_t state, uint8_t font)
 {
-	PIOS_MAX7456_puts(state->dev, 1, 1, "loading font", 0);
+	const char *loaded_txt = "";
 
 	const uint8_t *font_data = charosd_font_data;
+	bool changed = false;
 
 	switch (font) {
 	case CHARONSCREENDISPLAYSETTINGS_FONT_REGULAR:
 		font_data = charosd_font_data;
+		loaded_txt = "loaded regular font";
 		break;
 	case CHARONSCREENDISPLAYSETTINGS_FONT_THIN:
 		font_data = charosd_font_small_data;
+		loaded_txt = "loaded thin font";
 		break;
 	case CHARONSCREENDISPLAYSETTINGS_FONT_SMALL:
 		font_data = charosd_font_small_data;
+		loaded_txt = "loaded small font";
 		break;
 	}
 
@@ -151,7 +155,13 @@ static void program_characters(charosd_state_t state, uint8_t font)
 		if (memcmp(nvm_char, this_char, FONT_CHAR_SIZE)) {
 			PIOS_MAX7456_upload_char(state->dev, i,
 					this_char);
+			changed = true;
 		}
+	}
+	if (changed) {
+		PIOS_MAX7456_puts(state->dev, CENTER_STR(loaded_txt),
+				  6, loaded_txt, 0);
+		PIOS_Thread_Sleep(1000);
 	}
 	state->prev_font = font;
 }
@@ -174,6 +184,8 @@ static void update_telemetry(telemetry_t *telemetry)
 
 static void splash_screen(charosd_state_t state)
 {
+	PIOS_MAX7456_clear (state->dev);
+
 	const char *welcome_msg = "Welcome to dRonin";
 
 	SystemAlarmsData alarm;
