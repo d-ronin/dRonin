@@ -641,7 +641,7 @@ static const struct pios_usart_cfg pios_usart1_cfg = {
 		.gpio = GPIOB,
 		.init = {
 			.GPIO_Pin   = GPIO_Pin_7,
-			.GPIO_Speed = GPIO_Speed_2MHz,
+			.GPIO_Speed = GPIO_Speed_25MHz,
 			.GPIO_Mode  = GPIO_Mode_AF,
 			.GPIO_OType = GPIO_OType_PP,
 			.GPIO_PuPd  = GPIO_PuPd_UP
@@ -652,7 +652,7 @@ static const struct pios_usart_cfg pios_usart1_cfg = {
 		.gpio = GPIOB,
 		.init = {
 			.GPIO_Pin   = GPIO_Pin_6,
-			.GPIO_Speed = GPIO_Speed_2MHz,
+			.GPIO_Speed = GPIO_Speed_25MHz,
 			.GPIO_Mode  = GPIO_Mode_AF,
 			.GPIO_OType = GPIO_OType_PP,
 			.GPIO_PuPd  = GPIO_PuPd_UP
@@ -685,6 +685,41 @@ static const struct pios_usart_cfg pios_usart3_cfg = {
 	}
 };
 
+static const struct pios_usart_cfg pios_usart4_cfg = {
+	.regs = UART4,
+	.remap = GPIO_AF_UART4,
+	.irq = {
+		.init = {
+			.NVIC_IRQChannel = UART4_IRQn,
+			.NVIC_IRQChannelPreemptionPriority = PIOS_IRQ_PRIO_MID,
+			.NVIC_IRQChannelSubPriority = 0,
+			.NVIC_IRQChannelCmd = ENABLE,
+		},
+	},
+	.rx = {
+		.gpio = GPIOA,
+		.init = {
+			.GPIO_Pin   = GPIO_Pin_1,
+			.GPIO_Speed = GPIO_Speed_25MHz,
+			.GPIO_Mode  = GPIO_Mode_AF,
+			.GPIO_OType = GPIO_OType_PP,
+			.GPIO_PuPd  = GPIO_PuPd_UP
+		},
+		.pin_source = GPIO_PinSource1,
+	},
+	.tx = {
+		.gpio = GPIOA,
+		.init = {
+			.GPIO_Pin   = GPIO_Pin_0,
+			.GPIO_Speed = GPIO_Speed_25MHz,
+			.GPIO_Mode  = GPIO_Mode_AF,
+			.GPIO_OType = GPIO_OType_PP,
+			.GPIO_PuPd  = GPIO_PuPd_UP
+		},
+		.pin_source = GPIO_PinSource0,
+	},
+};
+
 static const struct pios_usart_cfg pios_usart6_cfg = {
 	.regs = USART6,
 	.remap = GPIO_AF_USART6,
@@ -700,7 +735,7 @@ static const struct pios_usart_cfg pios_usart6_cfg = {
 		.gpio = GPIOC,
 		.init = {
 			.GPIO_Pin   = GPIO_Pin_7,
-			.GPIO_Speed = GPIO_Speed_2MHz,
+			.GPIO_Speed = GPIO_Speed_25MHz,
 			.GPIO_Mode  = GPIO_Mode_AF,
 			.GPIO_OType = GPIO_OType_PP,
 			.GPIO_PuPd  = GPIO_PuPd_UP
@@ -711,7 +746,7 @@ static const struct pios_usart_cfg pios_usart6_cfg = {
 		.gpio = GPIOC,
 		.init = {
 			.GPIO_Pin   = GPIO_Pin_6,
-			.GPIO_Speed = GPIO_Speed_2MHz,
+			.GPIO_Speed = GPIO_Speed_25MHz,
 			.GPIO_Mode  = GPIO_Mode_AF,
 			.GPIO_OType = GPIO_OType_PP,
 			.GPIO_PuPd  = GPIO_PuPd_UP
@@ -1011,7 +1046,22 @@ static const struct pios_tim_channel pios_tim_servoport_all_pins[] = {
  */
 #include <pios_servo_priv.h>
 
-const struct pios_servo_cfg pios_servo_cfg = {
+const struct pios_servo_cfg pios_servo_4_cfg = {
+	.tim_oc_init = {
+		.TIM_OCMode = TIM_OCMode_PWM1,
+		.TIM_OutputState = TIM_OutputState_Enable,
+		.TIM_OutputNState = TIM_OutputNState_Disable,
+		.TIM_Pulse = PIOS_SERVOS_INITIAL_POSITION,
+		.TIM_OCPolarity = TIM_OCPolarity_High,
+		.TIM_OCNPolarity = TIM_OCPolarity_High,
+		.TIM_OCIdleState = TIM_OCIdleState_Reset,
+		.TIM_OCNIdleState = TIM_OCNIdleState_Reset,
+	},
+	.channels = &pios_tim_servoport_all_pins[2],
+	.num_channels = NELEMENTS(pios_tim_servoport_all_pins) - 4,
+};
+
+const struct pios_servo_cfg pios_servo_6_cfg = {
 	.tim_oc_init = {
 		.TIM_OCMode = TIM_OCMode_PWM1,
 		.TIM_OutputState = TIM_OutputState_Enable,
@@ -1026,7 +1076,7 @@ const struct pios_servo_cfg pios_servo_cfg = {
 	.num_channels = NELEMENTS(pios_tim_servoport_all_pins) - 2,
 };
 
-const struct pios_servo_cfg pios_servo_all_cfg = {
+const struct pios_servo_cfg pios_servo_8_cfg = {
 	.tim_oc_init = {
 		.TIM_OCMode = TIM_OCMode_PWM1,
 		.TIM_OutputState = TIM_OutputState_Enable,
