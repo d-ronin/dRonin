@@ -164,6 +164,8 @@ LINKER_SCRIPTS_APP	 =	$(PIOS_DEVLIB)/link_STM32F4xx_OP_memory.ld \
 else ifneq "$(findstring STM32F446xx,$(STM32_TYPE))" ""
 LINKER_SCRIPTS_APP	 =	$(PIOS_DEVLIB)/link_STM32F446xx_OP_memory.ld \
                         $(PIOS_DEVLIB)/link_STM32F446xx_sections.ld
+else
+$(error No linker script found for $(STM32_TYPE))
 endif
 
 LDFLAGS += $(addprefix -T,$(LINKER_SCRIPTS_APP))

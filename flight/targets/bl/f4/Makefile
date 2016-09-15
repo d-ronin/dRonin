@@ -78,6 +78,8 @@ LINKER_SCRIPTS_BL	 =	$(PIOS_DEVLIB)/link_STM32F4xx_BL_memory.ld \
 else ifneq "$(findstring STM32F446xx,$(STM32_TYPE))" ""
 LINKER_SCRIPTS_BL	 =	$(PIOS_DEVLIB)/link_STM32F446xx_BL_memory.ld \
                         $(PIOS_DEVLIB)/link_STM32F446xx_sections.ld
+else
+$(error No linker script found for $(STM32_TYPE))
 endif
 
 ## PIOS Hardware (Common)
