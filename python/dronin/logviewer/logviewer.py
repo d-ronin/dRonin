@@ -163,7 +163,7 @@ def handle_open(ignored=False, fname=None):
     with pg.ProgressDialog("0 objects read...", wait=500, maximum=1000, cancelText=None) as dlg:
         global t
 
-        if not isinstance(fname, six.string_types):
+        if (len(fname[0]) > 1):
             fname = fname[0]
 
         f = open(fname, 'rb')
