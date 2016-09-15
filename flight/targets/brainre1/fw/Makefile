@@ -354,7 +354,6 @@ LDFLAGS += -Wl,--warn-common
 LDFLAGS += -Wl,--fatal-warnings
 
 #Linker scripts
-LINKER_SCRIPTS_APP = sections_chibios.ld
 LDFLAGS += -T memory.ld $(addprefix -T,$(LINKER_SCRIPTS_APP))
 
 include ./UAVObjects.inc

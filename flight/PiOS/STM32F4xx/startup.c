@@ -89,8 +89,9 @@ _main(void)
 	memset(&_sbss, 0, &_ebss - &_sbss);
 
 	/* zero any 'fast' RAM that's been used */
+#if defined(STM32F40_41xxx)
 	memset(&_sfast, 0, &_efast - &_sfast);
-
+#endif /* defined(STM32F40_41xxx) */
 	/* fill most of the IRQ/bootstrap stack with a watermark pattern so we can measure how much is used */
 	/* leave a little space at the top in case memset() isn't a leaf with no locals */
 	memset(&irq_stack, 0xa5, sizeof(irq_stack) - 64);
