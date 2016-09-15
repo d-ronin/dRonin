@@ -51,12 +51,13 @@ private slots:
     void generateTrackmateID();
     void getCustomLedColor();
     void setCustomLedColor(const QColor);
+    void mpChanged(int idx);
+    void extMagChanged(int idx);
 
 private:
     Ui::BrainRE1Configuration *ui;
     HwBrainRE1 * re1_settings_obj;
 
-    QPixmap img;
     int generateRandomNumber(int max);
 };
 

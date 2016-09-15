@@ -70,6 +70,13 @@ public:
     virtual int queryMaxGyroRate();
     QWidget * getBoardConfiguration(QWidget *parent, bool connected);
     virtual QStringList getAdcNames();
+
+    /**
+     * @brief Get banks of output PWM channels banks on the board
+     * @return matrix of channel bank names
+     *
+     */
+    virtual QVector< QVector<int> > getChannelBanks();
 };
 
 

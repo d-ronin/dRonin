@@ -3,5 +3,7 @@
         <file>images/brain.png</file>
         <file>images/brainre1.png</file>
         <file>images/brainre1-connection-diagram.svg</file>
+        <file>images/re1_mp_normal.png</file>
+        <file>images/re1_mp_4pwm.png</file>
     </qresource>
 </RCC>
