@@ -44,6 +44,10 @@
 #define MAX7456_NTSC_HCENTER	(MAX7456_NTSC_COLUMNS / 2)
 #define MAX7456_NTSC_VCENTER	(MAX7456_NTSC_ROWS / 2)
 
+// NTSC and PAL have the same number of columns.
+#define MAX7456_COLUMNS MAX7456_NTSC_COLUMNS
+#define MAX7456_HCENTER MAX7456_NTSC_HCENTER
+
 typedef struct max7456_dev_s *max7456_dev_t;
 
 void PIOS_MAX7456_wait_vsync ();

@@ -461,7 +461,7 @@ STD_PANEL (AIRSPEED, 7, "\x88%d\x81", (int16_t) (/*XXX:telemetry::stable::airspe
 
 STD_PANEL(CROSSHAIR, 2, "%c", 0x0a);
 
-#define MAX_ALARM_LEN LINE_WIDTH
+#define MAX_ALARM_LEN MAX7456_COLUMNS
 
 static void ALARMS_update(charosd_state_t state, uint8_t x, uint8_t y)
 {
@@ -471,9 +471,6 @@ static void ALARMS_update(charosd_state_t state, uint8_t x, uint8_t y)
 
 	uint8_t alarm_state;
 	AlarmString(&alarm, buffer, sizeof(buffer), false, &alarm_state);
-	if (x > LINE_WIDTH) {
-		x = CENTER_STR(buffer);
-	}
 	PIOS_MAX7456_puts(state->dev, x, y, buffer, 0);
 }
 

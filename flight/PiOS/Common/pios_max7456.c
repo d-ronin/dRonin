@@ -429,6 +429,9 @@ void PIOS_MAX7456_puts(max7456_dev_t dev, uint8_t col, uint8_t row, const char *
 {
 	PIOS_Assert(dev->magic == MAX7456_MAGIC);
 
+	if (col > MAX7456_COLUMNS) {
+		col = ((MAX7456_COLUMNS - strlen(s)) / 2);
+	}
 	PIOS_MAX7456_open(dev, col, row, attr);
 	while (*s)
 	{

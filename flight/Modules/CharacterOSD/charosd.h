@@ -7,9 +7,6 @@
 #include "gpsposition.h"
 #include "flightbatterystate.h"
 
-#define LINE_WIDTH 30
-#define CENTER_STR(s) ((LINE_WIDTH - strlen(s)) / 2)
-
 typedef struct {
 	FlightBatteryStateData battery;
 	struct {
