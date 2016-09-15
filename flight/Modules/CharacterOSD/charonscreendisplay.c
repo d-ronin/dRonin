@@ -128,7 +128,7 @@ static void program_characters(charosd_state_t state, uint8_t font)
 		loaded_txt = "loaded regular font";
 		break;
 	case CHARONSCREENDISPLAYSETTINGS_FONT_THIN:
-		font_data = charosd_font_small_data;
+		font_data = charosd_font_thin_data;
 		loaded_txt = "loaded thin font";
 		break;
 	case CHARONSCREENDISPLAYSETTINGS_FONT_SMALL:
