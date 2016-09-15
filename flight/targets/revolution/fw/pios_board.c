@@ -485,7 +485,7 @@ void PIOS_Board_Init(void) {
 
 	HwRevolutionData hwRevoMini;
 	HwRevolutionGet(&hwRevoMini);
-	
+
 	uint8_t hw_spiperiph;
 
 	HwRevolutionSPIPeripheralGet(&hw_spiperiph);
@@ -495,6 +495,7 @@ void PIOS_Board_Init(void) {
 			PIOS_Assert(0);
 			break;
 		case HWREVOLUTION_SPIPERIPHERAL_DISABLED:
+			break;
 
 #ifdef PIOS_INCLUDE_MAX7456
 		case HWREVOLUTION_SPIPERIPHERAL_MAX7456OSD:
