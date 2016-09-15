@@ -198,6 +198,8 @@ static void CharOnScreenDisplayTask(void *parameters)
 	state->dev = pios_max7456_id;
 	state->prev_font = 0xff;
 
+	bzero(&state->telemetry, sizeof(state->telemetry));
+
 	CharOnScreenDisplaySettingsData page;
 	CharOnScreenDisplaySettingsGet(&page);
 
