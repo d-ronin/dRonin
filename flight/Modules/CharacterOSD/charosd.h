@@ -32,6 +32,8 @@ typedef struct {
 	telemetry_t telemetry;
 	char *custom_text;
 	uint8_t prev_font;
+
+	int available;
 } * charosd_state_t;
 
 typedef void (*update_t) (charosd_state_t state, uint8_t x, uint8_t y);
@@ -39,8 +41,19 @@ typedef void (*update_t) (charosd_state_t state, uint8_t x, uint8_t y);
 typedef struct
 {
 	update_t update;
-	void *(*available)();
+	int requirements;
 } panel_t;
+
+#define HAS_GPS		(1 << 0)
+#define HAS_BATT	(1 << 1)
+#define HAS_PITOT	(1 << 2)
+#define HAS_ALT		(1 << 3)
+#define HAS_TEMP	(1 << 4)
+#define HAS_RSSI	(1 << 5)
+#define HAS_NAV		(1 << 6)
+#define HAS_COMPASS	(1 << 7)
+
+#define HAS_SENSOR(available, required) ((available & required) == required)
 
 // panels collection
 extern const panel_t panels [];

@@ -84,7 +84,8 @@ bool module_enabled;
 static void panel_draw(charosd_state_t state, uint8_t panel, uint8_t x, uint8_t y)
 {
 	if (panel <= CHARONSCREENDISPLAYSETTINGS_PANELTYPE_MAXOPTVAL) {
-		if (panels[panel].update && panels[panel].available() != NULL) {
+		if (panels[panel].update &&
+		    HAS_SENSOR(state->available, panels[panel].requirements)) {
 			panels[panel].update(state, x, y);
 		}
 	}
@@ -166,20 +167,45 @@ static void program_characters(charosd_state_t state, uint8_t font)
 	state->prev_font = font;
 }
 
-static void update_telemetry(telemetry_t *telemetry)
+static void update_availability(charosd_state_t state)
 {
-	if (FlightBatteryStateHandle()) {
-		FlightBatteryStateGet(&telemetry->battery);
+	state->available = 0;
+
+	ModuleSettingsData module_settings;
+	ModuleSettingsGet(&module_settings);
+
+	// TODO(dsal): Figure out how to determine whether this is
+	// configured meaningfully
+	state->available |= HAS_RSSI;
+
+	if (PIOS_Modules_IsEnabled(PIOS_MODULE_GPS)) {
+		state->available |= HAS_GPS;
 	}
-	SystemStatsFlightTimeGet(&telemetry->system.flight_time);
-	AttitudeActualRollGet(&telemetry->actual.roll);
-	AttitudeActualPitchGet(&telemetry->actual.pitch);
-	PositionActualDownGet(&telemetry->actual.down);
-	GPSPositionGet(&telemetry->gps_position);
-	ManualControlCommandRssiGet(&telemetry->manual.rssi);
-	ManualControlCommandThrottleGet(&telemetry->manual.throttle);
-	FlightStatusArmedGet(&telemetry->flight_status.arm_status);
-	FlightStatusFlightModeGet(&telemetry->flight_status.mode);
+	if (module_settings.AdminState[MODULESETTINGS_ADMINSTATE_BATTERY] &&
+	    FlightBatteryStateHandle()) {
+		state->available |= HAS_BATT;
+	}
+}
+
+static void update_telemetry(charosd_state_t state)
+{
+	SystemStatsFlightTimeGet(&state->telemetry.system.flight_time);
+	AttitudeActualRollGet(&state->telemetry.actual.roll);
+	AttitudeActualPitchGet(&state->telemetry.actual.pitch);
+	PositionActualDownGet(&state->telemetry.actual.down);
+	ManualControlCommandThrottleGet(&state->telemetry.manual.throttle);
+	FlightStatusArmedGet(&state->telemetry.flight_status.arm_status);
+	FlightStatusFlightModeGet(&state->telemetry.flight_status.mode);
+
+	if (HAS_SENSOR(state->available, HAS_BATT)) {
+		FlightBatteryStateGet(&state->telemetry.battery);
+	}
+	if (HAS_SENSOR(state->available, HAS_GPS)) {
+		GPSPositionGet(&state->telemetry.gps_position);
+	}
+	if (HAS_SENSOR(state->available, HAS_RSSI)) {
+		ManualControlCommandRssiGet(&state->telemetry.manual.rssi);
+	}
 }
 
 static void splash_screen(charosd_state_t state)
@@ -220,7 +246,8 @@ static void CharOnScreenDisplayTask(void *parameters)
 	splash_screen(state);
 
 	while (1) {
-		update_telemetry(&state->telemetry);
+		update_availability(state);
+		update_telemetry(state);
 
 		CharOnScreenDisplaySettingsGet(&page);
 
