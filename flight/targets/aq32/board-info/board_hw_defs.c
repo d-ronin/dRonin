@@ -161,9 +161,9 @@ static const struct pios_spi_cfg pios_spi_external_cfg = {
 		.SPI_NSS               = SPI_NSS_Soft,
 		.SPI_FirstBit          = SPI_FirstBit_MSB,
 		.SPI_CRCPolynomial     = 7,
-		.SPI_CPOL              = SPI_CPOL_High,
-		.SPI_CPHA              = SPI_CPHA_2Edge,
-		.SPI_BaudRatePrescaler = SPI_BaudRatePrescaler_32,
+		.SPI_CPOL              = SPI_CPOL_Low,
+		.SPI_CPHA              = SPI_CPHA_1Edge,
+		.SPI_BaudRatePrescaler = SPI_BaudRatePrescaler_8,
 	},
 	.sclk = {
 		.gpio = GPIOB,
