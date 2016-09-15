@@ -90,7 +90,7 @@ package_info:
 
 package_ground_symbols:
 	@echo Gathering GCS debug symbols
-	$(V1)$(PYTHON) "$(ROOT_DIR)/package/package_symbols.py" -d "$(DUMP_SYMBOLS_TOOL)" -p "$(PACKAGE_DIR)" "$(PACKAGE_DIR)/$(GCS_PACKAGE_ROOT)"
+	$(V1)$(PYTHON) "$(ROOT_DIR)/package/package_symbols.py" -m -d "$(DUMP_SYMBOLS_TOOL)" -p "$(PACKAGE_DIR)" "$(PACKAGE_DIR)/$(GCS_PACKAGE_ROOT)"
 
 package_flight_symbols: extract_firmware
 	$(V1)$(RM) -rf "$(PACKAGE_DIR)-symbols/flight"
