@@ -159,7 +159,7 @@ static void program_characters(charosd_state_t state, uint8_t font)
 		}
 	}
 	if (changed) {
-		PIOS_MAX7456_puts(state->dev, MAX7456_COLUMNS + 1,
+		PIOS_MAX7456_puts(state->dev, MAX7456_FMT_H_CENTER,
 				  6, loaded_txt, 0);
 		PIOS_Thread_Sleep(1000);
 	}
@@ -191,8 +191,8 @@ static void splash_screen(charosd_state_t state)
 	SystemAlarmsData alarm;
 	SystemAlarmsGet(&alarm);
 	const char *boot_reason = AlarmBootReason(alarm.RebootCause);
-	PIOS_MAX7456_puts(state->dev, MAX7456_COLUMNS + 1, 4, welcome_msg, 0);
-	PIOS_MAX7456_puts(state->dev, MAX7456_COLUMNS + 1, 6, boot_reason, 0);
+	PIOS_MAX7456_puts(state->dev, MAX7456_FMT_H_CENTER, 4, welcome_msg, 0);
+	PIOS_MAX7456_puts(state->dev, MAX7456_FMT_H_CENTER, 6, boot_reason, 0);
 
 	PIOS_Thread_Sleep(SPLASH_TIME_MS);
 }

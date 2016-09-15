@@ -48,6 +48,9 @@
 #define MAX7456_COLUMNS MAX7456_NTSC_COLUMNS
 #define MAX7456_HCENTER MAX7456_NTSC_HCENTER
 
+// Special formatting values
+#define MAX7456_FMT_H_CENTER 31
+
 typedef struct max7456_dev_s *max7456_dev_t;
 
 void PIOS_MAX7456_wait_vsync ();
