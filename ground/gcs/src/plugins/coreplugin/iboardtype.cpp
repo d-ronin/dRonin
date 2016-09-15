@@ -85,12 +85,17 @@ QString IBoardType::getBoardNameFromID(int id)
 
 int IBoardType::getBankFromOutputChannel(int channel)
 {
-    for (int i = 0; i < channelBanks.count(); i++) {
-        foreach (const qint32 chan, channelBanks.at(i)) {
+    QVector< QVector<int> > cb;
+
+    cb = getChannelBanks();
+
+    for (int i = 0; i < cb.count(); i++) {
+        foreach (const qint32 chan, cb.at(i)) {
             if (chan == channel)
                 return i;
         }
     }
+
     return -1;
 }
 }
