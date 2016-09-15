@@ -485,32 +485,51 @@ void PIOS_Board_Init(void) {
 
 	HwRevolutionData hwRevoMini;
 	HwRevolutionGet(&hwRevoMini);
+	
+	uint8_t hw_spiperiph;
+
+	HwRevolutionSPIPeripheralGet(&hw_spiperiph);
+
+	switch (hw_spiperiph) {
+		default:
+			PIOS_Assert(0);
+			break;
+		case HWREVOLUTION_SPIPERIPHERAL_DISABLED:
 
 #ifdef PIOS_INCLUDE_MAX7456
-	if (!PIOS_MAX7456_init(&pios_max7456_id, pios_spi_telem_flash_id,
-			0)) {
-		// XXX do something?
-	}
+		case HWREVOLUTION_SPIPERIPHERAL_MAX7456OSD:
+			if (!PIOS_MAX7456_init(&pios_max7456_id, pios_spi_telem_flash_id,
+						0)) {
+				// XXX do something?
+			}
+			break;
 #endif
 
 #ifdef PIOS_INCLUDE_RFM22B
-	const struct pios_openlrs_cfg *openlrs_cfg = PIOS_BOARD_HW_DEFS_GetOpenLRSCfg(bdinfo->board_rev);
-	const struct pios_rfm22b_cfg *rfm22b_cfg = PIOS_BOARD_HW_DEFS_GetRfm22Cfg(bdinfo->board_rev);
+		case HWREVOLUTION_SPIPERIPHERAL_RADIO:
+			(void) 0;
+			const struct pios_openlrs_cfg *openlrs_cfg =PIOS_BOARD_HW_DEFS_GetOpenLRSCfg(bdinfo->board_rev);
+			const struct pios_rfm22b_cfg *rfm22b_cfg = PIOS_BOARD_HW_DEFS_GetRfm22Cfg(bdinfo->board_rev);
 
-	PIOS_HAL_ConfigureRFM22B(hwRevoMini.Radio,
-			bdinfo->board_type, bdinfo->board_rev,
-			hwRevoMini.MaxRfPower, hwRevoMini.MaxRfSpeed,
-			hwRevoMini.RfBand,
-			openlrs_cfg, rfm22b_cfg, hwRevoMini.MinChannel,
-			hwRevoMini.MaxChannel, hwRevoMini.CoordID, 1);
+			PIOS_HAL_ConfigureRFM22B(hwRevoMini.Radio,
+					bdinfo->board_type, bdinfo->board_rev,
+					hwRevoMini.MaxRfPower,
+					hwRevoMini.MaxRfSpeed,
+					hwRevoMini.RfBand,
+					openlrs_cfg, rfm22b_cfg,
+					hwRevoMini.MinChannel,
+					hwRevoMini.MaxChannel,
+					hwRevoMini.CoordID, 1);
+			break;
 #endif /* PIOS_INCLUDE_RFM22B */
+	}
 
 	/* init sensor queue registration */
-    PIOS_SENSORS_Init();
+	PIOS_SENSORS_Init();
 
-    PIOS_WDG_Clear();
-    PIOS_DELAY_WaitmS(200);
-    PIOS_WDG_Clear();
+	PIOS_WDG_Clear();
+	PIOS_DELAY_WaitmS(200);
+	PIOS_WDG_Clear();
 
 #if defined(PIOS_INCLUDE_MPU)
 	pios_mpu_dev_t mpu_dev = NULL;
