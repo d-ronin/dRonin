@@ -241,6 +241,8 @@ public:
 
     virtual QStringList getAdcNames() { return QStringList(); }
 
+    int getBankFromOutputChannel(int channel);
+
 signals:
 
 protected:
