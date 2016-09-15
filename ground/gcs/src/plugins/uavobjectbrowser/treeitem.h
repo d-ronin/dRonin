@@ -176,6 +176,8 @@ public:
     }
 
     void setCurrentTime(QTime *currentTime);
+    bool isDefaultValue();
+    void setIsDefaultValue(bool isDefault);
 
 signals:
     void updateHighlight(TreeItem*);
@@ -191,6 +193,7 @@ private:
     bool m_highlight;
     bool m_changed;
     bool m_updated;
+    bool m_defaultValue;
     QTime m_highlightExpires;
     HighLightManager* m_highlightManager;
     static int m_highlightTimeMs;
