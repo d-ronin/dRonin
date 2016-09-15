@@ -152,12 +152,12 @@
                </font>
               </property>
               <property name="text">
-               <string>I2C</string>
+               <string>I2CExtBaro</string>
               </property>
              </widget>
             </item>
             <item>
-             <widget class="QComboBox" name="cmbI2CPort">
+             <widget class="QComboBox" name="cmbI2CExtBaro">
               <property name="font">
                <font>
                 <weight>50</weight>
@@ -191,12 +191,12 @@
                </font>
               </property>
               <property name="text">
-               <string>ExtBaro</string>
+               <string>I2CExtMag</string>
               </property>
              </widget>
             </item>
             <item>
-             <widget class="QComboBox" name="cmbExtBaro">
+             <widget class="QComboBox" name="cmbI2CExtMag">
               <property name="font">
                <font>
                 <weight>50</weight>
@@ -230,12 +230,12 @@
                </font>
               </property>
               <property name="text">
-               <string>ExtMag</string>
+               <string>ExtMagOrientation</string>
               </property>
              </widget>
             </item>
             <item>
-             <widget class="QComboBox" name="cmbExtMag"/>
+             <widget class="QComboBox" name="cmbExtMagOrientation"/>
             </item>
             <item>
              <spacer name="verticalSpacer_8">

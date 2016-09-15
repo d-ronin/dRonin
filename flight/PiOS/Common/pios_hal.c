@@ -230,6 +230,38 @@ uintptr_t pios_com_debug_id;
 #define PIOS_COM_TBSVTXCONFIG_RX_BUF_LEN 32
 #endif
 
+#ifdef PIOS_INCLUDE_HMC5883
+#include "pios_hmc5883_priv.h"
+
+static const struct pios_hmc5883_cfg external_hmc5883_cfg = {
+	.exti_cfg            = NULL,
+	.M_ODR               = PIOS_HMC5883_ODR_75,
+	.Meas_Conf           = PIOS_HMC5883_MEASCONF_NORMAL,
+	.Gain                = PIOS_HMC5883_GAIN_1_9,
+	.Mode                = PIOS_HMC5883_MODE_SINGLE,
+	.Default_Orientation = PIOS_HMC5883_TOP_0DEG,
+};
+#endif
+
+#ifdef PIOS_INCLUDE_BMP280
+#include "pios_bmp280_priv.h"
+
+static const struct pios_bmp280_cfg external_bmp280_cfg = {
+	.oversampling = BMP280_HIGH_RESOLUTION,
+	.temperature_interleaving = 1,
+};
+#endif
+
+#ifdef PIOS_INCLUDE_MS5611
+#include "pios_ms5611_priv.h"
+
+static const struct pios_ms5611_cfg external_ms5611_cfg = {
+	.oversampling             = MS5611_OSR_4096,
+	.temperature_interleaving = 1,
+	.use_0x76_address         = false,
+};
+#endif
+
 /**
  * @brief Flash a blink code.
  * @param[in] led_id The LED to blink
@@ -812,7 +844,7 @@ void PIOS_HAL_ConfigurePort(HwSharedPortTypesOptions port_type,
 			usart_port_params.init.USART_StopBits            = USART_StopBits_1;
 			usart_port_params.init.USART_HardwareFlowControl = USART_HardwareFlowControl_None;
 			usart_port_params.init.USART_Mode                = USART_Mode_Rx;
-			
+
 			PIOS_HAL_ConfigureSRXL(usart_port_cfg, &usart_port_params, com_driver);
 		}
 #endif  /* PIOS_INCLUDE_SRXL */
@@ -1198,4 +1230,144 @@ void PIOS_HAL_ConfigureSerialSpeed(uintptr_t com_id,
 			PIOS_COM_ChangeBaud(com_id, 230400);
 			break;
 	}
+}
+
+#ifdef PIOS_INCLUDE_I2C
+static int PIOS_HAL_ConfigureI2C(uint32_t *id,
+		const struct pios_i2c_adapter_cfg *cfg) {
+	if (!*id) {
+		// Not already initialized.
+		if (PIOS_I2C_Init(id, cfg)) {
+			PIOS_DEBUG_Assert(0);
+			AlarmsSet(SYSTEMALARMS_ALARM_I2C, SYSTEMALARMS_ALARM_CRITICAL);
+
+			return -1;
+		}
+	}
+
+	if (PIOS_I2C_CheckClear(*id) != 0) {
+		AlarmsSet(SYSTEMALARMS_ALARM_I2C, SYSTEMALARMS_ALARM_CRITICAL);
+		return -2;
+	}
+
+	if (AlarmsGet(SYSTEMALARMS_ALARM_I2C) ==
+			SYSTEMALARMS_ALARM_UNINITIALISED) {
+		AlarmsSet(SYSTEMALARMS_ALARM_I2C, SYSTEMALARMS_ALARM_OK);
+	}
+
+	PIOS_WDG_Clear();
+
+	return 0;
+}
+#endif // PIOS_INCLUDE_I2C
+
+int PIOS_HAL_ConfigureExternalBaro(HwSharedExtBaroOptions baro,
+		uint32_t *i2c_id,
+		const struct pios_i2c_adapter_cfg *i2c_cfg)
+{
+#if !defined(PIOS_INCLUDE_I2C)
+	return -1;
+#else
+	if (baro == HWSHARED_EXTBARO_NONE) {
+		return 1;
+	}
+
+	int ret = PIOS_HAL_ConfigureI2C(i2c_id, i2c_cfg);
+
+	if (ret) goto done;
+
+	switch(baro) {
+#if defined(PIOS_INCLUDE_BMP280)
+	case HWSHARED_EXTBARO_BMP280:
+		ret = PIOS_BMP280_Init(&external_bmp280_cfg, *i2c_id) ;
+
+		if (ret) goto done;
+
+		ret = PIOS_BMP280_Test();
+
+		if (ret) goto done;
+
+		break;
+#endif // PIOS_INCLUDE_BMP280
+
+#if defined(PIOS_INCLUDE_MS5611)
+	case HWSHARED_EXTBARO_MS5611:
+		ret = PIOS_MS5611_Init(&external_ms5611_cfg, *i2c_id);
+		if (ret) goto done;
+
+		ret = PIOS_MS5611_Test();
+
+		if (ret) goto done;
+#endif // PIOS_INCLUDE_MS5611
+		
+		break;
+
+	default:
+		PIOS_Assert(0);	// Should be unreachable
+	}
+
+done:
+	if (ret) {
+		PIOS_SENSORS_SetMissing(PIOS_SENSOR_BARO);
+	}
+
+	return ret;
+#endif /* PIOS_INCLUDE_I2C */
+}
+
+int PIOS_HAL_ConfigureExternalMag(HwSharedExtMagOptions mag,
+		HwSharedMagOrientationOptions orientation,
+		uint32_t *i2c_id,
+		const struct pios_i2c_adapter_cfg *i2c_cfg)
+{
+#if !defined(PIOS_INCLUDE_I2C)
+	return -1;
+#else
+	if (mag == HWSHARED_EXTMAG_NONE) {
+		return 1;
+	}
+
+	int ret = PIOS_HAL_ConfigureI2C(i2c_id, i2c_cfg);
+
+	if (ret) goto done;
+
+	switch (mag) {
+#ifdef PIOS_INCLUDE_HMC5883
+	case HWSHARED_EXTMAG_HMC5883:
+		ret = PIOS_HMC5883_Init(*i2c_id,
+				&external_hmc5883_cfg);
+
+		if (ret) goto done;
+
+		ret = PIOS_HMC5883_Test();
+
+		if (ret) goto done;
+
+		// XXX: Lame.  Move driver to HwShared constants.
+		enum pios_hmc5883_orientation hmc5883_orientation = 
+			(orientation == HWSHARED_MAGORIENTATION_TOP0DEGCW)      ? PIOS_HMC5883_TOP_0DEG      : 
+			(orientation == HWSHARED_MAGORIENTATION_TOP90DEGCW)     ? PIOS_HMC5883_TOP_90DEG     : 
+			(orientation == HWSHARED_MAGORIENTATION_TOP180DEGCW)    ? PIOS_HMC5883_TOP_180DEG    : 
+			(orientation == HWSHARED_MAGORIENTATION_TOP270DEGCW)    ? PIOS_HMC5883_TOP_270DEG    : 
+			(orientation == HWSHARED_MAGORIENTATION_BOTTOM0DEGCW)   ? PIOS_HMC5883_BOTTOM_0DEG   : 
+			(orientation == HWSHARED_MAGORIENTATION_BOTTOM90DEGCW)  ? PIOS_HMC5883_BOTTOM_90DEG  : 
+			(orientation == HWSHARED_MAGORIENTATION_BOTTOM180DEGCW) ? PIOS_HMC5883_BOTTOM_180DEG : 
+			(orientation == HWSHARED_MAGORIENTATION_BOTTOM270DEGCW) ? PIOS_HMC5883_BOTTOM_270DEG : 
+			external_hmc5883_cfg.Default_Orientation;
+
+		PIOS_HMC5883_SetOrientation(hmc5883_orientation);
+		break;
+#endif /* PIOS_INCLUDE_HMC5883 */
+
+	default:
+		PIOS_Assert(0);	// Should be unreachable
+	}
+
+done:
+	if (ret) {
+		PIOS_SENSORS_SetMissing(PIOS_SENSOR_MAG);
+	}
+
+	return ret;
+#endif /* PIOS_INCLUDE_I2C */
 }
