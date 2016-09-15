@@ -200,8 +200,6 @@ void PIOS_Board_Init(void) {
     PIOS_TIM_InitClock(&tim_8_cfg);
 
 #ifdef PIOS_INCLUDE_SPI
-    uint32_t pios_spi_external_id;
-
     uint8_t hw_osdport;
 
     HwAQ32OSDPortGet(&hw_osdport);
