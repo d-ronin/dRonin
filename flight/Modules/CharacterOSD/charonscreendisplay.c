@@ -81,16 +81,16 @@
 
 bool module_enabled;
 
-static void panel_draw (charosd_state_t state, uint8_t panel, uint8_t x, uint8_t y)
+static void panel_draw(charosd_state_t state, uint8_t panel, uint8_t x, uint8_t y)
 {
 	if (panel <= CHARONSCREENDISPLAYSETTINGS_PANELTYPE_MAXOPTVAL) {
-		if (panels[panel].update) {
-			panels [panel].update(state, x, y);
+		if (panels[panel].update && panels[panel].available() != NULL) {
+			panels[panel].update(state, x, y);
 		}
 	}
 }
 
-static void screen_draw (charosd_state_t state, CharOnScreenDisplaySettingsData *page)
+static void screen_draw(charosd_state_t state, CharOnScreenDisplaySettingsData *page)
 {
 	PIOS_MAX7456_clear (state->dev);
 

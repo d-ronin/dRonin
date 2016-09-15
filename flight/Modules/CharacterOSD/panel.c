@@ -30,7 +30,7 @@
 
 #include "flightstatus.h"
 #include "systemalarms.h"
-
+#include "modulesettings.h"
 
 /*
  * 012
@@ -474,35 +474,56 @@ static void ALARMS_update(charosd_state_t state, uint8_t x, uint8_t y)
 	PIOS_MAX7456_puts(state->dev, x, y, buffer, 0);
 }
 
-#define declare_panel(__name) [CHARONSCREENDISPLAYSETTINGS_PANELTYPE_ ## __name] = { __name ## _update }
+static void* yes()
+{
+	return yes;
+}
+
+static void* has_gps()
+{
+	return PIOS_Modules_IsEnabled(PIOS_MODULE_GPS) ? has_gps : NULL;
+}
+
+static void* has_battery()
+{
+	ModuleSettingsData module_settings;
+	ModuleSettingsGet(&module_settings);
+
+	return module_settings.AdminState[MODULESETTINGS_ADMINSTATE_BATTERY] ?
+		has_battery : NULL;
+}
+
+#define declare_panel(__name, __pred) [CHARONSCREENDISPLAYSETTINGS_PANELTYPE_ ## __name] = { \
+		__name ## _update, \
+		__pred }
 
 const panel_t panels [CHARONSCREENDISPLAYSETTINGS_PANELTYPE_MAXOPTVAL+1] = {
-	declare_panel(AIRSPEED),
-	declare_panel(ALTITUDE),
-	declare_panel(ARMEDFLAG),
-	declare_panel(BATTERYVOLT),
-	declare_panel(BATTERYCURRENT),
-	declare_panel(BATTERYCONSUMED),
-	declare_panel(CALLSIGN),
-	declare_panel(CLIMB),
+	declare_panel(AIRSPEED, yes),
+	declare_panel(ALTITUDE, yes),
+	declare_panel(ARMEDFLAG, yes),
+	declare_panel(BATTERYVOLT, has_battery),
+	declare_panel(BATTERYCURRENT, has_battery),
+	declare_panel(BATTERYCONSUMED, has_battery),
+	declare_panel(CALLSIGN, yes),
+	declare_panel(CLIMB, yes),
 //	declare_panel(COMPASS),
-	declare_panel(FLIGHTMODE),
-	declare_panel(FLIGHTTIME),
-	declare_panel(GROUNDSPEED),
-	declare_panel(GPS),
+	declare_panel(FLIGHTMODE, yes),
+	declare_panel(FLIGHTTIME, yes),
+	declare_panel(GROUNDSPEED, has_gps),
+	declare_panel(GPS, has_gps),
 //	declare_panel(home_distance),
-	declare_panel(HOMEDIRECTION),
+	declare_panel(HOMEDIRECTION, has_gps),
 //	declare_panel(horizon),
-	declare_panel(LATITUDE),
-	declare_panel(LONGITUDE),
-	declare_panel(PITCH),
-	declare_panel(ROLL),
-	declare_panel(RSSIFLAG),
-	declare_panel(RSSI),
-	declare_panel(TEMPERATURE),
-	declare_panel(THROTTLE),
-	declare_panel(CROSSHAIR),
-	declare_panel(ALARMS),
+	declare_panel(LATITUDE, has_gps),
+	declare_panel(LONGITUDE, has_gps),
+	declare_panel(PITCH, yes),
+	declare_panel(ROLL, yes),
+	declare_panel(RSSIFLAG, yes),
+	declare_panel(RSSI, yes),
+	declare_panel(TEMPERATURE, yes),
+	declare_panel(THROTTLE, yes),
+	declare_panel(CROSSHAIR, yes),
+	declare_panel(ALARMS, yes),
 };
 
 const uint8_t count = sizeof (panels) / sizeof (panel_t);

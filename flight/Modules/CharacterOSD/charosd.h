@@ -39,6 +39,7 @@ typedef void (*update_t) (charosd_state_t state, uint8_t x, uint8_t y);
 typedef struct
 {
 	update_t update;
+	void *(*available)();
 } panel_t;
 
 // panels collection
