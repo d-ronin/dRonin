@@ -302,10 +302,11 @@ bool UAVObjectGeneratorGCS::process_object(ObjectInfo* info)
         QString varElemName = info->fields[n]->name + "ElemNames";
         finit.append( QString("    QStringList %1;\n").arg(varElemName) );
         QStringList elemNames = info->fields[n]->elementNames;
-        for (int m = 0; m < elemNames.length(); ++m)
+        for (int m = 0; m < elemNames.length(); ++m) {
             finit.append( QString("    %1.append(\"%2\");\n")
                           .arg(varElemName)
                           .arg(elemNames[m]) );
+        }
 
         // Only for enum types
         if (info->fields[n]->type == FIELDTYPE_ENUM) {
@@ -343,22 +344,28 @@ bool UAVObjectGeneratorGCS::process_object(ObjectInfo* info)
 
             finit.append("};\n");
 
-            finit.append( QString("    fields.append( new UAVObjectField(QString(\"%1\"), QString(\"%2\"), UAVObjectField::ENUM, %3, %4, %5, QString(\"%6\"), FIELD_DESCRIPTIONS[\"%1\"]));\n")
+            const QString defaultValuesInit = "\"" + info->fields[n]->defaultValues.join("\",\"") + "\"";
+
+            finit.append( QString("    fields.append( new UAVObjectField(QString(\"%1\"), QString(\"%2\"), UAVObjectField::ENUM, %3, %4, %5, QString(\"%6\"), FIELD_DESCRIPTIONS[\"%1\"], QList<QVariant>({%7})));\n")
                           .arg(info->fields[n]->name)
                           .arg(info->fields[n]->units)
                           .arg(varElemName)
                           .arg(info->fields[n]->name + "EnumOptions")
                           .arg(info->fields[n]->name + "EnumIndices")
-                          .arg(info->fields[n]->limitValues));
+                          .arg(info->fields[n]->limitValues)
+                          .arg(defaultValuesInit));
         }
         // For all other types
         else {
-            finit.append( QString("    fields.append( new UAVObjectField(QString(\"%1\"), QString(\"%2\"), UAVObjectField::%3, %4, QStringList(), QList<int>(), QString(\"%5\"), FIELD_DESCRIPTIONS[\"%1\"]));\n")
+            const QString defaultValuesInit = info->fields[n]->defaultValues.join(',');
+
+            finit.append( QString("    fields.append( new UAVObjectField(QString(\"%1\"), QString(\"%2\"), UAVObjectField::%3, %4, QStringList(), QList<int>(), QString(\"%5\"), FIELD_DESCRIPTIONS[\"%1\"], QList<QVariant>({%7})));\n")
                           .arg(info->fields[n]->name)
                           .arg(info->fields[n]->units)
                           .arg(fieldTypeStrCPPClass[info->fields[n]->type])
                           .arg(varElemName)
-                          .arg(info->fields[n]->limitValues));
+                          .arg(info->fields[n]->limitValues)
+                          .arg(defaultValuesInit));
         }
     }
     outCode.replace(QString("$(FIELDSINIT)"), finit);

@@ -3,7 +3,7 @@
  *
  * @file       uavobjectfield.h
  * @author     The OpenPilot Team, http://www.openpilot.org Copyright (C) 2010.
- * @author     dRonin, http://dronin.org Copyright (C) 2015
+ * @author     dRonin, http://dronin.org Copyright (C) 2015-2016
  * @see        The GNU Public License (GPL) Version 3
  * @addtogroup GCSPlugins GCS Plugins
  * @{
@@ -52,8 +52,13 @@ public:
         int board;
     } LimitStruct;
 
-    UAVObjectField(const QString& name, const QString& units, FieldType type, quint32 numElements, const QStringList& options, const QList<int>& indices, const QString& limits=QString(), const QString& description=QString());
-    UAVObjectField(const QString& name, const QString& units, FieldType type, const QStringList& elementNames, const QStringList& options, const QList<int>& indices, const QString& limits=QString(), const QString& description=QString());
+    UAVObjectField(const QString& name, const QString& units, FieldType type, quint32 numElements,
+                   const QStringList& options, const QList<int>& indices, const QString& limits=QString(),
+                   const QString& description=QString(), const QList<QVariant> defaultValues = QList<QVariant>());
+    UAVObjectField(const QString& name, const QString& units, FieldType type,
+                   const QStringList& elementNames, const QStringList& options, const QList<int>& indices,
+                   const QString& limits=QString(), const QString& description=QString(),
+                   const QList<QVariant> defaultValues = QList<QVariant>());
     void initialize(quint8* data, quint32 dataOffset, UAVObject* obj);
     UAVObject* getObject();
     FieldType getType();
@@ -76,6 +81,18 @@ public:
     bool isText();
     QString toString();
     QString getDescription();
+    /**
+     * @brief Get the default value (defined in the UAVO def) for the element
+     * @param index The element to inspect
+     * @return QVariant containing the default value
+     */
+    QVariant getDefaultValue(quint32 index = 0);
+    /**
+     * @brief Check if the element is set to default value
+     * @param index The element to inspect
+     * @return true if set to default
+     */
+    bool isDefaultValue(quint32 index = 0);
 
     bool isWithinLimits(QVariant var, quint32 index, int board=0);
     QVariant getMaxLimit(quint32 index, int board=0);
@@ -97,11 +114,19 @@ protected:
     UAVObject* obj;
     QMap<quint32, QList<LimitStruct> > elementLimits;
     QString description;
+    QList<QVariant> defaultValues;
     void clear();
-    void constructorInitialize(const QString& name, const QString& units, FieldType type, const QStringList& elementNames, const QStringList& options, const QList<int> &indices, const QString &limits, const QString &description);
+    void constructorInitialize(const QString& name, const QString& units, FieldType type, const QStringList& elementNames,
+                               const QStringList& options, const QList<int> &indices, const QString &limits,
+                               const QString &description, const QList<QVariant> defaultValues);
     void limitsInitialize(const QString &limits);
 
 
 };
 
 #endif // UAVOBJECTFIELD_H
+
+/**
+ * @}
+ * @}
+ */
