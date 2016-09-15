@@ -58,6 +58,8 @@ struct max7456_dev_s {
 	uint32_t next_sync_expected;
 };
 
+static bool poll_vsync_spi (max7456_dev_t dev);
+
 /* Max7456 says 100ns period (10MHz) is OK.  But it may be off-board in
  * some circumstances, so let's not push our luck.
  */
@@ -201,7 +203,7 @@ void PIOS_MAX7456_wait_vsync(max7456_dev_t dev)
 		dev->next_sync_expected = now + sync_interval;
 	}
 
-	while (!PIOS_MAX7456_poll_vsync_spi(dev)) {
+	while (!poll_vsync_spi(dev)) {
 		now = PIOS_DELAY_GetuS();
 
 		if (now + 200 > (dev->next_sync_expected + sync_interval)) {
@@ -372,7 +374,7 @@ static inline void set_offset (max7456_dev_t dev, uint8_t col, uint8_t row)
 	write_register(dev, MAX7456_REG_DMAL,(uint8_t) offset);
 }
 
-bool PIOS_MAX7456_poll_vsync_spi (max7456_dev_t dev)
+static bool poll_vsync_spi (max7456_dev_t dev)
 {
 	uint8_t status = read_register_sel(dev, MAX7456_REG_STAT);
 
@@ -393,7 +395,8 @@ void PIOS_MAX7456_put (max7456_dev_t dev,
 	chip_unselect(dev);
 }
 
-void PIOS_MAX7456_open (max7456_dev_t dev, uint8_t col, uint8_t row, uint8_t attr)
+static void PIOS_MAX7456_open (max7456_dev_t dev, uint8_t col, uint8_t row,
+		uint8_t attr)
 {
 	PIOS_Assert(dev->magic == MAX7456_MAGIC);
 
@@ -408,7 +411,7 @@ void PIOS_MAX7456_open (max7456_dev_t dev, uint8_t col, uint8_t row, uint8_t att
 	write_register(dev, MAX7456_REG_DMM, ((attr & 0x07) << 3) | 0x01);
 }
 
-void PIOS_MAX7456_close (max7456_dev_t dev)
+static void PIOS_MAX7456_close (max7456_dev_t dev)
 {
 	PIOS_Assert(dev->magic == MAX7456_MAGIC);
 
