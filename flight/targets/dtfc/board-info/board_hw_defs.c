@@ -78,6 +78,20 @@ static const struct pios_annunc pios_annuncs[] = {
 		},
 		.active_high = false,
 	},
+	[PIOS_ANNUNCIATOR_BUZZER] = {
+		// Bipolar NPN low side, 100R base; 26mA flows, kinda naughty
+		.pin = {
+			.gpio = GPIOB,
+			.init = {
+				.GPIO_Pin   = GPIO_Pin_2,
+				.GPIO_Speed = GPIO_Speed_50MHz,
+				.GPIO_Mode  = GPIO_Mode_OUT,
+				.GPIO_OType = GPIO_OType_PP,
+				.GPIO_PuPd  = GPIO_PuPd_NOPULL
+			},
+		},
+		.active_high = true,
+	},
 };
 
 static const struct pios_annunc_cfg pios_annunc_cfg = {

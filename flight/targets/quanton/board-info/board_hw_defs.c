@@ -36,7 +36,7 @@
 
 #include <pios_annunc_priv.h>
 static const struct pios_annunc pios_annuncs[] = {
-	[PIOS_LED_RED] = {
+	[PIOS_LED_ALARM] = {
 		.pin = {
 			.gpio = GPIOC,
 			.init = {
@@ -50,7 +50,7 @@ static const struct pios_annunc pios_annuncs[] = {
 		.remap = 0,
 		.active_high = false,
 	},
-	[PIOS_LED_BLUE] = {
+	[PIOS_LED_HEARTBEAT] = {
 		.pin = {
 			.gpio = GPIOC,
 			.init = {
@@ -63,6 +63,21 @@ static const struct pios_annunc pios_annuncs[] = {
 		},
 		.remap = 0,
 		.active_high = false,
+	},
+	[PIOS_ANNUNCIATOR_BUZZER] = {
+		// Bipolar NPN low side, 1k base; 2.6mA base; hFE min 200
+		.pin = {
+			.gpio = GPIOA,
+			.init = {
+				.GPIO_Pin   = GPIO_Pin_3,
+				.GPIO_Speed = GPIO_Speed_2MHz,
+				.GPIO_Mode  = GPIO_Mode_OUT,
+				.GPIO_OType = GPIO_OType_PP,
+				.GPIO_PuPd = GPIO_PuPd_DOWN
+			},
+		},
+		.remap = 0,
+		.active_high = true,
 	},
 };
 

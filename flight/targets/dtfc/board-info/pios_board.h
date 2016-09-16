@@ -96,6 +96,7 @@ TIM17 |           |xxxxxxxxxxx|xxxxxxxxxxx|xxxxxxxxxx
 #define PIOS_LED_ALARM					0
 #define PIOS_LED_HEARTBEAT				1
 #define PIOS_LED_USB					2
+#define PIOS_ANNUNCIATOR_BUZZER				3
 
 #define USB_LED_ON						PIOS_ANNUNC_On(PIOS_LED_USB)
 #define USB_LED_OFF						PIOS_ANNUNC_Off(PIOS_LED_USB)

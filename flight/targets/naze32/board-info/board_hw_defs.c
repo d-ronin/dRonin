@@ -64,6 +64,18 @@ static const struct pios_annunc pios_annuncs[] = {
 			},
 		},
 	},
+	[PIOS_ANNUNCIATOR_BUZZER] = {
+		// Low-side NPN, 100R base
+		.pin = {
+			.gpio = GPIOA,
+			.init = {
+				.GPIO_Pin   = GPIO_Pin_12,
+				.GPIO_Mode  = GPIO_Mode_Out_PP,
+				.GPIO_Speed = GPIO_Speed_50MHz,
+			},
+		},
+		.active_high = true,
+	},
 };
 
 static const struct pios_annunc_cfg pios_annunc_cfg = {
