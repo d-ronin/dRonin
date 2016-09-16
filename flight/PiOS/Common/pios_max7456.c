@@ -38,10 +38,6 @@
 #define SYNC_INTERVAL_NTSC 33366
 #define SYNC_INTERVAL_PAL  40000
 
-#define bis(var, bit) (var & BV (bit))
-
-#define BV(bit) (1 << (bit))
-
 ///////////////////////////////////////////////////////////////////////////////
 
 struct max7456_dev_s {
@@ -224,11 +220,11 @@ static void reset_hard(max7456_dev_t dev)
 {
 	dev->next_sync_expected = 0;
 
-	write_register_sel(dev, MAX7456_REG_VM0, BV(1));
+	write_register_sel(dev, MAX7456_REG_VM0, MAX7456_VM0_VBE_MASK);
 
 	PIOS_DELAY_WaituS(100);
 
-	while(read_register_sel(dev, MAX7456_REG_VM0) & BV (1));
+	while(read_register_sel(dev, MAX7456_REG_VM0) & MAX7456_VM0_VBE_MASK);
 
 	// Detect video mode
 	detect_mode(dev);
