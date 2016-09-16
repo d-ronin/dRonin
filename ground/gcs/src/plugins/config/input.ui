@@ -256,7 +256,7 @@
                        <bool>false</bool>
                       </property>
                       <property name="text">
-                       <string>Manual Calibration</string>
+                       <string>Manual Calibration (Not Recommended)</string>
                       </property>
                       <property name="checkable">
                        <bool>true</bool>
