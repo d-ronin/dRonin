@@ -220,17 +220,8 @@ void PIOS_MAX7456_wait_vsync(max7456_dev_t dev)
 	dev->next_sync_expected = now + sync_interval;
 }
 
-int PIOS_MAX7456_init (max7456_dev_t *dev_out,
-		uint32_t spi_handle, uint32_t slave_idx)
+static void reset_hard(max7456_dev_t dev)
 {
-	// Reset
-	max7456_dev_t dev = PIOS_malloc(sizeof(*dev));
-
-	bzero(dev, sizeof(*dev));
-	dev->magic = MAX7456_MAGIC;
-	dev->spi_id = spi_handle;
-	dev->slave_id = slave_idx;
-
 	dev->next_sync_expected = 0;
 
 	write_register_sel(dev, MAX7456_REG_VM0, BV(1));
@@ -262,6 +253,20 @@ int PIOS_MAX7456_init (max7456_dev_t *dev_out,
 	}
 
 	PIOS_MAX7456_clear(dev);
+}
+
+int PIOS_MAX7456_init (max7456_dev_t *dev_out,
+		uint32_t spi_handle, uint32_t slave_idx)
+{
+	// Reset
+	max7456_dev_t dev = PIOS_malloc(sizeof(*dev));
+
+	bzero(dev, sizeof(*dev));
+	dev->magic = MAX7456_MAGIC;
+	dev->spi_id = spi_handle;
+	dev->slave_id = slave_idx;
+
+	reset_hard(dev);
 
 	*dev_out = dev;
 
@@ -487,6 +492,17 @@ int32_t PIOS_MAX7456_reset(max7456_dev_t dev)
 	}
 
 	return 0;
+}
+
+bool PIOS_MAX7456_stall_detect(max7456_dev_t dev)
+{
+	bool rv = false;
+	uint8_t val = read_register_sel(dev, MAX7456_REG_VM0);
+	if ((MAX7456_VM0_OSD_MASK & val) == 0) {
+		reset_hard(dev);
+		rv = true;
+	}
+	return rv;
 }
 
 #endif /* PIOS_INCLUDE_MAX7456 */

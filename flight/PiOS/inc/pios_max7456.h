@@ -130,4 +130,11 @@ void PIOS_MAX7456_get_extents(max7456_dev_t dev,
  */
 void PIOS_MAX7456_wait_vsync(max7456_dev_t dev);
 
+/**
+ * @brief Detects whether the OSD chip has stalled and attempts to restart it.
+ * @param[in] dev The max7456 device handle
+ * @return true if the chip was detected to have stalled
+ */
+bool PIOS_MAX7456_stall_detect(max7456_dev_t dev);
+
 #endif /* LIB_MAX7456_MAX7456_H_ */

@@ -259,6 +259,11 @@ static void CharOnScreenDisplayTask(void *parameters)
 
 		screen_draw(state, &page);
 
+		if (PIOS_MAX7456_stall_detect(state->dev)) {
+			PIOS_MAX7456_puts(state->dev, MAX7456_FMT_H_CENTER, 6, "... STALLED ...", 0);
+			PIOS_Thread_Sleep(10000);
+		}
+
 		PIOS_MAX7456_wait_vsync(state->dev);
 	}
 }
