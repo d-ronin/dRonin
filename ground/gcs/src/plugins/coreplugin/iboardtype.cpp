@@ -11,7 +11,7 @@ QStringList IBoardType::queryChannelBanks()
 {
     QStringList banksStringList = QStringList();
 
-    foreach(QVector<qint32> channelBank, channelBanks) {
+    foreach(QVector<qint32> channelBank, getChannelBanks()) {
         bool sequential = false;
         QString banksString;
 

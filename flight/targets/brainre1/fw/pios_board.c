@@ -428,15 +428,38 @@ void PIOS_Board_Init(void) {
 			NULL);                               // sbus_rcvr_cfg
 
 	/* Multi-function port (pwm, serial, etc) */
-	uint8_t hw_mp;
-	HwBrainRE1MultiPortGet(&hw_mp);
+	uint8_t hw_mp_mode;
+	HwBrainRE1MultiPortModeGet(&hw_mp_mode);
+	uint8_t hw_mp_serial;
+	HwBrainRE1MultiPortSerialGet(&hw_mp_serial);
 
-	switch (hw_mp) {
-		case HWBRAINRE1_MULTIPORT_PWM:
+	/* Configure PWM Outputs */
+#if defined(PIOS_INCLUDE_SERVO) && defined(PIOS_INCLUDE_TIM)
+	switch (hw_mp_mode) {
+		case HWBRAINRE1_MULTIPORTMODE_NORMAL:
+			if (hw_mp_serial == HWBRAINRE1_MULTIPORTSERIAL_PWM) {
+				// all 8 PWM outputs are used
+				PIOS_Servo_Init(&pios_servo_8_cfg);
+			}
+			else {
+				// only 6 PWM outputs are used
+				PIOS_Servo_Init(&pios_servo_6_cfg);
+			}
+			break;
+		case HWBRAINRE1_MULTIPORTMODE_DUALSERIAL4PWM:
+			// only 4 PWM outputs
+			PIOS_Servo_Init(&pios_servo_4_cfg);
+			break;
+	}
+#endif /* defined(PIOS_INCLUDE_SERVO) && defined(PIOS_INCLUDE_TIM) */
+
+	/* MultiPort Serial 1 */
+	switch (hw_mp_serial) {
+		case HWBRAINRE1_MULTIPORTSERIAL_PWM:
 			// for us, this means PWM output, not input
 			break;
 		default:
-			PIOS_HAL_ConfigurePort(hw_mp,                // port type protocol
+			PIOS_HAL_ConfigurePort(hw_mp_serial,         // port type protocol
 					&pios_usart6_cfg,                    // usart_port_cfg
 					&pios_usart_com_driver,              // com_driver
 					NULL,                                // i2c_id
@@ -451,14 +474,14 @@ void PIOS_Board_Init(void) {
 	}
 
 	// Enable / disable RE1 specific hardware inverters and FrSky RSSI support
-	switch (hw_mp) {
-		case HWBRAINRE1_MULTIPORT_FRSKYSENSORHUB:
+	switch (hw_mp_serial) {
+		case HWBRAINRE1_MULTIPORTSERIAL_FRSKYSENSORHUB:
 			PIOS_RE1FPGA_MPTxPinMode(false, true);
 #if defined(PIOS_INCLUDE_FRSKY_RSSI)
 			PIOS_FrSkyRssi_Init(&pios_frsky_rssi_cfg);
 #endif /* PIOS_INCLUDE_FRSKY_RSSI */
 			break;
-		case HWBRAINRE1_MULTIPORT_FRSKYSPORTTELEMETRY:
+		case HWBRAINRE1_MULTIPORTSERIAL_FRSKYSPORTTELEMETRY:
 #if defined(PIOS_INCLUDE_FRSKY_RSSI)
 			PIOS_FrSkyRssi_Init(&pios_frsky_rssi_cfg);
 #endif /* PIOS_INCLUDE_FRSKY_RSSI */
@@ -467,17 +490,22 @@ void PIOS_Board_Init(void) {
 			break;
 	}
 
-	/* Configure PWM Outputs */
-#if defined(PIOS_INCLUDE_SERVO) && defined(PIOS_INCLUDE_TIM)
-	if (hw_mp == HWBRAINRE1_MULTIPORT_PWM) {
-		// all 8 PWM outputs are used
-		PIOS_Servo_Init(&pios_servo_all_cfg);
+	/* MultiPort Serial 2 */
+	if (hw_mp_mode == HWBRAINRE1_MULTIPORTMODE_DUALSERIAL4PWM) {
+		HwBrainRE1MultiPortSerial2Get(&hw_mp_serial);
+
+		PIOS_HAL_ConfigurePort(hw_mp_serial,         // port type protocol
+				&pios_usart4_cfg,                    // usart_port_cfg
+				&pios_usart_com_driver,              // com_driver
+				NULL,                                // i2c_id
+				NULL,                                // i2c_cfg
+				NULL,                                // ppm_cfg
+				NULL,                                // pwm_cfg
+				PIOS_LED_ALARM,                      // led_id
+				NULL,                                // dsm_cfg
+				0,                                   // dsm_mode
+				NULL);                               // sbus_rcvr_cfg
 	}
-	else {
-		// only 6 PWM outputs are used
-		PIOS_Servo_Init(&pios_servo_cfg);
-	}
-#endif /* defined(PIOS_INCLUDE_SERVO) && defined(PIOS_INCLUDE_TIM) */
 
 	PIOS_WDG_Clear();
 	PIOS_DELAY_WaitmS(50);

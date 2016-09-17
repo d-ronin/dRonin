@@ -49,11 +49,14 @@ BrainRE1Configuration::BrainRE1Configuration(QWidget *parent) :
     addUAVObjectToWidgetRelation("HwBrainRE1", "DSMxMode", ui->cmbDSMxMode);
 
     addUAVObjectToWidgetRelation("HwBrainRE1", "SerialPort",ui->cmbSerialPort);
-    addUAVObjectToWidgetRelation("HwBrainRE1", "MultiPort",ui->cmbMultiPort);
 
-	addUAVObjectToWidgetRelation("HwBrainRE1", "I2CExtBaro",ui->cmbI2CExtBaro);
-	addUAVObjectToWidgetRelation("HwBrainRE1", "I2CExtMag",ui->cmbI2CExtMag);
-	addUAVObjectToWidgetRelation("HwBrainRE1", "ExtMagOrientation",ui->cmbExtMagOrientation);
+    addUAVObjectToWidgetRelation("HwBrainRE1", "MultiPortMode",ui->cmbMultiPortMode);
+    addUAVObjectToWidgetRelation("HwBrainRE1", "MultiPortSerial",ui->cmbMultiPortSerial);
+    addUAVObjectToWidgetRelation("HwBrainRE1", "MultiPortSerial2",ui->cmbMultiPortSerial2);
+
+    addUAVObjectToWidgetRelation("HwBrainRE1", "I2CExtBaro",ui->cmbI2CExtBaro);
+    addUAVObjectToWidgetRelation("HwBrainRE1", "I2CExtMag",ui->cmbI2CExtMag);
+    addUAVObjectToWidgetRelation("HwBrainRE1", "ExtMagOrientation",ui->cmbExtMagOrientation);
 
     addUAVObjectToWidgetRelation("HwBrainRE1", "USB_HIDPort", ui->cmbUsbHidPort);
     addUAVObjectToWidgetRelation("HwBrainRE1", "USB_VCPPort", ui->cmbUsbVcpPort);
@@ -88,8 +91,15 @@ BrainRE1Configuration::BrainRE1Configuration(QWidget *parent) :
     // update the color button
     getCustomLedColor();
 
+    QPixmap img;
     img = QPixmap(":/brainfpv/images/brainre1.png");
     ui->imgLabel->setPixmap(img);
+
+    connect(ui->cmbMultiPortMode, SIGNAL(currentIndexChanged(int)), this, SLOT(mpChanged(int)));
+    connect(ui->cmbI2CExtMag, SIGNAL(currentIndexChanged(int)), this, SLOT(extMagChanged(int)));
+
+    mpChanged(re1_settings_obj->getMultiPortMode());
+    extMagChanged(re1_settings_obj->getI2CExtMag());
 }
 
 BrainRE1Configuration::~BrainRE1Configuration()
@@ -152,3 +162,30 @@ void BrainRE1Configuration::setCustomLedColor(const QColor color)
     re1_settings_obj->setCustomLEDColor(2, color.blue());
 }
 
+void BrainRE1Configuration::mpChanged(int idx)
+{
+    QPixmap img;
+    if (idx == HwBrainRE1::MULTIPORTMODE_NORMAL) {
+        img = QPixmap(":/brainfpv/images/re1_mp_normal.png");
+        ui->cmbMultiPortSerial2->setHidden(true);
+        ui->labelMultiPortSerial2->setHidden(true);
+    }
+    else {
+        img = QPixmap(":/brainfpv/images/re1_mp_4pwm.png");
+        ui->cmbMultiPortSerial2->setHidden(false);
+        ui->labelMultiPortSerial2->setHidden(false);
+    }
+    ui->imgLabelMp->setPixmap(img);
+}
+
+void BrainRE1Configuration::extMagChanged(int idx)
+{
+    if (idx == 0) {
+        ui->cmbExtMagOrientation->setHidden(true);
+        ui->labelExtMagOrientation->setHidden(true);
+    }
+    else {
+        ui->cmbExtMagOrientation->setHidden(false);
+        ui->labelExtMagOrientation->setHidden(false);
+    }
+}
