@@ -141,25 +141,25 @@ bool AQ32::setInputType(enum InputType type)
     case INPUT_TYPE_PWM:
         settings.RcvrPort = HwAQ32::RCVRPORT_PWM;
         break;
-	case INPUT_TYPE_HOTTSUMD:
+    case INPUT_TYPE_HOTTSUMD:
         settings.Uart3 = HwAQ32::UART3_HOTTSUMD;
         break;
     case INPUT_TYPE_HOTTSUMH:
         settings.Uart3 = HwAQ32::UART3_HOTTSUMH;
         break;
-	case INPUT_TYPE_SBUS:
+    case INPUT_TYPE_SBUS:
         settings.Uart3 = HwAQ32::UART3_SBUS;
         break;
-	case INPUT_TYPE_SBUSNONINVERTED:
+    case INPUT_TYPE_SBUSNONINVERTED:
         settings.Uart3 = HwAQ32::UART3_SBUSNONINVERTED;
         break;
-	case INPUT_TYPE_IBUS: // Is not selectable yet in the Vehicle Setup Wizard, but if it ends up there, this is already in place.
+    case INPUT_TYPE_IBUS: // Is not selectable yet in the Vehicle Setup Wizard, but if it ends up there, this is already in place.
         settings.Uart3 = HwAQ32::UART3_IBUS;
         break;
     case INPUT_TYPE_DSM:
         settings.Uart4 = HwAQ32::UART4_DSM;
         break;
-	
+    
     default:
         return false;
     }
@@ -187,51 +187,51 @@ enum Core::IBoardType::InputType AQ32::getInputType()
 
     switch(settings.RcvrPort) {
     case HwAQ32::RCVRPORT_PPM:
-		return INPUT_TYPE_PPM;
+        return INPUT_TYPE_PPM;
     case HwAQ32::RCVRPORT_PWM:
         return INPUT_TYPE_PWM;
     default:
         break;
     }
-	
-	switch(settings.Uart3) {
-	case HwAQ32::UART3_HOTTSUMD:
+    
+    switch(settings.Uart3) {
+    case HwAQ32::UART3_HOTTSUMD:
         return INPUT_TYPE_HOTTSUMD;
     case HwAQ32::UART3_HOTTSUMH:
         return INPUT_TYPE_HOTTSUMH;
-	case HwAQ32::UART3_SBUS:
-		return INPUT_TYPE_SBUS;
-	case HwAQ32::UART3_SBUSNONINVERTED:
-		return INPUT_TYPE_SBUSNONINVERTED;	
-	case HwAQ32::UART3_IBUS: // None of the other targets have IBUS in getInputType, but seems to be no problem.
-		return INPUT_TYPE_IBUS;
-	}
+    case HwAQ32::UART3_SBUS:
+        return INPUT_TYPE_SBUS;
+    case HwAQ32::UART3_SBUSNONINVERTED:
+        return INPUT_TYPE_SBUSNONINVERTED;    
+    case HwAQ32::UART3_IBUS: // None of the other targets have IBUS in getInputType, but seems to be no problem.
+        return INPUT_TYPE_IBUS;
+    }
 
     switch(settings.Uart4) {
-	case HwAQ32::UART4_DSM:
+    case HwAQ32::UART4_DSM:
         return INPUT_TYPE_DSM;
-	case HwAQ32::UART4_HOTTSUMD:
+    case HwAQ32::UART4_HOTTSUMD:
         return INPUT_TYPE_HOTTSUMD;
     case HwAQ32::UART4_HOTTSUMH:
         return INPUT_TYPE_HOTTSUMH;
-	case HwAQ32::UART4_SBUSNONINVERTED:
-		return INPUT_TYPE_SBUSNONINVERTED;	
-	case HwAQ32::UART4_IBUS: // None of the other targets have IBUS in getInputType, but seems to be no problem.
-		return INPUT_TYPE_IBUS;
-	}
+    case HwAQ32::UART4_SBUSNONINVERTED:
+        return INPUT_TYPE_SBUSNONINVERTED;    
+    case HwAQ32::UART4_IBUS: // None of the other targets have IBUS in getInputType, but seems to be no problem.
+        return INPUT_TYPE_IBUS;
+    }
 
     switch(settings.Uart6) {
-	case HwAQ32::UART6_DSM:
+    case HwAQ32::UART6_DSM:
         return INPUT_TYPE_DSM;
-	case HwAQ32::UART6_HOTTSUMD:
+    case HwAQ32::UART6_HOTTSUMD:
         return INPUT_TYPE_HOTTSUMD;
     case HwAQ32::UART6_HOTTSUMH:
         return INPUT_TYPE_HOTTSUMH;
-	case HwAQ32::UART6_SBUSNONINVERTED:
-		return INPUT_TYPE_SBUSNONINVERTED;	
-	case HwAQ32::UART6_IBUS: // None of the other targets have IBUS in getInputType, but seems to be no problem.
-		return INPUT_TYPE_IBUS;
-	}
+    case HwAQ32::UART6_SBUSNONINVERTED:
+        return INPUT_TYPE_SBUSNONINVERTED;    
+    case HwAQ32::UART6_IBUS: // None of the other targets have IBUS in getInputType, but seems to be no problem.
+        return INPUT_TYPE_IBUS;
+    }
 
     return INPUT_TYPE_UNKNOWN;
 }
