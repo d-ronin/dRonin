@@ -453,7 +453,6 @@ static void updateWDGstats()
 
 static void updateRfm22bStats() {
 #if defined(PIOS_INCLUDE_RFM22B)
-
 	// Update the RFM22BStatus UAVO
 	RFM22BStatusData rfm22bStatus;
 	RFM22BStatusInstGet(RFM22BSTATUSINST, &rfm22bStatus);
@@ -513,7 +512,6 @@ static uint16_t GetFreeIrqStackSize(void)
 	uint32_t pattern = 0x0000A5A5;
 	uint32_t *ptr = &_irq_stack_end;
 
-#if 1 /* the ugly way accurate but takes more time, useful for debugging */
 	uint32_t stack_size = (((uint32_t)&_irq_stack_top - (uint32_t)&_irq_stack_end) & ~3 ) / 4;
 
 	for (i=0; i< stack_size; i++)
@@ -524,20 +522,6 @@ static uint16_t GetFreeIrqStackSize(void)
 			break;
 		}
 	}
-#else /* faster way but not accurate */
-	if (*(volatile uint32_t *)((uint32_t)ptr + IRQSTACK_LIMIT_CRITICAL) != pattern)
-	{
-		i = IRQSTACK_LIMIT_CRITICAL - 1;
-	}
-	else if (*(volatile uint32_t *)((uint32_t)ptr + IRQSTACK_LIMIT_WARNING) != pattern)
-	{
-		i = IRQSTACK_LIMIT_WARNING - 1;
-	}
-	else
-	{
-		i = IRQSTACK_LIMIT_WARNING;
-	}
-#endif
 #endif
 	return i;
 }
