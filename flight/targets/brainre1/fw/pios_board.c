@@ -103,45 +103,15 @@ static const struct pios_bmi160_cfg pios_bmi160_cfg = {
 };
 #endif /* PIOS_INCLUDE_BMI160 */
 
-#if defined(PIOS_INCLUDE_BMP280)
-#include "pios_bmp280_priv.h"
-static const struct pios_bmp280_cfg pios_bmp280_cfg = {
-	.oversampling = BMP280_HIGH_RESOLUTION,
-	.temperature_interleaving = 1,
-};
-#endif /* PIOS_INCLUDE_BMP280 */
-
-#if defined(PIOS_INCLUDE_MS5611)
-#include "pios_ms5611_priv.h"
-static const struct pios_ms5611_cfg pios_ms5611_cfg = {
-    .oversampling             = MS5611_OSR_4096,
-    .temperature_interleaving = 1,
-    .use_0x76_address         = false,
-};
-#endif /* PIOS_INCLUDE_MS5611 */
-
-#if defined(PIOS_INCLUDE_HMC5883)
-#include "pios_hmc5883_priv.h"
-static const struct pios_hmc5883_cfg pios_hmc5883_external_cfg = {
-       .exti_cfg            = NULL,
-       .M_ODR               = PIOS_HMC5883_ODR_75,
-       .Meas_Conf           = PIOS_HMC5883_MEASCONF_NORMAL,
-       .Gain                = PIOS_HMC5883_GAIN_1_9,
-       .Mode                = PIOS_HMC5883_MODE_SINGLE,
-       .Default_Orientation = PIOS_HMC5883_TOP_0DEG,
-};
-#endif /* PIOS_INCLUDE_HMC5883 */
-
 #if defined(PIOS_INCLUDE_FRSKY_RSSI)
 #include "pios_frsky_rssi_priv.h"
 #endif /* PIOS_INCLUDE_FRSKY_RSSI */
 
 uintptr_t pios_com_logging_id;
 uintptr_t pios_com_openlog_logging_id;
-uintptr_t pios_internal_adc_id = 0;
+uintptr_t pios_internal_adc_id;
 uintptr_t pios_uavo_settings_fs_id;
 uintptr_t pios_waypoints_settings_fs_id;
-
 
 const uint8_t named_color_value[HWBRAINRE1_LEDCOLOR_GLOBAL_MAXOPTVAL + 1][3] = {
 	[HWBRAINRE1_LEDCOLOR_OFF]    = {0,   0,   0},
@@ -155,7 +125,6 @@ const uint8_t named_color_value[HWBRAINRE1_LEDCOLOR_GLOBAL_MAXOPTVAL + 1][3] = {
 	[HWBRAINRE1_LEDCOLOR_BLUE]   = {0,   0,   255},
 	[HWBRAINRE1_LEDCOLOR_PURPLE] = {255, 0,   255},
 };
-
 
 /**
  * settingdUpdatedCb()
@@ -459,15 +428,38 @@ void PIOS_Board_Init(void) {
 			NULL);                               // sbus_rcvr_cfg
 
 	/* Multi-function port (pwm, serial, etc) */
-	uint8_t hw_mp;
-	HwBrainRE1MultiPortGet(&hw_mp);
+	uint8_t hw_mp_mode;
+	HwBrainRE1MultiPortModeGet(&hw_mp_mode);
+	uint8_t hw_mp_serial;
+	HwBrainRE1MultiPortSerialGet(&hw_mp_serial);
 
-	switch (hw_mp) {
-		case HWBRAINRE1_MULTIPORT_PWM:
+	/* Configure PWM Outputs */
+#if defined(PIOS_INCLUDE_SERVO) && defined(PIOS_INCLUDE_TIM)
+	switch (hw_mp_mode) {
+		case HWBRAINRE1_MULTIPORTMODE_NORMAL:
+			if (hw_mp_serial == HWBRAINRE1_MULTIPORTSERIAL_PWM) {
+				// all 8 PWM outputs are used
+				PIOS_Servo_Init(&pios_servo_8_cfg);
+			}
+			else {
+				// only 6 PWM outputs are used
+				PIOS_Servo_Init(&pios_servo_6_cfg);
+			}
+			break;
+		case HWBRAINRE1_MULTIPORTMODE_DUALSERIAL4PWM:
+			// only 4 PWM outputs
+			PIOS_Servo_Init(&pios_servo_4_cfg);
+			break;
+	}
+#endif /* defined(PIOS_INCLUDE_SERVO) && defined(PIOS_INCLUDE_TIM) */
+
+	/* MultiPort Serial 1 */
+	switch (hw_mp_serial) {
+		case HWBRAINRE1_MULTIPORTSERIAL_PWM:
 			// for us, this means PWM output, not input
 			break;
 		default:
-			PIOS_HAL_ConfigurePort(hw_mp,                // port type protocol
+			PIOS_HAL_ConfigurePort(hw_mp_serial,         // port type protocol
 					&pios_usart6_cfg,                    // usart_port_cfg
 					&pios_usart_com_driver,              // com_driver
 					NULL,                                // i2c_id
@@ -482,14 +474,14 @@ void PIOS_Board_Init(void) {
 	}
 
 	// Enable / disable RE1 specific hardware inverters and FrSky RSSI support
-	switch (hw_mp) {
-		case HWBRAINRE1_MULTIPORT_FRSKYSENSORHUB:
+	switch (hw_mp_serial) {
+		case HWBRAINRE1_MULTIPORTSERIAL_FRSKYSENSORHUB:
 			PIOS_RE1FPGA_MPTxPinMode(false, true);
 #if defined(PIOS_INCLUDE_FRSKY_RSSI)
 			PIOS_FrSkyRssi_Init(&pios_frsky_rssi_cfg);
 #endif /* PIOS_INCLUDE_FRSKY_RSSI */
 			break;
-		case HWBRAINRE1_MULTIPORT_FRSKYSPORTTELEMETRY:
+		case HWBRAINRE1_MULTIPORTSERIAL_FRSKYSPORTTELEMETRY:
 #if defined(PIOS_INCLUDE_FRSKY_RSSI)
 			PIOS_FrSkyRssi_Init(&pios_frsky_rssi_cfg);
 #endif /* PIOS_INCLUDE_FRSKY_RSSI */
@@ -498,17 +490,22 @@ void PIOS_Board_Init(void) {
 			break;
 	}
 
-	/* Configure PWM Outputs */
-#if defined(PIOS_INCLUDE_SERVO) && defined(PIOS_INCLUDE_TIM)
-	if (hw_mp == HWBRAINRE1_MULTIPORT_PWM) {
-		// all 8 PWM outputs are used
-		PIOS_Servo_Init(&pios_servo_all_cfg);
+	/* MultiPort Serial 2 */
+	if (hw_mp_mode == HWBRAINRE1_MULTIPORTMODE_DUALSERIAL4PWM) {
+		HwBrainRE1MultiPortSerial2Get(&hw_mp_serial);
+
+		PIOS_HAL_ConfigurePort(hw_mp_serial,         // port type protocol
+				&pios_usart4_cfg,                    // usart_port_cfg
+				&pios_usart_com_driver,              // com_driver
+				NULL,                                // i2c_id
+				NULL,                                // i2c_cfg
+				NULL,                                // ppm_cfg
+				NULL,                                // pwm_cfg
+				PIOS_LED_ALARM,                      // led_id
+				NULL,                                // dsm_cfg
+				0,                                   // dsm_mode
+				NULL);                               // sbus_rcvr_cfg
 	}
-	else {
-		// only 6 PWM outputs are used
-		PIOS_Servo_Init(&pios_servo_cfg);
-	}
-#endif /* defined(PIOS_INCLUDE_SERVO) && defined(PIOS_INCLUDE_TIM) */
 
 	PIOS_WDG_Clear();
 	PIOS_DELAY_WaitmS(50);
@@ -541,93 +538,21 @@ void PIOS_Board_Init(void) {
 #endif /* PIOS_INCLUDE_BMI160 */
 #endif /* PIOS_INCLUDE_SPI */
 
-	uint8_t hw_i2c;
-	HwBrainRE1I2CPortGet(&hw_i2c);
+	uint8_t hw_ext_mag;
+	uint8_t hw_orientation;
 
-	if (hw_i2c != HWBRAINRE1_I2CPORT_DISABLED) {
-#if defined(PIOS_INCLUDE_I2C)
-		if (PIOS_I2C_Init(&pios_i2c_external_id, &pios_i2c_external_cfg)) {
-			PIOS_DEBUG_Assert(0);
-			AlarmsSet(SYSTEMALARMS_ALARM_I2C, SYSTEMALARMS_ALARM_CRITICAL);
-		}
-		if (PIOS_I2C_CheckClear(pios_i2c_external_id) != 0) {
-			AlarmsSet(SYSTEMALARMS_ALARM_I2C, SYSTEMALARMS_ALARM_CRITICAL);
-		}
-
-		if (AlarmsGet(SYSTEMALARMS_ALARM_I2C) == SYSTEMALARMS_ALARM_UNINITIALISED)
-				AlarmsSet(SYSTEMALARMS_ALARM_I2C, SYSTEMALARMS_ALARM_OK);
-#endif // PIOS_INCLUDE_I2C
-	}
-
-	PIOS_WDG_Clear();
+	HwBrainRE1I2CExtMagGet(&hw_ext_mag);
+	HwBrainRE1ExtMagOrientationGet(&hw_orientation);
+	
+	PIOS_HAL_ConfigureExternalMag(hw_ext_mag, hw_orientation,
+			&pios_i2c_external_id, &pios_i2c_external_cfg);
 
 	uint8_t hw_ext_baro;
-	HwBrainRE1ExtBaroGet(&hw_ext_baro);
 
-	if (((hw_i2c == HWBRAINRE1_I2CPORT_EXTBARO) || (hw_i2c == HWBRAINRE1_I2CPORT_EXTBAROANDEXTMAG)) &&
-	    (hw_ext_baro == HWBRAINRE1_EXTBARO_BMP280)) {
-#if defined(PIOS_INCLUDE_I2C)
-#if defined(PIOS_INCLUDE_BMP280)
-		if (PIOS_BMP280_Init(&pios_bmp280_cfg, pios_i2c_external_id) == 0) {
-			if (PIOS_BMP280_Test() != 0) {
-				PIOS_SENSORS_SetMissing(PIOS_SENSOR_BARO);
-			}
-		}
-		else {
-			PIOS_SENSORS_SetMissing(PIOS_SENSOR_BARO);
-		}
-#endif // PIOS_INCLUDE_BMP280
-#endif // PIOS_INCLUDE_I2C
-	}
+	HwBrainRE1I2CExtBaroGet(&hw_ext_baro);
 
-	if (((hw_i2c == HWBRAINRE1_I2CPORT_EXTBARO) || (hw_i2c == HWBRAINRE1_I2CPORT_EXTBAROANDEXTMAG)) &&
-	    (hw_ext_baro == HWBRAINRE1_EXTBARO_MS5611)) {
-#if defined(PIOS_INCLUDE_I2C)
-#if defined(PIOS_INCLUDE_MS5611)
-		if (PIOS_MS5611_Init(&pios_ms5611_cfg, pios_i2c_external_id) == 0) {
-			if (PIOS_MS5611_Test() != 0) {
-				PIOS_SENSORS_SetMissing(PIOS_SENSOR_BARO);
-			}
-		}
-		else {
-			PIOS_SENSORS_SetMissing(PIOS_SENSOR_BARO);
-		}
-#endif // PIOS_INCLUDE_MS5611
-#endif // PIOS_INCLUDE_I2C
-	}
-
-	if ((hw_i2c == HWBRAINRE1_I2CPORT_EXTMAG) || (hw_i2c == HWBRAINRE1_I2CPORT_EXTBAROANDEXTMAG)) {
-#if defined(PIOS_INCLUDE_I2C)
-#if defined(PIOS_INCLUDE_HMC5883)
-		if (PIOS_HMC5883_Init(pios_i2c_external_id, &pios_hmc5883_external_cfg) == 0) {
-			if (PIOS_HMC5883_Test() == 0) {
-				// External mag configuration was successful
-
-				// setup sensor orientation
-				uint8_t ext_mag;
-				HwBrainRE1ExtMagGet(&ext_mag);
-
-				enum pios_hmc5883_orientation hmc5883_orientation = \
-					(ext_mag == HWBRAINRE1_EXTMAG_TOP0DEGCW)      ? PIOS_HMC5883_TOP_0DEG      : \
-					(ext_mag == HWBRAINRE1_EXTMAG_TOP90DEGCW)     ? PIOS_HMC5883_TOP_90DEG     : \
-					(ext_mag == HWBRAINRE1_EXTMAG_TOP180DEGCW)    ? PIOS_HMC5883_TOP_180DEG    : \
-					(ext_mag == HWBRAINRE1_EXTMAG_TOP270DEGCW)    ? PIOS_HMC5883_TOP_270DEG    : \
-					(ext_mag == HWBRAINRE1_EXTMAG_BOTTOM0DEGCW)   ? PIOS_HMC5883_BOTTOM_0DEG   : \
-					(ext_mag == HWBRAINRE1_EXTMAG_BOTTOM90DEGCW)  ? PIOS_HMC5883_BOTTOM_90DEG  : \
-					(ext_mag == HWBRAINRE1_EXTMAG_BOTTOM180DEGCW) ? PIOS_HMC5883_BOTTOM_180DEG : \
-					(ext_mag == HWBRAINRE1_EXTMAG_BOTTOM270DEGCW) ? PIOS_HMC5883_BOTTOM_270DEG : \
-					pios_hmc5883_external_cfg.Default_Orientation;
-				PIOS_HMC5883_SetOrientation(hmc5883_orientation);
-			}
-			else
-				PIOS_SENSORS_SetMissing(PIOS_SENSOR_MAG);
-		}
-		else
-			PIOS_SENSORS_SetMissing(PIOS_SENSOR_MAG);
-
-#endif  // PIOS_INCLUDE_HMC5883
-#endif  // PIOS_INCLUDE_I2C
-	}
+	PIOS_HAL_ConfigureExternalBaro(hw_ext_baro,
+			&pios_i2c_external_id, &pios_i2c_external_cfg);
 
 	/* Set voltage/current calibration values, if the current settings are UAVO defaults.*/
 	FlightBatterySettingsInitialize();

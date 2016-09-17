@@ -248,8 +248,6 @@ static void actuator_task(void* parameters)
 	bool rc = false;
 
 	while (1) {
-		bool clipped = false;
-
 		if (actuator_settings_updated) {
 			actuator_settings_updated = false;
 			ActuatorSettingsGet(&actuatorSettings);
@@ -386,20 +384,14 @@ static void actuator_task(void* parameters)
 		if ((max_chan - min_chan) > 1.0f) {
 			gain = 1.0f / (max_chan - min_chan);
 
-			clipped = true;
-
 			max_chan *= gain;
 			min_chan *= gain;
 		}
 
 		/* Sacrifice throttle because of clipping */
 		if (max_chan > 1.0f) {
-			clipped = true;
-
 			offset = 1.0f - max_chan;
 		} else if (min_chan < 0.0f) {
-			clipped = true;
-
 			/* Low-side clip management-- how much power are we
 			 * willing to add??? */
 
@@ -480,8 +472,6 @@ static void actuator_task(void* parameters)
 			command.NumFailedUpdates++;
 			ActuatorCommandSet(&command);
 			AlarmsSet(SYSTEMALARMS_ALARM_ACTUATOR, SYSTEMALARMS_ALARM_CRITICAL);
-		} else if (stabilize_now && clipped) {
-			AlarmsSet(SYSTEMALARMS_ALARM_ACTUATOR, SYSTEMALARMS_ALARM_WARNING);
 		} else {
 			AlarmsClear(SYSTEMALARMS_ALARM_ACTUATOR);
 		}

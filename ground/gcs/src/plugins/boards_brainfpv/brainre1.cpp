@@ -48,13 +48,6 @@ BrainRE1::BrainRE1(void)
     setUSBInfo(board);
 
     boardType = 0x8B;
-
-    // Define the bank of channels that are connected to a given timer
-    channelBanks.resize(4);
-    channelBanks[0] = QVector<int> () << 1 << 2 << 3 << 4; // TIM5
-    channelBanks[1] = QVector<int> () << 5; // TIM1
-    channelBanks[2] = QVector<int> () << 6; // TIM2
-    channelBanks[3] = QVector<int> () << 7 << 8; // TIM8
 }
 
 BrainRE1::~BrainRE1()
@@ -210,4 +203,27 @@ QWidget * BrainRE1::getBoardConfiguration(QWidget *parent, bool connected)
 {
 	Q_UNUSED(connected);
 	return new BrainRE1Configuration(parent);
+}
+
+QVector< QVector<int> > BrainRE1::getChannelBanks() {
+    QVector< QVector<int> > banks;
+
+    ExtensionSystem::PluginManager *pm = ExtensionSystem::PluginManager::instance();
+    UAVObjectManager *uavoManager = pm->getObject<UAVObjectManager>();
+    HwBrainRE1 *hwBrainRE1 = HwBrainRE1::GetInstance(uavoManager);
+    if (!hwBrainRE1 || (hwBrainRE1->getMultiPortMode() == 0)) {
+        banks.resize(4);
+        banks[0] = QVector<int> () << 1 << 2 << 3 << 4; // TIM5
+        banks[1] = QVector<int> () << 5; // TIM1
+        banks[2] = QVector<int> () << 6; // TIM2
+        banks[3] = QVector<int> () << 7 << 8; // TIM8
+    }
+    else {
+        banks.resize(3);
+        banks[0] = QVector<int> () << 1 << 2; // TIM5
+        banks[1] = QVector<int> () << 3; // TIM1
+        banks[2] = QVector<int> () << 4; // TIM2
+    }
+
+    return banks;
 }

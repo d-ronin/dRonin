@@ -3,17 +3,17 @@
 	<description>Selection of optional hardware configurations.</description>
 
 	<field name="RxPort" units="function" type="enum" elements="1" parent="HwShared.PortTypes" defaultvalue="Disabled">
-	<options>
-		<option>Disabled</option>
-		<option>PPM</option>
-		<option>S.Bus</option>
-		<option>S.Bus Non Inverted</option>
-		<option>DSM</option>
-		<option>HoTT SUMD</option>
-		<option>HoTT SUMH</option>
-		<option>SRXL</option>
-		<option>IBus</option>
-	</options>
+		<options>
+			<option>Disabled</option>
+			<option>PPM</option>
+			<option>S.Bus</option>
+			<option>S.Bus Non Inverted</option>
+			<option>DSM</option>
+			<option>HoTT SUMD</option>
+			<option>HoTT SUMH</option>
+			<option>SRXL</option>
+			<option>IBus</option>
+		</options>
 	</field>
 
 	<field name="SerialPort" units="function" type="enum" elements="1" parent="HwShared.PortTypes" defaultvalue="Disabled">
@@ -34,7 +34,14 @@
 		</options>
 	</field>
 
-	<field name="MultiPort" units="function" type="enum" elements="1" parent="HwShared.PortTypes" defaultvalue="Disabled">
+	<field name="MultiPortMode" units="function" type="enum" elements="1" defaultvalue="Normal">
+		<options>
+			<option>Normal</option>
+			<option>Dual serial 4 PWM</option>
+		</options>
+	</field>
+
+	<field name="MultiPortSerial" units="function" type="enum" elements="1" parent="HwShared.PortTypes" defaultvalue="Disabled">
 		<options>
 			<option>Disabled</option>
 			<option>PWM</option>
@@ -54,17 +61,29 @@
 		</options>
 	</field>
 
-	<field name="I2CPort" units="function" type="enum" elements="1" defaultvalue="Disabled">
+	<field name="MultiPortSerial2" units="function" type="enum" elements="1" parent="HwShared.PortTypes" defaultvalue="Disabled">
 		<options>
 			<option>Disabled</option>
-			<option>ExtBaro</option>
-			<option>ExtMag</option>
-			<option>ExtBaroAndExtMag</option>
+			<option>Telemetry</option>
+			<option>GPS</option>
+			<option>DebugConsole</option>
+			<option>ComBridge</option>
+			<option>OpenLog</option>
+			<option>MSP</option>
+			<option>Storm32Bgc</option>
+			<option>HoTT Telemetry</option>
+			<option>LighttelemetryTx</option>
+			<option>MavLinkTX</option>
+			<option>MavLinkTX_GPS_RX</option>
+			<option>VTX Config TBS SmartAudio</option>
 		</options>
 	</field>
 
-	<field name="ExtBaro" units="function" type="enum" elements="1" options="BMP280,MS5611" defaultvalue="BMP280" />
-	<field name="ExtMag" units="function" type="enum" elements="1" parent="HwShared.MagOrientation" defaultvalue="Top0degCW" />
+	<field name="I2CExtBaro" units="function" type="enum" elements="1" parent="HwShared.ExtBaro" defaultvalue="None"/>
+
+	<field name="I2CExtMag" units="function" type="enum" elements="1" parent="HwShared.ExtMag" defaultvalue="None"/>
+
+	<field name="ExtMagOrientation" units="function" type="enum" elements="1" parent="HwShared.MagOrientation" defaultvalue="Top0degCW" />
 
 	<field name="DSMxMode" units="mode" type="enum" elements="1" parent="HwShared.DSMxMode" defaultvalue="Autodetect"/>
 
