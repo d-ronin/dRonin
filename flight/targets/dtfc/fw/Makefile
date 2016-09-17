@@ -118,6 +118,7 @@ SRC += $(FLIGHTLIB)/taskmonitor.c
 SRC += $(FLIGHTLIB)/sanitycheck.c
 SRC += $(FLIGHTLIB)/frsky_packing.c
 SRC += $(FLIGHTLIB)/circqueue.c
+SRC += $(FLIGHTLIB)/morsel.c
 SRC += $(FLIGHTLIB)/timeutils.c
 
 SRC += $(MATHLIB)/coordinate_conversions.c

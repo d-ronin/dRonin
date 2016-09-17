@@ -87,6 +87,7 @@ endif
 SRC += $(MATHLIB)/misc_math.c
 
 SRC += $(FLIGHTLIB)/circqueue.c
+SRC += $(FLIGHTLIB)/morsel.c
 SRC += $(FLIGHTLIB)/taskmonitor.c
 
 ## PIOS Hardware (STM32F4xx)

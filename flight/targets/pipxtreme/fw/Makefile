@@ -173,6 +173,7 @@ SRC += $(FLIGHTLIB)/rscode/berlekamp.c
 SRC += $(FLIGHTLIB)/rscode/galois.c
 SRC += $(FLIGHTLIB)/frsky_packing.c
 SRC += $(FLIGHTLIB)/circqueue.c
+SRC += $(FLIGHTLIB)/morsel.c
 SRC += $(MATHLIB)/misc_math.c
 
 ## CMSIS for STM32

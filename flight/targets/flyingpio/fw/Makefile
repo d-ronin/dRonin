@@ -100,6 +100,7 @@ SRC += pios_sbus.c
 SRC += pios_srxl.c
 
 SRC += $(FLIGHTLIB)/circqueue.c
+SRC += $(FLIGHTLIB)/morsel.c
 
 #SRC += $(MATHLIB)/coordinate_conversions.c
 #SRC += $(MATHLIB)/misc_math.c
