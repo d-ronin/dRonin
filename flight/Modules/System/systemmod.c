@@ -48,6 +48,7 @@
 #include "pios_mutex.h"
 #include "pios_queue.h"
 #include "misc_math.h"
+#include "morsel.h"
 
 //#define DEBUG_THIS_FILE
 
@@ -249,33 +250,77 @@ static void systemTask(void *parameters)
 	}
 }
 
-#if defined(PIOS_INCLUDE_ANNUNC) && defined(PIOS_LED_ALARM)
+#if defined(PIOS_INCLUDE_ANNUNC)
 /**
- * Indicate there are conditions worth an error LED
+ * Indicate there are conditions worth an error indication
  */
-static inline bool indicateError()
+static inline uint8_t indicate_error(const char **sequence)
 {
 	SystemAlarmsData alarms;
 	SystemAlarmsGet(&alarms);
 
+	*sequence = NULL;
+
+	uint8_t worst_sev = 0;
+
+	bool generic = false;
+
 	for (uint32_t i = 0; i < SYSTEMALARMS_ALARM_NUMELEM; i++) {
-		switch(i) {
-			case SYSTEMALARMS_ALARM_TELEMETRY:
-				// Suppress most alarms from telemetry. The user can identify if present
-				// from GCS.
-				if (alarms.Alarm[i] >= SYSTEMALARMS_ALARM_CRITICAL) {
-					return true;
-				}
+		// If this is less severe than the current alarm, continue.
+		if (alarms.Alarm[i] < worst_sev) {
+			continue;
+		}
+
+		// If there's a tie and the previous answer is not the
+		// 'generic' alarm, continue.
+		if ((!generic) && (alarms.Alarm[i] == worst_sev)) {
+			continue;
+		}
+
+		uint8_t thresh = SYSTEMALARMS_ALARM_WARNING;
+
+		if (i == SYSTEMALARMS_ALARM_TELEMETRY) {
+			// Suppress most alarms from telemetry.
+			// The user can identify if present from GCS.
+			thresh = SYSTEMALARMS_ALARM_CRITICAL;
+		}
+
+		if (alarms.Alarm[i] < thresh) {
+			continue;
+		}
+
+		// OK, we have a candidate alarm.
+
+		worst_sev = alarms.Alarm[i];
+		generic = false;
+
+		switch (i) {
+			case SYSTEMALARMS_ALARM_BATTERY:
+				// -...    b for battery
+				*sequence = "b ";
+				break;
+			case SYSTEMALARMS_ALARM_SYSTEMCONFIGURATION:
+				// -.-.    c for configuration
+				*sequence = "c ";
+				break;
+			case SYSTEMALARMS_ALARM_GPS:
+				// --.     g for GPS
+				*sequence = "g ";
+				break;
+			case SYSTEMALARMS_ALARM_MANUALCONTROL:
+				// .-.     r for radio
+				*sequence = "r ";
 				break;
 			default:
-				// Warning deserves an error by default
-				if (alarms.Alarm[i] >= SYSTEMALARMS_ALARM_WARNING) {
-					return true;
-				}
+				// .-      a for alarm
+				*sequence = "a ";
+
+				generic = true;
+				break;
 		}
 	}
 
-	return false;
+	return worst_sev;
 }
 #endif
 
@@ -312,32 +357,59 @@ static void systemPeriodicCb(UAVObjEvent *ev, void *ctx, void *obj_data, int len
 	TaskMonitorUpdateAll();
 #endif
 
+#if defined(PIOS_INCLUDE_ANNUNC)
+	// Figure out what we should be doing.
 
-#if defined(PIOS_INCLUDE_ANNUNC) && defined(PIOS_LED_HEARTBEAT)
-	// Flash the heartbeat LED
+	static const char *blink_string = NULL;
+	static uint32_t blink_state = 0;
+	static uint8_t blink_prio = 0;
+
+	// Evaluate all our possible annunciator sources.  
+
+	// The most important: indicate_error / alarms
+
+	const char *candidate_blink;
+	uint8_t candidate_prio;
+
+	candidate_prio = indicate_error(&candidate_blink);
+
+	if (candidate_prio > blink_prio) {
+		// Preempt!
+		blink_state = 0;
+		blink_string = candidate_blink;
+		blink_prio = candidate_prio;
+	}
 
 	FlightStatusData flightStatus;
 	FlightStatusGet(&flightStatus);
 
-	/* Quadruple heartbeat blink rate when armed */
-	unsigned int mask = flightStatus.Armed == FLIGHTSTATUS_ARMED_ARMED ?
-		1 : 7;
-
-	if (!(counter & mask)) {
-		PIOS_ANNUNC_Toggle(PIOS_LED_HEARTBEAT);
-		DEBUG_MSG("+ 0x%08x\r\n", 0xDEADBEEF);
+	if ((blink_prio == 0) && (blink_state == 0)) {
+		// Nothing else to do-- show armed status
+		if (flightStatus.Armed == FLIGHTSTATUS_ARMED_ARMED) {
+			blink_string = "I";	// .. pairs of blinks.
+		} else {
+			blink_string = "T";	// - single long blinks
+		}
 	}
 
-#if defined(PIOS_INCLUDE_ANNUNC) && defined(PIOS_LED_ALARM)
-	// Turn on the error LED if an alarm is set
-	if (indicateError()) {
-		PIOS_ANNUNC_On(PIOS_LED_ALARM);
+	int morse = morse_send(&blink_string, &blink_state);
+
+	if (morse < 0) {
+		// This means we were told "completed"
+		blink_string = NULL;
+		blink_prio = 0;
+	}
+
+	// XXX select targets for annunciation based on priority, config,
+	// and past armed state.
+#ifdef PIOS_LED_HEARTBEAT
+	if (morse < 1) {
+		PIOS_ANNUNC_Off(PIOS_LED_HEARTBEAT);
 	} else {
-		PIOS_ANNUNC_Off(PIOS_LED_ALARM);
+		PIOS_ANNUNC_On(PIOS_LED_HEARTBEAT);
 	}
-#endif	/* PIOS_LED_ALARM */
-
 #endif	/* PIOS_LED_HEARTBEAT */
+#endif  /* PIOS_INCLUDE_ANNUNC */
 
 #endif /* PIPXTREME */
 }
