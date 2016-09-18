@@ -1,4 +1,5 @@
-/* Copyright 2013 Google Inc.
+/* Copyright 2011-2013 Google Inc.
+ * Copyright 2013 mike wakerly <opensource@hoho.com>
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -15,7 +16,7 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301,
  * USA.
  *
- * Project home page: http://code.google.com/p/usb-serial-for-android/
+ * Project home page: https://github.com/mik3y/usb-serial-for-android
  */
 
 package com.hoho.android.usbserial.driver;
@@ -30,13 +31,16 @@ import java.io.IOException;
  *
  * @author mike wakerly (opensource@hoho.com)
  */
-abstract class CommonUsbSerialDriver implements UsbSerialDriver {
+abstract class CommonUsbSerialPort implements UsbSerialPort {
 
     public static final int DEFAULT_READ_BUFFER_SIZE = 16 * 1024;
     public static final int DEFAULT_WRITE_BUFFER_SIZE = 16 * 1024;
 
     protected final UsbDevice mDevice;
-    protected final UsbDeviceConnection mConnection;
+    protected final int mPortNumber;
+
+    // non-null when open()
+    protected UsbDeviceConnection mConnection = null;
 
     protected final Object mReadBufferLock = new Object();
     protected final Object mWriteBufferLock = new Object();
@@ -47,12 +51,19 @@ abstract class CommonUsbSerialDriver implements UsbSerialDriver {
     /** Internal write buffer.  Guarded by {@link #mWriteBufferLock}. */
     protected byte[] mWriteBuffer;
 
-    public CommonUsbSerialDriver(UsbDevice device, UsbDeviceConnection connection) {
+    public CommonUsbSerialPort(UsbDevice device, int portNumber) {
         mDevice = device;
-        mConnection = connection;
+        mPortNumber = portNumber;
 
         mReadBuffer = new byte[DEFAULT_READ_BUFFER_SIZE];
         mWriteBuffer = new byte[DEFAULT_WRITE_BUFFER_SIZE];
+    }
+    
+    @Override
+    public String toString() {
+        return String.format("<%s device_name=%s device_id=%s port_number=%s>",
+                getClass().getSimpleName(), mDevice.getDeviceName(),
+                mDevice.getDeviceId(), mPortNumber);
     }
 
     /**
@@ -62,6 +73,20 @@ abstract class CommonUsbSerialDriver implements UsbSerialDriver {
      */
     public final UsbDevice getDevice() {
         return mDevice;
+    }
+
+    @Override
+    public int getPortNumber() {
+        return mPortNumber;
+    }
+    
+    /**
+     * Returns the device serial number
+     *  @return serial number
+     */
+    @Override
+    public String getSerial() {
+        return mConnection.getSerial();
     }
 
     /**
@@ -95,7 +120,7 @@ abstract class CommonUsbSerialDriver implements UsbSerialDriver {
     }
 
     @Override
-    public abstract void open() throws IOException;
+    public abstract void open(UsbDeviceConnection connection) throws IOException;
 
     @Override
     public abstract void close() throws IOException;
@@ -105,10 +130,6 @@ abstract class CommonUsbSerialDriver implements UsbSerialDriver {
 
     @Override
     public abstract int write(final byte[] src, final int timeoutMillis) throws IOException;
-
-    @Override
-    @Deprecated
-    public abstract int setBaudRate(final int baudRate) throws IOException;
 
     @Override
     public abstract void setParameters(
@@ -137,5 +158,10 @@ abstract class CommonUsbSerialDriver implements UsbSerialDriver {
 
     @Override
     public abstract void setRTS(boolean value) throws IOException;
+
+    @Override
+    public boolean purgeHwBuffers(boolean flushReadBuffers, boolean flushWriteBuffers) throws IOException {
+        return !flushReadBuffers && !flushWriteBuffers;
+    }
 
 }
