@@ -1,0 +1,25 @@
+<xml>
+	<object name="AnnunciatorSettings" singleinstance="true" settings="true">
+		<description>Settings for alarm annunciation (LEDs, buzzer)</description>
+		<field name="AnnunciateAfterArming" units="" type="enum" parent="SharedDefs.AlarmLevels" defaultvalue="HairOnFire,HairOnFire,Warning">
+			<elementnames>
+				<elementname>LED_Heartbeat</elementname>
+				<elementname>LED_Alarm</elementname>
+				<elementname>Buzzer</elementname>
+			</elementnames>
+		</field>
+
+		<field name="AnnunciateAnytime" units="" type="enum" parent="SharedDefs.AlarmLevels" defaultvalue="OK,Warning,Critical">
+			<elementnames>
+				<elementname>LED_Heartbeat</elementname>
+				<elementname>LED_Alarm</elementname>
+				<elementname>Buzzer</elementname>
+			</elementnames>
+		</field>
+
+		<access gcs="readwrite" flight="readwrite"/>
+		<telemetrygcs acked="true" updatemode="onchange" period="0"/>
+		<telemetryflight acked="true" updatemode="onchange" period="0"/>
+		<logging updatemode="manual" period="0"/>
+	</object>
+</xml>
