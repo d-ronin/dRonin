@@ -33,6 +33,7 @@
 			<elementname>UAVORelay</elementname>
 			<elementname>VibrationAnalysis</elementname>
 			<elementname>Battery</elementname>
+			<elementname>Buzzer</elementname>
 			<elementname>UAVOHoTTBridge</elementname>
 			<elementname>UAVOFrSKYSensorHubBridge</elementname>
 			<elementname>PicoC</elementname>
@@ -79,6 +80,7 @@
 			<elementname>UAVORelay</elementname>
 			<elementname>VibrationAnalysis</elementname>
 			<elementname>Battery</elementname>
+			<elementname>Buzzer</elementname>
 			<elementname>UAVOHoTTBridge</elementname>
 			<elementname>UAVOFrSKYSensorHubBridge</elementname>
 			<elementname>PicoC</elementname>
@@ -129,6 +131,7 @@
 			<elementname>UAVORelay</elementname>
 			<elementname>VibrationAnalysis</elementname>
 			<elementname>Battery</elementname>
+			<elementname>Buzzer</elementname>
 			<elementname>UAVOHoTTBridge</elementname>
 			<elementname>UAVOFrSKYSensorHubBridge</elementname>
 			<elementname>PicoC</elementname>

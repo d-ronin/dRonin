@@ -1,0 +1,26 @@
+<xml>
+	<object name="FlightBuzzerSettings" singleinstance="true" settings="true">
+		<description>Flight Buzzer configuration.</description>
+
+		<field name="BuzzerPin" units="" type="uint8" elements="1"  defaultvalue="1"/>
+
+		<field name="AcessoryChan" units="" type="uint8" elements="1"  defaultvalue="0"/>
+		
+		<field name="Alarms" units="" type="enum" options="WasArmed,On,Off" defaultvalue="Off">
+			<elementnames>
+				<elementname>Failsafe</elementname>
+				<elementname>Accessory</elementname>
+				<elementname>Arming</elementname>
+				<elementname>Flightmode</elementname>
+				<elementname>BatWar</elementname>
+				<elementname>GpsWar</elementname>
+			</elementnames>
+		</field>
+
+
+		<access gcs="readwrite" flight="readwrite"/>
+		<telemetrygcs acked="true" updatemode="onchange" period="0"/>
+		<telemetryflight acked="true" updatemode="onchange" period="0"/>
+		<logging updatemode="manual" period="0"/>
+	</object>
+</xml>

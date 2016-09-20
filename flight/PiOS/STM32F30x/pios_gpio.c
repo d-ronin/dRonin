@@ -90,7 +90,7 @@ void PIOS_GPIO_Off(uint8_t Pin)
 */
 void PIOS_GPIO_Toggle(uint8_t Pin)
 {
-	GPIO_ToggleBits(GPIO_PORT[Pin], GPIO_PIN[Pin]);
+	//GPIO_ToggleBits(GPIO_PORT[Pin], GPIO_PIN[Pin]); Does not exist in StdPeriph_Driver
 }
 
 /**
