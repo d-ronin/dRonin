@@ -88,4 +88,7 @@ void PIOS_Servo_Update(void)
 	}
 }
 
+void PIOS_Servo_PrepareForReset() {
+}
+
 #endif
