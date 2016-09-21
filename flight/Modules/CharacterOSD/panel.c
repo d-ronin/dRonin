@@ -256,10 +256,6 @@ STD_PANEL (LATITUDE, 11, "\x83%02.6f", (double)state->telemetry.gps_position.Lat
 /* Lon */
 STD_PANEL (LONGITUDE, 11, "\x84%02.6f", (double)state->telemetry.gps_position.Longitude / 10000000.0);
 
-#if 0
-namespace horizon
-{
-
 #define PANEL_HORIZON_WIDTH 14
 #define PANEL_HORIZON_HEIGHT 5
 
@@ -272,53 +268,42 @@ namespace horizon
 #define _PAN_HORZ_LINES (PANEL_HORIZON_HEIGHT * _PAN_HORZ_VRES)
 #define _PAN_HORZ_TOTAL_LINES (PANEL_HORIZON_HEIGHT * _PAN_HORZ_CHAR_LINES)
 
-	PANEL_NAME ("Horizon");
+const char _horz_line [PANEL_HORIZON_WIDTH + 1]   = "\xb8            \xb9";
+const char _horz_center [PANEL_HORIZON_WIDTH + 1] = "\xc8            \xc9";
+static double deg2rad(double deg) {
+	return deg * 0.017453293;
+}
 
-	const char _line [PANEL_HORIZON_WIDTH + 1]   = "\xb8            \xb9";
-	const char _center [PANEL_HORIZON_WIDTH + 1] = "\xc8            \xc9";
+void HORIZON_update(charosd_state_t state, uint8_t x, uint8_t y)
+{
 	char buffer [PANEL_HORIZON_HEIGHT][PANEL_HORIZON_WIDTH + 1];
 
-	float __attribute__ ((noinline)) deg2rad (float deg)
-	{
-		return deg * 0.017453293;
+	for (uint8_t i = 0; i < PANEL_HORIZON_HEIGHT; i ++) {
+		memcpy(buffer[i], i == PANEL_HORIZON_HEIGHT / 2 ? _horz_center : _horz_line, PANEL_HORIZON_WIDTH);
+		buffer[i][PANEL_HORIZON_WIDTH] = 0;
 	}
 
-	void update ()
-	{
-		for (uint8_t i = 0; i < PANEL_HORIZON_HEIGHT; i ++)
-		{
-			memcpy_P (buffer [i], i == PANEL_HORIZON_HEIGHT / 2 ? _center : _line, PANEL_HORIZON_WIDTH);
-			buffer [i][PANEL_HORIZON_WIDTH] = 0;
-		}
-
-		// code below from minoposd
-		int16_t pitch_line = tan (deg2rad (/*XXX:telemetry::attitude::pitch*/ 0)) * _PAN_HORZ_LINES;
-		float roll = tan (deg2rad (/*XXX:telemetry::attitude::roll*/ 0));
-		for (uint8_t col = 1; col <= _PAN_HORZ_INT_WIDTH; col ++)
-		{
-			// center X point at middle of each column
-			float middle = col * _PAN_HORZ_INT_WIDTH - (_PAN_HORZ_INT_WIDTH * _PAN_HORZ_INT_WIDTH / 2) - _PAN_HORZ_INT_WIDTH / 2;
-			// calculating hit point on Y plus offset to eliminate negative values
-			int16_t hit = roll * middle + pitch_line + _PAN_HORZ_LINES;
-			if (hit > 0 && hit < _PAN_HORZ_TOTAL_LINES)
-			{
-				int8_t row = PANEL_HORIZON_HEIGHT - ((hit - 1) / _PAN_HORZ_CHAR_LINES);
-				int8_t subval = (hit - (_PAN_HORZ_TOTAL_LINES - row * _PAN_HORZ_CHAR_LINES + 1)) * _PAN_HORZ_VRES / _PAN_HORZ_CHAR_LINES;
-				if (subval == _PAN_HORZ_VRES - 1)
-					buffer [row - 2][col] = _PAN_HORZ_TOP;
-				buffer [row - 1][col] = _PAN_HORZ_LINE + subval;
-			}
+	// code below from minoposd
+	int16_t pitch_line = tan(deg2rad(-state->telemetry.actual.pitch)) * _PAN_HORZ_LINES;
+	float roll = tan(deg2rad(state->telemetry.actual.roll));
+	for (uint8_t col = 1; col <= _PAN_HORZ_INT_WIDTH; col ++) {
+		// center X point at middle of each column
+		float middle = col * _PAN_HORZ_INT_WIDTH - (_PAN_HORZ_INT_WIDTH * _PAN_HORZ_INT_WIDTH / 2) - _PAN_HORZ_INT_WIDTH / 2;
+		// calculating hit point on Y plus offset to eliminate negative values
+		int16_t hit = roll * middle + pitch_line + _PAN_HORZ_LINES;
+		if (hit > 0 && hit < _PAN_HORZ_TOTAL_LINES) {
+			int8_t row = PANEL_HORIZON_HEIGHT - ((hit - 1) / _PAN_HORZ_CHAR_LINES);
+			int8_t subval = (hit - (_PAN_HORZ_TOTAL_LINES - row * _PAN_HORZ_CHAR_LINES + 1)) * _PAN_HORZ_VRES / _PAN_HORZ_CHAR_LINES;
+			if (subval == _PAN_HORZ_VRES - 1)
+				buffer [row - 2][col] = _PAN_HORZ_TOP;
+			buffer[row - 1][col] = _PAN_HORZ_LINE + subval;
 		}
 	}
 
-	void draw (uint8_t x, uint8_t y)
-	{
-		for (uint8_t i = 0; i < PANEL_HORIZON_HEIGHT; i ++)
-			PIOS_MAX7456_puts (state->dev, x, y + i, buffer [i]);
+	for (uint8_t i = 0; i < PANEL_HORIZON_HEIGHT; i ++) {
+		PIOS_MAX7456_puts(state->dev, x, y + i, buffer[i], 0);
 	}
-
-}  // namespace horizon
-#endif
+}
 
 /* Throttle */
 STD_PANEL (THROTTLE, 7, "\x87%d%%", (int)MAX(0, state->telemetry.manual.throttle*100));
@@ -494,7 +479,7 @@ const panel_t panels [CHARONSCREENDISPLAYSETTINGS_PANELTYPE_MAXOPTVAL+1] = {
 	declare_panel(GPS, HAS_GPS),
 //	declare_panel(home_distance, HAS_NAV),
 	declare_panel(HOMEDIRECTION, HAS_NAV),
-//	declare_panel(horizon, 0),
+	declare_panel(HORIZON, 0),
 	declare_panel(LATITUDE, HAS_GPS),
 	declare_panel(LONGITUDE, HAS_GPS),
 	declare_panel(PITCH, 0),
