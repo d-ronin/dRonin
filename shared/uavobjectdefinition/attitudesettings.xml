@@ -10,7 +10,7 @@
         <field name="MagKi" units="channel" type="float" elements="1" defaultvalue="0.0001">
             <description>Magnetometer integral gain for the attitude filter.</description>
         </field>
-        <field name="AccelKp" units="channel" type="float" elements="1" defaultvalue="0.05">
+        <field name="AccelKp" units="channel" type="float" elements="1" defaultvalue="0.033">
             <description>Accelerometer proportional gain for the attitude filter.</description>
         </field>
         <field name="AccelKi" units="channel" type="float" elements="1" defaultvalue="0.0001">
