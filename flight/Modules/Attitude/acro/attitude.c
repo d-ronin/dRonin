@@ -93,7 +93,6 @@ static float accelKi = 0;
 static float accelKp = 0;
 static float accel_alpha = 0;
 static bool accel_filter_enabled = false;
-static float yawBiasRate = 0;
 static const float IDG_GYRO_GAIN = 0.42;
 static float q[4] = {1,0,0,0};
 static float Rsb[3][3]; // Rotation matrix which transforms from the body frame to the sensor board frame
@@ -199,7 +198,6 @@ static void AttitudeTask(void *parameters)
 			// For first 7 seconds use accels to get gyro bias
 			accelKp = 0.1f + 0.1f * (PIOS_Thread_Systime() < 4000);
 			accelKi = 0.1;
-			yawBiasRate = 0.1;
 			accel_filter_enabled = false;
 
 		} else if (zero_during_arming && 
@@ -214,7 +212,6 @@ static void AttitudeTask(void *parameters)
 			arming_count++;
 
 			accelKi = 0.1f;
-			yawBiasRate = 0.1f;
 			accel_filter_enabled = false;
 
 			// Indicate arming so that after arming it reloads
@@ -231,7 +228,6 @@ static void AttitudeTask(void *parameters)
 			// Reload settings (all the rates)
 			AttitudeSettingsAccelKiGet(&accelKi);
 			AttitudeSettingsAccelKpGet(&accelKp);
-			AttitudeSettingsYawBiasRateGet(&yawBiasRate);
 			if(accel_alpha > 0.0f)
 				accel_filter_enabled = true;
 
@@ -384,10 +380,6 @@ static void update_gyros(struct pios_sensor_gyro_data *gyros, GyrosData * gyrosD
 		gyrosData->y -= gyro_correct_int[1];
 		gyrosData->z -= gyro_correct_int[2];
 	}
-
-	// Because most crafts wont get enough information from gravity to zero yaw gyro, we try
-	// and make it average zero (weakly)
-	gyro_correct_int[2] += gyrosData->z * yawBiasRate;
 
 	gyrosData->temperature = gyros->temperature;
 }
@@ -614,7 +606,6 @@ static void settingsUpdatedCb(UAVObjEvent * objEv, void *ctx, void *obj, int len
 	
 	accelKp = attitudeSettings.AccelKp;
 	accelKi = attitudeSettings.AccelKi;
-	yawBiasRate = attitudeSettings.YawBiasRate;
 
 	// Calculate accel filter alpha, in the same way as for gyro data in stabilization module.
 	const float fakeDt = 0.0025f;

@@ -23,9 +23,6 @@
 		<field name="VertPositionTau" units="" type="float" elements="1" defaultvalue="2">
 			<description/>
 		</field>
-		<field name="YawBiasRate" units="channel" type="float" elements="1" defaultvalue="0.000001">
-			<description/>
-		</field>
 		<field name="ZeroDuringArming" units="channel" type="enum" elements="1" options="FALSE,TRUE" defaultvalue="TRUE">
 			<description>Zero the attitude estimate during arming when enabled.</description>
 		</field>
