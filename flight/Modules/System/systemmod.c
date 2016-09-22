@@ -680,6 +680,7 @@ static void updateStats()
 		else
 			stats.CPULoad = 100 - roundf(100.0f * idleFraction);
 	} //else: TickCount has wrapped, do not calc now
+
 	lastTickCount = now;
 	idleCounterClear = 1;
 
@@ -723,6 +724,11 @@ static void updateSystemAlarms()
 	}
 
 	// Check CPU load
+#ifdef SIM_POSIX
+	// XXX do something meaningful here in the future.
+	// Right now CPU monitoring on simulator is worthless.
+	AlarmsClear(SYSTEMALARMS_ALARM_CPUOVERLOAD);
+#else
 	if (stats.CPULoad > CPULOAD_LIMIT_CRITICAL) {
 		AlarmsSet(SYSTEMALARMS_ALARM_CPUOVERLOAD, SYSTEMALARMS_ALARM_CRITICAL);
 	} else if (stats.CPULoad > CPULOAD_LIMIT_WARNING) {
@@ -730,6 +736,7 @@ static void updateSystemAlarms()
 	} else {
 		AlarmsClear(SYSTEMALARMS_ALARM_CPUOVERLOAD);
 	}
+#endif
 
 	// Check for event errors
 	UAVObjGetStats(&objStats);
