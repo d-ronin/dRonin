@@ -33,16 +33,7 @@
 #include "openpilot.h"
 #include "systemmod.h"
 #include "sanitycheck.h"
-#include "objectpersistence.h"
-#include "flightstatus.h"
-#include "manualcontrolsettings.h"
-#include "rfm22bstatus.h"
-#include "stabilizationsettings.h"
-#include "stateestimation.h"
-#include "systemstats.h"
-#include "systemsettings.h"
 #include "taskinfo.h"
-#include "watchdogstatus.h"
 #include "taskmonitor.h"
 #include "pios_thread.h"
 #include "pios_mutex.h"
@@ -50,7 +41,16 @@
 #include "misc_math.h"
 #include "morsel.h"
 
-//#define DEBUG_THIS_FILE
+#include "annunciatorsettings.h"
+#include "flightstatus.h"
+#include "manualcontrolsettings.h"
+#include "objectpersistence.h"
+#include "rfm22bstatus.h"
+#include "stabilizationsettings.h"
+#include "stateestimation.h"
+#include "systemsettings.h"
+#include "systemstats.h"
+#include "watchdogstatus.h"
 
 #if defined(PIOS_INCLUDE_DEBUG_CONSOLE) && defined(DEBUG_THIS_FILE)
 #define DEBUG_MSG(format, ...) PIOS_COM_SendFormattedString(PIOS_COM_DEBUG, format, ## __VA_ARGS__)
@@ -72,11 +72,9 @@
 
 #define TASK_PRIORITY PIOS_THREAD_PRIO_NORMAL
 
-/* Generates an armed LED blink of 4.4Hz, close to the previous 5, and is
- * a nice prime number to not generate as nasty beat frequencies as other
- * choices */
-
-/* When we're blinking morse code, this works out to 10.6 WPM */
+/* When we're blinking morse code, this works out to 10.6 WPM.  It's also
+ * nice and relatively prime to most other rates of things, so we don't get
+ * bad beat frequencies. */
 #define SYSTEM_UPDATE_PERIOD_MS 113
 
 // Private types
@@ -167,11 +165,11 @@ int32_t SystemModInitialize(void)
 		return -1;
 
 	// Must registers objects here for system thread because ObjectManager started in OpenPilotInit
-	if (SystemSettingsInitialize() == -1 \
-			|| SystemStatsInitialize() == -1 \
-			|| FlightStatusInitialize() == -1 \
-			|| ObjectPersistenceInitialize() == -1) {
-
+	if (SystemSettingsInitialize() == -1
+			|| SystemStatsInitialize() == -1
+			|| FlightStatusInitialize() == -1
+			|| ObjectPersistenceInitialize() == -1
+			|| AnnunciatorSettingsInitialize() == -1) {
 		return -1;
 	}
 #if defined(DIAG_TASKS)
@@ -324,6 +322,37 @@ static inline uint8_t indicate_error(const char **sequence)
 }
 #endif
 
+DONT_BUILD_IF(ANNUNCIATORSETTINGS_ANNUNCIATEAFTERARMING_NUMELEM !=
+	ANNUNCIATORSETTINGS_ANNUNCIATEANYTIME_NUMELEM,
+	AnnuncSettingsMismatch1);
+DONT_BUILD_IF(ANNUNCIATORSETTINGS_ANNUNCIATEAFTERARMING_MAXOPTVAL !=
+	ANNUNCIATORSETTINGS_ANNUNCIATEANYTIME_MAXOPTVAL,
+	AnnuncSettingsMismatch2);
+
+#if defined(PIOS_INCLUDE_ANNUNC)
+static inline void consider_annunc(AnnunciatorSettingsData *annunciatorSettings,
+		bool is_active, bool been_armed,
+		uint8_t blink_prio, uint32_t annunc_id,
+		uint8_t cfg_field) {
+	PIOS_Assert(cfg_field <
+			ANNUNCIATORSETTINGS_ANNUNCIATEAFTERARMING_NUMELEM);
+
+	uint8_t thresh = 0xff;
+
+	if (been_armed) {
+		thresh = annunciatorSettings->AnnunciateAfterArming[cfg_field];
+	}
+
+	thresh = MIN(thresh, annunciatorSettings->AnnunciateAnytime[cfg_field]);
+
+	if ((blink_prio >= thresh) && is_active) {
+		PIOS_ANNUNC_On(annunc_id);
+	} else {
+		PIOS_ANNUNC_Off(annunc_id);
+	}
+}
+#endif
+
 static void systemPeriodicCb(UAVObjEvent *ev, void *ctx, void *obj_data, int len) {
 	(void) ev; (void) ctx; (void) obj_data; (void) len;
 
@@ -363,8 +392,9 @@ static void systemPeriodicCb(UAVObjEvent *ev, void *ctx, void *obj_data, int len
 	static const char *blink_string = NULL;
 	static uint32_t blink_state = 0;
 	static uint8_t blink_prio = 0;
+	static bool ever_armed = false;
 
-	// Evaluate all our possible annunciator sources.  
+	// Evaluate all our possible annunciator sources. 
 
 	// The most important: indicate_error / alarms
 
@@ -383,6 +413,10 @@ static void systemPeriodicCb(UAVObjEvent *ev, void *ctx, void *obj_data, int len
 	FlightStatusData flightStatus;
 	FlightStatusGet(&flightStatus);
 
+	if (flightStatus.Armed == FLIGHTSTATUS_ARMED_ARMED) {
+		ever_armed = true;
+	}
+
 	if ((blink_prio == 0) && (blink_state == 0)) {
 		// Nothing else to do-- show armed status
 		if (flightStatus.Armed == FLIGHTSTATUS_ARMED_ARMED) {
@@ -390,6 +424,8 @@ static void systemPeriodicCb(UAVObjEvent *ev, void *ctx, void *obj_data, int len
 		} else {
 			blink_string = "T";	// - single long blinks
 		}
+
+		blink_prio = SHAREDDEFS_ALARMLEVELS_OK;
 	}
 
 	int morse = morse_send(&blink_string, &blink_state);
@@ -400,15 +436,27 @@ static void systemPeriodicCb(UAVObjEvent *ev, void *ctx, void *obj_data, int len
 		blink_prio = 0;
 	}
 
-	// XXX select targets for annunciation based on priority, config,
-	// and past armed state.
+	AnnunciatorSettingsData annunciatorSettings;
+	AnnunciatorSettingsGet(&annunciatorSettings);
+
 #ifdef PIOS_LED_HEARTBEAT
-	if (morse < 1) {
-		PIOS_ANNUNC_Off(PIOS_LED_HEARTBEAT);
-	} else {
-		PIOS_ANNUNC_On(PIOS_LED_HEARTBEAT);
-	}
-#endif	/* PIOS_LED_HEARTBEAT */
+	consider_annunc(&annunciatorSettings, morse > 0, ever_armed,
+			blink_prio, PIOS_LED_HEARTBEAT,
+			ANNUNCIATORSETTINGS_ANNUNCIATEANYTIME_LED_HEARTBEAT);
+#endif
+
+#ifdef PIOS_LED_ALARM
+	consider_annunc(&annunciatorSettings, morse > 0, ever_armed,
+			blink_prio, PIOS_LED_ALARM,
+			ANNUNCIATORSETTINGS_ANNUNCIATEANYTIME_LED_ALARM);
+#endif
+
+#ifdef PIOS_ANNUNCIATOR_BUZZER
+	consider_annunc(&annunciatorSettings, morse > 0, ever_armed,
+			blink_prio, PIOS_ANNUNCIATOR_BUZZER,
+			ANNUNCIATORSETTINGS_ANNUNCIATEANYTIME_BUZZER);
+#endif
+
 #endif  /* PIOS_INCLUDE_ANNUNC */
 
 #endif /* PIPXTREME */
@@ -505,7 +553,7 @@ static void configurationUpdatedCb(UAVObjEvent * ev, void *ctx, void *obj, int l
  */
 #if defined(WDG_STATS_DIAGNOSTICS)
 static WatchdogStatusData watchdogStatus;
-static void updateWDGstats() 
+static void updateWDGstats()
 {
 	// Only update if something has changed
 	if (watchdogStatus.ActiveFlags != PIOS_WDG_GetActiveFlags() ||
