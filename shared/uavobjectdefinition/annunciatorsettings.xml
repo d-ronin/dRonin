@@ -1,7 +1,7 @@
 <xml>
 	<object name="AnnunciatorSettings" singleinstance="true" settings="true">
 		<description>Settings for alarm annunciation (LEDs, buzzer)</description>
-		<field name="AnnunciateAfterArming" units="" type="enum" parent="SharedDefs.AlarmLevels" defaultvalue="HairOnFire,HairOnFire,Warning">
+		<field name="AnnunciateAfterArming" units="" type="enum" parent="SharedDefs.AlarmLevels" defaultvalue="HairOnFire,HairOnFire,ManualControlOnly">
 			<elementnames>
 				<elementname>LED_Heartbeat</elementname>
 				<elementname>LED_Alarm</elementname>
@@ -9,7 +9,7 @@
 			</elementnames>
 		</field>
 
-		<field name="AnnunciateAnytime" units="" type="enum" parent="SharedDefs.AlarmLevels" defaultvalue="OK,Warning,Critical">
+		<field name="AnnunciateAnytime" units="" type="enum" parent="SharedDefs.AlarmLevels" defaultvalue="OK,Warning,HairOnFire">
 			<elementnames>
 				<elementname>LED_Heartbeat</elementname>
 				<elementname>LED_Alarm</elementname>
