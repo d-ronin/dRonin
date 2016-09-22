@@ -249,6 +249,9 @@ static void systemTask(void *parameters)
 }
 
 #if defined(PIOS_INCLUDE_ANNUNC)
+
+#define BLINK_STRING_RADIO "r "
+
 /**
  * Indicate there are conditions worth an error indication
  */
@@ -307,7 +310,7 @@ static inline uint8_t indicate_error(const char **sequence)
 				break;
 			case SYSTEMALARMS_ALARM_MANUALCONTROL:
 				// .-.     r for radio
-				*sequence = "r ";
+				*sequence = BLINK_STRING_RADIO;
 				break;
 			default:
 				// .-      a for alarm
@@ -331,21 +334,31 @@ DONT_BUILD_IF(ANNUNCIATORSETTINGS_ANNUNCIATEAFTERARMING_MAXOPTVAL !=
 
 #if defined(PIOS_INCLUDE_ANNUNC)
 static inline void consider_annunc(AnnunciatorSettingsData *annunciatorSettings,
-		bool is_active, bool been_armed,
+		bool is_active, bool been_armed, bool is_manual_control,
 		uint8_t blink_prio, uint32_t annunc_id,
 		uint8_t cfg_field) {
 	PIOS_Assert(cfg_field <
 			ANNUNCIATORSETTINGS_ANNUNCIATEAFTERARMING_NUMELEM);
 
-	uint8_t thresh = 0xff;
+	bool prio_sufficient = false;
 
-	if (been_armed) {
-		thresh = annunciatorSettings->AnnunciateAfterArming[cfg_field];
+	if (is_active && been_armed) {
+		if (blink_prio >= annunciatorSettings->AnnunciateAfterArming[cfg_field]) {
+			prio_sufficient = true;
+		} else if (is_manual_control && annunciatorSettings->AnnunciateAfterArming[cfg_field] == ANNUNCIATORSETTINGS_ANNUNCIATEAFTERARMING_MANUALCONTROLONLY) {
+			prio_sufficient = true;
+		}
 	}
 
-	thresh = MIN(thresh, annunciatorSettings->AnnunciateAnytime[cfg_field]);
+	if (is_active && (!prio_sufficient)) {
+		if (blink_prio >= annunciatorSettings->AnnunciateAnytime[cfg_field]) {
+			prio_sufficient = true;
+		} else if (is_manual_control && annunciatorSettings->AnnunciateAnytime[cfg_field] == ANNUNCIATORSETTINGS_ANNUNCIATEANYTIME_MANUALCONTROLONLY) {
+			prio_sufficient = true;
+		}
+	}
 
-	if ((blink_prio >= thresh) && is_active) {
+	if (prio_sufficient && is_active) {
 		PIOS_ANNUNC_On(annunc_id);
 	} else {
 		PIOS_ANNUNC_Off(annunc_id);
@@ -393,6 +406,7 @@ static void systemPeriodicCb(UAVObjEvent *ev, void *ctx, void *obj_data, int len
 	static uint32_t blink_state = 0;
 	static uint8_t blink_prio = 0;
 	static bool ever_armed = false;
+	static bool is_manual_control = false;
 
 	// Evaluate all our possible annunciator sources. 
 
@@ -408,6 +422,14 @@ static void systemPeriodicCb(UAVObjEvent *ev, void *ctx, void *obj_data, int len
 		blink_state = 0;
 		blink_string = candidate_blink;
 		blink_prio = candidate_prio;
+
+		if (blink_string &&
+				!strcmp(blink_string, BLINK_STRING_RADIO)) {
+			// XXX do this in a more robust way */
+			is_manual_control = true;
+		} else {
+			is_manual_control = false;
+		}
 	}
 
 	FlightStatusData flightStatus;
@@ -434,6 +456,8 @@ static void systemPeriodicCb(UAVObjEvent *ev, void *ctx, void *obj_data, int len
 		// This means we were told "completed"
 		blink_string = NULL;
 		blink_prio = 0;
+
+		is_manual_control = false;
 	}
 
 	AnnunciatorSettingsData annunciatorSettings;
@@ -441,18 +465,21 @@ static void systemPeriodicCb(UAVObjEvent *ev, void *ctx, void *obj_data, int len
 
 #ifdef PIOS_LED_HEARTBEAT
 	consider_annunc(&annunciatorSettings, morse > 0, ever_armed,
+			is_manual_control,
 			blink_prio, PIOS_LED_HEARTBEAT,
 			ANNUNCIATORSETTINGS_ANNUNCIATEANYTIME_LED_HEARTBEAT);
 #endif
 
 #ifdef PIOS_LED_ALARM
 	consider_annunc(&annunciatorSettings, morse > 0, ever_armed,
+			is_manual_control,
 			blink_prio, PIOS_LED_ALARM,
 			ANNUNCIATORSETTINGS_ANNUNCIATEANYTIME_LED_ALARM);
 #endif
 
 #ifdef PIOS_ANNUNCIATOR_BUZZER
 	consider_annunc(&annunciatorSettings, morse > 0, ever_armed,
+			is_manual_control,
 			blink_prio, PIOS_ANNUNCIATOR_BUZZER,
 			ANNUNCIATORSETTINGS_ANNUNCIATEANYTIME_BUZZER);
 #endif
