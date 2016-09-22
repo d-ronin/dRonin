@@ -75,7 +75,7 @@ static const struct pios_annunc pios_annuncs[] = {
 				.GPIO_PuPd = GPIO_PuPd_NOPULL
 			},
 		},
-		.active_high = false,
+		.active_high = true,
 	},
 };
 
