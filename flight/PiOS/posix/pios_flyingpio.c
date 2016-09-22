@@ -294,7 +294,7 @@ static void PIOS_FLYINGPIO_ActuatorUpdate()
 		}
 	}
 
-	cmd->led_status = PIOS_LED_GetStatus(PIOS_LED_HEARTBEAT);
+	cmd->led_status = PIOS_ANNUNC_GetStatus(PIOS_LED_HEARTBEAT);
 
 	if (PIOS_FLYINGPIO_SendCmd(&tx_buf)) {
 		// If there's a sequence mismatch, reconfig.
