@@ -209,8 +209,9 @@ static void update_telemetry(charosd_state_t state)
 	if (HAS_SENSOR(state->available, HAS_RSSI)) {
 		ManualControlCommandRssiGet(&state->telemetry.manual.rssi);
 	}
-	if (HAS_SENSOR(state->available, HAS_ALT)) {
-		VelocityActualDownGet(&state->telemetry.actual.velocity_down);
+	if (HAS_SENSOR(state->available, HAS_ALT)
+	    || HAS_SENSOR(state->available, HAS_GPS)) {
+		VelocityActualGet(&state->telemetry.velocity_actual);
 	}
 }
 

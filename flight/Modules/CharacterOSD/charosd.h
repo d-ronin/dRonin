@@ -6,12 +6,14 @@
 
 #include "gpsposition.h"
 #include "flightbatterystate.h"
+#include "velocityactual.h"
 
 typedef struct {
 	FlightBatteryStateData battery;
 	struct {
-		float roll, pitch, down, velocity_down;
+		float roll, pitch, down;
 	} actual;
+	VelocityActualData velocity_actual;
 	GPSPositionData gps_position;
 	struct {
 		int16_t rssi;

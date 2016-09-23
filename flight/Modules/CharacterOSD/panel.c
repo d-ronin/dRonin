@@ -32,6 +32,10 @@
 #include "systemalarms.h"
 #include "modulesettings.h"
 
+static inline double pythag(float a, float b) {
+	return sqrt((double)a * (double)a + (double)b * (double)b);
+}
+
 /*
  * 012
  * 3 7
@@ -116,7 +120,7 @@ STD_PANEL (ALTITUDE, 8, "\x85%d\x8d", (int16_t) round (-state->telemetry.actual.
 
 static void CLIMB_update (charosd_state_t state, uint8_t x, uint8_t y)
 {
-	int8_t c = round(state->telemetry.actual.velocity_down * -10);
+	int8_t c = round(state->telemetry.velocity_actual.Down * -10);
 	uint8_t s;
 	char buffer[8];
 
@@ -127,7 +131,7 @@ static void CLIMB_update (charosd_state_t state, uint8_t x, uint8_t y)
 	else if (c <= -10) s = _PAN_CLIMB_SYMB + 1;
 	else s = _PAN_CLIMB_SYMB;
 	snprintf (buffer, sizeof (buffer), "%c%.1f\x8c", s,
-		  -(double)state->telemetry.actual.velocity_down);
+		  -(double)state->telemetry.velocity_actual.Down);
 	terminate_buffer ();
 	PIOS_MAX7456_puts (state->dev, x, y, buffer, 0);
 }
@@ -307,18 +311,20 @@ void HORIZON_update(charosd_state_t state, uint8_t x, uint8_t y)
 }
 
 /* Throttle */
-STD_PANEL (THROTTLE, 7, "\x87%d%%", (int)MAX(0, state->telemetry.manual.throttle*100));
+STD_PANEL(THROTTLE, 7, "\x87%d%%", (int)MAX(0, state->telemetry.manual.throttle*100));
 
 /* GroundSpeed */
-STD_PANEL (GROUNDSPEED, 7, "\x80%d\x81", (int16_t) (/*XXX:telemetry::stable::groundspeed*/ 0 * 3.6));
+STD_PANEL(GROUNDSPEED, 7, "\x80%d\x81", (int)round(pythag(state->telemetry.velocity_actual.North,
+							  state->telemetry.velocity_actual.East)
+						   * 3.6));
 
-STD_PANEL (BATTERYVOLT, 8, "%.2f\x8e", (double)state->telemetry.battery.Voltage);
+STD_PANEL(BATTERYVOLT, 8, "%.2f\x8e", (double)state->telemetry.battery.Voltage);
 
 /* BatCurrent */
-STD_PANEL (BATTERYCURRENT, 8, "%.2f\x8f", (double)state->telemetry.battery.Current);
+STD_PANEL(BATTERYCURRENT, 8, "%.2f\x8f", (double)state->telemetry.battery.Current);
 
 /* BatConsumed */
-STD_PANEL (BATTERYCONSUMED, 8, "%u\x82", (uint16_t) state->telemetry.battery.ConsumedEnergy);
+STD_PANEL(BATTERYCONSUMED, 8, "%u\x82", (uint16_t) state->telemetry.battery.ConsumedEnergy);
 
 /* RSSIFlag */
 static void RSSIFLAG_update (charosd_state_t state, uint8_t x, uint8_t y)
