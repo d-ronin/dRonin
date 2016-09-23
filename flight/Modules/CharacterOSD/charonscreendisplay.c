@@ -178,6 +178,9 @@ static void update_availability(charosd_state_t state)
 	// configured meaningfully
 	state->available |= HAS_RSSI;
 
+	if (PIOS_SENSORS_IsRegistered(PIOS_SENSOR_BARO)) {
+		state->available |= HAS_ALT;
+	}
 	if (PIOS_Modules_IsEnabled(PIOS_MODULE_GPS)) {
 		state->available |= HAS_GPS;
 	}
@@ -205,6 +208,9 @@ static void update_telemetry(charosd_state_t state)
 	}
 	if (HAS_SENSOR(state->available, HAS_RSSI)) {
 		ManualControlCommandRssiGet(&state->telemetry.manual.rssi);
+	}
+	if (HAS_SENSOR(state->available, HAS_ALT)) {
+		VelocityActualDownGet(&state->telemetry.actual.velocity_down);
 	}
 }
 

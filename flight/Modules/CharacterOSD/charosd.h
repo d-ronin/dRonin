@@ -10,7 +10,7 @@
 typedef struct {
 	FlightBatteryStateData battery;
 	struct {
-		float roll, pitch, down;
+		float roll, pitch, down, velocity_down;
 	} actual;
 	GPSPositionData gps_position;
 	struct {

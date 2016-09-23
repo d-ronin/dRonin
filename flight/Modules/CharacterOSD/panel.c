@@ -116,7 +116,7 @@ STD_PANEL (ALTITUDE, 8, "\x85%d\x8d", (int16_t) round (-state->telemetry.actual.
 
 static void CLIMB_update (charosd_state_t state, uint8_t x, uint8_t y)
 {
-	int8_t c = round (/*XXX:telemetry::stable::climb*/ 0 * 10);
+	int8_t c = round(state->telemetry.actual.velocity_down * -10);
 	uint8_t s;
 	char buffer[8];
 
@@ -126,7 +126,8 @@ static void CLIMB_update (charosd_state_t state, uint8_t x, uint8_t y)
 	else if (c <= -20) s = _PAN_CLIMB_SYMB + 2;
 	else if (c <= -10) s = _PAN_CLIMB_SYMB + 1;
 	else s = _PAN_CLIMB_SYMB;
-	snprintf (buffer, sizeof (buffer), "%c%.1f\x8c", s, /*XXX:telemetry::stable::climb*/ 0.0);
+	snprintf (buffer, sizeof (buffer), "%c%.1f\x8c", s,
+		  -(double)state->telemetry.actual.velocity_down);
 	terminate_buffer ();
 	PIOS_MAX7456_puts (state->dev, x, y, buffer, 0);
 }
