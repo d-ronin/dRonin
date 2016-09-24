@@ -113,7 +113,7 @@ static void draw_arrow (charosd_state_t state, uint8_t x, uint8_t y, uint16_t di
 
 
 /* Alt */
-STD_PANEL (ALTITUDE, 8, "\x85%d\x8d", (int16_t) round (-state->telemetry.actual.down));
+STD_PANEL(ALTITUDE, 8, "\x85%d\x8d", (int16_t) round (-state->telemetry.position_actual.Down));
 
 /* Climb */
 #define _PAN_CLIMB_SYMB 0x03
@@ -231,10 +231,10 @@ static void FLIGHTTIME_update (charosd_state_t state, uint8_t x, uint8_t y) {
 }
 
 /* Roll */
-STD_PANEL (ROLL, 7, "\xb2%d\xb0", (int16_t) state->telemetry.actual.roll);
+STD_PANEL(ROLL, 7, "\xb2%d\xb0", (int16_t) state->telemetry.attitude_actual.Roll);
 
 /* Pitch */
-STD_PANEL (PITCH, 7, "\xb1%d\xb0", (int16_t) state->telemetry.actual.pitch);
+STD_PANEL(PITCH, 7, "\xb1%d\xb0", (int16_t) state->telemetry.attitude_actual.Pitch);
 
 /* GPS */
 
@@ -289,8 +289,8 @@ void HORIZON_update(charosd_state_t state, uint8_t x, uint8_t y)
 	}
 
 	// code below from minoposd
-	int16_t pitch_line = tan(deg2rad(-state->telemetry.actual.pitch)) * _PAN_HORZ_LINES;
-	float roll = tan(deg2rad(state->telemetry.actual.roll));
+	int16_t pitch_line = tan(deg2rad(-state->telemetry.attitude_actual.Pitch)) * _PAN_HORZ_LINES;
+	float roll = tan(deg2rad(state->telemetry.attitude_actual.Roll));
 	for (uint8_t col = 1; col <= _PAN_HORZ_INT_WIDTH; col ++) {
 		// center X point at middle of each column
 		float middle = col * _PAN_HORZ_INT_WIDTH - (_PAN_HORZ_INT_WIDTH * _PAN_HORZ_INT_WIDTH / 2) - _PAN_HORZ_INT_WIDTH / 2;

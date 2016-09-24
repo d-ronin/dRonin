@@ -193,9 +193,8 @@ static void update_availability(charosd_state_t state)
 static void update_telemetry(charosd_state_t state)
 {
 	SystemStatsFlightTimeGet(&state->telemetry.system.flight_time);
-	AttitudeActualRollGet(&state->telemetry.actual.roll);
-	AttitudeActualPitchGet(&state->telemetry.actual.pitch);
-	PositionActualDownGet(&state->telemetry.actual.down);
+	AttitudeActualGet(&state->telemetry.attitude_actual);
+	PositionActualGet(&state->telemetry.position_actual);
 	ManualControlCommandThrottleGet(&state->telemetry.manual.throttle);
 	FlightStatusArmedGet(&state->telemetry.flight_status.arm_status);
 	FlightStatusFlightModeGet(&state->telemetry.flight_status.mode);

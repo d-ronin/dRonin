@@ -4,15 +4,16 @@
 #include "pios_max7456.h"
 #include "charonscreendisplaysettings.h"
 
-#include "gpsposition.h"
+#include "attitudeactual.h"
 #include "flightbatterystate.h"
+#include "gpsposition.h"
+#include "positionactual.h"
 #include "velocityactual.h"
 
 typedef struct {
 	FlightBatteryStateData battery;
-	struct {
-		float roll, pitch, down;
-	} actual;
+	AttitudeActualData attitude_actual;
+	PositionActualData position_actual;
 	VelocityActualData velocity_actual;
 	GPSPositionData gps_position;
 	struct {
