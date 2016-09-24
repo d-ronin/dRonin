@@ -183,7 +183,7 @@ static uint8_t morse_lookup(char c, uint8_t *len)
 }
 
 enum __attribute__ ((__packed__)) character_state {
-	STATE_NEXTCHAR = 0,       // 1 time of nil, prime next character -> NEXTSYM/SPACEWAIT
+	STATE_NEXTCHAR = 0,     // 1 time of nil, prime next character -> NEXTSYM/SPACEWAIT
 	STATE_SPACEWAIT,        // 1 time of nil -> STATE_SPACEWAIT_B
 	STATE_SPACEWAIT_B,      // 1 time of nil -> STATE_SPACEWAIT_C
 	STATE_SPACEWAIT_C,      // 1 time of nil -> STATE_NEXTCHAR
@@ -194,75 +194,87 @@ enum __attribute__ ((__packed__)) character_state {
 	STATE_DASH_C            // Send a dash -> NEXTSYM
 };
 
+union morsel_packed_state {
+	uint32_t raw_state;
+	struct {
+		uint8_t len;
+		uint8_t data;
+		enum character_state char_state;
+	} fields;
+};
+
+#define DONT_BUILD_IF(COND,MSG) typedef char static_assertion_##MSG[(COND)?-1:1]
+
+DONT_BUILD_IF(sizeof(union morsel_packed_state) > sizeof(uint32_t),
+		packedStateRep);
+
 /* Returns 0 for off, 1 for on, -1 for completed */
 int morse_send(const char **c, uint32_t *state)
 {
-	uint8_t *len = ((uint8_t *) state);
-	uint8_t *data = len + 1;
-	enum character_state *char_state = (enum character_state *) (len + 2);
+	union morsel_packed_state *m_s = (void *) state;
 
-	switch (*char_state) {
+	switch (m_s->fields.char_state) {
 	case STATE_NEXTCHAR:
-		if (!**c) {
+		if (!*c) {
 			return -1;
 		}
 
-		*data = morse_lookup(**c, len);
+		m_s->fields.data  = morse_lookup(**c, &m_s->fields.len);
 		(*c)++;
 
-		if (*len) {
-			*char_state = STATE_NEXTSYM;
+		if (m_s->fields.len) {
+			m_s->fields.char_state = STATE_NEXTSYM;
 		} else {
-			*char_state = STATE_SPACEWAIT;
+			m_s->fields.char_state = STATE_SPACEWAIT;
 		}
 
 		return 0;
 
 	case STATE_SPACEWAIT:
-		*char_state = STATE_SPACEWAIT_B;
+		m_s->fields.char_state = STATE_SPACEWAIT_B;
 
 		return 0;
 
 	case STATE_SPACEWAIT_B:
-		*char_state = STATE_SPACEWAIT_C;
+		m_s->fields.char_state = STATE_SPACEWAIT_C;
 
 		return 0;
 
 	case STATE_SPACEWAIT_C:
-		*char_state = STATE_NEXTCHAR;
+		m_s->fields.char_state = STATE_NEXTCHAR;
 
 		return 0;
 
 	case STATE_NEXTSYM:
-		if (!(*len)) {
-			*char_state = STATE_NEXTCHAR;
+		if (!m_s->fields.len) {
+			m_s->fields.char_state = STATE_NEXTCHAR;
 
 			return 0;
 		}
 
-		if ((*data) & 0B10000000) {
-			*char_state = STATE_DASH;
+		if (m_s->fields.data & 0B10000000) {
+			m_s->fields.char_state = STATE_DASH;
 		} else {
-			*char_state = STATE_DOT;
+			m_s->fields.char_state = STATE_DOT;
 		}
 
-		*data = (*data) << 1;
+		m_s->fields.data <<= 1;
 
-		(*len)--;
+		m_s->fields.len--;
 
 		return 0;
 
 	case STATE_DASH:
-		*char_state = STATE_DASH_B;
+		m_s->fields.char_state = STATE_DASH_B;
 		return 1;
 
 	case STATE_DASH_B:
-		*char_state = STATE_DASH_C;
+		m_s->fields.char_state = STATE_DASH_C;
 		return 1;
 
 	case STATE_DOT:
 	case STATE_DASH_C:
-		*char_state = STATE_NEXTSYM;
+		m_s->fields.char_state = STATE_NEXTSYM;
 		return 1;
 
 	default:                        /* illegal state */
