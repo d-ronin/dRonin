@@ -17,4 +17,8 @@
 
 	<!--  0x0403 / 0x6001: FTDI FT232R UART  -->
 	<usb-device vendor-id="1027" product-id="24577" />
+	<!--  0x10C4 / 0xEA60: CP21xx UART -->
+	<usb-device vendor-id="4292" product-id="60000" />
+	<!--  0x067b / 0x2303: PL2303 UART -->
+	<usb-device vendor-id="1659" product-id="8963" />
 </resources>
