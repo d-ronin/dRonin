@@ -136,24 +136,6 @@ static void settingdUpdatedCb(UAVObjEvent * ev, void *ctx, void *obj, int len)
 
 	HwBrainRE1Data * hwre1data = (HwBrainRE1Data *)obj;
 
-	/* Set the colors of the RGB LEDs */
-	if (hwre1data->NumberOfLEDs > 0) {
-		uint8_t led_color[3] = {0};
-		switch (hwre1data->LEDColor) {
-			case HWBRAINRE1_LEDCOLOR_CUSTOM:
-				led_color[0] = hwre1data->CustomLEDColor[0];
-				led_color[1] = hwre1data->CustomLEDColor[1];
-				led_color[2] = hwre1data->CustomLEDColor[2];
-				break;
-			default:
-				led_color[0] = named_color_value[hwre1data->LEDColor][0];
-				led_color[1] = named_color_value[hwre1data->LEDColor][1];
-				led_color[2] = named_color_value[hwre1data->LEDColor][2];
-		}
-		PIOS_RE1FPGA_SetLEDColor(hwre1data->NumberOfLEDs, led_color[0],
-			led_color[1], led_color[2]);
-	}
-
 	/* Configure the IR emitter for lap timing */
 	uint8_t ir_data[6];
 
@@ -211,6 +193,61 @@ static void flightStatusUpdatedCb(UAVObjEvent * ev, void *ctx, void *obj, int le
 
 }
 
+/**
+ * ledUpdatePeridodicCb()
+ * Used to update LEDs
+ */
+void ledUpdatePeridodicCb(UAVObjEvent * ev, void *ctx, void *obj, int len)
+{
+	(void) ctx;  (void) obj; (void) len;
+
+	if (ev->obj != HwBrainRE1Handle()) {
+		// this shouldn't happen
+		return;
+	}
+
+	uint16_t num_leds;
+	HwBrainRE1NumberOfLEDsGet(&num_leds);
+
+	/* Set the colors of the RGB LEDs */
+	if (num_leds > 0) {
+		uint8_t led_color;
+		uint8_t led_color_value[3] = {0};
+		HwBrainRE1LEDColorGet(&led_color);
+		switch (led_color) {
+			case HWBRAINRE1_LEDCOLOR_CUSTOM:
+				HwBrainRE1CustomLEDColorGet(led_color_value);
+				break;
+			default:
+				memcpy(led_color_value, named_color_value[led_color], 3);
+		}
+		PIOS_RE1FPGA_SetLEDColor(num_leds, led_color_value[0],
+			led_color_value[1], led_color_value[2]);
+	}
+}
+
+/**
+ * Check the brown out reset threshold is 2.7 volts and if not
+ * resets it.
+ */
+void check_bor()
+{
+	uint8_t bor = FLASH_OB_GetBOR();
+
+	if (bor != OB_BOR_LEVEL3) {
+		FLASH_OB_Unlock();
+		FLASH_OB_BORConfig(OB_BOR_LEVEL3);
+		FLASH_OB_Launch();
+		while (FLASH_WaitForLastOperation() == FLASH_BUSY) {
+			;
+		}
+		FLASH_OB_Lock();
+		while (FLASH_WaitForLastOperation() == FLASH_BUSY) {
+			;
+		}
+	}
+}
+
 #include <pios_board_info.h>
 
 /**
@@ -219,6 +256,9 @@ static void flightStatusUpdatedCb(UAVObjEvent * ev, void *ctx, void *obj, int le
  * called from System/openpilot.c
  */
 void PIOS_Board_Init(void) {
+	/* Check/set the brown out reset threshold */
+	check_bor();
+
 	/* Delay system */
 	PIOS_DELAY_Init();
 
