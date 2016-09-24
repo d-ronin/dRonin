@@ -172,7 +172,7 @@ void ConfigTaskWidget::addUAVObjectToWidgetRelation(QString object, QString fiel
         UAVDataObject *dobj = dynamic_cast<UAVDataObject *>(obj);
         if(dobj)
         {
-            connect(dobj, SIGNAL(presentOnHardwareChanged(UAVDataObject*)),this, SLOT(doRefreshHiddenObjects(UAVDataObject*)));
+            connect(dobj, SIGNAL(presentOnHardwareChanged(UAVDataObject*)),this, SLOT(doRefreshHiddenObjects(UAVDataObject*)), Qt::UniqueConnection);
             if(widget)
                 widget->setEnabled(dobj->getIsPresentOnHardware());
         }
@@ -717,7 +717,7 @@ bool ConfigTaskWidget::addShadowWidget(QString object, QString field, QWidget *w
             UAVDataObject *dobj = dynamic_cast<UAVDataObject *>(oTw->object);
             if(dobj)
             {
-                connect(dobj, SIGNAL(presentOnHardwareChanged(UAVDataObject*)),this, SLOT(doRefreshHiddenObjects(UAVDataObject*)));
+                connect(dobj, SIGNAL(presentOnHardwareChanged(UAVDataObject*)),this, SLOT(doRefreshHiddenObjects(UAVDataObject*)), Qt::UniqueConnection);
                 if(widget)
                     widget->setEnabled(dobj->getIsPresentOnHardware());
             }
