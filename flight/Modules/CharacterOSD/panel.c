@@ -385,7 +385,8 @@ static void draw_arrow(charosd_state_t state, uint8_t x, uint8_t y, uint16_t dir
 static void HOMEDIRECTION_update (charosd_state_t state, uint8_t x, uint8_t y)
 {
 	int home_dir = (int)(atan2f(state->telemetry.position_actual.East,
-				    state->telemetry.position_actual.North) * RAD2DEG) + 180;;
+				    state->telemetry.position_actual.North) * RAD2DEG
+			     - state->telemetry.attitude_actual.Yaw) - 180;
 
 	draw_arrow(state, x, y, home_dir, 0);
 }
