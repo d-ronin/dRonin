@@ -391,6 +391,8 @@ static void HOMEDIRECTION_update (charosd_state_t state, uint8_t x, uint8_t y)
 	draw_arrow(state, x, y, home_dir, 0);
 }
 
+STD_PANEL(HEADING, 6, "%d%c", (int)(round(state->telemetry.attitude_actual.Yaw)+360) % 360, CHAROSD_CHAR_DEG);
+
 /* Callsign */
 STD_PANEL(CALLSIGN, 11, "%s", state->custom_text);
 
@@ -499,6 +501,7 @@ const panel_t panels [CHARONSCREENDISPLAYSETTINGS_PANELTYPE_MAXOPTVAL+1] = {
 	declare_panel(FLIGHTTIME, 0),
 	declare_panel(GROUNDSPEED, HAS_GPS),
 	declare_panel(GPS, HAS_GPS),
+	declare_panel(HEADING, HAS_COMPASS),
 	declare_panel(HOMEDISTANCE, HAS_NAV),
 	declare_panel(HOMEDIRECTION, HAS_NAV),
 	declare_panel(HORIZON, 0),

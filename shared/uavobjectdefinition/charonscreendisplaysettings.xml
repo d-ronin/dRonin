@@ -41,6 +41,7 @@
 				<option>Throttle</option>
                 <option>Crosshair</option>
                 <option>Alarms</option>
+                <option>Heading</option>
 			</options>
 		</field>
 		<field name="X" units="characters" type="uint8" defaultvalue="1,8,19,3,21,24,1,8,23,1,23,1,1,9,1,8,22,22,14,0,0,0,0,0" elements="24"/>
