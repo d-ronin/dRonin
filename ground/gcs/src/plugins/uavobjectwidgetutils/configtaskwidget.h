@@ -255,6 +255,8 @@ protected:
     virtual bool setWidgetFromVariant(QWidget *widget, QVariant value, double scale, QString units = "");
     virtual QString getOptionFromChecked(QWidget* widget, bool checked);
     virtual bool getCheckedFromOption(QWidget* widget, QString option);
+    bool resetWidgetToDefault(QWidget *widget);
+
     UAVObjectUtilManager* utilMngr;
 };
 

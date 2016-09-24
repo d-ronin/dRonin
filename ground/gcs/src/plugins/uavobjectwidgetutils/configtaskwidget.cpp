@@ -1594,6 +1594,15 @@ QString ConfigTaskWidget::applyScaleToUnits(QString units, double scale)
     }
 }
 
+bool ConfigTaskWidget::resetWidgetToDefault(QWidget *widget)
+{
+    foreach (objectToWidget *ow, objOfInterest) {
+        if (ow->widget == widget && ow->field)
+            return setWidgetFromVariant(widget, ow->field->getDefaultValue(ow->index), ow->scale, ow->useUnits ? ow->field->getUnits() : "");
+    }
+    return false;
+}
+
 /**
   @}
   @}
