@@ -45,7 +45,6 @@
 
 #include "accels.h"
 #include "accessorydesired.h"
-#include "airspeedactual.h"
 #include "attitudeactual.h"
 #include "baroaltitude.h"
 #include "flightstatus.h"
@@ -190,6 +189,9 @@ static void update_availability(charosd_state_t state)
 	if (module_settings.AdminState[MODULESETTINGS_ADMINSTATE_BATTERY] &&
 	    FlightBatteryStateHandle()) {
 		state->available |= HAS_BATT;
+	}
+	if (module_settings.AdminState[MODULESETTINGS_ADMINSTATE_AIRSPEED]) {
+		state->available |= HAS_PITOT;
 	}
 
 	uint8_t filter;

@@ -30,6 +30,7 @@
 
 #include "physical_constants.h"
 
+#include "airspeedactual.h"
 #include "flightstatus.h"
 #include "systemalarms.h"
 #include "modulesettings.h"
@@ -466,7 +467,16 @@ static void COMPASS_update(charosd_state_t state, uint8_t x, uint8_t y)
 }
 
 /* Airspeed */
-STD_PANEL (AIRSPEED, 7, "\x88%d\x81", (int16_t) (/*XXX:telemetry::stable::airspeed*/ 0 * 3.6));
+static void AIRSPEED_update(charosd_state_t state, uint8_t x, uint8_t y)
+{
+	char buffer[7];
+	float airspeed;
+	AirspeedActualTrueAirspeedGet(&airspeed);
+	snprintf(buffer, sizeof(buffer), "\x88%d\x81", (int)(airspeed * 3.6f));
+	terminate_buffer();
+	PIOS_MAX7456_puts(state->dev, x, y + 1, buffer, 0);
+}
+
 
 STD_PANEL(CROSSHAIR, 2, "%c", 0x0a);
 
