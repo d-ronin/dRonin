@@ -415,14 +415,9 @@ static void RSSI_update (charosd_state_t state, uint8_t x, uint8_t y)
 	PIOS_MAX7456_puts (state->dev, x, y, levels[level], 0);
 }
 
-#if 0
-/* Compass */
-DECLARE_BUF (12);
-
-uint8_t attr, arrow; /* XXX */
-
-static void update ()
+static void COMPASS_update(charosd_state_t state, uint8_t x, uint8_t y)
 {
+	char buffer[12];
 	const uint8_t ruler [] = {
 		0xc2, 0xc0, 0xc1, 0xc0,
 		0xc4, 0xc0, 0xc1, 0xc0,
@@ -430,18 +425,19 @@ static void update ()
 		0xc5, 0xc0, 0xc1, 0xc0,
 	};
 
-	const int8_t ruler_size = sizeof (ruler);
+	const int8_t ruler_size = sizeof(ruler);
 
-	int16_t offset = round (/*XXX:telemetry::stable::heading*/ 0 * ruler_size / 360.0) - (sizeof (buffer) - 1) / 2;
+	int16_t offset = (int16_t)round(state->telemetry.attitude_actual.Yaw * ruler_size
+					/ 360.0f) - (sizeof(buffer) - 1) / 2;
 	if (offset < 0) offset += ruler_size;
-	for (uint8_t i = 0; i < sizeof (buffer) - 1; i ++)
-	{
-		buffer [i] = pgm_read_byte (&ruler [offset]);
-		if (++ offset >= ruler_size) offset = 0;
+	for (uint8_t i = 0; i < sizeof (buffer) - 1; i ++) {
+		buffer[i] = ruler[offset];
+		if (++offset >= ruler_size) offset = 0;
 	}
-	terminate_buffer ();
-	switch (/*XXX:telemetry::stable::heading*/ 0_source)
-	{
+	terminate_buffer();
+
+	#if 0
+	switch (/*XXX:telemetry::stable::heading*/ 0) {
 		case /*XXX:telemetry::stable::DISABLED:*/ 0
 			attr = MAX7456_ATTR_INVERT;
 			arrow = 0xc6;
@@ -458,14 +454,13 @@ static void update ()
 			attr = 0;
 			arrow = 0xc6;
 	}
-}
+	#endif
+	int arrow = CHAROSD_CHAR_COMPASS_INTERNAL;
+	int attr = 0;
 
-static void compass_draw (uint8_t x, uint8_t y)
-{
-	PIOS_MAX7456_put (state->dev, x + (sizeof (buffer) - 1) / 2, y, arrow, attr);
-	PIOS_MAX7456_puts (state->dev, x, y + 1, buffer, attr);
+	PIOS_MAX7456_put(state->dev, x + (sizeof (buffer) - 1) / 2, y, arrow, attr);
+	PIOS_MAX7456_puts(state->dev, x, y + 1, buffer, attr);
 }
-#endif
 
 /* Airspeed */
 STD_PANEL (AIRSPEED, 7, "\x88%d\x81", (int16_t) (/*XXX:telemetry::stable::airspeed*/ 0 * 3.6));
@@ -498,7 +493,7 @@ const panel_t panels [CHARONSCREENDISPLAYSETTINGS_PANELTYPE_MAXOPTVAL+1] = {
 	declare_panel(BATTERYCONSUMED, HAS_BATT),
 	declare_panel(CALLSIGN, 0),
 	declare_panel(CLIMB, HAS_ALT),
-//	declare_panel(COMPASS, HAS_COMPASS),
+	declare_panel(COMPASS, HAS_COMPASS),
 	declare_panel(FLIGHTMODE, 0),
 	declare_panel(FLIGHTTIME, 0),
 	declare_panel(GROUNDSPEED, HAS_GPS),

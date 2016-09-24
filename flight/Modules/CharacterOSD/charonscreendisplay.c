@@ -181,6 +181,9 @@ static void update_availability(charosd_state_t state)
 	if (PIOS_SENSORS_IsRegistered(PIOS_SENSOR_BARO)) {
 		state->available |= HAS_ALT;
 	}
+	if (PIOS_SENSORS_IsRegistered(PIOS_SENSOR_MAG)) {
+		state->available |= HAS_COMPASS;
+	}
 	if (PIOS_Modules_IsEnabled(PIOS_MODULE_GPS)) {
 		state->available |= HAS_GPS;
 	}
