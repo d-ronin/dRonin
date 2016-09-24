@@ -340,13 +340,16 @@ static void HOMEDISTANCE_update(charosd_state_t state, uint8_t x, uint8_t y)
 
 #define _ARROWS CHAROSD_CHAR_ARROW_NL
 
-static void HOMEDIRECTION_update (charosd_state_t state, uint8_t x, uint8_t y)
+static void HOMEDIRECTION_update(charosd_state_t state, uint8_t x, uint8_t y)
 {
-	int home_dir = (int)(atan2f(state->telemetry.position_actual.East,
-				    state->telemetry.position_actual.North) * RAD2DEG
-			     - state->telemetry.attitude_actual.Yaw) - 180;
+	float home_dir = (atan2f(state->telemetry.position_actual.East,
+				 state->telemetry.position_actual.North) * RAD2DEG) + 180;
 
-	uint8_t chr = _ARROWS + ((uint8_t) ((home_dir%360) / 360.0 * 16)) * 2;
+	if (HAS_SENSOR(state->available, HAS_COMPASS)) {
+		home_dir -= state->telemetry.attitude_actual.Yaw;
+	}
+
+	uint8_t chr = _ARROWS + (0xf & (((uint8_t) (home_dir / 360.0f * 16.0f)) * 2));
 	PIOS_MAX7456_put(state->dev, x, y, chr, 0);
 	PIOS_MAX7456_put(state->dev, x + 1, y, chr + 1, 0);
 }
