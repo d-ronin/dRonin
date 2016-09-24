@@ -328,6 +328,19 @@ static void RSSIFLAG_update (charosd_state_t state, uint8_t x, uint8_t y)
 
 static void HOMEDISTANCE_update(charosd_state_t state, uint8_t x, uint8_t y)
 {
+	char buffer[8];
+	float dist = pythag(state->telemetry.position_actual.North,
+			    state->telemetry.position_actual.East);
+	if (dist > 1000) {
+		snprintf(buffer, sizeof(buffer), "%.2f%c",
+			 (double)dist/1000, CHAROSD_CHAR_KM);
+	} else {
+		snprintf(buffer, sizeof(buffer), "%d%c",
+			 (int)round(dist), CHAROSD_CHAR_M);
+	}
+
+	terminate_buffer();
+	PIOS_MAX7456_puts(state->dev, x, y, buffer, 0);
 }
 
 #if 0
