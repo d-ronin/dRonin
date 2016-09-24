@@ -28,6 +28,8 @@
 
 #include "charosd.h"
 
+#include "physical_constants.h"
+
 #include "flightstatus.h"
 #include "systemalarms.h"
 #include "modulesettings.h"
@@ -85,16 +87,6 @@ static void draw_rect (charosd_state_t state, uint8_t l, uint8_t t, uint8_t w, u
 		PIOS_MAX7456_puts (state->dev, l, t + i, buffer, attr);
 	}
 }
-
-#define _ARROWS 0x90
-
-static void draw_arrow (charosd_state_t state, uint8_t x, uint8_t y, uint16_t direction, uint8_t attr)
-{
-	uint8_t chr = _ARROWS + ((uint8_t) (direction / 360.0 * 16)) * 2;
-	PIOS_MAX7456_put (state->dev, x, y, chr, attr);
-	PIOS_MAX7456_put (state->dev, x + 1, y, chr + 1, attr);
-}
-
 #define ERR_STR "---"
 
 
@@ -334,6 +326,10 @@ static void RSSIFLAG_update (charosd_state_t state, uint8_t x, uint8_t y)
 	}
 }
 
+static void HOMEDISTANCE_update(charosd_state_t state, uint8_t x, uint8_t y)
+{
+}
+
 #if 0
 /* HomeDistance */
 DECLARE_BUF (8);
@@ -363,12 +359,22 @@ static void draw (uint8_t x, uint8_t y)
 #endif 
 
 /* HomeDirection */
-#define _PAN_HD_ARROWS 0x90
+
+#define _ARROWS 0x90
+
+static void draw_arrow(charosd_state_t state, uint8_t x, uint8_t y, uint16_t direction, uint8_t attr)
+{
+	uint8_t chr = _ARROWS + ((uint8_t) ((direction%360) / 360.0 * 16)) * 2;
+	PIOS_MAX7456_put(state->dev, x, y, chr, attr);
+	PIOS_MAX7456_put(state->dev, x + 1, y, chr + 1, attr);
+}
 
 static void HOMEDIRECTION_update (charosd_state_t state, uint8_t x, uint8_t y)
 {
-	if (/*XXX:telemetry::home::state*/ 0 == /*XXX:telemetry::home::FIXED*/ 0)
-		draw_arrow (state, x, y, /*XXX:telemetry::home::direction*/ 0, 0);
+	int home_dir = (int)(atan2f(state->telemetry.position_actual.East,
+				    state->telemetry.position_actual.North) * RAD2DEG) + 180;;
+
+	draw_arrow(state, x, y, home_dir, 0);
 }
 
 /* Callsign */
@@ -484,7 +490,7 @@ const panel_t panels [CHARONSCREENDISPLAYSETTINGS_PANELTYPE_MAXOPTVAL+1] = {
 	declare_panel(FLIGHTTIME, 0),
 	declare_panel(GROUNDSPEED, HAS_GPS),
 	declare_panel(GPS, HAS_GPS),
-//	declare_panel(home_distance, HAS_NAV),
+	declare_panel(HOMEDISTANCE, HAS_NAV),
 	declare_panel(HOMEDIRECTION, HAS_NAV),
 	declare_panel(HORIZON, 0),
 	declare_panel(LATITUDE, HAS_GPS),

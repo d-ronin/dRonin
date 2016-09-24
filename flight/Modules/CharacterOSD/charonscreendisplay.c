@@ -188,6 +188,13 @@ static void update_availability(charosd_state_t state)
 	    FlightBatteryStateHandle()) {
 		state->available |= HAS_BATT;
 	}
+
+	uint8_t filter;
+	StateEstimationNavigationFilterGet(&filter);
+	if (filter != STATEESTIMATION_NAVIGATIONFILTER_NONE) {
+		state->available |= HAS_NAV;
+	}
+
 }
 
 static void update_telemetry(charosd_state_t state)
