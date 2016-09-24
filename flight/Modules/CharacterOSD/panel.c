@@ -44,7 +44,7 @@ static inline double pythag(float a, float b) {
  * 3 7
  * 456
  */
-static void draw_rect (charosd_state_t state, uint8_t l, uint8_t t, uint8_t w, uint8_t h, bool filled, uint8_t attr)
+static void draw_rect(charosd_state_t state, uint8_t l, uint8_t t, uint8_t w, uint8_t h, bool filled, uint8_t attr)
 {
 	const uint8_t _rect_thin [] = {0xd0, 0xd1, 0xd2, 0xd3, 0xd4, 0xd5, 0xd6, 0xd7};
 	const uint8_t _rect_fill [] = {0xd8, 0xd9, 0xda, 0xdb, 0xdc, 0xdd, 0xde, 0xdf};
@@ -58,60 +58,54 @@ static void draw_rect (charosd_state_t state, uint8_t l, uint8_t t, uint8_t w, u
 
 	char buffer [w + 1];
 
-	for (uint8_t i = 0; i < h; i ++)
-	{
+	for (uint8_t i = 0; i < h; i ++) {
 		char spacer;
-		if (i == 0)
-		{
+		if (i == 0) {
 			buffer [0] = rect [0];
 			buffer [r] = rect [2];
 			spacer = rect [1];
-		}
-		else if (i == b)
-		{
+		} else if (i == b) {
 			buffer [0] = rect [4];
 			buffer [r] = rect [6];
 			spacer = rect [5];
-		}
-		else
-		{
+		} else {
 			buffer [0] = rect [3];
 			buffer [r] = rect [7];
 			spacer = ' ';
 		}
 
-		if (w > 2)
-			memset (buffer + 1, spacer, w - 2);
+		if (w > 2) {
+			memset(buffer + 1, spacer, w - 2);
+		}
 
 		buffer [w] = 0;
 
-		PIOS_MAX7456_puts (state->dev, l, t + i, buffer, attr);
+		PIOS_MAX7456_puts(state->dev, l, t + i, buffer, attr);
 	}
 }
 #define ERR_STR "---"
 
+#define terminate_buffer() do { buffer [sizeof(buffer) - 1] = 0; } while (0)
 
-#define terminate_buffer() do { buffer [sizeof (buffer) - 1] = 0; } while (0)
-
-#define STD_UPDATE(__name, n, fmt, ...) static void __name ## _update (charosd_state_t state, uint8_t x, uint8_t y) \
+#define STD_UPDATE(__name, n, fmt, ...) static void __name ## _update(charosd_state_t state, uint8_t x, uint8_t y) \
 { \
 	char buffer[n]; \
-	snprintf (buffer, sizeof (buffer), fmt, __VA_ARGS__); \
-	terminate_buffer (); \
-	PIOS_MAX7456_puts (state->dev, x, y, buffer, 0); \
+	snprintf(buffer, sizeof (buffer), fmt, __VA_ARGS__); \
+	terminate_buffer(); \
+	PIOS_MAX7456_puts(state->dev, x, y, buffer, 0); \
 }
 
 #define STD_PANEL(__name, bs, fmt, ...) \
-	STD_UPDATE (__name, bs, fmt, __VA_ARGS__); 
+	STD_UPDATE(__name, bs, fmt, __VA_ARGS__); 
 
 
 /* Alt */
-STD_PANEL(ALTITUDE, 8, "\x85%d\x8d", (int16_t) round (-state->telemetry.position_actual.Down));
+STD_PANEL(ALTITUDE, 8, "\x85%d\x8d", (int16_t)round(-state->telemetry.position_actual.Down));
 
 /* Climb */
 #define _PAN_CLIMB_SYMB 0x03
 
-static void CLIMB_update (charosd_state_t state, uint8_t x, uint8_t y)
+static void CLIMB_update(charosd_state_t state, uint8_t x, uint8_t y)
 {
 	int8_t c = round(state->telemetry.velocity_actual.Down * -10);
 	uint8_t s;
@@ -123,15 +117,15 @@ static void CLIMB_update (charosd_state_t state, uint8_t x, uint8_t y)
 	else if (c <= -20) s = _PAN_CLIMB_SYMB + 2;
 	else if (c <= -10) s = _PAN_CLIMB_SYMB + 1;
 	else s = _PAN_CLIMB_SYMB;
-	snprintf (buffer, sizeof (buffer), "%c%.1f\x8c", s,
-		  -(double)state->telemetry.velocity_actual.Down);
-	terminate_buffer ();
-	PIOS_MAX7456_puts (state->dev, x, y, buffer, 0);
+	snprintf(buffer, sizeof (buffer), "%c%.1f\x8c", s,
+		 -(double)state->telemetry.velocity_actual.Down);
+	terminate_buffer();
+	PIOS_MAX7456_puts(state->dev, x, y, buffer, 0);
 }
 
 /* FlightMode */
 
-static void FLIGHTMODE_update (charosd_state_t state, uint8_t x, uint8_t y)
+static void FLIGHTMODE_update(charosd_state_t state, uint8_t x, uint8_t y)
 {
 	const char *mode = "INIT";
 
@@ -190,19 +184,19 @@ static void FLIGHTMODE_update (charosd_state_t state, uint8_t x, uint8_t y)
 		break;
 	}
 
-	draw_rect (state, x, y, 6, 3, 0, 0);
-	PIOS_MAX7456_puts (state->dev, x + 1, y + 1, mode, 0);
+	draw_rect(state, x, y, 6, 3, 0, 0);
+	PIOS_MAX7456_puts(state->dev, x + 1, y + 1, mode, 0);
 }
 
 /* ArmedFlag */
-static void ARMEDFLAG_update (charosd_state_t state, uint8_t x, uint8_t y)
+static void ARMEDFLAG_update(charosd_state_t state, uint8_t x, uint8_t y)
 {
 	uint8_t attr = state->telemetry.flight_status.arm_status == FLIGHTSTATUS_ARMED_ARMED ? 0 : MAX7456_ATTR_INVERT;
-	draw_rect (state, x, y, 3, 3, true, attr);
-	PIOS_MAX7456_put (state->dev, x + 1, y + 1, 0xe0, attr);
+	draw_rect(state, x, y, 3, 3, true, attr);
+	PIOS_MAX7456_put(state->dev, x + 1, y + 1, 0xe0, attr);
 }
 
-static void FLIGHTTIME_update (charosd_state_t state, uint8_t x, uint8_t y) {
+static void FLIGHTTIME_update(charosd_state_t state, uint8_t x, uint8_t y) {
        char buffer[10];
        uint32_t time = state->telemetry.system.flight_time;
        int min, sec;
@@ -211,16 +205,16 @@ static void FLIGHTTIME_update (charosd_state_t state, uint8_t x, uint8_t y) {
        if (hours == 0) {
                min = time / 60000;
                sec = (time / 1000) - 60 * min;
-               sprintf (buffer, "%02d:%02d", (int)min, (int)sec);
+               sprintf(buffer, "%02d:%02d", (int)min, (int)sec);
        } else {
                min = time / 60000 - 60 * hours;
                sec = (time / 1000) - 60 * min - 3600 * hours;
-               sprintf (buffer, "%02d:%02d:%02d", (int)hours, (int)min, (int)sec);
+               sprintf(buffer, "%02d:%02d:%02d", (int)hours, (int)min, (int)sec);
        }
 
-       terminate_buffer ();
+       terminate_buffer();
 
-       PIOS_MAX7456_puts (state->dev, x + 1, y + 1, buffer, 0);
+       PIOS_MAX7456_puts(state->dev, x + 1, y + 1, buffer, 0);
 }
 
 /* Roll */
@@ -234,25 +228,25 @@ STD_PANEL(PITCH, 7, "\xb1%d\xb0", (int16_t) state->telemetry.attitude_actual.Pit
 #define _PAN_GPS_2D 0x01
 #define _PAN_GPS_3D 0x02
 
-static void GPS_update (charosd_state_t state, uint8_t x, uint8_t y)
+static void GPS_update(charosd_state_t state, uint8_t x, uint8_t y)
 {
 	char buffer[4];
 
-	snprintf(buffer, sizeof (buffer), "%d", state->telemetry.gps_position.Satellites); 
-	terminate_buffer ();
+	snprintf(buffer, sizeof(buffer), "%d", state->telemetry.gps_position.Satellites); 
+	terminate_buffer();
 	bool err = state->telemetry.gps_position.Status < GPSPOSITION_STATUS_FIX2D;
-	PIOS_MAX7456_puts (state->dev, x, y, "\x10\x11", err ? MAX7456_ATTR_INVERT : 0);
-	PIOS_MAX7456_put (state->dev, x + 2, y, state->telemetry.gps_position.Status < GPSPOSITION_STATUS_FIX3D ? _PAN_GPS_2D : _PAN_GPS_3D,
+	PIOS_MAX7456_puts(state->dev, x, y, "\x10\x11", err ? MAX7456_ATTR_INVERT : 0);
+	PIOS_MAX7456_put(state->dev, x + 2, y, state->telemetry.gps_position.Status < GPSPOSITION_STATUS_FIX3D ? _PAN_GPS_2D : _PAN_GPS_3D,
 		err ? MAX7456_ATTR_INVERT : (state->telemetry.gps_position.Status < GPSPOSITION_STATUS_FIX2D ? MAX7456_ATTR_BLINK : 0));
 	if (err) PIOS_MAX7456_puts (state->dev, x + 3, y, ERR_STR, MAX7456_ATTR_INVERT);
-	else PIOS_MAX7456_puts (state->dev, x + 3, y, buffer, 0);
+	else PIOS_MAX7456_puts(state->dev, x + 3, y, buffer, 0);
 }
 
 /* Lat */
-STD_PANEL (LATITUDE, 11, "\x83%02.6f", (double)state->telemetry.gps_position.Latitude / 10000000.0);
+STD_PANEL(LATITUDE, 11, "\x83%02.6f", (double)state->telemetry.gps_position.Latitude / 10000000.0);
 
 /* Lon */
-STD_PANEL (LONGITUDE, 11, "\x84%02.6f", (double)state->telemetry.gps_position.Longitude / 10000000.0);
+STD_PANEL(LONGITUDE, 11, "\x84%02.6f", (double)state->telemetry.gps_position.Longitude / 10000000.0);
 
 #define PANEL_HORIZON_WIDTH 14
 #define PANEL_HORIZON_HEIGHT 5
@@ -344,44 +338,7 @@ static void HOMEDISTANCE_update(charosd_state_t state, uint8_t x, uint8_t y)
 	PIOS_MAX7456_puts(state->dev, x, y, buffer, 0);
 }
 
-#if 0
-/* HomeDistance */
-DECLARE_BUF (8);
-
-uint8_t attr, i_attr; /* XXX */
-static void update ()
-{
-	attr = /*XXX:telemetry::home::state*/ 0 == /*XXX:telemetry::home::NO*/ 0_FIX ? MAX7456_ATTR_INVERT : 0;
-	i_attr = /*XXX:telemetry::home::state*/ 0 != /*XXX:telemetry::home::FIXED*/ 0 ? MAX7456_ATTR_INVERT : 0;
-	if (i_attr)
-	{
-		snprintf_P (buffer, sizeof (buffer), "%S",
-			/*XXX:telemetry::home::state*/ 0 == /*XXX:telemetry::home::NO*/ 0_FIX ? ERR_STR : "\x09\x09\x09\x8d");
-		return;
-	}
-	if (/*XXX:telemetry::home::distance*/ 0 >= 10000)
-		 snprintf_P (buffer, sizeof (buffer), "%.1f\x8b", /*XXX:telemetry::home::distance*/ 0 / 1000);
-	else snprintf_P (buffer, sizeof (buffer), "%u\x8d", (uint16_t) /*XXX:telemetry::home::distance*/ 0);
-}
-
-static void draw (uint8_t x, uint8_t y)
-{
-	PIOS_MAX7456_put (state->dev, x, y, 0x12, i_attr);
-	PIOS_MAX7456_puts (state->dev, x + 1, y, buffer, attr);
-}
-
-#endif 
-
-/* HomeDirection */
-
-#define _ARROWS 0x90
-
-static void draw_arrow(charosd_state_t state, uint8_t x, uint8_t y, uint16_t direction, uint8_t attr)
-{
-	uint8_t chr = _ARROWS + ((uint8_t) ((direction%360) / 360.0 * 16)) * 2;
-	PIOS_MAX7456_put(state->dev, x, y, chr, attr);
-	PIOS_MAX7456_put(state->dev, x + 1, y, chr + 1, attr);
-}
+#define _ARROWS CHAROSD_CHAR_ARROW_NL
 
 static void HOMEDIRECTION_update (charosd_state_t state, uint8_t x, uint8_t y)
 {
@@ -389,7 +346,9 @@ static void HOMEDIRECTION_update (charosd_state_t state, uint8_t x, uint8_t y)
 				    state->telemetry.position_actual.North) * RAD2DEG
 			     - state->telemetry.attitude_actual.Yaw) - 180;
 
-	draw_arrow(state, x, y, home_dir, 0);
+	uint8_t chr = _ARROWS + ((uint8_t) ((home_dir%360) / 360.0 * 16)) * 2;
+	PIOS_MAX7456_put(state->dev, x, y, chr, 0);
+	PIOS_MAX7456_put(state->dev, x + 1, y, chr + 1, 0);
 }
 
 STD_PANEL(HEADING, 6, "%d%c", (int)(round(state->telemetry.attitude_actual.Yaw)+360) % 360, CHAROSD_CHAR_DEG);
@@ -398,10 +357,10 @@ STD_PANEL(HEADING, 6, "%d%c", (int)(round(state->telemetry.attitude_actual.Yaw)+
 STD_PANEL(CALLSIGN, 11, "%s", state->custom_text);
 
 /* Temperature */
-STD_PANEL (TEMPERATURE, 9, "\xfd%.1f\x8a", /*XXX:telemetry::environment::temperature*/ 0.0);
+STD_PANEL(TEMPERATURE, 9, "\xfd%.1f\x8a", /*XXX:telemetry::environment::temperature*/ 0.0);
 
 /* RSSI */
-static void RSSI_update (charosd_state_t state, uint8_t x, uint8_t y)
+static void RSSI_update(charosd_state_t state, uint8_t x, uint8_t y)
 {
 	const char _l0 [] = "\xe5\xe8\xe8";
 	const char _l1 [] = "\xe2\xe8\xe8";
@@ -440,30 +399,9 @@ static void COMPASS_update(charosd_state_t state, uint8_t x, uint8_t y)
 	}
 	terminate_buffer();
 
-	#if 0
-	switch (/*XXX:telemetry::stable::heading*/ 0) {
-		case /*XXX:telemetry::stable::DISABLED:*/ 0
-			attr = MAX7456_ATTR_INVERT;
-			arrow = 0xc6;
-			break;
-		case /*XXX:telemetry::stable::GPS:*/ 0
-			attr = 0;
-			arrow = 0xb6;
-			break;
-		case /*XXX:telemetry::stable::INTERNAL*/ 0_MAG:
-			attr = 0;
-			arrow = 0xc7;
-			break;
-		default:
-			attr = 0;
-			arrow = 0xc6;
-	}
-	#endif
-	int arrow = CHAROSD_CHAR_COMPASS_INTERNAL;
-	int attr = 0;
-
-	PIOS_MAX7456_put(state->dev, x + (sizeof (buffer) - 1) / 2, y, arrow, attr);
-	PIOS_MAX7456_puts(state->dev, x, y + 1, buffer, attr);
+	PIOS_MAX7456_put(state->dev, x + (sizeof (buffer) - 1) / 2, y,
+			 CHAROSD_CHAR_COMPASS_INTERNAL, 0);
+	PIOS_MAX7456_puts(state->dev, x, y + 1, buffer, 0);
 }
 
 /* Airspeed */
