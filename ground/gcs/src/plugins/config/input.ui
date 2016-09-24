@@ -1573,12 +1573,6 @@ margin:1px;</string>
                      <property name="checked">
                       <bool>true</bool>
                      </property>
-                     <property name="objrelation" stdset="0">
-                      <stringlist>
-                       <string>objname:ManualControlSettings</string>
-                       <string>fieldname:ArmingCalibrate</string>
-                      </stringlist>
-                     </property>
                     </widget>
                    </item>
                    <item>
@@ -1749,12 +1743,6 @@ margin:1px;</string>
                      <property name="toolTip">
                       <string>Indicate the control used for arming the airframe, in addition to setting the throttle to its minimum position. In other terms &quot;Throttle Off&quot;.</string>
                      </property>
-                     <property name="objrelation" stdset="0">
-                      <stringlist>
-                       <string>objname:ManualControlSettings</string>
-                       <string>fieldname:Arming</string>
-                      </stringlist>
-                     </property>
                     </widget>
                    </item>
                   </layout>
@@ -1816,7 +1804,7 @@ margin:1px;</string>
                       </size>
                      </property>
                      <property name="objrelation" stdset="0">
-                      <stringlist notr="true">
+                      <stringlist>
                        <string>objname:ManualControlSettings</string>
                        <string>fieldname:ArmTime</string>
                        <string>useunits:yes</string>
@@ -1874,12 +1862,6 @@ margin:1px;</string>
                      </property>
                      <property name="checked">
                       <bool>true</bool>
-                     </property>
-                     <property name="objrelation" stdset="0">
-                      <stringlist>
-                       <string>objname:ManualControlSettings</string>
-                       <string>fieldname:ArmingThrottleCheck</string>
-                      </stringlist>
                      </property>
                     </widget>
                    </item>
@@ -2123,6 +2105,9 @@ margin:1px;</string>
                           <height>0</height>
                          </size>
                         </property>
+                        <property name="accelerated">
+                         <bool>true</bool>
+                        </property>
                         <property name="maximum">
                          <number>999999999</number>
                         </property>
@@ -2196,6 +2181,9 @@ margin:1px;</string>
                           <width>250</width>
                           <height>0</height>
                          </size>
+                        </property>
+                        <property name="accelerated">
+                         <bool>true</bool>
                         </property>
                         <property name="maximum">
                          <number>999999999</number>

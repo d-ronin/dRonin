@@ -73,17 +73,19 @@
 
 /* TODO: confirm disarms */
 const QVector<ConfigInputWidget::ArmingMethod> ConfigInputWidget::armingMethods = {
-    {ConfigInputWidget::ARM_ALWAYS_DISARMED, tr("always disarmed"), tr("always disarmed"), tr("always disarmed"), false, false, true},
-    {ConfigInputWidget::ARM_ALWAYS_ARMED,    tr("always armed"), tr("always armed"), tr("always armed"), false, false, true},
-    {ConfigInputWidget::ARM_SWITCH,          tr("switch"), tr("a switch"), tr("a switch"), true, false, false},
-    {ConfigInputWidget::ARM_ROLL_LEFT,       tr("roll left"), tr("roll left"), tr("roll right"), false, true, false},
-    {ConfigInputWidget::ARM_ROLL_RIGHT,      tr("roll right"), tr("roll right"), tr("roll left"), false, true, false},
-    {ConfigInputWidget::ARM_YAW_LEFT,        tr("yaw left"), tr("yaw left"), tr("yaw right"), false, true, false},
-    {ConfigInputWidget::ARM_YAW_RIGHT,       tr("yaw right"), tr("yaw right"), tr("yaw left"), false, true, false},
-    {ConfigInputWidget::ARM_CORNERS,         tr("corners"), tr("roll left and yaw right"), tr("roll right and yaw left"), false, true, false},
+    {ConfigInputWidget::ARM_ALWAYS_DISARMED, tr("always disarmed"), tr("always disarmed"), tr("always disarmed"), "Always Disarmed", false, false, true},
+    {ConfigInputWidget::ARM_ALWAYS_ARMED,    tr("always armed"), tr("always armed"), tr("always armed"), "Always Armed", false, false, true},
+    {ConfigInputWidget::ARM_SWITCH,          tr("switch"), tr("a switch"), tr("a switch"), "Switch", true, false, false},
+    {ConfigInputWidget::ARM_ROLL_LEFT,       tr("roll left"), tr("roll left"), tr("roll right"), "Roll Right+Throttle", false, true, false},
+    {ConfigInputWidget::ARM_ROLL_RIGHT,      tr("roll right"), tr("roll right"), tr("roll left"), "Roll Left+Throttle", false, true, false},
+    {ConfigInputWidget::ARM_YAW_LEFT,        tr("yaw left"), tr("yaw left"), tr("yaw right"), "Yaw Right+Throttle", false, true, false},
+    {ConfigInputWidget::ARM_YAW_RIGHT,       tr("yaw right"), tr("yaw right"), tr("yaw left"), "Yaw Left+Throttle", false, true, false},
+    {ConfigInputWidget::ARM_CORNERS,         tr("corners"), tr("roll left and yaw right"), tr("roll right and yaw left"), "Corners+Throttle", false, true, false},
 };
 
-ConfigInputWidget::ConfigInputWidget(QWidget *parent) : ConfigTaskWidget(parent),wizardStep(wizardNone),transmitterType(heli),loop(NULL),skipflag(false)
+ConfigInputWidget::ConfigInputWidget(QWidget *parent) : ConfigTaskWidget(parent),
+    wizardStep(wizardNone), transmitterType(heli), loop(NULL), skipflag(false),
+    cbArmingOption(Q_NULLPTR), lastArmingMethod(ARM_INVALID), armingConfigUpdating(false)
 {
     manualCommandObj = ManualControlCommand::GetInstance(getObjectManager());
     manualSettingsObj = ManualControlSettings::GetInstance(getObjectManager());
@@ -105,10 +107,10 @@ ConfigInputWidget::ConfigInputWidget(QWidget *parent) : ConfigTaskWidget(parent)
     addApplySaveButtons(m_config->saveRCInputToRAM,m_config->saveRCInputToSD);
 
     //Generate the rows of buttons in the input channel form GUI
-    unsigned int index=0;
+    int index = 0;
     foreach (QString name, manualSettingsObj->getField("ChannelNumber")->getElementNames())
     {
-        Q_ASSERT(index < ManualControlSettings::CHANNELGROUPS_NUMELEM);
+        Q_ASSERT(index < static_cast<int>(ManualControlSettings::CHANNELGROUPS_NUMELEM));
         inputChannelForm * inpForm=new inputChannelForm(this,index==0,true);
         m_config->channelSettings->layout()->addWidget(inpForm); //Add the row to the UI
         inpForm->setName(name);
@@ -182,6 +184,7 @@ ConfigInputWidget::ConfigInputWidget(QWidget *parent) : ConfigTaskWidget(parent)
     }
 
     // check things that affect arming config
+    fillArmingComboBox();
     ActuatorSettings *actuatorSettings = qobject_cast<ActuatorSettings *>(getObjectManager()->getObject(ActuatorSettings::NAME));
     if (actuatorSettings)
         connect(actuatorSettings, SIGNAL(objectUpdated(UAVObject *)), this, SLOT(checkArmingConfig()));
@@ -193,6 +196,11 @@ ConfigInputWidget::ConfigInputWidget(QWidget *parent) : ConfigTaskWidget(parent)
     connect(m_config->cbFailsafeTimeout, SIGNAL(stateChanged(int)), this, SLOT(timeoutCheckboxChanged()));
     connect(m_config->cbThrottleTimeout, SIGNAL(stateChanged(int)), this, SLOT(timeoutCheckboxChanged()));
     connect(ManualControlSettings::GetInstance(getObjectManager()), SIGNAL(objectUpdated(UAVObject *)), this, SLOT(updateArmingConfig(UAVObject *)));
+    // create a hidden widget so uavo->widget relation can take care of some of the work
+    cbArmingOption = new QComboBox(this);
+    cbArmingOption->setVisible(false);
+    cbArmingOption->setProperty("objrelation", QStringList{"objname:ManualControlSettings", "fieldname:Arming"});
+    m_config->gbArming->layout()->addWidget(cbArmingOption);
 
     enableControls(false);
 
@@ -1835,7 +1843,7 @@ void ConfigInputWidget::checkReprojection()
     }
 }
 
-const ConfigInputWidget::ArmingMethod ConfigInputWidget::armingMethodFromArmName(const QString name)
+const ConfigInputWidget::ArmingMethod ConfigInputWidget::armingMethodFromArmName(const QString &name)
 {
     foreach (const ArmingMethod &method, armingMethods) {
         if (method.armName == name)
@@ -1846,8 +1854,24 @@ const ConfigInputWidget::ArmingMethod ConfigInputWidget::armingMethodFromArmName
     return armingMethods.at(0);
 }
 
+const ConfigInputWidget::ArmingMethod ConfigInputWidget::armingMethodFromUavoOption(const QString &option)
+{
+    // ignore stuff after plus to make switch arming cases work
+    QString opt = option.split('+', QString::SkipEmptyParts).at(0);
+    foreach (const ArmingMethod &method, armingMethods) {
+        if (method.uavoOption.split('+', QString::SkipEmptyParts).at(0) == opt)
+            return method;
+    }
+    Q_ASSERT(false);
+    // default to always disarmed
+    return armingMethods.at(0);
+}
+
 void ConfigInputWidget::checkArmingConfig()
 {
+    if (armingConfigUpdating)
+        return;
+
     // clear existing warnings
     clearWarnings(m_config->gbWarnings, m_config->saArmingSettings);
 
@@ -1858,12 +1882,13 @@ void ConfigInputWidget::checkArmingConfig()
     const ArmingMethod arming = armingMethodFromArmName(m_config->cbArmMethod->currentText());
     m_config->lblDisarmMethod->setText((arming.isStick ? tr("throttle low and ") : "") + arming.disarmName);
 
-    /*m_config->sbThrottleTimeout->setEnabled(m_config->cbThrottleTimeout->isChecked());
-    if (!m_config->cbThrottleTimeout->isChecked())
-        m_config->sbThrottleTimeout->setValue(0);
-    m_config->sbFailsafeTimeout->setEnabled(m_config->cbFailsafeTimeout->isChecked());
-    if (!m_config->cbFailsafeTimeout->isChecked())
-        m_config->sbFailsafeTimeout->setValue(0);*/
+    if (lastArmingMethod != arming.method && lastArmingMethod != ARM_INVALID) {
+        if (arming.method == ARM_SWITCH) {
+            m_config->cbCalibrateGyros->setChecked(true);
+            m_config->cbThrottleCheck->setChecked(true);
+        }
+    }
+    lastArmingMethod = arming.method;
 
     m_config->frStickArmTime->setVisible(arming.isStick);
     m_config->frSwitchArmTime->setVisible(arming.isSwitch);
@@ -1873,7 +1898,9 @@ void ConfigInputWidget::checkArmingConfig()
 
     m_config->frStickDisarmTime->setVisible(arming.isStick);
     m_config->frThrottleTimeout->setVisible(!arming.isFixed);
-    m_config->frAutoDisarm->setVisible(arming.method != ManualControlSettings::ARMING_ALWAYSDISARMED);
+    m_config->frAutoDisarm->setVisible(!arming.isFixed);
+
+    m_config->gbDisarming->setVisible(!arming.isFixed);
 
     // check hangtime, recommend switch arming if enabled
     bool hangtime = false;
@@ -1884,7 +1911,7 @@ void ConfigInputWidget::checkArmingConfig()
 
     if (hangtime) {
         m_config->lblRecommendedArm->setText(tr("Switch"));
-        if (arming.method != ManualControlSettings::ARMING_ALWAYSDISARMED && !arming.isSwitch)
+        if (arming.method != ARM_ALWAYS_DISARMED && !arming.isSwitch)
             addWarning(m_config->gbWarnings, m_config->frArmMethod, tr("Switch arming is recommended when hangtime is enabled."));
     } else {
         switch (vehicle) {
@@ -1909,23 +1936,37 @@ void ConfigInputWidget::checkArmingConfig()
         }
     }
 
-    if (m_config->cbCalibrateGyros->isVisible() && !m_config->cbCalibrateGyros->isChecked())
+    if (!m_config->frSwitchArmTime->isHidden() && !m_config->cbCalibrateGyros->isChecked())
         addWarning(m_config->gbWarnings, m_config->frSwitchArmTime, tr("Disabling gyro calibration will have an adverse impact on flight performance and autotune!"));
 
-    if (m_config->cbThrottleCheck->isVisible() && !m_config->cbThrottleCheck->isChecked())
+    if (!m_config->frThrottleCheck->isHidden() && !m_config->cbThrottleCheck->isChecked())
         addWarning(m_config->gbWarnings, m_config->frThrottleCheck, tr("Your vehicle can be armed while throttle is not low, be careful!"));
 
-    if (m_config->sbFailsafeTimeout->isVisible() && !m_config->sbFailsafeTimeout->value())
-        addWarning(m_config->gbWarnings, m_config->frFailsafeTimeout, tr("Your vehicle will remain armed indefenitely when receiver is disconnected!"));
+    if (!m_config->frFailsafeTimeout->isHidden() && !m_config->frAutoDisarm->isHidden() && !m_config->sbFailsafeTimeout->value())
+        addWarning(m_config->gbWarnings, m_config->frFailsafeTimeout, tr("Your vehicle will remain armed indefinitely when receiver is disconnected!"));
 
-    if (m_config->sbThrottleTimeout->isVisible() && !m_config->sbThrottleTimeout->value())
+    if (!m_config->frThrottleTimeout->isHidden() && !m_config->sbThrottleTimeout->value())
         addWarning(m_config->gbWarnings, m_config->frThrottleTimeout, tr("Your vehicle will remain armed indefinitely while throttle is low, be careful!"));
 
-    if (arming.method == ManualControlSettings::ARMING_ALWAYSARMED)
+    if (arming.method == ARM_ALWAYS_ARMED)
         addWarning(m_config->gbWarnings, m_config->frArmMethod, tr("CAUTION: the vehicle will ALWAYS be armed!"));
 
     // re-add stylesheet to force it to be recompiled and applied
     m_config->saArmingSettings->setStyleSheet(m_config->saArmingSettings->styleSheet());
+
+    QString armOption = arming.uavoOption;
+    switch (arming.method) {
+    case ARM_SWITCH:
+        if (m_config->cbThrottleCheck->isChecked())
+            armOption += "+Throttle";
+        if (m_config->cbCalibrateGyros->isChecked())
+            armOption += "+Delay";
+        break;
+    default:
+        break;
+    }
+    if (cbArmingOption->currentText() != armOption)
+        cbArmingOption->setCurrentText(armOption);
 }
 
 void ConfigInputWidget::timeoutCheckboxChanged()
@@ -1934,24 +1975,45 @@ void ConfigInputWidget::timeoutCheckboxChanged()
     if (!m_config->cbThrottleTimeout->isChecked())
         m_config->sbThrottleTimeout->setValue(0);
     else if(!m_config->sbThrottleTimeout->value())
-        m_config->sbThrottleTimeout->setValue(30);
+        resetWidgetToDefault(m_config->sbThrottleTimeout);
+
     m_config->sbFailsafeTimeout->setEnabled(m_config->cbFailsafeTimeout->isChecked());
     if (!m_config->cbFailsafeTimeout->isChecked())
         m_config->sbFailsafeTimeout->setValue(0);
+    else if (!m_config->sbFailsafeTimeout->value())
+        resetWidgetToDefault(m_config->sbFailsafeTimeout);
 
     checkArmingConfig();
 }
 
 void ConfigInputWidget::updateArmingConfig(UAVObject *obj)
 {
+    armingConfigUpdating = true;
+
     ManualControlSettings *man = qobject_cast<ManualControlSettings *>(obj);
     Q_ASSERT(man);
     if (!man)
         return;
 
+    // don't want to mark the widget dirty by any changes from the UAVO
+    bool wasDirty = isDirty();
+
     m_config->saArmingSettings->setEnabled(man->getIsPresentOnHardware());
     m_config->cbThrottleTimeout->setChecked(man->getArmedTimeout() > 0);
     m_config->cbFailsafeTimeout->setChecked(man->getInvalidRXArmedTimeout() > 0);
+
+    const QString &armingOption = man->getField("Arming")->getValue().toString();
+    ArmingMethod arming = armingMethodFromUavoOption(armingOption);
+    if (m_config->cbArmMethod->currentText() != arming.armName)
+        m_config->cbArmMethod->setCurrentText(arming.armName);
+    m_config->cbThrottleCheck->setChecked(armingOption.contains("Throttle"));
+    m_config->cbCalibrateGyros->setChecked(armingOption.contains("Delay"));
+
+    setDirty(wasDirty);
+
+    armingConfigUpdating = false;
+
+    checkArmingConfig();
 }
 
 void ConfigInputWidget::fillArmingComboBox()

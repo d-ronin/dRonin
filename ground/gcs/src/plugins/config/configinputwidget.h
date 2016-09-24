@@ -72,7 +72,8 @@ public:
 
 protected:
         // Note: must match armingNames
-        enum ArmingMethodIndex {
+        enum ArmingMethodType {
+            ARM_INVALID,
             ARM_ALWAYS_DISARMED,
             ARM_ALWAYS_ARMED,
             ARM_SWITCH,
@@ -84,10 +85,11 @@ protected:
         };
 
         struct ArmingMethod {
-            enum ArmingMethodIndex method;
+            enum ArmingMethodType method;
             QString name;
             QString armName;
             QString disarmName;
+            QString uavoOption;
             bool isSwitch;
             bool isStick;
             bool isFixed;
@@ -185,6 +187,12 @@ private:
         QTransform m_txMainBodyOrig;
         QTransform m_txArrowsOrig;
         QTimer * animate;
+
+        QComboBox *cbArmingOption;
+        ArmingMethodType lastArmingMethod;
+        bool armingConfigUpdating;
+
+
         void resetTxControls();
         void setMoveFromCommand(int command);
 
@@ -202,7 +210,8 @@ private:
         TelemetryManager* telMngr;
         quint8 scaleSwitchChannel(quint8 channelNumber, quint8 switchPositions);
 
-        const ArmingMethod armingMethodFromArmName(const QString name);
+        const ArmingMethod armingMethodFromArmName(const QString &name);
+        const ArmingMethod armingMethodFromUavoOption(const QString &option);
         void fillArmingComboBox();
 
 private slots:
