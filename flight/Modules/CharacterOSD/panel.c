@@ -68,8 +68,8 @@
 #include "systemalarms.h"
 #include "modulesettings.h"
 
-static inline double pythag(float a, float b) {
-	return sqrt((double)a * (double)a + (double)b * (double)b);
+static inline float pythag(float a, float b) {
+	return sqrtf(a * a + b * b);
 }
 
 /*
@@ -275,6 +275,8 @@ static void GPS_update(charosd_state_t state, uint8_t x, uint8_t y)
 	else PIOS_MAX7456_puts(state->dev, x + 3, y, buffer, 0);
 }
 
+// Would be nice to convert these to fixed point in the future.
+
 /* Lat */
 STD_PANEL(LATITUDE, 11, "\x83%02.6f", (double)state->telemetry.gps_position.Latitude / 10000000.0);
 
@@ -295,9 +297,6 @@ STD_PANEL(LONGITUDE, 11, "\x84%02.6f", (double)state->telemetry.gps_position.Lon
 
 const char _horz_line [PANEL_HORIZON_WIDTH + 1]   = "\xb8            \xb9";
 const char _horz_center [PANEL_HORIZON_WIDTH + 1] = "\xc8            \xc9";
-static double deg2rad(double deg) {
-	return deg * 0.017453293;
-}
 
 void HORIZON_update(charosd_state_t state, uint8_t x, uint8_t y)
 {
@@ -309,8 +308,8 @@ void HORIZON_update(charosd_state_t state, uint8_t x, uint8_t y)
 	}
 
 	// code below from minoposd
-	int16_t pitch_line = tan(deg2rad(-state->telemetry.attitude_actual.Pitch)) * _PAN_HORZ_LINES;
-	float roll = tan(deg2rad(state->telemetry.attitude_actual.Roll));
+	int16_t pitch_line = tanf(DEG2RAD * (-state->telemetry.attitude_actual.Pitch)) * _PAN_HORZ_LINES;
+	float roll = tanf(DEG2RAD * state->telemetry.attitude_actual.Roll);
 	for (uint8_t col = 1; col <= _PAN_HORZ_INT_WIDTH; col ++) {
 		// center X point at middle of each column
 		float middle = col * _PAN_HORZ_INT_WIDTH - (_PAN_HORZ_INT_WIDTH * _PAN_HORZ_INT_WIDTH / 2) - _PAN_HORZ_INT_WIDTH / 2;
@@ -334,9 +333,10 @@ void HORIZON_update(charosd_state_t state, uint8_t x, uint8_t y)
 STD_PANEL(THROTTLE, 7, "\x87%d%%", (int)MAX(0, state->telemetry.manual.throttle*100));
 
 /* GroundSpeed */
-STD_PANEL(GROUNDSPEED, 7, "\x80%d\x81", (int)round(pythag(state->telemetry.velocity_actual.North,
-							  state->telemetry.velocity_actual.East)
-						   * 3.6));
+STD_PANEL(GROUNDSPEED, 7, "\x80%d\x81", 
+		(int)roundf(pythag(state->telemetry.velocity_actual.North,
+				state->telemetry.velocity_actual.East) * 3.6f));
+// * 3.6 == m/s to km/hr
 
 STD_PANEL(BATTERYVOLT, 8, "%.2f\x8e", (double)state->telemetry.battery.Voltage);
 
@@ -375,16 +375,16 @@ static void HOMEDISTANCE_update(charosd_state_t state, uint8_t x, uint8_t y)
 
 static void HOMEDIRECTION_update(charosd_state_t state, uint8_t x, uint8_t y)
 {
-	float home_dir = (atan2f(state->telemetry.position_actual.East,
-				 state->telemetry.position_actual.North) * RAD2DEG) + 180;
-
 	if (HAS_SENSOR(state->available, HAS_COMPASS)) {
-		home_dir -= state->telemetry.attitude_actual.Yaw;
-	}
+		float home_dir = (atan2f(state->telemetry.position_actual.East,
+					 state->telemetry.position_actual.North) * RAD2DEG) + 180;
 
-	uint8_t chr = _ARROWS + (0xf & (((uint8_t) (home_dir / 360.0f * 16.0f)) * 2));
-	PIOS_MAX7456_put(state->dev, x, y, chr, 0);
-	PIOS_MAX7456_put(state->dev, x + 1, y, chr + 1, 0);
+		home_dir -= state->telemetry.attitude_actual.Yaw;
+
+		uint8_t chr = _ARROWS + (0xf & (((uint8_t) (home_dir / 360.0f * 16.0f)) * 2));
+		PIOS_MAX7456_put(state->dev, x, y, chr, 0);
+		PIOS_MAX7456_put(state->dev, x + 1, y, chr + 1, 0);
+	}
 }
 
 STD_PANEL(HEADING, 6, "%d%c", (int)(round(state->telemetry.attitude_actual.Yaw)+360) % 360, CHAROSD_CHAR_DEG);
@@ -392,7 +392,7 @@ STD_PANEL(HEADING, 6, "%d%c", (int)(round(state->telemetry.attitude_actual.Yaw)+
 /* Callsign */
 STD_PANEL(CALLSIGN, 11, "%s", state->custom_text);
 
-/* Temperature */
+/* Temperature - XXX TODO */
 STD_PANEL(TEMPERATURE, 9, "\xfd%.1f\x8a", /*XXX:telemetry::environment::temperature*/ 0.0);
 
 /* RSSI */
@@ -407,7 +407,8 @@ static void RSSI_update(charosd_state_t state, uint8_t x, uint8_t y)
 
 	const char * const levels [] = { _l0, _l1, _l2, _l3, _l4, _l5 };
 
-	uint8_t level = round (state->telemetry.manual.rssi / 20.0);
+	uint8_t level = (state->telemetry.manual.rssi + 10) / 20;
+
 	if (level == 0 && state->telemetry.manual.rssi > 0) level = 1;
 	if (level > 5) level = 5;
 
