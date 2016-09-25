@@ -215,11 +215,11 @@ int morse_send(const char **c, uint32_t *state)
 
 	switch (m_s->fields.char_state) {
 	case STATE_NEXTCHAR:
-		if (!*c) {
+		if (!**c) {
 			return -1;
 		}
 
-		m_s->fields.data  = morse_lookup(**c, &m_s->fields.len);
+		m_s->fields.data = morse_lookup(**c, &m_s->fields.len);
 		(*c)++;
 
 		if (m_s->fields.len) {
