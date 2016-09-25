@@ -421,7 +421,8 @@ androidgcs_sign:
 # change in a hotfix the release does not need to be listed here.
 UAVO_GIT_VERSIONS := HEAD \
 	Release-20160720.1 \
-	Release-20160409.2
+	Release-20160409.2 \
+	$(shell git log --merges --pretty=tformat:%h -n 18 shared/uavobjectdefinition/)
 
 # All versions includes a pseudo collection called "working" which represents
 # the UAVOs in the source tree
