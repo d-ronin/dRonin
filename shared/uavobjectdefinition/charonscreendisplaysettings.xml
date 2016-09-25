@@ -2,15 +2,15 @@
 	<object name="CharOnScreenDisplaySettings" singleinstance="true" settings="true">
 		<description>Character On Screen Display Settings</description>
 
-        <field name="CustomText" units="" type="uint8" elements="10" defaultvalue="100,82,111,110,105,110,0,0,0,0"/>
+		<field name="CustomText" units="" type="uint8" elements="10" defaultvalue="100,82,111,110,105,110,0,0,0,0"/>
 
-        <field name="Font" units="" type="enum" elements="1" defaultvalue="Regular">
-          <options>
-            <option>Regular</option>
-            <option>Thin</option>
-            <option>Small</option>
-          </options>
-        </field>
+		<field name="Font" units="" type="enum" elements="1" defaultvalue="Regular">
+			<options>
+				<option>Regular</option>
+				<option>Thin</option>
+				<option>Small</option>
+			</options>
+		</field>
 
 		<field name="PanelType" units="Panel" type="enum" defaultvalue="GPS,Latitude,Longitude,ArmedFlag,RSSI,FlightMode,Pitch,Horizon,Throttle,GroundSpeed,Altitude,Roll,FlightTime,HomeDistance,HomeDirection,BatteryVolt,BatteryCurrent,BatteryConsumed,Crosshair,Disabled,Disabled,Disabled,Disabled,Disabled" elements="24">
 			<options>
@@ -39,9 +39,9 @@
 				<option>RSSIFlag</option>
 				<option>Temperature</option>
 				<option>Throttle</option>
-                <option>Crosshair</option>
-                <option>Alarms</option>
-                <option>Heading</option>
+				<option>Crosshair</option>
+				<option>Alarms</option>
+				<option>Heading</option>
 			</options>
 		</field>
 		<field name="X" units="characters" type="uint8" defaultvalue="1,8,19,3,21,24,1,8,23,1,23,1,1,9,1,8,22,22,14,0,0,0,0,0" elements="24"/>
