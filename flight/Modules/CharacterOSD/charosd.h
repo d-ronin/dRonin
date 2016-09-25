@@ -68,6 +68,7 @@ typedef struct {
 	telemetry_t telemetry;
 	char *custom_text;
 	uint8_t prev_font;
+	uint8_t video_standard;
 
 	int available;
 } * charosd_state_t;

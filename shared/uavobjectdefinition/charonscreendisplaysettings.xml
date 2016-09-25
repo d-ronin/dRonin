@@ -2,6 +2,16 @@
 	<object name="CharOnScreenDisplaySettings" singleinstance="true" settings="true">
 		<description>Character On Screen Display Settings</description>
 
+		<field name="VideoStandard" units="enum" type="enum" elements="1" defaultvalue="AutodetectPreferPAL">
+			<description>The video standard to use for the OSD</description>
+			<options>
+				<option>AutodetectPreferPAL</option>
+				<option>AutodetectPreferNTSC</option>
+				<option>ForceNTSC</option>
+				<option>ForcePAL</option>
+			</options>
+		</field>
+
 		<field name="CustomText" units="" type="uint8" elements="10" defaultvalue="100,82,111,110,105,110,0,0,0,0">
 			<description>Custom text, ASCII values to show on screen</description>
 		</field>

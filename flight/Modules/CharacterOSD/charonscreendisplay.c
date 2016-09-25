@@ -112,6 +112,33 @@ static const uint8_t charosd_font_thin_data[] = {
 #include "charosd-font-thin.h"
 };
 
+static void set_mode(charosd_state_t state, uint8_t video_std)
+{
+	state->video_standard = video_std;
+
+	switch (video_std) {
+		case CHARONSCREENDISPLAYSETTINGS_VIDEOSTANDARD_AUTODETECTPREFERPAL:
+			PIOS_MAX7456_set_mode(state->dev, false,
+					MAX7456_MODE_PAL);
+			break;
+		case CHARONSCREENDISPLAYSETTINGS_VIDEOSTANDARD_AUTODETECTPREFERNTSC:
+			PIOS_MAX7456_set_mode(state->dev, false,
+					MAX7456_MODE_NTSC);
+			break;
+		case CHARONSCREENDISPLAYSETTINGS_VIDEOSTANDARD_FORCEPAL:
+			PIOS_MAX7456_set_mode(state->dev, true,
+					MAX7456_MODE_PAL);
+			break;
+		case CHARONSCREENDISPLAYSETTINGS_VIDEOSTANDARD_FORCENTSC:
+			PIOS_MAX7456_set_mode(state->dev, true,
+					MAX7456_MODE_NTSC);
+			break;
+		default:
+			PIOS_Assert(0);
+			break;
+	}
+}
+
 /* 12 x 18 x 2bpp */
 #define FONT_CHAR_SIZE ((12 * 18 * 2) / 8)
 
@@ -254,6 +281,8 @@ static void CharOnScreenDisplayTask(void *parameters)
 	state->dev = pios_max7456_id;
 	state->prev_font = 0xff;
 
+	state->video_standard = 0xff;
+
 	bzero(&state->telemetry, sizeof(state->telemetry));
 
 	CharOnScreenDisplaySettingsData page;
@@ -271,6 +300,10 @@ static void CharOnScreenDisplayTask(void *parameters)
 
 		if (state->prev_font != page.Font) {
 			program_characters(state, page.Font);
+		}
+
+		if (state->video_standard != page.VideoStandard) {
+			set_mode(state, page.VideoStandard);
 		}
 
 		state->custom_text = (char*)page.CustomText;

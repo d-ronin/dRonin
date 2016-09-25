@@ -147,4 +147,12 @@ void PIOS_MAX7456_wait_vsync(max7456_dev_t dev);
  */
 bool PIOS_MAX7456_stall_detect(max7456_dev_t dev);
 
+/**
+ * @brief Allows overriding the video mode used by OSD.
+ * @param[in] dev The max7456 dev handle
+ * @param[in] force Whether to force the mode and skip autodetection.
+ * @param[in] fallback The mode to select if autodetection fails or is skipped.
+ */
+void PIOS_MAX7456_set_mode(max7456_dev_t dev, bool force, uint8_t fallback);
+
 #endif /* LIB_MAX7456_MAX7456_H_ */

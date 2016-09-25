@@ -83,6 +83,9 @@ struct max7456_dev_s {
 	uint8_t mask;
 	bool opened;
 
+	bool force_mode;
+	uint8_t det_mode_fallback;
+
 	uint32_t next_sync_expected;
 };
 
@@ -139,7 +142,6 @@ static void write_register(max7456_dev_t dev, uint8_t reg, uint8_t val)
 	PIOS_SPI_TransferByte(dev->spi_id, val);
 }
 
-
 static void write_register_sel(max7456_dev_t dev, uint8_t reg, uint8_t val)
 {
 	chip_select(dev);
@@ -179,25 +181,27 @@ static inline void set_mode(max7456_dev_t dev, uint8_t value)
 	write_register_sel(dev, MAX7456_REG_VM0, vm0);
 }
 
-static inline void detect_mode (max7456_dev_t dev)
+static inline void detect_mode(max7456_dev_t dev)
 {
-	// read STAT and auto detect video mode PAL/NTSC
-	uint8_t stat = read_register_sel(dev, MAX7456_REG_STAT);
+	if (!dev->force_mode) {
+		// read STAT and auto detect video mode PAL/NTSC
+		uint8_t stat = read_register_sel(dev, MAX7456_REG_STAT);
 
-	if (MAX7456_STAT_PAL_R(stat) == MAX7456_STAT_PAL_TRUE)
-	{
-		set_mode(dev, MAX7456_MODE_PAL);
-		return;
+		if (MAX7456_STAT_PAL_R(stat) == MAX7456_STAT_PAL_TRUE)
+		{
+			set_mode(dev, MAX7456_MODE_PAL);
+			return;
+		}
+
+		if (MAX7456_STAT_NTSC_R(stat) == MAX7456_STAT_NTSC_TRUE)
+		{
+			set_mode(dev, MAX7456_MODE_NTSC);
+			return;
+		}
 	}
 
-	if (MAX7456_STAT_NTSC_R(stat) == MAX7456_STAT_NTSC_TRUE)
-	{
-		set_mode(dev, MAX7456_MODE_NTSC);
-		return;
-	}
-
-	// Give up / guess PAL
-	set_mode (dev, MAX7456_MODE_NTSC); // XXX TODO
+	// Give up / guess as instructed
+	set_mode(dev, dev->det_mode_fallback);
 }
 
 static void auto_black_level(max7456_dev_t dev, bool val)
@@ -283,7 +287,7 @@ static void reset_hard(max7456_dev_t dev)
 	PIOS_MAX7456_clear(dev);
 }
 
-int PIOS_MAX7456_init (max7456_dev_t *dev_out,
+int PIOS_MAX7456_init(max7456_dev_t *dev_out,
 		uint32_t spi_handle, uint32_t slave_idx)
 {
 	// Reset
@@ -293,6 +297,8 @@ int PIOS_MAX7456_init (max7456_dev_t *dev_out,
 	dev->magic = MAX7456_MAGIC;
 	dev->spi_id = spi_handle;
 	dev->slave_id = slave_idx;
+	dev->force_mode = false;
+	dev->det_mode_fallback = MAX7456_MODE_PAL;
 
 	reset_hard(dev);
 
@@ -301,7 +307,15 @@ int PIOS_MAX7456_init (max7456_dev_t *dev_out,
 	return 0;
 }
 
-void PIOS_MAX7456_clear (max7456_dev_t dev)
+void PIOS_MAX7456_set_mode(max7456_dev_t dev, bool force, uint8_t fallback)
+{
+	dev->force_mode = force;
+	dev->det_mode_fallback = fallback;
+
+	detect_mode(dev);
+}
+
+void PIOS_MAX7456_clear(max7456_dev_t dev)
 {
 	PIOS_Assert(dev->magic == MAX7456_MAGIC);
 	PIOS_Assert(!dev->opened);
