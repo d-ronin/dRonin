@@ -315,3 +315,8 @@ int32_t CharOnScreenDisplayStart(void)
 
 MODULE_INITCALL(CharOnScreenDisplayInitialize, CharOnScreenDisplayStart);
 
+/**
+  * @}
+  * @}
+  */
+

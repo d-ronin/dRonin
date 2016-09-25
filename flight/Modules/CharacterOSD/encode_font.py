@@ -1,5 +1,7 @@
 #!/usr/bin/env python
 
+# Copyright (C) 2016 dRonin; trivial convert-mcm-to-gcc-array-syntax thingy
+
 import sys
 
 def main(args):
