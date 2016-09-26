@@ -37,7 +37,9 @@
 #include <QtEndian>
 #include <QDebug>
 
-UAVObjectField::UAVObjectField(const QString& name, const QString& units, FieldType type, quint32 numElements, const QStringList& options, const QList<int>& indices, const QString &limits, const QString &description)
+UAVObjectField::UAVObjectField(const QString& name, const QString& units, FieldType type, quint32 numElements,
+                               const QStringList& options, const QList<int>& indices, const QString &limits,
+                               const QString &description, const QList<QVariant> defaultValues)
 {
     QStringList elementNames;
     // Set element names
@@ -46,16 +48,20 @@ UAVObjectField::UAVObjectField(const QString& name, const QString& units, FieldT
         elementNames.append(QString("%1").arg(n));
     }
     // Initialize
-    constructorInitialize(name, units, type, elementNames, options, indices, limits, description);
+    constructorInitialize(name, units, type, elementNames, options, indices, limits, description, defaultValues);
 
 }
 
-UAVObjectField::UAVObjectField(const QString& name, const QString& units, FieldType type, const QStringList& elementNames, const QStringList& options, const QList<int>& indices, const QString &limits, const QString &description)
+UAVObjectField::UAVObjectField(const QString& name, const QString& units, FieldType type, const QStringList& elementNames,
+                               const QStringList& options, const QList<int>& indices, const QString &limits,
+                               const QString &description, const QList<QVariant> defaultValues)
 {
-    constructorInitialize(name, units, type, elementNames, options, indices, limits, description);
+    constructorInitialize(name, units, type, elementNames, options, indices, limits, description, defaultValues);
 }
 
-void UAVObjectField::constructorInitialize(const QString& name, const QString& units, FieldType type, const QStringList& elementNames, const QStringList& options, const QList<int>& indices, const QString &limits, const QString &description)
+void UAVObjectField::constructorInitialize(const QString& name, const QString& units, FieldType type, const QStringList& elementNames,
+                                           const QStringList& options, const QList<int>& indices, const QString &limits,
+                                           const QString &description, const QList<QVariant> defaultValues)
 {
     // Copy params
     this->name = name;
@@ -108,6 +114,11 @@ void UAVObjectField::constructorInitialize(const QString& name, const QString& u
         numBytesPerElement = 0;
     }
     limitsInitialize(limits);
+
+    // store default values, default to zero when not provided
+    this->defaultValues = defaultValues;
+    for (quint32 i = this->defaultValues.length(); i < this->numElements; i++)
+        this->defaultValues << QVariant(0);
 }
 
 void UAVObjectField::limitsInitialize(const QString &limits)
@@ -1061,3 +1072,53 @@ QString UAVObjectField::getDescription()
 {
     return description;
 }
+
+QVariant UAVObjectField::getDefaultValue(quint32 index)
+{
+    return defaultValues.at(index);
+}
+
+bool UAVObjectField::isDefaultValue(quint32 index)
+{
+    switch (type)
+    {
+    case INT8:
+    case INT16:
+    case INT32:
+    {
+        int val = getValue(index).toInt();
+        int defVal = getDefaultValue(index).toInt();
+        return val == defVal;
+    }
+    case BITFIELD:
+    case UINT8:
+    case UINT16:
+    case UINT32:
+    {
+        unsigned val = getValue(index).toUInt();
+        unsigned defVal = getDefaultValue(index).toUInt();
+        return val == defVal;
+    }
+    case FLOAT32:
+    {
+        float val = getValue(index).toFloat();
+        float defVal = getDefaultValue(index).toFloat();
+        return qFuzzyCompare(val, defVal);
+    }
+    case ENUM:
+    case STRING:
+    {
+        const QString val = getValue(index).toString();
+        const QString defVal = getDefaultValue(index).toString();
+        return val == defVal;
+    }
+    }
+
+    Q_ASSERT(false);
+    return false;
+}
+
+/**
+ * @}
+ * @}
+ */

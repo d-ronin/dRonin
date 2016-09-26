@@ -70,6 +70,33 @@ public:
         enum failsafeDetection {FS_AWAITING_CONNECTION, FS_AWAITING_FAILSAFE, FS_AWAITING_RECONNECT};
         void startInputWizard() { goToWizard(); }
 
+protected:
+        // Note: must match armingNames
+        enum ArmingMethodType {
+            ARM_INVALID,
+            ARM_ALWAYS_DISARMED,
+            ARM_ALWAYS_ARMED,
+            ARM_SWITCH,
+            ARM_ROLL_LEFT,
+            ARM_ROLL_RIGHT,
+            ARM_YAW_LEFT,
+            ARM_YAW_RIGHT,
+            ARM_CORNERS,
+        };
+
+        struct ArmingMethod {
+            enum ArmingMethodType method;
+            QString name;
+            QString armName;
+            QString disarmName;
+            QString uavoOption;
+            bool isSwitch;
+            bool isStick;
+            bool isFixed;
+        };
+
+        static const QVector<ArmingMethod> armingMethods;
+
 private:
         // This was set through trial and error. Extensive testing
         // will have to be done before changing it. At a minimum,
@@ -160,6 +187,12 @@ private:
         QTransform m_txMainBodyOrig;
         QTransform m_txArrowsOrig;
         QTimer * animate;
+
+        QComboBox *cbArmingOption;
+        ArmingMethodType lastArmingMethod;
+        bool armingConfigUpdating;
+
+
         void resetTxControls();
         void setMoveFromCommand(int command);
 
@@ -176,6 +209,10 @@ private:
         //! Handle to telemetry manager for monitoring for disconnects
         TelemetryManager* telMngr;
         quint8 scaleSwitchChannel(quint8 channelNumber, quint8 switchPositions);
+
+        const ArmingMethod armingMethodFromArmName(const QString &name);
+        const ArmingMethod armingMethodFromUavoOption(const QString &option);
+        void fillArmingComboBox();
 
 private slots:
         void wzNext();
@@ -194,15 +231,18 @@ private slots:
         void invertControls();
         void simpleCalibration(bool state);
         void updateCalibration();
-        void checkArmingConfig(QString option);
-        void checkHangtimeConfig();
+        void checkArmingConfig();
         void checkReprojection();
+        void updateArmingConfig(UAVObject *manualControlSettings);
+        void timeoutCheckboxChanged();
 
 protected:
         void resizeEvent(QResizeEvent *event);
         virtual void enableControls(bool enable);
-        void addMessage(QWidget *widget, const QString type, const QString msg);
+        void addMessage(QWidget *target, const QString type, const QString msg);
+        void addWarning(QWidget *target, QWidget *cause, const QString msg);
         void clearMessages(QWidget *widget, const QString type);
+        void clearWarnings(QWidget *target, QWidget *causesParent);
 };
 
 #endif
