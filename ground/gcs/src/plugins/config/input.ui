@@ -29,7 +29,7 @@
    <item>
     <widget class="QTabWidget" name="tabWidget">
      <property name="currentIndex">
-      <number>2</number>
+      <number>0</number>
      </property>
      <widget class="QWidget" name="RCInput">
       <attribute name="title">
@@ -128,8 +128,8 @@
            <rect>
             <x>0</x>
             <y>0</y>
-            <width>867</width>
-            <height>580</height>
+            <width>865</width>
+            <height>572</height>
            </rect>
           </property>
           <layout class="QGridLayout" name="gridLayout">
@@ -579,8 +579,8 @@
            <rect>
             <x>0</x>
             <y>0</y>
-            <width>867</width>
-            <height>580</height>
+            <width>865</width>
+            <height>572</height>
            </rect>
           </property>
           <layout class="QVBoxLayout" name="verticalLayout_13">
@@ -1512,11 +1512,24 @@ margin:1px;</string>
            <rect>
             <x>0</x>
             <y>0</y>
-            <width>867</width>
-            <height>580</height>
+            <width>865</width>
+            <height>572</height>
            </rect>
           </property>
           <layout class="QHBoxLayout" name="horizontalLayout_2">
+           <item>
+            <spacer name="horizontalSpacer_24">
+             <property name="orientation">
+              <enum>Qt::Horizontal</enum>
+             </property>
+             <property name="sizeHint" stdset="0">
+              <size>
+               <width>40</width>
+               <height>20</height>
+              </size>
+             </property>
+            </spacer>
+           </item>
            <item>
             <layout class="QVBoxLayout" name="verticalLayout_7">
              <item>
@@ -1568,7 +1581,7 @@ margin:1px;</string>
                    <item>
                     <widget class="QCheckBox" name="cbCalibrateGyros">
                      <property name="text">
-                      <string>Calibrate gyros for:</string>
+                      <string>Calibrate gyros for: </string>
                      </property>
                      <property name="checked">
                       <bool>true</bool>
@@ -1722,7 +1735,7 @@ margin:1px;</string>
                       </font>
                      </property>
                      <property name="text">
-                      <string>Your vehicle is armed by:</string>
+                      <string>Your vehicle is armed by: </string>
                      </property>
                      <property name="alignment">
                       <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
@@ -1791,7 +1804,7 @@ margin:1px;</string>
                    <item>
                     <widget class="QLabel" name="lblStickArmTime">
                      <property name="text">
-                      <string>and low throttle, for at least:</string>
+                      <string>and low throttle, for at least: </string>
                      </property>
                     </widget>
                    </item>
@@ -1986,7 +1999,7 @@ margin:1px;</string>
                    <item>
                     <widget class="QLabel" name="lblDisarmTimeDesc">
                      <property name="text">
-                      <string>for:</string>
+                      <string>for: </string>
                      </property>
                      <property name="alignment">
                       <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
@@ -2090,7 +2103,7 @@ margin:1px;</string>
                       <item>
                        <widget class="QCheckBox" name="cbThrottleTimeout">
                         <property name="text">
-                         <string>Throttle is low for longer than:</string>
+                         <string>Throttle is low for longer than: </string>
                         </property>
                         <property name="checked">
                          <bool>true</bool>
@@ -2167,7 +2180,7 @@ margin:1px;</string>
                       <item>
                        <widget class="QCheckBox" name="cbFailsafeTimeout">
                         <property name="text">
-                         <string>Receiver is in failsafe state for longer than:</string>
+                         <string>Receiver is in failsafe state for longer than: </string>
                         </property>
                         <property name="checked">
                          <bool>true</bool>
