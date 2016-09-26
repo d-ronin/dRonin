@@ -123,7 +123,9 @@ float weak_leveling_kp = 0;
 uint8_t weak_leveling_max = 0;
 bool lowThrottleZeroIntegral;
 float vbar_decay = 0.991f;
-float gyro_alpha = 0.6;
+float gyro_alpha = 0.6f;
+static float max_rate_alpha = 0.8f;
+
 struct pid pids[PID_MAX];
 
 #ifndef NO_CONTROL_DEADBANDS
@@ -322,6 +324,12 @@ static void stabilizationTask(void* parameters)
 						settings.GyroCutoff * dT_expected);
 			}
 
+			// Default 350ms.
+			// 175ms to 39.3% of response
+			// 350ms to 63.2% of response
+			// 700ms to 86.4% of response
+			max_rate_alpha = expf(-dT_filtered / settings.AcroDynamicTau);
+
 			// Compute time constant for vbar decay term
 			if (vbar_settings.VbarTau < 0.001f) {
 				vbar_decay = 0;
@@ -459,9 +467,16 @@ static void stabilizationTask(void* parameters)
 		local_attitude_error[2] = circular_modulus_deg(local_attitude_error[2]);
 
 		static float gyro_filtered[3];
+
 		gyro_filtered[0] = gyro_filtered[0] * gyro_alpha + gyrosData.x * (1 - gyro_alpha);
 		gyro_filtered[1] = gyro_filtered[1] * gyro_alpha + gyrosData.y * (1 - gyro_alpha);
 		gyro_filtered[2] = gyro_filtered[2] * gyro_alpha + gyrosData.z * (1 - gyro_alpha);
+
+		/* Maintain a second-order, lower cutof freq variant for
+		 * dynamic flight modes.
+		 */
+
+		static float max_rate_filtered[3];
 
 		// A flag to track which stabilization mode each axis is in
 		static uint8_t previous_mode[MAX_AXES] = {255,255,255};
@@ -542,6 +557,41 @@ static void stabilizationTask(void* parameters)
 					// Compute the inner loop
 					actuatorDesiredAxis[i] = pid_apply_setpoint(&pids[PID_GROUP_RATE + i], get_deadband(i),  rateDesiredAxis[i],  gyro_filtered[i], dT_expected);
 					actuatorDesiredAxis[i] = bound_sym(actuatorDesiredAxis[i],1.0f);
+
+					break;
+
+			case STABILIZATIONDESIRED_STABILIZATIONMODE_ACRODYNE:
+					if(reinit) {
+						pids[PID_GROUP_RATE + i].iAccumulator = 0;
+						max_rate_filtered[i] = settings.ManualRate[i];
+					}
+
+					float curve_cmd = expoM(raw_input,
+							settings.RateExpo[i],
+							settings.RateExponent[i]*0.1f);
+
+					const float break_point = settings.AcroDynamicTransition[i]/100.0f;
+
+					uint16_t calc_max_rate = settings.ManualRate[i];
+
+					float abs_cmd = fabsf(raw_input);
+
+					// Could precompute much of this...
+					if (raw_input > break_point) {
+						calc_max_rate = (settings.ManualRate[i] * (abs_cmd - 1.0f) * (2 * break_point - abs_cmd - 1.0f) + settings.AcroDynamicRate[i] * powf(break_point - abs_cmd, 2.0f)) / powf(break_point - 1.0f, 2.0f);
+					}
+
+					calc_max_rate = MIN(calc_max_rate,
+							settings.AcroDynamicRate[i]);
+
+					max_rate_filtered[i] = max_rate_filtered[i] * max_rate_alpha + calc_max_rate * (1 - max_rate_alpha);
+
+					// Store to rate desired variable for storing to UAVO
+					rateDesiredAxis[i] = bound_sym(curve_cmd * max_rate_filtered[i], max_rate_filtered[i]);
+
+					// Compute the inner loop
+					actuatorDesiredAxis[i] = pid_apply_setpoint(&pids[PID_GROUP_RATE + i], get_deadband(i), rateDesiredAxis[i], gyro_filtered[i], dT);
+					actuatorDesiredAxis[i] = bound_sym(actuatorDesiredAxis[i], 1.0f);
 
 					break;
 

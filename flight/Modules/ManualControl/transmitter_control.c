@@ -486,6 +486,7 @@ int32_t transmitter_control_select(bool reset_controller)
 	case FLIGHTSTATUS_FLIGHTMODE_MANUAL:
 	case FLIGHTSTATUS_FLIGHTMODE_ACRO:
 	case FLIGHTSTATUS_FLIGHTMODE_ACROPLUS:
+	case FLIGHTSTATUS_FLIGHTMODE_ACRODYNE:
 	case FLIGHTSTATUS_FLIGHTMODE_LEVELING:
 	case FLIGHTSTATUS_FLIGHTMODE_VIRTUALBAR:
 	case FLIGHTSTATUS_FLIGHTMODE_HORIZON:
@@ -985,6 +986,9 @@ static inline float scale_stabilization(StabilizationSettingsData *stabSettings,
 			cmd = expoM(cmd, stabSettings->RateExpo[axis],
 					stabSettings->RateExponent[axis]*0.1f);
 			return cmd * stabSettings->ManualRate[axis];
+		case SHAREDDEFS_STABILIZATIONMODE_ACRODYNE:
+			// For acrodyne, pass the command through raw.
+			return cmd;
 		case SHAREDDEFS_STABILIZATIONMODE_ACROPLUS:
 			cmd = expoM(cmd, stabSettings->RateExpo[axis],
 					stabSettings->RateExponent[axis]*0.1f);
@@ -1037,6 +1041,10 @@ static void update_stabilization_desired(ManualControlCommandData * manual_contr
                                           STABILIZATIONDESIRED_STABILIZATIONMODE_ACROPLUS,
                                           STABILIZATIONDESIRED_STABILIZATIONMODE_RATE};
 
+	const uint8_t ACRODYNE_SETTINGS[3] = {  STABILIZATIONDESIRED_STABILIZATIONMODE_ACRODYNE,
+                                          STABILIZATIONDESIRED_STABILIZATIONMODE_ACRODYNE,
+                                          STABILIZATIONDESIRED_STABILIZATIONMODE_ACRODYNE};
+
 	const uint8_t FAILSAFE_SETTINGS[3] = {  STABILIZATIONDESIRED_STABILIZATIONMODE_FAILSAFE,
                                           STABILIZATIONDESIRED_STABILIZATIONMODE_FAILSAFE,
                                           STABILIZATIONDESIRED_STABILIZATIONMODE_RATE};
@@ -1057,6 +1065,9 @@ static void update_stabilization_desired(ManualControlCommandData * manual_contr
 			break;
 		case FLIGHTSTATUS_FLIGHTMODE_ACRO:
 			stab_modes = RATE_SETTINGS;
+			break;
+		case FLIGHTSTATUS_FLIGHTMODE_ACRODYNE:
+			stab_modes = ACRODYNE_SETTINGS;
 			break;
 		case FLIGHTSTATUS_FLIGHTMODE_ACROPLUS:
 			stab_modes = ACROPLUS_SETTINGS;
