@@ -15,9 +15,9 @@ void PIOS_Board_Init(void) {
 
 	const struct pios_board_info * bdinfo = &pios_board_info_blob;
 
-	const struct pios_led_cfg * led_cfg = PIOS_BOARD_HW_DEFS_GetLedCfg(bdinfo->board_rev);
+	const struct pios_annunc_cfg * led_cfg = PIOS_BOARD_HW_DEFS_GetLedCfg(bdinfo->board_rev);
 	PIOS_Assert(led_cfg);
-	PIOS_LED_Init(led_cfg);
+	PIOS_ANNUNC_Init(led_cfg);
 
 	/* Inititialize all flash drivers */
 	PIOS_Flash_Internal_Init(&pios_internal_flash_id, &flash_internal_cfg);

@@ -7,6 +7,24 @@
 		<field name="ReprojectionMode" units="" type="enum" elements="1" options="None,CameraAngle,HeadFree"/>
 		<field name="OrientationUnit" units="" type="enum" elements="1" options="Effort,ModeSpecific,Degrees,DegreesPerSec,DegreesPerSec2" />
 		<field name="PositionUnit" units="" type="enum" elements="1" options="Effort,ModeSpecific,Meters,MetersPerSec,MetersPerSec2" />
+
+		<field name="AlarmLevels" units="" type="enum" elements="1" defaultvalue="Uninitialised">
+			<options>
+				<option>Uninitialised</option>
+				<option>OK</option>
+				<option>Warning</option>
+				<option>Error</option>
+				<option>Critical</option>
+				<!-- Following are for annunciator infrastructure.
+				     HairOnFire means only explicit debugging
+				     code that is designed to always "win" -->
+				<option>HairOnFire</option>
+				<!-- If you just want failsafe, this is the
+				     option. -->
+				<option>ManualControlOnly</option>
+			</options>
+		</field>
+
 		<access gcs="readwrite" flight="readwrite"/>
 		<telemetrygcs acked="false" updatemode="manual" period="0"/>
 		<telemetryflight acked="false" updatemode="periodic" period="0"/>

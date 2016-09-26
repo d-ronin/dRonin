@@ -135,9 +135,9 @@ static void handle_actuator_fc(struct flyingpicmd_actuator_fc *cmd) {
 	PIOS_Servo_Update();
 
 	if (cmd->led_status) {
-		PIOS_LED_On(PIOS_LED_HEARTBEAT);
+		PIOS_ANNUNC_On(PIOS_LED_HEARTBEAT);
 	} else {
-		PIOS_LED_Off(PIOS_LED_HEARTBEAT);
+		PIOS_ANNUNC_Off(PIOS_LED_HEARTBEAT);
 	}
 
 	PIOS_WDG_Clear();
@@ -214,11 +214,11 @@ int main()
 
 	const struct pios_board_info *bdinfo = &pios_board_info_blob;
 
-#if defined(PIOS_INCLUDE_LED)
-	const struct pios_led_cfg *led_cfg = PIOS_BOARD_HW_DEFS_GetLedCfg(bdinfo->board_rev);
+#if defined(PIOS_INCLUDE_ANNUNC)
+	const struct pios_annunc_cfg *led_cfg = PIOS_BOARD_HW_DEFS_GetLedCfg(bdinfo->board_rev);
 	PIOS_Assert(led_cfg);
-	PIOS_LED_Init(led_cfg);
-#endif	/* PIOS_INCLUDE_LED */
+	PIOS_ANNUNC_Init(led_cfg);
+#endif	/* PIOS_INCLUDE_ANNUNC */
 
 #if defined(PIOS_INCLUDE_ADC)
 	pios_internal_adc_t adc_dev;
@@ -261,7 +261,7 @@ int main()
 			// Distinctive "ready" blip when host is not controlling
 			// LED.
 			if ((i == 0xc000) || (i == 0) || (i==0x18000)) {
-				PIOS_LED_Toggle(PIOS_LED_HEARTBEAT);
+				PIOS_ANNUNC_Toggle(PIOS_LED_HEARTBEAT);
 			}
 		}
 	}

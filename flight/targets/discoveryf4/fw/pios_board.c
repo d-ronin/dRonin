@@ -63,9 +63,9 @@ uintptr_t pios_uavo_settings_fs_id;
 
 	const struct pios_board_info * bdinfo = &pios_board_info_blob;
 
-#if defined(PIOS_INCLUDE_LED)
-	PIOS_LED_Init(&pios_led_cfg);
-#endif	/* PIOS_INCLUDE_LED */
+#if defined(PIOS_INCLUDE_ANNUNC)
+	PIOS_ANNUNC_Init(&pios_annunc_cfg);
+#endif	/* PIOS_INCLUDE_ANNUNC */
 
 #if defined(PIOS_INCLUDE_FLASH)
 	/* Inititialize all flash drivers */

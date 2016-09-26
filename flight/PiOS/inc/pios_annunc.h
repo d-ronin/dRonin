@@ -2,12 +2,12 @@
  ******************************************************************************
  * @addtogroup PIOS PIOS Core hardware abstraction layer
  * @{
- * @addtogroup PIOS_LED LED Functions
+ * @addtogroup PIOS_ANNUNC Annunciator (LED, buzzer, etc, functions).
  * @{
  *
- * @file       pios_led.h   
+ * @file       pios_annunc.h   
  * @author     The OpenPilot Team, http://www.openpilot.org Copyright (C) 2010.
- * @brief      LED functions header.
+ * @brief      Annunciator functions header.
  * @see        The GNU Public License (GPL) Version 3
  *
  *****************************************************************************/
@@ -31,12 +31,12 @@
 #define PIOS_LED_H
 
 /* Public Functions */
-extern void PIOS_LED_On(uint32_t led_id);
-extern void PIOS_LED_Off(uint32_t led_id);
-extern void PIOS_LED_Toggle(uint32_t led_id);
+extern void PIOS_ANNUNC_On(uint32_t annunc_id);
+extern void PIOS_ANNUNC_Off(uint32_t annunc_id);
+extern void PIOS_ANNUNC_Toggle(uint32_t annunc_id);
 
 #ifdef SIM_POSIX
-extern bool PIOS_LED_GetStatus(uint32_t led_id); // Currently sim only
+extern bool PIOS_ANNUNC_GetStatus(uint32_t annunc_id); // Currently sim only
 #endif
 
 

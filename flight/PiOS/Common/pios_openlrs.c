@@ -511,7 +511,7 @@ static void beacon_tone(struct pios_openlrs_dev *openlrs_dev, int16_t hz, int16_
 	int16_t d = 500000 / hz; // better resolution
 
 #if defined(PIOS_LED_LINK)
-	PIOS_LED_On(PIOS_LED_LINK);
+	PIOS_ANNUNC_On(PIOS_LED_LINK);
 #endif /* PIOS_LED_LINK */
 
 	if (d < 1) {
@@ -557,7 +557,7 @@ static void beacon_tone(struct pios_openlrs_dev *openlrs_dev, int16_t hz, int16_
 	rfm22_releaseBus(openlrs_dev);
 
 #if defined(PIOS_LED_LINK)
-	PIOS_LED_Off(PIOS_LED_LINK);
+	PIOS_ANNUNC_Off(PIOS_LED_LINK);
 #endif /* PIOS_LED_LINK */
 
 #if defined(PIOS_INCLUDE_WDG) && defined(PIOS_WDG_RFM22B)
@@ -692,7 +692,7 @@ static uint8_t pios_openlrs_bind_receive(struct pios_openlrs_dev *openlrs_dev, u
 			DEBUG_PRINTF(2,"Waiting bind\r\n");
 
 #if defined(PIOS_LED_LINK)
-			PIOS_LED_Toggle(PIOS_LED_LINK);
+			PIOS_ANNUNC_Toggle(PIOS_LED_LINK);
 #endif /* PIOS_LED_LINK */
 		}
 		if (openlrs_dev->rf_mode == Received) {
@@ -760,7 +760,7 @@ static uint8_t pios_openlrs_bind_receive(struct pios_openlrs_dev *openlrs_dev, u
 					UAVObjSave(OpenLRSHandle(), 0);
 
 #if defined(PIOS_LED_LINK)
-					PIOS_LED_Toggle(PIOS_LED_LINK);
+					PIOS_ANNUNC_Toggle(PIOS_LED_LINK);
 #endif /* PIOS_LED_LINK */
 
 					return 1;
@@ -875,7 +875,7 @@ static void pios_openlrs_rx_loop(struct pios_openlrs_dev *openlrs_dev)
 		openlrs_dev->lastAFCCvalue = rfmGetAFCC(openlrs_dev);
 
 #if defined(PIOS_LED_LINK)
-		PIOS_LED_Toggle(PIOS_LED_LINK);
+		PIOS_ANNUNC_Toggle(PIOS_LED_LINK);
 #endif /* PIOS_LED_LINK */
 
 		openlrs_dev->lastPacketTimeUs = timeUs;
@@ -992,7 +992,7 @@ static void pios_openlrs_rx_loop(struct pios_openlrs_dev *openlrs_dev)
 		if (openlrs_dev->numberOfLostPackets) {
 
 #if defined(PIOS_LED_LINK)
-			PIOS_LED_Off(PIOS_LED_LINK);
+			PIOS_ANNUNC_Off(PIOS_LED_LINK);
 #endif /* PIOS_LED_LINK */
 
 			if (openlrs_dev->failsafeDelay &&

@@ -194,12 +194,12 @@ int32_t PIOS_SYS_Reset(void)
 	PIOS_IRQ_Disable();
 
 	// turn off all board LEDs
-#ifdef PIOS_INCLUDE_LED
+#ifdef PIOS_INCLUDE_ANNUNC
 #if defined(PIOS_LED_HEARTBEAT)
-	PIOS_LED_Off(PIOS_LED_HEARTBEAT);
+	PIOS_ANNUNC_Off(PIOS_LED_HEARTBEAT);
 #endif	/* PIOS_LED_HEARTBEAT */
 #if defined(PIOS_LED_ALARM)
-	PIOS_LED_Off(PIOS_LED_ALARM);
+	PIOS_ANNUNC_Off(PIOS_LED_ALARM);
 #endif	/* PIOS_LED_ALARM */
 #endif
 
@@ -291,19 +291,19 @@ void assert_failed(uint8_t * file, uint32_t line)
 
 	/* Setup the LEDs to Alternate */
 #if defined(PIOS_LED_HEARTBEAT)
-	PIOS_LED_On(PIOS_LED_HEARTBEAT);
+	PIOS_ANNUNC_On(PIOS_LED_HEARTBEAT);
 #endif	/* PIOS_LED_HEARTBEAT */
 #if defined(PIOS_LED_ALARM)
-	PIOS_LED_Off(PIOS_LED_ALARM);
+	PIOS_ANNUNC_Off(PIOS_LED_ALARM);
 #endif	/* PIOS_LED_ALARM */
 
 	/* Infinite loop */
 	while (1) {
 #if defined(PIOS_LED_HEARTBEAT)
-		PIOS_LED_Toggle(PIOS_LED_HEARTBEAT);
+		PIOS_ANNUNC_Toggle(PIOS_LED_HEARTBEAT);
 #endif	/* PIOS_LED_HEARTBEAT */
 #if defined(PIOS_LED_ALARM)
-		PIOS_LED_Toggle(PIOS_LED_ALARM);
+		PIOS_ANNUNC_Toggle(PIOS_LED_ALARM);
 #endif	/* PIOS_LED_ALARM */
 		for (int i = 0; i < 1000000; i++) ;
 	}

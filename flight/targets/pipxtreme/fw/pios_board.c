@@ -77,7 +77,7 @@ void PIOS_Board_Init(void)
 #ifdef ERASE_FLASH
 	PIOS_FLASHFS_Format(pios_uavo_settings_fs_id);
 #if defined(PIOS_LED_HEARTBEAT)
-	PIOS_LED_Off(PIOS_LED_HEARTBEAT);
+	PIOS_ANNUNC_Off(PIOS_LED_HEARTBEAT);
 #endif /* PIOS_LED_HEARTBEAT */
 	while (1);
 #endif
@@ -110,9 +110,9 @@ void PIOS_Board_Init(void)
 	RFM22BStatusInitialize();
 #endif /* PIOS_INCLUDE_RFM22B */
 
-#if defined(PIOS_INCLUDE_LED)
-	PIOS_LED_Init(&pios_led_cfg);
-#endif  /* PIOS_INCLUDE_LED */
+#if defined(PIOS_INCLUDE_ANNUNC)
+	PIOS_ANNUNC_Init(&pios_annunc_cfg);
+#endif  /* PIOS_INCLUDE_ANNUNC */
 
 #if defined(PIOS_INCLUDE_TIM)
 	/* Set up pulse timers */

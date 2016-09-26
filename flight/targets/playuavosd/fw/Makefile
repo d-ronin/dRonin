@@ -107,6 +107,7 @@ SRC += $(FLIGHTLIB)/taskmonitor.c
 SRC += $(FLIGHTLIB)/sanitycheck.c
 SRC += $(FLIGHTLIB)/timeutils.c
 SRC += $(FLIGHTLIB)/circqueue.c
+SRC += $(FLIGHTLIB)/morsel.c
 SRC += $(MATHLIB)/coordinate_conversions.c
 SRC += $(MATHLIB)/misc_math.c
 SRC += $(MATHLIB)/pid.c
@@ -165,7 +166,7 @@ SRC += pios_max7456.c
 SRC += pios_reset.c
 SRC += pios_irq.c
 SRC += pios_wdg.c
-SRC += pios_led.c
+SRC += pios_annunc.c
 
 # List C++ source files here.
 # use file-extension .cpp for C++-files (not .C)

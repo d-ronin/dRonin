@@ -81,7 +81,7 @@ SRC += pios_hal.c
 SRC += pios_heap.c
 SRC += pios_internal_adc_simple.c
 SRC += pios_irq.c
-SRC += pios_led.c
+SRC += pios_annunc.c
 SRC += pios_ppm.c
 SRC += pios_servo.c
 SRC += pios_spislave.c
@@ -100,6 +100,7 @@ SRC += pios_sbus.c
 SRC += pios_srxl.c
 
 SRC += $(FLIGHTLIB)/circqueue.c
+SRC += $(FLIGHTLIB)/morsel.c
 
 #SRC += $(MATHLIB)/coordinate_conversions.c
 #SRC += $(MATHLIB)/misc_math.c

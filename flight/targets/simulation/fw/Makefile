@@ -131,6 +131,7 @@ SRC += $(FLIGHTLIB)/taskmonitor.c
 SRC += $(FLIGHTLIB)/sanitycheck.c
 SRC += $(FLIGHTLIB)/paths.c
 SRC += $(FLIGHTLIB)/circqueue.c
+SRC += $(FLIGHTLIB)/morsel.c
 SRC += $(FLIGHTLIB)/timeutils.c
 
 SRC += $(MATHLIB)/atmospheric_math.c
@@ -168,7 +169,7 @@ SRC += pios_hal.c
 SRC += pios_heap.c
 SRC += pios_iap.c
 SRC += pios_irq.c
-SRC += pios_led.c
+SRC += pios_annunc.c
 SRC += pios_ms5611_spi.c
 SRC += pios_flyingpio.c
 SRC += pios_reset.c

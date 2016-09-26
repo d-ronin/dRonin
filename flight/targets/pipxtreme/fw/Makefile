@@ -118,7 +118,7 @@ SRC += $(OPUAVSYNTHDIR)/velocityactual.c
 
 ## PIOS Hardware (STM32F10x)
 SRC += pios_sys.c
-SRC += pios_led.c
+SRC += pios_annunc.c
 SRC += pios_usart.c
 SRC += pios_flash_internal.c
 SRC += pios_gpio.c
@@ -173,6 +173,7 @@ SRC += $(FLIGHTLIB)/rscode/berlekamp.c
 SRC += $(FLIGHTLIB)/rscode/galois.c
 SRC += $(FLIGHTLIB)/frsky_packing.c
 SRC += $(FLIGHTLIB)/circqueue.c
+SRC += $(FLIGHTLIB)/morsel.c
 SRC += $(MATHLIB)/misc_math.c
 
 ## CMSIS for STM32

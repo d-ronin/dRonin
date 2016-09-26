@@ -32,11 +32,11 @@
 #include <pios_config.h>
 #include <pios_board_info.h>
 
-#if defined(PIOS_INCLUDE_LED)
+#if defined(PIOS_INCLUDE_ANNUNC)
 
-#include <pios_led_priv.h>
-static const struct pios_led pios_leds[] = {
-	[PIOS_LED_RED] = {
+#include <pios_annunc_priv.h>
+static const struct pios_annunc pios_annuncs[] = {
+	[PIOS_LED_ALARM] = {
 		.pin = {
 			.gpio = GPIOC,
 			.init = {
@@ -50,7 +50,7 @@ static const struct pios_led pios_leds[] = {
 		.remap = 0,
 		.active_high = false,
 	},
-	[PIOS_LED_BLUE] = {
+	[PIOS_LED_HEARTBEAT] = {
 		.pin = {
 			.gpio = GPIOC,
 			.init = {
@@ -64,19 +64,34 @@ static const struct pios_led pios_leds[] = {
 		.remap = 0,
 		.active_high = false,
 	},
+	[PIOS_ANNUNCIATOR_BUZZER] = {
+		// Bipolar NPN low side, 1k base; 2.6mA base; hFE min 200
+		.pin = {
+			.gpio = GPIOA,
+			.init = {
+				.GPIO_Pin   = GPIO_Pin_4,
+				.GPIO_Speed = GPIO_Speed_2MHz,
+				.GPIO_Mode  = GPIO_Mode_OUT,
+				.GPIO_OType = GPIO_OType_PP,
+				.GPIO_PuPd = GPIO_PuPd_DOWN
+			},
+		},
+		.remap = 0,
+		.active_high = true,
+	},
 };
 
-static const struct pios_led_cfg pios_led_cfg = {
-	.leds     = pios_leds,
-	.num_leds = NELEMENTS(pios_leds),
+static const struct pios_annunc_cfg pios_annunc_cfg = {
+	.annunciators     = pios_annuncs,
+	.num_annunciators = NELEMENTS(pios_annuncs),
 };
 
-const struct pios_led_cfg * PIOS_BOARD_HW_DEFS_GetLedCfg (uint32_t board_revision)
+const struct pios_annunc_cfg * PIOS_BOARD_HW_DEFS_GetLedCfg (uint32_t board_revision)
 {
-	return &pios_led_cfg;
+	return &pios_annunc_cfg;
 }
 
-#endif	/* PIOS_INCLUDE_LED */
+#endif	/* PIOS_INCLUDE_ANNUNC */
 
 
 #if defined(PIOS_INCLUDE_SPI)

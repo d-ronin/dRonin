@@ -38,7 +38,7 @@
 /* Enable/Disable PiOS Modules */
 //#define PIOS_INCLUDE_ADC
 #define PIOS_INCLUDE_I2C
-#define PIOS_INCLUDE_LED
+#define PIOS_INCLUDE_ANNUNC
 #define PIOS_INCLUDE_IAP
 //#define PIOS_INCLUDE_TIM
 

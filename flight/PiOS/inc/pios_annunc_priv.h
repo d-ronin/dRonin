@@ -6,7 +6,7 @@
  * @brief PIOS interface for LEDs
  * @{
  *
- * @file       pios_led_priv.h
+ * @file       pios_annunc_priv.h
  * @author     The OpenPilot Team, http://www.openpilot.org Copyright (C) 2010.
  * @brief      LED private definitions.
  * @see        The GNU Public License (GPL) Version 3
@@ -34,18 +34,18 @@
 #include <pios.h>
 #include <pios_stm32.h>
 
-struct pios_led {
+struct pios_annunc {
 	struct stm32_gpio pin;
 	uint32_t remap;
 	bool active_high;
 };
 
-struct pios_led_cfg {
-	const struct pios_led * leds;
-	uint8_t num_leds;
+struct pios_annunc_cfg {
+	const struct pios_annunc * annunciators;
+	uint8_t num_annunciators;
 };
 
-extern int32_t PIOS_LED_Init(const struct pios_led_cfg * cfg);
+extern int32_t PIOS_ANNUNC_Init(const struct pios_annunc_cfg * cfg);
 
 #endif /* PIOS_LED_PRIV_H */
 

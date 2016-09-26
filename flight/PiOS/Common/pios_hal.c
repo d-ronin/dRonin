@@ -280,14 +280,14 @@ void PIOS_HAL_CriticalError(uint32_t led_id, enum pios_hal_panic code) {
 	}
 #endif
 
-#if defined(PIOS_INCLUDE_LED)
+#if defined(PIOS_INCLUDE_ANNUNC)
 	for (int cnt = 0; cnt < 3; cnt++) {
 		for (int32_t i = 0; i < code; i++) {
 			PIOS_WDG_Clear();
-			PIOS_LED_Toggle(led_id);
+			PIOS_ANNUNC_Toggle(led_id);
 			PIOS_DELAY_WaitmS(175);
 			PIOS_WDG_Clear();
-			PIOS_LED_Toggle(led_id);
+			PIOS_ANNUNC_Toggle(led_id);
 			PIOS_DELAY_WaitmS(175);
 		}
 		PIOS_DELAY_WaitmS(175);
@@ -297,7 +297,7 @@ void PIOS_HAL_CriticalError(uint32_t led_id, enum pios_hal_panic code) {
 		PIOS_DELAY_WaitmS(175);
 		PIOS_WDG_Clear();
 	}
-#endif // PIOS_INCLUDE_LED
+#endif // PIOS_INCLUDE_ANNUNC
 	PIOS_SYS_Reset();
 }
 

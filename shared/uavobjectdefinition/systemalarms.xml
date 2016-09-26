@@ -1,7 +1,7 @@
 <xml>
 	<object name="SystemAlarms" singleinstance="true" settings="false">
 		<description>Alarms from OpenPilot to indicate failure conditions or warnings.  Set by various modules.</description>
-		<field name="Alarm" units="" type="enum" options="Uninitialised,OK,Warning,Error,Critical" defaultvalue="Uninitialised">
+		<field name="Alarm" units="" type="enum" parent="SharedDefs.AlarmLevels" options="Uninitialised,OK,Warning,Error,Critical" defaultvalue="Uninitialised">
 			<elementnames>
 				<elementname>OutOfMemory</elementname>
 				<elementname>CPUOverload</elementname>

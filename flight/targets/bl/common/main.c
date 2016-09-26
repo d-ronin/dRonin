@@ -302,7 +302,7 @@ static void go_detect_break_to_bl(struct bl_fsm_context * context)
 	/* Start a timer for how long to wait for a USB host to appear */
 	bl_fsm_timer_start(context, BL_DETECT_BREAK_TO_BL_TIMER);
 	led_pwm_config(&context->leds, 0, 0, 0, 0);
-	PIOS_LED_On(PIOS_LED_HEARTBEAT);
+	PIOS_ANNUNC_On(PIOS_LED_HEARTBEAT);
 }
 
 static void go_wait_for_dfu(struct bl_fsm_context * context)
@@ -310,14 +310,14 @@ static void go_wait_for_dfu(struct bl_fsm_context * context)
 	/* Start a timer for how long to wait for DFU mode to be activated */
 	bl_fsm_timer_start(context, BL_WAIT_FOR_DFU_TIMER);
 	led_pwm_config(&context->leds, 0, 0, 0, 0);
-	PIOS_LED_On(PIOS_LED_HEARTBEAT);
+	PIOS_ANNUNC_On(PIOS_LED_HEARTBEAT);
 }
 
 static void go_jumping_to_app(struct bl_fsm_context * context)
 {
 	bl_fsm_timer_cancel(context);
 
-	PIOS_LED_On(PIOS_LED_HEARTBEAT);
+	PIOS_ANNUNC_On(PIOS_LED_HEARTBEAT);
 
 	/* Recover a pointer to the bootloader board info blob */
 	const struct pios_board_info * bdinfo = &pios_board_info_blob;
