@@ -202,7 +202,6 @@ SRC += pios_wdg.c
 SRC += pios_reset.c
 SRC += pios_annunc.c
 
-include ./UAVObjects.inc
 SRC += $(UAVOBJSRC)
 
 # List C++ source files here.
@@ -357,8 +356,5 @@ LDFLAGS += -Wl,--fatal-warnings
 #Linker scripts
 LDFLAGS += -T memory.ld $(addprefix -T,$(LINKER_SCRIPTS_APP))
 
-include ./UAVObjects.inc
-
-UAVO_NAV = YES
 include $(PIOSCOMMONLIB)/CMSIS3/library.mk
 include $(MAKE_INC_DIR)/firmware-common.mk
