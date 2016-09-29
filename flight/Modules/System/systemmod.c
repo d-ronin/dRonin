@@ -286,6 +286,11 @@ static inline uint8_t indicate_error(const char **sequence)
 			thresh = SYSTEMALARMS_ALARM_CRITICAL;
 		}
 
+		if (i == SYSTEMALARMS_ALARM_EVENTSYSTEM) {
+			// Skip event system alarms-- nuisance
+			continue;
+		}
+
 		if (alarms.Alarm[i] < thresh) {
 			continue;
 		}
