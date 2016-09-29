@@ -289,6 +289,14 @@ gcs_clean:
 	$(V0) @echo " CLEAN      $@"
 	$(V1) [ ! -d "$(BUILD_DIR)/ground/gcs" ] || $(RM) -rf "$(BUILD_DIR)/ground/gcs"
 
+.PHONY: gcs_ts
+gcs_ts:
+	$(V1) mkdir -p $(BUILD_DIR)/ground/gcs/share/translations
+	$(V1) ( cd $(BUILD_DIR)/ground/gcs/share/translations && \
+	  PYTHON=$(PYTHON) $(QMAKE) $(ROOT_DIR)/ground/gcs/share/translations/translations.pro -spec $(QT_SPEC) -r CONFIG+="$(GCS_BUILD_CONF) $(GCS_SILENT)" $(GCS_QMAKE_OPTS) && \
+	  $(MAKE) --no-print-directory -w ts ; \
+	)
+
 ifndef WINDOWS
 # unfortunately the silent linking command is broken on windows
 ifeq ($(V), 1)
