@@ -2,13 +2,13 @@
 	<object name="CharOnScreenDisplaySettings" singleinstance="true" settings="true">
 		<description>Character On Screen Display Settings</description>
 
-		<field name="VideoStandard" units="enum" type="enum" elements="1" defaultvalue="AutodetectPreferPAL">
+		<field name="VideoStandard" units="enum" type="enum" elements="1" defaultvalue="Autodetect-Prefer PAL">
 			<description>The video standard to use for the OSD</description>
 			<options>
-				<option>AutodetectPreferPAL</option>
-				<option>AutodetectPreferNTSC</option>
-				<option>ForceNTSC</option>
-				<option>ForcePAL</option>
+				<option>Autodetect-Prefer PAL</option>
+				<option>Autodetect-Prefer NTSC</option>
+				<option>Force NTSC</option>
+				<option>Force PAL</option>
 			</options>
 		</field>
 
