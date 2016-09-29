@@ -436,6 +436,16 @@ int32_t PIOS_RFM22B_Init(uint32_t * rfm22b_id, uint32_t spi_id,
 	if (device_type != 0x08)
 		return -1;
 
+	// Do add'l validation that the device is present so we don't
+	// incorrectly talk to other SPI devices
+	uint8_t version = rfm22_read(rfm22b_dev, RFM22_DEVICE_VERSION);
+
+	if ((version != RFM22_DEVICE_VERSION_V2) &&
+			(version != RFM22_DEVICE_VERSION_A0) &&
+			(version != RFM22_DEVICE_VERSION_B1)) {
+		return -1;
+	}
+
 	// Initialize our configuration parameters
 	rfm22b_dev->datarate = RFM22B_DEFAULT_RX_DATARATE;
 	rfm22b_dev->tx_power = RFM22B_DEFAULT_TX_POWER;

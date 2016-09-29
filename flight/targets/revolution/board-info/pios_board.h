@@ -153,6 +153,13 @@ extern uint32_t pios_spi_telem_flash_id;
 #define PIOS_RFM22_SPI_PORT             (pios_spi_telem_flash_id)
 #endif /* PIOS_INCLUDE_RFM22B */
 
+#ifdef PIOS_INCLUDE_MAX7456
+#include <pios_max7456.h>
+
+extern max7456_dev_t pios_max7456_id;
+#endif
+
+
 //-------------------------
 // Packet Handler
 //-------------------------

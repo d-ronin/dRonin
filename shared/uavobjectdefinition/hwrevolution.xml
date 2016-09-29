@@ -98,10 +98,15 @@
 
 		<field name="DSMxMode" units="mode" type="enum" elements="1" parent="HwShared.DSMxMode" defaultvalue="Autodetect"/>
 
-		<!-- select the function for the radio port -->
-		<!--  1. Telem - telemetry connection -->
-		<!--  2. Telem+PPM - telemetry and ppm -->
-		<!--  3. PPM - PPM only (one way connection) -->
+
+		<field name="SPIPeripheral" units="function" type="enum" elements="1" defaultvalue="Radio">
+			<options>
+				<option>Disabled</option>
+				<option>Radio</option>
+				<option>MAX7456 OSD</option>
+			</options>
+		</field>
+
 		<field name="Radio" units="" type="enum" elements="1" parent="HwShared.RadioPort" defaultvalue="Disabled"/>
 		<!-- ID of the coordinator to allow binding to. 0 indicates allow all connections -->
 		<field name="CoordID" units="hex" type="uint32" elements="1" defaultvalue="0"/>

@@ -786,16 +786,6 @@ void PIOS_SPI_max7456_irq_handler(void)
 	PIOS_SPI_IRQ_Handler(pios_spi_max7456_id);
 }
 
-
-#if defined(PIOS_INCLUDE_MAX7456)
-#include "pios_max7456_cfg.h"
-
-const struct pios_max7456_cfg max7456_cfg = {
-
-};
-
-#endif // defined(PIOS_INCLUDE_MAX7456)
-
 #endif // defined(PIOS_INCLUDE_SPI)
 
 /**

@@ -249,12 +249,26 @@ void PIOS_heap_increase_size(size_t bytes)
 #endif	/* PIOS_INCLUDE_FREERTOS || defined(PIOS_INCLUDE_CHIBIOS) */
 }
 
+
 /* Provide an implementation of _sbrk for library functions.
  * Right now it returns failure always.
  */
+static uintptr_t sbrk_pool[1024];
+static uintptr_t brk_ptr = (uintptr_t) sbrk_pool;
+
 void *_sbrk(int incr) {
-	PIOS_Assert(0);
-	return (void *) -1;
+	uintptr_t orig = brk_ptr;
+	uintptr_t new = brk_ptr + incr;
+
+	uintptr_t end = ((uintptr_t) sbrk_pool) + sizeof(sbrk_pool);
+
+	if (new > end) {
+		return (void *) -1;
+	}
+
+	brk_ptr = new;
+
+	return (void *)orig;
 }
 
 /**

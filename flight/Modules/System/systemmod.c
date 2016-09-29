@@ -600,11 +600,12 @@ static void updateWDGstats()
 
 static void updateRfm22bStats() {
 #if defined(PIOS_INCLUDE_RFM22B)
-	// Update the RFM22BStatus UAVO
-	RFM22BStatusData rfm22bStatus;
-	RFM22BStatusInstGet(RFM22BSTATUSINST, &rfm22bStatus);
-
 	if (pios_rfm22b_id) {
+
+		// Update the RFM22BStatus UAVO
+		RFM22BStatusData rfm22bStatus;
+		RFM22BStatusInstGet(RFM22BSTATUSINST, &rfm22bStatus);
+
 		// Get the stats from the radio device
 		struct rfm22b_stats radio_stats;
 		PIOS_RFM22B_GetStats(pios_rfm22b_id, &radio_stats);
@@ -638,11 +639,8 @@ static void updateRfm22bStats() {
 		}
 
 		rfm22bStatus.LinkState = radio_stats.link_state;
-	} else {
-		rfm22bStatus.LinkState = RFM22BSTATUS_LINKSTATE_DISABLED;
+		RFM22BStatusInstSet(RFM22BSTATUSINST, &rfm22bStatus);
 	}
-	RFM22BStatusInstSet(RFM22BSTATUSINST, &rfm22bStatus);
-
 #endif /* if defined(PIOS_INCLUDE_RFM22B) */
 }
 

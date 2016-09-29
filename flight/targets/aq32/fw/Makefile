@@ -67,6 +67,7 @@ OPTMODULES += UAVOFrSKYSPortBridge
 OPTMODULES += Geofence
 OPTMODULES += Logging
 OPTMODULES += Storm32Bgc
+OPTMODULES += CharacterOSD
 
 # Paths
 OPUAVTALKINC = $(OPUAVTALK)/inc
@@ -147,7 +148,6 @@ SRC += pios_sensors.c
 SRC += pios_flash.c
 SRC += pios_flash_jedec.c
 SRC += pios_flashfs_logfs.c
-SRC += printf-stdarg.c
 SRC += pios_usb_desc_hid_cdc.c
 SRC += pios_usb_desc_hid_only.c
 SRC += pios_usb_util.c
@@ -167,6 +167,7 @@ SRC += pios_spi.c
 SRC += pios_irq.c
 SRC += pios_pwm.c
 SRC += pios_ppm.c
+SRC += pios_max7456.c
 SRC += pios_debug.c
 SRC += pios_wdg.c
 SRC += pios_reset.c
@@ -314,6 +315,7 @@ LDFLAGS = -nostartfiles -Wl,-Map=$(OUTDIR)/$(TARGET).map,--cref,--gc-sections
 LDFLAGS += -lc -lgcc -lm
 LDFLAGS += -Wl,--warn-common
 LDFLAGS += -Wl,--fatal-warnings
+LDFLAGS += -u _printf_float
 
 # Linker scripts
 LDFLAGS += -T memory.ld $(addprefix -T,$(LINKER_SCRIPTS_APP))

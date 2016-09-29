@@ -139,6 +139,13 @@ extern uintptr_t pios_com_debug_id;
 #define PIOS_COM_DEBUG                  (pios_com_debug_id)
 #endif	/* PIOS_INCLUDE_DEBUG_CONSOLE */
 
+#ifdef PIOS_INCLUDE_MAX7456
+#include <pios_max7456.h>
+
+extern max7456_dev_t pios_max7456_id;
+#endif
+
+
 //------------------------
 // TELEMETRY
 //------------------------
