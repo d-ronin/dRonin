@@ -63,7 +63,7 @@
 #define STICK_MAX_MOVE 8
 
 #define MIN_SANE_CHANNEL_VALUE 50
-#define MAX_SANE_CHANNEL_VALUE 10000
+#define MAX_SANE_CHANNEL_VALUE 32768
 #define MIN_SANE_RANGE 125
 
 // Should exceed "MIN_MEANINGFUL_RANGE" in transmitter_control.c (40)
