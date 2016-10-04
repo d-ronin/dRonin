@@ -442,12 +442,6 @@ static const struct flashfs_logfs_cfg flashfs_settings_cfg = {
 	.slot_size     = 0x00000100, /* 256 bytes */
 };
 
-static const struct flashfs_logfs_cfg flashfs_waypoints_cfg = {
-	.fs_magic      = 0x93a566a4,
-	.arena_size    = 0x00020000,	/* 2048 * slot size = 128K bytes = 1 sector */
-	.slot_size     = 0x00000040,	/* 64 bytes */
-};
-
 #include "pios_flash_internal_priv.h"
 
 static const struct pios_flash_internal_cfg flash_internal_cfg = {

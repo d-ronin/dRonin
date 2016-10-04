@@ -434,13 +434,6 @@ static const struct flashfs_logfs_cfg flashfs_settings_external_cfg = {
 	.slot_size     = 0x00000100, /* 256 bytes */
 };
 
-
-static const struct flashfs_logfs_cfg flashfs_waypoints_cfg = {
-	.fs_magic      = 0x14abcecf,
-	.arena_size    = 0x00010000, /* 2048 * slot size */
-	.slot_size     = 0x00000040, /* 64 bytes */
-};
-
 #if defined(PIOS_INCLUDE_FLASH_JEDEC)
 #include "pios_flash_jedec_priv.h"
 

@@ -111,7 +111,6 @@ uintptr_t pios_com_logging_id;
 uintptr_t pios_com_openlog_logging_id;
 uintptr_t pios_internal_adc_id;
 uintptr_t pios_uavo_settings_fs_id;
-uintptr_t pios_waypoints_settings_fs_id;
 
 const uint8_t named_color_value[HWBRAINRE1_LEDCOLOR_GLOBAL_MAXOPTVAL + 1][3] = {
 	[HWBRAINRE1_LEDCOLOR_OFF]    = {0,   0,   0},
@@ -295,8 +294,6 @@ void PIOS_Board_Init(void) {
 
 	/* Mount all filesystems */
 	if (PIOS_FLASHFS_Logfs_Init(&pios_uavo_settings_fs_id, &flashfs_settings_cfg, FLASH_PARTITION_LABEL_SETTINGS) != 0)
-		PIOS_HAL_CriticalError(PIOS_LED_ALARM, PIOS_HAL_PANIC_FILESYS);
-	if (PIOS_FLASHFS_Logfs_Init(&pios_waypoints_settings_fs_id, &flashfs_waypoints_cfg, FLASH_PARTITION_LABEL_WAYPOINTS) != 0)
 		PIOS_HAL_CriticalError(PIOS_LED_ALARM, PIOS_HAL_PANIC_FILESYS);
 
 #if defined(ERASE_FLASH)

@@ -174,7 +174,6 @@ static const struct pios_hmc5883_cfg pios_hmc5883_external_cfg = {
 uintptr_t pios_com_aux_id;
 uintptr_t pios_com_can_id;
 uintptr_t pios_uavo_settings_fs_id;
-uintptr_t pios_waypoints_settings_fs_id;
 uintptr_t pios_internal_adc_id;
 uintptr_t pios_can_id;
 uintptr_t pios_com_openlog_logging_id;
@@ -227,9 +226,6 @@ void PIOS_Board_Init(void)
 	/* Mount all filesystems */
 	if (PIOS_FLASHFS_Logfs_Init(&pios_uavo_settings_fs_id, &flashfs_internal_settings_cfg, FLASH_PARTITION_LABEL_SETTINGS) != 0)
 		PIOS_HAL_CriticalError(PIOS_LED_ALARM, PIOS_HAL_PANIC_FILESYS);
-	if (PIOS_FLASHFS_Logfs_Init(&pios_waypoints_settings_fs_id, &flashfs_internal_waypoints_cfg, FLASH_PARTITION_LABEL_WAYPOINTS) != 0)
-		PIOS_HAL_CriticalError(PIOS_LED_ALARM, PIOS_HAL_PANIC_FILESYS);
-
 #if defined(ERASE_FLASH)
 	PIOS_FLASHFS_Format(pios_uavo_settings_fs_id);
 #endif
