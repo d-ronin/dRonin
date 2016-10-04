@@ -114,7 +114,6 @@ extern uintptr_t pios_com_mavlink_id;
 extern uintptr_t pios_com_hott_id;
 extern uintptr_t pios_com_frsky_sensor_hub_id;
 extern uintptr_t pios_com_lighttelemetry_id;
-extern uintptr_t pios_com_picoc_id;
 extern uintptr_t pios_com_debug_id;
 extern uintptr_t pios_com_frsky_sport_id;
 extern uintptr_t pios_com_openlog_logging_id;
@@ -129,7 +128,6 @@ extern uintptr_t pios_com_storm32bgc_id;
 #define PIOS_COM_HOTT                   (pios_com_hott_id)
 #define PIOS_COM_FRSKY_SENSOR_HUB       (pios_com_frsky_sensor_hub_id)
 #define PIOS_COM_LIGHTTELEMETRY         (pios_com_lighttelemetry_id)
-#define PIOS_COM_PICOC                  (pios_com_picoc_id)
 #define PIOS_COM_DEBUG                  (pios_com_debug_id)
 #define PIOS_COM_FRSKY_SPORT            (pios_com_frsky_sport_id)
 #define PIOS_COM_OPENLOG                (pios_com_openlog_logging_id)

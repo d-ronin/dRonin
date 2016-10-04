@@ -17,7 +17,6 @@
 				<elementname>VtolPathFollower</elementname>
 				<elementname>GroundPathFollower</elementname>
 				<elementname>VibrationAnalysis</elementname>
-				<elementname>PicoC</elementname>
 				<elementname>Geofence</elementname>
 				<elementname>Logging</elementname>
 				<elementname>FlightStats</elementname>

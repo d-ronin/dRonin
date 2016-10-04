@@ -63,7 +63,6 @@ OPTMODULES += Airspeed/revolution
 OPTMODULES += UAVOHoTTBridge
 OPTMODULES += UAVOFrSKYSensorHubBridge
 OPTMODULES += UAVOFrSKYSPortBridge
-OPTMODULES += PicoC
 OPTMODULES += Logging
 OPTMODULES += FlightStats
 OPTMODULES += Storm32Bgc
