@@ -27,8 +27,6 @@
 #include "gpsdisplaygadgetfactory.h"
 #include "gpsdisplaywidget.h"
 #include "gpsdisplaygadget.h"
-#include "gpsdisplaygadgetconfiguration.h"
-#include "gpsdisplaygadgetoptionspage.h"
 #include <coreplugin/iuavgadget.h>
 
 GpsDisplayGadgetFactory::GpsDisplayGadgetFactory(QObject *parent) :
@@ -45,14 +43,4 @@ Core::IUAVGadget *GpsDisplayGadgetFactory::createGadget(QWidget *parent)
     GpsDisplayWidget *gadgetWidget = new GpsDisplayWidget(parent);
 
     return new GpsDisplayGadget(QString("GpsDisplayGadget"), gadgetWidget, parent);
-}
-
-IUAVGadgetConfiguration *GpsDisplayGadgetFactory::createConfiguration(QSettings *qSettings)
-{
-    return new GpsDisplayGadgetConfiguration(QString("GpsDisplayGadget"), qSettings);
-}
-
-IOptionsPage *GpsDisplayGadgetFactory::createOptionsPage(IUAVGadgetConfiguration *config)
-{
-    return new GpsDisplayGadgetOptionsPage(qobject_cast<GpsDisplayGadgetConfiguration *>(config));
 }

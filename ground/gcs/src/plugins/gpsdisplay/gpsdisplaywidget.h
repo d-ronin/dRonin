@@ -29,7 +29,6 @@
 #define GPSDISPLAYWIDGET_H_
 
 #include "ui_gpsdisplaywidget.h"
-#include "gpsdisplaygadgetconfiguration.h"
 #include "gpsconstellationwidget.h"
 #include "uavobject.h"
 #include <QGraphicsView>
