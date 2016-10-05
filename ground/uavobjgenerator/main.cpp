@@ -38,6 +38,7 @@
 
 #define RETURN_ERR_USAGE 1
 #define RETURN_ERR_XML 2
+#define RETURN_ERR_INTERNAL 3
 #define RETURN_OK 0
 
 using namespace std;
@@ -187,6 +188,11 @@ int main(int argc, char *argv[])
     QString outputpath = idHashStr + QString("/");
 
     for (int objidx = 0; objidx < parser->getNumObjects(); ++objidx) {
+        ObjectInfo *obj = parser->getObjectByIndex(objidx);
+        Q_ASSERT(obj);
+        if (!obj)
+            return RETURN_ERR_INTERNAL;
+
         quint32 id = parser->getObjectID(objidx);
         numBytesTotal+=parser->getNumBytes(objidx);
         if (verbose)
@@ -194,6 +200,14 @@ int main(int argc, char *argv[])
         if ( objIDList.contains(id) || id == 0 ) {
             cout << "Error: Object ID collision found in object " << parser->getObjectName(objidx).toStdString() << ", modify object name" << endl;
             return RETURN_ERR_XML;
+        }
+
+        /* check fields for descriptions */
+        if (verbose && obj->isSettings) {
+            foreach (FieldInfo *field, obj->fields) {
+                if (!field->description.length())
+                    cout << "Warning: field " << obj->name.toStdString() << ":" << field->name.toStdString() << " has no description!" << endl;
+            }
         }
 
         objIDList.append(id);
