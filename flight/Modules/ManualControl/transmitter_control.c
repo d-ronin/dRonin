@@ -66,9 +66,8 @@
 
 //safe band to allow a bit of calibration error or trim offset (in microseconds)
 //these specify how far outside the "permitted range" throttle and other channels
-//can go.  e.g. if range is 1000..2000us, throttles under 900us or over 2100us
+//can go.  e.g. if range is 1000..2000us, values under 750us or over 2250us
 //result in failsafe.
-#define CONNECTION_OFFSET_THROTTLE 100
 #define CONNECTION_OFFSET          250
 
 #define RCVR_ACTIVITY_MONITOR_CHANNELS_PER_GROUP 12
