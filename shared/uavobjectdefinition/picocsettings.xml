@@ -2,11 +2,20 @@
 <xml>
 	<object name="PicoCSettings" singleinstance="true" settings="true">
 		<description>Settings for the @ref PicoC Interpreter Module</description>
-		<field name="MaxFileSize" units="bytes [be careful!]" type="uint32" elements="1" defaultvalue="2048"/>
-		<field name="TaskStackSize" units="bytes [be careful!]" type="uint32" elements="1" defaultvalue="16384"/>
-		<field name="PicoCStackSize" units="bytes [be careful!]" type="uint32" elements="1" defaultvalue="16384"/>
-		<field name="BootFileID" units="" type="uint8" elements="1" defaultvalue="0"/>
+		<field name="MaxFileSize" units="bytes [be careful!]" type="uint32" elements="1" defaultvalue="2048">
+			<description>Maximum File Size</description>
+		</field>
+		<field name="TaskStackSize" units="bytes [be careful!]" type="uint32" elements="1" defaultvalue="16384">
+			<description>Task Stack Size</description>
+		</field>
+		<field name="PicoCStackSize" units="bytes [be careful!]" type="uint32" elements="1" defaultvalue="16384">
+			<description>PicoC Stack Size</description>
+		</field>
+		<field name="BootFileID" units="" type="uint8" elements="1" defaultvalue="0">
+			<description>Boot File ID</description>
+		</field>
 		<field name="Startup" units="" type="enum" elements="1" defaultvalue="Disabled">
+			<description>Startup time</description>
 			<options>
 				<option>Disabled</option>
 				<option>OnBoot</option>
@@ -14,6 +23,7 @@
 			</options>
 		</field>
 		<field name="Source" units="" type="enum" elements="1" defaultvalue="Disabled">
+			<description/>
 			<options>
 				<option>Disabled</option>
 				<option>Demo</option>
@@ -22,6 +32,7 @@
 			</options>
 		</field>
 		<field name="ComSpeed" units="bps" type="enum" parent="HwShared.SpeedBps" elements="1" defaultvalue="115200">
+			<description>Communication Speed</description>
 			<options>
 				<option>2400</option>
 				<option>4800</option>

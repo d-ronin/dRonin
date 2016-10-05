@@ -3,6 +3,7 @@
 	<object name="HwSimulation" singleinstance="true" settings="false" category="HardwareStatus">
 		<description>Simulation status.</description>
 		<field name="LedState" units="" type="enum" elements="2" defaultvalue="Off">
+			<description>Status of the board LEDs</description>
 			<elementnames>
 				<elementname>Heartbeat</elementname>
 				<elementname>Alarm</elementname>
@@ -11,7 +12,6 @@
 				<option>Off</option>
 				<option>On</option>
 			</options>
-			<description>Status of the board LEDs</description>
 		</field>
 		<access gcs="readwrite" flight="readwrite"/>
 		<telemetrygcs acked="true" updatemode="onchange" period="0"/>

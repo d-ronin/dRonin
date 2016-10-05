@@ -3,6 +3,7 @@
 	<object name="HwShared" singleinstance="true" settings="true" category="HardwareSettings">
 		<description>Templates for common enums.</description>
 		<field name="PortTypes" units="function" type="enum" elements="1" defaultvalue="Disabled">
+			<description>Port types</description>
 			<options>
 				<option>Disabled</option>
 				<option>Telemetry</option>
@@ -34,6 +35,7 @@
 			</options>
 		</field>
 		<field name="SpeedBps" units="bps" type="enum" elements="1" defaultvalue="115200">
+			<description>Speed options</description>
 			<options>
 				<option>1200</option>
 				<option>2400</option>

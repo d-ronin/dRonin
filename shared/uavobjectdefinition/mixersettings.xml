@@ -2,8 +2,11 @@
 <xml>
 	<object name="MixerSettings" singleinstance="true" settings="true">
 		<description>Settings for the @ref ActuatorModule that controls the channel assignments for the mixer based on AircraftType</description>
-		<field name="ThrottleCurve1" units="percent" type="float" elementnames="0,25,50,75,100" defaultvalue="0,0,0,0,0"/>
+		<field name="ThrottleCurve1" units="percent" type="float" elementnames="0,25,50,75,100" defaultvalue="0,0,0,0,0">
+			<description>Throttle curve</description>
+		</field>
 		<field name="Curve2Source" units="" type="enum" elements="1" defaultvalue="Throttle">
+			<description>Curve source</description>
 			<options>
 				<option>Throttle</option>
 				<option>Roll</option>
@@ -18,8 +21,11 @@
 				<option>Accessory5</option>
 			</options>
 		</field>
-		<field name="ThrottleCurve2" units="percent" type="float" elementnames="0,25,50,75,100" defaultvalue="0,0.25,0.5,0.75,1"/>
+		<field name="ThrottleCurve2" units="percent" type="float" elementnames="0,25,50,75,100" defaultvalue="0,0.25,0.5,0.75,1">
+			<description>Throttle curve </description>
+		</field>
 		<field name="Mixer1Type" units="" type="enum" elements="1" defaultvalue="Disabled">
+			<description>Mixer type</description>
 			<options>
 				<option>Disabled</option>
 				<option>Motor</option>
@@ -36,6 +42,7 @@
 			</options>
 		</field>
 		<field name="Mixer1Vector" units="" type="int8" defaultvalue="0">
+			<description>Mixer vector</description>
 			<elementnames>
 				<elementname>ThrottleCurve1</elementname>
 				<elementname>ThrottleCurve2</elementname>
@@ -44,24 +51,60 @@
 				<elementname>Yaw</elementname>
 			</elementnames>
 		</field>
-		<field name="Mixer2Type" cloneof="Mixer1Type"/>
-		<field name="Mixer2Vector" cloneof="Mixer1Vector"/>
-		<field name="Mixer3Type" cloneof="Mixer1Type"/>
-		<field name="Mixer3Vector" cloneof="Mixer1Vector"/>
-		<field name="Mixer4Type" cloneof="Mixer1Type"/>
-		<field name="Mixer4Vector" cloneof="Mixer1Vector"/>
-		<field name="Mixer5Type" cloneof="Mixer1Type"/>
-		<field name="Mixer5Vector" cloneof="Mixer1Vector"/>
-		<field name="Mixer6Type" cloneof="Mixer1Type"/>
-		<field name="Mixer6Vector" cloneof="Mixer1Vector"/>
-		<field name="Mixer7Type" cloneof="Mixer1Type"/>
-		<field name="Mixer7Vector" cloneof="Mixer1Vector"/>
-		<field name="Mixer8Type" cloneof="Mixer1Type"/>
-		<field name="Mixer8Vector" cloneof="Mixer1Vector"/>
-		<field name="Mixer9Type" cloneof="Mixer1Type"/>
-		<field name="Mixer9Vector" cloneof="Mixer1Vector"/>
-		<field name="Mixer10Type" cloneof="Mixer1Type"/>
-		<field name="Mixer10Vector" cloneof="Mixer1Vector"/>
+		<field name="Mixer2Type" cloneof="Mixer1Type">
+			<description>Mixer type</description>
+		</field>
+		<field name="Mixer2Vector" cloneof="Mixer1Vector">
+			<description>Mixer vector</description>
+		</field>
+		<field name="Mixer3Type" cloneof="Mixer1Type">
+			<description>Mixer type</description>
+		</field>
+		<field name="Mixer3Vector" cloneof="Mixer1Vector">
+			<description>Mixer vector</description>
+		</field>
+		<field name="Mixer4Type" cloneof="Mixer1Type">
+			<description>Mixer type</description>
+		</field>
+		<field name="Mixer4Vector" cloneof="Mixer1Vector">
+			<description>Mixer vector</description>
+		</field>
+		<field name="Mixer5Type" cloneof="Mixer1Type">
+			<description>Mixer type</description>
+		</field>
+		<field name="Mixer5Vector" cloneof="Mixer1Vector">
+			<description>Mixer vector</description>
+		</field>
+		<field name="Mixer6Type" cloneof="Mixer1Type">
+			<description>Mixer type</description>
+		</field>
+		<field name="Mixer6Vector" cloneof="Mixer1Vector">
+			<description>Mixer vector</description>
+		</field>
+		<field name="Mixer7Type" cloneof="Mixer1Type">
+			<description>Mixer type</description>
+		</field>
+		<field name="Mixer7Vector" cloneof="Mixer1Vector">
+			<description>Mixer vector</description>
+		</field>
+		<field name="Mixer8Type" cloneof="Mixer1Type">
+			<description>Mixer type</description>
+		</field>
+		<field name="Mixer8Vector" cloneof="Mixer1Vector">
+			<description>Mixer vector</description>
+		</field>
+		<field name="Mixer9Type" cloneof="Mixer1Type">
+			<description>Mixer type</description>
+		</field>
+		<field name="Mixer9Vector" cloneof="Mixer1Vector">
+			<description>Mixer vector</description>
+		</field>
+		<field name="Mixer10Type" cloneof="Mixer1Type">
+			<description>Mixer type</description>
+		</field>
+		<field name="Mixer10Vector" cloneof="Mixer1Vector">
+			<description>Mixer vector</description>
+		</field>
 		<access gcs="readwrite" flight="readwrite"/>
 		<telemetrygcs acked="true" updatemode="onchange" period="0"/>
 		<telemetryflight acked="true" updatemode="onchange" period="0"/>

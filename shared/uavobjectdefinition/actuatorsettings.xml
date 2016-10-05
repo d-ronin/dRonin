@@ -6,7 +6,7 @@
 			<description>The frequency of the PWM signal output to the actuator. 0 specifies synchronous PWM.</description>
 		</field>
 		<field name="ChannelMax" units="us" type="uint16" elements="10" defaultvalue="0">
-			<description>Maxmium output pulse length. Actuator commands will be scaled [-1,1] &gt; [ChannelMin,ChannelMax].</description>
+			<description>Maximum output pulse length. Actuator commands will be scaled [-1,1] &gt; [ChannelMin,ChannelMax].</description>
 		</field>
 		<field name="ChannelNeutral" units="us" type="uint16" elements="10" defaultvalue="0">
 			<description>Neutral output pulse length. For motors, should be set to the minimum pulse that causes the motor to start and spin reliably.</description>

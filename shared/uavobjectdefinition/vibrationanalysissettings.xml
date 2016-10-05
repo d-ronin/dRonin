@@ -2,9 +2,15 @@
 <xml>
 	<object name="VibrationAnalysisSettings" singleinstance="true" settings="true">
 		<description>Settings for the @ref VibrationTest Module</description>
-		<field name="SampleRate" units="ms" type="uint16" elements="1" defaultvalue="20"/>
-		<field name="FFTWindowSize" units="" type="enum" elements="1" options="16,64,256,1024" defaultvalue="16" limits="%0901NE:64:256:1024"/>
-		<field name="TestingStatus" units="" type="enum" elements="1" options="Off,On" defaultvalue="Off"/>
+		<field name="SampleRate" units="ms" type="uint16" elements="1" defaultvalue="20">
+			<description>Sampling Rate</description>
+		</field>
+		<field name="FFTWindowSize" units="" type="enum" elements="1" options="16,64,256,1024" defaultvalue="16" limits="%0901NE:64:256:1024">
+			<description>FFT Windows Size used during the analysis</description>
+		</field>
+		<field name="TestingStatus" units="" type="enum" elements="1" options="Off,On" defaultvalue="Off">
+			<description>Testing Status</description>
+		</field>
 		<access gcs="readwrite" flight="readwrite"/>
 		<telemetrygcs acked="true" updatemode="onchange" period="0"/>
 		<telemetryflight acked="true" updatemode="onchange" period="1000"/>
