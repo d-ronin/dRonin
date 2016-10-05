@@ -1,16 +1,17 @@
+<?xml version="1.0"?>
 <xml>
 	<object name="HwAQ32" singleinstance="true" settings="true" category="HardwareSettings">
 		<description>Selection of optional hardware configurations.</description>
-
-		<field name="RcvrPort" units="function" type="enum" elements="1" parent="HwShared.PortTypes"  defaultvalue="Disabled">
+		<field name="RcvrPort" units="function" type="enum" elements="1" parent="HwShared.PortTypes" defaultvalue="Disabled">
+			<description>The pins next to the "Z" arrow</description>
 			<options>
 				<option>Disabled</option>
 				<option>PPM</option>
 				<option>PWM</option>
 			</options>
 		</field>
-
 		<field name="Uart1" units="function" type="enum" elements="1" parent="HwShared.PortTypes" defaultvalue="Disabled">
+			<description>The port labelled "SER"</description>
 			<options>
 				<option>Disabled</option>
 				<option>DebugConsole</option>
@@ -25,16 +26,16 @@
 				<option>Telemetry</option>
 			</options>
 		</field>
-
 		<field name="Uart2" units="function" type="enum" elements="1" parent="HwShared.PortTypes" defaultvalue="Disabled">
+			<description>The port labelled "GPS"</description>
 			<options>
 				<option>Disabled</option>
 				<option>GPS</option>
 				<option>MavLinkTX_GPS_RX</option>
 			</options>
 		</field>
-
 		<field name="Uart3" units="function" type="enum" elements="1" parent="HwShared.PortTypes" defaultvalue="Disabled">
+			<description>The port labelled "SBUS"</description>
 			<options>
 				<option>Disabled</option>
 				<option>ComBridge</option>
@@ -59,8 +60,8 @@
 				<option>IBus</option>
 			</options>
 		</field>
-
 		<field name="Uart4" units="function" type="enum" elements="1" parent="HwShared.PortTypes" defaultvalue="Disabled">
+			<description>The "TX" pin at "Camera 1" and "RX" pin at "Camera 2"</description>
 			<options>
 				<option>Disabled</option>
 				<option>ComBridge</option>
@@ -85,8 +86,8 @@
 				<option>IBus</option>
 			</options>
 		</field>
-
 		<field name="Uart6" units="function" type="enum" elements="1" parent="HwShared.PortTypes" defaultvalue="Disabled">
+			<description>The "RX" pin at "Motor 3" and "TX" pin at "Motor 4"</description>
 			<options>
 				<option>Disabled</option>
 				<option>ComBridge</option>
@@ -111,34 +112,46 @@
 				<option>IBus</option>
 			</options>
 		</field>
-
-		<field name="ADCInputs" units="function" type="enum" elements="1"  defaultvalue="Disabled">
+		<field name="ADCInputs" units="function" type="enum" elements="1" defaultvalue="Disabled">
+			<description>Analog-to-digital inputs</description>
 			<options>
 				<option>Disabled</option>
 				<option>Enabled</option>
 			</options>
 		</field>
-
 		<field name="OSDPort" units="function" type="enum" elements="1" defaultvalue="Disabled">
 			<options>
 				<option>Disabled</option>
 				<option>MAX7456 OSD</option>
 			</options>
 		</field>
-		
-		<field name="USB_HIDPort" units="function" type="enum" elements="1" options="USBTelemetry,Disabled" defaultvalue="USBTelemetry"/>
-		<field name="USB_VCPPort" units="function" type="enum" elements="1" options="USBTelemetry,ComBridge,DebugConsole,PicoC,Disabled" defaultvalue="Disabled"/>
-
-		<field name="DSMxMode" units="mode" type="enum" elements="1" parent="HwShared.DSMxMode" defaultvalue="Autodetect"/>
-
-		<field name="GyroRange" units="deg/s" type="enum" elements="1" options="250,500,1000,2000" defaultvalue="1000"/>
-		<field name="AccelRange" units="*gravity m/s^2" type="enum" elements="1" options="2G,4G,8G,16G" defaultvalue="8G"/>
-		<field name="MPU6000Rate" units="" type="enum" elements="1" options="200,250,333,500,1000" defaultvalue="1000"/>
-		<field name="MPU6000DLPF" units="" type="enum" elements="1" options="188,98,42,20,10,5" defaultvalue="188"/>
-	
-		<field name="Magnetometer" units="function" type="enum" elements="1" options="Disabled,Internal,External" defaultvalue="Internal"/>
-		<field name="ExtMagOrientation" units="function" type="enum" elements="1" options="Top0degCW,Top90degCW,Top180degCW,Top270degCW,Bottom0degCW,Bottom90degCW,Bottom180degCW,Bottom270degCW" defaultvalue="Top0degCW" />
-	
+		<field name="USB_HIDPort" units="function" type="enum" elements="1" options="USBTelemetry,Disabled" defaultvalue="USBTelemetry">
+			<description/>
+		</field>
+		<field name="USB_VCPPort" units="function" type="enum" elements="1" options="USBTelemetry,ComBridge,DebugConsole,PicoC,Disabled" defaultvalue="Disabled">
+			<description>Virtual COM Port protocol</description>
+		</field>
+		<field name="DSMxMode" units="mode" type="enum" elements="1" parent="HwShared.DSMxMode" defaultvalue="Autodetect">
+			<description/>
+		</field>
+		<field name="GyroRange" units="deg/s" type="enum" elements="1" options="250,500,1000,2000" defaultvalue="1000">
+			<description>Maximum measurement range for the gyros, should never rotate faster than about 85% of this</description>
+		</field>
+		<field name="AccelRange" units="*gravity m/s^2" type="enum" elements="1" options="2G,4G,8G,16G" defaultvalue="8G">
+			<description>The maximum measure range for the accelerometers, should never exceed this</description>
+		</field>
+		<field name="MPU6000Rate" units="" type="enum" elements="1" options="200,250,333,500,1000" defaultvalue="1000">
+			<description>The gyro sampling rate</description>
+		</field>
+		<field name="MPU6000DLPF" units="" type="enum" elements="1" options="188,98,42,20,10,5" defaultvalue="188">
+			<description>Gyro filter cutoff frequency</description>
+		</field>
+		<field name="Magnetometer" units="function" type="enum" elements="1" options="Disabled,Internal,External" defaultvalue="Internal">
+			<description>Connected magnetometer</description>
+		</field>
+		<field name="ExtMagOrientation" units="function" type="enum" elements="1" parent="HwShared.MagOrientation" defaultvalue="Top0degCW">
+			<description>Orientation of the external magnetometer</description>
+		</field>
 		<access gcs="readwrite" flight="readwrite"/>
 		<telemetrygcs acked="true" updatemode="onchange" period="0"/>
 		<telemetryflight acked="true" updatemode="onchange" period="0"/>

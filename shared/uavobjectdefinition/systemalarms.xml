@@ -1,3 +1,4 @@
+<?xml version="1.0"?>
 <xml>
 	<object name="SystemAlarms" singleinstance="true" settings="false">
 		<description>Alarms from OpenPilot to indicate failure conditions or warnings.  Set by various modules.</description>
@@ -38,7 +39,8 @@
 				<option>PositionHold</option>
 				<option>PathPlanner</option>
 				<option>DuplicatePortCfg</option>
-				<option>NavFilter</option> <!-- the selected filter is not safe for navigation -->
+				<option>NavFilter</option>
+				<!-- the selected filter is not safe for navigation -->
 				<option>UnsafeToArm</option>
 				<option>Undefined</option>
 				<option>None</option>
@@ -69,7 +71,6 @@
 				<option>None</option>
 			</options>
 		</field>
-
 		<field name="RebootCause" units="" type="enum" elements="1" defaultvalue="Undefined">
 			<options>
 				<option>Brown out</option>
@@ -82,7 +83,6 @@
 				<option>Undefined</option>
 			</options>
 		</field>
-
 		<access gcs="readwrite" flight="readwrite"/>
 		<telemetrygcs acked="true" updatemode="onchange" period="0"/>
 		<telemetryflight acked="true" updatemode="onchange" period="0"/>

@@ -1,3 +1,4 @@
+<?xml version="1.0"?>
 <xml>
 	<object name="VtolPathFollowerStatus" singleinstance="true" settings="false">
 		<description>Monitoring of the VTOL path follower</description>

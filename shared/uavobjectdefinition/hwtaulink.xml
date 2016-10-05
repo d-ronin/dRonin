@@ -1,22 +1,33 @@
+<?xml version="1.0"?>
 <xml>
 	<object name="HwTauLink" singleinstance="true" settings="true" category="HardwareSettings">
 		<description>TauLink configurations options.</description>
-
 		<!-- select the function for the radio port -->
 		<!--  1. Telem - telemetry connection -->
 		<!--  2. Telem+PPM - telemetry and ppm -->
 		<!--  3. PPM - PPM only (one way connection) -->
-		<field name="Radio" units="" type="enum" elements="1" options="Disabled,Telem,Telem+PPM,PPM" parent="HwShared.RadioPort" defaultvalue="Disabled"/>
-		<!-- ID of the coordinator to allow binding to. 0 indicates allow all connections -->
-		<field name="CoordID" units="hex" type="uint32" elements="1" defaultvalue="0"/>
-
+		<field name="Radio" units="" type="enum" elements="1" options="Disabled,Telem,Telem+PPM,PPM" parent="HwShared.RadioPort" defaultvalue="Disabled">
+			<description>Function for the radio port</description>
+		</field>
+		<field name="CoordID" units="hex" type="uint32" elements="1" defaultvalue="0">
+			<description>ID of the coordinator to allow binding to. 0 indicates allow all connections</description>
+		</field>
 		<!-- Function of the main serial port -->
-		<field name="MainPort" units="" type="enum" elements="1" options="Disabled,GPS,Telemetry,ComBridge" parent="HwShared.PortTypes" defaultvalue="Telemetry"/>
-		<field name="BTPort" units="" type="enum" elements="1" options="Disabled,Telemetry,ComBridge" defaultvalue="Telemetry"/>
-		<!-- Whenever port is on PPM_IN that data will be sent to remove side -->
-		<field name="PPMPort" units="" type="enum" elements="1" options="Disabled,PPM,SPORT,PPM+SPORT" defaultvalue="PPM+SPORT"/>
-		<field name="VCPPort" units="" type="enum" elements="1" parent="HwShared.USB_VCPPort" defaultvalue="Disabled"/>
+		<field name="MainPort" units="" type="enum" elements="1" options="Disabled,GPS,Telemetry,ComBridge" parent="HwShared.PortTypes" defaultvalue="Telemetry">
+			<description/>
+		</field>
+		<field name="BTPort" units="" type="enum" elements="1" options="Disabled,Telemetry,ComBridge" defaultvalue="Telemetry">
+			<description/>
+		</field>
+		<!-- Whenever port is on PPM_IN that data will be sent to remote side -->
+		<field name="PPMPort" units="" type="enum" elements="1" options="Disabled,PPM,SPORT,PPM+SPORT" defaultvalue="PPM+SPORT">
+			<description/>
+		</field>
+		<field name="VCPPort" units="" type="enum" elements="1" parent="HwShared.USB_VCPPort" defaultvalue="Disabled">
+			<description>Virtual COM Port protocol</description>
+		</field>
 		<field name="ComSpeed" units="bps" type="enum" parent="HwShared.SpeedBps" elements="1" defaultvalue="Init HM10">
+			<description>Communication speed</description>
 			<option>1200</option>
 			<option>2400</option>
 			<option>4800</option>
@@ -29,14 +40,22 @@
 			<option>Init HC06</option>
 			<option>Init HM10</option>
 		</field>
-
 		<!-- radio settings -->
-		<field name="MaxRfSpeed" units="bps" type="enum" elements="1" parent="HwShared.MaxRfSpeed" defaultvalue="64000"/>
-		<field name="MaxRfPower" units="mW" type="enum" elements="1" parent="HwShared.MaxRfPower" defaultvalue="3.16"/>
-		<field name="RfBand" units="MHz" type="enum" elements="1" parent="HwShared.RfBand" defaultvalue="BoardDefault"/>
-		<field name="MinChannel" units="" type="uint8" elements="1" defaultvalue="0" limits="%BE:0:250"/>
-		<field name="MaxChannel" units="" type="uint8" elements="1" defaultvalue="250" limits="%BE:0:250"/>
-
+		<field name="MaxRfSpeed" units="bps" type="enum" elements="1" parent="HwShared.MaxRfSpeed" defaultvalue="64000">
+			<description>Maximum radio speed</description>
+		</field>
+		<field name="MaxRfPower" units="mW" type="enum" elements="1" parent="HwShared.MaxRfPower" defaultvalue="3.16">
+			<description>Maximum radio power</description>
+		</field>
+		<field name="RfBand" units="MHz" type="enum" elements="1" parent="HwShared.RfBand" defaultvalue="BoardDefault">
+			<description>Radio frequency to use</description>
+		</field>
+		<field name="MinChannel" units="" type="uint8" elements="1" defaultvalue="0" limits="%BE:0:250">
+			<description>Minimum channel to use</description>
+		</field>
+		<field name="MaxChannel" units="" type="uint8" elements="1" defaultvalue="250" limits="%BE:0:250">
+			<description>Maximum channel to use</description>
+		</field>
 		<access gcs="readwrite" flight="readwrite"/>
 		<telemetrygcs acked="true" updatemode="onchange" period="0"/>
 		<telemetryflight acked="true" updatemode="onchange" period="0"/>

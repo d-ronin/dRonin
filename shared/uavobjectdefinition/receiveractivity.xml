@@ -1,12 +1,11 @@
+<?xml version="1.0"?>
 <xml>
 	<object name="ReceiverActivity" singleinstance="true" settings="false">
 		<description>Monitors which receiver channels have been active within the last second.</description>
-
 		<field name="ActiveGroup" units="Channel Group" type="enum" elements="1" defaultvalue="None" parent="ManualControlSettings.ChannelGroups">
 			<description>Last active channel group, where active implies that a channel value changed</description>
 		</field>
-		<field name="ActiveChannel" units="channel" type="uint8" elements="1"
-			   defaultvalue="255">
+		<field name="ActiveChannel" units="channel" type="uint8" elements="1" defaultvalue="255">
 			<description>Last active channel, where active implies that a channel value changed</description>
 		</field>
 		<access gcs="readonly" flight="readwrite"/>

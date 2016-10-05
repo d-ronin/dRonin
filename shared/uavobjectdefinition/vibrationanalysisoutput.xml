@@ -1,15 +1,16 @@
+<?xml version="1.0"?>
 <xml>
-    <object name="VibrationAnalysisOutput" singleinstance="false" settings="false">
-        <description>Output from @VibrationTest module.</description>
-        <field name="x" units="m/s^2" type="int16" elements="16"/>
-        <field name="y" units="m/s^2" type="int16" elements="16"/>
-        <field name="z" units="m/s^2" type="int16" elements="16"/>
-        <field name="scale" units="" type="float" elements="1" />
-        <field name="samples" units="" type="int16" elements="1" />
-        <field name="index" units="" type="int16" elements="1" />
-        <access gcs="readwrite" flight="readwrite"/>
-        <telemetrygcs acked="false" updatemode="onchange" period="0"/>
-        <telemetryflight acked="false" updatemode="onchange" period="0"/>
-        <logging updatemode="manual" period="0"/>
-    </object>
+	<object name="VibrationAnalysisOutput" singleinstance="false" settings="false">
+		<description>Output from @VibrationTest module.</description>
+		<field name="x" units="m/s^2" type="int16" elements="16"/>
+		<field name="y" units="m/s^2" type="int16" elements="16"/>
+		<field name="z" units="m/s^2" type="int16" elements="16"/>
+		<field name="scale" units="" type="float" elements="1"/>
+		<field name="samples" units="" type="int16" elements="1"/>
+		<field name="index" units="" type="int16" elements="1"/>
+		<access gcs="readwrite" flight="readwrite"/>
+		<telemetrygcs acked="false" updatemode="onchange" period="0"/>
+		<telemetryflight acked="false" updatemode="onchange" period="0"/>
+		<logging updatemode="manual" period="0"/>
+	</object>
 </xml>

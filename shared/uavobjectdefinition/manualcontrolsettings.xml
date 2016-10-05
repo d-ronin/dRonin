@@ -1,8 +1,9 @@
+<?xml version="1.0"?>
 <xml>
 	<object name="ManualControlSettings" singleinstance="true" settings="true">
 		<description>Settings to indicate how to decode receiver input by @ref ManualControlModule.</description>
-
 		<field name="ChannelGroups" units="Channel Group" type="enum" defaultvalue="None">
+			<description/>
 			<elementnames>
 				<elementname>Throttle</elementname>
 				<elementname>Roll</elementname>
@@ -34,8 +35,8 @@
 				<option>None</option>
 			</options>
 		</field>
-
 		<field name="RssiType" units="Rssi Type" type="enum" elements="1" defaultvalue="None">
+			<description>Type of RSSI input</description>
 			<options>
 				<option>None</option>
 				<option>PWM</option>
@@ -47,11 +48,17 @@
 				<option>FrSkyPWM</option>
 			</options>
 		</field>
-		<field name="RssiChannelNumber" units="channel" type="uint8" elements="1" defaultvalue="0"/>
-		<field name="RssiMax" units="" type="int16" elements="1" defaultvalue="2000"/>
-		<field name="RssiMin" units="" type="int16" elements="1" defaultvalue="1000"/>
-
+		<field name="RssiChannelNumber" units="channel" type="uint8" elements="1" defaultvalue="0">
+			<description>RSSI channel number</description>
+		</field>
+		<field name="RssiMax" units="" type="int16" elements="1" defaultvalue="2000">
+			<description>Maximum RSSI value</description>
+		</field>
+		<field name="RssiMin" units="" type="int16" elements="1" defaultvalue="1000">
+			<description>Minimum RSSI value</description>
+		</field>
 		<field name="ChannelNumber" units="channel" type="uint8" defaultvalue="0">
+			<description>Channel number</description>
 			<elementnames>
 				<elementname>Throttle</elementname>
 				<elementname>Roll</elementname>
@@ -66,6 +73,7 @@
 			</elementnames>
 		</field>
 		<field name="ChannelMin" units="us" type="int16" defaultvalue="1000">
+			<description>Minimum channel value</description>
 			<elementnames>
 				<elementname>Throttle</elementname>
 				<elementname>Roll</elementname>
@@ -80,6 +88,7 @@
 			</elementnames>
 		</field>
 		<field name="ChannelNeutral" units="us" type="int16" defaultvalue="1500">
+			<description>Neutral channel value</description>
 			<elementnames>
 				<elementname>Throttle</elementname>
 				<elementname>Roll</elementname>
@@ -94,6 +103,7 @@
 			</elementnames>
 		</field>
 		<field name="ChannelMax" units="us" type="int16" defaultvalue="2000">
+			<description>Maximum channel value</description>
 			<elementnames>
 				<elementname>Throttle</elementname>
 				<elementname>Roll</elementname>
@@ -107,12 +117,13 @@
 				<elementname>Arming</elementname>
 			</elementnames>
 		</field>
-
-		<field name="Deadband" units="%" type="float" elements="1" defaultvalue="0"/>
-
+		<field name="Deadband" units="%" type="float" elements="1" defaultvalue="0">
+			<description>Deadband around neutral value</description>
+		</field>
 		<field name="Arming" units="" type="enum" elements="1" defaultvalue="Always Disarmed">
+			<description>Combination to arm</description>
 			<options>
- 				<option>Always Disarmed</option>
+				<option>Always Disarmed</option>
 				<option>Always Armed</option>
 				<option>Roll Left+Throttle</option>
 				<option>Roll Right+Throttle</option>
@@ -126,28 +137,49 @@
 				<option>Switch+Throttle+Delay</option>
 			</options>
 		</field>
-		<field name="ArmTime" units="ms" type="enum" elements="1" options="250,500,1000,2000" defaultvalue="1000"/>
-		<field name="DisarmTime" units="ms" type="enum" elements="1" options="250,500,1000,2000" defaultvalue="1000"/>
-
+		<field name="ArmTime" units="ms" type="enum" elements="1" options="250,500,1000,2000" defaultvalue="1000">
+			<description>Arm time</description>
+		</field>
+		<field name="DisarmTime" units="ms" type="enum" elements="1" options="250,500,1000,2000" defaultvalue="1000">
+			<description>Disarm time</description>
+		</field>
 		<!-- Note these options should be identical to those in StabilizationDesired.StabilizationMode -->
-		<!-- XXX except we need to prohibit systemident! -->
-		<field name="Stabilization1Settings" parent="SharedDefs.StabilizationMode" type="enum" elementnames="Roll,Pitch,Yaw" defaultvalue="Attitude,Attitude,Rate"/>
-		<field name="Stabilization2Settings" parent="SharedDefs.StabilizationMode" type="enum" elementnames="Roll,Pitch,Yaw" defaultvalue="Attitude,Attitude,Rate"/>
-		<field name="Stabilization3Settings" parent="SharedDefs.StabilizationMode" type="enum" elementnames="Roll,Pitch,Yaw" defaultvalue="Attitude,Attitude,Rate"/>
-
-		<field name="Stabilization1Reprojection" parent="SharedDefs.ReprojectionMode" type="enum" elements="1" defaultvalue="None"/>
-		<field name="Stabilization2Reprojection" parent="SharedDefs.ReprojectionMode" type="enum" elements="1" defaultvalue="None"/>
-		<field name="Stabilization3Reprojection" parent="SharedDefs.ReprojectionMode" type="enum" elements="1" defaultvalue="None"/>
-
+		<field name="Stabilization1Settings" parent="SharedDefs.StabilizationMode" type="enum" elementnames="Roll,Pitch,Yaw" defaultvalue="Attitude,Attitude,Rate">
+			<description>Stabilization 1 settings</description>
+		</field>
+		<field name="Stabilization2Settings" parent="SharedDefs.StabilizationMode" type="enum" elementnames="Roll,Pitch,Yaw" defaultvalue="Attitude,Attitude,Rate">
+			<description>Stabilization 2 settings</description>
+		</field>
+		<field name="Stabilization3Settings" parent="SharedDefs.StabilizationMode" type="enum" elementnames="Roll,Pitch,Yaw" defaultvalue="Attitude,Attitude,Rate">
+			<description>Stabilization 3 settings</description>
+		</field>
+		<field name="Stabilization1Reprojection" parent="SharedDefs.ReprojectionMode" type="enum" elements="1" defaultvalue="None">
+			<description>Stabilization 1 reprojection</description>
+		</field>
+		<field name="Stabilization2Reprojection" parent="SharedDefs.ReprojectionMode" type="enum" elements="1" defaultvalue="None">
+			<description>Stabilization 2 reprojection</description>
+		</field>
+		<field name="Stabilization3Reprojection" parent="SharedDefs.ReprojectionMode" type="enum" elements="1" defaultvalue="None">
+			<description>Stabilization 3 reprojection</description>
+		</field>
 		<!-- Note these options values should be identical to those defined in FlightMode -->
-		<field name="FlightModeNumber" units="" type="uint8" elements="1" defaultvalue="3"/>
-		<field name="FlightModePosition" units="" type="enum" elements="6" parent="SharedDefs.FlightMode" defaultvalue="Leveling,Leveling,Leveling,Horizon,ReturnToHome,PositionHold"/>
-
+		<field name="FlightModeNumber" units="" type="uint8" elements="1" defaultvalue="3">
+			<description>Number of flight modes</description>
+		</field>
+		<field name="FlightModePosition" units="" type="enum" elements="6" parent="SharedDefs.FlightMode" defaultvalue="Leveling,Leveling,Leveling,Horizon,ReturnToHome,PositionHold">
+			<description>Flight mode per position</description>
+		</field>
 		<!-- This option prevents timing out arming when disabled and in autonomous modes.
-                     It is enabled by default for additional safety to prevent flyaways -->
-		<field name="ArmTimeoutAutonomous" units="" type="enum" elements="1" options="DISABLED,ENABLED" defaultvalue="ENABLED"/>
-		<field name="ArmedTimeout" units="ms" type="uint16" elements="1" defaultvalue="30000"/>
-		<field name="InvalidRXArmedTimeout" units="ms" type="uint16" elements="1" defaultvalue="0"/>
+					 It is enabled by default for additional safety to prevent flyaways -->
+		<field name="ArmTimeoutAutonomous" units="" type="enum" elements="1" options="DISABLED,ENABLED" defaultvalue="ENABLED">
+			<description>Arm timeout in autonomous modes</description>
+		</field>
+		<field name="ArmedTimeout" units="ms" type="uint16" elements="1" defaultvalue="30000">
+			<description>Time in armed + idle throttle before disarm</description>
+		</field>
+		<field name="InvalidRXArmedTimeout" units="ms" type="uint16" elements="1" defaultvalue="0">
+			<description>Invalid receiver armed timeout</description>
+		</field>
 		<access gcs="readwrite" flight="readwrite"/>
 		<telemetrygcs acked="true" updatemode="onchange" period="0"/>
 		<telemetryflight acked="true" updatemode="onchange" period="0"/>

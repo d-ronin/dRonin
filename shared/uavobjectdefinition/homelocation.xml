@@ -1,24 +1,31 @@
+<?xml version="1.0"?>
 <xml>
-    <object name="HomeLocation" singleinstance="true" settings="true">
-        <description>HomeLocation setting which contains the constants to tranlate from longitutde and latitude to NED reference frame.  Automatically set by @ref GPSModule after acquiring a 3D lock.  Used by @ref AHRSCommsModule.</description>
-        <field name="Set" units="" type="enum" elements="1" options="FALSE,TRUE" defaultvalue="FALSE">
-            <description>Use preset home location when enabled, otherwise use location where GPS lock occurs. BE CAREFUL with this.</description>
-        </field>
-        <field name="Latitude" units="deg * 10e6" type="int32" elements="1" defaultvalue="0">
-            <description>Latitude of preset home location.</description>
-        </field>
-        <field name="Longitude" units="deg * 10e6" type="int32" elements="1" defaultvalue="0">
-            <description>Longitude of preset home location.</description>
-        </field>
-        <field name="Altitude" units="m over geoid" type="float" elements="1" defaultvalue="0">
-            <description>Altitude of preset home location.</description>
-        </field>
-        <field name="Be" units="" type="float" elements="3" defaultvalue="0,0,0"/>
-        <field name="GroundTemperature" units="deg C * 10" type="int16" elements="1" defaultvalue="150"/>
-        <field name="SeaLevelPressure" units="millibar" type="uint16" elements="1" defaultvalue="1013"/>
-        <access gcs="readwrite" flight="readwrite"/>
-        <telemetrygcs acked="true" updatemode="onchange" period="0"/>
-        <telemetryflight acked="true" updatemode="onchange" period="0"/>
-        <logging updatemode="manual" period="0"/>
-    </object>
+	<object name="HomeLocation" singleinstance="true" settings="true">
+		<description>HomeLocation setting which contains the constants to tranlate from longitutde and latitude to NED reference frame.  Automatically set by @ref GPSModule after acquiring a 3D lock.  Used by @ref AHRSCommsModule.</description>
+		<field name="Set" units="" type="enum" elements="1" options="FALSE,TRUE" defaultvalue="FALSE">
+			<description>Use preset home location when enabled, otherwise use location where GPS lock occurs. BE CAREFUL with this.</description>
+		</field>
+		<field name="Latitude" units="deg * 10e6" type="int32" elements="1" defaultvalue="0">
+			<description>Latitude of preset home location.</description>
+		</field>
+		<field name="Longitude" units="deg * 10e6" type="int32" elements="1" defaultvalue="0">
+			<description>Longitude of preset home location.</description>
+		</field>
+		<field name="Altitude" units="m over geoid" type="float" elements="1" defaultvalue="0">
+			<description>Altitude of preset home location.</description>
+		</field>
+		<field name="Be" units="" type="float" elements="3" defaultvalue="0,0,0">
+			<description/>
+		</field>
+		<field name="GroundTemperature" units="deg C * 10" type="int16" elements="1" defaultvalue="150">
+			<description>Temperature measured at ground</description>
+		</field>
+		<field name="SeaLevelPressure" units="millibar" type="uint16" elements="1" defaultvalue="1013">
+			<description>Barometric pressure measured at sea level</description>
+		</field>
+		<access gcs="readwrite" flight="readwrite"/>
+		<telemetrygcs acked="true" updatemode="onchange" period="0"/>
+		<telemetryflight acked="true" updatemode="onchange" period="0"/>
+		<logging updatemode="manual" period="0"/>
+	</object>
 </xml>

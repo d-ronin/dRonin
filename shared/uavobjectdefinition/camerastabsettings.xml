@@ -1,20 +1,43 @@
+<?xml version="1.0"?>
 <xml>
-    <object name="CameraStabSettings" singleinstance="true" settings="true">
-        <description>Settings for the @ref CameraStab mmodule</description>
-        <field name="Input" units="channel" type="enum" elementnames="Roll,Pitch,Yaw" options="Accessory0,Accessory1,Accessory2,Accessory3,Accessory4,Accessory5,POI,None" defaultvalue="None"/>
-        <field name="InputRange" units="deg" type="uint8" elementnames="Roll,Pitch,Yaw" defaultvalue="20"/>
-        <field name="InputRate" units="deg/s" type="uint8" elementnames="Roll,Pitch,Yaw" defaultvalue="50"/>
-        <field name="OutputRange" units="deg" type="uint8" elementnames="Roll,Pitch,Yaw" defaultvalue="20"/>
-        <field name="FeedForward" units="" type="uint8" elementnames="Roll,Pitch,Yaw" defaultvalue="0"/>
-        <field name="StabilizationMode" units="" type="enum" elementnames="Roll,Pitch,Yaw" parent="SharedDefs.StabilizationMode" options="Attitude,AxisLock" defaultvalue="Attitude"/>
-        <field name="MaxAxisLockRate" units="deg/s" type="float" elements="1" defaultvalue="1"/>
-        <field name="AttitudeFilter" units="ms" type="uint8" elements="1" defaultvalue="0"/>
-        <field name="InputFilter" units="ms" type="uint8" elements="1" defaultvalue="0"/>
-        <field name="FeedForwardTime" units="ms" type="uint8" elements="1" defaultvalue="0"/>
-        <field name="MaxAccel" units="units/sec" type="float" elements="1" defaultvalue="1000"/>
-        <access gcs="readwrite" flight="readwrite"/>
-        <telemetrygcs acked="true" updatemode="onchange" period="0"/>
-        <telemetryflight acked="true" updatemode="onchange" period="0"/>
-        <logging updatemode="manual" period="0"/>
+	<object name="CameraStabSettings" singleinstance="true" settings="true">
+		<description>Settings for the @ref CameraStab mmodule</description>
+		<field name="Input" units="channel" type="enum" elementnames="Roll,Pitch,Yaw" options="Accessory0,Accessory1,Accessory2,Accessory3,Accessory4,Accessory5,POI,None" defaultvalue="None">
+			<description>Pins on which the inputs are connected</description>
+		</field>
+		<field name="InputRange" units="deg" type="uint8" elementnames="Roll,Pitch,Yaw" defaultvalue="20">
+			<description>Range of the inputs. Range 0 - 255</description>
+		</field>
+		<field name="InputRate" units="deg/s" type="uint8" elementnames="Roll,Pitch,Yaw" defaultvalue="50">
+			<description>Rate of the inputs. Range 0 - 255 </description>
+		</field>
+		<field name="OutputRange" units="deg" type="uint8" elementnames="Roll,Pitch,Yaw" defaultvalue="20">
+			<description>Range of the outputs. Range 0 - 255</description>
+		</field>
+		<field name="FeedForward" units="" type="uint8" elementnames="Roll,Pitch,Yaw" defaultvalue="0">
+			<description/>
+		</field>
+		<field name="StabilizationMode" units="" type="enum" elementnames="Roll,Pitch,Yaw" parent="SharedDefs.StabilizationMode" options="Attitude,AxisLock" defaultvalue="Attitude">
+			<description>The stabilization mode to be used</description>
+		</field>
+		<field name="MaxAxisLockRate" units="deg/s" type="float" elements="1" defaultvalue="1">
+			<description/>
+		</field>
+		<field name="AttitudeFilter" units="ms" type="uint8" elements="1" defaultvalue="0">
+			<description/>
+		</field>
+		<field name="InputFilter" units="ms" type="uint8" elements="1" defaultvalue="0">
+			<description/>
+		</field>
+		<field name="FeedForwardTime" units="ms" type="uint8" elements="1" defaultvalue="0">
+			<description/>
+		</field>
+		<field name="MaxAccel" units="units/sec" type="float" elements="1" defaultvalue="1000">
+			<description/>
+		</field>
+		<access gcs="readwrite" flight="readwrite"/>
+		<telemetrygcs acked="true" updatemode="onchange" period="0"/>
+		<telemetryflight acked="true" updatemode="onchange" period="0"/>
+		<logging updatemode="manual" period="0"/>
 	</object>
 </xml>
