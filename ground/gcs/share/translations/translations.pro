@@ -24,7 +24,7 @@ MIMETYPES_FILES = \"$$join(MIMETYPES_FILES, |)\"
 
 QMAKE_SUBSTITUTES += extract-mimetypes.xq.in
 ts.commands += \
-    $$XMLPATTERNS -output $$MIME_TR_H $$PWD/extract-mimetypes.xq && \
+    $$XMLPATTERNS -output $$MIME_TR_H $$OUT_PWD/extract-mimetypes.xq && \
     (cd $$GCS_SOURCE_TREE && $$LUPDATE src $$MIME_TR_H -ts $$TRANSLATIONS) && \
     $$QMAKE_DEL_FILE $$targetPath($$MIME_TR_H)
 
