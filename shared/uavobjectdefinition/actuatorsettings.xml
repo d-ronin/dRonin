@@ -1,38 +1,37 @@
+<?xml version="1.0"?>
 <xml>
-    <object name="ActuatorSettings" singleinstance="true" settings="true">
-        <description>Settings for the @ref ActuatorModule that controls the channel assignments for the mixer based on AircraftType</description>
-        <field name="TimerUpdateFreq" units="Hz" type="uint16" elements="6" defaultvalue="50">
-            <description>The frequency of the PWM signal output to the actuator. 0 specifies synchronous PWM.</description>
-        </field>
-        <field name="ChannelMax" units="us" type="uint16" elements="10" defaultvalue="0">
-            <description>Maxmium output pulse length. Actuator commands will be scaled [-1,1] > [ChannelMin,ChannelMax].</description>
-        </field>
-        <field name="ChannelNeutral" units="us" type="uint16" elements="10" defaultvalue="0">
-            <description>Neutral output pulse length. For motors, should be set to the minimum pulse that causes the motor to start and spin reliably.</description>
-        </field>
-        <field name="ChannelMin" units="us" type="uint16" elements="10" defaultvalue="0">
-            <description>Minimum output pulse length. Actuator commands will be scaled from [-1,1] to [ChannelMin,ChannelMax].</description>
-        </field>
-        <field name="ChannelType" units="" type="enum" elements="10" options="PWM,PWM Alarm,Arming LED,Info LED" defaultvalue="PWM">
-            <description>The type of output signal. Use PWM for motors.</description>
-        </field>
-        <field name="MotorsSpinWhileArmed" units="" type="enum" elements="1" options="FALSE,TRUE" defaultvalue="FALSE">
-            <description>When enabled, the motors will spin at the ChannelNeutral command when armed with zero throttle.</description>
-        </field>
-        <field name="LowPowerStabilizationMaxPowerAdd" units="" type="float" elements="1" defaultvalue="0.07" limits="%BE:0.0:0.15">
-            <description>Maximum power to add to ensure stabilization at low power.  Always select a value well under hover power.</description>
-        </field>
-        <field name="LowPowerStabilizationMaxTime" units="s" type="float" elements="1" defaultvalue="0" limits="%BE:0.0:4.5">
-            <description>Maximum time in seconds to add power when at zero throttle to ensure stabilization.  Choosing 0 prevents adding power at zero throttle.</description>
-        </field>
-
-        <field name="MotorInputOutputCurveFit" units="-" type="float" elements="1" defaultvalue="0.9">
-            <description>Actuator mapping of input in [-1,1] to output on [-1,1], using power equation of type x^value.</description>
-        </field>
-
-        <access gcs="readwrite" flight="readwrite"/>
-        <telemetrygcs acked="true" updatemode="onchange" period="0"/>
-        <telemetryflight acked="true" updatemode="onchange" period="0"/>
-        <logging updatemode="manual" period="0"/>
+	<object name="ActuatorSettings" singleinstance="true" settings="true">
+		<description>Settings for the @ref ActuatorModule that controls the channel assignments for the mixer based on AircraftType</description>
+		<field name="TimerUpdateFreq" units="Hz" type="uint16" elements="6" defaultvalue="50">
+			<description>The frequency of the PWM signal output to the actuator. 0 specifies synchronous PWM.</description>
+		</field>
+		<field name="ChannelMax" units="us" type="uint16" elements="10" defaultvalue="0">
+			<description>Maxmium output pulse length. Actuator commands will be scaled [-1,1] &gt; [ChannelMin,ChannelMax].</description>
+		</field>
+		<field name="ChannelNeutral" units="us" type="uint16" elements="10" defaultvalue="0">
+			<description>Neutral output pulse length. For motors, should be set to the minimum pulse that causes the motor to start and spin reliably.</description>
+		</field>
+		<field name="ChannelMin" units="us" type="uint16" elements="10" defaultvalue="0">
+			<description>Minimum output pulse length. Actuator commands will be scaled from [-1,1] to [ChannelMin,ChannelMax].</description>
+		</field>
+		<field name="ChannelType" units="" type="enum" elements="10" options="PWM,PWM Alarm,Arming LED,Info LED" defaultvalue="PWM">
+			<description>The type of output signal. Use PWM for motors.</description>
+		</field>
+		<field name="MotorsSpinWhileArmed" units="" type="enum" elements="1" options="FALSE,TRUE" defaultvalue="FALSE">
+			<description>When enabled, the motors will spin at the ChannelNeutral command when armed with zero throttle.</description>
+		</field>
+		<field name="LowPowerStabilizationMaxPowerAdd" units="" type="float" elements="1" defaultvalue="0.07" limits="%BE:0.0:0.15">
+			<description>Maximum power to add to ensure stabilization at low power.  Always select a value well under hover power.</description>
+		</field>
+		<field name="LowPowerStabilizationMaxTime" units="s" type="float" elements="1" defaultvalue="0" limits="%BE:0.0:4.5">
+			<description>Maximum time in seconds to add power when at zero throttle to ensure stabilization.  Choosing 0 prevents adding power at zero throttle.</description>
+		</field>
+		<field name="MotorInputOutputCurveFit" units="-" type="float" elements="1" defaultvalue="0.9">
+			<description>Actuator mapping of input in [-1,1] to output on [-1,1], using power equation of type x^value.</description>
+		</field>
+		<access gcs="readwrite" flight="readwrite"/>
+		<telemetrygcs acked="true" updatemode="onchange" period="0"/>
+		<telemetryflight acked="true" updatemode="onchange" period="0"/>
+		<logging updatemode="manual" period="0"/>
 	</object>
 </xml>

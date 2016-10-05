@@ -1,3 +1,4 @@
+<?xml version="1.0"?>
 <xml>
 	<object name="HoTTSettings" singleinstance="true" settings="true">
 		<description>Settings for the @ref HoTT Telemetry Module</description>

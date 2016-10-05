@@ -1,3 +1,4 @@
+<?xml version="1.0"?>
 <xml>
 	<object name="FlightStatsSettings" singleinstance="true" settings="true">
 		<description>Settings for the FlightStats module</description>

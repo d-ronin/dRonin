@@ -1,34 +1,35 @@
+<?xml version="1.0"?>
 <xml>
-    <object name="AttitudeSettings" singleinstance="true" settings="true">
-        <description>Settings for the @ref Attitude module</description>
-        <field name="BoardRotation" units="deg*100" type="int16" elementnames="Roll,Pitch,Yaw" defaultvalue="0,0,0">
-            <description>Board rotation angles.</description>
-        </field>
-        <field name="MagKp" units="channel" type="float" elements="1" defaultvalue="0.05">
-            <description>Magnetometer proportional gain for the attitude filter.</description>
-        </field>
-        <field name="MagKi" units="channel" type="float" elements="1" defaultvalue="0.0001">
-            <description>Magnetometer integral gain for the attitude filter.</description>
-        </field>
-        <field name="AccelKp" units="channel" type="float" elements="1" defaultvalue="0.05">
-            <description>Accelerometer proportional gain for the attitude filter.</description>
-        </field>
-        <field name="AccelKi" units="channel" type="float" elements="1" defaultvalue="0.0001">
-            <description>Accelerometer integral gain for the attitude filter.</description>
-        </field>
-        <field name="AccelTau" units="" type="float" elements="1" defaultvalue="0.1"/>
-        <field name="VertPositionTau" units="" type="float" elements="1" defaultvalue="2"/>
-        <field name="YawBiasRate" units="channel" type="float" elements="1" defaultvalue="0.000001"/>
-        <field name="ZeroDuringArming" units="channel" type="enum" elements="1" options="FALSE,TRUE" defaultvalue="TRUE">
-            <description>Zero the attitude estimate during arming when enabled.</description>
-        </field>
-        <field name="BiasCorrectGyro" units="channel" type="enum" elements="1" options="FALSE,TRUE" defaultvalue="TRUE">
-            <description>Apply a calculated bias correction to the gyro when enabled.</description>
-        </field>
-        <field name="FilterChoice" units="channel" type="enum" elements="1" options="CCC,PREMERLANI,PREMERLANI_GPS" defaultvalue="CCC"/>
-        <access gcs="readwrite" flight="readwrite"/>
-        <telemetrygcs acked="true" updatemode="onchange" period="0"/>
-        <telemetryflight acked="true" updatemode="onchange" period="0"/>
-        <logging updatemode="manual" period="0"/>
-    </object>
+	<object name="AttitudeSettings" singleinstance="true" settings="true">
+		<description>Settings for the @ref Attitude module</description>
+		<field name="BoardRotation" units="deg*100" type="int16" elementnames="Roll,Pitch,Yaw" defaultvalue="0,0,0">
+			<description>Board rotation angles.</description>
+		</field>
+		<field name="MagKp" units="channel" type="float" elements="1" defaultvalue="0.05">
+			<description>Magnetometer proportional gain for the attitude filter.</description>
+		</field>
+		<field name="MagKi" units="channel" type="float" elements="1" defaultvalue="0.0001">
+			<description>Magnetometer integral gain for the attitude filter.</description>
+		</field>
+		<field name="AccelKp" units="channel" type="float" elements="1" defaultvalue="0.05">
+			<description>Accelerometer proportional gain for the attitude filter.</description>
+		</field>
+		<field name="AccelKi" units="channel" type="float" elements="1" defaultvalue="0.0001">
+			<description>Accelerometer integral gain for the attitude filter.</description>
+		</field>
+		<field name="AccelTau" units="" type="float" elements="1" defaultvalue="0.1"/>
+		<field name="VertPositionTau" units="" type="float" elements="1" defaultvalue="2"/>
+		<field name="YawBiasRate" units="channel" type="float" elements="1" defaultvalue="0.000001"/>
+		<field name="ZeroDuringArming" units="channel" type="enum" elements="1" options="FALSE,TRUE" defaultvalue="TRUE">
+			<description>Zero the attitude estimate during arming when enabled.</description>
+		</field>
+		<field name="BiasCorrectGyro" units="channel" type="enum" elements="1" options="FALSE,TRUE" defaultvalue="TRUE">
+			<description>Apply a calculated bias correction to the gyro when enabled.</description>
+		</field>
+		<field name="FilterChoice" units="channel" type="enum" elements="1" options="CCC,PREMERLANI,PREMERLANI_GPS" defaultvalue="CCC"/>
+		<access gcs="readwrite" flight="readwrite"/>
+		<telemetrygcs acked="true" updatemode="onchange" period="0"/>
+		<telemetryflight acked="true" updatemode="onchange" period="0"/>
+		<logging updatemode="manual" period="0"/>
+	</object>
 </xml>

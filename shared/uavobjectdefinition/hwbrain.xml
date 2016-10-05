@@ -1,7 +1,7 @@
+<?xml version="1.0"?>
 <xml>
 	<object name="HwBrain" singleinstance="true" settings="true" category="HardwareSettings">
 		<description>Selection of optional hardware configurations.</description>
-
 		<field name="RxPort" units="function" type="enum" elements="1" defaultvalue="PWM">
 			<options>
 				<option>Disabled</option>
@@ -17,7 +17,6 @@
 				<option>UART+Outputs</option>
 			</options>
 		</field>
-
 		<field name="MainPort" units="function" type="enum" elements="1" parent="HwShared.PortTypes" defaultvalue="Disabled">
 			<options>
 				<option>Disabled</option>
@@ -44,7 +43,6 @@
 				<option>VTX Config TBS SmartAudio</option>
 			</options>
 		</field>
-
 		<field name="FlxPort" units="function" type="enum" elements="1" parent="HwShared.PortTypes" defaultvalue="Disabled">
 			<options>
 				<option>Disabled</option>
@@ -71,7 +69,6 @@
 				<option>VTX Config TBS SmartAudio</option>
 			</options>
 		</field>
-
 		<field name="RxPortUsart" units="function" type="enum" elements="1" parent="HwShared.PortTypes" defaultvalue="Disabled">
 			<options>
 				<option>Disabled</option>
@@ -97,23 +94,19 @@
 				<option>VTX Config TBS SmartAudio</option>
 			</options>
 		</field>
-
-	<field name="USB_HIDPort" units="function" type="enum" elements="1" options="USBTelemetry,RCTransmitter,Disabled" defaultvalue="USBTelemetry"/>
-	<field name="USB_VCPPort" units="function" type="enum" elements="1" options="USBTelemetry,ComBridge,DebugConsole,Disabled" defaultvalue="Disabled"/>
-
-	<field name="DSMxMode" units="mode"  type="enum"  elements="1" parent="HwShared.DSMxMode" defaultvalue="Autodetect"/>
-	<field name="GyroFullScale" units="deg/s" type="enum" elements="1" options="250,500,1000,2000" defaultvalue="2000"/>
-	<field name="AccelFullScale" units="*gravity m/s^2" type="enum" elements="1" options="2G,4G,8G,16G" defaultvalue="8G"/>
-	<field name="MPU9250Rate" units="Hz" type="enum" elements="1" options="200,250,333,500,1000" defaultvalue="1000"/>
-	<field name="MPU9250GyroLPF" units="Hz" type="enum" elements="1" options="184,92,41,20,10,5" defaultvalue="184"/>
-	<field name="MPU9250AccelLPF" units="Hz" type="enum" elements="1" options="460,184,92,41,20,10,5" defaultvalue="184"/>
-
-	<field name="Magnetometer" units="function" type="enum" elements="1" options="Internal,Disabled,FlxPortHMC5883,FlxPortHMC5983" defaultvalue="Internal"/>
-	<field name="ExtMagOrientation" units="function" type="enum" elements="1" options="Top0degCW,Top90degCW,Top180degCW,Top270degCW,Bottom0degCW,Bottom90degCW,Bottom180degCW,Bottom270degCW" defaultvalue="Top0degCW" />
-
-	<access gcs="readwrite" flight="readwrite"/>
-	<telemetrygcs acked="true" updatemode="onchange" period="0"/>
-	<telemetryflight acked="true" updatemode="onchange" period="0"/>
-	<logging updatemode="manual" period="0"/>
+		<field name="USB_HIDPort" units="function" type="enum" elements="1" options="USBTelemetry,RCTransmitter,Disabled" defaultvalue="USBTelemetry"/>
+		<field name="USB_VCPPort" units="function" type="enum" elements="1" options="USBTelemetry,ComBridge,DebugConsole,Disabled" defaultvalue="Disabled"/>
+		<field name="DSMxMode" units="mode" type="enum" elements="1" parent="HwShared.DSMxMode" defaultvalue="Autodetect"/>
+		<field name="GyroFullScale" units="deg/s" type="enum" elements="1" options="250,500,1000,2000" defaultvalue="2000"/>
+		<field name="AccelFullScale" units="*gravity m/s^2" type="enum" elements="1" options="2G,4G,8G,16G" defaultvalue="8G"/>
+		<field name="MPU9250Rate" units="Hz" type="enum" elements="1" options="200,250,333,500,1000" defaultvalue="1000"/>
+		<field name="MPU9250GyroLPF" units="Hz" type="enum" elements="1" options="184,92,41,20,10,5" defaultvalue="184"/>
+		<field name="MPU9250AccelLPF" units="Hz" type="enum" elements="1" options="460,184,92,41,20,10,5" defaultvalue="184"/>
+		<field name="Magnetometer" units="function" type="enum" elements="1" options="Internal,Disabled,FlxPortHMC5883,FlxPortHMC5983" defaultvalue="Internal"/>
+		<field name="ExtMagOrientation" units="function" type="enum" elements="1" options="Top0degCW,Top90degCW,Top180degCW,Top270degCW,Bottom0degCW,Bottom90degCW,Bottom180degCW,Bottom270degCW" defaultvalue="Top0degCW"/>
+		<access gcs="readwrite" flight="readwrite"/>
+		<telemetrygcs acked="true" updatemode="onchange" period="0"/>
+		<telemetryflight acked="true" updatemode="onchange" period="0"/>
+		<logging updatemode="manual" period="0"/>
 	</object>
 </xml>

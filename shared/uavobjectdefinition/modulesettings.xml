@@ -1,3 +1,4 @@
+<?xml version="1.0"?>
 <xml>
 	<object name="ModuleSettings" singleinstance="true" settings="true">
 		<description>Optional module configuration.</description>
@@ -22,7 +23,6 @@
 			</elementnames>
 			<description>Controls whether modules are enabled or not (they will still only run when correctly configured and subject to hardware limitations).</description>
 		</field>
-
 		<!-- Telemetry Module Settings -->
 		<field name="TelemetrySpeed" units="bps" type="enum" elements="1" defaultvalue="115200" parent="HwShared.SpeedBps">
 			<options>
@@ -38,7 +38,6 @@
 			</options>
 			<description>Baudrate for the telemetry port, must match GCS. The "Init *" options send commands to configure bluetooth modules with appropriate settings for telemetry use).</description>
 		</field>
-
 		<!-- GPS Module Settings -->
 		<field name="GPSSpeed" units="bps" type="enum" elements="1" defaultvalue="57600" parent="HwShared.SpeedBps">
 			<options>
@@ -97,12 +96,10 @@
 			</options>
 			<description>Dynamics mode used by the GPS (when auto-configured). Will affect the accuracy of the position fix.</description>
 		</field>
-
 		<!-- ComUsbBridge Module Settings -->
 		<field name="ComUsbBridgeSpeed" units="bps" type="enum" elements="1" parent="HwShared.SpeedBps" defaultvalue="57600">
 			<description>Baudrate used by ports configured as ComUsbBridge.</description>
 		</field>
-
 		<!-- Mavlink Module Settings -->
 		<field name="MavlinkSpeed" units="bps" type="enum" elements="1" parent="HwShared.SpeedBps" defaultvalue="57600">
 			<options>
@@ -142,7 +139,6 @@
 			</options>
 			<description>Baudrate used by ports configured for LTM telemetry.</description>
 		</field>
-
 		<!-- FrSky telemetry Module Settings -->
 		<field name="FrskyAccelData" units="" type="enum" elements="1" defaultvalue="Accels">
 			<options>
@@ -153,7 +149,6 @@
 			</options>
 			<description>The accelerometer data source for FrSky telemetry.</description>
 		</field>
-
 		<field name="OpenLogSpeed" units="bps" type="enum" elements="1" defaultvalue="115200">
 			<options>
 				<option>115200</option>
@@ -164,7 +159,6 @@
 			</options>
 			<description>Baudrate used by ports configured for LTM telemetry.</description>
 		</field>
-
 		<access gcs="readwrite" flight="readwrite"/>
 		<telemetrygcs acked="true" updatemode="onchange" period="0"/>
 		<telemetryflight acked="true" updatemode="onchange" period="0"/>

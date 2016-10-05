@@ -1,7 +1,7 @@
+<?xml version="1.0"?>
 <xml>
 	<object name="HwDtfc" singleinstance="true" settings="true" category="HardwareSettings">
 		<description>Selection of optional hardware configurations.</description>
-
 		<field name="RcvrPort" units="function" type="enum" elements="1" parent="HwShared.PortTypes" defaultvalue="PPM">
 			<description>The port labelled "UART3", with pins labelled "PPMRX" and "TX".</description>
 			<options>
@@ -28,7 +28,6 @@
 				<option>IBus</option>
 			</options>
 		</field>
-
 		<field name="Uart1" units="function" type="enum" elements="1" parent="HwShared.PortTypes" defaultvalue="Disabled">
 			<description>The "RX" and "TX" pins near the centre of the board. These can be used for stacking OSDoge.</description>
 			<options>
@@ -54,7 +53,6 @@
 				<option>IBus</option>
 			</options>
 		</field>
-		
 		<field name="Uart2" units="function" type="enum" elements="1" parent="HwShared.PortTypes" defaultvalue="Disabled">
 			<description>The port labelled "UART2".</description>
 			<options>
@@ -80,7 +78,6 @@
 				<option>IBus</option>
 			</options>
 		</field>
-
 		<field name="USB_HIDPort" units="function" type="enum" elements="1" parent="HwShared.USB_HIDPort" defaultvalue="USBTelemetry"/>
 		<field name="USB_VCPPort" units="function" type="enum" elements="1" parent="HwShared.USB_VCPPort" defaultvalue="Disabled">
 			<options>
@@ -90,9 +87,7 @@
 				<option>DebugConsole</option>
 			</options>
 		</field>
-
 		<field name="DSMxMode" units="mode" type="enum" elements="1" parent="HwShared.DSMxMode" defaultvalue="Autodetect"/>
-
 		<field name="GyroRange" units="deg/s" type="enum" elements="1" defaultvalue="2000">
 			<description>Maximum measurement range for the gyros, should never rotate faster than about 85% of this.</description>
 			<options>
@@ -143,7 +138,6 @@
 				<option>5</option>
 			</options>
 		</field>
-
 		<access gcs="readwrite" flight="readwrite"/>
 		<telemetrygcs acked="true" updatemode="onchange" period="0"/>
 		<telemetryflight acked="true" updatemode="onchange" period="0"/>

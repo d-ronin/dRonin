@@ -1,7 +1,7 @@
+<?xml version="1.0"?>
 <xml>
 	<object name="ManualControlSettings" singleinstance="true" settings="true">
 		<description>Settings to indicate how to decode receiver input by @ref ManualControlModule.</description>
-
 		<field name="ChannelGroups" units="Channel Group" type="enum" defaultvalue="None">
 			<elementnames>
 				<elementname>Throttle</elementname>
@@ -34,7 +34,6 @@
 				<option>None</option>
 			</options>
 		</field>
-
 		<field name="RssiType" units="Rssi Type" type="enum" elements="1" defaultvalue="None">
 			<options>
 				<option>None</option>
@@ -50,7 +49,6 @@
 		<field name="RssiChannelNumber" units="channel" type="uint8" elements="1" defaultvalue="0"/>
 		<field name="RssiMax" units="" type="int16" elements="1" defaultvalue="2000"/>
 		<field name="RssiMin" units="" type="int16" elements="1" defaultvalue="1000"/>
-
 		<field name="ChannelNumber" units="channel" type="uint8" defaultvalue="0">
 			<elementnames>
 				<elementname>Throttle</elementname>
@@ -107,12 +105,10 @@
 				<elementname>Arming</elementname>
 			</elementnames>
 		</field>
-
 		<field name="Deadband" units="%" type="float" elements="1" defaultvalue="0"/>
-
 		<field name="Arming" units="" type="enum" elements="1" defaultvalue="Always Disarmed">
 			<options>
- 				<option>Always Disarmed</option>
+				<option>Always Disarmed</option>
 				<option>Always Armed</option>
 				<option>Roll Left+Throttle</option>
 				<option>Roll Right+Throttle</option>
@@ -128,21 +124,17 @@
 		</field>
 		<field name="ArmTime" units="ms" type="enum" elements="1" options="250,500,1000,2000" defaultvalue="1000"/>
 		<field name="DisarmTime" units="ms" type="enum" elements="1" options="250,500,1000,2000" defaultvalue="1000"/>
-
 		<!-- Note these options should be identical to those in StabilizationDesired.StabilizationMode -->
 		<!-- XXX except we need to prohibit systemident! -->
 		<field name="Stabilization1Settings" parent="SharedDefs.StabilizationMode" type="enum" elementnames="Roll,Pitch,Yaw" defaultvalue="Attitude,Attitude,Rate"/>
 		<field name="Stabilization2Settings" parent="SharedDefs.StabilizationMode" type="enum" elementnames="Roll,Pitch,Yaw" defaultvalue="Attitude,Attitude,Rate"/>
 		<field name="Stabilization3Settings" parent="SharedDefs.StabilizationMode" type="enum" elementnames="Roll,Pitch,Yaw" defaultvalue="Attitude,Attitude,Rate"/>
-
 		<field name="Stabilization1Reprojection" parent="SharedDefs.ReprojectionMode" type="enum" elements="1" defaultvalue="None"/>
 		<field name="Stabilization2Reprojection" parent="SharedDefs.ReprojectionMode" type="enum" elements="1" defaultvalue="None"/>
 		<field name="Stabilization3Reprojection" parent="SharedDefs.ReprojectionMode" type="enum" elements="1" defaultvalue="None"/>
-
 		<!-- Note these options values should be identical to those defined in FlightMode -->
 		<field name="FlightModeNumber" units="" type="uint8" elements="1" defaultvalue="3"/>
 		<field name="FlightModePosition" units="" type="enum" elements="6" parent="SharedDefs.FlightMode" defaultvalue="Leveling,Leveling,Leveling,Horizon,ReturnToHome,PositionHold"/>
-
 		<!-- This option prevents timing out arming when disabled and in autonomous modes.
                      It is enabled by default for additional safety to prevent flyaways -->
 		<field name="ArmTimeoutAutonomous" units="" type="enum" elements="1" options="DISABLED,ENABLED" defaultvalue="ENABLED"/>

@@ -1,3 +1,4 @@
+<?xml version="1.0"?>
 <xml>
 	<object name="CameraDesired" singleinstance="true" settings="false">
 		<description>Desired camera outputs.  Comes from @ref CameraStabilization module.</description>

@@ -1,3 +1,4 @@
+<?xml version="1.0"?>
 <xml>
 	<object name="PicoCStatus" singleinstance="true" settings="false">
 		<description>status information of the @ref PicoC Interpreter Module.</description>

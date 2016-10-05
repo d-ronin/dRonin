@@ -1,13 +1,14 @@
+<?xml version="1.0"?>
 <xml>
-    <object name="VTXInfo" singleinstance="true" settings="false">
-        <description>Video transmitter information.</description>
-	<field name="Model" units="" type="enum" elements="1" options="None,TBS Unify Pro 5G8,TBS Unify Pro 5G8 HV"/> 
-	<field name="Frequency" units="MHz" type="uint16" elements="1" defaultvalue="0"/>
-	<field name="Power" units="mW" type="uint16" elements="1" defaultvalue="0"/>
-	<field name="State" units="" type="enum" elements="1" options="Disconnected,Connected" defaultvalue="Disconnected"/>
-        <access gcs="readwrite" flight="readwrite"/>
-        <telemetrygcs acked="true" updatemode="onchange" period="0"/>
-        <telemetryflight acked="true" updatemode="onchange" period="0"/>
-        <logging updatemode="manual" period="0"/>
-    </object>
+	<object name="VTXInfo" singleinstance="true" settings="false">
+		<description>Video transmitter information.</description>
+		<field name="Model" units="" type="enum" elements="1" options="None,TBS Unify Pro 5G8,TBS Unify Pro 5G8 HV"/>
+		<field name="Frequency" units="MHz" type="uint16" elements="1" defaultvalue="0"/>
+		<field name="Power" units="mW" type="uint16" elements="1" defaultvalue="0"/>
+		<field name="State" units="" type="enum" elements="1" options="Disconnected,Connected" defaultvalue="Disconnected"/>
+		<access gcs="readwrite" flight="readwrite"/>
+		<telemetrygcs acked="true" updatemode="onchange" period="0"/>
+		<telemetryflight acked="true" updatemode="onchange" period="0"/>
+		<logging updatemode="manual" period="0"/>
+	</object>
 </xml>

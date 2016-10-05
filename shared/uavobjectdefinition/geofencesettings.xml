@@ -1,3 +1,4 @@
+<?xml version="1.0"?>
 <xml>
 	<object name="GeoFenceSettings" singleinstance="true" settings="true">
 		<description>Radius for simple geofence boundaries</description>

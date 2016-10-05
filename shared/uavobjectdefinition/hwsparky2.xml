@@ -1,8 +1,8 @@
+<?xml version="1.0"?>
 <xml>
 	<object name="HwSparky2" singleinstance="true" settings="true" category="HardwareSettings">
 		<description>Selection of optional hardware configurations.</description>
-
-		<field name="RcvrPort" units="function" type="enum" elements="1" parent="HwShared.PortTypes"  defaultvalue="Disabled">
+		<field name="RcvrPort" units="function" type="enum" elements="1" parent="HwShared.PortTypes" defaultvalue="Disabled">
 			<options>
 				<option>Disabled</option>
 				<option>DSM</option>
@@ -15,9 +15,7 @@
 				<option>IBus</option>
 			</options>
 		</field>
-
 		<!-- Note that when either serial port is set to telemetry it will block the radio port -->
-
 		<field name="MainPort" units="function" type="enum" elements="1" parent="HwShared.PortTypes" defaultvalue="Disabled">
 			<options>
 				<option>Disabled</option>
@@ -69,29 +67,23 @@
 				<option>IBus</option>
 			</options>
 		</field>
-
 		<field name="USB_HIDPort" units="function" type="enum" elements="1" parent="HwShared.USB_HIDPort" defaultvalue="USBTelemetry"/>
 		<field name="USB_VCPPort" units="function" type="enum" elements="1" parent="HwShared.USB_VCPPort" defaultvalue="Disabled"/>
-
 		<field name="DSMxMode" units="mode" type="enum" elements="1" parent="HwShared.DSMxMode" defaultvalue="Autodetect"/>
-
 		<field name="Radio" units="" type="enum" elements="1" parent="HwShared.RadioPort" defaultvalue="Disabled"/>
 		<!-- ID of the coordinator to allow binding to. 0 indicates allow all connections -->
 		<field name="CoordID" units="hex" type="uint32" elements="1" defaultvalue="0"/>
-
 		<!-- radio settings -->
 		<field name="MaxRfSpeed" units="bps" type="enum" elements="1" parent="HwShared.MaxRfSpeed" defaultvalue="64000"/>
-		<field name="MaxRfPower" units="mW" type="enum" elements="1" parent="HwShared.MaxRfPower"  defaultvalue="1.25"/>
+		<field name="MaxRfPower" units="mW" type="enum" elements="1" parent="HwShared.MaxRfPower" defaultvalue="1.25"/>
 		<field name="RfBand" units="MHz" type="enum" elements="1" parent="HwShared.RfBand" defaultvalue="BoardDefault"/>
 		<field name="MinChannel" units="" type="uint8" elements="1" defaultvalue="0" limits="%BE:0:250"/>
 		<field name="MaxChannel" units="" type="uint8" elements="1" defaultvalue="250" limits="%BE:0:250"/>
-
 		<field name="GyroRange" units="deg/s" type="enum" elements="1" options="250,500,1000,2000" defaultvalue="2000"/>
 		<field name="AccelRange" units="*gravity m/s^2" type="enum" elements="1" options="2G,4G,8G,16G" defaultvalue="8G"/>
 		<field name="MPU9250Rate" units="Hz" type="enum" elements="1" options="200,250,333,500,1000" defaultvalue="1000"/>
 		<field name="MPU9250GyroLPF" units="Hz" type="enum" elements="1" options="184,92,41,20,10,5" defaultvalue="184"/>
 		<field name="MPU9250AccelLPF" units="Hz" type="enum" elements="1" options="460,184,92,41,20,10,5" defaultvalue="184"/>
-
 		<field name="VTX_Ch" units="Hz" type="enum" elements="1" defaultvalue="BoscamACh1 (5725)">
 			<options>
 				<option>BoscamACh1 (5725)</option>
@@ -128,13 +120,11 @@
 				<option>AirwaveCh8 (5860)</option>
 			</options>
 		</field>
-
 		<field name="Magnetometer" units="function" type="enum" elements="1" options="Disabled,Internal,ExternalI2CFlexiPort,ExternalAuxI2C" defaultvalue="Internal"/>
-		<field name="ExtMagOrientation" units="function" type="enum" elements="1" parent="HwShared.MagOrientation" defaultvalue="Top0degCW" />
-
+		<field name="ExtMagOrientation" units="function" type="enum" elements="1" parent="HwShared.MagOrientation" defaultvalue="Top0degCW"/>
 		<access gcs="readwrite" flight="readwrite"/>
 		<telemetrygcs acked="true" updatemode="onchange" period="0"/>
 		<telemetryflight acked="true" updatemode="onchange" period="0"/>
 		<logging updatemode="manual" period="0"/>
-    </object>
+	</object>
 </xml>

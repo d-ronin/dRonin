@@ -1,3 +1,4 @@
+<?xml version="1.0"?>
 <xml>
 	<object name="GroundPathFollowerSettings" singleinstance="true" settings="true">
 		<description>Settings for the @ref GroundPathFollowerModule</description>
@@ -10,10 +11,8 @@
 		<field name="VelocitySource" units="" type="enum" elements="1" options="EKF,NEDVEL,GPSPOS" defaultvalue="EKF"/>
 		<field name="PositionSource" units="" type="enum" elements="1" options="EKF,GPSPOS" defaultvalue="EKF"/>
 		<field name="MaxThrottle" units="%" type="float" elements="1" defaultvalue="1"/>
-
 		<!-- The distance within the waypoint (horizontally) that should be achieved to mark completed -->
 		<field name="EndpointRadius" units="m" type="uint8" elements="1" defaultvalue="2"/>
-
 		<field name="UpdatePeriod" units="ms" type="int32" elements="1" defaultvalue="100"/>
 		<access gcs="readwrite" flight="readwrite"/>
 		<telemetrygcs acked="true" updatemode="onchange" period="0"/>
@@ -21,5 +20,3 @@
 		<logging updatemode="manual" period="0"/>
 	</object>
 </xml>
-
- 

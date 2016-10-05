@@ -1,3 +1,4 @@
+<?xml version="1.0"?>
 <xml>
 	<object name="SystemIdent" singleinstance="true" settings="true">
 		<description>The input to the PID tuning.</description>

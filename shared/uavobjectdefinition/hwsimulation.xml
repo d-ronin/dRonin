@@ -1,7 +1,7 @@
+<?xml version="1.0"?>
 <xml>
 	<object name="HwSimulation" singleinstance="true" settings="false" category="HardwareStatus">
 		<description>Simulation status.</description>
-
 		<field name="LedState" units="" type="enum" elements="2" defaultvalue="Off">
 			<elementnames>
 				<elementname>Heartbeat</elementname>
@@ -13,10 +13,9 @@
 			</options>
 			<description>Status of the board LEDs</description>
 		</field>
-
 		<access gcs="readwrite" flight="readwrite"/>
 		<telemetrygcs acked="true" updatemode="onchange" period="0"/>
 		<telemetryflight acked="true" updatemode="onchange" period="0"/>
 		<logging updatemode="manual" period="0"/>
-    </object>
+	</object>
 </xml>
