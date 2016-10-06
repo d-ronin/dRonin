@@ -223,7 +223,7 @@ bool UAVObjectGeneratorFlight::process_object(ObjectInfo* info)
             /* Validate, for enums only */
             if (info->fields[n]->type == FIELDTYPE_ENUM) {
                 enums.append(QString("/* Ensure field %1 contains valid data */\r\n").arg(info->fields[n]->name));
-                enums.append(QString("static inline bool %2%3IsValid( %1 Current%3 ) { return Current%3 < %4_%5_MAXOPTVAL; }\r\n")
+                enums.append(QString("static inline bool %2%3IsValid( %1 Current%3 ) { return Current%3 <= %4_%5_MAXOPTVAL; }\r\n")
                             .arg( fieldTypeStrC[info->fields[n]->type] )
                             .arg( info->name )
                             .arg( info->fields[n]->name )
