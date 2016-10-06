@@ -189,11 +189,12 @@ int32_t StabilizationStart()
 int32_t StabilizationInitialize()
 {
 	// Initialize variables
-	if (StabilizationSettingsInitialize() == -1 \
-		|| ActuatorDesiredInitialize() == -1 \
-		|| SubTrimInitialize() == -1 \
-		|| SubTrimSettingsInitialize() == -1 \
-		|| ManualControlCommandInitialize() == -1) {
+	if (StabilizationSettingsInitialize() == -1
+		|| ActuatorDesiredInitialize() == -1
+		|| SubTrimInitialize() == -1
+		|| SubTrimSettingsInitialize() == -1
+		|| ManualControlCommandInitialize() == -1
+		|| VbarSettingsInitialize() == -1) {
 		return -1;
 	}
 
