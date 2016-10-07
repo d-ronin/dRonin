@@ -875,7 +875,7 @@ static bool updateRcvrActivityCompare(uintptr_t rcvr_id, struct rcvr_activity_fs
 	int rssi_group = rssitype_to_channelgroup();
 
 	/* If so, see if it's what we're processing */
-	if (pios_rcvr_group_map[rssi_group] == rcvr_id) {
+	if ((rssi_group >= 0) && (pios_rcvr_group_map[rssi_group] == rcvr_id)) {
 		// Yup.  So let's skip the configured RSSI channel
 		rssi_channel = settings.RssiChannelNumber;
 	}
