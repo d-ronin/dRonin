@@ -10,15 +10,15 @@
    xmlns:xlink="http://www.w3.org/1999/xlink"
    xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
    xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
-   width="220"
-   height="220"
+   width="221.00002"
+   height="221.00002"
    id="svg2"
    version="1.1"
    inkscape:version="0.91 r13725"
    sodipodi:docname="simple-taskbar-logo.svg"
    inkscape:export-filename="/Users/mlyle/gcs_nontrans_128.png"
-   inkscape:export-xdpi="45.709999"
-   inkscape:export-ydpi="45.709999">
+   inkscape:export-xdpi="52.126694"
+   inkscape:export-ydpi="52.126694">
   <defs
      id="defs4">
     <linearGradient
@@ -334,13 +334,13 @@
          id="text4588"
          sodipodi:linespacing="125%"
          style="font-size:0.69999999px;line-height:125%;font-family:Arial;fill:#ff0000"
-         x="-3.5433069e+020"
-         y="3.5433069e+020">
+         x="-3.5433069e+20"
+         y="3.5433069e+20">
         <tspan
            id="tspan4590"
            sodipodi:role="line"
-           x="-3.5433069e+020"
-           y="3.5433069e+020">Light NameSNAME</tspan>
+           x="-3.5433069e+20"
+           y="3.5433069e+20">Light NameSNAME</tspan>
       </text>
       <path
          id="path4592"
@@ -396,157 +396,157 @@
          id="text4612"
          sodipodi:linespacing="125%"
          style="font-size:0px;line-height:125%;font-family:Arial;fill:#000000"
-         x="-3.5433069e+020"
-         y="3.5433069e+020">
+         x="-3.5433069e+20"
+         y="3.5433069e+20">
         <tspan
            id="tspan4614"
            sodipodi:role="line"
-           x="-3.5433069e+020"
-           y="3.5433069e+020">Depth Map SizeZSIZE</tspan>
+           x="-3.5433069e+20"
+           y="3.5433069e+20">Depth Map SizeZSIZE</tspan>
       </text>
       <text
          id="text4616"
          sodipodi:linespacing="125%"
          style="font-size:0px;line-height:125%;font-family:Arial;fill:#000000"
-         x="-3.5433069e+020"
-         y="3.5433069e+020">
+         x="-3.5433069e+20"
+         y="3.5433069e+20">
         <tspan
            id="tspan4618"
            sodipodi:role="line"
-           x="-3.5433069e+020"
-           y="3.5433069e+020">Look-from XYZLFXYZ</tspan>
+           x="-3.5433069e+20"
+           y="3.5433069e+20">Look-from XYZLFXYZ</tspan>
       </text>
       <text
          id="text4620"
          sodipodi:linespacing="125%"
          style="font-size:0px;line-height:125%;font-family:Arial;fill:#000000"
-         x="-3.5433069e+020"
-         y="3.5433069e+020">
+         x="-3.5433069e+20"
+         y="3.5433069e+20">
         <tspan
            id="tspan4622"
            sodipodi:role="line"
-           x="-3.5433069e+020"
-           y="3.5433069e+020">Beam DistributionBEAMDI</tspan>
+           x="-3.5433069e+20"
+           y="3.5433069e+20">Beam DistributionBEAMDI</tspan>
       </text>
       <text
          id="text4624"
          sodipodi:linespacing="125%"
          style="font-size:0px;line-height:125%;font-family:Arial;fill:#000000"
-         x="-3.5433069e+020"
-         y="3.5433069e+020">
+         x="-3.5433069e+20"
+         y="3.5433069e+20">
         <tspan
            id="tspan4626"
            sodipodi:role="line"
-           x="-3.5433069e+020"
-           y="3.5433069e+020">Cone DeltaCONEDE</tspan>
+           x="-3.5433069e+20"
+           y="3.5433069e+20">Cone DeltaCONEDE</tspan>
       </text>
       <text
          id="text4628"
          sodipodi:linespacing="125%"
          style="font-size:0px;line-height:125%;font-family:Arial;fill:#000000"
-         x="-3.5433069e+020"
-         y="3.5433069e+020">
+         x="-3.5433069e+20"
+         y="3.5433069e+20">
         <tspan
            id="tspan4630"
            sodipodi:role="line"
-           x="-3.5433069e+020"
-           y="3.5433069e+020">Cone AngleCONEAN</tspan>
+           x="-3.5433069e+20"
+           y="3.5433069e+20">Cone AngleCONEAN</tspan>
       </text>
       <text
          id="text4632"
          sodipodi:linespacing="125%"
          style="font-size:0px;line-height:125%;font-family:Arial;fill:#000000"
-         x="-3.5433069e+020"
-         y="3.5433069e+020">
+         x="-3.5433069e+20"
+         y="3.5433069e+20">
         <tspan
            id="tspan4634"
            sodipodi:role="line"
-           x="-3.5433069e+020"
-           y="3.5433069e+020">*not used*BIASMAX</tspan>
+           x="-3.5433069e+20"
+           y="3.5433069e+20">*not used*BIASMAX</tspan>
       </text>
       <text
          id="text4636"
          sodipodi:linespacing="125%"
          style="font-size:0px;line-height:125%;font-family:Arial;fill:#000000"
-         x="-3.5433069e+020"
-         y="3.5433069e+020">
+         x="-3.5433069e+20"
+         y="3.5433069e+20">
         <tspan
            id="tspan4638"
            sodipodi:role="line"
-           x="-3.5433069e+020"
-           y="3.5433069e+020">*not used*BIASMIN</tspan>
+           x="-3.5433069e+20"
+           y="3.5433069e+20">*not used*BIASMIN</tspan>
       </text>
       <text
          id="text4640"
          sodipodi:linespacing="125%"
          style="font-size:0px;line-height:125%;font-family:Arial;fill:#000000"
-         x="-3.5433069e+020"
-         y="3.5433069e+020">
+         x="-3.5433069e+20"
+         y="3.5433069e+20">
         <tspan
            id="tspan4642"
            sodipodi:role="line"
-           x="-3.5433069e+020"
-           y="3.5433069e+020">Light Color (RGB)COLOR</tspan>
+           x="-3.5433069e+20"
+           y="3.5433069e+20">Light Color (RGB)COLOR</tspan>
       </text>
       <text
          id="text4644"
          sodipodi:linespacing="125%"
          style="font-size:0px;line-height:125%;font-family:Arial;fill:#000000"
-         x="-3.5433069e+020"
-         y="3.5433069e+020">
+         x="-3.5433069e+20"
+         y="3.5433069e+20">
         <tspan
            id="tspan4646"
            sodipodi:role="line"
-           x="-3.5433069e+020"
-           y="3.5433069e+020">Light IntensityINTENSITY</tspan>
+           x="-3.5433069e+20"
+           y="3.5433069e+20">Light IntensityINTENSITY</tspan>
       </text>
       <text
          id="text4648"
          sodipodi:linespacing="125%"
          style="font-size:0px;line-height:125%;font-family:Arial;fill:#000000"
-         x="-3.5433069e+020"
-         y="3.5433069e+020">
+         x="-3.5433069e+20"
+         y="3.5433069e+20">
         <tspan
            id="tspan4650"
            sodipodi:role="line"
-           x="-3.5433069e+020"
-           y="3.5433069e+020">GNAME</tspan>
+           x="-3.5433069e+20"
+           y="3.5433069e+20">GNAME</tspan>
       </text>
       <text
          id="text4652"
          sodipodi:linespacing="125%"
          style="font-size:0px;line-height:125%;font-family:Arial;fill:#000000"
-         x="-3.5433069e+020"
-         y="3.5433069e+020">
+         x="-3.5433069e+20"
+         y="3.5433069e+20">
         <tspan
            id="tspan4654"
            sodipodi:role="line"
-           x="-3.5433069e+020"
-           y="3.5433069e+020">Look-at ZLAZ</tspan>
+           x="-3.5433069e+20"
+           y="3.5433069e+20">Look-at ZLAZ</tspan>
       </text>
       <text
          id="text4656"
          sodipodi:linespacing="125%"
          style="font-size:0px;line-height:125%;font-family:Arial;fill:#000000"
-         x="-3.5433069e+020"
-         y="3.5433069e+020">
+         x="-3.5433069e+20"
+         y="3.5433069e+20">
         <tspan
            id="tspan4658"
            sodipodi:role="line"
-           x="-3.5433069e+020"
-           y="3.5433069e+020">Look-at YLAY</tspan>
+           x="-3.5433069e+20"
+           y="3.5433069e+20">Look-at YLAY</tspan>
       </text>
       <text
          id="text4660"
          sodipodi:linespacing="125%"
          style="font-size:0px;line-height:125%;font-family:Arial;fill:#000000"
-         x="-3.5433069e+020"
-         y="3.5433069e+020">
+         x="-3.5433069e+20"
+         y="3.5433069e+20">
         <tspan
            id="tspan4662"
            sodipodi:role="line"
-           x="-3.5433069e+020"
-           y="3.5433069e+020">Look-at XLAX</tspan>
+           x="-3.5433069e+20"
+           y="3.5433069e+20">Look-at XLAX</tspan>
       </text>
       <path
          id="path4664"
@@ -610,13 +610,13 @@
          id="text4511"
          sodipodi:linespacing="125%"
          style="font-size:0.69999999px;line-height:125%;font-family:Arial;fill:#ff0000"
-         x="-3.5433069e+020"
-         y="3.5433069e+020">
+         x="-3.5433069e+20"
+         y="3.5433069e+20">
         <tspan
            id="tspan4513"
            sodipodi:role="line"
-           x="-3.5433069e+020"
-           y="3.5433069e+020">Light NameSNAME</tspan>
+           x="-3.5433069e+20"
+           y="3.5433069e+20">Light NameSNAME</tspan>
       </text>
       <path
          id="path4515"
@@ -692,109 +692,109 @@
          id="text4543"
          sodipodi:linespacing="125%"
          style="font-size:0px;line-height:125%;font-family:Arial;fill:#000000"
-         x="-3.5433069e+020"
-         y="3.5433069e+020">
+         x="-3.5433069e+20"
+         y="3.5433069e+20">
         <tspan
            id="tspan4545"
            sodipodi:role="line"
-           x="-3.5433069e+020"
-           y="3.5433069e+020">Light IntensityINTENSITY</tspan>
+           x="-3.5433069e+20"
+           y="3.5433069e+20">Light IntensityINTENSITY</tspan>
       </text>
       <text
          id="text4547"
          sodipodi:linespacing="125%"
          style="font-size:0px;line-height:125%;font-family:Arial;fill:#000000"
-         x="-3.5433069e+020"
-         y="3.5433069e+020">
+         x="-3.5433069e+20"
+         y="3.5433069e+20">
         <tspan
            id="tspan4549"
            sodipodi:role="line"
-           x="-3.5433069e+020"
-           y="3.5433069e+020">*not used*BEAMD</tspan>
+           x="-3.5433069e+20"
+           y="3.5433069e+20">*not used*BEAMD</tspan>
       </text>
       <text
          id="text4551"
          sodipodi:linespacing="125%"
          style="font-size:0px;line-height:125%;font-family:Arial;fill:#000000"
-         x="-3.5433069e+020"
-         y="3.5433069e+020">
+         x="-3.5433069e+20"
+         y="3.5433069e+20">
         <tspan
            id="tspan4553"
            sodipodi:role="line"
-           x="-3.5433069e+020"
-           y="3.5433069e+020">*not used*CONED</tspan>
+           x="-3.5433069e+20"
+           y="3.5433069e+20">*not used*CONED</tspan>
       </text>
       <text
          id="text4555"
          sodipodi:linespacing="125%"
          style="font-size:0px;line-height:125%;font-family:Arial;fill:#000000"
-         x="-3.5433069e+020"
-         y="3.5433069e+020">
+         x="-3.5433069e+20"
+         y="3.5433069e+20">
         <tspan
            id="tspan4557"
            sodipodi:role="line"
-           x="-3.5433069e+020"
-           y="3.5433069e+020">Depth Map SizeCONEA</tspan>
+           x="-3.5433069e+20"
+           y="3.5433069e+20">Depth Map SizeCONEA</tspan>
       </text>
       <text
          id="text4559"
          sodipodi:linespacing="125%"
          style="font-size:0px;line-height:125%;font-family:Arial;fill:#000000"
-         x="-3.5433069e+020"
-         y="3.5433069e+020">
+         x="-3.5433069e+20"
+         y="3.5433069e+20">
         <tspan
            id="tspan4561"
            sodipodi:role="line"
-           x="-3.5433069e+020"
-           y="3.5433069e+020">Light Color (RGB)COLOR</tspan>
+           x="-3.5433069e+20"
+           y="3.5433069e+20">Light Color (RGB)COLOR</tspan>
       </text>
       <text
          id="text4563"
          sodipodi:linespacing="125%"
          style="font-size:0px;line-height:125%;font-family:Arial;fill:#000000"
-         x="-3.5433069e+020"
-         y="3.5433069e+020">
+         x="-3.5433069e+20"
+         y="3.5433069e+20">
         <tspan
            id="tspan4565"
            sodipodi:role="line"
-           x="-3.5433069e+020"
-           y="3.5433069e+020">Look-at ZLAZ</tspan>
+           x="-3.5433069e+20"
+           y="3.5433069e+20">Look-at ZLAZ</tspan>
       </text>
       <text
          id="text4567"
          sodipodi:linespacing="125%"
          style="font-size:0px;line-height:125%;font-family:Arial;fill:#000000"
-         x="-3.5433069e+020"
-         y="3.5433069e+020">
+         x="-3.5433069e+20"
+         y="3.5433069e+20">
         <tspan
            id="tspan4569"
            sodipodi:role="line"
-           x="-3.5433069e+020"
-           y="3.5433069e+020">Look-at YLAY</tspan>
+           x="-3.5433069e+20"
+           y="3.5433069e+20">Look-at YLAY</tspan>
       </text>
       <text
          id="text4571"
          sodipodi:linespacing="125%"
          style="font-size:0px;line-height:125%;font-family:Arial;fill:#000000"
-         x="-3.5433069e+020"
-         y="3.5433069e+020">
+         x="-3.5433069e+20"
+         y="3.5433069e+20">
         <tspan
            id="tspan4573"
            sodipodi:role="line"
-           x="-3.5433069e+020"
-           y="3.5433069e+020">Look-at XLAX</tspan>
+           x="-3.5433069e+20"
+           y="3.5433069e+20">Look-at XLAX</tspan>
       </text>
       <text
          id="text4575"
          sodipodi:linespacing="125%"
          style="font-size:0px;line-height:125%;font-family:Arial;fill:#000000"
-         x="-3.5433069e+020"
-         y="3.5433069e+020">
+         x="-3.5433069e+20"
+         y="3.5433069e+20">
         <tspan
            id="tspan4577"
            sodipodi:role="line"
-           x="-3.5433069e+020"
-           y="3.5433069e+020">GNAME</tspan>
+           x="-3.5433069e+20"
+           y="3.5433069e+20">GNAME</tspan>
       </text>
       <path
          id="path4579"
@@ -813,13 +813,13 @@
          id="text4456"
          sodipodi:linespacing="125%"
          style="font-size:0.69999999px;line-height:125%;font-family:Arial;fill:#ff0000"
-         x="-3.5433069e+020"
-         y="3.5433069e+020">
+         x="-3.5433069e+20"
+         y="3.5433069e+20">
         <tspan
            id="tspan4458"
            sodipodi:role="line"
-           x="-3.5433069e+020"
-           y="3.5433069e+020">Light NameSNAME</tspan>
+           x="-3.5433069e+20"
+           y="3.5433069e+20">Light NameSNAME</tspan>
       </text>
       <path
          id="path4460"
@@ -850,85 +850,85 @@
          id="text4470"
          sodipodi:linespacing="125%"
          style="font-size:0px;line-height:125%;font-family:Arial;fill:#000000"
-         x="-3.5433069e+020"
-         y="3.5433069e+020">
+         x="-3.5433069e+20"
+         y="3.5433069e+20">
         <tspan
            id="tspan4472"
            sodipodi:role="line"
-           x="-3.5433069e+020"
-           y="3.5433069e+020">Look-at YLAY</tspan>
+           x="-3.5433069e+20"
+           y="3.5433069e+20">Look-at YLAY</tspan>
       </text>
       <text
          id="text4474"
          sodipodi:linespacing="125%"
          style="font-size:0px;line-height:125%;font-family:Arial;fill:#000000"
-         x="-3.5433069e+020"
-         y="3.5433069e+020">
+         x="-3.5433069e+20"
+         y="3.5433069e+20">
         <tspan
            id="tspan4476"
            sodipodi:role="line"
-           x="-3.5433069e+020"
-           y="3.5433069e+020">Light IntensityINTENSITY</tspan>
+           x="-3.5433069e+20"
+           y="3.5433069e+20">Light IntensityINTENSITY</tspan>
       </text>
       <text
          id="text4478"
          sodipodi:linespacing="125%"
          style="font-size:0px;line-height:125%;font-family:Arial;fill:#000000"
-         x="-3.5433069e+020"
-         y="3.5433069e+020">
+         x="-3.5433069e+20"
+         y="3.5433069e+20">
         <tspan
            id="tspan4480"
            sodipodi:role="line"
-           x="-3.5433069e+020"
-           y="3.5433069e+020">*not used*BEAMD</tspan>
+           x="-3.5433069e+20"
+           y="3.5433069e+20">*not used*BEAMD</tspan>
       </text>
       <text
          id="text4482"
          sodipodi:linespacing="125%"
          style="font-size:0px;line-height:125%;font-family:Arial;fill:#000000"
-         x="-3.5433069e+020"
-         y="3.5433069e+020">
+         x="-3.5433069e+20"
+         y="3.5433069e+20">
         <tspan
            id="tspan4484"
            sodipodi:role="line"
-           x="-3.5433069e+020"
-           y="3.5433069e+020">*not used*CONED</tspan>
+           x="-3.5433069e+20"
+           y="3.5433069e+20">*not used*CONED</tspan>
       </text>
       <text
          id="text4486"
          sodipodi:linespacing="125%"
          style="font-size:0px;line-height:125%;font-family:Arial;fill:#000000"
-         x="-3.5433069e+020"
-         y="3.5433069e+020">
+         x="-3.5433069e+20"
+         y="3.5433069e+20">
         <tspan
            id="tspan4488"
            sodipodi:role="line"
-           x="-3.5433069e+020"
-           y="3.5433069e+020">Depth Map SizeCONEA</tspan>
+           x="-3.5433069e+20"
+           y="3.5433069e+20">Depth Map SizeCONEA</tspan>
       </text>
       <text
          id="text4490"
          sodipodi:linespacing="125%"
          style="font-size:0px;line-height:125%;font-family:Arial;fill:#000000"
-         x="-3.5433069e+020"
-         y="3.5433069e+020">
+         x="-3.5433069e+20"
+         y="3.5433069e+20">
         <tspan
            id="tspan4492"
            sodipodi:role="line"
-           x="-3.5433069e+020"
-           y="3.5433069e+020">Light Color (RGB)COLOR</tspan>
+           x="-3.5433069e+20"
+           y="3.5433069e+20">Light Color (RGB)COLOR</tspan>
       </text>
       <text
          id="text4494"
          sodipodi:linespacing="125%"
          style="font-size:0px;line-height:125%;font-family:Arial;fill:#000000"
-         x="-3.5433069e+020"
-         y="3.5433069e+020">
+         x="-3.5433069e+20"
+         y="3.5433069e+20">
         <tspan
            id="tspan4496"
            sodipodi:role="line"
-           x="-3.5433069e+020"
-           y="3.5433069e+020">Look-at ZLAZ</tspan>
+           x="-3.5433069e+20"
+           y="3.5433069e+20">Look-at ZLAZ</tspan>
       </text>
       <path
          id="path4498"
@@ -944,25 +944,25 @@
          id="text4502"
          sodipodi:linespacing="125%"
          style="font-size:0px;line-height:125%;font-family:Arial;fill:#000000"
-         x="-3.5433069e+020"
-         y="3.5433069e+020">
+         x="-3.5433069e+20"
+         y="3.5433069e+20">
         <tspan
            id="tspan4504"
            sodipodi:role="line"
-           x="-3.5433069e+020"
-           y="3.5433069e+020">Look-at XLAX</tspan>
+           x="-3.5433069e+20"
+           y="3.5433069e+20">Look-at XLAX</tspan>
       </text>
       <text
          id="text4506"
          sodipodi:linespacing="125%"
          style="font-size:0px;line-height:125%;font-family:Arial;fill:#000000"
-         x="-3.5433069e+020"
-         y="3.5433069e+020">
+         x="-3.5433069e+20"
+         y="3.5433069e+20">
         <tspan
            id="tspan4508"
            sodipodi:role="line"
-           x="-3.5433069e+020"
-           y="3.5433069e+020">GNAME</tspan>
+           x="-3.5433069e+20"
+           y="3.5433069e+20">GNAME</tspan>
       </text>
     </symbol>
     <symbol
@@ -1013,7 +1013,7 @@
        inkscape:label="Dark Emboss"
        inkscape:menu-tooltip="Emboss effect : 3D relief where white is replaced by black"
        inkscape:menu="Bumps"
-       style="color-interpolation-filters:sRGB;"
+       style="color-interpolation-filters:sRGB"
        id="filter5066">
       <feColorMatrix
          result="result2"
@@ -1037,7 +1037,8 @@
          in="result1"
          operator="arithmetic"
          in2="SourceGraphic"
-         id="feComposite5074" />
+         id="feComposite5074"
+         k4="0" />
       <feBlend
          result="result4"
          mode="multiply"
@@ -1049,7 +1050,10 @@
          operator="arithmetic"
          k2="1.2"
          in2="result4"
-         id="feComposite5078" />
+         id="feComposite5078"
+         k1="0"
+         k3="0"
+         k4="0" />
       <feComposite
          operator="in"
          in="result5"
@@ -1060,7 +1064,7 @@
        inkscape:label="Button"
        inkscape:menu="Bevels"
        inkscape:menu-tooltip="Soft bevel, slightly depressed middle"
-       style="color-interpolation-filters:sRGB;"
+       style="color-interpolation-filters:sRGB"
        id="filter5082">
       <feGaussianBlur
          stdDeviation="1.3"
@@ -1110,7 +1114,7 @@
       <feSpecularLighting
          in="result4"
          surfaceScale="5"
-         specularExponent="17.9"
+         specularExponent="17.89999962"
          id="feSpecularLighting5104">
         <feDistantLight
            azimuth="225"
@@ -1126,7 +1130,7 @@
        inkscape:label="Combined Lighting"
        inkscape:menu="Bevels"
        inkscape:menu-tooltip="Basic specular bevel to use for building textures"
-       style="color-interpolation-filters:sRGB;"
+       style="color-interpolation-filters:sRGB"
        id="filter5118">
       <feGaussianBlur
          stdDeviation="6"
@@ -1135,8 +1139,8 @@
          id="feGaussianBlur5120"
          specularExponent="40.600000000000001" />
       <feDiffuseLighting
-         lighting-color="rgb(74,60,60)"
-         diffuseConstant="1.28"
+         lighting-color="#4a3c3c"
+         diffuseConstant="1.27999997"
          surfaceScale="4"
          result="result5"
          id="feDiffuseLighting5122">
@@ -1152,17 +1156,20 @@
          in="result5"
          result="fbSourceGraphic"
          operator="arithmetic"
-         id="feComposite5126" />
+         id="feComposite5126"
+         k2="0"
+         k3="0"
+         k4="0" />
       <feGaussianBlur
          result="result0"
          in="fbSourceGraphic"
          stdDeviation="6"
          id="feGaussianBlur5128" />
       <feSpecularLighting
-         specularExponent="40.552583025830259"
-         specularConstant="3.1299999999999999"
+         specularExponent="40.55258179"
+         specularConstant="3.13000011"
          surfaceScale="0.38"
-         lighting-color="rgb(255,255,255)"
+         lighting-color="#ffffff"
          result="result1"
          in="result0"
          id="feSpecularLighting5130">
@@ -1178,7 +1185,9 @@
          in="fbSourceGraphic"
          in2="result1"
          result="result4"
-         id="feComposite5134" />
+         id="feComposite5134"
+         k1="0"
+         k4="0" />
       <feComposite
          operator="in"
          result="result2"
@@ -1190,7 +1199,7 @@
        inkscape:label="Bloom"
        inkscape:menu="Bevels"
        inkscape:menu-tooltip="Soft, cushion-like bevel with matte highlights"
-       style="color-interpolation-filters:sRGB;"
+       style="color-interpolation-filters:sRGB"
        id="filter5140">
       <feGaussianBlur
          result="result1"
@@ -1200,7 +1209,7 @@
       <feSpecularLighting
          result="result0"
          specularExponent="30"
-         specularConstant="1.97"
+         specularConstant="1.97000003"
          surfaceScale="5"
          id="feSpecularLighting5144">
         <feDistantLight
@@ -1259,7 +1268,7 @@
        inkscape:menu-tooltip="In and out glow with a possible offset and colorizable flood"
        inkscape:menu="Shadows and Glows"
        inkscape:label="Cutout Glow"
-       style="color-interpolation-filters:sRGB;"
+       style="color-interpolation-filters:sRGB"
        id="filter5208">
       <feOffset
          dy="-81.73431734317343"
@@ -1292,7 +1301,7 @@
        inkscape:label="Basic Diffuse Bump"
        inkscape:menu="Bumps"
        inkscape:menu-tooltip="Matte emboss effect"
-       style="color-interpolation-filters:sRGB;"
+       style="color-interpolation-filters:sRGB"
        id="filter5444">
       <feColorMatrix
          result="result2"
@@ -1302,7 +1311,7 @@
       <feDiffuseLighting
          lighting-color="#ffffff"
          in="result2"
-         diffuseConstant="1.1599999999999999"
+         diffuseConstant="1.15999997"
          result="result1"
          surfaceScale="2.5"
          id="feDiffuseLighting5448"
@@ -1318,7 +1327,9 @@
          k2="1"
          k3="0.8"
          in2="SourceGraphic"
-         id="feComposite5452" />
+         id="feComposite5452"
+         k1="0"
+         k4="0" />
       <feComposite
          in2="SourceGraphic"
          result="result7"
@@ -1330,7 +1341,7 @@
        inkscape:label="Basic Specular Bump"
        inkscape:menu="Bumps"
        inkscape:menu-tooltip="Specular emboss effect"
-       style="color-interpolation-filters:sRGB;"
+       style="color-interpolation-filters:sRGB"
        id="filter5456">
       <feColorMatrix
          in="SourceGraphic"
@@ -1340,7 +1351,7 @@
       <feSpecularLighting
          result="result10"
          specularExponent="15"
-         surfaceScale="-0.94999999999999996"
+         surfaceScale="-0.94999999"
          specularConstant="1"
          id="feSpecularLighting5460">
         <feDistantLight
@@ -1355,7 +1366,9 @@
          operator="arithmetic"
          result="result9"
          in="result10"
-         id="feComposite5464" />
+         id="feComposite5464"
+         k1="0"
+         k4="0" />
       <feComposite
          in="result9"
          operator="in"
@@ -1365,7 +1378,7 @@
     </filter>
     <filter
        inkscape:menu="Bumps"
-       style="color-interpolation-filters:sRGB;"
+       style="color-interpolation-filters:sRGB"
        inkscape:menu-tooltip="Carving emboss effect"
        inkscape:label="Bump Engraving"
        id="filter5496">
@@ -1393,7 +1406,7 @@
       <feDiffuseLighting
          surfaceScale="15"
          result="result1"
-         diffuseConstant="1.1000000000000001"
+         diffuseConstant="1.10000002"
          in="result11"
          lighting-color="#ffffff"
          id="feDiffuseLighting5504"
@@ -1411,7 +1424,9 @@
          k2="1"
          operator="arithmetic"
          result="result9"
-         id="feComposite5508" />
+         id="feComposite5508"
+         k1="0"
+         k4="0" />
       <feColorMatrix
          in="result9"
          type="saturate"
@@ -1454,13 +1469,13 @@
        inkscape:label="Jigsaw Piece"
        inkscape:menu="Bevels"
        inkscape:menu-tooltip="Low, sharp bevel"
-       style="color-interpolation-filters:sRGB;"
+       style="color-interpolation-filters:sRGB"
        id="filter6294">
       <feSpecularLighting
          in="SourceAlpha"
-         surfaceScale="1.0900000000000001"
-         specularConstant="3.52"
-         specularExponent="18.699999999999999"
+         surfaceScale="1.09000003"
+         specularConstant="3.51999998"
+         specularExponent="18.70000076"
          id="feSpecularLighting6296"
          kernelUnitLength="0.40000000000000002">
         <feDistantLight
@@ -1470,7 +1485,6 @@
       </feSpecularLighting>
       <feComposite
          result="result0"
-         operator=""
          in2="SourceGraphic"
          id="feComposite6300" />
       <feMorphology
@@ -1489,7 +1503,7 @@
        inkscape:label="Drop Shadow"
        inkscape:menu="Bevels"
        inkscape:menu-tooltip="Ridged border with inner bevel"
-       style="color-interpolation-filters:sRGB;"
+       style="color-interpolation-filters:sRGB"
        id="filter6312">
       <feMorphology
          radius="19.391634980988592"
@@ -1508,11 +1522,11 @@
          id="feGaussianBlur6318"
          radius="19.399999999999999" />
       <feDiffuseLighting
-         diffuseConstant="1.0900000000000001"
+         diffuseConstant="1.09000003"
          id="feDiffuseLighting6320"
          stdDeviation="2.5"
          kernelUnitLength="0.29999999999999999"
-         surfaceScale="-3.1549815498154983">
+         surfaceScale="-3.15498161">
         <feDistantLight
            id="feDistantLight6330"
            elevation="56"
@@ -1604,7 +1618,7 @@
        y2="-15.400961"
        gradientUnits="userSpaceOnUse" />
     <filter
-       style="color-interpolation-filters:sRGB;"
+       style="color-interpolation-filters:sRGB"
        inkscape:label="Drop Shadow"
        id="filter6670">
       <feFlood
@@ -1645,8 +1659,8 @@
      inkscape:pageopacity="0"
      inkscape:pageshadow="2"
      inkscape:zoom="2.56"
-     inkscape:cx="179.13637"
-     inkscape:cy="147.26609"
+     inkscape:cx="118.32718"
+     inkscape:cy="131.53631"
      inkscape:document-units="px"
      inkscape:current-layer="g4978"
      showgrid="false"
@@ -1654,7 +1668,7 @@
      showborder="true"
      inkscape:window-width="1680"
      inkscape:window-height="948"
-     inkscape:window-x="20"
+     inkscape:window-x="390"
      inkscape:window-y="0"
      inkscape:window-maximized="0"
      inkscape:snap-center="false"
@@ -1662,7 +1676,11 @@
      inkscape:snap-midpoints="false"
      units="px"
      height="180mm"
-     inkscape:snap-nodes="true" />
+     inkscape:snap-nodes="true"
+     fit-margin-top="-16"
+     fit-margin-left="-16"
+     fit-margin-right="-15"
+     fit-margin-bottom="-15" />
   <metadata
      id="metadata7">
     <rdf:RDF>
@@ -1679,7 +1697,7 @@
      inkscape:label="Layer 1"
      inkscape:groupmode="layer"
      id="layer1"
-     transform="translate(0,-832.36233)">
+     transform="translate(1.1048702,-831.25754)">
     <g
        id="g4559-4-5"
        transform="matrix(0.83524861,0.11481544,-0.09653786,0.99338684,-715.07906,-312.28806)"
