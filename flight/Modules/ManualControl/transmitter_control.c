@@ -949,7 +949,7 @@ group_completed:
 	fsm->sample_count = 0;
 
 	/* Find the next active group, but limit search so we can't loop forever here */
-	for (uint8_t i = 0; i < MANUALCONTROLSETTINGS_CHANNELGROUPS_NONE; i++) {
+	for (uint8_t i = 0; i <= MANUALCONTROLSETTINGS_CHANNELGROUPS_NONE; i++) {
 		/* Move to the next group */
 		fsm->group++;
 		if (fsm->group >= MANUALCONTROLSETTINGS_CHANNELGROUPS_NONE) {
