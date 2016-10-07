@@ -55,7 +55,7 @@ VersionDialog::VersionDialog(QWidget *parent)
 {
     // We need to set the window icon explicitly here since for some reason the
     // application icon isn't used when the size of the dialog is fixed (at least not on X11/GNOME)
-    setWindowIcon(QIcon(":/core/gcs_nontrans_32"));
+    setWindowIcon(QIcon(":/core/gcs_nontrans_128"));
 
     setWindowTitle(tr("About " GCS_PROJECT_BRANDING_PRETTY " GCS"));
     setWindowFlags(windowFlags() & ~Qt::WindowContextHelpButtonHint);

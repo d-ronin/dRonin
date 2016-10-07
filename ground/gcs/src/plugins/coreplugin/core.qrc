@@ -59,8 +59,7 @@
         <file>images/tx-rx.svg</file>
         <file alias="gcs_logo_256">../../../../../branding/gcs_logo_256.png</file>
         <file alias="gcs_logo_32">../../../../../branding/gcs_logo_32.png</file>
-        <file alias="gcs_nontrans_32">../../../../../branding/gcs_nontrans_32.png</file>
-        <file alias="gcs_nontrans_64">../../../../../branding/gcs_nontrans_64.png</file>
+        <file alias="gcs_nontrans_128">../../../../../branding/gcs_nontrans_128.png</file>
         <file alias="gcs_logo_64">../../../../../branding/gcs_logo_64.png</file>
         <file alias="gcs_logo_128">../../../../../branding/gcs_logo_128.png</file>
     </qresource>
