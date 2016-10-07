@@ -226,7 +226,7 @@ const char * const ICON_PLUGIN           = ":/core/images/pluginicon.png";
 const char * const ICON_EXIT             = ":/core/images/exiticon.png";
 const char * const ICON_OPTIONS          = ":/core/images/optionsicon.png";
 const char * const ICON_HELP             = ":/core/images/helpicon.png";
-const char * const ICON_GCS              = ":/core/gcs_logo_128";
+const char * const ICON_GCS              = ":/core/gcs_nontrans_64";
 
 // wizard kind
 const char * const WIZARD_TYPE_FILE      = "GCS::WizardType::File";

@@ -53,7 +53,7 @@ AuthorsDialog::AuthorsDialog(QWidget *parent)
 {
     // We need to set the window icon explicitly here since for some reason the
     // application icon isn't used when the size of the dialog is fixed (at least not on X11/GNOME)
-    setWindowIcon(QIcon(":/core/gcs_logo_32"));
+    setWindowIcon(QIcon(":/core/gcs_nontrans_32"));
 
     setWindowTitle(tr("About GCS Authors"));
     setWindowFlags(windowFlags() & ~Qt::WindowContextHelpButtonHint);
