@@ -27,6 +27,7 @@ private slots:
 private:
     Ui::inputChannelForm *ui;
     ChannelFunc m_chanType;
+    QSpinBox *sbChannelCurrent;
 };
 
 #endif // INPUTCHANNELFORM_H

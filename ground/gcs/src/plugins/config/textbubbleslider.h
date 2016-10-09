@@ -45,6 +45,9 @@ public:
     void setMaximum(int);
     void setHidden(bool);
 
+public slots:
+    void setIndicatorValue(int us);
+
 protected:
     void paintEvent ( QPaintEvent * event );
 
@@ -57,7 +60,7 @@ private:
     int slideHandleWidth;
     int slideHandleMargin;
     bool hidden;
-
+    int indicatorValue;
 };
 
 #endif // TEXTBUBBLESLIDER_H

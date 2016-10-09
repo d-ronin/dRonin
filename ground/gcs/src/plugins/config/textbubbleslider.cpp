@@ -37,7 +37,7 @@
  * @param parent
  */
 TextBubbleSlider::TextBubbleSlider(QWidget *parent) :
-    QSlider(parent)
+    QSlider(parent), indicatorValue(0)
 {
     construct();
     hidden = false;
@@ -181,16 +181,42 @@ void TextBubbleSlider::paintEvent(QPaintEvent *paintEvent)
         return;
     }
 
+    int sliderWidth = width();
+    int sliderHeight = height();
+    const double indicatorWidth = 5.0;
+
+    // draw solid indicator behind everything
+    bool drawIndicator = indicatorValue >= (minimum() * -0.1) && indicatorValue <= (1.1 * maximum());
+    qreal indicatorPos = 0;
+    QPen indicatorPen(QBrush(QColor(255, 0, 0, 180)), indicatorWidth, Qt::SolidLine, Qt::RoundCap, Qt::RoundJoin);
+    if (drawIndicator) {
+        QPainter p(this);
+        p.setPen(indicatorPen);
+        if (!invertedAppearance()) {
+            indicatorPos = slideHandleWidth/2 + slideHandleMargin + // math follows that for the slider handle below
+                (indicatorValue - minimum()) / (double)(maximum() - minimum()) * (sliderWidth - (slideHandleWidth + slideHandleMargin) - 1);
+        } else {
+            indicatorPos = slideHandleWidth/2 + slideHandleMargin + // math follows that for the slider handle below
+                (maximum() - indicatorValue) / (double)(maximum() - minimum()) * (sliderWidth - (slideHandleWidth + slideHandleMargin) - 1);
+        }
+        p.drawLine(QLineF(indicatorPos, indicatorWidth / 2.0, indicatorPos, sliderHeight - indicatorWidth / 2.0));
+    }
+
     // Pass paint event on to QSlider
     QSlider::paintEvent(paintEvent);
 
+    // need a new painter after QSlider has done it's painting
+    QPainter painter(this);
+
+    // draw indicator translucent over handle + slider
+    if (drawIndicator) {
+        indicatorPen.setColor(QColor(255, 0, 0, 50));
+        painter.setPen(indicatorPen);
+        painter.drawLine(QLineF(indicatorPos, indicatorWidth / 2.0, indicatorPos, sliderHeight - indicatorWidth / 2.0));
+    }
+
     /* Add numbers on top of handler */
-
-    // Calculate pixel position for text.
-    int sliderWidth = width();
-    int sliderHeight = height();
     double valuePos;
-
     if (!invertedAppearance()) {
         valuePos = (slideHandleWidth - maximumFontWidth)/2 + slideHandleMargin + // First part centers text in handle...
                 (value()-minimum())/(double)(maximum()-minimum()) * (sliderWidth - (slideHandleWidth + slideHandleMargin) - 1); //... and second part moves text with handle
@@ -199,14 +225,20 @@ void TextBubbleSlider::paintEvent(QPaintEvent *paintEvent)
                 (maximum()-value())/(double)(maximum()-minimum()) * (sliderWidth - (slideHandleWidth + slideHandleMargin) - 1); //... and second part moves text with handle
     }
 
-    // Create painter and set font
-    QPainter painter(this);
-    painter.setFont(font);
-
     // Draw neutral value text. Verically center it in the handle
+    painter.setFont(font);
+    painter.setPen(Qt::SolidLine);
     QString neutralStringWidth = QString("%1").arg(value());
     QFontMetrics fontMetrics(font);
     int textWidth = fontMetrics.width(neutralStringWidth);
     painter.drawText(QRectF(valuePos + maximumFontWidth - textWidth, ceil((sliderHeight - maximumFontHeight)/2.0), textWidth, maximumFontHeight),
                      neutralStringWidth);
+}
+
+void TextBubbleSlider::setIndicatorValue(int us)
+{
+    bool changed = indicatorValue != us;
+    indicatorValue = us;
+    if (changed)
+        update();
 }
