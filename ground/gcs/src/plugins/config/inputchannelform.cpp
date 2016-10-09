@@ -37,10 +37,16 @@ inputChannelForm::inputChannelForm(QWidget *parent, bool showlegend, bool showSl
         ui->channelNeutral->setHidden(true);
     }
 
+    // setup a hidden widget to track channel value without too much pain
+    sbChannelCurrent = new QSpinBox(this);
+    sbChannelCurrent->setVisible(false);
+    sbChannelCurrent->setMaximum(65535);
+
     // Connect slots
     connect(ui->channelMin,SIGNAL(valueChanged(int)),this,SLOT(minMaxUpdated()));
     connect(ui->channelMax,SIGNAL(valueChanged(int)),this,SLOT(minMaxUpdated()));
     connect(ui->channelGroup,SIGNAL(currentIndexChanged(int)),this,SLOT(groupUpdated()));
+    connect(sbChannelCurrent, SIGNAL(valueChanged(int)), ui->channelNeutral, SLOT(setIndicatorValue(int)));
 
     // This is awkward but since we want the UI to be a dropdown but the field is not an enum
     // so it breaks the UAUVObject widget relation of the task gadget.  Running the data through
