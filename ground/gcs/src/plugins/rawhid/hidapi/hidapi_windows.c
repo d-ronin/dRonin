@@ -31,11 +31,6 @@ typedef LONG NTSTATUS;
 #include <winbase.h>
 #endif
 
-#ifdef __CYGWIN__
-#include <ntdef.h>
-#define _wcsdup wcsdup
-#endif
-
 /*#define HIDAPI_USE_DDK*/
 
 #ifdef __cplusplus
