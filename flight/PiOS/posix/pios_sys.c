@@ -297,7 +297,7 @@ static void go_realtime() {
 
 	CPU_SET(0, &allowable_cpus);
 
-	rc = sched_setaffinity(0, CPU_SETSIZE, &allowable_cpus);
+	rc = sched_setaffinity(0, sizeof(allowable_cpus), &allowable_cpus);
 
 	if (rc) {
 		perror("sched_setaffinity");
