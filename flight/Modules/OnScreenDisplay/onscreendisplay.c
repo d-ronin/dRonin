@@ -728,7 +728,7 @@ void draw_alarms(int x, int y, int xs, int ys, int va, int ha, int flags, int fo
 		const char *boot_reason = AlarmBootReason(alarm.RebootCause);
 		strncpy((char*)buf, boot_reason, sizeof(buf));
 		buf[sizeof(buf) - 2] = '\0';
-		pos = strlen(boot_reason);
+		pos = strlen(buf);
 		buf[pos++] = ' ';
 	}
 
@@ -737,7 +737,7 @@ void draw_alarms(int x, int y, int xs, int ys, int va, int ha, int flags, int fo
 	// With the above arrangement, can pass a length of 1 to this if
 	// there's an impossibly long boot reason.
 	// which then does the right thing and just fills it with a null.
-	int32_t len = AlarmString(&alarm, buf + pos, sizeof(buf) - 1 - pos,
+	int32_t len = AlarmString(&alarm, buf + pos, sizeof(buf) - pos,
 			blink, &state);
 
 	if (len > 0) {
