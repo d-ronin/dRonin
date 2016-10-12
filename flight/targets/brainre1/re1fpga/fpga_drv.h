@@ -33,7 +33,8 @@
 
 #ifndef PIOS_RE1FPGA_H
 #define PIOS_RE1FPGA_H
-#include "pios_video.h"
+
+#include <pios_video.h>
 
 struct pios_re1fpga_cfg {
 	struct stm32_gpio mco_pin; /* pin used for clock output to FPGA */

@@ -33,9 +33,12 @@
  * must be maintained in each individual source file that is a derivative work
  * of this source file; otherwise redistribution is prohibited.
  */
- 
+
+#include <pios.h>
 #include <pios_config.h>
 #include <pios_board_info.h>
+
+#include <fpga_drv.h>
 
 #if defined(PIOS_INCLUDE_ANNUNC)
 
@@ -68,7 +71,12 @@ static const struct pios_annunc pios_annuncs[] = {
 		},
 		.remap = 0,
 		.active_high = true,
-	}
+	},
+#if defined(PIOS_INCLUDE_RE1_FPGA)
+	[PIOS_ANNUNCIATOR_BUZZER] = {
+		.handler = PIOS_RE1FPGA_Buzzer
+	},
+#endif
 };
 
 static const struct pios_annunc_cfg pios_annunc_cfg = {
