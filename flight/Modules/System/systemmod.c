@@ -52,10 +52,6 @@
 #include "systemstats.h"
 #include "watchdogstatus.h"
 
-#if defined(PIOS_INCLUDE_RE1_FPGA)
-#include "fpga_drv.h"
-#endif
-
 #if defined(PIOS_INCLUDE_DEBUG_CONSOLE) && defined(DEBUG_THIS_FILE)
 #define DEBUG_MSG(format, ...) PIOS_COM_SendFormattedString(PIOS_COM_DEBUG, format, ## __VA_ARGS__)
 #else
