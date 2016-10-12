@@ -773,7 +773,7 @@
                  </font>
                 </property>
                 <property name="text">
-                 <string>Note: When enabled, buzzer sounds on failsafe after vehicle has been armed.</string>
+                 <string>Note: When enabled, buzzer beeps 'R' in morse code when in failsafe after vehicle has been armed.</string>
                 </property>
                </widget>
               </item>
