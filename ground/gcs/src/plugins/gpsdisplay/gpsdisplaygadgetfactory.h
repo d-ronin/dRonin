@@ -44,8 +44,6 @@ public:
     ~GpsDisplayGadgetFactory();
 
     Core::IUAVGadget *createGadget(QWidget *parent);
-    IUAVGadgetConfiguration *createConfiguration(QSettings *qSettings);
-    IOptionsPage *createOptionsPage(IUAVGadgetConfiguration *config);
 };
 
 #endif // GPSDISPLAYGADGETFACTORY_H_

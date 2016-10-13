@@ -32,7 +32,6 @@
 #include <QtSerialPort/QSerialPortInfo>
 #include <coreplugin/iuavgadget.h>
 #include "gpsdisplaywidget.h"
-#include "nmeaparser.h"
 #include "telemetryparser.h"
 
 class IUAVGadget;
@@ -53,23 +52,11 @@ public:
         return m_widget;
     }
 
-    // void setMode(QString mode);  // Either UAVTalk or serial port
-
-    void loadConfiguration(IUAVGadgetConfiguration *config);
-public slots:
-    void onConnect();
-    void onDisconnect();
-
-private slots:
-    void onDataAvailable();
-
 private:
     QPointer<GpsDisplayWidget> m_widget;
-    QPointer<QSerialPort> port;
     QPointer<GPSParser> parser;
     bool connected;
     void processNewSerialData(QByteArray serialData);
-    PortSettings m_portsettings;
 };
 
 
