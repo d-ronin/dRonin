@@ -155,42 +155,16 @@ static void settingdUpdatedCb(UAVObjEvent * ev, void *ctx, void *obj, int len)
 			break;
 	}
 
-	/* Configure the failsafe buzzer */
-	if (hwre1data->FailsafeBuzzer == HWBRAINRE1_FAILSAFEBUZZER_4KHZ_BUZZER) {
+	/* Configure the buzzer type */
+	if (hwre1data->BuzzerType == HWBRAINRE1_BUZZERTYPE_4KHZ_BUZZER) {
 		PIOS_RE1FPGA_SetBuzzerType(PIOS_RE1FPGA_BUZZER_AC);
 	}
-	else {
+	else if (hwre1data->BuzzerType == HWBRAINRE1_BUZZERTYPE_DC_BUZZER) {
 		PIOS_RE1FPGA_SetBuzzerType(PIOS_RE1FPGA_BUZZER_DC);
 	}
 
 	/* Set video sync detector threshold */
 	PIOS_RE1FPGA_SetSyncThreshold(hwre1data->VideoSyncDetectorThreshold);
-}
-
-/**
- * flightStatusUpdatedCb()
- * Used to toggle buzzer
- */
-static void flightStatusUpdatedCb(UAVObjEvent * ev, void *ctx, void *obj, int len)
-{
-	(void) ev; (void) ctx; (void) len;
-	static bool was_armed = false;
-
-	FlightStatusData * data = (FlightStatusData *)obj;
-
-	if (data->Armed == FLIGHTSTATUS_ARMED_ARMED) {
-		was_armed = true;
-	}
-
-	if (was_armed && (data->FlightMode == FLIGHTSTATUS_FLIGHTMODE_FAILSAFE)) {
-		uint8_t buzzer_setting;
-		HwBrainRE1FailsafeBuzzerGet(&buzzer_setting);
-		PIOS_RE1FPGA_Buzzer(buzzer_setting != HWBRAINRE1_FAILSAFEBUZZER_DISABLED);
-	}
-	else {
-		PIOS_RE1FPGA_Buzzer(false);
-	}
-
 }
 
 /**
@@ -321,10 +295,6 @@ void PIOS_Board_Init(void) {
 	uint8_t flashid[16] = {0};
 	PIOS_Flash_Jedec_ReadOTPData(pios_external_flash_id, 0, flashid, 16);
 	HwBrainRE1FlashIDSet(flashid);
-
-	/* Connect callback for buzzer */
-	FlightStatusInitialize();
-	FlightStatusConnectCallback(flightStatusUpdatedCb);
 
 	ModuleSettingsInitialize();
 

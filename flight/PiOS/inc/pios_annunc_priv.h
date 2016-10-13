@@ -34,9 +34,14 @@
 #include <pios.h>
 #include <pios_stm32.h>
 
+typedef int32_t (*pios_annunc_func_t)(bool active);
+
 struct pios_annunc {
 	struct stm32_gpio pin;
 	uint32_t remap;
+
+	pios_annunc_func_t handler;
+
 	bool active_high;
 };
 

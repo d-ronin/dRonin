@@ -37,8 +37,31 @@
 
 const static struct pios_annunc_cfg * annunciator_cfg;
 
+#define MAXANNUNC 8
+
+static uint8_t annunc_state;
+
+static bool get_annunc_state(int idx) {
+	if (annunc_state & (1 << idx)) {
+		return true;
+	} else {
+		return false;
+	}
+}
+
+static void set_annunc_state(int idx, bool active) {
+	uint8_t mask = 1 << idx;
+	uint8_t val = 0;
+
+	if (active) {
+		val = mask;
+	}
+
+	annunc_state = (annunc_state & (~mask)) | val;
+}
+
 /**
- * Initialises all the Annunciator's
+ * Initialises all the Annunciators
  */
 int32_t PIOS_ANNUNC_Init(const struct pios_annunc_cfg * cfg)
 {
@@ -46,6 +69,8 @@ int32_t PIOS_ANNUNC_Init(const struct pios_annunc_cfg * cfg)
 	
 	/* Store away the config in a global used by API functions */
 	annunciator_cfg = cfg;
+
+	PIOS_Assert(cfg->num_annunciators <= MAXANNUNC);
 	
 	for (uint8_t i = 0; i < cfg->num_annunciators; i++) {
 		const struct pios_annunc * annunciator = &(cfg->annunciators[i]);
@@ -82,7 +107,14 @@ void PIOS_ANNUNC_On(uint32_t annunc_id)
 	
 	const struct pios_annunc * annunciator =
 		&(annunciator_cfg->annunciators[annunc_id]);
+
+	set_annunc_state(annunc_id, true);
 	
+	if (annunciator->handler) {
+		annunciator->handler(true);
+		return;
+	}
+
 	if (annunciator->active_high) {
 		GPIO_SetBits(annunciator->pin.gpio,
 				annunciator->pin.init.GPIO_Pin);
@@ -99,7 +131,7 @@ void PIOS_ANNUNC_On(uint32_t annunc_id)
 void PIOS_ANNUNC_Off(uint32_t annunc_id)
 {
 	PIOS_Assert(annunciator_cfg);
-	
+
 	if (annunc_id >= annunciator_cfg->num_annunciators) {
 		/* Annunciator index out of range */
 		return;
@@ -108,6 +140,13 @@ void PIOS_ANNUNC_Off(uint32_t annunc_id)
 	const struct pios_annunc * annunciator =
 		&(annunciator_cfg->annunciators[annunc_id]);
 	
+	set_annunc_state(annunc_id, false);
+
+	if (annunciator->handler) {
+		annunciator->handler(false);
+		return;
+	}
+
 	if (annunciator->active_high) {
 		GPIO_ResetBits(annunciator->pin.gpio,
 				annunciator->pin.init.GPIO_Pin);
@@ -130,15 +169,11 @@ void PIOS_ANNUNC_Toggle(uint32_t annunc_id)
 		/* Annunciator index out of range */
 		return;
 	}
-	
-	const struct pios_annunc * annunciator = &(annunciator_cfg->annunciators[annunc_id]);
-	
-	if (GPIO_ReadOutputDataBit(annunciator->pin.gpio, annunciator->pin.init.GPIO_Pin) == Bit_SET) {
-		GPIO_ResetBits(annunciator->pin.gpio,
-				annunciator->pin.init.GPIO_Pin);
+
+	if (get_annunc_state(annunc_id)) {
+		PIOS_ANNUNC_Off(annunc_id);
 	} else {
-		GPIO_SetBits(annunciator->pin.gpio,
-				annunciator->pin.init.GPIO_Pin);
+		PIOS_ANNUNC_On(annunc_id);
 	}
 }
 
