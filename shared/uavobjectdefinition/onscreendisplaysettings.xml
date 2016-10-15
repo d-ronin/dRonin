@@ -27,10 +27,10 @@
 			<description>Y Offset of OSD overlay</description>
 		</field>
 		<field name="NumPages" units="" type="int8" elements="1" defaultvalue="2">
-			<description>Number of OSD pages</description>
+			<description>Number of OSD pages (current page is selected by "Page Switch Function")</description>
 		</field>
 		<field name="PageSwitch" units="" type="enum" elements="1" options="Accessory0,Accessory1,Accessory2" defaultvalue="Accessory0">
-			<description>Switch to use to switch between OSD pages</description>
+			<description>Channel to use to switch between OSD pages. The range of the channel will be split into equal sized chunks between min and max, according to the number of pages configured.</description>
 		</field>
 		<field name="PageConfig" units="" type="enum" elements="6" options="Custom1,Custom2,Custom3,Custom4,Menu,Statistics,Off" defaultvalue="Custom1,Custom1,Custom1,Custom1,Custom1,Custom1">
 			<description/>
