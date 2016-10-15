@@ -119,6 +119,7 @@ void inputChannelForm::minMaxUpdated()
   */
 void inputChannelForm::groupUpdated()
 {
+    int selected = ui->channelNumberDropdown->currentIndex();
     ui->channelNumberDropdown->clear();
     ui->channelNumberDropdown->addItem("Disabled");
 
@@ -207,6 +208,9 @@ void inputChannelForm::groupUpdated()
 
     }
 
+    ui->channelNumber->setMaximum(count);
+    ui->channelNumber->setMinimum(0);
+
     if (m_chanType == inputChannelForm::CHANNELFUNC_RSSI &&
             ui->channelGroup->currentIndex() == ManualControlSettings::RSSITYPE_ADC) {
         QStringList names;
@@ -228,10 +232,9 @@ void inputChannelForm::groupUpdated()
     } else {
         for (int i = 0; i < count; i++)
             ui->channelNumberDropdown->addItem(QString(tr("Chan %1").arg(i+1)));
+        if (selected > 0 && selected <= count)
+            ui->channelNumberDropdown->setCurrentIndex(selected);
     }
-
-    ui->channelNumber->setMaximum(count);
-    ui->channelNumber->setMinimum(0);
 }
 
 /**
