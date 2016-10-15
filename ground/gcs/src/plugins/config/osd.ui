@@ -629,16 +629,6 @@ Setup the flight mode channel on the RC Input tab if you have not done so alread
               </item>
               <item row="0" column="1">
                <widget class="QSpinBox" name="sb_num_pages">
-                <property name="toolTip">
-                 <string>Number of positions your FlightMode switch has.
-
-Default is 3.
-
-It will be 2 or 3 for most of setups, but it also can be up to 6.
-In that case you have to configure your radio mixers so the whole range
-from min to max is split into N equal intervals, and you may set arbitrary
-channel value for each flight mode.</string>
-                </property>
                 <property name="minimum">
                  <number>1</number>
                 </property>
