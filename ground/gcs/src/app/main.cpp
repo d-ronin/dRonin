@@ -60,6 +60,7 @@
 #include <QBitmap>
 #include <QCommandLineParser>
 #include <QCommandLineOption>
+#include <QLoggingCategory>
 
 #include "libcrashreporter-qt/libcrashreporter-handler/Handler.h"
 
@@ -238,6 +239,9 @@ int main(int argc, char **argv)
     QDir().mkdir(dirName);
     new CrashReporter::Handler(dirName, true, "crashreporterapp");
 #endif
+
+    // suppress SSL warnings generated during startup (handy if you want to use QT_FATAL_WARNINGS)
+    QLoggingCategory::setFilterRules("qt.network.ssl.warning=false");
 
     QString locale = QLocale::system().name();
 
