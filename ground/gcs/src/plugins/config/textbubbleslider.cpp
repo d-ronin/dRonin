@@ -181,7 +181,6 @@ void TextBubbleSlider::paintEvent(QPaintEvent *paintEvent)
         return;
     }
 
-    int sliderWidth = width();
     int sliderHeight = height();
     const double indicatorWidth = 5.0;
 
@@ -191,14 +190,9 @@ void TextBubbleSlider::paintEvent(QPaintEvent *paintEvent)
     QPen indicatorPen(QBrush(QColor(255, 0, 0, 180)), indicatorWidth, Qt::SolidLine, Qt::RoundCap, Qt::RoundJoin);
     if (drawIndicator) {
         QPainter p(this);
+        p.setRenderHint(QPainter::Antialiasing);
         p.setPen(indicatorPen);
-        if (!invertedAppearance()) {
-            indicatorPos = slideHandleWidth/2 + slideHandleMargin + // math follows that for the slider handle below
-                (indicatorValue - minimum()) / (double)(maximum() - minimum()) * (sliderWidth - (slideHandleWidth + slideHandleMargin) - 1);
-        } else {
-            indicatorPos = slideHandleWidth/2 + slideHandleMargin + // math follows that for the slider handle below
-                (maximum() - indicatorValue) / (double)(maximum() - minimum()) * (sliderWidth - (slideHandleWidth + slideHandleMargin) - 1);
-        }
+        indicatorPos = sliderPosFromValue(indicatorValue);
         p.drawLine(QLineF(indicatorPos, indicatorWidth / 2.0, indicatorPos, sliderHeight - indicatorWidth / 2.0));
     }
 
@@ -207,6 +201,7 @@ void TextBubbleSlider::paintEvent(QPaintEvent *paintEvent)
 
     // need a new painter after QSlider has done it's painting
     QPainter painter(this);
+    painter.setRenderHints(QPainter::Antialiasing | QPainter::TextAntialiasing);
 
     // draw indicator translucent over handle + slider
     if (drawIndicator) {
@@ -216,14 +211,7 @@ void TextBubbleSlider::paintEvent(QPaintEvent *paintEvent)
     }
 
     /* Add numbers on top of handler */
-    double valuePos;
-    if (!invertedAppearance()) {
-        valuePos = (slideHandleWidth - maximumFontWidth)/2 + slideHandleMargin + // First part centers text in handle...
-                (value()-minimum())/(double)(maximum()-minimum()) * (sliderWidth - (slideHandleWidth + slideHandleMargin) - 1); //... and second part moves text with handle
-    } else {
-        valuePos = (slideHandleWidth - maximumFontWidth)/2 + slideHandleMargin + // First part centers text in handle...
-                (maximum()-value())/(double)(maximum()-minimum()) * (sliderWidth - (slideHandleWidth + slideHandleMargin) - 1); //... and second part moves text with handle
-    }
+    qreal valuePos = sliderPosFromValue(value()) - maximumFontWidth / 2;
 
     // Draw neutral value text. Verically center it in the handle
     painter.setFont(font);
@@ -241,4 +229,11 @@ void TextBubbleSlider::setIndicatorValue(int us)
     indicatorValue = us;
     if (changed)
         update();
+}
+
+qreal TextBubbleSlider::sliderPosFromValue(const int val)
+{
+    qreal offset = invertedAppearance() ? maximum() - val : val - minimum();
+    return slideHandleWidth/2 + slideHandleMargin + // account for handle width
+        offset / (maximum() - minimum()) * (width() - (slideHandleWidth + slideHandleMargin) - 1);
 }

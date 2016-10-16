@@ -50,6 +50,7 @@ public slots:
 
 protected:
     void paintEvent ( QPaintEvent * event );
+    qreal sliderPosFromValue(const int val);
 
 private:
     void setMaxPixelWidth();
