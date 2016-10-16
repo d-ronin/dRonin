@@ -56,6 +56,7 @@
 
 // The fraction of range to place the neutral position in
 #define THROTTLE_NEUTRAL_FRACTION 0.02
+#define ARMING_NEUTRAL_FRACTION 0.62
 
 #define ACCESS_MIN_MOVE -3
 #define ACCESS_MAX_MOVE 3
@@ -705,16 +706,22 @@ void ConfigInputWidget::wizardSetUpStep(enum wizardSteps step)
         fastMdata();
 
         manualSettingsData.ChannelNeutral[ManualControlSettings::CHANNELNEUTRAL_THROTTLE]=
-                manualSettingsData.ChannelMin[ManualControlSettings::CHANNELMIN_THROTTLE]+
-                ((manualSettingsData.ChannelMax[ManualControlSettings::CHANNELMAX_THROTTLE]-
-                  manualSettingsData.ChannelMin[ManualControlSettings::CHANNELMIN_THROTTLE])*THROTTLE_NEUTRAL_FRACTION);
+            manualSettingsData.ChannelMin[ManualControlSettings::CHANNELMIN_THROTTLE]+
+            ((manualSettingsData.ChannelMax[ManualControlSettings::CHANNELMAX_THROTTLE]-
+              manualSettingsData.ChannelMin[ManualControlSettings::CHANNELMIN_THROTTLE])*THROTTLE_NEUTRAL_FRACTION);
+
         if((abs(manualSettingsData.ChannelMax[ManualControlSettings::CHANNELMAX_FLIGHTMODE]-manualSettingsData.ChannelNeutral[ManualControlSettings::CHANNELNEUTRAL_FLIGHTMODE])<100) ||
                 (abs(manualSettingsData.ChannelMin[ManualControlSettings::CHANNELMIN_FLIGHTMODE]-manualSettingsData.ChannelNeutral[ManualControlSettings::CHANNELNEUTRAL_FLIGHTMODE])<100))
         {
             manualSettingsData.ChannelNeutral[ManualControlSettings::CHANNELNEUTRAL_FLIGHTMODE]=manualSettingsData.ChannelMin[ManualControlSettings::CHANNELMIN_FLIGHTMODE]+
                     (manualSettingsData.ChannelMax[ManualControlSettings::CHANNELMAX_FLIGHTMODE]-manualSettingsData.ChannelMin[ManualControlSettings::CHANNELMIN_FLIGHTMODE])/2;
         }
-        manualSettingsData.ChannelNeutral[ManualControlSettings::CHANNELNEUTRAL_ARMING] = manualSettingsData.ChannelMin[ManualControlSettings::CHANNELNEUTRAL_ARMING] + (manualSettingsData.ChannelMax[ManualControlSettings::CHANNELNEUTRAL_ARMING]-manualSettingsData.ChannelMin[ManualControlSettings::CHANNELNEUTRAL_ARMING])/2;
+
+        manualSettingsData.ChannelNeutral[ManualControlSettings::CHANNELNEUTRAL_ARMING]=
+            manualSettingsData.ChannelMin[ManualControlSettings::CHANNELMIN_ARMING]+
+            ((manualSettingsData.ChannelMax[ManualControlSettings::CHANNELMAX_ARMING]-
+              manualSettingsData.ChannelMin[ManualControlSettings::CHANNELMIN_ARMING])*ARMING_NEUTRAL_FRACTION);
+
         manualSettingsObj->setData(manualSettingsData);
         break;
     default:
