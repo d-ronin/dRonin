@@ -53,6 +53,7 @@
 #include "accessorydesired.h"
 #include "manualcontrolcommand.h"
 #include "stabilizationsettings.h"
+#include "vbarsettings.h"
 #ifndef SMALLF1
 #include "vtolpathfollowersettings.h"
 #endif
@@ -77,6 +78,7 @@
 struct txpid_struct {
 	TxPIDSettingsData inst;
 	StabilizationSettingsData stab;
+	VbarSettingsData vbar;
 	AccessoryDesiredData accessory;
 #ifndef SMALLF1
 	VtolPathFollowerSettingsData vtolPathFollowerSettingsData;
@@ -199,6 +201,7 @@ static void updatePIDs(UAVObjEvent* ev, void *ctx, void *obj, int len)
 		return;
 
 	StabilizationSettingsGet(&txpid_data->stab);
+	VbarSettingsGet(&txpid_data->vbar);
 
 #ifndef SMALLF1
 	// Check to make sure the settings UAVObject has been instantiated
@@ -210,6 +213,7 @@ static void updatePIDs(UAVObjEvent* ev, void *ctx, void *obj, int len)
 #endif
 
 	bool stabilizationSettingsNeedsUpdate = false;
+	bool vbarSettingsNeedsUpdate = false;
 
 	// Loop through every enabled instance
 	for (uint8_t i = 0; i < TXPIDSETTINGS_PIDS_NUMELEM; i++) {
@@ -324,57 +328,57 @@ static void updatePIDs(UAVObjEvent* ev, void *ctx, void *obj, int len)
 				stabilizationSettingsNeedsUpdate |= update(&txpid_data->stab.GyroCutoff, value);
 				break;
 			case TXPIDSETTINGS_PIDS_ROLLVBARSENSITIVITY:
-				stabilizationSettingsNeedsUpdate |= update(&txpid_data->stab.VbarSensitivity[STABILIZATIONSETTINGS_VBARSENSITIVITY_ROLL], value);
+				vbarSettingsNeedsUpdate |= update(&txpid_data->vbar.VbarSensitivity[VBARSETTINGS_VBARSENSITIVITY_ROLL], value);
 				break;
 			case TXPIDSETTINGS_PIDS_PITCHVBARSENSITIVITY:
-				stabilizationSettingsNeedsUpdate |= update(&txpid_data->stab.VbarSensitivity[STABILIZATIONSETTINGS_VBARSENSITIVITY_PITCH], value);
+				vbarSettingsNeedsUpdate |= update(&txpid_data->vbar.VbarSensitivity[VBARSETTINGS_VBARSENSITIVITY_PITCH], value);
 				break;
 			case TXPIDSETTINGS_PIDS_ROLLPITCHVBARSENSITIVITY:
-				stabilizationSettingsNeedsUpdate |= update(&txpid_data->stab.VbarSensitivity[STABILIZATIONSETTINGS_VBARSENSITIVITY_ROLL], value);
-				stabilizationSettingsNeedsUpdate |= update(&txpid_data->stab.VbarSensitivity[STABILIZATIONSETTINGS_VBARSENSITIVITY_PITCH], value);
+				vbarSettingsNeedsUpdate |= update(&txpid_data->vbar.VbarSensitivity[VBARSETTINGS_VBARSENSITIVITY_ROLL], value);
+				vbarSettingsNeedsUpdate |= update(&txpid_data->vbar.VbarSensitivity[VBARSETTINGS_VBARSENSITIVITY_PITCH], value);
 				break;
 			
 			case TXPIDSETTINGS_PIDS_YAWVBARSENSITIVITY:
-				stabilizationSettingsNeedsUpdate |= update(&txpid_data->stab.VbarSensitivity[STABILIZATIONSETTINGS_VBARSENSITIVITY_YAW], value);
+				vbarSettingsNeedsUpdate |= update(&txpid_data->vbar.VbarSensitivity[VBARSETTINGS_VBARSENSITIVITY_YAW], value);
 				break;
 			case TXPIDSETTINGS_PIDS_ROLLVBARKP:
-				stabilizationSettingsNeedsUpdate |= update(&txpid_data->stab.VbarRollPID[STABILIZATIONSETTINGS_VBARROLLPID_KP], value);
+				vbarSettingsNeedsUpdate |= update(&txpid_data->vbar.VbarRollPID[VBARSETTINGS_VBARROLLPID_KP], value);
 				break;
 			case TXPIDSETTINGS_PIDS_ROLLVBARKI:
-				stabilizationSettingsNeedsUpdate |= update(&txpid_data->stab.VbarRollPID[STABILIZATIONSETTINGS_VBARROLLPID_KI], value);
+				vbarSettingsNeedsUpdate |= update(&txpid_data->vbar.VbarRollPID[VBARSETTINGS_VBARROLLPID_KI], value);
 				break;	
 			case TXPIDSETTINGS_PIDS_ROLLVBARKD:
-				stabilizationSettingsNeedsUpdate |= update(&txpid_data->stab.VbarRollPID[STABILIZATIONSETTINGS_VBARROLLPID_KD], value);
+				vbarSettingsNeedsUpdate |= update(&txpid_data->vbar.VbarRollPID[VBARSETTINGS_VBARROLLPID_KD], value);
 				break;
 			case TXPIDSETTINGS_PIDS_PITCHVBARKP:
-				stabilizationSettingsNeedsUpdate |= update(&txpid_data->stab.VbarPitchPID[STABILIZATIONSETTINGS_VBARPITCHPID_KP], value);
+				vbarSettingsNeedsUpdate |= update(&txpid_data->vbar.VbarPitchPID[VBARSETTINGS_VBARPITCHPID_KP], value);
 				break;
 			case TXPIDSETTINGS_PIDS_PITCHVBARKI:
-				stabilizationSettingsNeedsUpdate |= update(&txpid_data->stab.VbarPitchPID[STABILIZATIONSETTINGS_VBARPITCHPID_KI], value);
+				vbarSettingsNeedsUpdate |= update(&txpid_data->vbar.VbarPitchPID[VBARSETTINGS_VBARPITCHPID_KI], value);
 				break;
 			case TXPIDSETTINGS_PIDS_PITCHVBARKD:
-				stabilizationSettingsNeedsUpdate |= update(&txpid_data->stab.VbarPitchPID[STABILIZATIONSETTINGS_VBARPITCHPID_KD], value);
+				vbarSettingsNeedsUpdate |= update(&txpid_data->vbar.VbarPitchPID[VBARSETTINGS_VBARPITCHPID_KD], value);
 				break;
 			case TXPIDSETTINGS_PIDS_ROLLPITCHVBARKP:
-				stabilizationSettingsNeedsUpdate |= update(&txpid_data->stab.VbarRollPID[STABILIZATIONSETTINGS_VBARROLLPID_KP], value);
-				stabilizationSettingsNeedsUpdate |= update(&txpid_data->stab.VbarPitchPID[STABILIZATIONSETTINGS_VBARPITCHPID_KP], value);
+				vbarSettingsNeedsUpdate |= update(&txpid_data->vbar.VbarRollPID[VBARSETTINGS_VBARROLLPID_KP], value);
+				vbarSettingsNeedsUpdate |= update(&txpid_data->vbar.VbarPitchPID[VBARSETTINGS_VBARPITCHPID_KP], value);
 				break;
 			case TXPIDSETTINGS_PIDS_ROLLPITCHVBARKI:
-				stabilizationSettingsNeedsUpdate |= update(&txpid_data->stab.VbarRollPID[STABILIZATIONSETTINGS_VBARROLLPID_KI], value);
-				stabilizationSettingsNeedsUpdate |= update(&txpid_data->stab.VbarPitchPID[STABILIZATIONSETTINGS_VBARPITCHPID_KI], value);
+				vbarSettingsNeedsUpdate |= update(&txpid_data->vbar.VbarRollPID[VBARSETTINGS_VBARROLLPID_KI], value);
+				vbarSettingsNeedsUpdate |= update(&txpid_data->vbar.VbarPitchPID[VBARSETTINGS_VBARPITCHPID_KI], value);
 				break;
 			case TXPIDSETTINGS_PIDS_ROLLPITCHVBARKD:
-				stabilizationSettingsNeedsUpdate |= update(&txpid_data->stab.VbarRollPID[STABILIZATIONSETTINGS_VBARROLLPID_KD], value);
-				stabilizationSettingsNeedsUpdate |= update(&txpid_data->stab.VbarPitchPID[STABILIZATIONSETTINGS_VBARPITCHPID_KD], value);
+				vbarSettingsNeedsUpdate |= update(&txpid_data->vbar.VbarRollPID[VBARSETTINGS_VBARROLLPID_KD], value);
+				vbarSettingsNeedsUpdate |= update(&txpid_data->vbar.VbarPitchPID[VBARSETTINGS_VBARPITCHPID_KD], value);
 				break;
 			case TXPIDSETTINGS_PIDS_YAWVBARKP:
-				stabilizationSettingsNeedsUpdate |= update(&txpid_data->stab.VbarYawPID[STABILIZATIONSETTINGS_VBARYAWPID_KP], value);
+				vbarSettingsNeedsUpdate |= update(&txpid_data->vbar.VbarYawPID[VBARSETTINGS_VBARYAWPID_KP], value);
 				break;
 			case TXPIDSETTINGS_PIDS_YAWVBARKI:
-				stabilizationSettingsNeedsUpdate |= update(&txpid_data->stab.VbarYawPID[STABILIZATIONSETTINGS_VBARYAWPID_KI], value);
+				vbarSettingsNeedsUpdate |= update(&txpid_data->vbar.VbarYawPID[VBARSETTINGS_VBARYAWPID_KI], value);
 				break;
 			case TXPIDSETTINGS_PIDS_YAWVBARKD:
-				stabilizationSettingsNeedsUpdate |= update(&txpid_data->stab.VbarYawPID[STABILIZATIONSETTINGS_VBARYAWPID_KD], value);
+				vbarSettingsNeedsUpdate |= update(&txpid_data->vbar.VbarYawPID[VBARSETTINGS_VBARYAWPID_KD], value);
 				break;
 #ifndef SMALLF1
 			case TXPIDSETTINGS_PIDS_HORIZONTALPOSKP:
@@ -408,6 +412,10 @@ static void updatePIDs(UAVObjEvent* ev, void *ctx, void *obj, int len)
 	// Update UAVOs, if necessary
 	if (stabilizationSettingsNeedsUpdate) {
 		StabilizationSettingsSet(&txpid_data->stab);
+	}
+
+	if (vbarSettingsNeedsUpdate) {
+		VbarSettingsSet(&txpid_data->vbar);
 	}
 
 #ifndef SMALLF1

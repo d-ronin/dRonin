@@ -59,6 +59,7 @@
 #include "subtrimsettings.h"
 #include "systemsettings.h"
 #include "manualcontrolcommand.h"
+#include "vbarsettings.h"
 
 // Math libraries
 #include "coordinate_conversions.h"
@@ -108,6 +109,8 @@ enum {
 // Private variables
 static struct pios_thread *taskHandle;
 static StabilizationSettingsData settings;
+static VbarSettingsData vbar_settings;
+
 static SubTrimData subTrim;
 static struct pios_queue *queue;
 float axis_lock_accum[3] = {0,0,0};
@@ -167,6 +170,7 @@ int32_t StabilizationStart()
 
 	// Connect settings callback
 	StabilizationSettingsConnectCallback(SettingsUpdatedCb);
+	VbarSettingsConnectCallback(SettingsUpdatedCb);
 	SubTrimSettingsConnectCallback(SettingsUpdatedCb);
 
 	// Watchdog must be registered before starting task
@@ -185,11 +189,12 @@ int32_t StabilizationStart()
 int32_t StabilizationInitialize()
 {
 	// Initialize variables
-	if (StabilizationSettingsInitialize() == -1 \
-		|| ActuatorDesiredInitialize() == -1 \
-		|| SubTrimInitialize() == -1 \
-		|| SubTrimSettingsInitialize() == -1 \
-		|| ManualControlCommandInitialize() == -1) {
+	if (StabilizationSettingsInitialize() == -1
+		|| ActuatorDesiredInitialize() == -1
+		|| SubTrimInitialize() == -1
+		|| SubTrimSettingsInitialize() == -1
+		|| ManualControlCommandInitialize() == -1
+		|| VbarSettingsInitialize() == -1) {
 		return -1;
 	}
 
@@ -280,10 +285,10 @@ static void stabilizationTask(void* parameters)
 			}
 
 			// Compute time constant for vbar decay term
-			if (settings.VbarTau < 0.001f) {
+			if (vbar_settings.VbarTau < 0.001f) {
 				vbar_decay = 0;
 			} else {
-				vbar_decay = expf(-dT_filtered / settings.VbarTau);
+				vbar_decay = expf(-dT_filtered / vbar_settings.VbarTau);
 			}
 
 			gyro_filter_updated = false;
@@ -547,7 +552,7 @@ static void stabilizationTask(void* parameters)
 					rateDesiredAxis[i] = stabDesiredAxis[i];
 
 					// Run a virtual flybar stabilization algorithm on this axis
-					stabilization_virtual_flybar(gyro_filtered[i], rateDesiredAxis[i], &actuatorDesiredAxis[i], dT, reinit, i, &pids[PID_GROUP_VBAR + i], &settings);
+					stabilization_virtual_flybar(gyro_filtered[i], rateDesiredAxis[i], &actuatorDesiredAxis[i], dT, reinit, i, &pids[PID_GROUP_VBAR + i], &vbar_settings);
 
 					break;
 				case STABILIZATIONDESIRED_STABILIZATIONMODE_WEAKLEVELING:
@@ -839,7 +844,7 @@ static void stabilizationTask(void* parameters)
 			}
 		}
 
-		if (settings.VbarPiroComp == STABILIZATIONSETTINGS_VBARPIROCOMP_TRUE)
+		if (vbar_settings.VbarPiroComp == VBARSETTINGS_VBARPIROCOMP_TRUE)
 			stabilization_virtual_flybar_pirocomp(gyro_filtered[2], dT);
 
 #if defined(RATEDESIRED_DIAGNOSTICS)
@@ -927,23 +932,23 @@ static void calculate_pids()
 
 	// Set the vbar roll settings
 	pid_configure(&pids[PID_VBAR_ROLL],
-	              settings.VbarRollPID[STABILIZATIONSETTINGS_VBARROLLPID_KP],
-	              settings.VbarRollPID[STABILIZATIONSETTINGS_VBARROLLPID_KI],
-	              settings.VbarRollPID[STABILIZATIONSETTINGS_VBARROLLPID_KD],
+	              vbar_settings.VbarRollPID[VBARSETTINGS_VBARROLLPID_KP],
+	              vbar_settings.VbarRollPID[VBARSETTINGS_VBARROLLPID_KI],
+	              vbar_settings.VbarRollPID[VBARSETTINGS_VBARROLLPID_KD],
 	              0);
 
 	// Set the vbar pitch settings
 	pid_configure(&pids[PID_VBAR_PITCH],
-	              settings.VbarPitchPID[STABILIZATIONSETTINGS_VBARPITCHPID_KP],
-	              settings.VbarPitchPID[STABILIZATIONSETTINGS_VBARPITCHPID_KI],
-	              settings.VbarPitchPID[STABILIZATIONSETTINGS_VBARPITCHPID_KD],
+	              vbar_settings.VbarPitchPID[VBARSETTINGS_VBARPITCHPID_KP],
+	              vbar_settings.VbarPitchPID[VBARSETTINGS_VBARPITCHPID_KI],
+	              vbar_settings.VbarPitchPID[VBARSETTINGS_VBARPITCHPID_KD],
 	              0);
 
 	// Set the vbar yaw settings
 	pid_configure(&pids[PID_VBAR_YAW],
-	              settings.VbarYawPID[STABILIZATIONSETTINGS_VBARYAWPID_KP],
-	              settings.VbarYawPID[STABILIZATIONSETTINGS_VBARYAWPID_KI],
-	              settings.VbarYawPID[STABILIZATIONSETTINGS_VBARYAWPID_KD],
+	              vbar_settings.VbarYawPID[VBARSETTINGS_VBARYAWPID_KP],
+	              vbar_settings.VbarYawPID[VBARSETTINGS_VBARYAWPID_KI],
+	              vbar_settings.VbarYawPID[VBARSETTINGS_VBARYAWPID_KD],
 	              0);
 
 	// Set the coordinated flight settings
@@ -1010,6 +1015,13 @@ static void SettingsUpdatedCb(UAVObjEvent * ev, void *ctx, void *obj, int len)
 		lowThrottleZeroIntegral = settings.LowThrottleZeroIntegral == STABILIZATIONSETTINGS_LOWTHROTTLEZEROINTEGRAL_TRUE;
 
 		gyro_filter_updated = true;
+	}
+
+	if (ev == NULL || ev->obj == VbarSettingsHandle())
+	{
+		VbarSettingsGet(&vbar_settings);
+
+		calculate_pids();
 	}
 }
 

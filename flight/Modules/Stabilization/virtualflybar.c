@@ -33,7 +33,7 @@
 #include "physical_constants.h"
 #include "pid.h"
 #include "stabilization.h"
-#include "stabilizationsettings.h"
+#include "vbarsettings.h"
 
 //! Private variables
 static float vbar_integral[MAX_AXES];
@@ -42,7 +42,7 @@ extern float vbar_decay;
 //! Private methods
 static float bound(float val, float range);
 
-int stabilization_virtual_flybar(float gyro, float command, float *output, float dT, bool reinit, uint32_t axis, struct pid *pid, StabilizationSettingsData *settings)
+int stabilization_virtual_flybar(float gyro, float command, float *output, float dT, bool reinit, uint32_t axis, struct pid *pid, VbarSettingsData *settings)
 {
 	float gyro_gain = 1.0f;
 
