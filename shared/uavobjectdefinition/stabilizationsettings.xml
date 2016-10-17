@@ -6,8 +6,8 @@
 		<field name="RollMax" units="degrees" type="uint8" elements="1" defaultvalue="55" limits="%BE:0:180"/>
 		<field name="PitchMax" units="degrees" type="uint8" elements="1" defaultvalue="55" limits="%BE:0:180"/>
 		<field name="YawMax" units="degrees" type="uint8" elements="1" defaultvalue="35" limits="%BE:0:180"/>
-		<field name="ManualRate" units="degrees/sec" type="float" elementnames="Roll,Pitch,Yaw" defaultvalue="250,250,225" limits="%BE:0:1440,%BE:0:1440,%BE:0:1440"/>
-		<field name="AcroDynamicRate" units="degrees/sec" type="float" elementnames="Roll,Pitch,Yaw" defaultvalue="800,800,800" limits="%BE:0:1440,%BE:0:1440,%BE:0:1440"/>
+		<field name="ManualRate" units="degrees/sec" type="float" elementnames="Roll,Pitch,Yaw" defaultvalue="250,250,225" limits="%BE:0:1650,%BE:0:1650,%BE:0:1650"/>
+		<field name="AcroDynamicRate" units="degrees/sec" type="float" elementnames="Roll,Pitch,Yaw" defaultvalue="0,0,0" limits="%BE:0:1650,%BE:0:1650,%BE:0:1650"/>
 		<field name="AcroDynamicTransition" units="%" type="uint8" elementnames="Roll,Pitch,Yaw" defaultvalue="70,70,70" limits="%BE:50:85,%BE:50:85,%BE:50:85"/>
 		<field name="AcroDynamicTau" units="seconds" type="float" elements="1" defaultvalue="0.225" limits="%BE:0.1:4.0"/>
 		<field name="MaximumRate" units="degrees/sec" type="float" elementnames="Roll,Pitch,Yaw" defaultvalue="350,350,350" limits="%BE:0:500,%BE:0:500,%BE:0:500"/>

@@ -483,6 +483,8 @@ static void stabilizationTask(void* parameters)
 
 		actuatorDesired.SystemIdentCycle = 0xffff;
 
+		uint16_t max_safe_rate = PIOS_SENSORS_GetMaxGyro() * 0.9f;
+
 		//Run the selected stabilization algorithm on each axis:
 		for(uint8_t i=0; i< MAX_AXES; i++)
 		{
@@ -576,9 +578,19 @@ static void stabilizationTask(void* parameters)
 
 					float abs_cmd = fabsf(raw_input);
 
+					uint16_t acro_dynrate = settings.AcroDynamicRate[i];
+
+					if (!acro_dynrate) {
+						acro_dynrate = settings.ManualRate[i] + settings.ManualRate[i] / 2;
+					}
+
+					if (acro_dynrate > max_safe_rate) {
+						acro_dynrate = max_safe_rate;
+					}
+
 					// Could precompute much of this...
-					if (raw_input > break_point) {
-						calc_max_rate = (settings.ManualRate[i] * (abs_cmd - 1.0f) * (2 * break_point - abs_cmd - 1.0f) + settings.AcroDynamicRate[i] * powf(break_point - abs_cmd, 2.0f)) / powf(break_point - 1.0f, 2.0f);
+					if (abs_cmd > break_point) {
+						calc_max_rate = (settings.ManualRate[i] * (abs_cmd - 1.0f) * (2 * break_point - abs_cmd - 1.0f) + acro_dynrate * powf(break_point - abs_cmd, 2.0f)) / powf(break_point - 1.0f, 2.0f);
 					}
 
 					calc_max_rate = MIN(calc_max_rate,
