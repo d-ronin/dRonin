@@ -220,7 +220,7 @@ void PIOS_Servo_SetMode(const uint16_t *out_rate, const int banks, const uint16_
 		} else {
 			// assume 16-bit timer
 			if (servo_cfg->force_1MHz) {
-				timer_banks[i].prescaler = max_tim_clock / 1000000;
+				timer_banks[i].prescaler = max_tim_clock / 1000000 - 1;
 			} else {
 				float num_ticks = (float)max_tim_clock / (float)rate;
 
