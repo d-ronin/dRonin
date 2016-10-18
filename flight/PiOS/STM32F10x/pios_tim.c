@@ -161,7 +161,16 @@ out_fail:
 static void PIOS_TIM_generic_irq_handler(TIM_TypeDef * timer)
 {
 	uint16_t flags = timer->SR;
-	timer->SR = ~(TIM_IT_Update | TIM_IT_CC1 | TIM_IT_CC2 | TIM_IT_CC3 | TIM_IT_CC4);
+
+	/* While the datasheet is not 100% clear that this (very common
+	 * paradigm) is correct TIM_ClearITPendingBit from stdperiph shows
+	 * that software is unable to set bits in this register.
+	 *
+	 * Therefore, clear only the events we're going to process. 
+	 * Otherwise we could lose an overflow just after a rising edge,
+	 * which would offset our count.
+	 */
+	timer->SR = ~flags;
 
 	/* Check for an overflow event on this timer */
 	bool overflow_event;
