@@ -45,21 +45,25 @@ const struct pios_rcvr_driver pios_pwm_rcvr_driver = {
 /* Local Variables */
 /* 100 ms timeout without updates on channels */
 const static uint32_t PWM_SUPERVISOR_TIMEOUT = 100000;
+const static uint32_t PWM_CAPTURE_MAX = 3000;
 
 enum pios_pwm_dev_magic {
 	PIOS_PWM_DEV_MAGIC = 0xab30293c,
+};
+
+enum pios_pwm_capture_state {
+	PIOS_PWM_CAPTURE_RISING,
+	PIOS_PWM_CAPTURE_FALLING,
 };
 
 struct pios_pwm_dev {
 	enum pios_pwm_dev_magic     magic;
 	const struct pios_pwm_cfg * cfg;
 
-	uint8_t CaptureState[PIOS_PWM_NUM_INPUTS];
-	uint16_t RiseValue[PIOS_PWM_NUM_INPUTS];
-	uint16_t FallValue[PIOS_PWM_NUM_INPUTS];
-	uint32_t CaptureValue[PIOS_PWM_NUM_INPUTS];
-	uint32_t CapCounter[PIOS_PWM_NUM_INPUTS];
-	uint32_t us_since_update[PIOS_PWM_NUM_INPUTS];
+	volatile enum pios_pwm_capture_state CaptureState[PIOS_PWM_NUM_INPUTS];
+	volatile uint16_t RiseValue[PIOS_PWM_NUM_INPUTS];
+	volatile uint32_t CaptureValue[PIOS_PWM_NUM_INPUTS];
+	volatile uint32_t overflow_count[PIOS_PWM_NUM_INPUTS];
 };
 
 static bool PIOS_PWM_validate(struct pios_pwm_dev * pwm_dev)
@@ -73,6 +77,8 @@ static struct pios_pwm_dev * PIOS_PWM_alloc(void)
 
 	pwm_dev = (struct pios_pwm_dev *)PIOS_malloc(sizeof(*pwm_dev));
 	if (!pwm_dev) return(NULL);
+
+	memset(pwm_dev, 0, sizeof(*pwm_dev));
 
 	pwm_dev->magic = PIOS_PWM_DEV_MAGIC;
 	return(pwm_dev);
@@ -102,10 +108,6 @@ int32_t PIOS_PWM_Init(uintptr_t * pwm_id, const struct pios_pwm_cfg * cfg)
 	pwm_dev->cfg = cfg;
 
 	for (uint8_t i = 0; i < PIOS_PWM_NUM_INPUTS; i++) {
-		/* Flush counter variables */
-		pwm_dev->CaptureState[i] = 0;
-		pwm_dev->RiseValue[i] = 0;
-		pwm_dev->FallValue[i] = 0;
 		pwm_dev->CaptureValue[i] = PIOS_RCVR_TIMEOUT;
 	}
 
@@ -189,16 +191,14 @@ static void PIOS_PWM_tim_overflow_cb (uintptr_t tim_id, uintptr_t context, uint8
 		return;
 	}
 
-	pwm_dev->us_since_update[channel] += count;
-	if(pwm_dev->us_since_update[channel] >= PWM_SUPERVISOR_TIMEOUT) {
-		pwm_dev->CaptureState[channel] = 0;
-		pwm_dev->RiseValue[channel] = 0;
-		pwm_dev->FallValue[channel] = 0;
-		pwm_dev->CaptureValue[channel] = PIOS_RCVR_TIMEOUT;
-		pwm_dev->us_since_update[channel] = 0;
-	}
+	pwm_dev->overflow_count[channel]++;
 
-	return;
+	if (pwm_dev->overflow_count[channel] * count >= PWM_SUPERVISOR_TIMEOUT) {
+		pwm_dev->CaptureState[channel] = PIOS_PWM_CAPTURE_RISING;
+		pwm_dev->RiseValue[channel] = 0;
+		pwm_dev->CaptureValue[channel] = PIOS_RCVR_TIMEOUT;
+		pwm_dev->overflow_count[channel] = 0;
+	}
 }
 
 static void PIOS_PWM_tim_edge_cb (uintptr_t tim_id, uintptr_t context, uint8_t chan_idx, uint16_t count)
@@ -217,45 +217,42 @@ static void PIOS_PWM_tim_edge_cb (uintptr_t tim_id, uintptr_t context, uint8_t c
 	}
 
 	const struct pios_tim_channel * chan = &pwm_dev->cfg->channels[chan_idx];
-
-	if (pwm_dev->CaptureState[chan_idx] == 0) {
-		pwm_dev->RiseValue[chan_idx] = count;
-		pwm_dev->us_since_update[chan_idx] = 0;
-	} else {
-		pwm_dev->FallValue[chan_idx] = count;
-	}
 			
 	// flip state machine and capture value here
 	/* Simple rise or fall state machine */
 	TIM_ICInitTypeDef TIM_ICInitStructure = pwm_dev->cfg->tim_ic_init;
-	if (pwm_dev->CaptureState[chan_idx] == 0) {
+	if (pwm_dev->CaptureState[chan_idx] == PIOS_PWM_CAPTURE_RISING) {
+		pwm_dev->RiseValue[chan_idx] = count;
+		pwm_dev->overflow_count[chan_idx] = 0;
+
 		/* Switch states */
-		pwm_dev->CaptureState[chan_idx] = 1;
+		pwm_dev->CaptureState[chan_idx] = PIOS_PWM_CAPTURE_FALLING;
 
 		/* Switch polarity of input capture */
 		TIM_ICInitStructure.TIM_ICPolarity = TIM_ICPolarity_Falling;
 		TIM_ICInitStructure.TIM_Channel = chan->timer_chan;
 		TIM_ICInit(chan->timer, &TIM_ICInitStructure);
 	} else {
+		uint16_t fall_value = count;
+
+		uint32_t value = fall_value - pwm_dev->RiseValue[chan_idx];
 		/* Capture computation */
-		if (pwm_dev->FallValue[chan_idx] > pwm_dev->RiseValue[chan_idx]) {
-			pwm_dev->CaptureValue[chan_idx] = (pwm_dev->FallValue[chan_idx] - pwm_dev->RiseValue[chan_idx]);
-		} else {
-			pwm_dev->CaptureValue[chan_idx] = ((chan->timer->ARR - pwm_dev->RiseValue[chan_idx]) + pwm_dev->FallValue[chan_idx]);
+		if (pwm_dev->overflow_count[chan_idx] > 1 || fall_value > pwm_dev->RiseValue[chan_idx])
+			value += pwm_dev->overflow_count[chan_idx] * chan->timer->ARR;
+
+		if (value <= PWM_CAPTURE_MAX) {
+			pwm_dev->CaptureValue[chan_idx] = value;
+			pwm_dev->overflow_count[chan_idx] = 0;
 		}
 
 		/* Switch states */
-		pwm_dev->CaptureState[chan_idx] = 0;
-
-		/* Increase supervisor counter */
-		pwm_dev->CapCounter[chan_idx]++;
+		pwm_dev->CaptureState[chan_idx] = PIOS_PWM_CAPTURE_RISING;
 
 		/* Switch polarity of input capture */
 		TIM_ICInitStructure.TIM_ICPolarity = TIM_ICPolarity_Rising;
 		TIM_ICInitStructure.TIM_Channel = chan->timer_chan;
 		TIM_ICInit(chan->timer, &TIM_ICInitStructure);
 	}
-	
 }
 
 #endif
