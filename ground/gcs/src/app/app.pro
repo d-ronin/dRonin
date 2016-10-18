@@ -22,6 +22,10 @@ win32 {
     RC_FILE = $$BRANDING_PATH/gcs_app.rc
     target.path = /bin
     INSTALLS += target
+    win32-msvc* {
+        # set stack size to 8mb, default is 1mb (vs. 8mb for main thread on osx and linux)
+        QMAKE_LFLAGS   += /STACK:8388608
+    }
 } else:macx {
     LIBS += -framework CoreFoundation
     ICON = $$BRANDING_PATH/gcs_app.icns
