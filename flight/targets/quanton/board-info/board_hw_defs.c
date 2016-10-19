@@ -2269,12 +2269,12 @@ static const struct pios_ws2811_cfg pios_ws2811_cfg = {
 		.TIM_CounterMode = TIM_CounterMode_Up,
 		.TIM_Period = 25,	/* 2.083us/bit */
 	},
-	.fall_time_l = 4,			/* 333ns */
-	.fall_time_h = 9,			/* 750ns */
+	.fall_time_l = 5,			/* 333ns */
+	.fall_time_h = 10,			/* 750ns */
 	.led_gpio = GPIOA,
 	.gpio_pin = GPIO_Pin_10,		/* PA10 / IN1 */
-	.bit_set_dma_stream = DMA2_Stream5,
-	.bit_set_dma_channel = DMA_Channel_6,	/* 2/S5/C6: TIM1_UP */
+	.bit_set_dma_stream = DMA2_Stream4,
+	.bit_set_dma_channel = DMA_Channel_6,	/* 2/S4/C6: TIM1 CH4|TRIG|COM */
 	.bit_clear_dma_stream = DMA2_Stream6,
 	.bit_clear_dma_channel = DMA_Channel_0,	/* 0/S6/C0: TIM1 CH1|CH2|CH3 */
 };

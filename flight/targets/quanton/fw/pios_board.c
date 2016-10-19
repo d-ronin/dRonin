@@ -562,7 +562,7 @@ void PIOS_Board_Init(void) {
 		ws2811_dev_t ws2811;
 		PIOS_WS2811_init(&ws2811, &pios_ws2811_cfg, 6);
 
-		PIOS_WS2811_set_all(ws2811, 128, 0, 128); // PURPLE!
+		PIOS_WS2811_set_all(ws2811, 255, 0, 96); // PURPLE!
 		PIOS_WS2811_trigger_update(ws2811);
 	}
 #endif

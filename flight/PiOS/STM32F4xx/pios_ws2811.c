@@ -47,8 +47,8 @@
 #include "pios_ws2811.h"
 
 struct ws2811_pixel_data_s {
-	uint8_t r;
 	uint8_t g;
+	uint8_t r;
 	uint8_t b;
 };
 
@@ -152,11 +152,42 @@ int PIOS_WS2811_init(ws2811_dev_t *dev_out, const struct pios_ws2811_cfg *cfg,
 		.GPIO_Pin = cfg->gpio_pin,
 		.GPIO_Mode = GPIO_Mode_OUT,
 		.GPIO_Speed = GPIO_Fast_Speed,
-		.GPIO_OType = GPIO_OType_OD,
+		.GPIO_OType = GPIO_OType_PP,
 		.GPIO_PuPd = GPIO_PuPd_NOPULL
 	};
 
 	GPIO_Init(cfg->led_gpio, &gpio_cfg);
+
+	for (int i=0; i<10; i++) {
+		*(dev->gpio_bsrrl_address) = dev->gpio_bit;
+		PIOS_DELAY_WaituS(20);
+		*(dev->gpio_bsrrh_address) = dev->gpio_bit;
+		PIOS_DELAY_WaituS(15);
+	}
+
+	TIM_DeInit(cfg->timer);
+	TIM_Cmd(cfg->timer, DISABLE);
+
+	TIM_TimeBaseInit(cfg->timer,
+			(TIM_TimeBaseInitTypeDef *) &cfg->clock_cfg);
+
+	TIM_SelectOCxM(cfg->timer, TIM_Channel_1, TIM_OCMode_Active);
+	TIM_SelectOCxM(cfg->timer, TIM_Channel_2, TIM_OCMode_Active);
+
+	TIM_DMACmd(cfg->timer, TIM_DMA_CC1, ENABLE);
+	TIM_DMACmd(cfg->timer, TIM_DMA_CC2, ENABLE);
+	TIM_DMACmd(cfg->timer, TIM_DMA_CC4, ENABLE);
+	//TIM_SelectCCDMA(cfg->timer, ENABLE);
+
+	TIM_SetCompare4(cfg->timer, 1);
+	TIM_SetCompare1(cfg->timer, cfg->fall_time_l);
+	TIM_SetCompare2(cfg->timer, cfg->fall_time_h);
+
+	dev->in_progress = false;
+
+	/* Drive the GPIO low, stall for 45 us */
+	GPIO_ResetBits(dev->cfg->led_gpio, dev->cfg->gpio_pin);
+	PIOS_DELAY_WaituS(45);
 
 	*dev_out = dev;
 
@@ -193,16 +224,17 @@ static bool fill_dma_buf(uint8_t * restrict dma_buf, uint8_t **pixel_data_ptr,
 			p = p << 1;
 		}
 	}
-
 	*pixel_data_ptr = p_d_p;
 
 	return p_d_p >= pixel_data_end;
 }
 
 static void ws2811_cue_dma(ws2811_dev_t dev) {
-	// XXX ensure timer stopped
+	// ensure timer stopped
+	TIM_Cmd(dev->cfg->timer, DISABLE);
 
-	// XXX clear timer event bits
+	DMA_Cmd(dev->cfg->bit_set_dma_stream, DISABLE);
+	DMA_Cmd(dev->cfg->bit_clear_dma_stream, DISABLE);
 
 	DMA_DeInit(dev->cfg->bit_set_dma_stream);
 	DMA_DeInit(dev->cfg->bit_clear_dma_stream);
@@ -211,16 +243,18 @@ static void ws2811_cue_dma(ws2811_dev_t dev) {
 
 	DMA_StructInit(&dma_init);
 
-	/* First set up the single-buffered repeating of the BSRRH */
+	/* First set up the single-buffered repeating of the BSRRL */
 	dma_init.DMA_Channel = dev->cfg->bit_set_dma_channel; 
-	dma_init.DMA_PeripheralBaseAddr = (uintptr_t) dev->gpio_bsrrh_address;
+	dma_init.DMA_PeripheralBaseAddr = (uintptr_t) dev->gpio_bsrrl_address;
 	dma_init.DMA_Memory0BaseAddr = (uintptr_t) dev->lame_dma_buf;
 	dma_init.DMA_DIR = DMA_DIR_MemoryToPeripheral;
+	dma_init.DMA_MemoryInc = DMA_MemoryInc_Disable;
+	dma_init.DMA_MemoryDataSize = DMA_MemoryDataSize_Byte;
 	dma_init.DMA_PeripheralInc = DMA_PeripheralInc_Disable;
 	dma_init.DMA_PeripheralDataSize = DMA_PeripheralDataSize_Byte;
 	dma_init.DMA_MemoryInc = DMA_MemoryInc_Disable;
-	dma_init.DMA_BufferSize = dev->max_leds;
-	dma_init.DMA_Mode = DMA_Mode_Normal;
+	dma_init.DMA_BufferSize = 1;
+	dma_init.DMA_Mode = DMA_Mode_Circular;
 	dma_init.DMA_Priority = DMA_Priority_VeryHigh;
 	dma_init.DMA_FIFOMode = DMA_FIFOMode_Enable;
 	dma_init.DMA_FIFOThreshold = DMA_FIFOThreshold_HalfFull;
@@ -230,32 +264,41 @@ static void ws2811_cue_dma(ws2811_dev_t dev) {
 	DMA_Init(dev->cfg->bit_set_dma_stream, &dma_init);
 
 	/* Now the tricky one-- set up the double-buffered DMA, to blit to
-	 * BSRRL and clear bits at the appropriate time */
+	 * BSRRH and clear bits at the appropriate time */
 	dma_init.DMA_Channel = dev->cfg->bit_clear_dma_channel;
-	dma_init.DMA_PeripheralBaseAddr = (uintptr_t) dev->gpio_bsrrl_address;
+	dma_init.DMA_MemoryInc = DMA_MemoryInc_Enable;
+	dma_init.DMA_PeripheralBaseAddr = (uintptr_t) dev->gpio_bsrrh_address;
 	dma_init.DMA_Memory0BaseAddr = (uintptr_t) dev->dma_buf_0;
 	dma_init.DMA_BufferSize = WS2811_DMA_BUFSIZE;
-	dma_init.DMA_Mode = DMA_Mode_Circular;
+	//dma_init.DMA_Mode = DMA_Mode_Circular;
+	// XXX just blit out the first buffer now until interrupt stuff
+	// sorted.
+	dma_init.DMA_Mode = DMA_Mode_Normal;
 
 	/* TODO: Bus performance can be improved by tuning FIFO, memory burst, 
 	 * width, etc behaviors... But let's keep things simple for now. */
 
 	DMA_Init(dev->cfg->bit_clear_dma_stream, &dma_init);
-	DMA_DoubleBufferModeConfig(dev->cfg->bit_clear_dma_stream,
-			(uintptr_t) dev->dma_buf_1,
-			DMA_Memory_0);
-	DMA_DoubleBufferModeCmd(dev->cfg->bit_clear_dma_stream, ENABLE);
+	//DMA_DoubleBufferModeConfig(dev->cfg->bit_clear_dma_stream,
+	//		(uintptr_t) dev->dma_buf_1,
+	//		DMA_Memory_0);
+	//DMA_DoubleBufferModeCmd(dev->cfg->bit_clear_dma_stream, ENABLE);
 
 	/* XXX: NVIC for the DMA */
+
+	/* Manually drive the GPIO high ourselves just-in-case */
+	GPIO_SetBits(dev->cfg->led_gpio, dev->cfg->gpio_pin);
 
 	DMA_Cmd(dev->cfg->bit_set_dma_stream, ENABLE);
 	DMA_Cmd(dev->cfg->bit_clear_dma_stream, ENABLE);
 
-	/* XXX: enable the timer's dma request crap, and the timer. */
+	TIM_Cmd(dev->cfg->timer, ENABLE);
 }
 
 void PIOS_WS2811_trigger_update(ws2811_dev_t dev)
 {
+	PIOS_Assert(dev->magic == WS2811_MAGIC);
+
 	if (dev->in_progress) {
 		return;
 	}
