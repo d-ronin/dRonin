@@ -56,6 +56,7 @@
 #define PIOS_INCLUDE_FASTHEAP
 #define PIOS_INCLUDE_OPENLOG
 #define PIOS_INCLUDE_STORM32BGC
+#define PIOS_INCLUDE_WS2811
 
 /* Select the sensors to include */
 #define PIOS_INCLUDE_HMC5883

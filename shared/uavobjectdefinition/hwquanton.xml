@@ -8,6 +8,7 @@
 				<option>Disabled</option>
 				<option>Outputs</option>
 				<option>Outputs+ADC</option>
+				<option>WS2811+Serial+PPM+ADC</option>
 				<option>PPM</option>
 				<option>PPM+ADC</option>
 				<option>PPM+Outputs</option>

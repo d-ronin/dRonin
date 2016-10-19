@@ -2255,6 +2255,32 @@ void PIOS_ADC_DMA_irq_handler(void)
 #endif /* PIOS_INCLUDE_ADC */
 
 /**
+ * Configuration for driving a WS2811 LED out INPORT1
+ */
+
+#if defined(PIOS_INCLUDE_WS2811)
+#include "pios_ws2811.h"
+
+static const struct pios_ws2811_cfg pios_ws2811_cfg = {
+	.timer = TIM1,
+	.clock_cfg = {
+		.TIM_Prescaler = (PIOS_PERIPHERAL_APB2_COUNTER_CLOCK / 12000000) - 1,
+		.TIM_ClockDivision = TIM_CKD_DIV1,
+		.TIM_CounterMode = TIM_CounterMode_Up,
+		.TIM_Period = 25,	/* 2.083us/bit */
+	},
+	.fall_time_l = 4,			/* 333ns */
+	.fall_time_h = 9,			/* 750ns */
+	.led_gpio = GPIOA,
+	.gpio_pin = GPIO_Pin_10,		/* PA10 / IN1 */
+	.bit_set_dma_stream = DMA2_Stream5,
+	.bit_set_dma_channel = DMA_Channel_6,	/* 2/S5/C6: TIM1_UP */
+	.bit_clear_dma_stream = DMA2_Stream6,
+	.bit_clear_dma_channel = DMA_Channel_0,	/* 0/S6/C0: TIM1 CH1|CH2|CH3 */
+};
+#endif
+
+/**
  * Configuration for the MPU6000 chip
  */
 #if defined(PIOS_INCLUDE_MPU)

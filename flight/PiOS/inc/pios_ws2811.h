@@ -38,8 +38,20 @@
 typedef struct ws2811_dev_s *ws2811_dev_t;
 
 struct pios_ws2811_cfg {
-	// XXX
-	struct pios_tim_clock_cfg clock_cfg;
+	TIM_TypeDef *timer;
+	TIM_TimeBaseInitTypeDef clock_cfg;
+
+	uint8_t fall_time_l, fall_time_h;
+
+	GPIO_TypeDef *led_gpio;
+
+	uint16_t gpio_pin;
+
+	DMA_Stream_TypeDef *bit_set_dma_stream;
+	uint32_t bit_set_dma_channel;
+
+	DMA_Stream_TypeDef *bit_clear_dma_stream;
+	uint32_t bit_clear_dma_channel;
 };
 
 /**
@@ -49,8 +61,8 @@ struct pios_ws2811_cfg {
  * @param[in] max_leds Number of LEDs to update each update cycle.
  * @retval 0 on success, else failure
  */
-int PIOS_WS2811_init(ws2811_dev_t *dev_out, struct pios_ws2811_cfg *cfg,
-		int max_leds);
+int PIOS_WS2811_init(ws2811_dev_t *dev_out,
+		const struct pios_ws2811_cfg *cfg, int max_leds);
 
 /**
  * @brief Trigger an update of the LED strand
