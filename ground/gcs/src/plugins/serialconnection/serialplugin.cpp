@@ -35,6 +35,7 @@
 #include <QMainWindow>
 #include <coreplugin/icore.h>
 #include <QDebug>
+#include <QFontMetrics>
 
 
 
@@ -147,8 +148,10 @@ QList <IDevice *> SerialConnection::availableDevices()
             if(!port_exists) {
                 SerialDevice* d = new SerialDevice();
                 QStringList disp;
-                if (port.description().length())
-                    disp.append(port.description());
+                if (port.description().length()) {
+                    QFontMetrics font((QFont()));
+                    disp.append(font.elidedText(port.description(), Qt::ElideRight, 150));
+                }
                 disp.append(port.portName());
                 d->setDisplayName(disp.join(" - "));
                 d->setName(port.portName());
