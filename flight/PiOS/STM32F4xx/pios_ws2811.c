@@ -68,7 +68,7 @@ struct ws2811_dev_s {
 	uint16_t max_leds;
 
 	// This gets clocked out at timer update event to BSRRH
-	uint8_t lame_dma_buf[1];
+	uint32_t lame_dma_buf[1];
 
 	// These are the buffers.  We clock out a byte to BSRRL at each
 	// of the two times that the value can fall.  Every odd value of this
@@ -77,8 +77,8 @@ struct ws2811_dev_s {
 	//
 	// We fill both buffers initially, and then when one has been clocked
 	// out, we fill the other half in the interrupt handler.
-	uint8_t dma_buf_0[WS2811_DMA_BUFSIZE];
-	uint8_t dma_buf_1[WS2811_DMA_BUFSIZE];
+	uint32_t dma_buf_0[WS2811_DMA_BUFSIZE / 4];
+	uint32_t dma_buf_1[WS2811_DMA_BUFSIZE / 4];
 
 	// These get fixed up to point to the top half of the port halfword
 	// if necessary.
@@ -137,14 +137,17 @@ int PIOS_WS2811_init(ws2811_dev_t *dev_out, const struct pios_ws2811_cfg *cfg,
 		dev->gpio_bit = cfg->gpio_pin;
 	}
 
-	for (int i = 0; i < sizeof(dev->dma_buf_0); i += 2) {
-		dev->dma_buf_0[i]     = 0;
-		dev->dma_buf_1[i]     = 0;
-		dev->dma_buf_0[i + 1] = dev->gpio_bit;
-		dev->dma_buf_1[i + 1] = dev->gpio_bit;
+	for (int i = 0; i < sizeof(dev->dma_buf_0)/4; i ++) {
+		dev->dma_buf_0[i]     = (dev->gpio_bit << 8) |
+			(dev->gpio_bit << 24);
+		dev->dma_buf_1[i]     = (dev->gpio_bit << 8) |
+			(dev->gpio_bit << 24);
 	}
 
-	dev->lame_dma_buf[0] = dev->gpio_bit;
+	dev->lame_dma_buf[0] = (dev->gpio_bit) |
+		(dev->gpio_bit << 8) |
+		(dev->gpio_bit << 16) |
+		(dev->gpio_bit << 24);
 
 	PIOS_WS2811_set_all(dev, 0, 0, 0);
 
@@ -254,12 +257,15 @@ static void ws2811_cue_dma(ws2811_dev_t dev) {
 	dma_init.DMA_Memory0BaseAddr = (uintptr_t) dev->lame_dma_buf;
 	dma_init.DMA_DIR = DMA_DIR_MemoryToPeripheral;
 	dma_init.DMA_MemoryInc = DMA_MemoryInc_Disable;
-	dma_init.DMA_MemoryDataSize = DMA_MemoryDataSize_Byte;
+	dma_init.DMA_MemoryDataSize = DMA_MemoryDataSize_Word;
 	dma_init.DMA_PeripheralInc = DMA_PeripheralInc_Disable;
 	dma_init.DMA_PeripheralDataSize = DMA_PeripheralDataSize_Byte;
 	dma_init.DMA_MemoryInc = DMA_MemoryInc_Disable;
-	// XXX If we use this approach, we will be limited to 900ish LEDs :P
-	dma_init.DMA_BufferSize = 144;
+
+	// Limited to 65535.  In turn this limits us to 2730 LEDs before
+	// overflow. ;)
+	// dma_init.DMA_BufferSize = dev->max_leds * 24;
+	dma_init.DMA_BufferSize = 144;	// XXX fix when double buffer enabled
 	dma_init.DMA_Mode = DMA_Mode_Normal;
 	dma_init.DMA_Priority = DMA_Priority_VeryHigh;
 	dma_init.DMA_FIFOMode = DMA_FIFOMode_Enable;
@@ -277,6 +283,7 @@ static void ws2811_cue_dma(ws2811_dev_t dev) {
 	dma_init.DMA_Memory0BaseAddr = (uintptr_t) dev->dma_buf_0;
 	dma_init.DMA_BufferSize = WS2811_DMA_BUFSIZE;
 	//dma_init.DMA_Mode = DMA_Mode_Circular;
+
 	// XXX just blit out the first buffer now until interrupt stuff
 	// sorted.
 	dma_init.DMA_Mode = DMA_Mode_Normal;
