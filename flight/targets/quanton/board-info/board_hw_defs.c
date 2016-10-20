@@ -2214,29 +2214,29 @@ const struct pios_usb_hid_cfg pios_usb_hid_cfg = {
 #include "pios_internal_adc_priv.h"
 
 void PIOS_ADC_DMA_irq_handler(void);
-void DMA2_Stream4_IRQHandler(void) __attribute__((alias("PIOS_ADC_DMA_irq_handler")));
+void DMA2_Stream0_IRQHandler(void) __attribute__((alias("PIOS_ADC_DMA_irq_handler")));
 struct pios_internal_adc_cfg pios_adc_cfg = {
 	.adc_dev_master = ADC1,
 	.dma = {
 		.irq = {
-			.flags = (DMA_FLAG_TCIF4 | DMA_FLAG_TEIF4 | DMA_FLAG_HTIF4),
+			.flags = (DMA_FLAG_TCIF0 | DMA_FLAG_TEIF0 | DMA_FLAG_HTIF0),
 			.init = {
-				.NVIC_IRQChannel = DMA2_Stream4_IRQn,
+				.NVIC_IRQChannel = DMA2_Stream0_IRQn,
 				.NVIC_IRQChannelPreemptionPriority = PIOS_IRQ_PRIO_LOW,
 				.NVIC_IRQChannelSubPriority = 0,
 				.NVIC_IRQChannelCmd = ENABLE,
 			},
 		},
 		.rx = {
-			.channel = DMA2_Stream4,
+			.channel = DMA2_Stream0,
 			.init = {
 				.DMA_Channel = DMA_Channel_0,
 				.DMA_PeripheralBaseAddr = (uint32_t)&ADC1->DR
 			},
 		}
 	},
-	.half_flag = DMA_IT_HTIF4,
-	.full_flag = DMA_IT_TCIF4,
+	.half_flag = DMA_IT_HTIF0,
+	.full_flag = DMA_IT_TCIF0,
 	.adc_pins = {                                                                                 \
 		{ GPIOA, GPIO_Pin_0,     ADC_Channel_0 },                                                 \
 		{ GPIOA, GPIO_Pin_1,     ADC_Channel_1 },                                                 \
