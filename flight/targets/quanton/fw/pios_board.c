@@ -560,9 +560,17 @@ void PIOS_Board_Init(void) {
 #ifdef PIOS_INCLUDE_WS2811
 	if (hw_inport == HWQUANTON_INPORT_WS2811SERIALPPMADC) {
 		ws2811_dev_t ws2811;
-		PIOS_WS2811_init(&ws2811, &pios_ws2811_cfg, 6);
+		PIOS_WS2811_init(&ws2811, &pios_ws2811_cfg, 7);
 
-		PIOS_WS2811_set_all(ws2811, 255, 0, 96); // PURPLE!
+		PIOS_DELAY_WaituS(100);
+
+		PIOS_WS2811_set(ws2811, 0, 255, 0, 0); // red
+		PIOS_WS2811_set(ws2811, 1, 0, 255, 0); // green
+		PIOS_WS2811_set(ws2811, 2, 0, 0, 255); // blue
+		PIOS_WS2811_set(ws2811, 3, 255, 255, 0); // yellow
+		PIOS_WS2811_set(ws2811, 4, 255, 0, 255); // purple
+		PIOS_WS2811_set(ws2811, 5, 0, 255, 255); // cyan
+		PIOS_WS2811_set(ws2811, 6, 64, 64, 64); // gray
 		PIOS_WS2811_trigger_update(ws2811);
 	}
 #endif

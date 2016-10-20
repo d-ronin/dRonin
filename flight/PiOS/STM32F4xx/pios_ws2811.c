@@ -253,8 +253,9 @@ static void ws2811_cue_dma(ws2811_dev_t dev) {
 	dma_init.DMA_PeripheralInc = DMA_PeripheralInc_Disable;
 	dma_init.DMA_PeripheralDataSize = DMA_PeripheralDataSize_Byte;
 	dma_init.DMA_MemoryInc = DMA_MemoryInc_Disable;
-	dma_init.DMA_BufferSize = 1;
-	dma_init.DMA_Mode = DMA_Mode_Circular;
+	// XXX If we use this approach, we will be limited to 900ish LEDs :P
+	dma_init.DMA_BufferSize = 144;
+	dma_init.DMA_Mode = DMA_Mode_Normal;
 	dma_init.DMA_Priority = DMA_Priority_VeryHigh;
 	dma_init.DMA_FIFOMode = DMA_FIFOMode_Enable;
 	dma_init.DMA_FIFOThreshold = DMA_FIFOThreshold_HalfFull;
@@ -285,9 +286,6 @@ static void ws2811_cue_dma(ws2811_dev_t dev) {
 	//DMA_DoubleBufferModeCmd(dev->cfg->bit_clear_dma_stream, ENABLE);
 
 	/* XXX: NVIC for the DMA */
-
-	/* Manually drive the GPIO high ourselves just-in-case */
-	GPIO_SetBits(dev->cfg->led_gpio, dev->cfg->gpio_pin);
 
 	DMA_Cmd(dev->cfg->bit_set_dma_stream, ENABLE);
 	DMA_Cmd(dev->cfg->bit_clear_dma_stream, ENABLE);
