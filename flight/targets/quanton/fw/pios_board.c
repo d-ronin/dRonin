@@ -411,7 +411,18 @@ void PIOS_Board_Init(void) {
 		break;
 
 	case HWQUANTON_INPORT_WS2811SERIALPPMADC:
-		/* XXX set up alt ppm, then fall through to set up serial */
+		/* set up alt ppm, then fall through to set up serial */
+		PIOS_HAL_ConfigurePort(HWSHARED_PORTTYPES_PPM,  // port type protocol
+				NULL,                                   // usart_port_cfg
+				NULL,                                   // com_driver
+				NULL,                                   // i2c_id
+				NULL,                                   // i2c_cfg
+				&pios_ppm_in4_cfg,                      // ppm_cfg
+				NULL,                                   // pwm_cfg
+				PIOS_LED_ALARM,                         // led_id
+				NULL,                                   // dsm_cfg
+				0,                                      // dsm_mode
+				NULL);                                  // sbus_cfg
 	case HWQUANTON_INPORT_PPMSERIAL:
 	case HWQUANTON_INPORT_PPMSERIALADC:
 	case HWQUANTON_INPORT_SERIAL:
