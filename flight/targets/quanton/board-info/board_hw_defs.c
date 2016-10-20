@@ -2261,6 +2261,12 @@ void PIOS_ADC_DMA_irq_handler(void)
 #if defined(PIOS_INCLUDE_WS2811)
 #include "pios_ws2811.h"
 
+ws2811_dev_t pios_ws2811;
+
+void DMA2_Stream6_IRQHandler() {
+	PIOS_WS2811_dma_interrupt_handler(pios_ws2811);
+}
+
 static const struct pios_ws2811_cfg pios_ws2811_cfg = {
 	.timer = TIM1,
 	.clock_cfg = {
@@ -2269,6 +2275,13 @@ static const struct pios_ws2811_cfg pios_ws2811_cfg = {
 		.TIM_CounterMode = TIM_CounterMode_Up,
 		.TIM_Period = 25,	/* 2.083us/bit */
 	},
+	.interrupt = {
+		.NVIC_IRQChannel = DMA2_Stream6_IRQn,
+		.NVIC_IRQChannelPreemptionPriority = PIOS_IRQ_PRIO_LOW,
+		.NVIC_IRQChannelSubPriority = 0,
+		.NVIC_IRQChannelCmd = ENABLE,
+	},
+	.bit_clear_dma_tcif = DMA_IT_TCIF6,
 	.fall_time_l = 5,			/* 333ns */
 	.fall_time_h = 10,			/* 750ns */
 	.led_gpio = GPIOA,

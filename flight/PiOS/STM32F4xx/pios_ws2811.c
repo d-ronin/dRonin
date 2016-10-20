@@ -100,7 +100,7 @@ struct ws2811_dev_s {
 };
 
 int PIOS_WS2811_init(ws2811_dev_t *dev_out, const struct pios_ws2811_cfg *cfg,
-		int max_leds) 
+		int max_leds)
 {
 	PIOS_Assert(max_leds > 0);
 	PIOS_Assert(max_leds <= 1024);
@@ -161,13 +161,6 @@ int PIOS_WS2811_init(ws2811_dev_t *dev_out, const struct pios_ws2811_cfg *cfg,
 
 	GPIO_Init(cfg->led_gpio, &gpio_cfg);
 
-	for (int i=0; i<10; i++) {
-		*(dev->gpio_bsrrl_address) = dev->gpio_bit;
-		PIOS_DELAY_WaituS(20);
-		*(dev->gpio_bsrrh_address) = dev->gpio_bit;
-		PIOS_DELAY_WaituS(15);
-	}
-
 	TIM_DeInit(cfg->timer);
 	TIM_Cmd(cfg->timer, DISABLE);
 
@@ -191,6 +184,8 @@ int PIOS_WS2811_init(ws2811_dev_t *dev_out, const struct pios_ws2811_cfg *cfg,
 			TIM_IT_CC3 | TIM_IT_CC4 | TIM_IT_COM | TIM_IT_Trigger |
 			TIM_IT_Break, DISABLE);
 
+	NVIC_Init((NVIC_InitTypeDef *)(&dev->cfg->interrupt));
+
 	dev->in_progress = false;
 
 	/* Drive the GPIO low, stall for 45 us */
@@ -210,6 +205,12 @@ static bool fill_dma_buf(uint8_t * restrict dma_buf, uint8_t **pixel_data_ptr,
 		uint8_t *pixel_data_end, uint8_t gpio_val) {
 	// Our local shadow of this, for efficient blitting.
 	uint8_t * restrict p_d_p = *pixel_data_ptr;
+
+	if (p_d_p >= pixel_data_end) {
+		// No pixel data filled.  So next interrupt we should stop
+		// timers and dmas
+		return true;
+	}
 
 	for (int i = 0; i < WS2811_DMA_BUFSIZE; i += 16) {
 		if (p_d_p >= pixel_data_end) break;
@@ -234,7 +235,7 @@ static bool fill_dma_buf(uint8_t * restrict dma_buf, uint8_t **pixel_data_ptr,
 	}
 	*pixel_data_ptr = p_d_p;
 
-	return p_d_p >= pixel_data_end;
+	return false;
 }
 
 static void ws2811_cue_dma(ws2811_dev_t dev) {
@@ -252,7 +253,7 @@ static void ws2811_cue_dma(ws2811_dev_t dev) {
 	DMA_StructInit(&dma_init);
 
 	/* First set up the single-buffered repeating of the BSRRL */
-	dma_init.DMA_Channel = dev->cfg->bit_set_dma_channel; 
+	dma_init.DMA_Channel = dev->cfg->bit_set_dma_channel;
 	dma_init.DMA_PeripheralBaseAddr = (uintptr_t) dev->gpio_bsrrl_address;
 	dma_init.DMA_Memory0BaseAddr = (uintptr_t) dev->lame_dma_buf;
 	dma_init.DMA_DIR = DMA_DIR_MemoryToPeripheral;
@@ -264,8 +265,7 @@ static void ws2811_cue_dma(ws2811_dev_t dev) {
 
 	// Limited to 65535.  In turn this limits us to 2730 LEDs before
 	// overflow. ;)
-	// dma_init.DMA_BufferSize = dev->max_leds * 24;
-	dma_init.DMA_BufferSize = 144;	// XXX fix when double buffer enabled
+	dma_init.DMA_BufferSize = dev->max_leds * 24;
 	dma_init.DMA_Mode = DMA_Mode_Normal;
 	dma_init.DMA_Priority = DMA_Priority_VeryHigh;
 	dma_init.DMA_FIFOMode = DMA_FIFOMode_Enable;
@@ -282,22 +282,19 @@ static void ws2811_cue_dma(ws2811_dev_t dev) {
 	dma_init.DMA_PeripheralBaseAddr = (uintptr_t) dev->gpio_bsrrh_address;
 	dma_init.DMA_Memory0BaseAddr = (uintptr_t) dev->dma_buf_0;
 	dma_init.DMA_BufferSize = WS2811_DMA_BUFSIZE;
-	//dma_init.DMA_Mode = DMA_Mode_Circular;
-
-	// XXX just blit out the first buffer now until interrupt stuff
-	// sorted.
-	dma_init.DMA_Mode = DMA_Mode_Normal;
-
-	/* TODO: Bus performance can be improved by tuning FIFO, memory burst, 
-	 * width, etc behaviors... But let's keep things simple for now. */
+	dma_init.DMA_Mode = DMA_Mode_Circular;
 
 	DMA_Init(dev->cfg->bit_clear_dma_stream, &dma_init);
-	//DMA_DoubleBufferModeConfig(dev->cfg->bit_clear_dma_stream,
-	//		(uintptr_t) dev->dma_buf_1,
-	//		DMA_Memory_0);
-	//DMA_DoubleBufferModeCmd(dev->cfg->bit_clear_dma_stream, ENABLE);
+	DMA_DoubleBufferModeConfig(dev->cfg->bit_clear_dma_stream,
+			(uintptr_t) dev->dma_buf_1,
+			DMA_Memory_0);
+	DMA_DoubleBufferModeCmd(dev->cfg->bit_clear_dma_stream, ENABLE);
 
-	/* XXX: NVIC for the DMA */
+	DMA_ClearITPendingBit(dev->cfg->bit_clear_dma_stream,
+			dev->cfg->bit_clear_dma_tcif);
+
+	DMA_ITConfig(dev->cfg->bit_clear_dma_stream,
+			DMA_IT_TC, ENABLE);
 
 	DMA_Cmd(dev->cfg->bit_set_dma_stream, ENABLE);
 	DMA_Cmd(dev->cfg->bit_clear_dma_stream, ENABLE);
@@ -310,6 +307,7 @@ void PIOS_WS2811_trigger_update(ws2811_dev_t dev)
 	PIOS_Assert(dev->magic == WS2811_MAGIC);
 
 	if (dev->in_progress) {
+		// XXX really need to ensure dead time here too
 		return;
 	}
 
@@ -322,15 +320,46 @@ void PIOS_WS2811_trigger_update(ws2811_dev_t dev)
 	// Current one to blit is the first
 	dev->cur_buf = false;
 
-	// We always clock out at least 2 bufs to keep the DMA code
-	// simple.
 	fill_dma_buf((uint8_t *) dev->dma_buf_0, &dev->pixel_data_pos,
 			dev->pixel_data_end, dev->gpio_bit);
 
-	fill_dma_buf((uint8_t *) dev->dma_buf_1, &dev->pixel_data_pos,
+	dev->eof = fill_dma_buf((uint8_t *) dev->dma_buf_1, &dev->pixel_data_pos,
 			dev->pixel_data_end, dev->gpio_bit);
 
 	ws2811_cue_dma(dev);
+}
+
+void PIOS_WS2811_dma_interrupt_handler(ws2811_dev_t dev)
+{
+	if (dev->eof) {
+		DMA_Cmd(dev->cfg->bit_set_dma_stream, DISABLE);
+		DMA_Cmd(dev->cfg->bit_clear_dma_stream, DISABLE);
+
+		TIM_Cmd(dev->cfg->timer, DISABLE);
+
+		DMA_ITConfig(dev->cfg->bit_clear_dma_stream,
+				DMA_IT_TC, DISABLE);
+		DMA_ClearITPendingBit(dev->cfg->bit_clear_dma_stream,
+				dev->cfg->bit_clear_dma_tcif);
+
+		dev->in_progress = false;
+
+		return;
+	}
+
+	dev->cur_buf = !dev->cur_buf;
+
+	// If cur_buf is true, we're currently blitting 1, so we should
+	// be updating 0.
+
+	uint8_t *buf = (uint8_t *)
+		(dev->cur_buf ? dev->dma_buf_0 : dev->dma_buf_1);
+
+	dev->eof = fill_dma_buf(buf, &dev->pixel_data_pos,
+			dev->pixel_data_end, dev->gpio_bit);
+
+	DMA_ClearITPendingBit(dev->cfg->bit_clear_dma_stream,
+			dev->cfg->bit_clear_dma_tcif);
 }
 
 void PIOS_WS2811_set(ws2811_dev_t dev, int idx, uint8_t r, uint8_t g,

@@ -43,6 +43,8 @@ struct pios_ws2811_cfg {
 
 	uint8_t fall_time_l, fall_time_h;
 
+	NVIC_InitTypeDef interrupt;
+
 	GPIO_TypeDef *led_gpio;
 
 	uint16_t gpio_pin;
@@ -52,6 +54,7 @@ struct pios_ws2811_cfg {
 
 	DMA_Stream_TypeDef *bit_clear_dma_stream;
 	uint32_t bit_clear_dma_channel;
+	uint32_t bit_clear_dma_tcif;
 };
 
 /**
@@ -90,5 +93,11 @@ void PIOS_WS2811_set(ws2811_dev_t dev, int idx, uint8_t r, uint8_t g,
  */
 void PIOS_WS2811_set_all(ws2811_dev_t dev, uint8_t r, uint8_t g,
 		uint8_t b);
+
+/**
+ * @brief Handles a DMA completion interrupt on bit_clear_dma_stream.
+ * @param[in] dev WS2811 device handle
+ */
+void PIOS_WS2811_dma_interrupt_handler(ws2811_dev_t dev);
 
 #endif /* LIB_MAX7456_MAX7456_H_ */
