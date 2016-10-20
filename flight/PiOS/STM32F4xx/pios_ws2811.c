@@ -177,11 +177,16 @@ int PIOS_WS2811_init(ws2811_dev_t *dev_out, const struct pios_ws2811_cfg *cfg,
 	TIM_DMACmd(cfg->timer, TIM_DMA_CC1, ENABLE);
 	TIM_DMACmd(cfg->timer, TIM_DMA_CC2, ENABLE);
 	TIM_DMACmd(cfg->timer, TIM_DMA_CC4, ENABLE);
-	//TIM_SelectCCDMA(cfg->timer, ENABLE);
 
 	TIM_SetCompare4(cfg->timer, 1);
 	TIM_SetCompare1(cfg->timer, cfg->fall_time_l);
 	TIM_SetCompare2(cfg->timer, cfg->fall_time_h);
+
+	// Disable all timer interrupts, in case someone inited this timer
+	// before.
+	TIM_ITConfig(cfg->timer, TIM_IT_Update | TIM_IT_CC1 | TIM_IT_CC2 |
+			TIM_IT_CC3 | TIM_IT_CC4 | TIM_IT_COM | TIM_IT_Trigger |
+			TIM_IT_Break, DISABLE);
 
 	dev->in_progress = false;
 
