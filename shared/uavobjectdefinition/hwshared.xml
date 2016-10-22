@@ -62,6 +62,7 @@
 			<options>
 				<option>None</option>
 				<option>HMC5883</option>
+				<option>HMC5983</option>
 			</options>
 		</field>
 		<field name="MagOrientation" units="function" type="enum" elements="1" options="Top0degCW,Top90degCW,Top180degCW,Top270degCW,Bottom0degCW,Bottom90degCW,Bottom180degCW,Bottom270degCW" defaultvalue="Top0degCW"/>
