@@ -760,7 +760,7 @@ void PIOS_Board_Init(void) {
 			HwSparky2ExtMagPortOptions hw_mag_port;
 			HwSparky2ExtMagPortGet(&hw_mag_port);
 
-			uint32_t i2c_mag_id = NULL; /* TODO change to a real pointer */
+			uint32_t i2c_mag_id = 0; /* TODO change to a real pointer */
 			const void *i2c_mag_cfg = NULL;
 			switch (hw_mag_port) {
 			case HWSPARKY2_EXTMAGPORT_FLEXIPORT:
