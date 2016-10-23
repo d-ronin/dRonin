@@ -153,11 +153,18 @@
 				<option>AirwaveCh8 (5860)</option>
 			</options>
 		</field>
-		<field name="Magnetometer" units="function" type="enum" elements="1" options="Disabled,Internal,ExternalI2CFlexiPort,ExternalAuxI2C" defaultvalue="Internal">
-			<description>Connected magnetometer</description>
+		<field name="Magnetometer" units="" type="enum" elements="1" parent="HwShared.Mag" defaultvalue="Internal">
+			<description>Which magnetometer to use. If external, must configure a port as I2C, and select it as ExtMagPort.</description>
 		</field>
-		<field name="ExtMagOrientation" units="function" type="enum" elements="1" parent="HwShared.MagOrientation" defaultvalue="Top0degCW">
+		<field name="ExtMagOrientation" units="" type="enum" elements="1" parent="HwShared.MagOrientation" defaultvalue="Top0degCW">
 			<description>Orientation of the external magnetometer</description>
+		</field>
+		<field name="ExtMagPort" units="" type="enum" elements="1" defaultvalue="FlexiPort">
+			<description>Select the port your external magnetometer is connected to. Only used if an external magnetometer option is selected.</description>
+			<options>
+				<option>FlexiPort</option>
+				<option>AuxI2C</option>
+			</options>
 		</field>
 		<access gcs="readwrite" flight="readwrite"/>
 		<telemetrygcs acked="true" updatemode="onchange" period="0"/>

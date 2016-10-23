@@ -70,6 +70,7 @@
 #define PIOS_INCLUDE_MPXV5004
 #define PIOS_INCLUDE_MPXV7002
 #define PIOS_INCLUDE_HMC5883
+#define PIOS_INCLUDE_HMC5983_I2C
 //#define PIOS_INCLUDE_HCSR04
 
 /* Com systems to include */
