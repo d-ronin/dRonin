@@ -90,14 +90,6 @@ static const struct pios_hmc5883_cfg pios_hmc5883_internal_cfg = {
     .Mode                = PIOS_HMC5883_MODE_CONTINUOUS,
     .Default_Orientation = PIOS_HMC5883_TOP_270DEG,
 };
-
-static const struct pios_hmc5883_cfg pios_hmc5883_external_cfg = {
-    .M_ODR               = PIOS_HMC5883_ODR_75,
-    .Meas_Conf           = PIOS_HMC5883_MEASCONF_NORMAL,
-    .Gain                = PIOS_HMC5883_GAIN_1_9,
-    .Mode                = PIOS_HMC5883_MODE_SINGLE,
-    .Default_Orientation = PIOS_HMC5883_TOP_270DEG,
-};
 #endif /* PIOS_INCLUDE_HMC5883 */
 
 /**
@@ -544,15 +536,27 @@ pios_mpu_cfg.default_samplerate;
 #endif
 
 #if defined(PIOS_INCLUDE_I2C)
+	PIOS_WDG_Clear();
+
+	uint8_t hw_magnetometer;
+	HwAQ32MagnetometerGet(&hw_magnetometer);
+
+	switch (hw_magnetometer) {
+		case HWAQ32_MAGNETOMETER_NONE:
+			break;
+
+		case HWAQ32_MAGNETOMETER_INTERNAL:
 #if defined(PIOS_INCLUDE_HMC5883)
-    PIOS_WDG_Clear();
+			if ((PIOS_HMC5883_Init(pios_i2c_internal_id, &pios_hmc5883_internal_cfg) != 0) ||
+					(PIOS_HMC5883_Test() != 0)) {
+				PIOS_HAL_CriticalError(PIOS_LED_ALARM, PIOS_HAL_PANIC_MAG);
+			}
+#endif /* PIOS_INCLUDE_HMC5883 */
+			break;
 
-    uint8_t magnetometer;
-    HwAQ32MagnetometerGet(&magnetometer);
-
-    if (magnetometer == HWAQ32_MAGNETOMETER_EXTERNAL)
-    {
-		PIOS_HAL_ConfigurePort(HWSHARED_PORTTYPES_I2C,  // port type protocol
+		/* default external mags and handle them in PiOS HAL rather than maintaining list here */
+		default:
+			PIOS_HAL_ConfigurePort(HWSHARED_PORTTYPES_I2C,  // port type protocol
 				NULL,                                   // usart_port_cfg
 				NULL,                                   // com_driver
 				&pios_i2c_external_id,                  // i2c_id
@@ -564,44 +568,18 @@ pios_mpu_cfg.default_samplerate;
 				0,                                      // dsm_mode
 				NULL);                                  // sbus_cfg
 
-        if (PIOS_HMC5883_Init(pios_i2c_external_id, &pios_hmc5883_external_cfg) == 0) {
-            if (PIOS_HMC5883_Test() == 0) {
-                // External mag configuration was successful
+			uint8_t hw_orientation;
+			HwAQ32ExtMagOrientationGet(&hw_orientation);
 
-                // setup sensor orientation
-                uint8_t ext_mag_orientation;
-                HwAQ32ExtMagOrientationGet(&ext_mag_orientation);
+			PIOS_HAL_ConfigureExternalMag(hw_magnetometer, hw_orientation,
+				&pios_i2c_external_id, &pios_i2c_external_cfg);
 
-                enum pios_hmc5883_orientation hmc5883_externalOrientation = \
-                    (ext_mag_orientation == HWAQ32_EXTMAGORIENTATION_TOP0DEGCW)      ? PIOS_HMC5883_TOP_0DEG      : \
-                    (ext_mag_orientation == HWAQ32_EXTMAGORIENTATION_TOP90DEGCW)     ? PIOS_HMC5883_TOP_90DEG     : \
-                    (ext_mag_orientation == HWAQ32_EXTMAGORIENTATION_TOP180DEGCW)    ? PIOS_HMC5883_TOP_180DEG    : \
-                    (ext_mag_orientation == HWAQ32_EXTMAGORIENTATION_TOP270DEGCW)    ? PIOS_HMC5883_TOP_270DEG    : \
-                    (ext_mag_orientation == HWAQ32_EXTMAGORIENTATION_BOTTOM0DEGCW)   ? PIOS_HMC5883_BOTTOM_0DEG   : \
-                    (ext_mag_orientation == HWAQ32_EXTMAGORIENTATION_BOTTOM90DEGCW)  ? PIOS_HMC5883_BOTTOM_90DEG  : \
-                    (ext_mag_orientation == HWAQ32_EXTMAGORIENTATION_BOTTOM180DEGCW) ? PIOS_HMC5883_BOTTOM_180DEG : \
-                    (ext_mag_orientation == HWAQ32_EXTMAGORIENTATION_BOTTOM270DEGCW) ? PIOS_HMC5883_BOTTOM_270DEG : \
-                    pios_hmc5883_external_cfg.Default_Orientation;
-                PIOS_HMC5883_SetOrientation(hmc5883_externalOrientation);
-            }
-            else
-		PIOS_SENSORS_SetMissing(PIOS_SENSOR_MAG);
-        }
-        else
-	    PIOS_SENSORS_SetMissing(PIOS_SENSOR_MAG);
-    }
+			break;
+	}
 
-    if (magnetometer == HWAQ32_MAGNETOMETER_INTERNAL)
-    {
-        if ((PIOS_HMC5883_Init(pios_i2c_internal_id, &pios_hmc5883_internal_cfg) != 0) ||
-			(PIOS_HMC5883_Test() != 0))
-            PIOS_HAL_CriticalError(PIOS_LED_ALARM, PIOS_HAL_PANIC_MAG);
-    }
 
-#endif
-
-    //I2C is slow, sensor init as well, reset watchdog to prevent reset here
-    PIOS_WDG_Clear();
+	/* I2C is slow, sensor init as well, reset watchdog to prevent reset here */
+	PIOS_WDG_Clear();
 
 #if defined(PIOS_INCLUDE_MS5611)
     if ((PIOS_MS5611_Init(&pios_ms5611_cfg, pios_i2c_internal_id) != 0)
