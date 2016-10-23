@@ -40,6 +40,7 @@
         <file>html/PathPlanner-Critical.html</file>
         <file>html/PathPlanner-Error.html</file>
         <file>html/Sensors-Critical.html</file>
+        <file>html/Sensors-Error.html</file>
         <file>html/Stabilization-Error.html</file>
         <file>html/Stabilization-Warning.html</file>
         <file>html/Stack-Critical.html</file>
