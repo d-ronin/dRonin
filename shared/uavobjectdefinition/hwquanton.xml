@@ -200,12 +200,21 @@
 		<field name="MPU6000DLPF" units="" type="enum" elements="1" options="188,98,42,20,10,5" defaultvalue="188">
 			<description>Gyro filter cutoff frequency</description>
 		</field>
-		<field name="Magnetometer" units="function" type="enum" elements="1" options="Disabled,Internal,ExternalI2CUart1,ExternalI2CUart3" defaultvalue="Internal">
-			<description>Connected magnetometer</description>
+
+		<field name="Magnetometer" units="" type="enum" elements="1" parent="HwShared.Mag" defaultvalue="Internal">
+			<description>Which magnetometer to use. If external, must configured a port as I2C, and select it as ExtMagPort.</description>
 		</field>
-		<field name="ExtMagOrientation" units="function" type="enum" elements="1" parent="HwShared.MagOrientation" defaultvalue="Top0degCW">
+		<field name="ExtMagOrientation" units="" type="enum" elements="1" parent="HwShared.MagOrientation" defaultvalue="Top0degCW">
 			<description>Orientation of the external magnetometer</description>
 		</field>
+		<field name="ExtMagPort" units="" type="enum" elements="1" defaultvalue="Uart1">
+			<description>Select the port your external magnetometer is connected to. Only used if an external magnetometer option is selected.</description>
+			<options>
+				<option>Uart1</option>
+				<option>Uart3</option>
+			</options>
+		</field>
+
 		<access gcs="readwrite" flight="readwrite"/>
 		<telemetrygcs acked="true" updatemode="onchange" period="0"/>
 		<telemetryflight acked="true" updatemode="onchange" period="0"/>

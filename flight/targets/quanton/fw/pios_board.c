@@ -90,14 +90,6 @@ static const struct pios_hmc5883_cfg pios_hmc5883_internal_cfg = {
 	.Mode = PIOS_HMC5883_MODE_CONTINUOUS,
 	.Default_Orientation = PIOS_HMC5883_TOP_90DEG,
 };
-
-static const struct pios_hmc5883_cfg pios_hmc5883_external_cfg = {
-	.M_ODR = PIOS_HMC5883_ODR_75,
-	.Meas_Conf = PIOS_HMC5883_MEASCONF_NORMAL,
-	.Gain = PIOS_HMC5883_GAIN_1_9,
-	.Mode = PIOS_HMC5883_MODE_SINGLE,
-	.Default_Orientation = PIOS_HMC5883_TOP_0DEG,
-};
 #endif /* PIOS_INCLUDE_HMC5883 */
 
 /**
@@ -623,55 +615,62 @@ void PIOS_Board_Init(void) {
 #endif
 
 #if defined(PIOS_INCLUDE_I2C)
+
+	PIOS_WDG_Clear();
+
+	uint8_t hw_magnetometer;
+	HwQuantonMagnetometerGet(&hw_magnetometer);
+
+	switch (hw_magnetometer) {
+		case HWQUANTON_MAGNETOMETER_NONE:
+			break;
+
+		case HWQUANTON_MAGNETOMETER_INTERNAL:
 #if defined(PIOS_INCLUDE_HMC5883)
-	{
-		uint8_t magnetometer;
-		HwQuantonMagnetometerGet(&magnetometer);
-
-		uint32_t adaptor_id = 0;
-
-		if ((magnetometer == HWQUANTON_MAGNETOMETER_EXTERNALI2CUART1) || (magnetometer == HWQUANTON_MAGNETOMETER_EXTERNALI2CUART3))
-		{
-			if (magnetometer == HWQUANTON_MAGNETOMETER_EXTERNALI2CUART1)
-				adaptor_id = pios_i2c_usart1_adapter_id;
-
-			if (magnetometer == HWQUANTON_MAGNETOMETER_EXTERNALI2CUART3)
-				adaptor_id = pios_i2c_usart3_adapter_id;
-
-			if ((adaptor_id != 0) && (PIOS_HMC5883_Init(adaptor_id, &pios_hmc5883_external_cfg) == 0)) {
-				if (PIOS_HMC5883_Test() == 0) {
-					// External mag configuration was successful
-
-					// setup sensor orientation
-					uint8_t ext_mag_orientation;
-					HwQuantonExtMagOrientationGet(&ext_mag_orientation);
-
-					enum pios_hmc5883_orientation hmc5883_externalOrientation = \
-						(ext_mag_orientation == HWQUANTON_EXTMAGORIENTATION_TOP0DEGCW)      ? PIOS_HMC5883_TOP_0DEG      : \
-						(ext_mag_orientation == HWQUANTON_EXTMAGORIENTATION_TOP90DEGCW)     ? PIOS_HMC5883_TOP_90DEG     : \
-						(ext_mag_orientation == HWQUANTON_EXTMAGORIENTATION_TOP180DEGCW)    ? PIOS_HMC5883_TOP_180DEG    : \
-						(ext_mag_orientation == HWQUANTON_EXTMAGORIENTATION_TOP270DEGCW)    ? PIOS_HMC5883_TOP_270DEG    : \
-						(ext_mag_orientation == HWQUANTON_EXTMAGORIENTATION_BOTTOM0DEGCW)   ? PIOS_HMC5883_BOTTOM_0DEG   : \
-						(ext_mag_orientation == HWQUANTON_EXTMAGORIENTATION_BOTTOM90DEGCW)  ? PIOS_HMC5883_BOTTOM_90DEG  : \
-						(ext_mag_orientation == HWQUANTON_EXTMAGORIENTATION_BOTTOM180DEGCW) ? PIOS_HMC5883_BOTTOM_180DEG : \
-						(ext_mag_orientation == HWQUANTON_EXTMAGORIENTATION_BOTTOM270DEGCW) ? PIOS_HMC5883_BOTTOM_270DEG : \
-						pios_hmc5883_external_cfg.Default_Orientation;
-					PIOS_HMC5883_SetOrientation(hmc5883_externalOrientation);
-				} else
-					PIOS_SENSORS_SetMissing(PIOS_SENSOR_MAG);
-			} else
-				PIOS_SENSORS_SetMissing(PIOS_SENSOR_MAG);
-		}
-
-		if (magnetometer == HWQUANTON_MAGNETOMETER_INTERNAL) {
 			if ((PIOS_HMC5883_Init(pios_i2c_internal_adapter_id, &pios_hmc5883_internal_cfg) != 0) ||
-					(PIOS_HMC5883_Test() != 0))
+					(PIOS_HMC5883_Test() != 0)) {
 				PIOS_HAL_CriticalError(PIOS_LED_ALARM, PIOS_HAL_PANIC_MAG);
-		}
-	}
-#endif
+			}
+#endif /* PIOS_INCLUDE_HMC5883 */
+			break;
 
-	//I2C is slow, sensor init as well, reset watchdog to prevent reset here
+		/* default external mags and handle them in PiOS HAL rather than maintaining list here */
+		default:
+		{
+			HwQuantonExtMagPortOptions hw_mag_port;
+			HwQuantonExtMagPortGet(&hw_mag_port);
+
+			uint32_t i2c_mag_id = NULL; /* TODO change to a real pointer */
+			const void *i2c_mag_cfg = NULL;
+			switch (hw_mag_port) {
+			case HWQUANTON_EXTMAGPORT_UART1:
+				if (hw_uart1 == HWSHARED_PORTTYPES_I2C) {
+					i2c_mag_id = pios_i2c_usart1_adapter_id;
+					i2c_mag_cfg = &pios_i2c_usart1_adapter_cfg;
+				}
+				break;
+			case HWQUANTON_EXTMAGPORT_UART3:
+				if (hw_uart3 == HWSHARED_PORTTYPES_I2C) {
+					i2c_mag_id = pios_i2c_usart3_adapter_id;
+					i2c_mag_cfg = &pios_i2c_usart3_adapter_cfg;
+				}
+				break;
+			}
+
+			if (i2c_mag_id && i2c_mag_cfg) {
+				uint8_t hw_orientation;
+				HwQuantonExtMagOrientationGet(&hw_orientation);
+
+				PIOS_HAL_ConfigureExternalMag(hw_magnetometer, hw_orientation,
+					&i2c_mag_id, i2c_mag_cfg);
+			} else {
+				PIOS_SENSORS_SetMissing(PIOS_SENSOR_MAG);
+			}
+		}
+			break;
+	}
+
+	/* I2C is slow, sensor init as well, reset watchdog to prevent reset here */
 	PIOS_WDG_Clear();
 
 #if defined(PIOS_INCLUDE_MS5611)
