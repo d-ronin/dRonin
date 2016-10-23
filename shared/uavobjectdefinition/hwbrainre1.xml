@@ -75,7 +75,13 @@
 			</options>
 		</field>
 		<field name="I2CExtBaro" units="function" type="enum" elements="1" parent="HwShared.ExtBaro" defaultvalue="None"/>
-		<field name="I2CExtMag" units="function" type="enum" elements="1" parent="HwShared.ExtMag" defaultvalue="None"/>
+		<field name="I2CExtMag" units="function" type="enum" elements="1" parent="HwShared.Mag" defaultvalue="None">
+			<options>
+				<option>None</option>
+				<option>External HMC5883</option>
+				<option>External HMC5983</option>
+			</options>
+		</field>
 		<field name="ExtMagOrientation" units="function" type="enum" elements="1" parent="HwShared.MagOrientation" defaultvalue="Top0degCW"/>
 		<field name="DSMxMode" units="mode" type="enum" elements="1" parent="HwShared.DSMxMode" defaultvalue="Autodetect"/>
 		<field name="USB_HIDPort" units="function" type="enum" elements="1" parent="HwShared.USB_HIDPort" defaultvalue="USBTelemetry"/>

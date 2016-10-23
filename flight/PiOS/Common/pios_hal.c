@@ -1329,7 +1329,7 @@ done:
 #endif /* PIOS_INCLUDE_I2C */
 }
 
-int PIOS_HAL_ConfigureExternalMag(HwSharedExtMagOptions mag,
+int PIOS_HAL_ConfigureExternalMag(HwSharedMagOptions mag,
 		HwSharedMagOrientationOptions orientation,
 		uint32_t *i2c_id,
 		const struct pios_i2c_adapter_cfg *i2c_cfg)
@@ -1337,7 +1337,9 @@ int PIOS_HAL_ConfigureExternalMag(HwSharedExtMagOptions mag,
 #if !defined(PIOS_INCLUDE_I2C)
 	return -1;
 #else
-	if (mag == HWSHARED_EXTMAG_NONE) {
+
+	/* internal mag should be handled in pios_board_init */
+	if (mag == HWSHARED_MAG_NONE || mag == HWSHARED_MAG_INTERNAL) {
 		return 1;
 	}
 
@@ -1346,7 +1348,7 @@ int PIOS_HAL_ConfigureExternalMag(HwSharedExtMagOptions mag,
 
 	switch (mag) {
 #ifdef PIOS_INCLUDE_HMC5883
-	case HWSHARED_EXTMAG_HMC5883:
+	case HWSHARED_MAG_EXTERNALHMC5883:
 		if (PIOS_HMC5883_Init(*i2c_id, &external_hmc5883_cfg))
 			goto mag_fail;
 
@@ -1370,7 +1372,7 @@ int PIOS_HAL_ConfigureExternalMag(HwSharedExtMagOptions mag,
 #endif /* PIOS_INCLUDE_HMC5883 */
 
 #ifdef PIOS_INCLUDE_HMC5983_I2C
-	case HWSHARED_EXTMAG_HMC5983:
+	case HWSHARED_MAG_EXTERNALHMC5983:
 		if (PIOS_HMC5983_Init(*i2c_id, 0, &external_hmc5983_cfg))
 			goto mag_fail;
 
