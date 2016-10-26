@@ -288,7 +288,10 @@ void UAVObjectParser::calculateSize(ObjectInfo *info) {
     }
 }
 
-bool fieldTypeLessThan(const FieldInfo* f1, const FieldInfo* f2)
+/**
+ * Comparison function for sorting fields by size
+ */
+bool fieldSizeGreaterThan (const FieldInfo *f1, const FieldInfo *f2)
 {
     return f1->numBytes > f2->numBytes;
 }
@@ -414,11 +417,8 @@ QString UAVObjectParser::parseXML(QString& xml, QString& filename)
             childNode = childNode.nextSibling();
         }
         
-        // Sort all fields according to size
-        qStableSort(info->fields.begin(), info->fields.end(), fieldTypeLessThan);
-
-        // Sort all fields according to size
-        qStableSort(info->fields.begin(), info->fields.end(), fieldTypeLessThan);
+        // Sort all fields according to size (largest to smallest)
+        std::stable_sort(info->fields.begin(), info->fields.end(), fieldSizeGreaterThan);
 
         // Make sure that required elements were found
         if ( fieldFound == 0)
