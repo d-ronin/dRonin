@@ -62,7 +62,6 @@ AQ32::~AQ32()
 
 }
 
-
 QString AQ32::shortName()
 {
     return QString("AQ32");
@@ -106,9 +105,135 @@ QPixmap AQ32::getBoardPicture()
     return QPixmap(":/aq32/images/aq32.png");
 }
 
+
+//! Determine if this board supports configuring the receiver
+bool AQ32::isInputConfigurationSupported(enum InputType type = INPUT_TYPE_ANY)
+{
+    Q_UNUSED(type);
+    return true;
+}
+
 QString AQ32::getHwUAVO()
 {
     return "HwAQ32";
+}
+
+/**
+ * Configure the board to use a receiver input type on a port number
+ * @param type the type of receiver to use
+ * @return true if successfully configured or false otherwise
+ */
+bool AQ32::setInputType(enum InputType type)
+{
+    ExtensionSystem::PluginManager *pm = ExtensionSystem::PluginManager::instance();
+    UAVObjectManager *uavoManager = pm->getObject<UAVObjectManager>();
+    HwAQ32 *hwAQ32 = HwAQ32::GetInstance(uavoManager);
+    Q_ASSERT(hwAQ32);
+    if (!hwAQ32)
+        return false;
+
+    HwAQ32::DataFields settings = hwAQ32->getData();
+
+    switch(type) {
+    case INPUT_TYPE_PPM:
+        settings.RcvrPort = HwAQ32::RCVRPORT_PPM;
+        break;
+    case INPUT_TYPE_PWM:
+        settings.RcvrPort = HwAQ32::RCVRPORT_PWM;
+        break;
+    case INPUT_TYPE_HOTTSUMD:
+        settings.Uart3 = HwAQ32::UART3_HOTTSUMD;
+        break;
+    case INPUT_TYPE_HOTTSUMH:
+        settings.Uart3 = HwAQ32::UART3_HOTTSUMH;
+        break;
+    case INPUT_TYPE_SBUS:
+        settings.Uart3 = HwAQ32::UART3_SBUS;
+        break;
+    case INPUT_TYPE_SBUSNONINVERTED:
+        settings.Uart3 = HwAQ32::UART3_SBUSNONINVERTED;
+        break;
+    case INPUT_TYPE_IBUS: // Is not selectable yet in the Vehicle Setup Wizard, but if it ends up there, this is already in place.
+        settings.Uart3 = HwAQ32::UART3_IBUS;
+        break;
+    case INPUT_TYPE_DSM:
+        settings.Uart4 = HwAQ32::UART4_DSM;
+        break;
+    
+    default:
+        return false;
+    }
+
+    // Apply these changes
+    hwAQ32->setData(settings);
+
+    return true;
+}
+
+/**
+ * @brief AQ32::getInputType fetch the currently selected input type
+ * @return the selected input type
+ */
+enum Core::IBoardType::InputType AQ32::getInputType()
+{
+    ExtensionSystem::PluginManager *pm = ExtensionSystem::PluginManager::instance();
+    UAVObjectManager *uavoManager = pm->getObject<UAVObjectManager>();
+    HwAQ32 *hwAQ32 = HwAQ32::GetInstance(uavoManager);
+    Q_ASSERT(hwAQ32);
+    if (!hwAQ32)
+        return INPUT_TYPE_UNKNOWN;
+
+    HwAQ32::DataFields settings = hwAQ32->getData();
+
+    switch(settings.RcvrPort) {
+    case HwAQ32::RCVRPORT_PPM:
+        return INPUT_TYPE_PPM;
+    case HwAQ32::RCVRPORT_PWM:
+        return INPUT_TYPE_PWM;
+    default:
+        break;
+    }
+    
+    switch(settings.Uart3) {
+    case HwAQ32::UART3_HOTTSUMD:
+        return INPUT_TYPE_HOTTSUMD;
+    case HwAQ32::UART3_HOTTSUMH:
+        return INPUT_TYPE_HOTTSUMH;
+    case HwAQ32::UART3_SBUS:
+        return INPUT_TYPE_SBUS;
+    case HwAQ32::UART3_SBUSNONINVERTED:
+        return INPUT_TYPE_SBUSNONINVERTED;    
+    case HwAQ32::UART3_IBUS: // None of the other targets have IBUS in getInputType, but seems to be no problem.
+        return INPUT_TYPE_IBUS;
+    }
+
+    switch(settings.Uart4) {
+    case HwAQ32::UART4_DSM:
+        return INPUT_TYPE_DSM;
+    case HwAQ32::UART4_HOTTSUMD:
+        return INPUT_TYPE_HOTTSUMD;
+    case HwAQ32::UART4_HOTTSUMH:
+        return INPUT_TYPE_HOTTSUMH;
+    case HwAQ32::UART4_SBUSNONINVERTED:
+        return INPUT_TYPE_SBUSNONINVERTED;    
+    case HwAQ32::UART4_IBUS: // None of the other targets have IBUS in getInputType, but seems to be no problem.
+        return INPUT_TYPE_IBUS;
+    }
+
+    switch(settings.Uart6) {
+    case HwAQ32::UART6_DSM:
+        return INPUT_TYPE_DSM;
+    case HwAQ32::UART6_HOTTSUMD:
+        return INPUT_TYPE_HOTTSUMD;
+    case HwAQ32::UART6_HOTTSUMH:
+        return INPUT_TYPE_HOTTSUMH;
+    case HwAQ32::UART6_SBUSNONINVERTED:
+        return INPUT_TYPE_SBUSNONINVERTED;    
+    case HwAQ32::UART6_IBUS: // None of the other targets have IBUS in getInputType, but seems to be no problem.
+        return INPUT_TYPE_IBUS;
+    }
+
+    return INPUT_TYPE_UNKNOWN;
 }
 
 int AQ32::queryMaxGyroRate()
