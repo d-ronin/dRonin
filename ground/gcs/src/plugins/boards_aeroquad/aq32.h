@@ -44,8 +44,8 @@ public:
     virtual QStringList getSupportedProtocols();
     virtual QPixmap getBoardPicture();
     virtual QString getHwUAVO();
-	
-	 //! Determine if this board supports configuring the receiver
+
+    //! Determine if this board supports configuring the receiver
     virtual bool isInputConfigurationSupported(InputType type);
 
     /**
@@ -61,7 +61,7 @@ public:
      * @return the currently selected input type
      */
     virtual enum InputType getInputType();
-	
+
     virtual int queryMaxGyroRate();
     virtual QStringList getAdcNames();
 
