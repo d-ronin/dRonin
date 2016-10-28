@@ -1,11 +1,10 @@
-BOARD_TYPE          := 0x86
+BOARD_TYPE          := 0xA1
 BOARD_REVISION      := 0x01
-# Previous version was 0x081, 0x082 introduces partition extensions and forced boot from bkp registers
 BOOTLOADER_VERSION  := 0x85
 HW_TYPE             := 0x00		# seems to be unused
 
 CHIP                := STM32F405RGT
-BOARD               := STM32F4xx_QUANTON
+BOARD               := STM32F4xx_SEPPUKU
 MODEL               := HD
 MODEL_SUFFIX        := 
 
