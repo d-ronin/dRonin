@@ -28,17 +28,19 @@
 		</field>
 		<field name="ComSpeed" units="bps" type="enum" parent="HwShared.SpeedBps" elements="1" defaultvalue="Init HM10">
 			<description>Communication speed</description>
-			<option>1200</option>
-			<option>2400</option>
-			<option>4800</option>
-			<option>9600</option>
-			<option>19200</option>
-			<option>38400</option>
-			<option>57600</option>
-			<option>115200</option>
-			<option>230400</option>
-			<option>Init HC06</option>
-			<option>Init HM10</option>
+			<options>
+				<option>1200</option>
+				<option>2400</option>
+				<option>4800</option>
+				<option>9600</option>
+				<option>19200</option>
+				<option>38400</option>
+				<option>57600</option>
+				<option>115200</option>
+				<option>230400</option>
+				<option>Init HC06</option>
+				<option>Init HM10</option>
+			</options>
 		</field>
 		<!-- radio settings -->
 		<field name="MaxRfSpeed" units="bps" type="enum" elements="1" parent="HwShared.MaxRfSpeed" defaultvalue="64000">
