@@ -26,8 +26,8 @@
 /*
  * Board identifier.
  */
-#define BOARD_QUANTEC_QUANTON
-#define BOARD_NAME                  "quanton flight control"
+#define BOARD_DRONIN_SEPPUKU
+#define BOARD_NAME                  "Seppuku Flight Controller"
 
 
 /*

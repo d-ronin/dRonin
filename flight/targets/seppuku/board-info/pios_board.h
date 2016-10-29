@@ -2,13 +2,13 @@
  ******************************************************************************
  * @addtogroup TauLabsTargets Tau Labs Targets
  * @{
- * @addtogroup Quanton Quanton support files
+ * @addtogroup Seppuku Seppuku support files
  * @{
  *
- * @file       STM32F4xx_Quanton.c 
+ * @file       pios_board.h
  * @author     Tau Labs, http://taulabs.org, Copyright (C) 2012-2013
- * @author     dRonin, http://dronin.org Copyright (C) 2015
- * @brief      Board specific defines for Quanton
+ * @author     dRonin, http://dronin.org Copyright (C) 2015-2016
+ * @brief      Board specific defines for Seppuku
  * @see        The GNU Public License (GPL) Version 3
  * 
  *****************************************************************************/
@@ -26,10 +26,14 @@
  * You should have received a copy of the GNU General Public License along
  * with this program; if not, write to the Free Software Foundation, Inc.,
  * 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
+ *
+ * Additional note on redistribution: The copyright and license notices above
+ * must be maintained in each individual source file that is a derivative work
+ * of this source file; otherwise redistribution is prohibited.
  */
 
-#ifndef STM3210E_INS_H_
-#define STM3210E_INS_H_
+#ifndef SEPPUKU_PIOS_BOARD_H_
+#define SEPPUKU_PIOS_BOARD_H_
 
 #include <stdbool.h>
 
@@ -248,7 +252,7 @@ extern uintptr_t pios_com_debug_id;
 #define PIOS_GPIO_PINS				{  GPIO_Pin_15, GPIO_Pin_10, GPIO_Pin_6, GPIO_Pin_7, GPIO_Pin_8, GPIO_Pin_15, GPIO_Pin_3, GPIO_Pin_0, GPIO_Pin_1 }
 #define PIOS_GPIO_NUM				9
 
-#endif /* STM3210E_INS_H_ */
+#endif /* SEPPUKU_PIOS_BOARD_H_ */
 
 /**
  * @}

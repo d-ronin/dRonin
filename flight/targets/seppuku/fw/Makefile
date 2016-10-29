@@ -7,7 +7,7 @@
 # @{
 # @addtogroup
 # @{
-# @brief Makefile to build firmware for the Quanton board.
+# @brief Makefile to build firmware for the Seppuku board.
 ###############################################################################
 #
 # This program is free software; you can redistribute it and/or modify
