@@ -147,7 +147,7 @@
 			<description>Gyro filter cutoff frequency</description>
 		</field>
 		<field name="Magnetometer" units="" type="enum" elements="1" parent="HwShared.Mag" defaultvalue="Internal">
-			<description>Which magnetometer to use. If external, must be connected to flexi port, and flexi port configured as I2C.</description>
+			<description>Which magnetometer to use.</description>
 		</field>
 		<field name="ExtMagOrientation" units="" type="enum" elements="1" parent="HwShared.MagOrientation" defaultvalue="Top0degCW">
 			<description>Orientation of the external magnetometer</description>
