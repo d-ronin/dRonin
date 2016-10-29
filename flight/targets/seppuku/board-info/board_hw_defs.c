@@ -1130,7 +1130,8 @@ void PIOS_ADC_DMA_irq_handler(void)
 
 void set_bw_levels(uint8_t black, uint8_t white)
 {
-	// XXX cue the right counter, etc.
+	TIM11->CCR1 = white;
+	TIM12->CCR2 = black;
 }
 
 static const struct pios_exti_cfg pios_exti_vsync_cfg __exti_config = {
@@ -1231,7 +1232,6 @@ const struct pios_video_cfg pios_video_cfg = {
 				.GPIO_PuPd  = GPIO_PuPd_NOPULL
 			},
 		},
-		.slave_count = 1, // XXX this is a lie
 	},
 	.level_dma = DMA1,
 	.level                                             = {
@@ -1299,7 +1299,6 @@ const struct pios_video_cfg pios_video_cfg = {
 				.GPIO_PuPd  = GPIO_PuPd_UP
 			},
 		},
-		.slave_count = 1, // XXX wrong
 	},
 	.vsync = &pios_exti_vsync_cfg,
 

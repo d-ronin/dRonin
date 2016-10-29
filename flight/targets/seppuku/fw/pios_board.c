@@ -49,6 +49,7 @@
 #include "hwseppuku.h"
 #include "manualcontrolsettings.h"
 #include "modulesettings.h"
+#include "onscreendisplaysettings.h"
 
 /**
  * Sensor configurations
@@ -102,6 +103,61 @@ uintptr_t pios_uavo_settings_fs_id;
 uintptr_t pios_internal_adc_id;
 
 uintptr_t external_i2c_adapter_id = 0;
+
+/**
+* Initialise PWM Output for black/white level setting
+*/
+
+#if defined(PIOS_INCLUDE_VIDEO)
+void OSD_configure_bw_levels(void)
+{
+	GPIO_InitTypeDef GPIO_InitStructure;
+	TIM_OCInitTypeDef  TIM_OCInitStructure;
+	TIM_TimeBaseInitTypeDef  TIM_TimeBaseStructure;
+
+	/*-------------------------- GPIO Configuration ----------------------------*/
+	GPIO_StructInit(&GPIO_InitStructure); // Reset init structure
+	GPIO_InitStructure.GPIO_Pin = GPIO_Pin_9 | GPIO_Pin_15;
+	GPIO_InitStructure.GPIO_Mode = GPIO_Mode_AF;
+	GPIO_InitStructure.GPIO_OType = GPIO_OType_PP;
+	GPIO_InitStructure.GPIO_PuPd = GPIO_PuPd_NOPULL;
+	GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
+	GPIO_Init(GPIOB, &GPIO_InitStructure);
+
+	GPIO_PinAFConfig(GPIOB, GPIO_PinSource9, GPIO_AF_TIM11);  // White
+	GPIO_PinAFConfig(GPIOB, GPIO_PinSource15, GPIO_AF_TIM12); // Black
+
+	/* Time base configuration */
+	TIM_TimeBaseStructInit(&TIM_TimeBaseStructure);
+	TIM_TimeBaseStructure.TIM_Prescaler = 0;  // Run as fast as we can.
+	TIM_TimeBaseStructure.TIM_Period = 255;
+	TIM_TimeBaseStructure.TIM_ClockDivision = 0;
+	TIM_TimeBaseStructure.TIM_CounterMode = TIM_CounterMode_Up;
+	TIM_TimeBaseInit(TIM11, &TIM_TimeBaseStructure);
+	TIM_TimeBaseInit(TIM12, &TIM_TimeBaseStructure);
+
+	/* PWM mode configuation */
+	TIM_OCStructInit(&TIM_OCInitStructure);
+	TIM_OCInitStructure.TIM_OCMode = TIM_OCMode_PWM1;
+	TIM_OCInitStructure.TIM_OutputState = TIM_OutputState_Enable;
+	TIM_OCInitStructure.TIM_Pulse = 90;
+	TIM_OCInitStructure.TIM_OCPolarity = TIM_OCPolarity_High;
+
+	TIM_OC1Init(TIM11, &TIM_OCInitStructure);
+	TIM_OC2Init(TIM12, &TIM_OCInitStructure);
+
+	/* TIM11/12 Main Output Enable */
+	TIM_CtrlPWMOutputs(TIM11, ENABLE);
+	TIM_CtrlPWMOutputs(TIM12, ENABLE);
+
+	/* TIM1 enable counter */
+	TIM_Cmd(TIM11, ENABLE);
+	TIM_Cmd(TIM12, ENABLE);
+
+	TIM11->CCR1 = 110;
+	TIM12->CCR2 = 30;
+}
+#endif /* PIOS_INCLUDE_VIDEO */
 
 /**
  * PIOS_Board_Init()
@@ -442,6 +498,21 @@ void PIOS_Board_Init(void) {
 	uint32_t internal_adc_id;
 	PIOS_INTERNAL_ADC_Init(&internal_adc_id, &pios_adc_cfg);
 	PIOS_ADC_Init(&pios_internal_adc_id, &pios_internal_adc_driver, internal_adc_id);
+#endif
+
+#if defined(PIOS_INCLUDE_VIDEO)
+	// make sure the mask pin is low
+	GPIO_Init(pios_video_cfg.mask.miso.gpio, (GPIO_InitTypeDef*)&pios_video_cfg.mask.miso.init);
+	GPIO_ResetBits(pios_video_cfg.mask.miso.gpio, pios_video_cfg.mask.miso.init.GPIO_Pin);
+
+	// Initialize settings
+	OnScreenDisplaySettingsInitialize();
+
+	uint8_t osd_state;
+	OnScreenDisplaySettingsOSDEnabledGet(&osd_state);
+	if (osd_state == ONSCREENDISPLAYSETTINGS_OSDENABLED_ENABLED) {
+		OSD_configure_bw_levels();
+	}
 #endif
 
 	/* Make sure we have at least one telemetry link configured or else fail initialization */
