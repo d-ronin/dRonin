@@ -135,9 +135,6 @@ void PIOS_Board_Init(void) {
 #endif	/* PIOS_INCLUDE_ANNUNC */
 
 #if defined(PIOS_INCLUDE_SPI)
-	if (PIOS_SPI_Init(&pios_spi_flash_id, &pios_spi_flash_cfg)) {
-		PIOS_DEBUG_Assert(0);
-	}
 	if (PIOS_SPI_Init(&pios_spi_gyro_accel_id, &pios_spi_gyro_accel_cfg)) {
 		PIOS_Assert(0);
 	}
@@ -146,8 +143,6 @@ void PIOS_Board_Init(void) {
 
 #if defined(PIOS_INCLUDE_FLASH)
 	/* Inititialize all flash drivers */
-	if (PIOS_Flash_Jedec_Init(&pios_external_flash_id, pios_spi_flash_id, 0, &flash_mx25_cfg) != 0)
-		PIOS_HAL_CriticalError(PIOS_LED_ALARM, PIOS_HAL_PANIC_FLASH);
 	if (PIOS_Flash_Internal_Init(&pios_internal_flash_id, &flash_internal_cfg) != 0)
 		PIOS_HAL_CriticalError(PIOS_LED_ALARM, PIOS_HAL_PANIC_FLASH);
 
@@ -272,18 +267,6 @@ void PIOS_Board_Init(void) {
 #endif	/* PIOS_INCLUDE_USB */
 
 	/* Configure the IO ports */
-
-#if defined(PIOS_INCLUDE_I2C)
-	if (PIOS_I2C_Init(&pios_i2c_internal_adapter_id, &pios_i2c_internal_adapter_cfg)) {
-		PIOS_DEBUG_Assert(0);
-	}
-	if (PIOS_I2C_CheckClear(pios_i2c_internal_adapter_id) != 0)
-		PIOS_HAL_CriticalError(PIOS_LED_ALARM, PIOS_HAL_PANIC_I2C_INT);
-	else
-		if (AlarmsGet(SYSTEMALARMS_ALARM_I2C) == SYSTEMALARMS_ALARM_UNINITIALISED)
-			AlarmsSet(SYSTEMALARMS_ALARM_I2C, SYSTEMALARMS_ALARM_OK);
-#endif
-
 	HwSeppukuDSMxModeOptions hw_DSMxMode;
 	HwSeppukuDSMxModeGet(&hw_DSMxMode);
 
@@ -294,8 +277,8 @@ void PIOS_Board_Init(void) {
 	PIOS_HAL_ConfigurePort(hw_uart1,             // port type protocol
 			&pios_usart1_cfg,                    // usart_port_cfg
 			&pios_usart_com_driver,              // com_driver
-			&pios_i2c_usart1_adapter_id,         // i2c_id
-			&pios_i2c_usart1_adapter_cfg,        // i2c_cfg
+			NULL,                                // i2c_id
+			NULL,                                // i2c_cfg
 			NULL,                                // ppm_cfg
 			NULL,                                // pwm_cfg
 			PIOS_LED_ALARM,                      // led_id

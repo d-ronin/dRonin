@@ -65,11 +65,9 @@
 /* Select the sensors to include */
 #define PIOS_INCLUDE_HMC5883
 #define PIOS_INCLUDE_HMC5983_I2C
-#define PIOS_INCLUDE_MPU
-#define PIOS_INCLUDE_ETASV3
+//#define PIOS_INCLUDE_ETASV3
 #define PIOS_INCLUDE_MPXV5004
 #define PIOS_INCLUDE_MPXV7002
-#define PIOS_INCLUDE_MS5611
 #define PIOS_INCLUDE_OPTICALFLOW
 #define PIOS_INCLUDE_RANGEFINDER
 #define PIOS_INCLUDE_PX4FLOW
@@ -106,7 +104,6 @@
 #define PIOS_INCLUDE_FLASH
 #define PIOS_INCLUDE_LOGFS_SETTINGS
 #define PIOS_INCLUDE_FLASH_INTERNAL
-#define PIOS_INCLUDE_FLASH_JEDEC
 
 /* Flags that alter behaviors - mostly to lower resources for CC */
 #define PIOS_INCLUDE_INITCALL           /* Include init call structures */
@@ -134,9 +131,6 @@
  * A change in the cpu load calculation or the idle task handler will invalidate this as well.
  */
 #define IDLE_COUNTS_PER_SEC_AT_NO_LOAD (9873737)
-
-#define PIOS_INCLUDE_LOG_TO_FLASH
-#define PIOS_LOGFLASH_SECT_SIZE 0x1000   /* 4kb */
 
 #endif /* PIOS_CONFIG_H */
 /**
