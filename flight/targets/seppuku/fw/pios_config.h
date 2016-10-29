@@ -107,6 +107,11 @@
 #define PIOS_INCLUDE_LOGFS_SETTINGS
 #define PIOS_INCLUDE_FLASH_INTERNAL
 
+#define PIOS_VIDEO_TIM4_COUNTER
+#define PIOS_INCLUDE_VIDEO
+#define PIOS_VIDEO_SPLITBUFFER /* Brain uses 2 1-bit/pixel buffers */
+#define MODULE_FLIGHTSTATS_BUILTIN
+
 /* Flags that alter behaviors - mostly to lower resources for CC */
 #define PIOS_INCLUDE_INITCALL           /* Include init call structures */
 #define PIOS_TELEM_PRIORITY_QUEUE       /* Enable a priority queue in telemetry */

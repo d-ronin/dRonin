@@ -67,6 +67,8 @@ OPTMODULES += Geofence
 OPTMODULES += Logging
 OPTMODULES += FlightStats
 OPTMODULES += Storm32Bgc
+OPTMODULES += VTXConfig
+OPTMODULES += OnScreenDisplay
 
 # Paths
 OPUAVTALKINC = $(OPUAVTALK)/inc
@@ -87,6 +89,9 @@ DEBUG_CM3_DIR = $(PIOSCOMMONLIB)/Debug
 DEBUG_CM3_DIR_INC = $(DEBUG_CM3_DIR)/inc
 OPUAVOBJINC = $(OPUAVOBJ)/inc
 MAVLINKINC = $(FLIGHTLIB)/mavlink/v1.0/common
+
+MGRSLIB = $(FLIGHTLIB)/mgrs
+MGRSLIBINC = $(FLIGHTLIB)/mgrs
 
 # optional component libraries
 include $(APPLIBDIR)/ChibiOS/library.mk
@@ -175,6 +180,13 @@ SRC += pios_wdg.c
 SRC += pios_reset.c
 SRC += pios_annunc.c
 
+## MGRS Library (needed by OSD)
+SRC += $(MGRSLIB)/mgrs.c
+SRC += $(MGRSLIB)/utm.c
+SRC += $(MGRSLIB)/ups.c
+SRC += $(MGRSLIB)/tranmerc.c
+SRC += $(MGRSLIB)/polarst.c
+
 # List C++ source files here.
 # use file-extension .cpp for C++-files (not .C)
 CPPSRC =
@@ -200,6 +212,7 @@ EXTRAINCDIRS += $(CMSISDIR)
 EXTRAINCDIRS += $(BOOTINC)
 EXTRAINCDIRS += $(DEBUG_CM3_DIR_INC)
 EXTRAINCDIRS += $(MAVLINKINC)
+EXTRAINCDIRS += $(MGRSLIBINC)
 
 EXTRAINCDIRS += ${foreach MOD, ${MODULES} ${OPTMODULES}, $(OPMODULEDIR)/${MOD}/inc} ${OPMODULEDIR}/System/inc
 

@@ -5,13 +5,13 @@
  * @addtogroup Seppuku Seppuku support files
  * @{
  *
- * @file       board_hw_defs.c 
+ * @file       board_hw_defs.c
  * @author     Tau Labs, http://taulabs.org, Copyright (C) 2012-2014
  * @author     dRonin, http://dronin.org Copyright (C) 2015-2016
  * @brief      Defines board specific static initializers for hardware for the
  *             Seppuku board.
  * @see        The GNU Public License (GPL) Version 3
- * 
+ *
  *****************************************************************************/
 /*
  * This program is free software; you can redistribute it and/or modify
@@ -32,7 +32,7 @@
  * must be maintained in each individual source file that is a derivative work
  * of this source file; otherwise redistribution is prohibited.
  */
- 
+
 #include <pios_config.h>
 #include <pios_board_info.h>
 
@@ -1124,6 +1124,234 @@ void PIOS_ADC_DMA_irq_handler(void)
 }
 
 #endif /* PIOS_INCLUDE_ADC */
+
+#if defined(PIOS_INCLUDE_VIDEO)
+#include <pios_video.h>
+
+void set_bw_levels(uint8_t black, uint8_t white)
+{
+	// XXX cue the right counter, etc.
+}
+
+static const struct pios_exti_cfg pios_exti_vsync_cfg __exti_config = {
+	.vector = PIOS_Vsync_ISR,
+	.line = EXTI_Line12,
+	.pin = {
+		.gpio = GPIOB,
+		.init = {
+			.GPIO_Pin   = GPIO_Pin_12,
+			.GPIO_Speed = GPIO_Speed_100MHz,
+			.GPIO_Mode  = GPIO_Mode_IN,
+			.GPIO_OType = GPIO_OType_OD,
+			.GPIO_PuPd  = GPIO_PuPd_NOPULL,
+		},
+	},
+	.irq = {
+		.init                                  = {
+			.NVIC_IRQChannel    =  EXTI15_10_IRQn,
+			.NVIC_IRQChannelPreemptionPriority = PIOS_IRQ_PRIO_HIGHEST,
+			.NVIC_IRQChannelSubPriority        = 0,
+			.NVIC_IRQChannelCmd = ENABLE,
+		},
+	},
+	.exti = {
+		.init                                  = {
+			.EXTI_Line    = EXTI_Line12,
+			.EXTI_Mode    = EXTI_Mode_Interrupt,
+			.EXTI_Trigger = EXTI_Trigger_Falling,
+			.EXTI_LineCmd = ENABLE,
+		},
+	},
+};
+
+const struct pios_video_cfg pios_video_cfg = {
+	.mask_dma = DMA2,
+	.mask = {
+		.regs = SPI1,
+		.remap = GPIO_AF_SPI1,
+		.init = {
+			.SPI_Mode              = SPI_Mode_Slave,
+			.SPI_Direction         = SPI_Direction_1Line_Tx,
+			.SPI_DataSize          = SPI_DataSize_8b,
+			.SPI_NSS               = SPI_NSS_Soft,
+			.SPI_FirstBit          = SPI_FirstBit_MSB,
+			.SPI_CRCPolynomial     = 7,
+			.SPI_CPOL              = SPI_CPOL_Low,
+			.SPI_CPHA              = SPI_CPHA_2Edge,
+			.SPI_BaudRatePrescaler = SPI_BaudRatePrescaler_2,
+		},
+		.dma = {
+			.irq = {
+				.flags = (DMA_IT_TCIF3),
+				.init  = {
+					.NVIC_IRQChannel = DMA2_Stream3_IRQn,
+					.NVIC_IRQChannelPreemptionPriority = PIOS_IRQ_PRIO_HIGHEST,
+					.NVIC_IRQChannelSubPriority = 0,
+					.NVIC_IRQChannelCmd = ENABLE,
+				},
+			},
+			/*.rx = {},*/
+			.tx                                        = {
+				.channel = DMA2_Stream3,
+				.init    = {
+					.DMA_Channel = DMA_Channel_3,
+					.DMA_PeripheralBaseAddr = (uint32_t)&(SPI1->DR),
+					.DMA_DIR = DMA_DIR_MemoryToPeripheral,
+					.DMA_BufferSize = BUFFER_WIDTH,
+					.DMA_PeripheralInc = DMA_PeripheralInc_Disable,
+					.DMA_MemoryInc = DMA_MemoryInc_Enable,
+					.DMA_PeripheralDataSize = DMA_PeripheralDataSize_Byte,
+					.DMA_MemoryDataSize = DMA_MemoryDataSize_Word,
+					.DMA_Mode = DMA_Mode_Normal,
+					.DMA_Priority = DMA_Priority_VeryHigh,
+					.DMA_FIFOMode = DMA_FIFOMode_Enable,
+					.DMA_FIFOThreshold = DMA_FIFOThreshold_Full,
+					.DMA_MemoryBurst = DMA_MemoryBurst_INC4,
+					.DMA_PeripheralBurst = DMA_PeripheralBurst_Single,
+				},
+			},
+		},
+		.sclk                                          = {
+			.gpio = GPIOB,
+			.init = {
+				.GPIO_Pin   = GPIO_Pin_3,
+				.GPIO_Speed = GPIO_Speed_100MHz,
+				.GPIO_Mode  = GPIO_Mode_AF,
+				.GPIO_OType = GPIO_OType_PP,
+				.GPIO_PuPd  = GPIO_PuPd_NOPULL
+			},
+		},
+		.miso                                          = {
+			.gpio = GPIOA,
+			.init = {
+				.GPIO_Pin   = GPIO_Pin_6,
+				.GPIO_Speed = GPIO_Speed_50MHz,
+				.GPIO_Mode  = GPIO_Mode_AF,
+				.GPIO_OType = GPIO_OType_PP,
+				.GPIO_PuPd  = GPIO_PuPd_NOPULL
+			},
+		},
+		.slave_count = 1, // XXX this is a lie
+	},
+	.level_dma = DMA1,
+	.level                                             = {
+		.regs  = SPI2,
+		.remap = GPIO_AF_SPI2,
+		.init  = {
+			.SPI_Mode              = SPI_Mode_Slave,
+			.SPI_Direction         = SPI_Direction_1Line_Tx,
+			.SPI_DataSize          = SPI_DataSize_8b,
+			.SPI_NSS               = SPI_NSS_Soft,
+			.SPI_FirstBit          = SPI_FirstBit_MSB,
+			.SPI_CRCPolynomial     = 7,
+			.SPI_CPOL              = SPI_CPOL_Low,
+			.SPI_CPHA              = SPI_CPHA_2Edge,
+			.SPI_BaudRatePrescaler = SPI_BaudRatePrescaler_2,
+		},
+		.dma = {
+			.irq = {
+				.flags = (DMA_IT_TCIF4),
+				.init  = {
+					.NVIC_IRQChannel = DMA1_Stream4_IRQn,
+					.NVIC_IRQChannelPreemptionPriority = PIOS_IRQ_PRIO_HIGHEST,
+					.NVIC_IRQChannelSubPriority = 0,
+					.NVIC_IRQChannelCmd = ENABLE,
+				},
+			},
+			/*.rx = {},*/
+			.tx                                        = {
+				.channel = DMA1_Stream4,
+				.init    = {
+					.DMA_Channel = DMA_Channel_0,
+					.DMA_PeripheralBaseAddr = (uint32_t)&(SPI2->DR),
+					.DMA_DIR = DMA_DIR_MemoryToPeripheral,
+					.DMA_BufferSize = BUFFER_WIDTH,
+					.DMA_PeripheralInc = DMA_PeripheralInc_Disable,
+					.DMA_MemoryInc = DMA_MemoryInc_Enable,
+					.DMA_PeripheralDataSize = DMA_PeripheralDataSize_Byte,
+					.DMA_MemoryDataSize = DMA_MemoryDataSize_Word,
+					.DMA_Mode = DMA_Mode_Normal,
+					.DMA_Priority = DMA_Priority_VeryHigh,
+					.DMA_FIFOMode = DMA_FIFOMode_Enable,
+					.DMA_FIFOThreshold = DMA_FIFOThreshold_Full,
+					.DMA_MemoryBurst = DMA_MemoryBurst_INC4,
+					.DMA_PeripheralBurst = DMA_PeripheralBurst_Single,
+				},
+			},
+		},
+		.sclk                                          = {
+			.gpio = GPIOB,
+			.init = {
+				.GPIO_Pin   = GPIO_Pin_13,
+				.GPIO_Speed = GPIO_Speed_100MHz,
+				.GPIO_Mode  = GPIO_Mode_AF,
+				.GPIO_OType = GPIO_OType_PP,
+				.GPIO_PuPd  = GPIO_PuPd_UP
+			},
+		},
+		.miso                                          = {
+			.gpio = GPIOB,
+			.init = {
+				.GPIO_Pin   = GPIO_Pin_14,
+				.GPIO_Speed = GPIO_Speed_50MHz,
+				.GPIO_Mode  = GPIO_Mode_AF,
+				.GPIO_OType = GPIO_OType_PP,
+				.GPIO_PuPd  = GPIO_PuPd_UP
+			},
+		},
+		.slave_count = 1, // XXX wrong
+	},
+	.vsync = &pios_exti_vsync_cfg,
+
+	.hsync_capture                                     = {
+		.timer = TIM2,
+		.timer_chan = TIM_Channel_3,
+		.pin   = {
+			.gpio = GPIOA,
+			.init = {
+				.GPIO_Pin   = GPIO_Pin_2,
+				.GPIO_Speed = GPIO_Speed_100MHz,
+				.GPIO_Mode  = GPIO_Mode_AF,
+				.GPIO_OType = GPIO_OType_PP,
+				.GPIO_PuPd  = GPIO_PuPd_UP
+			},
+			.pin_source = GPIO_PinSource2,
+		},
+		.remap                                         = GPIO_AF_TIM2,
+	},
+	.pixel_timer                                       = {
+		.timer = TIM10,
+		.timer_chan = TIM_Channel_1,
+		.pin   = {
+			.gpio = GPIOB,
+			.init = {
+				.GPIO_Pin   = GPIO_Pin_8,
+				.GPIO_Speed = GPIO_Speed_100MHz,
+				.GPIO_Mode  = GPIO_Mode_AF,
+				.GPIO_OType = GPIO_OType_PP,
+				.GPIO_PuPd  = GPIO_PuPd_UP
+			},
+			.pin_source                                = GPIO_PinSource8,
+		},
+		.remap                                         = GPIO_AF_TIM10,
+	},
+
+	.line_counter = TIM4,
+
+	.tim_oc_init                                       = {
+		.TIM_OCMode       = TIM_OCMode_PWM1,
+		.TIM_OutputState  = TIM_OutputState_Enable,
+		.TIM_OutputNState = TIM_OutputNState_Disable,
+		.TIM_Pulse        = 1,
+		.TIM_OCPolarity   = TIM_OCPolarity_High,
+		.TIM_OCNPolarity  = TIM_OCPolarity_High,
+		.TIM_OCIdleState  = TIM_OCIdleState_Reset,
+		.TIM_OCNIdleState = TIM_OCNIdleState_Reset,
+	},
+	.set_bw_levels = set_bw_levels,
+};
+
+#endif /* PIOS_INCLUDE_VIDEO */
 
 /**
  * Configuration for driving a WS2811 LED out INPORT1
