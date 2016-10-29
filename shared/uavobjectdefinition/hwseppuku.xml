@@ -139,6 +139,9 @@
 		<field name="Magnetometer" units="" type="enum" elements="1" parent="HwShared.Mag" defaultvalue="Internal">
 			<description>Which magnetometer to use. If external, must connect to UART3, and configure it as I2C.</description>
 		</field>
+		<field name="BMI160FOC" units="" type="enum" elements="1" options="Disabled,Do_FOC" defaultvalue="Disabled">
+			<description>Peform BMI160 fast offset compensation on next boot. Should not be performed by users. Can only be done a limited number of times.</description>
+		</field>
 		<field name="ExtMagOrientation" units="" type="enum" elements="1" parent="HwShared.MagOrientation" defaultvalue="Top0degCW">
 			<description>Orientation of the external magnetometer</description>
 		</field>

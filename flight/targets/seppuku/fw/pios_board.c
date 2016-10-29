@@ -53,16 +53,17 @@
 /**
  * Sensor configurations
  */
-#if defined(PIOS_INCLUDE_HMC5883)
-#include "pios_hmc5883_priv.h"
-static const struct pios_exti_cfg pios_exti_hmc5883_internal_cfg __exti_config = {
-	.vector = PIOS_HMC5883_IRQHandler,
-	.line = EXTI_Line1,
+#if defined(PIOS_INCLUDE_BMI160)
+#include "pios_bmi160.h"
+
+static const struct pios_exti_cfg pios_exti_bmi160_cfg __exti_config = {
+	.vector = PIOS_BMI160_IRQHandler,
+	.line = EXTI_Line4,
 	.pin = {
 		.gpio = GPIOC,
 		.init = {
-			.GPIO_Pin = GPIO_Pin_1,
-			.GPIO_Speed = GPIO_Speed_100MHz,
+			.GPIO_Pin = GPIO_Pin_4,
+			.GPIO_Speed = GPIO_Speed_2MHz,
 			.GPIO_Mode = GPIO_Mode_IN,
 			.GPIO_OType = GPIO_OType_OD,
 			.GPIO_PuPd = GPIO_PuPd_NOPULL,
@@ -70,15 +71,15 @@ static const struct pios_exti_cfg pios_exti_hmc5883_internal_cfg __exti_config =
 	},
 	.irq = {
 		.init = {
-			.NVIC_IRQChannel = EXTI1_IRQn,
-			.NVIC_IRQChannelPreemptionPriority = PIOS_IRQ_PRIO_LOW,
+			.NVIC_IRQChannel = EXTI4_IRQn,
+			.NVIC_IRQChannelPreemptionPriority = PIOS_IRQ_PRIO_HIGH,
 			.NVIC_IRQChannelSubPriority = 0,
 			.NVIC_IRQChannelCmd = ENABLE,
 		},
 	},
 	.exti = {
 		.init = {
-			.EXTI_Line = EXTI_Line1, // matches above GPIO pin
+			.EXTI_Line = EXTI_Line4, // matches above GPIO pin
 			.EXTI_Mode = EXTI_Mode_Interrupt,
 			.EXTI_Trigger = EXTI_Trigger_Rising,
 			.EXTI_LineCmd = ENABLE,
@@ -86,26 +87,15 @@ static const struct pios_exti_cfg pios_exti_hmc5883_internal_cfg __exti_config =
 	},
 };
 
-static const struct pios_hmc5883_cfg pios_hmc5883_internal_cfg = {
-	.exti_cfg = &pios_exti_hmc5883_internal_cfg,
-	.M_ODR = PIOS_HMC5883_ODR_75,
-	.Meas_Conf = PIOS_HMC5883_MEASCONF_NORMAL,
-	.Gain = PIOS_HMC5883_GAIN_1_9,
-	.Mode = PIOS_HMC5883_MODE_CONTINUOUS,
-	.Default_Orientation = PIOS_HMC5883_TOP_90DEG,
+static const struct pios_bmi160_cfg pios_bmi160_cfg = {
+	.exti_cfg = &pios_exti_bmi160_cfg,
+	.orientation = PIOS_BMI160_TOP_0DEG,
+	.odr = PIOS_BMI160_ODR_1600_Hz,
+	.acc_range = PIOS_BMI160_RANGE_8G,
+	.gyro_range = PIOS_BMI160_RANGE_2000DPS,
+	.temperature_interleaving = 50
 };
-#endif /* PIOS_INCLUDE_HMC5883 */
-
-/**
- * Configuration for the MS5611 chip
- */
-#if defined(PIOS_INCLUDE_MS5611)
-#include "pios_ms5611_priv.h"
-static const struct pios_ms5611_cfg pios_ms5611_cfg = {
-	.oversampling = MS5611_OSR_1024,
-	.temperature_interleaving = 1,
-};
-#endif /* PIOS_INCLUDE_MS5611 */
+#endif /* PIOS_INCLUDE_BMI160 */
 
 uintptr_t pios_com_openlog_logging_id;
 uintptr_t pios_uavo_settings_fs_id;
@@ -381,14 +371,28 @@ void PIOS_Board_Init(void) {
 
 	PIOS_WDG_Clear();
 
-#if defined(PIOS_INCLUDE_BMI160)
-	pios_mpu_dev_t mpu_dev = NULL;
-	if (PIOS_MPU_SPI_Init(&mpu_dev, pios_spi_gyro_accel_id, 0, &pios_mpu_cfg) != 0)
-		PIOS_HAL_CriticalError(PIOS_LED_ALARM, PIOS_HAL_PANIC_IMU);
+#if defined(PIOS_INCLUDE_SPI)
 
-	// XXX Set up inertial measurement
+#if defined(PIOS_INCLUDE_BMI160)
+	uint8_t bmi160_foc;
+	HwSeppukuBMI160FOCGet(&bmi160_foc);
+
+	bool do_foc = (bmi160_foc == HWSEPPUKU_BMI160FOC_DO_FOC);
+
+	if(PIOS_BMI160_Init(pios_spi_gyro_accel_id, 0, &pios_bmi160_cfg, do_foc) != 0){
+		PIOS_HAL_CriticalError(PIOS_LED_ALARM, PIOS_HAL_PANIC_IMU);
+	}
+
+	/* Disable FOC. We only do this once. */
+	if (do_foc) {
+		bmi160_foc = HWSEPPUKU_BMI160FOC_DISABLED;
+		HwSeppukuBMI160FOCSet(&bmi160_foc);
+		UAVObjSave(HwSeppukuHandle(), 0);
+	}
+#endif /* PIOS_INCLUDE_BMI160 */
+
 	// XXX BMP280 support
-#endif
+#endif /* PIOS_INCLUDE_SPI */
 
 	PIOS_WDG_Clear();
 
@@ -400,7 +404,9 @@ void PIOS_Board_Init(void) {
 			break;
 
 		case HWSEPPUKU_MAGNETOMETER_INTERNAL:
+#if defined(PIOS_INCLUDE_SPI)
 			/* XXX magnetometer support */
+#endif /* PIOS_INCLUDE_SPI */
 			break;
 
 		/* default external mags and handle them in PiOS HAL rather than maintaining list here */
