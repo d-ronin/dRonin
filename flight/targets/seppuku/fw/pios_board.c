@@ -46,7 +46,7 @@
 #include <pios_hal.h>
 #include <openpilot.h>
 #include <uavobjectsinit.h>
-#include "hwquanton.h"
+#include "hwseppuku.h"
 #include "manualcontrolsettings.h"
 #include "modulesettings.h"
 
@@ -173,7 +173,7 @@ void PIOS_Board_Init(void) {
 	PIOS_RESET_Clear(); // Clear the RCC reset flags after use.
 
 	/* Initialize the hardware UAVOs */
-	HwQuantonInitialize();
+	HwSeppukuInitialize();
 	ModuleSettingsInitialize();
 
 #if defined(PIOS_INCLUDE_RTC)
@@ -208,7 +208,7 @@ void PIOS_Board_Init(void) {
 		AlarmsClear(SYSTEMALARMS_ALARM_BOOTFAULT);
 	} else {
 		/* Too many failed boot attempts, force hw config to defaults */
-		HwQuantonSetDefaults(HwQuantonHandle(), 0);
+		HwSeppukuSetDefaults(HwSeppukuHandle(), 0);
 		ModuleSettingsSetDefaults(ModuleSettingsHandle(),0);
 		AlarmsSet(SYSTEMALARMS_ALARM_BOOTFAULT, SYSTEMALARMS_ALARM_CRITICAL);
 	}
@@ -241,11 +241,11 @@ void PIOS_Board_Init(void) {
 
 	uint8_t hw_usb_vcpport;
 	/* Configure the USB VCP port */
-	HwQuantonUSB_VCPPortGet(&hw_usb_vcpport);
+	HwSeppukuUSB_VCPPortGet(&hw_usb_vcpport);
 
 	if (!usb_cdc_present) {
 		/* Force VCP port function to disabled if we haven't advertised VCP in our USB descriptor */
-		hw_usb_vcpport = HWQUANTON_USB_VCPPORT_DISABLED;
+		hw_usb_vcpport = HWSEPPUKU_USB_VCPPORT_DISABLED;
 	}
 
 	PIOS_HAL_ConfigureCDC(hw_usb_vcpport, pios_usb_id, &pios_usb_cdc_cfg);
@@ -255,11 +255,11 @@ void PIOS_Board_Init(void) {
 #if defined(PIOS_INCLUDE_USB_HID)
 	/* Configure the usb HID port */
 	uint8_t hw_usb_hidport;
-	HwQuantonUSB_HIDPortGet(&hw_usb_hidport);
+	HwSeppukuUSB_HIDPortGet(&hw_usb_hidport);
 
 	if (!usb_hid_present) {
 		/* Force HID port function to disabled if we haven't advertised HID in our USB descriptor */
-		hw_usb_hidport = HWQUANTON_USB_HIDPORT_DISABLED;
+		hw_usb_hidport = HWSEPPUKU_USB_HIDPORT_DISABLED;
 	}
 
 	PIOS_HAL_ConfigureHID(hw_usb_hidport, pios_usb_id, &pios_usb_hid_cfg);
@@ -284,12 +284,12 @@ void PIOS_Board_Init(void) {
 			AlarmsSet(SYSTEMALARMS_ALARM_I2C, SYSTEMALARMS_ALARM_OK);
 #endif
 
-	HwQuantonDSMxModeOptions hw_DSMxMode;
-	HwQuantonDSMxModeGet(&hw_DSMxMode);
+	HwSeppukuDSMxModeOptions hw_DSMxMode;
+	HwSeppukuDSMxModeGet(&hw_DSMxMode);
 
 	/* UART1 Port */
 	uint8_t hw_uart1;
-	HwQuantonUart1Get(&hw_uart1);
+	HwSeppukuUart1Get(&hw_uart1);
 
 	PIOS_HAL_ConfigurePort(hw_uart1,             // port type protocol
 			&pios_usart1_cfg,                    // usart_port_cfg
@@ -303,25 +303,9 @@ void PIOS_Board_Init(void) {
 			hw_DSMxMode,                         // dsm_mode
 			NULL);                               // sbus_cfg
 
-	/* UART2 Port */
-	uint8_t hw_uart2;
-	HwQuantonUart2Get(&hw_uart2);
-
-	PIOS_HAL_ConfigurePort(hw_uart2,             // port type protocol
-			&pios_usart2_cfg,                    // usart_port_cfg
-			&pios_usart_com_driver,              // com_driver
-			NULL,                                // i2c_id
-			NULL,                                // i2c_cfg
-			NULL,                                // ppm_cfg
-			NULL,                                // pwm_cfg
-			PIOS_LED_ALARM,                      // led_id
-			&pios_usart2_dsm_aux_cfg,            // dsm_cfg
-			0,                                   // dsm_mode
-			&pios_usart2_sbus_aux_cfg);          // sbus_cfg
-
 	/* UART3 Port */
 	uint8_t hw_uart3;
-	HwQuantonUart3Get(&hw_uart3);
+	HwSeppukuUart3Get(&hw_uart3);
 
 	PIOS_HAL_ConfigurePort(hw_uart3,             // port type protocol
 			&pios_usart3_cfg,                    // usart_port_cfg
@@ -335,9 +319,9 @@ void PIOS_Board_Init(void) {
 			hw_DSMxMode,                         // dsm_mode
 			NULL);                               // sbus_cfg
 
-	/* UART4 Port */
+	/* UART4 Port --- XXX make conditional on being set up */
 	uint8_t hw_uart4;
-	HwQuantonUart4Get(&hw_uart4);
+	HwSeppukuUart4Get(&hw_uart4);
 
 	PIOS_HAL_ConfigurePort(hw_uart4,             // port type protocol
 			&pios_usart4_cfg,                    // usart_port_cfg
@@ -351,168 +335,7 @@ void PIOS_Board_Init(void) {
 			hw_DSMxMode,                         // dsm_mode
 			NULL);                               // sbus_cfg
 
-	/* UART5 Port */
-	uint8_t hw_uart5;
-	HwQuantonUart5Get(&hw_uart5);
-
-	PIOS_HAL_ConfigurePort(hw_uart5,             // port type protocol
-			&pios_usart5_cfg,                    // usart_port_cfg
-			&pios_usart_com_driver,              // com_driver
-			NULL,                                // i2c_id
-			NULL,                                // i2c_cfg
-			NULL,                                // ppm_cfg
-			NULL,                                // pwm_cfg
-			PIOS_LED_ALARM,                      // led_id
-			&pios_usart5_dsm_aux_cfg,            // dsm_cfg
-			hw_DSMxMode,                         // dsm_mode
-			NULL);                               // sbus_cfg
-
-	/* Configure the inport */
-	uint8_t hw_inport;
-	HwQuantonInPortGet(&hw_inport);
-
-	switch (hw_inport) {
-	case HWQUANTON_INPORT_DISABLED:
-		break;
-	
-	case HWQUANTON_INPORT_PWM:
-		PIOS_HAL_ConfigurePort(HWSHARED_PORTTYPES_PWM,  // port type protocol
-				NULL,                                   // usart_port_cfg
-				NULL,                                   // com_driver
-				NULL,                                   // i2c_id
-				NULL,                                   // i2c_cfg
-				NULL,                                   // ppm_cfg
-				&pios_pwm_cfg,                          // pwm_cfg
-				PIOS_LED_ALARM,                         // led_id
-				NULL,                                   // dsm_cfg
-				0,                                      // dsm_mode
-				NULL);                                  // sbus_cfg
-		break;
-
-	case HWQUANTON_INPORT_PWMADC:
-		PIOS_HAL_ConfigurePort(HWSHARED_PORTTYPES_PWM,  // port type protocol
-				NULL,                                   // usart_port_cfg
-				NULL,                                   // com_driver
-				NULL,                                   // i2c_id
-				NULL,                                   // i2c_cfg
-				NULL,                                   // ppm_cfg
-				&pios_pwm_with_adc_cfg,                 // pwm_cfg
-				PIOS_LED_ALARM,                         // led_id
-				NULL,                                   // dsm_cfg
-				0,                                      // dsm_mode
-				NULL);                                  // sbus_cfg
-		break;
-
-	case HWQUANTON_INPORT_WS2811SERIALPPMADC:
-		/* set up alt ppm, then fall through to set up serial */
-		PIOS_HAL_ConfigurePort(HWSHARED_PORTTYPES_PPM,  // port type protocol
-				NULL,                                   // usart_port_cfg
-				NULL,                                   // com_driver
-				NULL,                                   // i2c_id
-				NULL,                                   // i2c_cfg
-				&pios_ppm_in4_cfg,                      // ppm_cfg
-				NULL,                                   // pwm_cfg
-				PIOS_LED_ALARM,                         // led_id
-				NULL,                                   // dsm_cfg
-				0,                                      // dsm_mode
-				NULL);                                  // sbus_cfg
-	case HWQUANTON_INPORT_PPMSERIAL:
-	case HWQUANTON_INPORT_PPMSERIALADC:
-	case HWQUANTON_INPORT_SERIAL:
-		{
-			uint8_t hw_inportserial;
-			HwQuantonInPortSerialGet(&hw_inportserial);
-
-			PIOS_HAL_ConfigurePort(hw_inportserial,      // port type protocol
-					&pios_usart_inportserial_cfg,        // usart_port_cfg
-					&pios_usart_com_driver,              // com_driver
-					NULL,                                // i2c_id
-					NULL,                                // i2c_cfg
-					NULL,                                // ppm_cfg
-					NULL,                                // pwm_cfg
-					PIOS_LED_ALARM,                      // led_id
-					&pios_inportserial_dsm_aux_cfg,      // dsm_cfg
-					hw_DSMxMode,                         // dsm_mode
-					NULL);                               // sbus_cfg
-		}
-
-		if (hw_inport == HWQUANTON_INPORT_SERIAL)
-			break;
-
-		if (hw_inport == HWQUANTON_INPORT_WS2811SERIALPPMADC)
-			break;
-
-		// Else fall through to set up PPM.
-
-	case HWQUANTON_INPORT_PPM:
-	case HWQUANTON_INPORT_PPMADC:
-	case HWQUANTON_INPORT_PPMOUTPUTS:
-	case HWQUANTON_INPORT_PPMOUTPUTSADC:
-		PIOS_HAL_ConfigurePort(HWSHARED_PORTTYPES_PPM,  // port type protocol
-				NULL,                                   // usart_port_cfg
-				NULL,                                   // com_driver
-				NULL,                                   // i2c_id
-				NULL,                                   // i2c_cfg
-				&pios_ppm_cfg,                          // ppm_cfg
-				NULL,                                   // pwm_cfg
-				PIOS_LED_ALARM,                         // led_id
-				NULL,                                   // dsm_cfg
-				0,                                      // dsm_mode
-				NULL);                                  // sbus_cfg
-		break;
-
-	case HWQUANTON_INPORT_PPMPWM:
-		PIOS_HAL_ConfigurePort(HWSHARED_PORTTYPES_PPM,  // port type protocol
-				NULL,                                   // usart_port_cfg
-				NULL,                                   // com_driver
-				NULL,                                   // i2c_id
-				NULL,                                   // i2c_cfg
-				&pios_ppm_cfg,                          // ppm_cfg
-				NULL,                                   // pwm_cfg
-				PIOS_LED_ALARM,                         // led_id
-				NULL,                                   // dsm_cfg
-				0,                                      // dsm_mode
-				NULL);                                  // sbus_cfg
-
-		PIOS_HAL_ConfigurePort(HWSHARED_PORTTYPES_PWM,  // port type protocol
-				NULL,                                   // usart_port_cfg
-				NULL,                                   // com_driver
-				NULL,                                   // i2c_id
-				NULL,                                   // i2c_cfg
-				NULL,                                   // ppm_cfg
-				&pios_pwm_with_ppm_cfg,                 // pwm_cfg
-				PIOS_LED_ALARM,                         // led_id
-				NULL,                                   // dsm_cfg
-				0,                                      // dsm_mode
-				NULL);                                  // sbus_cfg
-		break;
-
-	case HWQUANTON_INPORT_PPMPWMADC:
-		PIOS_HAL_ConfigurePort(HWSHARED_PORTTYPES_PPM,  // port type protocol
-				NULL,                                   // usart_port_cfg
-				NULL,                                   // com_driver
-				NULL,                                   // i2c_id
-				NULL,                                   // i2c_cfg
-				&pios_ppm_cfg,                          // ppm_cfg
-				NULL,                                   // pwm_cfg
-				PIOS_LED_ALARM,                         // led_id
-				NULL,                                   // dsm_cfg
-				0,                                      // dsm_mode
-				NULL);                                  // sbus_cfg
-
-		PIOS_HAL_ConfigurePort(HWSHARED_PORTTYPES_PWM,  // port type protocol
-				NULL,                                   // usart_port_cfg
-				NULL,                                   // com_driver
-				NULL,                                   // i2c_id
-				NULL,                                   // i2c_cfg
-				NULL,                                   // ppm_cfg
-				&pios_pwm_with_ppm_with_adc_cfg,        // pwm_cfg
-				PIOS_LED_ALARM,                         // led_id
-				NULL,                                   // dsm_cfg
-				0,                                      // dsm_mode
-				NULL);                                  // sbus_cfg
-		break;
-	}
+	// XXX bring in receiver port configuration code
 
 #if defined(PIOS_INCLUDE_GCSRCVR)
 	GCSReceiverInitialize();
@@ -525,239 +348,87 @@ void PIOS_Board_Init(void) {
 	pios_rcvr_group_map[MANUALCONTROLSETTINGS_CHANNELGROUPS_GCS] = pios_gcsrcvr_rcvr_id;
 #endif	/* PIOS_INCLUDE_GCSRCVR */
 
-#ifndef PIOS_DEBUG_ENABLE_DEBUG_PINS
-	switch (hw_inport) {
-		case HWQUANTON_INPORT_DISABLED:
-		case HWQUANTON_INPORT_PWM:
-		case HWQUANTON_INPORT_PWMADC:
-		case HWQUANTON_INPORT_PPM:
-		case HWQUANTON_INPORT_PPMADC:
-		case HWQUANTON_INPORT_PPMPWM:
-		case HWQUANTON_INPORT_PPMPWMADC:
-		case HWQUANTON_INPORT_WS2811SERIALPPMADC:
-			/* Set up the servo outputs */
+	// XXX USART4 setting to mask two last ports.
 #ifdef PIOS_INCLUDE_SERVO
-			PIOS_Servo_Init(&pios_servo_cfg);
-#endif
-			break;
-		case HWQUANTON_INPORT_PPMOUTPUTS:
-#ifdef PIOS_INCLUDE_SERVO
-			PIOS_Servo_Init(&pios_servo_with_rcvr_ppm_cfg);
-#endif
-			break;
-		case HWQUANTON_INPORT_OUTPUTS:
-#ifdef PIOS_INCLUDE_SERVO
-			PIOS_Servo_Init(&pios_servo_with_rcvr_cfg);
-#endif
-			break;
-		case HWQUANTON_INPORT_PPMOUTPUTSADC:
-		case HWQUANTON_INPORT_OUTPUTSADC:
-#ifdef PIOS_INCLUDE_SERVO
-			PIOS_Servo_Init(&pios_servo_with_rcvr_with_adc_cfg);
-#endif
-			break;
-	}
-#else
-	PIOS_DEBUG_Init(&pios_tim_servo_all_channels, NELEMENTS(pios_tim_servo_all_channels));
+	PIOS_Servo_Init(&pios_servo_cfg);
 #endif
 
 #ifdef PIOS_INCLUDE_WS2811
-	if (hw_inport == HWQUANTON_INPORT_WS2811SERIALPPMADC) {
-		PIOS_WS2811_init(&pios_ws2811, &pios_ws2811_cfg, 7);
+	PIOS_WS2811_init(&pios_ws2811, &pios_ws2811_cfg, 7);
 
-		// Pending infrastructure for this, drive a fixed
-		// value to the strand once.
-		PIOS_WS2811_set(pios_ws2811, 0, 255, 0, 0); // red
-		PIOS_WS2811_set(pios_ws2811, 1, 0, 255, 0); // green
-		PIOS_WS2811_set(pios_ws2811, 2, 0, 0, 255); // blue
-		PIOS_WS2811_set(pios_ws2811, 3, 255, 255, 0); // yellow
-		PIOS_WS2811_set(pios_ws2811, 4, 255, 0, 255); // purple
-		PIOS_WS2811_set(pios_ws2811, 5, 0, 255, 255); // cyan
-		PIOS_WS2811_set(pios_ws2811, 6, 64, 64, 64); // gray
-		PIOS_WS2811_trigger_update(pios_ws2811);
-	}
+	// Pending infrastructure for this, drive a fixed
+	// value to the strand once.
+	PIOS_WS2811_set(pios_ws2811, 0, 255, 0, 0); // red
+	PIOS_WS2811_set(pios_ws2811, 1, 0, 255, 0); // green
+	PIOS_WS2811_set(pios_ws2811, 2, 0, 0, 255); // blue
+	PIOS_WS2811_set(pios_ws2811, 3, 255, 255, 0); // yellow
+	PIOS_WS2811_set(pios_ws2811, 4, 255, 0, 255); // purple
+	PIOS_WS2811_set(pios_ws2811, 5, 0, 255, 255); // cyan
+	PIOS_WS2811_set(pios_ws2811, 6, 64, 64, 64); // gray
+	PIOS_WS2811_trigger_update(pios_ws2811);
 #endif
 
 /* init sensor queue registration */
 	PIOS_SENSORS_Init();
 
 	PIOS_WDG_Clear();
-	PIOS_DELAY_WaitmS(200);
-	PIOS_WDG_Clear();
 
-#if defined(PIOS_INCLUDE_MPU)
+#if defined(PIOS_INCLUDE_BMI160)
 	pios_mpu_dev_t mpu_dev = NULL;
 	if (PIOS_MPU_SPI_Init(&mpu_dev, pios_spi_gyro_accel_id, 0, &pios_mpu_cfg) != 0)
 		PIOS_HAL_CriticalError(PIOS_LED_ALARM, PIOS_HAL_PANIC_IMU);
 
-	HwQuantonGyroRangeOptions hw_gyro_range;
-	HwQuantonGyroRangeGet(&hw_gyro_range);
-	switch(hw_gyro_range) {
-		case HWQUANTON_GYRORANGE_250:
-			PIOS_MPU_SetGyroRange(PIOS_MPU_SCALE_250_DEG);
-			break;
-		case HWQUANTON_GYRORANGE_500:
-			PIOS_MPU_SetGyroRange(PIOS_MPU_SCALE_500_DEG);
-			break;
-		case HWQUANTON_GYRORANGE_1000:
-			PIOS_MPU_SetGyroRange(PIOS_MPU_SCALE_1000_DEG);
-			break;
-		case HWQUANTON_GYRORANGE_2000:
-			PIOS_MPU_SetGyroRange(PIOS_MPU_SCALE_2000_DEG);
-			break;
-	}
-
-	HwQuantonAccelRangeOptions hw_accel_range;
-	HwQuantonAccelRangeGet(&hw_accel_range);
-	switch(hw_accel_range) {
-		case HWQUANTON_ACCELRANGE_2G:
-			PIOS_MPU_SetAccelRange(PIOS_MPU_SCALE_2G);
-			break;
-		case HWQUANTON_ACCELRANGE_4G:
-			PIOS_MPU_SetAccelRange(PIOS_MPU_SCALE_4G);
-			break;
-		case HWQUANTON_ACCELRANGE_8G:
-			PIOS_MPU_SetAccelRange(PIOS_MPU_SCALE_8G);
-			break;
-		case HWQUANTON_ACCELRANGE_16G:
-			PIOS_MPU_SetAccelRange(PIOS_MPU_SCALE_16G);
-			break;
-	}
-
-	// the filter has to be set before rate else divisor calculation will fail
-	HwQuantonMPU6000DLPFOptions hw_mpu_dlpf;
-	HwQuantonMPU6000DLPFGet(&hw_mpu_dlpf);
-	uint16_t bandwidth = \
-		(hw_mpu_dlpf == HWQUANTON_MPU6000DLPF_188) ? 188 : \
-		(hw_mpu_dlpf == HWQUANTON_MPU6000DLPF_98)  ? 98  : \
-		(hw_mpu_dlpf == HWQUANTON_MPU6000DLPF_42)  ? 42  : \
-		(hw_mpu_dlpf == HWQUANTON_MPU6000DLPF_20)  ? 20  : \
-		(hw_mpu_dlpf == HWQUANTON_MPU6000DLPF_10)  ? 10  : \
-		(hw_mpu_dlpf == HWQUANTON_MPU6000DLPF_5)   ? 5   : \
-		188;
-	PIOS_MPU_SetGyroBandwidth(bandwidth);
-
-	HwQuantonMPU6000RateOptions hw_mpu_samplerate;
-	HwQuantonMPU6000RateGet(&hw_mpu_samplerate);
-	uint16_t mpu_samplerate = \
-		(hw_mpu_samplerate == HWQUANTON_MPU6000RATE_200) ? 200 : \
-		(hw_mpu_samplerate == HWQUANTON_MPU6000RATE_250) ? 250 : \
-		(hw_mpu_samplerate == HWQUANTON_MPU6000RATE_333) ? 333 : \
-		(hw_mpu_samplerate == HWQUANTON_MPU6000RATE_500) ? 500 : \
-		(hw_mpu_samplerate == HWQUANTON_MPU6000RATE_1000) ? 1000 : \
-		pios_mpu_cfg.default_samplerate;
-	PIOS_MPU_SetSampleRate(mpu_samplerate);
+	// XXX Set up inertial measurement
+	// XXX BMP280 support
 #endif
-
-#if defined(PIOS_INCLUDE_I2C)
 
 	PIOS_WDG_Clear();
 
 	uint8_t hw_magnetometer;
-	HwQuantonMagnetometerGet(&hw_magnetometer);
+	HwSeppukuMagnetometerGet(&hw_magnetometer);
 
 	switch (hw_magnetometer) {
-		case HWQUANTON_MAGNETOMETER_NONE:
+		case HWSEPPUKU_MAGNETOMETER_NONE:
 			break;
 
-		case HWQUANTON_MAGNETOMETER_INTERNAL:
-#if defined(PIOS_INCLUDE_HMC5883)
-			if ((PIOS_HMC5883_Init(pios_i2c_internal_adapter_id, &pios_hmc5883_internal_cfg) != 0) ||
-					(PIOS_HMC5883_Test() != 0)) {
-				PIOS_HAL_CriticalError(PIOS_LED_ALARM, PIOS_HAL_PANIC_MAG);
-			}
-#endif /* PIOS_INCLUDE_HMC5883 */
+		case HWSEPPUKU_MAGNETOMETER_INTERNAL:
+			/* XXX magnetometer support */
 			break;
 
 		/* default external mags and handle them in PiOS HAL rather than maintaining list here */
 		default:
+#if defined(PIOS_INCLUDE_I2C)
 		{
-			HwQuantonExtMagPortOptions hw_mag_port;
-			HwQuantonExtMagPortGet(&hw_mag_port);
-
-			uint32_t i2c_mag_id = 0; /* TODO change to a real pointer */
-			const void *i2c_mag_cfg = NULL;
-			switch (hw_mag_port) {
-			case HWQUANTON_EXTMAGPORT_UART1:
-				if (hw_uart1 == HWSHARED_PORTTYPES_I2C) {
-					i2c_mag_id = pios_i2c_usart1_adapter_id;
-					i2c_mag_cfg = &pios_i2c_usart1_adapter_cfg;
-				}
-				break;
-			case HWQUANTON_EXTMAGPORT_UART3:
-				if (hw_uart3 == HWSHARED_PORTTYPES_I2C) {
-					i2c_mag_id = pios_i2c_usart3_adapter_id;
-					i2c_mag_cfg = &pios_i2c_usart3_adapter_cfg;
-				}
-				break;
-			}
-
-			if (i2c_mag_id && i2c_mag_cfg) {
+			if (pios_i2c_usart3_adapter_id) {
 				uint8_t hw_orientation;
-				HwQuantonExtMagOrientationGet(&hw_orientation);
+				HwSeppukuExtMagOrientationGet(&hw_orientation);
 
 				PIOS_HAL_ConfigureExternalMag(hw_magnetometer, hw_orientation,
-					&i2c_mag_id, i2c_mag_cfg);
+					&pios_i2c_usart3_adapter_id,
+					&pios_i2c_usart3_adapter_cfg);
 			} else {
 				PIOS_SENSORS_SetMissing(PIOS_SENSOR_MAG);
 			}
 		}
+#else
+			PIOS_SENSORS_SetMissing(PIOS_SENSOR_MAG);
+#endif // PIOS_INCLUDE_I2C
+
 			break;
 	}
 
 	/* I2C is slow, sensor init as well, reset watchdog to prevent reset here */
 	PIOS_WDG_Clear();
 
-#if defined(PIOS_INCLUDE_MS5611)
-	if ((PIOS_MS5611_Init(&pios_ms5611_cfg, pios_i2c_internal_adapter_id) != 0)
-			|| (PIOS_MS5611_Test() != 0))
-		PIOS_HAL_CriticalError(PIOS_LED_ALARM, PIOS_HAL_PANIC_BARO);
-#endif
-
-	//I2C is slow, sensor init as well, reset watchdog to prevent reset here
-	PIOS_WDG_Clear();
-
-#endif	/* PIOS_INCLUDE_I2C */
-
-
 #if defined(PIOS_INCLUDE_GPIO)
 	PIOS_GPIO_Init();
 #endif
 
 #if defined(PIOS_INCLUDE_ADC)
-	if (hw_inport == HWQUANTON_INPORT_OUTPUTSADC ||
-		hw_inport == HWQUANTON_INPORT_PPMADC ||
-		hw_inport == HWQUANTON_INPORT_PPMOUTPUTSADC ||
-		hw_inport == HWQUANTON_INPORT_PPMPWMADC ||
-		hw_inport == HWQUANTON_INPORT_PPMSERIALADC ||
-		hw_inport == HWQUANTON_INPORT_PWMADC ||
-		hw_inport == HWQUANTON_INPORT_WS2811SERIALPPMADC)
-	{
-		uint32_t internal_adc_id;
-		PIOS_INTERNAL_ADC_Init(&internal_adc_id, &pios_adc_cfg);
-		PIOS_ADC_Init(&pios_internal_adc_id, &pios_internal_adc_driver, internal_adc_id);
-	}
+	uint32_t internal_adc_id;
+	PIOS_INTERNAL_ADC_Init(&internal_adc_id, &pios_adc_cfg);
+	PIOS_ADC_Init(&pios_internal_adc_id, &pios_internal_adc_driver, internal_adc_id);
 #endif
-
-	//Set battery input pin to output, because of the voltage divider usage as input is not useful
-	//Take care of the voltage divider connected to this pin
-	GPIO_InitTypeDef GPIO_InitStructure;
-	GPIO_InitStructure.GPIO_Mode = GPIO_Mode_OUT;
-	GPIO_InitStructure.GPIO_OType = GPIO_OType_PP;
-	GPIO_InitStructure.GPIO_Speed = GPIO_Speed_2MHz;
-	GPIO_InitStructure.GPIO_PuPd = GPIO_PuPd_NOPULL;
-	GPIO_InitStructure.GPIO_Pin = GPIO_Pin_15;
-	GPIO_Init(GPIOC, &GPIO_InitStructure);
-	GPIO_ResetBits(GPIOC, GPIO_Pin_15);
-
-	//Set buzzer output to low as long as it is unused
-	GPIO_InitStructure.GPIO_Mode = GPIO_Mode_OUT;
-	GPIO_InitStructure.GPIO_OType = GPIO_OType_PP;
-	GPIO_InitStructure.GPIO_Speed = GPIO_Speed_2MHz;
-	GPIO_InitStructure.GPIO_PuPd = GPIO_PuPd_NOPULL;
-	GPIO_InitStructure.GPIO_Pin = GPIO_Pin_4;
-	GPIO_Init(GPIOA, &GPIO_InitStructure);
-	GPIO_ResetBits(GPIOA, GPIO_Pin_4);
 
 	/* Make sure we have at least one telemetry link configured or else fail initialization */
 	PIOS_Assert(pios_com_telem_serial_id || pios_com_telem_usb_id);
