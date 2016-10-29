@@ -372,8 +372,10 @@ enum usb_product_ids {
 	/* BrainFPV Boards */
 	USB_PRODUCT_ID_BRAIN          = 0x4242,
 
-	/* PlayUAVOSD */
-	USB_PRODUCT_ID_PLAYUAVOSD     = 0x4250,
+	/* All new targets should use these IDs, starting with playuavosd
+	 * and Seppuku */
+	USB_PRODUCT_ID_DRONINFW       = 0x4250,
+	USB_PRODUCT_ID_DRONINBL       = 0x427a,
 
 	/* ST Eval Boards */
 	USB_PRODUCT_ID_DISCOVERYF4    = USB_PRODUCT_ID_SPARE,
@@ -387,7 +389,6 @@ enum usb_product_ids {
 enum usb_product_ids_pidcodes {
 	USB_PRODUCT_ID_LUX            = 0xf3fc,
 } __attribute__((packed));
-
 
 /*
  * MCS Electronics sells reserved, but not USB-approved PIDs under its revoked VID.

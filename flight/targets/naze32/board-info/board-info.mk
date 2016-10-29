@@ -1,6 +1,6 @@
 BOARD_TYPE          := 0xA0
 BOARD_REVISION      := 0x01
-BOOTLOADER_VERSION  := 0x80
+BOOTLOADER_VERSION  := 0x87	# (not applicable)
 HW_TYPE             := 0x01
 
 PAD_TLFW_FW_DESC    := yes

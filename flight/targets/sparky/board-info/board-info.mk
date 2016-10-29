@@ -1,7 +1,6 @@
 BOARD_TYPE          := 0x88
 BOARD_REVISION      := 0x02
-# Previous version was 0x081, 0x082 introduces partition extensions and forced boot from bkp registers
-BOOTLOADER_VERSION  := 0x83
+BOOTLOADER_VERSION  := 0x87
 HW_TYPE             := 0x00		# seems to be unused
 
 CHIP                := STM32F303VCT

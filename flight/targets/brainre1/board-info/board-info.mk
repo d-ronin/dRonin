@@ -1,6 +1,6 @@
 BOARD_TYPE          := 0x8B
 BOARD_REVISION      := 0x01
-BOOTLOADER_VERSION  := 0x83
+BOOTLOADER_VERSION  := 0x87
 HW_TYPE             := 0x00		# seems to be unused
 
 CHIP                := STM32F446RET
