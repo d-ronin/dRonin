@@ -184,16 +184,15 @@ void PIOS_Board_Init(void) {
 	}
 
 	/* Set up pulse timers */
-	//Timers used for inputs (1, 2, 5, 8)
-	PIOS_TIM_InitClock(&tim_1_cfg);
-	PIOS_TIM_InitClock(&tim_2_cfg);
-	PIOS_TIM_InitClock(&tim_5_cfg);
+
+	//Timer used for inputs (9)
 	PIOS_TIM_InitClock(&tim_8_cfg);
-	// Timers used for outputs (3, 10, 11, 12)
+
+	// Timers used for outputs (8, 14, 3, 5)
+	PIOS_TIM_InitClock(&tim_8_cfg);
+	PIOS_TIM_InitClock(&tim_14_cfg);
 	PIOS_TIM_InitClock(&tim_3_cfg);
-	PIOS_TIM_InitClock(&tim_10_cfg);
-	PIOS_TIM_InitClock(&tim_11_cfg);
-	PIOS_TIM_InitClock(&tim_12_cfg);
+	PIOS_TIM_InitClock(&tim_5_cfg);
 
 	/* IAP System Setup */
 	PIOS_IAP_Init();
@@ -270,6 +269,22 @@ void PIOS_Board_Init(void) {
 	HwSeppukuDSMxModeOptions hw_DSMxMode;
 	HwSeppukuDSMxModeGet(&hw_DSMxMode);
 
+	/* Configure the receiver port*/
+	uint8_t hw_rcvrport;
+	HwSeppukuRcvrPortGet(&hw_rcvrport);
+
+	PIOS_HAL_ConfigurePort(hw_rcvrport,            // port type protocol
+			&pios_usart2_cfg,                      // usart_port_cfg
+			&pios_usart_com_driver,                // com_driver
+			NULL,                                  // i2c_id
+			NULL,                                  // i2c_cfg
+			&pios_ppm_cfg,                         // ppm_cfg
+			NULL,                                  // pwm_cfg
+			PIOS_LED_ALARM,                        // led_id
+			&pios_usart2_dsm_aux_cfg,              // dsm_cfg
+			hw_DSMxMode,                           // dsm_mode
+			&pios_usart2_sbus_aux_cfg);            // sbus_cfg
+
 	/* UART1 Port */
 	uint8_t hw_uart1;
 	HwSeppukuUart1Get(&hw_uart1);
@@ -302,23 +317,37 @@ void PIOS_Board_Init(void) {
 			hw_DSMxMode,                         // dsm_mode
 			NULL);                               // sbus_cfg
 
-	/* UART4 Port --- XXX make conditional on being set up */
-	uint8_t hw_uart4;
-	HwSeppukuUart4Get(&hw_uart4);
+	uint8_t hw_outputconf;
+	HwSeppukuOutputConfigurationGet(&hw_outputconf);
 
-	PIOS_HAL_ConfigurePort(hw_uart4,             // port type protocol
-			&pios_usart4_cfg,                    // usart_port_cfg
-			&pios_usart_com_driver,              // com_driver
-			NULL,                                // i2c_id
-			NULL,                                // i2c_cfg
-			NULL,                                // ppm_cfg
-			NULL,                                // pwm_cfg
-			PIOS_LED_ALARM,                      // led_id
-			&pios_usart4_dsm_aux_cfg,            // dsm_cfg
-			hw_DSMxMode,                         // dsm_mode
-			NULL);                               // sbus_cfg
+	switch (hw_outputconf) {
+		case HWSEPPUKU_OUTPUTCONFIGURATION_SIXCHANNELSUART4:
+			(void) 0;
+			uint8_t hw_uart4;
+			HwSeppukuUart4Get(&hw_uart4);
 
-	// XXX bring in receiver port configuration code
+			PIOS_HAL_ConfigurePort(hw_uart4,             // port type protocol
+					&pios_uart4_cfg,                    // usart_port_cfg
+					&pios_usart_com_driver,              // com_driver
+					NULL,                                // i2c_id
+					NULL,                                // i2c_cfg
+					NULL,                                // ppm_cfg
+					NULL,                                // pwm_cfg
+					PIOS_LED_ALARM,                      // led_id
+					&pios_uart4_dsm_aux_cfg,            // dsm_cfg
+					hw_DSMxMode,                         // dsm_mode
+					NULL);                               // sbus_cfg
+
+#ifdef PIOS_INCLUDE_SERVO
+			PIOS_Servo_Init(&pios_servo_cfg);
+#endif
+			break;
+		default:
+#ifdef PIOS_INCLUDE_SERVO
+			PIOS_Servo_Init(&pios_servo_cfg);
+#endif
+			break;
+	}
 
 #if defined(PIOS_INCLUDE_GCSRCVR)
 	GCSReceiverInitialize();
@@ -331,10 +360,6 @@ void PIOS_Board_Init(void) {
 	pios_rcvr_group_map[MANUALCONTROLSETTINGS_CHANNELGROUPS_GCS] = pios_gcsrcvr_rcvr_id;
 #endif	/* PIOS_INCLUDE_GCSRCVR */
 
-	// XXX USART4 setting to mask two last ports.
-#ifdef PIOS_INCLUDE_SERVO
-	PIOS_Servo_Init(&pios_servo_cfg);
-#endif
 
 #ifdef PIOS_INCLUDE_WS2811
 	PIOS_WS2811_init(&pios_ws2811, &pios_ws2811_cfg, 7);
