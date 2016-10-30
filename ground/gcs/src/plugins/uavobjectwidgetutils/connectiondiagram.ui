@@ -40,6 +40,12 @@
        </color>
       </brush>
      </property>
+     <property name="interactive">
+      <bool>false</bool>
+     </property>
+     <property name="renderHints">
+      <set>QPainter::Antialiasing|QPainter::SmoothPixmapTransform|QPainter::TextAntialiasing</set>
+     </property>
     </widget>
    </item>
    <item>

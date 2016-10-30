@@ -14,7 +14,7 @@
    height="525.51001"
    width="1078.6002"
    version="1.1"
-   inkscape:version="0.91 r"
+   inkscape:version="0.91 r13725"
    sodipodi:docname="connection-diagrams.svg">
   <sodipodi:namedview
      pagecolor="#ffffff"
@@ -30,12 +30,12 @@
      id="namedview4616"
      showgrid="false"
      inkscape:zoom="2.21"
-     inkscape:cx="596.93837"
+     inkscape:cx="519.78905"
      inkscape:cy="293.55445"
      inkscape:window-x="65"
      inkscape:window-y="24"
      inkscape:window-maximized="1"
-     inkscape:current-layer="layer1"
+     inkscape:current-layer="layer2"
      fit-margin-top="15"
      fit-margin-left="15"
      fit-margin-right="15"
@@ -8719,7 +8719,7 @@
        style="display:inline">
       <g
          transform="matrix(0.4,0,0,0.4,-56.741854,-148.46127)"
-         id="hexa-h">
+         id="frame-hexa">
         <g
            transform="matrix(1.25,0,0,-1.25,-575.71068,1844.8336)"
            id="6165">
@@ -9287,7 +9287,7 @@
        style="display:inline">
       <g
          transform="matrix(0.4,0,0,0.4,-56.741854,-144.46127)"
-         id="hexa-y">
+         id="frame-hexacoax">
         <path
            style="fill:none;stroke:#777777;stroke-width:7.5;stroke-linecap:round;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:7.5, 22.5;stroke-dashoffset:0"
            inkscape:connector-curvature="0"
@@ -9863,7 +9863,7 @@
        style="display:inline">
       <g
          transform="matrix(0.4,0,0,0.4,-56.741854,-148.46127)"
-         id="hexa">
+         id="frame-hexax">
         <path
            style="fill:none;stroke:#777777;stroke-width:7.5;stroke-linecap:round;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:7.5, 15;stroke-dashoffset:0"
            inkscape:connector-curvature="0"
@@ -10415,7 +10415,7 @@
        style="display:inline">
       <g
          transform="matrix(0.4,0,0,0.4,-56.741854,-148.46127)"
-         id="quad-p">
+         id="frame-quadp">
         <path
            style="fill:none;stroke:#777777;stroke-width:7.5;stroke-linecap:round;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:7.5, 15;stroke-dashoffset:0"
            inkscape:connector-curvature="0"
@@ -10805,7 +10805,7 @@
        inkscape:label="tri"
        style="display:inline">
       <g
-         id="tri"
+         id="frame-tri"
          transform="translate(-16.970563,-13.803392)">
         <g
            transform="matrix(0.73103688,0,0,-0.73103688,613.69731,1177.3486)"
@@ -11305,7 +11305,7 @@
        style="display:inline">
       <g
          transform="matrix(0.4,0,0,0.4,-56.741854,-148.46127)"
-         id="quad-x">
+         id="frame-quadx">
         <g
            transform="matrix(1.8518693,0,0,1.8518693,452.11801,-1731.8917)"
            id="5645654">

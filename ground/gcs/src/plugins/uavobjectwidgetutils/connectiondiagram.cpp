@@ -4,7 +4,7 @@
  * @file       connectiondiagram.cpp
  * @author     The OpenPilot Team, http://www.openpilot.org Copyright (C) 2012.
  * @author     Tau Labs, http://taulabs.org, Copyright (C) 2013
- * @author     dRonin, http://dRonin.org/, Copyright (C) 2015
+ * @author     dRonin, http://dRonin.org/, Copyright (C) 2015-2016
  * @see        The GNU Public License (GPL) Version 3
  *
  * @addtogroup GCSPlugins GCS Plugins
@@ -26,20 +26,42 @@
  * You should have received a copy of the GNU General Public License along
  * with this program; if not, write to the Free Software Foundation, Inc.,
  * 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
+ *
+ * Additional note on redistribution: The copyright and license notices above
+ * must be maintained in each individual source file that is a derivative work
+ * of this source file; otherwise redistribution is prohibited.
  */
 
 #include <QDebug>
 #include <QFile>
 #include <QFileDialog>
+#include <QMessageBox>
 #include "connectiondiagram.h"
 #include "ui_connectiondiagram.h"
+#include <extensionsystem/pluginmanager.h>
+#include <uavobjects/uavobjectmanager.h>
+#include <uavobjectutil/uavobjectutilmanager.h>
+#include <coreplugin/iboardtype.h>
+#include "systemsettings.h"
 
-ConnectionDiagram::ConnectionDiagram(QWidget *parent, VehicleConfigurationSource *configSource) :
-    QDialog(parent), ui(new Ui::ConnectionDiagram), m_configSource(configSource), m_background(0)
+ConnectionDiagram::ConnectionDiagram(QWidget *parent) :
+    QDialog(parent), ui(new Ui::ConnectionDiagram), m_background(0)
 {
+    ExtensionSystem::PluginManager *pm = ExtensionSystem::PluginManager::instance();
+    utilMngr = pm->getObject<UAVObjectUtilManager>();
+    Q_ASSERT(utilMngr);
+    if (!utilMngr)
+        return;
+    uavoMngr = utilMngr->getObjectManager();
+    Q_ASSERT(uavoMngr);
+    if (!uavoMngr)
+        return;
+
     ui->setupUi(this);
     setWindowTitle(tr("Connection Diagram"));
     setupGraphicsScene();
+
+    connect(ui->saveButton, SIGNAL(clicked()), this, SLOT(saveToFile()));
 }
 
 ConnectionDiagram::~ConnectionDiagram()
@@ -65,9 +87,10 @@ void ConnectionDiagram::showEvent(QShowEvent *event)
 
 void ConnectionDiagram::setupGraphicsScene()
 {
-    Core::IBoardType *board = m_configSource->getControllerType();
+    Core::IBoardType *board = utilMngr->getBoardType();
     if (!board)
         return;
+
     QString diagram = board->getConnectionDiagram();
     m_renderer = new QSvgRenderer();
     if (QFile::exists(diagram) && m_renderer->load(diagram) && m_renderer->isValid()) {
@@ -82,41 +105,12 @@ void ConnectionDiagram::setupGraphicsScene()
         m_background->setZValue(-1);
         m_scene->addItem(m_background);
 
-        QList<QString> elementsToShow;
+        QStringList elementsToShow;
 
-        switch (m_configSource->getVehicleType()) {
-        case VehicleConfigurationSource::VEHICLE_MULTI:
-            switch (m_configSource->getVehicleSubType()) {
-            case VehicleConfigurationSource::MULTI_ROTOR_TRI_Y:
-                elementsToShow << "tri";
-                break;
-            case VehicleConfigurationSource::MULTI_ROTOR_QUAD_X:
-                elementsToShow << "quad-x";
-                break;
-            case VehicleConfigurationSource::MULTI_ROTOR_QUAD_PLUS:
-                elementsToShow << "quad-p";
-                break;
-            case VehicleConfigurationSource::MULTI_ROTOR_HEXA:
-                elementsToShow << "hexa";
-                break;
-            case VehicleConfigurationSource::MULTI_ROTOR_HEXA_COAX_Y:
-                elementsToShow << "hexa-y";
-                break;
-            case VehicleConfigurationSource::MULTI_ROTOR_HEXA_H:
-                elementsToShow << "hexa-h";
-                break;
-            default:
-                break;
-            }
-            break;
-        case VehicleConfigurationSource::VEHICLE_FIXEDWING:
-        case VehicleConfigurationSource::VEHICLE_HELI:
-        case VehicleConfigurationSource::VEHICLE_SURFACE:
-        default:
-            break;
-        }
+        addUavoFieldElements(elementsToShow, "SystemSettings", "AirframeType", "frame-");
 
-        switch (m_configSource->getInputType()) {
+        // no default case to force updating when new types are added
+        switch (board->getInputType()) {
         case Core::IBoardType::INPUT_TYPE_PWM:
             elementsToShow << "pwm";
             break;
@@ -124,6 +118,7 @@ void ConnectionDiagram::setupGraphicsScene()
             elementsToShow << "ppm";
             break;
         case Core::IBoardType::INPUT_TYPE_SBUS:
+        case Core::IBoardType::INPUT_TYPE_SBUSNONINVERTED:
             elementsToShow << "sbus";
             break;
         case Core::IBoardType::INPUT_TYPE_DSM:
@@ -135,13 +130,17 @@ void ConnectionDiagram::setupGraphicsScene()
             break;
         case Core::IBoardType::INPUT_TYPE_IBUS:
             elementsToShow << "ibus";
-        default:
+            break;
+        case Core::IBoardType::INPUT_TYPE_SRXL:
+            elementsToShow << "srxl";
+            break;
+        case Core::IBoardType::INPUT_TYPE_ANY:
+        case Core::IBoardType::INPUT_TYPE_DISABLED:
+        case Core::IBoardType::INPUT_TYPE_UNKNOWN:
             break;
         }
 
-        Core::IBoardType* type = m_configSource->getControllerType();
-        if (type != NULL)
-            elementsToShow << QString("controller-").append(type->shortName().toLower());
+        elementsToShow << QString("controller-").append(board->shortName().toLower());
 
         setupGraphicsSceneItems(elementsToShow);
 
@@ -152,11 +151,11 @@ void ConnectionDiagram::setupGraphicsScene()
     }
 }
 
-void ConnectionDiagram::setupGraphicsSceneItems(QList<QString> elementsToShow)
+void ConnectionDiagram::setupGraphicsSceneItems(QStringList elementsToShow)
 {
     qreal z = 0;
 
-    foreach(QString elementId, elementsToShow) {
+    for (const QString &elementId : elementsToShow) {
         if (m_renderer->elementExists(elementId)) {
             QGraphicsSvgItem *element = new QGraphicsSvgItem();
             element->setSharedRenderer(m_renderer);
@@ -176,15 +175,47 @@ void ConnectionDiagram::setupGraphicsSceneItems(QList<QString> elementsToShow)
     }
 }
 
-void ConnectionDiagram::on_saveButton_clicked()
+void ConnectionDiagram::saveToFile()
 {
-    QImage image(2200, 1100, QImage::Format_ARGB32);
-
+    QImage image(m_background->boundingRect().size().toSize(), QImage::Format_ARGB32);
     image.fill(0);
-    QPainter painter(&image);
-    m_scene->render(&painter);
-    QString fileName = QFileDialog::getSaveFileName(this, tr("Save File"), "", tr("Images (*.png *.xpm *.jpg)"));
-    if (!fileName.isEmpty()) {
-        image.save(fileName);
+
+    if (m_scene) {
+        QPainter painter(&image);
+        painter.setRenderHints(QPainter::Antialiasing | QPainter::TextAntialiasing | QPainter::SmoothPixmapTransform);
+        m_scene->render(&painter);
     }
+
+    bool success = false;
+    QString fileName = QFileDialog::getSaveFileName(this, tr("Save Connection Diagram"), "", tr("Images (*.png *.xpm *.jpg)"));
+    if (!fileName.isEmpty()) {
+        QFileInfo fn(fileName);
+        if (!fn.fileName().contains('.'))
+            fileName += ".png";
+        success = image.save(fileName);
+    }
+
+    if (!success)
+        QMessageBox::warning(this, tr("Save Failed"), tr("Invalid filename provided, diagram was not saved."));
 }
+
+void ConnectionDiagram::addUavoFieldElements(QStringList &elements, const QString &objName, const QString &fieldName, const QString &prefix)
+{
+    UAVObjectField *field = uavoMngr->getField(objName, fieldName);
+    Q_ASSERT(field);
+    if (!field)
+        return;
+
+    if (field->getType() != UAVObjectField::ENUM) {
+        Q_ASSERT(false);
+        return;
+    }
+
+    QString val = field->getValue().toString().toLower().replace(QRegExp(ENUM_SPECIAL_CHARS), "");
+    elements << QString("%0%1").arg(prefix).arg(val);
+}
+
+/**
+ * @}
+ * @}
+ */

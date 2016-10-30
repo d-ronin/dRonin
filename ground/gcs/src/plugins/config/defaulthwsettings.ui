@@ -86,6 +86,18 @@
       </widget>
      </item>
      <item>
+      <widget class="QPushButton" name="btnConnection">
+       <property name="text">
+        <string>Connections</string>
+       </property>
+       <property name="objrelation" stdset="0">
+        <stringlist>
+         <string>button:connectiondiagram</string>
+        </stringlist>
+       </property>
+      </widget>
+     </item>
+     <item>
       <widget class="QPushButton" name="reloadButton">
        <property name="sizePolicy">
         <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
@@ -180,6 +192,7 @@ Useful if you have accidentally changed some settings.</string>
   </layout>
  </widget>
  <resources>
+  <include location="../coreplugin/core.qrc"/>
   <include location="../coreplugin/core.qrc"/>
  </resources>
  <connections/>

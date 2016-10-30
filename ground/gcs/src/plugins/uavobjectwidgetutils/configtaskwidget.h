@@ -85,7 +85,7 @@ public:
         }
     };
 
-    enum buttonTypeEnum {none,save_button,apply_button,reload_button,default_button,help_button,reboot_button};
+    enum buttonTypeEnum {none,save_button,apply_button,reload_button,default_button,help_button,reboot_button,connections_button};
     enum metadataSetEnum {ALL_METADATA, SETTINGS_METADATA_ONLY, NONSETTINGS_METADATA_ONLY};
 
     struct uiRelationAutomation
@@ -148,6 +148,11 @@ public:
     void addReloadButton(QPushButton * button,int buttonGroup);
     void addDefaultButton(QPushButton * button,int buttonGroup);
     void addRebootButton(QPushButton * button);
+    /**
+     * @brief addConnectionsButton Add connection diagram button
+     * @param button Widget to connect
+     */
+    void addConnectionsButton(QPushButton *button);
     //////////
 
     void addWidgetToDefaultReloadGroups(QWidget * widget, QList<int> *groups);
@@ -198,6 +203,7 @@ private slots:
     void defaultButtonClicked();
     void reloadButtonClicked();
     void rebootButtonClicked();
+    void connectionsButtonClicked();
     void doRefreshHiddenObjects(UAVDataObject*);
 private:
     int currentBoard;
@@ -214,6 +220,7 @@ private:
     QMap<QPushButton *,QString> helpButtonList;
     QList<QPushButton *> reloadButtonList;
     QList<QPushButton *> rebootButtonList;
+    QList<QPushButton *> connectionsButtonList;
     bool dirty;
     bool setFieldFromWidget(QWidget *widget, UAVObjectField *field, int index, double scale, bool usesUnits = false);
     /**

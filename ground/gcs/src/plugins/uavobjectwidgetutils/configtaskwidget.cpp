@@ -32,6 +32,7 @@
  * of this source file; otherwise redistribution is prohibited.
  */
 #include "configtaskwidget.h"
+#include "connectiondiagram.h"
 #include <QWidget>
 #include <QLineEdit>
 #include "uavsettingsimportexport/uavsettingsimportexportmanager.h"
@@ -471,12 +472,12 @@ void ConfigTaskWidget::enableControls(bool enable)
 {
     if(smartsave)
         smartsave->enableControls(enable);
-    foreach (QPushButton * button, reloadButtonList) {
+    for (QPushButton *button : reloadButtonList)
         button->setEnabled(enable);
-    }
-    foreach (QPushButton * button, rebootButtonList) {
+    for (QPushButton *button : rebootButtonList)
         button->setEnabled(enable);
-    }
+    for (QPushButton *button : connectionsButtonList)
+        button->setEnabled(enable);
 }
 /**
  * @brief ConfigTaskWidget::forceShadowUpdates
@@ -775,6 +776,8 @@ void ConfigTaskWidget::autoLoadWidgets()
                         uiRelation.buttonType = help_button;
                     else if (value == "reboot")
                         uiRelation.buttonType = reboot_button;
+                    else if (value == "connectiondiagram")
+                        uiRelation.buttonType = connections_button;
                 } else if (prop == "buttongroup") {
                     foreach (QString s, value.split(","))
                         uiRelation.buttonGroup.append(s.toInt());
@@ -834,6 +837,11 @@ void ConfigTaskWidget::autoLoadWidgets()
                     button = qobject_cast<QPushButton *>(widget);
                     if (button)
                         addRebootButton(button);
+                    break;
+                case connections_button:
+                    button = qobject_cast<QPushButton *>(widget);
+                    if (button)
+                        addConnectionsButton(button);
                     break;
                 default:
                     break;
@@ -919,6 +927,13 @@ void ConfigTaskWidget::addRebootButton(QPushButton *button)
     rebootButtonList.append(button);
     connect(button, SIGNAL(clicked()), this, SLOT(rebootButtonClicked()));
 }
+
+void ConfigTaskWidget::addConnectionsButton(QPushButton *button)
+{
+    connectionsButtonList.append(button);
+    connect(button, SIGNAL(clicked()), this, SLOT(connectionsButtonClicked()));
+}
+
 /**
  * Called when a default button is clicked
  */
@@ -1045,6 +1060,12 @@ void ConfigTaskWidget::reloadButtonClicked()
         delete timeOut;
         timeOut=NULL;
     }
+}
+
+void ConfigTaskWidget::connectionsButtonClicked()
+{
+    ConnectionDiagram diagram(this);
+    diagram.exec();
 }
 
 void ConfigTaskWidget::doRefreshHiddenObjects(UAVDataObject * obj)

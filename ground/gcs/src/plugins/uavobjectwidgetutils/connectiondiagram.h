@@ -24,47 +24,62 @@
  * You should have received a copy of the GNU General Public License along
  * with this program; if not, write to the Free Software Foundation, Inc.,
  * 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
+ *
+ * Additional note on redistribution: The copyright and license notices above
+ * must be maintained in each individual source file that is a derivative work
+ * of this source file; otherwise redistribution is prohibited.
  */
 
 #ifndef CONNECTIONDIAGRAM_H
 #define CONNECTIONDIAGRAM_H
 
+#include "uavobjectwidgetutils_global.h"
+
 #include <QDialog>
 #include <QHash>
 #include <QSvgRenderer>
-
 #include <QGraphicsSvgItem>
-#include "vehicleconfigurationsource.h"
-
+#include <uavobjects/uavobjectmanager.h>
+#include <uavobjectutil/uavobjectutilmanager.h>
 
 namespace Ui {
 class ConnectionDiagram;
 }
 
-class ConnectionDiagram : public QDialog {
+class UAVOBJECTWIDGETUTILS_EXPORT ConnectionDiagram : public QDialog {
     Q_OBJECT
 
 public:
-    explicit ConnectionDiagram(QWidget *parent, VehicleConfigurationSource *configSource);
+    explicit ConnectionDiagram(QWidget *parent = Q_NULLPTR);
     ~ConnectionDiagram();
+
+protected:
+    void resizeEvent(QResizeEvent *event);
+    void showEvent(QShowEvent *event);
 
 private:
     Ui::ConnectionDiagram *ui;
-    VehicleConfigurationSource *m_configSource;
 
     QSvgRenderer *m_renderer;
     QGraphicsSvgItem *m_background;
     QGraphicsScene *m_scene;
 
+    UAVObjectManager *uavoMngr;
+    UAVObjectUtilManager *utilMngr;
+
+    const QString ENUM_SPECIAL_CHARS = "[\\.\\-\\s\\+/\\(\\)]";
+
     void setupGraphicsScene();
-    void setupGraphicsSceneItems(QList<QString> elementsToShow);
-protected:
-    void resizeEvent(QResizeEvent *event);
-    void showEvent(QShowEvent *event);
+    void setupGraphicsSceneItems(QStringList elementsToShow);
+    void addUavoFieldElements(QStringList &elements, const QString &objName, const QString &fieldName, const QString &prefix = "");
 
 private slots:
-
-    void on_saveButton_clicked();
+    void saveToFile();
 };
 
 #endif // CONNECTIONDIAGRAM_H
+
+/**
+ * @}
+ * @}
+ */

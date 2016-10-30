@@ -29,7 +29,7 @@
 #include "summarypage.h"
 #include "ui_summarypage.h"
 #include "setupwizard.h"
-#include "connectiondiagram.h"
+#include <uavobjectwidgetutils/connectiondiagram.h>
 
 SummaryPage::SummaryPage(SetupWizard *wizard, QWidget *parent) :
     AbstractWizardPage(wizard, parent),
@@ -56,7 +56,6 @@ void SummaryPage::initializePage()
 
 void SummaryPage::showDiagram()
 {
-    ConnectionDiagram diagram(this, getWizard());
-
+    ConnectionDiagram diagram(this);
     diagram.exec();
 }
