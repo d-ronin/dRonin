@@ -45,7 +45,7 @@
 
 /* BMP280 Addresses */
 #define BMP280_I2C_ADDR		0x76  // 0x77
-#define BMP280_ID			0xD0
+#define BMP280_ID		0xD0
 #define BMP280_RESET		0xE0
 #define BMP280_STATUS		0xF3
 #define BMP280_CTRL_MEAS	0xF4
@@ -61,10 +61,6 @@
 
 #define BMP280_P0            101.3250f
 
-/* Straight from the datasheet */
-static int32_t varT1, varT2, T;
-static int64_t varP1, varP2, P;
-
 /* Private methods */
 static int32_t PIOS_BMP280_Read(uint8_t address, uint8_t *buffer, uint8_t len);
 static int32_t PIOS_BMP280_WriteCommand(uint8_t address, uint8_t buffer);
@@ -75,7 +71,7 @@ static void PIOS_BMP280_Task(void *parameters);
 /* Local Types */
 
 enum pios_bmp280_dev_magic {
-	PIOS_BMP280_DEV_MAGIC = 0xefa26e3d,  // HJI - What should this really be?  Same as BMP085 for now.
+	PIOS_BMP280_DEV_MAGIC = 0x32504d42,  /* 'BMP2' */
 };
 
 struct bmp280_dev {
@@ -102,7 +98,6 @@ struct bmp280_dev {
 
 	uint8_t oversampling;
 	uint32_t temperature_interleaving;
-	int32_t bmp280_read_flag;
 	enum pios_bmp280_dev_magic magic;
 
 	struct pios_semaphore *busy;
@@ -115,7 +110,7 @@ static struct bmp280_dev *dev;
  */
 static struct bmp280_dev *PIOS_BMP280_alloc(void)
 {
-   struct bmp280_dev *bmp280_dev;
+	struct bmp280_dev *bmp280_dev;
 
 	bmp280_dev = (struct bmp280_dev *)PIOS_malloc(sizeof(*bmp280_dev));
 	if (!bmp280_dev) return (NULL);
@@ -238,7 +233,7 @@ static int32_t PIOS_BMP280_StartADC(void)
 	/* Start the conversion */
 	return(PIOS_BMP280_WriteCommand(BMP280_CTRL_MEAS, dev->oversampling));
 
-return 0;
+	return 0;
 }
 
 /**
@@ -280,6 +275,8 @@ static int32_t PIOS_BMP280_ReadADC(bool calcTemp)
 	if (calcTemp) {
 		int32_t raw_temperature = (int32_t)((((uint32_t)(data[3])) << 12) | (((uint32_t)(data[4])) << 4) | ((uint32_t)data[5] >> 4));
 
+		int32_t varT1, varT2, T;
+
 		varT1 =  ((((raw_temperature >> 3) - ((int32_t)dev->digT1 << 1))) * ((int32_t)dev->digT2)) >> 11;
 		varT2 = (((((raw_temperature >> 4) - ((int32_t)dev->digT1)) * ((raw_temperature >> 4) - ((int32_t)dev->digT1))) >> 12) * ((int32_t)dev->digT3)) >> 14;
 		T = varT1 + varT2;
@@ -287,6 +284,8 @@ static int32_t PIOS_BMP280_ReadADC(bool calcTemp)
 	}
 
 	int32_t raw_pressure = (int32_t)((((uint32_t)(data[0])) << 12) | (((uint32_t)(data[1])) << 4) | ((uint32_t)data[2] >> 4));
+
+	int64_t varP1, varP2, P;
 
 	varP1 = ((int64_t)T) - 128000;
 	varP2 = varP1 * varP1 * (int64_t)dev->digP6;
