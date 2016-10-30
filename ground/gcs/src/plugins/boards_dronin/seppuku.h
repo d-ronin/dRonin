@@ -1,6 +1,6 @@
 /**
  ******************************************************************************
- * @file       droninplugin.cpp
+ * @file       seppuku.h
  * @author     dRonin, http://dRonin.org/, Copyright (C) 2016
  * @addtogroup GCSPlugins GCS Plugins
  * @{
@@ -28,44 +28,36 @@
  * of this source file; otherwise redistribution is prohibited.
  */
 
-#include "droninplugin.h"
-#include "simulation.h"
-#include "playuavosd.h"
-#include "seppuku.h"
-#include <QtPlugin>
+#ifndef SEPPUKU_H_
+#define SEPPUKU_H_
 
+#include <uavobjectmanager.h>
+#include <coreplugin/iboardtype.h>
 
-DroninPlugin::DroninPlugin()
+class IBoardType;
+
+class Seppuku : public Core::IBoardType
 {
-}
+public:
+    Seppuku();
+    virtual ~Seppuku();
 
-DroninPlugin::~DroninPlugin()
-{
-}
+    QString shortName();
+    QString boardDescription();
+    bool queryCapabilities(BoardCapabilities capability);
+    QPixmap getBoardPicture();
+    QString getHwUAVO();
+    bool isInputConfigurationSupported(InputType type);
+    bool setInputType(InputType type);
+    enum InputType getInputType();
+    int queryMaxGyroRate();
+    QStringList getAdcNames();
 
-bool DroninPlugin::initialize(const QStringList &arguments, QString *errorString)
-{
-   Q_UNUSED(arguments);
-   Q_UNUSED(errorString);
-   return true;
-}
+private:
+    UAVObjectManager *uavoManager;
+};
 
-void DroninPlugin::extensionsInitialized()
-{
-    // Init boards
-    Simulation *sim = new Simulation();
-    addAutoReleasedObject(sim);
-
-    PlayUavOsd *playuav = new PlayUavOsd();
-    addAutoReleasedObject(playuav);
-
-    Seppuku *seppuku = new Seppuku();
-    addAutoReleasedObject(seppuku);
-}
-
-void DroninPlugin::shutdown()
-{
-}
+#endif // SEPPUKU_H_
 
 /**
  * @}

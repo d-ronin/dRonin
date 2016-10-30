@@ -12,13 +12,15 @@ HEADERS += \
     droninplugin.h \
     simulation.h \
     simulationconfiguration.h \
-    playuavosd.h
+    playuavosd.h \
+    seppuku.h
 
 SOURCES += \
     droninplugin.cpp \
     simulation.cpp \
     simulationconfiguration.cpp \
-    playuavosd.cpp
+    playuavosd.cpp \
+    seppuku.cpp
 
 RESOURCES += \
     dronin.qrc
