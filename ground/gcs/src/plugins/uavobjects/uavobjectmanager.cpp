@@ -316,3 +316,14 @@ qint32 UAVObjectManager::getNumInstances(const QString* name, quint32 objId)
         return objects.value(objId).count();
     return -1;
 }
+
+UAVObjectField *UAVObjectManager::getField(const QString &objName, const QString &fieldName, quint32 instId)
+{
+    UAVObject *uavo = getObject(objName, instId);
+    Q_ASSERT(uavo);
+    if (!uavo)
+        return Q_NULLPTR;
+    UAVObjectField *field = uavo->getField(fieldName);
+    Q_ASSERT(field);
+    return field;
+}
