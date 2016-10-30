@@ -74,11 +74,6 @@ bool PlayUavOsd::queryCapabilities(BoardCapabilities capability)
     return false;
 }
 
-QStringList PlayUavOsd::getSupportedProtocols()
-{
-    return QStringList("uavtalk");
-}
-
 QPixmap PlayUavOsd::getBoardPicture()
 {
     return QPixmap(":/images/gcs_logo_256.png");

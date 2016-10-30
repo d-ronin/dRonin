@@ -77,11 +77,6 @@ bool Simulation::queryCapabilities(BoardCapabilities capability)
     return false;
 }
 
-QStringList Simulation::getSupportedProtocols()
-{
-    return QStringList("uavtalk");
-}
-
 QPixmap Simulation::getBoardPicture()
 {
     return QPixmap(":/images/gcs_logo_256.png");

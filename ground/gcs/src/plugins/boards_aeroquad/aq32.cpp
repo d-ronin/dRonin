@@ -88,18 +88,6 @@ bool AQ32::queryCapabilities(BoardCapabilities capability)
     return false;
 }
 
-
-/**
- * @brief AQ32::getSupportedProtocols
- *  TODO: this is just a stub, we'll need to extend this a lot with multi protocol support
- * @return
- */
-QStringList AQ32::getSupportedProtocols()
-{
-
-    return QStringList("uavtalk");
-}
-
 QPixmap AQ32::getBoardPicture()
 {
     return QPixmap(":/aq32/images/aq32.png");

@@ -80,18 +80,6 @@ bool TauLink::queryCapabilities(BoardCapabilities capability)
     return false;
 }
 
-/**
- * @brief TauLink::getSupportedProtocols
- *  TODO: this is just a stub, we'll need to extend this a lot with multi protocol support
- *  TODO: for the TauLink, depending on its configuration, it might offer several protocols (uavtalk and raw)
- * @return
- */
-QStringList TauLink::getSupportedProtocols()
-{
-
-    return QStringList("uavtalk");
-}
-
 QPixmap TauLink::getBoardPicture()
 {
     return QPixmap(":/images/taulink.png");

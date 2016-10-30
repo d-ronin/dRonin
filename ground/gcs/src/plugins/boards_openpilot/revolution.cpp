@@ -104,17 +104,6 @@ bool Revolution::queryCapabilities(BoardCapabilities capability)
     return false;
 }
 
-/**
- * @brief Revolution::getSupportedProtocols
- *  TODO: this is just a stub, we'll need to extend this a lot with multi protocol support
- * @return
- */
-QStringList Revolution::getSupportedProtocols()
-{
-
-    return QStringList("uavtalk");
-}
-
 QPixmap Revolution::getBoardPicture()
 {
     return QPixmap(":/openpilot/images/revolution.png");
