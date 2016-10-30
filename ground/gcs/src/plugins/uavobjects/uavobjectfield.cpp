@@ -573,6 +573,11 @@ QStringList UAVObjectField::getOptions()
     return options;
 }
 
+bool UAVObjectField::hasOption(const QString &option)
+{
+    return options.contains(option);
+}
+
 quint32 UAVObjectField::getNumElements()
 {
     return numElements;

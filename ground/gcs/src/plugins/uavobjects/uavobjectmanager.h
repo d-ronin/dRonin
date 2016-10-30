@@ -59,6 +59,15 @@ public:
     QVector< QVector<UAVMetaObject*> > getMetaObjectsVector();
     UAVObject* getObject(const QString& name, quint32 instId = 0);
     UAVObject* getObject(quint32 objId, quint32 instId = 0);
+    /**
+     * @brief getField Get a UAV Object field
+     * Success is asserted so there is no need to do this again in the caller
+     * @param objName Name of object
+     * @param fieldName Name of field
+     * @param instId Object instance (optional)
+     * @return The field if successful, null pointer otherwise
+     */
+    UAVObjectField *getField(const QString &objName, const QString &fieldName, quint32 instId = 0);
     QVector<UAVObject*> getObjectInstancesVector(const QString& name);
     QVector<UAVObject*> getObjectInstancesVector(quint32 objId);
     qint32 getNumInstances(const QString& name);

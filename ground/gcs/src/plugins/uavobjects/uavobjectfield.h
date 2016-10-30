@@ -68,6 +68,12 @@ public:
     quint32 getNumElements();
     QStringList getElementNames();
     QStringList getOptions();
+    /**
+     * @brief hasOption Check if the given option exists
+     * @param option Option value
+     * @return true if option exists, false otherwise
+     */
+    bool hasOption(const QString &option);
     qint32 pack(quint8* dataOut);
     qint32 unpack(const quint8* dataIn);
     QVariant getValue(quint32 index = 0);
