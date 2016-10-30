@@ -157,6 +157,7 @@ public:
         INPUT_TYPE_HOTTSUMD,
         INPUT_TYPE_HOTTSUMH,
         INPUT_TYPE_IBUS,
+        INPUT_TYPE_SRXL,
         INPUT_TYPE_UNKNOWN,
         INPUT_TYPE_ANY
     };

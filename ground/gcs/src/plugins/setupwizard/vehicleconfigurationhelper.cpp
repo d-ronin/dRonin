@@ -402,10 +402,8 @@ void VehicleConfigurationHelper::applyManualControlDefaults()
      * like for openLRS s.bus.  But it's a decent start for people who will
      * enter their ranges by hand.
      */
-    uint16_t minVal = 1000;
-    uint16_t maxVal = 2000;
-    uint16_t neutVal = 1500;
-    uint16_t throtNeutVal = 1040;
+    qint16 minVal = 1000;
+    qint16 maxVal = 2000;
 
     switch (m_configSource->getInputType()) {
     case Core::IBoardType::INPUT_TYPE_PWM:
@@ -418,8 +416,6 @@ void VehicleConfigurationHelper::applyManualControlDefaults()
     case Core::IBoardType::INPUT_TYPE_SBUSNONINVERTED:
         minVal = 172;
         maxVal = 1811;
-        neutVal = 991;
-        throtNeutVal = 238;
         channelType = ManualControlSettings::CHANNELGROUPS_SBUS;
         break;
     case Core::IBoardType::INPUT_TYPE_DSM:
@@ -427,23 +423,23 @@ void VehicleConfigurationHelper::applyManualControlDefaults()
         // 74-950, 64-940 seen for 10 bit.  192-1856, 23-2025 for 11 bit.
         minVal = 70; 
         maxVal = 940;
-        neutVal = 505;
-        throtNeutVal = 106;
-
         channelType = ManualControlSettings::CHANNELGROUPS_DSM;
         break;
     case Core::IBoardType::INPUT_TYPE_HOTTSUMD:
     case Core::IBoardType::INPUT_TYPE_HOTTSUMH:
         minVal = 858;
         maxVal = 2138;
-        neutVal = 1498;
-        throtNeutVal = 909;
-
         channelType = ManualControlSettings::CHANNELGROUPS_HOTTSUM;
         break;
     case Core::IBoardType::INPUT_TYPE_IBUS:
         /* Seems to be 1000..2000 */
         channelType = ManualControlSettings::CHANNELGROUPS_IBUS;
+        break;
+    case Core::IBoardType::INPUT_TYPE_SRXL:
+        // unfortunately Weatronic variant has different scaling, this is the range for standard impl. per protocol spec.
+        minVal = 585;
+        maxVal = 3510;
+        channelType = ManualControlSettings::CHANNELGROUPS_SRXL;
         break;
     case Core::IBoardType::INPUT_TYPE_UNKNOWN:
     case Core::IBoardType::INPUT_TYPE_DISABLED:
@@ -453,18 +449,21 @@ void VehicleConfigurationHelper::applyManualControlDefaults()
         break;
     }
 
+    qint16 neutralVal = minVal + (maxVal - minVal) / 2;
+    qint16 throttleNeutralVal = static_cast<qint16>(minVal + (maxVal - minVal) * 0.04);
+
     for (unsigned int i = 0; i < ManualControlSettings::CHANNELGROUPS_NUMELEM;
                 i++) {
         cData.ChannelGroups[i] = channelType;
         cData.ChannelNumber[i] = 0;
         cData.ChannelMin[i] = minVal;
         cData.ChannelMax[i] = maxVal;
-        cData.ChannelNeutral[i] = neutVal;
+        cData.ChannelNeutral[i] = neutralVal;
     }
 
     cData.ChannelNumber[ManualControlSettings::CHANNELGROUPS_THROTTLE]   = 1;
     cData.ChannelNeutral[ManualControlSettings::CHANNELNEUTRAL_THROTTLE] =
-            throtNeutVal;
+            throttleNeutralVal;
     cData.ChannelNumber[ManualControlSettings::CHANNELGROUPS_ROLL]       = 2;
     cData.ChannelNumber[ManualControlSettings::CHANNELGROUPS_YAW]        = 3;
     cData.ChannelNumber[ManualControlSettings::CHANNELGROUPS_PITCH]      = 4;
