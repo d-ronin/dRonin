@@ -65,6 +65,7 @@
 /* Select the sensors to include */
 #define PIOS_INCLUDE_BMI160
 #define PIOS_INCLUDE_BMP280
+#define PIOS_INCLUDE_LIS3MDL
 #define PIOS_INCLUDE_HMC5883
 #define PIOS_INCLUDE_HMC5983_I2C
 //#define PIOS_INCLUDE_ETASV3

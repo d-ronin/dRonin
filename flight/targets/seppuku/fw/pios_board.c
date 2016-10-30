@@ -51,52 +51,6 @@
 #include "modulesettings.h"
 #include "onscreendisplaysettings.h"
 
-/**
- * Sensor configurations
- */
-#if defined(PIOS_INCLUDE_BMI160)
-#include "pios_bmi160.h"
-
-static const struct pios_exti_cfg pios_exti_bmi160_cfg __exti_config = {
-	.vector = PIOS_BMI160_IRQHandler,
-	.line = EXTI_Line4,
-	.pin = {
-		.gpio = GPIOC,
-		.init = {
-			.GPIO_Pin = GPIO_Pin_4,
-			.GPIO_Speed = GPIO_Speed_2MHz,
-			.GPIO_Mode = GPIO_Mode_IN,
-			.GPIO_OType = GPIO_OType_OD,
-			.GPIO_PuPd = GPIO_PuPd_NOPULL,
-		},
-	},
-	.irq = {
-		.init = {
-			.NVIC_IRQChannel = EXTI4_IRQn,
-			.NVIC_IRQChannelPreemptionPriority = PIOS_IRQ_PRIO_HIGH,
-			.NVIC_IRQChannelSubPriority = 0,
-			.NVIC_IRQChannelCmd = ENABLE,
-		},
-	},
-	.exti = {
-		.init = {
-			.EXTI_Line = EXTI_Line4, // matches above GPIO pin
-			.EXTI_Mode = EXTI_Mode_Interrupt,
-			.EXTI_Trigger = EXTI_Trigger_Rising,
-			.EXTI_LineCmd = ENABLE,
-		},
-	},
-};
-
-static const struct pios_bmi160_cfg pios_bmi160_cfg = {
-	.exti_cfg = &pios_exti_bmi160_cfg,
-	.orientation = PIOS_BMI160_TOP_0DEG,
-	.odr = PIOS_BMI160_ODR_1600_Hz,
-	.acc_range = PIOS_BMI160_RANGE_8G,
-	.gyro_range = PIOS_BMI160_RANGE_2000DPS,
-	.temperature_interleaving = 50
-};
-#endif /* PIOS_INCLUDE_BMI160 */
 #if defined(PIOS_INCLUDE_WS2811)
 #include "rgbledsettings.h"
 #endif
@@ -463,9 +417,15 @@ void PIOS_Board_Init(void) {
 			break;
 
 		case HWSEPPUKU_MAGNETOMETER_INTERNAL:
-#if defined(PIOS_INCLUDE_SPI)
-			/* XXX magnetometer support */
-#endif /* PIOS_INCLUDE_SPI */
+#if defined(PIOS_INCLUDE_SPI) && defined(PIOS_INCLUDE_LIS3MDL)
+			(void) 0;
+			lis3mdl_dev_t lis3mdl;
+
+			if (PIOS_LIS3MDL_SPI_Init(&lis3mdl, pios_spi_gyro_accel_id,
+					2, &pios_lis3mdl_cfg)) {
+				PIOS_SENSORS_SetMissing(PIOS_SENSOR_MAG);
+			}
+#endif /* PIOS_INCLUDE_SPI && PIOS_INCLUDE_LIS3MDL */
 			break;
 
 		/* default external mags and handle them in PiOS HAL rather than maintaining list here */
