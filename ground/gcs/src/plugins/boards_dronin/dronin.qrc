@@ -4,5 +4,7 @@
         <file>images/led_heartbeat_on.png</file>
         <file>images/led_alarm_off.png</file>
         <file>images/led_alarm_on.png</file>
+        <file>images/seppuku.png</file>
+        <file>images/seppuku-connection.svg</file>
     </qresource>
 </RCC>

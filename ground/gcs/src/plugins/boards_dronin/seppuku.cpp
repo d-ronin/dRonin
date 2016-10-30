@@ -90,23 +90,7 @@ bool Seppuku::queryCapabilities(BoardCapabilities capability)
 
 bool Seppuku::isInputConfigurationSupported(InputType type)
 {
-    // no default case to ensure we maintain this list when changing InputType enum
-    switch (type) {
-    case INPUT_TYPE_DISABLED:
-    case INPUT_TYPE_PPM:
-    case INPUT_TYPE_DSM:
-    case INPUT_TYPE_SBUS:
-    case INPUT_TYPE_SBUSNONINVERTED:
-    case INPUT_TYPE_HOTTSUMD:
-    case INPUT_TYPE_HOTTSUMH:
-    case INPUT_TYPE_IBUS:
-    case INPUT_TYPE_SRXL:
-        return true;
-    case INPUT_TYPE_PWM:
-    case INPUT_TYPE_UNKNOWN:
-    case INPUT_TYPE_ANY:
-        break;
-    }
+    Q_UNUSED(type)
     return false;
 }
 
@@ -195,12 +179,17 @@ QStringList Seppuku::getAdcNames()
 
 QPixmap Seppuku::getBoardPicture()
 {
-    return QPixmap(":/images/gcs_logo_256.png");
+    return QPixmap(":/dronin/images/seppuku.png");
 }
 
 QString Seppuku::getHwUAVO()
 {
     return "HwSeppuku";
+}
+
+QString Seppuku::getConnectionDiagram()
+{
+    return ":/dronin/images/seppuku-connection.svg";
 }
 
 /**

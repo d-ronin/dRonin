@@ -52,6 +52,7 @@ public:
     enum InputType getInputType();
     int queryMaxGyroRate();
     QStringList getAdcNames();
+    QString getConnectionDiagram();
 
 private:
     UAVObjectManager *uavoManager;
