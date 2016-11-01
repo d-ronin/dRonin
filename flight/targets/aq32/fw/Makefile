@@ -136,6 +136,7 @@ SRC += pios_delay.c
 SRC += pios_mpu.c
 SRC += pios_gcsrcvr.c
 SRC += pios_hmc5883.c
+SRC += pios_hmc5983_i2c.c
 SRC += pios_ms5611.c
 
 SRC += pios_crc.c

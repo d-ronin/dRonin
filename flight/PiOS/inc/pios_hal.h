@@ -100,7 +100,7 @@ int PIOS_HAL_ConfigureExternalBaro(HwSharedExtBaroOptions baro,
 		uint32_t *i2c_id,
 		const struct pios_i2c_adapter_cfg *i2c_cfg);
 
-int PIOS_HAL_ConfigureExternalMag(HwSharedExtMagOptions mag,
+int PIOS_HAL_ConfigureExternalMag(HwSharedMagOptions mag,
 		HwSharedMagOrientationOptions orientation,
 		uint32_t *i2c_id,
 		const struct pios_i2c_adapter_cfg *i2c_cfg);
