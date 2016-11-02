@@ -45,6 +45,8 @@
 #include "misc_math.h"
 #include "physical_constants.h"
 
+#include "pios_board.h"
+
 #define TRI_TAIL_SERVO_ANGLE_MID  90.0f
 #define TRI_TAIL_SERVO_ANGLE_MAX  50.0f
 #define TRI_YAW_FORCE_CURVE_SIZE  100
@@ -56,6 +58,8 @@ static float tail_motor_pitch_zero_angle;
 static float tail_servo_max_yaw_force = 0.0f;
 static float throttle_range = 0.0f;
 static float yaw_force_curve[TRI_YAW_FORCE_CURVE_SIZE];
+
+extern char *triflight_blink_string;
 
 /**
  *
@@ -103,15 +107,18 @@ void triflightInit(ActuatorSettingsData  *actuatorSettings,
 
 	tail_motor_pitch_zero_angle = 2.0f * (atanf(((sqrtf(triflightSettings->MotorThrustFactor *
 	                                                    triflightSettings->MotorThrustFactor + 1) + 1) /
-	                                                    triflightSettings->MotorThrustFactor)));
+	                                                    triflightSettings->MotorThrustFactor))) * RAD2DEG;
 
 	tail_motor_acceleration_delay_angle = (triflightSettings->MotorAccelDelayMs / 1000.0f) * triflightSettings->ServoSpeed;
     tail_motor_deceleration_delay_angle = (triflightSettings->MotorDecelDelayMs / 1000.0f) * triflightSettings->ServoSpeed;
 
-		throttle_range = actuatorSettings->ChannelMax[triflightStatus->RearMotorChannel] -
-	                 actuatorSettings->ChannelNeutral[triflightStatus->RearMotorChannel];
+	throttle_range = actuatorSettings->ChannelMax[triflightStatus->RearMotorChannel] -
+	                 actuatorSettings->ChannelMin[triflightStatus->RearMotorChannel];
 
-	motor_acceleration = throttle_range / triflightSettings->MotorAcceleration;
+	if (throttle_range <= 0.0f)
+		motor_acceleration = 0.0f;
+	else
+		motor_acceleration = throttle_range / triflightSettings->MotorAcceleration / throttle_range;
 
 	triflightStatus->DynamicYawGain = 1.0f;
 }
@@ -172,7 +179,7 @@ float getServoValueAtAngle(ActuatorSettingsData  *actuatorSettings,
 
 	pwm_min_lt_pwm_max = actuatorSettings->ChannelMin[triflightStatus->ServoChannel] < actuatorSettings->ChannelMax[triflightStatus->ServoChannel];
 
-	pwm_in_lt_pwm_neutral =  angle < TRI_TAIL_SERVO_ANGLE_MID;
+	pwm_in_lt_pwm_neutral = angle < TRI_TAIL_SERVO_ANGLE_MID;
 
 	if ((pwm_in_lt_pwm_neutral && pwm_min_lt_pwm_max) || (!pwm_in_lt_pwm_neutral && !pwm_min_lt_pwm_max))
 	{
@@ -392,7 +399,7 @@ float getPitchCorrectionMaxPhaseShift(float servo_angle,
                                       float motor_deceleration_delay_angle,
                                       float motor_direction_change_angle)
 {
-	float max_phase_shift;
+	float max_phase_shift = 0.0f;
 
 	if (((servo_angle > servo_setpoint_angle) && (servo_angle >= (motor_direction_change_angle + motor_acceleration_delay_angle))) ||
 	    ((servo_angle < servo_setpoint_angle) && (servo_angle <= (motor_direction_change_angle - motor_acceleration_delay_angle))))
@@ -462,8 +469,8 @@ float triGetMotorCorrection(ActuatorSettingsData  *actuatorSettings,
 
 	float correction = (throttle_motor_output * pitch_correction) - throttle_motor_output;
 
-	triflightStatus->testFloat1 = throttle_motor_output;
-	triflightStatus->testFloat2 = pitch_correction;
+	//triflightStatus->testFloat1 = throttle_motor_output;
+	//triflightStatus->testFloat2 = pitch_correction;
 
 	return correction;
 }
@@ -472,18 +479,34 @@ float triGetMotorCorrection(ActuatorSettingsData  *actuatorSettings,
  *
  *
  */
-void dynamicYaw(ActuatorSettingsData  *actuatorSettings,
-                TriflightSettingsData *triflightSettings,
+void checkMotorAcceleration(TriflightSettingsData *triflightSettings,
+                            TriflightStatusData   *triflightStatus)
+{
+	static float previous_motor_speed = 0.0f;
+
+	float acceleration = (triflightStatus->VirtualTailMotor - previous_motor_speed);
+
+	previous_motor_speed = triflightStatus->VirtualTailMotor;
+
+	// Tests have shown that this is mostly needed when throttle is cut (motor decelerating), so only
+    // set the expected gyro error in that case.
+	if (acceleration <= 0.0f)
+		triflightStatus->ExpectedGyroError = acceleration * triflightSettings->MotorAccYawCorrection;
+}
+
+/**
+ *
+ *
+ */
+#define MIDPOINT (0.5f)
+
+void dynamicYaw(TriflightSettingsData *triflightSettings,
                 TriflightStatusData   *triflightStatus)
 {
-	float half_range = throttle_range / 2.0f;
-
-	float midpoint = actuatorSettings->ChannelMin[triflightStatus->RearMotorChannel] + half_range;
-
 	float gain;
 
 	// Select the yaw gain based on tail motor speed
-	if (triflightStatus->VirtualTailMotor < midpoint)
+	if (triflightStatus->VirtualTailMotor < MIDPOINT)
 	{
 		// Below midpoint, gain is increasing the output.
 		// e.g. 1.50 increases the yaw output at min throttle by 150 % (1.5x)
@@ -500,9 +523,9 @@ void dynamicYaw(ActuatorSettingsData  *actuatorSettings,
 		gain = 1.0f - triflightSettings->DynamicYawMaxThrottle;
 	}
 
-	float distance_from_mid = (triflightStatus->VirtualTailMotor - midpoint);
+	float distance_from_mid = (triflightStatus->VirtualTailMotor - MIDPOINT);
 
-	triflightStatus->DynamicYawGain = (1.0f - distance_from_mid * gain / half_range);
+	triflightStatus->DynamicYawGain = (1.0f - distance_from_mid * gain / MIDPOINT);
 }
 
 /**
@@ -519,18 +542,22 @@ void virtualTailMotorStep(ActuatorSettingsData  *actuatorSettings,
 {
 	static float current =  0.0f;
 
-	if (current == 0.0f)
-		current = actuatorSettings->ChannelMin[triflightStatus->RearMotorChannel];
-
 	float dS = dT * motor_acceleration;  // Max change of speed since last check
 
-	if (fabsf(current - setpoint) < dS)
+	float normalized_setpoint;
+
+	if (throttle_range <= 0.0f)
+		normalized_setpoint = 0.0f;
+	else
+		normalized_setpoint = (setpoint - actuatorSettings->ChannelMin[triflightStatus->RearMotorChannel]) / throttle_range;
+
+	if (fabsf(current - normalized_setpoint) < dS)
 	{
 		// At set-point after this moment
-		current = setpoint;
+		current = normalized_setpoint;
 	}
 
-	else if (current < setpoint)
+	else if (current < normalized_setpoint)
 	{
 		current += dS;
 	}
@@ -578,7 +605,6 @@ typedef enum {
 
 typedef enum {
 	SS_IDLE = 0,
-	SS_SETUP,
 	SS_CALIB,
 } servoSetupState_e;
 
@@ -641,57 +667,6 @@ typedef struct tailTune_s {
 
 static tailTune_t tailTune = {.mode = TT_MODE_NONE};
 
-typedef enum {
-	BUZZER_OFF = 0,
-	BUZZER_ON,
-} buzzerState_e;
-
-typedef struct buzzer_s {
-	buzzerState_e state;
-	uint32_t duration;
-} buzzer_t;
-
-static buzzer_t buzzer = {.state = BUZZER_OFF, .duration = 0};
-
-/**
- * @}
- * @}
- */
-static void buzzerControl(ActuatorSettingsData  *actuatorSettings,
-                          TriflightStatusData   *triflightStatus)
-{
-	static uint32_t buzzer_timestamp;
-	static uint32_t duration;
-
-	if (triflightStatus->BuzzerChannel == 255)
-		return;
-
-	if (buzzer.state == BUZZER_ON)
-	{
-		if (PIOS_DELAY_GetuSSince(buzzer_timestamp) >= duration)
-		{
-			PIOS_Servo_Set(triflightStatus->BuzzerChannel,
-						   actuatorSettings->ChannelMin[triflightStatus->BuzzerChannel]);
-
-			buzzer.state = BUZZER_OFF;
-		}
-	}
-
-	if ((buzzer.state == BUZZER_OFF) && (buzzer.duration > 0))
-	{
-		buzzer_timestamp = PIOS_DELAY_GetuS();
-
-		duration = buzzer.duration;
-
-		buzzer.duration = 0;
-
-		PIOS_Servo_Set(triflightStatus->BuzzerChannel,
-		               actuatorSettings->ChannelMax[triflightStatus->BuzzerChannel]);
-
-		buzzer.state = BUZZER_ON;
-	}
-}
-
 /**
  * @}
  * @}
@@ -702,7 +677,7 @@ static void tailTuneModeThrustTorque(TriflightSettingsData *triflightSettings,
                                      TriflightStatusData   *triflightStatus,
                                      struct thrustTorque_t *pTT,
                                      bool                  armed,
-                                     float                 dT)
+									 float                 dT)
 {
 	ManualControlCommandData cmd;
 	ManualControlCommandGet(&cmd);
@@ -722,12 +697,12 @@ static void tailTuneModeThrustTorque(TriflightSettingsData *triflightSettings,
 			// Calibration has been requested, only start when throttle is up
 			if (is_throttle_high && armed)
 			{
-				buzzer.duration = 250000;
-				pTT->startBeepDelay_us = 1000000;
-				pTT->timestamp_us = PIOS_DELAY_GetuS();
-				pTT->lastAdjTime_us = PIOS_DELAY_GetuS();
-				pTT->state = TT_WAIT;
-				pTT->servoAvgAngle.sum = 0;
+				triflight_blink_string    = "M";                 // -- throttle high
+				pTT->startBeepDelay_us    = 1000000;             // 1 second
+				pTT->timestamp_us         = PIOS_DELAY_GetuS();
+				pTT->lastAdjTime_us       = PIOS_DELAY_GetuS();
+				pTT->state                = TT_WAIT;
+				pTT->servoAvgAngle.sum    = 0;
 				pTT->servoAvgAngle.num_of = 0;
 			}
 
@@ -738,18 +713,18 @@ static void tailTuneModeThrustTorque(TriflightSettingsData *triflightSettings,
 			{
 				// Wait for 5 seconds before activating the tuning.
 				// This is so that pilot has time to take off if the tail tune mode was activated on ground.
-				if (PIOS_DELAY_GetuSSince(pTT->timestamp_us) >= 5000000)
+				if (PIOS_DELAY_GetuSSince(pTT->timestamp_us) >= 5000000)  // 5 seconds
 				{
 					// Longer beep when starting
-					buzzer.duration = 500000;
-					pTT->state = TT_ACTIVE;
-					pTT->timestamp_us = PIOS_DELAY_GetuS();
+					triflight_blink_string = "T";  // - start
+					pTT->state             = TT_ACTIVE;
+					pTT->timestamp_us      = PIOS_DELAY_GetuS();
 				}
 				else if (PIOS_DELAY_GetuSSince(pTT->timestamp_us) >= pTT->startBeepDelay_us)
 				{
 					// Beep every second until start
-					buzzer.duration = 250000;
-					pTT->startBeepDelay_us += 1000000;
+					triflight_blink_string  = "I";      // .. beep every second until start
+					pTT->startBeepDelay_us += 1000000;  // 1 second
 				}
 			}
 			else
@@ -761,27 +736,31 @@ static void tailTuneModeThrustTorque(TriflightSettingsData *triflightSettings,
 
 		case TT_ACTIVE:
 			if (is_throttle_high &&
-			   (fabsf(cmd.Roll)    <= 0.05f) &&
-			   (fabsf(cmd.Pitch)   <= 0.05f) &&
-			   (fabsf(cmd.Yaw)     <= 0.05f) &&
+			   (fabsf(cmd.Roll)          <= 0.05f) &&
+			   (fabsf(cmd.Pitch)         <= 0.05f) &&
+			   (fabsf(cmd.Yaw)           <= 0.05f) &&
 			   (fabsf(filtered_yaw_rate) <= 20.0f))
 			{
-				if (PIOS_DELAY_GetuSSince(pTT->timestamp_us) >= 250000)
+				if (PIOS_DELAY_GetuSSince(pTT->timestamp_us) >= 250000)  // 0.25 seconds
 				{
 					// RC commands have been within deadbands for 250 ms
-					if (PIOS_DELAY_GetuSSince(pTT->lastAdjTime_us) >= 10000)
+					if (PIOS_DELAY_GetuSSince(pTT->lastAdjTime_us) >= 20000)  // 0.04 seconds
 					{
 						pTT->lastAdjTime_us = PIOS_DELAY_GetuS();
 
 						pTT->servoAvgAngle.sum += triflightStatus->ServoAngle;
 						pTT->servoAvgAngle.num_of++;
 
-						if (pTT->servoAvgAngle.num_of >= 300)
+						if (((uint16_t)pTT->servoAvgAngle.num_of & 0x64) == 0x64) // once every 100 samples
 						{
-							buzzer.duration = 500000;
-							pTT->state = TT_WAIT_FOR_DISARM;
-							pTT->timestamp_us = PIOS_DELAY_GetuS();
+							triflight_blink_string = "E";  // . 100 samples saved, should repeat 5 times
 						}
+
+						if (pTT->servoAvgAngle.num_of >= 500)  // 500 samples * 0.04 seconds = 20 seconds
+							{
+								pTT->state             = TT_WAIT_FOR_DISARM;
+								pTT->timestamp_us      = PIOS_DELAY_GetuS();
+							}
 					}
 				}
 			}
@@ -793,76 +772,49 @@ static void tailTuneModeThrustTorque(TriflightSettingsData *triflightSettings,
 			break;
 
 		case TT_WAIT_FOR_DISARM:
-			if (!armed)
-			{
+			if (!armed)	{
 				float average_servo_angle = pTT->servoAvgAngle.sum / pTT->servoAvgAngle.num_of;
 
-				// Find out the factor that gives least yaw force at the average angle
-				float factor = TAIL_THRUST_FACTOR_MIN;
+				if((average_servo_angle > 90.5f) && (average_servo_angle < 120.0f)) {
+					average_servo_angle -= 90.0f;
+					average_servo_angle *= DEG2RAD;
 
-				float angleRad = DEG2RAD * average_servo_angle;
-
-				float minAbsForce = 10000.0f; //FLT_MAX;
-
-				float minFactor = TAIL_THRUST_FACTOR_MIN;
-
-				bool done = false;
-
-				for (factor = TAIL_THRUST_FACTOR_MIN; (done == false) && (factor < TAIL_THRUST_FACTOR_MAX); factor += 0.01f)
-				{
-					float absForceAtAngle = fabsf(-factor * cosf(angleRad) - sinf(angleRad)) * getPitchCorrectionAtTailAngle(angleRad, factor);
-
-					if (absForceAtAngle < minAbsForce)
-					{
-						minAbsForce = absForceAtAngle;
-						minFactor = factor;
-					}
-					else
-					{
-						done = true;
-					}
-				}
-
-				if (done)
-				{
-					triflightSettings->MotorThrustFactor = minFactor;
+					triflightSettings->MotorThrustFactor = cosf(average_servo_angle) / sinf(average_servo_angle);
 
 					TriflightSettingsSet(triflightSettings);
 					UAVObjSave(TriflightSettingsHandle(), 0);
 
 					pTT->state = TT_DONE;
 				}
-				else
-				{
+				else {
 					pTT->state = TT_FAIL;
 				}
 				pTT->timestamp_us = PIOS_DELAY_GetuS();
 			}
-			else
-			{
-				if (PIOS_DELAY_GetuSSince(pTT->timestamp_us) >= 2000000)
+			else {
+				if (PIOS_DELAY_GetuSSince(pTT->timestamp_us) >= 2000000)  // 2 seconds
 				{
-					buzzer.duration = 250000;
-					pTT->timestamp_us = PIOS_DELAY_GetuS();
+					triflight_blink_string = "O";                         // --- wait for disarmed
+					pTT->timestamp_us      = PIOS_DELAY_GetuS();
 				}
 			}
 
 			break;
 
 		case TT_DONE:
-			if (PIOS_DELAY_GetuSSince(pTT->timestamp_us) >= 2000000)
+			if (PIOS_DELAY_GetuSSince(pTT->timestamp_us) >= 2000000)  // 2 seconds
 			{
-				buzzer.duration = 250000;
-				pTT->timestamp_us = PIOS_DELAY_GetuS();
+				triflight_blink_string = "5";                         // ..... done success
+				pTT->timestamp_us      = PIOS_DELAY_GetuS();
 			}
 
 			break;
 
 		case TT_FAIL:
-			if (PIOS_DELAY_GetuSSince(pTT->timestamp_us) >= 2000000)
+			if (PIOS_DELAY_GetuSSince(pTT->timestamp_us) >= 2000000)  // 2 seconds
 			{
-				buzzer.duration = 750000;
-				pTT->timestamp_us = PIOS_DELAY_GetuS();
+				triflight_blink_string = "0";                         // ----- done fail
+				pTT->timestamp_us      = PIOS_DELAY_GetuS();
 			}
 
 			break;
@@ -887,42 +839,15 @@ static void tailTuneModeServoSetup(ActuatorSettingsData  *actuatorSettings,
 	ManualControlCommandData cmd;
 	ManualControlCommandGet(&cmd);
 
-	// Check mode select
-	if ((cmd.Pitch < 0.05f) && (cmd.Pitch > -0.05f) && (cmd.Roll < -0.5f)) {
-		pSS->servoVal       =  actuatorSettings->ChannelMin[triflightStatus->ServoChannel];
-		pSS->pLimitToAdjust = &actuatorSettings->ChannelMin[triflightStatus->ServoChannel];
-		pSS->state          = SS_SETUP;
-		buzzer.duration     = 20000;
-	}
-	else if ((cmd.Roll < 0.05f) && (cmd.Roll > -0.05f) && (cmd.Pitch < -0.5f)) {
-		pSS->servoVal       = actuatorSettings->ChannelNeutral[triflightStatus->ServoChannel];
-		pSS->pLimitToAdjust = &actuatorSettings->ChannelNeutral[triflightStatus->ServoChannel];
-		pSS->state          = SS_SETUP;
-		buzzer.duration     = 40000;
-	}
-	else if ((cmd.Pitch < 0.05f) && (cmd.Pitch > -0.05f) && (cmd.Roll > 0.5f)) {
-		pSS->servoVal       = actuatorSettings->ChannelMax[triflightStatus->ServoChannel];
-		pSS->pLimitToAdjust = &actuatorSettings->ChannelMax[triflightStatus->ServoChannel];
-		pSS->state          = SS_SETUP;
-		buzzer.duration     = 60000;
-	}
-	else if ((cmd.Roll < 0.05f) && (cmd.Roll > -0.05f) && (cmd.Pitch > 0.5f)) {
+	if ((cmd.Roll < 0.05f) && (cmd.Roll > -0.05f) && (cmd.Pitch > 0.5f) && (pSS->state == SS_IDLE)) {
 		pSS->state = SS_CALIB;
 		pSS->cal.state = SS_C_IDLE;
+		triflight_blink_string = "T";  // - start
 	}
 
 	switch (pSS->state)
 	{
 		case SS_IDLE:
-			break;
-
-		case SS_SETUP:
-			if ((cmd.Yaw > 0.05f) || (cmd.Yaw < -0.05f))
-			{
-				pSS->servoVal += 50.0f * cmd.Yaw * dT;
-				pSS->servoVal = bound_min_max(pSS->servoVal, 950, 2050);
-				*pSS->pLimitToAdjust = pSS->servoVal;
-			}
 			break;
 
 		case SS_CALIB:
@@ -931,10 +856,10 @@ static void tailTuneModeServoSetup(ActuatorSettingsData  *actuatorSettings,
 			{
 				if (pSS->cal.state == SS_C_IDLE)
 				{
-					pSS->cal.state            = SS_C_CALIB_MIN_MID_MAX;
-					pSS->cal.subState         = SS_C_MIN;
-					pSS->servoVal             = actuatorSettings->ChannelMin[triflightStatus->ServoChannel];
-				    sample_delta              = 0;
+					pSS->cal.state    = SS_C_CALIB_MIN_MID_MAX;
+					pSS->cal.subState = SS_C_MIN;
+					pSS->servoVal     = actuatorSettings->ChannelMin[triflightStatus->ServoChannel];
+				    sample_delta      = 0;
 				}
 				else if (pSS->cal.state == SS_C_CALIB_SPEED)
 				{
@@ -950,9 +875,9 @@ static void tailTuneModeServoSetup(ActuatorSettingsData  *actuatorSettings,
 							case SS_C_MIN:
 								triflightSettings->AdcServoFdbkMin = pSS->cal.avg.result;
 
-								pSS->cal.subState         = SS_C_MID;
-								pSS->servoVal             = actuatorSettings->ChannelNeutral[triflightStatus->ServoChannel];
-								sample_delta              = 0;
+								pSS->cal.subState = SS_C_MID;
+								pSS->servoVal     = actuatorSettings->ChannelNeutral[triflightStatus->ServoChannel];
+								sample_delta      = 0;
 								break;
 
 							case SS_C_MID:
@@ -960,11 +885,13 @@ static void tailTuneModeServoSetup(ActuatorSettingsData  *actuatorSettings,
 
 								if (fabs(triflightSettings->AdcServoFdbkMin - triflightSettings->AdcServoFdbkMid) < 100)
 								{
-									/* Not enough difference between min and mid feedback values.
-									* Most likely the feedback signal is not connected.
-									*/
+									// Not enough difference between min and mid feedback values.
+									// Most likely the feedback signal is not connected.
+
 									pSS->state        = SS_IDLE;
 									pSS->cal.subState = SS_C_IDLE;
+
+									triflight_blink_string = "0";  // ----- done fail
 								}
 								else
 								{
@@ -981,7 +908,7 @@ static void tailTuneModeServoSetup(ActuatorSettingsData  *actuatorSettings,
 								pSS->cal.subState = SS_C_MIN;
 
 								pSS->servoVal               = actuatorSettings->ChannelMin[triflightStatus->ServoChannel];
-								pSS->cal.waitingServoToStop = true;
+								pSS->cal.waitingServoToStop = false;
 								break;
 						}
 					}
@@ -999,16 +926,16 @@ static void tailTuneModeServoSetup(ActuatorSettingsData  *actuatorSettings,
 					break;
 
 				case SS_C_CALIB_MIN_MID_MAX:
-					if (PIOS_DELAY_GetuSSince(pSS->cal.timestamp_us) >= 500000)
+					if (PIOS_DELAY_GetuSSince(pSS->cal.timestamp_us) >= 500000)  // 0.5 seconds
 					{
 						if ((PIOS_DELAY_GetuSSince(pSS->cal.timestamp_us) >= 500000 + sample_delta) && (sample_delta < 1e6))
 						{
 							pSS->cal.avg.sum += triflightStatus->ADCServoFdbk;
 							pSS->cal.avg.num_of++;
-							sample_delta += 10000;
+							sample_delta += 10000;  // 0.01 seconds
 						}
 
-						if (sample_delta >= 1e6)
+						if (sample_delta >= 1e6)  // 1 second
 						{
 							pSS->cal.avg.result = pSS->cal.avg.sum / pSS->cal.avg.num_of;
 							pSS->cal.done = true;
@@ -1032,11 +959,12 @@ static void tailTuneModeServoSetup(ActuatorSettingsData  *actuatorSettings,
 									pSS->cal.avg.sum += PIOS_DELAY_GetuSSince(pSS->cal.timestamp_us);
 									pSS->cal.avg.num_of++;
 
-									if (pSS->cal.avg.num_of > 5)
+									if (pSS->cal.avg.num_of >= 5)
 									{
 										float avgTime = (float)pSS->cal.avg.sum / (float)pSS->cal.avg.num_of / 1e6f;
 										float avgServoSpeed = (2.0f * triflightSettings->ServoMaxAngle) / avgTime;
 										triflightSettings->ServoSpeed = avgServoSpeed;
+
 										pSS->cal.done = true;
 										pSS->servoVal = actuatorSettings->ChannelNeutral[triflightStatus->ServoChannel];
 
@@ -1045,6 +973,8 @@ static void tailTuneModeServoSetup(ActuatorSettingsData  *actuatorSettings,
 
 										TriflightSettingsSet(triflightSettings);
 										UAVObjSave(TriflightSettingsHandle(), 0);
+
+										triflight_blink_string = "5";  // ..... done success
 									}
 
 									pSS->cal.timestamp_us = PIOS_DELAY_GetuS();
@@ -1130,6 +1060,7 @@ void triTailTuneStep(ActuatorSettingsData  *actuatorSettings,
 	else
 	{
 		tailTune.mode = TT_MODE_NONE;
+		triflight_blink_string = NULL;
 		return;
 	}
 
@@ -1155,8 +1086,6 @@ void triTailTuneStep(ActuatorSettingsData  *actuatorSettings,
 			                       dT);
 			break;
     }
-
-	buzzerControl(actuatorSettings, triflightStatus);
 }
 
 #endif

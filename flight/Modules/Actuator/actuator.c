@@ -326,17 +326,6 @@ static void actuator_task(void* parameters)
 					}
 				}
 
-				// Find which output channel is yaw servo
-				triflightStatus.BuzzerChannel = 255;
-
-				for (uint8_t channel = 0; channel < ACTUATORSETTINGS_CHANNELTYPE_NUMELEM; channel++) {
-					if (actuatorSettings.ChannelType[channel] == ACTUATORSETTINGS_CHANNELTYPE_PWMALARM)
-					{
-						triflightStatus.BuzzerChannel = channel;
-						break;
-					}
-				}
-
 				// Call TriFlight Initialization
 				triflightInit(&actuatorSettings, &triflightSettings, &triflightStatus);
 
@@ -448,8 +437,10 @@ static void actuator_task(void* parameters)
 
 #ifndef SMALLF1
 		if (triflightStatus.Initialized == TRIFLIGHTSTATUS_INITIALIZED_TRUE) {
+			triflightStatus.testFloat1 = desired.Yaw;
 			desired.Yaw *= triflightStatus.DynamicYawGain;
 			desired.Yaw = bound_sym(desired.Yaw, 1.0f);
+			triflightStatus.testFloat2 = desired.Yaw;
 		}
 #endif
 
@@ -584,15 +575,25 @@ static void actuator_task(void* parameters)
 			                                                        &triflightStatus,
 			                                                        command.Channel[triflightStatus.ServoChannel]);
 
-			if (armed) {
-				// Add in tail motor correciton
+			if (armed && 0) { // HJI: Don't want this summed in yet....
+				// Add in tail motor correction
 				command.Channel[triflightStatus.RearMotorChannel] += triflightStatus.MotorCorrection;
 
 				// Make sure corrected motor command with in PWM range after correction is applied
 				command.Channel[triflightStatus.RearMotorChannel] = bound_min_max(command.Channel[triflightStatus.RearMotorChannel],
-				                                                                  actuatorSettings.ChannelMin[triflightStatus.RearMotorChannel],
+				                                                                  actuatorSettings.ChannelNeutral[triflightStatus.RearMotorChannel],
 				                                                                  actuatorSettings.ChannelMax[triflightStatus.RearMotorChannel]);
 			}
+
+			virtualTailMotorStep(&actuatorSettings,
+			                     &triflightSettings,
+			                     &triflightStatus,
+			                     command.Channel[triflightStatus.RearMotorChannel],
+			                     dT);
+
+			dynamicYaw(&triflightSettings, &triflightStatus);
+
+			checkMotorAcceleration(&triflightSettings, &triflightStatus);
 
 #if !defined(ARCH_POSIX) && !defined(ARCH_WIN32)
 			triTailTuneStep(&actuatorSettings,
@@ -603,14 +604,6 @@ static void actuator_task(void* parameters)
 			                armed,
 			                dT);
 #endif
-
-			virtualTailMotorStep(&actuatorSettings,
-			                     &triflightSettings,
-			                     &triflightStatus,
-			                     command.Channel[triflightStatus.RearMotorChannel],
-			                     dT);
-
-			dynamicYaw(&actuatorSettings, &triflightSettings, &triflightStatus);
 
 			TriflightStatusSet(&triflightStatus);
 		}

@@ -1,18 +1,19 @@
 <xml>
     <object name="TriflightSettings" singleinstance="true" settings="true">
         <description>Triflight Settings</description>
-        <field name="DynamicYawMinThrottle" units="" type="float" elements="1" defaultvalue="2.9"/>
+        <field name="DynamicYawMinThrottle" units="" type="float" elements="1" defaultvalue="1.0"/>
         <field name="DynamicYawMaxThrottle" units="" type="float" elements="1" defaultvalue="1.0"/>
+		<field name="MotorAccYawCorrection" units="" type="float" elements="1" defaultvalue="2.7"/>
         <field name="MotorAcceleration" units="" type="float" elements="1" defaultvalue="0.18"/>
         <field name="MotorAccelDelayMs" units="mSec" type="float" elements="1" defaultvalue="30.0"/>
         <field name="MotorDecelDelayMs" units="mSec" type="float" elements="1" defaultvalue="100.0"/>
         <field name="MotorThrustFactor" units="" type="float" elements="1" defaultvalue="13.8"/>
         <field name="ServoMaxAngle" units="degrees" type="float" elements="1" defaultvalue="40.0"/>
         <field name="ServoSpeed" units="dps" type="float" elements="1" defaultvalue="300.0"/>
-		<field name="ServoFdbkPin" units="" type="enum" elements="1" options="ADC0,ADC1,ADC2,ADC3,ADC4,ADC5,ADC6,ADC7,ADC8,NONE" defaultvalue="NONE"/>
+        <field name="ServoFdbkPin" units="" type="enum" elements="1" options="ADC0,ADC1,ADC2,ADC3,ADC4,ADC5,ADC6,ADC7,ADC8,NONE" defaultvalue="NONE"/>
         <field name="AdcServoFdbkMin" units="" type="float" elements="1" defaultvalue="2040"/>
-		<field name="AdcServoFdbkMid" units="" type="float" elements="1" defaultvalue="2048"/>
-		<field name="AdcServoFdbkMax" units="" type="float" elements="1" defaultvalue="2056"/>
+        <field name="AdcServoFdbkMid" units="" type="float" elements="1" defaultvalue="2048"/>
+        <field name="AdcServoFdbkMax" units="" type="float" elements="1" defaultvalue="2056"/>
         <field name="EnableVirtualServo" units="" type="enum" elements="1" options="Disable,Enable" defaultvalue="Enable"/>
         <field name="EnableTriFlight" units="" type="enum" elements="1" options="Disable,Enable" defaultvalue="Disable"/>
 

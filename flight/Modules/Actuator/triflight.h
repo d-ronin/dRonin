@@ -83,8 +83,10 @@ void virtualTailMotorStep(ActuatorSettingsData  *actuatorSettings,
                           float setpoint,
                           float dT);
 
-void dynamicYaw(ActuatorSettingsData  *actuatorSettings,
-                TriflightSettingsData *triflightSettings,
+void checkMotorAcceleration(TriflightSettingsData *triflightSettings,
+                            TriflightStatusData   *triflightStatus);
+
+void dynamicYaw(TriflightSettingsData *triflightSettings,
                 TriflightStatusData   *triflightStatus);
 /**
  * @}

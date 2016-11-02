@@ -1103,7 +1103,7 @@ static void update_stabilization_desired(ManualControlCommandData * manual_contr
 			reprojection = settings->Stabilization3Reprojection;
 			break;
 		case FLIGHTSTATUS_FLIGHTMODE_TAILTUNE:
-			stab_settings = ATTITUDE_SETTINGS;
+			stab_modes = RATE_SETTINGS;
 			break;
 		default:
 			{

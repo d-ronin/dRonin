@@ -2,7 +2,6 @@
     <object name="TriflightStatus" singleinstance="true" settings="false">
         <description>Triflight Status</description>
         <field name="Initialized" units="" type="enum" elements="1" options="False,True"/>
-        <field name="BuzzerChannel" units="" type ="uint8" elements="1"/>
         <field name="RearMotorChannel" units="" type="uint8" elements="1"/>
         <field name="ServoChannel" units="" type="uint8" elements="1"/>
         <field name="UncorrectedServoCmd" units="" type="float" elements="1"/>
@@ -12,6 +11,7 @@
         <field name="MotorCorrection" units="" type="float" elements="1"/>
         <field name="VirtualTailMotor" units="" type="float" elements="1"/>
         <field name="DynamicYawGain" units="" type="float" elements="1"/>
+        <field name="ExpectedGyroError" units="" type="float" elements="1"/>
         <field name="testFloat1" units="" type="float" elements="1"/>
         <field name="testFloat2" units="" type="float" elements="1"/>
 

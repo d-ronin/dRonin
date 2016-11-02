@@ -50,6 +50,7 @@
 #include "manualcontrolsettings.h"
 #include "modulesettings.h"
 #include "flightbatterysettings.h"
+#include "systemsettings.h"
 
 #if defined(PIOS_INCLUDE_DEBUG_CONSOLE)
 #define PIOS_COM_DEBUGCONSOLE_TX_BUF_LEN 40
@@ -72,7 +73,6 @@ uintptr_t pios_com_openlog_logging_id;
 
 void PIOS_Board_Init(void)
 {
-
 	/* Delay system */
 	PIOS_DELAY_Init();
 
@@ -121,6 +121,9 @@ void PIOS_Board_Init(void)
 	/* Initialize the hardware UAVOs */
 	HwDtfcInitialize();
 	ModuleSettingsInitialize();
+
+	/* Initialize the system setting UAVOs */
+	SystemSettingsInitialize();
 
 #if defined(PIOS_INCLUDE_RTC)
 	/* Initialize the real-time clock and its associated tick */
@@ -218,47 +221,47 @@ void PIOS_Board_Init(void)
 	/* Configure the rcvr port */
 	HwSharedPortTypesOptions hw_rcvrport;
 	HwDtfcRcvrPortGet(&hw_rcvrport);
-	PIOS_HAL_ConfigurePort(hw_rcvrport, // port_type
-						&pios_uart3_usart_cfg, // usart_port_cfg
+	PIOS_HAL_ConfigurePort(hw_rcvrport,         // port_type
+						&pios_uart3_usart_cfg,  // usart_port_cfg
 						&pios_usart_com_driver, // com_driver
-						NULL, // i2c_id
-						NULL, // i2c_cfg
-						&pios_ppm_cfg, // ppm_cfg
-						NULL, // pwm_cfg
-						PIOS_LED_ALARM, // led_id
-						&pios_uart3_dsm_cfg, // dsm_cfg
-						hw_DSMxMode, // dsm_mode
-						NULL); // sbus_cfg
+						NULL,                   // i2c_id
+						NULL,                   // i2c_cfg
+						&pios_ppm_cfg,          // ppm_cfg
+						NULL,                   // pwm_cfg
+						PIOS_LED_ALARM,         // led_id
+						&pios_uart3_dsm_cfg,    // dsm_cfg
+						hw_DSMxMode,            // dsm_mode
+						NULL);                  // sbus_cfg
 	
 	/* Configure Uart1 */
 	HwSharedPortTypesOptions hw_uart1;
 	HwDtfcUart1Get(&hw_uart1);
-	PIOS_HAL_ConfigurePort(hw_uart1, // port_type
-						&pios_uart1_usart_cfg, // usart_port_cfg
+	PIOS_HAL_ConfigurePort(hw_uart1,            // port_type
+						&pios_uart1_usart_cfg,  // usart_port_cfg
 						&pios_usart_com_driver, // com_driver
-						NULL, // i2c_id
-						NULL, // i2c_cfg
-						NULL, // ppm_cfg
-						NULL, // pwm_cfg
-						PIOS_LED_ALARM, // led_id
-						&pios_uart1_dsm_cfg, // dsm_cfg
-						hw_DSMxMode, // dsm_mode
-						NULL); // sbus_cfg
+						NULL,                   // i2c_id
+						NULL,                   // i2c_cfg
+						NULL,                   // ppm_cfg
+						NULL,                   // pwm_cfg
+						PIOS_LED_ALARM,         // led_id
+						&pios_uart1_dsm_cfg,    // dsm_cfg
+						hw_DSMxMode,            // dsm_mode
+						NULL);                  // sbus_cfg
 	
 	/* Configure Uart2 */
 	HwSharedPortTypesOptions hw_uart2;
 	HwDtfcUart2Get(&hw_uart2);
-	PIOS_HAL_ConfigurePort(hw_uart2, // port_type
-						&pios_uart2_usart_cfg, // usart_port_cfg
+	PIOS_HAL_ConfigurePort(hw_uart2,            // port_type
+						&pios_uart2_usart_cfg,  // usart_port_cfg
 						&pios_usart_com_driver, // com_driver
-						NULL, // i2c_id
-						NULL, // i2c_cfg
-						NULL, // ppm_cfg
-						NULL, // pwm_cfg
-						PIOS_LED_ALARM, // led_id
-						&pios_uart2_dsm_cfg, // dsm_cfg
-						hw_DSMxMode, // dsm_mode
-						NULL); // sbus_cfg
+						NULL,                   // i2c_id
+						NULL,                   // i2c_cfg
+						NULL,                   // ppm_cfg
+						NULL,                   // pwm_cfg
+						PIOS_LED_ALARM,         // led_id
+						&pios_uart2_dsm_cfg,    // dsm_cfg
+						hw_DSMxMode,            // dsm_mode
+						NULL);                  // sbus_cfg
 
 #if defined(PIOS_INCLUDE_GCSRCVR)
 	GCSReceiverInitialize();
@@ -270,6 +273,18 @@ void PIOS_Board_Init(void)
 	}
 	pios_rcvr_group_map[MANUALCONTROLSETTINGS_CHANNELGROUPS_GCS] = pios_gcsrcvr_rcvr_id;
 #endif	/* PIOS_INCLUDE_GCSRCVR */
+
+	SystemSettingsAirframeTypeOptions airframe_type;
+	SystemSettingsAirframeTypeGet(&airframe_type);
+
+	if (airframe_type == SYSTEMSETTINGS_AIRFRAMETYPE_TRI) {
+		internal_adc_cfg.adc_pin_count = 4;
+		pios_servo_cfg.num_channels    = NELEMENTS(pios_tim_servoport_pins) - 1;
+	}
+	else {
+		internal_adc_cfg.adc_pin_count = 3;
+		pios_servo_cfg.num_channels    = NELEMENTS(pios_tim_servoport_pins);
+	}
 
 #ifndef PIOS_DEBUG_ENABLE_DEBUG_PINS
 #ifdef PIOS_INCLUDE_SERVO
