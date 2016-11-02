@@ -39,7 +39,6 @@
 #include "geofencesettings.h"
 #include "modulesettings.h"
 #include "vibrationanalysissettings.h"
-#include "picocsettings.h"
 #include "taskinfo.h"
 #include "loggingsettings.h"
 
@@ -86,7 +85,6 @@ ConfigModuleWidget::ConfigModuleWidget(QWidget *parent) : ConfigTaskWidget(paren
     enableBatteryTab(false);
     enableAirspeedTab(false);
     enableHoTTTelemetryTab(false);
-    enablePicoCTab(false);
     enableGpsTab(false);
     enableLoggingTab(false);
 
@@ -103,7 +101,6 @@ ConfigModuleWidget::ConfigModuleWidget(QWidget *parent) : ConfigTaskWidget(paren
     setNotMandatory(FlightBatterySettings::NAME);
     setNotMandatory(AirspeedSettings::NAME);
     setNotMandatory(HoTTSettings::NAME);
-    setNotMandatory(PicoCSettings::NAME);
     setNotMandatory(LoggingSettings::NAME);
 }
 
@@ -157,10 +154,6 @@ void ConfigModuleWidget::recheckTabs()
         obj->requestUpdate();
     }
 
-    obj = getObjectManager()->getObject(PicoCSettings::NAME);
-    connect(obj, SIGNAL(transactionCompleted(UAVObject*,bool)), this, SLOT(objectUpdated(UAVObject*,bool)), Qt::UniqueConnection);
-    obj->requestUpdate();
-
     obj = getObjectManager()->getObject(LoggingSettings::NAME);
     connect(obj, SIGNAL(transactionCompleted(UAVObject*,bool)), this, SLOT(objectUpdated(UAVObject*,bool)), Qt::UniqueConnection);
     obj->requestUpdate();
@@ -195,8 +188,6 @@ void ConfigModuleWidget::objectUpdated(UAVObject * obj, bool success)
         refreshAdcNames();
     } else if (objName.compare(HoTTSettings::NAME) == 0) {
         enableHoTTTelemetryTab(success && enableHott);
-    } else if (objName.compare(PicoCSettings::NAME) == 0) {
-        enablePicoCTab(success && moduleSettings->getAdminState_PicoC() == ModuleSettings::ADMINSTATE_ENABLED);
     } else if (objName.compare(LoggingSettings::NAME) == 0) {
         enableLoggingTab(success && moduleSettings->getAdminState_Logging() == ModuleSettings::ADMINSTATE_ENABLED);
     }
@@ -312,13 +303,6 @@ void ConfigModuleWidget::enableAirspeedTab(bool enabled)
 void ConfigModuleWidget::enableHoTTTelemetryTab(bool enabled)
 {
     int idx = ui->moduleTab->indexOf(ui->tabHoTTTelemetry);
-    ui->moduleTab->setTabEnabled(idx,enabled);
-}
-
-//! Enable or disable the PicoC tab
-void ConfigModuleWidget::enablePicoCTab(bool enabled)
-{
-    int idx = ui->moduleTab->indexOf(ui->tabPicoC);
     ui->moduleTab->setTabEnabled(idx,enabled);
 }
 

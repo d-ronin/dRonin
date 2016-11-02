@@ -70,7 +70,6 @@ const struct pios_tcp_cfg pios_tcp_telem_cfg = {
 #include "../../../tests/logfs/unittest_init.c"
 
 uintptr_t pios_uavo_settings_fs_id;
-uintptr_t pios_waypoints_settings_fs_id;
 
 /*
  * Board specific number of devices.
@@ -118,9 +117,6 @@ void PIOS_Board_Init(void) {
 
 	if (PIOS_FLASHFS_Logfs_Init(&pios_uavo_settings_fs_id, &flashfs_config_settings, FLASH_PARTITION_LABEL_SETTINGS) != 0)
 		fprintf(stderr, "Unable to open the settings partition\n");
-
-	if (PIOS_FLASHFS_Logfs_Init(&pios_waypoints_settings_fs_id, &flashfs_config_waypoints, FLASH_PARTITION_LABEL_WAYPOINTS) != 0)
-		fprintf(stderr, "Unable to open the waypoints partition\n");
 
 	/* Initialize the task monitor library */
 	TaskMonitorInitialize();
