@@ -2123,6 +2123,19 @@ static const struct pios_ppm_cfg pios_ppm_cfg = {
 	.num_channels = 1,
 };
 
+static const struct pios_ppm_cfg pios_ppm_in4_cfg = {
+	.tim_ic_init = {
+		.TIM_ICPolarity = TIM_ICPolarity_Rising,
+		.TIM_ICSelection = TIM_ICSelection_DirectTI,
+		.TIM_ICPrescaler = TIM_ICPSC_DIV1,
+		.TIM_ICFilter = 0x0,
+		.TIM_Channel = TIM_Channel_3,
+	},
+	/* Use only the fourth channel for ppm */
+	.channels = &pios_tim_rcvrport_all_channels[3],
+	.num_channels = 1,
+};
+
 #endif //PPM
 
 
@@ -2214,29 +2227,29 @@ const struct pios_usb_hid_cfg pios_usb_hid_cfg = {
 #include "pios_internal_adc_priv.h"
 
 void PIOS_ADC_DMA_irq_handler(void);
-void DMA2_Stream4_IRQHandler(void) __attribute__((alias("PIOS_ADC_DMA_irq_handler")));
+void DMA2_Stream0_IRQHandler(void) __attribute__((alias("PIOS_ADC_DMA_irq_handler")));
 struct pios_internal_adc_cfg pios_adc_cfg = {
 	.adc_dev_master = ADC1,
 	.dma = {
 		.irq = {
-			.flags = (DMA_FLAG_TCIF4 | DMA_FLAG_TEIF4 | DMA_FLAG_HTIF4),
+			.flags = (DMA_FLAG_TCIF0 | DMA_FLAG_TEIF0 | DMA_FLAG_HTIF0),
 			.init = {
-				.NVIC_IRQChannel = DMA2_Stream4_IRQn,
+				.NVIC_IRQChannel = DMA2_Stream0_IRQn,
 				.NVIC_IRQChannelPreemptionPriority = PIOS_IRQ_PRIO_LOW,
 				.NVIC_IRQChannelSubPriority = 0,
 				.NVIC_IRQChannelCmd = ENABLE,
 			},
 		},
 		.rx = {
-			.channel = DMA2_Stream4,
+			.channel = DMA2_Stream0,
 			.init = {
 				.DMA_Channel = DMA_Channel_0,
 				.DMA_PeripheralBaseAddr = (uint32_t)&ADC1->DR
 			},
 		}
 	},
-	.half_flag = DMA_IT_HTIF4,
-	.full_flag = DMA_IT_TCIF4,
+	.half_flag = DMA_IT_HTIF0,
+	.full_flag = DMA_IT_TCIF0,
 	.adc_pins = {                                                                                 \
 		{ GPIOA, GPIO_Pin_0,     ADC_Channel_0 },                                                 \
 		{ GPIOA, GPIO_Pin_1,     ADC_Channel_1 },                                                 \
@@ -2253,6 +2266,45 @@ void PIOS_ADC_DMA_irq_handler(void)
 }
 
 #endif /* PIOS_INCLUDE_ADC */
+
+/**
+ * Configuration for driving a WS2811 LED out INPORT1
+ */
+
+#if defined(PIOS_INCLUDE_WS2811)
+#include "pios_ws2811.h"
+
+ws2811_dev_t pios_ws2811;
+
+void DMA2_Stream6_IRQHandler() {
+	PIOS_WS2811_dma_interrupt_handler(pios_ws2811);
+}
+
+static const struct pios_ws2811_cfg pios_ws2811_cfg = {
+	.timer = TIM1,
+	.clock_cfg = {
+		.TIM_Prescaler = (PIOS_PERIPHERAL_APB2_COUNTER_CLOCK / 12000000) - 1,
+		.TIM_ClockDivision = TIM_CKD_DIV1,
+		.TIM_CounterMode = TIM_CounterMode_Up,
+		.TIM_Period = 25,	/* 2.083us/bit */
+	},
+	.interrupt = {
+		.NVIC_IRQChannel = DMA2_Stream6_IRQn,
+		.NVIC_IRQChannelPreemptionPriority = PIOS_IRQ_PRIO_LOW,
+		.NVIC_IRQChannelSubPriority = 0,
+		.NVIC_IRQChannelCmd = ENABLE,
+	},
+	.bit_clear_dma_tcif = DMA_IT_TCIF6,
+	.fall_time_l = 5,			/* 333ns */
+	.fall_time_h = 10,			/* 750ns */
+	.led_gpio = GPIOA,
+	.gpio_pin = GPIO_Pin_10,		/* PA10 / IN1 */
+	.bit_set_dma_stream = DMA2_Stream4,
+	.bit_set_dma_channel = DMA_Channel_6,	/* 2/S4/C6: TIM1 CH4|TRIG|COM */
+	.bit_clear_dma_stream = DMA2_Stream6,
+	.bit_clear_dma_channel = DMA_Channel_0,	/* 0/S6/C0: TIM1 CH1|CH2|CH3 */
+};
+#endif
 
 /**
  * Configuration for the MPU6000 chip

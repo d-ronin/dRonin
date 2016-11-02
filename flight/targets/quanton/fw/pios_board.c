@@ -402,6 +402,19 @@ void PIOS_Board_Init(void) {
 				NULL);                                  // sbus_cfg
 		break;
 
+	case HWQUANTON_INPORT_WS2811SERIALPPMADC:
+		/* set up alt ppm, then fall through to set up serial */
+		PIOS_HAL_ConfigurePort(HWSHARED_PORTTYPES_PPM,  // port type protocol
+				NULL,                                   // usart_port_cfg
+				NULL,                                   // com_driver
+				NULL,                                   // i2c_id
+				NULL,                                   // i2c_cfg
+				&pios_ppm_in4_cfg,                      // ppm_cfg
+				NULL,                                   // pwm_cfg
+				PIOS_LED_ALARM,                         // led_id
+				NULL,                                   // dsm_cfg
+				0,                                      // dsm_mode
+				NULL);                                  // sbus_cfg
 	case HWQUANTON_INPORT_PPMSERIAL:
 	case HWQUANTON_INPORT_PPMSERIALADC:
 	case HWQUANTON_INPORT_SERIAL:
@@ -423,6 +436,9 @@ void PIOS_Board_Init(void) {
 		}
 
 		if (hw_inport == HWQUANTON_INPORT_SERIAL)
+			break;
+
+		if (hw_inport == HWQUANTON_INPORT_WS2811SERIALPPMADC)
 			break;
 
 		// Else fall through to set up PPM.
@@ -517,6 +533,7 @@ void PIOS_Board_Init(void) {
 		case HWQUANTON_INPORT_PPMADC:
 		case HWQUANTON_INPORT_PPMPWM:
 		case HWQUANTON_INPORT_PPMPWMADC:
+		case HWQUANTON_INPORT_WS2811SERIALPPMADC:
 			/* Set up the servo outputs */
 #ifdef PIOS_INCLUDE_SERVO
 			PIOS_Servo_Init(&pios_servo_cfg);
@@ -541,6 +558,23 @@ void PIOS_Board_Init(void) {
 	}
 #else
 	PIOS_DEBUG_Init(&pios_tim_servo_all_channels, NELEMENTS(pios_tim_servo_all_channels));
+#endif
+
+#ifdef PIOS_INCLUDE_WS2811
+	if (hw_inport == HWQUANTON_INPORT_WS2811SERIALPPMADC) {
+		PIOS_WS2811_init(&pios_ws2811, &pios_ws2811_cfg, 7);
+
+		// Pending infrastructure for this, drive a fixed
+		// value to the strand once.
+		PIOS_WS2811_set(pios_ws2811, 0, 255, 0, 0); // red
+		PIOS_WS2811_set(pios_ws2811, 1, 0, 255, 0); // green
+		PIOS_WS2811_set(pios_ws2811, 2, 0, 0, 255); // blue
+		PIOS_WS2811_set(pios_ws2811, 3, 255, 255, 0); // yellow
+		PIOS_WS2811_set(pios_ws2811, 4, 255, 0, 255); // purple
+		PIOS_WS2811_set(pios_ws2811, 5, 0, 255, 255); // cyan
+		PIOS_WS2811_set(pios_ws2811, 6, 64, 64, 64); // gray
+		PIOS_WS2811_trigger_update(pios_ws2811);
+	}
 #endif
 
 /* init sensor queue registration */
@@ -695,7 +729,8 @@ void PIOS_Board_Init(void) {
 		hw_inport == HWQUANTON_INPORT_PPMOUTPUTSADC ||
 		hw_inport == HWQUANTON_INPORT_PPMPWMADC ||
 		hw_inport == HWQUANTON_INPORT_PPMSERIALADC ||
-		hw_inport == HWQUANTON_INPORT_PWMADC)
+		hw_inport == HWQUANTON_INPORT_PWMADC ||
+		hw_inport == HWQUANTON_INPORT_WS2811SERIALPPMADC)
 	{
 		uint32_t internal_adc_id;
 		PIOS_INTERNAL_ADC_Init(&internal_adc_id, &pios_adc_cfg);
