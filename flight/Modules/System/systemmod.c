@@ -1,9 +1,9 @@
 /**
  ******************************************************************************
  * @addtogroup TauLabsModules Tau Labs Modules
- * @{ 
+ * @{
  * @addtogroup SystemModule System Module
- * @{ 
+ * @{
  *
  * @file       systemmod.c
  * @author     The OpenPilot Team, http://www.openpilot.org Copyright (C) 2010.
@@ -346,32 +346,38 @@ DONT_BUILD_IF(ANNUNCIATORSETTINGS_ANNUNCIATEAFTERARMING_MAXOPTVAL !=
 	AnnuncSettingsMismatch2);
 
 #if defined(PIOS_INCLUDE_ANNUNC)
-static inline void consider_annunc(AnnunciatorSettingsData *annunciatorSettings,
-		bool is_active, bool been_armed, bool is_manual_control,
-		uint8_t blink_prio, uint32_t annunc_id,
+static inline bool should_annunc(AnnunciatorSettingsData *annunciatorSettings,
+		bool been_armed, bool is_manual_control, uint8_t blink_prio,
 		uint8_t cfg_field) {
 	PIOS_Assert(cfg_field <
 			ANNUNCIATORSETTINGS_ANNUNCIATEAFTERARMING_NUMELEM);
 
-	bool prio_sufficient = false;
-
-	if (is_active && been_armed) {
+	if (been_armed) {
 		if (blink_prio >= annunciatorSettings->AnnunciateAfterArming[cfg_field]) {
-			prio_sufficient = true;
+			return true;
 		} else if (is_manual_control && annunciatorSettings->AnnunciateAfterArming[cfg_field] == ANNUNCIATORSETTINGS_ANNUNCIATEAFTERARMING_MANUALCONTROLONLY) {
-			prio_sufficient = true;
+			return true;
 		}
 	}
 
-	if (is_active && (!prio_sufficient)) {
-		if (blink_prio >= annunciatorSettings->AnnunciateAnytime[cfg_field]) {
-			prio_sufficient = true;
-		} else if (is_manual_control && annunciatorSettings->AnnunciateAnytime[cfg_field] == ANNUNCIATORSETTINGS_ANNUNCIATEANYTIME_MANUALCONTROLONLY) {
-			prio_sufficient = true;
-		}
+	if (blink_prio >= annunciatorSettings->AnnunciateAnytime[cfg_field]) {
+		return true;
+	} else if (is_manual_control && annunciatorSettings->AnnunciateAnytime[cfg_field] == ANNUNCIATORSETTINGS_ANNUNCIATEANYTIME_MANUALCONTROLONLY) {
+		return true;
 	}
 
-	if (prio_sufficient && is_active) {
+	return false;
+}
+
+static inline void consider_annunc(AnnunciatorSettingsData *annunciatorSettings,
+		bool is_active, bool been_armed, bool is_manual_control,
+		uint8_t blink_prio, uint32_t annunc_id,
+		uint8_t cfg_field) {
+	if (
+			is_active &&
+			should_annunc(annunciatorSettings, been_armed,
+				is_manual_control, blink_prio, cfg_field)
+	   ) {
 		PIOS_ANNUNC_On(annunc_id);
 	} else {
 		PIOS_ANNUNC_Off(annunc_id);
@@ -421,7 +427,7 @@ static void systemPeriodicCb(UAVObjEvent *ev, void *ctx, void *obj_data, int len
 	static bool ever_armed = false;
 	static bool is_manual_control = false;
 
-	// Evaluate all our possible annunciator sources. 
+	// Evaluate all our possible annunciator sources.
 
 	// The most important: indicate_error / alarms
 
@@ -496,6 +502,69 @@ static void systemPeriodicCb(UAVObjEvent *ev, void *ctx, void *obj_data, int len
 			blink_prio, PIOS_ANNUNCIATOR_BUZZER,
 			ANNUNCIATORSETTINGS_ANNUNCIATEANYTIME_BUZZER);
 #endif
+
+#ifdef SYSTEMMOD_RGBLED_SUPPORT
+	// XXX skip if no LEDs -- in a better way
+
+	if (!pios_ws2811) return;
+
+	RGBLEDSettingsData rgbSettings;
+	RGBLEDSettingsGet(&rgbSettings);
+
+	if (rgbSettings.NumLeds == 0) return;
+
+	bool led_override = should_annunc(&annunciatorSettings, ever_armed,
+			is_manual_control, blink_prio,
+			ANNUNCIATORSETTINGS_ANNUNCIATEANYTIME_RGB_LEDS);
+
+	uint8_t range_r, range_g, range_b;
+
+	// XXX Do more meaningful stuff here.
+	// XXX would be nice to have per-index variance too for "motion"
+	range_r = rgbSettings.RangeBaseColor[0];
+	range_g = rgbSettings.RangeBaseColor[1];
+	range_b = rgbSettings.RangeBaseColor[2];
+
+	uint8_t alarm_r, alarm_g, alarm_b;
+
+	if (led_override && (morse > 0)) {
+		// XXX pick a meaningful color
+		alarm_r = 128;
+		alarm_g = 128;
+		alarm_b = 128;
+	}
+
+	for (int i = 0; i < rgbSettings.NumLeds; i++) {
+		if (led_override) {
+			if ((i >= rgbSettings.AnnunciateRangeBegin) &&
+					(i <= rgbSettings.AnnunciateRangeEnd)) {
+				if (morse <= 0) {
+					PIOS_WS2811_set(pios_ws2811,
+							i, 0, 0, 0);
+				} else {
+					PIOS_WS2811_set(pios_ws2811, i,
+						       alarm_r, alarm_g, alarm_b);
+				}
+
+				continue;
+			}
+		}
+
+		if ((i >= rgbSettings.RangeBegin) &&
+				(i <= rgbSettings.RangeEnd)) {
+			PIOS_WS2811_set(pios_ws2811, i, range_r,
+					range_g, range_b);
+			continue;
+		}
+
+		PIOS_WS2811_set(pios_ws2811, i,
+				rgbSettings.DefaultColor[0],
+				rgbSettings.DefaultColor[1],
+				rgbSettings.DefaultColor[2]);
+	}
+
+	PIOS_WS2811_trigger_update(pios_ws2811);
+#endif /* SYSTEMMOD_RGBLED_SUPPORT */
 
 #endif  /* PIOS_INCLUDE_ANNUNC */
 

@@ -48,6 +48,17 @@
 			</options>
 		</field>
 
+		<field name="RangeColorBlendMode" units="function" elements="1" type="enum" defaultvalue="Sawtooth">
+			<description>Periodicity behavior of blend</description>
+
+			<options>
+				<option>Sawtooth</option>
+				<option>Triangle</option>
+				<option>Sine</option>
+				<option>Square</option>
+			</options>
+		</field>
+
 		<field name="DefaultColor" units="brightness" type="uint8" elements="3" defaultvalue="255,0,0">
 			<description>The color to drive LEDs when they are not in a gradient range.</description>
 		</field>
