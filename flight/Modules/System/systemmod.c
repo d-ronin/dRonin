@@ -52,6 +52,10 @@
 #include "systemstats.h"
 #include "watchdogstatus.h"
 
+#ifdef SYSTEMMOD_RGBLED_SUPPORT
+#include "rgbledsettings.h"
+#endif
+
 #if defined(PIOS_INCLUDE_DEBUG_CONSOLE) && defined(DEBUG_THIS_FILE)
 #define DEBUG_MSG(format, ...) PIOS_COM_SendFormattedString(PIOS_COM_DEBUG, format, ## __VA_ARGS__)
 #else
@@ -169,7 +173,11 @@ int32_t SystemModInitialize(void)
 			|| SystemStatsInitialize() == -1
 			|| FlightStatusInitialize() == -1
 			|| ObjectPersistenceInitialize() == -1
-			|| AnnunciatorSettingsInitialize() == -1) {
+			|| AnnunciatorSettingsInitialize() == -1
+#ifdef SYSTEMMOD_RGBLED_SUPPORT
+			|| RGBLEDSettingsInitialize() == -1
+#endif
+	   )	{
 		return -1;
 	}
 #if defined(DIAG_TASKS)
