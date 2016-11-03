@@ -559,7 +559,7 @@ void PIOS_Board_Init(void) {
 
 #ifdef PIOS_INCLUDE_WS2811
 	if (hw_inport == HWQUANTON_INPORT_WS2811SERIALPPMADC) {
-		PIOS_WS2811_init(&pios_ws2811, &pios_ws2811_cfg, 7);
+		PIOS_WS2811_init(&pios_ws2811, &pios_ws2811_cfg, 8);
 
 		// Pending infrastructure for this, drive a fixed
 		// value to the strand once.
