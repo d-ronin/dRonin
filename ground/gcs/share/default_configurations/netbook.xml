@@ -2455,7 +2455,7 @@
           <type>uavGadget</type>
         </side0>
         <side1>
-          <classId>PicoCGadget</classId>
+          <classId>DebugGadget</classId>
           <type>uavGadget</type>
         </side1>
         <splitterOrientation>1</splitterOrientation>

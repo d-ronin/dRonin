@@ -2440,7 +2440,7 @@
         </side0>
         <side1>
           <side0>
-            <classId>PicoCGadget</classId>
+            <classId>DebugGadget</classId>
             <type>uavGadget</type>
           </side0>
           <side1>
