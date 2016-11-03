@@ -36,7 +36,6 @@
 				<elementname>Battery</elementname>
 				<elementname>UAVOHoTTBridge</elementname>
 				<elementname>UAVOFrSKYSensorHubBridge</elementname>
-				<elementname>PicoC</elementname>
 				<elementname>OnScreenDisplay</elementname>
 				<elementname>Logging</elementname>
 				<elementname>UAVOFrSkySPortBridge</elementname>
@@ -82,7 +81,6 @@
 				<elementname>Battery</elementname>
 				<elementname>UAVOHoTTBridge</elementname>
 				<elementname>UAVOFrSKYSensorHubBridge</elementname>
-				<elementname>PicoC</elementname>
 				<elementname>OnScreenDisplay</elementname>
 				<elementname>Logging</elementname>
 				<elementname>UAVOFrSkySPortBridge</elementname>
@@ -132,7 +130,6 @@
 				<elementname>Battery</elementname>
 				<elementname>UAVOHoTTBridge</elementname>
 				<elementname>UAVOFrSKYSensorHubBridge</elementname>
-				<elementname>PicoC</elementname>
 				<elementname>OnScreenDisplay</elementname>
 				<elementname>Logging</elementname>
 				<elementname>UAVOFrSkySPortBridge</elementname>

@@ -21,7 +21,6 @@
 				<option>LighttelemetryTx</option>
 				<option>MavLinkTX</option>
 				<option>MSP</option>
-				<option>PicoC</option>
 				<option>Storm32Bgc</option>
 				<option>Telemetry</option>
 			</options>
@@ -52,7 +51,6 @@
 				<option>MavLinkTX_GPS_RX</option>
 				<option>MSP</option>
 				<option>OpenLog</option>
-				<option>PicoC</option>
 				<option>S.Bus</option>
 				<option>S.Bus Non Inverted</option>
 				<option>Storm32Bgc</option>
@@ -79,7 +77,6 @@
 				<option>MavLinkTX_GPS_RX</option>
 				<option>MSP</option>
 				<option>OpenLog</option>
-				<option>PicoC</option>
 				<option>S.Bus Non Inverted</option>
 				<option>Storm32Bgc</option>
 				<option>Telemetry</option>
@@ -105,7 +102,6 @@
 				<option>MavLinkTX_GPS_RX</option>
 				<option>MSP</option>
 				<option>OpenLog</option>
-				<option>PicoC</option>
 				<option>S.Bus Non Inverted</option>
 				<option>Storm32Bgc</option>
 				<option>Telemetry</option>
@@ -128,7 +124,7 @@
 		<field name="USB_HIDPort" units="function" type="enum" elements="1" options="USBTelemetry,Disabled" defaultvalue="USBTelemetry">
 			<description/>
 		</field>
-		<field name="USB_VCPPort" units="function" type="enum" elements="1" options="USBTelemetry,ComBridge,DebugConsole,PicoC,Disabled" defaultvalue="Disabled">
+		<field name="USB_VCPPort" units="function" type="enum" elements="1" options="USBTelemetry,ComBridge,DebugConsole,Disabled" defaultvalue="Disabled">
 			<description>Virtual COM Port protocol</description>
 		</field>
 		<field name="DSMxMode" units="mode" type="enum" elements="1" parent="HwShared.DSMxMode" defaultvalue="Autodetect">

@@ -99,10 +99,6 @@ uintptr_t pios_com_frsky_sport_id;
 uintptr_t pios_com_lighttelemetry_id;
 #endif
 
-#if defined(PIOS_INCLUDE_PICOC)
-uintptr_t pios_com_picoc_id;
-#endif
-
 #if defined(PIOS_INCLUDE_STORM32BGC)
 uintptr_t pios_com_storm32bgc_id;
 #endif
@@ -184,14 +180,6 @@ uintptr_t pios_com_debug_id;
 
 #ifndef PIOS_COM_LIGHTTELEMETRY_TX_BUF_LEN
 #define PIOS_COM_LIGHTTELEMETRY_TX_BUF_LEN 19
-#endif
-
-#ifndef PIOS_COM_PICOC_RX_BUF_LEN
-#define PIOS_COM_PICOC_RX_BUF_LEN 128
-#endif
-
-#ifndef PIOS_COM_PICOC_TX_BUF_LEN
-#define PIOS_COM_PICOC_TX_BUF_LEN 128
 #endif
 
 #ifndef PIOS_COM_FRSKYSPORT_TX_BUF_LEN
@@ -750,13 +738,6 @@ void PIOS_HAL_ConfigurePort(HwSharedPortTypesOptions port_type,
 #endif /* PIOS_INCLUDE_OPENLOG */
 		break;
 
-	case HWSHARED_PORTTYPES_PICOC:
-#if defined(PIOS_INCLUDE_PICOC)
-		PIOS_HAL_ConfigureCom(usart_port_cfg, &usart_port_params, PIOS_COM_PICOC_RX_BUF_LEN, PIOS_COM_PICOC_TX_BUF_LEN, com_driver, &port_driver_id);
-		target = &pios_com_picoc_id;
-#endif /* PIOS_INCLUDE_PICOC */
-		break;
-
 	case HWSHARED_PORTTYPES_VTXCONFIGTBSSMARTAUDIO:
 #if defined(PIOS_INCLUDE_TBSVTXCONFIG)
 		if (usart_port_cfg) {
@@ -938,19 +919,6 @@ void PIOS_HAL_ConfigureCDC(HwSharedUSB_VCPPortOptions port_type,
 			}
 		}
 #endif  /* PIOS_INCLUDE_DEBUG_CONSOLE */
-		break;
-	case HWSHARED_USB_VCPPORT_PICOC:
-#if defined(PIOS_INCLUDE_PICOC)
-		{
-			if (PIOS_COM_Init(&pios_com_picoc_id,
-					&pios_usb_cdc_com_driver,
-					pios_usb_cdc_id,
-					PIOS_COM_PICOC_RX_BUF_LEN,
-					PIOS_COM_PICOC_TX_BUF_LEN)) {
-				PIOS_Assert(0);
-			}
-		}
-#endif  /* PIOS_INCLUDE_PICOC */
 		break;
 	}
 }
