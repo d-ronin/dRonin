@@ -54,6 +54,7 @@
 			<options>
 				<option>Sawtooth</option>
 				<option>Triangle</option>
+				<option>Sine</option>
 				<option>Square</option>
 			</options>
 		</field>
