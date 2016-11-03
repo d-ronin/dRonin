@@ -385,6 +385,16 @@ static inline void consider_annunc(AnnunciatorSettingsData *annunciatorSettings,
 }
 #endif
 
+static inline uint8_t linear_interp_u16(uint8_t val_a, uint8_t val_b,
+		uint16_t fraction) {
+	uint32_t tmp = ((uint32_t) val_a) * (65535-fraction);
+	tmp += ((uint32_t) val_b) * fraction;
+
+	tmp += 32767;
+
+	return tmp >> 16;
+}
+
 static void systemPeriodicCb(UAVObjEvent *ev, void *ctx, void *obj_data, int len) {
 	(void) ev; (void) ctx; (void) obj_data; (void) len;
 
@@ -519,11 +529,70 @@ static void systemPeriodicCb(UAVObjEvent *ev, void *ctx, void *obj_data, int len
 
 	uint8_t range_r, range_g, range_b;
 
+	uint16_t fraction;
+
+	uint32_t tmpui32;
+
 	// XXX Do more meaningful stuff here.
 	// XXX would be nice to have per-index variance too for "motion"
-	range_r = rgbSettings.RangeBaseColor[0];
-	range_g = rgbSettings.RangeBaseColor[1];
-	range_b = rgbSettings.RangeBaseColor[2];
+	
+	switch (rgbSettings.RangeColorBlendSource) {
+		default:
+			fraction = 0;
+
+		case RGBLEDSETTINGS_RANGECOLORBLENDSOURCE_TIMESECONDPERIOD:
+			SystemStatsFlightTimeGet(&tmpui32);
+			fraction = (tmpui32 % 1000) * 65535 / 1000;
+			break;
+		
+		case RGBLEDSETTINGS_RANGECOLORBLENDSOURCE_TIME2SECONDPERIOD:
+			SystemStatsFlightTimeGet(&tmpui32);
+			fraction = (tmpui32 % 2000) * 65535 / 2000;
+			break;
+
+		case RGBLEDSETTINGS_RANGECOLORBLENDSOURCE_TIME4SECONDPERIOD:
+			SystemStatsFlightTimeGet(&tmpui32);
+			fraction = (tmpui32 % 4000) * 65535 / 4000;
+			break;
+	}
+
+	switch (rgbSettings.RangeColorBlendMode) {
+		default:
+		case RGBLEDSETTINGS_RANGECOLORBLENDMODE_SAWTOOTH:
+			break;	// Do nothing.
+		case RGBLEDSETTINGS_RANGECOLORBLENDMODE_TRIANGLE:
+			if (fraction >= 32768) {
+				fraction = 65535 - fraction * 2;
+			} else {
+				fraction *= 2;
+			}
+			break;
+		case RGBLEDSETTINGS_RANGECOLORBLENDMODE_SQUARE:
+			if (fraction > 32768) {
+				fraction = 65535;
+			} else {
+				fraction = 0;
+			}
+			break;
+	}
+
+	switch (rgbSettings.RangeColorBlendType) {
+		default:
+		case RGBLEDSETTINGS_RANGECOLORBLENDTYPE_LINEARRGBFADE:
+			range_r = linear_interp_u16(
+					rgbSettings.RangeBaseColor[0],
+					rgbSettings.RangeEndColor[0],
+					fraction);
+			range_g = linear_interp_u16(
+					rgbSettings.RangeBaseColor[1],
+					rgbSettings.RangeEndColor[1],
+					fraction);
+			range_b = linear_interp_u16(
+					rgbSettings.RangeBaseColor[2],
+					rgbSettings.RangeEndColor[2],
+					fraction);
+			// XXX HSV modes
+	}
 
 	uint8_t alarm_r, alarm_g, alarm_b;
 
