@@ -54,6 +54,10 @@
 #include <pios_rfm22b_rcvr_priv.h>
 #include <pios_openlrs_rcvr_priv.h>
 
+#if defined(PIOS_INCLUDE_WS2811)
+#include "rgbledsettings.h"
+#endif
+
 /**
  * Sensor configurations 
  */
@@ -472,7 +476,6 @@ void PIOS_Board_Init(void) {
 	PIOS_DEBUG_Init(&pios_tim_servo_all_channels, NELEMENTS(pios_tim_servo_all_channels));
 #endif
 
-
 	HwRevolutionData hwRevoMini;
 	HwRevolutionGet(&hwRevoMini);
 
@@ -514,6 +517,48 @@ void PIOS_Board_Init(void) {
 			break;
 #endif /* PIOS_INCLUDE_RFM22B */
 	}
+
+#ifdef PIOS_INCLUDE_WS2811
+	uint8_t num_leds;
+
+	RGBLEDSettingsInitialize();
+
+	RGBLEDSettingsNumLedsGet(&num_leds);
+
+	if (num_leds > 0) {
+		switch (hwRevoMini.WS2811Pin) {
+			default:
+			case HWREVOLUTION_WS2811PIN_DISABLED:
+				break;
+
+			case HWREVOLUTION_WS2811PIN_PB12INPORTPIN3:
+				PIOS_WS2811_init(&pios_ws2811,
+						&pios_ws2811_cfg_pb12,
+						num_leds);
+				PIOS_WS2811_trigger_update(pios_ws2811);
+				break;
+
+			case HWREVOLUTION_WS2811PIN_PD2OMNIBUSF4LEDPORT:
+				if (hw_spiperiph == HWREVOLUTION_SPIPERIPHERAL_RADIO) {
+					// Not compatible with radio use.
+					break;
+				}
+
+				PIOS_WS2811_init(&pios_ws2811,
+						&pios_ws2811_cfg_pd2,
+						num_leds);
+				PIOS_WS2811_trigger_update(pios_ws2811);
+				break;
+
+			case HWREVOLUTION_WS2811PIN_PA0SERVOOUT6:
+				PIOS_WS2811_init(&pios_ws2811,
+						&pios_ws2811_cfg_pa0,
+						num_leds);
+				PIOS_WS2811_trigger_update(pios_ws2811);
+				break;
+		}
+	}
+#endif /* PIOS_INCLUDE_WS2811 */
 
 	/* init sensor queue registration */
 	PIOS_SENSORS_Init();

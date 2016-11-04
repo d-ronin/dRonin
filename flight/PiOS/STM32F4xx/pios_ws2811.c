@@ -138,9 +138,9 @@ int PIOS_WS2811_init(ws2811_dev_t *dev_out, const struct pios_ws2811_cfg *cfg,
 	}
 
 	for (int i = 0; i < sizeof(dev->dma_buf_0)/4; i ++) {
-		dev->dma_buf_0[i]     = (dev->gpio_bit << 8) |
+		dev->dma_buf_0[i] = (dev->gpio_bit << 8) |
 			(dev->gpio_bit << 24);
-		dev->dma_buf_1[i]     = (dev->gpio_bit << 8) |
+		dev->dma_buf_1[i] = (dev->gpio_bit << 8) |
 			(dev->gpio_bit << 24);
 	}
 

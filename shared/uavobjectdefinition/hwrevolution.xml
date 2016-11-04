@@ -16,6 +16,17 @@
 				<option>UART</option>
 			</options>
 		</field>
+
+		<field name="WS2811Pin" units="function" type="enum" elements="1" defaultvalue="Disabled">
+			<description>What pin to speak WS2811 out of</description>
+			<options>
+				<option>Disabled</option>
+				<option>PB12 - InPort Pin 3</option>
+				<option>PD2 - OmniBus F4 LEDPort</option>
+				<option>PA0 - Servo Out 6</option>
+			</options>
+		</field>
+
 		<field name="MainPort" units="function" type="enum" elements="1" parent="HwShared.PortTypes" defaultvalue="Disabled">
 			<description>The port labelled "Main Port"</description>
 			<options>
