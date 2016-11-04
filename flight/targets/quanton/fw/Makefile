@@ -37,6 +37,7 @@ DEBUG ?= NO
 
 # List of modules to include
 MODULES = Sensors
+MODULES += System
 MODULES += Attitude 
 MODULES += Actuator
 MODULES += ManualControl
@@ -97,7 +98,6 @@ include $(APPLIBDIR)/ChibiOS/library.mk
 ## MODULES
 SRC += ${foreach MOD, ${MODULES} ${OPTMODULES}, ${wildcard ${OPMODULEDIR}/${MOD}/*.c}}
 ## OPENPILOT CORE:
-SRC += ${OPMODULEDIR}/System/systemmod.c
 SRC += main.c
 SRC += board.c
 SRC += pios_board.c

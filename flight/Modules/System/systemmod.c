@@ -54,6 +54,7 @@
 
 #ifdef SYSTEMMOD_RGBLED_SUPPORT
 #include "rgbledsettings.h"
+#include "rgbleds.h"
 #endif
 
 #if defined(PIOS_INCLUDE_DEBUG_CONSOLE) && defined(DEBUG_THIS_FILE)
@@ -397,18 +398,6 @@ static inline void consider_annunc(AnnunciatorSettingsData *annunciatorSettings,
 }
 #endif
 
-#ifdef SYSTEMMOD_RGBLED_SUPPORT
-static inline uint8_t linear_interp_u16(uint8_t val_a, uint8_t val_b,
-		uint16_t fraction) {
-	uint32_t tmp = ((uint32_t) val_a) * (65535-fraction);
-	tmp += ((uint32_t) val_b) * fraction;
-
-	tmp += 32767;
-
-	return tmp >> 16;
-}
-#endif
-
 static void systemPeriodicCb(UAVObjEvent *ev, void *ctx, void *obj_data, int len) {
 	(void) ev; (void) ctx; (void) obj_data; (void) len;
 
@@ -551,129 +540,7 @@ static void systemPeriodicCb(UAVObjEvent *ev, void *ctx, void *obj_data, int len
 	}
 
 #ifdef SYSTEMMOD_RGBLED_SUPPORT
-	// XXX skip if no LEDs -- in a better way
-
-	if (!pios_ws2811) return;
-
-	RGBLEDSettingsData rgbSettings;
-	RGBLEDSettingsGet(&rgbSettings);
-
-	if (rgbSettings.NumLeds == 0) return;
-
-	uint8_t range_r, range_g, range_b;
-
-	uint16_t fraction;
-
-	uint32_t tmpui32;
-
-	// XXX Do more meaningful stuff here.
-	// XXX would be nice to have per-index variance too for "motion"
-	
-	switch (rgbSettings.RangeColorBlendSource) {
-		default:
-			fraction = 0;
-			break;
-
-		case RGBLEDSETTINGS_RANGECOLORBLENDSOURCE_TIMEHALFSECONDPERIOD:
-			tmpui32 = PIOS_Thread_Systime();
-			fraction = (tmpui32 % 500) * 65535 / 500;
-			break;
-
-		case RGBLEDSETTINGS_RANGECOLORBLENDSOURCE_TIMESECONDPERIOD:
-			tmpui32 = PIOS_Thread_Systime();
-			fraction = (tmpui32 % 1000) * 65535 / 1000;
-			break;
-		
-		case RGBLEDSETTINGS_RANGECOLORBLENDSOURCE_TIME2SECONDPERIOD:
-			tmpui32 = PIOS_Thread_Systime();
-			fraction = (tmpui32 % 2000) * 65535 / 2000;
-			break;
-
-		case RGBLEDSETTINGS_RANGECOLORBLENDSOURCE_TIME4SECONDPERIOD:
-			tmpui32 = PIOS_Thread_Systime();
-			fraction = (tmpui32 % 4000) * 65535 / 4000;
-			break;
-	}
-
-	switch (rgbSettings.RangeColorBlendMode) {
-		default:
-		case RGBLEDSETTINGS_RANGECOLORBLENDMODE_SAWTOOTH:
-			break;	// Do nothing.
-		case RGBLEDSETTINGS_RANGECOLORBLENDMODE_SINE:
-			// XXX for now fake with triangle
-		case RGBLEDSETTINGS_RANGECOLORBLENDMODE_TRIANGLE:
-			if (fraction >= 32768) {
-				fraction = 65535 - fraction * 2;
-			} else {
-				fraction *= 2;
-			}
-			break;
-		case RGBLEDSETTINGS_RANGECOLORBLENDMODE_SQUARE:
-			if (fraction > 32768) {
-				fraction = 65535;
-			} else {
-				fraction = 0;
-			}
-			break;
-	}
-
-	switch (rgbSettings.RangeColorBlendType) {
-		default:
-		case RGBLEDSETTINGS_RANGECOLORBLENDTYPE_LINEARRGBFADE:
-			range_r = linear_interp_u16(
-					rgbSettings.RangeBaseColor[0],
-					rgbSettings.RangeEndColor[0],
-					fraction);
-			range_g = linear_interp_u16(
-					rgbSettings.RangeBaseColor[1],
-					rgbSettings.RangeEndColor[1],
-					fraction);
-			range_b = linear_interp_u16(
-					rgbSettings.RangeBaseColor[2],
-					rgbSettings.RangeEndColor[2],
-					fraction);
-			// XXX HSV modes
-	}
-
-	uint8_t alarm_r, alarm_g, alarm_b;
-
-	if (led_override && (morse > 0)) {
-		// XXX pick a meaningful color
-		alarm_r = 128;
-		alarm_g = 128;
-		alarm_b = 128;
-	}
-
-	for (int i = 0; i < rgbSettings.NumLeds; i++) {
-		if (led_override) {
-			if ((i >= rgbSettings.AnnunciateRangeBegin) &&
-					(i <= rgbSettings.AnnunciateRangeEnd)) {
-				if (morse <= 0) {
-					PIOS_WS2811_set(pios_ws2811,
-							i, 0, 0, 0);
-				} else {
-					PIOS_WS2811_set(pios_ws2811, i,
-						       alarm_r, alarm_g, alarm_b);
-				}
-
-				continue;
-			}
-		}
-
-		if ((i >= rgbSettings.RangeBegin) &&
-				(i <= rgbSettings.RangeEnd)) {
-			PIOS_WS2811_set(pios_ws2811, i, range_r,
-					range_g, range_b);
-			continue;
-		}
-
-		PIOS_WS2811_set(pios_ws2811, i,
-				rgbSettings.DefaultColor[0],
-				rgbSettings.DefaultColor[1],
-				rgbSettings.DefaultColor[2]);
-	}
-
-	PIOS_WS2811_trigger_update(pios_ws2811);
+	systemmod_process_rgb_leds(led_override, morse > 0, blink_prio);
 #endif /* SYSTEMMOD_RGBLED_SUPPORT */
 
 #endif  /* !PIPXTREME && PIOS_INCLUDE_ANNUNC */
