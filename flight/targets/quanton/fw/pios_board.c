@@ -559,10 +559,11 @@ void PIOS_Board_Init(void) {
 #endif
 
 #ifdef PIOS_INCLUDE_WS2811
+	RGBLEDSettingsInitialize();
+
 	if (hw_inport == HWQUANTON_INPORT_WS2811SERIALPPMADC) {
 		uint8_t temp;
 
-		RGBLEDSettingsInitialize();
 		RGBLEDSettingsNumLedsGet(&temp);
 
 		if (temp > 0) {
