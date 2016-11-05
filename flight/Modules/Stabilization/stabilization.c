@@ -240,11 +240,7 @@ static void stabilizationTask(void* parameters)
 	// Force refresh of all settings immediately before entering main task loop
 	SettingsUpdatedCb(NULL, NULL, NULL, 0);
 
-	// Settings for system identification
 	uint32_t iteration = 0;
-	const uint32_t SYSTEM_IDENT_PERIOD = 75;
-	uint32_t system_ident_timeval = PIOS_DELAY_GetRaw();
-
 	float dT_filtered = 0;
 
 	// Main task loop
@@ -485,6 +481,8 @@ static void stabilizationTask(void* parameters)
 			bool reinit = (mode != previous_mode[i]);
 			previous_mode[i] = mode;
 
+			actuatorDesired.SystemIdentCycle = 0xffff;
+
 			// Apply the selected control law
 			switch(mode)
 			{
@@ -623,74 +621,28 @@ static void stabilizationTask(void* parameters)
 
 					break;
 				case STABILIZATIONDESIRED_STABILIZATIONMODE_SYSTEMIDENT:
+					;
+					static uint8_t ident_shift = 5;
+
 					if(reinit) {
 						pids[PID_GROUP_ATT + i].iAccumulator = 0;
 						pids[PID_GROUP_RATE + i].iAccumulator = 0;
-					}
 
-					static uint32_t ident_iteration = 0;
-					static float ident_offsets[3] = {0};
-
-					if (PIOS_DELAY_DiffuS(system_ident_timeval) / 1000.0f > SYSTEM_IDENT_PERIOD && SystemIdentHandle()) {
-						ident_iteration++;
-						system_ident_timeval = PIOS_DELAY_GetRaw();
-
-						SystemIdentData systemIdent;
-						SystemIdentGet(&systemIdent);
-
-						const float SCALE_BIAS = 7.1f;
-						float roll_scale = expapprox(SCALE_BIAS - systemIdent.Beta[SYSTEMIDENT_BETA_ROLL]);
-						float pitch_scale = expapprox(SCALE_BIAS - systemIdent.Beta[SYSTEMIDENT_BETA_PITCH]);
-						float yaw_scale = expapprox(SCALE_BIAS - systemIdent.Beta[SYSTEMIDENT_BETA_YAW]);
-
-						if (roll_scale > 0.25f)
-							roll_scale = 0.25f;
-						if (pitch_scale > 0.25f)
-							pitch_scale = 0.25f;
-						if (yaw_scale > 0.25f)
-							yaw_scale = 0.25f;
-
-						switch(ident_iteration & 0x07) {
-							case 0:
-								ident_offsets[0] = 0;
-								ident_offsets[1] = 0;
-								ident_offsets[2] = yaw_scale;
-								break;
-							case 1:
-								ident_offsets[0] = roll_scale;
-								ident_offsets[1] = 0;
-								ident_offsets[2] = 0;
-								break;
-							case 2:
-								ident_offsets[0] = 0;
-								ident_offsets[1] = 0;
-								ident_offsets[2] = -yaw_scale;
-								break;
-							case 3:
-								ident_offsets[0] = -roll_scale;
-								ident_offsets[1] = 0;
-								ident_offsets[2] = 0;
-								break;
-							case 4:
-								ident_offsets[0] = 0;
-								ident_offsets[1] = 0;
-								ident_offsets[2] = yaw_scale;
-								break;
-							case 5:
-								ident_offsets[0] = 0;
-								ident_offsets[1] = pitch_scale;
-								ident_offsets[2] = 0;
-								break;
-							case 6:
-								ident_offsets[0] = 0;
-								ident_offsets[1] = 0;
-								ident_offsets[2] = -yaw_scale;
-								break;
-							case 7:
-								ident_offsets[0] = 0;
-								ident_offsets[1] = -pitch_scale;
-								ident_offsets[2] = 0;
-								break;
+						if (dT_filtered < 0.0008f) {
+							// 2KHz - 512ms period
+							// 1.6KHz - 640ms period
+							ident_shift = 7;
+						} else if (dT_filtered < 0.0014f) {
+							// 1.2KHz - 427ms
+							// 1KHz - 512ms period
+							// 800Hz - 640ms period
+							// 750Hz - 683ms period
+							ident_shift = 6;
+						} else {
+							// 700Hz - 365ms period
+							// 500Hz - 512ms period
+							// 333Hz - 768ms period
+							ident_shift = 5;
 						}
 					}
 
@@ -701,17 +653,65 @@ static void stabilizationTask(void* parameters)
 
 						// Compute the inner loop
 						actuatorDesiredAxis[i] = pid_apply_setpoint(&pids[PID_GROUP_RATE + i], get_deadband(i), rateDesiredAxis[i],  gyro_filtered[i], dT);
-						actuatorDesiredAxis[i] += ident_offsets[i];
-						actuatorDesiredAxis[i] = bound_sym(actuatorDesiredAxis[i],1.0f);
 					} else {
 						// Get the desired rate. yaw is always in rate mode in system ident.
 						rateDesiredAxis[i] = bound_sym(stabDesiredAxis[i], settings.ManualRate[i]);
 
 						// Compute the inner loop only for yaw
 						actuatorDesiredAxis[i] = pid_apply_setpoint(&pids[PID_GROUP_RATE + i], get_deadband(i), rateDesiredAxis[i],  gyro_filtered[i], dT);
-						actuatorDesiredAxis[i] += ident_offsets[i];
-						actuatorDesiredAxis[i] = bound_sym(actuatorDesiredAxis[i],1.0f);
 					}
+
+					const float scale = 0.06;
+
+					uint32_t ident_iteration =
+						iteration >> ident_shift;
+
+					actuatorDesired.SystemIdentCycle = ident_iteration;
+
+					switch (ident_iteration & 0x07) {
+						case 0:
+							if (i == 2) {
+								actuatorDesiredAxis[i] += scale;
+							}
+							break;
+						case 1:
+							if (i == 0) {
+								actuatorDesiredAxis[i] += scale;
+							}
+							break;
+						case 2:
+							if (i == 2) {
+								actuatorDesiredAxis[i] -= scale;
+							}
+							break;
+						case 3:
+							if (i == 0) {
+								actuatorDesiredAxis[i] -= scale;
+							}
+							break;
+						case 4:
+							if (i == 2) {
+								actuatorDesiredAxis[i] += scale;
+							}
+							break;
+						case 5:
+							if (i == 1) {
+								actuatorDesiredAxis[i] += scale;
+							}
+							break;
+						case 6:
+							if (i == 2) {
+								actuatorDesiredAxis[i] -= scale;
+							}
+							break;
+						case 7:
+							if (i == 1) {
+								actuatorDesiredAxis[i] -= scale;
+							}
+							break;
+					}
+
+					actuatorDesiredAxis[i] = bound_sym(actuatorDesiredAxis[i],1.0f);
 
 					break;
 
