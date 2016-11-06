@@ -62,12 +62,18 @@
 #define AF_NUMP 43
 
 // Private types
-enum AUTOTUNE_STATE { AT_INIT, AT_START, AT_RUN, AT_FINISHED, AT_WAITING };
+enum AUTOTUNE_STATE { AT_INIT, AT_START, AT_WAITFIRSTPOINT, AT_RUN,
+	AT_FINISHED, AT_WAITING };
+
+#define THROTTLE_EOF	1000.0f	/* This value doesn't make sense, so it's
+				 * a good end-of-actuation indicator.
+				 * (normal range [-1, 1])
+				 */
 
 struct at_queued_data {
 	float y[3];		/* Gyro measurements */
 	float u[3];		/* Actuator desired */
-	float throttle;	/* Throttle desired */
+	float throttle;		/* Throttle desired */
 
 	uint32_t raw_time;	/* From PIOS_DELAY_GetRaw() */
 };
@@ -124,7 +130,7 @@ int32_t AutotuneInitialize(void)
 			module_enabled = false;
 			return -1;
 		}
-		
+
 		at_queue = circ_queue_new(sizeof(struct at_queued_data),
 				AT_QUEUE_NUMELEM);
 
@@ -159,11 +165,13 @@ MODULE_INITCALL(AutotuneInitialize, AutotuneStart)
 static void at_new_gyro_data(UAVObjEvent * ev, void *ctx, void *obj, int len) {
 	(void) ev; (void) ctx;
 
-	static bool last_sample_unpushed = 0;
+	static bool last_sample_unpushed = false;
 
-	GyrosData *g = obj;
+	static bool running = false;
 
-	PIOS_Assert(len == sizeof(*g));
+	ActuatorDesiredData *actuators = (ActuatorDesiredData *) obj;
+
+	PIOS_Assert(len == sizeof(*actuators));
 
 	if (last_sample_unpushed) {
 		/* Last time we were unable to advance the write pointer.
@@ -173,23 +181,38 @@ static void at_new_gyro_data(UAVObjEvent * ev, void *ctx, void *obj, int len) {
 		}
 	}
 
+	GyrosData g;
+	GyrosGet(&g);
+
 	struct at_queued_data *q_item = circ_queue_write_pos(at_queue,
 			NULL, NULL);
 
+	if (actuators->SystemIdentCycle == 0xffff) {
+		if (running) {
+			// Signify end of actuation stream.
+			q_item->throttle = THROTTLE_EOF;
+
+			if (circ_queue_advance_write(at_queue) == 0) {
+				running = false;
+			}
+		}
+
+		return;		// No data
+	}
+
+	running = true;
+
 	q_item->raw_time = PIOS_DELAY_GetRaw();
 
-	q_item->y[0] = g->x;
-	q_item->y[1] = g->y;
-	q_item->y[2] = g->z;
+	q_item->y[0] = g.x;
+	q_item->y[1] = g.y;
+	q_item->y[2] = g.z;
 
-	ActuatorDesiredData actuators;
-	ActuatorDesiredGet(&actuators);
+	q_item->u[0] = actuators->Roll;
+	q_item->u[1] = actuators->Pitch;
+	q_item->u[2] = actuators->Yaw;
 
-	q_item->u[0] = actuators.Roll;
-	q_item->u[1] = actuators.Pitch;
-	q_item->u[2] = actuators.Yaw;
-
-	q_item->throttle = actuators.Thrust;
+	q_item->throttle = actuators->Thrust;
 
 	if (circ_queue_advance_write(at_queue) != 0) {
 		last_sample_unpushed = true;
@@ -227,42 +250,6 @@ static void UpdateSystemIdent(const float *X, const float *noise,
 	SystemIdentSet(&system_ident);
 }
 
-static void UpdateStabilizationDesired(bool doingIdent) {
-	StabilizationDesiredData stabDesired;
-	StabilizationDesiredGet(&stabDesired);
-
-	uint8_t rollMax, pitchMax;
-
-	float manualRate[STABILIZATIONSETTINGS_MANUALRATE_NUMELEM];
-
-	StabilizationSettingsRollMaxGet(&rollMax);
-	StabilizationSettingsPitchMaxGet(&pitchMax);
-	StabilizationSettingsManualRateGet(manualRate);
-
-	SystemSettingsAirframeTypeOptions airframe_type;
-	SystemSettingsAirframeTypeGet(&airframe_type);
-
-	ManualControlCommandData manual_control_command;
-	ManualControlCommandGet(&manual_control_command);
-
-	stabDesired.Roll = manual_control_command.Roll * rollMax;
-	stabDesired.Pitch = manual_control_command.Pitch * pitchMax;
-	stabDesired.Yaw = manual_control_command.Yaw * manualRate[STABILIZATIONSETTINGS_MANUALRATE_YAW];
-
-	if (doingIdent) {
-		stabDesired.StabilizationMode[STABILIZATIONDESIRED_STABILIZATIONMODE_ROLL]  = STABILIZATIONDESIRED_STABILIZATIONMODE_SYSTEMIDENT;
-		stabDesired.StabilizationMode[STABILIZATIONDESIRED_STABILIZATIONMODE_PITCH] = STABILIZATIONDESIRED_STABILIZATIONMODE_SYSTEMIDENT;
-		stabDesired.StabilizationMode[STABILIZATIONDESIRED_STABILIZATIONMODE_YAW] = STABILIZATIONDESIRED_STABILIZATIONMODE_SYSTEMIDENT;
-	} else {
-		stabDesired.StabilizationMode[STABILIZATIONDESIRED_STABILIZATIONMODE_ROLL]  = STABILIZATIONDESIRED_STABILIZATIONMODE_ATTITUDE;
-		stabDesired.StabilizationMode[STABILIZATIONDESIRED_STABILIZATIONMODE_PITCH] = STABILIZATIONDESIRED_STABILIZATIONMODE_ATTITUDE;
-		stabDesired.StabilizationMode[STABILIZATIONDESIRED_STABILIZATIONMODE_YAW] = STABILIZATIONDESIRED_STABILIZATIONMODE_RATE;
-	}
-
-	stabDesired.Thrust = (airframe_type == SYSTEMSETTINGS_AIRFRAMETYPE_HELICP) ? manual_control_command.Collective : manual_control_command.Throttle;
-	StabilizationDesiredSet(&stabDesired);
-}
-
 #define MAX_PTS_PER_CYCLE 4
 
 /**
@@ -271,8 +258,6 @@ static void UpdateStabilizationDesired(bool doingIdent) {
 static void AutotuneTask(void *parameters)
 {
 	enum AUTOTUNE_STATE state = AT_INIT;
-
-	uint32_t last_update_time = PIOS_Thread_Systime();
 
 	float X[AF_NUMX] = {0};
 	float P[AF_NUMP] = {0};
@@ -283,21 +268,15 @@ static void AutotuneTask(void *parameters)
 	uint32_t last_time = 0.0f;
 	const uint32_t YIELD_MS = 2;
 
-	GyrosConnectCallback(at_new_gyro_data);
+	ActuatorDesiredConnectCallback(at_new_gyro_data);
 
 	bool save_needed = false;
 
 	while(1) {
 		PIOS_WDG_UpdateFlag(PIOS_WDG_AUTOTUNE);
 
-		uint32_t diff_time;
-
-		const uint32_t PREPARE_TIME = 2000;
-		const uint32_t MEASURE_TIME = 60000;
-
 		static uint32_t update_counter = 0;
 
-		bool doing_ident = false;
 		bool can_sleep = true;
 
 		FlightStatusData flightStatus;
@@ -327,8 +306,6 @@ static void AutotuneTask(void *parameters)
 				// completes.
 				save_needed = false;
 
-				last_update_time = PIOS_Thread_Systime();
-
 				// Only start when armed and flying
 				if (flightStatus.Armed == FLIGHTSTATUS_ARMED_ARMED) {
 
@@ -342,34 +319,40 @@ static void AutotuneTask(void *parameters)
 
 			case AT_START:
 
-				diff_time = PIOS_Thread_Systime() - last_update_time;
+				last_time = PIOS_DELAY_GetRaw();
 
-				// Spend the first block of time in normal rate mode to get stabilized
-				if (diff_time > PREPARE_TIME) {
-					last_time = PIOS_DELAY_GetRaw();
+				/* Drain the queue of all current data */
+				circ_queue_clear(at_queue);
 
-					/* Drain the queue of all current data */
-					circ_queue_clear(at_queue);
+				/* And reset the point spill counter */
 
-					/* And reset the point spill counter */
+				update_counter = 0;
+				at_points_spilled = 0;
 
-					update_counter = 0;
-					at_points_spilled = 0;
+				throttle_accumulator = 0;
 
-					throttle_accumulator = 0;
-
-					state = AT_RUN;
-					last_update_time = PIOS_Thread_Systime();
-				}
-
+				state = AT_WAITFIRSTPOINT;
 
 				break;
 
+			case AT_WAITFIRSTPOINT:
+
+
+				{
+					struct at_queued_data *pt;
+
+					/* Grab an autotune point */
+					pt = circ_queue_read_pos(at_queue, NULL, NULL);
+
+					if (!pt) {
+						// Still no data showing up
+						break;
+					}
+
+					state = AT_RUN;
+				}
+
 			case AT_RUN:
-
-				diff_time = PIOS_Thread_Systime() - last_update_time;
-
-				doing_ident = true;
 				can_sleep = false;
 
 				for (int i=0; i<MAX_PTS_PER_CYCLE; i++) {
@@ -382,6 +365,14 @@ static void AutotuneTask(void *parameters)
 						/* We've drained the buffer
 						 * fully.  Yay! */
 						can_sleep = true;
+						break;
+					}
+
+					if (pt->throttle == THROTTLE_EOF) {
+						// End of actuation, clean up
+						state = AT_FINISHED;
+						can_sleep = true;
+
 						break;
 					}
 
@@ -420,11 +411,6 @@ static void AutotuneTask(void *parameters)
 					}
 				}
 
-				if (diff_time > MEASURE_TIME) { // Move on to next state
-					state = AT_FINISHED;
-					last_update_time = PIOS_Thread_Systime();
-				}
-
 				break;
 
 			case AT_FINISHED: ;
@@ -444,9 +430,6 @@ static void AutotuneTask(void *parameters)
 				// Set an alarm or some shit like that
 				break;
 		}
-
-		// Update based on manual controls
-		UpdateStabilizationDesired(doing_ident);
 
 		if (can_sleep) {
 			PIOS_Thread_Sleep(YIELD_MS);

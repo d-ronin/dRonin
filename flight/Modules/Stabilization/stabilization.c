@@ -621,13 +621,31 @@ static void stabilizationTask(void* parameters)
 
 					break;
 				case STABILIZATIONDESIRED_STABILIZATIONMODE_SYSTEMIDENT:
+				case STABILIZATIONDESIRED_STABILIZATIONMODE_SYSTEMIDENTRATE:
 					;
 					static uint8_t ident_shift = 5;
+					static bool measuring;
+					static uint32_t enter_time;
+
+					static uint32_t measure_remaining;
+
+					// Takes 1250ms + the time to reach
+					// the '0th measurement'
+					// (could be the ~600ms period time)
+					const uint32_t PREPARE_TIME = 1250;
 
 					if(reinit) {
 						pids[PID_GROUP_ATT + i].iAccumulator = 0;
 						pids[PID_GROUP_RATE + i].iAccumulator = 0;
 
+						enter_time = timeval;
+
+						measuring = false;
+					}
+
+					if ((i == 0) &&
+							(!measuring) &&
+							((timeval - enter_time) > PREPARE_TIME)) {
 						if (dT_filtered < 0.0008f) {
 							// 2KHz - 512ms period
 							// 1.6KHz - 640ms period
@@ -644,9 +662,21 @@ static void stabilizationTask(void* parameters)
 							// 333Hz - 768ms period
 							ident_shift = 5;
 						}
+
+						uint32_t mask =
+							(1 << (ident_shift + 3)) - 1;
+
+						if (!(iteration & mask)) {
+							measuring = true;
+							measure_remaining = 1 / dT_filtered;
+							// Round down to mult
+							// of 8 ident cycles.
+							measure_remaining &= ~mask;
+						}
+
 					}
 
-					if (i == ROLL || i == PITCH) {
+					if (mode == STABILIZATIONDESIRED_STABILIZATIONMODE_SYSTEMIDENT) {
 						// Compute the outer loop
 						rateDesiredAxis[i] = pid_apply(&pids[PID_GROUP_ATT + i], local_attitude_error[i], dT);
 						rateDesiredAxis[i] = bound_sym(rateDesiredAxis[i], settings.MaximumRate[i]);
@@ -666,52 +696,60 @@ static void stabilizationTask(void* parameters)
 					uint32_t ident_iteration =
 						iteration >> ident_shift;
 
-					actuatorDesired.SystemIdentCycle = ident_iteration;
+					if (measuring && measure_remaining) {
+						if (i == 0) {
+							// Only adjust the
+							// counter on one axis
+							measure_remaining--;
+						}
 
-					switch (ident_iteration & 0x07) {
-						case 0:
-							if (i == 2) {
-								actuatorDesiredAxis[i] += scale;
-							}
-							break;
-						case 1:
-							if (i == 0) {
-								actuatorDesiredAxis[i] += scale;
-							}
-							break;
-						case 2:
-							if (i == 2) {
-								actuatorDesiredAxis[i] -= scale;
-							}
-							break;
-						case 3:
-							if (i == 0) {
-								actuatorDesiredAxis[i] -= scale;
-							}
-							break;
-						case 4:
-							if (i == 2) {
-								actuatorDesiredAxis[i] += scale;
-							}
-							break;
-						case 5:
-							if (i == 1) {
-								actuatorDesiredAxis[i] += scale;
-							}
-							break;
-						case 6:
-							if (i == 2) {
-								actuatorDesiredAxis[i] -= scale;
-							}
-							break;
-						case 7:
-							if (i == 1) {
-								actuatorDesiredAxis[i] -= scale;
-							}
-							break;
+						actuatorDesired.SystemIdentCycle = ident_iteration;
+
+						switch (ident_iteration & 0x07) {
+							case 0:
+								if (i == 2) {
+									actuatorDesiredAxis[i] += scale;
+								}
+								break;
+							case 1:
+								if (i == 0) {
+									actuatorDesiredAxis[i] += scale;
+								}
+								break;
+							case 2:
+								if (i == 2) {
+									actuatorDesiredAxis[i] -= scale;
+								}
+								break;
+							case 3:
+								if (i == 0) {
+									actuatorDesiredAxis[i] -= scale;
+								}
+								break;
+							case 4:
+								if (i == 2) {
+									actuatorDesiredAxis[i] += scale;
+								}
+								break;
+							case 5:
+								if (i == 1) {
+									actuatorDesiredAxis[i] += scale;
+								}
+								break;
+							case 6:
+								if (i == 2) {
+									actuatorDesiredAxis[i] -= scale;
+								}
+								break;
+							case 7:
+								if (i == 1) {
+									actuatorDesiredAxis[i] -= scale;
+								}
+								break;
+						}
+
+						actuatorDesiredAxis[i] = bound_sym(actuatorDesiredAxis[i],1.0f);
 					}
-
-					actuatorDesiredAxis[i] = bound_sym(actuatorDesiredAxis[i],1.0f);
 
 					break;
 
