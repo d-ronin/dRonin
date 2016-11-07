@@ -192,8 +192,8 @@ static void PIOS_TIM_generic_irq_handler(TIM_TypeDef * timer)
 			continue;
 		}
 
-		for (uint8_t j = 0; j < tim_dev->num_channels; j++) {
-			const struct pios_tim_channel * chan = &tim_dev->channels[j];
+		for (uint8_t chan_num = 0; chan_num < tim_dev->num_channels; chan_num++) {
+			const struct pios_tim_channel *chan = &tim_dev->channels[chan_num];
 
 			if (chan->timer != timer) {
 				/* channel is not on this timer */
@@ -261,23 +261,23 @@ static void PIOS_TIM_generic_irq_handler(TIM_TypeDef * timer)
 				 * get the order wrong, our pulse width calculations could be off by up
 				 * to ARR ticks.  That could be bad.
 				 *
-				 * Heuristic: If the edge_count is < 16 ticks above zero then we assume the
-				 *            edge happened just after the overflow.
+				 * Heuristic: If the edge_count is in the last half of the timer period,
+				 * assume it happened before the overflow.
 				 */
 
-				if (edge_count < 16) {
+				if (edge_count < chan->timer->ARR / 2) {
 					/* Call the overflow callback first */
 					if (tim_dev->callbacks->overflow) {
 						(*tim_dev->callbacks->overflow)((uintptr_t)tim_dev,
 									tim_dev->context,
-									j,
+									chan_num,
 									overflow_count);
 					}
 					/* Call the edge callback second */
 					if (tim_dev->callbacks->edge) {
 						(*tim_dev->callbacks->edge)((uintptr_t)tim_dev,
 									tim_dev->context,
-									j,
+									chan_num,
 									edge_count);
 					}
 				} else {
@@ -285,26 +285,26 @@ static void PIOS_TIM_generic_irq_handler(TIM_TypeDef * timer)
 					if (tim_dev->callbacks->edge) {
 						(*tim_dev->callbacks->edge)((uintptr_t)tim_dev,
 									tim_dev->context,
-									j,
+									chan_num,
 									edge_count);
 					}
 					/* Call the overflow callback second */
 					if (tim_dev->callbacks->overflow) {
 						(*tim_dev->callbacks->overflow)((uintptr_t)tim_dev,
 									tim_dev->context,
-									j,
+									chan_num,
 									overflow_count);
 					}
 				}
 			} else if (overflow_event && tim_dev->callbacks->overflow) {
 				(*tim_dev->callbacks->overflow)((uintptr_t)tim_dev,
 								tim_dev->context,
-								j,
+								chan_num,
 								overflow_count);
 			} else if (edge_event && tim_dev->callbacks->edge) {
 				(*tim_dev->callbacks->edge)((uintptr_t)tim_dev,
 							tim_dev->context,
-							j,
+							chan_num,
 							edge_count);
 			}
 		}
