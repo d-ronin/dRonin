@@ -62,6 +62,9 @@ void PIOS_SYS_Init(void)
 	/* Init the delay system */
 	PIOS_DELAY_Init();
 
+	/* Enable the clock that the ADC uses.  */
+	RCC_HSI14Cmd(ENABLE);
+
 	/*
 	 * Turn on all the peripheral clocks.
 	 * Micromanaging clocks makes no sense given the power situation in the system, so
