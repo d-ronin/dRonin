@@ -44,14 +44,15 @@ static uint32_t base_time;
 
 #ifdef __MACH__
 #include <mach/mach_time.h>
-
-typedef int clockid_t;
+#include <Availability.h>
 
 #ifndef CLOCK_MONOTONIC
 #define CLOCK_MONOTONIC 1
 #endif /* CLOCK_MONOTONIC */
 
-//clock_gettime is not implemented on OSX
+#if !defined(__MAC_OS_X_VERSION_MAX_ALLOWED) || __MAC_OS_X_VERSION_MAX_ALLOWED < 101200
+//clock_gettime is not implemented on OSX < 10.12
+typedef int clockid_t;
 int clock_gettime(int clk_id, struct timespec* t) {
 	(void) clk_id;
 
@@ -77,6 +78,7 @@ int clock_gettime(int clk_id, struct timespec* t) {
 
 	return 0;
 }
+#endif /* __MAC_OS_X_VERSION_MAX_ALLOWED < 1012 */
 #endif /* __MACH__ */
 
 static uint32_t get_monotonic_us_time(void) {
