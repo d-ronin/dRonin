@@ -113,13 +113,9 @@ static void PIOS_INTERNAL_ADC_Converter_Config(pios_internal_adc_t adc_dev)
 {
 	ADC_DeInit(adc_dev->cfg->adc_dev);
 
-#if 0
 	/* Perform ADC calibration */
-	/* For whatever reason we don't seem to be able to do this and have
-	 * subsequent ADC operations work... */
 	ADC1->CR |= ADC_CR_ADCAL;
 	while ((ADC1->CR & ADC_CR_ADCAL) != 0);
-#endif
 
 	ADC_InitTypeDef ADC_InitStructure;
 	ADC_StructInit(&ADC_InitStructure);
@@ -186,7 +182,7 @@ void PIOS_INTERNAL_ADC_DoStep(pios_internal_adc_t adc_dev)
 		adc_dev->conversion_started = 1;
 	} else {
 		if (ADC_GetFlagStatus(adc_dev->cfg->adc_dev,
-				ADC_FLAG_EOC)) {
+				ADC_FLAG_ADSTART) == RESET) {
 			adc_dev->pin_values[adc_dev->current_pin] =
 				ADC_GetConversionValue(adc_dev->cfg->adc_dev);
 
