@@ -366,6 +366,30 @@ void ConfigOutputWidget::startESCCalibration()
     actuatorCommand->setMetadata(mdata);
     actuatorCommand->updated();
 
+    mbox.setText(QString(tr("Please wait...")));
+
+    // Set output for motors to nil to disarm
+    // Should not be necessary; battery is supposed to be disconnected, etc.
+    // But this makes it moderately safer if the user does not obey.
+    for (unsigned int i = 0; i < ActuatorCommand::CHANNEL_NUMELEM; i++)
+    {
+        // Check if the output channel was selected
+        if (!channelsToCalibrate[i])
+            continue;
+
+        actuatorCommandFields.Channel[i] = 0;
+    }
+
+    actuatorCommand->setData(actuatorCommandFields);
+
+    QEventLoop loop;
+
+    QTimer timeout;
+    timeout.setSingleShot(true);
+    connect(&timeout, SIGNAL(timeout()), &loop, SLOT(quit()));
+    timeout.start(1250);        // 1.25 seconds
+    loop.exec();
+
     // Increase output for all motors
     for (unsigned int i = 0; i < ActuatorCommand::CHANNEL_NUMELEM; i++)
     {
@@ -375,6 +399,7 @@ void ConfigOutputWidget::startESCCalibration()
 
         actuatorCommandFields.Channel[i] = actuatorSettingsData.ChannelMax[i];
     }
+
     actuatorCommand->setData(actuatorCommandFields);
 
     mbox.setText(QString(tr("Motors outputs were increased to maximum. "
