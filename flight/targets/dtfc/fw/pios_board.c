@@ -371,17 +371,6 @@ void PIOS_Board_Init(void)
 		(hw_mpu_accel_dlpf = HWDTFC_ICM20608G_ACCELLPF_5)   ?   5 :
 		218;
 	PIOS_MPU_SetAccelBandwidth(acc_bandwidth);
-
-	HwDtfcICM20608G_RateOptions hw_mpu_samplerate;
-	HwDtfcICM20608G_RateGet(&hw_mpu_samplerate);
-	uint16_t mpu_samplerate =
-		(hw_mpu_samplerate == HWDTFC_ICM20608G_RATE_200)  ?  200 :
-		(hw_mpu_samplerate == HWDTFC_ICM20608G_RATE_250)  ?  250 :
-		(hw_mpu_samplerate == HWDTFC_ICM20608G_RATE_333)  ?  333 :
-		(hw_mpu_samplerate == HWDTFC_ICM20608G_RATE_500)  ?  500 :
-		(hw_mpu_samplerate == HWDTFC_ICM20608G_RATE_1000) ? 1000 :
-		pios_mpu_cfg.default_samplerate;
-	PIOS_MPU_SetSampleRate(mpu_samplerate);
 #endif /* PIOS_INCLUDE_MPU */
 
 	//I2C is slow, sensor init as well, reset watchdog to prevent reset here

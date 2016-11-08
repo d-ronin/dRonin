@@ -95,7 +95,7 @@ static const struct pios_exti_cfg pios_exti_mpu6050_cfg __exti_config = {
 
 static const struct pios_mpu60x0_cfg pios_mpu6050_cfg = {
 	.exti_cfg = &pios_exti_mpu6050_cfg,
-	.default_samplerate = 500,
+	.default_samplerate = 333,
 	.interrupt_cfg = PIOS_MPU60X0_INT_CLR_ANYRD,
 	.interrupt_en = PIOS_MPU60X0_INTEN_DATA_RDY,
 	.User_ctl = 0,
@@ -143,7 +143,7 @@ static const struct pios_exti_cfg pios_exti_mpu9150_cfg __exti_config = {
 
 static const struct pios_mpu60x0_cfg pios_mpu9150_cfg = {
 	.exti_cfg = &pios_exti_mpu9150_cfg,
-	.default_samplerate = 500,
+	.default_samplerate = 333,
 	.interrupt_cfg = PIOS_MPU60X0_INT_CLR_ANYRD,
 	.interrupt_en = PIOS_MPU60X0_INTEN_DATA_RDY,
 	.User_ctl = 0,
@@ -544,16 +544,6 @@ void PIOS_Board_Init(void)
 		                                        (hw_mpu9150_dlpf == HWSPARKY_MPU9150DLPF_5) ? PIOS_MPU60X0_LOWPASS_5_HZ : \
 		                                        pios_mpu9150_cfg.default_filter;
 		PIOS_MPU9150_SetLPF(mpu9150_dlpf);
-
-		uint8_t hw_mpu9150_samplerate;
-		HwSparkyMPU9150RateGet(&hw_mpu9150_samplerate);
-		uint16_t mpu9150_samplerate = \
-		                              (hw_mpu9150_samplerate == HWSPARKY_MPU9150RATE_200) ? 200 : \
-		                              (hw_mpu9150_samplerate == HWSPARKY_MPU9150RATE_333) ? 333 : \
-		                              (hw_mpu9150_samplerate == HWSPARKY_MPU9150RATE_500) ? 500 : \
-		                              (hw_mpu9150_samplerate == HWSPARKY_MPU9150RATE_1000) ? 1000 : \
-		                              pios_mpu9150_cfg.default_samplerate;
-		PIOS_MPU9150_SetSampleRate(mpu9150_samplerate);
 	}
 
 #endif /* PIOS_INCLUDE_MPU9150 */

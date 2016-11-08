@@ -618,17 +618,6 @@ void PIOS_Board_Init(void) {
 		(hw_mpu_dlpf == HWREVOLUTION_MPU6000DLPF_5)   ? 5   : \
 		188;
 	PIOS_MPU_SetGyroBandwidth(bandwidth);
-
-	HwRevolutionMPU6000RateOptions hw_mpu_samplerate;
-	HwRevolutionMPU6000RateGet(&hw_mpu_samplerate);
-	uint16_t mpu_samplerate = \
-		(hw_mpu_samplerate == HWREVOLUTION_MPU6000RATE_200)  ? 200  : \
-		(hw_mpu_samplerate == HWREVOLUTION_MPU6000RATE_250)  ? 250  : \
-		(hw_mpu_samplerate == HWREVOLUTION_MPU6000RATE_333)  ? 333  : \
-		(hw_mpu_samplerate == HWREVOLUTION_MPU6000RATE_500)  ? 500  : \
-		(hw_mpu_samplerate == HWREVOLUTION_MPU6000RATE_1000) ? 1000 : \
-		pios_mpu_cfg.default_samplerate;
-	PIOS_MPU_SetSampleRate(mpu_samplerate);
 #endif
 
 #if defined(PIOS_INCLUDE_I2C)

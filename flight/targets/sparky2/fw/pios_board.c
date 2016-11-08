@@ -103,7 +103,7 @@ static const struct pios_exti_cfg pios_exti_mpu9250_cfg __exti_config = {
 
 static struct pios_mpu9250_cfg pios_mpu9250_cfg = {
 	.exti_cfg = &pios_exti_mpu9250_cfg,
-	.default_samplerate = 500,
+	.default_samplerate = 1000,
 	.interrupt_cfg = PIOS_MPU60X0_INT_CLR_ANYRD,
 
 	.use_magnetometer = true,
@@ -723,17 +723,6 @@ void PIOS_Board_Init(void) {
 	    (hw_mpu9250_dlpf == HWSPARKY2_MPU9250ACCELLPF_5) ? PIOS_MPU9250_ACCEL_LOWPASS_5_HZ : \
 	    pios_mpu9250_cfg.default_accel_filter;
 	PIOS_MPU9250_SetAccelLPF(mpu9250_accel_lpf);
-
-	uint8_t hw_mpu9250_samplerate;
-	HwSparky2MPU9250RateGet(&hw_mpu9250_samplerate);
-	uint16_t mpu9250_samplerate = \
-	    (hw_mpu9250_samplerate == HWSPARKY2_MPU9250RATE_200) ? 200 : \
-	    (hw_mpu9250_samplerate == HWSPARKY2_MPU9250RATE_250) ? 250 : \
-	    (hw_mpu9250_samplerate == HWSPARKY2_MPU9250RATE_333) ? 333 : \
-	    (hw_mpu9250_samplerate == HWSPARKY2_MPU9250RATE_500) ? 500 : \
-	    (hw_mpu9250_samplerate == HWSPARKY2_MPU9250RATE_1000) ? 1000 : \
-	    pios_mpu9250_cfg.default_samplerate;
-	PIOS_MPU9250_SetSampleRate(mpu9250_samplerate);
 #endif /* PIOS_INCLUDE_MPU9250_SPI */
 
 
