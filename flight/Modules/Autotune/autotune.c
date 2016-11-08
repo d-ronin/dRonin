@@ -63,7 +63,7 @@
 
 // Private types
 enum AUTOTUNE_STATE { AT_INIT, AT_START, AT_WAITFIRSTPOINT, AT_RUN,
-	AT_FINISHED, AT_WAITING };
+	AT_WAITING };
 
 #define THROTTLE_EOF	1000.0f	/* This value doesn't make sense, so it's
 				 * a good end-of-actuation indicator.
@@ -370,8 +370,12 @@ static void AutotuneTask(void *parameters)
 
 					if (pt->throttle == THROTTLE_EOF) {
 						// End of actuation, clean up
-						state = AT_FINISHED;
+						float hover_throttle = ((float)(throttle_accumulator/update_counter))/10000.0f;
+						UpdateSystemIdent(X, noise, 0, update_counter, at_points_spilled, hover_throttle, true);
+
+						save_needed = true;
 						can_sleep = true;
+						state = AT_WAITING;
 
 						break;
 					}
@@ -413,21 +417,8 @@ static void AutotuneTask(void *parameters)
 
 				break;
 
-			case AT_FINISHED: ;
-
-				// Wait until disarmed and landed before saving the settings
-
-				float hover_throttle = ((float)(throttle_accumulator/update_counter))/10000.0f;
-				UpdateSystemIdent(X, noise, 0, update_counter, at_points_spilled, hover_throttle, true);
-
-				save_needed = true;
-				state = AT_WAITING;
-
-				break;
-
 			case AT_WAITING:
 			default:
-				// Set an alarm or some shit like that
 				break;
 		}
 
