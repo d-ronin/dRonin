@@ -279,11 +279,12 @@ static void AutotuneTask(void *parameters)
 
 		bool can_sleep = true;
 
-		FlightStatusData flightStatus;
-		FlightStatusGet(&flightStatus);
+		uint8_t armed;
+
+		FlightStatusArmedGet(&armed);
 
 		if (save_needed) {
-			if (flightStatus.Armed == FLIGHTSTATUS_ARMED_DISARMED) {
+			if (armed == FLIGHTSTATUS_ARMED_DISARMED) {
 				// Save the settings locally.
 				UAVObjSave(SystemIdentHandle(), 0);
 				state = AT_INIT;
@@ -293,11 +294,20 @@ static void AutotuneTask(void *parameters)
 
 		}
 
-		// Only allow this module to run when autotuning
-		if (flightStatus.FlightMode != FLIGHTSTATUS_FLIGHTMODE_AUTOTUNE) {
-			state = AT_INIT;
-			PIOS_Thread_Sleep(50);
-			continue;
+		// Only allow this module to run when roll axis is in a tune
+		// mode
+		uint8_t stab_modes[STABILIZATIONDESIRED_STABILIZATIONMODE_NUMELEM];
+
+		StabilizationDesiredStabilizationModeGet(stab_modes);
+
+		switch (stab_modes[0]) {
+			case STABILIZATIONDESIRED_STABILIZATIONMODE_SYSTEMIDENT:
+			case STABILIZATIONDESIRED_STABILIZATIONMODE_SYSTEMIDENTRATE:
+				break;
+			default:
+				state = AT_INIT;
+				PIOS_Thread_Sleep(30);
+				continue;
 		}
 
 		switch(state) {
@@ -307,7 +317,7 @@ static void AutotuneTask(void *parameters)
 				save_needed = false;
 
 				// Only start when armed and flying
-				if (flightStatus.Armed == FLIGHTSTATUS_ARMED_ARMED) {
+				if (armed == FLIGHTSTATUS_ARMED_ARMED) {
 
 					af_init(X,P);
 
