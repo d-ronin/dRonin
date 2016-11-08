@@ -162,7 +162,7 @@ int32_t AutotuneStart(void)
 
 MODULE_INITCALL(AutotuneInitialize, AutotuneStart)
 
-static void at_new_gyro_data(UAVObjEvent * ev, void *ctx, void *obj, int len) {
+static void at_new_actuators(UAVObjEvent * ev, void *ctx, void *obj, int len) {
 	(void) ev; (void) ctx;
 
 	static bool last_sample_unpushed = false;
@@ -268,7 +268,7 @@ static void AutotuneTask(void *parameters)
 	uint32_t last_time = 0.0f;
 	const uint32_t YIELD_MS = 2;
 
-	ActuatorDesiredConnectCallback(at_new_gyro_data);
+	ActuatorDesiredConnectCallback(at_new_actuators);
 
 	bool save_needed = false;
 
