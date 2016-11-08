@@ -289,6 +289,9 @@ int32_t PIOS_BMX055_SPI_Init(pios_bmx055_dev_t *dev, uint32_t spi_id, uint32_t s
 	TaskMonitorAdd(TASKINFO_RUNNING_IMU, bmx_dev->task_handle);
 
 	PIOS_SENSORS_SetMaxGyro(2000);
+	PIOS_SENSORS_SetSampleRate(PIOS_SENSOR_GYRO, 800);
+	PIOS_SENSORS_SetSampleRate(PIOS_SENSOR_ACCEL, 800);
+
 	PIOS_SENSORS_Register(PIOS_SENSOR_ACCEL, bmx_dev->accel_queue);
 	PIOS_SENSORS_Register(PIOS_SENSOR_GYRO, bmx_dev->gyro_queue);
 
