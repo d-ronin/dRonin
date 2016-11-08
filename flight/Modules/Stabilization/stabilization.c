@@ -126,7 +126,7 @@ struct pid pids[PID_MAX];
 struct pid_deadband *deadbands = NULL;
 #endif
 
-volatile bool gyro_filter_updated = false;
+volatile bool gyro_filter_updated = true; 
 
 static bool actuatorDesiredUpdated = true;
 static bool flightStatusUpdated = true;
@@ -241,7 +241,28 @@ static void stabilizationTask(void* parameters)
 	SettingsUpdatedCb(NULL, NULL, NULL, 0);
 
 	uint32_t iteration = 0;
-	float dT_filtered = 0;
+	float dT_measured = 0;
+
+	uint8_t ident_shift = 5;
+
+	float dT_expected = 1 / PIOS_SENSORS_GetSampleRate(PIOS_SENSOR_GYRO);
+
+	if (dT_expected < 0.0008f) {
+		// 2KHz - 512ms period
+		// 1.6KHz - 640ms period
+		ident_shift = 7;
+	} else if (dT_expected < 0.0014f) {
+		// 1.2KHz - 427ms
+		// 1KHz - 512ms period
+		// 800Hz - 640ms period
+		// 750Hz - 683ms period
+		ident_shift = 6;
+	} else {
+		// 700Hz - 365ms period
+		// 500Hz - 512ms period
+		// 333Hz - 768ms period
+		ident_shift = 5;
+	}
 
 	// Main task loop
 	zero_pids();
@@ -264,27 +285,36 @@ static void stabilizationTask(void* parameters)
 		// to have more or less equivalent noise reduction to a normal N point moving averaging:  alpha = 2 / (N + 1)
 		// run it only at the beginning for the first samples, to reduce CPU load, and the value should converge to a constant value
 
+		static bool frequency_wrong = false;
+
 		if (iteration < 100) {
-			dT_filtered = dT;
-		} else if (iteration < 2000) {
-			dT_filtered = 0.01f * dT + (1.0f - 0.01f) * dT_filtered;
-		} else if (iteration == 2000) {
-			gyro_filter_updated = true;
+			dT_measured = 0;
+		} else if (iteration < 2100) {
+			dT_measured += dT;
+		} else if (iteration == 2100) {
+			dT_measured /= 2000;
+
+			if ((dT_measured > dT_expected * 1.15f) || 
+					(dT_measured < dT_expected * 0.85f)) {
+				frequency_wrong = true;
+			}
 		}
+
+		bool error = frequency_wrong;
 
 		if (gyro_filter_updated) {
 			if (settings.GyroCutoff < 1.0f) {
 				gyro_alpha = 0;
 			} else {
 				gyro_alpha = expf(-2.0f * (float)(M_PI) *
-						settings.GyroCutoff * dT_filtered);
+						settings.GyroCutoff * dT_expected);
 			}
 
 			// Compute time constant for vbar decay term
 			if (vbar_settings.VbarTau < 0.001f) {
 				vbar_decay = 0;
 			} else {
-				vbar_decay = expf(-dT_filtered / vbar_settings.VbarTau);
+				vbar_decay = expf(-dT_expected / vbar_settings.VbarTau);
 			}
 
 			gyro_filter_updated = false;
@@ -423,7 +453,6 @@ static void stabilizationTask(void* parameters)
 
 		// A flag to track which stabilization mode each axis is in
 		static uint8_t previous_mode[MAX_AXES] = {255,255,255};
-		bool error = false;
 
 		//Run the selected stabilization algorithm on each axis:
 		for(uint8_t i=0; i< MAX_AXES; i++)
@@ -623,7 +652,6 @@ static void stabilizationTask(void* parameters)
 				case STABILIZATIONDESIRED_STABILIZATIONMODE_SYSTEMIDENT:
 				case STABILIZATIONDESIRED_STABILIZATIONMODE_SYSTEMIDENTRATE:
 					;
-					static uint8_t ident_shift = 5;
 					static bool measuring;
 					static uint32_t enter_time;
 
@@ -646,29 +674,12 @@ static void stabilizationTask(void* parameters)
 					if ((i == 0) &&
 							(!measuring) &&
 							((timeval - enter_time) > PREPARE_TIME)) {
-						if (dT_filtered < 0.0008f) {
-							// 2KHz - 512ms period
-							// 1.6KHz - 640ms period
-							ident_shift = 7;
-						} else if (dT_filtered < 0.0014f) {
-							// 1.2KHz - 427ms
-							// 1KHz - 512ms period
-							// 800Hz - 640ms period
-							// 750Hz - 683ms period
-							ident_shift = 6;
-						} else {
-							// 700Hz - 365ms period
-							// 500Hz - 512ms period
-							// 333Hz - 768ms period
-							ident_shift = 5;
-						}
-
 						uint32_t mask =
 							(1 << (ident_shift + 3)) - 1;
 
 						if (!(iteration & mask)) {
 							measuring = true;
-							measure_remaining = 1 / dT_filtered;
+							measure_remaining = 60 / dT_expected;
 							// Round down to mult
 							// of 8 ident cycles.
 							measure_remaining &= ~mask;
@@ -907,7 +918,7 @@ static void stabilizationTask(void* parameters)
 		// Clear or set alarms.  Done like this to prevent toggling each cycle
 		// and hammering system alarms
 		if (error)
-			AlarmsSet(SYSTEMALARMS_ALARM_STABILIZATION,SYSTEMALARMS_ALARM_ERROR);
+			AlarmsSet(SYSTEMALARMS_ALARM_STABILIZATION, SYSTEMALARMS_ALARM_ERROR);
 		else
 			AlarmsClear(SYSTEMALARMS_ALARM_STABILIZATION);
 	}
