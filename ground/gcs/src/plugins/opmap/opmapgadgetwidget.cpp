@@ -740,7 +740,7 @@ void OPMapGadgetWidget::zoomChanged(double zoomt, double zoom, double zoomd)
     if (m_widget->horizontalSliderZoom->value() != i_zoom)
         m_widget->horizontalSliderZoom->setValue(i_zoom);	// set the GUI zoom slider position
 
-	int index0_zoom = i_zoom - m_min_zoom;			// zoom level starting at index level '0'
+    int index0_zoom = i_zoom - m_min_zoom;			// zoom level starting at index level '0'
     if (index0_zoom < zoomAct.count())
         zoomAct.at(index0_zoom)->setChecked(true);		// set the right-click context menu zoom level
 }
