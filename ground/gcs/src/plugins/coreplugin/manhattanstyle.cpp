@@ -61,7 +61,7 @@ bool styleEnabled(const QWidget *widget)
     while (p) {
         if (p->property("_q_custom_style_disabled").toBool())
             return false;
-            p = p->parentWidget();
+        p = p->parentWidget();
     }
     return true;
 }

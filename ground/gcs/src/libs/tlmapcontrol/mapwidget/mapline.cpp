@@ -94,23 +94,22 @@ void MapLine::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, Q
     if (line().dy() >= 0)
         angle = (M_PI * 2) - angle;
 
-        QPointF arrowP1 = line().pointAt(0.5) + QPointF(sin(angle + M_PI / 3) * arrowSize,
-                                        cos(angle + M_PI / 3) * arrowSize);
-        QPointF arrowP2 = line().pointAt(0.5) + QPointF(sin(angle + M_PI - M_PI / 3) * arrowSize,
-                                        cos(angle + M_PI - M_PI / 3) * arrowSize);
-        arrowHead.clear();
-        arrowHead << line().pointAt(0.5) << arrowP1 << arrowP2;
+    QPointF arrowP1 = line().pointAt(0.5) + QPointF(sin(angle + M_PI / 3) * arrowSize,
+                                                    cos(angle + M_PI / 3) * arrowSize);
+    QPointF arrowP2 = line().pointAt(0.5) + QPointF(sin(angle + M_PI - M_PI / 3) * arrowSize,
+                                                    cos(angle + M_PI - M_PI / 3) * arrowSize);
+    arrowHead.clear();
+    arrowHead << line().pointAt(0.5) << arrowP1 << arrowP2;
 
-        painter->drawPolygon(arrowHead);
-        if(myColor==Qt::red)
-            myPen.setWidth(3);
-        else if(myColor==Qt::yellow)
-            myPen.setWidth(2);
-        else if(myColor==Qt::green)
-            myPen.setWidth(1);
-        painter->setPen(myPen);
-        painter->drawLine(line());
-
+    painter->drawPolygon(arrowHead);
+    if(myColor==Qt::red)
+        myPen.setWidth(3);
+    else if(myColor==Qt::yellow)
+        myPen.setWidth(2);
+    else if(myColor==Qt::green)
+        myPen.setWidth(1);
+    painter->setPen(myPen);
+    painter->drawLine(line());
 }
 
 void MapLine::refreshLocations()
