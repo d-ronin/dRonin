@@ -246,6 +246,9 @@ QString SetupWizard::getSummaryText()
     case Core::IBoardType::INPUT_TYPE_SBUS:
         summary.append(tr("Futaba S.Bus"));
         break;
+    case Core::IBoardType::INPUT_TYPE_SBUSNONINVERTED:
+        summary.append(tr("Futaba S.Bus Non-inverted"));
+        break;
     case Core::IBoardType::INPUT_TYPE_DSM:
         summary.append(tr("Spektrum satellite (DSM)"));
         break;
@@ -254,6 +257,9 @@ QString SetupWizard::getSummaryText()
         break;
     case Core::IBoardType::INPUT_TYPE_HOTTSUMH:
         summary.append(tr("Graupner HoTT (SUMH)"));
+        break;
+    case Core::IBoardType::INPUT_TYPE_IBUS:
+        summary.append(tr("FlySky I-Bus"));
         break;
     default:
         summary.append(tr("Unknown"));

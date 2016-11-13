@@ -62,7 +62,8 @@ Brain::~Brain()
 
 }
 
-int Brain::minBootLoaderVersion() {
+int Brain::minBootLoaderVersion()
+{
     return 0x82;
 }
 
@@ -90,9 +91,7 @@ bool Brain::queryCapabilities(BoardCapabilities capability)
     default:
         return false;
     }
-    return false;
 }
-
 
 /**
  * @brief Brain::getSupportedProtocols
@@ -101,7 +100,6 @@ bool Brain::queryCapabilities(BoardCapabilities capability)
  */
 QStringList Brain::getSupportedProtocols()
 {
-
     return QStringList("uavtalk");
 }
 
@@ -148,6 +146,9 @@ bool Brain::setInputType(enum InputType type)
     case INPUT_TYPE_SBUS:
         settings.MainPort = HwBrain::MAINPORT_SBUS;
         break;
+    case INPUT_TYPE_SBUSNONINVERTED:
+        settings.MainPort = HwBrain::MAINPORT_SBUSNONINVERTED;
+        break;
     case INPUT_TYPE_DSM:
         settings.MainPort = HwBrain::MAINPORT_DSM;
         break;
@@ -156,6 +157,9 @@ bool Brain::setInputType(enum InputType type)
         break;
     case INPUT_TYPE_HOTTSUMH:
         settings.MainPort = HwBrain::MAINPORT_HOTTSUMH;
+        break;
+    case INPUT_TYPE_IBUS:
+        settings.MainPort = HwBrain::MAINPORT_IBUS;
         break;
     default:
         return false;
@@ -185,12 +189,16 @@ enum Core::IBoardType::InputType Brain::getInputType()
     switch(settings.MainPort) {
         case HwBrain::MAINPORT_SBUS:
             return INPUT_TYPE_SBUS;
+        case HwBrain::MAINPORT_SBUSNONINVERTED:
+            return INPUT_TYPE_SBUSNONINVERTED;
         case HwBrain::MAINPORT_DSM:
             return INPUT_TYPE_DSM;
         case HwBrain::MAINPORT_HOTTSUMD:
             return INPUT_TYPE_HOTTSUMD;
         case HwBrain::MAINPORT_HOTTSUMH:
             return INPUT_TYPE_HOTTSUMH;
+        case HwBrain::MAINPORT_IBUS:
+            return INPUT_TYPE_IBUS;
     }
 
     switch(settings.FlxPort) {
@@ -200,6 +208,8 @@ enum Core::IBoardType::InputType Brain::getInputType()
             return INPUT_TYPE_HOTTSUMD;
         case HwBrain::FLXPORT_HOTTSUMH:
             return INPUT_TYPE_HOTTSUMH;
+        case HwBrain::FLXPORT_IBUS:
+            return INPUT_TYPE_IBUS;
     }
 
     switch(settings.RxPort) {
@@ -212,6 +222,21 @@ enum Core::IBoardType::InputType Brain::getInputType()
             return INPUT_TYPE_PPM;
         case HwBrain::RXPORT_PWM:
             return INPUT_TYPE_PWM;
+        case HwBrain::RXPORT_UART:
+        case HwBrain::RXPORT_UARTOUTPUTS:
+            switch(settings.RxPortUsart) {
+                case HwBrain::RXPORTUSART_DSM:
+                    return INPUT_TYPE_DSM;
+                case HwBrain::RXPORTUSART_HOTTSUMD:
+                    return INPUT_TYPE_HOTTSUMD;
+                case HwBrain::RXPORTUSART_HOTTSUMH:
+                    return INPUT_TYPE_HOTTSUMH;
+                case HwBrain::RXPORTUSART_SBUSNONINVERTED:
+                    return INPUT_TYPE_SBUSNONINVERTED;
+                case HwBrain::RXPORTUSART_IBUS:
+                    return INPUT_TYPE_IBUS;
+            }
+            break;
     }
 
     return INPUT_TYPE_UNKNOWN;

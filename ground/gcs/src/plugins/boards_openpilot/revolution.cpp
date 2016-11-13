@@ -73,7 +73,8 @@ Revolution::~Revolution()
 
 }
 
-int Revolution::minBootLoaderVersion() {
+int Revolution::minBootLoaderVersion()
+{
     return 0x84;
 }
 
@@ -101,7 +102,6 @@ bool Revolution::queryCapabilities(BoardCapabilities capability)
     default:
         return false;
     }
-    return false;
 }
 
 /**
@@ -111,7 +111,6 @@ bool Revolution::queryCapabilities(BoardCapabilities capability)
  */
 QStringList Revolution::getSupportedProtocols()
 {
-
     return QStringList("uavtalk");
 }
 
@@ -169,6 +168,9 @@ bool Revolution::setInputType(enum InputType type)
     case INPUT_TYPE_SBUS:
         settings.MainPort = HwRevolution::MAINPORT_SBUS;
         break;
+    case INPUT_TYPE_SBUSNONINVERTED:
+        settings.MainPort = HwRevolution::MAINPORT_SBUSNONINVERTED;
+        break;
     case INPUT_TYPE_DSM:
         settings.FlexiPort = HwRevolution::FLEXIPORT_DSM;
         break;
@@ -178,6 +180,8 @@ bool Revolution::setInputType(enum InputType type)
     case INPUT_TYPE_HOTTSUMH:
         settings.FlexiPort = HwRevolution::FLEXIPORT_HOTTSUMH;
         break;
+    case INPUT_TYPE_IBUS:
+        settings.FlexiPort = HwRevolution::MAINPORT_IBUS;
     default:
         return false;
     }
@@ -204,16 +208,18 @@ enum Core::IBoardType::InputType Revolution::getInputType()
     HwRevolution::DataFields settings = hwRevolution->getData();
 
     switch(settings.MainPort) {
-    case HwRevolution::MAINPORT_SBUS:
-        return INPUT_TYPE_SBUS;
     case HwRevolution::MAINPORT_DSM:
         return INPUT_TYPE_DSM;
     case HwRevolution::MAINPORT_HOTTSUMD:
         return INPUT_TYPE_HOTTSUMD;
     case HwRevolution::MAINPORT_HOTTSUMH:
         return INPUT_TYPE_HOTTSUMH;
-    default:
-        break;
+    case HwRevolution::MAINPORT_SBUS:
+        return INPUT_TYPE_SBUS;
+    case HwRevolution::MAINPORT_SBUSNONINVERTED:
+        return INPUT_TYPE_SBUSNONINVERTED;
+    case HwRevolution::MAINPORT_IBUS:
+        return INPUT_TYPE_IBUS;
     }
 
     switch(settings.FlexiPort) {
@@ -223,8 +229,10 @@ enum Core::IBoardType::InputType Revolution::getInputType()
         return INPUT_TYPE_HOTTSUMD;
     case HwRevolution::FLEXIPORT_HOTTSUMH:
         return INPUT_TYPE_HOTTSUMH;
-    default:
-        break;
+    case HwRevolution::FLEXIPORT_SBUSNONINVERTED:
+        return INPUT_TYPE_SBUSNONINVERTED;
+    case HwRevolution::FLEXIPORT_IBUS:
+        return INPUT_TYPE_IBUS;
     }
 
     switch(settings.RxPort) {
@@ -236,8 +244,19 @@ enum Core::IBoardType::InputType Revolution::getInputType()
         return INPUT_TYPE_PPM;
     case HwRevolution::RXPORT_PWM:
         return INPUT_TYPE_PWM;
-    default:
-        break;
+    case HwRevolution::RXPORT_UART:
+        switch(settings.RxPortUsart) {
+        case HwRevolution::RXPORTUSART_DSM:
+            return INPUT_TYPE_DSM;
+        case HwRevolution::RXPORTUSART_HOTTSUMD:
+            return INPUT_TYPE_HOTTSUMD;
+        case HwRevolution::RXPORTUSART_HOTTSUMH:
+            return INPUT_TYPE_HOTTSUMH;
+        case HwRevolution::RXPORTUSART_SBUSNONINVERTED:
+            return INPUT_TYPE_SBUSNONINVERTED;
+        case HwRevolution::RXPORTUSART_IBUS:
+            return INPUT_TYPE_IBUS;
+        }
     }
 
     return INPUT_TYPE_UNKNOWN;

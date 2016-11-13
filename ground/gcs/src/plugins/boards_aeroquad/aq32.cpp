@@ -85,9 +85,7 @@ bool AQ32::queryCapabilities(BoardCapabilities capability)
     default:
         return false;
     }
-    return false;
 }
-
 
 /**
  * @brief AQ32::getSupportedProtocols
@@ -96,7 +94,6 @@ bool AQ32::queryCapabilities(BoardCapabilities capability)
  */
 QStringList AQ32::getSupportedProtocols()
 {
-
     return QStringList("uavtalk");
 }
 
@@ -104,7 +101,6 @@ QPixmap AQ32::getBoardPicture()
 {
     return QPixmap(":/aq32/images/aq32.png");
 }
-
 
 //! Determine if this board supports configuring the receiver
 bool AQ32::isInputConfigurationSupported(enum InputType type = INPUT_TYPE_ANY)
@@ -153,13 +149,12 @@ bool AQ32::setInputType(enum InputType type)
     case INPUT_TYPE_SBUSNONINVERTED:
         settings.Uart3 = HwAQ32::UART3_SBUSNONINVERTED;
         break;
-    case INPUT_TYPE_IBUS: // Is not selectable yet in the Vehicle Setup Wizard, but if it ends up there, this is already in place.
+    case INPUT_TYPE_IBUS:
         settings.Uart3 = HwAQ32::UART3_IBUS;
         break;
     case INPUT_TYPE_DSM:
         settings.Uart4 = HwAQ32::UART4_DSM;
         break;
-    
     default:
         return false;
     }
@@ -203,7 +198,7 @@ enum Core::IBoardType::InputType AQ32::getInputType()
         return INPUT_TYPE_SBUS;
     case HwAQ32::UART3_SBUSNONINVERTED:
         return INPUT_TYPE_SBUSNONINVERTED;    
-    case HwAQ32::UART3_IBUS: // None of the other targets have IBUS in getInputType, but seems to be no problem.
+    case HwAQ32::UART3_IBUS:
         return INPUT_TYPE_IBUS;
     }
 
@@ -216,7 +211,7 @@ enum Core::IBoardType::InputType AQ32::getInputType()
         return INPUT_TYPE_HOTTSUMH;
     case HwAQ32::UART4_SBUSNONINVERTED:
         return INPUT_TYPE_SBUSNONINVERTED;    
-    case HwAQ32::UART4_IBUS: // None of the other targets have IBUS in getInputType, but seems to be no problem.
+    case HwAQ32::UART4_IBUS:
         return INPUT_TYPE_IBUS;
     }
 
@@ -229,7 +224,7 @@ enum Core::IBoardType::InputType AQ32::getInputType()
         return INPUT_TYPE_HOTTSUMH;
     case HwAQ32::UART6_SBUSNONINVERTED:
         return INPUT_TYPE_SBUSNONINVERTED;    
-    case HwAQ32::UART6_IBUS: // None of the other targets have IBUS in getInputType, but seems to be no problem.
+    case HwAQ32::UART6_IBUS:
         return INPUT_TYPE_IBUS;
     }
 

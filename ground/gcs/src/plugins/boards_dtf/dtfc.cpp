@@ -80,24 +80,14 @@ QString Dtfc::boardDescription()
 bool Dtfc::queryCapabilities(BoardCapabilities capability)
 {
     switch(capability) {
+    case BOARD_CAPABILITIES_GYROS:
+    case BOARD_CAPABILITIES_ACCELS:
+    case BOARD_CAPABILITIES_BAROS:
     case BOARD_CAPABILITIES_UPGRADEABLE:
         return true;
-    case BOARD_CAPABILITIES_GYROS:
-        return true;
-    case BOARD_CAPABILITIES_ACCELS:
-        return true;
-    case BOARD_CAPABILITIES_MAGS:
-        return false;
-    case BOARD_CAPABILITIES_BAROS:
-        return true;
-    case BOARD_CAPABILITIES_RADIO:
-        return false;
-    case BOARD_CAPABILITIES_OSD:
-        return false;
     default:
         return false;
     }
-    return false;
 }
 
 /**
@@ -107,7 +97,6 @@ bool Dtfc::queryCapabilities(BoardCapabilities capability)
  */
 QStringList Dtfc::getSupportedProtocols()
 {
-
     return QStringList("uavtalk");
 }
 
@@ -155,12 +144,20 @@ bool Dtfc::setInputType(enum InputType type)
     case INPUT_TYPE_SBUS:
         settings.RcvrPort = HwDtfc::RCVRPORT_SBUS;
         break;
+    case INPUT_TYPE_SBUSNONINVERTED:
+        settings.RcvrPort = HwDtfc::RCVRPORT_SBUSNONINVERTED;
+        break;
     case INPUT_TYPE_DSM:
         settings.RcvrPort = HwDtfc::RCVRPORT_DSM;
         break;
     case INPUT_TYPE_HOTTSUMD:
         settings.RcvrPort = HwDtfc::RCVRPORT_HOTTSUMD;
         break;
+    case INPUT_TYPE_HOTTSUMH:
+        settings.RcvrPort = HwDtfc::RCVRPORT_HOTTSUMH;
+        break;
+    case INPUT_TYPE_IBUS:
+        settings.RcvrPort = HwDtfc::RCVRPORT_IBUS;
     default:
         return false;
     }
@@ -189,30 +186,45 @@ enum Core::IBoardType::InputType Dtfc::getInputType()
     case HwDtfc::RCVRPORT_PPM:
         return INPUT_TYPE_PPM;
     case HwDtfc::RCVRPORT_SBUS:
-    case HwDtfc::RCVRPORT_SBUSNONINVERTED:
         return INPUT_TYPE_SBUS;
+    case HwDtfc::RCVRPORT_SBUSNONINVERTED:
+        return INPUT_TYPE_SBUSNONINVERTED;
     case HwDtfc::RCVRPORT_DSM:
         return INPUT_TYPE_DSM;
     case HwDtfc::RCVRPORT_HOTTSUMD:
         return INPUT_TYPE_HOTTSUMD;
+    case HwDtfc::RCVRPORT_HOTTSUMH:
+        return INPUT_TYPE_HOTTSUMH;
+    case HwDtfc::RCVRPORT_IBUS:
+        return INPUT_TYPE_IBUS;
     }
     switch(settings.Uart1) {
     case HwDtfc::UART1_SBUS:
-    case HwDtfc::UART1_SBUSNONINVERTED:
         return INPUT_TYPE_SBUS;
+    case HwDtfc::UART1_SBUSNONINVERTED:
+        return INPUT_TYPE_SBUSNONINVERTED;
     case HwDtfc::UART1_DSM:
         return INPUT_TYPE_DSM;
     case HwDtfc::UART1_HOTTSUMD:
         return INPUT_TYPE_HOTTSUMD;
+    case HwDtfc::UART1_HOTTSUMH:
+        return INPUT_TYPE_HOTTSUMH;
+    case HwDtfc::UART1_IBUS:
+        return INPUT_TYPE_IBUS;
     }
     switch(settings.Uart2) {
     case HwDtfc::UART2_SBUS:
-    case HwDtfc::UART2_SBUSNONINVERTED:
         return INPUT_TYPE_SBUS;
+    case HwDtfc::UART2_SBUSNONINVERTED:
+        return INPUT_TYPE_SBUSNONINVERTED;
     case HwDtfc::UART2_DSM:
         return INPUT_TYPE_DSM;
     case HwDtfc::UART2_HOTTSUMD:
         return INPUT_TYPE_HOTTSUMD;
+    case HwDtfc::UART2_HOTTSUMH:
+        return INPUT_TYPE_HOTTSUMH;
+    case HwDtfc::UART2_IBUS:
+        return INPUT_TYPE_IBUS;
     }
     
     return INPUT_TYPE_UNKNOWN;

@@ -76,7 +76,6 @@ bool Naze::queryCapabilities(BoardCapabilities capability)
     default:
         return false;
     }
-    return false;
 }
 
 
@@ -87,7 +86,6 @@ bool Naze::queryCapabilities(BoardCapabilities capability)
  */
 QStringList Naze::getSupportedProtocols()
 {
-
     return QStringList("uavtalk");
 }
 
@@ -162,9 +160,21 @@ bool Naze::setInputType(enum InputType type)
         settings.RcvrPort = HwNaze::RCVRPORT_SERIAL;
         settings.RcvrSerial = HwNaze::RCVRSERIAL_HOTTSUMD;
         break;
+    case INPUT_TYPE_HOTTSUMH:
+        settings.RcvrPort = HwNaze::RCVRPORT_SERIAL;
+        settings.RcvrSerial = HwNaze::RCVRSERIAL_HOTTSUMH;
+        break;
+    case INPUT_TYPE_SBUS:
+        settings.RcvrPort = HwNaze::RCVRPORT_SERIAL;
+        settings.RcvrSerial = HwNaze::RCVRSERIAL_SBUS;
+        break;
     case INPUT_TYPE_SBUSNONINVERTED:
         settings.RcvrPort = HwNaze::RCVRPORT_SERIAL;
         settings.RcvrSerial = HwNaze::RCVRSERIAL_SBUSNONINVERTED;
+        break;
+    case INPUT_TYPE_IBUS:
+        settings.RcvrPort = HwNaze::RCVRPORT_SERIAL;
+        settings.RcvrSerial = HwNaze::RCVRSERIAL_IBUS;
         break;
 
     default:
@@ -201,15 +211,18 @@ enum Core::IBoardType::InputType Naze::getInputType()
             return INPUT_TYPE_DSM;
         case HwNaze::RCVRSERIAL_HOTTSUMD:
             return INPUT_TYPE_HOTTSUMD;
+        case HwNaze::RCVRSERIAL_HOTTSUMH:
+            return INPUT_TYPE_HOTTSUMH;
+        case HwNaze::RCVRSERIAL_SBUS:
+            return INPUT_TYPE_SBUS;
         case HwNaze::RCVRSERIAL_SBUSNONINVERTED:
             return INPUT_TYPE_SBUSNONINVERTED;
-        default:
-            // can still use PPM
-            return INPUT_TYPE_PPM;
+        case HwNaze::RCVRSERIAL_IBUS:
+            return INPUT_TYPE_IBUS;
         }
-    default:
-        return INPUT_TYPE_UNKNOWN;
     }
+
+    return INPUT_TYPE_UNKNOWN;
 }
 
 QStringList Naze::getAdcNames()

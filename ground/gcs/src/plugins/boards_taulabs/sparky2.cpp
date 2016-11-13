@@ -99,12 +99,9 @@ bool Sparky2::queryCapabilities(BoardCapabilities capability)
     case BOARD_CAPABILITIES_RADIO:
     case BOARD_CAPABILITIES_UPGRADEABLE:
         return true;
-    default:
-        return false;
     }
     return false;
 }
-
 
 /**
  * @brief Sparky2::getSupportedProtocols
@@ -113,7 +110,6 @@ bool Sparky2::queryCapabilities(BoardCapabilities capability)
  */
 QStringList Sparky2::getSupportedProtocols()
 {
-
     return QStringList("uavtalk");
 }
 
@@ -175,8 +171,20 @@ bool Sparky2::setInputType(enum InputType type)
     case INPUT_TYPE_SBUS:
         settings.RcvrPort = HwSparky2::RCVRPORT_SBUS;
         break;
+    case INPUT_TYPE_SBUSNONINVERTED:
+        settings.RcvrPort = HwSparky2::RCVRPORT_SBUSNONINVERTED;
+        break;
     case INPUT_TYPE_DSM:
         settings.RcvrPort = HwSparky2::RCVRPORT_DSM;
+        break;
+    case INPUT_TYPE_HOTTSUMD:
+        settings.RcvrPort = HwSparky2::RCVRPORT_HOTTSUMD;
+        break;
+    case INPUT_TYPE_HOTTSUMH:
+        settings.RcvrPort = HwSparky2::RCVRPORT_HOTTSUMH;
+        break;
+    case INPUT_TYPE_IBUS:
+        settings.RcvrPort = HwSparky2::RCVRPORT_IBUS;
         break;
     default:
         return false;
@@ -208,8 +216,16 @@ enum Core::IBoardType::InputType Sparky2::getInputType()
         return INPUT_TYPE_PPM;
     case HwSparky2::RCVRPORT_SBUS:
         return INPUT_TYPE_SBUS;
+    case HwSparky2::RCVRPORT_SBUSNONINVERTED:
+        return INPUT_TYPE_SBUSNONINVERTED;
     case HwSparky2::RCVRPORT_DSM:
         return INPUT_TYPE_DSM;
+    case HwSparky2::RCVRPORT_HOTTSUMD:
+        return INPUT_TYPE_HOTTSUMD;
+    case HwSparky2::RCVRPORT_HOTTSUMH:
+        return INPUT_TYPE_HOTTSUMH;
+    case HwSparky2::RCVRPORT_IBUS:
+        return INPUT_TYPE_IBUS;
     default:
         return INPUT_TYPE_UNKNOWN;
     }

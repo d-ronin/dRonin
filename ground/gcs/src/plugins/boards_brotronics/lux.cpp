@@ -45,7 +45,7 @@ Lux::Lux(void)
     // Initialize our USB Structure definition here:
     USBInfo board;
     board.vendorID = 0x1209;
-    board.productID = 0xf3fc;	/* F3 Flight Controller ;) */
+    board.productID = 0xf3fc;    /* F3 Flight Controller ;) */
     setUSBInfo(board);
 
     boardType = 0xCA;
@@ -81,7 +81,6 @@ bool Lux::queryCapabilities(BoardCapabilities capability)
     default:
         return false;
     }
-    return false;
 }
 
 
@@ -92,7 +91,6 @@ bool Lux::queryCapabilities(BoardCapabilities capability)
  */
 QStringList Lux::getSupportedProtocols()
 {
-
     return QStringList("uavtalk");
 }
 
@@ -141,6 +139,9 @@ bool Lux::setInputType(enum InputType type)
     case INPUT_TYPE_SBUS:
         settings.RxPort = HwLux::RXPORT_SBUS;
         break;
+    case INPUT_TYPE_SBUSNONINVERTED:
+        settings.RxPort = HwLux::RXPORT_SBUSNONINVERTED;
+        break;
     case INPUT_TYPE_DSM:
         settings.RxPort = HwLux::RXPORT_DSM;
         break;
@@ -149,6 +150,9 @@ bool Lux::setInputType(enum InputType type)
         break;
     case INPUT_TYPE_HOTTSUMH:
         settings.RxPort = HwLux::RXPORT_HOTTSUMH;
+        break;
+    case INPUT_TYPE_IBUS:
+        settings.RxPort = HwLux::RXPORT_IBUS;
         break;
     default:
         return false;
@@ -178,15 +182,41 @@ enum Core::IBoardType::InputType Lux::getInputType()
     switch(settings.RxPort) {
     case HwLux::RXPORT_SBUS:
         return INPUT_TYPE_SBUS;
+    case HwLux::RXPORT_SBUSNONINVERTED:
+        return INPUT_TYPE_SBUSNONINVERTED;
     case HwLux::RXPORT_DSM:
         return INPUT_TYPE_DSM;
     case HwLux::RXPORT_HOTTSUMD:
         return INPUT_TYPE_HOTTSUMD;
     case HwLux::RXPORT_HOTTSUMH:
         return INPUT_TYPE_HOTTSUMH;
-    default:
-        return INPUT_TYPE_PPM;
+    case HwLux::RXPORT_IBUS:
+        return INPUT_TYPE_IBUS;
     }
+    
+    switch(settings.Uart2) {
+    case HwLux::UART2_DSM:
+        return INPUT_TYPE_DSM;
+    case HwLux::UART2_SBUS:
+        return INPUT_TYPE_SBUS;
+    case HwLux::UART2_SBUSNONINVERTED:
+        return INPUT_TYPE_SBUSNONINVERTED;
+    case HwLux::UART2_IBUS:
+        return INPUT_TYPE_IBUS;
+    }
+    
+    switch(settings.Uart3) {
+    case HwLux::UART3_DSM:
+        return INPUT_TYPE_DSM;
+    case HwLux::UART3_SBUS:
+        return INPUT_TYPE_SBUS;
+    case HwLux::UART3_SBUSNONINVERTED:
+        return INPUT_TYPE_SBUSNONINVERTED;
+    case HwLux::UART3_IBUS:
+        return INPUT_TYPE_IBUS;
+    }
+    
+    return INPUT_TYPE_PPM;
 }
 
 int Lux::queryMaxGyroRate()

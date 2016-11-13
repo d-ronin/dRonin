@@ -55,7 +55,6 @@ BrainRE1::~BrainRE1()
 
 }
 
-
 QString BrainRE1::shortName()
 {
     return QString("BrainRE1");
@@ -78,9 +77,7 @@ bool BrainRE1::queryCapabilities(BoardCapabilities capability)
     default:
         return false;
     }
-    return false;
 }
-
 
 /**
  * @brief Brain::getSupportedProtocols
@@ -89,13 +86,12 @@ bool BrainRE1::queryCapabilities(BoardCapabilities capability)
  */
 QStringList BrainRE1::getSupportedProtocols()
 {
-
     return QStringList("uavtalk");
 }
 
 QPixmap BrainRE1::getBoardPicture()
 {
-	return QPixmap(":/brainfpv/images/brainre1.png");
+    return QPixmap(":/brainfpv/images/brainre1.png");
 }
 
 //! Determine if this board supports configuring the receiver
@@ -138,6 +134,9 @@ bool BrainRE1::setInputType(enum InputType type)
     case INPUT_TYPE_SBUS:
         settings.RxPort = HwBrainRE1::RXPORT_SBUS;
         break;
+    case INPUT_TYPE_SBUSNONINVERTED:
+        settings.RxPort = HwBrainRE1::RXPORT_SBUSNONINVERTED;
+        break;
     case INPUT_TYPE_DSM:
         settings.RxPort = HwBrainRE1::RXPORT_DSM;
         break;
@@ -146,6 +145,9 @@ bool BrainRE1::setInputType(enum InputType type)
         break;
     case INPUT_TYPE_HOTTSUMH:
         settings.RxPort = HwBrainRE1::RXPORT_HOTTSUMH;
+        break;
+    case INPUT_TYPE_IBUS:
+        settings.RxPort = HwBrainRE1::RXPORT_IBUS;
         break;
     default:
         return false;
@@ -178,12 +180,16 @@ enum Core::IBoardType::InputType BrainRE1::getInputType()
             return INPUT_TYPE_PPM;
         case HwBrainRE1::RXPORT_SBUS:
             return INPUT_TYPE_SBUS;
+        case HwBrainRE1::RXPORT_SBUSNONINVERTED:
+            return INPUT_TYPE_SBUSNONINVERTED;
         case HwBrainRE1::RXPORT_DSM:
             return INPUT_TYPE_DSM;
         case HwBrainRE1::RXPORT_HOTTSUMD:
             return INPUT_TYPE_HOTTSUMD;
         case HwBrainRE1::RXPORT_HOTTSUMH:
             return INPUT_TYPE_HOTTSUMH;
+        case HwBrainRE1::RXPORT_IBUS:
+            return INPUT_TYPE_IBUS;
     }
 
     return INPUT_TYPE_UNKNOWN;
@@ -201,8 +207,8 @@ QStringList BrainRE1::getAdcNames()
 
 QWidget * BrainRE1::getBoardConfiguration(QWidget *parent, bool connected)
 {
-	Q_UNUSED(connected);
-	return new BrainRE1Configuration(parent);
+    Q_UNUSED(connected);
+    return new BrainRE1Configuration(parent);
 }
 
 QVector< QVector<int> > BrainRE1::getChannelBanks() {

@@ -73,10 +73,10 @@ QString Quanton::boardDescription()
     return QString("quanton flight control rev. 1 by Quantec Networks GmbH");
 }
 
-int Quanton::minBootLoaderVersion() {
+int Quanton::minBootLoaderVersion()
+{
     return 0x84;
 }
-
 
 //! Return which capabilities this board has
 bool Quanton::queryCapabilities(BoardCapabilities capability)
@@ -91,9 +91,7 @@ bool Quanton::queryCapabilities(BoardCapabilities capability)
     default:
         return false;
     }
-    return false;
 }
-
 
 /**
  * @brief Quanton::getSupportedProtocols
@@ -102,7 +100,6 @@ bool Quanton::queryCapabilities(BoardCapabilities capability)
  */
 QStringList Quanton::getSupportedProtocols()
 {
-
     return QStringList("uavtalk");
 }
 
@@ -112,7 +109,7 @@ QPixmap Quanton::getBoardPicture()
 }
 
 //! Determine if this board supports configuring the receiver
-bool AQ32::isInputConfigurationSupported(enum InputType type = INPUT_TYPE_ANY)
+bool Quanton::isInputConfigurationSupported(enum InputType type = INPUT_TYPE_ANY)
 {
     Q_UNUSED(type);
     return true;
@@ -158,7 +155,7 @@ bool Quanton::setInputType(enum InputType type)
     case INPUT_TYPE_SBUSNONINVERTED:
         settings.Uart1 = HwQuanton::UART1_SBUSNONINVERTED;
         break;
-    case INPUT_TYPE_IBUS: // Is not selectable yet in the Vehicle Setup Wizard, but if it ends up there, this is already in place.
+    case INPUT_TYPE_IBUS:
         settings.Uart1 = HwQuanton::UART1_IBUS;
         break;
     case INPUT_TYPE_DSM:
@@ -215,7 +212,6 @@ enum Core::IBoardType::InputType Quanton::getInputType()
             return INPUT_TYPE_HOTTSUMH;
         case HwQuanton::INPORTSERIAL_SBUSNONINVERTED:
             return INPUT_TYPE_SBUSNONINVERTED;
-        // None of the other targets have IBUS in getInputType, but seems to be no problem.
         case HwQuanton::INPORTSERIAL_IBUS:
             return INPUT_TYPE_IBUS;
         }
