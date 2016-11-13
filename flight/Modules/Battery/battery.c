@@ -55,6 +55,8 @@ static int8_t voltageADCPin = -1; //ADC pin for voltage
 static int8_t currentADCPin = -1; //ADC pin for current
 static bool battery_settings_updated;
 
+static float avg_current_lpf_for_time;
+
 // ****************
 // Private functions
 static void batteryTask(void * parameters);
@@ -226,9 +228,18 @@ static void batteryTask(void * parameters)
 			float alpha = 1.0f - dT / (dT + 2.0f);
 			flightBatteryData.AvgCurrent = alpha * flightBatteryData.AvgCurrent + (1 - alpha) * flightBatteryData.Current; //in Amps
 
+			// XXX Arguably this should be to 10% capacity or 15%
 			energyRemaining = batterySettings.Capacity - flightBatteryData.ConsumedEnergy; // in mAh
-			if (flightBatteryData.AvgCurrent > 0)
-				flightBatteryData.EstimatedFlightTime = (energyRemaining / (flightBatteryData.AvgCurrent * 1000.0f)) * 3600.0f; //in Sec
+
+			// And for time estimation, smooth things much more.
+			// Second order since it incorporates the above
+			// smoothing, 12s time constant for this layer.
+			alpha = 1.0f - dT / (dT + 12.0f);
+
+			avg_current_lpf_for_time = avg_current_lpf_for_time * alpha + (1 - alpha) * flightBatteryData.AvgCurrent;
+
+			if (avg_current_lpf_for_time > 0.1f)
+				flightBatteryData.EstimatedFlightTime = (energyRemaining / (avg_current_lpf_for_time * 1000.0f)) * 3600.0f; //in Sec
 			else
 				flightBatteryData.EstimatedFlightTime = 9999;
 

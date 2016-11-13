@@ -34,6 +34,7 @@
 #include "uavobjectsinit.h"
 #include "systemmod.h"
 #include "pios_thread.h"
+#include "hwbrainre1.h"
 
 #if defined(PIOS_INCLUDE_FREERTOS)
 #include "FreeRTOS.h"
@@ -43,6 +44,8 @@
 /* Prototype of PIOS_Board_Init() function */
 extern void PIOS_Board_Init(void);
 extern void Stack_Change(void);
+void ledUpdatePeridodicCb(UAVObjEvent * ev, void *ctx, void *obj, int len);
+
 
 /* Local Variables */
 #define INIT_TASK_PRIORITY  PIOS_THREAD_PRIO_HIGHEST
@@ -64,41 +67,41 @@ static void initTask(void *parameters);
  */
 int main()
 {
-  /* NOTE: Do NOT modify the following start-up sequence */
-  /* Any new initialization functions should be added in OpenPilotInit() */
-  PIOS_heap_initialize_blocks();
+	/* NOTE: Do NOT modify the following start-up sequence */
+	/* Any new initialization functions should be added in OpenPilotInit() */
+	PIOS_heap_initialize_blocks();
 
 #if defined(PIOS_INCLUDE_CHIBIOS)
-  halInit();
-  chSysInit();
+	halInit();
+	chSysInit();
 
-  boardInit();
+	boardInit();
 #endif /* defined(PIOS_INCLUDE_CHIBIOS) */
 
-  /* Brings up System using CMSIS functions, enables the LEDs. */
-  PIOS_SYS_Init();
+	/* Brings up System using CMSIS functions, enables the LEDs. */
+	PIOS_SYS_Init();
 
-  /* For Revolution we use a FreeRTOS task to bring up the system so we can */
-  /* always rely on FreeRTOS primitive */
-  initTaskHandle = PIOS_Thread_Create(initTask, "init", INIT_TASK_STACK, NULL, INIT_TASK_PRIORITY);
-  PIOS_Assert(initTaskHandle != NULL);
+	/* For Revolution we use a FreeRTOS task to bring up the system so we can */
+	/* always rely on FreeRTOS primitive */
+	initTaskHandle = PIOS_Thread_Create(initTask, "init", INIT_TASK_STACK, NULL, INIT_TASK_PRIORITY);
+	PIOS_Assert(initTaskHandle != NULL);
 
 #if defined(PIOS_INCLUDE_FREERTOS)
-  /* Start the FreeRTOS scheduler */
-  vTaskStartScheduler();
+	/* Start the FreeRTOS scheduler */
+	vTaskStartScheduler();
 
-  /* If all is well we will never reach here as the scheduler will now be running. */
-  /* Do some PIOS_LED_HEARTBEAT to user that something bad just happened */
-  PIOS_LED_Off(PIOS_LED_HEARTBEAT); \
-  for(;;) { \
-    PIOS_LED_Toggle(PIOS_LED_HEARTBEAT); \
-    PIOS_DELAY_WaitmS(100); \
-  };
+	/* If all is well we will never reach here as the scheduler will now be running. */
+	/* Do some PIOS_ANNUNC_HEARTBEAT to user that something bad just happened */
+	PIOS_ANNUNC_Off(PIOS_ANNUNC_HEARTBEAT); \
+	for(;;) { \
+		PIOS_ANNUNC_Toggle(PIOS_ANNUNC_HEARTBEAT); \
+		PIOS_DELAY_WaitmS(100); \
+	};
 #elif defined(PIOS_INCLUDE_CHIBIOS)
-  PIOS_Thread_Sleep(PIOS_THREAD_TIMEOUT_MAX);
+	PIOS_Thread_Sleep(PIOS_THREAD_TIMEOUT_MAX);
 #endif /* defined(PIOS_INCLUDE_CHIBIOS) */
 
-  return 0;
+	return 0;
 }
 /**
  * Initialization task.
@@ -107,14 +110,22 @@ int main()
  */
 void initTask(void *parameters)
 {
-  /* board driver init */
-  PIOS_Board_Init();
+	/* board driver init */
+	PIOS_Board_Init();
 
-  /* Initialize modules */
-  MODULE_INITIALISE_ALL(PIOS_WDG_Clear);
+	/* Initialize modules */
+	MODULE_INITIALISE_ALL(PIOS_WDG_Clear);
 
-  /* terminate this task */
-  PIOS_Thread_Delete(NULL);
+	/* Schedule a periodic callback to update the LEDs */
+	UAVObjEvent ev = {
+		.obj = HwBrainRE1Handle(),
+		.instId = 0,
+		.event = 0,
+	};
+	EventPeriodicCallbackCreate(&ev, ledUpdatePeridodicCb, 31);
+
+	/* terminate this task */
+	PIOS_Thread_Delete(NULL);
 }
 
 /**

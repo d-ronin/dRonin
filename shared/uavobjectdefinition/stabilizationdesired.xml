@@ -1,3 +1,4 @@
+<?xml version="1.0"?>
 <xml>
 	<object name="StabilizationDesired" singleinstance="true" settings="false">
 		<description>The desired attitude that @ref StabilizationModule will try and achieve if FlightMode is Stabilized.  Comes from @ref ManaulControlModule.</description>

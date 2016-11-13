@@ -90,17 +90,6 @@ bool Sparky::queryCapabilities(BoardCapabilities capability)
     return false;
 }
 
-
-/**
- * @brief Sparky::getSupportedProtocols
- *  TODO: this is just a stub, we'll need to extend this a lot with multi protocol support
- * @return
- */
-QStringList Sparky::getSupportedProtocols()
-{
-    return QStringList("uavtalk");
-}
-
 QPixmap Sparky::getBoardPicture()
 {
     return QPixmap(":/taulabs/images/sparky.png");

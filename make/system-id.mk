@@ -35,13 +35,6 @@ ifeq (MINGW, $(findstring MINGW,$(UNAME)))
   WINDOWS := 1
 endif
 
-# Windows using Cygwin shell
-ifeq (CYGWIN ,$(findstring CYGWIN,$(UNAME)))
-  OSFAMILY := windows
-  WINDOWS := 1
-  CYGWIN := 1
-endif
-
 # report an error if we couldn't work out what OS this is running on
 ifndef OSFAMILY
   $(info uname reports $(UNAME))

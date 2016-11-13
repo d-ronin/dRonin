@@ -111,7 +111,6 @@ uintptr_t pios_com_logging_id;
 uintptr_t pios_com_openlog_logging_id;
 uintptr_t pios_internal_adc_id;
 uintptr_t pios_uavo_settings_fs_id;
-uintptr_t pios_waypoints_settings_fs_id;
 
 const uint8_t named_color_value[HWBRAINRE1_LEDCOLOR_GLOBAL_MAXOPTVAL + 1][3] = {
 	[HWBRAINRE1_LEDCOLOR_OFF]    = {0,   0,   0},
@@ -136,24 +135,6 @@ static void settingdUpdatedCb(UAVObjEvent * ev, void *ctx, void *obj, int len)
 
 	HwBrainRE1Data * hwre1data = (HwBrainRE1Data *)obj;
 
-	/* Set the colors of the RGB LEDs */
-	if (hwre1data->NumberOfLEDs > 0) {
-		uint8_t led_color[3] = {0};
-		switch (hwre1data->LEDColor) {
-			case HWBRAINRE1_LEDCOLOR_CUSTOM:
-				led_color[0] = hwre1data->CustomLEDColor[0];
-				led_color[1] = hwre1data->CustomLEDColor[1];
-				led_color[2] = hwre1data->CustomLEDColor[2];
-				break;
-			default:
-				led_color[0] = named_color_value[hwre1data->LEDColor][0];
-				led_color[1] = named_color_value[hwre1data->LEDColor][1];
-				led_color[2] = named_color_value[hwre1data->LEDColor][2];
-		}
-		PIOS_RE1FPGA_SetLEDColor(hwre1data->NumberOfLEDs, led_color[0],
-			led_color[1], led_color[2]);
-	}
-
 	/* Configure the IR emitter for lap timing */
 	uint8_t ir_data[6];
 
@@ -173,11 +154,11 @@ static void settingdUpdatedCb(UAVObjEvent * ev, void *ctx, void *obj, int len)
 			break;
 	}
 
-	/* Configure the failsafe buzzer */
-	if (hwre1data->FailsafeBuzzer == HWBRAINRE1_FAILSAFEBUZZER_4KHZ_BUZZER) {
+	/* Configure the buzzer type */
+	if (hwre1data->BuzzerType == HWBRAINRE1_BUZZERTYPE_4KHZ_BUZZER) {
 		PIOS_RE1FPGA_SetBuzzerType(PIOS_RE1FPGA_BUZZER_AC);
 	}
-	else {
+	else if (hwre1data->BuzzerType == HWBRAINRE1_BUZZERTYPE_DC_BUZZER) {
 		PIOS_RE1FPGA_SetBuzzerType(PIOS_RE1FPGA_BUZZER_DC);
 	}
 
@@ -186,29 +167,58 @@ static void settingdUpdatedCb(UAVObjEvent * ev, void *ctx, void *obj, int len)
 }
 
 /**
- * flightStatusUpdatedCb()
- * Used to toggle buzzer
+ * ledUpdatePeridodicCb()
+ * Used to update LEDs
  */
-static void flightStatusUpdatedCb(UAVObjEvent * ev, void *ctx, void *obj, int len)
+void ledUpdatePeridodicCb(UAVObjEvent * ev, void *ctx, void *obj, int len)
 {
-	(void) ev; (void) ctx; (void) len;
-	static bool was_armed = false;
+	(void) ctx;  (void) obj; (void) len;
 
-	FlightStatusData * data = (FlightStatusData *)obj;
-
-	if (data->Armed == FLIGHTSTATUS_ARMED_ARMED) {
-		was_armed = true;
+	if (ev->obj != HwBrainRE1Handle()) {
+		// this shouldn't happen
+		return;
 	}
 
-	if (was_armed && (data->FlightMode == FLIGHTSTATUS_FLIGHTMODE_FAILSAFE)) {
-		uint8_t buzzer_setting;
-		HwBrainRE1FailsafeBuzzerGet(&buzzer_setting);
-		PIOS_RE1FPGA_Buzzer(buzzer_setting != HWBRAINRE1_FAILSAFEBUZZER_DISABLED);
-	}
-	else {
-		PIOS_RE1FPGA_Buzzer(false);
-	}
+	uint16_t num_leds;
+	HwBrainRE1NumberOfLEDsGet(&num_leds);
 
+	/* Set the colors of the RGB LEDs */
+	if (num_leds > 0) {
+		uint8_t led_color;
+		uint8_t led_color_value[3] = {0};
+		HwBrainRE1LEDColorGet(&led_color);
+		switch (led_color) {
+			case HWBRAINRE1_LEDCOLOR_CUSTOM:
+				HwBrainRE1CustomLEDColorGet(led_color_value);
+				break;
+			default:
+				memcpy(led_color_value, named_color_value[led_color], 3);
+		}
+		PIOS_RE1FPGA_SetLEDColor(num_leds, led_color_value[0],
+			led_color_value[1], led_color_value[2]);
+	}
+}
+
+/**
+ * Check the brown out reset threshold is 2.7 volts and if not
+ * resets it.
+ */
+void check_bor()
+{
+	uint8_t bor = FLASH_OB_GetBOR();
+
+	if (bor != OB_BOR_LEVEL3) {
+		FLASH_OB_Unlock();
+		FLASH_OB_BORConfig(OB_BOR_LEVEL3);
+		FLASH_OB_Launch();
+		while (FLASH_WaitForLastOperation() == FLASH_BUSY) {
+			;
+		}
+		FLASH_OB_Lock();
+		while (FLASH_WaitForLastOperation() == FLASH_BUSY) {
+			;
+		}
+	}
 }
 
 #include <pios_board_info.h>
@@ -219,12 +229,15 @@ static void flightStatusUpdatedCb(UAVObjEvent * ev, void *ctx, void *obj, int le
  * called from System/openpilot.c
  */
 void PIOS_Board_Init(void) {
+	/* Check/set the brown out reset threshold */
+	check_bor();
+
 	/* Delay system */
 	PIOS_DELAY_Init();
 
-#if defined(PIOS_INCLUDE_LED)
-	PIOS_LED_Init(&pios_led_cfg);
-#endif	/* PIOS_INCLUDE_LED */
+#if defined(PIOS_INCLUDE_ANNUNC)
+	PIOS_ANNUNC_Init(&pios_annunc_cfg);
+#endif	/* PIOS_INCLUDE_ANNUNC */
 
 #if defined(PIOS_INCLUDE_SPI)
 	uint32_t pios_spi_gyro_id;
@@ -256,8 +269,6 @@ void PIOS_Board_Init(void) {
 	/* Mount all filesystems */
 	if (PIOS_FLASHFS_Logfs_Init(&pios_uavo_settings_fs_id, &flashfs_settings_cfg, FLASH_PARTITION_LABEL_SETTINGS) != 0)
 		PIOS_HAL_CriticalError(PIOS_LED_ALARM, PIOS_HAL_PANIC_FILESYS);
-	if (PIOS_FLASHFS_Logfs_Init(&pios_waypoints_settings_fs_id, &flashfs_waypoints_cfg, FLASH_PARTITION_LABEL_WAYPOINTS) != 0)
-		PIOS_HAL_CriticalError(PIOS_LED_ALARM, PIOS_HAL_PANIC_FILESYS);
 
 #if defined(ERASE_FLASH)
 	PIOS_FLASHFS_Format(pios_uavo_settings_fs_id);
@@ -281,10 +292,6 @@ void PIOS_Board_Init(void) {
 	uint8_t flashid[16] = {0};
 	PIOS_Flash_Jedec_ReadOTPData(pios_external_flash_id, 0, flashid, 16);
 	HwBrainRE1FlashIDSet(flashid);
-
-	/* Connect callback for buzzer */
-	FlightStatusInitialize();
-	FlightStatusConnectCallback(flightStatusUpdatedCb);
 
 	ModuleSettingsInitialize();
 

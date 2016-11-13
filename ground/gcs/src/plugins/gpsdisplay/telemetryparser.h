@@ -1,7 +1,7 @@
 /**
  ******************************************************************************
  *
- * @file       nmeaparser.h
+ * @file       telemetryparser.h
  * @author     Edouard Lafargue & the OpenPilot team Copyright (C) 2010.
  * @addtogroup GCSPlugins GCS Plugins
  * @{

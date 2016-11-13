@@ -1,0 +1,20 @@
+<?xml version="1.0"?>
+<xml>
+	<object name="VbarSettings" singleinstance="true" settings="true">
+		<description>Settings for the virtualbar flight mode</description>
+
+		<field name="VbarSensitivity" units="frac" type="float" elementnames="Roll,Pitch,Yaw" defaultvalue="0.5,0.5,0.5"/>
+		<field name="VbarRollPID" units="1/(deg/s)" type="float" elementnames="Kp,Ki,Kd" defaultvalue="0.005,0.002,0"/>
+		<field name="VbarPitchPID" units="1/(deg/s)" type="float" elementnames="Kp,Ki,Kd" defaultvalue="0.005,0.002,0"/>
+		<field name="VbarYawPID" units="1/(deg/s)" type="float" elementnames="Kp,Ki,Kd" defaultvalue="0.005,0.002,0"/>
+		<field name="VbarTau" units="sec" type="float" elements="1" defaultvalue="0.5"/>
+		<field name="VbarGyroSuppress" units="%" type="int8" elements="1" defaultvalue="30"/>
+		<field name="VbarPiroComp" units="" type="enum" elements="1" options="FALSE,TRUE" defaultvalue="FALSE"/>
+		<field name="VbarMaxAngle" units="deg" type="uint8" elements="1" defaultvalue="10"/>
+		<access gcs="readwrite" flight="readwrite"/>
+		<telemetrygcs acked="true" updatemode="onchange" period="0"/>
+		<telemetryflight acked="true" updatemode="onchange" period="0"/>
+		<logging updatemode="manual" period="0"/>
+	</object>
+</xml>
+

@@ -1,12 +1,14 @@
+<?xml version="1.0"?>
 <xml>
 	<object name="HwQuanton" singleinstance="true" settings="true" category="HardwareSettings">
 		<description>Selection of optional hardware configurations.</description>
-
 		<field name="InPort" units="function" type="enum" elements="1" defaultvalue="PWM">
+			<description>The port labelled "IN"</description>
 			<options>
 				<option>Disabled</option>
 				<option>Outputs</option>
 				<option>Outputs+ADC</option>
+				<option>WS2811+Serial+PPM+ADC</option>
 				<option>PPM</option>
 				<option>PPM+ADC</option>
 				<option>PPM+Outputs</option>
@@ -20,8 +22,8 @@
 				<option>Serial</option>
 			</options>
 		</field>
-
 		<field name="InPortSerial" units="function" type="enum" elements="1" parent="HwShared.PortTypes" defaultvalue="Disabled">
+			<description/>
 			<options>
 				<option>Disabled</option>
 				<option>ComBridge</option>
@@ -39,15 +41,14 @@
 				<option>MavLinkTX_GPS_RX</option>
 				<option>MSP</option>
 				<option>OpenLog</option>
-				<option>PicoC</option>
 				<option>S.Bus Non Inverted</option>
 				<option>Storm32Bgc</option>
 				<option>Telemetry</option>
 				<option>IBus</option>
 			</options>
 		</field>
-
 		<field name="Uart1" units="function" type="enum" elements="1" parent="HwShared.PortTypes" defaultvalue="Disabled">
+			<description>The port labelled "UART1"</description>
 			<options>
 				<option>Disabled</option>
 				<option>ComBridge</option>
@@ -66,15 +67,14 @@
 				<option>MavLinkTX_GPS_RX</option>
 				<option>MSP</option>
 				<option>OpenLog</option>
-				<option>PicoC</option>
 				<option>S.Bus Non Inverted</option>
 				<option>Storm32Bgc</option>
 				<option>Telemetry</option>
 				<option>IBus</option>
 			</options>
 		</field>
-
 		<field name="Uart2" units="function" type="enum" elements="1" parent="HwShared.PortTypes" defaultvalue="Disabled">
+			<description>The port labelled "UART2"</description>
 			<options>
 				<option>Disabled</option>
 				<option>ComBridge</option>
@@ -92,7 +92,6 @@
 				<option>MavLinkTX_GPS_RX</option>
 				<option>MSP</option>
 				<option>OpenLog</option>
-				<option>PicoC</option>
 				<option>S.Bus</option>
 				<option>S.Bus Non Inverted</option>
 				<option>Storm32Bgc</option>
@@ -100,8 +99,8 @@
 				<option>IBus</option>
 			</options>
 		</field>
-
 		<field name="Uart3" units="function" type="enum" elements="1" parent="HwShared.PortTypes" defaultvalue="Disabled">
+			<description>The port labelled "UART3"</description>
 			<options>
 				<option>Disabled</option>
 				<option>ComBridge</option>
@@ -120,15 +119,14 @@
 				<option>MavLinkTX_GPS_RX</option>
 				<option>MSP</option>
 				<option>OpenLog</option>
-				<option>PicoC</option>
 				<option>S.Bus Non Inverted</option>
 				<option>Storm32Bgc</option>
 				<option>Telemetry</option>
 				<option>IBus</option>
 			</options>
 		</field>
-
 		<field name="Uart4" units="function" type="enum" elements="1" parent="HwShared.PortTypes" defaultvalue="Telemetry">
+			<description>The port labelled "UART4"</description>
 			<options>
 				<option>Disabled</option>
 				<option>ComBridge</option>
@@ -146,15 +144,14 @@
 				<option>MavLinkTX_GPS_RX</option>
 				<option>MSP</option>
 				<option>OpenLog</option>
-				<option>PicoC</option>
 				<option>S.Bus Non Inverted</option>
 				<option>Storm32Bgc</option>
 				<option>Telemetry</option>
 				<option>IBus</option>
 			</options>
 		</field>
-
 		<field name="Uart5" units="function" type="enum" elements="1" parent="HwShared.PortTypes" defaultvalue="GPS">
+			<description>The port labelled "UART5"</description>
 			<options>
 				<option>Disabled</option>
 				<option>ComBridge</option>
@@ -172,27 +169,48 @@
 				<option>MavLinkTX_GPS_RX</option>
 				<option>MSP</option>
 				<option>OpenLog</option>
-				<option>PicoC</option>
 				<option>S.Bus Non Inverted</option>
 				<option>Storm32Bgc</option>
 				<option>Telemetry</option>
 				<option>IBus</option>
 			</options>
 		</field>
+		<field name="USB_HIDPort" units="function" type="enum" elements="1" parent="HwShared.USB_HIDPort" defaultvalue="USBTelemetry">
+			<description/>
+		</field>
+		<field name="USB_VCPPort" units="function" type="enum" elements="1" parent="HwShared.USB_VCPPort" defaultvalue="Disabled">
+			<description>Virtual COM Port protocol</description>
+		</field>
+		<field name="DSMxMode" units="mode" type="enum" elements="1" parent="HwShared.DSMxMode" defaultvalue="Autodetect">
+			<description/>
+		</field>
+		<field name="GyroRange" units="deg/s" type="enum" elements="1" options="250,500,1000,2000" defaultvalue="1000">
+			<description>Maximum measurement range for the gyros, should never rotate faster than about 85% of this</description>
+		</field>
+		<field name="AccelRange" units="*gravity m/s^2" type="enum" elements="1" options="2G,4G,8G,16G" defaultvalue="8G">
+			<description>The maximum measure range for the accelerometers, should never exceed this</description>
+		</field>
+		<field name="MPU6000Rate" units="" type="enum" elements="1" options="200,250,333,500,1000" defaultvalue="1000">
+			<description>The gyro sampling rate</description>
+		</field>
+		<field name="MPU6000DLPF" units="" type="enum" elements="1" options="188,98,42,20,10,5" defaultvalue="188">
+			<description>Gyro filter cutoff frequency</description>
+		</field>
 
-		<field name="USB_HIDPort" units="function" type="enum" elements="1" parent="HwShared.USB_HIDPort" defaultvalue="USBTelemetry"/>
-		<field name="USB_VCPPort" units="function" type="enum" elements="1" parent="HwShared.USB_VCPPort" defaultvalue="Disabled"/>
+		<field name="Magnetometer" units="" type="enum" elements="1" parent="HwShared.Mag" defaultvalue="Internal">
+			<description>Which magnetometer to use. If external, must configured a port as I2C, and select it as ExtMagPort.</description>
+		</field>
+		<field name="ExtMagOrientation" units="" type="enum" elements="1" parent="HwShared.MagOrientation" defaultvalue="Top0degCW">
+			<description>Orientation of the external magnetometer</description>
+		</field>
+		<field name="ExtMagPort" units="" type="enum" elements="1" defaultvalue="Uart1">
+			<description>Select the port your external magnetometer is connected to. Only used if an external magnetometer option is selected.</description>
+			<options>
+				<option>Uart1</option>
+				<option>Uart3</option>
+			</options>
+		</field>
 
-		<field name="DSMxMode" units="mode" type="enum" elements="1" parent="HwShared.DSMxMode" defaultvalue="Autodetect"/>
-
-		<field name="GyroRange" units="deg/s" type="enum" elements="1" options="250,500,1000,2000" defaultvalue="1000"/>
-		<field name="AccelRange" units="*gravity m/s^2" type="enum" elements="1" options="2G,4G,8G,16G" defaultvalue="8G"/>
-		<field name="MPU6000Rate" units="" type="enum" elements="1" options="200,250,333,500,1000" defaultvalue="1000"/>
-		<field name="MPU6000DLPF" units="" type="enum" elements="1" options="188,98,42,20,10,5" defaultvalue="188"/>
-		
-		<field name="Magnetometer" units="function" type="enum" elements="1" options="Disabled,Internal,ExternalI2CUart1,ExternalI2CUart3" defaultvalue="Internal"/>
-		<field name="ExtMagOrientation" units="function" type="enum" elements="1" parent="HwShared.MagOrientation" defaultvalue="Top0degCW" />
-	
 		<access gcs="readwrite" flight="readwrite"/>
 		<telemetrygcs acked="true" updatemode="onchange" period="0"/>
 		<telemetryflight acked="true" updatemode="onchange" period="0"/>

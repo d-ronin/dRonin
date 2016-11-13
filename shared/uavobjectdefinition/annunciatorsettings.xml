@@ -1,0 +1,26 @@
+<?xml version="1.0"?>
+<xml>
+	<object name="AnnunciatorSettings" singleinstance="true" settings="true">
+		<description>Settings for alarm annunciation (LEDs, buzzer)</description>
+		<field name="AnnunciateAnytime" units="" type="enum" parent="SharedDefs.AlarmLevels" defaultvalue="OK,Warning,HairOnFire">
+			<description>Thresholds for the various annunciator devices.  If an alarm severity is equal to or worse than the threshold for a given annunciator, that annunciator will sound the alarm.</description>
+			<elementnames>
+				<elementname>LED_Heartbeat</elementname>
+				<elementname>LED_Alarm</elementname>
+				<elementname>Buzzer</elementname>
+			</elementnames>
+		</field>
+		<field name="AnnunciateAfterArming" units="" type="enum" parent="SharedDefs.AlarmLevels" defaultvalue="HairOnFire,HairOnFire,ManualControlOnly">
+			<description>These fields are annunciator thresholds; they allow one to set lower thresholds after arming has taken place.</description>
+			<elementnames>
+				<elementname>LED_Heartbeat</elementname>
+				<elementname>LED_Alarm</elementname>
+				<elementname>Buzzer</elementname>
+			</elementnames>
+		</field>
+		<access gcs="readwrite" flight="readwrite"/>
+		<telemetrygcs acked="true" updatemode="onchange" period="0"/>
+		<telemetryflight acked="true" updatemode="onchange" period="0"/>
+		<logging updatemode="manual" period="0"/>
+	</object>
+</xml>

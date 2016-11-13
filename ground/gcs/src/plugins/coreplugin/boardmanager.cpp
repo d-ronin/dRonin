@@ -79,7 +79,7 @@ QList<int> BoardManager::getKnownVendorIDs()
     QList<int> list;
 
     foreach (IBoardType* board, m_boardTypesList) {
-        int vid = board->getUSBInfo().vendorID;
+        int vid = board->getVendorID();
         if ((vid > 0) && (!list.contains(vid)))
             list.append(vid);
     }

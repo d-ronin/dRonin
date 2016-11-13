@@ -519,7 +519,6 @@ static int32_t updateAttitudeComplementary(bool first_run, bool secondary, bool 
 		// For first 7 seconds use accels to get gyro bias
 		attitudeSettings.AccelKp = 0.1f + 0.1f * (PIOS_Thread_Systime() < 4000);
 		attitudeSettings.AccelKi = 0.1f;
-		attitudeSettings.YawBiasRate = 0.1f;
 		attitudeSettings.MagKp = 0.1f;
 	} else if ((attitudeSettings.ZeroDuringArming == ATTITUDESETTINGS_ZERODURINGARMING_TRUE) && 
 	           (flightStatus.Armed == FLIGHTSTATUS_ARMED_ARMING)) {
@@ -534,7 +533,6 @@ static int32_t updateAttitudeComplementary(bool first_run, bool secondary, bool 
 
 		// Set the other parameters to drive faster convergence
 		attitudeSettings.AccelKi = 0.1f;
-		attitudeSettings.YawBiasRate = 0.1f;
 		attitudeSettings.MagKp = 0.1f;
 
 		// Don't apply LPF to the accels during arming

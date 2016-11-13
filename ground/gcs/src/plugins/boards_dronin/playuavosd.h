@@ -44,7 +44,6 @@ public:
     virtual QString shortName();
     virtual QString boardDescription();
     virtual bool queryCapabilities(BoardCapabilities capability);
-    virtual QStringList getSupportedProtocols();
     virtual QPixmap getBoardPicture();
     virtual QString getHwUAVO();
 };

@@ -85,7 +85,7 @@
 /* PIOS Hardware Includes */
 #include <pios_sys.h>
 #include <pios_delay.h>
-#include <pios_led.h>
+#include <pios_annunc.h>
 #include <pios_irq.h>
 #include <pios_adc.h>
 #include <pios_internal_adc.h>

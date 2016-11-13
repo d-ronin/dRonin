@@ -1,24 +1,44 @@
+<?xml version="1.0"?>
 <xml>
-    <object name="SensorSettings" singleinstance="true" settings="true">
-        <description>Settings for the @ref Attitude module</description>
-        <field name="AccelBias" units="m/s^2" type="float" elementnames="X,Y,Z" defaultvalue="0"/>
-        <field name="AccelScale" units="[-]" type="float" elementnames="X,Y,Z" defaultvalue="1"/>
-        <field name="GyroScale" units="-" type="float" elementnames="X,Y,Z" defaultvalue="1"/>
-        <field name="XGyroTempCoeff" units="(deg/s)/deg" type="float" elementnames="1,T,T2,T3" defaultvalue="0"/>
-        <field name="YGyroTempCoeff" units="(deg/s)/deg" type="float" elementnames="1,T,T2,T3" defaultvalue="0"/>
-        <field name="ZGyroTempCoeff" units="(deg/s)/deg" type="float" elementnames="1,T,T2,T3" defaultvalue="0"/>
-        <field name="MagBias" units="mGau" type="float" elementnames="X,Y,Z" defaultvalue="0,0,0"/>
-        <field name="MagScale" units="gain" type="float" elementnames="X,Y,Z" defaultvalue="1"/>
-        <field name="ZAccelOffset" units="m/s^2" type="float" elements="1" defaultvalue="0"/>
-        <field name="TolerateMissingSensors" units="" type="enum" elements="1" defaultvalue="FALSE">
-                <options>
-                        <option>FALSE</option>
-                        <option>TRUE</option>
-                </options>
-        </field>
-        <access gcs="readwrite" flight="readwrite"/>
-        <telemetrygcs acked="true" updatemode="onchange" period="0"/>
-        <telemetryflight acked="true" updatemode="onchange" period="0"/>
-        <logging updatemode="manual" period="0"/>
-    </object>
+	<object name="SensorSettings" singleinstance="true" settings="true">
+		<description>Settings for the @ref Attitude module</description>
+		<field name="AccelBias" units="m/s^2" type="float" elementnames="X,Y,Z" defaultvalue="0">
+			<description/>
+		</field>
+		<field name="AccelScale" units="[-]" type="float" elementnames="X,Y,Z" defaultvalue="1">
+			<description/>
+		</field>
+		<field name="GyroScale" units="-" type="float" elementnames="X,Y,Z" defaultvalue="1">
+			<description/>
+		</field>
+		<field name="XGyroTempCoeff" units="(deg/s)/deg" type="float" elementnames="1,T,T2,T3" defaultvalue="0">
+			<description/>
+		</field>
+		<field name="YGyroTempCoeff" units="(deg/s)/deg" type="float" elementnames="1,T,T2,T3" defaultvalue="0">
+			<description/>
+		</field>
+		<field name="ZGyroTempCoeff" units="(deg/s)/deg" type="float" elementnames="1,T,T2,T3" defaultvalue="0">
+			<description/>
+		</field>
+		<field name="MagBias" units="mGau" type="float" elementnames="X,Y,Z" defaultvalue="0,0,0">
+			<description/>
+		</field>
+		<field name="MagScale" units="gain" type="float" elementnames="X,Y,Z" defaultvalue="1">
+			<description/>
+		</field>
+		<field name="ZAccelOffset" units="m/s^2" type="float" elements="1" defaultvalue="0">
+			<description/>
+		</field>
+		<field name="TolerateMissingSensors" units="" type="enum" elements="1" defaultvalue="FALSE">
+			<description>Tolerate Missing Sensors</description>
+			<options>
+				<option>FALSE</option>
+				<option>TRUE</option>
+			</options>
+		</field>
+		<access gcs="readwrite" flight="readwrite"/>
+		<telemetrygcs acked="true" updatemode="onchange" period="0"/>
+		<telemetryflight acked="true" updatemode="onchange" period="0"/>
+		<logging updatemode="manual" period="0"/>
+	</object>
 </xml>

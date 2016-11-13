@@ -50,6 +50,7 @@
 #include "manualcontrolsettings.h"
 #include "modulesettings.h"
 #include <rfm22bstatus.h>
+#include <pios_max7456.h>
 #include <pios_rfm22b_rcvr_priv.h>
 #include <pios_openlrs_rcvr_priv.h>
 
@@ -98,14 +99,6 @@ static const struct pios_hmc5883_cfg pios_hmc5883_cfg = {
 	.Mode = PIOS_HMC5883_MODE_CONTINUOUS,
 	.Default_Orientation = PIOS_HMC5883_TOP_270DEG,
 };
-
-static const struct pios_hmc5883_cfg pios_hmc5883_external_cfg = {
-    .M_ODR               = PIOS_HMC5883_ODR_75,
-    .Meas_Conf           = PIOS_HMC5883_MEASCONF_NORMAL,
-    .Gain                = PIOS_HMC5883_GAIN_1_9,
-    .Mode                = PIOS_HMC5883_MODE_SINGLE,
-    .Default_Orientation = PIOS_HMC5883_TOP_270DEG,
-};
 #endif /* PIOS_INCLUDE_HMC5883 */
 
 /**
@@ -126,8 +119,11 @@ uintptr_t pios_com_debug_id;
 
 uintptr_t pios_internal_adc_id = 0;
 uintptr_t pios_uavo_settings_fs_id;
-uintptr_t pios_waypoints_settings_fs_id;
 uintptr_t pios_com_openlog_logging_id;
+
+#ifdef PIOS_INCLUDE_MAX7456
+max7456_dev_t pios_max7456_id;
+#endif
 
 /**
  * PIOS_Board_Init()
@@ -140,6 +136,7 @@ uintptr_t pios_com_openlog_logging_id;
 void PIOS_Board_Init(void) {
 	bool use_rxport_usart = false;
 
+	/* some clone boards omit components, we will ignore that if running on a clone */
 	bool is_modified_clone = false;
 
 	/* Delay system */
@@ -147,11 +144,11 @@ void PIOS_Board_Init(void) {
 
 	const struct pios_board_info * bdinfo = &pios_board_info_blob;
 
-#if defined(PIOS_INCLUDE_LED)
-	const struct pios_led_cfg * led_cfg = PIOS_BOARD_HW_DEFS_GetLedCfg(bdinfo->board_rev);
+#if defined(PIOS_INCLUDE_ANNUNC)
+	const struct pios_annunc_cfg * led_cfg = PIOS_BOARD_HW_DEFS_GetLedCfg(bdinfo->board_rev);
 	PIOS_Assert(led_cfg);
-	PIOS_LED_Init(led_cfg);
-#endif	/* PIOS_INCLUDE_LED */
+	PIOS_ANNUNC_Init(led_cfg);
+#endif	/* PIOS_INCLUDE_ANNUNC */
 
 	uint32_t pios_spi_gyro_id;
 	/* Set up the SPI interface to the gyro/acelerometer */
@@ -185,8 +182,6 @@ void PIOS_Board_Init(void) {
 
 	/* Mount all filesystems */
 	if(PIOS_FLASHFS_Logfs_Init(&pios_uavo_settings_fs_id, &flashfs_settings_cfg, FLASH_PARTITION_LABEL_SETTINGS) != 0)
-		PIOS_HAL_CriticalError(PIOS_LED_HEARTBEAT, PIOS_HAL_PANIC_FILESYS);
-	if(PIOS_FLASHFS_Logfs_Init(&pios_waypoints_settings_fs_id, &flashfs_waypoints_cfg, FLASH_PARTITION_LABEL_WAYPOINTS) != 0)
 		PIOS_HAL_CriticalError(PIOS_LED_HEARTBEAT, PIOS_HAL_PANIC_FILESYS);
 #endif	/* PIOS_INCLUDE_FLASH */
 
@@ -481,24 +476,51 @@ void PIOS_Board_Init(void) {
 	HwRevolutionData hwRevoMini;
 	HwRevolutionGet(&hwRevoMini);
 
-#ifdef PIOS_INCLUDE_RFM22B
-	const struct pios_openlrs_cfg *openlrs_cfg = PIOS_BOARD_HW_DEFS_GetOpenLRSCfg(bdinfo->board_rev);
-	const struct pios_rfm22b_cfg *rfm22b_cfg = PIOS_BOARD_HW_DEFS_GetRfm22Cfg(bdinfo->board_rev);
+	uint8_t hw_spiperiph;
 
-	PIOS_HAL_ConfigureRFM22B(hwRevoMini.Radio,
-			bdinfo->board_type, bdinfo->board_rev,
-			hwRevoMini.MaxRfPower, hwRevoMini.MaxRfSpeed,
-			hwRevoMini.RfBand,
-			openlrs_cfg, rfm22b_cfg, hwRevoMini.MinChannel,
-			hwRevoMini.MaxChannel, hwRevoMini.CoordID, 1);
+	HwRevolutionSPIPeripheralGet(&hw_spiperiph);
+
+	switch (hw_spiperiph) {
+		default:
+			PIOS_Assert(0);
+			break;
+		case HWREVOLUTION_SPIPERIPHERAL_DISABLED:
+			break;
+
+#ifdef PIOS_INCLUDE_MAX7456
+		case HWREVOLUTION_SPIPERIPHERAL_MAX7456OSD:
+			if (!PIOS_MAX7456_init(&pios_max7456_id, pios_spi_telem_flash_id,
+						0)) {
+				// XXX do something?
+			}
+			break;
+#endif
+
+#ifdef PIOS_INCLUDE_RFM22B
+		case HWREVOLUTION_SPIPERIPHERAL_RADIO:
+			(void) 0;
+			const struct pios_openlrs_cfg *openlrs_cfg =PIOS_BOARD_HW_DEFS_GetOpenLRSCfg(bdinfo->board_rev);
+			const struct pios_rfm22b_cfg *rfm22b_cfg = PIOS_BOARD_HW_DEFS_GetRfm22Cfg(bdinfo->board_rev);
+
+			PIOS_HAL_ConfigureRFM22B(hwRevoMini.Radio,
+					bdinfo->board_type, bdinfo->board_rev,
+					hwRevoMini.MaxRfPower,
+					hwRevoMini.MaxRfSpeed,
+					hwRevoMini.RfBand,
+					openlrs_cfg, rfm22b_cfg,
+					hwRevoMini.MinChannel,
+					hwRevoMini.MaxChannel,
+					hwRevoMini.CoordID, 1);
+			break;
 #endif /* PIOS_INCLUDE_RFM22B */
+	}
 
 	/* init sensor queue registration */
-    PIOS_SENSORS_Init();
+	PIOS_SENSORS_Init();
 
-    PIOS_WDG_Clear();
-    PIOS_DELAY_WaitmS(200);
-    PIOS_WDG_Clear();
+	PIOS_WDG_Clear();
+	PIOS_DELAY_WaitmS(200);
+	PIOS_WDG_Clear();
 
 #if defined(PIOS_INCLUDE_MPU)
 	pios_mpu_dev_t mpu_dev = NULL;
@@ -565,52 +587,42 @@ void PIOS_Board_Init(void) {
 #endif
 
 #if defined(PIOS_INCLUDE_I2C)
-#if defined(PIOS_INCLUDE_HMC5883)
 	PIOS_WDG_Clear();
 
-	uint8_t magnetometer;
-	HwRevolutionMagnetometerGet(&magnetometer);
+	uint8_t hw_magnetometer;
+	HwRevolutionMagnetometerGet(&hw_magnetometer);
 
-	if (magnetometer == HWREVOLUTION_MAGNETOMETER_EXTERNALI2CFLEXIPORT)	{
-		if (PIOS_HMC5883_Init(pios_i2c_flexiport_adapter_id, &pios_hmc5883_external_cfg) == 0) {
-			if (PIOS_HMC5883_Test() == 0) {
-				// External mag configuration was successful
+	switch (hw_magnetometer) {
+		case HWREVOLUTION_MAGNETOMETER_NONE:
+			break;
 
-				// setup sensor orientation
-				uint8_t ext_mag_orientation;
-				HwRevolutionExtMagOrientationGet(&ext_mag_orientation);
-
-				enum pios_hmc5883_orientation hmc5883_externalOrientation = \
-					(ext_mag_orientation == HWREVOLUTION_EXTMAGORIENTATION_TOP0DEGCW)      ? PIOS_HMC5883_TOP_0DEG      : \
-					(ext_mag_orientation == HWREVOLUTION_EXTMAGORIENTATION_TOP90DEGCW)     ? PIOS_HMC5883_TOP_90DEG     : \
-					(ext_mag_orientation == HWREVOLUTION_EXTMAGORIENTATION_TOP180DEGCW)    ? PIOS_HMC5883_TOP_180DEG    : \
-					(ext_mag_orientation == HWREVOLUTION_EXTMAGORIENTATION_TOP270DEGCW)    ? PIOS_HMC5883_TOP_270DEG    : \
-					(ext_mag_orientation == HWREVOLUTION_EXTMAGORIENTATION_BOTTOM0DEGCW)   ? PIOS_HMC5883_BOTTOM_0DEG   : \
-					(ext_mag_orientation == HWREVOLUTION_EXTMAGORIENTATION_BOTTOM90DEGCW)  ? PIOS_HMC5883_BOTTOM_90DEG  : \
-					(ext_mag_orientation == HWREVOLUTION_EXTMAGORIENTATION_BOTTOM180DEGCW) ? PIOS_HMC5883_BOTTOM_180DEG : \
-					(ext_mag_orientation == HWREVOLUTION_EXTMAGORIENTATION_BOTTOM270DEGCW) ? PIOS_HMC5883_BOTTOM_270DEG : \
-					pios_hmc5883_external_cfg.Default_Orientation;
-				PIOS_HMC5883_SetOrientation(hmc5883_externalOrientation);
-			} else
-				PIOS_SENSORS_SetMissing(PIOS_SENSOR_MAG);
-		} else
-			PIOS_SENSORS_SetMissing(PIOS_SENSOR_MAG);
-	}
-
-	if (magnetometer == HWREVOLUTION_MAGNETOMETER_INTERNAL)
-	{
-		if ((PIOS_HMC5883_Init(PIOS_I2C_MAIN_ADAPTER, &pios_hmc5883_cfg) != 0) ||
-				(PIOS_HMC5883_Test() != 0)) {
-			if (!is_modified_clone) {
-				PIOS_HAL_CriticalError(PIOS_LED_HEARTBEAT, PIOS_HAL_PANIC_MAG);
+		case HWREVOLUTION_MAGNETOMETER_INTERNAL:
+#if defined(PIOS_INCLUDE_HMC5883)
+			if ((PIOS_HMC5883_Init(PIOS_I2C_MAIN_ADAPTER, &pios_hmc5883_cfg) != 0) ||
+					(PIOS_HMC5883_Test() != 0)) {
+				if (!is_modified_clone) {
+					PIOS_HAL_CriticalError(PIOS_LED_HEARTBEAT, PIOS_HAL_PANIC_MAG);
+				}
 			}
-		}
+#endif /* PIOS_INCLUDE_HMC5883 */
+			break;
+
+		/* default external mags and handle them in PiOS HAL rather than maintaining list here */
+		default:
+			if (hw_flexiport == HWSHARED_PORTTYPES_I2C) {
+				uint8_t hw_orientation;
+				HwRevolutionExtMagOrientationGet(&hw_orientation);
+
+				PIOS_HAL_ConfigureExternalMag(hw_magnetometer, hw_orientation,
+					&pios_i2c_flexiport_adapter_id, &pios_i2c_flexiport_adapter_cfg);
+			} else {
+				PIOS_SENSORS_SetMissing(PIOS_SENSOR_MAG);
+			}
+			break;
 	}
 
-#endif  // PIOS_INCLUDE_HMC5883
-
-	//I2C is slow, sensor init as well, reset watchdog to prevent reset here
-    PIOS_WDG_Clear();
+	/* I2C is slow, sensor init as well, reset watchdog to prevent reset here */
+	PIOS_WDG_Clear();
 
 #if defined(PIOS_INCLUDE_MS5611)
 	if ((PIOS_MS5611_Init(&pios_ms5611_cfg, pios_i2c_mag_pressure_adapter_id) != 0) || (PIOS_MS5611_Test() != 0)) {
@@ -620,8 +632,8 @@ void PIOS_Board_Init(void) {
 	}
 #endif
 
-    //I2C is slow, sensor init as well, reset watchdog to prevent reset here
-    PIOS_WDG_Clear();
+	//I2C is slow, sensor init as well, reset watchdog to prevent reset here
+	PIOS_WDG_Clear();
 
 #endif    /* PIOS_INCLUDE_I2C */
 
@@ -630,8 +642,8 @@ void PIOS_Board_Init(void) {
 	PIOS_INTERNAL_ADC_Init(&internal_adc_id, &pios_adc_cfg);
 	PIOS_ADC_Init(&pios_internal_adc_id, &pios_internal_adc_driver, internal_adc_id);
 
-        // configure the pullup for PA8 (inhibit pullups from current/sonar shared pin)
-        GPIO_Init(pios_current_sonar_pin.gpio, &pios_current_sonar_pin.init);
+		// configure the pullup for PA8 (inhibit pullups from current/sonar shared pin)
+		GPIO_Init(pios_current_sonar_pin.gpio, &pios_current_sonar_pin.init);
 #endif
 }
 

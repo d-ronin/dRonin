@@ -512,7 +512,6 @@ void Simulator::updateUAVOs(Output2Hardware out){
 
         AttitudeSettings::DataFields attitudeSettingsData = attitudeSettings->getData();
         float accelKp = attitudeSettingsData.AccelKp * 0.1666666666666667;
-        float yawBiasRate = attitudeSettingsData.YawBiasRate;
 
         // calibrate sensors on arming
         if (flightStatus->getData().Armed == FlightStatus::ARMED_ARMING) {
@@ -526,6 +525,8 @@ void Simulator::updateUAVOs(Output2Hardware out){
         float *accels = attRawAcc;
         float grot[3];
         float accel_err[3];
+
+        // XXX this is no longer accurate attitude code from the atti module.
 
         // Rotate gravity to body frame and cross with accels
         grot[0] = -(2 * (q[1] * q[3] - q[0] * q[2]));
@@ -544,9 +545,6 @@ void Simulator::updateUAVOs(Output2Hardware out){
         accel_err[0] /= accel_mag;
         accel_err[1] /= accel_mag;
         accel_err[2] /= accel_mag;
-
-        // Accumulate integral of error.  Scale here so that units are (deg/s) but Ki has units of s
-        gyro_correct_int2 += -gyro[2] * yawBiasRate;
 
         // Correct rates based on error, integral component dealt with in updateSensors
         gyro[0] += accel_err[0] * accelKp / dT;

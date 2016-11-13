@@ -57,7 +57,7 @@ static void PIOS_DELAY_Systick_Handler(void)
 {
 	systick_cnt++;
 
-	if (systick_cnt & (RTC_DIVIDER - 1)) {
+	if ((systick_cnt & (RTC_DIVIDER - 1)) == 0) {
 		PIOS_RTC_Tick();
 	}
 }

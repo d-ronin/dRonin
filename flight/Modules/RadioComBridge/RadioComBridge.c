@@ -443,7 +443,7 @@ static void telemetryRxTask( __attribute__ ((unused))
 						   sizeof(serial_data),
 						   MAX_PORT_DELAY);
 			if (bytes_to_process > 0) {
-				PIOS_LED_Toggle(PIOS_LED_RX);
+				PIOS_ANNUNC_Toggle(PIOS_LED_RX);
 				for (uint8_t i = 0; i < bytes_to_process;
 				     i++) {
 					ProcessTelemetryStream(data->

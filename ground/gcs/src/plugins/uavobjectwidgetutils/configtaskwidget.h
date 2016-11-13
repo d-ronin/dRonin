@@ -61,6 +61,7 @@ public:
         QWidget * widget;
         double scale;
         bool isLimited;
+        bool useUnits;
     };
     struct objectToWidget
     {
@@ -70,6 +71,7 @@ public:
         int index;
         double scale;
         bool isLimited;
+        bool useUnits;
         QList<shadow *> shadowsList;
     };
 
@@ -94,6 +96,7 @@ public:
         QString url;
         double scale;
         bool haslimits;
+        bool useUnits;
         buttonTypeEnum buttonType;
         QList<int> buttonGroup;
     };
@@ -115,14 +118,30 @@ public:
 
     void addWidget(QWidget * widget);
 
-    void addUAVObjectToWidgetRelation(QString object,QString field,QWidget * widget,int index=0,double scale=1,bool isLimited=false,QList<int>* defaultReloadGroups=0,quint32 instID=0);
-    void addUAVObjectToWidgetRelation(UAVObject *obj, UAVObjectField * field, QWidget *widget, int index=0, double scale=1, bool isLimited=false, QList<int> *defaultReloadGroups=0, quint32 instID=0);
+    /**
+     * @brief Add an UAVObject field to widget relation to the management system
+     * Note: This is the instance called for objrelation dynamic properties
+     * @param object name of the object to add
+     * @param field name of the field to add
+     * @param widget pointer to the widget whitch will display/define the field value
+     * @param index index of the element of the field to add to this relation
+     * @param scale scale value of this relation
+     * @param isLimited bool to signal if this widget contents is limited in value
+     * @param useUnits bool to signal if units from the UAVO should be added to the widget, NOTE: if scaling is applied an attempt will be made to fix units, or they will be dropped
+     * @param defaultReloadGroups default and reload groups this relation belongs to
+     * @param instID instance ID of the object used on this relation
+     */
+    void addUAVObjectToWidgetRelation(QString object, QString field, QWidget *widget, int index = 0, double scale = 1, bool isLimited = false, bool useUnits = false, QList<int> *defaultReloadGroups = 0, quint32 instID = 0);
 
-    void addUAVObjectToWidgetRelation(QString object,QString field,QWidget * widget,QString element,double scale,bool isLimited=false,QList<int>* defaultReloadGroups=0,quint32 instID=0);
-    void addUAVObjectToWidgetRelation(UAVObject *obj, UAVObjectField * field,QWidget * widget,QString element,double scale,bool isLimited=false,QList<int>* defaultReloadGroups=0,quint32 instID=0);
+    void addUAVObjectToWidgetRelation(UAVObject *obj, UAVObjectField *field, QWidget *widget, int index = 0, double scale = 1, bool isLimited = false, bool useUnits = false, QList<int> *defaultReloadGroups = 0, quint32 instID = 0);
+
+    void addUAVObjectToWidgetRelation(QString object, QString field, QWidget *widget, QString element, double scale, bool isLimited = false, bool useUnits = false, QList<int> *defaultReloadGroups = 0, quint32 instID = 0);
+
+    void addUAVObjectToWidgetRelation(UAVObject *obj, UAVObjectField *field, QWidget *widget, QString element, double scale, bool isLimited = false, bool useUnits = false, QList<int> *defaultReloadGroups = 0, quint32 instID = 0);
 
     void addUAVObjectToWidgetRelation(QString object, QString field, QWidget *widget, QString index);
     void addUAVObjectToWidgetRelation(UAVObject *obj, UAVObjectField * field, QWidget *widget, QString index);
+
 
     //BUTTONS//
     void addApplySaveButtons(QPushButton * update,QPushButton * save);
@@ -133,8 +152,8 @@ public:
 
     void addWidgetToDefaultReloadGroups(QWidget * widget, QList<int> *groups);
 
-    bool addShadowWidget(QWidget * masterWidget, QWidget * shadowWidget,double shadowScale=1,bool shadowIsLimited=false);
-    bool addShadowWidget(QString object,QString field,QWidget * widget,int index=0,double scale=1,bool isLimited=false, QList<int> *defaultReloadGroups=NULL, quint32 instID=0);
+    //bool addShadowWidget(QWidget *masterWidget, QWidget *shadowWidget, double shadowScale = 1, bool shadowIsLimited = false, bool shadowUseUnits = false);
+    bool addShadowWidget(QString object, QString field, QWidget *widget, int index = 0, double scale = 1, bool isLimited = false, bool useUnits = false, QList<int> *defaultReloadGroups = NULL, quint32 instID = 0);
 
     void autoLoadWidgets();
     void loadAllLimits();
@@ -196,11 +215,28 @@ private:
     QList<QPushButton *> reloadButtonList;
     QList<QPushButton *> rebootButtonList;
     bool dirty;
-    bool setFieldFromWidget(QWidget *widget, UAVObjectField *field, int index, double scale);
-    bool setWidgetFromField(QWidget *widget, UAVObjectField *field, int index, double scale, bool hasLimits);
+    bool setFieldFromWidget(QWidget *widget, UAVObjectField *field, int index, double scale, bool usesUnits = false);
+    /**
+     * Sets a widget from a UAVObject field
+     * @param widget pointer to the widget to set
+     * @param field pointer to the field from where to get the value from
+     * @param index index of the element to use
+     * @param scale scale to be used on the assignement
+     * @param hasLimits set to true if you want to limit the values (check wiki)
+     * @param useUnits set to true to add UAVO field units to widget
+     * @return returns true if the assignement was successfull
+     */
+    bool setWidgetFromField(QWidget *widget, UAVObjectField *field, int index, double scale, bool hasLimits, bool useUnits = false);
     void connectWidgetUpdatesToSlot(QWidget *widget, const char *function);
     void disconnectWidgetUpdatesToSlot(QWidget *widget, const char *function);
-    void loadWidgetLimits(QWidget *widget, UAVObjectField *field, int index, bool hasLimits, double sclale);
+    void loadWidgetLimits(QWidget *widget, UAVObjectField *field, int index, bool hasLimits, bool useUnits, double scale);
+    /**
+     * @brief applyScaleToUnits Attempts to replace SI prefixes to suit scaling
+     * @param units Units to apply scaling (e.g. ms for milliseconds)
+     * @param scale Scaling to apply / divide by
+     * @return New units string, or empty string on failure to scale units
+     */
+    QString applyScaleToUnits(QString units, double scale);
     QString outOfLimitsStyle;
     QTimer * timeOut;
 protected slots:
@@ -214,11 +250,13 @@ protected slots:
     virtual void helpButtonPressed();
 protected:
     virtual void enableControls(bool enable);
-    void checkWidgetsLimits(QWidget *widget, UAVObjectField *field, int index, bool hasLimits, QVariant value, double scale);
-    virtual QVariant getVariantFromWidget(QWidget *widget, double scale);
-    virtual bool setWidgetFromVariant(QWidget *widget,QVariant value,double scale);
+    void checkWidgetsLimits(QWidget *widget, UAVObjectField *field, int index, bool hasLimits, bool useUnits, QVariant value, double scale);
+    virtual QVariant getVariantFromWidget(QWidget *widget, double scale, bool usesUnits = false);
+    virtual bool setWidgetFromVariant(QWidget *widget, QVariant value, double scale, QString units = "");
     virtual QString getOptionFromChecked(QWidget* widget, bool checked);
     virtual bool getCheckedFromOption(QWidget* widget, QString option);
+    bool resetWidgetToDefault(QWidget *widget);
+
     UAVObjectUtilManager* utilMngr;
 };
 

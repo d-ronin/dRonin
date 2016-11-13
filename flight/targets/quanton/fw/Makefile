@@ -62,7 +62,6 @@ OPTMODULES += Airspeed
 OPTMODULES += UAVOHoTTBridge
 OPTMODULES += UAVOFrSKYSensorHubBridge
 OPTMODULES += UAVOLighttelemetryBridge
-OPTMODULES += PicoC
 OPTMODULES += UAVOFrSKYSPortBridge
 OPTMODULES += Geofence
 OPTMODULES += Logging
@@ -120,6 +119,7 @@ SRC += $(FLIGHTLIB)/sanitycheck.c
 SRC += $(FLIGHTLIB)/timeutils.c
 SRC += $(FLIGHTLIB)/frsky_packing.c
 SRC += $(FLIGHTLIB)/circqueue.c
+SRC += $(FLIGHTLIB)/morsel.c
 SRC += $(MATHLIB)/coordinate_conversions.c
 SRC += $(MATHLIB)/misc_math.c
 SRC += $(MATHLIB)/atmospheric_math.c
@@ -133,6 +133,7 @@ SRC += pios_delay.c
 SRC += pios_mpu.c
 SRC += pios_gcsrcvr.c
 SRC += pios_hmc5883.c
+SRC += pios_hmc5983_i2c.c
 SRC += pios_ms5611.c
 SRC += pios_etasv3.c
 SRC += pios_mpxv5004.c
@@ -171,7 +172,7 @@ SRC += pios_ppm.c
 SRC += pios_debug.c
 SRC += pios_wdg.c
 SRC += pios_reset.c
-SRC += pios_led.c
+SRC += pios_annunc.c
 
 # List C++ source files here.
 # use file-extension .cpp for C++-files (not .C)

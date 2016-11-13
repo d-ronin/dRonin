@@ -289,6 +289,14 @@ gcs_clean:
 	$(V0) @echo " CLEAN      $@"
 	$(V1) [ ! -d "$(BUILD_DIR)/ground/gcs" ] || $(RM) -rf "$(BUILD_DIR)/ground/gcs"
 
+.PHONY: gcs_ts
+gcs_ts:
+	$(V1) mkdir -p $(BUILD_DIR)/ground/gcs/share/translations
+	$(V1) ( cd $(BUILD_DIR)/ground/gcs/share/translations && \
+	  PYTHON=$(PYTHON) $(QMAKE) $(ROOT_DIR)/ground/gcs/share/translations/translations.pro -spec $(QT_SPEC) -r CONFIG+="$(GCS_BUILD_CONF) $(GCS_SILENT)" $(GCS_QMAKE_OPTS) && \
+	  $(MAKE) --no-print-directory -w ts ; \
+	)
+
 ifndef WINDOWS
 # unfortunately the silent linking command is broken on windows
 ifeq ($(V), 1)
@@ -420,8 +428,10 @@ androidgcs_sign:
 # Supply the git hashes of all recent releases here.  Note if UAVOs do not
 # change in a hotfix the release does not need to be listed here.
 UAVO_GIT_VERSIONS := HEAD \
+	Release-20161004 \
 	Release-20160720.1 \
-	Release-20160409.2
+	Release-20160409.2 \
+	$(shell git log --merges --pretty=tformat:%h -n 18 shared/uavobjectdefinition/)
 
 # All versions includes a pseudo collection called "working" which represents
 # the UAVOs in the source tree

@@ -164,7 +164,7 @@ endif
 
 ## PIOS Hardware (STM32F10x)
 SRC += pios_sys.c
-SRC += pios_led.c
+SRC += pios_annunc.c
 SRC += pios_usart.c
 SRC += pios_internal_adc_light.c
 SRC += pios_i2c_alt.c
@@ -217,6 +217,7 @@ SRC += pios_board_info.c
 SRC += $(FLIGHTLIB)/taskmonitor.c
 SRC += $(FLIGHTLIB)/sanitycheck.c
 SRC += $(FLIGHTLIB)/circqueue.c
+SRC += $(FLIGHTLIB)/morsel.c
 SRC += $(MATHLIB)/coordinate_conversions.c
 SRC += $(MATHLIB)/misc_math.c
 SRC += $(MATHLIB)/pid.c

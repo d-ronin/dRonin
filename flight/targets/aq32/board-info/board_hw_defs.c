@@ -32,10 +32,10 @@
 #include <pios_config.h>
 #include <pios_board_info.h>
 
-#if defined(PIOS_INCLUDE_LED)
+#if defined(PIOS_INCLUDE_ANNUNC)
 
-#include <pios_led_priv.h>
-static const struct pios_led pios_leds[] = {
+#include <pios_annunc_priv.h>
+static const struct pios_annunc pios_annuncs[] = {
 	[PIOS_LED_HEARTBEAT] = {
 		.pin = {
 			.gpio = GPIOE,
@@ -66,17 +66,17 @@ static const struct pios_led pios_leds[] = {
 	},
 };
 
-static const struct pios_led_cfg pios_led_cfg = {
-	.leds     = pios_leds,
-	.num_leds = NELEMENTS(pios_leds),
+static const struct pios_annunc_cfg pios_annunc_cfg = {
+	.annunciators     = pios_annuncs,
+	.num_annunciators = NELEMENTS(pios_annuncs),
 };
 
-const struct pios_led_cfg * PIOS_BOARD_HW_DEFS_GetLedCfg (uint32_t board_revision)
+const struct pios_annunc_cfg * PIOS_BOARD_HW_DEFS_GetLedCfg (uint32_t board_revision)
 {
-	return &pios_led_cfg;
+	return &pios_annunc_cfg;
 }
 
-#endif	/* PIOS_INCLUDE_LED */
+#endif	/* PIOS_INCLUDE_ANNUNC */
 
 #if defined(PIOS_INCLUDE_SPI)
 #include <pios_spi_priv.h>
@@ -161,9 +161,9 @@ static const struct pios_spi_cfg pios_spi_external_cfg = {
 		.SPI_NSS               = SPI_NSS_Soft,
 		.SPI_FirstBit          = SPI_FirstBit_MSB,
 		.SPI_CRCPolynomial     = 7,
-		.SPI_CPOL              = SPI_CPOL_High,
-		.SPI_CPHA              = SPI_CPHA_2Edge,
-		.SPI_BaudRatePrescaler = SPI_BaudRatePrescaler_32,
+		.SPI_CPOL              = SPI_CPOL_Low,
+		.SPI_CPHA              = SPI_CPHA_1Edge,
+		.SPI_BaudRatePrescaler = SPI_BaudRatePrescaler_8,
 	},
 	.sclk = {
 		.gpio = GPIOB,
@@ -440,12 +440,6 @@ static const struct flashfs_logfs_cfg flashfs_settings_cfg = {
 	.fs_magic      = 0x3b1b14cf,
 	.arena_size    = 0x00004000, /* 64 * slot size = 16K bytes = 1 sector */
 	.slot_size     = 0x00000100, /* 256 bytes */
-};
-
-static const struct flashfs_logfs_cfg flashfs_waypoints_cfg = {
-	.fs_magic      = 0x93a566a4,
-	.arena_size    = 0x00020000,	/* 2048 * slot size = 128K bytes = 1 sector */
-	.slot_size     = 0x00000040,	/* 64 bytes */
 };
 
 #include "pios_flash_internal_priv.h"

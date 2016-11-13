@@ -33,10 +33,10 @@
 #include <pios_config.h>
 #include <pios_board_info.h>
 
-#if defined(PIOS_INCLUDE_LED)
+#if defined(PIOS_INCLUDE_ANNUNC)
 
-#include <pios_led_priv.h>
-static const struct pios_led pios_leds[] = {
+#include <pios_annunc_priv.h>
+static const struct pios_annunc pios_annuncs[] = {
 	[PIOS_LED_HEARTBEAT] = {
 		.pin = {
 			.gpio = GPIOB,
@@ -65,17 +65,17 @@ static const struct pios_led pios_leds[] = {
 	},
 };
 
-static const struct pios_led_cfg pios_led_cfg = {
-	.leds     = pios_leds,
-	.num_leds = NELEMENTS(pios_leds),
+static const struct pios_annunc_cfg pios_annunc_cfg = {
+	.annunciators     = pios_annuncs,
+	.num_annunciators = NELEMENTS(pios_annuncs),
 };
 
-const struct pios_led_cfg * PIOS_BOARD_HW_DEFS_GetLedCfg (uint32_t board_revision)
+const struct pios_annunc_cfg * PIOS_BOARD_HW_DEFS_GetLedCfg (uint32_t board_revision)
 {
-	return &pios_led_cfg;
+	return &pios_annunc_cfg;
 }
 
-#endif	/* PIOS_INCLUDE_LED */
+#endif	/* PIOS_INCLUDE_ANNUNC */
 
 
 #if defined(PIOS_INCLUDE_I2C)
@@ -315,12 +315,6 @@ static const struct pios_can_cfg pios_can_cfg = {
 
 static const struct flashfs_logfs_cfg flashfs_internal_settings_cfg = {
 	.fs_magic      = 0x9ae1ee11,
-	.arena_size    = 0x00002000,       /* 32 * slot size = 8K bytes = 4 sectors */
-	.slot_size     = 0x00000100,       /* 256 bytes */
-};
-
-static const struct flashfs_logfs_cfg flashfs_internal_waypoints_cfg = {
-	.fs_magic      = 0x9ab4ee11,
 	.arena_size    = 0x00002000,       /* 32 * slot size = 8K bytes = 4 sectors */
 	.slot_size     = 0x00000100,       /* 256 bytes */
 };

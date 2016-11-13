@@ -8,7 +8,7 @@
  * @file       systemmod.c
  * @author     The OpenPilot Team, http://www.openpilot.org Copyright (C) 2010.
  * @author     Tau Labs, http://taulabs.org, Copyright (C) 2013-2015
- * @author     dRonin, http://dronin.org Copyright (C) 2015
+ * @author     dRonin, http://dronin.org Copyright (C) 2015-2016
  * @brief      System module
  *
  * @see        The GNU Public License (GPL) Version 3
@@ -33,23 +33,24 @@
 #include "openpilot.h"
 #include "systemmod.h"
 #include "sanitycheck.h"
-#include "objectpersistence.h"
-#include "flightstatus.h"
-#include "manualcontrolsettings.h"
-#include "rfm22bstatus.h"
-#include "stabilizationsettings.h"
-#include "stateestimation.h"
-#include "systemstats.h"
-#include "systemsettings.h"
 #include "taskinfo.h"
-#include "watchdogstatus.h"
 #include "taskmonitor.h"
 #include "pios_thread.h"
 #include "pios_mutex.h"
 #include "pios_queue.h"
 #include "misc_math.h"
+#include "morsel.h"
 
-//#define DEBUG_THIS_FILE
+#include "annunciatorsettings.h"
+#include "flightstatus.h"
+#include "manualcontrolsettings.h"
+#include "objectpersistence.h"
+#include "rfm22bstatus.h"
+#include "stabilizationsettings.h"
+#include "stateestimation.h"
+#include "systemsettings.h"
+#include "systemstats.h"
+#include "watchdogstatus.h"
 
 #if defined(PIOS_INCLUDE_DEBUG_CONSOLE) && defined(DEBUG_THIS_FILE)
 #define DEBUG_MSG(format, ...) PIOS_COM_SendFormattedString(PIOS_COM_DEBUG, format, ## __VA_ARGS__)
@@ -59,8 +60,8 @@
 
 #ifndef IDLE_COUNTS_PER_SEC_AT_NO_LOAD
 #define IDLE_COUNTS_PER_SEC_AT_NO_LOAD 995998	// calibrated by running tests/test_cpuload.c
-											  // must be updated if the FreeRTOS or compiler
-											  // optimisation options are changed.
+// must be updated if the FreeRTOS or compiler
+// optimisation options are changed.
 #endif
 
 #if defined(PIOS_SYSTEM_STACK_SIZE)
@@ -71,9 +72,9 @@
 
 #define TASK_PRIORITY PIOS_THREAD_PRIO_NORMAL
 
-/* Generates an armed LED blink of 4.4Hz, close to the previous 5, and is
- * a nice prime number to not generate as nasty beat frequencies as other
- * choices */
+/* When we're blinking morse code, this works out to 10.6 WPM.  It's also
+ * nice and relatively prime to most other rates of things, so we don't get
+ * bad beat frequencies. */
 #define SYSTEM_UPDATE_PERIOD_MS 113
 
 // Private types
@@ -92,9 +93,9 @@ typedef struct {
  */
 struct PeriodicObjectListStruct {
 	EventCallbackInfo evInfo; /** Event callback information */
-    uint16_t updatePeriodMs; /** Update period in ms or 0 if no periodic updates are needed */
-    int32_t timeToNextUpdateMs; /** Time delay to the next update */
-    struct PeriodicObjectListStruct* next; /** Needed by linked list library (utlist.h) */
+	uint16_t updatePeriodMs; /** Update period in ms or 0 if no periodic updates are needed */
+	int32_t timeToNextUpdateMs; /** Time delay to the next update */
+	struct PeriodicObjectListStruct* next; /** Needed by linked list library (utlist.h) */
 };
 typedef struct PeriodicObjectListStruct PeriodicObjectList;
 
@@ -137,9 +138,9 @@ static inline void updateWDGstats();
  */
 int32_t SystemModStart(void)
 {
-        // Create periodic event that will be used to update the telemetry stats
-        UAVObjEvent ev;
-        memset(&ev, 0, sizeof(UAVObjEvent));
+	// Create periodic event that will be used to update the telemetry stats
+	UAVObjEvent ev;
+	memset(&ev, 0, sizeof(UAVObjEvent));
 	EventPeriodicCallbackCreate(&ev, systemPeriodicCb, SYSTEM_UPDATE_PERIOD_MS);
 
 	EventClearStats();
@@ -164,11 +165,11 @@ int32_t SystemModInitialize(void)
 		return -1;
 
 	// Must registers objects here for system thread because ObjectManager started in OpenPilotInit
-	if (SystemSettingsInitialize() == -1 \
-		|| SystemStatsInitialize() == -1 \
-		|| FlightStatusInitialize() == -1 \
-		|| ObjectPersistenceInitialize() == -1) {
-
+	if (SystemSettingsInitialize() == -1
+			|| SystemStatsInitialize() == -1
+			|| FlightStatusInitialize() == -1
+			|| ObjectPersistenceInitialize() == -1
+			|| AnnunciatorSettingsInitialize() == -1) {
 		return -1;
 	}
 #if defined(DIAG_TASKS)
@@ -189,7 +190,7 @@ int32_t SystemModInitialize(void)
 	return 0;
 }
 
-MODULE_HIPRI_INITCALL(SystemModInitialize, 0)
+	MODULE_HIPRI_INITCALL(SystemModInitialize, 0)
 static void systemTask(void *parameters)
 {
 	/* create all modules thread */
@@ -247,33 +248,126 @@ static void systemTask(void *parameters)
 	}
 }
 
-#if defined(PIOS_INCLUDE_LED) && defined(PIOS_LED_ALARM)
+#if defined(PIOS_INCLUDE_ANNUNC)
+
+#define BLINK_STRING_RADIO "r "
+
 /**
- * Indicate there are conditions worth an error LED
+ * Indicate there are conditions worth an error indication
  */
-static inline bool indicateError()
+static inline uint8_t indicate_error(const char **sequence)
 {
 	SystemAlarmsData alarms;
 	SystemAlarmsGet(&alarms);
 
+	*sequence = NULL;
+
+	uint8_t worst_sev = 0;
+
+	bool generic = false;
+
 	for (uint32_t i = 0; i < SYSTEMALARMS_ALARM_NUMELEM; i++) {
-		switch(i) {
-		case SYSTEMALARMS_ALARM_TELEMETRY:
-			// Suppress most alarms from telemetry. The user can identify if present
-			// from GCS.
-			if (alarms.Alarm[i] >= SYSTEMALARMS_ALARM_CRITICAL) {
-				return true;
-			}
-			break;
-		default:
-			// Warning deserves an error by default
-			if (alarms.Alarm[i] >= SYSTEMALARMS_ALARM_WARNING) {
-				return true;
-			}
+		// If this is less severe than the current alarm, continue.
+		if (alarms.Alarm[i] < worst_sev) {
+			continue;
+		}
+
+		// If there's a tie and the previous answer is not the
+		// 'generic' alarm, continue.
+		if ((!generic) && (alarms.Alarm[i] == worst_sev)) {
+			continue;
+		}
+
+		uint8_t thresh = SYSTEMALARMS_ALARM_WARNING;
+
+		if (i == SYSTEMALARMS_ALARM_TELEMETRY) {
+			// Suppress most alarms from telemetry.
+			// The user can identify if present from GCS.
+			thresh = SYSTEMALARMS_ALARM_CRITICAL;
+		}
+
+		if (i == SYSTEMALARMS_ALARM_EVENTSYSTEM) {
+			// Skip event system alarms-- nuisance
+			continue;
+		}
+
+		if (alarms.Alarm[i] < thresh) {
+			continue;
+		}
+
+		// OK, we have a candidate alarm.
+
+		worst_sev = alarms.Alarm[i];
+		generic = false;
+
+		switch (i) {
+			case SYSTEMALARMS_ALARM_BATTERY:
+				// -...    b for battery
+				*sequence = "b ";
+				break;
+			case SYSTEMALARMS_ALARM_SYSTEMCONFIGURATION:
+				// -.-.    c for configuration
+				*sequence = "c ";
+				break;
+			case SYSTEMALARMS_ALARM_GPS:
+				// --.     g for GPS
+				*sequence = "g ";
+				break;
+			case SYSTEMALARMS_ALARM_MANUALCONTROL:
+				// .-.     r for radio
+				*sequence = BLINK_STRING_RADIO;
+				break;
+			default:
+				// .-      a for alarm
+				*sequence = "a ";
+
+				generic = true;
+				break;
 		}
 	}
 
-	return false;
+	return worst_sev;
+}
+#endif
+
+DONT_BUILD_IF(ANNUNCIATORSETTINGS_ANNUNCIATEAFTERARMING_NUMELEM !=
+	ANNUNCIATORSETTINGS_ANNUNCIATEANYTIME_NUMELEM,
+	AnnuncSettingsMismatch1);
+DONT_BUILD_IF(ANNUNCIATORSETTINGS_ANNUNCIATEAFTERARMING_MAXOPTVAL !=
+	ANNUNCIATORSETTINGS_ANNUNCIATEANYTIME_MAXOPTVAL,
+	AnnuncSettingsMismatch2);
+
+#if defined(PIOS_INCLUDE_ANNUNC)
+static inline void consider_annunc(AnnunciatorSettingsData *annunciatorSettings,
+		bool is_active, bool been_armed, bool is_manual_control,
+		uint8_t blink_prio, uint32_t annunc_id,
+		uint8_t cfg_field) {
+	PIOS_Assert(cfg_field <
+			ANNUNCIATORSETTINGS_ANNUNCIATEAFTERARMING_NUMELEM);
+
+	bool prio_sufficient = false;
+
+	if (is_active && been_armed) {
+		if (blink_prio >= annunciatorSettings->AnnunciateAfterArming[cfg_field]) {
+			prio_sufficient = true;
+		} else if (is_manual_control && annunciatorSettings->AnnunciateAfterArming[cfg_field] == ANNUNCIATORSETTINGS_ANNUNCIATEAFTERARMING_MANUALCONTROLONLY) {
+			prio_sufficient = true;
+		}
+	}
+
+	if (is_active && (!prio_sufficient)) {
+		if (blink_prio >= annunciatorSettings->AnnunciateAnytime[cfg_field]) {
+			prio_sufficient = true;
+		} else if (is_manual_control && annunciatorSettings->AnnunciateAnytime[cfg_field] == ANNUNCIATORSETTINGS_ANNUNCIATEANYTIME_MANUALCONTROLONLY) {
+			prio_sufficient = true;
+		}
+	}
+
+	if (prio_sufficient && is_active) {
+		PIOS_ANNUNC_On(annunc_id);
+	} else {
+		PIOS_ANNUNC_Off(annunc_id);
+	}
 }
 #endif
 
@@ -310,32 +404,92 @@ static void systemPeriodicCb(UAVObjEvent *ev, void *ctx, void *obj_data, int len
 	TaskMonitorUpdateAll();
 #endif
 
+#if defined(PIOS_INCLUDE_ANNUNC)
+	// Figure out what we should be doing.
 
-#if defined(PIOS_INCLUDE_LED) && defined(PIOS_LED_HEARTBEAT)
-		// Flash the heartbeat LED
+	static const char *blink_string = NULL;
+	static uint32_t blink_state = 0;
+	static uint8_t blink_prio = 0;
+	static bool ever_armed = false;
+	static bool is_manual_control = false;
 
-		FlightStatusData flightStatus;
-		FlightStatusGet(&flightStatus);
+	// Evaluate all our possible annunciator sources. 
 
-		/* Quadruple heartbeat blink rate when armed */
-		unsigned int mask = flightStatus.Armed == FLIGHTSTATUS_ARMED_ARMED ?
-			1 : 7;
+	// The most important: indicate_error / alarms
 
-		if (!(counter & mask)) {
-			PIOS_LED_Toggle(PIOS_LED_HEARTBEAT);
-			DEBUG_MSG("+ 0x%08x\r\n", 0xDEADBEEF);
-		}
+	const char *candidate_blink;
+	uint8_t candidate_prio;
 
-#if defined(PIOS_INCLUDE_LED) && defined(PIOS_LED_ALARM)
-		// Turn on the error LED if an alarm is set
-		if (indicateError()) {
-			PIOS_LED_On(PIOS_LED_ALARM);
+	candidate_prio = indicate_error(&candidate_blink);
+
+	if (candidate_prio > blink_prio) {
+		// Preempt!
+		blink_state = 0;
+		blink_string = candidate_blink;
+		blink_prio = candidate_prio;
+
+		if (blink_string &&
+				!strcmp(blink_string, BLINK_STRING_RADIO)) {
+			// XXX do this in a more robust way */
+			is_manual_control = true;
 		} else {
-			PIOS_LED_Off(PIOS_LED_ALARM);
+			is_manual_control = false;
 		}
-#endif	/* PIOS_LED_ALARM */
+	}
 
-#endif	/* PIOS_LED_HEARTBEAT */
+	FlightStatusData flightStatus;
+	FlightStatusGet(&flightStatus);
+
+	if (flightStatus.Armed == FLIGHTSTATUS_ARMED_ARMED) {
+		ever_armed = true;
+	}
+
+	if ((blink_prio == 0) && (blink_state == 0)) {
+		// Nothing else to do-- show armed status
+		if (flightStatus.Armed == FLIGHTSTATUS_ARMED_ARMED) {
+			blink_string = "I";	// .. pairs of blinks.
+		} else {
+			blink_string = "T";	// - single long blinks
+		}
+
+		blink_prio = SHAREDDEFS_ALARMLEVELS_OK;
+	}
+
+	int morse = morse_send(&blink_string, &blink_state);
+
+	if (morse < 0) {
+		// This means we were told "completed"
+		blink_string = NULL;
+		blink_prio = 0;
+
+		is_manual_control = false;
+	}
+
+	AnnunciatorSettingsData annunciatorSettings;
+	AnnunciatorSettingsGet(&annunciatorSettings);
+
+#ifdef PIOS_LED_HEARTBEAT
+	consider_annunc(&annunciatorSettings, morse > 0, ever_armed,
+			is_manual_control,
+			blink_prio, PIOS_LED_HEARTBEAT,
+			ANNUNCIATORSETTINGS_ANNUNCIATEANYTIME_LED_HEARTBEAT);
+#endif
+
+#ifdef PIOS_LED_ALARM
+	consider_annunc(&annunciatorSettings, morse > 0, ever_armed,
+			is_manual_control,
+			blink_prio, PIOS_LED_ALARM,
+			ANNUNCIATORSETTINGS_ANNUNCIATEANYTIME_LED_ALARM);
+#endif
+
+#ifdef PIOS_ANNUNCIATOR_BUZZER
+	consider_annunc(&annunciatorSettings, morse > 0, ever_armed,
+			is_manual_control,
+			blink_prio, PIOS_ANNUNCIATOR_BUZZER,
+			ANNUNCIATORSETTINGS_ANNUNCIATEANYTIME_BUZZER);
+#endif
+
+#endif  /* PIOS_INCLUDE_ANNUNC */
 
 #endif /* PIPXTREME */
 }
@@ -348,7 +502,7 @@ static void objectUpdatedCb(UAVObjEvent * ev, void *ctx, void *obj_data, int len
 {
 	(void) ctx; (void) obj_data; (void) len;
 
-/* Handled in RadioComBridge on pipxtreme. */
+	/* Handled in RadioComBridge on pipxtreme. */
 #ifndef PIPXTREME
 	ObjectPersistenceData objper;
 	UAVObjHandle obj;
@@ -359,10 +513,10 @@ static void objectUpdatedCb(UAVObjEvent * ev, void *ctx, void *obj_data, int len
 		ObjectPersistenceGet(&objper);
 
 		int retval = 1;
-		
+
 		// When this is called because of this method don't do anything
 		if (objper.Operation == OBJECTPERSISTENCE_OPERATION_ERROR ||
-			objper.Operation == OBJECTPERSISTENCE_OPERATION_COMPLETED) {
+				objper.Operation == OBJECTPERSISTENCE_OPERATION_COMPLETED) {
 			return;
 		}
 
@@ -431,11 +585,11 @@ static void configurationUpdatedCb(UAVObjEvent * ev, void *ctx, void *obj, int l
  */
 #if defined(WDG_STATS_DIAGNOSTICS)
 static WatchdogStatusData watchdogStatus;
-static void updateWDGstats() 
+static void updateWDGstats()
 {
 	// Only update if something has changed
 	if (watchdogStatus.ActiveFlags != PIOS_WDG_GetActiveFlags() ||
-	    watchdogStatus.BootupFlags != PIOS_WDG_GetBootupFlags()) {
+			watchdogStatus.BootupFlags != PIOS_WDG_GetBootupFlags()) {
 		watchdogStatus.BootupFlags = PIOS_WDG_GetBootupFlags();
 		watchdogStatus.ActiveFlags = PIOS_WDG_GetActiveFlags();
 		WatchdogStatusSet(&watchdogStatus);
@@ -450,51 +604,48 @@ static void updateWDGstats()
 #endif
 
 static void updateRfm22bStats() {
-	#if defined(PIOS_INCLUDE_RFM22B)
+#if defined(PIOS_INCLUDE_RFM22B)
+	if (pios_rfm22b_id) {
 
-        // Update the RFM22BStatus UAVO
-        RFM22BStatusData rfm22bStatus;
-        RFM22BStatusInstGet(RFM22BSTATUSINST, &rfm22bStatus);
+		// Update the RFM22BStatus UAVO
+		RFM22BStatusData rfm22bStatus;
+		RFM22BStatusInstGet(RFM22BSTATUSINST, &rfm22bStatus);
 
-        if (pios_rfm22b_id) {
-            // Get the stats from the radio device
-            struct rfm22b_stats radio_stats;
-            PIOS_RFM22B_GetStats(pios_rfm22b_id, &radio_stats);
+		// Get the stats from the radio device
+		struct rfm22b_stats radio_stats;
+		PIOS_RFM22B_GetStats(pios_rfm22b_id, &radio_stats);
 
-            // Update the LInk status
-            static bool first_time = true;
-            static uint16_t prev_tx_count = 0;
-            static uint16_t prev_rx_count = 0;
-            rfm22bStatus.HeapRemaining = PIOS_heap_get_free_size();
-            rfm22bStatus.RxGood = radio_stats.rx_good;
-            rfm22bStatus.RxCorrected   = radio_stats.rx_corrected;
-            rfm22bStatus.RxErrors = radio_stats.rx_error;
-            rfm22bStatus.RxSyncMissed = radio_stats.rx_sync_missed;
-            rfm22bStatus.TxMissed = radio_stats.tx_missed;
-            rfm22bStatus.RxFailure     = radio_stats.rx_failure;
-            rfm22bStatus.Resets      = radio_stats.resets;
-            rfm22bStatus.Timeouts    = radio_stats.timeouts;
-            rfm22bStatus.RSSI        = radio_stats.rssi;
-            rfm22bStatus.LinkQuality = radio_stats.link_quality;
-            if (first_time) {
-                first_time = false;
-            } else {
-                uint16_t tx_count = radio_stats.tx_byte_count;
-                uint16_t rx_count = radio_stats.rx_byte_count;
-                uint16_t tx_bytes = (tx_count < prev_tx_count) ? (0xffff - prev_tx_count + tx_count) : (tx_count - prev_tx_count);
-                uint16_t rx_bytes = (rx_count < prev_rx_count) ? (0xffff - prev_rx_count + rx_count) : (rx_count - prev_rx_count);
-                rfm22bStatus.TXRate = (uint16_t)((float)(tx_bytes * 1000) / SYSTEM_UPDATE_PERIOD_MS);
-                rfm22bStatus.RXRate = (uint16_t)((float)(rx_bytes * 1000) / SYSTEM_UPDATE_PERIOD_MS);
-                prev_tx_count = tx_count;
-                prev_rx_count = rx_count;
-            }
+		// Update the LInk status
+		static bool first_time = true;
+		static uint16_t prev_tx_count = 0;
+		static uint16_t prev_rx_count = 0;
+		rfm22bStatus.HeapRemaining = PIOS_heap_get_free_size();
+		rfm22bStatus.RxGood = radio_stats.rx_good;
+		rfm22bStatus.RxCorrected   = radio_stats.rx_corrected;
+		rfm22bStatus.RxErrors = radio_stats.rx_error;
+		rfm22bStatus.RxSyncMissed = radio_stats.rx_sync_missed;
+		rfm22bStatus.TxMissed = radio_stats.tx_missed;
+		rfm22bStatus.RxFailure     = radio_stats.rx_failure;
+		rfm22bStatus.Resets      = radio_stats.resets;
+		rfm22bStatus.Timeouts    = radio_stats.timeouts;
+		rfm22bStatus.RSSI        = radio_stats.rssi;
+		rfm22bStatus.LinkQuality = radio_stats.link_quality;
+		if (first_time) {
+			first_time = false;
+		} else {
+			uint16_t tx_count = radio_stats.tx_byte_count;
+			uint16_t rx_count = radio_stats.rx_byte_count;
+			uint16_t tx_bytes = (tx_count < prev_tx_count) ? (0xffff - prev_tx_count + tx_count) : (tx_count - prev_tx_count);
+			uint16_t rx_bytes = (rx_count < prev_rx_count) ? (0xffff - prev_rx_count + rx_count) : (rx_count - prev_rx_count);
+			rfm22bStatus.TXRate = (uint16_t)((float)(tx_bytes * 1000) / SYSTEM_UPDATE_PERIOD_MS);
+			rfm22bStatus.RXRate = (uint16_t)((float)(rx_bytes * 1000) / SYSTEM_UPDATE_PERIOD_MS);
+			prev_tx_count = tx_count;
+			prev_rx_count = rx_count;
+		}
 
-            rfm22bStatus.LinkState = radio_stats.link_state;
-        } else {
-            rfm22bStatus.LinkState = RFM22BSTATUS_LINKSTATE_DISABLED;
-        }
-        RFM22BStatusInstSet(RFM22BSTATUSINST, &rfm22bStatus);
-
+		rfm22bStatus.LinkState = radio_stats.link_state;
+		RFM22BStatusInstSet(RFM22BSTATUSINST, &rfm22bStatus);
+	}
 #endif /* if defined(PIOS_INCLUDE_RFM22B) */
 }
 
@@ -506,12 +657,11 @@ static uint16_t GetFreeIrqStackSize(void)
 	uint32_t i = 0x200;
 
 #if !defined(ARCH_POSIX) && !defined(ARCH_WIN32) && defined(CHECK_IRQ_STACK)
-extern uint32_t _irq_stack_top;
-extern uint32_t _irq_stack_end;
-uint32_t pattern = 0x0000A5A5;
-uint32_t *ptr = &_irq_stack_end;
+	extern uint32_t _irq_stack_top;
+	extern uint32_t _irq_stack_end;
+	uint32_t pattern = 0x0000A5A5;
+	uint32_t *ptr = &_irq_stack_end;
 
-#if 1 /* the ugly way accurate but takes more time, useful for debugging */
 	uint32_t stack_size = (((uint32_t)&_irq_stack_top - (uint32_t)&_irq_stack_end) & ~3 ) / 4;
 
 	for (i=0; i< stack_size; i++)
@@ -522,20 +672,6 @@ uint32_t *ptr = &_irq_stack_end;
 			break;
 		}
 	}
-#else /* faster way but not accurate */
-	if (*(volatile uint32_t *)((uint32_t)ptr + IRQSTACK_LIMIT_CRITICAL) != pattern)
-	{
-		i = IRQSTACK_LIMIT_CRITICAL - 1;
-	}
-	else if (*(volatile uint32_t *)((uint32_t)ptr + IRQSTACK_LIMIT_WARNING) != pattern)
-	{
-		i = IRQSTACK_LIMIT_WARNING - 1;
-	}
-	else
-	{
-		i = IRQSTACK_LIMIT_WARNING;
-	}
-#endif
 #endif
 	return i;
 }
@@ -574,9 +710,10 @@ static void updateStats()
 		else
 			stats.CPULoad = 100 - roundf(100.0f * idleFraction);
 	} //else: TickCount has wrapped, do not calc now
+
 	lastTickCount = now;
 	idleCounterClear = 1;
-	
+
 #if defined(PIOS_INCLUDE_ADC) && defined(PIOS_ADC_USE_TEMP_SENSOR)
 	float temp_voltage = 3.3f * PIOS_ADC_DevicePinGet(PIOS_INTERNAL_ADC, 0) / ((1 << 12) - 1);
 	const float STM32_TEMP_V25 = 1.43f; /* V */
@@ -599,24 +736,29 @@ static void updateSystemAlarms()
 
 	// Check heap, IRQ stack and malloc failures
 	if (PIOS_heap_malloc_failed_p()
-	     || (stats.HeapRemaining < HEAP_LIMIT_CRITICAL)
+			|| (stats.HeapRemaining < HEAP_LIMIT_CRITICAL)
 #if !defined(ARCH_POSIX) && !defined(ARCH_WIN32) && defined(CHECK_IRQ_STACK)
-	     || (stats.IRQStackRemaining < IRQSTACK_LIMIT_CRITICAL)
+			|| (stats.IRQStackRemaining < IRQSTACK_LIMIT_CRITICAL)
 #endif
-	    ) {
+	   ) {
 		AlarmsSet(SYSTEMALARMS_ALARM_OUTOFMEMORY, SYSTEMALARMS_ALARM_CRITICAL);
 	} else if (
-		(stats.HeapRemaining < HEAP_LIMIT_WARNING)
+			(stats.HeapRemaining < HEAP_LIMIT_WARNING)
 #if !defined(ARCH_POSIX) && !defined(ARCH_WIN32) && defined(CHECK_IRQ_STACK)
-	     || (stats.IRQStackRemaining < IRQSTACK_LIMIT_WARNING)
+			|| (stats.IRQStackRemaining < IRQSTACK_LIMIT_WARNING)
 #endif
-	    ) {
+		  ) {
 		AlarmsSet(SYSTEMALARMS_ALARM_OUTOFMEMORY, SYSTEMALARMS_ALARM_WARNING);
 	} else {
 		AlarmsClear(SYSTEMALARMS_ALARM_OUTOFMEMORY);
 	}
 
 	// Check CPU load
+#ifdef SIM_POSIX
+	// XXX do something meaningful here in the future.
+	// Right now CPU monitoring on simulator is worthless.
+	AlarmsClear(SYSTEMALARMS_ALARM_CPUOVERLOAD);
+#else
 	if (stats.CPULoad > CPULOAD_LIMIT_CRITICAL) {
 		AlarmsSet(SYSTEMALARMS_ALARM_CPUOVERLOAD, SYSTEMALARMS_ALARM_CRITICAL);
 	} else if (stats.CPULoad > CPULOAD_LIMIT_WARNING) {
@@ -624,6 +766,7 @@ static void updateSystemAlarms()
 	} else {
 		AlarmsClear(SYSTEMALARMS_ALARM_CPUOVERLOAD);
 	}
+#endif
 
 	// Check for event errors
 	UAVObjGetStats(&objStats);
@@ -635,7 +778,7 @@ static void updateSystemAlarms()
 	} else {
 		AlarmsClear(SYSTEMALARMS_ALARM_EVENTSYSTEM);
 	}
-	
+
 	if (objStats.lastCallbackErrorID || objStats.lastQueueErrorID || evStats.lastErrorID) {
 		SystemStatsData sysStats;
 		SystemStatsGet(&sysStats);
@@ -748,17 +891,17 @@ static int32_t eventPeriodicCreate(UAVObjEvent* ev, UAVObjEventCallback cb, stru
 	LL_FOREACH(objList, objEntry)
 	{
 		if (objEntry->evInfo.cb == cb &&
-			objEntry->evInfo.queue == queue &&
-			objEntry->evInfo.ev.obj == ev->obj &&
-			objEntry->evInfo.ev.instId == ev->instId &&
-			objEntry->evInfo.ev.event == ev->event)
+				objEntry->evInfo.queue == queue &&
+				objEntry->evInfo.ev.obj == ev->obj &&
+				objEntry->evInfo.ev.instId == ev->instId &&
+				objEntry->evInfo.ev.event == ev->event)
 		{
 			// Already registered, do nothing
 			PIOS_Recursive_Mutex_Unlock(mutex);
 			return -1;
 		}
 	}
-    // Create handle
+	// Create handle
 	objEntry = (PeriodicObjectList*)PIOS_malloc_no_dma(sizeof(PeriodicObjectList));
 	if (objEntry == NULL) return -1;
 	objEntry->evInfo.ev.obj = ev->obj;
@@ -766,13 +909,13 @@ static int32_t eventPeriodicCreate(UAVObjEvent* ev, UAVObjEventCallback cb, stru
 	objEntry->evInfo.ev.event = ev->event;
 	objEntry->evInfo.cb = cb;
 	objEntry->evInfo.queue = queue;
-    objEntry->updatePeriodMs = periodMs;
-    objEntry->timeToNextUpdateMs = randomize_int(periodMs); // avoid bunching of updates
-    // Add to list
-    LL_APPEND(objList, objEntry);
+	objEntry->updatePeriodMs = periodMs;
+	objEntry->timeToNextUpdateMs = randomize_int(periodMs); // avoid bunching of updates
+	// Add to list
+	LL_APPEND(objList, objEntry);
 	// Release lock
 	PIOS_Recursive_Mutex_Unlock(mutex);
-    return 0;
+	return 0;
 }
 
 /**
@@ -792,10 +935,10 @@ static int32_t eventPeriodicUpdate(UAVObjEvent* ev, UAVObjEventCallback cb, stru
 	LL_FOREACH(objList, objEntry)
 	{
 		if (objEntry->evInfo.cb == cb &&
-			objEntry->evInfo.queue == queue &&
-			objEntry->evInfo.ev.obj == ev->obj &&
-			objEntry->evInfo.ev.instId == ev->instId &&
-			objEntry->evInfo.ev.event == ev->event)
+				objEntry->evInfo.queue == queue &&
+				objEntry->evInfo.ev.obj == ev->obj &&
+				objEntry->evInfo.ev.instId == ev->instId &&
+				objEntry->evInfo.ev.event == ev->event)
 		{
 			// Object found, update period
 			objEntry->updatePeriodMs = periodMs;
@@ -805,9 +948,9 @@ static int32_t eventPeriodicUpdate(UAVObjEvent* ev, UAVObjEventCallback cb, stru
 			return 0;
 		}
 	}
-    // If this point is reached the object was not found
+	// If this point is reached the object was not found
 	PIOS_Recursive_Mutex_Unlock(mutex);
-    return -1;
+	return -1;
 }
 
 /* It can take this long before a "first callback" on a registration,
@@ -823,57 +966,57 @@ static uint32_t processPeriodicUpdates()
 {
 	PeriodicObjectList* objEntry;
 	int32_t timeNow;
-    int32_t offset;
+	int32_t offset;
 
 	// Get lock
 	PIOS_Recursive_Mutex_Lock(mutex, PIOS_MUTEX_TIMEOUT_MAX);
 
-    // Iterate through each object and update its timer, if zero then transmit object.
-    // Also calculate smallest delay to next update.
-    uint32_t now = PIOS_Thread_Systime();
-    uint32_t timeToNextUpdate = PIOS_Thread_Systime() + MAX_UPDATE_PERIOD_MS;
-    LL_FOREACH(objList, objEntry)
-    {
-        // If object is configured for periodic updates
-        if (objEntry->updatePeriodMs > 0)
-        {
-            // Check if time for the next update
-        	timeNow = PIOS_Thread_Systime();
-            if (objEntry->timeToNextUpdateMs <= timeNow)
-            {
-                // Reset timer
-            	offset = ( timeNow - objEntry->timeToNextUpdateMs ) % objEntry->updatePeriodMs;
-            	objEntry->timeToNextUpdateMs = timeNow + objEntry->updatePeriodMs - offset;
-    			// Invoke callback, if one
-    			if ( objEntry->evInfo.cb != 0)
-    			{
-				objEntry->evInfo.cb(&objEntry->evInfo.ev, NULL, NULL, 0); // the function is expected to copy the event information
-    			}
-    			// Push event to queue, if one
-    			if ( objEntry->evInfo.queue != 0)
-    			{
-    				if (PIOS_Queue_Send(objEntry->evInfo.queue, &objEntry->evInfo.ev, 0) != true ) // do not block if queue is full
-    				{
+	// Iterate through each object and update its timer, if zero then transmit object.
+	// Also calculate smallest delay to next update.
+	uint32_t now = PIOS_Thread_Systime();
+	uint32_t timeToNextUpdate = PIOS_Thread_Systime() + MAX_UPDATE_PERIOD_MS;
+	LL_FOREACH(objList, objEntry)
+	{
+		// If object is configured for periodic updates
+		if (objEntry->updatePeriodMs > 0)
+		{
+			// Check if time for the next update
+			timeNow = PIOS_Thread_Systime();
+			if (objEntry->timeToNextUpdateMs <= timeNow)
+			{
+				// Reset timer
+				offset = ( timeNow - objEntry->timeToNextUpdateMs ) % objEntry->updatePeriodMs;
+				objEntry->timeToNextUpdateMs = timeNow + objEntry->updatePeriodMs - offset;
+				// Invoke callback, if one
+				if ( objEntry->evInfo.cb != 0)
+				{
+					objEntry->evInfo.cb(&objEntry->evInfo.ev, NULL, NULL, 0); // the function is expected to copy the event information
+				}
+				// Push event to queue, if one
+				if ( objEntry->evInfo.queue != 0)
+				{
+					if (PIOS_Queue_Send(objEntry->evInfo.queue, &objEntry->evInfo.ev, 0) != true ) // do not block if queue is full
+					{
 						if (objEntry->evInfo.ev.obj != NULL)
 							stats.lastErrorID = UAVObjGetID(objEntry->evInfo.ev.obj);
-    					++stats.eventErrors;
-    				}
-    			}
-            }
-            // Update minimum delay
-            if (objEntry->timeToNextUpdateMs < timeToNextUpdate)
-            {
-            	timeToNextUpdate = objEntry->timeToNextUpdateMs;
-            }
-        }
-    }
+						++stats.eventErrors;
+					}
+				}
+			}
+			// Update minimum delay
+			if (objEntry->timeToNextUpdateMs < timeToNextUpdate)
+			{
+				timeToNextUpdate = objEntry->timeToNextUpdateMs;
+			}
+		}
+	}
 
-    // Done
-    PIOS_Recursive_Mutex_Unlock(mutex);
-    return timeToNextUpdate - now;
+	// Done
+	PIOS_Recursive_Mutex_Unlock(mutex);
+	return timeToNextUpdate - now;
 }
 
 /**
-  * @}
-  * @}
-  */
+ * @}
+ * @}
+ */

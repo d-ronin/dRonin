@@ -55,7 +55,7 @@ PIOS_DEVLIB			:=	$(PIOS)/STM32F4xx
 include $(PIOS_DEVLIB)/library.mk
 SRC += startup.c
 SRC += pios_sys.c
-SRC += pios_led.c
+SRC += pios_annunc.c
 SRC += pios_flash_internal.c
 
 ## PIOS Hardware (Common)

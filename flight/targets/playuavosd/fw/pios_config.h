@@ -38,7 +38,7 @@
 
 /* Enable/Disable PiOS Modules */
 #define WDG_STATS_DIAGNOSTICS
-#define PIOS_INCLUDE_LED
+#define PIOS_INCLUDE_ANNUNC
 #define PIOS_INCLUDE_IAP
 #define PIOS_INCLUDE_TIM
 #define PIOS_INCLUDE_SYS

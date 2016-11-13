@@ -8,7 +8,7 @@
  * @file       firmwareiap.c
  * @author     The OpenPilot Team, http://www.openpilot.org Copyright (C) 2010.
  * @author     Tau Labs, http://taulabs.org, Copyright (C) 2014
- * @author     dRonin, http://dronin.org Copyright (C) 2015
+ * @author     dRonin, http://dronin.org Copyright (C) 2015-2016
  * @brief      In Application Programming module to support firmware upgrades by
  *             providing a means to enter the bootloader.
  *
@@ -38,6 +38,7 @@
 #include "firmwareiap.h"
 #include "firmwareiapobj.h"
 #include "flightstatus.h"
+#include "pios_servo.h"
 #include "pios_thread.h"
 
 // Private constants
@@ -57,10 +58,10 @@
 
 #define RESET_DELAY_MS         500 /* delay before sending reset to INS */
 
-const uint32_t    iap_time_2_low_end = 500;
-const uint32_t    iap_time_2_high_end = 5000;
-const uint32_t    iap_time_3_low_end = 500;
-const uint32_t    iap_time_3_high_end = 5000;
+const uint32_t iap_time_2_low_end = 500;
+const uint32_t iap_time_2_high_end = 5000;
+const uint32_t iap_time_3_low_end = 500;
+const uint32_t iap_time_3_high_end = 5000;
 
 // Private types
 
@@ -191,6 +192,7 @@ static void FirmwareIAPCallback(UAVObjEvent* ev, void *ctx, void *obj, int len)
 						UAVObjEvent * ev = PIOS_malloc_no_dma(sizeof(UAVObjEvent));
 						memset(ev,0,sizeof(UAVObjEvent));
 						EventPeriodicCallbackCreate(ev, resetTask, 100);
+						PIOS_Servo_PrepareForReset(); // Stop PWM
 						iap_state = IAP_STATE_RESETTING;
 					} else {
 						iap_state = IAP_STATE_READY;
@@ -235,12 +237,12 @@ static void resetTask(UAVObjEvent * ev, void *ctx, void *obj, int len)
 {
 	(void) ctx; (void) obj; (void) len;
 
-#if defined(PIOS_INCLUDE_LED) && defined(PIOS_LED_HEARTBEAT)
-	PIOS_LED_Toggle(PIOS_LED_HEARTBEAT);
+#if defined(PIOS_INCLUDE_ANNUNC) && defined(PIOS_LED_HEARTBEAT)
+	PIOS_ANNUNC_Toggle(PIOS_LED_HEARTBEAT);
 #endif	/* PIOS_LED_HEARTBEAT */
 
-#if defined(PIOS_INCLUDE_LED) && defined(PIOS_LED_ALARM)
-	PIOS_LED_Toggle(PIOS_LED_ALARM);
+#if defined(PIOS_INCLUDE_ANNUNC) && defined(PIOS_LED_ALARM)
+	PIOS_ANNUNC_Toggle(PIOS_LED_ALARM);
 #endif	/* PIOS_LED_ALARM */
 
 	FirmwareIAPObjData data;

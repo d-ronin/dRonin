@@ -90,14 +90,6 @@ static const struct pios_hmc5883_cfg pios_hmc5883_internal_cfg = {
 	.Mode = PIOS_HMC5883_MODE_CONTINUOUS,
 	.Default_Orientation = PIOS_HMC5883_TOP_90DEG,
 };
-
-static const struct pios_hmc5883_cfg pios_hmc5883_external_cfg = {
-	.M_ODR = PIOS_HMC5883_ODR_75,
-	.Meas_Conf = PIOS_HMC5883_MEASCONF_NORMAL,
-	.Gain = PIOS_HMC5883_GAIN_1_9,
-	.Mode = PIOS_HMC5883_MODE_SINGLE,
-	.Default_Orientation = PIOS_HMC5883_TOP_0DEG,
-};
 #endif /* PIOS_INCLUDE_HMC5883 */
 
 /**
@@ -113,7 +105,6 @@ static const struct pios_ms5611_cfg pios_ms5611_cfg = {
 
 uintptr_t pios_com_openlog_logging_id;
 uintptr_t pios_uavo_settings_fs_id;
-uintptr_t pios_waypoints_settings_fs_id;
 uintptr_t pios_internal_adc_id;
 
 uintptr_t external_i2c_adapter_id = 0;
@@ -133,11 +124,11 @@ void PIOS_Board_Init(void) {
 	
 	const struct pios_board_info * bdinfo = &pios_board_info_blob;
 
-#if defined(PIOS_INCLUDE_LED)
-	const struct pios_led_cfg * led_cfg = PIOS_BOARD_HW_DEFS_GetLedCfg(bdinfo->board_rev);
+#if defined(PIOS_INCLUDE_ANNUNC)
+	const struct pios_annunc_cfg * led_cfg = PIOS_BOARD_HW_DEFS_GetLedCfg(bdinfo->board_rev);
 	PIOS_Assert(led_cfg);
-	PIOS_LED_Init(led_cfg);
-#endif	/* PIOS_INCLUDE_LED */
+	PIOS_ANNUNC_Init(led_cfg);
+#endif	/* PIOS_INCLUDE_ANNUNC */
 
 #if defined(PIOS_INCLUDE_SPI)
 	if (PIOS_SPI_Init(&pios_spi_flash_id, &pios_spi_flash_cfg)) {
@@ -164,8 +155,6 @@ void PIOS_Board_Init(void) {
 
 	/* Mount all filesystems */
 	if (PIOS_FLASHFS_Logfs_Init(&pios_uavo_settings_fs_id, &flashfs_settings_cfg, FLASH_PARTITION_LABEL_SETTINGS) != 0)
-		PIOS_HAL_CriticalError(PIOS_LED_ALARM, PIOS_HAL_PANIC_FILESYS);
-	if (PIOS_FLASHFS_Logfs_Init(&pios_waypoints_settings_fs_id, &flashfs_waypoints_cfg, FLASH_PARTITION_LABEL_WAYPOINTS) != 0)
 		PIOS_HAL_CriticalError(PIOS_LED_ALARM, PIOS_HAL_PANIC_FILESYS);
 #endif	/* PIOS_INCLUDE_FLASH */
 
@@ -410,6 +399,19 @@ void PIOS_Board_Init(void) {
 				NULL);                                  // sbus_cfg
 		break;
 
+	case HWQUANTON_INPORT_WS2811SERIALPPMADC:
+		/* set up alt ppm, then fall through to set up serial */
+		PIOS_HAL_ConfigurePort(HWSHARED_PORTTYPES_PPM,  // port type protocol
+				NULL,                                   // usart_port_cfg
+				NULL,                                   // com_driver
+				NULL,                                   // i2c_id
+				NULL,                                   // i2c_cfg
+				&pios_ppm_in4_cfg,                      // ppm_cfg
+				NULL,                                   // pwm_cfg
+				PIOS_LED_ALARM,                         // led_id
+				NULL,                                   // dsm_cfg
+				0,                                      // dsm_mode
+				NULL);                                  // sbus_cfg
 	case HWQUANTON_INPORT_PPMSERIAL:
 	case HWQUANTON_INPORT_PPMSERIALADC:
 	case HWQUANTON_INPORT_SERIAL:
@@ -431,6 +433,9 @@ void PIOS_Board_Init(void) {
 		}
 
 		if (hw_inport == HWQUANTON_INPORT_SERIAL)
+			break;
+
+		if (hw_inport == HWQUANTON_INPORT_WS2811SERIALPPMADC)
 			break;
 
 		// Else fall through to set up PPM.
@@ -525,6 +530,7 @@ void PIOS_Board_Init(void) {
 		case HWQUANTON_INPORT_PPMADC:
 		case HWQUANTON_INPORT_PPMPWM:
 		case HWQUANTON_INPORT_PPMPWMADC:
+		case HWQUANTON_INPORT_WS2811SERIALPPMADC:
 			/* Set up the servo outputs */
 #ifdef PIOS_INCLUDE_SERVO
 			PIOS_Servo_Init(&pios_servo_cfg);
@@ -549,6 +555,23 @@ void PIOS_Board_Init(void) {
 	}
 #else
 	PIOS_DEBUG_Init(&pios_tim_servo_all_channels, NELEMENTS(pios_tim_servo_all_channels));
+#endif
+
+#ifdef PIOS_INCLUDE_WS2811
+	if (hw_inport == HWQUANTON_INPORT_WS2811SERIALPPMADC) {
+		PIOS_WS2811_init(&pios_ws2811, &pios_ws2811_cfg, 7);
+
+		// Pending infrastructure for this, drive a fixed
+		// value to the strand once.
+		PIOS_WS2811_set(pios_ws2811, 0, 255, 0, 0); // red
+		PIOS_WS2811_set(pios_ws2811, 1, 0, 255, 0); // green
+		PIOS_WS2811_set(pios_ws2811, 2, 0, 0, 255); // blue
+		PIOS_WS2811_set(pios_ws2811, 3, 255, 255, 0); // yellow
+		PIOS_WS2811_set(pios_ws2811, 4, 255, 0, 255); // purple
+		PIOS_WS2811_set(pios_ws2811, 5, 0, 255, 255); // cyan
+		PIOS_WS2811_set(pios_ws2811, 6, 64, 64, 64); // gray
+		PIOS_WS2811_trigger_update(pios_ws2811);
+	}
 #endif
 
 /* init sensor queue registration */
@@ -623,55 +646,62 @@ void PIOS_Board_Init(void) {
 #endif
 
 #if defined(PIOS_INCLUDE_I2C)
+
+	PIOS_WDG_Clear();
+
+	uint8_t hw_magnetometer;
+	HwQuantonMagnetometerGet(&hw_magnetometer);
+
+	switch (hw_magnetometer) {
+		case HWQUANTON_MAGNETOMETER_NONE:
+			break;
+
+		case HWQUANTON_MAGNETOMETER_INTERNAL:
 #if defined(PIOS_INCLUDE_HMC5883)
-	{
-		uint8_t magnetometer;
-		HwQuantonMagnetometerGet(&magnetometer);
-
-		uint32_t adaptor_id = 0;
-
-		if ((magnetometer == HWQUANTON_MAGNETOMETER_EXTERNALI2CUART1) || (magnetometer == HWQUANTON_MAGNETOMETER_EXTERNALI2CUART3))
-		{
-			if (magnetometer == HWQUANTON_MAGNETOMETER_EXTERNALI2CUART1)
-				adaptor_id = pios_i2c_usart1_adapter_id;
-
-			if (magnetometer == HWQUANTON_MAGNETOMETER_EXTERNALI2CUART3)
-				adaptor_id = pios_i2c_usart3_adapter_id;
-
-			if ((adaptor_id != 0) && (PIOS_HMC5883_Init(adaptor_id, &pios_hmc5883_external_cfg) == 0)) {
-				if (PIOS_HMC5883_Test() == 0) {
-					// External mag configuration was successful
-
-					// setup sensor orientation
-					uint8_t ext_mag_orientation;
-					HwQuantonExtMagOrientationGet(&ext_mag_orientation);
-
-					enum pios_hmc5883_orientation hmc5883_externalOrientation = \
-						(ext_mag_orientation == HWQUANTON_EXTMAGORIENTATION_TOP0DEGCW)      ? PIOS_HMC5883_TOP_0DEG      : \
-						(ext_mag_orientation == HWQUANTON_EXTMAGORIENTATION_TOP90DEGCW)     ? PIOS_HMC5883_TOP_90DEG     : \
-						(ext_mag_orientation == HWQUANTON_EXTMAGORIENTATION_TOP180DEGCW)    ? PIOS_HMC5883_TOP_180DEG    : \
-						(ext_mag_orientation == HWQUANTON_EXTMAGORIENTATION_TOP270DEGCW)    ? PIOS_HMC5883_TOP_270DEG    : \
-						(ext_mag_orientation == HWQUANTON_EXTMAGORIENTATION_BOTTOM0DEGCW)   ? PIOS_HMC5883_BOTTOM_0DEG   : \
-						(ext_mag_orientation == HWQUANTON_EXTMAGORIENTATION_BOTTOM90DEGCW)  ? PIOS_HMC5883_BOTTOM_90DEG  : \
-						(ext_mag_orientation == HWQUANTON_EXTMAGORIENTATION_BOTTOM180DEGCW) ? PIOS_HMC5883_BOTTOM_180DEG : \
-						(ext_mag_orientation == HWQUANTON_EXTMAGORIENTATION_BOTTOM270DEGCW) ? PIOS_HMC5883_BOTTOM_270DEG : \
-						pios_hmc5883_external_cfg.Default_Orientation;
-					PIOS_HMC5883_SetOrientation(hmc5883_externalOrientation);
-				} else
-					PIOS_SENSORS_SetMissing(PIOS_SENSOR_MAG);
-			} else
-				PIOS_SENSORS_SetMissing(PIOS_SENSOR_MAG);
-		}
-
-		if (magnetometer == HWQUANTON_MAGNETOMETER_INTERNAL) {
 			if ((PIOS_HMC5883_Init(pios_i2c_internal_adapter_id, &pios_hmc5883_internal_cfg) != 0) ||
-					(PIOS_HMC5883_Test() != 0))
+					(PIOS_HMC5883_Test() != 0)) {
 				PIOS_HAL_CriticalError(PIOS_LED_ALARM, PIOS_HAL_PANIC_MAG);
-		}
-	}
-#endif
+			}
+#endif /* PIOS_INCLUDE_HMC5883 */
+			break;
 
-	//I2C is slow, sensor init as well, reset watchdog to prevent reset here
+		/* default external mags and handle them in PiOS HAL rather than maintaining list here */
+		default:
+		{
+			HwQuantonExtMagPortOptions hw_mag_port;
+			HwQuantonExtMagPortGet(&hw_mag_port);
+
+			uint32_t i2c_mag_id = 0; /* TODO change to a real pointer */
+			const void *i2c_mag_cfg = NULL;
+			switch (hw_mag_port) {
+			case HWQUANTON_EXTMAGPORT_UART1:
+				if (hw_uart1 == HWSHARED_PORTTYPES_I2C) {
+					i2c_mag_id = pios_i2c_usart1_adapter_id;
+					i2c_mag_cfg = &pios_i2c_usart1_adapter_cfg;
+				}
+				break;
+			case HWQUANTON_EXTMAGPORT_UART3:
+				if (hw_uart3 == HWSHARED_PORTTYPES_I2C) {
+					i2c_mag_id = pios_i2c_usart3_adapter_id;
+					i2c_mag_cfg = &pios_i2c_usart3_adapter_cfg;
+				}
+				break;
+			}
+
+			if (i2c_mag_id && i2c_mag_cfg) {
+				uint8_t hw_orientation;
+				HwQuantonExtMagOrientationGet(&hw_orientation);
+
+				PIOS_HAL_ConfigureExternalMag(hw_magnetometer, hw_orientation,
+					&i2c_mag_id, i2c_mag_cfg);
+			} else {
+				PIOS_SENSORS_SetMissing(PIOS_SENSOR_MAG);
+			}
+		}
+			break;
+	}
+
+	/* I2C is slow, sensor init as well, reset watchdog to prevent reset here */
 	PIOS_WDG_Clear();
 
 #if defined(PIOS_INCLUDE_MS5611)
@@ -696,7 +726,8 @@ void PIOS_Board_Init(void) {
 		hw_inport == HWQUANTON_INPORT_PPMOUTPUTSADC ||
 		hw_inport == HWQUANTON_INPORT_PPMPWMADC ||
 		hw_inport == HWQUANTON_INPORT_PPMSERIALADC ||
-		hw_inport == HWQUANTON_INPORT_PWMADC)
+		hw_inport == HWQUANTON_INPORT_PWMADC ||
+		hw_inport == HWQUANTON_INPORT_WS2811SERIALPPMADC)
 	{
 		uint32_t internal_adc_id;
 		PIOS_INTERNAL_ADC_Init(&internal_adc_id, &pios_adc_cfg);

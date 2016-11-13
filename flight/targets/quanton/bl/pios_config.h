@@ -32,7 +32,7 @@
 #define PIOS_CONFIG_H
 
 /* Enable/Disable PiOS Modules */
-#define PIOS_INCLUDE_LED
+#define PIOS_INCLUDE_ANNUNC
 #define PIOS_INCLUDE_SPI
 #define PIOS_INCLUDE_SYS
 #define PIOS_INCLUDE_IAP

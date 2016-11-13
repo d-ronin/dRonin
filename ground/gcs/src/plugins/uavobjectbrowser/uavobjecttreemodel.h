@@ -41,6 +41,7 @@
 #include <QtCore/QMap>
 #include <QtCore/QList>
 #include <QColor>
+#include <QFont>
 
 class TopTreeItem;
 class ObjectTreeItem;
@@ -125,6 +126,8 @@ private:
     QColor m_updatedOnlyColor;
     QColor m_isPresentOnHwColor;
     QColor m_notPresentOnHwColor;
+    QFont m_nonDefaultValueFont;
+    QFont m_defaultValueFont;
     bool m_onlyHighlightChangedValues;
     bool m_useScientificFloatNotation;
     bool m_hideNotPresent;

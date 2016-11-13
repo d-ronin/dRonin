@@ -60,7 +60,6 @@ OPTMODULES += UAVOLighttelemetryBridge
 OPTMODULES += Airspeed
 OPTMODULES += UAVOHoTTBridge
 OPTMODULES += UAVOFrSKYSensorHubBridge
-OPTMODULES += PicoC
 OPTMODULES += UAVOFrSKYSPortBridge
 OPTMODULES += Geofence
 OPTMODULES += ComUsbBridge
@@ -68,6 +67,7 @@ OPTMODULES += UAVOMSPBridge
 OPTMODULES += Logging
 OPTMODULES += FlightStats
 OPTMODULES += Storm32Bgc
+OPTMODULES += CharacterOSD
 
 # Paths
 OPUAVTALKINC = $(OPUAVTALK)/inc
@@ -123,6 +123,7 @@ SRC += $(FLIGHTLIB)/sanitycheck.c
 SRC += $(FLIGHTLIB)/timeutils.c
 SRC += $(FLIGHTLIB)/frsky_packing.c
 SRC += $(FLIGHTLIB)/circqueue.c
+SRC += $(FLIGHTLIB)/morsel.c
 SRC += $(MATHLIB)/coordinate_conversions.c
 SRC += $(MATHLIB)/misc_math.c
 SRC += $(MATHLIB)/atmospheric_math.c
@@ -145,6 +146,7 @@ SRC += pios_mpxv5004.c
 SRC += pios_mpxv7002.c
 SRC += pios_gcsrcvr.c
 SRC += pios_hmc5883.c
+SRC += pios_hmc5983_i2c.c
 SRC += pios_ms5611.c
 SRC += pios_crc.c
 SRC += pios_com.c
@@ -161,7 +163,6 @@ SRC += pios_sensors.c
 SRC += pios_flash.c
 SRC += pios_flash_jedec.c
 SRC += pios_flashfs_logfs.c
-SRC += printf-stdarg.c
 SRC += pios_usb_desc_hid_cdc.c
 SRC += pios_usb_desc_hid_only.c
 SRC += pios_usb_util.c
@@ -184,7 +185,8 @@ SRC += pios_ppm.c
 SRC += pios_debug.c
 SRC += pios_wdg.c
 SRC += pios_reset.c
-SRC += pios_led.c
+SRC += pios_annunc.c
+SRC += pios_max7456.c
 
 # List C source files here which must be compiled in ARM-Mode (no -mthumb).
 # use file-extension c for "c-only"-files
@@ -383,6 +385,7 @@ LDFLAGS += $(MATH_LIB)
 LDFLAGS += -lc -lgcc
 LDFLAGS += -Wl,--warn-common
 LDFLAGS += -Wl,--fatal-warnings
+LDFLAGS += -u _printf_float
 
 #Linker scripts
 LDFLAGS += -T memory.ld $(addprefix -T,$(LINKER_SCRIPTS_APP))

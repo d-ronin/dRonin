@@ -93,16 +93,6 @@ bool Quanton::queryCapabilities(BoardCapabilities capability)
     }
 }
 
-/**
- * @brief Quanton::getSupportedProtocols
- *  TODO: this is just a stub, we'll need to extend this a lot with multi protocol support
- * @return
- */
-QStringList Quanton::getSupportedProtocols()
-{
-    return QStringList("uavtalk");
-}
-
 QPixmap Quanton::getBoardPicture()
 {
     return QPixmap(":/quantec/images/quanton.png");

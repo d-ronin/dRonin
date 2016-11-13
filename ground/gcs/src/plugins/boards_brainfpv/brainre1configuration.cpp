@@ -75,7 +75,7 @@ BrainRE1Configuration::BrainRE1Configuration(QWidget *parent) :
     connect(re1_settings_obj, SIGNAL(CustomLEDColor_2Changed(quint8)), this, SLOT(getCustomLedColor()));
     connect(ui->clrbCustomLEDColor, SIGNAL(colorChanged(const QColor)), this, SLOT(setCustomLedColor(const QColor)));
 
-    addUAVObjectToWidgetRelation("HwBrainRE1", "FailsafeBuzzer", ui->cmbFailsafeBuzzer);
+    addUAVObjectToWidgetRelation("HwBrainRE1", "BuzzerType", ui->cmbBuzzerType);
     addUAVObjectToWidgetRelation("HwBrainRE1", "VideoSyncDetectorThreshold", ui->sbVideoSyncDetectorThreshold);
 
     // Load UAVObjects to widget relations from UI file
@@ -105,6 +105,27 @@ BrainRE1Configuration::BrainRE1Configuration(QWidget *parent) :
 BrainRE1Configuration::~BrainRE1Configuration()
 {
     delete ui;
+}
+
+void BrainRE1Configuration::widgetsContentsChanged()
+{
+    ConfigTaskWidget::widgetsContentsChanged();
+
+    if ((ui->cmbUsbHidPort->currentIndex() == HwBrainRE1::USB_HIDPORT_USBTELEMETRY) && (ui->cmbUsbVcpPort->currentIndex() == HwBrainRE1::USB_VCPPORT_USBTELEMETRY))
+    {
+        enableControls(false);
+        ui->lblMsg->setText(tr("Warning: you have configured both USB HID Port and USB VCP Port for telemetry, this currently is not supported"));
+    }
+    else if ((ui->cmbUsbHidPort->currentIndex() != HwBrainRE1::USB_HIDPORT_USBTELEMETRY) && (ui->cmbUsbVcpPort->currentIndex() != HwBrainRE1::USB_VCPPORT_USBTELEMETRY))
+    {
+        enableControls(false);
+        ui->lblMsg->setText(tr("Warning: you have disabled USB Telemetry on both USB HID Port and USB VCP Port, this currently is not supported"));
+    }
+    else
+    {
+        ui->lblMsg->setText("");
+        enableControls(true);
+    }
 }
 
 void BrainRE1Configuration::openHelp()

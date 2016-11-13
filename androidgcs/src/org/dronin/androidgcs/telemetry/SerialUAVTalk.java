@@ -28,13 +28,18 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.nio.ByteBuffer;
 import java.util.Arrays;
+import java.util.List;
 
+import android.app.PendingIntent;
 import android.content.Context;
+import android.content.Intent;
 import android.hardware.usb.UsbManager;
+import android.hardware.usb.UsbDeviceConnection;
 import android.util.Log;
 
 import com.hoho.android.usbserial.driver.UsbSerialDriver;
 import com.hoho.android.usbserial.driver.UsbSerialProber;
+import com.hoho.android.usbserial.driver.UsbSerialPort;
 
 public class SerialUAVTalk extends TelemetryTask {
 	private final String TAG = SerialUAVTalk.class.getSimpleName();
@@ -43,7 +48,7 @@ public class SerialUAVTalk extends TelemetryTask {
 	public static boolean DEBUG = LOGLEVEL > 0;
 
 	private UsbManager mUsbManager;
-	private UsbSerialDriver mSerialDevice;
+	private UsbSerialPort mSerialPort;
 
 	//! The stream that receives data from the HID device
 	private TalkInputStream inTalkStream;
@@ -55,7 +60,7 @@ public class SerialUAVTalk extends TelemetryTask {
 	private Thread writeThread;
 
 	/**
-	 * Construct a TcpUAVTalk object attached to the OPTelemetryService.  Gets the
+	 * Construct a SerialUAVTalk object attached to the OPTelemetryService.  Gets the
 	 * connection settings from the preferences.
 	 */
 	public SerialUAVTalk(TelemetryService caller) {
@@ -68,28 +73,55 @@ public class SerialUAVTalk extends TelemetryTask {
 		if( getConnected() )
 			return true;
 
-		UsbSerialProber.setConnectedRunnable(new Runnable() {
-			@Override
-			public void run() {
-				Log.d(TAG, "Connected");
-				openDevice(UsbSerialProber.driver);
-			}
-		}, handler);
-
 		mUsbManager = (UsbManager) telemService.getSystemService(Context.USB_SERVICE);
-		return UsbSerialProber.acquire(mUsbManager, telemService);
+
+		List<UsbSerialDriver> availableDrivers = UsbSerialProber.getDefaultProber().findAllDrivers(mUsbManager);
+
+		if (availableDrivers.isEmpty()) {
+			return false;
+		}
+
+		UsbSerialDriver driver = availableDrivers.get(0);
+
+		return openDevice(driver);
 	}
 
 	public boolean openDevice(UsbSerialDriver driver) {
-		mSerialDevice = driver;
+		UsbDeviceConnection connection = mUsbManager.openDevice(driver.getDevice());
+
+		/*  Would use code like this to finesse permissions, but it
+		 *  might need to be fully async.  needs further study 
+		if (connection == null) {
+			PendingIntent dontCare = PendingIntent.GetBroadcast(this,
+					0,
+					new Intent("org.dronin.androidgcs.USB_SERIAL_PERM"),
+					0);
+
+			mUsbManager.requestPermission(driver.getDevice(),
+					dontCare);
+
+			mUsbManager.openDevice(driver.getDevice());
+		}
+		*/
+
+		if (connection == null) {
+			return false;
+		}
+
+		UsbSerialPort port = driver.getPorts().get(0);
+
 		try {
-			driver.open();
-			driver.setParameters(115200,UsbSerialDriver.DATABITS_8,UsbSerialDriver.STOPBITS_1,
-					UsbSerialDriver.PARITY_NONE);
+			port.open(connection);
+			port.setParameters(115200,
+					UsbSerialPort.DATABITS_8,
+					UsbSerialPort.STOPBITS_1,
+					UsbSerialPort.PARITY_NONE);
 		} catch (IOException e1) {
 			if (DEBUG) Log.e(TAG, "Failed to open detected serial port");
 			return false;
 		}
+
+		mSerialPort = port;
 
 		inTalkStream = new TalkInputStream();
 		outTalkStream = new TalkOutputStream();
@@ -125,7 +157,7 @@ public class SerialUAVTalk extends TelemetryTask {
 				// Read data and push it on the data buffer
 				int bytes = 0;
 				try {
-					bytes = mSerialDevice.read(d,100);
+					bytes = mSerialPort.read(d,100);
 				} catch (IOException e) {
 					if (shutdown) {
 						if (DEBUG) Log.d(TAG, "Thread interrupted.  Shutting down");
@@ -162,7 +194,7 @@ public class SerialUAVTalk extends TelemetryTask {
 				}
 				if (bytes > 0)
 					try {
-						mSerialDevice.write(Arrays.copyOfRange(d,0,bytes),100);
+						mSerialPort.write(Arrays.copyOfRange(d,0,bytes),100);
 					} catch (IOException e) {
 						if (shutdown) {
 							if (DEBUG) Log.d(TAG, "Thread interrupted.  Shutting down");

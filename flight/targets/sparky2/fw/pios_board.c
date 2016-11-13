@@ -135,7 +135,6 @@ uintptr_t pios_com_openlog_logging_id;
 uintptr_t pios_com_can_id;
 uintptr_t pios_internal_adc_id = 0;
 uintptr_t pios_uavo_settings_fs_id;
-uintptr_t pios_waypoints_settings_fs_id;
 
 uintptr_t pios_can_id;
 
@@ -371,11 +370,11 @@ void PIOS_Board_Init(void) {
 	/* Delay system */
 	PIOS_DELAY_Init();
 
-#if defined(PIOS_INCLUDE_LED)
-	const struct pios_led_cfg * led_cfg = PIOS_BOARD_HW_DEFS_GetLedCfg(bdinfo->board_rev);
+#if defined(PIOS_INCLUDE_ANNUNC)
+	const struct pios_annunc_cfg * led_cfg = PIOS_BOARD_HW_DEFS_GetLedCfg(bdinfo->board_rev);
 	PIOS_Assert(led_cfg);
-	PIOS_LED_Init(led_cfg);
-#endif	/* PIOS_INCLUDE_LED */
+	PIOS_ANNUNC_Init(led_cfg);
+#endif	/* PIOS_INCLUDE_ANNUNC */
 	
 	uint32_t pios_spi_gyro_id;
 
@@ -410,10 +409,6 @@ void PIOS_Board_Init(void) {
 	if (PIOS_FLASHFS_Logfs_Init(&pios_uavo_settings_fs_id, get_flashfs_settings_cfg(bdinfo->board_rev), FLASH_PARTITION_LABEL_SETTINGS))
 		PIOS_HAL_CriticalError(PIOS_LED_ALARM, PIOS_HAL_PANIC_FILESYS);
 #if defined(PIOS_INCLUDE_FLASH_JEDEC)
-	if (get_external_flash(bdinfo->board_rev)) {
-		if (PIOS_FLASHFS_Logfs_Init(&pios_waypoints_settings_fs_id, &flashfs_waypoints_cfg, FLASH_PARTITION_LABEL_WAYPOINTS) != 0)
-			PIOS_HAL_CriticalError(PIOS_LED_ALARM, PIOS_HAL_PANIC_FILESYS);
-	}
 #endif /* PIOS_INCLUDE_FLASH_JEDEC */
 
 #endif	/* PIOS_INCLUDE_FLASH */
@@ -744,38 +739,54 @@ void PIOS_Board_Init(void) {
 
 	PIOS_WDG_Clear();
 
-#if defined(PIOS_INCLUDE_HMC5883)
-	{
-		uint8_t Magnetometer;
-		HwSparky2MagnetometerGet(&Magnetometer);
+#if defined(PIOS_INCLUDE_I2C)
+	uint8_t hw_magnetometer;
+	HwSparky2MagnetometerGet(&hw_magnetometer);
 
-		if (Magnetometer == HWSPARKY2_MAGNETOMETER_EXTERNALI2CFLEXIPORT)
+	switch (hw_magnetometer) {
+		case HWSPARKY2_MAGNETOMETER_NONE:
+		case HWSPARKY2_MAGNETOMETER_INTERNAL:
+			/* internal mag is handled by MPU code above */
+			break;
+
+		/* default external mags and handle them in PiOS HAL rather than maintaining list here */
+		default:
 		{
-			if ((PIOS_HMC5883_Init(pios_i2c_flexiport_adapter_id, &pios_hmc5883_external_cfg) != 0) || (PIOS_HMC5883_Test() != 0))
-				PIOS_HAL_CriticalError(PIOS_LED_ALARM, PIOS_HAL_PANIC_MAG);
-		} else if (Magnetometer == HWSPARKY2_MAGNETOMETER_EXTERNALAUXI2C) {
-			if ((PIOS_HMC5883_Init(pios_i2c_mag_pressure_adapter_id, &pios_hmc5883_external_cfg) != 0) || (PIOS_HMC5883_Test() != 0))
-				PIOS_HAL_CriticalError(PIOS_LED_ALARM, PIOS_HAL_PANIC_MAG);
-		}
+			HwSparky2ExtMagPortOptions hw_mag_port;
+			HwSparky2ExtMagPortGet(&hw_mag_port);
 
-		if (Magnetometer != HWSPARKY2_MAGNETOMETER_INTERNAL) {
-			// setup sensor orientation
-			uint8_t ExtMagOrientation;
-			HwSparky2ExtMagOrientationGet(&ExtMagOrientation);
-			enum pios_hmc5883_orientation hmc5883_orientation = \
-				(ExtMagOrientation == HWSPARKY2_EXTMAGORIENTATION_TOP0DEGCW)      ? PIOS_HMC5883_TOP_0DEG      : \
-				(ExtMagOrientation == HWSPARKY2_EXTMAGORIENTATION_TOP90DEGCW)     ? PIOS_HMC5883_TOP_90DEG     : \
-				(ExtMagOrientation == HWSPARKY2_EXTMAGORIENTATION_TOP180DEGCW)    ? PIOS_HMC5883_TOP_180DEG    : \
-				(ExtMagOrientation == HWSPARKY2_EXTMAGORIENTATION_TOP270DEGCW)    ? PIOS_HMC5883_TOP_270DEG    : \
-				(ExtMagOrientation == HWSPARKY2_EXTMAGORIENTATION_BOTTOM0DEGCW)   ? PIOS_HMC5883_BOTTOM_0DEG   : \
-				(ExtMagOrientation == HWSPARKY2_EXTMAGORIENTATION_BOTTOM90DEGCW)  ? PIOS_HMC5883_BOTTOM_90DEG  : \
-				(ExtMagOrientation == HWSPARKY2_EXTMAGORIENTATION_BOTTOM180DEGCW) ? PIOS_HMC5883_BOTTOM_180DEG : \
-				(ExtMagOrientation == HWSPARKY2_EXTMAGORIENTATION_BOTTOM270DEGCW) ? PIOS_HMC5883_BOTTOM_270DEG : \
-				pios_hmc5883_external_cfg.Default_Orientation;
-			PIOS_HMC5883_SetOrientation(hmc5883_orientation);
+			uint32_t i2c_mag_id = 0; /* TODO change to a real pointer */
+			const void *i2c_mag_cfg = NULL;
+			switch (hw_mag_port) {
+			case HWSPARKY2_EXTMAGPORT_FLEXIPORT:
+				if (hw_flexiport == HWSHARED_PORTTYPES_I2C) {
+					i2c_mag_id = pios_i2c_flexiport_adapter_id;
+					i2c_mag_cfg = &pios_i2c_flexiport_adapter_cfg;
+				}
+				break;
+			case HWSPARKY2_EXTMAGPORT_AUXI2C:
+				i2c_mag_id = pios_i2c_mag_pressure_adapter_id;
+				i2c_mag_cfg = &pios_i2c_mag_pressure_adapter_cfg;
+				break;
+			}
+
+			if (i2c_mag_id && i2c_mag_cfg) {
+				uint8_t hw_orientation;
+				HwSparky2ExtMagOrientationGet(&hw_orientation);
+
+				PIOS_HAL_ConfigureExternalMag(hw_magnetometer, hw_orientation,
+					&i2c_mag_id, i2c_mag_cfg);
+			} else {
+				PIOS_SENSORS_SetMissing(PIOS_SENSOR_MAG);
+			}
 		}
+			break;
 	}
-#endif /* PIOS_INCLUDE_HMC5883 */
+
+	/* I2C is slow, sensor init as well, reset watchdog to prevent reset here */
+	PIOS_WDG_Clear();
+
+#endif /* PIOS_INCLUDE_I2C */
 
 	switch (bdinfo->board_rev) {
 	case BRUSHEDSPARKY_V0_2:

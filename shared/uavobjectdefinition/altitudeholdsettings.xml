@@ -1,17 +1,34 @@
+<?xml version="1.0"?>
 <xml>
-    <object name="AltitudeHoldSettings" singleinstance="true" settings="true">
-        <description>Settings for the @ref AltitudeHold module</description>
-        <field name="PositionKp" units="(m/s)/m" type="float" elements="1" defaultvalue="0.8"/>
-        <field name="VelocityKp" units="throttle/m" type="float" elements="1" defaultvalue="0.20"/>
-        <field name="VelocityKi" units="throttle/m/s" type="float" elements="1" defaultvalue="0.25"/>
-        <field name="AttitudeComp" units="%" type="uint16" elements="1" defaultvalue="120"/>
-        <field name="MaxClimbRate" units="dm/s" type="uint8" elements="1" defaultvalue="40"/>
-        <field name="MaxDescentRate" units="dm/s" type="uint8" elements="1" defaultvalue="15"/>
-        <field name="Expo" units="" type="uint8" elements="1" defaultvalue="40"/>
-        <field name="Deadband" units="%" type="uint8" elements="1" defaultvalue="30"/>
-        <access gcs="readwrite" flight="readwrite"/>
-        <telemetrygcs acked="true" updatemode="onchange" period="0"/>
-        <telemetryflight acked="true" updatemode="onchange" period="0"/>
-        <logging updatemode="manual" period="0"/>
-    </object>
+	<object name="AltitudeHoldSettings" singleinstance="true" settings="true">
+		<description>Settings for the @ref AltitudeHold module</description>
+		<field name="PositionKp" units="(m/s)/m" type="float" elements="1" defaultvalue="0.8">
+			<description>Position proportional gain for the attitude filter.</description>
+		</field>
+		<field name="VelocityKp" units="throttle/m" type="float" elements="1" defaultvalue="0.20">
+			<description>Velocity proportional gain for the attitude filter.</description>
+		</field>
+		<field name="VelocityKi" units="throttle/m/s" type="float" elements="1" defaultvalue="0.25">
+			<description>Velocitry integral gain for the attitude filter.</description>
+		</field>
+		<field name="AttitudeComp" units="%" type="uint16" elements="1" defaultvalue="120">
+			<description/>
+		</field>
+		<field name="MaxClimbRate" units="dm/s" type="uint8" elements="1" defaultvalue="40">
+			<description>Specifies the maximum climb rate. Range 0 - 255</description>
+		</field>
+		<field name="MaxDescentRate" units="dm/s" type="uint8" elements="1" defaultvalue="15">
+			<description>Specifies the max descent rate. Range 0 - 255</description>
+		</field>
+		<field name="Expo" units="" type="uint8" elements="1" defaultvalue="40">
+			<description/>
+		</field>
+		<field name="Deadband" units="%" type="uint8" elements="1" defaultvalue="30">
+			<description>Deadband that is used around the altitude set</description>
+		</field>
+		<access gcs="readwrite" flight="readwrite"/>
+		<telemetrygcs acked="true" updatemode="onchange" period="0"/>
+		<telemetryflight acked="true" updatemode="onchange" period="0"/>
+		<logging updatemode="manual" period="0"/>
+	</object>
 </xml>

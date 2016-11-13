@@ -62,6 +62,9 @@ void PIOS_SYS_Init(void)
 	/* Init the delay system */
 	PIOS_DELAY_Init();
 
+	/* Enable the clock that the ADC uses.  */
+	RCC_HSI14Cmd(ENABLE);
+
 	/*
 	 * Turn on all the peripheral clocks.
 	 * Micromanaging clocks makes no sense given the power situation in the system, so
@@ -126,10 +129,10 @@ int32_t PIOS_SYS_Reset(void)
 
 	// turn off all board LEDs
 #if defined(PIOS_LED_HEARTBEAT)
-	PIOS_LED_Off(PIOS_LED_HEARTBEAT);
+	PIOS_ANNUNC_Off(PIOS_LED_HEARTBEAT);
 #endif	/* PIOS_LED_HEARTBEAT */
 #if defined(PIOS_LED_ALARM)
-	PIOS_LED_Off(PIOS_LED_ALARM);
+	PIOS_ANNUNC_Off(PIOS_LED_ALARM);
 #endif	/* PIOS_LED_ALARM */
 
 	/* XXX F10x port resets most (but not all) peripherals ... do we care? */
@@ -213,19 +216,19 @@ void assert_failed(uint8_t * file, uint32_t line)
 
 	/* Setup the LEDs to Alternate */
 #if defined(PIOS_LED_HEARTBEAT)
-	PIOS_LED_On(PIOS_LED_HEARTBEAT);
+	PIOS_ANNUNC_On(PIOS_LED_HEARTBEAT);
 #endif	/* PIOS_LED_HEARTBEAT */
 #if defined(PIOS_LED_ALARM)
-	PIOS_LED_Off(PIOS_LED_ALARM);
+	PIOS_ANNUNC_Off(PIOS_LED_ALARM);
 #endif	/* PIOS_LED_ALARM */
 
 	/* Infinite loop */
 	while (1) {
 #if defined(PIOS_LED_HEARTBEAT)
-		PIOS_LED_Toggle(PIOS_LED_HEARTBEAT);
+		PIOS_ANNUNC_Toggle(PIOS_LED_HEARTBEAT);
 #endif	/* PIOS_LED_HEARTBEAT */
 #if defined(PIOS_LED_ALARM)
-		PIOS_LED_Toggle(PIOS_LED_ALARM);
+		PIOS_ANNUNC_Toggle(PIOS_LED_ALARM);
 #endif	/* PIOS_LED_ALARM */
 		for (int i = 0; i < 1000000; i++) ;
 	}

@@ -1,8 +1,9 @@
+<?xml version="1.0"?>
 <xml>
 	<object name="HwSparky2" singleinstance="true" settings="true" category="HardwareSettings">
 		<description>Selection of optional hardware configurations.</description>
-
-		<field name="RcvrPort" units="function" type="enum" elements="1" parent="HwShared.PortTypes"  defaultvalue="Disabled">
+		<field name="RcvrPort" units="function" type="enum" elements="1" parent="HwShared.PortTypes" defaultvalue="Disabled">
+			<description/>
 			<options>
 				<option>Disabled</option>
 				<option>DSM</option>
@@ -15,10 +16,9 @@
 				<option>IBus</option>
 			</options>
 		</field>
-
 		<!-- Note that when either serial port is set to telemetry it will block the radio port -->
-
 		<field name="MainPort" units="function" type="enum" elements="1" parent="HwShared.PortTypes" defaultvalue="Disabled">
+			<description>The port labelled "Main Port"</description>
 			<options>
 				<option>Disabled</option>
 				<option>ComBridge</option>
@@ -36,7 +36,6 @@
 				<option>MavLinkTX_GPS_RX</option>
 				<option>MSP</option>
 				<option>OpenLog</option>
-				<option>PicoC</option>
 				<option>S.Bus Non Inverted</option>
 				<option>Storm32Bgc</option>
 				<option>Telemetry</option>
@@ -44,6 +43,7 @@
 			</options>
 		</field>
 		<field name="FlexiPort" units="function" type="enum" elements="1" parent="HwShared.PortTypes" defaultvalue="Disabled">
+			<description>The port labelled "Flexi Port"</description>
 			<options>
 				<option>Disabled</option>
 				<option>ComBridge</option>
@@ -62,37 +62,60 @@
 				<option>MavLinkTX_GPS_RX</option>
 				<option>MSP</option>
 				<option>OpenLog</option>
-				<option>PicoC</option>
 				<option>S.Bus Non Inverted</option>
 				<option>Storm32Bgc</option>
 				<option>Telemetry</option>
 				<option>IBus</option>
 			</options>
 		</field>
-
-		<field name="USB_HIDPort" units="function" type="enum" elements="1" parent="HwShared.USB_HIDPort" defaultvalue="USBTelemetry"/>
-		<field name="USB_VCPPort" units="function" type="enum" elements="1" parent="HwShared.USB_VCPPort" defaultvalue="Disabled"/>
-
-		<field name="DSMxMode" units="mode" type="enum" elements="1" parent="HwShared.DSMxMode" defaultvalue="Autodetect"/>
-
-		<field name="Radio" units="" type="enum" elements="1" parent="HwShared.RadioPort" defaultvalue="Disabled"/>
-		<!-- ID of the coordinator to allow binding to. 0 indicates allow all connections -->
-		<field name="CoordID" units="hex" type="uint32" elements="1" defaultvalue="0"/>
-
+		<field name="USB_HIDPort" units="function" type="enum" elements="1" parent="HwShared.USB_HIDPort" defaultvalue="USBTelemetry">
+			<description/>
+		</field>
+		<field name="USB_VCPPort" units="function" type="enum" elements="1" parent="HwShared.USB_VCPPort" defaultvalue="Disabled">
+			<description>Virtual COM Port protocol</description>
+		</field>
+		<field name="DSMxMode" units="mode" type="enum" elements="1" parent="HwShared.DSMxMode" defaultvalue="Autodetect">
+			<description/>
+		</field>
+		<field name="Radio" units="" type="enum" elements="1" parent="HwShared.RadioPort" defaultvalue="Disabled">
+			<description>Function for the radio port</description>
+		</field>
+		<field name="CoordID" units="hex" type="uint32" elements="1" defaultvalue="0">
+			<description>ID of the coordinator to allow binding to. 0 indicates allow all connections</description>
+		</field>
 		<!-- radio settings -->
-		<field name="MaxRfSpeed" units="bps" type="enum" elements="1" parent="HwShared.MaxRfSpeed" defaultvalue="64000"/>
-		<field name="MaxRfPower" units="mW" type="enum" elements="1" parent="HwShared.MaxRfPower"  defaultvalue="1.25"/>
-		<field name="RfBand" units="MHz" type="enum" elements="1" parent="HwShared.RfBand" defaultvalue="BoardDefault"/>
-		<field name="MinChannel" units="" type="uint8" elements="1" defaultvalue="0" limits="%BE:0:250"/>
-		<field name="MaxChannel" units="" type="uint8" elements="1" defaultvalue="250" limits="%BE:0:250"/>
-
-		<field name="GyroRange" units="deg/s" type="enum" elements="1" options="250,500,1000,2000" defaultvalue="2000"/>
-		<field name="AccelRange" units="*gravity m/s^2" type="enum" elements="1" options="2G,4G,8G,16G" defaultvalue="8G"/>
-		<field name="MPU9250Rate" units="Hz" type="enum" elements="1" options="200,250,333,500,1000" defaultvalue="1000"/>
-		<field name="MPU9250GyroLPF" units="Hz" type="enum" elements="1" options="184,92,41,20,10,5" defaultvalue="184"/>
-		<field name="MPU9250AccelLPF" units="Hz" type="enum" elements="1" options="460,184,92,41,20,10,5" defaultvalue="184"/>
-
+		<field name="MaxRfSpeed" units="bps" type="enum" elements="1" parent="HwShared.MaxRfSpeed" defaultvalue="64000">
+			<description>Maximum radio speed</description>
+		</field>
+		<field name="MaxRfPower" units="mW" type="enum" elements="1" parent="HwShared.MaxRfPower" defaultvalue="1.25">
+			<description>Maximum radio power</description>
+		</field>
+		<field name="RfBand" units="MHz" type="enum" elements="1" parent="HwShared.RfBand" defaultvalue="BoardDefault">
+			<description>Radio frequency to use</description>
+		</field>
+		<field name="MinChannel" units="" type="uint8" elements="1" defaultvalue="0" limits="%BE:0:250">
+			<description>Minimum channel to use</description>
+		</field>
+		<field name="MaxChannel" units="" type="uint8" elements="1" defaultvalue="250" limits="%BE:0:250">
+			<description>Maximum channel to use</description>
+		</field>
+		<field name="GyroRange" units="deg/s" type="enum" elements="1" options="250,500,1000,2000" defaultvalue="2000">
+			<description>Maximum measurement range for the gyros, should never rotate faster than about 85% of this</description>
+		</field>
+		<field name="AccelRange" units="*gravity m/s^2" type="enum" elements="1" options="2G,4G,8G,16G" defaultvalue="8G">
+			<description>The maximum measure range for the accelerometers, should never exceed this</description>
+		</field>
+		<field name="MPU9250Rate" units="Hz" type="enum" elements="1" options="200,250,333,500,1000" defaultvalue="1000">
+			<description>The gyro sampling rate</description>
+		</field>
+		<field name="MPU9250GyroLPF" units="Hz" type="enum" elements="1" options="184,92,41,20,10,5" defaultvalue="184">
+			<description>Gyro filter cutoff frequency</description>
+		</field>
+		<field name="MPU9250AccelLPF" units="Hz" type="enum" elements="1" options="460,184,92,41,20,10,5" defaultvalue="184">
+			<description>Accelerometer filter cutoff frequency</description>
+		</field>
 		<field name="VTX_Ch" units="Hz" type="enum" elements="1" defaultvalue="BoscamACh1 (5725)">
+			<description>Video transmitter frequency</description>
 			<options>
 				<option>BoscamACh1 (5725)</option>
 				<option>BoscamACh2 (5745)</option>
@@ -128,13 +151,22 @@
 				<option>AirwaveCh8 (5860)</option>
 			</options>
 		</field>
-
-		<field name="Magnetometer" units="function" type="enum" elements="1" options="Disabled,Internal,ExternalI2CFlexiPort,ExternalAuxI2C" defaultvalue="Internal"/>
-		<field name="ExtMagOrientation" units="function" type="enum" elements="1" parent="HwShared.MagOrientation" defaultvalue="Top0degCW" />
-
+		<field name="Magnetometer" units="" type="enum" elements="1" parent="HwShared.Mag" defaultvalue="Internal">
+			<description>Which magnetometer to use. If external, must configure a port as I2C, and select it as ExtMagPort.</description>
+		</field>
+		<field name="ExtMagOrientation" units="" type="enum" elements="1" parent="HwShared.MagOrientation" defaultvalue="Top0degCW">
+			<description>Orientation of the external magnetometer</description>
+		</field>
+		<field name="ExtMagPort" units="" type="enum" elements="1" defaultvalue="FlexiPort">
+			<description>Select the port your external magnetometer is connected to. Only used if an external magnetometer option is selected.</description>
+			<options>
+				<option>FlexiPort</option>
+				<option>AuxI2C</option>
+			</options>
+		</field>
 		<access gcs="readwrite" flight="readwrite"/>
 		<telemetrygcs acked="true" updatemode="onchange" period="0"/>
 		<telemetryflight acked="true" updatemode="onchange" period="0"/>
 		<logging updatemode="manual" period="0"/>
-    </object>
+	</object>
 </xml>

@@ -73,6 +73,11 @@ UAVObjectTreeModel::UAVObjectTreeModel(QObject *parent, bool useScientificNotati
     m_currentTimeTimer.start(lrint(fmax(m_recentlyUpdatedTimeout / 10.0f, 10))); // Update the timer 10 times faster than the time
                                                                                  // out. In any case, never go faster than 10ms.
     TreeItem::setHighlightTime(m_recentlyUpdatedTimeout);
+
+    QFont font;
+    m_defaultValueFont = font;
+    font.setWeight(QFont::Bold);
+    m_nonDefaultValueFont = font;
 }
 
 UAVObjectTreeModel::~UAVObjectTreeModel()
@@ -460,6 +465,12 @@ QVariant UAVObjectTreeModel::data(const QModelIndex &index, int role) const
             else
                 return QVariant(m_notPresentOnHwColor);
         }
+    }
+
+    if (role == Qt::FontRole) {
+        if (!item->isDefaultValue())
+            return m_nonDefaultValueFont;
+        return m_defaultValueFont;
     }
 
     if (index.column() == TreeItem::dataColumn && role == Qt::BackgroundRole) {

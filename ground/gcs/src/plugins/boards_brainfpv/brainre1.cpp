@@ -79,16 +79,6 @@ bool BrainRE1::queryCapabilities(BoardCapabilities capability)
     }
 }
 
-/**
- * @brief Brain::getSupportedProtocols
- *  TODO: this is just a stub, we'll need to extend this a lot with multi protocol support
- * @return
- */
-QStringList BrainRE1::getSupportedProtocols()
-{
-    return QStringList("uavtalk");
-}
-
 QPixmap BrainRE1::getBoardPicture()
 {
     return QPixmap(":/brainfpv/images/brainre1.png");

@@ -66,9 +66,8 @@
 
 //safe band to allow a bit of calibration error or trim offset (in microseconds)
 //these specify how far outside the "permitted range" throttle and other channels
-//can go.  e.g. if range is 1000..2000us, throttles under 900us or over 2100us
+//can go.  e.g. if range is 1000..2000us, values under 750us or over 2250us
 //result in failsafe.
-#define CONNECTION_OFFSET_THROTTLE 100
 #define CONNECTION_OFFSET          250
 
 #define RCVR_ACTIVITY_MONITOR_CHANNELS_PER_GROUP 12
@@ -83,7 +82,7 @@
 struct rcvr_activity_fsm {
 	ManualControlSettingsChannelGroupsOptions group;
 	uint16_t prev[RCVR_ACTIVITY_MONITOR_CHANNELS_PER_GROUP];
-	uint8_t sample_count;
+	uint8_t check_count;
 };
 
 extern uintptr_t pios_rcvr_group_map[];
@@ -853,7 +852,7 @@ static void resetRcvrActivity(struct rcvr_activity_fsm * fsm)
 
 	/* Reset the FSM state */
 	fsm->group        = 0;
-	fsm->sample_count = 0;
+	fsm->check_count = 0;
 }
 
 static void updateRcvrActivitySample(uintptr_t rcvr_id, uint16_t samples[], uint8_t max_channels) {
@@ -875,7 +874,7 @@ static bool updateRcvrActivityCompare(uintptr_t rcvr_id, struct rcvr_activity_fs
 	int rssi_group = rssitype_to_channelgroup();
 
 	/* If so, see if it's what we're processing */
-	if (pios_rcvr_group_map[rssi_group] == rcvr_id) {
+	if ((rssi_group >= 0) && (pios_rcvr_group_map[rssi_group] == rcvr_id)) {
 		// Yup.  So let's skip the configured RSSI channel
 		rssi_channel = settings.RssiChannelNumber;
 	}
@@ -927,29 +926,24 @@ static bool updateRcvrActivity(struct rcvr_activity_fsm * fsm)
 		resetRcvrActivity(fsm);
 	}
 
-	if (!pios_rcvr_group_map[fsm->group]) {
-		/* Unbound group, skip it */
-		goto group_completed;
+	if (fsm->check_count && (pios_rcvr_group_map[fsm->group])) {
+		/* Compare with previous sample */
+		activity_updated = updateRcvrActivityCompare(pios_rcvr_group_map[fsm->group], fsm);
 	}
 
-	if (fsm->sample_count == 0) {
-		/* Take a sample of each channel in this group */
-		updateRcvrActivitySample(pios_rcvr_group_map[fsm->group],
-					fsm->prev,
-					NELEMENTS(fsm->prev));
-		fsm->sample_count++;
-		return (false);
+	if (!activity_updated && fsm->check_count < 3) {
+		// First time through this is 1, so basically be willing
+		// to check twice.
+		fsm->check_count++;
+
+		return false;
 	}
 
-	/* Compare with previous sample */
-	activity_updated = updateRcvrActivityCompare(pios_rcvr_group_map[fsm->group], fsm);
-
-group_completed:
 	/* Reset the sample counter */
-	fsm->sample_count = 0;
+	fsm->check_count = 0;
 
 	/* Find the next active group, but limit search so we can't loop forever here */
-	for (uint8_t i = 0; i < MANUALCONTROLSETTINGS_CHANNELGROUPS_NONE; i++) {
+	for (uint8_t i = 0; i <= MANUALCONTROLSETTINGS_CHANNELGROUPS_NONE; i++) {
 		/* Move to the next group */
 		fsm->group++;
 		if (fsm->group >= MANUALCONTROLSETTINGS_CHANNELGROUPS_NONE) {
@@ -965,7 +959,9 @@ group_completed:
 			updateRcvrActivitySample(pios_rcvr_group_map[fsm->group],
 						fsm->prev,
 						NELEMENTS(fsm->prev));
-			fsm->sample_count++;
+
+			fsm->check_count = 1;
+
 			break;
 		}
 	}

@@ -38,9 +38,7 @@
 #define STM32_LSECLK                0
 #endif
 
-#if !defined(STM32_HSECLK)
-#define STM32_HSECLK                8000000
-#endif
+#define STM32_HSECLK                HSE_VALUE
 
 /*
  * Board voltages.

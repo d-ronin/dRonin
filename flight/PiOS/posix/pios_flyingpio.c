@@ -294,7 +294,7 @@ static void PIOS_FLYINGPIO_ActuatorUpdate()
 		}
 	}
 
-	cmd->led_status = PIOS_LED_GetStatus(PIOS_LED_HEARTBEAT);
+	cmd->led_status = PIOS_ANNUNC_GetStatus(PIOS_LED_HEARTBEAT);
 
 	if (PIOS_FLYINGPIO_SendCmd(&tx_buf)) {
 		// If there's a sequence mismatch, reconfig.
@@ -333,7 +333,7 @@ static void PIOS_FLYINGPIO_ActuatorSetMode(const uint16_t *out_rate,
 	}
 
 	/* XXX needs to be specified / configured somewhere... */
-	cmd->receiver_protocol = HWSHARED_PORTTYPES_PPM;
+	cmd->receiver_protocol = HWSHARED_PORTTYPES_SBUS;
 
 	while (PIOS_FLYINGPIO_SendCmd(&actuator_cfg)) {	// retry until OK
 		PIOS_Thread_Sleep(5);

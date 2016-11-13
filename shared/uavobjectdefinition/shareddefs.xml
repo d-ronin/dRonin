@@ -1,12 +1,29 @@
+<?xml version="1.0"?>
 <xml>
 	<object name="SharedDefs" singleinstance="true" settings="false">
 		<description>Templates for common enums.</description>
-		<field name="FlightMode" units="" type="enum" elements="1" options="Manual,Acro,Leveling,Horizon,AxisLock,VirtualBar,Stabilized1,Stabilized2,Stabilized3,Autotune,AltitudeHold,PositionHold,ReturnToHome,PathPlanner,TabletControl,AcroPlus,Failsafe" />
-		<field name="StabilizationMode" units="" type="enum" elements="1" options="Manual,Rate,Attitude,AxisLock,WeakLeveling,VirtualBar,Horizon,SystemIdent,POI,CoordinatedFlight,AcroPlus,Disabled,Failsafe" />
+		<field name="FlightMode" units="" type="enum" elements="1" options="Manual,Acro,Leveling,Horizon,AxisLock,VirtualBar,Stabilized1,Stabilized2,Stabilized3,Autotune,AltitudeHold,PositionHold,ReturnToHome,PathPlanner,TabletControl,AcroPlus,Failsafe"/>
+		<field name="StabilizationMode" units="" type="enum" elements="1" options="Manual,Rate,Attitude,AxisLock,WeakLeveling,VirtualBar,Horizon,SystemIdent,POI,CoordinatedFlight,AcroPlus,Disabled,Failsafe"/>
 		<!-- Effort -> Emulate direct stick input; ModeSpecific -> Assume values are pre-scaled with some knowledge about given mode, do not scale -->
 		<field name="ReprojectionMode" units="" type="enum" elements="1" options="None,CameraAngle,HeadFree"/>
-		<field name="OrientationUnit" units="" type="enum" elements="1" options="Effort,ModeSpecific,Degrees,DegreesPerSec,DegreesPerSec2" />
-		<field name="PositionUnit" units="" type="enum" elements="1" options="Effort,ModeSpecific,Meters,MetersPerSec,MetersPerSec2" />
+		<field name="OrientationUnit" units="" type="enum" elements="1" options="Effort,ModeSpecific,Degrees,DegreesPerSec,DegreesPerSec2"/>
+		<field name="PositionUnit" units="" type="enum" elements="1" options="Effort,ModeSpecific,Meters,MetersPerSec,MetersPerSec2"/>
+		<field name="AlarmLevels" units="" type="enum" elements="1" defaultvalue="Uninitialised">
+			<options>
+				<option>Uninitialised</option>
+				<option>OK</option>
+				<option>Warning</option>
+				<option>Error</option>
+				<option>Critical</option>
+				<!-- Following are for annunciator infrastructure.
+				     HairOnFire means only explicit debugging
+				     code that is designed to always "win" -->
+				<option>HairOnFire</option>
+				<!-- If you just want failsafe, this is the
+				     option. -->
+				<option>ManualControlOnly</option>
+			</options>
+		</field>
 		<access gcs="readwrite" flight="readwrite"/>
 		<telemetrygcs acked="false" updatemode="manual" period="0"/>
 		<telemetryflight acked="false" updatemode="periodic" period="0"/>

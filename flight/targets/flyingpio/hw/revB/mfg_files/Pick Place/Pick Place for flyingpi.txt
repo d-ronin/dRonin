@@ -1,0 +1,73 @@
+Designator Footprint               Mid X         Mid Y         Ref X         Ref Y         Pad X         Pad Y TB      Rotation Comment        
+
+C1         PCB-4097432-1      452.756mil    797.244mil    452.756mil    797.244mil    452.756mil    834.646mil  T        270.00 10uF35V        
+C2         PCB-4097432-1      305.117mil    551.182mil    305.118mil    551.181mil    342.518mil    551.182mil  T        180.00 10uF35V        
+C3         PCB-4097432-1      501.968mil     974.41mil    501.969mil    974.409mil    464.566mil     974.41mil  T        360.00 10uF35V        
+C4         PCB-11286000-1    1496.064mil   1992.126mil   1496.063mil   1992.126mil   1466.536mil   1992.126mil  T          0.00 10uF10V        
+C5         CAPC1608X90X35LL10T15   1830.708mil   1692.912mil   1830.709mil   1692.913mil   1806.102mil   1692.912mil  T          0.00 0.1uF          
+C6         CAPC1608X90X35LL10T15    2066.93mil   1151.574mil   2066.929mil   1151.575mil   2042.324mil   1151.574mil  T          0.00 0.1uF          
+C7         0603C             1574.804mil   1151.574mil   1574.803mil   1151.575mil   1543.308mil   1151.574mil  T          0.00 0.01uF         
+C8         0603C              669.293mil     935.04mil    669.291mil    935.039mil    637.796mil     935.04mil  T        360.00 0.01uF         
+C9         PCB-11286000-1     472.439mil   1237.008mil    472.441mil   1237.008mil    442.912mil   1237.008mil  T        360.00 10uF10V        
+C10        CAPC1608X90X35LL10T15    602.361mil    1354.33mil    602.362mil   1354.331mil    577.755mil    1354.33mil  T        360.00 0.1uF          
+C11        PCB-11286000-1    1348.426mil    600.394mil   1348.425mil    600.394mil   1348.426mil    570.866mil  T         90.00 10uF10V        
+C12        PCB-11286000-1    1240.158mil    600.394mil   1240.158mil    600.394mil   1240.158mil    570.866mil  T         90.00 10uF10V        
+C13        PCB-11286000-1    1348.426mil     354.33mil   1348.425mil    354.331mil   1348.426mil    324.802mil  T         90.00 10uF10V        
+C14        CAPC1608X90X35LL10T15    1446.85mil     590.55mil    1446.85mil    590.551mil    1446.85mil    615.156mil  T        270.00 0.1uF          
+C15        CAPC1608X90X35LL10T15    464.566mil    1354.33mil    464.567mil   1354.331mil     439.96mil    1354.33mil  T        360.00 0.1uF          
+C16        CAPC1608X90X35LL10T15    468.504mil   1472.443mil    468.504mil   1472.441mil    443.898mil   1472.443mil  T        360.00 0.1uF          
+C17        0603C             1846.458mil    350.396mil   1846.457mil    350.394mil   1846.458mil    381.892mil  T        270.00 0.01uF         
+C18        PCB-11286000-1    1761.812mil    354.332mil   1761.811mil    354.331mil   1761.812mil    324.804mil  T         90.00 10uF10V        
+C19        PCB-11286000-1    2283.464mil    669.292mil   2283.465mil    669.291mil   2312.992mil    669.292mil  T        180.00 10uF10V        
+C20        CAPC1608X90X35LL10T15   2273.622mil    994.094mil   2273.622mil    994.095mil   2298.228mil    994.094mil  T        180.00 0.1uF          
+C21        CAPC1608X90X35LL10T15   2568.896mil    669.292mil   2568.898mil    669.291mil    2544.29mil    669.292mil  T        360.00 0.1uF          
+D1         SODFL500X120-2N     974.41mil    787.402mil    974.409mil    787.402mil     974.41mil    714.568mil  T         90.00 MCC SK55AFL    
+D2         SMD_LED0805       1309.056mil   1840.552mil   1309.055mil   1840.551mil   1354.056mil   1840.552mil  T        180.00 Avago HSMY-C170
+D3         LED0805           1313.268mil   1692.914mil   1358.268mil   1692.913mil   1358.268mil   1692.914mil  T        180.00 OSRAM Opto Semiconductors LHR974-LP-1
+D4         LED0805           1313.268mil   1545.276mil   1358.268mil   1545.276mil   1358.268mil   1545.276mil  T        180.00 OSRAM Opto Semiconductors LGR971
+J1         HDR102             2618.11mil   1151.574mil    2618.11mil   1151.575mil    2668.11mil   1151.574mil  T        180.00 Samtec TSW-102-07-S-S
+J2         HDR102              275.59mil    836.614mil    275.591mil    836.614mil     275.59mil    886.614mil  T        270.00 Samtec TSW-102-07-S-S
+J6         PCB-677180-1      1476.378mil    2263.78mil   1476.378mil    2263.78mil    526.378mil    2213.78mil  B        180.00 Samtec SSQ-120-01-T-D - Modified Symbol
+J10        PCB-640283-1       371.064mil   1908.664mil    371.063mil   1758.661mil    371.064mil   1758.664mil  T         90.00 TE Connectivity (Tyco Electronics) 3-644456-4
+J11        PCB-640283-1       271.064mil   1908.664mil    271.063mil   1758.661mil    271.064mil   1758.664mil  T         90.00 TE Connectivity (Tyco Electronics) 3-644456-4
+J12        PCB-640283-1       471.064mil   1908.662mil    471.063mil   1758.661mil    471.064mil   1758.662mil  T         90.00 TE Connectivity (Tyco Electronics) 3-644456-4
+L1         WE-PD-L            925.196mil   1269.686mil    925.197mil   1269.685mil    925.196mil   1074.804mil  T         90.00 12uH           
+R1         RESC1609X50X30LL10T20   1978.347mil   1929.134mil   1978.347mil   1929.134mil   2000.985mil   1929.134mil  T        180.00 NOT PLACED     
+R2         RESC1609X50X30LL10T20    2273.62mil   1151.574mil   2273.622mil   1151.575mil   2250.982mil   1151.574mil  T          0.00 33             
+R3         RESC1609X50X30LL10T20     472.44mil   1112.204mil    472.441mil   1112.205mil    495.078mil   1112.204mil  T        180.00 3.92k          
+R4         RESC1608X55X30LL15T15     433.07mil    610.236mil    433.071mil    610.236mil     433.07mil     585.63mil  T         90.00 470k           
+R7         RESC1609X50X30LL10T20   1978.346mil   1820.866mil   1978.347mil   1820.866mil   1955.708mil   1820.866mil  T          0.00 3.92k          
+R8         RESC1609X50X30LL10T20    600.394mil   1112.204mil    600.394mil   1112.205mil    623.033mil   1112.204mil  T        180.00 3.92k          
+R9         RESC1609X50X30LL10T20     597.44mil   1237.008mil    597.441mil   1237.008mil    574.802mil   1237.008mil  T        360.00 3.92k          
+R10        RESC1609X50X30LL10T20    602.361mil   1471.065mil    602.362mil   1471.064mil    579.723mil   1471.065mil  T        360.00 3.92k          
+R11        RESC1609X50X30LL10T20    600.394mil   1594.488mil    600.394mil   1594.488mil    577.756mil   1594.488mil  T        360.00 3.92k          
+R12        RESC1609X50X30LL10T20   1732.284mil     669.29mil   1732.284mil    669.291mil   1754.922mil     669.29mil  T        180.00 3.92k          
+R13        RESC1609X50X30LL10T20   1732.284mil    826.772mil   1732.284mil    826.772mil   1754.922mil    826.772mil  T        180.00 33             
+R14        RESC1609X50X30LL10T20    1564.96mil    826.772mil   1564.961mil    826.772mil   1587.598mil    826.772mil  T        180.00 33             
+R15        RESC1609X50X30LL10T20   1732.284mil    994.094mil   1732.284mil    994.095mil   1754.922mil    994.094mil  T        180.00 33             
+R16        RESC1609X50X30LL10T20   1417.322mil    826.772mil   1417.323mil    826.772mil    1439.96mil    826.772mil  T        180.00 33             
+R17        RESC1609X50X30LL10T20   1574.804mil    994.094mil   1574.803mil    994.095mil   1597.442mil    994.094mil  T        180.00 33             
+R18        RESC1609X50X30LL10T20   1505.906mil   1820.866mil   1505.906mil   1820.866mil   1528.544mil   1820.866mil  T        180.00 270            
+R19        RESC1609X50X30LL10T20   1417.322mil    994.094mil   1417.323mil    994.095mil    1439.96mil    994.094mil  T        180.00 33             
+R20        RESC1609X50X30LL10T20   1505.906mil   1692.914mil   1505.906mil   1692.913mil   1528.544mil   1692.914mil  T        180.00 270            
+R21        RESC1609X50X30LL10T20   1505.906mil   1545.276mil   1505.906mil   1545.276mil   1528.544mil   1545.276mil  T        180.00 270            
+R22        RESC1609X50X30LL10T20    1013.78mil   1929.134mil   1013.779mil   1929.134mil   1036.418mil   1929.134mil  T        180.00 33             
+R23        RESC1609X50X30LL10T20    846.458mil   1929.134mil    846.457mil   1929.134mil    869.096mil   1929.134mil  T        180.00 33             
+R24        RESC1609X50X30LL10T20    1013.78mil    2027.56mil   1013.779mil   2027.559mil   1036.418mil    2027.56mil  T        180.00 33             
+R25        RESC1609X50X30LL10T20    846.456mil    2027.56mil    846.457mil   2027.559mil    869.094mil    2027.56mil  T        180.00 33             
+U1         SOT-23-OT5_L      1771.654mil   1988.191mil   1771.653mil   1988.189mil    1724.41mil   2025.592mil  T          0.00 24AA32AT-I/OT  
+U2         MRA08B_M           669.292mil    767.716mil    669.291mil    767.716mil    568.898mil    842.716mil  T        360.00 LM22676QMR-5.0/NOPB
+U3         PCB-1508243-1     1594.488mil    354.332mil   1594.488mil    354.331mil   1547.244mil    391.734mil  T          0.00 Richtek RT9193-33GJ5
+U4         STM-LQFP32_N          1875mil       1425mil       1875mil       1425mil    1710.63mil   1535.238mil  T          0.00 STM32F030K6T6  
+U5         LGA20             2303.151mil    826.279mil   2244.095mil    875.984mil   2244.096mil    875.984mil  T        360.00 Bosch BMX055-0273141179
+U6         PCB-13001525-1    2572.343mil    851.377mil   2529.528mil    925.197mil   2529.528mil    925.196mil  T          0.00 Measurement Specialties (MSI Sensors) MS561101BA03-50
+Y1         X3-SMD-3.6X1.3X0.8MM    1564.96mil     1417.7mil   1564.961mil   1417.323mil    1564.96mil   1370.078mil  T         90.00 Murata CSTCE8M00G15L99-R0
+R5         RESC1609X50X30LL10T20   1830.708mil   1820.866mil   1830.709mil   1820.866mil    1808.07mil   1820.866mil  T          0.00 3.92k          
+R6         RESC1609X50X30LL10T20   1978.347mil   2037.401mil   1978.347mil   2037.402mil   1955.709mil   2037.401mil  T        360.00 3.92k          
+J3         HDR1x3_100mil     1027.522mil    359.428mil   1027.521mil    359.427mil   1027.522mil    259.428mil  T        270.00 TE Connectivity (Tyco Electronics) 5-146280-3
+J4         HDR1x3_100mil      927.522mil    359.428mil    927.521mil    359.427mil    927.522mil    259.428mil  T        270.00 TE Connectivity (Tyco Electronics) 5-146280-3
+J5         HDR1x3_100mil      827.522mil    359.428mil    827.521mil    359.427mil    827.522mil    259.428mil  T        270.00 TE Connectivity (Tyco Electronics) 5-146280-3
+J7         HDR1x3_100mil      727.522mil    359.428mil    727.521mil    359.427mil    727.522mil    259.428mil  T        270.00 TE Connectivity (Tyco Electronics) 5-146280-3
+J8         HDR1x3_100mil      627.522mil    359.428mil    627.521mil    359.427mil    627.522mil    259.428mil  T        270.00 TE Connectivity (Tyco Electronics) 5-146280-3
+J9         HDR1x3_100mil      527.522mil    359.428mil    527.521mil    359.427mil    527.522mil    259.428mil  T        270.00 TE Connectivity (Tyco Electronics) 5-146280-3
+

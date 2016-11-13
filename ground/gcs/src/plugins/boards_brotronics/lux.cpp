@@ -83,17 +83,6 @@ bool Lux::queryCapabilities(BoardCapabilities capability)
     }
 }
 
-
-/**
- * @brief Lux::getSupportedProtocols
- *  TODO: this is just a stub, we'll need to extend this a lot with multi protocol support
- * @return
- */
-QStringList Lux::getSupportedProtocols()
-{
-    return QStringList("uavtalk");
-}
-
 QPixmap Lux::getBoardPicture()
 {
     return QPixmap(":/brotronics/images/lux.png");

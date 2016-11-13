@@ -1,0 +1,78 @@
+/dts-v1/;
+/plugin/;
+
+/ {
+	compatible = "brcm,bcm2835", "brcm,bcm2708", "brcm,bcm2709";
+
+	fragment@0 {
+		target = <&spi0_cs_pins>;
+		__overlay__ {
+/* GPIO connector 24 - BCM8 - CE0 - Subsidiary micro
+ * GPIO connector 26 - BCM7 - CE1 - Gyro
+ * GPIO connector 29 - BCM5 - CE2 - Accel
+ * GPIO connector 31 - BCM6 - CE3 - Mag
+ * GPIO connector 33 - BCM13- CE4 - Baro
+ */
+			brcm,pins = <8 7 5 6 13>;
+			brcm,function = <1>; /* output */
+		};
+	};
+
+	fragment@1 {
+		target = <&spi0>;
+		frag1: __overlay__ {
+			/* needed to avoid dtc warning */
+			#address-cells = <1>;
+			#size-cells = <0>;
+			pinctrl-names = "default";
+			pinctrl-0 = <&spi0_pins &spi0_cs_pins>;
+			cs-gpios = <&gpio 8 1>, <&gpio 7 1>, <&gpio 5 1>, <&gpio 6 1>, <&gpio 13 1>;
+			status = "okay";
+
+			spidev1_0: spidev@0 {
+				compatible = "spidev";
+				reg = <0>;      /* CE0 */
+				#address-cells = <1>;
+				#size-cells = <0>;
+				spi-max-frequency = <500000>;
+				status = "okay";
+			};
+
+			spidev1_1: spidev@1 {
+				compatible = "spidev";
+				reg = <1>;      /* CE1 */
+				#address-cells = <1>;
+				#size-cells = <0>;
+				spi-max-frequency = <500000>;
+				status = "okay";
+			};
+
+			spidev1_2: spidev@2 {
+				compatible = "spidev";
+				reg = <2>;      /* CE2 */
+				#address-cells = <1>;
+				#size-cells = <0>;
+				spi-max-frequency = <500000>;
+				status = "okay";
+			};
+
+			spidev1_3: spidev@3 {
+				compatible = "spidev";
+				reg = <3>;      /* CE3 */
+				#address-cells = <1>;
+				#size-cells = <0>;
+				spi-max-frequency = <500000>;
+				status = "okay";
+			};
+
+			spidev1_4: spidev@4 {
+				compatible = "spidev";
+				reg = <4>;      /* CE4 */
+				#address-cells = <1>;
+				#size-cells = <0>;
+				spi-max-frequency = <500000>;
+				status = "okay";
+			};
+		};
+	};
+};

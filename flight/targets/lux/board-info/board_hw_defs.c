@@ -32,10 +32,10 @@
 #include <pios_config.h>
 #include <pios_board_info.h>
 
-#if defined(PIOS_INCLUDE_LED)
+#if defined(PIOS_INCLUDE_ANNUNC)
 
-#include <pios_led_priv.h>
-static const struct pios_led pios_leds[] = {
+#include <pios_annunc_priv.h>
+static const struct pios_annunc pios_annuncs[] = {
 	[PIOS_LED_HEARTBEAT] = {
 		.pin = {
 			.gpio = GPIOC,
@@ -62,19 +62,34 @@ static const struct pios_led pios_leds[] = {
 		},
 		.active_high = false,
 	},
+	[PIOS_ANNUNCIATOR_BUZZER] = {
+		.pin = {
+			// Not sure.  Using values from CleanFlight which seem
+			// to imply this is active low.
+			.gpio = GPIOB,
+			.init = {
+				.GPIO_Pin   = GPIO_Pin_13,
+				.GPIO_Speed = GPIO_Speed_50MHz,
+				.GPIO_Mode  = GPIO_Mode_OUT,
+				.GPIO_OType = GPIO_OType_PP,
+				.GPIO_PuPd = GPIO_PuPd_NOPULL
+			},
+		},
+		.active_high = true,
+	},
 };
 
-static const struct pios_led_cfg pios_led_cfg = {
-	.leds     = pios_leds,
-	.num_leds = NELEMENTS(pios_leds),
+static const struct pios_annunc_cfg pios_annunc_cfg = {
+	.annunciators     = pios_annuncs,
+	.num_annunciators = NELEMENTS(pios_annuncs),
 };
 
-const struct pios_led_cfg * PIOS_BOARD_HW_DEFS_GetLedCfg (uint32_t board_revision)
+const struct pios_annunc_cfg * PIOS_BOARD_HW_DEFS_GetLedCfg (uint32_t board_revision)
 {
-	return &pios_led_cfg;
+	return &pios_annunc_cfg;
 }
 
-#endif	/* PIOS_INCLUDE_LED */
+#endif	/* PIOS_INCLUDE_ANNUNC */
 
 #if defined(PIOS_INCLUDE_SPI)
 #include <pios_spi_priv.h>
@@ -148,12 +163,6 @@ static const struct pios_spi_cfg pios_spi_gyro_cfg = {
 
 static const struct flashfs_logfs_cfg flashfs_internal_settings_cfg = {
 	.fs_magic      = 0x9ae1ee11,
-	.arena_size    = 0x00002000,       /* 32 * slot size = 8K bytes = 4 sectors */
-	.slot_size     = 0x00000100,       /* 256 bytes */
-};
-
-static const struct flashfs_logfs_cfg flashfs_internal_waypoints_cfg = {
-	.fs_magic      = 0x9ab4ee11,
 	.arena_size    = 0x00002000,       /* 32 * slot size = 8K bytes = 4 sectors */
 	.slot_size     = 0x00000100,       /* 256 bytes */
 };

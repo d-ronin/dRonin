@@ -112,7 +112,8 @@ TreeItem::TreeItem(const QList<QVariant> &data, TreeItem *parent) :
         m_parent(parent),
         m_highlight(false),
         m_changed(false),
-        m_updated(false)
+        m_updated(false),
+        m_defaultValue(true)
 {
 }
 
@@ -122,7 +123,8 @@ TreeItem::TreeItem(const QVariant &data, TreeItem *parent) :
         m_parent(parent),
         m_highlight(false),
         m_changed(false),
-        m_updated(false)
+        m_updated(false),
+        m_defaultValue(true)
 {
     m_data << data << "" << "";
 }
@@ -275,6 +277,16 @@ void TreeItem::setCurrentTime(QTime *currentTime)
     if (m_currentTime == NULL)
         m_currentTime = new QTime;
     m_currentTime = currentTime;
+}
+
+void TreeItem::setIsDefaultValue(bool isDefault)
+{
+    m_defaultValue = isDefault;
+}
+
+bool TreeItem::isDefaultValue()
+{
+    return m_defaultValue;
 }
 
 QList<MetaObjectTreeItem *> TopTreeItem::getMetaObjectItems()

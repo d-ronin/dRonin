@@ -32,11 +32,11 @@
 #include <pios_config.h>
 #include <pios_board_info.h>
 
-#if defined(PIOS_INCLUDE_LED)
+#if defined(PIOS_INCLUDE_ANNUNC)
 
-#include <pios_led_priv.h>
-static const struct pios_led pios_leds[] = {
-	[PIOS_LED_RED] = {
+#include <pios_annunc_priv.h>
+static const struct pios_annunc pios_annuncs[] = {
+	[PIOS_LED_ALARM] = {
 		.pin = {
 			.gpio = GPIOC,
 			.init = {
@@ -50,7 +50,7 @@ static const struct pios_led pios_leds[] = {
 		.remap = 0,
 		.active_high = false,
 	},
-	[PIOS_LED_BLUE] = {
+	[PIOS_LED_HEARTBEAT] = {
 		.pin = {
 			.gpio = GPIOC,
 			.init = {
@@ -64,19 +64,34 @@ static const struct pios_led pios_leds[] = {
 		.remap = 0,
 		.active_high = false,
 	},
+	[PIOS_ANNUNCIATOR_BUZZER] = {
+		// Bipolar NPN low side, 1k base; 2.6mA base; hFE min 200
+		.pin = {
+			.gpio = GPIOA,
+			.init = {
+				.GPIO_Pin   = GPIO_Pin_4,
+				.GPIO_Speed = GPIO_Speed_2MHz,
+				.GPIO_Mode  = GPIO_Mode_OUT,
+				.GPIO_OType = GPIO_OType_PP,
+				.GPIO_PuPd = GPIO_PuPd_DOWN
+			},
+		},
+		.remap = 0,
+		.active_high = true,
+	},
 };
 
-static const struct pios_led_cfg pios_led_cfg = {
-	.leds     = pios_leds,
-	.num_leds = NELEMENTS(pios_leds),
+static const struct pios_annunc_cfg pios_annunc_cfg = {
+	.annunciators     = pios_annuncs,
+	.num_annunciators = NELEMENTS(pios_annuncs),
 };
 
-const struct pios_led_cfg * PIOS_BOARD_HW_DEFS_GetLedCfg (uint32_t board_revision)
+const struct pios_annunc_cfg * PIOS_BOARD_HW_DEFS_GetLedCfg (uint32_t board_revision)
 {
-	return &pios_led_cfg;
+	return &pios_annunc_cfg;
 }
 
-#endif	/* PIOS_INCLUDE_LED */
+#endif	/* PIOS_INCLUDE_ANNUNC */
 
 
 #if defined(PIOS_INCLUDE_SPI)
@@ -456,12 +471,6 @@ static const struct flashfs_logfs_cfg flashfs_settings_cfg = {
 	.fs_magic = 0x3b1b14cf,
 	.arena_size = 0x00004000,	/* 64 * slot size */
 	.slot_size = 0x00000100,	/* 256 bytes */
-};
-
-static const struct flashfs_logfs_cfg flashfs_waypoints_cfg = {
-	.fs_magic = 0x93a566a4,
-	.arena_size = 0x00004000,	/* 64 * slot size */
-	.slot_size = 0x00000040,	/* 64 bytes */
 };
 
 #if defined(PIOS_INCLUDE_FLASH_JEDEC)
@@ -2108,6 +2117,19 @@ static const struct pios_ppm_cfg pios_ppm_cfg = {
 	.num_channels = 1,
 };
 
+static const struct pios_ppm_cfg pios_ppm_in4_cfg = {
+	.tim_ic_init = {
+		.TIM_ICPolarity = TIM_ICPolarity_Rising,
+		.TIM_ICSelection = TIM_ICSelection_DirectTI,
+		.TIM_ICPrescaler = TIM_ICPSC_DIV1,
+		.TIM_ICFilter = 0x0,
+		.TIM_Channel = TIM_Channel_3,
+	},
+	/* Use only the fourth channel for ppm */
+	.channels = &pios_tim_rcvrport_all_channels[3],
+	.num_channels = 1,
+};
+
 #endif //PPM
 
 
@@ -2199,29 +2221,29 @@ const struct pios_usb_hid_cfg pios_usb_hid_cfg = {
 #include "pios_internal_adc_priv.h"
 
 void PIOS_ADC_DMA_irq_handler(void);
-void DMA2_Stream4_IRQHandler(void) __attribute__((alias("PIOS_ADC_DMA_irq_handler")));
+void DMA2_Stream0_IRQHandler(void) __attribute__((alias("PIOS_ADC_DMA_irq_handler")));
 struct pios_internal_adc_cfg pios_adc_cfg = {
 	.adc_dev_master = ADC1,
 	.dma = {
 		.irq = {
-			.flags = (DMA_FLAG_TCIF4 | DMA_FLAG_TEIF4 | DMA_FLAG_HTIF4),
+			.flags = (DMA_FLAG_TCIF0 | DMA_FLAG_TEIF0 | DMA_FLAG_HTIF0),
 			.init = {
-				.NVIC_IRQChannel = DMA2_Stream4_IRQn,
+				.NVIC_IRQChannel = DMA2_Stream0_IRQn,
 				.NVIC_IRQChannelPreemptionPriority = PIOS_IRQ_PRIO_LOW,
 				.NVIC_IRQChannelSubPriority = 0,
 				.NVIC_IRQChannelCmd = ENABLE,
 			},
 		},
 		.rx = {
-			.channel = DMA2_Stream4,
+			.channel = DMA2_Stream0,
 			.init = {
 				.DMA_Channel = DMA_Channel_0,
 				.DMA_PeripheralBaseAddr = (uint32_t)&ADC1->DR
 			},
 		}
 	},
-	.half_flag = DMA_IT_HTIF4,
-	.full_flag = DMA_IT_TCIF4,
+	.half_flag = DMA_IT_HTIF0,
+	.full_flag = DMA_IT_TCIF0,
 	.adc_pins = {                                                                                 \
 		{ GPIOA, GPIO_Pin_0,     ADC_Channel_0 },                                                 \
 		{ GPIOA, GPIO_Pin_1,     ADC_Channel_1 },                                                 \
@@ -2238,6 +2260,45 @@ void PIOS_ADC_DMA_irq_handler(void)
 }
 
 #endif /* PIOS_INCLUDE_ADC */
+
+/**
+ * Configuration for driving a WS2811 LED out INPORT1
+ */
+
+#if defined(PIOS_INCLUDE_WS2811)
+#include "pios_ws2811.h"
+
+ws2811_dev_t pios_ws2811;
+
+void DMA2_Stream6_IRQHandler() {
+	PIOS_WS2811_dma_interrupt_handler(pios_ws2811);
+}
+
+static const struct pios_ws2811_cfg pios_ws2811_cfg = {
+	.timer = TIM1,
+	.clock_cfg = {
+		.TIM_Prescaler = (PIOS_PERIPHERAL_APB2_COUNTER_CLOCK / 12000000) - 1,
+		.TIM_ClockDivision = TIM_CKD_DIV1,
+		.TIM_CounterMode = TIM_CounterMode_Up,
+		.TIM_Period = 25,	/* 2.083us/bit */
+	},
+	.interrupt = {
+		.NVIC_IRQChannel = DMA2_Stream6_IRQn,
+		.NVIC_IRQChannelPreemptionPriority = PIOS_IRQ_PRIO_LOW,
+		.NVIC_IRQChannelSubPriority = 0,
+		.NVIC_IRQChannelCmd = ENABLE,
+	},
+	.bit_clear_dma_tcif = DMA_IT_TCIF6,
+	.fall_time_l = 5,			/* 333ns */
+	.fall_time_h = 10,			/* 750ns */
+	.led_gpio = GPIOA,
+	.gpio_pin = GPIO_Pin_10,		/* PA10 / IN1 */
+	.bit_set_dma_stream = DMA2_Stream4,
+	.bit_set_dma_channel = DMA_Channel_6,	/* 2/S4/C6: TIM1 CH4|TRIG|COM */
+	.bit_clear_dma_stream = DMA2_Stream6,
+	.bit_clear_dma_channel = DMA_Channel_0,	/* 0/S6/C0: TIM1 CH1|CH2|CH3 */
+};
+#endif
 
 /**
  * Configuration for the MPU6000 chip

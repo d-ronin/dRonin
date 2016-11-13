@@ -61,11 +61,11 @@ void PIOS_Board_Init(void) {
 	/* Delay system */
 	PIOS_DELAY_Init();
 
-#if defined(PIOS_INCLUDE_LED)
-	const struct pios_led_cfg *led_cfg = PIOS_BOARD_HW_DEFS_GetLedCfg(0);
+#if defined(PIOS_INCLUDE_ANNUNC)
+	const struct pios_annunc_cfg *led_cfg = PIOS_BOARD_HW_DEFS_GetLedCfg(0);
 	PIOS_Assert(led_cfg);
-	PIOS_LED_Init(led_cfg);
-#endif	/* PIOS_INCLUDE_LED */
+	PIOS_ANNUNC_Init(led_cfg);
+#endif	/* PIOS_INCLUDE_ANNUNC */
 
 #if defined(PIOS_INCLUDE_SPI)
 	/* Set up the SPI interface to the serial flash */
@@ -91,7 +91,7 @@ void PIOS_Board_Init(void) {
 #if defined(ERASE_FLASH)
 	PIOS_FLASHFS_Format(pios_uavo_settings_fs_id);
 #if defined(PIOS_LED_HEARTBEAT)
-	PIOS_LED_Off(PIOS_LED_HEARTBEAT);
+	PIOS_ANNUNC_Off(PIOS_LED_HEARTBEAT);
 #endif /* PIOS_LED_HEARTBEAT */
 
 	while (1) ;

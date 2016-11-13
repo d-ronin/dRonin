@@ -128,32 +128,15 @@ public:
     virtual QPixmap getBoardPicture() = 0;
 
     /**
-     * Get supported protocol(s) for this board
-     *
-     * TODO: extend GCS to support multiple protocol types.
-     */
-    virtual QStringList getSupportedProtocols() = 0;
-
-    /**
      * Get name of the HW Configuration UAVObject
      *
      */
     virtual QString getHwUAVO() = 0;
 
     /**
-     * Get USB descriptors to detect the board
-     */
-    USBInfo getUSBInfo() { return boardUSBInfo; }
-
-    /**
      * Get USB VendorID.
      */
     int getVendorID() { return boardUSBInfo.vendorID; }
-
-    /**
-     * Does this board support the bootloader and DFU protocol ?
-     */
-    bool isDFUSupported() { return dfuSupport; }
 
     //! Get the board type number
     int getBoardType() { return boardType; }
@@ -174,6 +157,7 @@ public:
         INPUT_TYPE_HOTTSUMD,
         INPUT_TYPE_HOTTSUMH,
         INPUT_TYPE_IBUS,
+        INPUT_TYPE_SRXL,
         INPUT_TYPE_UNKNOWN,
         INPUT_TYPE_ANY
     };
@@ -246,12 +230,9 @@ public:
 signals:
 
 protected:
-
     void setUSBInfo(USBInfo info) { boardUSBInfo = info; }
-    void setDFUSupport(bool support) { dfuSupport = support; }
 
     USBInfo boardUSBInfo;
-    bool dfuSupport;
 
     //! The numerical board type ID
     qint32 boardType;

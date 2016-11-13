@@ -64,7 +64,7 @@ SRC += $(BLBOARDDIR)/pios_usb_board_data.c
 
 ## PIOS Hardware (STM32F10x)
 SRC += pios_sys.c
-SRC += pios_led.c
+SRC += pios_annunc.c
 SRC += pios_gpio.c
 SRC += pios_iap.c
 SRC += pios_bl_helper.c

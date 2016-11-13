@@ -87,16 +87,6 @@ QString CC3D::boardDescription()
     return QString("The OpenPilot project CopterControl 3D board");
 }
 
-/**
- * @brief CC3D::getSupportedProtocols
- *  TODO: this is just a stub, we'll need to extend this a lot with multi protocol support
- * @return
- */
-QStringList CC3D::getSupportedProtocols()
-{
-    return QStringList("uavtalk");
-}
-
 QPixmap CC3D::getBoardPicture()
 {
     return QPixmap(":/openpilot/images/cc3d.png");

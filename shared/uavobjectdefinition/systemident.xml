@@ -1,15 +1,34 @@
+<?xml version="1.0"?>
 <xml>
 	<object name="SystemIdent" singleinstance="true" settings="true">
 		<description>The input to the PID tuning.</description>
-		<field name="NewTune" units="" type="enum" elements="1" options="FALSE,TRUE" defaultvalue="FALSE"/>
-		<field name="Tau" units="s" type="float" elements="1" defaultvalue="0"/>
-		<field name="Beta" units="" type="float" elementnames="Roll,Pitch,Yaw" defaultvalue="0"/>
-		<field name="Bias" units="" type="float" elementnames="Roll,Pitch,Yaw" defaultvalue="0"/>
-		<field name="Noise" units="(deg/s)^2" type="float" elementnames="Roll,Pitch,Yaw" defaultvalue="0"/>
-		<field name="Period" units="ms" type="float" elements="1" defaultvalue="0"/>
-		<field name="NumAfPredicts" units="" type="uint32" elements="1" defaultvalue="0"/>
-		<field name="NumSpilledPts" units="" type="uint32" elements="1" defaultvalue="0"/>
-		<field name="HoverThrottle" units="% / 100" type="float" elements="1" defaultvalue="0"/>
+		<field name="NewTune" units="" type="enum" elements="1" options="FALSE,TRUE" defaultvalue="FALSE">
+			<description>Indicates that a new Autotune has finished</description>
+		</field>
+		<field name="Tau" units="s" type="float" elements="1" defaultvalue="0">
+			<description>Measured tau</description>
+		</field>
+		<field name="Beta" units="" type="float" elementnames="Roll,Pitch,Yaw" defaultvalue="0">
+			<description/>
+		</field>
+		<field name="Bias" units="" type="float" elementnames="Roll,Pitch,Yaw" defaultvalue="0">
+			<description/>
+		</field>
+		<field name="Noise" units="(deg/s)^2" type="float" elementnames="Roll,Pitch,Yaw" defaultvalue="0">
+			<description/>
+		</field>
+		<field name="Period" units="ms" type="float" elements="1" defaultvalue="0">
+			<description/>
+		</field>
+		<field name="NumAfPredicts" units="" type="uint32" elements="1" defaultvalue="0">
+			<description/>
+		</field>
+		<field name="NumSpilledPts" units="" type="uint32" elements="1" defaultvalue="0">
+			<description>Number of spilled points during Autotune</description>
+		</field>
+		<field name="HoverThrottle" units="% / 100" type="float" elements="1" defaultvalue="0">
+			<description>Measurement of the amount of throttle required to hover</description>
+		</field>
 		<access gcs="readwrite" flight="readwrite"/>
 		<telemetrygcs acked="false" updatemode="manual" period="0"/>
 		<telemetryflight acked="false" updatemode="onchange" period="1000"/>

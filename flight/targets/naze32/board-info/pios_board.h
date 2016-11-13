@@ -75,6 +75,7 @@ TIM4  |  Servo 3  |  Servo 4  |  Servo 5  |  Servo 6
 //------------------------
 #define PIOS_LED_HEARTBEAT				0
 #define PIOS_LED_ALARM					1
+#define PIOS_ANNUNCIATOR_BUZZER				2
 
 //------------------------
 // PIOS_WDG

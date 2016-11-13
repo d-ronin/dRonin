@@ -98,4 +98,5 @@ int IBoardType::getBankFromOutputChannel(int channel)
 
     return -1;
 }
-}
+
+} // Core

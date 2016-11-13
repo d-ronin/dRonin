@@ -64,7 +64,6 @@ OPTMODULES += UAVOHoTTBridge
 OPTMODULES += UAVOFrSKYSensorHubBridge
 OPTMODULES += UAVOFrSKYSPortBridge
 OPTMODULES += UAVOLighttelemetryBridge
-OPTMODULES += PicoC
 OPTMODULES += Geofence
 OPTMODULES += Logging
 OPTMODULES += VTXConfig
@@ -130,6 +129,7 @@ SRC += $(FLIGHTLIB)/sanitycheck.c
 SRC += $(FLIGHTLIB)/timeutils.c
 SRC += $(FLIGHTLIB)/frsky_packing.c
 SRC += $(FLIGHTLIB)/circqueue.c
+SRC += $(FLIGHTLIB)/morsel.c
 SRC += $(MATHLIB)/coordinate_conversions.c
 SRC += $(MATHLIB)/misc_math.c
 SRC += $(MATHLIB)/pid.c
@@ -166,7 +166,6 @@ SRC += pios_sensors.c
 SRC += pios_flash.c
 SRC += pios_flash_jedec.c
 SRC += pios_flashfs_logfs.c
-SRC += printf2.c
 SRC += pios_usb_desc_hid_cdc.c
 SRC += pios_usb_desc_hid_only.c
 SRC += pios_usb_util.c
@@ -189,7 +188,7 @@ SRC += pios_ppm.c
 SRC += pios_debug.c
 SRC += pios_wdg.c
 SRC += pios_reset.c
-SRC += pios_led.c
+SRC += pios_annunc.c
 
 # List C++ source files here.
 # use file-extension .cpp for C++-files (not .C)
@@ -339,6 +338,7 @@ LDFLAGS += $(patsubst %,-l%,$(EXTRA_LIBS))
 LDFLAGS += -lc -lgcc -lm
 LDFLAGS += -Wl,--warn-common
 LDFLAGS += -Wl,--fatal-warnings
+LDFLAGS += -u _printf_float
 
 #Linker scripts
 LDFLAGS += -T memory.ld $(addprefix -T,$(LINKER_SCRIPTS_APP))

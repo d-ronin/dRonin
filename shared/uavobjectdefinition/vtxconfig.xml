@@ -1,10 +1,10 @@
+<?xml version="1.0"?>
 <xml>
 	<object name="VTXSettings" singleinstance="true" settings="true">
 		<description>Video transmitter settings.</description>
-
-	<field name="Mode" units="" type="enum" elements="1" options="Active,Passive" defaultvalue="Active" description="Passive just monitors the VTx state while active modifies settings"/>
-	<field name="Power" units="mW" type="enum" elements="1" options="25,200,500,800" defaultvalue="25"/>
-	<field name="Band" units="" type="enum" elements="1" defaultvalue="Band 5G8 A">
+		<field name="Mode" units="" type="enum" elements="1" options="Active,Passive" defaultvalue="Active" description="Passive just monitors the VTx state while active modifies settings"/>
+		<field name="Power" units="mW" type="enum" elements="1" options="25,200,500,800" defaultvalue="25"/>
+		<field name="Band" units="" type="enum" elements="1" defaultvalue="Band 5G8 A">
 			<options>
 				<option>Band 5G8 A</option>
 				<option>Band 5G8 B</option>
@@ -13,7 +13,7 @@
 				<option>Raceband</option>
 			</options>
 		</field>
-	<field name="Band_5G8_A_Frequency" units="" type="enum" elements="1" defaultvalue="CH 1 5865">
+		<field name="Band_5G8_A_Frequency" units="" type="enum" elements="1" defaultvalue="CH 1 5865">
 			<options>
 				<option>CH 1 5865</option>
 				<option>CH 2 5845</option>
@@ -25,7 +25,7 @@
 				<option>CH 8 5725</option>
 			</options>
 		</field>
-	<field name="Band_5G8_B_Frequency" units="" type="enum" elements="1" defaultvalue="CH 1 5733">
+		<field name="Band_5G8_B_Frequency" units="" type="enum" elements="1" defaultvalue="CH 1 5733">
 			<options>
 				<option>CH 1 5733</option>
 				<option>CH 2 5752</option>
@@ -37,7 +37,7 @@
 				<option>CH 8 5866</option>
 			</options>
 		</field>
-	<field name="Band_5G8_E_Frequency" units="" type="enum" elements="1" defaultvalue="CH 1 5705">
+		<field name="Band_5G8_E_Frequency" units="" type="enum" elements="1" defaultvalue="CH 1 5705">
 			<options>
 				<option>CH 1 5705</option>
 				<option>CH 2 5685</option>
@@ -79,4 +79,3 @@
 		<logging updatemode="manual" period="0"/>
 	</object>
 </xml>
-

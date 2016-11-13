@@ -104,7 +104,6 @@ uintptr_t pios_com_aux_id;
 uintptr_t pios_com_telem_rf_id;
 uintptr_t pios_com_can_id;
 uintptr_t pios_uavo_settings_fs_id;
-uintptr_t pios_waypoints_settings_fs_id;
 uintptr_t pios_internal_adc_id;
 uintptr_t pios_can_id;
 uintptr_t pios_com_openlog_logging_id;
@@ -125,11 +124,11 @@ void PIOS_Board_Init(void)
 
 	const struct pios_board_info *bdinfo = &pios_board_info_blob;
 
-#if defined(PIOS_INCLUDE_LED)
-	const struct pios_led_cfg *led_cfg = PIOS_BOARD_HW_DEFS_GetLedCfg(bdinfo->board_rev);
+#if defined(PIOS_INCLUDE_ANNUNC)
+	const struct pios_annunc_cfg *led_cfg = PIOS_BOARD_HW_DEFS_GetLedCfg(bdinfo->board_rev);
 	PIOS_Assert(led_cfg);
-	PIOS_LED_Init(led_cfg);
-#endif	/* PIOS_INCLUDE_LED */
+	PIOS_ANNUNC_Init(led_cfg);
+#endif	/* PIOS_INCLUDE_ANNUNC */
 
 #if defined(PIOS_INCLUDE_SPI)
 	uint32_t pios_spi_gyro_id;
@@ -154,9 +153,6 @@ void PIOS_Board_Init(void)
 	/* Mount all filesystems */
 	if (PIOS_FLASHFS_Logfs_Init(&pios_uavo_settings_fs_id, &flashfs_internal_settings_cfg, FLASH_PARTITION_LABEL_SETTINGS) != 0)
 		PIOS_HAL_CriticalError(PIOS_LED_ALARM, PIOS_HAL_PANIC_FILESYS);
-	if (PIOS_FLASHFS_Logfs_Init(&pios_waypoints_settings_fs_id, &flashfs_internal_waypoints_cfg, FLASH_PARTITION_LABEL_WAYPOINTS) != 0)
-		PIOS_HAL_CriticalError(PIOS_LED_ALARM, PIOS_HAL_PANIC_FILESYS);
-
 #endif	/* PIOS_INCLUDE_FLASH */
 
 	/* Initialize the task monitor library */

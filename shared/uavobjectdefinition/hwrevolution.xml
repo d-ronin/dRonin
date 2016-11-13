@@ -1,8 +1,9 @@
+<?xml version="1.0"?>
 <xml>
 	<object name="HwRevolution" singleinstance="true" settings="true" category="HardwareSettings">
 		<description>Selection of optional hardware configurations.</description>
-
 		<field name="RxPort" units="function" type="enum" elements="1" defaultvalue="PWM">
+			<description/>
 			<options>
 				<option>Disabled</option>
 				<option>Outputs</option>
@@ -14,8 +15,9 @@
 				<option>PWM</option>
 				<option>UART</option>
 			</options>
-		</field>		
-		<field name="MainPort" units="function" type="enum" elements="1"  parent="HwShared.PortTypes" defaultvalue="Disabled">
+		</field>
+		<field name="MainPort" units="function" type="enum" elements="1" parent="HwShared.PortTypes" defaultvalue="Disabled">
+			<description>The port labelled "Main Port"</description>
 			<options>
 				<option>Disabled</option>
 				<option>ComBridge</option>
@@ -33,7 +35,6 @@
 				<option>MavLinkTX_GPS_RX</option>
 				<option>MSP</option>
 				<option>OpenLog</option>
-				<option>PicoC</option>
 				<option>S.Bus</option>
 				<option>S.Bus Non Inverted</option>
 				<option>Storm32Bgc</option>
@@ -41,8 +42,8 @@
 				<option>IBus</option>
 			</options>
 		</field>
-
 		<field name="FlexiPort" units="function" type="enum" elements="1" parent="HwShared.PortTypes" defaultvalue="Disabled">
+			<description>The port labelled "Flexi Port"</description>
 			<options>
 				<option>Disabled</option>
 				<option>ComBridge</option>
@@ -61,7 +62,6 @@
 				<option>MavLinkTX_GPS_RX</option>
 				<option>MSP</option>
 				<option>OpenLog</option>
-				<option>PicoC</option>
 				<option>S.Bus Non Inverted</option>
 				<option>Storm32Bgc</option>
 				<option>Telemetry</option>
@@ -69,6 +69,7 @@
 			</options>
 		</field>
 		<field name="RxPortUsart" units="function" type="enum" elements="1" parent="HwShared.PortTypes" defaultvalue="Disabled">
+			<description/>
 			<options>
 				<option>Disabled</option>
 				<option>ComBridge</option>
@@ -86,44 +87,74 @@
 				<option>MavLinkTX_GPS_RX</option>
 				<option>MSP</option>
 				<option>OpenLog</option>
-				<option>PicoC</option>
 				<option>S.Bus Non Inverted</option>
 				<option>Telemetry</option>
 				<option>IBus</option>
 			</options>
 		</field>
-
-		<field name="USB_HIDPort" units="function" type="enum" elements="1" parent="HwShared.USB_HIDPort" defaultvalue="USBTelemetry"/>
-		<field name="USB_VCPPort" units="function" type="enum" elements="1" parent="HwShared.USB_VCPPort" defaultvalue="Disabled"/>
-
-		<field name="DSMxMode" units="mode" type="enum" elements="1" parent="HwShared.DSMxMode" defaultvalue="Autodetect"/>
-
+		<field name="SPIPeripheral" units="function" type="enum" elements="1" defaultvalue="Radio">
+			<options>
+				<option>Disabled</option>
+				<option>Radio</option>
+				<option>MAX7456 OSD</option>
+			</options>
+		</field>
+		<field name="USB_HIDPort" units="function" type="enum" elements="1" parent="HwShared.USB_HIDPort" defaultvalue="USBTelemetry">
+			<description/>
+		</field>
+		<field name="USB_VCPPort" units="function" type="enum" elements="1" parent="HwShared.USB_VCPPort" defaultvalue="Disabled">
+			<description>Virtual COM Port protocol</description>
+		</field>
+		<field name="DSMxMode" units="mode" type="enum" elements="1" parent="HwShared.DSMxMode" defaultvalue="Autodetect">
+			<description/>
+		</field>
 		<!-- select the function for the radio port -->
 		<!--  1. Telem - telemetry connection -->
 		<!--  2. Telem+PPM - telemetry and ppm -->
 		<!--  3. PPM - PPM only (one way connection) -->
-		<field name="Radio" units="" type="enum" elements="1" parent="HwShared.RadioPort" defaultvalue="Disabled"/>
-		<!-- ID of the coordinator to allow binding to. 0 indicates allow all connections -->
-		<field name="CoordID" units="hex" type="uint32" elements="1" defaultvalue="0"/>
-
+		<field name="Radio" units="" type="enum" elements="1" parent="HwShared.RadioPort" defaultvalue="Disabled">
+			<description>Function for the radio port</description>
+		</field>
+		<field name="CoordID" units="hex" type="uint32" elements="1" defaultvalue="0">
+			<description>ID of the coordinator to allow binding to. 0 indicates allow all connections</description>
+		</field>
 		<!-- radio settings -->
-		<field name="MaxRfSpeed" units="bps" type="enum" elements="1" options="9600,19200,32000,64000,100000,192000" defaultvalue="64000"/>
-		<field name="MaxRfPower" units="mW" type="enum" elements="1" options="0,1.25,1.6,3.16,6.3,12.6,25,50,100" defaultvalue="0"/>
-		<field name="RfBand" units="MHz" type="enum" elements="1" parent="HwShared.RfBand" defaultvalue="BoardDefault"/>
-		<field name="MinChannel" units="" type="uint8" elements="1" defaultvalue="0"/>
-		<field name="MaxChannel" units="" type="uint8" elements="1" defaultvalue="250"  limits="%BE:0:250"/>
-
-		<field name="GyroRange" units="deg/s" type="enum" elements="1" options="250,500,1000,2000" defaultvalue="1000"/>
-		<field name="AccelRange" units="*gravity m/s^2" type="enum" elements="1" options="2G,4G,8G,16G" defaultvalue="8G"/>
-		<field name="MPU6000Rate" units="" type="enum" elements="1" options="200,250,333,500,1000" defaultvalue="1000"/>
-		<field name="MPU6000DLPF" units="" type="enum" elements="1" options="188,98,42,20,10,5" defaultvalue="188"/>
-
-		<field name="Magnetometer" units="function" type="enum" elements="1" options="Disabled,Internal,ExternalI2CFlexiPort" defaultvalue="Internal"/>
-		<field name="ExtMagOrientation" units="function" type="enum" elements="1" options="Top0degCW,Top90degCW,Top180degCW,Top270degCW,Bottom0degCW,Bottom90degCW,Bottom180degCW,Bottom270degCW" defaultvalue="Top0degCW" />
-
+		<field name="MaxRfSpeed" units="bps" type="enum" elements="1" parent="HwShared.MaxRfSpeed" defaultvalue="64000">
+			<description>Maximum radio speed</description>
+		</field>
+		<field name="MaxRfPower" units="mW" type="enum" elements="1" parent="HwShared.MaxRfPower" defaultvalue="0">
+			<description>Maximum radio power</description>
+		</field>
+		<field name="RfBand" units="MHz" type="enum" elements="1" parent="HwShared.RfBand" defaultvalue="BoardDefault">
+			<description>Radio frequency to use</description>
+		</field>
+		<field name="MinChannel" units="" type="uint8" elements="1" defaultvalue="0">
+			<description>Minimum channel to use</description>
+		</field>
+		<field name="MaxChannel" units="" type="uint8" elements="1" defaultvalue="250" limits="%BE:0:250">
+			<description>Maximum channel to use</description>
+		</field>
+		<field name="GyroRange" units="deg/s" type="enum" elements="1" options="250,500,1000,2000" defaultvalue="1000">
+			<description>Maximum measurement range for the gyros, should never rotate faster than about 85% of this</description>
+		</field>
+		<field name="AccelRange" units="*gravity m/s^2" type="enum" elements="1" options="2G,4G,8G,16G" defaultvalue="8G">
+			<description>The maximum measure range for the accelerometers, should never exceed this</description>
+		</field>
+		<field name="MPU6000Rate" units="" type="enum" elements="1" options="200,250,333,500,1000" defaultvalue="1000">
+			<description>The gyro sampling rate</description>
+		</field>
+		<field name="MPU6000DLPF" units="" type="enum" elements="1" options="188,98,42,20,10,5" defaultvalue="188">
+			<description>Gyro filter cutoff frequency</description>
+		</field>
+		<field name="Magnetometer" units="" type="enum" elements="1" parent="HwShared.Mag" defaultvalue="Internal">
+			<description>Which magnetometer to use. If external, must be connected to flexi port, and flexi port configured as I2C.</description>
+		</field>
+		<field name="ExtMagOrientation" units="" type="enum" elements="1" parent="HwShared.MagOrientation" defaultvalue="Top0degCW">
+			<description>Orientation of the external magnetometer</description>
+		</field>
 		<access gcs="readwrite" flight="readwrite"/>
 		<telemetrygcs acked="true" updatemode="onchange" period="0"/>
 		<telemetryflight acked="true" updatemode="onchange" period="0"/>
 		<logging updatemode="manual" period="0"/>
-    </object>
+	</object>
 </xml>

@@ -436,6 +436,16 @@ int32_t PIOS_RFM22B_Init(uint32_t * rfm22b_id, uint32_t spi_id,
 	if (device_type != 0x08)
 		return -1;
 
+	// Do add'l validation that the device is present so we don't
+	// incorrectly talk to other SPI devices
+	uint8_t version = rfm22_read(rfm22b_dev, RFM22_DEVICE_VERSION);
+
+	if ((version != RFM22_DEVICE_VERSION_V2) &&
+			(version != RFM22_DEVICE_VERSION_A0) &&
+			(version != RFM22_DEVICE_VERSION_B1)) {
+		return -1;
+	}
+
 	// Initialize our configuration parameters
 	rfm22b_dev->datarate = RFM22B_DEFAULT_RX_DATARATE;
 	rfm22b_dev->tx_power = RFM22B_DEFAULT_TX_POWER;
@@ -1260,9 +1270,9 @@ static void pios_rfm22_task(void *parameters)
 		// If not listening for PPM indicate link status with link led
 		if (!rfm22b_dev->ppm_recv_mode) {
 				if (rfm22b_dev->stats.link_state == RFM22BSTATUS_LINKSTATE_CONNECTED)
-						PIOS_LED_On(PIOS_LED_LINK);
+						PIOS_ANNUNC_On(PIOS_LED_LINK);
 			   else
-						PIOS_LED_Off(PIOS_LED_LINK);
+						PIOS_ANNUNC_Off(PIOS_LED_LINK);
 	   }
 #endif /* PIOS_LED_LINK */
 
@@ -1990,7 +2000,7 @@ static enum pios_radio_event radio_receivePacket(struct pios_rfm22b_dev
 #if defined(PIOS_LED_LINK)
 	    // if we have a link LED and are expecting PPM, that is the most
 	    // important thing to know, so use the LED to indicate that.
-		PIOS_LED_Toggle(PIOS_LED_LINK);
+		PIOS_ANNUNC_Toggle(PIOS_LED_LINK);
 #endif /* PIOS_LED_LINK */
 
 		// Ensure the packet it long enough

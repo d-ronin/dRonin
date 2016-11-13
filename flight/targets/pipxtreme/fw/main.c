@@ -82,7 +82,7 @@ int main()
 	/* Do some indication to user that something bad just happened */
 	while (1) {
 #if defined(PIOS_LED_HEARTBEAT)
-		PIOS_LED_Toggle(PIOS_LED_HEARTBEAT);
+		PIOS_ANNUNC_Toggle(PIOS_LED_HEARTBEAT);
 #endif	/* PIOS_LED_HEARTBEAT */
 		PIOS_DELAY_WaitmS(100);
 	}

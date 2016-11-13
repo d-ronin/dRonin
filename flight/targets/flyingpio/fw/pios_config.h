@@ -39,7 +39,7 @@
 #define PIOS_INCLUDE_ADC
 #define PIOS_INCLUDE_COM
 #define PIOS_INCLUDE_IRQ
-#define PIOS_INCLUDE_LED
+#define PIOS_INCLUDE_ANNUNC
 #define PIOS_INCLUDE_RTC	// Not really.. implemented by delay subsystem
 #define PIOS_INCLUDE_SERVO
 #define PIOS_INCLUDE_SPISLAVE

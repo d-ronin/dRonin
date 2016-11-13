@@ -90,16 +90,6 @@ bool Dtfc::queryCapabilities(BoardCapabilities capability)
     }
 }
 
-/**
- * @brief Dtfc::getSupportedProtocols
- *  TODO: this is just a stub, we'll need to extend this a lot with multi protocol support
- * @return
- */
-QStringList Dtfc::getSupportedProtocols()
-{
-    return QStringList("uavtalk");
-}
-
 QPixmap Dtfc::getBoardPicture()
 {
     return QPixmap(":/dtf/images/dtfc.png");

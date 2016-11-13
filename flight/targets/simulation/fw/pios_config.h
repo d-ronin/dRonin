@@ -35,7 +35,7 @@
 
 /* Enable/Disable PiOS Modules */
 #define PIOS_INCLUDE_SYS
-#define PIOS_INCLUDE_LED
+#define PIOS_INCLUDE_ANNUNC
 #define PIOS_INCLUDE_CHIBIOS
 
 #define PIOS_INCLUDE_COM

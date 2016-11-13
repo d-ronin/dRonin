@@ -45,7 +45,9 @@ static const struct pios_servo_cfg *servo_cfg;
 
 //! The counter rate for the channel, used to calculate compare values.
 static uint32_t *output_channel_resolution;  // The clock rate for that timer
-enum channel_mode {UNCONFIGURED = 0, REGULAR_PWM, SYNC_PWM} *output_channel_mode;
+static enum channel_mode {UNCONFIGURED = 0, REGULAR_PWM, REGULAR_INVERTED_PWM, SYNC_PWM} *output_channel_mode;
+
+static bool resetting;
 
 /* Private function prototypes */
 static uint32_t timer_apb_clock(TIM_TypeDef *timer);
@@ -248,7 +250,13 @@ void PIOS_Servo_SetMode(const uint16_t *out_rate, const int banks, const uint16_
 			const struct pios_tim_channel *chan = &servo_cfg->channels[j];
 			if (timer_banks[i].timer == chan->timer) {
 				/* save the frequency for these channels */
-				output_channel_mode[j] = (rate == 0) ? SYNC_PWM : REGULAR_PWM;
+				if (rate == 0) {
+					output_channel_mode[j] = SYNC_PWM;
+				} else if (channel_max[j] >= channel_min[j]) {
+					output_channel_mode[j] = REGULAR_PWM;
+				} else {
+					output_channel_mode[j] = REGULAR_INVERTED_PWM;
+				}
 				output_channel_resolution[j] = timer_banks[i].clk_rate;
 			}
 		}
@@ -285,9 +293,11 @@ static void PIOS_Servo_SetRaw(uint8_t servo, uint32_t raw_position) {
 void PIOS_Servo_SetFraction(uint8_t servo, uint16_t fraction,
 		uint16_t max_val, uint16_t min_val)
 {
+	PIOS_Assert(max_val >= min_val);
+
 	/* Make sure servo exists */
 	if (!servo_cfg || servo >= servo_cfg->num_channels ||
-			output_channel_mode == UNCONFIGURED) {
+			output_channel_mode[servo] == UNCONFIGURED) {
 		return;
 	}
 
@@ -310,6 +320,14 @@ void PIOS_Servo_SetFraction(uint8_t servo, uint16_t fraction,
 	val += 32767;
 	val = val >> 16;
 
+	if (resetting && (fraction < 0xff00)) {
+		/* If we're resetting and the value isn't driven to the maximum
+		 * value, drive low with no pulses.  If it's at the max value,
+		 * it could be driving brushed motors and forced low is bad.
+		 */
+		val = 0;
+	}
+
 	PIOS_Servo_SetRaw(servo, val);
 }
 
@@ -322,7 +340,7 @@ void PIOS_Servo_Set(uint8_t servo, float position)
 {
 	/* Make sure servo exists */
 	if (!servo_cfg || servo >= servo_cfg->num_channels ||
-			output_channel_mode == UNCONFIGURED) {
+			output_channel_mode[servo] == UNCONFIGURED) {
 		return;
 	}
 
@@ -330,6 +348,13 @@ void PIOS_Servo_Set(uint8_t servo, float position)
 	/* position is in us. */
 	float us_to_count = output_channel_resolution[servo] / 1000000.0f;
 	position = position * us_to_count;
+
+	if (resetting && (output_channel_mode[servo] != REGULAR_INVERTED_PWM)) {
+		/* Don't nail inverted channels low during reset, because they
+		 * could be driving brushed motors.
+		 */
+		position = 0;
+	}
 
 	PIOS_Servo_SetRaw(servo, position);
 }
@@ -401,6 +426,13 @@ static uint32_t timer_apb_clock(TIM_TypeDef *timer)
 #else
 #error Unsupported microcontroller
 #endif
+
+/**
+ * Prepare for IAP reset.  Stop PWM, so ESCs disarm.
+ */
+void PIOS_Servo_PrepareForReset() {
+	resetting = true;
+}
 
 /**
  * @brief Determines the maximum clock rate for a given timer (i.e. no prescale)

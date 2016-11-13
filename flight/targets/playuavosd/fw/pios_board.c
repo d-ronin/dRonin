@@ -43,6 +43,7 @@
 #include <pios_hal.h>
 #include <openpilot.h>
 #include <uavobjectsinit.h>
+#include <pios_max7456.h>
 #include "hwplayuavosd.h"
 #include "modulesettings.h"
 #include "onscreendisplaysettings.h"
@@ -155,9 +156,9 @@ void PIOS_Board_Init(void) {
 	/* Delay system */
 	PIOS_DELAY_Init();
 
-#if defined(PIOS_INCLUDE_LED)
-	PIOS_LED_Init(&pios_led_cfg);
-#endif	/* PIOS_INCLUDE_LED */
+#if defined(PIOS_INCLUDE_ANNUNC)
+	PIOS_ANNUNC_Init(&pios_annunc_cfg);
+#endif	/* PIOS_INCLUDE_ANNUNC */
 
 #if defined(PIOS_INCLUDE_FLASH)
 	/* Inititialize all flash drivers */
@@ -311,12 +312,9 @@ void PIOS_Board_Init(void) {
 	GPIO_ResetBits(GPIOA, GPIO_Pin_0);
 
 #if defined (PIOS_INCLUDE_MAX7456)
-	struct pios_max7456_dev *max7456;
-	if (PIOS_MAX7456_Init(&max7456, (struct pios_spi_dev *)pios_spi_max7456_id, 0, &max7456_cfg))
+	max7456_dev_t max7456;
+	if (PIOS_MAX7456_init(&max7456, pios_spi_max7456_id, 0))
 		PIOS_HAL_CriticalError(PIOS_LED_ALARM, PIOS_HAL_PANIC_OSD);
-
-	enum pios_max7456_video_type vid_type = PIOS_MAX7456_GetVideoType(max7456);
-	PIOS_MAX7456_SetOutputType(max7456, vid_type);
 #endif // defined (PIOS_INCLUDE_MAX7456)
 
 #endif // defined(PIOS_INCLUDE_SPI)

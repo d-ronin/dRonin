@@ -67,17 +67,6 @@ bool DiscoveryF4::queryCapabilities(BoardCapabilities capability)
     return false;
 }
 
-/**
- * @brief DiscoveryF4::getSupportedProtocols
- *  TODO: this is just a stub, we'll need to extend this a lot with multi protocol support
- * @return
- */
-QStringList DiscoveryF4::getSupportedProtocols()
-{
-
-    return QStringList("uavtalk");
-}
-
 QPixmap DiscoveryF4::getBoardPicture()
 {
     return QPixmap();

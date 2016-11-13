@@ -1,4 +1,5 @@
-/* Copyright 2012 Google Inc.
+/* Copyright 2011-2013 Google Inc.
+ * Copyright 2013 mike wakerly <opensource@hoho.com>
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -15,8 +16,9 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301,
  * USA.
  *
- * Project home page: http://code.google.com/p/usb-serial-for-android/
+ * Project home page: https://github.com/mik3y/usb-serial-for-android
  */
+
 package com.hoho.android.usbserial.driver;
 
 /**
@@ -31,7 +33,7 @@ public final class UsbId {
 
     public static final int VENDOR_FTDI = 0x0403;
     public static final int FTDI_FT232R = 0x6001;
-    public static final int FTDI_FT230X = 0x6015;
+    public static final int FTDI_FT231X = 0x6015;
 
     public static final int VENDOR_ATMEL = 0x03EB;
     public static final int ATMEL_LUFA_CDC_DEMO_APP = 0x2044;
@@ -46,15 +48,25 @@ public final class UsbId {
     public static final int ARDUINO_MEGA_ADK_R3 = 0x0044;
     public static final int ARDUINO_SERIAL_ADAPTER_R3 = 0x0044;
     public static final int ARDUINO_LEONARDO = 0x8036;
+    public static final int ARDUINO_MICRO = 0x8037;
 
     public static final int VENDOR_VAN_OOIJEN_TECH = 0x16c0;
     public static final int VAN_OOIJEN_TECH_TEENSYDUINO_SERIAL = 0x0483;
 
     public static final int VENDOR_LEAFLABS = 0x1eaf;
     public static final int LEAFLABS_MAPLE = 0x0004;
-    
-    public static final int VENDOR_SILAB = 0x10c4;
-    public static final int SILAB_CP2102 = 0xea60;
+
+    public static final int VENDOR_SILABS = 0x10c4;
+    public static final int SILABS_CP2102 = 0xea60;
+    public static final int SILABS_CP2105 = 0xea70;
+    public static final int SILABS_CP2108 = 0xea71;
+    public static final int SILABS_CP2110 = 0xea80;
+
+    public static final int VENDOR_PROLIFIC = 0x067b;
+    public static final int PROLIFIC_PL2303 = 0x2303;
+
+    public static final int VENDOR_QINHENG = 0x1a86;
+    public static final int QINHENG_HL340 = 0x7523;
 
     private UsbId() {
         throw new IllegalAccessError("Non-instantiable class.");

@@ -107,6 +107,9 @@ public:
             TreeItem::setData(valIndex);
             setHighlight(true);
         }
+        UAVDataObject *obj = qobject_cast<UAVDataObject *>(m_field->getObject());
+        if (obj && obj->isSettings())
+            setIsDefaultValue(m_field->isDefaultValue(m_index));
     }
     QWidget *createEditor(QWidget *parent) {
         QComboBox *editor = new QComboBox(parent);
@@ -249,6 +252,10 @@ public:
             }
             setHighlight(true);
         }
+
+        UAVDataObject *obj = qobject_cast<UAVDataObject *>(m_field->getObject());
+        if (obj && obj->isSettings())
+            setIsDefaultValue(m_field->isDefaultValue(m_index));
     }
 
 private:
@@ -272,6 +279,9 @@ public:
     void apply() {
         m_field->setValue(data(dataColumn).toDouble(), m_index);
         setChanged(false);
+        UAVDataObject *obj = qobject_cast<UAVDataObject *>(m_field->getObject());
+        if (obj && obj->isSettings())
+            setIsDefaultValue(m_field->isDefaultValue(m_index));
     }
     void update() {
         double value = m_field->getValue(m_index).toDouble();

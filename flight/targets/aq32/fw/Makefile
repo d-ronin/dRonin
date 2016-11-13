@@ -62,11 +62,11 @@ OPTMODULES += Airspeed
 OPTMODULES += UAVOHoTTBridge
 OPTMODULES += UAVOFrSKYSensorHubBridge
 OPTMODULES += UAVOLighttelemetryBridge
-OPTMODULES += PicoC
 OPTMODULES += UAVOFrSKYSPortBridge
 OPTMODULES += Geofence
 OPTMODULES += Logging
 OPTMODULES += Storm32Bgc
+OPTMODULES += CharacterOSD
 
 # Paths
 OPUAVTALKINC = $(OPUAVTALK)/inc
@@ -121,6 +121,7 @@ SRC += $(FLIGHTLIB)/sanitycheck.c
 SRC += $(FLIGHTLIB)/timeutils.c
 SRC += $(FLIGHTLIB)/frsky_packing.c
 SRC += $(FLIGHTLIB)/circqueue.c
+SRC += $(FLIGHTLIB)/morsel.c
 SRC += $(MATHLIB)/coordinate_conversions.c
 SRC += $(MATHLIB)/misc_math.c
 SRC += $(MATHLIB)/atmospheric_math.c
@@ -134,6 +135,7 @@ SRC += pios_delay.c
 SRC += pios_mpu.c
 SRC += pios_gcsrcvr.c
 SRC += pios_hmc5883.c
+SRC += pios_hmc5983_i2c.c
 SRC += pios_ms5611.c
 
 SRC += pios_crc.c
@@ -146,7 +148,6 @@ SRC += pios_sensors.c
 SRC += pios_flash.c
 SRC += pios_flash_jedec.c
 SRC += pios_flashfs_logfs.c
-SRC += printf-stdarg.c
 SRC += pios_usb_desc_hid_cdc.c
 SRC += pios_usb_desc_hid_only.c
 SRC += pios_usb_util.c
@@ -166,10 +167,11 @@ SRC += pios_spi.c
 SRC += pios_irq.c
 SRC += pios_pwm.c
 SRC += pios_ppm.c
+SRC += pios_max7456.c
 SRC += pios_debug.c
 SRC += pios_wdg.c
 SRC += pios_reset.c
-SRC += pios_led.c
+SRC += pios_annunc.c
 
 # List C++ source files here.
 # use file-extension .cpp for C++-files (not .C)
@@ -313,6 +315,7 @@ LDFLAGS = -nostartfiles -Wl,-Map=$(OUTDIR)/$(TARGET).map,--cref,--gc-sections
 LDFLAGS += -lc -lgcc -lm
 LDFLAGS += -Wl,--warn-common
 LDFLAGS += -Wl,--fatal-warnings
+LDFLAGS += -u _printf_float
 
 # Linker scripts
 LDFLAGS += -T memory.ld $(addprefix -T,$(LINKER_SCRIPTS_APP))

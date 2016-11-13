@@ -32,11 +32,11 @@
 #include <pios_config.h>
 #include <pios_board_info.h>
 
-#if defined(PIOS_INCLUDE_LED)
+#if defined(PIOS_INCLUDE_ANNUNC)
 
-#include <pios_led_priv.h>
+#include <pios_annunc_priv.h>
 
-static const struct pios_led pios_leds[] = {
+static const struct pios_annunc pios_annuncs[] = {
 	[PIOS_LED_HEARTBEAT] = {
 		.pin = {
 			.gpio = GPIOC,
@@ -63,18 +63,18 @@ static const struct pios_led pios_leds[] = {
 	},
 };
 
-static const struct pios_led_cfg pios_led_cfg = {
-	.leds     = pios_leds,
-	.num_leds = NELEMENTS(pios_leds),
+static const struct pios_annunc_cfg pios_annunc_cfg = {
+	.annunciators     = pios_annuncs,
+	.num_annunciators = NELEMENTS(pios_annuncs),
 };
 
-const struct pios_led_cfg * PIOS_BOARD_HW_DEFS_GetLedCfg (uint32_t board_revision)
+const struct pios_annunc_cfg * PIOS_BOARD_HW_DEFS_GetLedCfg (uint32_t board_revision)
 {
 	(void)board_revision;
-	return &pios_led_cfg;
+	return &pios_annunc_cfg;
 }
 
-#endif	/* PIOS_INCLUDE_LED */
+#endif	/* PIOS_INCLUDE_ANNUNC */
 
 
 #if defined(PIOS_INCLUDE_FLASH)
@@ -785,16 +785,6 @@ void PIOS_SPI_max7456_irq_handler(void)
 	/* Call into the generic code to handle the IRQ for this specific device */
 	PIOS_SPI_IRQ_Handler(pios_spi_max7456_id);
 }
-
-
-#if defined(PIOS_INCLUDE_MAX7456)
-#include "pios_max7456_cfg.h"
-
-const struct pios_max7456_cfg max7456_cfg = {
-
-};
-
-#endif // defined(PIOS_INCLUDE_MAX7456)
 
 #endif // defined(PIOS_INCLUDE_SPI)
 

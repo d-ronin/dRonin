@@ -47,6 +47,7 @@ public:
 
 private slots:
     void openHelp();
+    void widgetsContentsChanged();
     void generateILapID();
     void generateTrackmateID();
     void getCustomLedColor();

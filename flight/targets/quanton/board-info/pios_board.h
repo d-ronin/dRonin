@@ -83,11 +83,10 @@ TIM8  |           |           |           |
 //------------------------
 // PIOS_LED
 //------------------------
-#define PIOS_LED_RED					0
-#define PIOS_LED_BLUE					1
+#define PIOS_LED_ALARM					0
+#define PIOS_LED_HEARTBEAT				1
 
-#define PIOS_LED_HEARTBEAT				PIOS_LED_BLUE
-#define PIOS_LED_ALARM					PIOS_LED_RED
+#define PIOS_ANNUNCIATOR_BUZZER				2
 
 //------------------------
 // PIOS_WDG
@@ -122,7 +121,6 @@ extern uintptr_t pios_com_mavlink_id;
 extern uintptr_t pios_com_hott_id;
 extern uintptr_t pios_com_frsky_sensor_hub_id;
 extern uintptr_t pios_com_lighttelemetry_id;
-extern uintptr_t pios_com_picoc_id;
 extern uintptr_t pios_com_frsky_sport_id;
 extern uintptr_t pios_com_openlog_logging_id;
 extern uintptr_t pios_com_storm32bgc_id;
@@ -136,7 +134,6 @@ extern uintptr_t pios_com_storm32bgc_id;
 #define PIOS_COM_HOTT                   (pios_com_hott_id)
 #define PIOS_COM_FRSKY_SENSOR_HUB       (pios_com_frsky_sensor_hub_id)
 #define PIOS_COM_LIGHTTELEMETRY         (pios_com_lighttelemetry_id)
-#define PIOS_COM_PICOC                  (pios_com_picoc_id)
 #define PIOS_COM_FRSKY_SPORT            (pios_com_frsky_sport_id)
 #define PIOS_COM_OPENLOG                (pios_com_openlog_logging_id)
 #define PIOS_COM_STORM32BGC             (pios_com_storm32bgc_id)
@@ -245,12 +242,11 @@ extern uintptr_t pios_com_debug_id;
 //-------------------------
 // GPIO
 //-------------------------
-// [0]: Output-> Quanton Buzzer Pin, with active driver connected to GND
-// [1]: Output-> Quanton Battery Pin, take care of the voltage divider connected to this pin
-// [2]-[9]: Input-> Quanton PWN IN Pins 1-8, take care of the RcvrPort configuration in GCS and that the Pins are configured with a PullUp Resistor
-#define PIOS_GPIO_PORTS				{ GPIOA,      GPIOC,       GPIOA,       GPIOC,      GPIOC,      GPIOC,      GPIOA,       GPIOB,      GPIOA,      GPIOA }
-#define PIOS_GPIO_PINS				{ GPIO_Pin_4, GPIO_Pin_15, GPIO_Pin_10, GPIO_Pin_6, GPIO_Pin_7, GPIO_Pin_8, GPIO_Pin_15, GPIO_Pin_3, GPIO_Pin_0, GPIO_Pin_1 }
-#define PIOS_GPIO_NUM				10
+// [0]: Output-> Quanton Battery Pin, take care of the voltage divider connected to this pin
+// [1]-[8]: Input-> Quanton PWN IN Pins 1-8, take care of the RcvrPort configuration in GCS and that the Pins are configured with a PullUp Resistor
+#define PIOS_GPIO_PORTS				{     GPIOC,       GPIOA,       GPIOC,      GPIOC,      GPIOC,      GPIOA,       GPIOB,      GPIOA,      GPIOA }
+#define PIOS_GPIO_PINS				{  GPIO_Pin_15, GPIO_Pin_10, GPIO_Pin_6, GPIO_Pin_7, GPIO_Pin_8, GPIO_Pin_15, GPIO_Pin_3, GPIO_Pin_0, GPIO_Pin_1 }
+#define PIOS_GPIO_NUM				9
 
 #endif /* STM3210E_INS_H_ */
 

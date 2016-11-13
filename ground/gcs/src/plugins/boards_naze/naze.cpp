@@ -78,17 +78,6 @@ bool Naze::queryCapabilities(BoardCapabilities capability)
     }
 }
 
-
-/**
- * @brief Naze::getSupportedProtocols
- *  TODO: this is just a stub, we'll need to extend this a lot with multi protocol support
- * @return
- */
-QStringList Naze::getSupportedProtocols()
-{
-    return QStringList("uavtalk");
-}
-
 QPixmap Naze::getBoardPicture()
 {
     return QPixmap(":/naze/images/nazev6.png");

@@ -99,10 +99,6 @@ uintptr_t pios_com_frsky_sport_id;
 uintptr_t pios_com_lighttelemetry_id;
 #endif
 
-#if defined(PIOS_INCLUDE_PICOC)
-uintptr_t pios_com_picoc_id;
-#endif
-
 #if defined(PIOS_INCLUDE_STORM32BGC)
 uintptr_t pios_com_storm32bgc_id;
 #endif
@@ -186,14 +182,6 @@ uintptr_t pios_com_debug_id;
 #define PIOS_COM_LIGHTTELEMETRY_TX_BUF_LEN 19
 #endif
 
-#ifndef PIOS_COM_PICOC_RX_BUF_LEN
-#define PIOS_COM_PICOC_RX_BUF_LEN 128
-#endif
-
-#ifndef PIOS_COM_PICOC_TX_BUF_LEN
-#define PIOS_COM_PICOC_TX_BUF_LEN 128
-#endif
-
 #ifndef PIOS_COM_FRSKYSPORT_TX_BUF_LEN
 #define PIOS_COM_FRSKYSPORT_TX_BUF_LEN 16
 #endif
@@ -243,6 +231,20 @@ static const struct pios_hmc5883_cfg external_hmc5883_cfg = {
 };
 #endif
 
+#ifdef PIOS_INCLUDE_HMC5983_I2C
+#include "pios_hmc5983.h"
+
+static const struct pios_hmc5983_cfg external_hmc5983_cfg = {
+	.exti_cfg            = NULL,
+	.M_ODR               = PIOS_HMC5983_ODR_75,
+	.Meas_Conf           = PIOS_HMC5983_MEASCONF_NORMAL,
+	.Gain                = PIOS_HMC5983_GAIN_1_9,
+	.Mode                = PIOS_HMC5983_MODE_SINGLE,
+	.Averaging           = PIOS_HMC5983_AVERAGING_1,
+	.Orientation         = PIOS_HMC5983_TOP_0DEG,
+};
+#endif
+
 #ifdef PIOS_INCLUDE_BMP280
 #include "pios_bmp280_priv.h"
 
@@ -280,14 +282,14 @@ void PIOS_HAL_CriticalError(uint32_t led_id, enum pios_hal_panic code) {
 	}
 #endif
 
-#if defined(PIOS_INCLUDE_LED)
+#if defined(PIOS_INCLUDE_ANNUNC)
 	for (int cnt = 0; cnt < 3; cnt++) {
 		for (int32_t i = 0; i < code; i++) {
 			PIOS_WDG_Clear();
-			PIOS_LED_Toggle(led_id);
+			PIOS_ANNUNC_Toggle(led_id);
 			PIOS_DELAY_WaitmS(175);
 			PIOS_WDG_Clear();
-			PIOS_LED_Toggle(led_id);
+			PIOS_ANNUNC_Toggle(led_id);
 			PIOS_DELAY_WaitmS(175);
 		}
 		PIOS_DELAY_WaitmS(175);
@@ -297,7 +299,7 @@ void PIOS_HAL_CriticalError(uint32_t led_id, enum pios_hal_panic code) {
 		PIOS_DELAY_WaitmS(175);
 		PIOS_WDG_Clear();
 	}
-#endif // PIOS_INCLUDE_LED
+#endif // PIOS_INCLUDE_ANNUNC
 	PIOS_SYS_Reset();
 }
 
@@ -736,13 +738,6 @@ void PIOS_HAL_ConfigurePort(HwSharedPortTypesOptions port_type,
 #endif /* PIOS_INCLUDE_OPENLOG */
 		break;
 
-	case HWSHARED_PORTTYPES_PICOC:
-#if defined(PIOS_INCLUDE_PICOC)
-		PIOS_HAL_ConfigureCom(usart_port_cfg, &usart_port_params, PIOS_COM_PICOC_RX_BUF_LEN, PIOS_COM_PICOC_TX_BUF_LEN, com_driver, &port_driver_id);
-		target = &pios_com_picoc_id;
-#endif /* PIOS_INCLUDE_PICOC */
-		break;
-
 	case HWSHARED_PORTTYPES_VTXCONFIGTBSSMARTAUDIO:
 #if defined(PIOS_INCLUDE_TBSVTXCONFIG)
 		if (usart_port_cfg) {
@@ -924,19 +919,6 @@ void PIOS_HAL_ConfigureCDC(HwSharedUSB_VCPPortOptions port_type,
 			}
 		}
 #endif  /* PIOS_INCLUDE_DEBUG_CONSOLE */
-		break;
-	case HWSHARED_USB_VCPPORT_PICOC:
-#if defined(PIOS_INCLUDE_PICOC)
-		{
-			if (PIOS_COM_Init(&pios_com_picoc_id,
-					&pios_usb_cdc_com_driver,
-					pios_usb_cdc_id,
-					PIOS_COM_PICOC_RX_BUF_LEN,
-					PIOS_COM_PICOC_TX_BUF_LEN)) {
-				PIOS_Assert(0);
-			}
-		}
-#endif  /* PIOS_INCLUDE_PICOC */
 		break;
 	}
 }
@@ -1315,7 +1297,7 @@ done:
 #endif /* PIOS_INCLUDE_I2C */
 }
 
-int PIOS_HAL_ConfigureExternalMag(HwSharedExtMagOptions mag,
+int PIOS_HAL_ConfigureExternalMag(HwSharedMagOptions mag,
 		HwSharedMagOrientationOptions orientation,
 		uint32_t *i2c_id,
 		const struct pios_i2c_adapter_cfg *i2c_cfg)
@@ -1323,25 +1305,23 @@ int PIOS_HAL_ConfigureExternalMag(HwSharedExtMagOptions mag,
 #if !defined(PIOS_INCLUDE_I2C)
 	return -1;
 #else
-	if (mag == HWSHARED_EXTMAG_NONE) {
+
+	/* internal mag should be handled in pios_board_init */
+	if (mag == HWSHARED_MAG_NONE || mag == HWSHARED_MAG_INTERNAL) {
 		return 1;
 	}
 
-	int ret = PIOS_HAL_ConfigureI2C(i2c_id, i2c_cfg);
-
-	if (ret) goto done;
+	if (PIOS_HAL_ConfigureI2C(i2c_id, i2c_cfg))
+		goto mag_fail;
 
 	switch (mag) {
 #ifdef PIOS_INCLUDE_HMC5883
-	case HWSHARED_EXTMAG_HMC5883:
-		ret = PIOS_HMC5883_Init(*i2c_id,
-				&external_hmc5883_cfg);
+	case HWSHARED_MAG_EXTERNALHMC5883:
+		if (PIOS_HMC5883_Init(*i2c_id, &external_hmc5883_cfg))
+			goto mag_fail;
 
-		if (ret) goto done;
-
-		ret = PIOS_HMC5883_Test();
-
-		if (ret) goto done;
+		if (PIOS_HMC5883_Test())
+			goto mag_fail;
 
 		// XXX: Lame.  Move driver to HwShared constants.
 		enum pios_hmc5883_orientation hmc5883_orientation = 
@@ -1359,15 +1339,38 @@ int PIOS_HAL_ConfigureExternalMag(HwSharedExtMagOptions mag,
 		break;
 #endif /* PIOS_INCLUDE_HMC5883 */
 
+#ifdef PIOS_INCLUDE_HMC5983_I2C
+	case HWSHARED_MAG_EXTERNALHMC5983:
+		if (PIOS_HMC5983_Init(*i2c_id, 0, &external_hmc5983_cfg))
+			goto mag_fail;
+
+		if (PIOS_HMC5983_Test())
+			goto mag_fail;
+
+		/* Annoying to do this, but infecting low-level drivers with UAVO deps is yucky */
+		enum pios_hmc5983_orientation hmc5983_orientation = 
+			(orientation == HWSHARED_MAGORIENTATION_TOP0DEGCW)      ? PIOS_HMC5983_TOP_0DEG      : 
+			(orientation == HWSHARED_MAGORIENTATION_TOP90DEGCW)     ? PIOS_HMC5983_TOP_90DEG     : 
+			(orientation == HWSHARED_MAGORIENTATION_TOP180DEGCW)    ? PIOS_HMC5983_TOP_180DEG    : 
+			(orientation == HWSHARED_MAGORIENTATION_TOP270DEGCW)    ? PIOS_HMC5983_TOP_270DEG    : 
+			(orientation == HWSHARED_MAGORIENTATION_BOTTOM0DEGCW)   ? PIOS_HMC5983_BOTTOM_0DEG   : 
+			(orientation == HWSHARED_MAGORIENTATION_BOTTOM90DEGCW)  ? PIOS_HMC5983_BOTTOM_90DEG  : 
+			(orientation == HWSHARED_MAGORIENTATION_BOTTOM180DEGCW) ? PIOS_HMC5983_BOTTOM_180DEG : 
+			(orientation == HWSHARED_MAGORIENTATION_BOTTOM270DEGCW) ? PIOS_HMC5983_BOTTOM_270DEG : 
+			external_hmc5983_cfg.Orientation;
+
+		PIOS_HMC5983_SetOrientation(hmc5983_orientation);
+		break;
+#endif /* PIOS_INCLUDE_HMC5983_I2C */
+
 	default:
-		PIOS_Assert(0);	// Should be unreachable
+		PIOS_Assert(0);	/* Should be unreachable */
 	}
 
-done:
-	if (ret) {
-		PIOS_SENSORS_SetMissing(PIOS_SENSOR_MAG);
-	}
+	return 0;
 
-	return ret;
+mag_fail:
+	PIOS_SENSORS_SetMissing(PIOS_SENSOR_MAG);
+	return -2;
 #endif /* PIOS_INCLUDE_I2C */
 }

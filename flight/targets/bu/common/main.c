@@ -45,9 +45,9 @@ int main(void) {
 
 	PIOS_SYS_Init();
 	PIOS_Board_Init();
-	PIOS_LED_On(PIOS_LED_HEARTBEAT);
+	PIOS_ANNUNC_On(PIOS_LED_HEARTBEAT);
 	PIOS_DELAY_WaitmS(1000);
-	PIOS_LED_Off(PIOS_LED_HEARTBEAT);
+	PIOS_ANNUNC_Off(PIOS_LED_HEARTBEAT);
 
 #ifndef BU_DONT_CHECK_BOARDINFO
 	/*
@@ -80,18 +80,18 @@ int main(void) {
 		error(PIOS_LED_HEARTBEAT);
 
 	/* Erase the partition */
-	PIOS_LED_On(PIOS_LED_HEARTBEAT);
+	PIOS_ANNUNC_On(PIOS_LED_HEARTBEAT);
 	PIOS_FLASH_start_transaction(bl_partition_id);
 	PIOS_FLASH_erase_partition(bl_partition_id);
 	PIOS_FLASH_end_transaction(bl_partition_id);
-	PIOS_LED_Off(PIOS_LED_HEARTBEAT);
+	PIOS_ANNUNC_Off(PIOS_LED_HEARTBEAT);
 
 	/* Write in the new bootloader */
-	PIOS_LED_On(PIOS_LED_HEARTBEAT);
+	PIOS_ANNUNC_On(PIOS_LED_HEARTBEAT);
 	PIOS_FLASH_start_transaction(bl_partition_id);
 	PIOS_FLASH_write_data(bl_partition_id, 0, (uint8_t *)&_bu_payload_start, _bu_payload_size);
 	PIOS_FLASH_end_transaction(bl_partition_id);
-	PIOS_LED_Off(PIOS_LED_HEARTBEAT);
+	PIOS_ANNUNC_Off(PIOS_LED_HEARTBEAT);
 
 	PIOS_DELAY_WaitmS(500);
 
@@ -100,7 +100,7 @@ int main(void) {
 	if (PIOS_FLASH_find_partition_id(FLASH_PARTITION_LABEL_FW, &fw_partition_id) != 0)
 		error(PIOS_LED_HEARTBEAT);
 
-	PIOS_LED_On(PIOS_LED_HEARTBEAT);
+	PIOS_ANNUNC_On(PIOS_LED_HEARTBEAT);
 	const uint32_t zero = 0;
 	PIOS_FLASH_start_transaction(fw_partition_id);
 	PIOS_FLASH_write_data(fw_partition_id, 0, (uint8_t *)&zero, sizeof(zero));
@@ -111,15 +111,15 @@ int main(void) {
 	uint32_t offset = pios_board_info_blob.desc_base - pios_board_info_blob.fw_base + 2;
 	PIOS_FLASH_write_data(fw_partition_id, offset, (uint8_t *)&zero, 2);
 	PIOS_FLASH_end_transaction(fw_partition_id);
-	PIOS_LED_Off(PIOS_LED_HEARTBEAT);
+	PIOS_ANNUNC_Off(PIOS_LED_HEARTBEAT);
 
 	PIOS_DELAY_WaitmS(100);
 
 	/* Flash the LED to indicate finished */
 	for (uint8_t x = 0; x < 2; ++x) {
-			PIOS_LED_On(PIOS_LED_HEARTBEAT);
+			PIOS_ANNUNC_On(PIOS_LED_HEARTBEAT);
 			PIOS_DELAY_WaitmS(1000);
-			PIOS_LED_Off(PIOS_LED_HEARTBEAT);
+			PIOS_ANNUNC_Off(PIOS_LED_HEARTBEAT);
 			PIOS_DELAY_WaitmS(1000);
 	}
 
@@ -130,9 +130,9 @@ int main(void) {
 
 void error(int led) {
 	for (;;) {
-		PIOS_LED_On(led);
+		PIOS_ANNUNC_On(led);
 		PIOS_DELAY_WaitmS(500);
-		PIOS_LED_Off(led);
+		PIOS_ANNUNC_Off(led);
 		PIOS_DELAY_WaitmS(500);
 	}
 }
