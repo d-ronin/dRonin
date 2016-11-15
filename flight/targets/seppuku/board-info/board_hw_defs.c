@@ -268,7 +268,7 @@ void PIOS_I2C_usart3_er_irq_handler(void)
 
 static const struct flashfs_logfs_cfg flashfs_settings_cfg = {
 	.fs_magic = 0x3b1b14cf,
-	.arena_size = 0x00004000,	/* 64 * slot size */
+	.arena_size = 0x00020000,
 	.slot_size = 0x00000100,	/* 256 bytes */
 };
 
