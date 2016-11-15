@@ -1017,6 +1017,8 @@ static const struct pios_usb_cfg pios_usb_main_cfg = {
 			.NVIC_IRQChannelCmd                = ENABLE,
 		},
 	},
+#ifdef BOOTLOADER_VERSION
+	// Only use vsense in loader.
 	.vsense = {
 		.gpio = GPIOA,
 		.init = {
@@ -1027,6 +1029,7 @@ static const struct pios_usb_cfg pios_usb_main_cfg = {
 			.GPIO_PuPd  = GPIO_PuPd_UP,
 		},
 	}
+#endif
 };
 
 const struct pios_usb_cfg * PIOS_BOARD_HW_DEFS_GetUsbCfg (uint32_t board_revision)
