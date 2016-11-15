@@ -51,6 +51,7 @@
 #include "modulesettings.h"
 #include "onscreendisplaysettings.h"
 
+ 
 /**
  * Sensor configurations
  */
@@ -97,6 +98,9 @@ static const struct pios_bmi160_cfg pios_bmi160_cfg = {
 	.temperature_interleaving = 50
 };
 #endif /* PIOS_INCLUDE_BMI160 */
+#if defined(PIOS_INCLUDE_WS2811)
+#include "rgbledsettings.h"
+#endif
 
 uintptr_t pios_com_openlog_logging_id;
 uintptr_t pios_uavo_settings_fs_id;
@@ -408,17 +412,17 @@ void PIOS_Board_Init(void) {
 
 
 #ifdef PIOS_INCLUDE_WS2811
-	PIOS_WS2811_init(&pios_ws2811, &pios_ws2811_cfg, 7);
+	uint8_t num_leds;
 
-	// Pending infrastructure for this, drive a fixed
-	// value to the strand once.
-	PIOS_WS2811_set(pios_ws2811, 0, 255, 0, 0); // red
-	PIOS_WS2811_set(pios_ws2811, 1, 0, 255, 0); // green
-	PIOS_WS2811_set(pios_ws2811, 2, 0, 0, 255); // blue
-	PIOS_WS2811_set(pios_ws2811, 3, 255, 255, 0); // yellow
-	PIOS_WS2811_set(pios_ws2811, 4, 255, 0, 255); // purple
-	PIOS_WS2811_set(pios_ws2811, 5, 0, 255, 255); // cyan
-	PIOS_WS2811_set(pios_ws2811, 6, 64, 64, 64); // gray
+	RGBLEDSettingsInitialize();
+
+	RGBLEDSettingsNumLedsGet(&num_leds);
+
+	if (num_leds < 1) {
+		num_leds = 1;	// Always enable the on-board LED.
+	}
+
+	PIOS_WS2811_init(&pios_ws2811, &pios_ws2811_cfg, num_leds);
 	PIOS_WS2811_trigger_update(pios_ws2811);
 #endif
 

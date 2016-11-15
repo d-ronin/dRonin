@@ -147,6 +147,12 @@ extern uintptr_t pios_com_debug_id;
 #define PIOS_COM_DEBUG                  (pios_com_debug_id)
 #endif	/* PIOS_INCLUDE_DEBUG_CONSOLE */
 
+#if defined(PIOS_INCLUDE_WS2811)
+#include <pios_ws2811.h>
+
+extern ws2811_dev_t pios_ws2811;
+#endif
+
 //------------------------
 // TELEMETRY
 //------------------------

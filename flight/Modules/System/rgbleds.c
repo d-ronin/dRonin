@@ -289,10 +289,12 @@ void systemmod_process_rgb_leds(bool led_override, bool led_override_active,
 		uint8_t blink_prio, bool is_armed, bool force_dim) {
 	if (!pios_ws2811) return;
 
+	uint16_t num_leds = PIOS_WS2811_get_num_leds(pios_ws2811);
+
+	if (num_leds == 0) return;
+
 	RGBLEDSettingsData rgbSettings;
 	RGBLEDSettingsGet(&rgbSettings);
-
-	if (rgbSettings.NumLeds == 0) return;
 
 	uint8_t range_color[3];
 
@@ -450,7 +452,7 @@ void systemmod_process_rgb_leds(bool led_override, bool led_override_active,
 		}
 	}
 
-	for (int i = 0; i < rgbSettings.NumLeds; i++) {
+	for (int i = 0; i < num_leds; i++) {
 		if (led_override) {
 			if ((i >= rgbSettings.AnnunciateRangeBegin) &&
 					(i <= rgbSettings.AnnunciateRangeEnd)) {
