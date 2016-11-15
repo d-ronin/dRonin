@@ -172,7 +172,7 @@ void Calibration::assignUpdateRate(UAVObject* obj, quint32 updatePeriod)
     Q_ASSERT(dobj);
     UAVObject::Metadata mdata = obj->getMetadata();
     UAVObject::SetFlightTelemetryUpdateMode(mdata, UAVObject::UPDATEMODE_THROTTLED);
-    mdata.flightTelemetryUpdatePeriod = updatePeriod;
+    mdata.flightTelemetryUpdatePeriod = static_cast<quint16>(updatePeriod);
     QEventLoop loop;
     QTimer::singleShot(META_OPERATIONS_TIMEOUT, &loop, SLOT(quit()));
     connect(dobj->getMetaObject(), SIGNAL(transactionCompleted(UAVObject*,bool)), &loop, SLOT(quit()));
@@ -207,7 +207,6 @@ void Calibration::dataUpdated(UAVObject * obj) {
     case SIX_POINT_WAIT6:
         // Do nothing
         return;
-        break;
     case YAW_ORIENTATION:
         // Store data while computing the yaw orientation
         // and if completed go back to the idle state
@@ -387,13 +386,13 @@ void Calibration::timeout()
     case IDLE:
         // Do nothing
         return;
-        break;
     case YAW_ORIENTATION:
         // Disconnect appropriate sensors
         connectSensor(ACCEL, false);
         calibration_state = IDLE;
         emit showYawOrientationMessage(tr("Orientation timed out ..."));
         emit yawOrientationProgressChanged(0);
+        break;
     case LEVELING:
         // Disconnect appropriate sensors
         connectSensor(GYRO, false);
@@ -401,6 +400,7 @@ void Calibration::timeout()
         calibration_state = IDLE;
         emit showLevelingMessage(tr("Leveling timed out ..."));
         emit levelingProgressChanged(0);
+        break;
     case SIX_POINT_WAIT1:
     case SIX_POINT_WAIT2:
     case SIX_POINT_WAIT3:
@@ -409,7 +409,6 @@ void Calibration::timeout()
     case SIX_POINT_WAIT6:
         // Do nothing, shouldn't happen
         return;
-        break;
     case SIX_POINT_COLLECT1:
     case SIX_POINT_COLLECT2:
     case SIX_POINT_COLLECT3:
@@ -679,7 +678,6 @@ void Calibration::doSaveSixPointPosition()
         break;
     default:
         return;
-        break;
     }
 
     emit toggleSavePosition(false);
@@ -793,7 +791,7 @@ void Calibration::doCancelTempCalPoint()
  */
 void Calibration::setTempCalRange(int r)
 {
-    MIN_TEMPERATURE_RANGE = r;
+    min_temperature_range = r;
 }
 
 /**
@@ -814,7 +812,7 @@ bool Calibration::storeYawOrientationMeasurement(UAVObject *obj)
     }
 
     // update the progress indicator
-    emit yawOrientationProgressChanged((double)accel_accum_x.size() / NUM_SENSOR_UPDATES_YAW_ORIENTATION * 100);
+    emit yawOrientationProgressChanged((100 * accel_accum_x.size()) / NUM_SENSOR_UPDATES_YAW_ORIENTATION);
 
     // If we have enough samples, then stop sampling and compute the biases
     if (accel_accum_x.size() >= NUM_SENSOR_UPDATES_YAW_ORIENTATION) {
@@ -879,17 +877,17 @@ bool Calibration::storeLevelingMeasurement(UAVObject *obj) {
     }
 
     // update the progress indicator
-    emit levelingProgressChanged((float) qMin(accel_accum_x.size(),  gyro_accum_x.size()) / NUM_SENSOR_UPDATES_LEVELING * 100);
+    emit levelingProgressChanged((100 * qMin(accel_accum_x.size(),  gyro_accum_x.size())) / NUM_SENSOR_UPDATES_LEVELING);
 
     // If we have enough samples, then stop sampling and compute the biases
     if (accel_accum_x.size() >= NUM_SENSOR_UPDATES_LEVELING && gyro_accum_x.size() >= NUM_SENSOR_UPDATES_LEVELING) {
         timer.stop();
         disconnect(&timer,SIGNAL(timeout()),this,SLOT(timeout()));
 
-        float x_gyro_bias = listMean(gyro_accum_x);
-        float y_gyro_bias = listMean(gyro_accum_y);
-        float z_gyro_bias = listMean(gyro_accum_z);
-        float temp = listMean(gyro_accum_temp);
+        double x_gyro_bias = listMean(gyro_accum_x);
+        double y_gyro_bias = listMean(gyro_accum_y);
+        double z_gyro_bias = listMean(gyro_accum_z);
+        double temp = listMean(gyro_accum_temp);
 
         // Get the existing attitude settings
         AttitudeSettings::DataFields attitudeSettingsData = AttitudeSettings::GetInstance(getObjectManager())->getData();
@@ -913,11 +911,11 @@ bool Calibration::storeLevelingMeasurement(UAVObject *obj) {
 
         // Solve "a_sensor = Rot(phi, theta, psi) *[0;0;-g]" for the roll (phi) and pitch (theta) values.
         // Recall that phi is in [-pi, pi] and theta is in [-pi/2, pi/2]
-        phi = atan2f(-a_sensor[1], -a_sensor[2]);
-        theta = atanf(-a_sensor[0] / (sinf(phi)*a_sensor[1] + cosf(phi)*a_sensor[2]));
+        phi = atan2(-a_sensor[1], -a_sensor[2]);
+        theta = atan(-a_sensor[0] / (sin(phi)*a_sensor[1] + cos(phi)*a_sensor[2]));
 
-        attitudeSettingsData.BoardRotation[AttitudeSettings::BOARDROTATION_ROLL] = phi * RAD2DEG * 100.0;
-        attitudeSettingsData.BoardRotation[AttitudeSettings::BOARDROTATION_PITCH] = theta * RAD2DEG * 100.0;
+        attitudeSettingsData.BoardRotation[AttitudeSettings::BOARDROTATION_ROLL] = static_cast<qint16>(phi * RAD2DEG * 100.0);
+        attitudeSettingsData.BoardRotation[AttitudeSettings::BOARDROTATION_PITCH] = static_cast<qint16>(theta * RAD2DEG * 100.0);
 
         if (zeroVertical) {
             // If requested, calculate the offset in the z accelerometer that
@@ -941,18 +939,18 @@ bool Calibration::storeLevelingMeasurement(UAVObject *obj) {
         rotate_vector(Rsb, gyro_body, gyro_sensor, false);
 
         // Store these new biases, accounting for any temperature coefficients
-        sensorSettingsData.XGyroTempCoeff[0] = gyro_sensor[0] -
+        sensorSettingsData.XGyroTempCoeff[0] = static_cast<float>(gyro_sensor[0] -
                 temp * sensorSettingsData.XGyroTempCoeff[1] -
                 pow(temp,2) * sensorSettingsData.XGyroTempCoeff[2] -
-                pow(temp,3) * sensorSettingsData.XGyroTempCoeff[3];
-        sensorSettingsData.YGyroTempCoeff[0] = gyro_sensor[1] -
+                pow(temp,3) * sensorSettingsData.XGyroTempCoeff[3]);
+        sensorSettingsData.YGyroTempCoeff[0] = static_cast<float>(gyro_sensor[1] -
                 temp * sensorSettingsData.YGyroTempCoeff[1] -
                 pow(temp,2) * sensorSettingsData.YGyroTempCoeff[2] -
-                pow(temp,3) * sensorSettingsData.YGyroTempCoeff[3];
-        sensorSettingsData.ZGyroTempCoeff[0] = gyro_sensor[2] -
+                pow(temp,3) * sensorSettingsData.YGyroTempCoeff[3]);
+        sensorSettingsData.ZGyroTempCoeff[0] = static_cast<float>(gyro_sensor[2] -
                 temp * sensorSettingsData.ZGyroTempCoeff[1] -
                 pow(temp,2) * sensorSettingsData.ZGyroTempCoeff[2] -
-                pow(temp,3) * sensorSettingsData.ZGyroTempCoeff[3];
+                pow(temp,3) * sensorSettingsData.ZGyroTempCoeff[3]);
         SensorSettings::GetInstance(getObjectManager())->setData(sensorSettingsData);
 
         // We offset the gyro bias by current bias to help precision
@@ -1011,13 +1009,13 @@ bool Calibration::storeSixPointMeasurement(UAVObject * obj, int position)
     }
 
     // Update progress bar
-    float progress_percentage;
+    int progress_percentage;
     if(calibrateAccels && !calibrateMags)
-        progress_percentage = (float) accel_accum_x.size() / NUM_SENSOR_UPDATES_SIX_POINT * 100;
+        progress_percentage = (100 * accel_accum_x.size()) / NUM_SENSOR_UPDATES_SIX_POINT;
     else if(!calibrateAccels && calibrateMags)
-        progress_percentage = (float) mag_accum_x.size() / NUM_SENSOR_UPDATES_SIX_POINT * 100;
+        progress_percentage = (100 * mag_accum_x.size()) / NUM_SENSOR_UPDATES_SIX_POINT;
     else
-        progress_percentage = fminf(mag_accum_x.size(), accel_accum_x.size()) / NUM_SENSOR_UPDATES_SIX_POINT * 100;
+        progress_percentage = (100 * std::min(mag_accum_x.size(), accel_accum_x.size())) / NUM_SENSOR_UPDATES_SIX_POINT;
     emit sixPointProgressChanged(progress_percentage);
 
     // If enough data is collected, average it for this position
@@ -1094,15 +1092,16 @@ bool Calibration::storeTempCalMeasurement(UAVObject * obj)
         gyro_accum_temp.append(gyrosData.temperature);
     }
 
-    double range = listMax(gyro_accum_temp) - listMin(gyro_accum_temp);
-    emit tempCalProgressChanged((float) range / MIN_TEMPERATURE_RANGE * 100);
+    auto m = std::minmax_element(gyro_accum_temp.begin(), gyro_accum_temp.end());
+    double range = *m.second - *m.first; // max - min
+    emit tempCalProgressChanged(static_cast<int>((100 * range) / min_temperature_range));
 
     if ((gyro_accum_temp.size() % 10) == 0) {
         updateTempCompCalibrationDisplay();
     }
 
     // If enough data is collected, average it for this position
-    if(range >= MIN_TEMPERATURE_RANGE) {
+    if(range >= min_temperature_range) {
         return true;
     }
 
@@ -1114,7 +1113,7 @@ bool Calibration::storeTempCalMeasurement(UAVObject * obj)
  */
 void Calibration::updateTempCompCalibrationDisplay()
 {
-    unsigned int n_samples = gyro_accum_temp.size();
+    int n_samples = gyro_accum_temp.size();
 
     // Construct the matrix of temperature.
     Eigen::Matrix<double, Eigen::Dynamic, 4> X(n_samples, 4);
@@ -1122,7 +1121,7 @@ void Calibration::updateTempCompCalibrationDisplay()
     // And the matrix of gyro samples.
     Eigen::Matrix<double, Eigen::Dynamic, 3> Y(n_samples, 3);
 
-    for (unsigned i = 0; i < n_samples; ++i) {
+    for (int i = 0; i < n_samples; ++i) {
         X(i,0) = 1;
         X(i,1) = gyro_accum_temp[i];
         X(i,2) = pow(gyro_accum_temp[i],2);
@@ -1133,10 +1132,8 @@ void Calibration::updateTempCompCalibrationDisplay()
     }
 
     // Solve Y = X * B
-
-    Eigen::Matrix<double, 4, 3> result;
     // Use the cholesky-based Penrose pseudoinverse method.
-    (X.transpose() * X).ldlt().solve(X.transpose()*Y, &result);
+    Eigen::Matrix<double, 4, 3> result = (X.transpose() * X).ldlt().solve(X.transpose()*Y);
 
     QList<double> xCoeffs, yCoeffs, zCoeffs;
     xCoeffs.clear();
@@ -1182,7 +1179,7 @@ int Calibration::computeTempCal()
     attitudeSettings->setData(attitudeSettingsData);
     attitudeSettings->updated();
 
-    unsigned int n_samples = gyro_accum_temp.size();
+    int n_samples = gyro_accum_temp.size();
 
     // Construct the matrix of temperature.
     Eigen::Matrix<double, Eigen::Dynamic, 4> X(n_samples, 4);
@@ -1190,7 +1187,7 @@ int Calibration::computeTempCal()
     // And the matrix of gyro samples.
     Eigen::Matrix<double, Eigen::Dynamic, 3> Y(n_samples, 3);
 
-    for (unsigned i = 0; i < n_samples; ++i) {
+    for (int i = 0; i < n_samples; ++i) {
         X(i,0) = 1;
         X(i,1) = gyro_accum_temp[i];
         X(i,2) = pow(gyro_accum_temp[i],2);
@@ -1201,34 +1198,29 @@ int Calibration::computeTempCal()
     }
 
     // Solve Y = X * B
-
-    Eigen::Matrix<double, 4, 3> result;
     // Use the cholesky-based Penrose pseudoinverse method.
-    (X.transpose() * X).ldlt().solve(X.transpose()*Y, &result);
+    Eigen::Matrix<double, 4, 3> result = (X.transpose() * X).ldlt().solve(X.transpose()*Y);
 
-    //qDebug() << "Solution" << result;
-    qDebug() << "Solution: ";
-    qDebug() << "[" << result(0,0) << " " << result(0,1) << " " << result(0,2) << "]";
-    qDebug() << "[" << result(1,0) << " " << result(1,1) << " " << result(1,2) << "]";
-    qDebug() << "[" << result(2,0) << " " << result(2,1) << " " << result(2,2) << "]";
-    qDebug() << "[" << result(3,0) << " " << result(3,1) << " " << result(3,2) << "]";
+    std::stringstream str;
+    str << result.format(Eigen::IOFormat(4, 0, ", ", "\n", "[", "]"));
+    qDebug().noquote() << "Solution:\n" << QString::fromStdString(str.str());
 
     // Store the results
     SensorSettings * sensorSettings = SensorSettings::GetInstance(getObjectManager());
     Q_ASSERT(sensorSettings);
     SensorSettings::DataFields sensorSettingsData = sensorSettings->getData();
-    sensorSettingsData.XGyroTempCoeff[0] = result(0,0);
-    sensorSettingsData.XGyroTempCoeff[1] = result(1,0);
-    sensorSettingsData.XGyroTempCoeff[2] = result(2,0);
-    sensorSettingsData.XGyroTempCoeff[3] = result(3,0);
-    sensorSettingsData.YGyroTempCoeff[0] = result(0,1);
-    sensorSettingsData.YGyroTempCoeff[1] = result(1,1);
-    sensorSettingsData.YGyroTempCoeff[2] = result(2,1);
-    sensorSettingsData.YGyroTempCoeff[3] = result(3,1);
-    sensorSettingsData.ZGyroTempCoeff[0] = result(0,2);
-    sensorSettingsData.ZGyroTempCoeff[1] = result(1,2);
-    sensorSettingsData.ZGyroTempCoeff[2] = result(2,2);
-    sensorSettingsData.ZGyroTempCoeff[3] = result(3,2);
+    sensorSettingsData.XGyroTempCoeff[0] = static_cast<float>(result(0, 0));
+    sensorSettingsData.XGyroTempCoeff[1] = static_cast<float>(result(1, 0));
+    sensorSettingsData.XGyroTempCoeff[2] = static_cast<float>(result(2, 0));
+    sensorSettingsData.XGyroTempCoeff[3] = static_cast<float>(result(3, 0));
+    sensorSettingsData.YGyroTempCoeff[0] = static_cast<float>(result(0, 1));
+    sensorSettingsData.YGyroTempCoeff[1] = static_cast<float>(result(1, 1));
+    sensorSettingsData.YGyroTempCoeff[2] = static_cast<float>(result(2, 1));
+    sensorSettingsData.YGyroTempCoeff[3] = static_cast<float>(result(3, 1));
+    sensorSettingsData.ZGyroTempCoeff[0] = static_cast<float>(result(0, 2));
+    sensorSettingsData.ZGyroTempCoeff[1] = static_cast<float>(result(1, 2));
+    sensorSettingsData.ZGyroTempCoeff[2] = static_cast<float>(result(2, 2));
+    sensorSettingsData.ZGyroTempCoeff[3] = static_cast<float>(result(3, 2));
     sensorSettings->setData(sensorSettingsData);
 
     QList<double> xCoeffs, yCoeffs, zCoeffs;
@@ -1286,45 +1278,6 @@ UAVObjectUtilManager* Calibration::getObjectUtilManager() {
 }
 
 /**
- * Utility function which calculates the Mean value of a list of values
- * @param list list of double values
- * @returns Mean value of the list of parameter values
- */
-double Calibration::listMean(QList<double> list)
-{
-    double accum = 0;
-    for(int i = 0; i < list.size(); i++)
-        accum += list[i];
-    return accum / list.size();
-}
-
-/**
- * Utility function which calculates the Mean value of a list of values
- * @param list list of double values
- * @returns Mean value of the list of parameter values
- */
-double Calibration::listMin(QList<double> list)
-{
-    double min = list[0];
-    for(int i = 0; i < list.size(); i++)
-        min = qMin(min, list[i]);
-    return min;
-}
-
-/**
- * Utility function which calculates the Mean value of a list of values
- * @param list list of double values
- * @returns Mean value of the list of parameter values
- */
-double Calibration::listMax(QList<double> list)
-{
-    double max = list[0];
-    for(int i = 0; i < list.size(); i++)
-        max = qMax(max, list[i]);
-    return max;
-}
-
-/**
   * Computes the scale and bias for the accelerometer and mag once all the data
   * has been collected in 6 positions.
   */
@@ -1357,18 +1310,12 @@ int Calibration::computeScaleBias()
         sensorSettingsData.AccelScale[SensorSettings::ACCELSCALE_Z] *= fabs(S[2]);
 
         // Check the accel calibration is good (checks for NaN's)
-        good_calibration &= sensorSettingsData.AccelScale[SensorSettings::ACCELSCALE_X] ==
-                sensorSettingsData.AccelScale[SensorSettings::ACCELSCALE_X];
-        good_calibration &= sensorSettingsData.AccelScale[SensorSettings::ACCELSCALE_Y] ==
-                sensorSettingsData.AccelScale[SensorSettings::ACCELSCALE_Y];
-        good_calibration &= sensorSettingsData.AccelScale[SensorSettings::ACCELSCALE_Z] ==
-                sensorSettingsData.AccelScale[SensorSettings::ACCELSCALE_Z];
-        good_calibration &= (sensorSettingsData.AccelBias[SensorSettings::ACCELBIAS_X] ==
-                             sensorSettingsData.AccelBias[SensorSettings::ACCELBIAS_X]);
-        good_calibration &= (sensorSettingsData.AccelBias[SensorSettings::ACCELBIAS_Y] ==
-                             sensorSettingsData.AccelBias[SensorSettings::ACCELBIAS_Y]);
-        good_calibration &= (sensorSettingsData.AccelBias[SensorSettings::ACCELBIAS_Z] ==
-                             sensorSettingsData.AccelBias[SensorSettings::ACCELBIAS_Z]);
+        good_calibration &= !std::isnan(sensorSettingsData.AccelScale[SensorSettings::ACCELSCALE_X]);
+        good_calibration &= !std::isnan(sensorSettingsData.AccelScale[SensorSettings::ACCELSCALE_Y]);
+        good_calibration &= !std::isnan(sensorSettingsData.AccelScale[SensorSettings::ACCELSCALE_Z]);
+        good_calibration &= !std::isnan(sensorSettingsData.AccelBias[SensorSettings::ACCELBIAS_X]);
+        good_calibration &= !std::isnan(sensorSettingsData.AccelBias[SensorSettings::ACCELBIAS_Y]);
+        good_calibration &= !std::isnan(sensorSettingsData.AccelBias[SensorSettings::ACCELBIAS_Z]);
 
         //This can happen if, for instance, HomeLocation.g_e == 0
         if((S[0]+S[1]+S[2])<0.0001){
@@ -1418,18 +1365,12 @@ int Calibration::computeScaleBias()
         sensorSettingsData.MagScale[SensorSettings::MAGSCALE_Z] *= fabs(S[2]);
 
         // Check the mag calibration is good (checks for NaN's)
-        good_calibration &= sensorSettingsData.MagBias[SensorSettings::MAGBIAS_X] ==
-                sensorSettingsData.MagBias[SensorSettings::MAGBIAS_X];
-        good_calibration &= sensorSettingsData.MagBias[SensorSettings::MAGBIAS_Y] ==
-                sensorSettingsData.MagBias[SensorSettings::MAGBIAS_Y];
-        good_calibration &= sensorSettingsData.MagBias[SensorSettings::MAGBIAS_Z]  ==
-                sensorSettingsData.MagBias[SensorSettings::MAGBIAS_Z] ;
-        good_calibration &= sensorSettingsData.MagScale[SensorSettings::MAGSCALE_X] ==
-                sensorSettingsData.MagScale[SensorSettings::MAGSCALE_X];
-        good_calibration &= sensorSettingsData.MagScale[SensorSettings::MAGSCALE_Y] ==
-                sensorSettingsData.MagScale[SensorSettings::MAGSCALE_Y];
-        good_calibration &= sensorSettingsData.MagScale[SensorSettings::MAGSCALE_Z] ==
-                sensorSettingsData.MagScale[SensorSettings::MAGSCALE_Z];
+        good_calibration &= !std::isnan(sensorSettingsData.MagBias[SensorSettings::MAGBIAS_X]);
+        good_calibration &= !std::isnan(sensorSettingsData.MagBias[SensorSettings::MAGBIAS_Y]);
+        good_calibration &= !std::isnan(sensorSettingsData.MagBias[SensorSettings::MAGBIAS_Z]);
+        good_calibration &= !std::isnan(sensorSettingsData.MagScale[SensorSettings::MAGSCALE_X]);
+        good_calibration &= !std::isnan(sensorSettingsData.MagScale[SensorSettings::MAGSCALE_Y]);
+        good_calibration &= !std::isnan(sensorSettingsData.MagScale[SensorSettings::MAGSCALE_Z]);
 
         //This can happen if, for instance, HomeLocation.g_e == 0
         if((S[0]+S[1]+S[2])<0.0001){
@@ -1463,22 +1404,22 @@ void Calibration::resetSensorCalibrationToOriginalValues()
     SensorSettings::DataFields sensorSettingsData = sensorSettings->getData();
 
     if (calibrateAccels) {
-        sensorSettingsData.AccelScale[SensorSettings::ACCELSCALE_X] = initialAccelsScale[0];
-        sensorSettingsData.AccelScale[SensorSettings::ACCELSCALE_Y] = initialAccelsScale[1];
-        sensorSettingsData.AccelScale[SensorSettings::ACCELSCALE_Z] = initialAccelsScale[2];
-        sensorSettingsData.AccelBias[SensorSettings::ACCELBIAS_X] = initialAccelsBias[0];
-        sensorSettingsData.AccelBias[SensorSettings::ACCELBIAS_Y] = initialAccelsBias[1];
-        sensorSettingsData.AccelBias[SensorSettings::ACCELBIAS_Z] = initialAccelsBias[2];
+        sensorSettingsData.AccelScale[SensorSettings::ACCELSCALE_X] = static_cast<float>(initialAccelsScale[0]);
+        sensorSettingsData.AccelScale[SensorSettings::ACCELSCALE_Y] = static_cast<float>(initialAccelsScale[1]);
+        sensorSettingsData.AccelScale[SensorSettings::ACCELSCALE_Z] = static_cast<float>(initialAccelsScale[2]);
+        sensorSettingsData.AccelBias[SensorSettings::ACCELBIAS_X] = static_cast<float>(initialAccelsBias[0]);
+        sensorSettingsData.AccelBias[SensorSettings::ACCELBIAS_Y] = static_cast<float>(initialAccelsBias[1]);
+        sensorSettingsData.AccelBias[SensorSettings::ACCELBIAS_Z] = static_cast<float>(initialAccelsBias[2]);
     }
 
     if (calibrateMags) {
         //Write the original magnetometer values back to the device
-        sensorSettingsData.MagScale[SensorSettings::MAGSCALE_X] = initialMagsScale[0];
-        sensorSettingsData.MagScale[SensorSettings::MAGSCALE_Y] = initialMagsScale[1];
-        sensorSettingsData.MagScale[SensorSettings::MAGSCALE_Z] = initialMagsScale[2];
-        sensorSettingsData.MagBias[SensorSettings::MAGBIAS_X] = initialMagsBias[0];
-        sensorSettingsData.MagBias[SensorSettings::MAGBIAS_Y] = initialMagsBias[1];
-        sensorSettingsData.MagBias[SensorSettings::MAGBIAS_Z] = initialMagsBias[2];
+        sensorSettingsData.MagScale[SensorSettings::MAGSCALE_X] = static_cast<float>(initialMagsScale[0]);
+        sensorSettingsData.MagScale[SensorSettings::MAGSCALE_Y] = static_cast<float>(initialMagsScale[1]);
+        sensorSettingsData.MagScale[SensorSettings::MAGSCALE_Z] = static_cast<float>(initialMagsScale[2]);
+        sensorSettingsData.MagBias[SensorSettings::MAGBIAS_X] = static_cast<float>(initialMagsBias[0]);
+        sensorSettingsData.MagBias[SensorSettings::MAGBIAS_Y] = static_cast<float>(initialMagsBias[1]);
+        sensorSettingsData.MagBias[SensorSettings::MAGBIAS_Z] = static_cast<float>(initialMagsBias[2]);
     }
 
     sensorSettings->setData(sensorSettingsData);
@@ -1530,83 +1471,6 @@ void Calibration::rotate_vector(double R[3][3], const double vec[3], double vec_
 }
 
 /**
- * @name LinearEquationsSolving
- * @brief Uses Gaussian Elimination to solve linear equations of the type Ax=b
- *
- * @note Matrix code snarfed from: http://www.hlevkin.com/NumAlg/LinearEquations.c
- *
- * @return 0 if system not solving
- * @param[in] nDim - system dimension
- * @param[in] pfMatr - matrix with coefficients
- * @param[in] pfVect - vector with free members
- * @param[out] pfSolution - vector with system solution
- * @param[out] pfMatr becames trianglular after function call
- * @param[out] pfVect changes after function call
- * @author Henry Guennadi Levkin
- */
-int Calibration::LinearEquationsSolving(int nDim, double* pfMatr, double* pfVect, double* pfSolution)
-{
-    double fMaxElem;
-    double fAcc;
-
-    int i , j, k, m;
-
-    for(k=0; k<(nDim-1); k++) // base row of matrix
-    {
-        // search of line with max element
-        fMaxElem = fabs( pfMatr[k*nDim + k] );
-        m = k;
-        for(i=k+1; i<nDim; i++)
-        {
-            if(fMaxElem < fabs(pfMatr[i*nDim + k]) )
-            {
-                fMaxElem = pfMatr[i*nDim + k];
-                m = i;
-            }
-        }
-
-        // permutation of base line (index k) and max element line(index m)
-        if(m != k)
-        {
-            for(i=k; i<nDim; i++)
-            {
-                fAcc               = pfMatr[k*nDim + i];
-                pfMatr[k*nDim + i] = pfMatr[m*nDim + i];
-                pfMatr[m*nDim + i] = fAcc;
-            }
-            fAcc = pfVect[k];
-            pfVect[k] = pfVect[m];
-            pfVect[m] = fAcc;
-        }
-
-        if( pfMatr[k*nDim + k] == 0.) return 0; // needs improvement !!!
-
-        // triangulation of matrix with coefficients
-        for(j=(k+1); j<nDim; j++) // current row of matrix
-        {
-            fAcc = - pfMatr[j*nDim + k] / pfMatr[k*nDim + k];
-            for(i=k; i<nDim; i++)
-            {
-                pfMatr[j*nDim + i] = pfMatr[j*nDim + i] + fAcc*pfMatr[k*nDim + i];
-            }
-            pfVect[j] = pfVect[j] + fAcc*pfVect[k]; // free member recalculation
-        }
-    }
-
-    for(k=(nDim-1); k>=0; k--)
-    {
-        pfSolution[k] = pfVect[k];
-        for(i=(k+1); i<nDim; i++)
-        {
-            pfSolution[k] -= (pfMatr[k*nDim + i]*pfSolution[i]);
-        }
-        pfSolution[k] = pfSolution[k] / pfMatr[k*nDim + k];
-    }
-
-    return 1;
-}
-
-/**
  * @name SixPointInConstFieldCal
  * @brief Compute the scale and bias assuming the data comes from six orientations
  *        in a constant field
@@ -1628,9 +1492,8 @@ int Calibration::LinearEquationsSolving(int nDim, double* pfMatr, double* pfVect
  */
 int Calibration::SixPointInConstFieldCal( double ConstMag, double x[6], double y[6], double z[6], double S[3], double b[3] )
 {
-    int i;
-    double A[5][5];
-    double f[5], c[5];
+    Eigen::Matrix<double, 5, 5> A;
+    Eigen::Matrix<double, 5, 1> f;
     double xp, yp, zp, Sx;
 
     // Fill in matrix A -
@@ -1638,17 +1501,17 @@ int Calibration::SixPointInConstFieldCal( double ConstMag, double x[6], double y
     // Sx^2(x2^2-x1^2) + 2*Sx*bx*(x2-x1) + Sy^2(y2^2-y1^2) + 2*Sy*by*(y2-y1) + Sz^2(z2^2-z1^2) + 2*Sz*bz*(z2-z1) = 0
     // or in other words
     // 2*Sx*bx*(x2-x1)/Sx^2  + Sy^2(y2^2-y1^2)/Sx^2  + 2*Sy*by*(y2-y1)/Sx^2  + Sz^2(z2^2-z1^2)/Sx^2  + 2*Sz*bz*(z2-z1)/Sx^2  = (x1^2-x2^2)
-    for (i=0;i<5;i++){
-        A[i][0] = 2.0 * (x[i+1] - x[i]);
-        A[i][1] = y[i+1]*y[i+1] - y[i]*y[i];
-        A[i][2] = 2.0 * (y[i+1] - y[i]);
-        A[i][3] = z[i+1]*z[i+1] - z[i]*z[i];
-        A[i][4] = 2.0 * (z[i+1] - z[i]);
+    for (int i = 0; i < 5; i++) {
+        A(i, 0) = 2.0 * (x[i+1] - x[i]);
+        A(i, 1) = y[i+1]*y[i+1] - y[i]*y[i];
+        A(i, 2) = 2.0 * (y[i+1] - y[i]);
+        A(i, 3) = z[i+1]*z[i+1] - z[i]*z[i];
+        A(i, 4) = 2.0 * (z[i+1] - z[i]);
         f[i]    = x[i]*x[i] - x[i+1]*x[i+1];
     }
 
     // solve for c0=bx/Sx, c1=Sy^2/Sx^2; c2=Sy*by/Sx^2, c3=Sz^2/Sx^2, c4=Sz*bz/Sx^2
-    if (  !LinearEquationsSolving( 5, (double *)A, f, c) ) return 0;
+    Eigen::Matrix<double, 5, 1> c = A.fullPivHouseholderQr().solve(f);
 
     // use one magnitude equation and c's to find Sx - doesn't matter which - all give the same answer
     xp = x[0]; yp = y[0]; zp = z[0];

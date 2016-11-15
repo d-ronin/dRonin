@@ -203,8 +203,8 @@ private:
     static const int NUM_SENSOR_UPDATES_SIX_POINT = 100;
     static const int SENSOR_UPDATE_PERIOD = 25;
     static const int NON_SENSOR_UPDATE_PERIOD = 0;
-    double MIN_TEMPERATURE_RANGE;
 
+    double min_temperature_range;
     double boardRotationMatrix[3][3];
     double initialAccelsScale[3];
     double initialAccelsBias[3];
@@ -233,8 +233,7 @@ protected:
     //! Computes the scale and bias for the accelerometer and mag
     int computeScaleBias();
 
-    int SixPointInConstFieldCal( double ConstMag, double x[6], double y[6], double z[6], double S[3], double b[3] );
-    int LinearEquationsSolving(int nDim, double* pfMatr, double* pfVect, double* pfSolution);
+    int SixPointInConstFieldCal(double ConstMag, double x[6], double y[6], double z[6], double S[3], double b[3]);
 
     //! Rotate a vector by the rotation matrix, optionally trasposing
     void rotate_vector(double R[3][3], const double vec[3], double vec_out[3], bool transpose);
@@ -243,13 +242,7 @@ protected:
     void Euler2R(double rpy[3], double Rbe[3][3]);
 
     //! Compute the mean value of a list
-    static double listMean(QList<double> list);
-
-    //! Compute the min value of a list
-    static double listMin(QList<double> list);
-
-    //! Compute the max value of a list
-    static double listMax(QList<double> list);
+    static inline double listMean(QList<double> list) { return std::accumulate(list.begin(), list.end(), 0.0) / list.size(); }
 
     //! Reset sensor settings to pre-calibration values
     void resetSensorCalibrationToOriginalValues();
