@@ -136,7 +136,7 @@ linux-g++* {
 
 win32 {
     # http://gcc.gnu.org/bugzilla/show_bug.cgi?id=52991
-!win32-msvc*:QMAKE_CXXFLAGS += -mno-ms-bitfields
+    !win32-msvc*:QMAKE_CXXFLAGS += -mno-ms-bitfields
 }
 
 unix {
@@ -151,7 +151,8 @@ unix {
 	}
 }
 
-CONFIG += c++11
+# use ISO C++ (no GNU extensions) to ensure maximum portability
+CONFIG += c++11 strict_c++
 
 CONFIG(release, debug|release): unix | win32-msvc* {
     # generate debug info for:

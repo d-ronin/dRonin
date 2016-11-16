@@ -15,7 +15,8 @@ cache()
 
 TARGET = uavobjgenerator
 CONFIG += console
-CONFIG += c++11
+# use ISO C++ (no GNU extensions) to ensure maximum portability
+CONFIG += c++11 strict_c++
 CONFIG -= app_bundle
 TEMPLATE = app
 SOURCES += main.cpp \
