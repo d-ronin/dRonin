@@ -47,7 +47,7 @@ public:
 
     Core::IUAVGadget *createGadget(QWidget *parent);
     IUAVGadgetConfiguration *createConfiguration(QSettings* qSettings);
-    IOptionsPage *createOptionsPage(IUAVGadgetConfiguration *config);
+    IOptionsPage *createOptionsPage(IUAVGadgetConfiguration* config);
 };
 
 #endif // DIALGADGETFACTORY_H_

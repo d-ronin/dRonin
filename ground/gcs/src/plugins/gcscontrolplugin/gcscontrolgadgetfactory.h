@@ -48,7 +48,7 @@ public:
 
     IUAVGadget *createGadget(QWidget *parent);
     IUAVGadgetConfiguration *createConfiguration(QSettings* qSettings);
-    IOptionsPage *createOptionsPage(IUAVGadgetConfiguration *config);
+    IOptionsPage *createOptionsPage(IUAVGadgetConfiguration* config);
 
 };
 
