@@ -60,6 +60,26 @@ void PIOS_Board_Init() {
 	PIOS_ANNUNC_Init(led_cfg);
 #endif	/* PIOS_INCLUDE_ANNUNC */
 
+	if ((RCC->CFGR & (uint32_t)RCC_CFGR_SWS ) != RCC_CFGR_SWS_PLL) {
+		/* Oh no.  We're not clocked from PLL, that is DEFINITELY
+		 * not what we expect. */
+
+		while (true) {
+#ifdef PIOS_INCLUDE_ANNUNC
+#if defined(PIOS_LED_HEARTBEAT)
+			PIOS_ANNUNC_Off(PIOS_LED_HEARTBEAT);
+			for (int i=0; i < 500000; i++) {
+				asm volatile ("nop"::);
+			}
+			PIOS_ANNUNC_On(PIOS_LED_HEARTBEAT);
+			for (int i=0; i < 500000; i++) {
+				asm volatile ("nop"::);
+			}
+#endif	/* PIOS_LED_HEARTBEAT */
+#endif  /* PIOS_INCLUDE_ANNUNC */
+		}
+	}
+
 	PWR_BackupAccessCmd(ENABLE);
 	RCC_LSEConfig(RCC_LSE_OFF);
 

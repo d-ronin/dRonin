@@ -51,7 +51,6 @@
 #include "modulesettings.h"
 #include "onscreendisplaysettings.h"
 
- 
 /**
  * Sensor configurations
  */

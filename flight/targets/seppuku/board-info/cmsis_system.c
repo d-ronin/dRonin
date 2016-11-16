@@ -406,11 +406,6 @@ static void SetSysClock(void)
   else
   { /* If HSE fails to start-up, the application will have wrong clock
          configuration. User can add here some code to deal with this error */
-
-    /* Go to infinite loop */
-    while (1)
-    {
-    }
   }
 
 }
