@@ -50,7 +50,7 @@ InputPage::InputPage(SetupWizard *wizard, QWidget *parent) :
         ui->hottsumhButton->setEnabled(board->isInputConfigurationSupported(Core::IBoardType::INPUT_TYPE_HOTTSUMH));
         ui->sbusButton->setEnabled(board->isInputConfigurationSupported(Core::IBoardType::INPUT_TYPE_SBUS));
         ui->sbusnoninvertedButton->setEnabled(board->isInputConfigurationSupported(Core::IBoardType::INPUT_TYPE_SBUSNONINVERTED));
-        ui->dsmButton->setEnabled(board->isInputConfigurationSupported(Core::IBoardType::INPUT_TYPE_DSM));
+        ui->spectrumButton->setEnabled(board->isInputConfigurationSupported(Core::IBoardType::INPUT_TYPE_DSM));
         ui->ibusButton->setEnabled(board->isInputConfigurationSupported(Core::IBoardType::INPUT_TYPE_IBUS));
         ui->srxlButton->setEnabled(board->isInputConfigurationSupported(Core::IBoardType::INPUT_TYPE_SRXL));
     }
@@ -78,7 +78,7 @@ bool InputPage::validatePage()
         getWizard()->setInputType(Core::IBoardType::INPUT_TYPE_SBUS);
     } else if (ui->sbusnoninvertedButton->isChecked()) {
         getWizard()->setInputType(Core::IBoardType::INPUT_TYPE_SBUSNONINVERTED);
-    } else if (ui->dsmButton->isChecked()) {
+    } else if (ui->spectrumButton->isChecked()) {
         getWizard()->setInputType(Core::IBoardType::INPUT_TYPE_DSM);
     } else if (ui->hottsumdButton->isChecked()) {
         getWizard()->setInputType(Core::IBoardType::INPUT_TYPE_HOTTSUMD);

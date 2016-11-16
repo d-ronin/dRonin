@@ -228,7 +228,7 @@ p, li { white-space: pre-wrap; }
       </widget>
      </item>
      <item>
-      <widget class="QToolButton" name="dsmButton">
+      <widget class="QToolButton" name="spectrumButton">
        <property name="font">
         <font>
          <pointsize>10</pointsize>
