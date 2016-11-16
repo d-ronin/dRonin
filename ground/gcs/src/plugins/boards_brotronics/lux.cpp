@@ -98,7 +98,7 @@ bool Lux::isInputConfigurationSupported(enum InputType type = INPUT_TYPE_ANY)
 {
     switch (type) {
     case INPUT_TYPE_PWM:
-    case INPUT_TYPE_HOTTSUMH: // Why-o-why?
+    case INPUT_TYPE_HOTTSUMH:
         return false;
     default:
         return true;

@@ -99,8 +99,9 @@ bool Sparky2::queryCapabilities(BoardCapabilities capability)
     case BOARD_CAPABILITIES_RADIO:
     case BOARD_CAPABILITIES_UPGRADEABLE:
         return true;
+    default:
+        return false;
     }
-    return false;
 }
 
 QPixmap Sparky2::getBoardPicture()

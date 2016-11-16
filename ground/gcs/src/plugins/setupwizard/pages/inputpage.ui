@@ -280,68 +280,26 @@ p, li { white-space: pre-wrap; }
       <number>0</number>
      </property>
      <item>
-      <widget class="QToolButton" name="srxlButton">
+      <widget class="QToolButton" name="hottsumdButton">
        <property name="font">
         <font>
          <pointsize>10</pointsize>
         </font>
        </property>
        <property name="toolTip">
-        <string>Multiplex SRXL</string>
+        <string>Graupner HoTT (SUMD)</string>
        </property>
        <property name="styleSheet">
         <string notr="true">QToolButton { border: none }</string>
        </property>
        <property name="text">
-        <string>SRXL</string>
+        <string>SUMD</string>
        </property>
        <property name="icon">
         <iconset resource="../wizardResources.qrc">
-         <normaloff>:/setupwizard/resources/bttn-srxl-up.png</normaloff>
-         <normalon>:/setupwizard/resources/bttn-srxl-down.png</normalon>
-         <disabledoff>:/setupwizard/resources/bttn-srxl-disabled.png</disabledoff>:/setupwizard/resources/bttn-srxl-up.png</iconset>
-       </property>
-       <property name="iconSize">
-        <size>
-         <width>100</width>
-         <height>100</height>
-        </size>
-       </property>
-       <property name="checkable">
-        <bool>true</bool>
-       </property>
-       <property name="autoExclusive">
-        <bool>true</bool>
-       </property>
-       <property name="toolButtonStyle">
-        <enum>Qt::ToolButtonTextUnderIcon</enum>
-       </property>
-       <property name="autoRaise">
-        <bool>true</bool>
-       </property>
-      </widget>
-     </item>
-     <item>
-      <widget class="QToolButton" name="ibusButton">
-       <property name="font">
-        <font>
-         <pointsize>10</pointsize>
-        </font>
-       </property>
-       <property name="toolTip">
-        <string>FlySky I-Bus</string>
-       </property>
-       <property name="styleSheet">
-        <string notr="true">QToolButton { border: none }</string>
-       </property>
-       <property name="text">
-        <string>I-Bus</string>
-       </property>
-       <property name="icon">
-        <iconset resource="../wizardResources.qrc">
-         <normaloff>:/setupwizard/resources/bttn-ibus-up.png</normaloff>
-         <normalon>:/setupwizard/resources/bttn-ibus-down.png</normalon>
-         <disabledoff>:/setupwizard/resources/bttn-ibus-disabled.png</disabledoff>:/setupwizard/resources/bttn-ibus-up.png</iconset>
+         <normaloff>:/setupwizard/resources/bttn-sumd-up.png</normaloff>
+         <normalon>:/setupwizard/resources/bttn-sumd-down.png</normalon>
+         <disabledoff>:/setupwizard/resources/bttn-sumd-disabled.png</disabledoff>:/setupwizard/resources/bttn-sumd-up.png</iconset>
        </property>
        <property name="iconSize">
         <size>
@@ -406,26 +364,68 @@ p, li { white-space: pre-wrap; }
       </widget>
      </item>
      <item>
-      <widget class="QToolButton" name="hottsumdButton">
+      <widget class="QToolButton" name="srxlButton">
        <property name="font">
         <font>
          <pointsize>10</pointsize>
         </font>
        </property>
        <property name="toolTip">
-        <string>Graupner HoTT (SUMD)</string>
+        <string>Multiplex SRXL</string>
        </property>
        <property name="styleSheet">
         <string notr="true">QToolButton { border: none }</string>
        </property>
        <property name="text">
-        <string>SUMD</string>
+        <string>SRXL</string>
        </property>
        <property name="icon">
         <iconset resource="../wizardResources.qrc">
-         <normaloff>:/setupwizard/resources/bttn-sumd-up.png</normaloff>
-         <normalon>:/setupwizard/resources/bttn-sumd-down.png</normalon>
-         <disabledoff>:/setupwizard/resources/bttn-sumd-disabled.png</disabledoff>:/setupwizard/resources/bttn-sumd-up.png</iconset>
+         <normaloff>:/setupwizard/resources/bttn-srxl-up.png</normaloff>
+         <normalon>:/setupwizard/resources/bttn-srxl-down.png</normalon>
+         <disabledoff>:/setupwizard/resources/bttn-srxl-disabled.png</disabledoff>:/setupwizard/resources/bttn-srxl-up.png</iconset>
+       </property>
+       <property name="iconSize">
+        <size>
+         <width>100</width>
+         <height>100</height>
+        </size>
+       </property>
+       <property name="checkable">
+        <bool>true</bool>
+       </property>
+       <property name="autoExclusive">
+        <bool>true</bool>
+       </property>
+       <property name="toolButtonStyle">
+        <enum>Qt::ToolButtonTextUnderIcon</enum>
+       </property>
+       <property name="autoRaise">
+        <bool>true</bool>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QToolButton" name="ibusButton">
+       <property name="font">
+        <font>
+         <pointsize>10</pointsize>
+        </font>
+       </property>
+       <property name="toolTip">
+        <string>FlySky I-Bus</string>
+       </property>
+       <property name="styleSheet">
+        <string notr="true">QToolButton { border: none }</string>
+       </property>
+       <property name="text">
+        <string>I-Bus</string>
+       </property>
+       <property name="icon">
+        <iconset resource="../wizardResources.qrc">
+         <normaloff>:/setupwizard/resources/bttn-ibus-up.png</normaloff>
+         <normalon>:/setupwizard/resources/bttn-ibus-down.png</normalon>
+         <disabledoff>:/setupwizard/resources/bttn-ibus-disabled.png</disabledoff>:/setupwizard/resources/bttn-ibus-up.png</iconset>
        </property>
        <property name="iconSize">
         <size>
