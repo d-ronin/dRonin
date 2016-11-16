@@ -45,7 +45,7 @@ public:
     HITLFactory(QObject *parent = 0);
     ~HITLFactory();
 
-	IUAVGadget *createGadget(QWidget *parent);
+    IUAVGadget *createGadget(QWidget *parent);
     IUAVGadgetConfiguration *createConfiguration(QSettings* qSettings);
     IOptionsPage *createOptionsPage(IUAVGadgetConfiguration* config);
 };
