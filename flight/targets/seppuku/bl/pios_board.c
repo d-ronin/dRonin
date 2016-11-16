@@ -48,7 +48,6 @@
 uintptr_t pios_com_telem_usb_id;
 
 void PIOS_Board_Init() {
-
 	/* Delay system */
 	PIOS_DELAY_Init();
 

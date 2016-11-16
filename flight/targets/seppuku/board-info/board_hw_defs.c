@@ -894,7 +894,7 @@ static const struct pios_tim_channel pios_tim_servoport_all_pins[] = {
 				.GPIO_OType = GPIO_OType_PP,
 				.GPIO_PuPd  = GPIO_PuPd_UP
 			},
-			.pin_source = GPIO_PinSource1,
+			.pin_source = GPIO_PinSource0,
 		},
 	},
 	{
