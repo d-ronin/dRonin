@@ -79,12 +79,6 @@ void PIOS_Board_Init() {
 		}
 	}
 
-	PWR_BackupAccessCmd(ENABLE);
-	RCC_LSEConfig(RCC_LSE_OFF);
-
-	PIOS_ANNUNC_On(PIOS_LED_HEARTBEAT);
-	PIOS_ANNUNC_On(PIOS_LED_ALARM);
-
 #if defined(PIOS_INCLUDE_FLASH)
 	/* Inititialize all flash drivers */
 	PIOS_Flash_Internal_Init(&pios_internal_flash_id, &flash_internal_cfg);
