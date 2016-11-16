@@ -139,16 +139,19 @@ bool CC3D::setInputType(enum InputType type)
         settings.FlexiPort = HwCopterControl::FLEXIPORT_TELEMETRY;    // Why is the FlexiPort configured?
         break;
     case INPUT_TYPE_DSM:
-        settings.FlexiPort = HwCopterControl::FLEXIPORT_DSM;
+        settings.MainPort = HwCopterControl::MAINPORT_DSM;
         break;
     case INPUT_TYPE_HOTTSUMD:
-        settings.FlexiPort = HwCopterControl::FLEXIPORT_HOTTSUMD;
+        settings.MainPort = HwCopterControl::MAINPORT_HOTTSUMD;
         break;
     case INPUT_TYPE_HOTTSUMH:
-        settings.FlexiPort = HwCopterControl::FLEXIPORT_HOTTSUMH;
+        settings.MainPort = HwCopterControl::MAINPORT_HOTTSUMH;
         break;
     case INPUT_TYPE_IBUS:
-        settings.FlexiPort = HwCopterControl::FLEXIPORT_IBUS;
+        settings.MainPort = HwCopterControl::MAINPORT_IBUS;
+        break;
+    case INPUT_TYPE_SRXL:
+        settings.MainPort = HwCopterControl::MAINPORT_SRXL;
         break;
     default:
         return false;
@@ -174,20 +177,15 @@ enum Core::IBoardType::InputType CC3D::getInputType()
         return INPUT_TYPE_UNKNOWN;
 
     HwCopterControl::DataFields settings = hwCopterControl->getData();
-
-    switch(settings.FlexiPort) {
-    case HwCopterControl::FLEXIPORT_DSM:
-        return INPUT_TYPE_DSM;
-    case HwCopterControl::FLEXIPORT_HOTTSUMD:
-        return INPUT_TYPE_HOTTSUMD;
-    case HwCopterControl::FLEXIPORT_HOTTSUMH:
-        return INPUT_TYPE_HOTTSUMH;
-    case HwCopterControl::FLEXIPORT_SBUSNONINVERTED:
-        return INPUT_TYPE_SBUSNONINVERTED;
-    case HwCopterControl::FLEXIPORT_IBUS:
-        return INPUT_TYPE_IBUS;
+    
+    switch(settings.RcvrPort) {
+    case HwCopterControl::RCVRPORT_PPMONPIN8:
+    case HwCopterControl::RCVRPORT_PPM:
+        return INPUT_TYPE_PPM;
+    case HwCopterControl::RCVRPORT_PWM:
+        return INPUT_TYPE_PWM;
     }
-
+    
     switch(settings.MainPort) {
     case HwCopterControl::MAINPORT_DSM:
         return INPUT_TYPE_DSM;
@@ -201,14 +199,23 @@ enum Core::IBoardType::InputType CC3D::getInputType()
         return INPUT_TYPE_SBUSNONINVERTED;
     case HwCopterControl::MAINPORT_IBUS:
         return INPUT_TYPE_IBUS;
+    case HwCopterControl::MAINPORT_SRXL:
+        return INPUT_TYPE_SRXL;
     }
 
-    switch(settings.RcvrPort) {
-    case HwCopterControl::RCVRPORT_PPMONPIN8:
-    case HwCopterControl::RCVRPORT_PPM:
-        return INPUT_TYPE_PPM;
-    case HwCopterControl::RCVRPORT_PWM:
-        return INPUT_TYPE_PWM;
+    switch(settings.FlexiPort) {
+    case HwCopterControl::FLEXIPORT_DSM:
+        return INPUT_TYPE_DSM;
+    case HwCopterControl::FLEXIPORT_HOTTSUMD:
+        return INPUT_TYPE_HOTTSUMD;
+    case HwCopterControl::FLEXIPORT_HOTTSUMH:
+        return INPUT_TYPE_HOTTSUMH;
+    case HwCopterControl::FLEXIPORT_SBUSNONINVERTED:
+        return INPUT_TYPE_SBUSNONINVERTED;
+    case HwCopterControl::FLEXIPORT_IBUS:
+        return INPUT_TYPE_IBUS;
+    case HwCopterControl::FLEXIPORT_SRXL:
+        return INPUT_TYPE_SRXL;
     }
 
     return INPUT_TYPE_UNKNOWN;

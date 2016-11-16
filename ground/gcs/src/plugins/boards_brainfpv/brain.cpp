@@ -151,6 +151,9 @@ bool Brain::setInputType(enum InputType type)
     case INPUT_TYPE_IBUS:
         settings.MainPort = HwBrain::MAINPORT_IBUS;
         break;
+    case INPUT_TYPE_SRXL:
+        settings.MainPort = HwBrain::MAINPORT_SRXL;
+        break;
     default:
         return false;
     }
@@ -177,56 +180,61 @@ enum Core::IBoardType::InputType Brain::getInputType()
     HwBrain::DataFields settings = hwBrain->getData();
 
     switch(settings.MainPort) {
-        case HwBrain::MAINPORT_SBUS:
-            return INPUT_TYPE_SBUS;
-        case HwBrain::MAINPORT_SBUSNONINVERTED:
-            return INPUT_TYPE_SBUSNONINVERTED;
-        case HwBrain::MAINPORT_DSM:
-            return INPUT_TYPE_DSM;
-        case HwBrain::MAINPORT_HOTTSUMD:
-            return INPUT_TYPE_HOTTSUMD;
-        case HwBrain::MAINPORT_HOTTSUMH:
-            return INPUT_TYPE_HOTTSUMH;
-        case HwBrain::MAINPORT_IBUS:
-            return INPUT_TYPE_IBUS;
+    case HwBrain::MAINPORT_SBUS:
+        return INPUT_TYPE_SBUS;
+    case HwBrain::MAINPORT_SBUSNONINVERTED:
+        return INPUT_TYPE_SBUSNONINVERTED;
+    case HwBrain::MAINPORT_DSM:
+        return INPUT_TYPE_DSM;
+    case HwBrain::MAINPORT_HOTTSUMD:
+        return INPUT_TYPE_HOTTSUMD;
+    case HwBrain::MAINPORT_HOTTSUMH:
+        return INPUT_TYPE_HOTTSUMH;
+    case HwBrain::MAINPORT_IBUS:
+        return INPUT_TYPE_IBUS;
+    case HwBrain::MAINPORT_SRXL:
+        return INPUT_TYPE_SRXL;
     }
 
     switch(settings.FlxPort) {
-        case HwBrain::FLXPORT_DSM:
-            return INPUT_TYPE_DSM;
-        case HwBrain::FLXPORT_HOTTSUMD:
-            return INPUT_TYPE_HOTTSUMD;
-        case HwBrain::FLXPORT_HOTTSUMH:
-            return INPUT_TYPE_HOTTSUMH;
-        case HwBrain::FLXPORT_IBUS:
-            return INPUT_TYPE_IBUS;
+    case HwBrain::FLXPORT_DSM:
+        return INPUT_TYPE_DSM;
+    case HwBrain::FLXPORT_HOTTSUMD:
+        return INPUT_TYPE_HOTTSUMD;
+    case HwBrain::FLXPORT_HOTTSUMH:
+        return INPUT_TYPE_HOTTSUMH;
+    case HwBrain::FLXPORT_IBUS:
+        return INPUT_TYPE_IBUS;
+    case HwBrain::FLXPORT_SRXL:
+        return INPUT_TYPE_SRXL;
     }
 
     switch(settings.RxPort) {
-        case HwBrain::RXPORT_PPM:
-        case HwBrain::RXPORT_PPMPWM:
-        case HwBrain::RXPORT_PPMOUTPUTS:
-        case HwBrain::RXPORT_PPMUART:
-        case HwBrain::RXPORT_PPMUARTOUTPUTS:
-        case HwBrain::RXPORT_PPMFRSKY:
-            return INPUT_TYPE_PPM;
-        case HwBrain::RXPORT_PWM:
-            return INPUT_TYPE_PWM;
-        case HwBrain::RXPORT_UART:
-        case HwBrain::RXPORT_UARTOUTPUTS:
-            switch(settings.RxPortUsart) {
-                case HwBrain::RXPORTUSART_DSM:
-                    return INPUT_TYPE_DSM;
-                case HwBrain::RXPORTUSART_HOTTSUMD:
-                    return INPUT_TYPE_HOTTSUMD;
-                case HwBrain::RXPORTUSART_HOTTSUMH:
-                    return INPUT_TYPE_HOTTSUMH;
-                case HwBrain::RXPORTUSART_SBUSNONINVERTED:
-                    return INPUT_TYPE_SBUSNONINVERTED;
-                case HwBrain::RXPORTUSART_IBUS:
-                    return INPUT_TYPE_IBUS;
-            }
-            break;
+    case HwBrain::RXPORT_PPM:
+    case HwBrain::RXPORT_PPMPWM:
+    case HwBrain::RXPORT_PPMOUTPUTS:
+    case HwBrain::RXPORT_PPMUART:
+    case HwBrain::RXPORT_PPMUARTOUTPUTS:
+    case HwBrain::RXPORT_PPMFRSKY:
+        return INPUT_TYPE_PPM;
+    case HwBrain::RXPORT_PWM:
+        return INPUT_TYPE_PWM;
+    case HwBrain::RXPORT_UART:
+    case HwBrain::RXPORT_UARTOUTPUTS:
+        switch(settings.RxPortUsart) {
+        case HwBrain::RXPORTUSART_DSM:
+            return INPUT_TYPE_DSM;
+        case HwBrain::RXPORTUSART_HOTTSUMD:
+            return INPUT_TYPE_HOTTSUMD;
+        case HwBrain::RXPORTUSART_HOTTSUMH:
+            return INPUT_TYPE_HOTTSUMH;
+        case HwBrain::RXPORTUSART_SBUSNONINVERTED:
+            return INPUT_TYPE_SBUSNONINVERTED;
+        case HwBrain::RXPORTUSART_IBUS:
+            return INPUT_TYPE_IBUS;
+        case HwBrain::RXPORTUSART_SRXL:
+            return INPUT_TYPE_SRXL;
+        }
     }
 
     return INPUT_TYPE_UNKNOWN;

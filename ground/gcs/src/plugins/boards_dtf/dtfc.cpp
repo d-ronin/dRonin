@@ -148,6 +148,10 @@ bool Dtfc::setInputType(enum InputType type)
         break;
     case INPUT_TYPE_IBUS:
         settings.RcvrPort = HwDtfc::RCVRPORT_IBUS;
+        break;
+    case INPUT_TYPE_SRXL:
+        settings.RcvrPort = HwDtfc::RCVRPORT_SRXL;
+        break;
     default:
         return false;
     }
@@ -187,7 +191,10 @@ enum Core::IBoardType::InputType Dtfc::getInputType()
         return INPUT_TYPE_HOTTSUMH;
     case HwDtfc::RCVRPORT_IBUS:
         return INPUT_TYPE_IBUS;
+    case HwDtfc::RCVRPORT_SRXL:
+        return INPUT_TYPE_SRXL;
     }
+    
     switch(settings.Uart1) {
     case HwDtfc::UART1_SBUS:
         return INPUT_TYPE_SBUS;
@@ -201,7 +208,10 @@ enum Core::IBoardType::InputType Dtfc::getInputType()
         return INPUT_TYPE_HOTTSUMH;
     case HwDtfc::UART1_IBUS:
         return INPUT_TYPE_IBUS;
+    case HwDtfc::UART1_SRXL:
+        return INPUT_TYPE_SRXL;
     }
+    
     switch(settings.Uart2) {
     case HwDtfc::UART2_SBUS:
         return INPUT_TYPE_SBUS;
@@ -215,6 +225,8 @@ enum Core::IBoardType::InputType Dtfc::getInputType()
         return INPUT_TYPE_HOTTSUMH;
     case HwDtfc::UART2_IBUS:
         return INPUT_TYPE_IBUS;
+    case HwDtfc::UART2_SRXL:
+        return INPUT_TYPE_SRXL;
     }
     
     return INPUT_TYPE_UNKNOWN;

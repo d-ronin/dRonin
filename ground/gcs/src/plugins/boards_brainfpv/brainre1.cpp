@@ -139,6 +139,9 @@ bool BrainRE1::setInputType(enum InputType type)
     case INPUT_TYPE_IBUS:
         settings.RxPort = HwBrainRE1::RXPORT_IBUS;
         break;
+    case INPUT_TYPE_SRXL:
+        settings.RxPort = HwBrainRE1::RXPORT_SRXL;
+        break;
     default:
         return false;
     }
@@ -166,20 +169,22 @@ enum Core::IBoardType::InputType BrainRE1::getInputType()
     HwBrainRE1::DataFields settings = hwBrainRE1->getData();
 
     switch(settings.RxPort) {
-        case HwBrainRE1::RXPORT_PPM:
-            return INPUT_TYPE_PPM;
-        case HwBrainRE1::RXPORT_SBUS:
-            return INPUT_TYPE_SBUS;
-        case HwBrainRE1::RXPORT_SBUSNONINVERTED:
-            return INPUT_TYPE_SBUSNONINVERTED;
-        case HwBrainRE1::RXPORT_DSM:
-            return INPUT_TYPE_DSM;
-        case HwBrainRE1::RXPORT_HOTTSUMD:
-            return INPUT_TYPE_HOTTSUMD;
-        case HwBrainRE1::RXPORT_HOTTSUMH:
-            return INPUT_TYPE_HOTTSUMH;
-        case HwBrainRE1::RXPORT_IBUS:
-            return INPUT_TYPE_IBUS;
+    case HwBrainRE1::RXPORT_PPM:
+        return INPUT_TYPE_PPM;
+    case HwBrainRE1::RXPORT_SBUS:
+        return INPUT_TYPE_SBUS;
+    case HwBrainRE1::RXPORT_SBUSNONINVERTED:
+        return INPUT_TYPE_SBUSNONINVERTED;
+    case HwBrainRE1::RXPORT_DSM:
+        return INPUT_TYPE_DSM;
+    case HwBrainRE1::RXPORT_HOTTSUMD:
+        return INPUT_TYPE_HOTTSUMD;
+    case HwBrainRE1::RXPORT_HOTTSUMH:
+        return INPUT_TYPE_HOTTSUMH;
+    case HwBrainRE1::RXPORT_IBUS:
+        return INPUT_TYPE_IBUS;
+    case HwBrainRE1::RXPORT_SRXL:
+        return INPUT_TYPE_SRXL;
     }
 
     return INPUT_TYPE_UNKNOWN;

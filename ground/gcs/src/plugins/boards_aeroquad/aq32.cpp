@@ -145,6 +145,9 @@ bool AQ32::setInputType(enum InputType type)
     case INPUT_TYPE_DSM:
         settings.Uart4 = HwAQ32::UART4_DSM;
         break;
+    case INPUT_TYPE_SRXL:
+        settings.Uart3 = HwAQ32::UART3_SRXL;
+        break;
     default:
         return false;
     }
@@ -190,6 +193,8 @@ enum Core::IBoardType::InputType AQ32::getInputType()
         return INPUT_TYPE_SBUSNONINVERTED;    
     case HwAQ32::UART3_IBUS:
         return INPUT_TYPE_IBUS;
+    case HwAQ32::UART3_SRXL:
+        return INPUT_TYPE_SRXL;
     }
 
     switch(settings.Uart4) {
@@ -203,6 +208,8 @@ enum Core::IBoardType::InputType AQ32::getInputType()
         return INPUT_TYPE_SBUSNONINVERTED;    
     case HwAQ32::UART4_IBUS:
         return INPUT_TYPE_IBUS;
+    case HwAQ32::UART4_SRXL:
+        return INPUT_TYPE_SRXL;
     }
 
     switch(settings.Uart6) {
@@ -216,6 +223,8 @@ enum Core::IBoardType::InputType AQ32::getInputType()
         return INPUT_TYPE_SBUSNONINVERTED;    
     case HwAQ32::UART6_IBUS:
         return INPUT_TYPE_IBUS;
+    case HwAQ32::UART6_SRXL:
+        return INPUT_TYPE_SRXL;
     }
 
     return INPUT_TYPE_UNKNOWN;

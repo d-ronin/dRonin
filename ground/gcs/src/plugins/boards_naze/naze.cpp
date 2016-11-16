@@ -116,7 +116,7 @@ int Naze::queryMaxGyroRate()
 //! Determine if this board supports configuring the receiver
 bool Naze::isInputConfigurationSupported(enum InputType type = INPUT_TYPE_ANY)
 {
-    // doesn't work for now since the board can't reconnect  automatically after reboot
+    // doesn't work for now since the board can't reconnect automatically after reboot
     Q_UNUSED(type);
     return false;
 }
@@ -165,6 +165,10 @@ bool Naze::setInputType(enum InputType type)
         settings.RcvrPort = HwNaze::RCVRPORT_SERIAL;
         settings.RcvrSerial = HwNaze::RCVRSERIAL_IBUS;
         break;
+    case INPUT_TYPE_SRXL:
+        settings.RcvrPort = HwNaze::RCVRPORT_SERIAL;
+        settings.RcvrSerial = HwNaze::RCVRSERIAL_SRXL;
+        break;
 
     default:
         return false;
@@ -208,6 +212,8 @@ enum Core::IBoardType::InputType Naze::getInputType()
             return INPUT_TYPE_SBUSNONINVERTED;
         case HwNaze::RCVRSERIAL_IBUS:
             return INPUT_TYPE_IBUS;
+        case HwNaze::RCVRSERIAL_SRXL:
+            return INPUT_TYPE_SRXL;
         }
     }
 

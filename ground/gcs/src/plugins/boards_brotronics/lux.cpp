@@ -98,7 +98,7 @@ bool Lux::isInputConfigurationSupported(enum InputType type = INPUT_TYPE_ANY)
 {
     switch (type) {
     case INPUT_TYPE_PWM:
-    case INPUT_TYPE_HOTTSUMH:
+    case INPUT_TYPE_HOTTSUMH: // Why-o-why?
         return false;
     default:
         return true;
@@ -143,6 +143,8 @@ bool Lux::setInputType(enum InputType type)
     case INPUT_TYPE_IBUS:
         settings.RxPort = HwLux::RXPORT_IBUS;
         break;
+    case INPUT_TYPE_SRXL:
+        settings.RxPort = HwLux::RXPORT_SRXL;
     default:
         return false;
     }
@@ -181,6 +183,8 @@ enum Core::IBoardType::InputType Lux::getInputType()
         return INPUT_TYPE_HOTTSUMH;
     case HwLux::RXPORT_IBUS:
         return INPUT_TYPE_IBUS;
+    case HwLux::RXPORT_SRXL:
+        return INPUT_TYPE_SRXL;
     }
     
     switch(settings.Uart2) {
@@ -192,6 +196,8 @@ enum Core::IBoardType::InputType Lux::getInputType()
         return INPUT_TYPE_SBUSNONINVERTED;
     case HwLux::UART2_IBUS:
         return INPUT_TYPE_IBUS;
+    case HwLux::UART2_SRXL:
+        return INPUT_TYPE_SRXL;
     }
     
     switch(settings.Uart3) {
@@ -203,6 +209,8 @@ enum Core::IBoardType::InputType Lux::getInputType()
         return INPUT_TYPE_SBUSNONINVERTED;
     case HwLux::UART3_IBUS:
         return INPUT_TYPE_IBUS;
+    case HwLux::UART3_SRXL:
+        return INPUT_TYPE_SRXL;
     }
     
     return INPUT_TYPE_PPM;

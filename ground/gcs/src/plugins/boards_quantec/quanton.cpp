@@ -148,10 +148,12 @@ bool Quanton::setInputType(enum InputType type)
     case INPUT_TYPE_IBUS:
         settings.Uart1 = HwQuanton::UART1_IBUS;
         break;
+    case INPUT_TYPE_SRXL:
+        settings.Uart1 = HwQuanton::UART1_SRXL;
+        break;
     case INPUT_TYPE_DSM:
         settings.Uart1 = HwQuanton::UART1_DSM;
-        break;
-    
+        break;    
     default:
         return false;
     }
@@ -204,6 +206,8 @@ enum Core::IBoardType::InputType Quanton::getInputType()
             return INPUT_TYPE_SBUSNONINVERTED;
         case HwQuanton::INPORTSERIAL_IBUS:
             return INPUT_TYPE_IBUS;
+        case HwQuanton::INPORTSERIAL_SRXL:
+            return INPUT_TYPE_SRXL;
         }
         break;
     }
@@ -219,6 +223,8 @@ enum Core::IBoardType::InputType Quanton::getInputType()
         return INPUT_TYPE_SBUSNONINVERTED;
     case HwQuanton::UART1_IBUS:
         return INPUT_TYPE_IBUS;
+    case HwQuanton::UART1_SRXL:
+        return INPUT_TYPE_SRXL;
     }
 
     switch(settings.Uart2) {
@@ -234,6 +240,8 @@ enum Core::IBoardType::InputType Quanton::getInputType()
         return INPUT_TYPE_SBUSNONINVERTED;
     case HwQuanton::UART2_IBUS:
         return INPUT_TYPE_IBUS;
+    case HwQuanton::UART2_SRXL:
+        return INPUT_TYPE_SRXL;
     }
 
     switch(settings.Uart3) {
@@ -247,6 +255,8 @@ enum Core::IBoardType::InputType Quanton::getInputType()
         return INPUT_TYPE_SBUSNONINVERTED;
     case HwQuanton::UART3_IBUS:
         return INPUT_TYPE_IBUS;
+    case HwQuanton::UART3_SRXL:
+        return INPUT_TYPE_SRXL;
     }
     
     switch(settings.Uart4) {
@@ -260,6 +270,8 @@ enum Core::IBoardType::InputType Quanton::getInputType()
         return INPUT_TYPE_SBUSNONINVERTED;
     case HwQuanton::UART4_IBUS:
         return INPUT_TYPE_IBUS;
+    case HwQuanton::UART4_SRXL:
+        return INPUT_TYPE_SRXL;
     }
     
     switch(settings.Uart5) {
@@ -273,6 +285,8 @@ enum Core::IBoardType::InputType Quanton::getInputType()
         return INPUT_TYPE_SBUSNONINVERTED;
     case HwQuanton::UART5_IBUS:
         return INPUT_TYPE_IBUS;
+    case HwQuanton::UART5_SRXL:
+        return INPUT_TYPE_SRXL;
     }
 
     return INPUT_TYPE_UNKNOWN;
