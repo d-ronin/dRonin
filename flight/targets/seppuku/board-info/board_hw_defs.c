@@ -52,7 +52,7 @@ static const struct pios_annunc pios_annuncs[] = {
 			},
 		},
 		.remap = 0,
-		.active_high = false,
+		.active_high = true,
 	},
 	[PIOS_ANNUNCIATOR_BUZZER] = {
 		// Bipolar NPN low side, 1k base; 2.6mA base; hFE min 200
