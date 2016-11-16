@@ -59,8 +59,8 @@ public:
 
     virtual IUAVGadget *createGadget(QWidget *parent) = 0;
     virtual IUAVGadgetConfiguration *createConfiguration(QSettings* /*qSettings*/) { return 0; }
-    virtual IUAVGadgetConfiguration *createConfiguration(QSettings* qs, UAVConfigInfo */*configInfo*/) { return createConfiguration(qs); }
-    virtual IOptionsPage *createOptionsPage(IUAVGadgetConfiguration */*config*/) { return 0; }
+    virtual IUAVGadgetConfiguration *createConfiguration(QSettings* qs, UAVConfigInfo* /*configInfo*/) { return createConfiguration(qs); }
+    virtual IOptionsPage *createOptionsPage(IUAVGadgetConfiguration* /*config*/) { return 0; }
     QString classId() const { return m_classId; }
     QString name() const { return m_name; }
     QIcon icon() const { return m_icon; }

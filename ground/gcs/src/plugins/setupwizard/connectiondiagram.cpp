@@ -135,6 +135,10 @@ void ConnectionDiagram::setupGraphicsScene()
             break;
         case Core::IBoardType::INPUT_TYPE_IBUS:
             elementsToShow << "ibus";
+            break;
+        case Core::IBoardType::INPUT_TYPE_SRXL:
+            elementsToShow << "srxl";
+            break;
         default:
             break;
         }

@@ -261,6 +261,9 @@ QString SetupWizard::getSummaryText()
     case Core::IBoardType::INPUT_TYPE_IBUS:
         summary.append(tr("FlySky I-Bus"));
         break;
+    case Core::IBoardType::INPUT_TYPE_SRXL:
+        summary.append(tr("Multiplex SRXL"));
+        break;
     default:
         summary.append(tr("Unknown"));
     }
