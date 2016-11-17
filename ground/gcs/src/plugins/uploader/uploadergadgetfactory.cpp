@@ -49,7 +49,7 @@ Core::IUAVGadget* UploaderGadgetFactory::createGadget(QWidget *parent)
     return new UploaderGadget(QString("Uploader"), gadgetWidget, parent);
 }
 
-IUAVGadgetConfiguration *UploaderGadgetFactory::createConfiguration(QSettings* qSettings)
+IUAVGadgetConfiguration *UploaderGadgetFactory::createConfiguration(QSettings *qSettings)
 {
     Q_UNUSED(qSettings);
     return NULL;

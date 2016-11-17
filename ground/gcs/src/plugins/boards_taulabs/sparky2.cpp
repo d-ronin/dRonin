@@ -99,9 +99,9 @@ bool Sparky2::queryCapabilities(BoardCapabilities capability)
     case BOARD_CAPABILITIES_RADIO:
     case BOARD_CAPABILITIES_UPGRADEABLE:
         return true;
-    default:
-        return false;
     }
+    
+    return false;
 }
 
 QPixmap Sparky2::getBoardPicture()
@@ -134,9 +134,9 @@ bool Sparky2::isInputConfigurationSupported(enum InputType type = INPUT_TYPE_ANY
     case INPUT_TYPE_HOTTSUMD:
     case INPUT_TYPE_HOTTSUMH:
         return false;
-    default:
-        return true;
     }
+    
+    return true;
 }
 
 /**
@@ -277,9 +277,9 @@ int Sparky2::queryMaxGyroRate()
         return 1000;
     case HwSparky2::GYRORANGE_2000:
         return 2000;
-    default:
-        return 500;
     }
+    
+    return 500;
 }
 
 

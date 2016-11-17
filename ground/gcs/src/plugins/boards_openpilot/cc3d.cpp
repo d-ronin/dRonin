@@ -72,9 +72,9 @@ bool CC3D::queryCapabilities(BoardCapabilities capability)
     case BOARD_CAPABILITIES_UPGRADEABLE:
     case BOARD_DISABILITY_REQUIRESUPGRADER:
         return true;
-    default:
-        return false;
     }
+    
+    return false;
 }
 
 QString CC3D::shortName()
@@ -139,19 +139,19 @@ bool CC3D::setInputType(enum InputType type)
         settings.FlexiPort = HwCopterControl::FLEXIPORT_TELEMETRY;
         break;
     case INPUT_TYPE_DSM:
-        settings.MainPort = HwCopterControl::MAINPORT_DSM;
+        settings.FlexiPort = HwCopterControl::FLEXIPORT_DSM;
         break;
     case INPUT_TYPE_HOTTSUMD:
-        settings.MainPort = HwCopterControl::MAINPORT_HOTTSUMD;
+        settings.FlexiPort = HwCopterControl::FLEXIPORT_HOTTSUMD;
         break;
     case INPUT_TYPE_HOTTSUMH:
-        settings.MainPort = HwCopterControl::MAINPORT_HOTTSUMH;
+        settings.FlexiPort = HwCopterControl::FLEXIPORT_HOTTSUMH;
         break;
     case INPUT_TYPE_IBUS:
-        settings.MainPort = HwCopterControl::MAINPORT_IBUS;
+        settings.FlexiPort = HwCopterControl::FLEXIPORT_IBUS;
         break;
     case INPUT_TYPE_SRXL:
-        settings.MainPort = HwCopterControl::MAINPORT_SRXL;
+        settings.FlexiPort = HwCopterControl::FLEXIPORT_SRXL;
         break;
     default:
         return false;
@@ -242,9 +242,9 @@ int CC3D::queryMaxGyroRate()
         return 1000;
     case HwCopterControl::GYRORANGE_2000:
         return 2000;
-    default:
-        return 500;
     }
+    
+    return 500;
 }
 
 /**

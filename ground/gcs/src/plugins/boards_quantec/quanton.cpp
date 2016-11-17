@@ -88,9 +88,9 @@ bool Quanton::queryCapabilities(BoardCapabilities capability)
     case BOARD_CAPABILITIES_BAROS:
     case BOARD_CAPABILITIES_UPGRADEABLE:
         return true;
-    default:
-        return false;
     }
+    
+    return false;
 }
 
 QPixmap Quanton::getBoardPicture()
@@ -312,9 +312,9 @@ int Quanton::queryMaxGyroRate()
         return 1000;
     case HwQuanton::GYRORANGE_2000:
         return 2000;
-    default:
-        return 500;
     }
+    
+    return 500;
 }
 
 QStringList Quanton::getAdcNames()

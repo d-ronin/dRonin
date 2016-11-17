@@ -46,7 +46,7 @@ Core::IUAVGadget* UAVObjectBrowserFactory::createGadget(QWidget *parent)
     return new UAVObjectBrowser(QString("UAVObjectBrowser"), gadgetWidget, parent);
 }
 
-IUAVGadgetConfiguration *UAVObjectBrowserFactory::createConfiguration(QSettings* qSettings)
+IUAVGadgetConfiguration *UAVObjectBrowserFactory::createConfiguration(QSettings *qSettings)
 {
     return new UAVObjectBrowserConfiguration(QString("UAVObjectBrowser"), qSettings);
 }

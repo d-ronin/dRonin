@@ -78,9 +78,9 @@ bool Lux::queryCapabilities(BoardCapabilities capability)
     case BOARD_CAPABILITIES_ACCELS:
     case BOARD_CAPABILITIES_UPGRADEABLE:
         return true;
-    default:
-        return false;
     }
+    
+    return false;
 }
 
 QPixmap Lux::getBoardPicture()
@@ -100,9 +100,9 @@ bool Lux::isInputConfigurationSupported(enum InputType type = INPUT_TYPE_ANY)
     case INPUT_TYPE_PWM:
     case INPUT_TYPE_HOTTSUMH:
         return false;
-    default:
-        return true;
     }
+    
+    return true;
 }
 
 /**
@@ -236,9 +236,9 @@ int Lux::queryMaxGyroRate()
         return 1000;
     case HwLux::GYRORANGE_2000:
         return 2000;
-    default:
-        return 500;
     }
+    
+    return 500;
 }
 
 QStringList Lux::getAdcNames()

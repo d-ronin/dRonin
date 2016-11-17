@@ -45,8 +45,8 @@ public:
     ~QmlViewGadgetFactory();
 
     Core::IUAVGadget *createGadget(QWidget *parent);
-    IUAVGadgetConfiguration *createConfiguration(QSettings* qSettings);
-    IOptionsPage *createOptionsPage(IUAVGadgetConfiguration* config);
+    IUAVGadgetConfiguration *createConfiguration(QSettings *qSettings);
+    IOptionsPage *createOptionsPage(IUAVGadgetConfiguration *config);
 };
 
 #endif // QmlViewGADGETFACTORY_H_

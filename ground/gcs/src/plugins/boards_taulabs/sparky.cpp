@@ -84,9 +84,9 @@ bool Sparky::queryCapabilities(BoardCapabilities capability)
     case BOARD_CAPABILITIES_BAROS:
     case BOARD_CAPABILITIES_UPGRADEABLE:
         return true;
-    default:
-        return false;
     }
+    
+    return false;
 }
 
 QPixmap Sparky::getBoardPicture()
@@ -106,9 +106,9 @@ bool Sparky::isInputConfigurationSupported(enum InputType type = INPUT_TYPE_ANY)
     case INPUT_TYPE_PWM:
     case INPUT_TYPE_HOTTSUMH:
         return false;
-    default:
-        return true;
     }
+    
+    return true;
 }
 
 /**
@@ -243,9 +243,9 @@ int Sparky::queryMaxGyroRate()
         return 1000;
     case HwSparky::GYRORANGE_2000:
         return 2000;
-    default:
-        return 500;
     }
+    
+    return 500;
 }
 
 QStringList Sparky::getAdcNames()

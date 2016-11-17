@@ -85,9 +85,9 @@ bool Dtfc::queryCapabilities(BoardCapabilities capability)
     case BOARD_CAPABILITIES_BAROS:
     case BOARD_CAPABILITIES_UPGRADEABLE:
         return true;
-    default:
-        return false;
     }
+    
+    return false;
 }
 
 QPixmap Dtfc::getBoardPicture()
@@ -106,9 +106,9 @@ bool Dtfc::isInputConfigurationSupported(enum InputType type = INPUT_TYPE_ANY)
     switch (type) {
     case INPUT_TYPE_PWM:
         return false;
-    default:
-        return true;
     }
+    
+    return true;
 }
 
 /**
@@ -252,9 +252,9 @@ int Dtfc::queryMaxGyroRate()
         return 1000;
     case HwDtfc::GYRORANGE_2000:
         return 2000;
-    default:
-        return 500;
     }
+    
+    return 500;
 }
 
 QStringList Dtfc::getAdcNames()

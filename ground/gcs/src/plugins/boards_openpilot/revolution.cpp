@@ -99,9 +99,9 @@ bool Revolution::queryCapabilities(BoardCapabilities capability)
     case BOARD_CAPABILITIES_RADIO:
     case BOARD_CAPABILITIES_UPGRADEABLE:
         return true;
-    default:
-        return false;
     }
+    
+    return false;
 }
 
 QPixmap Revolution::getBoardPicture()
@@ -162,19 +162,19 @@ bool Revolution::setInputType(enum InputType type)
         settings.MainPort = HwRevolution::MAINPORT_SBUSNONINVERTED;
         break;
     case INPUT_TYPE_DSM:
-        settings.MainPort = HwRevolution::MAINPORT_DSM;
+        settings.FlexiPort = HwRevolution::FLEXIPORT_DSM;
         break;
     case INPUT_TYPE_HOTTSUMD:
-        settings.MainPort = HwRevolution::MAINPORT_HOTTSUMD;
+        settings.FlexiPort = HwRevolution::FLEXIPORT_HOTTSUMD;
         break;
     case INPUT_TYPE_HOTTSUMH:
-        settings.MainPort = HwRevolution::MAINPORT_HOTTSUMH;
+        settings.FlexiPort = HwRevolution::FLEXIPORT_HOTTSUMH;
         break;
     case INPUT_TYPE_IBUS:
-        settings.FlexiPort = HwRevolution::MAINPORT_IBUS;
+        settings.FlexiPort = HwRevolution::FLEXIPORT_IBUS;
         break;
     case INPUT_TYPE_SRXL:
-        settings.FlexiPort = HwRevolution::MAINPORT_SRXL;
+        settings.FlexiPort = HwRevolution::FLEXIPORT_SRXL;
         break;
     default:
         return false;
@@ -282,9 +282,9 @@ int Revolution::queryMaxGyroRate()
         return 1000;
     case HwRevolution::GYRORANGE_2000:
         return 2000;
-    default:
-        return 2000;
     }
+    
+    return 2000;
 }
 
 

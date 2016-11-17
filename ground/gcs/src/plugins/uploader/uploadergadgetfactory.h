@@ -49,7 +49,7 @@ public:
     ~UploaderGadgetFactory();
 
     Core::IUAVGadget *createGadget(QWidget *parent);
-    IUAVGadgetConfiguration *createConfiguration(QSettings* qSettings);
+    IUAVGadgetConfiguration *createConfiguration(QSettings *qSettings);
 private:
 signals:
     void newBoardSeen(deviceInfo board, deviceDescriptorStruct device);

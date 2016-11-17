@@ -50,7 +50,7 @@ public:
 
     Core::IUAVGadget *createGadget(QWidget *parent);
     IUAVGadgetConfiguration *createConfiguration(const QByteArray &state);
-    IOptionsPage *createOptionsPage(IUAVGadgetConfiguration* config);
+    IOptionsPage *createOptionsPage(IUAVGadgetConfiguration *config);
 };
 
 #endif // NOTIFYPLUGINFACTORY_H

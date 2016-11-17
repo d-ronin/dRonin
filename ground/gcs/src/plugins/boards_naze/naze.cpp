@@ -73,9 +73,9 @@ bool Naze::queryCapabilities(BoardCapabilities capability)
     case BOARD_CAPABILITIES_GYROS:
     case BOARD_CAPABILITIES_ACCELS:
         return true;
-    default:
-        return false;
     }
+    
+    return false;
 }
 
 QPixmap Naze::getBoardPicture()
@@ -108,9 +108,9 @@ int Naze::queryMaxGyroRate()
         return 1000;
     case HwNaze::GYRORANGE_2000:
         return 2000;
-    default:
-        return 500;
     }
+    
+    return 500;
 }
 
 //! Determine if this board supports configuring the receiver

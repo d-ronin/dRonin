@@ -90,9 +90,9 @@ bool BrainRE1::isInputConfigurationSupported(enum InputType type = INPUT_TYPE_AN
     switch (type) {
     case INPUT_TYPE_PWM:
         return false;
-    default:
-        return true;
     }
+    
+    return true;
 }
 
 QString BrainRE1::getHwUAVO()

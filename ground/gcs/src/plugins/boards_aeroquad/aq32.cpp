@@ -82,9 +82,9 @@ bool AQ32::queryCapabilities(BoardCapabilities capability)
     case BOARD_CAPABILITIES_BAROS:
     case BOARD_CAPABILITIES_UPGRADEABLE:
         return true;
-    default:
-        return false;
     }
+    
+    return false;
 }
 
 QPixmap AQ32::getBoardPicture()
@@ -178,8 +178,6 @@ enum Core::IBoardType::InputType AQ32::getInputType()
         return INPUT_TYPE_PPM;
     case HwAQ32::RCVRPORT_PWM:
         return INPUT_TYPE_PWM;
-    default:
-        break;
     }
     
     switch(settings.Uart3) {
@@ -250,9 +248,9 @@ int AQ32::queryMaxGyroRate()
         return 1000;
     case HwAQ32::GYRORANGE_2000:
         return 2000;
-    default:
-        return 500;
     }
+    
+    return 500;
 }
 
 QStringList AQ32::getAdcNames()

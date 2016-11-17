@@ -88,9 +88,9 @@ bool Brain::queryCapabilities(BoardCapabilities capability)
     case BOARD_CAPABILITIES_OSD:
     case BOARD_CAPABILITIES_UPGRADEABLE:
         return true;
-    default:
-        return false;
     }
+    
+    return false;
 }
 
 QPixmap Brain::getBoardPicture()
@@ -260,9 +260,9 @@ int Brain::queryMaxGyroRate()
         return 1000;
     case HwBrain::GYROFULLSCALE_2000:
         return 2000;
-    default:
-        return 2000;
     }
+    
+    return 2000;
 }
 
 QWidget * Brain::getBoardConfiguration(QWidget *parent, bool connected)
