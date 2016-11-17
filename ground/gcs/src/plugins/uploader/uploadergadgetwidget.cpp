@@ -558,8 +558,8 @@ void UploaderGadgetWidget::haltOrReset(bool halting)
         timeout.stop();
     }
 
-    if(conMngr->getCurrentDevice().connection->shortName() == "USB")
-    {
+    Core::IConnection *conn = conMngr->getCurrentDevice().connection;
+    if(conn && conn->shortName() == "USB") {
         conMngr->disconnectDevice();
         timeout.start(200);
         loop.exec();
