@@ -214,6 +214,9 @@ enum Core::IBoardType::InputType Naze::getInputType()
             return INPUT_TYPE_IBUS;
         case HwNaze::RCVRSERIAL_SRXL:
             return INPUT_TYPE_SRXL;
+        default:
+            // can still use PPM
+            return INPUT_TYPE_PPM;
         }
     }
 
