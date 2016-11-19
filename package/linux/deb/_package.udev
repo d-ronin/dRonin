@@ -88,5 +88,9 @@ KERNEL=="hidraw*", ATTRS{idVendor}=="16d0", ATTRS{idProduct}=="d7fc", MODE="0664
 # dRonin
 #
 
-# PlayUAVOSD board
+# generic firmware
 KERNEL=="hidraw*", ATTRS{idVendor}=="20a0", ATTRS{idProduct}=="4250", MODE="0664", GROUP="plugdev"
+
+# generic bootloader
+KERNEL=="hidraw*", ATTRS{idVendor}=="20a0", ATTRS{idProduct}=="427a", MODE="0664", GROUP="plugdev"
+
