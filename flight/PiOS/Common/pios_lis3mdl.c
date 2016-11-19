@@ -228,7 +228,7 @@ int32_t PIOS_LIS3MDL_SPI_Init(lis3mdl_dev_t *dev, uint32_t spi_id,
 
 	lis_dev->task_handle = PIOS_Thread_Create(
 			PIOS_LIS_Task, "pios_lis", PIOS_LIS_TASK_STACK,
-			NULL, PIOS_LIS_TASK_PRIORITY);
+			lis_dev, PIOS_LIS_TASK_PRIORITY);
 
 	PIOS_SENSORS_Register(PIOS_SENSOR_MAG, lis_dev->mag_queue);
 
@@ -237,7 +237,7 @@ int32_t PIOS_LIS3MDL_SPI_Init(lis3mdl_dev_t *dev, uint32_t spi_id,
 
 static int32_t PIOS_LIS_ClaimBus(lis3mdl_dev_t lis_dev)
 {
-	PIOS_Assert(PIOS_LIS_Validate(lis_dev));
+	PIOS_Assert(!PIOS_LIS_Validate(lis_dev));
 
 	if (PIOS_SPI_ClaimBus(lis_dev->spi_id) != 0)
 		return -2;
@@ -251,7 +251,7 @@ static int32_t PIOS_LIS_ClaimBus(lis3mdl_dev_t lis_dev)
 
 static int32_t PIOS_LIS_ReleaseBus(lis3mdl_dev_t lis_dev)
 {
-	PIOS_Assert(PIOS_LIS_Validate(lis_dev));
+	PIOS_Assert(!PIOS_LIS_Validate(lis_dev));
 
 	PIOS_SPI_RC_PinSet(lis_dev->spi_id, lis_dev->spi_slave_mag, true);
 
@@ -270,7 +270,7 @@ static int32_t PIOS_LIS_ReadReg(lis3mdl_dev_t lis_dev,
 		return -1;
 
 	PIOS_SPI_TransferByte(lis_dev->spi_id, LIS_ADDRESS_READ |
-			address); // request byte
+		address); // request byte
 	*buffer = PIOS_SPI_TransferByte(lis_dev->spi_id, 0);   // receive response
 
 	PIOS_LIS_ReleaseBus(lis_dev);
@@ -281,7 +281,7 @@ static int32_t PIOS_LIS_ReadReg(lis3mdl_dev_t lis_dev,
 static int32_t PIOS_LIS_WriteReg(lis3mdl_dev_t lis_dev,
 		uint8_t address, uint8_t buffer)
 {
-	PIOS_Assert(PIOS_LIS_Validate(lis_dev));
+	PIOS_Assert(!PIOS_LIS_Validate(lis_dev));
 
 	PIOS_Assert(!(address & LIS_ADDRESS_READ));
 	PIOS_Assert(!(address & LIS_ADDRESS_AUTOINCREMENT));
@@ -301,7 +301,7 @@ static void PIOS_LIS_Task(void *parameters)
 {
 	lis3mdl_dev_t lis_dev = (lis3mdl_dev_t) parameters;
 
-	PIOS_Assert(PIOS_LIS_Validate(lis_dev));
+	PIOS_Assert(!PIOS_LIS_Validate(lis_dev));
 
 	while (true) {
 		/* Output rate of 80 implies 12.5ms between samples.
@@ -323,7 +323,7 @@ static void PIOS_LIS_Task(void *parameters)
 			continue;
 
 		// TODO: Consider temperature in future
-		uint16_t sensor_buf[
+		int16_t sensor_buf[
 			(LIS_REG_MAG_OUTZ_H - LIS_REG_MAG_OUTX_L + 1) / 2];
 
 		PIOS_SPI_TransferByte(lis_dev->spi_id,
