@@ -404,7 +404,16 @@ void PIOS_Board_Init(void) {
 	}
 #endif /* PIOS_INCLUDE_BMI160 */
 
-	// XXX BMP280 support
+#ifdef PIOS_INCLUDE_BMP280_SPI
+	// BMP280 support
+	if (PIOS_BMP280_SPI_Init(&pios_bmp280_cfg, pios_spi_gyro_accel_id,
+			1)) {
+		PIOS_SENSORS_SetMissing(PIOS_SENSOR_BARO);
+	} else if (PIOS_BMP280_Test()) {
+		PIOS_SENSORS_SetMissing(PIOS_SENSOR_BARO);
+	}
+#endif /* PIOS_INCLUDE_BMP280_SPI */
+
 #endif /* PIOS_INCLUDE_SPI */
 
 	PIOS_WDG_Clear();
