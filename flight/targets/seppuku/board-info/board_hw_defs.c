@@ -59,7 +59,7 @@ static const struct pios_annunc pios_annuncs[] = {
 		.pin = {
 			.gpio = GPIOA,
 			.init = {
-				.GPIO_Pin   = GPIO_Pin_4,
+				.GPIO_Pin   = GPIO_Pin_5,
 				.GPIO_Speed = GPIO_Speed_2MHz,
 				.GPIO_Mode  = GPIO_Mode_OUT,
 				.GPIO_OType = GPIO_OType_PP,
@@ -746,7 +746,7 @@ static const TIM_TimeBaseInitTypeDef tim_9_time_base = {
 };
 
 static const struct pios_tim_clock_cfg tim_9_cfg = {
-	.timer = TIM2,
+	.timer = TIM9,
 	.time_base_init = &tim_9_time_base,
 	.irq = {
 		.init = {
@@ -1051,7 +1051,7 @@ static const struct pios_ppm_cfg pios_ppm_cfg = {
 		.TIM_ICSelection = TIM_ICSelection_DirectTI,
 		.TIM_ICPrescaler = TIM_ICPSC_DIV1,
 		.TIM_ICFilter = 0x0,
-		.TIM_Channel = TIM_Channel_3,
+		.TIM_Channel = TIM_Channel_2,
 	},
 	/* Use only the first channel for ppm */
 	.channels = &pios_tim_rcvrport_all_channels[0],
