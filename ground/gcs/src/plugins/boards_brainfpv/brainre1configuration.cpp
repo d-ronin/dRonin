@@ -130,7 +130,7 @@ void BrainRE1Configuration::widgetsContentsChanged()
 
 void BrainRE1Configuration::openHelp()
 {
-    QDesktopServices::openUrl( QUrl("http://wwww.brainfpv.com/support", QUrl::StrictMode) );
+    QDesktopServices::openUrl( QUrl("http://www.brainfpv.com/support", QUrl::StrictMode) );
 }
 
 void BrainRE1Configuration::generateILapID()
