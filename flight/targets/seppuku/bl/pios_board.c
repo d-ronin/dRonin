@@ -45,6 +45,10 @@
 #include <pios_board_info.h>
 #include <pios.h>
 
+#ifdef PIOS_INCLUDE_WS2811
+#include <pios_ws2811.h>
+#endif
+
 uintptr_t pios_com_telem_usb_id;
 
 void PIOS_Board_Init() {
@@ -58,6 +62,11 @@ void PIOS_Board_Init() {
 	PIOS_Assert(led_cfg);
 	PIOS_ANNUNC_Init(led_cfg);
 #endif	/* PIOS_INCLUDE_ANNUNC */
+
+#ifdef PIOS_INCLUDE_WS2811
+	PIOS_WS2811_init(&pios_ws2811, &pios_ws2811_cfg, 1);
+	PIOS_WS2811_trigger_update(pios_ws2811);
+#endif
 
 	if ((RCC->CFGR & (uint32_t)RCC_CFGR_SWS ) != RCC_CFGR_SWS_PLL) {
 		/* Oh no.  We're not clocked from PLL, that is DEFINITELY

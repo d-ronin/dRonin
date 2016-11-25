@@ -65,6 +65,7 @@ SRC += pios_annunc.c
 SRC += pios_rtc.c
 SRC += pios_sys.c
 SRC += pios_tim.c
+SRC += pios_ws2811.c
 SRC += pios_usb.c
 SRC += pios_usb_cdc.c
 SRC += pios_usb_hid.c

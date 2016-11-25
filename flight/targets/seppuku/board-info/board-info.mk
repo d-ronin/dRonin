@@ -1,6 +1,6 @@
 BOARD_TYPE          := 0xA1
 BOARD_REVISION      := 0x01
-BOOTLOADER_VERSION  := 0x87
+BOOTLOADER_VERSION  := 0x88
 HW_TYPE             := 0x00		# seems to be unused
 
 CHIP                := STM32F405RGT

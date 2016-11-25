@@ -40,13 +40,17 @@ struct led_pwm_state {
 	bool pwm_2_enabled;
 	uint32_t pwm_2_period_us;
 	uint32_t pwm_2_sweep_steps;
+
+#ifdef PIOS_INCLUDE_WS2811
+	uint32_t last_ws2811_us;
+#endif
 };
 
 extern void led_pwm_config(struct led_pwm_state * leds, uint32_t pwm_1_period_us, uint32_t pwm_1_sweep_steps, uint32_t pwm_2_period_us, uint32_t pwm_2_sweep_steps);
 
 extern void led_pwm_add_ticks(struct led_pwm_state *leds, uint32_t elapsed_us);
 
-extern bool led_pwm_update_leds(const struct led_pwm_state *leds);
+extern bool led_pwm_update_leds(struct led_pwm_state *leds);
 
 #endif	/* LED_PWM_H_ */
 
