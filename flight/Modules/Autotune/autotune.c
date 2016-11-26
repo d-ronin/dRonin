@@ -75,7 +75,7 @@ struct at_queued_data {
 	float u[3];		/* Actuator desired */
 	float throttle;		/* Throttle desired */
 
-	uint32_t raw_time;	/* From PIOS_DELAY_GetRaw() */
+	uint16_t sample_num;
 };
 
 // Private variables
@@ -85,6 +85,8 @@ static circ_queue_t at_queue;
 static volatile uint32_t at_points_spilled;
 static uint32_t throttle_accumulator;
 
+extern uint16_t ident_wiggle_points;
+
 // Private functions
 static void AutotuneTask(void *parameters);
 static void af_predict(float X[AF_NUMX], float P[AF_NUMP], const float u_in[3], const float gyro[3], const float dT_s, const float t_in);
@@ -93,9 +95,9 @@ static void af_init(float X[AF_NUMX], float P[AF_NUMP]);
 #ifndef AT_QUEUE_NUMELEM
 
 #ifdef SMALLF1
-#define AT_QUEUE_NUMELEM 18
+#define AT_QUEUE_NUMELEM 19
 #else
-#define AT_QUEUE_NUMELEM 30
+#define AT_QUEUE_NUMELEM 32
 #endif
 
 #endif
@@ -171,7 +173,12 @@ static void at_new_actuators(UAVObjEvent * ev, void *ctx, void *obj, int len) {
 
 	ActuatorDesiredData *actuators = (ActuatorDesiredData *) obj;
 
+#if 0
+	/* not presently safe.  The aligned attribute has the effect of
+	 * increasing the size of the data to a multiple of 4
+	 */
 	PIOS_Assert(len == sizeof(*actuators));
+#endif
 
 	if (last_sample_unpushed) {
 		/* Last time we were unable to advance the write pointer.
@@ -202,7 +209,7 @@ static void at_new_actuators(UAVObjEvent * ev, void *ctx, void *obj, int len) {
 
 	running = true;
 
-	q_item->raw_time = PIOS_DELAY_GetRaw();
+	q_item->sample_num = actuators->SystemIdentCycle;
 
 	q_item->y[0] = g.x;
 	q_item->y[1] = g.y;
@@ -222,7 +229,7 @@ static void at_new_actuators(UAVObjEvent * ev, void *ctx, void *obj, int len) {
 }
 
 static void UpdateSystemIdent(const float *X, const float *noise,
-		float dT_s, uint32_t predicts, uint32_t spills,
+		uint32_t predicts, uint32_t spills,
 		float hover_throttle, bool new_tune) {
 	SystemIdentData system_ident;
 
@@ -239,8 +246,6 @@ static void UpdateSystemIdent(const float *X, const float *noise,
 	system_ident.Noise[SYSTEMIDENT_NOISE_ROLL]  = noise[0];
 	system_ident.Noise[SYSTEMIDENT_NOISE_PITCH] = noise[1];
 	system_ident.Noise[SYSTEMIDENT_NOISE_YAW]   = noise[2];
-
-	system_ident.Period = dT_s * 1000.0f;
 
 	system_ident.NumAfPredicts = predicts;
 	system_ident.NumSpilledPts = spills;
@@ -265,8 +270,22 @@ static void AutotuneTask(void *parameters)
 
 	af_init(X,P);
 
-	uint32_t last_time = 0.0f;
+	uint16_t last_samp = 0;
 	const uint32_t YIELD_MS = 2;
+
+	/* Wait for stabilization module to complete startup and tell us
+	 * its dT, etc.
+	 */
+	while (!ident_wiggle_points) {
+		PIOS_Thread_Sleep(25);
+	}
+
+	float dT_expected = 0.001f;
+	uint16_t sample_rate = PIOS_SENSORS_GetSampleRate(PIOS_SENSOR_GYRO);
+
+	if (sample_rate) {
+		dT_expected = 1.0f / sample_rate;
+	}
 
 	ActuatorDesiredConnectCallback(at_new_actuators);
 
@@ -328,9 +347,6 @@ static void AutotuneTask(void *parameters)
 				break;
 
 			case AT_START:
-
-				last_time = PIOS_DELAY_GetRaw();
-
 				/* Drain the queue of all current data */
 				circ_queue_clear(at_queue);
 
@@ -359,6 +375,11 @@ static void AutotuneTask(void *parameters)
 						break;
 					}
 
+					if (pt->throttle == THROTTLE_EOF) {
+						// Ignore old EOFs, just in case
+						break;
+					}
+
 					state = AT_RUN;
 				}
 
@@ -381,7 +402,7 @@ static void AutotuneTask(void *parameters)
 					if (pt->throttle == THROTTLE_EOF) {
 						// End of actuation, clean up
 						float hover_throttle = ((float)(throttle_accumulator/update_counter))/10000.0f;
-						UpdateSystemIdent(X, noise, 0, update_counter, at_points_spilled, hover_throttle, true);
+						UpdateSystemIdent(X, noise, update_counter, at_points_spilled, hover_throttle, true);
 
 						save_needed = true;
 						can_sleep = true;
@@ -393,16 +414,21 @@ static void AutotuneTask(void *parameters)
 					/* calculate time between successive
 					 * points */
 
-					float dT_s = PIOS_DELAY_DiffuS2(last_time,
-							pt->raw_time) * 1.0e-6f;
+					uint16_t samp_interval = pt->sample_num - last_samp;
 
-					/* This is for the first point, but
-					 * also if we have extended drops */
-					if (dT_s > 0.010f) {
-						dT_s = 0.010f;
+					if (samp_interval > ident_wiggle_points) {
+						/* Handle wrap case. */
+						samp_interval += ident_wiggle_points;
 					}
 
-					last_time = pt->raw_time;
+					if ((samp_interval == 0) ||
+							(samp_interval > 10)) {
+						samp_interval = 10;
+					}
+
+					float dT_s = samp_interval * dT_expected;
+
+					last_samp = pt->sample_num;
 
 					af_predict(X, P, pt->u, pt->y, dT_s, pt->throttle);
 
@@ -421,7 +447,7 @@ static void AutotuneTask(void *parameters)
 					// telemetry spam
 					if (!((update_counter++) & 0xff)) {
 						float hover_throttle = ((float)(throttle_accumulator/update_counter))/10000.0f;
-						UpdateSystemIdent(X, noise, dT_s, update_counter, at_points_spilled, hover_throttle, false);
+						UpdateSystemIdent(X, noise, update_counter, at_points_spilled, hover_throttle, false);
 					}
 				}
 

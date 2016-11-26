@@ -113,6 +113,9 @@ static VbarSettingsData vbar_settings;
 
 static SubTrimData subTrim;
 static struct pios_queue *queue;
+
+uint16_t ident_wiggle_points;
+
 float axis_lock_accum[3] = {0,0,0};
 uint8_t max_axis_lock = 0;
 uint8_t max_axislock_rate = 0;
@@ -122,6 +125,7 @@ bool lowThrottleZeroIntegral;
 float vbar_decay = 0.991f;
 float gyro_alpha = 0.6;
 struct pid pids[PID_MAX];
+
 #ifndef NO_CONTROL_DEADBANDS
 struct pid_deadband *deadbands = NULL;
 #endif
@@ -245,9 +249,18 @@ static void stabilizationTask(void* parameters)
 
 	uint8_t ident_shift = 5;
 
-	float dT_expected = 1 / PIOS_SENSORS_GetSampleRate(PIOS_SENSOR_GYRO);
+	float dT_expected = 0.001;	// assume 1KHz if we don't know.
 
-	if (dT_expected < 0.0008f) {
+	uint16_t samp_rate = PIOS_SENSORS_GetSampleRate(PIOS_SENSOR_GYRO);
+
+	if (samp_rate) {
+		dT_expected = 1.0f / samp_rate;
+	}
+
+	if (dT_expected < 0.0004f) {
+		// For future 3.2KHz-- 640ms period
+		ident_shift = 8;
+	} else if (dT_expected < 0.0008f) {
 		// 2KHz - 512ms period
 		// 1.6KHz - 640ms period
 		ident_shift = 7;
@@ -263,6 +276,9 @@ static void stabilizationTask(void* parameters)
 		// 333Hz - 768ms period
 		ident_shift = 5;
 	}
+
+	ident_wiggle_points = (1 << (ident_shift + 3));
+	uint32_t ident_mask = ident_wiggle_points - 1;
 
 	// Main task loop
 	zero_pids();
@@ -670,15 +686,12 @@ static void stabilizationTask(void* parameters)
 					if ((i == 0) &&
 							(!measuring) &&
 							((timeval - enter_time) > PREPARE_TIME)) {
-						uint32_t mask =
-							(1 << (ident_shift + 3)) - 1;
-
-						if (!(iteration & mask)) {
+						if (!(iteration & ident_mask)) {
 							measuring = true;
 							measure_remaining = 60 / dT_expected;
-							// Round down to mult
-							// of 8 ident cycles.
-							measure_remaining &= ~mask;
+							// Round down to an integer
+							// number of ident cycles.
+							measure_remaining &= ~ident_mask;
 						}
 
 					}
@@ -710,7 +723,7 @@ static void stabilizationTask(void* parameters)
 							measure_remaining--;
 						}
 
-						actuatorDesired.SystemIdentCycle = ident_iteration;
+						actuatorDesired.SystemIdentCycle = (iteration & ident_mask);
 
 						switch (ident_iteration & 0x07) {
 							case 0:
