@@ -514,14 +514,14 @@ static void stabilizationTask(void* parameters)
 					}
 
 					// The factor for gyro suppression / mixing raw stick input into the output; scaled by raw stick input
-					float factor = fabsf(raw_input) * settings.AcroInsanityFactor / 100;
+					float factor = fabsf(raw_input) * settings.AcroInsanityFactor / 100.0f;
 
 					// Store to rate desired variable for storing to UAVO
 					rateDesiredAxis[i] = bound_sym(raw_input * settings.ManualRate[i], settings.ManualRate[i]);
 
 					// Zero integral for aggressive maneuvers
-					if ((i < 2 && fabsf(gyro_filtered[i]) > 150.0f) ||
-						(i == 0 && fabsf(raw_input) > 0.2f)) {
+					if ((i < 2 && fabsf(gyro_filtered[i]) > settings.AcroZeroIntegralGyro) ||
+						(i == 0 && fabsf(raw_input) > settings.AcroZeroIntegralStick / 100.0f)) {
 							pids[PID_GROUP_RATE + i].iAccumulator = 0;
 							}
 
