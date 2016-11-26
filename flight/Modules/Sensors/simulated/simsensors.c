@@ -116,6 +116,11 @@ static int32_t SimSensorsInitialize(void)
 	PIOS_SENSORS_Register(PIOS_SENSOR_MAG, (struct pios_queue*)1);
 	PIOS_SENSORS_Register(PIOS_SENSOR_BARO, (struct pios_queue*)1);
 
+	PIOS_SENSORS_SetSampleRate(PIOS_SENSOR_ACCEL, 500);
+	PIOS_SENSORS_SetSampleRate(PIOS_SENSOR_GYRO, 500);
+	PIOS_SENSORS_SetSampleRate(PIOS_SENSOR_MAG, 500);
+	PIOS_SENSORS_SetSampleRate(PIOS_SENSOR_BARO, 500);
+
 	accel_bias[0] = rand_gauss() / 10;
 	accel_bias[1] = rand_gauss() / 10;
 	accel_bias[2] = rand_gauss() / 10;
