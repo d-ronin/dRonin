@@ -29,6 +29,7 @@
 #include "openpilot.h"
 
 #include "rgbleds.h"
+#include "misc_math.h"
 
 #ifdef SYSTEMMOD_RGBLED_SUPPORT
 #include "rgbledsettings.h"
@@ -273,26 +274,6 @@ static uint16_t accessory_desired_get_u16(int idx)
 	}
 
 	return float_to_u16(accessory.AccessoryVal);
-}
-
-// The well known 3rd order expansion of sine; 2^15 units/circle
-// Based on http://www.coranac.com/2009/07/sines/
-// Output is Q12
-static int16_t sin_approx(int32_t x)
-{
-	static const int qN = 13, 
-		     qA = 12, qP = 15,
-		     qR= 2*qN - qP,
-		     qS= qN + qP+ 1 - qA;
-
-	x= x<<(30-qN);          // shift to full s32 range (Q13->Q30)
-
-	if( (x^(x<<1)) < 0)     // test for quadrant 1 or 2
-		x= (1<<31) - x;
-
-	x= x>>(30-qN);
-
-	return x * ( (3<<qP) - (x*x>>qR) ) >> qS;
 }
 
 static uint16_t sinusodialize(uint16_t fraction) {
