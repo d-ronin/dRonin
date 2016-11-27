@@ -70,13 +70,21 @@ enum AUTOTUNE_STATE { AT_INIT, AT_START, AT_WAITFIRSTPOINT, AT_RUN,
 				 * (normal range [-1, 1])
 				 */
 
-struct at_queued_data {
+struct at_measurement {
 	float y[3];		/* Gyro measurements */
 	float u[3];		/* Actuator desired */
+};
+
+struct at_queued_data {
+	struct at_measurement meas;
 	float throttle;		/* Throttle desired */
 
 	uint16_t sample_num;
 };
+
+#ifdef AUTOTUNE_AVERAGING_MODE
+static struct at_measurement *at_averages;
+#endif
 
 // Private variables
 static struct pios_thread *taskHandle;
@@ -89,7 +97,7 @@ extern uint16_t ident_wiggle_points;
 
 // Private functions
 static void AutotuneTask(void *parameters);
-static void af_predict(float X[AF_NUMX], float P[AF_NUMP], const float u_in[3], const float gyro[3], const float dT_s, const float t_in);
+static void af_predict(float X[AF_NUMX], float P[AF_NUMP], const struct at_measurement *measurement, const float dT_s, const float t_in);
 static void af_init(float X[AF_NUMX], float P[AF_NUMP]);
 
 #ifndef AT_QUEUE_NUMELEM
@@ -175,7 +183,7 @@ static void at_new_actuators(UAVObjEvent * ev, void *ctx, void *obj, int len) {
 
 #if 0
 	/* not presently safe.  The aligned attribute has the effect of
-	 * increasing the size of the data to a multiple of 4
+	 * increasing sizeof *actuators to a multiple of 4
 	 */
 	PIOS_Assert(len == sizeof(*actuators));
 #endif
@@ -211,13 +219,13 @@ static void at_new_actuators(UAVObjEvent * ev, void *ctx, void *obj, int len) {
 
 	q_item->sample_num = actuators->SystemIdentCycle;
 
-	q_item->y[0] = g.x;
-	q_item->y[1] = g.y;
-	q_item->y[2] = g.z;
+	q_item->meas.y[0] = g.x;
+	q_item->meas.y[1] = g.y;
+	q_item->meas.y[2] = g.z;
 
-	q_item->u[0] = actuators->Roll;
-	q_item->u[1] = actuators->Pitch;
-	q_item->u[2] = actuators->Yaw;
+	q_item->meas.u[0] = actuators->Roll;
+	q_item->meas.u[1] = actuators->Pitch;
+	q_item->meas.u[2] = actuators->Yaw;
 
 	q_item->throttle = actuators->Thrust;
 
@@ -271,14 +279,28 @@ static void AutotuneTask(void *parameters)
 	af_init(X,P);
 
 	uint16_t last_samp = 0;
+
 	const uint32_t YIELD_MS = 2;
 
+#ifdef AUTOTUNE_AVERAGING_MODE
 	/* Wait for stabilization module to complete startup and tell us
 	 * its dT, etc.
 	 */
+#define POINTS_TO_ZERO_PER_PASS 64	/* must be power of 2 */
+
 	while (!ident_wiggle_points) {
 		PIOS_Thread_Sleep(25);
 	}
+
+	uint16_t buf_size = sizeof(*at_averages) * ident_wiggle_points;
+	at_averages = PIOS_malloc(buf_size);
+
+	while (!at_averages) {
+		/* Infinite loop because we couldn't get our buffer */
+		/* Assert alarm XXX? */
+		PIOS_Thread_Sleep(2500);
+	}
+#endif /* AUTOTUNE_AVERAGING_MODE */
 
 	float dT_expected = 0.001f;
 	uint16_t sample_rate = PIOS_SENSORS_GetSampleRate(PIOS_SENSOR_GYRO);
@@ -362,8 +384,6 @@ static void AutotuneTask(void *parameters)
 				break;
 
 			case AT_WAITFIRSTPOINT:
-
-
 				{
 					struct at_queued_data *pt;
 
@@ -430,11 +450,11 @@ static void AutotuneTask(void *parameters)
 
 					last_samp = pt->sample_num;
 
-					af_predict(X, P, pt->u, pt->y, dT_s, pt->throttle);
+					af_predict(X, P, &pt->meas, dT_s, pt->throttle);
 
 					for (uint32_t i = 0; i < 3; i++) {
 						const float NOISE_ALPHA = 0.9997f;  // 10 second time constant at 300 Hz
-						noise[i] = NOISE_ALPHA * noise[i] + (1-NOISE_ALPHA) * (pt->y[i] - X[i]) * (pt->y[i] - X[i]);
+						noise[i] = NOISE_ALPHA * noise[i] + (1-NOISE_ALPHA) * (pt->meas.y[i] - X[i]) * (pt->meas.y[i] - X[i]);
 					}
 
 					//This will work up to 8kHz with an 89% throttle position before overflow
@@ -445,7 +465,7 @@ static void AutotuneTask(void *parameters)
 
 					// Update uavo every 256 cycles to avoid
 					// telemetry spam
-					if (!((update_counter++) & 0xff)) {
+					if (!((++update_counter) & 0xff)) {
 						float hover_throttle = ((float)(throttle_accumulator/update_counter))/10000.0f;
 						UpdateSystemIdent(X, noise, update_counter, at_points_spilled, hover_throttle, false);
 					}
@@ -472,7 +492,7 @@ static void AutotuneTask(void *parameters)
  * @param[in] the current control inputs (roll, pitch, yaw)
  * @param[in] the gyro measurements
  */
-__attribute__((always_inline)) static inline void af_predict(float X[AF_NUMX], float P[AF_NUMP], const float u_in[3], const float gyro[3], const float dT_s, const float t_in)
+__attribute__((always_inline)) static inline void af_predict(float X[AF_NUMX], float P[AF_NUMP], const struct at_measurement *measurement, const float dT_s, const float t_in)
 {
 	const float Ts = dT_s;
 	const float Tsq = Ts * Ts;
@@ -500,14 +520,14 @@ __attribute__((always_inline)) static inline void af_predict(float X[AF_NUMX], f
 	const float bias3 = X[12];       // bias in the yaw torque
 
 	// inputs to the system (roll, pitch, yaw)
-	const float u1_in = 4*t_in*u_in[0];
-	const float u2_in = 4*t_in*u_in[1];
-	const float u3_in = 4*t_in*u_in[2];
+	const float u1_in = 4*t_in*measurement->u[0];
+	const float u2_in = 4*t_in*measurement->u[1];
+	const float u3_in = 4*t_in*measurement->u[2];
 
 	// measurements from gyro
-	const float gyro_x = gyro[0];
-	const float gyro_y = gyro[1];
-	const float gyro_z = gyro[2];
+	const float gyro_x = measurement->y[0];
+	const float gyro_y = measurement->y[1];
+	const float gyro_z = measurement->y[2];
 
 	// update named variables because we want to use predicted
 	// values below
@@ -525,7 +545,7 @@ __attribute__((always_inline)) static inline void af_predict(float X[AF_NUMX], f
 	const float q_B = 1e-6f;
 	const float q_tau = 1e-6f;
 	const float q_bias = 1e-19f;
-	const float s_a = 150.0f; // expected gyro measurment noise
+	const float s_a = 150.0f; // expected gyro measurement noise
 
 	const float Q[AF_NUMX] = {q_w, q_w, q_w, q_ud, q_ud, q_ud, q_B, q_B, q_B, q_tau, q_bias, q_bias, q_bias};
 

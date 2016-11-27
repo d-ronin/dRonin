@@ -717,7 +717,7 @@ static void stabilizationTask(void* parameters)
 						iteration >> ident_shift;
 
 					if (measuring && measure_remaining) {
-						if (i == 0) {
+						if (i == 2) {
 							// Only adjust the
 							// counter on one axis
 							measure_remaining--;
