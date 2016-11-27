@@ -35,6 +35,7 @@
 #include "pios.h"
 #include <pios_board_info.h>
 #include "openpilot.h"
+#include <eventdispatcher.h>
 #include "firmwareiap.h"
 #include "firmwareiapobj.h"
 #include "flightstatus.h"

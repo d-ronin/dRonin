@@ -58,7 +58,6 @@ static void initTask(void *parameters);
 int main()
 {
 	/* NOTE: Do NOT modify the following start-up sequence */
-	/* Any new initialization functions should be added in OpenPilotInit() */
 	PIOS_heap_initialize_blocks();
 
 #if defined(PIOS_INCLUDE_CHIBIOS)

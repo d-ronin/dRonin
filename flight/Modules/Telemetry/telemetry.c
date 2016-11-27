@@ -34,6 +34,7 @@
  */
 
 #include "openpilot.h"
+#include <eventdispatcher.h>
 #include "flighttelemetrystats.h"
 #include "gcstelemetrystats.h"
 #include "modulesettings.h"
@@ -42,6 +43,8 @@
 #include "pios_queue.h"
 
 #include "pios_hal.h"
+
+#include <uavtalk.h>
 
 // Private constants
 #define MAX_QUEUE_SIZE   TELEM_QUEUE_SIZE

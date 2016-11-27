@@ -73,6 +73,8 @@
 
 #include "pios_com_priv.h"
 
+#include <uavtalk.h>
+
 // Private constants
 #define STACK_SIZE_BYTES 1200
 #define TASK_PRIORITY PIOS_THREAD_PRIO_LOW

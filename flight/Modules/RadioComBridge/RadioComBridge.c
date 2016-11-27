@@ -38,11 +38,13 @@
 // ****************
 
 #include <openpilot.h>
+#include <eventdispatcher.h>
 #include <rfm22bstatus.h>
 #include <objectpersistence.h>
 #include <rfm22breceiver.h>
 #include <radiocombridgestats.h>
 #include "hwtaulink.h"
+#include <uavtalk.h>
 #include <uavtalk_priv.h>
 #include <pios_rfm22b.h>
 #if defined(PIOS_INCLUDE_FLASH_EEPROM)

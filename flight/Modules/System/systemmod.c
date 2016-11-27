@@ -31,6 +31,9 @@
  */
 
 #include "openpilot.h"
+#include <eventdispatcher.h>
+#include <utlist.h>
+
 #include "systemmod.h"
 #include "sanitycheck.h"
 #include "taskinfo.h"
@@ -181,7 +184,6 @@ int32_t SystemModInitialize(void)
 	if (mutex == NULL)
 		return -1;
 
-	// Must registers objects here for system thread because ObjectManager started in OpenPilotInit
 	if (SystemSettingsInitialize() == -1
 			|| SystemStatsInitialize() == -1
 			|| FlightStatusInitialize() == -1

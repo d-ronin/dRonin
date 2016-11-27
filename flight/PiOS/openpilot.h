@@ -34,15 +34,9 @@
 #include <pios.h>
 
 /* OpenPilot Libraries */
-#include "utlist.h"
 #include "uavobjectmanager.h"
-#include "eventdispatcher.h"
 #include "alarms.h"
 #include "taskmonitor.h"
-#include "uavtalk.h"
-
-/* Global Functions */
-void OpenPilotInit(void);
 
 #endif /* OPENPILOT_H */
 

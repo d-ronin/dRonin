@@ -66,7 +66,6 @@ extern void InitModules(void);
 int main()
 {
 	/* NOTE: Do NOT modify the following start-up sequence */
-	/* Any new initialization functions should be added in OpenPilotInit() */
 	PIOS_heap_initialize_blocks();
 
 	halInit();

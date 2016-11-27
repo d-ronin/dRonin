@@ -31,6 +31,7 @@
 
 
 #include "openpilot.h"
+#include <eventdispatcher.h>
 #include "misc_math.h"
 #include "physical_constants.h"
 

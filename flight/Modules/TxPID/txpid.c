@@ -48,6 +48,7 @@
  */
 
 #include "openpilot.h"
+#include <eventdispatcher.h>
 
 #include "txpidsettings.h"
 #include "accessorydesired.h"

@@ -33,6 +33,7 @@
  */
 
 #include "openpilot.h"
+#include "uavtalk.h"
 #include "uavtalk_priv.h"
 #include "pios_mutex.h"
 #include "pios_thread.h"
