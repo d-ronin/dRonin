@@ -2290,7 +2290,7 @@ static const struct pios_ws2811_cfg pios_ws2811_cfg = {
 	},
 	.bit_clear_dma_tcif = DMA_IT_TCIF6,
 	.fall_time_l = 5,			/* 333ns */
-	.fall_time_h = 10,			/* 750ns */
+	.fall_time_h = 11,			/* 833ns */
 	.led_gpio = GPIOA,
 	.gpio_pin = GPIO_Pin_10,		/* PA10 / IN1 */
 	.bit_set_dma_stream = DMA2_Stream4,

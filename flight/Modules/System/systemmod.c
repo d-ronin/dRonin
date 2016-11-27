@@ -1,9 +1,9 @@
 /**
  ******************************************************************************
  * @addtogroup TauLabsModules Tau Labs Modules
- * @{ 
+ * @{
  * @addtogroup SystemModule System Module
- * @{ 
+ * @{
  *
  * @file       systemmod.c
  * @author     The OpenPilot Team, http://www.openpilot.org Copyright (C) 2010.
@@ -52,6 +52,11 @@
 #include "systemstats.h"
 #include "watchdogstatus.h"
 
+#ifdef SYSTEMMOD_RGBLED_SUPPORT
+#include "rgbledsettings.h"
+#include "rgbleds.h"
+#endif
+
 #if defined(PIOS_INCLUDE_DEBUG_CONSOLE) && defined(DEBUG_THIS_FILE)
 #define DEBUG_MSG(format, ...) PIOS_COM_SendFormattedString(PIOS_COM_DEBUG, format, ## __VA_ARGS__)
 #else
@@ -75,7 +80,19 @@
 /* When we're blinking morse code, this works out to 10.6 WPM.  It's also
  * nice and relatively prime to most other rates of things, so we don't get
  * bad beat frequencies. */
-#define SYSTEM_UPDATE_PERIOD_MS 113
+
+#ifdef SYSTEMMOD_RGBLED_SUPPORT
+#define SYSTEM_RAPID_UPDATES
+
+#define SYSTEM_UPDATE_PERIOD_MS 29
+#define SYSTEM_UPDATE_PERIOD_MS4TH (SYSTEM_UPDATE_PERIOD_MS * 4)
+
+#else
+
+#define SYSTEM_UPDATE_PERIOD_MS 117
+#define SYSTEM_UPDATE_PERIOD_MS4TH (SYSTEM_UPDATE_PERIOD_MS)
+
+#endif
 
 // Private types
 
@@ -169,7 +186,11 @@ int32_t SystemModInitialize(void)
 			|| SystemStatsInitialize() == -1
 			|| FlightStatusInitialize() == -1
 			|| ObjectPersistenceInitialize() == -1
-			|| AnnunciatorSettingsInitialize() == -1) {
+			|| AnnunciatorSettingsInitialize() == -1
+#ifdef SYSTEMMOD_RGBLED_SUPPORT
+			|| RGBLEDSettingsInitialize() == -1
+#endif
+	   )	{
 		return -1;
 	}
 #if defined(DIAG_TASKS)
@@ -338,32 +359,38 @@ DONT_BUILD_IF(ANNUNCIATORSETTINGS_ANNUNCIATEAFTERARMING_MAXOPTVAL !=
 	AnnuncSettingsMismatch2);
 
 #if defined(PIOS_INCLUDE_ANNUNC)
-static inline void consider_annunc(AnnunciatorSettingsData *annunciatorSettings,
-		bool is_active, bool been_armed, bool is_manual_control,
-		uint8_t blink_prio, uint32_t annunc_id,
+static inline bool should_annunc(AnnunciatorSettingsData *annunciatorSettings,
+		bool been_armed, bool is_manual_control, uint8_t blink_prio,
 		uint8_t cfg_field) {
 	PIOS_Assert(cfg_field <
 			ANNUNCIATORSETTINGS_ANNUNCIATEAFTERARMING_NUMELEM);
 
-	bool prio_sufficient = false;
-
-	if (is_active && been_armed) {
+	if (been_armed) {
 		if (blink_prio >= annunciatorSettings->AnnunciateAfterArming[cfg_field]) {
-			prio_sufficient = true;
+			return true;
 		} else if (is_manual_control && annunciatorSettings->AnnunciateAfterArming[cfg_field] == ANNUNCIATORSETTINGS_ANNUNCIATEAFTERARMING_MANUALCONTROLONLY) {
-			prio_sufficient = true;
+			return true;
 		}
 	}
 
-	if (is_active && (!prio_sufficient)) {
-		if (blink_prio >= annunciatorSettings->AnnunciateAnytime[cfg_field]) {
-			prio_sufficient = true;
-		} else if (is_manual_control && annunciatorSettings->AnnunciateAnytime[cfg_field] == ANNUNCIATORSETTINGS_ANNUNCIATEANYTIME_MANUALCONTROLONLY) {
-			prio_sufficient = true;
-		}
+	if (blink_prio >= annunciatorSettings->AnnunciateAnytime[cfg_field]) {
+		return true;
+	} else if (is_manual_control && annunciatorSettings->AnnunciateAnytime[cfg_field] == ANNUNCIATORSETTINGS_ANNUNCIATEANYTIME_MANUALCONTROLONLY) {
+		return true;
 	}
 
-	if (prio_sufficient && is_active) {
+	return false;
+}
+
+static inline void consider_annunc(AnnunciatorSettingsData *annunciatorSettings,
+		bool is_active, bool been_armed, bool is_manual_control,
+		uint8_t blink_prio, uint32_t annunc_id,
+		uint8_t cfg_field) {
+	if (
+			is_active &&
+			should_annunc(annunciatorSettings, been_armed,
+				is_manual_control, blink_prio, cfg_field)
+	   ) {
 		PIOS_ANNUNC_On(annunc_id);
 	} else {
 		PIOS_ANNUNC_Off(annunc_id);
@@ -378,9 +405,6 @@ static void systemPeriodicCb(UAVObjEvent *ev, void *ctx, void *obj_data, int len
 
 	counter++;
 
-	// Update the modem status, if present
-	updateRfm22bStats();
-
 #ifndef NO_SENSORS
 	if (config_check_needed) {
 		configuration_check();
@@ -388,23 +412,36 @@ static void systemPeriodicCb(UAVObjEvent *ev, void *ctx, void *obj_data, int len
 	}
 #endif
 
-#ifndef PIPXTREME
-	// Update the system statistics
-	updateStats();
+#ifdef SYSTEM_RAPID_UPDATES
+	bool fourth = (counter & 3) == 0;
+#else
+	bool fourth = true;	// All of this stuff, do each time
+#endif
 
-	// Update the system alarms
-	updateSystemAlarms();
+	if (fourth) {
+		// Update the modem status, if present
+		updateRfm22bStats();
+
+#ifndef PIPXTREME
+		// Update the system statistics
+		updateStats();
+
+		// Update the system alarms
+		updateSystemAlarms();
 
 #if defined(WDG_STATS_DIAGNOSTICS)
-	updateWDGstats();
+		updateWDGstats();
 #endif
 
 #if defined(DIAG_TASKS)
-	// Update the task status object
-	TaskMonitorUpdateAll();
+		// Update the task status object
+		TaskMonitorUpdateAll();
 #endif
 
-#if defined(PIOS_INCLUDE_ANNUNC)
+#endif /* PIPXTREME */
+	}
+
+#if !defined(PIPXTREME) && defined(PIOS_INCLUDE_ANNUNC)
 	// Figure out what we should be doing.
 
 	static const char *blink_string = NULL;
@@ -412,86 +449,101 @@ static void systemPeriodicCb(UAVObjEvent *ev, void *ctx, void *obj_data, int len
 	static uint8_t blink_prio = 0;
 	static bool ever_armed = false;
 	static bool is_manual_control = false;
+	static int morse;
 
-	// Evaluate all our possible annunciator sources. 
+#ifdef SYSTEMMOD_RGBLED_SUPPORT
+	static bool led_override = false;
+#endif
+
+	// Evaluate all our possible annunciator sources.
 
 	// The most important: indicate_error / alarms
 
-	const char *candidate_blink;
-	uint8_t candidate_prio;
+	if (fourth) {
+		const char *candidate_blink;
+		uint8_t candidate_prio;
 
-	candidate_prio = indicate_error(&candidate_blink);
+		candidate_prio = indicate_error(&candidate_blink);
 
-	if (candidate_prio > blink_prio) {
-		// Preempt!
-		blink_state = 0;
-		blink_string = candidate_blink;
-		blink_prio = candidate_prio;
+		if (candidate_prio > blink_prio) {
+			// Preempt!
+			blink_state = 0;
+			blink_string = candidate_blink;
+			blink_prio = candidate_prio;
 
-		if (blink_string &&
-				!strcmp(blink_string, BLINK_STRING_RADIO)) {
-			// XXX do this in a more robust way */
-			is_manual_control = true;
-		} else {
+			if (blink_string &&
+					!strcmp(blink_string, BLINK_STRING_RADIO)) {
+				// XXX do this in a more robust way */
+				is_manual_control = true;
+			} else {
+				is_manual_control = false;
+			}
+		}
+
+		FlightStatusData flightStatus;
+		FlightStatusGet(&flightStatus);
+
+		if (flightStatus.Armed == FLIGHTSTATUS_ARMED_ARMED) {
+			ever_armed = true;
+		}
+
+		if ((blink_prio == 0) && (blink_state == 0)) {
+			// Nothing else to do-- show armed status
+			if (flightStatus.Armed == FLIGHTSTATUS_ARMED_ARMED) {
+				blink_string = "I";	// .. pairs of blinks.
+			} else {
+				blink_string = "T";	// - single long blinks
+			}
+
+			blink_prio = SHAREDDEFS_ALARMLEVELS_OK;
+		}
+
+		morse = morse_send(&blink_string, &blink_state);
+
+		if (morse < 0) {
+			// This means we were told "completed"
+			blink_string = NULL;
+			blink_prio = 0;
+
 			is_manual_control = false;
 		}
-	}
 
-	FlightStatusData flightStatus;
-	FlightStatusGet(&flightStatus);
-
-	if (flightStatus.Armed == FLIGHTSTATUS_ARMED_ARMED) {
-		ever_armed = true;
-	}
-
-	if ((blink_prio == 0) && (blink_state == 0)) {
-		// Nothing else to do-- show armed status
-		if (flightStatus.Armed == FLIGHTSTATUS_ARMED_ARMED) {
-			blink_string = "I";	// .. pairs of blinks.
-		} else {
-			blink_string = "T";	// - single long blinks
-		}
-
-		blink_prio = SHAREDDEFS_ALARMLEVELS_OK;
-	}
-
-	int morse = morse_send(&blink_string, &blink_state);
-
-	if (morse < 0) {
-		// This means we were told "completed"
-		blink_string = NULL;
-		blink_prio = 0;
-
-		is_manual_control = false;
-	}
-
-	AnnunciatorSettingsData annunciatorSettings;
-	AnnunciatorSettingsGet(&annunciatorSettings);
+		AnnunciatorSettingsData annunciatorSettings;
+		AnnunciatorSettingsGet(&annunciatorSettings);
 
 #ifdef PIOS_LED_HEARTBEAT
-	consider_annunc(&annunciatorSettings, morse > 0, ever_armed,
-			is_manual_control,
-			blink_prio, PIOS_LED_HEARTBEAT,
-			ANNUNCIATORSETTINGS_ANNUNCIATEANYTIME_LED_HEARTBEAT);
+		consider_annunc(&annunciatorSettings, morse > 0, ever_armed,
+				is_manual_control,
+				blink_prio, PIOS_LED_HEARTBEAT,
+				ANNUNCIATORSETTINGS_ANNUNCIATEANYTIME_LED_HEARTBEAT);
 #endif
 
 #ifdef PIOS_LED_ALARM
-	consider_annunc(&annunciatorSettings, morse > 0, ever_armed,
-			is_manual_control,
-			blink_prio, PIOS_LED_ALARM,
-			ANNUNCIATORSETTINGS_ANNUNCIATEANYTIME_LED_ALARM);
+		consider_annunc(&annunciatorSettings, morse > 0, ever_armed,
+				is_manual_control,
+				blink_prio, PIOS_LED_ALARM,
+				ANNUNCIATORSETTINGS_ANNUNCIATEANYTIME_LED_ALARM);
 #endif
 
 #ifdef PIOS_ANNUNCIATOR_BUZZER
-	consider_annunc(&annunciatorSettings, morse > 0, ever_armed,
-			is_manual_control,
-			blink_prio, PIOS_ANNUNCIATOR_BUZZER,
-			ANNUNCIATORSETTINGS_ANNUNCIATEANYTIME_BUZZER);
+		consider_annunc(&annunciatorSettings, morse > 0, ever_armed,
+				is_manual_control,
+				blink_prio, PIOS_ANNUNCIATOR_BUZZER,
+				ANNUNCIATORSETTINGS_ANNUNCIATEANYTIME_BUZZER);
 #endif
 
-#endif  /* PIOS_INCLUDE_ANNUNC */
+#ifdef SYSTEMMOD_RGBLED_SUPPORT
+		led_override = should_annunc(&annunciatorSettings,
+				ever_armed, is_manual_control, blink_prio,
+				ANNUNCIATORSETTINGS_ANNUNCIATEANYTIME_RGB_LEDS);
+#endif
+	}
 
-#endif /* PIPXTREME */
+#ifdef SYSTEMMOD_RGBLED_SUPPORT
+	systemmod_process_rgb_leds(led_override, morse > 0, blink_prio);
+#endif /* SYSTEMMOD_RGBLED_SUPPORT */
+
+#endif  /* !PIPXTREME && PIOS_INCLUDE_ANNUNC */
 }
 
 
@@ -637,8 +689,8 @@ static void updateRfm22bStats() {
 			uint16_t rx_count = radio_stats.rx_byte_count;
 			uint16_t tx_bytes = (tx_count < prev_tx_count) ? (0xffff - prev_tx_count + tx_count) : (tx_count - prev_tx_count);
 			uint16_t rx_bytes = (rx_count < prev_rx_count) ? (0xffff - prev_rx_count + rx_count) : (rx_count - prev_rx_count);
-			rfm22bStatus.TXRate = (uint16_t)((float)(tx_bytes * 1000) / SYSTEM_UPDATE_PERIOD_MS);
-			rfm22bStatus.RXRate = (uint16_t)((float)(rx_bytes * 1000) / SYSTEM_UPDATE_PERIOD_MS);
+			rfm22bStatus.TXRate = (uint16_t)((float)(tx_bytes * 1000) / (SYSTEM_UPDATE_PERIOD_MS4TH));
+			rfm22bStatus.RXRate = (uint16_t)((float)(rx_bytes * 1000) / (SYSTEM_UPDATE_PERIOD_MS4TH));
 			prev_tx_count = tx_count;
 			prev_rx_count = rx_count;
 		}

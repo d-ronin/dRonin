@@ -37,6 +37,7 @@ DEBUG ?= NO
 
 # List of modules to include
 MODULES = Sensors
+MODULES += System
 MODULES += Attitude 
 MODULES += ManualControl
 MODULES += Stabilization
@@ -101,7 +102,6 @@ include $(APPLIBDIR)/ChibiOS/library.mk
 ## MODULES
 SRC += ${foreach MOD, ${MODULES} ${OPTMODULES}, ${wildcard ${OPMODULEDIR}/${MOD}/*.c}}
 ## OPENPILOT CORE:
-SRC += ${OPMODULEDIR}/System/systemmod.c
 SRC += main.c
 SRC += pios_board.c
 SRC += pios_usb_board_data.c
@@ -237,7 +237,7 @@ EXTRAINCDIRS  += $(BOOTINC)
 EXTRAINCDIRS  += $(DEBUG_CM3_DIR_INC)
 EXTRAINCDIRS  += $(MAVLINKINC)
 
-EXTRAINCDIRS += ${foreach MOD, ${MODULES} ${OPTMODULES}, $(OPMODULEDIR)/${MOD}/inc} ${OPMODULEDIR}/System/inc
+EXTRAINCDIRS += ${foreach MOD, ${MODULES} ${OPTMODULES}, $(OPMODULEDIR)/${MOD}/inc}
 
 # List any extra directories to look for library files here.
 # Also add directories where the linker should search for

@@ -98,6 +98,7 @@
 #define PIOS_INCLUDE_FRSKY_SPORT_TELEMETRY
 #define PIOS_INCLUDE_OPENLOG
 #define PIOS_INCLUDE_STORM32BGC
+#define PIOS_INCLUDE_WS2811
 
 #define PIOS_INCLUDE_GPS
 #define PIOS_INCLUDE_GPS_NMEA_PARSER
@@ -125,6 +126,8 @@
 /* Flags that alter behaviors - mostly to lower resources for CC */
 #define PIOS_INCLUDE_INITCALL           /* Include init call structures */
 #define PIOS_TELEM_PRIORITY_QUEUE       /* Enable a priority queue in telemetry */
+
+#define SYSTEMMOD_RGBLED_SUPPORT
 
 #define CAMERASTAB_POI_MODE
 

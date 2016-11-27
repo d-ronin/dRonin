@@ -138,9 +138,9 @@ int PIOS_WS2811_init(ws2811_dev_t *dev_out, const struct pios_ws2811_cfg *cfg,
 	}
 
 	for (int i = 0; i < sizeof(dev->dma_buf_0)/4; i ++) {
-		dev->dma_buf_0[i]     = (dev->gpio_bit << 8) |
+		dev->dma_buf_0[i] = (dev->gpio_bit << 8) |
 			(dev->gpio_bit << 24);
-		dev->dma_buf_1[i]     = (dev->gpio_bit << 8) |
+		dev->dma_buf_1[i] = (dev->gpio_bit << 8) |
 			(dev->gpio_bit << 24);
 	}
 
@@ -169,10 +169,6 @@ int PIOS_WS2811_init(ws2811_dev_t *dev_out, const struct pios_ws2811_cfg *cfg,
 
 	TIM_SelectOCxM(cfg->timer, TIM_Channel_1, TIM_OCMode_Active);
 	TIM_SelectOCxM(cfg->timer, TIM_Channel_2, TIM_OCMode_Active);
-
-	TIM_DMACmd(cfg->timer, TIM_DMA_CC1, ENABLE);
-	TIM_DMACmd(cfg->timer, TIM_DMA_CC2, ENABLE);
-	TIM_DMACmd(cfg->timer, TIM_DMA_CC4, ENABLE);
 
 	TIM_SetCompare4(cfg->timer, 1);
 	TIM_SetCompare1(cfg->timer, cfg->fall_time_l);
@@ -241,6 +237,13 @@ static bool fill_dma_buf(uint8_t * restrict dma_buf, uint8_t **pixel_data_ptr,
 static void ws2811_cue_dma(ws2811_dev_t dev) {
 	// ensure timer stopped
 	TIM_Cmd(dev->cfg->timer, DISABLE);
+	// and reset
+	TIM_SetCounter(dev->cfg->timer, 0);
+
+	// and no pending DMA events
+	TIM_DMACmd(dev->cfg->timer, TIM_DMA_CC1, DISABLE);
+	TIM_DMACmd(dev->cfg->timer, TIM_DMA_CC2, DISABLE);
+	TIM_DMACmd(dev->cfg->timer, TIM_DMA_CC4, DISABLE);
 
 	DMA_Cmd(dev->cfg->bit_set_dma_stream, DISABLE);
 	DMA_Cmd(dev->cfg->bit_clear_dma_stream, DISABLE);
@@ -269,7 +272,7 @@ static void ws2811_cue_dma(ws2811_dev_t dev) {
 	dma_init.DMA_Mode = DMA_Mode_Normal;
 	dma_init.DMA_Priority = DMA_Priority_VeryHigh;
 	dma_init.DMA_FIFOMode = DMA_FIFOMode_Enable;
-	dma_init.DMA_FIFOThreshold = DMA_FIFOThreshold_HalfFull;
+	dma_init.DMA_FIFOThreshold = DMA_FIFOThreshold_Full;
 	dma_init.DMA_MemoryBurst = DMA_MemoryBurst_Single;
 	dma_init.DMA_PeripheralBurst = DMA_PeripheralBurst_Single;
 
@@ -297,7 +300,16 @@ static void ws2811_cue_dma(ws2811_dev_t dev) {
 			DMA_IT_TC, ENABLE);
 
 	DMA_Cmd(dev->cfg->bit_set_dma_stream, ENABLE);
+
+	while (DMA_GetCmdStatus(dev->cfg->bit_set_dma_stream) == DISABLE);
+
 	DMA_Cmd(dev->cfg->bit_clear_dma_stream, ENABLE);
+
+	while (DMA_GetCmdStatus(dev->cfg->bit_clear_dma_stream) == DISABLE);
+
+	TIM_DMACmd(dev->cfg->timer, TIM_DMA_CC1, ENABLE);
+	TIM_DMACmd(dev->cfg->timer, TIM_DMA_CC2, ENABLE);
+	TIM_DMACmd(dev->cfg->timer, TIM_DMA_CC4, ENABLE);
 
 	TIM_Cmd(dev->cfg->timer, ENABLE);
 }
@@ -331,18 +343,37 @@ void PIOS_WS2811_trigger_update(ws2811_dev_t dev)
 
 void PIOS_WS2811_dma_interrupt_handler(ws2811_dev_t dev)
 {
-	if (dev->eof) {
+	DMA_ClearITPendingBit(dev->cfg->bit_clear_dma_stream,
+			dev->cfg->bit_clear_dma_tcif);
+
+	if (!dev->in_progress) {
+		/* OK, have we already disabled DMA? */
+		if (!(dev->cfg->bit_set_dma_stream->CR & (uint32_t)DMA_SxCR_EN)) {
+			/* If so, this is our last interrupt, disable all things
+			 * and ensure GPIO is low */
+
+			TIM_Cmd(dev->cfg->timer, DISABLE);
+
+			// Ensure the thing rests low during this time
+			GPIO_ResetBits(dev->cfg->led_gpio, dev->cfg->gpio_pin);
+
+			return;
+		}
+
+		/* Otherwise, disable DMA */
+
 		DMA_Cmd(dev->cfg->bit_set_dma_stream, DISABLE);
+
+		// Will generate one more transmit complete interrupt.
 		DMA_Cmd(dev->cfg->bit_clear_dma_stream, DISABLE);
 
-		TIM_Cmd(dev->cfg->timer, DISABLE);
+		return;
+	}
 
-		DMA_ITConfig(dev->cfg->bit_clear_dma_stream,
-				DMA_IT_TC, DISABLE);
-		DMA_ClearITPendingBit(dev->cfg->bit_clear_dma_stream,
-				dev->cfg->bit_clear_dma_tcif);
-
+	if (dev->eof) {
 		dev->in_progress = false;
+		/* OK, we have nothing else to fill in, but the last buffer
+		 * needs to get clocked out */
 
 		return;
 	}
@@ -357,9 +388,6 @@ void PIOS_WS2811_dma_interrupt_handler(ws2811_dev_t dev)
 
 	dev->eof = fill_dma_buf(buf, &dev->pixel_data_pos,
 			dev->pixel_data_end, dev->gpio_bit);
-
-	DMA_ClearITPendingBit(dev->cfg->bit_clear_dma_stream,
-			dev->cfg->bit_clear_dma_tcif);
 }
 
 void PIOS_WS2811_set(ws2811_dev_t dev, int idx, uint8_t r, uint8_t g,
@@ -367,7 +395,9 @@ void PIOS_WS2811_set(ws2811_dev_t dev, int idx, uint8_t r, uint8_t g,
 {
 	PIOS_Assert(dev->magic == WS2811_MAGIC);
 
-	PIOS_Assert(idx < dev->max_leds);
+	if (idx >= dev->max_leds) {
+		return;
+	}
 
 	dev->pixel_data[idx] = (struct ws2811_pixel_data_s)
 			{ .r = r, .g = g, .b = b };

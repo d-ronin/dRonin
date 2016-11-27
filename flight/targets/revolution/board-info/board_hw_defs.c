@@ -1733,29 +1733,29 @@ const struct pios_usb_hid_cfg pios_usb_hid_cfg = {
 #include "pios_internal_adc_priv.h"
 
 static void PIOS_ADC_DMA_irq_handler(void);
-void DMA2_Stream4_IRQHandler(void) __attribute__((alias("PIOS_ADC_DMA_irq_handler")));
+void DMA2_Stream0_IRQHandler(void) __attribute__((alias("PIOS_ADC_DMA_irq_handler")));
 struct pios_internal_adc_cfg pios_adc_cfg = {
 	.adc_dev_master = ADC1,
 	.dma = {
 		.irq = {
-			.flags   = (DMA_FLAG_TCIF4 | DMA_FLAG_TEIF4 | DMA_FLAG_HTIF4),
+			.flags   = (DMA_FLAG_TCIF0 | DMA_FLAG_TEIF0 | DMA_FLAG_HTIF0),
 			.init    = {
-				.NVIC_IRQChannel                   = DMA2_Stream4_IRQn,
+				.NVIC_IRQChannel                   = DMA2_Stream0_IRQn,
 				.NVIC_IRQChannelPreemptionPriority = PIOS_IRQ_PRIO_LOW,
 				.NVIC_IRQChannelSubPriority        = 0,
 				.NVIC_IRQChannelCmd                = ENABLE,
 			},
 		},
 		.rx = {
-			.channel = DMA2_Stream4,
+			.channel = DMA2_Stream0,
 			.init    = {
 				.DMA_Channel                    = DMA_Channel_0,
 				.DMA_PeripheralBaseAddr = (uint32_t) & ADC1->DR
 			},
 		}
 	},
-	.half_flag = DMA_IT_HTIF4,
-	.full_flag = DMA_IT_TCIF4,
+	.half_flag = DMA_IT_HTIF0,
+	.full_flag = DMA_IT_TCIF0,
 	.adc_pins = {                                                                                           \
 		{GPIOC, GPIO_Pin_1,     ADC_Channel_11},                                                \
 		{GPIOC, GPIO_Pin_2,     ADC_Channel_12},                                                \
@@ -1765,7 +1765,7 @@ struct pios_internal_adc_cfg pios_adc_cfg = {
 	.adc_pin_count = 4,
 };
 
-struct stm32_gpio pios_current_sonar_pin ={
+struct stm32_gpio pios_current_sonar_pin = {
     .gpio = GPIOA,
 			.init = {
 				.GPIO_Pin = GPIO_Pin_8,
@@ -1784,6 +1784,96 @@ static void PIOS_ADC_DMA_irq_handler(void)
 }
 
 #endif /* PIOS_INCLUDE_ADC */
+
+/**
+ * Configuration for driving a WS2811 LED.  Airbot Omnibus has it on PD2, which
+ * is modem IRQ.  So we support 3 different options.
+ */
+
+#if defined(PIOS_INCLUDE_WS2811)
+#include "pios_ws2811.h"
+
+ws2811_dev_t pios_ws2811;
+
+void DMA2_Stream6_IRQHandler() {
+	PIOS_WS2811_dma_interrupt_handler(pios_ws2811);
+}
+
+static const struct pios_ws2811_cfg pios_ws2811_cfg_pb12 = {
+	.timer = TIM1,
+	.clock_cfg = {
+		.TIM_Prescaler = (PIOS_PERIPHERAL_APB2_COUNTER_CLOCK / 12000000) - 1,
+		.TIM_ClockDivision = TIM_CKD_DIV1,
+		.TIM_CounterMode = TIM_CounterMode_Up,
+		.TIM_Period = 25,	/* 2.083us/bit */
+	},
+	.interrupt = {
+		.NVIC_IRQChannel = DMA2_Stream6_IRQn,
+		.NVIC_IRQChannelPreemptionPriority = PIOS_IRQ_PRIO_LOW,
+		.NVIC_IRQChannelSubPriority = 0,
+		.NVIC_IRQChannelCmd = ENABLE,
+	},
+	.bit_clear_dma_tcif = DMA_IT_TCIF6,
+	.fall_time_l = 5,			/* 333ns */
+	.fall_time_h = 11,			/* 833ns */
+	.led_gpio = GPIOB,
+	.gpio_pin = GPIO_Pin_12,
+	.bit_set_dma_stream = DMA2_Stream4,
+	.bit_set_dma_channel = DMA_Channel_6,	/* 2/S4/C6: TIM1 CH4|TRIG|COM */
+	.bit_clear_dma_stream = DMA2_Stream6,
+	.bit_clear_dma_channel = DMA_Channel_0,	/* 0/S6/C0: TIM1 CH1|CH2|CH3 */
+};
+
+static const struct pios_ws2811_cfg pios_ws2811_cfg_pd2 = {
+	.timer = TIM1,
+	.clock_cfg = {
+		.TIM_Prescaler = (PIOS_PERIPHERAL_APB2_COUNTER_CLOCK / 12000000) - 1,
+		.TIM_ClockDivision = TIM_CKD_DIV1,
+		.TIM_CounterMode = TIM_CounterMode_Up,
+		.TIM_Period = 25,	/* 2.083us/bit */
+	},
+	.interrupt = {
+		.NVIC_IRQChannel = DMA2_Stream6_IRQn,
+		.NVIC_IRQChannelPreemptionPriority = PIOS_IRQ_PRIO_LOW,
+		.NVIC_IRQChannelSubPriority = 0,
+		.NVIC_IRQChannelCmd = ENABLE,
+	},
+	.bit_clear_dma_tcif = DMA_IT_TCIF6,
+	.fall_time_l = 5,			/* 333ns */
+	.fall_time_h = 11,			/* 833ns */
+	.led_gpio = GPIOD,
+	.gpio_pin = GPIO_Pin_2,
+	.bit_set_dma_stream = DMA2_Stream4,
+	.bit_set_dma_channel = DMA_Channel_6,	/* 2/S4/C6: TIM1 CH4|TRIG|COM */
+	.bit_clear_dma_stream = DMA2_Stream6,
+	.bit_clear_dma_channel = DMA_Channel_0,	/* 0/S6/C0: TIM1 CH1|CH2|CH3 */
+};
+
+static const struct pios_ws2811_cfg pios_ws2811_cfg_pa0 = {
+	.timer = TIM1,
+	.clock_cfg = {
+		.TIM_Prescaler = (PIOS_PERIPHERAL_APB2_COUNTER_CLOCK / 12000000) - 1,
+		.TIM_ClockDivision = TIM_CKD_DIV1,
+		.TIM_CounterMode = TIM_CounterMode_Up,
+		.TIM_Period = 25,	/* 2.083us/bit */
+	},
+	.interrupt = {
+		.NVIC_IRQChannel = DMA2_Stream6_IRQn,
+		.NVIC_IRQChannelPreemptionPriority = PIOS_IRQ_PRIO_LOW,
+		.NVIC_IRQChannelSubPriority = 0,
+		.NVIC_IRQChannelCmd = ENABLE,
+	},
+	.bit_clear_dma_tcif = DMA_IT_TCIF6,
+	.fall_time_l = 5,			/* 333ns */
+	.fall_time_h = 11,			/* 833ns */
+	.led_gpio = GPIOA,
+	.gpio_pin = GPIO_Pin_0,
+	.bit_set_dma_stream = DMA2_Stream4,
+	.bit_set_dma_channel = DMA_Channel_6,	/* 2/S4/C6: TIM1 CH4|TRIG|COM */
+	.bit_clear_dma_stream = DMA2_Stream6,
+	.bit_clear_dma_channel = DMA_Channel_0,	/* 0/S6/C0: TIM1 CH1|CH2|CH3 */
+};
+#endif
 
 #if defined(PIOS_INCLUDE_FRSKY_RSSI)
 #include "pios_frsky_rssi_priv.h"
