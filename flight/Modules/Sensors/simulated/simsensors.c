@@ -347,18 +347,19 @@ static void simulateModelQuadcopter()
 	static float temperature = 20;
 	float Rbe[3][3];
 	
-	const float ACTUATOR_ALPHA = 0.9;
+	const float ACTUATOR_ALPHA = 0.81f;
 	const float MAX_THRUST = GRAVITY * 2;
 	const float K_FRICTION = 1;
-	const float GPS_PERIOD = 0.1;
+	const float GPS_PERIOD = 0.1f;
 	const float MAG_PERIOD = 1.0 / 75.0;
 	const float BARO_PERIOD = 1.0 / 20.0;
+	const float GYRO_NOISE_SCALE = 1.0f;
 	
 	static uint32_t last_time;
 	
 	float dT = (PIOS_DELAY_DiffuS(last_time) / 1e6);
 	if(dT < 1e-3) {
-		dT = 2e-3;
+		dT = 1e-3;
 	} else if (dT > 1e-1) {
 		dT = 1e-1;
 	}
@@ -376,7 +377,7 @@ static void simulateModelQuadcopter()
 	if (thrust != thrust)
 		thrust = 0;
 	
-	float control_scaling = 500.0f;
+	float control_scaling = 3000.0f;
 	// In rad/s
 	rpy[0] = control_scaling * actuatorDesired.Roll * (1 - ACTUATOR_ALPHA) + rpy[0] * ACTUATOR_ALPHA;
 	rpy[1] = control_scaling * actuatorDesired.Pitch * (1 - ACTUATOR_ALPHA) + rpy[1] * ACTUATOR_ALPHA;
@@ -384,9 +385,9 @@ static void simulateModelQuadcopter()
 
 	temperature = 20;
 	GyrosData gyrosData; // Skip get as we set all the fields
-	gyrosData.x = rpy[0] + rand_gauss() + (temperature - 20) * 1 + powf(temperature - 20,2) * 0.11; // - powf(temperature - 20,3) * 0.05;;
-	gyrosData.y = rpy[1] + rand_gauss() + (temperature - 20) * 1 + powf(temperature - 20,2) * 0.11;;
-	gyrosData.z = rpy[2] + rand_gauss() + (temperature - 20) * 1 + powf(temperature - 20,2) * 0.11;;
+	gyrosData.x = rpy[0] + rand_gauss() * GYRO_NOISE_SCALE + (temperature - 20) * 1 + powf(temperature - 20,2) * 0.11; // - powf(temperature - 20,3) * 0.05;;
+	gyrosData.y = rpy[1] + rand_gauss() * GYRO_NOISE_SCALE + (temperature - 20) * 1 + powf(temperature - 20,2) * 0.11;
+	gyrosData.z = rpy[2] + rand_gauss() * GYRO_NOISE_SCALE + (temperature - 20) * 1 + powf(temperature - 20,2) * 0.11;
 	gyrosData.temperature = temperature;
 	GyrosSet(&gyrosData);
 	
