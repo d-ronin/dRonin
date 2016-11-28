@@ -114,8 +114,8 @@ bool bl_xfer_read_start(struct xfer_state * xfer, const struct msg_xfer_start *x
 		PIOS_FLASH_get_partition_size(xfer->partition_id, &xfer->partition_size);
 		xfer->original_partition_offset = 0;
 		break;
-	case DFU_PARTITION_WAYPOINTS:
-		PIOS_FLASH_find_partition_id(FLASH_PARTITION_LABEL_WAYPOINTS, &xfer->partition_id);
+	case DFU_PARTITION_AUTOTUNE:
+		PIOS_FLASH_find_partition_id(FLASH_PARTITION_LABEL_AUTOTUNE, &xfer->partition_id);
 		PIOS_FLASH_get_partition_size(xfer->partition_id, &xfer->partition_size);
 		xfer->original_partition_offset = 0;
 		break;
@@ -221,8 +221,8 @@ bool bl_xfer_write_start(struct xfer_state * xfer, const struct msg_xfer_start *
 		PIOS_FLASH_find_partition_id(FLASH_PARTITION_LABEL_SETTINGS, &xfer->partition_id);
 		PIOS_FLASH_get_partition_size(xfer->partition_id, &xfer->partition_size);
 		break;
-	case DFU_PARTITION_WAYPOINTS:
-		PIOS_FLASH_find_partition_id(FLASH_PARTITION_LABEL_WAYPOINTS, &xfer->partition_id);
+	case DFU_PARTITION_AUTOTUNE:
+		PIOS_FLASH_find_partition_id(FLASH_PARTITION_LABEL_AUTOTUNE, &xfer->partition_id);
 		PIOS_FLASH_get_partition_size(xfer->partition_id, &xfer->partition_size);
 		break;
 	case DFU_PARTITION_LOG:
@@ -319,8 +319,8 @@ bool bl_xfer_wipe_partition(const struct msg_wipe_partition *wipe_partition)
 	case DFU_PARTITION_SETTINGS:
 		flash_label = FLASH_PARTITION_LABEL_SETTINGS;
 		break;
-	case DFU_PARTITION_WAYPOINTS:
-		flash_label = FLASH_PARTITION_LABEL_WAYPOINTS;
+	case DFU_PARTITION_AUTOTUNE:
+		flash_label = FLASH_PARTITION_LABEL_AUTOTUNE;
 		break;
 	case DFU_PARTITION_LOG:
 		flash_label = FLASH_PARTITION_LABEL_LOG;
@@ -395,11 +395,11 @@ bool bl_xfer_send_capabilities_self(void)
 		msg.v.cap_rep_specific.partition_sizes[DFU_PARTITION_SETTINGS] = 0;
 	}
 
-	if (PIOS_FLASH_find_partition_id(FLASH_PARTITION_LABEL_WAYPOINTS, &partition_id) == 0) {
+	if (PIOS_FLASH_find_partition_id(FLASH_PARTITION_LABEL_AUTOTUNE, &partition_id) == 0) {
 		PIOS_FLASH_get_partition_size(partition_id, &partition_size);
-		msg.v.cap_rep_specific.partition_sizes[DFU_PARTITION_WAYPOINTS] = htonl(partition_size);
+		msg.v.cap_rep_specific.partition_sizes[DFU_PARTITION_AUTOTUNE] = htonl(partition_size);
 	} else {
-		msg.v.cap_rep_specific.partition_sizes[DFU_PARTITION_WAYPOINTS] = 0;
+		msg.v.cap_rep_specific.partition_sizes[DFU_PARTITION_AUTOTUNE] = 0;
 	}
 
 	if (PIOS_FLASH_find_partition_id(FLASH_PARTITION_LABEL_LOG, &partition_id) == 0) {

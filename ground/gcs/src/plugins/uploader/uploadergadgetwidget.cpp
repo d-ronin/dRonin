@@ -1465,8 +1465,8 @@ void UploaderGadgetWidget::onBootloaderDetected()
                 case DFU_PARTITION_SETTINGS:
                     name = "Settings";
                     break;
-                case DFU_PARTITION_WAYPOINTS:
-                    name = "Waypoints";
+                case DFU_PARTITION_AUTOTUNE:
+                    name = "AutoTune";
                     break;
                 case DFU_PARTITION_LOG:
                     name = "Log";

@@ -70,6 +70,14 @@ enum AUTOTUNE_STATE { AT_INIT, AT_START, AT_WAITFIRSTPOINT, AT_RUN,
 				 * (normal range [-1, 1])
 				 */
 
+#define ATFLASH_MAGIC 0x656e755480008041	/* A...Tune */
+struct at_flash_header {
+	uint64_t magic;
+	uint16_t wiggle_points;
+	uint16_t aux_data_len;
+	uint16_t resv;
+};
+
 struct at_measurement {
 	float y[3];		/* Gyro measurements */
 	float u[3];		/* Actuator desired */
@@ -159,9 +167,6 @@ int32_t AutotuneStart(void)
 {
 	// Start main task if it is enabled
 	if(module_enabled) {
-		// Watchdog must be registered before starting task
-		PIOS_WDG_RegisterFlag(PIOS_WDG_AUTOTUNE);
-
 		// Start main task
 		taskHandle = PIOS_Thread_Create(AutotuneTask, "Autotune", STACK_SIZE_BYTES, NULL, TASK_PRIORITY);
 
@@ -178,6 +183,7 @@ static void at_new_actuators(UAVObjEvent * ev, void *ctx, void *obj, int len) {
 	static bool last_sample_unpushed = false;
 
 	static bool running = false;
+	static bool first_cycle = false;
 
 	ActuatorDesiredData *actuators = (ActuatorDesiredData *) obj;
 
@@ -209,13 +215,38 @@ static void at_new_actuators(UAVObjEvent * ev, void *ctx, void *obj, int len) {
 
 			if (circ_queue_advance_write(at_queue) == 0) {
 				running = false;
+				first_cycle = false;
 			}
 		}
 
 		return;		// No data
 	}
 
-	running = true;
+	/* Simple state machine.
+	 * !running !first_cycle -> running first_cycle -> running !first_cycle
+	 */
+	if (!running || first_cycle) {
+		if (actuators->SystemIdentCycle == 0x0000) {
+			running = true;
+			first_cycle = ! first_cycle;
+		}
+	}
+
+#ifdef AUTOTUNE_AVERAGING_MODE
+	struct at_measurement *avg_point = &at_averages[actuators->SystemIdentCycle];
+
+	if (first_cycle) {
+		bzero(avg_point, sizeof(*avg_point));
+	}
+
+	avg_point->y[0] += g.x;
+	avg_point->y[1] += g.y;
+	avg_point->y[2] += g.z;
+
+	avg_point->u[0] += actuators->Roll;
+	avg_point->u[1] += actuators->Pitch;
+	avg_point->u[2] += actuators->Yaw;
+#endif
 
 	q_item->sample_num = actuators->SystemIdentCycle;
 
@@ -263,7 +294,52 @@ static void UpdateSystemIdent(const float *X, const float *noise,
 	SystemIdentSet(&system_ident);
 }
 
-#define MAX_PTS_PER_CYCLE 4
+#ifdef AUTOTUNE_AVERAGING_MODE
+static int autotune_save_averaging() {
+	uintptr_t part_id;
+
+	if (PIOS_FLASH_find_partition_id(
+				FLASH_PARTITION_LABEL_AUTOTUNE,
+				&part_id)) {
+		return -1;
+	}
+
+
+	if (PIOS_FLASH_start_transaction(part_id)) {
+		return -2;
+	}
+
+	if (PIOS_FLASH_erase_partition(part_id)) {
+		PIOS_FLASH_end_transaction(part_id);
+		return -3;
+	}
+
+	struct at_flash_header hdr = {
+		.magic = ATFLASH_MAGIC,
+		.wiggle_points = ident_wiggle_points,
+		.aux_data_len = 0
+	};
+
+	uint32_t offset = 0;
+
+	if (PIOS_FLASH_write_data(part_id, 0, (uint8_t *) &hdr,
+				sizeof(hdr))) {
+		PIOS_FLASH_end_transaction(part_id);
+		return -4;
+	}
+
+	offset += sizeof(hdr);
+
+	if (PIOS_FLASH_write_data(part_id, offset, (uint8_t *) at_averages,
+				sizeof(*at_averages) * ident_wiggle_points)) {
+		PIOS_FLASH_end_transaction(part_id);
+		return -5;
+	}
+
+	PIOS_FLASH_end_transaction(part_id);
+	return 0;
+}
+#endif /* AUTOTUNE_AVERAGING_MODE */
 
 /**
  * Module thread, should not return.
@@ -286,8 +362,6 @@ static void AutotuneTask(void *parameters)
 	/* Wait for stabilization module to complete startup and tell us
 	 * its dT, etc.
 	 */
-#define POINTS_TO_ZERO_PER_PASS 64	/* must be power of 2 */
-
 	while (!ident_wiggle_points) {
 		PIOS_Thread_Sleep(25);
 	}
@@ -314,11 +388,7 @@ static void AutotuneTask(void *parameters)
 	bool save_needed = false;
 
 	while(1) {
-		PIOS_WDG_UpdateFlag(PIOS_WDG_AUTOTUNE);
-
 		static uint32_t update_counter = 0;
-
-		bool can_sleep = true;
 
 		uint8_t armed;
 
@@ -326,6 +396,14 @@ static void AutotuneTask(void *parameters)
 
 		if (save_needed) {
 			if (armed == FLIGHTSTATUS_ARMED_DISARMED) {
+#ifdef AUTOTUNE_AVERAGING_MODE
+				if (autotune_save_averaging()) {
+					// Try again in a second, I guess.
+					PIOS_Thread_Sleep(1000);
+					continue;
+				}
+#endif /* AUTOTUNE_AVERAGING_MODE */
+
 				// Save the settings locally.
 				UAVObjSave(SystemIdentHandle(), 0);
 				state = AT_INIT;
@@ -404,9 +482,7 @@ static void AutotuneTask(void *parameters)
 				}
 
 			case AT_RUN:
-				can_sleep = false;
-
-				for (int i=0; i<MAX_PTS_PER_CYCLE; i++) {
+				while (true) {
 					struct at_queued_data *pt;
 
 					/* Grab an autotune point */
@@ -415,7 +491,6 @@ static void AutotuneTask(void *parameters)
 					if (!pt) {
 						/* We've drained the buffer
 						 * fully.  Yay! */
-						can_sleep = true;
 						break;
 					}
 
@@ -425,7 +500,6 @@ static void AutotuneTask(void *parameters)
 						UpdateSystemIdent(X, noise, update_counter, at_points_spilled, hover_throttle, true);
 
 						save_needed = true;
-						can_sleep = true;
 						state = AT_WAITING;
 
 						break;
@@ -478,9 +552,7 @@ static void AutotuneTask(void *parameters)
 				break;
 		}
 
-		if (can_sleep) {
-			PIOS_Thread_Sleep(YIELD_MS);
-		}
+		PIOS_Thread_Sleep(YIELD_MS);
 	}
 }
 

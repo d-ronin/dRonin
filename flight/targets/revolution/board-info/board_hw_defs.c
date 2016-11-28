@@ -504,7 +504,7 @@ static struct pios_flash_partition pios_flash_partition_table[] = {
 	},
 
 	{
-		.label        = FLASH_PARTITION_LABEL_WAYPOINTS,
+		.label        = FLASH_PARTITION_LABEL_AUTOTUNE,
 		.chip_desc    = &pios_flash_chip_external,
 		.first_sector = 6,
 		.last_sector  = 10,

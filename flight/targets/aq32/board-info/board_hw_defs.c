@@ -510,7 +510,7 @@ static const struct pios_flash_partition pios_flash_partition_table[] = {
 	/* NOTE: sectors 8-9 of the internal flash are currently unallocated */
     
 	{
-		.label        = FLASH_PARTITION_LABEL_WAYPOINTS,
+		.label        = FLASH_PARTITION_LABEL_AUTOTUNE,
 		.chip_desc    = &pios_flash_chip_internal,
 		.first_sector = 10,
 		.last_sector  = 11,
