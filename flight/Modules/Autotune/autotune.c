@@ -185,15 +185,6 @@ static void at_new_actuators(UAVObjEvent * ev, void *ctx, void *obj, int len) {
 	static bool running = false;
 	static bool first_cycle = false;
 
-	ActuatorDesiredData *actuators = (ActuatorDesiredData *) obj;
-
-#if 0
-	/* not presently safe.  The aligned attribute has the effect of
-	 * increasing sizeof *actuators to a multiple of 4
-	 */
-	PIOS_Assert(len == sizeof(*actuators));
-#endif
-
 	if (last_sample_unpushed) {
 		/* Last time we were unable to advance the write pointer.
 		 * Try again, last chance! */
@@ -202,13 +193,16 @@ static void at_new_actuators(UAVObjEvent * ev, void *ctx, void *obj, int len) {
 		}
 	}
 
+	ActuatorDesiredData actuators;
+	ActuatorDesiredGet(&actuators);
+
 	GyrosData g;
 	GyrosGet(&g);
 
 	struct at_queued_data *q_item = circ_queue_write_pos(at_queue,
 			NULL, NULL);
 
-	if (actuators->SystemIdentCycle == 0xffff) {
+	if (actuators.SystemIdentCycle == 0xffff) {
 		if (running) {
 			// Signify end of actuation stream.
 			q_item->throttle = THROTTLE_EOF;
@@ -226,14 +220,14 @@ static void at_new_actuators(UAVObjEvent * ev, void *ctx, void *obj, int len) {
 	 * !running !first_cycle -> running first_cycle -> running !first_cycle
 	 */
 	if (!running || first_cycle) {
-		if (actuators->SystemIdentCycle == 0x0000) {
+		if (actuators.SystemIdentCycle == 0x0000) {
 			running = true;
 			first_cycle = ! first_cycle;
 		}
 	}
 
 #ifdef AUTOTUNE_AVERAGING_MODE
-	struct at_measurement *avg_point = &at_averages[actuators->SystemIdentCycle];
+	struct at_measurement *avg_point = &at_averages[actuators.SystemIdentCycle];
 
 	if (first_cycle) {
 		*avg_point = (struct at_measurement) { 0 };
@@ -243,22 +237,22 @@ static void at_new_actuators(UAVObjEvent * ev, void *ctx, void *obj, int len) {
 	avg_point->y[1] += g.y;
 	avg_point->y[2] += g.z;
 
-	avg_point->u[0] += actuators->Roll;
-	avg_point->u[1] += actuators->Pitch;
-	avg_point->u[2] += actuators->Yaw;
+	avg_point->u[0] += actuators.Roll;
+	avg_point->u[1] += actuators.Pitch;
+	avg_point->u[2] += actuators.Yaw;
 #endif
 
-	q_item->sample_num = actuators->SystemIdentCycle;
+	q_item->sample_num = actuators.SystemIdentCycle;
 
 	q_item->meas.y[0] = g.x;
 	q_item->meas.y[1] = g.y;
 	q_item->meas.y[2] = g.z;
 
-	q_item->meas.u[0] = actuators->Roll;
-	q_item->meas.u[1] = actuators->Pitch;
-	q_item->meas.u[2] = actuators->Yaw;
+	q_item->meas.u[0] = actuators.Roll;
+	q_item->meas.u[1] = actuators.Pitch;
+	q_item->meas.u[2] = actuators.Yaw;
 
-	q_item->throttle = actuators->Thrust;
+	q_item->throttle = actuators.Thrust;
 
 	if (circ_queue_advance_write(at_queue) != 0) {
 		last_sample_unpushed = true;
@@ -351,8 +345,6 @@ static void AutotuneTask(void *parameters)
 	float X[AF_NUMX] = {0};
 	float P[AF_NUMP] = {0};
 	float noise[3] = {0};
-
-	af_init(X,P);
 
 	uint16_t last_samp = 0;
 
