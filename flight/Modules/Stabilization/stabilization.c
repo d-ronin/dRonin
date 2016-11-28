@@ -466,6 +466,8 @@ static void stabilizationTask(void* parameters)
 		// A flag to track which stabilization mode each axis is in
 		static uint8_t previous_mode[MAX_AXES] = {255,255,255};
 
+		actuatorDesired.SystemIdentCycle = 0xffff;
+
 		//Run the selected stabilization algorithm on each axis:
 		for(uint8_t i=0; i< MAX_AXES; i++)
 		{
@@ -521,8 +523,6 @@ static void stabilizationTask(void* parameters)
 			// Check whether this axis mode needs to be reinitialized
 			bool reinit = (mode != previous_mode[i]);
 			previous_mode[i] = mode;
-
-			actuatorDesired.SystemIdentCycle = 0xffff;
 
 			// Apply the selected control law
 			switch(mode)
@@ -672,15 +672,17 @@ static void stabilizationTask(void* parameters)
 					// Takes 1250ms + the time to reach
 					// the '0th measurement'
 					// (could be the ~600ms period time)
-					const uint32_t PREPARE_TIME = 1250;
+					const uint32_t PREPARE_TIME = 1250000;
 
-					if(reinit) {
+					if (reinit) {
 						pids[PID_GROUP_ATT + i].iAccumulator = 0;
 						pids[PID_GROUP_RATE + i].iAccumulator = 0;
 
-						enter_time = timeval;
+						if (i == 0) {
+							enter_time = timeval;
 
-						measuring = false;
+							measuring = false;
+						}
 					}
 
 					if ((i == 0) &&
