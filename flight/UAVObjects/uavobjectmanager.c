@@ -1703,6 +1703,7 @@ static void invokeCallback(struct ObjectEventEntry *event, UAVObjEvent *msg,
 					// which might clobber r0-r3
 		: // no pure read-only registers
 		: "memory",		// callback may clobber memory,
+		"cc",			// condition codes,
 		"r4", "ip", "lr"	// we clobber r4, ip, and lr
 		// And call-clobbered floating point registers
 		, "s0", "s1", "s2", "s3", "s4", "s5", "s6", "s7",
