@@ -102,6 +102,10 @@ enum {
 	PID_VBAR_ROLL = PID_GROUP_VBAR,
 	PID_VBAR_PITCH,
 	PID_VBAR_YAW,
+	PID_GROUP_VBAR2,   // Virtual flybar 2 settings
+	PID_VBAR2_ROLL = PID_GROUP_VBAR2,
+	PID_VBAR2_PITCH,
+	PID_VBAR2_YAW,
 	PID_COORDINATED_FLIGHT_YAW,
 	PID_MAX
 };
@@ -564,7 +568,7 @@ static void stabilizationTask(void* parameters)
 				// - Over time, the flybar settles to the position of least resistance, where gyroscopic and aerodynamic forces balance out (Rate I-accumulator decay)
 				case STABILIZATIONDESIRED_STABILIZATIONMODE_VIRTUALBAR2:
 					if(reinit) {
-						pids[PID_GROUP_VBAR + i].iAccumulator = 0;
+						pids[PID_GROUP_VBAR2 + i].iAccumulator = 0;
 					}
 
 					// Store to rate desired variable for storing to UAVO
@@ -574,13 +578,13 @@ static void stabilizationTask(void* parameters)
 					float gyro_suppress = fabsf(raw_input) * vbar_settings.VbarGyroSuppress / 100.0f;
 
 					// Decay the integral term over time, to simulate the flybar settling
-					pids[PID_GROUP_VBAR + i].iAccumulator *= vbar_decay;
+					pids[PID_GROUP_VBAR2 + i].iAccumulator *= vbar_decay;
 
 					// Compute the inner loop
 					// This is how much manual input should make it directly to the rotor, regardless of the state of the flybar
 					float manual_component = raw_input * vbar_settings.VbarSensitivity[i];
 					// This is the PID output, suppressed as a function of gyro_suppress above
-					float flybar_component = (1.0f - gyro_suppress) * pid_apply_setpoint(&pids[PID_GROUP_VBAR + i], get_deadband(i),  rateDesiredAxis[i],  gyro_filtered[i], dT);
+					float flybar_component = (1.0f - gyro_suppress) * pid_apply_setpoint(&pids[PID_GROUP_VBAR2 + i], get_deadband(i),  rateDesiredAxis[i],  gyro_filtered[i], dT);
 					// Output is the sum of the manual and flybar components
 					actuatorDesiredAxis[i] = manual_component + flybar_component;
 					actuatorDesiredAxis[i] = bound_sym(actuatorDesiredAxis[i],1.0f);
@@ -977,6 +981,27 @@ static void calculate_pids()
 
 	// Set the vbar yaw settings
 	pid_configure(&pids[PID_VBAR_YAW],
+	              vbar_settings.VbarYawPID[VBARSETTINGS_VBARYAWPID_KP],
+	              vbar_settings.VbarYawPID[VBARSETTINGS_VBARYAWPID_KI],
+	              vbar_settings.VbarYawPID[VBARSETTINGS_VBARYAWPID_KD],
+	              0);
+
+	// Set the vbar roll settings
+	pid_configure(&pids[PID_VBAR2_ROLL],
+	              vbar_settings.VbarRollPID[VBARSETTINGS_VBARROLLPID_KP],
+	              vbar_settings.VbarRollPID[VBARSETTINGS_VBARROLLPID_KI],
+	              vbar_settings.VbarRollPID[VBARSETTINGS_VBARROLLPID_KD],
+	              vbar_settings.VbarMaxAngle/100.0f);
+
+	// Set the vbar pitch settings
+	pid_configure(&pids[PID_VBAR2_PITCH],
+	              vbar_settings.VbarPitchPID[VBARSETTINGS_VBARPITCHPID_KP],
+	              vbar_settings.VbarPitchPID[VBARSETTINGS_VBARPITCHPID_KI],
+	              vbar_settings.VbarPitchPID[VBARSETTINGS_VBARPITCHPID_KD],
+	              vbar_settings.VbarMaxAngle/100.0f);
+
+	// Set the vbar yaw settings
+	pid_configure(&pids[PID_VBAR2_YAW],
 	              vbar_settings.VbarYawPID[VBARSETTINGS_VBARYAWPID_KP],
 	              vbar_settings.VbarYawPID[VBARSETTINGS_VBARYAWPID_KI],
 	              vbar_settings.VbarYawPID[VBARSETTINGS_VBARYAWPID_KD],
