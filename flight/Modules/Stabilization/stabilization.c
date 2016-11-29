@@ -555,6 +555,37 @@ static void stabilizationTask(void* parameters)
 					stabilization_virtual_flybar(gyro_filtered[i], rateDesiredAxis[i], &actuatorDesiredAxis[i], dT, reinit, i, &pids[PID_GROUP_VBAR + i], &vbar_settings);
 
 					break;
+				// VirtualBar mode acts like a stabilization bar; that is, it resists all rate changes whether from the pilot or the environment
+				// VirtualBar2 mode acts more like a paddle flybar, specifically a bell-hiller flybar:
+				// - A component of pilot inputs go straight to the main rotor, enabling minimal control delay (VbarGyroSupress,Rate P-term)
+				// - A component of pilot inputs go to changing the state of the flybar (analogous to changing the pitch of the paddles)(Rate I-term)
+				// - As the flybar accelerates due to the new pilot-commanded paddle pitch, it contributes additional control output (Rate I-component)
+				// - Since the flybar is rotating, it also resists rate changes relative to its current orientation
+				// - Over time, the flybar settles to the position of least resistance, where gyroscopic and aerodynamic forces balance out (Rate I-accumulator decay)
+				case STABILIZATIONDESIRED_STABILIZATIONMODE_VIRTUALBAR2:
+					if(reinit) {
+						pids[PID_GROUP_VBAR + i].iAccumulator = 0;
+					}
+
+					// Store to rate desired variable for storing to UAVO
+					rateDesiredAxis[i] = bound_sym(raw_input * settings.ManualRate[i], settings.ManualRate[i]);
+
+					// The factor for gyro suppression / mixing raw stick input into the output; scaled by raw stick input
+					float gyro_suppress = fabsf(raw_input) * vbar_settings.VbarGyroSuppress / 100.0f;
+
+					// Decay the integral term over time, to simulate the flybar settling
+					pids[PID_GROUP_VBAR + i].iAccumulator *= vbar_decay;
+
+					// Compute the inner loop
+					// This is how much manual input should make it directly to the rotor, regardless of the state of the flybar
+					float manual_component = raw_input * vbar_settings.VbarSensitivity[i];
+					// This is the PID output, suppressed as a function of gyro_suppress above
+					float flybar_component = (1.0f - gyro_suppress) * pid_apply_setpoint(&pids[PID_GROUP_VBAR + i], get_deadband(i),  rateDesiredAxis[i],  gyro_filtered[i], dT);
+					// Output is the sum of the manual and flybar components
+					actuatorDesiredAxis[i] = manual_component + flybar_component;
+					actuatorDesiredAxis[i] = bound_sym(actuatorDesiredAxis[i],1.0f);
+
+					break;
 				case STABILIZATIONDESIRED_STABILIZATIONMODE_WEAKLEVELING:
 				{
 					if (reinit) {
