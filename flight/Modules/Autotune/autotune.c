@@ -75,6 +75,9 @@ struct at_flash_header {
 	uint64_t magic;
 	uint16_t wiggle_points;
 	uint16_t aux_data_len;
+	uint16_t sample_rate;
+
+	// Consider total number of averages here
 	uint16_t resv;
 };
 
@@ -311,7 +314,8 @@ static int autotune_save_averaging() {
 	struct at_flash_header hdr = {
 		.magic = ATFLASH_MAGIC,
 		.wiggle_points = ident_wiggle_points,
-		.aux_data_len = 0
+		.aux_data_len = 0,
+		.sample_rate = PIOS_SENSORS_GetSampleRate(PIOS_SENSOR_GYRO),
 	};
 
 	uint32_t offset = 0;
