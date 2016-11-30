@@ -302,10 +302,12 @@ static int32_t PIOS_BMP280_ReadADC(bool calcTemp)
 	if (PIOS_BMP280_Read(BMP280_PRESS_MSB, data, 6) != 0)
 			return -1;
 
+	int32_t T = 0;
+
 	if (calcTemp) {
 		int32_t raw_temperature = (int32_t)((((uint32_t)(data[3])) << 12) | (((uint32_t)(data[4])) << 4) | ((uint32_t)data[5] >> 4));
 
-		int32_t varT1, varT2, T;
+		int32_t varT1, varT2;
 
 		varT1 =  ((((raw_temperature >> 3) - ((int32_t)dev->digT1 << 1))) * ((int32_t)dev->digT2)) >> 11;
 		varT2 = (((((raw_temperature >> 4) - ((int32_t)dev->digT1)) * ((raw_temperature >> 4) - ((int32_t)dev->digT1))) >> 12) * ((int32_t)dev->digT3)) >> 14;
