@@ -109,10 +109,10 @@ extern bool PIOS_Hsync_ISR();
 
 extern void PIOS_Video_Init(const struct pios_video_cfg *cfg);
 extern void PIOS_Pixel_Init(void);
-extern void PIOS_Video_SetLevels(uint8_t, uint8_t, uint8_t, uint8_t);
+extern void PIOS_Video_SetLevels(uint8_t, uint8_t);
 extern void PIOS_Video_SetXOffset(int8_t);
 extern void PIOS_Video_SetYOffset(int8_t);
-extern void PIOS_Video_SetXScale(uint8_t pal_x_scale, uint8_t ntsc_x_scale);
+extern void PIOS_Video_SetXScale(uint8_t x_scale);
 extern void PIOS_Video_Set3DConfig(enum pios_video_3d_mode mode, uint8_t right_eye_x_shift);
 
 uint16_t PIOS_Video_GetLines(void);

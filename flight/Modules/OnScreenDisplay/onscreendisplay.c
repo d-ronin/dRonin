@@ -114,6 +114,7 @@ extern uint8_t PIOS_Board_Revision(void);
 
 extern uint8_t *draw_buffer_level;
 extern uint8_t *draw_buffer_mask;
+extern int8_t video_type_act;
 
 // ****************
 // Private functions
@@ -1576,6 +1577,18 @@ int render_stats()
 	return y_pos;
 }
 
+void set_ntsc_pal_settings(int8_t video_type)
+{
+	if (video_type == VIDEO_TYPE_NTSC) {
+		PIOS_Video_SetLevels(osd_settings.NTSCBlack, osd_settings.NTSCWhite);
+		PIOS_Video_SetXScale(osd_settings.NTSCXScale);
+	}
+	else {
+		PIOS_Video_SetLevels(osd_settings.PALBlack, osd_settings.PALWhite);
+		PIOS_Video_SetXScale(osd_settings.PALXScale);
+	}
+}
+
 /**
  * Start the osd module
  */
@@ -1667,6 +1680,7 @@ static void onScreenDisplayTask(__attribute__((unused)) void *parameters)
 	AccessoryDesiredData accessory;
 	OnScreenDisplayPageSettingsData osd_page_settings;
 
+	int8_t video_type_last = VIDEO_TYPE_NONE;
 	uint32_t now;
 	uint32_t show_stats_start = 0;
 	uint32_t show_stats_until = 0;
@@ -1699,11 +1713,9 @@ static void onScreenDisplayTask(__attribute__((unused)) void *parameters)
 	PIOS_Video_Init(&pios_video_cfg);
 
 	// initialize settings
-	PIOS_Video_SetLevels(osd_settings.PALBlack, osd_settings.PALWhite,
-			osd_settings.NTSCBlack, osd_settings.NTSCWhite);
+	set_ntsc_pal_settings(video_type_act);
 	PIOS_Video_SetXOffset(osd_settings.XOffset);
 	PIOS_Video_SetYOffset(osd_settings.YOffset);
-	PIOS_Video_SetXScale(osd_settings.PALXScale, osd_settings.NTSCXScale);
 	enum pios_video_3d_mode video_3d_mode;
 	switch(osd_settings.ThreeDMode) {
 		case ONSCREENDISPLAYSETTINGS_THREEDMODE_SBS3D:
@@ -1750,12 +1762,9 @@ static void onScreenDisplayTask(__attribute__((unused)) void *parameters)
 #endif
 			if (osd_settings_updated) {
 				OnScreenDisplaySettingsGet(&osd_settings);
-				PIOS_Video_SetLevels(osd_settings.PALBlack, osd_settings.PALWhite,
-						osd_settings.NTSCBlack, osd_settings.NTSCWhite);
-
+				set_ntsc_pal_settings(video_type_act);
 				PIOS_Video_SetXOffset(osd_settings.XOffset);
 				PIOS_Video_SetYOffset(osd_settings.YOffset);
-				PIOS_Video_SetXScale(osd_settings.PALXScale, osd_settings.NTSCXScale);
 				enum pios_video_3d_mode video_3d_mode;
 				switch(osd_settings.ThreeDMode) {
 					case ONSCREENDISPLAYSETTINGS_THREEDMODE_SBS3D:
@@ -1783,6 +1792,11 @@ static void onScreenDisplayTask(__attribute__((unused)) void *parameters)
 				}
 
 				osd_settings_updated = false;
+			}
+
+			// update settings when video type changes
+			if (video_type_act != video_type_last) {
+				set_ntsc_pal_settings(video_type_act);
 			}
 
 			// decide whether to show blinking elements
@@ -1875,6 +1889,7 @@ static void onScreenDisplayTask(__attribute__((unused)) void *parameters)
 			frame_counter++;
 			last_page = current_page;
 			last_arm_status = arm_status;
+			video_type_last = video_type_act;
 #ifdef DEBUG_TIMING
 			out_ticks = PIOS_Thread_Systime();
 			in_time   = out_ticks - in_ticks;
