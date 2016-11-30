@@ -233,7 +233,7 @@ static void at_new_actuators(UAVObjEvent * ev, void *ctx, void *obj, int len) {
 	struct at_measurement *avg_point = &at_averages[actuators.SystemIdentCycle];
 
 	if (first_cycle) {
-		*avg_point = (struct at_measurement) { 0 };
+		*avg_point = (struct at_measurement) { { 0 } };
 	}
 
 	avg_point->y[0] += g.x;
