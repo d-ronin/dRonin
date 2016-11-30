@@ -152,7 +152,7 @@ static int32_t PIOS_BMP280_Validate(struct bmp280_dev *dev)
 	return 0;
 }
 
-static int32_t PIOS_BMP280_Init_Common(const struct pios_bmp280_cfg *cfg)
+static int32_t PIOS_BMP280_Common_Init(const struct pios_bmp280_cfg *cfg)
 {
 	dev->oversampling = cfg->oversampling;
 	dev->temperature_interleaving = (cfg->temperature_interleaving) == 0 ? 1 : cfg->temperature_interleaving;
@@ -207,12 +207,12 @@ int32_t PIOS_BMP280_Init(const struct pios_bmp280_cfg *cfg, int32_t i2c_device)
 
 	dev->i2c_id = i2c_device;
 
-	return PIOS_BMP280_Init_Common(cfg);
+	return PIOS_BMP280_Common_Init(cfg);
 }
 #endif /* PIOS_EXCLUDE_BMP280_I2C */
 
 #ifdef PIOS_INCLUDE_BMP280_SPI
-int32_t PIOS_BMP280_Init_SPI(const struct pios_bmp280_cfg *cfg, int32_t spi_device,
+int32_t PIOS_BMP280_SPI_Init(const struct pios_bmp280_cfg *cfg, int32_t spi_device,
 	int spi_slave)
 {
 	dev = (struct bmp280_dev *) PIOS_BMP280_alloc();
@@ -222,7 +222,7 @@ int32_t PIOS_BMP280_Init_SPI(const struct pios_bmp280_cfg *cfg, int32_t spi_devi
 	dev->spi_id = spi_device;
 	dev->spi_slave = spi_slave;
 
-	return PIOS_BMP280_Init_Common(cfg);
+	return PIOS_BMP280_Common_Init(cfg);
 }
 #endif /* PIOS_INCLUDE_BMP280_SPI */
 
@@ -338,7 +338,7 @@ static int32_t PIOS_BMP280_ReadADC(bool calcTemp)
 }
 
 #ifndef PIOS_EXCLUDE_BMP280_I2C
-static int32_t PIOS_BMP280_Read_I2C(uint8_t address, uint8_t *buffer, uint8_t len)
+static int32_t PIOS_BMP280_I2C_Read(uint8_t address, uint8_t *buffer, uint8_t len)
 {
 	const struct pios_i2c_txn txn_list[] = {
 		{
@@ -361,7 +361,7 @@ static int32_t PIOS_BMP280_Read_I2C(uint8_t address, uint8_t *buffer, uint8_t le
 	return PIOS_I2C_Transfer(dev->i2c_id, txn_list, NELEMENTS(txn_list));
 }
 
-static int32_t PIOS_BMP280_Write_I2C(uint8_t *buffer, uint8_t len) {
+static int32_t PIOS_BMP280_I2C_Write(uint8_t *buffer, uint8_t len) {
 	const struct pios_i2c_txn txn_list[] = {
 		{
 		 .info = __func__,
@@ -399,7 +399,7 @@ static int32_t PIOS_BMP280_ReleaseBus(struct bmp280_dev *bmp_dev)
 	return 0;
 }
 
-static int32_t PIOS_BMP280_Read_SPI(uint8_t address, uint8_t *buffer, uint8_t len) {
+static int32_t PIOS_BMP280_SPI_Read(uint8_t address, uint8_t *buffer, uint8_t len) {
 	if (PIOS_BMP280_ClaimBus(dev) != 0)
 		return -1;
 
@@ -412,7 +412,7 @@ static int32_t PIOS_BMP280_Read_SPI(uint8_t address, uint8_t *buffer, uint8_t le
 	return ret;
 }
 
-static int32_t PIOS_BMP280_Write_SPI(uint8_t *buffer, uint8_t len) {
+static int32_t PIOS_BMP280_SPI_Write(uint8_t *buffer, uint8_t len) {
 	if (PIOS_BMP280_ClaimBus(dev) != 0)
 		return -1;
 
@@ -439,11 +439,11 @@ static int32_t PIOS_BMP280_Read(uint8_t address, uint8_t *buffer, uint8_t len)
 	if (0) {
 #ifndef PIOS_EXCLUDE_BMP280_I2C
 	} else if (dev->i2c_id) {
-		return PIOS_BMP280_Read_I2C(address, buffer, len);
+		return PIOS_BMP280_I2C_Read(address, buffer, len);
 #endif
 #ifdef PIOS_INCLUDE_BMP280_SPI
 	} else if (dev->spi_id) {
-		return PIOS_BMP280_Read_SPI(address, buffer, len);
+		return PIOS_BMP280_SPI_Read(address, buffer, len);
 #endif
 	}
 
@@ -470,12 +470,12 @@ static int32_t PIOS_BMP280_WriteCommand(uint8_t address, uint8_t buffer)
 	if (0) {
 #ifndef PIOS_EXCLUDE_BMP280_I2C
 	} else if (dev->i2c_id) {
-		return PIOS_BMP280_Write_I2C(data, sizeof(data));
+		return PIOS_BMP280_I2C_Write(data, sizeof(data));
 #endif
 #ifdef PIOS_INCLUDE_BMP280_SPI
 	} else if (dev->spi_id) {
 		data[0] &= 0x7f;	/* Clear high bit */
-		return PIOS_BMP280_Write_SPI(data, sizeof(data));
+		return PIOS_BMP280_SPI_Write(data, sizeof(data));
 #endif
 	}
 
