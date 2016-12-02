@@ -49,6 +49,12 @@ void SysTick_Handler(void);
 */
 void PIOS_SYS_Init(void)
 {
+	PWR_PVDLevelConfig(PWR_PVDLevel_7);
+	PWR_PVDCmd(ENABLE);
+
+	// Wait for VCC to exceed 2.9V
+	while (PWR_GetFlagStatus(PWR_FLAG_PVDO) == SET);
+
 #if !defined(PIOS_INCLUDE_CHIBIOS)
 	/* Setup STM32 system (RCC, clock, PLL and Flash configuration) - CMSIS Function */
 	SystemInit();
