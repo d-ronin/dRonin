@@ -392,7 +392,7 @@ static const struct pios_flash_partition pios_flash_partition_table[] = {
 		.first_sector = 2,
 		.last_sector  = 3,
 		.chip_offset  = (2 * FLASH_SECTOR_16KB),
-		.size         = (3 - 2 + 1) * FLASH_SECTOR_64KB,
+		.size         = (3 - 2 + 1) * FLASH_SECTOR_16KB,
 	},
 	/* Sector 4 -- 64k -- unallocated */
 	{
@@ -509,15 +509,12 @@ static const struct pios_dsm_cfg pios_usart6_dsm_aux_cfg = {
 
 #include <pios_sbus_priv.h>
 
-/* XXX XXX Need to drive this definitively / work with sense
- * appropriately
- */
 static const struct pios_sbus_cfg pios_usart2_sbus_aux_cfg = {
 	/* Inverter configuration */
 	.inv = {
-		.gpio = GPIOA,
+		.gpio = GPIOB,
 		.init = {
-			.GPIO_Pin = GPIO_Pin_15,
+			.GPIO_Pin = GPIO_Pin_8,
 			.GPIO_Speed = GPIO_Speed_2MHz,
 			.GPIO_Mode  = GPIO_Mode_OUT,
 			.GPIO_OType = GPIO_OType_PP,
@@ -730,31 +727,6 @@ void PIOS_RTC_IRQ_Handler (void)
 }
 
 #endif
-
-
-#include "pios_tim_priv.h"
-
-/* PPM in, TIM9 */
-static const TIM_TimeBaseInitTypeDef tim_9_time_base = {
-	.TIM_Prescaler = (PIOS_PERIPHERAL_APB2_COUNTER_CLOCK / 1000000) - 1,
-	.TIM_ClockDivision = TIM_CKD_DIV1,
-	.TIM_CounterMode = TIM_CounterMode_Up,
-	.TIM_Period = 0xFFFF,
-	.TIM_RepetitionCounter = 0x0000,
-};
-
-static const struct pios_tim_clock_cfg tim_9_cfg = {
-	.timer = TIM9,
-	.time_base_init = &tim_9_time_base,
-	.irq = {
-		.init = {
-			.NVIC_IRQChannel                   = TIM1_BRK_TIM9_IRQn,
-			.NVIC_IRQChannelPreemptionPriority = PIOS_IRQ_PRIO_MID,
-			.NVIC_IRQChannelSubPriority        = 0,
-			.NVIC_IRQChannelCmd                = ENABLE,
-		},
-	},
-};
 
 /* Timers used for outputs (8, 14, 3, 5) */
 
@@ -1017,12 +989,12 @@ const struct pios_servo_cfg pios_servo_with_uart_cfg = {
 
 #endif	/* PIOS_INCLUDE_SERVO && PIOS_INCLUDE_TIM */
 
-/* PPM in, PA3, TIM9_CH2.  MUST disable inverter explicitly first */
+/* PPM in, PA3, TIM5_CH4.  MUST disable inverter explicitly first */
 static const struct pios_tim_channel pios_tim_rcvrport_all_channels[] = {
 	{
-		.timer = TIM9,
-		.timer_chan = TIM_Channel_2,
-		.remap = GPIO_AF_TIM9,
+		.timer = TIM5,
+		.timer_chan = TIM_Channel_4,
+		.remap = GPIO_AF_TIM5,
 		.pin = {
 			.gpio = GPIOA,
 			.init = {
@@ -1083,9 +1055,9 @@ static const struct pios_usb_cfg pios_usb_main_cfg = {
 #ifdef BOOTLOADER_VERSION
 	// Only use vsense in loader.
 	.vsense = {
-		.gpio = GPIOA,
+		.gpio = GPIOB,
 		.init = {
-			.GPIO_Pin   = GPIO_Pin_15,
+			.GPIO_Pin   = GPIO_Pin_8,
 			.GPIO_Speed = GPIO_Speed_25MHz,
 			.GPIO_Mode  = GPIO_Mode_IN,
 			.GPIO_OType = GPIO_OType_OD,
@@ -1370,7 +1342,23 @@ const struct pios_video_cfg pios_video_cfg = {
 
 	.hsync_capture                                     = {
 		.timer = TIM2,
-		.timer_chan = TIM_Channel_3,
+		.timer_chan = TIM_Channel_1,
+		.pin   = {
+			.gpio = GPIOA,
+			.init = {
+				.GPIO_Pin   = GPIO_Pin_15,
+				.GPIO_Speed = GPIO_Speed_100MHz,
+				.GPIO_Mode  = GPIO_Mode_AF,
+				.GPIO_OType = GPIO_OType_PP,
+				.GPIO_PuPd  = GPIO_PuPd_UP
+			},
+			.pin_source = GPIO_PinSource15,
+		},
+		.remap                                         = GPIO_AF_TIM2,
+	},
+	.pixel_timer                                       = {
+		.timer = TIM9,
+		.timer_chan = TIM_Channel_1,
 		.pin   = {
 			.gpio = GPIOA,
 			.init = {
@@ -1380,23 +1368,7 @@ const struct pios_video_cfg pios_video_cfg = {
 				.GPIO_OType = GPIO_OType_PP,
 				.GPIO_PuPd  = GPIO_PuPd_UP
 			},
-			.pin_source = GPIO_PinSource2,
-		},
-		.remap                                         = GPIO_AF_TIM2,
-	},
-	.pixel_timer                                       = {
-		.timer = TIM10,
-		.timer_chan = TIM_Channel_1,
-		.pin   = {
-			.gpio = GPIOB,
-			.init = {
-				.GPIO_Pin   = GPIO_Pin_8,
-				.GPIO_Speed = GPIO_Speed_100MHz,
-				.GPIO_Mode  = GPIO_Mode_AF,
-				.GPIO_OType = GPIO_OType_PP,
-				.GPIO_PuPd  = GPIO_PuPd_UP
-			},
-			.pin_source                                = GPIO_PinSource8,
+			.pin_source                                = GPIO_PinSource2,
 		},
 		.remap                                         = GPIO_AF_TIM9,
 	},
