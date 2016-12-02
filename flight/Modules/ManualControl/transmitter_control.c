@@ -488,6 +488,7 @@ int32_t transmitter_control_select(bool reset_controller)
 	case FLIGHTSTATUS_FLIGHTMODE_ACROPLUS:
 	case FLIGHTSTATUS_FLIGHTMODE_LEVELING:
 	case FLIGHTSTATUS_FLIGHTMODE_VIRTUALBAR:
+	case FLIGHTSTATUS_FLIGHTMODE_VIRTUALBAR2:
 	case FLIGHTSTATUS_FLIGHTMODE_HORIZON:
 	case FLIGHTSTATUS_FLIGHTMODE_AXISLOCK:
 	case FLIGHTSTATUS_FLIGHTMODE_STABILIZED1:
@@ -979,6 +980,7 @@ static inline float scale_stabilization(StabilizationSettingsData *stabSettings,
 			return 0;
 		case SHAREDDEFS_STABILIZATIONMODE_MANUAL:
 		case SHAREDDEFS_STABILIZATIONMODE_VIRTUALBAR:
+		case SHAREDDEFS_STABILIZATIONMODE_VIRTUALBAR2:
 		case SHAREDDEFS_STABILIZATIONMODE_COORDINATEDFLIGHT:
 			return cmd;
 		case SHAREDDEFS_STABILIZATIONMODE_RATE:
@@ -1029,6 +1031,10 @@ static void update_stabilization_desired(ManualControlCommandData * manual_contr
 	                                    STABILIZATIONDESIRED_STABILIZATIONMODE_VIRTUALBAR,
 	                                    STABILIZATIONDESIRED_STABILIZATIONMODE_VIRTUALBAR,
 	                                    STABILIZATIONDESIRED_STABILIZATIONMODE_AXISLOCK};
+	const uint8_t VIRTUALBAR2_SETTINGS[3] = {
+	                                    STABILIZATIONDESIRED_STABILIZATIONMODE_VIRTUALBAR2,
+	                                    STABILIZATIONDESIRED_STABILIZATIONMODE_VIRTUALBAR2,
+	                                    STABILIZATIONDESIRED_STABILIZATIONMODE_AXISLOCK};
 	const uint8_t HORIZON_SETTINGS[3] = {
 	                                    STABILIZATIONDESIRED_STABILIZATIONMODE_HORIZON,
 	                                    STABILIZATIONDESIRED_STABILIZATIONMODE_HORIZON,
@@ -1066,6 +1072,9 @@ static void update_stabilization_desired(ManualControlCommandData * manual_contr
 			break;
 		case FLIGHTSTATUS_FLIGHTMODE_VIRTUALBAR:
 			stab_modes = VIRTUALBAR_SETTINGS;
+			break;
+		case FLIGHTSTATUS_FLIGHTMODE_VIRTUALBAR2:
+			stab_modes = VIRTUALBAR2_SETTINGS;
 			break;
 		case FLIGHTSTATUS_FLIGHTMODE_HORIZON:
 			stab_modes = HORIZON_SETTINGS;
