@@ -510,7 +510,7 @@ static const struct pios_flash_partition pios_flash_partition_table[] = {
 	/* NOTE: sectors 8-9 of the internal flash are currently unallocated */
     
 	{
-		.label        = FLASH_PARTITION_LABEL_WAYPOINTS,
+		.label        = FLASH_PARTITION_LABEL_AUTOTUNE,
 		.chip_desc    = &pios_flash_chip_internal,
 		.first_sector = 10,
 		.last_sector  = 11,
@@ -1578,7 +1578,7 @@ static const struct pios_exti_cfg pios_exti_mpu_cfg __exti_config = {
 
 static struct pios_mpu_cfg pios_mpu_cfg = {
 	.exti_cfg            = &pios_exti_mpu_cfg,
-	.default_samplerate  = 500,
+	.default_samplerate  = 1000,
 	.orientation         = PIOS_MPU_TOP_90DEG
 };
 #endif /* PIOS_INCLUDE_MPU */

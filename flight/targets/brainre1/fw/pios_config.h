@@ -125,6 +125,7 @@
 #define PIOS_TELEM_PRIORITY_QUEUE       /* Enable a priority queue in telemetry */
 //#define PIOS_QUATERNION_STABILIZATION   /* Stabilization options */
 #define PIOS_GPS_SETS_HOMELOCATION      /* GPS options */
+#define AUTOTUNE_AVERAGING_MODE
 
 #define CAMERASTAB_POI_MODE
 

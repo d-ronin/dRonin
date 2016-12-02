@@ -401,15 +401,6 @@ void PIOS_Board_Init(void) {
 	    188;
 	PIOS_MPU_SetGyroBandwidth(bandwidth);
 
-	HwCopterControlMPU6000RateOptions hw_mpu_samplerate;
-	HwCopterControlMPU6000RateGet(&hw_mpu_samplerate);
-	uint16_t mpu_samplerate = \
-	    (hw_mpu_samplerate == HWCOPTERCONTROL_MPU6000RATE_200) ? 200 : \
-	    (hw_mpu_samplerate == HWCOPTERCONTROL_MPU6000RATE_333) ? 333 : \
-	    (hw_mpu_samplerate == HWCOPTERCONTROL_MPU6000RATE_500) ? 500 :
-	    pios_mpu_cfg.default_samplerate;
-	PIOS_MPU_SetSampleRate(mpu_samplerate);
-
 #endif /* PIOS_INCLUDE_MPU */
 
 	PIOS_GPIO_Init();

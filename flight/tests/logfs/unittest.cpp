@@ -342,7 +342,7 @@ protected:
     /* Init the flash and the flashfs so we don't need to repeat this in every test */
     EXPECT_EQ(0, PIOS_Flash_Posix_Init(&pios_posix_flash_id, &flash_config));
     EXPECT_EQ(0, PIOS_FLASHFS_Logfs_Init(&fs_id_a, &flashfs_config_settings, FLASH_PARTITION_LABEL_SETTINGS));
-    EXPECT_EQ(0, PIOS_FLASHFS_Logfs_Init(&fs_id_b, &flashfs_config_waypoints, FLASH_PARTITION_LABEL_WAYPOINTS));
+    EXPECT_EQ(0, PIOS_FLASHFS_Logfs_Init(&fs_id_b, &flashfs_config_waypoints, FLASH_PARTITION_LABEL_AUTOTUNE));
   }
 
   virtual void TearDown() {

@@ -105,9 +105,6 @@
 		<field name="AccelRange" units="*gravity m/s^2" type="enum" elements="1" options="2G,4G,8G,16G" defaultvalue="8G">
 			<description>The maximum measure range for the accelerometers, should never exceed this</description>
 		</field>
-		<field name="MPU9250Rate" units="Hz" type="enum" elements="1" options="200,250,333,500,1000" defaultvalue="1000">
-			<description>The gyro sampling rate</description>
-		</field>
 		<field name="MPU9250GyroLPF" units="Hz" type="enum" elements="1" options="184,92,41,20,10,5" defaultvalue="184">
 			<description>Gyro filter cutoff frequency</description>
 		</field>

@@ -504,7 +504,7 @@ static struct pios_flash_partition pios_flash_partition_table[] = {
 	},
 
 	{
-		.label        = FLASH_PARTITION_LABEL_WAYPOINTS,
+		.label        = FLASH_PARTITION_LABEL_AUTOTUNE,
 		.chip_desc    = &pios_flash_chip_external,
 		.first_sector = 6,
 		.last_sector  = 10,
@@ -1979,7 +1979,7 @@ static const struct pios_exti_cfg pios_exti_mpu_cfg __exti_config = {
 
 static const struct pios_mpu_cfg pios_mpu_cfg = {
 	.exti_cfg           = &pios_exti_mpu_cfg,
-	.default_samplerate = 500,
+	.default_samplerate = 1000,
 	.orientation        = PIOS_MPU_TOP_180DEG,
 };
 #endif /* PIOS_INCLUDE_MPU */

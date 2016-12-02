@@ -17,9 +17,6 @@
 		<field name="Noise" units="(deg/s)^2" type="float" elementnames="Roll,Pitch,Yaw" defaultvalue="0">
 			<description/>
 		</field>
-		<field name="Period" units="ms" type="float" elements="1" defaultvalue="0">
-			<description/>
-		</field>
 		<field name="NumAfPredicts" units="" type="uint32" elements="1" defaultvalue="0">
 			<description/>
 		</field>

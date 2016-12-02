@@ -199,6 +199,9 @@ int32_t PIOS_BMI160_Init(uint32_t spi_id, uint32_t slave_num, const struct pios_
 			PIOS_BMI160_Task, "pios_bmi160", PIOS_BMI160_TASK_STACK_BYTES, NULL, PIOS_BMI160_TASK_PRIORITY);
 	PIOS_Assert(dev->TaskHandle != NULL);
 
+	PIOS_SENSORS_SetSampleRate(PIOS_SENSOR_ACCEL, 1600);
+	PIOS_SENSORS_SetSampleRate(PIOS_SENSOR_GYRO, 1600);
+
 	PIOS_SENSORS_Register(PIOS_SENSOR_ACCEL, dev->accel_queue);
 	PIOS_SENSORS_Register(PIOS_SENSOR_GYRO, dev->gyro_queue);
 
