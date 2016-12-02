@@ -386,17 +386,15 @@ static const struct pios_flash_partition pios_flash_partition_table[] = {
 		.chip_offset  = 0,
 		.size         = (1 - 0 + 1) * FLASH_SECTOR_16KB,
 	},
-
-	/* NOTE: sectors 2-3 of the internal flash are currently unallocated */
-	/* (2 x 16kb) */
 	{
-		.label        = FLASH_PARTITION_LABEL_WAYPOINTS,
+		.label        = FLASH_PARTITION_LABEL_AUTOTUNE,
 		.chip_desc    = &pios_flash_chip_internal,
-		.first_sector = 4,
-		.last_sector  = 4,
-		.chip_offset  = (4 * FLASH_SECTOR_16KB),
-		.size         = (4 - 4 + 1) * FLASH_SECTOR_64KB,
+		.first_sector = 2,
+		.last_sector  = 3,
+		.chip_offset  = (2 * FLASH_SECTOR_16KB),
+		.size         = (3 - 2 + 1) * FLASH_SECTOR_64KB,
 	},
+	/* Sector 4 -- 64k -- unallocated */
 	{
 		.label        = FLASH_PARTITION_LABEL_FW,
 		.chip_desc    = &pios_flash_chip_internal,

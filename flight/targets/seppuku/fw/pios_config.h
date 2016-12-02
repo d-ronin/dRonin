@@ -119,6 +119,7 @@
 #define PIOS_TELEM_PRIORITY_QUEUE       /* Enable a priority queue in telemetry */
 
 #define SYSTEMMOD_RGBLED_SUPPORT
+#define AUTOTUNE_AVERAGING_MODE
 
 #define CAMERASTAB_POI_MODE
 
