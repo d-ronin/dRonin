@@ -122,9 +122,14 @@ static struct bmp280_dev *PIOS_BMP280_alloc(void)
 	struct bmp280_dev *bmp280_dev;
 
 	bmp280_dev = (struct bmp280_dev *)PIOS_malloc(sizeof(*bmp280_dev));
-	if (!bmp280_dev) return (NULL);
 
-	bzero(bmp280_dev, sizeof(*bmp280_dev));
+	if (!bmp280_dev) {
+		return NULL;
+	}
+
+	*bmp280_dev = (struct bmp280_dev) {
+		.magic = PIOS_BMP280_DEV_MAGIC
+	};
 
 	bmp280_dev->queue = PIOS_Queue_Create(1, sizeof(struct pios_sensor_baro_data));
 	if (bmp280_dev->queue == NULL) {
@@ -390,13 +395,11 @@ static int32_t PIOS_BMP280_ClaimBus(struct bmp280_dev *bmp_dev)
 	return 0;
 }
 
-static int32_t PIOS_BMP280_ReleaseBus(struct bmp280_dev *bmp_dev)
+static void PIOS_BMP280_ReleaseBus(struct bmp280_dev *bmp_dev)
 {
 	PIOS_SPI_RC_PinSet(bmp_dev->spi_id, bmp_dev->spi_slave, true);
 
 	PIOS_SPI_ReleaseBus(bmp_dev->spi_id);
-
-	return 0;
 }
 
 static int32_t PIOS_BMP280_SPI_Read(uint8_t address, uint8_t *buffer, uint8_t len) {
