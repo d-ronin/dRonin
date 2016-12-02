@@ -179,7 +179,9 @@ int32_t PIOS_LIS3MDL_SPI_Init(lis3mdl_dev_t *dev, uint32_t spi_id,
 	ret = AssertReg(lis_dev, LIS_REG_MAG_WHO_AM_I,
 			LIS_WHO_AM_I_VAL);
 
-	if (ret) return ret;
+	if (ret) {
+		return ret;
+	}
 
 	/* Startup sequence, per ST AN4602 */
 
