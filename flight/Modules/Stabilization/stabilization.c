@@ -562,7 +562,7 @@ static void stabilizationTask(void* parameters)
 
 					break;
 
-			case STABILIZATIONDESIRED_STABILIZATIONMODE_ACRODYNE:
+				case STABILIZATIONDESIRED_STABILIZATIONMODE_ACRODYNE:
 					if(reinit) {
 						pids[PID_GROUP_RATE + i].iAccumulator = 0;
 						max_rate_filtered[i] = settings.ManualRate[i];
@@ -607,7 +607,7 @@ static void stabilizationTask(void* parameters)
 
 					break;
 
-			case STABILIZATIONDESIRED_STABILIZATIONMODE_ACROPLUS:
+				case STABILIZATIONDESIRED_STABILIZATIONMODE_ACROPLUS:
 					// this implementation is based on the Openpilot/Librepilot Acro+ flightmode
 					// and our previous MWRate flightmodes
 					if(reinit) {
@@ -632,7 +632,8 @@ static void stabilizationTask(void* parameters)
 					actuatorDesiredAxis[i] = bound_sym(actuatorDesiredAxis[i], 1.0f);
 
 					break;
-			case STABILIZATIONDESIRED_STABILIZATIONMODE_ATTITUDE:
+
+				case STABILIZATIONDESIRED_STABILIZATIONMODE_ATTITUDE:
 					if(reinit) {
 						pids[PID_GROUP_ATT + i].iAccumulator = 0;
 						pids[PID_GROUP_RATE + i].iAccumulator = 0;
@@ -656,6 +657,7 @@ static void stabilizationTask(void* parameters)
 					stabilization_virtual_flybar(gyro_filtered[i], rateDesiredAxis[i], &actuatorDesiredAxis[i], dT_expected, reinit, i, &pids[PID_GROUP_VBAR + i], &vbar_settings);
 
 					break;
+
 				case STABILIZATIONDESIRED_STABILIZATIONMODE_WEAKLEVELING:
 				{
 					if (reinit) {
