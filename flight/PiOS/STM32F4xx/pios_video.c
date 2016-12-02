@@ -95,7 +95,6 @@ volatile uint16_t active_line = 0;
 
 const struct pios_video_type_boundary *pios_video_type_boundary_act = &pios_video_type_boundary_pal;
 
-int8_t video_type_act = VIDEO_TYPE_NONE;
 
 // Private variables
 static int8_t x_offset = 0;
@@ -103,7 +102,8 @@ static int8_t x_offset_new = 0;
 static int8_t y_offset = 0;
 static const struct pios_video_cfg *dev_cfg = NULL;
 static uint16_t num_video_lines = 0;
-static int8_t video_type_tmp = VIDEO_TYPE_PAL;
+static enum pios_video_system video_system_act = PIOS_VIDEO_SYSTEM_NONE;
+static enum pios_video_system video_system_tmp = PIOS_VIDEO_SYSTEM_PAL;
 static const struct pios_video_type_cfg *pios_video_type_cfg_act = &pios_video_type_cfg_pal;
 
 // Private functions
@@ -131,13 +131,13 @@ bool PIOS_Vsync_ISR()
 
 	// check video type
 	if (num_video_lines > VIDEO_TYPE_PAL_ROWS) {
-		video_type_tmp = VIDEO_TYPE_PAL;
+		video_system_tmp = PIOS_VIDEO_SYSTEM_PAL;
 	}
 
 	// if video type has changed set new active values
-	if (video_type_act != video_type_tmp) {
-		video_type_act = video_type_tmp;
-		if (video_type_act == VIDEO_TYPE_NTSC) {
+	if (video_system_act != video_system_tmp) {
+		video_system_act = video_system_tmp;
+		if (video_system_act == PIOS_VIDEO_SYSTEM_NTSC) {
 			pios_video_type_boundary_act = &pios_video_type_boundary_ntsc;
 			pios_video_type_cfg_act = &pios_video_type_cfg_ntsc;
 		} else {
@@ -154,7 +154,7 @@ bool PIOS_Vsync_ISR()
 		dev_cfg->hsync_capture.timer->ARR = pios_video_type_cfg_act->dc * (pios_video_type_cfg_act->graphics_column_start + x_offset);
 	}
 
-	video_type_tmp = VIDEO_TYPE_NTSC;
+	video_system_tmp = PIOS_VIDEO_SYSTEM_NTSC;
 
 	// Every VSYNC_REDRAW_CNT field: swap buffers and trigger redraw
 	if (++Vsync_update >= VSYNC_REDRAW_CNT) {
@@ -465,9 +465,9 @@ uint16_t PIOS_Video_GetLines(void)
 /**
  *
  */
-uint16_t PIOS_Video_GetType(void)
+enum pios_video_system PIOS_Video_GetSystem(void)
 {
-	return video_type_act;
+	return video_system_act;
 }
 
 /**

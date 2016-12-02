@@ -48,6 +48,13 @@ enum pios_video_3d_mode {
 	PIOS_VIDEO_3D_SBS3D,
 };
 
+enum pios_video_system {
+	PIOS_VIDEO_SYSTEM_NONE,
+	PIOS_VIDEO_SYSTEM_PAL,
+	PIOS_VIDEO_SYSTEM_NTSC,
+};
+
+
 #if defined(PIOS_INCLUDE_VIDEO_QUADSPI)
 #include <stm32f4xx_qspi.h>
 
@@ -116,7 +123,7 @@ extern void PIOS_Video_SetXScale(uint8_t x_scale);
 extern void PIOS_Video_Set3DConfig(enum pios_video_3d_mode mode, uint8_t right_eye_x_shift);
 
 uint16_t PIOS_Video_GetLines(void);
-uint16_t PIOS_Video_GetType(void);
+enum pios_video_system PIOS_Video_GetSystem(void);
 
 // video boundary values
 extern const struct pios_video_type_boundary *pios_video_type_boundary_act;
@@ -128,10 +135,7 @@ extern const struct pios_video_type_boundary *pios_video_type_boundary_act;
 #define GRAPHICS_X_MIDDLE	((GRAPHICS_RIGHT + 1) / 2)
 #define GRAPHICS_Y_MIDDLE	((GRAPHICS_BOTTOM + 1) / 2)
 
-// video type defs for autodetect
-#define VIDEO_TYPE_NONE      0
-#define VIDEO_TYPE_NTSC      1
-#define VIDEO_TYPE_PAL       2
+// for autodetect
 #define VIDEO_TYPE_PAL_ROWS  300
 
 // draw area buffer values, for memory allocation, access and calculations we suppose the larger values for PAL, this also works for NTSC

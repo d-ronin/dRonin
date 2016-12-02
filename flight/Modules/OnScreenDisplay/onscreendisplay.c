@@ -114,7 +114,6 @@ extern uint8_t PIOS_Board_Revision(void);
 
 extern uint8_t *draw_buffer_level;
 extern uint8_t *draw_buffer_mask;
-extern int8_t video_type_act;
 
 // ****************
 // Private functions
@@ -1058,7 +1057,7 @@ void printFWVersion(int16_t x, int16_t y)
 
 void showVideoType(int16_t x, int16_t y)
 {
-	if (PIOS_Video_GetType() == VIDEO_TYPE_NTSC) {
+	if (PIOS_Video_GetSystem() == PIOS_VIDEO_SYSTEM_NTSC) {
 		write_string("NTSC", x, y, 0, 0, TEXT_VA_TOP, TEXT_HA_CENTER, 0, FONT12X18);
 	} else {
 		write_string("PAL", x, y, 0, 0, TEXT_VA_TOP, TEXT_HA_CENTER, 0, FONT12X18);
@@ -1577,9 +1576,9 @@ int render_stats()
 	return y_pos;
 }
 
-void set_ntsc_pal_settings(int8_t video_type)
+void set_ntsc_pal_settings(enum pios_video_system video_system)
 {
-	if (video_type == VIDEO_TYPE_NTSC) {
+	if (video_system == PIOS_VIDEO_SYSTEM_NTSC) {
 		PIOS_Video_SetLevels(osd_settings.NTSCBlack, osd_settings.NTSCWhite);
 		PIOS_Video_SetXScale(osd_settings.NTSCXScale);
 	}
@@ -1680,7 +1679,8 @@ static void onScreenDisplayTask(__attribute__((unused)) void *parameters)
 	AccessoryDesiredData accessory;
 	OnScreenDisplayPageSettingsData osd_page_settings;
 
-	int8_t video_type_last = VIDEO_TYPE_NONE;
+	enum pios_video_system video_system_act = PIOS_VIDEO_SYSTEM_NONE;
+	enum pios_video_system video_system_last = PIOS_VIDEO_SYSTEM_NONE;
 	uint32_t now;
 	uint32_t show_stats_start = 0;
 	uint32_t show_stats_until = 0;
@@ -1713,7 +1713,8 @@ static void onScreenDisplayTask(__attribute__((unused)) void *parameters)
 	PIOS_Video_Init(&pios_video_cfg);
 
 	// initialize settings
-	set_ntsc_pal_settings(video_type_act);
+	video_system_act = PIOS_Video_GetSystem();
+	set_ntsc_pal_settings(video_system_act);
 	PIOS_Video_SetXOffset(osd_settings.XOffset);
 	PIOS_Video_SetYOffset(osd_settings.YOffset);
 	enum pios_video_3d_mode video_3d_mode;
@@ -1730,7 +1731,8 @@ static void onScreenDisplayTask(__attribute__((unused)) void *parameters)
 	while (PIOS_Thread_Systime() <= BLANK_TIME + INTRO_TIME) {
 		if (PIOS_Semaphore_Take(onScreenDisplaySemaphore, PIOS_SEMAPHORE_TIMEOUT_MAX) == true) {
 			clearGraphics();
-			if (PIOS_Video_GetType() == VIDEO_TYPE_NTSC) {
+			video_system_act = PIOS_Video_GetSystem();
+			if ( video_system_act == PIOS_VIDEO_SYSTEM_NTSC) {
 				introGraphics(GRAPHICS_RIGHT / 2, GRAPHICS_BOTTOM / 2 - 20);
 				introText(GRAPHICS_RIGHT / 2, GRAPHICS_BOTTOM - 60);
 				showVideoType(GRAPHICS_RIGHT / 2, GRAPHICS_BOTTOM - 45);
@@ -1760,9 +1762,10 @@ static void onScreenDisplayTask(__attribute__((unused)) void *parameters)
 			in_ticks = PIOS_Thread_Systime();
 			out_time = in_ticks - out_ticks;
 #endif
+			video_system_act = PIOS_Video_GetSystem();
 			if (osd_settings_updated) {
 				OnScreenDisplaySettingsGet(&osd_settings);
-				set_ntsc_pal_settings(video_type_act);
+				set_ntsc_pal_settings(video_system_act);
 				PIOS_Video_SetXOffset(osd_settings.XOffset);
 				PIOS_Video_SetYOffset(osd_settings.YOffset);
 				enum pios_video_3d_mode video_3d_mode;
@@ -1795,8 +1798,8 @@ static void onScreenDisplayTask(__attribute__((unused)) void *parameters)
 			}
 
 			// update settings when video type changes
-			if (video_type_act != video_type_last) {
-				set_ntsc_pal_settings(video_type_act);
+			if (video_system_act != video_system_last) {
+				set_ntsc_pal_settings(video_system_act);
 			}
 
 			// decide whether to show blinking elements
@@ -1889,7 +1892,7 @@ static void onScreenDisplayTask(__attribute__((unused)) void *parameters)
 			frame_counter++;
 			last_page = current_page;
 			last_arm_status = arm_status;
-			video_type_last = video_type_act;
+			video_system_last = video_system_act;
 #ifdef DEBUG_TIMING
 			out_ticks = PIOS_Thread_Systime();
 			in_time   = out_ticks - in_ticks;
