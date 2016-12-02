@@ -34,17 +34,9 @@
 #include <pios.h>
 
 /* OpenPilot Libraries */
-#include "utlist.h"
 #include "uavobjectmanager.h"
-#include "eventdispatcher.h"
 #include "alarms.h"
 #include "taskmonitor.h"
-#include "uavtalk.h"
-
-/* Global Functions */
-void OpenPilotInit(void);
-
-#define DONT_BUILD_IF(COND,MSG) typedef char static_assertion_##MSG[(COND)?-1:1]
 
 #endif /* OPENPILOT_H */
 

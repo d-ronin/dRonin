@@ -39,7 +39,6 @@
 #if defined(PIOS_INCLUDE_WS2811)
 
 #include "pios.h"
-#include "openpilot.h"
 #include <pios_stm32.h>
 #include "stm32f4xx_tim.h"
 #include "pios_tim_priv.h"

@@ -35,6 +35,8 @@
  */
 
 #include "openpilot.h"
+#include <utlist.h>
+
 #include "pios_struct_helper.h"
 #include "pios_heap.h"		/* PIOS_malloc_no_dma */
 #include "pios_mutex.h"
