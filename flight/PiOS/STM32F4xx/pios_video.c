@@ -144,8 +144,14 @@ bool PIOS_Vsync_ISR()
 			pios_video_type_boundary_act = &pios_video_type_boundary_pal;
 			pios_video_type_cfg_act = &pios_video_type_cfg_pal;
 		}
-		dev_cfg->pixel_timer.timer->CCR1 = pios_video_type_cfg_act->dc;
-		dev_cfg->pixel_timer.timer->ARR  = pios_video_type_cfg_act->period;
+
+		if (dev_cfg->pixel_timer.timer == TIM9) { // XXX or other fast timers
+			dev_cfg->pixel_timer.timer->CCR1 = 2 * pios_video_type_cfg_act->dc;
+			dev_cfg->pixel_timer.timer->ARR  = 2 * pios_video_type_cfg_act->period;
+		} else {
+			dev_cfg->pixel_timer.timer->CCR1 = pios_video_type_cfg_act->dc;
+			dev_cfg->pixel_timer.timer->ARR  = pios_video_type_cfg_act->period;
+		}
 		dev_cfg->hsync_capture.timer->ARR = pios_video_type_cfg_act->dc * (pios_video_type_cfg_act->graphics_column_start + x_offset);
 	}
 	if (x_offset != x_offset_new)
@@ -311,7 +317,6 @@ static void swap_buffers()
 	SWAP_BUFFS(tmp, disp_buffer_level, draw_buffer_level);
 }
 
-
 /**
  * Init
  */
@@ -358,7 +363,14 @@ void PIOS_Video_Init(const struct pios_video_cfg *cfg)
 
 	TIM_SelectOnePulseMode(cfg->hsync_capture.timer, TIM_OPMode_Single);
 	TIM_SelectSlaveMode(cfg->hsync_capture.timer, TIM_SlaveMode_Trigger);
-	TIM_SelectInputTrigger(cfg->hsync_capture.timer, TIM_TS_TI2FP2);
+
+	if (cfg->hsync_capture.timer_chan == TIM_Channel_1) {
+		TIM_SelectInputTrigger(cfg->hsync_capture.timer, TIM_TS_TI1FP1);
+	} else if (cfg->hsync_capture.timer_chan == TIM_Channel_2) {
+		TIM_SelectInputTrigger(cfg->hsync_capture.timer, TIM_TS_TI2FP2);
+	} else {
+		PIOS_Assert(0);
+	}
 
 	TIM_SelectMasterSlaveMode(cfg->hsync_capture.timer, TIM_MasterSlaveMode_Enable);
 	TIM_SelectOutputTrigger(cfg->hsync_capture.timer, TIM_TRGOSource_Update);
@@ -371,15 +383,23 @@ void PIOS_Video_Init(const struct pios_video_cfg *cfg)
 
 	TIM_OC1Init(cfg->pixel_timer.timer, (TIM_OCInitTypeDef*)&cfg->tim_oc_init);
 	TIM_OC1PreloadConfig(cfg->pixel_timer.timer, TIM_OCPreload_Enable);
-	TIM_SetCompare1(cfg->pixel_timer.timer, pios_video_type_cfg_act->dc);
-	TIM_SetAutoreload(cfg->pixel_timer.timer, pios_video_type_cfg_act->period);
+	if (dev_cfg->pixel_timer.timer == TIM9) { // XXX or other fast timers
+		TIM_SetCompare1(cfg->pixel_timer.timer, pios_video_type_cfg_act->dc*2);
+		TIM_SetAutoreload(cfg->pixel_timer.timer, pios_video_type_cfg_act->period*2);
+	} else {
+		TIM_SetCompare1(cfg->pixel_timer.timer, pios_video_type_cfg_act->dc);
+		TIM_SetAutoreload(cfg->pixel_timer.timer, pios_video_type_cfg_act->period);
+	}
 	TIM_ARRPreloadConfig(cfg->pixel_timer.timer, ENABLE);
 	TIM_CtrlPWMOutputs(cfg->pixel_timer.timer, ENABLE);
 
-	if (cfg->hsync_capture.timer == TIM2)
+	if ((cfg->hsync_capture.timer == TIM2) && (cfg->pixel_timer.timer == TIM3)) {
 		TIM_SelectInputTrigger(cfg->pixel_timer.timer, TIM_TS_ITR1);
-	else
+	} else if ((cfg->hsync_capture.timer == TIM2) && (cfg->pixel_timer.timer == TIM9)) {
+		TIM_SelectInputTrigger(cfg->pixel_timer.timer, TIM_TS_ITR0);
+	} else {
 		PIOS_Assert(0);
+	}
 
 	// Line counter: Counts number of HSYNCS (from hsync_capture) and triggers output of first visible line
 	TIM_TimeBaseStructInit(&TIM_TimeBaseStructure);
@@ -413,7 +433,6 @@ void PIOS_Video_Init(const struct pios_video_cfg *cfg)
 	TIM_ITConfig(cfg->line_counter, TIM_IT_CC1 | TIM_IT_CC2 | TIM_IT_CC3 | TIM_IT_CC4 | TIM_IT_COM | TIM_IT_Trigger | TIM_IT_Break, DISABLE);
 	TIM_Cmd(cfg->line_counter, DISABLE);
 
-
 	/* Initialize the SPI block */
 	SPI_Init(cfg->level.regs, (SPI_InitTypeDef *)&(cfg->level.init));
 	SPI_Init(cfg->mask.regs, (SPI_InitTypeDef *)&(cfg->mask.init));
@@ -443,8 +462,6 @@ void PIOS_Video_Init(const struct pios_video_cfg *cfg)
 	/* Enable SPI interrupts to DMA */
 	SPI_I2S_DMACmd(cfg->mask.regs, SPI_I2S_DMAReq_Tx, ENABLE);
 	SPI_I2S_DMACmd(cfg->level.regs, SPI_I2S_DMAReq_Tx, ENABLE);
-
-
 
 	// Enable interrupts
 	PIOS_EXTI_Init(cfg->vsync);

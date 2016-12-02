@@ -1398,7 +1398,7 @@ const struct pios_video_cfg pios_video_cfg = {
 			},
 			.pin_source                                = GPIO_PinSource8,
 		},
-		.remap                                         = GPIO_AF_TIM10,
+		.remap                                         = GPIO_AF_TIM9,
 	},
 
 	.line_counter = TIM4,
