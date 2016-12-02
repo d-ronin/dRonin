@@ -1,6 +1,6 @@
 BOARD_TYPE          := 0xD7
 BOARD_REVISION      := 0x01
-BOOTLOADER_VERSION  := 0x83
+BOOTLOADER_VERSION  := 0x87
 HW_TYPE             := 0x00
 
 CHIP                := STM32F303VCT

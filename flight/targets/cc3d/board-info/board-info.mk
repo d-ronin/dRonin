@@ -1,8 +1,6 @@
 BOARD_TYPE          := 0x04
 BOARD_REVISION      := 0x02
-# Previous version was 0x080, 0x081 introduces forced boot from bkp registers,
-# 0x082 fixes halt (by not double-initing board) 
-BOOTLOADER_VERSION  := 0x83
+BOOTLOADER_VERSION  := 0x87
 HW_TYPE             := 0x01
 
 CHIP                := STM32F103CBT
