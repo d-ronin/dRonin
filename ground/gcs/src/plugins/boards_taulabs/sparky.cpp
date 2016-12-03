@@ -104,7 +104,6 @@ bool Sparky::isInputConfigurationSupported(enum InputType type = INPUT_TYPE_ANY)
 {
     switch (type) {
     case INPUT_TYPE_PWM:
-    case INPUT_TYPE_HOTTSUMH:
         return false;
     }
     

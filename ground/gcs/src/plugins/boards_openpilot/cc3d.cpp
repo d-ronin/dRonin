@@ -132,11 +132,9 @@ bool CC3D::setInputType(enum InputType type)
         break;
     case INPUT_TYPE_SBUS:
         settings.MainPort = HwCopterControl::MAINPORT_SBUS;
-        settings.FlexiPort = HwCopterControl::FLEXIPORT_TELEMETRY;
         break;
     case INPUT_TYPE_SBUSNONINVERTED:
         settings.MainPort = HwCopterControl::MAINPORT_SBUSNONINVERTED;
-        settings.FlexiPort = HwCopterControl::FLEXIPORT_TELEMETRY;
         break;
     case INPUT_TYPE_DSM:
         settings.FlexiPort = HwCopterControl::FLEXIPORT_DSM;

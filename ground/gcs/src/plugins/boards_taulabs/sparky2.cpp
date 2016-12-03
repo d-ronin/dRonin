@@ -77,7 +77,6 @@ Sparky2::~Sparky2()
 
 }
 
-
 QString Sparky2::shortName()
 {
     return QString("Sparky2");
@@ -131,8 +130,6 @@ bool Sparky2::isInputConfigurationSupported(enum InputType type = INPUT_TYPE_ANY
 {
     switch (type) {
     case INPUT_TYPE_PWM:
-    case INPUT_TYPE_HOTTSUMD:
-    case INPUT_TYPE_HOTTSUMH:
         return false;
     }
     
