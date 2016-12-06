@@ -62,6 +62,7 @@
 #include <QCommandLineOption>
 #include <QLoggingCategory>
 
+#include <singleapplication.h>
 #include "libcrashreporter-qt/libcrashreporter-handler/Handler.h"
 
 #include GCS_VERSION_INFO_FILE
@@ -227,7 +228,7 @@ int main(int argc, char **argv)
     // This should have faster performance on linux
 #endif
 
-    QApplication app(argc, argv);
+    SingleApplication app(argc, argv);
 
 #ifdef USE_CRASHREPORTING
     QString dirName(GCS_REVISION_PRETTY);
