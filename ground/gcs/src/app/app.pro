@@ -1,6 +1,7 @@
 include(../../gcs.pri)
 include(../../gcsversioninfo.pri)
-
+include(../SingleApplication/singleapplication.pri)
+DEFINES += QAPPLICATION_CLASS=QApplication
 TEMPLATE = app
 TARGET = $$GCS_APP_TARGET
 DESTDIR = $$GCS_APP_PATH
