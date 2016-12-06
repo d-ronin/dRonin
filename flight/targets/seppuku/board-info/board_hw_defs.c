@@ -218,7 +218,7 @@ static const struct pios_exti_cfg pios_exti_bmi160_cfg __exti_config = {
 
 static const struct pios_bmi160_cfg pios_bmi160_cfg = {
 	.exti_cfg = &pios_exti_bmi160_cfg,
-	.orientation = PIOS_BMI160_TOP_0DEG,	// XXX
+	.orientation = PIOS_BMI160_TOP_90DEG,
 	.odr = PIOS_BMI160_ODR_1600_Hz,
 	.acc_range = PIOS_BMI160_RANGE_8G,
 	.gyro_range = PIOS_BMI160_RANGE_2000DPS,
