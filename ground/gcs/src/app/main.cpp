@@ -61,7 +61,6 @@
 #include <QCommandLineParser>
 #include <QCommandLineOption>
 #include <QLoggingCategory>
-
 #include <singleapplication.h>
 #include "libcrashreporter-qt/libcrashreporter-handler/Handler.h"
 
@@ -389,7 +388,7 @@ int main(int argc, char **argv)
                 QCoreApplication::translate("Application", "Plugin loader messages"),
                 errors.join(QString::fromLatin1("\n\n")));
     }
-
+    QObject::connect(&app, SIGNAL(instanceStarted(void)), coreplugin->plugin(), SLOT(remoteArgument()));
     QTimer::singleShot(100, &pluginManager, SLOT(startTests()));
     splash.close();
     return app.exec();
