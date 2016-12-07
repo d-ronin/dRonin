@@ -328,7 +328,7 @@ static void stabilizationTask(void* parameters)
 			// 175ms to 39.3% of response
 			// 350ms to 63.2% of response
 			// 700ms to 86.4% of response
-			max_rate_alpha = expf(-dT_filtered / settings.AcroDynamicTau);
+			max_rate_alpha = expf(-dT_expected / settings.AcroDynamicTau);
 
 			// Compute time constant for vbar decay term
 			if (vbar_settings.VbarTau < 0.001f) {
