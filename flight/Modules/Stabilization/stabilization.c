@@ -594,7 +594,7 @@ static void stabilizationTask(void* parameters)
 					}
 
 					calc_max_rate = MIN(calc_max_rate,
-							settings.AcroDynamicRate[i]);
+							acro_dynrate);
 
 					max_rate_filtered[i] = max_rate_filtered[i] * max_rate_alpha + calc_max_rate * (1 - max_rate_alpha);
 
