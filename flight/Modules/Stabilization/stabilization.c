@@ -152,7 +152,19 @@ static float compute_inner_loop_precomp(uint32_t pid_group, uint8_t axis, float 
 
 static float compute_inner_loop_precomp(uint32_t pid_group, uint8_t axis, float desired_rate, float measured_rate, float dt)
 {
-	return pid_apply_setpoint(&pids[pid_group + axis], get_deadband(axis), desired_rate, measured_rate, dt) + settings.RatePrecompensation[axis] * desired_rate;
+	// select the rate source for precompensation
+	float precomp_rate = 0;
+	switch (settings.RatePrecompensationSrc) {
+		case STABILIZATIONSETTINGS_RATEPRECOMPENSATIONSRC_DESIRED:
+			precomp_rate = desired_rate;
+			break;
+		case STABILIZATIONSETTINGS_RATEPRECOMPENSATIONSRC_MEASURED:
+			precomp_rate = measured_rate;
+			break;
+		default:
+			break;
+	}
+	return pid_apply_setpoint(&pids[pid_group + axis], get_deadband(axis), desired_rate, measured_rate, dt) + settings.RatePrecompensation[axis] * precomp_rate;
 }
 
 static float get_throttle(StabilizationDesiredData *stabilization_desired, SystemSettingsAirframeTypeOptions *airframe_type)
