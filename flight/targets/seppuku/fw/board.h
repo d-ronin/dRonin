@@ -27,7 +27,7 @@
  * Board identifier.
  */
 #define BOARD_DRONIN_SEPPUKU
-#define BOARD_NAME                  "Seppuku Flight Controller"
+#define BOARD_NAME                  "Seppuku"
 
 
 /*
