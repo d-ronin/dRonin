@@ -87,7 +87,7 @@ void OSD_configure_bw_levels(void)
 	/* Time base configuration */
 	TIM_TimeBaseStructInit(&TIM_TimeBaseStructure);
 	TIM_TimeBaseStructure.TIM_Prescaler = 0;  // Run as fast as we can.
-	TIM_TimeBaseStructure.TIM_Period = 255;
+	TIM_TimeBaseStructure.TIM_Period = 192;
 	TIM_TimeBaseStructure.TIM_ClockDivision = 0;
 	TIM_TimeBaseStructure.TIM_CounterMode = TIM_CounterMode_Up;
 	TIM_TimeBaseInit(TIM11, &TIM_TimeBaseStructure);
@@ -111,8 +111,8 @@ void OSD_configure_bw_levels(void)
 	TIM_Cmd(TIM11, ENABLE);
 	TIM_Cmd(TIM12, ENABLE);
 
-	TIM11->CCR1 = 110;
-	TIM12->CCR2 = 30;
+	TIM11->CCR1 = 180;
+	TIM12->CCR2 = 100;
 }
 #endif /* PIOS_INCLUDE_VIDEO */
 

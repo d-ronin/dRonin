@@ -1168,8 +1168,20 @@ void PIOS_ADC_DMA_irq_handler(void)
 
 void set_bw_levels(uint8_t black, uint8_t white)
 {
-	TIM11->CCR1 = white;
-	TIM12->CCR2 = black;
+	uint16_t black_calc = black + 70;
+
+	if (black_calc > 191) {
+		black_calc = 191;
+	}
+
+	uint16_t white_calc = white + 70;
+
+	if (white_calc > 191) {
+		white_calc = 191;
+	}
+
+	TIM12->CCR2 = black_calc;
+	TIM11->CCR1 = white_calc;
 }
 
 static const struct pios_exti_cfg pios_exti_vsync_cfg __exti_config = {
