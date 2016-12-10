@@ -103,9 +103,3 @@ FORMS += airframe.ui \
     autotunefinalpage.ui
 
 RESOURCES += configgadget.qrc
-
-linux-g++* {
-    # Hax to stop eigen failing to compile, workaround for #664
-    QMAKE_CXXFLAGS_WARN_ON += -Wno-deprecated-declarations
-}
-
