@@ -558,8 +558,8 @@ static bool bl_send_capabilities(struct bl_fsm_context * context, uint8_t device
 		struct bl_messages msg = {
 			.flags_command = BL_MSG_CAP_REP,
 			.v.cap_rep_all = {
-				.number_of_devices = htons(1),
-				.wrflags = htons(0x3),
+				.number_of_devices = CPU_TO_BE16(1),
+				.wrflags = CPU_TO_BE16(0x3),
 			},
 		};
 		PIOS_COM_MSG_Send(PIOS_COM_TELEM_USB, (uint8_t *)&msg, sizeof(msg));
@@ -600,7 +600,7 @@ static void process_packet_rx(struct bl_fsm_context * context, const struct bl_m
 		}
 		break;
 	case BL_MSG_JUMP_FW:
-		if (ntohs(msg->v.jump_fw.safe_word) == 0x5afe) {
+		if (BE16_TO_CPU(msg->v.jump_fw.safe_word) == 0x5afe) {
 			/* Force board into safe mode */
 			PIOS_IAP_WriteBootCount(0xFFFF);
 		}
