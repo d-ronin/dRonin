@@ -226,6 +226,9 @@ void UploaderGadgetWidget::DeviceInformationUpdate(deviceInfo board)
     m_widget->devName_lbl->setText(board.board->getBoardNameFromID(board.board->getBoardType() << 8));
     m_widget->hwRev_lbl->setText(board.hw_revision);
     m_widget->blVer_lbl->setText(board.bl_version);
+    bool bl_version_ok;
+    int bl_version = board.bl_version.toInt(&bl_version_ok, 16);
+    m_widget->blVer_lbl->setStyleSheet(bl_version_ok && bl_version < board.board->minBootLoaderVersion() ? "color: red;": "");
     m_widget->maxCode_lbl->setText(board.max_code_size);
     m_widget->deviceInformationMainLayout->setVisible(true);
     m_widget->deviceInformationNoInfo->setVisible(false);
