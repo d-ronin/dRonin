@@ -349,41 +349,13 @@ const static struct menu_fsm_transition menu_fsm[FSM_STATE_NUM_STATES] = {
 		.menu_fn = brainre1_menu,
 		.next_state = {
 			[FSM_EVENT_UP] = FSM_STATE_RE1_EXIT,
-			[FSM_EVENT_DOWN] = FSM_STATE_RE1_LED_COLOR,
-		},
-	},
-	[FSM_STATE_RE1_LED_COLOR] = {
-		.menu_fn = brainre1_menu,
-		.next_state = {
-			[FSM_EVENT_UP] = FSM_STATE_RE1_EXIT,
-			[FSM_EVENT_DOWN] = FSM_STATE_RE1_LED_COLOR_R,
-		},
-	},
-	[FSM_STATE_RE1_LED_COLOR_R] = {
-		.menu_fn = brainre1_menu,
-		.next_state = {
-			[FSM_EVENT_UP] = FSM_STATE_RE1_LED_COLOR,
-			[FSM_EVENT_DOWN] = FSM_STATE_RE1_LED_COLOR_G,
-		},
-	},
-	[FSM_STATE_RE1_LED_COLOR_G] = {
-		.menu_fn = brainre1_menu,
-		.next_state = {
-			[FSM_EVENT_UP] = FSM_STATE_RE1_LED_COLOR_R,
-			[FSM_EVENT_DOWN] = FSM_STATE_RE1_LED_COLOR_B,
-		},
-	},
-	[FSM_STATE_RE1_LED_COLOR_B] = {
-		.menu_fn = brainre1_menu,
-		.next_state = {
-			[FSM_EVENT_UP] = FSM_STATE_RE1_LED_COLOR_G,
 			[FSM_EVENT_DOWN] = FSM_STATE_RE1_IR_PROTOCOL,
 		},
 	},
 	[FSM_STATE_RE1_IR_PROTOCOL] = {
 		.menu_fn = brainre1_menu,
 		.next_state = {
-			[FSM_EVENT_UP] = FSM_STATE_RE1_LED_COLOR_G,
+			[FSM_EVENT_UP] = FSM_STATE_RE1_EXIT,
 			[FSM_EVENT_DOWN] = FSM_STATE_RE1_IR_IDILAP,
 		},
 	},
@@ -1060,19 +1032,6 @@ void main_menu(void)
 #if defined(USE_STM32F4xx_BRAINFPVRE1)
 #include "hwbrainre1.h"
 
-const char * led_color_names[HWBRAINRE1_LEDCOLOR_GLOBAL_MAXOPTVAL + 1] = {
-	[HWBRAINRE1_LEDCOLOR_OFF]    = "OFF",
-	[HWBRAINRE1_LEDCOLOR_CUSTOM] = "Custom",
-	[HWBRAINRE1_LEDCOLOR_WHITE]  = "White",
-	[HWBRAINRE1_LEDCOLOR_RED]    = "Red",
-	[HWBRAINRE1_LEDCOLOR_ORANGE] = "Orange",
-	[HWBRAINRE1_LEDCOLOR_YELLOW] = "Yellow",
-	[HWBRAINRE1_LEDCOLOR_GREEN]  = "Green",
-	[HWBRAINRE1_LEDCOLOR_AQUA]   = "Aqua",
-	[HWBRAINRE1_LEDCOLOR_BLUE]   = "Blue",
-	[HWBRAINRE1_LEDCOLOR_PURPLE] = "Purple",
-};
-
 const char * ir_protocol_names[HWBRAINRE1_IRPROTOCOL_MAXOPTVAL + 1] = {
 	[HWBRAINRE1_IRPROTOCOL_DISABLED] = "OFF",
 	[HWBRAINRE1_IRPROTOCOL_ILAP] = "I-Lap",
@@ -1139,27 +1098,11 @@ void brainre1_menu(void)
 
 	draw_menu_title("BrainFPV RE1 Settings");
 
-	for (enum menu_fsm_state s=FSM_STATE_RE1_LED_COLOR; s <= FSM_STATE_RE1_EXIT; s++) {
+	for (enum menu_fsm_state s=FSM_STATE_RE1_IR_PROTOCOL; s <= FSM_STATE_RE1_EXIT; s++) {
 		if (s == current_state) {
 			draw_selected_icon(MENU_LINE_X - 4, y_pos + 4);
 		}
 		switch (s) {
-			case FSM_STATE_RE1_LED_COLOR:
-				sprintf(tmp_str, "LED Color: %s", led_color_names[data.LEDColor]);
-				write_string(tmp_str, MENU_LINE_X, y_pos, 0, 0, TEXT_VA_TOP, TEXT_HA_LEFT, 0, MENU_FONT);
-				break;
-			case FSM_STATE_RE1_LED_COLOR_R:
-				sprintf(tmp_str, "Custom LED Color R: %d", (int)data.CustomLEDColor[0]);
-				write_string(tmp_str, MENU_LINE_X, y_pos, 0, 0, TEXT_VA_TOP, TEXT_HA_LEFT, 0, MENU_FONT);
-				break;
-			case FSM_STATE_RE1_LED_COLOR_G:
-				sprintf(tmp_str, "Custom LED Color G: %d", (int)data.CustomLEDColor[1]);
-				write_string(tmp_str, MENU_LINE_X, y_pos, 0, 0, TEXT_VA_TOP, TEXT_HA_LEFT, 0, MENU_FONT);
-				break;
-			case FSM_STATE_RE1_LED_COLOR_B:
-				sprintf(tmp_str, "Custom LED Color B: %d", (int)data.CustomLEDColor[2]);
-				write_string(tmp_str, MENU_LINE_X, y_pos, 0, 0, TEXT_VA_TOP, TEXT_HA_LEFT, 0, MENU_FONT);
-				break;
 			case FSM_STATE_RE1_IR_PROTOCOL:
 				sprintf(tmp_str, "IR Transponder Protocol: %s", ir_protocol_names[data.IRProtocol]);
 				write_string(tmp_str, MENU_LINE_X, y_pos, 0, 0, TEXT_VA_TOP, TEXT_HA_LEFT, 0, MENU_FONT);
@@ -1185,34 +1128,6 @@ void brainre1_menu(void)
 	}
 
 	switch (current_state) {
-		case FSM_STATE_RE1_LED_COLOR:
-			if (current_event == FSM_EVENT_RIGHT) {
-				data.LEDColor = (data.LEDColor + 1) % (HWBRAINRE1_LEDCOLOR_GLOBAL_MAXOPTVAL + 1);
-				data_changed = true;
-			}
-			if (current_event == FSM_EVENT_LEFT) {
-				if (data.LEDColor == HWBRAINRE1_LEDCOLOR_OFF)
-					data.LEDColor = HWBRAINRE1_LEDCOLOR_GLOBAL_MAXOPTVAL;
-				else
-					data.LEDColor = data.LEDColor - 1;
-				data_changed = true;
-			}
-			break;
-		case FSM_STATE_RE1_LED_COLOR_R:
-		case FSM_STATE_RE1_LED_COLOR_G:
-		case FSM_STATE_RE1_LED_COLOR_B:
-			{
-				int idx = current_state - FSM_STATE_RE1_LED_COLOR_R;
-				if (current_event == FSM_EVENT_RIGHT) {
-					data.CustomLEDColor[idx] += 1;
-					data_changed = true;
-				}
-				if (current_event == FSM_EVENT_LEFT) {
-					data.CustomLEDColor[idx] -= 1;
-					data_changed = true;
-				}
-			}
-			break;
 		case FSM_STATE_RE1_IR_PROTOCOL:
 			if (current_event == FSM_EVENT_RIGHT) {
 				if (data.IRProtocol == HWBRAINRE1_IRPROTOCOL_GLOBAL_MAXOPTVAL)

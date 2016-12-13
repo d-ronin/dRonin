@@ -116,14 +116,6 @@ void initTask(void *parameters)
 	/* Initialize modules */
 	MODULE_INITIALISE_ALL(PIOS_WDG_Clear);
 
-	/* Schedule a periodic callback to update the LEDs */
-	UAVObjEvent ev = {
-		.obj = HwBrainRE1Handle(),
-		.instId = 0,
-		.event = 0,
-	};
-	EventPeriodicCallbackCreate(&ev, ledUpdatePeridodicCb, 31);
-
 	/* terminate this task */
 	PIOS_Thread_Delete(NULL);
 }

@@ -59,8 +59,8 @@
        <rect>
         <x>0</x>
         <y>0</y>
-        <width>970</width>
-        <height>781</height>
+        <width>968</width>
+        <height>774</height>
        </rect>
       </property>
       <layout class="QVBoxLayout" name="verticalLayout_4">
@@ -696,66 +696,6 @@
             </widget>
            </item>
            <item row="2" column="0">
-            <widget class="QGroupBox" name="groupBox_2">
-             <property name="title">
-              <string>Programmable LEDs</string>
-             </property>
-             <layout class="QHBoxLayout" name="horizontalLayout_8">
-              <item>
-               <widget class="QLabel" name="label_11">
-                <property name="text">
-                 <string>Number of LEDs</string>
-                </property>
-               </widget>
-              </item>
-              <item>
-               <widget class="QSpinBox" name="sbNumberOfLEDs">
-                <property name="maximum">
-                 <number>1024</number>
-                </property>
-               </widget>
-              </item>
-              <item>
-               <widget class="QLabel" name="label_8">
-                <property name="text">
-                 <string>LED Color</string>
-                </property>
-               </widget>
-              </item>
-              <item>
-               <widget class="QComboBox" name="cmbLEDColor"/>
-              </item>
-              <item>
-               <widget class="QLabel" name="label_12">
-                <property name="text">
-                 <string>Custom LED Color</string>
-                </property>
-               </widget>
-              </item>
-              <item>
-               <widget class="Utils::QtColorButton" name="clrbCustomLEDColor">
-                <property name="text">
-                 <string/>
-                </property>
-               </widget>
-              </item>
-              <item>
-               <spacer name="horizontalSpacer_6">
-                <property name="orientation">
-                 <enum>Qt::Horizontal</enum>
-                </property>
-                <property name="sizeHint" stdset="0">
-                 <size>
-                  <width>40</width>
-                  <height>20</height>
-                 </size>
-                </property>
-               </spacer>
-              </item>
-             </layout>
-            </widget>
-           </item>
-           <item row="3" column="0">
             <widget class="QGroupBox" name="groupBox_3">
              <property name="title">
               <string>Buzzer Type</string>
@@ -793,7 +733,7 @@
              </layout>
             </widget>
            </item>
-           <item row="4" column="0">
+           <item row="3" column="0">
             <widget class="QGroupBox" name="groupBox_4">
              <property name="title">
               <string>Video System</string>
@@ -1087,13 +1027,6 @@ Beware of not locking yourself out!</string>
    </item>
   </layout>
  </widget>
- <customwidgets>
-  <customwidget>
-   <class>Utils::QtColorButton</class>
-   <extends>QToolButton</extends>
-   <header>utils/qtcolorbutton.h</header>
-  </customwidget>
- </customwidgets>
  <tabstops>
   <tabstop>help</tabstop>
   <tabstop>applySettings</tabstop>
