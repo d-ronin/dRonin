@@ -38,6 +38,7 @@
 #include "fpga_drv.h"
 #include "stm32f4xx_rcc.h"
 #include "pios_spi_priv.h"
+#include "pios_ws2811.h"
 
 /**
 * RE1 Register Specification
@@ -388,60 +389,6 @@ uint8_t PIOS_RE1FPGA_GetHWRevision()
 	return dev->shadow_reg.reg_hwrev;
 }
 
-
-/**
- * @brief Set programmable LED (WS2812B) colors
- */
-int32_t PIOS_RE1FPGA_SetLEDs(const uint8_t * led_data, uint16_t n_leds)
-{
-	if (PIOS_RE1FPGA_ClaimBus() != 0)
-		return -1;
-
-	n_leds = MIN(n_leds, 1024);
-
-	PIOS_SPI_TransferByte(dev->spi_id, 0x7f & RE1FPGA_REG_LED);
-	PIOS_SPI_TransferBlock(dev->spi_id, led_data, NULL, 3 * n_leds);
-
-	PIOS_RE1FPGA_ReleaseBus();
-
-	return 0;
-}
-
-/**
- * @brief Set programmable LED (WS2812B) color
- */
-#define LED_BLOCK_SIZE 16
-int32_t PIOS_RE1FPGA_SetLEDColor(uint16_t n_leds, uint8_t red, uint8_t green, uint8_t blue)
-{
-
-	uint8_t LED_DATA[LED_BLOCK_SIZE * 3];
-
-	n_leds = MIN(n_leds, 1024);
-
-	if (PIOS_RE1FPGA_ClaimBus() != 0)
-		return -1;
-
-	for (int i=0; i<LED_BLOCK_SIZE; i++) {
-		LED_DATA[3 * i] = green;
-		LED_DATA[3 * i + 1] = red;
-		LED_DATA[3 * i + 2] = blue;
-	}
-
-	PIOS_SPI_TransferByte(dev->spi_id, 0x7f & RE1FPGA_REG_LED);
-
-	for (int i=0; i<n_leds/LED_BLOCK_SIZE; i++) {
-		PIOS_SPI_TransferBlock(dev->spi_id, LED_DATA, NULL, 3 * LED_BLOCK_SIZE);
-	}
-
-	if (n_leds % LED_BLOCK_SIZE != 0) {
-		PIOS_SPI_TransferBlock(dev->spi_id, LED_DATA, NULL, 3 * (n_leds % LED_BLOCK_SIZE));
-	}
-
-	PIOS_RE1FPGA_ReleaseBus();
-
-	return 0;
-}
-
 /**
  * @brief Set the protocol for the IR transmitter
  */
@@ -618,6 +565,90 @@ void PIOS_RE1FPGA_Set3DConfig(enum pios_video_3d_mode mode, uint8_t x_shift_righ
 	PIOS_RE1FPGA_WriteReg(RE1FPGA_REG_XCFG2, cfg, 0xFF);
 }
 
+// **********************************************************************************
+// PIOS WS2811 support functions
+
+struct ws2811_pixel_data_s {
+	uint8_t g;
+	uint8_t r;
+	uint8_t b;
+};
+
+struct ws2811_dev_s {
+#define WS2811_MAGIC 0x31313832		/* '2811' */
+	uint32_t magic;
+	uint16_t max_leds;
+	uint16_t max_idx;
+	struct ws2811_pixel_data_s pixel_data[0];
+};
+
+int PIOS_WS2811_init(ws2811_dev_t *dev_out, const struct pios_ws2811_cfg *cfg,
+		int max_leds)
+{
+	PIOS_Assert(max_leds > 0);
+	PIOS_Assert(max_leds <= 1024);
+
+	ws2811_dev_t dev = PIOS_malloc(sizeof(*dev) +
+			sizeof(struct ws2811_pixel_data_s) * max_leds);
+
+	if (!dev) {
+		return -1;
+	}
+
+	dev->magic = WS2811_MAGIC;
+	dev->max_leds = max_leds;
+	dev-> max_idx = 0;
+
+	PIOS_WS2811_set_all(dev, 0, 0, 0);
+
+	*dev_out = dev;
+
+	return 0;
+}
+
+void PIOS_WS2811_set(ws2811_dev_t ws2811_dev, int idx, uint8_t r, uint8_t g,
+		uint8_t b)
+{
+	PIOS_Assert(ws2811_dev->magic == WS2811_MAGIC);
+
+	if (idx >= ws2811_dev->max_leds) {
+		return;
+	}
+
+	if (idx > ws2811_dev->max_idx) {
+		ws2811_dev->max_idx = idx;
+	}
+
+	ws2811_dev->pixel_data[idx] = (struct ws2811_pixel_data_s)
+			{ .r = r, .g = g, .b = b };
+}
+
+void PIOS_WS2811_set_all(ws2811_dev_t ws2811_dev, uint8_t r, uint8_t g,
+		uint8_t b)
+{
+	PIOS_Assert(ws2811_dev->magic == WS2811_MAGIC);
+
+	for (int i = 0; i < ws2811_dev->max_leds; i++) {
+		PIOS_WS2811_set(ws2811_dev, i, r, g, b);
+	}
+}
+
+void PIOS_WS2811_trigger_update(ws2811_dev_t ws2811_dev)
+{
+	uint16_t n_leds;
+	PIOS_Assert(ws2811_dev->magic == WS2811_MAGIC);
+
+	if (PIOS_RE1FPGA_ClaimBus() != 0)
+		return;
+
+	n_leds = MIN(ws2811_dev->max_idx + 1, 1024);
+
+	PIOS_SPI_TransferByte(dev->spi_id, 0x7f & RE1FPGA_REG_LED);
+	PIOS_SPI_TransferBlock(dev->spi_id, (uint8_t*)ws2811_dev->pixel_data, NULL,
+							sizeof(struct ws2811_pixel_data_s) * n_leds);
+
+	PIOS_RE1FPGA_ReleaseBus();
+}
 #endif /* defined(PIOS_INCLUDE_RE1_FPGA) */
 
 

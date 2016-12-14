@@ -55,9 +55,10 @@
 #include "modulesettings.h"
 #include "manualcontrolsettings.h"
 #include "onscreendisplaysettings.h"
-
+#include "rgbledsettings.h"
 
 #include "pios_ir_transponder.h"
+#include "pios_ws2811.h"
 
 #if defined(PIOS_INCLUDE_BMI160)
 #include "pios_bmi160.h"
@@ -112,18 +113,7 @@ uintptr_t pios_com_openlog_logging_id;
 uintptr_t pios_internal_adc_id;
 uintptr_t pios_uavo_settings_fs_id;
 
-const uint8_t named_color_value[HWBRAINRE1_LEDCOLOR_GLOBAL_MAXOPTVAL + 1][3] = {
-	[HWBRAINRE1_LEDCOLOR_OFF]    = {0,   0,   0},
-	[HWBRAINRE1_LEDCOLOR_CUSTOM] = {0,   0,   0},
-	[HWBRAINRE1_LEDCOLOR_WHITE]  = {255, 255, 255},
-	[HWBRAINRE1_LEDCOLOR_RED]    = {255, 0,   0},
-	[HWBRAINRE1_LEDCOLOR_ORANGE] = {255, 69,   0},
-	[HWBRAINRE1_LEDCOLOR_YELLOW] = {255, 255, 0},
-	[HWBRAINRE1_LEDCOLOR_GREEN]  = {0,   255, 0},
-	[HWBRAINRE1_LEDCOLOR_AQUA]   = {0,   255, 255},
-	[HWBRAINRE1_LEDCOLOR_BLUE]   = {0,   0,   255},
-	[HWBRAINRE1_LEDCOLOR_PURPLE] = {255, 0,   255},
-};
+ws2811_dev_t pios_ws2811;
 
 /**
  * settingdUpdatedCb()
@@ -164,39 +154,6 @@ static void settingdUpdatedCb(UAVObjEvent * ev, void *ctx, void *obj, int len)
 
 	/* Set video sync detector threshold */
 	PIOS_RE1FPGA_SetSyncThreshold(hwre1data->VideoSyncDetectorThreshold);
-}
-
-/**
- * ledUpdatePeridodicCb()
- * Used to update LEDs
- */
-void ledUpdatePeridodicCb(UAVObjEvent * ev, void *ctx, void *obj, int len)
-{
-	(void) ctx;  (void) obj; (void) len;
-
-	if (ev->obj != HwBrainRE1Handle()) {
-		// this shouldn't happen
-		return;
-	}
-
-	uint16_t num_leds;
-	HwBrainRE1NumberOfLEDsGet(&num_leds);
-
-	/* Set the colors of the RGB LEDs */
-	if (num_leds > 0) {
-		uint8_t led_color;
-		uint8_t led_color_value[3] = {0};
-		HwBrainRE1LEDColorGet(&led_color);
-		switch (led_color) {
-			case HWBRAINRE1_LEDCOLOR_CUSTOM:
-				HwBrainRE1CustomLEDColorGet(led_color_value);
-				break;
-			default:
-				memcpy(led_color_value, named_color_value[led_color], 3);
-		}
-		PIOS_RE1FPGA_SetLEDColor(num_leds, led_color_value[0],
-			led_color_value[1], led_color_value[2]);
-	}
 }
 
 /**
@@ -518,6 +475,14 @@ void PIOS_Board_Init(void) {
 	PIOS_DELAY_WaitmS(50);
 
 	PIOS_SENSORS_Init();
+
+	// RGB LEDs (uses RE1 FPGA)
+	uint8_t num_leds;
+	RGBLEDSettingsInitialize();
+	RGBLEDSettingsNumLedsGet(&num_leds);
+	if (num_leds > 0) {
+		PIOS_WS2811_init(&pios_ws2811, NULL, num_leds);
+	}
 
 #if defined(PIOS_INCLUDE_ADC)
 	uint32_t internal_adc_id;

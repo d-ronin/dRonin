@@ -50,8 +50,6 @@ private slots:
     void widgetsContentsChanged();
     void generateILapID();
     void generateTrackmateID();
-    void getCustomLedColor();
-    void setCustomLedColor(const QColor);
     void mpChanged(int idx);
     void extMagChanged(int idx);
 

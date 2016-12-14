@@ -73,7 +73,6 @@ int32_t PIOS_RE1FPGA_SetSyncThreshold(uint8_t threshold);
 void PIOS_RE1FPGA_SetXOffset(int8_t x_offset);
 void PIOS_RE1FPGA_SetXScale(uint8_t x_scale);
 void PIOS_RE1FPGA_Set3DConfig(enum pios_video_3d_mode mode, uint8_t x_shift_right);
-int32_t PIOS_RE1FPGA_SetLEDColor(uint16_t n_leds, uint8_t red, uint8_t green, uint8_t blue);
 int32_t PIOS_RE1FPGA_SetIRProtocol(enum pios_re1fpga_ir_protocols ir_protocol);
 int32_t PIOS_RE1FPGA_SetIRData(const uint8_t * ir_data, uint8_t n_bytes);
 
