@@ -499,18 +499,25 @@ class HIDTelemetry(BidirTelemetry):
             try:
                 raw = str.split(vidpid, ':')
 
-                if len(raw) != 2:
+                if len(raw) > 2:
                     raise
 
                 vid = int(raw[0], base=16)
-                pid = int(raw[1], base=16)
+
+                if len(raw) == 2:
+                    if raw[1] != '':
+                        pid = int(raw[1], base=16)
+
             except Exception:
                 raise ValueError("Invalid value of vidpid")
 
         import usb.core
         import usb.util
 
-        dev = usb.core.find(idVendor = vid, idProduct = pid)
+        if pid is None:
+            dev = usb.core.find(idVendor = vid)
+        else:
+            dev = usb.core.find(idVendor = vid, idProduct = pid)
 
         if dev is None:
             raise RuntimeError("No fc found")
@@ -542,7 +549,7 @@ class HIDTelemetry(BidirTelemetry):
             raise RuntimeError("no output endpoint found")
 
         if self.ep_in is None:
-            raise RuntimeError("no output endpoint found")
+            raise RuntimeError("no input endpoint found")
 
         BidirTelemetry.__init__(self, *args, **kwargs)
 
