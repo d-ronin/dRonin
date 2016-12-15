@@ -479,6 +479,137 @@ class SerialTelemetry(BidirTelemetry):
 
         return did_stuff
 
+class HIDTelemetry(BidirTelemetry):
+    """ HID telemetry interface """
+    def __init__(self, vidpid=None, vid=None, pid=None, speed=115200, *args, **kwargs):
+        """ Creates telemetry instance talking over USB HID.  Likely to only
+        work on linux for now.
+
+         - vidpid: a string, of two hex numbers separated by colon,
+         like 39ee:4a3e, that in turn specifies the vendor id and product id
+         to talk to.
+
+        Meaningful parameters passed up to TelemetryBase include: githash,
+        service_in_iter, iter_blocks, use_walltime
+
+        Requires the module pyusb
+        """
+
+        if vid is None:
+            try:
+                raw = str.split(vidpid, ':')
+
+                if len(raw) != 2:
+                    raise
+
+                vid = int(raw[0], base=16)
+                pid = int(raw[1], base=16)
+            except Exception:
+                raise ValueError("Invalid value of vidpid")
+
+        import usb.core
+        import usb.util
+
+        dev = usb.core.find(idVendor = vid, idProduct = pid)
+
+        if dev is None:
+            raise RuntimeError("No fc found")
+
+        # XXX do better things here
+        if dev.is_kernel_driver_active(0):
+            dev.detach_kernel_driver(0)
+        if dev.is_kernel_driver_active(1):
+            dev.detach_kernel_driver(1)
+        if dev.is_kernel_driver_active(2):
+            dev.detach_kernel_driver(2)
+
+        #dev.set_configuration()
+
+        cfg = dev.get_active_configuration()
+
+        self.ep_out = None
+
+        self.ep_in = None
+
+        # Class 3 = HID
+        for f in usb.util.find_descriptor(cfg, bInterfaceClass = 3):
+            if f.bEndpointAddress < 0x80:
+                self.ep_out = f
+            else:
+                self.ep_in = f
+
+        if self.ep_out is None:
+            raise RuntimeError("no output endpoint found")
+
+        if self.ep_in is None:
+            raise RuntimeError("no output endpoint found")
+
+        BidirTelemetry.__init__(self, *args, **kwargs)
+
+    # Call select and do one set of IO operations.
+    def _do_io(self, finish_time):
+        from six import int2byte, indexbytes, byte2int, iterbytes
+
+        did_stuff = False
+
+        to_block = 35   # Wait no more than 35ms first time around
+
+        while not did_stuff:
+            chunk = ''
+
+            try:
+                raw = self.ep_in.read(64, timeout=to_block)
+
+                if (raw[0] == 1):
+                    length = raw[1]
+
+                    if length <= len(raw) - 2:
+                        chunk = raw.tostring()[2:2+length]
+
+            except Exception:
+                pass
+
+            if chunk != '':
+                did_stuff = True
+                self.recv_buf = self.recv_buf + chunk
+
+            if self.send_buf != '':
+                to_write = len(self.send_buf)
+
+                if to_write > 60:
+                    to_write = 60
+
+                try:
+                    buf = int2byte(1) + int2byte(to_write) + self.send_buf[0:to_write]
+
+                    written = self.ep_out.write(self.send_buf) - 2
+
+                    if written > 0:
+                        self.send_buf = self.send_buf[written:]
+                        did_stuff = True
+                except Exception:
+                    pass
+
+            now = time.time()
+            if finish_time is not None:
+                if now > finish_time:
+                    break
+
+                # if we have nothing left to send
+                if self.send_buf == '':
+                    remaining = finish_time - now
+
+                    to_block = int((remaining * 0.75) * 1000) + 25
+            else:
+                if self.send_buf == '':
+                    to_block = 2000
+                else:
+                    to_block = 25
+
+            time.sleep(0.0025)    # 2.5ms, ~28 bytes of time at 115200
+
+        return did_stuff
+
 class FileTelemetry(TelemetryBase):
     """ Telemetry interface to data in a file """
 
@@ -581,8 +712,14 @@ def get_telemetry_by_args(desc="Process telemetry", service_in_iter=True,
                         default = "115200",
                         help    = "baud rate for serial communications")
 
+    parser.add_argument("-u", "--hid",
+                        action  = "store_true",
+                        default = False,
+                        dest    = "hid",
+                        help    = "use usb hid to communicate with FC")
+
     parser.add_argument("source",
-                        help  = "file, host:port, or serial port to get telemetry from")
+            help  = "file, host:port, vid:pid, or serial port")
 
     # Parse the command-line.
     args = parser.parse_args()
@@ -597,6 +734,11 @@ def get_telemetry_by_args(desc="Process telemetry", service_in_iter=True,
         parse_header = True # only for files
 
     from dronin import telemetry
+
+    if args.hid:
+        return telemetry.HIDTelemetry(args.source,
+                service_in_iter=service_in_iter, iter_blocks=iter_blocks,
+                githash=githash)
 
     if args.serial:
         return telemetry.SerialTelemetry(args.source, speed=args.baud,
