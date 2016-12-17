@@ -1143,10 +1143,10 @@ struct pios_internal_adc_cfg pios_adc_cfg = {
 	.half_flag = DMA_IT_HTIF0,
 	.full_flag = DMA_IT_TCIF0,
 	.adc_pins = {                                                                                 \
-		{ GPIOC, GPIO_Pin_0,     ADC_Channel_0 },                                                 \
-		{ GPIOC, GPIO_Pin_1,     ADC_Channel_1 },                                                 \
-		{ GPIOC, GPIO_Pin_2,     ADC_Channel_2 },                                                 \
-		{ GPIOC, GPIO_Pin_3,     ADC_Channel_3 },                                                 \
+		{ GPIOC, GPIO_Pin_0,     ADC_Channel_10 },                                                 \
+		{ GPIOC, GPIO_Pin_1,     ADC_Channel_11 },                                                 \
+		{ GPIOC, GPIO_Pin_2,     ADC_Channel_12 },                                                 \
+		{ GPIOC, GPIO_Pin_3,     ADC_Channel_13 },                                                 \
 		{ NULL,  0,              ADC_Channel_Vrefint },           /* Voltage reference */         \
 		{ NULL,  0,              ADC_Channel_TempSensor },        /* Temperature sensor */        \
 	},
