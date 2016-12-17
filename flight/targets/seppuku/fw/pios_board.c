@@ -340,6 +340,22 @@ void PIOS_Board_Init(void) {
 			hw_DSMxMode,                         // dsm_mode
 			NULL);                               // sbus_cfg
 
+	/* UART3 Port */
+	uint8_t hw_uart6;
+	HwSeppukuUart6Get(&hw_uart6);
+
+	PIOS_HAL_ConfigurePort(hw_uart6,             // port type protocol
+			&pios_usart6_cfg,                    // usart_port_cfg
+			&pios_usart_com_driver,              // com_driver
+			NULL,                                // i2c_id
+			NULL,                                // i2c_cfg
+			NULL,                                // ppm_cfg
+			NULL,                                // pwm_cfg
+			PIOS_LED_ALARM,                      // led_id
+			&pios_usart6_dsm_aux_cfg,            // dsm_cfg
+			hw_DSMxMode,                         // dsm_mode
+			NULL);                               // sbus_cfg
+
 	uint8_t hw_outputconf;
 	HwSeppukuOutputConfigurationGet(&hw_outputconf);
 

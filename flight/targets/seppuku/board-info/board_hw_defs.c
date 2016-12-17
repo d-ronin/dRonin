@@ -655,7 +655,7 @@ static const struct pios_usart_cfg pios_uart4_cfg = {
 	},
 };
 
-static const struct pios_usart_cfg pios_usart_usart6_cfg = {
+static const struct pios_usart_cfg pios_usart6_cfg = {
 	.regs  = USART6,
 	.remap = GPIO_AF_USART6,
 	.irq = {
