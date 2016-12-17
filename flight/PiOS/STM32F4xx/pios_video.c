@@ -364,6 +364,15 @@ void PIOS_Video_Init(const struct pios_video_cfg *cfg)
 	TIM_SelectOnePulseMode(cfg->hsync_capture.timer, TIM_OPMode_Single);
 	TIM_SelectSlaveMode(cfg->hsync_capture.timer, TIM_SlaveMode_Trigger);
 
+#ifdef PIOS_VIDEO_HSYNC_FALLING_EDGE
+	/* Unfortunately not really a stdperiph function for this. */
+
+	uint16_t tmpccer = cfg->hsync_capture.timer->CCER;
+	tmpccer &= (uint16_t)~(TIM_CCER_CC1NP);
+	tmpccer |= (uint16_t)(TIM_CCER_CC1P);
+	cfg->hsync_capture.timer->CCER = tmpccer;
+#endif
+
 	if (cfg->hsync_capture.timer_chan == TIM_Channel_1) {
 		TIM_SelectInputTrigger(cfg->hsync_capture.timer, TIM_TS_TI1FP1);
 	} else if (cfg->hsync_capture.timer_chan == TIM_Channel_2) {
