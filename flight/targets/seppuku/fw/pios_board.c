@@ -117,6 +117,28 @@ void OSD_configure_bw_levels(void)
 #endif /* PIOS_INCLUDE_VIDEO */
 
 /**
+ * Check the brown out reset threshold is 2.7 volts and if not
+ * resets it.
+ */
+void check_bor()
+{
+	uint8_t bor = FLASH_OB_GetBOR();
+
+	if (bor != OB_BOR_LEVEL3) {
+		FLASH_OB_Unlock();
+		FLASH_OB_BORConfig(OB_BOR_LEVEL3);
+		FLASH_OB_Launch();
+		while (FLASH_WaitForLastOperation() == FLASH_BUSY) {
+			;
+		}
+		FLASH_OB_Lock();
+		while (FLASH_WaitForLastOperation() == FLASH_BUSY) {
+			;
+		}
+	}
+}
+
+/**
  * PIOS_Board_Init()
  * initializes all the core subsystems on this specific hardware
  * called from System/openpilot.c
@@ -125,6 +147,7 @@ void OSD_configure_bw_levels(void)
 #include <pios_board_info.h>
 
 void PIOS_Board_Init(void) {
+	check_bor();
 
 	/* Delay system */
 	PIOS_DELAY_Init();
