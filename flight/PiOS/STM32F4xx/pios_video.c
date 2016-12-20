@@ -40,6 +40,10 @@
 // How many frames until we redraw
 #define VSYNC_REDRAW_CNT 2
 
+#ifndef PIOS_VIDEO_HSYNC_OFFSET
+#define PIOS_VIDEO_HSYNC_OFFSET 0
+#endif
+
 extern struct pios_semaphore * onScreenDisplaySemaphore;
 
 static const struct pios_video_type_boundary pios_video_type_boundary_ntsc = {
@@ -54,20 +58,20 @@ static const struct pios_video_type_boundary pios_video_type_boundary_pal = {
 
 static const struct pios_video_type_cfg pios_video_type_cfg_ntsc = {
 	.graphics_hight_real   = 240,   // Real visible lines
-	.graphics_column_start = 130,   // First visible OSD column (after Hsync)
+	.graphics_column_start = 103,   // First visible OSD column (after Hsync)
 	.graphics_line_start   = 16,    // First visible OSD line
 	.dma_buffer_length     = 45,    // DMA buffer length in bytes (graphics_right / 8 + 1)
-	.period = 11,
-	.dc     = (11 / 2),
+	.period = 24,
+	.dc     = 12,
 };
 
 static const struct pios_video_type_cfg pios_video_type_cfg_pal = {
 	.graphics_hight_real   = 266,   // Real visible lines
-	.graphics_column_start = 164,   // First visible OSD column (after Hsync)
+	.graphics_column_start = 149,   // First visible OSD column (after Hsync)
 	.graphics_line_start   = 25,    // First visible OSD line
 	.dma_buffer_length     = 46,    // DMA buffer length in bytes ((graphics_right + 1) / 8 + 1)
-	.period = 10,
-	.dc     = (10 / 2),
+	.period = 22,
+	.dc     = 11,
 };
 
 // Allocate buffers.
@@ -146,18 +150,20 @@ bool PIOS_Vsync_ISR()
 		}
 
 		if (dev_cfg->pixel_timer.timer == TIM9) { // XXX or other fast timers
-			dev_cfg->pixel_timer.timer->CCR1 = 2 * pios_video_type_cfg_act->dc;
-			dev_cfg->pixel_timer.timer->ARR  = 2 * pios_video_type_cfg_act->period;
-		} else {
 			dev_cfg->pixel_timer.timer->CCR1 = pios_video_type_cfg_act->dc;
-			dev_cfg->pixel_timer.timer->ARR  = pios_video_type_cfg_act->period;
+			dev_cfg->pixel_timer.timer->ARR  = pios_video_type_cfg_act->period - 1;
+		} else {
+			dev_cfg->pixel_timer.timer->CCR1 = pios_video_type_cfg_act->dc / 2;
+			dev_cfg->pixel_timer.timer->ARR  = pios_video_type_cfg_act->period / 2 - 1;
 		}
-		dev_cfg->hsync_capture.timer->ARR = pios_video_type_cfg_act->dc * (pios_video_type_cfg_act->graphics_column_start + x_offset);
+
+		x_offset = -100;	/* Force recalc */
 	}
+
 	if (x_offset != x_offset_new)
 	{
 		x_offset = x_offset_new;
-		dev_cfg->hsync_capture.timer->ARR = pios_video_type_cfg_act->dc * (pios_video_type_cfg_act->graphics_column_start + x_offset);
+		dev_cfg->hsync_capture.timer->ARR = (pios_video_type_cfg_act->dc * (pios_video_type_cfg_act->graphics_column_start + x_offset)) / 2;
 	}
 
 	video_system_tmp = PIOS_VIDEO_SYSTEM_NTSC;
@@ -220,40 +226,37 @@ void PIOS_VIDEO_DMA_Handler(void)
 {	
 	// Handle flags from DMA stream channel
 	if ((dev_cfg->mask_dma->LISR & DMA_FLAG_TCIF3) && (dev_cfg->level_dma->HISR & DMA_FLAG_TCIF4)) {
+		// Clear the DMA interrupt flags
+		dev_cfg->mask_dma->LIFCR  |= DMA_FLAG_TCIF3;
+		dev_cfg->level_dma->HIFCR |= DMA_FLAG_TCIF4;
 
-		// Flush the SPI
-		while ((dev_cfg->level.regs->SR & SPI_I2S_FLAG_TXE) == 0) {
-			;
-		}
-		while (dev_cfg->level.regs->SR & SPI_I2S_FLAG_BSY) {
-			;
-		}
-		while ((dev_cfg->mask.regs->SR & SPI_I2S_FLAG_TXE) == 0) {
-			;
-		}
-		while (dev_cfg->mask.regs->SR & SPI_I2S_FLAG_BSY) {
-			;
-		}
+		dev_cfg->mask.dma.tx.channel->CR  &= ~(uint32_t)DMA_SxCR_EN;
+		dev_cfg->level.dma.tx.channel->CR &= ~(uint32_t)DMA_SxCR_EN;
+
+		/* Wait for SPIs to be done */
+		while ((dev_cfg->level.regs->SR & SPI_I2S_FLAG_TXE) == 0);
+		while (dev_cfg->level.regs->SR & SPI_I2S_FLAG_BSY);
+
+		// Disable SSEL to control phase
+		dev_cfg->level.regs->CR1 |=   SPI_CR1_SSI;
+
+		while ((dev_cfg->mask.regs->SR & SPI_I2S_FLAG_TXE) == 0);
+		while (dev_cfg->mask.regs->SR & SPI_I2S_FLAG_BSY);
+
+		dev_cfg->mask.regs->CR1  |=   SPI_CR1_SSI;
 
 		// Disable the SPI, makes sure the pins are LOW
 		dev_cfg->mask.regs->CR1 &= (uint16_t)~SPI_CR1_SPE;
 		dev_cfg->level.regs->CR1 &= (uint16_t)~SPI_CR1_SPE;
 
+		// Stop pixel timer
+		dev_cfg->pixel_timer.timer->CR1  &= (uint16_t) ~TIM_CR1_CEN;
+
 		if (active_line < pios_video_type_cfg_act->graphics_hight_real) { // lines existing
 			prepare_line();
 		} else { // last line completed
-			// Clear the DMA interrupt flags
-			dev_cfg->mask_dma->LIFCR  |= DMA_FLAG_TCIF3;
-			dev_cfg->level_dma->HIFCR |= DMA_FLAG_TCIF4;
-
-			// Stop pixel timer
-			dev_cfg->pixel_timer.timer->CR1  &= (uint16_t) ~TIM_CR1_CEN;
-
 			// Disable the pixel timer slave mode configuration
 			dev_cfg->pixel_timer.timer->SMCR &= (uint16_t) ~TIM_SMCR_SMS;
-			// Stop DMA
-			dev_cfg->mask.dma.tx.channel->CR  &= ~(uint32_t)DMA_SxCR_EN;
-			dev_cfg->level.dma.tx.channel->CR &= ~(uint32_t)DMA_SxCR_EN;
 		}
 	}
 }
@@ -267,26 +270,19 @@ static inline void prepare_line()
 {
 	uint32_t buf_offset = active_line * BUFFER_WIDTH;
 
-	// Prepare next line DMA:
-	// Clear DMA interrupt flags
-	dev_cfg->mask_dma->LIFCR  |= DMA_FLAG_TCIF3 | DMA_FLAG_HTIF3 | DMA_FLAG_FEIF3 | DMA_FLAG_TEIF3 | DMA_FLAG_DMEIF3;
-	dev_cfg->level_dma->HIFCR |= DMA_FLAG_TCIF4 | DMA_FLAG_HTIF4 | DMA_FLAG_FEIF4 | DMA_FLAG_TEIF4 | DMA_FLAG_DMEIF4;
-	// Load new line
-	dev_cfg->mask.dma.tx.channel->M0AR  = (uint32_t)&disp_buffer_mask[buf_offset];
-	dev_cfg->level.dma.tx.channel->M0AR = (uint32_t)&disp_buffer_level[buf_offset];
-	// Set length
-	dev_cfg->mask.dma.tx.channel->NDTR  = (uint16_t)pios_video_type_cfg_act->dma_buffer_length;
-	dev_cfg->level.dma.tx.channel->NDTR = (uint16_t)pios_video_type_cfg_act->dma_buffer_length;
-
-	// Stop pixel timer
-	dev_cfg->pixel_timer.timer->CR1  &= (uint16_t) ~TIM_CR1_CEN;
-
 	// Set initial value
 	dev_cfg->pixel_timer.timer->CNT   = 0;
 
 	// Reset the SMS bits
 	dev_cfg->pixel_timer.timer->SMCR &= (uint16_t) ~TIM_SMCR_SMS;
 	dev_cfg->pixel_timer.timer->SMCR |= TIM_SlaveMode_Trigger;
+
+	// Load new line
+	dev_cfg->mask.dma.tx.channel->M0AR  = (uint32_t)&disp_buffer_mask[buf_offset];
+	dev_cfg->level.dma.tx.channel->M0AR = (uint32_t)&disp_buffer_level[buf_offset];
+	// Set length
+	dev_cfg->mask.dma.tx.channel->NDTR  = (uint16_t)pios_video_type_cfg_act->dma_buffer_length;
+	dev_cfg->level.dma.tx.channel->NDTR = (uint16_t)pios_video_type_cfg_act->dma_buffer_length;
 
 	// Enable SPI
 	dev_cfg->mask.regs->CR1  |= SPI_CR1_SPE;
@@ -298,6 +294,9 @@ static inline void prepare_line()
 
 	// Advance line counter
 	active_line++;
+
+	dev_cfg->mask.regs->CR1  &= (uint16_t) ~ SPI_CR1_SSI;
+	dev_cfg->level.regs->CR1 &= (uint16_t) ~ SPI_CR1_SSI;
 }
 
 
@@ -355,7 +354,7 @@ void PIOS_Video_Init(const struct pios_video_cfg *cfg)
 	}
 
 	TIM_TimeBaseStructInit(&TIM_TimeBaseStructure);
-	TIM_TimeBaseStructure.TIM_Period = pios_video_type_cfg_act->dc * (pios_video_type_cfg_act->graphics_column_start + x_offset);
+	TIM_TimeBaseStructure.TIM_Period = pios_video_type_cfg_act->dc * (pios_video_type_cfg_act->graphics_column_start + x_offset) / 2;
 	TIM_TimeBaseStructure.TIM_Prescaler = 0;
 	TIM_TimeBaseStructure.TIM_ClockDivision = 0;
 	TIM_TimeBaseStructure.TIM_CounterMode = TIM_CounterMode_Up;
@@ -393,11 +392,11 @@ void PIOS_Video_Init(const struct pios_video_cfg *cfg)
 	TIM_OC1Init(cfg->pixel_timer.timer, (TIM_OCInitTypeDef*)&cfg->tim_oc_init);
 	TIM_OC1PreloadConfig(cfg->pixel_timer.timer, TIM_OCPreload_Enable);
 	if (dev_cfg->pixel_timer.timer == TIM9) { // XXX or other fast timers
-		TIM_SetCompare1(cfg->pixel_timer.timer, pios_video_type_cfg_act->dc*2);
-		TIM_SetAutoreload(cfg->pixel_timer.timer, pios_video_type_cfg_act->period*2);
+		TIM_SetCompare1(cfg->pixel_timer.timer, pios_video_type_cfg_act->dc);
+		TIM_SetAutoreload(cfg->pixel_timer.timer, pios_video_type_cfg_act->period - 1);
 	} else {
 		TIM_SetCompare1(cfg->pixel_timer.timer, pios_video_type_cfg_act->dc);
-		TIM_SetAutoreload(cfg->pixel_timer.timer, pios_video_type_cfg_act->period);
+		TIM_SetAutoreload(cfg->pixel_timer.timer, pios_video_type_cfg_act->period / 2 - 1);
 	}
 	TIM_ARRPreloadConfig(cfg->pixel_timer.timer, ENABLE);
 	TIM_CtrlPWMOutputs(cfg->pixel_timer.timer, ENABLE);
@@ -511,12 +510,12 @@ void PIOS_Video_SetLevels(uint8_t black, uint8_t white)
 */
 void PIOS_Video_SetXOffset(int8_t x_offset_in)
 {
-	if (x_offset_in > 20)
-		x_offset_in = 20;
-	if (x_offset_in < -20)
-		x_offset_in = -20;
+	if (x_offset_in > 50)
+		x_offset_in = 50;
+	if (x_offset_in < -50)
+		x_offset_in = -50;
 
-	x_offset_new = x_offset_in;
+	x_offset_new = x_offset_in + PIOS_VIDEO_HSYNC_OFFSET;
 }
 
 /**

@@ -112,7 +112,8 @@
 
 #define PIOS_VIDEO_TIM4_COUNTER
 #define PIOS_INCLUDE_VIDEO
-#define PIOS_VIDEO_SPLITBUFFER /* Brain uses 2 1-bit/pixel buffers */
+#define PIOS_VIDEO_SPLITBUFFER /* Uses 2 1-bit/pixel buffers */
+#define PIOS_VIDEO_HSYNC_OFFSET -22
 #define MODULE_FLIGHTSTATS_BUILTIN
 
 /* Flags that alter behaviors - mostly to lower resources for CC */
