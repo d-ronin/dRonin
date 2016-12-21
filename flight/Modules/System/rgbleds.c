@@ -303,6 +303,8 @@ void systemmod_process_rgb_leds(bool led_override, bool led_override_active,
 
 	RGBLEDSettingsRangeColorBlendSourceOptions blend_source =
 		rgbSettings.RangeColorBlendSource;
+	RGBLEDSettingsRangeColorBlendModeOptions blend_mode =
+		rgbSettings.RangeColorBlendMode;
 
 	if (!is_armed) {
 		blend_source = rgbSettings.RangeColorBlendUnarmedSource;
@@ -316,21 +318,37 @@ void systemmod_process_rgb_leds(bool led_override, bool led_override_active,
 		case RGBLEDSETTINGS_RANGECOLORBLENDSOURCE_TIMEHALFSECONDPERIOD:
 			tmpui32 = PIOS_Thread_Systime();
 			fraction = (tmpui32 % 500) * 65535 / 500;
+			if (blend_mode == RGBLEDSETTINGS_RANGECOLORBLENDMODE_SAWTOOTH) {
+				/* Force to sinusodial modes for time */
+				blend_mode = RGBLEDSETTINGS_RANGECOLORBLENDMODE_SINE;
+			}
 			break;
 
 		case RGBLEDSETTINGS_RANGECOLORBLENDSOURCE_TIMESECONDPERIOD:
 			tmpui32 = PIOS_Thread_Systime();
 			fraction = (tmpui32 % 1000) * 65535 / 1000;
+			if (blend_mode == RGBLEDSETTINGS_RANGECOLORBLENDMODE_SAWTOOTH) {
+				/* Force to sinusodial modes for time */
+				blend_mode = RGBLEDSETTINGS_RANGECOLORBLENDMODE_SINE;
+			}
 			break;
 		
 		case RGBLEDSETTINGS_RANGECOLORBLENDSOURCE_TIME2SECONDPERIOD:
 			tmpui32 = PIOS_Thread_Systime();
 			fraction = (tmpui32 % 2000) * 65535 / 2000;
+			if (blend_mode == RGBLEDSETTINGS_RANGECOLORBLENDMODE_SAWTOOTH) {
+				/* Force to sinusodial modes for time */
+				blend_mode = RGBLEDSETTINGS_RANGECOLORBLENDMODE_SINE;
+			}
 			break;
 
 		case RGBLEDSETTINGS_RANGECOLORBLENDSOURCE_TIME4SECONDPERIOD:
 			tmpui32 = PIOS_Thread_Systime();
 			fraction = (tmpui32 % 4000) * 65535 / 4000;
+			if (blend_mode == RGBLEDSETTINGS_RANGECOLORBLENDMODE_SAWTOOTH) {
+				/* Force to sinusodial modes for time */
+				blend_mode = RGBLEDSETTINGS_RANGECOLORBLENDMODE_SINE;
+			}
 			break;
 
 		case RGBLEDSETTINGS_RANGECOLORBLENDSOURCE_THROTTLE:
@@ -351,7 +369,7 @@ void systemmod_process_rgb_leds(bool led_override, bool led_override_active,
 			break;
 	}
 
-	switch (rgbSettings.RangeColorBlendMode) {
+	switch (blend_mode) {
 		default:
 		case RGBLEDSETTINGS_RANGECOLORBLENDMODE_SAWTOOTH:
 			break;	// Do nothing.  It's sawtooth already
