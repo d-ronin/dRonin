@@ -24,6 +24,7 @@
 		<field name="RangeEndColor" units="brightness" type="uint8" elements="3" defaultvalue="0,0,255">
 			<description>Another color to use as the end to a gradient sequence.</description>
 		</field>
+
 		<field name="RangeColorBlendSource" units="function" elements="1" type="enum" defaultvalue="Throttle">
 			<description>What chooses the mix of basecolor and endcolor to use</description>
 			<options>
@@ -37,6 +38,10 @@
 				<option>Time- 2 Second Period</option>
 				<option>Time- 4 Second Period</option>
 			</options>
+		</field>
+
+		<field name="RangeColorBlendUnarmedSource" units="function" elements="1" type="enum" defaultvalue="Time- Second Period" parent="RGBLEDSettings.RangeColorBlendSource">
+			<description>What chooses the mix of basecolor and endcolor to use when disarmed</description>
 		</field>
 
 		<field name="RangeColorBlendType" units="function" elements="1" type="enum" defaultvalue="Linear in HSV- backwards hue">

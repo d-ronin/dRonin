@@ -286,7 +286,7 @@ static uint16_t sinusodialize(uint16_t fraction) {
 }
 
 void systemmod_process_rgb_leds(bool led_override, bool led_override_active,
-		uint8_t blink_prio) {
+		uint8_t blink_prio, bool is_armed, bool force_dim) {
 	if (!pios_ws2811) return;
 
 	RGBLEDSettingsData rgbSettings;
@@ -301,8 +301,15 @@ void systemmod_process_rgb_leds(bool led_override, bool led_override_active,
 	uint32_t tmpui32;
 	float tmp_float;
 
+	RGBLEDSettingsRangeColorBlendSourceOptions blend_source =
+		rgbSettings.RangeColorBlendSource;
+
+	if (!is_armed) {
+		blend_source = rgbSettings.RangeColorBlendUnarmedSource;
+	}
+
 	// future: would be nice to have per-index variance too for "motion"
-	switch (rgbSettings.RangeColorBlendSource) {
+	switch (blend_source) {
 		case RGBLEDSETTINGS_RANGECOLORBLENDSOURCE_ALWAYSUSEBASECOLOR:
 			break;
 
@@ -397,6 +404,12 @@ void systemmod_process_rgb_leds(bool led_override, bool led_override_active,
 					range_color,
 					fraction);
 			break;
+	}
+
+	if (force_dim) {
+		range_color[0] /= 2;
+		range_color[1] /= 2;
+		range_color[2] /= 2;
 	}
 
 	uint8_t alarm_color[3] = { 0, 0, 0 };
