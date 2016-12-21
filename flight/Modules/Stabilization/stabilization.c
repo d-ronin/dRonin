@@ -466,11 +466,50 @@ static void stabilizationTask(void* parameters)
 		// Wrap yaw error to [-180,180]
 		local_attitude_error[2] = circular_modulus_deg(local_attitude_error[2]);
 
-		static float gyro_filtered[3];
+		static float gyro_filtered[MAX_AXES];
 
-		gyro_filtered[0] = gyro_filtered[0] * gyro_alpha + gyrosData.x * (1 - gyro_alpha);
-		gyro_filtered[1] = gyro_filtered[1] * gyro_alpha + gyrosData.y * (1 - gyro_alpha);
-		gyro_filtered[2] = gyro_filtered[2] * gyro_alpha + gyrosData.z * (1 - gyro_alpha);
+		// first A coefficient of 0 means we should use the existing first-order filter with gyro_alpha calculated from GyroCutoff and sampling rate
+		if (settings.GyroFilterCoeffsA[0] == 0.0f) {
+			// update filter
+			for (uint8_t axis = 0; axis < MAX_AXES; ++axis)
+			{
+				gyro_filtered[axis] = gyro_filtered[axis] * gyro_alpha + (&gyrosData.x)[axis] * (1.0f - gyro_alpha);
+			}
+		// otherwise run up to 3rd-order filter using numerator(B)/denominator(A) coefficients
+		} else {
+			// currently only supported filter type is lowpass; 3rd order lowpass needs 3 history points plus current sample
+			// if we expand support to include 3rd-order bandpass filter, we'll need 6 history points plus current sample
+			static float gyro_filtered_history[FILTER_ORDER3_LEN][MAX_AXES];
+			static float gyros_history[FILTER_ORDER3_LEN][MAX_AXES];
+
+			// shift output history
+			for (uint8_t i = 1; i < FILTER_ORDER3_LEN; ++i)
+			{
+				memcpy(&gyro_filtered_history[FILTER_ORDER3_LEN-i], &gyro_filtered_history[FILTER_ORDER3_LEN-(i+1)], sizeof(gyro_filtered_history[0]));
+			}
+			memcpy(&gyro_filtered_history[0], &gyro_filtered, sizeof(gyro_filtered_history[0]));
+
+			// update filter
+			for (uint8_t axis = 0; axis < MAX_AXES; ++axis)
+			{
+				// first filter step only operates on new data (CoeffsA[0] is not used here)
+				// gyrosData is our x[0]
+				gyro_filtered[axis] = settings.GyroFilterCoeffsB[0] * (&gyrosData.x)[axis];
+				for (uint8_t i = 1; i <= FILTER_ORDER3_LEN; ++i)
+				{
+					// subsequent filter steps operate on old and new data
+					// gyros_history[0] is our x[1] and gyro_filtered_history[0] is our y[1]
+					gyro_filtered[axis] += settings.GyroFilterCoeffsB[i] * gyros_history[i-1][axis] - settings.GyroFilterCoeffsA[i] * gyro_filtered_history[i-1][axis];
+				}
+			}
+
+			// shift gyro history
+			for (uint8_t i = 1; i < FILTER_ORDER3_LEN; ++i)
+			{
+				memcpy(&gyros_history[FILTER_ORDER3_LEN-i], &gyros_history[FILTER_ORDER3_LEN-(i+1)], sizeof(gyros_history[0]));
+			}
+			memcpy(&gyros_history[0], &gyrosData.x, sizeof(gyros_history[0]));
+		}
 
 		/* Maintain a second-order, lower cutof freq variant for
 		 * dynamic flight modes.

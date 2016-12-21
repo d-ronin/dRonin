@@ -26,6 +26,12 @@
 		<field name="PitchPI" units="" type="float" elementnames="Kp,Ki,ILimit" defaultvalue="2.5,0,50" limits="%BE:0:20,%BE:0:20,"/>
 		<field name="YawPI" units="" type="float" elementnames="Kp,Ki,ILimit" defaultvalue="2.5,0,50" limits="%BE:0:20,%BE:0:20,"/>
 		<field name="GyroCutoff" units="Hz" type="float" elements="1" defaultvalue="55.0"/>
+		<field name="GyroFilterCoeffsB" units="" type="float" elements="4" defaultvalue="0.05051867,-0.04728723,-0.04728723,0.05051867">
+			<description>Numerator coefficients for N-order IIR gyro filter.</description>
+		</field>
+		<field name="GyroFilterCoeffsA" units="" type="float" elements="4" defaultvalue="0.0,-2.63176538,2.32553061,-0.68730235">
+			<description>Denominator coefficients for N-order IIR gyro filter. Setting the first element to 0 switches to a first-order lowpass filter defined by GyroCutoff.</description>
+		</field>
 		<field name="DerivativeCutoff" units="Hz" type="uint8" elements="1" defaultvalue="20"/>
 		<field name="DerivativeGamma" units="" type="float" elements="1" defaultvalue="1"/>
 		<field name="MaxAxisLock" units="deg" type="uint8" elements="1" defaultvalue="15"/>
