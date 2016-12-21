@@ -543,7 +543,7 @@ static void systemPeriodicCb(UAVObjEvent *ev, void *ctx, void *obj_data, int len
 
 #ifdef SYSTEMMOD_RGBLED_SUPPORT
 	systemmod_process_rgb_leds(led_override, morse > 0, blink_prio,
-		FLIGHTSTATUS_ARMED_ARMED == armed_status,
+		FLIGHTSTATUS_ARMED_DISARMED != armed_status,
 		(FLIGHTSTATUS_ARMED_ARMING == armed_status) &&
 		((counter & 3) < 2));
 #endif /* SYSTEMMOD_RGBLED_SUPPORT */
