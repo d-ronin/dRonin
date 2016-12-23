@@ -230,7 +230,7 @@ static const struct pios_bmi160_cfg pios_bmi160_cfg = {
 #include <pios_lis3mdl.h>
 
 static const struct pios_lis3mdl_cfg pios_lis3mdl_cfg = {
-	.orientation = PIOS_LIS_TOP_0DEG	// XXX
+	.orientation = PIOS_LIS_TOP_180DEG
 };
 
 #endif /* PIOS_INCLUDE_LIS3MDL */
@@ -240,7 +240,6 @@ static const struct pios_lis3mdl_cfg pios_lis3mdl_cfg = {
 
 static const struct pios_bmp280_cfg pios_bmp280_cfg = {
 	.oversampling = BMP280_HIGH_RESOLUTION,
-	.temperature_interleaving = 1,
 };
 #endif
 
