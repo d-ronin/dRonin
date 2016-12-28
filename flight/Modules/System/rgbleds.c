@@ -286,7 +286,7 @@ static uint16_t sinusodialize(uint16_t fraction) {
 }
 
 void systemmod_process_rgb_leds(bool led_override, bool led_override_active,
-		uint8_t blink_prio) {
+		uint8_t blink_prio, bool is_armed, bool force_dim) {
 	if (!pios_ws2811) return;
 
 	RGBLEDSettingsData rgbSettings;
@@ -301,29 +301,54 @@ void systemmod_process_rgb_leds(bool led_override, bool led_override_active,
 	uint32_t tmpui32;
 	float tmp_float;
 
+	RGBLEDSettingsRangeColorBlendSourceOptions blend_source =
+		rgbSettings.RangeColorBlendSource;
+	RGBLEDSettingsRangeColorBlendModeOptions blend_mode =
+		rgbSettings.RangeColorBlendMode;
+
+	if (!is_armed) {
+		blend_source = rgbSettings.RangeColorBlendUnarmedSource;
+	}
+
 	// future: would be nice to have per-index variance too for "motion"
-	switch (rgbSettings.RangeColorBlendSource) {
+	switch (blend_source) {
 		case RGBLEDSETTINGS_RANGECOLORBLENDSOURCE_ALWAYSUSEBASECOLOR:
 			break;
 
 		case RGBLEDSETTINGS_RANGECOLORBLENDSOURCE_TIMEHALFSECONDPERIOD:
 			tmpui32 = PIOS_Thread_Systime();
 			fraction = (tmpui32 % 500) * 65535 / 500;
+			if (blend_mode == RGBLEDSETTINGS_RANGECOLORBLENDMODE_SAWTOOTH) {
+				/* Force to sinusodial modes for time */
+				blend_mode = RGBLEDSETTINGS_RANGECOLORBLENDMODE_SINE;
+			}
 			break;
 
 		case RGBLEDSETTINGS_RANGECOLORBLENDSOURCE_TIMESECONDPERIOD:
 			tmpui32 = PIOS_Thread_Systime();
 			fraction = (tmpui32 % 1000) * 65535 / 1000;
+			if (blend_mode == RGBLEDSETTINGS_RANGECOLORBLENDMODE_SAWTOOTH) {
+				/* Force to sinusodial modes for time */
+				blend_mode = RGBLEDSETTINGS_RANGECOLORBLENDMODE_SINE;
+			}
 			break;
 		
 		case RGBLEDSETTINGS_RANGECOLORBLENDSOURCE_TIME2SECONDPERIOD:
 			tmpui32 = PIOS_Thread_Systime();
 			fraction = (tmpui32 % 2000) * 65535 / 2000;
+			if (blend_mode == RGBLEDSETTINGS_RANGECOLORBLENDMODE_SAWTOOTH) {
+				/* Force to sinusodial modes for time */
+				blend_mode = RGBLEDSETTINGS_RANGECOLORBLENDMODE_SINE;
+			}
 			break;
 
 		case RGBLEDSETTINGS_RANGECOLORBLENDSOURCE_TIME4SECONDPERIOD:
 			tmpui32 = PIOS_Thread_Systime();
 			fraction = (tmpui32 % 4000) * 65535 / 4000;
+			if (blend_mode == RGBLEDSETTINGS_RANGECOLORBLENDMODE_SAWTOOTH) {
+				/* Force to sinusodial modes for time */
+				blend_mode = RGBLEDSETTINGS_RANGECOLORBLENDMODE_SINE;
+			}
 			break;
 
 		case RGBLEDSETTINGS_RANGECOLORBLENDSOURCE_THROTTLE:
@@ -344,7 +369,7 @@ void systemmod_process_rgb_leds(bool led_override, bool led_override_active,
 			break;
 	}
 
-	switch (rgbSettings.RangeColorBlendMode) {
+	switch (blend_mode) {
 		default:
 		case RGBLEDSETTINGS_RANGECOLORBLENDMODE_SAWTOOTH:
 			break;	// Do nothing.  It's sawtooth already
@@ -397,6 +422,12 @@ void systemmod_process_rgb_leds(bool led_override, bool led_override_active,
 					range_color,
 					fraction);
 			break;
+	}
+
+	if (force_dim) {
+		range_color[0] /= 2;
+		range_color[1] /= 2;
+		range_color[2] /= 2;
 	}
 
 	uint8_t alarm_color[3] = { 0, 0, 0 };
