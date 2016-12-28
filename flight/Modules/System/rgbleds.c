@@ -479,8 +479,17 @@ void systemmod_process_rgb_leds(bool led_override, bool led_override_active,
 				rgbSettings.DefaultColor[2]);
 	}
 
+#ifdef SYSTEMMOD_RGBLED_VIDEO_HACK
+	extern volatile bool video_active;
+
+	if (!video_active) {
+		PIOS_WS2811_trigger_update(pios_ws2811);
+	}
+#else
 	PIOS_WS2811_trigger_update(pios_ws2811);
+#endif
 }
+
 #endif
 
 /**

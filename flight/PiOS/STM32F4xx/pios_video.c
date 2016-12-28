@@ -257,6 +257,11 @@ void PIOS_VIDEO_DMA_Handler(void)
 		} else { // last line completed
 			// Disable the pixel timer slave mode configuration
 			dev_cfg->pixel_timer.timer->SMCR &= (uint16_t) ~TIM_SMCR_SMS;
+#ifdef PIOS_INCLUDE_WS2811
+#ifdef SYSTEMMOD_RGBLED_VIDEO_HACK
+			PIOS_WS2811_trigger_update(pios_ws2811);
+#endif
+#endif
 		}
 	}
 }

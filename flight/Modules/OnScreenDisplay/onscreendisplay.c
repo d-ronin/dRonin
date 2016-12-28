@@ -135,6 +135,8 @@ const char IMPERIAL_DIST_UNIT_LONG[] = "M";
 const char IMPERIAL_DIST_UNIT_SHORT[] = "ft";
 const char IMPERIAL_SPEED_UNIT[] = "MPH";
 
+bool video_active;
+
 const point_t HOME_ARROW[] = {
 	{
 		.x = 0,
@@ -1764,7 +1766,8 @@ static void onScreenDisplayTask(__attribute__((unused)) void *parameters)
 	home_baro_altitude /= frame_counter;
 
 	while (1) {
-		if (PIOS_Semaphore_Take(onScreenDisplaySemaphore, PIOS_SEMAPHORE_TIMEOUT_MAX) == true) {
+		if (PIOS_Semaphore_Take(onScreenDisplaySemaphore, 400) == true) {
+			video_active = true;
 			now = PIOS_Thread_Systime();
 #ifdef DEBUG_TIMING
 			in_ticks = PIOS_Thread_Systime();
@@ -1908,6 +1911,8 @@ static void onScreenDisplayTask(__attribute__((unused)) void *parameters)
 			sprintf(tmp_str, "%03d %03d", (int)in_time, (int)out_time);
 			write_string(tmp_str, GRAPHICS_X_MIDDLE, GRAPHICS_Y_MIDDLE - 20, 0, 0, TEXT_VA_TOP, TEXT_HA_CENTER, 0, FONT8X10);
 #endif
+		} else {
+			video_active = false;
 		}
 	}
 }
