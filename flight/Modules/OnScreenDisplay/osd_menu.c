@@ -40,6 +40,7 @@
 #include "homelocation.h"
 #include "manualcontrolcommand.h"
 #include "manualcontrolsettings.h"
+#include "rgbledsettings.h"
 #include "stabilizationsettings.h"
 #include "stateestimation.h"
 #include "vtxinfo.h"
@@ -131,6 +132,7 @@ enum menu_fsm_state {
 #if defined(USE_STM32F4xx_BRAINFPVRE1)
 	FSM_STATE_MAIN_RE1,        /*!< RE1 Specific Settings */
 #endif
+	FSM_STATE_MAIN_RGBLEDS,     /*!< RGB LED Settings */
 	FSM_STATE_MAIN_FILTER,      /*!< Filter Settings */
 	FSM_STATE_MAIN_FMODE,       /*!< Flight Mode Settings */
 	FSM_STATE_MAIN_HOMELOC,     /*!< Home Location */
@@ -142,16 +144,19 @@ enum menu_fsm_state {
 /*------------------------------------------------------------------------------------------*/
 #if defined(USE_STM32F4xx_BRAINFPVRE1)
 	FSM_STATE_RE1_IDLE,           /*!< Dummy state with nothing selected */
-	FSM_STATE_RE1_LED_COLOR,      /*!< LED color (named) */
-	FSM_STATE_RE1_LED_COLOR_R,    /*!< Custom LED color red */
-	FSM_STATE_RE1_LED_COLOR_G,    /*!< Custom LED color green */
-	FSM_STATE_RE1_LED_COLOR_B,    /*!< Custom LED color blue */
 	FSM_STATE_RE1_IR_PROTOCOL,    /*!< IR transponder protocol */
 	FSM_STATE_RE1_IR_IDILAP,      /*!< I-Lap ID */
 	FSM_STATE_RE1_IR_IDTRACKMATE, /*!< Trackmate ID */
 	FSM_STATE_RE1_SAVEEXIT,       /*!< Save & Exit */
 	FSM_STATE_RE1_EXIT,           /*!< Exit */
 #endif
+/*------------------------------------------------------------------------------------------*/
+	FSM_STATE_RGB_IDLE,            /*!< Dummy state with nothing selected */
+	FSM_STATE_RGB_DEFAULTCOLOR,    /*!< RGB LED default color */
+	FSM_STATE_RGB_RANGECOLOR_BASE, /*!< Range base color */
+	FSM_STATE_RGB_RANGECOLOR_END,  /*!< Range end color */
+	FSM_STATE_RGB_SAVEEXIT,        /*!< Save & Exit */
+	FSM_STATE_RGB_EXIT,            /*!< Exit */
 /*------------------------------------------------------------------------------------------*/
 	FSM_STATE_FILTER_IDLE,     /*!< Dummy state with nothing selected */
 	FSM_STATE_FILTER_ATT,      /*!< Attitude Filter */
@@ -237,7 +242,7 @@ enum menu_fsm_state {
 	static void brainre1_menu(void);
 #define FSM_STATE_TOP FSM_STATE_MAIN_RE1
 #else
-#define FSM_STATE_TOP FSM_STATE_MAIN_FILTER
+#define FSM_STATE_TOP FSM_STATE_MAIN_RGBLEDS
 #endif /* defined(USE_STM32F4xx_BRAINFPVRE1) */
 
 // Structure for the FSM
@@ -253,6 +258,7 @@ static bool held_long;
 
 
 static void main_menu(void);
+static void rgbled_menu(void);
 static void filter_menu(void);
 static void flightmode_menu(void);
 static void homeloc_menu(void);
@@ -270,19 +276,27 @@ const static struct menu_fsm_transition menu_fsm[FSM_STATE_NUM_STATES] = {
 		.menu_fn = main_menu,
 		.next_state = {
 			[FSM_EVENT_UP] = FSM_STATE_MAIN_STATS,
-			[FSM_EVENT_DOWN] = FSM_STATE_MAIN_FILTER,
+			[FSM_EVENT_DOWN] = FSM_STATE_MAIN_RGBLEDS,
 			[FSM_EVENT_RIGHT] = FSM_STATE_RE1_IDLE,
 		},
 	},
 #endif
+	[FSM_STATE_MAIN_RGBLEDS] = {
+		.menu_fn = main_menu,
+		.next_state = {
+		#if defined(USE_STM32F4xx_BRAINFPVRE1)
+					[FSM_EVENT_UP] = FSM_STATE_MAIN_RE1,
+		#else
+					[FSM_EVENT_UP] = FSM_STATE_MAIN_STATS,
+		#endif
+			[FSM_EVENT_DOWN] = FSM_STATE_MAIN_FILTER,
+			[FSM_EVENT_RIGHT] = FSM_STATE_RGB_IDLE,
+		},
+	},
 	[FSM_STATE_MAIN_FILTER] = {
 		.menu_fn = main_menu,
 		.next_state = {
-#if defined(USE_STM32F4xx_BRAINFPVRE1)
-			[FSM_EVENT_UP] = FSM_STATE_MAIN_RE1,
-#else
-			[FSM_EVENT_UP] = FSM_STATE_MAIN_STATS,
-#endif
+			[FSM_EVENT_UP] = FSM_STATE_MAIN_RGBLEDS,
 			[FSM_EVENT_DOWN] = FSM_STATE_MAIN_FMODE,
 			[FSM_EVENT_RIGHT] = FSM_STATE_FILTER_IDLE,
 		},
@@ -385,11 +399,56 @@ const static struct menu_fsm_transition menu_fsm[FSM_STATE_NUM_STATES] = {
 		.menu_fn = brainre1_menu,
 		.next_state = {
 			[FSM_EVENT_UP] = FSM_STATE_RE1_SAVEEXIT,
-			[FSM_EVENT_DOWN] = FSM_STATE_RE1_LED_COLOR,
+			[FSM_EVENT_DOWN] = FSM_STATE_RE1_IR_PROTOCOL,
 			[FSM_EVENT_RIGHT] = FSM_STATE_MAIN_RE1,
 		},
 	},
 #endif /* defined(USE_STM32F4xx_BRAINFPVRE1) */
+/*------------------------------------------------------------------------------------------*/
+	[FSM_STATE_RGB_IDLE] = {
+		.menu_fn = rgbled_menu,
+		.next_state = {
+			[FSM_EVENT_UP] = FSM_STATE_RGB_EXIT,
+			[FSM_EVENT_DOWN] = FSM_STATE_RGB_DEFAULTCOLOR,
+		},
+	},
+	[FSM_STATE_RGB_DEFAULTCOLOR] = {
+		.menu_fn = rgbled_menu,
+		.next_state = {
+			[FSM_EVENT_UP] = FSM_STATE_RGB_EXIT,
+			[FSM_EVENT_DOWN] = FSM_STATE_RGB_RANGECOLOR_BASE,
+		},
+	},
+	[FSM_STATE_RGB_RANGECOLOR_BASE] = {
+		.menu_fn = rgbled_menu,
+		.next_state = {
+			[FSM_EVENT_UP] = FSM_STATE_RGB_DEFAULTCOLOR,
+			[FSM_EVENT_DOWN] = FSM_STATE_RGB_RANGECOLOR_END,
+		},
+	},
+	[FSM_STATE_RGB_RANGECOLOR_END] = {
+		.menu_fn = rgbled_menu,
+		.next_state = {
+			[FSM_EVENT_UP] = FSM_STATE_RGB_RANGECOLOR_BASE,
+			[FSM_EVENT_DOWN] = FSM_STATE_RGB_SAVEEXIT,
+		},
+	},
+	[FSM_STATE_RGB_SAVEEXIT] = {
+		.menu_fn = rgbled_menu,
+		.next_state = {
+			[FSM_EVENT_UP] = FSM_STATE_RGB_RANGECOLOR_END,
+			[FSM_EVENT_DOWN] = FSM_STATE_RGB_EXIT,
+			[FSM_EVENT_RIGHT] = FSM_STATE_MAIN_RGBLEDS,
+		},
+	},
+	[FSM_STATE_RGB_EXIT] = {
+		.menu_fn = rgbled_menu,
+		.next_state = {
+			[FSM_EVENT_UP] = FSM_STATE_RGB_SAVEEXIT,
+			[FSM_EVENT_DOWN] = FSM_STATE_RGB_DEFAULTCOLOR,
+			[FSM_EVENT_RIGHT] = FSM_STATE_MAIN_RGBLEDS,
+		},
+	},
 /*------------------------------------------------------------------------------------------*/
 	[FSM_STATE_FILTER_IDLE] = {
 		.menu_fn = filter_menu,
@@ -998,6 +1057,9 @@ void main_menu(void)
 				write_string("BrainFPV RE1 Settings", MENU_LINE_X, y_pos, 0, 0, TEXT_VA_TOP, TEXT_HA_LEFT, 0, MENU_FONT);
 				break;
 #endif /* defined(USE_STM32F4xx_BRAINFPVRE1) */
+			case FSM_STATE_MAIN_RGBLEDS:
+				write_string("RGB LED Settings", MENU_LINE_X, y_pos, 0, 0, TEXT_VA_TOP, TEXT_HA_LEFT, 0, MENU_FONT);
+				break;
 			case FSM_STATE_MAIN_FILTER:
 				write_string("Filter Settings", MENU_LINE_X, y_pos, 0, 0, TEXT_VA_TOP, TEXT_HA_LEFT, 0, MENU_FONT);
 				break;
@@ -1189,6 +1251,165 @@ void brainre1_menu(void)
 	}
 }
 #endif /* defined(USE_STM32F4xx_BRAINFPVRE1) */
+
+
+
+enum RGBColor {
+	COLOR_OFF,
+	COLOR_WHITE,
+	COLOR_RED,
+	COLOR_ORANGE,
+	COLOR_YELLOW,
+	COLOR_GREEN,
+	COLOR_AQUA,
+	COLOR_BLUE,
+	COLOR_PURPLE,
+	COLOR_CUSTOM,
+	COLOR_MAXCOLOR
+};
+
+
+const uint8_t RGBLED_COLOR_VALUES[COLOR_MAXCOLOR + 1][3] = {
+	[COLOR_OFF]    = {0,   0,   0},
+	[COLOR_WHITE]  = {255, 255, 255},
+	[COLOR_RED]    = {255, 0,   0},
+	[COLOR_ORANGE] = {255, 69,   0},
+	[COLOR_YELLOW] = {255, 255, 0},
+	[COLOR_GREEN]  = {0,   255, 0},
+	[COLOR_AQUA]   = {0,   255, 255},
+	[COLOR_BLUE]   = {0,   0,   255},
+	[COLOR_PURPLE] = {255, 0,   255},
+	[COLOR_CUSTOM] = {0,   0,   0}
+};
+
+const char * RGBLED_COLOR_NAMES[COLOR_MAXCOLOR + 1] = {
+	[COLOR_OFF]    = "OFF",
+	[COLOR_WHITE]  = "White",
+	[COLOR_RED]    = "Red",
+	[COLOR_ORANGE] = "Orange",
+	[COLOR_YELLOW] = "Yellow",
+	[COLOR_GREEN]  = "Green",
+	[COLOR_AQUA]   = "Aqua",
+	[COLOR_BLUE]   = "Blue",
+	[COLOR_PURPLE] = "Purple",
+	[COLOR_CUSTOM] = "Custom"
+};
+
+
+enum RGBColor get_color(uint8_t * rgb)
+{
+	enum RGBColor color;
+	for (color=COLOR_OFF; color<COLOR_MAXCOLOR; color++) {
+		if ((rgb[0] == RGBLED_COLOR_VALUES[color][0]) && (rgb[1] == RGBLED_COLOR_VALUES[color][1])
+			&& (rgb[2] == RGBLED_COLOR_VALUES[color][2])) {
+			return color;
+		}
+	}
+	return COLOR_CUSTOM;
+}
+
+enum RGBColor get_next_color(enum RGBColor color)
+{
+	if ((color == COLOR_PURPLE) || (color == COLOR_CUSTOM)) {
+		return COLOR_OFF;
+	}
+	return color + 1;
+}
+
+enum RGBColor get_previous_color(enum RGBColor color)
+{
+	if (color == COLOR_OFF) {
+		return COLOR_PURPLE;
+	}
+	return color - 1;
+}
+
+void rgbled_menu(void)
+{
+	int y_pos = MENU_LINE_Y;
+	char tmp_str[100] = {0};
+	bool data_changed = false;
+
+	draw_menu_title("RGB LED Settings");
+
+	if (RGBLEDSettingsHandle()) {
+		RGBLEDSettingsData data;
+		RGBLEDSettingsGet(&data);
+		for (enum menu_fsm_state s=FSM_STATE_RGB_DEFAULTCOLOR; s <= FSM_STATE_RGB_EXIT; s++) {
+			if (s == current_state) {
+				draw_selected_icon(MENU_LINE_X - 4, y_pos + 4);
+			}
+			switch (s) {
+				case FSM_STATE_RGB_DEFAULTCOLOR:
+					sprintf(tmp_str, "Default color:   %s", RGBLED_COLOR_NAMES[get_color(data.DefaultColor)]);
+					write_string(tmp_str, MENU_LINE_X, y_pos, 0, 0, TEXT_VA_TOP, TEXT_HA_LEFT, 0, MENU_FONT);
+					break;
+				case FSM_STATE_RGB_RANGECOLOR_BASE:
+					sprintf(tmp_str, "Range color base: %s", RGBLED_COLOR_NAMES[get_color(data.RangeBaseColor)]);
+					write_string(tmp_str, MENU_LINE_X, y_pos, 0, 0, TEXT_VA_TOP, TEXT_HA_LEFT, 0, MENU_FONT);
+					break;
+				case FSM_STATE_RGB_RANGECOLOR_END:
+					sprintf(tmp_str, "Range color end: %s", RGBLED_COLOR_NAMES[get_color(data.RangeEndColor)]);
+					write_string(tmp_str, MENU_LINE_X, y_pos, 0, 0, TEXT_VA_TOP, TEXT_HA_LEFT, 0, MENU_FONT);
+					break;
+				case FSM_STATE_RGB_SAVEEXIT:
+					write_string("Save and Exit", MENU_LINE_X, y_pos, 0, 0, TEXT_VA_TOP, TEXT_HA_LEFT, 0, MENU_FONT);
+					break;
+				case FSM_STATE_RGB_EXIT:
+					write_string("Exit", MENU_LINE_X, y_pos, 0, 0, TEXT_VA_TOP, TEXT_HA_LEFT, 0, MENU_FONT);
+					break;
+				default:
+					break;
+			}
+			y_pos += MENU_LINE_SPACING;
+		}
+
+		uint8_t * target = NULL;
+		enum RGBColor color;
+		switch (current_state) {
+			case FSM_STATE_RGB_DEFAULTCOLOR:
+				target = data.DefaultColor;
+			case FSM_STATE_RGB_RANGECOLOR_BASE:
+				if (target == NULL) {
+					target = data.RangeBaseColor;
+				}
+			case FSM_STATE_RGB_RANGECOLOR_END:
+				if (target == NULL) {
+					target = data.RangeEndColor;
+				}
+				if (current_event == FSM_EVENT_RIGHT) {
+					color = get_next_color(get_color(target));
+					data_changed = true;
+				}
+				if (current_event == FSM_EVENT_LEFT) {
+					color = get_previous_color(get_color(target));
+					data_changed = true;
+				}
+				break;
+			default:
+				break;
+		}
+
+		if (data_changed) {
+			if (target != NULL) {
+				target[0] = RGBLED_COLOR_VALUES[color][0];
+				target[1] = RGBLED_COLOR_VALUES[color][1];
+				target[2] = RGBLED_COLOR_VALUES[color][2];
+			}
+			RGBLEDSettingsSet(&data);
+		}
+
+		if ((current_state == FSM_STATE_RGB_SAVEEXIT) && (current_event == FSM_EVENT_RIGHT)) {
+			// Save and exit
+			UAVObjSave(RGBLEDSettingsHandle(), 0);
+		}
+	}
+	else {
+		write_string("RGB LED not supported", MENU_LINE_X, y_pos, 0, 0, TEXT_VA_TOP, TEXT_HA_LEFT, 0, MENU_FONT);
+		current_state = FSM_STATE_RGB_EXIT;
+	}
+}
+
 
 void filter_menu(void)
 {
