@@ -663,12 +663,6 @@ static void beacon_send(struct pios_openlrs_dev *openlrs_dev, bool static_tone)
 // TODO: these should move into device structure, or deleted
 // if not useful to be reported via GCS
 
-#define ntohl(v) (				\
-	(((v) & 0xFF000000) >> 24) |		\
-	(((v) & 0x00FF0000) >>  8) |		\
-	(((v) & 0x0000FF00) <<  8) |		\
-	(((v) & 0x000000FF) << 24))
-
 static uint8_t pios_openlrs_bind_receive(struct pios_openlrs_dev *openlrs_dev, uint32_t timeout)
 {
 	uint32_t start = millis();

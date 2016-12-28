@@ -143,21 +143,6 @@ const struct pios_rcvr_driver pios_srxl_rcvr_driver = {
 
 /* Implementation */
 
-/* byte-ordering macros */
-#define ntohl(v) (				\
-	(((v) & 0xFF000000) >> 24) |		\
-	(((v) & 0x00FF0000) >>  8) |		\
-	(((v) & 0x0000FF00) <<  8) |		\
-	(((v) & 0x000000FF) << 24))
-
-#define ntohs(v) (				\
-	(((v) & 0xFF00) >> 8) |			\
-	(((v) & 0x00FF) << 8))
-
-#define htonl(v) ntohl((v))
-
-#define htons(v) ntohs((v))
-
 int32_t PIOS_SRXL_Init(uintptr_t *srxl_id,
 	const struct pios_com_driver *driver, uintptr_t lower_id)
 {
@@ -263,7 +248,7 @@ static void PIOS_SRXL_ParseFrame(struct pios_srxl_dev *dev)
 			struct pios_srxl_frame_multiplex16 *frame =
 					(struct pios_srxl_frame_multiplex16 *)dev->rx_buffer;
 			for (int i = 0; i < 16; i++)
-				dev->channels[i] = ntohs(frame->chan[i]);
+				dev->channels[i] = BE16_TO_CPU(frame->chan[i]);
 		}
 			break;
 		case PIOS_SRXL_SYNC_MULTIPLEX12:
@@ -271,7 +256,7 @@ static void PIOS_SRXL_ParseFrame(struct pios_srxl_dev *dev)
 			struct pios_srxl_frame_multiplex12 *frame =
 					(struct pios_srxl_frame_multiplex12 *)dev->rx_buffer;
 			for (int i = 0; i < 12; i++)
-				dev->channels[i] = ntohs(frame->chan[i]);
+				dev->channels[i] = BE16_TO_CPU(frame->chan[i]);
 		}
 			break;
 		case PIOS_SRXL_SYNC_WEATRONIC16:
@@ -279,7 +264,7 @@ static void PIOS_SRXL_ParseFrame(struct pios_srxl_dev *dev)
 			struct pios_srxl_frame_weatronic16 *frame =
 					(struct pios_srxl_frame_weatronic16 *)dev->rx_buffer;
 			for (int i = 0; i < 16; i++) {
-				int16_t value = 2000 + ntohs(frame->chan[i]); // centre values around 2000
+				int16_t value = 2000 + BE16_TO_CPU(frame->chan[i]); // centre values around 2000
 				if (value < 0 || value > 4000)
 					dev->channels[i] = PIOS_RCVR_INVALID;
 				else
