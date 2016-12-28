@@ -195,7 +195,7 @@ static const struct pios_exti_cfg pios_exti_bmi160_cfg __exti_config = {
 			.GPIO_Speed = GPIO_Speed_2MHz,
 			.GPIO_Mode = GPIO_Mode_IN,
 			.GPIO_OType = GPIO_OType_OD,
-			.GPIO_PuPd = GPIO_PuPd_NOPULL,
+			.GPIO_PuPd = GPIO_PuPd_DOWN,	// hold in inactive state
 		},
 	},
 	.irq = {
@@ -1191,7 +1191,8 @@ static const struct pios_exti_cfg pios_exti_vsync_cfg __exti_config = {
 			.GPIO_Speed = GPIO_Speed_100MHz,
 			.GPIO_Mode  = GPIO_Mode_IN,
 			.GPIO_OType = GPIO_OType_OD,
-			.GPIO_PuPd  = GPIO_PuPd_NOPULL,
+			.GPIO_PuPd  = GPIO_PuPd_DOWN,	// if video is unpowered
+							// may be held down
 		},
 	},
 	.irq = {
