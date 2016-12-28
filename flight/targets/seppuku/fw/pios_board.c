@@ -378,7 +378,7 @@ void PIOS_Board_Init(void) {
 					NULL);                               // sbus_cfg
 
 #ifdef PIOS_INCLUDE_SERVO
-			PIOS_Servo_Init(&pios_servo_cfg);
+			PIOS_Servo_Init(&pios_servo_with_uart_cfg);
 #endif
 			break;
 		default:
