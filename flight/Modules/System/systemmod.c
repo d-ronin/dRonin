@@ -280,6 +280,9 @@ static void systemTask(void *parameters)
  */
 static inline uint8_t indicate_error(const char **sequence)
 {
+	FlightStatusData flightStatus;
+	FlightStatusGet(&flightStatus);
+	
 	SystemAlarmsData alarms;
 	SystemAlarmsGet(&alarms);
 
@@ -385,19 +388,30 @@ static inline bool should_annunc(AnnunciatorSettingsData *annunciatorSettings,
 }
 
 static inline void consider_annunc(AnnunciatorSettingsData *annunciatorSettings,
-		bool is_active, bool been_armed, bool is_manual_control,
-		uint8_t blink_prio, uint32_t annunc_id,
-		uint8_t cfg_field) {
-	if (
-			is_active &&
-			should_annunc(annunciatorSettings, been_armed,
-				is_manual_control, blink_prio, cfg_field)
-	   ) {
+                                   bool    is_active, 
+                                   bool     been_armed, 
+                                   bool     is_manual_control,
+                                   uint8_t  blink_prio,
+                                   uint32_t annunc_id,
+                                   uint8_t  cfg_field) 
+{
+	if (is_active && should_annunc(annunciatorSettings, 
+	                               been_armed,
+	                               is_manual_control, 
+	                               blink_prio, 
+	                               cfg_field)) 
+	{
 		PIOS_ANNUNC_On(annunc_id);
-	} else {
+	} 
+	else 
+	{
 		PIOS_ANNUNC_Off(annunc_id);
 	}
 }
+#endif
+
+#ifndef SMALLF1
+char *triflight_blink_string = NULL;
 #endif
 
 static void systemPeriodicCb(UAVObjEvent *ev, void *ctx, void *obj_data, int len) {
@@ -466,38 +480,56 @@ static void systemPeriodicCb(UAVObjEvent *ev, void *ctx, void *obj_data, int len
 		const char *candidate_blink;
 		uint8_t candidate_prio;
 
-		candidate_prio = indicate_error(&candidate_blink);
-
-		if (candidate_prio > blink_prio) {
-			// Preempt!
-			blink_state = 0;
-			blink_string = candidate_blink;
-			blink_prio = candidate_prio;
-
-			if (blink_string &&
-					!strcmp(blink_string, BLINK_STRING_RADIO)) {
-				// XXX do this in a more robust way */
-				is_manual_control = true;
-			} else {
-				is_manual_control = false;
+		FlightStatusData flightStatus;
+		FlightStatusGet(&flightStatus);
+		
+#ifndef SMALLF1
+		if (flightStatus.FlightMode == FLIGHTSTATUS_FLIGHTMODE_TAILTUNE) {
+			if ((blink_prio == 0) && (blink_state == 0)) {
+				if (triflight_blink_string != NULL) {
+					blink_string           = triflight_blink_string;
+					blink_prio             = SHAREDDEFS_ALARMLEVELS_HAIRONFIRE;
+					triflight_blink_string = NULL;
+				}
 			}
 		}
+		else
+#endif
+		{
+			if ((blink_prio == 0) && (blink_state == 0)) {
+				candidate_prio = indicate_error(&candidate_blink);
 
-		FlightStatusArmedGet(&armed_status);
+				if (candidate_prio > blink_prio) {
+					// Preempt!
+					blink_state = 0;
+					blink_string = candidate_blink;
+					blink_prio = candidate_prio;
 
-		if (armed_status == FLIGHTSTATUS_ARMED_ARMED) {
-			ever_armed = true;
-		}
+					if (blink_string &&	!strcmp(blink_string, BLINK_STRING_RADIO)) {
+						// XXX do this in a more robust way */
+						is_manual_control = true;
+					} else {
+						is_manual_control = false;
+					}
+				}
 
-		if ((blink_prio == 0) && (blink_state == 0)) {
-			// Nothing else to do-- show armed status
-			if (armed_status == FLIGHTSTATUS_ARMED_ARMED) {
-				blink_string = "I";	// .. pairs of blinks.
-			} else {
-				blink_string = "T";	// - single long blinks
+				FlightStatusArmedGet(&armed_status);
+
+				if (armed_status == FLIGHTSTATUS_ARMED_ARMED) {
+					ever_armed = true;
+				}
+
+				if ((blink_prio == 0) && (blink_state == 0)) {
+					// Nothing else to do-- show armed status
+					if (armed_status == FLIGHTSTATUS_ARMED_ARMED) {
+						blink_string = "I";	// .. pairs of blinks.
+					} else {
+						blink_string = "T";	// - single long blinks
+					}
+				}
+
+				blink_prio = SHAREDDEFS_ALARMLEVELS_OK;
 			}
-
-			blink_prio = SHAREDDEFS_ALARMLEVELS_OK;
 		}
 
 		morse = morse_send(&blink_string, &blink_state);

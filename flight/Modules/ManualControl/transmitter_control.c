@@ -495,6 +495,7 @@ int32_t transmitter_control_select(bool reset_controller)
 	case FLIGHTSTATUS_FLIGHTMODE_STABILIZED2:
 	case FLIGHTSTATUS_FLIGHTMODE_STABILIZED3:
 	case FLIGHTSTATUS_FLIGHTMODE_FAILSAFE:
+	case FLIGHTSTATUS_FLIGHTMODE_AUTOTUNE:
 	case FLIGHTSTATUS_FLIGHTMODE_TAILTUNE:
 		update_stabilization_desired(&cmd, &settings, &airframe_type);
 		break;

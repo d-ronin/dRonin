@@ -113,7 +113,7 @@ void triflightInit(ActuatorSettingsData  *actuatorSettings,
     tail_motor_deceleration_delay_angle = (triflightSettings->MotorDecelDelayMs / 1000.0f) * triflightSettings->ServoSpeed;
 
 	throttle_range = actuatorSettings->ChannelMax[triflightStatus->RearMotorChannel] -
-	                 actuatorSettings->ChannelMin[triflightStatus->RearMotorChannel];
+	                 actuatorSettings->ChannelNeutral[triflightStatus->RearMotorChannel];
 
 	if (throttle_range <= 0.0f)
 		motor_acceleration = 0.0f;
@@ -450,7 +450,7 @@ float triGetMotorCorrection(ActuatorSettingsData  *actuatorSettings,
 	                                         TRI_TAIL_SERVO_ANGLE_MID - triflightSettings->ServoMaxAngle,
 	                                         TRI_TAIL_SERVO_ANGLE_MID + triflightSettings->ServoMaxAngle);
 
-	float throttle_motor_output = triflightStatus->VirtualTailMotor - actuatorSettings->ChannelMin[triflightStatus->RearMotorChannel];
+	float throttle_motor_output = (triflightStatus->VirtualTailMotor * throttle_range) + actuatorSettings->ChannelNeutral[triflightStatus->RearMotorChannel];
 
 	// Increased yaw authority at min throttle, always calculate the pitch
 	// correction on at least half motor output. This produces a little bit
@@ -460,17 +460,12 @@ float triGetMotorCorrection(ActuatorSettingsData  *actuatorSettings,
 	// pitch correction be calculated, as the thrust is zero?
 
 	throttle_motor_output = bound_min_max(throttle_motor_output,
-	                                      actuatorSettings->ChannelMin[triflightStatus->RearMotorChannel] + throttle_range * 2.0f / 3.0f,    // HJI: Looks like 2/3 motor output....
+	                                      actuatorSettings->ChannelNeutral[triflightStatus->RearMotorChannel] + throttle_range * 0.5f,
 	                                      actuatorSettings->ChannelMax[triflightStatus->RearMotorChannel]);
 
 	float pitch_correction = getPitchCorrectionAtTailAngle(DEG2RAD * future_servo_angle, triflightSettings->MotorThrustFactor);
 
-	if (pitch_correction < 1.0f) pitch_correction = 1.0f;
-
 	float correction = (throttle_motor_output * pitch_correction) - throttle_motor_output;
-
-	//triflightStatus->testFloat1 = throttle_motor_output;
-	//triflightStatus->testFloat2 = pitch_correction;
 
 	return correction;
 }
@@ -546,10 +541,13 @@ void virtualTailMotorStep(ActuatorSettingsData  *actuatorSettings,
 
 	float normalized_setpoint;
 
+	if (setpoint < actuatorSettings->ChannelNeutral[triflightStatus->RearMotorChannel])
+		setpoint = actuatorSettings->ChannelNeutral[triflightStatus->RearMotorChannel];
+
 	if (throttle_range <= 0.0f)
 		normalized_setpoint = 0.0f;
 	else
-		normalized_setpoint = (setpoint - actuatorSettings->ChannelMin[triflightStatus->RearMotorChannel]) / throttle_range;
+		normalized_setpoint = (setpoint - actuatorSettings->ChannelNeutral[triflightStatus->RearMotorChannel]) / throttle_range;
 
 	if (fabsf(current - normalized_setpoint) < dS)
 	{

@@ -12,8 +12,6 @@
         <field name="VirtualTailMotor" units="" type="float" elements="1"/>
         <field name="DynamicYawGain" units="" type="float" elements="1"/>
         <field name="ExpectedGyroError" units="" type="float" elements="1"/>
-        <field name="testFloat1" units="" type="float" elements="1"/>
-        <field name="testFloat2" units="" type="float" elements="1"/>
 
         <access gcs="readwrite" flight="readwrite"/>
         <telemetrygcs acked="false" updatemode="manual" period="0"/>

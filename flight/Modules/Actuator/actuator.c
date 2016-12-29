@@ -437,10 +437,8 @@ static void actuator_task(void* parameters)
 
 #ifndef SMALLF1
 		if (triflightStatus.Initialized == TRIFLIGHTSTATUS_INITIALIZED_TRUE) {
-			triflightStatus.testFloat1 = desired.Yaw;
 			desired.Yaw *= triflightStatus.DynamicYawGain;
 			desired.Yaw = bound_sym(desired.Yaw, 1.0f);
-			triflightStatus.testFloat2 = desired.Yaw;
 		}
 #endif
 
@@ -575,7 +573,7 @@ static void actuator_task(void* parameters)
 			                                                        &triflightStatus,
 			                                                        command.Channel[triflightStatus.ServoChannel]);
 
-			if (armed && 0) { // HJI: Don't want this summed in yet....
+			if (armed) {
 				// Add in tail motor correction
 				command.Channel[triflightStatus.RearMotorChannel] += triflightStatus.MotorCorrection;
 
