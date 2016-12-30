@@ -53,6 +53,7 @@ public:
     int queryMaxGyroRate();
     QStringList getAdcNames();
     QString getConnectionDiagram();
+    QWidget *getBoardConfiguration(QWidget *parent, bool connected);
 
 private:
     UAVObjectManager *uavoManager;

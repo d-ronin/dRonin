@@ -6,5 +6,6 @@
         <file>images/led_alarm_on.png</file>
         <file>images/seppuku.png</file>
         <file>images/seppuku-connection.svg</file>
+        <file>images/seppuku-config.svg</file>
     </qresource>
 </RCC>

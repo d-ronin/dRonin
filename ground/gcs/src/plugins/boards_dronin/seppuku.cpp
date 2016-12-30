@@ -32,6 +32,7 @@
 
 #include "seppuku.h"
 #include "hwseppuku.h"
+#include "seppukuconfiguration.h"
 
 /**
  * @brief Seppuku:Seppuku
@@ -190,6 +191,13 @@ QString Seppuku::getHwUAVO()
 QString Seppuku::getConnectionDiagram()
 {
     return ":/dronin/images/seppuku-connection.svg";
+}
+
+QWidget *Seppuku::getBoardConfiguration(QWidget *parent, bool connected)
+{
+    Q_UNUSED(connected)
+
+    return new SeppukuConfiguration(parent);
 }
 
 /**
