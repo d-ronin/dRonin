@@ -175,7 +175,7 @@ void ConfigTaskWidget::addUAVObjectToWidgetRelation(QString object, QString fiel
         {
             connect(dobj, SIGNAL(presentOnHardwareChanged(UAVDataObject*)),this, SLOT(doRefreshHiddenObjects(UAVDataObject*)), Qt::UniqueConnection);
             if(widget)
-                widget->setEnabled(dobj->getIsPresentOnHardware());
+                setWidgetEnabledByObj(widget, dobj->getIsPresentOnHardware());
         }
     }
     if(!field.isEmpty() && obj)
@@ -473,11 +473,11 @@ void ConfigTaskWidget::enableControls(bool enable)
     if(smartsave)
         smartsave->enableControls(enable);
     for (QPushButton *button : reloadButtonList)
-        button->setEnabled(enable);
+        setWidgetEnabledByObj(button, enable);
     for (QPushButton *button : rebootButtonList)
-        button->setEnabled(enable);
+        setWidgetEnabledByObj(button, enable);
     for (QPushButton *button : connectionsButtonList)
-        button->setEnabled(enable);
+        setWidgetEnabledByObj(button, enable);
 }
 /**
  * @brief ConfigTaskWidget::forceShadowUpdates
@@ -720,7 +720,7 @@ bool ConfigTaskWidget::addShadowWidget(QString object, QString field, QWidget *w
             {
                 connect(dobj, SIGNAL(presentOnHardwareChanged(UAVDataObject*)),this, SLOT(doRefreshHiddenObjects(UAVDataObject*)), Qt::UniqueConnection);
                 if(widget)
-                    widget->setEnabled(dobj->getIsPresentOnHardware());
+                    setWidgetEnabledByObj(widget,dobj->getIsPresentOnHardware());
             }
             return true;
         }
@@ -954,14 +954,14 @@ void ConfigTaskWidget::defaultButtonClicked()
 void ConfigTaskWidget::rebootButtonClicked()
 {
     QPushButton *button = qobject_cast<QPushButton *>(sender());
-    button->setEnabled(false);
+    setWidgetEnabledByObj(button, false);
     button->setIcon(QIcon(":/uploader/images/system-run.svg"));
 
     FirmwareIAPObj *iapObj = dynamic_cast<FirmwareIAPObj *>(getObjectManager()->getObject(FirmwareIAPObj::NAME));
     Core::ConnectionManager *conMngr = Core::ICore::instance()->connectionManager();
 
     if(!conMngr->isConnected() || !iapObj->getIsPresentOnHardware()) {
-        button->setEnabled(true);
+        setWidgetEnabledByObj(button, true);
         button->setIcon(QIcon(":/uploader/images/error.svg"));
         return;
     }
@@ -989,13 +989,13 @@ void ConfigTaskWidget::rebootButtonClicked()
         loop.exec();
         if(!timeout.isActive())
         {
-            button->setEnabled(true);
+            setWidgetEnabledByObj(button, true);
             button->setIcon(QIcon(":/uploader/images/error.svg"));
             return;
         }
         timeout.stop();
     }
-    button->setEnabled(true);
+    setWidgetEnabledByObj(button, true);
     button->setIcon(QIcon(":/uploader/images/dialog-apply.svg"));
     conMngr->disconnectDevice();
 }
@@ -1078,10 +1078,10 @@ void ConfigTaskWidget::doRefreshHiddenObjects(UAVDataObject * obj)
         }
         else
         {
-            if(ow->object==obj)
-                foreach (QWidget *w, shadowsList.keys(ow)) {
-                    w->setEnabled(obj->getIsPresentOnHardware());
-                }
+            if(ow->object==obj) {
+                foreach (QWidget *w, shadowsList.keys(ow))
+                    setWidgetEnabledByObj(w, obj->getIsPresentOnHardware());
+            }
         }
 
     }
@@ -1622,6 +1622,29 @@ bool ConfigTaskWidget::resetWidgetToDefault(QWidget *widget)
             return setWidgetFromVariant(widget, ow->field->getDefaultValue(ow->index), ow->scale, ow->useUnits ? ow->field->getUnits() : "");
     }
     return false;
+}
+
+void ConfigTaskWidget::setWidgetProperty(QWidget *widget, const char *prop, const QVariant &value)
+{
+    widget->setProperty(prop, value);
+    widget->style()->unpolish(widget);
+    widget->style()->polish(widget);
+}
+
+void ConfigTaskWidget::setWidgetEnabled(QWidget *widget, bool enabled)
+{
+    bool objDisabled = false;
+    objDisabled = widget->property("objDisabled").toBool();
+    widget->setProperty("userDisabled", !enabled);
+    widget->setEnabled(enabled && !objDisabled);
+}
+
+void ConfigTaskWidget::setWidgetEnabledByObj(QWidget *widget, bool enabled)
+{
+    bool userDisabled = false;
+    userDisabled = widget->property("userDisabled").toBool();
+    widget->setProperty("objDisabled", !enabled);
+    widget->setEnabled(enabled && !userDisabled);
 }
 
 /**

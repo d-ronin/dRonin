@@ -244,6 +244,7 @@ private:
      * @return New units string, or empty string on failure to scale units
      */
     QString applyScaleToUnits(QString units, double scale);
+    void setWidgetEnabledByObj(QWidget *widget, bool enabled);
     QString outOfLimitsStyle;
     QTimer * timeOut;
 protected slots:
@@ -262,7 +263,26 @@ protected:
     virtual bool setWidgetFromVariant(QWidget *widget, QVariant value, double scale, QString units = "");
     virtual QString getOptionFromChecked(QWidget* widget, bool checked);
     virtual bool getCheckedFromOption(QWidget* widget, QString option);
+    /**
+     * @brief resetWidgetToDefault Resets the widget to the default value for the associated field
+     * @param[in] widget Widget to reset
+     * @return true on success
+     */
     bool resetWidgetToDefault(QWidget *widget);
+    /**
+     * @brief setWidgetProperty Sets a dynamic property on a widget and forces a re-evaluation of it's stylesheet
+     * Normally the stylesheet isn't re-evaluated when dynamic properties are changed
+     * @param[in] widget QWidget
+     * @param[in] prop Name of property
+     * @param[in] value Value of property
+     */
+    void setWidgetProperty(QWidget *widget, const char *prop, const QVariant &value);
+    /**
+     * @brief setWidgetEnabled Enable/disable a widget controlled by a UAVO relation
+     * @param[in] widget QWidget
+     * @param[in] enable if true, disable if false (subject to UAVO relation)
+     */
+    void setWidgetEnabled(QWidget *widget, bool enabled = true);
 
     UAVObjectUtilManager* utilMngr;
 };
