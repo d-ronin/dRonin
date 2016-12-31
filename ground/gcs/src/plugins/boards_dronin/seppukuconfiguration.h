@@ -18,10 +18,12 @@ private:
     Ui::Seppuku *ui;
     QSvgRenderer *m_renderer;
     QGraphicsSvgItem *m_background;
+    QGraphicsSvgItem *m_uart3;
     QGraphicsSvgItem *m_uart4;
     QGraphicsScene *m_scene;
 
     void setupGraphicsScene();
+    QGraphicsSvgItem *addGraphicsElement(const QString &elementId);
     void resizeEvent(QResizeEvent *event);
     void showEvent(QShowEvent *event);
     void setMessage(const QString &name, const QString &msg = QString(), const QString &severity = QString("warning"));
@@ -31,6 +33,7 @@ private slots:
     void outputsChanged(const QString &newVal);
     void checkExtMag();
     void checkDsm();
+    void checkUart3(const QString &newVal);
 };
 
 #endif // SEPPUKUCONFIGURATION_H

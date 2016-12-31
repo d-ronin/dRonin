@@ -13,8 +13,7 @@ SeppukuConfiguration::SeppukuConfiguration(QWidget *parent) :
     connect(ui->cbOutputs, &QComboBox::currentTextChanged, this, &SeppukuConfiguration::outputsChanged);
     connect(ui->cbRcvrPort, &QComboBox::currentTextChanged, this, &SeppukuConfiguration::checkDsm);
     connect(ui->cbUart1, &QComboBox::currentTextChanged, this, &SeppukuConfiguration::checkDsm);
-    connect(ui->cbUart3, &QComboBox::currentTextChanged, this, &SeppukuConfiguration::checkDsm);
-    connect(ui->cbUart3, &QComboBox::currentTextChanged, this, &SeppukuConfiguration::checkExtMag);
+    connect(ui->cbUart3, &QComboBox::currentTextChanged, this, &SeppukuConfiguration::checkUart3);
     connect(ui->cbUart4, &QComboBox::currentTextChanged, this, &SeppukuConfiguration::checkDsm);
     connect(ui->cbUart6, &QComboBox::currentTextChanged, this, &SeppukuConfiguration::checkDsm);
     connect(ui->cbDsmMode, &QComboBox::currentTextChanged, this, &SeppukuConfiguration::checkDsm);
@@ -50,17 +49,13 @@ void SeppukuConfiguration::setupGraphicsScene()
         m_background->setZValue(0);
         m_scene->addItem(m_background);
 
-        m_uart4 = new QGraphicsSvgItem();
+        m_uart3 = addGraphicsElement("uart3");
+        if (!m_uart3)
+            return;
+
+        m_uart4 = addGraphicsElement("esc78");
         if (!m_uart4)
             return;
-        m_uart4->setSharedRenderer(m_renderer);
-        m_uart4->setElementId("esc78");
-        m_uart4->setOpacity(1.0);
-        m_uart4->setZValue(1);
-        QMatrix matrix = m_renderer->matrixForElement("esc78");
-        QRectF orig = matrix.mapRect(m_renderer->boundsOnElement("esc78"));
-        m_uart4->setPos(orig.x(), orig.y());
-        m_scene->addItem(m_uart4);
 
         const QRectF bound = m_background->boundingRect();
         ui->boardDiagram->setSceneRect(bound);
@@ -69,6 +64,23 @@ void SeppukuConfiguration::setupGraphicsScene()
     } else {
         qWarning() << "failed to setup seppuku board diagram!";
     }
+}
+
+QGraphicsSvgItem *SeppukuConfiguration::addGraphicsElement(const QString &elementId)
+{
+    QGraphicsSvgItem *item = new QGraphicsSvgItem();
+    if (!item)
+        return Q_NULLPTR;
+    item->setSharedRenderer(m_renderer);
+    item->setElementId(elementId);
+    item->setOpacity(1.0);
+    static int zval = 1;
+    item->setZValue(zval++);
+    QMatrix matrix = m_renderer->matrixForElement(elementId);
+    QRectF orig = matrix.mapRect(m_renderer->boundsOnElement(elementId));
+    item->setPos(orig.x(), orig.y());
+    m_scene->addItem(item);
+    return item;
 }
 
 void SeppukuConfiguration::showEvent(QShowEvent *event)
@@ -96,7 +108,8 @@ void SeppukuConfiguration::magChanged(const QString &newVal)
 void SeppukuConfiguration::outputsChanged(const QString &newVal)
 {
     bool uart = newVal.contains("UART");
-    m_uart4->setElementId(uart ? "uart4" : "esc78");
+    if (m_uart4)
+        m_uart4->setElementId(uart ? "uart4" : "esc78");
     setWidgetEnabled(ui->lblUart4, uart);
     setWidgetEnabled(ui->cbUart4, uart);
 }
@@ -125,6 +138,16 @@ void SeppukuConfiguration::checkDsm()
 
     setWidgetEnabled(ui->lblDsmMode, dsm);
     setWidgetEnabled(ui->cbDsmMode, dsm);
+}
+
+void SeppukuConfiguration::checkUart3(const QString &newVal)
+{
+    checkDsm();
+    checkExtMag();
+
+    bool i2c = newVal.contains("I2C");
+    if (m_uart3)
+        m_uart3->setElementId(i2c ? "i2c" : "uart3");
 }
 
 void SeppukuConfiguration::setMessage(const QString &name, const QString &msg, const QString &severity)
