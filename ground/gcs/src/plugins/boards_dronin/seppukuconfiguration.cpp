@@ -11,7 +11,7 @@ SeppukuConfiguration::SeppukuConfiguration(QWidget *parent) :
 
     connect(ui->cbMag, &QComboBox::currentTextChanged, this, &SeppukuConfiguration::magChanged);
     connect(ui->cbOutputs, &QComboBox::currentTextChanged, this, &SeppukuConfiguration::outputsChanged);
-    connect(ui->cbRcvrPort, &QComboBox::currentTextChanged, this, &SeppukuConfiguration::checkDsm);
+    connect(ui->cbRcvrPort, &QComboBox::currentTextChanged, this, &SeppukuConfiguration::checkRcvr);
     connect(ui->cbUart1, &QComboBox::currentTextChanged, this, &SeppukuConfiguration::checkDsm);
     connect(ui->cbUart3, &QComboBox::currentTextChanged, this, &SeppukuConfiguration::checkUart3);
     connect(ui->cbUart4, &QComboBox::currentTextChanged, this, &SeppukuConfiguration::checkDsm);
@@ -129,7 +129,7 @@ void SeppukuConfiguration::checkExtMag()
 
 void SeppukuConfiguration::checkDsm()
 {
-    int dsm = false;
+    bool dsm = false;
     dsm |= ui->cbRcvrPort->currentText().contains("DSM");
     dsm |= ui->cbUart1->currentText().contains("DSM");
     dsm |= ui->cbUart3->currentText().contains("DSM");
@@ -148,6 +148,20 @@ void SeppukuConfiguration::checkUart3(const QString &newVal)
     bool i2c = newVal.contains("I2C");
     if (m_uart3)
         m_uart3->setElementId(i2c ? "i2c" : "uart3");
+}
+
+void SeppukuConfiguration::checkRcvr(const QString &newVal)
+{
+    checkDsm();
+
+    bool dsm = newVal.contains("DSM");
+    bool enabled = newVal != "Disabled";
+    if (dsm)
+        setMessage("RxPower", "Please remember to solder the 3V3 receiver voltage jumper under the board.", "info");
+    else if (enabled)
+        setMessage("RxPower", "Please remember to solder ONE of the receiver voltage jumpers under the board.", "info");
+    else
+        setMessage("RxPower");
 }
 
 void SeppukuConfiguration::setMessage(const QString &name, const QString &msg, const QString &severity)

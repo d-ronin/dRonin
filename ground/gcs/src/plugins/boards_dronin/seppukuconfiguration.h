@@ -34,6 +34,7 @@ private slots:
     void checkExtMag();
     void checkDsm();
     void checkUart3(const QString &newVal);
+    void checkRcvr(const QString &newVal);
 };
 
 #endif // SEPPUKUCONFIGURATION_H
