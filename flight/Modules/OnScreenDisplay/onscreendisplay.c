@@ -1682,8 +1682,8 @@ MODULE_INITCALL(OnScreenDisplayInitialize, OnScreenDisplayStart);
 /**
  * Main osd task. It does not return.
  */
-#define BLANK_TIME 3000
-#define INTRO_TIME 5000
+#define BLANK_TIME 2000
+#define INTRO_TIME 5500
 static void onScreenDisplayTask(__attribute__((unused)) void *parameters)
 {
 	AccessoryDesiredData accessory;
@@ -1710,13 +1710,7 @@ static void onScreenDisplayTask(__attribute__((unused)) void *parameters)
 
 	// blank
 	while (PIOS_Thread_Systime() <= BLANK_TIME) {
-		// Accumulate baro altitude
 		PIOS_Thread_Sleep(20);
-		frame_counter++;
-		if (BaroAltitudeHandle()) {
-			BaroAltitudeAltitudeGet(&tmp);
-		}
-		home_baro_altitude += tmp;
 	}
 
 	// initialize interupts
