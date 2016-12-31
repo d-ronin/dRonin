@@ -116,23 +116,15 @@ void SeppukuConfiguration::checkExtMag()
 
 void SeppukuConfiguration::checkDsm()
 {
-    int ports = 0;
-    bool rcvr = ui->cbRcvrPort->currentText().contains("DSM") ? ++ports : false;
-    ui->cbUart1->currentText().contains("DSM") ? ++ports : false;
-    ui->cbUart3->currentText().contains("DSM") ? ++ports : false;
-    ui->cbUart4->currentText().contains("DSM") ? ++ports : false;
-    ui->cbUart6->currentText().contains("DSM") ? ++ports : false;
+    int dsm = false;
+    dsm |= ui->cbRcvrPort->currentText().contains("DSM");
+    dsm |= ui->cbUart1->currentText().contains("DSM");
+    dsm |= ui->cbUart3->currentText().contains("DSM");
+    dsm |= ui->cbUart4->currentText().contains("DSM");
+    dsm |= ui->cbUart6->currentText().contains("DSM");
 
-    setWidgetEnabled(ui->lblDsmMode, ports > 0);
-    setWidgetEnabled(ui->cbDsmMode, ports > 0);
-
-    bool bind = ui->cbDsmMode->currentText().contains("Bind");
-    if (bind && ports > 0 && !rcvr)
-        setMessage("DSMBind", "DSM binding can only be done on receiver port!", "error");
-    else if (bind && ports > 1)
-        setMessage("DSMBind", "DSM binding will only be done on receiver port.");
-    else
-        setMessage("DSMBind");
+    setWidgetEnabled(ui->lblDsmMode, dsm);
+    setWidgetEnabled(ui->cbDsmMode, dsm);
 }
 
 void SeppukuConfiguration::setMessage(const QString &name, const QString &msg, const QString &severity)
