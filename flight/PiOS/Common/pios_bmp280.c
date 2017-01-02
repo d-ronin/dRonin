@@ -61,6 +61,8 @@
 
 #define BMP280_P0            101.3250f
 
+#define BMP280_MODE_CONTINUOUS	0x03
+
 #define PIOS_BMP_SPI_SPEED 9500000	/* Just shy of 10MHz */
 
 /* Private methods */
@@ -263,7 +265,8 @@ static int32_t PIOS_BMP280_StartADC(void)
 		return -1;
 
 	/* Start the conversion */
-	return(PIOS_BMP280_WriteCommand(BMP280_CTRL_MEAS, dev->oversampling | 3));
+	return(PIOS_BMP280_WriteCommand(BMP280_CTRL_MEAS,
+				dev->oversampling | BMP280_MODE_CONTINUOUS));
 
 	return 0;
 }
