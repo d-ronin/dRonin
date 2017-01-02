@@ -51,7 +51,7 @@ public:
     virtual void shutdown();
 
 public slots:
-    void remoteArgument(const QString&);
+    void remoteArgument(const QString& = QString());
 signals:
     void splashMessages(QString);
     void hideSplash();

@@ -76,8 +76,6 @@ void CorePlugin::remoteArgument(const QString& arg)
     // the last of a sequence.
     if (arg.isEmpty()) {
         m_mainWindow->activateWindow();
-    } else {
-        //m_mainWindow->openFiles(QStringList(arg));
     }
 }
 
