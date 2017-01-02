@@ -44,6 +44,7 @@
 				<option>S.Bus</option>
 				<option>HoTT SUM</option>
 				<option>ADC</option>
+				<option>RFM22B</option>
 				<option>OpenLRS</option>
 				<option>FrSkyPWM</option>
 			</options>
