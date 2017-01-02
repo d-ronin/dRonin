@@ -645,7 +645,7 @@ void draw_flight_mode(int x, int y, int xs, int ys, int va, int ha, int flags, i
 		write_string("ACRO", x, y, xs, ys, va, ha, flags, font);
 		break;
 	case FLIGHTSTATUS_FLIGHTMODE_ACROPLUS:
-		write_string("ACRO PLUS", x, y, xs, ys, va, ha, flags, font);
+		write_string("ACROPLUS", x, y, xs, ys, va, ha, flags, font);
 		break;
 	case FLIGHTSTATUS_FLIGHTMODE_ACRODYNE:
 		write_string("ACRODYNE", x, y, xs, ys, va, ha, flags, font);
@@ -687,7 +687,7 @@ void draw_flight_mode(int x, int y, int xs, int ys, int va, int ha, int flags, i
 		write_string("PLAN", x, y, xs, ys, va, ha, flags, font);
 		break;
 	case FLIGHTSTATUS_FLIGHTMODE_FAILSAFE:
-		write_string("FAIL", x, y, xs, ys, va, ha, flags, font);
+		write_string("FAILSAFE", x, y, xs, ys, va, ha, flags, font);
 		break;
 	case FLIGHTSTATUS_FLIGHTMODE_TABLETCONTROL:
 		TabletInfoTabletModeDesiredGet(&mode);
