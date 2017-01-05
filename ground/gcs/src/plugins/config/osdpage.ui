@@ -10,9 +10,15 @@
     <height>1014</height>
    </rect>
   </property>
+  <property name="sizePolicy">
+   <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+    <horstretch>0</horstretch>
+    <verstretch>0</verstretch>
+   </sizepolicy>
+  </property>
   <property name="maximumSize">
    <size>
-    <width>950</width>
+    <width>16777215</width>
     <height>16777215</height>
    </size>
   </property>
@@ -59,8 +65,8 @@
        <rect>
         <x>0</x>
         <y>0</y>
-        <width>932</width>
-        <height>966</height>
+        <width>914</width>
+        <height>1170</height>
        </rect>
       </property>
       <layout class="QVBoxLayout" name="verticalLayout_3">
