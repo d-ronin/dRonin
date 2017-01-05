@@ -1288,7 +1288,7 @@ uint8_t PIOS_RFM22B_RSSI_Get(void)
 	// Use a similar metric to OpenLRS "Combined" RSSI. If link quality reflects
 	// missing packets that scale RSSI less than 128
 	if (g_rfm22b_dev->stats.link_quality != 127)
-		return rfm22b_dev->stats.link_quality;
+		return g_rfm22b_dev->stats.link_quality;
 
 	// Converting the RSSI to the same scale as with OpenLRS so add back
 	// the 122 used to convert the raw register in half into dBm, and then
