@@ -8,7 +8,7 @@
 *
 * @file       pios_rfm22b.c
 * @author     The OpenPilot Team, http://www.openpilot.org Copyright (C) 2012.
-* @author     Tau Labs, http://taulabs.org, Copyright (C) 2013-2014
+* @author     Tau Labs, http://taulabs.org, Copyright (C) 2013-2017
 * @author     dRonin, http://dronin.org Copyright (C) 2015
 * @brief      Implements a driver the the RFM22B driver
 * @see        The GNU Public License (GPL) Version 3
