@@ -777,7 +777,7 @@ static void stabilizationTask(void* parameters)
 						actuatorDesiredAxis[i] = pid_apply_setpoint(&pids[PID_GROUP_RATE + i], get_deadband(i), rateDesiredAxis[i],  gyro_filtered[i], dT_expected);
 					}
 
-					const float scale = 0.06;
+					const float scale = settings.AutotuneActuationEffort[i];
 
 					uint32_t ident_iteration =
 						iteration >> ident_shift;
