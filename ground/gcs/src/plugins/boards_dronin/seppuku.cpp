@@ -1,7 +1,7 @@
 /**
  ******************************************************************************
  * @file       seppuku.cpp
- * @author     dRonin, http://dRonin.org/, Copyright (C) 2016
+ * @author     dRonin, http://dRonin.org/, Copyright (C) 2016, 2017
  * @addtogroup GCSPlugins GCS Plugins
  * @{
  * @addtogroup Boards_dRonin dRonin board support plugin
@@ -70,7 +70,7 @@ QString Seppuku::shortName()
 
 QString Seppuku::boardDescription()
 {
-    return QString("Seppuku running dRonin firmware");
+    return QString(tr("Seppuku running dRonin firmware"));
 }
 
 bool Seppuku::queryCapabilities(BoardCapabilities capability)

@@ -1,3 +1,33 @@
+/**
+ ******************************************************************************
+ * @file       seppukuconfiguration.cpp
+ * @author     dRonin, http://dRonin.org/, Copyright (C) 2017
+ * @addtogroup GCSPlugins GCS Plugins
+ * @{
+ * @addtogroup Boards_dRonin dRonin board support plugin
+ * @{
+ * @brief Supports dRonin board configuration
+ *****************************************************************************/
+/*
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful, but
+ * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
+ * or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License
+ * for more details.
+ *
+ * You should have received a copy of the GNU General Public License along
+ * with this program; if not, write to the Free Software Foundation, Inc.,
+ * 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
+ *
+ * Additional note on redistribution: The copyright and license notices above
+ * must be maintained in each individual source file that is a derivative work
+ * of this source file; otherwise redistribution is prohibited.
+ */
+
 #include "seppukuconfiguration.h"
 
 SeppukuConfiguration::SeppukuConfiguration(QWidget *parent) :
@@ -120,9 +150,9 @@ void SeppukuConfiguration::checkExtMag()
     bool uartExt = ui->cbUart3->currentText() == "I2C";
 
     if (extMag && !uartExt)
-        setMessage("ExtMag", "External magnetometer selected but UART3 not configured as I2C!", "error");
+        setMessage("ExtMag", tr("External magnetometer selected but UART3 not configured as I2C!"), "error");
     else if (uartExt && !extMag)
-        setMessage("ExtMag", "UART3 configured as I2C but external magnetometer not selected.");
+        setMessage("ExtMag", tr("UART3 configured as I2C but external magnetometer not selected."));
     else
         setMessage("ExtMag");
 }
@@ -157,9 +187,9 @@ void SeppukuConfiguration::checkRcvr(const QString &newVal)
     bool dsm = newVal.contains("DSM");
     bool enabled = newVal != "Disabled";
     if (dsm)
-        setMessage("RxPower", "Please remember to solder the 3V3 receiver voltage jumper under the board.", "info");
+        setMessage("RxPower", tr("Please remember to solder ONLY the 3V3 receiver voltage jumper under the board."), "info");
     else if (enabled)
-        setMessage("RxPower", "Please remember to solder ONE of the receiver voltage jumpers under the board.", "info");
+        setMessage("RxPower", tr("Please remember to solder ONE of the receiver voltage jumpers under the board."), "info");
     else
         setMessage("RxPower");
 }
@@ -180,3 +210,8 @@ void SeppukuConfiguration::setMessage(const QString &name, const QString &msg, c
         delete lbl;
     }
 }
+
+/**
+ * @}
+ * @}
+ */

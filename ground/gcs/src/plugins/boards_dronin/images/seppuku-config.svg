@@ -73,16 +73,16 @@
      fit-margin-left="1"
      fit-margin-top="1"
      units="px"
-     inkscape:current-layer="layer4"
+     inkscape:current-layer="layer2"
      inkscape:window-maximized="0"
-     inkscape:window-y="27"
-     inkscape:window-x="249"
-     inkscape:cy="407.95782"
-     inkscape:cx="264.20697"
+     inkscape:window-y="24"
+     inkscape:window-x="1312"
+     inkscape:cy="343.68162"
+     inkscape:cx="415.28467"
      inkscape:zoom="0.66"
      showgrid="false"
      id="namedview14374"
-     inkscape:window-height="925"
+     inkscape:window-height="1388"
      inkscape:window-width="1248"
      inkscape:pageshadow="2"
      inkscape:pageopacity="0"
@@ -404,26 +404,26 @@
          transform="scale(0.8905074,1.1229553)"
          xml:space="preserve"
          style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:28.17045975px;line-height:125%;font-family:'DIN Schablonierschrift';-inkscape-font-specification:'DIN Schablonierschrift';letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
-         x="386.29239"
-         y="-171.53386"
+         x="380.79266"
+         y="-171.42421"
          id="text6130"
          sodipodi:linespacing="125%"><tspan
            sodipodi:role="line"
            id="tspan6132"
-           x="386.29239"
-           y="-171.53386"
-           style="font-style:normal;font-variant:normal;font-weight:bold;font-stretch:condensed;font-size:19.88503456px;font-family:'Helvetica Neue';-inkscape-font-specification:'Helvetica Neue Bold Condensed';fill:#000000;stroke:none">OUT</tspan></text>
+           x="380.79266"
+           y="-171.42421"
+           style="font-style:normal;font-variant:normal;font-weight:bold;font-stretch:condensed;font-size:19.88503456px;font-family:sans-serif;-inkscape-font-specification:'sans-serif Bold Condensed';fill:#000000;stroke:none">OUT</tspan></text>
       <text
          transform="scale(1.0660401,0.93805102)"
          sodipodi:linespacing="125%"
          id="text6134"
-         y="-207.97951"
-         x="-131.25867"
+         y="-207.79424"
+         x="-134.32242"
          style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:24.69755363px;line-height:125%;font-family:'DIN Schablonierschrift';-inkscape-font-specification:'DIN Schablonierschrift';letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
          xml:space="preserve"><tspan
-           style="font-style:normal;font-variant:normal;font-weight:bold;font-stretch:condensed;font-size:24.69755363px;font-family:'Helvetica Neue';-inkscape-font-specification:'Helvetica Neue Bold Condensed';fill:#000000;stroke:none"
-           y="-207.97951"
-           x="-131.25867"
+           style="font-style:normal;font-variant:normal;font-weight:bold;font-stretch:condensed;font-size:24.69755363px;font-family:sans-serif;-inkscape-font-specification:'sans-serif Bold Condensed';fill:#000000;stroke:none"
+           y="-207.79424"
+           x="-134.32242"
            id="tspan6136"
            sodipodi:role="line">IN</tspan></text>
     </g>
@@ -500,6 +500,29 @@
   </g>
   <g
      inkscape:groupmode="layer"
+     id="layer3"
+     inkscape:label="ESC78"
+     transform="translate(263.28947,20.772829)"
+     style="display:inline">
+    <g
+       id="esc78"
+       transform="matrix(3.3778491,0,0,3.3778491,-444.93124,-977.539)">
+      <circle
+         style="opacity:1;fill:#000093;fill-opacity:1;fill-rule:evenodd;stroke:#000000;stroke-width:0.60000002;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:0.94509804"
+         id="circle14934-3"
+         cy="509.21646"
+         cx="236.27991"
+         r="6.9094496" />
+      <circle
+         r="6.9094496"
+         cx="254.27991"
+         cy="509.21646"
+         id="circle14936-6"
+         style="opacity:1;fill:#000093;fill-opacity:1;fill-rule:evenodd;stroke:#000000;stroke-width:0.60000002;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:0.94509804" />
+    </g>
+  </g>
+  <g
+     inkscape:groupmode="layer"
      id="layer2"
      inkscape:label="UART4"
      style="display:inline"
@@ -523,51 +546,28 @@
          transform="scale(1.0105463,0.98956376)"
          sodipodi:linespacing="125%"
          id="text6094"
-         y="517.55603"
-         x="229.99248"
+         y="517.61847"
+         x="228.86971"
          style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:8.31720924px;line-height:125%;font-family:'DIN Schablonierschrift';-inkscape-font-specification:'DIN Schablonierschrift';letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
          xml:space="preserve"><tspan
-           style="font-style:normal;font-variant:normal;font-weight:bold;font-stretch:condensed;font-size:8.31720924px;font-family:'Helvetica Neue';-inkscape-font-specification:'Helvetica Neue Bold Condensed';fill:#ffffff;stroke:none"
-           y="517.55603"
-           x="229.99248"
+           style="font-style:normal;font-variant:normal;font-weight:bold;font-stretch:condensed;font-size:8.31720924px;font-family:sans-serif;-inkscape-font-specification:'sans-serif Bold Condensed';fill:#ffffff;stroke:none"
+           y="517.61847"
+           x="228.86971"
            id="tspan6096"
            sodipodi:role="line">TX</tspan></text>
       <text
          transform="scale(1.0102009,0.98990211)"
          xml:space="preserve"
          style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:8.31436539px;line-height:125%;font-family:'DIN Schablonierschrift';-inkscape-font-specification:'DIN Schablonierschrift';letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
-         x="247.41762"
-         y="517.37915"
+         x="246.11218"
+         y="517.44153"
          id="text6098"
          sodipodi:linespacing="125%"><tspan
            sodipodi:role="line"
            id="tspan6100"
-           x="247.41762"
-           y="517.37915"
-           style="font-style:normal;font-variant:normal;font-weight:bold;font-stretch:condensed;font-size:8.31436539px;font-family:'Helvetica Neue';-inkscape-font-specification:'Helvetica Neue Bold Condensed';fill:#ffffff;stroke:none">RX</tspan></text>
-    </g>
-  </g>
-  <g
-     inkscape:groupmode="layer"
-     id="layer3"
-     inkscape:label="ESC78"
-     transform="translate(263.28947,20.772829)"
-     style="display:inline">
-    <g
-       id="esc78"
-       transform="matrix(3.3778491,0,0,3.3778491,-444.93124,-977.539)">
-      <circle
-         style="opacity:1;fill:#000093;fill-opacity:1;fill-rule:evenodd;stroke:#000000;stroke-width:0.60000002;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:0.94509804"
-         id="circle14934-3"
-         cy="509.21646"
-         cx="236.27991"
-         r="6.9094496" />
-      <circle
-         r="6.9094496"
-         cx="254.27991"
-         cy="509.21646"
-         id="circle14936-6"
-         style="opacity:1;fill:#000093;fill-opacity:1;fill-rule:evenodd;stroke:#000000;stroke-width:0.60000002;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:0.94509804" />
+           x="246.11218"
+           y="517.44153"
+           style="font-style:normal;font-variant:normal;font-weight:bold;font-stretch:condensed;font-size:8.31436539px;font-family:sans-serif;-inkscape-font-specification:'sans-serif Bold Condensed';fill:#ffffff;stroke:none">RX</tspan></text>
     </g>
   </g>
 </svg>

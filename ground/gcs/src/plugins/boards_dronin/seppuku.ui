@@ -28,14 +28,20 @@
   <layout class="QVBoxLayout" name="verticalLayout">
    <item>
     <widget class="QScrollArea" name="scrollArea">
+     <property name="sizeAdjustPolicy">
+      <enum>QAbstractScrollArea::AdjustToContents</enum>
+     </property>
      <property name="widgetResizable">
       <bool>true</bool>
+     </property>
+     <property name="alignment">
+      <set>Qt::AlignHCenter|Qt::AlignTop</set>
      </property>
      <widget class="QWidget" name="scrollAreaWidgetContents">
       <property name="geometry">
        <rect>
         <x>0</x>
-        <y>0</y>
+        <y>-20</y>
         <width>914</width>
         <height>671</height>
        </rect>
@@ -620,6 +626,18 @@ QLabel[severity=error] {
             </size>
            </property>
           </spacer>
+         </item>
+         <item>
+          <widget class="QPushButton" name="btnConnections">
+           <property name="text">
+            <string>Connection Diagram</string>
+           </property>
+           <property name="objrelation" stdset="0">
+            <stringlist>
+             <string>button:connectiondiagram</string>
+            </stringlist>
+           </property>
+          </widget>
          </item>
          <item>
           <widget class="QPushButton" name="btnApply">
