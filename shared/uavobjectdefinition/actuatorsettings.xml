@@ -26,8 +26,8 @@
 		<field name="LowPowerStabilizationMaxTime" units="s" type="float" elements="1" defaultvalue="0" limits="%BE:0.0:4.5">
 			<description>Maximum time in seconds to add power when at zero throttle to ensure stabilization.  Choosing 0 prevents adding power at zero throttle.</description>
 		</field>
-		<field name="MotorInputOutputCurveFit" units="-" type="float" elements="1" defaultvalue="0.9">
-			<description>Actuator mapping of input in [-1,1] to output on [-1,1], using power equation of type x^value.</description>
+		<field name="MotorInputOutputCurveFit" units="" type="float" elements="1" defaultvalue="0.9">
+			<description>Actuator mapping of input in [-1,1] to output on [-1,1], using power equation of type x^value. This is intended to correct for the non-linear relationship between input command and output power inherent in brushless ESC/motor combinations. A setting below 1.0 will improve high-throttle control stability.</description>
 		</field>
 		<access gcs="readwrite" flight="readwrite"/>
 		<telemetrygcs acked="true" updatemode="onchange" period="0"/>
