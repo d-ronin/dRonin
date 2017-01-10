@@ -43,9 +43,6 @@ struct pios_bmp280_cfg {
 	//! less frequent cleaner data.  This data byte is used
 	//! to trigger the conversion.
 	uint8_t oversampling;
-
-	//! How many samples of pressure for each temperature measurement
-    uint32_t temperature_interleaving;
 };
 
 int32_t PIOS_BMP280_Init(const struct pios_bmp280_cfg *cfg, int32_t i2c_device);

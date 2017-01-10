@@ -250,7 +250,6 @@ static const struct pios_hmc5983_cfg external_hmc5983_cfg = {
 
 static const struct pios_bmp280_cfg external_bmp280_cfg = {
 	.oversampling = BMP280_HIGH_RESOLUTION,
-	.temperature_interleaving = 1,
 };
 #endif
 

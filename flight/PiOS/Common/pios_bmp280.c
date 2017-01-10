@@ -61,6 +61,8 @@
 
 #define BMP280_P0            101.3250f
 
+#define BMP280_MODE_CONTINUOUS	0x03
+
 #define PIOS_BMP_SPI_SPEED 9500000	/* Just shy of 10MHz */
 
 /* Private methods */
@@ -106,7 +108,6 @@ struct bmp280_dev {
 	int16_t  digP9;
 
 	uint8_t oversampling;
-	uint32_t temperature_interleaving;
 	enum pios_bmp280_dev_magic magic;
 
 	struct pios_semaphore *busy;
@@ -160,7 +161,6 @@ static int32_t PIOS_BMP280_Validate(struct bmp280_dev *dev)
 static int32_t PIOS_BMP280_Common_Init(const struct pios_bmp280_cfg *cfg)
 {
 	dev->oversampling = cfg->oversampling;
-	dev->temperature_interleaving = (cfg->temperature_interleaving) == 0 ? 1 : cfg->temperature_interleaving;
 	dev->cfg = cfg;
 
 	uint8_t data[24];
@@ -256,8 +256,7 @@ static int32_t PIOS_BMP280_ReleaseDevice(void)
 
 
 /**
-* Start the ADC conversion
-* \param[in] PRESSURE_CONV or TEMPERATURE_CONV to select which measurement to make
+* Start ADC freerunning
 * \return 0 for success, -1 for failure (to start conversion)
 */
 static int32_t PIOS_BMP280_StartADC(void)
@@ -266,7 +265,8 @@ static int32_t PIOS_BMP280_StartADC(void)
 		return -1;
 
 	/* Start the conversion */
-	return(PIOS_BMP280_WriteCommand(BMP280_CTRL_MEAS, dev->oversampling));
+	return(PIOS_BMP280_WriteCommand(BMP280_CTRL_MEAS,
+				dev->oversampling | BMP280_MODE_CONTINUOUS));
 
 	return 0;
 }
@@ -280,22 +280,20 @@ static int32_t PIOS_BMP280_GetDelay() {
 
 	switch(dev->oversampling) {
 		case BMP280_STANDARD_RESOLUTION:
-			return 14;
+			return 16;
 		case BMP280_HIGH_RESOLUTION:
-			return 23;
-		case BMP280_ULTRA_HIGH_RESOLUTION:
-			return 44;
+			return 25;
 		default:
-			break;
+		case BMP280_ULTRA_HIGH_RESOLUTION:
+			return 46;
 	}
-	return 44;
 }
 
 /**
 * Read the ADC conversion value (once ADC conversion has completed)
 * \return 0 if successfully read the ADC, -1 if failed
 */
-static int32_t PIOS_BMP280_ReadADC(bool calcTemp)
+static int32_t PIOS_BMP280_ReadADC()
 {
 	if (PIOS_BMP280_Validate(dev) != 0)
 		return -1;
@@ -307,24 +305,33 @@ static int32_t PIOS_BMP280_ReadADC(bool calcTemp)
 	if (PIOS_BMP280_Read(BMP280_PRESS_MSB, data, 6) != 0)
 			return -1;
 
-	int32_t T = 0;
+	static int32_t T = 0;
 
-	if (calcTemp) {
-		int32_t raw_temperature = (int32_t)((((uint32_t)(data[3])) << 12) | (((uint32_t)(data[4])) << 4) | ((uint32_t)data[5] >> 4));
+	int32_t raw_temperature = (int32_t)((((uint32_t)(data[3])) << 12) | (((uint32_t)(data[4])) << 4) | ((uint32_t)data[5] >> 4));
 
-		int32_t varT1, varT2;
+	int32_t varT1, varT2;
 
-		varT1 =  ((((raw_temperature >> 3) - ((int32_t)dev->digT1 << 1))) * ((int32_t)dev->digT2)) >> 11;
-		varT2 = (((((raw_temperature >> 4) - ((int32_t)dev->digT1)) * ((raw_temperature >> 4) - ((int32_t)dev->digT1))) >> 12) * ((int32_t)dev->digT3)) >> 14;
-		T = varT1 + varT2;
-		dev->compensatedTemperature = (T * 5 + 128) >> 8;
+	varT1 =  ((((raw_temperature >> 3) - ((int32_t)dev->digT1 << 1))) * ((int32_t)dev->digT2)) >> 11;
+	varT2 = (((((raw_temperature >> 4) - ((int32_t)dev->digT1)) * ((raw_temperature >> 4) - ((int32_t)dev->digT1))) >> 12) * ((int32_t)dev->digT3)) >> 14;
+
+	/* Filter T ourselves */
+	if (!T) {
+		T = (varT1 + varT2) * 5;
+	} else {
+		T = (varT1 + varT2) + (T * 4) / 5;	// IIR Gain=5
 	}
+
+	dev->compensatedTemperature = T;
 
 	int32_t raw_pressure = (int32_t)((((uint32_t)(data[0])) << 12) | (((uint32_t)(data[1])) << 4) | ((uint32_t)data[2] >> 4));
 
+	if (raw_pressure == 0x80000) {
+		return -1;
+	}
+
 	int64_t varP1, varP2, P;
 
-	varP1 = ((int64_t)T) - 128000;
+	varP1 = ((int64_t)T / 5) - 128000;
 	varP2 = varP1 * varP1 * (int64_t)dev->digP6;
 	varP2 = varP2 + ((varP1 * (int64_t)dev->digP5) << 17);
 	varP2 = varP2 + (((int64_t)dev->digP4) << 35);
@@ -332,7 +339,7 @@ static int32_t PIOS_BMP280_ReadADC(bool calcTemp)
 	varP1 = (((((int64_t)1) << 47) + varP1)) * ((int64_t)dev->digP1) >> 33;
 	if (varP1 == 0)
 	{
-		return 0; // avoid exception caused by division by zero
+		return -1; // avoid exception caused by division by zero
 	}
 	P = 1048576 - raw_pressure;
 	P = (((P << 31) - varP2) * 3125) / varP1;
@@ -388,7 +395,9 @@ static int32_t PIOS_BMP280_ClaimBus(struct bmp280_dev *bmp_dev)
 	if (PIOS_SPI_ClaimBus(bmp_dev->spi_id) != 0)
 		return -2;
 
+	PIOS_DELAY_WaituS(1);
 	PIOS_SPI_RC_PinSet(bmp_dev->spi_id, bmp_dev->spi_slave, false);
+	PIOS_DELAY_WaituS(1);
 
 	PIOS_SPI_SetClockSpeed(bmp_dev->spi_id, PIOS_BMP_SPI_SPEED);
 
@@ -506,7 +515,7 @@ int32_t PIOS_BMP280_Test()
 
 	PIOS_BMP280_StartADC();
 	PIOS_DELAY_WaitmS(PIOS_BMP280_GetDelay());
-	PIOS_BMP280_ReadADC(true);
+	PIOS_BMP280_ReadADC();
 	PIOS_BMP280_ReleaseDevice();
 
 	if (currentTemperature == dev->compensatedTemperature)
@@ -520,36 +529,34 @@ int32_t PIOS_BMP280_Test()
 
 static void PIOS_BMP280_Task(void *parameters)
 {
-	int32_t temp_press_interleave_count = dev->temperature_interleaving;
 	int32_t read_adc_result = 0;
-	bool    computeTemp = false;
+
+	PIOS_BMP280_StartADC();
+
+	struct pios_sensor_baro_data data = { };
 
 	while (1) {
-
-		temp_press_interleave_count --;
-
-		if(temp_press_interleave_count <= 0) {
-			computeTemp = true;
-			temp_press_interleave_count = dev->temperature_interleaving;
-		}
-		else
-			computeTemp = false;
-
+		// Poll a bit faster than sampling rate
+		PIOS_Thread_Sleep(PIOS_BMP280_GetDelay() * 3 / 5);
 		PIOS_BMP280_ClaimDevice();
-		PIOS_BMP280_StartADC();
-		PIOS_Thread_Sleep(PIOS_BMP280_GetDelay());
-		read_adc_result = PIOS_BMP280_ReadADC(computeTemp);
+		read_adc_result = PIOS_BMP280_ReadADC();
 		PIOS_BMP280_ReleaseDevice();
 
-		// Compute the altitude from the pressure and temperature and send it out
-		struct pios_sensor_baro_data data;
-		data.temperature = ((float) dev->compensatedTemperature) / 100.0f;
-		data.pressure = ((float) dev->compensatedPressure) / 256.0f / 1000.0f;
-		data.altitude = 44330.0f * (1.0f - powf(data.pressure / BMP280_P0, (1.0f / 5.255f)));
-
-		if (read_adc_result == 0) {
-			PIOS_Queue_Send(dev->queue, (void*)&data, 0);
+		if (read_adc_result) {
+			continue;
 		}
+
+		// Compute the altitude from the pressure and temperature and send it out
+
+		data.pressure = ((float) dev->compensatedPressure) / 256.0f / 1000.0f;
+
+		float calc_alt = 44330.0f * (1.0f - powf(data.pressure / BMP280_P0, (1.0f / 5.255f)));
+
+		data.temperature = ((float) dev->compensatedTemperature) / 256.0f / 100.0f;
+
+		data.altitude = calc_alt;
+
+		PIOS_Queue_Send(dev->queue, (void*)&data, 0);
 	}
 }
 
