@@ -22,6 +22,16 @@
 		<field name="RollRatePID" units="" type="float" elementnames="Kp,Ki,Kd,ILimit" defaultvalue="0.002,0.0015,0,0.3" limits="%BE:0:0.01,%BE:0:0.05,, "/>
 		<field name="PitchRatePID" units="" type="float" elementnames="Kp,Ki,Kd,ILimit" defaultvalue="0.002,0.0015,0,0.3" limits="%BE:0:0.01,%BE:0:0.05,, "/>
 		<field name="YawRatePID" units="" type="float" elementnames="Kp,Ki,Kd,ILimit" defaultvalue="0.0035,0.0035,0,0.3" limits="%BE:0:0.01,%BE:0:0.05,, "/>
+		<field name="RatePrecompensation" units="" type="float" elementnames="Roll,Pitch,Yaw" defaultvalue="0,0,0" limits="%BE:0:0.01,%BE:0:0.01,%BE:0:0.01">
+			<description>An additional P-term to help overcome differences in effective control output with varying angular velocity of the aircraft.</description>
+		</field>
+		<field name="RatePrecompensationSrc" type="enum" elements="1" defaultvalue="Desired">
+			<description>Which rate source to use for precomp</description>
+			<options>
+				<option>Desired</option>
+				<option>Measured</option>
+			</options>
+		</field>
 		<field name="RollPI" units="" type="float" elementnames="Kp,Ki,ILimit" defaultvalue="2.5,0,50" limits="%BE:0:20,%BE:0:20,"/>
 		<field name="PitchPI" units="" type="float" elementnames="Kp,Ki,ILimit" defaultvalue="2.5,0,50" limits="%BE:0:20,%BE:0:20,"/>
 		<field name="YawPI" units="" type="float" elementnames="Kp,Ki,ILimit" defaultvalue="2.5,0,50" limits="%BE:0:20,%BE:0:20,"/>
