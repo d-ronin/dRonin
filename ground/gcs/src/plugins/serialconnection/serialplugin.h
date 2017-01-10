@@ -35,34 +35,11 @@
 #include <extensionsystem/iplugin.h>
 #include "serialpluginconfiguration.h"
 #include "serialpluginoptionspage.h"
-#include <QThread>
+#include <QTimer>
 
 class IConnection;
 class QSerialPortInfo;
 class SerialConnection;
-
-/**
-*   Helper thread to check on new serial port connection/disconnection
-*   Some operating systems do not send device insertion events so
-*   for those we have to poll
-*/
-class SerialEnumerationThread : public QThread
-{
-    Q_OBJECT
-public:
-    SerialEnumerationThread(SerialConnection *serial);
-    virtual ~SerialEnumerationThread();
-
-    virtual void run();
-
-signals:
-    void enumerationChanged();
-
-protected:
-    SerialConnection *m_serial;
-    bool m_running;
-};
-
 
 /**
 *   Define a connection via the IConnection interface
@@ -90,22 +67,23 @@ public:
     SerialPluginConfiguration * Config() const { return m_config; }
     SerialPluginOptionsPage * Optionspage() const { return m_optionspage; }
 
-
 private:
     QSerialPort*  serialHandle;
     bool enablePolling;
     SerialPluginConfiguration *m_config;
     SerialPluginOptionsPage *m_optionspage;
 
+private slots:
+    void periodic();
+
 protected slots:
     void onEnumerationChanged();
 
 protected:
-    SerialEnumerationThread m_enumerateThread;
     bool m_deviceOpened;
+
+    QTimer periodicTimer;
 };
-
-
 
 //class SERIAL_EXPORT SerialPlugin
 class SerialPlugin
