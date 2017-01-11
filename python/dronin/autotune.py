@@ -15,7 +15,7 @@ from scipy import signal
 at_flash_header_fmt = struct.Struct('<QHHHH')
 at_measurement_fmt = struct.Struct('<ffffff')
 
-def process_autotune_lump(contents):
+def process_autotune_lump(contents, filter_freq=55):
     """ Given a block of autotune data, return a time-series panda dataseries """
     hdr_tup = at_flash_header_fmt.unpack_from(contents)
 
@@ -53,7 +53,7 @@ def process_autotune_lump(contents):
     frame = pd.concat([frame, frame], ignore_index=True)
 
     # corresponds to 55Hz gyrocutoff
-    b, a = signal.iirfilter(1, [55.0 * time_step], btype='lowpass', ftype='butter')
+    b, a = signal.iirfilter(1, [2 * filter_freq * time_step], btype='lowpass', ftype='butter')
 
     for col in ['X', 'Y', 'Z']:
         filtered = signal.lfilter(b, a, frame['gyro' + col], axis=0)
@@ -69,20 +69,20 @@ def process_autotune_lump(contents):
 
     return (frame, time_step)
 
-def read_autotune_lump(f_name):
+def read_autotune_lump(f_name, **kwargs):
     """ Given a filename with autotune data, return a time-series panda dataseries """
     try:
         with open(f_name, 'rb') as f:
             contents = f.read()
 
-        return process_autotune_lump(contents)
+        return process_autotune_lump(contents, **kwargs)
     except Exception:
         import gzip
 
         with gzip.open(f_name, 'rb') as f:
             contents = f.read()
 
-        return process_autotune_lump(contents)
+        return process_autotune_lump(contents, **kwargs)
 
 def main(argv):
     if len(argv) != 1:
