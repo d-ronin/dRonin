@@ -381,6 +381,9 @@ static void updatePIDs(UAVObjEvent* ev, void *ctx, void *obj, int len)
 			case TXPIDSETTINGS_PIDS_YAWVBARKD:
 				vbarSettingsNeedsUpdate |= update(&txpid_data->vbar.VbarYawPID[VBARSETTINGS_VBARYAWPID_KD], value);
 				break;
+			case TXPIDSETTINGS_PIDS_CAMERATILT:
+				stabilizationSettingsNeedsUpdate |= update(&txpid_data->stab.CameraTilt, value);
+				break;
 #ifndef SMALLF1
 			case TXPIDSETTINGS_PIDS_HORIZONTALPOSKP:
 				vtolPathFollowerSettingsNeedsUpdate |= update(&txpid_data->vtolPathFollowerSettingsData.HorizontalPosPI[VTOLPATHFOLLOWERSETTINGS_HORIZONTALPOSPI_KP], value);
