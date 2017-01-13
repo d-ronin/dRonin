@@ -7,7 +7,7 @@
  *
  * @file       transmitter_control.c
  * @author     dRonin, http://dRonin.org/, Copyright (C) 2015-2016
- * @author     Tau Labs, http://taulabs.org, Copyright (C) 2012-2015
+ * @author     Tau Labs, http://taulabs.org, Copyright (C) 2012-2017
  * @author     The OpenPilot Team, http://www.openpilot.org Copyright (C) 2010.
  * @brief      Handles R/C link and flight mode.
  *
@@ -269,6 +269,11 @@ int32_t transmitter_control_update()
 #if defined(PIOS_INCLUDE_FRSKY_RSSI)
 			value = PIOS_FrSkyRssi_Get();
 #endif /* PIOS_INCLUDE_FRSKY_RSSI */
+			break;
+		case MANUALCONTROLSETTINGS_RSSITYPE_RFM22B:
+#if defined(PIOS_INCLUDE_RFM22B)
+			value = PIOS_RFM22B_RSSI_Get();
+#endif /* PIOS_INCLUDE_RFM22B */
 			break;
 		default:
 			(void) 0 ;

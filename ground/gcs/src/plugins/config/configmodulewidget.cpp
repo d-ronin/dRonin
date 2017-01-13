@@ -159,7 +159,7 @@ void ConfigModuleWidget::recheckTabs()
     obj->requestUpdate();
 
     // This requires re-evaluation so that board connection doesn't re-enable
-    // the fields.
+    // the fields. TODO: use new ConfigTaskWidget::setWidgetEnabled function
     ui->cbAutotune->setDisabled(true);
     ui->cbTxPid->setDisabled(true);
     ui->cbCameraStab->setDisabled(true);

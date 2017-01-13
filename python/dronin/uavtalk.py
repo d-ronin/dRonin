@@ -236,7 +236,7 @@ def process_stream(uavo_defs, use_walltime=False, gcs_timestamps=None,
         recv_cs = indexbytes(buf, buf_offset + calc_size)
 
         if recv_cs != cs:
-            print("Bad crc. Got", recv_cs, "but predicted", cs)
+            print("Bad crc. Got %d but wanted %d"%(recv_cs, cs))
 
             buf_offset += 1
 

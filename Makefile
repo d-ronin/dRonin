@@ -1139,6 +1139,9 @@ docs: $(DOCS_BUILD_TARGETS)
 
 docs_clean: $(DOCS_CLEAN_TARGETS)
 
+$(DOCS_BUILD_TARGETS): export PROJECT_REV:=$(shell $(PYTHON) $(ROOT_DIR)/make/scripts/version-info.py \
+		--path=$(ROOT_DIR) \
+		--format="\$$TAG_OR_HASH8\$$DIRTY")
 $(DOCS_BUILD_TARGETS): docs_%: $(BUILD_DIR) uavobjects
 	$(V0) @echo "DOXYGEN     $*"
 	$(V1) mkdir -p $(BUILD_DIR)/docs/$*

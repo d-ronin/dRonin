@@ -26,7 +26,6 @@ HEADERS += setupwizardplugin.h \
     pages/summarypage.h \
     vehicleconfigurationsource.h \
     vehicleconfigurationhelper.h \
-    connectiondiagram.h \
     pages/outputcalibrationpage.h \
     outputcalibrationutil.h \
     pages/rebootpage.h \
@@ -52,7 +51,6 @@ SOURCES += setupwizardplugin.cpp \
     pages/summarypage.cpp \
     vehicleconfigurationsource.cpp \
     vehicleconfigurationhelper.cpp \
-    connectiondiagram.cpp \
     pages/outputcalibrationpage.cpp \
     outputcalibrationutil.cpp \
     pages/rebootpage.cpp \
@@ -79,7 +77,6 @@ FORMS += \
     pages/inputpage.ui \
     pages/inputpage_notsupported.ui \
     pages/summarypage.ui \
-    connectiondiagram.ui \
     pages/outputcalibrationpage.ui \
     pages/rebootpage.ui \
     pages/savepage.ui \

@@ -31,6 +31,7 @@
 #include "droninplugin.h"
 #include "simulation.h"
 #include "playuavosd.h"
+#include "seppuku.h"
 #include <QtPlugin>
 
 
@@ -57,6 +58,9 @@ void DroninPlugin::extensionsInitialized()
 
     PlayUavOsd *playuav = new PlayUavOsd();
     addAutoReleasedObject(playuav);
+
+    Seppuku *seppuku = new Seppuku();
+    addAutoReleasedObject(seppuku);
 }
 
 void DroninPlugin::shutdown()

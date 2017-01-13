@@ -67,6 +67,7 @@ public:
     QString getUnits();
     quint32 getNumElements();
     QStringList getElementNames();
+    QString getElementName(quint32 index = 0);
     QStringList getOptions();
     /**
      * @brief hasOption Check if the given option exists

@@ -123,10 +123,15 @@ int32_t PIOS_SPI_Init(uint32_t *spi_id, const struct pios_spi_cfg *cfg)
 		GPIO_PinAFConfig(spi_dev->cfg->miso.gpio,
 		                 __builtin_ctz(spi_dev->cfg->miso.init.GPIO_Pin),
 		                 spi_dev->cfg->remap);
-		for (uint32_t i = 0; i < init_ssel; i++) {
-			GPIO_PinAFConfig(spi_dev->cfg->ssel[i].gpio,
-			                 __builtin_ctz(spi_dev->cfg->ssel[i].init.GPIO_Pin),
-			                 spi_dev->cfg->remap);
+
+		/* Only remap pins to SPI function if hardware slave select is
+		 * used. */
+		if (spi_dev->cfg->init.SPI_NSS == SPI_NSS_Hard) {
+			for (uint32_t i = 0; i < init_ssel; i++) {
+				GPIO_PinAFConfig(spi_dev->cfg->ssel[i].gpio,
+						 __builtin_ctz(spi_dev->cfg->ssel[i].init.GPIO_Pin),
+						 spi_dev->cfg->remap);
+			}
 		}
 	}
 #endif
@@ -231,7 +236,7 @@ int32_t PIOS_SPI_ClaimBus(uint32_t spi_id)
 	bool valid = PIOS_SPI_validate(spi_dev);
 	PIOS_Assert(valid)
 
-	if (PIOS_Semaphore_Take(spi_dev->busy, 65535) != true)
+	if (PIOS_Semaphore_Take(spi_dev->busy, PIOS_SEMAPHORE_TIMEOUT_MAX) != true)
 		return -1;
 
 	return 0;

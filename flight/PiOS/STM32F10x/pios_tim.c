@@ -160,6 +160,29 @@ out_fail:
 
 static void PIOS_TIM_generic_irq_handler(TIM_TypeDef * timer)
 {
+	uint16_t flags = timer->SR;
+
+	/* While the datasheet is not 100% clear that this (very common
+	 * paradigm) is correct TIM_ClearITPendingBit from stdperiph shows
+	 * that software is unable to set bits in this register.
+	 *
+	 * Therefore, clear only the events we're going to process. 
+	 * Otherwise we could lose an overflow just after a rising edge,
+	 * which would offset our count.
+	 */
+	timer->SR = ~flags;
+
+	/* Check for an overflow event on this timer */
+	bool overflow_event;
+	uint16_t overflow_count;
+	if (flags & TIM_IT_Update) {
+		overflow_count = timer->ARR;
+		overflow_event = true;
+	} else {
+		overflow_count = 0;
+		overflow_event = false;
+	}
+
 	/* Iterate over all registered clients of the TIM layer to find channels on this timer */
 	for (uint8_t i = 0; i < pios_tim_num_devs; i++) {
 		const struct pios_tim_dev * tim_dev = &pios_tim_devs[i];
@@ -169,20 +192,8 @@ static void PIOS_TIM_generic_irq_handler(TIM_TypeDef * timer)
 			continue;
 		}
 
-		/* Check for an overflow event on this timer */
-		bool overflow_event;
-		uint16_t overflow_count;
-		if (TIM_GetITStatus(timer, TIM_IT_Update) == SET) {
-			TIM_ClearITPendingBit(timer, TIM_IT_Update);
-			overflow_count = timer->ARR;
-			overflow_event = true;
-		} else {
-			overflow_count = 0;
-			overflow_event = false;
-		}
-
-		for (uint8_t j = 0; j < tim_dev->num_channels; j++) {
-			const struct pios_tim_channel * chan = &tim_dev->channels[j];
+		for (uint8_t chan_num = 0; chan_num < tim_dev->num_channels; chan_num++) {
+			const struct pios_tim_channel *chan = &tim_dev->channels[chan_num];
 
 			if (chan->timer != timer) {
 				/* channel is not on this timer */
@@ -211,9 +222,7 @@ static void PIOS_TIM_generic_irq_handler(TIM_TypeDef * timer)
 
 			bool edge_event;
 			uint16_t edge_count;
-			if (TIM_GetITStatus(chan->timer, timer_it) == SET) {
-				TIM_ClearITPendingBit(chan->timer, timer_it);
-
+			if (flags & timer_it) {
 				/* Read the current counter */
 				switch(chan->timer_chan) {
 				case TIM_Channel_1:
@@ -252,23 +261,23 @@ static void PIOS_TIM_generic_irq_handler(TIM_TypeDef * timer)
 				 * get the order wrong, our pulse width calculations could be off by up
 				 * to ARR ticks.  That could be bad.
 				 *
-				 * Heuristic: If the edge_count is < 16 ticks above zero then we assume the
-				 *            edge happened just after the overflow.
+				 * Heuristic: If the edge_count is in the last half of the timer period,
+				 * assume it happened before the overflow.
 				 */
 
-				if (edge_count < 16) {
+				if (edge_count < chan->timer->ARR / 2) {
 					/* Call the overflow callback first */
 					if (tim_dev->callbacks->overflow) {
 						(*tim_dev->callbacks->overflow)((uintptr_t)tim_dev,
 									tim_dev->context,
-									j,
+									chan_num,
 									overflow_count);
 					}
 					/* Call the edge callback second */
 					if (tim_dev->callbacks->edge) {
 						(*tim_dev->callbacks->edge)((uintptr_t)tim_dev,
 									tim_dev->context,
-									j,
+									chan_num,
 									edge_count);
 					}
 				} else {
@@ -276,26 +285,26 @@ static void PIOS_TIM_generic_irq_handler(TIM_TypeDef * timer)
 					if (tim_dev->callbacks->edge) {
 						(*tim_dev->callbacks->edge)((uintptr_t)tim_dev,
 									tim_dev->context,
-									j,
+									chan_num,
 									edge_count);
 					}
 					/* Call the overflow callback second */
 					if (tim_dev->callbacks->overflow) {
 						(*tim_dev->callbacks->overflow)((uintptr_t)tim_dev,
 									tim_dev->context,
-									j,
+									chan_num,
 									overflow_count);
 					}
 				}
 			} else if (overflow_event && tim_dev->callbacks->overflow) {
 				(*tim_dev->callbacks->overflow)((uintptr_t)tim_dev,
 								tim_dev->context,
-								j,
+								chan_num,
 								overflow_count);
 			} else if (edge_event && tim_dev->callbacks->edge) {
 				(*tim_dev->callbacks->edge)((uintptr_t)tim_dev,
 							tim_dev->context,
-							j,
+							chan_num,
 							edge_count);
 			}
 		}

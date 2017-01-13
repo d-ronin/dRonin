@@ -128,7 +128,7 @@ bool bl_xfer_read_start(struct xfer_state * xfer, const struct msg_xfer_start *x
 		return false;
 	}
 
-	uint32_t bytes_to_xfer = (ntohl(xfer_start->packets_in_transfer) - 1) * XFER_BYTES_PER_PACKET +
+	uint32_t bytes_to_xfer = (BE32_TO_CPU(xfer_start->packets_in_transfer) - 1) * XFER_BYTES_PER_PACKET +
 		xfer_start->words_in_last_packet * sizeof(uint32_t);
 
 	if (bytes_to_xfer > (xfer->partition_size - xfer->original_partition_offset))
@@ -151,7 +151,7 @@ bool bl_xfer_send_next_read_packet(struct xfer_state * xfer)
 	struct bl_messages msg = {
 		.flags_command = BL_MSG_READ_CONT,
 		.v.xfer_cont = {
-			.current_packet_number = htonl(xfer->next_packet_number),
+			.current_packet_number = CPU_TO_BE32(xfer->next_packet_number),
 		},
 	};
 
@@ -194,7 +194,7 @@ bool bl_xfer_write_start(struct xfer_state * xfer, const struct msg_xfer_start *
 	bool partition_needs_erase = true;
 
 	xfer->check_crc = true;
-	xfer->crc  = ntohl(xfer_start->expected_crc);
+	xfer->crc  = BE32_TO_CPU(xfer_start->expected_crc);
 	xfer->original_partition_offset = 0;
 
 	switch (xfer_start->label) {
@@ -234,7 +234,7 @@ bool bl_xfer_write_start(struct xfer_state * xfer, const struct msg_xfer_start *
 	}
 
 	/* How many bytes is the host trying to transfer? */
-	uint32_t bytes_to_xfer = (ntohl(xfer_start->packets_in_transfer) - 1) * XFER_BYTES_PER_PACKET +
+	uint32_t bytes_to_xfer = (BE32_TO_CPU(xfer_start->packets_in_transfer) - 1) * XFER_BYTES_PER_PACKET +
 		xfer_start->words_in_last_packet * sizeof(uint32_t);
 
 	uint32_t max_bytes_in_xfer = (xfer->partition_size - xfer->original_partition_offset);
@@ -266,7 +266,7 @@ bool bl_xfer_write_cont(struct xfer_state * xfer, const struct msg_xfer_cont *xf
 		return false;
 	}
 
-	if (ntohl(xfer_cont->current_packet_number) != xfer->next_packet_number) {
+	if (BE32_TO_CPU(xfer_cont->current_packet_number) != xfer->next_packet_number) {
 		/* packet is out of sequence */
 		return false;
 	}
@@ -281,7 +281,7 @@ bool bl_xfer_write_cont(struct xfer_state * xfer, const struct msg_xfer_cont *xf
 	/* Fix up the endian of the data words */
 	for (uint8_t i = 0; i < bytes_this_xfer / sizeof(uint32_t); i++) {
 		uint32_t *data = &((uint32_t *)xfer_cont->data)[i];
-		*data = ntohl(*data);
+		*data = BE32_TO_CPU(*data);
 	}
 
 	/* Write the data to flash */
@@ -353,13 +353,13 @@ bool bl_xfer_send_capabilities_self(void)
 	struct bl_messages msg = {
 		.flags_command = BL_MSG_CAP_REP,
 		.v.cap_rep_specific = {
-			.fw_size       = htonl(bdinfo->fw_size),
+			.fw_size       = CPU_TO_BE32(bdinfo->fw_size),
 			.device_number = 1, /* Always 1 for "self" */
 			.bl_version    = bdinfo->bl_rev,
 			.desc_size     = bdinfo->desc_size,
 			.board_rev     = bdinfo->board_rev,
-			.fw_crc        = htonl(fw_crc),
-			.device_id     = htons(bdinfo->board_type << 8 | bdinfo->board_rev),
+			.fw_crc        = CPU_TO_BE32(fw_crc),
+			.device_id     = CPU_TO_BE16(bdinfo->board_type << 8 | bdinfo->board_rev),
 		},
 	};
 
@@ -374,8 +374,8 @@ bool bl_xfer_send_capabilities_self(void)
 	if (PIOS_FLASH_find_partition_id(FLASH_PARTITION_LABEL_FW, &partition_id) == 0) {
 
 		PIOS_FLASH_get_partition_size(partition_id, &partition_size);
-		msg.v.cap_rep_specific.partition_sizes[DFU_PARTITION_FW]   = htonl(partition_size - bdinfo->desc_size);
-		msg.v.cap_rep_specific.partition_sizes[DFU_PARTITION_DESC] = htonl(bdinfo->desc_size);
+		msg.v.cap_rep_specific.partition_sizes[DFU_PARTITION_FW]   = CPU_TO_BE32(partition_size - bdinfo->desc_size);
+		msg.v.cap_rep_specific.partition_sizes[DFU_PARTITION_DESC] = CPU_TO_BE32(bdinfo->desc_size);
 	} else {
 		msg.v.cap_rep_specific.partition_sizes[DFU_PARTITION_FW]   = 0;
 		msg.v.cap_rep_specific.partition_sizes[DFU_PARTITION_DESC] = 0;
@@ -383,28 +383,28 @@ bool bl_xfer_send_capabilities_self(void)
 
 	if (PIOS_FLASH_find_partition_id(FLASH_PARTITION_LABEL_BL, &partition_id) == 0) {
 		PIOS_FLASH_get_partition_size(partition_id, &partition_size);
-		msg.v.cap_rep_specific.partition_sizes[DFU_PARTITION_BL] = htonl(partition_size);
+		msg.v.cap_rep_specific.partition_sizes[DFU_PARTITION_BL] = CPU_TO_BE32(partition_size);
 	} else {
 		msg.v.cap_rep_specific.partition_sizes[DFU_PARTITION_BL] = 0;
 	}
 
 	if (PIOS_FLASH_find_partition_id(FLASH_PARTITION_LABEL_SETTINGS, &partition_id) == 0) {
 		PIOS_FLASH_get_partition_size(partition_id, &partition_size);
-		msg.v.cap_rep_specific.partition_sizes[DFU_PARTITION_SETTINGS] = htonl(partition_size);
+		msg.v.cap_rep_specific.partition_sizes[DFU_PARTITION_SETTINGS] = CPU_TO_BE32(partition_size);
 	} else {
 		msg.v.cap_rep_specific.partition_sizes[DFU_PARTITION_SETTINGS] = 0;
 	}
 
 	if (PIOS_FLASH_find_partition_id(FLASH_PARTITION_LABEL_AUTOTUNE, &partition_id) == 0) {
 		PIOS_FLASH_get_partition_size(partition_id, &partition_size);
-		msg.v.cap_rep_specific.partition_sizes[DFU_PARTITION_AUTOTUNE] = htonl(partition_size);
+		msg.v.cap_rep_specific.partition_sizes[DFU_PARTITION_AUTOTUNE] = CPU_TO_BE32(partition_size);
 	} else {
 		msg.v.cap_rep_specific.partition_sizes[DFU_PARTITION_AUTOTUNE] = 0;
 	}
 
 	if (PIOS_FLASH_find_partition_id(FLASH_PARTITION_LABEL_LOG, &partition_id) == 0) {
 		PIOS_FLASH_get_partition_size(partition_id, &partition_size);
-		msg.v.cap_rep_specific.partition_sizes[DFU_PARTITION_LOG] = htonl(partition_size);
+		msg.v.cap_rep_specific.partition_sizes[DFU_PARTITION_LOG] = CPU_TO_BE32(partition_size);
 	} else {
 		msg.v.cap_rep_specific.partition_sizes[DFU_PARTITION_LOG] = 0;
 	}

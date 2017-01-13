@@ -119,6 +119,7 @@
 #define PIOS_VIDEO_QUADSPI_Y_OFFSET 3
 #define MODULE_FLIGHTSTATS_BUILTIN
 #define PIOS_INCLUDE_DEBUG_CONSOLE
+#define OSD_USE_BRAINFPV_LOGO
 
 /* Flags that alter behaviors - mostly to lower resources for CC */
 #define PIOS_INCLUDE_INITCALL           /* Include init call structures */

@@ -450,6 +450,7 @@ static void systemPeriodicCb(UAVObjEvent *ev, void *ctx, void *obj_data, int len
 	static uint32_t blink_state = 0;
 	static uint8_t blink_prio = 0;
 	static bool ever_armed = false;
+	static uint8_t armed_status = FLIGHTSTATUS_ARMED_DISARMED;
 	static bool is_manual_control = false;
 	static int morse;
 
@@ -482,16 +483,15 @@ static void systemPeriodicCb(UAVObjEvent *ev, void *ctx, void *obj_data, int len
 			}
 		}
 
-		FlightStatusData flightStatus;
-		FlightStatusGet(&flightStatus);
+		FlightStatusArmedGet(&armed_status);
 
-		if (flightStatus.Armed == FLIGHTSTATUS_ARMED_ARMED) {
+		if (armed_status == FLIGHTSTATUS_ARMED_ARMED) {
 			ever_armed = true;
 		}
 
 		if ((blink_prio == 0) && (blink_state == 0)) {
 			// Nothing else to do-- show armed status
-			if (flightStatus.Armed == FLIGHTSTATUS_ARMED_ARMED) {
+			if (armed_status == FLIGHTSTATUS_ARMED_ARMED) {
 				blink_string = "I";	// .. pairs of blinks.
 			} else {
 				blink_string = "T";	// - single long blinks
@@ -501,14 +501,6 @@ static void systemPeriodicCb(UAVObjEvent *ev, void *ctx, void *obj_data, int len
 		}
 
 		morse = morse_send(&blink_string, &blink_state);
-
-		if (morse < 0) {
-			// This means we were told "completed"
-			blink_string = NULL;
-			blink_prio = 0;
-
-			is_manual_control = false;
-		}
 
 		AnnunciatorSettingsData annunciatorSettings;
 		AnnunciatorSettingsGet(&annunciatorSettings);
@@ -539,10 +531,21 @@ static void systemPeriodicCb(UAVObjEvent *ev, void *ctx, void *obj_data, int len
 				ever_armed, is_manual_control, blink_prio,
 				ANNUNCIATORSETTINGS_ANNUNCIATEANYTIME_RGB_LEDS);
 #endif
+
+		if (morse < 0) {
+			// This means we were told "completed"
+			blink_string = NULL;
+			blink_prio = 0;
+
+			is_manual_control = false;
+		}
 	}
 
 #ifdef SYSTEMMOD_RGBLED_SUPPORT
-	systemmod_process_rgb_leds(led_override, morse > 0, blink_prio);
+	systemmod_process_rgb_leds(led_override, morse > 0, blink_prio,
+		FLIGHTSTATUS_ARMED_DISARMED != armed_status,
+		(FLIGHTSTATUS_ARMED_ARMING == armed_status) &&
+		((counter & 3) < 2));
 #endif /* SYSTEMMOD_RGBLED_SUPPORT */
 
 #endif  /* !PIPXTREME && PIOS_INCLUDE_ANNUNC */

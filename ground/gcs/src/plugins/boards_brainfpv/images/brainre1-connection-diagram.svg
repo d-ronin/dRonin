@@ -7081,7 +7081,7 @@
      style="display:inline"
      id="layer1">
     <g
-       id="satellite"
+       id="hwbrainre1-rxport-dsm"
        transform="matrix(0.4,0,0,0.4,-376.01667,-220.61978)"
        style="display:inline">
       <path
@@ -7156,7 +7156,7 @@
      style="display:inline"
      id="layer3">
     <g
-       id="sbus"
+       id="hwbrainre1-rxport-sbus"
        transform="matrix(0.4,0,0,0.4,-375.78951,-220.81179)"
        style="display:inline">
       <path
@@ -7232,7 +7232,7 @@
      id="layer6">
     <g
        transform="matrix(0.4,0,0,0.4,-375.74999,-222.78055)"
-       id="hott"
+       id="hwbrainre1-rxport-hottsumd"
        style="display:inline">
       <path
          style="fill:none;stroke:#777777;stroke-width:14.5;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none"
@@ -7308,7 +7308,7 @@
      id="layer4">
     <g
        transform="matrix(0.4,0,0,0.4,-375.78241,-222.81179)"
-       id="ppm"
+       id="hwbrainre1-rxport-ppm"
        style="display:inline">
       <path
          style="fill:none;stroke:#777777;stroke-width:14.5;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none"

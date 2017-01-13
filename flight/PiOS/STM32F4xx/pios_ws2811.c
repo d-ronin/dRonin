@@ -412,4 +412,11 @@ void PIOS_WS2811_set_all(ws2811_dev_t dev, uint8_t r, uint8_t g,
 	}
 }
 
+int PIOS_WS2811_get_num_leds(ws2811_dev_t dev)
+{
+	PIOS_Assert(dev->magic == WS2811_MAGIC);
+
+	return dev->max_leds;
+}
+
 #endif /* PIOS_INCLUDE_WS2811 */

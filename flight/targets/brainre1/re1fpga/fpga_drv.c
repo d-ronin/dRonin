@@ -649,6 +649,16 @@ void PIOS_WS2811_trigger_update(ws2811_dev_t ws2811_dev)
 
 	PIOS_RE1FPGA_ReleaseBus();
 }
+
+int PIOS_WS2811_get_num_leds(ws2811_dev_t ws2811_dev)
+{
+	PIOS_Assert(dev->magic == WS2811_MAGIC);
+
+	uint16_t n_leds = MIN(ws2811_dev->max_idx + 1, 1024);
+
+	return n_leds;
+}
+
 #endif /* defined(PIOS_INCLUDE_RE1_FPGA) */
 
 

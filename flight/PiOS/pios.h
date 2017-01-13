@@ -216,6 +216,35 @@
 #define NELEMENTS(x) (sizeof(x) / sizeof(*(x)))
 #define DONT_BUILD_IF(COND,MSG) typedef char static_assertion_##MSG[(COND)?-1:1]
 
+#if __BYTE_ORDER__ == __ORDER_LITTLE_ENDIAN__
+	#define CPU_TO_LE16(x) (x)
+	#define CPU_TO_LE32(x) (x)
+
+	#define CPU_TO_BE16(x) ( (((x) & 0xff00) >> 8) | \
+	                         (((x) & 0x00ff) << 8) )
+	#define CPU_TO_BE32(x) ( (((x) & 0xff000000) >> 24) | \
+	                         (((x) & 0x00ff0000) >>  8) | \
+	                         (((x) & 0x0000ff00) <<  8) | \
+	                         (((x) & 0x000000ff) << 24) )
+#elif __BYTE_ORDER__ == __ORDER_BIG_ENDIAN__
+	#define CPU_TO_LE16(x) ( (((x) & 0xff00) >> 8) | \
+	                         (((x) & 0x00ff) << 8) )
+	#define CPU_TO_LE32(x) ( (((x) & 0xff000000) >> 24) | \
+	                         (((x) & 0x00ff0000) >>  8) | \
+	                         (((x) & 0x0000ff00) <<  8) | \
+	                         (((x) & 0x000000ff) << 24) )
+
+	#define CPU_TO_BE16(x) (x)
+	#define CPU_TO_BE32(x) (x)
+#else
+	#error Unsupported architecture!
+#endif /* __BYTE_ORDER__ */
+
+#define LE16_TO_CPU(x) CPU_TO_LE16(x)
+#define LE32_TO_CPU(x) CPU_TO_LE32(x)
+#define BE16_TO_CPU(x) CPU_TO_BE16(x)
+#define BE32_TO_CPU(x) CPU_TO_BE32(x)
+
 #endif /* PIOS_H */
 
 /**

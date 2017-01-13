@@ -271,15 +271,23 @@ def make_class(collection, xml_file, update_globals=True):
             # Get parent
             if info['parent'] is not None:
                 parent_name, field_name = info['parent'].split('.')
-                parent_class = collection.find_by_name(parent_name)
+                if parent_name == name:
+                    for i, fld in enumerate(fields):
+                        if fld['name'] == field_name:
+                            enum = fld['options']
+                            mapping = dict((key, value) for key, value in enum.items())
+                            reverse_mapping = dict((value, key) for key, value in enum.items())
+                else:
+                    parent_class = collection.find_by_name(parent_name)
+                    reverse_mapping = getattr(parent_class, 'ENUMR_' + field_name)
+                    mapping = getattr(parent_class, 'ENUM_' + field_name)
+
                 if len(info['options']) == 0:
-                    parent_options = getattr(parent_class, 'ENUMR_' + field_name)
-                    for k, v in sorted(iter(parent_options.items()), key=lambda x: x[0]):
+                    for k, v in sorted(iter(reverse_mapping.items()), key=lambda x: x[0]):
                         info['options'][v] = k
                 else:
-                    parent_options = getattr(parent_class, 'ENUM_' + field_name)
                     for k in info['options'].keys():
-                        info['options'][k] = parent_options[k]
+                        info['options'][k] = mapping[k]
 
             # Add default values
             if info['defaultvalue'] is not None:

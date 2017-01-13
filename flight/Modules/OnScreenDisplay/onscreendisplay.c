@@ -135,6 +135,8 @@ const char IMPERIAL_DIST_UNIT_LONG[] = "M";
 const char IMPERIAL_DIST_UNIT_SHORT[] = "ft";
 const char IMPERIAL_SPEED_UNIT[] = "MPH";
 
+bool video_active;
+
 const point_t HOME_ARROW[] = {
 	{
 		.x = 0,
@@ -645,7 +647,7 @@ void draw_flight_mode(int x, int y, int xs, int ys, int va, int ha, int flags, i
 		write_string("ACRO", x, y, xs, ys, va, ha, flags, font);
 		break;
 	case FLIGHTSTATUS_FLIGHTMODE_ACROPLUS:
-		write_string("ACRO PLUS", x, y, xs, ys, va, ha, flags, font);
+		write_string("ACROPLUS", x, y, xs, ys, va, ha, flags, font);
 		break;
 	case FLIGHTSTATUS_FLIGHTMODE_ACRODYNE:
 		write_string("ACRODYNE", x, y, xs, ys, va, ha, flags, font);
@@ -687,7 +689,7 @@ void draw_flight_mode(int x, int y, int xs, int ys, int va, int ha, int flags, i
 		write_string("PLAN", x, y, xs, ys, va, ha, flags, font);
 		break;
 	case FLIGHTSTATUS_FLIGHTMODE_FAILSAFE:
-		write_string("FAIL", x, y, xs, ys, va, ha, flags, font);
+		write_string("FAILSAFE", x, y, xs, ys, va, ha, flags, font);
 		break;
 	case FLIGHTSTATUS_FLIGHTMODE_TABLETCONTROL:
 		TabletInfoTabletModeDesiredGet(&mode);
@@ -1015,14 +1017,19 @@ void draw_map_uav_center(int width_px, int height_px, int width_m, int height_m,
 
 void introGraphics(int16_t x, int16_t y)
 {
+#ifdef OSD_USE_BRAINFPV_LOGO
 	/* logo */
 	draw_image(x - image_brainfpv.width - 10, y - image_brainfpv.height / 2, &image_brainfpv);
 	draw_image(x + 10, y - image_dronin.height / 2, &image_dronin);
+#else
+	draw_image(x - image_droninbig.width / 2, y - image_droninbig.height / 2,
+			&image_droninbig);
+#endif
 }
 
 void introText(int16_t x, int16_t y)
 {
-	write_string("dRonin", x, y, 0, 0, TEXT_VA_TOP, TEXT_HA_CENTER, 0, FONT12X18);
+	write_string("dRonin/" DRONIN_TARGET, x, y, 0, 0, TEXT_VA_TOP, TEXT_HA_CENTER, 0, FONT12X18);
 }
 
 void printFWVersion(int16_t x, int16_t y)
@@ -1675,8 +1682,8 @@ MODULE_INITCALL(OnScreenDisplayInitialize, OnScreenDisplayStart);
 /**
  * Main osd task. It does not return.
  */
-#define BLANK_TIME 3000
-#define INTRO_TIME 5000
+#define BLANK_TIME 2000
+#define INTRO_TIME 5500
 static void onScreenDisplayTask(__attribute__((unused)) void *parameters)
 {
 	AccessoryDesiredData accessory;
@@ -1703,13 +1710,7 @@ static void onScreenDisplayTask(__attribute__((unused)) void *parameters)
 
 	// blank
 	while (PIOS_Thread_Systime() <= BLANK_TIME) {
-		// Accumulate baro altitude
 		PIOS_Thread_Sleep(20);
-		frame_counter++;
-		if (BaroAltitudeHandle()) {
-			BaroAltitudeAltitudeGet(&tmp);
-		}
-		home_baro_altitude += tmp;
 	}
 
 	// initialize interupts
@@ -1759,7 +1760,8 @@ static void onScreenDisplayTask(__attribute__((unused)) void *parameters)
 	home_baro_altitude /= frame_counter;
 
 	while (1) {
-		if (PIOS_Semaphore_Take(onScreenDisplaySemaphore, PIOS_SEMAPHORE_TIMEOUT_MAX) == true) {
+		if (PIOS_Semaphore_Take(onScreenDisplaySemaphore, 400) == true) {
+			video_active = true;
 			now = PIOS_Thread_Systime();
 #ifdef DEBUG_TIMING
 			in_ticks = PIOS_Thread_Systime();
@@ -1903,6 +1905,8 @@ static void onScreenDisplayTask(__attribute__((unused)) void *parameters)
 			sprintf(tmp_str, "%03d %03d", (int)in_time, (int)out_time);
 			write_string(tmp_str, GRAPHICS_X_MIDDLE, GRAPHICS_Y_MIDDLE - 20, 0, 0, TEXT_VA_TOP, TEXT_HA_CENTER, 0, FONT8X10);
 #endif
+		} else {
+			video_active = false;
 		}
 	}
 }

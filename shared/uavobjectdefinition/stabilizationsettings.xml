@@ -14,6 +14,7 @@
 		</field>
 		<field name="AcroDynamicTransition" units="%" type="uint8" elementnames="Roll,Pitch,Yaw" defaultvalue="70,70,70" limits="%BE:50:85,%BE:50:85,%BE:50:85"/>
 		<field name="AcroDynamicTau" units="seconds" type="float" elements="1" defaultvalue="0.225" limits="%BE:0.1:4.0"/>
+		<field name="AutotuneActuationEffort" units="" type="float" elementnames="Roll,Pitch,Yaw" defaultvalue="0.065,0.065,0.09" limits="%BE:0:0.2,%BE:0:0.2:%BE:0:0.2"/>
 		<field name="MaximumRate" units="degrees/sec" type="float" elementnames="Roll,Pitch,Yaw" defaultvalue="350,350,350" limits="%BE:0:500,%BE:0:500,%BE:0:500"/>
 		<field name="RateExpo" units="%" type="uint8" elementnames="Roll,Pitch,Yaw" defaultvalue="35,35,30" limits="%BE:0:100,%BE:0:100,%BE:0:100"/>
 		<field name="RateExponent" units="*10" type="uint8" elementnames="Roll,Pitch,Yaw" defaultvalue="30,30,30" limits="%BE:20:160,%BE:20:160,%BE:20:160"/>
