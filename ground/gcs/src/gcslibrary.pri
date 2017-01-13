@@ -21,3 +21,10 @@ contains(QT_CONFIG, reduce_exports):CONFIG += hGCS_symbols
     }
     INSTALLS += target
 }
+
+# copy pdb for breakpad and/or release debugging
+win32-msvc* {
+	debug|force_debug_info {
+		QMAKE_POST_LINK += $(COPY_FILE) $(DESTDIR_TARGET:.dll=.pdb) $$shell_path($$DLLDESTDIR)
+	}
+}
