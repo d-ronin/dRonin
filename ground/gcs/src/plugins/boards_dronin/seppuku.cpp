@@ -153,7 +153,7 @@ bool Seppuku::setInputType(InputType type)
     return true;
 }
 
-enum Core::IBoardType::InputType Seppuku::getInputType()
+InputType Seppuku::getInputType()
 {
     UAVObjectField *rcvrPort = uavoManager->getField(getHwUAVO(), "RcvrPort");
     if (!rcvrPort)

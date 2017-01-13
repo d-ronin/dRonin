@@ -126,9 +126,14 @@ HwRevolution * Revolution::getSettings()
     return hwRevolution;
 }
 //! Determine if this board supports configuring the receiver
-bool Revolution::isInputConfigurationSupported(enum InputType type = INPUT_TYPE_ANY)
+bool Revolution::isInputConfigurationSupported(InputType type)
 {
-    Q_UNUSED(type);
+    switch (type) {
+    case INPUT_TYPE_PWM:
+    case INPUT_TYPE_UNKNOWN:
+        return false;
+    }
+    
     return true;
 }
 
@@ -137,7 +142,7 @@ bool Revolution::isInputConfigurationSupported(enum InputType type = INPUT_TYPE_
  * @param type the type of receiver to use
  * @return true if successfully configured or false otherwise
  */
-bool Revolution::setInputType(enum InputType type)
+bool Revolution::setInputType(InputType type)
 {
     ExtensionSystem::PluginManager *pm = ExtensionSystem::PluginManager::instance();
     UAVObjectManager *uavoManager = pm->getObject<UAVObjectManager>();
@@ -190,7 +195,7 @@ bool Revolution::setInputType(enum InputType type)
  * @brief Revolution::getInputType fetch the currently selected input type
  * @return the selected input type
  */
-enum Core::IBoardType::InputType Revolution::getInputType()
+InputType Revolution::getInputType()
 {
     ExtensionSystem::PluginManager *pm = ExtensionSystem::PluginManager::instance();
     UAVObjectManager *uavoManager = pm->getObject<UAVObjectManager>();

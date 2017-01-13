@@ -30,25 +30,23 @@
 
 #include <coreplugin/iboardtype.h>
 
-class IBoardType;
-
 class Naze : public Core::IBoardType
 {
 public:
     Naze();
     virtual ~Naze();
 
-    virtual QString shortName();
-    virtual QString boardDescription();
-    virtual bool queryCapabilities(BoardCapabilities capability);
-    virtual QPixmap getBoardPicture();
-    virtual QString getHwUAVO();
-    virtual int queryMaxGyroRate();
-    virtual bool isInputConfigurationSupported(enum InputType type);
-    virtual bool setInputType(enum InputType type);
-    virtual enum Core::IBoardType::InputType getInputType();
-    virtual bool isUSBSupported() { return false; }
-    virtual QStringList getAdcNames();
+    QString shortName();
+    QString boardDescription();
+    bool queryCapabilities(BoardCapabilities capability);
+    QPixmap getBoardPicture();
+    QString getHwUAVO();
+    int queryMaxGyroRate();
+    bool isInputConfigurationSupported(InputType type);
+    bool setInputType(InputType type);
+    InputType getInputType();
+    bool isUSBSupported() { return false; }
+    QStringList getAdcNames();
 };
 
 

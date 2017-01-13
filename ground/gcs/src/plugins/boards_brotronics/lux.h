@@ -31,42 +31,41 @@
 
 #include <coreplugin/iboardtype.h>
 
-class IBoardType;
-
 class Lux : public Core::IBoardType
 {
 public:
     Lux();
     virtual ~Lux();
 
-    virtual QString shortName();
-    virtual QString boardDescription();
-    virtual bool queryCapabilities(BoardCapabilities capability);
-    virtual QPixmap getBoardPicture();
-    virtual QString getHwUAVO();
-    virtual int queryMaxGyroRate();
+    QString shortName();
+    QString boardDescription();
+    bool queryCapabilities(BoardCapabilities capability);
+    QPixmap getBoardPicture();
+    QString getHwUAVO();
+    int queryMaxGyroRate();
 
     //! Determine if this board supports configuring the receiver
-    virtual bool isInputConfigurationSupported(InputType type);
+    bool isInputConfigurationSupported(InputType type);
 
     /**
     * Configure the board to use an receiver input type on a port number
     * @param type the type of receiver to use
     */
-    virtual bool setInputType(enum InputType type);
+    bool setInputType(InputType type);
 
     /**
     * @brief getInputType get the current input type
     * @return the currently selected input type
     */
-    virtual enum InputType getInputType();
+    InputType getInputType();
+
     /**
     * @brief getConnectionDiagram get the connection diagram for this board
     * @return a string with the name of the resource for this board diagram
     */
-    virtual QString getConnectionDiagram() { return ":/brotronics/images/lux-connection-diagram.svg"; }
+    QString getConnectionDiagram() { return ":/brotronics/images/lux-connection-diagram.svg"; }
 
-    virtual QStringList getAdcNames();
+    QStringList getAdcNames();
 
     /**
      * @brief getBoardConfiguration

@@ -85,10 +85,11 @@ QPixmap BrainRE1::getBoardPicture()
 }
 
 //! Determine if this board supports configuring the receiver
-bool BrainRE1::isInputConfigurationSupported(enum InputType type = INPUT_TYPE_ANY)
+bool BrainRE1::isInputConfigurationSupported(InputType type)
 {
     switch (type) {
     case INPUT_TYPE_PWM:
+    case INPUT_TYPE_UNKNOWN:
         return false;
     }
     
@@ -106,7 +107,7 @@ QString BrainRE1::getHwUAVO()
  * @param port_num which input port to configure (board specific numbering)
  * @return true if successfully configured or false otherwise
  */
-bool BrainRE1::setInputType(enum InputType type)
+bool BrainRE1::setInputType(InputType type)
 {
     ExtensionSystem::PluginManager *pm = ExtensionSystem::PluginManager::instance();
     UAVObjectManager *uavoManager = pm->getObject<UAVObjectManager>();
@@ -157,7 +158,7 @@ bool BrainRE1::setInputType(enum InputType type)
  * @param port_num the port number to query (must be zero)
  * @return the selected input type
  */
-enum Core::IBoardType::InputType BrainRE1::getInputType()
+InputType BrainRE1::getInputType()
 {
     ExtensionSystem::PluginManager *pm = ExtensionSystem::PluginManager::instance();
     UAVObjectManager *uavoManager = pm->getObject<UAVObjectManager>();

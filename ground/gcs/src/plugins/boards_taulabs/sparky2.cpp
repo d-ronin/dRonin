@@ -126,10 +126,11 @@ HwSparky2 * Sparky2::getSettings()
 }
 
 //! Determine if this board supports configuring the receiver
-bool Sparky2::isInputConfigurationSupported(enum InputType type = INPUT_TYPE_ANY)
+bool Sparky2::isInputConfigurationSupported(InputType type)
 {
     switch (type) {
     case INPUT_TYPE_PWM:
+    case INPUT_TYPE_UNKNOWN:
         return false;
     }
     
@@ -141,7 +142,7 @@ bool Sparky2::isInputConfigurationSupported(enum InputType type = INPUT_TYPE_ANY
  * @param type the type of receiver to use
  * @return true if successfully configured or false otherwise
  */
-bool Sparky2::setInputType(enum InputType type)
+bool Sparky2::setInputType(InputType type)
 {
     ExtensionSystem::PluginManager *pm = ExtensionSystem::PluginManager::instance();
     UAVObjectManager *uavoManager = pm->getObject<UAVObjectManager>();
@@ -191,7 +192,7 @@ bool Sparky2::setInputType(enum InputType type)
  * @brief Sparky2::getInputType fetch the currently selected input type
  * @return the selected input type
  */
-enum Core::IBoardType::InputType Sparky2::getInputType()
+InputType Sparky2::getInputType()
 {
     ExtensionSystem::PluginManager *pm = ExtensionSystem::PluginManager::instance();
     UAVObjectManager *uavoManager = pm->getObject<UAVObjectManager>();

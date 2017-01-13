@@ -104,9 +104,13 @@ QString Brain::getHwUAVO()
 }
 
 //! Determine if this board supports configuring the receiver
-bool Brain::isInputConfigurationSupported(enum InputType type = INPUT_TYPE_ANY)
+bool Brain::isInputConfigurationSupported(InputType type)
 {
-    Q_UNUSED(type);
+    switch(type) {
+    case INPUT_TYPE_UNKNOWN:
+        return false;
+    }
+    
     return true;
 }
 
@@ -115,7 +119,7 @@ bool Brain::isInputConfigurationSupported(enum InputType type = INPUT_TYPE_ANY)
  * @param type the type of receiver to use
  * @return true if successfully configured or false otherwise
  */
-bool Brain::setInputType(enum InputType type)
+bool Brain::setInputType(InputType type)
 {
     ExtensionSystem::PluginManager *pm = ExtensionSystem::PluginManager::instance();
     UAVObjectManager *uavoManager = pm->getObject<UAVObjectManager>();
@@ -168,7 +172,7 @@ bool Brain::setInputType(enum InputType type)
  * @brief Brain::getInputType fetch the currently selected input type
  * @return the selected input type
  */
-enum Core::IBoardType::InputType Brain::getInputType()
+InputType Brain::getInputType()
 {
     ExtensionSystem::PluginManager *pm = ExtensionSystem::PluginManager::instance();
     UAVObjectManager *uavoManager = pm->getObject<UAVObjectManager>();

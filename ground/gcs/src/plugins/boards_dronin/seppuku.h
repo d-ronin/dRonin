@@ -34,8 +34,6 @@
 #include <uavobjectmanager.h>
 #include <coreplugin/iboardtype.h>
 
-class IBoardType;
-
 class Seppuku : public Core::IBoardType
 {
 public:
@@ -49,7 +47,7 @@ public:
     QString getHwUAVO();
     bool isInputConfigurationSupported(InputType type);
     bool setInputType(InputType type);
-    enum InputType getInputType();
+    InputType getInputType();
     int queryMaxGyroRate();
     QStringList getAdcNames();
     QString getConnectionDiagram();

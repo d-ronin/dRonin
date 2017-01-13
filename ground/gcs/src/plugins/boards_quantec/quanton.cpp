@@ -99,9 +99,14 @@ QPixmap Quanton::getBoardPicture()
 }
 
 //! Determine if this board supports configuring the receiver
-bool Quanton::isInputConfigurationSupported(enum InputType type = INPUT_TYPE_ANY)
+bool Quanton::isInputConfigurationSupported(InputType type)
 {
-    Q_UNUSED(type);
+    switch (type) {
+    case INPUT_TYPE_PWM:
+    case INPUT_TYPE_UNKNOWN:
+        return false;
+    }
+    
     return true;
 }
 
@@ -115,7 +120,7 @@ QString Quanton::getHwUAVO()
  * @param type the type of receiver to use
  * @return true if successfully configured or false otherwise
  */
-bool Quanton::setInputType(enum InputType type)
+bool Quanton::setInputType(InputType type)
 {
     ExtensionSystem::PluginManager *pm = ExtensionSystem::PluginManager::instance();
     UAVObjectManager *uavoManager = pm->getObject<UAVObjectManager>();
@@ -168,7 +173,7 @@ bool Quanton::setInputType(enum InputType type)
  * @brief AQ32::getInputType fetch the currently selected input type
  * @return the selected input type
  */
-enum Core::IBoardType::InputType Quanton::getInputType()
+InputType Quanton::getInputType()
 {
     ExtensionSystem::PluginManager *pm = ExtensionSystem::PluginManager::instance();
     UAVObjectManager *uavoManager = pm->getObject<UAVObjectManager>();

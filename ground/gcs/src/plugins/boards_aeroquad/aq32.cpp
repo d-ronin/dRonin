@@ -93,9 +93,13 @@ QPixmap AQ32::getBoardPicture()
 }
 
 //! Determine if this board supports configuring the receiver
-bool AQ32::isInputConfigurationSupported(enum InputType type = INPUT_TYPE_ANY)
+bool AQ32::isInputConfigurationSupported(InputType type)
 {
-    Q_UNUSED(type);
+    switch(type) {
+    case INPUT_TYPE_UNKNOWN:
+        return false;
+    }
+    
     return true;
 }
 
@@ -109,7 +113,7 @@ QString AQ32::getHwUAVO()
  * @param type the type of receiver to use
  * @return true if successfully configured or false otherwise
  */
-bool AQ32::setInputType(enum InputType type)
+bool AQ32::setInputType(InputType type)
 {
     ExtensionSystem::PluginManager *pm = ExtensionSystem::PluginManager::instance();
     UAVObjectManager *uavoManager = pm->getObject<UAVObjectManager>();
@@ -162,7 +166,7 @@ bool AQ32::setInputType(enum InputType type)
  * @brief AQ32::getInputType fetch the currently selected input type
  * @return the selected input type
  */
-enum Core::IBoardType::InputType AQ32::getInputType()
+InputType AQ32::getInputType()
 {
     ExtensionSystem::PluginManager *pm = ExtensionSystem::PluginManager::instance();
     UAVObjectManager *uavoManager = pm->getObject<UAVObjectManager>();
