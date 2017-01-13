@@ -48,13 +48,6 @@ plugin_uavtalk.subdir = uavtalk
 plugin_uavtalk.depends = plugin_uavobjects
 plugin_uavtalk.depends += plugin_coreplugin
 
-# UAVTalkRelay plugin
-SUBDIRS += plugin_uavtalkrelay
-plugin_uavtalkrelay.subdir = uavtalkrelay
-plugin_uavtalkrelay.depends = plugin_uavobjects
-plugin_uavtalkrelay.depends += plugin_coreplugin
-plugin_uavtalkrelay.depends += plugin_uavtalk
-
 # OPMap UAVGadget
 !LIGHTWEIGHT_GCS {
 plugin_opmap.subdir = opmap

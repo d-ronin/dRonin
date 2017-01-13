@@ -797,8 +797,8 @@ QString DFUObject::partitionStringFromLabel(dfu_partition_label label)
     case DFU_PARTITION_SETTINGS:
         return QString(tr("settings"));
         break;
-    case DFU_PARTITION_WAYPOINTS:
-        return QString(tr("waypoints"));
+    case DFU_PARTITION_AUTOTUNE:
+        return QString(tr("autotune"));
         break;
     case DFU_PARTITION_LOG:
         return QString(tr("log"));

@@ -579,7 +579,7 @@ static const struct pios_flash_partition pios_flash_partition_table[] = {
 	},
 
 	{
-		.label        = FLASH_PARTITION_LABEL_WAYPOINTS,
+		.label        = FLASH_PARTITION_LABEL_AUTOTUNE,
 		.chip_desc    = &pios_flash_chip_external,
 		.first_sector = 16,
 		.last_sector  = 31,
@@ -1899,6 +1899,22 @@ const struct pios_servo_cfg pios_servo_with_rcvr_with_adc_cfg = {
 	.num_channels = NELEMENTS(pios_tim_servoport_rcvrport_pins) - 2,
 };
 
+const struct pios_servo_cfg pios_servo_with_rcvr_ppm_with_adc_cfg = {
+	.tim_oc_init = {
+		.TIM_OCMode = TIM_OCMode_PWM1,
+		.TIM_OutputState = TIM_OutputState_Enable,
+		.TIM_OutputNState = TIM_OutputNState_Disable,
+		.TIM_Pulse = PIOS_SERVOS_INITIAL_POSITION,
+		.TIM_OCPolarity = TIM_OCPolarity_High,
+		.TIM_OCNPolarity = TIM_OCPolarity_High,
+		.TIM_OCIdleState = TIM_OCIdleState_Reset,
+		.TIM_OCNIdleState = TIM_OCNIdleState_Reset,
+	},
+	/* Leave the last two for ADC use */
+	.channels = pios_tim_servoport_rcvrport_PPM_pins,
+	.num_channels = NELEMENTS(pios_tim_servoport_rcvrport_PPM_pins) - 2,
+};
+
 #endif	/* PIOS_INCLUDE_SERVO && PIOS_INCLUDE_TIM */
 
 /*
@@ -2290,7 +2306,7 @@ static const struct pios_ws2811_cfg pios_ws2811_cfg = {
 	},
 	.bit_clear_dma_tcif = DMA_IT_TCIF6,
 	.fall_time_l = 5,			/* 333ns */
-	.fall_time_h = 10,			/* 750ns */
+	.fall_time_h = 11,			/* 833ns */
 	.led_gpio = GPIOA,
 	.gpio_pin = GPIO_Pin_10,		/* PA10 / IN1 */
 	.bit_set_dma_stream = DMA2_Stream4,
@@ -2338,7 +2354,7 @@ static const struct pios_exti_cfg pios_exti_mpu_cfg __exti_config = {
 
 static const struct pios_mpu_cfg pios_mpu_cfg = {
 	.exti_cfg = &pios_exti_mpu_cfg,
-	.default_samplerate = 500,
+	.default_samplerate = 1000,
 	.orientation = PIOS_MPU_TOP_180DEG
 };
 #endif /* PIOS_INCLUDE_MPU */

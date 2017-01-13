@@ -23,10 +23,12 @@ private slots:
     void groupUpdated();
     void channelDropdownUpdated(int);
     void channelNumberUpdated(int);
+    void reverseChannel();
 
 private:
     Ui::inputChannelForm *ui;
     ChannelFunc m_chanType;
+    QSpinBox *sbChannelCurrent;
 };
 
 #endif // INPUTCHANNELFORM_H

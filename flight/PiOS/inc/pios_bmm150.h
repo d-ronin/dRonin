@@ -54,14 +54,6 @@ typedef struct pios_bmm150_dev * pios_bmm150_dev_t;
  */
 int32_t PIOS_BMM150_SPI_Init(pios_bmm150_dev_t *dev, uint32_t spi_id, uint32_t slave_mag, const struct pios_bmm150_cfg *cfg);
 
-#if 0
-/**
- * @brief The IMU interrupt handler.
- * Fetches new data from the IMU.
- */
-bool PIOS_BMM150_IRQHandler(void);
-#endif
-
 #endif /* PIOS_BMM150_H */
 
 /** 

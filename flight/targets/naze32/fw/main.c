@@ -73,7 +73,6 @@ int main()
 	int	result;
 
 	/* NOTE: Do NOT modify the following start-up sequence */
-	/* Any new initialization functions should be added in OpenPilotInit() */
 	vPortInitialiseBlocks();
 
 	/* Brings up System using CMSIS functions, enables the LEDs. */

@@ -105,6 +105,7 @@
 /* Flags that alter behaviors - mostly to lower resources for CC */
 #define PIOS_INCLUDE_INITCALL           /* Include init call structures */
 //#define PIOS_TELEM_PRIORITY_QUEUE       /* Enable a priority queue in telemetry */
+#define AUTOTUNE_AVERAGING_MODE
 
 /* Alarm Thresholds */
 #define HEAP_LIMIT_WARNING		750

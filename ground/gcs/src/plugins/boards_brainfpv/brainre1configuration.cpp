@@ -67,14 +67,6 @@ BrainRE1Configuration::BrainRE1Configuration(QWidget *parent) :
     connect(ui->pbGenerateILap ,SIGNAL(clicked()) ,this, SLOT(generateILapID()));
     connect(ui->pbGenerateTrackmate ,SIGNAL(clicked()) ,this, SLOT(generateTrackmateID()));
 
-    addUAVObjectToWidgetRelation("HwBrainRE1", "NumberOfLEDs", ui->sbNumberOfLEDs);
-    addUAVObjectToWidgetRelation("HwBrainRE1", "LEDColor", ui->cmbLEDColor);
-
-    connect(re1_settings_obj, SIGNAL(CustomLEDColor_0Changed(quint8)), this, SLOT(getCustomLedColor()));
-    connect(re1_settings_obj, SIGNAL(CustomLEDColor_1Changed(quint8)), this, SLOT(getCustomLedColor()));
-    connect(re1_settings_obj, SIGNAL(CustomLEDColor_2Changed(quint8)), this, SLOT(getCustomLedColor()));
-    connect(ui->clrbCustomLEDColor, SIGNAL(colorChanged(const QColor)), this, SLOT(setCustomLedColor(const QColor)));
-
     addUAVObjectToWidgetRelation("HwBrainRE1", "BuzzerType", ui->cmbBuzzerType);
     addUAVObjectToWidgetRelation("HwBrainRE1", "VideoSyncDetectorThreshold", ui->sbVideoSyncDetectorThreshold);
 
@@ -87,9 +79,6 @@ BrainRE1Configuration::BrainRE1Configuration(QWidget *parent) :
     populateWidgets();
     refreshWidgetsValues();
     forceConnectedState();
-
-    // update the color button
-    getCustomLedColor();
 
     QPixmap img;
     img = QPixmap(":/brainfpv/images/brainre1.png");
@@ -130,7 +119,7 @@ void BrainRE1Configuration::widgetsContentsChanged()
 
 void BrainRE1Configuration::openHelp()
 {
-    QDesktopServices::openUrl( QUrl("http://wwww.brainfpv.com/support", QUrl::StrictMode) );
+    QDesktopServices::openUrl( QUrl("http://www.brainfpv.com/support", QUrl::StrictMode) );
 }
 
 void BrainRE1Configuration::generateILapID()
@@ -166,21 +155,6 @@ int BrainRE1Configuration::generateRandomNumber(int max)
     std::uniform_int_distribution<int> distribution(0, max);
     //generator.seed(QTime::currentTime().msec());
     return distribution(generator);
-}
-
-void BrainRE1Configuration::getCustomLedColor()
-{
-    QColor color = QColor::fromRgb(re1_settings_obj->getCustomLEDColor(0),
-                                   re1_settings_obj->getCustomLEDColor(1),
-                                   re1_settings_obj->getCustomLEDColor(2));
-    ui->clrbCustomLEDColor->setColor(color);
-}
-
-void BrainRE1Configuration::setCustomLedColor(const QColor color)
-{
-    re1_settings_obj->setCustomLEDColor(0, color.red());
-    re1_settings_obj->setCustomLEDColor(1, color.green());
-    re1_settings_obj->setCustomLEDColor(2, color.blue());
 }
 
 void BrainRE1Configuration::mpChanged(int idx)

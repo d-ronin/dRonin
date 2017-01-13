@@ -305,15 +305,6 @@ void PIOS_Board_Init(void) {
 			    184;
 	PIOS_MPU_SetGyroBandwidth(bandwidth);
 
-	uint8_t hw_mpu_samplerate;
-	HwNazeMPU6050RateGet(&hw_mpu_samplerate);
-	uint16_t mpu_samplerate = \
-			    (hw_mpu_samplerate == HWNAZE_MPU6050RATE_200) ? 200 : \
-			    (hw_mpu_samplerate == HWNAZE_MPU6050RATE_333) ? 333 : \
-			    (hw_mpu_samplerate == HWNAZE_MPU6050RATE_500) ? 500 : \
-			    pios_mpu_cfg.default_samplerate;
-	PIOS_MPU_SetSampleRate(mpu_samplerate);
-
 #endif /* PIOS_INCLUDE_MPU */
 
 	//I2C is slow, sensor init as well, reset watchdog to prevent reset here

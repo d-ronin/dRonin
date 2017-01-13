@@ -906,8 +906,8 @@ int WMM_SummationSpecial(WMMtype_SphericalHarmonicVariables *
 
     float PcupsS_s[NUMPCUPS];
     float       *PcupS = PcupsS_s;
-    if (!PcupS)
-        return -1;
+	if (!PcupS)
+		return -1;
 
 	PcupS[0] = 1;
 	schmidtQuasiNorm1 = 1.0;
@@ -971,8 +971,8 @@ int WMM_SecVarSummationSpecial(WMMtype_SphericalHarmonicVariables *
 
     float PcupsS_s[NUMPCUPS];
     float       *PcupS = PcupsS_s;
-    if (!PcupS)
-        return -1;
+	if (!PcupS)
+		return -1;
 
 	PcupS[0] = 1;
 	schmidtQuasiNorm1 = 1.0;

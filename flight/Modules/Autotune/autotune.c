@@ -62,15 +62,40 @@
 #define AF_NUMP 43
 
 // Private types
-enum AUTOTUNE_STATE { AT_INIT, AT_START, AT_RUN, AT_FINISHED, AT_WAITING };
+enum AUTOTUNE_STATE { AT_INIT, AT_START, AT_WAITFIRSTPOINT, AT_RUN,
+	AT_WAITING };
 
-struct at_queued_data {
+#define THROTTLE_EOF	1000.0f	/* This value doesn't make sense, so it's
+				 * a good end-of-actuation indicator.
+				 * (normal range [-1, 1])
+				 */
+
+#define ATFLASH_MAGIC 0x656e755480008041	/* A...Tune */
+struct at_flash_header {
+	uint64_t magic;
+	uint16_t wiggle_points;
+	uint16_t aux_data_len;
+	uint16_t sample_rate;
+
+	// Consider total number of averages here
+	uint16_t resv;
+};
+
+struct at_measurement {
 	float y[3];		/* Gyro measurements */
 	float u[3];		/* Actuator desired */
-	float throttle;	/* Throttle desired */
-
-	uint32_t raw_time;	/* From PIOS_DELAY_GetRaw() */
 };
+
+struct at_queued_data {
+	struct at_measurement meas;
+	float throttle;		/* Throttle desired */
+
+	uint16_t sample_num;
+};
+
+#ifdef AUTOTUNE_AVERAGING_MODE
+static struct at_measurement *at_averages;
+#endif
 
 // Private variables
 static struct pios_thread *taskHandle;
@@ -79,17 +104,19 @@ static circ_queue_t at_queue;
 static volatile uint32_t at_points_spilled;
 static uint32_t throttle_accumulator;
 
+extern uint16_t ident_wiggle_points;
+
 // Private functions
 static void AutotuneTask(void *parameters);
-static void af_predict(float X[AF_NUMX], float P[AF_NUMP], const float u_in[3], const float gyro[3], const float dT_s, const float t_in);
+static void af_predict(float X[AF_NUMX], float P[AF_NUMP], const struct at_measurement *measurement, const float dT_s, const float t_in);
 static void af_init(float X[AF_NUMX], float P[AF_NUMP]);
 
 #ifndef AT_QUEUE_NUMELEM
 
 #ifdef SMALLF1
-#define AT_QUEUE_NUMELEM 18
+#define AT_QUEUE_NUMELEM 19
 #else
-#define AT_QUEUE_NUMELEM 30
+#define AT_QUEUE_NUMELEM 32
 #endif
 
 #endif
@@ -124,7 +151,7 @@ int32_t AutotuneInitialize(void)
 			module_enabled = false;
 			return -1;
 		}
-		
+
 		at_queue = circ_queue_new(sizeof(struct at_queued_data),
 				AT_QUEUE_NUMELEM);
 
@@ -143,9 +170,6 @@ int32_t AutotuneStart(void)
 {
 	// Start main task if it is enabled
 	if(module_enabled) {
-		// Watchdog must be registered before starting task
-		PIOS_WDG_RegisterFlag(PIOS_WDG_AUTOTUNE);
-
 		// Start main task
 		taskHandle = PIOS_Thread_Create(AutotuneTask, "Autotune", STACK_SIZE_BYTES, NULL, TASK_PRIORITY);
 
@@ -156,14 +180,13 @@ int32_t AutotuneStart(void)
 
 MODULE_INITCALL(AutotuneInitialize, AutotuneStart)
 
-static void at_new_gyro_data(UAVObjEvent * ev, void *ctx, void *obj, int len) {
+static void at_new_actuators(UAVObjEvent * ev, void *ctx, void *obj, int len) {
 	(void) ev; (void) ctx;
 
-	static bool last_sample_unpushed = 0;
+	static bool last_sample_unpushed = false;
 
-	GyrosData *g = obj;
-
-	PIOS_Assert(len == sizeof(*g));
+	static bool running = false;
+	static bool first_cycle = false;
 
 	if (last_sample_unpushed) {
 		/* Last time we were unable to advance the write pointer.
@@ -173,21 +196,64 @@ static void at_new_gyro_data(UAVObjEvent * ev, void *ctx, void *obj, int len) {
 		}
 	}
 
-	struct at_queued_data *q_item = circ_queue_write_pos(at_queue,
-			NULL, NULL);
-
-	q_item->raw_time = PIOS_DELAY_GetRaw();
-
-	q_item->y[0] = g->x;
-	q_item->y[1] = g->y;
-	q_item->y[2] = g->z;
-
 	ActuatorDesiredData actuators;
 	ActuatorDesiredGet(&actuators);
 
-	q_item->u[0] = actuators.Roll;
-	q_item->u[1] = actuators.Pitch;
-	q_item->u[2] = actuators.Yaw;
+	GyrosData g;
+	GyrosGet(&g);
+
+	struct at_queued_data *q_item = circ_queue_write_pos(at_queue,
+			NULL, NULL);
+
+	if (actuators.SystemIdentCycle == 0xffff) {
+		if (running) {
+			// Signify end of actuation stream.
+			q_item->throttle = THROTTLE_EOF;
+
+			if (circ_queue_advance_write(at_queue) == 0) {
+				running = false;
+				first_cycle = false;
+			}
+		}
+
+		return;		// No data
+	}
+
+	/* Simple state machine.
+	 * !running !first_cycle -> running first_cycle -> running !first_cycle
+	 */
+	if (!running || first_cycle) {
+		if (actuators.SystemIdentCycle == 0x0000) {
+			running = true;
+			first_cycle = ! first_cycle;
+		}
+	}
+
+#ifdef AUTOTUNE_AVERAGING_MODE
+	struct at_measurement *avg_point = &at_averages[actuators.SystemIdentCycle];
+
+	if (first_cycle) {
+		*avg_point = (struct at_measurement) { { 0 } };
+	}
+
+	avg_point->y[0] += g.x;
+	avg_point->y[1] += g.y;
+	avg_point->y[2] += g.z;
+
+	avg_point->u[0] += actuators.Roll;
+	avg_point->u[1] += actuators.Pitch;
+	avg_point->u[2] += actuators.Yaw;
+#endif
+
+	q_item->sample_num = actuators.SystemIdentCycle;
+
+	q_item->meas.y[0] = g.x;
+	q_item->meas.y[1] = g.y;
+	q_item->meas.y[2] = g.z;
+
+	q_item->meas.u[0] = actuators.Roll;
+	q_item->meas.u[1] = actuators.Pitch;
+	q_item->meas.u[2] = actuators.Yaw;
 
 	q_item->throttle = actuators.Thrust;
 
@@ -199,7 +265,7 @@ static void at_new_gyro_data(UAVObjEvent * ev, void *ctx, void *obj, int len) {
 }
 
 static void UpdateSystemIdent(const float *X, const float *noise,
-		float dT_s, uint32_t predicts, uint32_t spills,
+		uint32_t predicts, uint32_t spills,
 		float hover_throttle, bool new_tune) {
 	SystemIdentData system_ident;
 
@@ -217,8 +283,6 @@ static void UpdateSystemIdent(const float *X, const float *noise,
 	system_ident.Noise[SYSTEMIDENT_NOISE_PITCH] = noise[1];
 	system_ident.Noise[SYSTEMIDENT_NOISE_YAW]   = noise[2];
 
-	system_ident.Period = dT_s * 1000.0f;
-
 	system_ident.NumAfPredicts = predicts;
 	system_ident.NumSpilledPts = spills;
 
@@ -227,43 +291,53 @@ static void UpdateSystemIdent(const float *X, const float *noise,
 	SystemIdentSet(&system_ident);
 }
 
-static void UpdateStabilizationDesired(bool doingIdent) {
-	StabilizationDesiredData stabDesired;
-	StabilizationDesiredGet(&stabDesired);
+#ifdef AUTOTUNE_AVERAGING_MODE
+static int autotune_save_averaging() {
+	uintptr_t part_id;
 
-	uint8_t rollMax, pitchMax;
-
-	float manualRate[STABILIZATIONSETTINGS_MANUALRATE_NUMELEM];
-
-	StabilizationSettingsRollMaxGet(&rollMax);
-	StabilizationSettingsPitchMaxGet(&pitchMax);
-	StabilizationSettingsManualRateGet(manualRate);
-
-	SystemSettingsAirframeTypeOptions airframe_type;
-	SystemSettingsAirframeTypeGet(&airframe_type);
-
-	ManualControlCommandData manual_control_command;
-	ManualControlCommandGet(&manual_control_command);
-
-	stabDesired.Roll = manual_control_command.Roll * rollMax;
-	stabDesired.Pitch = manual_control_command.Pitch * pitchMax;
-	stabDesired.Yaw = manual_control_command.Yaw * manualRate[STABILIZATIONSETTINGS_MANUALRATE_YAW];
-
-	if (doingIdent) {
-		stabDesired.StabilizationMode[STABILIZATIONDESIRED_STABILIZATIONMODE_ROLL]  = STABILIZATIONDESIRED_STABILIZATIONMODE_SYSTEMIDENT;
-		stabDesired.StabilizationMode[STABILIZATIONDESIRED_STABILIZATIONMODE_PITCH] = STABILIZATIONDESIRED_STABILIZATIONMODE_SYSTEMIDENT;
-		stabDesired.StabilizationMode[STABILIZATIONDESIRED_STABILIZATIONMODE_YAW] = STABILIZATIONDESIRED_STABILIZATIONMODE_SYSTEMIDENT;
-	} else {
-		stabDesired.StabilizationMode[STABILIZATIONDESIRED_STABILIZATIONMODE_ROLL]  = STABILIZATIONDESIRED_STABILIZATIONMODE_ATTITUDE;
-		stabDesired.StabilizationMode[STABILIZATIONDESIRED_STABILIZATIONMODE_PITCH] = STABILIZATIONDESIRED_STABILIZATIONMODE_ATTITUDE;
-		stabDesired.StabilizationMode[STABILIZATIONDESIRED_STABILIZATIONMODE_YAW] = STABILIZATIONDESIRED_STABILIZATIONMODE_RATE;
+	if (PIOS_FLASH_find_partition_id(
+				FLASH_PARTITION_LABEL_AUTOTUNE,
+				&part_id)) {
+		return -1;
 	}
 
-	stabDesired.Thrust = (airframe_type == SYSTEMSETTINGS_AIRFRAMETYPE_HELICP) ? manual_control_command.Collective : manual_control_command.Throttle;
-	StabilizationDesiredSet(&stabDesired);
-}
 
-#define MAX_PTS_PER_CYCLE 4
+	if (PIOS_FLASH_start_transaction(part_id)) {
+		return -2;
+	}
+
+	if (PIOS_FLASH_erase_partition(part_id)) {
+		PIOS_FLASH_end_transaction(part_id);
+		return -3;
+	}
+
+	struct at_flash_header hdr = {
+		.magic = ATFLASH_MAGIC,
+		.wiggle_points = ident_wiggle_points,
+		.aux_data_len = 0,
+		.sample_rate = PIOS_SENSORS_GetSampleRate(PIOS_SENSOR_GYRO),
+	};
+
+	uint32_t offset = 0;
+
+	if (PIOS_FLASH_write_data(part_id, 0, (uint8_t *) &hdr,
+				sizeof(hdr))) {
+		PIOS_FLASH_end_transaction(part_id);
+		return -4;
+	}
+
+	offset += sizeof(hdr);
+
+	if (PIOS_FLASH_write_data(part_id, offset, (uint8_t *) at_averages,
+				sizeof(*at_averages) * ident_wiggle_points)) {
+		PIOS_FLASH_end_transaction(part_id);
+		return -5;
+	}
+
+	PIOS_FLASH_end_transaction(part_id);
+	return 0;
+}
+#endif /* AUTOTUNE_AVERAGING_MODE */
 
 /**
  * Module thread, should not return.
@@ -272,39 +346,60 @@ static void AutotuneTask(void *parameters)
 {
 	enum AUTOTUNE_STATE state = AT_INIT;
 
-	uint32_t last_update_time = PIOS_Thread_Systime();
-
 	float X[AF_NUMX] = {0};
 	float P[AF_NUMP] = {0};
 	float noise[3] = {0};
 
-	af_init(X,P);
+	uint16_t last_samp = 0;
 
-	uint32_t last_time = 0.0f;
 	const uint32_t YIELD_MS = 2;
 
-	GyrosConnectCallback(at_new_gyro_data);
+#ifdef AUTOTUNE_AVERAGING_MODE
+	/* Wait for stabilization module to complete startup and tell us
+	 * its dT, etc.
+	 */
+	while (!ident_wiggle_points) {
+		PIOS_Thread_Sleep(25);
+	}
+
+	uint16_t buf_size = sizeof(*at_averages) * ident_wiggle_points;
+	at_averages = PIOS_malloc(buf_size);
+
+	while (!at_averages) {
+		/* Infinite loop because we couldn't get our buffer */
+		/* Assert alarm XXX? */
+		PIOS_Thread_Sleep(2500);
+	}
+#endif /* AUTOTUNE_AVERAGING_MODE */
+
+	float dT_expected = 0.001f;
+	uint16_t sample_rate = PIOS_SENSORS_GetSampleRate(PIOS_SENSOR_GYRO);
+
+	if (sample_rate) {
+		dT_expected = 1.0f / sample_rate;
+	}
+
+	ActuatorDesiredConnectCallback(at_new_actuators);
 
 	bool save_needed = false;
 
 	while(1) {
-		PIOS_WDG_UpdateFlag(PIOS_WDG_AUTOTUNE);
-
-		uint32_t diff_time;
-
-		const uint32_t PREPARE_TIME = 2000;
-		const uint32_t MEASURE_TIME = 60000;
-
 		static uint32_t update_counter = 0;
 
-		bool doing_ident = false;
-		bool can_sleep = true;
+		uint8_t armed;
 
-		FlightStatusData flightStatus;
-		FlightStatusGet(&flightStatus);
+		FlightStatusArmedGet(&armed);
 
 		if (save_needed) {
-			if (flightStatus.Armed == FLIGHTSTATUS_ARMED_DISARMED) {
+			if (armed == FLIGHTSTATUS_ARMED_DISARMED) {
+#ifdef AUTOTUNE_AVERAGING_MODE
+				if (autotune_save_averaging()) {
+					// Try again in a second, I guess.
+					PIOS_Thread_Sleep(1000);
+					continue;
+				}
+#endif /* AUTOTUNE_AVERAGING_MODE */
+
 				// Save the settings locally.
 				UAVObjSave(SystemIdentHandle(), 0);
 				state = AT_INIT;
@@ -314,11 +409,20 @@ static void AutotuneTask(void *parameters)
 
 		}
 
-		// Only allow this module to run when autotuning
-		if (flightStatus.FlightMode != FLIGHTSTATUS_FLIGHTMODE_AUTOTUNE) {
-			state = AT_INIT;
-			PIOS_Thread_Sleep(50);
-			continue;
+		// Only allow this module to run when roll axis is in a tune
+		// mode
+		uint8_t stab_modes[STABILIZATIONDESIRED_STABILIZATIONMODE_NUMELEM];
+
+		StabilizationDesiredStabilizationModeGet(stab_modes);
+
+		switch (stab_modes[0]) {
+			case STABILIZATIONDESIRED_STABILIZATIONMODE_SYSTEMIDENT:
+			case STABILIZATIONDESIRED_STABILIZATIONMODE_SYSTEMIDENTRATE:
+				break;
+			default:
+				state = AT_INIT;
+				PIOS_Thread_Sleep(30);
+				continue;
 		}
 
 		switch(state) {
@@ -327,10 +431,8 @@ static void AutotuneTask(void *parameters)
 				// completes.
 				save_needed = false;
 
-				last_update_time = PIOS_Thread_Systime();
-
 				// Only start when armed and flying
-				if (flightStatus.Armed == FLIGHTSTATUS_ARMED_ARMED) {
+				if (armed == FLIGHTSTATUS_ARMED_ARMED) {
 
 					af_init(X,P);
 
@@ -341,38 +443,42 @@ static void AutotuneTask(void *parameters)
 				break;
 
 			case AT_START:
+				/* Drain the queue of all current data */
+				circ_queue_clear(at_queue);
 
-				diff_time = PIOS_Thread_Systime() - last_update_time;
+				/* And reset the point spill counter */
 
-				// Spend the first block of time in normal rate mode to get stabilized
-				if (diff_time > PREPARE_TIME) {
-					last_time = PIOS_DELAY_GetRaw();
+				update_counter = 0;
+				at_points_spilled = 0;
 
-					/* Drain the queue of all current data */
-					circ_queue_clear(at_queue);
+				throttle_accumulator = 0;
 
-					/* And reset the point spill counter */
-
-					update_counter = 0;
-					at_points_spilled = 0;
-
-					throttle_accumulator = 0;
-
-					state = AT_RUN;
-					last_update_time = PIOS_Thread_Systime();
-				}
-
+				state = AT_WAITFIRSTPOINT;
 
 				break;
 
+			case AT_WAITFIRSTPOINT:
+				{
+					struct at_queued_data *pt;
+
+					/* Grab an autotune point */
+					pt = circ_queue_read_pos(at_queue, NULL, NULL);
+
+					if (!pt) {
+						// Still no data showing up
+						break;
+					}
+
+					if (pt->throttle == THROTTLE_EOF) {
+						// Ignore old EOFs, just in case
+						break;
+					}
+
+					state = AT_RUN;
+				}
+
 			case AT_RUN:
-
-				diff_time = PIOS_Thread_Systime() - last_update_time;
-
-				doing_ident = true;
-				can_sleep = false;
-
-				for (int i=0; i<MAX_PTS_PER_CYCLE; i++) {
+				while (true) {
 					struct at_queued_data *pt;
 
 					/* Grab an autotune point */
@@ -381,29 +487,44 @@ static void AutotuneTask(void *parameters)
 					if (!pt) {
 						/* We've drained the buffer
 						 * fully.  Yay! */
-						can_sleep = true;
+						break;
+					}
+
+					if (pt->throttle == THROTTLE_EOF) {
+						// End of actuation, clean up
+						float hover_throttle = ((float)(throttle_accumulator/update_counter))/10000.0f;
+						UpdateSystemIdent(X, noise, update_counter, at_points_spilled, hover_throttle, true);
+
+						save_needed = true;
+						state = AT_WAITING;
+
 						break;
 					}
 
 					/* calculate time between successive
 					 * points */
 
-					float dT_s = PIOS_DELAY_DiffuS2(last_time,
-							pt->raw_time) * 1.0e-6f;
+					uint16_t samp_interval = pt->sample_num - last_samp;
 
-					/* This is for the first point, but
-					 * also if we have extended drops */
-					if (dT_s > 0.010f) {
-						dT_s = 0.010f;
+					if (samp_interval > ident_wiggle_points) {
+						/* Handle wrap case. */
+						samp_interval += ident_wiggle_points;
 					}
 
-					last_time = pt->raw_time;
+					if ((samp_interval == 0) ||
+							(samp_interval > 10)) {
+						samp_interval = 10;
+					}
 
-					af_predict(X, P, pt->u, pt->y, dT_s, pt->throttle);
+					float dT_s = samp_interval * dT_expected;
+
+					last_samp = pt->sample_num;
+
+					af_predict(X, P, &pt->meas, dT_s, pt->throttle);
 
 					for (uint32_t i = 0; i < 3; i++) {
 						const float NOISE_ALPHA = 0.9997f;  // 10 second time constant at 300 Hz
-						noise[i] = NOISE_ALPHA * noise[i] + (1-NOISE_ALPHA) * (pt->y[i] - X[i]) * (pt->y[i] - X[i]);
+						noise[i] = NOISE_ALPHA * noise[i] + (1-NOISE_ALPHA) * (pt->meas.y[i] - X[i]) * (pt->meas.y[i] - X[i]);
 					}
 
 					//This will work up to 8kHz with an 89% throttle position before overflow
@@ -414,43 +535,20 @@ static void AutotuneTask(void *parameters)
 
 					// Update uavo every 256 cycles to avoid
 					// telemetry spam
-					if (!((update_counter++) & 0xff)) {
+					if (!((++update_counter) & 0xff)) {
 						float hover_throttle = ((float)(throttle_accumulator/update_counter))/10000.0f;
-						UpdateSystemIdent(X, noise, dT_s, update_counter, at_points_spilled, hover_throttle, false);
+						UpdateSystemIdent(X, noise, update_counter, at_points_spilled, hover_throttle, false);
 					}
 				}
-
-				if (diff_time > MEASURE_TIME) { // Move on to next state
-					state = AT_FINISHED;
-					last_update_time = PIOS_Thread_Systime();
-				}
-
-				break;
-
-			case AT_FINISHED: ;
-
-				// Wait until disarmed and landed before saving the settings
-
-				float hover_throttle = ((float)(throttle_accumulator/update_counter))/10000.0f;
-				UpdateSystemIdent(X, noise, 0, update_counter, at_points_spilled, hover_throttle, true);
-
-				save_needed = true;
-				state = AT_WAITING;
 
 				break;
 
 			case AT_WAITING:
 			default:
-				// Set an alarm or some shit like that
 				break;
 		}
 
-		// Update based on manual controls
-		UpdateStabilizationDesired(doing_ident);
-
-		if (can_sleep) {
-			PIOS_Thread_Sleep(YIELD_MS);
-		}
+		PIOS_Thread_Sleep(YIELD_MS);
 	}
 }
 
@@ -462,7 +560,7 @@ static void AutotuneTask(void *parameters)
  * @param[in] the current control inputs (roll, pitch, yaw)
  * @param[in] the gyro measurements
  */
-__attribute__((always_inline)) static inline void af_predict(float X[AF_NUMX], float P[AF_NUMP], const float u_in[3], const float gyro[3], const float dT_s, const float t_in)
+__attribute__((always_inline)) static inline void af_predict(float X[AF_NUMX], float P[AF_NUMP], const struct at_measurement *measurement, const float dT_s, const float t_in)
 {
 	const float Ts = dT_s;
 	const float Tsq = Ts * Ts;
@@ -490,14 +588,14 @@ __attribute__((always_inline)) static inline void af_predict(float X[AF_NUMX], f
 	const float bias3 = X[12];       // bias in the yaw torque
 
 	// inputs to the system (roll, pitch, yaw)
-	const float u1_in = 4*t_in*u_in[0];
-	const float u2_in = 4*t_in*u_in[1];
-	const float u3_in = 4*t_in*u_in[2];
+	const float u1_in = 4*t_in*measurement->u[0];
+	const float u2_in = 4*t_in*measurement->u[1];
+	const float u3_in = 4*t_in*measurement->u[2];
 
 	// measurements from gyro
-	const float gyro_x = gyro[0];
-	const float gyro_y = gyro[1];
-	const float gyro_z = gyro[2];
+	const float gyro_x = measurement->y[0];
+	const float gyro_y = measurement->y[1];
+	const float gyro_z = measurement->y[2];
 
 	// update named variables because we want to use predicted
 	// values below
@@ -515,7 +613,7 @@ __attribute__((always_inline)) static inline void af_predict(float X[AF_NUMX], f
 	const float q_B = 1e-6f;
 	const float q_tau = 1e-6f;
 	const float q_bias = 1e-19f;
-	const float s_a = 150.0f; // expected gyro measurment noise
+	const float s_a = 150.0f; // expected gyro measurement noise
 
 	const float Q[AF_NUMX] = {q_w, q_w, q_w, q_ud, q_ud, q_ud, q_B, q_B, q_B, q_tau, q_bias, q_bias, q_bias};
 

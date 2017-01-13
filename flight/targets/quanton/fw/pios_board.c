@@ -45,6 +45,7 @@
 #include "hwquanton.h"
 #include "manualcontrolsettings.h"
 #include "modulesettings.h"
+#include "rgbledsettings.h"
 
 /**
  * Sensor configurations
@@ -547,6 +548,10 @@ void PIOS_Board_Init(void) {
 #endif
 			break;
 		case HWQUANTON_INPORT_PPMOUTPUTSADC:
+#ifdef PIOS_INCLUDE_SERVO
+			PIOS_Servo_Init(&pios_servo_with_rcvr_ppm_with_adc_cfg);
+#endif
+			break;
 		case HWQUANTON_INPORT_OUTPUTSADC:
 #ifdef PIOS_INCLUDE_SERVO
 			PIOS_Servo_Init(&pios_servo_with_rcvr_with_adc_cfg);
@@ -558,19 +563,19 @@ void PIOS_Board_Init(void) {
 #endif
 
 #ifdef PIOS_INCLUDE_WS2811
-	if (hw_inport == HWQUANTON_INPORT_WS2811SERIALPPMADC) {
-		PIOS_WS2811_init(&pios_ws2811, &pios_ws2811_cfg, 7);
+	RGBLEDSettingsInitialize();
 
-		// Pending infrastructure for this, drive a fixed
-		// value to the strand once.
-		PIOS_WS2811_set(pios_ws2811, 0, 255, 0, 0); // red
-		PIOS_WS2811_set(pios_ws2811, 1, 0, 255, 0); // green
-		PIOS_WS2811_set(pios_ws2811, 2, 0, 0, 255); // blue
-		PIOS_WS2811_set(pios_ws2811, 3, 255, 255, 0); // yellow
-		PIOS_WS2811_set(pios_ws2811, 4, 255, 0, 255); // purple
-		PIOS_WS2811_set(pios_ws2811, 5, 0, 255, 255); // cyan
-		PIOS_WS2811_set(pios_ws2811, 6, 64, 64, 64); // gray
-		PIOS_WS2811_trigger_update(pios_ws2811);
+	if (hw_inport == HWQUANTON_INPORT_WS2811SERIALPPMADC) {
+		uint8_t temp;
+
+		RGBLEDSettingsNumLedsGet(&temp);
+
+		if (temp > 0) {
+			PIOS_WS2811_init(&pios_ws2811, &pios_ws2811_cfg, temp);
+
+			// Drive default value (off) to strand once at startup
+			PIOS_WS2811_trigger_update(pios_ws2811);
+		}
 	}
 #endif
 
@@ -632,17 +637,6 @@ void PIOS_Board_Init(void) {
 		(hw_mpu_dlpf == HWQUANTON_MPU6000DLPF_5)   ? 5   : \
 		188;
 	PIOS_MPU_SetGyroBandwidth(bandwidth);
-
-	HwQuantonMPU6000RateOptions hw_mpu_samplerate;
-	HwQuantonMPU6000RateGet(&hw_mpu_samplerate);
-	uint16_t mpu_samplerate = \
-		(hw_mpu_samplerate == HWQUANTON_MPU6000RATE_200) ? 200 : \
-		(hw_mpu_samplerate == HWQUANTON_MPU6000RATE_250) ? 250 : \
-		(hw_mpu_samplerate == HWQUANTON_MPU6000RATE_333) ? 333 : \
-		(hw_mpu_samplerate == HWQUANTON_MPU6000RATE_500) ? 500 : \
-		(hw_mpu_samplerate == HWQUANTON_MPU6000RATE_1000) ? 1000 : \
-		pios_mpu_cfg.default_samplerate;
-	PIOS_MPU_SetSampleRate(mpu_samplerate);
 #endif
 
 #if defined(PIOS_INCLUDE_I2C)

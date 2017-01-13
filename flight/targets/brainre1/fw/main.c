@@ -31,6 +31,7 @@
 
 /* OpenPilot Includes */
 #include "openpilot.h"
+#include <eventdispatcher.h>
 #include "uavobjectsinit.h"
 #include "systemmod.h"
 #include "pios_thread.h"
@@ -68,7 +69,6 @@ static void initTask(void *parameters);
 int main()
 {
 	/* NOTE: Do NOT modify the following start-up sequence */
-	/* Any new initialization functions should be added in OpenPilotInit() */
 	PIOS_heap_initialize_blocks();
 
 #if defined(PIOS_INCLUDE_CHIBIOS)
@@ -115,14 +115,6 @@ void initTask(void *parameters)
 
 	/* Initialize modules */
 	MODULE_INITIALISE_ALL(PIOS_WDG_Clear);
-
-	/* Schedule a periodic callback to update the LEDs */
-	UAVObjEvent ev = {
-		.obj = HwBrainRE1Handle(),
-		.instId = 0,
-		.event = 0,
-	};
-	EventPeriodicCallbackCreate(&ev, ledUpdatePeridodicCb, 31);
 
 	/* terminate this task */
 	PIOS_Thread_Delete(NULL);

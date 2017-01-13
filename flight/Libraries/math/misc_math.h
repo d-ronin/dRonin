@@ -79,6 +79,26 @@ static inline bool IS_NOT_FINITE(float x) {
 	return (!isfinite(x));
 }
 
+// The well known 3rd order expansion of sine; 2^15 units/circle
+// Based on http://www.coranac.com/2009/07/sines/
+// Output is Q12
+static inline int16_t sin_approx(int32_t x)
+{
+	static const int qN = 13,
+		     qA = 12, qP = 15,
+		     qR= 2*qN - qP,
+		     qS= qN + qP+ 1 - qA;
+
+	x= x<<(30-qN);          // shift to full s32 range (Q13->Q30)
+
+	if( (x^(x<<1)) < 0)     // test for quadrant 1 or 2
+		x= (1<<31) - x;
+
+	x= x>>(30-qN);
+
+	return x * ( (3<<qP) - (x*x>>qR) ) >> qS;
+}
+
 /* Following functions from fastapprox https://code.google.com/p/fastapprox/
  * are governed by this license agreement: */
 

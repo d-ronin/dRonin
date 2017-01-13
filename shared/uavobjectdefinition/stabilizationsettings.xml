@@ -6,7 +6,14 @@
 		<field name="RollMax" units="degrees" type="uint8" elements="1" defaultvalue="55" limits="%BE:0:180"/>
 		<field name="PitchMax" units="degrees" type="uint8" elements="1" defaultvalue="55" limits="%BE:0:180"/>
 		<field name="YawMax" units="degrees" type="uint8" elements="1" defaultvalue="35" limits="%BE:0:180"/>
-		<field name="ManualRate" units="degrees/sec" type="float" elementnames="Roll,Pitch,Yaw" defaultvalue="250,250,225" limits="%BE:0:1440,%BE:0:1440,%BE:0:1440"/>
+		<field name="ManualRate" units="degrees/sec" type="float" elementnames="Roll,Pitch,Yaw" defaultvalue="250,250,225" limits="%BE:0:1650,%BE:0:1650,%BE:0:1650">
+			<description>The rate to rotate on this axis at full stick deflection in rate/acro modeis.</description>
+		</field>
+		<field name="AcroDynamicRate" units="degrees/sec" type="float" elementnames="Roll,Pitch,Yaw" defaultvalue="0,0,0" limits="%BE:0:1650,%BE:0:1650,%BE:0:1650">
+			<description>The rate to accelerate towards on this axis under high sustained stick deflection in AcroDyne mode.  0 implies the maximum safe rate, or 1.5 times ManualRate, whichever is lower.</description>
+		</field>
+		<field name="AcroDynamicTransition" units="%" type="uint8" elementnames="Roll,Pitch,Yaw" defaultvalue="70,70,70" limits="%BE:50:85,%BE:50:85,%BE:50:85"/>
+		<field name="AcroDynamicTau" units="seconds" type="float" elements="1" defaultvalue="0.225" limits="%BE:0.1:4.0"/>
 		<field name="MaximumRate" units="degrees/sec" type="float" elementnames="Roll,Pitch,Yaw" defaultvalue="350,350,350" limits="%BE:0:500,%BE:0:500,%BE:0:500"/>
 		<field name="RateExpo" units="%" type="uint8" elementnames="Roll,Pitch,Yaw" defaultvalue="35,35,30" limits="%BE:0:100,%BE:0:100,%BE:0:100"/>
 		<field name="RateExponent" units="*10" type="uint8" elementnames="Roll,Pitch,Yaw" defaultvalue="30,30,30" limits="%BE:20:160,%BE:20:160,%BE:20:160"/>
@@ -29,6 +36,12 @@
 		<field name="CoordinatedFlightYawPI" units="" type="float" elementnames="Kp,Ki,ILimit" defaultvalue="0,0.1,0.5" limits="%BE:0:1,%BE:0:1, "/>
 		<field name="AcroInsanityFactor" units="percent" type="float" elements="1" defaultvalue="40" limits="%BE:0:100">
 			<description>Only applicable to Acro+ flight mode. Controls the amount of stick input fed directly to the actuators (AKA "gyro suppression"), 100% results in full manual control at full stick deflection. Note: the rate settings are no longer directly applicable, especially with high insanity factors.</description>
+		</field>
+		<field name="AcroZeroIntegralGyro" units="deg/s" type="float" elements="1" defaultvalue="150">
+			<description>Only applicable to Acro+ flight mode. Rates above this value constitute "aggressive" maneuvers and will reset the integral to zero.</description>
+		</field>
+		<field name="AcroZeroIntegralStick" units="%" type="float" elements="1" defaultvalue="20" limits="%BE:0:100">
+			<description>Only applicable to Acro+ flight mode. Stick deflection above this value constitutes an "aggressive" maneuver and will reset the integral to zero. A value of 100% disables the integral reset.</description>
 		</field>
 		<field name="CameraTilt" units="deg" type="float" elements="1" defaultvalue="0" limits="%BE:-85:85">
 			<description>Only applicable when CameraAngle selected as Reprojection mode in Input settings. This should be the actual tilt angle of your camera. If your camera is tilted upwards, use positive tilt.</description>

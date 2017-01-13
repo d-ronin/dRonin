@@ -2,10 +2,11 @@
 <xml>
 	<object name="SharedDefs" singleinstance="true" settings="false">
 		<description>Templates for common enums.</description>
-		<field name="FlightMode" units="" type="enum" elements="1" options="Manual,Acro,Leveling,Horizon,AxisLock,VirtualBar,Stabilized1,Stabilized2,Stabilized3,Autotune,AltitudeHold,PositionHold,ReturnToHome,PathPlanner,TabletControl,AcroPlus,Failsafe"/>
-		<field name="StabilizationMode" units="" type="enum" elements="1" options="Manual,Rate,Attitude,AxisLock,WeakLeveling,VirtualBar,Horizon,SystemIdent,POI,CoordinatedFlight,AcroPlus,Disabled,Failsafe"/>
+		<field name="FlightMode" units="" type="enum" elements="1" options="Manual,Acro,Leveling,Horizon,AxisLock,VirtualBar,Stabilized1,Stabilized2,Stabilized3,Autotune,AltitudeHold,PositionHold,ReturnToHome,PathPlanner,TabletControl,AcroPlus,Acrodyne,Failsafe"/>
+		<field name="StabilizationMode" units="" type="enum" elements="1" options="Manual,Rate,Attitude,AxisLock,WeakLeveling,VirtualBar,Horizon,SystemIdent,SystemIdentRate,POI,CoordinatedFlight,AcroPlus,Acrodyne,Disabled,Failsafe"/>
 		<!-- Effort -> Emulate direct stick input; ModeSpecific -> Assume values are pre-scaled with some knowledge about given mode, do not scale -->
 		<field name="ReprojectionMode" units="" type="enum" elements="1" options="None,CameraAngle,HeadFree"/>
+		<!-- Effort -> Emulate direct stick input; ModeSpecific -> Assume values are pre-scaled with some knowledge about given mode, do not scale -->
 		<field name="OrientationUnit" units="" type="enum" elements="1" options="Effort,ModeSpecific,Degrees,DegreesPerSec,DegreesPerSec2"/>
 		<field name="PositionUnit" units="" type="enum" elements="1" options="Effort,ModeSpecific,Meters,MetersPerSec,MetersPerSec2"/>
 		<field name="AlarmLevels" units="" type="enum" elements="1" defaultvalue="Uninitialised">

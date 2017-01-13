@@ -123,6 +123,7 @@ ConfigInputWidget::ConfigInputWidget(QWidget *parent) : ConfigTaskWidget(parent)
         int index2 = manualCommandObj->getField("Channel")->getElementNames().indexOf(name);
         if (index2 >= 0) {
             addUAVObjectToWidgetRelation("ManualControlCommand", "Channel", inpForm->ui->channelCurrent, index2);
+            addUAVObjectToWidgetRelation("ManualControlCommand", "Channel", inpForm->sbChannelCurrent, index2);
         }
         ++index;
     }

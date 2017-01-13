@@ -341,7 +341,9 @@ void PIOS_MPU6050_SetSampleRate(uint16_t samplerate_hz)
 	if (divisor > 0xff)
 		divisor = 0xff;
 
-	PIOS_MPU6050_SetReg(PIOS_MPU60X0_SMPLRT_DIV_REG, (uint8_t)divisor);
+	PIOS_SENSORS_SetSampleRate(PIOS_SENSOR_GYRO, filter_frequency / (1+divisor));
+	PIOS_SENSORS_SetSampleRate(PIOS_SENSOR_ACCEL, filter_frequency / (1+divisor));
+	return PIOS_MPU6050_SetReg(PIOS_MPU60X0_SMPLRT_DIV_REG, (uint8_t)divisor);
 }
 
 /**

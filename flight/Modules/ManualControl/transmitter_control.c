@@ -486,6 +486,7 @@ int32_t transmitter_control_select(bool reset_controller)
 	case FLIGHTSTATUS_FLIGHTMODE_MANUAL:
 	case FLIGHTSTATUS_FLIGHTMODE_ACRO:
 	case FLIGHTSTATUS_FLIGHTMODE_ACROPLUS:
+	case FLIGHTSTATUS_FLIGHTMODE_ACRODYNE:
 	case FLIGHTSTATUS_FLIGHTMODE_LEVELING:
 	case FLIGHTSTATUS_FLIGHTMODE_VIRTUALBAR:
 	case FLIGHTSTATUS_FLIGHTMODE_HORIZON:
@@ -494,11 +495,8 @@ int32_t transmitter_control_select(bool reset_controller)
 	case FLIGHTSTATUS_FLIGHTMODE_STABILIZED2:
 	case FLIGHTSTATUS_FLIGHTMODE_STABILIZED3:
 	case FLIGHTSTATUS_FLIGHTMODE_FAILSAFE:
-		update_stabilization_desired(&cmd, &settings, &airframe_type);
-		break;
 	case FLIGHTSTATUS_FLIGHTMODE_AUTOTUNE:
-		// Tuning takes settings directly from manualcontrolcommand.  No need to
-		// call anything else.  This just avoids errors.
+		update_stabilization_desired(&cmd, &settings, &airframe_type);
 		break;
 	case FLIGHTSTATUS_FLIGHTMODE_ALTITUDEHOLD:
 		altitude_hold_desired(&cmd, lastFlightMode != flightMode, &airframe_type);
@@ -981,24 +979,26 @@ static inline float scale_stabilization(StabilizationSettingsData *stabSettings,
 		case SHAREDDEFS_STABILIZATIONMODE_VIRTUALBAR:
 		case SHAREDDEFS_STABILIZATIONMODE_COORDINATEDFLIGHT:
 			return cmd;
+		case SHAREDDEFS_STABILIZATIONMODE_SYSTEMIDENTRATE:
 		case SHAREDDEFS_STABILIZATIONMODE_RATE:
 		case SHAREDDEFS_STABILIZATIONMODE_WEAKLEVELING:
 		case SHAREDDEFS_STABILIZATIONMODE_AXISLOCK:
 			cmd = expoM(cmd, stabSettings->RateExpo[axis],
 					stabSettings->RateExponent[axis]*0.1f);
 			return cmd * stabSettings->ManualRate[axis];
+		case SHAREDDEFS_STABILIZATIONMODE_ACRODYNE:
+			// For acrodyne, pass the command through raw.
+			return cmd;
 		case SHAREDDEFS_STABILIZATIONMODE_ACROPLUS:
 			cmd = expoM(cmd, stabSettings->RateExpo[axis],
 					stabSettings->RateExponent[axis]*0.1f);
 			return cmd;
+		case SHAREDDEFS_STABILIZATIONMODE_SYSTEMIDENT:
 		case SHAREDDEFS_STABILIZATIONMODE_ATTITUDE:
 			return cmd * stabSettings->MaxLevelAngle[axis];
 		case SHAREDDEFS_STABILIZATIONMODE_HORIZON:
 			cmd = expo3(cmd, stabSettings->HorizonExpo[axis]);
 			return cmd;
-		case SHAREDDEFS_STABILIZATIONMODE_SYSTEMIDENT:
-			PIOS_Assert(false);
-			break;
 	}
 
 	PIOS_Assert(false);
@@ -1041,9 +1041,17 @@ static void update_stabilization_desired(ManualControlCommandData * manual_contr
                                           STABILIZATIONDESIRED_STABILIZATIONMODE_ACROPLUS,
                                           STABILIZATIONDESIRED_STABILIZATIONMODE_RATE};
 
+	const uint8_t ACRODYNE_SETTINGS[3] = {  STABILIZATIONDESIRED_STABILIZATIONMODE_ACRODYNE,
+                                          STABILIZATIONDESIRED_STABILIZATIONMODE_ACRODYNE,
+                                          STABILIZATIONDESIRED_STABILIZATIONMODE_ACRODYNE};
+
 	const uint8_t FAILSAFE_SETTINGS[3] = {  STABILIZATIONDESIRED_STABILIZATIONMODE_FAILSAFE,
                                           STABILIZATIONDESIRED_STABILIZATIONMODE_FAILSAFE,
                                           STABILIZATIONDESIRED_STABILIZATIONMODE_RATE};
+
+	const uint8_t SYSTEMIDENT_SETTINGS[3] = {  STABILIZATIONDESIRED_STABILIZATIONMODE_SYSTEMIDENT,
+                                          STABILIZATIONDESIRED_STABILIZATIONMODE_SYSTEMIDENT,
+                                          STABILIZATIONDESIRED_STABILIZATIONMODE_SYSTEMIDENTRATE };
 	const uint8_t * stab_modes;
 
 	uint8_t reprojection = STABILIZATIONDESIRED_REPROJECTIONMODE_NONE;
@@ -1057,6 +1065,9 @@ static void update_stabilization_desired(ManualControlCommandData * manual_contr
 			break;
 		case FLIGHTSTATUS_FLIGHTMODE_ACRO:
 			stab_modes = RATE_SETTINGS;
+			break;
+		case FLIGHTSTATUS_FLIGHTMODE_ACRODYNE:
+			stab_modes = ACRODYNE_SETTINGS;
 			break;
 		case FLIGHTSTATUS_FLIGHTMODE_ACROPLUS:
 			stab_modes = ACROPLUS_SETTINGS;
@@ -1075,6 +1086,9 @@ static void update_stabilization_desired(ManualControlCommandData * manual_contr
 			break;
 		case FLIGHTSTATUS_FLIGHTMODE_FAILSAFE:
 			stab_modes = FAILSAFE_SETTINGS;
+			break;
+		case FLIGHTSTATUS_FLIGHTMODE_AUTOTUNE:
+			stab_modes = SYSTEMIDENT_SETTINGS;
 			break;
 		case FLIGHTSTATUS_FLIGHTMODE_STABILIZED1:
 			stab_modes = settings->Stabilization1Settings;

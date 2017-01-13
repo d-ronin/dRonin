@@ -95,20 +95,16 @@ volatile uint16_t active_line = 0;
 
 const struct pios_video_type_boundary *pios_video_type_boundary_act = &pios_video_type_boundary_pal;
 
+
 // Private variables
 static int8_t x_offset = 0;
 static int8_t x_offset_new = 0;
 static int8_t y_offset = 0;
 static const struct pios_video_cfg *dev_cfg = NULL;
 static uint16_t num_video_lines = 0;
-static int8_t video_type_tmp = VIDEO_TYPE_PAL;
-static int8_t video_type_act = VIDEO_TYPE_NONE;
+static enum pios_video_system video_system_act = PIOS_VIDEO_SYSTEM_NONE;
+static enum pios_video_system video_system_tmp = PIOS_VIDEO_SYSTEM_PAL;
 static const struct pios_video_type_cfg *pios_video_type_cfg_act = &pios_video_type_cfg_pal;
-
-uint8_t black_pal = 30;
-uint8_t white_pal = 110;
-uint8_t black_ntsc = 10;
-uint8_t white_ntsc = 110;
 
 // Private functions
 static void swap_buffers();
@@ -135,20 +131,18 @@ bool PIOS_Vsync_ISR()
 
 	// check video type
 	if (num_video_lines > VIDEO_TYPE_PAL_ROWS) {
-		video_type_tmp = VIDEO_TYPE_PAL;
+		video_system_tmp = PIOS_VIDEO_SYSTEM_PAL;
 	}
 
 	// if video type has changed set new active values
-	if (video_type_act != video_type_tmp) {
-		video_type_act = video_type_tmp;
-		if (video_type_act == VIDEO_TYPE_NTSC) {
+	if (video_system_act != video_system_tmp) {
+		video_system_act = video_system_tmp;
+		if (video_system_act == PIOS_VIDEO_SYSTEM_NTSC) {
 			pios_video_type_boundary_act = &pios_video_type_boundary_ntsc;
 			pios_video_type_cfg_act = &pios_video_type_cfg_ntsc;
-			dev_cfg->set_bw_levels(black_ntsc, white_ntsc);
 		} else {
 			pios_video_type_boundary_act = &pios_video_type_boundary_pal;
 			pios_video_type_cfg_act = &pios_video_type_cfg_pal;
-			dev_cfg->set_bw_levels(black_pal, white_pal);
 		}
 		dev_cfg->pixel_timer.timer->CCR1 = pios_video_type_cfg_act->dc;
 		dev_cfg->pixel_timer.timer->ARR  = pios_video_type_cfg_act->period;
@@ -160,7 +154,7 @@ bool PIOS_Vsync_ISR()
 		dev_cfg->hsync_capture.timer->ARR = pios_video_type_cfg_act->dc * (pios_video_type_cfg_act->graphics_column_start + x_offset);
 	}
 
-	video_type_tmp = VIDEO_TYPE_NTSC;
+	video_system_tmp = PIOS_VIDEO_SYSTEM_NTSC;
 
 	// Every VSYNC_REDRAW_CNT field: swap buffers and trigger redraw
 	if (++Vsync_update >= VSYNC_REDRAW_CNT) {
@@ -471,24 +465,19 @@ uint16_t PIOS_Video_GetLines(void)
 /**
  *
  */
-uint16_t PIOS_Video_GetType(void)
+enum pios_video_system PIOS_Video_GetSystem(void)
 {
-	return video_type_act;
+	return video_system_act;
 }
 
 /**
 *  Set the black and white levels
 */
-void PIOS_Video_SetLevels(uint8_t black_pal_in, uint8_t white_pal_in, uint8_t black_ntsc_in, uint8_t white_ntsc_in)
+void PIOS_Video_SetLevels(uint8_t black, uint8_t white)
 {
-	if (video_type_act == VIDEO_TYPE_PAL)
-		dev_cfg->set_bw_levels(black_pal_in, white_pal_in);
-	else
-		dev_cfg->set_bw_levels(black_ntsc_in, white_ntsc_in);
-	black_pal = black_pal_in;
-	white_pal = white_pal_in;
-	black_ntsc = black_ntsc_in;
-	white_ntsc = white_ntsc_in;
+	if (dev_cfg->set_bw_levels) {
+		dev_cfg->set_bw_levels(black, white);
+	}
 }
 
 /**
@@ -502,7 +491,6 @@ void PIOS_Video_SetXOffset(int8_t x_offset_in)
 		x_offset_in = -20;
 
 	x_offset_new = x_offset_in;
-	//dev_cfg->hsync_capture.timer->ARR = pios_video_type_cfg_act->dc * (pios_video_type_cfg_act->graphics_column_start + x_offset);
 }
 
 /**
@@ -520,7 +508,7 @@ void PIOS_Video_SetYOffset(int8_t y_offset_in)
 /**
 *  Set the x scale
 */
-void PIOS_Video_SetXScale(uint8_t pal_x_scale, uint8_t ntsc_xscale)
+void PIOS_Video_SetXScale(uint8_t x_scale)
 {
 	// Not supported by this driver
 	return;

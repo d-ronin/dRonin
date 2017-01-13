@@ -23,6 +23,7 @@ inputChannelForm::inputChannelForm(QWidget *parent, bool showlegend, bool showSl
         layout()->removeWidget(ui->legend4);
         layout()->removeWidget(ui->legend5);
         layout()->removeWidget(ui->legend6);
+        layout()->removeWidget(ui->lblReverse);
         delete ui->legend0;
         delete ui->legend1;
         delete ui->legend2;
@@ -30,6 +31,7 @@ inputChannelForm::inputChannelForm(QWidget *parent, bool showlegend, bool showSl
         delete ui->legend4;
         delete ui->legend5;
         delete ui->legend6;
+        delete ui->lblReverse;
     }
 
     if(!showSlider)
@@ -37,10 +39,17 @@ inputChannelForm::inputChannelForm(QWidget *parent, bool showlegend, bool showSl
         ui->channelNeutral->setHidden(true);
     }
 
+    // setup a hidden widget to track channel value without too much pain
+    sbChannelCurrent = new QSpinBox(this);
+    sbChannelCurrent->setVisible(false);
+    sbChannelCurrent->setMaximum(65535);
+
     // Connect slots
     connect(ui->channelMin,SIGNAL(valueChanged(int)),this,SLOT(minMaxUpdated()));
     connect(ui->channelMax,SIGNAL(valueChanged(int)),this,SLOT(minMaxUpdated()));
     connect(ui->channelGroup,SIGNAL(currentIndexChanged(int)),this,SLOT(groupUpdated()));
+    connect(sbChannelCurrent, SIGNAL(valueChanged(int)), ui->channelNeutral, SLOT(setIndicatorValue(int)));
+    connect(ui->btnReverse, SIGNAL(released()), this, SLOT(reverseChannel()));
 
     // This is awkward but since we want the UI to be a dropdown but the field is not an enum
     // so it breaks the UAUVObject widget relation of the task gadget.  Running the data through
@@ -252,4 +261,19 @@ void inputChannelForm::channelDropdownUpdated(int newval)
 void inputChannelForm::channelNumberUpdated(int newval)
 {
     ui->channelNumberDropdown->setCurrentIndex(newval);
+}
+
+/**
+ * @brief Switch the channel min and max
+ */
+void inputChannelForm::reverseChannel()
+{
+    int min = ui->channelMin->value();
+    int neutral = ui->channelNeutral->value();
+    int max = ui->channelMax->value();
+    ui->channelMax->setValue(min);
+    ui->channelMin->setValue(max);
+    if (ui->channelName->text() == "Throttle") // this is bad... but...
+        neutral = max - (neutral - min);
+    ui->channelNeutral->setValue(neutral);
 }

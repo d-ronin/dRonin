@@ -533,6 +533,9 @@ int32_t PIOS_MPU9250_SetSampleRate(uint16_t samplerate_hz)
 	if (divisor > 0xff)
 		divisor = 0xff;
 
+	PIOS_SENSORS_SetSampleRate(PIOS_SENSOR_ACCEL, samplerate_hz);
+	PIOS_SENSORS_SetSampleRate(PIOS_SENSOR_GYRO, samplerate_hz);
+
 	return PIOS_MPU9250_WriteReg(PIOS_MPU60X0_SMPLRT_DIV_REG, (uint8_t)divisor);
 }
 

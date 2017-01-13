@@ -647,6 +647,9 @@ void draw_flight_mode(int x, int y, int xs, int ys, int va, int ha, int flags, i
 	case FLIGHTSTATUS_FLIGHTMODE_ACROPLUS:
 		write_string("ACRO PLUS", x, y, xs, ys, va, ha, flags, font);
 		break;
+	case FLIGHTSTATUS_FLIGHTMODE_ACRODYNE:
+		write_string("ACRODYNE", x, y, xs, ys, va, ha, flags, font);
+		break;
 	case FLIGHTSTATUS_FLIGHTMODE_LEVELING:
 		write_string("LEVEL", x, y, xs, ys, va, ha, flags, font);
 		break;
@@ -1057,7 +1060,7 @@ void printFWVersion(int16_t x, int16_t y)
 
 void showVideoType(int16_t x, int16_t y)
 {
-	if (PIOS_Video_GetType() == VIDEO_TYPE_NTSC) {
+	if (PIOS_Video_GetSystem() == PIOS_VIDEO_SYSTEM_NTSC) {
 		write_string("NTSC", x, y, 0, 0, TEXT_VA_TOP, TEXT_HA_CENTER, 0, FONT12X18);
 	} else {
 		write_string("PAL", x, y, 0, 0, TEXT_VA_TOP, TEXT_HA_CENTER, 0, FONT12X18);
@@ -1576,6 +1579,18 @@ int render_stats()
 	return y_pos;
 }
 
+void set_ntsc_pal_settings(enum pios_video_system video_system)
+{
+	if (video_system == PIOS_VIDEO_SYSTEM_NTSC) {
+		PIOS_Video_SetLevels(osd_settings.NTSCBlack, osd_settings.NTSCWhite);
+		PIOS_Video_SetXScale(osd_settings.NTSCXScale);
+	}
+	else {
+		PIOS_Video_SetLevels(osd_settings.PALBlack, osd_settings.PALWhite);
+		PIOS_Video_SetXScale(osd_settings.PALXScale);
+	}
+}
+
 /**
  * Start the osd module
  */
@@ -1667,6 +1682,8 @@ static void onScreenDisplayTask(__attribute__((unused)) void *parameters)
 	AccessoryDesiredData accessory;
 	OnScreenDisplayPageSettingsData osd_page_settings;
 
+	enum pios_video_system video_system_act = PIOS_VIDEO_SYSTEM_NONE;
+	enum pios_video_system video_system_last = PIOS_VIDEO_SYSTEM_NONE;
 	uint32_t now;
 	uint32_t show_stats_start = 0;
 	uint32_t show_stats_until = 0;
@@ -1699,11 +1716,10 @@ static void onScreenDisplayTask(__attribute__((unused)) void *parameters)
 	PIOS_Video_Init(&pios_video_cfg);
 
 	// initialize settings
-	PIOS_Video_SetLevels(osd_settings.PALBlack, osd_settings.PALWhite,
-			osd_settings.NTSCBlack, osd_settings.NTSCWhite);
+	video_system_act = PIOS_Video_GetSystem();
+	set_ntsc_pal_settings(video_system_act);
 	PIOS_Video_SetXOffset(osd_settings.XOffset);
 	PIOS_Video_SetYOffset(osd_settings.YOffset);
-	PIOS_Video_SetXScale(osd_settings.PALXScale, osd_settings.NTSCXScale);
 	enum pios_video_3d_mode video_3d_mode;
 	switch(osd_settings.ThreeDMode) {
 		case ONSCREENDISPLAYSETTINGS_THREEDMODE_SBS3D:
@@ -1718,7 +1734,8 @@ static void onScreenDisplayTask(__attribute__((unused)) void *parameters)
 	while (PIOS_Thread_Systime() <= BLANK_TIME + INTRO_TIME) {
 		if (PIOS_Semaphore_Take(onScreenDisplaySemaphore, PIOS_SEMAPHORE_TIMEOUT_MAX) == true) {
 			clearGraphics();
-			if (PIOS_Video_GetType() == VIDEO_TYPE_NTSC) {
+			video_system_act = PIOS_Video_GetSystem();
+			if ( video_system_act == PIOS_VIDEO_SYSTEM_NTSC) {
 				introGraphics(GRAPHICS_RIGHT / 2, GRAPHICS_BOTTOM / 2 - 20);
 				introText(GRAPHICS_RIGHT / 2, GRAPHICS_BOTTOM - 60);
 				showVideoType(GRAPHICS_RIGHT / 2, GRAPHICS_BOTTOM - 45);
@@ -1748,14 +1765,12 @@ static void onScreenDisplayTask(__attribute__((unused)) void *parameters)
 			in_ticks = PIOS_Thread_Systime();
 			out_time = in_ticks - out_ticks;
 #endif
+			video_system_act = PIOS_Video_GetSystem();
 			if (osd_settings_updated) {
 				OnScreenDisplaySettingsGet(&osd_settings);
-				PIOS_Video_SetLevels(osd_settings.PALBlack, osd_settings.PALWhite,
-						osd_settings.NTSCBlack, osd_settings.NTSCWhite);
-
+				set_ntsc_pal_settings(video_system_act);
 				PIOS_Video_SetXOffset(osd_settings.XOffset);
 				PIOS_Video_SetYOffset(osd_settings.YOffset);
-				PIOS_Video_SetXScale(osd_settings.PALXScale, osd_settings.NTSCXScale);
 				enum pios_video_3d_mode video_3d_mode;
 				switch(osd_settings.ThreeDMode) {
 					case ONSCREENDISPLAYSETTINGS_THREEDMODE_SBS3D:
@@ -1783,6 +1798,11 @@ static void onScreenDisplayTask(__attribute__((unused)) void *parameters)
 				}
 
 				osd_settings_updated = false;
+			}
+
+			// update settings when video type changes
+			if (video_system_act != video_system_last) {
+				set_ntsc_pal_settings(video_system_act);
 			}
 
 			// decide whether to show blinking elements
@@ -1875,6 +1895,7 @@ static void onScreenDisplayTask(__attribute__((unused)) void *parameters)
 			frame_counter++;
 			last_page = current_page;
 			last_arm_status = arm_status;
+			video_system_last = video_system_act;
 #ifdef DEBUG_TIMING
 			out_ticks = PIOS_Thread_Systime();
 			in_time   = out_ticks - in_ticks;
