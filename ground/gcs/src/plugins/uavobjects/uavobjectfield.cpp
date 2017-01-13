@@ -540,6 +540,16 @@ QStringList UAVObjectField::getElementNames()
     return elementNames;
 }
 
+QString UAVObjectField::getElementName(quint32 index)
+{
+    if (index >= static_cast<quint32>(elementNames.length())) {
+        Q_ASSERT(false);
+        qWarning() << "Invalid element:" << index << " max=" << elementNames.length();
+        return "";
+    }
+    return elementNames.at(static_cast<int>(index));
+}
+
 UAVObject* UAVObjectField::getObject()
 {
     return obj;
