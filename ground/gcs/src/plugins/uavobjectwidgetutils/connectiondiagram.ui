@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>800</width>
-    <height>440</height>
+    <width>1280</width>
+    <height>960</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -39,6 +39,12 @@
         <blue>255</blue>
        </color>
       </brush>
+     </property>
+     <property name="interactive">
+      <bool>false</bool>
+     </property>
+     <property name="renderHints">
+      <set>QPainter::Antialiasing|QPainter::SmoothPixmapTransform|QPainter::TextAntialiasing</set>
      </property>
     </widget>
    </item>

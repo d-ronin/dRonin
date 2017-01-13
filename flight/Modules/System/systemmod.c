@@ -502,14 +502,6 @@ static void systemPeriodicCb(UAVObjEvent *ev, void *ctx, void *obj_data, int len
 
 		morse = morse_send(&blink_string, &blink_state);
 
-		if (morse < 0) {
-			// This means we were told "completed"
-			blink_string = NULL;
-			blink_prio = 0;
-
-			is_manual_control = false;
-		}
-
 		AnnunciatorSettingsData annunciatorSettings;
 		AnnunciatorSettingsGet(&annunciatorSettings);
 
@@ -539,6 +531,14 @@ static void systemPeriodicCb(UAVObjEvent *ev, void *ctx, void *obj_data, int len
 				ever_armed, is_manual_control, blink_prio,
 				ANNUNCIATORSETTINGS_ANNUNCIATEANYTIME_RGB_LEDS);
 #endif
+
+		if (morse < 0) {
+			// This means we were told "completed"
+			blink_string = NULL;
+			blink_prio = 0;
+
+			is_manual_control = false;
+		}
 	}
 
 #ifdef SYSTEMMOD_RGBLED_SUPPORT

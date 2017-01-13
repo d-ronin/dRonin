@@ -6,22 +6,29 @@ include(../../plugins/coreplugin/coreplugin.pri)
 include(../../plugins/uavobjectutil/uavobjectutil.pri)
 include(../../plugins/uavobjectwidgetutils/uavobjectwidgetutils.pri)
 
+QT += svg
+
 OTHER_FILES += Dronin.pluginspec
 
 HEADERS += \
     droninplugin.h \
     simulation.h \
     simulationconfiguration.h \
-    playuavosd.h
+    playuavosd.h \
+    seppuku.h \
+    seppukuconfiguration.h
 
 SOURCES += \
     droninplugin.cpp \
     simulation.cpp \
     simulationconfiguration.cpp \
-    playuavosd.cpp
+    playuavosd.cpp \
+    seppuku.cpp \
+    seppukuconfiguration.cpp
 
 RESOURCES += \
     dronin.qrc
 
 FORMS += \
-	simulationconfiguration.ui
+	simulationconfiguration.ui \
+        seppuku.ui

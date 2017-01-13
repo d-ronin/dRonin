@@ -29,6 +29,8 @@ INSTALL = install
 
 THUMB   = -mthumb
 
+CFLAGS += '-DDRONIN_TARGET="$(BOARD_NAME)"'
+
 # Test if quotes are needed for the echo-command
 result = ${shell echo "test"}
 ifeq (${result}, test)

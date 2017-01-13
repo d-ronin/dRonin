@@ -1,0 +1,1055 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- Created with Inkscape (http://www.inkscape.org/) -->
+
+<svg
+   xmlns:dc="http://purl.org/dc/elements/1.1/"
+   xmlns:cc="http://creativecommons.org/ns#"
+   xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+   xmlns:svg="http://www.w3.org/2000/svg"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:xlink="http://www.w3.org/1999/xlink"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   width="480"
+   height="196"
+   id="svg2"
+   version="1.1"
+   inkscape:version="0.91 r13725"
+   sodipodi:docname="dronin_osd.svg"
+   inkscape:export-filename="/home/mlyle/dRonin/artwork/Logo/drlogoosd"
+   inkscape:export-xdpi="73.020729"
+   inkscape:export-ydpi="73.020729">
+  <defs
+     id="defs4">
+    <filter
+       id="filter3000"
+       inkscape:label="Cross-smooth"
+       inkscape:menu="Blurs"
+       inkscape:menu-tooltip="Blur inner borders and intersections"
+       color-interpolation-filters="sRGB">
+      <feGaussianBlur
+         id="feGaussianBlur3002"
+         stdDeviation="1" />
+      <feColorMatrix
+         id="feColorMatrix3004"
+         result="fbSourceGraphic"
+         values="1 0 0 0 0 0 1 0 0 0 0 0 1 0 0 0 0 0 6 -2.5 " />
+    </filter>
+    <filter
+       id="filter3006"
+       inkscape:label="Blur content"
+       inkscape:menu="Blurs"
+       inkscape:menu-tooltip="Blur the contents of objects, preserving the outline"
+       color-interpolation-filters="sRGB">
+      <feColorMatrix
+         id="feColorMatrix3008"
+         values="1 0 0 0 0 0 1 0 0 0 0 0 1 0 0 0 0 0 1 0 "
+         result="result7" />
+      <feGaussianBlur
+         id="feGaussianBlur3010"
+         result="result6"
+         stdDeviation="1.7642105263157895" />
+      <feComposite
+         id="feComposite3012"
+         in2="result7"
+         operator="atop"
+         in="result6"
+         result="result91" />
+      <feComposite
+         id="feComposite3014"
+         in2="result91"
+         operator="in" />
+    </filter>
+    <filter
+       id="filter3016"
+       inkscape:label="Fancy blur"
+       inkscape:menu="Blurs"
+       inkscape:menu-tooltip="Smooth colorized contour which allows desaturation and hue rotation"
+       color-interpolation-filters="sRGB">
+      <feGaussianBlur
+         id="feGaussianBlur3018"
+         stdDeviation="5"
+         result="result1" />
+      <feComposite
+         id="feComposite3020"
+         in2="result1"
+         operator="arithmetic"
+         k2="2"
+         in="result1"
+         k1="0"
+         k3="0"
+         k4="0" />
+    </filter>
+    <filter
+       id="filter3022"
+       inkscape:label="Fancy blur"
+       inkscape:menu="Blurs"
+       inkscape:menu-tooltip="Smooth colorized contour which allows desaturation and hue rotation"
+       color-interpolation-filters="sRGB">
+      <feGaussianBlur
+         id="feGaussianBlur3024"
+         stdDeviation="5"
+         result="result1" />
+      <feComposite
+         id="feComposite3026"
+         in2="result1"
+         operator="arithmetic"
+         k2="2"
+         in="result1"
+         k1="0"
+         k3="0"
+         k4="0" />
+    </filter>
+    <filter
+       id="filter3028"
+       inkscape:label="Fancy blur"
+       inkscape:menu="Blurs"
+       inkscape:menu-tooltip="Smooth colorized contour which allows desaturation and hue rotation"
+       color-interpolation-filters="sRGB">
+      <feGaussianBlur
+         id="feGaussianBlur3030"
+         stdDeviation="5"
+         result="result1" />
+      <feComposite
+         id="feComposite3032"
+         in2="result1"
+         operator="arithmetic"
+         k2="2"
+         in="result1"
+         k1="0"
+         k3="0"
+         k4="0" />
+      <feGaussianBlur
+         stdDeviation="1"
+         id="feGaussianBlur3040" />
+    </filter>
+    <filter
+       id="filter3034"
+       inkscape:label="Fancy blur"
+       inkscape:menu="Blurs"
+       inkscape:menu-tooltip="Smooth colorized contour which allows desaturation and hue rotation"
+       color-interpolation-filters="sRGB">
+      <feGaussianBlur
+         id="feGaussianBlur3036"
+         stdDeviation="5"
+         result="result1" />
+      <feComposite
+         id="feComposite3038"
+         in2="result1"
+         operator="arithmetic"
+         k2="2"
+         in="result1"
+         k1="0"
+         k3="0"
+         k4="0" />
+    </filter>
+    <filter
+       id="filter3042"
+       inkscape:label="Drop Shadow"
+       color-interpolation-filters="sRGB">
+      <feFlood
+         id="feFlood3044"
+         flood-opacity="0.377"
+         flood-color="rgb(0,0,0)"
+         result="flood" />
+      <feComposite
+         id="feComposite3046"
+         in2="SourceGraphic"
+         in="flood"
+         operator="in"
+         result="composite1" />
+      <feGaussianBlur
+         id="feGaussianBlur3048"
+         stdDeviation="3.3"
+         result="blur" />
+      <feOffset
+         id="feOffset3050"
+         dx="3"
+         dy="3"
+         result="offset" />
+      <feComposite
+         id="feComposite3052"
+         in2="offset"
+         in="SourceGraphic"
+         operator="over"
+         result="composite2" />
+    </filter>
+    <filter
+       id="filter3054"
+       inkscape:label="Drop Shadow"
+       color-interpolation-filters="sRGB">
+      <feFlood
+         id="feFlood3056"
+         flood-opacity="0.377"
+         flood-color="rgb(0,0,0)"
+         result="flood" />
+      <feComposite
+         id="feComposite3058"
+         in2="SourceGraphic"
+         in="flood"
+         operator="in"
+         result="composite1" />
+      <feGaussianBlur
+         id="feGaussianBlur3060"
+         stdDeviation="3.3"
+         result="blur" />
+      <feOffset
+         id="feOffset3062"
+         dx="3"
+         dy="3"
+         result="offset" />
+      <feComposite
+         id="feComposite3064"
+         in2="offset"
+         in="SourceGraphic"
+         operator="over"
+         result="composite2" />
+    </filter>
+    <filter
+       id="filter3066"
+       inkscape:label="Drop Shadow"
+       color-interpolation-filters="sRGB">
+      <feFlood
+         id="feFlood3068"
+         flood-opacity="0.377"
+         flood-color="rgb(0,0,0)"
+         result="flood" />
+      <feComposite
+         id="feComposite3070"
+         in2="SourceGraphic"
+         in="flood"
+         operator="in"
+         result="composite1" />
+      <feGaussianBlur
+         id="feGaussianBlur3072"
+         stdDeviation="3.3"
+         result="blur" />
+      <feOffset
+         id="feOffset3074"
+         dx="3"
+         dy="3"
+         result="offset" />
+      <feComposite
+         id="feComposite3076"
+         in2="offset"
+         in="SourceGraphic"
+         operator="over"
+         result="composite2" />
+    </filter>
+    <filter
+       id="filter3078"
+       inkscape:label="Drop Shadow"
+       color-interpolation-filters="sRGB">
+      <feFlood
+         id="feFlood3080"
+         flood-opacity="0.377"
+         flood-color="rgb(0,0,0)"
+         result="flood" />
+      <feComposite
+         id="feComposite3082"
+         in2="SourceGraphic"
+         in="flood"
+         operator="in"
+         result="composite1" />
+      <feGaussianBlur
+         id="feGaussianBlur3084"
+         stdDeviation="3.3"
+         result="blur" />
+      <feOffset
+         id="feOffset3086"
+         dx="3"
+         dy="3"
+         result="offset" />
+      <feComposite
+         id="feComposite3088"
+         in2="offset"
+         in="SourceGraphic"
+         operator="over"
+         result="composite2" />
+    </filter>
+    <filter
+       id="filter3078-9"
+       inkscape:label="Drop Shadow"
+       color-interpolation-filters="sRGB">
+      <feFlood
+         id="feFlood3080-8"
+         flood-opacity="0.377"
+         flood-color="rgb(0,0,0)"
+         result="flood" />
+      <feComposite
+         id="feComposite3082-4"
+         in2="SourceGraphic"
+         in="flood"
+         operator="in"
+         result="composite1" />
+      <feGaussianBlur
+         id="feGaussianBlur3084-1"
+         stdDeviation="3.3"
+         result="blur" />
+      <feOffset
+         id="feOffset3086-4"
+         dx="3"
+         dy="3"
+         result="offset" />
+      <feComposite
+         id="feComposite3088-3"
+         in2="offset"
+         in="SourceGraphic"
+         operator="over"
+         result="composite2" />
+    </filter>
+    <filter
+       id="filter3946"
+       inkscape:label="filter12"
+       color-interpolation-filters="sRGB" />
+    <symbol
+       id="AVE_GLOBAL" />
+    <symbol
+       id="AVE_RENDER" />
+    <symbol
+       id="sh_spot">
+      <path
+         id="path4584"
+         d="M -354330708661417350000.000000,354330708661417350000.000000 -354330708661417350000.000000,354330708661417350000.000000"
+         style="stroke:#000000;fill:none;stroke-linecap: round" />
+      <path
+         id="path4586"
+         d="M -354330708661417350000.000000,354330708661417350000.000000 -354330708661417350000.000000,354330708661417350000.000000"
+         style="stroke:#000000;fill:none;stroke-linecap: round" />
+      <text
+         id="text4588"
+         sodipodi:linespacing="125%"
+         style="font-size: 0.7px; fill: #FF0000; font-family: Arial"
+         x="-354330708661417350000.000000"
+         y="354330708661417350000.000000">
+        <tspan
+           id="tspan4590"
+           sodipodi:role="line">Light NameSNAME</tspan>
+      </text>
+      <path
+         id="path4592"
+         d="M -354330708661417350000.000000,354330708661417350000.000000 -354330708661417350000.000000,354330708661417350000.000000"
+         style="stroke:#000000;fill:none;stroke-linecap: round" />
+      <path
+         id="path4594"
+         d="M -354330708661417350000.000000,354330708661417350000.000000 -354330708661417350000.000000,354330708661417350000.000000"
+         style="stroke:#000000;fill:none;stroke-linecap: round" />
+      <path
+         id="path4596"
+         d="M -354330708661417350000.000000,354330708661417350000.000000 -354330708661417350000.000000,354330708661417350000.000000"
+         style="stroke:#000000;fill:none;stroke-linecap: round" />
+      <path
+         id="path4598"
+         d="M -354330708661417350000.000000,354330708661417350000.000000 -354330708661417350000.000000,354330708661417350000.000000"
+         style="stroke:#000000;fill:none;stroke-linecap: round" />
+      <path
+         id="path4600"
+         d="M -354330708661417350000.000000,354330708661417350000.000000 -354330708661417350000.000000,354330708661417350000.000000"
+         style="stroke:#000000;fill:none;stroke-linecap: round" />
+      <path
+         id="path4602"
+         d="M -354330708661417350000.000000,354330708661417350000.000000 -354330708661417350000.000000,354330708661417350000.000000"
+         style="stroke:#000000;fill:none;stroke-linecap: round" />
+      <path
+         id="path4604"
+         d="M -354330708661417350000.000000,354330708661417350000.000000 -354330708661417350000.000000,354330708661417350000.000000"
+         style="stroke:#000000;fill:none;stroke-linecap: round" />
+      <path
+         id="path4606"
+         d="M -354330708661417350000.000000,354330708661417350000.000000 -354330708661417350000.000000,354330708661417350000.000000"
+         style="stroke:#000000;fill:none;stroke-linecap: round" />
+      <path
+         id="path4608"
+         d="M -354330708661417350000.000000,354330708661417350000.000000 -354330708661417350000.000000,354330708661417350000.000000"
+         style="stroke:#000000;fill:none;stroke-linecap: round" />
+      <path
+         id="path4610"
+         d="M -354330708661417350000.000000,354330708661417350000.000000 -354330708661417350000.000000,354330708661417350000.000000"
+         style="stroke:#000000;fill:none;stroke-linecap: round" />
+      <text
+         id="text4612"
+         sodipodi:linespacing="125%"
+         style="font-size: 0.0px; fill: #000000; font-family: Arial"
+         x="-354330708661417350000.000000"
+         y="354330708661417350000.000000">
+        <tspan
+           id="tspan4614"
+           sodipodi:role="line">Depth Map SizeZSIZE</tspan>
+      </text>
+      <text
+         id="text4616"
+         sodipodi:linespacing="125%"
+         style="font-size: 0.0px; fill: #000000; font-family: Arial"
+         x="-354330708661417350000.000000"
+         y="354330708661417350000.000000">
+        <tspan
+           id="tspan4618"
+           sodipodi:role="line">Look-from XYZLFXYZ</tspan>
+      </text>
+      <text
+         id="text4620"
+         sodipodi:linespacing="125%"
+         style="font-size: 0.0px; fill: #000000; font-family: Arial"
+         x="-354330708661417350000.000000"
+         y="354330708661417350000.000000">
+        <tspan
+           id="tspan4622"
+           sodipodi:role="line">Beam DistributionBEAMDI</tspan>
+      </text>
+      <text
+         id="text4624"
+         sodipodi:linespacing="125%"
+         style="font-size: 0.0px; fill: #000000; font-family: Arial"
+         x="-354330708661417350000.000000"
+         y="354330708661417350000.000000">
+        <tspan
+           id="tspan4626"
+           sodipodi:role="line">Cone DeltaCONEDE</tspan>
+      </text>
+      <text
+         id="text4628"
+         sodipodi:linespacing="125%"
+         style="font-size: 0.0px; fill: #000000; font-family: Arial"
+         x="-354330708661417350000.000000"
+         y="354330708661417350000.000000">
+        <tspan
+           id="tspan4630"
+           sodipodi:role="line">Cone AngleCONEAN</tspan>
+      </text>
+      <text
+         id="text4632"
+         sodipodi:linespacing="125%"
+         style="font-size: 0.0px; fill: #000000; font-family: Arial"
+         x="-354330708661417350000.000000"
+         y="354330708661417350000.000000">
+        <tspan
+           id="tspan4634"
+           sodipodi:role="line">*not used*BIASMAX</tspan>
+      </text>
+      <text
+         id="text4636"
+         sodipodi:linespacing="125%"
+         style="font-size: 0.0px; fill: #000000; font-family: Arial"
+         x="-354330708661417350000.000000"
+         y="354330708661417350000.000000">
+        <tspan
+           id="tspan4638"
+           sodipodi:role="line">*not used*BIASMIN</tspan>
+      </text>
+      <text
+         id="text4640"
+         sodipodi:linespacing="125%"
+         style="font-size: 0.0px; fill: #000000; font-family: Arial"
+         x="-354330708661417350000.000000"
+         y="354330708661417350000.000000">
+        <tspan
+           id="tspan4642"
+           sodipodi:role="line">Light Color (RGB)COLOR</tspan>
+      </text>
+      <text
+         id="text4644"
+         sodipodi:linespacing="125%"
+         style="font-size: 0.0px; fill: #000000; font-family: Arial"
+         x="-354330708661417350000.000000"
+         y="354330708661417350000.000000">
+        <tspan
+           id="tspan4646"
+           sodipodi:role="line">Light IntensityINTENSITY</tspan>
+      </text>
+      <text
+         id="text4648"
+         sodipodi:linespacing="125%"
+         style="font-size: 0.0px; fill: #000000; font-family: Arial"
+         x="-354330708661417350000.000000"
+         y="354330708661417350000.000000">
+        <tspan
+           id="tspan4650"
+           sodipodi:role="line">GNAME</tspan>
+      </text>
+      <text
+         id="text4652"
+         sodipodi:linespacing="125%"
+         style="font-size: 0.0px; fill: #000000; font-family: Arial"
+         x="-354330708661417350000.000000"
+         y="354330708661417350000.000000">
+        <tspan
+           id="tspan4654"
+           sodipodi:role="line">Look-at ZLAZ</tspan>
+      </text>
+      <text
+         id="text4656"
+         sodipodi:linespacing="125%"
+         style="font-size: 0.0px; fill: #000000; font-family: Arial"
+         x="-354330708661417350000.000000"
+         y="354330708661417350000.000000">
+        <tspan
+           id="tspan4658"
+           sodipodi:role="line">Look-at YLAY</tspan>
+      </text>
+      <text
+         id="text4660"
+         sodipodi:linespacing="125%"
+         style="font-size: 0.0px; fill: #000000; font-family: Arial"
+         x="-354330708661417350000.000000"
+         y="354330708661417350000.000000">
+        <tspan
+           id="tspan4662"
+           sodipodi:role="line">Look-at XLAX</tspan>
+      </text>
+      <path
+         id="path4664"
+         d="M -354330708661417350000.000000,354330708661417350000.000000 -354330708661417350000.000000,354330708661417350000.000000"
+         style="stroke:#000000;fill:none;stroke-linecap: round" />
+      <path
+         id="path4666"
+         d="M -354330708661417350000.000000,354330708661417350000.000000 -354330708661417350000.000000,354330708661417350000.000000"
+         style="stroke:#000000;fill:none;stroke-linecap: round" />
+      <path
+         id="path4668"
+         d="M -354330708661417350000.000000,354330708661417350000.000000 -354330708661417350000.000000,354330708661417350000.000000"
+         style="stroke:#000000;fill:none;stroke-linecap: round" />
+      <path
+         id="path4670"
+         d="M -354330708661417350000.000000,354330708661417350000.000000 -354330708661417350000.000000,354330708661417350000.000000"
+         style="stroke:#000000;fill:none;stroke-linecap: round" />
+      <path
+         id="path4672"
+         d="M -354330708661417350000.000000,354330708661417350000.000000 -354330708661417350000.000000,354330708661417350000.000000"
+         style="stroke:#000000;fill:none;stroke-linecap: round" />
+      <path
+         id="path4674"
+         d="M -354330708661417350000.000000,354330708661417350000.000000 -354330708661417350000.000000,354330708661417350000.000000"
+         style="stroke:#000000;fill:none;stroke-linecap: round" />
+      <path
+         id="path4676"
+         d="M -354330708661417350000.000000,354330708661417350000.000000 -354330708661417350000.000000,354330708661417350000.000000"
+         style="stroke:#000000;fill:none;stroke-linecap: round" />
+      <path
+         id="path4678"
+         d="M -354330708661417350000.000000,354330708661417350000.000000 -354330708661417350000.000000,354330708661417350000.000000"
+         style="stroke:#000000;fill:none;stroke-linecap: round" />
+      <path
+         id="path4680"
+         d="M -354330708661417350000.000000,354330708661417350000.000000 -354330708661417350000.000000,354330708661417350000.000000"
+         style="stroke:#000000;fill:none;stroke-linecap: round" />
+      <path
+         id="path4682"
+         d="M -354330708661417350000.000000,354330708661417350000.000000 -354330708661417350000.000000,354330708661417350000.000000"
+         style="stroke:#000000;fill:none;stroke-linecap: round" />
+      <path
+         id="path4684"
+         d="M -354330708661417350000.000000,354330708661417350000.000000 -354330708661417350000.000000,354330708661417350000.000000"
+         style="stroke:#000000;fill:none;stroke-linecap: round" />
+    </symbol>
+    <symbol
+       id="overhead">
+      <text
+         id="text4511"
+         sodipodi:linespacing="125%"
+         style="font-size: 0.7px; fill: #FF0000; font-family: Arial"
+         x="-354330708661417350000.000000"
+         y="354330708661417350000.000000">
+        <tspan
+           id="tspan4513"
+           sodipodi:role="line">Light NameSNAME</tspan>
+      </text>
+      <path
+         id="path4515"
+         d="M -354330708661417350000.000000,354330708661417350000.000000 A 1.062992,1.062992 -0.000000 0 0 -354330708661417350000.000000,354330708661417350000.000000"
+         style="stroke:#000000;fill:none;stroke-linecap: round" />
+      <path
+         id="path4517"
+         d="M -354330708661417350000.000000,354330708661417350000.000000 -354330708661417350000.000000,354330708661417350000.000000"
+         style="stroke:#000000;fill:none;stroke-linecap: round" />
+      <path
+         id="path4519"
+         d="M -354330708661417350000.000000,354330708661417350000.000000 -354330708661417350000.000000,354330708661417350000.000000"
+         style="stroke:#000000;fill:none;stroke-linecap: round" />
+      <path
+         id="path4521"
+         d="M -354330708661417350000.000000,354330708661417350000.000000 -354330708661417350000.000000,354330708661417350000.000000"
+         style="stroke:#000000;fill:none;stroke-linecap: round" />
+      <path
+         id="path4523"
+         d="M -354330708661417350000.000000,354330708661417350000.000000 -354330708661417350000.000000,354330708661417350000.000000"
+         style="stroke:#000000;fill:none;stroke-linecap: round" />
+      <path
+         id="path4525"
+         d="M -354330708661417350000.000000,354330708661417350000.000000 -354330708661417350000.000000,354330708661417350000.000000"
+         style="stroke:#000000;fill:none;stroke-linecap: round" />
+      <path
+         id="path4527"
+         d="M -354330708661417350000.000000,354330708661417350000.000000 A 1.062992,1.062992 -0.000000 0 0 -354330708661417350000.000000,354330708661417350000.000000"
+         style="stroke:#000000;fill:none;stroke-linecap: round" />
+      <path
+         id="path4529"
+         d="M -354330708661417350000.000000,354330708661417350000.000000 -354330708661417350000.000000,354330708661417350000.000000"
+         style="stroke:#000000;fill:none;stroke-linecap: round" />
+      <path
+         id="path4531"
+         d="M -354330708661417350000.000000,354330708661417350000.000000 -354330708661417350000.000000,354330708661417350000.000000"
+         style="stroke:#000000;fill:none;stroke-linecap: round" />
+      <path
+         id="path4533"
+         d="M -354330708661417350000.000000,354330708661417350000.000000 -354330708661417350000.000000,354330708661417350000.000000"
+         style="stroke:#000000;fill:none;stroke-linecap: round" />
+      <path
+         id="path4535"
+         d="M -354330708661417350000.000000,354330708661417350000.000000 -354330708661417350000.000000,354330708661417350000.000000"
+         style="stroke:#000000;fill:none;stroke-linecap: round" />
+      <path
+         id="path4537"
+         d="M -354330708661417350000.000000,354330708661417350000.000000 -354330708661417350000.000000,354330708661417350000.000000"
+         style="stroke:#000000;fill:none;stroke-linecap: round" />
+      <path
+         id="path4539"
+         d="M -354330708661417350000.000000,354330708661417350000.000000 -354330708661417350000.000000,354330708661417350000.000000"
+         style="stroke:#000000;fill:none;stroke-linecap: round" />
+      <path
+         id="path4541"
+         d="M -354330708661417350000.000000,354330708661417350000.000000 -354330708661417350000.000000,354330708661417350000.000000"
+         style="stroke:#000000;fill:none;stroke-linecap: round" />
+      <text
+         id="text4543"
+         sodipodi:linespacing="125%"
+         style="font-size: 0.0px; fill: #000000; font-family: Arial"
+         x="-354330708661417350000.000000"
+         y="354330708661417350000.000000">
+        <tspan
+           id="tspan4545"
+           sodipodi:role="line">Light IntensityINTENSITY</tspan>
+      </text>
+      <text
+         id="text4547"
+         sodipodi:linespacing="125%"
+         style="font-size: 0.0px; fill: #000000; font-family: Arial"
+         x="-354330708661417350000.000000"
+         y="354330708661417350000.000000">
+        <tspan
+           id="tspan4549"
+           sodipodi:role="line">*not used*BEAMD</tspan>
+      </text>
+      <text
+         id="text4551"
+         sodipodi:linespacing="125%"
+         style="font-size: 0.0px; fill: #000000; font-family: Arial"
+         x="-354330708661417350000.000000"
+         y="354330708661417350000.000000">
+        <tspan
+           id="tspan4553"
+           sodipodi:role="line">*not used*CONED</tspan>
+      </text>
+      <text
+         id="text4555"
+         sodipodi:linespacing="125%"
+         style="font-size: 0.0px; fill: #000000; font-family: Arial"
+         x="-354330708661417350000.000000"
+         y="354330708661417350000.000000">
+        <tspan
+           id="tspan4557"
+           sodipodi:role="line">Depth Map SizeCONEA</tspan>
+      </text>
+      <text
+         id="text4559"
+         sodipodi:linespacing="125%"
+         style="font-size: 0.0px; fill: #000000; font-family: Arial"
+         x="-354330708661417350000.000000"
+         y="354330708661417350000.000000">
+        <tspan
+           id="tspan4561"
+           sodipodi:role="line">Light Color (RGB)COLOR</tspan>
+      </text>
+      <text
+         id="text4563"
+         sodipodi:linespacing="125%"
+         style="font-size: 0.0px; fill: #000000; font-family: Arial"
+         x="-354330708661417350000.000000"
+         y="354330708661417350000.000000">
+        <tspan
+           id="tspan4565"
+           sodipodi:role="line">Look-at ZLAZ</tspan>
+      </text>
+      <text
+         id="text4567"
+         sodipodi:linespacing="125%"
+         style="font-size: 0.0px; fill: #000000; font-family: Arial"
+         x="-354330708661417350000.000000"
+         y="354330708661417350000.000000">
+        <tspan
+           id="tspan4569"
+           sodipodi:role="line">Look-at YLAY</tspan>
+      </text>
+      <text
+         id="text4571"
+         sodipodi:linespacing="125%"
+         style="font-size: 0.0px; fill: #000000; font-family: Arial"
+         x="-354330708661417350000.000000"
+         y="354330708661417350000.000000">
+        <tspan
+           id="tspan4573"
+           sodipodi:role="line">Look-at XLAX</tspan>
+      </text>
+      <text
+         id="text4575"
+         sodipodi:linespacing="125%"
+         style="font-size: 0.0px; fill: #000000; font-family: Arial"
+         x="-354330708661417350000.000000"
+         y="354330708661417350000.000000">
+        <tspan
+           id="tspan4577"
+           sodipodi:role="line">GNAME</tspan>
+      </text>
+      <path
+         id="path4579"
+         d="M -354330708661417350000.000000,354330708661417350000.000000 -354330708661417350000.000000,354330708661417350000.000000"
+         style="stroke:#000000;fill:none;stroke-linecap: round" />
+      <path
+         id="path4581"
+         d="M -354330708661417350000.000000,354330708661417350000.000000 -354330708661417350000.000000,354330708661417350000.000000"
+         style="stroke:#000000;fill:none;stroke-linecap: round" />
+    </symbol>
+    <symbol
+       id="direct">
+      <text
+         id="text4456"
+         sodipodi:linespacing="125%"
+         style="font-size: 0.7px; fill: #FF0000; font-family: Arial"
+         x="-354330708661417350000.000000"
+         y="354330708661417350000.000000">
+        <tspan
+           id="tspan4458"
+           sodipodi:role="line">Light NameSNAME</tspan>
+      </text>
+      <path
+         id="path4460"
+         d="M -354330708661417350000.000000,354330708661417350000.000000 A 1.062992,1.062992 -0.000000 0 0 -354330708661417350000.000000,354330708661417350000.000000"
+         style="stroke:#000000;fill:none;stroke-linecap: round" />
+      <path
+         id="path4462"
+         d="M -354330708661417350000.000000,354330708661417350000.000000 A 1.062992,1.062992 -0.000000 0 0 -354330708661417350000.000000,354330708661417350000.000000"
+         style="stroke:#000000;fill:none;stroke-linecap: round" />
+      <path
+         id="path4464"
+         d="M -354330708661417350000.000000,354330708661417350000.000000 -354330708661417350000.000000,354330708661417350000.000000"
+         style="stroke:#000000;fill:none;stroke-linecap: round" />
+      <path
+         id="path4466"
+         d="M -354330708661417350000.000000,354330708661417350000.000000 -354330708661417350000.000000,354330708661417350000.000000"
+         style="stroke:#000000;fill:none;stroke-linecap: round" />
+      <path
+         id="path4468"
+         d="M -354330708661417350000.000000,354330708661417350000.000000 -354330708661417350000.000000,354330708661417350000.000000"
+         style="stroke:#000000;fill:none;stroke-linecap: round" />
+      <text
+         id="text4470"
+         sodipodi:linespacing="125%"
+         style="font-size: 0.0px; fill: #000000; font-family: Arial"
+         x="-354330708661417350000.000000"
+         y="354330708661417350000.000000">
+        <tspan
+           id="tspan4472"
+           sodipodi:role="line">Look-at YLAY</tspan>
+      </text>
+      <text
+         id="text4474"
+         sodipodi:linespacing="125%"
+         style="font-size: 0.0px; fill: #000000; font-family: Arial"
+         x="-354330708661417350000.000000"
+         y="354330708661417350000.000000">
+        <tspan
+           id="tspan4476"
+           sodipodi:role="line">Light IntensityINTENSITY</tspan>
+      </text>
+      <text
+         id="text4478"
+         sodipodi:linespacing="125%"
+         style="font-size: 0.0px; fill: #000000; font-family: Arial"
+         x="-354330708661417350000.000000"
+         y="354330708661417350000.000000">
+        <tspan
+           id="tspan4480"
+           sodipodi:role="line">*not used*BEAMD</tspan>
+      </text>
+      <text
+         id="text4482"
+         sodipodi:linespacing="125%"
+         style="font-size: 0.0px; fill: #000000; font-family: Arial"
+         x="-354330708661417350000.000000"
+         y="354330708661417350000.000000">
+        <tspan
+           id="tspan4484"
+           sodipodi:role="line">*not used*CONED</tspan>
+      </text>
+      <text
+         id="text4486"
+         sodipodi:linespacing="125%"
+         style="font-size: 0.0px; fill: #000000; font-family: Arial"
+         x="-354330708661417350000.000000"
+         y="354330708661417350000.000000">
+        <tspan
+           id="tspan4488"
+           sodipodi:role="line">Depth Map SizeCONEA</tspan>
+      </text>
+      <text
+         id="text4490"
+         sodipodi:linespacing="125%"
+         style="font-size: 0.0px; fill: #000000; font-family: Arial"
+         x="-354330708661417350000.000000"
+         y="354330708661417350000.000000">
+        <tspan
+           id="tspan4492"
+           sodipodi:role="line">Light Color (RGB)COLOR</tspan>
+      </text>
+      <text
+         id="text4494"
+         sodipodi:linespacing="125%"
+         style="font-size: 0.0px; fill: #000000; font-family: Arial"
+         x="-354330708661417350000.000000"
+         y="354330708661417350000.000000">
+        <tspan
+           id="tspan4496"
+           sodipodi:role="line">Look-at ZLAZ</tspan>
+      </text>
+      <path
+         id="path4498"
+         d="M -354330708661417350000.000000,354330708661417350000.000000 -354330708661417350000.000000,354330708661417350000.000000"
+         style="stroke:#000000;fill:none;stroke-linecap: round" />
+      <path
+         id="path4500"
+         d="M -354330708661417350000.000000,354330708661417350000.000000 -354330708661417350000.000000,354330708661417350000.000000"
+         style="stroke:#000000;fill:none;stroke-linecap: round" />
+      <text
+         id="text4502"
+         sodipodi:linespacing="125%"
+         style="font-size: 0.0px; fill: #000000; font-family: Arial"
+         x="-354330708661417350000.000000"
+         y="354330708661417350000.000000">
+        <tspan
+           id="tspan4504"
+           sodipodi:role="line">Look-at XLAX</tspan>
+      </text>
+      <text
+         id="text4506"
+         sodipodi:linespacing="125%"
+         style="font-size: 0.0px; fill: #000000; font-family: Arial"
+         x="-354330708661417350000.000000"
+         y="354330708661417350000.000000">
+        <tspan
+           id="tspan4508"
+           sodipodi:role="line">GNAME</tspan>
+      </text>
+    </symbol>
+    <symbol
+       id="*Paper_Space0" />
+    <symbol
+       id="*Paper_Space" />
+    <symbol
+       id="*Model_Space" />
+    <pattern
+       id="Hatch"
+       x="0"
+       y="0"
+       patternUnits="userSpaceOnUse"
+       width="8"
+       height="8">
+      <path
+         id="path4446"
+         d="M8 4 l-4,4"
+         stroke-width="0.25"
+         stroke="#000000"
+         linecap="square" />
+      <path
+         id="path4448"
+         d="M6 2 l-4,4"
+         stroke-width="0.25"
+         stroke="#000000"
+         linecap="square" />
+      <path
+         id="path4450"
+         d="M4 0 l-4,4"
+         stroke-width="0.25"
+         stroke="#000000"
+         linecap="square" />
+    </pattern>
+    <marker
+       orient="auto"
+       id="DistanceX"
+       style="overflow:visible"
+       refX="0.0"
+       refY="0.0">
+      <path
+         id="path4443"
+         d="M 3,-3 L -3,3 M 0,-5 L  0,5"
+         style="stroke:#000000; stroke-width:0.5" />
+    </marker>
+  </defs>
+  <sodipodi:namedview
+     id="base"
+     pagecolor="#adadad"
+     bordercolor="#666666"
+     borderopacity="1.0"
+     inkscape:pageopacity="0.35686275"
+     inkscape:pageshadow="2"
+     inkscape:zoom="1.8101934"
+     inkscape:cx="101.9336"
+     inkscape:cy="157.23548"
+     inkscape:document-units="px"
+     inkscape:current-layer="g4423"
+     showgrid="false"
+     borderlayer="true"
+     showborder="true"
+     inkscape:window-width="1680"
+     inkscape:window-height="948"
+     inkscape:window-x="305"
+     inkscape:window-y="69"
+     inkscape:window-maximized="0"
+     inkscape:snap-center="false"
+     inkscape:snap-object-midpoints="true"
+     inkscape:snap-midpoints="false"
+     units="px"
+     height="180mm"
+     inkscape:snap-nodes="true" />
+  <metadata
+     id="metadata7">
+    <rdf:RDF>
+      <cc:Work
+         rdf:about="">
+        <dc:format>image/svg+xml</dc:format>
+        <dc:type
+           rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
+        <dc:title></dc:title>
+      </cc:Work>
+    </rdf:RDF>
+  </metadata>
+  <g
+     inkscape:label="Layer 1"
+     inkscape:groupmode="layer"
+     id="layer1"
+     transform="translate(0,-856.36233)">
+    <g
+       id="g4559-4-5"
+       transform="matrix(0.83524861,0.11481544,-0.09653786,0.99338684,-715.07906,-312.28806)"
+       inkscape:export-filename="D:\dronin\logo_25b.png"
+       inkscape:export-xdpi="90"
+       inkscape:export-ydpi="90">
+      <g
+         id="g4368"
+         transform="translate(2.119362,3.1250041)"
+         inkscape:export-filename="D:\dronin\logo_25mod.png"
+         inkscape:export-xdpi="90"
+         inkscape:export-ydpi="90">
+        <g
+           id="g4423"
+           transform="matrix(1.1762707,0,0,1.1762707,-184.24762,-190.89707)">
+          <path
+             style="fill:#ffffff;fill-opacity:1;stroke:#000000;stroke-width:3.33769418;stroke-miterlimit:4;stroke-dasharray:none;stroke-linejoin:round"
+             d="m 1131.8438,1169.9375 c 25.6666,7.4583 51.3333,14.9167 77,22.375 -23.5101,-19.4776 -46.7572,-39.2709 -70.3438,-58.6563 -0.6373,-0.7614 -1.5596,-1.5542 -2.6186,-1.1487 -1.5327,0.096 -3.0785,-0.041 -4.5689,-0.4137 0.1771,12.6145 0.3542,25.2291 0.5313,37.8437 z"
+             id="path6"
+             inkscape:connector-curvature="0" />
+          <path
+             style="fill:#ffffff;fill-opacity:1;stroke:#000000;stroke-width:3.33769418;stroke-miterlimit:4;stroke-dasharray:none;stroke-linejoin:round"
+             d="m 1058.6875,1098.625 c 0.341,28.5891 0.9795,57.1767 0.9889,85.7685 0.1434,3.2936 -1.93,6.257 -4.5802,8.0259 -2.382,1.5476 -4.9477,2.4811 -7.8022,2.6863 -3.6008,0.2961 -7.1732,-1.0588 -9.8565,-3.3869 -3.1247,-2.8265 -3.9067,-7.9715 -1.6459,-11.5687 1.575,-2.9861 4.5089,-5.0788 7.7041,-5.9842 2.3043,-0.9182 4.8906,-0.3715 7.3168,-0.2597 0.694,-0.184 0.1317,-1.2961 0.3125,-1.8437 -0.027,-7.5527 -0.2334,-15.1036 -0.2812,-22.6563 -7.9806,-0.5399 -15.914,1.6928 -23.1876,4.625 -4.9077,2.345 -9.3107,5.7707 -13.0781,9.5646 -3.9884,4.3266 -7.2312,9.4954 -8.4383,15.3186 -1.7088,7.0073 -0.8744,14.6918 2.6064,21.0376 2.2743,3.8452 5.1009,7.3021 8.5797,9.988 2.4357,1.9437 5.0531,3.652 7.8303,5.06 20.1667,-8.375 40.3334,-16.75 60.5,-25.125 -0.2708,-20.2396 -0.5416,-40.4792 -0.8124,-60.7188 -8.7709,-13.5833 -17.5417,-27.1666 -26.3126,-40.75 0.052,3.4063 0.1042,6.8126 0.1563,10.2188 z"
+             id="path10"
+             inkscape:connector-curvature="0" />
+          <path
+             style="fill:#ffffff;fill-opacity:1;stroke:#000000;stroke-width:3.33769418;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none"
+             d="m 1015.7403,1227.3813 c 23.2168,-2.6946 46.4336,-5.3893 69.6504,-8.084 -0.1048,-6.8854 -0.2097,-13.7708 -0.3145,-20.6562 -23.112,9.5801 -46.2239,19.1601 -69.3359,28.7402 z"
+             id="path12"
+             inkscape:connector-curvature="0" />
+          <path
+             style="fill:#ffffff;fill-opacity:1;stroke:#000000;stroke-width:3.33769418;stroke-miterlimit:4;stroke-dasharray:none;stroke-linejoin:round"
+             d="m 1132.2812,1087.3438 c -13.1502,0.4683 -26.2918,1.1407 -39.4374,1.7187 0.5833,43.0521 1.1666,86.1042 1.75,129.1563 9.7708,-1.1355 19.5416,-2.2709 29.3124,-3.4063 -0.4576,-34.4063 -0.9208,-68.8125 -1.375,-103.2187 6.2188,0.1328 12.6182,-1.5752 18.6876,0.4374 3.591,1.4841 6.6709,4.8452 6.875,8.875 0.067,2.6031 -0.8984,5.2413 -2.75,7.0626 6.8645,5.7291 13.7291,11.4583 20.5937,17.1874 3.1308,-2.6085 5.6762,-6.1472 7.7629,-9.7104 1.8839,-3.4081 3.056,-7.1602 3.6054,-11.0486 0.8361,-5.509 -0.3102,-11.2058 -2.5604,-16.1876 -1.8348,-3.9631 -4.6918,-7.5468 -7.8392,-10.4284 -4.1631,-3.6284 -9.0368,-6.5012 -14.2527,-8.16 -5.8293,-2.0082 -12.0479,-2.6764 -18.1901,-2.3412 -0.7274,0.021 -1.4548,0.043 -2.1822,0.064 z"
+             id="path16"
+             inkscape:connector-curvature="0" />
+          <g
+             id="g4842"
+             transform="matrix(1.0044163,-0.11609023,0.09760971,0.8445223,987.14404,1063.571)">
+            <g
+               id="g4688"
+               inkscape:label="0" />
+            <g
+               id="g4690"
+               inkscape:label="ASHADE">
+              <use
+                 id="use4692"
+                 xlink:href="#AVE_RENDER"
+                 x="0"
+                 y="-1052.3622"
+                 width="1"
+                 height="1" />
+              <use
+                 id="use4694"
+                 xlink:href="#AVE_RENDER"
+                 x="0"
+                 y="-1052.3622"
+                 width="1"
+                 height="1" />
+              <use
+                 id="use4696"
+                 xlink:href="#AVE_RENDER"
+                 x="0"
+                 y="-1052.3622"
+                 width="1"
+                 height="1" />
+              <use
+                 id="use4698"
+                 xlink:href="#AVE_RENDER"
+                 x="0"
+                 y="-1052.3622"
+                 width="1"
+                 height="1" />
+              <use
+                 id="use4700"
+                 xlink:href="#AVE_RENDER"
+                 x="0"
+                 y="-1052.3622"
+                 width="1"
+                 height="1" />
+              <use
+                 id="use4702"
+                 xlink:href="#AVE_RENDER"
+                 x="0"
+                 y="-1052.3622"
+                 width="1"
+                 height="1" />
+              <use
+                 id="use4704"
+                 xlink:href="#AVE_RENDER"
+                 x="0"
+                 y="-1052.3622"
+                 width="1"
+                 height="1" />
+              <use
+                 id="use4706"
+                 xlink:href="#AVE_RENDER"
+                 x="0"
+                 y="-1052.3622"
+                 width="1"
+                 height="1" />
+              <use
+                 id="use4708"
+                 xlink:href="#AVE_GLOBAL"
+                 x="0"
+                 y="-1052.3622"
+                 width="1"
+                 height="1" />
+            </g>
+          </g>
+          <path
+             style="fill:#000000;fill-opacity:1;fill-rule:evenodd;stroke:#ffffff;stroke-width:3.60000006;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-linecap:round"
+             d="M 62.314453 4.0039062 C 71.593395 26.445107 80.873413 48.886807 90.152344 71.328125 C 90.980652 61.525138 91.80852 51.722806 92.636719 41.919922 C 82.529589 29.281488 72.421594 16.642223 62.314453 4.0039062 z "
+             transform="matrix(1.0044163,-0.11609023,0.09760971,0.8445223,987.14404,1063.571)"
+             id="path3410" />
+          <path
+             style="fill:#000000;fill-opacity:1;stroke:#ffffff;fill-rule:evenodd;stroke-width:3.33769418;stroke-miterlimit:4;stroke-dasharray:none;stroke-linejoin:round"
+             d="m 1136.4688,1184.5 c 0.1655,7.9583 0.3399,15.9166 0.5,23.875 19.7692,-2.0989 39.5392,-4.2497 59.3033,-6.4044 0.6134,-0.2611 -1.4101,-0.5717 -1.8751,-0.7871 -19.3111,-5.6163 -38.6088,-11.2913 -57.9282,-16.871 l 0,0.15 0,0.037 z"
+             id="path3406" />
+          <path
+             style="fill:#000000;fill-opacity:1;stroke:#ffffff;fill-rule:evenodd;stroke-width:3.33769418;stroke-miterlimit:4;stroke-dasharray:none;stroke-linejoin:round"
+             d="m 1132.4375,1213.8438 c 29.3437,-3.3751 58.6875,-6.75 88.0313,-10.125 -29.5105,-8.5938 -59.0209,-17.1875 -88.5313,-25.7813 0.1667,11.9688 0.3333,23.9375 0.5,35.9063 z"
+             id="path4150" />
+        </g>
+      </g>
+    </g>
+  </g>
+</svg>

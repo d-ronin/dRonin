@@ -100,4 +100,11 @@ void PIOS_WS2811_set_all(ws2811_dev_t dev, uint8_t r, uint8_t g,
  */
 void PIOS_WS2811_dma_interrupt_handler(ws2811_dev_t dev);
 
+/**
+ * @brief Find out how many LEDs are configured on an interface.
+ * @param[in] dev WS2811 device handle
+ * @returns number of leds configured.
+ */
+int PIOS_WS2811_get_num_leds(ws2811_dev_t dev);
+
 #endif /* LIB_MAX7456_MAX7456_H_ */

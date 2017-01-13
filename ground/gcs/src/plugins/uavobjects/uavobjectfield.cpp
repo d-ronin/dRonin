@@ -540,6 +540,16 @@ QStringList UAVObjectField::getElementNames()
     return elementNames;
 }
 
+QString UAVObjectField::getElementName(quint32 index)
+{
+    if (index >= static_cast<quint32>(elementNames.length())) {
+        Q_ASSERT(false);
+        qWarning() << "Invalid element:" << index << " max=" << elementNames.length();
+        return "";
+    }
+    return elementNames.at(static_cast<int>(index));
+}
+
 UAVObject* UAVObjectField::getObject()
 {
     return obj;
@@ -960,9 +970,17 @@ bool UAVObjectField::checkValue(const QVariant& value, quint32 index)
             break;
         case ENUM:
         {
-            qint8 tmpenum = options.indexOf( value.toString() );
-            return ((tmpenum < 0) ? false : true);
-            break;
+            if (static_cast<QMetaType::Type>(value.type()) == QMetaType::QString) {
+                int idx = options.indexOf(value.toString());
+                if (idx < 0 || idx >= indices.length())
+                    return false;
+            } else if (value.canConvert(QMetaType::Int)) {
+                if (!indices.contains(value.toInt()))
+                    return false;
+            } else {
+                return false;
+            }
+            return true;
         }
         default:
             qDebug() << "checkValue: other types" << type;
@@ -1031,10 +1049,27 @@ void UAVObjectField::setValue(const QVariant& value, quint32 index)
         }
         case ENUM:
         {
-            qint8 tmpenum = options.indexOf( value.toString() );
-            Q_ASSERT(tmpenum >= 0); // To catch any programming errors where we set invalid values
-
-	    tmpenum = indices[tmpenum];
+            qint8 tmpenum;
+            if (static_cast<QMetaType::Type>(value.type()) == QMetaType::QString) {
+                int idx = options.indexOf(value.toString());
+                if (idx < 0 || idx >= indices.length()) {
+                    Q_ASSERT(false);
+                    qWarning() << "Invalid option!" << obj->getName() << name << value.toString();
+                    return;
+                }
+                tmpenum = static_cast<qint8>(indices[idx]);
+            } else if (value.canConvert(QMetaType::Int)) {
+                if (!indices.contains(value.toInt())) {
+                    Q_ASSERT(false);
+                    qWarning() << "Invalid option!" << obj->getName() << name << value.toInt();
+                    return;
+                }
+                tmpenum = static_cast<qint8>(value.toInt());
+            } else {
+                Q_ASSERT(false);
+                qWarning() << "Invalid type!" << obj->getName() << name << value;
+                return;
+            }
 
             memcpy(&data[offset + numBytesPerElement*index], &tmpenum, numBytesPerElement);
             break;

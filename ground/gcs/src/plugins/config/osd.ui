@@ -164,10 +164,10 @@
                <string>Shift the video horizontally. Note: Large values can cause sync problems.</string>
               </property>
               <property name="minimum">
-               <number>-20</number>
+               <number>-40</number>
               </property>
               <property name="maximum">
-               <number>20</number>
+               <number>40</number>
               </property>
              </widget>
             </item>

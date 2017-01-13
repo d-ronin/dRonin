@@ -27,7 +27,7 @@
 #include "pios.h"		/* PIOS_LED_* -- FIXME: include is too coarse */
 #include "led_pwm.h"		/* API definition */
 
-static uint32_t led_pwm_on_p(uint32_t pwm_period, uint32_t pwm_sweep_steps, uint32_t uptime) {
+static uint32_t led_pwm_on_p(uint32_t pwm_period, uint32_t pwm_sweep_steps, uint32_t uptime, uint8_t *fraction) {
 	/* 0 - pwm_sweep_steps */
 	uint32_t curr_step = (uptime / pwm_period) % pwm_sweep_steps;
 
@@ -40,6 +40,10 @@ static uint32_t led_pwm_on_p(uint32_t pwm_period, uint32_t pwm_sweep_steps, uint
 	/* reverse direction in odd sweeps */
 	if (curr_sweep & 1) {
 		pwm_duty = pwm_period - pwm_duty;
+	}
+
+	if (fraction) {
+		*fraction = 255 * pwm_duty / pwm_period;
 	}
 
 	return ((uptime % pwm_period) > pwm_duty) ? 1 : 0;
@@ -76,8 +80,10 @@ void led_pwm_add_ticks(struct led_pwm_state *leds, uint32_t elapsed_us)
 	leds->uptime_us += elapsed_us;
 }
 
-bool led_pwm_update_leds(const struct led_pwm_state *leds)
+bool led_pwm_update_leds(struct led_pwm_state *leds)
 {
+	uint8_t led1_fraction = 128;
+
 	/*
 	 * Compute states of emulated PWM timers
 	 */
@@ -85,15 +91,21 @@ bool led_pwm_update_leds(const struct led_pwm_state *leds)
 	if (leds->pwm_1_enabled) {
 		pwm_1_led_state = led_pwm_on_p(leds->pwm_1_period_us,
 					leds->pwm_1_sweep_steps,
-					leds->uptime_us);
+					leds->uptime_us,
+					&led1_fraction);
 	}
+
+#ifdef PIOS_LED_ALARM
+	uint8_t led2_fraction = 0;
 
 	bool pwm_2_led_state = false; /* forces LED off when pwm2 is disabled */
 	if (leds->pwm_2_enabled) {
 		pwm_2_led_state = led_pwm_on_p(leds->pwm_2_period_us,
 					leds->pwm_2_sweep_steps,
-					leds->uptime_us);
+					leds->uptime_us,
+					&led2_fraction);
 	}
+#endif
 
 	/*
 	 * Toggle the LEDs based on the 2 emulated PWM timers
@@ -105,11 +117,27 @@ bool led_pwm_update_leds(const struct led_pwm_state *leds)
 		PIOS_ANNUNC_Off(PIOS_LED_HEARTBEAT);
 	}
 
-	if (pwm_2_led_state) {
-		PIOS_ANNUNC_On(PIOS_LED_HEARTBEAT);
-	} else {
-		PIOS_ANNUNC_Off(PIOS_LED_HEARTBEAT);
+#ifdef PIOS_INCLUDE_WS2811
+#define WS2811_UPDATE_INTERVAL 15000	// 67Hz!
+
+	if ((leds->uptime_us - leds->last_ws2811_us) >= WS2811_UPDATE_INTERVAL) {
+		leds->last_ws2811_us = leds->uptime_us;
+
+		PIOS_WS2811_set_all(pios_ws2811, led1_fraction,
+			led2_fraction / 2, 0);
+		PIOS_WS2811_trigger_update(pios_ws2811);
 	}
+#endif
+
+#ifdef PIOS_LED_ALARM
+	if (PIOS_LED_ALARM != PIOS_LED_HEARTBEAT) {
+		if (pwm_2_led_state) {
+			PIOS_ANNUNC_On(PIOS_LED_ALARM);
+		} else {
+			PIOS_ANNUNC_Off(PIOS_LED_ALARM);
+		}
+	}
+#endif
 
 	return true;
 }
