@@ -91,7 +91,22 @@ bool Seppuku::queryCapabilities(BoardCapabilities capability)
 
 bool Seppuku::isInputConfigurationSupported(InputType type)
 {
-    Q_UNUSED(type)
+    switch (type) {
+    case INPUT_TYPE_DISABLED:
+    case INPUT_TYPE_ANY:
+    case INPUT_TYPE_DSM:
+    case INPUT_TYPE_SBUS:
+    case INPUT_TYPE_SBUSNONINVERTED:
+    case INPUT_TYPE_HOTTSUMD:
+    case INPUT_TYPE_HOTTSUMH:
+    case INPUT_TYPE_IBUS:
+    case INPUT_TYPE_PPM:
+    case INPUT_TYPE_SRXL:
+        return true;
+    case INPUT_TYPE_PWM:
+    case INPUT_TYPE_UNKNOWN:
+        return false;
+    }
     return false;
 }
 
