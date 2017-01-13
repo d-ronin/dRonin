@@ -106,41 +106,20 @@ void ConnectionDiagram::setupGraphicsScene()
         m_scene->addItem(m_background);
 
         QStringList elementsToShow;
-
-        addUavoFieldElements(elementsToShow, "SystemSettings", "AirframeType", "frame-");
-
-        // no default case to force updating when new types are added
-        switch (board->getInputType()) {
-        case Core::IBoardType::INPUT_TYPE_PWM:
-            elementsToShow << "pwm";
-            break;
-        case Core::IBoardType::INPUT_TYPE_PPM:
-            elementsToShow << "ppm";
-            break;
-        case Core::IBoardType::INPUT_TYPE_SBUS:
-        case Core::IBoardType::INPUT_TYPE_SBUSNONINVERTED:
-            elementsToShow << "sbus";
-            break;
-        case Core::IBoardType::INPUT_TYPE_DSM:
-            elementsToShow << "satellite";
-            break;
-        case Core::IBoardType::INPUT_TYPE_HOTTSUMD:
-        case Core::IBoardType::INPUT_TYPE_HOTTSUMH:
-            elementsToShow << "hott";
-            break;
-        case Core::IBoardType::INPUT_TYPE_IBUS:
-            elementsToShow << "ibus";
-            break;
-        case Core::IBoardType::INPUT_TYPE_SRXL:
-            elementsToShow << "srxl";
-            break;
-        case Core::IBoardType::INPUT_TYPE_ANY:
-        case Core::IBoardType::INPUT_TYPE_DISABLED:
-        case Core::IBoardType::INPUT_TYPE_UNKNOWN:
-            break;
-        }
-
         elementsToShow << QString("controller-").append(board->shortName().toLower());
+
+        QStringList uavosToShow;
+        uavosToShow << "SystemSettings";
+        uavosToShow << "ModuleSettings";
+        uavosToShow << "OnScreenDisplaySettings";
+        uavosToShow << board->getHwUAVO();
+        for (const auto &uavoName : uavosToShow) {
+            if (uavoName.length()) {
+                UAVObject *obj = uavoMngr->getObject(uavoName);
+                if (obj)
+                    addUavoFieldElements(elementsToShow, obj);
+            }
+        }
 
         setupGraphicsSceneItems(elementsToShow);
 
@@ -199,20 +178,39 @@ void ConnectionDiagram::saveToFile()
         QMessageBox::warning(this, tr("Save Failed"), tr("Invalid filename provided, diagram was not saved."));
 }
 
-void ConnectionDiagram::addUavoFieldElements(QStringList &elements, const QString &objName, const QString &fieldName, const QString &prefix)
+void ConnectionDiagram::addUavoFieldElements(QStringList &elements, UAVObject *obj, const QString &prefix)
 {
-    UAVObjectField *field = uavoMngr->getField(objName, fieldName);
-    Q_ASSERT(field);
-    if (!field)
-        return;
-
-    if (field->getType() != UAVObjectField::ENUM) {
+    if (!obj) {
         Q_ASSERT(false);
+        qWarning() << "Invalid object!";
         return;
     }
 
-    QString val = field->getValue().toString().toLower().replace(QRegExp(ENUM_SPECIAL_CHARS), "");
-    elements << QString("%0%1").arg(prefix).arg(val);
+    for (const auto field : obj->getFields()) {
+        if (!field) {
+            Q_ASSERT(false);
+            qWarning() << "Invalid object field!";
+            continue;
+        }
+        if (field->getType() != UAVObjectField::ENUM)
+            continue;
+
+        quint32 nelements = field->getNumElements();
+        if (nelements > 1) {
+            for (quint32 i = 0; i < nelements; i++) {
+                QString val = field->getValue(i).toString().replace(QRegExp(ENUM_SPECIAL_CHARS), "").toLower();
+                elements << QString("%0%1-%2-%3-%4")
+                            .arg(prefix)
+                            .arg(obj->getName().toLower())
+                            .arg(field->getName().toLower())
+                            .arg(field->getElementName(i).replace(QRegExp(ENUM_SPECIAL_CHARS), "").toLower())
+                            .arg(val);
+            }
+        } else {
+            QString val = field->getValue().toString().replace(QRegExp(ENUM_SPECIAL_CHARS), "").toLower();
+            elements << QString("%0%1-%2-%3").arg(prefix).arg(obj->getName().toLower()).arg(field->getName().toLower()).arg(val);
+        }
+    }
 }
 
 /**

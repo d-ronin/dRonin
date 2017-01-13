@@ -71,7 +71,7 @@ private:
 
     void setupGraphicsScene();
     void setupGraphicsSceneItems(QStringList elementsToShow);
-    void addUavoFieldElements(QStringList &elements, const QString &objName, const QString &fieldName, const QString &prefix = "");
+    void addUavoFieldElements(QStringList &elements, UAVObject *obj, const QString &prefix = "");
 
 private slots:
     void saveToFile();

@@ -30,12 +30,12 @@
      id="namedview4616"
      showgrid="false"
      inkscape:zoom="1.9999999"
-     inkscape:cx="444.02658"
+     inkscape:cx="326.77657"
      inkscape:cy="236.19713"
      inkscape:window-x="65"
      inkscape:window-y="24"
      inkscape:window-maximized="1"
-     inkscape:current-layer="layer10"
+     inkscape:current-layer="layer2"
      fit-margin-top="15"
      fit-margin-left="15"
      fit-margin-right="15"
@@ -2175,11 +2175,12 @@
     <g
        inkscape:groupmode="layer"
        id="layer12"
-       inkscape:label="hexacoax">
+       inkscape:label="hexacoax"
+       style="display:inline">
       <g
          style="display:inline"
          transform="matrix(0.4,0,0,0.4,-457.31313,-170.65784)"
-         id="frame-hexacoax">
+         id="systemsettings-airframetype-hexacoax">
         <g
            transform="matrix(1.6375361,0,0,-1.6061042,1762.4794,2222.6719)"
            id="123">
@@ -2756,7 +2757,7 @@
       <g
          style="display:inline"
          transform="matrix(0.4,0,0,0.4,-457.31313,-174.65784)"
-         id="frame-hexa">
+         id="systemsettings-airframetype-hexa">
         <g
            transform="matrix(1.25,0,0,-1.25,-575.71068,1844.8336)"
            id="6165">
@@ -3325,7 +3326,7 @@
       <g
          style="display:inline"
          transform="matrix(0.4,0,0,0.4,-457.31313,-174.65784)"
-         id="hexa">
+         id="systemsettings-airframetype-hexax">
         <path
            style="fill:none;stroke:#777777;stroke-width:7.5;stroke-linecap:round;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:7.5, 15;stroke-dashoffset:0"
            inkscape:connector-curvature="0"
@@ -3878,7 +3879,7 @@
       <g
          style="display:inline"
          transform="matrix(0.4,0,0,0.4,-457.31313,-174.65784)"
-         id="frame-quadx">
+         id="systemsettings-airframetype-quadx">
         <g
            transform="matrix(1.8518693,0,0,1.8518693,452.11801,-1731.8917)"
            id="5645654">
@@ -4288,7 +4289,7 @@
       <g
          style="display:inline"
          transform="matrix(0.4,0,0,0.4,-457.31313,-174.65784)"
-         id="frame-quadp">
+         id="systemsettings-airframetype-quadp">
         <path
            style="fill:none;stroke:#777777;stroke-width:7.5;stroke-linecap:round;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:7.5, 15;stroke-dashoffset:0"
            inkscape:connector-curvature="0"
@@ -4679,7 +4680,7 @@
        style="display:inline">
       <g
          style="display:inline"
-         id="tri"
+         id="systemsettings-airframetype-tri"
          transform="translate(-417.54184,-39.999961)">
         <g
            transform="matrix(0.73103688,0,0,-0.73103688,613.69731,1177.3486)"
@@ -5181,7 +5182,8 @@
     <g
        style="display:inline"
        transform="matrix(0.4,0,0,0.4,-376.01667,-220.61978)"
-       id="satellite">
+       id="hwsparky-rcvrport-dsm"
+       inkscape:label="#hwsparky-rcvrport-dsm">
       <path
          style="fill:none;stroke:#777777;stroke-width:14.5;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none"
          inkscape:connector-curvature="0"
@@ -5233,7 +5235,7 @@
          line-height="125%"
          font-size="40px"
          font-weight="normal"
-         style="font-size:40px;font-style:normal;font-weight:normal;text-align:center;line-height:125%;letter-spacing:0px;word-spacing:0px;text-anchor:middle;fill:#ffffff;font-family:Sans"
+         style="font-style:normal;font-weight:normal;font-size:40px;line-height:125%;font-family:Sans;text-align:center;letter-spacing:0px;word-spacing:0px;text-anchor:middle;fill:#ffffff"
          id="text9963"><tspan
            x="1363.6637"
            y="1415.5746"
@@ -5247,7 +5249,7 @@
          font-size="100px"
          xml:space="preserve"
          font-weight="normal"
-         style="font-size:100px;font-style:normal;font-weight:normal;line-height:125%;letter-spacing:0px;word-spacing:0px;fill:#000000;font-family:Sans"
+         style="font-style:normal;font-weight:normal;font-size:100px;line-height:125%;font-family:Sans;letter-spacing:0px;word-spacing:0px;fill:#000000"
          id="text4849"><tspan
            style="font-size:40px;fill:#ffffff"
            x="1291.984"
@@ -5264,7 +5266,7 @@
     <g
        style="display:inline"
        transform="matrix(0.4,0,0,0.4,-375.78951,-220.81179)"
-       id="sbus">
+       id="hwsparky-rcvrport-sbus">
       <path
          style="fill:none;stroke:#777777;stroke-width:14.5;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none"
          inkscape:connector-curvature="0"
@@ -5316,7 +5318,7 @@
          line-height="125%"
          font-size="40px"
          font-weight="normal"
-         style="font-size:40px;font-style:normal;font-weight:normal;text-align:center;line-height:125%;letter-spacing:0px;word-spacing:0px;text-anchor:middle;fill:#ffffff;font-family:Sans"
+         style="font-style:normal;font-weight:normal;font-size:40px;line-height:125%;font-family:Sans;text-align:center;letter-spacing:0px;word-spacing:0px;text-anchor:middle;fill:#ffffff"
          id="text9963-1"><tspan
            x="1367.399"
            y="1415.5746"
@@ -5330,7 +5332,7 @@
          font-size="100px"
          xml:space="preserve"
          font-weight="normal"
-         style="font-size:100px;font-style:normal;font-weight:normal;text-align:center;line-height:125%;letter-spacing:0px;word-spacing:0px;text-anchor:middle;fill:#000000;font-family:Sans"
+         style="font-style:normal;font-weight:normal;font-size:100px;line-height:125%;font-family:Sans;text-align:center;letter-spacing:0px;word-spacing:0px;text-anchor:middle;fill:#000000"
          id="text4849-5"><tspan
            x="1368.0533"
            y="1475.4048"
@@ -5346,9 +5348,9 @@
      style="display:inline">
     <g
        style="display:inline"
-       id="hott"
+       id="hwsparky-rcvrport-hottsumd"
        transform="matrix(0.4,0,0,0.4,-375.74999,-222.78055)"
-       inkscape:label="#hott">
+       inkscape:label="#hwsparky-rcvrport-hottsumd">
       <path
          id="path5106-1"
          d="m 1250,1460 c -64.9,-5.97 -121,14.3 -171,40.7"
@@ -5394,7 +5396,7 @@
       </g>
       <text
          id="text5120-9"
-         style="font-size:40px;font-style:normal;font-weight:normal;text-align:center;line-height:125%;letter-spacing:0px;word-spacing:0px;text-anchor:middle;fill:#ffffff;font-family:Sans"
+         style="font-style:normal;font-weight:normal;font-size:40px;line-height:125%;font-family:Sans;text-align:center;letter-spacing:0px;word-spacing:0px;text-anchor:middle;fill:#ffffff"
          font-weight="normal"
          font-size="40px"
          line-height="125%"
@@ -5408,7 +5410,7 @@
            x="1367.399" /></text>
       <text
          id="text5124-6"
-         style="font-size:100px;font-style:normal;font-weight:normal;text-align:center;line-height:125%;letter-spacing:0px;word-spacing:0px;text-anchor:middle;fill:#000000;font-family:Sans"
+         style="font-style:normal;font-weight:normal;font-size:100px;line-height:125%;font-family:Sans;text-align:center;letter-spacing:0px;word-spacing:0px;text-anchor:middle;fill:#000000"
          font-weight="normal"
          xml:space="preserve"
          font-size="100px"
@@ -5431,9 +5433,9 @@
      style="display:inline">
     <g
        style="display:inline"
-       id="ppm"
+       id="hwsparky-rcvrport-ppm"
        transform="matrix(0.4,0,0,0.4,-375.78241,-222.81179)"
-       inkscape:label="#ppm">
+       inkscape:label="#hwsparky-rcvrport-ppm">
       <path
          id="path5106"
          d="m 1250,1460 c -64.9,-5.97 -121,14.3 -171,40.7"
@@ -5479,7 +5481,7 @@
       </g>
       <text
          id="text5120"
-         style="font-size:40px;font-style:normal;font-weight:normal;text-align:center;line-height:125%;letter-spacing:0px;word-spacing:0px;text-anchor:middle;fill:#ffffff;font-family:Sans"
+         style="font-style:normal;font-weight:normal;font-size:40px;line-height:125%;font-family:Sans;text-align:center;letter-spacing:0px;word-spacing:0px;text-anchor:middle;fill:#ffffff"
          font-weight="normal"
          font-size="40px"
          line-height="125%"
@@ -5493,7 +5495,7 @@
            x="1367.399" /></text>
       <text
          id="text5124"
-         style="font-size:100px;font-style:normal;font-weight:normal;text-align:center;line-height:125%;letter-spacing:0px;word-spacing:0px;text-anchor:middle;fill:#000000;font-family:Sans"
+         style="font-style:normal;font-weight:normal;font-size:100px;line-height:125%;font-family:Sans;text-align:center;letter-spacing:0px;word-spacing:0px;text-anchor:middle;fill:#000000"
          font-weight="normal"
          xml:space="preserve"
          font-size="100px"

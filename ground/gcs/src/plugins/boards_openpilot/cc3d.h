@@ -63,7 +63,7 @@ public:
      * @brief getConnectionDiagram get the connection diagram for this board
      * @return a string with the name of the resource for this board diagram
      */
-    virtual QString getConnectionDiagram() { return ":/openpilot/images/connection-diagrams.svg"; }
+    virtual QString getConnectionDiagram() { return ":/openpilot/images/cc3d-connection-diagram.svg"; }
 
     virtual int queryMaxGyroRate();
 
