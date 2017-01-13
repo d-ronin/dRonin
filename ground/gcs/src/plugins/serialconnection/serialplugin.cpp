@@ -37,54 +37,8 @@
 #include <QDebug>
 #include <QFontMetrics>
 
-
-
-SerialEnumerationThread::SerialEnumerationThread(SerialConnection *serial)
-    : m_serial(serial),
-    m_running(true)
-{
-}
-
-SerialEnumerationThread::~SerialEnumerationThread()
-{
-    m_running = false;
-    //wait for the thread to terminate
-    if(wait(2100) == false)
-        qDebug() << "Cannot terminate SerialEnumerationThread";
-}
-
-void SerialEnumerationThread::run()
-{
-    QList <Core::IDevice*> devices = m_serial->availableDevices();
-
-    while(m_running)
-    {
-        if(!m_serial->deviceOpened())
-        {
-            QList <Core::IDevice*> newDev = m_serial->availableDevices();
-            // Note: if(devices != newDev) does not work here (QList of pointers)...
-            bool different = false;
-            if (newDev.length()!= devices.length()) {
-                different = true;
-            } else {
-                for (int i= 0; i< newDev.length(); i++) {
-                    Core::IDevice* oldd = devices.at(i);
-                    Core::IDevice* newd = newDev.at(i);
-                    different |= !(oldd->equals(newd));
-                }
-            }
-            if (different) {
-                devices = newDev;
-                emit enumerationChanged();
-            }
-        }
-        msleep(2000); //update available devices every two seconds (doesn't need more)
-    }
-}
-
-
 SerialConnection::SerialConnection()
-    : enablePolling(true), m_enumerateThread(this),
+    : enablePolling(true),
       m_deviceOpened(false)
 {
     serialHandle = NULL;
@@ -93,24 +47,8 @@ SerialConnection::SerialConnection()
 
     m_optionspage = new SerialPluginOptionsPage(m_config,this);
 
-
-    // Experimental: enable polling on all OS'es since there
-    // were reports that autodetect does not work on XP amongst
-    // others.
-
-    //#ifdef Q_OS_WIN
-//    //I'm cheating a little bit here:
-//    //Knowing if the device enumeration really changed is a bit complicated
-//    //so I just signal it whenever we have a device event...
-//    QMainWindow *mw = Core::ICore::instance()->mainWindow();
-//    QObject::connect(mw, SIGNAL(deviceChange()),
-//                     this, SLOT(onEnumerationChanged()));
-//#else
-    // Other OSes do not send such signals:
-    QObject::connect(&m_enumerateThread, SIGNAL(enumerationChanged()),
-                     this, SLOT(onEnumerationChanged()));
-    m_enumerateThread.start();
-//#endif
+    connect(&periodicTimer, SIGNAL(timeout()), this, SLOT(periodic()));
+    periodicTimer.start(1000);
 }
 
 SerialConnection::~SerialConnection()
@@ -119,8 +57,6 @@ SerialConnection::~SerialConnection()
 
 void SerialConnection::onEnumerationChanged()
 {
-    if (enablePolling)
-        emit availableDevChanged(this);
 }
 
 bool sortPorts(const QSerialPortInfo &s1, const QSerialPortInfo &s2)
@@ -128,10 +64,21 @@ bool sortPorts(const QSerialPortInfo &s1, const QSerialPortInfo &s2)
     return s1.portName() < s2.portName();
 }
 
+void SerialConnection::periodic()
+{
+    if (!this->deviceOpened()) {
+        QList <Core::IDevice*> newDev = this->availableDevices();
+
+        // Ignore the output, as now availableDevices signals!
+    }
+}
+
 QList <IDevice *> SerialConnection::availableDevices()
 {
     static QList <Core::IDevice*> m_available_device_list;
     if (enablePolling) {
+        bool changed = false;
+
         QList<QSerialPortInfo> ports = QSerialPortInfo::availablePorts();
 
         //sort the list by port number (nice idea from PT_Dreamer :))
@@ -156,6 +103,8 @@ QList <IDevice *> SerialConnection::availableDevices()
                 d->setDisplayName(disp.join(" - "));
                 d->setName(port.portName());
                 m_available_device_list.append(d);
+
+                changed = true;
             }
         }
         foreach(IDevice *device,m_available_device_list) {
@@ -170,7 +119,13 @@ QList <IDevice *> SerialConnection::availableDevices()
             {
                 m_available_device_list.removeOne(device);
                 device->deleteLater();
+
+                changed = true;
             }
+        }
+
+        if (changed) {
+            emit availableDevChanged(this);
         }
     }
 

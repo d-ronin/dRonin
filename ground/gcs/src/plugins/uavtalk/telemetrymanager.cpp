@@ -37,9 +37,6 @@ TelemetryManager::TelemetryManager() :
     ExtensionSystem::PluginManager* pm = ExtensionSystem::PluginManager::instance();
     objMngr = pm->getObject<UAVObjectManager>();
 
-    // connect to start stop signals
-    connect(this, SIGNAL(myStart()), this, SLOT(onStart()),Qt::QueuedConnection);
-    connect(this, SIGNAL(myStop()), this, SLOT(onStop()),Qt::QueuedConnection);
     settings = pm->getObject<Core::Internal::GeneralSettings>();
     connect(settings, SIGNAL(generalSettingsChanged()), this, SLOT(onGeneralSettingsChanged()));
     connect(pm, SIGNAL(pluginsLoadEnded()), this, SLOT(onGeneralSettingsChanged()));
@@ -56,26 +53,14 @@ bool TelemetryManager::isConnected()
 
 void TelemetryManager::start(QIODevice *dev)
 {
-    device=dev;
-    emit myStart();
-}
-
-void TelemetryManager::onStart()
-{
-    utalk = new UAVTalk(device, objMngr);
+    utalk = new UAVTalk(dev, objMngr);
     telemetry = new Telemetry(utalk, objMngr);
     telemetryMon = new TelemetryMonitor(objMngr, telemetry, sessions);
     connect(telemetryMon, SIGNAL(connected()), this, SLOT(onConnect()));
     connect(telemetryMon, SIGNAL(disconnected()), this, SLOT(onDisconnect()));
 }
 
-
 void TelemetryManager::stop()
-{
-    emit myStop();
-}
-
-void TelemetryManager::onStop()
 {
     telemetryMon->disconnect(this);
     sessions = telemetryMon->savedSessions();

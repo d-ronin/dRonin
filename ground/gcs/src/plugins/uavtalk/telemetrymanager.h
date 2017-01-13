@@ -54,21 +54,18 @@ public:
 signals:
     void connected();
     void disconnected();
-    void myStart();
-    void myStop();
 
 private slots:
     void onConnect();
     void onDisconnect();
-    void onStart();
-    void onStop();
     void onGeneralSettingsChanged();
+
 private:
     UAVObjectManager* objMngr;
     UAVTalk* utalk;
     Telemetry* telemetry;
     TelemetryMonitor* telemetryMon;
-    QIODevice *device;
+
     bool autopilotConnected;
     QHash<quint16, QList<TelemetryMonitor::objStruc> > sessions;
     Core::Internal::GeneralSettings *settings;
