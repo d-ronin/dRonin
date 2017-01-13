@@ -166,7 +166,7 @@ public:
     virtual int minBootLoaderVersion() { return 0; }
 
     //! Determine if this board supports configuring the receiver
-    virtual bool isInputConfigurationSupported(InputType /*type*/) { return false; }
+    virtual bool isInputConfigurationSupported(InputType type = INPUT_TYPE_ANY) { Q_UNUSED(type); return false; }
 
     /**
      * @brief Configure the board to use an receiver input type on a port number

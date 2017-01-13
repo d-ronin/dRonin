@@ -99,7 +99,7 @@ QString CC3D::getHwUAVO()
 
 
 //! Determine if this board supports configuring the receiver
-bool CC3D::isInputConfigurationSupported(InputType type)
+bool CC3D::isInputConfigurationSupported(Core::IBoardType::InputType type)
 {
     switch (type) {
     case INPUT_TYPE_PWM:
@@ -115,7 +115,7 @@ bool CC3D::isInputConfigurationSupported(InputType type)
  * @param type the type of receiver to use
  * @return true if successfully configured or false otherwise
  */
-bool CC3D::setInputType(InputType type)
+bool CC3D::setInputType(Core::IBoardType::InputType type)
 {
     ExtensionSystem::PluginManager *pm = ExtensionSystem::PluginManager::instance();
     UAVObjectManager *uavoManager = pm->getObject<UAVObjectManager>();
@@ -170,7 +170,7 @@ bool CC3D::setInputType(InputType type)
  * @brief CC3D::getInputType fetch the currently selected input type
  * @return the selected input type
  */
-InputType CC3D::getInputType()
+Core::IBoardType::InputType CC3D::getInputType()
 {
     ExtensionSystem::PluginManager *pm = ExtensionSystem::PluginManager::instance();
     UAVObjectManager *uavoManager = pm->getObject<UAVObjectManager>();

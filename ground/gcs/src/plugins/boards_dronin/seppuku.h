@@ -45,9 +45,9 @@ public:
     bool queryCapabilities(BoardCapabilities capability);
     QPixmap getBoardPicture();
     QString getHwUAVO();
-    bool isInputConfigurationSupported(InputType type);
-    bool setInputType(InputType type);
-    InputType getInputType();
+    bool isInputConfigurationSupported(Core::IBoardType::InputType type);
+    bool setInputType(Core::IBoardType::InputType type);
+    Core::IBoardType::InputType getInputType();
     int queryMaxGyroRate();
     QStringList getAdcNames();
     QString getConnectionDiagram();

@@ -42,9 +42,9 @@ public:
     QPixmap getBoardPicture();
     QString getHwUAVO();
     int queryMaxGyroRate();
-    bool isInputConfigurationSupported(InputType type);
-    bool setInputType(InputType type);
-    InputType getInputType();
+    bool isInputConfigurationSupported(Core::IBoardType::InputType type);
+    bool setInputType(Core::IBoardType::InputType type);
+    Core::IBoardType::InputType getInputType();
     bool isUSBSupported() { return false; }
     QStringList getAdcNames();
 };

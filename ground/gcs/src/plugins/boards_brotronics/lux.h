@@ -45,19 +45,19 @@ public:
     int queryMaxGyroRate();
 
     //! Determine if this board supports configuring the receiver
-    bool isInputConfigurationSupported(InputType type);
+    bool isInputConfigurationSupported(Core::IBoardType::InputType type);
 
     /**
     * Configure the board to use an receiver input type on a port number
     * @param type the type of receiver to use
     */
-    bool setInputType(InputType type);
+    bool setInputType(Core::IBoardType::InputType type);
 
     /**
     * @brief getInputType get the current input type
     * @return the currently selected input type
     */
-    InputType getInputType();
+    Core::IBoardType::InputType getInputType();
 
     /**
     * @brief getConnectionDiagram get the connection diagram for this board

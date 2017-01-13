@@ -44,21 +44,21 @@ public:
     QString getHwUAVO();
 
     //! Determine if this board supports configuring the receiver
-    bool isInputConfigurationSupported(InputType type);
+    bool isInputConfigurationSupported(Core::IBoardType::InputType type);
 
     /**
      * Configure the board to use an receiver input type on a port number
      * @param type the type of receiver to use
      * @param port_num which input port to configure (board specific numbering)
      */
-    bool setInputType(InputType type);
+    bool setInputType(Core::IBoardType::InputType type);
 
     /**
      * @brief getInputOnPort get the current input type
      * @param port_num which input port to query (board specific numbering)
      * @return the currently selected input type
      */
-    InputType getInputType();
+    Core::IBoardType::InputType getInputType();
 
     int queryMaxGyroRate();
     QStringList getAdcNames();

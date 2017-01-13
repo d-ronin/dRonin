@@ -101,7 +101,7 @@ QString Dtfc::getHwUAVO()
 }
 
 //! Determine if this board supports configuring the receiver
-bool Dtfc::isInputConfigurationSupported(InputType type)
+bool Dtfc::isInputConfigurationSupported(Core::IBoardType::InputType type)
 {
     switch (type) {
     case INPUT_TYPE_PWM:
@@ -117,7 +117,7 @@ bool Dtfc::isInputConfigurationSupported(InputType type)
  * @param type the type of receiver to use
  * @return true if successfully configured or false otherwise
  */
-bool Dtfc::setInputType(InputType type)
+bool Dtfc::setInputType(Core::IBoardType::InputType type)
 {
     ExtensionSystem::PluginManager *pm = ExtensionSystem::PluginManager::instance();
     UAVObjectManager *uavoManager = pm->getObject<UAVObjectManager>();
@@ -166,7 +166,7 @@ bool Dtfc::setInputType(InputType type)
  * @brief Dtfc::getInputOnPort fetch the currently selected input type
  * @return the selected input type
  */
-InputType Dtfc::getInputType()
+Core::IBoardType::InputType Dtfc::getInputType()
 {
     ExtensionSystem::PluginManager *pm = ExtensionSystem::PluginManager::instance();
     UAVObjectManager *uavoManager = pm->getObject<UAVObjectManager>();

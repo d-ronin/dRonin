@@ -89,7 +89,7 @@ bool Seppuku::queryCapabilities(BoardCapabilities capability)
     return false;
 }
 
-bool Seppuku::isInputConfigurationSupported(InputType type)
+bool Seppuku::isInputConfigurationSupported(Core::IBoardType::InputType type)
 {
     switch (type) {
     case INPUT_TYPE_DISABLED:
@@ -110,7 +110,7 @@ bool Seppuku::isInputConfigurationSupported(InputType type)
     return false;
 }
 
-bool Seppuku::setInputType(InputType type)
+bool Seppuku::setInputType(Core::IBoardType::InputType type)
 {
     UAVObjectField *rcvrPort = uavoManager->getField(getHwUAVO(), "RcvrPort");
     if (!rcvrPort)
@@ -153,7 +153,7 @@ bool Seppuku::setInputType(InputType type)
     return true;
 }
 
-InputType Seppuku::getInputType()
+Core::IBoardType::InputType Seppuku::getInputType()
 {
     UAVObjectField *rcvrPort = uavoManager->getField(getHwUAVO(), "RcvrPort");
     if (!rcvrPort)

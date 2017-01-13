@@ -114,7 +114,7 @@ int Naze::queryMaxGyroRate()
 }
 
 //! Determine if this board supports configuring the receiver
-bool Naze::isInputConfigurationSupported(InputType type)
+bool Naze::isInputConfigurationSupported(Core::IBoardType::InputType type)
 {
     // doesn't work for now since the board can't reconnect automatically after reboot
     Q_UNUSED(type);
@@ -126,7 +126,7 @@ bool Naze::isInputConfigurationSupported(InputType type)
  * @param type the type of receiver to use
  * @return true if successfully configured or false otherwise
  */
-bool Naze::setInputType(InputType type)
+bool Naze::setInputType(Core::IBoardType::InputType type)
 {
     ExtensionSystem::PluginManager *pm = ExtensionSystem::PluginManager::instance();
     UAVObjectManager *uavoManager = pm->getObject<UAVObjectManager>();
@@ -184,7 +184,7 @@ bool Naze::setInputType(InputType type)
  * @brief Naze::getInputType fetch the currently selected input type
  * @return the selected input type
  */
-InputType Naze::getInputType()
+Core::IBoardType::InputType Naze::getInputType()
 {
     ExtensionSystem::PluginManager *pm = ExtensionSystem::PluginManager::instance();
     UAVObjectManager *uavoManager = pm->getObject<UAVObjectManager>();
