@@ -35,35 +35,35 @@ public:
     Sparky();
     virtual ~Sparky();
 
-    QString shortName();
-    QString boardDescription();
-    bool queryCapabilities(BoardCapabilities capability);
-    QPixmap getBoardPicture();
-    QString getHwUAVO();
+    virtual QString shortName();
+    virtual QString boardDescription();
+    virtual bool queryCapabilities(BoardCapabilities capability);
+    virtual QPixmap getBoardPicture();
+    virtual QString getHwUAVO();
 
     //! Determine if this board supports configuring the receiver
-    bool isInputConfigurationSupported(Core::IBoardType::InputType type);
+    virtual bool isInputConfigurationSupported(Core::IBoardType::InputType type);
 
     /**
      * Configure the board to use an receiver input type on a port number
      * @param type the type of receiver to use
      */
-    bool setInputType(Core::IBoardType::InputType type);
+    virtual bool setInputType(Core::IBoardType::InputType type);
 
     /**
      * @brief getInputType get the current input type
      * @return the currently selected input type
      */
-    Core::IBoardType::InputType getInputType();
+    virtual Core::IBoardType::InputType getInputType();
 
     /**
      * @brief getConnectionDiagram get the connection diagram for this board
      * @return a string with the name of the resource for this board diagram
      */
-    QString getConnectionDiagram() { return ":/taulabs/images/sparky-connection-diagram.svg"; }
+    virtual QString getConnectionDiagram() { return ":/taulabs/images/sparky-connection-diagram.svg"; }
 
-    int queryMaxGyroRate();
-    QStringList getAdcNames();
+    virtual int queryMaxGyroRate();
+    virtual QStringList getAdcNames();
 
 };
 

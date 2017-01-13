@@ -40,18 +40,18 @@ public:
     Seppuku();
     virtual ~Seppuku();
 
-    QString shortName();
-    QString boardDescription();
-    bool queryCapabilities(BoardCapabilities capability);
-    QPixmap getBoardPicture();
-    QString getHwUAVO();
-    bool isInputConfigurationSupported(Core::IBoardType::InputType type);
-    bool setInputType(Core::IBoardType::InputType type);
-    Core::IBoardType::InputType getInputType();
-    int queryMaxGyroRate();
-    QStringList getAdcNames();
-    QString getConnectionDiagram();
-    QWidget *getBoardConfiguration(QWidget *parent, bool connected);
+    virtual QString shortName();
+    virtual QString boardDescription();
+    virtual bool queryCapabilities(BoardCapabilities capability);
+    virtual QPixmap getBoardPicture();
+    virtual QString getHwUAVO();
+    virtual bool isInputConfigurationSupported(Core::IBoardType::InputType type);
+    virtual bool setInputType(Core::IBoardType::InputType type);
+    virtual Core::IBoardType::InputType getInputType();
+    virtual int queryMaxGyroRate();
+    virtual QStringList getAdcNames();
+    virtual QString getConnectionDiagram();
+    virtual QWidget *getBoardConfiguration(QWidget *parent, bool connected);
 
 private:
     UAVObjectManager *uavoManager;

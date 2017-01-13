@@ -78,6 +78,8 @@ bool Lux::queryCapabilities(BoardCapabilities capability)
     case BOARD_CAPABILITIES_ACCELS:
     case BOARD_CAPABILITIES_UPGRADEABLE:
         return true;
+    default:
+        break;
     }
     
     return false;
@@ -100,6 +102,8 @@ bool Lux::isInputConfigurationSupported(Core::IBoardType::InputType type)
     case INPUT_TYPE_PWM:
     case INPUT_TYPE_UNKNOWN:
         return false;
+    default:
+        break;
     }
     
     return true;
@@ -185,6 +189,8 @@ Core::IBoardType::InputType Lux::getInputType()
         return INPUT_TYPE_IBUS;
     case HwLux::RXPORT_SRXL:
         return INPUT_TYPE_SRXL;
+    default:
+        break;
     }
     
     switch(settings.Uart2) {
@@ -198,6 +204,8 @@ Core::IBoardType::InputType Lux::getInputType()
         return INPUT_TYPE_IBUS;
     case HwLux::UART2_SRXL:
         return INPUT_TYPE_SRXL;
+    default:
+        break;
     }
     
     switch(settings.Uart3) {
@@ -211,6 +219,8 @@ Core::IBoardType::InputType Lux::getInputType()
         return INPUT_TYPE_IBUS;
     case HwLux::UART3_SRXL:
         return INPUT_TYPE_SRXL;
+    default:
+        break;
     }
     
     return INPUT_TYPE_PPM;
@@ -236,6 +246,8 @@ int Lux::queryMaxGyroRate()
         return 1000;
     case HwLux::GYRORANGE_2000:
         return 2000;
+    default:
+        break;
     }
     
     return 500;

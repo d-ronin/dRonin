@@ -36,32 +36,32 @@ public:
     Quanton();
     virtual ~Quanton();
 
-    QString shortName();
-    QString boardDescription();
-    int minBootLoaderVersion();
-    bool queryCapabilities(BoardCapabilities capability);
-    QPixmap getBoardPicture();
-    QString getHwUAVO();
+    virtual QString shortName();
+    virtual QString boardDescription();
+    virtual int minBootLoaderVersion();
+    virtual bool queryCapabilities(BoardCapabilities capability);
+    virtual QPixmap getBoardPicture();
+    virtual QString getHwUAVO();
 
     //! Determine if this board supports configuring the receiver
-    bool isInputConfigurationSupported(Core::IBoardType::InputType type);
+    virtual bool isInputConfigurationSupported(Core::IBoardType::InputType type);
 
     /**
      * Configure the board to use an receiver input type on a port number
      * @param type the type of receiver to use
      * @param port_num which input port to configure (board specific numbering)
      */
-    bool setInputType(Core::IBoardType::InputType type);
+    virtual bool setInputType(Core::IBoardType::InputType type);
 
     /**
      * @brief getInputOnPort get the current input type
      * @param port_num which input port to query (board specific numbering)
      * @return the currently selected input type
      */
-    Core::IBoardType::InputType getInputType();
+    virtual Core::IBoardType::InputType getInputType();
 
-    int queryMaxGyroRate();
-    QStringList getAdcNames();
+    virtual int queryMaxGyroRate();
+    virtual QStringList getAdcNames();
 };
 
 

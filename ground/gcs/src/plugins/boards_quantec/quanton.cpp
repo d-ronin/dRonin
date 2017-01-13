@@ -88,6 +88,8 @@ bool Quanton::queryCapabilities(BoardCapabilities capability)
     case BOARD_CAPABILITIES_BAROS:
     case BOARD_CAPABILITIES_UPGRADEABLE:
         return true;
+    default:
+        break;
     }
     
     return false;
@@ -104,6 +106,8 @@ bool Quanton::isInputConfigurationSupported(Core::IBoardType::InputType type)
     switch (type) {
     case INPUT_TYPE_UNKNOWN:
         return false;
+    default:
+        break;
     }
     
     return true;
@@ -212,7 +216,11 @@ Core::IBoardType::InputType Quanton::getInputType()
             return INPUT_TYPE_IBUS;
         case HwQuanton::INPORTSERIAL_SRXL:
             return INPUT_TYPE_SRXL;
+        default:
+            break;
         }
+        break;
+    default:
         break;
     }
     
@@ -229,6 +237,8 @@ Core::IBoardType::InputType Quanton::getInputType()
         return INPUT_TYPE_IBUS;
     case HwQuanton::UART1_SRXL:
         return INPUT_TYPE_SRXL;
+    default:
+        break;
     }
 
     switch(settings.Uart2) {
@@ -246,6 +256,8 @@ Core::IBoardType::InputType Quanton::getInputType()
         return INPUT_TYPE_IBUS;
     case HwQuanton::UART2_SRXL:
         return INPUT_TYPE_SRXL;
+    default:
+        break;
     }
 
     switch(settings.Uart3) {
@@ -261,6 +273,8 @@ Core::IBoardType::InputType Quanton::getInputType()
         return INPUT_TYPE_IBUS;
     case HwQuanton::UART3_SRXL:
         return INPUT_TYPE_SRXL;
+    default:
+        break;
     }
     
     switch(settings.Uart4) {
@@ -276,6 +290,8 @@ Core::IBoardType::InputType Quanton::getInputType()
         return INPUT_TYPE_IBUS;
     case HwQuanton::UART4_SRXL:
         return INPUT_TYPE_SRXL;
+    default:
+        break;
     }
     
     switch(settings.Uart5) {
@@ -291,6 +307,8 @@ Core::IBoardType::InputType Quanton::getInputType()
         return INPUT_TYPE_IBUS;
     case HwQuanton::UART5_SRXL:
         return INPUT_TYPE_SRXL;
+    default:
+        break;
     }
 
     return INPUT_TYPE_UNKNOWN;
@@ -316,6 +334,8 @@ int Quanton::queryMaxGyroRate()
         return 1000;
     case HwQuanton::GYRORANGE_2000:
         return 2000;
+    default:
+        break;
     }
     
     return 500;

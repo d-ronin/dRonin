@@ -82,6 +82,8 @@ bool AQ32::queryCapabilities(BoardCapabilities capability)
     case BOARD_CAPABILITIES_BAROS:
     case BOARD_CAPABILITIES_UPGRADEABLE:
         return true;
+    default:
+        break;
     }
     
     return false;
@@ -98,6 +100,8 @@ bool AQ32::isInputConfigurationSupported(Core::IBoardType::InputType type)
     switch(type) {
     case INPUT_TYPE_UNKNOWN:
         return false;
+    default:
+        break;
     }
     
     return true;
@@ -182,6 +186,8 @@ Core::IBoardType::InputType AQ32::getInputType()
         return INPUT_TYPE_PPM;
     case HwAQ32::RCVRPORT_PWM:
         return INPUT_TYPE_PWM;
+    default:
+        break;
     }
     
     switch(settings.Uart3) {
@@ -197,6 +203,8 @@ Core::IBoardType::InputType AQ32::getInputType()
         return INPUT_TYPE_IBUS;
     case HwAQ32::UART3_SRXL:
         return INPUT_TYPE_SRXL;
+    default:
+        break;
     }
 
     switch(settings.Uart4) {
@@ -212,6 +220,8 @@ Core::IBoardType::InputType AQ32::getInputType()
         return INPUT_TYPE_IBUS;
     case HwAQ32::UART4_SRXL:
         return INPUT_TYPE_SRXL;
+    default:
+        break;
     }
 
     switch(settings.Uart6) {
@@ -227,6 +237,8 @@ Core::IBoardType::InputType AQ32::getInputType()
         return INPUT_TYPE_IBUS;
     case HwAQ32::UART6_SRXL:
         return INPUT_TYPE_SRXL;
+    default:
+        break;
     }
 
     return INPUT_TYPE_UNKNOWN;
@@ -252,6 +264,8 @@ int AQ32::queryMaxGyroRate()
         return 1000;
     case HwAQ32::GYRORANGE_2000:
         return 2000;
+    default:
+        break;
     }
     
     return 500;

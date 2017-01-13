@@ -88,6 +88,8 @@ bool Brain::queryCapabilities(BoardCapabilities capability)
     case BOARD_CAPABILITIES_OSD:
     case BOARD_CAPABILITIES_UPGRADEABLE:
         return true;
+    default:
+        break;
     }
     
     return false;
@@ -109,6 +111,8 @@ bool Brain::isInputConfigurationSupported(Core::IBoardType::InputType type)
     switch(type) {
     case INPUT_TYPE_UNKNOWN:
         return false;
+    default:
+        break;
     }
     
     return true;
@@ -198,6 +202,8 @@ Core::IBoardType::InputType Brain::getInputType()
         return INPUT_TYPE_IBUS;
     case HwBrain::MAINPORT_SRXL:
         return INPUT_TYPE_SRXL;
+    default:
+        break;
     }
 
     switch(settings.FlxPort) {
@@ -211,6 +217,8 @@ Core::IBoardType::InputType Brain::getInputType()
         return INPUT_TYPE_IBUS;
     case HwBrain::FLXPORT_SRXL:
         return INPUT_TYPE_SRXL;
+    default:
+        break;
     }
 
     switch(settings.RxPort) {
@@ -238,7 +246,12 @@ Core::IBoardType::InputType Brain::getInputType()
             return INPUT_TYPE_IBUS;
         case HwBrain::RXPORTUSART_SRXL:
             return INPUT_TYPE_SRXL;
+        default:
+            break;
         }
+        break;
+    default:
+        break;
     }
 
     return INPUT_TYPE_UNKNOWN;
@@ -264,6 +277,8 @@ int Brain::queryMaxGyroRate()
         return 1000;
     case HwBrain::GYROFULLSCALE_2000:
         return 2000;
+    default:
+        break;
     }
     
     return 2000;

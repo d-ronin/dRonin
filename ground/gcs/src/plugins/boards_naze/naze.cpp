@@ -73,6 +73,8 @@ bool Naze::queryCapabilities(BoardCapabilities capability)
     case BOARD_CAPABILITIES_GYROS:
     case BOARD_CAPABILITIES_ACCELS:
         return true;
+    default:
+        break;
     }
     
     return false;
@@ -108,6 +110,8 @@ int Naze::queryMaxGyroRate()
         return 1000;
     case HwNaze::GYRORANGE_2000:
         return 2000;
+    default:
+        break;
     }
     
     return 500;
@@ -169,7 +173,6 @@ bool Naze::setInputType(Core::IBoardType::InputType type)
         settings.RcvrPort = HwNaze::RCVRPORT_SERIAL;
         settings.RcvrSerial = HwNaze::RCVRSERIAL_SRXL;
         break;
-
     default:
         return false;
     }
@@ -218,6 +221,9 @@ Core::IBoardType::InputType Naze::getInputType()
             // can still use PPM
             return INPUT_TYPE_PPM;
         }
+        break;
+    default:
+        break;
     }
 
     return INPUT_TYPE_UNKNOWN;

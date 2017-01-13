@@ -37,35 +37,35 @@ public:
     Lux();
     virtual ~Lux();
 
-    QString shortName();
-    QString boardDescription();
-    bool queryCapabilities(BoardCapabilities capability);
-    QPixmap getBoardPicture();
-    QString getHwUAVO();
-    int queryMaxGyroRate();
+    virtual QString shortName();
+    virtual QString boardDescription();
+    virtual bool queryCapabilities(BoardCapabilities capability);
+    virtual QPixmap getBoardPicture();
+    virtual QString getHwUAVO();
+    virtual int queryMaxGyroRate();
 
     //! Determine if this board supports configuring the receiver
-    bool isInputConfigurationSupported(Core::IBoardType::InputType type);
+    virtual bool isInputConfigurationSupported(Core::IBoardType::InputType type);
 
     /**
     * Configure the board to use an receiver input type on a port number
     * @param type the type of receiver to use
     */
-    bool setInputType(Core::IBoardType::InputType type);
+    virtual bool setInputType(Core::IBoardType::InputType type);
 
     /**
     * @brief getInputType get the current input type
     * @return the currently selected input type
     */
-    Core::IBoardType::InputType getInputType();
+    virtual Core::IBoardType::InputType getInputType();
 
     /**
     * @brief getConnectionDiagram get the connection diagram for this board
     * @return a string with the name of the resource for this board diagram
     */
-    QString getConnectionDiagram() { return ":/brotronics/images/lux-connection-diagram.svg"; }
+    virtual QString getConnectionDiagram() { return ":/brotronics/images/lux-connection-diagram.svg"; }
 
-    QStringList getAdcNames();
+    virtual QStringList getAdcNames();
 
     /**
      * @brief getBoardConfiguration
@@ -73,7 +73,7 @@ public:
      * @param connected Unused
      * @return Configuration widget handle or NULL on failure
      */
-    QWidget *getBoardConfiguration(QWidget *parent, bool connected);
+    virtual QWidget *getBoardConfiguration(QWidget *parent, bool connected);
 
 };
 

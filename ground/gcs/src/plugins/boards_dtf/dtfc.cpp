@@ -85,6 +85,8 @@ bool Dtfc::queryCapabilities(BoardCapabilities capability)
     case BOARD_CAPABILITIES_BAROS:
     case BOARD_CAPABILITIES_UPGRADEABLE:
         return true;
+    default:
+        break;
     }
     
     return false;
@@ -107,6 +109,8 @@ bool Dtfc::isInputConfigurationSupported(Core::IBoardType::InputType type)
     case INPUT_TYPE_PWM:
     case INPUT_TYPE_UNKNOWN:
         return false;
+    default:
+        break;
     }
     
     return true;
@@ -194,6 +198,8 @@ Core::IBoardType::InputType Dtfc::getInputType()
         return INPUT_TYPE_IBUS;
     case HwDtfc::RCVRPORT_SRXL:
         return INPUT_TYPE_SRXL;
+    default:
+        break;
     }
     
     switch(settings.Uart1) {
@@ -211,6 +217,8 @@ Core::IBoardType::InputType Dtfc::getInputType()
         return INPUT_TYPE_IBUS;
     case HwDtfc::UART1_SRXL:
         return INPUT_TYPE_SRXL;
+    default:
+        break;
     }
     
     switch(settings.Uart2) {
@@ -228,6 +236,8 @@ Core::IBoardType::InputType Dtfc::getInputType()
         return INPUT_TYPE_IBUS;
     case HwDtfc::UART2_SRXL:
         return INPUT_TYPE_SRXL;
+    default:
+        break;
     }
     
     return INPUT_TYPE_UNKNOWN;
@@ -253,6 +263,8 @@ int Dtfc::queryMaxGyroRate()
         return 1000;
     case HwDtfc::GYRORANGE_2000:
         return 2000;
+    default:
+        break;
     }
     
     return 500;

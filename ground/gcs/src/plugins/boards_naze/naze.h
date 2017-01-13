@@ -36,17 +36,17 @@ public:
     Naze();
     virtual ~Naze();
 
-    QString shortName();
-    QString boardDescription();
-    bool queryCapabilities(BoardCapabilities capability);
-    QPixmap getBoardPicture();
-    QString getHwUAVO();
-    int queryMaxGyroRate();
-    bool isInputConfigurationSupported(Core::IBoardType::InputType type);
-    bool setInputType(Core::IBoardType::InputType type);
-    Core::IBoardType::InputType getInputType();
-    bool isUSBSupported() { return false; }
-    QStringList getAdcNames();
+    virtual QString shortName();
+    virtual QString boardDescription();
+    virtual bool queryCapabilities(BoardCapabilities capability);
+    virtual QPixmap getBoardPicture();
+    virtual QString getHwUAVO();
+    virtual int queryMaxGyroRate();
+    virtual bool isInputConfigurationSupported(Core::IBoardType::InputType type);
+    virtual bool setInputType(Core::IBoardType::InputType type);
+    virtual Core::IBoardType::InputType getInputType();
+    virtual bool isUSBSupported() { return false; }
+    virtual QStringList getAdcNames();
 };
 
 

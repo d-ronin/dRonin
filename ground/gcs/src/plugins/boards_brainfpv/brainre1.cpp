@@ -91,6 +91,8 @@ bool BrainRE1::isInputConfigurationSupported(Core::IBoardType::InputType type)
     case INPUT_TYPE_PWM:
     case INPUT_TYPE_UNKNOWN:
         return false;
+    default:
+        break;
     }
     
     return true;
@@ -186,6 +188,8 @@ Core::IBoardType::InputType BrainRE1::getInputType()
         return INPUT_TYPE_IBUS;
     case HwBrainRE1::RXPORT_SRXL:
         return INPUT_TYPE_SRXL;
+    default:
+        break;
     }
 
     return INPUT_TYPE_UNKNOWN;

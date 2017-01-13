@@ -72,6 +72,8 @@ bool CC3D::queryCapabilities(BoardCapabilities capability)
     case BOARD_CAPABILITIES_UPGRADEABLE:
     case BOARD_DISABILITY_REQUIRESUPGRADER:
         return true;
+    default:
+        break;
     }
     
     return false;
@@ -104,6 +106,8 @@ bool CC3D::isInputConfigurationSupported(Core::IBoardType::InputType type)
     switch (type) {
     case INPUT_TYPE_UNKNOWN:
         return false;
+    default:
+        break;
     }
     
     return true;
@@ -186,6 +190,8 @@ Core::IBoardType::InputType CC3D::getInputType()
         return INPUT_TYPE_PPM;
     case HwCopterControl::RCVRPORT_PWM:
         return INPUT_TYPE_PWM;
+    default:
+        break;
     }
     
     switch(settings.MainPort) {
@@ -203,6 +209,8 @@ Core::IBoardType::InputType CC3D::getInputType()
         return INPUT_TYPE_IBUS;
     case HwCopterControl::MAINPORT_SRXL:
         return INPUT_TYPE_SRXL;
+    default:
+        break;
     }
 
     switch(settings.FlexiPort) {
@@ -218,6 +226,8 @@ Core::IBoardType::InputType CC3D::getInputType()
         return INPUT_TYPE_IBUS;
     case HwCopterControl::FLEXIPORT_SRXL:
         return INPUT_TYPE_SRXL;
+    default:
+        break;
     }
 
     return INPUT_TYPE_UNKNOWN;
@@ -244,6 +254,8 @@ int CC3D::queryMaxGyroRate()
         return 1000;
     case HwCopterControl::GYRORANGE_2000:
         return 2000;
+    default:
+        break;
     }
     
     return 500;

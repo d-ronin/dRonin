@@ -98,6 +98,8 @@ bool Sparky2::queryCapabilities(BoardCapabilities capability)
     case BOARD_CAPABILITIES_RADIO:
     case BOARD_CAPABILITIES_UPGRADEABLE:
         return true;
+    default:
+        break;
     }
     
     return false;
@@ -132,6 +134,8 @@ bool Sparky2::isInputConfigurationSupported(Core::IBoardType::InputType type)
     case INPUT_TYPE_PWM:
     case INPUT_TYPE_UNKNOWN:
         return false;
+    default:
+        break;
     }
     
     return true;
@@ -220,6 +224,8 @@ Core::IBoardType::InputType Sparky2::getInputType()
         return INPUT_TYPE_IBUS;
     case HwSparky2::RCVRPORT_SRXL:
         return INPUT_TYPE_SRXL;
+    default:
+        break;
     }
     
     switch(settings.MainPort) {
@@ -235,6 +241,8 @@ Core::IBoardType::InputType Sparky2::getInputType()
         return INPUT_TYPE_IBUS;
     case HwSparky2::MAINPORT_SRXL:
         return INPUT_TYPE_SRXL;
+    default:
+        break;
     }
     
     switch(settings.FlexiPort) {
@@ -250,6 +258,8 @@ Core::IBoardType::InputType Sparky2::getInputType()
         return INPUT_TYPE_IBUS;
     case HwSparky2::FLEXIPORT_SRXL:
         return INPUT_TYPE_SRXL;
+    default:
+        break;
     }
     
     return INPUT_TYPE_UNKNOWN;
@@ -275,6 +285,8 @@ int Sparky2::queryMaxGyroRate()
         return 1000;
     case HwSparky2::GYRORANGE_2000:
         return 2000;
+    default:
+        break;
     }
     
     return 500;
