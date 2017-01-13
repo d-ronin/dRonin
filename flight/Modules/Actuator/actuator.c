@@ -772,7 +772,7 @@ static float mix_channel(int ct, ActuatorDesiredData *desired,
 		(void) 0;
 
 		CameraDesiredData cameraDesired;
-		if (CameraDesiredGet(&cameraDesired) == 0) {
+		if (CameraDesiredHandle() && CameraDesiredGet(&cameraDesired) == 0) {
 			switch (type) {
 			case MIXERSETTINGS_MIXER1TYPE_CAMERAROLL:
 				return cameraDesired.Roll;
