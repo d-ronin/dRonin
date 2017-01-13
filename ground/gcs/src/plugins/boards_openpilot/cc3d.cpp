@@ -102,7 +102,6 @@ QString CC3D::getHwUAVO()
 bool CC3D::isInputConfigurationSupported(Core::IBoardType::InputType type)
 {
     switch (type) {
-    case INPUT_TYPE_PWM:
     case INPUT_TYPE_UNKNOWN:
         return false;
     }
