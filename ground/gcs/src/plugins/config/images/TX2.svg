@@ -1741,7 +1741,7 @@
        id="armedswitchright"
        stroke-miterlimit="10"
        points="753.906,169.896 756.508,232.512 747.441,232.833 739.945,170.941 "
-       style="display:inline;fill:url(#linearGradient3697);stroke:#6d6e70;stroke-miterlimit:10"
+       style="display:inline;fill:url(#linearGradient3697);stroke:#ff3030;stroke-miterlimit:10"
        transform="matrix(-1,0,0,1,805.34281,-10.30399)"
        inkscape:label="#armedswitch" /><polygon
        id="armedswitchleft"

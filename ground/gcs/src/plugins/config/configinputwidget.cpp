@@ -660,7 +660,7 @@ void ConfigInputWidget::wizardSetUpStep(enum wizardSteps step)
     }
         break;
     case wizardIdentifyInverted:
-        dimOtherControls(true);
+        dimOtherControls(false);
         setTxMovement(nothing);
         extraWidgets.clear();
 
