@@ -399,7 +399,6 @@ void PIOS_Board_Init(void) {
 	pios_rcvr_group_map[MANUALCONTROLSETTINGS_CHANNELGROUPS_GCS] = pios_gcsrcvr_rcvr_id;
 #endif	/* PIOS_INCLUDE_GCSRCVR */
 
-
 #ifdef PIOS_INCLUDE_WS2811
 	uint8_t num_leds;
 
@@ -414,6 +413,16 @@ void PIOS_Board_Init(void) {
 	PIOS_WS2811_init(&pios_ws2811, &pios_ws2811_cfg, num_leds);
 	PIOS_WS2811_trigger_update(pios_ws2811);
 #endif
+
+#ifdef PIOS_INCLUDE_DAC
+	PIOS_DAC_init(&pios_dac, &pios_dac_cfg);
+
+#ifdef PIOS_INCLUDE_DAC_FSK
+	PIOS_HAL_ConfigureFSKDAC(pios_dac);
+#endif
+
+#endif /* PIOS_INCLUDE_DAC */
+
 
 /* init sensor queue registration */
 	PIOS_SENSORS_Init();

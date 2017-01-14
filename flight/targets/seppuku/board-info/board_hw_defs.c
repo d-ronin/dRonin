@@ -1439,6 +1439,45 @@ static const struct pios_ws2811_cfg pios_ws2811_cfg = {
 };
 #endif
 
+#if defined(PIOS_INCLUDE_DAC)
+#include "pios_dac.h"
+
+dac_dev_t pios_dac;
+
+/* DAC 1 is the DAC output on Seppuku; DMA1 Stream 5 Ch7 */
+
+void DMA1_Stream5_IRQHandler() {
+	PIOS_DAC_dma_interrupt_handler(pios_dac);
+}
+
+typedef struct dac_dev_s *dac_dev_t;
+
+struct pios_dac_cfg pios_dac_cfg = {
+	.timer = TIM6,
+	.clock_cfg = {
+		.TIM_Prescaler = (PIOS_PERIPHERAL_APB1_COUNTER_CLOCK / 600000) - 1,
+		.TIM_ClockDivision = TIM_CKD_DIV1,
+		.TIM_CounterMode = TIM_CounterMode_Up,
+		.TIM_Period = 25-1,	/* 600000 / 25 = 24000 samples per sec */
+	},
+	.interrupt = {
+		.NVIC_IRQChannel = DMA1_Stream5_IRQn,
+		.NVIC_IRQChannelPreemptionPriority = PIOS_IRQ_PRIO_LOW,
+		.NVIC_IRQChannelSubPriority = 0,
+		.NVIC_IRQChannelCmd = ENABLE,
+	},
+	.gpio = GPIOA,
+	.gpio_pin = GPIO_Pin_4,
+	.dma_stream = DMA1_Stream5,
+	.dma_channel = DMA_Channel_7,
+	.dac_channel = DAC_Channel_1,
+	.dac_trigger = DAC_Trigger_T6_TRGO,
+	.dac_outreg = (uintptr_t) (&DAC->DHR12L1),
+	.dma_tcif = DMA_IT_TCIF5,
+};
+
+#endif /* PIOS_INCLUDE_DAC */
+
 /**
  * @}
  * @}
