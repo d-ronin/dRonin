@@ -31,10 +31,12 @@
 
 #include "rawhid_global.h"
 
-#include <QThread>
+#include <QByteArray>
 #include <QIODevice>
 #include <QMutex>
-#include <QByteArray>
+#include <QThread>
+#include <QWaitCondition>
+
 #include <coreplugin/iconnection.h>
 
 #include "hidapi/hidapi.h"
@@ -48,9 +50,84 @@
 #define RAW_HID_QXTLOG_DEBUG(...)
 #endif	// RAW_HID_DEBUG
 
-//helper classes
-class RawHIDReadThread;
-class RawHIDWriteThread;
+/**
+*   Thread to desynchronize reading from the device
+*/
+class RawHIDReadThread : public QThread
+{
+    Q_OBJECT
+
+public:
+    RawHIDReadThread(hid_device *device);
+    virtual ~RawHIDReadThread();
+
+    /** Return the data read so far without waiting */
+    int getReadData(char *data, int size);
+
+    /** return the bytes buffered */
+    qint64 getBytesAvailable();
+
+    void stop() { m_running = false; }
+
+signals:
+    void readyToRead();
+
+protected:
+    void run();
+
+    /** QByteArray might not be the most efficient way to implement
+    a circular buffer but it's good enough and very simple */
+    QByteArray m_readBuffer;
+
+    /** A mutex to protect read buffer */
+    QMutex m_readBufMtx;
+
+    hid_device *m_handle;
+
+    bool m_running;
+};
+
+
+// *********************************************************************************
+
+/**
+*  This class is nearly the same than RawHIDReadThread but for writing
+*/
+class RawHIDWriteThread : public QThread
+{
+    Q_OBJECT
+
+public:
+    RawHIDWriteThread(hid_device *device);
+    virtual ~RawHIDWriteThread();
+
+    /** Add some data to be written without waiting */
+    int pushDataToWrite(const char *data, int size);
+
+    /** Return the number of bytes buffered */
+    qint64 getBytesToWrite();
+
+    void stop();
+
+protected:
+    void run();
+
+    /** QByteArray might not be the most efficient way to implement
+    a circular buffer but it's good enough and very simple */
+    QByteArray m_writeBuffer;
+
+    /** A mutex to protect read buffer */
+    QMutex m_writeBufMtx;
+
+    /** Synchronize task with data arival */
+    QWaitCondition m_newDataToWrite;
+
+    hid_device *m_handle;
+
+    bool m_running;
+}; 
+
+// *********************************************************************************
 
 /**
 *   The actual IO device that will be used to communicate
@@ -60,9 +137,6 @@ class RAWHID_EXPORT RawHID : public QIODevice
 {
 	Q_OBJECT
 
-    friend class RawHIDReadThread;
-    friend class RawHIDWriteThread;
-
 public:
     RawHID();
     RawHID(USBDevice *deviceName);
@@ -71,6 +145,9 @@ public:
     virtual bool open(OpenMode mode);
     virtual void close();
     virtual bool isSequential() const;
+
+private slots:
+    void sendReadyRead();
 
 protected:
     virtual qint64 readData(char *data, qint64 maxSize);
@@ -83,8 +160,6 @@ protected:
 
     RawHIDReadThread *m_readThread;
     RawHIDWriteThread *m_writeThread;
-
-    QMutex *m_mutex;
 };
 
 #endif // RAWHID_H

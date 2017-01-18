@@ -35,7 +35,6 @@
 #include <QtGlobal>
 #include <QList>
 #include <QMutexLocker>
-#include <QWaitCondition>
 
 class IConnection;
 
@@ -43,101 +42,20 @@ class IConnection;
 static const int READ_TIMEOUT = 200;
 static const int READ_SIZE = 64;
 
-static const int WRITE_TIMEOUT = 1000;
 static const int WRITE_SIZE = 64;
 
-static const int WRITE_RETRIES = 3;
+static const int WRITE_RETRIES = 10;
 
-
-
-
-// *********************************************************************************
-
-/**
-*   Thread to desynchronize reading from the device
-*/
-class RawHIDReadThread : public QThread
-{
-public:
-    RawHIDReadThread(RawHID *hid);
-    virtual ~RawHIDReadThread();
-
-    /** Return the data read so far without waiting */
-    int getReadData(char *data, int size);
-
-    /** return the bytes buffered */
-    qint64 getBytesAvailable();
-
-    void stop() { m_running = false; }
-
-protected:
-    void run();
-
-    /** QByteArray might not be the most efficient way to implement
-    a circular buffer but it's good enough and very simple */
-    QByteArray m_readBuffer;
-
-    /** A mutex to protect read buffer */
-    QMutex m_readBufMtx;
-
-    RawHID *m_hid;
-
-    hid_device *m_handle;
-
-    bool m_running;
-};
-
-
-// *********************************************************************************
-
-/**
-*  This class is nearly the same than RawHIDReadThread but for writing
-*/
-class RawHIDWriteThread : public QThread
-{
-public:
-    RawHIDWriteThread(RawHID *hid);
-    virtual ~RawHIDWriteThread();
-
-    /** Add some data to be written without waiting */
-    int pushDataToWrite(const char *data, int size);
-
-    /** Return the number of bytes buffered */
-    qint64 getBytesToWrite();
-
-    void stop();
-
-protected:
-    void run();
-
-    /** QByteArray might not be the most efficient way to implement
-    a circular buffer but it's good enough and very simple */
-    QByteArray m_writeBuffer;
-
-    /** A mutex to protect read buffer */
-    QMutex m_writeBufMtx;
-
-    /** Synchronize task with data arival */
-    QWaitCondition m_newDataToWrite;
-
-    RawHID *m_hid;
-
-    hid_device *m_handle;
-
-    bool m_running;
-};
-
-// *********************************************************************************
-
-RawHIDReadThread::RawHIDReadThread(RawHID *hid)
-    : m_hid(hid),
-      m_handle(hid->m_handle),
+RawHIDReadThread::RawHIDReadThread(hid_device *handle)
+    : m_handle(handle),
       m_running(true)
 {
 }
 
 RawHIDReadThread::~RawHIDReadThread()
 {
+    // This should already be done / is bogus
+
     m_running = false;
     //wait for the thread to terminate
     if(wait(10000) == false)
@@ -157,23 +75,28 @@ void RawHIDReadThread::run()
         // configure this
         unsigned char buffer[READ_SIZE] = {0};
 
-        int ret = hid_read_timeout(m_hid->m_handle, buffer, READ_SIZE, READ_TIMEOUT);
+        int ret = hid_read_timeout(m_handle, buffer, READ_SIZE, READ_TIMEOUT);
 
         if(ret > 0) //read some data
         {
             QMutexLocker lock(&m_readBufMtx);
+
+            bool needSignal = m_readBuffer.size() == 0;
+
             // Note: Preprocess the USB packets in this OS independent code
             // First byte is report ID, second byte is the number of valid bytes
             m_readBuffer.append((char *) &buffer[2], buffer[1]);
 
-            emit m_hid->readyRead();
+            if (needSignal) {
+                emit readyToRead();
+            }
         }
         else if(ret == 0) //nothing read
         {
         }
         else // < 0 => error
         {
-            //TODO! make proper error handling, this only quick hack for unplug freeze
+            // This thread exiting on error is OK/sane.
             m_running=false;
         }
     }
@@ -199,23 +122,20 @@ qint64 RawHIDReadThread::getBytesAvailable()
 
 // *********************************************************************************
 
-RawHIDWriteThread::RawHIDWriteThread(RawHID *hid)
-    : m_hid(hid),
-      m_handle(hid->m_handle),
+RawHIDWriteThread::RawHIDWriteThread(hid_device *handle)
+    : m_handle(handle),
       m_running(true)
 {
 }
 
 RawHIDWriteThread::~RawHIDWriteThread()
 {
-    m_running = false;
-    //wait for the thread to terminate
-    if(wait(10000) == false)
-        qWarning() << "Cannot terminate RawHIDWriteThread";
 }
 
 void RawHIDWriteThread::run()
 {
+    connect(this, SIGNAL(finished()), this, SLOT(deleteLater()));
+
     int retry = 0;
     while(m_running)
     {
@@ -225,13 +145,10 @@ void RawHIDWriteThread::run()
         {
             QMutexLocker lock(&m_writeBufMtx);
             size = qMin(WRITE_SIZE-2, m_writeBuffer.size());
-            while(size <= 0)
+
+            while(m_running && (size <= 0))
             {
-                //wait on new data to write condition, the timeout
-                //enable the thread to shutdown properly
-                m_newDataToWrite.wait(&m_writeBufMtx, 200);
-                if(!m_running)
-                    return;
+                m_newDataToWrite.wait(&m_writeBufMtx);
 
                 size = m_writeBuffer.size();
             }
@@ -241,20 +158,19 @@ void RawHIDWriteThread::run()
             //for the reportID and valid data length
             size = qMin(WRITE_SIZE-2, m_writeBuffer.size());
             memcpy(&buffer[2], m_writeBuffer.constData(), size);
-            buffer[1] = size; //valid data length
+
             buffer[0] = 2;    //reportID
+            buffer[1] = size; //valid data length
         }
 
         // must hold lock through the send to know how much was sent
-        int ret = hid_write(m_hid->m_handle, buffer, WRITE_SIZE);
+        int ret = hid_write(m_handle, buffer, WRITE_SIZE);
 
         if(ret > 0)
         {
             //only remove the size actually written to the device            
             QMutexLocker lock(&m_writeBufMtx);
             m_writeBuffer.remove(0, size);
-
-            emit m_hid->bytesWritten(ret - 2);
         }
         else if(ret == -110) // timeout
         {
@@ -267,12 +183,12 @@ void RawHIDWriteThread::run()
             if (retry > WRITE_RETRIES)
             {
                 retry = 0;
-                m_running = false; //TODO! make proper error handling, this only quick hack for unplug freeze
                 qWarning() << "[RawHID] Error writing to device";
+                break;          // Exit the loop but keep running.
             }
             else
             {
-                this->msleep(100);
+                this->msleep(40);
             }
         }
         else
@@ -280,12 +196,25 @@ void RawHIDWriteThread::run()
             RAW_HID_QXTLOG_DEBUG("No data written to device ??");
         }
     }
+
+    while (m_running) {
+        this->msleep(100);      // Wait until we've been asked to exit.
+    }
+
+    // If we're at this point, RawHID has asked us to exit, so the read thread is
+    // down and no one will touch m_handle again.
+    hid_close(m_handle);
+
+    m_handle = NULL;
 }
 
 //! Tell the thread to stop and make sure it wakes up immediately
 void RawHIDWriteThread::stop()
 {
     m_running = false;
+
+    QMutexLocker lock(&m_writeBufMtx);
+
     m_newDataToWrite.wakeOne();
 }
 
@@ -310,11 +239,8 @@ RawHID::RawHID(USBDevice *deviceStructure)
     :QIODevice(),
     m_deviceInfo(deviceStructure),
     m_readThread(NULL),
-	m_writeThread(NULL),
-    m_mutex(NULL)
+    m_writeThread(NULL)
 {
-
-    m_mutex = new QMutex(QMutex::Recursive);
 }
 
 RawHID::~RawHID()
@@ -325,8 +251,6 @@ RawHID::~RawHID()
 
 bool RawHID::open(OpenMode mode)
 {
-    QMutexLocker locker(m_mutex);
-
     hid_device *handle;
 
     // Initialize the hidapi library (safe to call multiple times)
@@ -338,8 +262,11 @@ bool RawHID::open(OpenMode mode)
     if (handle) {
         m_handle = handle;
 
-        m_writeThread = new RawHIDWriteThread(this);
-        m_readThread = new RawHIDReadThread(this);
+        m_writeThread = new RawHIDWriteThread(m_handle);
+        m_readThread = new RawHIDReadThread(m_handle);
+
+        // Plumb through read thread's ready read signal to our clients
+        connect(m_readThread, SIGNAL(readyToRead()), this, SLOT(sendReadyRead()));
 
         m_readThread->start();
         m_writeThread->start();
@@ -351,6 +278,11 @@ bool RawHID::open(OpenMode mode)
     return QIODevice::open(mode);
 }
 
+void RawHID::sendReadyRead()
+{
+    emit readyRead();
+}
+
 void RawHID::close()
 {
     if (!isOpen())
@@ -358,20 +290,16 @@ void RawHID::close()
 
     RAW_HID_QXTLOG_DEBUG("RawHID: close()");
 
-    m_writeThread->stop();
     m_readThread->stop();
-
-    m_writeThread->wait(500);
-    m_readThread->wait(500);
-
-    m_writeThread->deleteLater();
+    m_readThread->wait();       /* Block indefinitely for read thread exit */
     m_readThread->deleteLater();
-
-    m_writeThread = NULL;
     m_readThread = NULL;
 
-    hid_close(m_handle);
+    m_writeThread->stop();
     m_handle = NULL;
+
+    m_writeThread = NULL;       /* Write thread is in charge of tearing itself and
+                                 * m_handle down */
 
     QIODevice::close();
 }
@@ -383,42 +311,37 @@ bool RawHID::isSequential() const
 
 qint64 RawHID::bytesAvailable() const
 {
-	QMutexLocker locker(m_mutex);
+    if (!m_readThread)
+        return -1;
 
-	if (!m_readThread)
-		return -1;
-
-	return m_readThread->getBytesAvailable() + QIODevice::bytesAvailable();
+    return m_readThread->getBytesAvailable() + QIODevice::bytesAvailable();
 }
 
 qint64 RawHID::bytesToWrite() const
 {
-	QMutexLocker locker(m_mutex);
-
-	if (!m_writeThread)
-		return -1;
+    if (!m_writeThread)
+        return -1;
 
     return m_writeThread->getBytesToWrite() + QIODevice::bytesToWrite();
 }
 
 qint64 RawHID::readData(char *data, qint64 maxSize)
 {
-	QMutexLocker locker(m_mutex);
+    if (!m_readThread)
+        return -1;
 
-	if (!m_readThread || !data)
-		return -1;
-
-	return m_readThread->getReadData(data, maxSize);
+    return m_readThread->getReadData(data, maxSize);
 }
 
 qint64 RawHID::writeData(const char *data, qint64 maxSize)
 {
-	QMutexLocker locker(m_mutex);
+    qint64 ret = m_writeThread->pushDataToWrite(data, maxSize);
 
-	if (!m_writeThread || !data)
-		return -1;
+    if (ret > 0) {
+        emit bytesWritten(ret);
+    }
 
-	return m_writeThread->pushDataToWrite(data, maxSize);
+    return ret;
 }
 
 /**
