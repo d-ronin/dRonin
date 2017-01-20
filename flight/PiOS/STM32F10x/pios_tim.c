@@ -109,24 +109,13 @@ int32_t PIOS_TIM_InitClock(const struct pios_tim_clock_cfg * cfg)
 	return 0;
 }
 
-int32_t PIOS_TIM_InitChannels(uintptr_t * tim_id, const struct pios_tim_channel * channels, uint8_t num_channels, const struct pios_tim_callbacks * callbacks, uintptr_t context)
+void PIOS_TIM_InitAllTimerPins(uintptr_t tim_id)
 {
-	PIOS_Assert(channels);
-	PIOS_Assert(num_channels);
-
-	struct pios_tim_dev * tim_dev;
-	tim_dev = (struct pios_tim_dev *) PIOS_TIM_alloc();
-	if (!tim_dev) goto out_fail;
-
-	/* Bind the configuration to the device instance */
-	tim_dev->channels = channels;
-	tim_dev->num_channels = num_channels;
-	tim_dev->callbacks = callbacks;
-	tim_dev->context = context;
+	struct pios_tim_dev * tim_dev = (struct pios_tim_dev *) tim_id;
 
 	/* Configure the pins */
-	for (uint8_t i = 0; i < num_channels; i++) {
-		const struct pios_tim_channel * chan = &(channels[i]);
+	for (uint8_t i = 0; i < tim_dev->num_channels; i++) {
+		const struct pios_tim_channel * chan = &tim_dev->channels[i];
 
 		/* Enable the peripheral clock for the GPIO */
 		switch ((uint32_t)chan->pin.gpio) {
@@ -149,8 +138,47 @@ int32_t PIOS_TIM_InitChannels(uintptr_t * tim_id, const struct pios_tim_channel 
 			GPIO_PinRemapConfig(chan->remap, ENABLE);
 		}
 	}
+}
+
+void PIOS_TIM_SetBankToGPOut(uintptr_t tim_id, TIM_TypeDef *timer)
+{
+	struct pios_tim_dev * tim_dev = (struct pios_tim_dev *) tim_id;
+
+	GPIO_InitTypeDef gpio_inf;
+	gpio_inf.GPIO_Speed = GPIO_Speed_50MHz;
+	gpio_inf.GPIO_Mode = GPIO_Mode_Out_PP;
+
+	for (uint8_t i = 0; i < tim_dev->num_channels; i++) {
+		const struct pios_tim_channel * chan = &tim_dev->channels[i];
+
+		if (chan->timer != timer) {
+			continue;
+		}
+
+		// Only steal the pin info from the matching pin
+		gpio_inf.GPIO_Pin = chan->pin.init.GPIO_Pin;
+		GPIO_Init(chan->pin.gpio, &gpio_inf);
+	}
+}
+
+int32_t PIOS_TIM_InitChannels(uintptr_t * tim_id, const struct pios_tim_channel * channels, uint8_t num_channels, const struct pios_tim_callbacks * callbacks, uintptr_t context)
+{
+	PIOS_Assert(channels);
+	PIOS_Assert(num_channels);
+
+	struct pios_tim_dev * tim_dev;
+	tim_dev = (struct pios_tim_dev *) PIOS_TIM_alloc();
+	if (!tim_dev) goto out_fail;
+
+	/* Bind the configuration to the device instance */
+	tim_dev->channels = channels;
+	tim_dev->num_channels = num_channels;
+	tim_dev->callbacks = callbacks;
+	tim_dev->context = context;
 
 	*tim_id = (uintptr_t)tim_dev;
+
+	PIOS_TIM_InitAllTimerPins(*tim_id);
 
 	return(0);
 

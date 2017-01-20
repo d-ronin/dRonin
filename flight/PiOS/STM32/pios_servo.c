@@ -38,16 +38,58 @@
 #include "pios.h"
 #include "pios_servo_priv.h"
 #include "pios_tim_priv.h"
+
+#ifndef STM32F0XX	// No high-res delay on F0 yet
+#include "pios_inlinedelay.h"
+#include "pios_irq.h"
+#endif
+
 #include "misc_math.h"
 
 /* Private variables */
 static const struct pios_servo_cfg *servo_cfg;
 
 //! The counter rate for the channel, used to calculate compare values.
-static uint32_t *output_channel_resolution;  // The clock rate for that timer
-static enum channel_mode {UNCONFIGURED = 0, REGULAR_PWM, REGULAR_INVERTED_PWM, SYNC_PWM} *output_channel_mode;
+
+enum dshot_gpio {
+	DS_GPIOA = 0,
+	DS_GPIOB,
+	DS_GPIOC,
+	DS_GPIO_NUMVALS
+} __attribute__((packed));
+
+enum channel_mode {
+	UNCONFIGURED = 0,
+	REGULAR_PWM,
+	REGULAR_INVERTED_PWM,
+	SYNC_PWM,
+	SYNC_DSHOT_300,
+	SYNC_DSHOT_600,
+	SYNC_DSHOT_1200
+} __attribute__((packed));
+
+struct dshot_info {
+	uint16_t value;
+	uint16_t pin;
+	enum dshot_gpio gpio;
+};
+
+struct output_channel {
+	enum channel_mode mode;
+
+	union {
+		uint32_t pwm_res;
+		struct dshot_info dshot;
+	} i;
+} __attribute__((packed));
+
+static struct output_channel *output_channels;
+
+static uintptr_t servo_tim_id;
 
 static bool resetting;
+
+static bool dshot_in_use;
 
 /* Private function prototypes */
 static uint32_t timer_apb_clock(TIM_TypeDef *timer);
@@ -58,8 +100,9 @@ static uint32_t max_timer_clock(TIM_TypeDef *timer);
 */
 int32_t PIOS_Servo_Init(const struct pios_servo_cfg *cfg)
 {
-	uintptr_t tim_id;
-	if (PIOS_TIM_InitChannels(&tim_id, cfg->channels, cfg->num_channels, NULL, 0)) {
+	PIOS_Assert(!servo_tim_id);		// Make sure not inited already
+
+	if (PIOS_TIM_InitChannels(&servo_tim_id, cfg->channels, cfg->num_channels, NULL, 0)) {
 		return -1;
 	}
 
@@ -95,19 +138,122 @@ int32_t PIOS_Servo_Init(const struct pios_servo_cfg *cfg)
 		TIM_Cmd(chan->timer, ENABLE);
 	}
 
-	output_channel_resolution = PIOS_malloc(servo_cfg->num_channels * sizeof(typeof(output_channel_resolution)));
-	if (output_channel_resolution == NULL) {
+	output_channels = PIOS_malloc(servo_cfg->num_channels * sizeof(*output_channels));
+	if (output_channels == NULL) {
 		return -1;
 	}
-	memset(output_channel_resolution, 0, servo_cfg->num_channels * sizeof(typeof(output_channel_resolution)));
+	memset(output_channels, 0, servo_cfg->num_channels * sizeof(*output_channels));
 
-	/* Allocate memory for frequency table */
-	output_channel_mode = PIOS_malloc(servo_cfg->num_channels * sizeof(typeof(output_channel_mode)));
-	if (output_channel_mode == NULL) {
-		return -1;
+	return 0;
+}
+
+struct timer_bank {
+	TIM_TypeDef *timer;
+	uint32_t clk_rate;
+	uint16_t max_pulse;
+	uint16_t prescaler;
+	uint16_t period;
+};
+
+static void ChannelSetup_DShot(int j, uint16_t rate)
+{
+	switch (rate) {
+		case SHOT_DSHOT300:
+			output_channels[j].mode = SYNC_DSHOT_300;
+			break;
+		case SHOT_DSHOT600:
+			output_channels[j].mode = SYNC_DSHOT_600;
+			break;
+		case SHOT_DSHOT1200:
+			output_channels[j].mode = SYNC_DSHOT_1200;
+			break;
+		default:
+			PIOS_Assert(false);
+	};
+
+	struct dshot_info *ds_info = &output_channels[j].i.dshot;
+
+	ds_info->value = 0;
+
+	switch ((uintptr_t) servo_cfg->channels[j].pin.gpio) {
+		case (uintptr_t) GPIOA:
+			ds_info->gpio = DS_GPIOA;
+			break;
+		case (uintptr_t) GPIOB:
+			ds_info->gpio = DS_GPIOB;
+			break;
+		case (uintptr_t) GPIOC:
+			ds_info->gpio = DS_GPIOC;
+			break;
+		default:
+			PIOS_Assert(false);
 	}
-	memset(output_channel_mode, 0, servo_cfg->num_channels * sizeof(typeof(output_channel_mode)));
 
+	ds_info->pin = servo_cfg->channels[j].pin.init.GPIO_Pin;
+}
+
+static int BankSetup_DShot(struct timer_bank *bank) {
+	/*
+	 * Relatively simple configuration here.  Just seize it!
+	 */
+
+	PIOS_TIM_SetBankToGPOut(servo_tim_id, bank->timer);
+
+	return 0;
+}
+
+static int BankSetup_OneShot(struct timer_bank *bank, int32_t max_tim_clock)
+{
+	/* 
+	 * Ensure a dead time of 2% + 10 us, e.g. 15us for 250us
+	 * long pulses, 50 us for 2000us long pulses
+	 */
+	float period = 1.02f * bank->max_pulse + 10.0f;
+	float num_ticks = period / 1e6f * max_tim_clock;
+	// assume 16-bit timer
+	bank->prescaler = num_ticks / 0xffff + 0.5f;
+	bank->clk_rate = max_tim_clock / (bank->prescaler + 1);
+	bank->period = period / 1e6f * bank->clk_rate;
+
+	// select one pulse mode for SyncPWM
+	TIM_SelectOnePulseMode(bank->timer, TIM_OPMode_Single);
+	// Need to invert output polarity for one-pulse mode
+	uint16_t inverted_polarity = (servo_cfg->tim_oc_init.TIM_OCPolarity == TIM_OCPolarity_Low) ?
+		TIM_OCPolarity_High : TIM_OCPolarity_Low;
+	TIM_OC1PolarityConfig(bank->timer, inverted_polarity);
+	TIM_OC2PolarityConfig(bank->timer, inverted_polarity);
+	TIM_OC3PolarityConfig(bank->timer, inverted_polarity);
+	TIM_OC4PolarityConfig(bank->timer, inverted_polarity);
+
+	return 0;
+}
+
+static int BankSetup_PWM(struct timer_bank *bank, int32_t max_tim_clock,
+		uint16_t rate)
+{
+	// assume 16-bit timer
+	if (servo_cfg->force_1MHz) {
+		bank->prescaler = max_tim_clock / 1000000 - 1;
+	} else {
+		float num_ticks = (float)max_tim_clock / (float)rate;
+
+		bank->prescaler = num_ticks / 0xffff + 0.5f;
+	}
+
+	bank->clk_rate = max_tim_clock / (bank->prescaler + 1);
+	bank->period = (float)bank->clk_rate / (float)rate;
+
+	// de-select one pulse mode in case SyncPWM was previously used
+	TIM_SelectOnePulseMode(bank->timer, TIM_OPMode_Repetitive);
+
+	// and make sure the output is enabled
+	TIM_Cmd(bank->timer, ENABLE);
+
+	// restore polarity in case one-pulse was used
+	TIM_OC1PolarityConfig(bank->timer, servo_cfg->tim_oc_init.TIM_OCPolarity);
+	TIM_OC2PolarityConfig(bank->timer, servo_cfg->tim_oc_init.TIM_OCPolarity);
+	TIM_OC3PolarityConfig(bank->timer, servo_cfg->tim_oc_init.TIM_OCPolarity);
+	TIM_OC4PolarityConfig(bank->timer, servo_cfg->tim_oc_init.TIM_OCPolarity);
 
 	return 0;
 }
@@ -125,18 +271,17 @@ int32_t PIOS_Servo_Init(const struct pios_servo_cfg *cfg)
  * @param banks maximum number of banks
  * @param channel_max array of max pulse lengths, number of channels elements
  */
-void PIOS_Servo_SetMode(const uint16_t *out_rate, const int banks, const uint16_t *channel_max, const uint16_t *channel_min)
+int PIOS_Servo_SetMode(const uint16_t *out_rate, const int banks, const uint16_t *channel_max, const uint16_t *channel_min)
 {
-	if (!servo_cfg || banks > PIOS_SERVO_MAX_BANKS)
-		return;
+	if (!servo_cfg || banks > PIOS_SERVO_MAX_BANKS) {
+		return -10;
+	}
 
-	struct timer_bank {
-		TIM_TypeDef *timer;
-		uint32_t clk_rate;
-		uint16_t max_pulse;
-		uint16_t prescaler;
-		uint16_t period;
-	} timer_banks[PIOS_SERVO_MAX_BANKS];
+	dshot_in_use = false;
+
+	struct timer_bank timer_banks[PIOS_SERVO_MAX_BANKS];
+
+	PIOS_TIM_InitAllTimerPins(servo_tim_id);
 
 	memset(&timer_banks, 0, sizeof(timer_banks));
 	int banks_found = 0;
@@ -170,12 +315,13 @@ void PIOS_Servo_SetMode(const uint16_t *out_rate, const int banks, const uint16_
 		/* Calculate the maximum clock frequency for the timer */
 		uint32_t max_tim_clock = max_timer_clock(timer_banks[i].timer);
 		// check if valid timer
-		if (!max_tim_clock)
-			return;
+		if (!max_tim_clock) {
+			return -20;
+		}
 
 		uint16_t rate = out_rate[i];
 
-		if (servo_cfg->force_1MHz && (rate == 0)) {
+		if (servo_cfg->force_1MHz && (rate == SHOT_ONESHOT)) {
 			/* We've been asked for syncPWM but are in a config
 			 * where we can't do it.  This means CC3D + 333Hz.
 			 * Getting fast output is functionally identical
@@ -195,79 +341,84 @@ void PIOS_Servo_SetMode(const uint16_t *out_rate, const int banks, const uint16_
 					100);
 		}
 
+		int ret;
+
 		// output rate of 0 means SyncPWM
-		if (rate == 0) {
-			/* 
-			 * Ensure a dead time of 2% + 10 us, e.g. 15us for 250us
-			 * long pulses, 50 us for 2000us long pulses
-			 */
-			float period = 1.02f * timer_banks[i].max_pulse + 10.0f;
-			float num_ticks = period / 1e6f * max_tim_clock;
-			// assume 16-bit timer
-			timer_banks[i].prescaler = num_ticks / 0xffff + 0.5f;
-			timer_banks[i].clk_rate = max_tim_clock / (timer_banks[i].prescaler + 1);
-			timer_banks[i].period = period / 1e6f * timer_banks[i].clk_rate;
+		switch (rate) {
+		case SHOT_ONESHOT:
+			ret = BankSetup_OneShot(&timer_banks[i], max_tim_clock);
 
-			// select one pulse mode for SyncPWM
-			TIM_SelectOnePulseMode(timer_banks[i].timer, TIM_OPMode_Single);
-			// Need to invert output polarity for one-pulse mode
-			uint16_t inverted_polarity = (servo_cfg->tim_oc_init.TIM_OCPolarity == TIM_OCPolarity_Low) ?
-					TIM_OCPolarity_High : TIM_OCPolarity_Low;
-			TIM_OC1PolarityConfig(timer_banks[i].timer, inverted_polarity);
-			TIM_OC2PolarityConfig(timer_banks[i].timer, inverted_polarity);
-			TIM_OC3PolarityConfig(timer_banks[i].timer, inverted_polarity);
-			TIM_OC4PolarityConfig(timer_banks[i].timer, inverted_polarity);
-		} else {
-			// assume 16-bit timer
-			if (servo_cfg->force_1MHz) {
-				timer_banks[i].prescaler = max_tim_clock / 1000000 - 1;
-			} else {
-				float num_ticks = (float)max_tim_clock / (float)rate;
-
-				timer_banks[i].prescaler = num_ticks / 0xffff + 0.5f;
+			if (ret) {
+				return ret;
 			}
 
-			timer_banks[i].clk_rate = max_tim_clock / (timer_banks[i].prescaler + 1);
-			timer_banks[i].period = (float)timer_banks[i].clk_rate / (float)rate;
+			TIM_TimeBaseStructure.TIM_Prescaler = timer_banks[i].prescaler;
+			TIM_TimeBaseStructure.TIM_Period = timer_banks[i].period;
 
-			// de-select one pulse mode in case SyncPWM was previously used
-			TIM_SelectOnePulseMode(timer_banks[i].timer, TIM_OPMode_Repetitive);
-			// restore polarity in case one-pulse was used
-			TIM_OC1PolarityConfig(timer_banks[i].timer, servo_cfg->tim_oc_init.TIM_OCPolarity);
-			TIM_OC2PolarityConfig(timer_banks[i].timer, servo_cfg->tim_oc_init.TIM_OCPolarity);
-			TIM_OC3PolarityConfig(timer_banks[i].timer, servo_cfg->tim_oc_init.TIM_OCPolarity);
-			TIM_OC4PolarityConfig(timer_banks[i].timer, servo_cfg->tim_oc_init.TIM_OCPolarity);
+			// Configure this timer appropriately.
+			TIM_TimeBaseInit(timer_banks[i].timer, &TIM_TimeBaseStructure);
+			break;
+
+		default:
+			ret = BankSetup_PWM(&timer_banks[i], max_tim_clock, rate);
+
+			if (ret) {
+				return ret;
+			}
+
+			TIM_TimeBaseStructure.TIM_Prescaler = timer_banks[i].prescaler;
+			TIM_TimeBaseStructure.TIM_Period = timer_banks[i].period;
+
+			// Configure this timer appropriately.
+			TIM_TimeBaseInit(timer_banks[i].timer, &TIM_TimeBaseStructure);
+			break;
+
+		case SHOT_DSHOT300:
+		case SHOT_DSHOT600:
+		case SHOT_DSHOT1200:
+			dshot_in_use = true;
+
+			ret = BankSetup_DShot(&timer_banks[i]);
+			break;
 		}
 
-		TIM_TimeBaseStructure.TIM_Prescaler = timer_banks[i].prescaler;
-		TIM_TimeBaseStructure.TIM_Period = timer_banks[i].period;
-
-		// Configure this timer appropriately.
-		TIM_TimeBaseInit(timer_banks[i].timer, &TIM_TimeBaseStructure);
 
 		/* Configure frequency scaler for all channels that use the same timer */
 		for (uint8_t j = 0; j < servo_cfg->num_channels; j++) {
 			const struct pios_tim_channel *chan = &servo_cfg->channels[j];
 			if (timer_banks[i].timer == chan->timer) {
 				/* save the frequency for these channels */
-				if (rate == 0) {
-					output_channel_mode[j] = SYNC_PWM;
-				} else if (channel_max[j] >= channel_min[j]) {
-					output_channel_mode[j] = REGULAR_PWM;
-				} else {
-					output_channel_mode[j] = REGULAR_INVERTED_PWM;
+				switch (rate) {
+				case SHOT_DSHOT300:
+				case SHOT_DSHOT600:
+				case SHOT_DSHOT1200:
+					ChannelSetup_DShot(j, rate);
+					break;
+				case SHOT_ONESHOT:
+					output_channels[j].i.pwm_res = timer_banks[i].clk_rate;
+					output_channels[j].mode = SYNC_PWM;
+					break;
+				default:
+					output_channels[j].i.pwm_res = timer_banks[i].clk_rate;
+					if (channel_max[j] >= channel_min[j]) {
+						output_channels[j].mode = REGULAR_PWM;
+					} else {
+						output_channels[j].mode = REGULAR_INVERTED_PWM;
+					}
+					break;
 				}
-				output_channel_resolution[j] = timer_banks[i].clk_rate;
 			}
 		}
 	}
+
+	return 0;
 }
 
 static void PIOS_Servo_SetRaw(uint8_t servo, uint32_t raw_position) {
 	const struct pios_tim_channel *chan = &servo_cfg->channels[servo];
 
 	// in one-pulse mode, the pulse length is ARR - CCR
-	if (output_channel_mode[servo] == SYNC_PWM) {
+	if (output_channels[servo].mode == SYNC_PWM) {
 		raw_position = chan->timer->ARR - raw_position;
 	}
 
@@ -297,9 +448,22 @@ void PIOS_Servo_SetFraction(uint8_t servo, uint16_t fraction,
 
 	/* Make sure servo exists */
 	if (!servo_cfg || servo >= servo_cfg->num_channels ||
-			output_channel_mode[servo] == UNCONFIGURED) {
+			output_channels[servo].mode == UNCONFIGURED) {
 		return;
 	}
+
+	switch (output_channels[servo].mode) {
+		case SYNC_DSHOT_300:
+		case SYNC_DSHOT_600:
+		case SYNC_DSHOT_1200:
+			/* Expect a 0 to 2047 range!
+			 * Don't bother with min/max tomfoolery here.
+			 */
+			output_channels[servo].i.dshot.value = fraction >> 5;
+			return;
+		default:
+			break;
+	};
 
 	// Seconds * 1000000 : 16.0
 	uint16_t spread = max_val - min_val;
@@ -311,7 +475,7 @@ void PIOS_Servo_SetFraction(uint8_t servo, uint16_t fraction,
 	val += spread * fraction;
 
 	// Multiply by ticks/second to get: Ticks * 1000000: 36.16
-	val *= output_channel_resolution[servo];
+	val *= output_channels[servo].i.pwm_res;
 
 	// Ticks: 16.16
 	val /= 1000000;
@@ -340,16 +504,35 @@ void PIOS_Servo_Set(uint8_t servo, float position)
 {
 	/* Make sure servo exists */
 	if (!servo_cfg || servo >= servo_cfg->num_channels ||
-			output_channel_mode[servo] == UNCONFIGURED) {
+			output_channels[servo].mode == UNCONFIGURED) {
 		return;
 	}
 
+	switch (output_channels[servo].mode) {
+		case SYNC_DSHOT_300:
+		case SYNC_DSHOT_600:
+		case SYNC_DSHOT_1200:
+			/* Expect a 0 to 2047 range! */
+			if (position > 2047) {
+				output_channels[servo].i.dshot.value = 2047;
+			} else if (position < 0) {
+				output_channels[servo].i.dshot.value = 0;
+			} else {
+				output_channels[servo].i.dshot.value = position;
+			}
+
+			return;
+		default:
+			break;
+	};
+
+
 	/* recalculate the position value based on timer clock rate */
 	/* position is in us. */
-	float us_to_count = output_channel_resolution[servo] / 1000000.0f;
+	float us_to_count = output_channels[servo].i.pwm_res / 1000000.0f;
 	position = position * us_to_count;
 
-	if (resetting && (output_channel_mode[servo] != REGULAR_INVERTED_PWM)) {
+	if (resetting && (output_channels[servo].mode != REGULAR_INVERTED_PWM)) {
 		/* Don't nail inverted channels low during reset, because they
 		 * could be driving brushed motors.
 		 */
@@ -358,6 +541,170 @@ void PIOS_Servo_Set(uint8_t servo, float position)
 
 	PIOS_Servo_SetRaw(servo, position);
 }
+
+#ifdef STM32F0XX	// No high-res delay on F0 yet
+static int DSHOT_Update()
+{
+	return -1;
+}
+#else
+static int DSHOT_Update()
+{
+	uint16_t dshot_bits[DS_GPIO_NUMVALS] = { 0 };
+	uint16_t dshot_msg_zeroes[16][DS_GPIO_NUMVALS] = { { 0 } };
+
+	enum channel_mode dshot_mode = UNCONFIGURED;
+
+	for (int i = 0; i < servo_cfg->num_channels; i++) {
+		struct output_channel *chan = &output_channels[i];
+
+		switch (chan->mode) {
+			case SYNC_DSHOT_300:
+			case SYNC_DSHOT_600:
+			case SYNC_DSHOT_1200:
+				break;
+			default:
+				continue;	// Continue enclosing loop if not ds
+		}
+
+		if (dshot_mode == UNCONFIGURED) {
+			dshot_mode = chan->mode;
+		} else if (dshot_mode != chan->mode) {
+			/* Multiple dshot rates not supported */
+			return -1;
+		}
+
+		struct dshot_info *info = &chan->i.dshot;
+
+		PIOS_Assert(info->gpio >= 0);
+		PIOS_Assert(info->gpio < DS_GPIO_NUMVALS);
+
+		dshot_bits[info->gpio] |= info->pin;
+
+		PIOS_Assert(info->value < 2048);
+
+		uint16_t message = info->value << 5;
+		/* Don't set telem req bit for now */
+
+		message |= 
+			((message >> 4 ) & 0xf) ^
+			((message >> 8 ) & 0xf) ^
+			((message >> 12) & 0xf);
+
+		for (int j = 0; j < 16; j++) {
+			if (! (message & 0x8000)) {
+				dshot_msg_zeroes[j][info->gpio] |= info->pin;
+			}
+
+			message <<= 1;
+		}
+
+		info->value = 0;	/* turn off motor if not updated */
+	}
+
+	uint16_t time_0, time_1, time_tot;
+
+	switch (dshot_mode) {
+		case UNCONFIGURED:
+			return -1;
+		case SYNC_DSHOT_300:
+			time_0   = PIOS_INLINEDELAY_NsToCycles(1250);
+			time_1   = PIOS_INLINEDELAY_NsToCycles(2500);
+			time_tot = PIOS_INLINEDELAY_NsToCycles(3333);
+			break;
+		case SYNC_DSHOT_600:
+			time_0   = PIOS_INLINEDELAY_NsToCycles(625);
+			time_1   = PIOS_INLINEDELAY_NsToCycles(1250);
+			time_tot = PIOS_INLINEDELAY_NsToCycles(1667);
+			break;
+		case SYNC_DSHOT_1200:
+			time_0   = PIOS_INLINEDELAY_NsToCycles(312);
+			time_1   = PIOS_INLINEDELAY_NsToCycles(625);
+			time_tot = PIOS_INLINEDELAY_NsToCycles(833);
+			break;
+		default:
+			PIOS_Assert(0);
+			break;
+	}
+
+	if (dshot_mode == UNCONFIGURED) {
+		return -1;
+	}
+	/*
+	 * DShot 300 - 1250ns 0, 2500ns 1, 3333ns total
+	 * DShot 600 -  625ns 0, 1250ns 1, 1667ns total
+	 * DShot 1200-  312ns 0,  625ns 1,  833ns total
+	 */
+
+	PIOS_IRQ_Disable();	// Necessary for critical timing below
+
+	register uint16_t a = dshot_bits[DS_GPIOA];
+	register uint16_t b = dshot_bits[DS_GPIOB];
+	register uint16_t c = dshot_bits[DS_GPIOC];
+
+	uint32_t start_cycle = PIOS_INLINEDELAY_GetCycleCnt() + 30;
+
+	/* Time to get down to business of bitbanging this out. */
+	for (int i = 0; i < 16; i++) {
+		// Always delay at the beginning for consistent timing
+		PIOS_INLINEDELAY_TillCycleCnt(start_cycle);
+
+#if defined(STM32F40_41xxx) || defined(STM32F446xx)
+#define CLEAR_BITS(gpio, bits) do { (gpio)->BSRRH = bits; } while (0)
+#define SET_BITS(gpio, bits) do { (gpio)->BSRRL = bits; } while (0)
+#else
+		// Many STM32F* do not allow halfword writes to BSRR (or have
+		// BSRRL/H definitions), so do it this way:
+
+#define CLEAR_BITS(gpio, bits) do { (gpio)->BSRR = ((uint32_t) bits) << 16; } while (0)
+#define SET_BITS(gpio, bits) do { (gpio)->BSRR = bits; } while (0)
+#endif
+
+		// Start pulse by writing to BSRRL's
+		SET_BITS(GPIOA, a);
+		SET_BITS(GPIOB, b);
+		SET_BITS(GPIOC, c);
+
+		// Calculate falling edge time for 0's
+		uint32_t next_tick = start_cycle + time_0;
+
+		// And preload next values before waiting
+		a = dshot_msg_zeroes[i][DS_GPIOA];
+		b = dshot_msg_zeroes[i][DS_GPIOB];
+		c = dshot_msg_zeroes[i][DS_GPIOC];
+
+		PIOS_INLINEDELAY_TillCycleCnt(next_tick);
+
+		// Generate falling edges for zeroes (shorter pulses)
+		CLEAR_BITS(GPIOA, a);
+		CLEAR_BITS(GPIOB, b);
+		CLEAR_BITS(GPIOC, c);
+
+		// Calculate falling edge time for 1's
+		next_tick = start_cycle + time_1;
+
+		// Adjust next cycle time for when next bit should begin
+		start_cycle += time_tot;
+
+		// And next time, all bits will fall (no harm in doing twice for
+		// the 0 bits)
+		a = dshot_bits[DS_GPIOA];
+		b = dshot_bits[DS_GPIOB];
+		c = dshot_bits[DS_GPIOC];
+
+		PIOS_INLINEDELAY_TillCycleCnt(next_tick);
+
+		// Falling edges for all remaining bits.
+		CLEAR_BITS(GPIOA, a);
+		CLEAR_BITS(GPIOB, b);
+		CLEAR_BITS(GPIOC, c);
+	}
+
+	PIOS_IRQ_Enable();
+
+	return 0;
+}
+#endif /* !STM32F0xx */
 
 /**
 * Update the timer for HPWM/OneShot
@@ -368,15 +715,26 @@ void PIOS_Servo_Update(void)
 		return;
 	}
 
+	// If some banks are oneshot and some are dshot (why would you do this?)
+	// get the oneshots firing first.
 	for (uint8_t i = 0; i < servo_cfg->num_channels; i++) {
+		if (output_channels[i].mode != SYNC_PWM) {
+			continue;
+		}
+
 		const struct pios_tim_channel * chan = &servo_cfg->channels[i];
 
-		/* Check for channels that are using synchronous output */
 		/* Look for a disabled timer using synchronous output */
 		if (!(chan->timer->CR1 & TIM_CR1_CEN)) {
 			/* enable it again and reinitialize it */
 			TIM_GenerateEvent(chan->timer, TIM_EventSource_Update);
 			TIM_Cmd(chan->timer, ENABLE);
+		}
+	}
+
+	if (dshot_in_use) {
+		if (DSHOT_Update()) {
+			dshot_in_use = false;
 		}
 	}
 }

@@ -106,7 +106,7 @@ static struct pios_flyingpio_dev *PIOS_FLYINGPIO_Alloc();
 static int32_t PIOS_FLYINGPIO_Validate(struct pios_flyingpio_dev *dev);
 
 static void PIOS_FLYINGPIO_ActuatorUpdate();
-static void PIOS_FLYINGPIO_ActuatorSetMode(const uint16_t *out_rate,
+static int PIOS_FLYINGPIO_ActuatorSetMode(const uint16_t *out_rate,
 	const int banks, const uint16_t *channel_max,
 	const uint16_t *channel_min);
 static void PIOS_FLYINGPIO_ActuatorSet(uint8_t servo, float position);
@@ -304,7 +304,7 @@ static void PIOS_FLYINGPIO_ActuatorUpdate()
 	}
 }
 
-static void PIOS_FLYINGPIO_ActuatorSetMode(const uint16_t *out_rate,
+static int PIOS_FLYINGPIO_ActuatorSetMode(const uint16_t *out_rate,
 		const int banks, const uint16_t *channel_max,
 		const uint16_t *channel_min) {
 	actuator_cfg.id = FLYINGPICMD_CFG;
@@ -340,6 +340,8 @@ static void PIOS_FLYINGPIO_ActuatorSetMode(const uint16_t *out_rate,
 	}
 
 	PIOS_Thread_Sleep(4);
+
+	return 0;
 }
 
 static void PIOS_FLYINGPIO_ActuatorSet(uint8_t servo, float position) {
