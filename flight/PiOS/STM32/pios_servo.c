@@ -604,22 +604,34 @@ static int DSHOT_Update()
 
 	uint16_t time_0, time_1, time_tot;
 
+	/* As specified by original document:
+	 * DShot 300 - 1250ns 0, 2500ns 1, 3333ns total
+	 * DShot 600 -  625ns 0, 1250ns 1, 1667ns total
+	 * DShot 1200-  312ns 0,  625ns 1,  833ns total
+	 *
+	 * Below timings are as used by Betaflight, which blheli_s seems to
+	 * demand.  Meh.
+	 * DShot 300 - 1000ns 0, 2166ns 1, 3333ns total
+	 * DShot 600 -  500ns 0, 1083ns 1, 1667ns total
+	 * DShot 1200-  250ns 0,  541ns 1,  833ns total
+	 */
+
 	switch (dshot_mode) {
 		case UNCONFIGURED:
 			return -1;
 		case SYNC_DSHOT_300:
-			time_0   = PIOS_INLINEDELAY_NsToCycles(1250);
-			time_1   = PIOS_INLINEDELAY_NsToCycles(2500);
+			time_0   = PIOS_INLINEDELAY_NsToCycles(1000);
+			time_1   = PIOS_INLINEDELAY_NsToCycles(2166);
 			time_tot = PIOS_INLINEDELAY_NsToCycles(3333);
 			break;
 		case SYNC_DSHOT_600:
-			time_0   = PIOS_INLINEDELAY_NsToCycles(625);
-			time_1   = PIOS_INLINEDELAY_NsToCycles(1250);
+			time_0   = PIOS_INLINEDELAY_NsToCycles(500);
+			time_1   = PIOS_INLINEDELAY_NsToCycles(1083);
 			time_tot = PIOS_INLINEDELAY_NsToCycles(1667);
 			break;
 		case SYNC_DSHOT_1200:
-			time_0   = PIOS_INLINEDELAY_NsToCycles(312);
-			time_1   = PIOS_INLINEDELAY_NsToCycles(625);
+			time_0   = PIOS_INLINEDELAY_NsToCycles(250);
+			time_1   = PIOS_INLINEDELAY_NsToCycles(541);
 			time_tot = PIOS_INLINEDELAY_NsToCycles(833);
 			break;
 		default:
@@ -630,11 +642,6 @@ static int DSHOT_Update()
 	if (dshot_mode == UNCONFIGURED) {
 		return -1;
 	}
-	/*
-	 * DShot 300 - 1250ns 0, 2500ns 1, 3333ns total
-	 * DShot 600 -  625ns 0, 1250ns 1, 1667ns total
-	 * DShot 1200-  312ns 0,  625ns 1,  833ns total
-	 */
 
 	PIOS_IRQ_Disable();	// Necessary for critical timing below
 
