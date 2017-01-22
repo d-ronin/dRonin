@@ -59,7 +59,7 @@ static const struct pios_video_type_boundary pios_video_type_boundary_pal = {
 static const struct pios_video_type_cfg pios_video_type_cfg_ntsc = {
 	.graphics_height_real   = 240,   // Real visible lines
 	.graphics_column_start = 103,   // First visible OSD column (after Hsync)
-	.graphics_line_start   = 16,    // First visible OSD line
+	.graphics_line_start   = 19,    // First visible OSD line
 	.dma_buffer_length     = 45,    // DMA buffer length in bytes (graphics_right / 8 + 1)
 	.period = 24,
 	.dc     = 12,
@@ -68,7 +68,7 @@ static const struct pios_video_type_cfg pios_video_type_cfg_ntsc = {
 static const struct pios_video_type_cfg pios_video_type_cfg_pal = {
 	.graphics_height_real   = 266,   // Real visible lines
 	.graphics_column_start = 149,   // First visible OSD column (after Hsync)
-	.graphics_line_start   = 25,    // First visible OSD line
+	.graphics_line_start   = 28,    // First visible OSD line
 	.dma_buffer_length     = 46,    // DMA buffer length in bytes ((graphics_right + 1) / 8 + 1)
 	.period = 22,
 	.dc     = 11,
@@ -133,15 +133,17 @@ bool PIOS_Vsync_ISR()
 
 	enum pios_video_system video_system_tmp;
 
+	static uint8_t mode_hysteresis = 0;
+
 	// check video type
-	if (num_video_lines > VIDEO_TYPE_PAL_ROWS - 10) {
+	if (num_video_lines > VIDEO_TYPE_PAL_ROWS) {
 		video_system_tmp = PIOS_VIDEO_SYSTEM_PAL;
 	} else {
 		video_system_tmp = PIOS_VIDEO_SYSTEM_NTSC;
 	}
 
 	// if video type has changed set new active values
-	if (video_system_act != video_system_tmp) {
+	if ((video_system_act != video_system_tmp) && (mode_hysteresis++ > 3)) {
 		video_system_act = video_system_tmp;
 		if (video_system_act == PIOS_VIDEO_SYSTEM_NTSC) {
 			pios_video_type_boundary_act = &pios_video_type_boundary_ntsc;
@@ -160,6 +162,8 @@ bool PIOS_Vsync_ISR()
 		}
 
 		x_offset = -100;	/* Force recalc */
+	} else {
+		mode_hysteresis = 0;
 	}
 
 	if (x_offset != x_offset_new)
