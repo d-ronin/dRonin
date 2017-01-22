@@ -60,7 +60,7 @@ enum pios_video_system {
 
 // PAL/NTSC specific config values
 struct pios_video_type_cfg {
-	uint16_t graphics_hight_real;
+	uint16_t graphics_height_real;
 	uint16_t graphics_column_start;
 	uint8_t  graphics_line_start;
 	uint8_t  dma_buffer_length;
@@ -85,7 +85,7 @@ struct pios_video_cfg {
 #else
 // PAL/NTSC specific config values
 struct pios_video_type_cfg {
-	uint16_t graphics_hight_real;
+	uint16_t graphics_height_real;
 	uint16_t graphics_column_start;
 	uint8_t  graphics_line_start;
 	uint8_t  dma_buffer_length;
