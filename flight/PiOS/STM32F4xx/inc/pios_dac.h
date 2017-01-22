@@ -73,4 +73,17 @@ int PIOS_DAC_init(dac_dev_t *dev_out,
  */
 void PIOS_DAC_dma_interrupt_handler(dac_dev_t dev);
 
+typedef bool (*fill_dma_cb)(void *ctx, uint16_t *buf, int len);
+
+/**
+ * Installs a DAC sample-generating callback.  Also starts DMA if necessary.
+ * @param[in] dev A DAC device
+ * @param[in] priority The priority for this callback; higher numbers prevail.
+ * @param[in] cb The callback function.
+ * @param[in] ctx An optional context pointer provided to the callback function.
+ * @retval true if the callback was installed, false if a higher prio is running.
+ */
+bool PIOS_DAC_install_callback(dac_dev_t dev, uint8_t priority, fill_dma_cb cb,
+		void *ctx);
+
 #endif /* LIB_MAX7456_MAX7456_H_ */

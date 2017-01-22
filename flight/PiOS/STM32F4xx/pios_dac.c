@@ -53,6 +53,8 @@
 // double buffered) and results in an interrupt rate of 187.5Hz
 #define DAC_DMA_SAMPLE_COUNT 128
 
+typedef bool (*fill_dma_cb)(void *ctx, uint16_t *buf, int len);
+
 struct dac_dev_s {
 #define DAC_MAGIC 0x61434144		/* 'DACa' */
 	uint32_t magic;
@@ -66,15 +68,38 @@ struct dac_dev_s {
 	// Updated from, but only read from, interrupt handler.
 	bool cur_buf;
 
-	// Test and set when interrupt handler is not running.
-	// Cleared by interrupt handler afterwards
 	volatile bool in_progress;
 
-	uint16_t phase_accum;
+	volatile uint8_t priority;
+	volatile fill_dma_cb dma_cb;
+	volatile void *ctx;
+
+	uint16_t phase_accum;	// XXX tmp
 };
 
-static bool fill_dma_buf(dac_dev_t dev, uint16_t *buf);
 static void dac_cue_dma(dac_dev_t dev);
+
+static bool fill_dma_buf(void *ctx, uint16_t *buf, int len) {
+	dac_dev_t dev = ctx;
+
+	for (int i = 0; i < len; i++) {
+		dev->phase_accum += 6008; /* 2200.2Hz */
+
+		/* Using the phase accum this way results in better than
+		 * .5Hz resolution over the interesting range.
+		 */
+		uint16_t result = 32768 + sin_approx(dev->phase_accum >> 1) * 3;
+
+		/* Range is -4096 to 4096.  *8 would be full-range (3V3 ptp)
+		** but would clip on +4096, barely.
+		** But we don't want full range anyways.  *3 is ~1V2 ptp.
+		*/
+
+		buf[i] = result & 0xFFF0;
+	}
+
+	return true;
+}
 
 int PIOS_DAC_init(dac_dev_t *dev_out, const struct pios_dac_cfg *cfg) 
 {
@@ -109,45 +134,65 @@ int PIOS_DAC_init(dac_dev_t *dev_out, const struct pios_dac_cfg *cfg)
 	// Set up the DMA interrupt
 	NVIC_Init((NVIC_InitTypeDef *)(&dev->cfg->interrupt));
 
-	// Cue on init.
-	bool eof;
-
-	eof = fill_dma_buf(dev, dev->dma_buf_0);
-	if (!eof) {
-		eof = fill_dma_buf(dev, dev->dma_buf_1);
-	}
-
-	if (!eof) {
-		dac_cue_dma(dev);
-	}
-
 	*dev_out = dev;
+
+	PIOS_DAC_install_callback(dev, 1, fill_dma_buf, dev);
 
 	return 0;
 }
 
-static bool fill_dma_buf(dac_dev_t dev, uint16_t *buf) {
-	for (int i = 0; i < DAC_DMA_SAMPLE_COUNT; i++) {
-		dev->phase_accum += 100;
+bool PIOS_DAC_install_callback(dac_dev_t dev, uint8_t priority, fill_dma_cb cb,
+		void *ctx) {
+	PIOS_IRQ_Disable();
 
-		uint16_t result = 32768 + sin_approx(dev->phase_accum) * 3;
+	if (dev->in_progress) {
+		bool ret_val = false;
 
-		/* Range is -4096 to 4096.  *8 would be full-range (3V3 ptp)
-		** but would clip on +4096, barely.
-		** But we don't want full range anyways.  *3 is ~1V2 ptp.
-		*/
+		if (dev->priority < priority) {
+			// Preempt existing transmitter
 
-		buf[i] = result & 0xFFF0;
+			dev->dma_cb = cb;
+			dev->ctx = ctx;
+			dev->priority = priority;
+			ret_val = true;
+		}
+
+		PIOS_IRQ_Enable();
+
+		return ret_val;
 	}
 
-	return false;
+	dev->dma_cb = cb;
+	dev->ctx = ctx;
+	dev->priority = priority;
+
+	// Cue on init.
+	bool in_prog;
+
+	// This is an unfortunate amount of time to spend on filling the
+	// buffer.  The normal interrupt handler does this, so it's not
+	// TOO TOO bad to fill two and do a little register twiddlin'.
+	in_prog = dev->dma_cb((void *) dev->ctx, dev->dma_buf_0,
+			DAC_DMA_SAMPLE_COUNT);
+
+	if (in_prog) {
+		in_prog = dev->dma_cb((void *)dev->ctx, dev->dma_buf_1,
+				DAC_DMA_SAMPLE_COUNT);
+	}
+
+	if (in_prog) {
+		dac_cue_dma(dev);
+		dev->in_progress = true;
+	} else {
+		dev->in_progress = false;
+	}
+
+	PIOS_IRQ_Enable();
+
+	return true;
 }
 
 static void dac_cue_dma(dac_dev_t dev) {
-	if (dev->in_progress) {
-		return;
-	}
-
 	/* We init / seize the GPIO here, because it's possible someone else has
 	 * been running the port the other way for bidir types of things. */
 	GPIO_InitTypeDef gpio_cfg = {
@@ -223,11 +268,13 @@ void PIOS_DAC_dma_interrupt_handler(dac_dev_t dev)
 
 	uint16_t *buf = dev->cur_buf ? dev->dma_buf_0 : dev->dma_buf_1;
 
-	bool eof;
+	bool in_prog;
 
-	eof = fill_dma_buf(dev, buf);
+	in_prog = dev->dma_cb((void *)dev->ctx, buf, DAC_DMA_SAMPLE_COUNT);
 
-	if (eof) {
+	if (!in_prog) {
+		// When a callback declares completion, something between the
+		// last 2 to last 0 buffers is lost / not blitted
 		DMA_Cmd(dev->cfg->dma_stream, DISABLE);
 		dev->in_progress = false;
 	}
