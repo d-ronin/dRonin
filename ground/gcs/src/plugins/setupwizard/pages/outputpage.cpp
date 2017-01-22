@@ -44,13 +44,13 @@ OutputPage::~OutputPage()
 }
 
 //! Set output ranges
-void OutputPage::setOutputRanges(quint16 minPulse, quint16 maxPulse)
+void OutputPage::setOutputRanges(quint16 minPulse, quint16 neutralPulse, quint16 maxPulse)
 {
     QList<actuatorChannelSettings> allSettings = getWizard()->getActuatorSettings();
     for (int i = 0; i < allSettings.count(); i++) {
         actuatorChannelSettings settings = allSettings[i];
         settings.channelMin     = minPulse;
-        settings.channelNeutral = minPulse;
+        settings.channelNeutral = neutralPulse;
         settings.channelMax     = maxPulse;
         allSettings[i] = settings;
     }
@@ -59,19 +59,34 @@ void OutputPage::setOutputRanges(quint16 minPulse, quint16 maxPulse)
 
 bool OutputPage::validatePage()
 {
-    if (ui->oneShot125Button->isChecked()) {
-        getWizard()->setESCType(SetupWizard::ESC_ONESHOT125);
+    QPointer<SetupWizard> wizard = getWizard();
+    if (!wizard) {
+        Q_ASSERT(false);
+        qCritical() << "No wizard!";
+        return false;
+    }
 
+    if (ui->oneShot125Button->isChecked()) {
+        wizard->setESCType(SetupWizard::ESC_ONESHOT125);
         // This is safe to do even if they are wrong. Normal ESCS
         // ignore oneshot.
-        setOutputRanges(125, 250);
+        setOutputRanges(125, 125, 250);
     } else if (ui->oneShot42Button->isChecked()) {
-        getWizard()->setESCType(SetupWizard::ESC_ONESHOT42);
+        wizard->setESCType(SetupWizard::ESC_ONESHOT42);
         // oneshot42 is actually oneshot125/3
-        setOutputRanges(42, 83);
+        setOutputRanges(42, 42, 83);
+    } else if (ui->dshot300Button->isChecked()) {
+        wizard->setESCType(SetupWizard::ESC_DSHOT300);
+        setOutputRanges(0, 48, 2047);
+    } else if (ui->dshot600Button->isChecked()) {
+        wizard->setESCType(SetupWizard::ESC_DSHOT600);
+        setOutputRanges(0, 48, 2047);
+    } else if (ui->dshot1200Button->isChecked()) {
+        wizard->setESCType(SetupWizard::ESC_DSHOT1200);
+        setOutputRanges(0, 48, 2047);
     } else {
-        getWizard()->setESCType(SetupWizard::ESC_RAPID);
-        setOutputRanges(1000, 2000);
+        wizard->setESCType(SetupWizard::ESC_RAPID);
+        setOutputRanges(1000, 1000, 2000);
     }
 
     return true;

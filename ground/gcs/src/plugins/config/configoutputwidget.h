@@ -49,6 +49,13 @@ public:
     ~ConfigOutputWidget();
 
 private:
+    enum SpecialOutputRates {
+        RATE_SYNCPWM = 0,
+        RATE_DSHOT300 = 65532,
+        RATE_DSHOT600 = 65533,
+        RATE_DSHOT1200 = 65534,
+    };
+
     Ui_OutputWidget *m_config;
 
     QList<QSlider> sliders;

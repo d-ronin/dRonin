@@ -153,16 +153,29 @@ void OutputCalibrationPage::startWizard()
     ui->calibrationStack->setCurrentIndex(m_wizardIndexes[0]);
     setupVehicleHighlightedPart();
 
-    if (getWizard()->getESCType() == SetupWizard::ESC_ONESHOT125) {
-        ui->motorNeutralSlider->setMinimum(125);
-        ui->motorNeutralSlider->setMaximum(152);
+    QPointer<SetupWizard> wizard = getWizard();
+
+    switch (wizard->getESCType()) {
+    case SetupWizard::ESC_ONESHOT125:
+        ui->motorNeutralSlider->setRange(125, 152);
         ui->motorNeutralSlider->setPageStep(1);
         ui->motorNeutralSlider->setSingleStep(1);
-    } else if (getWizard()->getESCType() == SetupWizard::ESC_ONESHOT42) {
-        ui->motorNeutralSlider->setMinimum(125/3);
-        ui->motorNeutralSlider->setMaximum(152/3);
+        break;
+    case SetupWizard::ESC_ONESHOT42:
+        ui->motorNeutralSlider->setRange(125/3, 152/3);
         ui->motorNeutralSlider->setPageStep(1);
         ui->motorNeutralSlider->setSingleStep(1);
+        break;
+    case SetupWizard::ESC_DSHOT300:
+    case SetupWizard::ESC_DSHOT600:
+    case SetupWizard::ESC_DSHOT1200:
+        // 1-47 reserved for special commands, max = 2047
+        ui->motorNeutralSlider->setRange(48, 400);
+        ui->motorNeutralSlider->setPageStep(1);
+        ui->motorNeutralSlider->setSingleStep(1);
+        break;
+    default:
+        break;
     }
 }
 

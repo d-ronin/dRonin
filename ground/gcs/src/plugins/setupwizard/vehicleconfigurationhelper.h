@@ -68,9 +68,15 @@ public:
     VehicleConfigurationHelper(VehicleConfigurationSource *configSource);
     bool setupVehicle(bool save = true);
     bool setupHardwareSettings(bool save = true);
-    static const qint16 LEGACY_ESC_FREQUENCY;
-    static const qint16 RAPID_ESC_FREQUENCY;
-    static const qint16 ONESHOT_ESC_FREQUENCY;
+
+    enum EscFrequency {
+        ESC_FREQUENCY_LEGACY = 50,
+        ESC_FREQUENCY_RAPID = 400,
+        ESC_FREQUENCY_SYNCPWM = 0,
+        ESC_FREQUENCY_DSHOT300 = 65532,
+        ESC_FREQUENCY_DSHOT600 = 65533,
+        ESC_FREQUENCY_DSHOT1200 = 65534,
+    };
 
 signals:
     void saveProgress(int total, int current, QString description);

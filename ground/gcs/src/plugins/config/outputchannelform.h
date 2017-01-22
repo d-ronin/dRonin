@@ -54,7 +54,7 @@ public slots:
     void enableChannelTest(bool state);
     void setType(int type);
     int type() const;
-    void updateMaxSpinboxValue(int maxPulseWidth);
+    void updateChannelLimits(int minPulse, int maxPulse, bool digitalProtocol = false);
 
 signals:
     void channelChanged(int index, int value);
@@ -65,6 +65,8 @@ private:
     /// Channel index
     int m_index;
     bool m_inChannelTest;
+    int limitMin, limitMax;
+    bool minMaxFixed;
 
     void alignFields();
 

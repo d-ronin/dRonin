@@ -274,6 +274,15 @@ QString SetupWizard::getSummaryText()
     case ESC_ONESHOT42:
         summary.append(tr("Oneshot42 (SyncPWM + 42-83us"));
         break;
+    case ESC_DSHOT300:
+        summary.append(tr("Dshot300"));
+        break;
+    case ESC_DSHOT600:
+        summary.append(tr("Dshot600"));
+        break;
+    case ESC_DSHOT1200:
+        summary.append(tr("Dshot1200"));
+        break;
     default:
         summary.append(tr("Unknown"));
     }

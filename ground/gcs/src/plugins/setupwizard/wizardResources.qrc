@@ -46,5 +46,11 @@
         <file>resources/bttn-sat-disabled.png</file>
         <file>resources/bttn-sbus-disabled.png</file>
         <file>resources/bttn-sumd-disabled.png</file>
+        <file>resources/bttn-dshot300-down.png</file>
+        <file>resources/bttn-dshot300-up.png</file>
+        <file>resources/bttn-dshot600-down.png</file>
+        <file>resources/bttn-dshot600-up.png</file>
+        <file>resources/bttn-dshot1200-down.png</file>
+        <file>resources/bttn-dshot1200-up.png</file>
     </qresource>
 </RCC>
