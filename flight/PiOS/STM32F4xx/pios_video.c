@@ -400,7 +400,7 @@ void PIOS_Video_Init(const struct pios_video_cfg *cfg)
 		TIM_SetCompare1(cfg->pixel_timer.timer, pios_video_type_cfg_act->dc);
 		TIM_SetAutoreload(cfg->pixel_timer.timer, pios_video_type_cfg_act->period - 1);
 	} else {
-		TIM_SetCompare1(cfg->pixel_timer.timer, pios_video_type_cfg_act->dc);
+		TIM_SetCompare1(cfg->pixel_timer.timer, pios_video_type_cfg_act->dc / 2);
 		TIM_SetAutoreload(cfg->pixel_timer.timer, pios_video_type_cfg_act->period / 2 - 1);
 	}
 	TIM_ARRPreloadConfig(cfg->pixel_timer.timer, ENABLE);
