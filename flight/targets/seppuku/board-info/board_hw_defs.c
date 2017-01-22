@@ -1383,8 +1383,6 @@ const struct pios_video_cfg pios_video_cfg = {
 		.remap                                         = GPIO_AF_TIM9,
 	},
 
-	.line_counter = TIM4,
-
 	.tim_oc_init                                       = {
 		.TIM_OCMode       = TIM_OCMode_PWM1,
 		.TIM_OutputState  = TIM_OutputState_Enable,

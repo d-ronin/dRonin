@@ -114,6 +114,8 @@
 #define PIOS_INCLUDE_VIDEO
 #define PIOS_VIDEO_SPLITBUFFER /* Uses 2 1-bit/pixel buffers */
 #define PIOS_VIDEO_HSYNC_OFFSET -22
+#define PIOS_OMIT_TIM2IRQ
+
 #define MODULE_FLIGHTSTATS_BUILTIN
 
 /* Flags that alter behaviors - mostly to lower resources for CC */
