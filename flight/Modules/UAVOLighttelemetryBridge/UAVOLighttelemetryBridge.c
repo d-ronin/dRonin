@@ -6,7 +6,7 @@
  * @{ 
  *
  * @file	   UAVOLighttelemetryBridge.c
- * @author         dRonin, http://dRonin.org/, Copyright (C) 2016
+ * @author         dRonin, http://dRonin.org/, Copyright (C) 2016-2017
  * @author	   Tau Labs, http://taulabs.org, Copyright (C) 2013-2016
  *
  * @brief	   Bridges selected UAVObjects to a minimal one way telemetry 
@@ -15,16 +15,19 @@
  *			   Effective for ground OSD, groundstation HUD and Antenna tracker.
  *			   
  *				Protocol details: 3 different frames, little endian.
- *				  * G Frame (GPS position) (2hz @ 1200 bauds , 5hz >= 2400 bauds): 18BYTES
+ *				  * G Frame (GPS position): 18BYTES
  *					0x24 0x54 0x47 0xFF 0xFF 0xFF 0xFF 0xFF 0xFF 0xFF 0xFF 0xFF 0xFF 0xFF 0xFF 0xFF	 0xFF	0xC0   
  *					 $	   T	G  --------LAT-------- -------LON---------	SPD --------ALT-------- SAT/FIX	 CRC
- *				  * A Frame (Attitude) (5hz @ 1200bauds , 10hz >= 2400bauds): 10BYTES
+ *				  * A Frame (Attitude): 10BYTES
  *					0x24 0x54 0x41 0xFF 0xFF 0xFF 0xFF 0xFF 0xFF 0xC0	
  *					 $	   T   A   --PITCH-- --ROLL--- -HEADING-  CRC
- *				  * S Frame (Sensors) (2hz @ 1200bauds, 5hz >= 2400bauds): 11BYTES
+ *				  * S Frame (Sensors): 11BYTES
  *					0x24 0x54 0x53 0xFF 0xFF  0xFF 0xFF	   0xFF	   0xFF		 0xFF		0xC0	 
  *					 $	   T   S   VBAT(mv)	 Current(ma)   RSSI	 AIRSPEED  ARM/FS/FMOD	 CRC
  *
+ * Before these used to be explicitly scheduled to time quanta.  Now we just dump
+ * out stuff as fast as we can, ensuring the appropriate link share for each
+ * frame type.
  *
  * @see		   The GNU Public License (GPL) Version 3
  *
@@ -48,6 +51,7 @@
  * must be maintained in each individual source file that is a derivative work
  * of this source file; otherwise redistribution is prohibited.
  */
+
 #include "openpilot.h"
 #include "modulesettings.h"
 
@@ -71,7 +75,12 @@
 // Private constants
 #define STACK_SIZE_BYTES 600
 #define TASK_PRIORITY PIOS_THREAD_PRIO_LOW
-#define UPDATE_PERIOD 100
+
+#define CHUNK_TIME 30		/* 30ms. 3.6 bytes @ 1200, 14.4 bytes at 4800 */
+/* The expected behavior at 1200 bps becomes then, prepare+send frame, delay 30ms,
+ * then prepare 1-3 frames at 30ms intervals that go unsent because of buffer.
+ * Then the next one goes.
+ */
 
 #define LTM_GFRAME_SIZE 18
 #define LTM_AFRAME_SIZE 10
@@ -90,10 +99,10 @@ static uint8_t ltm_slowrate;
 static void uavoLighttelemetryBridgeTask(void *parameters);
 static void updateSettings();
 
-static void send_LTM_Packet(uint8_t *LTPacket, uint8_t LTPacket_size);
-static void send_LTM_Gframe();
-static void send_LTM_Aframe();
-static void send_LTM_Sframe();
+static int send_LTM_Packet(uint8_t *LTPacket, uint8_t LTPacket_size);
+static int send_LTM_Gframe();
+static int send_LTM_Aframe();
+static int send_LTM_Sframe();
 
 
 /**
@@ -106,8 +115,7 @@ int32_t uavoLighttelemetryBridgeInitialize()
 
 	if (lighttelemetryPort && PIOS_Modules_IsEnabled(PIOS_MODULE_UAVOLIGHTTELEMETRYBRIDGE)) {
 		// Update telemetry settings
-		ltm_scheduler = 1;
-		module_enabled = true; 
+		module_enabled = true;
 		return 0;
 	}
 
@@ -142,31 +150,57 @@ static void uavoLighttelemetryBridgeTask(void *parameters)
 {
 	updateSettings();
 	
-	uint32_t lastSysTime;
-
 	// Main task loop
-	lastSysTime = PIOS_Thread_Systime();
 	while (1)
 	{
+		int ret = 0;
 
-		if (ltm_scheduler & 1) {	// is odd
-			send_LTM_Aframe();
+		if (!ret) {
+			switch (ltm_scheduler) {
+				case 0:
+				case 6:
+					ret = send_LTM_Sframe();
+					break;
+
+				case 3:
+				case 9:
+					ret = send_LTM_Gframe();
+					break;
+
+				case 1:
+				case 4:
+				case 7:
+				case 10:
+					if (ltm_slowrate) {
+						break;
+					}
+
+				case 2:
+				case 5:
+				case 8:
+				case 11:
+					ret = send_LTM_Aframe();
+					break;
+
+				default:
+					break;
+			}
 		}
-		else						// is even
-		{
-			if (ltm_slowrate == 0)
-				send_LTM_Aframe();
-				
-			if (ltm_scheduler % 4 == 0)
-				send_LTM_Sframe();
-			else 
-				send_LTM_Gframe();
+
+		PIOS_Thread_Sleep(CHUNK_TIME);
+
+		if (ret) {
+			/* If we couldn't tx, go around and try the same thing
+			 * again.
+			 */
+			continue;
 		}
+
 		ltm_scheduler++;
-		if (ltm_scheduler > 10)
-			ltm_scheduler = 1;
-		// Delay until it is time to read the next sample
-		PIOS_Thread_Sleep_Until(&lastSysTime, UPDATE_PERIOD);
+
+		if (ltm_scheduler > 11) {
+			ltm_scheduler = 0;
+		}
 	}
 }
 
@@ -175,17 +209,16 @@ static void uavoLighttelemetryBridgeTask(void *parameters)
  *#######################################################################
 */
 //GPS packet
-static void send_LTM_Gframe() 
+static int send_LTM_Gframe()
 {
-	GPSPositionData pdata;
-	BaroAltitudeData bdata;
-	if (GPSPositionInitialize() == -1 || BaroAltitudeInitialize() == -1) {
-		module_enabled = false;
-		return;
-	}
+	GPSPositionData pdata = { };	/* Set to all 0's */
 
-	if (GPSPositionHandle() != NULL)
+	bool have_gps = false;
+
+	if (GPSPositionHandle() != NULL) {
+		have_gps = true;
 		GPSPositionGet(&pdata);
+	}
 
 	int32_t lt_latitude = pdata.Latitude;
 	int32_t lt_longitude = pdata.Longitude;
@@ -199,8 +232,10 @@ static void send_LTM_Gframe()
 		float altitude;
 		BaroAltitudeAltitudeGet(&altitude);
 		lt_altitude = (int32_t)roundf(altitude * 100.0f); //Baro alt in cm.
-	} else if (GPSPositionHandle() != NULL) {
+	} else if (have_gps) {
 		lt_altitude = (int32_t)roundf(pdata.Altitude * 100.0f); //GPS alt in cm.
+	} else {
+		return 0;	/* Don't even bother, no data for this frame! */
 	}
 	
 	uint8_t lt_gpsfix;
@@ -247,11 +282,11 @@ static void send_LTM_Gframe()
 	LTBuff[15] = (lt_altitude >> 8*3) & 0xFF;
 	LTBuff[16] = ((lt_gpssats << 2)& 0xFF ) | (lt_gpsfix & 0b00000011) ; // last 6 bits: sats number, first 2:fix type (0,1,2,3)
 
-	send_LTM_Packet(LTBuff,LTM_GFRAME_SIZE);
+	return send_LTM_Packet(LTBuff,LTM_GFRAME_SIZE);
 }
 
 //Attitude packet
-static void send_LTM_Aframe() 
+static int send_LTM_Aframe()
 {
 	//prepare data
 	AttitudeActualData adata;
@@ -267,7 +302,7 @@ static void send_LTM_Aframe()
 	LTBuff[0] = 0x24; //$
 	LTBuff[1] = 0x54; //T
 	//FRAMEID
-	LTBuff[2] = 0x41; //A 
+	LTBuff[2] = 0x41; //A
 	//PAYLOAD
 	LTBuff[3] = (lt_pitch >> 8*0) & 0xFF;
 	LTBuff[4] = (lt_pitch >> 8*1) & 0xFF;
@@ -275,11 +310,12 @@ static void send_LTM_Aframe()
 	LTBuff[6] = (lt_roll >> 8*1) & 0xFF;
 	LTBuff[7] = (lt_heading >> 8*0) & 0xFF;
 	LTBuff[8] = (lt_heading >> 8*1) & 0xFF;
-	send_LTM_Packet(LTBuff,LTM_AFRAME_SIZE);
+
+	return send_LTM_Packet(LTBuff,LTM_AFRAME_SIZE);
 }
 
 //Sensors packet
-static void send_LTM_Sframe() 
+static int send_LTM_Sframe()
 {
 	//prepare data
 	uint16_t lt_vbat = 0;
@@ -325,7 +361,7 @@ static void send_LTM_Sframe()
 		lt_failsafe = 0;
 	
 	// Flight mode(0-19): 0: Manual, 1: Rate, 2: Attitude/Angle, 3: Horizon, 4: Acro, 5: Stabilized1, 6: Stabilized2, 7: Stabilized3,
-	// 8: Altitude Hold, 9: Loiter/GPS Hold, 10: Auto/Waypoints, 11: Heading Hold / headFree, 
+	// 8: Altitude Hold, 9: Loiter/GPS Hold, 10: Auto/Waypoints, 11: Heading Hold / headFree,
 	// 12: Circle, 13: RTH, 14: FollowMe, 15: LAND, 16:FlybyWireA, 17: FlybywireB, 18: Cruise, 19: Unknown
 
 	switch (fdata.FlightMode) {
@@ -356,7 +392,7 @@ static void send_LTM_Sframe()
 	LTBuff[0] = 0x24; //$
 	LTBuff[1] = 0x54; //T
 	//FRAMEID
-	LTBuff[2] = 0x53; //S 
+	LTBuff[2] = 0x53; //S
 	//PAYLOAD
 	LTBuff[3] = (lt_vbat >> 8*0) & 0xFF;
 	LTBuff[4] = (lt_vbat >> 8*1) & 0xFF;
@@ -365,10 +401,11 @@ static void send_LTM_Sframe()
 	LTBuff[7] = (lt_rssi >> 8*0) & 0xFF;
 	LTBuff[8] = (lt_airspeed >> 8*0) & 0xFF;
 	LTBuff[9] = ((lt_flightmode << 2)& 0xFF ) | ((lt_failsafe << 1)& 0b00000010 ) | (lt_arm & 0b00000001) ; // last 6 bits: flight mode, 2nd bit: failsafe, 1st bit: Arm status.
-	send_LTM_Packet(LTBuff,LTM_SFRAME_SIZE);
+
+	return send_LTM_Packet(LTBuff,LTM_SFRAME_SIZE);
 }
 
-static void send_LTM_Packet(uint8_t *LTPacket, uint8_t LTPacket_size)
+static int send_LTM_Packet(uint8_t *LTPacket, uint8_t LTPacket_size)
 {
 	//calculate Checksum
 	uint8_t LTCrc = 0x00;
@@ -376,25 +413,29 @@ static void send_LTM_Packet(uint8_t *LTPacket, uint8_t LTPacket_size)
 		LTCrc ^= LTPacket[i];
 	}
 	LTPacket[LTPacket_size-1] = LTCrc;
-	if (lighttelemetryPort) {
-		PIOS_COM_SendBufferNonBlocking(lighttelemetryPort, LTPacket, LTPacket_size);
+
+	int ret = PIOS_COM_SendBufferNonBlocking(lighttelemetryPort,
+			LTPacket, LTPacket_size);
+
+	if (ret < 0) {
+		return -1;
 	}
+
+	return 0;
 }
 
 static void updateSettings()
 {
-	if (lighttelemetryPort) {
-		// Retrieve settings
-		uint8_t speed;
-		ModuleSettingsLightTelemetrySpeedGet(&speed);
+	// Retrieve settings
+	uint8_t speed;
+	ModuleSettingsLightTelemetrySpeedGet(&speed);
 
-		PIOS_HAL_ConfigureSerialSpeed(lighttelemetryPort, speed);
+	PIOS_HAL_ConfigureSerialSpeed(lighttelemetryPort, speed);
 
-		if (speed == MODULESETTINGS_LIGHTTELEMETRYSPEED_1200)
-			ltm_slowrate = 1;
-		else 
-			ltm_slowrate = 0;
-	}
+	if (speed == MODULESETTINGS_LIGHTTELEMETRYSPEED_1200)
+		ltm_slowrate = 1;
+	else 
+		ltm_slowrate = 0;
 }
 #endif //end define lighttelemetry
 /**
