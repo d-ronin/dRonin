@@ -2,7 +2,7 @@
  ******************************************************************************
  * @file       pios_hal.c
  * @author     Tau Labs, http://taulabs.org, Copyright (C) 2015
- * @author     dRonin, http://dronin.org Copyright (C) 2015-2016
+ * @author     dRonin, http://dronin.org Copyright (C) 2015-2017
  * @addtogroup PIOS PIOS Core hardware abstraction layer
  * @{
  * @addtogroup PIOS_HAL Hardware abstraction layer files
@@ -179,7 +179,7 @@ uintptr_t pios_com_debug_id;
 #endif
 
 #ifndef PIOS_COM_LIGHTTELEMETRY_TX_BUF_LEN
-#define PIOS_COM_LIGHTTELEMETRY_TX_BUF_LEN 19
+#define PIOS_COM_LIGHTTELEMETRY_TX_BUF_LEN 22
 #endif
 
 #ifndef PIOS_COM_FRSKYSPORT_TX_BUF_LEN
