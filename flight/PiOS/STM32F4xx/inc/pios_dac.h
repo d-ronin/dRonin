@@ -86,4 +86,4 @@ typedef bool (*fill_dma_cb)(void *ctx, uint16_t *buf, int len);
 bool PIOS_DAC_install_callback(dac_dev_t dev, uint8_t priority, fill_dma_cb cb,
 		void *ctx);
 
-#endif /* LIB_MAX7456_MAX7456_H_ */
+#endif /* _PIOS_DAC_H */

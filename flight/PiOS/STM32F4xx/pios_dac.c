@@ -49,9 +49,9 @@
 // and results in 4800bps smartaudio being 5 samples per bit.  1200 BFSK
 // telemetry is a luxurious 20 samples/bit.
 //
-// Samples are 16 bits wide, so a 128 sample buffer is 256 bytes long (512b
-// double buffered) and results in an interrupt rate of 187.5Hz
-#define DAC_DMA_SAMPLE_COUNT 128
+// Samples are 16 bits wide, so a 120 sample buffer is 240 bytes long (480b
+// double buffered), carries 6 bits, and results in an interrupt rate of 200Hz
+#define DAC_DMA_SAMPLE_COUNT 120
 
 typedef bool (*fill_dma_cb)(void *ctx, uint16_t *buf, int len);
 
@@ -78,28 +78,6 @@ struct dac_dev_s {
 };
 
 static void dac_cue_dma(dac_dev_t dev);
-
-static bool fill_dma_buf(void *ctx, uint16_t *buf, int len) {
-	dac_dev_t dev = ctx;
-
-	for (int i = 0; i < len; i++) {
-		dev->phase_accum += 6008; /* 2200.2Hz */
-
-		/* Using the phase accum this way results in better than
-		 * .5Hz resolution over the interesting range.
-		 */
-		uint16_t result = 32768 + sin_approx(dev->phase_accum >> 1) * 3;
-
-		/* Range is -4096 to 4096.  *8 would be full-range (3V3 ptp)
-		** but would clip on +4096, barely.
-		** But we don't want full range anyways.  *3 is ~1V2 ptp.
-		*/
-
-		buf[i] = result & 0xFFF0;
-	}
-
-	return true;
-}
 
 int PIOS_DAC_init(dac_dev_t *dev_out, const struct pios_dac_cfg *cfg) 
 {
@@ -136,13 +114,13 @@ int PIOS_DAC_init(dac_dev_t *dev_out, const struct pios_dac_cfg *cfg)
 
 	*dev_out = dev;
 
-	PIOS_DAC_install_callback(dev, 1, fill_dma_buf, dev);
-
 	return 0;
 }
 
 bool PIOS_DAC_install_callback(dac_dev_t dev, uint8_t priority, fill_dma_cb cb,
 		void *ctx) {
+	PIOS_Assert(dev->magic == DAC_MAGIC);
+
 	PIOS_IRQ_Disable();
 
 	if (dev->in_progress) {
@@ -166,26 +144,16 @@ bool PIOS_DAC_install_callback(dac_dev_t dev, uint8_t priority, fill_dma_cb cb,
 	dev->ctx = ctx;
 	dev->priority = priority;
 
-	// Cue on init.
-	bool in_prog;
-
-	// This is an unfortunate amount of time to spend on filling the
-	// buffer.  The normal interrupt handler does this, so it's not
-	// TOO TOO bad to fill two and do a little register twiddlin'.
-	in_prog = dev->dma_cb((void *) dev->ctx, dev->dma_buf_0,
-			DAC_DMA_SAMPLE_COUNT);
-
-	if (in_prog) {
-		in_prog = dev->dma_cb((void *)dev->ctx, dev->dma_buf_1,
-				DAC_DMA_SAMPLE_COUNT);
+	/* Fill initial sample buffers with half-scale */
+	for (int i = 0; i < DAC_DMA_SAMPLE_COUNT; i++) {
+		dev->dma_buf_0[i] = 32767;
+		dev->dma_buf_1[i] = 32767;
 	}
 
-	if (in_prog) {
-		dac_cue_dma(dev);
-		dev->in_progress = true;
-	} else {
-		dev->in_progress = false;
-	}
+	/* Establish DMA */
+	dac_cue_dma(dev);
+
+	dev->in_progress = true;
 
 	PIOS_IRQ_Enable();
 

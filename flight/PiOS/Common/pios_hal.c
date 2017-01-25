@@ -1373,3 +1373,29 @@ mag_fail:
 	return -2;
 #endif /* PIOS_INCLUDE_I2C */
 }
+
+#ifdef PIOS_INCLUDE_DAC_FSK
+int PIOS_HAL_ConfigureFSKDAC(dac_dev_t dac)
+{
+	if (pios_com_lighttelemetry_id) {
+		return -1;
+	}
+
+	fskdac_dev_t fskdac;
+
+	if (PIOS_FSKDAC_Init(&fskdac, dac)) {
+		return -1;
+	}
+
+	if (PIOS_COM_Init(&pios_com_lighttelemetry_id,
+				&pios_fskdac_com_driver,
+				(uintptr_t) fskdac, 0,
+				PIOS_COM_LIGHTTELEMETRY_TX_BUF_LEN)) {
+		return -1;
+	}
+
+	PIOS_Modules_Enable(PIOS_MODULE_UAVOLIGHTTELEMETRYBRIDGE);
+
+	return 0;
+}
+#endif
