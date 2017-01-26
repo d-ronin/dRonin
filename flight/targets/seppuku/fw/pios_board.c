@@ -417,10 +417,7 @@ void PIOS_Board_Init(void) {
 #ifdef PIOS_INCLUDE_DAC
 	PIOS_DAC_init(&pios_dac, &pios_dac_cfg);
 
-#ifdef PIOS_INCLUDE_DAC_FSK
-	PIOS_HAL_ConfigureFSKDAC(pios_dac);
-#endif
-
+	PIOS_HAL_ConfigureDAC(pios_dac);
 #endif /* PIOS_INCLUDE_DAC */
 
 

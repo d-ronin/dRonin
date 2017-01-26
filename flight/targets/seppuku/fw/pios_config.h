@@ -64,6 +64,7 @@
 #define PIOS_INCLUDE_WS2811
 #define PIOS_INCLUDE_DAC
 #define PIOS_INCLUDE_DAC_FSK
+#define PIOS_INCLUDE_DAC_ANNUNCIATOR
 
 /* Select the sensors to include */
 #define PIOS_INCLUDE_BMI160

@@ -131,10 +131,11 @@ void PIOS_HAL_ConfigureSerialSpeed(uintptr_t com_id,
 
 void PIOS_HAL_SetReceiver(int receiver_type, uintptr_t value);
 
-#ifdef PIOS_INCLUDE_DAC_FSK
+#ifdef PIOS_INCLUDE_DAC
 #include <pios_fskdac.h>
+#include <pios_annuncdac.h>
 
-int PIOS_HAL_ConfigureFSKDAC(dac_dev_t dac);
+int PIOS_HAL_ConfigureDAC(dac_dev_t dac);
 #endif
 
 #endif
