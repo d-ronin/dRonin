@@ -21,9 +21,18 @@ ifdef OPENOCD_FTDI
   endif
 endif
 
-# Set up QT toolchain
-QT_VERSION := 5.6.1
-QT_SDK_DIR := $(TOOLS_DIR)/Qt$(QT_VERSION)
+# Set up QT toolchain versions
+QT_VERSION_MAJOR := 5
+QT_VERSION_MINOR := 6
+QT_VERSION_PATCH := 2
+# suffix is sometimes used if Qt need to re-release binaries due to minor error, should be -1 etc.
+QT_VERSION_SUFFIX :=
+QT_MINGW_VERSION := 492
+
+QT_VERSION_SHORT := $(QT_VERSION_MAJOR).$(QT_VERSION_MINOR)
+QT_VERSION := $(QT_VERSION_SHORT).$(QT_VERSION_PATCH)
+QT_VERSION_FULL := $(QT_VERSION)$(QT_VERSION_SUFFIX)
+QT_SDK_DIR := $(TOOLS_DIR)/Qt$(QT_VERSION_FULL)
 
 ifndef WINDOWS
 # Check for a current QT SDK dir, abort without
@@ -36,9 +45,9 @@ endif
 
 ifdef LINUX
   ifdef AMD64
-    QT_PLUGINS_DIR = $(QT_SDK_DIR)/5.6/gcc_64/plugins
+    QT_PLUGINS_DIR = $(QT_SDK_DIR)/$(QT_VERSION_SHORT)/gcc_64/plugins
   else
-    QT_PLUGINS_DIR = $(QT_SDK_DIR)/5.6/gcc/plugins
+    QT_PLUGINS_DIR = $(QT_SDK_DIR)/$(QT_VERSION_SHORT)/gcc/plugins
   endif
 endif
 
@@ -67,23 +76,23 @@ OPENOCD_FTDI ?= yes
 ifdef LINUX
   ifdef AMD64
     # Linux 64-bit
-    qt_sdk_install: QT_SDK_URL := http://download.qt.io/official_releases/qt/5.6/5.6.1/qt-opensource-linux-x64-5.6.1.run
-    QT_SDK_QMAKE_PATH := $(QT_SDK_DIR)/5.6/gcc_64/bin/qmake
+    qt_sdk_install: QT_SDK_URL := http://download.qt.io/official_releases/qt/$(QT_VERSION_SHORT)/$(QT_VERSION_FULL)/qt-opensource-linux-x64-$(QT_VERSION_FULL).run
+    QT_SDK_QMAKE_PATH := $(QT_SDK_DIR)/$(QT_VERSION_SHORT)/gcc_64/bin/qmake
   else
     $(warning Build is only supported on 64-bit Linux)
   endif
 endif
 
 ifdef MACOSX
-  qt_sdk_install: QT_SDK_URL  := http://download.qt.io/official_releases/qt/5.6/5.6.1/qt-opensource-mac-x64-clang-5.6.1.dmg
-  QT_SDK_QMAKE_PATH := $(QT_SDK_DIR)/5.6/clang_64/bin/qmake
+  qt_sdk_install: QT_SDK_URL  := http://download.qt.io/official_releases/qt/$(QT_VERSION_SHORT)/$(QT_VERSION_FULL)/qt-opensource-mac-x64-clang-$(QT_VERSION_FULL).dmg
+  QT_SDK_QMAKE_PATH := $(QT_SDK_DIR)/$(QT_VERSION_SHORT)/clang_64/bin/qmake
 
-  export QT_SDK_BIN_PATH := $(QT_SDK_DIR)/5.6/clang_64/bin
+  export QT_SDK_BIN_PATH := $(QT_SDK_DIR)/$(QT_VERSION_SHORT)/clang_64/bin
 endif
 
 ifdef WINDOWS
-  qt_sdk_install: QT_SDK_URL  := http://download.qt.io/official_releases/qt/5.6/5.6.0/qt-opensource-windows-x86-mingw492-5.6.1.exe
-  QT_SDK_QMAKE_PATH := $(QT_SDK_DIR)/5.6/mingw492_32/bin/qmake
+  qt_sdk_install: QT_SDK_URL  := http://download.qt.io/official_releases/qt/$(QT_VERSION_SHORT)/$(QT_VERSION_FULL)/qt-opensource-windows-x86-mingw$(QT_MINGW_VERSION)-$(QT_VERSION_FULL).exe
+  QT_SDK_QMAKE_PATH := $(QT_SDK_DIR)/$(QT_VERSION_SHORT)/mingw$(QT_MINGW_VERSION)_32/bin/qmake
 endif
 
 qt_sdk_install: QT_SDK_FILE := $(notdir $(QT_SDK_URL))
@@ -107,7 +116,7 @@ endif
 
 ifneq (,$(filter $(UNAME), Darwin))
 	$(V1) hdiutil attach -quiet -private -mountpoint /tmp/qt-installer "$(DL_DIR)/$(QT_SDK_FILE)" 
-	$(V1) /tmp/qt-installer/qt-opensource-mac-x64-clang-5.6.1.app/Contents/MacOS/qt-opensource-mac-x64-clang-5.6.1
+	$(V1) /tmp/qt-installer/qt-opensource-mac-x64-clang-$(QT_VERSION).app/Contents/MacOS/qt-opensource-mac-x64-clang-$(QT_VERSION)
 	$(V1) hdiutil detach -quiet /tmp/qt-installer
 endif
 
@@ -118,7 +127,7 @@ ifneq (,$(filter $(UNAME), Linux))
 endif
 
 ifdef WINDOWS
-	$(V1) ./downloads/qt-opensource-windows-x86-mingw492-5.6.1.exe
+	$(V1) "$(DL_DIR)/$(QT_SDK_FILE)"
 endif
 
 .PHONY: qt_sdk_clean
