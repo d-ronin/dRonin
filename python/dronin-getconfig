@@ -1,5 +1,7 @@
 #!/usr/bin/env python
 
+from __future__ import print_function
+
 import argparse
 import errno
 import code
@@ -9,6 +11,7 @@ import time
 # Insert the parent directory into the module import search path.
 import os
 import sys
+
 sys.path.insert(1, os.path.dirname(sys.path[0]))
 
 from dronin import uavo, telemetry, uavo_collection
@@ -26,36 +29,47 @@ def main():
 
     settings_objects = tStream.uavo_defs.get_settings_objects()
 
-    pipeline = []
+    pipeline = set()
 
     tStream.wait_connection()
+
+    remaining = settings_objects[:]
 
     # try to retrieve every object 3 times
     # this is just intended for robustness; never seen this get an object
     # on anything other than the first try.
-    for retry in range(3):
-        for s in settings_objects:
-            if tStream.last_values.get(s):
-                continue
-
+    for retry in range(6):
+        got = 0
+        nack_cnt = 0
+        for s in remaining[:]:
             tStream.request_object(s)
-            pipeline.append(s)
 
-            # Wait for outstanding requests to complete
-            # Ideally this would continue on a nak
-            for wait in range(20):
-                # Wait minimum 10ms per object
-                time.sleep(0.01)
-
-                if len(pipeline) < 3:
+            for i in range(3):
+                if tStream.last_values.get(s):
+                    got = got + 1
+                    remaining.remove(s)
                     break
 
-                for p in pipeline[:]:
-                    if tStream.last_values.get(p):
-                        pipeline.remove(p)
-            else:
-                # We hit the end of the above retry loop
-                pipeline = []
+                nacks = tStream.get_nacks()
+                for n in nacks:
+                    if n in remaining:
+                        remaining.remove(n)
+                        nack_cnt = nack_cnt + 1
+
+                if nacks:
+                    break
+
+                time.sleep(0.05)
+
+
+
+        print("got", got)
+        print("nack", nack_cnt)
+
+        if not remaining:
+            break
+    else:
+        raise Exception('Did not get all objects')
 
     missing = []
 
