@@ -1160,6 +1160,17 @@ void PIOS_ADC_DMA_irq_handler(void)
 
 #endif /* PIOS_INCLUDE_ADC */
 
+const struct stm32_gpio video_mask_pin = {
+	.gpio = GPIOA,
+	.init = {
+		.GPIO_Pin   = GPIO_Pin_6,
+		.GPIO_Speed = GPIO_Speed_25MHz,
+		.GPIO_Mode  = GPIO_Mode_AF,
+		.GPIO_OType = GPIO_OType_PP,
+		.GPIO_PuPd  = GPIO_PuPd_NOPULL
+	}
+};
+
 #if defined(PIOS_INCLUDE_VIDEO)
 #include <pios_video.h>
 
