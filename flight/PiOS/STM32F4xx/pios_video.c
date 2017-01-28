@@ -162,7 +162,7 @@ bool PIOS_Vsync_ISR()
 		}
 
 		x_offset = -100;	/* Force recalc */
-	} else {
+	} else if (video_system_act == video_system_tmp) {
 		mode_hysteresis = 0;
 	}
 
