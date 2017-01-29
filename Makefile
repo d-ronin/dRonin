@@ -269,7 +269,7 @@ endif
 endif
 
 .PHONY: gcs
-gcs:  uavobjects
+gcs: tools_required_qt tools_required_breakpad uavobjects
 ifeq ($(USE_MSVC), NO)
 	$(V1) mkdir -p $(BUILD_DIR)/ground/$@
 	$(V1) ( cd $(BUILD_DIR)/ground/$@ && \
@@ -290,7 +290,7 @@ gcs_clean:
 	$(V1) [ ! -d "$(BUILD_DIR)/ground/gcs" ] || $(RM) -rf "$(BUILD_DIR)/ground/gcs"
 
 .PHONY: gcs_ts
-gcs_ts:
+gcs_ts: tools_required_qt
 	$(V1) mkdir -p $(BUILD_DIR)/ground/gcs/share/translations
 	$(V1) ( cd $(BUILD_DIR)/ground/gcs/share/translations && \
 	  PYTHON=$(PYTHON) $(QMAKE) $(ROOT_DIR)/ground/gcs/share/translations/translations.pro -spec $(QT_SPEC) -r CONFIG+="$(GCS_BUILD_CONF) $(GCS_SILENT)" $(GCS_QMAKE_OPTS) && \
