@@ -6,8 +6,8 @@ QT_VERSION=`echo "$QT_VERSION_FULL" | cut -d '.' -f1-2`
 QT_BASEDIR="/C/Qt"
 
 # This is really unfortunate on the part of Qt.
-QT_MINGWVER="mingw49_32"
-QT_MINGWVERB="mingw492_32"
+QT_MINGWVER="mingw53_32"
+QT_MINGWVERB="mingw530_32"
 
 if [ -d "$QT_BASEDIR/Qt$QT_VERSION_FULL" ] ; then
   QT_BASEDIR="$QT_BASEDIR/Qt$QT_VERSION_FULL"
