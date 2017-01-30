@@ -52,6 +52,11 @@
 uintptr_t pios_com_telem_usb_id;
 
 void PIOS_Board_Init() {
+	/* Absolute first thing-- drive the video mask pin low */
+	GPIO_Init(video_mask_pin.gpio, (GPIO_InitTypeDef *)&video_mask_pin.init);
+	GPIO_WriteBit(video_mask_pin.gpio,
+			video_mask_pin.init.GPIO_Pin, Bit_RESET);
+
 	/* Delay system */
 	PIOS_DELAY_Init();
 
