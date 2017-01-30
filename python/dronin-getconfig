@@ -29,8 +29,6 @@ def main():
 
     settings_objects = tStream.uavo_defs.get_settings_objects()
 
-    pipeline = set()
-
     tStream.wait_connection()
 
     remaining = settings_objects[:]
