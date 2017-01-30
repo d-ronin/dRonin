@@ -57,9 +57,10 @@ crc_table = [
 ]
 
 def process_stream(uavo_defs, use_walltime=False, gcs_timestamps=None,
-        progress_callback=None):
+        progress_callback=None, ack_callback=None, reqack_callback=None,
+        nack_callback=None):
     """Generator function that parses uavotalk stream.
-    
+
     You are expected to send more bytes, or '' to it, until EOF.  Then send
     None.  After that, you may continue to receive objects back because of
     buffering."""
@@ -78,7 +79,7 @@ def process_stream(uavo_defs, use_walltime=False, gcs_timestamps=None,
     pending_pieces = []
 
     while True:
-        # If we don't have sufficient data buffered, join up any chunks we've 
+        # If we don't have sufficient data buffered, join up any chunks we've
         # been given to ensure pending_pieces is empty for the rest of this loop.
         #
         # in other words, don't mix the pending_pieces drain model and the
@@ -158,14 +159,14 @@ def process_stream(uavo_defs, use_walltime=False, gcs_timestamps=None,
             print("badver %x"%(pack_type))
             buf_offset += 1
             continue    # go to top to look for sync
-    
+
         pack_type &= ~ TYPE_MASK
-        
+
         if pack_len < MIN_HEADER_LENGTH or pack_len > MAX_HEADER_LENGTH + MAX_PAYLOAD_LENGTH:
             print("badlen %d"%(pack_len))
             buf_offset += 1
             continue
-        
+
         # Search for object.
         uavo_key = '{0:08x}'.format(objId)
         if not uavo_key in uavo_defs:
@@ -175,10 +176,9 @@ def process_stream(uavo_defs, use_walltime=False, gcs_timestamps=None,
             obj = uavo_defs[uavo_key]
 
         # Determine data length
-        if pack_type == TYPE_OBJ_REQ or pack_type == TYPE_ACK or pack_type == TYPE_NACK:
+        if (pack_type == TYPE_OBJ_REQ) or (pack_type == TYPE_ACK) or (pack_type == TYPE_NACK):
             obj_len = 0
             timestamp_len = 0
-            obj = None
         else:
             if obj is not None:
                 timestamp_len = timestamp_fmt.size if pack_type == TYPE_OBJ_TS or pack_type == TYPE_OBJ_ACK_TS else 0
@@ -265,7 +265,7 @@ def process_stream(uavo_defs, use_walltime=False, gcs_timestamps=None,
         if gcs_timestamps:
             timestamp = overrideTimestamp
 
-        if obj is not None:
+        if (obj_len > 0) and (obj is not None):
             offset = header_fmt.size + instance_len + timestamp_len + buf_offset
             objInstance = obj.from_bytes(buf, timestamp, instance_id, offset=offset)
             received += 1
@@ -278,15 +278,32 @@ def process_stream(uavo_defs, use_walltime=False, gcs_timestamps=None,
         else:
             next_recv = None
 
+        if (obj is not None) and (pack_type == TYPE_ACK):
+            if ack_callback is not None:
+                ack_callback(obj)
+
+        if (obj is not None) and ((pack_type == TYPE_OBJ_ACK) or (pack_type == TYPE_OBJ_ACK_TS)):
+            if reqack_callback is not None:
+                reqack_callback(obj)
+
+        if (obj is not None) and (pack_type == TYPE_NACK):
+            if nack_callback is not None:
+                nack_callback(obj)
+
         buf_offset += calc_size + 1
 
         if next_recv is not None and next_recv != '':
             pending_pieces.append(next_recv)
 
-def send_object(obj):
+def send_object(obj, req_ack=False):
     """Generates a string containing a UAVTalk packet describing this object"""
 
-    hdr = header_fmt.pack(SYNC_VAL, TYPE_OBJ | TYPE_VER,
+    if req_ack:
+        typ = TYPE_OBJ_ACK
+    else:
+        typ = TYPE_OBJ
+
+    hdr = header_fmt.pack(SYNC_VAL, typ | TYPE_VER,
         header_fmt.size + obj.get_size_of_data(),
         obj._id)
 
@@ -299,6 +316,15 @@ def send_object(obj):
 def request_object(obj):
     """Makes a request for this object"""
     packet = header_fmt.pack(SYNC_VAL, TYPE_OBJ_REQ | TYPE_VER,
+        header_fmt.size, obj._id)
+
+    packet += int2byte(calcCRC(packet))
+
+    return packet
+
+def acknowledge_object(obj):
+    """Makes a request for this object"""
+    packet = header_fmt.pack(SYNC_VAL, TYPE_OBJ_ACK | TYPE_VER,
         header_fmt.size, obj._id)
 
     packet += int2byte(calcCRC(packet))
