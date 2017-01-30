@@ -14,9 +14,8 @@ unix:!macx:!isEmpty(copydata) {
 	QMAKE_EXTRA_TARGETS += bin_install
 }
 
-!equals(QT_MAJOR_VERSION, 5) | !equals(QT_MINOR_VERSION, 6) | !equals(QT_PATCH_VERSION, 1) {
-        message("Cannot build dRonin GCS with Qt version $${QT_VERSION}.")
-        error("Use 5.6.1 (make qt_sdk_install).")
+!equals(QT_MAJOR_VERSION, $$DR_QT_MAJOR_VERSION) | !equals(QT_MINOR_VERSION, $$DR_QT_MINOR_VERSION) | !equals(QT_PATCH_VERSION, $$DR_QT_PATCH_VERSION) {
+    error("Qt $${DR_QT_MAJOR_VERSION}.$${DR_QT_MINOR_VERSION}.$${DR_QT_PATCH_VERSION} required. Please run 'make qt_sdk_install'.")
 }
 
 copydata.file = copydata.pro

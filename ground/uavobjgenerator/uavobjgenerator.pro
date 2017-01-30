@@ -7,8 +7,10 @@ macx {
     QMAKE_MACOSX_DEPLOYMENT_TARGET=10.9
 }
 
-!equals(QT_MAJOR_VERSION, 5) {
-    error("Use QT5 (make qt_sdk_install).")
+# we are a bit looser on Qt release for uavogen
+# lets doc builders etc. use PPAs which always carry only latest patch release
+!equals(QT_MAJOR_VERSION, $$DR_QT_MAJOR_VERSION) | !equals(QT_MINOR_VERSION, $$DR_QT_MINOR_VERSION) | lessThan(QT_PATCH_VERSION, $$DR_QT_PATCH_VERSION) {
+    error("Qt $${DR_QT_MAJOR_VERSION}.$${DR_QT_MINOR_VERSION}.$${DR_QT_PATCH_VERSION}+ required. Please run 'make qt_sdk_install'.")
 }
 
 cache()

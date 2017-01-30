@@ -1,7 +1,7 @@
 # bashrc for dRonin development on Windows
 # Michael Lyle - 2015-2016
 
-QT_VERSION_FULL=5.6.1
+QT_VERSION_FULL=5.8.0
 QT_VERSION=`echo "$QT_VERSION_FULL" | cut -d '.' -f1-2`
 QT_BASEDIR="/C/Qt"
 

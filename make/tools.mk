@@ -21,24 +21,62 @@ ifdef OPENOCD_FTDI
   endif
 endif
 
-# Set up QT toolchain
-QT_VERSION := 5.6.1
-QT_SDK_DIR := $(TOOLS_DIR)/Qt$(QT_VERSION)
+# Change the Qt version here, format is e.g. 5.8.0, 5.8.0-1 or 5.8.0-beta etc.
 
-ifndef WINDOWS
-# Check for a current QT SDK dir, abort without
-  ifeq ($(wildcard $(QT_SDK_DIR)/*),)
-    ifeq (,$(findstring _install,$(MAKECMDGOALS)))
-      $(warning "QT SDK not found, please run `make qt_sdk_install`")
-    endif
-  endif
+QT_VERSION := 5.8.0
+QT_MINGW_VERSION := 530
+
+# These bits are not user serviceable
+QT_VERSION_LONG := $(word 1, $(subst -, , $(QT_VERSION)))
+ifneq ($(words $(subst ., , $(QT_VERSION_LONG))),3)
+  $(error Invalid Qt version!)
 endif
+QT_VERSION_SUFFIX := $(word 2, $(subst -, ,$(QT_VERSION)))
+ifneq ($(subst _, ,$(QT_VERSION_SUFFIX)), 1)
+  QT_VERSION_EXTRA := $(word 2, $(subst _, ,$(QT_VERSION_SUFFIX)))
+  QT_VERSION_SUFFIX := $(word 1, $(subst _, ,$(QT_VERSION_SUFFIX)))
+endif
+QT_VERSION_FULL := $(QT_VERSION_LONG)
+ifneq ($(strip $(QT_VERSION_SUFFIX)),)
+  QT_VERSION_FULL := $(QT_VERSION_FULL)-$(QT_VERSION_SUFFIX)
+endif
+ifneq ($(strip $(QT_VERSION_EXTRA)),)
+  QT_VERSION_EXTRA := _$(strip $(QT_VERSION_EXTRA))
+else
+  QT_VERSION_EXTRA :=
+endif
+QT_VERSION_SHORT := $(word 1, $(subst ., , $(QT_VERSION_FULL))).$(word 2, $(subst ., , $(QT_VERSION_FULL)))
+ifeq ($(words $(filter alpha beta rc, $(QT_VERSION_SUFFIX))), 1)
+  QT_VERSION_SOURCE := development
+else
+  QT_VERSION_SOURCE := official
+endif
+QT_SDK_DIR := $(TOOLS_DIR)/Qt$(QT_VERSION_FULL)
+
+
+.PHONY: tools_required_qt
+ifdef IGNORE_MISSING_TOOLCHAIN
+tools_required_qt:
+	$(warning "Skipping Qt toolchain check!")
+else
+ifdef WINDOWS
+tools_required_qt:
+	$(V1) echo "*** Not checking Qt version on Windows ***"
+else
+tools_required_qt:
+ifeq ($(wildcard $(QT_SDK_DIR)/*),)
+	$(error "Qt SDK not found, please run `make qt_sdk_install`")
+else
+	$(info "Qt SDK found in $(QT_SDK_DIR)")
+endif
+endif # WINDOWS
+endif # IGNORE_MISSING_TOOLCHAIN
 
 ifdef LINUX
   ifdef AMD64
-    QT_PLUGINS_DIR = $(QT_SDK_DIR)/5.6/gcc_64/plugins
+    QT_PLUGINS_DIR = $(QT_SDK_DIR)/$(QT_VERSION_SHORT)/gcc_64/plugins
   else
-    QT_PLUGINS_DIR = $(QT_SDK_DIR)/5.6/gcc/plugins
+    QT_PLUGINS_DIR = $(QT_SDK_DIR)/$(QT_VERSION_SHORT)/gcc/plugins
   endif
 endif
 
@@ -64,26 +102,34 @@ OPENOCD_FTDI ?= yes
 .PHONY: qt_sdk_install
 
 # QT SDK download URL
+QT_URL_PREFIX := http://download.qt.io/$(QT_VERSION_SOURCE)_releases/qt/$(QT_VERSION_SHORT)/$(QT_VERSION_FULL)/qt-opensource-
 ifdef LINUX
   ifdef AMD64
     # Linux 64-bit
-    qt_sdk_install: QT_SDK_URL := http://download.qt.io/official_releases/qt/5.6/5.6.1/qt-opensource-linux-x64-5.6.1.run
-    QT_SDK_QMAKE_PATH := $(QT_SDK_DIR)/5.6/gcc_64/bin/qmake
+    qt_sdk_install: QT_SDK_URL := $(QT_URL_PREFIX)linux-x64-$(QT_VERSION_FULL)$(QT_VERSION_EXTRA).run
+    QT_SDK_QMAKE_PATH := $(QT_SDK_DIR)/$(QT_VERSION_SHORT)/gcc_64/bin/qmake
+    QT_SDK_QBS_PATH := $(QT_SDK_DIR)/Tools/QtCreator/bin/qbs
+    QBS_PROFILE := gcc
   else
     $(warning Build is only supported on 64-bit Linux)
   endif
 endif
 
 ifdef MACOSX
-  qt_sdk_install: QT_SDK_URL  := http://download.qt.io/official_releases/qt/5.6/5.6.1/qt-opensource-mac-x64-clang-5.6.1.dmg
-  QT_SDK_QMAKE_PATH := $(QT_SDK_DIR)/5.6/clang_64/bin/qmake
-
-  export QT_SDK_BIN_PATH := $(QT_SDK_DIR)/5.6/clang_64/bin
+  qt_sdk_install: QT_SDK_URL  := $(QT_URL_PREFIX)mac-x64-clang-$(QT_VERSION_FULL)$(QT_VERSION_EXTRA).dmg
+  QT_SDK_QMAKE_PATH := $(QT_SDK_DIR)/$(QT_VERSION_SHORT)/clang_64/bin/qmake
+  QT_SDK_QBS_PATH := $(QT_SDK_DIR)/Qt\ Creator.app/Contents/MacOS/qbs
+  QBS_PROFILE := clang
+  export QT_SDK_BIN_PATH := $(QT_SDK_DIR)/$(QT_VERSION_SHORT)/clang_64/bin
 endif
 
 ifdef WINDOWS
-  qt_sdk_install: QT_SDK_URL  := http://download.qt.io/official_releases/qt/5.6/5.6.0/qt-opensource-windows-x86-mingw492-5.6.1.exe
-  QT_SDK_QMAKE_PATH := $(QT_SDK_DIR)/5.6/mingw492_32/bin/qmake
+  qt_sdk_install: QT_SDK_URL  := $(QT_URL_PREFIX)windows-x86-mingw$(QT_MINGW_VERSION)-$(QT_VERSION_FULL)$(QT_VERSION_EXTRA).exe
+  QT_SDK_QBS_PATH := $(QT_SDK_DIR)/Tools/QtCreator/bin/qbs
+  ifeq ($(USE_MSVC),YES)
+    QBS_PROFILE := MSVC2015-x86
+  endif
+  QT_SDK_QMAKE_PATH := $(QT_SDK_DIR)/$(QT_VERSION_SHORT)/mingw$(QT_MINGW_VERSION)_32/bin/qmake
 endif
 
 qt_sdk_install: QT_SDK_FILE := $(notdir $(QT_SDK_URL))
@@ -91,7 +137,7 @@ qt_sdk_install: QT_SDK_FILE := $(notdir $(QT_SDK_URL))
 # order-only prereq on directory existance:
 qt_sdk_install : | $(DL_DIR) $(TOOLS_DIR)
 qt_sdk_install: qt_sdk_clean
-	# download the source only if it's newer than what we already have
+        # download the source only if it's newer than what we already have
 ifneq ($(OSFAMILY), windows)
 	$(V1) wget -N -P "$(DL_DIR)" "$(QT_SDK_URL)"
 else
@@ -107,19 +153,24 @@ endif
 
 ifneq (,$(filter $(UNAME), Darwin))
 	$(V1) hdiutil attach -quiet -private -mountpoint /tmp/qt-installer "$(DL_DIR)/$(QT_SDK_FILE)" 
-	$(V1) /tmp/qt-installer/qt-opensource-mac-x64-clang-5.6.1.app/Contents/MacOS/qt-opensource-mac-x64-clang-5.6.1
+	$(V1) dronin_qt_path="$(QT_SDK_DIR)" \
+		/tmp/qt-installer/qt-opensource-mac-x64-clang-$(QT_VERSION_LONG).app/Contents/MacOS/qt-opensource-mac-x64-clang-$(QT_VERSION_LONG) \
+		--script $(ROOT_DIR)/make/scripts/qt-install.qs
 	$(V1) hdiutil detach -quiet /tmp/qt-installer
 endif
 
 ifneq (,$(filter $(UNAME), Linux))
         #installer is an executable, make it executable and run it
 	$(V1) chmod u+x "$(DL_DIR)/$(QT_SDK_FILE)"
-	$(V1) "$(DL_DIR)/$(QT_SDK_FILE)"
+	$(V1) dronin_qt_path="$(QT_SDK_DIR)" "$(DL_DIR)/$(QT_SDK_FILE)" \
+		--script $(ROOT_DIR)/make/scripts/qt-install.qs
 endif
 
 ifdef WINDOWS
-	$(V1) ./downloads/qt-opensource-windows-x86-mingw492-5.6.1.exe
+	$(V1) "$(DL_DIR)/$(QT_SDK_FILE)"
 endif
+
+	$(V1) $(QT_SDK_QBS_PATH) setup-toolchains --detect
 
 .PHONY: qt_sdk_clean
 qt_sdk_clean:
@@ -512,98 +563,47 @@ zip_clean:
 	$(V1) [ ! -d "$(ZIP_DIR)" ] || $(RM) -rf $(ZIP_DIR)
 
 
-# Google depot-tools, used to build breakpad on Mac/Linux
-DEPOT_TOOLS_REPO := https://chromium.googlesource.com/chromium/tools/depot_tools.git
-DEPOT_TOOLS_REV := master
-DEPOT_TOOLS_DIR := $(TOOLS_DIR)/depot-tools
-
-.PHONY: depot_tools_install depot_tools_clean
-depot_tools_install: | $(TOOLS_DIR)
-	$(V0) @echo " DOWNLOAD     $(DEPOT_TOOLS_REPO)"
-	$(V1) ( \
-		if [ ! -d "$(DEPOT_TOOLS_DIR)" ] ; then \
-			mkdir -p "$(DEPOT_TOOLS_DIR)" ; \
-			cd "$(DEPOT_TOOLS_DIR)" ; \
-			git init -q ; \
-			git remote add origin $(DEPOT_TOOLS_REPO) ; \
-		fi ; \
-		cd "$(DEPOT_TOOLS_DIR)" ; \
-		git fetch -q --depth=1 origin $(DEPOT_TOOLS_REV) ; \
-		git checkout -q -f FETCH_HEAD ; \
-		git clean -q -f -d -x ; \
-	)
-
-depot_tools_clean:
-	$(V0) @echo " CLEAN        $(DEPOT_TOOLS_DIR)"
-	$(V1) [ ! -d "$(DEPOT_TOOLS_DIR)" ] || $(RM) -rf $(DEPOT_TOOLS_DIR)
-
 # Google breakpad
+BREAKPAD_REV := 20170129
 BREAKPAD_REPO := https://github.com/d-ronin/breakpad.git
-BREAKPAD_REV := 20160909
 BREAKPAD_DIR := $(TOOLS_DIR)/breakpad/$(BREAKPAD_REV)
 BREAKPAD_BUILD_DIR := $(DL_DIR)/breakpad
 
-.PHONY: breakpad_install breakpad_clean breakpad_dist_clean
+.PHONY: breakpad_install breakpad_clean tools_required_breakpad
 
-ifndef WINDOWS
-
-breakpad_install: | $(DL_DIR) $(TOOLS_DIR)
-breakpad_install: | breakpad_clean depot_tools_install
-	$(V0) @echo " DOWNLOAD     $(BREAKPAD_REPO) @ $(BREAKPAD_REV)"
-	$(V1) mkdir -p "$(BREAKPAD_BUILD_DIR)"
-
-	$(V1) ( \
-		cd $(BREAKPAD_BUILD_DIR) ; \
-		export PATH="$(DEPOT_TOOLS_DIR):$(PATH)" ; \
-		gclient config --name=src "$(BREAKPAD_REPO)" ; \
-		gclient sync --with_tags --no-history -r refs/tags/$(BREAKPAD_REV) ; \
-	)
-
-	$(V0) @echo " BUILD        $(BREAKPAD_DIR)"
-	$(V1) ( \
-		cd "$(BREAKPAD_BUILD_DIR)/src/src" ; \
-		$(MAKE) distclean > /dev/null 2>&1 ; \
-		../configure --prefix="$(BREAKPAD_DIR)"; \
-		$(MAKE) ; \
-		$(MAKE) install ; \
-	)
-
-ifdef MACOSX
-	$(V1) ( \
-		cd "$(BREAKPAD_BUILD_DIR)/src/src/tools/mac/dump_syms" ; \
-		xcodebuild ; \
-		cp build/Release/dump_syms "$(BREAKPAD_DIR)/bin"; \
-	)
-endif
-
-else # WINDOWS
-
+breakpad_install: | tools_required_qt
 breakpad_install: | $(DL_DIR) $(TOOLS_DIR)
 breakpad_install: | breakpad_clean
 	$(V0) @echo " DOWNLOAD     $(BREAKPAD_REPO) @ $(BREAKPAD_REV)"
+	$(V1) [ ! -d "$(BREAKPAD_BUILD_DIR)" ] || $(RM) -rf "$(BREAKPAD_BUILD_DIR)"
 	$(V1) mkdir -p "$(BREAKPAD_BUILD_DIR)"
-
+	$(V1) git clone -q --no-checkout $(BREAKPAD_REPO) "$(BREAKPAD_BUILD_DIR)"
 	$(V1) ( \
-		cd "$(BREAKPAD_BUILD_DIR)" ; \
-		if [ ! -d "$(BREAKPAD_BUILD_DIR)/.git" ] ; then \
-			git init -q ; \
-			git remote add origin $(BREAKPAD_REPO) ; \
-		fi ; \
-		git fetch -q --depth=1 origin $(BREAKPAD_REV) ; \
-		git checkout -q -f FETCH_HEAD ; \
-		mkdir -p "$(BREAKPAD_DIR)/bin" ; \
-		cp "$(BREAKPAD_BUILD_DIR)/src/tools/windows/binaries/"* "$(BREAKPAD_DIR)/bin" ; \
+	  cd $(BREAKPAD_BUILD_DIR) ; \
+	  git init -q ; \
+	  git remote add upstream "$(BREAKPAD_REPO)" ; \
+	  git fetch -q --depth=1 --recurse-submodules upstream $(BREAKPAD_REV) ; \
+	  git checkout -q $(BREAKPAD_REV) ; \
+	  git submodule -q update --init ; \
 	)
 
-endif # WINDOWS
-
-breakpad_dist_clean:
-	$(V0) @echo " CLEAN        $(BREAKPAD_BUILD_DIR)"
-	$(V1) [ ! -d "$(BREAKPAD_BUILD_DIR)" ] || $(RM) -rf $(BREAKPAD_BUILD_DIR)
+	$(V0) @echo " BUILDING     $(BREAKPAD_REPO) @ $(BREAKPAD_REV)"
+	$(V1) ( \
+	  cd $(BREAKPAD_BUILD_DIR) ; \
+	  $(QBS) install --install-root $(BREAKPAD_DIR) profile:$(QBS_PROFILE) release ; \
+	  $(QBS) install --install-root $(BREAKPAD_DIR) -p breakpad_client profile:$(QBS_PROFILE) debug ; \
+	)
 
 breakpad_clean:
 	$(V0) @echo " CLEAN        $(BREAKPAD_DIR)"
 	$(V1) [ ! -d "$(BREAKPAD_DIR)" ] || $(RM) -rf $(BREAKPAD_DIR)
+
+tools_required_breakpad:
+ifeq ($(wildcard $(BREAKPAD_DIR)/*),)
+	$(error "Breakpad not found, please run `make breakpad_install`")
+else
+	$(info "Breakpad found in $(BREAKPAD_DIR)")
+endif
 
 
 ##############################
@@ -614,9 +614,11 @@ breakpad_clean:
 
 ifeq ($(shell [ -d "$(QT_SDK_DIR)" ] && echo "exists"), exists)
   QMAKE = $(QT_SDK_QMAKE_PATH)
+  QBS = $(QT_SDK_QBS_PATH)
 else
   # not installed, hope it's in the path...
   QMAKE = qmake
+  QBS = qbs
 endif
 
 ifeq ($(shell [ -d "$(ARM_SDK_DIR)" ] && echo "exists"), exists)
