@@ -169,8 +169,12 @@ void PIOS_Board_Init(void) {
 
 #if defined(PIOS_INCLUDE_FLASH)
 	/* Inititialize all flash drivers */
-	if (PIOS_Flash_Internal_Init(&pios_internal_flash_id, &flash_internal_cfg) != 0)
+	if (PIOS_Flash_Internal_Init(&pios_internal_flash_id, &flash_internal_cfg) != 0) {
+#ifdef PIOS_INCLUDE_WS2811
+		PIOS_WS2811_init(&pios_ws2811, &pios_ws2811_cfg, 8);
+#endif
 		PIOS_HAL_CriticalError(PIOS_LED_ALARM, PIOS_HAL_PANIC_FLASH);
+	}
 
 	/* Register the partition table */
 	const struct pios_flash_partition * flash_partition_table;
@@ -179,8 +183,12 @@ void PIOS_Board_Init(void) {
 	PIOS_FLASH_register_partition_table(flash_partition_table, num_partitions);
 
 	/* Mount all filesystems */
-	if (PIOS_FLASHFS_Logfs_Init(&pios_uavo_settings_fs_id, &flashfs_settings_cfg, FLASH_PARTITION_LABEL_SETTINGS) != 0)
+	if (PIOS_FLASHFS_Logfs_Init(&pios_uavo_settings_fs_id, &flashfs_settings_cfg, FLASH_PARTITION_LABEL_SETTINGS) != 0) {
+#ifdef PIOS_INCLUDE_WS2811
+		PIOS_WS2811_init(&pios_ws2811, &pios_ws2811_cfg, 8);
+#endif
 		PIOS_HAL_CriticalError(PIOS_LED_ALARM, PIOS_HAL_PANIC_FILESYS);
+	}
 #endif	/* PIOS_INCLUDE_FLASH */
 
 	/* Initialize the task monitor library */
