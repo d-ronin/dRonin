@@ -221,7 +221,7 @@ static bool PIOS_FSKDAC_cb(void *ctx, uint16_t *buf, int len)
 			dev->phase_accum += freq;
 
 			uint16_t result = 32768 +
-				sin_approx(dev->phase_accum >> 1) * 3;
+				((sin_approx(dev->phase_accum >> 1) * 6) >> 2);
 
 			buf[i + j] = result & 0xFFF0;
 		}

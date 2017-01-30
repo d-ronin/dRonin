@@ -122,19 +122,15 @@ static bool PIOS_ANNUNCDAC_cb(void *ctx, uint16_t *buf, int len)
 			}
 			return true;
 		case 1:
-			/* Magnitudes here are 4x higher than e.g. in fskdac
-			 * because of right shift.  Offers more granularity
-			 * in ramping on/off beep
-			 */
-			FillBuf(dev, buf, len, ANNUNC_FREQ, 1, 12);
+			FillBuf(dev, buf, len, ANNUNC_FREQ, 1, 6);
 			break;
 		case 2:
 			/* Going off */
-			FillBuf(dev, buf, len, ANNUNC_FREQ, 12, 1);
+			FillBuf(dev, buf, len, ANNUNC_FREQ, 6, 1);
 			break;
 		case 3:
 			/* Steady state */
-			FillBuf(dev, buf, len, ANNUNC_FREQ, 12, 12);
+			FillBuf(dev, buf, len, ANNUNC_FREQ, 6, 6);
 			break;
 	}
 
