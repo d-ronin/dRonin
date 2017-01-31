@@ -119,7 +119,7 @@ ifdef MACOSX
   qt_sdk_install: QT_SDK_URL  := $(QT_URL_PREFIX)mac-x64-clang-$(QT_VERSION_FULL)$(QT_VERSION_EXTRA).dmg
   QT_SDK_QMAKE_PATH := $(QT_SDK_DIR)/$(QT_VERSION_SHORT)/clang_64/bin/qmake
   QT_SDK_QBS_PATH := $(QT_SDK_DIR)/Qt\ Creator.app/Contents/MacOS/qbs
-  QBS_PROFILE := clang
+  QBS_PROFILE := xcode
   export QT_SDK_BIN_PATH := $(QT_SDK_DIR)/$(QT_VERSION_SHORT)/clang_64/bin
 endif
 
