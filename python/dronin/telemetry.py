@@ -386,7 +386,7 @@ class BidirTelemetry(TelemetryBase):
             self.send_buf += msg
 
         if self.service_in_iter:
-            _do_io(0)
+            self._do_io(0)
 
     @abstractmethod
     def _do_io(self, finish_time):
