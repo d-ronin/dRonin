@@ -74,8 +74,9 @@ bool Naze::queryCapabilities(BoardCapabilities capability)
     case BOARD_CAPABILITIES_ACCELS:
         return true;
     default:
-        return false;
+        break;
     }
+    
     return false;
 }
 
@@ -110,14 +111,16 @@ int Naze::queryMaxGyroRate()
     case HwNaze::GYRORANGE_2000:
         return 2000;
     default:
-        return 500;
+        break;
     }
+    
+    return 500;
 }
 
 //! Determine if this board supports configuring the receiver
-bool Naze::isInputConfigurationSupported(enum InputType type = INPUT_TYPE_ANY)
+bool Naze::isInputConfigurationSupported(Core::IBoardType::InputType type)
 {
-    // doesn't work for now since the board can't reconnect  automatically after reboot
+    // doesn't work for now since the board can't reconnect automatically after reboot
     Q_UNUSED(type);
     return false;
 }
@@ -127,7 +130,7 @@ bool Naze::isInputConfigurationSupported(enum InputType type = INPUT_TYPE_ANY)
  * @param type the type of receiver to use
  * @return true if successfully configured or false otherwise
  */
-bool Naze::setInputType(enum InputType type)
+bool Naze::setInputType(Core::IBoardType::InputType type)
 {
     ExtensionSystem::PluginManager *pm = ExtensionSystem::PluginManager::instance();
     UAVObjectManager *uavoManager = pm->getObject<UAVObjectManager>();
@@ -150,11 +153,26 @@ bool Naze::setInputType(enum InputType type)
         settings.RcvrPort = HwNaze::RCVRPORT_SERIAL;
         settings.RcvrSerial = HwNaze::RCVRSERIAL_HOTTSUMD;
         break;
+    case INPUT_TYPE_HOTTSUMH:
+        settings.RcvrPort = HwNaze::RCVRPORT_SERIAL;
+        settings.RcvrSerial = HwNaze::RCVRSERIAL_HOTTSUMH;
+        break;
+    case INPUT_TYPE_SBUS:
+        settings.RcvrPort = HwNaze::RCVRPORT_SERIAL;
+        settings.RcvrSerial = HwNaze::RCVRSERIAL_SBUS;
+        break;
     case INPUT_TYPE_SBUSNONINVERTED:
         settings.RcvrPort = HwNaze::RCVRPORT_SERIAL;
         settings.RcvrSerial = HwNaze::RCVRSERIAL_SBUSNONINVERTED;
         break;
-
+    case INPUT_TYPE_IBUS:
+        settings.RcvrPort = HwNaze::RCVRPORT_SERIAL;
+        settings.RcvrSerial = HwNaze::RCVRSERIAL_IBUS;
+        break;
+    case INPUT_TYPE_SRXL:
+        settings.RcvrPort = HwNaze::RCVRPORT_SERIAL;
+        settings.RcvrSerial = HwNaze::RCVRSERIAL_SRXL;
+        break;
     default:
         return false;
     }
@@ -169,7 +187,7 @@ bool Naze::setInputType(enum InputType type)
  * @brief Naze::getInputType fetch the currently selected input type
  * @return the selected input type
  */
-enum Core::IBoardType::InputType Naze::getInputType()
+Core::IBoardType::InputType Naze::getInputType()
 {
     ExtensionSystem::PluginManager *pm = ExtensionSystem::PluginManager::instance();
     UAVObjectManager *uavoManager = pm->getObject<UAVObjectManager>();
@@ -189,15 +207,26 @@ enum Core::IBoardType::InputType Naze::getInputType()
             return INPUT_TYPE_DSM;
         case HwNaze::RCVRSERIAL_HOTTSUMD:
             return INPUT_TYPE_HOTTSUMD;
+        case HwNaze::RCVRSERIAL_HOTTSUMH:
+            return INPUT_TYPE_HOTTSUMH;
+        case HwNaze::RCVRSERIAL_SBUS:
+            return INPUT_TYPE_SBUS;
         case HwNaze::RCVRSERIAL_SBUSNONINVERTED:
             return INPUT_TYPE_SBUSNONINVERTED;
+        case HwNaze::RCVRSERIAL_IBUS:
+            return INPUT_TYPE_IBUS;
+        case HwNaze::RCVRSERIAL_SRXL:
+            return INPUT_TYPE_SRXL;
         default:
             // can still use PPM
             return INPUT_TYPE_PPM;
         }
+        break;
     default:
-        return INPUT_TYPE_UNKNOWN;
+        break;
     }
+
+    return INPUT_TYPE_UNKNOWN;
 }
 
 QStringList Naze::getAdcNames()

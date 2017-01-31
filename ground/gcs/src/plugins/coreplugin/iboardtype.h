@@ -166,20 +166,20 @@ public:
     virtual int minBootLoaderVersion() { return 0; }
 
     //! Determine if this board supports configuring the receiver
-    virtual bool isInputConfigurationSupported(enum InputType type = INPUT_TYPE_ANY) { Q_UNUSED(type); return false; }
+    virtual bool isInputConfigurationSupported(InputType type = INPUT_TYPE_ANY) { Q_UNUSED(type); return false; }
 
     /**
      * @brief Configure the board to use an receiver input type on a port number
      * @param type the type of receiver to use
      * @return true if successfully configured or false otherwise
      */
-    virtual bool setInputType(enum InputType /*type*/) { return false; }
+    virtual bool setInputType(InputType /*type*/) { return false; }
 
     /**
      * @brief getInputType get the current input type
      * @return the currently selected input type
      */
-    virtual enum InputType getInputType() { return INPUT_TYPE_UNKNOWN; }
+    virtual InputType getInputType() { return INPUT_TYPE_UNKNOWN; }
 
     /**
      * @brief getConnectionDiagram get the connection diagram for this board

@@ -62,7 +62,8 @@ Brain::~Brain()
 
 }
 
-int Brain::minBootLoaderVersion() {
+int Brain::minBootLoaderVersion()
+{
     return 0x82;
 }
 
@@ -88,8 +89,9 @@ bool Brain::queryCapabilities(BoardCapabilities capability)
     case BOARD_CAPABILITIES_UPGRADEABLE:
         return true;
     default:
-        return false;
+        break;
     }
+    
     return false;
 }
 
@@ -104,9 +106,15 @@ QString Brain::getHwUAVO()
 }
 
 //! Determine if this board supports configuring the receiver
-bool Brain::isInputConfigurationSupported(enum InputType type = INPUT_TYPE_ANY)
+bool Brain::isInputConfigurationSupported(Core::IBoardType::InputType type)
 {
-    Q_UNUSED(type);
+    switch(type) {
+    case INPUT_TYPE_UNKNOWN:
+        return false;
+    default:
+        break;
+    }
+    
     return true;
 }
 
@@ -115,7 +123,7 @@ bool Brain::isInputConfigurationSupported(enum InputType type = INPUT_TYPE_ANY)
  * @param type the type of receiver to use
  * @return true if successfully configured or false otherwise
  */
-bool Brain::setInputType(enum InputType type)
+bool Brain::setInputType(Core::IBoardType::InputType type)
 {
     ExtensionSystem::PluginManager *pm = ExtensionSystem::PluginManager::instance();
     UAVObjectManager *uavoManager = pm->getObject<UAVObjectManager>();
@@ -136,6 +144,9 @@ bool Brain::setInputType(enum InputType type)
     case INPUT_TYPE_SBUS:
         settings.MainPort = HwBrain::MAINPORT_SBUS;
         break;
+    case INPUT_TYPE_SBUSNONINVERTED:
+        settings.MainPort = HwBrain::MAINPORT_SBUSNONINVERTED;
+        break;
     case INPUT_TYPE_DSM:
         settings.MainPort = HwBrain::MAINPORT_DSM;
         break;
@@ -144,6 +155,12 @@ bool Brain::setInputType(enum InputType type)
         break;
     case INPUT_TYPE_HOTTSUMH:
         settings.MainPort = HwBrain::MAINPORT_HOTTSUMH;
+        break;
+    case INPUT_TYPE_IBUS:
+        settings.MainPort = HwBrain::MAINPORT_IBUS;
+        break;
+    case INPUT_TYPE_SRXL:
+        settings.MainPort = HwBrain::MAINPORT_SRXL;
         break;
     default:
         return false;
@@ -159,7 +176,7 @@ bool Brain::setInputType(enum InputType type)
  * @brief Brain::getInputType fetch the currently selected input type
  * @return the selected input type
  */
-enum Core::IBoardType::InputType Brain::getInputType()
+Core::IBoardType::InputType Brain::getInputType()
 {
     ExtensionSystem::PluginManager *pm = ExtensionSystem::PluginManager::instance();
     UAVObjectManager *uavoManager = pm->getObject<UAVObjectManager>();
@@ -171,35 +188,70 @@ enum Core::IBoardType::InputType Brain::getInputType()
     HwBrain::DataFields settings = hwBrain->getData();
 
     switch(settings.MainPort) {
-        case HwBrain::MAINPORT_SBUS:
-            return INPUT_TYPE_SBUS;
-        case HwBrain::MAINPORT_DSM:
-            return INPUT_TYPE_DSM;
-        case HwBrain::MAINPORT_HOTTSUMD:
-            return INPUT_TYPE_HOTTSUMD;
-        case HwBrain::MAINPORT_HOTTSUMH:
-            return INPUT_TYPE_HOTTSUMH;
+    case HwBrain::MAINPORT_SBUS:
+        return INPUT_TYPE_SBUS;
+    case HwBrain::MAINPORT_SBUSNONINVERTED:
+        return INPUT_TYPE_SBUSNONINVERTED;
+    case HwBrain::MAINPORT_DSM:
+        return INPUT_TYPE_DSM;
+    case HwBrain::MAINPORT_HOTTSUMD:
+        return INPUT_TYPE_HOTTSUMD;
+    case HwBrain::MAINPORT_HOTTSUMH:
+        return INPUT_TYPE_HOTTSUMH;
+    case HwBrain::MAINPORT_IBUS:
+        return INPUT_TYPE_IBUS;
+    case HwBrain::MAINPORT_SRXL:
+        return INPUT_TYPE_SRXL;
+    default:
+        break;
     }
 
     switch(settings.FlxPort) {
-        case HwBrain::FLXPORT_DSM:
-            return INPUT_TYPE_DSM;
-        case HwBrain::FLXPORT_HOTTSUMD:
-            return INPUT_TYPE_HOTTSUMD;
-        case HwBrain::FLXPORT_HOTTSUMH:
-            return INPUT_TYPE_HOTTSUMH;
+    case HwBrain::FLXPORT_DSM:
+        return INPUT_TYPE_DSM;
+    case HwBrain::FLXPORT_HOTTSUMD:
+        return INPUT_TYPE_HOTTSUMD;
+    case HwBrain::FLXPORT_HOTTSUMH:
+        return INPUT_TYPE_HOTTSUMH;
+    case HwBrain::FLXPORT_IBUS:
+        return INPUT_TYPE_IBUS;
+    case HwBrain::FLXPORT_SRXL:
+        return INPUT_TYPE_SRXL;
+    default:
+        break;
     }
 
     switch(settings.RxPort) {
-        case HwBrain::RXPORT_PPM:
-        case HwBrain::RXPORT_PPMPWM:
-        case HwBrain::RXPORT_PPMOUTPUTS:
-        case HwBrain::RXPORT_PPMUART:
-        case HwBrain::RXPORT_PPMUARTOUTPUTS:
-        case HwBrain::RXPORT_PPMFRSKY:
-            return INPUT_TYPE_PPM;
-        case HwBrain::RXPORT_PWM:
-            return INPUT_TYPE_PWM;
+    case HwBrain::RXPORT_PPM:
+    case HwBrain::RXPORT_PPMPWM:
+    case HwBrain::RXPORT_PPMOUTPUTS:
+    case HwBrain::RXPORT_PPMUART:
+    case HwBrain::RXPORT_PPMUARTOUTPUTS:
+    case HwBrain::RXPORT_PPMFRSKY:
+        return INPUT_TYPE_PPM;
+    case HwBrain::RXPORT_PWM:
+        return INPUT_TYPE_PWM;
+    case HwBrain::RXPORT_UART:
+    case HwBrain::RXPORT_UARTOUTPUTS:
+        switch(settings.RxPortUsart) {
+        case HwBrain::RXPORTUSART_DSM:
+            return INPUT_TYPE_DSM;
+        case HwBrain::RXPORTUSART_HOTTSUMD:
+            return INPUT_TYPE_HOTTSUMD;
+        case HwBrain::RXPORTUSART_HOTTSUMH:
+            return INPUT_TYPE_HOTTSUMH;
+        case HwBrain::RXPORTUSART_SBUSNONINVERTED:
+            return INPUT_TYPE_SBUSNONINVERTED;
+        case HwBrain::RXPORTUSART_IBUS:
+            return INPUT_TYPE_IBUS;
+        case HwBrain::RXPORTUSART_SRXL:
+            return INPUT_TYPE_SRXL;
+        default:
+            break;
+        }
+        break;
+    default:
+        break;
     }
 
     return INPUT_TYPE_UNKNOWN;
@@ -226,8 +278,10 @@ int Brain::queryMaxGyroRate()
     case HwBrain::GYROFULLSCALE_2000:
         return 2000;
     default:
-        return 2000;
+        break;
     }
+    
+    return 2000;
 }
 
 QWidget * Brain::getBoardConfiguration(QWidget *parent, bool connected)

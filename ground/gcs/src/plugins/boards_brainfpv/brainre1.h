@@ -29,8 +29,6 @@
 
 #include <coreplugin/iboardtype.h>
 
-class IBoardType;
-
 class BrainRE1 : public Core::IBoardType
 {
 public:
@@ -44,21 +42,21 @@ public:
     virtual QString getHwUAVO();
 
     //! Determine if this board supports configuring the receiver
-    virtual bool isInputConfigurationSupported(InputType type);
+    virtual bool isInputConfigurationSupported(Core::IBoardType::InputType type);
 
     /**
      * Configure the board to use an receiver input type on a port number
      * @param type the type of receiver to use
      * @param port_num which input port to configure (board specific numbering)
      */
-    virtual bool setInputType(enum InputType type);
+    virtual bool setInputType(Core::IBoardType::InputType type);
 
     /**
      * @brief getInputOnPort get the current input type
      * @param port_num which input port to query (board specific numbering)
      * @return the currently selected input type
      */
-    virtual enum InputType getInputType();
+    virtual Core::IBoardType::InputType getInputType();
 
     /**
      * @brief getConnectionDiagram get the connection diagram for this board
@@ -67,7 +65,7 @@ public:
     virtual QString getConnectionDiagram() { return ":/brainfpv/images/brainre1-connection-diagram.svg"; }
 
     virtual int queryMaxGyroRate();
-    QWidget * getBoardConfiguration(QWidget *parent, bool connected);
+    virtual QWidget * getBoardConfiguration(QWidget *parent, bool connected);
     virtual QStringList getAdcNames();
 
     /**

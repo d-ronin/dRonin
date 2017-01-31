@@ -45,7 +45,7 @@ Lux::Lux(void)
     // Initialize our USB Structure definition here:
     USBInfo board;
     board.vendorID = 0x1209;
-    board.productID = 0xf3fc;	/* F3 Flight Controller ;) */
+    board.productID = 0xf3fc;    /* F3 Flight Controller ;) */
     setUSBInfo(board);
 
     boardType = 0xCA;
@@ -79,8 +79,9 @@ bool Lux::queryCapabilities(BoardCapabilities capability)
     case BOARD_CAPABILITIES_UPGRADEABLE:
         return true;
     default:
-        return false;
+        break;
     }
+    
     return false;
 }
 
@@ -95,15 +96,17 @@ QString Lux::getHwUAVO()
 }
 
 //! Determine if this board supports configuring the receiver
-bool Lux::isInputConfigurationSupported(enum InputType type = INPUT_TYPE_ANY)
+bool Lux::isInputConfigurationSupported(Core::IBoardType::InputType type)
 {
     switch (type) {
     case INPUT_TYPE_PWM:
-    case INPUT_TYPE_HOTTSUMH:
+    case INPUT_TYPE_UNKNOWN:
         return false;
     default:
-        return true;
+        break;
     }
+    
+    return true;
 }
 
 /**
@@ -111,7 +114,7 @@ bool Lux::isInputConfigurationSupported(enum InputType type = INPUT_TYPE_ANY)
  * @param type the type of receiver to use
  * @return true if successfully configured or false otherwise
  */
-bool Lux::setInputType(enum InputType type)
+bool Lux::setInputType(Core::IBoardType::InputType type)
 {
     ExtensionSystem::PluginManager *pm = ExtensionSystem::PluginManager::instance();
     UAVObjectManager *uavoManager = pm->getObject<UAVObjectManager>();
@@ -129,6 +132,9 @@ bool Lux::setInputType(enum InputType type)
     case INPUT_TYPE_SBUS:
         settings.RxPort = HwLux::RXPORT_SBUS;
         break;
+    case INPUT_TYPE_SBUSNONINVERTED:
+        settings.RxPort = HwLux::RXPORT_SBUSNONINVERTED;
+        break;
     case INPUT_TYPE_DSM:
         settings.RxPort = HwLux::RXPORT_DSM;
         break;
@@ -138,6 +144,11 @@ bool Lux::setInputType(enum InputType type)
     case INPUT_TYPE_HOTTSUMH:
         settings.RxPort = HwLux::RXPORT_HOTTSUMH;
         break;
+    case INPUT_TYPE_IBUS:
+        settings.RxPort = HwLux::RXPORT_IBUS;
+        break;
+    case INPUT_TYPE_SRXL:
+        settings.RxPort = HwLux::RXPORT_SRXL;
     default:
         return false;
     }
@@ -152,7 +163,7 @@ bool Lux::setInputType(enum InputType type)
  * @brief Lux::getInputType fetch the currently selected input type
  * @return the selected input type
  */
-enum Core::IBoardType::InputType Lux::getInputType()
+Core::IBoardType::InputType Lux::getInputType()
 {
     ExtensionSystem::PluginManager *pm = ExtensionSystem::PluginManager::instance();
     UAVObjectManager *uavoManager = pm->getObject<UAVObjectManager>();
@@ -166,15 +177,53 @@ enum Core::IBoardType::InputType Lux::getInputType()
     switch(settings.RxPort) {
     case HwLux::RXPORT_SBUS:
         return INPUT_TYPE_SBUS;
+    case HwLux::RXPORT_SBUSNONINVERTED:
+        return INPUT_TYPE_SBUSNONINVERTED;
     case HwLux::RXPORT_DSM:
         return INPUT_TYPE_DSM;
     case HwLux::RXPORT_HOTTSUMD:
         return INPUT_TYPE_HOTTSUMD;
     case HwLux::RXPORT_HOTTSUMH:
         return INPUT_TYPE_HOTTSUMH;
+    case HwLux::RXPORT_IBUS:
+        return INPUT_TYPE_IBUS;
+    case HwLux::RXPORT_SRXL:
+        return INPUT_TYPE_SRXL;
     default:
-        return INPUT_TYPE_PPM;
+        break;
     }
+    
+    switch(settings.Uart2) {
+    case HwLux::UART2_DSM:
+        return INPUT_TYPE_DSM;
+    case HwLux::UART2_SBUS:
+        return INPUT_TYPE_SBUS;
+    case HwLux::UART2_SBUSNONINVERTED:
+        return INPUT_TYPE_SBUSNONINVERTED;
+    case HwLux::UART2_IBUS:
+        return INPUT_TYPE_IBUS;
+    case HwLux::UART2_SRXL:
+        return INPUT_TYPE_SRXL;
+    default:
+        break;
+    }
+    
+    switch(settings.Uart3) {
+    case HwLux::UART3_DSM:
+        return INPUT_TYPE_DSM;
+    case HwLux::UART3_SBUS:
+        return INPUT_TYPE_SBUS;
+    case HwLux::UART3_SBUSNONINVERTED:
+        return INPUT_TYPE_SBUSNONINVERTED;
+    case HwLux::UART3_IBUS:
+        return INPUT_TYPE_IBUS;
+    case HwLux::UART3_SRXL:
+        return INPUT_TYPE_SRXL;
+    default:
+        break;
+    }
+    
+    return INPUT_TYPE_PPM;
 }
 
 int Lux::queryMaxGyroRate()
@@ -198,8 +247,10 @@ int Lux::queryMaxGyroRate()
     case HwLux::GYRORANGE_2000:
         return 2000;
     default:
-        return 500;
+        break;
     }
+    
+    return 500;
 }
 
 QStringList Lux::getAdcNames()

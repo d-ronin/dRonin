@@ -80,23 +80,15 @@ QString Dtfc::boardDescription()
 bool Dtfc::queryCapabilities(BoardCapabilities capability)
 {
     switch(capability) {
+    case BOARD_CAPABILITIES_GYROS:
+    case BOARD_CAPABILITIES_ACCELS:
+    case BOARD_CAPABILITIES_BAROS:
     case BOARD_CAPABILITIES_UPGRADEABLE:
         return true;
-    case BOARD_CAPABILITIES_GYROS:
-        return true;
-    case BOARD_CAPABILITIES_ACCELS:
-        return true;
-    case BOARD_CAPABILITIES_MAGS:
-        return false;
-    case BOARD_CAPABILITIES_BAROS:
-        return true;
-    case BOARD_CAPABILITIES_RADIO:
-        return false;
-    case BOARD_CAPABILITIES_OSD:
-        return false;
     default:
-        return false;
+        break;
     }
+    
     return false;
 }
 
@@ -111,14 +103,17 @@ QString Dtfc::getHwUAVO()
 }
 
 //! Determine if this board supports configuring the receiver
-bool Dtfc::isInputConfigurationSupported(enum InputType type = INPUT_TYPE_ANY)
+bool Dtfc::isInputConfigurationSupported(Core::IBoardType::InputType type)
 {
     switch (type) {
     case INPUT_TYPE_PWM:
+    case INPUT_TYPE_UNKNOWN:
         return false;
     default:
-        return true;
+        break;
     }
+    
+    return true;
 }
 
 /**
@@ -126,7 +121,7 @@ bool Dtfc::isInputConfigurationSupported(enum InputType type = INPUT_TYPE_ANY)
  * @param type the type of receiver to use
  * @return true if successfully configured or false otherwise
  */
-bool Dtfc::setInputType(enum InputType type)
+bool Dtfc::setInputType(Core::IBoardType::InputType type)
 {
     ExtensionSystem::PluginManager *pm = ExtensionSystem::PluginManager::instance();
     UAVObjectManager *uavoManager = pm->getObject<UAVObjectManager>();
@@ -144,11 +139,23 @@ bool Dtfc::setInputType(enum InputType type)
     case INPUT_TYPE_SBUS:
         settings.RcvrPort = HwDtfc::RCVRPORT_SBUS;
         break;
+    case INPUT_TYPE_SBUSNONINVERTED:
+        settings.RcvrPort = HwDtfc::RCVRPORT_SBUSNONINVERTED;
+        break;
     case INPUT_TYPE_DSM:
         settings.RcvrPort = HwDtfc::RCVRPORT_DSM;
         break;
     case INPUT_TYPE_HOTTSUMD:
         settings.RcvrPort = HwDtfc::RCVRPORT_HOTTSUMD;
+        break;
+    case INPUT_TYPE_HOTTSUMH:
+        settings.RcvrPort = HwDtfc::RCVRPORT_HOTTSUMH;
+        break;
+    case INPUT_TYPE_IBUS:
+        settings.RcvrPort = HwDtfc::RCVRPORT_IBUS;
+        break;
+    case INPUT_TYPE_SRXL:
+        settings.RcvrPort = HwDtfc::RCVRPORT_SRXL;
         break;
     default:
         return false;
@@ -163,7 +170,7 @@ bool Dtfc::setInputType(enum InputType type)
  * @brief Dtfc::getInputOnPort fetch the currently selected input type
  * @return the selected input type
  */
-enum Core::IBoardType::InputType Dtfc::getInputType()
+Core::IBoardType::InputType Dtfc::getInputType()
 {
     ExtensionSystem::PluginManager *pm = ExtensionSystem::PluginManager::instance();
     UAVObjectManager *uavoManager = pm->getObject<UAVObjectManager>();
@@ -178,30 +185,59 @@ enum Core::IBoardType::InputType Dtfc::getInputType()
     case HwDtfc::RCVRPORT_PPM:
         return INPUT_TYPE_PPM;
     case HwDtfc::RCVRPORT_SBUS:
-    case HwDtfc::RCVRPORT_SBUSNONINVERTED:
         return INPUT_TYPE_SBUS;
+    case HwDtfc::RCVRPORT_SBUSNONINVERTED:
+        return INPUT_TYPE_SBUSNONINVERTED;
     case HwDtfc::RCVRPORT_DSM:
         return INPUT_TYPE_DSM;
     case HwDtfc::RCVRPORT_HOTTSUMD:
         return INPUT_TYPE_HOTTSUMD;
+    case HwDtfc::RCVRPORT_HOTTSUMH:
+        return INPUT_TYPE_HOTTSUMH;
+    case HwDtfc::RCVRPORT_IBUS:
+        return INPUT_TYPE_IBUS;
+    case HwDtfc::RCVRPORT_SRXL:
+        return INPUT_TYPE_SRXL;
+    default:
+        break;
     }
+    
     switch(settings.Uart1) {
     case HwDtfc::UART1_SBUS:
-    case HwDtfc::UART1_SBUSNONINVERTED:
         return INPUT_TYPE_SBUS;
+    case HwDtfc::UART1_SBUSNONINVERTED:
+        return INPUT_TYPE_SBUSNONINVERTED;
     case HwDtfc::UART1_DSM:
         return INPUT_TYPE_DSM;
     case HwDtfc::UART1_HOTTSUMD:
         return INPUT_TYPE_HOTTSUMD;
+    case HwDtfc::UART1_HOTTSUMH:
+        return INPUT_TYPE_HOTTSUMH;
+    case HwDtfc::UART1_IBUS:
+        return INPUT_TYPE_IBUS;
+    case HwDtfc::UART1_SRXL:
+        return INPUT_TYPE_SRXL;
+    default:
+        break;
     }
+    
     switch(settings.Uart2) {
     case HwDtfc::UART2_SBUS:
-    case HwDtfc::UART2_SBUSNONINVERTED:
         return INPUT_TYPE_SBUS;
+    case HwDtfc::UART2_SBUSNONINVERTED:
+        return INPUT_TYPE_SBUSNONINVERTED;
     case HwDtfc::UART2_DSM:
         return INPUT_TYPE_DSM;
     case HwDtfc::UART2_HOTTSUMD:
         return INPUT_TYPE_HOTTSUMD;
+    case HwDtfc::UART2_HOTTSUMH:
+        return INPUT_TYPE_HOTTSUMH;
+    case HwDtfc::UART2_IBUS:
+        return INPUT_TYPE_IBUS;
+    case HwDtfc::UART2_SRXL:
+        return INPUT_TYPE_SRXL;
+    default:
+        break;
     }
     
     return INPUT_TYPE_UNKNOWN;
@@ -228,8 +264,10 @@ int Dtfc::queryMaxGyroRate()
     case HwDtfc::GYRORANGE_2000:
         return 2000;
     default:
-        return 500;
+        break;
     }
+    
+    return 500;
 }
 
 QStringList Dtfc::getAdcNames()

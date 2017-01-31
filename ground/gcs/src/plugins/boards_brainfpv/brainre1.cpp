@@ -55,7 +55,6 @@ BrainRE1::~BrainRE1()
 
 }
 
-
 QString BrainRE1::shortName()
 {
     return QString("BrainRE1");
@@ -78,23 +77,25 @@ bool BrainRE1::queryCapabilities(BoardCapabilities capability)
     default:
         return false;
     }
-    return false;
 }
 
 QPixmap BrainRE1::getBoardPicture()
 {
-	return QPixmap(":/brainfpv/images/brainre1.png");
+    return QPixmap(":/brainfpv/images/brainre1.png");
 }
 
 //! Determine if this board supports configuring the receiver
-bool BrainRE1::isInputConfigurationSupported(enum InputType type = INPUT_TYPE_ANY)
+bool BrainRE1::isInputConfigurationSupported(Core::IBoardType::InputType type)
 {
     switch (type) {
     case INPUT_TYPE_PWM:
+    case INPUT_TYPE_UNKNOWN:
         return false;
     default:
-        return true;
+        break;
     }
+    
+    return true;
 }
 
 QString BrainRE1::getHwUAVO()
@@ -108,7 +109,7 @@ QString BrainRE1::getHwUAVO()
  * @param port_num which input port to configure (board specific numbering)
  * @return true if successfully configured or false otherwise
  */
-bool BrainRE1::setInputType(enum InputType type)
+bool BrainRE1::setInputType(Core::IBoardType::InputType type)
 {
     ExtensionSystem::PluginManager *pm = ExtensionSystem::PluginManager::instance();
     UAVObjectManager *uavoManager = pm->getObject<UAVObjectManager>();
@@ -126,6 +127,9 @@ bool BrainRE1::setInputType(enum InputType type)
     case INPUT_TYPE_SBUS:
         settings.RxPort = HwBrainRE1::RXPORT_SBUS;
         break;
+    case INPUT_TYPE_SBUSNONINVERTED:
+        settings.RxPort = HwBrainRE1::RXPORT_SBUSNONINVERTED;
+        break;
     case INPUT_TYPE_DSM:
         settings.RxPort = HwBrainRE1::RXPORT_DSM;
         break;
@@ -134,6 +138,12 @@ bool BrainRE1::setInputType(enum InputType type)
         break;
     case INPUT_TYPE_HOTTSUMH:
         settings.RxPort = HwBrainRE1::RXPORT_HOTTSUMH;
+        break;
+    case INPUT_TYPE_IBUS:
+        settings.RxPort = HwBrainRE1::RXPORT_IBUS;
+        break;
+    case INPUT_TYPE_SRXL:
+        settings.RxPort = HwBrainRE1::RXPORT_SRXL;
         break;
     default:
         return false;
@@ -150,7 +160,7 @@ bool BrainRE1::setInputType(enum InputType type)
  * @param port_num the port number to query (must be zero)
  * @return the selected input type
  */
-enum Core::IBoardType::InputType BrainRE1::getInputType()
+Core::IBoardType::InputType BrainRE1::getInputType()
 {
     ExtensionSystem::PluginManager *pm = ExtensionSystem::PluginManager::instance();
     UAVObjectManager *uavoManager = pm->getObject<UAVObjectManager>();
@@ -162,16 +172,24 @@ enum Core::IBoardType::InputType BrainRE1::getInputType()
     HwBrainRE1::DataFields settings = hwBrainRE1->getData();
 
     switch(settings.RxPort) {
-        case HwBrainRE1::RXPORT_PPM:
-            return INPUT_TYPE_PPM;
-        case HwBrainRE1::RXPORT_SBUS:
-            return INPUT_TYPE_SBUS;
-        case HwBrainRE1::RXPORT_DSM:
-            return INPUT_TYPE_DSM;
-        case HwBrainRE1::RXPORT_HOTTSUMD:
-            return INPUT_TYPE_HOTTSUMD;
-        case HwBrainRE1::RXPORT_HOTTSUMH:
-            return INPUT_TYPE_HOTTSUMH;
+    case HwBrainRE1::RXPORT_PPM:
+        return INPUT_TYPE_PPM;
+    case HwBrainRE1::RXPORT_SBUS:
+        return INPUT_TYPE_SBUS;
+    case HwBrainRE1::RXPORT_SBUSNONINVERTED:
+        return INPUT_TYPE_SBUSNONINVERTED;
+    case HwBrainRE1::RXPORT_DSM:
+        return INPUT_TYPE_DSM;
+    case HwBrainRE1::RXPORT_HOTTSUMD:
+        return INPUT_TYPE_HOTTSUMD;
+    case HwBrainRE1::RXPORT_HOTTSUMH:
+        return INPUT_TYPE_HOTTSUMH;
+    case HwBrainRE1::RXPORT_IBUS:
+        return INPUT_TYPE_IBUS;
+    case HwBrainRE1::RXPORT_SRXL:
+        return INPUT_TYPE_SRXL;
+    default:
+        break;
     }
 
     return INPUT_TYPE_UNKNOWN;
@@ -189,8 +207,8 @@ QStringList BrainRE1::getAdcNames()
 
 QWidget * BrainRE1::getBoardConfiguration(QWidget *parent, bool connected)
 {
-	Q_UNUSED(connected);
-	return new BrainRE1Configuration(parent);
+    Q_UNUSED(connected);
+    return new BrainRE1Configuration(parent);
 }
 
 QVector< QVector<int> > BrainRE1::getChannelBanks() {

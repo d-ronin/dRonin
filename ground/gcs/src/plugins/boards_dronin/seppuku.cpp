@@ -89,28 +89,19 @@ bool Seppuku::queryCapabilities(BoardCapabilities capability)
     return false;
 }
 
-bool Seppuku::isInputConfigurationSupported(InputType type)
+bool Seppuku::isInputConfigurationSupported(Core::IBoardType::InputType type)
 {
     switch (type) {
-    case INPUT_TYPE_DISABLED:
-    case INPUT_TYPE_ANY:
-    case INPUT_TYPE_DSM:
-    case INPUT_TYPE_SBUS:
-    case INPUT_TYPE_SBUSNONINVERTED:
-    case INPUT_TYPE_HOTTSUMD:
-    case INPUT_TYPE_HOTTSUMH:
-    case INPUT_TYPE_IBUS:
-    case INPUT_TYPE_PPM:
-    case INPUT_TYPE_SRXL:
-        return true;
     case INPUT_TYPE_PWM:
     case INPUT_TYPE_UNKNOWN:
         return false;
+    default:
+        break;
     }
-    return false;
+    return true;
 }
 
-bool Seppuku::setInputType(InputType type)
+bool Seppuku::setInputType(Core::IBoardType::InputType type)
 {
     UAVObjectField *rcvrPort = uavoManager->getField(getHwUAVO(), "RcvrPort");
     if (!rcvrPort)
@@ -144,16 +135,14 @@ bool Seppuku::setInputType(InputType type)
     case INPUT_TYPE_SRXL:
         rcvrPort->setValue(HwSeppuku::RCVRPORT_SRXL);
         break;
-    case INPUT_TYPE_PWM:
-    case INPUT_TYPE_UNKNOWN:
-    case INPUT_TYPE_ANY:
+    default:
         return false;
     }
 
     return true;
 }
 
-enum Core::IBoardType::InputType Seppuku::getInputType()
+Core::IBoardType::InputType Seppuku::getInputType()
 {
     UAVObjectField *rcvrPort = uavoManager->getField(getHwUAVO(), "RcvrPort");
     if (!rcvrPort)
@@ -178,6 +167,8 @@ enum Core::IBoardType::InputType Seppuku::getInputType()
         return INPUT_TYPE_SBUSNONINVERTED;
     case HwSeppuku::RCVRPORT_IBUS:
         return INPUT_TYPE_IBUS;
+    default:
+        break;
     }
 
     return INPUT_TYPE_UNKNOWN;

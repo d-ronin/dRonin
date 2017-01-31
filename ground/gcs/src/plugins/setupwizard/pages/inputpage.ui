@@ -52,7 +52,7 @@ p, li { white-space: pre-wrap; }
     </spacer>
    </item>
    <item>
-    <layout class="QHBoxLayout" name="horizontalLayout">
+    <layout class="QHBoxLayout" name="horizontalLayout_1">
      <item>
       <widget class="QToolButton" name="pwmButton">
        <property name="font">
@@ -61,7 +61,7 @@ p, li { white-space: pre-wrap; }
         </font>
        </property>
        <property name="toolTip">
-        <string>PWM - One cable per channel</string>
+        <string>PWM (One cable per channel)</string>
        </property>
        <property name="styleSheet">
         <string notr="true">QToolButton { border: none }</string>
@@ -106,7 +106,7 @@ p, li { white-space: pre-wrap; }
         </font>
        </property>
        <property name="toolTip">
-        <string>PPM - One cable for all channels</string>
+        <string>PPM (One cable for all channels)</string>
        </property>
        <property name="styleSheet">
         <string notr="true">QToolButton { border: none }</string>
@@ -186,6 +186,48 @@ p, li { white-space: pre-wrap; }
       </widget>
      </item>
      <item>
+      <widget class="QToolButton" name="sbusnoninvertedButton">
+       <property name="font">
+        <font>
+         <pointsize>10</pointsize>
+        </font>
+       </property>
+       <property name="toolTip">
+        <string>Futaba S.Bus Non-inverted</string>
+       </property>
+       <property name="styleSheet">
+        <string notr="true">QToolButton { border: none }</string>
+       </property>
+       <property name="text">
+        <string>S.Bus Non-inverted</string>
+       </property>
+       <property name="icon">
+        <iconset resource="../wizardResources.qrc">
+         <normaloff>:/setupwizard/resources/bttn-sbusnoninverted-up.png</normaloff>
+         <normalon>:/setupwizard/resources/bttn-sbusnoninverted-down.png</normalon>
+         <disabledoff>:/setupwizard/resources/bttn-sbusnoninverted-disabled.png</disabledoff>:/setupwizard/resources/bttn-sbusnoninverted-up.png</iconset>
+       </property>
+       <property name="iconSize">
+        <size>
+         <width>100</width>
+         <height>100</height>
+        </size>
+       </property>
+       <property name="checkable">
+        <bool>true</bool>
+       </property>
+       <property name="autoExclusive">
+        <bool>true</bool>
+       </property>
+       <property name="toolButtonStyle">
+        <enum>Qt::ToolButtonTextUnderIcon</enum>
+       </property>
+       <property name="autoRaise">
+        <bool>true</bool>
+       </property>
+      </widget>
+     </item>
+     <item>
       <widget class="QToolButton" name="spectrumButton">
        <property name="font">
         <font>
@@ -193,7 +235,7 @@ p, li { white-space: pre-wrap; }
         </font>
        </property>
        <property name="toolTip">
-        <string>Spektrum Satellite</string>
+        <string>Spektrum satellite (DSM)</string>
        </property>
        <property name="styleSheet">
         <string notr="true">QToolButton { border: none }</string>
@@ -227,6 +269,16 @@ p, li { white-space: pre-wrap; }
        </property>
       </widget>
      </item>
+    </layout>
+   </item>
+   <item>
+    <layout class="QHBoxLayout" name="horizontalLayout_2" stretch="0,0,0,0">
+     <property name="topMargin">
+      <number>0</number>
+     </property>
+     <property name="bottomMargin">
+      <number>0</number>
+     </property>
      <item>
       <widget class="QToolButton" name="hottsumdButton">
        <property name="font">
@@ -235,7 +287,7 @@ p, li { white-space: pre-wrap; }
         </font>
        </property>
        <property name="toolTip">
-        <string>Graupner SUMD</string>
+        <string>Graupner HoTT (SUMD)</string>
        </property>
        <property name="styleSheet">
         <string notr="true">QToolButton { border: none }</string>
@@ -248,6 +300,132 @@ p, li { white-space: pre-wrap; }
          <normaloff>:/setupwizard/resources/bttn-sumd-up.png</normaloff>
          <normalon>:/setupwizard/resources/bttn-sumd-down.png</normalon>
          <disabledoff>:/setupwizard/resources/bttn-sumd-disabled.png</disabledoff>:/setupwizard/resources/bttn-sumd-up.png</iconset>
+       </property>
+       <property name="iconSize">
+        <size>
+         <width>100</width>
+         <height>100</height>
+        </size>
+       </property>
+       <property name="checkable">
+        <bool>true</bool>
+       </property>
+       <property name="autoExclusive">
+        <bool>true</bool>
+       </property>
+       <property name="toolButtonStyle">
+        <enum>Qt::ToolButtonTextUnderIcon</enum>
+       </property>
+       <property name="autoRaise">
+        <bool>true</bool>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QToolButton" name="hottsumhButton">
+       <property name="font">
+        <font>
+         <pointsize>10</pointsize>
+        </font>
+       </property>
+       <property name="toolTip">
+        <string>Graupner HoTT (SUMH)</string>
+       </property>
+       <property name="styleSheet">
+        <string notr="true">QToolButton { border: none }</string>
+       </property>
+       <property name="text">
+        <string>SUMH</string>
+       </property>
+       <property name="icon">
+        <iconset resource="../wizardResources.qrc">
+         <normaloff>:/setupwizard/resources/bttn-sumh-up.png</normaloff>
+         <normalon>:/setupwizard/resources/bttn-sumh-down.png</normalon>
+         <disabledoff>:/setupwizard/resources/bttn-sumh-disabled.png</disabledoff>:/setupwizard/resources/bttn-sumh-up.png</iconset>
+       </property>
+       <property name="iconSize">
+        <size>
+         <width>100</width>
+         <height>100</height>
+        </size>
+       </property>
+       <property name="checkable">
+        <bool>true</bool>
+       </property>
+       <property name="autoExclusive">
+        <bool>true</bool>
+       </property>
+       <property name="toolButtonStyle">
+        <enum>Qt::ToolButtonTextUnderIcon</enum>
+       </property>
+       <property name="autoRaise">
+        <bool>true</bool>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QToolButton" name="srxlButton">
+       <property name="font">
+        <font>
+         <pointsize>10</pointsize>
+        </font>
+       </property>
+       <property name="toolTip">
+        <string>Multiplex SRXL</string>
+       </property>
+       <property name="styleSheet">
+        <string notr="true">QToolButton { border: none }</string>
+       </property>
+       <property name="text">
+        <string>SRXL</string>
+       </property>
+       <property name="icon">
+        <iconset resource="../wizardResources.qrc">
+         <normaloff>:/setupwizard/resources/bttn-srxl-up.png</normaloff>
+         <normalon>:/setupwizard/resources/bttn-srxl-down.png</normalon>
+         <disabledoff>:/setupwizard/resources/bttn-srxl-disabled.png</disabledoff>:/setupwizard/resources/bttn-srxl-up.png</iconset>
+       </property>
+       <property name="iconSize">
+        <size>
+         <width>100</width>
+         <height>100</height>
+        </size>
+       </property>
+       <property name="checkable">
+        <bool>true</bool>
+       </property>
+       <property name="autoExclusive">
+        <bool>true</bool>
+       </property>
+       <property name="toolButtonStyle">
+        <enum>Qt::ToolButtonTextUnderIcon</enum>
+       </property>
+       <property name="autoRaise">
+        <bool>true</bool>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QToolButton" name="ibusButton">
+       <property name="font">
+        <font>
+         <pointsize>10</pointsize>
+        </font>
+       </property>
+       <property name="toolTip">
+        <string>FlySky I-Bus</string>
+       </property>
+       <property name="styleSheet">
+        <string notr="true">QToolButton { border: none }</string>
+       </property>
+       <property name="text">
+        <string>I-Bus</string>
+       </property>
+       <property name="icon">
+        <iconset resource="../wizardResources.qrc">
+         <normaloff>:/setupwizard/resources/bttn-ibus-up.png</normaloff>
+         <normalon>:/setupwizard/resources/bttn-ibus-down.png</normalon>
+         <disabledoff>:/setupwizard/resources/bttn-ibus-disabled.png</disabledoff>:/setupwizard/resources/bttn-ibus-up.png</iconset>
        </property>
        <property name="iconSize">
         <size>

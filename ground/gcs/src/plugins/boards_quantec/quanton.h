@@ -30,8 +30,6 @@
 
 #include <coreplugin/iboardtype.h>
 
-class IBoardType;
-
 class Quanton : public Core::IBoardType
 {
 public:
@@ -44,6 +42,24 @@ public:
     virtual bool queryCapabilities(BoardCapabilities capability);
     virtual QPixmap getBoardPicture();
     virtual QString getHwUAVO();
+
+    //! Determine if this board supports configuring the receiver
+    virtual bool isInputConfigurationSupported(Core::IBoardType::InputType type);
+
+    /**
+     * Configure the board to use an receiver input type on a port number
+     * @param type the type of receiver to use
+     * @param port_num which input port to configure (board specific numbering)
+     */
+    virtual bool setInputType(Core::IBoardType::InputType type);
+
+    /**
+     * @brief getInputOnPort get the current input type
+     * @param port_num which input port to query (board specific numbering)
+     * @return the currently selected input type
+     */
+    virtual Core::IBoardType::InputType getInputType();
+
     virtual int queryMaxGyroRate();
     virtual QStringList getAdcNames();
 };

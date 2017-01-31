@@ -22,8 +22,16 @@
         <file>resources/bttn-sat-up.png</file>
         <file>resources/bttn-sbus-down.png</file>
         <file>resources/bttn-sbus-up.png</file>
+        <file>resources/bttn-sbusnoninverted-down.png</file>
+        <file>resources/bttn-sbusnoninverted-up.png</file>
         <file>resources/bttn-sumd-down.png</file>
         <file>resources/bttn-sumd-up.png</file>
+        <file>resources/bttn-sumh-down.png</file>
+        <file>resources/bttn-sumh-up.png</file>
+        <file>resources/bttn-ibus-down.png</file>
+        <file>resources/bttn-ibus-up.png</file>
+        <file>resources/bttn-srxl-down.png</file>
+        <file>resources/bttn-srxl-up.png</file>
         <file>resources/bttn-txwizard-off.png</file>
         <file>resources/bttn-txwizard-on.png</file>
         <file>resources/bttn-calculate-down.png</file>
@@ -45,6 +53,10 @@
         <file>resources/bttn-pwm-disabled.png</file>
         <file>resources/bttn-sat-disabled.png</file>
         <file>resources/bttn-sbus-disabled.png</file>
+        <file>resources/bttn-sbusnoninverted-disabled.png</file>
         <file>resources/bttn-sumd-disabled.png</file>
+        <file>resources/bttn-sumh-disabled.png</file>
+        <file>resources/bttn-ibus-disabled.png</file>
+        <file>resources/bttn-srxl-disabled.png</file>
     </qresource>
 </RCC>

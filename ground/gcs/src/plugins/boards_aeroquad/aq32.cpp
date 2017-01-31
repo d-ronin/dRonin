@@ -83,8 +83,9 @@ bool AQ32::queryCapabilities(BoardCapabilities capability)
     case BOARD_CAPABILITIES_UPGRADEABLE:
         return true;
     default:
-        return false;
+        break;
     }
+    
     return false;
 }
 
@@ -93,11 +94,16 @@ QPixmap AQ32::getBoardPicture()
     return QPixmap(":/aq32/images/aq32.png");
 }
 
-
 //! Determine if this board supports configuring the receiver
-bool AQ32::isInputConfigurationSupported(enum InputType type = INPUT_TYPE_ANY)
+bool AQ32::isInputConfigurationSupported(Core::IBoardType::InputType type)
 {
-    Q_UNUSED(type);
+    switch(type) {
+    case INPUT_TYPE_UNKNOWN:
+        return false;
+    default:
+        break;
+    }
+    
     return true;
 }
 
@@ -111,7 +117,7 @@ QString AQ32::getHwUAVO()
  * @param type the type of receiver to use
  * @return true if successfully configured or false otherwise
  */
-bool AQ32::setInputType(enum InputType type)
+bool AQ32::setInputType(Core::IBoardType::InputType type)
 {
     ExtensionSystem::PluginManager *pm = ExtensionSystem::PluginManager::instance();
     UAVObjectManager *uavoManager = pm->getObject<UAVObjectManager>();
@@ -141,13 +147,15 @@ bool AQ32::setInputType(enum InputType type)
     case INPUT_TYPE_SBUSNONINVERTED:
         settings.Uart3 = HwAQ32::UART3_SBUSNONINVERTED;
         break;
-    case INPUT_TYPE_IBUS: // Is not selectable yet in the Vehicle Setup Wizard, but if it ends up there, this is already in place.
+    case INPUT_TYPE_IBUS:
         settings.Uart3 = HwAQ32::UART3_IBUS;
         break;
     case INPUT_TYPE_DSM:
         settings.Uart4 = HwAQ32::UART4_DSM;
         break;
-    
+    case INPUT_TYPE_SRXL:
+        settings.Uart3 = HwAQ32::UART3_SRXL;
+        break;
     default:
         return false;
     }
@@ -162,7 +170,7 @@ bool AQ32::setInputType(enum InputType type)
  * @brief AQ32::getInputType fetch the currently selected input type
  * @return the selected input type
  */
-enum Core::IBoardType::InputType AQ32::getInputType()
+Core::IBoardType::InputType AQ32::getInputType()
 {
     ExtensionSystem::PluginManager *pm = ExtensionSystem::PluginManager::instance();
     UAVObjectManager *uavoManager = pm->getObject<UAVObjectManager>();
@@ -191,8 +199,12 @@ enum Core::IBoardType::InputType AQ32::getInputType()
         return INPUT_TYPE_SBUS;
     case HwAQ32::UART3_SBUSNONINVERTED:
         return INPUT_TYPE_SBUSNONINVERTED;    
-    case HwAQ32::UART3_IBUS: // None of the other targets have IBUS in getInputType, but seems to be no problem.
+    case HwAQ32::UART3_IBUS:
         return INPUT_TYPE_IBUS;
+    case HwAQ32::UART3_SRXL:
+        return INPUT_TYPE_SRXL;
+    default:
+        break;
     }
 
     switch(settings.Uart4) {
@@ -204,8 +216,12 @@ enum Core::IBoardType::InputType AQ32::getInputType()
         return INPUT_TYPE_HOTTSUMH;
     case HwAQ32::UART4_SBUSNONINVERTED:
         return INPUT_TYPE_SBUSNONINVERTED;    
-    case HwAQ32::UART4_IBUS: // None of the other targets have IBUS in getInputType, but seems to be no problem.
+    case HwAQ32::UART4_IBUS:
         return INPUT_TYPE_IBUS;
+    case HwAQ32::UART4_SRXL:
+        return INPUT_TYPE_SRXL;
+    default:
+        break;
     }
 
     switch(settings.Uart6) {
@@ -217,8 +233,12 @@ enum Core::IBoardType::InputType AQ32::getInputType()
         return INPUT_TYPE_HOTTSUMH;
     case HwAQ32::UART6_SBUSNONINVERTED:
         return INPUT_TYPE_SBUSNONINVERTED;    
-    case HwAQ32::UART6_IBUS: // None of the other targets have IBUS in getInputType, but seems to be no problem.
+    case HwAQ32::UART6_IBUS:
         return INPUT_TYPE_IBUS;
+    case HwAQ32::UART6_SRXL:
+        return INPUT_TYPE_SRXL;
+    default:
+        break;
     }
 
     return INPUT_TYPE_UNKNOWN;
@@ -245,8 +265,10 @@ int AQ32::queryMaxGyroRate()
     case HwAQ32::GYRORANGE_2000:
         return 2000;
     default:
-        return 500;
+        break;
     }
+    
+    return 500;
 }
 
 QStringList AQ32::getAdcNames()

@@ -166,6 +166,7 @@ void inputChannelForm::groupUpdated()
                 break;
             case ManualControlSettings::CHANNELGROUPS_SRXL:
                 count = 16;
+                break;
             case ManualControlSettings::CHANNELGROUPS_IBUS:
                 count = 10;
                 break;
