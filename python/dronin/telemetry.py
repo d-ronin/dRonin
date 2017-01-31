@@ -230,6 +230,9 @@ class TelemetryBase(with_metaclass(ABCMeta)):
                 if obj in self.acks:
                     return True
 
+                if self.eof:
+                    return False
+
                 diff = expiry - time.time();
 
                 if (diff <= 0):
@@ -302,8 +305,15 @@ class TelemetryBase(with_metaclass(ABCMeta)):
         from threading import Thread
 
         def run():
-            while not self._done():
-                self.service_connection()
+            try:
+                while not self._done():
+                    self.service_connection()
+            finally:
+                with self.cond:
+                    with self.ack_cond:
+                        self.cond.notifyAll()
+                        self.ack_cond.notifyAll()
+                        self.eof = True
 
         t = Thread(target=run, name="telemetry svc thread")
 
@@ -624,6 +634,7 @@ class HIDTelemetry(BidirTelemetry):
 
     # Call select and do one set of IO operations.
     def _do_io(self, finish_time):
+        import errno
         from six import int2byte, indexbytes, byte2int, iterbytes
 
         did_stuff = False
@@ -641,9 +652,9 @@ class HIDTelemetry(BidirTelemetry):
 
                     if length <= len(raw) - 2:
                         chunk = raw.tostring()[2:2+length]
-
-            except Exception:
-                pass
+            except IOError, e:
+                if e.errno != errno.ETIMEDOUT:
+                    raise
 
             if chunk != '':
                 did_stuff = True
@@ -664,8 +675,9 @@ class HIDTelemetry(BidirTelemetry):
                         if written > 0:
                             self.send_buf = self.send_buf[written:]
                             did_stuff = True
-                    except Exception:
-                        pass
+                    except IOError, e:
+                        if e.errno != errno.ETIMEDOUT:
+                            raise
 
             now = time.time()
             if finish_time is not None:
