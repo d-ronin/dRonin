@@ -89,9 +89,10 @@ KERNEL=="hidraw*", ATTRS{idVendor}=="16d0", ATTRS{idProduct}=="d7fc", MODE="0664
 #
 
 # IDs provided by @tracernz
-
 # Generic ID for dRonin firmware
+SUBSYSTEM=="usb", ATTR{idVendor}=="20a0", ATTR{idProduct}=="4250", MODE="0664", GROUP="plugdev"
 KERNEL=="hidraw*", ATTRS{idVendor}=="20a0", ATTRS{idProduct}=="4250", MODE="0664", GROUP="plugdev"
 
 # Generic (multitarget) ID for dRonin bootloader
+SUBSYSTEM=="usb", ATTR{idVendor}=="20a0", ATTR{idProduct}=="427a", MODE="0664", GROUP="plugdev"
 KERNEL=="hidraw*", ATTRS{idVendor}=="20a0", ATTRS{idProduct}=="427a", MODE="0664", GROUP="plugdev"
