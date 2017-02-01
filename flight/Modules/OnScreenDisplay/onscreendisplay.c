@@ -135,7 +135,7 @@ const char IMPERIAL_DIST_UNIT_LONG[] = "M";
 const char IMPERIAL_DIST_UNIT_SHORT[] = "ft";
 const char IMPERIAL_SPEED_UNIT[] = "MPH";
 
-bool video_active;
+bool video_active = true;
 
 const point_t HOME_ARROW[] = {
 	{
@@ -1710,7 +1710,12 @@ static void onScreenDisplayTask(__attribute__((unused)) void *parameters)
 
 	// blank
 	while (PIOS_Thread_Systime() <= BLANK_TIME) {
-		PIOS_Thread_Sleep(20);
+		if (PIOS_Semaphore_Take(onScreenDisplaySemaphore, 300) == true) {
+			video_active = true;
+			clearGraphics();
+		} else {
+			video_active = false;
+		}
 	}
 
 	// initialize interupts
@@ -1733,7 +1738,9 @@ static void onScreenDisplayTask(__attribute__((unused)) void *parameters)
 
 	// intro
 	while (PIOS_Thread_Systime() <= BLANK_TIME + INTRO_TIME) {
-		if (PIOS_Semaphore_Take(onScreenDisplaySemaphore, PIOS_SEMAPHORE_TIMEOUT_MAX) == true) {
+		if (PIOS_Semaphore_Take(onScreenDisplaySemaphore, 300) == true) {
+			video_active = true;
+
 			clearGraphics();
 			video_system_act = PIOS_Video_GetSystem();
 			if ( video_system_act == PIOS_VIDEO_SYSTEM_NTSC) {
@@ -1753,6 +1760,8 @@ static void onScreenDisplayTask(__attribute__((unused)) void *parameters)
 				BaroAltitudeAltitudeGet(&tmp);
 				home_baro_altitude += tmp;
 			}
+		} else {
+			video_active = false;
 		}
 	}
 
