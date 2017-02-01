@@ -76,6 +76,9 @@ class TelemetryBase(with_metaclass(ABCMeta)):
         self.cond = Condition()
         self.ack_cond = Condition()
 
+        if (service_in_iter) and (not iter_blocks):
+            raise ValueError("Invalid combination of flags")
+
         self.service_in_iter = service_in_iter
         self.iter_blocks = iter_blocks
 
@@ -156,20 +159,7 @@ class TelemetryBase(with_metaclass(ABCMeta)):
                     # wait for another thread to fill it in
                     self.cond.wait()
             else:
-                # Don't really recommend this mode anymore/maybe remove
-                if self.service_in_iter and not self._done():
-                    # Do at least one non-blocking attempt
-                    self.cond.release()
-
-                    self.service_connection(0)
-
-                    self.cond.acquire()
-
-                # I think this should probably keep the index so that
-                # new iterations pick up where we were.. XXX TODO
-                # takes some thought as to what is "right"
-                if iterIdx >= len(self.uavo_list):
-                    break
+                break
 
     def __make_handshake(self, handshake):
         return self.GCSTelemetryStats._make_to_send(
@@ -230,6 +220,9 @@ class TelemetryBase(with_metaclass(ABCMeta)):
                 if obj in self.acks:
                     return True
 
+                if self.eof:
+                    return False
+
                 diff = expiry - time.time();
 
                 if (diff <= 0):
@@ -248,7 +241,8 @@ class TelemetryBase(with_metaclass(ABCMeta)):
         objs = []
 
         if frames == b'':
-            self.eof=True
+            self.eof = True
+            self._close()
         else:
             obj = self.uavtalk_generator.send(frames)
 
@@ -302,8 +296,16 @@ class TelemetryBase(with_metaclass(ABCMeta)):
         from threading import Thread
 
         def run():
-            while not self._done():
-                self.service_connection()
+            try:
+                while not self._done():
+                    self.service_connection()
+            finally:
+                with self.cond:
+                    with self.ack_cond:
+                        self.cond.notifyAll()
+                        self.ack_cond.notifyAll()
+                        self.eof = True
+                        self._close()
 
         t = Thread(target=run, name="telemetry svc thread")
 
@@ -341,6 +343,9 @@ class TelemetryBase(with_metaclass(ABCMeta)):
     def _done(self):
         with self.cond:
             return self.eof
+
+    def _close(self):
+        return
 
 class BidirTelemetry(TelemetryBase):
     """
@@ -467,7 +472,7 @@ class FDTelemetry(BidirTelemetry):
                 did_stuff = True
 
         return did_stuff
-
+    
 class NetworkTelemetry(FDTelemetry):
     """ TCP telemetry interface. """
     def __init__(self, host="127.0.0.1", port=9000, *args, **kwargs):
@@ -488,6 +493,9 @@ class NetworkTelemetry(FDTelemetry):
         self.sock = s
 
         FDTelemetry.__init__(self, fd=s.fileno(), *args, **kwargs)
+
+    def _close(self):
+        self.sock.close()
 
 # TODO XXX : Plumb appropriate cleanup / file close for these classes
 
@@ -624,6 +632,7 @@ class HIDTelemetry(BidirTelemetry):
 
     # Call select and do one set of IO operations.
     def _do_io(self, finish_time):
+        import errno
         from six import int2byte, indexbytes, byte2int, iterbytes
 
         did_stuff = False
@@ -641,9 +650,9 @@ class HIDTelemetry(BidirTelemetry):
 
                     if length <= len(raw) - 2:
                         chunk = raw.tostring()[2:2+length]
-
-            except Exception:
-                pass
+            except IOError, e:
+                if e.errno != errno.ETIMEDOUT:
+                    raise
 
             if chunk != '':
                 did_stuff = True
@@ -664,8 +673,9 @@ class HIDTelemetry(BidirTelemetry):
                         if written > 0:
                             self.send_buf = self.send_buf[written:]
                             did_stuff = True
-                    except Exception:
-                        pass
+                    except IOError, e:
+                        if e.errno != errno.ETIMEDOUT:
+                            raise
 
             now = time.time()
             if finish_time is not None:
