@@ -3,10 +3,13 @@ Governance
 On 8th December 2015, 17 members of the active community voted to elect the first dRonin Executive Committee.
 
 Those voted in were: 
+* ~~[Martin Luessi](https://github.com/mluessi) (IRC: hshred)~~
 * [Michael Lyle](https://github.com/mlyle) (IRC: icee)
 * [Michael Corcoran](https://github.com/tracernz) (IRC: tracernz)
 
 They will now serve the project for a 6 month period.
+
+On 27th January 2017, Martin Luessi resigned his position.
 
 Executive Team's Role
 =====================
