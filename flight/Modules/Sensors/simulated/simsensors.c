@@ -199,14 +199,7 @@ static void SensorsTask(void *parameters)
 			default:
 				sensor_sim_type = MODEL_AGNOSTIC;
 		}
-		
-		static int i;
-		i++;
-		if (i % 5000 == 0) {
-			//float dT = PIOS_DELAY_DiffuS(last_time) / 10.0e6;
-			//fprintf(stderr, "Sensor relative timing: %f\n", dT);
-		}
-		
+
 		sensors_count++;
 
 		switch(sensor_sim_type) {
@@ -346,7 +339,7 @@ static void simulateModelQuadcopter()
 	static float baro_offset = 0.0f;
 	static float temperature = 20;
 	float Rbe[3][3];
-	
+
 	const float ACTUATOR_ALPHA = 0.81f;
 	const float MAX_THRUST = GRAVITY * 2;
 	const float K_FRICTION = 1;
@@ -354,17 +347,9 @@ static void simulateModelQuadcopter()
 	const float MAG_PERIOD = 1.0 / 75.0;
 	const float BARO_PERIOD = 1.0 / 20.0;
 	const float GYRO_NOISE_SCALE = 1.0f;
-	
-	static uint32_t last_time;
-	
-	float dT = (PIOS_DELAY_DiffuS(last_time) / 1e6);
-	if(dT < 1e-3) {
-		dT = 1e-3;
-	} else if (dT > 1e-1) {
-		dT = 1e-1;
-	}
-	last_time = PIOS_DELAY_GetRaw();
-	
+
+	float dT = 0.002;
+
 	FlightStatusData flightStatus;
 	FlightStatusGet(&flightStatus);
 	ActuatorDesiredData actuatorDesired;
@@ -373,10 +358,10 @@ static void simulateModelQuadcopter()
 	float thrust = (flightStatus.Armed == FLIGHTSTATUS_ARMED_ARMED) ? actuatorDesired.Thrust * MAX_THRUST : 0;
 	if (thrust < 0)
 		thrust = 0;
-	
+
 	if (thrust != thrust)
 		thrust = 0;
-	
+
 	float control_scaling = 3000.0f;
 	// In rad/s
 	rpy[0] = control_scaling * actuatorDesired.Roll * (1 - ACTUATOR_ALPHA) + rpy[0] * ACTUATOR_ALPHA;
@@ -390,26 +375,26 @@ static void simulateModelQuadcopter()
 	gyrosData.z = rpy[2] + rand_gauss() * GYRO_NOISE_SCALE + (temperature - 20) * 1 + powf(temperature - 20,2) * 0.11;
 	gyrosData.temperature = temperature;
 	GyrosSet(&gyrosData);
-	
+
 	// Predict the attitude forward in time
 	float qdot[4];
 	qdot[0] = (-q[1] * rpy[0] - q[2] * rpy[1] - q[3] * rpy[2]) * dT * DEG2RAD / 2;
 	qdot[1] = (q[0] * rpy[0] - q[3] * rpy[1] + q[2] * rpy[2]) * dT * DEG2RAD / 2;
 	qdot[2] = (q[3] * rpy[0] + q[0] * rpy[1] - q[1] * rpy[2]) * dT * DEG2RAD / 2;
 	qdot[3] = (-q[2] * rpy[0] + q[1] * rpy[1] + q[0] * rpy[2]) * dT * DEG2RAD / 2;
-	
+
 	// Take a time step
 	q[0] = q[0] + qdot[0];
 	q[1] = q[1] + qdot[1];
 	q[2] = q[2] + qdot[2];
 	q[3] = q[3] + qdot[3];
-	
+
 	float qmag = sqrtf(q[0]*q[0] + q[1]*q[1] + q[2]*q[2] + q[3]*q[3]);
 	q[0] = q[0] / qmag;
 	q[1] = q[1] / qmag;
 	q[2] = q[2] / qmag;
 	q[3] = q[3] / qmag;
-	
+
 	if(overideAttitude){
 		AttitudeActualData attitudeActual;
 		AttitudeActualGet(&attitudeActual);
@@ -419,19 +404,19 @@ static void simulateModelQuadcopter()
 		attitudeActual.q4 = q[3];
 		AttitudeActualSet(&attitudeActual);
 	}
-	
+
 	static float wind[3] = {0,0,0};
 	wind[0] = wind[0] * 0.95 + rand_gauss() / 10.0;
 	wind[1] = wind[1] * 0.95 + rand_gauss() / 10.0;
 	wind[2] = wind[2] * 0.95 + rand_gauss() / 10.0;
-	
+
 	Quaternion2R(q,Rbe);
 	// Make thrust negative as down is positive
 	ned_accel[0] = -thrust * Rbe[2][0];
 	ned_accel[1] = -thrust * Rbe[2][1];
 	// Gravity causes acceleration of 9.81 in the down direction
 	ned_accel[2] = -thrust * Rbe[2][2] + GRAVITY;
-	
+
 	// Apply acceleration based on velocity
 	ned_accel[0] -= K_FRICTION * (vel[0] - wind[0]);
 	ned_accel[1] -= K_FRICTION * (vel[1] - wind[1]);
@@ -453,10 +438,10 @@ static void simulateModelQuadcopter()
 		vel[2] = 0;
 		ned_accel[2] = 0;
 	}
-		
+
 	// Sensor feels gravity (when not acceleration in ned frame e.g. ned_accel[2] = 0)
 	ned_accel[2] -= GRAVITY;
-	
+
 	// Transform the accels back in to body frame
 	AccelsData accelsData; // Skip get as we set all the fields
 	accelsData.x = ned_accel[0] * Rbe[0][0] + ned_accel[1] * Rbe[0][1] + ned_accel[2] * Rbe[0][2] + accel_bias[0];
@@ -472,7 +457,7 @@ static void simulateModelQuadcopter()
 		// Very small drift process
 		baro_offset += rand_gauss() / 100;
 	}
-	// Update baro periodically	
+	// Update baro periodically
 	static uint32_t last_baro_time = 0;
 	if(PIOS_DELAY_DiffuS(last_baro_time) / 1.0e6 > BARO_PERIOD) {
 		BaroAltitudeData baroAltitude;
@@ -481,7 +466,7 @@ static void simulateModelQuadcopter()
 		BaroAltitudeSet(&baroAltitude);
 		last_baro_time = PIOS_DELAY_GetRaw();
 	}
-	
+
 	HomeLocationData homeLocation;
 	HomeLocationGet(&homeLocation);
 	if (homeLocation.Set == HOMELOCATION_SET_FALSE) {
@@ -498,7 +483,7 @@ static void simulateModelQuadcopter()
 	gps_vel_drift[1] = gps_vel_drift[1] * 0.65 + rand_gauss() / 5.0;
 	gps_vel_drift[2] = gps_vel_drift[2] * 0.65 + rand_gauss() / 5.0;
 
-	// Update GPS periodically	
+	// Update GPS periodically
 	static uint32_t last_gps_time = 0;
 	if(PIOS_DELAY_DiffuS(last_gps_time) / 1.0e6 > GPS_PERIOD) {
 		// Use double precision here as simulating what GPS produces
@@ -506,7 +491,7 @@ static void simulateModelQuadcopter()
 		T[0] = homeLocation.Altitude+6.378137E6f * DEG2RAD;
 		T[1] = cosf(homeLocation.Latitude / 10e6 * DEG2RAD)*(homeLocation.Altitude+6.378137E6) * DEG2RAD;
 		T[2] = -1.0;
-		
+
 		static float gps_drift[3] = {0,0,0};
 		gps_drift[0] = gps_drift[0] * 0.95 + rand_gauss() / 10.0;
 		gps_drift[1] = gps_drift[1] * 0.95 + rand_gauss() / 10.0;
@@ -526,7 +511,7 @@ static void simulateModelQuadcopter()
 		GPSPositionSet(&gpsPosition);
 		last_gps_time = PIOS_DELAY_GetRaw();
 	}
-	
+
 	// Update GPS Velocity measurements
 	static uint32_t last_gps_vel_time = 1000; // Delay by a millisecond
 	if(PIOS_DELAY_DiffuS(last_gps_vel_time) / 1.0e6 > GPS_PERIOD) {
@@ -554,7 +539,7 @@ static void simulateModelQuadcopter()
 		MagnetometerSet(&mag);
 		last_mag_time = PIOS_DELAY_GetRaw();
 	}
-	
+
 	AttitudeSimulatedData attitudeSimulated;
 	AttitudeSimulatedGet(&attitudeSimulated);
 	attitudeSimulated.q1 = q[0];
@@ -590,7 +575,7 @@ static void simulateModelAirplane()
 	static float rpy[3] = {0,0,0}; // Low pass filtered actuator
 	static float baro_offset = 0.0f;
 	float Rbe[3][3];
-	
+
 	const float LIFT_SPEED = 8; // (m/s) where achieve lift for zero pitch
 	const float ACTUATOR_ALPHA = 0.8;
 	const float MAX_THRUST = 9.81 * 2;
@@ -600,44 +585,36 @@ static void simulateModelAirplane()
 	const float BARO_PERIOD = 1.0 / 20.0;
 	const float ROLL_HEADING_COUPLING = 0.1; // (deg/s) heading change per deg of roll
 	const float PITCH_THRUST_COUPLING = 0.2; // (m/s^2) of forward acceleration per deg of pitch
-	
-	static uint32_t last_time;
-	
-	float dT = (PIOS_DELAY_DiffuS(last_time) / 1e6);
-	if(dT < 1e-3) {
-		dT = 2e-3;
-	} else if (dT > 1e-1) {
-		dT = 1e-1;
-	}
-	last_time = PIOS_DELAY_GetRaw();
-	
+
+	float dT = 0.002;
+
 	FlightStatusData flightStatus;
 	FlightStatusGet(&flightStatus);
 	ActuatorDesiredData actuatorDesired;
 	ActuatorDesiredGet(&actuatorDesired);
-	
+
 	float thrust = (flightStatus.Armed == FLIGHTSTATUS_ARMED_ARMED) ? actuatorDesired.Thrust * MAX_THRUST : 0;
 	if (thrust < 0)
 		thrust = 0;
-	
+
 	if (thrust != thrust)
 		thrust = 0;
-	
+
 	//	float control_scaling = thrust * thrustToDegs;
 	//	// In rad/s
 	//	rpy[0] = control_scaling * actuatorDesired.Roll * (1 - ACTUATOR_ALPHA) + rpy[0] * ACTUATOR_ALPHA;
 	//	rpy[1] = control_scaling * actuatorDesired.Pitch * (1 - ACTUATOR_ALPHA) + rpy[1] * ACTUATOR_ALPHA;
 	//	rpy[2] = control_scaling * actuatorDesired.Yaw * (1 - ACTUATOR_ALPHA) + rpy[2] * ACTUATOR_ALPHA;
-	//	
+	//
 	//	GyrosData gyrosData; // Skip get as we set all the fields
 	//	gyrosData.x = rpy[0] * 180 / M_PI + rand_gauss();
 	//	gyrosData.y = rpy[1] * 180 / M_PI + rand_gauss();
 	//	gyrosData.z = rpy[2] * 180 / M_PI + rand_gauss();
-	
+
 	/**** 1. Update attitude ****/
 	RateDesiredData rateDesired;
 	RateDesiredGet(&rateDesired);
-	
+
 	// Need to get roll angle for easy cross coupling
 	AttitudeActualData attitudeActual;
 	AttitudeActualGet(&attitudeActual);
@@ -648,33 +625,33 @@ static void simulateModelAirplane()
 	rpy[1] = (flightStatus.Armed == FLIGHTSTATUS_ARMED_ARMED) * rateDesired.Pitch * (1 - ACTUATOR_ALPHA) + rpy[1] * ACTUATOR_ALPHA;
 	rpy[2] = (flightStatus.Armed == FLIGHTSTATUS_ARMED_ARMED) * rateDesired.Yaw * (1 - ACTUATOR_ALPHA) + rpy[2] * ACTUATOR_ALPHA;
 	rpy[2] += roll * ROLL_HEADING_COUPLING;
-	
+
 
 	GyrosData gyrosData; // Skip get as we set all the fields
 	gyrosData.x = rpy[0] + rand_gauss();
 	gyrosData.y = rpy[1] + rand_gauss();
 	gyrosData.z = rpy[2] + rand_gauss();
 	GyrosSet(&gyrosData);
-	
+
 	// Predict the attitude forward in time
 	float qdot[4];
 	qdot[0] = (-q[1] * rpy[0] - q[2] * rpy[1] - q[3] * rpy[2]) * dT * DEG2RAD / 2;
 	qdot[1] = (q[0] * rpy[0] - q[3] * rpy[1] + q[2] * rpy[2]) * dT * DEG2RAD / 2;
 	qdot[2] = (q[3] * rpy[0] + q[0] * rpy[1] - q[1] * rpy[2]) * dT * DEG2RAD / 2;
 	qdot[3] = (-q[2] * rpy[0] + q[1] * rpy[1] + q[0] * rpy[2]) * dT * DEG2RAD / 2;
-	
+
 	// Take a time step
 	q[0] = q[0] + qdot[0];
 	q[1] = q[1] + qdot[1];
 	q[2] = q[2] + qdot[2];
 	q[3] = q[3] + qdot[3];
-	
+
 	float qmag = sqrtf(q[0]*q[0] + q[1]*q[1] + q[2]*q[2] + q[3]*q[3]);
 	q[0] = q[0] / qmag;
 	q[1] = q[1] / qmag;
 	q[2] = q[2] / qmag;
 	q[3] = q[3] / qmag;
-	
+
 	if(overideAttitude){
 		AttitudeActualData attitudeActual;
 		AttitudeActualGet(&attitudeActual);
@@ -684,7 +661,7 @@ static void simulateModelAirplane()
 		attitudeActual.q4 = q[3];
 		AttitudeActualSet(&attitudeActual);
 	}
-	
+
 	/**** 2. Update position based on velocity ****/
 	static float wind[3] = {0,0,0};
 	wind[0] = wind[0] * 0.95 + rand_gauss() / 10.0;
@@ -693,16 +670,16 @@ static void simulateModelAirplane()
 	wind[0] = 0;
 	wind[1] = 0;
 	wind[2] = 0;
-	
+
 	// Rbe takes a vector from body to earth.  If we take (1,0,0)^T through this and then dot with airspeed
-	// we get forward airspeed		
+	// we get forward airspeed
 	Quaternion2R(q,Rbe);
 
 	double airspeed[3] = {vel[0] - wind[0], vel[1] - wind[1], vel[2] - wind[2]};
 	double forwardAirspeed = Rbe[0][0] * airspeed[0] + Rbe[0][1] * airspeed[1] + Rbe[0][2] * airspeed[2];
 	double sidewaysAirspeed = Rbe[1][0] * airspeed[0] + Rbe[1][1] * airspeed[1] + Rbe[1][2] * airspeed[2];
 	double downwardAirspeed = Rbe[2][0] * airspeed[0] + Rbe[2][1] * airspeed[1] + Rbe[2][2] * airspeed[2];
-	
+
 	AirspeedActualData airspeedObj;
 	airspeedObj.CalibratedAirspeed = forwardAirspeed;
 	// TODO: Factor in temp and pressure when simulated for true airspeed.
@@ -718,7 +695,7 @@ static void simulateModelAirplane()
 	forces[0] = thrust - pitch * PITCH_THRUST_COUPLING - forwardAirspeed * K_FRICTION;         // Friction is applied in all directions in NED
 	forces[1] = 0 - sidewaysAirspeed * K_FRICTION * 100;      // No side slip
 	forces[2] = GRAVITY * (forwardAirspeed - LIFT_SPEED) + downwardAirspeed * K_FRICTION * 100;    // Stupidly simple, always have gravity lift when straight and level
-	
+
 	// Negate force[2] as NED defines down as possitive, aircraft convention is Z up is positive (?)
 	ned_accel[0] = forces[0] * Rbe[0][0] + forces[1] * Rbe[1][0] - forces[2] * Rbe[2][0];
 	ned_accel[1] = forces[0] * Rbe[0][1] + forces[1] * Rbe[1][1] - forces[2] * Rbe[2][1];
@@ -730,27 +707,27 @@ static void simulateModelAirplane()
 	ned_accel[0] -= K_FRICTION * (vel[0] - wind[0]);
 	ned_accel[1] -= K_FRICTION * (vel[1] - wind[1]);
 	ned_accel[2] -= K_FRICTION * (vel[2] - wind[2]);
-	
+
 	// Predict the velocity forward in time
 	vel[0] = vel[0] + ned_accel[0] * dT;
 	vel[1] = vel[1] + ned_accel[1] * dT;
 	vel[2] = vel[2] + ned_accel[2] * dT;
-	
+
 	// Predict the position forward in time
 	pos[0] = pos[0] + vel[0] * dT;
 	pos[1] = pos[1] + vel[1] * dT;
 	pos[2] = pos[2] + vel[2] * dT;
-	
+
 	// Simulate hitting ground
 	if(pos[2] > 0) {
 		pos[2] = 0;
 		vel[2] = 0;
 		ned_accel[2] = 0;
 	}
-	
+
 	// Sensor feels gravity (when not acceleration in ned frame e.g. ned_accel[2] = 0)
 	ned_accel[2] -= GRAVITY;
-	
+
 	// Transform the accels back in to body frame
 	AccelsData accelsData; // Skip get as we set all the fields
 	accelsData.x = ned_accel[0] * Rbe[0][0] + ned_accel[1] * Rbe[0][1] + ned_accel[2] * Rbe[0][2] + accel_bias[0];
@@ -758,7 +735,7 @@ static void simulateModelAirplane()
 	accelsData.z = ned_accel[0] * Rbe[2][0] + ned_accel[1] * Rbe[2][1] + ned_accel[2] * Rbe[2][2] + accel_bias[2];
 	accelsData.temperature = 30;
 	AccelsSet(&accelsData);
-	
+
 	if(baro_offset == 0) {
 		// Hacky initialization
 		baro_offset = 50;// * rand_gauss();
@@ -766,7 +743,7 @@ static void simulateModelAirplane()
 		// Very small drift process
 		baro_offset += rand_gauss() / 100;
 	}
-	// Update baro periodically	
+	// Update baro periodically
 	static uint32_t last_baro_time = 0;
 	if(PIOS_DELAY_DiffuS(last_baro_time) / 1.0e6 > BARO_PERIOD) {
 		BaroAltitudeData baroAltitude;
@@ -775,8 +752,8 @@ static void simulateModelAirplane()
 		BaroAltitudeSet(&baroAltitude);
 		last_baro_time = PIOS_DELAY_GetRaw();
 	}
-	
-	// Update baro airpseed periodically	
+
+	// Update baro airpseed periodically
 	static uint32_t last_airspeed_time = 0;
 	if(PIOS_DELAY_DiffuS(last_airspeed_time) / 1.0e6 > BARO_PERIOD) {
 		BaroAirspeedData baroAirspeed;
@@ -787,7 +764,7 @@ static void simulateModelAirplane()
 		BaroAirspeedSet(&baroAirspeed);
 		last_airspeed_time = PIOS_DELAY_GetRaw();
 	}
-	
+
 	HomeLocationData homeLocation;
 	HomeLocationGet(&homeLocation);
 	if (homeLocation.Set == HOMELOCATION_SET_FALSE) {
@@ -798,13 +775,13 @@ static void simulateModelAirplane()
 
 		HomeLocationSet(&homeLocation);
 	}
-	
+
 	static float gps_vel_drift[3] = {0,0,0};
 	gps_vel_drift[0] = gps_vel_drift[0] * 0.65 + rand_gauss() / 5.0;
 	gps_vel_drift[1] = gps_vel_drift[1] * 0.65 + rand_gauss() / 5.0;
 	gps_vel_drift[2] = gps_vel_drift[2] * 0.65 + rand_gauss() / 5.0;
-	
-	// Update GPS periodically	
+
+	// Update GPS periodically
 	static uint32_t last_gps_time = 0;
 	if(PIOS_DELAY_DiffuS(last_gps_time) / 1.0e6 > GPS_PERIOD) {
 		// Use double precision here as simulating what GPS produces
@@ -812,12 +789,12 @@ static void simulateModelAirplane()
 		T[0] = homeLocation.Altitude+6.378137E6f * DEG2RAD;
 		T[1] = cosf(homeLocation.Latitude / 10e6 * DEG2RAD)*(homeLocation.Altitude+6.378137E6) * DEG2RAD;
 		T[2] = -1.0;
-		
+
 		static float gps_drift[3] = {0,0,0};
 		gps_drift[0] = gps_drift[0] * 0.95 + rand_gauss() / 10.0;
 		gps_drift[1] = gps_drift[1] * 0.95 + rand_gauss() / 10.0;
 		gps_drift[2] = gps_drift[2] * 0.95 + rand_gauss() / 10.0;
-		
+
 		GPSPositionData gpsPosition;
 		GPSPositionGet(&gpsPosition);
 		gpsPosition.Latitude = homeLocation.Latitude + ((pos[0] + gps_drift[0]) / T[0] * 10.0e6);
@@ -830,7 +807,7 @@ static void simulateModelAirplane()
 		GPSPositionSet(&gpsPosition);
 		last_gps_time = PIOS_DELAY_GetRaw();
 	}
-	
+
 	// Update GPS Velocity measurements
 	static uint32_t last_gps_vel_time = 1000; // Delay by a millisecond
 	if(PIOS_DELAY_DiffuS(last_gps_vel_time) / 1.0e6 > GPS_PERIOD) {
@@ -842,7 +819,7 @@ static void simulateModelAirplane()
 		GPSVelocitySet(&gpsVelocity);
 		last_gps_vel_time = PIOS_DELAY_GetRaw();
 	}
-	
+
 	// Update mag periodically
 	static uint32_t last_mag_time = 0;
 	if(PIOS_DELAY_DiffuS(last_mag_time) / 1.0e6 > MAG_PERIOD) {
@@ -854,7 +831,7 @@ static void simulateModelAirplane()
 		MagnetometerSet(&mag);
 		last_mag_time = PIOS_DELAY_GetRaw();
 	}
-	
+
 	AttitudeSimulatedData attitudeSimulated;
 	AttitudeSimulatedGet(&attitudeSimulated);
 	attitudeSimulated.q1 = q[0];
@@ -890,51 +867,43 @@ static void simulateModelCar()
 	static float rpy[3] = {0,0,0}; // Low pass filtered actuator
 	static float baro_offset = 0.0f;
 	float Rbe[3][3];
-	
+
 	const float ACTUATOR_ALPHA = 0.8;
 	const float MAX_THRUST = 9.81 * 0.5;
 	const float K_FRICTION = 0.2;
 	const float GPS_PERIOD = 0.1;
 	const float MAG_PERIOD = 1.0 / 75.0;
 	const float BARO_PERIOD = 1.0 / 20.0;
-	
-	static uint32_t last_time;
-	
-	float dT = (PIOS_DELAY_DiffuS(last_time) / 1e6);
-	if(dT < 1e-3) {
-		dT = 2e-3;
-	} else if (dT > 1e-1) {
-		dT = 1e-1;
-	}
-	last_time = PIOS_DELAY_GetRaw();
-	
+
+	float dT = 0.002;
+
 	FlightStatusData flightStatus;
 	FlightStatusGet(&flightStatus);
 	ActuatorDesiredData actuatorDesired;
 	ActuatorDesiredGet(&actuatorDesired);
-	
+
 	float thrust = (flightStatus.Armed == FLIGHTSTATUS_ARMED_ARMED) ? actuatorDesired.Thrust * MAX_THRUST : 0;
 	if (thrust < 0)
 		thrust = 0;
-	
+
 	if (thrust != thrust)
 		thrust = 0;
-	
+
 	//	float control_scaling = thrust * thrustToDegs;
 	//	// In rad/s
 	//	rpy[0] = control_scaling * actuatorDesired.Roll * (1 - ACTUATOR_ALPHA) + rpy[0] * ACTUATOR_ALPHA;
 	//	rpy[1] = control_scaling * actuatorDesired.Pitch * (1 - ACTUATOR_ALPHA) + rpy[1] * ACTUATOR_ALPHA;
 	//	rpy[2] = control_scaling * actuatorDesired.Yaw * (1 - ACTUATOR_ALPHA) + rpy[2] * ACTUATOR_ALPHA;
-	//	
+	//
 	//	GyrosData gyrosData; // Skip get as we set all the fields
 	//	gyrosData.x = rpy[0] * 180 / M_PI + rand_gauss();
 	//	gyrosData.y = rpy[1] * 180 / M_PI + rand_gauss();
 	//	gyrosData.z = rpy[2] * 180 / M_PI + rand_gauss();
-	
+
 	/**** 1. Update attitude ****/
 	RateDesiredData rateDesired;
 	RateDesiredGet(&rateDesired);
-	
+
 	// Need to get roll angle for easy cross coupling
 	AttitudeActualData attitudeActual;
 	AttitudeActualGet(&attitudeActual);
@@ -942,33 +911,33 @@ static void simulateModelCar()
 	rpy[0] = 0; // cannot roll
 	rpy[1] = 0; // cannot pitch
 	rpy[2] = (flightStatus.Armed == FLIGHTSTATUS_ARMED_ARMED) * rateDesired.Yaw * (1 - ACTUATOR_ALPHA) + rpy[2] * ACTUATOR_ALPHA;
-	
+
 
 	GyrosData gyrosData; // Skip get as we set all the fields
 	gyrosData.x = rpy[0] + rand_gauss();
 	gyrosData.y = rpy[1] + rand_gauss();
 	gyrosData.z = rpy[2] + rand_gauss();
 	GyrosSet(&gyrosData);
-	
+
 	// Predict the attitude forward in time
 	float qdot[4];
 	qdot[0] = (-q[1] * rpy[0] - q[2] * rpy[1] - q[3] * rpy[2]) * dT * DEG2RAD / 2;
 	qdot[1] = (q[0] * rpy[0] - q[3] * rpy[1] + q[2] * rpy[2]) * dT * DEG2RAD / 2;
 	qdot[2] = (q[3] * rpy[0] + q[0] * rpy[1] - q[1] * rpy[2]) * dT * DEG2RAD / 2;
 	qdot[3] = (-q[2] * rpy[0] + q[1] * rpy[1] + q[0] * rpy[2]) * dT * DEG2RAD / 2;
-	
+
 	// Take a time step
 	q[0] = q[0] + qdot[0];
 	q[1] = q[1] + qdot[1];
 	q[2] = q[2] + qdot[2];
 	q[3] = q[3] + qdot[3];
-	
+
 	float qmag = sqrtf(q[0]*q[0] + q[1]*q[1] + q[2]*q[2] + q[3]*q[3]);
 	q[0] = q[0] / qmag;
 	q[1] = q[1] / qmag;
 	q[2] = q[2] / qmag;
 	q[3] = q[3] / qmag;
-	
+
 	if(overideAttitude){
 		AttitudeActualData attitudeActual;
 		AttitudeActualGet(&attitudeActual);
@@ -978,10 +947,10 @@ static void simulateModelCar()
 		attitudeActual.q4 = q[3];
 		AttitudeActualSet(&attitudeActual);
 	}
-	
+
 	/**** 2. Update position based on velocity ****/
 	// Rbe takes a vector from body to earth.  If we take (1,0,0)^T through this and then dot with airspeed
-	// we get forward airspeed		
+	// we get forward airspeed
 	Quaternion2R(q,Rbe);
 
 	double groundspeed[3] = {vel[0], vel[1], vel[2] };
@@ -995,7 +964,7 @@ static void simulateModelCar()
 	forces[0] = thrust - forwardSpeed * K_FRICTION;         // Friction is applied in all directions in NED
 	forces[1] = 0 - sidewaysSpeed * K_FRICTION * 100;      // No side slip
 	forces[2] = 0;
-	
+
 	// Negate force[2] as NED defines down as possitive, aircraft convention is Z up is positive (?)
 	ned_accel[0] = forces[0] * Rbe[0][0] + forces[1] * Rbe[1][0] - forces[2] * Rbe[2][0];
 	ned_accel[1] = forces[0] * Rbe[0][1] + forces[1] * Rbe[1][1] - forces[2] * Rbe[2][1];
@@ -1004,27 +973,27 @@ static void simulateModelCar()
 	// Apply acceleration based on velocity
 	ned_accel[0] -= K_FRICTION * (vel[0]);
 	ned_accel[1] -= K_FRICTION * (vel[1]);
-	
+
 	// Predict the velocity forward in time
 	vel[0] = vel[0] + ned_accel[0] * dT;
 	vel[1] = vel[1] + ned_accel[1] * dT;
 	vel[2] = vel[2] + ned_accel[2] * dT;
-	
+
 	// Predict the position forward in time
 	pos[0] = pos[0] + vel[0] * dT;
 	pos[1] = pos[1] + vel[1] * dT;
 	pos[2] = pos[2] + vel[2] * dT;
-	
+
 	// Simulate hitting ground
 	if(pos[2] > 0) {
 		pos[2] = 0;
 		vel[2] = 0;
 		ned_accel[2] = 0;
 	}
-	
+
 	// Sensor feels gravity (when not acceleration in ned frame e.g. ned_accel[2] = 0)
 	ned_accel[2] -= GRAVITY;
-	
+
 	// Transform the accels back in to body frame
 	AccelsData accelsData; // Skip get as we set all the fields
 	accelsData.x = ned_accel[0] * Rbe[0][0] + ned_accel[1] * Rbe[0][1] + ned_accel[2] * Rbe[0][2] + accel_bias[0];
@@ -1032,7 +1001,7 @@ static void simulateModelCar()
 	accelsData.z = ned_accel[0] * Rbe[2][0] + ned_accel[1] * Rbe[2][1] + ned_accel[2] * Rbe[2][2] + accel_bias[2];
 	accelsData.temperature = 30;
 	AccelsSet(&accelsData);
-	
+
 	if(baro_offset == 0) {
 		// Hacky initialization
 		baro_offset = 50;// * rand_gauss();
@@ -1040,7 +1009,7 @@ static void simulateModelCar()
 		// Very small drift process
 		baro_offset += rand_gauss() / 100;
 	}
-	// Update baro periodically	
+	// Update baro periodically
 	static uint32_t last_baro_time = 0;
 	if(PIOS_DELAY_DiffuS(last_baro_time) / 1.0e6 > BARO_PERIOD) {
 		BaroAltitudeData baroAltitude;
@@ -1049,7 +1018,7 @@ static void simulateModelCar()
 		BaroAltitudeSet(&baroAltitude);
 		last_baro_time = PIOS_DELAY_GetRaw();
 	}
-	
+
 	HomeLocationData homeLocation;
 	HomeLocationGet(&homeLocation);
 	if (homeLocation.Set == HOMELOCATION_SET_FALSE) {
@@ -1060,13 +1029,13 @@ static void simulateModelCar()
 
 		HomeLocationSet(&homeLocation);
 	}
-	
+
 	static float gps_vel_drift[3] = {0,0,0};
 	gps_vel_drift[0] = gps_vel_drift[0] * 0.65 + rand_gauss() / 5.0;
 	gps_vel_drift[1] = gps_vel_drift[1] * 0.65 + rand_gauss() / 5.0;
 	gps_vel_drift[2] = gps_vel_drift[2] * 0.65 + rand_gauss() / 5.0;
-	
-	// Update GPS periodically	
+
+	// Update GPS periodically
 	static uint32_t last_gps_time = 0;
 	if(PIOS_DELAY_DiffuS(last_gps_time) / 1.0e6 > GPS_PERIOD) {
 		// Use double precision here as simulating what GPS produces
@@ -1074,12 +1043,12 @@ static void simulateModelCar()
 		T[0] = homeLocation.Altitude+6.378137E6f * DEG2RAD;
 		T[1] = cosf(homeLocation.Latitude / 10e6 * DEG2RAD)*(homeLocation.Altitude+6.378137E6) * DEG2RAD;
 		T[2] = -1.0;
-		
+
 		static float gps_drift[3] = {0,0,0};
 		gps_drift[0] = gps_drift[0] * 0.95 + rand_gauss() / 10.0;
 		gps_drift[1] = gps_drift[1] * 0.95 + rand_gauss() / 10.0;
 		gps_drift[2] = gps_drift[2] * 0.95 + rand_gauss() / 10.0;
-		
+
 		GPSPositionData gpsPosition;
 		GPSPositionGet(&gpsPosition);
 		gpsPosition.Latitude = homeLocation.Latitude + ((pos[0] + gps_drift[0]) / T[0] * 10.0e6);
@@ -1092,7 +1061,7 @@ static void simulateModelCar()
 		GPSPositionSet(&gpsPosition);
 		last_gps_time = PIOS_DELAY_GetRaw();
 	}
-	
+
 	// Update GPS Velocity measurements
 	static uint32_t last_gps_vel_time = 1000; // Delay by a millisecond
 	if(PIOS_DELAY_DiffuS(last_gps_vel_time) / 1.0e6 > GPS_PERIOD) {
@@ -1104,7 +1073,7 @@ static void simulateModelCar()
 		GPSVelocitySet(&gpsVelocity);
 		last_gps_vel_time = PIOS_DELAY_GetRaw();
 	}
-	
+
 	// Update mag periodically
 	static uint32_t last_mag_time = 0;
 	if(PIOS_DELAY_DiffuS(last_mag_time) / 1.0e6 > MAG_PERIOD) {
@@ -1116,7 +1085,7 @@ static void simulateModelCar()
 		MagnetometerSet(&mag);
 		last_mag_time = PIOS_DELAY_GetRaw();
 	}
-	
+
 	AttitudeSimulatedData attitudeSimulated;
 	AttitudeSimulatedGet(&attitudeSimulated);
 	attitudeSimulated.q1 = q[0];
@@ -1136,14 +1105,14 @@ static void simulateModelCar()
 
 static float rand_gauss (void) {
 	float v1,v2,s;
-	
+
 	do {
 		v1 = 2.0 * ((float) rand()/RAND_MAX) - 1;
 		v2 = 2.0 * ((float) rand()/RAND_MAX) - 1;
-		
+
 		s = v1*v1 + v2*v2;
 	} while ( s >= 1.0 );
-	
+
 	if (s == 0.0)
 		return 0.0;
 	else
@@ -1159,41 +1128,41 @@ static void magOffsetEstimation(MagnetometerData *mag)
 {
 	HomeLocationData homeLocation;
 	HomeLocationGet(&homeLocation);
-	
+
 	AttitudeActualData attitude;
 	AttitudeActualGet(&attitude);
-	
+
 	MagBiasData magBias;
 	MagBiasGet(&magBias);
-	
+
 	// Remove the current estimate of the bias
 	mag->x -= magBias.x;
 	mag->y -= magBias.y;
 	mag->z -= magBias.z;
-	
+
 	const float Rxy = sqrtf(homeLocation.Be[0]*homeLocation.Be[0] + homeLocation.Be[1]*homeLocation.Be[1]);
 	const float Rz = homeLocation.Be[2];
-	
+
 	const float rate = 0.01;
 	float R[3][3];
 	float B_e[3];
 	float xy[2];
 	float delta[3];
-	
+
 	// Get the rotation matrix
 	Quaternion2R(&attitude.q1, R);
-	
+
 	// Rotate the mag into the NED frame
 	B_e[0] = R[0][0] * mag->x + R[1][0] * mag->y + R[2][0] * mag->z;
 	B_e[1] = R[0][1] * mag->x + R[1][1] * mag->y + R[2][1] * mag->z;
 	B_e[2] = R[0][2] * mag->x + R[1][2] * mag->y + R[2][2] * mag->z;
-	
+
 	float cy = cosf(attitude.Yaw * DEG2RAD);
 	float sy = sinf(attitude.Yaw * DEG2RAD);
 
 	xy[0] =  cy * B_e[0] + sy * B_e[1];
 	xy[1] = -sy * B_e[0] + cy * B_e[1];
-	
+
 	float xy_norm = sqrtf(xy[0]*xy[0] + xy[1]*xy[1]);
 
 	if (xy_norm > 0) {
