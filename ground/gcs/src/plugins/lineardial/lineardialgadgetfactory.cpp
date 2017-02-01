@@ -48,7 +48,7 @@ Core::IUAVGadget* LineardialGadgetFactory::createGadget(QWidget *parent)
     return new LineardialGadget(QString("LineardialGadget"), gadgetWidget, parent);
 }
 
-IUAVGadgetConfiguration *LineardialGadgetFactory::createConfiguration(QSettings* qSettings)
+IUAVGadgetConfiguration *LineardialGadgetFactory::createConfiguration(QSettings *qSettings)
 {
     return new LineardialGadgetConfiguration(QString("LineardialGadget"), qSettings);
 }

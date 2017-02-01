@@ -48,7 +48,7 @@ Core::IUAVGadget* QmlViewGadgetFactory::createGadget(QWidget *parent)
     return new QmlViewGadget(QString("QmlViewGadget"), gadgetWidget, parent);
 }
 
-IUAVGadgetConfiguration *QmlViewGadgetFactory::createConfiguration(QSettings* qSettings)
+IUAVGadgetConfiguration *QmlViewGadgetFactory::createConfiguration(QSettings *qSettings)
 {
     return new QmlViewGadgetConfiguration(QString("QmlViewGadget"), qSettings);
 }

@@ -125,7 +125,7 @@
 			</options>
 		</field>
 		<!-- LightTelemetry Module Settings -->
-		<field name="LightTelemetrySpeed" units="bps" type="enum" elements="1" parent="HwShared.SpeedBps" defaultvalue="2400">
+		<field name="LightTelemetrySpeed" units="bps" type="enum" elements="1" parent="HwShared.SpeedBps" defaultvalue="1200">
 			<description>Baudrate used by ports configured for LTM telemetry.</description>
 			<options>
 				<option>1200</option>

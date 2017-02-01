@@ -1,0 +1,15 @@
+#!/usr/bin/env python
+
+if __name__ == "__main__":
+    from dronin import telemetry
+    import time
+
+while True:
+    try:
+        uavo_list = telemetry.get_telemetry_by_args(service_in_iter=False)
+        uavo_list.start_thread()
+    except Exception:
+        time.sleep(0.5)
+        continue
+
+    for o in uavo_list: print(o)

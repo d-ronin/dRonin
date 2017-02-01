@@ -1,13 +1,13 @@
 # bashrc for dRonin development on Windows
 # Michael Lyle - 2015-2016
 
-QT_VERSION_FULL=5.6.1
+QT_VERSION_FULL=5.8.0
 QT_VERSION=`echo "$QT_VERSION_FULL" | cut -d '.' -f1-2`
 QT_BASEDIR="/C/Qt"
 
 # This is really unfortunate on the part of Qt.
-QT_MINGWVER="mingw49_32"
-QT_MINGWVERB="mingw492_32"
+QT_MINGWVER="mingw53_32"
+QT_MINGWVERB="mingw530_32"
 
 if [ -d "$QT_BASEDIR/Qt$QT_VERSION_FULL" ] ; then
   QT_BASEDIR="$QT_BASEDIR/Qt$QT_VERSION_FULL"

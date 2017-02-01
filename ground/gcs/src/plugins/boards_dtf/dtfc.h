@@ -36,8 +36,6 @@
 
 #include <coreplugin/iboardtype.h>
 
-class IBoardType;
-
 class Dtfc : public Core::IBoardType
 {
 public:
@@ -52,19 +50,19 @@ public:
     virtual int queryMaxGyroRate();
 
     //! Determine if this board supports configuring the receiver
-    virtual bool isInputConfigurationSupported(InputType type);
+    virtual bool isInputConfigurationSupported(Core::IBoardType::InputType type);
 
     /**
     * Configure the board to use an receiver input type on a port number
     * @param type the type of receiver to use
     */
-    virtual bool setInputType(enum InputType type);
+    virtual bool setInputType(Core::IBoardType::InputType type);
 
     /**
     * @brief getInputOnPort get the current input type
     * @return the currently selected input type
     */
-    virtual enum InputType getInputType(void);
+    virtual Core::IBoardType::InputType getInputType();
 
     virtual QStringList getAdcNames();
 
@@ -74,7 +72,7 @@ public:
      * @param connected Unused
      * @return Configuration widget handle or NULL on failure
      */
-    QWidget *getBoardConfiguration(QWidget *parent, bool connected);
+    virtual QWidget *getBoardConfiguration(QWidget *parent, bool connected);
 
     /**
      * @brief getConnectionDiagram get the connection diagram for this board

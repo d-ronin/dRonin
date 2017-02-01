@@ -1,3 +1,5 @@
+TOOLS_DIR = $$PWD/../tools
+
 # If the PYTHON environment variable isn't set (by Make)
 # then we set it ourselves.
 PYTHON_LOCAL = $$(PYTHON)
@@ -13,3 +15,9 @@ CONFIG(debug, debug|release):*-g++*|*-clang* {
     QMAKE_CC=$$(CCACHE_BIN) $$QMAKE_CC
     QMAKE_CXX=$$(CCACHE_BIN) $$QMAKE_CXX
 }
+
+DR_QT_MAJOR_VERSION=5
+DR_QT_MINOR_VERSION=8
+DR_QT_PATCH_VERSION=0
+
+BREAKPAD = $$TOOLS_DIR/breakpad/20170129

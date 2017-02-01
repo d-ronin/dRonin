@@ -77,7 +77,6 @@ Sparky2::~Sparky2()
 
 }
 
-
 QString Sparky2::shortName()
 {
     return QString("Sparky2");
@@ -100,8 +99,9 @@ bool Sparky2::queryCapabilities(BoardCapabilities capability)
     case BOARD_CAPABILITIES_UPGRADEABLE:
         return true;
     default:
-        return false;
+        break;
     }
+    
     return false;
 }
 
@@ -128,16 +128,17 @@ HwSparky2 * Sparky2::getSettings()
 }
 
 //! Determine if this board supports configuring the receiver
-bool Sparky2::isInputConfigurationSupported(enum InputType type = INPUT_TYPE_ANY)
+bool Sparky2::isInputConfigurationSupported(Core::IBoardType::InputType type)
 {
     switch (type) {
     case INPUT_TYPE_PWM:
-    case INPUT_TYPE_HOTTSUMD:
-    case INPUT_TYPE_HOTTSUMH:
+    case INPUT_TYPE_UNKNOWN:
         return false;
     default:
-        return true;
+        break;
     }
+    
+    return true;
 }
 
 /**
@@ -145,7 +146,7 @@ bool Sparky2::isInputConfigurationSupported(enum InputType type = INPUT_TYPE_ANY
  * @param type the type of receiver to use
  * @return true if successfully configured or false otherwise
  */
-bool Sparky2::setInputType(enum InputType type)
+bool Sparky2::setInputType(Core::IBoardType::InputType type)
 {
     ExtensionSystem::PluginManager *pm = ExtensionSystem::PluginManager::instance();
     UAVObjectManager *uavoManager = pm->getObject<UAVObjectManager>();
@@ -163,8 +164,23 @@ bool Sparky2::setInputType(enum InputType type)
     case INPUT_TYPE_SBUS:
         settings.RcvrPort = HwSparky2::RCVRPORT_SBUS;
         break;
+    case INPUT_TYPE_SBUSNONINVERTED:
+        settings.RcvrPort = HwSparky2::RCVRPORT_SBUSNONINVERTED;
+        break;
     case INPUT_TYPE_DSM:
         settings.RcvrPort = HwSparky2::RCVRPORT_DSM;
+        break;
+    case INPUT_TYPE_HOTTSUMD:
+        settings.RcvrPort = HwSparky2::RCVRPORT_HOTTSUMD;
+        break;
+    case INPUT_TYPE_HOTTSUMH:
+        settings.RcvrPort = HwSparky2::RCVRPORT_HOTTSUMH;
+        break;
+    case INPUT_TYPE_IBUS:
+        settings.RcvrPort = HwSparky2::RCVRPORT_IBUS;
+        break;
+    case INPUT_TYPE_SRXL:
+        settings.RcvrPort = HwSparky2::RCVRPORT_SRXL;
         break;
     default:
         return false;
@@ -180,7 +196,7 @@ bool Sparky2::setInputType(enum InputType type)
  * @brief Sparky2::getInputType fetch the currently selected input type
  * @return the selected input type
  */
-enum Core::IBoardType::InputType Sparky2::getInputType()
+Core::IBoardType::InputType Sparky2::getInputType()
 {
     ExtensionSystem::PluginManager *pm = ExtensionSystem::PluginManager::instance();
     UAVObjectManager *uavoManager = pm->getObject<UAVObjectManager>();
@@ -196,11 +212,57 @@ enum Core::IBoardType::InputType Sparky2::getInputType()
         return INPUT_TYPE_PPM;
     case HwSparky2::RCVRPORT_SBUS:
         return INPUT_TYPE_SBUS;
+    case HwSparky2::RCVRPORT_SBUSNONINVERTED:
+        return INPUT_TYPE_SBUSNONINVERTED;
     case HwSparky2::RCVRPORT_DSM:
         return INPUT_TYPE_DSM;
+    case HwSparky2::RCVRPORT_HOTTSUMD:
+        return INPUT_TYPE_HOTTSUMD;
+    case HwSparky2::RCVRPORT_HOTTSUMH:
+        return INPUT_TYPE_HOTTSUMH;
+    case HwSparky2::RCVRPORT_IBUS:
+        return INPUT_TYPE_IBUS;
+    case HwSparky2::RCVRPORT_SRXL:
+        return INPUT_TYPE_SRXL;
     default:
-        return INPUT_TYPE_UNKNOWN;
+        break;
     }
+    
+    switch(settings.MainPort) {
+    case HwSparky2::MAINPORT_DSM:
+        return INPUT_TYPE_DSM;
+    case HwSparky2::MAINPORT_HOTTSUMD:
+        return INPUT_TYPE_HOTTSUMD;
+    case HwSparky2::MAINPORT_HOTTSUMH:
+        return INPUT_TYPE_HOTTSUMH;
+    case HwSparky2::MAINPORT_SBUSNONINVERTED:
+        return INPUT_TYPE_SBUSNONINVERTED;
+    case HwSparky2::MAINPORT_IBUS:
+        return INPUT_TYPE_IBUS;
+    case HwSparky2::MAINPORT_SRXL:
+        return INPUT_TYPE_SRXL;
+    default:
+        break;
+    }
+    
+    switch(settings.FlexiPort) {
+    case HwSparky2::FLEXIPORT_DSM:
+        return INPUT_TYPE_DSM;
+    case HwSparky2::FLEXIPORT_HOTTSUMD:
+        return INPUT_TYPE_HOTTSUMD;
+    case HwSparky2::FLEXIPORT_HOTTSUMH:
+        return INPUT_TYPE_HOTTSUMH;
+    case HwSparky2::FLEXIPORT_SBUSNONINVERTED:
+        return INPUT_TYPE_SBUSNONINVERTED;
+    case HwSparky2::FLEXIPORT_IBUS:
+        return INPUT_TYPE_IBUS;
+    case HwSparky2::FLEXIPORT_SRXL:
+        return INPUT_TYPE_SRXL;
+    default:
+        break;
+    }
+    
+    return INPUT_TYPE_UNKNOWN;
 }
 
 int Sparky2::queryMaxGyroRate()
@@ -224,8 +286,10 @@ int Sparky2::queryMaxGyroRate()
     case HwSparky2::GYRORANGE_2000:
         return 2000;
     default:
-        return 500;
+        break;
     }
+    
+    return 500;
 }
 
 

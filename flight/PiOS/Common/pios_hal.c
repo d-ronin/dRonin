@@ -2,7 +2,7 @@
  ******************************************************************************
  * @file       pios_hal.c
  * @author     Tau Labs, http://taulabs.org, Copyright (C) 2015
- * @author     dRonin, http://dronin.org Copyright (C) 2015-2016
+ * @author     dRonin, http://dronin.org Copyright (C) 2015-2017
  * @addtogroup PIOS PIOS Core hardware abstraction layer
  * @{
  * @addtogroup PIOS_HAL Hardware abstraction layer files
@@ -179,7 +179,7 @@ uintptr_t pios_com_debug_id;
 #endif
 
 #ifndef PIOS_COM_LIGHTTELEMETRY_TX_BUF_LEN
-#define PIOS_COM_LIGHTTELEMETRY_TX_BUF_LEN 19
+#define PIOS_COM_LIGHTTELEMETRY_TX_BUF_LEN 22
 #endif
 
 #ifndef PIOS_COM_FRSKYSPORT_TX_BUF_LEN
@@ -263,6 +263,25 @@ static const struct pios_ms5611_cfg external_ms5611_cfg = {
 };
 #endif
 
+#ifdef PIOS_INCLUDE_WS2811
+#include <pios_ws2811.h>
+#endif
+
+static inline void PIOS_HAL_Err2811(bool on) {
+	(void) on;
+#ifdef PIOS_INCLUDE_WS2811
+	if (pios_ws2811) {
+		if (on) {
+			PIOS_WS2811_set_all(pios_ws2811, 255, 16, 255);
+		} else {
+			PIOS_WS2811_set_all(pios_ws2811, 0, 32, 0);
+		}
+	}
+
+	PIOS_WS2811_trigger_update(pios_ws2811);
+#endif
+}
+
 /**
  * @brief Flash a blink code.
  * @param[in] led_id The LED to blink
@@ -285,10 +304,12 @@ void PIOS_HAL_CriticalError(uint32_t led_id, enum pios_hal_panic code) {
 	for (int cnt = 0; cnt < 3; cnt++) {
 		for (int32_t i = 0; i < code; i++) {
 			PIOS_WDG_Clear();
-			PIOS_ANNUNC_Toggle(led_id);
+			PIOS_ANNUNC_On(led_id);
+			PIOS_HAL_Err2811(true);
 			PIOS_DELAY_WaitmS(175);
 			PIOS_WDG_Clear();
-			PIOS_ANNUNC_Toggle(led_id);
+			PIOS_HAL_Err2811(false);
+			PIOS_ANNUNC_Off(led_id);
 			PIOS_DELAY_WaitmS(175);
 		}
 		PIOS_DELAY_WaitmS(175);

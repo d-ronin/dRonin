@@ -9,6 +9,7 @@ Licensed under the GNU LGPL version 2.1 or any later version (see COPYING.LESSER
 import socket
 import time
 import errno
+from threading import Condition
 
 from . import uavtalk, uavo_collection, uavo
 
@@ -61,7 +62,10 @@ class TelemetryBase(with_metaclass(ABCMeta)):
         self.uavo_defs = uavo_defs
         self.uavtalk_generator = uavtalk.process_stream(uavo_defs,
             use_walltime=use_walltime, gcs_timestamps=gcs_timestamps,
-            progress_callback=progress_callback)
+            progress_callback=progress_callback,
+            ack_callback=self.gotack_callback,
+            nack_callback=self.gotnack_callback,
+            reqack_callback=self.reqack_callback)
 
         self.uavtalk_generator.send(None)
 
@@ -69,14 +73,20 @@ class TelemetryBase(with_metaclass(ABCMeta)):
 
         self.last_values = {}
 
-        from threading import Condition
         self.cond = Condition()
+        self.ack_cond = Condition()
+
+        if (service_in_iter) and (not iter_blocks):
+            raise ValueError("Invalid combination of flags")
 
         self.service_in_iter = service_in_iter
         self.iter_blocks = iter_blocks
 
         self.do_handshaking = do_handshaking
         self.filename = name
+
+        self.acks = set()
+        self.nacks = set()
 
         self.eof = False
 
@@ -85,6 +95,20 @@ class TelemetryBase(with_metaclass(ABCMeta)):
         if do_handshaking:
             self.GCSTelemetryStats = uavo_defs.find_by_name('UAVO_GCSTelemetryStats')
             self.FlightTelemetryStats = uavo_defs.find_by_name('UAVO_FlightTelemetryStats')
+
+    def reqack_callback(self, obj):
+        if self.do_handshaking:
+            self._send(uavtalk.acknowledge_object(obj))
+
+    def gotack_callback(self, obj):
+        with self.ack_cond:
+            self.acks.add(obj)
+            self.ack_cond.notifyAll()
+
+    def gotnack_callback(self, obj):
+        with self.ack_cond:
+            self.nacks.add(obj)
+            self.ack_cond.notifyAll()
 
     def as_numpy_array(self, match_class, filter_cond=None):
         """ Transforms all received instances of a given object to a numpy array.
@@ -135,27 +159,33 @@ class TelemetryBase(with_metaclass(ABCMeta)):
                     # wait for another thread to fill it in
                     self.cond.wait()
             else:
-                # Don't really recommend this mode anymore/maybe remove
-                if self.service_in_iter and not self._done():
-                    # Do at least one non-blocking attempt
-                    self.cond.release()
-
-                    self.service_connection(0)
-
-                    self.cond.acquire()
-
-                # I think this should probably keep the index so that
-                # new iterations pick up where we were.. XXX TODO
-                # takes some thought as to what is "right"
-                if iterIdx >= len(self.uavo_list):
-                    break
+                break
 
     def __make_handshake(self, handshake):
         return self.GCSTelemetryStats._make_to_send(
                 Status=self.GCSTelemetryStats.ENUM_Status[handshake])
 
-    def send_object(self, obj):
-        self._send(uavtalk.send_object(obj))
+    def __remove_from_ack_set(self, obj):
+        with self.ack_cond:
+            self.acks.discard(obj)
+
+    def send_object(self, send_obj, req_ack=False, *args, **kwargs):
+        if not self.do_handshaking:
+            raise ValueError("Can only send on handshaking/bidir sessions")
+
+        if req_ack:
+            self.__remove_from_ack_set(send_obj.__class__)
+
+            for i in range(8):
+                self._send(uavtalk.send_object(send_obj, req_ack=req_ack, *args, **kwargs))
+                if self.__wait_ack(send_obj.__class__, 0.26):
+                    return True
+
+            return False
+
+        else:
+            self._send(uavtalk.send_object(send_obj, req_ack=req_ack, *args, **kwargs))
+            return True
 
     def __handle_handshake(self, obj):
         if obj.name == "UAVO_FlightTelemetryStats":
@@ -181,11 +211,38 @@ class TelemetryBase(with_metaclass(ABCMeta)):
 
         self._send(uavtalk.request_object(obj))
 
+    def __wait_ack(self, obj, timeout):
+        expiry = time.time() + timeout
+
+        # properly sleep, etc.
+        with self.ack_cond:
+            while True:
+                if obj in self.acks:
+                    return True
+
+                if self.eof:
+                    return False
+
+                diff = expiry - time.time();
+
+                if (diff <= 0):
+                    return False
+
+                self.ack_cond.wait(diff + 0.001)
+
+    def get_nacks(self):
+        with self.ack_cond:
+            ret = self.nacks
+            self.nacks = set()
+
+            return ret
+
     def __handle_frames(self, frames):
         objs = []
 
         if frames == b'':
-            self.eof=True
+            self.eof = True
+            self._close()
         else:
             obj = self.uavtalk_generator.send(frames)
 
@@ -239,8 +296,16 @@ class TelemetryBase(with_metaclass(ABCMeta)):
         from threading import Thread
 
         def run():
-            while not self._done():
-                self.service_connection()
+            try:
+                while not self._done():
+                    self.service_connection()
+            finally:
+                with self.cond:
+                    with self.ack_cond:
+                        self.cond.notifyAll()
+                        self.ack_cond.notifyAll()
+                        self.eof = True
+                        self._close()
 
         t = Thread(target=run, name="telemetry svc thread")
 
@@ -279,6 +344,9 @@ class TelemetryBase(with_metaclass(ABCMeta)):
         with self.cond:
             return self.eof
 
+    def _close(self):
+        return
+
 class BidirTelemetry(TelemetryBase):
     """
     Stuff involved in buffering for bidirection telemetry.
@@ -296,6 +364,8 @@ class BidirTelemetry(TelemetryBase):
 
         self.recv_buf = b''
         self.send_buf = b''
+
+        self.send_lock = Condition()
 
     def _receive(self, finish_time):
         """ Fetch available data from file descriptor. """
@@ -317,9 +387,11 @@ class BidirTelemetry(TelemetryBase):
     def _send(self, msg):
         """ Send a string to the controller """
 
-        self.send_buf += msg
+        with self.send_lock:
+            self.send_buf += msg
 
-        self._do_io(0)
+        if self.service_in_iter:
+            self._do_io(0)
 
     @abstractmethod
     def _do_io(self, finish_time):
@@ -391,15 +463,16 @@ class FDTelemetry(BidirTelemetry):
                     raise
 
         if w:
-            written = os.write(self.fd, self.send_buf)
+            with self.send_lock:
+                written = os.write(self.fd, self.send_buf)
 
-            if written > 0:
-                self.send_buf = self.send_buf[written:]
+                if written > 0:
+                    self.send_buf = self.send_buf[written:]
 
-            did_stuff = True
+                did_stuff = True
 
         return did_stuff
-
+    
 class NetworkTelemetry(FDTelemetry):
     """ TCP telemetry interface. """
     def __init__(self, host="127.0.0.1", port=9000, *args, **kwargs):
@@ -420,6 +493,9 @@ class NetworkTelemetry(FDTelemetry):
         self.sock = s
 
         FDTelemetry.__init__(self, fd=s.fileno(), *args, **kwargs)
+
+    def _close(self):
+        self.sock.close()
 
 # TODO XXX : Plumb appropriate cleanup / file close for these classes
 
@@ -460,15 +536,16 @@ class SerialTelemetry(BidirTelemetry):
                 # Ignore this; looks like a pyserial bug
                 pass
 
-            if self.send_buf != '':
-                try:
-                    written = self.ser.write(self.send_buf)
+            with self.send_lock:
+                if self.send_buf != '':
+                    try:
+                        written = self.ser.write(self.send_buf)
 
-                    if written > 0:
-                        self.send_buf = self.send_buf[written:]
-                        did_stuff = True
-                except serial.SerialTimeoutException:
-                    pass
+                        if written > 0:
+                            self.send_buf = self.send_buf[written:]
+                            did_stuff = True
+                    except serial.SerialTimeoutException:
+                        pass
 
             now = time.time()
             if finish_time is not None:
@@ -555,11 +632,12 @@ class HIDTelemetry(BidirTelemetry):
 
     # Call select and do one set of IO operations.
     def _do_io(self, finish_time):
+        import errno
         from six import int2byte, indexbytes, byte2int, iterbytes
 
         did_stuff = False
 
-        to_block = 35   # Wait no more than 35ms first time around
+        to_block = 10   # Wait no more than 10ms first time around
 
         while not did_stuff:
             chunk = ''
@@ -572,30 +650,32 @@ class HIDTelemetry(BidirTelemetry):
 
                     if length <= len(raw) - 2:
                         chunk = raw.tostring()[2:2+length]
-
-            except Exception:
-                pass
+            except IOError, e:
+                if e.errno != errno.ETIMEDOUT:
+                    raise
 
             if chunk != '':
                 did_stuff = True
                 self.recv_buf = self.recv_buf + chunk
 
-            if self.send_buf != '':
-                to_write = len(self.send_buf)
+            with self.send_lock:
+                if self.send_buf != '':
+                    to_write = len(self.send_buf)
 
-                if to_write > 60:
-                    to_write = 60
+                    if to_write > 60:
+                        to_write = 60
 
-                try:
-                    buf = int2byte(1) + int2byte(to_write) + self.send_buf[0:to_write]
+                    try:
+                        buf = int2byte(1) + int2byte(to_write) + self.send_buf[0:to_write]
 
-                    written = self.ep_out.write(self.send_buf) - 2
+                        written = self.ep_out.write(buf) - 2
 
-                    if written > 0:
-                        self.send_buf = self.send_buf[written:]
-                        did_stuff = True
-                except Exception:
-                    pass
+                        if written > 0:
+                            self.send_buf = self.send_buf[written:]
+                            did_stuff = True
+                    except IOError, e:
+                        if e.errno != errno.ETIMEDOUT:
+                            raise
 
             now = time.time()
             if finish_time is not None:
@@ -611,9 +691,10 @@ class HIDTelemetry(BidirTelemetry):
                 if self.send_buf == '':
                     to_block = 2000
                 else:
-                    to_block = 25
+                    to_block = 10
 
-            time.sleep(0.0025)    # 2.5ms, ~28 bytes of time at 115200
+            if not did_stuff:
+                time.sleep(0.0025)    # 2.5ms, ~28 bytes of time at 115200
 
         return did_stuff
 

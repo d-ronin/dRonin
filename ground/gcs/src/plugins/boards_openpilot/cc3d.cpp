@@ -73,8 +73,9 @@ bool CC3D::queryCapabilities(BoardCapabilities capability)
     case BOARD_DISABILITY_REQUIRESUPGRADER:
         return true;
     default:
-        return false;
+        break;
     }
+    
     return false;
 }
 
@@ -100,9 +101,15 @@ QString CC3D::getHwUAVO()
 
 
 //! Determine if this board supports configuring the receiver
-bool CC3D::isInputConfigurationSupported(enum InputType type = INPUT_TYPE_ANY)
+bool CC3D::isInputConfigurationSupported(Core::IBoardType::InputType type)
 {
-    Q_UNUSED(type);
+    switch (type) {
+    case INPUT_TYPE_UNKNOWN:
+        return false;
+    default:
+        break;
+    }
+    
     return true;
 }
 
@@ -111,7 +118,7 @@ bool CC3D::isInputConfigurationSupported(enum InputType type = INPUT_TYPE_ANY)
  * @param type the type of receiver to use
  * @return true if successfully configured or false otherwise
  */
-bool CC3D::setInputType(enum InputType type)
+bool CC3D::setInputType(Core::IBoardType::InputType type)
 {
     ExtensionSystem::PluginManager *pm = ExtensionSystem::PluginManager::instance();
     UAVObjectManager *uavoManager = pm->getObject<UAVObjectManager>();
@@ -127,19 +134,30 @@ bool CC3D::setInputType(enum InputType type)
         settings.RcvrPort = HwCopterControl::RCVRPORT_PWM;
         break;
     case INPUT_TYPE_PPM:
-	/* Break from the past; for new builds pick a default that will
-	 * work with OneShot/SyncPWM. */
+    /* Break from the past; for new builds pick a default that will
+     * work with OneShot/SyncPWM. */
         settings.RcvrPort = HwCopterControl::RCVRPORT_PPMONPIN8;
         break;
     case INPUT_TYPE_SBUS:
         settings.MainPort = HwCopterControl::MAINPORT_SBUS;
-        settings.FlexiPort = HwCopterControl::FLEXIPORT_TELEMETRY;
+        break;
+    case INPUT_TYPE_SBUSNONINVERTED:
+        settings.MainPort = HwCopterControl::MAINPORT_SBUSNONINVERTED;
         break;
     case INPUT_TYPE_DSM:
         settings.FlexiPort = HwCopterControl::FLEXIPORT_DSM;
         break;
     case INPUT_TYPE_HOTTSUMD:
         settings.FlexiPort = HwCopterControl::FLEXIPORT_HOTTSUMD;
+        break;
+    case INPUT_TYPE_HOTTSUMH:
+        settings.FlexiPort = HwCopterControl::FLEXIPORT_HOTTSUMH;
+        break;
+    case INPUT_TYPE_IBUS:
+        settings.FlexiPort = HwCopterControl::FLEXIPORT_IBUS;
+        break;
+    case INPUT_TYPE_SRXL:
+        settings.FlexiPort = HwCopterControl::FLEXIPORT_SRXL;
         break;
     default:
         return false;
@@ -155,7 +173,7 @@ bool CC3D::setInputType(enum InputType type)
  * @brief CC3D::getInputType fetch the currently selected input type
  * @return the selected input type
  */
-enum Core::IBoardType::InputType CC3D::getInputType()
+Core::IBoardType::InputType CC3D::getInputType()
 {
     ExtensionSystem::PluginManager *pm = ExtensionSystem::PluginManager::instance();
     UAVObjectManager *uavoManager = pm->getObject<UAVObjectManager>();
@@ -165,29 +183,49 @@ enum Core::IBoardType::InputType CC3D::getInputType()
         return INPUT_TYPE_UNKNOWN;
 
     HwCopterControl::DataFields settings = hwCopterControl->getData();
-
-    switch(settings.FlexiPort) {
-    case HwCopterControl::FLEXIPORT_DSM:
-        return INPUT_TYPE_DSM;
-    case HwCopterControl::FLEXIPORT_HOTTSUMD:
-        return INPUT_TYPE_HOTTSUMD;
-    default:
-        break;
-    }
-
-    switch(settings.MainPort) {
-    case HwCopterControl::MAINPORT_SBUS:
-        return INPUT_TYPE_SBUS;
-    default:
-        break;
-    }
-
+    
     switch(settings.RcvrPort) {
     case HwCopterControl::RCVRPORT_PPMONPIN8:
     case HwCopterControl::RCVRPORT_PPM:
         return INPUT_TYPE_PPM;
     case HwCopterControl::RCVRPORT_PWM:
         return INPUT_TYPE_PWM;
+    default:
+        break;
+    }
+    
+    switch(settings.MainPort) {
+    case HwCopterControl::MAINPORT_DSM:
+        return INPUT_TYPE_DSM;
+    case HwCopterControl::MAINPORT_HOTTSUMD:
+        return INPUT_TYPE_HOTTSUMD;
+    case HwCopterControl::MAINPORT_HOTTSUMH:
+        return INPUT_TYPE_HOTTSUMH;
+    case HwCopterControl::MAINPORT_SBUS:
+        return INPUT_TYPE_SBUS;
+    case HwCopterControl::MAINPORT_SBUSNONINVERTED:
+        return INPUT_TYPE_SBUSNONINVERTED;
+    case HwCopterControl::MAINPORT_IBUS:
+        return INPUT_TYPE_IBUS;
+    case HwCopterControl::MAINPORT_SRXL:
+        return INPUT_TYPE_SRXL;
+    default:
+        break;
+    }
+
+    switch(settings.FlexiPort) {
+    case HwCopterControl::FLEXIPORT_DSM:
+        return INPUT_TYPE_DSM;
+    case HwCopterControl::FLEXIPORT_HOTTSUMD:
+        return INPUT_TYPE_HOTTSUMD;
+    case HwCopterControl::FLEXIPORT_HOTTSUMH:
+        return INPUT_TYPE_HOTTSUMH;
+    case HwCopterControl::FLEXIPORT_SBUSNONINVERTED:
+        return INPUT_TYPE_SBUSNONINVERTED;
+    case HwCopterControl::FLEXIPORT_IBUS:
+        return INPUT_TYPE_IBUS;
+    case HwCopterControl::FLEXIPORT_SRXL:
+        return INPUT_TYPE_SRXL;
     default:
         break;
     }
@@ -217,8 +255,10 @@ int CC3D::queryMaxGyroRate()
     case HwCopterControl::GYRORANGE_2000:
         return 2000;
     default:
-        return 500;
+        break;
     }
+    
+    return 500;
 }
 
 /**

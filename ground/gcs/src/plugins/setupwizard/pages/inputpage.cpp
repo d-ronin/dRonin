@@ -47,8 +47,12 @@ InputPage::InputPage(SetupWizard *wizard, QWidget *parent) :
         ui->pwmButton->setEnabled(board->isInputConfigurationSupported(Core::IBoardType::INPUT_TYPE_PWM));
         ui->ppmButton->setEnabled(board->isInputConfigurationSupported(Core::IBoardType::INPUT_TYPE_PPM));
         ui->hottsumdButton->setEnabled(board->isInputConfigurationSupported(Core::IBoardType::INPUT_TYPE_HOTTSUMD));
+        ui->hottsumhButton->setEnabled(board->isInputConfigurationSupported(Core::IBoardType::INPUT_TYPE_HOTTSUMH));
         ui->sbusButton->setEnabled(board->isInputConfigurationSupported(Core::IBoardType::INPUT_TYPE_SBUS));
+        ui->sbusnoninvertedButton->setEnabled(board->isInputConfigurationSupported(Core::IBoardType::INPUT_TYPE_SBUSNONINVERTED));
         ui->spectrumButton->setEnabled(board->isInputConfigurationSupported(Core::IBoardType::INPUT_TYPE_DSM));
+        ui->ibusButton->setEnabled(board->isInputConfigurationSupported(Core::IBoardType::INPUT_TYPE_IBUS));
+        ui->srxlButton->setEnabled(board->isInputConfigurationSupported(Core::IBoardType::INPUT_TYPE_SRXL));
     }
     // the default might have been disabled, choose one that's available
     foreach (QToolButton *button, findChildren<QToolButton *>()) {
@@ -72,10 +76,18 @@ bool InputPage::validatePage()
         getWizard()->setInputType(Core::IBoardType::INPUT_TYPE_PPM);
     } else if (ui->sbusButton->isChecked()) {
         getWizard()->setInputType(Core::IBoardType::INPUT_TYPE_SBUS);
+    } else if (ui->sbusnoninvertedButton->isChecked()) {
+        getWizard()->setInputType(Core::IBoardType::INPUT_TYPE_SBUSNONINVERTED);
     } else if (ui->spectrumButton->isChecked()) {
         getWizard()->setInputType(Core::IBoardType::INPUT_TYPE_DSM);
     } else if (ui->hottsumdButton->isChecked()) {
         getWizard()->setInputType(Core::IBoardType::INPUT_TYPE_HOTTSUMD);
+    } else if (ui->hottsumhButton->isChecked()) {
+        getWizard()->setInputType(Core::IBoardType::INPUT_TYPE_HOTTSUMH);
+    } else if (ui->ibusButton->isChecked()) {
+        getWizard()->setInputType(Core::IBoardType::INPUT_TYPE_IBUS);
+    } else if (ui->srxlButton->isChecked()) {
+        getWizard()->setInputType(Core::IBoardType::INPUT_TYPE_SRXL);
     } else {
         getWizard()->setInputType(Core::IBoardType::INPUT_TYPE_PWM);
     }
