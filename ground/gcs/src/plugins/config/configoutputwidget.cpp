@@ -413,7 +413,12 @@ void ConfigOutputWidget::startESCCalibration()
             if (!channelsToCalibrate[i])
                 continue;
 
-            actuatorCommandFields.Channel[i] = actuatorSettingsData.ChannelMin[i];
+            // calibrate the minimum of the range
+            // to be a little off what we send at idle.  Blheli takes the value
+            // we give verbatim as the minimum, and small amounts of jitter
+            // can cause the motor to tick over.
+            double range = actuatorSettingsData.ChannelMax[i] - actuatorSettingsData.ChannelMin[i];
+            actuatorCommandFields.Channel[i] = actuatorSettingsData.ChannelMin[i] + std::copysign(std::min(5.0, std::abs(range) / 40.0 + 0.5), range);
         }
         actuatorCommand->setData(actuatorCommandFields);
 
