@@ -92,6 +92,45 @@ int32_t PIOS_TIM_InitClock(const struct pios_tim_clock_cfg * cfg)
 	return 0;
 }
 
+void PIOS_TIM_InitAllTimerPins(uintptr_t tim_id)
+{
+	struct pios_tim_dev * tim_dev = (struct pios_tim_dev *) tim_id;
+
+	/* Configure the pins */
+	for (uint8_t i = 0; i < tim_dev->num_channels; i++) {
+		const struct pios_tim_channel * chan = &tim_dev->channels[i];
+
+		GPIO_Init(chan->pin.gpio, (GPIO_InitTypeDef*)&chan->pin.init);
+
+		PIOS_DEBUG_Assert(chan->remap);
+
+		GPIO_PinAFConfig(chan->pin.gpio, chan->pin.pin_source, chan->remap);
+	}
+}
+
+void PIOS_TIM_SetBankToGPOut(uintptr_t tim_id, TIM_TypeDef *timer)
+{
+	struct pios_tim_dev * tim_dev = (struct pios_tim_dev *) tim_id;
+
+	GPIO_InitTypeDef gpio_inf;
+	gpio_inf.GPIO_Speed = GPIO_Speed_10MHz;
+	gpio_inf.GPIO_Mode = GPIO_Mode_OUT;
+	gpio_inf.GPIO_OType = GPIO_OType_PP;
+	gpio_inf.GPIO_PuPd = GPIO_PuPd_DOWN;
+
+	for (uint8_t i = 0; i < tim_dev->num_channels; i++) {
+		const struct pios_tim_channel * chan = &tim_dev->channels[i];
+
+		if (chan->timer != timer) {
+			continue;
+		}
+
+		// Only steal the pin info from the matching pin
+		gpio_inf.GPIO_Pin = chan->pin.init.GPIO_Pin;
+		GPIO_Init(chan->pin.gpio, &gpio_inf);
+	}
+}
+
 int32_t PIOS_TIM_InitChannels(uintptr_t * tim_id, const struct pios_tim_channel * channels, uint8_t num_channels, const struct pios_tim_callbacks * callbacks, uintptr_t context)
 {
 	PIOS_Assert(channels);
@@ -107,19 +146,9 @@ int32_t PIOS_TIM_InitChannels(uintptr_t * tim_id, const struct pios_tim_channel 
 	tim_dev->callbacks = callbacks;
 	tim_dev->context = context;
 
-	/* Configure the pins */
-	for (uint8_t i = 0; i < num_channels; i++) {
-		const struct pios_tim_channel * chan = &(channels[i]);
-
-		GPIO_Init(chan->pin.gpio, (GPIO_InitTypeDef*)&chan->pin.init);
-
-		PIOS_DEBUG_Assert(chan->remap);
-			
-		// Second parameter should technically be PinSource but they are numerically the same
-		GPIO_PinAFConfig(chan->pin.gpio, chan->pin.pin_source,chan->remap);
-	}
-
 	*tim_id = (uintptr_t)tim_dev;
+
+	PIOS_TIM_InitAllTimerPins(*tim_id);
 
 	return(0);
 

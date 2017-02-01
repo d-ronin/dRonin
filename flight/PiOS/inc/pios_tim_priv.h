@@ -23,7 +23,10 @@ struct pios_tim_callbacks {
 	void (*edge)(uintptr_t tim_id, uintptr_t context, uint8_t chan_idx, uint16_t count);
 };
 
-extern int32_t PIOS_TIM_InitClock(const struct pios_tim_clock_cfg * cfg);
-extern int32_t PIOS_TIM_InitChannels(uintptr_t * tim_id, const struct pios_tim_channel * channels, uint8_t num_channels, const struct pios_tim_callbacks * callbacks, uintptr_t context);
+int32_t PIOS_TIM_InitClock(const struct pios_tim_clock_cfg * cfg);
+int32_t PIOS_TIM_InitChannels(uintptr_t * tim_id, const struct pios_tim_channel * channels, uint8_t num_channels, const struct pios_tim_callbacks * callbacks, uintptr_t context);
+
+void PIOS_TIM_InitAllTimerPins(uintptr_t tim_id);
+void PIOS_TIM_SetBankToGPOut(uintptr_t tim_id, TIM_TypeDef *timer);
 
 #endif	/* PIOS_TIM_PRIV_H */

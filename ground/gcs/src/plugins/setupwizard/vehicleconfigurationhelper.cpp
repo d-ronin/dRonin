@@ -40,9 +40,6 @@
 #include "sensorsettings.h"
 #include "stabilizationsettings.h"
 
-const qint16 VehicleConfigurationHelper::LEGACY_ESC_FREQUENCY = 50;
-const qint16 VehicleConfigurationHelper::RAPID_ESC_FREQUENCY  = 400;
-const qint16 VehicleConfigurationHelper::ONESHOT_ESC_FREQUENCY  = 0; // Triggers sync update
 
 const float VehicleConfigurationHelper::DEFAULT_ENABLED_ACCEL_TAU = 0.1;
 
@@ -193,22 +190,31 @@ void VehicleConfigurationHelper::applyActuatorConfiguration()
         data.MotorsSpinWhileArmed = ActuatorSettings::MOTORSSPINWHILEARMED_FALSE;
 
         for (quint16 i = 0; i < ActuatorSettings::TIMERUPDATEFREQ_NUMELEM; i++) {
-            data.TimerUpdateFreq[i] = LEGACY_ESC_FREQUENCY;
+            data.TimerUpdateFreq[i] = ESC_FREQUENCY_LEGACY;
         }
 
         int max_motors = 0;
 
-        qint16 updateFrequency = LEGACY_ESC_FREQUENCY;
+        quint16 updateFrequency = ESC_FREQUENCY_LEGACY;
         switch (m_configSource->getESCType()) {
         case VehicleConfigurationSource::ESC_LEGACY:
-            updateFrequency = LEGACY_ESC_FREQUENCY;
+            updateFrequency = ESC_FREQUENCY_LEGACY;
             break;
         case VehicleConfigurationSource::ESC_RAPID:
-            updateFrequency = RAPID_ESC_FREQUENCY;
+            updateFrequency = ESC_FREQUENCY_RAPID;
             break;
-        case VehicleConfigurationSource::ESC_ONESHOT42:
         case VehicleConfigurationSource::ESC_ONESHOT125:
-            updateFrequency = ONESHOT_ESC_FREQUENCY;
+        case VehicleConfigurationSource::ESC_ONESHOT42:
+            updateFrequency = ESC_FREQUENCY_SYNCPWM;
+            break;
+        case VehicleConfigurationSource::ESC_DSHOT300:
+            updateFrequency = ESC_FREQUENCY_DSHOT300;
+            break;
+        case VehicleConfigurationSource::ESC_DSHOT600:
+            updateFrequency = ESC_FREQUENCY_DSHOT600;
+            break;
+        case VehicleConfigurationSource::ESC_DSHOT1200:
+            updateFrequency = ESC_FREQUENCY_DSHOT1200;
             break;
         default:
             break;

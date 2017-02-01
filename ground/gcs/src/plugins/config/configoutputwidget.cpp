@@ -528,35 +528,44 @@ void ConfigOutputWidget::refreshWidgetRanges()
                 QComboBox* ccmb = rateList.at(i);
                 quint32 timerFreq = timerStringToFreq(ccmb->currentText());
 
-                // First saturate at the timer period's maximum value.
-                double maxPulseWidth, timerPeriodUs = 65535;
+                // First saturate at the timer period and UAVO maximum value.
+                double maxPulseWidth, timerPeriodUs = UINT16_MAX;
+                int minPulseWidth = 0;
+                bool digital = false;
 
-                // Saturate at the UAVO's maximum value
-                timerPeriodUs = 65535;
-
-                if (timerFreq != 0)
-                {
+                switch (timerFreq) {
+                case RATE_SYNCPWM:
+                    // only the timer period provides bounding
+                    maxPulseWidth = timerPeriodUs;
+                    break;
+                case RATE_DSHOT300:
+                case RATE_DSHOT600:
+                case RATE_DSHOT1200:
+                    // 1-47 reserved for commands
+                    minPulseWidth = 48;
+                    // 11-bit value
+                    maxPulseWidth = 2047;
+                    // don't allow min/max to be changed
+                    digital = true;
+                    break;
+                default:
                     maxPulseWidth = 1000000 / timerFreq;
 
                     // Should never happen, but here in case we ever have a
                     // < 16Hz PWM mode.
                     if (maxPulseWidth > timerPeriodUs)
                         maxPulseWidth = timerPeriodUs;
-                } else {
-                    // SyncPWM has been selected, only the timer period
-                    // provides bounding
-                    maxPulseWidth = timerPeriodUs;
+                    break;
                 }
 
                 // For each of the channels...
-                foreach (qint32 channel, bank) {
+                for (auto channel : bank) {
                     // Find its form line and set the limit.
-                    foreach(OutputChannelForm *outputChannelForm, outputChannelForms)
-                    {
+                    for (auto outputChannelForm : outputChannelForms) {
                         // Don't like the bogus index adjustments
-                        if (outputChannelForm->index() != channel-1) continue;
-
-                        outputChannelForm->updateMaxSpinboxValue(floor(maxPulseWidth));
+                        if (outputChannelForm->index() != (channel - 1))
+                            continue;
+                        outputChannelForm->updateChannelLimits(minPulseWidth, static_cast<int>(maxPulseWidth), digital);
                     }
                 }
             }
@@ -608,15 +617,23 @@ void ConfigOutputWidget::updateObjectsFromWidgets()
 }
 
 QString ConfigOutputWidget::timerFreqToString(quint32 freq) const {
-    if (freq == 0)
-        return QString(tr("SyncPWM"));
-    return QString::number(freq);
+    static const QMap<quint32, QString> mapping{
+        {RATE_SYNCPWM, tr("SyncPWM")},
+        {RATE_DSHOT300, tr("Dshot300")},
+        {RATE_DSHOT600, tr("Dshot600")},
+        {RATE_DSHOT1200, tr("Dshot1200")},
+    };
+    return mapping.value(freq, QString::number(freq));
 }
 
 quint32 ConfigOutputWidget::timerStringToFreq(QString str) const {
-    if (str.compare(QString(tr("SyncPWM"))) == 0)
-        return 0;
-    return str.toUInt();
+    static const QMap<QString, quint32> mapping{
+        {tr("SyncPWM"), RATE_SYNCPWM},
+        {tr("Dshot300"), RATE_DSHOT300},
+        {tr("Dshot600"), RATE_DSHOT600},
+        {tr("Dshot1200"), RATE_DSHOT1200},
+    };
+    return mapping.value(str, str.toUInt());
 }
 
 void ConfigOutputWidget::openHelp()

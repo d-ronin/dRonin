@@ -36,7 +36,10 @@ OutputChannelForm::OutputChannelForm(const int index, QWidget *parent, const boo
         ConfigTaskWidget(parent),
         ui(),
         m_index(index),
-        m_inChannelTest(false)
+        m_inChannelTest(false),
+        limitMin(1000),
+        limitMax(2000),
+        minMaxFixed(false)
 {
     ui.setupUi(this);
 
@@ -114,9 +117,9 @@ void OutputChannelForm::enableChannelTest(bool state)
     }
     else
     {
-        ui.actuatorMin->setEnabled(true);
-        ui.actuatorMax->setEnabled(true);
-        ui.pb_reverseActuator->setEnabled(true);
+        ui.actuatorMin->setEnabled(!minMaxFixed);
+        ui.actuatorMax->setEnabled(!minMaxFixed);
+        ui.pb_reverseActuator->setEnabled(!minMaxFixed);
         ui.actuatorType->setEnabled(true);
     }
 }
@@ -182,8 +185,13 @@ void OutputChannelForm::setMin(int minimum)
  */
 void OutputChannelForm::setMinmax(int minimum, int maximum)
 {
-    ui.actuatorMin->setValue(minimum);
-    ui.actuatorMax->setValue(maximum);
+    if (minMaxFixed) {
+        ui.actuatorMin->setValue(limitMin);
+        ui.actuatorMax->setValue(limitMax);
+    } else {
+        ui.actuatorMin->setValue(minimum);
+        ui.actuatorMax->setValue(maximum);
+    }
     setChannelRange();
 }
 
@@ -256,13 +264,13 @@ void OutputChannelForm::setAssignment(const QString &assignment)
  */
 void OutputChannelForm::setChannelRange()
 {
-    if (ui.actuatorMin->value() < ui.actuatorMax->value())
-    {
+    if (minMaxFixed) { // special case Dshot
+        ui.actuatorNeutral->setRange(limitMin, limitMax);
+        ui.actuatorNeutral->setEnabled(true);
+    } else if (ui.actuatorMin->value() < ui.actuatorMax->value()) {
         ui.actuatorNeutral->setRange(ui.actuatorMin->value(), ui.actuatorMax->value());
         ui.actuatorNeutral->setEnabled(true);
-    }
-    else if (ui.actuatorMin->value() > ui.actuatorMax->value())
-    {
+    } else if (ui.actuatorMin->value() > ui.actuatorMax->value()) {
         ui.actuatorNeutral->setRange(ui.actuatorMax->value(), ui.actuatorMin->value());
         ui.actuatorNeutral->setEnabled(true);
     } else {
@@ -282,6 +290,9 @@ void OutputChannelForm::setChannelRange()
  */
 void OutputChannelForm::reverseChannel()
 {
+    // can't reverse Dshot at this time
+    if (!ui.actuatorMin->isEnabled() || !ui.actuatorMax->isEnabled())
+        return;
     // Swap the min & max values
     int temp = ui.actuatorMax->value();
     ui.actuatorMax->setValue(ui.actuatorMin->value());
@@ -370,10 +381,25 @@ void OutputChannelForm::notifyFormChanged()
     setChannelRange();
 }
 
-void OutputChannelForm::updateMaxSpinboxValue(int maxPulseWidth)
+void OutputChannelForm::updateChannelLimits(int minPulse, int maxPulse, bool digitalProtocol)
 {
-    ui.actuatorMin->setMaximum(maxPulseWidth);
-    ui.actuatorMax->setMaximum(maxPulseWidth);
+    limitMin = minPulse;
+    limitMax = maxPulse;
+    minMaxFixed = digitalProtocol;
+
+    if (digitalProtocol) {
+        // digital protocol like Dshot, fix min to 0, max to maxPulse, and neutral range goes between minPulse and maxPulse
+        ui.actuatorMin->setRange(0, 0);
+        ui.actuatorMax->setRange(limitMax, limitMax);
+    } else {
+        ui.actuatorMin->setRange(limitMin, limitMax);
+        ui.actuatorMax->setRange(limitMin, limitMax);
+    }
+    // these are fixed with digital protocols like Dshot
+    ui.actuatorMin->setEnabled(!minMaxFixed && !m_inChannelTest);
+    ui.actuatorMax->setEnabled(!minMaxFixed && !m_inChannelTest);
+    ui.pb_reverseActuator->setEnabled(!minMaxFixed && !m_inChannelTest);
+
     setChannelRange();
     alignFields();
 }

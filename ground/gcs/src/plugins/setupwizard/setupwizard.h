@@ -149,6 +149,18 @@ public:
     {
         return m_restartNeeded;
     }
+    bool isDshot() const
+    {
+        switch (m_escType) {
+        case ESC_DSHOT300:
+        case ESC_DSHOT600:
+        case ESC_DSHOT1200:
+            return true;
+        default:
+            break;
+        }
+        return false;
+    }
 
     QString getSummaryText();
 

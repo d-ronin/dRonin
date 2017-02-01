@@ -7,11 +7,14 @@
     <x>0</x>
     <y>0</y>
     <width>651</width>
-    <height>400</height>
+    <height>475</height>
    </rect>
   </property>
   <property name="windowTitle">
    <string>WizardPage</string>
+  </property>
+  <property name="styleSheet">
+   <string notr="true">QToolButton { border: none }</string>
   </property>
   <layout class="QVBoxLayout" name="verticalLayout">
    <item>
@@ -54,8 +57,41 @@ p, li { white-space: pre-wrap; }
     </spacer>
    </item>
    <item>
-    <layout class="QHBoxLayout" name="horizontalLayout">
-     <item>
+    <layout class="QGridLayout" name="gridLayout">
+     <item row="0" column="1">
+      <widget class="QToolButton" name="oneShot42Button">
+       <property name="toolTip">
+        <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Oneshot42 Synchronous PWM&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+       </property>
+       <property name="text">
+        <string>Oneshot42</string>
+       </property>
+       <property name="icon">
+        <iconset resource="../wizardResources.qrc">
+         <normaloff>:/setupwizard/resources/bttn-oneshot-up.png</normaloff>
+         <normalon>:/setupwizard/resources/bttn-oneshot-down.png</normalon>:/setupwizard/resources/bttn-oneshot-up.png</iconset>
+       </property>
+       <property name="iconSize">
+        <size>
+         <width>200</width>
+         <height>100</height>
+        </size>
+       </property>
+       <property name="checkable">
+        <bool>true</bool>
+       </property>
+       <property name="autoExclusive">
+        <bool>true</bool>
+       </property>
+       <property name="toolButtonStyle">
+        <enum>Qt::ToolButtonTextUnderIcon</enum>
+       </property>
+       <property name="autoRaise">
+        <bool>true</bool>
+       </property>
+      </widget>
+     </item>
+     <item row="0" column="0">
       <widget class="QToolButton" name="rapidESCButton">
        <property name="font">
         <font>
@@ -64,9 +100,6 @@ p, li { white-space: pre-wrap; }
        </property>
        <property name="toolTip">
         <string>Modern ESC 400Hz PWM</string>
-       </property>
-       <property name="styleSheet">
-        <string notr="true">QToolButton { border: none }</string>
        </property>
        <property name="text">
         <string>400Hz PWM</string>
@@ -99,7 +132,7 @@ p, li { white-space: pre-wrap; }
        </property>
       </widget>
      </item>
-     <item>
+     <item row="0" column="2">
       <widget class="QToolButton" name="oneShot125Button">
        <property name="enabled">
         <bool>true</bool>
@@ -111,9 +144,6 @@ p, li { white-space: pre-wrap; }
        </property>
        <property name="toolTip">
         <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Oneshot125 Synchronous PWM&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-       </property>
-       <property name="styleSheet">
-        <string notr="true">QToolButton { border: none }</string>
        </property>
        <property name="text">
         <string>Oneshot125</string>
@@ -146,21 +176,75 @@ p, li { white-space: pre-wrap; }
        </property>
       </widget>
      </item>
-     <item>
-      <widget class="QToolButton" name="oneShot42Button">
-       <property name="toolTip">
-        <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Oneshot42 Synchronous PWM&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-       </property>
-       <property name="styleSheet">
-        <string notr="true">QToolButton { border: none }</string>
-       </property>
+     <item row="1" column="2">
+      <widget class="QToolButton" name="dshot1200Button">
        <property name="text">
-        <string>Oneshot42</string>
+        <string>Dshot1200</string>
        </property>
        <property name="icon">
         <iconset resource="../wizardResources.qrc">
-         <normaloff>:/setupwizard/resources/bttn-oneshot-up.png</normaloff>
-         <normalon>:/setupwizard/resources/bttn-oneshot-down.png</normalon>:/setupwizard/resources/bttn-oneshot-up.png</iconset>
+         <normaloff>:/setupwizard/resources/bttn-dshot1200-up.png</normaloff>
+         <normalon>:/setupwizard/resources/bttn-dshot1200-down.png</normalon>:/setupwizard/resources/bttn-dshot1200-up.png</iconset>
+       </property>
+       <property name="iconSize">
+        <size>
+         <width>200</width>
+         <height>100</height>
+        </size>
+       </property>
+       <property name="checkable">
+        <bool>true</bool>
+       </property>
+       <property name="autoExclusive">
+        <bool>true</bool>
+       </property>
+       <property name="toolButtonStyle">
+        <enum>Qt::ToolButtonTextUnderIcon</enum>
+       </property>
+       <property name="autoRaise">
+        <bool>true</bool>
+       </property>
+      </widget>
+     </item>
+     <item row="1" column="1">
+      <widget class="QToolButton" name="dshot600Button">
+       <property name="text">
+        <string>Dshot600</string>
+       </property>
+       <property name="icon">
+        <iconset resource="../wizardResources.qrc">
+         <normaloff>:/setupwizard/resources/bttn-dshot600-up.png</normaloff>
+         <normalon>:/setupwizard/resources/bttn-dshot600-down.png</normalon>:/setupwizard/resources/bttn-dshot600-up.png</iconset>
+       </property>
+       <property name="iconSize">
+        <size>
+         <width>200</width>
+         <height>100</height>
+        </size>
+       </property>
+       <property name="checkable">
+        <bool>true</bool>
+       </property>
+       <property name="autoExclusive">
+        <bool>true</bool>
+       </property>
+       <property name="toolButtonStyle">
+        <enum>Qt::ToolButtonTextUnderIcon</enum>
+       </property>
+       <property name="autoRaise">
+        <bool>true</bool>
+       </property>
+      </widget>
+     </item>
+     <item row="1" column="0">
+      <widget class="QToolButton" name="dshot300Button">
+       <property name="text">
+        <string>Dshot300</string>
+       </property>
+       <property name="icon">
+        <iconset resource="../wizardResources.qrc">
+         <normaloff>:/setupwizard/resources/bttn-dshot300-up.png</normaloff>
+         <normalon>:/setupwizard/resources/bttn-dshot300-down.png</normalon>:/setupwizard/resources/bttn-dshot300-up.png</iconset>
        </property>
        <property name="iconSize">
         <size>
