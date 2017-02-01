@@ -170,8 +170,6 @@ ifdef WINDOWS
 	$(V1) "$(DL_DIR)/$(QT_SDK_FILE)"
 endif
 
-	$(V1) $(QT_SDK_QBS_PATH) setup-toolchains --detect
-
 .PHONY: qt_sdk_clean
 qt_sdk_clean:
 	$(V1) [ ! -d "$(QT_SDK_DIR)" ] || $(RM) -rf $(QT_SDK_DIR)
@@ -571,7 +569,7 @@ BREAKPAD_BUILD_DIR := $(DL_DIR)/breakpad
 
 .PHONY: breakpad_install breakpad_clean tools_required_breakpad
 
-breakpad_install: | tools_required_qt
+breakpad_install: | tools_required_qbs
 breakpad_install: | $(DL_DIR) $(TOOLS_DIR)
 breakpad_install: | breakpad_clean
 	$(V0) @echo " DOWNLOAD     $(BREAKPAD_REPO) @ $(BREAKPAD_REV)"
@@ -619,6 +617,17 @@ else
   # not installed, hope it's in the path...
   QMAKE = qmake
   QBS = qbs
+endif
+
+.PHONY: tools_required_qbs
+
+tools_required_qbs: | tools_required_qt
+ifeq (,$(shell $(QBS) config --list profiles))
+# empty profile config, detect toolchains
+	$(V1) $(QBS) setup-toolchains --detect
+else ifeq (,$(shell $(QBS) config --list | grep "profiles\.$(QBS_PROFILE)\.qbs"))
+# profile we want is missing. let user know so they can decide if they want to overwrite their config (needed since we don't own Qt install on Windows)
+	$(error "QBS profile '$(QBS_PROFILE)' not found. Try running '$(QBS) setup-toolchains --detect'")
 endif
 
 ifeq ($(shell [ -d "$(ARM_SDK_DIR)" ] && echo "exists"), exists)
