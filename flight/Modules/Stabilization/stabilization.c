@@ -308,6 +308,10 @@ static void stabilizationTask(void* parameters)
 		} else if (iteration == 2100) {
 			dT_measured /= 2000;
 
+			/* Other modules-- attitude, etc, -- rely on us having
+			 * done this test and set an alarm here.  Do not remove
+			 * without verifying those places
+			 */
 			if ((dT_measured > dT_expected * 1.15f) || 
 					(dT_measured < dT_expected * 0.85f)) {
 				frequency_wrong = true;

@@ -196,8 +196,8 @@ static void AttitudeTask(void *parameters)
 			(PIOS_Thread_Systime() > 1000)) {
 
 			// For first 7 seconds use accels to get gyro bias
-			accelKp = 0.1f + 0.1f * (PIOS_Thread_Systime() < 4000);
-			accelKi = 0.1;
+			accelKp = 20 + 20 * (PIOS_Thread_Systime() < 4000);
+			accelKi = 1;
 			accel_filter_enabled = false;
 
 		} else if (zero_during_arming && 
@@ -206,12 +206,12 @@ static void AttitudeTask(void *parameters)
 			// Use a rapidly decrease accelKp to force the attitude to snap back
 			// to level and then converge more smoothly
 			if (arming_count < 20)
-				accelKp = 1.0f;
-			else if (accelKp > 0.1f)
-				accelKp -= 0.01f;
+				accelKp = 50;
+			else if (accelKp > 20)
+				accelKp -= 1;
 			arming_count++;
 
-			accelKi = 0.1f;
+			accelKi = 1;
 			accel_filter_enabled = false;
 
 			// Indicate arming so that after arming it reloads
@@ -226,8 +226,8 @@ static void AttitudeTask(void *parameters)
 			complimentary_filter_status == CF_INITIALIZING) {
 
 			// Reload settings (all the rates)
-			AttitudeSettingsAccelKiGet(&accelKi);
-			AttitudeSettingsAccelKpGet(&accelKp);
+			AttitudeSettingsAccKiGet(&accelKi);
+			AttitudeSettingsAccKpGet(&accelKp);
 			if(accel_alpha > 0.0f)
 				accel_filter_enabled = true;
 
@@ -493,13 +493,13 @@ static void updateAttitude(AccelsData * accelsData, GyrosData * gyrosData)
 		accel_err[2] /= (accel_mag*grot_mag);
 		
 		// Accumulate integral of error.  Scale here so that units are (deg/s) but Ki has units of s
-		gyro_correct_int[0] -= accel_err[0] * accelKi;
-		gyro_correct_int[1] -= accel_err[1] * accelKi;
+		gyro_correct_int[0] -= accel_err[0] * accelKi * dT;
+		gyro_correct_int[1] -= accel_err[1] * accelKi * dT;
 		
 		// Correct rates based on error, integral component dealt with in updateSensors
-		gyros[0] += accel_err[0] * accelKp / dT;
-		gyros[1] += accel_err[1] * accelKp / dT;
-		gyros[2] += accel_err[2] * accelKp / dT;
+		gyros[0] += accel_err[0] * accelKp;
+		gyros[1] += accel_err[1] * accelKp;
+		gyros[2] += accel_err[2] * accelKp;
 	}
 	
 	{ // scoping variables to save memory
@@ -604,8 +604,8 @@ static void settingsUpdatedCb(UAVObjEvent * objEv, void *ctx, void *obj, int len
 	SensorSettingsGet(&sensorSettings);
 	
 	
-	accelKp = attitudeSettings.AccelKp;
-	accelKi = attitudeSettings.AccelKi;
+	accelKp = attitudeSettings.AccKp;
+	accelKi = attitudeSettings.AccKi;
 
 	// Calculate accel filter alpha, in the same way as for gyro data in stabilization module.
 	const float fakeDt = 0.0025f;
