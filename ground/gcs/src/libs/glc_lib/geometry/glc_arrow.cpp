@@ -15,8 +15,7 @@
  GNU Lesser General Public License for more details.
 
  You should have received a copy of the GNU Lesser General Public License
- along with GLC-lib; if not, write to the Free Software
- Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
+ along with GLC-lib; if not, see <http://www.gnu.org/licenses/>
 
  *****************************************************************************/
 //! \file glc_arrow.cpp implementation of the GLC_Arrow class.
