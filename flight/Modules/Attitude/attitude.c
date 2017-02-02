@@ -513,6 +513,11 @@ static int32_t updateAttitudeComplementary(float dT, bool first_run, bool second
 	FlightStatusData flightStatus;
 	FlightStatusGet(&flightStatus);
 
+	float accKp = attitudeSettings.AccKp;
+	float accKi = attitudeSettings.AccKi;
+	float mgKp = attitudeSettings.MgKp;
+	float mgKi = attitudeSettings.MgKi;
+
 	uint32_t ms_since_reset = PIOS_DELAY_DiffuS(complementary_filter_state.reset_timeval) / 1000;
 	if (complementary_filter_state.initialization == CF_POWERON) {
 		// Wait one second before starting to initialize
@@ -525,23 +530,25 @@ static int32_t updateAttitudeComplementary(float dT, bool first_run, bool second
 		(ms_since_reset > 1000)) {
 
 		// For first 7 seconds use accels to get gyro bias
-		attitudeSettings.AccKp = 20 + 20 * (PIOS_Thread_Systime() < 4000);
-		attitudeSettings.AccKi = 1;
-		attitudeSettings.MgKp = 1;
+		accKp = MIN(accKp, 20 + 20 * (PIOS_Thread_Systime() < 4000));
+		accKi = 1;
+		mgKp = 1;
+
 	} else if ((attitudeSettings.ZeroDuringArming == ATTITUDESETTINGS_ZERODURINGARMING_TRUE) && 
 	           (flightStatus.Armed == FLIGHTSTATUS_ARMED_ARMING)) {
-
 		// Use a rapidly decrease accelKp to force the attitude to snap back
 		// to level and then converge more smoothly
-		if (complementary_filter_state.arming_count < 20)
-			attitudeSettings.AccKp = 50.0f;
-		else if (attitudeSettings.AccKp > 30.0f)
-			attitudeSettings.AccKp -= 1.0f;
+		if (complementary_filter_state.arming_count < 20) {
+			accKp = 50.0f;
+		} else {
+			accKp = MIN(accKp, 50 - complementary_filter_state.arming_count);
+		}
+
 		complementary_filter_state.arming_count++;
 
 		// Set the other parameters to drive faster convergence
-		attitudeSettings.AccKi = 1;
-		attitudeSettings.MgKp = 1;
+		accKi = 1;
+		mgKp = 1;
 
 		// Don't apply LPF to the accels during arming
 		complementary_filter_state.accel_filter_enabled = false;
@@ -562,7 +569,6 @@ static int32_t updateAttitudeComplementary(float dT, bool first_run, bool second
 	} else if (complementary_filter_state.initialization == CF_ARMING ||
 	           complementary_filter_state.initialization == CF_INITIALIZING) {
 
-		AttitudeSettingsGet(&attitudeSettings);
 		if(complementary_filter_state.accel_alpha > 0.0f)
 			complementary_filter_state.accel_filter_enabled = true;
 
@@ -581,17 +587,10 @@ static int32_t updateAttitudeComplementary(float dT, bool first_run, bool second
 		float baro;
 		BaroAltitudeAltitudeGet(&baro);
 		cfvert_reset(&cfvert, baro, attitudeSettings.VertPositionTau);
-
 	}
 
 	GyrosGet(&gyrosData);
 	accumulate_gyro(&gyrosData);
-
-	// This should only happen at start up or at mode switches
-	if(dT > 0.01f)
-		dT = 0.01f;
-	else if(dT <= 0.0005f)
-		dT = 0.0005f;
 
 	float grot[3];
 	float accel_err[3];
@@ -682,16 +681,15 @@ static int32_t updateAttitudeComplementary(float dT, bool first_run, bool second
 	// Accumulate integral of error.  Scale here so that units are (deg/s) but Ki has units of s
 	GyrosBiasData gyrosBias;
 	GyrosBiasGet(&gyrosBias);
-	gyrosBias.x -= accel_err[0] * attitudeSettings.AccKi * dT;
-	gyrosBias.y -= accel_err[1] * attitudeSettings.AccKi * dT;
-	gyrosBias.z -= mag_err[2] * attitudeSettings.MgKi * dT;
+	gyrosBias.x -= accel_err[0] * accKi * dT;
+	gyrosBias.y -= accel_err[1] * accKi * dT;
+	gyrosBias.z -= mag_err[2] * mgKi * dT;
 	GyrosBiasSet(&gyrosBias);
 
 	// Correct rates based on error, integral component dealt with in updateSensors
-	// range 0 .. 2 .  45 deg error probably about 0.707 * .005 = .0035 * 1600 = 5.7 deg/sec accel correct vs 1.1 deg/sec correction on F1/333Hz
-	gyrosData.x += accel_err[0] * attitudeSettings.AccKp;
-	gyrosData.y += accel_err[1] * attitudeSettings.AccKp;
-	gyrosData.z += accel_err[2] * attitudeSettings.AccKp + mag_err[2] * attitudeSettings.MgKp;
+	gyrosData.x += accel_err[0] * accKp;
+	gyrosData.y += accel_err[1] * accKp;
+	gyrosData.z += accel_err[2] * accKp + mag_err[2] * mgKp;
 
 	// Work out time derivative from INSAlgo writeup
 	// Also accounts for the fact that gyros are in deg/s
