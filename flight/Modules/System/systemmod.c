@@ -60,6 +60,12 @@
 #include "rgbleds.h"
 #endif
 
+#ifdef PIOS_INCLUDE_DAC_ANNUNCIATOR
+#include "pios_annuncdac.h"
+
+extern annuncdac_dev_t pios_dac_annunciator_id;
+#endif
+
 #if defined(PIOS_INCLUDE_DEBUG_CONSOLE) && defined(DEBUG_THIS_FILE)
 #define DEBUG_MSG(format, ...) PIOS_COM_SendFormattedString(PIOS_COM_DEBUG, format, ## __VA_ARGS__)
 #else
@@ -524,6 +530,20 @@ static void systemPeriodicCb(UAVObjEvent *ev, void *ctx, void *obj_data, int len
 				is_manual_control,
 				blink_prio, PIOS_ANNUNCIATOR_BUZZER,
 				ANNUNCIATORSETTINGS_ANNUNCIATEANYTIME_BUZZER);
+#endif
+
+#ifdef PIOS_INCLUDE_DAC_ANNUNCIATOR
+		if (pios_dac_annunciator_id) {
+			if (should_annunc(&annunciatorSettings, ever_armed,
+					is_manual_control, blink_prio,
+					ANNUNCIATORSETTINGS_ANNUNCIATEANYTIME_DAC)) {
+				PIOS_ANNUNCDAC_SetValue(pios_dac_annunciator_id,
+						true, morse > 0);
+			} else {
+				PIOS_ANNUNCDAC_SetValue(pios_dac_annunciator_id,
+						false, false);
+			}
+		}
 #endif
 
 #ifdef SYSTEMMOD_RGBLED_SUPPORT

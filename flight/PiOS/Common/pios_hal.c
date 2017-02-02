@@ -41,6 +41,7 @@
 #include <pios_modules.h>
 #include <pios_sys.h>
 
+#include <dacsettings.h>
 #include <manualcontrolsettings.h>
 
 #if defined(PIOS_INCLUDE_OPENLRS_RCVR)
@@ -65,6 +66,10 @@
 uintptr_t pios_rcvr_group_map[1];
 #else
 uintptr_t pios_rcvr_group_map[MANUALCONTROLSETTINGS_CHANNELGROUPS_NONE];
+#endif
+
+#if defined(PIOS_INCLUDE_DAC_ANNUNCIATOR)
+annuncdac_dev_t pios_dac_annunciator_id;
 #endif
 
 #if defined(PIOS_INCLUDE_RFM22B)
@@ -1394,3 +1399,53 @@ mag_fail:
 	return -2;
 #endif /* PIOS_INCLUDE_I2C */
 }
+
+#ifdef PIOS_INCLUDE_DAC
+int PIOS_HAL_ConfigureDAC(dac_dev_t dac)
+{
+	DACSettingsInitialize();
+
+	DACSettingsData settings;
+
+	DACSettingsGet(&settings);
+
+	switch (settings.DACPrimaryUse) {
+#ifdef PIOS_INCLUDE_DAC_FSK
+	case DACSETTINGS_DACPRIMARYUSE_FSK1200:
+		if (pios_com_lighttelemetry_id) {
+			return -1;
+		}
+
+		fskdac_dev_t fskdac;
+
+		if (PIOS_FSKDAC_Init(&fskdac, dac)) {
+			return -1;
+		}
+
+		if (PIOS_COM_Init(&pios_com_lighttelemetry_id,
+					&pios_fskdac_com_driver,
+					(uintptr_t) fskdac, 0,
+					PIOS_COM_LIGHTTELEMETRY_TX_BUF_LEN)) {
+			return -1;
+		}
+
+		PIOS_Modules_Enable(PIOS_MODULE_UAVOLIGHTTELEMETRYBRIDGE);
+		break;
+#endif // PIOS_INCLUDE_DAC_FSK
+
+#ifdef PIOS_INCLUDE_DAC_ANNUNCIATOR
+	case DACSETTINGS_DACPRIMARYUSE_ANNUNCIATORS:
+		if (PIOS_ANNUNCDAC_Init(&pios_dac_annunciator_id, dac)) {
+			return -1;
+		}
+		break;
+#endif
+	case DACSETTINGS_DACPRIMARYUSE_DISABLED:
+		break;
+	default:
+		return -1;
+	}
+
+	return 0;
+}
+#endif
