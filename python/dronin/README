@@ -8,7 +8,7 @@ under the GNU Lesser General Public License, version 2.1 or later.
 
 dRonin Python API and Utilities
 Copyright (C) 2014-2015 Tau Labs, http://taulabs.org
-Copyright (C) 2015-2016 dRonin, http://dronin.org
+Copyright (C) 2015-2017 dRonin, http://dronin.org
 
 This library is free software; you can redistribute it and/or
 modify it under the terms of the GNU Lesser General Public
@@ -21,5 +21,4 @@ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
 Lesser General Public License for more details.
 
 You should have received a copy of the GNU Lesser General Public
-License along with this library; if not, write to the Free Software
-Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
+License along with this library; if not, see <http://www.gnu.org/licenses/>.

@@ -17,7 +17,7 @@
  *
  *      You should have received a copy of the GNU Lesser General Public
  *      License along with win32/64-ucontext in the file COPYING.LIB;
- *      if not, write to the Free Software Foundation, Inc.,
+ *      if not, see <http://www.gnu.org/licenses/>
  *      59 Temple Place - Suite 330, Boston, MA 02111-1307, USA
  */
 
