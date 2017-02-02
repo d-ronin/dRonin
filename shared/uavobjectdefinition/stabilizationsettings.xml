@@ -28,7 +28,7 @@
 		<field name="YawPI" units="" type="float" elementnames="Kp,Ki,ILimit" defaultvalue="2.5,0,50" limits="%BE:0:20,%BE:0:20,"/>
 		<field name="GyroCutoff" units="Hz" type="float" elements="1" defaultvalue="55.0"/>
 		<field name="DerivativeCutoff" units="Hz" type="uint8" elements="1" defaultvalue="20"/>
-		<field name="DerivativeGamma" units="" type="float" elements="1" defaultvalue="1"/>
+		<field name="DerivativeGamma" units="" type="float" elements="1" defaultvalue="0.6"/>
 		<field name="MaxAxisLock" units="deg" type="uint8" elements="1" defaultvalue="15"/>
 		<field name="MaxAxisLockRate" units="deg/s" type="uint8" elements="1" defaultvalue="2"/>
 		<field name="WeakLevelingKp" units="(deg/s)/deg" type="float" elements="1" defaultvalue="0.33"/>
