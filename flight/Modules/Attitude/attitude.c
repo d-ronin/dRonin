@@ -534,9 +534,9 @@ static int32_t updateAttitudeComplementary(float dT, bool first_run, bool second
 		// Use a rapidly decrease accelKp to force the attitude to snap back
 		// to level and then converge more smoothly
 		if (complementary_filter_state.arming_count < 20)
-			attitudeSettings.AccKp = 1.0f;
-		else if (attitudeSettings.AccKp > 0.1f)
-			attitudeSettings.AccKp -= 0.01f;
+			attitudeSettings.AccKp = 50.0f;
+		else if (attitudeSettings.AccKp > 30.0f)
+			attitudeSettings.AccKp -= 1.0f;
 		complementary_filter_state.arming_count++;
 
 		// Set the other parameters to drive faster convergence
