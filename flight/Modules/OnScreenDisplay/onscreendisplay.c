@@ -134,7 +134,7 @@ const char IMPERIAL_DIST_UNIT_LONG[] = "M";
 const char IMPERIAL_DIST_UNIT_SHORT[] = "ft";
 const char IMPERIAL_SPEED_UNIT[] = "MPH";
 
-bool video_active = true;
+volatile bool video_active;
 
 const point_t HOME_ARROW[] = {
 	{
@@ -1709,13 +1709,12 @@ static void onScreenDisplayTask(__attribute__((unused)) void *parameters)
 
 	// blank
 	while (PIOS_Thread_Systime() <= BLANK_TIME) {
-		if (PIOS_Semaphore_Take(onScreenDisplaySemaphore, 300) == true) {
-			video_active = true;
-			clearGraphics();
-		} else {
-			video_active = false;
-		}
+		PIOS_Thread_Sleep(20);
 	}
+
+	video_active = true;
+
+	PIOS_Thread_Sleep(20);
 
 	// initialize interupts
 	PIOS_Video_Init(&pios_video_cfg);
