@@ -1690,7 +1690,9 @@ static void invokeCallback(struct ObjectEventEntry *event, UAVObjEvent *msg,
 
 	asm volatile (
 		"mov	r4, sp\n\t"		// r4 = old stack pointer
-		"mov	sp, %0\n\t"		// set up the new stack
+		"mov	r5, %0\n\t"		// Get the new stack
+		// Happens in two steps because of Cortex-M4 errata 752770
+		"mov	sp, r5\n\t"		// set up the new stack
 		"bl	realInvokeCallback\n\t"	// run realInvokeCallback--
 						// with same args
 		"mov	sp, r4\n\t"		// Put back the stack frame
@@ -1706,7 +1708,7 @@ static void invokeCallback(struct ObjectEventEntry *event, UAVObjEvent *msg,
 		: // no pure read-only registers
 		: "memory",		// callback may clobber memory,
 		"cc",			// condition codes,
-		"r4", "ip", "lr"	// we clobber r4, ip, and lr
+		"r4", "r5", "ip", "lr"	// we clobber r4, r5, ip, and lr
 		// And call-clobbered floating point registers
 		, "s0", "s1", "s2", "s3", "s4", "s5", "s6", "s7",
 		"s8", "s9", "s10", "s11", "s12", "s13", "s14", "s15"
