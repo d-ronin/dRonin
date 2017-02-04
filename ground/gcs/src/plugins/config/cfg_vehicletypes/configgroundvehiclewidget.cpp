@@ -197,9 +197,6 @@ SystemSettings::AirframeTypeOptions ConfigGroundVehicleWidget::updateConfigObjec
     MixerSettings *mixerSettings = MixerSettings::GetInstance(getObjectManager());
     Q_ASSERT(mixerSettings);
 
-	// Remove Feed Forward, it is pointless on a ground vehicle:
-    setMixerValue(mixerSettings, "FeedForward", 0.0);
-
     // set the throttle curves
     setThrottleCurve(mixerSettings, MixerSettings::MIXER1VECTOR_THROTTLECURVE1, m_aircraft->groundVehicleThrottle1->getCurve() );
     setThrottleCurve(mixerSettings, MixerSettings::MIXER1VECTOR_THROTTLECURVE2, m_aircraft->groundVehicleThrottle2->getCurve() );

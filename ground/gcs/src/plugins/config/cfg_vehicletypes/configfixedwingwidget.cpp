@@ -181,9 +181,6 @@ SystemSettings::AirframeTypeOptions ConfigFixedWingWidget::updateConfigObjectsFr
 
     // Default fixed-wing type is classic airplane
     SystemSettings::AirframeTypeOptions airframeType = SystemSettings::AIRFRAMETYPE_FIXEDWING;
-
-	// Remove Feed Forward, it is pointless on a plane:
-    setMixerValue(mixerSettings, "FeedForward", 0.0);
 	
     // Set the throttle curve
     setThrottleCurve(mixerSettings,MixerSettings::MIXER1VECTOR_THROTTLECURVE1, m_aircraft->fixedWingThrottle->getCurve());
