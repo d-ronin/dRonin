@@ -58,8 +58,11 @@ private slots:
     void objectUpdated(UAVObject * obj, bool success);
     void autoCellDetectionToggled(bool checked);
     void maxCellVoltageChanged(double value);
+    void ledTabUpdate(UAVObject *obj);
+    void ledTabSetColor();
 
 private:
+    void setupLedTab();
     /* To activate the appropriate tabs */
     void enableBatteryTab(bool enabled);
     void enableAirspeedTab(bool enabled);
