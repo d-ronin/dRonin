@@ -30,7 +30,6 @@
 #include <coreplugin/generalsettings.h>
 #include <coreplugin/iboardtype.h>
 
-
 #include "airspeedsettings.h"
 #include "flightbatterysettings.h"
 #include "hottsettings.h"
@@ -40,6 +39,9 @@
 #include "vibrationanalysissettings.h"
 #include "taskinfo.h"
 #include "loggingsettings.h"
+#include "rgbledsettings.h"
+
+#include <QColorDialog>
 
 ConfigModuleWidget::ConfigModuleWidget(QWidget *parent) : ConfigTaskWidget(parent)
 {
@@ -80,6 +82,8 @@ ConfigModuleWidget::ConfigModuleWidget(QWidget *parent) : ConfigTaskWidget(paren
     connect(airspeedSettings, SIGNAL(objectUpdated(UAVObject*)), this, SLOT(updateAirspeedGroupbox(UAVObject *)));
     connect(ui->gb_airspeedGPS, SIGNAL(clicked(bool)), this, SLOT(enableAirspeedTypeGPS(bool)));
     connect(ui->gb_airspeedPitot, SIGNAL(clicked(bool)), this, SLOT(enableAirspeedTypePitot(bool)));
+
+    setupLedTab();
 
     enableBatteryTab(false);
     enableAirspeedTab(false);
@@ -383,6 +387,72 @@ void ConfigModuleWidget::maxCellVoltageChanged(double value)
     } else if (ui->gbAutoCellDetection->isChecked()) {
         ui->gbAutoCellDetection->setChecked(false);
     }
+}
+
+void ConfigModuleWidget::setupLedTab()
+{
+    QPointer<UAVObjectManager> objMgr = getObjectManager();
+    if (!objMgr) // hope it can only be destructed in this thread
+        return;
+
+    auto obj = objMgr->getObject("RGBLEDSettings");
+    if (!obj)
+        return;
+
+    connect(obj, &UAVObject::objectUpdated, this, &ConfigModuleWidget::ledTabUpdate);
+    connect(ui->btnLEDDefaultColor, &QPushButton::clicked, this, &ConfigModuleWidget::ledTabSetColor);
+    connect(ui->btnLEDRange1Begin, &QPushButton::clicked, this, &ConfigModuleWidget::ledTabSetColor);
+    connect(ui->btnLEDRange1End, &QPushButton::clicked, this, &ConfigModuleWidget::ledTabSetColor);
+}
+
+void ConfigModuleWidget::ledTabUpdate(UAVObject *obj)
+{
+    auto rgb = qobject_cast<RGBLEDSettings *>(obj);
+    if (!rgb) {
+        Q_ASSERT(false);
+        qWarning() << "Invalid object!";
+        return;
+    }
+
+    auto data = rgb->getData();
+
+    ui->lblLEDDefaultColor->setStyleSheet(QString("background: rgb(%0, %1, %2);").arg(data.DefaultColor[0]).arg(data.DefaultColor[1]).arg(data.DefaultColor[2]));
+    ui->lblLEDRange1Begin->setStyleSheet(QString("background: rgb(%0, %1, %2);").arg(data.RangeBaseColor[0]).arg(data.RangeBaseColor[1]).arg(data.RangeBaseColor[2]));
+    ui->lblLEDRange1End->setStyleSheet(QString("background: rgb(%0, %1, %2);").arg(data.RangeEndColor[0]).arg(data.RangeEndColor[1]).arg(data.RangeEndColor[2]));
+}
+
+void ConfigModuleWidget::ledTabSetColor()
+{
+    QPointer<QPushButton> btn = qobject_cast<QPushButton *>(sender());
+    if (!btn)
+        return;
+
+    QPointer<UAVObjectManager> objMgr = getObjectManager();
+    if (!objMgr)
+        return;
+
+    auto obj = objMgr->getObject("RGBLEDSettings");
+    if (!obj)
+        return;
+    auto field = obj->getField(btn->property("fieldname").toString());
+    if (!field)
+        return;
+
+    const QColor initial(field->getValue(0).toInt(), field->getValue(1).toInt(), field->getValue(2).toInt());
+    QColorDialog picker(initial, this);
+    if (picker.exec() != QDialog::Accepted)
+        return;
+
+    const QColor &col = picker.selectedColor();
+    field->setValue(col.red(), 0);
+    field->setValue(col.green(), 1);
+    field->setValue(col.blue(), 2);
+
+    QPointer<QLabel> lbl(ui->tabLED->findChild<QLabel *>(btn->objectName().replace("btn", "lbl")));
+    if (!lbl)
+        return;
+
+    lbl->setStyleSheet(QString("background: rgb(%0, %1, %2);").arg(col.red()).arg(col.green()).arg(col.blue()));
 }
 
 /**

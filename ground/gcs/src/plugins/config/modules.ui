@@ -20,7 +20,7 @@
       <enum>QTabWidget::Rounded</enum>
      </property>
      <property name="currentIndex">
-      <number>0</number>
+      <number>4</number>
      </property>
      <property name="tabsClosable">
       <bool>false</bool>
@@ -468,7 +468,7 @@
          <property name="sizeHint" stdset="0">
           <size>
            <width>20</width>
-           <height>40</height>
+           <height>0</height>
           </size>
          </property>
         </spacer>
@@ -1322,6 +1322,335 @@
        </item>
       </layout>
      </widget>
+     <widget class="QWidget" name="tabLED">
+      <attribute name="title">
+       <string>RGB LEDs</string>
+      </attribute>
+      <layout class="QVBoxLayout" name="verticalLayout_10">
+       <item>
+        <widget class="QGroupBox" name="gbxLEDBasic">
+         <property name="title">
+          <string>Basic Settings</string>
+         </property>
+         <layout class="QFormLayout" name="formLayout_8">
+          <item row="0" column="0">
+           <widget class="QLabel" name="label_2">
+            <property name="text">
+             <string>Total LEDs:</string>
+            </property>
+           </widget>
+          </item>
+          <item row="0" column="1">
+           <widget class="QSpinBox" name="sbLEDTotal">
+            <property name="objrelation" stdset="0">
+             <stringlist notr="true">
+              <string>objname:RGBLEDSettings</string>
+              <string>fieldname:NumLeds</string>
+              <string>haslimits:yes</string>
+             </stringlist>
+            </property>
+           </widget>
+          </item>
+          <item row="1" column="0">
+           <widget class="QLabel" name="label_15">
+            <property name="text">
+             <string>Alarm Group Begin:</string>
+            </property>
+           </widget>
+          </item>
+          <item row="2" column="0">
+           <widget class="QLabel" name="label_17">
+            <property name="text">
+             <string>Alarm Group End:</string>
+            </property>
+           </widget>
+          </item>
+          <item row="1" column="1">
+           <widget class="QSpinBox" name="sbLEDAlarmsBegin">
+            <property name="objrelation" stdset="0">
+             <stringlist notr="true">
+              <string>objname:RGBLEDSettings</string>
+              <string>fieldname:AnnunciateRangeBegin</string>
+              <string>haslimits:yes</string>
+             </stringlist>
+            </property>
+           </widget>
+          </item>
+          <item row="2" column="1">
+           <widget class="QSpinBox" name="sbLEDAlarmsEnd">
+            <property name="objrelation" stdset="0">
+             <stringlist notr="true">
+              <string>objname:RGBLEDSettings</string>
+              <string>fieldname:AnnunciateRangeEnd</string>
+              <string>haslimits:yes</string>
+             </stringlist>
+            </property>
+           </widget>
+          </item>
+          <item row="3" column="0">
+           <widget class="QLabel" name="label_27">
+            <property name="text">
+             <string>Default Color:</string>
+            </property>
+           </widget>
+          </item>
+          <item row="3" column="1">
+           <layout class="QHBoxLayout" name="horizontalLayout_22">
+            <item>
+             <widget class="QLabel" name="lblLEDDefaultColor">
+              <property name="sizePolicy">
+               <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+                <horstretch>0</horstretch>
+                <verstretch>0</verstretch>
+               </sizepolicy>
+              </property>
+              <property name="minimumSize">
+               <size>
+                <width>25</width>
+                <height>25</height>
+               </size>
+              </property>
+              <property name="frameShape">
+               <enum>QFrame::Box</enum>
+              </property>
+              <property name="text">
+               <string/>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QPushButton" name="btnLEDDefaultColor">
+              <property name="text">
+               <string>Pick</string>
+              </property>
+              <property name="fieldname" stdset="0">
+               <string notr="true">DefaultColor</string>
+              </property>
+             </widget>
+            </item>
+           </layout>
+          </item>
+         </layout>
+        </widget>
+       </item>
+       <item>
+        <widget class="QGroupBox" name="gbxLEDGroup1">
+         <property name="title">
+          <string>LED Group 1</string>
+         </property>
+         <layout class="QFormLayout" name="formLayout">
+          <item row="0" column="0">
+           <widget class="QLabel" name="label_10">
+            <property name="text">
+             <string>Range Begin:</string>
+            </property>
+           </widget>
+          </item>
+          <item row="0" column="1">
+           <widget class="QSpinBox" name="sbLEDRange1Begin">
+            <property name="objrelation" stdset="0">
+             <stringlist notr="true">
+              <string>objname:RGBLEDSettings</string>
+              <string>fieldname:RangeBegin</string>
+              <string>haslimits:yes</string>
+             </stringlist>
+            </property>
+           </widget>
+          </item>
+          <item row="1" column="0">
+           <widget class="QLabel" name="label_6">
+            <property name="text">
+             <string>Range End:</string>
+            </property>
+           </widget>
+          </item>
+          <item row="1" column="1">
+           <widget class="QSpinBox" name="sbLEDRange1End">
+            <property name="objrelation" stdset="0">
+             <stringlist notr="true">
+              <string>objname:RGBLEDSettings</string>
+              <string>fieldname:RangeEnd</string>
+              <string>haslimits:yes</string>
+             </stringlist>
+            </property>
+           </widget>
+          </item>
+          <item row="2" column="0">
+           <widget class="QLabel" name="label_18">
+            <property name="text">
+             <string>Color Begin:</string>
+            </property>
+           </widget>
+          </item>
+          <item row="2" column="1">
+           <layout class="QHBoxLayout" name="horizontalLayout_7">
+            <item>
+             <widget class="QLabel" name="lblLEDRange1Begin">
+              <property name="sizePolicy">
+               <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+                <horstretch>0</horstretch>
+                <verstretch>0</verstretch>
+               </sizepolicy>
+              </property>
+              <property name="minimumSize">
+               <size>
+                <width>25</width>
+                <height>25</height>
+               </size>
+              </property>
+              <property name="frameShape">
+               <enum>QFrame::Box</enum>
+              </property>
+              <property name="text">
+               <string/>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QPushButton" name="btnLEDRange1Begin">
+              <property name="text">
+               <string>Pick</string>
+              </property>
+              <property name="fieldname" stdset="0">
+               <string notr="true">RangeBaseColor</string>
+              </property>
+             </widget>
+            </item>
+           </layout>
+          </item>
+          <item row="3" column="0">
+           <widget class="QLabel" name="label_19">
+            <property name="text">
+             <string>Color End:</string>
+            </property>
+           </widget>
+          </item>
+          <item row="3" column="1">
+           <layout class="QHBoxLayout" name="horizontalLayout_8">
+            <item>
+             <widget class="QLabel" name="lblLEDRange1End">
+              <property name="sizePolicy">
+               <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+                <horstretch>0</horstretch>
+                <verstretch>0</verstretch>
+               </sizepolicy>
+              </property>
+              <property name="minimumSize">
+               <size>
+                <width>25</width>
+                <height>25</height>
+               </size>
+              </property>
+              <property name="frameShape">
+               <enum>QFrame::Box</enum>
+              </property>
+              <property name="text">
+               <string/>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QPushButton" name="btnLEDRange1End">
+              <property name="text">
+               <string>Pick</string>
+              </property>
+              <property name="fieldname" stdset="0">
+               <string notr="true">RangeEndColor</string>
+              </property>
+             </widget>
+            </item>
+           </layout>
+          </item>
+          <item row="4" column="0">
+           <widget class="QLabel" name="label_20">
+            <property name="text">
+             <string>Blend Source:</string>
+            </property>
+           </widget>
+          </item>
+          <item row="4" column="1">
+           <widget class="QComboBox" name="cbLEDRange1Source">
+            <property name="objrelation" stdset="0">
+             <stringlist notr="true">
+              <string>objname:RGBLEDSettings</string>
+              <string>fieldname:RangeColorBlendSource</string>
+              <string>haslimits:yes</string>
+             </stringlist>
+            </property>
+           </widget>
+          </item>
+          <item row="5" column="0">
+           <widget class="QLabel" name="label_21">
+            <property name="text">
+             <string>Disarmed Source:</string>
+            </property>
+           </widget>
+          </item>
+          <item row="5" column="1">
+           <widget class="QComboBox" name="cbLEDRange1SourceDisarmed">
+            <property name="objrelation" stdset="0">
+             <stringlist notr="true">
+              <string>objname:RGBLEDSettings</string>
+              <string>fieldname:RangeColorBlendUnarmedSource</string>
+              <string>haslimits:yes</string>
+             </stringlist>
+            </property>
+           </widget>
+          </item>
+          <item row="6" column="0">
+           <widget class="QLabel" name="label_22">
+            <property name="text">
+             <string>Blend Type:</string>
+            </property>
+           </widget>
+          </item>
+          <item row="6" column="1">
+           <widget class="QComboBox" name="cbLEDRange1BlendType">
+            <property name="objrelation" stdset="0">
+             <stringlist notr="true">
+              <string>objname:RGBLEDSettings</string>
+              <string>fieldname:RangeColorBlendType</string>
+              <string>haslimits:yes</string>
+             </stringlist>
+            </property>
+           </widget>
+          </item>
+          <item row="7" column="0">
+           <widget class="QLabel" name="label_26">
+            <property name="text">
+             <string>Blend Mode:</string>
+            </property>
+           </widget>
+          </item>
+          <item row="7" column="1">
+           <widget class="QComboBox" name="cbLEDRange1BlendMode">
+            <property name="objrelation" stdset="0">
+             <stringlist notr="true">
+              <string>objname:RGBLEDSettings</string>
+              <string>fieldname:RangeColorBlendMode</string>
+              <string>haslimits:yes</string>
+             </stringlist>
+            </property>
+           </widget>
+          </item>
+         </layout>
+        </widget>
+       </item>
+       <item>
+        <spacer name="verticalSpacer">
+         <property name="orientation">
+          <enum>Qt::Vertical</enum>
+         </property>
+         <property name="sizeHint" stdset="0">
+          <size>
+           <width>20</width>
+           <height>40</height>
+          </size>
+         </property>
+        </spacer>
+       </item>
+      </layout>
+     </widget>
      <widget class="QWidget" name="tabAirspeed">
       <attribute name="title">
        <string>Airspeed</string>
@@ -1577,8 +1906,8 @@
            <rect>
             <x>0</x>
             <y>0</y>
-            <width>353</width>
-            <height>864</height>
+            <width>1059</width>
+            <height>920</height>
            </rect>
           </property>
           <layout class="QGridLayout" name="gridLayout">
