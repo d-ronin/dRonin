@@ -35,6 +35,7 @@
 #include "uavobjectfield.h"
 #include <QtEndian>
 #include <QDebug>
+#include <cfloat>
 
 UAVObjectField::UAVObjectField(const QString& name, const QString& units, FieldType type, quint32 numElements,
                                const QStringList& options, const QList<int>& indices, const QString &limits,
@@ -436,8 +437,31 @@ bool UAVObjectField::isWithinLimits(QVariant var,quint32 index, int board)
 
 QVariant UAVObjectField::getMaxLimit(quint32 index,int board)
 {
-    if(!elementLimits.keys().contains(index))
+    if (!elementLimits.keys().contains(index)) {
+        // if nothing explicitly specified, assume max possible value
+        switch (type) {
+        case INT8:
+            return INT8_MAX;
+        case INT16:
+            return INT16_MAX;
+        case INT32:
+            return INT32_MAX;
+        case UINT8:
+            return UINT8_MAX;
+        case UINT16:
+            return UINT16_MAX;
+        case UINT32:
+            return UINT32_MAX;
+        case FLOAT32:
+            return FLT_MAX;
+        case ENUM: // TODO: could do better for this one
+        case BITFIELD:
+        case STRING:
+            break;
+        }
         return QVariant();
+    }
+
     foreach(const LimitStruct &struc,elementLimits.value(index))
     {
         if((struc.board!=board) && board!=0 && struc.board!=0)
@@ -465,8 +489,29 @@ QVariant UAVObjectField::getMaxLimit(quint32 index,int board)
 }
 QVariant UAVObjectField::getMinLimit(quint32 index, int board)
 {
-    if(!elementLimits.keys().contains(index))
+    if (!elementLimits.keys().contains(index)) {
+        // if nothing explicitly specified, assume min possible value
+        switch (type) {
+        case INT8:
+            return INT8_MIN;
+        case INT16:
+            return INT16_MIN;
+        case INT32:
+            return INT32_MIN;
+        case UINT8:
+        case UINT16:
+        case UINT32:
+            return 0;
+        case FLOAT32:
+            return FLT_MIN;
+        case ENUM: // TODO: could do better for this one
+        case BITFIELD:
+        case STRING:
+            break;
+        }
         return QVariant();
+    }
+
     foreach(LimitStruct struc,elementLimits.value(index))
     {
         if((struc.board!=board) && board!=0 && struc.board!=0)
