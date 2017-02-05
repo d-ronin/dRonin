@@ -449,7 +449,7 @@
               <item>
                <widget class="QSpinBox" name="ArtificialHorizonMaxPitch">
                 <property name="toolTip">
-                 <string>Sets the amount of forward pitch that results in the artificial horizon displaying at the top of the screen.</string>
+                 <string>Sets the amount of forward pitch that results in the artificial horizon displaying at the top of the screen. Set this value to approx. 30% of your camera's diagonal FOV (usually the advertised FOV) for standard 4:3 cameras, ie. for a 90 degree FOV camera, enter 30.</string>
                 </property>
                 <property name="minimum">
                  <number>10</number>
