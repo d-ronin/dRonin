@@ -387,7 +387,7 @@ SystemSettings::AirframeTypeOptions ConfigMultiRotorWidget::updateConfigObjectsF
         }
         motorList << "VTOLMotorNW" << "VTOLMotorW" << "VTOLMotorNE" << "VTOLMotorE"
                   << "VTOLMotorS" << "VTOLMotorSE";
-        setupMotors(motorList);
+        setupMotors(motorList, airframeType);
 
         // Motor 1 to 6, Y6 Layout:
         //     pitch   roll    yaw
@@ -414,7 +414,7 @@ SystemSettings::AirframeTypeOptions ConfigMultiRotorWidget::updateConfigObjectsF
         }
         motorList << "VTOLMotorN" << "VTOLMotorNE" << "VTOLMotorE" << "VTOLMotorSE"
                   << "VTOLMotorS" << "VTOLMotorSW" << "VTOLMotorW" << "VTOLMotorNW";
-        setupMotors(motorList);
+        setupMotors(motorList, airframeType);
         // Motor 1 to 8:
         //     pitch   roll    yaw
         double mixer [8][3] = {
@@ -439,7 +439,7 @@ SystemSettings::AirframeTypeOptions ConfigMultiRotorWidget::updateConfigObjectsF
         }
         motorList << "VTOLMotorN" << "VTOLMotorNE" << "VTOLMotorE" << "VTOLMotorSE"
                   << "VTOLMotorS" << "VTOLMotorSW" << "VTOLMotorW" << "VTOLMotorNW";
-        setupMotors(motorList);
+        setupMotors(motorList, airframeType);
         // Motor 1 to 8:
         // IMPORTANT: Assumes evenly spaced engines
         //     pitch   roll    yaw
@@ -465,7 +465,7 @@ SystemSettings::AirframeTypeOptions ConfigMultiRotorWidget::updateConfigObjectsF
         }
         motorList << "VTOLMotorN" << "VTOLMotorNE" << "VTOLMotorE" << "VTOLMotorSE"
                   << "VTOLMotorS" << "VTOLMotorSW" << "VTOLMotorW" << "VTOLMotorNW";
-        setupMotors(motorList);
+        setupMotors(motorList, airframeType);
         // Motor 1 to 8:
         //     pitch   roll    yaw
         double mixer [8][3] = {
@@ -490,7 +490,7 @@ SystemSettings::AirframeTypeOptions ConfigMultiRotorWidget::updateConfigObjectsF
         }
         motorList << "VTOLMotorNW" << "VTOLMotorN" << "VTOLMotorNE" << "VTOLMotorE"
                   << "VTOLMotorSE" << "VTOLMotorS" << "VTOLMotorSW" << "VTOLMotorW";
-        setupMotors(motorList);
+        setupMotors(motorList, airframeType);
         // Motor 1 to 8:
         //     pitch   roll    yaw
         double mixer [8][3] = {
@@ -519,12 +519,7 @@ SystemSettings::AirframeTypeOptions ConfigMultiRotorWidget::updateConfigObjectsF
             return airframeType;
         }
         motorList << "VTOLMotorNW" << "VTOLMotorNE" << "VTOLMotorS";
-        setupMotors(motorList);
-
-        GUIConfigDataUnion config = GetConfigData();
-        config.multi.TRIYaw = m_aircraft->triYawChannelBox->currentIndex();
-        SetConfigData(config);
-
+        setupMotors(motorList, airframeType);
 
         // Motor 1 to 6, Y6 Layout:
         //     pitch   roll    yaw
@@ -853,7 +848,7 @@ void ConfigMultiRotorWidget::setupQuadMotor(int channel, double pitch, double ro
 /**
  Helper function: setup motors. Takes a list of channel names in input.
  */
-void ConfigMultiRotorWidget::setupMotors(QList<QString> motorList)
+void ConfigMultiRotorWidget::setupMotors(QList<QString> motorList, SystemSettings::AirframeTypeOptions vehicle)
 {
     QList<QComboBox*> mmList;
     mmList << m_aircraft->multiMotorChannelBox1 << m_aircraft->multiMotorChannelBox2 << m_aircraft->multiMotorChannelBox3
@@ -885,8 +880,12 @@ void ConfigMultiRotorWidget::setupMotors(QList<QString> motorList)
         else if (motor == QString( "VTOLMotorNW"))
             configData.multi.VTOLMotorNW = index;
     }
-    SetConfigData(configData);
 
+    if (vehicle == SystemSettings::AIRFRAMETYPE_TRI) {
+        configData.multi.TRIYaw = m_aircraft->triYawChannelBox->currentIndex();
+    }
+
+    SetConfigData(configData, vehicle);
 }
 
 
@@ -912,7 +911,8 @@ bool ConfigMultiRotorWidget::setupQuad(bool pLayout)
         motorList << "VTOLMotorNW" << "VTOLMotorNE" << "VTOLMotorSE"
                   << "VTOLMotorSW";
     }
-    setupMotors(motorList);
+    setupMotors(motorList, pLayout ? SystemSettings::AIRFRAMETYPE_QUADP :
+            SystemSettings::AIRFRAMETYPE_QUADX);
 
     // Now, setup the mixer:
     // Motor 1 to 4, X Layout:
@@ -978,7 +978,8 @@ bool ConfigMultiRotorWidget::setupHexa(bool pLayout)
         motorList << "VTOLMotorNE" << "VTOLMotorE" << "VTOLMotorSE"
                   << "VTOLMotorSW" << "VTOLMotorW" << "VTOLMotorNW";
     }
-    setupMotors(motorList);
+    setupMotors(motorList, pLayout ? SystemSettings::AIRFRAMETYPE_HEXA :
+            SystemSettings::AIRFRAMETYPE_HEXAX);
 
     // and set only the relevant channels:
 

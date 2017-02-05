@@ -158,9 +158,11 @@ ConfigCcpmWidget::ConfigCcpmWidget(QWidget *parent) : VehicleConfig(parent)
     // set default swashplate config to CCPM 3 Servo 120 degrees
     // need to set the index for the dropdown list and update the UI config using that index
     m_ccpm->ccpmType->setCurrentIndex(m_ccpm->ccpmType->findText(QString::fromUtf8("CCPM 3 Servo 120º")));
-    GUIConfigDataUnion config = GetConfigData();
-    config.heli.SwashplateType = m_ccpm->ccpmType->count() - m_ccpm->ccpmType->currentIndex()-1;
-    SetConfigData(config);
+
+    // It is wrong to do these before the type is selected to be heli
+    //GUIConfigDataUnion config = GetConfigData();
+    //config.heli.SwashplateType = m_ccpm->ccpmType->count() - m_ccpm->ccpmType->currentIndex()-1;
+    //SetConfigData(config, SystemSettings::AIRFRAMETYPE_HELICP);
 
     refreshAirframeWidgetsValues(SystemSettings::AIRFRAMETYPE_HELICP);
 
@@ -776,7 +778,7 @@ SystemSettings::AirframeTypeOptions ConfigCcpmWidget::updateConfigObjects()
     //tail
     config.heli.Tail = m_ccpm->ccpmTailChannel->currentIndex();
 
-    SetConfigData(config);
+    SetConfigData(config, SystemSettings::AIRFRAMETYPE_HELICP);
 
     updatingFromHardware = false;
     return airframeType;

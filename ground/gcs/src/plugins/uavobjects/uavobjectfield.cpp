@@ -337,7 +337,7 @@ bool UAVObjectField::isWithinLimits(QVariant var,quint32 index, int board)
             case ENUM:
 		    // OK, I think this is OK with parents.  Because we'll
 		    // consider the limit to mean "as ordered in this object".
-		    // So no need to map to underlying types.  
+		    // So no need to map to underlying types.
                     if(!(options.indexOf(var.toString())>=options.indexOf(struc.values.at(0).toString()) && options.indexOf(var.toString())<=options.indexOf(struc.values.at(1).toString())))
                         return false;
                 return true;
@@ -661,7 +661,11 @@ QString UAVObjectField::toString()
     sout.append ( QString("%1: [ ").arg(name) );
     for (unsigned int n = 0; n < numElements; ++n)
     {
-        sout.append( QString("%1 ").arg(getDouble(n)) );
+        if (type == ENUM) {
+            sout.append( QString("%1 ").arg(getValue(n).toString()) );
+        } else {
+            sout.append( QString("%1 ").arg(getDouble(n)) );
+        }
     }
     sout.append( QString("] %1\n").arg(units) );
     return sout;

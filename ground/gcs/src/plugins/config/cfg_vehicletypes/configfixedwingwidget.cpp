@@ -181,9 +181,6 @@ SystemSettings::AirframeTypeOptions ConfigFixedWingWidget::updateConfigObjectsFr
 
     // Default fixed-wing type is classic airplane
     SystemSettings::AirframeTypeOptions airframeType = SystemSettings::AIRFRAMETYPE_FIXEDWING;
-
-	// Remove Feed Forward, it is pointless on a plane:
-    setMixerValue(mixerSettings, "FeedForward", 0.0);
 	
     // Set the throttle curve
     setThrottleCurve(mixerSettings,MixerSettings::MIXER1VECTOR_THROTTLECURVE1, m_aircraft->fixedWingThrottle->getCurve());
@@ -274,8 +271,8 @@ bool ConfigFixedWingWidget::setupFrameFixedWing(SystemSettings::AirframeTypeOpti
     config.fixedwing.FixedWingYaw1 = m_aircraft->fwRudder1ChannelBox->currentIndex();
     config.fixedwing.FixedWingThrottle = m_aircraft->fwEngineChannelBox->currentIndex();
 
-    SetConfigData(config);
-	
+    SetConfigData(config, SystemSettings::AIRFRAMETYPE_FIXEDWING);
+
     MixerSettings *mixerSettings = MixerSettings::GetInstance(getObjectManager());
     Q_ASSERT(mixerSettings);
     resetMixers(mixerSettings);
@@ -351,7 +348,7 @@ bool ConfigFixedWingWidget::setupFrameElevon(SystemSettings::AirframeTypeOptions
     config.fixedwing.FixedWingYaw2 = m_aircraft->fwRudder2ChannelBox->currentIndex();
     config.fixedwing.FixedWingThrottle = m_aircraft->fwEngineChannelBox->currentIndex();
 
-    SetConfigData(config);
+    SetConfigData(config, SystemSettings::AIRFRAMETYPE_FIXEDWINGELEVON);
 	    
     MixerSettings *mixerSettings = MixerSettings::GetInstance(getObjectManager());
     Q_ASSERT(mixerSettings);
@@ -423,7 +420,7 @@ bool ConfigFixedWingWidget::setupFrameVtail(SystemSettings::AirframeTypeOptions 
     config.fixedwing.FixedWingRoll2 = m_aircraft->fwAileron2ChannelBox->currentIndex();
     config.fixedwing.FixedWingThrottle = m_aircraft->fwEngineChannelBox->currentIndex();
 
-    SetConfigData(config);
+    SetConfigData(config, SystemSettings::AIRFRAMETYPE_FIXEDWINGVTAIL);
 	    
     MixerSettings *mixerSettings = MixerSettings::GetInstance(getObjectManager());
     Q_ASSERT(mixerSettings);
