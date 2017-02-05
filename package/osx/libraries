@@ -14,6 +14,11 @@ pushd "${QT_SDK_BIN_PATH}"
 
 ./macdeployqt "${APP}" -verbose=2 -no-strip -always-overwrite -qmldir="$QMLDIR" -executable="${APP}/Contents/MacOS/crashreporterapp"
 
+# hack to workaround QTBUG-57265 (macdeployqt copies debug symbols from dSYM bundle instead of real dylib)
+mkdir -p "${APP}/Contents/Plugins/quick/"
+cp -f "${QT_SDK_BIN_PATH}/../qml/QtQuick.2/libqtquick2plugin.dylib" "${APP}/Contents/Plugins/quick/"
+cp -f "${QT_SDK_BIN_PATH}/../qml/QtQuick/XmlListModel/libqmlxmllistmodelplugin.dylib" "${APP}/Contents/Plugins/quick/"
+
 popd
 
 # For some reasom this symlink is still wrong..
