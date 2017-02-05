@@ -623,15 +623,15 @@ new home location unless it is in indoor mode.</string>
              <number>6</number>
             </property>
             <property name="maximum">
-             <double>0.010000000000000</double>
+             <double>1.0000000000000</double>
             </property>
             <property name="singleStep">
-             <double>0.000001000000000</double>
+             <double>0.001000000000</double>
             </property>
             <property name="objrelation" stdset="0">
              <stringlist>
               <string>objname:AttitudeSettings</string>
-              <string>fieldname:AccelKi</string>
+              <string>fieldname:AccKi</string>
               <string>buttongroup:1</string>
              </stringlist>
             </property>
@@ -649,15 +649,15 @@ new home location unless it is in indoor mode.</string>
              <number>3</number>
             </property>
             <property name="maximum">
-             <double>0.200000000000000</double>
+             <double>50.0000000000000</double>
             </property>
             <property name="singleStep">
-             <double>0.001000000000000</double>
+             <double>0.1000000000000</double>
             </property>
             <property name="objrelation" stdset="0">
              <stringlist>
               <string>objname:AttitudeSettings</string>
-              <string>fieldname:AccelKp</string>
+              <string>fieldname:AccKp</string>
               <string>buttongroup:1</string>
              </stringlist>
             </property>

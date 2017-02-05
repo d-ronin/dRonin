@@ -15,7 +15,7 @@
  * @file       attitude.c
  * @author     The OpenPilot Team, http://www.openpilot.org Copyright (C) 2010.
  * @author     Tau Labs, http://taulabs.org Copyright (C) 2012-2016
- * @author     dRonin, http://dronin.org Copyright (C) 2015-2016
+ * @author     dRonin, http://dronin.org Copyright (C) 2015-2017
  * @brief      Full attitude estimation algorithm
  *
  * @see        The GNU Public License (GPL) Version 3
@@ -153,6 +153,8 @@ static const float zeros[3] = {0.0f, 0.0f, 0.0f};
 static struct complementary_filter_state complementary_filter_state;
 static struct cfvert cfvert; //!< State information for vertical filter
 
+static float dT_expected = 0.001;	// assume 1KHz if we don't know.
+
 // Private functions
 static void AttitudeTask(void *parameters);
 
@@ -163,7 +165,7 @@ static int32_t setNavigationRaw();
 static int32_t setNavigationNone();
 
 //! Update the complementary filter attitude estimate
-static int32_t updateAttitudeComplementary(bool first_run, bool secondary, bool raw_gps);
+static int32_t updateAttitudeComplementary(float dT, bool first_run, bool secondary, bool raw_gps);
 //! Set the @ref AttitudeActual to the complementary filter estimate
 static int32_t setAttitudeComplementary();
 
@@ -308,15 +310,22 @@ static void AttitudeTask(void *parameters)
 	bool     last_complementary;
 	set_state_estimation_error(SYSTEMALARMS_STATEESTIMATION_UNDEFINED);
 
-	// Force settings update to make sure rotation loaded
-	settingsUpdatedCb(NULL, NULL, NULL, 0);
-
 	// Wait for all the sensors be to read
 	PIOS_Thread_Sleep(100);
 
 	// Invalidate previous algorithm to trigger a first run
 	last_algorithm = 0xfffffff;
 	last_complementary = false;
+
+	uint16_t samp_rate = PIOS_SENSORS_GetSampleRate(PIOS_SENSOR_GYRO);
+
+	if (samp_rate) {
+		dT_expected = 1.0f / samp_rate;
+	}
+
+	// Force settings update to make sure rotation loaded and to adjust for
+	// computed dT.
+	settingsUpdatedCb(NULL, NULL, NULL, 0);
 
 	// Main task loop
 	while (1) {
@@ -352,13 +361,15 @@ static void AttitudeTask(void *parameters)
 		if (ins) {
 			ret_val = updateAttitudeINSGPS(first_run, outdoor);
 			if (complementary)
-				 updateAttitudeComplementary(first_run || complementary != last_complementary,
-				                               true,     // the secondary filter
-				                               false);   // no raw gps is used
+				updateAttitudeComplementary(dT_expected,
+						first_run || complementary != last_complementary,
+						true,     // the secondary filter
+						false);   // no raw gps is used
 		} else {
-			ret_val = updateAttitudeComplementary(first_run,
-			                                       false,
-			                                       stateEstimation.NavigationFilter == STATEESTIMATION_NAVIGATIONFILTER_RAW);
+			ret_val = updateAttitudeComplementary(dT_expected,
+					first_run,
+					false,
+					stateEstimation.NavigationFilter == STATEESTIMATION_NAVIGATIONFILTER_RAW);
 		}
 
 		last_complementary = complementary;
@@ -408,13 +419,11 @@ static float cf_q[4];
  * @param[in] first_run indicates the filter was just selected
  * @param[in] secondary indicates the EKF is running as well
  */
-static int32_t updateAttitudeComplementary(bool first_run, bool secondary, bool raw_gps)
+static int32_t updateAttitudeComplementary(float dT, bool first_run, bool secondary, bool raw_gps)
 {
 	UAVObjEvent ev;
 	GyrosData gyrosData;
 	AccelsData accelsData;
-	static int32_t timeval;
-	float dT;
 
 	// If this is the primary estimation filter, wait until the accel and
 	// gyro objects are updated. If it timeouts then go to failsafe.
@@ -490,7 +499,6 @@ static int32_t updateAttitudeComplementary(bool first_run, bool secondary, bool 
 
 		complementary_filter_state.initialization = CF_POWERON;
 		complementary_filter_state.reset_timeval = PIOS_DELAY_GetRaw();
-		timeval = PIOS_DELAY_GetRaw();
 
 		complementary_filter_state.arming_count = 0;
 
@@ -504,6 +512,11 @@ static int32_t updateAttitudeComplementary(bool first_run, bool secondary, bool 
 	FlightStatusData flightStatus;
 	FlightStatusGet(&flightStatus);
 
+	float accKp = attitudeSettings.AccKp;
+	float accKi = attitudeSettings.AccKi;
+	float mgKp = attitudeSettings.MgKp;
+	float mgKi = attitudeSettings.MgKi;
+
 	uint32_t ms_since_reset = PIOS_DELAY_DiffuS(complementary_filter_state.reset_timeval) / 1000;
 	if (complementary_filter_state.initialization == CF_POWERON) {
 		// Wait one second before starting to initialize
@@ -516,23 +529,25 @@ static int32_t updateAttitudeComplementary(bool first_run, bool secondary, bool 
 		(ms_since_reset > 1000)) {
 
 		// For first 7 seconds use accels to get gyro bias
-		attitudeSettings.AccelKp = 0.1f + 0.1f * (PIOS_Thread_Systime() < 4000);
-		attitudeSettings.AccelKi = 0.1f;
-		attitudeSettings.MagKp = 0.1f;
+		accKp = MIN(accKp, 20 + 20 * (PIOS_Thread_Systime() < 4000));
+		accKi = 1;
+		mgKp = 1;
+
 	} else if ((attitudeSettings.ZeroDuringArming == ATTITUDESETTINGS_ZERODURINGARMING_TRUE) && 
 	           (flightStatus.Armed == FLIGHTSTATUS_ARMED_ARMING)) {
-
 		// Use a rapidly decrease accelKp to force the attitude to snap back
 		// to level and then converge more smoothly
-		if (complementary_filter_state.arming_count < 20)
-			attitudeSettings.AccelKp = 1.0f;
-		else if (attitudeSettings.AccelKp > 0.1f)
-			attitudeSettings.AccelKp -= 0.01f;
+		if (complementary_filter_state.arming_count < 20) {
+			accKp = 50.0f;
+		} else {
+			accKp = MIN(accKp, 50 - complementary_filter_state.arming_count);
+		}
+
 		complementary_filter_state.arming_count++;
 
 		// Set the other parameters to drive faster convergence
-		attitudeSettings.AccelKi = 0.1f;
-		attitudeSettings.MagKp = 0.1f;
+		accKi = 1;
+		mgKp = 1;
 
 		// Don't apply LPF to the accels during arming
 		complementary_filter_state.accel_filter_enabled = false;
@@ -553,7 +568,6 @@ static int32_t updateAttitudeComplementary(bool first_run, bool secondary, bool 
 	} else if (complementary_filter_state.initialization == CF_ARMING ||
 	           complementary_filter_state.initialization == CF_INITIALIZING) {
 
-		AttitudeSettingsGet(&attitudeSettings);
 		if(complementary_filter_state.accel_alpha > 0.0f)
 			complementary_filter_state.accel_filter_enabled = true;
 
@@ -572,21 +586,10 @@ static int32_t updateAttitudeComplementary(bool first_run, bool secondary, bool 
 		float baro;
 		BaroAltitudeAltitudeGet(&baro);
 		cfvert_reset(&cfvert, baro, attitudeSettings.VertPositionTau);
-
 	}
 
 	GyrosGet(&gyrosData);
 	accumulate_gyro(&gyrosData);
-
-	// Compute the dT using the cpu clock
-	dT = PIOS_DELAY_DiffuS(timeval) / 1000000.0f;
-	timeval = PIOS_DELAY_GetRaw();
-
-	// This should only happen at start up or at mode switches
-	if(dT > 0.01f)
-		dT = 0.01f;
-	else if(dT <= 0.0005f)
-		dT = 0.0005f;
 
 	float grot[3];
 	float accel_err[3];
@@ -677,15 +680,15 @@ static int32_t updateAttitudeComplementary(bool first_run, bool secondary, bool 
 	// Accumulate integral of error.  Scale here so that units are (deg/s) but Ki has units of s
 	GyrosBiasData gyrosBias;
 	GyrosBiasGet(&gyrosBias);
-	gyrosBias.x -= accel_err[0] * attitudeSettings.AccelKi;
-	gyrosBias.y -= accel_err[1] * attitudeSettings.AccelKi;
-	gyrosBias.z -= mag_err[2] * attitudeSettings.MagKi;
+	gyrosBias.x -= accel_err[0] * accKi * dT;
+	gyrosBias.y -= accel_err[1] * accKi * dT;
+	gyrosBias.z -= mag_err[2] * mgKi * dT;
 	GyrosBiasSet(&gyrosBias);
 
 	// Correct rates based on error, integral component dealt with in updateSensors
-	gyrosData.x += accel_err[0] * attitudeSettings.AccelKp / dT;
-	gyrosData.y += accel_err[1] * attitudeSettings.AccelKp / dT;
-	gyrosData.z += accel_err[2] * attitudeSettings.AccelKp / dT + mag_err[2] * attitudeSettings.MagKp / dT;
+	gyrosData.x += accel_err[0] * accKp;
+	gyrosData.y += accel_err[1] * accKp;
+	gyrosData.z += accel_err[2] * accKp + mag_err[2] * mgKp;
 
 	// Work out time derivative from INSAlgo writeup
 	// Also accounts for the fact that gyros are in deg/s
@@ -1520,12 +1523,11 @@ static void settingsUpdatedCb(UAVObjEvent * ev, void *ctx, void *obj, int len)
 		AttitudeSettingsGet(&attitudeSettings);
 			
 		// Calculate accel filter alpha, in the same way as for gyro data in stabilization module.
-		const float fakeDt = 0.0025f;
 		if(attitudeSettings.AccelTau < 0.0001f) {
 			complementary_filter_state.accel_alpha = 0;   // not trusting this to resolve to 0
 			complementary_filter_state.accel_filter_enabled = false;
 		} else {
-			complementary_filter_state.accel_alpha = expf(-fakeDt  / attitudeSettings.AccelTau);
+			complementary_filter_state.accel_alpha = expf(-dT_expected  / attitudeSettings.AccelTau);
 			complementary_filter_state.accel_filter_enabled = true;
 		}
 	}

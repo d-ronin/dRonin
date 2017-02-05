@@ -510,7 +510,7 @@ void Simulator::updateUAVOs(Output2Hardware out){
         float dT = out.delT;
 
         AttitudeSettings::DataFields attitudeSettingsData = attitudeSettings->getData();
-        float accelKp = attitudeSettingsData.AccelKp * 0.1666666666666667;
+        float accelKp = attitudeSettingsData.AccKp * 0.0001666666666666667;
 
         // calibrate sensors on arming
         if (flightStatus->getData().Armed == FlightStatus::ARMED_ARMING) {

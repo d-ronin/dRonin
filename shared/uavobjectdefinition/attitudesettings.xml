@@ -5,16 +5,16 @@
 		<field name="BoardRotation" units="deg*100" type="int16" elementnames="Roll,Pitch,Yaw" defaultvalue="0,0,0">
 			<description>Board rotation angles.</description>
 		</field>
-		<field name="MagKp" units="channel" type="float" elements="1" defaultvalue="0.05">
+		<field name="MgKp" units="channel" type="float" elements="1" defaultvalue="20.0">
 			<description>Magnetometer proportional gain for the attitude filter.</description>
 		</field>
-		<field name="MagKi" units="channel" type="float" elements="1" defaultvalue="0.0001">
+		<field name="MgKi" units="channel" type="float" elements="1" defaultvalue="0.05">
 			<description>Magnetometer integral gain for the attitude filter.</description>
 		</field>
-		<field name="AccelKp" units="channel" type="float" elements="1" defaultvalue="0.05">
+		<field name="AccKp" units="channel" type="float" elements="1" defaultvalue="20.0">
 			<description>Accelerometer proportional gain for the attitude filter.</description>
 		</field>
-		<field name="AccelKi" units="channel" type="float" elements="1" defaultvalue="0.0001">
+		<field name="AccKi" units="channel" type="float" elements="1" defaultvalue="0.05">
 			<description>Accelerometer integral gain for the attitude filter.</description>
 		</field>
 		<field name="AccelTau" units="" type="float" elements="1" defaultvalue="0.1">
