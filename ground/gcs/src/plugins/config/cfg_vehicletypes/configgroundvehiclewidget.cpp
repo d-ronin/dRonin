@@ -283,8 +283,8 @@ bool ConfigGroundVehicleWidget::setupGroundVehicleMotorcycle(SystemSettings::Air
     config.ground.GroundVehicleThrottle1 = m_aircraft->gvMotor1ChannelBox->currentIndex();
     config.ground.GroundVehicleThrottle2 = m_aircraft->gvMotor2ChannelBox->currentIndex();
 
-    SetConfigData(config);
-	
+    SetConfigData(config, SystemSettings::AIRFRAMETYPE_GROUNDVEHICLEMOTORCYCLE);
+
     MixerSettings *mixerSettings = MixerSettings::GetInstance(getObjectManager());
     Q_ASSERT(mixerSettings);
     resetMixers(mixerSettings);
@@ -334,7 +334,7 @@ bool ConfigGroundVehicleWidget::setupGroundVehicleDifferential(SystemSettings::A
     config.ground.GroundVehicleThrottle1 = m_aircraft->gvMotor1ChannelBox->currentIndex();
     config.ground.GroundVehicleThrottle2 = m_aircraft->gvMotor2ChannelBox->currentIndex();
 
-    SetConfigData((config));
+    SetConfigData(config, SystemSettings::AIRFRAMETYPE_GROUNDVEHICLEDIFFERENTIAL);
 	
     MixerSettings *mixerSettings = MixerSettings::GetInstance(getObjectManager());
     Q_ASSERT(mixerSettings);
@@ -383,7 +383,7 @@ bool ConfigGroundVehicleWidget::setupGroundVehicleCar(SystemSettings::AirframeTy
     config.ground.GroundVehicleSteering1 = m_aircraft->gvSteering1ChannelBox->currentIndex();
     config.ground.GroundVehicleSteering2 = m_aircraft->gvSteering2ChannelBox->currentIndex();
 
-    SetConfigData(config);
+    SetConfigData(config, SystemSettings::AIRFRAMETYPE_GROUNDVEHICLECAR);
 
     MixerSettings *mixerSettings = MixerSettings::GetInstance(getObjectManager());
     Q_ASSERT(mixerSettings);

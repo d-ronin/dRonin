@@ -60,7 +60,7 @@ private:
     bool setupHexa(bool pLayout);
     bool setupOcto();
     bool setupMultiRotorMixer(double mixerFactors[8][3]);
-    void setupMotors(QList<QString> motorList);
+    void setupMotors(QList<QString> motorList, SystemSettings::AirframeTypeOptions vehicle);
     void setupQuadMotor(int channel, double roll, double pitch, double yaw);
 
     float invertMotors;

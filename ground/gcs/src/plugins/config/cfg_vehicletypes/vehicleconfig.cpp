@@ -81,7 +81,8 @@ GUIConfigDataUnion VehicleConfig::GetConfigData() {
     return configData;
 }
 
-void VehicleConfig::SetConfigData(GUIConfigDataUnion configData) {
+void VehicleConfig::SetConfigData(GUIConfigDataUnion configData,
+        SystemSettings::AirframeTypeOptions vehicle) {
 
     int i;
 
@@ -98,6 +99,8 @@ void VehicleConfig::SetConfigData(GUIConfigDataUnion configData) {
     for (i = 0; i < (int)(SystemSettings::AIRFRAMECATEGORYSPECIFICCONFIGURATION_NUMELEM); i++){
         systemSettingsData.AirframeCategorySpecificConfiguration[i] = configData.UAVObject[i];
     }
+
+    systemSettingsData.AirframeType = vehicle;
 
     systemSettings->setData(systemSettingsData);
 }

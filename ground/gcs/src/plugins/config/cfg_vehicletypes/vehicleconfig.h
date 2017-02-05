@@ -118,7 +118,8 @@ class VehicleConfig: public ConfigTaskWidget
         ~VehicleConfig();
 
         static GUIConfigDataUnion GetConfigData();
-        static void SetConfigData(GUIConfigDataUnion configData);
+        static void SetConfigData(GUIConfigDataUnion configData,
+                SystemSettings::AirframeTypeOptions vehicle);
         static void resetField(UAVObjectField * field);
         static void setComboCurrentIndex(QComboBox* box, int index);
         static void enableComboBoxes(QWidget* owner, QString boxName, int boxCount, bool enable);

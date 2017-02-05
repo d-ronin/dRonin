@@ -271,8 +271,8 @@ bool ConfigFixedWingWidget::setupFrameFixedWing(SystemSettings::AirframeTypeOpti
     config.fixedwing.FixedWingYaw1 = m_aircraft->fwRudder1ChannelBox->currentIndex();
     config.fixedwing.FixedWingThrottle = m_aircraft->fwEngineChannelBox->currentIndex();
 
-    SetConfigData(config);
-	
+    SetConfigData(config, SystemSettings::AIRFRAMETYPE_FIXEDWING);
+
     MixerSettings *mixerSettings = MixerSettings::GetInstance(getObjectManager());
     Q_ASSERT(mixerSettings);
     resetMixers(mixerSettings);
@@ -348,7 +348,7 @@ bool ConfigFixedWingWidget::setupFrameElevon(SystemSettings::AirframeTypeOptions
     config.fixedwing.FixedWingYaw2 = m_aircraft->fwRudder2ChannelBox->currentIndex();
     config.fixedwing.FixedWingThrottle = m_aircraft->fwEngineChannelBox->currentIndex();
 
-    SetConfigData(config);
+    SetConfigData(config, SystemSettings::AIRFRAMETYPE_FIXEDWINGELEVON);
 	    
     MixerSettings *mixerSettings = MixerSettings::GetInstance(getObjectManager());
     Q_ASSERT(mixerSettings);
@@ -420,7 +420,7 @@ bool ConfigFixedWingWidget::setupFrameVtail(SystemSettings::AirframeTypeOptions 
     config.fixedwing.FixedWingRoll2 = m_aircraft->fwAileron2ChannelBox->currentIndex();
     config.fixedwing.FixedWingThrottle = m_aircraft->fwEngineChannelBox->currentIndex();
 
-    SetConfigData(config);
+    SetConfigData(config, SystemSettings::AIRFRAMETYPE_FIXEDWINGVTAIL);
 	    
     MixerSettings *mixerSettings = MixerSettings::GetInstance(getObjectManager());
     Q_ASSERT(mixerSettings);

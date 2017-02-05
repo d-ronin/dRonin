@@ -687,8 +687,6 @@ void ConfigVehicleTypeWidget::updateCustomAirframeUI()
 */
 void ConfigVehicleTypeWidget::updateObjectsFromWidgets()
 {
-    ConfigTaskWidget::updateObjectsFromWidgets();
-
     MixerSettings *mixerSettings = MixerSettings::GetInstance(getObjectManager());
     Q_ASSERT(mixerSettings);
 
@@ -700,13 +698,13 @@ void ConfigVehicleTypeWidget::updateObjectsFromWidgets()
         frameType = m_fixedwing->updateConfigObjectsFromWidgets();
     }
     else if (m_aircraft->aircraftType->currentText() == "Multirotor") {
-         frameType = m_multirotor->updateConfigObjectsFromWidgets();
+        frameType = m_multirotor->updateConfigObjectsFromWidgets();
     }
     else if (m_aircraft->aircraftType->currentText() == "Helicopter") {
-         frameType = m_heli->updateConfigObjectsFromWidgets();
+        frameType = m_heli->updateConfigObjectsFromWidgets();
     }
     else if (m_aircraft->aircraftType->currentText() == "Ground") {
-         frameType = m_groundvehicle->updateConfigObjectsFromWidgets();
+        frameType = m_groundvehicle->updateConfigObjectsFromWidgets();
     }
     else {
         vconfig->setThrottleCurve(mixerSettings, MixerSettings::MIXER1VECTOR_THROTTLECURVE1, m_aircraft->customThrottle1Curve->getCurve());
@@ -751,16 +749,21 @@ void ConfigVehicleTypeWidget::updateObjectsFromWidgets()
             vconfig->setMixerVectorValue(mixerSettings,channel,MixerSettings::MIXER1VECTOR_YAW,
                                             m_aircraft->customMixerTable->item(5,channel)->text().toDouble());
         }
+
+        // set the airframe type
+        SystemSettings *systemSettings = SystemSettings::GetInstance(getObjectManager());
+        Q_ASSERT(systemSettings);
+        SystemSettings::DataFields systemSettingsData = systemSettings->getData();
+
+        systemSettingsData.AirframeType = frameType;
+
+        systemSettings->setData(systemSettingsData);
     }
 
-    // set the airframe type
-    SystemSettings *systemSettings = SystemSettings::GetInstance(getObjectManager());
-    Q_ASSERT(systemSettings);
-    SystemSettings::DataFields systemSettingsData = systemSettings->getData();
-
-    systemSettingsData.AirframeType = frameType;
-
-    systemSettings->setData(systemSettingsData);
+    /* Call the superclass fairly late here, because it wants to save things
+     * we're still touching.
+     */
+    ConfigTaskWidget::updateObjectsFromWidgets();
 
     updateCustomAirframeUI();
 }
