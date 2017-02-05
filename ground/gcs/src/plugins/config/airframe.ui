@@ -960,9 +960,6 @@ margin:1px;</string>
                       <height>50</height>
                      </size>
                     </property>
-                    <property name="styleSheet">
-                     <string notr="true">background:transparent</string>
-                    </property>
                    </widget>
                   </item>
                  </layout>
