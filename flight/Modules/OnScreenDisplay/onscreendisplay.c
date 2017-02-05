@@ -530,11 +530,11 @@ void simple_artificial_horizon(float roll, float pitch, int16_t x, int16_t y,
 	width /= 2;
 	height /= 2;
 
-	pitch += camera_tilt;
-
 	if (show_horizon) {
 		float sin_roll = sinf(roll * (float)(M_PI / 180));
 		float cos_roll = cosf(roll * (float)(M_PI / 180));
+
+		pitch += cos_roll * camera_tilt;
 
 		int pitch_step_offset = pitch / PITCH_STEP;
 
