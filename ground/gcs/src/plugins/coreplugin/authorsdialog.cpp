@@ -32,6 +32,7 @@
 #include "icore.h"
 
 #include <utils/qtcassert.h>
+#include <utils/pathutils.h>
 
 #include <QtCore/QDate>
 #include <QtCore/QFile>
@@ -56,23 +57,23 @@ AuthorsDialog::AuthorsDialog(QWidget *parent)
 
     setWindowTitle(tr("About GCS Authors"));
     setWindowFlags(windowFlags() & ~Qt::WindowContextHelpButtonHint);
-    QGridLayout *layout = new QGridLayout(this);
+    auto layout = new QGridLayout(this);
     layout->setSizeConstraint(QLayout::SetFixedSize);
 
     QString version = QLatin1String(GCS_VERSION_LONG);
     version += QDate(2007, 25, 10).toString(Qt::SystemLocaleDate);
 
-    const QString description = tr(
-            "Proudly brought to you by this fine team:<br/>"
-            );
+    QLabel *mainLabel = new QLabel(tr("%0 proudly brought to you by this fine team:").arg(GCS_PROJECT_BRANDING_PRETTY));
 
-    QLabel *copyRightLabel = new QLabel(description);
-    copyRightLabel->setWordWrap(true);
-    copyRightLabel->setOpenExternalLinks(true);
-    copyRightLabel->setTextInteractionFlags(Qt::TextBrowserInteraction);
+    QLabel *relCreditsLabel = new QLabel(tr("Current release:"));
+    relCreditsLabel->setWordWrap(true);
+    QTextBrowser *relCreditsArea = new QTextBrowser(this);
+    relCreditsArea->setSource(QUrl(Utils::PathUtils::InsertDataPath("%%DATAPATH%%/gcsrelauthors.html")));
 
+    QLabel *creditsLabel = new QLabel(tr("All time (including previous contributions under OpenPilot and Tau Labs):"));
+    creditsLabel->setWordWrap(true);
     QTextBrowser *creditsArea = new QTextBrowser(this);
-    creditsArea->setSource(QUrl("qrc:core/CREDITS.html"));
+    creditsArea->setSource(QUrl(Utils::PathUtils::InsertDataPath("%%DATAPATH%%/gcsauthors.html")));
 
     QDialogButtonBox *buttonBox = new QDialogButtonBox(QDialogButtonBox::Close);
     QPushButton *closeButton = buttonBox->button(QDialogButtonBox::Close);
@@ -82,8 +83,12 @@ AuthorsDialog::AuthorsDialog(QWidget *parent)
 
     QLabel *logoLabel = new QLabel;
     logoLabel->setPixmap(QPixmap(QLatin1String(":/core/gcs_logo_128")));
-    layout->addWidget(logoLabel ,     0, 0, 1, 1);
-    layout->addWidget(copyRightLabel, 0, 1, 2, 4);
-    layout->addWidget(creditsArea,    3, 0, 2, 5);
-    layout->addWidget(buttonBox,      6, 0, 1, 5);
+
+    layout->addWidget(logoLabel, 0, 0, 1, 2, Qt::AlignHCenter);
+    layout->addWidget(mainLabel, 1, 0, 1, 2, Qt::AlignHCenter);
+    layout->addWidget(relCreditsLabel, 2, 0, 1, 1, Qt::AlignBottom);
+    layout->addWidget(relCreditsArea, 3, 0, 1, 1, Qt::AlignTop);
+    layout->addWidget(creditsLabel, 2, 1, 1, 1, Qt::AlignBottom);
+    layout->addWidget(creditsArea, 3, 1, 1, 1, Qt::AlignTop);
+    layout->addWidget(buttonBox, 4, 0, 1, 2);
 }

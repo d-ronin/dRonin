@@ -7,12 +7,13 @@
 # See also: The GNU Public License (GPL) Version 3
 #
 
-from subprocess import Popen, PIPE
-from re import search, MULTILINE
+from cgi import escape
 from datetime import datetime
-from string import Template
-import optparse
 import hashlib
+import optparse
+import re
+from string import Template
+from subprocess import Popen, PIPE
 import sys
 
 class Repo:
@@ -51,7 +52,7 @@ class Repo:
         self._origin = None
         self._exec('remote -v')
         if self._rc == 0:
-            m = search(r"^origin\s+(.+)\s+\(fetch\)$", self._out, MULTILINE)
+            m = re.search(r"^origin\s+(.+)\s+\(fetch\)$", self._out, re.MULTILINE)
             if m:
                 self._origin = m.group(1)
 
@@ -90,7 +91,7 @@ class Repo:
         self._branch = None
         self._exec('branch --contains HEAD')
         if self._rc == 0:
-            m = search(r"^\*\s+(.+)$", self._out, MULTILINE)
+            m = re.search(r"^\*\s+(.+)$", self._out, re.MULTILINE)
             if m:
                 self._branch = m.group(1)
 
@@ -101,6 +102,50 @@ class Repo:
         self._exec('diff-index --name-only --exit-code --quiet HEAD')
         if self._rc:
             self._dirty = True
+
+    def _get_authors_since_release(self):
+        self._authors_since_release = []
+        self._exec('show-ref --tags')
+        pat = re.compile('^refs/tags/(?P<type>[A-Za-z]*)\-(?P<rel>(?P<date>[0-9]{8})(\.(?P<suffix>[0-9]*))?)$')
+        tags = []
+        if self._rc == 0:
+            for l in self._out.splitlines():
+                commit, ref = l.split(' ')
+                match = pat.match(ref)
+                if match:
+                    tags.append({
+                        'commit': commit,
+                        'ref': ref,
+                        'type': match.group('type'),
+                        'date': match.group('date'),
+                        'suffix': match.group('suffix'),
+                        'rel': match.group('rel')
+                    })
+            tags.sort(reverse=True, key=lambda t: t['rel'])
+
+            date = tags[0]['date']
+            if self._tag:
+                match = pat.match('refs/tags/'+self._tag)
+                if match:
+                    date = match.group('date')
+
+            last_rel = tags[-1]
+            for t in tags[::-1]:
+                if t['date'] == date:
+                    break
+                if not t['suffix'] and t['type'] == 'Release':
+                    last_rel = t
+
+            self._exec('shortlog -s {}..HEAD'.format(last_rel['ref']))
+            if self._rc == 0:
+                self._authors_since_release = sorted([l.strip().split('\t', 1)[1] for l in self._out.splitlines()], key=str.lower)
+
+    def _get_authors(self):
+        self._authors = []
+        self._exec('shortlog -sn')
+        if self._rc == 0:
+            self._authors = [l.strip().split('\t', 1)[1] for l in self._out.splitlines()]
+
 
     def __init__(self, path = "."):
         """Initialize object instance and read repo info"""
@@ -114,6 +159,8 @@ class Repo:
             self._get_branch()
             self._get_dirty()
             self._get_ancestor()
+            self._get_authors()
+            self._get_authors_since_release()
         else:
             self._hash = None
             self._origin = None
@@ -122,6 +169,8 @@ class Repo:
             self._branch = None
             self._dirty = None
             self._ancestor = None
+            self._authors = []
+            self._authors_since_release = []
 
     def path(self):
         """Return the repository path"""
@@ -178,6 +227,12 @@ class Repo:
             return dirty
         else:
             return clean
+
+    def authors(self):
+        return self._authors
+
+    def authors_since_last_release(self):
+        return self._authors_since_release
 
     def info(self):
         """Print some repository info"""
@@ -367,26 +422,28 @@ string given.
     parser = optparse.OptionParser(
         formatter=RawDescriptionHelpFormatter(),
         description = "Performs variable substitution in template file or string.",
-        epilog = main.__doc__);
+        epilog = main.__doc__)
 
     parser.add_option('--path', default='.',
-                        help='path to the git repository');
+                        help='path to the git repository')
     parser.add_option('--info', action='store_true',
-                        help='print repository info to stdout');
+                        help='print repository info to stdout')
     parser.add_option('--format',
-                        help='format string to print to stdout');
+                        help='format string to print to stdout')
     parser.add_option('--template',
-                        help='name of template file');
+                        help='name of template file')
     parser.add_option('--outfile',
-                        help='name of output file');
+                        help='name of output file')
     parser.add_option('--image',
-                        help='name of image file for sha1 calculation');
+                        help='name of image file for sha1 calculation')
     parser.add_option('--type', default="",
-                        help='board type, for example, 0x04 for CopterControl');
+                        help='board type, for example, 0x04 for CopterControl')
     parser.add_option('--revision', default = "",
-                        help='board revision, for example, 0x01');
+                        help='board revision, for example, 0x01')
     parser.add_option('--uavodir', default = "",
-                        help='uav object definition directory');
+                        help='uav object definition directory')
+    parser.add_option('--htmlsafe', action='store_true',
+                        help='make substituted values html safe')
     (args, positional_args) = parser.parse_args()
 
     # Process arguments.  No advanced error handling is here.
@@ -415,7 +472,13 @@ string given.
         SHA1 = sha1(args.image),
         UAVOSHA1TXT = GetHashofDirs(args.uavodir,verbose=0,raw=1),
         UAVOSHA1 = GetHashofDirs(args.uavodir,verbose=0,raw=0),
+        AUTHORS = ' \n'.join(r.authors()),
+        AUTHORS_SINCE_LAST_REL = ' \n'.join(r.authors_since_last_release())
     )
+
+    if args.htmlsafe:
+        for k in dictionary:
+            dictionary[k] = escape(dictionary[k]).encode('ascii', 'xmlcharrefreplace')
 
     # Process positional arguments in the form of:
     #   VAR1=str1 VAR2="string 2"

@@ -12,6 +12,11 @@ VERSION_INFO_SCRIPT   = $$ROOT_DIR/make/scripts/version-info.py
 VERSION_INFO_TEMPLATE = $$ROOT_DIR/make/templates/gcsversioninfotemplate.h
 VERSION_INFO_COMMAND  = $$PYTHON_LOCAL \"$$VERSION_INFO_SCRIPT\"
 UAVO_DEF_PATH         = $$ROOT_DIR/shared/uavobjectdefinition
+AUTHORS_TEMPLATE      = $$ROOT_DIR/make/templates/gcsauthorstemplate.html
+REL_AUTHORS_TEMPLATE  = $$ROOT_DIR/make/templates/gcsrelauthorstemplate.html
+AUTHORS_PATH          = $$system_path($$targetPath(\"$$GCS_DATA_PATH\"))
+AUTHORS_DEST          = $$system_path($$AUTHORS_PATH/gcsauthors.html)
+REL_AUTHORS_DEST      = $$system_path($$AUTHORS_PATH/gcsrelauthors.html)
 
 # this runs once while Qmake is reading pro files rather than later during the actual build
 !build_pass:system($$VERSION_INFO_COMMAND \
@@ -19,7 +24,19 @@ UAVO_DEF_PATH         = $$ROOT_DIR/shared/uavobjectdefinition
                                 --template=\"$$VERSION_INFO_TEMPLATE\" \
                                 --uavodir=\"$$UAVO_DEF_PATH\" \
                                 --outfile=\"$$VERSION_INFO_HEADER\")
+# this runs once while Qmake is reading pro files rather than later during the actual build
+!build_pass:system($$VERSION_INFO_COMMAND \
+                                --path=\"$$GCS_SOURCE_TREE\" \
+                                --template=\"$$AUTHORS_TEMPLATE\" \
+                                --outfile=\"$$AUTHORS_DEST\")
+# this runs once while Qmake is reading pro files rather than later during the actual build
+!build_pass:system($$VERSION_INFO_COMMAND \
+                                --path=\"$$GCS_SOURCE_TREE\" \
+                                --template=\"$$REL_AUTHORS_TEMPLATE\" \
+                                --outfile=\"$$REL_AUTHORS_DEST\")
 
 DEPENDPATH *= $$VERSION_INFO_PATH
 HEADERS *= $$VERSION_INFO_HEADER
 DEFINES += 'GCS_VERSION_INFO_FILE=\\\"$$VERSION_INFO_HEADER\\\"'
+DEFINES += 'GCS_AUTHORS_FILE=\\\"$$AUTHORS_DEST\\\"'
+DEFINES += 'GCS_REL_AUTHORS_FILE=\\\"$$REL_AUTHORS_DEST\\\"'
