@@ -603,7 +603,6 @@ static int32_t updateAttitudeComplementary(float dT, bool first_run, bool second
 	grot[0] = -(2 * (cf_q[1] * cf_q[3] - cf_q[0] * cf_q[2]));
 	grot[1] = -(2 * (cf_q[2] * cf_q[3] + cf_q[0] * cf_q[1]));
 	grot[2] = -(cf_q[0]*cf_q[0] - cf_q[1]*cf_q[1] - cf_q[2]*cf_q[2] + cf_q[3]*cf_q[3]);
-	CrossProduct((const float *) &accelsData.x, (const float *) grot, accel_err);
 
 	// Apply same filtering to the rotated attitude to match delays
 	apply_accel_filter(grot,grot_filtered);
