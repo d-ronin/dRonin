@@ -41,7 +41,7 @@
 		<field name="RssiWarnThreshold" units="" type="uint8" elements="1" defaultvalue="50">
 			<description>RSSI Warning Threshold</description>
 		</field>
-		<field name="CustomText" units="" type="uint8" elements="10" defaultvalue="66,114,97,105,110,70,80,86,0,0">
+		<field name="CustomText" units="" type="uint8" elements="10" defaultvalue="100,82,111,110,105,110,0,0,0,0">
 			<description>Custom Text</description>
 		</field>
 		<field name="StatsDisplayDuration" units="" type="enum" elements="1" options="Off,10s,20s,30s" defaultvalue="20s">
