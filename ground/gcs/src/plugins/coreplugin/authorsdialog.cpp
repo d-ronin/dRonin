@@ -68,12 +68,12 @@ AuthorsDialog::AuthorsDialog(QWidget *parent)
     QLabel *relCreditsLabel = new QLabel(tr("Current release:"));
     relCreditsLabel->setWordWrap(true);
     QTextBrowser *relCreditsArea = new QTextBrowser(this);
-    relCreditsArea->setSource(QUrl(Utils::PathUtils::InsertDataPath("%%DATAPATH%%/gcsrelauthors.html")));
+    relCreditsArea->setSource(QUrl::fromLocalFile(Utils::PathUtils::InsertDataPath("%%DATAPATH%%gcsrelauthors.html")));
 
     QLabel *creditsLabel = new QLabel(tr("All time (including previous contributions under OpenPilot and Tau Labs):"));
     creditsLabel->setWordWrap(true);
     QTextBrowser *creditsArea = new QTextBrowser(this);
-    creditsArea->setSource(QUrl(Utils::PathUtils::InsertDataPath("%%DATAPATH%%/gcsauthors.html")));
+    creditsArea->setSource(QUrl::fromLocalFile(Utils::PathUtils::InsertDataPath("%%DATAPATH%%gcsauthors.html")));
 
     QDialogButtonBox *buttonBox = new QDialogButtonBox(QDialogButtonBox::Close);
     QPushButton *closeButton = buttonBox->button(QDialogButtonBox::Close);

@@ -167,36 +167,8 @@ SectionEnd
 ; Copy GCS resources
 Section "-Resources" InSecResources
   RMDir /r "$INSTDIR\share"
-  SetOutPath "$INSTDIR\share\default_configurations"
-  File /r "${GCS_BUILD_TREE}\share\default_configurations\*"
-  SetOutPath "$INSTDIR\share\stylesheets"
-  File /r "${GCS_BUILD_TREE}\share\stylesheets\*"
-  SetOutPath "$INSTDIR\share\diagrams"
-  File /r "${GCS_BUILD_TREE}\share\diagrams\*"
-  SetOutPath "$INSTDIR\share\dials"
-  File /r "${GCS_BUILD_TREE}\share\dials\*"
-  SetOutPath "$INSTDIR\share\mapicons"
-  File /r "${GCS_BUILD_TREE}\share\mapicons\*"
-  SetOutPath "$INSTDIR\share\models"
-  File /r "${GCS_BUILD_TREE}\share\models\*"
-  SetOutPath "$INSTDIR\share\pfd"
-  File /r "${GCS_BUILD_TREE}\share\pfd\*"
-  SetOutPath "$INSTDIR\share\welcome"
-  File /r "${GCS_BUILD_TREE}\share\welcome\*"
-SectionEnd
-
-; Copy Notify plugin sound files
-Section "-Sound files" InSecSounds
-  SetOutPath "$INSTDIR\share\sounds"
-  File /r "${GCS_BUILD_TREE}\share\sounds\*"
-SectionEnd
-
-; Copy localization files
-; Disabled until GCS source is stable and properly localized
-Section "-Localization" InSecLocalization
-  SetOutPath "$INSTDIR\share\translations"
-  ;File /r "${GCS_BUILD_TREE}\share\translations\dronin_*.qm"
-  File /r "${GCS_BUILD_TREE}\share\translations\qt_*.qm"
+  SetOutPath "$INSTDIR\share"
+  File /r "${GCS_BUILD_TREE}\share\*"
 SectionEnd
 
 ; Copy firmware files
