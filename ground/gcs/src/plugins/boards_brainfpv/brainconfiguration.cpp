@@ -50,7 +50,6 @@ BrainConfiguration::BrainConfiguration(QWidget *parent) :
     addUAVObjectToWidgetRelation("HwBrain", "USB_VCPPort", ui->cmbUsbVcpPort);
     addUAVObjectToWidgetRelation("HwBrain", "GyroFullScale", ui->cmbGyroRange);
     addUAVObjectToWidgetRelation("HwBrain", "AccelFullScale", ui->cmbAccelRange);
-    addUAVObjectToWidgetRelation("HwBrain", "MPU9250Rate", ui->cmbMpuRate);
     addUAVObjectToWidgetRelation("HwBrain", "MPU9250GyroLPF", ui->cmbGyroLpf);
     addUAVObjectToWidgetRelation("HwBrain", "MPU9250AccelLPF", ui->cmbAccelLpf);
 	addUAVObjectToWidgetRelation("HwBrain", "DSMxMode", ui->cbDsmxMode);
