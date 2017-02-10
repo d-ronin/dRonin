@@ -242,6 +242,9 @@ int main(int argc, char **argv)
     // suppress SSL warnings generated during startup (handy if you want to use QT_FATAL_WARNINGS)
     QLoggingCategory::setFilterRules("qt.network.ssl.warning=false");
 
+    // disable QML disk caching, this caches paths in qmlc files which break when the GCS installation is moved. TODO: see if we can work around that
+    qputenv("QML_DISABLE_DISK_CACHE", "true");
+
     QString locale = QLocale::system().name();
 
     // Must be done before any QSettings class is created
