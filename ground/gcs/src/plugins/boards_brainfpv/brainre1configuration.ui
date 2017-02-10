@@ -783,8 +783,6 @@
         </layout>
        </item>
       </layout>
-      <zorder></zorder>
-      <zorder></zorder>
      </widget>
     </widget>
    </item>
