@@ -447,6 +447,7 @@ void ConfigModuleWidget::ledTabSetColor()
 
     const QColor initial(field->getValue(0).toInt(), field->getValue(1).toInt(), field->getValue(2).toInt());
     QColorDialog picker(initial, this);
+    picker.raise();
     if (picker.exec() != QDialog::Accepted)
         return;
 
