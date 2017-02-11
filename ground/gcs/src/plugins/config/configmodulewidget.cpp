@@ -48,6 +48,9 @@ ConfigModuleWidget::ConfigModuleWidget(QWidget *parent) : ConfigTaskWidget(paren
     ui = new Ui::Modules();
     ui->setupUi(this);
 
+    // override anything set in .ui file by Qt Designer
+    ui->moduleTab->setCurrentIndex(0);
+
     connect(this, SIGNAL(autoPilotConnected()), this, SLOT(recheckTabs()));
 
     // Populate UAVO strings
