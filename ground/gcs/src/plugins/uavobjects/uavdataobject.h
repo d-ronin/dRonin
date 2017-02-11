@@ -54,6 +54,7 @@ public:
 
 signals:
     void presentOnHardwareChanged(UAVDataObject*);
+    void presentOnHardwareChanged(bool present);
 
 private:
     UAVMetaObject* mobj;
