@@ -113,8 +113,10 @@ void UAVDataObject::setIsPresentOnHardware(bool value)
 {
     bool temp = isPresentOnHardware;
     isPresentOnHardware = value;
-    if(temp != isPresentOnHardware)
+    if(temp != isPresentOnHardware) {
         emit presentOnHardwareChanged(this);
+        emit presentOnHardwareChanged(isPresentOnHardware);
+    }
 }
 
 

@@ -48,6 +48,9 @@ ConfigModuleWidget::ConfigModuleWidget(QWidget *parent) : ConfigTaskWidget(paren
     ui = new Ui::Modules();
     ui->setupUi(this);
 
+    // override anything set in .ui file by Qt Designer
+    ui->moduleTab->setCurrentIndex(0);
+
     connect(this, SIGNAL(autoPilotConnected()), this, SLOT(recheckTabs()));
 
     // Populate UAVO strings
@@ -395,7 +398,7 @@ void ConfigModuleWidget::setupLedTab()
     if (!objMgr) // hope it can only be destructed in this thread
         return;
 
-    auto obj = objMgr->getObject("RGBLEDSettings");
+    auto obj = qobject_cast<UAVDataObject *>(objMgr->getObject("RGBLEDSettings"));
     if (!obj)
         return;
 
@@ -403,6 +406,10 @@ void ConfigModuleWidget::setupLedTab()
     connect(ui->btnLEDDefaultColor, &QPushButton::clicked, this, &ConfigModuleWidget::ledTabSetColor);
     connect(ui->btnLEDRange1Begin, &QPushButton::clicked, this, &ConfigModuleWidget::ledTabSetColor);
     connect(ui->btnLEDRange1End, &QPushButton::clicked, this, &ConfigModuleWidget::ledTabSetColor);
+    connect(obj, static_cast<void (UAVDataObject::*)(bool)>(&UAVDataObject::presentOnHardwareChanged), [=](bool enable) {
+        tabEnable(ui->tabLED, enable);
+    });
+    tabEnable(ui->tabLED, obj->getIsPresentOnHardware());
 }
 
 void ConfigModuleWidget::ledTabUpdate(UAVObject *obj)
@@ -440,6 +447,7 @@ void ConfigModuleWidget::ledTabSetColor()
 
     const QColor initial(field->getValue(0).toInt(), field->getValue(1).toInt(), field->getValue(2).toInt());
     QColorDialog picker(initial, this);
+    picker.raise();
     if (picker.exec() != QDialog::Accepted)
         return;
 
@@ -453,6 +461,15 @@ void ConfigModuleWidget::ledTabSetColor()
         return;
 
     lbl->setStyleSheet(QString("background: rgb(%0, %1, %2);").arg(col.red()).arg(col.green()).arg(col.blue()));
+}
+
+void ConfigModuleWidget::tabEnable(QWidget *tab, bool enable)
+{
+    int idx = ui->moduleTab->indexOf(tab);
+    if (ui->moduleTab->currentIndex() == idx)
+        ui->moduleTab->setCurrentIndex(0);
+    if (idx >= 0)
+        ui->moduleTab->setTabEnabled(idx, enable);
 }
 
 /**

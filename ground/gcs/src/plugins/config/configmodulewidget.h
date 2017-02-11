@@ -71,6 +71,7 @@ private:
     void enableGeofenceTab(bool enabled);
     void enableGpsTab(bool enabled);
     void enableLoggingTab(bool enabled);
+    void tabEnable(QWidget *tab, bool enable);
 
     void refreshAdcNames(void);
 
