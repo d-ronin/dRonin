@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-	package="org.dronin.androidgcs" android:versionCode="20160923"
-	android:versionName="Quixote">
+	package="org.dronin.androidgcs" android:versionCode="20170213"
+	android:versionName="Artifice">
 	<uses-sdk android:minSdkVersion="14" android:targetSdkVersion="19"/>
 
 	<uses-feature
