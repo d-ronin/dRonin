@@ -31,6 +31,7 @@
 #include <uavobjectmanager.h>
 #include "uavobjectutil/uavobjectutilmanager.h"
 #include <extensionsystem/pluginmanager.h>
+#include "board_usb_ids.h"
 #include "config_cc_hw_widget.h"
 #include "hwcoptercontrol.h"
 
@@ -40,12 +41,14 @@
  */
 CC3D::CC3D(void)
 {
-    // Initialize our USB Structure definition here:
-    USBInfo board;
-    board.vendorID = 0x20A0;
-    board.productID = 0x415b;
-
-    setUSBInfo(board);
+    // Common USB IDs
+    addBootloaderUSBInfo(USBInfo(DRONIN_VID_DRONIN_BOOTLOADER, DRONIN_PID_DRONIN_BOOTLOADER, BCD_DEVICE_BOOTLOADER));
+    addFirmwareUSBInfo(USBInfo(DRONIN_VID_DRONIN_FIRMWARE, DRONIN_PID_DRONIN_FIRMWARE, BCD_DEVICE_FIRMWARE));
+    // Legacy USB IDs
+    addBootloaderUSBInfo(USBInfo(DRONIN_VID_OPENPILOT_COPTERCONTROL, DRONIN_PID_OPENPILOT_COPTERCONTROL, BCD_DEVICE_BOOTLOADER));
+    addFirmwareUSBInfo(USBInfo(DRONIN_VID_OPENPILOT_COPTERCONTROL, DRONIN_PID_OPENPILOT_COPTERCONTROL, BCD_DEVICE_FIRMWARE));
+    addBootloaderUSBInfo(USBInfo(DRONIN_VID_OPENPILOT_CC3D, DRONIN_PID_OPENPILOT_CC3D, BCD_DEVICE_BOOTLOADER));
+    addFirmwareUSBInfo(USBInfo(DRONIN_VID_OPENPILOT_CC3D, DRONIN_PID_OPENPILOT_CC3D, BCD_DEVICE_FIRMWARE));
 
     boardType = 0x04;
 

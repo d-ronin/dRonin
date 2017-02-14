@@ -29,6 +29,7 @@
 
 #include <uavobjectmanager.h>
 #include <extensionsystem/pluginmanager.h>
+#include "board_usb_ids.h"
 
 #include "rfm22bstatus.h"
 
@@ -38,12 +39,12 @@
  */
 TauLink::TauLink(void)
 {
-    // Initialize our USB Structure definition here:
-    USBInfo board;
-    board.vendorID = 0x20A0;
-    board.productID = 0x415c;
-
-    setUSBInfo(board);
+    // Common USB IDs
+    addBootloaderUSBInfo(USBInfo(DRONIN_VID_DRONIN_BOOTLOADER, DRONIN_PID_DRONIN_BOOTLOADER, BCD_DEVICE_BOOTLOADER));
+    addFirmwareUSBInfo(USBInfo(DRONIN_VID_DRONIN_FIRMWARE, DRONIN_PID_DRONIN_FIRMWARE, BCD_DEVICE_FIRMWARE));
+    // Legacy USB IDs
+    addBootloaderUSBInfo(USBInfo(DRONIN_VID_OPENPILOT_PIPX, DRONIN_PID_OPENPILOT_PIPX, BCD_DEVICE_BOOTLOADER));
+    addFirmwareUSBInfo(USBInfo(DRONIN_VID_OPENPILOT_PIPX, DRONIN_PID_OPENPILOT_PIPX, BCD_DEVICE_FIRMWARE));
 
     boardType = 0x03;
 

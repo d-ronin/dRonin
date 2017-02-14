@@ -27,6 +27,7 @@
  */
 
 #include "discoveryf4.h"
+#include "board_usb_ids.h"
 
 /**
  * @brief DiscoveryF4::DiscoveryF4
@@ -34,12 +35,12 @@
  */
 DiscoveryF4::DiscoveryF4(void)
 {
-    // Initialize our USB Structure definition here:
-    USBInfo board;
-    board.vendorID = 0x20A0;
-    board.productID = 0x4195;
-
-    setUSBInfo(board);
+    // Common USB IDs
+    addBootloaderUSBInfo(USBInfo(DRONIN_VID_DRONIN_BOOTLOADER, DRONIN_PID_DRONIN_BOOTLOADER, BCD_DEVICE_BOOTLOADER));
+    addFirmwareUSBInfo(USBInfo(DRONIN_VID_DRONIN_FIRMWARE, DRONIN_PID_DRONIN_FIRMWARE, BCD_DEVICE_FIRMWARE));
+    // Legacy USB IDs
+    addBootloaderUSBInfo(USBInfo(DRONIN_VID_OPENPILOT_SPARE, DRONIN_PID_OPENPILOT_SPARE, BCD_DEVICE_BOOTLOADER));
+    addFirmwareUSBInfo(USBInfo(DRONIN_VID_OPENPILOT_SPARE, DRONIN_PID_OPENPILOT_SPARE, BCD_DEVICE_FIRMWARE));
 
     boardType = 0x85;
 }

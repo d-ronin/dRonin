@@ -5,6 +5,7 @@ include(../../plugins/uavobjects/uavobjects.pri)
 include(../../plugins/coreplugin/coreplugin.pri)
 include(../../plugins/uavobjectutil/uavobjectutil.pri)
 include(../../plugins/uavobjectwidgetutils/uavobjectwidgetutils.pri)
+include(../../../usbids.pri)
 
 OTHER_FILES += TheBrainFPV.pluginspec
 
@@ -13,7 +14,8 @@ HEADERS += \
     brain.h \
     brainconfiguration.h \
     brainre1.h \
-    brainre1configuration.h
+    brainre1configuration.h \
+    $$USB_ID_HEADER
 
 SOURCES += \
     brainfpvplugin.cpp \

@@ -5,13 +5,15 @@ include(../../plugins/uavobjects/uavobjects.pri)
 include(../../plugins/coreplugin/coreplugin.pri)
 include(../../plugins/uavobjectutil/uavobjectutil.pri)
 include(../../plugins/uavobjectwidgetutils/uavobjectwidgetutils.pri)
+include(../../../usbids.pri)
 
 OTHER_FILES += Brotronics.pluginspec
 
 HEADERS += \
     brotronicsplugin.h \
     lux.h \
-    luxconfiguration.h
+    luxconfiguration.h \
+    $$USB_ID_HEADER
 
 SOURCES += \
     brotronicsplugin.cpp \
@@ -22,4 +24,4 @@ RESOURCES += \
     brotronics.qrc
 
 FORMS += \
-	luxconfiguration.ui
+    luxconfiguration.ui
