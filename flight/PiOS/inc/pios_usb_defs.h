@@ -28,6 +28,7 @@
 #ifndef PIOS_USB_DEFS_H
 #define PIOS_USB_DEFS_H
 
+#include "board_usb_ids.h"
 #include <stdint.h>		/* uint*_t */
 
 enum usb_desc_types {
@@ -337,65 +338,6 @@ struct usb_cdc_serial_state_report {
 
 enum usb_cdc_notification {
 	USB_CDC_NOTIFICATION_SERIAL_STATE = 0x20,
-} __attribute__((packed));
-
-/*
- * OpenPilot/Tau Labs Specific USB Definitions
- */
-
-#define USB_VENDOR_ID_CLAYLOGIC    0x20A0
-#define USB_VENDOR_ID_OPENPILOT    USB_VENDOR_ID_CLAYLOGIC
-#define USB_VENDOR_ID_TAULABS      USB_VENDOR_ID_CLAYLOGIC
-#define USB_VENDOR_ID_PIDCODES     0x1209
-#define USB_VENDOR_ID_MCS          0x16D0
-
-/*
- * These USB Product IDs are allocated along with the purchase
- * of a hobby license for the V-USB stack:
- *    http://www.obdev.at/products/vusb/license.html
- * The stack is not being used but the reserved PIDs are.
- */
-enum usb_product_ids {
-	/* OpenPilot Boards */
-	USB_PRODUCT_ID_OPENPILOT_MAIN = 0x415A,
-	USB_PRODUCT_ID_CC3D           = 0x415B,
-	USB_PRODUCT_ID_PIPXTREME      = 0x415C,
-	USB_PRODUCT_ID_SPARE2         = 0x415D,
-	USB_PRODUCT_ID_REVOLUTION     = 0x415E,
-	USB_PRODUCT_ID_OSD            = 0x4194,
-	USB_PRODUCT_ID_SPARE          = 0x4195,
-
-	/* Tau Labs Boards */
-	USB_PRODUCT_ID_SPARKY         = 0x41d0,
-
-	/* BrainFPV Boards */
-	USB_PRODUCT_ID_BRAIN          = 0x4242,
-
-	/* All new targets should use these IDs, starting with playuavosd
-	 * and Seppuku */
-	USB_PRODUCT_ID_DRONINFW       = 0x4250,
-	USB_PRODUCT_ID_DRONINBL       = 0x427a,
-
-	/* ST Eval Boards */
-	USB_PRODUCT_ID_DISCOVERYF4    = USB_PRODUCT_ID_SPARE,
-	USB_PRODUCT_ID_FLYINGF4       = USB_PRODUCT_ID_SPARE,
-} __attribute__((packed));
-
-/*
- * These USB Product ids come from pidcodes.github.com , for use with
- * FOSS software stacks like this one.
- */
-enum usb_product_ids_pidcodes {
-	USB_PRODUCT_ID_LUX            = 0xf3fc,
-} __attribute__((packed));
-
-/*
- * MCS Electronics sells reserved, but not USB-approved PIDs under its revoked VID.
- * More information is available at this URL:
- * http://www.mcselec.com/index.php?page=shop.product_details&flypage=shop.flypage&product_id=92&category_id=20&option=com_phpshop&Itemid=1
- */
-enum usb_product_id_mcs {
-	USB_PRODUCT_ID_DTFC           = 0xd7fc,
 } __attribute__((packed));
 
 enum usb_op_board_ids {

@@ -304,3 +304,5 @@ ifneq ($(BUILD_TYPE),bu)
 %.padded.bin: %.bin
 	$(V1) $(OBJCOPY) --pad-to=$(FW_DESC_BASE) -I binary -O binary $< $@
 endif
+
+EXTRAINCDIRS += $(SHAREDUSBIDDIR)

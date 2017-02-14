@@ -576,6 +576,7 @@ export OPUAVOBJ      := $(ROOT_DIR)/flight/UAVObjects
 export OPUAVTALK     := $(ROOT_DIR)/flight/UAVTalk
 export DOXYGENDIR    := $(ROOT_DIR)/Doxygen
 export SHAREDAPIDIR  := $(ROOT_DIR)/shared/api
+export SHAREDUSBIDDIR:= $(BUILD_DIR)/shared/usb_ids
 export OPUAVSYNTHDIR := $(BUILD_DIR)/uavobject-synthetics/flight
 
 # $(1) = Canonical board name all in lower case (e.g. coptercontrol)
@@ -637,7 +638,7 @@ FW_FILES += $(BUILD_DIR)/fw_$(1)/fw_$(1).debug
 fw_$(1)_%: TARGET=fw_$(1)
 fw_$(1)_%: OUTDIR=$(BUILD_DIR)/$$(TARGET)
 fw_$(1)_%: BOARD_ROOT_DIR=$(ROOT_DIR)/flight/targets/$(1)
-fw_$(1)_%: uavobjects_armsoftfp uavobjects_armhardfp
+fw_$(1)_%: uavobjects_armsoftfp uavobjects_armhardfp usb_id_header
 	$(V1) mkdir -p $$(OUTDIR)/dep
 	$(V1) cd $$(BOARD_ROOT_DIR)/fw && \
 		$$(MAKE) -r --no-print-directory \
@@ -681,7 +682,7 @@ bl_$(1)_%: BLSRCDIR=$(ROOT_DIR)/flight/targets/bl
 bl_$(1)_%: BLCOMMONDIR=$$(BLSRCDIR)/common
 bl_$(1)_%: BLARCHDIR=$$(BLSRCDIR)/$(2)
 bl_$(1)_%: BLBOARDDIR=$$(BOARD_ROOT_DIR)/bl
-bl_$(1)_%:
+bl_$(1)_%: usb_id_header
 	$(V1) mkdir -p $$(OUTDIR)/dep
 	$(V1) cd $$(BLARCHDIR) && \
 		$$(MAKE) -r --no-print-directory \
@@ -727,7 +728,7 @@ bu_$(1)_%: BUSRCDIR=$(ROOT_DIR)/flight/targets/bu
 bu_$(1)_%: BUCOMMONDIR=$$(BUSRCDIR)/common
 bu_$(1)_%: BUARCHDIR=$$(BUSRCDIR)/$(2)
 bu_$(1)_%: BUBOARDDIR=$$(BOARD_ROOT_DIR)/bu
-bu_$(1)_%: bl_$(1)_bin
+bu_$(1)_%: bl_$(1)_bin usb_id_header
 	$(V1) mkdir -p $$(OUTDIR)/dep
 	$(V1) cd $$(BUARCHDIR) && \
 		$$(MAKE) -r --no-print-directory \
@@ -829,7 +830,7 @@ up_$(1)_%: BLSRCDIR=$(ROOT_DIR)/flight/targets/bl
 up_$(1)_%: BLCOMMONDIR=$$(BLSRCDIR)/common
 up_$(1)_%: BLARCHDIR=$$(BLSRCDIR)/$(2)upgrader
 up_$(1)_%: BLBOARDDIR=$$(BOARD_ROOT_DIR)/bl
-up_$(1)_%:
+up_$(1)_%: usb_id_header
 	$(V1) mkdir -p $$(OUTDIR)/dep
 	$(V1) cd $$(BLARCHDIR) && \
 		$$(MAKE) -r --no-print-directory \
@@ -906,6 +907,27 @@ uavobjects_armsoftfp_clean:
 uavobjects_armhardfp_clean:
 	$(V0) @echo " CLEAN      $@"
 	$(V1) [ ! -d "$(UAVOLIB_HARD_OUT_DIR)" ] || $(RM) -rf "$(UAVOLIB_HARD_OUT_DIR)"
+
+
+.PHONY: usb_id_header usb_id_udev usb_id_windriver
+usb_id_header: $(SHAREDUSBIDDIR)/board_usb_ids.h
+usb_id_udev: $(SHAREDUSBIDDIR)/dronin.udev
+usb_id_windriver: $(SHAREDUSBIDDIR)/shared/dronin_cdc.inf
+
+$(SHAREDUSBIDDIR):
+	$(V1) mkdir -p "$@"
+
+$(SHAREDUSBIDDIR)/board_usb_ids.h: | $(SHAREDUSBIDDIR)
+$(SHAREDUSBIDDIR)/board_usb_ids.h: $(ROOT_DIR)/shared/usb_ids/usb_ids.json
+	$(V1) $(PYTHON) $(ROOT_DIR)/shared/usb_ids/generate_usb_files.py -i "$<" -c "$@"
+
+$(SHAREDUSBIDDIR)/dronin.udev: | $(SHAREDUSBIDDIR)
+$(SHAREDUSBIDDIR)/dronin.udev: $(ROOT_DIR)/shared/usb_ids/usb_ids.json
+	$(V1) $(PYTHON) $(ROOT_DIR)/shared/usb_ids/generate_usb_files.py -i "$<" -u "$@"
+
+$(SHAREDUSBIDDIR)/dronin_cdc.inf: | $(SHAREDUSBIDDIR)
+$(SHAREDUSBIDDIR)/dronin_cdc.inf: $(ROOT_DIR)/shared/usb_ids/usb_ids.json
+	$(V1) $(PYTHON) $(ROOT_DIR)/shared/usb_ids/generate_usb_files.py -i "$<" -d "$@"
 
 # $(1) = Canonical board name all in lower case (e.g. coptercontrol)
 define BOARD_PHONY_TEMPLATE
