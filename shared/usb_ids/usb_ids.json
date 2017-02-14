@@ -1,0 +1,148 @@
+{
+	"project": "dRonin",
+	"content": "dRonin USB IDs",
+	"groups": [
+		{
+			"name": "dRonin",
+			"devices": [
+				{
+					"name": "Firmware",
+					"comment": "Shared by all boards going forward",
+					"vid": "20a0",
+					"pid": "4250",
+					"type": ["hid", "cdc"]
+				},
+				{
+					"name": "Bootloader",
+					"comment": "Shared by all boards going forward",
+					"vid": "20a0",
+					"pid": "427a",
+					"type": ["hid"]
+				}
+			]
+		},
+		{
+			"name": "OpenPilot",
+			"devices": [
+				{
+					"name": "CopterControl",
+					"comment": "Used for CC3D in Tau/dRonin",
+					"vid": "20a0",
+					"pid": "415b",
+					"type": ["hid", "cdc"]
+				},
+				{
+					"name": "PipX",
+					"comment": "Also OPLink",
+					"vid": "20a0",
+					"pid": "415c",
+					"type": ["hid", "cdc"]
+				},
+				{
+					"name": "CC3D",
+					"comment": "Should we be using this?",
+					"vid": "20a0",
+					"pid": "415d",
+					"type": ["hid", "cdc"]
+				},
+				{
+					"name": "Revolution",
+					"vid": "20a0",
+					"pid": "415e",
+					"type": ["hid", "cdc"]
+				},
+				{
+					"name": "OSD",
+					"vid": "20a0",
+					"pid": "4194",
+					"type": ["hid", "cdc"]
+				},
+				{
+					"name": "Spare",
+					"vid": "20a0",
+					"pid": "4195",
+					"type": ["hid", "cdc"]
+				}
+			]
+		},
+		{
+			"name": "Quantec Networks",
+			"devices": [
+				{
+					"name": "Quanton",
+					"vid": "0fda",
+					"pid": "0100",
+					"type": ["hid", "cdc"]
+				}
+			]
+		},
+		{
+			"name": "BrainFPV",
+			"devices": [
+				{
+					"name": "Brain",
+					"comment": "Also RE1",
+					"vid": "20a0",
+					"pid": "4242",
+					"type": ["hid", "cdc"]
+				}
+			]
+		},
+		{
+			"name": "Tau Labs",
+			"devices": [
+				{
+					"name": "Sparky",
+					"comment": "Also Sparky 2",
+					"vid": "20a0",
+					"pid": "41d0",
+					"type": ["hid", "cdc"]
+				}
+			]
+		},
+		{
+			"name": "AeroQuad",
+			"devices": [
+				{
+					"name": "AQ32",
+					"vid": "20a0",
+					"pid": "4284",
+					"type": ["hid", "cdc"]
+				}
+			]
+		},
+		{
+			"name": "Lumenier",
+			"devices": [
+				{
+					"name": "LUX",
+					"vid": "1209",
+					"pid": "f3fc",
+					"type": ["hid", "cdc"]
+				}
+			]
+		},
+		{
+			"name": "DTF AIR",
+			"devices": [
+				{
+					"name": "DTFc",
+					"vid": "16d0",
+					"pid": "d7fc",
+					"type": ["hid", "cdc"]
+				}
+			]
+		},
+		{
+			"name": "ST",
+			"devices": [
+				{
+					"name": "STM32 DFU",
+					"vid": "0483",
+					"pid": "df11",
+					"type": ["hid"]
+				}
+			]
+		}
+	]
+}
