@@ -912,7 +912,7 @@ uavobjects_armhardfp_clean:
 .PHONY: usb_id_header usb_id_udev usb_id_windriver
 usb_id_header: $(SHAREDUSBIDDIR)/board_usb_ids.h
 usb_id_udev: $(SHAREDUSBIDDIR)/dronin.udev
-usb_id_windriver: $(SHAREDUSBIDDIR)/shared/dronin_cdc.inf
+usb_id_windriver: $(SHAREDUSBIDDIR)/dronin_cdc.inf
 
 $(SHAREDUSBIDDIR):
 	$(V1) mkdir -p "$@"

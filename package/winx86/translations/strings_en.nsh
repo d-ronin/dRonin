@@ -29,11 +29,10 @@
   LangString DESC_InSecCore ${LANG_ENGLISH} "Core components (executable and libraries)."
   LangString DESC_InSecPlugins ${LANG_ENGLISH} "GCS plugins (provide most of GCS functionality)."
   LangString DESC_InSecResources ${LANG_ENGLISH} "GCS resources (diagrams, dials, mapicons, 3d-models, PFD)."
-  LangString DESC_InSecSounds ${LANG_ENGLISH} "GCS sound files (used for audible event notifications)."
-  LangString DESC_InSecLocalization ${LANG_ENGLISH} "GCS localization (for supported languages)."
   LangString DESC_InSecFirmware ${LANG_ENGLISH} "Firmware binaries."
   LangString DESC_InSecUtilities ${LANG_ENGLISH} "Utilities (Matlab log parser)."
   LangString DESC_InSecShortcuts ${LANG_ENGLISH} "Install application start menu shortcuts."
+  LangString DESC_InSecDrivers ${LANG_ENGLISH} "Optional USB CDC Driver."
 
 ;--------------------------------
 ; Uninstaller section descriptions

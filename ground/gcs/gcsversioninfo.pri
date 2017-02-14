@@ -26,7 +26,7 @@ REL_AUTHORS_DEST      = $$system_path($$AUTHORS_PATH/gcsrelauthors.html)
                             --uavodir=\"$$UAVO_DEF_PATH\" \
                             --outfile=\"$$VERSION_INFO_HEADER\")
 
-    system(mkdir -p \"$$AUTHORS_PATH\")
+    system($$QMAKE_MKDIR \"$$AUTHORS_PATH\")
     system($$VERSION_INFO_COMMAND \
                             --path=\"$$GCS_SOURCE_TREE\" \
                             --template=\"$$AUTHORS_TEMPLATE\" \

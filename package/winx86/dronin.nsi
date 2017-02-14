@@ -34,6 +34,14 @@
 ; Includes
 
 !include "x64.nsh"
+!include "WinVer.nsh"
+
+; Needed for NSIS2 with outdated WinVer.nsh
+!ifndef WINVER_10
+  !define WINVER_10_NT     0x8A000000 ;10.0.10240
+  !define WINVER_10        0x0A000000 ;10.0.10240
+  !insertmacro __WinVer_DefineOSTest AtLeast 10     '""'
+!endif
 
 ;--------------------------------
 ; Paths
@@ -67,7 +75,7 @@
   VIAddVersionKey "FileVersion" "${FILE_VERSION}"
   VIAddVersionKey "Comments" "${INSTALLER_NAME}. ${BUILD_DESCRIPTION}"
   VIAddVersionKey "CompanyName" "dRonin, http://dRonin.org"
-  VIAddVersionKey "LegalCopyright" "© 2015 dRonin, 2012-2013 Tau Labs, 2010-2012 The OpenPilot Team"
+  VIAddVersionKey "LegalCopyright" "© 2015-2017 dRonin, 2012-2013 Tau Labs, 2010-2012 The OpenPilot Team"
   VIAddVersionKey "FileDescription" "${INSTALLER_NAME}"
 
 ;--------------------------------
@@ -193,6 +201,13 @@ Section "Shortcuts" InSecShortcuts
   CreateShortCut "$SMPROGRAMS\dRonin\Uninstall.lnk" "$INSTDIR\Uninstall.exe" "" "$INSTDIR\Uninstall.exe" 0
 SectionEnd
 
+; Copy firmware files
+Section "Drivers" InSecDrivers
+  Delete "$INSTDIR\drivers\*.*"
+  SetOutPath "$INSTDIR\drivers"
+  File "${PACKAGE_DIR}\*.inf"
+SectionEnd
+
 Section ; create uninstall info
   ; Remove existing current-user scoped legacy keys
   DeleteRegKey HKCU "Software\dRonin" 
@@ -219,10 +234,9 @@ SectionEnd
     !insertmacro MUI_DESCRIPTION_TEXT ${InSecCore} $(DESC_InSecCore)
     !insertmacro MUI_DESCRIPTION_TEXT ${InSecPlugins} $(DESC_InSecPlugins)
     !insertmacro MUI_DESCRIPTION_TEXT ${InSecResources} $(DESC_InSecResources)
-    !insertmacro MUI_DESCRIPTION_TEXT ${InSecSounds} $(DESC_InSecSounds)
-    !insertmacro MUI_DESCRIPTION_TEXT ${InSecLocalization} $(DESC_InSecLocalization)
     !insertmacro MUI_DESCRIPTION_TEXT ${InSecFirmware} $(DESC_InSecFirmware)
     !insertmacro MUI_DESCRIPTION_TEXT ${InSecShortcuts} $(DESC_InSecShortcuts)
+    !insertmacro MUI_DESCRIPTION_TEXT ${InSecDrivers} $(DESC_InSecDrivers)
   !insertmacro MUI_FUNCTION_DESCRIPTION_END
 
 ;--------------------------------
@@ -232,6 +246,11 @@ Function .onInit
 
   SetShellVarContext all
   !insertmacro MUI_LANGDLL_DISPLAY
+
+  ; Set drivers disabled on Win 10
+  ${If} ${AtLeastWin10}
+    SectionSetFlags "${InSecDrivers}" ${SF_RO}
+  ${EndIf}
 
 FunctionEnd
 
