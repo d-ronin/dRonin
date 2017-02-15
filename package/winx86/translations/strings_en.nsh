@@ -32,7 +32,7 @@
   LangString DESC_InSecFirmware ${LANG_ENGLISH} "Firmware binaries."
   LangString DESC_InSecUtilities ${LANG_ENGLISH} "Utilities (Matlab log parser)."
   LangString DESC_InSecShortcuts ${LANG_ENGLISH} "Install application start menu shortcuts."
-  LangString DESC_InSecDrivers ${LANG_ENGLISH} "Optional USB CDC Driver."
+  LangString DESC_InSecDrivers ${LANG_ENGLISH} "Optional USB CDC Driver (not needed for Windows 10+)."
 
 ;--------------------------------
 ; Uninstaller section descriptions
