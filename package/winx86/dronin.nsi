@@ -249,7 +249,8 @@ Function .onInit
 
   ; Set drivers disabled on Win 10
   ${If} ${AtLeastWin10}
-    SectionSetFlags "${InSecDrivers}" ${SF_RO}
+    SectionSetFlags "${InSecDrivers}" ${SF_RO} ; disable and read-only
+    SectionSetText "${InSecDrivers}" "" ; hide it
   ${EndIf}
 
 FunctionEnd
