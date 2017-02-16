@@ -90,7 +90,6 @@ SRC += $(FLIGHTLIB)/morsel.c
 SRC += $(FLIGHTLIB)/taskmonitor.c
 
 ## PIOS Hardware (STM32F4xx)
-#include $(PIOS)/STM32F4xx/library_fw.mk
 include $(PIOS)/STM32F4xx/library_chibios.mk
 
 ## PIOS Hardware (Common)
