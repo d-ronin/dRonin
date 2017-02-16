@@ -59,6 +59,8 @@ DEBUG_CM3_DIR_INC = $(DEBUG_CM3_DIR)/inc
 OPUAVOBJINC = $(OPUAVOBJ)/inc
 MAVLINKINC = $(FLIGHTLIB)/mavlink/v1.0/common
 
+include $(PIOSCOMMONLIB)/CMSIS/library.mk
+
 LINKER_SCRIPTS_APP = memory.ld sections.ld
 
 # List C source files here. (C dependencies are automatically generated.)
