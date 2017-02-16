@@ -28,6 +28,14 @@ SRC					+=	$(filter-out $(PIOS_DEVLIB)vectors_stm32f30x.c $(PIOS_DEVLIB)startup.
 EXTRAINCDIRS		+=	$(PIOS_DEVLIB)/inc
 
 #
+# CMSIS for the F3
+#
+include $(PIOSCOMMONLIB)/CMSIS/library.mk
+CMSIS3_DEVICEDIR	:=	$(PIOS_DEVLIB)/Libraries/CMSIS3/Device/ST/STM32F30x
+SRC					+=      $(BOARD_INFO_DIR)/cmsis_system.c
+EXTRAINCDIRS		+=	$(CMSIS3_DEVICEDIR)/Include
+
+#
 # ST Peripheral library
 #
 PERIPHLIB			 =	$(PIOS_DEVLIB)/Libraries/STM32F30x_StdPeriph_Driver

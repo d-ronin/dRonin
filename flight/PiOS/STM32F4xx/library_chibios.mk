@@ -33,6 +33,14 @@ SRC					+=	$(filter-out $(PIOS_DEVLIB)vectors_stm32f4xx.c $(PIOS_DEVLIB)startup.
 EXTRAINCDIRS		+=	$(PIOS_DEVLIB)/inc
 
 #
+# CMSIS for the F4
+#
+include $(PIOSCOMMONLIB)/CMSIS/library.mk
+CMSIS_DEVICEDIR	:=	$(PIOS_DEVLIB)/Libraries/CMSIS/Device/ST/STM32F4xx
+SRC			+=	$(BOARD_INFO_DIR)/cmsis_system.c
+EXTRAINCDIRS		+=	$(CMSIS_DEVICEDIR)/Include
+
+#
 # ST Peripheral library
 #
 PERIPHLIB			 =	$(PIOS_DEVLIB)/Libraries/STM32F4xx_StdPeriph_Driver
