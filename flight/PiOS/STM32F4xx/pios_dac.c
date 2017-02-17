@@ -231,6 +231,10 @@ static void dac_cue_dma(dac_dev_t dev) {
 
 void PIOS_DAC_dma_interrupt_handler(dac_dev_t dev)
 {
+#if defined(PIOS_INCLUDE_CHIBIOS)
+	CH_IRQ_PROLOGUE();
+#endif /* defined(PIOS_INCLUDE_CHIBIOS) */
+
 	DMA_ClearITPendingBit(dev->cfg->dma_stream, dev->cfg->dma_tcif);
 	dev->cur_buf = DMA_GetCurrentMemoryTarget(dev->cfg->dma_stream);
 
@@ -246,6 +250,10 @@ void PIOS_DAC_dma_interrupt_handler(dac_dev_t dev)
 		DMA_Cmd(dev->cfg->dma_stream, DISABLE);
 		dev->in_progress = false;
 	}
+
+#if defined(PIOS_INCLUDE_CHIBIOS)
+	CH_IRQ_EPILOGUE();
+#endif /* defined(PIOS_INCLUDE_CHIBIOS) */
 }
 
 #endif /* PIOS_INCLUDE_DAC */

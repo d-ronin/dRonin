@@ -341,6 +341,9 @@ void PIOS_WS2811_trigger_update(ws2811_dev_t dev)
 
 void PIOS_WS2811_dma_interrupt_handler(ws2811_dev_t dev)
 {
+#if defined(PIOS_INCLUDE_CHIBIOS)
+	CH_IRQ_PROLOGUE();
+#endif /* defined(PIOS_INCLUDE_CHIBIOS) */
 	DMA_ClearITPendingBit(dev->cfg->bit_clear_dma_stream,
 			dev->cfg->bit_clear_dma_tcif);
 
@@ -386,6 +389,10 @@ void PIOS_WS2811_dma_interrupt_handler(ws2811_dev_t dev)
 
 	dev->eof = fill_dma_buf(buf, &dev->pixel_data_pos,
 			dev->pixel_data_end, dev->gpio_bit);
+
+#if defined(PIOS_INCLUDE_CHIBIOS)
+	CH_IRQ_EPILOGUE();
+#endif /* defined(PIOS_INCLUDE_CHIBIOS) */
 }
 
 void PIOS_WS2811_set(ws2811_dev_t dev, int idx, uint8_t r, uint8_t g,
