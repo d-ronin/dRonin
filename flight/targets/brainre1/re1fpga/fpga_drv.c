@@ -651,7 +651,7 @@ void PIOS_WS2811_trigger_update(ws2811_dev_t ws2811_dev)
 
 int PIOS_WS2811_get_num_leds(ws2811_dev_t ws2811_dev)
 {
-	PIOS_Assert(dev->magic == WS2811_MAGIC);
+	PIOS_Assert(ws2811_dev->magic == WS2811_MAGIC);
 
 	uint16_t n_leds = MIN(ws2811_dev->max_idx + 1, 1024);
 
