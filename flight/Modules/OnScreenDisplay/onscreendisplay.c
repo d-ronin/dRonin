@@ -1889,7 +1889,7 @@ static void onScreenDisplayTask(__attribute__((unused)) void *parameters)
 					render_osd_menu();
 					break;
 				}
-				write_string("Menu Disabled", GRAPHICS_X_MIDDLE, 50, 0, 0, TEXT_VA_TOP, TEXT_HA_CENTER, 0, 3);
+				write_string("MENU DISABLED", GRAPHICS_X_MIDDLE, 50, 0, 0, TEXT_VA_TOP, TEXT_HA_CENTER, 0, 3);
 			case ONSCREENDISPLAYSETTINGS_PAGECONFIG_CUSTOM1:
 			case ONSCREENDISPLAYSETTINGS_PAGECONFIG_CUSTOM2:
 			case ONSCREENDISPLAYSETTINGS_PAGECONFIG_CUSTOM3:
