@@ -562,7 +562,7 @@ zip_clean:
 
 
 # Google breakpad
-BREAKPAD_REV := 20170129
+BREAKPAD_REV := 20170224
 BREAKPAD_REPO := https://github.com/d-ronin/breakpad.git
 BREAKPAD_DIR := $(TOOLS_DIR)/breakpad/$(BREAKPAD_REV)
 BREAKPAD_BUILD_DIR := $(DL_DIR)/breakpad
