@@ -575,12 +575,11 @@ breakpad_install: | breakpad_clean
 	$(V0) @echo " DOWNLOAD     $(BREAKPAD_REPO) @ $(BREAKPAD_REV)"
 	$(V1) [ ! -d "$(BREAKPAD_BUILD_DIR)" ] || $(RM) -rf "$(BREAKPAD_BUILD_DIR)"
 	$(V1) mkdir -p "$(BREAKPAD_BUILD_DIR)"
-	$(V1) git clone -q --no-checkout $(BREAKPAD_REPO) "$(BREAKPAD_BUILD_DIR)"
 	$(V1) ( \
 	  cd $(BREAKPAD_BUILD_DIR) ; \
 	  git init -q ; \
 	  git remote add upstream "$(BREAKPAD_REPO)" ; \
-	  git fetch -q --depth=1 --recurse-submodules upstream $(BREAKPAD_REV) ; \
+	  git fetch -q --tags --depth=1 --recurse-submodules upstream $(BREAKPAD_REV) ; \
 	  git checkout -q $(BREAKPAD_REV) ; \
 	  git submodule -q update --init ; \
 	)
