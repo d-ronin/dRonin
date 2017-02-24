@@ -159,6 +159,9 @@ bool Quanton::setInputType(Core::IBoardType::InputType type)
     case INPUT_TYPE_SRXL:
         settings.Uart1 = HwQuanton::UART1_SRXL;
         break;
+    case INPUT_TYPE_TBSCROSSFIRE:
+        settings.Uart1 = HwQuanton::UART1_TBSCROSSFIRE;
+        break;
     case INPUT_TYPE_DSM:
         settings.Uart1 = HwQuanton::UART1_DSM;
         break;    
@@ -216,6 +219,8 @@ Core::IBoardType::InputType Quanton::getInputType()
             return INPUT_TYPE_IBUS;
         case HwQuanton::INPORTSERIAL_SRXL:
             return INPUT_TYPE_SRXL;
+        case HwQuanton::INPORTSERIAL_TBSCROSSFIRE:
+            return INPUT_TYPE_TBSCROSSFIRE;
         default:
             break;
         }
@@ -237,6 +242,8 @@ Core::IBoardType::InputType Quanton::getInputType()
         return INPUT_TYPE_IBUS;
     case HwQuanton::UART1_SRXL:
         return INPUT_TYPE_SRXL;
+    case HwQuanton::UART1_TBSCROSSFIRE:
+        return INPUT_TYPE_TBSCROSSFIRE;
     default:
         break;
     }
@@ -256,6 +263,8 @@ Core::IBoardType::InputType Quanton::getInputType()
         return INPUT_TYPE_IBUS;
     case HwQuanton::UART2_SRXL:
         return INPUT_TYPE_SRXL;
+    case HwQuanton::UART2_TBSCROSSFIRE:
+        return INPUT_TYPE_TBSCROSSFIRE;
     default:
         break;
     }
@@ -273,6 +282,8 @@ Core::IBoardType::InputType Quanton::getInputType()
         return INPUT_TYPE_IBUS;
     case HwQuanton::UART3_SRXL:
         return INPUT_TYPE_SRXL;
+    case HwQuanton::UART3_TBSCROSSFIRE:
+        return INPUT_TYPE_TBSCROSSFIRE;
     default:
         break;
     }
@@ -290,6 +301,8 @@ Core::IBoardType::InputType Quanton::getInputType()
         return INPUT_TYPE_IBUS;
     case HwQuanton::UART4_SRXL:
         return INPUT_TYPE_SRXL;
+    case HwQuanton::UART4_TBSCROSSFIRE:
+        return INPUT_TYPE_TBSCROSSFIRE;
     default:
         break;
     }
@@ -307,6 +320,8 @@ Core::IBoardType::InputType Quanton::getInputType()
         return INPUT_TYPE_IBUS;
     case HwQuanton::UART5_SRXL:
         return INPUT_TYPE_SRXL;
+    case HwQuanton::UART5_TBSCROSSFIRE:
+        return INPUT_TYPE_TBSCROSSFIRE;
     default:
         break;
     }

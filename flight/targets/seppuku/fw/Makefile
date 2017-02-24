@@ -178,6 +178,7 @@ SRC += pios_debug.c
 SRC += pios_wdg.c
 SRC += pios_reset.c
 SRC += pios_annunc.c
+SRC += pios_crossfire.c
 
 ## MGRS Library (needed by OSD)
 SRC += $(MGRSLIB)/mgrs.c

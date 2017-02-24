@@ -32,6 +32,7 @@
 				<option>HoTT SUM</option>
 				<option>SRXL</option>
 				<option>IBus</option>
+				<option>TBS Crossfire</option>
 				<option>None</option>
 			</options>
 		</field>
@@ -47,6 +48,7 @@
 				<option>RFM22B</option>
 				<option>OpenLRS</option>
 				<option>FrSkyPWM</option>
+				<option>TBS Crossfire</option>
 			</options>
 		</field>
 		<field name="RssiChannelNumber" units="channel" type="uint8" elements="1" defaultvalue="0">

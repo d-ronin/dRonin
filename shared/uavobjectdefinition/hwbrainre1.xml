@@ -13,6 +13,7 @@
 				<option>HoTT SUMH</option>
 				<option>SRXL</option>
 				<option>IBus</option>
+				<option>TBS Crossfire</option>
 			</options>
 		</field>
 		<field name="SerialPort" units="function" type="enum" elements="1" parent="HwShared.PortTypes" defaultvalue="Disabled">

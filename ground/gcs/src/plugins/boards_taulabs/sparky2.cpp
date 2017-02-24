@@ -182,6 +182,9 @@ bool Sparky2::setInputType(Core::IBoardType::InputType type)
     case INPUT_TYPE_SRXL:
         settings.RcvrPort = HwSparky2::RCVRPORT_SRXL;
         break;
+    case INPUT_TYPE_TBSCROSSFIRE:
+        settings.RcvrPort = HwSparky2::RCVRPORT_TBSCROSSFIRE;
+        break;
     default:
         return false;
     }
@@ -224,6 +227,8 @@ Core::IBoardType::InputType Sparky2::getInputType()
         return INPUT_TYPE_IBUS;
     case HwSparky2::RCVRPORT_SRXL:
         return INPUT_TYPE_SRXL;
+    case HwSparky2::RCVRPORT_TBSCROSSFIRE:
+        return INPUT_TYPE_TBSCROSSFIRE;
     default:
         break;
     }
@@ -241,6 +246,8 @@ Core::IBoardType::InputType Sparky2::getInputType()
         return INPUT_TYPE_IBUS;
     case HwSparky2::MAINPORT_SRXL:
         return INPUT_TYPE_SRXL;
+    case HwSparky2::MAINPORT_TBSCROSSFIRE:
+        return INPUT_TYPE_TBSCROSSFIRE;
     default:
         break;
     }
@@ -258,6 +265,8 @@ Core::IBoardType::InputType Sparky2::getInputType()
         return INPUT_TYPE_IBUS;
     case HwSparky2::FLEXIPORT_SRXL:
         return INPUT_TYPE_SRXL;
+    case HwSparky2::FLEXIPORT_TBSCROSSFIRE:
+        return INPUT_TYPE_TBSCROSSFIRE;
     default:
         break;
     }

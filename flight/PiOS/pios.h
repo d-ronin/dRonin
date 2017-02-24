@@ -207,6 +207,10 @@
 #include <pios_ibus.h>
 #endif
 
+#if defined(PIOS_INCLUDE_CROSSFIRE)
+#include <pios_crossfire.h>
+#endif
+
 #if defined(PIOS_INCLUDE_MAX7456)
 #include <pios_max7456.h>
 #endif

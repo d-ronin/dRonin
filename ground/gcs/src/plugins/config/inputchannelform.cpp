@@ -170,6 +170,9 @@ void inputChannelForm::groupUpdated()
             case ManualControlSettings::CHANNELGROUPS_IBUS:
                 count = 10;
                 break;
+            case ManualControlSettings::CHANNELGROUPS_TBSCROSSFIRE:
+                count = 12;
+                break;
             case ManualControlSettings::CHANNELGROUPS_NONE:
                 count = 0;
                 break;
@@ -209,6 +212,9 @@ void inputChannelForm::groupUpdated()
                 break;
             case ManualControlSettings::RSSITYPE_FRSKYPWM:
                 count = 1;
+                break;
+            case ManualControlSettings::RSSITYPE_TBSCROSSFIRE:
+                count = 12;
                 break;
             case ManualControlSettings::RSSITYPE_NONE:
                 count = 0;

@@ -154,6 +154,9 @@ bool AQ32::setInputType(Core::IBoardType::InputType type)
     case INPUT_TYPE_SRXL:
         settings.Uart3 = HwAQ32::UART3_SRXL;
         break;
+    case INPUT_TYPE_TBSCROSSFIRE:
+        settings.Uart3 = HwAQ32::UART3_TBSCROSSFIRE;
+        break;
     default:
         return false;
     }
@@ -199,6 +202,8 @@ Core::IBoardType::InputType AQ32::getInputType()
         return INPUT_TYPE_IBUS;
     case HwAQ32::UART3_SRXL:
         return INPUT_TYPE_SRXL;
+    case HwAQ32::UART3_TBSCROSSFIRE:
+        return INPUT_TYPE_TBSCROSSFIRE;
     default:
         break;
     }
@@ -216,6 +221,8 @@ Core::IBoardType::InputType AQ32::getInputType()
         return INPUT_TYPE_IBUS;
     case HwAQ32::UART4_SRXL:
         return INPUT_TYPE_SRXL;
+    case HwAQ32::UART4_TBSCROSSFIRE:
+        return INPUT_TYPE_TBSCROSSFIRE;
     default:
         break;
     }
@@ -233,6 +240,8 @@ Core::IBoardType::InputType AQ32::getInputType()
         return INPUT_TYPE_IBUS;
     case HwAQ32::UART6_SRXL:
         return INPUT_TYPE_SRXL;
+    case HwAQ32::UART6_TBSCROSSFIRE:
+        return INPUT_TYPE_TBSCROSSFIRE;
     default:
         break;
     }
