@@ -103,7 +103,7 @@ int32_t PIOS_RCVR_Read(uintptr_t rcvr_id, uint8_t channel)
   return rcvr_dev->driver->read(rcvr_dev->lower_id, channel);
 }
 
-#define MIN_WAKE_INTERVAL_MS 4	/* 250Hz ought to be enough for anyone*/
+#define MIN_WAKE_INTERVAL_uS 4000	/* 250Hz ought to be enough for anyone*/
 
 bool PIOS_RCVR_WaitActivity(uint32_t timeout_ms) {
   if (rcvr_activity) {
@@ -116,14 +116,14 @@ bool PIOS_RCVR_WaitActivity(uint32_t timeout_ms) {
 }
 
 void PIOS_RCVR_Active() {
-  if (PIOS_DELAY_DiffuS(rcvr_last_wake) >= MIN_WAKE_INTERVAL_MS) {
+  if (PIOS_DELAY_DiffuS(rcvr_last_wake) >= MIN_WAKE_INTERVAL_uS) {
     rcvr_last_wake = PIOS_DELAY_GetRaw();
     PIOS_Semaphore_Give(rcvr_activity);
   }
 }
 
 void PIOS_RCVR_ActiveFromISR() {
-  if (PIOS_DELAY_DiffuS(rcvr_last_wake) >= MIN_WAKE_INTERVAL_MS) {
+  if (PIOS_DELAY_DiffuS(rcvr_last_wake) >= MIN_WAKE_INTERVAL_uS) {
     bool dont_care;
 
     rcvr_last_wake = PIOS_DELAY_GetRaw();
