@@ -254,8 +254,6 @@ void VehicleConfigurationHelper::applyActuatorConfiguration()
         }
 
         for (quint16 i = 0; i < ActuatorSettings::CHANNELMAX_NUMELEM; i++) {
-            data.ChannelType[i]    = ActuatorSettings::CHANNELTYPE_PWM;
-
             if (i < max_motors) {
                 data.ChannelMin[i]     = actuatorSettings[i].channelMin;
                 data.ChannelNeutral[i] = actuatorSettings[i].channelNeutral;

@@ -51,8 +51,6 @@ public slots:
     void setNeutral(int value);
     int neutral() const;
     void enableChannelTest(bool state);
-    void setType(int type);
-    int type() const;
     void updateChannelLimits(int minPulse, int maxPulse, bool digitalProtocol = false);
 
 signals:
