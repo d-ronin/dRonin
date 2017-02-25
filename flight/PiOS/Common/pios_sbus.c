@@ -163,28 +163,28 @@ static void PIOS_SBus_UnrollChannels(struct pios_sbus_state *state)
 #define F(v,s) (((v) >> (s)) & 0x7ff)
 
 	/* unroll channels 1-8 */
-	*d++ = F(s[0] | s[1] << 8, 0);
-	*d++ = F(s[1] | s[2] << 8, 3);
-	*d++ = F(s[2] | s[3] << 8 | s[4] << 16, 6);
-	*d++ = F(s[4] | s[5] << 8, 1);
-	*d++ = F(s[5] | s[6] << 8, 4);
-	*d++ = F(s[6] | s[7] << 8 | s[8] << 16, 7);
-	*d++ = F(s[8] | s[9] << 8, 2);
-	*d++ = F(s[9] | s[10] << 8, 5);
+	d[0] = F(s[0] | s[1] << 8, 0);
+	d[1] = F(s[1] | s[2] << 8, 3);
+	d[2] = F(s[2] | s[3] << 8 | s[4] << 16, 6);
+	d[3] = F(s[4] | s[5] << 8, 1);
+	d[4] = F(s[5] | s[6] << 8, 4);
+	d[5] = F(s[6] | s[7] << 8 | s[8] << 16, 7);
+	d[6] = F(s[8] | s[9] << 8, 2);
+	d[7] = F(s[9] | s[10] << 8, 5);
 
 	/* unroll channels 9-16 */
-	*d++ = F(s[11] | s[12] << 8, 0);
-	*d++ = F(s[12] | s[13] << 8, 3);
-	*d++ = F(s[13] | s[14] << 8 | s[15] << 16, 6);
-	*d++ = F(s[15] | s[16] << 8, 1);
-	*d++ = F(s[16] | s[17] << 8, 4);
-	*d++ = F(s[17] | s[18] << 8 | s[19] << 16, 7);
-	*d++ = F(s[19] | s[20] << 8, 2);
-	*d++ = F(s[20] | s[21] << 8, 5);
+	d[8] = F(s[11] | s[12] << 8, 0);
+	d[9] = F(s[12] | s[13] << 8, 3);
+	d[10] = F(s[13] | s[14] << 8 | s[15] << 16, 6);
+	d[11] = F(s[15] | s[16] << 8, 1);
+	d[12] = F(s[16] | s[17] << 8, 4);
+	d[13] = F(s[17] | s[18] << 8 | s[19] << 16, 7);
+	d[14] = F(s[19] | s[20] << 8, 2);
+	d[15] = F(s[20] | s[21] << 8, 5);
 
 	/* unroll discrete channels 17 and 18 */
-	*d++ = (s[22] & SBUS_FLAG_DC1) ? SBUS_VALUE_MAX : SBUS_VALUE_MIN;
-	*d++ = (s[22] & SBUS_FLAG_DC2) ? SBUS_VALUE_MAX : SBUS_VALUE_MIN;
+	d[16] = (s[22] & SBUS_FLAG_DC1) ? SBUS_VALUE_MAX : SBUS_VALUE_MIN;
+	d[17] = (s[22] & SBUS_FLAG_DC2) ? SBUS_VALUE_MAX : SBUS_VALUE_MIN;
 }
 
 /* Update decoder state processing input byte from the S.Bus stream */
