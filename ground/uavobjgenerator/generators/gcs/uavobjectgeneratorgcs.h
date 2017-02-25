@@ -43,7 +43,7 @@ private:
     QString escape_raw_string(QString raw);
 
     QString gcsCodeTemplate,gcsIncludeTemplate;
-    QStringList fieldTypeStrCPP, fieldTypeStrQML,fieldTypeStrCPPClass;
+    QStringList fieldTypeStrCPP,fieldTypeStrCPPClass;
     QDir gcsCodePath;
     QDir gcsOutputPath;
 };
