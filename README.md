@@ -14,7 +14,7 @@ See [dronin.org](http://dronin.org) for more details.
 - [BrainFPV](http://brainfpv.com/)
 - [Lumenier Lux](http://www.getfpv.com/lumenier-lux-flight-controller.html)
 - [DTFUHF DTFc](http://www.dtfuhf.com/)
-- OpenPilot Revolution
+- [OpenPilot Revolution](http://www.readytoflyquads.com/openpilot-cc3d-revolution-acro)
 - Quantec Quanton
 - Tau Labs Sparky
 - [Tau Labs Sparky2](https://github.com/TauLabs/TauLabs/wiki/Sparky2)
