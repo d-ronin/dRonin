@@ -130,7 +130,6 @@ float weak_leveling_kp = 0;
 uint8_t weak_leveling_max = 0;
 bool lowThrottleZeroIntegral;
 float vbar_decay = 0.991f;
-float gyro_alpha = 0.6f;
 static float max_rate_alpha = 0.8f;
 
 struct pid pids[PID_MAX];
@@ -383,13 +382,6 @@ static void stabilizationTask(void* parameters)
 		bool error = frequency_wrong;
 
 		if (gyro_filter_updated) {
-			if (settings.GyroCutoff < 1.0f) {
-				gyro_alpha = 0;
-			} else {
-				gyro_alpha = expf(-2.0f * (float)(M_PI) *
-						settings.GyroCutoff * dT_expected);
-			}
-
 			// Default 350ms.
 			// 175ms to 39.3% of response
 			// 350ms to 63.2% of response
@@ -538,10 +530,7 @@ static void stabilizationTask(void* parameters)
 		local_attitude_error[YAW] = circular_modulus_deg(local_attitude_error[YAW]);
 
 		static float gyro_filtered[MAX_AXES];
-
-		gyro_filtered[ROLL] = gyro_filtered[ROLL] * gyro_alpha + gyrosData.x * (1 - gyro_alpha);
-		gyro_filtered[PITCH] = gyro_filtered[PITCH] * gyro_alpha + gyrosData.y * (1 - gyro_alpha);
-		gyro_filtered[YAW] = gyro_filtered[YAW] * gyro_alpha + gyrosData.z * (1 - gyro_alpha);
+		float *gyro_filtered = &gyrosData.x;
 
 		/* Maintain a second-order, lower cutof freq variant for
 		 * dynamic flight modes.

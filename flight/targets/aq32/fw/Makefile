@@ -125,6 +125,7 @@ SRC += $(MATHLIB)/coordinate_conversions.c
 SRC += $(MATHLIB)/misc_math.c
 SRC += $(MATHLIB)/atmospheric_math.c
 SRC += $(MATHLIB)/pid.c
+SRC += $(MATHLIB)/filter.c
 
 ## PIOS Hardware (STM32F4xx)
 include $(PIOS)/STM32F4xx/library_chibios.mk

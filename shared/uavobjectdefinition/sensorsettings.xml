@@ -36,6 +36,12 @@
 				<option>TRUE</option>
 			</options>
 		</field>
+		<field name="LowpassCutoff" units="Hz" type="float" elements="1" defaultvalue="55">
+			<description>Cutoff frequency for the lowpass on both the gyroscopes and accelerometers.</description>
+		</field>
+		<field name="LowpassOrder" units="" type="uint8" elements="1" defaultvalue="1">
+			<description>Order of the lowpass filter. Maximum 8, a value of zero bypasses the filter.</description>
+		</field>
 		<access gcs="readwrite" flight="readwrite"/>
 		<telemetrygcs acked="true" updatemode="onchange" period="0"/>
 		<telemetryflight acked="true" updatemode="onchange" period="0"/>
