@@ -137,6 +137,8 @@ linux-g++* {
 win32 {
     # http://gcc.gnu.org/bugzilla/show_bug.cgi?id=52991
     !win32-msvc*:QMAKE_CXXFLAGS += -mno-ms-bitfields
+    # check unhandled enum cases in switch statements (if no default case), matches GCC/clang
+    win32-msvc*:QMAKE_CXXFLAGS_WARN_ON += /we4062
 }
 
 unix {
