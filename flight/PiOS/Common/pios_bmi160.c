@@ -34,7 +34,7 @@
 /* Project Includes */
 #include "pios.h"
 
-#if defined(PIOS_INCLUDE_BMI160) || 1
+#if defined(PIOS_INCLUDE_BMI160)
 #include "physical_constants.h"
 #include "pios_bmi160.h"
 #include "pios_semaphore.h"
