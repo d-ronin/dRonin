@@ -15,7 +15,7 @@ from scipy import signal
 at_flash_header_fmt = struct.Struct('<QHHHH')
 at_measurement_fmt = struct.Struct('<ffffff')
 
-def process_autotune_lump(contents, filter_freq=55):
+def process_autotune_lump(contents, filter_freq=55, filter_order=1):
     """ Given a block of autotune data, return a time-series panda dataseries """
     hdr_tup = at_flash_header_fmt.unpack_from(contents)
 
@@ -53,11 +53,16 @@ def process_autotune_lump(contents, filter_freq=55):
     frame = pd.concat([frame, frame], ignore_index=True)
 
     # corresponds to 55Hz gyrocutoff
-    b, a = signal.iirfilter(1, [2 * filter_freq * time_step], btype='lowpass', ftype='butter')
+    if filter_order > 0:
+        b, a = signal.iirfilter(filter_order, [2 * filter_freq * time_step], btype='lowpass', ftype='butter')
 
-    for col in ['X', 'Y', 'Z']:
-        filtered = signal.lfilter(b, a, frame['gyro' + col], axis=0)
-        frame['filtered' + col] = pd.Series(filtered)
+        for col in ['X', 'Y', 'Z']:
+            filtered = signal.lfilter(b, a, frame['gyro' + col], axis=0)
+            frame['filtered' + col] = pd.Series(filtered)
+    else:
+        for col in ['X', 'Y', 'Z']:
+            filtered = frame['gyro' + col]
+            frame['filtered' + col] = pd.Series(filtered)
 
     deriv = frame.diff()
 
