@@ -5,7 +5,6 @@
 		<field name="Channel" units="us" type="float" elements="10"/>
 		<field name="UpdateTime" units="ms" type="uint8" elements="1"/>
 		<field name="MaxUpdateTime" units="ms" type="uint16" elements="1"/>
-		<field name="NumFailedUpdates" units="" type="uint8" elements="1"/>
 		<access gcs="readwrite" flight="readwrite"/>
 		<telemetrygcs acked="false" updatemode="manual" period="0"/>
 		<telemetryflight acked="false" updatemode="throttled" period="1000"/>

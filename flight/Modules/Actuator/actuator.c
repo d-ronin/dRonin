@@ -457,23 +457,13 @@ static void actuator_task(void* parameters)
 #if defined(MIXERSTATUS_DIAGNOSTICS)
 		MixerStatusSet(&mixerStatus);
 #endif
-
-		// Update servo outputs
-		bool success = true;
-
 		for (int n = 0; n < ACTUATORCOMMAND_CHANNEL_NUMELEM; ++n) {
 			PIOS_Servo_Set(n, command.Channel[n]);
 		}
 
 		PIOS_Servo_Update();
 
-		if (!success) {
-			command.NumFailedUpdates++;
-			ActuatorCommandSet(&command);
-			AlarmsSet(SYSTEMALARMS_ALARM_ACTUATOR, SYSTEMALARMS_ALARM_CRITICAL);
-		} else {
-			AlarmsClear(SYSTEMALARMS_ALARM_ACTUATOR);
-		}
+		AlarmsClear(SYSTEMALARMS_ALARM_ACTUATOR);
 	}
 }
 
