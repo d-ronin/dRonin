@@ -116,6 +116,8 @@ static int32_t PIOS_Flash_Posix_EraseSector(uintptr_t chip_id, uint32_t chip_sec
 
 	assert (s == flash_dev->cfg->size_of_sector);
 
+	fflush(flash_dev->flash_file);
+
 	return 0;
 }
 
@@ -136,6 +138,8 @@ static int32_t PIOS_Flash_Posix_WriteData(uintptr_t chip_id, uint32_t chip_offse
 	s = fwrite (data, 1, len, flash_dev->flash_file);
 
 	assert (s == len);
+
+	fflush(flash_dev->flash_file);
 
 	return 0;
 }
