@@ -246,7 +246,13 @@ CFLAGS += -O2 -g3
 endif
 
 ifneq ($(PI_CROSS_SIM)x,x)
-CC=arm-linux-gnueabihf-gcc
+ARMGCC:=$(shell command -v arm-linux-gnueabihf-gcc-6 2>/dev/null)
+
+ifeq ($(ARMGCC),)
+ARMGCC:=arm-linux-gnueabihf-gcc
+endif
+
+CC=$(ARMGCC)
 LDFLAGS += -static
 endif
 
