@@ -22,7 +22,7 @@ EXTRAINCDIRS		+=	$(PIOS_DEVLIB)/inc
 #
 # CMSIS for the F3
 #
-include $(PIOSCOMMONLIB)/CMSIS3/library.mk
+include $(PIOSCOMMONLIB)/CMSIS/library.mk
 CMSIS3_DEVICEDIR	:=	$(PIOS_DEVLIB)/Libraries/CMSIS3/Device/ST/STM32F30x
 SRC					+=      $(BOARD_INFO_DIR)/cmsis_system.c
 EXTRAINCDIRS		+=	$(CMSIS3_DEVICEDIR)/Include

@@ -87,7 +87,7 @@ SRC += pios_semaphore.c
 SRC += pios_irq.c
 
 ## CMSIS for STM32
-include $(PIOSCOMMONLIB)/CMSIS3/library.mk
+include $(PIOSCOMMONLIB)/CMSIS/library.mk
 SRC += $(BOARD_INFO_DIR)/cmsis_system.c
 
 ## Used parts of the STM-Library

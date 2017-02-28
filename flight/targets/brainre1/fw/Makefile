@@ -355,5 +355,4 @@ LDFLAGS += -u _printf_float
 #Linker scripts
 LDFLAGS += -T memory.ld $(addprefix -T,$(LINKER_SCRIPTS_APP))
 
-include $(PIOSCOMMONLIB)/CMSIS3/library.mk
 include $(MAKE_INC_DIR)/firmware-common.mk

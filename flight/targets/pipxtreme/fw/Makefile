@@ -176,7 +176,7 @@ SRC += $(FLIGHTLIB)/morsel.c
 SRC += $(MATHLIB)/misc_math.c
 
 ## CMSIS for STM32
-include $(PIOSCOMMONLIB)/CMSIS3/library.mk
+include $(PIOSCOMMONLIB)/CMSIS/library.mk
 SRC += $(BOARD_INFO_DIR)/cmsis_system.c
 
 ## Used parts of the STM-Library

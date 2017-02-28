@@ -15,9 +15,9 @@ FLOATABI			+= soft
 EXTRAINCDIRS		+=	$(PIOS_DEVLIB)/inc
 
 #
-# CMSIS for the F4
+# CMSIS for the F1
 #
-include $(PIOSCOMMONLIB)/CMSIS3/library.mk
+include $(PIOSCOMMONLIB)/CMSIS/library.mk
 CMSIS_DEVICEDIR	:=	$(PIOS_DEVLIB)/Libraries/CMSIS/Core/CM3
 SRC			+=	$(BOARD_INFO_DIR)/cmsis_system.c
 EXTRAINCDIRS		+=	$(CMSIS_DEVICEDIR)
