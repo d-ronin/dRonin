@@ -66,6 +66,8 @@ const struct pios_adc_driver pios_flyingpio_adc_driver = {
 		.lsb_voltage = PIOS_FLYINGPIO_ADC_LSB_Voltage,
 };
 
+#define MIN_QUIET_TIME 300		/* Microseconds */
+
 /**
  * @brief The device state struct
  */
@@ -74,8 +76,11 @@ struct pios_flyingpio_dev {
 	uint32_t spi_id;                        /**< Handle to the communication driver */
 	uint32_t spi_slave;                     /**< The slave number (SPI) */
 
+	uint32_t last_msg_time;			/**< Time of last message send completion */
+
 	uint16_t msg_num;                       /**< Expected next msg count */
 	uint16_t err_cnt;                       /**< The error counter */
+
 
 	volatile uint16_t rcvr_value[FPPROTO_MAX_RCCHANS];
 						/**< Receiver/controller data */
@@ -166,6 +171,17 @@ static int PIOS_FLYINGPIO_SendCmd(struct flyingpi_msg *msg) {
 
 	int ret = 0;
 
+	uint32_t span = PIOS_DELAY_DiffuS(fpio_dev->last_msg_time);
+
+	if (span < MIN_QUIET_TIME) {
+		/* Busy wait.  No sense in other stuff stacking up.
+		 * This has happened because we missed timing last time
+		 * around on the actuator side.  Ensure we get this actuator
+		 * message out ASAP and queues don't fill in the meantime.
+		 */
+		PIOS_DELAY_WaituS(MIN_QUIET_TIME - span + 20);
+	}
+
 	flyingpi_calc_crc(msg, true, &len);
 
 	if (PIOS_SPI_ClaimBus(fpio_dev->spi_id) != 0) {
@@ -186,6 +202,8 @@ static int PIOS_FLYINGPIO_SendCmd(struct flyingpi_msg *msg) {
 	PIOS_SPI_RC_PinSet(fpio_dev->spi_id, fpio_dev->spi_slave,
 		true);
 	PIOS_SPI_ReleaseBus(fpio_dev->spi_id);
+
+	fpio_dev->last_msg_time = PIOS_DELAY_GetRaw();
 
 	/* Handle response data-- after releasing SPI */
 	if (!ret) {
@@ -297,9 +315,8 @@ static void PIOS_FLYINGPIO_ActuatorUpdate()
 
 	if (PIOS_FLYINGPIO_SendCmd(&tx_buf)) {
 		// If there's a sequence mismatch, reconfig.
-		PIOS_Thread_Sleep(4);
 		PIOS_FLYINGPIO_SendCmd(&actuator_cfg);
-		PIOS_Thread_Sleep(4);
+		PIOS_DELAY_WaituS(3 * MIN_QUIET_TIME);
 	}
 }
 
