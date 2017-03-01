@@ -28,7 +28,7 @@
 			</options>
 		</field>
 		<field name="Uart2" units="function" type="enum" elements="1" parent="HwShared.PortTypes" defaultvalue="Disabled">
-			<description/>
+			<description>The port labelled "UART2"</description>
 			<options>
 				<option>Disabled</option>
 				<option>ComBridge</option>
@@ -44,6 +44,7 @@
 				<option>MavLinkTX_GPS_RX</option>
 				<option>MSP</option>
 				<option>OpenLog</option>
+				<option>S.Bus</option>
 				<option>S.Bus Non Inverted</option>
 				<option>Storm32Bgc</option>
 				<option>Telemetry</option>
@@ -51,7 +52,7 @@
 			</options>
 		</field>
 		<field name="Uart3" units="function" type="enum" elements="1" parent="HwShared.PortTypes" defaultvalue="Disabled">
-			<description/>
+			<description>The port labelled "UART3"</description>
 			<options>
 				<option>Disabled</option>
 				<option>ComBridge</option>
@@ -67,6 +68,7 @@
 				<option>MavLinkTX_GPS_RX</option>
 				<option>MSP</option>
 				<option>OpenLog</option>
+				<option>S.Bus</option>
 				<option>S.Bus Non Inverted</option>
 				<option>Storm32Bgc</option>
 				<option>Telemetry</option>
