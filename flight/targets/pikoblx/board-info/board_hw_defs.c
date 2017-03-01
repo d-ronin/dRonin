@@ -90,6 +90,72 @@ const struct pios_annunc_cfg * PIOS_BOARD_HW_DEFS_GetLedCfg (uint32_t board_revi
 
 #endif	/* PIOS_INCLUDE_ANNUNC */
 
+#if defined(PIOS_INCLUDE_SPI)
+#include <pios_spi_priv.h>
+/*
+ * SPI1 Interface
+ * Used for gyro and accelerometer
+ */
+static const struct pios_spi_cfg pios_spi_gyro_cfg = {
+	.regs = SPI2,
+	.remap = GPIO_AF_5,
+	.init = {
+		.SPI_Mode              = SPI_Mode_Master,
+		.SPI_Direction         = SPI_Direction_2Lines_FullDuplex,
+		.SPI_DataSize          = SPI_DataSize_8b,
+		.SPI_NSS               = SPI_NSS_Soft,
+		.SPI_FirstBit          = SPI_FirstBit_MSB,
+		.SPI_CRCPolynomial     = 7,
+		.SPI_CPOL              = SPI_CPOL_Low,
+		.SPI_CPHA              = SPI_CPHA_1Edge,
+		.SPI_BaudRatePrescaler = SPI_BaudRatePrescaler_8,
+	},
+	.sclk = {
+		.gpio = GPIOB,
+		.init = {
+			.GPIO_Pin = GPIO_Pin_13,
+			.GPIO_Speed = GPIO_Speed_50MHz,
+			.GPIO_Mode = GPIO_Mode_AF,
+			.GPIO_OType = GPIO_OType_PP,
+			.GPIO_PuPd = GPIO_PuPd_NOPULL
+		},
+		.pin_source = GPIO_PinSource13,
+	},
+	.miso = {
+		.gpio = GPIOB,
+		.init = {
+			.GPIO_Pin = GPIO_Pin_14,
+			.GPIO_Speed = GPIO_Speed_50MHz,
+			.GPIO_Mode = GPIO_Mode_AF,
+			.GPIO_OType = GPIO_OType_PP,
+			.GPIO_PuPd = GPIO_PuPd_NOPULL
+		},
+		.pin_source = GPIO_PinSource14,
+	},
+	.mosi = {
+		.gpio = GPIOB,
+		.init = {
+			.GPIO_Pin = GPIO_Pin_15,
+			.GPIO_Speed = GPIO_Speed_50MHz,
+			.GPIO_Mode = GPIO_Mode_AF,
+			.GPIO_OType = GPIO_OType_PP,
+			.GPIO_PuPd = GPIO_PuPd_NOPULL
+		},
+		.pin_source = GPIO_PinSource15,
+	},
+	.slave_count = 1,
+	.ssel = { {
+		.gpio = GPIOB,
+		.init = {
+			.GPIO_Pin = GPIO_Pin_12,
+			.GPIO_Speed = GPIO_Speed_50MHz,
+			.GPIO_Mode  = GPIO_Mode_OUT,
+			.GPIO_OType = GPIO_OType_PP,
+			.GPIO_PuPd = GPIO_PuPd_UP
+		},
+	} },
+};
+#endif
 
 #if defined(PIOS_INCLUDE_I2C)
 
@@ -257,8 +323,6 @@ const struct pios_flash_partition * PIOS_BOARD_HW_DEFS_GetPartitionTable (uint32
 
 #endif	/* PIOS_INCLUDE_FLASH */
 
-/* XXX need to plumb uarts */
-
 #if defined(PIOS_INCLUDE_USART)
 
 #include "pios_usart_priv.h"
@@ -269,20 +333,7 @@ const struct pios_flash_partition * PIOS_BOARD_HW_DEFS_GetPartitionTable (uint32
  */
 #include <pios_dsm_priv.h>
 
-static const struct pios_dsm_cfg pios_rcvr_dsm_aux_cfg = {
-	.bind = {
-		.gpio = GPIOA,
-		.init = {
-			.GPIO_Pin   = GPIO_Pin_3,
-			.GPIO_Speed = GPIO_Speed_2MHz,
-			.GPIO_Mode  = GPIO_Mode_OUT,
-			.GPIO_OType = GPIO_OType_PP,
-			.GPIO_PuPd  = GPIO_PuPd_NOPULL
-		},
-	},
-};
-
-static const struct pios_dsm_cfg pios_flexi_dsm_aux_cfg = {
+static const struct pios_dsm_cfg pios_uart1_dsm_cfg = {
 	.bind = {
 		.gpio = GPIOB,
 		.init = {
@@ -295,7 +346,20 @@ static const struct pios_dsm_cfg pios_flexi_dsm_aux_cfg = {
 	},
 };
 
-static const struct pios_dsm_cfg pios_main_dsm_aux_cfg = {
+static const struct pios_dsm_cfg pios_uart2_dsm_cfg = {
+	.bind = {
+		.gpio = GPIOB,
+		.init = {
+			.GPIO_Pin   = GPIO_Pin_4,
+			.GPIO_Speed = GPIO_Speed_2MHz,
+			.GPIO_Mode  = GPIO_Mode_OUT,
+			.GPIO_OType = GPIO_OType_PP,
+			.GPIO_PuPd  = GPIO_PuPd_NOPULL
+		},
+	},
+};
+
+static const struct pios_dsm_cfg pios_uart3_dsm_cfg = {
 	.bind = {
 		.gpio = GPIOB,
 		.init = {
@@ -310,7 +374,7 @@ static const struct pios_dsm_cfg pios_main_dsm_aux_cfg = {
 
 #endif	/* PIOS_INCLUDE_DSM */
 
-static const struct pios_usart_cfg pios_flexi_usart_cfg = {
+static const struct pios_usart_cfg pios_uart1_usart_cfg = {
 	.regs = USART1,
 	.remap = GPIO_AF_7,
 	.irq = {
@@ -345,7 +409,42 @@ static const struct pios_usart_cfg pios_flexi_usart_cfg = {
 	},
 };
 
-static const struct pios_usart_cfg pios_main_usart_cfg = {
+static const struct pios_usart_cfg pios_uart2_usart_cfg = {
+	.regs = USART2,
+	.remap = GPIO_AF_7,
+	.irq = {
+		.init = {
+			.NVIC_IRQChannel = USART2_IRQn,
+			.NVIC_IRQChannelPreemptionPriority = PIOS_IRQ_PRIO_HIGHEST,
+			.NVIC_IRQChannelSubPriority = 0,
+			.NVIC_IRQChannelCmd = ENABLE,
+		},
+	},
+	.rx = {
+		.gpio = GPIOB,
+		.init = {
+			.GPIO_Pin   = GPIO_Pin_4,
+			.GPIO_Speed = GPIO_Speed_2MHz,
+			.GPIO_Mode  = GPIO_Mode_AF,
+			.GPIO_OType = GPIO_OType_PP,
+			.GPIO_PuPd  = GPIO_PuPd_UP
+		},
+		.pin_source = GPIO_PinSource4,
+	},
+	.tx = {
+		.gpio = GPIOB,
+		.init = {
+			.GPIO_Pin   = GPIO_Pin_3,
+			.GPIO_Speed = GPIO_Speed_2MHz,
+			.GPIO_Mode  = GPIO_Mode_AF,
+			.GPIO_OType = GPIO_OType_PP,
+			.GPIO_PuPd  = GPIO_PuPd_DOWN
+		},
+		.pin_source = GPIO_PinSource3,
+	},
+};
+
+static const struct pios_usart_cfg pios_uart3_usart_cfg = {
 	.regs = USART3,
 	.remap = GPIO_AF_7,
 	.irq = {
@@ -379,31 +478,6 @@ static const struct pios_usart_cfg pios_main_usart_cfg = {
 		.pin_source = GPIO_PinSource10,
 	},
 };
-
-static const struct pios_usart_cfg pios_rcvr_usart_cfg = {
-	.regs = USART2,
-	.remap = GPIO_AF_7,
-	.irq = {
-		.init = {
-			.NVIC_IRQChannel                   = USART2_IRQn,
-			.NVIC_IRQChannelPreemptionPriority = PIOS_IRQ_PRIO_HIGHEST,
-			.NVIC_IRQChannelSubPriority        = 0,
-			.NVIC_IRQChannelCmd                = ENABLE,
-		  },
-	},
-	.rx = {
-		.gpio = GPIOA,
-		.init = {
-			.GPIO_Pin   = GPIO_Pin_3,
-			.GPIO_Speed = GPIO_Speed_2MHz,
-			.GPIO_Mode  = GPIO_Mode_AF,
-			.GPIO_OType = GPIO_OType_PP,
-			.GPIO_PuPd  = GPIO_PuPd_UP
-		},
-		.pin_source = GPIO_PinSource3,
-	},
-};
-
 #endif  /* PIOS_INCLUDE_USART */
 
 #if defined(PIOS_INCLUDE_COM)
@@ -875,6 +949,45 @@ const struct pios_usb_cdc_cfg pios_usb_cdc_cfg = {
 };
 #endif	/* PIOS_INCLUDE_USB_CDC */
 
+#if defined(PIOS_INCLUDE_MPU)
+#include "pios_mpu.h"
+static const struct pios_exti_cfg pios_exti_mpu_cfg __exti_config = {
+    .vector = PIOS_MPU_IRQHandler,
+    .line = EXTI_Line15,
+    .pin = {
+        .gpio = GPIOA,
+        .init = {
+            .GPIO_Pin = GPIO_Pin_15,
+            .GPIO_Speed = GPIO_Speed_50MHz,
+            .GPIO_Mode = GPIO_Mode_IN,
+            .GPIO_OType = GPIO_OType_OD,
+            .GPIO_PuPd = GPIO_PuPd_NOPULL,
+        },
+    },
+    .irq = {
+        .init = {
+            .NVIC_IRQChannel = EXTI15_10_IRQn,
+            .NVIC_IRQChannelPreemptionPriority = PIOS_IRQ_PRIO_HIGH,
+            .NVIC_IRQChannelSubPriority = 0,
+            .NVIC_IRQChannelCmd = ENABLE,
+        },
+    },
+    .exti = {
+        .init = {
+            .EXTI_Line = EXTI_Line15, // matches above GPIO pin
+            .EXTI_Mode = EXTI_Mode_Interrupt,
+            .EXTI_Trigger = EXTI_Trigger_Rising,
+            .EXTI_LineCmd = ENABLE,
+        },
+    },
+};
+
+static struct pios_mpu_cfg pios_mpu_cfg = {
+    .exti_cfg = &pios_exti_mpu_cfg,
+    .default_samplerate = 1000,
+    .orientation = PIOS_MPU_TOP_180DEG
+};
+#endif /* PIOS_INCLUDE_MPU */
 /**
  * @}
  * @}

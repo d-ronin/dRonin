@@ -184,16 +184,13 @@ void PIOS_Board_Init(void)
 	PIOS_ANNUNC_Init(led_cfg);
 #endif	/* PIOS_INCLUDE_ANNUNC */
 
-#if defined(PIOS_INCLUDE_CAN)
-	if (PIOS_CAN_Init(&pios_can_id, &pios_can_cfg) != 0)
-		PIOS_HAL_CriticalError(PIOS_LED_ALARM, PIOS_HAL_PANIC_CAN);
+#if defined(PIOS_INCLUDE_SPI)
+	uint32_t pios_spi_gyro_id;
 
-	if (PIOS_COM_Init(&pios_com_can_id, &pios_can_com_driver, pios_can_id,
-	                  PIOS_COM_CAN_RX_BUF_LEN,
-	                  PIOS_COM_CAN_TX_BUF_LEN))
-		PIOS_HAL_CriticalError(PIOS_LED_ALARM, PIOS_HAL_PANIC_CAN);
-
-	pios_com_bridge_id = pios_com_can_id;
+	/* Set up the SPI interface to the gyro/accelerometer */
+	if (PIOS_SPI_Init(&pios_spi_gyro_id, &pios_spi_gyro_cfg)) {
+		PIOS_DEBUG_Assert(0);
+	}
 #endif
 
 #if defined(PIOS_INCLUDE_FLASH)
@@ -321,67 +318,54 @@ void PIOS_Board_Init(void)
 
 	/* Configure the IO ports */
 	
-#if defined(PIOS_INCLUDE_I2C)
-	if (PIOS_I2C_Init(&pios_i2c_internal_id, &pios_i2c_internal_cfg))
-		PIOS_DEBUG_Assert(0);
-
-	if (PIOS_I2C_CheckClear(pios_i2c_internal_id) != 0)
-		PIOS_HAL_CriticalError(PIOS_LED_ALARM, PIOS_HAL_PANIC_I2C_INT);
-	else
-		if (AlarmsGet(SYSTEMALARMS_ALARM_I2C) == SYSTEMALARMS_ALARM_UNINITIALISED)
-			AlarmsSet(SYSTEMALARMS_ALARM_I2C, SYSTEMALARMS_ALARM_OK);
-#endif  // PIOS_INCLUDE_I2C
-
 	HwPikoBLXDSMxModeOptions hw_DSMxMode;
 	HwPikoBLXDSMxModeGet(&hw_DSMxMode);
 
-	/* Configure main USART port */
-	uint8_t hw_mainport;
-	HwPikoBLXMainPortGet(&hw_mainport);
+	/* XXX add I2C support */
+	HwSharedPortTypesOptions hw_uart1;
+	HwPikoBLXUart1Get(&hw_uart1);
+	PIOS_HAL_ConfigurePort(hw_uart1, // port_type
+						&pios_uart1_usart_cfg, // usart_port_cfg
+						&pios_usart_com_driver, // com_driver
+						NULL, // i2c_id
+						NULL, // i2c_cfg
+						NULL, // ppm_cfg
+						NULL, // pwm_cfg
+						PIOS_LED_ALARM, // led_id
+						&pios_uart1_dsm_cfg, // dsm_cfg
+						hw_DSMxMode, // dsm_mode
+						NULL); // sbus_cfg
 	
-	PIOS_HAL_ConfigurePort(hw_mainport,          // port type protocol
-	        &pios_main_usart_cfg,                // usart_port_cfg
-	        &pios_usart_com_driver,              // com_driver
-	        NULL,                                // i2c_id
-	        NULL,                                // i2c_cfg 
-	        NULL,                                // ppm_cfg
-	        NULL,                                // pwm_cfg
-	        PIOS_LED_ALARM,                      // led_id
-	        &pios_main_dsm_aux_cfg,              // dsm_cfg
-	        hw_DSMxMode,                         // dsm_mode
-	        NULL);                               // sbus_cfg
+	/* Configure Uart2 */
+	HwSharedPortTypesOptions hw_uart2;
+	HwPikoBLXUart2Get(&hw_uart2);
+	PIOS_HAL_ConfigurePort(hw_uart2, // port_type
+						&pios_uart2_usart_cfg, // usart_port_cfg
+						&pios_usart_com_driver, // com_driver
+						NULL, // i2c_id
+						NULL, // i2c_cfg
+						NULL, // ppm_cfg
+						NULL, // pwm_cfg
+						PIOS_LED_ALARM, // led_id
+						&pios_uart2_dsm_cfg, // dsm_cfg
+						hw_DSMxMode, // dsm_mode
+						NULL); // sbus_cfg
 
-	/* Configure FlexiPort */
-	uint8_t hw_flexiport;
-	HwPikoBLXFlexiPortGet(&hw_flexiport);
-	
-	PIOS_HAL_ConfigurePort(hw_flexiport,         // port type protocol
-	        &pios_flexi_usart_cfg,               // usart_port_cfg
-	        &pios_usart_com_driver,              // com_driver
-	        &pios_i2c_flexi_id,                  // i2c_id
-	        &pios_i2c_flexi_cfg,                 // i2c_cfg 
-	        NULL,                                // ppm_cfg
-	        NULL,                                // pwm_cfg
-	        PIOS_LED_ALARM,                      // led_id
-	        &pios_flexi_dsm_aux_cfg,             // dsm_cfg
-	        hw_DSMxMode,                         // dsm_mode
-	        NULL);                               // sbus_cfg
+	/* Configure Uart3 */
+	HwSharedPortTypesOptions hw_uart3;
+	HwPikoBLXUart3Get(&hw_uart3);
+	PIOS_HAL_ConfigurePort(hw_uart3, // port_type
+						&pios_uart3_usart_cfg, // usart_port_cfg
+						&pios_usart_com_driver, // com_driver
+						NULL, // i3c_id
+						NULL, // i3c_cfg
+						NULL, // ppm_cfg
+						NULL, // pwm_cfg
+						PIOS_LED_ALARM, // led_id
+						&pios_uart3_dsm_cfg, // dsm_cfg
+						hw_DSMxMode, // dsm_mode
+						NULL); // sbus_cfg
 
-	/* Configure the rcvr port */
-	uint8_t hw_rcvrport;
-	HwPikoBLXRcvrPortGet(&hw_rcvrport);
-
-	PIOS_HAL_ConfigurePort(hw_rcvrport,          // port type protocol
-	        &pios_rcvr_usart_cfg,                // usart_port_cfg
-	        &pios_usart_com_driver,              // com_driver
-	        NULL,                                // i2c_id 
-	        NULL,                                // i2c_cfg
-	        &pios_ppm_cfg,                       // ppm_cfg
-	        NULL,                                // pwm_cfg
-	        PIOS_LED_ALARM,                      // led_id
-	        &pios_rcvr_dsm_aux_cfg,              // dsm_cfg
-	        hw_DSMxMode,                         // dsm_mode
-	        NULL);                               // sbus_cfg
 
 #if defined(PIOS_INCLUDE_GCSRCVR)
 	GCSReceiverInitialize();
@@ -394,243 +378,91 @@ void PIOS_Board_Init(void)
 	pios_rcvr_group_map[MANUALCONTROLSETTINGS_CHANNELGROUPS_GCS] = pios_gcsrcvr_rcvr_id;
 #endif	/* PIOS_INCLUDE_GCSRCVR */
 
-	uint8_t hw_outport;
-	uint8_t number_of_pwm_outputs;
-	uint8_t number_of_adc_ports;
-	bool use_pwm_in;
-	HwPikoBLXOutPortGet(&hw_outport);
-	switch (hw_outport) {
-	case HWPIKOBLX_OUTPORT_PWM10:
-		number_of_pwm_outputs = 10;
-		number_of_adc_ports = 0;
-		use_pwm_in = false;
-		break;
-	case HWPIKOBLX_OUTPORT_PWM82ADC:
-		number_of_pwm_outputs = 8;
-		number_of_adc_ports = 2;
-		use_pwm_in = false;
-		break;
-	case HWPIKOBLX_OUTPORT_PWM73ADC:
-		number_of_pwm_outputs = 7;
-		number_of_adc_ports = 3;
-		use_pwm_in = false;
-		break;
-	case HWPIKOBLX_OUTPORT_PWM9PWM_IN:
-		number_of_pwm_outputs = 9;
-		use_pwm_in = true;
-		number_of_adc_ports = 0;
-		break;
-	case HWPIKOBLX_OUTPORT_PWM72ADCPWM_IN:
-		number_of_pwm_outputs = 7;
-		use_pwm_in = true;
-		number_of_adc_ports = 2;
-		break;
-	default:
-		PIOS_Assert(0);
-		break;
-	}
-
 #ifndef PIOS_DEBUG_ENABLE_DEBUG_PINS
 #ifdef PIOS_INCLUDE_SERVO
-	pios_servo_cfg.num_channels = number_of_pwm_outputs;
-
-	if (hw_rcvrport != HWSHARED_PORTTYPES_PPM) {
-		PIOS_Servo_Init(&pios_servo_cfg);
-	} else {
-		PIOS_Servo_Init(&pios_servo_slow_cfg);
-	}
+	PIOS_Servo_Init(&pios_servo_cfg);
 #endif
 #else
 	PIOS_DEBUG_Init(&pios_tim_servo_all_channels, NELEMENTS(pios_tim_servo_all_channels));
 #endif
 
 #if defined(PIOS_INCLUDE_ADC)
-	if (number_of_adc_ports > 0) {
-		internal_adc_cfg.adc_pin_count = number_of_adc_ports;
-		uint32_t internal_adc_id;
-		if (PIOS_INTERNAL_ADC_Init(&internal_adc_id, &internal_adc_cfg) < 0)
-			PIOS_Assert(0);
-		PIOS_ADC_Init(&pios_internal_adc_id, &pios_internal_adc_driver, internal_adc_id);
-	}
+	uint32_t internal_adc_id;
+	if (PIOS_INTERNAL_ADC_Init(&internal_adc_id, &internal_adc_cfg) < 0)
+		PIOS_Assert(0);
+	PIOS_ADC_Init(&pios_internal_adc_id, &pios_internal_adc_driver, internal_adc_id);
 #endif /* PIOS_INCLUDE_ADC */
-#if defined(PIOS_INCLUDE_PWM)
-	if (use_pwm_in) {
-		if (number_of_adc_ports > 0)
-			pios_pwm_cfg.channels = &pios_tim_rcvrport_pwm[1];
-		uintptr_t pios_pwm_id;
-		PIOS_PWM_Init(&pios_pwm_id, &pios_pwm_cfg);
-
-		uintptr_t pios_pwm_rcvr_id;
-		if (PIOS_RCVR_Init(&pios_pwm_rcvr_id, &pios_pwm_rcvr_driver, pios_pwm_id)) {
-			PIOS_Assert(0);
-		}
-		pios_rcvr_group_map[MANUALCONTROLSETTINGS_CHANNELGROUPS_PWM] = pios_pwm_rcvr_id;
-	}
-#endif	/* PIOS_INCLUDE_PWM */
 	PIOS_WDG_Clear();
 	PIOS_DELAY_WaitmS(200);
 	PIOS_WDG_Clear();
 
-#if defined(PIOS_INCLUDE_MPU9150)
-#if defined(PIOS_INCLUDE_MPU6050)
-	// Enable autoprobing when both 6050 and 9050 compiled in
-	bool mpu9150_found = false;
-	if (PIOS_MPU9150_Probe(pios_i2c_internal_id, PIOS_MPU9150_I2C_ADD_A0_LOW) == 0) {
-		mpu9150_found = true;
-#else
-	{
-#endif /* PIOS_INCLUDE_MPU6050 */
+#if defined(PIOS_INCLUDE_MPU)
+	pios_mpu_dev_t mpu_dev = NULL;
+	if (PIOS_MPU_SPI_Init(&mpu_dev, pios_spi_gyro_id, 0, &pios_mpu_cfg) != 0)
+		PIOS_HAL_CriticalError(PIOS_LED_ALARM, PIOS_HAL_PANIC_IMU);
 
-		uint8_t magnetometer;
-		HwPikoBLXMagnetometerGet(&magnetometer);
-
-		if (magnetometer == HWPIKOBLX_MAGNETOMETER_INTERNAL)
-			use_mpu_mag = true;
-		else
-			use_mpu_mag = false;
-
-
-		int retval;
-		retval = PIOS_MPU9150_Init(pios_i2c_internal_id, PIOS_MPU9150_I2C_ADD_A0_LOW, &pios_mpu9150_cfg, use_mpu_mag);
-		if (retval == -10)
-			PIOS_HAL_CriticalError(PIOS_LED_ALARM, PIOS_HAL_PANIC_IMU);
-		if (retval != 0)
-			PIOS_HAL_CriticalError(PIOS_LED_ALARM, PIOS_HAL_PANIC_IMU);
-
-		// To be safe map from UAVO enum to driver enum
-		uint8_t hw_gyro_range;
-		HwPikoBLXGyroRangeGet(&hw_gyro_range);
-		switch (hw_gyro_range) {
+	HwPikoBLXGyroRangeOptions hw_gyro_range;
+	HwPikoBLXGyroRangeGet(&hw_gyro_range);
+	switch(hw_gyro_range) {
 		case HWPIKOBLX_GYRORANGE_250:
-			PIOS_MPU9150_SetGyroRange(PIOS_MPU60X0_SCALE_250_DEG);
+			PIOS_MPU_SetGyroRange(PIOS_MPU_SCALE_250_DEG);
 			break;
 		case HWPIKOBLX_GYRORANGE_500:
-			PIOS_MPU9150_SetGyroRange(PIOS_MPU60X0_SCALE_500_DEG);
+			PIOS_MPU_SetGyroRange(PIOS_MPU_SCALE_500_DEG);
 			break;
 		case HWPIKOBLX_GYRORANGE_1000:
-			PIOS_MPU9150_SetGyroRange(PIOS_MPU60X0_SCALE_1000_DEG);
+			PIOS_MPU_SetGyroRange(PIOS_MPU_SCALE_1000_DEG);
 			break;
 		case HWPIKOBLX_GYRORANGE_2000:
-			PIOS_MPU9150_SetGyroRange(PIOS_MPU60X0_SCALE_2000_DEG);
+			PIOS_MPU_SetGyroRange(PIOS_MPU_SCALE_2000_DEG);
 			break;
-		}
-
-		uint8_t hw_accel_range;
-		HwPikoBLXAccelRangeGet(&hw_accel_range);
-		switch (hw_accel_range) {
-		case HWPIKOBLX_ACCELRANGE_2G:
-			PIOS_MPU9150_SetAccelRange(PIOS_MPU60X0_ACCEL_2G);
-			break;
-		case HWPIKOBLX_ACCELRANGE_4G:
-			PIOS_MPU9150_SetAccelRange(PIOS_MPU60X0_ACCEL_4G);
-			break;
-		case HWPIKOBLX_ACCELRANGE_8G:
-			PIOS_MPU9150_SetAccelRange(PIOS_MPU60X0_ACCEL_8G);
-			break;
-		case HWPIKOBLX_ACCELRANGE_16G:
-			PIOS_MPU9150_SetAccelRange(PIOS_MPU60X0_ACCEL_16G);
-			break;
-		}
-
-		uint8_t hw_mpu9150_dlpf;
-		HwPikoBLXMPU9150DLPFGet(&hw_mpu9150_dlpf);
-		enum pios_mpu60x0_filter mpu9150_dlpf = \
-		                                        (hw_mpu9150_dlpf == HWPIKOBLX_MPU9150DLPF_188) ? PIOS_MPU60X0_LOWPASS_188_HZ : \
-		                                        (hw_mpu9150_dlpf == HWPIKOBLX_MPU9150DLPF_98) ? PIOS_MPU60X0_LOWPASS_98_HZ : \
-		                                        (hw_mpu9150_dlpf == HWPIKOBLX_MPU9150DLPF_42) ? PIOS_MPU60X0_LOWPASS_42_HZ : \
-		                                        (hw_mpu9150_dlpf == HWPIKOBLX_MPU9150DLPF_20) ? PIOS_MPU60X0_LOWPASS_20_HZ : \
-		                                        (hw_mpu9150_dlpf == HWPIKOBLX_MPU9150DLPF_10) ? PIOS_MPU60X0_LOWPASS_10_HZ : \
-		                                        (hw_mpu9150_dlpf == HWPIKOBLX_MPU9150DLPF_5) ? PIOS_MPU60X0_LOWPASS_5_HZ : \
-		                                        pios_mpu9150_cfg.default_filter;
-		PIOS_MPU9150_SetLPF(mpu9150_dlpf);
 	}
 
-#endif /* PIOS_INCLUDE_MPU9150 */
-
-#if defined(PIOS_INCLUDE_MPU6050)
-#if defined(PIOS_INCLUDE_MPU9150)
-	// MPU9150 looks like an MPU6050 _plus_ additional hardware.  So we cannot try and
-	// probe if MPU9150 is found or we will find a duplicate
-	if (mpu9150_found == false)
-#endif /* PIOS_INCLUDE_MPU9150 */
-	{
-		if (PIOS_MPU6050_Init(pios_i2c_internal_id, PIOS_MPU6050_I2C_ADD_A0_LOW, &pios_mpu6050_cfg) != 0)
-			PIOS_HAL_CriticalError(PIOS_LED_ALARM, PIOS_HAL_PANIC_IMU);
-		if (PIOS_MPU6050_Test() != 0)
-			PIOS_HAL_CriticalError(PIOS_LED_ALARM, PIOS_HAL_PANIC_IMU);
-
-		// To be safe map from UAVO enum to driver enum
-		uint8_t hw_gyro_range;
-		HwPikoBLXGyroRangeGet(&hw_gyro_range);
-		switch (hw_gyro_range) {
-		case HWPIKOBLX_GYRORANGE_250:
-			PIOS_MPU6050_SetGyroRange(PIOS_MPU60X0_SCALE_250_DEG);
-			break;
-		case HWPIKOBLX_GYRORANGE_500:
-			PIOS_MPU6050_SetGyroRange(PIOS_MPU60X0_SCALE_500_DEG);
-			break;
-		case HWPIKOBLX_GYRORANGE_1000:
-			PIOS_MPU6050_SetGyroRange(PIOS_MPU60X0_SCALE_1000_DEG);
-			break;
-		case HWPIKOBLX_GYRORANGE_2000:
-			PIOS_MPU6050_SetGyroRange(PIOS_MPU60X0_SCALE_2000_DEG);
-			break;
-		}
-
-		uint8_t hw_accel_range;
-		HwPikoBLXAccelRangeGet(&hw_accel_range);
-		switch (hw_accel_range) {
+	HwPikoBLXAccelRangeOptions hw_accel_range;
+	HwPikoBLXAccelRangeGet(&hw_accel_range);
+	switch(hw_accel_range) {
 		case HWPIKOBLX_ACCELRANGE_2G:
-			PIOS_MPU6050_SetAccelRange(PIOS_MPU60X0_ACCEL_2G);
+			PIOS_MPU_SetAccelRange(PIOS_MPU_SCALE_2G);
 			break;
 		case HWPIKOBLX_ACCELRANGE_4G:
-			PIOS_MPU6050_SetAccelRange(PIOS_MPU60X0_ACCEL_4G);
+			PIOS_MPU_SetAccelRange(PIOS_MPU_SCALE_4G);
 			break;
 		case HWPIKOBLX_ACCELRANGE_8G:
-			PIOS_MPU6050_SetAccelRange(PIOS_MPU60X0_ACCEL_8G);
+			PIOS_MPU_SetAccelRange(PIOS_MPU_SCALE_8G);
 			break;
 		case HWPIKOBLX_ACCELRANGE_16G:
-			PIOS_MPU6050_SetAccelRange(PIOS_MPU60X0_ACCEL_16G);
+			PIOS_MPU_SetAccelRange(PIOS_MPU_SCALE_16G);
 			break;
-		}
 	}
 
-#endif /* PIOS_INCLUDE_MPU6050 */
+	// the filter has to be set before rate else divisor calculation will fail
+	HwPikoBLXGyroLPFOptions hw_mpu_gyro_dlpf;
+	HwPikoBLXGyroLPFGet(&hw_mpu_gyro_dlpf);
+	uint16_t gyro_bandwidth =
+		(hw_mpu_gyro_dlpf == HWPIKOBLX_GYROLPF_188) ? 188 :
+		(hw_mpu_gyro_dlpf == HWPIKOBLX_GYROLPF_98)  ?  98 :
+		(hw_mpu_gyro_dlpf == HWPIKOBLX_GYROLPF_42)  ?  42 :
+		(hw_mpu_gyro_dlpf == HWPIKOBLX_GYROLPF_20)  ?  20 :
+		(hw_mpu_gyro_dlpf == HWPIKOBLX_GYROLPF_10)  ?  10 :
+		(hw_mpu_gyro_dlpf == HWPIKOBLX_GYROLPF_5)   ?   5 :
+		184;
+	PIOS_MPU_SetGyroBandwidth(gyro_bandwidth);
+
+	HwPikoBLXAccelLPFOptions hw_mpu_accel_dlpf;
+	HwPikoBLXAccelLPFGet(&hw_mpu_accel_dlpf);
+	uint16_t acc_bandwidth = 
+		(hw_mpu_accel_dlpf = HWPIKOBLX_ACCELLPF_218) ? 218 :
+		(hw_mpu_accel_dlpf = HWPIKOBLX_ACCELLPF_99)  ?  99 :
+		(hw_mpu_accel_dlpf = HWPIKOBLX_ACCELLPF_45)  ?  45 :
+		(hw_mpu_accel_dlpf = HWPIKOBLX_ACCELLPF_21)  ?  21 :
+		(hw_mpu_accel_dlpf = HWPIKOBLX_ACCELLPF_10)  ?  10 :
+		(hw_mpu_accel_dlpf = HWPIKOBLX_ACCELLPF_5)   ?   5 :
+		184;
+	PIOS_MPU_SetAccelBandwidth(acc_bandwidth);
+#endif /* PIOS_INCLUDE_MPU */
 
 	/* I2C is slow, sensor init as well, reset watchdog to prevent reset here */
 	PIOS_WDG_Clear();
-
-	uint8_t hw_magnetometer;
-	HwPikoBLXMagnetometerGet(&hw_magnetometer);
-
-	switch (hw_magnetometer) {
-		case HWPIKOBLX_MAGNETOMETER_NONE:
-		case HWPIKOBLX_MAGNETOMETER_INTERNAL:
-			/* internal handled by MPU code above */
-			break;
-
-		/* default external mags and handle them in PiOS HAL rather than maintaining list here */
-		default:
-			if (hw_flexiport == HWSHARED_PORTTYPES_I2C) {
-				uint8_t hw_orientation;
-				HwPikoBLXExtMagOrientationGet(&hw_orientation);
-
-				PIOS_HAL_ConfigureExternalMag(hw_magnetometer, hw_orientation,
-					&pios_i2c_flexi_id, &pios_i2c_flexi_cfg);
-			} else {
-				PIOS_SENSORS_SetMissing(PIOS_SENSOR_MAG);
-			}
-			break;
-	}
-
-	/* I2C is slow, sensor init as well, reset watchdog to prevent reset here */
-	PIOS_WDG_Clear();
-
-#if defined(PIOS_INCLUDE_MS5611)
-	if ((PIOS_MS5611_Init(&pios_ms5611_cfg, pios_i2c_internal_id) != 0)
-			|| (PIOS_MS5611_Test() != 0))
-		PIOS_HAL_CriticalError(PIOS_LED_ALARM, PIOS_HAL_PANIC_BARO);
-#endif
 
 #if defined(PIOS_INCLUDE_GPIO)
 	PIOS_GPIO_Init();

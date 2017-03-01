@@ -2,22 +2,8 @@
 <xml>
 	<object name="HwPikoBLX" singleinstance="true" settings="true" category="HardwareSettings">
 		<description>Selection of optional hardware configurations.</description>
-		<field name="RcvrPort" units="function" type="enum" elements="1" parent="HwShared.PortTypes" defaultvalue="Disabled">
-			<description/>
-			<options>
-				<option>Disabled</option>
-				<option>DSM</option>
-				<option>SRXL</option>
-				<option>HoTT SUMD</option>
-				<option>HoTT SUMH</option>
-				<option>PPM</option>
-				<option>S.Bus</option>
-				<option>S.Bus Non Inverted</option>
-				<option>IBus</option>
-			</options>
-		</field>
-		<field name="FlexiPort" units="function" type="enum" elements="1" parent="HwShared.PortTypes" defaultvalue="Disabled">
-			<description>The port labelled "Flexi"</description>
+		<field name="Uart1" units="function" type="enum" elements="1" parent="HwShared.PortTypes" defaultvalue="Disabled">
+			<description>The port labelled "UART1"</description>
 			<options>
 				<option>Disabled</option>
 				<option>ComBridge</option>
@@ -41,7 +27,7 @@
 				<option>IBus</option>
 			</options>
 		</field>
-		<field name="MainPort" units="function" type="enum" elements="1" parent="HwShared.PortTypes" defaultvalue="Disabled">
+		<field name="Uart2" units="function" type="enum" elements="1" parent="HwShared.PortTypes" defaultvalue="Disabled">
 			<description/>
 			<options>
 				<option>Disabled</option>
@@ -64,14 +50,27 @@
 				<option>IBus</option>
 			</options>
 		</field>
-		<field name="OutPort" units="function" type="enum" elements="1" defaultvalue="PWM10">
+		<field name="Uart3" units="function" type="enum" elements="1" parent="HwShared.PortTypes" defaultvalue="Disabled">
 			<description/>
 			<options>
-				<option>PWM10</option>
-				<option>PWM9+PWM_IN</option>
-				<option>PWM8+2ADC</option>
-				<option>PWM7+3ADC</option>
-				<option>PWM7+2ADC+PWM_IN</option>
+				<option>Disabled</option>
+				<option>ComBridge</option>
+				<option>DebugConsole</option>
+				<option>DSM</option>
+				<option>FrSKY Sensor Hub</option>
+				<option>FrSKY SPort Telemetry</option>
+				<option>GPS</option>
+				<option>HoTT Telemetry</option>
+				<option>LighttelemetryTx</option>
+				<option>SRXL</option>
+				<option>MavLinkTX</option>
+				<option>MavLinkTX_GPS_RX</option>
+				<option>MSP</option>
+				<option>OpenLog</option>
+				<option>S.Bus Non Inverted</option>
+				<option>Storm32Bgc</option>
+				<option>Telemetry</option>
+				<option>IBus</option>
 			</options>
 		</field>
 		<field name="USB_HIDPort" units="function" type="enum" elements="1" parent="HwShared.USB_HIDPort" defaultvalue="USBTelemetry">
@@ -83,20 +82,45 @@
 		<field name="DSMxMode" units="mode" type="enum" elements="1" parent="HwShared.DSMxMode" defaultvalue="Autodetect">
 			<description/>
 		</field>
-		<field name="GyroRange" units="deg/s" type="enum" elements="1" options="250,500,1000,2000" defaultvalue="1000">
+		<field name="GyroRange" units="deg/s" type="enum" elements="1" defaultvalue="2000">
 			<description>Maximum measurement range for the gyros, should never rotate faster than about 85% of this</description>
+			<options>
+				<option>250</option>
+				<option>500</option>
+				<option>1000</option>
+				<option>2000</option>
+			</options>
 		</field>
-		<field name="AccelRange" units="*gravity m/s^2" type="enum" elements="1" options="2G,4G,8G,16G" defaultvalue="8G">
+		<field name="AccelRange" units="*gravity m/s^2" type="enum" elements="1" defaultvalue="8G">
 			<description>The maximum measure range for the accelerometers, should never exceed this</description>
+			<options>
+				<option>2G</option>
+				<option>4G</option>
+				<option>8G</option>
+				<option>16G</option>
+			</options>
 		</field>
-		<field name="MPU9150DLPF" units="" type="enum" elements="1" options="188,98,42,20,10,5" defaultvalue="188">
+		<field name="GyroLPF" units="Hz" type="enum" elements="1" defaultvalue="188">
 			<description>Gyro filter cutoff frequency</description>
+			<options>
+				<option>188</option>
+				<option>98</option>
+				<option>42</option>
+				<option>20</option>
+				<option>10</option>
+				<option>5</option>
+			</options>
 		</field>
-		<field name="Magnetometer" units="" type="enum" elements="1" parent="HwShared.Mag" defaultvalue="Internal">
-			<description>Which magnetometer to use. If external, must be connected to flexi port, and flexi port configured as I2C.</description>
-		</field>
-		<field name="ExtMagOrientation" units="" type="enum" elements="1" parent="HwShared.MagOrientation" defaultvalue="Top0degCW">
-			<description>Orientation of the external magnetometer</description>
+		<field name="AccelLPF" units="Hz" type="enum" elements="1" defaultvalue="99">
+			<description>Accelerometer filter cutoff frequency</description>
+			<options>
+				<option>218</option>
+				<option>99</option>
+				<option>45</option>
+				<option>21</option>
+				<option>10</option>
+				<option>5</option>
+			</options>
 		</field>
 		<access gcs="readwrite" flight="readwrite"/>
 		<telemetrygcs acked="true" updatemode="onchange" period="0"/>
