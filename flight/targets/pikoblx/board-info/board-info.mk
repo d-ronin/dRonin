@@ -1,5 +1,5 @@
-BOARD_TYPE          := 0x88
-BOARD_REVISION      := 0x02
+BOARD_TYPE          := 0xA2
+BOARD_REVISION      := 0x01
 BOOTLOADER_VERSION  := 0x87
 HW_TYPE             := 0x00		# seems to be unused
 
