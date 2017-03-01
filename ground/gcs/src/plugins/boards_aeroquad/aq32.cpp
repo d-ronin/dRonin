@@ -30,6 +30,7 @@
 #include <uavobjectmanager.h>
 #include "uavobjectutil/uavobjectutilmanager.h"
 #include <extensionsystem/pluginmanager.h>
+#include "board_usb_ids.h"
 
 #include "hwaq32.h"
 
@@ -39,12 +40,12 @@
  */
 AQ32::AQ32(void)
 {
-    // Initialize our USB Structure definition here:
-    USBInfo board;
-    board.vendorID  = 0x20a0;
-    board.productID = 0x4284;
-
-    setUSBInfo(board);
+    // Common USB IDs
+    addBootloaderUSBInfo(USBInfo(DRONIN_VID_DRONIN_BOOTLOADER, DRONIN_PID_DRONIN_BOOTLOADER, BCD_DEVICE_BOOTLOADER));
+    addFirmwareUSBInfo(USBInfo(DRONIN_VID_DRONIN_FIRMWARE, DRONIN_PID_DRONIN_FIRMWARE, BCD_DEVICE_FIRMWARE));
+    // Legacy USB IDs
+    addBootloaderUSBInfo(USBInfo(DRONIN_VID_AEROQUAD_AQ32, DRONIN_PID_AEROQUAD_AQ32, BCD_DEVICE_BOOTLOADER));
+    addFirmwareUSBInfo(USBInfo(DRONIN_VID_AEROQUAD_AQ32, DRONIN_PID_AEROQUAD_AQ32, BCD_DEVICE_FIRMWARE));
 
     boardType = 0x94;
 

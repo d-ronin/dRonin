@@ -61,8 +61,8 @@ gcs:
 	@echo "Linux Package Make of GCS."
 	$(V1) $(MAKE) -C $(ROOT_DIR) GCS_BUILD_CONF=release $@
 
-ground_package_os_specific: ground_package_common
-	$(V1) cp -v $(ROOT_DIR)/package/linux/deb/_package.udev $(PACKAGE_DIR)/rules.udev
+ground_package_os_specific: ground_package_common usb_id_udev
+	$(V1) cp -v $(BUILD_DIR)/shared/usb_ids/dronin.udev $(PACKAGE_DIR)/rules.udev
 	$(V1) cp -v $(ROOT_DIR)/package/linux/assets/exec $(PACKAGE_DIR)/$(GCS_PACKAGE_NAME)/drgcs
 	$(V1) sed -i -e "$(SED_SUBSTITUTE)" $(PACKAGE_DIR)/$(GCS_PACKAGE_NAME)/drgcs
 
@@ -74,9 +74,10 @@ installer_package: deb_build ground_package extract_firmware
 	$(V1) mv $(ROOT_DIR)/dronin_$(VERSION_FULL)_$(PLATFORM_NAME).changes $(PACKAGE_DIR)
 	$(V1) rm -rf $(DEB_BUILD_DIR)
 
-deb_build: | $(DEB_BUILD_DIR) $(ALL_DEB_FILES)
+deb_build: | $(DEB_BUILD_DIR) $(ALL_DEB_FILES) usb_id_udev
 	@echo $@ starting
 	$(V1) find $(DEB_BUILD_DIR)  -maxdepth 1 -type f | xargs sed -i -e "$(SED_SUBSTITUTE)"
+	$(V1) cp -v $(BUILD_DIR)/shared/usb_ids/dronin.udev $(DEB_BUILD_DIR)
 
 $(DEB_BUILD_DIR): 
 	@echo $@ starting
@@ -102,3 +103,7 @@ package_symbols_compress: package_ground_symbols package_flight_symbols
 
 .PHONY: standalone installer_package deb_build $(DEB_BUILD_DIR)
 .PHONY: package_ground_compress package_symbols_compress
+
+.PHONY: usb_id_udev
+usb_id_udev:
+	$(V1) $(MAKE) -C $(ROOT_DIR) $@

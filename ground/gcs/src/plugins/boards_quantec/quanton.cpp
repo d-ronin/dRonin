@@ -31,6 +31,7 @@
 #include <uavobjectmanager.h>
 #include "uavobjectutil/uavobjectutilmanager.h"
 #include <extensionsystem/pluginmanager.h>
+#include "board_usb_ids.h"
 
 #include "hwquanton.h"
 
@@ -40,12 +41,12 @@
  */
 Quanton::Quanton(void)
 {
-    // Initialize our USB Structure definition here:
-    USBInfo board;
-    board.vendorID = 0x0fda;
-    board.productID = 0x0100;
-
-    setUSBInfo(board);
+    // Common USB IDs
+    addBootloaderUSBInfo(USBInfo(DRONIN_VID_DRONIN_BOOTLOADER, DRONIN_PID_DRONIN_BOOTLOADER, BCD_DEVICE_BOOTLOADER));
+    addFirmwareUSBInfo(USBInfo(DRONIN_VID_DRONIN_FIRMWARE, DRONIN_PID_DRONIN_FIRMWARE, BCD_DEVICE_FIRMWARE));
+    // Legacy USB IDs
+    addBootloaderUSBInfo(USBInfo(DRONIN_VID_QUANTECNETWORKS_QUANTON, DRONIN_PID_QUANTECNETWORKS_QUANTON, BCD_DEVICE_BOOTLOADER));
+    addFirmwareUSBInfo(USBInfo(DRONIN_VID_QUANTECNETWORKS_QUANTON, DRONIN_PID_QUANTECNETWORKS_QUANTON, BCD_DEVICE_FIRMWARE));
 
     boardType = 0x86;
 

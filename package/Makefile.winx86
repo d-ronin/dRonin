@@ -20,10 +20,11 @@ installer_package: package_ground extract_firmware
 	$(V1) echo "Building Windows installer, please wait..."
 	$(V1) echo "If you have a script error in line 1 - use Unicode NSIS 2.46+"
 	$(V1) echo "  http://www.scratchpaper.com"
-	$(NSIS_CMD) /DPROJECT_ROOT=$(PACKAGE_DIR)/$(GCS_PACKAGE_NAME) /DFIRMWARE_DIR=$(PACKAGE_DIR)/firmware_$(PACKAGE_LBL) /DSOURCE_ROOT=$(ROOT_DIR) $(NSIS_SCRIPT)  $(NSIS_OPTS)
+	$(NSIS_CMD) /DPROJECT_ROOT=$(PACKAGE_DIR)/$(GCS_PACKAGE_NAME) /DFIRMWARE_DIR=$(PACKAGE_DIR)/firmware_$(PACKAGE_LBL) /DSOURCE_ROOT=$(ROOT_DIR) $(NSIS_SCRIPT) /DUSB_IDS_DIR=$(BUILD_DIR)/shared/usb_ids  $(NSIS_OPTS)
 
-ground_package_os_specific: ground_package_common
+ground_package_os_specific: ground_package_common usb_id_windriver
 	@echo $@ starting
+	$(V1)cp -v $(BUILD_DIR)/shared/usb_ids/dronin_cdc.inf $(PACKAGE_DIR)/dronin_cdc.inf
 	$(V1)cp -v $(NSIS_DIR)/makeShortcut.vbs $(PACKAGE_DIR)/$(GCS_PACKAGE_NAME)/bin
 	$(V1)cp -v $(NSIS_DIR)/createShortcut.bat $(PACKAGE_DIR)/$(GCS_PACKAGE_NAME)
 ifeq ($(USE_MSVC), YES)
@@ -56,3 +57,7 @@ package_symbols_compress: package_ground_symbols package_flight_symbols
 
 .PHONY: standalone
 .PHONY: package_ground_compress package_symbols_compress
+
+.PHONY: usb_id_windriver
+usb_id_windriver:
+	$(V1) $(MAKE) -C $(ROOT_DIR) $@

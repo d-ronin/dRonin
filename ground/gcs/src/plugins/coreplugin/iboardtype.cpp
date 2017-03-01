@@ -1,6 +1,8 @@
 #include "iboardtype.h"
 #include "extensionsystem/pluginmanager.h"
 
+#include <QSet>
+
 namespace Core{
 
 /**
@@ -97,6 +99,17 @@ int IBoardType::getBankFromOutputChannel(int channel)
     }
 
     return -1;
+}
+
+QList<int> IBoardType::getVendorIDs()
+{
+    QSet<int> vids;
+    for (const auto &info : qAsConst(m_firmwareUSBInfo))
+        vids.insert(info.vendorID);
+    for (const auto &info : qAsConst(m_bootloaderUSBInfo))
+        vids.insert(info.vendorID);
+    vids.remove(0);
+    return vids.toList();
 }
 
 } // Core

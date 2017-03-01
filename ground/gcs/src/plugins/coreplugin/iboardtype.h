@@ -54,8 +54,7 @@ class CORE_EXPORT IBoardType : public QObject
     Q_OBJECT
 
 public:
-
-    /**
+     /**
      * @brief The USBInfo struct
      * TODO: finalize what we will put there, not everything
      *       is relevant.
@@ -64,18 +63,17 @@ public:
         QString serialNumber;
         QString manufacturer;
         QString product;
-        int UsagePage = 0;
-        int Usage = 0;
+        int usagePage = 0;
+        int usage = 0;
         int vendorID = 0;
         int productID = 0;
-        // the convention for DFU mode is to change the
-        // Lower byte of bcdDevice depending on whether
-        // the board is in Bootloader mode or running mode.
-        // We provide the relevant values there:
-        int bootloaderMode = 0;
-        int runningMode = 0;
-        int bcdDevice = 0; // Note: not that useful, the two values above
-                       // cater for almost the same into
+        int bcdDevice = 0;
+
+        USBInfo(int vendorID, int productID, int bcdDevice) {
+            this->vendorID = vendorID;
+            this->productID = productID;
+            this->bcdDevice = bcdDevice;
+        }
     };
 
 
@@ -134,8 +132,9 @@ public:
 
     /**
      * Get USB VendorID.
+     * \deprecated use firmwareUSBInfo or bootloaderUSBInfo instead (shouldn't be filtering based on VID alone anyway since we don't own a VID
      */
-    int getVendorID() { return boardUSBInfo.vendorID; }
+    QList<int> getVendorIDs();
 
     //! Get the board type number
     int getBoardType() { return boardType; }
@@ -226,12 +225,32 @@ public:
 
     int getBankFromOutputChannel(int channel);
 
+    /**
+     * @brief getFirmwareUSBInfo
+     * @return List of firmware USB filters for this board
+     */
+    QList<USBInfo> firmwareUSBInfo() { return m_firmwareUSBInfo; }
+
+    /**
+     * @brief getBootloaderUSBInfo
+     * @return List of bootloader USB filters for this board
+     */
+    QList<USBInfo> bootloaderUSBInfo() { return m_bootloaderUSBInfo; }
+
 signals:
 
 protected:
-    void setUSBInfo(USBInfo info) { boardUSBInfo = info; }
+    enum BcdDevice {
+        BCD_DEVICE_BOOTLOADER = 1,
+        BCD_DEVICE_FIRMWARE = 2,
+        BCD_DEVICE_UPGRADER = 3,
+    };
 
-    USBInfo boardUSBInfo;
+    void addFirmwareUSBInfo(USBInfo info) { m_firmwareUSBInfo.append(info); }
+    void addBootloaderUSBInfo(USBInfo info) { m_bootloaderUSBInfo.append(info); }
+
+    QList<USBInfo> m_firmwareUSBInfo;
+    QList<USBInfo> m_bootloaderUSBInfo;
 
     //! The numerical board type ID
     qint32 boardType;
@@ -242,6 +261,5 @@ protected:
 };
 
 } //namespace Core
-
 
 #endif // IBOARDTYPE_H

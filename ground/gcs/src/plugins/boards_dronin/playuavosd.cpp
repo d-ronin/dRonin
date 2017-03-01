@@ -28,6 +28,7 @@
  */
 
 #include "playuavosd.h"
+#include "board_usb_ids.h"
 
 #include "hwsimulation.h"
 #include "simulationconfiguration.h"
@@ -40,11 +41,9 @@ PlayUavOsd::PlayUavOsd(void)
 {
     boardType = 0xCB;
 
-    USBInfo board;
-    board.vendorID = 0x20A0;
-    board.productID = 0x4250;
-
-    setUSBInfo(board);
+    // Common USB IDs
+    addBootloaderUSBInfo(USBInfo(DRONIN_VID_DRONIN_BOOTLOADER, DRONIN_PID_DRONIN_BOOTLOADER, BCD_DEVICE_BOOTLOADER));
+    addFirmwareUSBInfo(USBInfo(DRONIN_VID_DRONIN_FIRMWARE, DRONIN_PID_DRONIN_FIRMWARE, BCD_DEVICE_FIRMWARE));
 }
 
 PlayUavOsd::~PlayUavOsd()

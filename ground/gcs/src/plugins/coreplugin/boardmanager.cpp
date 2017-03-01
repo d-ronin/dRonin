@@ -75,15 +75,13 @@ void BoardManager::init()
  */
 QList<int> BoardManager::getKnownVendorIDs()
 {
-    QList<int> list;
-
-    foreach (IBoardType* board, m_boardTypesList) {
-        int vid = board->getVendorID();
-        if ((vid > 0) && (!list.contains(vid)))
-            list.append(vid);
+    QSet<int> res;
+    for (const auto board : qAsConst(m_boardTypesList)) {
+        auto vids = board->getVendorIDs();
+        for (const auto vid : vids)
+            res.insert(vid);
     }
-
-    return list;
+    return res.toList();
 }
 
 
@@ -127,6 +125,27 @@ IBoardType *BoardManager::getBoard(int type)
     return Q_NULLPTR;
 }
 
+QList<IBoardType::USBInfo> BoardManager::getKnownFirmwareUSBInfo()
+{
+    QList<IBoardType::USBInfo> res;
+    for (const auto board : qAsConst(m_boardTypesList)) {
+        const auto infos = board->firmwareUSBInfo();
+        for (const auto &info : qAsConst(infos))
+            res.append(info);
+    }
+    return res;
+}
+
+QList<IBoardType::USBInfo> BoardManager::getKnownBootloaderUSBInfo()
+{
+    QList<IBoardType::USBInfo> res;
+    for (const auto board : qAsConst(m_boardTypesList)) {
+        const auto infos = board->bootloaderUSBInfo();
+        for (const auto &info : qAsConst(infos))
+            res.append(info);
+    }
+    return res;
+}
 
 
 } // Core

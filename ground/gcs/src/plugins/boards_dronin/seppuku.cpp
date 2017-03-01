@@ -32,6 +32,7 @@
 #include "seppuku.h"
 #include "hwseppuku.h"
 #include "seppukuconfiguration.h"
+#include "board_usb_ids.h"
 
 /**
  * @brief Seppuku:Seppuku
@@ -44,11 +45,9 @@ Seppuku::Seppuku(void)
 
     boardType = 0xA1;
 
-    USBInfo board;
-    board.vendorID = 0x20A0;
-    board.productID = 0x4250;
-
-    setUSBInfo(board);
+    // Common USB IDs
+    addBootloaderUSBInfo(USBInfo(DRONIN_VID_DRONIN_BOOTLOADER, DRONIN_PID_DRONIN_BOOTLOADER, BCD_DEVICE_BOOTLOADER));
+    addFirmwareUSBInfo(USBInfo(DRONIN_VID_DRONIN_FIRMWARE, DRONIN_PID_DRONIN_FIRMWARE, BCD_DEVICE_FIRMWARE));
 
     channelBanks.resize(4);
     channelBanks.clear();

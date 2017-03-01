@@ -55,17 +55,25 @@ public:
      * Get all USB VendorIDs known by the board manager. This can be used
      * by any plugin which uses USB and needs to know what boards are ours.
      * The list is deduplicated.
+     * \deprecated use getKnownFirmwareUSBInfo or getKnownBootloaderUSBInfo instead (shouldn't be filtering based on VID alone anyway since we don't own a VID
      */
     QList<int> getKnownVendorIDs();
 
-
     /**
-     * @brief getKnownUSBInfo
+     * @brief getKnownFirmwareUSBInfo
      * @return list of all USB information for the boards that are supported.
      * compared to "getKnownVendorIDs", this method returns more detailed info
      * allowing plugins to detect boards in a more fine-grained manner.
      */
-    QList<IBoardType::USBInfo*> getKnownUSBInfo();
+    QList<IBoardType::USBInfo> getKnownFirmwareUSBInfo();
+
+    /**
+     * @brief getKnownBootloaderUSBInfo
+     * @return list of all USB information for the boards that are supported.
+     * compared to "getKnownVendorIDs", this method returns more detailed info
+     * allowing plugins to detect boards in a more fine-grained manner.
+     */
+    QList<IBoardType::USBInfo> getKnownBootloaderUSBInfo();
 
     /**
      * @brief Find a board from it's type
