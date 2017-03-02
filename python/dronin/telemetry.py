@@ -650,7 +650,7 @@ class HIDTelemetry(BidirTelemetry):
 
                     if length <= len(raw) - 2:
                         chunk = raw.tostring()[2:2+length]
-            except IOError, e:
+            except IOError as e:
                 if e.errno != errno.ETIMEDOUT:
                     raise
 
@@ -673,7 +673,7 @@ class HIDTelemetry(BidirTelemetry):
                         if written > 0:
                             self.send_buf = self.send_buf[written:]
                             did_stuff = True
-                    except IOError, e:
+                    except IOError as e:
                         if e.errno != errno.ETIMEDOUT:
                             raise
 
