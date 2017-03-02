@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>530</width>
-    <height>524</height>
+    <height>433</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -134,32 +134,6 @@
        </widget>
       </item>
       <item>
-       <widget class="QLabel" name="lblProgramUpgrader">
-        <property name="font">
-         <font>
-          <weight>50</weight>
-          <bold>false</bold>
-         </font>
-        </property>
-        <property name="text">
-         <string>Flashing legacy upgrade tool...</string>
-        </property>
-        <property name="textFormat">
-         <enum>Qt::RichText</enum>
-        </property>
-       </widget>
-      </item>
-      <item>
-       <widget class="QLabel" name="lblEnterUpgrader">
-        <property name="text">
-         <string>Entering legacy upgrader...</string>
-        </property>
-        <property name="textFormat">
-         <enum>Qt::RichText</enum>
-        </property>
-       </widget>
-      </item>
-      <item>
        <widget class="QLabel" name="lblDownloadSettings">
         <property name="text">
          <string>Downloading settings partition...</string>
@@ -183,16 +157,6 @@
        <widget class="QLabel" name="lblEraseSettings">
         <property name="text">
          <string>Erasing settings partition...</string>
-        </property>
-        <property name="textFormat">
-         <enum>Qt::RichText</enum>
-        </property>
-       </widget>
-      </item>
-      <item>
-       <widget class="QLabel" name="lblReenterLoader">
-        <property name="text">
-         <string>Re-entering bootloader...</string>
         </property>
         <property name="textFormat">
          <enum>Qt::RichText</enum>

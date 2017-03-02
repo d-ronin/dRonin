@@ -48,12 +48,9 @@ public:
         STEP_ENTERLOADER=0,
         STEP_CHECKCLOUD,
         STEP_UPGRADEBOOTLOADER,
-        STEP_PROGRAMUPGRADER,
-        STEP_ENTERUPGRADER,
         STEP_DOWNLOADSETTINGS,
         STEP_TRANSLATESETTINGS,
         STEP_ERASESETTINGS,
-        STEP_REENTERLOADER,
         STEP_FLASHFIRMWARE,
         STEP_BOOT,
         STEP_IMPORT,
@@ -64,8 +61,7 @@ public:
     explicit UpgradeAssistantDialog(QWidget *parent = 0);
     ~UpgradeAssistantDialog();
 
-    void setOperatingMode(bool upgradingBootloader, bool usingUpgrader,
-            bool blankFC);
+    void setOperatingMode(bool upgradingBootloader, bool blankFC);
 
     int PromptUser(QString promptText, QString detailText, QStringList buttonText);
 

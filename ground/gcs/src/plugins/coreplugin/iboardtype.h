@@ -92,7 +92,8 @@ public:
                             BOARD_CAPABILITIES_MAGS, BOARD_CAPABILITIES_BAROS,
                             BOARD_CAPABILITIES_RADIO, BOARD_CAPABILITIES_OSD,
                             BOARD_CAPABILITIES_UPGRADEABLE,
-                            BOARD_DISABILITY_REQUIRESUPGRADER };
+    };
+
     /**
      * @brief Query capabilities of the board.
      * @return true if board supports the capability that is requested (from BoardCapabilities)
