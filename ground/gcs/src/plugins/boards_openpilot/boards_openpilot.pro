@@ -12,20 +12,13 @@ OTHER_FILES += OpenPilot.pluginspec \
 
 HEADERS += \
     openpilotplugin.h \
-    cc3d.h \
-    config_cc_hw_widget.h \
     revolution.h \
     $$USB_ID_HEADER
 
 SOURCES += \
     openpilotplugin.cpp \
-    cc3d.cpp \
-    config_cc_hw_widget.cpp \
     revolution.cpp
 
 RESOURCES += \
     openpilot.qrc \
     ../coreplugin/core.qrc
-
-FORMS += \
-    cc_hw_settings.ui
