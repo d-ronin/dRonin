@@ -260,7 +260,6 @@ static void parse_ubx_nav_velned (const struct UBX_NAV_VELNED *velned, GPSPositi
 	}
 }
 
-#if !defined(PIOS_GPS_MINIMAL)
 static void parse_ubx_nav_timeutc (const struct UBX_NAV_TIMEUTC *timeutc)
 {
 	if (!(timeutc->valid & TIMEUTC_VALIDWKN))
@@ -277,9 +276,7 @@ static void parse_ubx_nav_timeutc (const struct UBX_NAV_TIMEUTC *timeutc)
 
 	GPSTimeSet(&GpsTime);
 }
-#endif
 
-#if !defined(PIOS_GPS_MINIMAL)
 static void parse_ubx_nav_svinfo (const struct UBX_NAV_SVINFO *svinfo)
 {
 	uint8_t chan = 0;
@@ -335,9 +332,7 @@ static void parse_ubx_nav_svinfo (const struct UBX_NAV_SVINFO *svinfo)
 
 	GPSSatellitesSet(&svdata);
 }
-#endif
 
-#if !defined(PIOS_GPS_MINIMAL)
 static void parse_ubx_mon_ver (const struct UBX_MON_VER *version_info)
 {
 	UBloxInfoData ublox;
@@ -353,7 +348,6 @@ static void parse_ubx_mon_ver (const struct UBX_MON_VER *version_info)
 	ublox.ParseErrors = parse_errors;
 	UBloxInfoSet(&ublox);
 }
-#endif
 
 // UBX message parser
 // returns UAVObjectID if a UAVObject structure is ready for further processing
@@ -377,17 +371,14 @@ static uint32_t parse_ubx_message (const struct UBXPacket *ubx, GPSPositionData 
 				case UBX_ID_VELNED:
 					parse_ubx_nav_velned (&ubx->payload.nav_velned, GpsPosition);
 					break;
-#if !defined(PIOS_GPS_MINIMAL)
 				case UBX_ID_TIMEUTC:
 					parse_ubx_nav_timeutc (&ubx->payload.nav_timeutc);
 					break;
 				case UBX_ID_SVINFO:
 					parse_ubx_nav_svinfo (&ubx->payload.nav_svinfo);
 					break;
-#endif
 			}
 			break;
-#if !defined(PIOS_GPS_MINIMAL)
 		case UBX_CLASS_MON:
 			switch (ubx->header.id) {
 				case UBX_ID_MONVER:
@@ -395,7 +386,6 @@ static uint32_t parse_ubx_message (const struct UBXPacket *ubx, GPSPositionData 
 					break;
 			}
 			break;
-#endif
 	}
 	if (msgtracker.msg_received == ALL_RECEIVED) {
 		GPSPositionSet(GpsPosition);
