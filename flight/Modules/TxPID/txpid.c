@@ -54,9 +54,7 @@
 #include "manualcontrolcommand.h"
 #include "stabilizationsettings.h"
 #include "vbarsettings.h"
-#ifndef SMALLF1
 #include "vtolpathfollowersettings.h"
-#endif
 
 #include "flightstatus.h"
 #include "modulesettings.h"
@@ -80,9 +78,7 @@ struct txpid_struct {
 	StabilizationSettingsData stab;
 	VbarSettingsData vbar;
 	AccessoryDesiredData accessory;
-#ifndef SMALLF1
 	VtolPathFollowerSettingsData vtolPathFollowerSettingsData;
-#endif
 #if (TELEMETRY_UPDATE_PERIOD_MS != 0)
 	UAVObjMetadata metadata;
 #endif
@@ -114,12 +110,10 @@ int32_t TxPIDInitialize(void)
 	}
 #endif
 
-#ifndef SMALLF1
 	if (TxPIDSettingsInitialize() == -1) {
 		module_enabled = false;
 		return -1;
 	}
-#endif
 
 	if (module_enabled) {
 		txpid_data = PIOS_malloc(sizeof(*txpid_data));
@@ -203,14 +197,12 @@ static void updatePIDs(UAVObjEvent* ev, void *ctx, void *obj, int len)
 	StabilizationSettingsGet(&txpid_data->stab);
 	VbarSettingsGet(&txpid_data->vbar);
 
-#ifndef SMALLF1
 	// Check to make sure the settings UAVObject has been instantiated
 	if (VtolPathFollowerSettingsHandle()) {
 		VtolPathFollowerSettingsGet(&txpid_data->vtolPathFollowerSettingsData);
 	}
 
 	bool vtolPathFollowerSettingsNeedsUpdate = false;
-#endif
 
 	bool stabilizationSettingsNeedsUpdate = false;
 	bool vbarSettingsNeedsUpdate = false;
@@ -383,7 +375,6 @@ static void updatePIDs(UAVObjEvent* ev, void *ctx, void *obj, int len)
 			case TXPIDSETTINGS_PIDS_CAMERATILT:
 				stabilizationSettingsNeedsUpdate |= update(&txpid_data->stab.CameraTilt, value);
 				break;
-#ifndef SMALLF1
 			case TXPIDSETTINGS_PIDS_HORIZONTALPOSKP:
 				vtolPathFollowerSettingsNeedsUpdate |= update(&txpid_data->vtolPathFollowerSettingsData.HorizontalPosPI[VTOLPATHFOLLOWERSETTINGS_HORIZONTALPOSPI_KP], value);
 				break;
@@ -402,7 +393,6 @@ static void updatePIDs(UAVObjEvent* ev, void *ctx, void *obj, int len)
 			case TXPIDSETTINGS_PIDS_HORIZONTALVELKD:
 				vtolPathFollowerSettingsNeedsUpdate |= update(&txpid_data->vtolPathFollowerSettingsData.HorizontalVelPID[VTOLPATHFOLLOWERSETTINGS_HORIZONTALVELPID_KD], value);
 				break;
-#endif /* !SMALLF1 */
 			default:
 				// Previously this would assert.  But now the
 				// object may be missing and it's not worth a
@@ -421,14 +411,12 @@ static void updatePIDs(UAVObjEvent* ev, void *ctx, void *obj, int len)
 		VbarSettingsSet(&txpid_data->vbar);
 	}
 
-#ifndef SMALLF1
 	if (vtolPathFollowerSettingsNeedsUpdate) {
 		// Check to make sure the settings UAVObject has been instantiated
 		if (VtolPathFollowerSettingsHandle()) {
 			VtolPathFollowerSettingsSet(&txpid_data->vtolPathFollowerSettingsData);
 		}
 	}
-#endif
 }
 
 /**

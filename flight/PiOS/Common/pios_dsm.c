@@ -106,11 +106,7 @@ static void PIOS_DSM_Bind(struct pios_dsm_dev *dsm_dev, uint8_t num_pulses)
 	const struct pios_dsm_cfg *cfg = dsm_dev->cfg;
 
 	GPIO_InitTypeDef GPIO_InitStructure = cfg->bind.init;
-#ifdef SMALLF1
-	GPIO_InitStructure.GPIO_Mode = GPIO_Mode_IPU;
-#else
 	GPIO_InitStructure.GPIO_PuPd = GPIO_PuPd_UP;
-#endif
 
 	/* just to limit bind pulses */
 	if (num_pulses > 10)

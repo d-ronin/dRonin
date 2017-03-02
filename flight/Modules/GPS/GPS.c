@@ -131,34 +131,27 @@ int32_t GPSInitialize(void)
 
 	// These things are only conditional on small F1 targets.
 	// Expected to be always present otherwise.
-#ifdef SMALLF1
-	if (gpsPort && module_enabled) {
-#endif
-		if (GPSPositionInitialize() == -1 \
-			|| GPSVelocityInitialize() == -1) {
-			
-			module_enabled = false;
-			return -1;
-		}
+	if (GPSPositionInitialize() == -1 \
+		|| GPSVelocityInitialize() == -1) {
+		module_enabled = false;
+		return -1;
+	}
 #if !defined(PIOS_GPS_MINIMAL)
-		if (GPSTimeInitialize() == -1 \
-			|| GPSSatellitesInitialize() == -1 \
-			|| HomeLocationInitialize() == -1 \
-			|| UBloxInfoInitialize() == -1) {
-			module_enabled = false;
-			return -1;
-		}
-#endif
-#if defined(PIOS_GPS_PROVIDES_AIRSPEED)
-		if (AirspeedActualInitialize() == -1) {
-			module_enabled = false;
-			return -1;
-		}
-#endif
-		updateSettings();
-#ifdef SMALLF1
+	if (GPSTimeInitialize() == -1 \
+		|| GPSSatellitesInitialize() == -1 \
+		|| HomeLocationInitialize() == -1 \
+		|| UBloxInfoInitialize() == -1) {
+		module_enabled = false;
+		return -1;
 	}
 #endif
+#if defined(PIOS_GPS_PROVIDES_AIRSPEED)
+	if (AirspeedActualInitialize() == -1) {
+		module_enabled = false;
+		return -1;
+	}
+#endif
+	updateSettings();
 
 	if (gpsPort && module_enabled) {
 		ModuleSettingsGPSDataProtocolGet(&gpsProtocol);
