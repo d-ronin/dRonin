@@ -32,56 +32,16 @@
 
 #ifdef PIOS_INCLUDE_CROSSFIRE
 
-// There's 16 channels in the RC channel payload, the Crossfire currently
-// only uses 12. Asked Perna a while ago to always send RSSI and LQ on
-// 15 and 16, said was nice idea, but never showed up in change logs.
-#define PIOS_CROSSFIRE_CHANNELS		16
-
 // Addresses with one-based index, because they're used after a pointer
 // increase only.
 #define CRSF_LEN_IDX				2
 #define CRSF_HEADER_IDX				3
 
-// Lengths of the type and CRC fields.
-#define CRSF_ADDRESS_LEN			1
-#define CRSF_LENGTH_LEN				1
-#define CRSF_CRC_LEN				1
-#define CRSF_TYPE_LEN				1
-
-// Maximum payload in the protocol can be 32 bytes.
-// Should figure out whether that includes type and CRC, or not.
-#define CRSF_MAX_PAYLOAD			32
-
-#define CRSF_PAYLOAD_RCCHANNELS		22
-
-// Frame types. We care about RC data only for now.
-// Nothing else gets sent over the link yet, anyway.
-#define CRSF_FRAME_RCCHANNELS		0x16
-
-// Payload sizes
-// RC channel payload has 16 channels at 11 bits = 176 bits, 22 bytes.
-#define CRSF_PAYLOAD_RCCHANNELS		22
-
-struct crsf_frame_t {
-	// Module address. Not sure what's the point, assuming provision for
-	// a bus type deal. Not used.
-	uint8_t	dev_addr;
-
-	// Length of the payload following this field. Length includes CRC and
-	// type field in addition to payload.
-	uint8_t	length;
-
-	// Frame type
-	uint8_t type;
-
-	// The payload plus CRC appendix.
-	uint8_t payload[CRSF_MAX_PAYLOAD + CRSF_CRC_LEN];
-};
+#include "pios_crc.h"
+#include "pios_com.h"
+#include "pios_com_priv.h"
 
 #define CRSF_CRCFIELD(frame)		(frame.payload[frame.length - CRSF_CRC_LEN - CRSF_TYPE_LEN])
-
-// Macro referring to the maximum frame size.
-#define CRSF_MAX_FRAMELEN sizeof(struct crsf_frame_t)
 
 // Internal use. Random number.
 #define PIOS_CROSSFIRE_MAGIC		0xcdf19cf5 
@@ -102,7 +62,22 @@ struct pios_crossfire_dev {
 		struct crsf_frame_t frame;
 		uint8_t rx_buf[sizeof(struct crsf_frame_t)];
 	} u;
+
+	// Need a copy of the USART/driver ref to initialize a COM device
+	// when necessary.
+	uintptr_t usart_id;
+	const struct pios_com_driver *usart_driver;
+
+	// COM device ID for sending telemetry. Might be this USART
+	// or a separate one.
+	uintptr_t telem_com_id;
+
+	// To track frame starts to track whether telemetry is OK to send.
+	uint32_t time_frame_start;
 };
+
+// COM driver ID for separate telemetry channel, via pios_hal.
+extern uintptr_t pios_com_crsf_sep_telem_id;
 
 /**
  * @brief Allocates a driver instance
@@ -179,7 +154,7 @@ static bool PIOS_Crossfire_Validate(const struct pios_crossfire_dev *dev)
 }
 
 int PIOS_Crossfire_Init(uintptr_t *crsf_id, const struct pios_com_driver *driver,
-		uintptr_t uart_id)
+		uintptr_t usart_id)
 {
 	struct pios_crossfire_dev *dev = PIOS_Crossfire_Alloc();
 
@@ -187,6 +162,8 @@ int PIOS_Crossfire_Init(uintptr_t *crsf_id, const struct pios_com_driver *driver
 		return -1;
 
 	*crsf_id = (uintptr_t)dev;
+	dev->usart_id = usart_id;
+	dev->usart_driver = driver;
 
 	PIOS_Crossfire_ResetBuffer(dev);
 	PIOS_Crossfire_SetAllChannels(dev, PIOS_RCVR_INVALID);
@@ -194,7 +171,30 @@ int PIOS_Crossfire_Init(uintptr_t *crsf_id, const struct pios_com_driver *driver
 	if (!PIOS_RTC_RegisterTickCallback(PIOS_Crossfire_Supervisor, *crsf_id))
 		PIOS_Assert(0);
 
-	(driver->bind_rx_cb)(uart_id, PIOS_Crossfire_Receive, *crsf_id);
+	(driver->bind_rx_cb)(usart_id, PIOS_Crossfire_Receive, *crsf_id);
+
+	return 0;
+}
+
+int PIOS_Crossfire_InitTelemetry(uintptr_t crsf_id)
+{
+	struct pios_crossfire_dev *dev = (struct pios_crossfire_dev*)crsf_id;
+
+	// What the hell? Return error code and don't assert, telemetry ain't vital.
+	if(!PIOS_Crossfire_Validate(dev))
+		return -1;
+
+	if(pios_com_crsf_sep_telem_id) {
+		// If there's a separate USART/COM device allocated for telemetry, use that one.
+		dev->telem_com_id = pios_com_crsf_sep_telem_id;
+		return 0;
+	} else {
+		if(PIOS_COM_Init(&dev->telem_com_id, dev->usart_driver, dev->usart_id, 0, CRSF_MAX_FRAMELEN)) {
+			return -1;
+		}
+		// Rebind callback, since it'll get overwritten in PIOS_COM_Init.
+		(dev->usart_driver->bind_rx_cb)(dev->usart_id, PIOS_Crossfire_Receive, crsf_id);
+	}
 
 	return 0;
 }
@@ -225,6 +225,10 @@ static uint16_t PIOS_Crossfire_Receive(uintptr_t context, uint8_t *buf, uint16_t
 	if (!PIOS_Crossfire_Validate(dev))
 		goto out_fail;
 
+	if(dev->buf_pos == 0) {
+		dev->time_frame_start = PIOS_DELAY_GetRaw();
+	}
+
 	for (int i = 0; i < buf_len; i++) {
 		// Ignore any stuff beyond what's expected.
 		if(dev->buf_pos >= dev->bytes_expected)
@@ -248,8 +252,8 @@ static uint16_t PIOS_Crossfire_Receive(uintptr_t context, uint8_t *buf, uint16_t
 			if(PIOS_Crossfire_UnpackFrame(dev)) {
 				// Frame is valid, trigger semaphore.
 				PIOS_RCVR_ActiveFromISR();
-				// Ignore any stuff that might be left in the buffer
-				// for whatever reason.
+				// Ignore any stuff that might be left in the buffer.
+				// There shouldn't be anything.
 				break;
 			}
 		}
@@ -342,6 +346,46 @@ static void PIOS_Crossfire_Supervisor(uintptr_t context)
 	// Failsafe after 50ms.
 	if (++dev->failsafe_timer > 32)
 		PIOS_Crossfire_SetAllChannels(dev, PIOS_RCVR_TIMEOUT);
+}
+
+int PIOS_Crossfire_SendTelemetry(uintptr_t crsf_id, uint8_t *buf, uint8_t bytes)
+{
+	struct pios_crossfire_dev *dev = (struct pios_crossfire_dev*)crsf_id;
+
+	// While telemetry ain't vital, if something's giving a wrong device handle,
+	// assert anyway.
+	if(!PIOS_Crossfire_Validate(dev))
+		PIOS_Assert(0);
+
+	// There should be a telemetry channel regardless. And sending NULL buffers
+	// ain't nice.
+	if(!dev->telem_com_id || !buf)
+		PIOS_Assert(0);
+
+	// Nothing to send? Fine!
+	if(!bytes)
+		return 0;
+
+	uint32_t delay = PIOS_DELAY_DiffuS(dev->time_frame_start);
+	if((delay > CRSF_TIMING_MAXFRAME) & (delay < (CRSF_TIMING_FRAMEDISTANCE-CRSF_TIMING_MAXFRAME))) {
+
+		// We're still within the send window.
+		PIOS_COM_SendBuffer(dev->telem_com_id, buf, (uint16_t)bytes);
+		return 0;
+
+	} else {
+		return -1;
+	}
+}
+
+bool PIOS_Crossfire_IsFailsafed(uintptr_t crsf_id)
+{
+	struct pios_crossfire_dev *dev = (struct pios_crossfire_dev*)crsf_id;
+
+	if(!PIOS_Crossfire_Validate(dev))
+		PIOS_Assert(0);
+
+	return dev->failsafe_timer > 32;
 }
 
 #endif // PIOS_INCLUDE_CROSSFIRE

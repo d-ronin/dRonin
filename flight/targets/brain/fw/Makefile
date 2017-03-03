@@ -67,6 +67,7 @@ OPTMODULES += Logging
 OPTMODULES += VTXConfig
 OPTMODULES += OnScreenDisplay
 OPTMODULES += Storm32Bgc
+OPTMODULES += UAVOCrossfireTelemetry
 
 # Paths
 OPUAVTALKINC = $(OPUAVTALK)/inc

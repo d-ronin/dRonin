@@ -119,6 +119,10 @@ uintptr_t pios_com_telem_usb_id;
 uintptr_t pios_com_vcp_id;
 #endif
 
+#if defined(PIOS_INCLUDE_CROSSFIRE)
+uintptr_t pios_com_crsf_sep_telem_id;
+#endif
+
 uintptr_t pios_com_telem_serial_id;
 
 #if defined(PIOS_INCLUDE_DEBUG_CONSOLE)
@@ -220,6 +224,10 @@ uintptr_t pios_com_debug_id;
 
 #ifndef PIOS_COM_TBSVTXCONFIG_RX_BUF_LEN
 #define PIOS_COM_TBSVTXCONFIG_RX_BUF_LEN 32
+#endif
+
+#ifndef PIOS_COM_CRSFTELEM_TX_BUF_LEN
+#define PIOS_COM_CRSFTELEM_TX_BUF_LEN 36
 #endif
 
 #ifdef PIOS_INCLUDE_HMC5883
@@ -927,7 +935,6 @@ void PIOS_HAL_ConfigurePort(HwSharedPortTypesOptions port_type,
 #endif  /* PIOS_INCLUDE_IBUS */
 		break;
 
-
 	case HWSHARED_PORTTYPES_TBSCROSSFIRE:
 #if defined(PIOS_INCLUDE_CROSSFIRE)
 		if (usart_port_cfg) {
@@ -936,9 +943,28 @@ void PIOS_HAL_ConfigurePort(HwSharedPortTypesOptions port_type,
 			usart_port_params.init.USART_Parity              = USART_Parity_No;
 			usart_port_params.init.USART_StopBits            = USART_StopBits_1;
 			usart_port_params.init.USART_HardwareFlowControl = USART_HardwareFlowControl_None;
-			usart_port_params.init.USART_Mode                = USART_Mode_Rx;
+			usart_port_params.init.USART_Mode                = USART_Mode_Rx|USART_Mode_Tx;
 
 			PIOS_HAL_ConfigureTbsCrossfire(usart_port_cfg, &usart_port_params, com_driver);
+			PIOS_Modules_Enable(PIOS_MODULE_UAVOCROSSFIRETELEMETRY);
+		}
+#endif  /* PIOS_INCLUDE_CROSSFIRE */
+		break;
+
+	case HWSHARED_PORTTYPES_TBSCROSSFIRETELEMETRY:
+#if defined(PIOS_INCLUDE_CROSSFIRE)
+		if (usart_port_cfg) {
+			usart_port_params.init.USART_BaudRate            = 420000;
+			usart_port_params.init.USART_WordLength          = USART_WordLength_8b;
+			usart_port_params.init.USART_Parity              = USART_Parity_No;
+			usart_port_params.init.USART_StopBits            = USART_StopBits_1;
+			usart_port_params.init.USART_HardwareFlowControl = USART_HardwareFlowControl_None;
+			usart_port_params.init.USART_Mode                = USART_Mode_Tx;
+
+			PIOS_HAL_ConfigureCom(usart_port_cfg, &usart_port_params, 0, PIOS_COM_CRSFTELEM_TX_BUF_LEN, com_driver, &port_driver_id);
+
+			target = &pios_com_crsf_sep_telem_id;
+			PIOS_Modules_Enable(PIOS_MODULE_UAVOCROSSFIRETELEMETRY);
 		}
 #endif  /* PIOS_INCLUDE_CROSSFIRE */
 		break;
