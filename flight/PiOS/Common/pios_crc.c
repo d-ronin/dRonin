@@ -184,28 +184,6 @@ uint8_t PIOS_CRC_updateCRC(uint8_t crc, const uint8_t* data, int32_t length)
  *****************************************************************************/
 uint8_t PIOS_CRC_updateCRC_TBS(uint8_t crc, const uint8_t *data, int32_t length)
 {
-	/*
-	const uint8_t *d = data;
-	unsigned int i;
-	bool bit;
-	uint8_t c;
-
-	while (length--) {
-		c = *d++;
-		for (i = 0x80; i > 0; i >>= 1) {
-			bit = crc & 0x80;
-			if (c & i) {
-				bit = !bit;
-			}
-			crc <<= 1;
-			if (bit) {
-				crc ^= 0xd5;
-			}
-		}
-		crc &= 0xff;
-	}
-	return crc & 0xff;
-	*/
 	while(length--) crc = crc_d5_tab[crc ^ *data++];
 	return crc;
 }

@@ -148,7 +148,7 @@ static void PIOS_Crossfire_ResetBuffer(struct pios_crossfire_dev *dev);
  * @brief Unpack a frame from the internal receive buffer to the channel buffer
  * @param[in] dev device driver instance pointer
  */
-static void PIOS_Crossfire_UnpackFrame(struct pios_crossfire_dev *dev);
+static bool PIOS_Crossfire_UnpackFrame(struct pios_crossfire_dev *dev);
 /**
  * @brief RTC tick callback
  * @param[in] context Driver instance handle
@@ -226,9 +226,9 @@ static uint16_t PIOS_Crossfire_Receive(uintptr_t context, uint8_t *buf, uint16_t
 		goto out_fail;
 
 	for (int i = 0; i < buf_len; i++) {
-		// Ignore any incoming stuff until we're expecting new data.
+		// Ignore any stuff beyond what's expected.
 		if(dev->buf_pos >= dev->bytes_expected)
-			continue;
+			break;
 
 		dev->u.rx_buf[dev->buf_pos++] = buf[i];
 
@@ -237,14 +237,21 @@ static uint16_t PIOS_Crossfire_Receive(uintptr_t context, uint8_t *buf, uint16_t
 			dev->bytes_expected = CRSF_ADDRESS_LEN + CRSF_LENGTH_LEN + dev->u.frame.length;
 
 			// If length field isn't plausible, ignore rest of the data.
-			if(dev->bytes_expected >= CRSF_MAX_FRAMELEN)
+			if(dev->bytes_expected >= CRSF_MAX_FRAMELEN) {
 				dev->bytes_expected = 0;
+				break;
+			}
 		}
 
 		if (dev->buf_pos == dev->bytes_expected) {
 			// Frame complete, decode.
-			PIOS_Crossfire_UnpackFrame(dev);
-			PIOS_RCVR_ActiveFromISR();
+			if(PIOS_Crossfire_UnpackFrame(dev)) {
+				// Frame is valid, trigger semaphore.
+				PIOS_RCVR_ActiveFromISR();
+				// Ignore any stuff that might be left in the buffer
+				// for whatever reason.
+				break;
+			}
 		}
 	}
 
@@ -267,11 +274,8 @@ static void PIOS_Crossfire_ResetBuffer(struct pios_crossfire_dev *dev)
 	dev->bytes_expected = CRSF_MAX_FRAMELEN;
 }
 
-static void PIOS_Crossfire_UnpackFrame(struct pios_crossfire_dev *dev)
+static bool PIOS_Crossfire_UnpackFrame(struct pios_crossfire_dev *dev)
 {
-	// Pull CRC from type field and payload.
-	uint8_t crc = PIOS_CRC_updateCRC_TBS(0, &dev->u.frame.type, dev->u.frame.length - CRSF_CRC_LEN);
-
 	// Currently there appears to be only RC channel messages.
 	// We also only care about those for now.
 
@@ -280,6 +284,7 @@ static void PIOS_Crossfire_UnpackFrame(struct pios_crossfire_dev *dev)
 
 		// If there's a valid type and it matches its payload length,
 		// then proceed doing the heavy lifting.
+		uint8_t crc = PIOS_CRC_updateCRC_TBS(0, &dev->u.frame.type, dev->u.frame.length - CRSF_CRC_LEN);
 
 		if(crc == CRSF_CRCFIELD(dev->u.frame)) {
 			// From pios_sbus.c
@@ -310,10 +315,15 @@ static void PIOS_Crossfire_UnpackFrame(struct pios_crossfire_dev *dev)
 
 			// RC control is still happening.
 			dev->failsafe_timer = 0;
+
+			PIOS_Crossfire_ResetBuffer(dev);
+
+			return true;
 		}
 	}
 
 	PIOS_Crossfire_ResetBuffer(dev);
+	return false;
 }
 
 static void PIOS_Crossfire_Supervisor(uintptr_t context)
