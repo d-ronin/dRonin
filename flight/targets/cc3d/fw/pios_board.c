@@ -56,7 +56,6 @@ uintptr_t pios_uavo_settings_fs_id;
  * called from System/openpilot.c
  */
 void PIOS_Board_Init(void) {
-
 	/* Delay system */
 	PIOS_DELAY_Init();
 

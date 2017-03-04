@@ -723,6 +723,10 @@ tskTCB * pxNewTCB;
 	portTickType xTimeToWake;
 	portBASE_TYPE xAlreadyYielded, xShouldDelay = pdFALSE;
 
+	if (xSchedulerRunning != pdTRUE) {
+		return;
+	}
+
 		configASSERT( pxPreviousWakeTime );
 		configASSERT( ( xTimeIncrement > 0U ) );
 
@@ -794,6 +798,10 @@ tskTCB * pxNewTCB;
 	{
 	portTickType xTimeToWake;
 	signed portBASE_TYPE xAlreadyYielded = pdFALSE;
+
+	if (xSchedulerRunning != pdTRUE) {
+		return;
+	}
 
 		/* A delay time of zero just forces a reschedule. */
 		if( xTicksToDelay > ( portTickType ) 0U )
