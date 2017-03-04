@@ -321,14 +321,13 @@ void PIOS_Board_Init(void)
 	HwPikoBLXDSMxModeOptions hw_DSMxMode;
 	HwPikoBLXDSMxModeGet(&hw_DSMxMode);
 
-	/* XXX add I2C support */
 	HwSharedPortTypesOptions hw_uart1;
 	HwPikoBLXUart1Get(&hw_uart1);
 	PIOS_HAL_ConfigurePort(hw_uart1, // port_type
 						&pios_uart1_usart_cfg, // usart_port_cfg
 						&pios_usart_com_driver, // com_driver
-						NULL, // i2c_id
-						NULL, // i2c_cfg
+						&pios_i2c_u1_id, // i2c_id
+						&pios_i2c_u1_cfg, // i2c_cfg
 						NULL, // ppm_cfg
 						NULL, // pwm_cfg
 						PIOS_LED_ALARM, // led_id
@@ -352,14 +351,14 @@ void PIOS_Board_Init(void)
 						NULL); // sbus_cfg
 
 	/* Configure Uart3 */
-	HwSharedPortTypesOptions hw_uart3;
-	HwPikoBLXUart3Get(&hw_uart3);
-	PIOS_HAL_ConfigurePort(hw_uart3, // port_type
+	HwSharedPortTypesOptions hw_rxp;
+	HwPikoBLXRxPortGet(&hw_rxp);
+	PIOS_HAL_ConfigurePort(hw_rxp, // port_type
 						&pios_uart3_usart_cfg, // usart_port_cfg
 						&pios_usart_com_driver, // com_driver
-						NULL, // i3c_id
-						NULL, // i3c_cfg
-						NULL, // ppm_cfg
+						NULL, // i2c_id
+						NULL, // i2c_cfg
+						&pios_ppm_cfg, // ppm_cfg
 						NULL, // pwm_cfg
 						PIOS_LED_ALARM, // led_id
 						&pios_uart3_dsm_cfg, // dsm_cfg

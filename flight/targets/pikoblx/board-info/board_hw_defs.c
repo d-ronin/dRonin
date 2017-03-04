@@ -737,7 +737,7 @@ static const struct pios_tim_channel pios_tim_servoport_pins[] = {
 			.pin_source = GPIO_PinSource3,
 		},
 	},
-	{ // Ch8 TIM17_CH1 (PA7)
+	{
 		.timer = TIM1,
 		.timer_chan = TIM_Channel_1,
 		.remap = GPIO_AF_6,

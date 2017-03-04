@@ -51,27 +51,15 @@
 				<option>IBus</option>
 			</options>
 		</field>
-		<field name="Uart3" units="function" type="enum" elements="1" parent="HwShared.PortTypes" defaultvalue="Disabled">
-			<description>The port labelled "UART3"</description>
+		<field name="RxPort" units="function" type="enum" elements="1" parent="HwShared.PortTypes" defaultvalue="Disabled">
+			<description>The RX port-- PPM or UART3</description>
 			<options>
 				<option>Disabled</option>
-				<option>ComBridge</option>
-				<option>DebugConsole</option>
+				<option>PPM</option>
 				<option>DSM</option>
-				<option>FrSKY Sensor Hub</option>
-				<option>FrSKY SPort Telemetry</option>
-				<option>GPS</option>
-				<option>HoTT Telemetry</option>
-				<option>LighttelemetryTx</option>
 				<option>SRXL</option>
-				<option>MavLinkTX</option>
-				<option>MavLinkTX_GPS_RX</option>
-				<option>MSP</option>
-				<option>OpenLog</option>
 				<option>S.Bus</option>
 				<option>S.Bus Non Inverted</option>
-				<option>Storm32Bgc</option>
-				<option>Telemetry</option>
 				<option>IBus</option>
 			</options>
 		</field>
