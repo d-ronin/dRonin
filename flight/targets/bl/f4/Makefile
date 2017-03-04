@@ -161,6 +161,7 @@ CFLAGS += -Wa,-adhlns=$(addprefix $(OUTDIR)/, $(notdir $(addsuffix .lst, $(basen
 # Compiler flags to generate dependency files:
 CFLAGS += -MD -MP -MF $(OUTDIR)/dep/$(@F).d
 
+CFLAGS += -DBOOTLOADER
 # flags only for C
 CONLYFLAGS += -std=gnu99
 
