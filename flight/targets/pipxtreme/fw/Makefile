@@ -174,7 +174,7 @@ SRC += $(FLIGHTLIB)/frsky_packing.c
 SRC += $(FLIGHTLIB)/circqueue.c
 SRC += $(FLIGHTLIB)/morsel.c
 SRC += $(MATHLIB)/misc_math.c
-SRC += $(MATHLIB)/filter.c
+SRC += $(MATHLIB)/lpfilter.c
 
 ## CMSIS for STM32
 include $(PIOSCOMMONLIB)/CMSIS/library.mk

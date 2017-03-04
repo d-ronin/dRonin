@@ -30,31 +30,17 @@
 #ifndef FILTER_H
 #define FILTER_H
 
-enum {ROLL,PITCH,YAW,MAX_AXES};
+struct lpfilter_state {
 
-struct filter_biquad_state {
-	float x1, x2, y1, y2;
-};
-
-struct filter_biquad {
-	float b0, a1, a2;
-	struct filter_biquad_state s[MAX_AXES];
-};
-
-struct filter_first_order {
-	float alpha;
-	float prev[MAX_AXES];
-};
-
-struct filter_compound_state {
-
-	struct filter_first_order *first_order;
-	struct filter_biquad *biquad[4];
+	struct lpfilter_first_order *first_order;
+	struct lpfilter_biquad *biquad[4];
 	uint8_t order;
+	uint8_t width;
 
 };
 
-void filter_create_lowpass(struct filter_compound_state *filter, float cutoff, float dT, uint8_t order);
-float filter_execute(struct filter_compound_state *filter, int axis, float sample);
+void lpfilter_create(struct lpfilter_state *filter, float cutoff, float dT, uint8_t order, uint8_t width);
+float lpfilter_run_single(struct lpfilter_state *filter, uint8_t axis, float sample);
+void lpfilter_run(struct lpfilter_state *filter, float *sample);
 
 #endif // FILTER_H

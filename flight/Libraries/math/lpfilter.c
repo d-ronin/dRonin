@@ -31,10 +31,12 @@
 #include <stdint.h>
 #include <string.h>
 #include <math.h>
-#include "pios_heap.h"
-#include "filter.h"
+#include "pios.h"
+#include "lpfilter.h"
 
-const float filter_butterworth_factors[16] = {
+#define MAX_FILTER_WIDTH		16
+
+static const float lpfilter_butterworth_factors[16] = {
 	// 2nd order
 	1.4142f,
 
@@ -57,7 +59,23 @@ const float filter_butterworth_factors[16] = {
 	0.3902f, 1.1111f, 1.6629f, 1.9616f
 };
 
-void filter_construct_single_biquad(struct filter_biquad *b, float cutoff, float dT, float q)
+enum {ROLL,PITCH,YAW,MAX_AXES};
+
+struct lpfilter_biquad_state {
+	float x1, x2, y1, y2;
+};
+
+struct lpfilter_biquad {
+	float b0, a1, a2;
+	struct lpfilter_biquad_state *s;
+};
+
+struct lpfilter_first_order {
+	float alpha;
+	float *prev;
+};
+
+void lpfilter_construct_single_biquad(struct lpfilter_biquad *b, float cutoff, float dT, float q, uint8_t width)
 {
 	float f = 1.0f / tanf((float)M_PI*cutoff*dT);
 
@@ -67,10 +85,11 @@ void filter_construct_single_biquad(struct filter_biquad *b, float cutoff, float
 	b->a1 = 2.0f * (f*f - 1.0f) * b->b0;
 	b->a2 = -(1.0f - q*f + f*f) * b->b0;
 
-	memset((void*)b->s, 0, sizeof(struct filter_biquad_state)*MAX_AXES);
+	b->s = PIOS_malloc_no_dma(sizeof(struct lpfilter_biquad_state)*width);
+	memset((void*)b->s, 0, sizeof(struct lpfilter_biquad_state)*width);
 }
 
-void filter_construct_biquads(struct filter_compound_state *filt, float cutoff, float dT, int o)
+void lpfilter_construct_biquads(struct lpfilter_state *filt, float cutoff, float dT, int o, uint8_t width)
 {
 	// Amount of biquad filters needed.
 	int len = o >> 1;
@@ -88,17 +107,19 @@ void filter_construct_biquads(struct filter_compound_state *filt, float cutoff, 
 	for(int i = 0; i < len; i++)
 	{
 		if(filt->biquad[i] == NULL)	{
-			filt->biquad[i] = PIOS_malloc_no_dma(sizeof(struct filter_biquad));
+			filt->biquad[i] = PIOS_malloc_no_dma(sizeof(struct lpfilter_biquad));
 		}
-		filter_construct_single_biquad(filt->biquad[i], cutoff, dT, filter_butterworth_factors[addr+i]);
+		lpfilter_construct_single_biquad(filt->biquad[i], cutoff, dT, lpfilter_butterworth_factors[addr+i], width);
 	}
 }
 
-void filter_create_lowpass(struct filter_compound_state *filter, float cutoff, float dT, uint8_t order)
+void lpfilter_create(struct lpfilter_state *filter, float cutoff, float dT, uint8_t order, uint8_t width)
 {
-	// Don't check whether filter is NULL or not. We're passing a static
-	// struct in the code. If this ends up NULL for a reason, something
-	// else is completely broken.
+	if(!filter || (filter->width != 0 && filter->width != width) || width > MAX_FILTER_WIDTH) {
+		// We can't free memory, so if some caller keeps tossing varying
+		// filter widths while updating an already allocated filter, go fail.
+		PIOS_Assert(0);
+	}
 
 	// Clamp order count. If zero, this bypasses the filter.
 	if(order == 0) {
@@ -109,19 +130,25 @@ void filter_create_lowpass(struct filter_compound_state *filter, float cutoff, f
 	if(order & 0x1)	{
 		// Filter is odd, allocate the first order filter.
 		if(filter->first_order == NULL)	{
-			filter->first_order = PIOS_malloc_no_dma(sizeof(struct filter_first_order));
+			filter->first_order = PIOS_malloc_no_dma(sizeof(struct lpfilter_first_order));
+			filter->first_order->prev = PIOS_malloc_no_dma(sizeof(float)*width);
 		}
 
 		filter->first_order->alpha = expf(-2.0f * (float)(M_PI) * cutoff * dT);
-		memset((void*)filter->first_order->prev, 0, sizeof(float)*MAX_AXES);
+		memset((void*)filter->first_order->prev, 0, sizeof(float)*width);
 	}
 
 	filter->order = order;
-	filter_construct_biquads(filter, cutoff, dT, order);
+	filter->width = width;
+	lpfilter_construct_biquads(filter, cutoff, dT, order, width);
 }
 
-float filter_execute(struct filter_compound_state *filter, int axis, float sample)
+float lpfilter_run_single(struct lpfilter_state *filter, uint8_t axis, float sample)
 {
+	if(axis >= filter->width) {
+		PIOS_Assert(0);
+	}
+
 	int order = filter->order;
 
 	// Order at zero means bypass.
@@ -138,8 +165,8 @@ float filter_execute(struct filter_compound_state *filter, int axis, float sampl
 	order >>= 1;
 	for(int i = 0; i < order; i++)
 	{
-		struct filter_biquad *b = filter->biquad[i];
-		struct filter_biquad_state *s = &b->s[axis];
+		struct lpfilter_biquad *b = filter->biquad[i];
+		struct lpfilter_biquad_state *s = &b->s[axis];
 
 		float y = b->b0 * (sample + 2.0f * s->x1 + s->x2) + b->a1 * s->y1 + b->a2 * s->y2;
 
@@ -153,4 +180,44 @@ float filter_execute(struct filter_compound_state *filter, int axis, float sampl
 	}
 
 	return sample;
+}
+
+void lpfilter_run(struct lpfilter_state *filter, float *sample)
+{
+	int order = filter->order;
+
+	// Order at zero means bypass.
+	if(order == 0) return;
+
+	for(int i = 0; i < filter->width; i++)
+	{
+		if(order & 0x1)	{
+			// Odd order filter
+			filter->first_order->prev[i] *= filter->first_order->alpha;
+			filter->first_order->prev[i] += (1 - filter->first_order->alpha) * sample[i];
+			sample[i] = filter->first_order->prev[i];
+		}
+	}
+
+	// Run all generated biquads.
+	order >>= 1;
+	for(int i = 0; i < order; i++)
+	{
+		struct lpfilter_biquad *b = filter->biquad[i];
+
+		for(int j = 0; j < filter->width; j++)
+		{
+			struct lpfilter_biquad_state *s = &b->s[j];
+
+			float y = b->b0 * (sample[j] + 2.0f * s->x1 + s->x2) + b->a1 * s->y1 + b->a2 * s->y2;
+
+			s->y2 = s->y1;
+			s->y1 = y;
+
+			s->x2 = s->x1;
+			s->x1 = sample[j];
+
+			sample[j] = y;
+		}
+	}
 }

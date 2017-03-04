@@ -35,7 +35,7 @@
 #include "pios_thread.h"
 #include "pios_queue.h"
 #include "misc_math.h"
-#include "filter.h"
+#include "lpfilter.h"
 
 #if defined(PIOS_INCLUDE_PX4FLOW)
 #include "pios_px4flow_priv.h"
@@ -123,8 +123,8 @@ static int8_t rotate = 0;
 //! Select the algorithm to try and null out the magnetometer bias error
 static enum mag_calibration_algo mag_calibration_algo = MAG_CALIBRATION_PRELEMARI;
 
-static struct filter_compound_state gyro_filter;
-static struct filter_compound_state accel_filter;
+static struct lpfilter_state gyro_filter;
+static struct lpfilter_state accel_filter;
 
 /**
  * API for sensor fusion algorithms:
@@ -361,9 +361,7 @@ static void update_accels(struct pios_sensor_accel_data *accels)
 	    accels->z * accel_scale[2] - accel_bias[2]
 	};
 
-	accels_out[0] = filter_execute(&accel_filter, 0, accels_out[0]);
-	accels_out[1] = filter_execute(&accel_filter, 1, accels_out[1]);
-	accels_out[2] = filter_execute(&accel_filter, 2, accels_out[2]);
+	lpfilter_run(&accel_filter, accels_out);
 
 	if (rotate) {
 		float accel_rotated[3];
@@ -378,9 +376,7 @@ static void update_accels(struct pios_sensor_accel_data *accels)
 	}
 
 	accelsData.z += z_accel_offset;
-
 	accelsData.temperature = accels->temperature;
-
 
 	AccelsSet(&accelsData);
 }
@@ -398,9 +394,7 @@ static void update_gyros(struct pios_sensor_gyro_data *gyros)
 	    gyros->z * gyro_scale[2]
 	};
 
-	gyros_out[0] = filter_execute(&gyro_filter, 0, gyros_out[0]);
-	gyros_out[1] = filter_execute(&gyro_filter, 1, gyros_out[1]);
-	gyros_out[2] = filter_execute(&gyro_filter, 2, gyros_out[2]);
+	lpfilter_run(&gyro_filter, gyros_out);
 
 	GyrosData gyrosData;
 	gyrosData.temperature = gyros->temperature;
@@ -775,8 +769,8 @@ static void settingsUpdatedCb(UAVObjEvent * objEv, void *ctx, void *obj, int len
 	float gyro_dT = 1.0f / (float)PIOS_SENSORS_GetSampleRate(PIOS_SENSOR_GYRO);
 	float accel_dT = 1.0f / (float)PIOS_SENSORS_GetSampleRate(PIOS_SENSOR_ACCEL);
 
-	filter_create_lowpass(&gyro_filter, sensorSettings.LowpassCutoff, gyro_dT, sensorSettings.LowpassOrder);
-	filter_create_lowpass(&accel_filter, sensorSettings.LowpassCutoff, accel_dT, sensorSettings.LowpassOrder);
+	lpfilter_create(&gyro_filter, sensorSettings.LowpassCutoff, gyro_dT, sensorSettings.LowpassOrder, 3);
+	lpfilter_create(&accel_filter, sensorSettings.LowpassCutoff, accel_dT, sensorSettings.LowpassOrder, 3);
 }
 /**
   * @}
