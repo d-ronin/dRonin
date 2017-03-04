@@ -529,7 +529,6 @@ static void stabilizationTask(void* parameters)
 		// Wrap yaw error to [-180,180]
 		local_attitude_error[YAW] = circular_modulus_deg(local_attitude_error[YAW]);
 
-		static float gyro_filtered[MAX_AXES];
 		float *gyro_filtered = &gyrosData.x;
 
 		/* Maintain a second-order, lower cutof freq variant for

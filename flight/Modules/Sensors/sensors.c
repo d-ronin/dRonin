@@ -123,8 +123,8 @@ static int8_t rotate = 0;
 //! Select the algorithm to try and null out the magnetometer bias error
 static enum mag_calibration_algo mag_calibration_algo = MAG_CALIBRATION_PRELEMARI;
 
-static struct lpfilter_state gyro_filter;
-static struct lpfilter_state accel_filter;
+static lpfilter_state_t gyro_filter;
+static lpfilter_state_t accel_filter;
 
 /**
  * API for sensor fusion algorithms:
@@ -361,7 +361,7 @@ static void update_accels(struct pios_sensor_accel_data *accels)
 	    accels->z * accel_scale[2] - accel_bias[2]
 	};
 
-	lpfilter_run(&accel_filter, accels_out);
+	lpfilter_run(accel_filter, accels_out);
 
 	if (rotate) {
 		float accel_rotated[3];
@@ -394,7 +394,7 @@ static void update_gyros(struct pios_sensor_gyro_data *gyros)
 	    gyros->z * gyro_scale[2]
 	};
 
-	lpfilter_run(&gyro_filter, gyros_out);
+	lpfilter_run(gyro_filter, gyros_out);
 
 	GyrosData gyrosData;
 	gyrosData.temperature = gyros->temperature;

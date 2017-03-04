@@ -30,17 +30,10 @@
 #ifndef FILTER_H
 #define FILTER_H
 
-struct lpfilter_state {
+typedef struct lpfilter_state* lpfilter_state_t;
 
-	struct lpfilter_first_order *first_order;
-	struct lpfilter_biquad *biquad[4];
-	uint8_t order;
-	uint8_t width;
-
-};
-
-void lpfilter_create(struct lpfilter_state *filter, float cutoff, float dT, uint8_t order, uint8_t width);
-float lpfilter_run_single(struct lpfilter_state *filter, uint8_t axis, float sample);
-void lpfilter_run(struct lpfilter_state *filter, float *sample);
+void lpfilter_create(lpfilter_state_t *filter_ptr, float cutoff, float dT, uint8_t order, uint8_t width);
+float lpfilter_run_single(lpfilter_state_t filter, uint8_t axis, float sample);
+void lpfilter_run(lpfilter_state_t filter, float *sample);
 
 #endif // FILTER_H
