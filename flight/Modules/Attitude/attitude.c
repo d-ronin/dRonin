@@ -728,20 +728,25 @@ static int32_t updateAttitudeComplementary(float dT, bool first_run, bool second
 	}
 
 	if (!secondary) {
-
 		// Calculate the NED acceleration and get the z-component
 		float z_accel = calc_ned_accel(cf_q, &accelsData.x);
 
 		// When this is the only filter compute th vertical state from baro data
 		// Reset the filter for barometric data
-		cfvert_predict_pos(&cfvert, z_accel, dT);
 		if (PIOS_Queue_Receive(baroQueue, &ev, 0) == true) {
 			float baro;
 			BaroAltitudeAltitudeGet(&baro);
-			cfvert_update_baro(&cfvert, baro, dT);
-		}
 
+			cfvert_predict_pos(&cfvert, z_accel, dT);
+			cfvert_update_baro(&cfvert, baro, dT);
+		} else if (PIOS_SENSORS_GetMissing(PIOS_SENSOR_BARO)) {
+			cfvert.position_z = 0;
+			cfvert.velocity_z = 0;
+		} else {
+			cfvert_predict_pos(&cfvert, z_accel, dT);
+		}
 	}
+
 	if (!secondary && !raw_gps) {
 		// When in raw GPS mode, it will set the error to none if
 		// reception is good
@@ -1044,7 +1049,7 @@ static int32_t updateAttitudeINSGPS(bool first_run, bool outdoor_mode)
 		BaroAltitudeGet(&baroData);
 
 	if (mag_updated)
-       MagnetometerGet(&magData);
+		MagnetometerGet(&magData);
 
 	if (gps_updated)
 		GPSPositionGet(&gpsData);
