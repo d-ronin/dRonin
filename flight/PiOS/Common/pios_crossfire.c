@@ -52,6 +52,8 @@
 // Should figure out whether that includes type and CRC, or not.
 #define CRSF_MAX_PAYLOAD			32
 
+#define CRSF_PAYLOAD_RCCHANNELS		22
+
 // Frame types. We care about RC data only for now.
 // Nothing else gets sent over the link yet, anyway.
 #define CRSF_FRAME_RCCHANNELS		0x16
@@ -270,10 +272,16 @@ static void PIOS_Crossfire_UnpackFrame(struct pios_crossfire_dev *dev)
 	// Pull CRC from type field and payload.
 	uint8_t crc = PIOS_CRC_updateCRC_TBS(0, &dev->u.frame.type, dev->u.frame.length - CRSF_CRC_LEN);
 
-	if(crc == CRSF_CRCFIELD(dev->u.frame)) {
+	// Currently there appears to be only RC channel messages.
+	// We also only care about those for now.
 
-		// Apparently only RC channel payload gets sent for now.
-		if(dev->u.frame.type == CRSF_FRAME_RCCHANNELS) {
+	if(dev->u.frame.type == CRSF_FRAME_RCCHANNELS &&
+		dev->u.frame.length == (CRSF_TYPE_LEN + CRSF_PAYLOAD_RCCHANNELS + CRSF_CRC_LEN)) {
+
+		// If there's a valid type and it matches its payload length,
+		// then proceed doing the heavy lifting.
+
+		if(crc == CRSF_CRCFIELD(dev->u.frame)) {
 			// From pios_sbus.c
 			uint8_t *s = dev->u.frame.payload;
 			uint16_t *d = dev->channel_data;
@@ -299,11 +307,10 @@ static void PIOS_Crossfire_UnpackFrame(struct pios_crossfire_dev *dev)
 			d[13] = F(s[17] | s[18] << 8 | s[19] << 16, 7);
 			d[14] = F(s[19] | s[20] << 8, 2);
 			d[15] = F(s[20] | s[21] << 8, 5);
-		}
 
-		// Consider link proper anyway, even if the packet
-		// didn't deliver RC data.
-		dev->failsafe_timer = 0;
+			// RC control is still happening.
+			dev->failsafe_timer = 0;
+		}
 	}
 
 	PIOS_Crossfire_ResetBuffer(dev);
