@@ -864,7 +864,7 @@ static const struct pios_internal_adc_cfg internal_adc_cfg = {
 	.oversampling = 32,
 	.adc_pin_count = 2,
 	.adc_pins = {
-		{GPIOA,GPIO_Pin_4,ADC_Channel_12,true}, // Cur
+		{GPIOB,GPIO_Pin_2,ADC_Channel_12,true}, // Cur
 		{GPIOA,GPIO_Pin_5,ADC_Channel_2,true}, // Volts
 	},
 	.adc_dev_master = ADC2,
