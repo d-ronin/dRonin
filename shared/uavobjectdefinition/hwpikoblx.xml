@@ -19,11 +19,13 @@
 				<option>MavLinkTX</option>
 				<option>MavLinkTX_GPS_RX</option>
 				<option>MSP</option>
-				<option>OpenLog</option>
 				<option>S.Bus</option>
 				<option>S.Bus Non Inverted</option>
 				<option>Storm32Bgc</option>
 				<option>Telemetry</option>
+				<option>OpenLog</option>
+				<option>HoTT SUMD</option>
+				<option>HoTT SUMH</option>
 				<option>IBus</option>
 			</options>
 		</field>
@@ -43,11 +45,13 @@
 				<option>MavLinkTX</option>
 				<option>MavLinkTX_GPS_RX</option>
 				<option>MSP</option>
-				<option>OpenLog</option>
 				<option>S.Bus</option>
 				<option>S.Bus Non Inverted</option>
 				<option>Storm32Bgc</option>
 				<option>Telemetry</option>
+				<option>OpenLog</option>
+				<option>HoTT SUMD</option>
+				<option>HoTT SUMH</option>
 				<option>IBus</option>
 			</options>
 		</field>
@@ -60,6 +64,8 @@
 				<option>SRXL</option>
 				<option>S.Bus</option>
 				<option>S.Bus Non Inverted</option>
+				<option>HoTT SUMD</option>
+				<option>HoTT SUMH</option>
 				<option>IBus</option>
 			</options>
 		</field>
