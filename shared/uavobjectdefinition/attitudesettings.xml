@@ -14,7 +14,7 @@
 		<field name="AccKp" units="channel" type="float" elements="1" defaultvalue="20.0">
 			<description>Accelerometer proportional gain for the attitude filter.</description>
 		</field>
-		<field name="AccKi" units="channel" type="float" elements="1" defaultvalue="0.05">
+		<field name="AccKi" units="channel" type="float" elements="1" defaultvalue="0.4">
 			<description>Accelerometer integral gain for the attitude filter.</description>
 		</field>
 		<field name="AccelTau" units="" type="float" elements="1" defaultvalue="0.1">
