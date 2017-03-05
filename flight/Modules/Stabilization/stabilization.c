@@ -470,35 +470,35 @@ static void stabilizationTask(void* parameters)
 
 		// Mux in level trim values, and saturate the trimmed attitude setpoint.
 		trimmedAttitudeSetpoint.Roll = bound_min_max(
-			stabDesired.Roll + subTrim.Roll,
+			raw_input[ROLL] + subTrim.Roll,
 			-settings.RollMax + subTrim.Roll,
 			 settings.RollMax + subTrim.Roll);
 		trimmedAttitudeSetpoint.Pitch = bound_min_max(
-			stabDesired.Pitch + subTrim.Pitch,
+			raw_input[PITCH] + subTrim.Pitch,
 			-settings.PitchMax + subTrim.Pitch,
 			 settings.PitchMax + subTrim.Pitch);
-		trimmedAttitudeSetpoint.Yaw = stabDesired.Yaw;
+		trimmedAttitudeSetpoint.Yaw = raw_input[YAW];
 
 		// For horizon mode we need to compute the desire attitude from an unscaled value and apply the
 		// trim offset. Also track the stick with the most deflection to choose rate blending.
 		horizonRateFraction = 0.0f;
 		if (stabDesired.StabilizationMode[ROLL] == STABILIZATIONDESIRED_STABILIZATIONMODE_HORIZON) {
 			trimmedAttitudeSetpoint.Roll = bound_min_max(
-				stabDesired.Roll * settings.RollMax + subTrim.Roll,
+				raw_input[ROLL] * settings.RollMax + subTrim.Roll,
 				-settings.RollMax + subTrim.Roll,
 				 settings.RollMax + subTrim.Roll);
-			horizonRateFraction = fabsf(stabDesired.Roll);
+			horizonRateFraction = fabsf(raw_input[ROLL]);
 		}
 		if (stabDesired.StabilizationMode[PITCH] == STABILIZATIONDESIRED_STABILIZATIONMODE_HORIZON) {
 			trimmedAttitudeSetpoint.Pitch = bound_min_max(
-				stabDesired.Pitch * settings.PitchMax + subTrim.Pitch,
+				raw_input[PITCH] * settings.PitchMax + subTrim.Pitch,
 				-settings.PitchMax + subTrim.Pitch,
 				 settings.PitchMax + subTrim.Pitch);
-			horizonRateFraction = MAX(horizonRateFraction, fabsf(stabDesired.Pitch));
+			horizonRateFraction = MAX(horizonRateFraction, fabsf(raw_input[PITCH]));
 		}
 		if (stabDesired.StabilizationMode[YAW] == STABILIZATIONDESIRED_STABILIZATIONMODE_HORIZON) {
-			trimmedAttitudeSetpoint.Yaw = stabDesired.Yaw * settings.YawMax;
-			horizonRateFraction = MAX(horizonRateFraction, fabsf(stabDesired.Yaw));
+			trimmedAttitudeSetpoint.Yaw = raw_input[YAW] * settings.YawMax;
+			horizonRateFraction = MAX(horizonRateFraction, fabsf(raw_input[YAW]));
 		}
 
 		// For weak leveling mode the attitude setpoint is the trim value (drifts back towards "0")
