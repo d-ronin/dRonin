@@ -144,7 +144,7 @@ class Repo:
         self._authors = []
         self._exec('shortlog -sn')
         if self._rc == 0:
-            self._authors = [l.strip().split('\t', 1)[1] for l in self._out.splitlines()]
+            self._authors = [l.strip().split(None, 1)[1] for l in self._out.splitlines()]
 
 
     def __init__(self, path = "."):
