@@ -212,6 +212,62 @@ int32_t StabilizationInitialize()
 	return 0;
 }
 
+void stabilization_failsafe_checks(StabilizationDesiredData *stab_desired,
+	ActuatorDesiredData *actuator_desired,
+	SystemSettingsAirframeTypeOptions airframe_type,
+	float *input, uint8_t *mode)
+{
+	float *rate = &stab_desired->Roll;
+	for(int i = 0; i < MAX_AXES; i++)
+	{
+		mode[i] = stab_desired->StabilizationMode[i];
+		input[i] = rate[i];
+
+		if (mode[i] == STABILIZATIONDESIRED_STABILIZATIONMODE_FAILSAFE) {
+			// Everything except planes should drop straight down
+			if ((airframe_type != SYSTEMSETTINGS_AIRFRAMETYPE_FIXEDWING) &&
+					(airframe_type != SYSTEMSETTINGS_AIRFRAMETYPE_FIXEDWINGELEVON) &&
+					(airframe_type != SYSTEMSETTINGS_AIRFRAMETYPE_FIXEDWINGVTAIL)) {
+				actuator_desired->Thrust = 0.0f;
+				switch (i) {
+					case 0: /* Roll */
+						mode[i] = STABILIZATIONDESIRED_STABILIZATIONMODE_ATTITUDE;
+						input[i] = 0;
+						break;
+					case 1:
+					default:
+						mode[i] = STABILIZATIONDESIRED_STABILIZATIONMODE_ATTITUDE;
+						input[i] = 0;
+						break;
+					case 2:
+						mode[i] = STABILIZATIONDESIRED_STABILIZATIONMODE_RATE;
+						input[i] = 0;
+						break;
+				}
+			}
+			else
+			{
+				actuator_desired->Thrust = -1.0f;
+
+				switch (i) {
+					case 0: /* Roll */
+						mode[i] = STABILIZATIONDESIRED_STABILIZATIONMODE_ATTITUDE;
+						input[i] = -10;
+						break;
+					case 1:
+					default:
+						mode[i] = STABILIZATIONDESIRED_STABILIZATIONMODE_ATTITUDE;
+						input[i] = 0;
+						break;
+					case 2:
+						mode[i] = STABILIZATIONDESIRED_STABILIZATIONMODE_RATE;
+						input[i] = -5;
+						break;
+				}
+			}
+		}
+	}
+}
 
 MODULE_HIPRI_INITCALL(StabilizationInitialize, StabilizationStart);
 
@@ -232,7 +288,6 @@ static void stabilizationTask(void* parameters)
 	FlightStatusData flightStatus;
 	SystemSettingsAirframeTypeOptions airframe_type;
 
-	float *stabDesiredAxis = &stabDesired.Roll;
 	float *actuatorDesiredAxis = &actuatorDesired.Roll;
 	float *rateDesiredAxis = &rateDesired.Roll;
 	float horizonRateFraction = 0.0f;
@@ -404,6 +459,11 @@ static void stabilizationTask(void* parameters)
 #if defined(RATEDESIRED_DIAGNOSTICS)
 		RateDesiredGet(&rateDesired);
 #endif
+		// raw_input will contain desired stabilization or the failsafe overrides.
+		float raw_input[MAX_AXES];
+		uint8_t axis_mode[MAX_AXES];
+		stabilization_failsafe_checks(&stabDesired, &actuatorDesired, airframe_type,
+			raw_input, axis_mode);
 
 		struct TrimmedAttitudeSetpoint {
 			float Roll;
@@ -413,45 +473,45 @@ static void stabilizationTask(void* parameters)
 
 		// Mux in level trim values, and saturate the trimmed attitude setpoint.
 		trimmedAttitudeSetpoint.Roll = bound_min_max(
-			stabDesired.Roll + subTrim.Roll,
+			raw_input[ROLL] + subTrim.Roll,
 			-settings.RollMax + subTrim.Roll,
 			 settings.RollMax + subTrim.Roll);
 		trimmedAttitudeSetpoint.Pitch = bound_min_max(
-			stabDesired.Pitch + subTrim.Pitch,
+			raw_input[PITCH] + subTrim.Pitch,
 			-settings.PitchMax + subTrim.Pitch,
 			 settings.PitchMax + subTrim.Pitch);
-		trimmedAttitudeSetpoint.Yaw = stabDesired.Yaw;
+		trimmedAttitudeSetpoint.Yaw = raw_input[YAW];
 
 		// For horizon mode we need to compute the desire attitude from an unscaled value and apply the
 		// trim offset. Also track the stick with the most deflection to choose rate blending.
 		horizonRateFraction = 0.0f;
-		if (stabDesired.StabilizationMode[ROLL] == STABILIZATIONDESIRED_STABILIZATIONMODE_HORIZON) {
+		if (axis_mode[ROLL] == STABILIZATIONDESIRED_STABILIZATIONMODE_HORIZON) {
 			trimmedAttitudeSetpoint.Roll = bound_min_max(
-				stabDesired.Roll * settings.RollMax + subTrim.Roll,
+				raw_input[ROLL] * settings.RollMax + subTrim.Roll,
 				-settings.RollMax + subTrim.Roll,
 				 settings.RollMax + subTrim.Roll);
-			horizonRateFraction = fabsf(stabDesired.Roll);
+			horizonRateFraction = fabsf(raw_input[ROLL]);
 		}
-		if (stabDesired.StabilizationMode[PITCH] == STABILIZATIONDESIRED_STABILIZATIONMODE_HORIZON) {
+		if (axis_mode[PITCH] == STABILIZATIONDESIRED_STABILIZATIONMODE_HORIZON) {
 			trimmedAttitudeSetpoint.Pitch = bound_min_max(
-				stabDesired.Pitch * settings.PitchMax + subTrim.Pitch,
+				raw_input[PITCH] * settings.PitchMax + subTrim.Pitch,
 				-settings.PitchMax + subTrim.Pitch,
 				 settings.PitchMax + subTrim.Pitch);
-			horizonRateFraction = MAX(horizonRateFraction, fabsf(stabDesired.Pitch));
+			horizonRateFraction = MAX(horizonRateFraction, fabsf(raw_input[PITCH]));
 		}
-		if (stabDesired.StabilizationMode[YAW] == STABILIZATIONDESIRED_STABILIZATIONMODE_HORIZON) {
-			trimmedAttitudeSetpoint.Yaw = stabDesired.Yaw * settings.YawMax;
-			horizonRateFraction = MAX(horizonRateFraction, fabsf(stabDesired.Yaw));
+		if (axis_mode[YAW] == STABILIZATIONDESIRED_STABILIZATIONMODE_HORIZON) {
+			trimmedAttitudeSetpoint.Yaw = raw_input[YAW] * settings.YawMax;
+			horizonRateFraction = MAX(horizonRateFraction, fabsf(raw_input[YAW]));
 		}
 
 		// For weak leveling mode the attitude setpoint is the trim value (drifts back towards "0")
-		if (stabDesired.StabilizationMode[ROLL] == STABILIZATIONDESIRED_STABILIZATIONMODE_WEAKLEVELING) {
+		if (axis_mode[ROLL] == STABILIZATIONDESIRED_STABILIZATIONMODE_WEAKLEVELING) {
 			trimmedAttitudeSetpoint.Roll = subTrim.Roll;
 		}
-		if (stabDesired.StabilizationMode[PITCH] == STABILIZATIONDESIRED_STABILIZATIONMODE_WEAKLEVELING) {
+		if (axis_mode[PITCH] == STABILIZATIONDESIRED_STABILIZATIONMODE_WEAKLEVELING) {
 			trimmedAttitudeSetpoint.Pitch = subTrim.Pitch;
 		}
-		if (stabDesired.StabilizationMode[YAW] == STABILIZATIONDESIRED_STABILIZATIONMODE_WEAKLEVELING) {
+		if (axis_mode[YAW] == STABILIZATIONDESIRED_STABILIZATIONMODE_WEAKLEVELING) {
 			trimmedAttitudeSetpoint.Yaw = 0;
 		}
 
@@ -491,61 +551,12 @@ static void stabilizationTask(void* parameters)
 		//Run the selected stabilization algorithm on each axis:
 		for(uint8_t i=0; i< MAX_AXES; i++)
 		{
-			// XXX TODO: Factor this body out into function.
-
-			uint8_t mode = stabDesired.StabilizationMode[i];
-			float raw_input = (&stabDesired.Roll)[i];
-
-			if (mode == STABILIZATIONDESIRED_STABILIZATIONMODE_FAILSAFE) {
-				// Everything except planes should drop straight down
-				if ((airframe_type != SYSTEMSETTINGS_AIRFRAMETYPE_FIXEDWING) &&
-						(airframe_type != SYSTEMSETTINGS_AIRFRAMETYPE_FIXEDWINGELEVON) &&
-						(airframe_type != SYSTEMSETTINGS_AIRFRAMETYPE_FIXEDWINGVTAIL)) {
-					actuatorDesired.Thrust = 0.0f;
-					switch (i) {
-						case 0: /* Roll */
-							mode = STABILIZATIONDESIRED_STABILIZATIONMODE_ATTITUDE;
-							raw_input = 0;
-							break;
-						case 1:
-						default:
-							mode = STABILIZATIONDESIRED_STABILIZATIONMODE_ATTITUDE;
-							raw_input = 0;
-							break;
-						case 2:
-							mode = STABILIZATIONDESIRED_STABILIZATIONMODE_RATE;
-							raw_input = 0;
-							break;
-					}
-				}
-				else
-				{
-					actuatorDesired.Thrust = -1.0f;
-
-					switch (i) {
-						case 0: /* Roll */
-							mode = STABILIZATIONDESIRED_STABILIZATIONMODE_ATTITUDE;
-							raw_input = -10;
-							break;
-						case 1:
-						default:
-							mode = STABILIZATIONDESIRED_STABILIZATIONMODE_ATTITUDE;
-							raw_input = 0;
-							break;
-						case 2:
-							mode = STABILIZATIONDESIRED_STABILIZATIONMODE_RATE;
-							raw_input = -5;
-							break;
-					}
-				}
-			}
-
 			// Check whether this axis mode needs to be reinitialized
-			bool reinit = (mode != previous_mode[i]);
-			previous_mode[i] = mode;
+			bool reinit = (axis_mode[i] != previous_mode[i]);
+			previous_mode[i] = axis_mode[i];
 
 			// Apply the selected control law
-			switch(mode)
+			switch(axis_mode[i])
 			{
 				case STABILIZATIONDESIRED_STABILIZATIONMODE_FAILSAFE:
 					PIOS_Assert(0); /* Shouldn't happen, per above */
@@ -557,7 +568,7 @@ static void stabilizationTask(void* parameters)
 					}
 
 					// Store to rate desired variable for storing to UAVO
-					rateDesiredAxis[i] = bound_sym(stabDesiredAxis[i], settings.ManualRate[i]);
+					rateDesiredAxis[i] = bound_sym(raw_input[i], settings.ManualRate[i]);
 
 					// Compute the inner loop
 					actuatorDesiredAxis[i] = pid_apply_setpoint(&pids[PID_GROUP_RATE + i], get_deadband(i),  rateDesiredAxis[i],  gyro_filtered[i], dT_expected);
@@ -571,7 +582,7 @@ static void stabilizationTask(void* parameters)
 						max_rate_filtered[i] = settings.ManualRate[i];
 					}
 
-					float curve_cmd = expoM(raw_input,
+					float curve_cmd = expoM(raw_input[i],
 							settings.RateExpo[i],
 							settings.RateExponent[i]*0.1f);
 
@@ -579,7 +590,7 @@ static void stabilizationTask(void* parameters)
 
 					uint16_t calc_max_rate = settings.ManualRate[i];
 
-					float abs_cmd = fabsf(raw_input);
+					float abs_cmd = fabsf(raw_input[i]);
 
 					uint16_t acro_dynrate = settings.AcroDynamicRate[i];
 
@@ -618,20 +629,20 @@ static void stabilizationTask(void* parameters)
 					}
 
 					// The factor for gyro suppression / mixing raw stick input into the output; scaled by raw stick input
-					float factor = fabsf(raw_input) * settings.AcroInsanityFactor / 100.0f;
+					float factor = fabsf(raw_input[i]) * settings.AcroInsanityFactor / 100.0f;
 
 					// Store to rate desired variable for storing to UAVO
-					rateDesiredAxis[i] = bound_sym(raw_input * settings.ManualRate[i], settings.ManualRate[i]);
+					rateDesiredAxis[i] = bound_sym(raw_input[i] * settings.ManualRate[i], settings.ManualRate[i]);
 
 					// Zero integral for aggressive maneuvers
 					if ((i < 2 && fabsf(gyro_filtered[i]) > settings.AcroZeroIntegralGyro) ||
-						(i == 0 && fabsf(raw_input) > settings.AcroZeroIntegralStick / 100.0f)) {
+						(i == 0 && fabsf(raw_input[i]) > settings.AcroZeroIntegralStick / 100.0f)) {
 							pids[PID_GROUP_RATE + i].iAccumulator = 0;
 							}
 
 					// Compute the inner loop
 					actuatorDesiredAxis[i] = pid_apply_setpoint(&pids[PID_GROUP_RATE + i], get_deadband(i), rateDesiredAxis[i], gyro_filtered[i], dT_expected);
-					actuatorDesiredAxis[i] = factor * raw_input + (1.0f - factor) * actuatorDesiredAxis[i];
+					actuatorDesiredAxis[i] = factor * raw_input[i] + (1.0f - factor) * actuatorDesiredAxis[i];
 					actuatorDesiredAxis[i] = bound_sym(actuatorDesiredAxis[i], 1.0f);
 
 					break;
@@ -654,7 +665,7 @@ static void stabilizationTask(void* parameters)
 
 				case STABILIZATIONDESIRED_STABILIZATIONMODE_VIRTUALBAR:
 					// Store for debugging output
-					rateDesiredAxis[i] = stabDesiredAxis[i];
+					rateDesiredAxis[i] = raw_input[i];
 
 					// Run a virtual flybar stabilization algorithm on this axis
 					stabilization_virtual_flybar(gyro_filtered[i], rateDesiredAxis[i], &actuatorDesiredAxis[i], dT_expected, reinit, i, &pids[PID_GROUP_VBAR + i], &vbar_settings);
@@ -671,7 +682,7 @@ static void stabilizationTask(void* parameters)
 					weak_leveling = bound_sym(weak_leveling, weak_leveling_max);
 
 					// Compute desired rate as input biased towards leveling
-					rateDesiredAxis[i] = stabDesiredAxis[i] + weak_leveling;
+					rateDesiredAxis[i] = raw_input[i] + weak_leveling;
 					actuatorDesiredAxis[i] = pid_apply_setpoint(&pids[PID_GROUP_RATE + i], get_deadband(i),  rateDesiredAxis[i],  gyro_filtered[i], dT_expected);
 					actuatorDesiredAxis[i] = bound_sym(actuatorDesiredAxis[i],1.0f);
 
@@ -682,15 +693,15 @@ static void stabilizationTask(void* parameters)
 						pids[PID_GROUP_RATE + i].iAccumulator = 0;
 					}
 
-					if (fabsf(stabDesiredAxis[i]) > max_axislock_rate) {
+					if (fabsf(raw_input[i]) > max_axislock_rate) {
 						// While getting strong commands act like rate mode
-						rateDesiredAxis[i] = bound_sym(stabDesiredAxis[i], settings.ManualRate[i]);
+						rateDesiredAxis[i] = bound_sym(raw_input[i], settings.ManualRate[i]);
 
 						// Reset accumulator
 						axis_lock_accum[i] = 0;
 					} else {
 						// For weaker commands or no command simply lock (almost) on no gyro change
-						axis_lock_accum[i] += (stabDesiredAxis[i] - gyro_filtered[i]) * dT_expected;
+						axis_lock_accum[i] += (raw_input[i] - gyro_filtered[i]) * dT_expected;
 						axis_lock_accum[i] = bound_sym(axis_lock_accum[i], max_axis_lock);
 
 						// Compute the inner loop
@@ -715,7 +726,7 @@ static void stabilizationTask(void* parameters)
 					// Compute the outer loop for the attitude control
 					float rateDesiredAttitude = pid_apply(&pids[PID_GROUP_ATT + i], local_attitude_error[i], dT_expected);
 					// Compute the desire rate for a rate control
-					float rateDesiredRate = raw_input * settings.ManualRate[i];
+					float rateDesiredRate = raw_input[i] * settings.ManualRate[i];
 
 					// Blend from one rate to another. The maximum of all stick positions is used for the
 					// amount so that when one axis goes completely to rate the other one does too. This
@@ -765,7 +776,7 @@ static void stabilizationTask(void* parameters)
 
 					}
 
-					if (mode == STABILIZATIONDESIRED_STABILIZATIONMODE_SYSTEMIDENT) {
+					if (axis_mode[i] == STABILIZATIONDESIRED_STABILIZATIONMODE_SYSTEMIDENT) {
 						// Compute the outer loop
 						rateDesiredAxis[i] = pid_apply(&pids[PID_GROUP_ATT + i], local_attitude_error[i], dT_expected);
 						rateDesiredAxis[i] = bound_sym(rateDesiredAxis[i], settings.MaximumRate[i]);
@@ -774,7 +785,7 @@ static void stabilizationTask(void* parameters)
 						actuatorDesiredAxis[i] = pid_apply_setpoint(&pids[PID_GROUP_RATE + i], get_deadband(i), rateDesiredAxis[i],  gyro_filtered[i], dT_expected);
 					} else {
 						// Get the desired rate. yaw is always in rate mode in system ident.
-						rateDesiredAxis[i] = bound_sym(stabDesiredAxis[i], settings.ManualRate[i]);
+						rateDesiredAxis[i] = bound_sym(raw_input[i], settings.ManualRate[i]);
 
 						// Compute the inner loop only for yaw
 						actuatorDesiredAxis[i] = pid_apply_setpoint(&pids[PID_GROUP_RATE + i], get_deadband(i), rateDesiredAxis[i],  gyro_filtered[i], dT_expected);
@@ -852,7 +863,7 @@ static void stabilizationTask(void* parameters)
 							}
 
 							//If we are not in roll attitude mode, trigger an error
-							if (stabDesired.StabilizationMode[ROLL] != STABILIZATIONDESIRED_STABILIZATIONMODE_ATTITUDE)
+							if (axis_mode[ROLL] != STABILIZATIONDESIRED_STABILIZATIONMODE_ATTITUDE)
 							{
 								error = true;
 								break ;
@@ -895,7 +906,7 @@ static void stabilizationTask(void* parameters)
 									pids[PID_COORDINATED_FLIGHT_YAW].iAccumulator = 0;
 								}
 							} else { //... yaw is outside the deadband. Pass the manual input directly to the actuator.
-								actuatorDesiredAxis[YAW] = bound_sym(stabDesiredAxis[YAW], 1.0);
+								actuatorDesiredAxis[YAW] = bound_sym(raw_input[YAW], 1.0);
 
 								// Reset all integrals
 								pids[PID_COORDINATED_FLIGHT_YAW].iAccumulator = 0;
@@ -963,7 +974,7 @@ static void stabilizationTask(void* parameters)
 					actuatorDesiredAxis[i] = 0.0;
 					break;
 				case STABILIZATIONDESIRED_STABILIZATIONMODE_MANUAL:
-					actuatorDesiredAxis[i] = bound_sym(stabDesiredAxis[i],1.0f);
+					actuatorDesiredAxis[i] = bound_sym(raw_input[i],1.0f);
 					break;
 				default:
 					error = true;
