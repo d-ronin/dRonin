@@ -215,12 +215,13 @@ int32_t StabilizationInitialize()
 void stabilization_failsafe_checks(StabilizationDesiredData *stab_desired,
 	ActuatorDesiredData *actuator_desired,
 	SystemSettingsAirframeTypeOptions airframe_type,
-	float *input)
+	float *input, uint8_t *mode)
 {
+	float *rate = &stab_desired->Roll;
 	for(int i = 0; i < MAX_AXES; i++)
 	{
-		uint8_t *mode = stab_desired->StabilizationMode;
-		input[i] = stab_desired->Roll+i;
+		mode[i] = stab_desired->StabilizationMode[i];
+		input[i] = rate[i];
 
 		if (mode[i] == STABILIZATIONDESIRED_STABILIZATIONMODE_FAILSAFE) {
 			// Everything except planes should drop straight down
@@ -460,7 +461,9 @@ static void stabilizationTask(void* parameters)
 #endif
 		// raw_input will contain desired stabilization or the failsafe overrides.
 		float raw_input[MAX_AXES];
-		stabilization_failsafe_checks(&stabDesired, &actuatorDesired, airframe_type, raw_input);
+		uint8_t axis_mode[MAX_AXES];
+		stabilization_failsafe_checks(&stabDesired, &actuatorDesired, airframe_type,
+			raw_input, axis_mode);
 
 		struct TrimmedAttitudeSetpoint {
 			float Roll;
@@ -482,33 +485,33 @@ static void stabilizationTask(void* parameters)
 		// For horizon mode we need to compute the desire attitude from an unscaled value and apply the
 		// trim offset. Also track the stick with the most deflection to choose rate blending.
 		horizonRateFraction = 0.0f;
-		if (stabDesired.StabilizationMode[ROLL] == STABILIZATIONDESIRED_STABILIZATIONMODE_HORIZON) {
+		if (axis_mode[ROLL] == STABILIZATIONDESIRED_STABILIZATIONMODE_HORIZON) {
 			trimmedAttitudeSetpoint.Roll = bound_min_max(
 				raw_input[ROLL] * settings.RollMax + subTrim.Roll,
 				-settings.RollMax + subTrim.Roll,
 				 settings.RollMax + subTrim.Roll);
 			horizonRateFraction = fabsf(raw_input[ROLL]);
 		}
-		if (stabDesired.StabilizationMode[PITCH] == STABILIZATIONDESIRED_STABILIZATIONMODE_HORIZON) {
+		if (axis_mode[PITCH] == STABILIZATIONDESIRED_STABILIZATIONMODE_HORIZON) {
 			trimmedAttitudeSetpoint.Pitch = bound_min_max(
 				raw_input[PITCH] * settings.PitchMax + subTrim.Pitch,
 				-settings.PitchMax + subTrim.Pitch,
 				 settings.PitchMax + subTrim.Pitch);
 			horizonRateFraction = MAX(horizonRateFraction, fabsf(raw_input[PITCH]));
 		}
-		if (stabDesired.StabilizationMode[YAW] == STABILIZATIONDESIRED_STABILIZATIONMODE_HORIZON) {
+		if (axis_mode[YAW] == STABILIZATIONDESIRED_STABILIZATIONMODE_HORIZON) {
 			trimmedAttitudeSetpoint.Yaw = raw_input[YAW] * settings.YawMax;
 			horizonRateFraction = MAX(horizonRateFraction, fabsf(raw_input[YAW]));
 		}
 
 		// For weak leveling mode the attitude setpoint is the trim value (drifts back towards "0")
-		if (stabDesired.StabilizationMode[ROLL] == STABILIZATIONDESIRED_STABILIZATIONMODE_WEAKLEVELING) {
+		if (axis_mode[ROLL] == STABILIZATIONDESIRED_STABILIZATIONMODE_WEAKLEVELING) {
 			trimmedAttitudeSetpoint.Roll = subTrim.Roll;
 		}
-		if (stabDesired.StabilizationMode[PITCH] == STABILIZATIONDESIRED_STABILIZATIONMODE_WEAKLEVELING) {
+		if (axis_mode[PITCH] == STABILIZATIONDESIRED_STABILIZATIONMODE_WEAKLEVELING) {
 			trimmedAttitudeSetpoint.Pitch = subTrim.Pitch;
 		}
-		if (stabDesired.StabilizationMode[YAW] == STABILIZATIONDESIRED_STABILIZATIONMODE_WEAKLEVELING) {
+		if (axis_mode[YAW] == STABILIZATIONDESIRED_STABILIZATIONMODE_WEAKLEVELING) {
 			trimmedAttitudeSetpoint.Yaw = 0;
 		}
 
@@ -548,16 +551,12 @@ static void stabilizationTask(void* parameters)
 		//Run the selected stabilization algorithm on each axis:
 		for(uint8_t i=0; i< MAX_AXES; i++)
 		{
-			// XXX TODO: Factor this body out into function.
-
-			uint8_t mode = stabDesired.StabilizationMode[i];
-
 			// Check whether this axis mode needs to be reinitialized
-			bool reinit = (mode != previous_mode[i]);
-			previous_mode[i] = mode;
+			bool reinit = (axis_mode[i] != previous_mode[i]);
+			previous_mode[i] = axis_mode[i];
 
 			// Apply the selected control law
-			switch(mode)
+			switch(axis_mode[i])
 			{
 				case STABILIZATIONDESIRED_STABILIZATIONMODE_FAILSAFE:
 					PIOS_Assert(0); /* Shouldn't happen, per above */
@@ -777,7 +776,7 @@ static void stabilizationTask(void* parameters)
 
 					}
 
-					if (mode == STABILIZATIONDESIRED_STABILIZATIONMODE_SYSTEMIDENT) {
+					if (axis_mode[i] == STABILIZATIONDESIRED_STABILIZATIONMODE_SYSTEMIDENT) {
 						// Compute the outer loop
 						rateDesiredAxis[i] = pid_apply(&pids[PID_GROUP_ATT + i], local_attitude_error[i], dT_expected);
 						rateDesiredAxis[i] = bound_sym(rateDesiredAxis[i], settings.MaximumRate[i]);
@@ -864,7 +863,7 @@ static void stabilizationTask(void* parameters)
 							}
 
 							//If we are not in roll attitude mode, trigger an error
-							if (stabDesired.StabilizationMode[ROLL] != STABILIZATIONDESIRED_STABILIZATIONMODE_ATTITUDE)
+							if (axis_mode[ROLL] != STABILIZATIONDESIRED_STABILIZATIONMODE_ATTITUDE)
 							{
 								error = true;
 								break ;
