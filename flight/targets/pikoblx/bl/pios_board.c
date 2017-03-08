@@ -41,8 +41,25 @@
 
 uintptr_t pios_com_telem_usb_id;
 
+static void hack_rx_pin()
+{
+	/* This is a workaround for FrSky XM bugs.
+	 * They go into firmware update mode when the pin floats at
+	 * startup.  There's a new firmware that fixes this, but not everyone
+	 * can readily upgrade it...
+	 */
+
+	GPIO_InitTypeDef hold_rx_low = pios_uart3_usart_cfg.rx.init;
+
+	hold_rx_low.GPIO_PuPd = GPIO_PuPd_DOWN;
+
+	GPIO_Init(GPIOA, &hold_rx_low);
+}
+
 void PIOS_Board_Init()
 {
+	hack_rx_pin();
+
 	/* Delay system */
 	PIOS_DELAY_Init();
 
