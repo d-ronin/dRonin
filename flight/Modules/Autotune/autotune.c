@@ -367,7 +367,7 @@ static void AutotuneTask(void *parameters)
 		PIOS_Thread_Sleep(25);
 	}
 
-	decim_wiggle_points /= AUTOTUNE_AVERAGING_DECIMATION;
+	decim_wiggle_points = ident_wiggle_points / AUTOTUNE_AVERAGING_DECIMATION;
 
 	uint16_t buf_size = sizeof(*at_averages) * decim_wiggle_points;
 	at_averages = PIOS_malloc(buf_size);
