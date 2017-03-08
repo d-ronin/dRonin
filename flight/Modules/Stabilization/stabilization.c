@@ -955,8 +955,6 @@ static void stabilizationTask(void* parameters)
 							CameraDesiredBearingGet(&angle);
 							angle_error = circular_modulus_deg(angle - attitudeActual.Yaw);
 							break;
-						default:
-							error = true;
 						}
 					} else
 						error = true;
