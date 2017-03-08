@@ -104,6 +104,7 @@ class Repo:
             self._dirty = True
 
     def _get_authors_since_release(self):
+        """Get list of authors since the last full release tag (.n are ignored)"""
         self._authors_since_release = []
         self._exec('show-ref --tags')
         pat = re.compile('^refs/tags/(?P<type>[A-Za-z]*)\-(?P<rel>(?P<date>[0-9]{8})(\.(?P<suffix>[0-9]*))?)$')
@@ -138,11 +139,12 @@ class Repo:
 
             self._exec('shortlog -s {}..HEAD'.format(last_rel['ref']))
             if self._rc == 0:
-                self._authors_since_release = sorted([l.strip().split('\t', 1)[1] for l in self._out.splitlines()], key=str.lower)
+                self._authors_since_release = sorted([l.strip().split(None, 1)[1] for l in self._out.splitlines()], key=str.lower)
 
     def _get_authors(self):
+        """Get all-time list of authors sorted by contributions"""
         self._authors = []
-        self._exec('shortlog -sn')
+        self._exec('shortlog -sn HEAD')
         if self._rc == 0:
             self._authors = [l.strip().split(None, 1)[1] for l in self._out.splitlines()]
 
