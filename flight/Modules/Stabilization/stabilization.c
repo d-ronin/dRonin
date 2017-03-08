@@ -932,13 +932,13 @@ static void stabilizationTask(void* parameters)
 						pids[PID_GROUP_RATE + i].iAccumulator = 0;
 					}
 
-					float error;
+					float angle_error = 0;
 					float angle;
 					if (CameraDesiredHandle()) {
 						switch(i) {
 						case PITCH:
 							CameraDesiredDeclinationGet(&angle);
-							error = circular_modulus_deg(angle - attitudeActual.Pitch);
+							angle_error = circular_modulus_deg(angle - attitudeActual.Pitch);
 							break;
 						case ROLL:
 						{
@@ -948,12 +948,12 @@ static void stabilizationTask(void* parameters)
 							// allow keeping some motion
 							CameraDesiredRollGet(&angle);
 							angle *= roll_fraction / 100.0f;
-							error = circular_modulus_deg(angle - attitudeActual.Roll);
+							angle_error = circular_modulus_deg(angle - attitudeActual.Roll);
 						}
 							break;
 						case YAW:
 							CameraDesiredBearingGet(&angle);
-							error = circular_modulus_deg(angle - attitudeActual.Yaw);
+							angle_error = circular_modulus_deg(angle - attitudeActual.Yaw);
 							break;
 						default:
 							error = true;
@@ -962,7 +962,7 @@ static void stabilizationTask(void* parameters)
 						error = true;
 
 					// Compute the outer loop
-					rateDesiredAxis[i] = pid_apply(&pids[PID_GROUP_ATT + i], error, dT_expected);
+					rateDesiredAxis[i] = pid_apply(&pids[PID_GROUP_ATT + i], angle_error, dT_expected);
 					rateDesiredAxis[i] = bound_sym(rateDesiredAxis[i], settings.PoiMaximumRate[i]);
 
 					// Compute the inner loop
