@@ -69,6 +69,9 @@
 // Includes for various stabilization algorithms
 #include "virtualflybar.h"
 
+// MAX_AXES expected to be present and equal to 3
+DONT_BUILD_IF((MAX_AXES+0 != 3), stabAxisWrongCount);
+
 // Private constants
 #define MAX_QUEUE_SIZE 1
 
@@ -105,6 +108,11 @@ enum {
 	PID_MAX
 };
 
+// Check if the axis enumeration maps properly to the things above.
+DONT_BUILD_IF((PID_RATE_ROLL+0 != ROLL)||(PID_ATT_ROLL != PID_GROUP_ATT+ROLL), stabAxisPidEnumMapping1);
+DONT_BUILD_IF((PID_RATE_PITCH+0 != PITCH)||(PID_ATT_PITCH != PID_GROUP_ATT+PITCH), stabAxisPidEnumMapping2);
+DONT_BUILD_IF((PID_RATE_YAW+0 != YAW)||(PID_ATT_YAW != PID_GROUP_ATT+YAW), stabAxisPidEnumMapping3);
+
 // Private variables
 static struct pios_thread *taskHandle;
 static StabilizationSettingsData settings;
@@ -115,7 +123,7 @@ static struct pios_queue *queue;
 
 uint16_t ident_wiggle_points;
 
-float axis_lock_accum[3] = {0,0,0};
+float axis_lock_accum[MAX_AXES] = {0,0,0};
 uint8_t max_axis_lock = 0;
 uint8_t max_axislock_rate = 0;
 float weak_leveling_kp = 0;
@@ -521,25 +529,25 @@ static void stabilizationTask(void* parameters)
 
 		// Calculate the errors in each axis. The local error is used in the following modes:
 		//  ATTITUDE, HORIZON, WEAKLEVELING
-		float local_attitude_error[3];
-		local_attitude_error[0] = trimmedAttitudeSetpoint.Roll - attitudeActual.Roll;
-		local_attitude_error[1] = trimmedAttitudeSetpoint.Pitch - attitudeActual.Pitch;
-		local_attitude_error[2] = trimmedAttitudeSetpoint.Yaw - attitudeActual.Yaw;
+		float local_attitude_error[MAX_AXES];
+		local_attitude_error[ROLL] = trimmedAttitudeSetpoint.Roll - attitudeActual.Roll;
+		local_attitude_error[PITCH] = trimmedAttitudeSetpoint.Pitch - attitudeActual.Pitch;
+		local_attitude_error[YAW] = trimmedAttitudeSetpoint.Yaw - attitudeActual.Yaw;
 
 		// Wrap yaw error to [-180,180]
-		local_attitude_error[2] = circular_modulus_deg(local_attitude_error[2]);
+		local_attitude_error[YAW] = circular_modulus_deg(local_attitude_error[YAW]);
 
-		static float gyro_filtered[3];
+		static float gyro_filtered[MAX_AXES];
 
-		gyro_filtered[0] = gyro_filtered[0] * gyro_alpha + gyrosData.x * (1 - gyro_alpha);
-		gyro_filtered[1] = gyro_filtered[1] * gyro_alpha + gyrosData.y * (1 - gyro_alpha);
-		gyro_filtered[2] = gyro_filtered[2] * gyro_alpha + gyrosData.z * (1 - gyro_alpha);
+		gyro_filtered[ROLL] = gyro_filtered[ROLL] * gyro_alpha + gyrosData.x * (1 - gyro_alpha);
+		gyro_filtered[PITCH] = gyro_filtered[PITCH] * gyro_alpha + gyrosData.y * (1 - gyro_alpha);
+		gyro_filtered[YAW] = gyro_filtered[YAW] * gyro_alpha + gyrosData.z * (1 - gyro_alpha);
 
 		/* Maintain a second-order, lower cutof freq variant for
 		 * dynamic flight modes.
 		 */
 
-		static float max_rate_filtered[3];
+		static float max_rate_filtered[MAX_AXES];
 
 		// A flag to track which stabilization mode each axis is in
 		static uint8_t previous_mode[MAX_AXES] = {255,255,255};
@@ -981,7 +989,7 @@ static void stabilizationTask(void* parameters)
 		}
 
 		if (vbar_settings.VbarPiroComp == VBARSETTINGS_VBARPIROCOMP_TRUE)
-			stabilization_virtual_flybar_pirocomp(gyro_filtered[2], dT_expected);
+			stabilization_virtual_flybar_pirocomp(gyro_filtered[YAW], dT_expected);
 
 #if defined(RATEDESIRED_DIAGNOSTICS)
 		RateDesiredSet(&rateDesired);
