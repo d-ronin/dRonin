@@ -188,6 +188,7 @@ SRC += pios_debug.c
 SRC += pios_wdg.c
 SRC += pios_reset.c
 SRC += pios_annunc.c
+SRC += pios_annuncdac.c
 
 # List C++ source files here.
 # use file-extension .cpp for C++-files (not .C)
