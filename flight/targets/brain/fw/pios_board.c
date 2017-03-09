@@ -538,6 +538,13 @@ void PIOS_Board_Init(void) {
 	PIOS_GPIO_Init();
 #endif
 
+#ifdef PIOS_INCLUDE_DAC
+        PIOS_DAC_init(&pios_dac, &pios_dac_cfg);
+
+        PIOS_HAL_ConfigureDAC(pios_dac);
+#endif /* PIOS_INCLUDE_DAC */
+
+
 	/* init sensor queue registration */
 	PIOS_SENSORS_Init();
 
