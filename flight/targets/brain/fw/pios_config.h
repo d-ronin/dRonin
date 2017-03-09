@@ -56,6 +56,7 @@
 #define PIOS_INCLUDE_TBSVTXCONFIG
 #define PIOS_INCLUDE_DAC
 #define PIOS_INCLUDE_DAC_ANNUNCIATOR
+#define PIOS_INCLUDE_DAC_FSK
 
 /* Select the sensors to include */
 #define PIOS_INCLUDE_MS5611
