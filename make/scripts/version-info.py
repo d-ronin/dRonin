@@ -412,7 +412,8 @@ defined too. In that case the utility reads a template file, performs
 variable substitution and writes the result into output file. Output
 file will be overwritten only if its content differs from expected.
 Otherwise it will not be touched, so make utility will not remake
-dependent targets.
+dependent targets.  Multiple sets of outfile / template can be
+provided in pairs.
 
 Optional positional arguments may be used to add more dictionary
 strings for replacement. Each argument has the form:
@@ -423,6 +424,7 @@ string given.
 
     parser = argparse.ArgumentParser(
         description = "Performs variable substitution in template file or string.",
+        formatter_class = argparse.RawDescriptionHelpFormatter,
         epilog = "\n" + main.__doc__ + "\n")
 
     parser.add_argument('--path', default='.',
