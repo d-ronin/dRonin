@@ -551,9 +551,9 @@ static const struct pios_tim_clock_cfg tim_17_cfg = {
 	3:  TIM2_CH4 (PA10)
 	4:  TIM2_CH3 (PA9)
 	5:  TIM2_CH1 (PA0)
-	6:  TIM2_CH2 (PA1)
-	7:  TIM3_CH3 (PB0)
-	8:  TIM3_CH4 (PB1)
+	6:  TIM2_CH2 (PA1) - Used as ADC Input for Tricopter servo fdbk
+	7:  TIM3_CH3 (PB0) - Reserved
+	8:  TIM3_CH4 (PB1) - Reserved
  */
 static const struct pios_tim_channel pios_tim_servoport_pins[] = {
 	{ // Ch1
@@ -652,38 +652,38 @@ static const struct pios_tim_channel pios_tim_servoport_pins[] = {
 			.pin_source = GPIO_PinSource1,
 		},
 	},
-	{ // Ch7
-		.timer = TIM3,
-		.timer_chan = TIM_Channel_3,
-		.remap = GPIO_AF_2,
-		.pin = {
-			.gpio = GPIOB,
-			.init = {
-				.GPIO_Pin = GPIO_Pin_0,
-				.GPIO_Speed = GPIO_Speed_2MHz,
-				.GPIO_Mode  = GPIO_Mode_AF,
-				.GPIO_OType = GPIO_OType_PP,
-				.GPIO_PuPd  = GPIO_PuPd_UP
-			},
-			.pin_source = GPIO_PinSource0,
-		},
-	},
-	{ // Ch8
-		.timer = TIM3,
-		.timer_chan = TIM_Channel_4,
-		.remap = GPIO_AF_2,
-		.pin = {
-			.gpio = GPIOB,
-			.init = {
-				.GPIO_Pin = GPIO_Pin_1,
-				.GPIO_Speed = GPIO_Speed_2MHz,
-				.GPIO_Mode  = GPIO_Mode_AF,
-				.GPIO_OType = GPIO_OType_PP,
-				.GPIO_PuPd  = GPIO_PuPd_UP
-			},
-			.pin_source = GPIO_PinSource1,
-		},
-	},
+//	{ // Ch7
+//		.timer = TIM3,
+//		.timer_chan = TIM_Channel_3,
+//		.remap = GPIO_AF_2,
+//		.pin = {
+//			.gpio = GPIOB,
+//			.init = {
+//				.GPIO_Pin = GPIO_Pin_0,
+//				.GPIO_Speed = GPIO_Speed_2MHz,
+//				.GPIO_Mode  = GPIO_Mode_AF,
+//				.GPIO_OType = GPIO_OType_PP,
+//				.GPIO_PuPd  = GPIO_PuPd_UP
+//			},
+//			.pin_source = GPIO_PinSource0,
+//		},
+//	},
+//	{ // Ch8
+//		.timer = TIM3,
+//		.timer_chan = TIM_Channel_4,
+//		.remap = GPIO_AF_2,
+//		.pin = {
+//			.gpio = GPIOB,
+//			.init = {
+//				.GPIO_Pin = GPIO_Pin_1,
+//				.GPIO_Speed = GPIO_Speed_2MHz,
+//				.GPIO_Mode  = GPIO_Mode_AF,
+//				.GPIO_OType = GPIO_OType_PP,
+//				.GPIO_PuPd  = GPIO_PuPd_UP
+//			},
+//			.pin_source = GPIO_PinSource1,
+//		},
+//	},
 };
 
 #if defined(PIOS_INCLUDE_SERVO) && defined(PIOS_INCLUDE_TIM)
@@ -692,7 +692,7 @@ static const struct pios_tim_channel pios_tim_servoport_pins[] = {
  */
 #include <pios_servo_priv.h>
 
-static const struct pios_servo_cfg pios_servo_cfg = {
+static struct pios_servo_cfg pios_servo_cfg = {
 	.tim_oc_init = {
 		.TIM_OCMode = TIM_OCMode_PWM1,
 		.TIM_OutputState = TIM_OutputState_Enable,
@@ -708,8 +708,6 @@ static const struct pios_servo_cfg pios_servo_cfg = {
 };
 
 #endif	/* PIOS_INCLUDE_SERVO && PIOS_INCLUDE_TIM */
-
-
 
 /*
  * PWM Inputs
@@ -788,33 +786,39 @@ static const struct pios_ppm_cfg pios_ppm_cfg = {
 #define DTFC_VOLTAGE_CALIBRATION_VALUE 90.9091f // mV/V
 #define DTFC_CURRENT_CALIBRATION_VALUE 24.95f // mV/A
 
-static const struct pios_internal_adc_cfg internal_adc_cfg = {
+static struct pios_internal_adc_cfg internal_adc_cfg = {
 	.dma = {
 		.irq = {
-			.flags   = (DMA2_FLAG_TC1 | DMA2_FLAG_TE1 | DMA2_FLAG_HT1 | DMA2_FLAG_GL1),
+			.flags   = (DMA1_FLAG_TC1 | DMA1_FLAG_TE1 | DMA1_FLAG_HT1 | DMA1_FLAG_GL1),
 			.init    = {
-				.NVIC_IRQChannel                   = DMA2_Channel1_IRQn,
+				.NVIC_IRQChannel                   = DMA1_Channel1_IRQn,
 				.NVIC_IRQChannelPreemptionPriority = PIOS_IRQ_PRIO_HIGH,
 				.NVIC_IRQChannelSubPriority        = 0,
 				.NVIC_IRQChannelCmd                = ENABLE,
 			},
 		},
 		.rx = {
-			.channel = DMA2_Channel1,
+			.channel = DMA1_Channel1,
 			.init    = {
-				.DMA_Priority           = DMA_Priority_High,
+				.DMA_Priority = DMA_Priority_High,
 			},
 		}
 	},
-	.half_flag = DMA2_IT_HT1,
-	.full_flag = DMA2_IT_TC1,
-	.oversampling = 32,
-	.adc_pin_count = 2,
+	.half_flag = DMA1_IT_HT1,
+	.full_flag = DMA1_IT_TC1,
+
+	.oversampling = 4,
+
 	.adc_pins = {
-		{GPIOA,GPIO_Pin_5,ADC_Channel_2,true}, // Current
-		{GPIOA,GPIO_Pin_4,ADC_Channel_1,true}, // Voltage
+		{GPIOA, GPIO_Pin_5, ADC_Channel_2,      false}, // Current
+		{GPIOA, GPIO_Pin_4, ADC_Channel_1,      false}, // Voltage
+		{NULL,  0,          ADC_Channel_Vrefint, true},
+		{GPIOA, GPIO_Pin_1, ADC_Channel_2,       true}, // Tricopter servo feedback
 	},
-	.adc_dev_master = ADC2,
+
+	.adc_pin_count = 4,
+	.adc_dev_master = ADC1,
+	.adc_dev_slave  = ADC2,
 };
 
 #endif /* PIOS_INCLUDE_ADC */

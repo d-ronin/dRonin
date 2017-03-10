@@ -498,6 +498,7 @@ int32_t transmitter_control_select(bool reset_controller)
 	case FLIGHTSTATUS_FLIGHTMODE_STABILIZED3:
 	case FLIGHTSTATUS_FLIGHTMODE_FAILSAFE:
 	case FLIGHTSTATUS_FLIGHTMODE_AUTOTUNE:
+	case FLIGHTSTATUS_FLIGHTMODE_TAILTUNE:
 		update_stabilization_desired(&cmd, &settings, &airframe_type);
 		break;
 	case FLIGHTSTATUS_FLIGHTMODE_ALTITUDEHOLD:
@@ -1103,6 +1104,9 @@ static void update_stabilization_desired(ManualControlCommandData * manual_contr
 		case FLIGHTSTATUS_FLIGHTMODE_STABILIZED3:
 			stab_modes = settings->Stabilization3Settings;
 			reprojection = settings->Stabilization3Reprojection;
+			break;
+		case FLIGHTSTATUS_FLIGHTMODE_TAILTUNE:
+			stab_modes = RATE_SETTINGS;
 			break;
 		default:
 			{
