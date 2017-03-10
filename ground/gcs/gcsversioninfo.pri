@@ -20,21 +20,16 @@ REL_AUTHORS_DEST      = $$system_path($$AUTHORS_PATH/gcsrelauthors.html)
 
 # these run once while Qmake is reading pro files rather than later during the actual build
 !build_pass {
-    system($$VERSION_INFO_COMMAND \
-                            --path=\"$$GCS_SOURCE_TREE\" \
-                            --template=\"$$VERSION_INFO_TEMPLATE\" \
-                            --uavodir=\"$$UAVO_DEF_PATH\" \
-                            --outfile=\"$$VERSION_INFO_HEADER\")
-
     system($$QMAKE_MKDIR \"$$AUTHORS_PATH\")
     system($$VERSION_INFO_COMMAND \
                             --path=\"$$GCS_SOURCE_TREE\" \
+                            --uavodir=\"$$UAVO_DEF_PATH\" \
+                            --template=\"$$VERSION_INFO_TEMPLATE\" \
+                            --outfile=\"$$VERSION_INFO_HEADER\" \
+                            --template=\"$$REL_AUTHORS_TEMPLATE\" \
+                            --outfile=\"$$REL_AUTHORS_DEST\" \
                             --template=\"$$AUTHORS_TEMPLATE\" \
                             --outfile=\"$$AUTHORS_DEST\")
-    system($$VERSION_INFO_COMMAND \
-                            --path=\"$$GCS_SOURCE_TREE\" \
-                            --template=\"$$REL_AUTHORS_TEMPLATE\" \
-                            --outfile=\"$$REL_AUTHORS_DEST\")
 }
 
 DEPENDPATH *= $$VERSION_INFO_PATH

@@ -4,13 +4,18 @@
 # generate source files and binary objects using templates.
 #
 # (c) 2011, The OpenPilot Team, http://www.openpilot.org
+# (c) 2017, dRonin
+#
 # See also: The GNU Public License (GPL) Version 3
 #
 
+from __future__ import print_function
+
+from codecs import open
 from cgi import escape
 from datetime import datetime
 import hashlib
-import optparse
+import argparse
 import re
 from string import Template
 from subprocess import Popen, PIPE
@@ -45,6 +50,10 @@ class Repo:
         git = Popen(self._git + " " + cmd, cwd=self._path,
                     shell=True, stdout=PIPE, stderr=PIPE)
         self._out, self._err = git.communicate()
+
+        self._out = self._out.decode('utf-8')
+        self._err = self._err.decode('utf-8')
+
         self._rc = git.poll()
 
     def _get_origin(self):
@@ -139,7 +148,7 @@ class Repo:
 
             self._exec('shortlog -s {}..HEAD'.format(last_rel['ref']))
             if self._rc == 0:
-                self._authors_since_release = sorted([l.strip().split(None, 1)[1] for l in self._out.splitlines()], key=str.lower)
+                self._authors_since_release = sorted([l.strip().split(None, 1)[1] for l in self._out.splitlines()])
 
     def _get_authors(self):
         """Get all-time list of authors sorted by contributions"""
@@ -238,16 +247,16 @@ class Repo:
 
     def info(self):
         """Print some repository info"""
-        print "path:       ", self.path()
-        print "origin:     ", self.origin()
-        print "Unix time:  ", self.time()
-        print "commit date:", self.time("%Y%m%d")
-        print "hash:       ", self.hash()
-        print "short hash: ", self.hash(8)
-        print "branch:     ", self.branch()
-        print "commit tag: ", self.tag('')
-        print "dirty:      ", self.dirty('yes', 'no')
-        print "ancestor:   ", self.ancestor()
+        print("path:       ", self.path())
+        print("origin:     ", self.origin())
+        print("Unix time:  ", self.time())
+        print("commit date:", self.time("%Y%m%d"))
+        print("hash:       ", self.hash())
+        print("short hash: ", self.hash(8))
+        print("branch:     ", self.branch())
+        print("commit tag: ", self.tag(''))
+        print("dirty:      ", self.dirty('yes', 'no'))
+        print("ancestor:   ", self.ancestor())
 
 def file_from_template(tpl_name, out_name, dict):
     """Create or update file from template using dictionary
@@ -278,7 +287,7 @@ def file_from_template(tpl_name, out_name, dict):
     """
 
     # Read template first
-    tf = open(tpl_name, "rb")
+    tf = open(tpl_name, "rb", encoding="utf-8")
     tpl = tf.read()
     tf.close()
 
@@ -287,10 +296,10 @@ def file_from_template(tpl_name, out_name, dict):
 
     # Check if output file already exists
     try:
-        of = open(out_name, "rb")
+        of = open(out_name, "rb", encoding="utf-8")
     except IOError:
         # No file - create new
-        of = open(out_name, "wb")
+        of = open(out_name, "wb", encoding="utf-8")
         of.write(out)
         of.close()
     else:
@@ -298,7 +307,7 @@ def file_from_template(tpl_name, out_name, dict):
         inp = of.read()
         of.close()
         if inp != out:
-            of = open(out_name, "wb")
+            of = open(out_name, "wb", encoding="utf-8")
             of.write(out)
             of.close()
 
@@ -346,7 +355,7 @@ def GetHashofDirs(directory, verbose=0, raw=0, what_to_hash='..*.xml$'):
       
       for names in [f for f in files if regexp.match(f)]:
         if verbose == 1:
-          print 'Hashing', names
+          print('Hashing', names)
         filepath = os.path.join(root,names)
         try:
           f1 = open(filepath, 'rU')
@@ -364,7 +373,7 @@ def GetHashofDirs(directory, verbose=0, raw=0, what_to_hash='..*.xml$'):
         f1.close()
 
         if verbose == 1:
-          print 'Hash is', f1hash.hexdigest()
+          print('Hash is', f1hash.hexdigest())
 
         # Append the hex representation of the current file's hash into the cumulative hash
         SHAhash.update(f1hash.hexdigest())
@@ -376,7 +385,7 @@ def GetHashofDirs(directory, verbose=0, raw=0, what_to_hash='..*.xml$'):
     return -2
 
   if verbose == 1:
-      print 'Final hash is', SHAhash.hexdigest()
+      print('Final hash is', SHAhash.hexdigest())
 
   if raw == 1:
       return SHAhash.hexdigest()
@@ -403,7 +412,8 @@ defined too. In that case the utility reads a template file, performs
 variable substitution and writes the result into output file. Output
 file will be overwritten only if its content differs from expected.
 Otherwise it will not be touched, so make utility will not remake
-dependent targets.
+dependent targets.  Multiple sets of outfile / template can be
+provided in pairs.
 
 Optional positional arguments may be used to add more dictionary
 strings for replacement. Each argument has the form:
@@ -412,41 +422,34 @@ and each ${VARIABLE} reference will be replaced with replacement
 string given.
     """
 
-    # Parse command line.
-    class RawDescriptionHelpFormatter(optparse.IndentedHelpFormatter):
-        """optparse formatter function to pretty print raw epilog"""
-        def format_epilog(self, epilog):
-            if epilog:
-                return "\n" + epilog + "\n"
-            else:
-                return ""
-
-    parser = optparse.OptionParser(
-        formatter=RawDescriptionHelpFormatter(),
+    parser = argparse.ArgumentParser(
         description = "Performs variable substitution in template file or string.",
-        epilog = main.__doc__)
+        formatter_class = argparse.RawDescriptionHelpFormatter,
+        epilog = "\n" + main.__doc__ + "\n")
 
-    parser.add_option('--path', default='.',
+    parser.add_argument('--path', default='.',
                         help='path to the git repository')
-    parser.add_option('--info', action='store_true',
+    parser.add_argument('--info', action='store_true',
                         help='print repository info to stdout')
-    parser.add_option('--format',
+    parser.add_argument('--format',
                         help='format string to print to stdout')
-    parser.add_option('--template',
+    parser.add_argument('--template', action='append', default=[],
                         help='name of template file')
-    parser.add_option('--outfile',
+    parser.add_argument('--outfile', action='append', default=[],
                         help='name of output file')
-    parser.add_option('--image',
+    parser.add_argument('--image',
                         help='name of image file for sha1 calculation')
-    parser.add_option('--type', default="",
+    parser.add_argument('--type', default="",
                         help='board type, for example, 0x04 for CopterControl')
-    parser.add_option('--revision', default = "",
+    parser.add_argument('--revision', default = "",
                         help='board revision, for example, 0x01')
-    parser.add_option('--uavodir', default = "",
+    parser.add_argument('--uavodir', default = "",
                         help='uav object definition directory')
-    parser.add_option('--htmlsafe', action='store_true',
+    parser.add_argument('--htmlsafe', action='store_true',
                         help='make substituted values html safe')
-    (args, positional_args) = parser.parse_args()
+    parser.add_argument('pos', metavar='a=b', type=int, nargs='*',
+                        help='Additional predefined words for template subst')
+    args = parser.parse_args()
 
     # Process arguments.  No advanced error handling is here.
     # Any error will raise an exception and terminate process
@@ -484,7 +487,7 @@ string given.
 
     # Process positional arguments in the form of:
     #   VAR1=str1 VAR2="string 2"
-    for var in positional_args:
+    for var in args.pos:
         (key, value) = var.split('=', 1)
         dictionary[key] = value
 
@@ -492,10 +495,10 @@ string given.
         r.info()
 
     if args.format != None:
-        print Template(args.format).substitute(dictionary)
+        print(Template(args.format).substitute(dictionary))
 
-    if args.outfile != None:
-        file_from_template(args.template, args.outfile, dictionary)
+    for i in range(len(args.outfile)):
+        file_from_template(args.template[i], args.outfile[i], dictionary)
 
     return 0
 
