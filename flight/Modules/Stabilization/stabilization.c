@@ -105,6 +105,151 @@ enum {
 	PID_MAX
 };
 
+static const float butterworth_factors[16] = {
+	// 2nd order
+	1.4142f,
+
+	// 3rd order
+	1.0f,
+
+	// 4th order
+	0.7654f, 1.8478f,
+
+	// 5th order
+	0.6180f, 1.6180f,
+
+	// 6th order
+	0.5176f, 1.4142f, 1.9319f,
+
+	// 7th order
+	0.4450f, 1.2470f, 1.8019f,
+
+	// 8th order
+	0.3902f, 1.1111f, 1.6629f, 1.9616f
+};
+
+struct filter_biquad_state {
+	float x1, x2, y1, y2;
+};
+
+struct filter_biquad {
+	float b0, a1, a2;
+	struct filter_biquad_state s[MAX_AXES];
+};
+
+struct filter_first_order {
+	float alpha;
+	float prev[MAX_AXES];
+};
+
+struct filter_compound_state {
+
+	struct filter_first_order *first_order;
+	struct filter_biquad *biquad[4];
+	uint8_t order;
+
+};
+
+static void filter_construct_single_biquad(struct filter_biquad *b, float cutoff, float dT, float q)
+{
+	float f = 1.0f / tanf((float)M_PI*cutoff*dT);
+
+	// Skipping calculation of b1 and b2, since this only going to do Butterworth.
+	// These terms are optimized away in the actual filtering calculation.
+	b->b0 = 1.0f / (1.0f + q*f + f*f);
+	b->a1 = 2.0f * (f*f - 1.0f) * b->b0;
+	b->a2 = -(1.0f - q*f + f*f) * b->b0;
+
+	memset((void*)b->s, 0, sizeof(struct filter_biquad_state)*MAX_AXES);
+}
+
+static void filter_construct_biquads(struct filter_compound_state *filt, float cutoff, float dT, int o)
+{
+	// Amount of biquad filters needed.
+	int len = o >> 1;
+
+	// Calculate the address of coefficients in the look-up table.
+	// There's probably a proper mathematical way for this. Let's just count
+	// everything.
+	int addr = 0;
+	for(int i = 2; i < o; i++)
+	{
+		addr += i >> 1;
+	}
+
+	// Create all necessary biquads and allocate, too, if not yet done so.
+	for(int i = 0; i < len; i++)
+	{
+		if(filt->biquad[i] == NULL)	{
+			filt->biquad[i] = PIOS_malloc_no_dma(sizeof(struct filter_biquad));
+		}
+		filter_construct_single_biquad(filt->biquad[i], cutoff, dT, butterworth_factors[addr+i]);
+	}
+}
+
+static void filter_create(struct filter_compound_state *filter, float cutoff, float dT, uint8_t order)
+{
+	// Don't check whether filter is NULL or not. We're passing a static
+	// struct in the code. If this ends up NULL for a reason, something
+	// else is completely broken.
+
+	// Clamp order count. If zero, this bypasses the filter.
+	if(order == 0) {
+		filter->order = 0;
+		return;
+	} else if(order > 8) order = 8;
+
+	if(order & 0x1)	{
+		// Filter is odd, allocate the first order filter.
+		if(filter->first_order == NULL)	{
+			filter->first_order = PIOS_malloc_no_dma(sizeof(struct filter_first_order));
+		}
+
+		filter->first_order->alpha = expf(-2.0f * (float)(M_PI) * cutoff * dT);
+		memset((void*)filter->first_order->prev, 0, sizeof(float)*MAX_AXES);
+	}
+
+	filter->order = order;
+	filter_construct_biquads(filter, cutoff, dT, order);
+}
+
+static float filter_execute(struct filter_compound_state *filter, int axis, float sample)
+{
+	int order = filter->order;
+
+	// Order at zero means bypass.
+	if(order == 0) return sample;
+
+	if(order & 0x1)	{
+		// Odd order filter
+		filter->first_order->prev[axis] *= filter->first_order->alpha;
+		filter->first_order->prev[axis] += (1 - filter->first_order->alpha) * sample;
+		sample = filter->first_order->prev[axis];
+	}
+
+	// Run all generated biquads.
+	order >>= 1;
+	for(int i = 0; i < order; i++)
+	{
+		struct filter_biquad *b = filter->biquad[i];
+		struct filter_biquad_state *s = &b->s[axis];
+
+		float y = b->b0 * (sample + 2.0f * s->x1 + s->x2) + b->a1 * s->y1 + b->a2 * s->y2;
+
+		s->y2 = s->y1;
+		s->y1 = y;
+
+		s->x2 = s->x1;
+		s->x1 = sample;
+
+		sample = y;
+	}
+
+	return sample;
+}
+
+struct filter_compound_state gyro_filter;
+
 // Private variables
 static struct pios_thread *taskHandle;
 static StabilizationSettingsData settings;
@@ -375,12 +520,8 @@ static void stabilizationTask(void* parameters)
 		bool error = frequency_wrong;
 
 		if (gyro_filter_updated) {
-			if (settings.GyroCutoff < 1.0f) {
-				gyro_alpha = 0;
-			} else {
-				gyro_alpha = expf(-2.0f * (float)(M_PI) *
-						settings.GyroCutoff * dT_expected);
-			}
+
+			filter_create(&gyro_filter, settings.GyroCutoff, dT_expected, settings.GyroFilterOrder);
 
 			// Default 350ms.
 			// 175ms to 39.3% of response
@@ -531,9 +672,9 @@ static void stabilizationTask(void* parameters)
 
 		static float gyro_filtered[3];
 
-		gyro_filtered[0] = gyro_filtered[0] * gyro_alpha + gyrosData.x * (1 - gyro_alpha);
-		gyro_filtered[1] = gyro_filtered[1] * gyro_alpha + gyrosData.y * (1 - gyro_alpha);
-		gyro_filtered[2] = gyro_filtered[2] * gyro_alpha + gyrosData.z * (1 - gyro_alpha);
+		gyro_filtered[0] = filter_execute(&gyro_filter, 0, gyrosData.x);
+		gyro_filtered[1] = filter_execute(&gyro_filter, 1, gyrosData.y);
+		gyro_filtered[2] = filter_execute(&gyro_filter, 2, gyrosData.z);
 
 		/* Maintain a second-order, lower cutof freq variant for
 		 * dynamic flight modes.

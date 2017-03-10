@@ -27,6 +27,9 @@
 		<field name="PitchPI" units="" type="float" elementnames="Kp,Ki,ILimit" defaultvalue="2.5,0,50" limits="%BE:0:20,%BE:0:20,"/>
 		<field name="YawPI" units="" type="float" elementnames="Kp,Ki,ILimit" defaultvalue="2.5,0,50" limits="%BE:0:20,%BE:0:20,"/>
 		<field name="GyroCutoff" units="Hz" type="float" elements="1" defaultvalue="55.0"/>
+		<field name="GyroFilterOrder" units="" type="uint8" elements="1" defaultvalue="1" limits="%BE:0:8">
+			<description>Select the order (1st to 8th) of the lowpass filter. Zero order bypasses the filter.</description>
+		</field>
 		<field name="DerivativeCutoff" units="Hz" type="uint8" elements="1" defaultvalue="20"/>
 		<field name="DerivativeGamma" units="" type="float" elements="1" defaultvalue="0.6"/>
 		<field name="MaxAxisLock" units="deg" type="uint8" elements="1" defaultvalue="15"/>
