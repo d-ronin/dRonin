@@ -52,10 +52,7 @@
 #include "pios_thread.h"
 #include "pios_sensors.h"
 #include "pios_modules.h"
-
-#ifndef SMALLF1
 #include "positionactual.h"
-#endif
 
 #include "baroaltitude.h"
 #include "flightbatterysettings.h"
@@ -452,20 +449,12 @@ static void msp_send_altitude(struct msp_bridge *m)
 	
 	float tmp;
 
-#ifdef SMALLF1
-	if (BaroAltitudeHandle() != NULL) {
-		BaroAltitudeAltitudeGet(&tmp);
-	} else {
-		return;
-	}
-#else
 	if (PositionActualHandle() != NULL) {
 		PositionActualDownGet(&tmp);
 		tmp = -tmp;
 	} else {
 		return;
 	}
-#endif
 
 	data.baro.alt = (int32_t)roundf(tmp * 100.0f);
 

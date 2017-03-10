@@ -829,7 +829,7 @@ void UploaderGadgetWidget::doUpgradeOperation(bool blankFC, tl_dfu::device &dev)
     Core::ModeManager::instance()->activateModeByWorkspaceName("Firmware");
 
     m_dialog.onStepChanged(UpgradeAssistantDialog::STEP_ENTERLOADER);
-    m_dialog.setOperatingMode(true, true, blankFC);
+    m_dialog.setOperatingMode(true, blankFC);
 
     QEventLoop loop;
     QTimer timeout;
@@ -868,24 +868,20 @@ void UploaderGadgetWidget::doUpgradeOperation(bool blankFC, tl_dfu::device &dev)
 
     qDebug() << "Upgrading from " << upgradingFrom;
 
-    /* Infer what operations we need to do -- first, do they need the upgrade
-     * tool? */
-    bool isCrippledBoard = board.board->queryCapabilities(Core::IBoardType::BOARD_DISABILITY_REQUIRESUPGRADER);
-
+    /* Infer what operations we need to do -- first, do they need a new
+     * bootloader? */
     bool upgradingLoader = false;
 
-    if (!isCrippledBoard) {
-        /* If no settings part known, new loader needed. */
-        upgradingLoader = !haveSettingsPart();
+    /* If no settings part known, new loader needed. */
+    upgradingLoader = !haveSettingsPart();
 
-        int requiredLoader = board.board->minBootLoaderVersion();
+    int requiredLoader = board.board->minBootLoaderVersion();
 
-        if (requiredLoader > dev.BL_Version) {
-            upgradingLoader = true;
-        }
+    if (requiredLoader > dev.BL_Version) {
+        upgradingLoader = true;
     }
 
-    m_dialog.setOperatingMode(upgradingLoader, isCrippledBoard, blankFC);
+    m_dialog.setOperatingMode(upgradingLoader, blankFC);
 
     if (!blankFC) {
         stepChangeAndDelay(loop, 400, UpgradeAssistantDialog::STEP_CHECKCLOUD);
@@ -936,7 +932,7 @@ void UploaderGadgetWidget::doUpgradeOperation(bool blankFC, tl_dfu::device &dev)
     }
 
     // Set this again, as we could have decided to treat the board as blank.
-    m_dialog.setOperatingMode(upgradingLoader, isCrippledBoard, blankFC);
+    m_dialog.setOperatingMode(upgradingLoader, blankFC);
 
     if (aborted) {
         upgradeError(tr("Aborted!"));
@@ -944,18 +940,10 @@ void UploaderGadgetWidget::doUpgradeOperation(bool blankFC, tl_dfu::device &dev)
         return;
     }
 
-    /* gather up bootupdater, legacy upgrader, and firmware images as needed,
+    /* gather up bootupdater and firmware images as needed,
      * so we spot errors before we do destructive things */
 
-    QByteArray upgraderFile, bootUpdateFile, firmwareFile;
-
-    if (isCrippledBoard) {
-        if (!FirmwareLoadFromFile(getImagePath(board.board->shortName(), "up"), &upgraderFile)) {
-            upgradeError(tr("Unable to load legacy upgrader image for board!"));
-
-            return;
-        }
-    }
+    QByteArray bootUpdateFile, firmwareFile;
 
     if (upgradingLoader) {
         if (!FirmwareLoadFromFile(getImagePath(board.board->shortName(), "bu"), &bootUpdateFile)) {
@@ -1003,51 +991,6 @@ void UploaderGadgetWidget::doUpgradeOperation(bool blankFC, tl_dfu::device &dev)
 
         if (!entLoader) {
             upgradeError(tr("Unable to enter bootloader after bootloader upgrade!"));
-        }
-    }
-
-    if (isCrippledBoard) {
-        stepChangeAndDelay(loop, 400, UpgradeAssistantDialog::STEP_PROGRAMUPGRADER);
-
-        if (aborted) {
-            upgradeError(tr("Aborted!"));
-
-            return;
-        }
-
-        /* program the legacy upgrade tool */
-        FirmwareLoadedClear(true);
-        FirmwareLoadedUpdate(upgraderFile);
-        setUploaderStatus(getUploaderStatus());
-
-        if (!flashFirmware(upgraderFile)) {
-            upgradeError(tr("Unable to flash upgrader image to board!"));
-
-            return;
-        }
-
-        stepChangeAndDelay(loop, 400, UpgradeAssistantDialog::STEP_ENTERUPGRADER);
-
-        if (aborted) {
-            upgradeError(tr("Aborted!"));
-
-            return;
-        }
-
-        entLoader = false;
-        setUploaderStatus(uploader::UPGRADING_CATCHLOADER);
-        dfu.JumpToApp(false);
-        dfu.CloseBootloaderComs();
-
-        /* Wait for / detect main loader */
-        timeout.start(25000);
-        loop.exec();
-        timeout.stop();
-
-        if (!entLoader) {
-            upgradeError(tr("Unable to enter legacy upgrade tool on board!!"));
-
-            return;
         }
     }
 
@@ -1124,35 +1067,6 @@ void UploaderGadgetWidget::doUpgradeOperation(bool blankFC, tl_dfu::device &dev)
     /* wipe the board setting partition in prepation of upgrade */
     if (!dfu.WipePartition(DFU_PARTITION_SETTINGS)) {
         upgradeError(tr("Failed to erase settings partition!"));
-    }
-
-    if (isCrippledBoard) {
-        stepChangeAndDelay(loop, 400, UpgradeAssistantDialog::STEP_REENTERLOADER);
-
-        if (aborted) {
-            upgradeError(tr("Aborted!"));
-
-            return;
-        }
-
-        m_dialog.onStepChanged(UpgradeAssistantDialog::STEP_REENTERLOADER);
-        /* re-enter the loader in preparation for flashing fw */
-
-        entLoader = false;
-        setUploaderStatus(uploader::UPGRADING_CATCHLOADER);
-        dfu.ResetDevice();
-        dfu.CloseBootloaderComs();
-
-        /* Wait for / detect main loader */
-        timeout.start(25000);
-        loop.exec();
-        timeout.stop();
-
-        if (!entLoader) {
-            upgradeError(tr("Unable to re-enter main bootloader on board!"));
-
-            return;
-        }
     }
 
     stepChangeAndDelay(loop, 400, UpgradeAssistantDialog::STEP_FLASHFIRMWARE);

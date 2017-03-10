@@ -157,11 +157,9 @@ int32_t transmitter_control_initialize()
 	}
 
 	// Both the gimbal and coptercontrol do not support loitering
-#if !defined(SMALLF1)
 	if (LoiterCommandInitialize() == -1) {
 		return -1;
 	}
-#endif
 
 	/* For now manual instantiate extra instances of Accessory Desired.  In future  */
 	/* should be done dynamically this includes not even registering it if not used */
@@ -1145,8 +1143,6 @@ static void update_stabilization_desired(ManualControlCommandData * manual_contr
 	StabilizationDesiredSet(&stabilization);
 }
 
-#if !defined(SMALLF1)
-
 /**
  * @brief Update the altitude desired to current altitude when
  * enabled and enable altitude mode for stabilization
@@ -1243,20 +1239,6 @@ static void set_loiter_command(ManualControlCommandData *cmd, SystemSettingsAirf
 
 	LoiterCommandSet(&loiterCommand);
 }
-
-#else /* For boards that do not support navigation set error if these modes are selected */
-
-static void altitude_hold_desired(ManualControlCommandData * cmd, bool flightModeChanged, SystemSettingsAirframeTypeOptions * airframe_type)
-{
-	set_manual_control_error(SYSTEMALARMS_MANUALCONTROL_ALTITUDEHOLD);
-}
-
-static void set_loiter_command(ManualControlCommandData *cmd, SystemSettingsAirframeTypeOptions *airframe_type)
-{
-	set_manual_control_error(SYSTEMALARMS_MANUALCONTROL_PATHFOLLOWER);
-}
-
-#endif /* !defined(SMALLF1) */
 
 /**
  * Convert channel from servo pulse duration (microseconds) to scaled -1/+1 range.

@@ -69,13 +69,7 @@ static void updateSettings();
 
 #define GPS_TIMEOUT_MS                  750
 #define GPS_COM_TIMEOUT_MS              100
-
-
-#if defined(PIOS_GPS_MINIMAL)
-	#define STACK_SIZE_BYTES            500
-#else
-	#define STACK_SIZE_BYTES            850
-#endif // PIOS_GPS_MINIMAL
+#define STACK_SIZE_BYTES                850
 
 #define TASK_PRIORITY                   PIOS_THREAD_PRIO_LOW
 
@@ -131,34 +125,25 @@ int32_t GPSInitialize(void)
 
 	// These things are only conditional on small F1 targets.
 	// Expected to be always present otherwise.
-#ifdef SMALLF1
-	if (gpsPort && module_enabled) {
-#endif
-		if (GPSPositionInitialize() == -1 \
-			|| GPSVelocityInitialize() == -1) {
-			
-			module_enabled = false;
-			return -1;
-		}
-#if !defined(PIOS_GPS_MINIMAL)
-		if (GPSTimeInitialize() == -1 \
-			|| GPSSatellitesInitialize() == -1 \
-			|| HomeLocationInitialize() == -1 \
-			|| UBloxInfoInitialize() == -1) {
-			module_enabled = false;
-			return -1;
-		}
-#endif
+	if (GPSPositionInitialize() == -1 \
+		|| GPSVelocityInitialize() == -1) {
+		module_enabled = false;
+		return -1;
+	}
+	if (GPSTimeInitialize() == -1 \
+		|| GPSSatellitesInitialize() == -1 \
+		|| HomeLocationInitialize() == -1 \
+		|| UBloxInfoInitialize() == -1) {
+		module_enabled = false;
+		return -1;
+	}
 #if defined(PIOS_GPS_PROVIDES_AIRSPEED)
-		if (AirspeedActualInitialize() == -1) {
-			module_enabled = false;
-			return -1;
-		}
-#endif
-		updateSettings();
-#ifdef SMALLF1
+	if (AirspeedActualInitialize() == -1) {
+		module_enabled = false;
+		return -1;
 	}
 #endif
+	updateSettings();
 
 	if (gpsPort && module_enabled) {
 		ModuleSettingsGPSDataProtocolGet(&gpsProtocol);
@@ -201,7 +186,6 @@ static void gpsConfigure(uint8_t gpsProtocol)
 		return;
 	}
 
-#if !defined(PIOS_GPS_MINIMAL)
 	switch (gpsProtocol) {
 #if defined(PIOS_INCLUDE_GPS_UBX_PARSER)
 		case MODULESETTINGS_GPSDATAPROTOCOL_UBX:
@@ -232,7 +216,6 @@ static void gpsConfigure(uint8_t gpsProtocol)
 		break;
 #endif
 	}
-#endif /* PIOS_GPS_MINIMAL */
 }
 
 /**

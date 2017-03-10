@@ -257,10 +257,6 @@ static void systemTask(void *parameters)
 		ManualControlSettingsConnectCallback(configurationUpdatedCb);
 	if (FlightStatusHandle())
 		FlightStatusConnectCallback(configurationUpdatedCb);
-#ifndef SMALLF1
-	if (StateEstimationHandle())
-		StateEstimationConnectCallback(configurationUpdatedCb);
-#endif
 #endif
 
 	// Main system loop

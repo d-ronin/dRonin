@@ -321,7 +321,6 @@ static void uavoFrSKYSensorHubBridgeTask(void *parameters)
 				}
 				break;
 			}
-#ifndef SMALLF1
 			case MODULESETTINGS_FRSKYACCELDATA_NEDACCELS: {
 				if (NedAccelHandle() != NULL) {
 					NedAccelNorthGet(&accX);
@@ -846,7 +845,6 @@ static void frsky_write_userdata_byte(uint8_t byte, uint8_t *serial_buf, uint8_t
 	}
 }
 
-#endif
 /**
  * @}
  * @}

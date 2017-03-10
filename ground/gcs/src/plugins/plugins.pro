@@ -310,12 +310,6 @@ plugin_boards_quantec.depends = plugin_coreplugin
 plugin_boards_quantec.depends += plugin_uavobjects
 SUBDIRS += plugin_boards_quantec
 
-# Naze32
-plugin_boards_naze.subdir = boards_naze
-plugin_boards_naze.depends = plugin_coreplugin
-plugin_boards_naze.depends += plugin_uavobjects
-SUBDIRS += plugin_boards_naze
-
 # BrainFPV LLC
 plugin_boards_brainfpv.subdir = boards_brainfpv
 plugin_boards_brainfpv.depends = plugin_coreplugin

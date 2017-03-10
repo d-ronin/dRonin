@@ -184,13 +184,9 @@ fastexp (float p)
 	  return fastpow2 (1.442695040f * p);
 }
 
-#ifdef SMALLF1
-#define powapprox fastpow
-#define expapprox fastexp
-#else
+/* Use full versions for now on all targets */
 #define powapprox powf
 #define expapprox expf
-#endif
 
 #endif /* MISC_MATH_H */
 

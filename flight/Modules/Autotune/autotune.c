@@ -111,13 +111,7 @@ static void af_predict(float X[AF_NUMX], float P[AF_NUMP], const struct at_measu
 static void af_init(float X[AF_NUMX], float P[AF_NUMP]);
 
 #ifndef AT_QUEUE_NUMELEM
-
-#ifdef SMALLF1
-#define AT_QUEUE_NUMELEM 19
-#else
 #define AT_QUEUE_NUMELEM 32
-#endif
-
 #endif
 
 /**
@@ -126,12 +120,10 @@ static void af_init(float X[AF_NUMX], float P[AF_NUMP]);
  */
 int32_t AutotuneInitialize(void)
 {
-#ifndef SMALLF1
 	if (SystemIdentInitialize() == -1) {
 		module_enabled = false;
 		return -1;
 	}
-#endif
 
 	// Create a queue, connect to manual control command and flightstatus
 #ifdef MODULE_Autotune_BUILTIN

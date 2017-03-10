@@ -45,12 +45,9 @@ UpgradeAssistantDialog::UpgradeAssistantDialog(QWidget *parent) :
     stepLabels[STEP_ENTERLOADER] = ui->lblEnterLoader;
     stepLabels[STEP_CHECKCLOUD] = ui->lblCheckCloud;
     stepLabels[STEP_UPGRADEBOOTLOADER] = ui->lblUpgradeBootloader;
-    stepLabels[STEP_PROGRAMUPGRADER] = ui->lblProgramUpgrader;
-    stepLabels[STEP_ENTERUPGRADER] = ui->lblEnterUpgrader;
     stepLabels[STEP_DOWNLOADSETTINGS] = ui->lblDownloadSettings;
     stepLabels[STEP_TRANSLATESETTINGS] = ui->lblTranslateSettings;
     stepLabels[STEP_ERASESETTINGS] = ui->lblEraseSettings;
-    stepLabels[STEP_REENTERLOADER] = ui->lblReenterLoader;
     stepLabels[STEP_FLASHFIRMWARE] = ui->lblFlashFirmware;
     stepLabels[STEP_BOOT] = ui->lblBoot;
     stepLabels[STEP_IMPORT] = ui->lblImport;
@@ -69,13 +66,9 @@ UpgradeAssistantDialog::~UpgradeAssistantDialog()
 }
 
 void UpgradeAssistantDialog::setOperatingMode(bool upgradingBootloader,
-        bool usingUpgrader, bool blankFC)
+        bool blankFC)
 {
     ui->lblUpgradeBootloader->setEnabled(upgradingBootloader);
-
-    ui->lblProgramUpgrader->setEnabled(usingUpgrader);
-    ui->lblEnterUpgrader->setEnabled(usingUpgrader);
-    ui->lblReenterLoader->setEnabled(usingUpgrader);
 
     ui->lblDownloadSettings->setEnabled(!blankFC);
     ui->lblTranslateSettings->setEnabled(!blankFC);

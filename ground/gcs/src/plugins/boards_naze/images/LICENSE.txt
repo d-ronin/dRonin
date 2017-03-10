@@ -1,6 +1,0 @@
-Naze Rev6 Render (c) by timecop
-
-Naze Rev6 Render is licensed under a
-Creative Commons Attribution-ShareAlike 3.0 Unported License.
-
-Full license available at <http://creativecommons.org/licenses/by-sa/3.0/>.

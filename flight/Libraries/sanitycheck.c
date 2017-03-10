@@ -297,7 +297,6 @@ static int32_t check_safe_autonomous()
 	//   INSOutdoor |     INS
 	//   INSIndoor  |     INS          (unsafe)
 
-#if !defined(SMALLF1)
 	StateEstimationData stateEstimation;
 	StateEstimationGet(&stateEstimation);
 
@@ -308,7 +307,6 @@ static int32_t check_safe_autonomous()
 	if (stateEstimation.NavigationFilter != STATEESTIMATION_NAVIGATIONFILTER_INS &&
 		stateEstimation.NavigationFilter != STATEESTIMATION_NAVIGATIONFILTER_RAW)
 		return SYSTEMALARMS_CONFIGERROR_NAVFILTER;
-#endif
 
 	return SYSTEMALARMS_CONFIGERROR_NONE;
 }

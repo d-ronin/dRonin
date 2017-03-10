@@ -27,7 +27,6 @@
  */
 
 #include "openpilotplugin.h"
-#include "cc3d.h"
 #include "revolution.h"
 #include <QtPlugin>
 
@@ -55,9 +54,6 @@ void OpenPilotPlugin::extensionsInitialized()
      * Create the board objects here.
      *
      */
-    CC3D* cc3d = new CC3D();
-    addAutoReleasedObject(cc3d);
-
     Revolution* revo = new Revolution();
     addAutoReleasedObject(revo);
 

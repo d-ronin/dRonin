@@ -814,54 +814,6 @@ ef_$(1)_%: $(5)
 		$$*
 endef
 
-# $(1) = Canonical board name all in lower case (e.g. coptercontrol)
-# $(2) = CPU arch (e.g. f1, f3, f4)
-# $(3) = Short name for board (e.g CC)
-define UP_TEMPLATE
-.PHONY: up_$(1)
-up_$(1): up_$(1)_tlfw
-
-FW_FILES += $(BUILD_DIR)/up_$(1)/up_$(1).tlfw
-FW_FILES += $(BUILD_DIR)/up_$(1)/up_$(1).debug
-
-up_$(1)_%: TARGET=up_$(1)
-up_$(1)_%: OUTDIR=$(BUILD_DIR)/$$(TARGET)
-up_$(1)_%: BOARD_ROOT_DIR=$(ROOT_DIR)/flight/targets/$(1)
-up_$(1)_%: BLSRCDIR=$(ROOT_DIR)/flight/targets/bl
-up_$(1)_%: BLCOMMONDIR=$$(BLSRCDIR)/common
-up_$(1)_%: BLARCHDIR=$$(BLSRCDIR)/$(2)upgrader
-up_$(1)_%: BLBOARDDIR=$$(BOARD_ROOT_DIR)/bl
-up_$(1)_%: usb_id_header
-	$(V1) mkdir -p $$(OUTDIR)/dep
-	$(V1) cd $$(BLARCHDIR) && \
-		$$(MAKE) -r --no-print-directory \
-		BOARD_NAME=$(1) \
-		BOARD_SHORT_NAME=$(3) \
-		BUILD_TYPE=up \
-		TCHAIN_PREFIX="$(ARM_SDK_PREFIX)" \
-		REMOVE_CMD="$(RM)" OOCD_EXE="$(OPENOCD)" \
-		\
-		ROOT_DIR=$(ROOT_DIR) \
-		BOARD_ROOT_DIR=$$(BOARD_ROOT_DIR) \
-		BOARD_INFO_DIR=$$(BOARD_ROOT_DIR)/board-info \
-		TARGET=$$(TARGET) \
-		OUTDIR=$$(OUTDIR) \
-		BLCOMMONDIR=$$(BLCOMMONDIR) \
-		BLARCHDIR=$$(BLARCHDIR) \
-		BLBOARDDIR=$$(BLBOARDDIR) \
-		\
-		$$*
-
-# last 3 comments are temporary hackery until unified with #762
-
-.PHONY: up_$(1)_clean
-up_$(1)_clean: TARGET=up_$(1)
-up_$(1)_clean: OUTDIR=$(BUILD_DIR)/$$(TARGET)
-up_$(1)_clean:
-	$(V0) @echo " CLEAN      $$@"
-	$(V1) [ ! -d "$$(OUTDIR)" ] || $(RM) -rf "$$(OUTDIR)"
-endef
-
 # When building any of the "all_*" targets, tell all sub makefiles to display
 # additional details on each line of output to describe which build and target
 # that each line applies to.
@@ -937,14 +889,12 @@ all_$(1): $$(filter fw_$(1), $$(FW_TARGETS))
 all_$(1): $$(filter bl_$(1), $$(BL_TARGETS))
 all_$(1): $$(filter bu_$(1), $$(BU_TARGETS))
 all_$(1): $$(filter ef_$(1), $$(EF_TARGETS))
-all_$(1): $$(filter up_$(1), $$(UP_TARGETS))
 
 .PHONY: all_$(1)_clean
 all_$(1)_clean: $$(addsuffix _clean, $$(filter fw_$(1), $$(FW_TARGETS)))
 all_$(1)_clean: $$(addsuffix _clean, $$(filter bl_$(1), $$(BL_TARGETS)))
 all_$(1)_clean: $$(addsuffix _clean, $$(filter bu_$(1), $$(BU_TARGETS)))
 all_$(1)_clean: $$(addsuffix _clean, $$(filter ef_$(1), $$(EF_TARGETS)))
-all_$(1)_clean: $$(addsuffix _clean, $$(filter up_$(1), $$(UP_TARGETS)))
 endef
 
 # Some boards don't use the bootloader
@@ -953,7 +903,6 @@ NOBL_BOARDS    := $(strip $(foreach BOARD, $(ALL_BOARDS),$(if $(filter no,$($(BO
 BL_BOARDS      := $(filter-out $(NOBL_BOARDS), $(ALL_BOARDS))
 BU_BOARDS      := $(BL_BOARDS)
 EF_BOARDS      := $(ALL_BOARDS)
-UP_BOARDS      := cc3d
 
 SIM_BOARDS := sim
 
@@ -962,7 +911,6 @@ FW_TARGETS := $(addprefix fw_, $(FW_BOARDS))
 BL_TARGETS := $(addprefix bl_, $(BL_BOARDS))
 BU_TARGETS := $(addprefix bu_, $(BU_BOARDS))
 EF_TARGETS := $(addprefix ef_, $(EF_BOARDS))
-UP_TARGETS := $(addprefix up_, $(UP_BOARDS))
 
 .PHONY: all_fw all_fw_clean
 all_fw:        $(addsuffix _tlfw,  $(FW_TARGETS))
@@ -980,16 +928,12 @@ all_bu_clean:  $(addsuffix _clean, $(BU_TARGETS))
 all_ef:        $(EF_TARGETS)
 all_ef_clean:  $(addsuffix _clean, $(EF_TARGETS))
 
-.PHONY: all_up all_up_clean
-all_up:        $(UP_TARGETS)
-all_up_clean:  $(addsuffix _clean, $(UP_TARGETS))
-
 .PHONY: all_sim all_sim_clean
 all_sim: $(SIM_BOARDS)
 all_sim_clean: $(addsuffix _clean, $(SIM_BOARDS))
 
 .PHONY: all_flight all_flight_clean
-all_flight:       all_fw all_bl all_bu all_ef all_up all_sim
+all_flight:       all_fw all_bl all_bu all_ef all_sim
 all_flight_clean: all_fw_clean all_bl_clean all_bu_clean all_ef_clean all_sim_clean
 
 # Expand the groups of targets for each board
