@@ -728,6 +728,8 @@ static int32_t updateAttitudeComplementary(float dT, bool first_run, bool second
 	}
 
 	if (!secondary) {
+		static bool got_baro_pt = false;
+
 		// Calculate the NED acceleration and get the z-component
 		float z_accel = calc_ned_accel(cf_q, &accelsData.x);
 
@@ -739,7 +741,10 @@ static int32_t updateAttitudeComplementary(float dT, bool first_run, bool second
 
 			cfvert_predict_pos(&cfvert, z_accel, dT);
 			cfvert_update_baro(&cfvert, baro, dT);
-		} else if (PIOS_SENSORS_GetMissing(PIOS_SENSOR_BARO)) {
+
+			got_baro_pt = true;
+		} else if (!got_baro_pt) {
+			/* If we've never heard from the baro hold alt at 0 */
 			cfvert.position_z = 0;
 			cfvert.velocity_z = 0;
 		} else {
