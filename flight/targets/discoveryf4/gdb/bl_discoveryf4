@@ -1,4 +1,0 @@
-define connect
-	target remote localhost:3333
-	file ./build/bl_discoveryf4/bl_discoveryf4.elf
-end
