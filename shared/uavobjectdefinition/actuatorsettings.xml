@@ -14,9 +14,6 @@
 		<field name="ChannelMin" units="us" type="uint16" elements="10" defaultvalue="0">
 			<description>Minimum output pulse length. Actuator commands will be scaled from [-1,1] to [ChannelMin,ChannelMax].</description>
 		</field>
-		<field name="ChannelType" units="" type="enum" elements="10" options="PWM,PWM Alarm,Arming LED,Info LED" defaultvalue="PWM">
-			<description>The type of output signal. Use PWM for motors.</description>
-		</field>
 		<field name="MotorsSpinWhileArmed" units="" type="enum" elements="1" options="FALSE,TRUE" defaultvalue="FALSE">
 			<description>When enabled, the motors will spin at the ChannelNeutral command when armed with zero throttle.</description>
 		</field>

@@ -45,10 +45,6 @@ OutputChannelForm::OutputChannelForm(const int index, QWidget *parent, const boo
 
     ActuatorSettings *actuatorSettings = ActuatorSettings::GetInstance(getObjectManager());
     Q_ASSERT(actuatorSettings);
-    UAVObjectField *types = actuatorSettings->getField("ChannelType");
-    Q_ASSERT(types);
-    ui.actuatorType->clear();
-    ui.actuatorType->addItems(types->getOptions());
 
     if(!showLegend)
     {
@@ -83,8 +79,6 @@ OutputChannelForm::OutputChannelForm(const int index, QWidget *parent, const boo
     connect(ui.actuatorMin, SIGNAL(valueChanged(int)), this, SLOT(notifyFormChanged()));
     connect(ui.actuatorMax, SIGNAL(valueChanged(int)), this, SLOT(notifyFormChanged()));
     connect(ui.actuatorNeutral, SIGNAL(sliderReleased()), this, SLOT(notifyFormChanged()));
-    connect(ui.actuatorType, SIGNAL(currentIndexChanged(int)), this, SLOT(notifyFormChanged()));
-
     ui.actuatorLink->setChecked(false);
     connect(ui.actuatorLink, SIGNAL(toggled(bool)), this, SLOT(linkToggled(bool)));
 
@@ -112,14 +106,12 @@ void OutputChannelForm::enableChannelTest(bool state)
         ui.actuatorMin->setEnabled(false);
         ui.actuatorMax->setEnabled(false);
         ui.pb_reverseActuator->setEnabled(false);
-        ui.actuatorType->setEnabled(false);
     }
     else
     {
         ui.actuatorMin->setEnabled(!minMaxFixed);
         ui.actuatorMax->setEnabled(!minMaxFixed);
         ui.pb_reverseActuator->setEnabled(!minMaxFixed);
-        ui.actuatorType->setEnabled(true);
     }
 }
 
@@ -200,19 +192,6 @@ void OutputChannelForm::setMinmax(int minimum, int maximum)
 void OutputChannelForm::setNeutral(int value)
 {
     ui.actuatorNeutral->setValue(value);
-}
-
-/**
- * Set type of channel.
- */
-void OutputChannelForm::setType(int value)
-{
-    ui.actuatorType->setCurrentIndex(value);
-}
-
-int OutputChannelForm::type() const
-{
-    return ui.actuatorType->currentIndex();
 }
 
 void OutputChannelForm::alignFields()

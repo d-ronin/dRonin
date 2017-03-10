@@ -256,10 +256,6 @@ void ConfigOutputWidget::assignOutputChannels(UAVObject *obj)
 
         quint32 neutral = actuatorSettingsData.ChannelNeutral[outputChannelForm->index()];
         outputChannelForm->setNeutral(neutral);
-
-        // init type
-        quint16 type = actuatorSettingsData.ChannelType[outputChannelForm->index()];
-        outputChannelForm->setType(type);
     }
 
     refreshWidgetRanges();
@@ -590,7 +586,6 @@ void ConfigOutputWidget::updateObjectsFromWidgets()
             actuatorSettingsData.ChannelMax[outputChannelForm->index()] = outputChannelForm->max();
             actuatorSettingsData.ChannelMin[outputChannelForm->index()] = outputChannelForm->min();
             actuatorSettingsData.ChannelNeutral[outputChannelForm->index()] = outputChannelForm->neutral();
-            actuatorSettingsData.ChannelType[outputChannelForm->index()] = outputChannelForm->type();
         }
 
         // Set update rates

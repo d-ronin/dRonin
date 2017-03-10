@@ -95,7 +95,6 @@ static float scale_channel(float value, int idx);
 static void set_failsafe();
 static float throt_curve(const float input, const float* curve, uint8_t num_points);
 static float collective_curve(const float input, const float* curve, uint8_t num_points);
-static bool set_channel(uint8_t mixer_channel, float value);
 static void actuator_set_servo_mode(void);
 float process_mixer(const int index, const float curve1, const float curve2,
 		ActuatorDesiredData *desired);
@@ -303,8 +302,9 @@ static void actuator_task(void* parameters)
 				nMixers++;
 			}
 		}
-		if ((nMixers < 2) && !ActuatorCommandReadOnly()) { //Nothing can fly with less than two mixers.
-			set_failsafe(); // So that channels like PWM buzzer keep working
+		if ((nMixers < 2) && !ActuatorCommandReadOnly()) {
+			// Nothing can fly with less than two mixers.
+			set_failsafe();
 			continue;
 		}
 
@@ -312,9 +312,9 @@ static void actuator_task(void* parameters)
 		bool spin_while_armed = actuatorSettings.MotorsSpinWhileArmed == ACTUATORSETTINGS_MOTORSSPINWHILEARMED_TRUE;
 
 		float throttle_source = -1;
-		// as long as we're not a heli in failsafe mode, we should set throttle from the manual throttle value
-		// if we're not a heli, set it from the thrust value
 		if (airframe_type == SYSTEMSETTINGS_AIRFRAMETYPE_HELICP) {
+			// Helis set throttle from manual control's throttle value,
+			// unless in failsafe.
 			if (flightStatus.FlightMode != FLIGHTSTATUS_FLIGHTMODE_FAILSAFE) {
 				throttle_source = manual_control_command.Throttle;
 			}
@@ -457,23 +457,13 @@ static void actuator_task(void* parameters)
 #if defined(MIXERSTATUS_DIAGNOSTICS)
 		MixerStatusSet(&mixerStatus);
 #endif
-
-		// Update servo outputs
-		bool success = true;
-
 		for (int n = 0; n < ACTUATORCOMMAND_CHANNEL_NUMELEM; ++n) {
-			success &= set_channel(n, command.Channel[n]);
+			PIOS_Servo_Set(n, command.Channel[n]);
 		}
 
 		PIOS_Servo_Update();
 
-		if (!success) {
-			command.NumFailedUpdates++;
-			ActuatorCommandSet(&command);
-			AlarmsSet(SYSTEMALARMS_ALARM_ACTUATOR, SYSTEMALARMS_ALARM_CRITICAL);
-		} else {
-			AlarmsClear(SYSTEMALARMS_ALARM_ACTUATOR);
-		}
+		AlarmsClear(SYSTEMALARMS_ALARM_ACTUATOR);
 	}
 }
 
@@ -575,141 +565,24 @@ static float channel_failsafe_value(int idx)
  */
 static void set_failsafe()
 {
-	/* grab only the parts that we are going to use */
 	float Channel[ACTUATORCOMMAND_CHANNEL_NUMELEM];
-	ActuatorCommandChannelGet(Channel);
 
-	// Reset ActuatorCommand to safe values
-	for (int n = 0; n < ACTUATORCOMMAND_CHANNEL_NUMELEM; ++n) {
-		Channel[n] = channel_failsafe_value(n);
-	}
+	ActuatorCommandChannelGet(Channel);
 
 	// Set alarm
 	AlarmsSet(SYSTEMALARMS_ALARM_ACTUATOR, SYSTEMALARMS_ALARM_CRITICAL);
 
 	// Update servo outputs
 	for (int n = 0; n < ACTUATORCOMMAND_CHANNEL_NUMELEM; ++n) {
-		set_channel(n, Channel[n]);
+		float fs_val = channel_failsafe_value(n);
+
+		PIOS_Servo_Set(n, fs_val);
 	}
 	
 	PIOS_Servo_Update();
 
 	// Update output object's parts that we changed
 	ActuatorCommandChannelSet(Channel);
-}
-
-static bool set_channel(uint8_t mixer_channel, float value)
-{
-	switch (actuatorSettings.ChannelType[mixer_channel]) {
-	case ACTUATORSETTINGS_CHANNELTYPE_PWMALARM:
-	case ACTUATORSETTINGS_CHANNELTYPE_ARMINGLED:
-	case ACTUATORSETTINGS_CHANNELTYPE_INFOLED:
-	{
-		// This is for buzzers that take a PWM input
-
-		static uint32_t currBuzzTune = 0;
-		static uint32_t currBuzzTuneState;
-
-		static uint32_t currArmingTune = 0;
-		static uint32_t currArmingTuneState;
-
-		static uint32_t currInfoTune = 0;
-		static uint32_t currInfoTuneState;
-
-		uint32_t newTune = 0;
-		if (actuatorSettings.ChannelType[mixer_channel] == ACTUATORSETTINGS_CHANNELTYPE_PWMALARM) {
-
-			// Decide what tune to play
-			if (AlarmsGet(SYSTEMALARMS_ALARM_BATTERY) > SYSTEMALARMS_ALARM_WARNING) {
-				newTune = 0b11110110110000;     // pause, short, short, short, long
-			} else if (AlarmsGet(SYSTEMALARMS_ALARM_GPS) >= SYSTEMALARMS_ALARM_WARNING) {
-				newTune = 0x80000000;                           // pause, short
-			} else {
-				newTune = 0;
-			}
-
-			// Do we need to change tune?
-			if (newTune != currBuzzTune) {
-				currBuzzTune = newTune;
-				currBuzzTuneState = currBuzzTune;
-			}
-		} else {     // ACTUATORSETTINGS_CHANNELTYPE_ARMINGLED || ACTUATORSETTINGS_CHANNELTYPE_INFOLED
-			uint8_t arming;
-			FlightStatusArmedGet(&arming);
-			//base idle tune
-			newTune =  0x80000000;          // 0b1000...
-
-			// Merge the error pattern for InfoLed
-			if (actuatorSettings.ChannelType[mixer_channel] == ACTUATORSETTINGS_CHANNELTYPE_INFOLED) {
-				if (AlarmsGet(SYSTEMALARMS_ALARM_BATTERY) > SYSTEMALARMS_ALARM_WARNING) {
-					newTune |= 0b00000000001111111011111110000000;
-				} else if (AlarmsGet(SYSTEMALARMS_ALARM_GPS) >= SYSTEMALARMS_ALARM_WARNING) {
-					newTune |= 0b00000000000000110110110000000000;
-				}
-			}
-			// fast double blink pattern if armed
-			if (arming == FLIGHTSTATUS_ARMED_ARMED)
-				newTune |= 0xA0000000;  // 0b101000...
-
-			// Do we need to change tune?
-			if (actuatorSettings.ChannelType[mixer_channel] == ACTUATORSETTINGS_CHANNELTYPE_ARMINGLED) {
-				if (newTune != currArmingTune) {
-					currArmingTune = newTune;
-					// note: those are both updated so that Info and Arming are in sync if used simultaneously
-					currArmingTuneState = currArmingTune;
-					currInfoTuneState = currInfoTune;
-				}
-			} else {
-				if (newTune != currInfoTune) {
-					currInfoTune = newTune;
-					currArmingTuneState = currArmingTune;
-					currInfoTuneState = currInfoTune;
-				}
-			}
-		}
-
-		// Play tune
-		bool buzzOn = false;
-		static uint32_t lastSysTime = 0;
-		uint32_t thisSysTime = PIOS_Thread_Systime();
-		uint32_t dT = 0;
-
-		// For now, only look at the battery alarm, because functions like AlarmsHasCritical() can block for some time; to be discussed
-		if (currBuzzTune||currArmingTune||currInfoTune) {
-			if (thisSysTime > lastSysTime)
-				dT = thisSysTime - lastSysTime;
-			if (actuatorSettings.ChannelType[mixer_channel] == ACTUATORSETTINGS_CHANNELTYPE_PWMALARM)
-				buzzOn = (currBuzzTuneState&1);  // Buzz when the LS bit is 1
-			else if (actuatorSettings.ChannelType[mixer_channel] == ACTUATORSETTINGS_CHANNELTYPE_ARMINGLED)
-				buzzOn = (currArmingTuneState&1);
-			else if (actuatorSettings.ChannelType[mixer_channel] == ACTUATORSETTINGS_CHANNELTYPE_INFOLED)
-				buzzOn = (currInfoTuneState&1);
-
-			if (dT > 80) {
-				// Go to next bit in alarm_seq_state
-				currArmingTuneState >>= 1;
-				currInfoTuneState >>= 1;
-				currBuzzTuneState >>= 1;
-
-				if (currBuzzTuneState == 0)
-					currBuzzTuneState = currBuzzTune;       // All done, re-start the tune
-				if (currArmingTuneState == 0)
-					currArmingTuneState = currArmingTune;
-				if (currInfoTuneState == 0)
-					currInfoTuneState = currInfoTune;
-				lastSysTime = thisSysTime;
-			}
-		}
-		PIOS_Servo_Set(mixer_channel,
-					buzzOn ? actuatorSettings.ChannelMax[mixer_channel] : actuatorSettings.ChannelMin[mixer_channel]);
-		return true;
-	}
-	case ACTUATORSETTINGS_CHANNELTYPE_PWM:
-		PIOS_Servo_Set(mixer_channel, value);
-		return true;
-	}
-
-	return false;
 }
 
 /**
