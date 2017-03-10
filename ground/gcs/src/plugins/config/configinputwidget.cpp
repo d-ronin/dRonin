@@ -72,14 +72,14 @@
 #define INITIAL_OFFSET 42
 
 const QVector<ConfigInputWidget::ArmingMethod> ConfigInputWidget::armingMethods = {
-    {ConfigInputWidget::ARM_ALWAYS_DISARMED, tr("always disarmed"), tr("always disarmed"), tr("always disarmed"), "Always Disarmed", false, false, true},
-    {ConfigInputWidget::ARM_ALWAYS_ARMED,    tr("always armed"), tr("always armed"), tr("always armed"), "Always Armed", false, false, true},
-    {ConfigInputWidget::ARM_SWITCH,          tr("switch"), tr("a switch"), tr("a switch"), "Switch", true, false, false},
-    {ConfigInputWidget::ARM_ROLL_LEFT,       tr("roll left"), tr("roll left"), tr("roll right"), "Roll Left+Throttle", false, true, false},
-    {ConfigInputWidget::ARM_ROLL_RIGHT,      tr("roll right"), tr("roll right"), tr("roll left"), "Roll Right+Throttle", false, true, false},
-    {ConfigInputWidget::ARM_YAW_LEFT,        tr("yaw left"), tr("yaw left"), tr("yaw right"), "Yaw Left+Throttle", false, true, false},
-    {ConfigInputWidget::ARM_YAW_RIGHT,       tr("yaw right"), tr("yaw right"), tr("yaw left"), "Yaw Right+Throttle", false, true, false},
-    {ConfigInputWidget::ARM_CORNERS,         tr("corners"), tr("roll left and yaw right"), tr("roll right and yaw left"), "Corners+Throttle", false, true, false},
+    {ConfigInputWidget::ARM_ALWAYS_DISARMED, "always disarmed", "always disarmed", "always disarmed", "Always Disarmed", false, false, true},
+    {ConfigInputWidget::ARM_ALWAYS_ARMED,    "always armed", "always armed", "always armed", "Always Armed", false, false, true},
+    {ConfigInputWidget::ARM_SWITCH,          "switch", "a switch", "a switch", "Switch", true, false, false},
+    {ConfigInputWidget::ARM_ROLL_LEFT,       "roll left", "roll left", "roll right", "Roll Left+Throttle", false, true, false},
+    {ConfigInputWidget::ARM_ROLL_RIGHT,      "roll right", "roll right", "roll left", "Roll Right+Throttle", false, true, false},
+    {ConfigInputWidget::ARM_YAW_LEFT,        "yaw left", "yaw left", "yaw right", "Yaw Left+Throttle", false, true, false},
+    {ConfigInputWidget::ARM_YAW_RIGHT,       "yaw right", "yaw right", "yaw left", "Yaw Right+Throttle", false, true, false},
+    {ConfigInputWidget::ARM_CORNERS,         "corners", "roll left and yaw right", "roll right and yaw left", "Corners+Throttle", false, true, false},
 };
 
 ConfigInputWidget::ConfigInputWidget(QWidget *parent) : ConfigTaskWidget(parent),
