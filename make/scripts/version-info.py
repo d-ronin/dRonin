@@ -431,9 +431,9 @@ string given.
                         help='print repository info to stdout')
     parser.add_argument('--format',
                         help='format string to print to stdout')
-    parser.add_argument('--template',
+    parser.add_argument('--template', action='append', default=[],
                         help='name of template file')
-    parser.add_argument('--outfile',
+    parser.add_argument('--outfile', action='append', default=[],
                         help='name of output file')
     parser.add_argument('--image',
                         help='name of image file for sha1 calculation')
@@ -495,8 +495,8 @@ string given.
     if args.format != None:
         print(Template(args.format).substitute(dictionary))
 
-    if args.outfile != None:
-        file_from_template(args.template, args.outfile, dictionary)
+    for i in range(len(args.outfile)):
+        file_from_template(args.template[i], args.outfile[i], dictionary)
 
     return 0
 
