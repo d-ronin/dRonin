@@ -75,12 +75,12 @@ plugin_uavobjectbrowser.depends += plugin_uavobjects
 SUBDIRS += plugin_uavobjectbrowser
 
 # ModelView UAVGadget
-!LIGHTWEIGHT_GCS {
-plugin_modelview.subdir = modelview
-plugin_modelview.depends = plugin_coreplugin
-plugin_modelview.depends += plugin_uavobjects
-SUBDIRS += plugin_modelview
-}
+#!LIGHTWEIGHT_GCS {
+#plugin_modelview.subdir = modelview
+#plugin_modelview.depends = plugin_coreplugin
+#plugin_modelview.depends += plugin_uavobjects
+#SUBDIRS += plugin_modelview
+#}
 
 !disable_notify_plugin {
     plugin_notify.subdir = notify

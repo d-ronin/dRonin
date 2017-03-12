@@ -32,7 +32,7 @@ ifeq ($(USE_MSVC), YES)
 	$(V1)cp -v -f "$(VCREDIST)/vcruntime140.dll" $(PACKAGE_DIR)/$(GCS_PACKAGE_NAME)/bin
 	$(V1)cp -v -f "$(VCREDIST)/vccorlib140.dll" $(PACKAGE_DIR)/$(GCS_PACKAGE_NAME)/bin
 endif
-	$(V1)mv "$(PACKAGE_DIR)/$(GCS_PACKAGE_NAME)/bin/opengl32sw.dll" "$(PACKAGE_DIR)/$(GCS_PACKAGE_NAME)/bin/opengl32.dll" 
+#	$(V1)mv "$(PACKAGE_DIR)/$(GCS_PACKAGE_NAME)/bin/opengl32sw.dll" "$(PACKAGE_DIR)/$(GCS_PACKAGE_NAME)/bin/opengl32.dll" 
 	$(V1)find $(PACKAGE_DIR)/$(GCS_PACKAGE_NAME) -type f -name "*.sym" -exec rm -f {} \;
 	$(V1)find $(PACKAGE_DIR)/$(GCS_PACKAGE_NAME) -type f -name "*.lib" -exec rm -f {} \;
 	$(V1)find $(PACKAGE_DIR)/$(GCS_PACKAGE_NAME) -type f -name "*.exp" -exec rm -f {} \;
