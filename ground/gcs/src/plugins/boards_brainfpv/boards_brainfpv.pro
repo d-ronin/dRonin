@@ -14,8 +14,7 @@ HEADERS += \
     brain.h \
     brainconfiguration.h \
     brainre1.h \
-    brainre1configuration.h \
-    $$USB_ID_HEADER
+    brainre1configuration.h
 
 SOURCES += \
     brainfpvplugin.cpp \

@@ -9,8 +9,7 @@ OTHER_FILES += Quantec.pluginspec
 
 HEADERS += \
     quantecplugin.h \
-    quanton.h \
-    $$USB_ID_HEADER
+    quanton.h
 
 SOURCES += \
     quantecplugin.cpp \

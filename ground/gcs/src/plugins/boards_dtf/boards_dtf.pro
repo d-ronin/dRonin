@@ -12,8 +12,7 @@ OTHER_FILES += dtfuhf.pluginspec
 HEADERS += \
     dtfplugin.h \
     dtfc.h \
-    dtfcconfiguration.h \
-    $$USB_ID_HEADER
+    dtfcconfiguration.h
 
 SOURCES += \
     dtfplugin.cpp \

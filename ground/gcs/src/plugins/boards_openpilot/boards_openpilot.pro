@@ -12,8 +12,7 @@ OTHER_FILES += OpenPilot.pluginspec \
 
 HEADERS += \
     openpilotplugin.h \
-    revolution.h \
-    $$USB_ID_HEADER
+    revolution.h
 
 SOURCES += \
     openpilotplugin.cpp \

@@ -17,8 +17,7 @@ HEADERS += \
     simulationconfiguration.h \
     playuavosd.h \
     seppuku.h \
-    seppukuconfiguration.h \
-    $$USB_ID_HEADER
+    seppukuconfiguration.h
 
 SOURCES += \
     droninplugin.cpp \
