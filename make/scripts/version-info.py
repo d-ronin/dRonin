@@ -447,7 +447,7 @@ string given.
                         help='uav object definition directory')
     parser.add_argument('--htmlsafe', action='store_true',
                         help='make substituted values html safe')
-    parser.add_argument('pos', metavar='a=b', type=int, nargs='*',
+    parser.add_argument('pos', metavar='a=b', nargs='*',
                         help='Additional predefined words for template subst')
     args = parser.parse_args()
 
