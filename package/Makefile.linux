@@ -10,7 +10,7 @@ endef
 
 # Update this number for every formal release.  The Deb packaging system relies on this to know to update a
 # package or not.  Otherwise, the user has to uninstall first.
-VERSION_FULL		:= 1.d-$(PACKAGE_LBL)-1
+VERSION_FULL		:= 1.d-$(PACKAGE_TAGN)-1
 
 DEB_BUILD_DIR		:= $(BUILD_DIR)/debian
 
