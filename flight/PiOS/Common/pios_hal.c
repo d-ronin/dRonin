@@ -363,6 +363,20 @@ void PIOS_HAL_SetReceiver(int receiver_type, uintptr_t value) {
 	PIOS_HAL_SetTarget(pios_rcvr_group_map + receiver_type, value);
 #endif
 }
+
+/**
+ * @brief Get the device instance from the receiver map
+ *
+ * @param[in] receiver_type the receiver type index from MANUALCONTROL
+ * @return device instance handle
+ */
+uintptr_t PIOS_HAL_GetReceiver(int receiver_type) {
+#ifdef STM32F0XX
+	return pios_rcvr_group_map[0];
+#else
+	return pios_rcvr_group_map[receiver_type];
+#endif
+}
 #endif // PIOS_INCLUDE_RCVR
 
 #if defined(PIOS_INCLUDE_USART) && defined(PIOS_INCLUDE_COM)
