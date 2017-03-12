@@ -53,7 +53,9 @@ package_symbols_compress: package_ground_symbols package_flight_symbols
 	# blow away old symbols
 	$(V1)rm -rf $(BUILD_DIR)/dronin-$(PACKAGE_LBL)-symbols.zip $(BUILD_DIR)/dronin-$(PACKAGE_LBL)-breakpad.zip
 	$(V1)cd $(PACKAGE_DIR)-symbols && $(ZIPBIN) -9 -r $(BUILD_DIR)/dronin-$(PACKAGE_LBL)-symbols.zip *
+ifeq ($(USE_MSVC), YES)
 	$(V1)cd $(PACKAGE_DIR)-symbols/breakpad && $(ZIPBIN) -9 -r $(BUILD_DIR)/dronin-$(PACKAGE_LBL)-breakpad.zip *
+endif
 
 .PHONY: standalone
 .PHONY: package_ground_compress package_symbols_compress

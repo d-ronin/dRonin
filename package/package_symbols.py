@@ -261,6 +261,10 @@ def main():
 	elif platform.system() == "Darwin":
 		dumper = MacOSSymbolDump(args.binpath)
 	elif platform.system() == "Windows":
+		# sadly have to deal with MinGW builds for now, ick
+		if 'USE_MSVC' in os.environ and os.environ['USE_MSVC'] == 'NO':
+			info('MinGW build, not collecting symbols (Note: MinGW support is deprecated)')
+			return 0
 		dumper = WindowsSymbolDump(args.binpath)
 	else:
 		raise NotImplementedError("Unsupported OS")
