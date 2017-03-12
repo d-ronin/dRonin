@@ -16,28 +16,19 @@ include $(ROOT_DIR)/make/tools.mk
 # Set up some macros
 BUILD_DIR    := $(ROOT_DIR)/build
 VERSION_CMD  := $(PYTHON) $(ROOT_DIR)/make/scripts/version-info.py --path="$(ROOT_DIR)"
-# If there is a tag, use it for label instead of date-hash string
-PACKAGE_TAG  := $(shell $(VERSION_CMD) --format=\$${TAG})
-ifneq ($(PACKAGE_TAG),)
-PACKAGE_LBL  := $(shell $(VERSION_CMD) --format=\$${TAG}\$${DIRTY})
-else
-PACKAGE_LBL  := $(shell $(VERSION_CMD) --format=\$${DATE}-\$${TAG_OR_HASH8}\$${DIRTY})
-endif
-PACKAGE_DIR  := $(BUILD_DIR)/package-$(PACKAGE_LBL)
-
 MACHINE_TYPE := $(shell uname -m)
 ifeq ($(MACHINE_TYPE), x86_64)
 PLATFORM_NAME:=amd64
 else
 PLATFORM_NAME:=i386
 endif
-PLATFORM := winx86
+PLATFORM := win
 UNAME := $(shell uname)
 ifeq ($(UNAME), Linux)
   PLATFORM := linux
 endif
 ifeq ($(UNAME), Darwin)
-  PLATFORM := osx
+  PLATFORM := macos
 endif
 # Clean build options (recommended for package testing only)
 ifeq ($(CLEAN_BUILD), NO)
@@ -48,7 +39,19 @@ CLEAN_GROUND := YES
 CLEAN_FLIGHT := YES
 endif
 
-FLIGHTPKGNAME := $(PACKAGE_DIR)/flight-$(PACKAGE_LBL).zip
+# If there is a tag, use it for label instead of date-hash string
+PACKAGE_TAG  := $(shell $(VERSION_CMD) --format=\$${TAG})
+ifneq ($(PACKAGE_TAG),)
+PACKAGE_TAGN := $(shell $(VERSION_CMD) --format=\$${TAG}\$${DIRTY})
+else
+PACKAGE_TAGN := $(shell $(VERSION_CMD) --format=\$${DATE}-\$${TAG_OR_HASH8}\$${DIRTY})
+endif
+
+PACKAGE_LBL  := $(PLATFORM)_$(PACKAGE_TAGN)
+
+PACKAGE_DIR  := $(BUILD_DIR)/package-$(PACKAGE_LBL)
+
+FLIGHTPKGNAME := $(PACKAGE_DIR)/flight-$(PACKAGE_TAGN).zip
 
 ifeq ($(BUILD_ALL_DEPENDENCIES), YES)
 	STANDALONE_DEPENDENCIES = gcs
@@ -60,7 +63,7 @@ endif
 
 USE_MSVC ?= NO
 
-GCS_PACKAGE_NAME:= gcs_$(PLATFORM)_$(PLATFORM_NAME)-$(PACKAGE_LBL)
+GCS_PACKAGE_NAME:= dronin_$(PACKAGE_LBL)
 GCS_PACKAGE_ROOT := $(GCS_PACKAGE_NAME)
 
 help:
