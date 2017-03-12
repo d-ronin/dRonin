@@ -67,6 +67,7 @@ OPTMODULES += Logging
 OPTMODULES += FlightStats
 OPTMODULES += Storm32Bgc
 OPTMODULES += CharacterOSD
+OPTMODULES += UAVOCrossfireTelemetry
 
 # Paths
 OPUAVTALKINC = $(OPUAVTALK)/inc
