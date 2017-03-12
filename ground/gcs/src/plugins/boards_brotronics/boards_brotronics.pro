@@ -12,8 +12,7 @@ OTHER_FILES += Brotronics.pluginspec
 HEADERS += \
     brotronicsplugin.h \
     lux.h \
-    luxconfiguration.h \
-    $$USB_ID_HEADER
+    luxconfiguration.h
 
 SOURCES += \
     brotronicsplugin.cpp \

@@ -13,8 +13,7 @@ HEADERS += \
     taulabsplugin.h \
     sparky.h \
     sparky2.h \
-    taulink.h \
-    $$USB_ID_HEADER
+    taulink.h
 
 SOURCES += \
     taulabsplugin.cpp \

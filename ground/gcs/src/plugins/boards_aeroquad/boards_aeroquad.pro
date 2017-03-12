@@ -9,8 +9,7 @@ OTHER_FILES += AeroQuad.json
 
 HEADERS += \
     aeroquadplugin.h \
-    aq32.h \
-    $$USB_ID_HEADER
+    aq32.h
 
 SOURCES += \
     aeroquadplugin.cpp \
