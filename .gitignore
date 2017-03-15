@@ -31,6 +31,9 @@
 /tools
 /build
 
+# Ignore jenkins stuff
+/Nodes
+
 #flight/Project/Xcode.OSX
 flight/Project/Xcode.OSX/build
 flight/Project/Xcode.OSX/firmware.xcodeproj/*.mode1v3
