@@ -3,11 +3,10 @@
 	<object name="HwAQ32" singleinstance="true" settings="true" category="HardwareSettings">
 		<description>Selection of optional hardware configurations.</description>
 		<field name="RcvrPort" units="function" type="enum" elements="1" parent="HwShared.PortTypes" defaultvalue="Disabled">
-			<description>The pins next to the "Z" arrow</description>
+			<description>The pin labelled Servo3</description>
 			<options>
 				<option>Disabled</option>
 				<option>PPM</option>
-				<option>PWM</option>
 			</options>
 		</field>
 		<field name="Uart1" units="function" type="enum" elements="1" parent="HwShared.PortTypes" defaultvalue="Disabled">

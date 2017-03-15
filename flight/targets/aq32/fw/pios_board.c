@@ -44,6 +44,7 @@
 #include "hwaq32.h"
 #include "manualcontrolsettings.h"
 #include "modulesettings.h"
+#include "rgbledsettings.h"
 
 /**
  * Configuration for the HMC5883 chip
@@ -179,12 +180,13 @@ void PIOS_Board_Init(void) {
 
     /* Set up pulse timers */
 
-    // Timers used for inputs (4)
-    PIOS_TIM_InitClock(&tim_4_cfg);
+    // Timers used for inputs (5)
+    PIOS_TIM_InitClock(&tim_5_cfg);
 
-    // Timers used for outputs (2, 3, 8)
+    // Timers used for outputs (2, 3, 4, 8)
     PIOS_TIM_InitClock(&tim_2_cfg);
     PIOS_TIM_InitClock(&tim_3_cfg);
+	PIOS_TIM_InitClock(&tim_4_cfg);
     PIOS_TIM_InitClock(&tim_8_cfg);
 
 #ifdef PIOS_INCLUDE_SPI
@@ -212,24 +214,6 @@ void PIOS_Board_Init(void) {
 	}
     }
 #endif /* PIOS_INCLUDE_SPI */
-
-    // Timers used for inputs or outputs (1)
-    // Configure TIM_Period (ARR) accordingly
-
-    PIOS_TIM_InitClock(&tim_1_cfg);
-
-    uint8_t hw_rcvrport;
-    HwAQ32RcvrPortGet(&hw_rcvrport);
-
-    switch (hw_rcvrport) {
-    case HWAQ32_RCVRPORT_DISABLED:
-    case HWAQ32_RCVRPORT_PPM:
-        TIM1->ARR = ((1000000 / PIOS_SERVO_UPDATE_HZ) - 1);  // Timer 1 configured for PWM outputs
-        break;
-    case HWAQ32_RCVRPORT_PWM:
-        TIM1->ARR = 0xFFFF;  // Timer 1 configured for PWM inputs
-        break;
-    }
 
     /* IAP System Setup */
     PIOS_IAP_Init();
@@ -419,6 +403,9 @@ void PIOS_Board_Init(void) {
             hw_DSMxMode,                         // dsm_mode
             NULL);                               // sbus_cfg
 
+	uint8_t hw_rcvrport;
+    HwAQ32RcvrPortGet(&hw_rcvrport);
+
     /* Configure the rcvr port */
     PIOS_HAL_ConfigurePort(hw_rcvrport,          // port type protocol
             NULL,                                // usart_port_cfg
@@ -426,7 +413,7 @@ void PIOS_Board_Init(void) {
             NULL,                                // i2c_id
             NULL,                                // i2c_cfg
             &pios_ppm_cfg,                       // ppm_cfg
-            &pios_pwm_cfg,                       // pwm_cfg
+            NULL,                                // pwm_cfg
             PIOS_LED_ALARM,                      // led_id
             NULL,                                // dsm_cfg
             0,                                   // dsm_mode
@@ -445,19 +432,32 @@ void PIOS_Board_Init(void) {
 
 #if defined(PIOS_INCLUDE_TIM) && defined(PIOS_INCLUDE_SERVO)
 #ifndef PIOS_DEBUG_ENABLE_DEBUG_PINS
-    switch (hw_rcvrport) {
-    case HWAQ32_RCVRPORT_DISABLED:
-    case HWAQ32_RCVRPORT_PPM:
-        PIOS_Servo_Init(&pios_servo_cfg_ppm_rx);
-        break;
-    case HWAQ32_RCVRPORT_PWM:
-        PIOS_Servo_Init(&pios_servo_cfg_pwm_rx);
-        break;
-    }
+    PIOS_Servo_Init(&pios_servo_cfg);
 #else
     PIOS_DEBUG_Init(&pios_tim_servo_all_channels, NELEMENTS(pios_tim_servo_all_channels));
 #endif
 #endif
+
+#ifdef PIOS_INCLUDE_WS2811
+	RGBLEDSettingsInitialize();
+
+	uint8_t temp;
+
+	RGBLEDSettingsNumLedsGet(&temp);
+
+	if (temp > 0) {
+		PIOS_WS2811_init(&pios_ws2811, &pios_ws2811_cfg, temp);
+
+		// Drive default value (off) to strand once at startup
+		PIOS_WS2811_trigger_update(pios_ws2811);
+	}
+#endif
+
+#ifdef PIOS_INCLUDE_DAC
+	PIOS_DAC_init(&pios_dac, &pios_dac_cfg);
+
+	PIOS_HAL_ConfigureDAC(pios_dac);
+#endif /* PIOS_INCLUDE_DAC */
 
 /* init sensor queue registration */
     PIOS_SENSORS_Init();

@@ -84,6 +84,7 @@ TIM8  |           |           |           |
 //------------------------
 #define PIOS_LED_HEARTBEAT				0
 #define PIOS_LED_ALARM					1
+#define PIOS_ANNUNCIATOR_BUZZER			2
 
 //------------------------
 // PIOS_WDG
@@ -142,6 +143,11 @@ extern uintptr_t pios_com_debug_id;
 extern max7456_dev_t pios_max7456_id;
 #endif
 
+#if defined(PIOS_INCLUDE_WS2811)
+#include <pios_ws2811.h>
+
+extern ws2811_dev_t pios_ws2811;
+#endif
 
 //------------------------
 // TELEMETRY

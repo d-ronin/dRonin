@@ -36,6 +36,7 @@ DEBUG ?= NO
 
 # List of modules to include
 MODULES = Sensors
+MODULES += System
 MODULES += Attitude 
 MODULES += Actuator
 MODULES += ManualControl
@@ -66,6 +67,7 @@ OPTMODULES += Geofence
 OPTMODULES += Logging
 OPTMODULES += Storm32Bgc
 OPTMODULES += CharacterOSD
+OPTMODULES += OpenAeroVtol
 
 # Paths
 OPUAVTALKINC = $(OPUAVTALK)/inc
@@ -74,8 +76,6 @@ PIOSINC = $(PIOS)/inc
 FLIGHTLIBINC = $(FLIGHTLIB)/inc
 MATHLIB = $(FLIGHTLIB)/math
 MATHLIBINC = $(FLIGHTLIB)/math
-RSCODE = $(FLIGHTLIB)/rscode
-RSCODEINC = $(FLIGHTLIB)/rscode
 PIOSSTM32F4XX = $(PIOS)/STM32F4xx
 PIOSCOMMON = $(PIOS)/Common
 PIOSCOMMONLIB = $(PIOSCOMMON)/Libraries
@@ -98,7 +98,6 @@ include $(APPLIBDIR)/ChibiOS/library.mk
 ## MODULES
 SRC += ${foreach MOD, ${MODULES} ${OPTMODULES}, ${wildcard ${OPMODULEDIR}/${MOD}/*.c}}
 ## OPENPILOT CORE:
-SRC += ${OPMODULEDIR}/System/systemmod.c
 SRC += main.c
 SRC += board.c
 SRC += pios_board.c
@@ -136,7 +135,8 @@ SRC += pios_gcsrcvr.c
 SRC += pios_hmc5883.c
 SRC += pios_hmc5983_i2c.c
 SRC += pios_ms5611.c
-
+SRC += pios_fskdac.c
+SRC += pios_annuncdac.c
 SRC += pios_crc.c
 SRC += pios_com.c
 SRC += pios_dsm.c
@@ -147,6 +147,7 @@ SRC += pios_sensors.c
 SRC += pios_flash.c
 SRC += pios_flash_jedec.c
 SRC += pios_flashfs_logfs.c
+SRC += printf-stdarg.c
 SRC += pios_usb_desc_hid_cdc.c
 SRC += pios_usb_desc_hid_only.c
 SRC += pios_usb_util.c
@@ -199,6 +200,20 @@ EXTRAINCDIRS += $(DEBUG_CM3_DIR_INC)
 EXTRAINCDIRS += $(MAVLINKINC)
 
 EXTRAINCDIRS += ${foreach MOD, ${MODULES} ${OPTMODULES}, $(OPMODULEDIR)/${MOD}/inc} ${OPMODULEDIR}/System/inc
+
+# List any extra directories to look for library files here.
+# Also add directories where the linker should search for
+# includes from linker-script to the list
+#     Each directory must be seperated by a space.
+EXTRA_LIBDIRS =
+
+# Extra Libraries
+#    Each library-name must be seperated by a space.
+#    i.e. to link with libxyz.a, libabc.a and libefsl.a:
+#    EXTRA_LIBS = xyz abc efsl
+# for newlib-lpc (file: libnewlibc-lpc.a):
+#    EXTRA_LIBS = newlib-lpc
+EXTRA_LIBS =
 
 # Path to Linker-Scripts
 LINKERSCRIPTPATH = $(PIOSSTM32F4XX)
@@ -311,10 +326,11 @@ LIBS += $(UAVOBJLIB)
 #    -Map:      create map file
 #    --cref:    add cross reference to  map file
 LDFLAGS = -nostartfiles -Wl,-Map=$(OUTDIR)/$(TARGET).map,--cref,--gc-sections
+LDFLAGS += $(patsubst %,-L%,$(EXTRA_LIBDIRS))
+LDFLAGS += $(patsubst %,-l%,$(EXTRA_LIBS))
 LDFLAGS += -lc -lgcc -lm
 LDFLAGS += -Wl,--warn-common
 LDFLAGS += -Wl,--fatal-warnings
-LDFLAGS += -u _printf_float
 
 # Linker scripts
 LDFLAGS += -T memory.ld $(addprefix -T,$(LINKER_SCRIPTS_APP))
