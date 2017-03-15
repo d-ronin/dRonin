@@ -65,6 +65,7 @@
 #include "physical_constants.h"
 #include "pid.h"
 #include "misc_math.h"
+#include "smoothcontrol.h"
 
 // Includes for various stabilization algorithms
 #include "virtualflybar.h"
@@ -134,6 +135,7 @@ static float max_rate_alpha = 0.8f;
 float vbar_decay = 0.991f;
 
 struct pid pids[PID_MAX];
+smoothcontrol_state rc_smoothing;
 
 #ifndef NO_CONTROL_DEADBANDS
 struct pid_deadband *deadbands = NULL;
@@ -293,12 +295,17 @@ static void stabilizationTask(void* parameters)
 	float *rateDesiredAxis = &rateDesired.Roll;
 	float horizonRateFraction = 0.0f;
 
+	smoothcontrol_initialize(&rc_smoothing);
+
 	// Connect callbacks
 	FlightStatusConnectCallbackCtx(UAVObjCbSetFlag, &flightStatusUpdated);
 	SystemSettingsConnectCallbackCtx(UAVObjCbSetFlag, &systemSettingsUpdated);
 	StabilizationSettingsConnectCallbackCtx(UAVObjCbSetFlag, &settings_flag);
 	VbarSettingsConnectCallbackCtx(UAVObjCbSetFlag, &settings_flag);
 	SubTrimSettingsConnectCallbackCtx(UAVObjCbSetFlag, &settings_flag);
+
+	smoothcontrol_initialize(&rc_smoothing);
+	ManualControlCommandConnectCallbackCtx(UAVObjCbSetFlag, smoothcontrol_get_ringer(rc_smoothing));
 
 	uint32_t iteration = 0;
 	float dT_measured = 0;
@@ -312,6 +319,8 @@ static void stabilizationTask(void* parameters)
 	if (samp_rate) {
 		dT_expected = 1.0f / samp_rate;
 	}
+
+	smoothcontrol_update_dT(rc_smoothing, dT_expected);
 
 	if (dT_expected < 0.0004f) {
 		// For future 3.2KHz-- 640ms period
@@ -459,6 +468,10 @@ static void stabilizationTask(void* parameters)
 		stabilization_failsafe_checks(&stabDesired, &actuatorDesired, airframe_type,
 			raw_input, axis_mode);
 
+		// Do this before attitude error calc, so it benefits from it.
+		for(int i = 0; i < 3; i++)
+			smoothcontrol_run(rc_smoothing, i, &raw_input[i], settings.ManualRate[i]);
+
 		struct TrimmedAttitudeSetpoint {
 			float Roll;
 			float Pitch;
@@ -543,6 +556,12 @@ static void stabilizationTask(void* parameters)
 		{
 			// Check whether this axis mode needs to be reinitialized
 			bool reinit = (axis_mode[i] != previous_mode[i]);
+
+			if(reinit && previous_mode[i] != 255) {
+				// Disable the integrator this round. And only do so on real mode switches.
+				smoothcontrol_reinit(rc_smoothing, i, raw_input[i]);
+			}
+
 			previous_mode[i] = axis_mode[i];
 
 			// Apply the selected control law
@@ -970,6 +989,12 @@ static void stabilizationTask(void* parameters)
 			}
 		}
 
+		// Run the smoothing over the throttle stick.
+		smoothcontrol_run_thrust(rc_smoothing, &actuatorDesired.Thrust);
+
+		// Register loop.
+		smoothcontrol_next(rc_smoothing);
+
 		if (vbar_settings.VbarPiroComp == VBARSETTINGS_VBARPIROCOMP_TRUE)
 			stabilization_virtual_flybar_pirocomp(gyro_filtered[YAW], dT_expected);
 
@@ -1011,6 +1036,22 @@ static void zero_pids(void)
 
 	for(uint8_t i = 0; i < 3; i++)
 		axis_lock_accum[i] = 0.0f;
+}
+
+static uint8_t remap_smoothing_mode(uint8_t m)
+{
+	// Kind of stupid to do this, but pulling in an UAVO into "library" code feels
+	// like a layer break.
+	switch(m)
+	{
+		default:
+		case STABILIZATIONSETTINGS_RCCONTROLSMOOTHING_NONE:
+			return SMOOTHCONTROL_NONE;
+		case STABILIZATIONSETTINGS_RCCONTROLSMOOTHING_NORMAL:
+			return SMOOTHCONTROL_NORMAL;
+		case STABILIZATIONSETTINGS_RCCONTROLSMOOTHING_EXTENDED:
+			return SMOOTHCONTROL_EXTENDED;
+	}
 }
 
 static void calculate_pids()
@@ -1131,6 +1172,15 @@ static void update_settings()
 
 	// Whether to zero the PID integrals while thrust is low
 	lowThrottleZeroIntegral = settings.LowThrottleZeroIntegral == STABILIZATIONSETTINGS_LOWTHROTTLEZEROINTEGRAL_TRUE;
+
+	uint8_t s_mode = remap_smoothing_mode(settings.RCControlSmoothing[STABILIZATIONSETTINGS_RCCONTROLSMOOTHING_AXES]);
+	smoothcontrol_set_mode(rc_smoothing, ROLL, s_mode);
+	smoothcontrol_set_mode(rc_smoothing, PITCH, s_mode);
+	smoothcontrol_set_mode(rc_smoothing, YAW, s_mode);
+	smoothcontrol_set_mode(rc_smoothing, 3, remap_smoothing_mode(
+		settings.RCControlSmoothing[STABILIZATIONSETTINGS_RCCONTROLSMOOTHING_THRUST]
+		));
+
 }
 
 /**
