@@ -27,7 +27,7 @@ RESOURCES += \
 GIT_COMMIT = $$system(git rev-parse -q --short HEAD)
 GIT_BRANCH = $$system(git for-each-ref --count=1 --format=$$system_quote(%(refname:strip=2)) --contains HEAD refs/heads)
 GIT_TAG    = $$system(git for-each-ref --count=1 --format=$$system_quote(%(refname:strip=2)) --points-at HEAD refs/tags)
-GIT_DIFF   = $$system(git diff-index --shortstat HEAD)
+GIT_DIFF   = $$system(git status --porcelain)
 GIT_DIRTY  = true
 isEmpty(GIT_DIFF): GIT_DIRTY = false
 
