@@ -65,7 +65,7 @@ androidgcs/google-play-services_lib/build.xml
 androidgcs/google-play-services_lib/gen/
 androidgcs/google-play-services_lib/local.properties
 androidgcs/google-play-services_lib/proguard-project.txt
-
+androidgcs/build
 
 # Ignore build output from Eclipse android builds
 androidgcs/bin/
