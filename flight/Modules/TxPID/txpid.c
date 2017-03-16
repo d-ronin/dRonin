@@ -53,6 +53,7 @@
 #include "accessorydesired.h"
 #include "manualcontrolcommand.h"
 #include "stabilizationsettings.h"
+#include "sensorsettings.h"
 #include "vbarsettings.h"
 #include "vtolpathfollowersettings.h"
 
@@ -76,6 +77,7 @@
 struct txpid_struct {
 	TxPIDSettingsData inst;
 	StabilizationSettingsData stab;
+	SensorSettingsData sensor;
 	VbarSettingsData vbar;
 	AccessoryDesiredData accessory;
 	VtolPathFollowerSettingsData vtolPathFollowerSettingsData;
@@ -195,6 +197,7 @@ static void updatePIDs(UAVObjEvent* ev, void *ctx, void *obj, int len)
 		return;
 
 	StabilizationSettingsGet(&txpid_data->stab);
+	SensorSettingsGet(&txpid_data->sensor);
 	VbarSettingsGet(&txpid_data->vbar);
 
 	// Check to make sure the settings UAVObject has been instantiated
@@ -205,6 +208,7 @@ static void updatePIDs(UAVObjEvent* ev, void *ctx, void *obj, int len)
 	bool vtolPathFollowerSettingsNeedsUpdate = false;
 
 	bool stabilizationSettingsNeedsUpdate = false;
+	bool sensorSettingsNeedsUpdate = false;
 	bool vbarSettingsNeedsUpdate = false;
 
 	// Loop through every enabled instance
@@ -316,8 +320,8 @@ static void updatePIDs(UAVObjEvent* ev, void *ctx, void *obj, int len)
 			case TXPIDSETTINGS_PIDS_YAWATTITUDEILIMIT:
 				stabilizationSettingsNeedsUpdate |= update(&txpid_data->stab.YawPI[STABILIZATIONSETTINGS_YAWPI_ILIMIT], value);
 				break;
-			case TXPIDSETTINGS_PIDS_GYROCUTOFF:
-				stabilizationSettingsNeedsUpdate |= update(&txpid_data->stab.GyroCutoff, value);
+			case TXPIDSETTINGS_PIDS_SENSORSCUTOFF:
+				sensorSettingsNeedsUpdate |= update(&txpid_data->sensor.LowpassCutoff, value);
 				break;
 			case TXPIDSETTINGS_PIDS_ROLLVBARSENSITIVITY:
 				vbarSettingsNeedsUpdate |= update(&txpid_data->vbar.VbarSensitivity[VBARSETTINGS_VBARSENSITIVITY_ROLL], value);
@@ -405,6 +409,10 @@ static void updatePIDs(UAVObjEvent* ev, void *ctx, void *obj, int len)
 	// Update UAVOs, if necessary
 	if (stabilizationSettingsNeedsUpdate) {
 		StabilizationSettingsSet(&txpid_data->stab);
+	}
+
+	if (sensorSettingsNeedsUpdate) {
+		SensorSettingsSet(&txpid_data->sensor);
 	}
 
 	if (vbarSettingsNeedsUpdate) {
