@@ -15,7 +15,6 @@
 				<elementname>PathPlanner</elementname>
 				<elementname>TxPID</elementname>
 				<elementname>VtolPathFollower</elementname>
-				<elementname>GroundPathFollower</elementname>
 				<elementname>VibrationAnalysis</elementname>
 				<elementname>Geofence</elementname>
 				<elementname>Logging</elementname>

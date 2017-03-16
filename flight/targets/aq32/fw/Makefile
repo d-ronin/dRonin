@@ -47,7 +47,6 @@ OPTMODULES += GPS
 OPTMODULES += AltitudeHold 
 OPTMODULES += VtolPathFollower 
 OPTMODULES += FixedWingPathFollower
-OPTMODULES += GroundPathFollower
 OPTMODULES += PathPlanner
 OPTMODULES += CameraStab
 OPTMODULES += Autotune
