@@ -34,9 +34,8 @@ include $(BOARD_INFO_DIR)/board-info.mk
 DEBUG ?= NO
 
 # List of modules to include
-#MODULES = Sensors
-#MODULES += Attitude
-MODULES += Attitude/acro
+MODULES = Sensors
+MODULES += Attitude
 MODULES += Actuator
 MODULES += ManualControl
 MODULES += Stabilization
