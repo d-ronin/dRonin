@@ -67,7 +67,6 @@ OPTMODULES += Geofence
 OPTMODULES += Logging
 OPTMODULES += Storm32Bgc
 OPTMODULES += CharacterOSD
-OPTMODULES += OpenAeroVtol
 
 # Paths
 OPUAVTALKINC = $(OPUAVTALK)/inc
