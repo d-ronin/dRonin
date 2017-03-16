@@ -186,7 +186,7 @@ void PIOS_Board_Init(void) {
     // Timers used for outputs (2, 3, 4, 8)
     PIOS_TIM_InitClock(&tim_2_cfg);
     PIOS_TIM_InitClock(&tim_3_cfg);
-	PIOS_TIM_InitClock(&tim_4_cfg);
+    PIOS_TIM_InitClock(&tim_4_cfg);
     PIOS_TIM_InitClock(&tim_8_cfg);
 
 #ifdef PIOS_INCLUDE_SPI
