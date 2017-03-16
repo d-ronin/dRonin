@@ -34,7 +34,7 @@
  *
  * This module will periodically calculate the output values for stabilizing the camera.
  * It supports controlling the camera an angle specified by the sticks (provided by
- * @ref AccessoryDesired) or at a rate specified by the sticks.  Alternatively it can
+ * @ref ManualControlCommand) or at a rate specified by the sticks.  Alternatively it can
  * just try and hold the camera at a fixed angle.  This module is designed to be used
  * when the flight control is on the airframe of the aircraft.  If the controller is
  * placed on the gimbal using the standard stabilization code will work.
@@ -48,11 +48,11 @@
 #include "pios_thread.h"
 #include "pios_can.h"
 
-#include "accessorydesired.h"
 #include "attitudeactual.h"
 #include "camerastabsettings.h"
 #include "cameradesired.h"
 #include "homelocation.h"
+#include "manualcontrolcommand.h"
 #include "modulesettings.h"
 #include "misc_math.h"
 #include "poilocation.h"
@@ -183,7 +183,9 @@ static void attitudeUpdated(UAVObjEvent* ev, void *ctx, void *obj, int len)
 	if (ev->obj != AttitudeActualHandle())
 		return;
 
-	AccessoryDesiredData accessory;
+	float accessories[MANUALCONTROLCOMMAND_ACCESSORY_NUMELEM];
+
+	ManualControlCommandAccessoryGet(accessories);
 
 	CameraStabSettingsData *settings = &csd->settings;
 
@@ -218,17 +220,19 @@ static void attitudeUpdated(UAVObjEvent* ev, void *ctx, void *obj, int len)
 
 		// Compute new smoothed setpoint
 		if (settings->Input[i] != CAMERASTABSETTINGS_INPUT_NONE && settings->Input[i] != CAMERASTABSETTINGS_INPUT_POI) {
-			if (AccessoryDesiredInstGet(settings->Input[i] - CAMERASTABSETTINGS_INPUT_ACCESSORY0, &accessory) == 0) {
+			int idx = settings->Input[i] - CAMERASTABSETTINGS_INPUT_ACCESSORY0;
+
+			if ((idx >= 0) && (idx < MANUALCONTROLCOMMAND_ACCESSORY_NUMELEM)) {
 				float input;
 				float input_rate;
 				rt_ms = (float) settings->InputFilter;
 				switch (settings->StabilizationMode[i]) {
 				case CAMERASTABSETTINGS_STABILIZATIONMODE_ATTITUDE:
-					input = accessory.AccessoryVal * settings->InputRange[i];
+					input = accessories[idx] * settings->InputRange[i];
 					csd->inputs[i] = (rt_ms / (rt_ms + dT_ms)) * csd->inputs[i] + (dT_ms / (rt_ms + dT_ms)) * input;
 					break;
 				case CAMERASTABSETTINGS_STABILIZATIONMODE_AXISLOCK:
-					input_rate = accessory.AccessoryVal * settings->InputRate[i];
+					input_rate = accessories[idx] * settings->InputRate[i];
 					if (fabsf(input_rate) > settings->MaxAxisLockRate)
 						csd->inputs[i] = bound_sym(csd->inputs[i] + input_rate * dT_ms / 1000.0f, settings->InputRange[i]);
 					break;

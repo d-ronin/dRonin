@@ -33,7 +33,7 @@
 #ifdef SYSTEMMOD_RGBLED_SUPPORT
 #include "rgbledsettings.h"
 #include "stabilizationdesired.h"
-#include "accessorydesired.h"
+#include "manualcontrolcommand.h"
 
 // all values are from 0 to 1
 static void rgb_to_hsv_f(const float *rgb, float *hsv)
@@ -266,13 +266,19 @@ static inline uint16_t float_to_u16(float in)
 
 static uint16_t accessory_desired_get_u16(int idx)
 {
-	AccessoryDesiredData accessory;
-
-	if (AccessoryDesiredInstGet(idx, &accessory)) {
+	if (idx < 0) {
 		return 0;
 	}
 
-	return float_to_u16(accessory.AccessoryVal);
+	if (idx >= MANUALCONTROLCOMMAND_ACCESSORY_NUMELEM) {
+		return 0;
+	}
+
+	float accessories[MANUALCONTROLCOMMAND_ACCESSORY_NUMELEM];
+
+	ManualControlCommandAccessoryGet(accessories);
+
+	return float_to_u16(accessories[idx]);
 }
 
 static uint16_t sinusodialize(uint16_t fraction) {

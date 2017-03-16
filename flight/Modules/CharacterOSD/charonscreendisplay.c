@@ -43,7 +43,6 @@
 #include "physical_constants.h"
 
 #include "accels.h"
-#include "accessorydesired.h"
 #include "attitudeactual.h"
 #include "baroaltitude.h"
 #include "flightstatus.h"

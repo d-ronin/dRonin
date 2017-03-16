@@ -45,7 +45,6 @@
 #include <QList>
 #include "inputchannelform.h"
 
-#include "accessorydesired.h"
 #include "flightstatus.h"
 #include "manualcontrolcommand.h"
 #include "manualcontrolsettings.h"
@@ -146,12 +145,6 @@ private:
         ManualControlCommand * manualCommandObj;
         ManualControlCommand::DataFields manualCommandData;
         FlightStatus * flightStatusObj;
-        AccessoryDesired * accessoryDesiredObj0;
-        AccessoryDesired * accessoryDesiredObj1;
-        AccessoryDesired * accessoryDesiredObj2;
-        AccessoryDesired::DataFields accessoryDesiredData0;
-        AccessoryDesired::DataFields accessoryDesiredData1;
-        AccessoryDesired::DataFields accessoryDesiredData2;
         UAVObject::Metadata manualControlMdata;
         ManualControlSettings * manualSettingsObj;
         ManualControlSettings::DataFields manualSettingsData;

@@ -632,9 +632,6 @@ void ConfigInputWidget::wizardSetUpStep(enum wizardSteps step)
         break;
     case wizardIdentifyLimits:
     {
-        accessoryDesiredObj0 = AccessoryDesired::GetInstance(getObjectManager(),0);
-        accessoryDesiredObj1 = AccessoryDesired::GetInstance(getObjectManager(),1);
-        accessoryDesiredObj2 = AccessoryDesired::GetInstance(getObjectManager(),2);
         setTxMovement(nothing);
         m_config->wzText->setText(QString(tr("Please move all controls <b>(including switches)</b> to their maximum extents in all directions.  (You may continue when all controls have moved)")));
         fastMdata();
@@ -652,7 +649,6 @@ void ConfigInputWidget::wizardSetUpStep(enum wizardSteps step)
         }
         connect(manualCommandObj, SIGNAL(objectUpdated(UAVObject*)), this, SLOT(identifyLimits()));
         connect(manualCommandObj, SIGNAL(objectUpdated(UAVObject*)), this, SLOT(moveSticks()));
-        connect(accessoryDesiredObj0, SIGNAL(objectUpdated(UAVObject*)), this, SLOT(moveSticks()));
 
         // Disable next.  When range on all channels is sufficient, enable it
         m_config->wzNext->setEnabled(false);
@@ -699,7 +695,6 @@ void ConfigInputWidget::wizardSetUpStep(enum wizardSteps step)
     case wizardFinish:
         dimOtherControls(false);
         connect(manualCommandObj, SIGNAL(objectUpdated(UAVObject*)), this, SLOT(moveSticks()));
-        connect(accessoryDesiredObj0, SIGNAL(objectUpdated(UAVObject*)), this, SLOT(moveSticks()));
         m_config->wzText->setText(QString(tr("You have completed this wizard, please check below if the picture mimics your sticks movement.\n"
                                              "These new settings aren't saved to the board yet, after pressing next you will go to the Arming Settings "
                                              "screen where you can set your desired arming sequence and save the configuration.")));
@@ -785,7 +780,6 @@ void ConfigInputWidget::wizardTearDownStep(enum wizardSteps step)
     case wizardIdentifyLimits:
         disconnect(manualCommandObj, SIGNAL(objectUpdated(UAVObject*)), this, SLOT(identifyLimits()));
         disconnect(manualCommandObj, SIGNAL(objectUpdated(UAVObject*)), this, SLOT(moveSticks()));
-        disconnect(accessoryDesiredObj0, SIGNAL(objectUpdated(UAVObject*)), this, SLOT(moveSticks()));
         manualSettingsObj->setData(manualSettingsData);
         setTxMovement(nothing);
         break;
@@ -815,7 +809,6 @@ void ConfigInputWidget::wizardTearDownStep(enum wizardSteps step)
         dimOtherControls(false);
         setTxMovement(nothing);
         disconnect(manualCommandObj, SIGNAL(objectUpdated(UAVObject*)), this, SLOT(moveSticks()));
-        disconnect(accessoryDesiredObj0, SIGNAL(objectUpdated(UAVObject*)), this, SLOT(moveSticks()));
         restoreMdata();
         break;
     default:
@@ -853,7 +846,6 @@ void ConfigInputWidget::fastMdata()
                     case FlightStatus::OBJID:
                         UAVObject::SetFlightTelemetryUpdateMode(mdata, UAVObject::UPDATEMODE_ONCHANGE);
                         break;
-                    case AccessoryDesired::OBJID:
                     case ManualControlCommand::OBJID:
                         UAVObject::SetFlightTelemetryUpdateMode(mdata, UAVObject::UPDATEMODE_THROTTLED);
                         mdata.flightTelemetryUpdatePeriod = fastUpdate;
@@ -1482,9 +1474,6 @@ void ConfigInputWidget::moveSticks()
 {
     QTransform trans;
     manualCommandData = manualCommandObj->getData();
-    accessoryDesiredData0=accessoryDesiredObj0->getData();
-    accessoryDesiredData1=accessoryDesiredObj1->getData();
-    accessoryDesiredData2=accessoryDesiredObj2->getData();
 
     // 0 for throttle is THROTTLE_NEUTRAL_FRACTION of the total range
     // here we map it from [-1,0,1] -> [0,THROTTLE_NEUTRAL_FRACTION,1]
@@ -1536,9 +1525,9 @@ void ConfigInputWidget::moveSticks()
     default:
         break;
     }
-    m_txAccess0->setTransform(QTransform(m_txAccess0Orig).translate(accessoryDesiredData0.AccessoryVal * ACCESS_MAX_MOVE * 10, 0), false);
-    m_txAccess1->setTransform(QTransform(m_txAccess1Orig).translate(accessoryDesiredData1.AccessoryVal * ACCESS_MAX_MOVE * 10, 0), false);
-    m_txAccess2->setTransform(QTransform(m_txAccess2Orig).translate(accessoryDesiredData2.AccessoryVal * ACCESS_MAX_MOVE * 10, 0), false);
+    m_txAccess0->setTransform(QTransform(m_txAccess0Orig).translate(manualCommandData.Accessory[0] * ACCESS_MAX_MOVE * 10, 0), false);
+    m_txAccess1->setTransform(QTransform(m_txAccess1Orig).translate(manualCommandData.Accessory[1] * ACCESS_MAX_MOVE * 10, 0), false);
+    m_txAccess2->setTransform(QTransform(m_txAccess2Orig).translate(manualCommandData.Accessory[2] * ACCESS_MAX_MOVE * 10, 0), false);
 }
 
 void ConfigInputWidget::dimOtherControls(bool value)

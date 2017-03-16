@@ -50,7 +50,6 @@
 #include <eventdispatcher.h>
 
 #include "txpidsettings.h"
-#include "accessorydesired.h"
 #include "manualcontrolcommand.h"
 #include "stabilizationsettings.h"
 #include "vbarsettings.h"
@@ -77,7 +76,6 @@ struct txpid_struct {
 	TxPIDSettingsData inst;
 	StabilizationSettingsData stab;
 	VbarSettingsData vbar;
-	AccessoryDesiredData accessory;
 	VtolPathFollowerSettingsData vtolPathFollowerSettingsData;
 #if (TELEMETRY_UPDATE_PERIOD_MS != 0)
 	UAVObjMetadata metadata;
@@ -121,7 +119,7 @@ int32_t TxPIDInitialize(void)
 		if (txpid_data != NULL) {
 			memset(txpid_data, 0x00, sizeof(*txpid_data));
 
-			if (TxPIDSettingsInitialize() == -1 || AccessoryDesiredInitialize() == -1) {
+			if (TxPIDSettingsInitialize() == -1) {
 				module_enabled = false;
 				return -1;
 			}
@@ -143,12 +141,8 @@ static int32_t TxPIDStart(void)
 		return -1;
 	}
 
-	UAVObjEvent ev = {
-			.obj = AccessoryDesiredHandle(),
-			.instId = 0,
-			.event = 0,
-		};
-		EventPeriodicCallbackCreate(&ev, updatePIDs, SAMPLE_PERIOD_MS);
+	UAVObjEvent ev = { 0 };
+	EventPeriodicCallbackCreate(&ev, updatePIDs, SAMPLE_PERIOD_MS);
 
 #if (TELEMETRY_UPDATE_PERIOD_MS != 0)
 	// Change StabilizationSettings update rate from OnChange to periodic
@@ -179,9 +173,6 @@ MODULE_INITCALL(TxPIDInitialize, TxPIDStart);
 static void updatePIDs(UAVObjEvent* ev, void *ctx, void *obj, int len)
 {
 	(void) ev; (void) ctx; (void) obj; (void) len;
-
-	if (ev->obj != AccessoryDesiredHandle())
-		return;
 
 	TxPIDSettingsGet(&txpid_data->inst);
 
@@ -218,10 +209,24 @@ static void updatePIDs(UAVObjEvent* ev, void *ctx, void *obj, int len)
 						txpid_data->inst.ThrottleRange[TXPIDSETTINGS_THROTTLERANGE_MIN],
 						txpid_data->inst.ThrottleRange[TXPIDSETTINGS_THROTTLERANGE_MAX],
 						txpid_data->inst.MinPID[i], txpid_data->inst.MaxPID[i]);
-			} else if (AccessoryDesiredInstGet(txpid_data->inst.Inputs[i] - TXPIDSETTINGS_INPUTS_ACCESSORY0, &txpid_data->accessory) == 0) {
-				value = scale(txpid_data->accessory.AccessoryVal, -1.0, 1.0, txpid_data->inst.MinPID[i], txpid_data->inst.MaxPID[i]);
 			} else {
-				continue;
+				(void) 0;
+
+				int idx = txpid_data->inst.Inputs[i] - TXPIDSETTINGS_INPUTS_ACCESSORY0;
+
+				if (idx < 0) {
+					continue;
+				}
+
+				if (idx >= MANUALCONTROLCOMMAND_ACCESSORY_NUMELEM) {
+					continue;
+				}
+
+				float accessories[MANUALCONTROLCOMMAND_ACCESSORY_NUMELEM];
+
+				ManualControlCommandAccessoryGet(accessories);
+
+				value = scale(accessories[idx], -1.0, 1.0, txpid_data->inst.MinPID[i], txpid_data->inst.MaxPID[i]);
 			}
 
 			switch (txpid_data->inst.PIDs[i]) {

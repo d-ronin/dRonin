@@ -75,7 +75,6 @@
 #include "physical_constants.h"
 
 #include "accels.h"
-#include "accessorydesired.h"
 #include "airspeedactual.h"
 #include "attitudeactual.h"
 #include "baroaltitude.h"
@@ -1678,6 +1677,22 @@ int32_t OnScreenDisplayInitialize(void)
 
 MODULE_INITCALL(OnScreenDisplayInitialize, OnScreenDisplayStart);
 
+static float get_accessorydesired(int idx) {
+	if (idx < 0) {
+		return 0;
+	}
+
+	if (idx >= MANUALCONTROLCOMMAND_ACCESSORY_NUMELEM) {
+		return 0;
+	}
+
+	float accessories[MANUALCONTROLCOMMAND_ACCESSORY_NUMELEM];
+
+	ManualControlCommandAccessoryGet(accessories);
+
+	return accessories[idx];
+}
+
 /**
  * Main osd task. It does not return.
  */
@@ -1685,7 +1700,6 @@ MODULE_INITCALL(OnScreenDisplayInitialize, OnScreenDisplayStart);
 #define INTRO_TIME 5500
 static void onScreenDisplayTask(__attribute__((unused)) void *parameters)
 {
-	AccessoryDesiredData accessory;
 	OnScreenDisplayPageSettingsData osd_page_settings;
 
 	enum pios_video_system video_system_act = PIOS_VIDEO_SYSTEM_NONE;
@@ -1819,8 +1833,8 @@ static void onScreenDisplayTask(__attribute__((unused)) void *parameters)
 
 			if (frame_counter % 5 == 0) {
 				// determine current page to use
-				AccessoryDesiredInstGet(osd_settings.PageSwitch, &accessory);
-				current_page = (uint8_t)roundf(((accessory.AccessoryVal + 1.0f) / 2.0f) * (osd_settings.NumPages - 1));
+				float accessory = get_accessorydesired(osd_settings.PageSwitch);
+				current_page = (uint8_t)roundf(((accessory + 1.0f) / 2.0f) * (osd_settings.NumPages - 1));
 				current_page = osd_settings.PageConfig[current_page];
 
 				if (current_page != last_page)

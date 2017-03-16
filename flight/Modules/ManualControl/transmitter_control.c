@@ -38,7 +38,6 @@
 #include "transmitter_control.h"
 #include "pios_thread.h"
 
-#include "accessorydesired.h"
 #include "altitudeholddesired.h"
 #include "altitudeholdsettings.h"
 #include "baroaltitude.h"
@@ -146,8 +145,7 @@ int rssitype_to_channelgroup() {
 //! Initialize the transmitter control mode
 int32_t transmitter_control_initialize()
 {
-	if (AccessoryDesiredInitialize() == -1 \
-		|| ManualControlCommandInitialize() == -1 \
+	if (ManualControlCommandInitialize() == -1 \
 		|| FlightStatusInitialize() == -1 \
 		|| StabilizationDesiredInitialize() == -1 \
 		|| ReceiverActivityInitialize() == -1 \
@@ -160,11 +158,6 @@ int32_t transmitter_control_initialize()
 	if (LoiterCommandInitialize() == -1) {
 		return -1;
 	}
-
-	/* For now manual instantiate extra instances of Accessory Desired.  In future  */
-	/* should be done dynamically this includes not even registering it if not used */
-	AccessoryDesiredCreateInstance();
-	AccessoryDesiredCreateInstance();
 
 	/* No pending control events */
 	pending_control_event = CONTROL_EVENTS_NONE;
@@ -429,29 +422,22 @@ int32_t transmitter_control_update()
 			cmd.Collective = scaledChannel[MANUALCONTROLSETTINGS_CHANNELGROUPS_COLLECTIVE];
 		}
 
-		AccessoryDesiredData accessory;
 		// Set Accessory 0
 		if (settings.ChannelGroups[MANUALCONTROLSETTINGS_CHANNELGROUPS_ACCESSORY0] !=
 			MANUALCONTROLSETTINGS_CHANNELGROUPS_NONE) {
-			accessory.AccessoryVal = scaledChannel[MANUALCONTROLSETTINGS_CHANNELGROUPS_ACCESSORY0];
-			if(AccessoryDesiredInstSet(0, &accessory) != 0) //These are allocated later and that allocation might fail
-				set_manual_control_error(SYSTEMALARMS_MANUALCONTROL_ACCESSORY);
+			cmd.Accessory[0] = scaledChannel[MANUALCONTROLSETTINGS_CHANNELGROUPS_ACCESSORY0];
 		}
+
 		// Set Accessory 1
 		if (settings.ChannelGroups[MANUALCONTROLSETTINGS_CHANNELGROUPS_ACCESSORY1] !=
 			MANUALCONTROLSETTINGS_CHANNELGROUPS_NONE) {
-			accessory.AccessoryVal = scaledChannel[MANUALCONTROLSETTINGS_CHANNELGROUPS_ACCESSORY1];
-			if(AccessoryDesiredInstSet(1, &accessory) != 0) //These are allocated later and that allocation might fail
-				set_manual_control_error(SYSTEMALARMS_MANUALCONTROL_ACCESSORY);
+			cmd.Accessory[1] = scaledChannel[MANUALCONTROLSETTINGS_CHANNELGROUPS_ACCESSORY1];
 		}
 		// Set Accessory 2
 		if (settings.ChannelGroups[MANUALCONTROLSETTINGS_CHANNELGROUPS_ACCESSORY2] !=
 			MANUALCONTROLSETTINGS_CHANNELGROUPS_NONE) {
-			accessory.AccessoryVal = scaledChannel[MANUALCONTROLSETTINGS_CHANNELGROUPS_ACCESSORY2];
-			if(AccessoryDesiredInstSet(2, &accessory) != 0) //These are allocated later and that allocation might fail
-				set_manual_control_error(SYSTEMALARMS_MANUALCONTROL_ACCESSORY);
+			cmd.Accessory[2] = scaledChannel[MANUALCONTROLSETTINGS_CHANNELGROUPS_ACCESSORY1];
 		}
-
 	}
 
 	// Process arming outside conditional so system will disarm when disconnected.  Notice this
