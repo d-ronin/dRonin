@@ -166,7 +166,8 @@ int32_t vtol_follower_control_path(const float dT, const PathDesiredData *pathDe
 	vector2_clip(commands_ned, guidanceSettings.HorizontalVelMax);
 
 	commands_ned[2] = pid_apply_antiwindup(&vtol_pids[DOWN_POSITION], downError,
-		-guidanceSettings.VerticalVelMax, guidanceSettings.VerticalVelMax, dT);
+		-altitudeHoldSettings.MaxClimbRate * 0.1f,
+		altitudeHoldSettings.MaxDescentRate * 0.1f, dT);
 
 	VelocityDesiredData velocityDesired;
 	VelocityDesiredGet(&velocityDesired);
@@ -250,7 +251,8 @@ static int32_t vtol_follower_control_impl(const float dT,
 	if (fabsf(alt_rate) < 0.001f) {
 		// Compute desired down comand velocity from the position difference
 		commands_ned[2] = pid_apply_antiwindup(&vtol_pids[DOWN_POSITION], errors_ned[2],
-		    -guidanceSettings.VerticalVelMax, guidanceSettings.VerticalVelMax, dT);
+				-altitudeHoldSettings.MaxClimbRate * 0.1f,
+				altitudeHoldSettings.MaxDescentRate * 0.1f, dT);
 	} else {
 		// Just use the commanded rate
 		commands_ned[2] = alt_rate;
@@ -707,8 +709,12 @@ bool vtol_follower_control_loiter(float dT, float *hold_pos, float *att_adj,
 
 		hold_pos[2] = cur_pos_ned[2];
 
-		// and output an adjustment for velocity control use */
-		*alt_adj = down_cmd * guidanceSettings.VerticalVelMax;
+		// and output an adjustment for velocity control use
+		if (down_cmd < 0) { /* climbing*/
+			*alt_adj = down_cmd * altitudeHoldSettings.MaxClimbRate * 0.1f;
+		} else { /* descending */
+			*alt_adj = down_cmd * altitudeHoldSettings.MaxDescentRate * 0.1f;
+		}
 	}
 
 	return true;
