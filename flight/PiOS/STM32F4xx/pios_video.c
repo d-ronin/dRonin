@@ -194,21 +194,21 @@ void TIM4_IRQHandler(void) __attribute__((alias("PIOS_First_Line_ISR")));
  */
 void PIOS_First_Line_ISR(void)
 {
-	if(TIM_GetITStatus(dev_cfg->line_counter, TIM_IT_Update) && (active_line == 0))
+	if (TIM_GetITStatus(dev_cfg->line_counter, TIM_IT_Update) && (active_line == 0))
 	{
-		// Clear the interrupt flag
-		dev_cfg->line_counter->SR &= ~TIM_SR_UIF;
-
 		// Prepare the first line
 		prepare_line();
 
 		// Hack: The timing for the first line is critical, so we output it again
 		active_line = 0;
 
-		// Get ready to count the remaining lines
 		dev_cfg->line_counter->CNT = pios_video_type_cfg_act->graphics_line_start + y_offset;
-		TIM_Cmd(dev_cfg->line_counter, ENABLE);
+
+		TIM_Cmd(dev_cfg->line_counter, ENABLE); // Required for mode detection
 	}
+
+	// Clear the interrupt flag
+	dev_cfg->line_counter->SR &= ~TIM_SR_UIF;
 }
 
 
@@ -367,14 +367,33 @@ void PIOS_Video_Init(const struct pios_video_cfg *cfg)
 	TIM_SelectOnePulseMode(cfg->hsync_capture.timer, TIM_OPMode_Single);
 	TIM_SelectSlaveMode(cfg->hsync_capture.timer, TIM_SlaveMode_Trigger);
 
+	uint16_t tmpccer = cfg->hsync_capture.timer->CCER;
+
 #ifdef PIOS_VIDEO_HSYNC_FALLING_EDGE
 	/* Unfortunately not really a stdperiph function for this. */
-
-	uint16_t tmpccer = cfg->hsync_capture.timer->CCER;
-	tmpccer &= (uint16_t)~(TIM_CCER_CC1NP);
-	tmpccer |= (uint16_t)(TIM_CCER_CC1P);
-	cfg->hsync_capture.timer->CCER = tmpccer;
+	if (cfg->hsync_capture.timer_chan == TIM_Channel_1) {
+		tmpccer &= (uint16_t)~(TIM_CCER_CC1NP);
+		tmpccer |= (uint16_t)(TIM_CCER_CC1P);
+	} else if (cfg->hsync_capture.timer_chan == TIM_Channel_2) {
+		tmpccer &= (uint16_t)~(TIM_CCER_CC2NP);
+		tmpccer |= (uint16_t)(TIM_CCER_CC2P);
+	}
 #endif
+
+#ifdef PIOS_VIDEO_INPUT_FILTER
+	if (cfg->hsync_capture.timer_chan == TIM_Channel_1) {
+		tmpccer &= ((uint16_t)~TIM_CCMR1_IC1F);
+		tmpccer |= 6 << 4;
+		/* 6 = Fdts/4, N=6.  APB1=42MHz, so 6 cycles at 10.5Mhz...
+		 * require a steady value for half a microsecond
+		 */
+	} else if (cfg->hsync_capture.timer_chan == TIM_Channel_2) {
+		tmpccer &= ((uint16_t)~TIM_CCMR1_IC2F);
+		tmpccer |= 6 << 12;
+	}
+#endif
+
+	cfg->hsync_capture.timer->CCER = tmpccer;
 
 	if (cfg->hsync_capture.timer_chan == TIM_Channel_1) {
 		TIM_SelectInputTrigger(cfg->hsync_capture.timer, TIM_TS_TI1FP1);
