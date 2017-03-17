@@ -383,13 +383,18 @@ void PIOS_Video_Init(const struct pios_video_cfg *cfg)
 #ifdef PIOS_VIDEO_INPUT_FILTER
 	if (cfg->hsync_capture.timer_chan == TIM_Channel_1) {
 		tmpccer &= ((uint16_t)~TIM_CCMR1_IC1F);
-		tmpccer |= 6 << 4;
-		/* 6 = Fdts/4, N=6.  APB1=42MHz, so 6 cycles at 10.5Mhz...
-		 * require a steady value for half a microsecond
+		tmpccer |= 8 << 4;
+		/* 8 = Fdts/8, N=6.  APB1=42MHz, so the prescaled clock input
+		 * should be double that (84 MHz).
+		 *
+		 * 84MHz / 8 = 10.5Mhz... 6 / 10.5MHz = 0.57us
+		 * require a steady value, different from the previous value
+		 * for ~half a microsecond before accepting a hsync clock
+		 * trigger edge. 
 		 */
 	} else if (cfg->hsync_capture.timer_chan == TIM_Channel_2) {
 		tmpccer &= ((uint16_t)~TIM_CCMR1_IC2F);
-		tmpccer |= 6 << 12;
+		tmpccer |= 8 << 12;
 	}
 #endif
 
