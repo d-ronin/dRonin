@@ -94,7 +94,7 @@ uint8_t *draw_buffer_mask;
 uint8_t *disp_buffer_level;
 uint8_t *disp_buffer_mask;
 
-volatile uint16_t active_line = 0;
+volatile uint16_t active_line = 0xffff;
 
 const struct pios_video_type_boundary *pios_video_type_boundary_act = &pios_video_type_boundary_pal;
 
@@ -106,28 +106,32 @@ static int8_t y_offset = 0;
 static const struct pios_video_cfg *dev_cfg = NULL;
 static uint16_t num_video_lines = 0;
 static enum pios_video_system video_system_act = PIOS_VIDEO_SYSTEM_NONE;
-static enum pios_video_system video_system_tmp = PIOS_VIDEO_SYSTEM_PAL;
 static const struct pios_video_type_cfg *pios_video_type_cfg_act = &pios_video_type_cfg_pal;
 
 // Private functions
 static void swap_buffers();
 static void prepare_line();
+static void vid_disable_spis();
 
 /**
  * @brief Vsync interrupt service routine
  */
 bool PIOS_Vsync_ISR()
 {
-	static bool woken = false;
-	static uint16_t Vsync_update = 0;
+	enum pios_video_system video_system_tmp = PIOS_VIDEO_SYSTEM_NTSC;
 
 	// discard spurious vsync pulses (due to improper grounding), so we don't overload the CPU
-	if (active_line > 0 && active_line < pios_video_type_cfg_ntsc.graphics_hight_real - 10) {
+	if (active_line < pios_video_type_cfg_ntsc.graphics_hight_real - 10) {
 		return false;
 	}
 
 	// Stop the line counter
 	TIM_Cmd(dev_cfg->line_counter, DISABLE);
+
+	/* Ensure we are not still clocking something out */
+	vid_disable_spis();
+
+	dev_cfg->pixel_timer.timer->SMCR &= (uint16_t) ~TIM_SMCR_SMS;
 
 	// Update the number of video lines
 	num_video_lines = dev_cfg->line_counter->CNT;
@@ -165,7 +169,9 @@ bool PIOS_Vsync_ISR()
 		dev_cfg->hsync_capture.timer->ARR = (pios_video_type_cfg_act->dc * (pios_video_type_cfg_act->graphics_column_start + x_offset)) / 2;
 	}
 
-	video_system_tmp = PIOS_VIDEO_SYSTEM_NTSC;
+	bool woken = false;
+
+	static uint16_t Vsync_update = 0;
 
 	// Every VSYNC_REDRAW_CNT field: swap buffers and trigger redraw
 	if (++Vsync_update >= VSYNC_REDRAW_CNT) {
@@ -180,6 +186,13 @@ bool PIOS_Vsync_ISR()
 	// Set the number of lines to wait until we start clocking out pixels
 	dev_cfg->line_counter->CNT = 0xffff - (pios_video_type_cfg_act->graphics_line_start + y_offset);
 	TIM_Cmd(dev_cfg->line_counter, ENABLE);
+
+#ifdef PIOS_INCLUDE_WS2811
+#ifdef SYSTEMMOD_RGBLED_VIDEO_HACK
+	PIOS_WS2811_trigger_update(pios_ws2811);
+#endif
+#endif
+
 	return woken;
 }
 
@@ -216,6 +229,16 @@ void PIOS_VIDEO_DMA_Handler(void);
 void DMA2_Stream3_IRQHandler(void) __attribute__((alias("PIOS_VIDEO_DMA_Handler")));
 void DMA1_Stream4_IRQHandler(void) __attribute__((alias("PIOS_VIDEO_DMA_Handler")));
 
+static void vid_disable_spis()
+{
+		// Disable the SPI, makes sure the pins are LOW
+		dev_cfg->mask.regs->CR1 &= (uint16_t)~SPI_CR1_SPE;
+		dev_cfg->level.regs->CR1 &= (uint16_t)~SPI_CR1_SPE;
+
+		// Stop pixel timer
+		dev_cfg->pixel_timer.timer->CR1  &= (uint16_t) ~TIM_CR1_CEN;
+}
+
 /**
  * DMA transfer complete interrupt handler
  * Note: This function is called for every line (~13k times / s), so we use direct register access for
@@ -244,23 +267,13 @@ void PIOS_VIDEO_DMA_Handler(void)
 
 		dev_cfg->mask.regs->CR1  |=   SPI_CR1_SSI;
 
-		// Disable the SPI, makes sure the pins are LOW
-		dev_cfg->mask.regs->CR1 &= (uint16_t)~SPI_CR1_SPE;
-		dev_cfg->level.regs->CR1 &= (uint16_t)~SPI_CR1_SPE;
-
-		// Stop pixel timer
-		dev_cfg->pixel_timer.timer->CR1  &= (uint16_t) ~TIM_CR1_CEN;
+		vid_disable_spis();
 
 		if (active_line < pios_video_type_cfg_act->graphics_hight_real) { // lines existing
 			prepare_line();
 		} else { // last line completed
 			// Disable the pixel timer slave mode configuration
 			dev_cfg->pixel_timer.timer->SMCR &= (uint16_t) ~TIM_SMCR_SMS;
-#ifdef PIOS_INCLUDE_WS2811
-#ifdef SYSTEMMOD_RGBLED_VIDEO_HACK
-			PIOS_WS2811_trigger_update(pios_ws2811);
-#endif
-#endif
 		}
 	}
 }
