@@ -358,70 +358,6 @@
                   <verstretch>0</verstretch>
                  </sizepolicy>
                 </property>
-                <property name="palette">
-                 <palette>
-                  <active>
-                   <colorrole role="Base">
-                    <brush brushstyle="SolidPattern">
-                     <color alpha="255">
-                      <red>51</red>
-                      <green>51</green>
-                      <blue>51</blue>
-                     </color>
-                    </brush>
-                   </colorrole>
-                   <colorrole role="Link">
-                    <brush brushstyle="SolidPattern">
-                     <color alpha="255">
-                      <red>0</red>
-                      <green>0</green>
-                      <blue>255</blue>
-                     </color>
-                    </brush>
-                   </colorrole>
-                  </active>
-                  <inactive>
-                   <colorrole role="Base">
-                    <brush brushstyle="SolidPattern">
-                     <color alpha="255">
-                      <red>51</red>
-                      <green>51</green>
-                      <blue>51</blue>
-                     </color>
-                    </brush>
-                   </colorrole>
-                   <colorrole role="Link">
-                    <brush brushstyle="SolidPattern">
-                     <color alpha="255">
-                      <red>0</red>
-                      <green>0</green>
-                      <blue>255</blue>
-                     </color>
-                    </brush>
-                   </colorrole>
-                  </inactive>
-                  <disabled>
-                   <colorrole role="Base">
-                    <brush brushstyle="SolidPattern">
-                     <color alpha="255">
-                      <red>212</red>
-                      <green>208</green>
-                      <blue>200</blue>
-                     </color>
-                    </brush>
-                   </colorrole>
-                   <colorrole role="Link">
-                    <brush brushstyle="SolidPattern">
-                     <color alpha="255">
-                      <red>0</red>
-                      <green>0</green>
-                      <blue>255</blue>
-                     </color>
-                    </brush>
-                   </colorrole>
-                  </disabled>
-                 </palette>
-                </property>
                 <property name="alternatingRowColors">
                  <bool>false</bool>
                 </property>
@@ -589,7 +525,7 @@
            <item row="1" column="0" colspan="3">
             <widget class="QStackedWidget" name="stackedWidget3dPlots">
              <property name="currentIndex">
-              <number>0</number>
+              <number>1</number>
              </property>
              <widget class="QWidget" name="sw3dSpectrogramStack">
               <layout class="QGridLayout" name="gridLayout_2">
