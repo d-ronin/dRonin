@@ -168,6 +168,10 @@ int PIOS_Crossfire_Init(uintptr_t *crsf_id, const struct pios_com_driver *driver
 	PIOS_Crossfire_ResetBuffer(dev);
 	PIOS_Crossfire_SetAllChannels(dev, PIOS_RCVR_INVALID);
 
+	// Get COM device for telemetry.
+	if(PIOS_COM_Init(&dev->telem_com_id, dev->usart_driver, dev->usart_id, 0, CRSF_MAX_FRAMELEN))
+		return -1;
+
 	if (!PIOS_RTC_RegisterTickCallback(PIOS_Crossfire_Supervisor, *crsf_id))
 		PIOS_Assert(0);
 
@@ -183,20 +187,8 @@ int PIOS_Crossfire_InitTelemetry(uintptr_t crsf_id)
 	// What the hell? Return error code and don't assert, telemetry ain't vital.
 	if(!PIOS_Crossfire_Validate(dev))
 		return -1;
-
-	if(pios_com_crsf_sep_telem_id) {
-		// If there's a separate USART/COM device allocated for telemetry, use that one.
-		dev->telem_com_id = pios_com_crsf_sep_telem_id;
+	else
 		return 0;
-	} else {
-		if(PIOS_COM_Init(&dev->telem_com_id, dev->usart_driver, dev->usart_id, 0, CRSF_MAX_FRAMELEN)) {
-			return -1;
-		}
-		// Rebind callback, since it'll get overwritten in PIOS_COM_Init.
-		(dev->usart_driver->bind_rx_cb)(dev->usart_id, PIOS_Crossfire_Receive, crsf_id);
-	}
-
-	return 0;
 }
 
 static int32_t PIOS_Crossfire_Read(uintptr_t context, uint8_t channel)
