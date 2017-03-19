@@ -372,6 +372,7 @@ static void PIOS_TIM_1_TRG_COM_TIM_11_irq_handler (void)
 #endif /* defined(PIOS_INCLUDE_CHIBIOS) */
 }
 
+#ifndef PIOS_OMIT_TIM2IRQ
 void TIM2_IRQHandler(void) __attribute__ ((alias ("PIOS_TIM_2_irq_handler")));
 static void PIOS_TIM_2_irq_handler (void)
 {
@@ -385,6 +386,7 @@ static void PIOS_TIM_2_irq_handler (void)
 	CH_IRQ_EPILOGUE();
 #endif /* defined(PIOS_INCLUDE_CHIBIOS) */
 }
+#endif
 
 void TIM3_IRQHandler(void) __attribute__ ((alias ("PIOS_TIM_3_irq_handler")));
 static void PIOS_TIM_3_irq_handler (void)
