@@ -57,6 +57,10 @@
 #define STACK_SIZE_BYTES 1340
 #define TASK_PRIORITY PIOS_THREAD_PRIO_NORMAL
 
+#ifndef AUTOTUNE_AVERAGING_DECIMATION
+#define AUTOTUNE_AVERAGING_DECIMATION 1
+#endif
+
 #define AF_NUMX 13
 #define AF_NUMP 43
 
@@ -104,6 +108,8 @@ static volatile uint32_t at_points_spilled;
 static uint32_t throttle_accumulator;
 
 extern uint16_t ident_wiggle_points;
+
+uint16_t decim_wiggle_points;
 
 // Private functions
 static void AutotuneTask(void *parameters);
@@ -221,7 +227,7 @@ static void at_new_actuators(UAVObjEvent * ev, void *ctx, void *obj, int len) {
 	}
 
 #ifdef AUTOTUNE_AVERAGING_MODE
-	struct at_measurement *avg_point = &at_averages[actuators.SystemIdentCycle];
+	struct at_measurement *avg_point = &at_averages[actuators.SystemIdentCycle / AUTOTUNE_AVERAGING_DECIMATION];
 
 	if (first_cycle) {
 		*avg_point = (struct at_measurement) { { 0 } };
@@ -304,9 +310,9 @@ static int autotune_save_averaging() {
 
 	struct at_flash_header hdr = {
 		.magic = ATFLASH_MAGIC,
-		.wiggle_points = ident_wiggle_points,
+		.wiggle_points = decim_wiggle_points,
 		.aux_data_len = 0,
-		.sample_rate = PIOS_SENSORS_GetSampleRate(PIOS_SENSOR_GYRO),
+		.sample_rate = PIOS_SENSORS_GetSampleRate(PIOS_SENSOR_GYRO) / AUTOTUNE_AVERAGING_DECIMATION,
 	};
 
 	uint32_t offset = 0;
@@ -320,7 +326,7 @@ static int autotune_save_averaging() {
 	offset += sizeof(hdr);
 
 	if (PIOS_FLASH_write_data(part_id, offset, (uint8_t *) at_averages,
-				sizeof(*at_averages) * ident_wiggle_points)) {
+				sizeof(*at_averages) * decim_wiggle_points)) {
 		PIOS_FLASH_end_transaction(part_id);
 		return -5;
 	}
@@ -353,7 +359,9 @@ static void AutotuneTask(void *parameters)
 		PIOS_Thread_Sleep(25);
 	}
 
-	uint16_t buf_size = sizeof(*at_averages) * ident_wiggle_points;
+	decim_wiggle_points = ident_wiggle_points / AUTOTUNE_AVERAGING_DECIMATION;
+
+	uint16_t buf_size = sizeof(*at_averages) * decim_wiggle_points;
 	at_averages = PIOS_malloc(buf_size);
 
 	while (!at_averages) {
