@@ -35,6 +35,7 @@
 
 #include <QtCore/QMap>
 #include <QSettings>
+#include <QFile>
 
 QT_BEGIN_NAMESPACE
 class QSettings;
@@ -166,6 +167,7 @@ private:
     void registerDefaultContainers();
     void registerDefaultActions();
     void createWorkspaces(QSettings* qs, bool diffOnly = false);
+    void readStyleSheet(QFile* file, QString name, QString *style);
     void loadStyleSheet(QString name);
 
     CoreImpl *m_coreImpl;

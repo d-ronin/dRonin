@@ -283,7 +283,7 @@ bool MainWindow::init(QString *errorMessage)
     return true;
 }
 
-void MainWindow::modeChanged(Core::IMode */*mode*/)
+void MainWindow::modeChanged(Core::IMode * /*mode*/)
 {
 
 }
@@ -375,6 +375,23 @@ void MainWindow::extensionsInitialized()
     emit m_coreImpl->coreOpened();
 }
 
+void MainWindow::readStyleSheet(QFile *file, QString name, QString *style) {
+    QString tmp;
+    if(file->open(QFile::ReadOnly)) {
+        /* QTextStream... */
+        QTextStream styleIn(file);
+        /* ...read file to a string. */
+        tmp = styleIn.readAll();
+        file->close();
+        style->append(tmp);
+        emit splashMessages(QString(tr("Loading stylesheet %1")).arg(name));
+        qDebug()<<"Loaded stylesheet:" << name;
+    }
+    else {
+        qDebug()<<"Failed to openstylesheet file" << name;
+    }
+}
+
 void MainWindow::loadStyleSheet(QString name) {
     /* Let's use QFile and point to a resource... */
     QDir directory(QCoreApplication::applicationDirPath());
@@ -386,6 +403,7 @@ void MainWindow::loadStyleSheet(QString name) {
     directory.cd("share");
 #endif
     directory.cd("stylesheets");
+    QFile global(directory.absolutePath()+QDir::separator()+"global.qss");
 #ifdef Q_OS_MAC
     QFile data(directory.absolutePath()+QDir::separator()+name+"_macos.qss");
 #elif defined(Q_OS_LINUX)
@@ -395,20 +413,15 @@ void MainWindow::loadStyleSheet(QString name) {
 #endif
     QString style;
     /* ...to open the file */
-    if(data.open(QFile::ReadOnly)) {
-        /* QTextStream... */
-        QTextStream styleIn(&data);
-        /* ...read file to a string. */
-        style = styleIn.readAll();
-        data.close();
-        /* We'll use qApp macro to get the QApplication pointer
-         * and set the style sheet application wide. */
+
+    readStyleSheet(&global, "global", &style);
+    readStyleSheet(&data, name, &style);
+
+    if(style.length() > 0) {
         qApp->setStyleSheet(style);
-        emit splashMessages(QString(tr("Loading stylesheet %1")).arg(name));
-        qDebug()<<"Loaded stylesheet:" << directory.absolutePath() << name;
+    } else {
+        qDebug()<<"No stylesheets loaded.";
     }
-    else
-        qDebug()<<"Failed to openstylesheet file" << directory.absolutePath() << name;
 }
 
 void MainWindow::closeEvent(QCloseEvent *event)
