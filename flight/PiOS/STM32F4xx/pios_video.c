@@ -120,8 +120,6 @@ static void vid_disable_spis();
  */
 bool PIOS_Vsync_ISR()
 {
-	enum pios_video_system video_system_tmp = PIOS_VIDEO_SYSTEM_NTSC;
-
 	static uint16_t Vsync_update = 0;
 
 	// discard spurious vsync pulses (due to improper grounding), so we don't overload the CPU
@@ -139,14 +137,14 @@ bool PIOS_Vsync_ISR()
 	static uint8_t mode_hysteresis = 0;
 
 	// check video type
-	if (num_video_lines > ((VIDEO_TYPE_PAL_ROWS + VIDEO_TYPE_NTSC_ROWS) / 2)) {
+	if (num_video_lines > VIDEO_TYPE_PAL_ROWS) {
 		video_system_tmp = PIOS_VIDEO_SYSTEM_PAL;
 	} else {
 		video_system_tmp = PIOS_VIDEO_SYSTEM_NTSC;
 	}
 
 	// if video type has changed set new active values
-	if ((video_system_act != video_system_tmp) && (mode_hysteresis++ > 3)) {
+	if ((video_system_act != video_system_tmp) && (mode_hysteresis++ > 10)) {
 		video_system_act = video_system_tmp;
 		if (video_system_act == PIOS_VIDEO_SYSTEM_NTSC) {
 			pios_video_type_boundary_act = &pios_video_type_boundary_ntsc;
@@ -177,7 +175,6 @@ bool PIOS_Vsync_ISR()
 
 	bool woken = false;
 
-
 	// Every VSYNC_REDRAW_CNT field: swap buffers and trigger redraw
 	if (++Vsync_update >= VSYNC_REDRAW_CNT) {
 		Vsync_update = 0;
@@ -188,10 +185,6 @@ bool PIOS_Vsync_ISR()
 
 	// Get ready for the first line
 	active_line = - (pios_video_type_cfg_act->graphics_line_start + y_offset);
-
-	// Set the number of lines to wait until we start clocking out pixels
-	dev_cfg->line_counter->CNT = 0xffff - (pios_video_type_cfg_act->graphics_line_start + y_offset);
-	TIM_Cmd(dev_cfg->line_counter, ENABLE);
 
 #ifdef PIOS_INCLUDE_WS2811
 #ifdef SYSTEMMOD_RGBLED_VIDEO_HACK
@@ -238,11 +231,7 @@ void PIOS_Line_ISR(void)
 
 		active_line++;
 	}
-
-	// Clear the interrupt flag
-	dev_cfg->line_counter->SR &= ~TIM_SR_UIF;
 }
-
 
 void PIOS_VIDEO_DMA_Handler(void);
 void DMA2_Stream3_IRQHandler(void) __attribute__((alias("PIOS_VIDEO_DMA_Handler")));
