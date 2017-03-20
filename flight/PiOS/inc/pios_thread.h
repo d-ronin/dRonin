@@ -83,11 +83,6 @@ enum pios_thread_prio_e
 	PIOS_THREAD_PRIO_HIGH,
 	PIOS_THREAD_PRIO_HIGHEST
 };
-
-struct pios_thread
-{
-	uintptr_t task_handle;
-};
 #endif
 
 /*

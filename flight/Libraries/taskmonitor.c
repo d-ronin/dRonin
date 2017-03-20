@@ -46,7 +46,7 @@ int32_t TaskMonitorInitialize(void)
 {
 	lock = PIOS_Mutex_Create();
 	PIOS_Assert(lock != NULL);
-	memset(handles, 0, sizeof(struct pios_thread) * TASKINFO_RUNNING_NUMELEM);
+	memset(handles, 0, sizeof(struct pios_thread *) * TASKINFO_RUNNING_NUMELEM);
 	lastMonitorTime = 0;
 #if defined(DIAG_TASKS)
 #if defined(PIOS_INCLUDE_FREERTOS)
