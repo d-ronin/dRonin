@@ -115,6 +115,7 @@ DONT_BUILD_IF((PID_RATE_YAW+0 != YAW)||(PID_ATT_YAW != PID_GROUP_ATT+YAW), stabA
 
 // Private variables
 static struct pios_thread *taskHandle;
+
 static StabilizationSettingsData settings;
 static VbarSettingsData vbar_settings;
 
@@ -123,14 +124,14 @@ static struct pios_queue *queue;
 
 uint16_t ident_wiggle_points;
 
-float axis_lock_accum[MAX_AXES] = {0,0,0};
-uint8_t max_axis_lock = 0;
-uint8_t max_axislock_rate = 0;
-float weak_leveling_kp = 0;
-uint8_t weak_leveling_max = 0;
-bool lowThrottleZeroIntegral;
-float vbar_decay = 0.991f;
+static float axis_lock_accum[MAX_AXES] = {0,0,0};
+static uint8_t max_axis_lock = 0;
+static uint8_t max_axislock_rate = 0;
+static float weak_leveling_kp = 0;
+static uint8_t weak_leveling_max = 0;
+static bool lowThrottleZeroIntegral;
 static float max_rate_alpha = 0.8f;
+float vbar_decay = 0.991f;
 
 struct pid pids[PID_MAX];
 
@@ -138,17 +139,15 @@ struct pid pids[PID_MAX];
 struct pid_deadband *deadbands = NULL;
 #endif
 
-volatile bool gyro_filter_updated = true; 
-
-static bool actuatorDesiredUpdated = true;
-static bool flightStatusUpdated = true;
-static bool systemSettingsUpdated = true;
+static volatile bool settings_flag = true;
+static volatile bool flightStatusUpdated = true;
+static volatile bool systemSettingsUpdated = true;
 
 // Private functions
 static void stabilizationTask(void* parameters);
 static void zero_pids(void);
 static void calculate_pids(void);
-static void SettingsUpdatedCb(UAVObjEvent * objEv, void *ctx, void *obj, int len);
+static void update_settings();
 static float get_throttle(StabilizationDesiredData *stabilization_desired, SystemSettingsAirframeTypeOptions *airframe_type);
 
 #ifndef NO_CONTROL_DEADBANDS
@@ -179,11 +178,6 @@ int32_t StabilizationStart()
 	// Listen for updates.
 	//	AttitudeActualConnectQueue(queue);
 	GyrosConnectQueue(queue);
-
-	// Connect settings callback
-	StabilizationSettingsConnectCallback(SettingsUpdatedCb);
-	VbarSettingsConnectCallback(SettingsUpdatedCb);
-	SubTrimSettingsConnectCallback(SettingsUpdatedCb);
 
 	// Watchdog must be registered before starting task
 	PIOS_WDG_RegisterFlag(PIOS_WDG_STABILIZATION);
@@ -300,12 +294,11 @@ static void stabilizationTask(void* parameters)
 	float horizonRateFraction = 0.0f;
 
 	// Connect callbacks
-	ActuatorDesiredConnectCallbackCtx(UAVObjCbSetFlag, &actuatorDesiredUpdated);
 	FlightStatusConnectCallbackCtx(UAVObjCbSetFlag, &flightStatusUpdated);
 	SystemSettingsConnectCallbackCtx(UAVObjCbSetFlag, &systemSettingsUpdated);
-
-	// Force refresh of all settings immediately before entering main task loop
-	SettingsUpdatedCb(NULL, NULL, NULL, 0);
+	StabilizationSettingsConnectCallbackCtx(UAVObjCbSetFlag, &settings_flag);
+	VbarSettingsConnectCallbackCtx(UAVObjCbSetFlag, &settings_flag);
+	SubTrimSettingsConnectCallbackCtx(UAVObjCbSetFlag, &settings_flag);
 
 	uint32_t iteration = 0;
 	float dT_measured = 0;
@@ -343,12 +336,32 @@ static void stabilizationTask(void* parameters)
 	ident_wiggle_points = (1 << (ident_shift + 3));
 	uint32_t ident_mask = ident_wiggle_points - 1;
 
-	// Main task loop
 	zero_pids();
+
+	// Main task loop
 	while(1) {
 		iteration++;
 
 		PIOS_WDG_UpdateFlag(PIOS_WDG_STABILIZATION);
+
+		if (settings_flag) {
+			update_settings();
+
+			// Default 350ms.
+			// 175ms to 39.3% of response
+			// 350ms to 63.2% of response
+			// 700ms to 86.4% of response
+			max_rate_alpha = expf(-dT_expected / settings.AcroDynamicTau);
+
+			// Compute time constant for vbar decay term
+			if (vbar_settings.VbarTau < 0.001f) {
+				vbar_decay = 0;
+			} else {
+				vbar_decay = expf(-dT_expected / vbar_settings.VbarTau);
+			}
+
+			settings_flag = false;
+		}
 
 		// Wait until the AttitudeRaw object is updated, if a timeout then go to failsafe
 		if (PIOS_Queue_Receive(queue, &ev, FAILSAFE_TIMEOUT_MS) != true)
@@ -380,28 +393,6 @@ static void stabilizationTask(void* parameters)
 		}
 
 		bool error = frequency_wrong;
-
-		if (gyro_filter_updated) {
-			// Default 350ms.
-			// 175ms to 39.3% of response
-			// 350ms to 63.2% of response
-			// 700ms to 86.4% of response
-			max_rate_alpha = expf(-dT_expected / settings.AcroDynamicTau);
-
-			// Compute time constant for vbar decay term
-			if (vbar_settings.VbarTau < 0.001f) {
-				vbar_decay = 0;
-			} else {
-				vbar_decay = expf(-dT_expected / vbar_settings.VbarTau);
-			}
-
-			gyro_filter_updated = false;
-		}
-
-		if (actuatorDesiredUpdated) {
-			ActuatorDesiredGet(&actuatorDesired);
-			actuatorDesiredUpdated = false;
-		}
 
 		if (flightStatusUpdated) {
 			FlightStatusGet(&flightStatus);
@@ -987,8 +978,6 @@ static void stabilizationTask(void* parameters)
 		actuatorDesired.UpdateTime = dT * 1000;
 
 		ActuatorDesiredSet(&actuatorDesired);
-		// So we only fetch it above if it is modified by another module (wacky)
-		actuatorDesiredUpdated = false;
 
 		if(flightStatus.Armed != FLIGHTSTATUS_ARMED_ARMED ||
 		   (lowThrottleZeroIntegral && get_throttle(&stabDesired, &airframe_type) < 0))
@@ -1111,52 +1100,35 @@ static void calculate_pids()
 #endif
 }
 
-static void SettingsUpdatedCb(UAVObjEvent * ev, void *ctx, void *obj, int len)
+static void update_settings()
 {
-	(void) ctx; (void) obj; (void) len;
+	SubTrimSettingsData subTrimSettings;
 
-	if (ev == NULL || ev->obj == SubTrimSettingsHandle())
-	{
-		SubTrimSettingsData subTrimSettings;
+	SubTrimGet(&subTrim);
+	SubTrimSettingsGet(&subTrimSettings);
 
-		SubTrimGet(&subTrim);
-		SubTrimSettingsGet(&subTrimSettings);
+	// Set the trim angles
+	subTrim.Roll = subTrimSettings.Roll;
+	subTrim.Pitch = subTrimSettings.Pitch;
 
-		// Set the trim angles
-		subTrim.Roll = subTrimSettings.Roll;
-		subTrim.Pitch = subTrimSettings.Pitch;
+	SubTrimSet(&subTrim);
 
-		SubTrimSet(&subTrim);
-	}
+	StabilizationSettingsGet(&settings);
+	VbarSettingsGet(&vbar_settings);
 
-	if (ev == NULL || ev->obj == StabilizationSettingsHandle())
-	{
-		StabilizationSettingsGet(&settings);
+	calculate_pids();
 
-		calculate_pids();
+	// Maximum deviation to accumulate for axis lock
+	max_axis_lock = settings.MaxAxisLock;
+	max_axislock_rate = settings.MaxAxisLockRate;
 
-		// Maximum deviation to accumulate for axis lock
-		max_axis_lock = settings.MaxAxisLock;
-		max_axislock_rate = settings.MaxAxisLockRate;
+	// Settings for weak leveling
+	weak_leveling_kp = settings.WeakLevelingKp;
+	weak_leveling_max = settings.MaxWeakLevelingRate;
 
-		// Settings for weak leveling
-		weak_leveling_kp = settings.WeakLevelingKp;
-		weak_leveling_max = settings.MaxWeakLevelingRate;
-
-		// Whether to zero the PID integrals while thrust is low
-		lowThrottleZeroIntegral = settings.LowThrottleZeroIntegral == STABILIZATIONSETTINGS_LOWTHROTTLEZEROINTEGRAL_TRUE;
-
-		gyro_filter_updated = true;
-	}
-
-	if (ev == NULL || ev->obj == VbarSettingsHandle())
-	{
-		VbarSettingsGet(&vbar_settings);
-
-		calculate_pids();
-	}
+	// Whether to zero the PID integrals while thrust is low
+	lowThrottleZeroIntegral = settings.LowThrottleZeroIntegral == STABILIZATIONSETTINGS_LOWTHROTTLEZEROINTEGRAL_TRUE;
 }
-
 
 /**
  * @}
