@@ -476,8 +476,6 @@ void PIOS_SYS_Init(void)
 */
 int32_t PIOS_SYS_Reset(void)
 {
-	PIOS_Thread_Scheduler_Suspend();
-
 	char *argv[128];
 
 	/* Sigh, ensure NULL termination of array like execvpe(3) expects*/

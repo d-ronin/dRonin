@@ -118,14 +118,8 @@ static void PIOS_TCP_RxTask(void *tcp_dev_n)
 	
 		do
 		{
-			/* Polling the fd has to be executed in thread suspended mode
-			 * to get a correct errno value. */
-			PIOS_Thread_Scheduler_Suspend();
-
 			tcp_dev->socket_connection = accept(tcp_dev->socket, NULL, NULL);
 			error = errno;
-
-			PIOS_Thread_Scheduler_Resume();
 
 			PIOS_Thread_Sleep(1);
 		} while (tcp_dev->socket_connection == INVALID_SOCKET && (error == EINTR || error == EAGAIN));
@@ -145,15 +139,9 @@ static void PIOS_TCP_RxTask(void *tcp_dev_n)
 		while (1) {
 			// Received is used to track the scoket whereas the dev variable is only updated when it can be
 
-			/* Polling the fd has to be executed in thread suspended mode
-			 * to get a correct errno value. */
-			PIOS_Thread_Scheduler_Suspend();
-
 			int result = read(tcp_dev->socket_connection, incoming_buffer, INCOMING_BUFFER_SIZE);
 			error = errno;
 
-			PIOS_Thread_Scheduler_Resume();
-			
 			if (result > 0 && tcp_dev->rx_in_cb) {
 
 				bool rx_need_yield = false;
