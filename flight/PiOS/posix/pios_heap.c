@@ -49,11 +49,7 @@ bool PIOS_heap_malloc_failed_p(void)
 
 void * PIOS_malloc(size_t size)
 {
-#if defined(PIOS_INCLUDE_CHIBIOS)
-	void *buf = chHeapAlloc(NULL, size);
-#else
-#error "pios_heap requires PIOS_INCLUDE_CHIBIOS"
-#endif
+	void *buf = malloc(size);
 
 	if (buf == NULL)
 		malloc_failed_hook();
@@ -68,11 +64,7 @@ void * PIOS_malloc_no_dma(size_t size)
 
 void PIOS_free(void * buf)
 {
-#if defined(PIOS_INCLUDE_CHIBIOS)
-	chHeapFree(buf);
-#else
-#error "pios_heap requires PIOS_INCLUDE_CHIBIOS"
-#endif
+	free(buf);
 }
 
 void PIOS_heap_initialize_blocks(void)

@@ -45,6 +45,8 @@
 #include <errno.h>
 #include <fcntl.h>
 
+#define INVALID_SOCKET (-1)
+
 /* Provide a COM driver */
 static void PIOS_TCP_ChangeBaud(uintptr_t udp_id, uint32_t baud);
 static void PIOS_TCP_RegisterRxCallback(uintptr_t udp_id, pios_com_callback rx_in_cb, uintptr_t context);

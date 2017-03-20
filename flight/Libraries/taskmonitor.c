@@ -119,7 +119,7 @@ void TaskMonitorUpdateAll(void)
 	// Lock
 	PIOS_Mutex_Lock(lock, PIOS_MUTEX_TIMEOUT_MAX);
 
-	uint32_t currentTime;
+	uint32_t currentTime = 0;
 	uint32_t deltaTime;
 	
 	/*

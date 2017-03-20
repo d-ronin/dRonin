@@ -71,11 +71,22 @@ struct pios_thread
 	Thread *threadp;
 };
 
-#else /* defined(PIOS_INCLUDE_CHIBIOS) */
+#elif defined(PIOS_INCLUDE_RTOS)
+
+/* XXX all this needs handlin' for posix right */
+#define PIOS_THREAD_STACK_SIZE_MIN (32768)
 
 enum pios_thread_prio_e
 {
+	PIOS_THREAD_PRIO_LOW = 0,
+	PIOS_THREAD_PRIO_NORMAL,
+	PIOS_THREAD_PRIO_HIGH,
 	PIOS_THREAD_PRIO_HIGHEST
+};
+
+struct pios_thread
+{
+	uintptr_t task_handle;
 };
 #endif
 
@@ -94,7 +105,7 @@ uint32_t PIOS_Thread_Get_Runtime(struct pios_thread *threadp);
 void PIOS_Thread_Scheduler_Suspend(void);
 void PIOS_Thread_Scheduler_Resume(void);
 
-/* 
+/*
  * The following functions are provided to assist with common thread timing uses
  */
 /**

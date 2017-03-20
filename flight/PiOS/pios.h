@@ -42,7 +42,14 @@
 /* @note    This is required because of difference in chip define between ChibiOS and ST libs.
  *          It is also used to force inclusion of chibios_transition defines. */
 #include "hal.h"
+
+#define PIOS_INCLUDE_RTOS
+
 #endif /* defined(PIOS_INCLUDE_CHIBIOS) */
+
+#if defined(PIOS_INCLUDE_FREERTOS)
+#define PIOS_INCLUDE_RTOS
+#endif
 
 /* C Lib Includes */
 #include <stdio.h>
@@ -100,7 +107,7 @@
 #if defined(PIOS_INCLUDE_DMA_CB_SUBSCRIBING_FUNCTION)
 #include <pios_dma.h>
 #endif
-#if defined(PIOS_INCLUDE_FREERTOS) || defined(PIOS_INCLUDE_CHIBIOS)
+#if defined(PIOS_INCLUDE_RTOS)
 #include <pios_sensors.h>
 #endif
 #include <pios_wdg.h>
