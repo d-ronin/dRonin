@@ -26,6 +26,17 @@
 #include "pios.h"
 #include "pios_semaphore.h"
 
+struct pios_semaphore
+{
+#if defined(PIOS_INCLUDE_FREERTOS)
+	uintptr_t sema_handle;
+#elif defined(PIOS_INCLUDE_CHIBIOS)
+	BinarySemaphore sema;
+#else
+	uint32_t sema_count;
+#endif
+};
+
 #if defined(PIOS_INCLUDE_FREERTOS)
 
 #include "FreeRTOS.h"
