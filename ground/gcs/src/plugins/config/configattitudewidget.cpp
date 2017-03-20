@@ -177,9 +177,6 @@ ConfigAttitudeWidget::ConfigAttitudeWidget(QWidget *parent) :
     m_ui->levelingStart->setEnabled(true);
     m_ui->levelingAndBiasStart->setEnabled(true);
 
-    // F1 boards don't have this object
-    setNotMandatory("StateEstimation");
-
     refreshWidgetsValues();
 }
 

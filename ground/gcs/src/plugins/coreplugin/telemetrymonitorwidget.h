@@ -55,6 +55,9 @@ signals:
     
 public slots:
     void connected();
+    /**
+     * @todo Shadows QObject::disconnect!!
+     */
     void disconnect();
 
     void updateTelemetry(double txRate, double rxRate);
