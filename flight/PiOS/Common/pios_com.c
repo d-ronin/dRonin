@@ -535,7 +535,9 @@ uint16_t PIOS_COM_ReceiveBuffer(uintptr_t com_id, uint8_t * buf, uint16_t buf_le
 	PIOS_Assert(com_dev->rx);
 
 	/* Clear any pending RX wakeup */
-	PIOS_Semaphore_Take(com_dev->rx_sem, 0);
+	if (com_dev->rx_sem) {
+		PIOS_Semaphore_Take(com_dev->rx_sem, 0);
+	}
 
 check_again:
 	bytes_from_fifo = circ_queue_read_data(com_dev->rx, buf, buf_len);

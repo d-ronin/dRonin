@@ -47,7 +47,7 @@ struct circ_queue {
  */
 circ_queue_t circ_queue_new(uint16_t elem_size, uint16_t num_elem) {
 	PIOS_Assert(elem_size > 0);
-	PIOS_Assert(num_elem > 2);
+	PIOS_Assert(num_elem >= 2);
 
 	uint32_t size = elem_size * num_elem;
 

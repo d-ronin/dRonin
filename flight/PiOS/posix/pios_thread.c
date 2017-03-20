@@ -48,19 +48,23 @@ struct pios_thread *PIOS_Thread_Create(void (*fp)(void *), const char *namep, si
 		abort();
 	}
 
-	struct sched_param param = {
-		.sched_priority = 30	/* XXX */
-	};
+	//struct sched_param param = {
+	//	.sched_priority = 30	/* XXX */
+	//};
 
-	pthread_attr_setinheritsched(&attr, PTHREAD_EXPLICIT_SCHED);
-	pthread_attr_setschedpolicy(&attr, SCHED_RR);
-	pthread_attr_setschedparam(&attr, &param);
+	//pthread_attr_setinheritsched(&attr, PTHREAD_EXPLICIT_SCHED);
+	//pthread_attr_setschedpolicy(&attr, SCHED_RR);
+	//pthread_attr_setschedparam(&attr, &param);
 
 	thread->name = strdup(namep);
 
 	void *(*thr_func)(void *) = (void *) fp;
 
-	if (pthread_create(&thread->thread, &attr, thr_func, argp)) {
+	int ret = pthread_create(&thread->thread, &attr, thr_func, argp);
+
+	if (ret) {
+		printf("Couldn't start thr (%s) ret=%d\n", namep, ret);
+
 		free(thread->name);
 		free(thread);
 		return NULL;
@@ -77,8 +81,11 @@ void PIOS_Thread_Delete(struct pios_thread *threadp)
 		abort();	// Only support this on "self"
 	}
 
+#if 0
+	/* Need to figure out our own thread structure to clean it up */
 	free(threadp->name);
 	free(threadp);
+#endif
 
 	pthread_exit(0);
 }
