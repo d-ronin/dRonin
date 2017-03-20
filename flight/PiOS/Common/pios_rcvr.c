@@ -107,7 +107,14 @@ int32_t PIOS_RCVR_Read(uintptr_t rcvr_id, uint8_t channel)
 
 bool PIOS_RCVR_WaitActivity(uint32_t timeout_ms) {
   if (rcvr_activity) {
-    return PIOS_Semaphore_Take(rcvr_activity, timeout_ms);
+    bool result = PIOS_Semaphore_Take(rcvr_activity, timeout_ms);
+    if(!result) {
+      // If the semaphore times out, update last wake, to try to avoid
+      // resonance due to jitter, when the update rate of the receiver
+      // matches the timeout.
+      rcvr_last_wake = PIOS_DELAY_GetRaw();
+    }
+    return result;
   } else {
     PIOS_Thread_Sleep(timeout_ms);
 
