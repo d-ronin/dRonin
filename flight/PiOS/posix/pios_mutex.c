@@ -69,6 +69,8 @@ bool PIOS_Mutex_Lock(struct pios_mutex *mtx, uint32_t timeout_ms)
 
 	if (timeout_ms >= PIOS_MUTEX_TIMEOUT_MAX) {
 		ret = pthread_mutex_lock(&mtx->mutex);
+
+		PIOS_Assert(!ret);
 	} else {
 		struct timespec abstime;
 
