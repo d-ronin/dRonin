@@ -949,10 +949,17 @@ void ConfigTaskWidget::defaultButtonClicked()
     }
 }
 
-// TODO: just call into Uploader instead
+/**
+ * @todo just call into Uploader instead
+ */
 void ConfigTaskWidget::rebootButtonClicked()
 {
-    QPushButton *button = qobject_cast<QPushButton *>(sender());
+    QPointer<QPushButton> button(qobject_cast<QPushButton *>(sender()));
+    if (!button) {
+        qWarning() << "Invalid button";
+        return;
+    }
+
     setWidgetEnabledByObj(button, false);
     button->setIcon(QIcon(":/uploader/images/system-run.svg"));
 
@@ -964,38 +971,51 @@ void ConfigTaskWidget::rebootButtonClicked()
         button->setIcon(QIcon(":/uploader/images/error.svg"));
         return;
     }
+
     QEventLoop loop;
     QTimer timeout;
     timeout.setSingleShot(true);
     iapObj->setBoardRevision(0);
     iapObj->setBoardType(0);
-    connect(&timeout, SIGNAL(timeout()), &loop, SLOT(quit()));
-    connect(iapObj, SIGNAL(transactionCompleted(UAVObject*,bool)), &loop, SLOT(quit()));
-    int magicValue = 1122;
-    int magicStep = 1111;
-    for(int i = 0; i < 3; ++i)
-    {
-        //Firmware IAP module specifies that the timing between iap commands must be
-        //between 500 and 5000ms
+    connect(&timeout, &QTimer::timeout, &loop, &QEventLoop::quit);
+    /**
+     * @todo c++14: simplify with qOverload
+     */
+    connect(iapObj, QOverload<UAVObject*, bool>::of(&UAVObject::transactionCompleted),
+            &loop, &QEventLoop::quit);
+
+    quint16 magicValue = 1122;
+    quint16 magicStep = 1111;
+    for (int i = 0; i < 3; ++i) {
+        // Firmware IAP module specifies that the timing between iap commands must be
+        // between 500 and 5000ms
         timeout.start(600);
         loop.exec();
         iapObj->setCommand(magicValue);
         magicValue += magicStep;
-        if(magicValue == 3344)
+        // 3344 = halt, 4455 = reboot
+        if (magicValue == 3344)
             magicValue = 4455;
         iapObj->updated();
         timeout.start(1000);
         loop.exec();
-        if(!timeout.isActive())
-        {
+
+        // button should only be deleted by this (UI) thread so this weak check is okay,
+        // so long as setWidgetEnabledByObj doesn't signal anything that will delete it
+        if (!timeout.isActive() && button) {
             setWidgetEnabledByObj(button, true);
             button->setIcon(QIcon(":/uploader/images/error.svg"));
             return;
         }
         timeout.stop();
     }
-    setWidgetEnabledByObj(button, true);
-    button->setIcon(QIcon(":/uploader/images/dialog-apply.svg"));
+
+    if (button) {
+        setWidgetEnabledByObj(button, true);
+        button->setIcon(QIcon(":/uploader/images/dialog-apply.svg"));
+    }
+
+    // this is safe even if already disconnected
     conMngr->disconnectDevice();
 }
 
