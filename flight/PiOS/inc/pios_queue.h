@@ -33,29 +33,9 @@
 #include <stdbool.h>
 #include <stdint.h>
 
-#if defined(PIOS_INCLUDE_FREERTOS)
-
-struct pios_queue
-{
-	uintptr_t queue_handle;
-};
-
-#elif defined(PIOS_INCLUDE_CHIBIOS)
-
-#include "ch.h"
-
-struct pios_queue
-{
-	Mailbox mb;
-	MemoryPool mp;
-	void *mpb;
-};
-
-#endif /* defined(PIOS_INCLUDE_FREERTOS) */
-
 /*
  * The following functions implement the concept of a queue usable
- * with PIOS_INCLUDE_FREERTOS or PIOS_INCLUDE_CHIBIOS.
+ * with PIOS_INCLUDE_CHIBIOS.
  *
  * for details see
  * http://www.freertos.org/a00018.html

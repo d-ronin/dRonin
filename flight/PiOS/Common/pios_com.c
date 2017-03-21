@@ -40,10 +40,7 @@
 
 #include <circqueue.h>
 #include <pios_com_priv.h>
-
-#if !defined(PIOS_INCLUDE_FREERTOS) && !defined(PIOS_INCLUDE_CHIBIOS)
 #include "pios_delay.h"		/* PIOS_DELAY_WaitmS */
-#endif
 
 #include "pios_semaphore.h"
 #include "pios_mutex.h"
@@ -59,7 +56,7 @@ struct pios_com_dev {
 
 	struct pios_semaphore *tx_sem;
 	struct pios_semaphore *rx_sem;
-#if defined(PIOS_INCLUDE_FREERTOS) || defined(PIOS_INCLUDE_CHIBIOS)
+#if defined(PIOS_INCLUDE_RTOS)
 	struct pios_mutex *sendbuffer_mtx;
 #endif
 
@@ -119,9 +116,9 @@ int32_t PIOS_COM_Init(uintptr_t * com_id, const struct pios_com_driver * driver,
 		com_dev->rx = circ_queue_new(1, rx_buffer_len);
 
 		if (!com_dev->rx) goto out_fail;
-#if defined(PIOS_INCLUDE_FREERTOS) || defined(PIOS_INCLUDE_CHIBIOS)
+#if defined(PIOS_INCLUDE_RTOS)
 		com_dev->rx_sem = PIOS_Semaphore_Create();
-#endif	/* PIOS_INCLUDE_FREERTOS */
+#endif	/* PIOS_INCLUDE_RTOS */
 		(com_dev->driver->bind_rx_cb)(lower_id, PIOS_COM_RxInCallback, (uintptr_t)com_dev);
 		if (com_dev->driver->rx_start) {
 			/* Start the receiver */
@@ -133,14 +130,14 @@ int32_t PIOS_COM_Init(uintptr_t * com_id, const struct pios_com_driver * driver,
 	if (tx_buffer_len) {
 		com_dev->tx = circ_queue_new(1, tx_buffer_len);
 		if (!com_dev->tx) goto out_fail;
-#if defined(PIOS_INCLUDE_FREERTOS) || defined(PIOS_INCLUDE_CHIBIOS)
+#if defined(PIOS_INCLUDE_RTOS)
 		com_dev->tx_sem = PIOS_Semaphore_Create();
-#endif	/* PIOS_INCLUDE_FREERTOS */
+#endif	/* PIOS_INCLUDE_RTOS */
 		(com_dev->driver->bind_tx_cb)(lower_id, PIOS_COM_TxOutCallback, (uintptr_t)com_dev);
 	}
-#if defined(PIOS_INCLUDE_FREERTOS) || defined(PIOS_INCLUDE_CHIBIOS)
+#if defined(PIOS_INCLUDE_RTOS)
 	com_dev->sendbuffer_mtx = PIOS_Mutex_Create();
-#endif /* PIOS_INCLUDE_FREERTOS */
+#endif /* PIOS_INCLUDE_RTOS */
 
 	*com_id = (uintptr_t)com_dev;
 	return(0);
@@ -151,7 +148,7 @@ out_fail:
 
 static void PIOS_COM_UnblockRx(struct pios_com_dev *com_dev, bool * need_yield)
 {
-#if defined(PIOS_INCLUDE_FREERTOS) || defined(PIOS_INCLUDE_CHIBIOS)
+#if defined(PIOS_INCLUDE_RTOS)
 	if (PIOS_IRQ_InISR() == true)
 		PIOS_Semaphore_Give_FromISR(com_dev->rx_sem, need_yield);
 	else
@@ -161,7 +158,7 @@ static void PIOS_COM_UnblockRx(struct pios_com_dev *com_dev, bool * need_yield)
 
 static void PIOS_COM_UnblockTx(struct pios_com_dev *com_dev, bool * need_yield)
 {
-#if defined(PIOS_INCLUDE_FREERTOS) || defined(PIOS_INCLUDE_CHIBIOS)
+#if defined(PIOS_INCLUDE_RTOS)
 	if (PIOS_IRQ_InISR() == true)
 		PIOS_Semaphore_Give_FromISR(com_dev->tx_sem, need_yield);
 	else
@@ -252,11 +249,11 @@ static int32_t SendBufferNonBlockingImpl(uintptr_t com_id, const uint8_t *buffer
 
 	PIOS_Assert(com_dev->tx);
 
-#if defined(PIOS_INCLUDE_FREERTOS) || defined(PIOS_INCLUDE_CHIBIOS)
+#if defined(PIOS_INCLUDE_RTOS)
 	if (PIOS_Mutex_Lock(com_dev->sendbuffer_mtx, 0) != true) {
 		return -3;
 	}
-#endif /* defined(PIOS_INCLUDE_FREERTOS) || defined(PIOS_INCLUDE_CHIBIOS) */
+#endif /* defined(PIOS_INCLUDE_RTOS) */
 	if (com_dev->driver->available && !com_dev->driver->available(com_dev->lower_id)) {
 		/*
 		 * Underlying device is down/unconnected.
@@ -269,9 +266,9 @@ static int32_t SendBufferNonBlockingImpl(uintptr_t com_id, const uint8_t *buffer
 		 * no one actually be reading the tx queue at the time or
 		 * undefined behavior may result */
 		circ_queue_clear(com_dev->tx);
-#if defined(PIOS_INCLUDE_FREERTOS) || defined(PIOS_INCLUDE_CHIBIOS)
+#if defined(PIOS_INCLUDE_RTOS)
 		PIOS_Mutex_Unlock(com_dev->sendbuffer_mtx);
-#endif /* PIOS_INCLUDE_FREERTOS */
+#endif /* PIOS_INCLUDE_RTOS */
 
 		return len;
 	}
@@ -282,9 +279,9 @@ static int32_t SendBufferNonBlockingImpl(uintptr_t com_id, const uint8_t *buffer
 
 		circ_queue_write_pos(com_dev->tx, NULL, &tot_avail);
 		if (len > tot_avail) {
-#if defined(PIOS_INCLUDE_FREERTOS) || defined(PIOS_INCLUDE_CHIBIOS)
+#if defined(PIOS_INCLUDE_RTOS)
 			PIOS_Mutex_Unlock(com_dev->sendbuffer_mtx);
-#endif /* PIOS_INCLUDE_FREERTOS */
+#endif /* PIOS_INCLUDE_RTOS */
 			/* Buffer cannot accept all requested bytes (retry) */
 			return -2;
 		}
@@ -305,9 +302,9 @@ static int32_t SendBufferNonBlockingImpl(uintptr_t com_id, const uint8_t *buffer
 		}
 	}
 
-#if defined(PIOS_INCLUDE_FREERTOS) || defined(PIOS_INCLUDE_CHIBIOS)
+#if defined(PIOS_INCLUDE_RTOS)
 	PIOS_Mutex_Unlock(com_dev->sendbuffer_mtx);
-#endif /* PIOS_INCLUDE_FREERTOS */
+#endif /* PIOS_INCLUDE_RTOS */
 	return (bytes_into_fifo);
 }
 
@@ -555,7 +552,7 @@ check_again:
 						    rx_space_avail);
 		}
 		if (timeout_ms > 0) {
-#if defined(PIOS_INCLUDE_FREERTOS) || defined(PIOS_INCLUDE_CHIBIOS)
+#if defined(PIOS_INCLUDE_RTOS)
 			if (PIOS_Semaphore_Take(com_dev->rx_sem, timeout_ms) == true) {
 				/* Make sure we don't come back here again */
 				timeout_ms = 0;

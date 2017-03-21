@@ -47,10 +47,6 @@
 
 #endif /* defined(PIOS_INCLUDE_CHIBIOS) */
 
-#if defined(PIOS_INCLUDE_FREERTOS)
-#define PIOS_INCLUDE_RTOS
-#endif
-
 /* C Lib Includes */
 #include <stdio.h>
 #include <stdlib.h>

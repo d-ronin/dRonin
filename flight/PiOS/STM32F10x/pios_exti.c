@@ -190,19 +190,11 @@ static bool PIOS_EXTI_generic_irq_handler(uint8_t line_index)
 	return cfg->vector();
 }
 
-#ifdef PIOS_INCLUDE_FREERTOS
-#define PIOS_EXTI_HANDLE_LINE(line, woken)			\
-	if (EXTI_GetITStatus(EXTI_Line##line) != RESET) {	\
-		EXTI_ClearITPendingBit(EXTI_Line##line);	\
-		woken = PIOS_EXTI_generic_irq_handler(line) ? pdTRUE : woken; \
-	}
-#else
 #define PIOS_EXTI_HANDLE_LINE(line, woken)			\
 	if (EXTI_GetITStatus(EXTI_Line##line) != RESET) {	\
 		EXTI_ClearITPendingBit(EXTI_Line##line);	\
 		PIOS_EXTI_generic_irq_handler(line);		\
 	}
-#endif
 
 /* Bind Interrupt Handlers */
 

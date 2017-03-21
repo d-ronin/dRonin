@@ -32,36 +32,12 @@
 #include <stdint.h>
 #include <stdbool.h>
 
-#if defined(PIOS_INCLUDE_FREERTOS)
-
-struct pios_mutex
-{
-	uintptr_t mtx_handle;
-};
-
-struct pios_recursive_mutex
-{
-	uintptr_t mtx_handle;
-};
-
-#elif defined(PIOS_INCLUDE_CHIBIOS)
-
-struct pios_mutex
-{
-	Mutex mtx;
-};
-
-struct pios_recursive_mutex
-{
-	Mutex mtx;
-	uint32_t count;
-};
-
-#endif /* defined(PIOS_INCLUDE_CHIBIOS) */
+struct pios_mutex;
+struct pios_recursive_mutex;
 
 /*
  * The following functions implement the concept of a non-recursive mutex usable
- * with PIOS_INCLUDE_FREERTOS or PIOS_INCLUDE_CHIBIOS.
+ * with PIOS_INCLUDE_CHIBIOS.
  *
  * Note that this is not the same as:
  * - binary semaphore
@@ -78,7 +54,7 @@ bool PIOS_Mutex_Unlock(struct pios_mutex *mtx);
 
 /*
  * The following functions implement the concept of a recursive mutex usable
- * with PIOS_INCLUDE_FREERTOS or PIOS_INCLUDE_CHIBIOS.
+ * with PIOS_INCLUDE_CHIBIOS.
  *
  * Note that this is not the same as:
  * - binary semaphore

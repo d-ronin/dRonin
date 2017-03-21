@@ -49,11 +49,7 @@ bool PIOS_heap_malloc_failed_p(void)
 	return malloc_failed_flag;
 }
 
-#if defined(PIOS_INCLUDE_FREERTOS) || defined(PIOS_INCLUDE_CHIBIOS)
-
 #include "pios_thread.h"
-
-#endif	/* PIOS_INCLUDE_FREERTOS || defined(PIOS_INCLUDE_CHIBIOS) */
 
 struct pios_heap {
 	const uintptr_t start_addr;
@@ -76,18 +72,18 @@ static void * simple_malloc(struct pios_heap *heap, size_t size)
 	void * buf = NULL;
 	uint32_t align_pad = (sizeof(uintptr_t) - (size & (sizeof(uintptr_t) - 1))) % sizeof(uintptr_t);
 
-#if defined(PIOS_INCLUDE_FREERTOS) || defined(PIOS_INCLUDE_CHIBIOS)
+#if defined(PIOS_INCLUDE_RTOS) 
 	PIOS_Thread_Scheduler_Suspend();
-#endif	/* PIOS_INCLUDE_FREERTOS || defined(PIOS_INCLUDE_CHIBIOS) */
+#endif	/* PIOS_INCLUDE_RTOS */
 
 	if (heap->free_addr + size <= heap->end_addr) {
 		buf = (void *)heap->free_addr;
 		heap->free_addr += size + align_pad;
 	}
 
-#if defined(PIOS_INCLUDE_FREERTOS) || defined(PIOS_INCLUDE_CHIBIOS)
+#if defined(PIOS_INCLUDE_RTOS)
 	PIOS_Thread_Scheduler_Resume();
-#endif	/* PIOS_INCLUDE_FREERTOS || defined(PIOS_INCLUDE_CHIBIOS) */
+#endif	/* PIOS_INCLUDE_RTOS */
 
 	return buf;
 }
@@ -112,7 +108,6 @@ static void simple_extend_heap(struct pios_heap *heap, size_t bytes)
 
 /*
  * Standard heap.  All memory in this heap is DMA-safe.
- * Note: Uses underlying FreeRTOS heap when available
  */
 extern const void * _eheap;	/* defined in linker script */
 extern const void * _sheap;	/* defined in linker script */
@@ -188,15 +183,15 @@ void PIOS_free(void * buf)
 size_t xPortGetFreeHeapSize(void) __attribute__((alias ("PIOS_heap_get_free_size")));
 size_t PIOS_heap_get_free_size(void)
 {
-#if defined(PIOS_INCLUDE_FREERTOS)
+#if defined(PIOS_INCLUDE_RTOS)
 	PIOS_Thread_Scheduler_Suspend();
-#endif	/* PIOS_INCLUDE_FREERTOS */
+#endif	/* PIOS_INCLUDE_RTOS */
 
 	size_t free_bytes = simple_get_free_bytes(&pios_standard_heap);
 
-#if defined(PIOS_INCLUDE_FREERTOS)
+#if defined(PIOS_INCLUDE_RTOS)
 	PIOS_Thread_Scheduler_Resume();
-#endif	/* PIOS_INCLUDE_FREERTOS */
+#endif	/* PIOS_INCLUDE_RTOS */
 
 	return free_bytes;
 }
@@ -206,15 +201,15 @@ size_t PIOS_heap_get_free_size(void)
 
 size_t PIOS_fastheap_get_free_size(void)
 {
-#if defined(PIOS_INCLUDE_FREERTOS)
+#if defined(PIOS_INCLUDE_RTOS)
 	PIOS_Thread_Scheduler_Suspend();
-#endif	/* PIOS_INCLUDE_FREERTOS */
+#endif	/* PIOS_INCLUDE_RTOS */
 
 	size_t free_bytes = simple_get_free_bytes(&pios_nodma_heap);
 
-#if defined(PIOS_INCLUDE_FREERTOS)
+#if defined(PIOS_INCLUDE_RTOS)
 	PIOS_Thread_Scheduler_Resume();
-#endif	/* PIOS_INCLUDE_FREERTOS */
+#endif	/* PIOS_INCLUDE_RTOS */
 
 	return free_bytes;
 }
@@ -228,24 +223,22 @@ size_t PIOS_fastheap_get_free_size(void)
 
 #endif // PIOS_INCLUDE_FASTHEAP
 
-void vPortInitialiseBlocks(void) __attribute__((alias ("PIOS_heap_initialize_blocks")));
 void PIOS_heap_initialize_blocks(void)
 {
 	/* NOP for the simple allocator */
 }
 
-void xPortIncreaseHeapSize(size_t bytes) __attribute__((alias ("PIOS_heap_increase_size")));
 void PIOS_heap_increase_size(size_t bytes)
 {
-#if defined(PIOS_INCLUDE_FREERTOS) || defined(PIOS_INCLUDE_CHIBIOS)
+#if defined(PIOS_INCLUDE_RTOS)
 	PIOS_Thread_Scheduler_Suspend();
-#endif	/* PIOS_INCLUDE_FREERTOS || defined(PIOS_INCLUDE_CHIBIOS) */
+#endif	/* PIOS_INCLUDE_RTOS */
 
 	simple_extend_heap(&pios_standard_heap, bytes);
 
-#if defined(PIOS_INCLUDE_FREERTOS) || defined(PIOS_INCLUDE_CHIBIOS)
+#if defined(PIOS_INCLUDE_RTOS)
 	PIOS_Thread_Scheduler_Resume();
-#endif	/* PIOS_INCLUDE_FREERTOS || defined(PIOS_INCLUDE_CHIBIOS) */
+#endif	/* PIOS_INCLUDE_RTOS */
 }
 
 

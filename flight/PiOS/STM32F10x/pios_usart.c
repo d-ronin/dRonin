@@ -33,10 +33,6 @@
 
 #if defined(PIOS_INCLUDE_USART)
 
-#if defined(PIOS_INCLUDE_FREERTOS)
-#include "FreeRTOS.h"
-#endif /* defined(PIOS_INCLUDE_FREERTOS) */
-
 #include <pios_usart_priv.h>
 
 /* Provide a COM driver */
@@ -307,10 +303,6 @@ static void PIOS_USART_generic_irq_handler(uintptr_t usart_id)
 			USART_ITConfig(usart_dev->cfg->regs, USART_IT_TXE, DISABLE);
 		}
 	}
-
-#if defined(PIOS_INCLUDE_FREERTOS)
-	portEND_SWITCHING_ISR((rx_need_yield || tx_need_yield) ? pdTRUE : pdFALSE);
-#endif	/* PIOS_INCLUDE_FREERTOS */
 }
 
 #endif

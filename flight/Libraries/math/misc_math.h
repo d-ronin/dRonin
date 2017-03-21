@@ -83,19 +83,21 @@ static inline bool IS_NOT_FINITE(float x) {
 // Output is Q12
 static inline int16_t sin_approx(int32_t x)
 {
-	static const int qN = 13,
-		     qA = 12, qP = 15,
-		     qR= 2*qN - qP,
-		     qS= qN + qP+ 1 - qA;
+#define s_qN 13
+#define s_qP 15
+#define s_qA 12
+	static const int 
+		     qR= 2*s_qN - s_qP,
+		     qS= s_qN + s_qP + 1 - s_qA;
 
-	x= x<<(30-qN);          // shift to full s32 range (Q13->Q30)
+	x= x<<(30-s_qN);          // shift to full s32 range (Q13->Q30)
 
 	if( (x^(x<<1)) < 0)     // test for quadrant 1 or 2
 		x= (1<<31) - x;
 
-	x= x>>(30-qN);
+	x= x>>(30-s_qN);
 
-	return x * ( (3<<qP) - (x*x>>qR) ) >> qS;
+	return x * ( (3<<s_qP) - (x*x>>qR) ) >> qS;
 }
 
 /* Following functions from fastapprox https://code.google.com/p/fastapprox/

@@ -28,143 +28,14 @@
 
 struct pios_semaphore
 {
-#if defined(PIOS_INCLUDE_FREERTOS)
-	uintptr_t sema_handle;
-#elif defined(PIOS_INCLUDE_CHIBIOS)
+#if defined(PIOS_INCLUDE_CHIBIOS)
 	BinarySemaphore sema;
 #else
 	uint32_t sema_count;
 #endif
 };
 
-#if defined(PIOS_INCLUDE_FREERTOS)
-
-#include "FreeRTOS.h"
-#include "task.h"
-#include "queue.h"
-#include "semphr.h"
-
-// portTICK_RATE_MS is in [ms/tick].
-// See http://sourceforge.net/tracker/?func=detail&aid=3498382&group_id=111543&atid=659636
-#define TICKS2MS(t) ((t) * (portTICK_RATE_MS))
-#define MS2TICKS(m) ((m) / (portTICK_RATE_MS))
-
-/**
- *
- * @brief   Creates a binary semaphore.
- *
- * @returns instance of @p struct pios_semaphore or NULL on failure
- *
- */
-struct pios_semaphore *PIOS_Semaphore_Create(void)
-{
-	struct pios_semaphore *sema = PIOS_malloc(sizeof(struct pios_semaphore));
-
-	if (sema == NULL)
-		return NULL;
-
-	/*
-	 * The initial state of a binary semaphore is "given".
-	 * FreeRTOS executes a "give" upon creation.
-	 */
-	xSemaphoreHandle temp;
-	vSemaphoreCreateBinary(temp);
-	sema->sema_handle = (uintptr_t)temp;
-
-	return sema;
-}
-
-/**
- *
- * @brief   Takes binary semaphore.
- *
- * @param[in] sema         pointer to instance of @p struct pios_semaphore
- * @param[in] timeout_ms   timeout for acquiring the lock in milliseconds
- *
- * @returns true on success or false on timeout or failure
- *
- */
-bool PIOS_Semaphore_Take(struct pios_semaphore *sema, uint32_t timeout_ms)
-{
-	PIOS_Assert(sema != NULL);
-
-	portTickType timeout_ticks;
-	if (timeout_ms == PIOS_SEMAPHORE_TIMEOUT_MAX)
-		timeout_ticks = portMAX_DELAY;
-	else
-		timeout_ticks = MS2TICKS(timeout_ms);
-
-	return xSemaphoreTake(sema->sema_handle, timeout_ticks) == pdTRUE;
-}
-
-/**
- *
- * @brief   Gives binary semaphore.
- *
- * @param[in] sema         pointer to instance of @p struct pios_semaphore
- *
- * @returns true on success or false on timeout or failure
- *
- */
-bool PIOS_Semaphore_Give(struct pios_semaphore *sema)
-{
-	PIOS_Assert(sema != NULL);
-
-	return xSemaphoreGive(sema->sema_handle) == pdTRUE;
-}
-
-/* Workaround for simulator version of FreeRTOS. */
-#if !defined(SIM_POSIX)
-/**
- *
- * @brief   Takes binary semaphore from ISR context.
- *
- * @param[in] sema         pointer to instance of @p struct pios_semaphore
- * @param[out] woken       pointer to bool which will be set true if a context switch is required
- *
- * @returns true on success or false on timeout or failure
- *
- */
-bool PIOS_Semaphore_Take_FromISR(struct pios_semaphore *sema, bool *woken)
-{
-	PIOS_Assert(sema != NULL);
-	PIOS_Assert(woken != NULL);
-
-	signed portBASE_TYPE xHigherPriorityTaskWoken = pdFALSE;
-
-	bool result = xSemaphoreTakeFromISR(sema->sema_handle, &xHigherPriorityTaskWoken) == pdTRUE;
-
-	*woken = *woken || xHigherPriorityTaskWoken == pdTRUE;
-
-	return result;
-}
-
-/**
- *
- * @brief   Gives binary semaphore from ISR context.
- *
- * @param[in] sema         pointer to instance of @p struct pios_semaphore
- * @param[out] woken       pointer to bool which will be set true if a context switch is required
- *
- * @returns true on success or false on timeout or failure
- *
- */
-bool PIOS_Semaphore_Give_FromISR(struct pios_semaphore *sema, bool *woken)
-{
-	PIOS_Assert(sema != NULL);
-	PIOS_Assert(woken != NULL);
-
-	signed portBASE_TYPE xHigherPriorityTaskWoken = pdFALSE;
-
-	bool result = xSemaphoreGiveFromISR(sema->sema_handle, &xHigherPriorityTaskWoken) == pdTRUE;
-
-	*woken = *woken || xHigherPriorityTaskWoken == pdTRUE;
-
-	return result;
-}
-#endif /* !defined(SIM_POSIX) */
-
-#elif defined(PIOS_INCLUDE_CHIBIOS)
+#if defined(PIOS_INCLUDE_CHIBIOS)
 
 /**
  *
@@ -346,63 +217,26 @@ bool PIOS_Semaphore_Give(struct pios_semaphore *sema)
 	return result;
 }
 
-/* Workaround for simulator version of FreeRTOS. */
-#if !defined(SIM_POSIX)
-/**
- *
- * @brief   Takes binary semaphore from ISR context.
- *
- * @param[in] sema         pointer to instance of @p struct pios_semaphore
- * @param[out] woken       pointer to bool which will be set true if a context switch is required
- *
- * @returns true on success or false on timeout or failure
- *
- */
 bool PIOS_Semaphore_Take_FromISR(struct pios_semaphore *sema, bool *woken)
 {
-	PIOS_Assert(sema != NULL);
+	bool ret = PIOS_Semaphore_Take(sema, 0);
 
-	bool result = true;
+	if (ret && woken) {
+		*woken = true;
+	}
 
-	PIOS_IRQ_Disable();
-
-	if (sema->sema_count != 0)
-		--sema->sema_count;
-	else
-		result = false;
-
-	PIOS_IRQ_Enable();
-
-	return result;
+	return ret;
 }
 
-/**
- *
- * @brief   Gives binary semaphore from ISR context.
- *
- * @param[in] sema         pointer to instance of @p struct pios_semaphore
- * @param[out] woken       pointer to bool which will be set true if a context switch is required
- *
- * @returns true on success or false on timeout or failure
- *
- */
 bool PIOS_Semaphore_Give_FromISR(struct pios_semaphore *sema, bool *woken)
 {
-	PIOS_Assert(sema != NULL);
+	bool ret = PIOS_Semaphore_Give(sema);
 
-	bool result = true;
+	if (ret && woken) {
+		*woken = true;
+	}
 
-	PIOS_IRQ_Disable();
-
-	if (sema->sema_count == 0)
-		++sema->sema_count;
-	else
-		result = false;
-
-	PIOS_IRQ_Enable();
-
-	return result;
+	return ret;
 }
-#endif /* !defined(SIM_POSIX) */
 
 #endif /* no-rtos */

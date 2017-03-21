@@ -26,112 +26,20 @@
 #include "pios.h"
 #include "pios_queue.h"
 
-#if !defined(PIOS_INCLUDE_FREERTOS) && !defined(PIOS_INCLUDE_CHIBIOS)
-#error "pios_queue.c requires PIOS_INCLUDE_FREERTOS or PIOS_INCLUDE_CHIBIOS"
+#if !defined(PIOS_INCLUDE_CHIBIOS)
+#error "pios_queue.c requires PIOS_INCLUDE_CHIBIOS"
 #endif
 
-#if defined(PIOS_INCLUDE_FREERTOS)
+#if defined(PIOS_INCLUDE_CHIBIOS)
 
-#include "FreeRTOS.h"
-#include "task.h"
-#include "queue.h"
-#include "semphr.h"
+#include "ch.h"
 
-// portTICK_RATE_MS is in [ms/tick].
-// See http://sourceforge.net/tracker/?func=detail&aid=3498382&group_id=111543&atid=659636
-#define TICKS2MS(t) ((t) * (portTICK_RATE_MS))
-#define MS2TICKS(m) ((m) / (portTICK_RATE_MS))
-
-/**
- *
- * @brief   Creates a queue.
- *
- * @returns instance of @p struct pios_queue or NULL on failure
- *
- */
-struct pios_queue *PIOS_Queue_Create(size_t queue_length, size_t item_size)
+struct pios_queue
 {
-	struct pios_queue *queuep = PIOS_malloc_no_dma(sizeof(struct pios_queue));
-
-	if (queuep == NULL)
-		return NULL;
-
-	queuep->queue_handle = (uintptr_t)NULL;
-
-	if ((queuep->queue_handle = (uintptr_t)xQueueCreate(queue_length, item_size)) == (uintptr_t)NULL)
-	{
-		PIOS_free(queuep);
-		return NULL;
-	}
-
-	return queuep;
-}
-
-/**
- *
- * @brief   Destroys an instance of @p struct pios_queue
- *
- * @param[in] queuep       pointer to instance of @p struct pios_queue
- *
- */
-void PIOS_Queue_Delete(struct pios_queue *queuep)
-{
-	vQueueDelete((xQueueHandle)queuep->queue_handle);
-	PIOS_free(queuep);
-}
-
-/**
- *
- * @brief   Appends an item to a queue.
- *
- * @param[in] queuep       pointer to instance of @p struct pios_queue
- * @param[in] itemp        pointer to item which will be appended to the queue
- * @param[in] timeout_ms   timeout for appending item to queue in milliseconds
- *
- * @returns true on success or false on timeout or failure
- *
- */
-bool PIOS_Queue_Send(struct pios_queue *queuep, const void *itemp, uint32_t timeout_ms)
-{
-	return xQueueSendToBack((xQueueHandle)queuep->queue_handle, itemp, MS2TICKS(timeout_ms)) == pdTRUE;
-}
-
-/**
- *
- * @brief   Appends an item to a queue from ISR context.
- *
- * @param[in] queuep       pointer to instance of @p struct pios_queue
- * @param[in] itemp        pointer to item which will be appended to the queue
- * @param[in] timeout_ms   timeout for appending item to queue in milliseconds
- *
- * @returns true on success or false on timeout or failure
- *
- */
-bool PIOS_Queue_Send_FromISR(struct pios_queue *queuep, const void *itemp, bool *wokenp)
-{
-	portBASE_TYPE xHigherPriorityTaskWoken = pdFALSE;
-	portBASE_TYPE result = xQueueSendToBackFromISR((xQueueHandle)queuep->queue_handle, itemp, &xHigherPriorityTaskWoken);
-	*wokenp = *wokenp || xHigherPriorityTaskWoken == pdTRUE;
-	return result == pdTRUE;
-}
-
-/**
- *
- * @brief   Retrieves an item from the front of a queue.
- *
- * @param[in] queuep       pointer to instance of @p struct pios_queue
- * @param[in] itemp        pointer to item which will be retrieved
- * @param[in] timeout_ms   timeout for retrieving item from queue in milliseconds
- *
- * @returns true on success or false on timeout or failure
- *
- */
-bool PIOS_Queue_Receive(struct pios_queue *queuep, void *itemp, uint32_t timeout_ms)
-{
-	return xQueueReceive((xQueueHandle)queuep->queue_handle, itemp, MS2TICKS(timeout_ms)) == pdTRUE;
-}
-
-#elif defined(PIOS_INCLUDE_CHIBIOS)
+	Mailbox mb;
+	MemoryPool mp;
+	void *mpb;
+};
 
 #if !defined(PIOS_QUEUE_MAX_WAITERS)
 #define PIOS_QUEUE_MAX_WAITERS 2

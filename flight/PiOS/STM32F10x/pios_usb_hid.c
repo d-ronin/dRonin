@@ -34,10 +34,6 @@
 
 #if defined(PIOS_INCLUDE_USB_HID)
 
-#if defined(PIOS_INCLUDE_FREERTOS)
-#include "FreeRTOS.h"
-#endif /* defined(PIOS_INCLUDE_FREERTOS) */
-
 #include "pios_usb.h"
 #include "pios_usb_hid_priv.h"
 #include "pios_usb_board_data.h" /* PIOS_BOARD_*_DATA_LENGTH */
@@ -134,9 +130,6 @@ out_fail:
 	return -1;
 }
 
-
-
-
 static void PIOS_USB_HID_SendReport(struct pios_usb_hid_dev * usb_hid_dev)
 {
 	uint16_t bytes_to_tx;
@@ -179,10 +172,6 @@ static void PIOS_USB_HID_SendReport(struct pios_usb_hid_dev * usb_hid_dev)
 	/* Is this correct?  Why do we always send the whole buffer? */
 	SetEPTxCount(usb_hid_dev->cfg->data_tx_ep, sizeof(usb_hid_dev->tx_packet_buffer));
 	SetEPTxValid(usb_hid_dev->cfg->data_tx_ep);
-
-#if defined(PIOS_INCLUDE_FREERTOS)
-	portEND_SWITCHING_ISR(need_yield ? pdTRUE : pdFALSE);
-#endif	/* PIOS_INCLUDE_FREERTOS */
 }
 
 static void PIOS_USB_HID_RxStart(uintptr_t usbhid_id, uint16_t rx_bytes_avail) {
@@ -338,10 +327,6 @@ static void PIOS_USB_HID_EP_OUT_Callback(void)
 		/* Not enough room left for a message, apply backpressure */
 		SetEPRxStatus(usb_hid_dev->cfg->data_rx_ep, EP_RX_NAK);
 	}
-
-#if defined(PIOS_INCLUDE_FREERTOS)
-	portEND_SWITCHING_ISR(need_yield ? pdTRUE : pdFALSE);
-#endif	/* PIOS_INCLUDE_FREERTOS */
 }
 
 #endif	/* PIOS_INCLUDE_USB_HID */

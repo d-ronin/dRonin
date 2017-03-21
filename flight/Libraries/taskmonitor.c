@@ -49,9 +49,7 @@ int32_t TaskMonitorInitialize(void)
 	memset(handles, 0, sizeof(struct pios_thread *) * TASKINFO_RUNNING_NUMELEM);
 	lastMonitorTime = 0;
 #if defined(DIAG_TASKS)
-#if defined(PIOS_INCLUDE_FREERTOS)
-	lastMonitorTime = portGET_RUN_TIME_COUNTER_VALUE();
-#elif defined(PIOS_INCLUDE_CHIBIOS)
+#if defined(PIOS_INCLUDE_CHIBIOS)
 	lastMonitorTime = halGetCounterValue();
 #endif /* defined(PIOS_INCLUDE_CHIBIOS) */
 #endif
@@ -127,9 +125,7 @@ void TaskMonitorUpdateAll(void)
 	 * measured and now. Scale so that we can convert task run times
 	 * directly to percentages.
 	 */
-#if defined(PIOS_INCLUDE_FREERTOS)
-	currentTime = portGET_RUN_TIME_COUNTER_VALUE();
-#elif defined(PIOS_INCLUDE_CHIBIOS)
+#if defined(PIOS_INCLUDE_CHIBIOS)
 	currentTime = hal_lld_get_counter_value();
 #endif /* defined(PIOS_INCLUDE_CHIBIOS) */
 	deltaTime = ((currentTime - lastMonitorTime) / 100) ? : 1; /* avoid divide-by-zero if the interval is too small */

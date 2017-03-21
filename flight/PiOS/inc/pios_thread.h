@@ -33,26 +33,7 @@
 
 struct pios_thread;
 
-#if defined(PIOS_INCLUDE_FREERTOS)
-
-#include "FreeRTOSConfig.h"
-
-enum pios_thread_prio_e
-{
-	PIOS_THREAD_PRIO_LOW = 1,
-	PIOS_THREAD_PRIO_NORMAL = 2,
-	PIOS_THREAD_PRIO_HIGH = 3,
-	PIOS_THREAD_PRIO_HIGHEST = 4, /* @note: this has to match (configMAX_PRIORITIES - 1) */
-};
-
-#define PIOS_THREAD_STACK_SIZE_MIN (configMINIMAL_STACK_SIZE * 4)
-
-struct pios_thread
-{
-	uintptr_t task_handle;
-};
-
-#elif defined(PIOS_INCLUDE_CHIBIOS)
+#if defined(PIOS_INCLUDE_CHIBIOS)
 
 #include "ch.h"
 
@@ -65,11 +46,6 @@ enum pios_thread_prio_e
 };
 
 #define PIOS_THREAD_STACK_SIZE_MIN THD_WA_SIZE(4096 + PORT_INT_REQUIRED_STACK)
-
-struct pios_thread
-{
-	Thread *threadp;
-};
 
 #else
 

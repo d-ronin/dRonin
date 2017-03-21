@@ -36,7 +36,7 @@ struct pios_semaphore;
 
 /*
  * The following functions implement the concept of a binary semaphore usable
- * with PIOS_INCLUDE_FREERTOS, PIOS_INCLUDE_CHIBIOS or PIOS_INCLUDE_IRQ.
+ * with PIOS_INCLUDE_CHIBIOS or PIOS_INCLUDE_IRQ.
  *
  * Note that this is not the same as:
  * - counting semaphore

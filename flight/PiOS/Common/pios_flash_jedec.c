@@ -33,9 +33,7 @@
 
 #include "pios_flash_jedec_priv.h"
 #include "pios_semaphore.h"
-#if defined(PIOS_INCLUDE_FREERTOS) || defined(PIOS_INCLUDE_CHIBIOS)
 #include "pios_thread.h"
-#endif /* defined(PIOS_INCLUDE_FREERTOS) || defined(PIOS_INCLUDE_CHIBIOS) */
 
 #define JEDEC_WRITE_ENABLE           0x06
 #define JEDEC_WRITE_DISABLE          0x04
@@ -361,7 +359,7 @@ static int32_t PIOS_Flash_Jedec_EraseSector(uintptr_t chip_id, uint32_t chip_sec
 
 	// Keep polling when bus is busy too
 	while (PIOS_Flash_Jedec_Busy(flash_dev) != 0) {
-#if defined(PIOS_INCLUDE_FREERTOS) || defined(PIOS_INCLUDE_CHIBIOS)
+#if defined(PIOS_INCLUDE_RTOS)
 		PIOS_Thread_Sleep(1);
 #endif
 	}
@@ -424,7 +422,7 @@ static int32_t PIOS_Flash_Jedec_WriteData(uintptr_t chip_id, uint32_t chip_offse
 	PIOS_Flash_Jedec_ReleaseBus(flash_dev);
 
 	// Keep polling when bus is busy too
-#if defined(PIOS_INCLUDE_FREERTOS) || defined(PIOS_INCLUDE_CHIBIOS)
+#if defined(PIOS_INCLUDE_RTOS)
 	while (PIOS_Flash_Jedec_Busy(flash_dev) != 0) {
 		PIOS_Thread_Sleep(1);
 	}
