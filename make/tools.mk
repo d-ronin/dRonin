@@ -438,11 +438,11 @@ android_sdk_update:
 	$(ANDROID_SDK_DIR)/tools/android update sdk --no-ui --all -t platform-tools,build-tools-20.0.0,android-19,addon-google_apis-google-19
 
 # Set up Google Test (gtest) tools
-GTEST_DIR       := $(TOOLS_DIR)/gtest-1.7.0
+GTEST_DIR       := $(TOOLS_DIR)/googletest-release-1.8.0
 
 .PHONY: gtest_install
 gtest_install: | $(DL_DIR) $(TOOLS_DIR)
-gtest_install: GTEST_URL  := http://googletest.googlecode.com/files/gtest-1.7.0.zip
+gtest_install: GTEST_URL  := https://github.com/google/googletest/archive/release-1.8.0.zip
 gtest_install: GTEST_FILE := $(notdir $(GTEST_URL))
 gtest_install: gtest_clean
         # download the file unconditionally since google code gives back 404
@@ -454,6 +454,7 @@ gtest_install: gtest_clean
 	$(V1) [ ! -d "$(GTEST_DIR)" ] || $(RM) -rf "$(GTEST_DIR)"
 	$(V1) mkdir -p "$(GTEST_DIR)"
 	$(V1) unzip -q -d "$(TOOLS_DIR)" "$(DL_DIR)/$(GTEST_FILE)"
+	$(V1) mv $(GTEST_DIR)/googletest/* $(GTEST_DIR)
 
 .PHONY: gtest_clean
 gtest_clean:
