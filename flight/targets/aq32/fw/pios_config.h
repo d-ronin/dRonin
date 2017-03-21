@@ -55,13 +55,15 @@
 #define PIOS_INCLUDE_OPENLOG
 #define PIOS_INCLUDE_STORM32BGC
 #define PIOS_INCLUDE_MAX7456
+#define PIOS_INCLUDE_WS2811
+#define PIOS_INCLUDE_DAC
+#define PIOS_INCLUDE_DAC_FSK
+#define PIOS_INCLUDE_DAC_ANNUNCIATOR
 
 /* Select the sensors to include */
 #define PIOS_INCLUDE_HMC5883
 #define PIOS_INCLUDE_HMC5983_I2C
 #define PIOS_INCLUDE_MPU
-//#define PIOS_MPU6000_ACCEL
-//#define PIOS_MPU6000_SIMPLE_INIT_SEQUENCE
 #define PIOS_INCLUDE_MS5611
 #define PIOS_TOLERATE_MISSING_SENSORS
 
@@ -88,7 +90,6 @@
 #define PIOS_INCLUDE_HSUM
 #define PIOS_INCLUDE_SBUS
 #define PIOS_INCLUDE_PPM
-#define PIOS_INCLUDE_PWM
 #define PIOS_INCLUDE_GCSRCVR
 #define PIOS_INCLUDE_SRXL
 #define PIOS_INCLUDE_IBUS
@@ -100,6 +101,8 @@
 /* Flags that alter behaviours - mostly to lower resources for CC */
 #define PIOS_INCLUDE_INITCALL           /* Include init call structures */
 #define PIOS_TELEM_PRIORITY_QUEUE       /* Enable a priority queue in telemetry */
+
+#define SYSTEMMOD_RGBLED_SUPPORT
 
 #define CAMERASTAB_POI_MODE
 

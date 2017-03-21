@@ -98,6 +98,7 @@ QPixmap AQ32::getBoardPicture()
 bool AQ32::isInputConfigurationSupported(Core::IBoardType::InputType type)
 {
     switch(type) {
+    case INPUT_TYPE_PWM:
     case INPUT_TYPE_UNKNOWN:
         return false;
     default:
@@ -131,9 +132,6 @@ bool AQ32::setInputType(Core::IBoardType::InputType type)
     switch(type) {
     case INPUT_TYPE_PPM:
         settings.RcvrPort = HwAQ32::RCVRPORT_PPM;
-        break;
-    case INPUT_TYPE_PWM:
-        settings.RcvrPort = HwAQ32::RCVRPORT_PWM;
         break;
     case INPUT_TYPE_HOTTSUMD:
         settings.Uart3 = HwAQ32::UART3_HOTTSUMD;
@@ -184,8 +182,6 @@ Core::IBoardType::InputType AQ32::getInputType()
     switch(settings.RcvrPort) {
     case HwAQ32::RCVRPORT_PPM:
         return INPUT_TYPE_PPM;
-    case HwAQ32::RCVRPORT_PWM:
-        return INPUT_TYPE_PWM;
     default:
         break;
     }
