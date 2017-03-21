@@ -60,6 +60,10 @@ void PIOS_Board_Init(void)
 
 	const struct pios_board_info * bdinfo = &pios_board_info_blob;
 
+#if defined(PIOS_INCLUDE_ANNUNC)
+	PIOS_ANNUNC_Init(&pios_annunc_cfg);
+#endif  /* PIOS_INCLUDE_ANNUNC */
+
 #if defined(PIOS_INCLUDE_FLASH) && defined(PIOS_INCLUDE_LOGFS_SETTINGS)
 	/* Inititialize all flash drivers */
 	PIOS_Flash_Internal_Init(&pios_internal_flash_id, &flash_internal_cfg);
@@ -109,10 +113,6 @@ void PIOS_Board_Init(void)
 	RFM22BStatusInitialize();
 #endif /* PIOS_INCLUDE_RFM22B */
 
-#if defined(PIOS_INCLUDE_ANNUNC)
-	PIOS_ANNUNC_Init(&pios_annunc_cfg);
-#endif  /* PIOS_INCLUDE_ANNUNC */
-
 #if defined(PIOS_INCLUDE_TIM)
 	/* Set up pulse timers */
 	PIOS_TIM_InitClock(&tim_1_cfg);
@@ -123,6 +123,10 @@ void PIOS_Board_Init(void)
 
 	/* Initialize board specific USB data */
 	PIOS_USB_BOARD_DATA_Init();
+
+	// Configure the main port
+	HwTauLinkData hwTauLink;
+	HwTauLinkGet(&hwTauLink);
 
 	/* Flags to determine if various USB interfaces are advertised */
 	bool usb_cdc_present = false;
@@ -137,10 +141,6 @@ void PIOS_Board_Init(void)
 		PIOS_Assert(0);
 	}
 #endif
-
-	// Configure the main port
-	HwTauLinkData hwTauLink;
-	HwTauLinkGet(&hwTauLink);
 
 	/*Initialize the USB device */
 	uintptr_t pios_usb_id;

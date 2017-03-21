@@ -38,7 +38,7 @@ SECTIONS
         *(.data .data.*)
         . = ALIGN(4);
         _edata = . ;
-    } > SRAM
+    } > ram
 
     /* .bss section which is used for uninitialized data */
     .bss (NOLOAD) :
@@ -48,7 +48,7 @@ SECTIONS
         *(COMMON)
         . = ALIGN(4);
         _ebss = . ;
-    } > SRAM
+    } > ram
 
     /* 
      * This stack is used both as the initial sp during early init as well as ultimately
@@ -66,7 +66,7 @@ SECTIONS
         _irq_stack_top = . - 4 ;
         _init_stack_top = _irq_stack_top;
         . = ALIGN(4);
-    } > SRAM
+    } > ram
     
     . = ALIGN(4);
     _end = . ;
@@ -87,16 +87,16 @@ SECTIONS
         *(.heap)
 
         /* extend the heap up to the top of SRAM */
-        . = ORIGIN(SRAM) + LENGTH(SRAM) - ABSOLUTE(_sheap);
+        . = ORIGIN(ram) + LENGTH(ram) - ABSOLUTE(_sheap);
         _eheap = .;
-    } > SRAM
+    } > ram
 
     .boardinfo :
     {
         . = ALIGN(4);
         KEEP(*(.boardinfo))
-        . = ALIGN(ORIGIN(BD_INFO)+LENGTH(BD_INFO));
-    } > BD_INFO
+        . = ALIGN(ORIGIN(bd_info)+LENGTH(bd_info));
+    } > bd_info
 
     /* Stabs debugging sections.  */
     .stab          0 : { *(.stab) }

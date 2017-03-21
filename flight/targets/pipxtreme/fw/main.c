@@ -27,16 +27,11 @@
  * with this program; if not, see <http://www.gnu.org/licenses/>
  */
 
-
 /* OpenPilot Includes */
 #include "openpilot.h"
 #include "uavobjectsinit.h"
 #include "systemmod.h"
-
-#if defined(PIOS_INCLUDE_FREERTOS)
-#include "FreeRTOS.h"
-#include "task.h"
-#endif /* defined(PIOS_INCLUDE_FREERTOS) */
+#include "pios_thread.h"
 
 /* Global Variables */
 
@@ -44,48 +39,70 @@
 extern void PIOS_Board_Init(void);
 extern void Stack_Change(void);
 
+/* Local Variables */
+#define INIT_TASK_PRIORITY	PIOS_THREAD_PRIO_HIGHEST
+#define INIT_TASK_STACK		2048 // XXX this seems excessi
+static struct pios_thread *initTaskHandle;
+
+/* Function Prototypes */
+static void initTask(void *parameters);
+
+/* Prototype of generated InitModules() function */
+extern void InitModules(void);
+
+#include "stm32f10x_gpio.h"
+#include "stm32f10x_rcc.h"
+
 /**
 * OpenPilot Main function:
 *
 * Initialize PiOS<BR>
 * Create the "System" task (SystemModInitializein Modules/System/systemmod.c) <BR>
-* Start FreeRTOS Scheduler (vTaskStartScheduler) (Now handled by caller)
+* Start RTOS Scheduler <BR>
 * If something goes wrong, blink LED1 and LED2 every 100ms
 *
 */
 int main()
 {
 	/* NOTE: Do NOT modify the following start-up sequence */
+	PIOS_heap_initialize_blocks();
+
+	halInit();
+	chSysInit();
+	boardInit();
 
 	/* Brings up System using CMSIS functions, enables the LEDs. */
 	PIOS_SYS_Init();
+	/* Delay system */
+	PIOS_DELAY_Init();
 
-	/* Architecture dependant Hardware and
-	 * core subsystem initialisation
-	 * (see pios_board.c for your arch)
-	 * */
+	/* We use a task to bring up the system so we can */
+	/* always rely on RTOS primitives */
+	initTaskHandle = PIOS_Thread_Create(initTask, "init", INIT_TASK_STACK, NULL, INIT_TASK_PRIORITY);
+	PIOS_Assert(initTaskHandle != NULL);
+
+	while (true) {
+		PIOS_Thread_Sleep(PIOS_THREAD_TIMEOUT_MAX);
+	}
+
+	return 0;
+}
+/**
+ * Initialisation task.
+ *
+ * Runs board and module initialisation, then terminates.
+ */
+void
+initTask(void *parameters)
+{
+	/* board driver init */
 	PIOS_Board_Init();
 
 	/* Initialize modules */
 	MODULE_INITIALISE_ALL(PIOS_WDG_Clear);
 
-	/* swap the stack to use the IRQ stack */
-	Stack_Change();
-
-	/* Start the FreeRTOS scheduler which should never returns.*/
-	vTaskStartScheduler();
-
-	/* If all is well we will never reach here as the scheduler will now be running. */
-
-	/* Do some indication to user that something bad just happened */
-	while (1) {
-#if defined(PIOS_LED_HEARTBEAT)
-		PIOS_ANNUNC_Toggle(PIOS_LED_HEARTBEAT);
-#endif	/* PIOS_LED_HEARTBEAT */
-		PIOS_DELAY_WaitmS(100);
-	}
-
-	return 0;
+	/* terminate this task */
+	PIOS_Thread_Delete(NULL);
 }
 
 /**
