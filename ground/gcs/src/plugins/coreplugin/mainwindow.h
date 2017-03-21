@@ -42,6 +42,7 @@ class QSettings;
 class QShortcut;
 class QToolButton;
 class MyTabWidget;
+class QFrame;
 QT_END_NAMESPACE
 
 namespace Core {
@@ -176,6 +177,7 @@ private:
     QList<int> m_additionalContexts;
     QSettings *m_settings;
     QSettings *m_globalSettings;
+    QFrame *m_contentFrame;
     bool m_dontSaveSettings; // In case of an Error or if we reset the settings, never save them.
     ActionManagerPrivate *m_actionManager;
     MessageManager *m_messageManager;
