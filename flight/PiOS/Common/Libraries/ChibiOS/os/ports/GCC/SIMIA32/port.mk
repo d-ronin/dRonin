@@ -1,8 +1,0 @@
-
-QPORTS_POSIX_DIR := $(dir $(lastword $(MAKEFILE_LIST)))
-
-PORTSRC = $(QPORTS_POSIX_DIR)/chcore.c
-
-PORTASM = 
-
-PORTINC = $(QPORTS_POSIX_DIR)
