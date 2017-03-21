@@ -52,7 +52,7 @@ struct pios_thread *PIOS_Thread_Create(void (*fp)(void *), const char *namep, si
 
 	if (are_realtime) {
 		struct sched_param param = {
-			.sched_priority = 30	/* XXX */
+			.sched_priority = 30 + prio * 5
 		};
 
 		pthread_attr_setinheritsched(&attr, PTHREAD_EXPLICIT_SCHED);

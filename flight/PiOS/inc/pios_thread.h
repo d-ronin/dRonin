@@ -71,9 +71,9 @@ struct pios_thread
 	Thread *threadp;
 };
 
-#elif defined(PIOS_INCLUDE_RTOS)
+#else
 
-/* XXX all this needs handlin' for posix right */
+/* Posix or targets without threading */
 #define PIOS_THREAD_STACK_SIZE_MIN (32768)
 
 enum pios_thread_prio_e
