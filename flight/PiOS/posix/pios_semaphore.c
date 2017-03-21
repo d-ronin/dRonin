@@ -63,7 +63,7 @@ struct pios_semaphore *PIOS_Semaphore_Create(void)
 		abort();
 	}
 
-	s->given = false;
+	s->given = true;
 
 	s->magic = SEMAPHORE_MAGIC;
 
