@@ -80,17 +80,6 @@ static pios_ser_dev * find_ser_dev_by_id(uintptr_t serial)
 	return (pios_ser_dev *) serial;
 }
 
-static int set_nonblock(int fd) {
-	int flags;
-	if ((flags = fcntl(fd, F_GETFL, 0)) != -1) {
-		if (fcntl(fd, F_SETFL, flags | O_NONBLOCK) != -1) {
-			return 0;
-		}
-	}
-
-	return -1;
-}
-
 /**
  * RxTask
  */
@@ -140,9 +129,6 @@ int32_t PIOS_SERIAL_Init(uintptr_t *serial_id, const char *path)
 		perror("serial-open");
 		return -1;
 	}
-
-	/* Set nonblocking. */
-	set_nonblock(ser_dev->fd);
 
 	PIOS_Thread_Create(PIOS_SERIAL_RxTask, "pios_serial_rx",
 		PIOS_THREAD_STACK_SIZE_MIN, ser_dev, PIOS_THREAD_PRIO_HIGHEST);

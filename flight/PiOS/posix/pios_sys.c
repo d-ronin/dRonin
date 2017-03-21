@@ -73,6 +73,9 @@
 static bool debug_fpe=false;
 
 #define MAX_SPI_BUSES 16
+
+bool are_realtime = false;
+
 int num_spi = 0;
 uintptr_t spi_devs[16];
 
@@ -306,7 +309,7 @@ static void go_realtime() {
 	/* Next, let's go hard realtime. */
 
 	struct sched_param sch_p = {
-		.sched_priority = 50
+		.sched_priority = 10
 	};
 
 	rc = sched_setscheduler(0, SCHED_RR, &sch_p);
@@ -315,6 +318,8 @@ static void go_realtime() {
 		perror("sched_setscheduler");
 		exit(1);
 	}
+
+	are_realtime = true;
 #else
 	printf("Only can do realtime stuff on Linux\n");
 	exit(1);

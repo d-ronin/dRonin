@@ -48,13 +48,17 @@ struct pios_thread *PIOS_Thread_Create(void (*fp)(void *), const char *namep, si
 		abort();
 	}
 
-	//struct sched_param param = {
-	//	.sched_priority = 30	/* XXX */
-	//};
+	extern bool are_realtime;
 
-	//pthread_attr_setinheritsched(&attr, PTHREAD_EXPLICIT_SCHED);
-	//pthread_attr_setschedpolicy(&attr, SCHED_RR);
-	//pthread_attr_setschedparam(&attr, &param);
+	if (are_realtime) {
+		struct sched_param param = {
+			.sched_priority = 30	/* XXX */
+		};
+
+		pthread_attr_setinheritsched(&attr, PTHREAD_EXPLICIT_SCHED);
+		pthread_attr_setschedpolicy(&attr, SCHED_RR);
+		pthread_attr_setschedparam(&attr, &param);
+	}
 
 	thread->name = strdup(namep);
 
@@ -69,6 +73,10 @@ struct pios_thread *PIOS_Thread_Create(void (*fp)(void *), const char *namep, si
 		free(thread);
 		return NULL;
 	}
+
+#ifdef __linux__
+	pthread_setname_np(thread->thread, thread->name);
+#endif
 
 	printf("Started thread (%s) p=%p\n", namep, &thread->thread);
 
@@ -96,7 +104,15 @@ uint32_t PIOS_Thread_Systime(void)
 
 	clock_gettime(CLOCK_MONOTONIC, &monotime);
 
-	return monotime.tv_sec * 1000 + monotime.tv_nsec / 1000000;
+	uint32_t t = monotime.tv_sec * 1000 + monotime.tv_nsec / 1000000;
+
+	static uint32_t base = 0;
+
+	if (!base) {
+		base = t;
+	}
+
+	return t - base;
 }
 
 void PIOS_Thread_Sleep(uint32_t time_ms)

@@ -85,24 +85,6 @@ static pios_tcp_dev * find_tcp_dev_by_id(uintptr_t tcp)
 	return (pios_tcp_dev *) tcp;
 }
 
-static int set_nonblock(int sock) {
-#if defined(_WIN32) || defined(WIN32) || defined(__MINGW32__)
-	unsigned long flag = 1;
-	if (!ioctlsocket(sock, FIONBIO, &flag)) {
-		return 0;
-	}
-#else
-	int flags;
-	if ((flags = fcntl(sock, F_GETFL, 0)) != -1) {
-		if (fcntl(sock, F_SETFL, flags | O_NONBLOCK) != -1) {
-			return 0;
-		}
-	}
-#endif
-
-	return -1;
-}
-
 /**
  * RxTask
  */
@@ -132,8 +114,6 @@ static void PIOS_TCP_RxTask(void *tcp_dev_n)
 			exit(EXIT_FAILURE);
 		}
 
-		set_nonblock(tcp_dev->socket_connection);
-		
 		fprintf(stderr, "Connection accepted\n");
 
 		while (1) {
@@ -214,7 +194,7 @@ int32_t PIOS_TCP_Init(uintptr_t *tcp_id, const struct pios_tcp_cfg * cfg)
 
 	}
 
-	int res= bind(tcp_dev->socket, (struct sockaddr*)&tcp_dev->server, sizeof(tcp_dev->server));
+	int res = bind(tcp_dev->socket, (struct sockaddr*)&tcp_dev->server, sizeof(tcp_dev->server));
 	if (res == -1) {
 		perror("Binding socket failed");
 		exit(EXIT_FAILURE);
@@ -226,9 +206,6 @@ int32_t PIOS_TCP_Init(uintptr_t *tcp_id, const struct pios_tcp_cfg * cfg)
 		exit(EXIT_FAILURE);
 	}
 	
-	/* Set socket nonblocking. */
-	set_nonblock(tcp_dev->socket);
-
 	tcpRxTaskHandle = PIOS_Thread_Create(
 			PIOS_TCP_RxTask, "pios_tcp_rx", PIOS_THREAD_STACK_SIZE_MIN, tcp_dev, PIOS_THREAD_PRIO_HIGHEST);
 	
