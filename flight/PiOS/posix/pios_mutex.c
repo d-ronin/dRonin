@@ -72,6 +72,7 @@ bool PIOS_Mutex_Lock(struct pios_mutex *mtx, uint32_t timeout_ms)
 
 		PIOS_Assert(!ret);
 	} else {
+#ifdef __linux__
 		struct timespec abstime;
 
 		clock_gettime(CLOCK_REALTIME, &abstime);
@@ -85,6 +86,16 @@ bool PIOS_Mutex_Lock(struct pios_mutex *mtx, uint32_t timeout_ms)
 		}
 
 		ret = pthread_mutex_timedlock(&mtx->mutex, &abstime);
+#else
+		/* MacOSX does not have pthread_mutex_timedlock so these
+		 * semantics are not possible.
+		 */
+		if (timeout_ms == 0) {
+			ret = pthread_mutex_trylock(&mtx->mutex);
+		} else {
+			abort();
+		}
+#endif
 	}
 
 	return (ret == 0);
