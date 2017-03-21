@@ -218,8 +218,9 @@ static void SensorsTask(void *parameters)
 				simulateModelCar();
 		}
 
-		PIOS_Thread_Sleep(2);
+		static uint32_t tm = 0;
 
+		PIOS_Thread_Sleep_Until(&tm, 2);
 	}
 }
 
