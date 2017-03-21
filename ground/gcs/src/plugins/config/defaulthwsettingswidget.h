@@ -43,7 +43,7 @@ public:
     ~DefaultHwSettingsWidget();
 
 private:
-    Ui_defaulthwsettings *defaultHWSettingsWidget;
+    Ui_DefaultHwSettings *defaultHWSettingsWidget;
 };
 
 #endif // DEFAULTHWSETTINGSt_H

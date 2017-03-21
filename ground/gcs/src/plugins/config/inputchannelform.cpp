@@ -8,7 +8,7 @@
 
 inputChannelForm::inputChannelForm(QWidget *parent, bool showlegend, bool showSlider, ChannelFunc chanType):
     ConfigTaskWidget(parent),
-    ui(new Ui::inputChannelForm),
+    ui(new Ui::InputChannelForm),
     m_chanType(chanType)
 {
     ui->setupUi(this);

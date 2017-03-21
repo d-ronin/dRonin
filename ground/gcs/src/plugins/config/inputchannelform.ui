@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ui version="4.0">
- <class>inputChannelForm</class>
- <widget class="QWidget" name="inputChannelForm">
+ <class>InputChannelForm</class>
+ <widget class="QWidget" name="InputChannelForm">
   <property name="geometry">
    <rect>
     <x>0</x>
