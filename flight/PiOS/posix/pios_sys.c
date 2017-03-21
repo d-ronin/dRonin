@@ -334,6 +334,8 @@ void PIOS_SYS_Args(int argc, char *argv[]) {
 	saved_argv = argv;
 
 	int opt;
+	
+	bool first_arg = true;
 
 	while ((opt = getopt(argc, argv, "frl:s:d:S:")) != -1) {
 		switch (opt) {
@@ -341,6 +343,11 @@ void PIOS_SYS_Args(int argc, char *argv[]) {
 				debug_fpe = true;
 				break;
 			case 'r':
+				if (!first_arg) {
+					printf("Realtime must be first arg\n");
+					exit(1);
+				}
+
 				go_realtime();
 				break;
 			case 'l':
@@ -406,6 +413,8 @@ void PIOS_SYS_Args(int argc, char *argv[]) {
 				Usage(argv[0]);
 				break;
 		}
+
+		first_arg = false;
 	}
 
 	if (optind < argc) {
