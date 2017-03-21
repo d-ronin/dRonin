@@ -89,12 +89,6 @@ struct pios_thread *PIOS_Thread_Create(void (*fp)(void *), const char *namep, si
 	if (thread == NULL)
 		return NULL;
 
-#ifdef SIM_POSIX
-	if (stack_bytes < PIOS_THREAD_STACK_SIZE_MIN) {
-		stack_bytes = PIOS_THREAD_STACK_SIZE_MIN;
-	}
-#endif
-
 	// Use special functions to ensure ChibiOS stack requirements
 	stack_bytes = ceil_size(stack_bytes);
 	uint8_t *wap = align8_alloc(stack_bytes);
