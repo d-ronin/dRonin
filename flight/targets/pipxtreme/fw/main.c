@@ -41,7 +41,7 @@ extern void Stack_Change(void);
 
 /* Local Variables */
 #define INIT_TASK_PRIORITY	PIOS_THREAD_PRIO_HIGHEST
-#define INIT_TASK_STACK		2048 // XXX this seems excessi
+#define INIT_TASK_STACK		1024
 static struct pios_thread *initTaskHandle;
 
 /* Function Prototypes */
