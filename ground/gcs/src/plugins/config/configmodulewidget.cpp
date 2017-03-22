@@ -197,12 +197,6 @@ void ConfigModuleWidget::objectUpdated(UAVObject * obj, bool success)
     } else if (objName.compare(LoggingSettings::NAME) == 0) {
         enableLoggingTab(success && moduleSettings->getAdminState_Logging() == ModuleSettings::ADMINSTATE_ENABLED);
     }
-
-    // indicate that we can't tell which modules are running when taskinfo isn't available
-    const bool haveTaskInfo = taskInfo->getIsPresentOnHardware();
-    ui->lblAutoHaveTaskInfo->setVisible(haveTaskInfo);
-    ui->lblAutoNoTaskInfo->setVisible(!haveTaskInfo);
-    ui->gbAutoModules->setEnabled(haveTaskInfo);
 }
 
 /**

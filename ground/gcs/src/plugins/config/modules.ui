@@ -311,23 +311,6 @@
            </widget>
           </item>
           <item>
-           <widget class="QLabel" name="lblAutoHaveTaskInfo">
-            <property name="text">
-             <string>The checkboxes here indicate which modules are currently running on your board.</string>
-            </property>
-           </widget>
-          </item>
-          <item>
-           <widget class="QLabel" name="lblAutoNoTaskInfo">
-            <property name="text">
-             <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Unfortunately it is not possible to determine which modules are running on your board (likely due to resource constraints). These checkboxes are &lt;span style=&quot; font-weight:600;&quot;&gt;non-functional&lt;/span&gt;.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-            </property>
-            <property name="wordWrap">
-             <bool>true</bool>
-            </property>
-           </widget>
-          </item>
-          <item>
            <widget class="QReadOnlyCheckBox" name="cbComBridge">
             <property name="toolTip">
              <string>Select to enable USB serial relay to a serial port (select the board on the board options)</string>

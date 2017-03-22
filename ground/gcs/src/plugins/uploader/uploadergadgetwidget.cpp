@@ -1226,7 +1226,7 @@ void UploaderGadgetWidget::onExportButtonClick()
         QMessageBox msgBox;
 
         msgBox.setText(tr("No settings partition accessible; can't export."));
-        msgBox.setInformativeText(tr("If you're using a F3 or F4 flight controller, please upgrade your bootloader. F1 does not support export configuration in the main loader."));
+        msgBox.setInformativeText(tr("Please upgrade your bootloader."));
         msgBox.setStandardButtons(QMessageBox::Ok);
         msgBox.setDefaultButton(QMessageBox::Ok);
 
