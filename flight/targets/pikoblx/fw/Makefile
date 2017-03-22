@@ -119,6 +119,8 @@ SRC += $(FLIGHTLIB)/timeutils.c
 SRC += $(MATHLIB)/coordinate_conversions.c
 SRC += $(MATHLIB)/misc_math.c
 SRC += $(MATHLIB)/pid.c
+SRC += $(MATHLIB)/lpfilter.c
+
 SRC += $(MATHLIB)/atmospheric_math.c
 
 ## PIOS Hardware (STM32F30x)
