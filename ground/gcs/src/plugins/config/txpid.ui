@@ -808,7 +808,6 @@ margin:1px;</string>
  </tabstops>
  <resources>
   <include location="../coreplugin/core.qrc"/>
-  <include location="../coreplugin/core.qrc"/>
  </resources>
  <connections/>
 </ui>

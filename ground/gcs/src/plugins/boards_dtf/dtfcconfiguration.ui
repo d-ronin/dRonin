@@ -757,7 +757,6 @@
  <resources>
   <include location="dtfuhf.qrc"/>
   <include location="../coreplugin/core.qrc"/>
-  <include location="../coreplugin/core.qrc"/>
  </resources>
  <connections/>
 </ui>

@@ -1413,7 +1413,6 @@ specific calibration button on top of the screen.</string>
  </customwidgets>
  <resources>
   <include location="../coreplugin/core.qrc"/>
-  <include location="../coreplugin/core.qrc"/>
  </resources>
  <connections/>
 </ui>
