@@ -54,6 +54,7 @@
 #include "physical_constants.h"
 #include "coordinate_conversions.h"
 #include "WorldMagModel.h"
+#include "insgps.h"
 
 // UAVOs
 #include "accels.h"
@@ -147,13 +148,17 @@ static HomeLocationData homeLocation;
 static INSSettingsData insSettings;
 static StateEstimationData stateEstimation;
 static bool gyroBiasSettingsUpdated = false;
-const uint32_t SENSOR_QUEUE_SIZE = 10;
+static volatile bool settings_flag = true;
+static volatile bool homeloc_flag = true;
+static volatile bool sensors_flag = true;
+static bool home_location_updated;
+
 static const float zeros[3] = {0.0f, 0.0f, 0.0f};
 
 static struct complementary_filter_state complementary_filter_state;
 static struct cfvert cfvert; //!< State information for vertical filter
 
-static float dT_expected = 0.001;	// assume 1KHz if we don't know.
+static float dT_expected = 0.001f;	// assume 1KHz if we don't know.
 
 // Private functions
 static void AttitudeTask(void *parameters);
@@ -181,7 +186,6 @@ static int32_t setAttitudeINSGPS();
 //! Set the navigation to the current INSGPS estimate
 static int32_t setNavigationINSGPS();
 static void updateNedAccel();
-static void settingsUpdatedCb(UAVObjEvent * objEv, void *ctx, void *obj, int len);
 
 //! A low pass filter on the accels which helps with vibration resistance
 static void apply_accel_filter(const float * raw, float * filtered);
@@ -201,6 +205,9 @@ static void set_state_estimation_error(SystemAlarmsStateEstimationOptions error_
 
 //! Determine if it is safe to set the home location then do it
 static void check_home_location();
+
+//! Scales used in NED transform (local tangent plane approx).
+static float T[3];
 
 /**
  * API for sensor fusion algorithms:
@@ -237,11 +244,11 @@ int32_t AttitudeInitialize(void)
 		return -1;		
 	}
 
-	AttitudeSettingsConnectCallback(&settingsUpdatedCb);
-	HomeLocationConnectCallback(&settingsUpdatedCb);
-	SensorSettingsConnectCallback(&settingsUpdatedCb);
-	INSSettingsConnectCallback(&settingsUpdatedCb);
-	StateEstimationConnectCallback(&settingsUpdatedCb);
+	INSSettingsConnectCallbackCtx(UAVObjCbSetFlag, &settings_flag);
+	AttitudeSettingsConnectCallbackCtx(UAVObjCbSetFlag, &settings_flag);
+	StateEstimationConnectCallbackCtx(UAVObjCbSetFlag, &settings_flag);
+	HomeLocationConnectCallbackCtx(UAVObjCbSetFlag, &homeloc_flag);
+	SensorSettingsConnectCallbackCtx(UAVObjCbSetFlag, &sensors_flag);
 
 	return 0;
 }
@@ -323,14 +330,73 @@ static void AttitudeTask(void *parameters)
 		dT_expected = 1.0f / samp_rate;
 	}
 
-	// Force settings update to make sure rotation loaded and to adjust for
-	// computed dT.
-	settingsUpdatedCb(NULL, NULL, NULL, 0);
-
 	// Main task loop
 	while (1) {
-
 		int32_t ret_val = -1;
+
+		if (settings_flag) {
+			settings_flag = false;
+
+			INSSettingsGet(&insSettings);
+			// In case INS currently running
+			INSSetMagVar(insSettings.MagVar);
+			INSSetAccelVar(insSettings.AccelVar);
+			INSSetGyroVar(insSettings.GyroVar);
+			INSSetBaroVar(insSettings.BaroVar);
+
+			AttitudeSettingsGet(&attitudeSettings);
+				
+			// Calculate accel filter alpha, in the same way as for gyro data in stabilization module.
+			if(attitudeSettings.AccelTau < 0.0001f) {
+				complementary_filter_state.accel_alpha = 0;   // not trusting this to resolve to 0
+				complementary_filter_state.accel_filter_enabled = false;
+			} else {
+				complementary_filter_state.accel_alpha = expf(-dT_expected  / attitudeSettings.AccelTau);
+				complementary_filter_state.accel_filter_enabled = true;
+			}
+
+			StateEstimationGet(&stateEstimation);
+		}
+
+		if (sensors_flag) {
+			sensors_flag = false;
+
+			SensorSettingsData sensorSettings;
+			SensorSettingsGet(&sensorSettings);
+			
+			/* When the calibration is updated, update the GyroBias object */
+			GyrosBiasData gyrosBias;
+			gyrosBias.x = 0;
+			gyrosBias.y = 0;
+			gyrosBias.z = 0;
+			GyrosBiasSet(&gyrosBias);
+
+			gyroBiasSettingsUpdated = true;
+		}
+
+		if (homeloc_flag) {
+			uint8_t armed;
+			FlightStatusArmedGet(&armed);
+
+			// Do not update the home location while armed as this can blow up the 
+			// filter.  This will need to be overhauled to handle long distance
+			// flights
+			if (armed == FLIGHTSTATUS_ARMED_DISARMED) {
+				homeloc_flag = false;
+
+				HomeLocationGet(&homeLocation);
+				// Compute matrix to convert deltaLLA to NED
+				float lat, alt;
+				lat = homeLocation.Latitude / 10.0e6f * DEG2RAD;
+				alt = homeLocation.Altitude;
+
+				T[0] = alt+6.378137E6f;
+				T[1] = cosf(lat)*(alt+6.378137E6f);
+				T[2] = -1.0f;
+
+				home_location_updated = true;
+			}
+		}
 
 		// When changing the attitude filter reinitialize
 		if (last_algorithm != stateEstimation.AttitudeFilter) {
@@ -973,9 +1039,6 @@ static void accumulate_gyro(GyrosData *gyrosData)
 	}
 }
 
-
-#include "insgps.h"
-static bool home_location_updated;
 /**
  * @brief Use the INSGPS fusion algorithm in either indoor or outdoor mode (use GPS)
  * @params[in] first_run This is the first run so trigger reinitialization
@@ -1379,7 +1442,6 @@ static void apply_accel_filter(const float * raw, float * filtered)
  * @param[out] NED frame coordinates
  * @returns 0 for success, -1 for failure
  */
-float T[3];
 static int32_t getNED(GPSPositionData * gpsPosition, float * NED)
 {
 	float dL[3] = {(gpsPosition->Latitude - homeLocation.Latitude) / 10.0e6f * DEG2RAD,
@@ -1480,70 +1542,6 @@ static void check_home_location()
 		}
 	}
 }
-
-static void settingsUpdatedCb(UAVObjEvent * ev, void *ctx, void *obj, int len)
-{
-	(void) ctx; (void) obj; (void) len;
-
-	if (ev == NULL || ev->obj == SensorSettingsHandle()) {
-		SensorSettingsData sensorSettings;
-		SensorSettingsGet(&sensorSettings);
-		
-		/* When the calibration is updated, update the GyroBias object */
-		GyrosBiasData gyrosBias;
-		gyrosBias.x = 0;
-		gyrosBias.y = 0;
-		gyrosBias.z = 0;
-		GyrosBiasSet(&gyrosBias);
-
-		gyroBiasSettingsUpdated = true;
-	}
-	if (ev == NULL || ev->obj == INSSettingsHandle()) {
-		INSSettingsGet(&insSettings);
-		// In case INS currently running
-		INSSetMagVar(insSettings.MagVar);
-		INSSetAccelVar(insSettings.AccelVar);
-		INSSetGyroVar(insSettings.GyroVar);
-		INSSetBaroVar(insSettings.BaroVar);
-		/* Don't set GPS variance here, because the flight loop does */
-	}
-	if(ev == NULL || ev->obj == HomeLocationHandle()) {
-		uint8_t armed;
-		FlightStatusArmedGet(&armed);
-
-		// Do not update the home location while armed as this can blow up the 
-		// filter.  This will need to be overhauled to handle long distance
-		// flights
-		if (armed == FLIGHTSTATUS_ARMED_DISARMED) {
-			HomeLocationGet(&homeLocation);
-			// Compute matrix to convert deltaLLA to NED
-			float lat, alt;
-			lat = homeLocation.Latitude / 10.0e6f * DEG2RAD;
-			alt = homeLocation.Altitude;
-
-			T[0] = alt+6.378137E6f;
-			T[1] = cosf(lat)*(alt+6.378137E6f);
-			T[2] = -1.0f;
-
-			home_location_updated = true;
-		}
-	}
-	if (ev == NULL || ev->obj == AttitudeSettingsHandle()) {
-		AttitudeSettingsGet(&attitudeSettings);
-			
-		// Calculate accel filter alpha, in the same way as for gyro data in stabilization module.
-		if(attitudeSettings.AccelTau < 0.0001f) {
-			complementary_filter_state.accel_alpha = 0;   // not trusting this to resolve to 0
-			complementary_filter_state.accel_filter_enabled = false;
-		} else {
-			complementary_filter_state.accel_alpha = expf(-dT_expected  / attitudeSettings.AccelTau);
-			complementary_filter_state.accel_filter_enabled = true;
-		}
-	}
-	if (ev == NULL || ev->obj == StateEstimationHandle())
-		StateEstimationGet(&stateEstimation);
-}
-
 
 /**
  * Set the error code and alarm state
