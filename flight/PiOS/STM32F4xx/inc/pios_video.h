@@ -59,7 +59,7 @@ enum pios_video_system {
 
 // PAL/NTSC specific config values
 struct pios_video_type_cfg {
-	uint16_t graphics_hight_real;
+	uint16_t graphics_height_real;
 	uint16_t graphics_column_start;
 	uint8_t  graphics_line_start;
 	uint8_t  dma_buffer_length;
@@ -84,7 +84,7 @@ struct pios_video_cfg {
 #else
 // PAL/NTSC specific config values
 struct pios_video_type_cfg {
-	uint16_t graphics_hight_real;
+	uint16_t graphics_height_real;
 	uint16_t graphics_column_start;
 	uint8_t  graphics_line_start;
 	uint8_t  dma_buffer_length;
@@ -99,7 +99,6 @@ struct pios_video_cfg {
 	const struct pios_spi_cfg  level;
 	struct pios_tim_channel    hsync_capture;
 	struct pios_tim_channel    pixel_timer;
-	TIM_TypeDef *              line_counter;
 	TIM_OCInitTypeDef tim_oc_init;
 	const struct pios_exti_cfg *vsync;
 	void (* set_bw_levels)(uint8_t, uint8_t);
