@@ -50,7 +50,6 @@ OPTMODULES += AltitudeHold
 OPTMODULES += VtolPathFollower
 OPTMODULES += FixedWingPathFollower
 OPTMODULES += FlightStats
-OPTMODULES += GroundPathFollower
 OPTMODULES += CameraStab
 OPTMODULES += Autotune
 OPTMODULES += TxPID

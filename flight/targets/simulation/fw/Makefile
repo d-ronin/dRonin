@@ -77,7 +77,6 @@ OPTMODULES += CameraStab
 OPTMODULES += FixedWingPathFollower
 OPTMODULES += FlightStats
 OPTMODULES += Geofence
-OPTMODULES += GroundPathFollower
 OPTMODULES += PathPlanner
 OPTMODULES += TxPID
 OPTMODULES += VtolPathFollower
