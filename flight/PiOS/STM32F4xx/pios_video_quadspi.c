@@ -54,26 +54,26 @@ extern struct pios_semaphore * onScreenDisplaySemaphore;
 
 static const struct pios_video_type_boundary pios_video_type_boundary_ntsc = {
 	.graphics_right  = GRPAHICS_RIGHT_NTSC, // must be: graphics_width_real - 1
-	.graphics_bottom = 239,                 // must be: graphics_hight_real - 1
+	.graphics_bottom = 239,                 // must be: graphics_height_real - 1
 };
 
 static const struct pios_video_type_boundary pios_video_type_boundary_pal = {
 	.graphics_right  = GRPAHICS_RIGHT_PAL, // must be: graphics_width_real - 1
-	.graphics_bottom = 265,                // must be: graphics_hight_real - 1
+	.graphics_bottom = 265,                // must be: graphics_height_real - 1
 };
 
 #define NTSC_BYTES (GRPAHICS_RIGHT_NTSC / (8 / PIOS_VIDEO_BITS_PER_PIXEL) + 1)
 #define PAL_BYTES (GRPAHICS_RIGHT_PAL / (8 / PIOS_VIDEO_BITS_PER_PIXEL) + 1)
 
 static const struct pios_video_type_cfg pios_video_type_cfg_ntsc = {
-	.graphics_hight_real   = 240,   // Real visible lines
+	.graphics_height_real   = 240,   // Real visible lines
 	.graphics_column_start = 260,   // First visible OSD column (after Hsync)
 	.graphics_line_start   = 16,    // First visible OSD line
 	.dma_buffer_length     = NTSC_BYTES + NTSC_BYTES % 4, // DMA buffer length in bytes (has to be multiple of 4)
 };
 
 static const struct pios_video_type_cfg pios_video_type_cfg_pal = {
-	.graphics_hight_real   = 266,   // Real visible lines
+	.graphics_height_real   = 266,   // Real visible lines
 	.graphics_column_start = 420,   // First visible OSD column (after Hsync)
 	.graphics_line_start   = 28,    // First visible OSD line
 	.dma_buffer_length     = PAL_BYTES + PAL_BYTES % 4, // DMA buffer length in bytes (has to be multiple of 4)
@@ -119,7 +119,7 @@ bool PIOS_Vsync_ISR()
 	static uint16_t Vsync_update = 0;
 
 	// discard spurious vsync pulses (due to improper grounding), so we don't overload the CPU
-	if (active_line < pios_video_type_cfg_ntsc.graphics_hight_real - 10) {
+	if (active_line < pios_video_type_cfg_ntsc.graphics_height_real - 10) {
 		return false;
 	}
 
@@ -169,7 +169,7 @@ bool PIOS_Hsync_ISR()
 
 	active_line++;
 
-	if ((active_line >= 0) && (active_line < pios_video_type_cfg_act->graphics_hight_real)) {
+	if ((active_line >= 0) && (active_line < pios_video_type_cfg_act->graphics_height_real)) {
 		// Check if QUADSPI is busy
 		if (QUADSPI->SR & 0x20)
 			goto exit;
