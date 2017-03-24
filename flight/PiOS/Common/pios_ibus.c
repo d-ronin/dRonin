@@ -183,13 +183,25 @@ static uint16_t PIOS_IBus_Receive(uintptr_t context, uint8_t *buf, uint16_t buf_
 
 	dev->rx_timer = 0;
 
-	*headroom = PIOS_IBUS_BUFLEN - dev->buf_pos;
-	*task_woken = false;
+	if (headroom) {
+		*headroom = PIOS_IBUS_BUFLEN - dev->buf_pos;
+	}
+
+	if (task_woken) {
+		*task_woken = false;
+	}
+
 	return buf_len;
 
 out_fail:
-	*headroom = 0;
-	*task_woken = false;
+	if (headroom) {
+		*headroom = 0;
+	}
+
+	if (task_woken) {
+		*task_woken = false;
+	}
+
 	return 0;
 }
 
