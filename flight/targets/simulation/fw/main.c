@@ -117,6 +117,9 @@ void initTask(void *parameters)
 	/* Initialize modules */
 	MODULE_INITIALISE_ALL(PIOS_WDG_Clear);
 
+	/* create all modules thread */
+	MODULE_TASKCREATE_ALL;
+
 	printf("Initialization task completed\n");
 
 	/* terminate this task */

@@ -213,17 +213,12 @@ int32_t SystemModInitialize(void)
 	if (objectPersistenceQueue == NULL)
 		return -1;
 
-	SystemModStart();
-
 	return 0;
 }
 
-	MODULE_HIPRI_INITCALL(SystemModInitialize, 0)
+MODULE_HIPRI_INITCALL(SystemModInitialize, SystemModStart)
 static void systemTask(void *parameters)
 {
-	/* create all modules thread */
-	MODULE_TASKCREATE_ALL;
-
 	if (PIOS_heap_malloc_failed_p()) {
 		/* We failed to malloc during task creation,
 		 * system behaviour is undefined.  Reset and let
