@@ -39,7 +39,6 @@
 #include "flightbatterystate.h"
 #include "gpsposition.h"
 #include "manualcontrolcommand.h"
-#include "accessorydesired.h"
 #include "attitudeactual.h"
 #include "airspeedactual.h"
 #include "actuatorsettings.h"
@@ -479,12 +478,8 @@ static uint16_t msp_scale_rc_thr(float percent) {
 // MSP RC order is Roll/Pitch/Yaw/Throttle/AUX1/AUX2/AUX3/AUX4
 static void msp_send_channels(struct msp_bridge *m)
 {
-	AccessoryDesiredData acc0, acc1, acc2;
 	ManualControlCommandData manualState;
 	ManualControlCommandGet(&manualState);
-	AccessoryDesiredInstGet(0, &acc0);
-	AccessoryDesiredInstGet(1, &acc1);
-	AccessoryDesiredInstGet(2, &acc2);
 
 	union {
 		uint8_t buf[0];
@@ -495,9 +490,9 @@ static void msp_send_channels(struct msp_bridge *m)
 			msp_scale_rc(manualState.Pitch * -1), // TL pitch is backwards
 			msp_scale_rc(manualState.Yaw),
 			msp_scale_rc_thr(manualState.Throttle),
-			msp_scale_rc(acc0.AccessoryVal),
-			msp_scale_rc(acc1.AccessoryVal),
-			msp_scale_rc(acc2.AccessoryVal),
+			msp_scale_rc(manualState.Accessory[0]),
+			msp_scale_rc(manualState.Accessory[1]),
+			msp_scale_rc(manualState.Accessory[2]),
 			1000, // no aux4
 		}
 	};

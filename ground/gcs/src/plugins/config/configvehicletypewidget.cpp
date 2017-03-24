@@ -731,12 +731,6 @@ void ConfigVehicleTypeWidget::updateObjectsFromWidgets()
                 vconfig->setMixerType(mixerSettings,channel,MixerSettings::MIXER1TYPE_ACCESSORY1);
             else if(q->currentText()=="Accessory2")
                 vconfig->setMixerType(mixerSettings,channel,MixerSettings::MIXER1TYPE_ACCESSORY2);
-            else if(q->currentText()=="Accessory3")
-                vconfig->setMixerType(mixerSettings,channel,MixerSettings::MIXER1TYPE_ACCESSORY3);
-            else if(q->currentText()=="Accessory4")
-                vconfig->setMixerType(mixerSettings,channel,MixerSettings::MIXER1TYPE_ACCESSORY4);
-            else if(q->currentText()=="Accessory5")
-                vconfig->setMixerType(mixerSettings,channel,MixerSettings::MIXER1TYPE_ACCESSORY5);
 
             vconfig->setMixerVectorValue(mixerSettings,channel,MixerSettings::MIXER1VECTOR_THROTTLECURVE1,
                                             m_aircraft->customMixerTable->item(1,channel)->text().toDouble());

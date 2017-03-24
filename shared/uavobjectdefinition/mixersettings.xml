@@ -16,9 +16,6 @@
 				<option>Accessory0</option>
 				<option>Accessory1</option>
 				<option>Accessory2</option>
-				<option>Accessory3</option>
-				<option>Accessory4</option>
-				<option>Accessory5</option>
 			</options>
 		</field>
 		<field name="ThrottleCurve2" units="percent" type="float" elementnames="0,25,50,75,100" defaultvalue="0,0.25,0.5,0.75,1">
@@ -36,9 +33,6 @@
 				<option>Accessory0</option>
 				<option>Accessory1</option>
 				<option>Accessory2</option>
-				<option>Accessory3</option>
-				<option>Accessory4</option>
-				<option>Accessory5</option>
 			</options>
 		</field>
 		<field name="Mixer1Vector" units="" type="int8" defaultvalue="0">

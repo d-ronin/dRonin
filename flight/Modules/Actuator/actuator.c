@@ -41,7 +41,6 @@
 #include <math.h>
 
 #include "openpilot.h"
-#include "accessorydesired.h"
 #include "actuatorsettings.h"
 #include "systemsettings.h"
 #include "actuatordesired.h"
@@ -195,15 +194,23 @@ static float get_curve2_source(ActuatorDesiredData *desired, SystemSettingsAirfr
 	case MIXERSETTINGS_CURVE2SOURCE_ACCESSORY0:
 	case MIXERSETTINGS_CURVE2SOURCE_ACCESSORY1:
 	case MIXERSETTINGS_CURVE2SOURCE_ACCESSORY2:
-	case MIXERSETTINGS_CURVE2SOURCE_ACCESSORY3:
-	case MIXERSETTINGS_CURVE2SOURCE_ACCESSORY4:
-	case MIXERSETTINGS_CURVE2SOURCE_ACCESSORY5:
 		(void) 0;
-		AccessoryDesiredData accessory;
 
-		if (AccessoryDesiredInstGet(source - MIXERSETTINGS_CURVE2SOURCE_ACCESSORY0,&accessory) == 0)
-			return accessory.AccessoryVal;
-		return 0;
+		int idx = source - MIXERSETTINGS_CURVE2SOURCE_ACCESSORY0;
+
+		if (idx < 0) {
+			return 0;
+		}
+
+		if (idx >= MANUALCONTROLCOMMAND_ACCESSORY_NUMELEM) {
+			return 0;
+		}
+
+		float accessories[MANUALCONTROLCOMMAND_ACCESSORY_NUMELEM];
+
+		ManualControlCommandAccessoryGet(accessories);
+
+		return accessories[idx];
 		break;
 	}
 
@@ -627,16 +634,23 @@ static float mix_channel(int ct, ActuatorDesiredData *desired,
 	case MIXERSETTINGS_MIXER1TYPE_ACCESSORY0:
 	case MIXERSETTINGS_MIXER1TYPE_ACCESSORY1:
 	case MIXERSETTINGS_MIXER1TYPE_ACCESSORY2:
-	case MIXERSETTINGS_MIXER1TYPE_ACCESSORY3:
-	case MIXERSETTINGS_MIXER1TYPE_ACCESSORY4:
-	case MIXERSETTINGS_MIXER1TYPE_ACCESSORY5:
 		(void) 0;
 
-		AccessoryDesiredData accessory;
-		if (AccessoryDesiredInstGet(type - MIXERSETTINGS_MIXER1TYPE_ACCESSORY0,&accessory) == 0)
-			return accessory.AccessoryVal;
-		else
-			return -1;
+		int idx = type - MIXERSETTINGS_CURVE2SOURCE_ACCESSORY0;
+
+		if (idx < 0) {
+			return 0;
+		}
+
+		if (idx >= MANUALCONTROLCOMMAND_ACCESSORY_NUMELEM) {
+			return 0;
+		}
+
+		float accessories[MANUALCONTROLCOMMAND_ACCESSORY_NUMELEM];
+
+		ManualControlCommandAccessoryGet(accessories);
+
+		return accessories[idx];
 		break;
 	case MIXERSETTINGS_MIXER1TYPE_CAMERAPITCH:
 	case MIXERSETTINGS_MIXER1TYPE_CAMERAROLL:

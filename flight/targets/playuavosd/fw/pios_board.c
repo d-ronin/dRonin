@@ -50,7 +50,6 @@
 /* TODO: something nicer about these */
 #include "attitudeactual.h"
 #include "accels.h"
-#include "accessorydesired.h"
 #include "baroaltitude.h"
 #include "flightstatus.h"
 #include "manualcontrolcommand.h"
@@ -343,7 +342,6 @@ static void PIOS_BOARD_Init_Uavos(void)
 {
 	AttitudeActualInitialize();
 	AccelsInitialize();
-	AccessoryDesiredInitialize();
 	BaroAltitudeInitialize();
 	FlightStatusInitialize();
 	ManualControlCommandInitialize();
