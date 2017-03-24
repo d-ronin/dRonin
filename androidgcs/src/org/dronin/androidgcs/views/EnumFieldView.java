@@ -23,6 +23,7 @@ package org.dronin.androidgcs.views;
  */
 
 import java.util.List;
+import java.text.NumberFormat;
 
 import org.dronin.androidgcs.util.ObjectFieldMappable;
 import org.dronin.uavtalk.UAVObjectField;
@@ -110,12 +111,21 @@ public class EnumFieldView extends LinearLayout implements ObjectFieldMappable {
 	}
 
 	@Override
-	public void setValue(double val) {
+	public void setValue(Number val) {
 		localUpdate = true;
 		Log.d(TAG, "Value set to: " + val);
-		value = val;
-		spin.setSelection((int) val);
+		value = val.doubleValue();
+		spin.setSelection(val.intValue());
 		localUpdate = false;
+	}
+
+	@Override
+	public void setValue(String val) {
+		try {
+			setValue(NumberFormat.getInstance().parse(val));
+		} catch (Exception e) {
+			setValue(0);
+		}
 	}
 
 	@Override

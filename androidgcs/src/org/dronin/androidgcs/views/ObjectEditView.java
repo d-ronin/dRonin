@@ -82,7 +82,7 @@ public class ObjectEditView extends LinearLayout {
 		{
 		case FLOAT32:
 			fieldValue = new NumericalFieldView(context, null, field, idx);
-			((NumericalFieldView)fieldValue).setValue(Double.parseDouble(field.getValue(idx).toString()));
+			((NumericalFieldView)fieldValue).setValue(field.getValue(idx).toString());
 			((NumericalFieldView)fieldValue).setInputType(InputType.TYPE_CLASS_NUMBER | InputType.TYPE_NUMBER_FLAG_SIGNED | InputType.TYPE_NUMBER_FLAG_DECIMAL);
 			if (smartSave != null)
 				smartSave.addControlMapping((NumericalFieldView)fieldValue, field.getName(), idx);
@@ -91,7 +91,7 @@ public class ObjectEditView extends LinearLayout {
 		case INT16:
 		case INT32:
 			fieldValue = new NumericalFieldView(context, null, field, idx);
-			((NumericalFieldView)fieldValue).setValue(Double.parseDouble(field.getValue(idx).toString()));
+			((NumericalFieldView)fieldValue).setValue(field.getValue(idx).toString());
 			((NumericalFieldView)fieldValue).setInputType(InputType.TYPE_CLASS_NUMBER | InputType.TYPE_NUMBER_FLAG_SIGNED);
 			if (smartSave != null)
 				smartSave.addControlMapping((NumericalFieldView)fieldValue, field.getName(), idx);
@@ -100,7 +100,7 @@ public class ObjectEditView extends LinearLayout {
 		case UINT16:
 		case UINT32:
 			fieldValue = new NumericalFieldView(context, null, field, idx);
-			((NumericalFieldView)fieldValue).setValue(Double.parseDouble(field.getValue(idx).toString()));
+			((NumericalFieldView)fieldValue).setValue(field.getValue(idx).toString());
 			((NumericalFieldView)fieldValue).setInputType(InputType.TYPE_CLASS_NUMBER);
 			if (smartSave != null)
 				smartSave.addControlMapping((NumericalFieldView)fieldValue, field.getName(), idx);
