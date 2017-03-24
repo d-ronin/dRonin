@@ -5,7 +5,7 @@
  * @author     Samba, Copyright (C) 2012
  * @addtogroup Targets Target Boards
  * @{
- * @addtogroup PlayUavOsd
+ * @addtogroup PlayUAVOSD PlayUAV OSD
  * @{
  * @brief Firmware for PlayUAVOSD board
  *****************************************************************************/

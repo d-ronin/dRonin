@@ -1,11 +1,11 @@
 /**
  ******************************************************************************
- * @addtogroup TauLabsTargets Tau Labs Targets
+ * @addtogroup Targets Target Boards
  * @{
- * @addtogroup Sparky2 Tau Labs Sparky2 support files
+ * @addtogroup Sparky2 Tau Labs Sparky2
  * @{
  *
- * @file       pios_board.c 
+ * @file       sparky2/board-info/board_hw_defs.c
  * @author     Tau Labs, http://taulabs.org, Copyright (C) 2012-2015
  * @author     dRonin, http://dronin.org Copyright (C) 2015-2016
  * @brief      Board specific hardware configuration file

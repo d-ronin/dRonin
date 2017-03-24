@@ -1,11 +1,11 @@
 /**
  ******************************************************************************
- * @addtogroup TauLabsTargets Tau Labs Targets
+ * @addtogroup Targets Target Boards
  * @{
- * @addtogroup lux Tau Labs lux support files
+ * @addtogroup LUX Lumenier LUX
  * @{
  *
- * @file       pios_board.c
+ * @file       lux/board-info/pios_board.c
  * @author     Tau Labs, http://taulabs.org, Copyright (C) 2012-2014
  * @author     dRonin, http://dRonin.org/, Copyright (C) 2016
  * @brief      The board specific initialization routines
@@ -321,7 +321,7 @@ void PIOS_Board_Init(void)
 #if !defined(PIOS_INCLUDE_SPI)
     #error MPU9250_SPI requires SPI
 #endif
-    
+
     if (PIOS_MPU9250_SPI_Init(pios_spi_gyro_id, 0, &pios_mpu9250_cfg) != 0)
         PIOS_HAL_CriticalError(PIOS_LED_ALARM, PIOS_HAL_PANIC_IMU);
 
@@ -401,5 +401,6 @@ void PIOS_Board_Init(void)
 }
 
 /**
+ * @}
  * @}
  */

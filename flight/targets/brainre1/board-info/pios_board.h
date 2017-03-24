@@ -1,16 +1,16 @@
 /**
  ******************************************************************************
- * @addtogroup BrainFPVTargets BrainFPV Targets
+ * @addtogroup Targets Target Boards
  * @{
- * @addtogroup BrainFPV-RE1 BrainFPV-RE1 support files
+ * @addtogroup BrainRE1 BrainFPV RE1
  * @{
  *
- * @file       pios_board.h 
+ * @file       brainre1/board-info/pios_board.h
  * @author     Tau Labs, http://taulabs.org, Copyright (C) 2012-2015
  * @author     BrainFPV, Copyright (C) 2015
  * @brief      Board define file for FlyingF4
  * @see        The GNU Public License (GPL) Version 3
- * 
+ *
  *****************************************************************************/
 /*
  * This program is free software; you can redistribute it and/or modify
@@ -178,8 +178,8 @@ extern uint32_t pios_packet_handler;
 //	RTC/BKP reg	
 // TIM2,3,4,5,6,7,12,13,14
 
-// Calculated as SYSCLK / APBPresc * (APBPre == 1 ? 1 : 2)   
-// Default APB1 Prescaler = 4 
+// Calculated as SYSCLK / APBPresc * (APBPre == 1 ? 1 : 2)
+// Default APB1 Prescaler = 4
 #define PIOS_PERIPHERAL_APB1_CLOCK		(PIOS_SYSCLK / 4)
 
 //	Peripherals belonging to APB2

@@ -1,16 +1,16 @@
 /**
  ******************************************************************************
- * @addtogroup TauLabsTargets Tau Labs Targets
+ * @addtogroup Targets Target Boards
  * @{
- * @addtogroup PipXtreme OpenPilot PipXtreme support files
+ * @addtogroup PipX PipXtreme Radio
  * @{
  *
- * @file       board_hw_defs.c 
+ * @file       pipxtreme/board-info/board_hw_defs.c
  * @author     The OpenPilot Team, http://www.openpilot.org Copyright (C) 2011.
  * @author     Tau Labs, http://taulabs.org, Copyright (C) 2012-2013
  * @brief      Defines board specific static initializers for PipXtreme
  * @see        The GNU Public License (GPL) Version 3
- * 
+ *
  *****************************************************************************/
 
 #include <pios_config.h>
@@ -314,7 +314,7 @@ static const struct pios_adc_cfg pios_adc_cfg = {
 				.DMA_M2M                = DMA_M2M_Disable,
 			},
 		}
-	}, 
+	},
 	.half_flag = DMA1_IT_HT1,
 	.full_flag = DMA1_IT_TC1,
 };

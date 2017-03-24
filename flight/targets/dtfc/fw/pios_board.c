@@ -1,11 +1,11 @@
 /**
  ******************************************************************************
- * @addtogroup TauLabsTargets Tau Labs Targets
+ * @addtogroup Targets Target Boards
  * @{
- * @addtogroup DTFc DTF support files
+ * @addtogroup DTFc DTFAIR DTFc
  * @{
  *
- * @file       pios_board.c
+ * @file       dtfc/fw/pios_board.c
  * @author     Tau Labs, http://taulabs.org, Copyright (C) 2012-2014
  * @author     dRonin, http://dRonin.org/, Copyright (C) 2016
  * @brief      The board specific initialization routines
@@ -377,7 +377,7 @@ void PIOS_Board_Init(void)
 
 	HwDtfcICM20608G_AccelLPFOptions hw_mpu_accel_dlpf;
 	HwDtfcICM20608G_AccelLPFGet(&hw_mpu_accel_dlpf);
-	uint16_t acc_bandwidth = 
+	uint16_t acc_bandwidth =
 		(hw_mpu_accel_dlpf = HWDTFC_ICM20608G_ACCELLPF_218) ? 218 :
 		(hw_mpu_accel_dlpf = HWDTFC_ICM20608G_ACCELLPF_99)  ?  99 :
 		(hw_mpu_accel_dlpf = HWDTFC_ICM20608G_ACCELLPF_45)  ?  45 :
@@ -403,5 +403,6 @@ void PIOS_Board_Init(void)
 }
 
 /**
+ * @}
  * @}
  */

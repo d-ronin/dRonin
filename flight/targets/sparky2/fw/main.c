@@ -1,28 +1,28 @@
 /**
  ******************************************************************************
- * @addtogroup TauLabsTargets Tau Labs Targets
+ * @addtogroup Targets Target Boards
  * @{
- * @addtogroup Sparky2 Tau Labs Sparky2 support files
+ * @addtogroup Sparky2 Tau Labs Sparky2
  * @{
  *
- * @file       main.c 
+ * @file       sparky2/fw/main.c
  * @author     Tau Labs, http://taulabs.org, Copyright (C) 2012-2015
  * @brief      Start up file for Sparky2
  * @see        The GNU Public License (GPL) Version 3
- * 
+ *
  *****************************************************************************/
-/* 
- * This program is free software; you can redistribute it and/or modify 
- * it under the terms of the GNU General Public License as published by 
- * the Free Software Foundation; either version 3 of the License, or 
+/*
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 3 of the License, or
  * (at your option) any later version.
- * 
- * This program is distributed in the hope that it will be useful, but 
- * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY 
- * or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License 
+ *
+ * This program is distributed in the hope that it will be useful, but
+ * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
+ * or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License
  * for more details.
- * 
- * You should have received a copy of the GNU General Public License along 
+ *
+ * You should have received a copy of the GNU General Public License along
  * with this program; if not, see <http://www.gnu.org/licenses/>
  */
 
@@ -57,7 +57,7 @@ static void initTask(void *parameters);
 int main()
 {
 	/* NOTE: Do NOT modify the following start-up sequence */
-	PIOS_heap_initialize_blocks();  
+	PIOS_heap_initialize_blocks();
 
 	halInit();
 	chSysInit();
@@ -82,8 +82,7 @@ int main()
  *
  * Runs board and module initialisation, then terminates.
  */
-void
-initTask(void *parameters)
+void initTask(void *parameters)
 {
 	/* board driver init */
 	PIOS_Board_Init();
@@ -99,4 +98,3 @@ initTask(void *parameters)
  * @}
  * @}
  */
-

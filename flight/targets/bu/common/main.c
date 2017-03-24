@@ -1,11 +1,11 @@
 /**
  ******************************************************************************
- * @addtogroup TauLabsBootloader Tau Labs Bootloaders
+ * @addtogroup Bootloader Bootloaders
  * @{
- * @addtogroup BootloaderUpdate Update the bootloader stored in a target
+ * @addtogroup Updater Bootloader Updater
  * @{
  *
- * @file       main.c
+ * @file       bu/common/main.c
  * @author     The OpenPilot Team, http://www.openpilot.org Copyright (C) 2010.
  * @author     Tau Labs, http://taulabs.org, Copyright (C) 2012-2013
  * @brief      Starting point for the code
@@ -103,7 +103,7 @@ int main(void) {
 	const uint32_t zero = 0;
 	PIOS_FLASH_start_transaction(fw_partition_id);
 	PIOS_FLASH_write_data(fw_partition_id, 0, (uint8_t *)&zero, sizeof(zero));
-	/* 
+	/*
 	 * Invalidate FW metadata so GCS can know FW is invalid
 	 * We replace the 3rd and 4th letters of the TlFw sentinel with 0
 	 */

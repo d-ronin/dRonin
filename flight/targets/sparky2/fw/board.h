@@ -14,6 +14,15 @@
     limitations under the License.
 */
 
+/**
+ * @addtogroup Targets Target Boards
+ * @{
+ * @addtogroup Sparky2 Tau Labs Sparky2
+ * @{
+ *
+ * @file    sparky2/fw/board.h
+ */
+
 #ifndef _BOARD_H_
 #define _BOARD_H_
 
@@ -64,3 +73,8 @@ extern "C" {
 #endif /* _FROM_ASM_ */
 
 #endif /* _BOARD_H_ */
+
+/**
+ * @}
+ * @}
+ */

@@ -5,7 +5,7 @@
  * @author     Tau Labs, http://taulabs.org, Copyright (C) 2012-2015
  * @addtogroup Targets Target Boards
  * @{
- * @addtogroup PlayUavOsd
+ * @addtogroup PlayUAVOSD PlayUAV OSD
  * @{
  * @brief Board support for PlayUAVOSD board
  *****************************************************************************/
@@ -116,7 +116,7 @@ extern uintptr_t pios_com_openlog_logging_id;
 #define DEBUG_PRINTF(level, ...) {if(level <= DEBUG_LEVEL && pios_com_debug_id > 0) { PIOS_COM_SendFormattedStringNonBlocking(pios_com_debug_id, __VA_ARGS__); }}
 
 //------------------------
-// TELEMETRY 
+// TELEMETRY
 //------------------------
 #define TELEM_QUEUE_SIZE         80
 #define PIOS_TELEM_STACK_SIZE    624
@@ -130,8 +130,8 @@ extern uintptr_t pios_com_openlog_logging_id;
 //	RTC/BKP reg	
 // TIM2,3,4,5,6,7,12,13,14
 
-// Calculated as SYSCLK / APBPresc * (APBPre == 1 ? 1 : 2)   
-// Default APB1 Prescaler = 4 
+// Calculated as SYSCLK / APBPresc * (APBPre == 1 ? 1 : 2)
+// Default APB1 Prescaler = 4
 #define PIOS_PERIPHERAL_APB1_CLOCK					(PIOS_SYSCLK / 4)
 
 //	Peripherals belonging to APB2

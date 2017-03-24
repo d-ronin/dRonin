@@ -15,8 +15,13 @@
 */
 
 /**
- * @file    templates/chconf.h
- * @brief   Configuration file template.
+ * @addtogroup Targets Target Boards
+ * @{
+ * @addtogroup AQ32 Aeroquad AQ32
+ * @{
+ *
+ * @file    aq32/fw/chconf.h
+ * @brief   Configuration file
  * @details A copy of this file must be placed in each project directory, it
  *          contains the application specific kernel settings.
  *
@@ -574,3 +579,8 @@ typedef uint32_t halrtcnt_t;
 #endif  /* _CHCONF_H_ */
 
 /** @} */
+
+/**
+ * @}
+ * @}
+ */

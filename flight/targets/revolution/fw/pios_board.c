@@ -1,30 +1,30 @@
 /**
  ******************************************************************************
- * @addtogroup TauLabsTargets Tau Labs Targets
+ * @addtogroup Targets Target Boards
  * @{
- * @addtogroup Revolution OpenPilot Revolution support files
+ * @addtogroup RevoMini OpenPilot Revolution Mini
  * @{
  *
- * @file       pios_board.c
+ * @file       revolution/fw/pios_board.c
  * @author     The OpenPilot Team, http://www.openpilot.org Copyright (C) 2011.
  * @author     Tau Labs, http://taulabs.org, Copyright (C) 2012-2015
  * @author     dRonin, http://dronin.org Copyright (C) 2015
  * @brief      The board specific initialization routines
  * @see        The GNU Public License (GPL) Version 3
- * 
+ *
  *****************************************************************************/
-/* 
- * This program is free software; you can redistribute it and/or modify 
- * it under the terms of the GNU General Public License as published by 
- * the Free Software Foundation; either version 3 of the License, or 
+/*
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 3 of the License, or
  * (at your option) any later version.
- * 
- * This program is distributed in the hope that it will be useful, but 
- * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY 
- * or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License 
+ *
+ * This program is distributed in the hope that it will be useful, but
+ * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
+ * or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License
  * for more details.
- * 
- * You should have received a copy of the GNU General Public License along 
+ *
+ * You should have received a copy of the GNU General Public License along
  * with this program; if not, see <http://www.gnu.org/licenses/>
  *
  * Additional note on redistribution: The copyright and license notices above
@@ -35,7 +35,7 @@
 /* Pull in the board-specific static HW definitions.
  * Including .c files is a bit ugly but this allows all of
  * the HW definitions to be const and static to limit their
- * scope.  
+ * scope.
  *
  * NOTE: THIS IS THE ONLY PLACE THAT SHOULD EVER INCLUDE THIS FILE
  */
@@ -272,21 +272,21 @@ void PIOS_Board_Init(void) {
 
 	PIOS_HAL_ConfigurePort(hw_mainport,          // port type protocol
 			&pios_usart_main_cfg,                // usart_port_cfg
-			&pios_usart_com_driver,              // com_driver 
+			&pios_usart_com_driver,              // com_driver
 			NULL,                                // i2c_id
 			NULL,                                // i2c_cfg
 			NULL,                                // ppm_cfg
 			NULL,                                // pwm_cfg
 			PIOS_LED_HEARTBEAT,                      // led_id
 			&pios_dsm_main_cfg,                  // dsm_cfg
-			hw_DSMxMode >= HWREVOLUTION_DSMXMODE_BIND3PULSES ? HWREVOLUTION_DSMXMODE_AUTODETECT : hw_DSMxMode /* No bind on main port */, 
+			hw_DSMxMode >= HWREVOLUTION_DSMXMODE_BIND3PULSES ? HWREVOLUTION_DSMXMODE_AUTODETECT : hw_DSMxMode /* No bind on main port */,
 			&pios_sbus_cfg);                     // sbus_cfg
 
 	/* Configure FlexiPort */
 	uint8_t hw_flexiport;
 	HwRevolutionFlexiPortGet(&hw_flexiport);
 
-	PIOS_HAL_ConfigurePort(hw_flexiport,         // port type protocol 
+	PIOS_HAL_ConfigurePort(hw_flexiport,         // port type protocol
 			&pios_usart_flexi_cfg,               // usart_port_cfg
 			&pios_usart_com_driver,              // com_driver
 			&pios_i2c_flexiport_adapter_id,      // i2c_id
@@ -643,4 +643,3 @@ void PIOS_Board_Init(void) {
  * @}
  * @}
  */
-

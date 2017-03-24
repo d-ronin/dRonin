@@ -1,14 +1,16 @@
 /**
  ******************************************************************************
- * @addtogroup DTFc DTF support files
+ * @addtogroup Targets Target Boards
+ * @{
+ * @addtogroup DTFc DTFAIR DTFc
  * @{
  *
- * @file       dtfc.c 
+ * @file       dtfc/fw/dtfc.c
  * @author     Tau Labs, http://taulabs.org, Copyright (C) 2012-2014
  * @author     dRonin, http://dRonin.org/, Copyright (C) 2016
  * @brief      Start RTOS and the Modules.
  * @see        The GNU Public License (GPL) Version 3
- * 
+ *
  *****************************************************************************/
 /*
  * This program is free software; you can redistribute it and/or modify
@@ -102,6 +104,7 @@ initTask(void *parameters)
 }
 
 /**
+ * @}
  * @}
  */
 

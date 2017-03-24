@@ -1,16 +1,16 @@
 /**
  ******************************************************************************
- * @addtogroup TauLabsTargets Tau Labs Targets
+ * @addtogroup Targets Target Boards
  * @{
- * @addtogroup Quanton Quanton support files
+ * @addtogroup Quanton Quantec Quanton
  * @{
  *
- * @file       pios_config.h 
+ * @file       quanton/fw/pios_config.h
  * @author     Tau Labs, http://taulabs.org, Copyright (C) 2012-2015
  * @author     dRonin, http://dronin.org Copyright (C) 2015
  * @brief      Board specific options that modify PiOS capabilities
  * @see        The GNU Public License (GPL) Version 3
- * 
+ *
  *****************************************************************************/
 /*
  * This program is free software; you can redistribute it and/or modify
@@ -137,6 +137,7 @@
 #define PIOS_LOGFLASH_SECT_SIZE 0x1000   /* 4kb */
 
 #endif /* PIOS_CONFIG_H */
+
 /**
  * @}
  * @}

@@ -6,7 +6,7 @@
  * @author     Tau Labs, http://taulabs.org, Copyright (C) 2012-2015
  * @addtogroup Bootloader Bootloaders
  * @{
- * @addtogroup PlayUavOsd
+ * @addtogroup PlayUAVOSD PlayUAV OSD
  * @{
  * @brief Bootloader for PlayUAVOSD board
  *****************************************************************************/

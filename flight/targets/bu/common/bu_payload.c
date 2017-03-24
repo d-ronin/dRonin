@@ -2,9 +2,9 @@
  ******************************************************************************
  * @file       bu_payload.c
  * @author     Tau Labs, http://taulabs.org, Copyright (C) 2013
- * @addtogroup Bootloader
+ * @addtogroup Bootloader Bootloaders
  * @{
- * @addtogroup Bootloader
+ * @addtogroup Updater Bootloader Updater
  * @{
  * @brief Includes the bootloader image as payload in the bootloader uploader image
  *****************************************************************************/
@@ -44,3 +44,7 @@ asm(
 	".previous\n"
 );
 
+/**
+ * @}
+ * @}
+ */

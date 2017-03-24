@@ -1,11 +1,11 @@
 /**
  ******************************************************************************
- * @addtogroup TauLabsTargets Tau Labs Targets
+ * @addtogroup Targets Target Boards
  * @{
- * @addtogroup Revolution OpenPilot Revolution support files
+ * @addtogroup RevoMini OpenPilot Revolution Mini
  * @{
  *
- * @file       pios_usb_board_data.c 
+ * @file       revolution/fw/pios_usb_board_data.c 
  * @author     The OpenPilot Team, http://www.openpilot.org Copyright (C) 2011.
  * @author     Tau Labs, http://taulabs.org, Copyright (C) 2012-2013
  * @brief      Board specific USB specifications
@@ -95,3 +95,8 @@ int32_t PIOS_USB_BOARD_DATA_Init(void)
 
 	return 0;
 }
+
+/**
+ * @}
+ * @}
+ */

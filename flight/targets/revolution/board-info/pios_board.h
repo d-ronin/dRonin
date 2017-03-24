@@ -1,17 +1,17 @@
 /**
  ******************************************************************************
- * @addtogroup TauLabsTargets Tau Labs Targets
+ * @addtogroup Bootloader Bootloaders
  * @{
- * @addtogroup Revolution OpenPilot Revolution support files
+ * @addtogroup RevoMini OpenPilot Revolution Mini
  * @{
  *
- * @file       STM32F4xx_Revolution.h
+ * @file       revolution/board-info/pios_board.h
  * @author     The OpenPilot Team, http://www.openpilot.org Copyright (C) 2011.
  * @author     Tau Labs, http://taulabs.org, Copyright (C) 2012-2013
  * @author     dRonin, http://dronin.org Copyright (C) 2015
  * @brief      Board specific defines for RevoMini
  * @see        The GNU Public License (GPL) Version 3
- * 
+ *
  *****************************************************************************/
 /*
  * This program is free software; you can redistribute it and/or modify
@@ -174,7 +174,7 @@ extern uint32_t pios_packet_handler;
 #define PIOS_PACKET_HANDLER (pios_packet_handler)
 
 //------------------------
-// TELEMETRY 
+// TELEMETRY
 //------------------------
 #define TELEM_QUEUE_SIZE         80
 #define PIOS_TELEM_STACK_SIZE    624			
@@ -188,8 +188,8 @@ extern uint32_t pios_packet_handler;
 //	RTC/BKP reg	
 // TIM2,3,4,5,6,7,12,13,14
 
-// Calculated as SYSCLK / APBPresc * (APBPre == 1 ? 1 : 2)   
-// Default APB1 Prescaler = 4 
+// Calculated as SYSCLK / APBPresc * (APBPre == 1 ? 1 : 2)
+// Default APB1 Prescaler = 4
 #define PIOS_PERIPHERAL_APB1_CLOCK					(PIOS_SYSCLK / 4)
 
 //	Peripherals belonging to APB2

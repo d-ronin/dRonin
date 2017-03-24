@@ -1,10 +1,10 @@
 /**
  ******************************************************************************
- * @file       bl_messages.c
+ * @file       bl_messages.h
  * @author     Tau Labs, http://taulabs.org, Copyright (C) 2013
- * @addtogroup Bootloader
+ * @addtogroup Bootloader Bootloaders
  * @{
- * @addtogroup Bootloader
+ * @addtogroup Common Common
  * @{
  * @brief Message definitions for the Tau Labs unified bootloader
  *****************************************************************************/

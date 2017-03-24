@@ -14,6 +14,17 @@
     limitations under the License.
 */
 
+/**
+ ******************************************************************************
+ * @addtogroup Targets Target Boards
+ * @{
+ * @addtogroup Quanton Quantec Quanton
+ * @{
+ *
+ * @file       quanton/fw/board.h
+ *
+ *****************************************************************************/
+
 #ifndef _BOARD_H_
 #define _BOARD_H_
 
@@ -65,3 +76,7 @@ extern "C" {
 
 #endif /* _BOARD_H_ */
 
+/**
+ * @}
+ * @}
+ */

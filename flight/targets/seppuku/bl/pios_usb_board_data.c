@@ -1,11 +1,11 @@
 /**
  ******************************************************************************
- * @addtogroup TauLabsBootloader Tau Labs Bootloaders
+ * @addtogroup Bootloader Bootloaders
  * @{
- * @addtogroup SeppukuBL Seppuku bootloader
+ * @addtogroup Seppuku DTFAIR Seppuku
  * @{
  *
- * @file       pios_usb_board_data.c
+ * @file       seppuku/bl/pios_usb_board_data.c
  * @author     The OpenPilot Team, http://www.openpilot.org Copyright (C) 2010.
  * @author     Tau Labs, http://taulabs.org, Copyright (C) 2012-2013
  * @author     dRonin, http://dRonin.org/, Copyright (C) 2016
@@ -93,3 +93,8 @@ int32_t PIOS_USB_BOARD_DATA_Init(void)
 
 	return 0;
 }
+
+/**
+ * @}
+ * @}
+ */

@@ -1,15 +1,15 @@
 /**
  ******************************************************************************
- * @addtogroup TauLabsTargets Tau Labs Targets
+ * @addtogroup Bootloader Bootloaders
  * @{
- * @addtogroup Seppuku Seppuku support files
+ * @addtogroup Seppuku DTFAIR Seppuku
  * @{
  *
- * @file       pios_usb_board_data.c 
+ * @file       seppuku/fw/pios_usb_board_data.c
  * @author     Tau Labs, http://taulabs.org, Copyright (C) 2012-2013
  * @brief      Board specific USB specifications
  * @see        The GNU Public License (GPL) Version 3
- * 
+ *
  *****************************************************************************/
 /*
  * This program is free software; you can redistribute it and/or modify
@@ -90,3 +90,8 @@ int32_t PIOS_USB_BOARD_DATA_Init(void)
 
 	return 0;
 }
+
+/**
+ * @}
+ * @}
+ */

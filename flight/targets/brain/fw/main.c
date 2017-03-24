@@ -1,8 +1,8 @@
 /**
 ******************************************************************************
-* @addtogroup TauLabsTargets Tau Labs Targets
+* @addtogroup Targets Target Boards
 * @{
-* @addtogroup FlyingF4 FlyingF4 support files
+* @addtogroup Brain BrainFPV
 * @{
 *
 * @file       main.c

@@ -15,7 +15,12 @@
 */
 
 /**
- * @file    templates/halconf.h
+ * @addtogroup Targets Target Boards
+ * @{
+ * @addtogroup RevoMini OpenPilot Revolution Mini
+ * @{
+ *
+ * @file    revolution/fw/halconf.h
  * @brief   HAL configuration header.
  * @details HAL configuration file, this file allows to enable or disable the
  *          various device drivers from your application. You may also use
@@ -310,3 +315,8 @@
 #endif /* _HALCONF_H_ */
 
 /** @} */
+
+/**
+ * @}
+ * @}
+ */

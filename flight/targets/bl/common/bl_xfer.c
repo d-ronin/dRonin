@@ -3,9 +3,9 @@
  * @file       bl_xfer.c
  * @author     dRonin, http://dRonin.org/, Copyright (C) 2016
  * @author     Tau Labs, http://taulabs.org, Copyright (C) 2013
- * @addtogroup Bootloader
+ * @addtogroup Bootloader Bootloaders
  * @{
- * @addtogroup Bootloader
+ * @addtogroup Common Common
  * @{
  * @brief Data transfer functions for the Tau Labs unified bootloader
  *****************************************************************************/

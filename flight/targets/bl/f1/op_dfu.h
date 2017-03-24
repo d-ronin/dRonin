@@ -1,11 +1,11 @@
 /**
  ******************************************************************************
- * @addtogroup TauLabsBootloader Tau Labs Bootloaders
+ * @addtogroup Bootloader Bootloaders
  * @{
- * @addtogroup CopterControlBL CopterControl bootloader
+ * @addtogroup CommonF1 STM32F1 Common
  * @{
  *
- * @file       op_dfu.h 
+ * @file       bl/f1/op_dfu.h
  * @author     The OpenPilot Team, http://www.openpilot.org Copyright (C) 2010.
  * @author     Tau Labs, http://taulabs.org, Copyright (C) 2012-2013
  * @brief      This file contains the DFU commands handling code
@@ -61,4 +61,7 @@ void DataDownload(DownloadAction);
 bool flash_read(uint8_t * buffer, uint32_t adr, DFUProgType type);
 #endif /* __OP_DFU_H */
 
-/******************* (C) COPYRIGHT 2010 STMicroelectronics *****END OF FILE****/
+/**
+ * @}
+ * @}
+ */

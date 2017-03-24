@@ -1,10 +1,10 @@
 /**
  ******************************************************************************
- * @file       main.c
+ * @file       bl/common/main.c
  * @author     Tau Labs, http://taulabs.org, Copyright (C) 2014
- * @addtogroup Bootloader
+ * @addtogroup Bootloader Bootloaders
  * @{
- * @addtogroup Bootloader
+ * @addtogroup Common Common
  * @{
  * @brief Tau Labs unified bootloader main loop and FSM
  *****************************************************************************/
@@ -684,3 +684,8 @@ static void process_packet_rx(struct bl_fsm_context * context, const struct bl_m
 	}
 
 }
+
+/**
+ * @}
+ * @}
+ */

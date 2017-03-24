@@ -1,11 +1,11 @@
 /**
  ******************************************************************************
- * @addtogroup TauLabsBootloader Tau Labs Bootloaders
+ * @addtogroup Bootloader Bootloaders
  * @{
- * @addtogroup CopterControlBL CopterControl bootloader
+ * @addtogroup CommonF1 STM32F1 Common
  * @{
  *
- * @file       common.h 
+ * @file       bl/f1/common.h
  * @author     The OpenPilot Team, http://www.openpilot.org Copyright (C) 2010.
  * @author     Tau Labs, http://taulabs.org, Copyright (C) 2012-2013
  * @brief      Common definitions across the bootloaders
@@ -114,3 +114,8 @@ typedef enum {
 #define MAX_WRI_RETRYS					3
 
 #endif /* COMMON_H_ */
+
+/**
+ * @}
+ * @}
+ */

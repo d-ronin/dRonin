@@ -1,17 +1,17 @@
 /**
-******************************************************************************
-* @addtogroup TauLabsTargets Tau Labs Targets
-* @{
-* @addtogroup FlyingF4 FlyingF4 support files
-* @{
-*
-* @file       main.c
-* @author     Tau Labs, http://taulabs.org, Copyright (C) 2012-2013
-*             AJ Christensen <aj@junglistheavy.industries>
-* @brief      Start ChiBiOS/RT and the Modules.
-* @see        The GNU Public License (GPL) Version 3
-*
-*****************************************************************************/
+ ******************************************************************************
+ * @addtogroup Targets Target Boards
+ * @{
+ * @addtogroup BrainRE1 BrainFPV RE1
+ * @{
+ *
+ * @file       brainre1/fw/main.c
+ * @author     Tau Labs, http://taulabs.org, Copyright (C) 2012-2013
+ *             AJ Christensen <aj@junglistheavy.industries>
+ * @brief      Start ChiBiOS/RT and the Modules.
+ * @see        The GNU Public License (GPL) Version 3
+ *
+ *****************************************************************************/
 /*
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by

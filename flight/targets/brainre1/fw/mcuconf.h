@@ -14,6 +14,16 @@
     limitations under the License.
 */
 
+/**
+ ******************************************************************************
+ * @addtogroup Targets Target Boards
+ * @{
+ * @addtogroup BrainRE1 BrainFPV RE1
+ * @{
+ *
+ * @file       brainre1/fw/mcuconf.h
+ *****************************************************************************/
+
 /*
  * STM32F4xx drivers configuration.
  * The following settings override the default settings present in

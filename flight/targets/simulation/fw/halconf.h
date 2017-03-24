@@ -15,7 +15,12 @@
 */
 
 /**
- * @file    templates/halconf.h
+ * @addtogroup Targets Target Boards
+ * @{
+ * @addtogroup Sim POSIX Simulator
+ * @{
+ *
+ * @file    simulation/fw/halconf.h
  * @brief   HAL configuration header.
  * @details HAL configuration file, this file allows to enable or disable the
  *          various device drivers from your application. You may also use
@@ -328,3 +333,8 @@
 #endif /* _HALCONF_H_ */
 
 /** @} */
+
+/**
+ * @}
+ * @}
+ */

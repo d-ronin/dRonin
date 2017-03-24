@@ -1,16 +1,16 @@
 /**
  ******************************************************************************
- * @addtogroup TauLabsTargets Tau Labs Targets
+ * @addtogroup Bootloader Bootloaders
  * @{
- * @addtogroup Seppuku Seppuku support files
+ * @addtogroup Seppuku DTFAIR Seppuku
  * @{
  *
- * @file       pios_config.h 
+ * @file       seppuku/fw/pios_config.h
  * @author     Tau Labs, http://taulabs.org, Copyright (C) 2012-2015
  * @author     dRonin, http://dronin.org Copyright (C) 2015-2016
  * @brief      Board specific options that modify PiOS capabilities
  * @see        The GNU Public License (GPL) Version 3
- * 
+ *
  *****************************************************************************/
 /*
  * This program is free software; you can redistribute it and/or modify
@@ -150,6 +150,7 @@
 #define IDLE_COUNTS_PER_SEC_AT_NO_LOAD (9873737)
 
 #endif /* PIOS_CONFIG_H */
+
 /**
  * @}
  * @}
