@@ -2358,6 +2358,64 @@ static const struct pios_mpu_cfg pios_mpu_cfg = {
 };
 #endif /* PIOS_INCLUDE_MPU */
 
+
+/**
+ * Sensor configurations
+ */
+#if defined(PIOS_INCLUDE_HMC5883)
+#include "pios_hmc5883_priv.h"
+static const struct pios_exti_cfg pios_exti_hmc5883_internal_cfg __exti_config = {
+	.vector = PIOS_HMC5883_IRQHandler,
+	.line = EXTI_Line1,
+	.pin = {
+		.gpio = GPIOC,
+		.init = {
+			.GPIO_Pin = GPIO_Pin_1,
+			.GPIO_Speed = GPIO_Speed_100MHz,
+			.GPIO_Mode = GPIO_Mode_IN,
+			.GPIO_OType = GPIO_OType_OD,
+			.GPIO_PuPd = GPIO_PuPd_NOPULL,
+		},
+	},
+	.irq = {
+		.init = {
+			.NVIC_IRQChannel = EXTI1_IRQn,
+			.NVIC_IRQChannelPreemptionPriority = PIOS_IRQ_PRIO_LOW,
+			.NVIC_IRQChannelSubPriority = 0,
+			.NVIC_IRQChannelCmd = ENABLE,
+		},
+	},
+	.exti = {
+		.init = {
+			.EXTI_Line = EXTI_Line1, // matches above GPIO pin
+			.EXTI_Mode = EXTI_Mode_Interrupt,
+			.EXTI_Trigger = EXTI_Trigger_Rising,
+			.EXTI_LineCmd = ENABLE,
+		},
+	},
+};
+
+static const struct pios_hmc5883_cfg pios_hmc5883_internal_cfg = {
+	.exti_cfg = &pios_exti_hmc5883_internal_cfg,
+	.M_ODR = PIOS_HMC5883_ODR_75,
+	.Meas_Conf = PIOS_HMC5883_MEASCONF_NORMAL,
+	.Gain = PIOS_HMC5883_GAIN_1_9,
+	.Mode = PIOS_HMC5883_MODE_CONTINUOUS,
+	.Default_Orientation = PIOS_HMC5883_TOP_90DEG,
+};
+#endif /* PIOS_INCLUDE_HMC5883 */
+
+/**
+ * Configuration for the MS5611 chip
+ */
+#if defined(PIOS_INCLUDE_MS5611)
+#include "pios_ms5611_priv.h"
+static const struct pios_ms5611_cfg pios_ms5611_cfg = {
+	.oversampling = MS5611_OSR_1024,
+	.temperature_interleaving = 1,
+};
+#endif /* PIOS_INCLUDE_MS5611 */
+
 /**
  * @}
  * @}

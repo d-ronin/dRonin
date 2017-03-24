@@ -46,54 +46,6 @@
 #include "manualcontrolsettings.h"
 #include "modulesettings.h"
 
-/**
- * Configuration for the MPU9250 chip
- */
-#if defined(PIOS_INCLUDE_MPU9250_SPI)
-#include "pios_mpu9250.h"
-static const struct pios_exti_cfg pios_exti_mpu9250_cfg __exti_config = {
-    .vector = PIOS_MPU9250_IRQHandler,
-    .line = EXTI_Line5,
-    .pin = {
-        .gpio = GPIOA,
-        .init = {
-            .GPIO_Pin = GPIO_Pin_5,
-            .GPIO_Speed = GPIO_Speed_50MHz,
-            .GPIO_Mode = GPIO_Mode_IN,
-            .GPIO_OType = GPIO_OType_OD,
-            .GPIO_PuPd = GPIO_PuPd_NOPULL,
-        },
-    },
-    .irq = {
-        .init = {
-            .NVIC_IRQChannel = EXTI9_5_IRQn,
-            .NVIC_IRQChannelPreemptionPriority = PIOS_IRQ_PRIO_HIGH,
-            .NVIC_IRQChannelSubPriority = 0,
-            .NVIC_IRQChannelCmd = ENABLE,
-        },
-    },
-    .exti = {
-        .init = {
-            .EXTI_Line = EXTI_Line5, // matches above GPIO pin
-            .EXTI_Mode = EXTI_Mode_Interrupt,
-            .EXTI_Trigger = EXTI_Trigger_Rising,
-            .EXTI_LineCmd = ENABLE,
-        },
-    },
-};
-
-static struct pios_mpu9250_cfg pios_mpu9250_cfg = {
-    .exti_cfg = &pios_exti_mpu9250_cfg,
-    .default_samplerate = 1000,
-    .interrupt_cfg = PIOS_MPU60X0_INT_CLR_ANYRD,
-
-    .use_magnetometer = false,
-    .default_gyro_filter = PIOS_MPU9250_GYRO_LOWPASS_184_HZ,
-    .default_accel_filter = PIOS_MPU9250_ACCEL_LOWPASS_184_HZ,
-    .orientation = PIOS_MPU9250_TOP_180DEG
-};
-
-#endif /* PIOS_INCLUDE_MPU9250_SPI */
 
 #if defined(PIOS_INCLUDE_DEBUG_CONSOLE)
 #define PIOS_COM_DEBUGCONSOLE_TX_BUF_LEN 40
@@ -107,6 +59,23 @@ uintptr_t pios_uavo_settings_fs_id;
 uintptr_t pios_internal_adc_id;
 uintptr_t pios_can_id;
 uintptr_t pios_com_openlog_logging_id;
+
+
+/**
+ * @brief   Early initialization code.
+ * @details This initialization must be performed just after stack setup
+ *          and before any other initialization.
+ */
+void __early_init(void) {
+
+  stm32_clock_init();
+}
+
+/**
+ * @brief   Board-specific initialization code.
+ */
+void boardInit(void) {
+}
 
 /**
  * PIOS_Board_Init()

@@ -46,63 +46,6 @@
 #include "modulesettings.h"
 #include "rgbledsettings.h"
 
-/**
- * Configuration for the HMC5883 chip
- */
-#if defined(PIOS_INCLUDE_HMC5883)
-#include "pios_hmc5883_priv.h"
-static const struct pios_exti_cfg pios_exti_hmc5883_internal_cfg __exti_config = {
-    .vector = PIOS_HMC5883_IRQHandler,
-    .line = EXTI_Line2,
-    .pin = {
-        .gpio = GPIOE,
-        .init = {
-            .GPIO_Pin   = GPIO_Pin_2,
-            .GPIO_Speed = GPIO_Speed_100MHz,
-            .GPIO_Mode  = GPIO_Mode_IN,
-            .GPIO_OType = GPIO_OType_OD,
-            .GPIO_PuPd  = GPIO_PuPd_NOPULL,
-        },
-    },
-    .irq = {
-        .init = {
-            .NVIC_IRQChannel                   = EXTI2_IRQn,
-            .NVIC_IRQChannelPreemptionPriority = PIOS_IRQ_PRIO_LOW,
-            .NVIC_IRQChannelSubPriority        = 0,
-            .NVIC_IRQChannelCmd                = ENABLE,
-        },
-    },
-    .exti = {
-        .init = {
-            .EXTI_Line    = EXTI_Line2, // matches above GPIO pin
-            .EXTI_Mode    = EXTI_Mode_Interrupt,
-            .EXTI_Trigger = EXTI_Trigger_Rising,
-            .EXTI_LineCmd = ENABLE,
-        },
-    },
-};
-
-static const struct pios_hmc5883_cfg pios_hmc5883_internal_cfg = {
-    .exti_cfg            = &pios_exti_hmc5883_internal_cfg,
-    .M_ODR               = PIOS_HMC5883_ODR_75,
-    .Meas_Conf           = PIOS_HMC5883_MEASCONF_NORMAL,
-    .Gain                = PIOS_HMC5883_GAIN_1_9,
-    .Mode                = PIOS_HMC5883_MODE_CONTINUOUS,
-    .Default_Orientation = PIOS_HMC5883_TOP_270DEG,
-};
-#endif /* PIOS_INCLUDE_HMC5883 */
-
-/**
- * Configuration for the MS5611 chip
- */
-#if defined(PIOS_INCLUDE_MS5611)
-#include "pios_ms5611_priv.h"
-static const struct pios_ms5611_cfg pios_ms5611_cfg = {
-    .oversampling             = MS5611_OSR_4096,
-    .temperature_interleaving = 1,
-    .use_0x76_address         = true,
-};
-#endif /* PIOS_INCLUDE_MS5611 */
 
 uintptr_t pios_com_openlog_logging_id;
 uintptr_t pios_uavo_settings_fs_id;
@@ -111,6 +54,24 @@ uintptr_t pios_internal_adc_id;
 #ifdef PIOS_INCLUDE_MAX7456
 max7456_dev_t pios_max7456_id;
 #endif
+
+
+/**
+ * @brief   Early initialization code.
+ * @details This initialization must be performed just after stack setup
+ *          and before any other initialization.
+ */
+void __early_init(void)
+{
+    stm32_clock_init();
+}
+
+/**
+ * @brief   Board-specific RTOS initialization code.
+ */
+void boardInit(void)
+{
+}
 
 /**
  * PIOS_Board_Init()

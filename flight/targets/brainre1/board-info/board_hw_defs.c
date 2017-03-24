@@ -1356,6 +1356,51 @@ const struct pios_re1fpga_cfg pios_re1fpga_cfg = {
 };
 #endif /* defined(PIOS_INCLUDE_RE1_FPGA) */
 
+
+#if defined(PIOS_INCLUDE_BMI160)
+#include "pios_bmi160.h"
+
+static const struct pios_exti_cfg pios_exti_bmi160_cfg __exti_config = {
+	.vector = PIOS_BMI160_IRQHandler,
+	.line = EXTI_Line13,
+	.pin = {
+		.gpio = GPIOC,
+		.init = {
+			.GPIO_Pin = GPIO_Pin_13,
+			.GPIO_Speed = GPIO_Speed_2MHz,  // XXXX
+			.GPIO_Mode = GPIO_Mode_IN,
+			.GPIO_OType = GPIO_OType_OD,
+			.GPIO_PuPd = GPIO_PuPd_NOPULL,
+		},
+	},
+	.irq = {
+		.init = {
+			.NVIC_IRQChannel = EXTI15_10_IRQn,
+			.NVIC_IRQChannelPreemptionPriority = PIOS_IRQ_PRIO_MID,
+			.NVIC_IRQChannelSubPriority = 0,
+			.NVIC_IRQChannelCmd = ENABLE,
+		},
+	},
+	.exti = {
+		.init = {
+			.EXTI_Line = EXTI_Line13, // matches above GPIO pin
+			.EXTI_Mode = EXTI_Mode_Interrupt,
+			.EXTI_Trigger = EXTI_Trigger_Rising,
+			.EXTI_LineCmd = ENABLE,
+		},
+	},
+};
+
+static const struct pios_bmi160_cfg pios_bmi160_cfg = {
+	.exti_cfg = &pios_exti_bmi160_cfg,
+	.orientation = PIOS_BMI160_TOP_0DEG,
+	.odr = PIOS_BMI160_ODR_1600_Hz,
+	.acc_range = PIOS_BMI160_RANGE_8G,
+	.gyro_range = PIOS_BMI160_RANGE_2000DPS,
+	.temperature_interleaving = 50
+};
+#endif /* PIOS_INCLUDE_BMI160 */
+
 /**
  * @}
  * @}
