@@ -644,8 +644,6 @@ bool get_external_flash(uint32_t board_revision)
 
 #include <pios_usart_priv.h>
 
-#ifdef PIOS_INCLUDE_COM_TELEM
-
 /*
  * MAIN USART
  */
@@ -681,7 +679,6 @@ static const struct pios_usart_cfg pios_usart_main_cfg = {
 		},
 	},
 };
-#endif /* PIOS_INCLUDE_COM_TELEM */
 
 static const struct pios_usart_cfg pios_usart_rcvr_pc7_cfg = {
 	.regs = USART6,
@@ -781,7 +778,6 @@ const struct pios_sbus_cfg * get_sbus_cfg(uint32_t board_revision)
 
 #endif	/* PIOS_INCLUDE_SBUS */
 
-#ifdef PIOS_INCLUDE_COM_FLEXI
 /*
  * FLEXI PORT
  */
@@ -817,8 +813,6 @@ static const struct pios_usart_cfg pios_usart_flexi_cfg = {
 		},
 	},
 };
-
-#endif /* PIOS_INCLUDE_COM_FLEXI */
 
 #if defined(PIOS_INCLUDE_DSM)
 /*

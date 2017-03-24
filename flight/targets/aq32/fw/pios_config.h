@@ -69,14 +69,11 @@
 
 /* Com systems to include */
 #define PIOS_INCLUDE_COM
-#define PIOS_INCLUDE_COM_TELEM
 #define PIOS_INCLUDE_TELEMETRY_RF
-#define PIOS_INCLUDE_COM_FLEXI
 #define PIOS_INCLUDE_MAVLINK
 #define PIOS_INCLUDE_MSP_BRIDGE
 #define PIOS_INCLUDE_HOTT
 #define PIOS_INCLUDE_FRSKY_SENSOR_HUB
-#define PIOS_INCLUDE_SESSION_MANAGEMENT
 #define PIOS_INCLUDE_LIGHTTELEMETRY
 #define PIOS_INCLUDE_FRSKY_SPORT_TELEMETRY
 
@@ -100,7 +97,6 @@
 
 /* Flags that alter behaviours - mostly to lower resources for CC */
 #define PIOS_INCLUDE_INITCALL           /* Include init call structures */
-#define PIOS_TELEM_PRIORITY_QUEUE       /* Enable a priority queue in telemetry */
 
 #define SYSTEMMOD_RGBLED_SUPPORT
 
