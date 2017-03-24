@@ -530,7 +530,7 @@ static int32_t updateAttitudeComplementary(float dT, bool first_run, bool second
 
 		// For first 7 seconds use accels to get gyro bias
 		accKp = MIN(accKp, 20 + 20 * (PIOS_Thread_Systime() < 4000));
-		accKi = 1;
+		accKi = 15;
 		mgKp = 1;
 
 	} else if ((attitudeSettings.ZeroDuringArming == ATTITUDESETTINGS_ZERODURINGARMING_TRUE) && 
