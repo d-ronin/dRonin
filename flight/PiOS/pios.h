@@ -208,6 +208,10 @@
 #include <pios_max7456.h>
 #endif
 
+#if defined(PIOS_INCLUDE_WS2811)
+#include <pios_ws2811.h>
+#endif
+
 #include <pios_modules.h>
 
 #include <pios_crc.h>
