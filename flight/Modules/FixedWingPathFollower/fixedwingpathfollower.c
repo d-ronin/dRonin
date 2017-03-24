@@ -699,9 +699,9 @@ static void airspeedActualUpdatedCb(UAVObjEvent * ev, void *ctx, void *obj,
 {
 	(void) ctx;
 
-	AirspeedActualData *airspeedActual = obj;
+	AirspeedActualData airspeedActual;
 
-	PIOS_Assert(len == sizeof(airspeedActual));
+	AirspeedActualGet(&airspeedActual);
 
 	VelocityActualData velocityActual;
 
@@ -709,7 +709,7 @@ static void airspeedActualUpdatedCb(UAVObjEvent * ev, void *ctx, void *obj,
 
 	float groundspeed = sqrtf(velocityActual.East*velocityActual.East + velocityActual.North*velocityActual.North );
 	
-	indicatedAirspeedActualBias = airspeedActual->CalibratedAirspeed - groundspeed;
+	indicatedAirspeedActualBias = airspeedActual.CalibratedAirspeed - groundspeed;
 	// note - we do fly by Indicated Airspeed (== calibrated airspeed)
 	// however since airspeed is updated less often than groundspeed, we use sudden changes to groundspeed to offset the airspeed by the same measurement.
 }
