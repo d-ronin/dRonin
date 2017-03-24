@@ -1,11 +1,11 @@
 /**
  ******************************************************************************
- * @addtogroup Tau Labs Modules
+ * @addtogroup Modules Modules
  * @{
- * @addtogroup OnScreenDisplay OSD Module
- * @brief OSD Utility Functions
+ * @addtogroup OnScreenDisplay Pixel OSD
  * @{
  *
+ * @brief OSD Utility Functions
  * @file       osd_utils.h
  * @author     Tau Labs, http://taulabs.org, Copyright (C) 2013-2015
  * @author     The OpenPilot Team, http://www.openpilot.org Copyright (C) 2010-2014.
@@ -193,4 +193,7 @@ void draw_polygon(int16_t x, int16_t y, float angle, const point_t * points, uin
 void lla_to_ned(int32_t lat, int32_t lon, float alt, float *NED);
 #endif /* OSDUTILS_H */
 
-
+/**
+ * @}
+ * @}
+ */

@@ -2,7 +2,7 @@
  ******************************************************************************
  * @file       mspuavobridge.c
  * @author     dRonin, http://dRonin.org/, Copyright (C) 2016
- * @addtogroup Modules dRonin Modules
+ * @addtogroup Modules Modules
  * @{
  * @addtogroup MspUavoBridge MSP to UAVO Bridge
  * @{
@@ -48,7 +48,7 @@
 
 /* time to wait for a reply */
 #define MSP_TIMEOUT 10 // ms
-#define MSP_BRIDGE_MAGIC 0x97a4dc58 
+#define MSP_BRIDGE_MAGIC 0x97a4dc58
 
 
 struct msp_bridge {

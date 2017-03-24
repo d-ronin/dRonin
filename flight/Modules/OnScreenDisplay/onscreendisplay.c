@@ -1,12 +1,12 @@
 /**
  ******************************************************************************
- * @addtogroup Modules Flight Modules
+ * @addtogroup Modules Modules
  * @{
- * @addtogroup OnScreenDisplay OSD Module
- * @brief Process OSD information
+ * @addtogroup OnScreenDisplay Pixel OSD
  * @{
  *
  * @file       onscreendisplay.c
+ * @brief Process OSD information
  * @author     dRonin, http://dronin.org Copyright (C) 2015-2016
  * @author     Tau Labs, http://taulabs.org, Copyright (C) 2013-2014
  * @author     The OpenPilot Team, http://www.openpilot.org Copyright (C) 2010-2014.

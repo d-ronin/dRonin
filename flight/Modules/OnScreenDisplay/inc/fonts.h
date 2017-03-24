@@ -1,13 +1,12 @@
-
 /**
  ******************************************************************************
  * @file       fonts.h
  * @author     dRonin, http://dRonin.org/, Copyright (C) 2016
  * @author     The OpenPilot Team, http://www.openpilot.org, Copyright (C) 2012
  * @author     Thomas Oldbury Copyright (C) 2010
- * @addtogroup dRonin Modules
+ * @addtogroup Modules Modules
  * @{
- * @addtogroup OnScreenDisplay Module
+ * @addtogroup OnScreenDisplay Pixel OSD
  * @{
  * @brief Fonts for OSD
  *****************************************************************************/
@@ -57,3 +56,8 @@ struct FontEntry {
 
 
 #endif /* FONTS_H */
+
+/**
+ * @}
+ * @}
+ */

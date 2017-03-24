@@ -1,11 +1,11 @@
 /**
  ******************************************************************************
- * @addtogroup Tau Labs Modules
+ * @addtogroup Modules Modules
  * @{
- * @addtogroup OnScreenDisplay OSD Module
- * @brief OSD Menu
+ * @addtogroup OnScreenDisplay Pixel OSD
  * @{
  *
+ * @brief OSD Menu
  * @file       osd_menu.h
  * @author     Tau Labs, http://taulabs.org, Copyright (C) 2013-2015
  * @brief      OSD Menu
@@ -33,3 +33,8 @@
 void render_osd_menu();
 
 #endif /* OSDMENU_H */
+
+/**
+ * @}
+ * @}
+ */

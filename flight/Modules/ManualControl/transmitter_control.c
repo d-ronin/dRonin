@@ -1146,7 +1146,6 @@ static void update_stabilization_desired(ManualControlCommandData * manual_contr
 /**
  * @brief Update the altitude desired to current altitude when
  * enabled and enable altitude mode for stabilization
- * @todo: Need compile flag to exclude this from copter control
  */
 static void altitude_hold_desired(ManualControlCommandData * cmd, bool flightModeChanged, SystemSettingsAirframeTypeOptions * airframe_type)
 {

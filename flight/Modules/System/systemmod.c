@@ -1,8 +1,8 @@
 /**
  ******************************************************************************
- * @addtogroup TauLabsModules Tau Labs Modules
+ * @addtogroup Modules Modules
  * @{
- * @addtogroup SystemModule System Module
+ * @addtogroup SystemModule System
  * @{
  *
  * @file       systemmod.c

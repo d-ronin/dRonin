@@ -1,11 +1,11 @@
 /**
  ******************************************************************************
- * @addtogroup Tau Labs Modules
+ * @addtogroup Modules Modules
  * @{
- * @addtogroup OnScreenDisplay OSD Module
- * @brief Process OSD information
+ * @addtogroup OnScreenDisplay Pixel OSD
  * @{
  *
+ * @brief Process OSD information
  * @file       onscreendisplay.h
  * @author     dRonin, http://dRonin.org/, Copyright (C) 2016
  * @author     Tau Labs, http://taulabs.org, Copyright (C) 2013-2014
@@ -38,3 +38,8 @@ int32_t OnScreenDisplayInitialize(void);
 int render_stats();
 
 #endif /* ONSCREENDISPLAY_H */
+
+/**
+ * @}
+ * @}
+ */

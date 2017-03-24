@@ -1,9 +1,9 @@
 /**
  ******************************************************************************
- * @addtogroup TauLabsModules Tau Labs Modules
- * @{ 
- * @addtogroup SystemModule System Module
- * @{ 
+ * @addtogroup Modules Modules
+ * @{
+ * @addtogroup SystemModule System
+ * @{
  *
  * @file       systemmod.h
  * @author     The OpenPilot Team, http://www.openpilot.org Copyright (C) 2010.
