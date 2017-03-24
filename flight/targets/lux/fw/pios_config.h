@@ -1,14 +1,16 @@
 /**
  ******************************************************************************
- * @addtogroup lux Lumenier Lux support files
+ * @addtogroup Targets Target Boards
+ * @{
+ * @addtogroup LUX Lumenier LUX
  * @{
  *
- * @file       pios_config.h 
+ * @file       lux/board-info/pios_config.h
  * @author     Tau Labs, http://taulabs.org, Copyright (C) 2012-2015
  * @author     dRonin, http://dRonin.org/, Copyright (C) 2016
  * @brief      Board specific options that modify PiOS capabilities
  * @see        The GNU Public License (GPL) Version 3
- * 
+ *
  *****************************************************************************/
 /*
  * This program is free software; you can redistribute it and/or modify
@@ -35,7 +37,7 @@
 /* Enable/Disable PiOS Modules */
 #define PIOS_INCLUDE_ADC
 #define PIOS_INCLUDE_DMA_CB_SUBSCRIBING_FUNCTION
- 
+
 #define WDG_STATS_DIAGNOSTICS
 #define PIOS_INCLUDE_ANNUNC
 #define PIOS_INCLUDE_IAP
@@ -67,7 +69,7 @@
 #define PIOS_INCLUDE_HOTT
 #define PIOS_INCLUDE_FRSKY_SENSOR_HUB
 #define PIOS_INCLUDE_SESSION_MANAGEMENT
-#define PIOS_INCLUDE_LIGHTTELEMETRY 
+#define PIOS_INCLUDE_LIGHTTELEMETRY
 #define PIOS_INCLUDE_FRSKY_SPORT_TELEMETRY
 
 #define PIOS_INCLUDE_GPS
@@ -124,6 +126,8 @@
 #define PIOS_INCLUDE_FASTHEAP
 
 #endif /* PIOS_CONFIG_H */
+
 /**
+ * @}
  * @}
  */

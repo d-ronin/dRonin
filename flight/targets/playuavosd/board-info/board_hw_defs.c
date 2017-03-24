@@ -5,7 +5,7 @@
  * @author     dRonin, http://dRonin.org/, Copyright (C) 2016
  * @addtogroup Targets Target Boards
  * @{
- * @addtogroup PlayUavOsd
+ * @addtogroup PlayUAVOSD PlayUAV OSD
  * @{
  * @brief Board support for PlayUAVOSD board
  *****************************************************************************/
@@ -409,16 +409,16 @@ struct pios_can_cfg pios_can_cfg = {
 	.init = {
 		// To make it easy to use both F3 and F4 use the other APB1 bus rate
 		// divided by 2. This matches the baud rate across devices
-		.CAN_Prescaler = 21-1,   /*!< Specifies the length of a time quantum. 
+		.CAN_Prescaler = 21-1,   /*!< Specifies the length of a time quantum.
 								 It ranges from 1 to 1024. */
 		.CAN_Mode = CAN_Mode_Normal,         /*!< Specifies the CAN operating mode.
 								 This parameter can be a value of @ref CAN_operating_mode */
-		.CAN_SJW = CAN_SJW_1tq,          /*!< Specifies the maximum number of time quanta 
-								 the CAN hardware is allowed to lengthen or 
+		.CAN_SJW = CAN_SJW_1tq,          /*!< Specifies the maximum number of time quanta
+								 the CAN hardware is allowed to lengthen or
 								 shorten a bit to perform resynchronization.
 								 This parameter can be a value of @ref CAN_synchronisation_jump_width */
-		.CAN_BS1 = CAN_BS1_9tq,          /*!< Specifies the number of time quanta in Bit 
-								 Segment 1. This parameter can be a value of 
+		.CAN_BS1 = CAN_BS1_9tq,          /*!< Specifies the number of time quanta in Bit
+								 Segment 1. This parameter can be a value of
 								 @ref CAN_time_quantum_in_bit_segment_1 */
 		.CAN_BS2 = CAN_BS2_8tq,          /*!< Specifies the number of time quanta in Bit Segment 2.
 								 This parameter can be a value of @ref CAN_time_quantum_in_bit_segment_2 */
@@ -426,7 +426,7 @@ struct pios_can_cfg pios_can_cfg = {
 								This parameter can be set either to ENABLE or DISABLE. */
 		.CAN_ABOM = DISABLE,  /*!< Enable or disable the automatic bus-off management.
 								  This parameter can be set either to ENABLE or DISABLE. */
-		.CAN_AWUM = DISABLE,  /*!< Enable or disable the automatic wake-up mode. 
+		.CAN_AWUM = DISABLE,  /*!< Enable or disable the automatic wake-up mode.
 								  This parameter can be set either to ENABLE or DISABLE. */
 		.CAN_NART = ENABLE,  /*!< Enable or disable the non-automatic retransmission mode.
 								  This parameter can be set either to ENABLE or DISABLE. */
@@ -762,7 +762,7 @@ static const struct pios_spi_cfg pios_spi_max7456_cfg = {
 		},
 	},
 	.slave_count = 1,
-	.ssel = { 
+	.ssel = {
 		{ // MAX7456
 			.gpio = GPIOA,
 			.init = {

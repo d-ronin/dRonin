@@ -1,17 +1,17 @@
 /**
  ******************************************************************************
- * @addtogroup TauLabsTargets Tau Labs Targets
+ * @addtogroup Targets Target Boards
  * @{
- * @addtogroup Quanton Quanton support files
+ * @addtogroup Quanton Quantec Quanton
  * @{
  *
- * @file       board_hw_defs.c 
+ * @file       quanton/board-info/board_hw_defs.c
  * @author     Tau Labs, http://taulabs.org, Copyright (C) 2012-2014
  * @author     dRonin, http://dronin.org Copyright (C) 2015
  * @brief      Defines board specific static initializers for hardware for the
  *             Quanton board.
  * @see        The GNU Public License (GPL) Version 3
- * 
+ *
  *****************************************************************************/
 /*
  * This program is free software; you can redistribute it and/or modify
@@ -27,7 +27,7 @@
  * You should have received a copy of the GNU General Public License along
  * with this program; if not, see <http://www.gnu.org/licenses/>
  */
- 
+
 #include <pios_config.h>
 #include <pios_board_info.h>
 

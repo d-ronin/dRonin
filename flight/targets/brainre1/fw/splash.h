@@ -1,9 +1,15 @@
-/*
- * splash.h
+/**
+ ******************************************************************************
+ * @addtogroup Targets Target Boards
+ * @{
+ * @addtogroup BrainRE1 BrainFPV RE1
+ * @{
  *
- *  Created on: 16.3.2012
- *      Author: Samba
- */
+ * @file       brainre1/fw/splash.h
+ * @author     Samba
+ * @date       2012/03/16
+ *
+ *****************************************************************************/
 
 #ifndef SPLASH_H_
 #define SPLASH_H_
@@ -1453,3 +1459,8 @@ static const unsigned short llama_mask_bits[] = {
 
 
 #endif /* SPLASH_H_ */
+
+/**
+ * @}
+ * @}
+ */

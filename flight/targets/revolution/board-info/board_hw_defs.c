@@ -1,31 +1,31 @@
 /**
  ******************************************************************************
- * @addtogroup TauLabsTargets Tau Labs Targets
+ * @addtogroup Targets Target Boards
  * @{
- * @addtogroup Revolution OpenPilot Revolution support files
+ * @addtogroup RevoMini OpenPilot Revolution Mini
  * @{
  *
- * @file       board_hw_defs.c 
+ * @file       revolution/board-info/board_hw_defs.c
  * @author     The OpenPilot Team, http://www.openpilot.org Copyright (C) 2011.
  * @author     Tau Labs, http://taulabs.org, Copyright (C) 2012-2014
  * @author     dRonin, http://dronin.org Copyright (C) 2015
  * @brief      Defines board specific static initializers for hardware for the
  *             Revolution board.
  * @see        The GNU Public License (GPL) Version 3
- * 
+ *
  *****************************************************************************/
-/* 
- * This program is free software; you can redistribute it and/or modify 
- * it under the terms of the GNU General Public License as published by 
- * the Free Software Foundation; either version 3 of the License, or 
+/*
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 3 of the License, or
  * (at your option) any later version.
- * 
- * This program is distributed in the hope that it will be useful, but 
- * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY 
- * or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License 
+ *
+ * This program is distributed in the hope that it will be useful, but
+ * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
+ * or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License
  * for more details.
- * 
- * You should have received a copy of the GNU General Public License along 
+ *
+ * You should have received a copy of the GNU General Public License along
  * with this program; if not, see <http://www.gnu.org/licenses/>
  *
  * Additional note on redistribution: The copyright and license notices above
@@ -110,7 +110,7 @@ const struct pios_annunc_cfg * PIOS_BOARD_HW_DEFS_GetLedCfg (uint32_t board_revi
 #if defined(PIOS_INCLUDE_SPI)
 #include <pios_spi_priv.h>
 
-/* 
+/*
  * SPI1 Interface
  * Used for MPU6000 gyro and accelerometer
  */
@@ -220,7 +220,7 @@ static const struct pios_spi_cfg pios_spi_telem_flash_cfg = {
 		},
 	},
 	.slave_count = 2,
-	.ssel = { 
+	.ssel = {
 		{      // RFM22b
 		.gpio = GPIOA,
 		.init = {

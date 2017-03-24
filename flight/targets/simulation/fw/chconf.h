@@ -15,7 +15,12 @@
 */
 
 /**
- * @file    templates/chconf.h
+ * @addtogroup Targets Target Boards
+ * @{
+ * @addtogroup Sim POSIX Simulator
+ * @{
+ *
+ * @file    simulation/fw/chconf.h
  * @brief   Configuration file template.
  * @details A copy of this file must be placed in each project directory, it
  *          contains the application specific kernel settings.
@@ -568,3 +573,8 @@ halrtcnt_t hal_lld_get_counter_value(void);
 #endif  /* _CHCONF_H_ */
 
 /** @} */
+
+/**
+ * @}
+ * @}
+ */

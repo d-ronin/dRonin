@@ -1,18 +1,18 @@
 /**
  ******************************************************************************
- * @addtogroup dRonin Targets
+ * @addtogroup Targets Target Boards
  * @{
- * @addtogroup BrainRE1 support files
+ * @addtogroup BrainRE1 BrainFPV RE1
  * @{
  *
- * @file       board_hw_defs.c 
+ * @file       brainre1/board-info/board_hw_defs.c
  * @author     dRonin, http://dRonin.org/, Copyright (C) 2016
  * @author     Tau Labs, http://taulabs.org, Copyright (C) 2012-2015
  * @author     BrainFPV, Copyright (C) 2015
  * @brief      Defines board specific static initializers for hardware for the
  *             BrainFPV RE1 board.
  * @see        The GNU Public License (GPL) Version 3
- * 
+ *
  *****************************************************************************/
 /*
  * This program is free software; you can redistribute it and/or modify
@@ -1405,4 +1405,3 @@ static const struct pios_bmi160_cfg pios_bmi160_cfg = {
  * @}
  * @}
  */
-

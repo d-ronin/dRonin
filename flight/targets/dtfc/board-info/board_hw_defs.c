@@ -1,16 +1,18 @@
 /**
  ******************************************************************************
- * @addtogroup DTFc DTF support files
+ * @addtogroup Targets Target Boards
+ * @{
+ * @addtogroup DTFc DTFAIR DTFc
  * @{
  *
- * @file       board_hw_defs.c 
+ * @file       dtfc/board-info/board_hw_defs.c
  * @author     The OpenPilot Team, http://www.openpilot.org Copyright (C) 2011.
  * @author     Tau Labs, http://taulabs.org, Copyright (C) 2012-2015
  * @author     dRonin, http://dRonin.org/, Copyright (C) 2016
  * @brief      Defines board specific static initializers for hardware for the
  *             DTFc board.
  * @see        The GNU Public License (GPL) Version 3
- * 
+ *
  *****************************************************************************/
 /*
  * This program is free software; you can redistribute it and/or modify
@@ -30,7 +32,7 @@
  * must be maintained in each individual source file that is a derivative work
  * of this source file; otherwise redistribution is prohibited.
  */
- 
+
 #include <pios_config.h>
 #include <pios_board_info.h>
 

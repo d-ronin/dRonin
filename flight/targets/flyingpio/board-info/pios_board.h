@@ -1,15 +1,15 @@
 /**
  ******************************************************************************
  *
- * @file       pios_board.h 
+ * @file       flyingpio/board-info/pios_board.h
  * @author     Tau Labs, http://taulabs.org, Copyright (C) 2012-2015
- * @addtogroup Targets
+ * @addtogroup Targets Target Boards
  * @{
- * @addtogroup FlyingPIO Programmed-IO expansion board target
+ * @addtogroup FlyingPIO FlyingPi IO Hat
  * @{
  * @brief      Board header file for FlyingPIO IO Expander
  * @see        The GNU Public License (GPL) Version 3
- * 
+ *
  *****************************************************************************/
 /*
  * This program is free software; you can redistribute it and/or modify
@@ -146,6 +146,7 @@ extern uintptr_t pios_internal_adc_id;
 #define VREF_PLUS								3.3
 
 #endif /* _FLYINGPIO_PIOS_BOARD_H */
+
 /**
  * @}
  * @}

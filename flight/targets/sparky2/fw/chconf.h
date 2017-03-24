@@ -15,7 +15,12 @@
 */
 
 /**
- * @file    templates/chconf.h
+ * @addtogroup Targets Target Boards
+ * @{
+ * @addtogroup Sparky2 Tau Labs Sparky2
+ * @{
+ *
+ * @file    sparky2/fw/chconf.h
  * @brief   Configuration file template.
  * @details A copy of this file must be placed in each project directory, it
  *          contains the application specific kernel settings.
@@ -574,3 +579,8 @@ typedef uint32_t halrtcnt_t;
 #endif  /* _CHCONF_H_ */
 
 /** @} */
+
+/**
+ * @}
+ * @}
+ */

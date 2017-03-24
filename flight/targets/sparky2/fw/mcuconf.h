@@ -14,6 +14,15 @@
     limitations under the License.
 */
 
+/**
+ * @addtogroup Targets Target Boards
+ * @{
+ * @addtogroup Sparky2 Tau Labs Sparky2
+ * @{
+ *
+ * @file    sparky2/fw/mcuconf.h
+ */
+
 /*
  * STM32F4xx drivers configuration.
  * The following settings override the default settings present in
@@ -286,3 +295,8 @@
 #define STM32_USB_OTG_THREAD_PRIO           LOWPRIO
 #define STM32_USB_OTG_THREAD_STACK_SIZE     128
 #define STM32_USB_OTGFIFO_FILL_BASEPRI      0
+
+/**
+ * @}
+ * @}
+ */

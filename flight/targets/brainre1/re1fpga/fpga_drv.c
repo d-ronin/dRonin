@@ -1,11 +1,11 @@
 /**
  ******************************************************************************
- * @addtogroup dRonin Targets
+ * @addtogroup Targets Target Boards
  * @{
- * @addtogroup BrainRE1 support files
+ * @addtogroup BrainRE1 BrainFPV RE1
  * @{
  *
- * @file       fpga_drv.c
+ * @file       brainre1/fw/fpga_drv.c
  * @author     dRonin, http://dRonin.org/, Copyright (C) 2016
  * @brief      Driver for the RE1 custom FPGA
  * @see        The GNU Public License (GPL) Version 3
@@ -660,6 +660,7 @@ int PIOS_WS2811_get_num_leds(ws2811_dev_t ws2811_dev)
 
 #endif /* defined(PIOS_INCLUDE_RE1_FPGA) */
 
-
-
-
+/**
+ * @}
+ * @}
+ */

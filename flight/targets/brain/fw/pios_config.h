@@ -1,11 +1,11 @@
 /**
  ******************************************************************************
- * @addtogroup TauLabsTargets Tau Labs Targets
+ * @addtogroup Targets Target Boards
  * @{
- * @addtogroup BrainFPV FC support files
+ * @addtogroup Brain BrainFPV
  * @{
  *
- * @file       pios_config.h
+ * @file       brain/fw/pios_config.h
  * @author     Tau Labs, http://taulabs.org, Copyright (C) 2012-2013
  * @brief      Board specific options that modify PiOS capabilities
  * @see        The GNU Public License (GPL) Version 3
@@ -153,6 +153,7 @@
 #define PIOS_LOGFLASH_SECT_SIZE 0x1000	/* 4kb */
 
 #endif /* PIOS_CONFIG_H */
+
 /**
  * @}
  * @}

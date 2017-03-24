@@ -1,16 +1,16 @@
 /**
  ******************************************************************************
  *
- * @file       pios_config.h 
+ * @file       flyingpio/fw/pios_config.h
  * @author     Tau Labs, http://taulabs.org, Copyright (C) 2012-2015
  * @author     dRonin, http://dRonin.org, Copyright (C) 2016
- * @addtogroup Targets
+ * @addtogroup Targets Target Boards
  * @{
- * @addtogroup FlyingPIO Programmed-IO expansion board target
+ * @addtogroup FlyingPIO FlyingPi IO Hat
  * @{
  * @brief      Board specific options that modify PiOS capabilities
  * @see        The GNU Public License (GPL) Version 3
- * 
+ *
  *****************************************************************************/
 /*
  * This program is free software; you can redistribute it and/or modify
@@ -59,6 +59,7 @@
 #define PIOS_INCLUDE_IBUS
 
 #endif /* PIOS_CONFIG_H */
+
 /**
  * @}
  * @}

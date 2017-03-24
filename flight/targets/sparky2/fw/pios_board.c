@@ -1,36 +1,36 @@
 /**
  ******************************************************************************
- * @addtogroup TauLabsTargets Tau Labs Targets
+ * @addtogroup Targets Target Boards
  * @{
- * @addtogroup Sparky2 Tau Labs Sparky2 support files
+ * @addtogroup Sparky2 Tau Labs Sparky2
  * @{
  *
- * @file       pios_board.c 
+ * @file       sparky2/fw/pios_board.c
  * @author     Tau Labs, http://taulabs.org, Copyright (C) 2012-2015
  * @author     dRonin, http://dronin.org Copyright (C) 2015
  * @brief      Board initialization file
  * @see        The GNU Public License (GPL) Version 3
- * 
+ *
  *****************************************************************************/
-/* 
- * This program is free software; you can redistribute it and/or modify 
- * it under the terms of the GNU General Public License as published by 
- * the Free Software Foundation; either version 3 of the License, or 
+/*
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 3 of the License, or
  * (at your option) any later version.
- * 
- * This program is distributed in the hope that it will be useful, but 
- * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY 
- * or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License 
+ *
+ * This program is distributed in the hope that it will be useful, but
+ * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
+ * or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License
  * for more details.
- * 
- * You should have received a copy of the GNU General Public License along 
+ *
+ * You should have received a copy of the GNU General Public License along
  * with this program; if not, see <http://www.gnu.org/licenses/>
  */
 
 /* Pull in the board-specific static HW definitions.
  * Including .c files is a bit ugly but this allows all of
  * the HW definitions to be const and static to limit their
- * scope.  
+ * scope.
  *
  * NOTE: THIS IS THE ONLY PLACE THAT SHOULD EVER INCLUDE THIS FILE
  */
@@ -475,14 +475,14 @@ void PIOS_Board_Init(void) {
 
 	PIOS_HAL_ConfigurePort(hw_mainport,          // port type protocol
 			&pios_usart_main_cfg,                // usart_port_cfg
-			&pios_usart_com_driver,              // com_driver 
-			NULL,                                // i2c_id 
-			NULL,                                // i2c_cfg 
-			NULL,                                // i2c_cfg 
+			&pios_usart_com_driver,              // com_driver
+			NULL,                                // i2c_id
+			NULL,                                // i2c_cfg
+			NULL,                                // i2c_cfg
 			NULL,                                // pwm_cfg
 			PIOS_LED_ALARM,                      // led_id
 			&pios_dsm_main_cfg,                  // dsm_cfg
-			hw_DSMxMode,                         // dsm_mode 
+			hw_DSMxMode,                         // dsm_mode
 			NULL);                               // sbus_cfg
 
 	/* Configure FlexiPort */
@@ -493,12 +493,12 @@ void PIOS_Board_Init(void) {
 			&pios_usart_flexi_cfg,               // usart_port_cfg
 			&pios_usart_com_driver,              // com_driver
 			&pios_i2c_flexiport_adapter_id,      // i2c_id
-			&pios_i2c_flexiport_adapter_cfg,     // i2c_cfg 
-			NULL,                                // i2c_cfg 
+			&pios_i2c_flexiport_adapter_cfg,     // i2c_cfg
+			NULL,                                // i2c_cfg
 			NULL,                                // pwm_cfg
 			PIOS_LED_ALARM,                      // led_id
 			&pios_dsm_flexi_cfg,                 // dsm_cfg
-			hw_DSMxMode,                         // dsm_mode 
+			hw_DSMxMode,                         // dsm_mode
 			NULL);                               // sbus_cfg
 
 #if defined(PIOS_INCLUDE_RFM22B)
@@ -731,4 +731,3 @@ void PIOS_Board_Init(void) {
  * @}
  * @}
  */
-

@@ -5,7 +5,7 @@
  * @author     Tau Labs, http://taulabs.org, Copyright (C) 2012-2013
  * @addtogroup Targets Target Boards
  * @{
- * @addtogroup PlayUavOsd
+ * @addtogroup PlayUAVOSD PlayUAV OSD
  * @{
  * @brief Firmware for PlayUAVOSD board
  *****************************************************************************/

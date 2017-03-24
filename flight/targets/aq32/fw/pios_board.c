@@ -1,11 +1,11 @@
 /**
  ******************************************************************************
- * @addtogroup AeroQuadTargets AeroQuad Targets
+ * @addtogroup Targets Target Boards
  * @{
- * @addtogroup AQ32 AQ32 support files
+ * @addtogroup AQ32 Aeroquad AQ32
  * @{
  *
- * @file       pios_board.c
+ * @file       aq32/fw/pios_board.c
  * @author     Tau Labs, http://taulabs.org, Copyright (C) 2012-2014
  * @author     dRonin, http://dronin.org Copyright (C) 2015
  * @brief      The board specific initialization routines
@@ -571,5 +571,6 @@ void PIOS_Board_Init(void) {
 }
 
 /**
+ * @}
  * @}
  */

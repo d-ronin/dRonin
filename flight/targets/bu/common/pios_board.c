@@ -1,3 +1,15 @@
+/**
+ ******************************************************************************
+ * @addtogroup Bootloader Bootloaders
+ * @{
+ * @addtogroup Updater Bootloader Updater
+ * @{
+ *
+ * @file       bu/common/pios_board.c
+ * @see        The GNU Public License (GPL) Version 3
+ *
+ *****************************************************************************/
+
 #include "board_hw_defs.c"
 
 #include <pios.h>
@@ -30,5 +42,6 @@ void PIOS_Board_Init(void) {
 }
 
 /**
+ * @}
  * @}
  */

@@ -14,6 +14,16 @@
     limitations under the License.
 */
 
+/**
+ ******************************************************************************
+ * @addtogroup Bootloader Bootloaders
+ * @{
+ * @addtogroup Seppuku DTFAIR Seppuku
+ * @{
+ *
+ * @file       seppuku/fw/mcuconf.h
+ *****************************************************************************/
+
 /*
  * STM32F4xx drivers configuration.
  * The following settings override the default settings present in
@@ -286,3 +296,8 @@
 #define STM32_USB_OTG_THREAD_PRIO           LOWPRIO
 #define STM32_USB_OTG_THREAD_STACK_SIZE     128
 #define STM32_USB_OTGFIFO_FILL_BASEPRI      0
+
+/**
+ * @}
+ * @}
+ */

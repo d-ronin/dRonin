@@ -2,9 +2,9 @@
  ******************************************************************************
  * @file       bl_xfer.h
  * @author     Tau Labs, http://taulabs.org, Copyright (C) 2013
- * @addtogroup Bootloader
+ * @addtogroup Bootloader Bootloaders
  * @{
- * @addtogroup Bootloader
+ * @addtogroup Common Common
  * @{
  * @brief Data transfer functions for the Tau Labs unified bootloader
  *****************************************************************************/

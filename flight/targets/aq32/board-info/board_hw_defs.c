@@ -1,11 +1,11 @@
 /**
  ******************************************************************************
- * @addtogroup AeroQuadTargets AeroQuad Targets
+ * @addtogroup Targets Target Boards
  * @{
- * @addtogroup Aq32 Aq32 support files
+ * @addtogroup AQ32 Aeroquad AQ32
  * @{
  *
- * @file       board_hw_defs.c
+ * @file       aq32/board-info/board_hw_defs.c
  * @author     Tau Labs, http://taulabs.org, Copyright (C) 2012-2014
  * @author     dRonin, http://dronin.org Copyright (C) 2015
  * @brief      Defines board specific static initializers for hardware for the
@@ -520,7 +520,7 @@ static const struct pios_flash_partition pios_flash_partition_table[] = {
 	},
 
 	/* NOTE: sectors 8-9 of the internal flash are currently unallocated */
-    
+
 	{
 		.label        = FLASH_PARTITION_LABEL_AUTOTUNE,
 		.chip_desc    = &pios_flash_chip_internal,
@@ -528,7 +528,7 @@ static const struct pios_flash_partition pios_flash_partition_table[] = {
 		.last_sector  = 11,
 		.chip_offset  = (4 * FLASH_SECTOR_16KB) + (1 * FLASH_SECTOR_64KB) + (5 * FLASH_SECTOR_128KB), // 0x080C 0000
 		.size         = (11 - 10 + 1) * FLASH_SECTOR_128KB,                                           // 256KB
-	}, 
+	},
 };
 
 const struct pios_flash_partition * PIOS_BOARD_HW_DEFS_GetPartitionTable (uint32_t board_revision, uint32_t * num_partitions)

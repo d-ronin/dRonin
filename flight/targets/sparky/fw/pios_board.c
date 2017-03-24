@@ -1,11 +1,11 @@
 /**
  ******************************************************************************
- * @addtogroup TauLabsTargets Tau Labs Targets
+ * @addtogroup Targets Target Boards
  * @{
- * @addtogroup Sparky Tau Labs Sparky support files
+ * @addtogroup Sparky Tau Labs Sparky
  * @{
  *
- * @file       pios_board.c
+ * @file       sparky/fw/pios_board.c
  * @author     Tau Labs, http://taulabs.org, Copyright (C) 2012-2014
  * @author     dRonin, http://dronin.org Copyright (C) 2015
  * @brief      The board specific initialization routines
@@ -253,7 +253,7 @@ void PIOS_Board_Init(void)
 	        &pios_main_usart_cfg,                // usart_port_cfg
 	        &pios_usart_com_driver,              // com_driver
 	        NULL,                                // i2c_id
-	        NULL,                                // i2c_cfg 
+	        NULL,                                // i2c_cfg
 	        NULL,                                // ppm_cfg
 	        NULL,                                // pwm_cfg
 	        PIOS_LED_ALARM,                      // led_id
@@ -269,7 +269,7 @@ void PIOS_Board_Init(void)
 	        &pios_flexi_usart_cfg,               // usart_port_cfg
 	        &pios_usart_com_driver,              // com_driver
 	        &pios_i2c_flexi_id,                  // i2c_id
-	        &pios_i2c_flexi_cfg,                 // i2c_cfg 
+	        &pios_i2c_flexi_cfg,                 // i2c_cfg
 	        NULL,                                // ppm_cfg
 	        NULL,                                // pwm_cfg
 	        PIOS_LED_ALARM,                      // led_id
@@ -284,7 +284,7 @@ void PIOS_Board_Init(void)
 	PIOS_HAL_ConfigurePort(hw_rcvrport,          // port type protocol
 	        &pios_rcvr_usart_cfg,                // usart_port_cfg
 	        &pios_usart_com_driver,              // com_driver
-	        NULL,                                // i2c_id 
+	        NULL,                                // i2c_id
 	        NULL,                                // i2c_cfg
 	        &pios_ppm_cfg,                       // ppm_cfg
 	        NULL,                                // pwm_cfg
@@ -551,5 +551,6 @@ void PIOS_Board_Init(void)
 }
 
 /**
+ * @}
  * @}
  */

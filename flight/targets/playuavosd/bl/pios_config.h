@@ -4,7 +4,7 @@
  * @author     dRonin, http://dRonin.org/, Copyright (C) 2016
  * @addtogroup Bootloader Bootloaders
  * @{
- * @addtogroup PlayUavOsd
+ * @addtogroup PlayUAVOSD PlayUAV OSD
  * @{
  * @brief Bootloader for PlayUAVOSD board
  *****************************************************************************/
@@ -43,7 +43,7 @@
 #define PIOS_INCLUDE_FLASH_INTERNAL
 
 #define BOOTLOADER_PAUSE_DELAY 500
- 
+
 #endif /* PIOS_CONFIG_H */
 
 /**

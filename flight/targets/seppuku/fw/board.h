@@ -14,6 +14,16 @@
     limitations under the License.
 */
 
+/**
+ ******************************************************************************
+ * @addtogroup Bootloader Bootloaders
+ * @{
+ * @addtogroup Seppuku DTFAIR Seppuku
+ * @{
+ *
+ * @file       seppuku/fw/board.h
+ *****************************************************************************/
+
 #ifndef _BOARD_H_
 #define _BOARD_H_
 
@@ -67,3 +77,7 @@ extern "C" {
 
 #endif /* _BOARD_H_ */
 
+/**
+ * @}
+ * @}
+ */

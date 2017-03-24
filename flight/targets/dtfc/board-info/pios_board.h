@@ -1,14 +1,16 @@
 /**
  ******************************************************************************
- * @addtogroup DTFc DTF support files
+ * @addtogroup Targets Target Boards
+ * @{
+ * @addtogroup DTFc DTFAIR DTFc
  * @{
  *
- * @file       STM32F30x_DTFc.c 
+ * @file       dtfc/board-info/pios_board.h
  * @author     Tau Labs, http://taulabs.org, Copyright (C) 2012-2013
  * @author     dRonin, http://dRonin.org/, Copyright (C) 2016
  * @brief      Board header file for DTFc board.
  * @see        The GNU Public License (GPL) Version 3
- * 
+ *
  *****************************************************************************/
 /*
  * This program is free software; you can redistribute it and/or modify
@@ -120,7 +122,7 @@ extern uintptr_t pios_com_vcp_id;
 extern uintptr_t pios_com_mavlink_id;
 extern uintptr_t pios_com_hott_id;
 extern uintptr_t pios_com_frsky_sensor_hub_id;
-extern uintptr_t pios_com_lighttelemetry_id; 
+extern uintptr_t pios_com_lighttelemetry_id;
 extern uintptr_t pios_com_frsky_sport_id;
 extern uintptr_t pios_com_openlog_logging_id;
 extern uintptr_t pios_com_storm32bgc_id;
@@ -156,7 +158,7 @@ extern uintptr_t pios_com_debug_id;
 
 //-------------------------
 // System Settings
-// 
+//
 // See also system_stm32f30x.c
 //-------------------------
 //These macros are deprecated
@@ -250,7 +252,7 @@ extern uintptr_t pios_internal_adc_id;
 
 #endif /* STM32F30X_DTFc_H_ */
 
-
 /**
+ * @}
  * @}
  */

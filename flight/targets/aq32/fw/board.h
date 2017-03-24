@@ -14,6 +14,16 @@
     limitations under the License.
 */
 
+/**
+ ******************************************************************************
+ * @addtogroup Targets Target Boards
+ * @{
+ * @addtogroup AQ32 Aeroquad AQ32
+ * @{
+ *
+ * @file       aq32/fw/board.h
+ *****************************************************************************/
+
 #ifndef _BOARD_H_
 #define _BOARD_H_
 
@@ -65,3 +75,7 @@ extern "C" {
 
 #endif /* _BOARD_H_ */
 
+/**
+ * @}
+ * @}
+ */

@@ -14,6 +14,17 @@
     limitations under the License.
 */
 
+/**
+ ******************************************************************************
+ * @addtogroup Targets Target Boards
+ * @{
+ * @addtogroup LUX Lumenier LUX
+ * @{
+ *
+ * @file       lux/board-info/mcuconf.h
+ *
+ *****************************************************************************/
+
 /*
  * STM32F30x drivers configuration.
  * The following settings override the default settings present in
@@ -210,3 +221,8 @@
 #define STM32_USB_LOW_POWER_ON_SUSPEND      FALSE
 #define STM32_USB_USB1_HP_IRQ_PRIORITY      13
 #define STM32_USB_USB1_LP_IRQ_PRIORITY      14
+
+/**
+ * @}
+ * @}
+ */

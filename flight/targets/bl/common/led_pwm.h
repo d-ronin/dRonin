@@ -2,9 +2,9 @@
  ******************************************************************************
  * @file       led_pwm.h
  * @author     Tau Labs, http://taulabs.org, Copyright (C) 2013
- * @addtogroup Bootloader
+ * @addtogroup Bootloader Bootloaders
  * @{
- * @addtogroup Bootloader
+ * @addtogroup Common Common
  * @{
  * @brief LED PWM emulation for the Tau Labs unified bootloader
  *****************************************************************************/

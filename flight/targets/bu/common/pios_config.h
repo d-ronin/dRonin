@@ -1,11 +1,11 @@
 /**
  ******************************************************************************
- * @addtogroup TauLabsBootloader Tau Labs Bootloaders
+ * @addtogroup Bootloader Bootloaders
  * @{
- * @addtogroup BootloaderUpdate Update the bootloader stored in a target
+ * @addtogroup Updater Bootloader Updater
  * @{
  *
- * @file       pios_config.h
+ * @file       bu/common/pios_config.h
  * @author     The OpenPilot Team, http://www.openpilot.org Copyright (C) 2010.
  * @author     Tau Labs, http://taulabs.org, Copyright (C) 2012-2013
  * @brief      Non pinout-specific configuration of PiOS for bootloader updater
@@ -37,6 +37,7 @@
 #define PIOS_INCLUDE_IAP
 
 #endif /* PIOS_CONFIG_H */
+
 /**
  * @}
  * @}

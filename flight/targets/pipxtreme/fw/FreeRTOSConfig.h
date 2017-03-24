@@ -1,3 +1,13 @@
+/**
+ ******************************************************************************
+ * @addtogroup Targets Target Boards
+ * @{
+ * @addtogroup PipX PipXtreme Radio
+ * @{
+ *
+ * @file       pipxtreme/fw/FreeRTOSConfig.h
+ *
+ *****************************************************************************/
 
 #ifndef FREERTOS_CONFIG_H
 #define FREERTOS_CONFIG_H
@@ -17,13 +27,6 @@
  *
  * See http://www.freertos.org/a00110.html.
  *----------------------------------------------------------*/
-
-/**
-  * @addtogroup PIOS PIOS
-  * @{
-  * @addtogroup FreeRTOS FreeRTOS
-  * @{
-  */
 
 /* Notes: We use 5 task priorities */
 
@@ -97,9 +100,9 @@ NVIC value of 255. */
 #define configCHECK_FOR_STACK_OVERFLOW	0
 #endif
 
+#endif /* FREERTOS_CONFIG_H */
 
 /**
-  * @}
-  */
-
-#endif /* FREERTOS_CONFIG_H */
+ * @}
+ * @}
+ */

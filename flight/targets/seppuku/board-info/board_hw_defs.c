@@ -1,11 +1,11 @@
 /**
  ******************************************************************************
- * @addtogroup TauLabsTargets Tau Labs Targets
+ * @addtogroup Bootloader Bootloaders
  * @{
- * @addtogroup Seppuku Seppuku support files
+ * @addtogroup Seppuku DTFAIR Seppuku
  * @{
  *
- * @file       board_hw_defs.c
+ * @file       seppuku/board-info/board_hw_defs.c
  * @author     Tau Labs, http://taulabs.org, Copyright (C) 2012-2014
  * @author     dRonin, http://dronin.org Copyright (C) 2015-2016
  * @brief      Defines board specific static initializers for hardware for the

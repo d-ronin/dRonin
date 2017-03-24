@@ -1,11 +1,11 @@
 /**
  ******************************************************************************
- * @addtogroup AeroQuadTargets AeroQuad Targets
+ * @addtogroup Targets Target Boards
  * @{
- * @addtogroup Aq32 Aq32 support files
+ * @addtogroup AQ32 Aeroquad AQ32
  * @{
  *
- * @file       STM32F4xx_Aq32.c
+ * @file       aq32/board-info/pios_board.h
  * @author     Tau Labs, http://taulabs.org, Copyright (C) 2012-2013
  * @author     dRonin, http://dronin.org Copyright (C) 2015
  * @brief      Board specific defines for AQ32
@@ -137,6 +137,7 @@ extern uintptr_t pios_com_debug_id;
 #define PIOS_COM_DEBUG                  (pios_com_debug_id)
 #endif	/* PIOS_INCLUDE_DEBUG_CONSOLE */
 
+/** @todo: come up with a better solution to get pios types into here */
 #ifdef PIOS_INCLUDE_MAX7456
 #include <pios_max7456.h>
 

@@ -1,11 +1,11 @@
 /**
  ******************************************************************************
- * @addtogroup dRonin Targets
+ * @addtogroup Bootloader Bootloaders
  * @{
- * @addtogroup BrainRE1 bootloader
+ * @addtogroup BrainRE1 BrainFPV RE1
  * @{
  *
- * @file       pios_usb_board_data.c
+ * @file       brainre1/bl/pios_usb_board_data.c
  * @author     dRonin, http://dRonin.org/, Copyright (C) 2016
  * @author     The OpenPilot Team, http://www.openpilot.org Copyright (C) 2010.
  * @author     Tau Labs, http://taulabs.org, Copyright (C) 2012-2013
@@ -88,3 +88,8 @@ int32_t PIOS_USB_BOARD_DATA_Init(void)
 
 	return 0;
 }
+
+/**
+ * @}
+ * @}
+ */

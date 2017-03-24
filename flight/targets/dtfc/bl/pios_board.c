@@ -1,9 +1,11 @@
 /**
  ******************************************************************************
- * @addtogroup dtfcBL DTFc DTF bootloader
+ * @addtogroup Bootloader Bootloaders
+ * @{
+ * @addtogroup DTFc AIRDTF DTFc
  * @{
  *
- * @file       pios_board.c
+ * @file       dtfc/bl/pios_board.c
  * @author     The OpenPilot Team, http://www.openpilot.org Copyright (C) 2010.
  * @author     Tau Labs, http://taulabs.org, Copyright (C) 2012-2013
  * @author     dRonin, http://dRonin.org/, Copyright (C) 2016
@@ -33,7 +35,7 @@
 /* Pull in the board-specific static HW definitions.
  * Including .c files is a bit ugly but this allows all of
  * the HW definitions to be const and static to limit their
- * scope.  
+ * scope.
  *
  * NOTE: THIS IS THE ONLY PLACE THAT SHOULD EVER INCLUDE THIS FILE
  */
