@@ -138,7 +138,6 @@ SystemHealthGadgetWidget::~SystemHealthGadgetWidget()
 
 void SystemHealthGadgetWidget::setSystemFile(QString dfn)
 {
-    setBackgroundBrush(QBrush(Utils::StyleHelper::baseColor()));
    if (QFile::exists(dfn)) {
        m_renderer->load(dfn);
        if(m_renderer->isValid()) {
