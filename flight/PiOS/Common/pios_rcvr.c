@@ -124,8 +124,10 @@ bool PIOS_RCVR_WaitActivity(uint32_t timeout_ms) {
 
 void PIOS_RCVR_Active() {
   if (PIOS_DELAY_DiffuS(rcvr_last_wake) >= MIN_WAKE_INTERVAL_uS) {
-    rcvr_last_wake = PIOS_DELAY_GetRaw();
-    PIOS_Semaphore_Give(rcvr_activity);
+    if (rcvr_activity) {
+      rcvr_last_wake = PIOS_DELAY_GetRaw();
+      PIOS_Semaphore_Give(rcvr_activity);
+    }
   }
 }
 
@@ -133,8 +135,10 @@ void PIOS_RCVR_ActiveFromISR() {
   if (PIOS_DELAY_DiffuS(rcvr_last_wake) >= MIN_WAKE_INTERVAL_uS) {
     bool dont_care;
 
-    rcvr_last_wake = PIOS_DELAY_GetRaw();
-    PIOS_Semaphore_Give_FromISR(rcvr_activity, &dont_care);
+    if (rcvr_activity) {
+      rcvr_last_wake = PIOS_DELAY_GetRaw();
+      PIOS_Semaphore_Give_FromISR(rcvr_activity, &dont_care);
+    }
   }
 }
 
