@@ -254,13 +254,13 @@ static uint16_t PIOS_Crossfire_Receive(uintptr_t context, uint8_t *buf, uint16_t
 	dev->rx_timer = 0;
 
 	// Keep pumping data.
-	*headroom = CRSF_MAX_FRAMELEN;
-	*task_woken = false;
+	if(headroom) *headroom = CRSF_MAX_FRAMELEN;
+	if(task_woken) *task_woken = false;
 	return buf_len;
 
 out_fail:
-	*headroom = 0;
-	*task_woken = false;
+	if(headroom) *headroom = 0;
+	if(task_woken) *task_woken = false;
 	return 0;
 }
 
