@@ -67,6 +67,23 @@ uintptr_t pios_uavo_settings_fs_id;
 static void PIOS_BOARD_Init_Uavos(void);
 
 /**
+ * @brief   Early initialization code.
+ * @details This initialization must be performed just after stack setup
+ *          and before any other initialization.
+ */
+void __early_init(void)
+{
+	stm32_clock_init();
+}
+
+/**
+ * @brief   Board-specific initialization code.
+ */
+void boardInit(void)
+{
+}
+
+/**
 * Initialise PWM Output for black/white level setting
 */
 
