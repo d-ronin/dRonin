@@ -1,11 +1,11 @@
 /**
  ******************************************************************************
- * @addtogroup Tau Labs Modules
+ * @addtogroup Modules Modules
  * @{
- * @addtogroup OnScreenDisplay OSD Module
- * @brief OSD Menu
+ * @addtogroup OnScreenDisplay Pixel OSD
  * @{
  *
+ * @brief OSD Menu
  * @file       osd_menu.c
  * @author     dRonin, http://dRonin.org/, Copyright (C) 2016
  * @author     Tau Labs, http://taulabs.org, Copyright (C) 2013-2015
@@ -1678,10 +1678,10 @@ void pidrate_menu(void)
 			case 0:
 				StabilizationSettingsRollRatePIDGet(pid_arr);
 				break;
-			case 1: 
+			case 1:
 				StabilizationSettingsPitchRatePIDGet(pid_arr);
 				break;
-			case 2: 
+			case 2:
 				StabilizationSettingsYawRatePIDGet(pid_arr);
 				break;
 		}
@@ -1705,10 +1705,10 @@ void pidrate_menu(void)
 						case 0:
 							StabilizationSettingsRollRatePIDSet(pid_arr);
 							break;
-						case 1: 
+						case 1:
 							StabilizationSettingsPitchRatePIDSet(pid_arr);
 							break;
-						case 2: 
+						case 2:
 							StabilizationSettingsYawRatePIDSet(pid_arr);
 							break;
 					}
@@ -2189,3 +2189,7 @@ void stats_menu()
 	}
 }
 
+/**
+ * @}
+ * @}
+ */

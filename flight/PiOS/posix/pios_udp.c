@@ -1,28 +1,30 @@
 /**
  ******************************************************************************
  *
- * @file       pios_udp.c   
+ * @file       pios_udp.c
  * @author     The OpenPilot Team, http://www.openpilot.org Copyright (C) 2010.
  * 	        Parts by Thorsten Klose (tk@midibox.org) (tk@midibox.org)
  * @author     Tau Labs, http://taulabs.org, Copyright (C) 2014
  * @brief      UDP commands. Inits UDPs, controls UDPs & Interupt handlers.
  * @see        The GNU Public License (GPL) Version 3
- * @defgroup   PIOS_UDP UDP Functions
+ * @addtogroup PIOS PIOS Core hardware abstraction layer
+ * @{
+ * @addtogroup PIOS_UDP UDP Driver
  * @{
  *
  *****************************************************************************/
-/* 
- * This program is free software; you can redistribute it and/or modify 
- * it under the terms of the GNU General Public License as published by 
- * the Free Software Foundation; either version 3 of the License, or 
+/*
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 3 of the License, or
  * (at your option) any later version.
- * 
- * This program is distributed in the hope that it will be useful, but 
- * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY 
- * or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License 
+ *
+ * This program is distributed in the hope that it will be useful, but
+ * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
+ * or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License
  * for more details.
- * 
- * You should have received a copy of the GNU General Public License along 
+ *
+ * You should have received a copy of the GNU General Public License along
  * with this program; if not, see <http://www.gnu.org/licenses/>
  */
 
@@ -93,7 +95,7 @@ void PIOS_UDP_RxThread(void * udp_dev_n)
    while(1) {
 
 		/**
-		 * receive 
+		 * receive
 		 */
 		int received;
 		udp_dev->clientLength=sizeof(udp_dev->client);
@@ -210,7 +212,7 @@ static void PIOS_UDP_RegisterRxCallback(uint32_t udp_id, pios_com_callback rx_in
 
 	PIOS_Assert(udp_dev);
 
-	/* 
+	/*
 	 * Order is important in these assignments since ISR uses _cb
 	 * field to determine if it's ok to dereference _cb and _context
 	 */
@@ -224,7 +226,7 @@ static void PIOS_UDP_RegisterTxCallback(uint32_t udp_id, pios_com_callback tx_ou
 
 	PIOS_Assert(udp_dev);
 
-	/* 
+	/*
 	 * Order is important in these assignments since ISR uses _cb
 	 * field to determine if it's ok to dereference _cb and _context
 	 */
@@ -233,7 +235,9 @@ static void PIOS_UDP_RegisterTxCallback(uint32_t udp_id, pios_com_callback tx_ou
 }
 
 
-
-
-
 #endif
+
+/**
+ * @}
+ * @}
+ */

@@ -1,11 +1,11 @@
 /**
  ******************************************************************************
- * @addtogroup Tau Labs Modules
+ * @addtogroup Modules Modules
  * @{
- * @addtogroup CharacterOSD OSD Module
- * @brief Process OSD information
+ * @addtogroup CharOSD Character OSD
  * @{
  *
+ * @brief Process OSD information
  * @file       characterosd.c
  * @author     dRonin, http://dronin.org Copyright (C) 2016
  * @see        The GNU Public License (GPL) Version 3
@@ -350,4 +350,3 @@ MODULE_INITCALL(CharOnScreenDisplayInitialize, CharOnScreenDisplayStart);
   * @}
   * @}
   */
-

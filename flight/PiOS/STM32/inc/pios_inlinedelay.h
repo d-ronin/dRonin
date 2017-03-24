@@ -2,6 +2,8 @@
  ******************************************************************************
  * @file       pios_inlinedelay.h
  * @author     dRonin, http://dRonin.org/, Copyright (C) 2017
+ * @addtogroup PIOS PIOS Core hardware abstraction layer
+ * @{
  * @addtogroup PIOS_INLINEDELAY Inline delay subsystem
  * @{
  * @brief Inline delay routines for fine-resolution spinloops.

@@ -2,9 +2,12 @@
  ******************************************************************************
  * @file       rgbleds.c
  * @author     dRonin, http://dRonin.org/, Copyright (C) 2016
- * @addtogroup RGBLED RGB Led functions
+ * @addtogroup Modules Modules
  * @{
- * @brief Implementation of annunciation and simple color blending.
+ * @addtogroup SystemModule System
+ * @{
+ *
+ * @brief Implementation of annunciation and simple color blending for RGB LEDs.
  *****************************************************************************/
 /*
  * This program is free software; you can redistribute it and/or modify
@@ -202,7 +205,7 @@ static inline uint8_t linear_interp_u16(uint8_t val_a, uint8_t val_b,
 	return tmp >> 16;
 }
 
-static void interp_in_hsv(bool backwards, const uint8_t *rgb_start, 
+static void interp_in_hsv(bool backwards, const uint8_t *rgb_start,
 		const uint8_t *rgb_end, uint8_t *rgb_out, uint16_t fraction) {
 	float fraction_f = fraction / 65535.0f;
 
@@ -498,5 +501,6 @@ void systemmod_process_rgb_leds(bool led_override, bool led_override_active,
 #endif
 
 /**
+ * @}
  * @}
  */

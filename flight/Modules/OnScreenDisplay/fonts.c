@@ -5,9 +5,9 @@
  * @author     dRonin, http://dRonin.org/, Copyright (C) 2016
  * @author     The OpenPilot Team, http://www.openpilot.org, Copyright (C) 2012
  * @author     Thomas Oldbury Copyright (C) 2010
- * @addtogroup dRonin Modules
+ * @addtogroup Modules Modules
  * @{
- * @addtogroup OnScreenDisplay Module
+ * @addtogroup OnScreenDisplay Pixel OSD
  * @{
  * @brief Fonts for OSD
  *****************************************************************************/
@@ -1659,3 +1659,7 @@ static const struct FontEntry font_font_outlined8x8 = {
 
 const struct FontEntry* fonts[NUM_FONTS] = {&font_font8x10, &font_font_outlined8x14, &font_font12x18, &font_font_outlined8x8};
 
+/**
+ * @}
+ * @}
+ */

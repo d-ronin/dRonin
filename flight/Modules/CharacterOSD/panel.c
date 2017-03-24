@@ -1,11 +1,11 @@
 /**
  ******************************************************************************
- * @addtogroup Tau Labs Modules
+ * @addtogroup Modules Modules
  * @{
- * @addtogroup CharacterOSD OSD Module
- * @brief Process OSD information
+ * @addtogroup CharOSD Character OSD
  * @{
  *
+ * @brief Process OSD information
  * @file       panel.c
  * @author     dRonin, http://dronin.org Copyright (C) 2016
  * @author     @UncleRus and MultiOSD
@@ -128,7 +128,7 @@ static void draw_rect(charosd_state_t state, uint8_t l, uint8_t t, uint8_t w, ui
 }
 
 #define STD_PANEL(__name, bs, fmt, ...) \
-	STD_UPDATE(__name, bs, fmt, __VA_ARGS__); 
+	STD_UPDATE(__name, bs, fmt, __VA_ARGS__);
 
 
 /* Alt */
@@ -264,7 +264,7 @@ static void GPS_update(charosd_state_t state, uint8_t x, uint8_t y)
 {
 	char buffer[4];
 
-	snprintf(buffer, sizeof(buffer), "%d", state->telemetry.gps_position.Satellites); 
+	snprintf(buffer, sizeof(buffer), "%d", state->telemetry.gps_position.Satellites);
 	terminate_buffer();
 	bool err = state->telemetry.gps_position.Status < GPSPOSITION_STATUS_FIX2D;
 	PIOS_MAX7456_puts(state->dev, x, y, "\x10\x11", err ? MAX7456_ATTR_INVERT : 0);
@@ -332,7 +332,7 @@ void HORIZON_update(charosd_state_t state, uint8_t x, uint8_t y)
 STD_PANEL(THROTTLE, 7, "\x87%d%%", (int)MAX(0, state->telemetry.manual.throttle*100));
 
 /* GroundSpeed */
-STD_PANEL(GROUNDSPEED, 7, "\x80%d\x81", 
+STD_PANEL(GROUNDSPEED, 7, "\x80%d\x81",
 		(int)roundf(pythag(state->telemetry.velocity_actual.North,
 				state->telemetry.velocity_actual.East) * 3.6f));
 // * 3.6 == m/s to km/hr

@@ -1,11 +1,11 @@
 /**
  ******************************************************************************
- * @addtogroup Tau Labs Modules
+ * @addtogroup Modules Modules
  * @{
- * @addtogroup OnScreenDisplay OSD Module
- * @brief OSD Utility Functions
+ * @addtogroup OnScreenDisplay Pixel OSD
  * @{
  *
+ * @brief OSD Utility Functions
  * @file       osd_utils.c
  * @author     dRonin, http://dRonin.org/, Copyright (C) 2016
  * @author     Tau Labs, http://taulabs.org, Copyright (C) 2013-2015
@@ -1470,3 +1470,8 @@ void lla_to_ned(int32_t lattitude, int32_t longitude, float altitude, float *NED
 	NED[1] = T[1] * dL[1];
 	NED[2] = T[2] * dL[2];
 }
+
+/**
+ * @}
+ * @}
+ */
