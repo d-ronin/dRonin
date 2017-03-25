@@ -25,6 +25,7 @@ package org.dronin.androidgcs.util;
 
 public interface ObjectFieldMappable {
 	public double getValue();
-	public void setValue(double val);
+	public void setValue(Number val);
 	public void setOnChangedListener(Runnable run);
+	public void setValue(String val);
 }

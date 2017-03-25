@@ -23,6 +23,7 @@ package org.dronin.androidgcs.views;
  */
 
 import java.util.List;
+import java.text.NumberFormat;
 
 import org.dronin.androidgcs.util.ObjectFieldMappable;
 import org.dronin.uavtalk.UAVObjectField;
@@ -67,15 +68,17 @@ public class NumericalFieldView extends LinearLayout implements ObjectFieldMappa
 
 			@Override
 			public void afterTextChanged(Editable s) {
-				try {
-					value = Double.parseDouble(s.toString());
-				} catch (NumberFormatException e) {
-					// This is a numerical field so this only happens when they
-					// backspace through all the characters
-					value = 0;
+				if (localUpdate == false) {
+					try {
+						value = NumberFormat.getInstance().parse(s.toString()).doubleValue();
+					} catch (Exception e) {
+						// This is a numerical field so this only happens when they
+						// backspace through all the characters
+						setValue(0);
+					}
+					if (changeListener != null)
+						changeListener.run();
 				}
-				if (changeListener != null && localUpdate == false)
-					changeListener.run();
 			}
 
 			@Override
@@ -120,11 +123,20 @@ public class NumericalFieldView extends LinearLayout implements ObjectFieldMappa
 	}
 
 	@Override
-	public void setValue(double val) {
+	public void setValue(Number val) {
 		localUpdate = true;
-		value = val;
+		value = val.doubleValue();
 		edit.setText(Double.toString(value));
 		localUpdate = false;
+	}
+
+	@Override
+	public void setValue(String val) {
+		try {
+			setValue(NumberFormat.getInstance().parse(val));
+		} catch (Exception e) {
+			setValue(0);
+		}
 	}
 
 	@Override

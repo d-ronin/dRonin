@@ -25,6 +25,8 @@ package org.dronin.androidgcs.views;
 import org.dronin.androidgcs.R;
 import org.dronin.androidgcs.util.ObjectFieldMappable;
 
+import java.text.NumberFormat;
+
 import android.content.Context;
 import android.content.res.TypedArray;
 import android.text.Editable;
@@ -98,7 +100,12 @@ public class ScrollBarView extends GridLayout implements ObjectFieldMappable {
 
 			@Override
 			public void afterTextChanged(Editable s) {
-				value = Float.parseFloat(s.toString());
+				try {
+				value = NumberFormat.getInstance().parse(s.toString()).doubleValue();
+				} catch (Exception e) {
+					setValue(0);
+				}
+
 				bar.setProgress((int) (SCALE * value));
 				if (changeListener != null && localUpdate == false)
 					changeListener.run();
@@ -147,12 +154,21 @@ public class ScrollBarView extends GridLayout implements ObjectFieldMappable {
 	}
 
 	@Override
-	public void setValue(double val) {
+	public void setValue(Number val) {
 		localUpdate = true;
-		value = val;
+		value = val.doubleValue();
 		edit.setText(String.format("%.7f", value));
 		bar.setProgress((int) (SCALE * value));
 		localUpdate = false;
+	}
+
+	@Override
+	public void setValue(String val) {
+		try {
+			setValue(NumberFormat.getInstance().parse(val));
+		} catch (Exception e) {
+			setValue(0);
+		}
 	}
 
 	@Override
