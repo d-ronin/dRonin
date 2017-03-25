@@ -30,6 +30,8 @@
 
 #include <stdbool.h>
 
+#include <time.h>
+
 #define FILEINFO FILE*
 
 #define PIOS_SERVO_NUM_OUTPUTS 8
@@ -39,6 +41,29 @@
 #include <winsock2.h>
 #include <ws2tcpip.h>
 #include <dronin-strsep.h>
+#endif
+
+#ifdef __MACH__
+#include <mach/mach_time.h>
+#endif /* __MACH__ */
+
+/* OSX < 10.12 doesn't include clock_gettime and friends */
+
+#ifndef CLOCK_MONOTONIC
+
+#define CLOCK_MONOTONIC 2
+
+#ifndef CLOCK_REALTIME
+#define CLOCK_REALTIME 1
+#endif
+
+typedef int clockid_t;
+
+#define DRONIN_GETTIME
+
+struct timespec;
+
+int clock_gettime(clockid_t clk_id, struct timespec *t);
 #endif
 
 #endif

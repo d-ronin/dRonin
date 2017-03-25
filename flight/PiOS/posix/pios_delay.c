@@ -41,16 +41,9 @@
  */
 static uint32_t base_time;
 
-#ifdef __MACH__
-#include <mach/mach_time.h>
-
-/* OSX < 10.12 doesn't include clock_gettime and friends */
-#ifndef CLOCK_MONOTONIC
-
-#define CLOCK_MONOTONIC 1
-typedef int clockid_t;
-
-int clock_gettime(clockid_t clk_id, struct timespec *t) {
+#ifdef DRONIN_GETTIME
+int clock_gettime(clockid_t clk_id, struct timespec *t)
+{
 	(void) clk_id;
 
 	uint64_t tm = mach_absolute_time();
@@ -77,8 +70,6 @@ int clock_gettime(clockid_t clk_id, struct timespec *t) {
 }
 
 #endif /* CLOCK_MONOTONIC */
-#endif /* __MACH__ */
-
 static uint32_t get_monotonic_us_time(void) {
 	clockid_t id = CLOCK_MONOTONIC;
 
