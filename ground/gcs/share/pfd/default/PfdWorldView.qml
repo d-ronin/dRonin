@@ -12,10 +12,10 @@ Item {
         height: Math.round(sceneItem.height*scaledBounds.height/2)*2
 
         gradient: Gradient {
-            GradientStop { position: 0.3;    color: "#6589E2" }
-            GradientStop { position: 0.4999; color: "#AFC2F0" }
-            GradientStop { position: 0.5;    color: "#A46933" }
-            GradientStop { position: 0.8;    color: "black" }
+            GradientStop { position: 0.3;    color: "#3498db" }
+            GradientStop { position: 0.4999; color: "#3498db" }
+            GradientStop { position: 0.5;    color: "#7c533e" }
+            GradientStop { position: 0.8;    color: "#7c533e" }
         }
 
         transform: [
