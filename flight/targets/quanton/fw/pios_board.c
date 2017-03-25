@@ -54,23 +54,6 @@ uintptr_t pios_internal_adc_id;
 uintptr_t external_i2c_adapter_id = 0;
 
 /**
- * @brief   Early initialization code.
- * @details This initialization must be performed just after stack setup
- *          and before any other initialization.
- */
-void __early_init(void)
-{
-	stm32_clock_init();
-}
-
-/**
- * @brief   Board-specific initialization code.
- */
-void boardInit(void)
-{
-}
-
-/**
  * PIOS_Board_Init()
  * initializes all the core subsystems on this specific hardware
  * called from System/openpilot.c

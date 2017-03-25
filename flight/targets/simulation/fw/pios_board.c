@@ -79,23 +79,6 @@ uintptr_t pios_com_openlog_id;
 uintptr_t pios_com_telem_rf_id;
 uintptr_t pios_com_telem_usb_id;
 
-
-/**
- * @brief   Early initialization code.
- * @details This initialization must be performed just after stack setup
- *          and before any other initialization.
- */
-void __early_init(void)
-{
-}
-
-/**
- * @brief   Prepare all driver configurations
- */
-void boardInit(void)
-{
-}
-
 /**
  * PIOS_Board_Init()
  * initializes all the core systems on this specific hardware

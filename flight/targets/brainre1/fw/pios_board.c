@@ -71,23 +71,6 @@ uintptr_t pios_uavo_settings_fs_id;
 ws2811_dev_t pios_ws2811;
 
 /**
- * @brief   Early initialization code.
- * @details This initialization must be performed just after stack setup
- *          and before any other initialization.
- */
-void __early_init(void)
-{
-	stm32_clock_init();
-}
-
-/**
- * @brief   Board-specific RTOS initialization code.
- */
-void boardInit(void)
-{
-}
-
-/**
  * settingdUpdatedCb()
  * Called when RE1 hardware settings are updated
  */

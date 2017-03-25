@@ -71,23 +71,6 @@ max7456_dev_t pios_max7456_id;
 #endif
 
 /**
- * @brief   Early initialization code.
- * @details This initialization must be performed just after stack setup
- *          and before any other initialization.
- */
-void __early_init(void)
-{
-	stm32_clock_init();
-}
-
-/**
- * @brief   Board-specific initialization code.
- */
-void boardInit(void)
-{
-}
-
-/**
  * PIOS_Board_Init()
  * initializes all the core subsystems on this specific hardware
  * called from System/openpilot.c

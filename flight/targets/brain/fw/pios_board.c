@@ -57,25 +57,6 @@ uintptr_t pios_com_openlog_logging_id;
 
 uintptr_t pios_uavo_settings_fs_id;
 
-
-/**
- * @brief   Early initialization code.
- * @details This initialization must be performed just after stack setup
- *          and before any other initialization.
- */
-void __early_init(void)
-{
-	stm32_clock_init();
-}
-
-/**
- * @brief   Board-specific RTOS initialization code.
- */
-void boardInit(void)
-{
-}
-
-
 /**
 * Initialise PWM Output for black/white level setting
 */

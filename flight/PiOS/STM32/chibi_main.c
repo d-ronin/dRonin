@@ -43,6 +43,23 @@ static void initTask(void *parameters);
 static struct pios_thread *initTaskHandle;
 
 /**
+ * @brief   Early initialization code.
+ * @details This initialization must be performed just after stack setup
+ *          and before any other initialization.
+ */
+void __early_init(void) {
+
+  stm32_clock_init();
+}
+
+/**
+ * @brief   Board-specific initialization code.
+ * @todo    Add your board-specific code, if any.
+ */
+void boardInit(void) {
+}
+
+/**
 * dRonin Main function:
 *
 * Initialize PiOS<BR>
