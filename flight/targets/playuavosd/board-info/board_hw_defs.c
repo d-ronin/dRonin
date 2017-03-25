@@ -171,8 +171,6 @@ const struct pios_flash_partition *PIOS_BOARD_HW_DEFS_GetPartitionTable (uint32_
 
 #include <pios_usart_priv.h>
 
-#ifdef PIOS_INCLUDE_COM_TELEM
-
 /*
  * MAIN USART
  */
@@ -208,8 +206,6 @@ static const struct pios_usart_cfg pios_usart_main_cfg = {
 		},
 	},
 };
-#endif /* PIOS_INCLUDE_COM_TELEM */
-
 
 #if defined(PIOS_INCLUDE_COM)
 

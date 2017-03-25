@@ -607,7 +607,6 @@ static const struct pios_sbus_cfg pios_sbus_cfg = {
 	.gpio_clk_periph  = RCC_AHB1Periph_GPIOC,
 };
 
-#ifdef PIOS_INCLUDE_COM_FLEXI
 /*
  * FLEXI PORT
  */
@@ -645,8 +644,6 @@ static const struct pios_usart_cfg pios_usart_flexi_cfg = {
 		.pin_source = GPIO_PinSource10,
 	},
 };
-
-#endif /* PIOS_INCLUDE_COM_FLEXI */
 
 /*
  * FLEXI-IO PORT

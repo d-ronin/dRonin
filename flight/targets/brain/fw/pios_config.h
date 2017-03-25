@@ -29,28 +29,15 @@
 #ifndef PIOS_CONFIG_H
 #define PIOS_CONFIG_H
 
+#include <pios_flight_config.h>
+
 /* Major features */
-#define PIOS_INCLUDE_CHIBIOS
-#define PIOS_INCLUDE_BL_HELPER
 
 /* Enable/Disable PiOS Modules */
-#define PIOS_INCLUDE_ADC
+#define PIOS_INCLUDE_FLASH_JEDEC
 #define PIOS_INCLUDE_I2C
-#define WDG_STATS_DIAGNOSTICS
-#define PIOS_INCLUDE_ANNUNC
-#define PIOS_INCLUDE_IAP
-#define PIOS_INCLUDE_TIM
-#define PIOS_INCLUDE_SERVO
 #define PIOS_INCLUDE_SPI
-#define PIOS_INCLUDE_SYS
-#define PIOS_INCLUDE_USART
-#define PIOS_INCLUDE_USB
-#define PIOS_INCLUDE_USB_HID
-#define PIOS_INCLUDE_USB_CDC
 //#define PIOS_INCLUDE_GPIO
-#define PIOS_INCLUDE_EXTI
-#define PIOS_INCLUDE_RTC
-#define PIOS_INCLUDE_WDG
 #define PIOS_INCLUDE_FASTHEAP
 #define PIOS_INCLUDE_FRSKY_RSSI
 #define PIOS_INCLUDE_TBSVTXCONFIG
@@ -69,39 +56,14 @@
 #define PIOS_TOLERATE_MISSING_SENSORS
 
 /* Com systems to include */
-#define PIOS_INCLUDE_COM
-#define PIOS_INCLUDE_COM_TELEM
-#define PIOS_INCLUDE_TELEMETRY_RF
-#define PIOS_INCLUDE_COM_FLEXI
 #define PIOS_INCLUDE_MAVLINK
-#define PIOS_INCLUDE_HOTT
-#define PIOS_INCLUDE_FRSKY_SENSOR_HUB
-#define PIOS_INCLUDE_SESSION_MANAGEMENT
 #define PIOS_INCLUDE_LIGHTTELEMETRY
-#define PIOS_INCLUDE_FRSKY_SPORT_TELEMETRY
-#define PIOS_INCLUDE_OPENLOG
-#define PIOS_INCLUDE_STORM32BGC
 
-#define PIOS_INCLUDE_GPS
-#define PIOS_INCLUDE_GPS_NMEA_PARSER
-#define PIOS_INCLUDE_GPS_UBX_PARSER
 #define PIOS_GPS_SETS_HOMELOCATION
 
 /* Supported receiver interfaces */
-#define PIOS_INCLUDE_RCVR
-#define PIOS_INCLUDE_DSM
-#define PIOS_INCLUDE_HSUM
-#define PIOS_INCLUDE_SBUS
-#define PIOS_INCLUDE_PPM
 #define PIOS_INCLUDE_PWM
-#define PIOS_INCLUDE_GCSRCVR
-#define PIOS_INCLUDE_SRXL
-#define PIOS_INCLUDE_IBUS
 
-#define PIOS_INCLUDE_FLASH
-#define PIOS_INCLUDE_LOGFS_SETTINGS
-#define PIOS_INCLUDE_FLASH_JEDEC
-#define PIOS_INCLUDE_FLASH_INTERNAL
 
 /* OSD stuff */
 #define PIOS_VIDEO_TIM4_COUNTER
@@ -117,9 +79,6 @@
 //#define PIOS_INCLUDE_I2C_ESC
 
 /* Flags that alter behaviors - mostly to lower resources for CC */
-#define PIOS_INCLUDE_INITCALL           /* Include init call structures */
-#define PIOS_TELEM_PRIORITY_QUEUE       /* Enable a priority queue in telemetry */
-//#define PIOS_QUATERNION_STABILIZATION   /* Stabilization options */
 #define PIOS_GPS_SETS_HOMELOCATION      /* GPS options */
 
 #define AUTOTUNE_AVERAGING_MODE
@@ -127,12 +86,6 @@
 #define CAMERASTAB_POI_MODE
 
 /* Alarm Thresholds */
-#define HEAP_LIMIT_WARNING		1000
-#define HEAP_LIMIT_CRITICAL		500
-#define IRQSTACK_LIMIT_WARNING		150
-#define IRQSTACK_LIMIT_CRITICAL		80
-#define CPULOAD_LIMIT_WARNING		80
-#define CPULOAD_LIMIT_CRITICAL		95
 
 /*
  * This has been calibrated 2014/03/01 using chibios @ fbd194c026098076bddd9e45e147828000f39d89
