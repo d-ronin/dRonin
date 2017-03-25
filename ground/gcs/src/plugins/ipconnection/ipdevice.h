@@ -27,6 +27,7 @@
 #define IPDEVICE_H
 
 #include <coreplugin/idevice.h>
+#include "ipconnectionconfiguration.h"
 
 
 /**
@@ -36,8 +37,16 @@
 
 class IPDevice : public Core::IDevice
 {
+Q_OBJECT
+
 public:
     IPDevice();
+
+    IPConnectionConfiguration::Host host() const { return m_host; }
+    void setHost(IPConnectionConfiguration::Host host) { m_host = host; }
+
+private:
+    IPConnectionConfiguration::Host m_host;
 };
 
 #endif // IPDEVICE_H

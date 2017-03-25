@@ -27,27 +27,22 @@
 #include "ipconnectionconfiguration.h"
 #include <coreplugin/icore.h>
 
-IPconnectionConfiguration::IPconnectionConfiguration(QString classId, QSettings* qSettings, QObject *parent) :
-    IUAVGadgetConfiguration(classId, parent),
-    m_HostName("127.0.0.1"),
-    m_Port(1000),
-    m_UseTCP(1)
+IPConnectionConfiguration::IPConnectionConfiguration(QString classId, QSettings* qSettings, QObject *parent) :
+    IUAVGadgetConfiguration(classId, parent)
 {
     Q_UNUSED(qSettings);
 
-    settings = Core::ICore::instance()->settings();
+    qRegisterMetaType<IPConnectionConfiguration::Protocol>();
 }
 
-IPconnectionConfiguration::~IPconnectionConfiguration()
+IPConnectionConfiguration::~IPConnectionConfiguration()
 {
 }
 
-IUAVGadgetConfiguration *IPconnectionConfiguration::clone()
+IUAVGadgetConfiguration *IPConnectionConfiguration::clone()
 {
-    IPconnectionConfiguration *m = new IPconnectionConfiguration(this->classId());
-    m->m_Port = m_Port;
-    m->m_HostName = m_HostName;
-    m->m_UseTCP = m_UseTCP;
+    IPConnectionConfiguration *m = new IPConnectionConfiguration(this->classId());
+    m->setHosts(m_hosts);
     return m;
 }
 
@@ -55,38 +50,44 @@ IUAVGadgetConfiguration *IPconnectionConfiguration::clone()
  * Saves a configuration.
  *
  */
-void IPconnectionConfiguration::saveConfig(QSettings* qSettings) const {
-   qSettings->setValue("port", m_Port);
-   qSettings->setValue("hostName", m_HostName);
-   qSettings->setValue("useTCP", m_UseTCP);
-}
-
-void IPconnectionConfiguration::savesettings() const
+void IPConnectionConfiguration::saveConfig() const
 {
-    settings->beginGroup(QLatin1String("IPconnection"));
+    auto settings = Core::ICore::instance()->settings();
 
-        settings->beginWriteArray("Current");
-        settings->setArrayIndex(0);
-        settings->setValue(QLatin1String("HostName"), m_HostName);
-        settings->setValue(QLatin1String("Port"), m_Port);
-        settings->setValue(QLatin1String("UseTCP"), m_UseTCP);
-        settings->endArray();
-        settings->endGroup();
+    settings->beginGroup(QLatin1String("IPConnection"));
+    settings->beginWriteArray("Hosts");
+
+    for (int i = 0; i < m_hosts.count(); i++) {
+        settings->setArrayIndex(i);
+        settings->setValue("hostname", m_hosts.at(i).hostname);
+        settings->setValue("port", m_hosts.at(i).port);
+        settings->setValue("protocol", m_hosts.at(i).protocol);
+    }
+    settings->endArray();
+    settings->endGroup();
 }
 
 
-void IPconnectionConfiguration::restoresettings()
+void IPConnectionConfiguration::readConfig()
 {
-    settings->beginGroup(QLatin1String("IPconnection"));
+    auto settings = Core::ICore::instance()->settings();
 
-        settings->beginReadArray("Current");
-        settings->setArrayIndex(0);
-        m_HostName = (settings->value(QLatin1String("HostName"), tr("")).toString());
-        m_Port = (settings->value(QLatin1String("Port"), tr("")).toInt());
-        m_UseTCP = (settings->value(QLatin1String("UseTCP"), tr("")).toInt());
-        settings->endArray();
-        settings->endGroup();
-
-
+    m_hosts.clear();
+    settings->beginGroup(QLatin1String("IPConnection"));
+    int elements = qMax<int>(settings->beginReadArray("Hosts"), 1);
+    for (int i = 0; i < elements; i++) {
+        settings->setArrayIndex(i);
+        Host host;
+        host.hostname = settings->value("hostname", "localhost").toString();
+        host.port = settings->value("port", 9000).toInt();
+        host.protocol = static_cast<Protocol>(settings->value("protocol", ProtocolTcp).toInt());
+        m_hosts.append(host);
+    }
+    settings->endArray();
+    settings->endGroup();
 }
 
+/**
+ * @}
+ * @}
+ */

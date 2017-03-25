@@ -3,6 +3,7 @@
  *
  * @file       IPconnectionoptionspage.h
  * @author     The OpenPilot Team, http://www.openpilot.org Copyright (C) 2010.
+ * @author     dRonin, http://dRonin.org/, Copyright (C) 2017
  * @addtogroup GCSPlugins GCS Plugins
  * @{
  * @addtogroup IPConnPlugin IP Telemetry Plugin
@@ -28,8 +29,11 @@
 #define IPconnectionOPTIONSPAGE_H
 
 #include "coreplugin/dialogs/ioptionspage.h"
+#include <QStyledItemDelegate>
+#include <QAbstractTableModel>
+#include "ipconnectionconfiguration.h"
 
-class IPconnectionConfiguration;
+class IPConnectionConfiguration;
 
 namespace Core {
     class IUAVGadgetConfiguration;
@@ -41,12 +45,14 @@ namespace Ui {
 
 using namespace Core;
 
-class IPconnectionOptionsPage : public IOptionsPage
+class IPConnectionOptionsModel;
+
+class IPConnectionOptionsPage : public IOptionsPage
 {
 Q_OBJECT
 public:
-    explicit IPconnectionOptionsPage(IPconnectionConfiguration *config, QObject *parent = 0);
-    virtual ~IPconnectionOptionsPage();
+    explicit IPConnectionOptionsPage(IPConnectionConfiguration *config, QObject *parent = 0);
+    virtual ~IPConnectionOptionsPage();
 
     QString id() const { return QLatin1String("settings"); }
     QString trName() const { return tr("settings"); }
@@ -57,14 +63,63 @@ public:
     void apply();
     void finish();
 
+    enum Columns {
+        ColumnProtocol = 0,
+        ColumnHostname,
+        ColumnPort,
+        ColumnCount
+    };
+
 signals:
     void availableDevChanged();
 
 public slots:
 private:
-    IPconnectionConfiguration *m_config;
+    IPConnectionConfiguration *m_config;
     Ui::IPconnectionOptionsPage *m_page;
+    IPConnectionOptionsModel *m_model;
+};
 
+class IPConnectionOptionsDelegate : public QStyledItemDelegate
+{
+    Q_OBJECT
+
+public:
+    explicit IPConnectionOptionsDelegate(QObject *parent = nullptr)
+        : QStyledItemDelegate(parent) {}
+
+    QWidget *createEditor(QWidget *parent, const QStyleOptionViewItem &option,
+                          const QModelIndex &index) const override;
+    void setEditorData(QWidget *editor, const QModelIndex &index) const override;
+    void setModelData(QWidget *editor, QAbstractItemModel *model,
+                      const QModelIndex &index) const override;
+    void updateEditorGeometry(QWidget *editor,
+        const QStyleOptionViewItem &option, const QModelIndex &index) const override;
+};
+
+class IPConnectionOptionsModel : public QAbstractTableModel
+{
+Q_OBJECT
+
+public:
+    explicit IPConnectionOptionsModel(QObject *parent = nullptr)
+        : QAbstractTableModel(parent) {}
+
+    int rowCount(const QModelIndex &parent = QModelIndex()) const;
+    int columnCount(const QModelIndex &parent = QModelIndex()) const;
+    QVariant data(const QModelIndex &index, int role = Qt::EditRole) const;
+    QVariant headerData(int section, Qt::Orientation orientation,
+                        int role = Qt::DisplayRole) const;
+    Qt::ItemFlags flags(const QModelIndex &index) const;
+    bool setData(const QModelIndex &index, const QVariant &value,
+                 int role = Qt::EditRole);
+    bool insertRows(int position, int rows, const QModelIndex &index = QModelIndex());
+    bool removeRows(int position, int rows, const QModelIndex &index = QModelIndex());
+
+    QVector<IPConnectionConfiguration::Host> &hosts() { return m_hosts; }
+
+private:
+    QVector<IPConnectionConfiguration::Host> m_hosts;
 };
 
 #endif // IPconnectionOPTIONSPAGE_H
