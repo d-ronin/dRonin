@@ -45,7 +45,9 @@
 #include <errno.h>
 #include <fcntl.h>
 
+#ifndef INVALID_SOCKET
 #define INVALID_SOCKET (-1)
+#endif
 
 /* Provide a COM driver */
 static void PIOS_TCP_ChangeBaud(uintptr_t udp_id, uint32_t baud);
