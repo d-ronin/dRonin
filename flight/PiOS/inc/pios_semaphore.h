@@ -32,20 +32,11 @@
 #include <stdint.h>
 #include <stdbool.h>
 
-struct pios_semaphore
-{
-#if defined(PIOS_INCLUDE_FREERTOS)
-	uintptr_t sema_handle;
-#elif defined(PIOS_INCLUDE_CHIBIOS)
-	BinarySemaphore sema;
-#else
-	uint32_t sema_count;
-#endif
-};
+struct pios_semaphore;
 
 /*
  * The following functions implement the concept of a binary semaphore usable
- * with PIOS_INCLUDE_FREERTOS, PIOS_INCLUDE_CHIBIOS or PIOS_INCLUDE_IRQ.
+ * with PIOS_INCLUDE_CHIBIOS or PIOS_INCLUDE_IRQ.
  *
  * Note that this is not the same as:
  * - counting semaphore

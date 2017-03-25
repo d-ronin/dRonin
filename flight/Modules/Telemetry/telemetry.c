@@ -529,7 +529,6 @@ static void updateTelemetryStats()
  */
 static void updateSettings()
 {
-#ifndef SIM_POSIX
 	if (PIOS_COM_TELEM_RF) {
 		// Retrieve settings
 		uint8_t speed;
@@ -537,7 +536,6 @@ static void updateSettings()
 
 		PIOS_HAL_ConfigureSerialSpeed(PIOS_COM_TELEM_RF, speed);
 	}
-#endif
 }
 
 /**

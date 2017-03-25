@@ -974,7 +974,7 @@ $(eval $(call SIM_TEMPLATE,simulation,Simulation,'sim '))
 #
 ##############################
 
-ALL_UNITTESTS := logfs misc_math coordinate_conversions error_correcting dsm timeutils circqueue
+ALL_UNITTESTS := logfs misc_math coordinate_conversions error_correcting dsm timeutils
 ALL_PYTHON_UNITTESTS := python_ut_test
 
 UT_OUT_DIR := $(BUILD_DIR)/unit_tests
@@ -1001,7 +1001,7 @@ all_ut_clean:
 
 # $(1) = Unit test name
 define UT_TEMPLATE
-.PHONY: ut_$(1) ut_$(1)_run
+.PHONY: ut_$(1)
 ut_$(1): ut_$(1)_run
 ut_$(1)_gcov: | ut_$(1)_xml
 

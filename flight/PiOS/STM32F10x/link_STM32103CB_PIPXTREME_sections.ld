@@ -10,7 +10,7 @@ PROVIDE (   vPortSVCHandler = 0 ) ;
 PROVIDE (   xPortPendSVHandler = 0 ) ;
 PROVIDE (   xPortSysTickHandler = 0 ) ;
 
-PROVIDE(pios_board_info_blob = ORIGIN(BD_INFO));
+PROVIDE(pios_board_info_blob = ORIGIN(bd_info));
 
 /* Section Definitions */
 SECTIONS
@@ -22,7 +22,7 @@ SECTIONS
         *(.text .text.* .gnu.linkonce.t.*)
         *(.glue_7t) *(.glue_7)
         *(.rodata .rodata* .gnu.linkonce.r.*)
-    } > FLASH
+    } > flash
 
     /* 
      * Module init section section
@@ -34,17 +34,17 @@ SECTIONS
         KEEP(*(SORT_BY_NAME(.initcall.*)))
         . = ALIGN(4);
         __module_initcall_end   = .;
-    } > FLASH
+    } > flash
 
     .ARM.extab :
     {
         *(.ARM.extab* .gnu.linkonce.armextab.*)
-    } > FLASH
+    } > flash
 
     .ARM.exidx :
     {
         *(.ARM.exidx* .gnu.linkonce.armexidx.*)
-    } > FLASH
+    } > flash
 
     . = ALIGN(4);
     _etext = .;
@@ -65,7 +65,7 @@ SECTIONS
         . = ALIGN(4);
         _irq_stack_top = . - 4 ;
         . = ALIGN(4);
-    } > SRAM
+    } > ram
 
     .data : AT (_etext)
     {
@@ -73,7 +73,7 @@ SECTIONS
         *(.data .data.*)
         . = ALIGN(4);
         _edata = . ;
-    } > SRAM
+    } > ram
 
 
 
@@ -83,7 +83,7 @@ SECTIONS
         _sbss = . ;
         *(SORT_BY_ALIGNMENT(.bss*))
         *(COMMON)
-    } > SRAM
+    } > ram
 
     .heap (NOLOAD) :
     {
@@ -102,12 +102,12 @@ SECTIONS
         . = ALIGN(4);
         _eheap_post_rtos = . ;
         _init_stack_top = . - 4 ;
-    } > SRAM
+    } > ram
 
-    _eram = ORIGIN(SRAM) + LENGTH(SRAM) ;
+    _eram = ORIGIN(ram) + LENGTH(ram) ;
     _ebss = _eram ;
     
-    /* keep the heap section at the end of the SRAM
+    /* keep the heap section at the end of the ram
      * this will allow to claim the remaining bytes not used
      * at run time! (done by the reset vector).
      */

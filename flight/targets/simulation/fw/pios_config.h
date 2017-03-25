@@ -35,7 +35,7 @@
 /* Enable/Disable PiOS Modules */
 #define PIOS_INCLUDE_SYS
 #define PIOS_INCLUDE_ANNUNC
-#define PIOS_INCLUDE_CHIBIOS
+#define PIOS_INCLUDE_RTOS	/* Indicates an RTOS is present */
 
 #define PIOS_INCLUDE_COM
 #define PIOS_INCLUDE_GPS

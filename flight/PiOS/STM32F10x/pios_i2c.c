@@ -33,10 +33,6 @@
 
 #if defined(PIOS_INCLUDE_I2C)
 
-#if defined(PIOS_INCLUDE_FREERTOS)
-#define USE_FREERTOS
-#endif
-
 #include <pios_i2c_priv.h>
 
 //#define I2C_HALT_ON_ERRORS
@@ -346,10 +342,6 @@ static void go_stopping(struct pios_i2c_adapter *i2c_adapter)
 		PIOS_DEBUG_Assert(0);
 #endif
 	}
-
-#ifdef USE_FREERTOS
-	portEND_SWITCHING_ISR(woken ? pdTRUE : pdFALSE);
-#endif
 }
 
 static void go_stopped(struct pios_i2c_adapter *i2c_adapter)

@@ -104,7 +104,6 @@ RTOSINCDIR = $(RTOSSRCDIR)/include
 DOXYGENDIR = ../Doc/Doxygen
 
 SRC = 
-include $(PIOSPOSIXLIB)/ChibiOS/library.mk
 
 # List C source files here. (C dependencies are automatically generated.)
 # use file-extension c for "c-only"-files
@@ -137,8 +136,7 @@ SRC += $(MATHLIB)/misc_math.c
 SRC += $(MATHLIB)/pid.c
 SRC += $(MATHLIB)/lpfilter.c
 
-## PIOS Hardware (STM32F4xx)
-include $(PIOS)/posix/library_chibios.mk
+include $(PIOS)/posix/library.mk
 
 SRC += pios_com.c
 SRC += pios_crc.c

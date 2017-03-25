@@ -123,7 +123,6 @@ struct pios_hsum_dev {
 };
 
 /* Allocate HSUM device descriptor */
-#if defined(PIOS_INCLUDE_FREERTOS) || defined(PIOS_INCLUDE_CHIBIOS)
 static struct pios_hsum_dev *PIOS_HSUM_Alloc(void)
 {
 	struct pios_hsum_dev *hsum_dev;
@@ -135,22 +134,6 @@ static struct pios_hsum_dev *PIOS_HSUM_Alloc(void)
 	hsum_dev->magic = PIOS_HSUM_DEV_MAGIC;
 	return hsum_dev;
 }
-#else
-static struct pios_hsum_dev pios_hsum_devs[PIOS_HSUM_MAX_DEVS];
-static uint8_t pios_hsum_num_devs;
-static struct pios_hsum_dev *PIOS_HSUM_Alloc(void)
-{
-	struct pios_hsum_dev *hsum_dev;
-
-	if (pios_hsum_num_devs >= PIOS_HSUM_MAX_DEVS)
-		return NULL;
-
-	hsum_dev = &pios_hsum_devs[pios_hsum_num_devs++];
-	hsum_dev->magic = PIOS_HSUM_DEV_MAGIC;
-
-	return hsum_dev;
-}
-#endif
 
 /* Validate HSUM device descriptor */
 static bool PIOS_HSUM_Validate(struct pios_hsum_dev *hsum_dev)

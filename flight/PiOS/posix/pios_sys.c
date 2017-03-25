@@ -73,6 +73,9 @@
 static bool debug_fpe=false;
 
 #define MAX_SPI_BUSES 16
+
+bool are_realtime = false;
+
 int num_spi = 0;
 uintptr_t spi_devs[16];
 
@@ -306,7 +309,7 @@ static void go_realtime() {
 	/* Next, let's go hard realtime. */
 
 	struct sched_param sch_p = {
-		.sched_priority = 50
+		.sched_priority = 10
 	};
 
 	rc = sched_setscheduler(0, SCHED_RR, &sch_p);
@@ -315,6 +318,8 @@ static void go_realtime() {
 		perror("sched_setscheduler");
 		exit(1);
 	}
+
+	are_realtime = true;
 #else
 	printf("Only can do realtime stuff on Linux\n");
 	exit(1);
@@ -329,6 +334,8 @@ void PIOS_SYS_Args(int argc, char *argv[]) {
 	saved_argv = argv;
 
 	int opt;
+	
+	bool first_arg = true;
 
 	while ((opt = getopt(argc, argv, "frl:s:d:S:")) != -1) {
 		switch (opt) {
@@ -336,6 +343,11 @@ void PIOS_SYS_Args(int argc, char *argv[]) {
 				debug_fpe = true;
 				break;
 			case 'r':
+				if (!first_arg) {
+					printf("Realtime must be first arg\n");
+					exit(1);
+				}
+
 				go_realtime();
 				break;
 			case 'l':
@@ -401,6 +413,8 @@ void PIOS_SYS_Args(int argc, char *argv[]) {
 				Usage(argv[0]);
 				break;
 		}
+
+		first_arg = false;
 	}
 
 	if (optind < argc) {
@@ -476,8 +490,6 @@ void PIOS_SYS_Init(void)
 */
 int32_t PIOS_SYS_Reset(void)
 {
-	PIOS_Thread_Scheduler_Suspend();
-
 	char *argv[128];
 
 	/* Sigh, ensure NULL termination of array like execvpe(3) expects*/

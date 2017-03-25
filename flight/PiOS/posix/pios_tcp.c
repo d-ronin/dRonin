@@ -45,6 +45,8 @@
 #include <errno.h>
 #include <fcntl.h>
 
+#define INVALID_SOCKET (-1)
+
 /* Provide a COM driver */
 static void PIOS_TCP_ChangeBaud(uintptr_t udp_id, uint32_t baud);
 static void PIOS_TCP_RegisterRxCallback(uintptr_t udp_id, pios_com_callback rx_in_cb, uintptr_t context);
@@ -83,24 +85,6 @@ static pios_tcp_dev * find_tcp_dev_by_id(uintptr_t tcp)
 	return (pios_tcp_dev *) tcp;
 }
 
-static int set_nonblock(int sock) {
-#if defined(_WIN32) || defined(WIN32) || defined(__MINGW32__)
-	unsigned long flag = 1;
-	if (!ioctlsocket(sock, FIONBIO, &flag)) {
-		return 0;
-	}
-#else
-	int flags;
-	if ((flags = fcntl(sock, F_GETFL, 0)) != -1) {
-		if (fcntl(sock, F_SETFL, flags | O_NONBLOCK) != -1) {
-			return 0;
-		}
-	}
-#endif
-
-	return -1;
-}
-
 /**
  * RxTask
  */
@@ -116,14 +100,8 @@ static void PIOS_TCP_RxTask(void *tcp_dev_n)
 	
 		do
 		{
-			/* Polling the fd has to be executed in thread suspended mode
-			 * to get a correct errno value. */
-			PIOS_Thread_Scheduler_Suspend();
-
 			tcp_dev->socket_connection = accept(tcp_dev->socket, NULL, NULL);
 			error = errno;
-
-			PIOS_Thread_Scheduler_Resume();
 
 			PIOS_Thread_Sleep(1);
 		} while (tcp_dev->socket_connection == INVALID_SOCKET && (error == EINTR || error == EAGAIN));
@@ -136,22 +114,14 @@ static void PIOS_TCP_RxTask(void *tcp_dev_n)
 			exit(EXIT_FAILURE);
 		}
 
-		set_nonblock(tcp_dev->socket_connection);
-		
 		fprintf(stderr, "Connection accepted\n");
 
 		while (1) {
 			// Received is used to track the scoket whereas the dev variable is only updated when it can be
 
-			/* Polling the fd has to be executed in thread suspended mode
-			 * to get a correct errno value. */
-			PIOS_Thread_Scheduler_Suspend();
-
 			int result = read(tcp_dev->socket_connection, incoming_buffer, INCOMING_BUFFER_SIZE);
 			error = errno;
 
-			PIOS_Thread_Scheduler_Resume();
-			
 			if (result > 0 && tcp_dev->rx_in_cb) {
 
 				bool rx_need_yield = false;
@@ -224,7 +194,7 @@ int32_t PIOS_TCP_Init(uintptr_t *tcp_id, const struct pios_tcp_cfg * cfg)
 
 	}
 
-	int res= bind(tcp_dev->socket, (struct sockaddr*)&tcp_dev->server, sizeof(tcp_dev->server));
+	int res = bind(tcp_dev->socket, (struct sockaddr*)&tcp_dev->server, sizeof(tcp_dev->server));
 	if (res == -1) {
 		perror("Binding socket failed");
 		exit(EXIT_FAILURE);
@@ -236,9 +206,6 @@ int32_t PIOS_TCP_Init(uintptr_t *tcp_id, const struct pios_tcp_cfg * cfg)
 		exit(EXIT_FAILURE);
 	}
 	
-	/* Set socket nonblocking. */
-	set_nonblock(tcp_dev->socket);
-
 	tcpRxTaskHandle = PIOS_Thread_Create(
 			PIOS_TCP_RxTask, "pios_tcp_rx", PIOS_THREAD_STACK_SIZE_MIN, tcp_dev, PIOS_THREAD_PRIO_HIGHEST);
 	
