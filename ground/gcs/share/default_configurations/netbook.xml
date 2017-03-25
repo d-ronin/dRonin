@@ -1051,7 +1051,7 @@
           <version>0.0.0</version>
         </configInfo>
         <data>
-          <dFile>%%DATAPATH%%dials/deluxe/lineardial-horizontal.svg</dFile>
+          <dFile>%%DATAPATH%%dials/dronin/lineardial-horizontal.svg</dFile>
           <decimalPlaces>2</decimalPlaces>
           <factor>1</factor>
           <font>Arial,8,-1,5,50,0,0,0,0,0</font>
@@ -1074,7 +1074,7 @@
           <version>0.0.0</version>
         </configInfo>
         <data>
-          <dFile>%%DATAPATH%%dials/deluxe/lineardial-horizontal.svg</dFile>
+          <dFile>%%DATAPATH%%dials/dronin/lineardial-horizontal.svg</dFile>
           <decimalPlaces>2</decimalPlaces>
           <factor>1</factor>
           <font>Arial,6,-1,5,50,0,0,0,0,0</font>
@@ -1097,7 +1097,7 @@
           <version>0.0.0</version>
         </configInfo>
         <data>
-          <dFile>%%DATAPATH%%dials/deluxe/lineardial-horizontal.svg</dFile>
+          <dFile>%%DATAPATH%%dials/dronin/lineardial-horizontal.svg</dFile>
           <decimalPlaces>2</decimalPlaces>
           <factor>1</factor>
           <font>Arial,8,-1,5,50,0,0,0,0,0</font>
@@ -1120,7 +1120,7 @@
           <version>0.0.0</version>
         </configInfo>
         <data>
-          <dFile>%%DATAPATH%%dials/default/arm-status.svg</dFile>
+          <dFile>%%DATAPATH%%dials/dronin/arm-status.svg</dFile>
           <decimalPlaces>0</decimalPlaces>
           <factor>1</factor>
           <font>Arial,14,-1,5,50,0,0,0,0,0</font>
@@ -1143,7 +1143,7 @@
           <version>0.0.0</version>
         </configInfo>
         <data>
-          <dFile>%%DATAPATH%%dials/default/textonly.svg</dFile>
+          <dFile>%%DATAPATH%%dials/dronin/textonly.svg</dFile>
           <decimalPlaces>0</decimalPlaces>
           <factor>0.001</factor>
           <font>Arial,14,-1,5,50,0,0,0,0,0</font>
@@ -1166,7 +1166,7 @@
           <version>0.0.0</version>
         </configInfo>
         <data>
-          <dFile>%%DATAPATH%%dials/default/flightmode-status.svg</dFile>
+          <dFile>%%DATAPATH%%dials/dronin/flightmode-status.svg</dFile>
           <decimalPlaces>0</decimalPlaces>
           <factor>1</factor>
           <font>Arial,14,-1,5,50,0,0,0,0,0</font>
@@ -1189,7 +1189,7 @@
           <version>0.0.0</version>
         </configInfo>
         <data>
-          <dFile>%%DATAPATH%%dials/default/gps-signal.svg</dFile>
+          <dFile>%%DATAPATH%%dials/dronin/gps-signal.svg</dFile>
           <decimalPlaces>0</decimalPlaces>
           <factor>1</factor>
           <font>Arial,14,-1,5,50,0,0,0,0,0</font>
@@ -1212,7 +1212,7 @@
           <version>0.0.0</version>
         </configInfo>
         <data>
-          <dFile>%%DATAPATH%%dials/default/gps-status.svg</dFile>
+          <dFile>%%DATAPATH%%dials/dronin/gps-status.svg</dFile>
           <decimalPlaces>0</decimalPlaces>
           <factor>1</factor>
           <font>Arial,14,-1,5,50,0,0,0,0,0</font>
@@ -1235,7 +1235,7 @@
           <version>0.0.0</version>
         </configInfo>
         <data>
-          <dFile>%%DATAPATH%%dials/deluxe/lineardial-vertical.svg</dFile>
+          <dFile>%%DATAPATH%%dials/dronin/lineardial-vertical.svg</dFile>
           <decimalPlaces>0</decimalPlaces>
           <factor>1</factor>
           <font>Arial,14,-1,5,75,0,0,0,0,0</font>
@@ -1258,7 +1258,7 @@
           <version>0.0.0</version>
         </configInfo>
         <data>
-          <dFile>%%DATAPATH%%dials/deluxe/lineardial-vertical.svg</dFile>
+          <dFile>%%DATAPATH%%dials/dronin/lineardial-vertical.svg</dFile>
           <decimalPlaces>2</decimalPlaces>
           <factor>1</factor>
           <font>Arial,14,-1,5,75,0,0,0,0,0</font>
@@ -1281,7 +1281,7 @@
           <version>0.0.0</version>
         </configInfo>
         <data>
-          <dFile>%%DATAPATH%%dials/deluxe/lineardial-vertical.svg</dFile>
+          <dFile>%%DATAPATH%%dials/dronin/lineardial-vertical.svg</dFile>
           <decimalPlaces>2</decimalPlaces>
           <factor>1</factor>
           <font>Arial,14,-1,5,75,0,0,0,0,0</font>
@@ -1304,7 +1304,7 @@
           <version>0.0.0</version>
         </configInfo>
         <data>
-          <dFile>%%DATAPATH%%dials/deluxe/lineardial-vertical.svg</dFile>
+          <dFile>%%DATAPATH%%dials/dronin/lineardial-vertical.svg</dFile>
           <decimalPlaces>2</decimalPlaces>
           <factor>1</factor>
           <font>Arial,14,-1,5,75,0,0,0,0,0</font>
@@ -1327,7 +1327,7 @@
           <version>0.0.0</version>
         </configInfo>
         <data>
-          <dFile>%%DATAPATH%%dials/deluxe/lineardial-vertical.svg</dFile>
+          <dFile>%%DATAPATH%%dials/dronin/lineardial-vertical.svg</dFile>
           <decimalPlaces>2</decimalPlaces>
           <factor>1</factor>
           <font>Arial,14,-1,5,75,0,0,0,0,0</font>
@@ -1350,7 +1350,7 @@
           <version>0.0.0</version>
         </configInfo>
         <data>
-          <dFile>%%DATAPATH%%dials/deluxe/lineardial-vertical.svg</dFile>
+          <dFile>%%DATAPATH%%dials/dronin/lineardial-vertical.svg</dFile>
           <decimalPlaces>2</decimalPlaces>
           <factor>1</factor>
           <font>Arial,14,-1,5,75,0,0,0,0,0</font>
@@ -1373,7 +1373,7 @@
           <version>0.0.0</version>
         </configInfo>
         <data>
-          <dFile>%%DATAPATH%%dials/deluxe/lineardial-horizontal.svg</dFile>
+          <dFile>%%DATAPATH%%dials/dronin/lineardial-horizontal.svg</dFile>
           <decimalPlaces>0</decimalPlaces>
           <factor>1</factor>
           <font>Arial,14,-1,5,75,0,0,0,0,0</font>
@@ -1396,7 +1396,7 @@
           <version>0.0.0</version>
         </configInfo>
         <data>
-          <dFile>%%DATAPATH%%dials/deluxe/lineardial-horizontal.svg</dFile>
+          <dFile>%%DATAPATH%%dials/dronin/lineardial-horizontal.svg</dFile>
           <decimalPlaces>0</decimalPlaces>
           <factor>1</factor>
           <font>Arial,14,-1,5,75,0,0,0,0,0</font>
@@ -1419,7 +1419,7 @@
           <version>0.0.0</version>
         </configInfo>
         <data>
-          <dFile>%%DATAPATH%%dials/deluxe/lineardial-vertical.svg</dFile>
+          <dFile>%%DATAPATH%%dials/dronin/lineardial-vertical.svg</dFile>
           <decimalPlaces>2</decimalPlaces>
           <factor>1</factor>
           <font>Arial,14,-1,5,75,0,0,0,0,0</font>
@@ -1442,7 +1442,7 @@
           <version>0.0.0</version>
         </configInfo>
         <data>
-          <dFile>%%DATAPATH%%dials/deluxe/lineardial-vertical.svg</dFile>
+          <dFile>%%DATAPATH%%dials/dronin/lineardial-vertical.svg</dFile>
           <decimalPlaces>2</decimalPlaces>
           <factor>1</factor>
           <font>Arial,14,-1,5,75,0,0,0,0,0</font>
@@ -1465,7 +1465,7 @@
           <version>0.0.0</version>
         </configInfo>
         <data>
-          <dFile>%%DATAPATH%%dials/deluxe/lineardial-vertical.svg</dFile>
+          <dFile>%%DATAPATH%%dials/dronin/lineardial-vertical.svg</dFile>
           <decimalPlaces>2</decimalPlaces>
           <factor>1</factor>
           <font>Arial,14,-1,5,75,0,0,0,0,0</font>
