@@ -35,3 +35,9 @@ MyTabWidget > QTabBar::tab {
 	max-height: 36px;
 
 }
+
+SystemHealthGadgetWidget {
+	
+	background: #303030;
+
+}
