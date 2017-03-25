@@ -91,7 +91,7 @@ MSDDIR  = $(APPLIBDIR)/msd
 SRC += ${foreach MOD, ${MODULES} ${OPTMODULES}, ${wildcard ${OPMODULEDIR}/${MOD}/*.c}}
 ## OPENPILOT CORE:
 SRC += ${OPMODULEDIR}/System/systemmod.c
-SRC += main.c
+SRC += chibi_main.c
 SRC += board.c
 SRC += pios_board.c
 SRC += $(OPUAVTALK)/uavtalk.c
