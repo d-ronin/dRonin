@@ -142,6 +142,14 @@ MainWindow::MainWindow() :
         {
             m_settings->setValue( *i, originalSettings.value( *i ) );
         }
+
+        if (!originalSettings.isWritable()) {
+            QMessageBox msgBox(QMessageBox::Warning, tr("Settings Not Saved"),
+                               tr("Your settings file (%0) is not writable! "
+                                  "All GCS configuration changes will be lost!")
+                               .arg(Utils::PathUtils().getSettingsFilename()));
+            msgBox.exec();
+        }
     }
 
     setWindowTitle(QLatin1String(Core::Constants::GCS_NAME));
@@ -251,6 +259,10 @@ MainWindow::~MainWindow()
         {
             originalSettings.setValue( *i, m_settings->value( *i ) );
         }
+
+        originalSettings.sync();
+        if (originalSettings.status() != QSettings::NoError)
+            qWarning() << "Failed to saved GCS settings!" << Utils::PathUtils().getSettingsFilename() << originalSettings.status();
     }
 
     delete m_settings;
