@@ -41,3 +41,10 @@ SystemHealthGadgetWidget {
 	background: #303030;
 
 }
+
+LineardialGadgetWidget {
+	
+	background: #303030;
+	border: 1px solid #505050;
+
+}
