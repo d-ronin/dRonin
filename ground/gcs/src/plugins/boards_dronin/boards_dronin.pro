@@ -15,6 +15,7 @@ HEADERS += \
     droninplugin.h \
     simulation.h \
     simulationconfiguration.h \
+    pikoblx.h \
     playuavosd.h \
     seppuku.h \
     seppukuconfiguration.h
@@ -23,6 +24,7 @@ SOURCES += \
     droninplugin.cpp \
     simulation.cpp \
     simulationconfiguration.cpp \
+    pikoblx.cpp \
     playuavosd.cpp \
     seppuku.cpp \
     seppukuconfiguration.cpp

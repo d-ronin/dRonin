@@ -1,7 +1,7 @@
 /**
  ******************************************************************************
- * @file       droninplugin.cpp
- * @author     dRonin, http://dRonin.org/, Copyright (C) 2016
+ * @file       pikoblx.h
+ * @author     dRonin, http://dRonin.org/, Copyright (C) 2017
  * @addtogroup GCSPlugins GCS Plugins
  * @{
  * @addtogroup Boards_dRonin dRonin board support plugin
@@ -27,48 +27,36 @@
  * of this source file; otherwise redistribution is prohibited.
  */
 
-#include "droninplugin.h"
-#include "simulation.h"
-#include "pikoblx.h"
-#include "playuavosd.h"
-#include "seppuku.h"
-#include <QtPlugin>
+#ifndef PIKOBLX_H_
+#define PIKOBLX_H_
 
+#include <uavobjectmanager.h>
+#include <coreplugin/iboardtype.h>
 
-DroninPlugin::DroninPlugin()
+class PikoBLX : public Core::IBoardType
 {
-}
+public:
+    PikoBLX();
+    virtual ~PikoBLX();
 
-DroninPlugin::~DroninPlugin()
-{
-}
+    virtual QString shortName();
+    virtual QString boardDescription();
+    virtual bool queryCapabilities(BoardCapabilities capability);
+    virtual QPixmap getBoardPicture();
+    virtual QString getHwUAVO();
+    virtual bool isInputConfigurationSupported(Core::IBoardType::InputType type);
+    virtual bool setInputType(Core::IBoardType::InputType type);
+    virtual Core::IBoardType::InputType getInputType();
+    virtual int queryMaxGyroRate();
+    virtual QStringList getAdcNames();
+    //virtual QString getConnectionDiagram();
+    //virtual QWidget *getBoardConfiguration(QWidget *parent, bool connected);
 
-bool DroninPlugin::initialize(const QStringList &arguments, QString *errorString)
-{
-   Q_UNUSED(arguments);
-   Q_UNUSED(errorString);
-   return true;
-}
+private:
+    UAVObjectManager *uavoManager;
+};
 
-void DroninPlugin::extensionsInitialized()
-{
-    // Init boards
-    Simulation *sim = new Simulation();
-    addAutoReleasedObject(sim);
-
-    PikoBLX *pikoblx = new PikoBLX();
-    addAutoReleasedObject(pikoblx);
-
-    PlayUavOsd *playuav = new PlayUavOsd();
-    addAutoReleasedObject(playuav);
-
-    Seppuku *seppuku = new Seppuku();
-    addAutoReleasedObject(seppuku);
-}
-
-void DroninPlugin::shutdown()
-{
-}
+#endif // PIKOBLX_H_
 
 /**
  * @}
