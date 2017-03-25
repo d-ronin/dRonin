@@ -15,8 +15,10 @@
 */
 
 /**
- * @addtogroup Targets Target Boards
+ * @addtogroup PIOS PIOS Core hardware abstraction layer
  * @{
+ * @addtogroup ChibiOS ChibiOS Interface
+ * @{ 
  *
  * @file       PiOS/inc/halconf.h
  * @brief   HAL configuration header.
@@ -313,5 +315,6 @@
 /** @} */
 
 /**
+ * @}
  * @}
  */

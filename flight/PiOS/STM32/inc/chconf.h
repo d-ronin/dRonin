@@ -15,9 +15,11 @@
 */
 
 /**
- * @addtogroup Targets Target Boards
+ * @addtogroup PIOS PIOS Core hardware abstraction layer
  * @{
- 
+ * @addtogroup ChibiOS ChibiOS Interface
+ * @{ 
+ *
  * @file    PiOS/inc/chconf.h
  * @brief   Configuration file 
  * @details Generic chconf.h file for flight targets
@@ -578,5 +580,6 @@ typedef uint32_t halrtcnt_t;
 /** @} */
 
 /**
+ * @}
  * @}
  */

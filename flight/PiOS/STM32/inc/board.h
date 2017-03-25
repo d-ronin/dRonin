@@ -16,8 +16,10 @@
 
 /**
  ******************************************************************************
- * @addtogroup Targets Target Boards
+ * @addtogroup PIOS PIOS Core hardware abstraction layer
  * @{
+ * @addtogroup ChibiOS ChibiOS Interface
+ * @{ 
  *
  * @file       PiOS/inc/board.h
  *****************************************************************************/
@@ -56,5 +58,6 @@ extern "C" {
 #endif /* _BOARD_H_ */
 
 /**
+ * @}
  * @}
  */
