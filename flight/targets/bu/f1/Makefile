@@ -31,7 +31,6 @@ ifndef MAKE_INC_DIR
 $(error This Makefile cannot be run directly)
 endif
 include $(MAKE_INC_DIR)/firmware-defs.mk
-include $(BOARD_INFO_DIR)/board-info.mk
 
 # Paths
 PIOSINC = $(PIOS)/inc

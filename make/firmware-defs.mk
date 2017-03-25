@@ -1,3 +1,25 @@
+ifneq ($(BOARD_INFO_DIR)x,x)
+include $(BOARD_INFO_DIR)/board-info.mk
+
+ifdef MACOSX
+SED_EXTARG=-E
+else
+SED_EXTARG=-r
+endif
+
+USB_VEND_EXPAND := $(shell echo -n "$(USB_VEND)" | sed $(SED_EXTARG) -e "s/(.)/'\1',/g" -e 's/,$$//')
+USB_VEND_LEN := $(shell echo -n "$(USB_VEND)" | wc -c)
+
+USB_PROD_EXPAND := $(shell echo -n "$(USB_PROD)" | sed $(SED_EXTARG) -e "s/(.)/'\1',/g" -e 's/,$$//')
+USB_PROD_LEN := $(shell echo -n "$(USB_PROD)" | wc -c)
+
+CFLAGS += "-DUSB_STR_VEND_VAL=$(USB_VEND_EXPAND)"
+CFLAGS += "-DUSB_STR_VEND_LEN=$(USB_VEND_LEN)"
+CFLAGS += "-DUSB_STR_PROD_VAL=$(USB_PROD_EXPAND)"
+CFLAGS += "-DUSB_STR_PROD_LEN=$(USB_PROD_LEN)"
+
+endif
+
 # Toolchain prefix (i.e arm-elf- -> arm-elf-gcc.exe)
 TCHAIN_PREFIX ?= arm-none-eabi-
 
@@ -30,6 +52,7 @@ INSTALL = install
 THUMB   = -mthumb
 
 CFLAGS += '-DDRONIN_TARGET="$(BOARD_NAME)"'
+
 
 # Test if quotes are needed for the echo-command
 result = ${shell echo "test"}
@@ -306,3 +329,4 @@ ifneq ($(BUILD_TYPE),bu)
 endif
 
 EXTRAINCDIRS += $(SHAREDUSBIDDIR)
+

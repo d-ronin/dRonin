@@ -28,7 +28,6 @@
  #####
 
 include $(MAKE_INC_DIR)/firmware-defs.mk
-include $(BOARD_INFO_DIR)/board-info.mk
 
 # Set developer code and compile options
 # Set to YES to compile for debugging

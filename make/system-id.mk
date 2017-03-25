@@ -19,20 +19,20 @@ endif
 # Linux
 ifeq ($(UNAME), Linux)
   OSFAMILY := linux
-  LINUX := 1
+  export LINUX := 1
 endif
 
 # Mac OSX
 ifeq ($(UNAME), Darwin)
   OSFAMILY := macosx
-  MACOSX := 1
+  export MACOSX := 1
 endif
 
 # Windows using MinGW shell
 ifeq (MINGW, $(findstring MINGW,$(UNAME)))
   OSFAMILY := windows
   MINGW := 1
-  WINDOWS := 1
+  export WINDOWS := 1
 endif
 
 # report an error if we couldn't work out what OS this is running on

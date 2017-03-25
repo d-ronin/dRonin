@@ -5,6 +5,9 @@ HW_TYPE             := 0x00		# seems to be unused
 CHIP                := STM32F030K6T6
 BOARD               := FLYINGPIO
 
+USB_VEND            := ""
+USB_PROD            := ""
+
 include $(MAKE_INC_DIR)/firmware-arches.mk
 
 FW_BANK_BASE        := 0x08000000  # Start of firmware flash

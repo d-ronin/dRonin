@@ -1,15 +1,14 @@
 /**
  ******************************************************************************
- * @addtogroup Bootloader Bootloaders
+ * @addtogroup PIOS PIOS Core hardware abstraction layer
  * @{
- * @addtogroup BrainRE1 BrainFPV RE1
+ * @addtogroup PIOS_USB_DESC USB Descriptor definitions
  * @{
  *
- * @file       brainre1/bl/pios_usb_board_data.c
- * @author     dRonin, http://dRonin.org/, Copyright (C) 2016
- * @author     The OpenPilot Team, http://www.openpilot.org Copyright (C) 2010.
+ * @file       PiOS/STM32/pios_usb_board_data.c
+ * @author     dRonin, http://dronin.org, Copyright (C) 2017
  * @author     Tau Labs, http://taulabs.org, Copyright (C) 2012-2013
- * @brief      Board specific USB definitions
+ * @brief      Board specific USB strings
  * @see        The GNU Public License (GPL) Version 3
  *
  *****************************************************************************/
@@ -26,10 +25,6 @@
  *
  * You should have received a copy of the GNU General Public License along
  * with this program; if not, see <http://www.gnu.org/licenses/>
- *
- * Additional note on redistribution: The copyright and license notices above
- * must be maintained in each individual source file that is a derivative work
- * of this source file; otherwise redistribution is prohibited.
  */
 
 #include "pios_usb_board_data.h" /* struct usb_*, USB_* */
@@ -37,13 +32,31 @@
 #include "pios_usbhook.h"	 /* PIOS_USBHOOK_* */
 #include "pios_usb_util.h"	 /* PIOS_USB_UTIL_AsciiToUtf8 */
 
-static const uint8_t usb_product_id[8] = {
-	sizeof(usb_product_id),
-	USB_DESC_TYPE_STRING,
-	'R', 0,
-	'E', 0,
-	'1', 0
-};
+#define U16_CHARSEQ(val) val, 0,
+
+#define U16_CHARS1(val) U16_CHARSEQ(val)
+#define U16_CHARS2(val, ...) U16_CHARSEQ(val) U16_CHARS1(__VA_ARGS__)
+#define U16_CHARS3(val, ...) U16_CHARSEQ(val) U16_CHARS2(__VA_ARGS__)
+#define U16_CHARS4(val, ...) U16_CHARSEQ(val) U16_CHARS3(__VA_ARGS__)
+#define U16_CHARS5(val, ...) U16_CHARSEQ(val) U16_CHARS4(__VA_ARGS__)
+#define U16_CHARS6(val, ...) U16_CHARSEQ(val) U16_CHARS5(__VA_ARGS__)
+#define U16_CHARS7(val, ...) U16_CHARSEQ(val) U16_CHARS6(__VA_ARGS__)
+#define U16_CHARS8(val, ...) U16_CHARSEQ(val) U16_CHARS7(__VA_ARGS__)
+#define U16_CHARS9(val, ...) U16_CHARSEQ(val) U16_CHARS8(__VA_ARGS__)
+#define U16_CHARS10(val, ...) U16_CHARSEQ(val) U16_CHARS9(__VA_ARGS__)
+#define U16_CHARS11(val, ...) U16_CHARSEQ(val) U16_CHARS10(__VA_ARGS__)
+#define U16_CHARS12(val, ...) U16_CHARSEQ(val) U16_CHARS11(__VA_ARGS__)
+#define U16_CHARS13(val, ...) U16_CHARSEQ(val) U16_CHARS12(__VA_ARGS__)
+#define U16_CHARS14(val, ...) U16_CHARSEQ(val) U16_CHARS13(__VA_ARGS__)
+#define U16_CHARS15(val, ...) U16_CHARSEQ(val) U16_CHARS14(__VA_ARGS__)
+#define U16_CHARS16(val, ...) U16_CHARSEQ(val) U16_CHARS15(__VA_ARGS__)
+#define U16_CHARS17(val, ...) U16_CHARSEQ(val) U16_CHARS16(__VA_ARGS__)
+
+#define GENERATE_USB_STRING_IMPL(name, n, ...) static const uint8_t name[n*2+2] = { n*2+2, USB_DESC_TYPE_STRING, U16_CHARS##n(__VA_ARGS__) }
+#define GENERATE_USB_STRING(name, n, v) GENERATE_USB_STRING_IMPL(name, n, v)
+
+GENERATE_USB_STRING(usb_product_id, USB_STR_PROD_LEN, USB_STR_PROD_VAL);
+GENERATE_USB_STRING(usb_vendor_id, USB_STR_VEND_LEN, USB_STR_VEND_VAL);
 
 static uint8_t usb_serial_number[2 + PIOS_SYS_SERIAL_NUM_ASCII_LEN*2 + (sizeof(PIOS_USB_BOARD_SN_SUFFIX)-1)*2] = {
 	sizeof(usb_serial_number),
@@ -54,19 +67,6 @@ static const struct usb_string_langid usb_lang_id = {
 	.bLength = sizeof(usb_lang_id),
 	.bDescriptorType = USB_DESC_TYPE_STRING,
 	.bLangID = htousbs(USB_LANGID_ENGLISH_US),
-};
-
-static const uint8_t usb_vendor_id[24] = {
-	sizeof(usb_vendor_id),
-	USB_DESC_TYPE_STRING,
-	'B', 0,
-	'r', 0,
-	'a', 0,
-	'i', 0,
-	'n', 0,
-	'F', 0,
-	'P', 0,
-	'V', 0
 };
 
 int32_t PIOS_USB_BOARD_DATA_Init(void)

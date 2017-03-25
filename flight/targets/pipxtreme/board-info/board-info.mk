@@ -8,6 +8,9 @@ BOARD               := STM32103CB_PIPXTREME
 MODEL               := MD
 MODEL_SUFFIX        := _PX
 
+USB_VEND            := "OpenPilot"
+USB_PROD            := "PipXtreme"
+
 include $(MAKE_INC_DIR)/firmware-arches.mk
 
 # Note: These must match the values in link_$(BOARD)_memory.ld

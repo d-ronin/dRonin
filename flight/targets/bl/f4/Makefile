@@ -32,7 +32,6 @@ ifndef MAKE_INC_DIR
 $(error This Makefile cannot be run directly)
 endif
 include $(MAKE_INC_DIR)/firmware-defs.mk
-include $(BOARD_INFO_DIR)/board-info.mk
 
 # Paths
 PIOSINC = $(PIOS)/inc
@@ -50,7 +49,7 @@ SRC += $(BLCOMMONDIR)/bl_xfer.c
 
 ## Bootloader (board specific implementations)
 SRC += $(BLBOARDDIR)/pios_board.c
-SRC += $(BLBOARDDIR)/pios_usb_board_data.c
+SRC += $(PIOS)/STM32/pios_usb_board_data.c
 
 ## PIOS Hardware (STM32F4xx)
 PIOS_DEVLIB			:=	$(PIOS)/STM32F4xx

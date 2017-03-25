@@ -8,6 +8,9 @@ BOARD               := STM32F4xx_AQ32
 MODEL               := HD
 MODEL_SUFFIX        := 
 
+USB_VEND            := "AeroQuad"
+USB_PROD            := "AQ32"
+
 include $(MAKE_INC_DIR)/firmware-arches.mk
 
 # Note: These must match the values in link_$(BOARD)_memory.ld

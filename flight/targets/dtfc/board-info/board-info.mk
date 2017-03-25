@@ -8,6 +8,9 @@ BOARD               := STM32F30x_DTFc
 MODEL               := HD
 MODEL_SUFFIX        := 
 
+USB_VEND            := "DTF Air"
+USB_PROD            := "DTFc"
+
 include $(MAKE_INC_DIR)/firmware-arches.mk
 
 # Note: These must match the values in link_$(BOARD)_memory.ld
