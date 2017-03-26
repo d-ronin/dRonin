@@ -66,10 +66,7 @@ public:
     virtual QString connectionName();
     virtual QString shortName();
 
-    IPconnectionConfiguration * Config() const { return m_config; }
-    IPconnectionOptionsPage * Optionspage() const { return m_optionspage; }
-
-
+    IPConnectionOptionsPage *optionsPage() const { return m_optionspage; }
 
 protected slots:
     void onEnumerationChanged();
@@ -77,21 +74,21 @@ protected slots:
 private:
     void openDevice(QString HostName, int Port, bool UseTCP);
     QAbstractSocket *ipSocket;
-    IPconnectionConfiguration *m_config;
-    IPconnectionOptionsPage *m_optionspage;
-    IPDevice dev;
+    IPConnectionConfiguration *m_config;
+    IPConnectionOptionsPage *m_optionspage;
+    QList<Core::IDevice *> devices;
     QString errorMsg;
 };
 
 
-class IPconnection_EXPORT IPconnectionPlugin
+class IPconnection_EXPORT IPConnectionPlugin
     : public ExtensionSystem::IPlugin
 {
     Q_OBJECT
-    Q_PLUGIN_METADATA(IID "org.dronin.plugins.IPconnection")
+    Q_PLUGIN_METADATA(IID "org.dronin.plugins.IPConnection")
 public:
-    IPconnectionPlugin();
-    ~IPconnectionPlugin();
+    IPConnectionPlugin();
+    ~IPConnectionPlugin();
 
     virtual bool initialize(const QStringList &arguments, QString *error_message);
     virtual void extensionsInitialized();

@@ -50,10 +50,10 @@ IPConnection::IPConnection()
 {
     ipSocket = NULL;
     //create all our objects
-    m_config = new IPconnectionConfiguration("IP Network Telemetry", NULL, this);
-    m_config->restoresettings();
+    m_config = new IPConnectionConfiguration("IP Network Telemetry", NULL, this);
+    m_config->readConfig();
 
-    m_optionspage = new IPconnectionOptionsPage(m_config,this);
+    m_optionspage = new IPConnectionOptionsPage(m_config,this);
 
     //just signal whenever we have a device event...
     QMainWindow *mw = Core::ICore::instance()->mainWindow();
@@ -76,27 +76,54 @@ void IPConnection::onEnumerationChanged()
     emit availableDevChanged(this);
 }
 
-
-
 QList<IDevice *> IPConnection::availableDevices()
 {
-    QList <Core::IDevice*> list;
-    if (m_config->HostName().length()>1)
-        dev.setDisplayName(m_config->HostName());
-    else
-        dev.setDisplayName("Unconfigured");
-    dev.setName(m_config->HostName());
-    //we only have one "device" as defined by the configuration m_config
-    list.append(&dev);
+    const auto &newHosts = m_config->hosts();
 
-    return list;
+    // add new devices
+    for (const auto &host : newHosts) {
+        bool found = false;
+        for (auto dev : devices) {
+            if (static_cast<const IPDevice *>(dev)->host() == host) {
+                found = true;
+                break;
+            }
+        }
+        if (!found) {
+            auto dev = new IPDevice();
+            QString name = QString("%0://%1:%2")
+                    .arg(host.protocol == IPConnectionConfiguration::ProtocolTcp ? "tcp" : "udp")
+                    .arg(host.hostname)
+                    .arg(host.port);
+            dev->setDisplayName(name);
+            dev->setName(name);
+            dev->setHost(host);
+            devices.append(dev);  // TODO: memory leak, seems like an awkward interface..?
+        }
+    }
+
+    // clear out removed devices
+    for (int i = 0; i < devices.length(); ) {
+        if (!newHosts.contains(static_cast<const IPDevice *>(devices.at(i))->host())) {
+            devices.at(i)->deleteLater();
+            devices.removeAt(i);
+        } else {
+            i++;
+        }
+    }
+
+    return devices;
 }
 
-void IPConnection::openDevice(QString HostName, int Port, bool UseTCP)
+QIODevice *IPConnection::openDevice(Core::IDevice *device)
 {
-    const int Timeout = 5 * 1000;
+    auto *dev = qobject_cast<IPDevice *>(device);
+    if (!dev)
+        return nullptr;
 
-    if (UseTCP) {
+    const int timeout = 5 * 1000;
+
+    if (dev->host().protocol == IPConnectionConfiguration::ProtocolTcp) {
         ipSocket = new QTcpSocket(this);
     } else {
         ipSocket = new QUdpSocket(this);
@@ -112,56 +139,28 @@ void IPConnection::openDevice(QString HostName, int Port, bool UseTCP)
     ipSocket->bind(0, QAbstractSocket::ShareAddress);
 
     //do sanity check on hostname and port...
-    if((HostName.length()==0)||(Port<1)){
-        errorMsg = "Please configure Host and Port options before opening the connection";
-
+    if (!dev->host().hostname.length() || dev->host().port < 1 || dev->host().port > 65535){
+        errorMsg = tr("Please configure host and port options before opening the connection");
     } else {
-        //try to connect...
-        ipSocket->connectToHost(HostName, Port);
+        // try to connect...
+        ipSocket->connectToHost(dev->host().hostname, static_cast<quint16>(dev->host().port));
 
-        //in blocking mode so we wait for the connection to succeed
-        if (ipSocket->waitForConnected(Timeout)) {
-            return;
+        // in blocking mode so we wait for the connection to succeed
+        if (ipSocket->waitForConnected(timeout)) {
+            return ipSocket;
         }
 
         // tell user what went wrong
-        errorMsg = ipSocket->errorString ();
+        errorMsg = ipSocket->errorString();
 
         delete ipSocket;
+        ipSocket = nullptr;
 
-        ipSocket = NULL;
-    }
-}
-
-QIODevice *IPConnection::openDevice(Core::IDevice *deviceName)
-{
-    Q_UNUSED(deviceName)
-
-    QString HostName;
-    int Port;
-    bool UseTCP;
-    QMessageBox msgBox;
-
-    //get the configuration info
-    HostName = m_config->HostName();
-    Port = m_config->Port();
-    UseTCP = m_config->UseTCP();
-
-    if (ipSocket){
-        ipSocket->close();
-        delete ipSocket;
-        ipSocket = NULL;
-    }
-
-    openDevice(HostName, Port, UseTCP);
-
-    if(ipSocket == NULL)
-    {
-        msgBox.setText((const QString )errorMsg);
+        QMessageBox msgBox(QMessageBox::Critical, tr("Connection Failed"), errorMsg);
         msgBox.exec();
     }
 
-    return ipSocket;
+    return nullptr;
 }
 
 void IPConnection::closeDevice(const QString &)
@@ -181,29 +180,25 @@ QString IPConnection::connectionName()
 
 QString IPConnection::shortName()
 {
-    if (m_config->UseTCP()) {
-        return QString("TCP");
-    } else {
-        return QString("UDP");
-    }
+    return tr("IP");
 }
 
 
-IPconnectionPlugin::IPconnectionPlugin()
+IPConnectionPlugin::IPConnectionPlugin()
 {//no change from serial plugin
 }
 
-IPconnectionPlugin::~IPconnectionPlugin()
+IPConnectionPlugin::~IPConnectionPlugin()
 {//manually remove the options page object
-    removeObject(m_connection->Optionspage());
+    removeObject(m_connection->optionsPage());
 }
 
-void IPconnectionPlugin::extensionsInitialized()
+void IPConnectionPlugin::extensionsInitialized()
 {
     addAutoReleasedObject(m_connection);
 }
 
-bool IPconnectionPlugin::initialize(const QStringList &arguments, QString *errorString)
+bool IPConnectionPlugin::initialize(const QStringList &arguments, QString *errorString)
 {
     Q_UNUSED(arguments);
     Q_UNUSED(errorString);
@@ -211,7 +206,17 @@ bool IPconnectionPlugin::initialize(const QStringList &arguments, QString *error
     //must manage this registration of child object ourselves
     //if we use an autorelease here it causes the GCS to crash
     //as it is deleting objects as the app closes...
-    addObject(m_connection->Optionspage());
+    addObject(m_connection->optionsPage());
 
     return true;
 }
+
+/*void IPConnectionPlugin::readConfig(QSettings *settings, Core::UAVConfigInfo *configInfo)
+{
+
+}
+
+void IPConnectionPlugin::saveConfig(QSettings *settings, Core::UAVConfigInfo *configInfo)
+{
+
+}*/

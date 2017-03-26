@@ -28,46 +28,49 @@
 #define IPconnectionCONFIGURATION_H
 
 #include <coreplugin/iuavgadgetconfiguration.h>
-#include <QtCore/QString>
-#include <QtCore/QSettings>
+#include <QString>
+#include <QSettings>
+#include <QVector>
+#include <QMetaType>
 
 using namespace Core;
 
-class IPconnectionConfiguration : public IUAVGadgetConfiguration
+class IPConnectionConfiguration : public IUAVGadgetConfiguration
 {
 Q_OBJECT
-Q_PROPERTY(QString HostName READ HostName WRITE setHostName)
-Q_PROPERTY(int Port READ Port WRITE setPort)
-Q_PROPERTY(int UseTCP READ UseTCP WRITE setUseTCP)
 
 public:
-    explicit IPconnectionConfiguration(QString classId, QSettings* qSettings = 0, QObject *parent = 0);
+    explicit IPConnectionConfiguration(QString classId, QSettings* qSettings = 0, QObject *parent = 0);
 
-    virtual ~IPconnectionConfiguration();
-    void saveConfig(QSettings* settings) const;
-    //void savesettings(QSettings* settings) const;
-    //void restoresettings(QSettings* settings);
-    void savesettings() const;
-    void restoresettings();
-     IUAVGadgetConfiguration *clone();
+    virtual ~IPConnectionConfiguration();
+    void saveConfig() const;
+    void readConfig();
+    IUAVGadgetConfiguration *clone();
 
-    QString HostName() const { return m_HostName; }
-    int Port() const { return m_Port; }
-    int UseTCP() const { return m_UseTCP; }
+    enum Protocol {
+        ProtocolTcp,
+        ProtocolUdp,
+    };
 
+    struct Host {
+        Protocol protocol = ProtocolTcp;
+        QString hostname = "localhost";
+        int port = 9000;
 
-public slots:
-    void setHostName(QString HostName) { m_HostName = HostName; }
-    void setPort(int Port) { m_Port = Port; }
-    void setUseTCP(int UseTCP) { m_UseTCP = UseTCP; }
+        inline bool operator==(const Host& rhs) const {
+            return protocol == rhs.protocol
+                    && port == rhs.port
+                    && hostname == rhs.hostname;
+        }
+    };
+
+    QVector<Host> &hosts() { return m_hosts; }
+    void setHosts(QVector<Host> &hosts) { m_hosts = hosts; }
 
 private:
-    QString m_HostName;
-    int m_Port;
-    int m_UseTCP;
-    QSettings* settings;
-
-
+    QVector<Host> m_hosts;
 };
+
+Q_DECLARE_METATYPE(IPConnectionConfiguration::Protocol)
 
 #endif // IPconnectionCONFIGURATION_H
