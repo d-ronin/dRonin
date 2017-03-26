@@ -8,6 +8,9 @@ ifeq ($(BUILD_UAVO), YES)
 SRC += $(wildcard $(OPUAVSYNTHDIR)/*.c )
 endif
 
+## MODULES
+SRC += ${foreach MOD, ${MODULES} ${OPTMODULES}, ${wildcard ${OPMODULEDIR}/${MOD}/*.c}}
+
 # List of all source files.
 ALLSRC     :=  $(ASRC) $(SRC) $(CPPSRC)
 

@@ -65,8 +65,6 @@ LINKER_SCRIPTS_APP = memory.ld sections.ld
 # List C source files here. (C dependencies are automatically generated.)
 # use file-extension c for "c-only"-files
 
-## MODULES
-SRC += ${foreach MOD, ${MODULES} ${OPTMODULES}, ${wildcard ${OPMODULEDIR}/${MOD}/*.c}}
 ## OPENPILOT CORE:
 #SRC += ${OPMODULEDIR}/System/systemmod.c
 SRC += system_stm32f0xx.c

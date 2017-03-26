@@ -97,8 +97,6 @@ include $(APPLIBDIR)/ChibiOS/library.mk
 # List C source files here. (C dependencies are automatically generated.)
 # use file-extension c for "c-only"-files
 
-## MODULES
-SRC += ${foreach MOD, ${MODULES} ${OPTMODULES}, ${wildcard ${OPMODULEDIR}/${MOD}/*.c}}
 ## OPENPILOT CORE:
 SRC += chibi_main.c
 SRC += pios_board.c
