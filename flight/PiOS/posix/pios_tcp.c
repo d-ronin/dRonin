@@ -121,7 +121,7 @@ static void PIOS_TCP_RxTask(void *tcp_dev_n)
 		while (1) {
 			// Received is used to track the scoket whereas the dev variable is only updated when it can be
 
-			int result = read(tcp_dev->socket_connection, incoming_buffer, INCOMING_BUFFER_SIZE);
+			int result = recv(tcp_dev->socket_connection, (char *) incoming_buffer, INCOMING_BUFFER_SIZE, 0);
 			error = errno;
 
 			if (result > 0 && tcp_dev->rx_in_cb) {
@@ -173,6 +173,9 @@ int32_t PIOS_TCP_Init(uintptr_t *tcp_id, const struct pios_tcp_cfg * cfg)
 
 #if defined(_WIN32) || defined(WIN32) || defined(__MINGW32__)
 	char optval = 1;
+	char optoff = 0;
+
+	setsockopt(tcp_dev->socket, IPPROTO_IPV6, IPV6_V6ONLY, &optoff, sizeof(optoff));
 #else
 	int optval = 1;
 #endif
@@ -189,12 +192,6 @@ int32_t PIOS_TCP_Init(uintptr_t *tcp_id, const struct pios_tcp_cfg * cfg)
 	tcp_dev->server.sin6_family = AF_INET6;
 	tcp_dev->server.sin6_addr = in6addr_any;
 	tcp_dev->server.sin6_port = htons(tcp_dev->cfg->port);
-
-	/* set socket options */
-	int value = 1;
-	if (setsockopt(tcp_dev->socket, SOL_SOCKET, SO_REUSEADDR, (char*)&value, sizeof(value)) == -1) {
-
-	}
 
 	int res = bind(tcp_dev->socket, (struct sockaddr*)&tcp_dev->server, sizeof(tcp_dev->server));
 	if (res == -1) {
@@ -254,7 +251,7 @@ static void PIOS_TCP_TxStart(uintptr_t tcp_id, uint16_t tx_bytes_avail)
 			while (rem > 0) {
 				ssize_t len = 0;
 				if (tcp_dev->socket_connection != INVALID_SOCKET) {
-					len = write(tcp_dev->socket_connection, tcp_dev->tx_buffer, length);
+					len = send(tcp_dev->socket_connection, (char *) tcp_dev->tx_buffer, length, 0);
 				}
 				if (len <= 0) {
 					rem = 0;

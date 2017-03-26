@@ -117,6 +117,12 @@ uint32_t PIOS_Thread_Systime(void)
 
 void PIOS_Thread_Sleep(uint32_t time_ms)
 {
+	if (time_ms == PIOS_THREAD_TIMEOUT_MAX) {
+		while (true) {
+			usleep(50000000); /* 50s */
+		}
+	}
+
 	usleep(1000 * time_ms);
 }
 
