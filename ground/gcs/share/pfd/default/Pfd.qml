@@ -1,7 +1,9 @@
 import QtQuick 2.0
 
 Rectangle {
-    color: "#666666"
+    color: "#303030"
+    border.color: "#505050"
+    border.width: 1
 
     SvgElementImage {
         id: background
