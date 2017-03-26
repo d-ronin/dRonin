@@ -92,7 +92,7 @@ const int max_update_rate_list[] = {100, 200, 500, 1000, 2000, 5000};           
 
 
 // constructor
-OPMapGadgetWidget::OPMapGadgetWidget(QWidget *parent) : QWidget(parent)
+OPMapGadgetWidget::OPMapGadgetWidget(QWidget *parent) : QFrame(parent)
 {
     // **************
 

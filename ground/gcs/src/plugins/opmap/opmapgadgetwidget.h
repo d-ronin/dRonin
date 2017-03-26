@@ -91,7 +91,7 @@ enum opMapModeType { Normal_MapMode = 0,
 
 class WindVelocityActual;
 
-class OPMapGadgetWidget : public QWidget
+class OPMapGadgetWidget : public QFrame
 {
     Q_OBJECT
 
