@@ -173,6 +173,9 @@ int32_t PIOS_TCP_Init(uintptr_t *tcp_id, const struct pios_tcp_cfg * cfg)
 
 #if defined(_WIN32) || defined(WIN32) || defined(__MINGW32__)
 	char optval = 1;
+	char optoff = 0;
+
+	setsockopt(tcp_dev->socket, IPPROTO_IPV6, IPV6_V6ONLY, &optoff, sizeof(optoff));
 #else
 	int optval = 1;
 #endif
@@ -189,12 +192,6 @@ int32_t PIOS_TCP_Init(uintptr_t *tcp_id, const struct pios_tcp_cfg * cfg)
 	tcp_dev->server.sin6_family = AF_INET6;
 	tcp_dev->server.sin6_addr = in6addr_any;
 	tcp_dev->server.sin6_port = htons(tcp_dev->cfg->port);
-
-	/* set socket options */
-	int value = 1;
-	if (setsockopt(tcp_dev->socket, SOL_SOCKET, SO_REUSEADDR, (char*)&value, sizeof(value)) == -1) {
-
-	}
 
 	int res = bind(tcp_dev->socket, (struct sockaddr*)&tcp_dev->server, sizeof(tcp_dev->server));
 	if (res == -1) {
