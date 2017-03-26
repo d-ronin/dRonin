@@ -302,7 +302,7 @@ ifeq ($(ENABLE_DEBUG_CONSOLE), YES)
 CDEFS += -DPIOS_INCLUDE_DEBUG_CONSOLE
 endif
 CDEFS += -DSTM32F40_41xxx
-CDEFS += -DCORTEX_VTOR_INIT='($(FW_BANK_BASE) - $(EF_BANK_BASE))'
+CDEFS += '-DCORTEX_VTOR_INIT=($(FW_BANK_BASE)-$(EF_BANK_BASE))'
 
 # Declare all non-optional modules as built-in to force inclusion
 get_mod_name = $(shell echo $(1) | sed "s/\/[^\/]*$///")

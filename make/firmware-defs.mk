@@ -14,9 +14,9 @@ USB_PROD_EXPAND := $(shell echo -n "$(USB_PROD)" | sed $(SED_EXTARG) -e "s/(.)/'
 USB_PROD_LEN := $(shell echo -n "$(USB_PROD)" | wc -c)
 
 CFLAGS += "-DUSB_STR_VEND_VAL=$(USB_VEND_EXPAND)"
-CFLAGS += "-DUSB_STR_VEND_LEN=$(USB_VEND_LEN)"
+CFLAGS += -DUSB_STR_VEND_LEN=$(USB_VEND_LEN)
 CFLAGS += "-DUSB_STR_PROD_VAL=$(USB_PROD_EXPAND)"
-CFLAGS += "-DUSB_STR_PROD_LEN=$(USB_PROD_LEN)"
+CFLAGS += -DUSB_STR_PROD_LEN=$(USB_PROD_LEN)
 
 endif
 
@@ -53,7 +53,6 @@ INSTALL = install
 THUMB   = -mthumb
 
 CFLAGS += '-DDRONIN_TARGET="$(BOARD_NAME)"'
-
 
 # Test if quotes are needed for the echo-command
 result = ${shell echo "test"}
@@ -230,7 +229,7 @@ endef
 define LINK_TEMPLATE
 .SECONDARY: $(1)
 .PRECIOUS: $(2)
-$(1): CFLAGS_LINK = $$(filter-out -I%,$$(CFLAGS))
+$(1): CFLAGS_LINK = $$(filter-out -D%,$$(filter-out -I%,$$(CFLAGS)))
 $(1): $(2)
 	@echo $(MSG_LINKING) $$(call toprel, $$@)
 	$(V1) $(BARECC) $(THUMB) $$(CFLAGS_LINK) $(2) --output $$@ $$(LDFLAGS)
