@@ -39,6 +39,7 @@ endif
 
 # Define toolchain component names.
 CC      = $(CCACHE) $(TCHAIN_PREFIX)gcc
+BARECC  = $(TCHAIN_PREFIX)gcc
 CXX     = $(CCACHE) $(TCHAIN_PREFIX)g++
 AR      = $(TCHAIN_PREFIX)ar
 OBJCOPY = $(TCHAIN_PREFIX)objcopy
@@ -232,7 +233,7 @@ define LINK_TEMPLATE
 $(1): CFLAGS_LINK = $$(filter-out -I%,$$(CFLAGS))
 $(1): $(2)
 	@echo $(MSG_LINKING) $$(call toprel, $$@)
-	$(V1) $(CC) $(THUMB) $$(CFLAGS_LINK) $(2) --output $$@ $$(LDFLAGS)
+	$(V1) $(BARECC) $(THUMB) $$(CFLAGS_LINK) $(2) --output $$@ $$(LDFLAGS)
 ifneq ($(TCHAIN_PREFIX),)
 	@echo $(MSG_DEBUG_SYMBOLS) $$(call toprel, $$@)
 	$(V1) $(OBJCOPY) --only-keep-debug $$@ $$(addsuffix .debug, $$(@:.elf=))
