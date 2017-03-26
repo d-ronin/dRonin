@@ -1018,8 +1018,6 @@ ut_$(1)_%: $$(UT_OUT_DIR)
 		REMOVE_CMD="$(RM)" \
 		\
 		ROOT_DIR=$(ROOT_DIR) \
-		BOARD_ROOT_DIR=$$(BOARD_ROOT_DIR) \
-		BOARD_INFO_DIR=$$(BOARD_ROOT_DIR)/board-info \
 		TARGET=$$(TARGET) \
 		OUTDIR=$$(OUTDIR) \
 		\
