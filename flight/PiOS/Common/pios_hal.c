@@ -1299,17 +1299,19 @@ int PIOS_HAL_ConfigureExternalBaro(HwSharedExtBaroOptions baro,
 #if defined(PIOS_INCLUDE_MS5611)
 	case HWSHARED_EXTBARO_MS5611:
 		ret = PIOS_MS5611_Init(&external_ms5611_cfg, *i2c_id);
+
 		if (ret) goto done;
 
 		ret = PIOS_MS5611_Test();
 
 		if (ret) goto done;
-#endif // PIOS_INCLUDE_MS5611
-		
+
 		break;
+#endif // PIOS_INCLUDE_MS5611
 
 	default:
 		PIOS_Assert(0);	// Should be unreachable
+		break;
 	}
 
 done:
