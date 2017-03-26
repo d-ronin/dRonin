@@ -121,7 +121,7 @@ static void PIOS_TCP_RxTask(void *tcp_dev_n)
 		while (1) {
 			// Received is used to track the scoket whereas the dev variable is only updated when it can be
 
-			int result = read(tcp_dev->socket_connection, incoming_buffer, INCOMING_BUFFER_SIZE);
+			int result = recv(tcp_dev->socket_connection, (char *) incoming_buffer, INCOMING_BUFFER_SIZE, 0);
 			error = errno;
 
 			if (result > 0 && tcp_dev->rx_in_cb) {
@@ -254,7 +254,7 @@ static void PIOS_TCP_TxStart(uintptr_t tcp_id, uint16_t tx_bytes_avail)
 			while (rem > 0) {
 				ssize_t len = 0;
 				if (tcp_dev->socket_connection != INVALID_SOCKET) {
-					len = write(tcp_dev->socket_connection, tcp_dev->tx_buffer, length);
+					len = send(tcp_dev->socket_connection, (char *) tcp_dev->tx_buffer, length, 0);
 				}
 				if (len <= 0) {
 					rem = 0;
