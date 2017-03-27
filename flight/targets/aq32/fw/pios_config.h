@@ -32,6 +32,7 @@
 #include <pios_flight_config.h>
 
 /* Major features */
+#define PIOS_INCLUDE_FLASH_JEDEC
 
 /* Enable/Disable PiOS Modules */
 #define PIOS_INCLUDE_I2C
