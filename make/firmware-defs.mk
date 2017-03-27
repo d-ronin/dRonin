@@ -1,10 +1,18 @@
 ifneq ($(BOARD_INFO_DIR)x,x)
 include $(BOARD_INFO_DIR)/board-info.mk
 
+ALL_LOAD_ARG := -Wl,-whole-archive
+NO_ALL_LOAD_ARG := -Wl,-no-whole-archive
+SED_EXTARG:=-r
+
 ifdef MACOSX
-SED_EXTARG=-E
-else
-SED_EXTARG=-r
+SED_EXTARG := -E
+
+ifeq ($(TCHAIN_PREFIX),)
+ALL_LOAD_ARG := -Wl,-all_load
+NO_ALL_LOAD_ARG :=
+endif
+
 endif
 
 USB_VEND_EXPAND := $(shell env echo -n "$(USB_VEND)" | sed $(SED_EXTARG) -e "s/(.)/'\1',/g" -e 's/,$$//')
@@ -232,7 +240,7 @@ define LINK_TEMPLATE
 $(1): CFLAGS_LINK = $$(filter-out -D%,$$(filter-out -I%,$$(CFLAGS)))
 $(1): $(2)
 	@echo $(MSG_LINKING) $$(call toprel, $$@)
-	$(V1) $(BARECC) $(THUMB) $$(CFLAGS_LINK) -Wl,-whole-archive $(2) -Wl,-no-whole-archive --output $$@ $$(LDFLAGS)
+	$(V1) $(BARECC) $(THUMB) $$(CFLAGS_LINK) $(ALL_LOAD_ARG) $(2) $(NO_ALL_LOAD_ARG) --output $$@ $$(LDFLAGS)
 ifneq ($(TCHAIN_PREFIX),)
 	@echo $(MSG_DEBUG_SYMBOLS) $$(call toprel, $$@)
 	$(V1) $(OBJCOPY) --only-keep-debug $$@ $$(addsuffix .debug, $$(@:.elf=))
