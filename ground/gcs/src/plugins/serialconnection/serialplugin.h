@@ -57,8 +57,8 @@ public:
     virtual QIODevice *openDevice(Core::IDevice *deviceName);
     virtual void closeDevice(const QString &deviceName);
 
-    virtual QString connectionName() const;
-    virtual QString shortName() const;
+    virtual QString connectionName();
+    virtual QString shortName();
     virtual void suspendPolling();
     virtual void resumePolling();
     virtual bool reconnect() { return m_config->reconnect(); }

@@ -157,7 +157,7 @@ bool ConnectionManager::connectDevice(DevListItem device)
     connect(m_connectionDevice.connection, SIGNAL(destroyed(QObject *)), this, SLOT(onConnectionDestroyed(QObject *)), Qt::QueuedConnection);
 
     // signal interested plugins that we connected to the device
-    emit connectionStatusChanged(true);
+    emit deviceConnected(io_dev);
     m_connectBtn->setText("Disconnect");
     m_availableDevList->setEnabled(false);
 
@@ -191,6 +191,9 @@ bool ConnectionManager::disconnectDevice()
     if(reconnectCheck->isActive())
         reconnectCheck->stop();
 
+    // signal interested plugins that user is disconnecting his device
+    emit deviceAboutToDisconnect();
+
     try {
         if (m_connectionDevice.connection) {
             m_connectionDevice.connection->closeDevice(m_connectionDevice.getConName());
@@ -202,7 +205,7 @@ bool ConnectionManager::disconnectDevice()
     m_connectionDevice.connection = NULL;
     m_ioDev = NULL;
 
-    emit connectionStatusChanged(false);
+    emit deviceDisconnected();
     m_connectBtn->setText("Connect");
     m_availableDevList->setEnabled(true);
 

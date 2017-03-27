@@ -173,12 +173,12 @@ void IPConnection::closeDevice(const QString &)
 }
 
 
-QString IPConnection::connectionName() const
+QString IPConnection::connectionName()
 {
     return QString("Network telemetry port");
 }
 
-QString IPConnection::shortName() const
+QString IPConnection::shortName()
 {
     return tr("IP");
 }

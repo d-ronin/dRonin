@@ -169,12 +169,12 @@ void SerialConnection::closeDevice(const QString &deviceName)
 }
 
 
-QString SerialConnection::connectionName() const
+QString SerialConnection::connectionName()
 {
     return QString("Serial port");
 }
 
-QString SerialConnection::shortName() const
+QString SerialConnection::shortName()
 {
     return QString("Serial");
 }

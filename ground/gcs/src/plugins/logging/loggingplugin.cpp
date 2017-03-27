@@ -109,12 +109,12 @@ void LoggingConnection::closeDevice(const QString &deviceName)
 }
 
 
-QString LoggingConnection::connectionName() const
+QString LoggingConnection::connectionName()
 {
     return QString("Logfile replay");
 }
 
-QString LoggingConnection::shortName() const
+QString LoggingConnection::shortName()
 {
     return QString("Logfile");
 }
