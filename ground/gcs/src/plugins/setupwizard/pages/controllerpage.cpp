@@ -42,16 +42,19 @@ ControllerPage::ControllerPage(SetupWizard *wizard, QWidget *parent) :
 
     m_connectionManager = getWizard()->getConnectionManager();
     Q_ASSERT(m_connectionManager);
-    connect(m_connectionManager, SIGNAL(availableDevicesChanged(QLinkedList<Core::DevListItem>)), this, SLOT(devicesChanged(QLinkedList<Core::DevListItem>)));
 
     ExtensionSystem::PluginManager *pluginManager = ExtensionSystem::PluginManager::instance();
     Q_ASSERT(pluginManager);
     m_telemtryManager = pluginManager->getObject<TelemetryManager>();
     Q_ASSERT(m_telemtryManager);
-    connect(m_telemtryManager, SIGNAL(connected()), this, SLOT(connectionStatusChanged()));
-    connect(m_telemtryManager, SIGNAL(disconnected()), this, SLOT(connectionStatusChanged()));
 
-    connect(ui->connectButton, SIGNAL(clicked()), this, SLOT(connectDisconnect()));
+    connect(m_connectionManager, &Core::ConnectionManager::availableDevicesChanged,
+            this, &ControllerPage::devicesChanged);
+
+    connect(m_connectionManager, &Core::ConnectionManager::connectionStatusChanged,
+            this, &ControllerPage::connectionStatusChanged);
+
+    connect(ui->connectButton, &QPushButton::clicked, this, &ControllerPage::connectDisconnect);
 
     setupDeviceList();
 }
@@ -97,70 +100,57 @@ bool ControllerPage::anyControllerConnected()
 void ControllerPage::setupDeviceList()
 {
     devicesChanged(m_connectionManager->getAvailableDevices());
-    connectionStatusChanged();
+    connectionStatusChanged(m_connectionManager->isConnected());
 }
 
 void ControllerPage::setControllerType(Core::IBoardType *board)
 {
-    if (board == NULL)
+    if (!board)
         ui->boardTypeLabel->setText("Unknown");
     else
         ui->boardTypeLabel->setText(board->shortName());
 }
 
+/**
+ * @brief ControllerPage::devicesChanged
+ * @param devices
+ * @todo This would be simplified if connection manager told us which device was added/removed
+ */
 void ControllerPage::devicesChanged(QLinkedList<Core::DevListItem> devices)
 {
-    // Get the selected item before the update if any
-    QString currSelectedDeviceName = ui->deviceCombo->currentIndex() != -1 ?
-                                     ui->deviceCombo->itemData(ui->deviceCombo->currentIndex(), Qt::ToolTipRole).toString() : "";
+    // Get the selected item so it can be selected again at the end
+    const QString selectedDeviceName = ui->deviceCombo->currentData(Qt::ToolTipRole).toString();
 
-    // Clear the box
     ui->deviceCombo->clear();
+    // Loop and fill the combo with items from connectionmanager (too dumb to just add/remove one device)
+    for (const auto &deviceItem : devices) {
+        const QString deviceName = deviceItem.getConName();
 
-    int indexOfSelectedItem = -1;
-    int i = 0;
+        /**
+         * @todo Allow us to use sim for testing setup wizard
+         */
+        // no point adding devices which can't be connected
+        // we would need to handle that by disabling connect button etc.
+        if (!deviceName.startsWith("USB:", Qt::CaseInsensitive))
+            continue;
 
-    // Loop and fill the combo with items from connectionmanager
-    foreach(Core::DevListItem deviceItem, devices) {
-        ui->deviceCombo->addItem(deviceItem.getConName());
-        QString deviceName = (const QString)deviceItem.getConName();
-        ui->deviceCombo->setItemData(ui->deviceCombo->count() - 1, deviceName, Qt::ToolTipRole);
-        if (!deviceName.startsWith("USB:", Qt::CaseInsensitive)) {
-            ui->deviceCombo->setItemData(ui->deviceCombo->count() - 1, QVariant(0), Qt::UserRole - 1);
-        }
-        if (currSelectedDeviceName != "" && currSelectedDeviceName == deviceName) {
-            indexOfSelectedItem = i;
-        }
-        i++;
+        ui->deviceCombo->addItem(deviceName);
+        if (selectedDeviceName == deviceName)
+            ui->deviceCombo->setCurrentIndex(ui->deviceCombo->count() - 1);
     }
 
-    // Re select the item that was selected before if any
-    if (indexOfSelectedItem != -1) {
-        ui->deviceCombo->setCurrentIndex(indexOfSelectedItem);
-    }
+    // This signal arrives after connectionStatusChanged so we need
+    // to make sure we select the device if one is connected
+    if (m_connectionManager->isConnected())
+        ui->deviceCombo->setCurrentText(m_connectionManager->getCurrentDevice().getConName());
 }
 
-void ControllerPage::connectionStatusChanged()
+void ControllerPage::connectionStatusChanged(bool connected)
 {
-    if (m_connectionManager->isConnected()) {
-        ui->deviceCombo->setEnabled(false);
-        ui->connectButton->setText(tr("Disconnect"));
-        QString connectedDeviceName = m_connectionManager->getCurrentDevice().getConName();
-        for (int i = 0; i < ui->deviceCombo->count(); ++i) {
-            if (connectedDeviceName == ui->deviceCombo->itemData(i, Qt::ToolTipRole).toString()) {
-                ui->deviceCombo->setCurrentIndex(i);
-                break;
-            }
-        }
+    ui->deviceCombo->setEnabled(!connected);
+    ui->connectButton->setText(connected ? tr("Disconnect") : tr("Connect"));
+    setControllerType(connected ? getControllerType() : Q_NULLPTR);
 
-        setControllerType(getControllerType());
-        qDebug() << "Connection status changed: Connected, controller type: " << getControllerType();
-    } else {
-        ui->deviceCombo->setEnabled(true);
-        ui->connectButton->setText(tr("Connect"));
-        setControllerType(NULL);
-        qDebug() << "Connection status changed: Disconnected";
-    }
     emit completeChanged();
 }
 
@@ -169,7 +159,7 @@ void ControllerPage::connectDisconnect()
     if (m_connectionManager->isConnected()) {
         m_connectionManager->disconnectDevice();
     } else {
-        m_connectionManager->connectDevice(m_connectionManager->findDevice(ui->deviceCombo->itemData(ui->deviceCombo->currentIndex(), Qt::ToolTipRole).toString()));
+        m_connectionManager->connectDevice(m_connectionManager->findDevice(ui->deviceCombo->currentText()));
     }
     emit completeChanged();
 }

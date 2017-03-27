@@ -63,8 +63,8 @@ public:
     virtual QIODevice *openDevice(Core::IDevice *deviceName);
     virtual void closeDevice(const QString &deviceName);
 
-    virtual QString connectionName();
-    virtual QString shortName();
+    virtual QString connectionName() const;
+    virtual QString shortName() const;
 
     IPConnectionOptionsPage *optionsPage() const { return m_optionspage; }
 

@@ -133,12 +133,12 @@ void RawHIDConnection::closeDevice(const QString &deviceName)
     }
 }
 
-QString RawHIDConnection::connectionName()
+QString RawHIDConnection::connectionName() const
 {
     return QString("Raw HID USB");
 }
 
-QString RawHIDConnection::shortName()
+QString RawHIDConnection::shortName() const
 {
     return QString("USB");
 }
