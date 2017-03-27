@@ -76,19 +76,10 @@ tlfw: $(OUTDIR)/$(TARGET).tlfw
 $(eval $(call SIZE_TEMPLATE, $(OUTDIR)/$(TARGET).elf))
 
 # Create output files directory
-# all known MS Windows OS define the ComSpec environment variable
-ifdef ComSpec
-$(shell md $(subst /,\\,$(OUTDIR)) 2>NUL)
-else
 $(shell mkdir -p $(OUTDIR) 2>/dev/null)
-endif
 
 # Include the dependency files.
-ifdef ComSpec
--include $(shell md $(subst /,\\,$(OUTDIR))\dep 2>NUL) $(wildcard $(OUTDIR)/dep/*)
-else
 -include $(shell mkdir $(OUTDIR) 2>/dev/null) $(shell mkdir $(OUTDIR)/dep 2>/dev/null) $(wildcard $(OUTDIR)/dep/*)
-endif
 
 # Listing of phony targets.
 .PHONY : all build clean clean_list install docs
