@@ -814,13 +814,13 @@ ef_$(1)_%: $(5)
 		$$*
 endef
 
-# When building any of the "all_*" targets, tell all sub makefiles to display
+# When building any of the "all*" targets, tell all sub makefiles to display
 # additional details on each line of output to describe which build and target
 # that each line applies to.
-ifneq ($(strip $(filter all_%,$(MAKECMDGOALS))),)
+ifneq ($(strip $(filter all%,$(MAKECMDGOALS))),)
 export ENABLE_MSG_EXTRA := yes
 endif
-ifneq (,$(filter sim_%, $(MAKECMDGOALS)))
+ifneq (,$(filter sim%, $(MAKECMDGOALS)))
 export ENABLE_MSG_EXTRA := yes
 endif
 
