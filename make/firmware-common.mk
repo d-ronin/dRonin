@@ -4,12 +4,12 @@ UAVOBJLIB := $(OUTDIR)/../uavobjects_arm$(FLOATABI)fp/libuavobject.a
 # Define programs and commands.
 REMOVE  = rm -f
 
-ifeq ($(BUILD_UAVO), YES)
-SRC += $(wildcard $(OPUAVSYNTHDIR)/*.c )
-endif
-
 ## MODULES
 MODSRC += ${foreach MOD, ${MODULES} ${OPTMODULES}, ${wildcard ${OPMODULEDIR}/${MOD}/*.c}}
+
+ifeq ($(BUILD_UAVO), YES)
+MODSRC += $(wildcard $(OPUAVSYNTHDIR)/*.c )
+endif
 
 # List of all source files.
 ALLSRC     :=  $(ASRC) $(SRC) $(CPPSRC)
@@ -32,11 +32,11 @@ build: hex bin lss sym
 endif
 
 # Archive: Create library file from object files
-$(eval $(call ARCHIVE_TEMPLATE, $(OUTDIR)/modules.a, $(MODOBJ)))
-MODLIB = $(OUTDIR)/modules.a
+FIRMLIB = $(OUTDIR)/firmware.a
+$(eval $(call ARCHIVE_TEMPLATE, $(FIRMLIB), $(MODOBJ) $(ALLOBJ)))
 
 # Link: create ELF output file from object files.
-$(eval $(call LINK_TEMPLATE, $(OUTDIR)/$(TARGET).elf, $(ALLOBJ) $(MODLIB) $(LIBS)))
+$(eval $(call LINK_TEMPLATE, $(OUTDIR)/$(TARGET).elf, $(FIRMLIB) $(LIBS)))
 
 # Assemble: create object files from assembler source files.
 $(foreach src, $(ASRC), $(eval $(call ASSEMBLE_TEMPLATE, $(src))))

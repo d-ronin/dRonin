@@ -232,7 +232,7 @@ define LINK_TEMPLATE
 $(1): CFLAGS_LINK = $$(filter-out -D%,$$(filter-out -I%,$$(CFLAGS)))
 $(1): $(2)
 	@echo $(MSG_LINKING) $$(call toprel, $$@)
-	$(V1) $(BARECC) $(THUMB) $$(CFLAGS_LINK) $(2) --output $$@ $$(LDFLAGS)
+	$(V1) $(BARECC) $(THUMB) $$(CFLAGS_LINK) -Wl,-whole-archive $(2) -Wl,-no-whole-archive --output $$@ $$(LDFLAGS)
 ifneq ($(TCHAIN_PREFIX),)
 	@echo $(MSG_DEBUG_SYMBOLS) $$(call toprel, $$@)
 	$(V1) $(OBJCOPY) --only-keep-debug $$@ $$(addsuffix .debug, $$(@:.elf=))
