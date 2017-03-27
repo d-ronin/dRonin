@@ -240,6 +240,14 @@ ifneq ($(TCHAIN_PREFIX),)
 endif
 endef
 
+define ARCHIVE_TEMPLATE
+.SECONDARY: $(1)
+.PRECIOUS: $(2)
+$(1): $(2)
+	@echo $(MSG_AR) $$(call toprel, $$@)
+	$(V1) $(AR) crs $$@ $$?
+endef
+
 # Link: create ELF output file from object files.
 #   $1 = elf file to produce
 #   $2 = list of object files that make up the elf file

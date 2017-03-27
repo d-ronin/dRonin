@@ -109,6 +109,7 @@ SRC =
 
 ## OPENPILOT CORE:
 SRC += ${OPMODULEDIR}/System/systemmod.c
+SRC += ${OPMODULEDIR}/System/rgbleds.c
 SRC += main.c
 SRC += pios_board.c
 SRC += $(FLIGHTLIB)/alarms.c

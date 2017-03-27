@@ -66,7 +66,6 @@ LINKER_SCRIPTS_APP = memory.ld sections.ld
 # use file-extension c for "c-only"-files
 
 ## OPENPILOT CORE:
-#SRC += ${OPMODULEDIR}/System/systemmod.c
 SRC += system_stm32f0xx.c
 SRC += startup.c
 SRC += main.c

@@ -88,7 +88,9 @@ MSDDIR  = $(APPLIBDIR)/msd
 
 ## OPENPILOT CORE:
 SRC += ${OPMODULEDIR}/System/systemmod.c
+SRC += ${OPMODULEDIR}/System/rgbleds.c
 SRC += chibi_main.c
+SRC += board.c
 SRC += pios_board.c
 SRC += $(OPUAVTALK)/uavtalk.c
 SRC += $(OPUAVOBJ)/uavobjectmanager.c

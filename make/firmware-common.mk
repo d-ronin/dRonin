@@ -9,19 +9,18 @@ SRC += $(wildcard $(OPUAVSYNTHDIR)/*.c )
 endif
 
 ## MODULES
-SRC += ${foreach MOD, ${MODULES} ${OPTMODULES}, ${wildcard ${OPMODULEDIR}/${MOD}/*.c}}
+MODSRC += ${foreach MOD, ${MODULES} ${OPTMODULES}, ${wildcard ${OPMODULEDIR}/${MOD}/*.c}}
 
 # List of all source files.
 ALLSRC     :=  $(ASRC) $(SRC) $(CPPSRC)
 
 # List of all source files without directory and file-extension.
 ALLSRCBASE = $(notdir $(basename $(ALLSRC)))
+MODSRCBASE = $(notdir $(basename $(MODSRC)))
+
 # Define all object files.
 ALLOBJ     = $(addprefix $(OUTDIR)/, $(addsuffix .o, $(ALLSRCBASE)))
-# Define all listing files (used for make clean).
-LSTFILES   = $(addprefix $(OUTDIR)/, $(addsuffix .lst, $(ALLSRCBASE)))
-# Define all depedency-files (used for make clean).
-DEPFILES   = $(addprefix $(OUTDIR)/dep/, $(addsuffix .o.d, $(ALLSRCBASE)))
+MODOBJ     = $(addprefix $(OUTDIR)/, $(addsuffix .o, $(MODSRCBASE)))
 
 # Default target.
 all: gccversion build
@@ -32,15 +31,18 @@ ifneq ($(BUILD_FWFILES), NO)
 build: hex bin lss sym
 endif
 
-# Compile: create object files from C source files.
+# Archive: Create library file from object files
+$(eval $(call ARCHIVE_TEMPLATE, $(OUTDIR)/modules.a, $(MODOBJ)))
+MODLIB = $(OUTDIR)/modules.a
 
 # Link: create ELF output file from object files.
-$(eval $(call LINK_TEMPLATE, $(OUTDIR)/$(TARGET).elf, $(ALLOBJ) $(LIBS)))
+$(eval $(call LINK_TEMPLATE, $(OUTDIR)/$(TARGET).elf, $(ALLOBJ) $(MODLIB) $(LIBS)))
 
 # Assemble: create object files from assembler source files.
 $(foreach src, $(ASRC), $(eval $(call ASSEMBLE_TEMPLATE, $(src))))
 
-$(foreach src, $(SRC), $(eval $(call COMPILE_C_TEMPLATE, $(src))))
+# Compile: create object files from C source files.
+$(foreach src, $(SRC) $(MODSRC), $(eval $(call COMPILE_C_TEMPLATE, $(src))))
 
 # Compile: create object files from C++ source files.
 $(foreach src, $(CPPSRC), $(eval $(call COMPILE_CPP_TEMPLATE, $(src))))

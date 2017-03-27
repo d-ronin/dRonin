@@ -35,7 +35,6 @@ DEBUG ?= NO
 
 # List of modules to include
 MODULES = Sensors
-MODULES += System
 MODULES += Attitude 
 MODULES += ManualControl
 MODULES += Stabilization
@@ -97,6 +96,8 @@ include $(APPLIBDIR)/ChibiOS/library.mk
 # use file-extension c for "c-only"-files
 
 ## OPENPILOT CORE:
+SRC += ${OPMODULEDIR}/System/systemmod.c
+SRC += ${OPMODULEDIR}/System/rgbleds.c
 SRC += chibi_main.c
 SRC += pios_board.c
 SRC += pios_usb_board_data.c
