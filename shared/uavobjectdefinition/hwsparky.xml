@@ -25,6 +25,7 @@
 				<option>DSM</option>
 				<option>FrSKY Sensor Hub</option>
 				<option>FrSKY SPort Telemetry</option>
+				<option>FrSKY SPort Non Inverted</option>
 				<option>GPS</option>
 				<option>HoTT Telemetry</option>
 				<option>I2C</option>
@@ -50,6 +51,7 @@
 				<option>DSM</option>
 				<option>FrSKY Sensor Hub</option>
 				<option>FrSKY SPort Telemetry</option>
+				<option>FrSKY SPort Non Inverted</option>
 				<option>GPS</option>
 				<option>HoTT Telemetry</option>
 				<option>LighttelemetryTx</option>
