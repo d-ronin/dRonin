@@ -80,8 +80,6 @@ endif
 
 # Define Messages
 # English
-MSG_FORMATERROR      = ${quote} Can not handle output-format${quote}
-MSG_MODINIT          = ${quote} MODINIT   $(MSG_EXTRA) ${quote}
 MSG_SIZE             = ${quote} SIZE      $(MSG_EXTRA) ${quote}
 MSG_LOAD_FILE        = ${quote} BIN/HEX   $(MSG_EXTRA) ${quote}
 MSG_STRIP_FILE       = ${quote} STRIP     $(MSG_EXTRA) ${quote}
@@ -89,16 +87,9 @@ MSG_EXTENDED_LISTING = ${quote} LIS       $(MSG_EXTRA) ${quote}
 MSG_SYMBOL_TABLE     = ${quote} NM        $(MSG_EXTRA) ${quote}
 MSG_LINKING          = ${quote} LD        $(MSG_EXTRA) ${quote}
 MSG_COMPILING        = ${quote} CC        ${MSG_EXTRA} ${quote}
-MSG_COMPILING_ARM    = ${quote} CC-ARM    $(MSG_EXTRA) ${quote}
 MSG_COMPILINGCXX     = ${quote} CXX       $(MSG_EXTRA) ${quote}
-MSG_COMPILINGCXX_ARM = ${quote} CXX-ARM   $(MSG_EXTRA) ${quote}
 MSG_ASSEMBLING       = ${quote} AS        $(MSG_EXTRA) ${quote}
-MSG_ASSEMBLING_ARM   = ${quote} AS-ARM    $(MSG_EXTRA) ${quote}
 MSG_CLEANING         = ${quote} CLEAN     $(MSG_EXTRA) ${quote}
-MSG_ASMFROMC         = ${quote} AS(C)     $(MSG_EXTRA) ${quote}
-MSG_ASMFROMC_ARM     = ${quote} AS(C)-ARM $(MSG_EXTRA) ${quote}
-MSG_PYMITEINIT       = ${quote} PY        $(MSG_EXTRA) ${quote}
-MSG_INSTALLING       = ${quote} INSTALL   $(MSG_EXTRA) ${quote}
 MSG_TLFIRMWARE       = ${quote} TLFW      $(MSG_EXTRA) ${quote}
 MSG_FWINFO           = ${quote} FWINFO    $(MSG_EXTRA) ${quote}
 MSG_JTAG_PROGRAM     = ${quote} JTAG-PGM  $(MSG_EXTRA) ${quote}
@@ -190,13 +181,6 @@ $(OUTDIR)/$(notdir $(basename $(1))).o : $(1)
 	$(V1) $(CC) -c $(THUMB) $$(ASFLAGS) $$< -o $$@
 endef
 
-# Assemble: create object files from assembler source files. ARM-only
-define ASSEMBLE_ARM_TEMPLATE
-$(OUTDIR)/$(notdir $(basename $(1))).o : $(1)
-	@echo $(MSG_ASSEMBLING_ARM) $$(call toprel, $$<)
-	$(V1) $(CC) -c $$(ASFLAGS) $$< -o $$@
-endef
-
 # Compile: create object files from C source files.
 define COMPILE_C_TEMPLATE
 $(OUTDIR)/$(notdir $(basename $(1))).o : EXTRA_FLAGS := $(2)
@@ -205,28 +189,12 @@ $(OUTDIR)/$(notdir $(basename $(1))).o : $(1)
 	$(V1) $(CC) -c $(THUMB) $$(CFLAGS) $$(CONLYFLAGS) $$(EXTRA_FLAGS) $$< -o $$@
 endef
 
-# Compile: create object files from C source files. ARM-only
-define COMPILE_C_ARM_TEMPLATE
-$(OUTDIR)/$(notdir $(basename $(1))).o : EXTRA_FLAGS := $(2)
-$(OUTDIR)/$(notdir $(basename $(1))).o : $(1)
-	@echo $(MSG_COMPILING_ARM) $$(call toprel, $$<)
-	$(V1) $(CC) -c $$(CFLAGS) $$(CONLYFLAGS) $$(EXTRA_FLAGS) $$< -o $$@
-endef
-
 # Compile: create object files from C++ source files.
 define COMPILE_CXX_TEMPLATE
 $(OUTDIR)/$(notdir $(basename $(1))).o : EXTRA_FLAGS := $(2)
 $(OUTDIR)/$(notdir $(basename $(1))).o : $(1)
 	@echo $(MSG_COMPILINGCXX) $$(call toprel, $$<)
 	$(V1) $(CXX) -c $(THUMB) $$(CFLAGS) $$(CPPFLAGS) $$(CXXFLAGS) $$(EXTRA_FLAGS) $$< -o $$@
-endef
-
-# Compile: create object files from C++ source files. ARM-only
-define COMPILE_CXX_ARM_TEMPLATE
-$(OUTDIR)/$(notdir $(basename $(1))).o : $(1)
-$(OUTDIR)/$(notdir $(basename $(1))).o : EXTRA_FLAGS := $(2)
-	@echo $(MSG_COMPILINGCXX_ARM) $$(call toprel, $$<)
-	$(V1) $(CPP) -c $$(CFLAGS) $$(CPPFLAGS) $$(CXXFLAGS) $$(EXTRA_FLAGS) $$< -o $$@
 endef
 
 # Link: create ELF output file from object files.
