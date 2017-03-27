@@ -7,11 +7,11 @@ else
 SED_EXTARG=-r
 endif
 
-USB_VEND_EXPAND := $(shell echo -n "$(USB_VEND)" | sed $(SED_EXTARG) -e "s/(.)/'\1',/g" -e 's/,$$//')
-USB_VEND_LEN := $(shell echo -n "$(USB_VEND)" | wc -c | tr -d ' ')
+USB_VEND_EXPAND := $(shell env echo -n "$(USB_VEND)" | sed $(SED_EXTARG) -e "s/(.)/'\1',/g" -e 's/,$$//')
+USB_VEND_LEN := $(shell env echo -n "$(USB_VEND)" | wc -c | tr -d ' ')
 
-USB_PROD_EXPAND := $(shell echo -n "$(USB_PROD)" | sed $(SED_EXTARG) -e "s/(.)/'\1',/g" -e 's/,$$//')
-USB_PROD_LEN := $(shell echo -n "$(USB_PROD)" | wc -c | tr -d ' ')
+USB_PROD_EXPAND := $(shell env echo -n "$(USB_PROD)" | sed $(SED_EXTARG) -e "s/(.)/'\1',/g" -e 's/,$$//')
+USB_PROD_LEN := $(shell env echo -n "$(USB_PROD)" | wc -c | tr -d ' ')
 
 CFLAGS += "-DUSB_STR_VEND_VAL=$(USB_VEND_EXPAND)"
 CFLAGS += -DUSB_STR_VEND_LEN=$(USB_VEND_LEN)
