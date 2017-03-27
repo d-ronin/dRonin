@@ -63,12 +63,12 @@ public:
     /**
     *   Connection type name "USB HID"
     */
-    virtual QString connectionName() const = 0;
+    virtual QString connectionName() = 0;
 
     /**
     *   Short name to display in a combo box
     */
-    virtual QString shortName() const {return connectionName();}
+    virtual QString shortName() {return connectionName();}
 
     /**
      * Manage whether the plugin is allowed to poll for devices

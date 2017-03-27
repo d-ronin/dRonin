@@ -61,8 +61,8 @@ public:
     virtual QIODevice *openDevice(Core::IDevice* deviceName);
     virtual void closeDevice(const QString &deviceName);
 
-    virtual QString connectionName() const;
-    virtual QString shortName() const;
+    virtual QString connectionName();
+    virtual QString shortName();
 
     bool deviceOpened() {return m_deviceOpened;}
     LogFile* getLogfile() { return &logFile;}

@@ -60,7 +60,7 @@ private:
 
 private slots:
     void devicesChanged(QLinkedList<Core::DevListItem> devices);
-    void connectionStatusChanged(bool connected);
+    void connectionStatusChanged();
     void connectDisconnect();
 };
 

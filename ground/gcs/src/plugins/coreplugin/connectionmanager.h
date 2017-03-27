@@ -71,7 +71,7 @@ public:
 
     DevListItem() : connection(NULL) { }
 
-    QString getConName() const {
+    QString getConName() {
         if (connection == NULL || device.isNull())
             return "";
         return connection->shortName() + ": " + device->getDisplayName();
@@ -116,8 +116,10 @@ protected:
     void updateConnectionDropdown();
 
 signals:
+    void deviceConnected(QIODevice *device);
+    void deviceAboutToDisconnect();
+    void deviceDisconnected();
     void availableDevicesChanged(const QLinkedList<Core::DevListItem> devices);
-    void connectionStatusChanged(bool connected);
 
 public slots:
     void telemetryConnected();
