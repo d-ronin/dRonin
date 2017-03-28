@@ -76,9 +76,6 @@ struct pios_crossfire_dev {
 	uint32_t time_frame_start;
 };
 
-// COM driver ID for separate telemetry channel, via pios_hal.
-extern uintptr_t pios_com_crsf_sep_telem_id;
-
 /**
  * @brief Allocates a driver instance
  * @retval pios_crossfire_dev pointer on success, NULL on failure

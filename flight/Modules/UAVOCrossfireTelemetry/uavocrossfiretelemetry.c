@@ -102,29 +102,29 @@ MODULE_INITCALL(uavoCrossfireTelemetryInitialize, uavoCrossfireTelemetryStart)
 
 static int crsftelem_create_attitude(uint8_t *buf)
 {
-	int ptr = 0;
+	int pos = 0;
 
 	if(AttitudeActualHandle()) {
 		AttitudeActualData attitudeData;
 		AttitudeActualGet(&attitudeData);
 
-		buf[ptr++] = 0;
-		buf[ptr++] = CRSF_PAYLOAD_LEN(CRSF_PAYLOAD_ATTITUDE);
-		buf[ptr++] = CRSF_FRAME_ATTITUDE;
+		buf[pos++] = 0;
+		buf[pos++] = CRSF_PAYLOAD_LEN(CRSF_PAYLOAD_ATTITUDE);
+		buf[pos++] = CRSF_FRAME_ATTITUDE;
 
-		WRITE_VAL16(buf, ptr, (int16_t)(DEG2RAD(attitudeData.Pitch)*10000.0f));
-		WRITE_VAL16(buf, ptr, (int16_t)(DEG2RAD(attitudeData.Roll)*10000.0f));
-		WRITE_VAL16(buf, ptr, (int16_t)(DEG2RAD(attitudeData.Yaw)*10000.0f));
+		WRITE_VAL16(buf, pos, (int16_t)(DEG2RAD(attitudeData.Pitch)*10000.0f));
+		WRITE_VAL16(buf, pos, (int16_t)(DEG2RAD(attitudeData.Roll)*10000.0f));
+		WRITE_VAL16(buf, pos, (int16_t)(DEG2RAD(attitudeData.Yaw)*10000.0f));
 
-		buf[ptr++] = PIOS_CRC_updateCRC_TBS(0, buf+2, buf[1] - CRSF_CRC_LEN);
+		buf[pos++] = PIOS_CRC_updateCRC_TBS(0, buf+2, buf[1] - CRSF_CRC_LEN);
 	}
 
-	return ptr;
+	return pos;
 }
 
 static int crsftelem_create_battery(uint8_t *buf)
 {
-	int ptr = 0;
+	int pos = 0;
 
 	if(FlightBatteryStateHandle() && FlightBatterySettingsHandle()) {
 		FlightBatteryStateData batteryData;
@@ -133,61 +133,61 @@ static int crsftelem_create_battery(uint8_t *buf)
 		FlightBatteryStateGet(&batteryData);
 		FlightBatterySettingsGet(&batterySettings);
 
-		buf[ptr++] = 0;
-		buf[ptr++] = CRSF_PAYLOAD_LEN(CRSF_PAYLOAD_BATTERY);
-		buf[ptr++] = CRSF_FRAME_BATTERY;
+		buf[pos++] = 0;
+		buf[pos++] = CRSF_PAYLOAD_LEN(CRSF_PAYLOAD_BATTERY);
+		buf[pos++] = CRSF_FRAME_BATTERY;
 
-		WRITE_VAL16(buf, ptr, (uint16_t)(batteryData.Voltage * 10.0f))
-		WRITE_VAL16(buf, ptr, (uint16_t)(batteryData.Current * 10.0f))
+		WRITE_VAL16(buf, pos, (uint16_t)(batteryData.Voltage * 10.0f))
+		WRITE_VAL16(buf, pos, (uint16_t)(batteryData.Current * 10.0f))
 
 		// Should apparently be capacity used?
-		buf[ptr++] = (uint8_t)((batterySettings.Capacity & 0x00FF0000) >> 16);
-		buf[ptr++] = (uint8_t)((batterySettings.Capacity & 0x0000FF00) >> 8);
-		buf[ptr++] = (uint8_t)(batterySettings.Capacity & 0x000000FF);
+		buf[pos++] = (uint8_t)((batterySettings.Capacity & 0x00FF0000) >> 16);
+		buf[pos++] = (uint8_t)((batterySettings.Capacity & 0x0000FF00) >> 8);
+		buf[pos++] = (uint8_t)(batterySettings.Capacity & 0x000000FF);
 
 		float charge_state = batterySettings.Capacity == 0 ? 100.0f : (batteryData.ConsumedEnergy / batterySettings.Capacity);
 		if(charge_state < 0) charge_state = 0;
 		else if(charge_state > 100) charge_state = 100;
-		buf[ptr++] = (uint8_t)charge_state;
+		buf[pos++] = (uint8_t)charge_state;
 
-		buf[ptr++] = PIOS_CRC_updateCRC_TBS(0, buf+2, buf[1] - CRSF_CRC_LEN);
+		buf[pos++] = PIOS_CRC_updateCRC_TBS(0, buf+2, buf[1] - CRSF_CRC_LEN);
 	}
 
-	return ptr;
+	return pos;
 }
 
 static int crsftelem_create_gps(uint8_t *buf)
 {
-	int ptr = 0;
+	int pos = 0;
 
 	if(GPSPositionHandle()) {
 		GPSPositionData gpsData;
 		GPSPositionGet(&gpsData);
 
 		if(gpsData.Status >= GPSPOSITION_STATUS_FIX2D) {
-			buf[ptr++] = 0;
-			buf[ptr++] = CRSF_PAYLOAD_LEN(CRSF_PAYLOAD_GPS);
-			buf[ptr++] = CRSF_FRAME_GPS;
+			buf[pos++] = 0;
+			buf[pos++] = CRSF_PAYLOAD_LEN(CRSF_PAYLOAD_GPS);
+			buf[pos++] = CRSF_FRAME_GPS;
 
 			// Latitude (x10^7, as dRonin)
-			WRITE_VAL32(buf, ptr, (int32_t)gpsData.Latitude);
+			WRITE_VAL32(buf, pos, (int32_t)gpsData.Latitude);
 			// Longitude (x10^7, as dRonin)
-			WRITE_VAL32(buf, ptr, (int32_t)gpsData.Longitude);
+			WRITE_VAL32(buf, pos, (int32_t)gpsData.Longitude);
 			// Groundspeed (apparently tenth of km/h)
-			WRITE_VAL16(buf, ptr, (uint16_t)(gpsData.Groundspeed*10.0f));
+			WRITE_VAL16(buf, pos, (uint16_t)(gpsData.Groundspeed*10.0f));
 			// Heading (apparently hundreth of a degree)
-			WRITE_VAL16(buf, ptr, (uint16_t)(gpsData.Heading*100.0f));
+			WRITE_VAL16(buf, pos, (uint16_t)(gpsData.Heading*100.0f));
 			// Altitude 1000 = 0m
-			WRITE_VAL16(buf, ptr, (uint16_t)(1000.0f+
+			WRITE_VAL16(buf, pos, (uint16_t)(1000.0f+
 				(gpsData.Status >= GPSPOSITION_STATUS_FIX3D ? gpsData.Altitude : 0.0f)));
 			// Satellites
-			buf[ptr++] = gpsData.Satellites;
+			buf[pos++] = gpsData.Satellites;
 
-			buf[ptr++] = PIOS_CRC_updateCRC_TBS(0, buf+2, buf[1] - CRSF_CRC_LEN);
+			buf[pos++] = PIOS_CRC_updateCRC_TBS(0, buf+2, buf[1] - CRSF_CRC_LEN);
 		}
 	}
 
-	return ptr;
+	return pos;
 }
 
 static void uavoCrossfireTelemetryTask(void *parameters)

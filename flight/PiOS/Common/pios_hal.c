@@ -222,10 +222,6 @@ uintptr_t pios_com_debug_id;
 #define PIOS_COM_TBSVTXCONFIG_RX_BUF_LEN 32
 #endif
 
-#ifndef PIOS_COM_CRSFTELEM_TX_BUF_LEN
-#define PIOS_COM_CRSFTELEM_TX_BUF_LEN 36
-#endif
-
 #ifdef PIOS_INCLUDE_HMC5883
 #include "pios_hmc5883_priv.h"
 
