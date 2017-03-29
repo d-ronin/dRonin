@@ -167,7 +167,7 @@ uintptr_t pios_com_debug_id;
 #endif
 
 #ifndef PIOS_COM_MSP_RX_BUF_LEN
-#define PIOS_COM_MSP_RX_BUF_LEN 64
+#define PIOS_COM_MSP_RX_BUF_LEN 65
 #endif
 
 #ifndef PIOS_COM_HOTT_RX_BUF_LEN
@@ -931,6 +931,18 @@ void PIOS_HAL_ConfigureCDC(HwSharedUSB_VCPPortOptions port_type,
 		}
 		PIOS_Modules_Enable(PIOS_MODULE_COMUSBBRIDGE);
 	}
+	break;
+	case HWSHARED_USB_VCPPORT_MSP:
+#if defined(PIOS_INCLUDE_MSP_BRIDGE)
+	{
+		if (PIOS_COM_Init(&pios_com_msp_id, &pios_usb_cdc_com_driver, pios_usb_cdc_id,
+						PIOS_COM_MSP_RX_BUF_LEN,
+						PIOS_COM_MSP_TX_BUF_LEN)) {
+			PIOS_Assert(0);
+		}
+		PIOS_Modules_Enable(PIOS_MODULE_UAVOMSPBRIDGE);
+	}
+#endif
 	break;
 	case HWSHARED_USB_VCPPORT_DEBUGCONSOLE:
 #if defined(PIOS_INCLUDE_DEBUG_CONSOLE)
