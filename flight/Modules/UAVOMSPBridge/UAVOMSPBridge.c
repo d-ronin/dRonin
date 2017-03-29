@@ -279,7 +279,8 @@ static void msp_send_fc_variant(struct msp_bridge *m)
 
 	memset(&data, 0, sizeof(data));
 
-	strncpy(data.var.name, DRONIN_TARGET, 4);
+	/* strncpy(data.var.name, "BTFL", 4);*/
+	strncpy(data.var.name, "DRON", 4);
 
 	msp_send(m, MSP_FC_VARIANT, data.buf, sizeof(data));
 }
