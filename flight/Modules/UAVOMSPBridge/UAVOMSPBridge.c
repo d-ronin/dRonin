@@ -766,7 +766,9 @@ static void uavoMSPBridgeTask(void *parameters)
 
 	while (1) {
 		uint8_t b = 0;
-		uint16_t count = PIOS_COM_ReceiveBuffer(msp->com, &b, 1, PIOS_QUEUE_TIMEOUT_MAX);
+
+		uint16_t count = PIOS_COM_ReceiveBuffer(msp->com, &b, 1, 3000);
+
 		if (count) {
 			if (!msp_receive_byte(msp, b)) {
 				// Returning is considered risky here as
