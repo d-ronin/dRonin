@@ -74,6 +74,7 @@
 #define  MSP_BOARD_INFO  4
 #define  MSP_BUILD_INFO  5
 #define  MSP_NAME        10
+#define  MSP_FEATURE     36
 #define  MSP_IDENT       100 // multitype + multiwii version + protocol version + capability variable
 #define  MSP_STATUS      101 // cycletime & errors_count & sensor present & box activation & current setting number
 #define  MSP_RAW_IMU     102 // 9 DOF
@@ -145,17 +146,17 @@ typedef enum {
 	MSP_MAYBE_UAVTALK4,
 } msp_state;
 
-typedef enum __attribute__ ((__packed__)) {
+enum __attribute__ ((__packed__)) msp_esp_protocol {
 	PROTOCOL_SIMONK = 0,
 	PROTOCOL_BLHELI = 1,
 	PROTOCOL_KISS = 2,
 	PROTOCOL_KISSALL = 3,
 	PROTOCOL_CASTLE = 4,
 	PROTOCOL_4WAY = 0xff,
-} msp_esc_protocol;
+};
 
 struct msp_cmddata_escserial {
-	msp_esc_protocol protocol;
+	enum msp_esc_protocol protocol;
 	uint8_t esc_num;
 };
 
@@ -247,6 +248,59 @@ static void msp_send_name(struct msp_bridge *m)
 	const char hardcoded_name[] = "dRonin";
 
 	msp_send(m, MSP_NAME, (uint8_t *) hardcoded_name, strlen(hardcoded_name));
+}
+
+static void msp_send_motor(struct msp_bridge *m)
+{
+	union {
+		uint8_t buf[0];
+		uint8_t mspeed[8];
+	} data;
+
+	/* Tell me lies */
+	memset(&data, 0, sizeof(data));
+
+	msp_send(m, MSP_MOTOR, data.buf, sizeof(data));
+}
+
+static void msp_send_feature(struct msp_bridge *m)
+{
+	union {
+		uint8_t buf[0];
+		uint32_t features;
+	} data;
+
+#define FEATURE_TELEMETRY (1 << 10)
+	data.features = FEATURE_TELEMETRY;
+
+	msp_send(m, MSP_FEATURE, data.buf, sizeof(data));
+}
+
+static void msp_send_misc(struct msp_bridge *m)
+{
+	union {
+		uint8_t buf[0];
+		struct {
+			uint16_t mid_rc;
+			uint16_t min_throt;
+			uint16_t max_throt;
+			uint16_t min_command;
+			uint8_t gps[3];
+			uint8_t misc_cfg[3];
+			uint16_t compass;
+			uint8_t battery[4];
+		} fc_misc;
+	} data;
+
+	/* Tell me sweet little lies */
+	memset(&data, 0, sizeof(data));
+
+	data.fc_misc.mid_rc = 1500;
+	data.fc_misc.min_command = 1000;
+	data.fc_misc.min_throt = 1150;
+	data.fc_misc.max_throt = 2000;		// 1850 in BF...
+
+	msp_send(m, MSP_MISC, data.buf, sizeof(data));
 }
 
 static void msp_send_fc_version(struct msp_bridge *m)
@@ -643,18 +697,22 @@ static void msp_handle_4wif(struct msp_bridge *m) {
 
 	uint8_t num_esc = 0;
 
+	enum msp_esc_protocol protocol = PROTOCOL_4WAY;
+
 	if (m->cmd_size >= sizeof(*escserial)) {
-		switch (escserial->protocol) {
-			case PROTOCOL_SIMONK:
-			case PROTOCOL_BLHELI:
-			case PROTOCOL_KISS:
-			case PROTOCOL_KISSALL:
-			case PROTOCOL_CASTLE:
-			case PROTOCOL_4WAY:
-			default:
-				/* Unsupported protocol */
-				break;
-		}
+		protocol = escserial->protocol;
+	}
+
+	switch (escserial->protocol) {
+		case PROTOCOL_SIMONK:
+		case PROTOCOL_BLHELI:
+		case PROTOCOL_KISS:
+		case PROTOCOL_KISSALL:
+		case PROTOCOL_CASTLE:
+		case PROTOCOL_4WAY:
+		default:
+			/* Unsupported protocol */
+			break;
 	}
 
 	msp_send(m, MSP_SET_4WAY_IF, &num_esc, 1);
@@ -730,8 +788,14 @@ static msp_state msp_state_checksum(struct msp_bridge *m, uint8_t b)
 	case MSP_NAME:
 		msp_send_name(m);
 		break;
+	case MSP_FEATURE:
+		msp_send_feature(m);
+		break;
 	case MSP_UID:
 		msp_send_uid(m);
+		break;
+	case MSP_MOTOR:
+		msp_send_motor(m);
 		break;
 	case MSP_RAW_GPS:
 		msp_send_raw_gps(m);
@@ -753,6 +817,9 @@ static msp_state msp_state_checksum(struct msp_bridge *m, uint8_t b)
 		break;
 	case MSP_RC:
 		msp_send_channels(m);
+		break;
+	case MSP_MISC:
+		msp_send_misc(m);
 		break;
 	case MSP_BOXIDS:
 		msp_send_boxids(m);
