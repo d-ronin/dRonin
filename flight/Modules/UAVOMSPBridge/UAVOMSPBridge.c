@@ -68,7 +68,12 @@
 #define MSP_SENSOR_MAG 4
 #define MSP_SENSOR_GPS 8
 
-// Magic numbers copied from mwosd
+#define  MSP_API_VERSION 1
+#define  MSP_FC_VARIANT  2
+#define  MSP_FC_VERSION  3
+#define  MSP_BOARD_INFO  4
+#define  MSP_BUILD_INFO  5
+#define  MSP_NAME        10
 #define  MSP_IDENT       100 // multitype + multiwii version + protocol version + capability variable
 #define  MSP_STATUS      101 // cycletime & errors_count & sensor present & box activation & current setting number
 #define  MSP_RAW_IMU     102 // 9 DOF
@@ -90,8 +95,13 @@
 #define  MSP_BOXIDS      119 // get the permanent IDs associated to BOXes
 #define  MSP_NAV_STATUS  121 // Returns navigation status
 #define  MSP_CELLS       130 // FrSky SPort Telemtry
+#define  MSP_UID         160 // Hardware serial number
 #define  MSP_ALARMS      242 // Alarm request
 #define  MSP_SET_4WAY_IF 245 // Sets ESC serial interface
+
+#define MSP_PROTOCOL_VERSION  0
+#define MSP_API_VERSION_MAJOR 1
+#define MSP_API_VERSION_MINOR 31 // Matches 3.1.6
 
 typedef enum {
 	MSP_BOX_ARM,
@@ -232,6 +242,117 @@ static msp_state msp_state_fill_buf(struct msp_bridge *m, uint8_t b)
 	return m->cmd_i == m->cmd_size ? MSP_CHECKSUM : MSP_FILLBUF;
 }
 
+static void msp_send_name(struct msp_bridge *m)
+{
+	const char hardcoded_name[] = "dRonin";
+
+	msp_send(m, MSP_NAME, (uint8_t *) hardcoded_name, strlen(hardcoded_name));
+}
+
+static void msp_send_fc_version(struct msp_bridge *m)
+{
+	union {
+		uint8_t buf[0];
+		struct {
+			uint8_t major;
+			uint8_t minor;
+			uint8_t patch;
+		} fc_ver;
+	} data;
+
+	/* Not very meaningful to us */
+	data.fc_ver.major = 1;
+	data.fc_ver.minor = 0;
+	data.fc_ver.patch = 0;
+
+	msp_send(m, MSP_FC_VERSION, data.buf, sizeof(data));
+}
+
+static void msp_send_fc_variant(struct msp_bridge *m)
+{
+	union {
+		uint8_t buf[0];
+		struct {
+			char name[4];
+		} var;
+	} data;
+
+	memset(&data, 0, sizeof(data));
+
+	strncpy(data.var.name, DRONIN_TARGET, 4);
+
+	msp_send(m, MSP_FC_VARIANT, data.buf, sizeof(data));
+}
+
+static void msp_send_board_info(struct msp_bridge *m)
+{
+	union {
+		uint8_t buf[0];
+		struct __attribute__((packed)) {
+			char name[4];
+			uint16_t revision;
+		} board;
+	} data;
+
+	memset(&data, 0, sizeof(data));
+
+	strncpy(data.board.name, DRONIN_TARGET, 4);
+
+	msp_send(m, MSP_BOARD_INFO, data.buf, sizeof(data));
+}
+
+static void msp_send_build_info(struct msp_bridge *m)
+{
+	union {
+		uint8_t buf[0];
+		struct __attribute__((packed)) {
+			char date[11];
+			char time[8];
+			char short_rev[7];
+		} build;
+	} data;
+
+	memset(&data, 0, sizeof(data));
+
+	// XXX: Not impl
+
+	msp_send(m, MSP_BUILD_INFO, data.buf, sizeof(data));
+}
+
+DONT_BUILD_IF(PIOS_SYS_SERIAL_NUM_BINARY_LEN != 4*3, SerialNumberAssumption);
+
+static void msp_send_uid(struct msp_bridge *m)
+{
+	union {
+		uint8_t buf[0];
+		struct {
+			uint8_t serial[PIOS_SYS_SERIAL_NUM_BINARY_LEN];
+		} uid;
+	} data;
+
+	PIOS_SYS_SerialNumberGetBinary(data.uid.serial);
+
+	msp_send(m, MSP_UID, data.buf, sizeof(data));
+}
+
+static void msp_send_api_version(struct msp_bridge *m)
+{
+	union {
+		uint8_t buf[0];
+		struct {
+			uint8_t protocol_ver;
+			uint8_t api_version_major;
+			uint8_t api_version_minor;
+		} ident;
+	} data;
+
+	data.ident.protocol_ver = MSP_PROTOCOL_VERSION;
+	data.ident.api_version_major = MSP_API_VERSION_MAJOR;
+	data.ident.api_version_minor = MSP_API_VERSION_MINOR;
+
+	msp_send(m, MSP_API_VERSION, data.buf, sizeof(data));
+}
+
 static void msp_send_attitude(struct msp_bridge *m)
 {
 	union {
@@ -343,11 +464,6 @@ static void msp_send_analog(struct msp_bridge *m)
 	}
 
 	msp_send(m, MSP_ANALOG, data.buf, sizeof(data));
-}
-
-static void msp_send_ident(struct msp_bridge *m)
-{
-	// TODO
 }
 
 static void msp_send_raw_gps(struct msp_bridge *m)
@@ -595,8 +711,26 @@ static msp_state msp_state_checksum(struct msp_bridge *m, uint8_t b)
 
 	// Respond to interesting things.
 	switch (m->cmd_id) {
-	case MSP_IDENT:
-		msp_send_ident(m);
+	case MSP_API_VERSION:
+		msp_send_api_version(m);
+		break;
+	case MSP_FC_VERSION:
+		msp_send_fc_version(m);
+		break;
+	case MSP_FC_VARIANT:
+		msp_send_fc_variant(m);
+		break;
+	case MSP_BOARD_INFO:
+		msp_send_board_info(m);
+		break;
+	case MSP_BUILD_INFO:
+		msp_send_build_info(m);
+		break;
+	case MSP_NAME:
+		msp_send_name(m);
+		break;
+	case MSP_UID:
+		msp_send_uid(m);
 		break;
 	case MSP_RAW_GPS:
 		msp_send_raw_gps(m);
@@ -766,9 +900,7 @@ static void uavoMSPBridgeTask(void *parameters)
 
 	while (1) {
 		uint8_t b = 0;
-
 		uint16_t count = PIOS_COM_ReceiveBuffer(msp->com, &b, 1, 3000);
-
 		if (count) {
 			if (!msp_receive_byte(msp, b)) {
 				// Returning is considered risky here as
