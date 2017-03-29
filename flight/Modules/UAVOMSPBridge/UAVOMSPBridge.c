@@ -135,6 +135,20 @@ typedef enum {
 	MSP_MAYBE_UAVTALK4,
 } msp_state;
 
+typedef enum __attribute__ ((__packed__)) {
+	PROTOCOL_SIMONK = 0,
+	PROTOCOL_BLHELI = 1,
+	PROTOCOL_KISS = 2,
+	PROTOCOL_KISSALL = 3,
+	PROTOCOL_CASTLE = 4,
+	PROTOCOL_4WAY = 0xff,
+} msp_esc_protocol;
+
+struct msp_cmddata_escserial {
+	msp_esc_protocol protocol;
+	uint8_t esc_num;
+};
+
 struct msp_bridge {
 	uintptr_t com;
 
@@ -146,6 +160,7 @@ struct msp_bridge {
 	union {
 		uint8_t data[0];
 		// Specific packed data structures go here.
+		struct msp_cmddata_escserial escserial;
 	} cmd_data;
 };
 
@@ -483,7 +498,7 @@ static void msp_send_channels(struct msp_bridge *m)
 	} data = {
 		.channels = {
 			msp_scale_rc(manualState.Roll),
-			msp_scale_rc(manualState.Pitch * -1), // TL pitch is backwards
+			msp_scale_rc(manualState.Pitch * -1), // MW pitch is backwards
 			msp_scale_rc(manualState.Yaw),
 			msp_scale_rc_thr(manualState.Throttle),
 			msp_scale_rc(manualState.Accessory[0]),
@@ -504,6 +519,28 @@ static void msp_send_boxids(struct msp_bridge *m) {
 		boxes[len++] = msp_boxes[i].mwboxid;
 	}
 	msp_send(m, MSP_BOXIDS, boxes, len);
+}
+
+static void msp_handle_4wif(struct msp_bridge *m) {
+	struct msp_cmddata_escserial *escserial = &m->cmd_data.escserial;
+
+	uint8_t num_esc = 0;
+
+	if (m->cmd_size >= sizeof(*escserial)) {
+		switch (escserial->protocol) {
+			case PROTOCOL_SIMONK:
+			case PROTOCOL_BLHELI:
+			case PROTOCOL_KISS:
+			case PROTOCOL_KISSALL:
+			case PROTOCOL_CASTLE:
+			case PROTOCOL_4WAY:
+			default:
+				/* Unsupported protocol */
+				break;
+		}
+	}
+
+	msp_send(m, MSP_SET_4WAY_IF, &num_esc, 1);
 }
 
 #define ALARM_OK 0
@@ -587,6 +624,9 @@ static msp_state msp_state_checksum(struct msp_bridge *m, uint8_t b)
 		break;
 	case MSP_ALARMS:
 		msp_send_alarms(m);
+		break;
+	case MSP_SET_4WAY_IF:
+		msp_handle_4wif(m);
 		break;
 	}
 	return MSP_IDLE;
