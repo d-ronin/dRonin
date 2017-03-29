@@ -146,17 +146,17 @@ typedef enum {
 	MSP_MAYBE_UAVTALK4,
 } msp_state;
 
-enum __attribute__ ((__packed__)) msp_esp_protocol {
+typedef enum __attribute__ ((__packed__)) {
 	PROTOCOL_SIMONK = 0,
 	PROTOCOL_BLHELI = 1,
 	PROTOCOL_KISS = 2,
 	PROTOCOL_KISSALL = 3,
 	PROTOCOL_CASTLE = 4,
 	PROTOCOL_4WAY = 0xff,
-};
+} msp_esc_protocol;
 
 struct msp_cmddata_escserial {
-	enum msp_esc_protocol protocol;
+	msp_esc_protocol protocol;
 	uint8_t esc_num;
 };
 
@@ -191,6 +191,20 @@ extern uintptr_t pios_com_msp_id;
 static struct msp_bridge *msp;
 static int32_t uavoMSPBridgeInitialize(void);
 static void uavoMSPBridgeTask(void *parameters);
+
+static void msp_send_error(struct msp_bridge *m, uint8_t cmd)
+{
+	uint8_t buf[6];
+
+	buf[0] = '$';
+	buf[1] = 'M';
+	buf[2] = '|';
+	buf[3] = 0;
+	buf[4] = cmd;
+	buf[5] = cmd;	// Checksum == cmd
+
+	PIOS_COM_SendBuffer(m->com, buf, sizeof(buf));
+}
 
 static void msp_send(struct msp_bridge *m, uint8_t cmd, const uint8_t *data, size_t len)
 {
@@ -697,13 +711,13 @@ static void msp_handle_4wif(struct msp_bridge *m) {
 
 	uint8_t num_esc = 0;
 
-	enum msp_esc_protocol protocol = PROTOCOL_4WAY;
+	msp_esc_protocol protocol = PROTOCOL_4WAY;
 
 	if (m->cmd_size >= sizeof(*escserial)) {
 		protocol = escserial->protocol;
 	}
 
-	switch (escserial->protocol) {
+	switch (protocol) {
 		case PROTOCOL_SIMONK:
 		case PROTOCOL_BLHELI:
 		case PROTOCOL_KISS:
@@ -829,6 +843,9 @@ static msp_state msp_state_checksum(struct msp_bridge *m, uint8_t b)
 		break;
 	case MSP_SET_4WAY_IF:
 		msp_handle_4wif(m);
+		break;
+	default:
+		msp_send_error(m, m->cmd_id);
 		break;
 	}
 	return MSP_IDLE;
