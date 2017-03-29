@@ -92,7 +92,6 @@ include $(APPLIBDIR)/ChibiOS/library.mk
 SRC += ${OPMODULEDIR}/System/systemmod.c
 SRC += ${OPMODULEDIR}/System/rgbleds.c
 SRC += chibi_main.c
-SRC += board.c
 SRC += pios_board.c
 SRC += pios_usb_board_data.c
 SRC += $(FLIGHTLIB)/alarms.c
