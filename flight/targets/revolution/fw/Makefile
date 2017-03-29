@@ -100,7 +100,7 @@ include $(APPLIBDIR)/ChibiOS/library.mk
 ## MODULES
 SRC += ${foreach MOD, ${MODULES} ${OPTMODULES}, ${wildcard ${OPMODULEDIR}/${MOD}/*.c}}
 ## OPENPILOT CORE:
-SRC += main.c
+SRC += chibi_main.c
 SRC += pios_board.c
 SRC += pios_usb_board_data.c
 SRC += $(FLIGHTLIB)/alarms.c

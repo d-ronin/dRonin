@@ -15,15 +15,14 @@
 */
 
 /**
- * @addtogroup Targets Target Boards
+ * @addtogroup PIOS PIOS Core hardware abstraction layer
  * @{
- * @addtogroup RevoMini OpenPilot Revolution Mini
- * @{
+ * @addtogroup ChibiOS ChibiOS Interface
+ * @{ 
  *
- * @file    revolution/fw/chconf.h
- * @brief   Configuration file template.
- * @details A copy of this file must be placed in each project directory, it
- *          contains the application specific kernel settings.
+ * @file    PiOS/inc/chconf.h
+ * @brief   Configuration file 
+ * @details Generic chconf.h file for flight targets
  *
  * @addtogroup config
  * @details Kernel related settings and hooks.

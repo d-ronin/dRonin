@@ -2,12 +2,10 @@
  ******************************************************************************
  * @addtogroup Targets Target Boards
  * @{
- * @addtogroup AQ32 Aeroquad AQ32
- * @{
  *
- * @file       aq32/fw/main.c
- * @author     Tau Labs, http://taulabs.org, Copyright (C) 2012-2014
- * @brief      Start RTOS and the Modules.
+ * @file       sparky2/fw/main.c
+ * @author     Tau Labs, http://taulabs.org, Copyright (C) 2012-2015
+ * @brief      Start up file for ChibiOS targets
  * @see        The GNU Public License (GPL) Version 3
  *
  *****************************************************************************/
@@ -33,17 +31,33 @@
 #include "systemmod.h"
 #include "pios_thread.h"
 
-/* Prototype of PIOS_Board_Init() function */
-extern void PIOS_Board_Init(void);
-extern void Stack_Change(void);
-
 /* Local Variables */
 #define INIT_TASK_PRIORITY	PIOS_THREAD_PRIO_HIGHEST
-#define INIT_TASK_STACK		1024											// XXX this seems excessive
-static struct pios_thread *initTaskHandle;
+#define INIT_TASK_STACK		1024
 
 /* Function Prototypes */
+extern void PIOS_Board_Init(void);
+extern void Stack_Change(void);
 static void initTask(void *parameters);
+
+static struct pios_thread *initTaskHandle;
+
+/**
+ * @brief   Early initialization code.
+ * @details This initialization must be performed just after stack setup
+ *          and before any other initialization.
+ */
+void __early_init(void) {
+
+  stm32_clock_init();
+}
+
+/**
+ * @brief   Board-specific initialization code.
+ * @todo    Add your board-specific code, if any.
+ */
+void boardInit(void) {
+}
 
 /**
 * dRonin Main function:
@@ -51,30 +65,28 @@ static void initTask(void *parameters);
 * Initialize PiOS<BR>
 * Create the "System" task (SystemModInitializein Modules/System/systemmod.c) <BR>
 * Start the RTOS Scheduler<BR>
-* If something goes wrong, blink LED1 and LED2 every 100ms
-*
 */
+
 int main()
 {
 	/* NOTE: Do NOT modify the following start-up sequence */
 	PIOS_heap_initialize_blocks();
 
-#if defined(PIOS_INCLUDE_CHIBIOS)
 	halInit();
 	chSysInit();
 
 	boardInit();
-#endif /* defined(PIOS_INCLUDE_CHIBIOS) */
 
 	/* Brings up System using CMSIS functions, enables the LEDs. */
 	PIOS_SYS_Init();
-
-	/* For Revolution we use an RTOS task to bring up the system so we can */
-	/* always rely on an RTOS primitive */
+	
+	/* For Sparky2 we use an RTOS task to bring up the system so we can */
+	/* always rely on an RTOS primitive */	
 	initTaskHandle = PIOS_Thread_Create(initTask, "init", INIT_TASK_STACK, NULL, INIT_TASK_PRIORITY);
 	PIOS_Assert(initTaskHandle != NULL);
 
-	PIOS_Thread_Sleep(PIOS_THREAD_TIMEOUT_MAX);
+	while(1)
+		PIOS_Thread_Sleep(PIOS_THREAD_TIMEOUT_MAX);
 
 	return 0;
 }
@@ -100,6 +112,4 @@ void initTask(void *parameters)
 
 /**
  * @}
- * @}
  */
-

@@ -274,23 +274,6 @@ void check_bor()
     }
 }
 
-/**
- * @brief   Early initialization code.
- * @details This initialization must be performed just after stack setup
- *          and before any other initialization.
- */
-void __early_init(void)
-{
-	stm32_clock_init();
-}
-
-/**
- * @brief   Board-specific initialization code.
- */
-void boardInit(void)
-{
-}
-
 void PIOS_Board_Init(void) {
 
 	check_bor();

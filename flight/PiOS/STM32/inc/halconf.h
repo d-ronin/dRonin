@@ -15,16 +15,14 @@
 */
 
 /**
- * @addtogroup Targets Target Boards
+ * @addtogroup PIOS PIOS Core hardware abstraction layer
  * @{
- * @addtogroup LUX Lumenier LUX
- * @{
+ * @addtogroup ChibiOS ChibiOS Interface
+ * @{ 
  *
- * @file    lux/board-info/halconf.h
+ * @file       PiOS/inc/halconf.h
  * @brief   HAL configuration header.
- * @details HAL configuration file, this file allows to enable or disable the
- *          various device drivers from your application. You may also use
- *          this file in order to override the device drivers default settings.
+ * @details HAL configuration file, for flight targets.
  *
  * @addtogroup HAL_CONF
  * @{

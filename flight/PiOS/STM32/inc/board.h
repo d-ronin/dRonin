@@ -16,29 +16,18 @@
 
 /**
  ******************************************************************************
- * @addtogroup Bootloader Bootloaders
+ * @addtogroup PIOS PIOS Core hardware abstraction layer
  * @{
- * @addtogroup Seppuku DTFAIR Seppuku
- * @{
+ * @addtogroup ChibiOS ChibiOS Interface
+ * @{ 
  *
- * @file       seppuku/fw/board.h
+ * @file       PiOS/inc/board.h
  *****************************************************************************/
 
 #ifndef _BOARD_H_
 #define _BOARD_H_
 
 #include "pios_chibios_transition_priv.h"
-
-/*
- * Setup for STMicroelectronics STM32F4-Discovery board.
- */
-
-/*
- * Board identifier.
- */
-#define BOARD_DRONIN_SEPPUKU
-#define BOARD_NAME                  "Seppuku"
-
 
 /*
  * Board oscillators-related settings.
@@ -48,22 +37,13 @@
 #define STM32_LSECLK                0
 #endif
 
-#if !defined(STM32_HSECLK)
-#define STM32_HSECLK                8000000
-#endif
+#define STM32_HSECLK                HSE_VALUE
 
 /*
  * Board voltages.
  * Required for performance limits calculation.
  */
 #define STM32_VDD                   330
-
-/*
- * MCU type as defined in the ST header.
- */
-#if !defined(STM32F40_41xxx)
-#define STM32F40_41xxx
-#endif
 
 #if !defined(_FROM_ASM_)
 #ifdef __cplusplus
