@@ -69,28 +69,29 @@
 #define MSP_SENSOR_GPS 8
 
 // Magic numbers copied from mwosd
-#define  MSP_IDENT      100 // multitype + multiwii version + protocol version + capability variable
-#define  MSP_STATUS     101 // cycletime & errors_count & sensor present & box activation & current setting number
-#define  MSP_RAW_IMU    102 // 9 DOF
-#define  MSP_SERVO      103 // 8 servos
-#define  MSP_MOTOR      104 // 8 motors
-#define  MSP_RC         105 // 8 rc chan and more
-#define  MSP_RAW_GPS    106 // fix, numsat, lat, lon, alt, speed, ground course
-#define  MSP_COMP_GPS   107 // distance home, direction home
-#define  MSP_ATTITUDE   108 // 2 angles 1 heading
-#define  MSP_ALTITUDE   109 // altitude, variometer
-#define  MSP_ANALOG     110 // vbat, powermetersum, rssi if available on RX
-#define  MSP_RC_TUNING  111 // rc rate, rc expo, rollpitch rate, yaw rate, dyn throttle PID
-#define  MSP_PID        112 // P I D coeff (9 are used currently)
-#define  MSP_BOX        113 // BOX setup (number is dependant of your setup)
-#define  MSP_MISC       114 // powermeter trig
-#define  MSP_MOTOR_PINS 115 // which pins are in use for motors & servos, for GUI
-#define  MSP_BOXNAMES   116 // the aux switch names
-#define  MSP_PIDNAMES   117 // the PID names
-#define  MSP_BOXIDS     119 // get the permanent IDs associated to BOXes
-#define  MSP_NAV_STATUS 121 // Returns navigation status
-#define  MSP_CELLS      130 // FrSky SPort Telemtry
-#define  MSP_ALARMS     242 // Alarm request
+#define  MSP_IDENT       100 // multitype + multiwii version + protocol version + capability variable
+#define  MSP_STATUS      101 // cycletime & errors_count & sensor present & box activation & current setting number
+#define  MSP_RAW_IMU     102 // 9 DOF
+#define  MSP_SERVO       103 // 8 servos
+#define  MSP_MOTOR       104 // 8 motors
+#define  MSP_RC          105 // 8 rc chan and more
+#define  MSP_RAW_GPS     106 // fix, numsat, lat, lon, alt, speed, ground course
+#define  MSP_COMP_GPS    107 // distance home, direction home
+#define  MSP_ATTITUDE    108 // 2 angles 1 heading
+#define  MSP_ALTITUDE    109 // altitude, variometer
+#define  MSP_ANALOG      110 // vbat, powermetersum, rssi if available on RX
+#define  MSP_RC_TUNING   111 // rc rate, rc expo, rollpitch rate, yaw rate, dyn throttle PID
+#define  MSP_PID         112 // P I D coeff (9 are used currently)
+#define  MSP_BOX         113 // BOX setup (number is dependant of your setup)
+#define  MSP_MISC        114 // powermeter trig
+#define  MSP_MOTOR_PINS  115 // which pins are in use for motors & servos, for GUI
+#define  MSP_BOXNAMES    116 // the aux switch names
+#define  MSP_PIDNAMES    117 // the PID names
+#define  MSP_BOXIDS      119 // get the permanent IDs associated to BOXes
+#define  MSP_NAV_STATUS  121 // Returns navigation status
+#define  MSP_CELLS       130 // FrSky SPort Telemtry
+#define  MSP_ALARMS      242 // Alarm request
+#define  MSP_SET_4WAY_IF 245 // Sets ESC serial interface
 
 typedef enum {
 	MSP_BOX_ARM,
