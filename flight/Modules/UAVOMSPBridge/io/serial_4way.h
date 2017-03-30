@@ -17,8 +17,10 @@
 */
 #pragma once
 
+#ifndef DRONIN_TARGET
 #include "drivers/io_types.h"
-#include "io/serial_4way_impl.h"
+#endif
+#include "serial_4way_impl.h"
 
 #define USE_SERIAL_4WAY_BLHELI_BOOTLOADER
 #define USE_SERIAL_4WAY_SK_BOOTLOADER

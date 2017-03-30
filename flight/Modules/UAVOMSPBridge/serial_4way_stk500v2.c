@@ -25,11 +25,14 @@
 
 #ifdef  USE_SERIAL_4WAY_BLHELI_INTERFACE
 
+#ifndef DRONIN_TARGET
 #include "drivers/io.h"
 #include "drivers/serial.h"
 #include "drivers/system.h"
 
 #include "io/serial.h"
+#endif
+
 #include "io/serial_4way.h"
 #include "io/serial_4way_impl.h"
 #include "io/serial_4way_stk500v2.h"

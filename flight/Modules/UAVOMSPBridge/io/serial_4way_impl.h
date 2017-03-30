@@ -17,7 +17,9 @@
 */
 #pragma once
 
+#ifndef DRONIN_TARGET
 #include "drivers/io_types.h"
+#endif
 
 typedef struct {
     IO_t io;

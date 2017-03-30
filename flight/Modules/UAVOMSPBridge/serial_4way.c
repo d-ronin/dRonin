@@ -24,6 +24,8 @@
 
 #ifdef  USE_SERIAL_4WAY_BLHELI_INTERFACE
 
+#ifndef DRONIN_TARGET
+
 #include "drivers/buf_writer.h"
 #include "drivers/io.h"
 #include "drivers/serial.h"
@@ -35,6 +37,7 @@
 #include "flight/mixer.h"
 
 #include "io/beeper.h"
+#endif
 #include "io/serial_4way.h"
 
 #ifdef USE_SERIAL_4WAY_BLHELI_BOOTLOADER
@@ -48,7 +51,9 @@
 #define Bit_RESET GPIO_PIN_RESET
 #endif
 
+#ifndef DRONIN_TARGET
 #define USE_TXRX_LED
+#endif
 
 #ifdef  USE_TXRX_LED
 #define RX_LED_OFF LED0_OFF
@@ -460,6 +465,10 @@ void esc4wayProcess(serialPort_t *mspPort)
             ioMem.D_PTR_I = ParamBuf;
 
 
+#ifdef DRONIN_TARGET
+	    PIOS_IRQ_Disable();
+#endif
+
             switch(CMD) {
                 // ******* Interface related stuff *******
                 case cmd_InterfaceTestAlive:
@@ -792,6 +801,10 @@ void esc4wayProcess(serialPort_t *mspPort)
                     ACK_OUT = ACK_I_INVALID_CMD;
                 }
             }
+
+#ifdef DRONIN_TARGET
+	    PIOS_IRQ_Enable();
+#endif
         }
 
         CRCout.word = 0;
