@@ -60,7 +60,7 @@ static inline void pwmEnableMotors(void)
 {
 }
 
-static pwmOutputPort_t pwm_tmp[MAX_SUPPORTED_MOTORS] = { };
+static pwmOutputPort_t pwm_tmp[MAX_SUPPORTED_MOTORS] = { { .enabled = 1, .io="hi"} };
 
 static inline pwmOutputPort_t *pwmGetMotors(void)
 {
@@ -98,7 +98,7 @@ static inline void serialWrite(serialPort_t *instance, uint8_t ch)
 	PIOS_COM_SendBuffer(instance->com, &ch, sizeof(ch));
 }
 
-/* These two are just used for blocking, so we make the below calls do it */
+/* These two are just used for blocking, so we make the above calls block */
 static inline uint32_t serialRxBytesWaiting(const serialPort_t *instance)
 {
 	return 1;

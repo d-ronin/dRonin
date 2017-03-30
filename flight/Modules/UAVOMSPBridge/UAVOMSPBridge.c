@@ -185,7 +185,7 @@ struct msp_bridge {
 #if defined(PIOS_MSP_STACK_SIZE)
 #define STACK_SIZE_BYTES PIOS_MSP_STACK_SIZE
 #else
-#define STACK_SIZE_BYTES 768
+#define STACK_SIZE_BYTES 1500
 #endif
 #define TASK_PRIORITY               PIOS_THREAD_PRIO_LOW
 
