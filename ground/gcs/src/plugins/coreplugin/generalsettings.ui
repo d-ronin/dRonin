@@ -32,13 +32,6 @@
       <property name="verticalSpacing">
        <number>2</number>
       </property>
-      <item row="1" column="0">
-       <widget class="QLabel" name="colorLabel">
-        <property name="text">
-         <string>User interface color:</string>
-        </property>
-       </widget>
-      </item>
       <item row="14" column="1">
        <widget class="QCheckBox" name="cbExpertMode">
         <property name="text">
@@ -61,52 +54,6 @@
          <property name="bottomMargin">
           <number>0</number>
          </property>
-         <item row="0" column="1">
-          <widget class="QToolButton" name="resetButton">
-           <property name="toolTip">
-            <string>Reset to default</string>
-           </property>
-           <property name="text">
-            <string>R</string>
-           </property>
-           <property name="icon">
-            <iconset resource="core.qrc">
-             <normaloff>:/core/images/reset.png</normaloff>:/core/images/reset.png</iconset>
-           </property>
-          </widget>
-         </item>
-         <item row="0" column="0">
-          <widget class="Utils::QtColorButton" name="colorButton">
-           <property name="sizePolicy">
-            <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
-             <horstretch>0</horstretch>
-             <verstretch>0</verstretch>
-            </sizepolicy>
-           </property>
-           <property name="minimumSize">
-            <size>
-             <width>64</width>
-             <height>0</height>
-            </size>
-           </property>
-           <property name="alphaAllowed" stdset="0">
-            <bool>false</bool>
-           </property>
-          </widget>
-         </item>
-         <item row="0" column="2">
-          <spacer name="horizontalSpacer">
-           <property name="orientation">
-            <enum>Qt::Horizontal</enum>
-           </property>
-           <property name="sizeHint" stdset="0">
-            <size>
-             <width>40</width>
-             <height>20</height>
-            </size>
-           </property>
-          </spacer>
-         </item>
         </layout>
        </widget>
       </item>
@@ -368,16 +315,6 @@
    </item>
   </layout>
  </widget>
- <customwidgets>
-  <customwidget>
-   <class>Utils::QtColorButton</class>
-   <extends>QToolButton</extends>
-   <header>utils/qtcolorbutton.h</header>
-  </customwidget>
- </customwidgets>
- <resources>
-  <include location="core.qrc"/>
-  <include location="core.qrc"/>
- </resources>
+ <resources/>
  <connections/>
 </ui>

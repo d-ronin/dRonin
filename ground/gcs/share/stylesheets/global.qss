@@ -5,6 +5,7 @@ QMainWindow {
 #MainContentFrame {
 	background: palette(Midlight);
 	padding-bottom: 5px;
+	border-top: 1px solid #606060;
 }
 
 MyTabWidget::pane > QFrame {
@@ -28,7 +29,7 @@ MyTabWidget > QTabBar::tab {
 	max-height: 36px;
 }
 
-SystemHealthGadgetWidget, PfdQmlGadgetWidget, LineardialGadgetWidget, ModelViewGadgetWidget > *, OPMapGadgetWidget {
+SystemHealthGadgetWidget, PfdQmlGadgetWidget, LineardialGadgetWidget, ModelViewGadgetWidget > *, OPMapGadgetWidget, DialGadgetWidget {
 	background: #303030;
 	border: 1px solid #505050;
 }
@@ -70,4 +71,21 @@ SystemHealthGadgetWidget, PfdQmlGadgetWidget, LineardialGadgetWidget, ModelViewG
 	background: #f39c12;
 	color: black;
 	border: 1px solid #f1c40f;
+}
+
+Utils--StyledBar {
+	background: #505050;
+	min-height: 24px;
+	max-height: 24px;
+}
+
+Utils--StyledBar QComboBox {
+	border: 0px;
+	background: transparent;
+	color: white;
+	height: 22px;
+}
+
+Utils--StyledBar QComboBox:!editable {
+	color: #808080;
 }

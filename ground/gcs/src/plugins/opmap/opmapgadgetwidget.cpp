@@ -46,7 +46,6 @@
 
 #include <math.h>
 
-#include "utils/stylehelper.h"
 #include "utils/homelocationutil.h"
 #include "utils/worldmagmodel.h"
 
@@ -158,7 +157,6 @@ OPMapGadgetWidget::OPMapGadgetWidget(QWidget *parent) : QFrame(parent)
     m_map = new mapcontrol::TLMapWidget();	// create the map object
 
     m_map->setFrameStyle(QFrame::NoFrame);      // no border frame
-    m_map->setBackgroundBrush(QBrush(Utils::StyleHelper::baseColor())); // tile background
 
     m_map->configuration->DragButton = Qt::LeftButton;  // use the left mouse button for map dragging
 

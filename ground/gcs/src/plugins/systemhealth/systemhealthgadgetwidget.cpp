@@ -26,7 +26,6 @@
  */
 
 #include "systemhealthgadgetwidget.h"
-#include "utils/stylehelper.h"
 #include "extensionsystem/pluginmanager.h"
 #include "uavobjectmanager.h"
 #include "systemalarms.h"

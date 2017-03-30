@@ -111,6 +111,7 @@ UAVGadgetView::UAVGadgetView(Core::UAVGadgetManager *uavGadgetManager, IUAVGadge
         toolBarLayout->setMargin(0);
         toolBarLayout->setSpacing(0);
         toolBarLayout->addWidget(m_defaultToolBar);
+
         m_toolBar->setLayout(toolBarLayout);
         m_toolBar->setSizePolicy(QSizePolicy::Maximum, QSizePolicy::MinimumExpanding);
 
@@ -118,12 +119,14 @@ UAVGadgetView::UAVGadgetView(Core::UAVGadgetManager *uavGadgetManager, IUAVGadge
         spacerWidget->setSizePolicy(QSizePolicy::MinimumExpanding, QSizePolicy::MinimumExpanding);
 
         m_activeLabel->setTextFormat(Qt::RichText);
-        m_activeLabel->setText("<font color=red><b>" + tr("Active") + "</b></font>");
+        m_activeLabel->setText("<font color=#c0392b><b>" + tr("Active") + "</b></font>");
 
         m_closeButton->setAutoRaise(true);
         m_closeButton->setIcon(QIcon(":/core/images/closebutton.png"));
 
         m_top = new Utils::StyledBar(this);
+        m_top->setSizePolicy(QSizePolicy::MinimumExpanding, QSizePolicy::Minimum);
+
         QHBoxLayout *toplayout = new QHBoxLayout(m_top);
         toplayout->setSpacing(0);
         toplayout->setMargin(0);

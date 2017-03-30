@@ -54,7 +54,6 @@
 #include "icorelistener.h"
 #include "iconfigurableplugin.h"
 #include <QStyleFactory>
-#include "manhattanstyle.h"
 #include "settingsdialog.h"
 #include "uniqueidmanager.h"
 #include "versiondialog.h"
@@ -63,7 +62,6 @@
 #include "dialogs/iwizard.h"
 #include <utils/hostosinfo.h>
 #include <utils/pathchooser.h>
-#include <utils/stylehelper.h>
 #include <utils/xmlconfig.h>
 #include <utils/pathutils.h>
 
@@ -170,7 +168,7 @@ MainWindow::MainWindow() :
             }
         }
     }
-    qApp->setStyle(new ManhattanStyle(baseName));
+    qApp->setStyle(QStyleFactory::create(baseName));
 
 
     setDockNestingEnabled(true);
@@ -1156,7 +1154,6 @@ void MainWindow::createWorkspaces(QSettings* qs, bool diffOnly) {
 
 static const char *settingsGroup = "MainWindow";
 static const char *geometryKey = "Geometry";
-static const char *colorKey = "Color";
 static const char *maxKey = "Maximized";
 static const char *fullScreenKey = "FullScreen";
 static const char *modePriorities = "ModePriorities";
@@ -1177,8 +1174,6 @@ void MainWindow::readSettings(QSettings* qs, bool workspaceDiffOnly)
     m_actionManager->readSettings(qs);
 
     qs->beginGroup(QLatin1String(settingsGroup));
-
-    Utils::StyleHelper::setBaseColor(qs->value(QLatin1String(colorKey)).value<QColor>());
 
     const QVariant geom = qs->value(QLatin1String(geometryKey));
     if (geom.isValid()) {
@@ -1221,8 +1216,6 @@ void MainWindow::saveSettings(QSettings* qs)
     m_workspaceSettings->saveSettings(qs);
 
     qs->beginGroup(QLatin1String(settingsGroup));
-
-    qs->setValue(QLatin1String(colorKey), Utils::StyleHelper::baseColor());
 
     if (windowState() & (Qt::WindowMaximized | Qt::WindowFullScreen)) {
         qs->setValue(QLatin1String(maxKey), (bool) (windowState() & Qt::WindowMaximized));
