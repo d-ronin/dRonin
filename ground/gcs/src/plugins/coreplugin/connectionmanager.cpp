@@ -54,10 +54,10 @@ ConnectionManager::ConnectionManager(Internal::MainWindow *mainWindow, QTabWidge
 {
     QHBoxLayout *layout = new QHBoxLayout;
     layout->setSpacing(5);
-    layout->setContentsMargins(0,0,9,0);
+    layout->setContentsMargins(0, 0, 9, 0);
 
     m_monitorWidget = new TelemetryMonitorWidget(this);
-    AlarmsMonitorWidget::getInstance().init(m_monitorWidget->getRenderer(),m_monitorWidget->getBackgroundItem());
+    AlarmsMonitorWidget::getInstance().init(m_monitorWidget->getRenderer(), m_monitorWidget->getBackgroundItem());
     layout->addWidget(m_monitorWidget, Qt::AlignHCenter);
 
     layout->addWidget(new QLabel(tr("Connections:")));
@@ -81,8 +81,8 @@ ConnectionManager::ConnectionManager(Internal::MainWindow *mainWindow, QTabWidge
     // setup our reconnect timers
     reconnect = new QTimer(this);
     reconnectCheck = new QTimer(this);
-    connect(reconnect,SIGNAL(timeout()),this,SLOT(reconnectSlot()));
-    connect(reconnectCheck,SIGNAL(timeout()),this,SLOT(reconnectCheckSlot()));
+    connect(reconnect,SIGNAL(timeout()), this, SLOT(reconnectSlot()));
+    connect(reconnectCheck,SIGNAL(timeout()), this, SLOT(reconnectCheckSlot()));
 }
 
 ConnectionManager::~ConnectionManager()

@@ -1,13 +1,10 @@
 /* Guess what. */
 QMainWindow {
-
 }
 
 #MainContentFrame {
-
 	background: palette(Midlight);
 	padding-bottom: 5px;
-
 }
 
 MyTabWidget::pane > QFrame {
@@ -19,82 +16,58 @@ MyTabWidget::pane > QFrame {
 MyTabWidget::pane {
 	/* Outside */
 	border: 0px;
-
 }
 
 /* Main tabbed content pane's tab bar */
 MyTabWidget::tab-bar {
-
 	left: 9px;
-
 }
 
 MyTabWidget > QTabBar::tab {
-
 	min-height: 36px;
 	max-height: 36px;
-
 }
 
 SystemHealthGadgetWidget, PfdQmlGadgetWidget, LineardialGadgetWidget, ModelViewGadgetWidget > *, OPMapGadgetWidget {
-
 	background: #303030;
 	border: 1px solid #505050;
-
 }
 
 #frameStatusBar, #frameTopBar, #frameMapControls {
-	
 	background: #303030;
-
 }
 
 #frameTopBar > QLabel, #frameStatusBar > QLabel {
-	
 	color: white;
-
 }
 
 #OPMap_Widget > QLabel {
-	
 	color: #ffffff;
-
 }
 
 #frameTopBar > QToolButton, #frameMapControls > QToolButton {
-
 	background: #505050;
 	color: white;
 	border: 1px solid #606060;
-
 }
 
 #frameTopBar > QToolButton:disabled, #frameMapControls > QToolButton:disabled {
-	
-
 	background: #303030;
 	color: #505050;
 	border: 1px solid #505050;
-
 }
 
 #frameTopBar > QToolButton:hover, #frameMapControls > QToolButton:hover {
-	
-
 }
 
 #frameTopBar > QToolButton:pressed, #frameMapControls > QToolButton:pressed {
-
 	background: #e67e22;
 	color: black;
 	border: 1px solid #f39c12;
-
 }
 
 #frameTopBar > QToolButton:checked, #frameMapControls > QToolButton:checked {
-
 	background: #f39c12;
 	color: black;
 	border: 1px solid #f1c40f;
-
 }

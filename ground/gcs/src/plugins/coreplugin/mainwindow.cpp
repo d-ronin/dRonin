@@ -391,7 +391,7 @@ void MainWindow::extensionsInitialized()
 
 void MainWindow::readStyleSheet(QFile *file, QString name, QString *style) {
     QString tmp;
-    if(file->open(QFile::ReadOnly)) {
+    if (file->open(QFile::ReadOnly)) {
         /* QTextStream... */
         QTextStream styleIn(file);
         /* ...read file to a string. */
@@ -399,10 +399,10 @@ void MainWindow::readStyleSheet(QFile *file, QString name, QString *style) {
         file->close();
         style->append(tmp);
         emit splashMessages(QString(tr("Loading stylesheet %1")).arg(name));
-        qDebug()<<"Loaded stylesheet:" << name;
+        qDebug() << "Loaded stylesheet:" << name;
     }
     else {
-        qDebug()<<"Failed to openstylesheet file" << name;
+        qDebug() << "Failed to openstylesheet file" << name;
     }
 }
 
@@ -417,13 +417,13 @@ void MainWindow::loadStyleSheet(QString name) {
     directory.cd("share");
 #endif
     directory.cd("stylesheets");
-    QFile global(directory.absolutePath()+QDir::separator()+"global.qss");
+    QFile global(directory.absolutePath() + QDir::separator() + "global.qss");
 #ifdef Q_OS_MAC
-    QFile data(directory.absolutePath()+QDir::separator()+name+"_macos.qss");
+    QFile data(directory.absolutePath() + QDir::separator() + name + "_macos.qss");
 #elif defined(Q_OS_LINUX)
-    QFile data(directory.absolutePath()+QDir::separator()+name+"_linux.qss");
+    QFile data(directory.absolutePath() + QDir::separator() + name + "_linux.qss");
 #else
-    QFile data(directory.absolutePath()+QDir::separator()+name+"_windows.qss");
+    QFile data(directory.absolutePath() + QDir::separator() + name + "_windows.qss");
 #endif
     QString style;
     /* ...to open the file */
@@ -431,10 +431,10 @@ void MainWindow::loadStyleSheet(QString name) {
     readStyleSheet(&global, "global", &style);
     readStyleSheet(&data, name, &style);
 
-    if(style.length() > 0) {
+    if (style.length() > 0) {
         qApp->setStyleSheet(style);
     } else {
-        qDebug()<<"No stylesheets loaded.";
+        qDebug() << "No stylesheets loaded.";
     }
 }
 
