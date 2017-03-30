@@ -133,6 +133,9 @@ bool Seppuku::setInputType(Core::IBoardType::InputType type)
     case INPUT_TYPE_SRXL:
         rcvrPort->setValue(HwSeppuku::RCVRPORT_SRXL);
         break;
+    case INPUT_TYPE_TBSCROSSFIRE:
+        rcvrPort->setValue(HwSeppuku::RCVRPORT_TBSCROSSFIRE);
+        break;
     default:
         return false;
     }
@@ -165,6 +168,8 @@ Core::IBoardType::InputType Seppuku::getInputType()
         return INPUT_TYPE_SBUSNONINVERTED;
     case HwSeppuku::RCVRPORT_IBUS:
         return INPUT_TYPE_IBUS;
+    case HwSeppuku::RCVRPORT_TBSCROSSFIRE:
+        return INPUT_TYPE_TBSCROSSFIRE;
     default:
         break;
     }

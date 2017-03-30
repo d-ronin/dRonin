@@ -162,6 +162,9 @@ bool Brain::setInputType(Core::IBoardType::InputType type)
     case INPUT_TYPE_SRXL:
         settings.MainPort = HwBrain::MAINPORT_SRXL;
         break;
+    case INPUT_TYPE_TBSCROSSFIRE:
+        settings.MainPort = HwBrain::MAINPORT_TBSCROSSFIRE;
+        break;
     default:
         return false;
     }
@@ -202,6 +205,8 @@ Core::IBoardType::InputType Brain::getInputType()
         return INPUT_TYPE_IBUS;
     case HwBrain::MAINPORT_SRXL:
         return INPUT_TYPE_SRXL;
+    case HwBrain::MAINPORT_TBSCROSSFIRE:
+        return INPUT_TYPE_TBSCROSSFIRE;
     default:
         break;
     }
@@ -217,6 +222,8 @@ Core::IBoardType::InputType Brain::getInputType()
         return INPUT_TYPE_IBUS;
     case HwBrain::FLXPORT_SRXL:
         return INPUT_TYPE_SRXL;
+    case HwBrain::FLXPORT_TBSCROSSFIRE:
+        return INPUT_TYPE_TBSCROSSFIRE;
     default:
         break;
     }
@@ -246,6 +253,8 @@ Core::IBoardType::InputType Brain::getInputType()
             return INPUT_TYPE_IBUS;
         case HwBrain::RXPORTUSART_SRXL:
             return INPUT_TYPE_SRXL;
+        case HwBrain::RXPORTUSART_TBSCROSSFIRE:
+            return INPUT_TYPE_TBSCROSSFIRE;
         default:
             break;
         }

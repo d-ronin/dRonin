@@ -67,6 +67,7 @@ OPTMODULES += Logging
 OPTMODULES += FlightStats
 OPTMODULES += Storm32Bgc
 OPTMODULES += CharacterOSD
+OPTMODULES += UAVOCrossfireTelemetry
 
 # Paths
 OPUAVTALKINC = $(OPUAVTALK)/inc
@@ -185,6 +186,7 @@ SRC += pios_wdg.c
 SRC += pios_reset.c
 SRC += pios_annunc.c
 SRC += pios_max7456.c
+SRC += pios_crossfire.c
 
 # List C source files here which must be compiled in ARM-Mode (no -mthumb).
 # use file-extension c for "c-only"-files

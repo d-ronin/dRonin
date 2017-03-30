@@ -363,6 +363,20 @@ void PIOS_HAL_SetReceiver(int receiver_type, uintptr_t value) {
 	PIOS_HAL_SetTarget(pios_rcvr_group_map + receiver_type, value);
 #endif
 }
+
+/**
+ * @brief Get the device instance from the receiver map
+ *
+ * @param[in] receiver_type the receiver type index from MANUALCONTROL
+ * @return device instance handle
+ */
+uintptr_t PIOS_HAL_GetReceiver(int receiver_type) {
+#ifdef STM32F0XX
+	return pios_rcvr_group_map[0];
+#else
+	return pios_rcvr_group_map[receiver_type];
+#endif
+}
 #endif // PIOS_INCLUDE_RCVR
 
 #if defined(PIOS_INCLUDE_USART) && defined(PIOS_INCLUDE_COM)
@@ -522,6 +536,35 @@ static void PIOS_HAL_ConfigureIBus(const struct pios_usart_cfg *usart_ibus_cfg,
 			ibus_rcvr_id);
 }
 #endif
+
+#ifdef PIOS_INCLUDE_CROSSFIRE
+/**
+ * @brief Configures a TBS Crossfire receiver
+ *
+ * @param[in] usart_crsf_cfg Configuration for the USART for the TBS Crossfire
+ * @param[in] usart_port_params USART port parameters
+ * @param[in] usart_com_driver The COM driver for this USART
+ */
+static void PIOS_HAL_ConfigureTbsCrossfire(const struct pios_usart_cfg *usart_crsf_cfg,
+		struct pios_usart_params *usart_port_params,
+		const struct pios_com_driver *usart_com_driver)
+{
+	uintptr_t usart_crsf_id;
+	if (PIOS_USART_Init(&usart_crsf_id, usart_crsf_cfg, usart_port_params))
+		PIOS_Assert(0);
+
+	uintptr_t crsf_id;
+	if (PIOS_Crossfire_Init(&crsf_id, usart_com_driver, usart_crsf_id))
+		PIOS_Assert(0);
+
+	uintptr_t crsf_rcvr_id;
+	if (PIOS_RCVR_Init(&crsf_rcvr_id, &pios_crossfire_rcvr_driver, crsf_id))
+		PIOS_Assert(0);
+
+	PIOS_HAL_SetReceiver(MANUALCONTROLSETTINGS_CHANNELGROUPS_TBSCROSSFIRE,
+			crsf_rcvr_id);
+}
+#endif // PIOS_INCLUDE_CROSSFIRE
 
 /** @brief Configure a [flexi/main/rcvr/etc] port.
  *
@@ -884,6 +927,21 @@ void PIOS_HAL_ConfigurePort(HwSharedPortTypesOptions port_type,
 #endif  /* PIOS_INCLUDE_IBUS */
 		break;
 
+	case HWSHARED_PORTTYPES_TBSCROSSFIRE:
+#if defined(PIOS_INCLUDE_CROSSFIRE)
+		if (usart_port_cfg) {
+			usart_port_params.init.USART_BaudRate            = 420000;
+			usart_port_params.init.USART_WordLength          = USART_WordLength_8b;
+			usart_port_params.init.USART_Parity              = USART_Parity_No;
+			usart_port_params.init.USART_StopBits            = USART_StopBits_1;
+			usart_port_params.init.USART_HardwareFlowControl = USART_HardwareFlowControl_None;
+			usart_port_params.init.USART_Mode                = USART_Mode_Rx|USART_Mode_Tx;
+
+			PIOS_HAL_ConfigureTbsCrossfire(usart_port_cfg, &usart_port_params, com_driver);
+			PIOS_Modules_Enable(PIOS_MODULE_UAVOCROSSFIRETELEMETRY);
+		}
+#endif  /* PIOS_INCLUDE_CROSSFIRE */
+		break;
 	} /* port_type */
 
 	PIOS_HAL_SetTarget(target, port_driver_id);

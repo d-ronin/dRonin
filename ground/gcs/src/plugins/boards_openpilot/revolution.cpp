@@ -184,6 +184,9 @@ bool Revolution::setInputType(Core::IBoardType::InputType type)
     case INPUT_TYPE_SRXL:
         settings.FlexiPort = HwRevolution::FLEXIPORT_SRXL;
         break;
+    case INPUT_TYPE_TBSCROSSFIRE:
+        settings.FlexiPort = HwRevolution::FLEXIPORT_TBSCROSSFIRE;
+        break;
     default:
         return false;
     }
@@ -224,6 +227,8 @@ Core::IBoardType::InputType Revolution::getInputType()
         return INPUT_TYPE_IBUS;
     case HwRevolution::MAINPORT_SRXL:
         return INPUT_TYPE_SRXL;
+    case HwRevolution::MAINPORT_TBSCROSSFIRE:
+        return INPUT_TYPE_TBSCROSSFIRE;
     default:
         break;
     }
@@ -241,6 +246,8 @@ Core::IBoardType::InputType Revolution::getInputType()
         return INPUT_TYPE_IBUS;
     case HwRevolution::FLEXIPORT_SRXL:
         return INPUT_TYPE_SRXL;
+    case HwRevolution::FLEXIPORT_TBSCROSSFIRE:
+        return INPUT_TYPE_TBSCROSSFIRE;
     default:
         break;
     }
@@ -268,6 +275,8 @@ Core::IBoardType::InputType Revolution::getInputType()
             return INPUT_TYPE_IBUS;
         case HwRevolution::RXPORTUSART_SRXL:
             return INPUT_TYPE_SRXL;
+        case HwRevolution::RXPORTUSART_TBSCROSSFIRE:
+            return INPUT_TYPE_TBSCROSSFIRE;
         default:
             break;
         }

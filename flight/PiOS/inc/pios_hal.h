@@ -130,6 +130,7 @@ void PIOS_HAL_ConfigureSerialSpeed(uintptr_t com_id,
 		                HwSharedSpeedBpsOptions speed);
 
 void PIOS_HAL_SetReceiver(int receiver_type, uintptr_t value);
+uintptr_t PIOS_HAL_GetReceiver(int receiver_type);
 
 #ifdef PIOS_INCLUDE_DAC
 #include <pios_fskdac.h>

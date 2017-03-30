@@ -14,6 +14,7 @@
 				<option>S.Bus</option>
 				<option>S.Bus Non Inverted</option>
 				<option>IBus</option>
+				<option>TBS Crossfire</option>
 			</options>
 		</field>
 		<field name="FlexiPort" units="function" type="enum" elements="1" parent="HwShared.PortTypes" defaultvalue="Disabled">
@@ -39,6 +40,7 @@
 				<option>Storm32Bgc</option>
 				<option>Telemetry</option>
 				<option>IBus</option>
+				<option>TBS Crossfire</option>
 			</options>
 		</field>
 		<field name="MainPort" units="function" type="enum" elements="1" parent="HwShared.PortTypes" defaultvalue="Disabled">
@@ -62,6 +64,7 @@
 				<option>Storm32Bgc</option>
 				<option>Telemetry</option>
 				<option>IBus</option>
+				<option>TBS Crossfire</option>
 			</options>
 		</field>
 		<field name="OutPort" units="function" type="enum" elements="1" defaultvalue="PWM10">

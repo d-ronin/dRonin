@@ -438,6 +438,11 @@ void VehicleConfigurationHelper::applyManualControlDefaults()
         /* Seems to be 1000..2000 */
         channelType = ManualControlSettings::CHANNELGROUPS_IBUS;
         break;
+    case Core::IBoardType::INPUT_TYPE_TBSCROSSFIRE:
+        minVal = 172;
+        maxVal = 1811;
+        channelType = ManualControlSettings::CHANNELGROUPS_TBSCROSSFIRE;
+        break;
     case Core::IBoardType::INPUT_TYPE_SRXL:
         // unfortunately Weatronic variant has different scaling, this is the range for standard impl. per protocol spec.
         minVal = 585;

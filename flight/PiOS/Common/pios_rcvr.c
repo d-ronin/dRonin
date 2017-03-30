@@ -72,6 +72,21 @@ out_fail:
 }
 
 /**
+  * Gets the encapsulated receiver driver.
+  * \param[in] rcvr_id Driver to query.
+  * \return 0 on failure, otherwise the lower device.
+  */
+uintptr_t PIOS_RCVR_GetLowerDevice(uintptr_t rcvr_id)
+{
+  struct pios_rcvr_dev *dev = (struct pios_rcvr_dev*)rcvr_id;
+
+  if (!PIOS_RCVR_validate(dev))
+    return 0;
+
+  return dev->lower_id;
+}
+
+/**
  * @brief Reads an input channel from the appropriate driver
  * @param[in] rcvr_id driver to read from
  * @param[in] channel channel to read

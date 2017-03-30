@@ -145,6 +145,9 @@ bool BrainRE1::setInputType(Core::IBoardType::InputType type)
     case INPUT_TYPE_SRXL:
         settings.RxPort = HwBrainRE1::RXPORT_SRXL;
         break;
+    case INPUT_TYPE_TBSCROSSFIRE:
+        settings.RxPort = HwBrainRE1::RXPORT_TBSCROSSFIRE;
+        break;
     default:
         return false;
     }
@@ -188,6 +191,8 @@ Core::IBoardType::InputType BrainRE1::getInputType()
         return INPUT_TYPE_IBUS;
     case HwBrainRE1::RXPORT_SRXL:
         return INPUT_TYPE_SRXL;
+    case HwBrainRE1::RXPORT_TBSCROSSFIRE:
+        return INPUT_TYPE_TBSCROSSFIRE;
     default:
         break;
     }

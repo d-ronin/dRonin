@@ -64,6 +64,7 @@ OPTMODULES += Logging
 OPTMODULES += VTXConfig
 OPTMODULES += Storm32Bgc
 OPTMODULES += OnScreenDisplay
+OPTMODULES += UAVOCrossfireTelemetry
 
 # Paths
 OPUAVTALKINC = $(OPUAVTALK)/inc
@@ -198,6 +199,7 @@ SRC += pios_ibus.c
 SRC += pios_wdg.c
 SRC += pios_reset.c
 SRC += pios_annunc.c
+SRC += pios_crossfire.c
 
 SRC += $(UAVOBJSRC)
 

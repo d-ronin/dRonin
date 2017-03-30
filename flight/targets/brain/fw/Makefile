@@ -67,6 +67,7 @@ OPTMODULES += Logging
 OPTMODULES += VTXConfig
 OPTMODULES += OnScreenDisplay
 OPTMODULES += Storm32Bgc
+OPTMODULES += UAVOCrossfireTelemetry
 
 # Paths
 OPUAVTALKINC = $(OPUAVTALK)/inc
@@ -189,6 +190,7 @@ SRC += pios_reset.c
 SRC += pios_annunc.c
 SRC += pios_annuncdac.c
 SRC += pios_fskdac.c
+SRC += pios_crossfire.c
 
 # List C++ source files here.
 # use file-extension .cpp for C++-files (not .C)

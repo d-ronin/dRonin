@@ -55,6 +55,7 @@
 				<option>Storm32Bgc</option>
 				<option>Telemetry</option>
 				<option>IBus</option>
+				<option>TBS Crossfire</option>
 			</options>
 		</field>
 		<field name="Uart4" units="function" type="enum" elements="1" parent="HwShared.PortTypes" defaultvalue="Disabled">
@@ -80,6 +81,7 @@
 				<option>Storm32Bgc</option>
 				<option>Telemetry</option>
 				<option>IBus</option>
+				<option>TBS Crossfire</option>
 			</options>
 		</field>
 		<field name="Uart6" units="function" type="enum" elements="1" parent="HwShared.PortTypes" defaultvalue="Disabled">
@@ -105,6 +107,7 @@
 				<option>Storm32Bgc</option>
 				<option>Telemetry</option>
 				<option>IBus</option>
+				<option>TBS Crossfire</option>
 			</options>
 		</field>
 		<field name="ADCInputs" units="function" type="enum" elements="1" defaultvalue="Disabled">

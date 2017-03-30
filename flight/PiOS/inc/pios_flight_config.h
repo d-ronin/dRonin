@@ -41,6 +41,7 @@
 #define HEAP_LIMIT_CRITICAL		500
 
 // Serial receiver protocols
+#define PIOS_INCLUDE_CROSSFIRE
 #define PIOS_INCLUDE_DSM
 #define PIOS_INCLUDE_GCSRCVR
 #define PIOS_INCLUDE_HSUM
