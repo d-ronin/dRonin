@@ -28,7 +28,6 @@
 # of this source file; otherwise redistribution is prohibited.
 
 include $(MAKE_INC_DIR)/firmware-defs.mk
-include $(BOARD_INFO_DIR)/board-info.mk
 
 # Set developer code and compile options
 # Set to YES for debugging
@@ -36,7 +35,6 @@ DEBUG ?= NO
 
 # List of modules to include
 MODULES = Sensors
-MODULES += System
 MODULES += Attitude 
 MODULES += ManualControl
 MODULES += Stabilization
@@ -98,9 +96,9 @@ include $(APPLIBDIR)/ChibiOS/library.mk
 # List C source files here. (C dependencies are automatically generated.)
 # use file-extension c for "c-only"-files
 
-## MODULES
-SRC += ${foreach MOD, ${MODULES} ${OPTMODULES}, ${wildcard ${OPMODULEDIR}/${MOD}/*.c}}
 ## OPENPILOT CORE:
+SRC += ${OPMODULEDIR}/System/systemmod.c
+SRC += ${OPMODULEDIR}/System/rgbleds.c
 SRC += chibi_main.c
 SRC += pios_board.c
 SRC += pios_usb_board_data.c
@@ -237,7 +235,7 @@ EXTRAINCDIRS  += $(BOOTINC)
 EXTRAINCDIRS  += $(DEBUG_CM3_DIR_INC)
 EXTRAINCDIRS  += $(MAVLINKINC)
 
-EXTRAINCDIRS += ${foreach MOD, ${MODULES} ${OPTMODULES}, $(OPMODULEDIR)/${MOD}/inc}
+EXTRAINCDIRS += ${foreach MOD, ${MODULES} ${OPTMODULES}, $(OPMODULEDIR)/${MOD}/inc} ${OPMODULEDIR}/System/inc
 
 # List any extra directories to look for library files here.
 # Also add directories where the linker should search for
@@ -306,7 +304,7 @@ ifeq ($(ENABLE_DEBUG_CONSOLE), YES)
 CDEFS += -DPIOS_INCLUDE_DEBUG_CONSOLE
 endif
 CDEFS += -DSTM32F40_41xxx
-CDEFS += -DCORTEX_VTOR_INIT='($(FW_BANK_BASE) - $(EF_BANK_BASE))'
+CDEFS += '-DCORTEX_VTOR_INIT=($(FW_BANK_BASE)-$(EF_BANK_BASE))'
 
 # Declare all non-optional modules as built-in to force inclusion
 get_mod_name = $(shell echo $(1) | sed "s/\/[^\/]*$///")

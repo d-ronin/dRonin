@@ -8,6 +8,9 @@ BOARD               := STM32F4xx_RM
 MODEL               := HD
 MODEL_SUFFIX        :=
 
+USB_VEND            := "dRonin"
+USB_PROD            := "PlayUAVOSD"
+
 include $(MAKE_INC_DIR)/firmware-arches.mk
 
 # Note: These must match the values in link_$(BOARD)_memory.ld

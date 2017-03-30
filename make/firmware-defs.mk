@@ -1,3 +1,33 @@
+ifneq ($(BOARD_INFO_DIR)x,x)
+include $(BOARD_INFO_DIR)/board-info.mk
+
+ALL_LOAD_ARG := -Wl,-whole-archive
+NO_ALL_LOAD_ARG := -Wl,-no-whole-archive
+SED_EXTARG:=-r
+
+ifdef MACOSX
+SED_EXTARG := -E
+
+ifeq ($(TCHAIN_PREFIX),)
+ALL_LOAD_ARG := -Wl,-all_load
+NO_ALL_LOAD_ARG :=
+endif
+
+endif
+
+USB_VEND_EXPAND := $(shell env echo -n "$(USB_VEND)" | sed $(SED_EXTARG) -e "s/(.)/'\1',/g" -e 's/,$$//')
+USB_VEND_LEN := $(shell env echo -n "$(USB_VEND)" | wc -c | tr -d ' ')
+
+USB_PROD_EXPAND := $(shell env echo -n "$(USB_PROD)" | sed $(SED_EXTARG) -e "s/(.)/'\1',/g" -e 's/,$$//')
+USB_PROD_LEN := $(shell env echo -n "$(USB_PROD)" | wc -c | tr -d ' ')
+
+CFLAGS += "-DUSB_STR_VEND_VAL=$(USB_VEND_EXPAND)"
+CFLAGS += -DUSB_STR_VEND_LEN=$(USB_VEND_LEN)
+CFLAGS += "-DUSB_STR_PROD_VAL=$(USB_PROD_EXPAND)"
+CFLAGS += -DUSB_STR_PROD_LEN=$(USB_PROD_LEN)
+
+endif
+
 # Toolchain prefix (i.e arm-elf- -> arm-elf-gcc.exe)
 TCHAIN_PREFIX ?= arm-none-eabi-
 
@@ -17,6 +47,7 @@ endif
 
 # Define toolchain component names.
 CC      = $(CCACHE) $(TCHAIN_PREFIX)gcc
+BARECC  = $(TCHAIN_PREFIX)gcc
 CXX     = $(CCACHE) $(TCHAIN_PREFIX)g++
 AR      = $(TCHAIN_PREFIX)ar
 OBJCOPY = $(TCHAIN_PREFIX)objcopy
@@ -49,8 +80,6 @@ endif
 
 # Define Messages
 # English
-MSG_FORMATERROR      = ${quote} Can not handle output-format${quote}
-MSG_MODINIT          = ${quote} MODINIT   $(MSG_EXTRA) ${quote}
 MSG_SIZE             = ${quote} SIZE      $(MSG_EXTRA) ${quote}
 MSG_LOAD_FILE        = ${quote} BIN/HEX   $(MSG_EXTRA) ${quote}
 MSG_STRIP_FILE       = ${quote} STRIP     $(MSG_EXTRA) ${quote}
@@ -58,16 +87,9 @@ MSG_EXTENDED_LISTING = ${quote} LIS       $(MSG_EXTRA) ${quote}
 MSG_SYMBOL_TABLE     = ${quote} NM        $(MSG_EXTRA) ${quote}
 MSG_LINKING          = ${quote} LD        $(MSG_EXTRA) ${quote}
 MSG_COMPILING        = ${quote} CC        ${MSG_EXTRA} ${quote}
-MSG_COMPILING_ARM    = ${quote} CC-ARM    $(MSG_EXTRA) ${quote}
 MSG_COMPILINGCXX     = ${quote} CXX       $(MSG_EXTRA) ${quote}
-MSG_COMPILINGCXX_ARM = ${quote} CXX-ARM   $(MSG_EXTRA) ${quote}
 MSG_ASSEMBLING       = ${quote} AS        $(MSG_EXTRA) ${quote}
-MSG_ASSEMBLING_ARM   = ${quote} AS-ARM    $(MSG_EXTRA) ${quote}
 MSG_CLEANING         = ${quote} CLEAN     $(MSG_EXTRA) ${quote}
-MSG_ASMFROMC         = ${quote} AS(C)     $(MSG_EXTRA) ${quote}
-MSG_ASMFROMC_ARM     = ${quote} AS(C)-ARM $(MSG_EXTRA) ${quote}
-MSG_PYMITEINIT       = ${quote} PY        $(MSG_EXTRA) ${quote}
-MSG_INSTALLING       = ${quote} INSTALL   $(MSG_EXTRA) ${quote}
 MSG_TLFIRMWARE       = ${quote} TLFW      $(MSG_EXTRA) ${quote}
 MSG_FWINFO           = ${quote} FWINFO    $(MSG_EXTRA) ${quote}
 MSG_JTAG_PROGRAM     = ${quote} JTAG-PGM  $(MSG_EXTRA) ${quote}
@@ -159,27 +181,12 @@ $(OUTDIR)/$(notdir $(basename $(1))).o : $(1)
 	$(V1) $(CC) -c $(THUMB) $$(ASFLAGS) $$< -o $$@
 endef
 
-# Assemble: create object files from assembler source files. ARM-only
-define ASSEMBLE_ARM_TEMPLATE
-$(OUTDIR)/$(notdir $(basename $(1))).o : $(1)
-	@echo $(MSG_ASSEMBLING_ARM) $$(call toprel, $$<)
-	$(V1) $(CC) -c $$(ASFLAGS) $$< -o $$@
-endef
-
 # Compile: create object files from C source files.
 define COMPILE_C_TEMPLATE
 $(OUTDIR)/$(notdir $(basename $(1))).o : EXTRA_FLAGS := $(2)
 $(OUTDIR)/$(notdir $(basename $(1))).o : $(1)
 	@echo $(MSG_COMPILING) $$(call toprel, $$<)
 	$(V1) $(CC) -c $(THUMB) $$(CFLAGS) $$(CONLYFLAGS) $$(EXTRA_FLAGS) $$< -o $$@
-endef
-
-# Compile: create object files from C source files. ARM-only
-define COMPILE_C_ARM_TEMPLATE
-$(OUTDIR)/$(notdir $(basename $(1))).o : EXTRA_FLAGS := $(2)
-$(OUTDIR)/$(notdir $(basename $(1))).o : $(1)
-	@echo $(MSG_COMPILING_ARM) $$(call toprel, $$<)
-	$(V1) $(CC) -c $$(CFLAGS) $$(CONLYFLAGS) $$(EXTRA_FLAGS) $$< -o $$@
 endef
 
 # Compile: create object files from C++ source files.
@@ -190,14 +197,6 @@ $(OUTDIR)/$(notdir $(basename $(1))).o : $(1)
 	$(V1) $(CXX) -c $(THUMB) $$(CFLAGS) $$(CPPFLAGS) $$(CXXFLAGS) $$(EXTRA_FLAGS) $$< -o $$@
 endef
 
-# Compile: create object files from C++ source files. ARM-only
-define COMPILE_CXX_ARM_TEMPLATE
-$(OUTDIR)/$(notdir $(basename $(1))).o : $(1)
-$(OUTDIR)/$(notdir $(basename $(1))).o : EXTRA_FLAGS := $(2)
-	@echo $(MSG_COMPILINGCXX_ARM) $$(call toprel, $$<)
-	$(V1) $(CPP) -c $$(CFLAGS) $$(CPPFLAGS) $$(CXXFLAGS) $$(EXTRA_FLAGS) $$< -o $$@
-endef
-
 # Link: create ELF output file from object files.
 #   $1 = elf file to produce
 #   $2 = list of object files that make up the elf file
@@ -206,14 +205,22 @@ endef
 define LINK_TEMPLATE
 .SECONDARY: $(1)
 .PRECIOUS: $(2)
-$(1): CFLAGS_LINK = $$(filter-out -I%,$$(CFLAGS))
+$(1): CFLAGS_LINK = $$(filter-out -D%,$$(filter-out -I%,$$(CFLAGS)))
 $(1): $(2)
 	@echo $(MSG_LINKING) $$(call toprel, $$@)
-	$(V1) $(CC) $(THUMB) $$(CFLAGS_LINK) $(2) --output $$@ $$(LDFLAGS)
+	$(V1) $(BARECC) $(THUMB) $$(CFLAGS_LINK) $(ALL_LOAD_ARG) $(2) $(NO_ALL_LOAD_ARG) --output $$@ $$(LDFLAGS)
 ifneq ($(TCHAIN_PREFIX),)
 	@echo $(MSG_DEBUG_SYMBOLS) $$(call toprel, $$@)
 	$(V1) $(OBJCOPY) --only-keep-debug $$@ $$(addsuffix .debug, $$(@:.elf=))
 endif
+endef
+
+define ARCHIVE_TEMPLATE
+.SECONDARY: $(1)
+.PRECIOUS: $(2)
+$(1): $(2)
+	@echo $(MSG_AR) $$(call toprel, $$@)
+	$(V1) $(AR) crs $$@ $$?
 endef
 
 # Link: create ELF output file from object files.
@@ -306,3 +313,4 @@ ifneq ($(BUILD_TYPE),bu)
 endif
 
 EXTRAINCDIRS += $(SHAREDUSBIDDIR)
+

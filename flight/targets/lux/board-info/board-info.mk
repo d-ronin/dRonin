@@ -8,6 +8,9 @@ BOARD               := STM32F30x_lux
 MODEL               := HD
 MODEL_SUFFIX        := 
 
+USB_VEND            := "Lumenier"
+USB_PROD            := "LUX"
+
 include $(MAKE_INC_DIR)/firmware-arches.mk
 
 # Note: These must match the values in link_$(BOARD)_memory.ld

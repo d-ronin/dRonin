@@ -33,7 +33,6 @@ all: elf
 
 override THUMB :=
 include $(MAKE_INC_DIR)/firmware-defs.mk
-include $(BOARD_INFO_DIR)/board-info.mk
 
 # Set developer code and compile options
 # Set to YES to compile for debugging
@@ -108,12 +107,9 @@ SRC =
 # List C source files here. (C dependencies are automatically generated.)
 # use file-extension c for "c-only"-files
 
-## MODULES
-SRC += ${foreach MOD, ${OPTMODULES}, ${wildcard ${OPMODULEDIR}/${MOD}/*.c}}
-SRC += ${foreach MOD, ${MODULES}, ${wildcard ${OPMODULEDIR}/${MOD}/*.c}}
-
 ## OPENPILOT CORE:
 SRC += ${OPMODULEDIR}/System/systemmod.c
+SRC += ${OPMODULEDIR}/System/rgbleds.c
 SRC += main.c
 SRC += pios_board.c
 SRC += $(FLIGHTLIB)/alarms.c

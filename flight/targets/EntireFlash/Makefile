@@ -29,7 +29,6 @@ SHELL := bash
 endif
 
 include $(MAKE_INC_DIR)/firmware-defs.mk
-include $(BOARD_INFO_DIR)/board-info.mk
 
 toprel = $(subst $(realpath $(ROOT_DIR))/,,$(abspath $(1)))
 

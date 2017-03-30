@@ -4,8 +4,11 @@ UAVOBJLIB := $(OUTDIR)/../uavobjects_arm$(FLOATABI)fp/libuavobject.a
 # Define programs and commands.
 REMOVE  = rm -f
 
+## MODULES
+MODSRC += ${foreach MOD, ${MODULES} ${OPTMODULES}, ${wildcard ${OPMODULEDIR}/${MOD}/*.c}}
+
 ifeq ($(BUILD_UAVO), YES)
-SRC += $(wildcard $(OPUAVSYNTHDIR)/*.c )
+MODSRC += $(wildcard $(OPUAVSYNTHDIR)/*.c )
 endif
 
 # List of all source files.
@@ -13,12 +16,11 @@ ALLSRC     :=  $(ASRC) $(SRC) $(CPPSRC)
 
 # List of all source files without directory and file-extension.
 ALLSRCBASE = $(notdir $(basename $(ALLSRC)))
+MODSRCBASE = $(notdir $(basename $(MODSRC)))
+
 # Define all object files.
 ALLOBJ     = $(addprefix $(OUTDIR)/, $(addsuffix .o, $(ALLSRCBASE)))
-# Define all listing files (used for make clean).
-LSTFILES   = $(addprefix $(OUTDIR)/, $(addsuffix .lst, $(ALLSRCBASE)))
-# Define all depedency-files (used for make clean).
-DEPFILES   = $(addprefix $(OUTDIR)/dep/, $(addsuffix .o.d, $(ALLSRCBASE)))
+MODOBJ     = $(addprefix $(OUTDIR)/, $(addsuffix .o, $(MODSRCBASE)))
 
 # Default target.
 all: gccversion build
@@ -29,15 +31,18 @@ ifneq ($(BUILD_FWFILES), NO)
 build: hex bin lss sym
 endif
 
-# Compile: create object files from C source files.
+# Archive: Create library file from object files
+FIRMLIB = $(OUTDIR)/firmware.a
+$(eval $(call ARCHIVE_TEMPLATE, $(FIRMLIB), $(MODOBJ) $(ALLOBJ)))
 
 # Link: create ELF output file from object files.
-$(eval $(call LINK_TEMPLATE, $(OUTDIR)/$(TARGET).elf, $(ALLOBJ) $(LIBS)))
+$(eval $(call LINK_TEMPLATE, $(OUTDIR)/$(TARGET).elf, $(FIRMLIB) $(LIBS)))
 
 # Assemble: create object files from assembler source files.
 $(foreach src, $(ASRC), $(eval $(call ASSEMBLE_TEMPLATE, $(src))))
 
-$(foreach src, $(SRC), $(eval $(call COMPILE_C_TEMPLATE, $(src))))
+# Compile: create object files from C source files.
+$(foreach src, $(SRC) $(MODSRC), $(eval $(call COMPILE_C_TEMPLATE, $(src))))
 
 # Compile: create object files from C++ source files.
 $(foreach src, $(CPPSRC), $(eval $(call COMPILE_CPP_TEMPLATE, $(src))))
@@ -71,19 +76,10 @@ tlfw: $(OUTDIR)/$(TARGET).tlfw
 $(eval $(call SIZE_TEMPLATE, $(OUTDIR)/$(TARGET).elf))
 
 # Create output files directory
-# all known MS Windows OS define the ComSpec environment variable
-ifdef ComSpec
-$(shell md $(subst /,\\,$(OUTDIR)) 2>NUL)
-else
 $(shell mkdir -p $(OUTDIR) 2>/dev/null)
-endif
 
 # Include the dependency files.
-ifdef ComSpec
--include $(shell md $(subst /,\\,$(OUTDIR))\dep 2>NUL) $(wildcard $(OUTDIR)/dep/*)
-else
 -include $(shell mkdir $(OUTDIR) 2>/dev/null) $(shell mkdir $(OUTDIR)/dep 2>/dev/null) $(wildcard $(OUTDIR)/dep/*)
-endif
 
 # Listing of phony targets.
 .PHONY : all build clean clean_list install docs
