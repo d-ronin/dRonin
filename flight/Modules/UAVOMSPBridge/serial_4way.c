@@ -24,6 +24,8 @@
 
 #ifdef  USE_SERIAL_4WAY_BLHELI_INTERFACE
 
+#ifndef DRONIN_TARGET
+
 #include "drivers/buf_writer.h"
 #include "drivers/io.h"
 #include "drivers/serial.h"
@@ -35,6 +37,7 @@
 #include "flight/mixer.h"
 
 #include "io/beeper.h"
+#endif
 #include "io/serial_4way.h"
 
 #ifdef USE_SERIAL_4WAY_BLHELI_BOOTLOADER
@@ -48,7 +51,9 @@
 #define Bit_RESET GPIO_PIN_RESET
 #endif
 
+#ifndef DRONIN_TARGET
 #define USE_TXRX_LED
+#endif
 
 #ifdef  USE_TXRX_LED
 #define RX_LED_OFF LED0_OFF
