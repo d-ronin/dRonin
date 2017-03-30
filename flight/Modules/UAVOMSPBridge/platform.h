@@ -1,6 +1,10 @@
+#ifndef _BF_PLATFORM_H
+#define _BF_PLATFORM_H
+
 #include <pios.h>
 #include <pios_thread.h>
 
+#ifdef PIOS_INCLUDE_4WAY
 #define USE_SERIAL_4WAY_BLHELI_INTERFACE
 
 #define MAX_SUPPORTED_MOTORS 8
@@ -114,3 +118,7 @@ static inline void serialBeginWrite(serialPort_t *instance)
 static inline void serialEndWrite(serialPort_t *instance)
 {
 }
+
+#endif /* PIOS_INCLUDE_4WAY */
+
+#endif /* _BF_PLATFORM_H */

@@ -104,6 +104,12 @@
 #define MSP_API_VERSION_MAJOR 1
 #define MSP_API_VERSION_MINOR 31 // Matches 3.1.6
 
+enum msp_handler {
+	MSP_HANDLER_MSP = 0,
+	MSP_HANDLER_IDLE,
+	MSP_HANDLER_4WIF
+};
+
 typedef enum {
 	MSP_BOX_ARM,
 	MSP_BOX_ANGLE,
@@ -163,6 +169,7 @@ struct msp_cmddata_escserial {
 struct msp_bridge {
 	uintptr_t com;
 
+	enum msp_handler handler;
 	msp_state state;
 	uint8_t cmd_size;
 	uint8_t cmd_id;
@@ -706,6 +713,10 @@ static void msp_send_boxids(struct msp_bridge *m) {
 	msp_send(m, MSP_BOXIDS, boxes, len);
 }
 
+#ifdef PIOS_INCLUDE_4WAY
+uint8_t esc4wayInit(void);
+#endif
+
 static void msp_handle_4wif(struct msp_bridge *m) {
 	struct msp_cmddata_escserial *escserial = &m->cmd_data.escserial;
 
@@ -718,12 +729,18 @@ static void msp_handle_4wif(struct msp_bridge *m) {
 	}
 
 	switch (protocol) {
+		case PROTOCOL_4WAY:
+#ifdef PIOS_INCLUDE_4WAY
+			num_esc = esc4wayInit();
+			m->handler = MSP_HANDLER_4WIF;
+#endif
+			break;
+
 		case PROTOCOL_SIMONK:
 		case PROTOCOL_BLHELI:
 		case PROTOCOL_KISS:
 		case PROTOCOL_KISSALL:
 		case PROTOCOL_CASTLE:
-		case PROTOCOL_4WAY:
 		default:
 			/* Unsupported protocol */
 			break;
@@ -861,7 +878,7 @@ static msp_state msp_state_discard(struct msp_bridge *m, uint8_t b)
  * @param[in] b received byte
  * @return true if we should continue processing bytes
  */
-static bool msp_receive_byte(struct msp_bridge *m, uint8_t b)
+static void msp_receive_byte(struct msp_bridge *m, uint8_t b)
 {
 	switch (m->state) {
 	case MSP_IDLE:
@@ -911,12 +928,11 @@ static bool msp_receive_byte(struct msp_bridge *m, uint8_t b)
 		// If this looks like the fourth possible uavtalk byte, we're done
 		if ((b & 0xf0) == 0) {
 			PIOS_COM_TELEM_RF = m->com;
-			return false;
+
+			m->handler = MSP_HANDLER_IDLE;
 		}
 		break;
 	}
-
-	return true;
 }
 
 /**
@@ -975,6 +991,8 @@ static int32_t uavoMSPBridgeInitialize(void)
 }
 MODULE_INITCALL(uavoMSPBridgeInitialize, uavoMSPBridgeStart)
 
+void esc4wayProcess(void *mspPort);
+
 /**
  * Main task routine
  * @param[in] parameters parameter given by PIOS_Thread_Create()
@@ -984,16 +1002,38 @@ static void uavoMSPBridgeTask(void *parameters)
 	setMSPSpeed(msp);
 
 	while (1) {
-		uint8_t b = 0;
-		uint16_t count = PIOS_COM_ReceiveBuffer(msp->com, &b, 1, 3000);
-		if (count) {
-			if (!msp_receive_byte(msp, b)) {
-				// Returning is considered risky here as
-				// that's unusual and this is an edge case.
-				while (1) {
-					PIOS_Thread_Sleep(60*1000);
-				}
+		switch (msp->handler) {
+		case MSP_HANDLER_MSP:
+			(void) 0;
+
+			uint8_t b = 0;
+
+			uint16_t count =
+				PIOS_COM_ReceiveBuffer(msp->com, &b, 1, 3000);
+
+			if (count) {
+				msp_receive_byte(msp, b);
 			}
+
+			break;
+
+#ifdef PIOS_INCLUDE_4WAY
+		case MSP_HANDLER_4WIF:
+			esc4wayProcess(&msp->com);
+			msp->handler = MSP_HANDLER_MSP;
+			break;
+#endif
+
+		case MSP_HANDLER_IDLE:
+			// Returning is considered risky here as
+			// that's unusual and this is an edge case.
+			while (1) {
+				PIOS_Thread_Sleep(60*1000);
+			}
+			break;
+
+		default:
+			PIOS_Assert(0);
 		}
 	}
 }
