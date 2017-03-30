@@ -1,11 +1,14 @@
-//#define USE_SERIAL_4WAY_BLHELI_INTERFACE
+#include <pios.h>
+
+#define USE_SERIAL_4WAY_BLHELI_INTERFACE
 
 #define MAX_SUPPORTED_MOTORS 8
 
-typedef uint8_t ioTag_t;
-typedef void* IO_t;
+// XXX
+typedef void *IO_t;
 
 typedef struct serialPort_s serialPort_t;
+typedef int ioConfig_t;
 
 // NONE initializer for IO_t variable
 #define IO_NONE ((IO_t)0)
@@ -15,9 +18,88 @@ typedef struct {
 	IO_t io;
 } pwmOutputPort_t;
 
-#if 0
-02:42 < icee> so need.. an io tag implementation, IORead, IOLo, IOHi, IOConfigGPIO, 
-              pwmDisableMotors, pwmGetMotors, pwmEnableMotors, serialRxBytesWaiting, 
-              serialRead, serialBeginWrite, serialWrite, serialTxBytesFree, 
-              serialEndWrite
-#endif
+// XXX
+#define IOCFG_IPU 0
+#define IOCFG_OUT_PP 1
+#define IOCFG_AF_PP 2
+
+/* We'll implement the IO and PWM calls last, as they are not needed to
+ * do confirmation of "hello world" serial protocol signalling.
+ */
+static inline bool IORead(IO_t io)
+{
+	return false;
+}
+
+static inline void IOLo(IO_t io)
+{
+}
+
+static inline void IOHi(IO_t io)
+{
+}
+
+static inline void IOConfigGPIO(IO_t io, ioConfig_t cfg)
+{
+}
+
+static inline void pwmDisableMotors(void)
+{
+}
+
+static inline void pwmEnableMotors(void)
+{
+}
+
+static pwmOutputPort_t pwm_tmp[MAX_SUPPORTED_MOTORS] = { };
+
+static inline pwmOutputPort_t *pwmGetMotors(void)
+{
+	return pwm_tmp;
+}
+
+/* Relative trivial on top of PIOS_DELAY */
+static inline void delayMicroseconds(uint32_t us)
+{
+}
+
+static inline uint32_t micros(void)
+{
+	return 0;
+}
+
+static inline uint32_t millis(void)
+{
+	return 0;
+}
+
+/* Need these first */
+static inline uint8_t serialRead(serialPort_t *instance)
+{
+	return 0;
+}
+
+static inline void serialWrite(serialPort_t *instance, uint8_t ch)
+{
+}
+
+/* These two are just used for blocking, so we make the below calls do it */
+static inline uint32_t serialRxBytesWaiting(const serialPort_t *instance)
+{
+	return 1;
+}
+
+static inline uint32_t serialTxBytesFree(const serialPort_t *instance)
+{
+	return 1;
+}
+
+/* These are used to cork/uncork VCP packets.  We don't have this infrastructure
+ * (and really it isn't a win) -- omitting... */
+static inline void serialBeginWrite(serialPort_t *instance)
+{
+}
+
+static inline void serialEndWrite(serialPort_t *instance)
+{
+}
