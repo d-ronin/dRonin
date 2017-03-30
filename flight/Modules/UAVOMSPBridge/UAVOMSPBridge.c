@@ -68,29 +68,41 @@
 #define MSP_SENSOR_MAG 4
 #define MSP_SENSOR_GPS 8
 
-// Magic numbers copied from mwosd
-#define  MSP_IDENT      100 // multitype + multiwii version + protocol version + capability variable
-#define  MSP_STATUS     101 // cycletime & errors_count & sensor present & box activation & current setting number
-#define  MSP_RAW_IMU    102 // 9 DOF
-#define  MSP_SERVO      103 // 8 servos
-#define  MSP_MOTOR      104 // 8 motors
-#define  MSP_RC         105 // 8 rc chan and more
-#define  MSP_RAW_GPS    106 // fix, numsat, lat, lon, alt, speed, ground course
-#define  MSP_COMP_GPS   107 // distance home, direction home
-#define  MSP_ATTITUDE   108 // 2 angles 1 heading
-#define  MSP_ALTITUDE   109 // altitude, variometer
-#define  MSP_ANALOG     110 // vbat, powermetersum, rssi if available on RX
-#define  MSP_RC_TUNING  111 // rc rate, rc expo, rollpitch rate, yaw rate, dyn throttle PID
-#define  MSP_PID        112 // P I D coeff (9 are used currently)
-#define  MSP_BOX        113 // BOX setup (number is dependant of your setup)
-#define  MSP_MISC       114 // powermeter trig
-#define  MSP_MOTOR_PINS 115 // which pins are in use for motors & servos, for GUI
-#define  MSP_BOXNAMES   116 // the aux switch names
-#define  MSP_PIDNAMES   117 // the PID names
-#define  MSP_BOXIDS     119 // get the permanent IDs associated to BOXes
-#define  MSP_NAV_STATUS 121 // Returns navigation status
-#define  MSP_CELLS      130 // FrSky SPort Telemtry
-#define  MSP_ALARMS     242 // Alarm request
+#define  MSP_API_VERSION 1
+#define  MSP_FC_VARIANT  2
+#define  MSP_FC_VERSION  3
+#define  MSP_BOARD_INFO  4
+#define  MSP_BUILD_INFO  5
+#define  MSP_NAME        10
+#define  MSP_FEATURE     36
+#define  MSP_IDENT       100 // multitype + multiwii version + protocol version + capability variable
+#define  MSP_STATUS      101 // cycletime & errors_count & sensor present & box activation & current setting number
+#define  MSP_RAW_IMU     102 // 9 DOF
+#define  MSP_SERVO       103 // 8 servos
+#define  MSP_MOTOR       104 // 8 motors
+#define  MSP_RC          105 // 8 rc chan and more
+#define  MSP_RAW_GPS     106 // fix, numsat, lat, lon, alt, speed, ground course
+#define  MSP_COMP_GPS    107 // distance home, direction home
+#define  MSP_ATTITUDE    108 // 2 angles 1 heading
+#define  MSP_ALTITUDE    109 // altitude, variometer
+#define  MSP_ANALOG      110 // vbat, powermetersum, rssi if available on RX
+#define  MSP_RC_TUNING   111 // rc rate, rc expo, rollpitch rate, yaw rate, dyn throttle PID
+#define  MSP_PID         112 // P I D coeff (9 are used currently)
+#define  MSP_BOX         113 // BOX setup (number is dependant of your setup)
+#define  MSP_MISC        114 // powermeter trig
+#define  MSP_MOTOR_PINS  115 // which pins are in use for motors & servos, for GUI
+#define  MSP_BOXNAMES    116 // the aux switch names
+#define  MSP_PIDNAMES    117 // the PID names
+#define  MSP_BOXIDS      119 // get the permanent IDs associated to BOXes
+#define  MSP_NAV_STATUS  121 // Returns navigation status
+#define  MSP_CELLS       130 // FrSky SPort Telemtry
+#define  MSP_UID         160 // Hardware serial number
+#define  MSP_ALARMS      242 // Alarm request
+#define  MSP_SET_4WAY_IF 245 // Sets ESC serial interface
+
+#define MSP_PROTOCOL_VERSION  0
+#define MSP_API_VERSION_MAJOR 1
+#define MSP_API_VERSION_MINOR 31 // Matches 3.1.6
 
 typedef enum {
 	MSP_BOX_ARM,
@@ -132,12 +144,21 @@ typedef enum {
 	MSP_MAYBE_UAVTALK2,
 	MSP_MAYBE_UAVTALK3,
 	MSP_MAYBE_UAVTALK4,
-	MSP_MAYBE_UAVTALK_SLOW2,
-	MSP_MAYBE_UAVTALK_SLOW3,
-	MSP_MAYBE_UAVTALK_SLOW4,
-	MSP_MAYBE_UAVTALK_SLOW5,
-	MSP_MAYBE_UAVTALK_SLOW6
 } msp_state;
+
+typedef enum __attribute__ ((__packed__)) {
+	PROTOCOL_SIMONK = 0,
+	PROTOCOL_BLHELI = 1,
+	PROTOCOL_KISS = 2,
+	PROTOCOL_KISSALL = 3,
+	PROTOCOL_CASTLE = 4,
+	PROTOCOL_4WAY = 0xff,
+} msp_esc_protocol;
+
+struct msp_cmddata_escserial {
+	msp_esc_protocol protocol;
+	uint8_t esc_num;
+};
 
 struct msp_bridge {
 	uintptr_t com;
@@ -150,6 +171,7 @@ struct msp_bridge {
 	union {
 		uint8_t data[0];
 		// Specific packed data structures go here.
+		struct msp_cmddata_escserial escserial;
 	} cmd_data;
 };
 
@@ -169,6 +191,20 @@ extern uintptr_t pios_com_msp_id;
 static struct msp_bridge *msp;
 static int32_t uavoMSPBridgeInitialize(void);
 static void uavoMSPBridgeTask(void *parameters);
+
+static void msp_send_error(struct msp_bridge *m, uint8_t cmd)
+{
+	uint8_t buf[6];
+
+	buf[0] = '$';
+	buf[1] = 'M';
+	buf[2] = '|';
+	buf[3] = 0;
+	buf[4] = cmd;
+	buf[5] = cmd;	// Checksum == cmd
+
+	PIOS_COM_SendBuffer(m->com, buf, sizeof(buf));
+}
 
 static void msp_send(struct msp_bridge *m, uint8_t cmd, const uint8_t *data, size_t len)
 {
@@ -219,6 +255,171 @@ static msp_state msp_state_fill_buf(struct msp_bridge *m, uint8_t b)
 	m->cmd_data.data[m->cmd_i++] = b;
 	m->checksum ^= b;
 	return m->cmd_i == m->cmd_size ? MSP_CHECKSUM : MSP_FILLBUF;
+}
+
+static void msp_send_name(struct msp_bridge *m)
+{
+	const char hardcoded_name[] = "dRonin";
+
+	msp_send(m, MSP_NAME, (uint8_t *) hardcoded_name, strlen(hardcoded_name));
+}
+
+static void msp_send_motor(struct msp_bridge *m)
+{
+	union {
+		uint8_t buf[0];
+		uint8_t mspeed[8];
+	} data;
+
+	/* Tell me lies */
+	memset(&data, 0, sizeof(data));
+
+	msp_send(m, MSP_MOTOR, data.buf, sizeof(data));
+}
+
+static void msp_send_feature(struct msp_bridge *m)
+{
+	union {
+		uint8_t buf[0];
+		uint32_t features;
+	} data;
+
+#define FEATURE_TELEMETRY (1 << 10)
+	data.features = FEATURE_TELEMETRY;
+
+	msp_send(m, MSP_FEATURE, data.buf, sizeof(data));
+}
+
+static void msp_send_misc(struct msp_bridge *m)
+{
+	union {
+		uint8_t buf[0];
+		struct {
+			uint16_t mid_rc;
+			uint16_t min_throt;
+			uint16_t max_throt;
+			uint16_t min_command;
+			uint8_t gps[3];
+			uint8_t misc_cfg[3];
+			uint16_t compass;
+			uint8_t battery[4];
+		} fc_misc;
+	} data;
+
+	/* Tell me sweet little lies */
+	memset(&data, 0, sizeof(data));
+
+	data.fc_misc.mid_rc = 1500;
+	data.fc_misc.min_command = 1000;
+	data.fc_misc.min_throt = 1150;
+	data.fc_misc.max_throt = 2000;		// 1850 in BF...
+
+	msp_send(m, MSP_MISC, data.buf, sizeof(data));
+}
+
+static void msp_send_fc_version(struct msp_bridge *m)
+{
+	union {
+		uint8_t buf[0];
+		struct {
+			uint8_t major;
+			uint8_t minor;
+			uint8_t patch;
+		} fc_ver;
+	} data;
+
+	/* Not very meaningful to us */
+	data.fc_ver.major = 1;
+	data.fc_ver.minor = 0;
+	data.fc_ver.patch = 0;
+
+	msp_send(m, MSP_FC_VERSION, data.buf, sizeof(data));
+}
+
+static void msp_send_fc_variant(struct msp_bridge *m)
+{
+	union {
+		uint8_t buf[0];
+		struct {
+			char name[4];
+		} var;
+	} data;
+
+	memset(&data, 0, sizeof(data));
+
+	/* strncpy(data.var.name, "BTFL", 4);*/
+	strncpy(data.var.name, "DRON", 4);
+
+	msp_send(m, MSP_FC_VARIANT, data.buf, sizeof(data));
+}
+
+static void msp_send_board_info(struct msp_bridge *m)
+{
+	union {
+		uint8_t buf[0];
+		struct __attribute__((packed)) {
+			char name[4];
+			uint16_t revision;
+		} board;
+	} data;
+
+	memset(&data, 0, sizeof(data));
+
+	strncpy(data.board.name, DRONIN_TARGET, 4);
+
+	msp_send(m, MSP_BOARD_INFO, data.buf, sizeof(data));
+}
+
+static void msp_send_build_info(struct msp_bridge *m)
+{
+	union {
+		uint8_t buf[0];
+		struct __attribute__((packed)) {
+			char date[11];
+			char time[8];
+			char short_rev[7];
+		} build;
+	} data;
+
+	memset(&data, 0, sizeof(data));
+
+	// XXX: Not impl
+
+	msp_send(m, MSP_BUILD_INFO, data.buf, sizeof(data));
+}
+
+DONT_BUILD_IF(PIOS_SYS_SERIAL_NUM_BINARY_LEN != 4*3, SerialNumberAssumption);
+
+static void msp_send_uid(struct msp_bridge *m)
+{
+	union {
+		uint8_t buf[0];
+		struct {
+			uint8_t serial[PIOS_SYS_SERIAL_NUM_BINARY_LEN];
+		} uid;
+	} data;
+
+	PIOS_SYS_SerialNumberGetBinary(data.uid.serial);
+
+	msp_send(m, MSP_UID, data.buf, sizeof(data));
+}
+
+static void msp_send_api_version(struct msp_bridge *m)
+{
+	union {
+		uint8_t buf[0];
+		struct {
+			uint8_t protocol_ver;
+			uint8_t api_version_major;
+			uint8_t api_version_minor;
+		} ident;
+	} data;
+
+	data.ident.protocol_ver = MSP_PROTOCOL_VERSION;
+	data.ident.api_version_major = MSP_API_VERSION_MAJOR;
+	data.ident.api_version_minor = MSP_API_VERSION_MINOR;
+
+	msp_send(m, MSP_API_VERSION, data.buf, sizeof(data));
 }
 
 static void msp_send_attitude(struct msp_bridge *m)
@@ -332,11 +533,6 @@ static void msp_send_analog(struct msp_bridge *m)
 	}
 
 	msp_send(m, MSP_ANALOG, data.buf, sizeof(data));
-}
-
-static void msp_send_ident(struct msp_bridge *m)
-{
-	// TODO
 }
 
 static void msp_send_raw_gps(struct msp_bridge *m)
@@ -487,7 +683,7 @@ static void msp_send_channels(struct msp_bridge *m)
 	} data = {
 		.channels = {
 			msp_scale_rc(manualState.Roll),
-			msp_scale_rc(manualState.Pitch * -1), // TL pitch is backwards
+			msp_scale_rc(manualState.Pitch * -1), // MW pitch is backwards
 			msp_scale_rc(manualState.Yaw),
 			msp_scale_rc_thr(manualState.Throttle),
 			msp_scale_rc(manualState.Accessory[0]),
@@ -508,6 +704,32 @@ static void msp_send_boxids(struct msp_bridge *m) {
 		boxes[len++] = msp_boxes[i].mwboxid;
 	}
 	msp_send(m, MSP_BOXIDS, boxes, len);
+}
+
+static void msp_handle_4wif(struct msp_bridge *m) {
+	struct msp_cmddata_escserial *escserial = &m->cmd_data.escserial;
+
+	uint8_t num_esc = 0;
+
+	msp_esc_protocol protocol = PROTOCOL_4WAY;
+
+	if (m->cmd_size >= sizeof(*escserial)) {
+		protocol = escserial->protocol;
+	}
+
+	switch (protocol) {
+		case PROTOCOL_SIMONK:
+		case PROTOCOL_BLHELI:
+		case PROTOCOL_KISS:
+		case PROTOCOL_KISSALL:
+		case PROTOCOL_CASTLE:
+		case PROTOCOL_4WAY:
+		default:
+			/* Unsupported protocol */
+			break;
+	}
+
+	msp_send(m, MSP_SET_4WAY_IF, &num_esc, 1);
 }
 
 #define ALARM_OK 0
@@ -562,8 +784,32 @@ static msp_state msp_state_checksum(struct msp_bridge *m, uint8_t b)
 
 	// Respond to interesting things.
 	switch (m->cmd_id) {
-	case MSP_IDENT:
-		msp_send_ident(m);
+	case MSP_API_VERSION:
+		msp_send_api_version(m);
+		break;
+	case MSP_FC_VERSION:
+		msp_send_fc_version(m);
+		break;
+	case MSP_FC_VARIANT:
+		msp_send_fc_variant(m);
+		break;
+	case MSP_BOARD_INFO:
+		msp_send_board_info(m);
+		break;
+	case MSP_BUILD_INFO:
+		msp_send_build_info(m);
+		break;
+	case MSP_NAME:
+		msp_send_name(m);
+		break;
+	case MSP_FEATURE:
+		msp_send_feature(m);
+		break;
+	case MSP_UID:
+		msp_send_uid(m);
+		break;
+	case MSP_MOTOR:
+		msp_send_motor(m);
 		break;
 	case MSP_RAW_GPS:
 		msp_send_raw_gps(m);
@@ -586,11 +832,20 @@ static msp_state msp_state_checksum(struct msp_bridge *m, uint8_t b)
 	case MSP_RC:
 		msp_send_channels(m);
 		break;
+	case MSP_MISC:
+		msp_send_misc(m);
+		break;
 	case MSP_BOXIDS:
 		msp_send_boxids(m);
 		break;
 	case MSP_ALARMS:
 		msp_send_alarms(m);
+		break;
+	case MSP_SET_4WAY_IF:
+		msp_handle_4wif(m);
+		break;
+	default:
+		msp_send_error(m, m->cmd_id);
 		break;
 	}
 	return MSP_IDLE;
@@ -611,9 +866,6 @@ static bool msp_receive_byte(struct msp_bridge *m, uint8_t b)
 	switch (m->state) {
 	case MSP_IDLE:
 		switch (b) {
-		case 0xe0: // uavtalk matching first part of 0x3c @ 57600 baud
-			m->state = MSP_MAYBE_UAVTALK_SLOW2;
-			break;
 		case '<': // uavtalk matching with 0x3c 0x2x 0xxx 0x0x
 			m->state = MSP_MAYBE_UAVTALK2;
 			break;
@@ -658,27 +910,6 @@ static bool msp_receive_byte(struct msp_bridge *m, uint8_t b)
 		m->state = MSP_IDLE;
 		// If this looks like the fourth possible uavtalk byte, we're done
 		if ((b & 0xf0) == 0) {
-			PIOS_COM_TELEM_RF = m->com;
-			return false;
-		}
-		break;
-	case MSP_MAYBE_UAVTALK_SLOW2:
-		m->state = b == 0x18 ? MSP_MAYBE_UAVTALK_SLOW3 : MSP_IDLE;
-		break;
-	case MSP_MAYBE_UAVTALK_SLOW3:
-		m->state = b == 0x98 ? MSP_MAYBE_UAVTALK_SLOW4 : MSP_IDLE;
-		break;
-	case MSP_MAYBE_UAVTALK_SLOW4:
-		m->state = b == 0x7e ? MSP_MAYBE_UAVTALK_SLOW5 : MSP_IDLE;
-		break;
-	case MSP_MAYBE_UAVTALK_SLOW5:
-		m->state = b == 0x00 ? MSP_MAYBE_UAVTALK_SLOW6 : MSP_IDLE;
-		break;
-	case MSP_MAYBE_UAVTALK_SLOW6:
-		m->state = MSP_IDLE;
-		// If this looks like the sixth possible 57600 baud uavtalk byte, we're done
-		if(b == 0x60) {
-			PIOS_COM_ChangeBaud(m->com, 57600);
 			PIOS_COM_TELEM_RF = m->com;
 			return false;
 		}
@@ -754,7 +985,7 @@ static void uavoMSPBridgeTask(void *parameters)
 
 	while (1) {
 		uint8_t b = 0;
-		uint16_t count = PIOS_COM_ReceiveBuffer(msp->com, &b, 1, PIOS_QUEUE_TIMEOUT_MAX);
+		uint16_t count = PIOS_COM_ReceiveBuffer(msp->com, &b, 1, 3000);
 		if (count) {
 			if (!msp_receive_byte(msp, b)) {
 				// Returning is considered risky here as
