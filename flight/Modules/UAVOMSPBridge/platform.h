@@ -1,4 +1,5 @@
 #include <pios.h>
+#include <pios_thread.h>
 
 #define USE_SERIAL_4WAY_BLHELI_INTERFACE
 
@@ -12,6 +13,10 @@ typedef int ioConfig_t;
 
 // NONE initializer for IO_t variable
 #define IO_NONE ((IO_t)0)
+
+struct serialPort_s {
+	uintptr_t com;
+};
 
 typedef struct {
 	bool enabled;
@@ -58,29 +63,35 @@ static inline pwmOutputPort_t *pwmGetMotors(void)
 	return pwm_tmp;
 }
 
-/* Relative trivial on top of PIOS_DELAY */
+/* Trivial wrappers on top of current delay mechanisms */
 static inline void delayMicroseconds(uint32_t us)
 {
+	PIOS_DELAY_WaituS(us);
 }
 
 static inline uint32_t micros(void)
 {
-	return 0;
+	return PIOS_DELAY_GetuS();
 }
 
 static inline uint32_t millis(void)
 {
-	return 0;
+	return PIOS_Thread_Systime();
 }
 
 /* Need these first */
 static inline uint8_t serialRead(serialPort_t *instance)
 {
-	return 0;
+	uint8_t c;
+
+	while (PIOS_COM_ReceiveBuffer(instance->com, &c, 1, 3000) < 1);
+
+	return c;
 }
 
 static inline void serialWrite(serialPort_t *instance, uint8_t ch)
 {
+	PIOS_COM_SendBuffer(instance->com, &ch, sizeof(ch));
 }
 
 /* These two are just used for blocking, so we make the below calls do it */
