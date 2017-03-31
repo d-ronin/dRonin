@@ -85,6 +85,7 @@ static uint8_t suart_getc_(uint8_t *bt)
 
     uint32_t wait_time = millis() + START_BIT_TIMEOUT_MS;
     while (ESC_IS_HI) {
+        PIOS_WDG_Clear();
         // check for startbit begin
         if (millis() >= wait_time) {
             return 0;
@@ -95,7 +96,7 @@ static uint8_t suart_getc_(uint8_t *bt)
     btime = start_time + START_BIT_TIME;
     uint16_t bitmask = 0;
     uint8_t bit = 0;
-    while (micros() < btime);
+    while (micros() < btime) { PIOS_WDG_Clear(); }
     while(1) {
         if (ESC_IS_HI)
         {
@@ -104,7 +105,7 @@ static uint8_t suart_getc_(uint8_t *bt)
         btime = btime + BIT_TIME;
         bit++;
         if (bit == 10) break;
-        while (micros() < btime);
+        while (micros() < btime) { PIOS_WDG_Clear(); }
     }
     // check start bit and stop bit
     if ((bitmask & 1) || (!(bitmask & (1 << 9)))) {
@@ -129,7 +130,7 @@ static void suart_putc_(uint8_t *tx_b)
         btime = btime + BIT_TIME;
         bitmask = (bitmask >> 1);
         if (bitmask == 0) break; // stopbit shifted out - but don't wait
-        while (micros() < btime);
+        while (micros() < btime) { PIOS_WDG_Clear(); }
     }
 }
 

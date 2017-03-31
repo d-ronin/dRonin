@@ -37,19 +37,35 @@ typedef struct {
  */
 static inline bool IORead(IO_t io)
 {
-	return false;
+	return (GPIOB->IDR & GPIO_Pin_4) != 0;
 }
 
 static inline void IOLo(IO_t io)
 {
+	GPIOB->BSRRH = GPIO_Pin_4;
 }
 
 static inline void IOHi(IO_t io)
 {
+	GPIOB->BSRRL = GPIO_Pin_4;
 }
 
 static inline void IOConfigGPIO(IO_t io, ioConfig_t cfg)
 {
+	GPIO_InitTypeDef settings = {
+		.GPIO_Pin = GPIO_Pin_4,
+		.GPIO_Speed = GPIO_Speed_50MHz,
+		.GPIO_OType = GPIO_OType_PP,
+		.GPIO_PuPd = GPIO_PuPd_UP
+	};
+
+	if (cfg) {
+		settings.GPIO_Mode = GPIO_Mode_OUT;
+	} else {
+		settings.GPIO_Mode = GPIO_Mode_IN;
+	}
+
+	GPIO_Init(GPIOB, &settings);
 }
 
 static inline void pwmDisableMotors(void)
@@ -70,7 +86,9 @@ static inline pwmOutputPort_t *pwmGetMotors(void)
 /* Trivial wrappers on top of current delay mechanisms */
 static inline void delayMicroseconds(uint32_t us)
 {
+	PIOS_WDG_Clear();
 	PIOS_DELAY_WaituS(us);
+	PIOS_WDG_Clear();
 }
 
 static inline uint32_t micros(void)
@@ -80,7 +98,8 @@ static inline uint32_t micros(void)
 
 static inline uint32_t millis(void)
 {
-	return PIOS_Thread_Systime();
+	/* Can't use the thread time because interrupts disabled */
+	return micros() / 1000;
 }
 
 /* Need these first */

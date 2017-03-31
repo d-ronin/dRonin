@@ -465,6 +465,10 @@ void esc4wayProcess(serialPort_t *mspPort)
             ioMem.D_PTR_I = ParamBuf;
 
 
+#ifdef DRONIN_TARGET
+	    PIOS_IRQ_Disable();
+#endif
+
             switch(CMD) {
                 // ******* Interface related stuff *******
                 case cmd_InterfaceTestAlive:
@@ -797,6 +801,10 @@ void esc4wayProcess(serialPort_t *mspPort)
                     ACK_OUT = ACK_I_INVALID_CMD;
                 }
             }
+
+#ifdef DRONIN_TARGET
+	    PIOS_IRQ_Enable();
+#endif
         }
 
         CRCout.word = 0;
