@@ -167,16 +167,6 @@ plugin_ipconnection.subdir = ipconnection
 plugin_ipconnection.depends = plugin_coreplugin
 SUBDIRS += plugin_ipconnection
 
-#HITL Simulation gadget
-!LIGHTWEIGHT_GCS {
-plugin_hitl.subdir = hitl
-plugin_hitl.depends = plugin_coreplugin
-plugin_hitl.depends += plugin_uavobjects
-plugin_hitl.depends += plugin_uavobjectutil
-plugin_hitl.depends += plugin_uavtalk
-SUBDIRS += plugin_hitl
-}
-
 # Export and Import GCS Configuration
 plugin_importexport.subdir = importexport
 plugin_importexport.depends = plugin_coreplugin
