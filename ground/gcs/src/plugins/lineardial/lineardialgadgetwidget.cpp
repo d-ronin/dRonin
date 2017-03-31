@@ -28,7 +28,6 @@
 #include <math.h>
 
 #include "lineardialgadgetwidget.h"
-#include <utils/stylehelper.h>
 #include <QFileDialog>
 #include <QDebug>
 
