@@ -606,7 +606,6 @@ sim: uavobjects
 		BOARD_NAME=$(1) \
 		BOARD_SHORT_NAME=$(3) \
 		BUILD_TYPE=fw \
-		TCHAIN_PREFIX="" \
 		REMOVE_CMD="$(RM)" \
 		\
 		ROOT_DIR=$(ROOT_DIR) \
