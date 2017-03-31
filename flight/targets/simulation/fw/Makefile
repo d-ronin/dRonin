@@ -32,7 +32,27 @@
 all: elf
 
 override THUMB :=
+
+ifneq ($(PI_CROSS_SIM)x,x)
+TCHAIN_PREFIX = arm-linux-gnueabihf-
+
+LDFLAGS += -static
+else
+TCHAIN_PREFIX =
+endif
+
 include $(MAKE_INC_DIR)/firmware-defs.mk
+
+ifneq ($(PI_CROSS_SIM)x,x)
+
+ARMGCC:=$(shell command -v arm-linux-gnueabihf-gcc-6 2>/dev/null)
+
+ifneq ($(ARMGCC),)
+CC = $(CCACHE) $(ARMGCC)
+BARECC = $(ARMGCC)
+endif
+
+endif
 
 # Set developer code and compile options
 # Set to YES to compile for debugging
@@ -236,17 +256,6 @@ LDFLAGS += -fprofile-arcs
 
 else
 CFLAGS += -O2 -g3
-endif
-
-ifneq ($(PI_CROSS_SIM)x,x)
-ARMGCC:=$(shell command -v arm-linux-gnueabihf-gcc-6 2>/dev/null)
-
-ifeq ($(ARMGCC),)
-ARMGCC:=arm-linux-gnueabihf-gcc
-endif
-
-CC=$(ARMGCC)
-LDFLAGS += -static
 endif
 
 # common architecture-specific flags from the device-specific library makefile
