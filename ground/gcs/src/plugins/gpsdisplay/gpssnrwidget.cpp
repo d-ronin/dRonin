@@ -6,28 +6,28 @@ GpsSnrWidget::GpsSnrWidget(QWidget *parent) :
     scene = new QGraphicsScene(this);
     setScene(scene);
 
-    // Now create 'maxSatellites' satellite icons which we will move around on the map:
+    // Now create 'max Shown Satellites' satellite icons which we will move around on the map:
     for (int i = 0; i < MAX_SATELLITES; i++) {
         satellites[i][0] = 0;
         satellites[i][1] = 0;
         satellites[i][2] = 0;
         satellites[i][3] = 0;
+    }
 
+    for (int i = 0; i < MAX_SHOWN_SATELLITES; i++) {
         boxes[i] = new QGraphicsRectItem();
         boxes[i]->setBrush(QColor("Green"));
         scene->addItem(boxes[i]);
         boxes[i]->hide();
 
         satTexts[i] = new QGraphicsSimpleTextItem("##",boxes[i]);
-        satTexts[i]->setBrush(QColor("Black"));
-        satTexts[i]->setFont(QFont("Courier"));
+        satTexts[i]->setBrush(QColor("White"));
+        satTexts[i]->setFont(QFont("Courier", -1, QFont::ExtraBold));
 
         satSNRs[i] = new QGraphicsSimpleTextItem("##",boxes[i]);
         satSNRs[i]->setBrush(QColor("Black"));
-        satSNRs[i]->setFont(QFont("Courier"));
-
+        satSNRs[i]->setFont(QFont("Courier", -1, QFont::ExtraBold));
     }
-
 }
 
 GpsSnrWidget::~GpsSnrWidget() {
@@ -37,17 +37,35 @@ GpsSnrWidget::~GpsSnrWidget() {
 
 void GpsSnrWidget::showEvent(QShowEvent *event) {
     Q_UNUSED(event)
-    scene->setSceneRect(0,0, this->viewport()->width(), this->viewport()->height());
-    for(int index = 0 ;index < MAX_SATELLITES ; index++) {
-        drawSat(index);
-    }
+
+    satellitesDone();
 }
 
 void GpsSnrWidget::resizeEvent(QResizeEvent* event) {
     Q_UNUSED(event);
+
+    satellitesDone();
+}
+
+void GpsSnrWidget::satellitesDone()
+{
     scene->setSceneRect(0,0, this->viewport()->width(), this->viewport()->height());
-    for(int index = 0 ;index < MAX_SATELLITES ; index++) {
-        drawSat(index);
+
+    int drawIndex = 0;
+
+    /* Display ones with a positive snr first; UBX driver orders this way but
+     * NMEA does not
+     */
+    for(int index = 0; index < MAX_SATELLITES; index++) {
+        if (satellites[index][3] > 0) {
+            drawSat(drawIndex++, index);
+        }
+    }
+
+    for(int index = 0; index < MAX_SATELLITES; index++) {
+        if (satellites[index][3] <= 0) {
+            drawSat(drawIndex++, index);
+        }
     }
 }
 
@@ -62,13 +80,15 @@ void GpsSnrWidget::updateSat(int index, int prn, int elevation, int azimuth, int
     satellites[index][1] = elevation;
     satellites[index][2] = azimuth;
     satellites[index][3] = snr;
-
-    drawSat(index);
 }
 
-void GpsSnrWidget::drawSat(int index) {
+void GpsSnrWidget::drawSat(int drawIndex, int index) {
     if (index >= MAX_SATELLITES) {
         // A bit of error checking never hurts.
+        return;
+    }
+
+    if (drawIndex >= MAX_SHOWN_SATELLITES) {
         return;
     }
 
@@ -85,7 +105,7 @@ void GpsSnrWidget::drawSat(int index) {
 
         // Casting to int rounds down, which is what I want.
         // Minus 2 to allow a pixel of white left and right.
-        int availableWidth = (int)((scene->width()-2) / MAX_SATELLITES);
+        int availableWidth = (int)((scene->width()-2) / MAX_SHOWN_SATELLITES);
 
         // 2 pixels, one on each side.
         qreal width = availableWidth - 2;
