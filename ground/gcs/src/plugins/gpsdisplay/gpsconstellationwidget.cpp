@@ -155,7 +155,7 @@ void GpsConstellationWidget::updateSat(int index, int prn, int elevation, int az
         QRectF textRect = satTexts[index]->boundingRect();
 
         QTransform matrix;
-        qreal scale = 0.7 * (iconRect.width() / textRect.width());
+        qreal scale = 0.65 * (iconRect.width() / textRect.width());
         matrix.translate(iconRect.width()/2, iconRect.height()/2);
         matrix.scale(scale,scale);
         matrix.translate(-textRect.width()/2,-textRect.height()/2);
