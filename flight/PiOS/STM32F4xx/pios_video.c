@@ -391,9 +391,10 @@ void PIOS_Video_Init(const struct pios_video_cfg *cfg)
 	TIM_SelectOnePulseMode(cfg->hsync_capture.timer, TIM_OPMode_Single);
 	TIM_SelectSlaveMode(cfg->hsync_capture.timer, TIM_SlaveMode_Trigger);
 
-	uint16_t tmpccer = cfg->hsync_capture.timer->CCER;
 
 #ifdef PIOS_VIDEO_HSYNC_FALLING_EDGE
+	uint16_t tmpccer = cfg->hsync_capture.timer->CCER;
+
 	/* Unfortunately not really a stdperiph function for this. */
 	if (cfg->hsync_capture.timer_chan == TIM_Channel_1) {
 		tmpccer &= (uint16_t)~(TIM_CCER_CC1NP);
@@ -402,12 +403,17 @@ void PIOS_Video_Init(const struct pios_video_cfg *cfg)
 		tmpccer &= (uint16_t)~(TIM_CCER_CC2NP);
 		tmpccer |= (uint16_t)(TIM_CCER_CC2P);
 	}
+
+	cfg->hsync_capture.timer->CCER = tmpccer;
 #endif
 
+
 #ifdef PIOS_VIDEO_INPUT_FILTER
+	uint16_t tmpccmr1 = cfg->hsync_capture.timer->CCMR1;
+
 	if (cfg->hsync_capture.timer_chan == TIM_Channel_1) {
-		tmpccer &= ((uint16_t)~TIM_CCMR1_IC1F);
-		tmpccer |= 8 << 4;
+		tmpccmr1 &= ((uint16_t)~TIM_CCMR1_IC1F);
+		tmpccmr1 |= 8 << 4;
 		/* 8 = Fdts/8, N=6.  APB1=42MHz, so the prescaled clock input
 		 * should be double that (84 MHz).
 		 *
@@ -417,12 +423,12 @@ void PIOS_Video_Init(const struct pios_video_cfg *cfg)
 		 * trigger edge. 
 		 */
 	} else if (cfg->hsync_capture.timer_chan == TIM_Channel_2) {
-		tmpccer &= ((uint16_t)~TIM_CCMR1_IC2F);
-		tmpccer |= 8 << 12;
+		tmpccmr1 &= ((uint16_t)~TIM_CCMR1_IC2F);
+		tmpccmr1 |= 8 << 12;
 	}
-#endif
 
-	cfg->hsync_capture.timer->CCER = tmpccer;
+	cfg->hsync_capture.timer->CCMR1 = tmpccmr1;
+#endif
 
 	if (cfg->hsync_capture.timer_chan == TIM_Channel_1) {
 		TIM_SelectInputTrigger(cfg->hsync_capture.timer, TIM_TS_TI1FP1);
