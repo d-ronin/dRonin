@@ -54,6 +54,13 @@
           <number>0</number>
          </property>
          <item>
+          <widget class="QLabel" name="time_value">
+           <property name="text">
+            <string>Unknown</string>
+           </property>
+          </widget>
+         </item>
+         <item>
           <layout class="QHBoxLayout" name="infoHorizontalLayout1" stretch="0,0,1,0,1,0,1">
            <property name="spacing">
             <number>0</number>
@@ -153,14 +160,14 @@
           </spacer>
          </item>
          <item>
-          <layout class="QHBoxLayout" name="infoHorizontalLayout2" stretch="0,0,1,0,0,0,1">
+          <layout class="QHBoxLayout" name="infoHorizontalLayout2" stretch="0,0,1,0,0">
            <property name="spacing">
             <number>0</number>
            </property>
            <item>
             <widget class="QLabel" name="speed_label">
              <property name="text">
-              <string>Speed:</string>
+              <string>Speed, Heading:</string>
              </property>
             </widget>
            </item>
@@ -207,29 +214,6 @@
             </spacer>
            </item>
            <item>
-            <widget class="QLabel" name="bear_label">
-             <property name="text">
-              <string>Heading:</string>
-             </property>
-            </widget>
-           </item>
-           <item>
-            <spacer name="horizontalSpacer_8">
-             <property name="orientation">
-              <enum>Qt::Horizontal</enum>
-             </property>
-             <property name="sizeType">
-              <enum>QSizePolicy::Minimum</enum>
-             </property>
-             <property name="sizeHint" stdset="0">
-              <size>
-               <width>6</width>
-               <height>0</height>
-              </size>
-             </property>
-            </spacer>
-           </item>
-           <item>
             <widget class="QLabel" name="bear_value">
              <property name="text">
               <string>Unknown</string>
@@ -260,22 +244,6 @@
             <enum>Qt::Horizontal</enum>
            </property>
           </widget>
-         </item>
-         <item>
-          <spacer name="verticalSpacer_6">
-           <property name="orientation">
-            <enum>Qt::Vertical</enum>
-           </property>
-           <property name="sizeType">
-            <enum>QSizePolicy::Preferred</enum>
-           </property>
-           <property name="sizeHint" stdset="0">
-            <size>
-             <width>20</width>
-             <height>4</height>
-            </size>
-           </property>
-          </spacer>
          </item>
          <item>
           <layout class="QHBoxLayout" name="infoHorizontalLayout3" stretch="0,0,1">
@@ -404,7 +372,7 @@
           </spacer>
          </item>
          <item>
-          <layout class="QHBoxLayout" name="infoHorizontalLayout5" stretch="0,0,1,0,0">
+          <layout class="QHBoxLayout" name="infoHorizontalLayout5" stretch="0,0,1,0">
            <property name="spacing">
             <number>0</number>
            </property>
@@ -454,13 +422,6 @@
              </property>
             </spacer>
            </item>
-           <item>
-            <widget class="QLabel" name="time_value">
-             <property name="text">
-              <string>Unknown</string>
-             </property>
-            </widget>
-           </item>
           </layout>
          </item>
          <item>
@@ -502,8 +463,8 @@
            </property>
            <property name="maximumSize">
             <size>
-             <width>191</width>
-             <height>95</height>
+             <width>250</width>
+             <height>125</height>
             </size>
            </property>
            <property name="acceptDrops">
@@ -529,8 +490,8 @@
         <widget class="GpsSnrWidget" name="gpsSnrWidget">
          <property name="maximumSize">
           <size>
-           <width>250</width>
-           <height>95</height>
+           <width>400</width>
+           <height>125</height>
           </size>
          </property>
          <property name="toolTip">
@@ -555,8 +516,8 @@ Sat SNR is displayed above (in dBHz)</string>
           <widget class="GpsConstellationWidget" name="gpsSky">
            <property name="maximumSize">
             <size>
-             <width>250</width>
-             <height>250</height>
+             <width>400</width>
+             <height>400</height>
             </size>
            </property>
            <property name="verticalScrollBarPolicy">
@@ -584,50 +545,6 @@ Sat SNR is displayed above (in dBHz)</string>
           </spacer>
          </item>
         </layout>
-       </item>
-      </layout>
-     </widget>
-     <widget class="QGroupBox" name="dataStreamGroupBox">
-      <property name="title">
-       <string>GPS Data Stream</string>
-      </property>
-      <layout class="QVBoxLayout" name="verticalLayout_4">
-       <property name="leftMargin">
-        <number>0</number>
-       </property>
-       <property name="topMargin">
-        <number>0</number>
-       </property>
-       <property name="rightMargin">
-        <number>0</number>
-       </property>
-       <property name="bottomMargin">
-        <number>0</number>
-       </property>
-       <item>
-        <widget class="QTextBrowser" name="textBrowser">
-         <property name="sizePolicy">
-          <sizepolicy hsizetype="Expanding" vsizetype="Ignored">
-           <horstretch>0</horstretch>
-           <verstretch>0</verstretch>
-          </sizepolicy>
-         </property>
-         <property name="minimumSize">
-          <size>
-           <width>0</width>
-           <height>50</height>
-          </size>
-         </property>
-         <property name="verticalScrollBarPolicy">
-          <enum>Qt::ScrollBarAlwaysOn</enum>
-         </property>
-         <property name="lineWrapMode">
-          <enum>QTextEdit::WidgetWidth</enum>
-         </property>
-         <property name="acceptRichText">
-          <bool>false</bool>
-         </property>
-        </widget>
        </item>
       </layout>
      </widget>

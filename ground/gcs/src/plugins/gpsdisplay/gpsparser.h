@@ -46,7 +46,6 @@ signals:
    void position(double,double,double); // Lat, Lon, Alt
    void datetime(double,double); // Date then time
    void speedheading(double,double);
-   void packet(QString); // Raw NMEA Packet (or just info)
    void satellite(int,int,int,int,int); // Index, PRN, Elevation, Azimuth, SNR
    void fixmode(QString); // Mode of fix: "Auto", "Manual".
    void fixtype(QString); // Type of fix: "NoGPS", "NoFix", "Fix2D", "Fix3D".

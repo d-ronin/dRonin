@@ -48,7 +48,6 @@ private slots:
     void setPosition(double, double, double);
     void setDateTime(double, double);
     void setSpeedHeading(double, double);
-    void dumpPacket(const QString &packet);
     void setFixType(const QString &fixtype);
     void setDOP(double hdop, double vdop, double pdop);
 
