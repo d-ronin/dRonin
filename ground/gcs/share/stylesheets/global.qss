@@ -89,3 +89,7 @@ Utils--StyledBar QComboBox {
 Utils--StyledBar QComboBox:!editable {
 	color: #808080;
 }
+
+Utils--StyledBar QComboBox:hover {
+	background: #707070;
+}
