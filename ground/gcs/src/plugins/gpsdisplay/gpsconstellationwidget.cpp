@@ -76,7 +76,7 @@ GpsConstellationWidget::GpsConstellationWidget(QWidget *parent) : QGraphicsView(
 
         satTexts[i] = new QGraphicsSimpleTextItem("##",satIcons[i]);
         satTexts[i]->setBrush(QColor("Black"));
-        satTexts[i]->setFont(QFont("Courier"));
+        satTexts[i]->setFont(QFont("Courier", -1, QFont::Bold));
     }
 }
 
@@ -111,6 +111,8 @@ void GpsConstellationWidget::resizeEvent(QResizeEvent* event)
 
 void GpsConstellationWidget::updateSat(int index, int prn, int elevation, int azimuth, int snr)
 {
+    // TODO: Would be nice to sort, to do the "SNR=0" ones first, so they don't plot
+    // over real acquired satellites.
     if (index >= MAX_SATELLITES) {
         // A bit of error checking never hurts.
         return;
@@ -123,11 +125,6 @@ void GpsConstellationWidget::updateSat(int index, int prn, int elevation, int az
     satellites[index][3] = snr;
 
     if (prn && elevation >= 0) {
-        QPointF opd = polarToCoord(elevation,azimuth);
-        opd += QPointF(-satIcons[index]->boundingRect().center().x(),
-                       -satIcons[index]->boundingRect().center().y());
-        satIcons[index]->setTransform(QTransform::fromTranslate(opd.x(),opd.y()), false);
-
         /* From ublox 8 receiver manual; summary of all SV numbering schemes */
         if (prn <= 32) {
             satIcons[index]->setElementId("gpssatellite");
@@ -137,6 +134,10 @@ void GpsConstellationWidget::updateSat(int index, int prn, int elevation, int az
             satIcons[index]->setElementId("othersat");
         }
 
+        QPointF opd = polarToCoord(elevation,azimuth);
+        opd += QPointF(-satIcons[index]->boundingRect().center().x(),
+                       -satIcons[index]->boundingRect().center().y());
+        satIcons[index]->setTransform(QTransform::fromTranslate(opd.x(),opd.y()), false);
 
         if (snr) {
             satIcons[index]->setOpacity(1.0);
@@ -154,7 +155,7 @@ void GpsConstellationWidget::updateSat(int index, int prn, int elevation, int az
         QRectF textRect = satTexts[index]->boundingRect();
 
         QTransform matrix;
-        qreal scale = 0.70 * (iconRect.width() / textRect.width());
+        qreal scale = 0.7 * (iconRect.width() / textRect.width());
         matrix.translate(iconRect.width()/2, iconRect.height()/2);
         matrix.scale(scale,scale);
         matrix.translate(-textRect.width()/2,-textRect.height()/2);

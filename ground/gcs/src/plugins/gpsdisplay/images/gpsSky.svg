@@ -109,9 +109,9 @@
      borderopacity="1.0"
      inkscape:pageopacity="0.0"
      inkscape:pageshadow="2"
-     inkscape:zoom="2.8"
-     inkscape:cx="242.20408"
-     inkscape:cy="320.35165"
+     inkscape:zoom="1.6066596"
+     inkscape:cx="180.95408"
+     inkscape:cy="234.63736"
      inkscape:document-units="px"
      inkscape:current-layer="layer1"
      showgrid="false"
@@ -311,18 +311,15 @@
     </g>
     <g
        id="gpssatellite"
-       transform="matrix(0.93879118,0,0,0.93879118,26.496058,0.9451615)"
+       transform="matrix(0.85187431,0,0,0.85187431,73.688256,20.046769)"
        inkscape:label="#g3722">
-      <path
+      <circle
          transform="translate(0.08444214,0)"
-         d="m 589.99999,195.93361 a 20.714285,20.714285 0 0 1 -20.71428,20.71428 20.714285,20.714285 0 0 1 -20.71429,-20.71428 20.714285,20.714285 0 0 1 20.71429,-20.71429 20.714285,20.714285 0 0 1 20.71428,20.71429 z"
-         sodipodi:ry="20.714285"
-         sodipodi:rx="20.714285"
-         sodipodi:cy="195.93361"
-         sodipodi:cx="569.28571"
          id="path3712"
-         style="fill:#fff954;fill-opacity:1;stroke:#fcaa21;stroke-width:1.56471384;stroke-miterlimit:4;stroke-opacity:1;stroke-dasharray:none"
-         sodipodi:type="arc" />
+         style="fill:#fff954;fill-opacity:1;stroke:#fcaa21;stroke-width:1.56471384;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+         cx="569.28571"
+         cy="195.93361"
+         r="20.714285" />
       <rect
          ry="2.2728431"
          y="173.52946"
@@ -330,9 +327,9 @@
          height="45.456863"
          width="4.5456862"
          id="rect3718"
-         style="fill:#fff954;fill-opacity:1;stroke:#fcaa21;stroke-width:1.56471384;stroke-linecap:butt;stroke-linejoin:round;stroke-miterlimit:4;stroke-opacity:1;stroke-dasharray:none;stroke-dashoffset:0" />
+         style="fill:#fff954;fill-opacity:1;stroke:#fcaa21;stroke-width:1.56471384;stroke-linecap:butt;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1" />
       <rect
-         style="fill:#fff954;fill-opacity:1;stroke:#fcaa21;stroke-width:1.56471384;stroke-linecap:butt;stroke-linejoin:round;stroke-miterlimit:4;stroke-opacity:1;stroke-dasharray:none;stroke-dashoffset:0"
+         style="fill:#fff954;fill-opacity:1;stroke:#fcaa21;stroke-width:1.56471384;stroke-linecap:butt;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1"
          id="rect3720"
          width="4.5456862"
          height="45.456863"
@@ -342,7 +339,7 @@
     </g>
     <g
        inkscape:label="#g3722"
-       transform="matrix(0.93879118,0,0,0.93879118,-348.86109,-1.1976959)"
+       transform="matrix(0.85187431,0,0,0.85187431,-301.66889,17.903912)"
        id="othersat"
        style="fill:#ff8080;stroke:#ff5555">
       <circle
@@ -372,7 +369,7 @@
     <g
        style="fill:#ff9955;stroke:#ff7f2a"
        id="sbassatellite"
-       transform="matrix(0.93879118,0,0,0.93879118,-346.36109,421.30231)"
+       transform="matrix(0.85187431,0,0,0.85187431,-299.1689,440.40392)"
        inkscape:label="#g3722">
       <circle
          r="20.714285"
