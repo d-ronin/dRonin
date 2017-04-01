@@ -51,7 +51,7 @@ GpsConstellationWidget::GpsConstellationWidget(QWidget *parent) : QGraphicsView(
     setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
 
     QSvgRenderer *renderer = new QSvgRenderer();
-    renderer->load(QString(":/gpsgadget/images/gpsEarth.svg"));
+    renderer->load(QString(":/gpsgadget/images/gpsSky.svg"));
 
     world = new QGraphicsSvgItem();
     world->setSharedRenderer(renderer);
@@ -71,7 +71,7 @@ GpsConstellationWidget::GpsConstellationWidget(QWidget *parent) : QGraphicsView(
 
         satIcons[i] = new QGraphicsSvgItem(world);
         satIcons[i]->setSharedRenderer(renderer);
-        satIcons[i]->setElementId("sat-notSeen");
+        satIcons[i]->setElementId("gpssatellite");
         satIcons[i]->hide();
 
         satTexts[i] = new QGraphicsSimpleTextItem("##",satIcons[i]);
@@ -127,10 +127,21 @@ void GpsConstellationWidget::updateSat(int index, int prn, int elevation, int az
         opd += QPointF(-satIcons[index]->boundingRect().center().x(),
                        -satIcons[index]->boundingRect().center().y());
         satIcons[index]->setTransform(QTransform::fromTranslate(opd.x(),opd.y()), false);
-        if (snr) {
-            satIcons[index]->setElementId("satellite");
+
+        /* From ublox 8 receiver manual; summary of all SV numbering schemes */
+        if (prn <= 32) {
+            satIcons[index]->setElementId("gpssatellite");
+        } else if ((prn >= 120) && (prn <= 158)) {
+            satIcons[index]->setElementId("sbassatellite");
         } else {
-            satIcons[index]->setElementId("sat-notSeen");
+            satIcons[index]->setElementId("othersat");
+        }
+
+
+        if (snr) {
+            satIcons[index]->setOpacity(1.0);
+        } else {
+            satIcons[index]->setOpacity(0.53);
         }
         satIcons[index]->show();
 
