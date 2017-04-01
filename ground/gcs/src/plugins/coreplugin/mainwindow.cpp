@@ -363,8 +363,7 @@ void MainWindow::extensionsInitialized()
     qs->beginGroup("General");
     m_config_description=qs->value("Description","none").toString();
     m_config_details=qs->value("Details","none").toString();
-    m_config_stylesheet=qs->value("StyleSheet","none").toString();
-    loadStyleSheet(m_config_stylesheet);
+    loadStyleSheet();
     qs->endGroup();
     m_uavGadgetInstanceManager = new UAVGadgetInstanceManager(this);
     connect(m_uavGadgetInstanceManager,SIGNAL(splashMessages(QString)),this,SIGNAL(splashMessages(QString)));
@@ -404,7 +403,7 @@ void MainWindow::readStyleSheet(QFile *file, QString name, QString *style) {
     }
 }
 
-void MainWindow::loadStyleSheet(QString name) {
+void MainWindow::loadStyleSheet() {
     /* Let's use QFile and point to a resource... */
     QDir directory(QCoreApplication::applicationDirPath());
 #ifdef Q_OS_MAC
@@ -417,17 +416,17 @@ void MainWindow::loadStyleSheet(QString name) {
     directory.cd("stylesheets");
     QFile global(directory.absolutePath() + QDir::separator() + "global.qss");
 #ifdef Q_OS_MAC
-    QFile data(directory.absolutePath() + QDir::separator() + name + "_macos.qss");
+    QFile data(directory.absolutePath() + QDir::separator() + "macos.qss");
 #elif defined(Q_OS_LINUX)
-    QFile data(directory.absolutePath() + QDir::separator() + name + "_linux.qss");
+    QFile data(directory.absolutePath() + QDir::separator() + "linux.qss");
 #else
-    QFile data(directory.absolutePath() + QDir::separator() + name + "_windows.qss");
+    QFile data(directory.absolutePath() + QDir::separator() + "windows.qss");
 #endif
     QString style;
     /* ...to open the file */
 
-    readStyleSheet(&global, "global", &style);
-    readStyleSheet(&data, name, &style);
+    readStyleSheet(&global, "Global", &style);
+    readStyleSheet(&data, "OS", &style);
 
     if (style.length() > 0) {
         qApp->setStyleSheet(style);
@@ -1245,7 +1244,6 @@ void MainWindow::saveSettings(QSettings* qs)
     qs->beginGroup("General");
     qs->setValue("Description",m_config_description);
     qs->setValue("Details",m_config_details);
-    qs->setValue("StyleSheet",m_config_stylesheet);
     qs->endGroup();
 }
 
