@@ -111,8 +111,6 @@ void GpsConstellationWidget::resizeEvent(QResizeEvent* event)
 
 void GpsConstellationWidget::updateSat(int index, int prn, int elevation, int azimuth, int snr)
 {
-    // TODO: Would be nice to sort, to do the "SNR=0" ones first, so they don't plot
-    // over real acquired satellites.
     if (index >= MAX_SATELLITES) {
         // A bit of error checking never hurts.
         return;
@@ -141,8 +139,10 @@ void GpsConstellationWidget::updateSat(int index, int prn, int elevation, int az
 
         if (snr) {
             satIcons[index]->setOpacity(1.0);
+            satIcons[index]->setZValue(1.0);
         } else {
             satIcons[index]->setOpacity(0.53);
+            satIcons[index]->setZValue(0);
         }
         satIcons[index]->show();
 
