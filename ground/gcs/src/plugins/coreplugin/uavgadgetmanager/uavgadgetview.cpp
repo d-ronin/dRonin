@@ -52,6 +52,7 @@
 #include <QToolButton>
 #include <QMenu>
 #include <QClipboard>
+#include <QListView>
 
 Q_DECLARE_METATYPE(Core::IUAVGadget *)
 
@@ -74,6 +75,9 @@ UAVGadgetView::UAVGadgetView(Core::UAVGadgetManager *uavGadgetManager, IUAVGadge
     tl->setSpacing(0);
     tl->setMargin(0);
     {
+        // Ugly hack to bypass Qt's styling antics regarding combobox flyouts.
+        m_uavGadgetList->setView(new QListView(m_uavGadgetList));
+
         m_uavGadgetList->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
         m_uavGadgetList->setMinimumContentsLength(15);
         m_uavGadgetList->setMaxVisibleItems(40);
@@ -225,6 +229,10 @@ void UAVGadgetView::updateToolBar()
         return;
     if (toolBar->count() == 0)
         toolBar->hide();
+
+    // Ugly hack to bypass Qt's styling antics regarding combobox flyouts.
+    toolBar->setView(new QListView(toolBar));
+
     m_toolBar->layout()->addWidget(toolBar);
     m_activeToolBar->setVisible(false);
     m_activeToolBar = toolBar;
