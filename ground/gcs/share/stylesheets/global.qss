@@ -93,3 +93,19 @@ Utils--StyledBar QComboBox:!editable {
 Utils--StyledBar QComboBox:hover {
 	background: #707070;
 }
+
+Utils--StyledBar QComboBox::drop-down {
+	border: 0px;
+}
+
+Utils--StyledBar QComboBox::down-arrow:enabled {
+	image: url(:/core/images/dropdown_button.png);
+	width: 7px;
+	height: 7px;
+}
+
+Utils--StyledBar QComboBox::down-arrow:disabled {
+	image: url(:/core/images/dropdown_button_dis.png);
+	width: 7px;
+	height: 7px;
+}
