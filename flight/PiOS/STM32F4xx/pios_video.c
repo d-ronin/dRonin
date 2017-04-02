@@ -108,8 +108,6 @@ static uint16_t num_video_lines = 0;
 static enum pios_video_system video_system_act = PIOS_VIDEO_SYSTEM_NONE;
 static const struct pios_video_type_cfg *pios_video_type_cfg_act = &pios_video_type_cfg_pal;
 
-static uint16_t line_int_flag;
-
 // Private functions
 static void swap_buffers();
 static void prepare_line();
@@ -212,10 +210,10 @@ void PIOS_Line_ISR(void)
 	 *   responsible for counting lines.
 	 * - When DMA engine is done, it re-enables us and we keep counting.
 	 */
-	if(TIM_GetITStatus(dev_cfg->hsync_capture.timer, line_int_flag))
+	if(TIM_GetITStatus(dev_cfg->hsync_capture.timer, TIM_IT_Update))
 	{
 		TIM_ClearITPendingBit(dev_cfg->hsync_capture.timer,
-				line_int_flag);
+				TIM_IT_Update);
 
 		if (active_line > 10000) {
 			// Don't wrap.
@@ -280,7 +278,7 @@ void PIOS_VIDEO_DMA_Handler(void)
 		if (active_line < pios_video_type_cfg_act->graphics_height_real) { // lines existing
 			prepare_line();
 		} else { // last line completed
-			TIM_ITConfig(dev_cfg->hsync_capture.timer, line_int_flag, ENABLE);
+			TIM_ITConfig(dev_cfg->hsync_capture.timer, TIM_IT_Update, ENABLE);
 			// Disable the pixel timer slave mode configuration
 			dev_cfg->pixel_timer.timer->SMCR &= (uint16_t) ~TIM_SMCR_SMS;
 		}
@@ -294,7 +292,7 @@ void PIOS_VIDEO_DMA_Handler(void)
  */
 static inline void prepare_line()
 {
-	TIM_ITConfig(dev_cfg->hsync_capture.timer, line_int_flag, DISABLE);
+	TIM_ITConfig(dev_cfg->hsync_capture.timer, TIM_IT_Update, DISABLE);
 
 	uint32_t buf_offset = active_line * BUFFER_WIDTH;
 
@@ -413,18 +411,18 @@ void PIOS_Video_Init(const struct pios_video_cfg *cfg)
 
 	if (cfg->hsync_capture.timer_chan == TIM_Channel_1) {
 		tmpccmr1 &= ((uint16_t)~TIM_CCMR1_IC1F);
-		tmpccmr1 |= 8 << 4;
-		/* 8 = Fdts/8, N=6.  APB1=42MHz, so the prescaled clock input
+		tmpccmr1 |= 7 << 4;
+		/* 7 = Fdts/8, N=8.  APB1=42MHz, so the prescaled clock input
 		 * should be double that (84 MHz).
 		 *
-		 * 84MHz / 8 = 10.5Mhz... 6 / 10.5MHz = 0.57us
+		 * 84MHz / 8 = 21Mhz... 8/21MHz = .38us
 		 * require a steady value, different from the previous value
-		 * for ~half a microsecond before accepting a hsync clock
+		 * for .38 microsecond before accepting a hsync clock
 		 * trigger edge. 
 		 */
 	} else if (cfg->hsync_capture.timer_chan == TIM_Channel_2) {
 		tmpccmr1 &= ((uint16_t)~TIM_CCMR1_IC2F);
-		tmpccmr1 |= 8 << 12;
+		tmpccmr1 |= 9 << 12;
 	}
 
 	cfg->hsync_capture.timer->CCMR1 = tmpccmr1;
@@ -432,12 +430,8 @@ void PIOS_Video_Init(const struct pios_video_cfg *cfg)
 
 	if (cfg->hsync_capture.timer_chan == TIM_Channel_1) {
 		TIM_SelectInputTrigger(cfg->hsync_capture.timer, TIM_TS_TI1FP1);
-
-		line_int_flag = TIM_IT_CC1;
 	} else if (cfg->hsync_capture.timer_chan == TIM_Channel_2) {
 		TIM_SelectInputTrigger(cfg->hsync_capture.timer, TIM_TS_TI2FP2);
-
-		line_int_flag = TIM_IT_CC2;
 	} else {
 		PIOS_Assert(0);
 	}
@@ -516,7 +510,7 @@ void PIOS_Video_Init(const struct pios_video_cfg *cfg)
 
 	// Enable interrupts
 	PIOS_EXTI_Init(cfg->vsync);
-	TIM_ITConfig(cfg->hsync_capture.timer, line_int_flag, ENABLE);
+	TIM_ITConfig(cfg->hsync_capture.timer, TIM_IT_Update, ENABLE);
 
 	// Enable the capture timer
 	TIM_Cmd(cfg->hsync_capture.timer, ENABLE);
