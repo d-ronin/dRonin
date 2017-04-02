@@ -58,7 +58,7 @@ ConnectionManager::ConnectionManager(Internal::MainWindow *mainWindow, QTabWidge
 
     m_monitorWidget = new TelemetryMonitorWidget(this);
     AlarmsMonitorWidget::getInstance().init(m_monitorWidget->getRenderer(), m_monitorWidget->getBackgroundItem());
-    layout->addWidget(m_monitorWidget, Qt::AlignHCenter);
+    layout->addWidget(m_monitorWidget, Qt::AlignHCenter | Qt::AlignVCenter);
 
     layout->addWidget(new QLabel(tr("Connections:")));
 
@@ -66,11 +66,11 @@ ConnectionManager::ConnectionManager(Internal::MainWindow *mainWindow, QTabWidge
     m_availableDevList->setMinimumWidth(100);
     m_availableDevList->setMaximumWidth(150);
     m_availableDevList->setContextMenuPolicy(Qt::CustomContextMenu);
-    layout->addWidget(m_availableDevList);
+    layout->addWidget(m_availableDevList, Qt::AlignVCenter);
 
     m_connectBtn = new QPushButton(tr("Connect"));
     m_connectBtn->setEnabled(false);
-    layout->addWidget(m_connectBtn);
+    layout->addWidget(m_connectBtn, Qt::AlignVCenter);
 
     setLayout(layout);
 
