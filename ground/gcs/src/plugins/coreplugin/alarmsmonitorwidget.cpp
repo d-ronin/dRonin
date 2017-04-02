@@ -27,7 +27,7 @@
 #include <coreplugin/icore.h>
 #include <globalmessaging.h>
 
-#define DIMMED_SYMBOL 0.1
+#define DIMMED_SYMBOL 0.25
 
 AlarmsMonitorWidget::AlarmsMonitorWidget():hasErrors(false),hasWarnings(false),hasInfos(false),needsUpdate(false)
 {
@@ -41,7 +41,7 @@ void AlarmsMonitorWidget::init(QSvgRenderer *renderer,QGraphicsSvgItem *graph)
     error_sym->setParentItem(graph);
     error_txt = new QGraphicsTextItem();
     error_txt->setDefaultTextColor(Qt::white);
-    error_txt->setFont(QFont("Helvetica",22,2));
+    error_txt->setFont(QFont("Helvetica",24,2));
     error_txt->setParentItem(graph);
     error_txt->setPlainText("0");
 
@@ -53,7 +53,7 @@ void AlarmsMonitorWidget::init(QSvgRenderer *renderer,QGraphicsSvgItem *graph)
     error_sym->setTransform(trans,false);
     trans.reset();
     int refY=orig.y();
-    trans.translate(orig.x()+orig.width()-5,refY);
+    trans.translate(orig.x()+orig.width()+1,refY);
     error_txt->setTransform(trans,false);
     trans.reset();
 
@@ -63,7 +63,7 @@ void AlarmsMonitorWidget::init(QSvgRenderer *renderer,QGraphicsSvgItem *graph)
     info_sym->setParentItem(graph);
     info_txt = new QGraphicsTextItem();
     info_txt->setDefaultTextColor(Qt::white);
-    info_txt->setFont(QFont("Helvetica",22,2));
+    info_txt->setFont(QFont("Helvetica",24,2));
     info_txt->setParentItem(graph);
     info_txt->setPlainText("0");
     orig=renderer->boundsOnElement("info_sym");
@@ -72,7 +72,7 @@ void AlarmsMonitorWidget::init(QSvgRenderer *renderer,QGraphicsSvgItem *graph)
     trans.translate(orig.x(),orig.y());
     info_sym->setTransform(trans,false);
     trans.reset();
-    trans.translate(orig.x()-5+orig.width(),refY);
+    trans.translate(orig.x()+3+orig.width(),refY);
     info_txt->setTransform(trans,false);
     trans.reset();
 
@@ -82,7 +82,7 @@ void AlarmsMonitorWidget::init(QSvgRenderer *renderer,QGraphicsSvgItem *graph)
     warning_sym->setParentItem(graph);
     warning_txt = new QGraphicsTextItem();
     warning_txt->setDefaultTextColor(Qt::white);
-    warning_txt->setFont(QFont("Helvetica",22,2));
+    warning_txt->setFont(QFont("Helvetica",24,2));
     warning_txt->setParentItem(graph);
     warning_txt->setPlainText("0");
     orig=renderer->boundsOnElement("warning_sym");
@@ -91,15 +91,15 @@ void AlarmsMonitorWidget::init(QSvgRenderer *renderer,QGraphicsSvgItem *graph)
     trans.translate(orig.x(),orig.y());
     warning_sym->setTransform(trans,false);
     trans.reset();
-    trans.translate(orig.x()+orig.width()-20,refY);
+    trans.translate(orig.x()+orig.width()-23,refY);
     warning_txt->setTransform(trans,false);
     trans.reset();
-    error_sym->setOpacity(0.1);
-    warning_sym->setOpacity(0.1);
-    info_sym->setOpacity(0.1);
-    error_txt->setOpacity(0.1);
-    warning_txt->setOpacity(0.1);
-    info_txt->setOpacity(0.1);
+    error_sym->setOpacity(DIMMED_SYMBOL);
+    warning_sym->setOpacity(DIMMED_SYMBOL);
+    info_sym->setOpacity(DIMMED_SYMBOL);
+    error_txt->setOpacity(DIMMED_SYMBOL);
+    warning_txt->setOpacity(DIMMED_SYMBOL);
+    info_txt->setOpacity(DIMMED_SYMBOL);
 
     connect(&alertTimer,SIGNAL(timeout()),this,SLOT(processAlerts()));
     connect(Core::ICore::instance()->globalMessaging(),SIGNAL(newMessage(GlobalMessage*)),this,SLOT(updateMessages()));

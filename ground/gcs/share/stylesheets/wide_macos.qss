@@ -6,13 +6,6 @@ Utils--StyledBar { background-color: qlineargradient(spread:pad, x1:0, y1:0, x2:
 
 
 
-	QTabWidget::pane { /* The tab widget frame */	
-		margin: 1px,1px,1px,1px;
-		border: 2px solid rgb(196,196,196);
-		border-radius: 5px;
-		padding: 0px;
-		} 
-
 	QSlider::groove:horizontal {
 		border: 1px solid rgb(196,196,196);
 		background: white;

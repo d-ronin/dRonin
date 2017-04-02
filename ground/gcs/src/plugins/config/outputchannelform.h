@@ -58,7 +58,7 @@ signals:
     void formChanged();
 
 private:
-    Ui::outputChannelForm ui;
+    Ui::OutputChannelForm ui;
     /// Channel index
     int m_index;
     bool m_inChannelTest;

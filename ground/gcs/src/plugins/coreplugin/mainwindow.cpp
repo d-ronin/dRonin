@@ -189,12 +189,26 @@ MainWindow::MainWindow() :
     registerDefaultContainers();
     registerDefaultActions();
 
-    m_modeStack = new MyTabWidget(this);
+    QGridLayout *gridLayout = new QGridLayout();
+    gridLayout->setSizeConstraint(QLayout::SetNoConstraint);
+
+    m_contentFrame = new QFrame(this);
+    m_contentFrame->setObjectName(QString("MainContentFrame"));
+    m_contentFrame->setLayout(gridLayout);
+
+    m_modeStack = new MyTabWidget(m_contentFrame);
     m_modeStack->setIconSize(QSize(24, 24));
     m_modeStack->setTabPosition(QTabWidget::South);
     m_modeStack->setMovable(false);
     m_modeStack->setMinimumWidth(512);
+    m_modeStack->setMinimumHeight(384);
+    m_modeStack->setMaximumWidth(16777215);
+    m_modeStack->setMaximumHeight(16777215);
+    m_modeStack->setSizePolicy(QSizePolicy::MinimumExpanding, QSizePolicy::MinimumExpanding);
     m_modeStack->setElideMode(Qt::ElideRight);
+
+    gridLayout->addWidget(m_modeStack, 0, 0);
+    gridLayout->setContentsMargins(0, 0, 0, 0);
 
     m_globalMessaging = new GlobalMessaging(this);
 
@@ -204,7 +218,7 @@ MainWindow::MainWindow() :
 
     m_boardManager = new BoardManager();
 
-    setCentralWidget(m_modeStack);
+    setCentralWidget(m_contentFrame);
 
     connect(QApplication::instance(), SIGNAL(focusChanged(QWidget*,QWidget*)),
             this, SLOT(updateFocusWidget(QWidget*,QWidget*)));
@@ -295,7 +309,7 @@ bool MainWindow::init(QString *errorMessage)
     return true;
 }
 
-void MainWindow::modeChanged(Core::IMode */*mode*/)
+void MainWindow::modeChanged(Core::IMode * /*mode*/)
 {
 
 }
@@ -387,6 +401,23 @@ void MainWindow::extensionsInitialized()
     emit m_coreImpl->coreOpened();
 }
 
+void MainWindow::readStyleSheet(QFile *file, QString name, QString *style) {
+    QString tmp;
+    if(file->open(QFile::ReadOnly)) {
+        /* QTextStream... */
+        QTextStream styleIn(file);
+        /* ...read file to a string. */
+        tmp = styleIn.readAll();
+        file->close();
+        style->append(tmp);
+        emit splashMessages(QString(tr("Loading stylesheet %1")).arg(name));
+        qDebug()<<"Loaded stylesheet:" << name;
+    }
+    else {
+        qDebug()<<"Failed to openstylesheet file" << name;
+    }
+}
+
 void MainWindow::loadStyleSheet(QString name) {
     /* Let's use QFile and point to a resource... */
     QDir directory(QCoreApplication::applicationDirPath());
@@ -398,6 +429,7 @@ void MainWindow::loadStyleSheet(QString name) {
     directory.cd("share");
 #endif
     directory.cd("stylesheets");
+    QFile global(directory.absolutePath()+QDir::separator()+"global.qss");
 #ifdef Q_OS_MAC
     QFile data(directory.absolutePath()+QDir::separator()+name+"_macos.qss");
 #elif defined(Q_OS_LINUX)
@@ -407,20 +439,15 @@ void MainWindow::loadStyleSheet(QString name) {
 #endif
     QString style;
     /* ...to open the file */
-    if(data.open(QFile::ReadOnly)) {
-        /* QTextStream... */
-        QTextStream styleIn(&data);
-        /* ...read file to a string. */
-        style = styleIn.readAll();
-        data.close();
-        /* We'll use qApp macro to get the QApplication pointer
-         * and set the style sheet application wide. */
+
+    readStyleSheet(&global, "global", &style);
+    readStyleSheet(&data, name, &style);
+
+    if(style.length() > 0) {
         qApp->setStyleSheet(style);
-        emit splashMessages(QString(tr("Loading stylesheet %1")).arg(name));
-        qDebug()<<"Loaded stylesheet:" << directory.absolutePath() << name;
+    } else {
+        qDebug()<<"No stylesheets loaded.";
     }
-    else
-        qDebug()<<"Failed to openstylesheet file" << directory.absolutePath() << name;
 }
 
 void MainWindow::closeEvent(QCloseEvent *event)

@@ -49,7 +49,7 @@ ConfigCcpmWidget::ConfigCcpmWidget(QWidget *parent) : VehicleConfig(parent)
     updatingFromHardware=false;
     updatingToHardware=false;
 
-    m_ccpm = new Ui_ccpmWidget();
+    m_ccpm = new Ui_CcpmWidget();
     m_ccpm->setupUi(this);
 
     // Initialization of the swashplaye widget

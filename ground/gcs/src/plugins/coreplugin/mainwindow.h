@@ -35,12 +35,14 @@
 
 #include <QtCore/QMap>
 #include <QSettings>
+#include <QFile>
 
 QT_BEGIN_NAMESPACE
 class QSettings;
 class QShortcut;
 class QToolButton;
 class MyTabWidget;
+class QFrame;
 QT_END_NAMESPACE
 
 namespace Core {
@@ -166,6 +168,7 @@ private:
     void registerDefaultContainers();
     void registerDefaultActions();
     void createWorkspaces(QSettings* qs, bool diffOnly = false);
+    void readStyleSheet(QFile* file, QString name, QString *style);
     void loadStyleSheet(QString name);
 
     CoreImpl *m_coreImpl;
@@ -174,6 +177,7 @@ private:
     QList<int> m_additionalContexts;
     QSettings *m_settings;
     QSettings *m_globalSettings;
+    QFrame *m_contentFrame;
     bool m_dontSaveSettings; // In case of an Error or if we reset the settings, never save them.
     ActionManagerPrivate *m_actionManager;
     MessageManager *m_messageManager;
