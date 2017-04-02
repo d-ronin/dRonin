@@ -103,6 +103,7 @@ const struct pios_video_type_boundary *pios_video_type_boundary_act = &pios_vide
 static int8_t x_offset = 0;
 static int8_t x_offset_new = 0;
 static int8_t y_offset = 0;
+static uint16_t arr_value;
 static const struct pios_video_cfg *dev_cfg = NULL;
 static uint16_t num_video_lines = 0;
 static enum pios_video_system video_system_act = PIOS_VIDEO_SYSTEM_NONE;
@@ -168,7 +169,8 @@ bool PIOS_Vsync_ISR()
 	if (x_offset != x_offset_new)
 	{
 		x_offset = x_offset_new;
-		dev_cfg->hsync_capture.timer->ARR = (pios_video_type_cfg_act->dc * (pios_video_type_cfg_act->graphics_column_start + x_offset)) / 2;
+
+		arr_value = (pios_video_type_cfg_act->dc * (pios_video_type_cfg_act->graphics_column_start + x_offset)) / 2;
 	}
 
 	bool woken = false;
@@ -221,6 +223,8 @@ void PIOS_Line_ISR(void)
 		}
 
 		if (active_line == 0) {
+			dev_cfg->hsync_capture.timer->ARR = arr_value;
+
 			// Prepare the first line
 			prepare_line();
 
@@ -281,6 +285,10 @@ void PIOS_VIDEO_DMA_Handler(void)
 			TIM_ITConfig(dev_cfg->hsync_capture.timer, TIM_IT_Update, ENABLE);
 			// Disable the pixel timer slave mode configuration
 			dev_cfg->pixel_timer.timer->SMCR &= (uint16_t) ~TIM_SMCR_SMS;
+
+			// Hard-limit how quickly line interrupts can show up.
+			// 84MHz / 3600 = 24KHz; PAL and NTSC are ~15.5KHz
+			dev_cfg->hsync_capture.timer->ARR = 3500;
 		}
 	}
 }
