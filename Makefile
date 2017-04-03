@@ -638,7 +638,7 @@ FW_FILES += $(BUILD_DIR)/fw_$(1)/fw_$(1).debug
 fw_$(1)_%: TARGET=fw_$(1)
 fw_$(1)_%: OUTDIR=$(BUILD_DIR)/$$(TARGET)
 fw_$(1)_%: BOARD_ROOT_DIR=$(ROOT_DIR)/flight/targets/$(1)
-fw_$(1)_%: uavobjects_armsoftfp uavobjects_armhardfp usb_id_header
+fw_$(1)_%: uavobjects_armsoftfp uavobjects_armhardfp flightlib_armsoftfp flightlib_armhardfp usb_id_header
 	$(V1) mkdir -p $$(OUTDIR)/dep
 	$(V1) cd $$(BOARD_ROOT_DIR)/fw && \
 		$$(MAKE) -r --no-print-directory \
@@ -831,12 +831,20 @@ endif
 
 UAVOLIB_SOFT_OUT_DIR = $(BUILD_DIR)/uavobjects_armsoftfp
 UAVOLIB_HARD_OUT_DIR = $(BUILD_DIR)/uavobjects_armhardfp
+FLIGHTLIB_SOFT_OUT_DIR = $(BUILD_DIR)/flightlib_armsoftfp
+FLIGHTLIB_HARD_OUT_DIR = $(BUILD_DIR)/flightlib_armhardfp
 
 uavobjects_armsoftfp: TARGET=uavobjects_armsoftfp
 uavobjects_armsoftfp: OUTDIR=$(UAVOLIB_SOFT_OUT_DIR)
 
 uavobjects_armhardfp: TARGET=uavobjects_armhardfp
 uavobjects_armhardfp: OUTDIR=$(UAVOLIB_HARD_OUT_DIR)
+
+flightlib_armsoftfp: TARGET=flightlib_armsoftfp
+flightlib_armsoftfp: OUTDIR=$(FLIGHTLIB_SOFT_OUT_DIR)
+
+flightlib_armhardfp: TARGET=flightlib_armhardfp
+flightlib_armhardfp: OUTDIR=$(FLIGHTLIB_HARD_OUT_DIR)
 
 uavobjects_%: uavobjects
 	$(V1) mkdir -p $(OUTDIR)/dep
@@ -859,6 +867,28 @@ uavobjects_armsoftfp_clean:
 uavobjects_armhardfp_clean:
 	$(V0) @echo " CLEAN      $@"
 	$(V1) [ ! -d "$(UAVOLIB_HARD_OUT_DIR)" ] || $(RM) -rf "$(UAVOLIB_HARD_OUT_DIR)"
+
+flightlib_%: uavobjects
+	$(V1) mkdir -p $(OUTDIR)/dep
+	$(V1) cd $(ROOT_DIR)/flight/flightlib && \
+		$(MAKE) -r --no-print-directory \
+		TCHAIN_PREFIX="$(ARM_SDK_PREFIX)" \
+		REMOVE_CMD="$(RM)" \
+		\
+		ROOT_DIR=$(ROOT_DIR) \
+		TARGET=$(TARGET) \
+		OUTDIR=$(OUTDIR) \
+		\
+		$@
+
+.PHONY: flightlib_armsoftfp_clean flightlib_armhardfp_clean
+flightlib_armsoftfp_clean:
+	$(V0) @echo " CLEAN      $@"
+	$(V1) [ ! -d "$(FLIGHTLIB_SOFT_OUT_DIR)" ] || $(RM) -rf "$(FLIGHTLIB_SOFT_OUT_DIR)"
+
+flightlib_armhardfp_clean:
+	$(V0) @echo " CLEAN      $@"
+	$(V1) [ ! -d "$(FLIGHTLIB_HARD_OUT_DIR)" ] || $(RM) -rf "$(FLIGHTLIB_HARD_OUT_DIR)"
 
 
 .PHONY: usb_id_header usb_id_udev usb_id_windriver
@@ -913,7 +943,7 @@ EF_TARGETS := $(addprefix ef_, $(EF_BOARDS))
 
 .PHONY: all_fw all_fw_clean
 all_fw:        $(addsuffix _tlfw,  $(FW_TARGETS))
-all_fw_clean:  $(addsuffix _clean, $(FW_TARGETS)) uavobjects_armsoftfp_clean uavobjects_armhardfp_clean
+all_fw_clean:  $(addsuffix _clean, $(FW_TARGETS)) uavobjects_armsoftfp_clean uavobjects_armhardfp_clean flightlib_armsoftfp_clean flightlib_armhardfp_clean
 
 .PHONY: all_bl all_bl_clean
 all_bl:        $(addsuffix _bin,   $(BL_TARGETS))

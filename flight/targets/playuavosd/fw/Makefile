@@ -86,7 +86,6 @@ SRC += ${OPMODULEDIR}/System/rgbleds.c
 SRC += chibi_main.c
 SRC += pios_board.c
 SRC += pios_usb_board_data.c
-SRC += $(FLIGHTLIB)/alarms.c
 SRC += $(OPUAVTALK)/uavtalk.c
 SRC += $(OPUAVOBJ)/uavobjectmanager.c
 
@@ -95,29 +94,7 @@ SRC += $(DEBUG_CM3_DIR)/dcc_stdio.c
 SRC += $(DEBUG_CM3_DIR)/cm3_fault_handlers.c
 endif
 
-SRC += $(FLIGHTLIB)/paths.c
-SRC += $(FLIGHTLIB)/WorldMagModel.c
-SRC += $(FLIGHTLIB)/insgps14state.c
 SRC += taskmonitor.c
-SRC += $(FLIGHTLIB)/sanitycheck.c
-SRC += $(FLIGHTLIB)/timeutils.c
-SRC += $(FLIGHTLIB)/circqueue.c
-SRC += $(FLIGHTLIB)/morsel.c
-SRC += $(MATHLIB)/coordinate_conversions.c
-SRC += $(MATHLIB)/misc_math.c
-SRC += $(MATHLIB)/pid.c
-SRC += $(MATHLIB)/atmospheric_math.c
-SRC += $(MATHLIB)/lpfilter.c
-
-## MGRS Library (needed by OSD)
-SRC += $(MGRSLIB)/mgrs.c
-SRC += $(MGRSLIB)/utm.c
-SRC += $(MGRSLIB)/ups.c
-SRC += $(MGRSLIB)/tranmerc.c
-SRC += $(MGRSLIB)/polarst.c
-
-# MSP protocol lib
-SRC += $(MSPLIB)/msp.c
 
 ## PIOS Hardware (STM32F4xx)
 include $(PIOS)/STM32F4xx/library_chibios.mk
@@ -195,6 +172,7 @@ EXTRAINCDIRS += $(MSPLIB)
 EXTRAINCDIRS += ${foreach MOD, ${MODULES} ${OPTMODULES}, $(OPMODULEDIR)/${MOD}/inc} ${OPMODULEDIR}/System/inc
 
 LIBS += $(UAVOBJLIB)
+LIBS += $(FLIGHTLIBFILE)
 
 # Path to Linker-Scripts
 LINKERSCRIPTPATH = $(PIOSSTM32F4XX)

@@ -1,5 +1,6 @@
 FLOATABI ?= soft
 UAVOBJLIB := $(OUTDIR)/../uavobjects_arm$(FLOATABI)fp/libuavobject.a
+FLIGHTLIBFILE := $(OUTDIR)/../flightlib_arm$(FLOATABI)fp/libflightlib.a
 
 # Define programs and commands.
 REMOVE  = rm -f
