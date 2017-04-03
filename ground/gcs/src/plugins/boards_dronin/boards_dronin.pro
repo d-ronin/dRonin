@@ -18,7 +18,9 @@ HEADERS += \
     pikoblx.h \
     playuavosd.h \
     seppuku.h \
-    seppukuconfiguration.h
+    seppukuconfiguration.h \
+    sprf3e.h \
+    sprf3econfiguration.h
 
 SOURCES += \
     droninplugin.cpp \
@@ -27,11 +29,14 @@ SOURCES += \
     pikoblx.cpp \
     playuavosd.cpp \
     seppuku.cpp \
-    seppukuconfiguration.cpp
+    seppukuconfiguration.cpp \
+    sprf3e.cpp \
+    sprf3econfiguration.cpp
 
 RESOURCES += \
     dronin.qrc
 
 FORMS += \
     simulationconfiguration.ui \
-    seppuku.ui
+    seppuku.ui \
+    sprf3econfiguration.ui

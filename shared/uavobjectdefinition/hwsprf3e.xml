@@ -1,0 +1,137 @@
+<?xml version="1.0"?>
+<xml>
+	<object name="HwSprf3e" singleinstance="true" settings="true" category="HardwareSettings">
+		<description>Selection of optional hardware configurations.</description>
+		<field name="Uart1" units="function" type="enum" elements="1" parent="HwShared.PortTypes" defaultvalue="Disabled">
+			<description/>
+			<options>
+				<option>Disabled</option>
+				<option>DSM</option>
+				<option>SRXL</option>
+				<option>HoTT SUMD</option>
+				<option>HoTT SUMH</option>
+				<option>S.Bus</option>
+				<option>S.Bus Non Inverted</option>
+				<option>IBus</option>
+				<option>ComBridge</option>
+				<option>DebugConsole</option>
+				<option>FrSKY Sensor Hub</option>
+				<option>FrSKY SPort Telemetry</option>
+				<option>GPS</option>
+				<option>HoTT Telemetry</option>
+				<option>I2C</option>
+				<option>LighttelemetryTx</option>
+				<option>MavLinkTX</option>
+				<option>MavLinkTX_GPS_RX</option>
+				<option>MSP</option>
+				<option>OpenLog</option>
+				<option>Storm32Bgc</option>
+				<option>Telemetry</option>
+				<option>TBS Crossfire</option>
+			</options>
+		</field>
+		<field name="Uart2" units="function" type="enum" elements="1" parent="HwShared.PortTypes" defaultvalue="S.Bus">
+			<description/>
+			<options>
+				<option>Disabled</option>
+				<option>DSM</option>
+				<option>SRXL</option>
+				<option>HoTT SUMD</option>
+				<option>HoTT SUMH</option>
+				<option>PPM</option>
+				<option>S.Bus</option>
+				<option>S.Bus Non Inverted</option>
+				<option>IBus</option>
+				<option>ComBridge</option>
+				<option>DebugConsole</option>
+				<option>FrSKY Sensor Hub</option>
+				<option>FrSKY SPort Telemetry</option>
+				<option>GPS</option>
+				<option>HoTT Telemetry</option>
+				<option>I2C</option>
+				<option>LighttelemetryTx</option>
+				<option>MavLinkTX</option>
+				<option>MavLinkTX_GPS_RX</option>
+				<option>MSP</option>
+				<option>OpenLog</option>
+				<option>Storm32Bgc</option>
+				<option>Telemetry</option>
+				<option>TBS Crossfire</option>
+			</options>
+		</field>
+		<field name="Uart3" units="function" type="enum" elements="1" parent="HwShared.PortTypes" defaultvalue="FrSKY SPort Telemetry">
+			<description/>
+			<options>
+				<option>Disabled</option>
+				<option>ComBridge</option>
+				<option>DebugConsole</option>
+				<option>DSM</option>
+				<option>SRXL</option>
+				<option>HoTT SUMD</option>
+				<option>HoTT SUMH</option>
+				<option>FrSKY Sensor Hub</option>
+				<option>FrSKY SPort Telemetry</option>
+				<option>GPS</option>
+				<option>HoTT Telemetry</option>
+				<option>LighttelemetryTx</option>
+				<option>MavLinkTX</option>
+				<option>MavLinkTX_GPS_RX</option>
+				<option>MSP</option>
+				<option>OpenLog</option>
+				<option>S.Bus</option>
+				<option>S.Bus Non Inverted</option>
+				<option>Storm32Bgc</option>
+				<option>Telemetry</option>
+				<option>IBus</option>
+				<option>TBS Crossfire</option>
+			</options>
+		</field>
+		<field name="USB_HIDPort" units="function" type="enum" elements="1" parent="HwShared.USB_HIDPort" defaultvalue="USBTelemetry">
+			<description/>
+		</field>
+		<field name="USB_VCPPort" units="function" type="enum" elements="1" parent="HwShared.USB_VCPPort" defaultvalue="Disabled">
+			<description>Virtual COM Port protocol</description>
+			<options><option>Disabled</option><option>USBTelemetry</option><option>ComBridge</option><option>DebugConsole</option></options>
+		</field>
+		<field name="DSMxMode" units="mode" type="enum" elements="1" parent="HwShared.DSMxMode" defaultvalue="Autodetect">
+			<description/>
+		</field>
+		<field name="GyroRange" units="deg/s" type="enum" elements="1" defaultvalue="2000">
+			<description>Maximum measurement range for the gyros, should never rotate faster than about 85% of this</description>
+			<options>
+				<option>250</option>
+				<option>500</option>
+				<option>1000</option>
+				<option>2000</option>
+			</options>
+		</field>
+		<field name="AccelRange" units="*gravity m/s^2" type="enum" elements="1" defaultvalue="8G">
+			<description>The maximum measure range for the accelerometers, should never exceed this</description>
+			<options>
+				<option>2G</option>
+				<option>4G</option>
+				<option>8G</option>
+				<option>16G</option>
+			</options>
+		</field>
+		<field name="MPU9250GyroLPF" units="Hz" type="enum" elements="1" options="184,92,41,20,10,5" defaultvalue="184">
+			<description>Gyro filter cutoff frequency</description>
+		</field>
+		<field name="MPU9250AccelLPF" units="Hz" type="enum" elements="1" options="460,184,92,41,20,10,5" defaultvalue="184">
+			<description>Accelerometer filter cutoff frequency</description>
+		</field>
+		<field name="Magnetometer" units="" type="enum" elements="1" parent="HwShared.Mag" defaultvalue="Internal">
+			<description>Which magnetometer to use. If external, must connect to UART3, and configure it as I2C.</description>
+		</field>
+		<field name="ExtMagOrientation" units="" type="enum" elements="1" parent="HwShared.MagOrientation" defaultvalue="Top0degCW">
+			<description>Orientation of the external magnetometer</description>
+		</field>
+		<field name="Barometer" units="" type="enum" elements="1" options="Disabled,BMP280" defaultvalue="BMP280">
+			<description>Barometer (BMP280 I2C internal)</description>
+		</field>
+		<access gcs="readwrite" flight="readwrite"/>
+		<telemetrygcs acked="true" updatemode="onchange" period="0"/>
+		<telemetryflight acked="true" updatemode="onchange" period="0"/>
+		<logging updatemode="manual" period="0"/>
+	</object>
+</xml>
