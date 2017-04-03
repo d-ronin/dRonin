@@ -1,20 +1,20 @@
-uavobjects_armsoftfp: FLOATABI = -mfloat-abi=soft
-uavobjects_armsoftfp: $(OUTDIR)/libuavobject.a
-uavobjects_armhardfp: FLOATABI = -mfloat-abi=hard
-uavobjects_armhardfp: $(OUTDIR)/libuavobject.a
-
 # make the build output a bit nicer
 BUILD_TYPE = uv
 
 BOARD_SHORT_NAME=unkn
 
 ifneq ($(strip $(filter uavobjects_armsoftfp,$(MAKECMDGOALS))),)
-BOARD_SHORT_NAME=soft
+BOARD_SHORT_NAME=suav
 endif
 
 ifneq ($(strip $(filter uavobjects_armhardfp,$(MAKECMDGOALS))),)
-BOARD_SHORT_NAME=hard
+BOARD_SHORT_NAME=huav
 endif
+
+uavobjects_armsoftfp: LIBARCHFLAGS = -mfloat-abi=soft -mcpu=cortex-m3
+uavobjects_armsoftfp: $(OUTDIR)/libuavobject.a
+uavobjects_armhardfp: LIBARCHFLAGS = -mfloat-abi=hard -mcpu=cortex-m4 -march=armv7e-m -mfpu=fpv4-sp-d16
+uavobjects_armhardfp: $(OUTDIR)/libuavobject.a
 
 include $(MAKE_INC_DIR)/firmware-defs.mk
 
@@ -48,8 +48,7 @@ EXTRAINCDIRS  += $(APPLIBDIR)
 CFLAGS += -g3
 CFLAGS += -std=gnu99
 CFLAGS += -Os -fconserve-stack
-CFLAGS += -mcpu=cortex-m3
-CFLAGS += $(FLOATABI)
+CFLAGS += $(LIBARCHFLAGS)
 
 CFLAGS += $(CDEFS)
 CFLAGS += $(patsubst %,-I%,$(EXTRAINCDIRS)) -I.
@@ -81,7 +80,4 @@ NO_AUTO_UAVO = YES
 
 include $(MAKE_INC_DIR)/firmware-common.mk
 
-$(OUTDIR)/libuavobject.a: $(ALLOBJ)
-	@echo $(MSG_AR) $(call toprel, $@)
-	$(V1) $(AR) crs $@ $?
-
+$(eval $(call ARCHIVE_TEMPLATE, $(OUTDIR)/libuavobject.a, $(ALLOBJ)))
