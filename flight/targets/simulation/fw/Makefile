@@ -139,7 +139,7 @@ SRC += $(OPUAVOBJ)/uavobjectmanager.c
 ## Libraries for flight calculations
 SRC += $(FLIGHTLIB)/WorldMagModel.c
 SRC += $(FLIGHTLIB)/insgps13state.c
-SRC += $(FLIGHTLIB)/taskmonitor.c
+SRC += taskmonitor.c
 SRC += $(FLIGHTLIB)/sanitycheck.c
 SRC += $(FLIGHTLIB)/paths.c
 SRC += $(FLIGHTLIB)/circqueue.c

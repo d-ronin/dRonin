@@ -119,7 +119,7 @@ endif
 SRC += $(FLIGHTLIB)/paths.c
 SRC += $(FLIGHTLIB)/WorldMagModel.c
 SRC += $(FLIGHTLIB)/insgps14state.c
-SRC += $(FLIGHTLIB)/taskmonitor.c
+SRC += taskmonitor.c
 SRC += $(FLIGHTLIB)/sanitycheck.c
 SRC += $(FLIGHTLIB)/timeutils.c
 SRC += $(FLIGHTLIB)/frsky_packing.c

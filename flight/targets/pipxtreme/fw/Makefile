@@ -144,7 +144,7 @@ SRC += pios_wdg.c
 SRC += pios_reset.c
 
 ## Libraries for flight calculations
-SRC += $(FLIGHTLIB)/taskmonitor.c
+SRC += taskmonitor.c
 ## The Reed-Solomon FEC library
 SRC += $(FLIGHTLIB)/rscode/rs.c
 SRC += $(FLIGHTLIB)/rscode/berlekamp.c
