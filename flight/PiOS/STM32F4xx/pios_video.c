@@ -111,7 +111,7 @@ static const struct pios_video_type_cfg *pios_video_type_cfg_act = &pios_video_t
 
 // Private functions
 static void swap_buffers();
-static void prepare_line();
+static void prepare_line(int16_t line);
 static void vid_disable_spis();
 
 /**
@@ -122,7 +122,7 @@ bool PIOS_Vsync_ISR()
 	static uint16_t Vsync_update = 0;
 
 	// discard spurious vsync pulses (due to improper grounding), so we don't overload the CPU
-	if (active_line < pios_video_type_cfg_ntsc.graphics_height_real - 10) {
+	if (active_line < (pios_video_type_cfg_ntsc.graphics_height_real / 2)) {
 		active_line = - (pios_video_type_cfg_act->graphics_line_start + y_offset);
 		return false;
 	}
@@ -226,7 +226,7 @@ void PIOS_Line_ISR(void)
 			dev_cfg->hsync_capture.timer->ARR = arr_value;
 
 			// Prepare the first line
-			prepare_line();
+			prepare_line(0);
 
 			return;
 		}
@@ -279,8 +279,10 @@ void PIOS_VIDEO_DMA_Handler(void)
 
 		vid_disable_spis();
 
-		if (active_line < pios_video_type_cfg_act->graphics_height_real) { // lines existing
-			prepare_line();
+		int16_t line = active_line;
+
+		if ((line >= 0) && (line < pios_video_type_cfg_act->graphics_height_real)) { // lines existing
+			prepare_line(line);
 		} else { // last line completed
 			TIM_ITConfig(dev_cfg->hsync_capture.timer, TIM_IT_Update, ENABLE);
 			// Disable the pixel timer slave mode configuration
@@ -298,11 +300,11 @@ void PIOS_VIDEO_DMA_Handler(void)
  * Note: This function is called for every line (~13k times / s), so we use direct register access for
  * efficiency
  */
-static inline void prepare_line()
+static inline void prepare_line(int16_t line)
 {
 	TIM_ITConfig(dev_cfg->hsync_capture.timer, TIM_IT_Update, DISABLE);
 
-	uint32_t buf_offset = active_line * BUFFER_WIDTH;
+	uint32_t buf_offset = line * BUFFER_WIDTH;
 
 	// Set initial value
 	dev_cfg->pixel_timer.timer->CNT   = 0;
