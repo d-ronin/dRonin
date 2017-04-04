@@ -112,16 +112,16 @@ bool Sprf3e::setInputType(Core::IBoardType::InputType type)
 
     switch(type) {
     case INPUT_TYPE_DSM:
-        settings.Uart1 = HwSprf3e::UART2_DSM;
+        settings.Uart2 = HwSprf3e::UART2_DSM;
         break;    
     case INPUT_TYPE_SRXL:
-        settings.Uart1 = HwSprf3e::UART2_SRXL;
+        settings.Uart2 = HwSprf3e::UART2_SRXL;
         break;
     case INPUT_TYPE_HOTTSUMD:
         settings.Uart2 = HwSprf3e::UART2_HOTTSUMD;
         break;
     case INPUT_TYPE_HOTTSUMH:
-        settings.Uart1 = HwSprf3e::UART2_HOTTSUMD;
+        settings.Uart2 = HwSprf3e::UART2_HOTTSUMH;
         break;
     case INPUT_TYPE_PPM:
         settings.Uart2 = HwSprf3e::UART2_PPM;
@@ -130,13 +130,13 @@ bool Sprf3e::setInputType(Core::IBoardType::InputType type)
         settings.Uart2 = HwSprf3e::UART2_SBUS;
         break;
     case INPUT_TYPE_SBUSNONINVERTED:
-        settings.Uart1 = HwSprf3e::UART2_SBUSNONINVERTED;
+        settings.Uart2 = HwSprf3e::UART2_SBUSNONINVERTED;
         break;
     case INPUT_TYPE_IBUS:
-        settings.Uart1 = HwSprf3e::UART2_IBUS;
+        settings.Uart2 = HwSprf3e::UART2_IBUS;
         break;
     case INPUT_TYPE_TBSCROSSFIRE:
-        settings.Uart1 = HwSprf3e::UART2_TBSCROSSFIRE;
+        settings.Uart2 = HwSprf3e::UART2_TBSCROSSFIRE;
         break;
     default:
         return false;
