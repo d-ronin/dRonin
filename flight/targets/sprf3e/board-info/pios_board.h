@@ -59,7 +59,7 @@ TIM15 | PWM3      | PWM4      |           |
 */
 
 //------------------------
-// DMA Channels Used
+// DMA 1 Channels Used
 //------------------------
 /* Channel 1  -                                 */
 /* Channel 2  -                                 */
@@ -68,11 +68,15 @@ TIM15 | PWM3      | PWM4      |           |
 /* Channel 5  -                                 */
 /* Channel 6  -                                 */
 /* Channel 7  -                                 */
-/* Channel 8  -                                 */
-/* Channel 9  -                                 */
-/* Channel 10 -                                 */
-/* Channel 11 -                                 */
-/* Channel 12 -                                 */
+
+//------------------------
+// DMA 2 Channels Used
+//------------------------
+/* Channel 1  - ADC2                            */
+/* Channel 2  -                                 */
+/* Channel 3  -                                 */
+/* Channel 4  -                                 */
+/* Channel 5  -                                 */
 
 //------------------------
 // BOOTLOADER_SETTINGS

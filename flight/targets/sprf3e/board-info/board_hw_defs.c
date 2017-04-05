@@ -1009,33 +1009,33 @@ static const struct pios_ppm_cfg pios_ppm_cfg = {
 static const struct pios_internal_adc_cfg internal_adc_cfg = {
 	.dma = {
 		.irq = {
-			.flags   = (DMA1_FLAG_TC1 | DMA1_FLAG_TE1 | DMA1_FLAG_HT1 | DMA1_FLAG_GL1),
+			.flags   = (DMA2_FLAG_TC1 | DMA2_FLAG_TE1 | DMA2_FLAG_HT1 | DMA2_FLAG_GL1),
 			.init    = {
-				.NVIC_IRQChannel                   = DMA1_Channel1_IRQn,
+				.NVIC_IRQChannel                   = DMA2_Channel1_IRQn,
 				.NVIC_IRQChannelPreemptionPriority = PIOS_IRQ_PRIO_HIGH,
 				.NVIC_IRQChannelSubPriority        = 0,
 				.NVIC_IRQChannelCmd                = ENABLE,
 			},
 		},
 		.rx = {
-			.channel = DMA1_Channel1,
+			.channel = DMA2_Channel1,
 			.init    = {
 				.DMA_Priority           = DMA_Priority_High,
 			},
 		}
 	},
-	.half_flag = DMA1_IT_HT1,
-	.full_flag = DMA1_IT_TC1,
+	.half_flag = DMA2_IT_HT1,
+	.full_flag = DMA2_IT_TC1,
 	.oversampling = 32,
 	.adc_pin_count = 3,
 	.adc_pins = {
-		{GPIOA,GPIO_Pin_4,ADC_Channel_1,true},
-		{GPIOA,GPIO_Pin_5,ADC_Channel_2,false},
-		{GPIOB,GPIO_Pin_2,ADC_Channel_12,false},
+		{GPIOA,GPIO_Pin_4,ADC_Channel_1,true}, // Voltage
+		{GPIOA,GPIO_Pin_5,ADC_Channel_2,true}, // Current
+		{GPIOB,GPIO_Pin_2,ADC_Channel_12,true}, // RSSI
 	},
-	.adc_dev_master = ADC1,
-	.adc_dev_slave = ADC2,
+	.adc_dev_master = ADC2,
 };
+
 
 #endif /* PIOS_INCLUDE_ADC */
 
