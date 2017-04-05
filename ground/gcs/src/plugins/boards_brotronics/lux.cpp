@@ -150,6 +150,10 @@ bool Lux::setInputType(Core::IBoardType::InputType type)
         break;
     case INPUT_TYPE_SRXL:
         settings.RxPort = HwLux::RXPORT_SRXL;
+        break;
+    case INPUT_TYPE_TBSCROSSFIRE:
+        settings.RxPort = HwLux::RXPORT_TBSCROSSFIRE;
+        break;
     default:
         return false;
     }
@@ -190,6 +194,8 @@ Core::IBoardType::InputType Lux::getInputType()
         return INPUT_TYPE_IBUS;
     case HwLux::RXPORT_SRXL:
         return INPUT_TYPE_SRXL;
+    case HwLux::RXPORT_TBSCROSSFIRE:
+        return INPUT_TYPE_TBSCROSSFIRE;
     default:
         break;
     }
@@ -205,6 +211,12 @@ Core::IBoardType::InputType Lux::getInputType()
         return INPUT_TYPE_IBUS;
     case HwLux::UART2_SRXL:
         return INPUT_TYPE_SRXL;
+    case HwLux::UART2_HOTTSUMD:
+        return INPUT_TYPE_HOTTSUMD;
+    case HwLux::UART2_HOTTSUMH:
+        return INPUT_TYPE_HOTTSUMH;
+    case HwLux::UART2_TBSCROSSFIRE:
+        return INPUT_TYPE_TBSCROSSFIRE;
     default:
         break;
     }
@@ -220,6 +232,12 @@ Core::IBoardType::InputType Lux::getInputType()
         return INPUT_TYPE_IBUS;
     case HwLux::UART3_SRXL:
         return INPUT_TYPE_SRXL;
+    case HwLux::UART3_HOTTSUMD:
+        return INPUT_TYPE_HOTTSUMD;
+    case HwLux::UART3_HOTTSUMH:
+        return INPUT_TYPE_HOTTSUMH;
+    case HwLux::UART3_TBSCROSSFIRE:
+        return INPUT_TYPE_TBSCROSSFIRE;
     default:
         break;
     }

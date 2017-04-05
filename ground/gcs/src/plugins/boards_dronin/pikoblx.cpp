@@ -152,8 +152,10 @@ bool PikoBLX::setInputType(Core::IBoardType::InputType type)
         break;
     case INPUT_TYPE_DSM:
         settings.RxPort = HwPikoBLX::RXPORT_DSM;
-        break;    
-    case INPUT_TYPE_PWM:
+        break;
+    case INPUT_TYPE_TBSCROSSFIRE:
+        settings.RxPort = HwPikoBLX::RXPORT_TBSCROSSFIRE;
+        break;
     default:
         return false;
     }
@@ -188,12 +190,58 @@ Core::IBoardType::InputType PikoBLX::getInputType()
         return INPUT_TYPE_HOTTSUMD;
     case HwPikoBLX::RXPORT_HOTTSUMH:
         return INPUT_TYPE_HOTTSUMH;
+    case HwPikoBLX::RXPORT_SBUS:
+        return INPUT_TYPE_SBUS;
     case HwPikoBLX::RXPORT_SBUSNONINVERTED:
         return INPUT_TYPE_SBUSNONINVERTED;
     case HwPikoBLX::RXPORT_IBUS:
         return INPUT_TYPE_IBUS;
     case HwPikoBLX::RXPORT_SRXL:
         return INPUT_TYPE_SRXL;
+    case HwPikoBLX::RXPORT_TBSCROSSFIRE:
+        return INPUT_TYPE_TBSCROSSFIRE;
+    default:
+        break;
+    }
+
+    switch(settings.Uart1) {
+    case HwPikoBLX::UART1_DSM:
+        return INPUT_TYPE_DSM;
+    case HwPikoBLX::UART1_SBUS:
+        return INPUT_TYPE_SBUS;
+    case HwPikoBLX::UART1_SBUSNONINVERTED:
+        return INPUT_TYPE_SBUSNONINVERTED;
+    case HwPikoBLX::UART1_IBUS:
+        return INPUT_TYPE_IBUS;
+    case HwPikoBLX::UART1_SRXL:
+        return INPUT_TYPE_SRXL;
+    case HwPikoBLX::UART1_HOTTSUMD:
+        return INPUT_TYPE_HOTTSUMD;
+    case HwPikoBLX::UART1_HOTTSUMH:
+        return INPUT_TYPE_HOTTSUMH;
+    case HwPikoBLX::UART1_TBSCROSSFIRE:
+        return INPUT_TYPE_TBSCROSSFIRE;
+    default:
+        break;
+    }
+
+    switch(settings.Uart2) {
+    case HwPikoBLX::UART2_DSM:
+        return INPUT_TYPE_DSM;
+    case HwPikoBLX::UART2_SBUS:
+        return INPUT_TYPE_SBUS;
+    case HwPikoBLX::UART2_SBUSNONINVERTED:
+        return INPUT_TYPE_SBUSNONINVERTED;
+    case HwPikoBLX::UART2_IBUS:
+        return INPUT_TYPE_IBUS;
+    case HwPikoBLX::UART2_SRXL:
+        return INPUT_TYPE_SRXL;
+    case HwPikoBLX::UART2_HOTTSUMD:
+        return INPUT_TYPE_HOTTSUMD;
+    case HwPikoBLX::UART2_HOTTSUMH:
+        return INPUT_TYPE_HOTTSUMH;
+    case HwPikoBLX::UART2_TBSCROSSFIRE:
+        return INPUT_TYPE_TBSCROSSFIRE;
     default:
         break;
     }

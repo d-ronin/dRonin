@@ -26,6 +26,7 @@
 				<option>HoTT SUMD</option>
 				<option>HoTT SUMH</option>
 				<option>IBus</option>
+				<option>TBS Crossfire</option>
 			</options>
 		</field>
 		<field name="Uart1" units="function" type="enum" elements="1" parent="HwShared.PortTypes" defaultvalue="Disabled">
@@ -51,6 +52,7 @@
 				<option>HoTT SUMD</option>
 				<option>HoTT SUMH</option>
 				<option>IBus</option>
+				<option>TBS Crossfire</option>
 			</options>
 		</field>
 		<field name="Uart2" units="function" type="enum" elements="1" parent="HwShared.PortTypes" defaultvalue="Disabled">
@@ -76,6 +78,7 @@
 				<option>HoTT SUMD</option>
 				<option>HoTT SUMH</option>
 				<option>IBus</option>
+				<option>TBS Crossfire</option>
 			</options>
 		</field>
 		<field name="USB_HIDPort" units="function" type="enum" elements="1" parent="HwShared.USB_HIDPort" defaultvalue="USBTelemetry">
