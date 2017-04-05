@@ -158,6 +158,9 @@ bool Dtfc::setInputType(Core::IBoardType::InputType type)
     case INPUT_TYPE_SRXL:
         settings.RcvrPort = HwDtfc::RCVRPORT_SRXL;
         break;
+    case INPUT_TYPE_TBSCROSSFIRE:
+        settings.RcvrPort = HwDtfc::RCVRPORT_TBSCROSSFIRE;
+        break;
     default:
         return false;
     }
@@ -199,6 +202,8 @@ Core::IBoardType::InputType Dtfc::getInputType()
         return INPUT_TYPE_IBUS;
     case HwDtfc::RCVRPORT_SRXL:
         return INPUT_TYPE_SRXL;
+    case HwDtfc::RCVRPORT_TBSCROSSFIRE:
+        return INPUT_TYPE_TBSCROSSFIRE;
     default:
         break;
     }
@@ -218,6 +223,8 @@ Core::IBoardType::InputType Dtfc::getInputType()
         return INPUT_TYPE_IBUS;
     case HwDtfc::UART1_SRXL:
         return INPUT_TYPE_SRXL;
+    case HwDtfc::UART1_TBSCROSSFIRE:
+        return INPUT_TYPE_TBSCROSSFIRE;
     default:
         break;
     }
@@ -237,6 +244,8 @@ Core::IBoardType::InputType Dtfc::getInputType()
         return INPUT_TYPE_IBUS;
     case HwDtfc::UART2_SRXL:
         return INPUT_TYPE_SRXL;
+    case HwDtfc::UART2_TBSCROSSFIRE:
+        return INPUT_TYPE_TBSCROSSFIRE;
     default:
         break;
     }
