@@ -35,7 +35,7 @@ EXTRAINCDIRS		+=	$(PIOS_DEVLIB)/inc
 #
 # CMSIS for the F4
 #
-include $(PIOSCOMMONLIB)/CMSIS/library.mk
+include $(FLIGHTLIB)/CMSIS/library.mk
 CMSIS_DEVICEDIR	:=	$(PIOS_DEVLIB)/Libraries/CMSIS/Device/ST/STM32F4xx
 EXTRAINCDIRS		+=	$(CMSIS_DEVICEDIR)/Include
 

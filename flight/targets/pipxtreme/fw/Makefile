@@ -147,7 +147,7 @@ SRC += pios_reset.c
 SRC += taskmonitor.c
 
 ## CMSIS for STM32
-include $(PIOSCOMMONLIB)/CMSIS/library.mk
+include $(FLIGHTLIB)/CMSIS/library.mk
 
 # List C source files here which must be compiled in ARM-Mode (no -mthumb).
 # use file-extension c for "c-only"-files
