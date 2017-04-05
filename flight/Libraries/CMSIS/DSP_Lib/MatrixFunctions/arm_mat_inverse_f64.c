@@ -40,6 +40,8 @@
 
 #include "arm_math.h"
 
+#pragma GCC diagnostic ignored "-Wdouble-promotion"
+
 /**    
  * @ingroup groupMatrix    
  */
