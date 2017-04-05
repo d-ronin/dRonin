@@ -9,11 +9,12 @@ endif
 
 ifneq ($(strip $(filter flightlib_armhardfp,$(MAKECMDGOALS))),)
 BOARD_SHORT_NAME=hlib
+BUILD_DSP_LIB=1
 endif
 
 flightlib_armsoftfp: LIBARCHFLAGS = -mfloat-abi=soft -mcpu=cortex-m3
 flightlib_armsoftfp: $(OUTDIR)/libflightlib.a
-flightlib_armhardfp: LIBARCHFLAGS = -mfloat-abi=hard -mcpu=cortex-m4 -march=armv7e-m -mfpu=fpv4-sp-d16
+flightlib_armhardfp: LIBARCHFLAGS = -mfloat-abi=hard -mcpu=cortex-m4 -march=armv7e-m -mfpu=fpv4-sp-d16 -DARM_MATH_CM4 -D__FPU_PRESENT
 flightlib_armhardfp: $(OUTDIR)/libflightlib.a
 
 include $(MAKE_INC_DIR)/firmware-defs.mk
@@ -32,6 +33,8 @@ STMUSBSRCDIR = $(STMUSBDIR)/src
 STMUSBINCDIR = $(STMUSBDIR)/inc
 MSDDIR  = $(APPLIBDIR)/msd
 DOXYGENDIR = ../Doc/Doxygen
+
+include $(FLIGHTLIB)/CMSIS/library.mk
 
 # List C source files here. (C dependencies are automatically generated.)
 # use file-extension c for "c-only"-files
@@ -52,6 +55,8 @@ CFLAGS += -g3
 CFLAGS += -std=gnu99
 CFLAGS += -Os -fconserve-stack
 CFLAGS += $(LIBARCHFLAGS)
+CFLAGS += -DARM_MATH_ROUNDING -DUNALIGNED_SUPPORT_DISABLE
+
 
 CFLAGS += $(CDEFS)
 CFLAGS += $(patsubst %,-I%,$(EXTRAINCDIRS)) -I.
@@ -85,6 +90,10 @@ SRC += $(wildcard $(FLIGHTLIB)/mavlink/*.c)
 SRC += $(wildcard $(FLIGHTLIB)/mgrs/*.c)
 SRC += $(wildcard $(FLIGHTLIB)/msp/*.c)
 SRC += $(wildcard $(FLIGHTLIB)/rscode/*.c)
+
+ifneq ($(BUILD_DSP_LIB),)
+SRC += $(wildcard $(FLIGHTLIB)/CMSIS/DSP_Lib/*/*.c)
+endif
 
 NO_AUTO_UAVO = YES
 
