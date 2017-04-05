@@ -92,7 +92,7 @@ SRC += $(wildcard $(FLIGHTLIB)/msp/*.c)
 SRC += $(wildcard $(FLIGHTLIB)/rscode/*.c)
 
 ifneq ($(BUILD_DSP_LIB),)
-SRC += $(wildcard $(FLIGHTLIB)/CMSIS/DSP_Lib/*/*.c)
+SRC += $(wildcard $(FLIGHTLIB)/CMSIS/DSP_Lib/MatrixFunctions/*f32.c)
 endif
 
 NO_AUTO_UAVO = YES
