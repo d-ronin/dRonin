@@ -83,7 +83,6 @@
 		</field>
 		<field name="USB_VCPPort" units="function" type="enum" elements="1" parent="HwShared.USB_VCPPort" defaultvalue="Disabled">
 			<description>Virtual COM Port protocol</description>
-			<options><option>Disabled</option><option>USBTelemetry</option><option>ComBridge</option><option>DebugConsole</option></options>
 		</field>
 		<field name="DSMxMode" units="mode" type="enum" elements="1" parent="HwShared.DSMxMode" defaultvalue="Autodetect">
 			<description/>
