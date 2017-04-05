@@ -78,7 +78,7 @@ void arm_q7_to_q15(
   q7_t *pIn = pSrc;                              /* Src pointer */
   uint32_t blkCnt;                               /* loop counter */
 
-#ifndef ARM_MATH_CM0_FAMILY
+#if (!defined(ARM_MATH_CM0_FAMILY)) && (!defined(ARM_MATH_GENERIC))
   q31_t in;
   q31_t in1, in2;
   q31_t out1, out2;

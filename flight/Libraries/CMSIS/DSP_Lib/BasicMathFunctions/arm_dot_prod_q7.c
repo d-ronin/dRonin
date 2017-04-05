@@ -76,7 +76,7 @@ void arm_dot_prod_q7(
 
   q31_t sum = 0;                                 /* Temporary variables to store output */
 
-#ifndef ARM_MATH_CM0_FAMILY
+#if (!defined(ARM_MATH_CM0_FAMILY)) && (!defined(ARM_MATH_GENERIC))
 
 /* Run the below code for Cortex-M4 and Cortex-M3 */
 

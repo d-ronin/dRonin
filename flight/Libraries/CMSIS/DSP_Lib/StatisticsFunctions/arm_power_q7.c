@@ -79,7 +79,7 @@ void arm_power_q7(
   q7_t in;                                       /* Temporary variable to store input */
   uint32_t blkCnt;                               /* loop counter */
 
-#ifndef ARM_MATH_CM0_FAMILY
+#if (!defined(ARM_MATH_CM0_FAMILY)) && (!defined(ARM_MATH_GENERIC))
 
   /* Run the below code for Cortex-M4 and Cortex-M3 */
 

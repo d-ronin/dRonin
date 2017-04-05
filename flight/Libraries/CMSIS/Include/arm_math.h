@@ -310,6 +310,9 @@
 #elif defined (ARM_MATH_CM0PLUS)
   #include "core_cm0plus.h"
   #define ARM_MATH_CM0_FAMILY
+#elif defined (ARM_MATH_GENERIC)	/* Added by dRonin to run on rPi, sim */
+  #define __INLINE inline
+  #include <stdint.h>
 #else
   #error "Define according the used Cortex core ARM_MATH_CM7, ARM_MATH_CM4, ARM_MATH_CM3, ARM_MATH_CM0PLUS or ARM_MATH_CM0"
 #endif
@@ -447,7 +450,7 @@ extern "C"
 #define _SIMD32_OFFSET(addr)  (*(__SIMD32_TYPE *)  (addr))
 #define __SIMD64(addr)        (*(int64_t **) & (addr))
 
-#if defined (ARM_MATH_CM3) || defined (ARM_MATH_CM0_FAMILY)
+#if defined (ARM_MATH_CM3) || defined (ARM_MATH_CM0_FAMILY) || defined (ARM_MATH_GENERIC)
   /**
    * @brief definition to pack two 16 bit values.
    */
@@ -536,7 +539,7 @@ extern "C"
   #endif
  */
 /* note: function can be removed when all toolchain support __CLZ for Cortex-M0 */
-#if defined (ARM_MATH_CM0_FAMILY) && ((defined (__ICCARM__))  )
+#if ( defined (ARM_MATH_CM0_FAMILY) && defined (__ICCARM__) ) || defined (ARM_MATH_GENERIC)
   static __INLINE uint32_t __CLZ(
   q31_t data);
 
@@ -662,7 +665,7 @@ extern "C"
   /*
    * @brief C custom defined intrinisic function for only M0 processors
    */
-#if defined(ARM_MATH_CM0_FAMILY)
+#if defined(ARM_MATH_CM0_FAMILY) || defined(ARM_MATH_GENERIC)
   static __INLINE q31_t __SSAT(
   q31_t x,
   uint32_t y)
@@ -702,7 +705,7 @@ extern "C"
   /*
    * @brief C custom defined intrinsic function for M3 and M0 processors
    */
-#if defined (ARM_MATH_CM3) || defined (ARM_MATH_CM0_FAMILY)
+#if defined (ARM_MATH_CM3) || defined (ARM_MATH_CM0_FAMILY) || defined (ARM_MATH_GENERIC)
 
   /*
    * @brief C custom defined QADD8 for M3 and M0 processors
