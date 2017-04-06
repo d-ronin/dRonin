@@ -636,7 +636,7 @@ static float mix_channel(int ct, ActuatorDesiredData *desired,
 	case MIXERSETTINGS_MIXER1TYPE_ACCESSORY2:
 		(void) 0;
 
-		int idx = type - MIXERSETTINGS_CURVE2SOURCE_ACCESSORY0;
+		int idx = type - MIXERSETTINGS_MIXER1TYPE_ACCESSORY0;
 
 		if (idx < 0) {
 			return 0;
