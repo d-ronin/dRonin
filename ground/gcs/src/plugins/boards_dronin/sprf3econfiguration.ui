@@ -760,7 +760,7 @@ QLabel[severity=error] {
   </layout>
  </widget>
  <resources>
-  <include location="brotronics.qrc"/>
+  <include location="dronin.qrc"/>
  </resources>
  <connections/>
 </ui>

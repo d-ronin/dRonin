@@ -3,7 +3,7 @@
 	<object name="HwSprf3e" singleinstance="true" settings="true" category="HardwareSettings">
 		<description>Selection of optional hardware configurations.</description>
 		<field name="Uart1" units="function" type="enum" elements="1" parent="HwShared.PortTypes" defaultvalue="Disabled">
-			<description/>
+			<description>SP Racing F3 Evo: solder pads on right side near USB connector. FrSky XSRF3E: solder pads right side of USB connector.</description>
 			<options>
 				<option>Disabled</option>
 				<option>DSM</option>
@@ -30,8 +30,8 @@
 				<option>TBS Crossfire</option>
 			</options>
 		</field>
-		<field name="Uart2" units="function" type="enum" elements="1" parent="HwShared.PortTypes" defaultvalue="S.Bus">
-			<description/>
+		<field name="Uart2" units="function" type="enum" elements="1" parent="HwShared.PortTypes" defaultvalue="Disabled">
+			<description>SP Racing F3 Evo: JST-SH connector on left side of USB connector. FrSky XSRF3E: hard wired to S.Bus.</description>
 			<options>
 				<option>Disabled</option>
 				<option>DSM</option>
@@ -59,8 +59,8 @@
 				<option>TBS Crossfire</option>
 			</options>
 		</field>
-		<field name="Uart3" units="function" type="enum" elements="1" parent="HwShared.PortTypes" defaultvalue="FrSKY SPort Telemetry">
-			<description/>
+		<field name="Uart3" units="function" type="enum" elements="1" parent="HwShared.PortTypes" defaultvalue="Disabled">
+			<description>SP Racing F3 Evo: solder pads on left side near USB connector. RX-Pin is also available on Spektrum Sat connector. FrSky XSRF3E: hard wired to S.Port.</description>
 			<options>
 				<option>Disabled</option>
 				<option>ComBridge</option>
@@ -91,12 +91,6 @@
 		</field>
 		<field name="USB_VCPPort" units="function" type="enum" elements="1" parent="HwShared.USB_VCPPort" defaultvalue="Disabled">
 			<description>Virtual COM Port protocol</description>
-			<options>
-        <option>Disabled</option>
-        <option>USBTelemetry</option>
-        <option>ComBridge</option>
-        <option>DebugConsole</option>
-      </options>
 		</field>
 		<field name="DSMxMode" units="mode" type="enum" elements="1" parent="HwShared.DSMxMode" defaultvalue="Autodetect">
 			<description/>
@@ -126,7 +120,7 @@
 			<description>Accelerometer filter cutoff frequency</description>
 		</field>
 		<field name="Magnetometer" units="" type="enum" elements="1" parent="HwShared.Mag" defaultvalue="Internal">
-			<description>Which magnetometer to use. If external, must connect to UART3, and configure it as I2C.</description>
+			<description>Which magnetometer to use. If external, must connect to I2C.</description>
 		</field>
 		<field name="ExtMagOrientation" units="" type="enum" elements="1" parent="HwShared.MagOrientation" defaultvalue="Top0degCW">
 			<description>Orientation of the external magnetometer</description>
