@@ -56,7 +56,8 @@
 
 /* Flags that alter behaviors - mostly to lower resources for CC */
 //#define PIOS_TELEM_PRIORITY_QUEUE       /* Enable a priority queue in telemetry */
-//#define AUTOTUNE_AVERAGING_MODE
+#define AUTOTUNE_AVERAGING_MODE
+#define AUTOTUNE_AVERAGING_DECIMATION 2
 
 /* Alarm Thresholds */
 
