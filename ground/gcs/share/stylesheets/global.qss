@@ -109,3 +109,18 @@ Utils--StyledBar QComboBox::down-arrow:disabled {
 	width: 7px;
 	height: 7px;
 }
+
+/* Close button for Edit gadgets */
+Utils--StyledBar > QToolButton {
+	background: #505050;
+}
+
+Utils--StyledBar > QToolButton:hover {
+	background: #707070;
+	border: 0px;
+}
+
+Utils--StyledBar > QToolButton:pressed {
+	background: #606060;
+	border: 0px;
+}
