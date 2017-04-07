@@ -1175,13 +1175,13 @@ const struct stm32_gpio video_mask_pin = {
 
 void set_bw_levels(uint8_t black, uint8_t white)
 {
-	uint16_t black_calc = black + 70;
+	uint16_t black_calc = black + 82;
 
 	if (black_calc > 191) {
 		black_calc = 191;
 	}
 
-	uint16_t white_calc = white + 70;
+	uint16_t white_calc = white + 82;
 
 	if (white_calc > 191) {
 		white_calc = 191;
