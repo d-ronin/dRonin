@@ -98,6 +98,7 @@ QPixmap PikoBLX::getBoardPicture()
 bool PikoBLX::isInputConfigurationSupported(Core::IBoardType::InputType type)
 {
     switch (type) {
+    case INPUT_TYPE_PWM:
     case INPUT_TYPE_UNKNOWN:
         return false;
     default:
