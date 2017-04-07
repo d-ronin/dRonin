@@ -98,7 +98,6 @@ SRC += ${OPMODULEDIR}/System/rgbleds.c
 SRC += chibi_main.c
 SRC += pios_board.c
 SRC += pios_usb_board_data.c
-SRC += $(FLIGHTLIB)/alarms.c
 SRC += $(OPUAVTALK)/uavtalk.c
 SRC += $(OPUAVOBJ)/uavobjectmanager.c
 
@@ -107,20 +106,7 @@ SRC += $(DEBUG_CM3_DIR)/dcc_stdio.c
 SRC += $(DEBUG_CM3_DIR)/cm3_fault_handlers.c
 endif
 
-SRC += $(FLIGHTLIB)/paths.c
-SRC += $(FLIGHTLIB)/WorldMagModel.c
-SRC += $(FLIGHTLIB)/insgps14state.c
-SRC += $(FLIGHTLIB)/taskmonitor.c
-SRC += $(FLIGHTLIB)/sanitycheck.c
-SRC += $(FLIGHTLIB)/timeutils.c
-SRC += $(FLIGHTLIB)/frsky_packing.c
-SRC += $(FLIGHTLIB)/circqueue.c
-SRC += $(FLIGHTLIB)/morsel.c
-SRC += $(MATHLIB)/coordinate_conversions.c
-SRC += $(MATHLIB)/misc_math.c
-SRC += $(MATHLIB)/atmospheric_math.c
-SRC += $(MATHLIB)/pid.c
-SRC += $(MATHLIB)/lpfilter.c
+SRC += taskmonitor.c
 
 ## PIOS Hardware (STM32F4xx)
 include $(PIOS)/STM32F4xx/library_chibios.mk
@@ -322,6 +308,7 @@ ASFLAGS += -Wa,-adhlns=$(addprefix $(OUTDIR)/, $(notdir $(addsuffix .lst, $(base
 ASFLAGS += $(patsubst %,-I%,$(EXTRAINCDIRS))
 
 LIBS += $(UAVOBJLIB)
+LIBS += $(FLIGHTLIBFILE)
 
 # Linker flags.
 #  -Wl,...:     tell GCC to pass this to linker.

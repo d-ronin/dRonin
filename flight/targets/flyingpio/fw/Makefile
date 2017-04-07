@@ -99,10 +99,6 @@ SRC += pios_srxl.c
 SRC += $(FLIGHTLIB)/circqueue.c
 SRC += $(FLIGHTLIB)/morsel.c
 
-#SRC += $(MATHLIB)/coordinate_conversions.c
-#SRC += $(MATHLIB)/misc_math.c
-#SRC += $(MATHLIB)/pid.c
-
 SRC += 	$(wildcard $(STMSPDSRCDIR)/*.c)
 
 # List C++ source files here.
@@ -238,8 +234,6 @@ ASFLAGS  = $(ARCHFLAGS) -mthumb -I. -x assembler-with-cpp
 ASFLAGS += $(ADEFS)
 ASFLAGS += -Wa,-adhlns=$(addprefix $(OUTDIR)/, $(notdir $(addsuffix .lst, $(basename $<))))
 ASFLAGS += $(patsubst %,-I%,$(EXTRAINCDIRS))
-
-LIBS += $(UAVOBJLIB)
 
 # Linker flags.
 #  -Wl,...:     tell GCC to pass this to linker.

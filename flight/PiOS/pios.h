@@ -56,8 +56,6 @@
 #include <string.h>
 #include <math.h>
 
-#ifndef SIM_POSIX
-
 /* STM32 Std Periph Lib */
 #if defined(STM32F4XX)
 # include <stm32f4xx.h>
@@ -70,11 +68,11 @@
 #include <stm32f2xx_syscfg.h>
 #elif defined(STM32F0XX)
 #include <stm32f0xx.h>
-#else
+#elif defined(STM32F10X_MD)
 #include <stm32f10x.h>
+#elif !defined(SIM_POSIX) && !defined(PIOS_NO_HW)
+#error Must define a hardware type or PIOS_NO_HW
 #endif
-
-#endif //SIM_POSIX
 
 /* PIOS Board Specific Device Configuration */
 #include "pios_board.h"
@@ -108,12 +106,12 @@
 #endif
 #include <pios_wdg.h>
 
-#ifndef SIM_POSIX
+#if !defined(SIM_POSIX) && !defined(PIOS_NO_HW)
 #include <pios_gpio.h>
 #include <pios_exti.h>
 #include <pios_usart.h>
 #include <pios_srxl.h>
-#endif  // SIM_POSIX
+#endif  // !SIM_POSIX && ! PIOS_NO_HW
 
 /* PIOS Hardware Includes (Common) */
 #include <pios_debug.h>

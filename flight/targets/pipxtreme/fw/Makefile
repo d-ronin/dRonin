@@ -144,16 +144,7 @@ SRC += pios_wdg.c
 SRC += pios_reset.c
 
 ## Libraries for flight calculations
-SRC += $(FLIGHTLIB)/taskmonitor.c
-## The Reed-Solomon FEC library
-SRC += $(FLIGHTLIB)/rscode/rs.c
-SRC += $(FLIGHTLIB)/rscode/berlekamp.c
-SRC += $(FLIGHTLIB)/rscode/galois.c
-SRC += $(FLIGHTLIB)/frsky_packing.c
-SRC += $(FLIGHTLIB)/circqueue.c
-SRC += $(FLIGHTLIB)/morsel.c
-SRC += $(MATHLIB)/misc_math.c
-SRC += $(MATHLIB)/lpfilter.c
+SRC += taskmonitor.c
 
 ## CMSIS for STM32
 include $(PIOSCOMMONLIB)/CMSIS/library.mk
@@ -362,6 +353,7 @@ ASFLAGS += $(patsubst %,-I%,$(EXTRAINCDIRS))
 MATH_LIB = -lm
 
 LIBS += $(UAVOBJLIB)
+LIBS += $(FLIGHTLIBFILE)
 
 # Linker flags.
 #  -Wl,...:     tell GCC to pass this to linker.
