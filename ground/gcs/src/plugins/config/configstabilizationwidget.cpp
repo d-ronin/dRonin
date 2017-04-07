@@ -53,6 +53,8 @@ ConfigStabilizationWidget::ConfigStabilizationWidget(QWidget *parent) : ConfigTa
     m_stabilization = new Ui_StabilizationWidget();
     m_stabilization->setupUi(this);
 
+    m_stabilization->tabWidget->setCurrentIndex(0);
+
     updateInProgress=false;
 
     ExtensionSystem::PluginManager *pm=ExtensionSystem::PluginManager::instance();
