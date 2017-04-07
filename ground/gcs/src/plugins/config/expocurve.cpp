@@ -26,17 +26,30 @@
 #include "qwt/src/qwt_painter.h"
 #include "expocurve.h"
 
+#include <QFrame>
+
 ExpoCurve::ExpoCurve(QWidget *parent) :
     QwtPlot(parent)
 {
+    QPalette palette = parent->palette();
+
+    palette.setColor(QPalette::Foreground, palette.color(QPalette::Dark));
+    palette.setColor(QPalette::Background, palette.color(QPalette::Light));
+
     QwtPainter::setPolylineSplitting(false);
     QwtPainter::setRoundingAlignment(false);
     setMouseTracking(true);
 
     setMinimumSize(64, 64);
     setSizePolicy(QSizePolicy::MinimumExpanding, QSizePolicy::MinimumExpanding);
+    setContentsMargins(6, 0, 0, 0);
 
-    //setCanvasBackground(QColor(64, 64, 64));
+    QFrame *f = qobject_cast<QFrame *>(canvas());
+    if (f) {
+        f->setFrameStyle(QFrame::Box | QFrame::Plain);
+        f->setLineWidth(1);
+        f->setPalette(palette);
+    }
 
     //Add grid lines
     QwtPlotGrid *grid = new QwtPlotGrid;
@@ -47,17 +60,17 @@ ExpoCurve::ExpoCurve(QWidget *parent) :
 
 
     roll_elements.Curve.setRenderHint(QwtPlotCurve::RenderAntialiased);
-    roll_elements.Curve.setPen(QPen(QColor(Qt::blue), 1.0, Qt::SolidLine,
+    roll_elements.Curve.setPen(QPen(QColor(41, 128, 185), 1.25, Qt::SolidLine,
                 Qt::FlatCap));
     roll_elements.Curve.attach(this);
 
     pitch_elements.Curve.setRenderHint(QwtPlotCurve::RenderAntialiased);
-    pitch_elements.Curve.setPen(QPen(QColor(Qt::red), 1.0, Qt::SolidLine,
+    pitch_elements.Curve.setPen(QPen(QColor(192, 57, 43), 1.25, Qt::SolidLine,
                 Qt::FlatCap));
     pitch_elements.Curve.attach(this);
 
     yaw_elements.Curve.setRenderHint(QwtPlotCurve::RenderAntialiased);
-    yaw_elements.Curve.setPen(QPen(QColor(Qt::green), 1.0, Qt::SolidLine,
+    yaw_elements.Curve.setPen(QPen(QColor(39, 174, 96), 1.25, Qt::SolidLine,
                 Qt::FlatCap));
     yaw_elements.Curve.attach(this);
 
@@ -108,6 +121,9 @@ ExpoCurve::ExpoCurve(QWidget *parent) :
 
     axis_title.setText(tr("rate (deg/s)"));
     this->setAxisTitle(QwtPlot::yLeft, axis_title);
+
+    this->axisWidget(QwtPlot::xBottom)->setPalette(palette);
+    this->axisWidget(QwtPlot::yLeft)->setPalette(palette);
 
     plotDataRoll(50, 720, 50);
     plotDataPitch(50, 720, 50);
