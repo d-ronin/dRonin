@@ -103,16 +103,15 @@ const struct pios_video_type_boundary *pios_video_type_boundary_act = &pios_vide
 static int8_t x_offset = 0;
 static int8_t x_offset_new = 0;
 static int8_t y_offset = 0;
+static uint16_t arr_value;
 static const struct pios_video_cfg *dev_cfg = NULL;
 static uint16_t num_video_lines = 0;
 static enum pios_video_system video_system_act = PIOS_VIDEO_SYSTEM_NONE;
 static const struct pios_video_type_cfg *pios_video_type_cfg_act = &pios_video_type_cfg_pal;
 
-static uint16_t line_int_flag;
-
 // Private functions
 static void swap_buffers();
-static void prepare_line();
+static void prepare_line(int16_t line);
 static void vid_disable_spis();
 
 /**
@@ -123,7 +122,7 @@ bool PIOS_Vsync_ISR()
 	static uint16_t Vsync_update = 0;
 
 	// discard spurious vsync pulses (due to improper grounding), so we don't overload the CPU
-	if (active_line < pios_video_type_cfg_ntsc.graphics_height_real - 10) {
+	if (active_line < (pios_video_type_cfg_ntsc.graphics_height_real / 2)) {
 		active_line = - (pios_video_type_cfg_act->graphics_line_start + y_offset);
 		return false;
 	}
@@ -170,7 +169,8 @@ bool PIOS_Vsync_ISR()
 	if (x_offset != x_offset_new)
 	{
 		x_offset = x_offset_new;
-		dev_cfg->hsync_capture.timer->ARR = (pios_video_type_cfg_act->dc * (pios_video_type_cfg_act->graphics_column_start + x_offset)) / 2;
+
+		arr_value = (pios_video_type_cfg_act->dc * (pios_video_type_cfg_act->graphics_column_start + x_offset)) / 2;
 	}
 
 	bool woken = false;
@@ -212,10 +212,10 @@ void PIOS_Line_ISR(void)
 	 *   responsible for counting lines.
 	 * - When DMA engine is done, it re-enables us and we keep counting.
 	 */
-	if(TIM_GetITStatus(dev_cfg->hsync_capture.timer, line_int_flag))
+	if(TIM_GetITStatus(dev_cfg->hsync_capture.timer, TIM_IT_Update))
 	{
 		TIM_ClearITPendingBit(dev_cfg->hsync_capture.timer,
-				line_int_flag);
+				TIM_IT_Update);
 
 		if (active_line > 10000) {
 			// Don't wrap.
@@ -223,8 +223,10 @@ void PIOS_Line_ISR(void)
 		}
 
 		if (active_line == 0) {
+			dev_cfg->hsync_capture.timer->ARR = arr_value;
+
 			// Prepare the first line
-			prepare_line();
+			prepare_line(0);
 
 			return;
 		}
@@ -277,12 +279,18 @@ void PIOS_VIDEO_DMA_Handler(void)
 
 		vid_disable_spis();
 
-		if (active_line < pios_video_type_cfg_act->graphics_height_real) { // lines existing
-			prepare_line();
+		int16_t line = active_line;
+
+		if ((line >= 0) && (line < pios_video_type_cfg_act->graphics_height_real)) { // lines existing
+			prepare_line(line);
 		} else { // last line completed
-			TIM_ITConfig(dev_cfg->hsync_capture.timer, line_int_flag, ENABLE);
+			TIM_ITConfig(dev_cfg->hsync_capture.timer, TIM_IT_Update, ENABLE);
 			// Disable the pixel timer slave mode configuration
 			dev_cfg->pixel_timer.timer->SMCR &= (uint16_t) ~TIM_SMCR_SMS;
+
+			// Hard-limit how quickly line interrupts can show up.
+			// 84MHz / 3600 = 24KHz; PAL and NTSC are ~15.5KHz
+			dev_cfg->hsync_capture.timer->ARR = 3500;
 		}
 	}
 }
@@ -292,11 +300,11 @@ void PIOS_VIDEO_DMA_Handler(void)
  * Note: This function is called for every line (~13k times / s), so we use direct register access for
  * efficiency
  */
-static inline void prepare_line()
+static inline void prepare_line(int16_t line)
 {
-	TIM_ITConfig(dev_cfg->hsync_capture.timer, line_int_flag, DISABLE);
+	TIM_ITConfig(dev_cfg->hsync_capture.timer, TIM_IT_Update, DISABLE);
 
-	uint32_t buf_offset = active_line * BUFFER_WIDTH;
+	uint32_t buf_offset = line * BUFFER_WIDTH;
 
 	// Set initial value
 	dev_cfg->pixel_timer.timer->CNT   = 0;
@@ -391,9 +399,10 @@ void PIOS_Video_Init(const struct pios_video_cfg *cfg)
 	TIM_SelectOnePulseMode(cfg->hsync_capture.timer, TIM_OPMode_Single);
 	TIM_SelectSlaveMode(cfg->hsync_capture.timer, TIM_SlaveMode_Trigger);
 
-	uint16_t tmpccer = cfg->hsync_capture.timer->CCER;
 
 #ifdef PIOS_VIDEO_HSYNC_FALLING_EDGE
+	uint16_t tmpccer = cfg->hsync_capture.timer->CCER;
+
 	/* Unfortunately not really a stdperiph function for this. */
 	if (cfg->hsync_capture.timer_chan == TIM_Channel_1) {
 		tmpccer &= (uint16_t)~(TIM_CCER_CC1NP);
@@ -402,36 +411,37 @@ void PIOS_Video_Init(const struct pios_video_cfg *cfg)
 		tmpccer &= (uint16_t)~(TIM_CCER_CC2NP);
 		tmpccer |= (uint16_t)(TIM_CCER_CC2P);
 	}
+
+	cfg->hsync_capture.timer->CCER = tmpccer;
 #endif
 
+
 #ifdef PIOS_VIDEO_INPUT_FILTER
+	uint16_t tmpccmr1 = cfg->hsync_capture.timer->CCMR1;
+
 	if (cfg->hsync_capture.timer_chan == TIM_Channel_1) {
-		tmpccer &= ((uint16_t)~TIM_CCMR1_IC1F);
-		tmpccer |= 8 << 4;
-		/* 8 = Fdts/8, N=6.  APB1=42MHz, so the prescaled clock input
+		tmpccmr1 &= ((uint16_t)~TIM_CCMR1_IC1F);
+		tmpccmr1 |= 7 << 4;
+		/* 7 = Fdts/8, N=8.  APB1=42MHz, so the prescaled clock input
 		 * should be double that (84 MHz).
 		 *
-		 * 84MHz / 8 = 10.5Mhz... 6 / 10.5MHz = 0.57us
+		 * 84MHz / 8 = 21Mhz... 8/21MHz = .38us
 		 * require a steady value, different from the previous value
-		 * for ~half a microsecond before accepting a hsync clock
+		 * for .38 microsecond before accepting a hsync clock
 		 * trigger edge. 
 		 */
 	} else if (cfg->hsync_capture.timer_chan == TIM_Channel_2) {
-		tmpccer &= ((uint16_t)~TIM_CCMR1_IC2F);
-		tmpccer |= 8 << 12;
+		tmpccmr1 &= ((uint16_t)~TIM_CCMR1_IC2F);
+		tmpccmr1 |= 9 << 12;
 	}
-#endif
 
-	cfg->hsync_capture.timer->CCER = tmpccer;
+	cfg->hsync_capture.timer->CCMR1 = tmpccmr1;
+#endif
 
 	if (cfg->hsync_capture.timer_chan == TIM_Channel_1) {
 		TIM_SelectInputTrigger(cfg->hsync_capture.timer, TIM_TS_TI1FP1);
-
-		line_int_flag = TIM_IT_CC1;
 	} else if (cfg->hsync_capture.timer_chan == TIM_Channel_2) {
 		TIM_SelectInputTrigger(cfg->hsync_capture.timer, TIM_TS_TI2FP2);
-
-		line_int_flag = TIM_IT_CC2;
 	} else {
 		PIOS_Assert(0);
 	}
@@ -510,7 +520,7 @@ void PIOS_Video_Init(const struct pios_video_cfg *cfg)
 
 	// Enable interrupts
 	PIOS_EXTI_Init(cfg->vsync);
-	TIM_ITConfig(cfg->hsync_capture.timer, line_int_flag, ENABLE);
+	TIM_ITConfig(cfg->hsync_capture.timer, TIM_IT_Update, ENABLE);
 
 	// Enable the capture timer
 	TIM_Cmd(cfg->hsync_capture.timer, ENABLE);
