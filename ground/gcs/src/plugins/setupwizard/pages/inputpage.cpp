@@ -52,6 +52,7 @@ InputPage::InputPage(SetupWizard *wizard, QWidget *parent) :
         ui->spectrumButton->setEnabled(board->isInputConfigurationSupported(Core::IBoardType::INPUT_TYPE_DSM));
         ui->ibusButton->setEnabled(board->isInputConfigurationSupported(Core::IBoardType::INPUT_TYPE_IBUS));
         ui->srxlButton->setEnabled(board->isInputConfigurationSupported(Core::IBoardType::INPUT_TYPE_SRXL));
+        ui->tbscrossfireButton->setEnabled(board->isInputConfigurationSupported(Core::IBoardType::INPUT_TYPE_TBSCROSSFIRE));
     }
     // the default might have been disabled, choose one that's available
     foreach (QToolButton *button, findChildren<QToolButton *>()) {
@@ -87,6 +88,8 @@ bool InputPage::validatePage()
         getWizard()->setInputType(Core::IBoardType::INPUT_TYPE_IBUS);
     } else if (ui->srxlButton->isChecked()) {
         getWizard()->setInputType(Core::IBoardType::INPUT_TYPE_SRXL);
+    } else if (ui->tbscrossfireButton->isChecked()) {
+        getWizard()->setInputType(Core::IBoardType::INPUT_TYPE_TBSCROSSFIRE);
     } else {
         getWizard()->setInputType(Core::IBoardType::INPUT_TYPE_PWM);
     }
