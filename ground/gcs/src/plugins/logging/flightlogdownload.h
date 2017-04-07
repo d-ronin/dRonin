@@ -28,19 +28,20 @@
 #ifndef FLIGHTLOGDOWNLOAD_H
 #define FLIGHTLOGDOWNLOAD_H
 
-#include <QDialog>
-#include <QByteArray>
-#include <QFile>
 #include "loggingstats.h"
+#include <QByteArray>
+#include <QDialog>
+#include <QFile>
 
-namespace Ui {
+namespace Ui
+{
 class FlightLogDownload;
 }
 
 class FlightLogDownload : public QDialog
 {
     Q_OBJECT
-    
+
 public:
     explicit FlightLogDownload(QWidget *parent = 0);
     ~FlightLogDownload();
@@ -55,7 +56,7 @@ private:
     QByteArray log;
     QFile *logFile;
 
-    enum LOG_DL_STATE {DL_IDLE, DL_DOWNLOADING, DL_COMPLETE} dl_state;
+    enum LOG_DL_STATE { DL_IDLE, DL_DOWNLOADING, DL_COMPLETE } dl_state;
 
     Ui::FlightLogDownload *ui;
 };

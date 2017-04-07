@@ -29,10 +29,10 @@
 
 #include <QItemSelectionModel>
 
-#include <extensionsystem/iplugin.h>
 #include "flightdatamodel.h"
 #include "modeluavoproxy.h"
 #include "waypointdialog.h"
+#include <extensionsystem/iplugin.h>
 
 class PathPlannerGadgetFactory;
 
@@ -42,15 +42,16 @@ class PathPlannerPlugin : public ExtensionSystem::IPlugin
     Q_PLUGIN_METADATA(IID "org.dronin.plugins.PathPlanner")
 public:
     PathPlannerPlugin();
-   ~PathPlannerPlugin();
+    ~PathPlannerPlugin();
 
-   void extensionsInitialized();
-   bool initialize(const QStringList & arguments, QString * errorString);
-   void shutdown();
+    void extensionsInitialized();
+    bool initialize(const QStringList &arguments, QString *errorString);
+    void shutdown();
+
 private:
-   PathPlannerGadgetFactory *mf;
-   FlightDataModel          *dataModel;
-   QItemSelectionModel      *selection;
-   WaypointDialog           *waypointDialog;
+    PathPlannerGadgetFactory *mf;
+    FlightDataModel *dataModel;
+    QItemSelectionModel *selection;
+    WaypointDialog *waypointDialog;
 };
 #endif /* PathPlannerPLUGIN_H_ */

@@ -26,16 +26,16 @@
 #ifndef TELEMETRYSCHEDULERGADGETWIDGET_H_
 #define TELEMETRYSCHEDULERGADGETWIDGET_H_
 
-#include <QMap>
-#include <QSpinBox>
-#include <QTableView>
-#include <QStandardItemModel>
 #include <QItemDelegate>
 #include <QLabel>
+#include <QMap>
+#include <QSpinBox>
+#include <QStandardItemModel>
+#include <QTableView>
 
-#include "uavobjectutil/uavobjectutilmanager.h"
 #include "extensionsystem/pluginmanager.h"
 #include "uavobject.h"
+#include "uavobjectutil/uavobjectutilmanager.h"
 
 class Ui_TelemetryScheduler;
 class Ui_Metadata_Dialog;
@@ -73,12 +73,13 @@ private slots:
     void changeVerticalHeader(int);
     void changeHorizontalHeader(int);
     void customMenuRequested(QPoint pos);
-    void uavoPresentOnHardwareChanged(UAVDataObject*);
+    void uavoPresentOnHardwareChanged(UAVDataObject *);
     void onHideNotPresent(bool);
+
 private:
     int stripMs(QVariant rate_ms);
     QList<UAVMetaObject *> metaObjectsToSave;
-    void importTelemetryConfiguration(const QString& fileName);
+    void importTelemetryConfiguration(const QString &fileName);
     UAVObjectUtilManager *getObjectUtilManager();
     UAVObjectManager *getObjectManager();
 
@@ -88,67 +89,72 @@ private:
     QString filename;
 
     QMap<QString, UAVObject::Metadata> defaultMdata;
-    QMap<UAVDataObject*, int> uavoIndex;
+    QMap<UAVDataObject *, int> uavoIndex;
 
     QStringList columnHeaders;
 
     SchedulerModel *schedulerModel;
     QFrozenTableViewWithCopyPaste *telemetryScheduleView;
     QStandardItemModel *frozenModel;
-
 };
-
 
 /**
  * @brief The SchedulerModel class Subclasses QStandardItemModel in order to
  * reimplement the editable flags
  */
-class SchedulerModel: public QStandardItemModel
+class SchedulerModel : public QStandardItemModel
 {
 public:
-    SchedulerModel(int rows, int cols, QObject *parent = 0):
-        QStandardItemModel(rows, cols, parent)
-    { }
+    SchedulerModel(int rows, int cols, QObject *parent = 0)
+            : QStandardItemModel(rows, cols, parent)
+    {
+    }
 
-    ~SchedulerModel() { }
+    ~SchedulerModel() {}
 
     // The first two columns are not editable, but all other columns are
-    Qt::ItemFlags flags (const QModelIndex & index) const
+    Qt::ItemFlags flags(const QModelIndex &index) const
     {
         if (index.column() == 0 || index.column() == 1)
             return 0;
         else
-            return Qt::ItemIsEnabled | Qt::ItemIsSelectable | Qt::ItemIsEditable;
+            return Qt::ItemIsEnabled | Qt::ItemIsSelectable |
+                   Qt::ItemIsEditable;
     }
 };
 
 /**
- * @brief The QFrozenTableViewWithCopyPaste class QTableView with support for a frozen row as well as
- * copy and paste added. Here copy and paste can copy/paste the entire grid of cells.
- * Modified from http://stackoverflow.com/questions/1230222/selected-rows-line-in-qtableview-copy-to-qclipboard
+ * @brief The QFrozenTableViewWithCopyPaste class QTableView with support for a
+ * frozen row as well as
+ * copy and paste added. Here copy and paste can copy/paste the entire grid of
+ * cells.
+ * Modified from
+ * http://stackoverflow.com/questions/1230222/selected-rows-line-in-qtableview-copy-to-qclipboard
  */
 class QFrozenTableViewWithCopyPaste : public QTableView
 {
     Q_OBJECT
 
 public:
-    QFrozenTableViewWithCopyPaste(QAbstractItemModel * model);
+    QFrozenTableViewWithCopyPaste(QAbstractItemModel *model);
     ~QFrozenTableViewWithCopyPaste();
 
-    QStandardItemModel *getFrozenModel(){return frozenModel;}
-    QTableView *getFrozenTableView(){return frozenTableView;}
+    QStandardItemModel *getFrozenModel() { return frozenModel; }
+    QTableView *getFrozenTableView() { return frozenTableView; }
     void setHorizontalHeaderItem(int column, QStandardItem *item);
-    bool removeColumns(int column, int count, const QModelIndex &parent = QModelIndex());
+    bool removeColumns(int column, int count,
+                       const QModelIndex &parent = QModelIndex());
 
     void fixGeometry(int value);
+
 protected:
-    virtual void keyPressEvent(QKeyEvent * event);
+    virtual void keyPressEvent(QKeyEvent *event);
 
     virtual void resizeEvent(QResizeEvent *event);
-    void scrollTo (const QModelIndex & index, ScrollHint hint = EnsureVisible);
+    void scrollTo(const QModelIndex &index, ScrollHint hint = EnsureVisible);
 
 private slots:
-    void updateSectionWidth(int logicalIndex,int, int newSize);
+    void updateSectionWidth(int logicalIndex, int, int newSize);
     void updateSectionHeight(int logicalIndex, int, int newSize);
 
 private:
@@ -161,8 +167,6 @@ private:
     QTableView *frozenTableView;
     QStandardItemModel *frozenModel;
 };
-
-
 
 class SpinBoxDelegate : public QItemDelegate
 {
@@ -179,7 +183,8 @@ public:
                       const QModelIndex &index) const;
 
     void updateEditorGeometry(QWidget *editor,
-        const QStyleOptionViewItem &option, const QModelIndex &index) const;
+                              const QStyleOptionViewItem &option,
+                              const QModelIndex &index) const;
 };
 
 #endif /* TELEMETRYSCHEDULERGADGETWIDGET_H_ */

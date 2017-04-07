@@ -4,7 +4,8 @@
  * @file       shortcutsettings.h
  * @author     dRonin, http://dRonin.org/, Copyright (C) 2016
  * @author     The OpenPilot Team, http://www.openpilot.org Copyright (C) 2010.
- *             Parts by Nokia Corporation (qt-info@nokia.com) Copyright (C) 2009.
+ *             Parts by Nokia Corporation (qt-info@nokia.com) Copyright (C)
+ *2009.
  * @addtogroup GCSPlugins GCS Plugins
  * @{
  * @addtogroup CorePlugin Core Plugin
@@ -12,17 +13,17 @@
  * @brief The Core GCS plugin
  *****************************************************************************/
 /*
- * This program is free software; you can redistribute it and/or modify 
- * it under the terms of the GNU General Public License as published by 
- * the Free Software Foundation; either version 3 of the License, or 
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 3 of the License, or
  * (at your option) any later version.
- * 
- * This program is distributed in the hope that it will be useful, but 
- * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY 
- * or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License 
+ *
+ * This program is distributed in the hope that it will be useful, but
+ * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
+ * or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License
  * for more details.
- * 
- * You should have received a copy of the GNU General Public License along 
+ *
+ * You should have received a copy of the GNU General Public License along
  * with this program; if not, see <http://www.gnu.org/licenses/>
  *
  * Additional note on redistribution: The copyright and license notices above
@@ -35,31 +36,31 @@
 
 #include <coreplugin/dialogs/ioptionspage.h>
 
-#include <QtCore/QObject>
+#include <QKeyEvent>
 #include <QKeySequence>
 #include <QTreeWidgetItem>
-#include <QKeyEvent>
+#include <QtCore/QObject>
 
 QT_BEGIN_NAMESPACE
 class Ui_ShortcutSettings;
 QT_END_NAMESPACE
 
-namespace Core {
+namespace Core
+{
 
 class Command;
 
-namespace Internal {
+namespace Internal
+{
 
 class ActionManagerPrivate;
 class MainWindow;
 
-struct ShortcutItem
-{
+struct ShortcutItem {
     Command *m_cmd;
     QKeySequence m_key;
     QTreeWidgetItem *m_item;
 };
-
 
 class ShortcutSettings : public Core::IOptionsPage
 {

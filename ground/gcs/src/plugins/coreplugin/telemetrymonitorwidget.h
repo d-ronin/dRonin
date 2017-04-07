@@ -1,8 +1,10 @@
 /**
  ******************************************************************************
  * @file       telemetrymonitorwidget.h
- * @author     The OpenPilot Team, http://www.openpilot.org Copyright (C) 2011-2012.
- *             Parts by Nokia Corporation (qt-info@nokia.com) Copyright (C) 2009.
+ * @author     The OpenPilot Team, http://www.openpilot.org Copyright (C)
+ *2011-2012.
+ *             Parts by Nokia Corporation (qt-info@nokia.com) Copyright (C)
+ *2009.
  * @author     Tau Labs, http://taulabs.org, Copyright (C) 2012-2013
  * @addtogroup GCSPlugins GCS Plugins
  * @{
@@ -27,13 +29,13 @@
 #ifndef TELEMETRYMONITORWIDGET_H
 #define TELEMETRYMONITORWIDGET_H
 
-#include <QWidget>
-#include <QObject>
 #include <QGraphicsView>
-#include <QtSvg/QSvgRenderer>
-#include <QtSvg/QGraphicsSvgItem>
-#include <QtCore/QPointer>
+#include <QObject>
 #include <QTimer>
+#include <QWidget>
+#include <QtCore/QPointer>
+#include <QtSvg/QGraphicsSvgItem>
+#include <QtSvg/QSvgRenderer>
 
 class TelemetryMonitorWidget : public QGraphicsView
 {
@@ -42,17 +44,17 @@ public:
     explicit TelemetryMonitorWidget(QWidget *parent = 0);
     ~TelemetryMonitorWidget();
 
-    void setMin(double min) { minValue = min;}
+    void setMin(double min) { minValue = min; }
     double getMin() { return minValue; }
-    void setMax(double max) { maxValue = max;}
+    void setMax(double max) { maxValue = max; }
     double getMax() { return maxValue; }
 
-    //number of tx/rx nodes in the graph
+    // number of tx/rx nodes in the graph
     static const int NODE_NUMELEM = 7;
-    QSvgRenderer * getRenderer(){return renderer;}
-    QGraphicsSvgItem * getBackgroundItem(){return graph;}
+    QSvgRenderer *getRenderer() { return renderer; }
+    QGraphicsSvgItem *getBackgroundItem() { return graph; }
 signals:
-    
+
 public slots:
     void connected();
     /**
@@ -68,19 +70,19 @@ protected:
     void resizeEvent(QResizeEvent *event);
 
 private:
-   QGraphicsSvgItem *graph;
-   QPointer<QGraphicsTextItem> txSpeed;
-   QPointer<QGraphicsTextItem> rxSpeed;
-   QList<QGraphicsSvgItem*> txNodes;
-   QList<QGraphicsSvgItem*> rxNodes;
-   bool   m_connected;
-   double txIndex;
-   double txValue;
-   double rxIndex;
-   double rxValue;
-   double minValue;
-   double maxValue;
-   QSvgRenderer *renderer;
+    QGraphicsSvgItem *graph;
+    QPointer<QGraphicsTextItem> txSpeed;
+    QPointer<QGraphicsTextItem> rxSpeed;
+    QList<QGraphicsSvgItem *> txNodes;
+    QList<QGraphicsSvgItem *> rxNodes;
+    bool m_connected;
+    double txIndex;
+    double txValue;
+    double rxIndex;
+    double rxValue;
+    double minValue;
+    double maxValue;
+    QSvgRenderer *renderer;
 };
 
 #endif // TELEMETRYMONITORWIDGET_H

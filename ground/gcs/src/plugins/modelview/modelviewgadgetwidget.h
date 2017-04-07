@@ -30,18 +30,18 @@
 #include <QGLWidget>
 #include <QTimer>
 
-#include "glc_factory.h"
-#include "viewport/glc_viewport.h"
-#include "viewport/glc_movercontroller.h"
-#include "shading/glc_light.h"
-#include "sceneGraph/glc_world.h"
 #include "glc_exception.h"
+#include "glc_factory.h"
+#include "sceneGraph/glc_world.h"
+#include "shading/glc_light.h"
+#include "viewport/glc_movercontroller.h"
+#include "viewport/glc_viewport.h"
 
-#include "uavobjectmanager.h"
 #include "attitudeactual.h"
+#include "uavobjectmanager.h"
 
-
-class ModelViewGadgetWidget : public QGLWidget {
+class ModelViewGadgetWidget : public QGLWidget
+{
     Q_OBJECT
 
 public:
@@ -68,9 +68,9 @@ private:
     void wheelEvent(QWheelEvent *e);
     void keyPressEvent(QKeyEvent *e);
 
-//////////////////////////////////////////////////////////////////////
-// Private slots Functions
-//////////////////////////////////////////////////////////////////////
+    //////////////////////////////////////////////////////////////////////
+    // Private slots Functions
+    //////////////////////////////////////////////////////////////////////
 private slots:
     void updateAttitude();
 

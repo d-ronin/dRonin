@@ -3,7 +3,8 @@
  *
  * @file       connectionmanager.h
  * @author     The OpenPilot Team, http://www.openpilot.org Copyright (C) 2010.
- *             Parts by Nokia Corporation (qt-info@nokia.com) Copyright (C) 2009.
+ *             Parts by Nokia Corporation (qt-info@nokia.com) Copyright (C)
+ *2009.
  * @author     dRonin, http://dronin.org Copyright (C) 2015-2016
  * @addtogroup GCSPlugins GCS Plugins
  * @{
@@ -34,17 +35,17 @@
 #define CONNECTIONMANAGER_H
 
 #include "QWidget"
-#include "mainwindow.h"
 #include "generalsettings.h"
+#include "mainwindow.h"
 #include "telemetrymonitorwidget.h"
-#include <coreplugin/iconnection.h>
-#include <QtCore/QVector>
+#include <QComboBox>
+#include <QMessageBox>
+#include <QPointer>
+#include <QPushButton>
 #include <QtCore/QIODevice>
 #include <QtCore/QLinkedList>
-#include <QPushButton>
-#include <QComboBox>
-#include <QPointer>
-#include <QMessageBox>
+#include <QtCore/QVector>
+#include <coreplugin/iconnection.h>
 
 #include "core_global.h"
 #include <QTimer>
@@ -53,38 +54,39 @@ QT_BEGIN_NAMESPACE
 class QTabWidget;
 QT_END_NAMESPACE
 
-namespace Core {
+namespace Core
+{
 
-    class IConnection;
-    class IDevice;
+class IConnection;
+class IDevice;
 
-namespace Internal {
-    class MainWindow;
+namespace Internal
+{
+class MainWindow;
 } // namespace Internal
-
 
 class DevListItem
 {
 public:
-    DevListItem(IConnection *c, IDevice *d) :
-        connection(c), device(d) { }
+    DevListItem(IConnection *c, IDevice *d) : connection(c), device(d) {}
 
-    DevListItem() : connection(NULL) { }
+    DevListItem() : connection(NULL) {}
 
-    QString getConName() {
+    QString getConName()
+    {
         if (connection == NULL || device.isNull())
             return "";
         return connection->shortName() + ": " + device->getDisplayName();
     }
 
-    bool operator==(const DevListItem &rhs) {
+    bool operator==(const DevListItem &rhs)
+    {
         return connection == rhs.connection && device == rhs.device;
     }
 
     IConnection *connection;
     QPointer<IDevice> device;
 };
-
 
 class CORE_EXPORT ConnectionManager : public QWidget
 {
@@ -96,7 +98,7 @@ public:
 
     void init();
 
-    QIODevice* getCurrentConnection() { return m_ioDev; }
+    QIODevice *getCurrentConnection() { return m_ioDev; }
     DevListItem getCurrentDevice() { return m_connectionDevice; }
     DevListItem findDevice(const QString &devName);
 
@@ -108,8 +110,12 @@ public:
     bool disconnectDevice();
     void suspendPolling();
     void resumePolling();
-    TelemetryMonitorWidget * getTelemetryMonitorWidget(){return m_monitorWidget;}
+    TelemetryMonitorWidget *getTelemetryMonitorWidget()
+    {
+        return m_monitorWidget;
+    }
     bool getAutoconnect();
+
 protected:
     void updateConnectionList(IConnection *connection);
     void registerDevice(IConnection *conn, IDevice *device);
@@ -134,7 +140,8 @@ private slots:
     void devChanged(IConnection *connection);
 
     void onConnectionDestroyed(QObject *obj);
-    void connectionsCallBack(); //used to call devChange after all the plugins are loaded
+    void connectionsCallBack(); // used to call devChange after all the plugins
+                                // are loaded
     void reconnectSlot();
     void reconnectCheckSlot();
 
@@ -142,34 +149,35 @@ protected:
     QComboBox *m_availableDevList;
     QPushButton *m_connectBtn;
     QLinkedList<DevListItem> m_devList;
-    QList<IConnection*> m_connectionsList;
+    QList<IConnection *> m_connectionsList;
 
-    //tx/rx telemetry monitor
-    TelemetryMonitorWidget* m_monitorWidget;
+    // tx/rx telemetry monitor
+    TelemetryMonitorWidget *m_monitorWidget;
 
-    //currently connected connection plugin
+    // currently connected connection plugin
     DevListItem m_connectionDevice;
 
     // Last thing the user tried to connect to manually
     DevListItem m_lastManualConnect;
 
-    //currently connected QIODevice
+    // currently connected QIODevice
     QIODevice *m_ioDev;
 
-    // dialog box when connection to device fails, shared so we don't generate multiple boxes on failed attempts
+    // dialog box when connection to device fails, shared so we don't generate
+    // multiple boxes on failed attempts
     QMessageBox msgFailedToConnect;
 
 private:
     bool connectDevice();
     bool polling;
     Internal::MainWindow *m_mainWindow;
-    QList <IConnection *> connectionBackup;
+    QList<IConnection *> connectionBackup;
     QTimer *reconnect;
     QTimer *reconnectCheck;
 
     void connectDeviceFailed(DevListItem &device);
 };
 
-} //namespace Core
+} // namespace Core
 
 #endif // CONNECTIONMANAGER_H

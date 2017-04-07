@@ -7,7 +7,7 @@
  * @{
  * @addtogroup OPMapPlugin QML Viewer Plugin
  * @{
- * @brief The QML Viewer Gadget 
+ * @brief The QML Viewer Gadget
  *****************************************************************************/
 /*
  * This program is free software; you can redistribute it and/or modify
@@ -27,8 +27,8 @@
 #ifndef QMLVIEWGADGET_H_
 #define QMLVIEWGADGET_H_
 
-#include <coreplugin/iuavgadget.h>
 #include "qmlviewgadgetwidget.h"
+#include <coreplugin/iuavgadget.h>
 
 class IUAVGadget;
 class QWidget;
@@ -41,25 +41,27 @@ class QmlViewGadget : public Core::IUAVGadget
 {
     Q_OBJECT
 public:
-    QmlViewGadget(QString classId, QmlViewGadgetWidget *widget, QWidget *parent = 0);
+    QmlViewGadget(QString classId, QmlViewGadgetWidget *widget,
+                  QWidget *parent = 0);
     ~QmlViewGadget();
 
-    QWidget *widget() {
+    QWidget *widget()
+    {
         if (!m_container) {
             m_container = QWidget::createWindowContainer(m_widget, m_parent);
-            m_container->setSizePolicy(QSizePolicy::MinimumExpanding, QSizePolicy::MinimumExpanding);
+            m_container->setSizePolicy(QSizePolicy::MinimumExpanding,
+                                       QSizePolicy::MinimumExpanding);
             m_container->setMinimumSize(64, 64);
         }
         return m_container;
     }
 
-    void loadConfiguration(IUAVGadgetConfiguration* config);
+    void loadConfiguration(IUAVGadgetConfiguration *config);
 
 private:
     QmlViewGadgetWidget *m_widget;
     QWidget *m_container;
     QWidget *m_parent;
 };
-
 
 #endif // QMLVIEWQMLGADGET_H_

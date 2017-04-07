@@ -30,12 +30,12 @@
 #ifndef HITLNOISEGENERATION_H
 #define HITLNOISEGENERATION_H
 
-#include "simulator.h"
-#include "hitlnoisegeneration.h"
 #include "extensionsystem/pluginmanager.h"
+#include "hitlnoisegeneration.h"
+#include "simulator.h"
 #include <coreplugin/icore.h>
 
-struct Noise{
+struct Noise {
     Accels::DataFields accelData;
     AttitudeActual::DataFields attActualData;
     BaroAltitude::DataFields baroAltData;
@@ -50,7 +50,7 @@ struct Noise{
 
 class HitlNoiseGeneration
 {
-//	Q_OBJECT
+    //	Q_OBJECT
 public:
     HitlNoiseGeneration();
     ~HitlNoiseGeneration();

@@ -42,11 +42,12 @@
 #ifndef UPLOADERPLUGIN_H
 #define UPLOADERPLUGIN_H
 
-#include <extensionsystem/iplugin.h>
 #include "uploader_global.h"
+#include <extensionsystem/iplugin.h>
 
-namespace uploader {
-    class UploaderGadgetFactory;
+namespace uploader
+{
+class UploaderGadgetFactory;
 }
 
 using namespace uploader;
@@ -57,14 +58,15 @@ class UPLOADER_EXPORT UploaderPlugin : public ExtensionSystem::IPlugin
     Q_PLUGIN_METADATA(IID "org.dronin.plugins.Uploader")
 public:
     UploaderPlugin();
-   ~UploaderPlugin();
+    ~UploaderPlugin();
 
-   void extensionsInitialized();
-   bool initialize(const QStringList & arguments, QString * errorString);
-   void shutdown();
+    void extensionsInitialized();
+    bool initialize(const QStringList &arguments, QString *errorString);
+    void shutdown();
+
 private:
-   UploaderGadgetFactory *mf;
+    UploaderGadgetFactory *mf;
 private slots:
-   void testStuff();
+    void testStuff();
 };
 #endif // UPLOADERPLUGIN_H

@@ -3,15 +3,15 @@
 
 #include <QDialog>
 #include <QMap>
-namespace Ui {
+namespace Ui
+{
 class importSettings;
 }
 
 class importSettings : public QDialog
 {
     Q_OBJECT
-    struct fileInfo
-    {
+    struct fileInfo {
         QString file;
         QString description;
         QString details;
@@ -20,12 +20,13 @@ class importSettings : public QDialog
 public:
     explicit importSettings(QWidget *parent = 0);
     ~importSettings();
-    
+
     void loadFiles(QString path);
     QString choosenConfig();
+
 private:
     Ui::importSettings *ui;
-    QMap<int,fileInfo*> configList;
+    QMap<int, fileInfo *> configList;
 private slots:
     void updateDetails(int);
 };

@@ -7,7 +7,7 @@
  * @{
  * @addtogroup OPMapPlugin QML Viewer Plugin
  * @{
- * @brief The QML Viewer Gadget 
+ * @brief The QML Viewer Gadget
  *****************************************************************************/
 /*
  * This program is free software; you can redistribute it and/or modify
@@ -27,28 +27,31 @@
 #ifndef QMLVIEWGADGETOPTIONSPAGE_H
 #define QMLVIEWGADGETOPTIONSPAGE_H
 
-#include "coreplugin/dialogs/ioptionspage.h"
 #include "QString"
-#include <QStringList>
+#include "coreplugin/dialogs/ioptionspage.h"
 #include <QDebug>
+#include <QStringList>
 
-namespace Core {
+namespace Core
+{
 class IUAVGadgetConfiguration;
 }
 
 class QmlViewGadgetConfiguration;
 
-namespace Ui {
-    class QmlViewGadgetOptionsPage;
+namespace Ui
+{
+class QmlViewGadgetOptionsPage;
 }
 
 using namespace Core;
 
 class QmlViewGadgetOptionsPage : public IOptionsPage
 {
-Q_OBJECT
+    Q_OBJECT
 public:
-    explicit QmlViewGadgetOptionsPage(QmlViewGadgetConfiguration *config, QObject *parent = 0);
+    explicit QmlViewGadgetOptionsPage(QmlViewGadgetConfiguration *config,
+                                      QObject *parent = 0);
 
     QWidget *createPage(QWidget *parent);
     void apply();

@@ -29,13 +29,15 @@
 
 #ifndef PACK
 #ifdef _MSC_VER
-#define PACK( __Declaration__ ) __pragma( pack(push, 1) ) __Declaration__ __pragma( pack(pop) )
+#define PACK(__Declaration__)                                                  \
+    __pragma(pack(push, 1)) __Declaration__ __pragma(pack(pop))
 #else
-#define PACK( __Declaration__ ) __Declaration__ __attribute__((__packed__))
+#define PACK(__Declaration__) __Declaration__ __attribute__((__packed__))
 #endif /* _MSC_VER */
 #endif /* PACK */
 
-namespace tl_dfu {
+namespace tl_dfu
+{
 
 #define BL_INCLUDE_CAP_EXTENSIONS
 
@@ -63,25 +65,22 @@ enum bl_commands {
     BL_MSG_STATUS_REP,
     BL_MSG_WIPE_PARTITION,
 
-    BL_MSG_WRITE_START = 0x27, // f1 bl masks with 0b11111 so this looks like BL_MSG_WRITE_CONT there
+    BL_MSG_WRITE_START = 0x27, // f1 bl masks with 0b11111 so this looks like
+                               // BL_MSG_WRITE_CONT there
                                // the 6th bit ends up being start flag
 };
 
 #define BL_MSG_FLAGS_ECHO_REQ 0x80
 #define BL_MSG_FLAGS_ECHO_REP 0x40
-#define BL_MSG_FLAGS_MASK     0xC0
-#define BL_MSG_COMMAND_MASK   0x3F
+#define BL_MSG_FLAGS_MASK 0xC0
+#define BL_MSG_COMMAND_MASK 0x3F
 
 #if !defined(ntohl)
-#define ntohl(v) (				\
-    (((v) & 0xFF000000) >> 24) |		\
-    (((v) & 0x00FF0000) >>  8) |		\
-    (((v) & 0x0000FF00) <<  8) |		\
-    (((v) & 0x000000FF) << 24))
+#define ntohl(v)                                                               \
+    ((((v)&0xFF000000) >> 24) | (((v)&0x00FF0000) >> 8) |                      \
+     (((v)&0x0000FF00) << 8) | (((v)&0x000000FF) << 24))
 
-#define ntohs(v) (				\
-    (((v) & 0xFF00) >> 8) |			\
-    (((v) & 0x00FF) << 8))
+#define ntohs(v) ((((v)&0xFF00) >> 8) | (((v)&0x00FF) << 8))
 
 #define htonl(v) ntohl((v))
 
@@ -94,7 +93,7 @@ enum bl_commands {
  */
 
 #ifdef _MSC_VER
-#pragma pack(push,1)
+#pragma pack(push, 1)
 #endif
 enum dfu_partition_label {
     DFU_PARTITION_FW,
@@ -107,74 +106,74 @@ enum dfu_partition_label {
 };
 #pragma pack(pop)
 #else
-}__attribute__((packed));
+} __attribute__((packed));
 #endif
 
 struct msg_capabilities_req {
-	uint8_t unused[4];
-	uint8_t device_number;
+    uint8_t unused[4];
+    uint8_t device_number;
 };
 
 struct msg_capabilities_rep_all {
-	uint8_t unused[4];
-	uint16_t number_of_devices;
-	uint16_t wrflags;
+    uint8_t unused[4];
+    uint16_t number_of_devices;
+    uint16_t wrflags;
 };
 
 struct msg_capabilities_rep_specific {
-	uint32_t fw_size;
-	uint8_t device_number;
-	uint8_t bl_version;
-	uint8_t desc_size;
-	uint8_t board_rev;
-	uint32_t fw_crc;
-	uint16_t device_id;
+    uint32_t fw_size;
+    uint8_t device_number;
+    uint8_t bl_version;
+    uint8_t desc_size;
+    uint8_t board_rev;
+    uint32_t fw_crc;
+    uint16_t device_id;
 #if defined(BL_INCLUDE_CAP_EXTENSIONS)
-	/* Extensions to original protocol */
+/* Extensions to original protocol */
 #define BL_CAP_EXTENSION_MAGIC 0x3456
-	uint16_t cap_extension_magic;
-	uint32_t partition_sizes[10];
-#endif	/* BL_INCLUDE_CAP_EXTENSIONS */
+    uint16_t cap_extension_magic;
+    uint32_t partition_sizes[10];
+#endif /* BL_INCLUDE_CAP_EXTENSIONS */
 };
 
 struct msg_enter_dfu {
-	uint8_t unused[4];
-	uint8_t device_number;
+    uint8_t unused[4];
+    uint8_t device_number;
 };
 
 struct msg_jump_fw {
-	uint8_t unused[4];
-	uint8_t unused2[2];
-	uint16_t safe_word;
+    uint8_t unused[4];
+    uint8_t unused2[2];
+    uint16_t safe_word;
 };
 
 struct msg_reset {
-	/* No subfields */
+    /* No subfields */
 };
 
 struct msg_op_abort {
-	/* No subfields */
+    /* No subfields */
 };
 
 struct msg_op_end {
-	/* No subfields */
+    /* No subfields */
 };
 
 PACK(struct msg_xfer_start {
-	uint32_t packets_in_transfer;
-	uint8_t label;
-	uint8_t words_in_last_packet;
-	uint32_t expected_crc; /* only used in writes */
+    uint32_t packets_in_transfer;
+    uint8_t label;
+    uint8_t words_in_last_packet;
+    uint32_t expected_crc; /* only used in writes */
 });
 
 #define XFER_BYTES_PER_PACKET 56
 struct msg_xfer_cont {
-	uint32_t current_packet_number;
-	uint8_t data[XFER_BYTES_PER_PACKET];
+    uint32_t current_packet_number;
+    uint8_t data[XFER_BYTES_PER_PACKET];
 };
 
 struct msg_status_req {
-	/* No subfields */
+    /* No subfields */
 };
 
 struct msg_status_rep {
@@ -183,7 +182,7 @@ struct msg_status_rep {
 };
 
 struct msg_wipe_partition {
-	uint8_t label;
+    uint8_t label;
 };
 
 PACK(union msg_contents {

@@ -27,12 +27,12 @@
 #ifndef GCSControlGADGET_H_
 #define GCSControlGADGET_H_
 
-#include <coreplugin/iuavgadget.h>
 #include "gcscontrolgadgetconfiguration.h"
-#include <QTimer>
-#include <QTime>
-#include <QUdpSocket>
 #include <QHostAddress>
+#include <QTime>
+#include <QTimer>
+#include <QUdpSocket>
+#include <coreplugin/iuavgadget.h>
 #include <gcscontrolplugin/gcscontrol.h>
 
 #if defined(USE_SDL)
@@ -42,7 +42,8 @@
 // UAVOs
 #include "manualcontrolcommand.h"
 
-namespace Core {
+namespace Core
+{
 class IUAVGadget;
 }
 
@@ -54,26 +55,28 @@ class GCSControlGadget : public Core::IUAVGadget
 {
     Q_OBJECT
 public:
-    GCSControlGadget(QString classId, GCSControlGadgetWidget *widget, QWidget *parent = 0, QObject *plugin=0);
+    GCSControlGadget(QString classId, GCSControlGadgetWidget *widget,
+                     QWidget *parent = 0, QObject *plugin = 0);
     ~GCSControlGadget();
 
     QList<int> context() const { return m_context; }
-    QWidget *widget() { return (QWidget *) m_widget; }
+    QWidget *widget() { return (QWidget *)m_widget; }
     QString contextHelpId() const { return QString(); }
 
-    void loadConfiguration(IUAVGadgetConfiguration* config);
+    void loadConfiguration(IUAVGadgetConfiguration *config);
 
 private:
     //! Get the handle to the ManualControlCommand object
-    ManualControlCommand* getManualControlCommand();
+    ManualControlCommand *getManualControlCommand();
 
     //! Get the handle to the GCSReceiver object
-    GCSControl* getGcsControl();
+    GCSControl *getGcsControl();
 
     double constrain(double value);
 
     //! Set the GCS Receiver object
-    void setGcsReceiver(double leftX, double leftY, double rightX, double rightY);
+    void setGcsReceiver(double leftX, double leftY, double rightX,
+                        double rightY);
 
     QTime joystickTime;
     GCSControlGadgetWidget *m_widget;
@@ -102,13 +105,16 @@ private:
     QUdpSocket *control_sock;
 
 signals:
-    void sticksChangedRemotely(double leftX, double leftY, double rightX, double rightY);
+    void sticksChangedRemotely(double leftX, double leftY, double rightX,
+                               double rightY);
 
 protected slots:
     void manualControlCommandUpdated(UAVObject *);
-    void sticksChangedLocally(double leftX, double leftY, double rightX, double rightY);
+    void sticksChangedLocally(double leftX, double leftY, double rightX,
+                              double rightY);
     void readUDPCommand();
-    void flightModeChanged(ManualControlSettings::FlightModePositionOptions mode);
+    void
+    flightModeChanged(ManualControlSettings::FlightModePositionOptions mode);
     //! Enable or disable sending data
     void enableControl(bool enable);
 
@@ -119,6 +125,5 @@ protected slots:
     void axesValues(QListInt16 values);
 #endif
 };
-
 
 #endif // GCSControlGADGET_H_

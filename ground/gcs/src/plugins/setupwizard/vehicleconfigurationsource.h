@@ -29,9 +29,9 @@
 #ifndef VEHICLECONFIGURATIONSOURCE_H
 #define VEHICLECONFIGURATIONSOURCE_H
 
+#include "actuatorsettings.h"
 #include <QString>
 #include <coreplugin/iboardtype.h>
-#include "actuatorsettings.h"
 
 struct accelGyroBias {
     float m_accelerometerXBias;
@@ -49,32 +49,64 @@ struct actuatorChannelSettings {
     quint16 channelMax;
 
     // Default values
-    actuatorChannelSettings() : channelMin(1000), channelNeutral(1000), channelMax(1900) {}
+    actuatorChannelSettings()
+            : channelMin(1000), channelNeutral(1000), channelMax(1900)
+    {
+    }
 };
 
-
-class VehicleConfigurationSource {
+class VehicleConfigurationSource
+{
 public:
     VehicleConfigurationSource();
 
-    enum VEHICLE_TYPE { VEHICLE_UNKNOWN, VEHICLE_MULTI, VEHICLE_FIXEDWING, VEHICLE_HELI, VEHICLE_SURFACE };
-    enum VEHICLE_SUB_TYPE { MULTI_ROTOR_UNKNOWN, MULTI_ROTOR_TRI_Y, MULTI_ROTOR_QUAD_X, MULTI_ROTOR_QUAD_PLUS,
-                            MULTI_ROTOR_HEXA, MULTI_ROTOR_HEXA_H, MULTI_ROTOR_HEXA_COAX_Y, MULTI_ROTOR_OCTO,
-                            MULTI_ROTOR_OCTO_V, MULTI_ROTOR_OCTO_COAX_X, MULTI_ROTOR_OCTO_COAX_PLUS, FIXED_WING_AILERON,
-                            FIXED_WING_VTAIL, HELI_CCPM };
-    enum ESC_TYPE { ESC_RAPID, ESC_LEGACY, ESC_ONESHOT125, ESC_ONESHOT42, ESC_DSHOT300, ESC_DSHOT600, ESC_DSHOT1200, ESC_UNKNOWN };
+    enum VEHICLE_TYPE {
+        VEHICLE_UNKNOWN,
+        VEHICLE_MULTI,
+        VEHICLE_FIXEDWING,
+        VEHICLE_HELI,
+        VEHICLE_SURFACE
+    };
+    enum VEHICLE_SUB_TYPE {
+        MULTI_ROTOR_UNKNOWN,
+        MULTI_ROTOR_TRI_Y,
+        MULTI_ROTOR_QUAD_X,
+        MULTI_ROTOR_QUAD_PLUS,
+        MULTI_ROTOR_HEXA,
+        MULTI_ROTOR_HEXA_H,
+        MULTI_ROTOR_HEXA_COAX_Y,
+        MULTI_ROTOR_OCTO,
+        MULTI_ROTOR_OCTO_V,
+        MULTI_ROTOR_OCTO_COAX_X,
+        MULTI_ROTOR_OCTO_COAX_PLUS,
+        FIXED_WING_AILERON,
+        FIXED_WING_VTAIL,
+        HELI_CCPM
+    };
+    enum ESC_TYPE {
+        ESC_RAPID,
+        ESC_LEGACY,
+        ESC_ONESHOT125,
+        ESC_ONESHOT42,
+        ESC_DSHOT300,
+        ESC_DSHOT600,
+        ESC_DSHOT1200,
+        ESC_UNKNOWN
+    };
 
     enum GPS_SETTING { GPS_UBX, GPS_NMEA, GPS_DISABLED };
     enum RADIO_SETTING { RADIO_TELEMETRY, RADIO_DISABLED };
 
-    virtual Core::IBoardType* getControllerType() const  = 0;
+    virtual Core::IBoardType *getControllerType() const = 0;
     virtual VehicleConfigurationSource::VEHICLE_TYPE getVehicleType() const = 0;
-    virtual VehicleConfigurationSource::VEHICLE_SUB_TYPE getVehicleSubType() const = 0;
-    virtual Core::IBoardType::InputType getInputType() const       = 0;
-    virtual VehicleConfigurationSource::ESC_TYPE getESCType() const           = 0;
+    virtual VehicleConfigurationSource::VEHICLE_SUB_TYPE
+    getVehicleSubType() const = 0;
+    virtual Core::IBoardType::InputType getInputType() const = 0;
+    virtual VehicleConfigurationSource::ESC_TYPE getESCType() const = 0;
 
-    virtual VehicleConfigurationSource::GPS_SETTING getGPSSetting() const     = 0;
-    virtual VehicleConfigurationSource::RADIO_SETTING getRadioSetting() const = 0;
+    virtual VehicleConfigurationSource::GPS_SETTING getGPSSetting() const = 0;
+    virtual VehicleConfigurationSource::RADIO_SETTING
+    getRadioSetting() const = 0;
 
     virtual bool isCalibrationPerformed() const = 0;
     virtual accelGyroBias getCalibrationBias() const = 0;
@@ -84,7 +116,7 @@ public:
 
     virtual bool isRestartNeeded() const = 0;
 
-    virtual QString getSummaryText()     = 0;
+    virtual QString getSummaryText() = 0;
 };
 
 #endif // VEHICLECONFIGURATIONSOURCE_H

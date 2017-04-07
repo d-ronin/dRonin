@@ -28,17 +28,17 @@
 #ifndef TELEMETRYMANAGER_H
 #define TELEMETRYMANAGER_H
 
-#include "uavtalk_global.h"
-#include <coreplugin/generalsettings.h>
-#include <extensionsystem/pluginmanager.h>
-#include "telemetrymonitor.h"
 #include "telemetry.h"
-#include "uavtalk.h"
+#include "telemetrymonitor.h"
 #include "uavobjectmanager.h"
+#include "uavtalk.h"
+#include "uavtalk_global.h"
 #include <QIODevice>
 #include <QObject>
+#include <coreplugin/generalsettings.h>
+#include <extensionsystem/pluginmanager.h>
 
-class UAVTALK_EXPORT TelemetryManager: public QObject
+class UAVTALK_EXPORT TelemetryManager : public QObject
 {
     Q_OBJECT
 
@@ -60,13 +60,13 @@ private slots:
     void onGeneralSettingsChanged();
 
 private:
-    UAVObjectManager* objMngr;
-    UAVTalk* utalk;
-    Telemetry* telemetry;
-    TelemetryMonitor* telemetryMon;
+    UAVObjectManager *objMngr;
+    UAVTalk *utalk;
+    Telemetry *telemetry;
+    TelemetryMonitor *telemetryMon;
 
     bool autopilotConnected;
-    QHash<quint16, QList<TelemetryMonitor::objStruc> > sessions;
+    QHash<quint16, QList<TelemetryMonitor::objStruc>> sessions;
     Core::Internal::GeneralSettings *settings;
 };
 

@@ -10,32 +10,32 @@
  * @brief The UAVTalk protocol plugin
  *****************************************************************************/
 /*
- * This program is free software; you can redistribute it and/or modify 
- * it under the terms of the GNU General Public License as published by 
- * the Free Software Foundation; either version 3 of the License, or 
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 3 of the License, or
  * (at your option) any later version.
- * 
- * This program is distributed in the hope that it will be useful, but 
- * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY 
- * or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License 
+ *
+ * This program is distributed in the hope that it will be useful, but
+ * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
+ * or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License
  * for more details.
- * 
- * You should have received a copy of the GNU General Public License along 
+ *
+ * You should have received a copy of the GNU General Public License along
  * with this program; if not, see <http://www.gnu.org/licenses/>
  */
 #ifndef UAVTALKPLUGIN_H
 #define UAVTALKPLUGIN_H
 
+#include "telemetry.h"
+#include "telemetrymanager.h"
+#include "telemetrymonitor.h"
+#include "uavobjectmanager.h"
+#include "uavtalk.h"
+#include <QtPlugin>
 #include <extensionsystem/iplugin.h>
 #include <extensionsystem/pluginmanager.h>
-#include <QtPlugin>
-#include "telemetrymonitor.h"
-#include "telemetry.h"
-#include "uavtalk.h"
-#include "telemetrymanager.h"
-#include "uavobjectmanager.h"
 
-class UAVTALK_EXPORT UAVTalkPlugin: public ExtensionSystem::IPlugin
+class UAVTALK_EXPORT UAVTalkPlugin : public ExtensionSystem::IPlugin
 {
     Q_OBJECT
     Q_PLUGIN_METADATA(IID "org.dronin.plugins.UAVTalk")
@@ -45,7 +45,7 @@ public:
     ~UAVTalkPlugin();
 
     void extensionsInitialized();
-    bool initialize(const QStringList & arguments, QString * errorString);
+    bool initialize(const QStringList &arguments, QString *errorString);
     void shutdown();
 
 protected slots:
@@ -53,8 +53,8 @@ protected slots:
     void onDeviceDisconnect();
 
 private:
-    UAVObjectManager* objMngr;
-    TelemetryManager* telMngr;
+    UAVObjectManager *objMngr;
+    TelemetryManager *telMngr;
 };
 
 #endif // UAVTALKPLUGIN_H

@@ -27,7 +27,6 @@
  * of this source file; otherwise redistribution is prohibited.
  */
 
-
 #ifndef QREADONLYCHECKBOX_H
 #define QREADONLYCHECKBOX_H
 
@@ -40,10 +39,7 @@ public:
     QReadOnlyCheckBox(QWidget *parent = 0) : QCheckBox(parent), readOnly(true)
     {
     }
-    void setReadOnly(bool enabled)
-    {
-        readOnly = enabled;
-    }
+    void setReadOnly(bool enabled) { readOnly = enabled; }
 
 protected:
     void mousePressEvent(QMouseEvent *event)

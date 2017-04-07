@@ -27,28 +27,31 @@
 #ifndef SYSTEMHEALTHGADGETOPTIONSPAGE_H
 #define SYSTEMHEALTHGADGETOPTIONSPAGE_H
 
-#include "coreplugin/dialogs/ioptionspage.h"
 #include "QString"
-#include <QStringList>
+#include "coreplugin/dialogs/ioptionspage.h"
 #include <QDebug>
+#include <QStringList>
 
-namespace Core {
+namespace Core
+{
 class IUAVGadgetConfiguration;
 }
 
 class SystemHealthGadgetConfiguration;
 
-namespace Ui {
-    class SystemHealthGadgetOptionsPage;
+namespace Ui
+{
+class SystemHealthGadgetOptionsPage;
 }
 
 using namespace Core;
 
 class SystemHealthGadgetOptionsPage : public IOptionsPage
 {
-Q_OBJECT
+    Q_OBJECT
 public:
-    explicit SystemHealthGadgetOptionsPage(SystemHealthGadgetConfiguration *config, QObject *parent = 0);
+    explicit SystemHealthGadgetOptionsPage(
+            SystemHealthGadgetConfiguration *config, QObject *parent = 0);
 
     QWidget *createPage(QWidget *parent);
     void apply();

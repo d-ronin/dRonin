@@ -30,8 +30,8 @@
 #ifndef PIKOBLX_H_
 #define PIKOBLX_H_
 
-#include <uavobjectmanager.h>
 #include <coreplugin/iboardtype.h>
+#include <uavobjectmanager.h>
 
 class PikoBLX : public Core::IBoardType
 {
@@ -44,13 +44,14 @@ public:
     virtual bool queryCapabilities(BoardCapabilities capability);
     virtual QPixmap getBoardPicture();
     virtual QString getHwUAVO();
-    virtual bool isInputConfigurationSupported(Core::IBoardType::InputType type);
+    virtual bool
+    isInputConfigurationSupported(Core::IBoardType::InputType type);
     virtual bool setInputType(Core::IBoardType::InputType type);
     virtual Core::IBoardType::InputType getInputType();
     virtual int queryMaxGyroRate();
     virtual QStringList getAdcNames();
-    //virtual QString getConnectionDiagram();
-    //virtual QWidget *getBoardConfiguration(QWidget *parent, bool connected);
+    // virtual QString getConnectionDiagram();
+    // virtual QWidget *getBoardConfiguration(QWidget *parent, bool connected);
 
 private:
     UAVObjectManager *uavoManager;

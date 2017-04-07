@@ -26,19 +26,19 @@
 #ifndef CONFIGFIXEDWINGWIDGET_H
 #define CONFIGFIXEDWINGWIDGET_H
 
-#include "ui_airframe.h"
 #include "../uavobjectwidgetutils/configtaskwidget.h"
 #include "extensionsystem/pluginmanager.h"
-#include "uavobjectmanager.h"
 #include "uavobject.h"
+#include "uavobjectmanager.h"
 #include "uavtalk/telemetrymanager.h"
-#include <QWidget>
-#include <QList>
+#include "ui_airframe.h"
 #include <QItemDelegate>
+#include <QList>
+#include <QWidget>
 
 class Ui_Widget;
 
-class ConfigFixedWingWidget: public VehicleConfig
+class ConfigFixedWingWidget : public VehicleConfig
 {
     Q_OBJECT
 
@@ -55,16 +55,17 @@ private:
     bool setupFrameElevon(SystemSettings::AirframeTypeOptions airframeType);
     bool setupFrameVtail(SystemSettings::AirframeTypeOptions airframeType);
 
-    virtual void ResetActuators(GUIConfigDataUnion* configData);
+    virtual void ResetActuators(GUIConfigDataUnion *configData);
     static QStringList getChannelDescriptions();
 
 private slots:
     virtual void setupUI(SystemSettings::AirframeTypeOptions airframeType);
-    void refreshAirframeWidgetsValues(SystemSettings::AirframeTypeOptions frameType);
-    virtual SystemSettings::AirframeTypeOptions updateConfigObjectsFromWidgets();
-    virtual bool throwConfigError(SystemSettings::AirframeTypeOptions airframeType);
-
+    void
+    refreshAirframeWidgetsValues(SystemSettings::AirframeTypeOptions frameType);
+    virtual SystemSettings::AirframeTypeOptions
+    updateConfigObjectsFromWidgets();
+    virtual bool
+    throwConfigError(SystemSettings::AirframeTypeOptions airframeType);
 };
-
 
 #endif // CONFIGFIXEDWINGWIDGET_H

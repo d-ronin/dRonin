@@ -33,7 +33,6 @@ class PATHPLANNER_EXPORT PathFillet : public IPathAlgorithm
     Q_OBJECT
 
 public:
-
     explicit PathFillet(QObject *parent = 0);
 
     /**
@@ -59,23 +58,26 @@ public:
     virtual bool configure(QWidget *callingUi = 0);
 
 private:
-
     //! Fileting radius to use
     double fillet_radius;
 
     //! The new model to add data to while processing
     FlightDataModel *new_model;
-    
+
 private:
-    enum arc_center_results {CENTER_FOUND, COINCIDENT_POINTS, INSUFFICIENT_RADIUS};
+    enum arc_center_results {
+        CENTER_FOUND,
+        COINCIDENT_POINTS,
+        INSUFFICIENT_RADIUS
+    };
 
     // Private functions
 
     //! Set a waypoint in the new model
-    void   setNewWaypoint(int index, float *pos, float velocity, float curvature);
+    void setNewWaypoint(int index, float *pos, float velocity, float curvature);
 
     int addNonCircleToSwitchingLoci(float position[3], float finalVelocity,
-                                        float radius, int index);
+                                    float radius, int index);
 
     //! Compute the magnitude of a vector
     float VectorMagnitude(float *);
@@ -83,14 +85,20 @@ private:
     //! Compute the magnitude of a vector
     double VectorMagnitude(double *);
 
-    //! Circular modulus [radians].  Compute the equivalent angle between [-pi,pi]
+    //! Circular modulus [radians].  Compute the equivalent angle between
+    //! [-pi,pi]
     float circular_modulus_rad(float err);
 
-    //! Compute the center of curvature of the arc, by calculating the intersection
-    enum arc_center_results find_arc_center(float start_point[2], float end_point[2], float radius, float center[2], bool clockwise, bool minor);
+    //! Compute the center of curvature of the arc, by calculating the
+    //! intersection
+    enum arc_center_results find_arc_center(float start_point[2],
+                                            float end_point[2], float radius,
+                                            float center[2], bool clockwise,
+                                            bool minor);
 
     //! measure_arc_rad Measure angle between two points on a circular arc
-    float measure_arc_rad(float oldPosition_NE[2], float newPosition_NE[2], float arcCenter_NE[2]);
+    float measure_arc_rad(float oldPosition_NE[2], float newPosition_NE[2],
+                          float arcCenter_NE[2]);
 
     //! angle_between_2d_vectors calculate the angle between two 2D vectors
     float angle_between_2d_vectors(float a[2], float b[2]);

@@ -27,8 +27,9 @@
 
 #include <QDialog>
 
-namespace Ui {
-    class ImportExportDialog;
+namespace Ui
+{
+class ImportExportDialog;
 }
 
 class ImportExportDialog : public QDialog

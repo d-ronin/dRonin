@@ -27,9 +27,9 @@
 #ifndef DEFAULTHWSETTINGSt_H
 #define DEFAULTHWSETTINGSt_H
 
-#include "ui_defaulthwsettings.h"
 #include "../uavobjectwidgetutils/configtaskwidget.h"
 #include "uavobject.h"
+#include "ui_defaulthwsettings.h"
 #include <QWidget>
 
 class Ui_Widget;
@@ -39,7 +39,8 @@ class DefaultHwSettingsWidget : public ConfigTaskWidget
     Q_OBJECT
 
 public:
-    explicit DefaultHwSettingsWidget(UAVObject *settingsObj, QWidget *parent = 0);
+    explicit DefaultHwSettingsWidget(UAVObject *settingsObj,
+                                     QWidget *parent = 0);
     ~DefaultHwSettingsWidget();
 
 private:

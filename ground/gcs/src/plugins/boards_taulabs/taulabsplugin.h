@@ -34,13 +34,12 @@ class TauLabsPlugin : public ExtensionSystem::IPlugin
     Q_PLUGIN_METADATA(IID "org.dronin.plugins.TauLabs")
 
 public:
-   TauLabsPlugin();
-   ~TauLabsPlugin();
+    TauLabsPlugin();
+    ~TauLabsPlugin();
 
-   void extensionsInitialized();
-   bool initialize(const QStringList & arguments, QString * errorString);
-   void shutdown();
-
+    void extensionsInitialized();
+    bool initialize(const QStringList &arguments, QString *errorString);
+    void shutdown();
 };
 
 #endif // TAULABSPLUGIN_H

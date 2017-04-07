@@ -26,16 +26,17 @@
 #ifndef OUTPUTCHANNELFORM_H
 #define OUTPUTCHANNELFORM_H
 
-#include <QWidget>
-#include "ui_outputchannelform.h"
 #include "configtaskwidget.h"
+#include "ui_outputchannelform.h"
+#include <QWidget>
 
 class OutputChannelForm : public ConfigTaskWidget
 {
     Q_OBJECT
 
 public:
-    explicit OutputChannelForm(const int index, QWidget *parent = NULL, const bool showLegend = false);
+    explicit OutputChannelForm(const int index, QWidget *parent = NULL,
+                               const bool showLegend = false);
     ~OutputChannelForm();
     friend class ConfigOnputWidget;
 
@@ -51,7 +52,8 @@ public slots:
     void setNeutral(int value);
     int neutral() const;
     void enableChannelTest(bool state);
-    void updateChannelLimits(int minPulse, int maxPulse, bool digitalProtocol = false);
+    void updateChannelLimits(int minPulse, int maxPulse,
+                             bool digitalProtocol = false);
 
 signals:
     void channelChanged(int index, int value);
@@ -76,20 +78,11 @@ private slots:
     void notifyFormChanged();
 };
 
-inline int OutputChannelForm::index() const
-{
-    return m_index;
-}
+inline int OutputChannelForm::index() const { return m_index; }
 
-inline int OutputChannelForm::max() const
-{
-    return ui.actuatorMax->value();
-}
+inline int OutputChannelForm::max() const { return ui.actuatorMax->value(); }
 
-inline int OutputChannelForm::min() const
-{
-    return ui.actuatorMin->value();
-}
+inline int OutputChannelForm::min() const { return ui.actuatorMin->value(); }
 
 inline int OutputChannelForm::neutral() const
 {

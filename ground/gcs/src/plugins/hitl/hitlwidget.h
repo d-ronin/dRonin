@@ -28,9 +28,9 @@
 #ifndef HITLWIDGET_H
 #define HITLWIDGET_H
 
-#include <QWidget>
-#include <QProcess>
 #include "simulator.h"
+#include <QProcess>
+#include <QWidget>
 
 class Ui_HITLWidget;
 
@@ -42,27 +42,30 @@ public:
     HITLWidget(QWidget *parent = 0);
     ~HITLWidget();
 
-	void setSettingParameters(const SimulatorSettings& params) {settings = params;}
+    void setSettingParameters(const SimulatorSettings &params)
+    {
+        settings = params;
+    }
 
 private slots:
     void startButtonClicked();
     void stopButtonClicked();
-	void buttonClearLogClicked();
+    void buttonClearLogClicked();
     void onProcessOutput(QString text);
     void onAutopilotConnect();
     void onAutopilotDisconnect();
-	void onSimulatorConnect();
-	void onSimulatorDisconnect();
+    void onSimulatorConnect();
+    void onSimulatorDisconnect();
 
 private:
-    Ui_HITLWidget* widget;
-	Simulator* simulator;
-	SimulatorSettings settings;
+    Ui_HITLWidget *widget;
+    Simulator *simulator;
+    SimulatorSettings settings;
 
-	QString greenColor;
-	QString strAutopilotDisconnected;
-	QString strSimulatorDisconnected;
-	QString strAutopilotConnected;
+    QString greenColor;
+    QString strAutopilotDisconnected;
+    QString strSimulatorDisconnected;
+    QString strAutopilotConnected;
     QString strStyleEnable;
     QString strStyleDisable;
 };

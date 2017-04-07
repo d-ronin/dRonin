@@ -30,11 +30,13 @@
 
 #include "abstractwizardpage.h"
 
-namespace Ui {
+namespace Ui
+{
 class VehiclePage;
 }
 
-class VehiclePage : public AbstractWizardPage {
+class VehiclePage : public AbstractWizardPage
+{
     Q_OBJECT
 
 public:

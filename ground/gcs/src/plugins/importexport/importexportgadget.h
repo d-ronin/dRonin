@@ -26,8 +26,8 @@
 #ifndef IMPORTEXPORTGADGET_H_
 #define IMPORTEXPORTGADGET_H_
 
-#include <coreplugin/iuavgadget.h>
 #include "importexportgadgetwidget.h"
+#include <coreplugin/iuavgadget.h>
 
 class IUAVGadget;
 class QWidget;
@@ -40,18 +40,16 @@ class IMPORTEXPORT_EXPORT ImportExportGadget : public Core::IUAVGadget
 {
     Q_OBJECT
 public:
-    ImportExportGadget(QString classId, ImportExportGadgetWidget *widget, QWidget *parent = 0);
+    ImportExportGadget(QString classId, ImportExportGadgetWidget *widget,
+                       QWidget *parent = 0);
     ~ImportExportGadget();
 
-    QWidget *widget() {
-        return m_widget;
-    }
-    void loadConfiguration(IUAVGadgetConfiguration* config);
+    QWidget *widget() { return m_widget; }
+    void loadConfiguration(IUAVGadgetConfiguration *config);
 
 private:
     ImportExportGadgetWidget *m_widget;
 };
-
 
 #endif // IMPORTEXPORTGADGET_H_
 

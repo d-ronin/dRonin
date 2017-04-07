@@ -27,20 +27,19 @@
  * with this program; if not, see <http://www.gnu.org/licenses/>
  */
 
-
 #ifndef NOTIFICATION_ITEM_H
 #define NOTIFICATION_ITEM_H
 
-#include <coreplugin/iuavgadgetconfiguration.h>
 #include "qsettings.h"
-#include <qstringlist.h>
 #include <QTimer>
+#include <coreplugin/iuavgadgetconfiguration.h>
+#include <qstringlist.h>
 
 using namespace Core;
 
-#define DECLARE_SOUND(number) \
-	QString getSound##number() const { return _sound##number; } \
-	void setSound##number(QString text) { _sound##number = text; } \
+#define DECLARE_SOUND(number)                                                  \
+    QString getSound##number() const { return _sound##number; }                \
+    void setSound##number(QString text) { _sound##number = text; }
 
 class UAVDataObject;
 class UAVObjectField;
@@ -51,20 +50,26 @@ class NotificationItem : public QObject
 public:
     enum { eDefaultTimeout = 15 }; // in sec
 
-    enum {never,beforeFirst,beforeSecond,afterSecond};
-    enum {repeatOncePerUpdate,repeatOnce,repeatInstantly,repeat10seconds,
-          repeat30seconds,repeat1minute};
+    enum { never, beforeFirst, beforeSecond, afterSecond };
+    enum {
+        repeatOncePerUpdate,
+        repeatOnce,
+        repeatInstantly,
+        repeat10seconds,
+        repeat30seconds,
+        repeat1minute
+    };
 
     explicit NotificationItem(QObject *parent = 0);
 
-    void copyTo(NotificationItem*) const;
+    void copyTo(NotificationItem *) const;
 
     DECLARE_SOUND(1)
     DECLARE_SOUND(2)
     DECLARE_SOUND(3)
 
-    bool getCurrentUpdatePlayed() const {return _currentUpdatePlayed;}
-    void setCurrentUpdatePlayed(bool value){_currentUpdatePlayed=value;}
+    bool getCurrentUpdatePlayed() const { return _currentUpdatePlayed; }
+    void setCurrentUpdatePlayed(bool value) { _currentUpdatePlayed = value; }
 
     int getCondition() const { return _condition; }
     void setCondition(int value) { _condition = value; }
@@ -91,7 +96,10 @@ public:
     void setCurrentLanguage(QString text) { _currentLanguage = text; }
 
     QStringList getMessageSequence() const { return _messageSequence; }
-    void setMessageSequence(QStringList sequence) { _messageSequence = sequence; }
+    void setMessageSequence(QStringList sequence)
+    {
+        _messageSequence = sequence;
+    }
 
     int retryValue() const { return _repeatValue; }
     void setRetryValue(int value) { _repeatValue = value; }
@@ -102,15 +110,14 @@ public:
     bool mute() const { return _mute; }
     void setMute(bool value) { _mute = value; }
 
-    void saveState(QSettings* settings) const;
-    void restoreState(QSettings* settings);
+    void saveState(QSettings *settings) const;
+    void restoreState(QSettings *settings);
 
+    UAVDataObject *getUAVObject(void);
+    UAVObjectField *getUAVObjectField(void);
 
-    UAVDataObject* getUAVObject(void);
-    UAVObjectField* getUAVObjectField(void);
-
-    void serialize(QDataStream& stream);
-    void deserialize(QDataStream& stream);
+    void serialize(QDataStream &stream);
+    void deserialize(QDataStream &stream);
 
     /**
     * Convert notification item fields in single string,
@@ -127,24 +134,25 @@ public:
     *         error   - if one of sounds doesn't exist returns
     *                   reference to empty _messageSequence;
     */
-    QStringList& toSoundList();
+    QStringList &toSoundList();
 
     /**
-    * Returns sound caption name, needed to create string representation of notification.
+    * Returns sound caption name, needed to create string representation of
+    * notification.
     *
     * @return success - string  == <sound filename>, if sound file exists
-    *         error   - string  == [missind]<sound filename>, if sound file doesn't exist
+    *         error   - string  == [missind]<sound filename>, if sound file
+    * doesn't exist
     */
     QString getSoundCaption(QString fileName);
 
-
-    QTimer* getTimer() const { return _timer; }
+    QTimer *getTimer() const { return _timer; }
     void startTimer(int value);
     void restartTimer();
     void stopTimer();
     void disposeTimer();
 
-    QTimer* getExpireTimer() const { return _expireTimer; }
+    QTimer *getExpireTimer() const { return _expireTimer; }
     void startExpireTimer();
     void stopExpireTimer();
 
@@ -160,15 +168,16 @@ private:
     QString checkSoundExists(QString fileName);
 
 private:
-
     bool _currentUpdatePlayed;
 
-    QTimer* _timer;
+    QTimer *_timer;
 
-    //! time from putting notification in queue till moment when notification became out-of-date
-    //! NOTE: each notification has it lifetime, this time setups individually for each notification
+    //! time from putting notification in queue till moment when notification
+    //! became out-of-date
+    //! NOTE: each notification has it lifetime, this time setups individually
+    //! for each notification
     //!       according to its priority
-    QTimer* _expireTimer;
+    QTimer *_expireTimer;
 
     //! list of wav files from which notification consists
     QStringList _messageSequence;
@@ -196,11 +205,12 @@ private:
     //! order in what sounds 1-3 will be played
     int _sayOrder;
 
-    //! one-side range, value(numeric or ENUM type) maybe lower, greater or in range
+    //! one-side range, value(numeric or ENUM type) maybe lower, greater or in
+    //! range
     QVariant _singleValue;
 
     //! both-side range, value should be inside the range
-    //double _valueRange1;
+    // double _valueRange1;
     double _valueRange2;
 
     //! how often or what periodicaly notification should be played
@@ -214,6 +224,6 @@ private:
     bool _mute;
 };
 
-Q_DECLARE_METATYPE(NotificationItem*)
+Q_DECLARE_METATYPE(NotificationItem *)
 
 #endif // NotificationItem_H

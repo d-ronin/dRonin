@@ -35,17 +35,19 @@
 #include "uavobjectwidgetutils_global.h"
 
 #include <QDialog>
+#include <QGraphicsSvgItem>
 #include <QHash>
 #include <QSvgRenderer>
-#include <QGraphicsSvgItem>
 #include <uavobjects/uavobjectmanager.h>
 #include <uavobjectutil/uavobjectutilmanager.h>
 
-namespace Ui {
+namespace Ui
+{
 class ConnectionDiagram;
 }
 
-class UAVOBJECTWIDGETUTILS_EXPORT ConnectionDiagram : public QDialog {
+class UAVOBJECTWIDGETUTILS_EXPORT ConnectionDiagram : public QDialog
+{
     Q_OBJECT
 
 public:
@@ -70,7 +72,8 @@ private:
 
     void setupGraphicsScene();
     void setupGraphicsSceneItems(QStringList elementsToShow);
-    void addUavoFieldElements(QStringList &elements, UAVObject *obj, const QString &prefix = "");
+    void addUavoFieldElements(QStringList &elements, UAVObject *obj,
+                              const QString &prefix = "");
 
 private slots:
     void saveToFile();

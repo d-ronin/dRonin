@@ -29,18 +29,20 @@
 #ifndef CONTROLLERPAGE_H
 #define CONTROLLERPAGE_H
 
-#include <coreplugin/iboardtype.h>
-#include <coreplugin/icore.h>
-#include <coreplugin/connectionmanager.h>
+#include "abstractwizardpage.h"
 #include "setupwizard.h"
 #include "uavtalk/telemetrymanager.h"
-#include "abstractwizardpage.h"
+#include <coreplugin/connectionmanager.h>
+#include <coreplugin/iboardtype.h>
+#include <coreplugin/icore.h>
 
-namespace Ui {
+namespace Ui
+{
 class ControllerPage;
 }
 
-class ControllerPage : public AbstractWizardPage {
+class ControllerPage : public AbstractWizardPage
+{
     Q_OBJECT
 
 public:

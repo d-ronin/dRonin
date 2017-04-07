@@ -27,22 +27,23 @@
 
 #include "ui_modules.h"
 
-#include "uavobjectwidgetutils/configtaskwidget.h"
 #include "extensionsystem/pluginmanager.h"
-#include "uavobjectmanager.h"
 #include "uavobject.h"
+#include "uavobjectmanager.h"
+#include "uavobjectwidgetutils/configtaskwidget.h"
 
-namespace Ui {
-    class Modules;
+namespace Ui
+{
+class Modules;
 }
 
-class ConfigModuleWidget: public ConfigTaskWidget
+class ConfigModuleWidget : public ConfigTaskWidget
 {
     Q_OBJECT
 
 public:
-        ConfigModuleWidget(QWidget *parent = 0);
-        ~ConfigModuleWidget();
+    ConfigModuleWidget(QWidget *parent = 0);
+    ~ConfigModuleWidget();
 
 private slots:
     void updateAirspeedGroupbox(UAVObject *);
@@ -55,7 +56,7 @@ private slots:
     void updateVoltageFactorFromUavo(float value);
 
     void recheckTabs();
-    void objectUpdated(UAVObject * obj, bool success);
+    void objectUpdated(UAVObject *obj, bool success);
     void autoCellDetectionToggled(bool checked);
     void maxCellVoltageChanged(double value);
     void ledTabUpdate(UAVObject *obj);

@@ -29,13 +29,14 @@
 #define RFMBINDWIZARD_H
 
 #include <QWizard>
-#include <coreplugin/icore.h>
-#include <coreplugin/iboardtype.h>
 #include <coreplugin/connectionmanager.h>
+#include <coreplugin/iboardtype.h>
+#include <coreplugin/icore.h>
 
 Q_DECLARE_METATYPE(Core::IBoardType::LinkMode)
 
-class RfmBindWizard : public QWizard {
+class RfmBindWizard : public QWizard
+{
     Q_OBJECT
 
 public:
@@ -80,7 +81,6 @@ private slots:
     void pageChanged(int currId);
 
 private:
-
     /**
      * This wizard will do the following steps:
      * 1. give an introduction
@@ -93,7 +93,13 @@ private:
      *    - save the settings
      * 4. inform the user they should get a bind when both boards powered
      */
-    enum { PAGE_START, PAGE_CONFIGURE, PAGE_COORDINATOR, PAGE_COORDINATED, PAGE_END };
+    enum {
+        PAGE_START,
+        PAGE_CONFIGURE,
+        PAGE_COORDINATOR,
+        PAGE_COORDINATED,
+        PAGE_END
+    };
 
     bool m_ppm;
     quint32 m_maxBps;

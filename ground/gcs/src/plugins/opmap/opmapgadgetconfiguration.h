@@ -28,32 +28,34 @@
 #ifndef OPMAP_GADGETCONFIGURATION_H
 #define OPMAP_GADGETCONFIGURATION_H
 
-#include <coreplugin/iuavgadgetconfiguration.h>
 #include <QtCore/QString>
+#include <coreplugin/iuavgadgetconfiguration.h>
 
 using namespace Core;
 
 class OPMapGadgetConfiguration : public IUAVGadgetConfiguration
 {
-Q_OBJECT
+    Q_OBJECT
 
-Q_PROPERTY(QString mapProvider READ mapProvider WRITE setMapProvider)
-Q_PROPERTY(QString geoLanguage READ geoLanguage WRITE setGeoLanguage)
-Q_PROPERTY(int zoommo READ zoom WRITE setZoom)
-Q_PROPERTY(double latitude READ latitude WRITE setLatitude)
-Q_PROPERTY(double longitude READ longitude WRITE setLongitude)
-Q_PROPERTY(bool showTileGridLines READ showTileGridLines WRITE setShowTileGridLines)
-Q_PROPERTY(QString accessMode READ accessMode WRITE setAccessMode)
-Q_PROPERTY(bool useMemoryCache READ useMemoryCache WRITE setUseMemoryCache)
-Q_PROPERTY(QString cacheLocation READ cacheLocation WRITE setCacheLocation)
-Q_PROPERTY(QString uavSymbol READ uavSymbol WRITE setUavSymbol)
-Q_PROPERTY(int maxUpdateRate READ maxUpdateRate WRITE setMaxUpdateRate)
-Q_PROPERTY(qreal overlayOpacity READ opacity WRITE setOpacity)
+    Q_PROPERTY(QString mapProvider READ mapProvider WRITE setMapProvider)
+    Q_PROPERTY(QString geoLanguage READ geoLanguage WRITE setGeoLanguage)
+    Q_PROPERTY(int zoommo READ zoom WRITE setZoom)
+    Q_PROPERTY(double latitude READ latitude WRITE setLatitude)
+    Q_PROPERTY(double longitude READ longitude WRITE setLongitude)
+    Q_PROPERTY(bool showTileGridLines READ showTileGridLines WRITE
+                       setShowTileGridLines)
+    Q_PROPERTY(QString accessMode READ accessMode WRITE setAccessMode)
+    Q_PROPERTY(bool useMemoryCache READ useMemoryCache WRITE setUseMemoryCache)
+    Q_PROPERTY(QString cacheLocation READ cacheLocation WRITE setCacheLocation)
+    Q_PROPERTY(QString uavSymbol READ uavSymbol WRITE setUavSymbol)
+    Q_PROPERTY(int maxUpdateRate READ maxUpdateRate WRITE setMaxUpdateRate)
+    Q_PROPERTY(qreal overlayOpacity READ opacity WRITE setOpacity)
 
 public:
-    explicit OPMapGadgetConfiguration(QString classId, QSettings* qSettings = 0, QObject *parent = 0);
+    explicit OPMapGadgetConfiguration(QString classId, QSettings *qSettings = 0,
+                                      QObject *parent = 0);
 
-    void saveConfig(QSettings* settings) const;
+    void saveConfig(QSettings *settings) const;
     IUAVGadgetConfiguration *clone();
 
     QString geoLanguage() const { return m_geoLanguage; }
@@ -70,9 +72,9 @@ public:
     qreal opacity() const { return m_opacity; }
     void saveConfig() const;
 
-    QString getUserImageLocation(){return m_userImageLocation;}
-    float getUserImageHorizontalScale(){return m_userImageHorizontalScale;}
-    float getUserImageVerticalScale(){return m_userImageVerticalScale;}
+    QString getUserImageLocation() { return m_userImageLocation; }
+    float getUserImageHorizontalScale() { return m_userImageHorizontalScale; }
+    float getUserImageVerticalScale() { return m_userImageVerticalScale; }
 
 public slots:
     void setMapProvider(QString provider) { m_mapProvider = provider; }
@@ -80,15 +82,33 @@ public slots:
     void setLatitude(double latitude) { m_defaultLatitude = latitude; }
     void setOpacity(qreal value) { m_opacity = value; }
     void setLongitude(double longitude) { m_defaultLongitude = longitude; }
-    void setShowTileGridLines(bool showTileGridLines) { m_showTileGridLines = showTileGridLines; }
+    void setShowTileGridLines(bool showTileGridLines)
+    {
+        m_showTileGridLines = showTileGridLines;
+    }
     void setAccessMode(QString accessMode) { m_accessMode = accessMode; }
-    void setUseMemoryCache(bool useMemoryCache) { m_useMemoryCache = useMemoryCache; }
-    void setCacheLocation(QString cacheLocation) { m_cacheLocation = cacheLocation; }
-    void setUavSymbol(QString symbol){m_uavSymbol=symbol;}
-    void setMaxUpdateRate(int update_rate){m_maxUpdateRate = update_rate;}
-    void setUserImageLocation(QString userImageLocation){m_userImageLocation = userImageLocation;}
-    void setUserImageHorizontalScale(float userImageHorizontalScale){m_userImageHorizontalScale = userImageHorizontalScale;}
-    void setUserImageVerticalScale(float userImageVerticalScale){m_userImageVerticalScale = userImageVerticalScale;}
+    void setUseMemoryCache(bool useMemoryCache)
+    {
+        m_useMemoryCache = useMemoryCache;
+    }
+    void setCacheLocation(QString cacheLocation)
+    {
+        m_cacheLocation = cacheLocation;
+    }
+    void setUavSymbol(QString symbol) { m_uavSymbol = symbol; }
+    void setMaxUpdateRate(int update_rate) { m_maxUpdateRate = update_rate; }
+    void setUserImageLocation(QString userImageLocation)
+    {
+        m_userImageLocation = userImageLocation;
+    }
+    void setUserImageHorizontalScale(float userImageHorizontalScale)
+    {
+        m_userImageHorizontalScale = userImageHorizontalScale;
+    }
+    void setUserImageVerticalScale(float userImageVerticalScale)
+    {
+        m_userImageVerticalScale = userImageVerticalScale;
+    }
     void setGeoLanguage(QString language) { m_geoLanguage = language; }
 private:
     QString m_mapProvider;
@@ -100,8 +120,8 @@ private:
     bool m_useMemoryCache;
     QString m_cacheLocation;
     QString m_uavSymbol;
-	int m_maxUpdateRate;
-    QSettings * m_settings;
+    int m_maxUpdateRate;
+    QSettings *m_settings;
     qreal m_opacity;
     QString m_userImageLocation;
     float m_userImageHorizontalScale;

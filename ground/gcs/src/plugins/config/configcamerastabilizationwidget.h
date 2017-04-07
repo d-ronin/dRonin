@@ -26,16 +26,16 @@
 #ifndef CONFIGCAMERASTABILIZATIONWIDGET_H
 #define CONFIGCAMERASTABILIZATIONWIDGET_H
 
-#include "ui_camerastabilization.h"
 #include "../uavobjectwidgetutils/configtaskwidget.h"
-#include "extensionsystem/pluginmanager.h"
-#include "uavobjectmanager.h"
-#include "uavobject.h"
 #include "camerastabsettings.h"
-#include <QWidget>
+#include "extensionsystem/pluginmanager.h"
+#include "uavobject.h"
+#include "uavobjectmanager.h"
+#include "ui_camerastabilization.h"
 #include <QList>
+#include <QWidget>
 
-class ConfigCameraStabilizationWidget: public ConfigTaskWidget
+class ConfigCameraStabilizationWidget : public ConfigTaskWidget
 {
     Q_OBJECT
 

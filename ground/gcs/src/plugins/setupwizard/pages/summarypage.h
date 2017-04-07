@@ -30,11 +30,13 @@
 
 #include "abstractwizardpage.h"
 
-namespace Ui {
+namespace Ui
+{
 class SummaryPage;
 }
 
-class SummaryPage : public AbstractWizardPage {
+class SummaryPage : public AbstractWizardPage
+{
     Q_OBJECT
 
 public:

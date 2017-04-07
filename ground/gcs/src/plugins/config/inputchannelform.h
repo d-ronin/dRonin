@@ -1,10 +1,11 @@
 #ifndef INPUTCHANNELFORM_H
 #define INPUTCHANNELFORM_H
 
-#include <QWidget>
 #include "configinputwidget.h"
-namespace Ui {
-    class InputChannelForm;
+#include <QWidget>
+namespace Ui
+{
+class InputChannelForm;
 }
 
 class inputChannelForm : public ConfigTaskWidget
@@ -14,7 +15,9 @@ class inputChannelForm : public ConfigTaskWidget
 public:
     typedef enum { CHANNELFUNC_RC, CHANNELFUNC_RSSI } ChannelFunc;
 
-    explicit inputChannelForm(QWidget *parent = 0, bool showlegend=false, bool showSlider=true, ChannelFunc chanType = CHANNELFUNC_RC);
+    explicit inputChannelForm(QWidget *parent = 0, bool showlegend = false,
+                              bool showSlider = true,
+                              ChannelFunc chanType = CHANNELFUNC_RC);
     ~inputChannelForm();
     friend class ConfigInputWidget;
     void setName(QString &name);

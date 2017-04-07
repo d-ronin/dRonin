@@ -6,7 +6,8 @@
  * @{
  * @addtogroup CustomSplash
  * @{
- * @brief A custom splashscreen class with transparent background and progress bar
+ * @brief A custom splashscreen class with transparent background and progress
+ *bar
  *****************************************************************************/
 /*
  * This program is free software; you can redistribute it and/or modify
@@ -26,15 +27,16 @@
 #ifndef CUSTOMSPLASH_H
 #define CUSTOMSPLASH_H
 
+#include <QSettings>
 #include <QSplashScreen>
 #include <QTime>
-#include <QSettings>
 
-class CustomSplash: public QSplashScreen
+class CustomSplash : public QSplashScreen
 {
     Q_OBJECT
 public:
-    explicit CustomSplash( const QPixmap & pixmap = QPixmap(), Qt::WindowFlags f = 0 );
+    explicit CustomSplash(const QPixmap &pixmap = QPixmap(),
+                          Qt::WindowFlags f = 0);
     int m_progress;
     QPixmap m_pixmap;
     QColor m_progress_bar_color;
@@ -46,20 +48,24 @@ public:
 
     void hide();
     void show();
+
 private:
-    int progress() {return m_progress;}
+    int progress() { return m_progress; }
     void setProgress(int value)
     {
         m_progress = value;
         if (m_progress > 100)
-        m_progress = 100;
-      if (m_progress < 0)
-        m_progress = 0;
-      update();
+            m_progress = 100;
+        if (m_progress < 0)
+            m_progress = 0;
+        update();
     }
 public slots:
-    void showMessage(const QString &message, int alignment = Qt::AlignCenter | Qt::AlignBottom, const QColor & color = Qt::black );
+    void showMessage(const QString &message,
+                     int alignment = Qt::AlignCenter | Qt::AlignBottom,
+                     const QColor &color = Qt::black);
     void close();
+
 protected:
     void drawContents(QPainter *painter);
 };

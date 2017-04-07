@@ -7,7 +7,7 @@
  * @{
  * @addtogroup EmptyGadgetPlugin Empty Gadget Plugin
  * @{
- * @brief A place holder gadget plugin 
+ * @brief A place holder gadget plugin
  *****************************************************************************/
 /*
  * This program is free software; you can redistribute it and/or modify
@@ -29,11 +29,12 @@
 
 #include <coreplugin/iuavgadget.h>
 
-namespace Core {
+namespace Core
+{
 class IUAVGadget;
 }
-//class QWidget;
-//class QString;
+// class QWidget;
+// class QString;
 class EmptyGadgetWidget;
 
 using namespace Core;
@@ -42,7 +43,8 @@ class EmptyGadget : public Core::IUAVGadget
 {
     Q_OBJECT
 public:
-    EmptyGadget(QString classId, EmptyGadgetWidget *widget, QWidget *parent = 0);
+    EmptyGadget(QString classId, EmptyGadgetWidget *widget,
+                QWidget *parent = 0);
     ~EmptyGadget();
 
     QList<int> context() const { return m_context; }
@@ -50,9 +52,8 @@ public:
     QString contextHelpId() const { return QString(); }
 
 private:
-        QWidget *m_widget;
-	QList<int> m_context;
+    QWidget *m_widget;
+    QList<int> m_context;
 };
-
 
 #endif // EMPTYGADGET_H_

@@ -26,24 +26,25 @@
 #ifndef CONFIGGROUNDVEHICLEWIDGET_H
 #define CONFIGGROUNDVEHICLEWIDGET_H
 
-#include "ui_airframe.h"
 #include "../uavobjectwidgetutils/configtaskwidget.h"
 #include "extensionsystem/pluginmanager.h"
-#include "uavobjectmanager.h"
 #include "uavobject.h"
+#include "uavobjectmanager.h"
 #include "uavtalk/telemetrymanager.h"
-#include <QWidget>
-#include <QList>
+#include "ui_airframe.h"
 #include <QItemDelegate>
+#include <QList>
+#include <QWidget>
 
 class Ui_Widget;
 
-class ConfigGroundVehicleWidget: public VehicleConfig
+class ConfigGroundVehicleWidget : public VehicleConfig
 {
     Q_OBJECT
 
 public:
-    ConfigGroundVehicleWidget(Ui_AircraftWidget *aircraft = 0, QWidget *parent = 0);
+    ConfigGroundVehicleWidget(Ui_AircraftWidget *aircraft = 0,
+                              QWidget *parent = 0);
     ~ConfigGroundVehicleWidget();
 
     friend class ConfigVehicleTypeWidget;
@@ -51,22 +52,26 @@ public:
 private:
     Ui_AircraftWidget *m_aircraft;
 
-    bool setupGroundVehicleCar(SystemSettings::AirframeTypeOptions airframeType);
-    bool setupGroundVehicleDifferential(SystemSettings::AirframeTypeOptions airframeType);
-    bool setupGroundVehicleMotorcycle(SystemSettings::AirframeTypeOptions airframeType);
+    bool
+    setupGroundVehicleCar(SystemSettings::AirframeTypeOptions airframeType);
+    bool setupGroundVehicleDifferential(
+            SystemSettings::AirframeTypeOptions airframeType);
+    bool setupGroundVehicleMotorcycle(
+            SystemSettings::AirframeTypeOptions airframeType);
 
-    virtual void ResetActuators(GUIConfigDataUnion* configData);
+    virtual void ResetActuators(GUIConfigDataUnion *configData);
     static QStringList getChannelDescriptions();
 
 private slots:
     virtual void setupUI(SystemSettings::AirframeTypeOptions airframeType);
-    void refreshAirframeWidgetsValues(SystemSettings::AirframeTypeOptions frameType);
-    virtual SystemSettings::AirframeTypeOptions updateConfigObjectsFromWidgets();
-    virtual bool throwConfigError(SystemSettings::AirframeTypeOptions airframeType);
+    void
+    refreshAirframeWidgetsValues(SystemSettings::AirframeTypeOptions frameType);
+    virtual SystemSettings::AirframeTypeOptions
+    updateConfigObjectsFromWidgets();
+    virtual bool
+    throwConfigError(SystemSettings::AirframeTypeOptions airframeType);
 
 protected:
-
 };
-
 
 #endif // CONFIGGROUNDVEHICLEWIDGET_H

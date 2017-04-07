@@ -47,7 +47,6 @@ public:
     virtual QString getHwUAVO();
     virtual int queryMaxGyroRate();
     QWidget *getBoardConfiguration(QWidget *parent, bool connected);
-
 };
 
 #endif // SIMULATION_H_

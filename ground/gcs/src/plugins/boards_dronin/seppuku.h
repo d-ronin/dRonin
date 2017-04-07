@@ -30,8 +30,8 @@
 #ifndef SEPPUKU_H_
 #define SEPPUKU_H_
 
-#include <uavobjectmanager.h>
 #include <coreplugin/iboardtype.h>
+#include <uavobjectmanager.h>
 
 class Seppuku : public Core::IBoardType
 {
@@ -44,7 +44,8 @@ public:
     virtual bool queryCapabilities(BoardCapabilities capability);
     virtual QPixmap getBoardPicture();
     virtual QString getHwUAVO();
-    virtual bool isInputConfigurationSupported(Core::IBoardType::InputType type);
+    virtual bool
+    isInputConfigurationSupported(Core::IBoardType::InputType type);
     virtual bool setInputType(Core::IBoardType::InputType type);
     virtual Core::IBoardType::InputType getInputType();
     virtual int queryMaxGyroRate();

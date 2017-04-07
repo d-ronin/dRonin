@@ -27,13 +27,13 @@
 #ifndef LOGFILE_H
 #define LOGFILE_H
 
+#include "uavobjectmanager.h"
+#include <QBuffer>
+#include <QDebug>
 #include <QIODevice>
+#include <QMutexLocker>
 #include <QTime>
 #include <QTimer>
-#include <QMutexLocker>
-#include <QDebug>
-#include <QBuffer>
-#include "uavobjectmanager.h"
 #include <math.h>
 
 class LogFile : public QIODevice
@@ -46,14 +46,18 @@ public:
     bool open(OpenMode mode);
     void setFileName(QString name) { file.setFileName(name); }
     void close();
-    qint64 writeData(const char * data, qint64 dataSize);
-    qint64 readData(char * data, qint64 maxlen);
+    qint64 writeData(const char *data, qint64 dataSize);
+    qint64 readData(char *data, qint64 maxlen);
 
     bool startReplay();
     bool stopReplay();
 
 public slots:
-    void setReplaySpeed(double val) { playbackSpeed = val; qDebug() << "New playback speed: " << playbackSpeed; }
+    void setReplaySpeed(double val)
+    {
+        playbackSpeed = val;
+        qDebug() << "New playback speed: " << playbackSpeed;
+    }
     void setReplayTime(double val);
     void pauseReplay();
     void resumeReplay();
@@ -74,7 +78,6 @@ protected:
     quint32 lastTimeStamp;
     quint32 lastPlayTime;
     QMutex mutex;
-
 
     int lastPlayTimeOffset;
     double playbackSpeed;

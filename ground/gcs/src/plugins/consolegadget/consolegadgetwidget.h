@@ -7,7 +7,7 @@
  * @{
  * @addtogroup ConsolePlugin Console Plugin
  * @{
- * @brief The Console Gadget impliments a console view 
+ * @brief The Console Gadget impliments a console view
  *****************************************************************************/
 /*
  * This program is free software; you can redistribute it and/or modify
@@ -35,7 +35,7 @@ class ConsoleGadgetWidget : public QTextEdit
 
 public:
     ConsoleGadgetWidget(QWidget *parent = 0);
-   ~ConsoleGadgetWidget();
+    ~ConsoleGadgetWidget();
 
 private:
 };

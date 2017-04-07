@@ -7,7 +7,7 @@
  * @{
  * @addtogroup LinearDialPlugin Linear Dial Plugin
  * @{
- * @brief Impliments a gadget that displays linear gauges 
+ * @brief Impliments a gadget that displays linear gauges
  *****************************************************************************/
 /*
  * This program is free software; you can redistribute it and/or modify
@@ -28,28 +28,31 @@
 #define LINEARDIALGADGETOPTIONSPAGE_H
 
 #include "coreplugin/dialogs/ioptionspage.h"
-#include <QString>
-#include <QFont>
-#include <QStringList>
 #include <QDebug>
+#include <QFont>
+#include <QString>
+#include <QStringList>
 
-namespace Core {
+namespace Core
+{
 class IUAVGadgetConfiguration;
 }
 
 class LineardialGadgetConfiguration;
 
-namespace Ui {
-    class LineardialGadgetOptionsPage;
+namespace Ui
+{
+class LineardialGadgetOptionsPage;
 }
 
 using namespace Core;
 
 class LineardialGadgetOptionsPage : public IOptionsPage
 {
-Q_OBJECT
+    Q_OBJECT
 public:
-    explicit LineardialGadgetOptionsPage(LineardialGadgetConfiguration *config, QObject *parent = 0);
+    explicit LineardialGadgetOptionsPage(LineardialGadgetConfiguration *config,
+                                         QObject *parent = 0);
 
     QWidget *createPage(QWidget *parent);
     void apply();
@@ -65,7 +68,6 @@ private slots:
     void on_objectName_currentIndexChanged(QString val);
     void on_rangeMin_valueChanged(double val);
     void on_rangeMax_valueChanged(double val);
-
 };
 
 #endif // LINEARDIALGADGETOPTIONSPAGE_H

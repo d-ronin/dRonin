@@ -35,17 +35,17 @@
 #define ISIMULATOR_H
 
 #include <QObject>
-#include <QUdpSocket>
-#include <QTimer>
 #include <QProcess>
+#include <QTimer>
+#include <QUdpSocket>
 #include <qmath.h>
 
+#include "extensionsystem/pluginmanager.h"
 #include "qscopedpointer.h"
-#include "uavtalk/telemetrymanager.h"
+#include "uavobject.h"
 #include "uavobjectmanager.h"
 #include "uavobjectutil/uavobjectutilmanager.h"
-#include "extensionsystem/pluginmanager.h"
-#include "uavobject.h"
+#include "uavtalk/telemetrymanager.h"
 
 #include "accels.h"
 #include "actuatorcommand.h"
@@ -67,8 +67,8 @@
 #include "rangefinderdistance.h"
 #include "velocityactual.h"
 
-#include "utils/coordinateconversions.h"
 #include "physical_constants.h"
+#include "utils/coordinateconversions.h"
 
 /**
  * just imagine this was a class without methods and all public properties
@@ -81,8 +81,8 @@ typedef struct _FLIGHT_PARAM {
     unsigned int i;
 
     // speeds
-    float cas; //Calibrated airspeed
-    float tas; //True airspeed
+    float cas; // Calibrated airspeed
+    float tas; // True airspeed
     float groundspeed;
 
     // position (absolute)
@@ -100,20 +100,19 @@ typedef struct _FLIGHT_PARAM {
     float ddY;
     float ddZ;
 
-    //angle
+    // angle
     float azimuth;
     float pitch;
     float roll;
 
-    //rotation speed
+    // rotation speed
     float dAzimuth;
     float dPitch;
     float dRoll;
 
 } FLIGHT_PARAM;
 
-struct AirParameters
-{
+struct AirParameters {
     float groundDensity;
     float groundTemp;
     float seaLevelPress;
@@ -121,11 +120,10 @@ struct AirParameters
     float univGasConstant;
     float dryAirConstant;
     float relativeHumidity; //[%]
-    float M; //Molar mass
+    float M;                // Molar mass
 };
 
-typedef struct _CONNECTION
-{
+typedef struct _CONNECTION {
     QString simulatorId;
     QString binPath;
     QString dataPath;
@@ -138,7 +136,7 @@ typedef struct _CONNECTION
     QString latitude;
     QString longitude;
 
-//    bool homeLocation;
+    //    bool homeLocation;
 
     bool attRawEnabled;
     quint8 attRawRate;
@@ -167,12 +165,11 @@ typedef struct _CONNECTION
 
 } SimulatorSettings;
 
-
-struct Output2Hardware{
+struct Output2Hardware {
     float latitude;
     float longitude;
     float altitude;
-    float agl;                //[m]
+    float agl; //[m]
     float heading;
     float groundspeed;        //[m/s]
     float calibratedAirspeed; //[m/s]
@@ -183,22 +180,22 @@ struct Output2Hardware{
     float pitch;
     float pressure;
     float temperature;
-    float velNorth;   //[m/s]
-    float velEast;    //[m/s]
-    float velDown;    //[m/s]
-    float dstN;       //[m]
-    float dstE;       //[m]
-    float dstD;       //[m]
-    float accX;       //[m/s^2]
-    float accY;       //[m/s^2]
-    float accZ;       //[m/s^2]
-    float rollRate;   //[deg/s]
-    float pitchRate;  //[deg/s]
-    float yawRate;    //[deg/s]
-    float delT;       //[s]
+    float velNorth;  //[m/s]
+    float velEast;   //[m/s]
+    float velDown;   //[m/s]
+    float dstN;      //[m]
+    float dstE;      //[m]
+    float dstD;      //[m]
+    float accX;      //[m/s^2]
+    float accY;      //[m/s^2]
+    float accZ;      //[m/s^2]
+    float rollRate;  //[deg/s]
+    float pitchRate; //[deg/s]
+    float yawRate;   //[deg/s]
+    float delT;      //[s]
 
-    float rc_channel[GCSReceiver::CHANNEL_NUMELEM]; //Elements in rc_channel are between -1 and 1
-
+    float rc_channel[GCSReceiver::CHANNEL_NUMELEM]; // Elements in rc_channel
+                                                    // are between -1 and 1
 
     float rollDesired;
     float pitchDesired;
@@ -206,7 +203,7 @@ struct Output2Hardware{
     float throttleDesired;
 };
 
-//struct Output2Simulator{
+// struct Output2Simulator{
 //    float roll;
 //    float pitch;
 //    float yaw;
@@ -223,7 +220,7 @@ class Simulator : public QObject
     Q_OBJECT
 
 public:
-    Simulator(const SimulatorSettings& params);
+    Simulator(const SimulatorSettings &params);
     virtual ~Simulator();
 
     bool isAutopilotConnected() const { return autopilotConnectionStatus; }
@@ -239,14 +236,19 @@ public:
     float cas2tas(float CAS, float alt, AirParameters air, float gravity);
     float tas2cas(float TAS, float alt, AirParameters air, float gravity);
 
-
     static bool IsStarted() { return isStarted; }
     static void setStarted(bool val) { isStarted = val; }
-    static QStringList& Instances() { return Simulator::instances; }
-    static void setInstance(const QString& str) { Simulator::instances.append(str); }
+    static QStringList &Instances() { return Simulator::instances; }
+    static void setInstance(const QString &str)
+    {
+        Simulator::instances.append(str);
+    }
 
     virtual void stopProcess() {}
-    virtual void setupUdpPorts(const QString& host, int inPort, int outPort) { Q_UNUSED(host) Q_UNUSED(inPort) Q_UNUSED(outPort)}
+    virtual void setupUdpPorts(const QString &host, int inPort, int outPort)
+    {
+        Q_UNUSED(host) Q_UNUSED(inPort) Q_UNUSED(outPort)
+    }
 
     void resetInitialHomePosition();
     void updateUAVOs(Output2Hardware out);
@@ -263,10 +265,10 @@ signals:
     void deleteSimProcess();
     void myStart();
 public slots:
-    Q_INVOKABLE virtual bool setupProcess() { return true;}
+    Q_INVOKABLE virtual bool setupProcess() { return true; }
 private slots:
     void onStart();
-    //void transmitUpdate();
+    // void transmitUpdate();
     void receiveUpdate();
     void onAutopilotConnect();
     void onAutopilotDisconnect();
@@ -274,32 +276,32 @@ private slots:
     Q_INVOKABLE void onDeleteSimulator(void);
 
     virtual void transmitUpdate() = 0;
-    virtual void processUpdate(const QByteArray& data) = 0;
+    virtual void processUpdate(const QByteArray &data) = 0;
 
 protected:
-    QProcess* simProcess;
-    QTime* time;
-    QUdpSocket* inSocket;//(new QUdpSocket());
-    QUdpSocket* outSocket;
+    QProcess *simProcess;
+    QTime *time;
+    QUdpSocket *inSocket; //(new QUdpSocket());
+    QUdpSocket *outSocket;
 
-    ActuatorCommand* actCommand;
-    ActuatorDesired* actDesired;
-    ManualControlCommand* manCtrlCommand;
-    FlightStatus* flightStatus;
-    BaroAltitude* baroAlt;
-    AirspeedActual* airspeedActual;
-    AttitudeActual* attActual;
-    AttitudeSettings* attitudeSettings;
-    VelocityActual* velActual;
-    GPSPosition* gpsPos;
-    GPSVelocity* gpsVel;
-    PositionActual* posActual;
-    HomeLocation* posHome;
-    Accels* accels;
-    Gyros*  gyros;
-    GCSTelemetryStats* telStats;
-    GCSReceiver* gcsReceiver;
-    GroundTruth* groundTruth;
+    ActuatorCommand *actCommand;
+    ActuatorDesired *actDesired;
+    ManualControlCommand *manCtrlCommand;
+    FlightStatus *flightStatus;
+    BaroAltitude *baroAlt;
+    AirspeedActual *airspeedActual;
+    AttitudeActual *attActual;
+    AttitudeSettings *attitudeSettings;
+    VelocityActual *velActual;
+    GPSPosition *gpsPos;
+    GPSVelocity *gpsVel;
+    PositionActual *posActual;
+    HomeLocation *posHome;
+    Accels *accels;
+    Gyros *gyros;
+    GCSTelemetryStats *telStats;
+    GCSReceiver *gcsReceiver;
+    GroundTruth *groundTruth;
 
     SimulatorSettings settings;
 
@@ -316,8 +318,8 @@ private:
     int simTimeout;
     volatile bool autopilotConnectionStatus;
     volatile bool simConnectionStatus;
-    QTimer* txTimer;
-    QTimer* simTimer;
+    QTimer *txTimer;
+    QTimer *simTimer;
 
     QTime attRawTime;
     QTime gpsPosTime;
@@ -330,34 +332,31 @@ private:
     QString simulatorId;
     volatile static bool isStarted;
     static QStringList instances;
-    //QList<QScopedPointer<UAVDataObject> > requiredUAVObjects;
-    void setupOutputObject(UAVObject* obj, quint32 updatePeriod);
-    void setupInputObject(UAVObject* obj, quint32 updatePeriod);
+    // QList<QScopedPointer<UAVDataObject> > requiredUAVObjects;
+    void setupOutputObject(UAVObject *obj, quint32 updatePeriod);
+    void setupInputObject(UAVObject *obj, quint32 updatePeriod);
     void setupUAVObjects();
-    UAVObjectUtilManager* getObjectUtilManager();
-    UAVObjectManager* getObjectManager();
+    UAVObjectUtilManager *getObjectUtilManager();
+    UAVObjectManager *getObjectManager();
 
     AirParameters airParameters;
     static QMap<QString, UAVObject::Metadata> originalMetaData;
     QMap<QString, UAVObject::Metadata> metaDataList;
-
 };
-
-
 
 class SimulatorCreator
 {
 public:
-    SimulatorCreator(QString id, QString descr) :
-        classId(id),
-        description(descr)
-    {}
+    SimulatorCreator(QString id, QString descr)
+            : classId(id), description(descr)
+    {
+    }
     virtual ~SimulatorCreator() {}
 
-    QString ClassId() const {return classId;}
-    QString Description() const {return description;}
+    QString ClassId() const { return classId; }
+    QString Description() const { return description; }
 
-    virtual Simulator* createSimulator(const SimulatorSettings& params) = 0;
+    virtual Simulator *createSimulator(const SimulatorSettings &params) = 0;
 
 private:
     QString classId;

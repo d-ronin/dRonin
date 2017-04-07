@@ -28,38 +28,38 @@
 #define MIXERCURVE_H
 
 #include <QFrame>
-#include <QWidget>
 #include <QList>
 #include <QTableWidget>
+#include <QWidget>
 
-#include "ui_mixercurve.h"
-#include "mixercurvewidget.h"
 #include "dblspindelegate.h"
-#include "uavobjectwidgetutils_global.h"
+#include "mixercurvewidget.h"
 #include "uavobjectwidgetutils/popupwidget.h"
+#include "uavobjectwidgetutils_global.h"
+#include "ui_mixercurve.h"
 
-
-namespace Ui {
+namespace Ui
+{
 class MixerCurvePlot;
 }
 
-class  MixerCurve : public QFrame
+class MixerCurve : public QFrame
 {
     Q_OBJECT
-    
+
 public:
     explicit MixerCurve(QWidget *parent = 0);
     ~MixerCurve();
-
 
     /* Enumeration options for ThrottleCurves */
     typedef enum { MIXERCURVE_THROTTLE, MIXERCURVE_OTHER } MixerCurveType;
 
     void setMixerType(MixerCurveType curveType, bool isCurve1 = true);
-    void initCurve (const QList<double>* points);
+    void initCurve(const QList<double> *points);
     QList<double> getCurve();
-    void initLinearCurve(int numPoints, double maxValue = 1, double minValue = 0);
-    void setCurve(const QList<double>* points);
+    void initLinearCurve(int numPoints, double maxValue = 1,
+                         double minValue = 0);
+    void setCurve(const QList<double> *points);
     void setMin(double value);
     double getMin();
     void setMax(double value);
@@ -69,8 +69,8 @@ public:
     double getCurveStep();
     double setRange(double min, double max);
 
-    MixerCurveWidget* getCurveWidget() { return m_curve; }
-    QComboBox* getCBCurveSource() { return m_mixerUI->CBCurve2Source; }
+    MixerCurveWidget *getCurveWidget() { return m_curve; }
+    QComboBox *getCBCurveSource() { return m_mixerUI->CBCurve2Source; }
 
 signals:
 
@@ -85,7 +85,7 @@ public slots:
     void UpdateSettingsTable();
 
 private slots:
-    void CommandActivated(MixerNode* node = 0);
+    void CommandActivated(MixerNode *node = 0);
     void SettingsTableChanged();
     void CurveTypeChanged();
     void CurveMinChanged(double value);
@@ -93,12 +93,11 @@ private slots:
     void UpdateCurveUI();
 
 private:
-    Ui::MixerCurvePlot* m_mixerUI;
-    MixerCurveWidget* m_curve;
-    QTableWidget* m_settings;
+    Ui::MixerCurvePlot *m_mixerUI;
+    MixerCurveWidget *m_curve;
+    QTableWidget *m_settings;
     MixerCurveType m_curveType;
-    DoubleSpinDelegate* m_spinDelegate;
-
+    DoubleSpinDelegate *m_spinDelegate;
 };
 
 #endif // MIXERCURVE_H

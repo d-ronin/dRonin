@@ -27,23 +27,24 @@
 #ifndef HOMEEDITOR_H
 #define HOMEEDITOR_H
 
-#include <QDialog>
 #include "tlmapcontrol/tlmapcontrol.h"
+#include <QDialog>
 
 using namespace mapcontrol;
 
-namespace Ui {
+namespace Ui
+{
 class homeEditor;
 }
 
 class homeEditor : public QDialog
 {
     Q_OBJECT
-    
+
 public:
-    explicit homeEditor(HomeItem * home,QWidget *parent = 0);
+    explicit homeEditor(HomeItem *home, QWidget *parent = 0);
     ~homeEditor();
-    
+
 private slots:
     void on_buttonBox_accepted();
 
@@ -51,7 +52,7 @@ private slots:
 
 private:
     Ui::homeEditor *ui;
-    HomeItem * myhome;
+    HomeItem *myhome;
 };
 
 #endif // HOMEEDITOR_H

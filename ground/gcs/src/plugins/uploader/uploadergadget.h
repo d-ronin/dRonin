@@ -27,9 +27,9 @@
 #ifndef UPLOADERGADGET_H
 #define UPLOADERGADGET_H
 
-#include <coreplugin/iuavgadget.h>
-#include "uploadergadgetwidget.h"
 #include "uploader_global.h"
+#include "uploadergadgetwidget.h"
+#include <coreplugin/iuavgadget.h>
 
 class IUAVGadget;
 class QWidget;
@@ -38,21 +38,22 @@ class UploaderGadgetWidget;
 
 using namespace Core;
 
-namespace uploader {
+namespace uploader
+{
 
 class UPLOADER_EXPORT UploaderGadget : public Core::IUAVGadget
 {
     Q_OBJECT
 public:
-    UploaderGadget(QString classId, UploaderGadgetWidget *widget, QWidget *parent = 0);
+    UploaderGadget(QString classId, UploaderGadgetWidget *widget,
+                   QWidget *parent = 0);
     ~UploaderGadget();
 
     QWidget *widget() { return m_widget; }
-    void loadConfiguration(IUAVGadgetConfiguration* config);
+    void loadConfiguration(IUAVGadgetConfiguration *config);
 
 private:
     UploaderGadgetWidget *m_widget;
 };
 }
 #endif // UPLOADERGADGET_H
-

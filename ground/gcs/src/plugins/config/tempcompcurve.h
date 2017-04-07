@@ -31,20 +31,21 @@
 #include "qwt/src/qwt.h"
 #include "qwt/src/qwt_plot.h"
 #include "qwt/src/qwt_plot_curve.h"
+#include "qwt/src/qwt_plot_grid.h"
 #include "qwt/src/qwt_scale_draw.h"
 #include "qwt/src/qwt_scale_widget.h"
-#include "qwt/src/qwt_plot_grid.h"
 
 class TempCompCurve : public QwtPlot
 {
     Q_OBJECT
 public:
     explicit TempCompCurve(QWidget *parent = 0);
-    
+
     //! Show calibration data for one of the channels
-    void plotData(QList<double> temp, QList<double> gyro, QList<double> coefficients);
+    void plotData(QList<double> temp, QList<double> gyro,
+                  QList<double> coefficients);
 signals:
-    
+
 public slots:
 
 private:

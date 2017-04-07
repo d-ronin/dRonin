@@ -18,7 +18,8 @@
 
 #include <coreplugin/iuavgadgetfactory.h>
 
-namespace Core {
+namespace Core
+{
 class IUAVGadget;
 class IUAVGadgetFactory;
 }

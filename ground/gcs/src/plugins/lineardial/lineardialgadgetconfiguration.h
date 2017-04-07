@@ -7,7 +7,7 @@
  * @{
  * @addtogroup LinearDialPlugin Linear Dial Plugin
  * @{
- * @brief Impliments a gadget that displays linear gauges 
+ * @brief Impliments a gadget that displays linear gauges
  *****************************************************************************/
 /*
  * This program is free software; you can redistribute it and/or modify
@@ -36,42 +36,60 @@ using namespace Core;
   */
 class LineardialGadgetConfiguration : public IUAVGadgetConfiguration
 {
-Q_OBJECT
+    Q_OBJECT
 public:
-    explicit LineardialGadgetConfiguration(QString classId, QSettings* qSettings = 0, QObject *parent = 0);
+    explicit LineardialGadgetConfiguration(QString classId,
+                                           QSettings *qSettings = 0,
+                                           QObject *parent = 0);
 
-    //set dial configuration functions
-    void setDialFile(QString filename){dialFile=filename;}
-    void setRange(double min, double max) { minValue = min; maxValue = max;}
-    void setGreenRange(double min, double max) { greenMin = min; greenMax = max;}
-    void setYellowRange(double min, double max) { yellowMin = min; yellowMax = max;}
-    void setRedRange(double min, double max) { redMin = min; redMax = max;}
+    // set dial configuration functions
+    void setDialFile(QString filename) { dialFile = filename; }
+    void setRange(double min, double max)
+    {
+        minValue = min;
+        maxValue = max;
+    }
+    void setGreenRange(double min, double max)
+    {
+        greenMin = min;
+        greenMax = max;
+    }
+    void setYellowRange(double min, double max)
+    {
+        yellowMin = min;
+        yellowMax = max;
+    }
+    void setRedRange(double min, double max)
+    {
+        redMin = min;
+        redMax = max;
+    }
 
     void setFont(QString text) { font = text; }
 
     void setFactor(double val) { factor = val; }
-    void setDecimalPlaces (int val) { decimalPlaces = val; }
+    void setDecimalPlaces(int val) { decimalPlaces = val; }
 
-    void setSourceDataObject(QString text) {sourceDataObject = text; }
+    void setSourceDataObject(QString text) { sourceDataObject = text; }
     void setSourceObjField(QString text) { sourceObjectField = text; }
 
-    //get dial configuration functions
-    QString getDialFile() {return dialFile;}
-    double getMin() { return minValue;}
-    double getMax() { return maxValue;}
-    double getGreenMin(){ return greenMin;}
-    double getGreenMax(){ return greenMax;}
-    double getYellowMin(){ return yellowMin;}
-    double getYellowMax(){ return yellowMax;}
-    double getRedMin(){ return redMin;}
-    double getRedMax(){ return redMax;}
-    QString getSourceDataObject() { return sourceDataObject;}
-    QString getSourceObjectField() { return sourceObjectField;}
-    QString getFont() { return font;}
+    // get dial configuration functions
+    QString getDialFile() { return dialFile; }
+    double getMin() { return minValue; }
+    double getMax() { return maxValue; }
+    double getGreenMin() { return greenMin; }
+    double getGreenMax() { return greenMax; }
+    double getYellowMin() { return yellowMin; }
+    double getYellowMax() { return yellowMax; }
+    double getRedMin() { return redMin; }
+    double getRedMax() { return redMax; }
+    QString getSourceDataObject() { return sourceDataObject; }
+    QString getSourceObjectField() { return sourceObjectField; }
+    QString getFont() { return font; }
     int getDecimalPlaces() { return decimalPlaces; }
     double getFactor() { return factor; }
 
-    void saveConfig(QSettings* settings) const;
+    void saveConfig(QSettings *settings) const;
     IUAVGadgetConfiguration *clone();
 
 private:

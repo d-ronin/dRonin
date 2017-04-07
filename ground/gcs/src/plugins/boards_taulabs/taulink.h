@@ -26,9 +26,9 @@
 #ifndef TAULINK_H
 #define TAULINK_H
 
-#include <coreplugin/iboardtype.h>
-#include "uavobjectutil/uavobjectutilmanager.h"
 #include "hwtaulink.h"
+#include "uavobjectutil/uavobjectutilmanager.h"
+#include <coreplugin/iboardtype.h>
 
 class IBoardType;
 
@@ -43,7 +43,7 @@ public:
     virtual bool queryCapabilities(BoardCapabilities capability);
     virtual QPixmap getBoardPicture();
     virtual QString getHwUAVO();
-    HwTauLink * getSettings();
+    HwTauLink *getSettings();
 
     /**
      * Get the RFM22b device ID this modem
@@ -57,11 +57,11 @@ public:
      * @return true if successful or false if not
      */
     virtual bool bindRadio(quint32 id, quint32 baud_rate, float rf_power,
-                           Core::IBoardType::LinkMode linkMode, quint8 min, quint8 max);
+                           Core::IBoardType::LinkMode linkMode, quint8 min,
+                           quint8 max);
 
 private:
-    UAVObjectUtilManager* uavoUtilManager;
+    UAVObjectUtilManager *uavoUtilManager;
 };
-
 
 #endif // TAULINK_H

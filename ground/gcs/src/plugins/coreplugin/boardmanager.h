@@ -3,7 +3,8 @@
  *
  * @file       boardmanager.h
  * @author     Tau Labs, http://taulabs.org, Copyright (C) 2012-2013
- *             Parts by Nokia Corporation (qt-info@nokia.com) Copyright (C) 2009.
+ *             Parts by Nokia Corporation (qt-info@nokia.com) Copyright (C)
+ *2009.
  * @addtogroup GCSPlugins GCS Plugins
  * @{
  * @addtogroup CorePlugin Core Plugin
@@ -32,8 +33,8 @@
 #include "core_global.h"
 #include <coreplugin/iboardtype.h>
 
-
-namespace Core {
+namespace Core
+{
 
 class CORE_EXPORT BoardManager : public QObject
 {
@@ -48,14 +49,16 @@ public:
     /**
      * Get all board types known by the board manager as a list
      */
-    QList<IBoardType*> getAvailableBoardTypes() { return m_boardTypesList; }
+    QList<IBoardType *> getAvailableBoardTypes() { return m_boardTypesList; }
 
     /**
      * @brief getKnownVendorIDs
      * Get all USB VendorIDs known by the board manager. This can be used
      * by any plugin which uses USB and needs to know what boards are ours.
      * The list is deduplicated.
-     * \deprecated use getKnownFirmwareUSBInfo or getKnownBootloaderUSBInfo instead (shouldn't be filtering based on VID alone anyway since we don't own a VID
+     * \deprecated use getKnownFirmwareUSBInfo or getKnownBootloaderUSBInfo
+     * instead (shouldn't be filtering based on VID alone anyway since we don't
+     * own a VID
      */
     QList<int> getKnownVendorIDs();
 
@@ -81,15 +84,10 @@ public:
      */
     IBoardType *getBoard(int type);
 
-
-
 protected:
-
 signals:
 
-
 public slots:
-
 
 private slots:
     // Two slots used to detect arrival/removal of board types
@@ -98,14 +96,12 @@ private slots:
     void aboutToRemoveObject(QObject *obj);
 
 protected:
-    QList<IBoardType*> m_boardTypesList;
-
+    QList<IBoardType *> m_boardTypesList;
 
 private:
-
 };
 
-} //namespace Core
+} // namespace Core
 #endif // BOARDMANAGER_H
 
 /**

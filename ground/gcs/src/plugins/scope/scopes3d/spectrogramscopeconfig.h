@@ -29,7 +29,6 @@
 
 #include "scopes3d/scopes3dconfig.h"
 
-
 /**
  * @brief The SpectrogramScopeConfig class The spectrogram scope configuration
  */
@@ -38,46 +37,54 @@ class SpectrogramScopeConfig : public Scopes3dConfig
     Q_OBJECT
 public:
     /**
-     * @brief The SpectrogramType enum Defines the different type of spectrogram plots.
+     * @brief The SpectrogramType enum Defines the different type of spectrogram
+     * plots.
      */
-    enum SpectrogramType {
-        VIBRATIONANALYSIS,
-        CUSTOM_SPECTROGRAM
-    };
+    enum SpectrogramType { VIBRATIONANALYSIS, CUSTOM_SPECTROGRAM };
 
     SpectrogramScopeConfig();
     SpectrogramScopeConfig(QSettings *qSettings);
     SpectrogramScopeConfig(Ui::ScopeGadgetOptionsPage *options_page);
     ~SpectrogramScopeConfig();
 
-    virtual void saveConfiguration(QSettings* qSettings);
+    virtual void saveConfiguration(QSettings *qSettings);
     void create(QSettings qSettings);
 
-    QList<Plot3dCurveConfiguration*> getSpectrogramDataSource(){return m_spectrogramSourceConfigs;}
-    void addSpectrogramDataSource(Plot3dCurveConfiguration* value){m_spectrogramSourceConfigs.append(value);}
-    void replaceSpectrogramDataSource(QList<Plot3dCurveConfiguration*> spectrogramSourceConfigs);
+    QList<Plot3dCurveConfiguration *> getSpectrogramDataSource()
+    {
+        return m_spectrogramSourceConfigs;
+    }
+    void addSpectrogramDataSource(Plot3dCurveConfiguration *value)
+    {
+        m_spectrogramSourceConfigs.append(value);
+    }
+    void replaceSpectrogramDataSource(
+            QList<Plot3dCurveConfiguration *> spectrogramSourceConfigs);
 
-    //Getter functions
-    double getSamplingFrequency(){return samplingFrequency;}
-    double getZMaximum(){return zMaximum;}
-    unsigned int getWindowWidth(){return windowWidth;}
-    double getTimeHorizon(){return timeHorizon;}
-    virtual QList<Plot3dCurveConfiguration*> getDataSourceConfigs(){return m_spectrogramSourceConfigs;}
-    virtual int getScopeType(){return SPECTROGRAM;}
+    // Getter functions
+    double getSamplingFrequency() { return samplingFrequency; }
+    double getZMaximum() { return zMaximum; }
+    unsigned int getWindowWidth() { return windowWidth; }
+    double getTimeHorizon() { return timeHorizon; }
+    virtual QList<Plot3dCurveConfiguration *> getDataSourceConfigs()
+    {
+        return m_spectrogramSourceConfigs;
+    }
+    virtual int getScopeType() { return SPECTROGRAM; }
 
-    //Setter functions
-    void setSamplingFrequency(double val){samplingFrequency = val;}
-    void setZMaximum(double val){zMaximum = val;}
-    void setWindowWidth(unsigned int val){windowWidth = val;}
-    void setTimeHorizon(double val){timeHorizon = val;}
+    // Setter functions
+    void setSamplingFrequency(double val) { samplingFrequency = val; }
+    void setZMaximum(double val) { zMaximum = val; }
+    void setWindowWidth(unsigned int val) { windowWidth = val; }
+    void setTimeHorizon(double val) { timeHorizon = val; }
     virtual void setGuiConfiguration(Ui::ScopeGadgetOptionsPage *options_page);
-    virtual ScopeConfig* cloneScope(ScopeConfig*);
+    virtual ScopeConfig *cloneScope(ScopeConfig *);
 
     virtual void loadConfiguration(ScopeGadgetWidget *scopeGadgetWidget);
     virtual void preparePlot(ScopeGadgetWidget *);
     void configureAxes(ScopeGadgetWidget *);
 
-    ColorMap::ColorMapType getColorMap(){return colorMapType;}
+    ColorMap::ColorMapType getColorMap() { return colorMapType; }
 
 private slots:
 
@@ -87,7 +94,7 @@ private:
     double timeHorizon;
     QString units;
 
-    QList<Plot3dCurveConfiguration*> m_spectrogramSourceConfigs;
+    QList<Plot3dCurveConfiguration *> m_spectrogramSourceConfigs;
 
     double samplingFrequency;
     unsigned int windowWidth;

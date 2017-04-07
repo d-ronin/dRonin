@@ -31,16 +31,16 @@
 #ifndef CONFIGGADGET_H
 #define CONFIGGADGET_H
 
-#include <coreplugin/iuavgadget.h>
 #include "../uavobjectwidgetutils/configtaskwidget.h"
 #include "extensionsystem/pluginmanager.h"
-#include "uavobjectmanager.h"
 #include "uavobject.h"
-#include <QWidget>
+#include "uavobjectmanager.h"
 #include <QTimer>
+#include <QWidget>
+#include <coreplugin/iuavgadget.h>
 
 class IUAVGadget;
-//class QList<int>;
+// class QList<int>;
 class QWidget;
 class QString;
 class ConfigGadgetWidget;
@@ -52,15 +52,15 @@ class ConfigGadget : public Core::IUAVGadget
 {
     Q_OBJECT
 public:
-    ConfigGadget(QString classId, ConfigGadgetWidget *widget, QWidget *parent = 0);
+    ConfigGadget(QString classId, ConfigGadgetWidget *widget,
+                 QWidget *parent = 0);
     ~ConfigGadget();
 
-    QWidget *widget() { return (QWidget*)m_widget; }
-    void loadConfiguration(IUAVGadgetConfiguration* config);
+    QWidget *widget() { return (QWidget *)m_widget; }
+    void loadConfiguration(IUAVGadgetConfiguration *config);
 
 private:
     ConfigGadgetWidget *m_widget;
 };
-
 
 #endif // CONFIGGADGET_H

@@ -43,10 +43,11 @@ public:
     virtual bool queryCapabilities(BoardCapabilities capability);
     virtual QPixmap getBoardPicture();
     virtual QString getHwUAVO();
-    HwRevolution * getSettings();
+    HwRevolution *getSettings();
 
     //! Determine if this board supports configuring the receiver
-    virtual bool isInputConfigurationSupported(Core::IBoardType::InputType type);
+    virtual bool
+    isInputConfigurationSupported(Core::IBoardType::InputType type);
 
     /**
      * Configure the board to use an receiver input type on a port number
@@ -64,7 +65,10 @@ public:
      * @brief getConnectionDiagram get the connection diagram for this board
      * @return a string with the name of the resource for this board diagram
      */
-    virtual QString getConnectionDiagram() { return ":/openpilot/images/revo-connection-diagram.svg"; }
+    virtual QString getConnectionDiagram()
+    {
+        return ":/openpilot/images/revo-connection-diagram.svg";
+    }
 
     virtual int queryMaxGyroRate();
 
@@ -80,13 +84,13 @@ public:
      * @return true if successful or false if not
      */
     virtual bool bindRadio(quint32 id, quint32 baud_rate, float rf_power,
-                           Core::IBoardType::LinkMode linkMode, quint8 min, quint8 max);
+                           Core::IBoardType::LinkMode linkMode, quint8 min,
+                           quint8 max);
 
     virtual QStringList getAdcNames();
 
 private:
-    UAVObjectUtilManager* uavoUtilManager;
+    UAVObjectUtilManager *uavoUtilManager;
 };
-
 
 #endif // REVOLUTION_H

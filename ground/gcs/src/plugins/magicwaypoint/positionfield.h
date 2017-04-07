@@ -24,17 +24,17 @@
  * with this program; if not, see <http://www.gnu.org/licenses/>
  */
 
-
 #ifndef POSITIONFIELD_H
 #define POSITIONFIELD_H
 
-#include <QWidget>
 #include <QGraphicsView>
-#include <QtSvg/QSvgRenderer>
+#include <QWidget>
 #include <QtSvg/QGraphicsSvgItem>
+#include <QtSvg/QSvgRenderer>
 
-namespace Ui {
-    class PositionField;
+namespace Ui
+{
+class PositionField;
 }
 
 class PositionField : public QGraphicsView

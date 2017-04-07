@@ -27,11 +27,11 @@
 #ifndef GPSDISPLAYGADGET_H_
 #define GPSDISPLAYGADGET_H_
 
+#include "gpsdisplaywidget.h"
+#include "telemetryparser.h"
 #include <QtSerialPort/QSerialPort>
 #include <QtSerialPort/QSerialPortInfo>
 #include <coreplugin/iuavgadget.h>
-#include "gpsdisplaywidget.h"
-#include "telemetryparser.h"
 
 class IUAVGadget;
 class QWidget;
@@ -40,16 +40,15 @@ class GpsDisplayWidget;
 
 using namespace Core;
 
-class GpsDisplayGadget : public Core::IUAVGadget {
+class GpsDisplayGadget : public Core::IUAVGadget
+{
     Q_OBJECT
 public:
-    GpsDisplayGadget(QString classId, GpsDisplayWidget *widget, QWidget *parent = 0);
+    GpsDisplayGadget(QString classId, GpsDisplayWidget *widget,
+                     QWidget *parent = 0);
     ~GpsDisplayGadget();
 
-    QWidget *widget()
-    {
-        return m_widget;
-    }
+    QWidget *widget() { return m_widget; }
 
 private:
     QPointer<GpsDisplayWidget> m_widget;
@@ -57,6 +56,5 @@ private:
     bool connected;
     void processNewSerialData(QByteArray serialData);
 };
-
 
 #endif // GPSDISPLAYGADGET_H_

@@ -29,14 +29,16 @@
 #include "telemetryscheduler_global.h"
 #include <coreplugin/iuavgadgetfactory.h>
 
-namespace Core {
+namespace Core
+{
 class IUAVGadget;
 class IUAVGadgetFactory;
 }
 
 using namespace Core;
 
-class TELEMETRYSCHEDULER_EXPORT TelemetrySchedulerGadgetFactory : public IUAVGadgetFactory
+class TELEMETRYSCHEDULER_EXPORT TelemetrySchedulerGadgetFactory
+        : public IUAVGadgetFactory
 {
     Q_OBJECT
 public:

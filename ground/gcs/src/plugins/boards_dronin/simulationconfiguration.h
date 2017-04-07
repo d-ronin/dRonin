@@ -30,17 +30,18 @@
 #ifndef SIMULATIONCONFIGURATION_H_
 #define SIMULATIONCONFIGURATION_H_
 
-#include <QPixmap>
 #include "configtaskwidget.h"
+#include <QPixmap>
 
-namespace Ui {
+namespace Ui
+{
 class SimulationConfiguration;
 }
 
 class SimulationConfiguration : public ConfigTaskWidget
 {
     Q_OBJECT
-    
+
 public:
     explicit SimulationConfiguration(QWidget *parent = 0);
     ~SimulationConfiguration();

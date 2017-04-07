@@ -26,15 +26,15 @@
 #ifndef KMLEXPORTPLUGING_
 #define KMLEXPORTPLUGING_
 
-#include <coreplugin/icore.h>
-#include <coreplugin/coreconstants.h>
-#include <coreplugin/actionmanager/actionmanager.h>
-#include <coreplugin/iconnection.h>
-#include <extensionsystem/iplugin.h>
-#include "uavobjectmanager.h"
 #include "gcstelemetrystats.h"
-#include <uavtalk/uavtalk.h>
 #include "kmlexport.h"
+#include "uavobjectmanager.h"
+#include <coreplugin/actionmanager/actionmanager.h>
+#include <coreplugin/coreconstants.h>
+#include <coreplugin/iconnection.h>
+#include <coreplugin/icore.h>
+#include <extensionsystem/iplugin.h>
+#include <uavtalk/uavtalk.h>
 
 #include <QQueue>
 #include <QReadWriteLock>
@@ -50,7 +50,7 @@ public:
     KmlExportPlugin();
 
     void extensionsInitialized();
-    bool initialize(const QStringList & arguments, QString * errorString);
+    bool initialize(const QStringList &arguments, QString *errorString);
     void shutdown();
 
 private slots:
@@ -58,7 +58,6 @@ private slots:
 
 private:
     Core::Command *exportToKmlCmd;
-
 };
 #endif /* KMLEXPORTPLUGING_ */
 /**

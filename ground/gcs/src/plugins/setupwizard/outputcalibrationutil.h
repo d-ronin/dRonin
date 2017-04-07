@@ -28,15 +28,15 @@
 #ifndef OUTPUTCALIBRATIONUTIL_H
 #define OUTPUTCALIBRATIONUTIL_H
 
-#include <QObject>
-#include <QList>
+#include "actuatorcommand.h"
 #include "uavobject.h"
 #include "uavobjectmanager.h"
 #include "vehicleconfigurationsource.h"
-#include "actuatorcommand.h"
+#include <QList>
+#include <QObject>
 
-
-class OutputCalibrationUtil : public QObject {
+class OutputCalibrationUtil : public QObject
+{
     Q_OBJECT
 public:
     explicit OutputCalibrationUtil(QObject *parent = 0);

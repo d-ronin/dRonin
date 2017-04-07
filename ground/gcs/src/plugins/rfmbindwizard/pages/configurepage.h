@@ -33,11 +33,13 @@
 
 #include <uavobject.h>
 
-namespace Ui {
+namespace Ui
+{
 class ConfigurePage;
 }
 
-class ConfigurePage : public AbstractWizardPage {
+class ConfigurePage : public AbstractWizardPage
+{
     Q_OBJECT
 
 public:

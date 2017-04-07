@@ -3,7 +3,8 @@
  *
  * @file       mainwindow.h
  * @author     The OpenPilot Team, http://www.openpilot.org Copyright (C) 2010.
- *             Parts by Nokia Corporation (qt-info@nokia.com) Copyright (C) 2009.
+ *             Parts by Nokia Corporation (qt-info@nokia.com) Copyright (C)
+ *2009.
  * @author     Tau Labs, http://taulabs.org, Copyright (C) 2013
  * @addtogroup GCSPlugins GCS Plugins
  * @{
@@ -12,17 +13,17 @@
  * @brief Provides the GCS Main Window
  *****************************************************************************/
 /*
- * This program is free software; you can redistribute it and/or modify 
- * it under the terms of the GNU General Public License as published by 
- * the Free Software Foundation; either version 3 of the License, or 
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 3 of the License, or
  * (at your option) any later version.
- * 
- * This program is distributed in the hope that it will be useful, but 
- * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY 
- * or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License 
+ *
+ * This program is distributed in the hope that it will be useful, but
+ * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
+ * or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License
  * for more details.
- * 
- * You should have received a copy of the GNU General Public License along 
+ *
+ * You should have received a copy of the GNU General Public License along
  * with this program; if not, see <http://www.gnu.org/licenses/>
  */
 
@@ -33,9 +34,9 @@
 
 #include "eventfilteringmainwindow.h"
 
-#include <QtCore/QMap>
-#include <QSettings>
 #include <QFile>
+#include <QSettings>
+#include <QtCore/QMap>
 
 QT_BEGIN_NAMESPACE
 class QSettings;
@@ -45,7 +46,8 @@ class MyTabWidget;
 class QFrame;
 QT_END_NAMESPACE
 
-namespace Core {
+namespace Core
+{
 
 class ActionManager;
 class BaseMode;
@@ -65,7 +67,8 @@ class UAVGadgetManager;
 class UAVGadgetInstanceManager;
 class GlobalMessaging;
 
-namespace Internal {
+namespace Internal
+{
 
 class ActionManagerPrivate;
 class CoreImpl;
@@ -91,17 +94,17 @@ public:
     void addContextObject(IContext *contex);
     void removeContextObject(IContext *contex);
     void resetContext();
-    void readSettings(QSettings* qs = 0, bool workspaceDiffOnly = false);
-    void saveSettings(QSettings* qs = 0);
-    void readSettings(IConfigurablePlugin* plugin, QSettings* qs = 0);
-    void saveSettings(IConfigurablePlugin* plugin, QSettings* qs = 0);
+    void readSettings(QSettings *qs = 0, bool workspaceDiffOnly = false);
+    void saveSettings(QSettings *qs = 0);
+    void readSettings(IConfigurablePlugin *plugin, QSettings *qs = 0);
+    void saveSettings(IConfigurablePlugin *plugin, QSettings *qs = 0);
     void deleteSettings();
     void openFiles(const QStringList &fileNames);
 
     Core::ActionManager *actionManager() const;
     Core::UniqueIDManager *uniqueIDManager() const;
     Core::GlobalMessaging *globalMessaging() const;
-    QList<UAVGadgetManager*> uavGadgetManagers() const;
+    QList<UAVGadgetManager *> uavGadgetManagers() const;
     UAVGadgetInstanceManager *uavGadgetInstanceManager() const;
     Core::ConnectionManager *connectionManager() const;
     Core::BoardManager *boardManager() const;
@@ -109,7 +112,7 @@ public:
     Core::ModeManager *modeManager() const;
     Internal::GeneralSettings *generalSettings() const;
     QSettings *settings(QSettings::Scope scope) const;
-    IContext * currentContextObject() const;
+    IContext *currentContextObject() const;
     QStatusBar *statusBar() const;
     void addAdditionalContext(int context);
     void removeAdditionalContext(int context);
@@ -167,8 +170,8 @@ private:
     void updateContextObject(IContext *context);
     void registerDefaultContainers();
     void registerDefaultActions();
-    void createWorkspaces(QSettings* qs, bool diffOnly = false);
-    void readStyleSheet(QFile* file, QString name, QString *style);
+    void createWorkspaces(QSettings *qs, bool diffOnly = false);
+    void readStyleSheet(QFile *file, QString name, QString *style);
     void loadStyleSheet();
 
     CoreImpl *m_coreImpl;
@@ -178,13 +181,14 @@ private:
     QSettings *m_settings;
     QSettings *m_globalSettings;
     QFrame *m_contentFrame;
-    bool m_dontSaveSettings; // In case of an Error or if we reset the settings, never save them.
+    bool m_dontSaveSettings; // In case of an Error or if we reset the settings,
+                             // never save them.
     ActionManagerPrivate *m_actionManager;
     MessageManager *m_messageManager;
-    GlobalMessaging * m_globalMessaging;
+    GlobalMessaging *m_globalMessaging;
     ThreadManager *m_threadManager;
     ModeManager *m_modeManager;
-    QList<UAVGadgetManager*> m_uavGadgetManagers;
+    QList<UAVGadgetManager *> m_uavGadgetManagers;
     UAVGadgetInstanceManager *m_uavGadgetInstanceManager;
     ConnectionManager *m_connectionManager;
     BoardManager *m_boardManager;
@@ -193,7 +197,7 @@ private:
     VersionDialog *m_versionDialog;
     AuthorsDialog *m_authorsDialog;
 
-    IContext * m_activeContext;
+    IContext *m_activeContext;
 
     QMap<QWidget *, IContext *> m_contextWidgets;
 
@@ -224,7 +228,6 @@ private:
     QAction *m_zoomAction;
 #endif
     QAction *m_toggleFullScreenAction;
-
 };
 
 } // namespace Internal

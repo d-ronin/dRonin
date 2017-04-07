@@ -44,24 +44,24 @@ struct USBPortInfo {
     QString manufacturer;
     QString product;
 
-    QString path;       ///< Opaque OS-specific path.
+    QString path; ///< Opaque OS-specific path.
 
-    int vendorID;       ///< Vendor ID.
-    int productID;      ///< Product ID
+    int vendorID;  ///< Vendor ID.
+    int productID; ///< Product ID
     int bcdDevice;
 
-    unsigned char getRunState()
-    {
-        return bcdDevice&0x00ff;
-    }
+    unsigned char getRunState() { return bcdDevice & 0x00ff; }
 
     bool operator==(USBPortInfo const &port)
     {
-        if (port.vendorID != vendorID) return false;
+        if (port.vendorID != vendorID)
+            return false;
 
-        if (port.productID != productID) return false;
+        if (port.productID != productID)
+            return false;
 
-        if (port.bcdDevice != bcdDevice) return false;
+        if (port.bcdDevice != bcdDevice)
+            return false;
 
         if (port.serialNumber != serialNumber) {
             if ((serialNumber != "") && (port.serialNumber != "")) {
@@ -71,7 +71,7 @@ struct USBPortInfo {
 
         /* Don't compare manufacturer or product strings for identification */
 
-        return true;            // We ran the gauntlet and came out OK.
+        return true; // We ran the gauntlet and came out OK.
     }
 };
 
@@ -97,24 +97,27 @@ public:
     USBMonitor(QObject *parent = 0);
     ~USBMonitor();
     QList<USBPortInfo> availableDevices();
-    QList<USBPortInfo> availableDevices(int vid, int pid, int boardModel, int runState);
+    QList<USBPortInfo> availableDevices(int vid, int pid, int boardModel,
+                                        int runState);
 signals:
     /*!
       A new device has been connected to the system.
 
-      setUpNotifications() must be called first to enable event-driven device notifications.
+      setUpNotifications() must be called first to enable event-driven device
+      notifications.
       Currently only implemented on Windows and OS X.
       \param info The device that has been discovered.
     */
-    void deviceDiscovered( const USBPortInfo &info );
+    void deviceDiscovered(const USBPortInfo &info);
     /*!
       A device has been disconnected from the system.
 
-      setUpNotifications() must be called first to enable event-driven device notifications.
+      setUpNotifications() must be called first to enable event-driven device
+      notifications.
       Currently only implemented on Windows and OS X.
       \param info The device that was disconnected.
     */
-    void deviceRemoved( const USBPortInfo &info );
+    void deviceRemoved(const USBPortInfo &info);
 
 private slots:
     void periodic();

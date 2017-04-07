@@ -28,9 +28,9 @@
 #ifndef OPMAP_GADGET_H_
 #define OPMAP_GADGET_H_
 
-#include <coreplugin/iuavgadget.h>
-#include "opmapgadgetwidget.h"
 #include "opmapgadgetconfiguration.h"
+#include "opmapgadgetwidget.h"
+#include <coreplugin/iuavgadget.h>
 
 class IUAVGadget;
 class QWidget;
@@ -43,11 +43,13 @@ class OPMapGadget : public Core::IUAVGadget
 {
     Q_OBJECT
 public:
-    OPMapGadget(QString classId, OPMapGadgetWidget *widget, QWidget *parent = 0);
+    OPMapGadget(QString classId, OPMapGadgetWidget *widget,
+                QWidget *parent = 0);
     ~OPMapGadget();
 
     QWidget *widget() { return m_widget; }
-    void loadConfiguration(IUAVGadgetConfiguration* m_config);
+    void loadConfiguration(IUAVGadgetConfiguration *m_config);
+
 private:
     OPMapGadgetWidget *m_widget;
     OPMapGadgetConfiguration *m_config;
@@ -55,6 +57,5 @@ private slots:
     void saveOpacity(qreal value);
     void saveDefaultLocation(double lng, double lat, double zoom);
 };
-
 
 #endif // OPMAP_GADGET_H_

@@ -7,7 +7,7 @@
  * @{
  * @addtogroup LinearDialPlugin Linear Dial Plugin
  * @{
- * @brief Impliments a gadget that displays linear gauges 
+ * @brief Impliments a gadget that displays linear gauges
  *****************************************************************************/
 /*
  * This program is free software; you can redistribute it and/or modify
@@ -37,13 +37,14 @@ class LineardialPlugin : public ExtensionSystem::IPlugin
     Q_PLUGIN_METADATA(IID "org.dronin.plugins.LineardialGadget")
 
 public:
-        LineardialPlugin();
-        ~LineardialPlugin();
+    LineardialPlugin();
+    ~LineardialPlugin();
 
-   void extensionsInitialized();
-   bool initialize(const QStringList & arguments, QString * errorString);
-   void shutdown();
+    void extensionsInitialized();
+    bool initialize(const QStringList &arguments, QString *errorString);
+    void shutdown();
+
 private:
-   LineardialGadgetFactory *mf;
+    LineardialGadgetFactory *mf;
 };
 #endif /* LINEARDIALPLUGIN_H_ */

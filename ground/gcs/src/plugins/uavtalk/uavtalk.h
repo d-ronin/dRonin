@@ -14,17 +14,17 @@
  * deserializes UAVObjects
  *****************************************************************************/
 /*
- * This program is free software; you can redistribute it and/or modify 
- * it under the terms of the GNU General Public License as published by 
- * the Free Software Foundation; either version 3 of the License, or 
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 3 of the License, or
  * (at your option) any later version.
- * 
- * This program is distributed in the hope that it will be useful, but 
- * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY 
- * or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License 
+ *
+ * This program is distributed in the hope that it will be useful, but
+ * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
+ * or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License
  * for more details.
- * 
- * You should have received a copy of the GNU General Public License along 
+ *
+ * You should have received a copy of the GNU General Public License along
  * with this program; if not, see <http://www.gnu.org/licenses/>
  *
  * Additional note on redistribution: The copyright and license notices above
@@ -35,15 +35,15 @@
 #ifndef UAVTALK_H
 #define UAVTALK_H
 
-#include <QtCore>
+#include "uavobjectmanager.h"
+#include "uavtalk_global.h"
 #include <QIODevice>
 #include <QMap>
 #include <QSemaphore>
-#include "uavobjectmanager.h"
-#include "uavtalk_global.h"
+#include <QtCore>
 #include <QtNetwork/QUdpSocket>
 
-class UAVTALK_EXPORT UAVTalk: public QObject
+class UAVTALK_EXPORT UAVTalk : public QObject
 {
     Q_OBJECT
 
@@ -59,10 +59,10 @@ public:
         quint32 rxErrors;
     } ComStats;
 
-    UAVTalk(QIODevice* iodev, UAVObjectManager* objMngr);
+    UAVTalk(QIODevice *iodev, UAVObjectManager *objMngr);
     ~UAVTalk();
-    bool sendObject(UAVObject* obj, bool acked, bool allInstances);
-    bool sendObjectRequest(UAVObject* obj, bool allInstances);
+    bool sendObject(UAVObject *obj, bool acked, bool allInstances);
+    bool sendObjectRequest(UAVObject *obj, bool allInstances);
     ComStats getStats();
     void resetStats();
 
@@ -71,15 +71,14 @@ public:
 signals:
     // The only signals we send to the upper level are when we
     // either receive an ACK or a NACK for a request.
-    void ackReceived(UAVObject* obj);
-    void nackReceived(UAVObject* obj);
+    void ackReceived(UAVObject *obj);
+    void nackReceived(UAVObject *obj);
 
 private slots:
     void processInputStream(void);
     void dummyUDPRead();
 
 protected:
-
     // Constants
     static const int TYPE_MASK = 0xF8;
     static const int TYPE_VER = 0x20;
@@ -89,27 +88,39 @@ protected:
     static const int TYPE_ACK = (TYPE_VER | 0x03);
     static const int TYPE_NACK = (TYPE_VER | 0x04);
 
-    static const int MIN_HEADER_LENGTH = 8; // sync(1), type (1), size(2), object ID(4)
-    static const int MAX_HEADER_LENGTH = 10; // sync(1), type (1), size(2), object ID (4), instance ID(2, not used in single objects)
+    static const int MIN_HEADER_LENGTH =
+            8; // sync(1), type (1), size(2), object ID(4)
+    static const int MAX_HEADER_LENGTH = 10; // sync(1), type (1), size(2),
+                                             // object ID (4), instance ID(2,
+                                             // not used in single objects)
 
     static const int CHECKSUM_LENGTH = 1;
 
     static const int MAX_PAYLOAD_LENGTH = 256;
 
-    static const int MAX_PACKET_LENGTH = (MAX_HEADER_LENGTH + MAX_PAYLOAD_LENGTH + CHECKSUM_LENGTH);
+    static const int MAX_PACKET_LENGTH =
+            (MAX_HEADER_LENGTH + MAX_PAYLOAD_LENGTH + CHECKSUM_LENGTH);
 
     static const quint16 ALL_INSTANCES = 0xFFFF;
     static const quint16 OBJID_NOTFOUND = 0x0000;
 
-    static const int TX_BUFFER_SIZE = 2*1024;
+    static const int TX_BUFFER_SIZE = 2 * 1024;
     static const quint8 crc_table[256];
 
     // Types
-    typedef enum {STATE_SYNC, STATE_TYPE, STATE_SIZE, STATE_OBJID, STATE_INSTID, STATE_DATA, STATE_CS} RxStateType;
+    typedef enum {
+        STATE_SYNC,
+        STATE_TYPE,
+        STATE_SIZE,
+        STATE_OBJID,
+        STATE_INSTID,
+        STATE_DATA,
+        STATE_CS
+    } RxStateType;
 
     // Variables
     QPointer<QIODevice> io;
-    UAVObjectManager* objMngr;
+    UAVObjectManager *objMngr;
     quint8 rxBuffer[MAX_PACKET_LENGTH];
     quint8 txBuffer[MAX_PACKET_LENGTH];
     // Variables used by the receive state machine
@@ -127,19 +138,20 @@ protected:
     ComStats stats;
 
     bool useUDPMirror;
-    QUdpSocket * udpSocketTx;
-    QUdpSocket * udpSocketRx;
+    QUdpSocket *udpSocketTx;
+    QUdpSocket *udpSocketRx;
     QByteArray rxDataArray;
 
     // Methods
-    bool objectTransaction(UAVObject* obj, quint8 type, bool allInstances);
-    virtual bool receiveObject(quint8 type, quint32 objId, quint16 instId, quint8* data, qint32 length);
-    UAVObject* updateObject(quint32 objId, quint16 instId, quint8* data);
+    bool objectTransaction(UAVObject *obj, quint8 type, bool allInstances);
+    virtual bool receiveObject(quint8 type, quint32 objId, quint16 instId,
+                               quint8 *data, qint32 length);
+    UAVObject *updateObject(quint32 objId, quint16 instId, quint8 *data);
     bool transmitNack(quint32 objId);
-    bool transmitObject(UAVObject* obj, quint8 type, bool allInstances);
-    bool transmitSingleObject(UAVObject* obj, quint8 type, bool allInstances);
+    bool transmitObject(UAVObject *obj, quint8 type, bool allInstances);
+    bool transmitSingleObject(UAVObject *obj, quint8 type, bool allInstances);
     quint8 updateCRC(quint8 crc, const quint8 data);
-    quint8 updateCRC(quint8 crc, const quint8* data, qint32 length);
+    quint8 updateCRC(quint8 crc, const quint8 *data, qint32 length);
 };
 
 #endif // UAVTALK_H

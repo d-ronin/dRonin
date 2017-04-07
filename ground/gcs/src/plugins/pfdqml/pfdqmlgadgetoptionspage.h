@@ -16,28 +16,31 @@
 #ifndef PFDQMLGADGETOPTIONSPAGE_H
 #define PFDQMLGADGETOPTIONSPAGE_H
 
-#include "coreplugin/dialogs/ioptionspage.h"
 #include "QString"
-#include <QStringList>
+#include "coreplugin/dialogs/ioptionspage.h"
 #include <QDebug>
+#include <QStringList>
 
-namespace Core {
+namespace Core
+{
 class IUAVGadgetConfiguration;
 }
 
 class PfdQmlGadgetConfiguration;
 
-namespace Ui {
-    class PfdQmlGadgetOptionsPage;
+namespace Ui
+{
+class PfdQmlGadgetOptionsPage;
 }
 
 using namespace Core;
 
 class PfdQmlGadgetOptionsPage : public IOptionsPage
 {
-Q_OBJECT
+    Q_OBJECT
 public:
-    explicit PfdQmlGadgetOptionsPage(PfdQmlGadgetConfiguration *config, QObject *parent = 0);
+    explicit PfdQmlGadgetOptionsPage(PfdQmlGadgetConfiguration *config,
+                                     QObject *parent = 0);
 
     QWidget *createPage(QWidget *parent);
     void apply();

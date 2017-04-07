@@ -30,20 +30,21 @@
  */
 #ifndef UAVSETTINGSIMPORTEXPORTFACTORY_H
 #define UAVSETTINGSIMPORTEXPORTFACTORY_H
-#include "uavsettingsimportexport_global.h"
-#include "uavobjectutil/uavobjectutilmanager.h"
 #include "../../../../../build/ground/gcs/gcsversioninfo.h"
+#include "uavobjectutil/uavobjectutilmanager.h"
+#include "uavsettingsimportexport_global.h"
 
 class QDomNode;
 
-class UAVSETTINGSIMPORTEXPORT_EXPORT UAVSettingsImportExportManager : public QObject
+class UAVSETTINGSIMPORTEXPORT_EXPORT UAVSettingsImportExportManager
+        : public QObject
 {
     Q_OBJECT
 
 public:
     UAVSettingsImportExportManager(QObject *parent = 0);
     ~UAVSettingsImportExportManager();
-    static bool updateObject(UAVObject *obj, QDomNode * node);
+    static bool updateObject(UAVObject *obj, QDomNode *node);
 
     bool importUAVSettings(const QByteArray &settings, bool quiet = false);
 
@@ -59,7 +60,6 @@ private:
 signals:
     void importAboutToBegin();
     void importEnded();
-
 };
 
 #endif // UAVSETTINGSIMPORTEXPORTFACTORY_H

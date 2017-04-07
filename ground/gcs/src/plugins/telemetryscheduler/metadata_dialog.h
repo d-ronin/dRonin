@@ -38,9 +38,9 @@ public:
     MetadataDialog(UAVObject::Metadata mdata, QWidget *parent = 0);
     ~MetadataDialog();
 
-    UAVObject::Metadata getMetadata(){return *m_mdata;}
-    bool getResetDefaults_flag(){return resetDefaults_flag;}
-    bool getSaveState_flag(){return saveMetadata_flag;}
+    UAVObject::Metadata getMetadata() { return *m_mdata; }
+    bool getResetDefaults_flag() { return resetDefaults_flag; }
+    bool getSaveState_flag() { return saveMetadata_flag; }
 
 signals:
 
@@ -50,6 +50,7 @@ private slots:
     void saveApplyMetadata();
     void resetMetadataToDefaults();
     void cancelChanges();
+
 private:
     void fillWidgets();
 
@@ -58,8 +59,5 @@ private:
     bool resetDefaults_flag;
     bool saveMetadata_flag;
 };
-
-
-
 
 #endif /* METADATA_DIALOG_H_ */

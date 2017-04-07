@@ -29,13 +29,13 @@
 
 #include "plotdata.h"
 
-#include <QTimer>
 #include <QTime>
+#include <QTimer>
 #include <QVector>
 
-
 /**
- * @brief The Plot2dData class Base class that keeps the data for each curve in the plot.
+ * @brief The Plot2dData class Base class that keeps the data for each curve in
+ * the plot.
  */
 class Plot2dData : public PlotData
 {
@@ -45,10 +45,15 @@ public:
     Plot2dData(QString uavObject, QString uavField);
     ~Plot2dData();
 
-    QVector<double>* yDataHistory; //Used for scatterplots
+    QVector<double> *yDataHistory; // Used for scatterplots
 
-    virtual void setUpdatedFlagToTrue(){dataUpdated = true;}
-    virtual bool readAndResetUpdatedFlag(){bool tmp = dataUpdated; dataUpdated = false; return tmp;}
+    virtual void setUpdatedFlagToTrue() { dataUpdated = true; }
+    virtual bool readAndResetUpdatedFlag()
+    {
+        bool tmp = dataUpdated;
+        dataUpdated = false;
+        return tmp;
+    }
 
 private:
     bool dataUpdated;

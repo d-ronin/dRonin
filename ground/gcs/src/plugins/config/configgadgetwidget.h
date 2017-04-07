@@ -27,36 +27,48 @@
 #ifndef CONFIGGADGETWIDGET_H
 #define CONFIGGADGETWIDGET_H
 
-#include "uavtalk/telemetrymanager.h"
-#include "extensionsystem/pluginmanager.h"
-#include "uavobjectmanager.h"
-#include "uavobject.h"
-#include "objectpersistence.h"
-#include <QWidget>
-#include <QList>
-#include <QTextBrowser>
-#include "utils/pathutils.h"
-#include <QMessageBox>
-#include "utils/mytabbedstackwidget.h"
 #include "../uavobjectwidgetutils/configtaskwidget.h"
+#include "extensionsystem/pluginmanager.h"
+#include "objectpersistence.h"
+#include "uavobject.h"
+#include "uavobjectmanager.h"
+#include "uavtalk/telemetrymanager.h"
+#include "utils/mytabbedstackwidget.h"
+#include "utils/pathutils.h"
+#include <QList>
+#include <QMessageBox>
+#include <QTextBrowser>
+#include <QWidget>
 
-class ConfigGadgetWidget: public QWidget
+class ConfigGadgetWidget : public QWidget
 {
     Q_OBJECT
-    QTextBrowser* help;
+    QTextBrowser *help;
     int chunk;
 
 public:
     ConfigGadgetWidget(QWidget *parent = 0);
     ~ConfigGadgetWidget();
-    enum widgetTabs {hardware=0, aircraft, input, output, sensors, stabilization, modules, camerastabilization, txpid, autotune, osd};
+    enum widgetTabs {
+        hardware = 0,
+        aircraft,
+        input,
+        output,
+        sensors,
+        stabilization,
+        modules,
+        camerastabilization,
+        txpid,
+        autotune,
+        osd
+    };
     void startInputWizard();
     void changeTab(int i);
 
 public slots:
     void onAutopilotConnect();
     void onAutopilotDisconnect();
-    void tabAboutToChange(int i,bool *);
+    void tabAboutToChange(int i, bool *);
     void deferredLoader();
 
 signals:
@@ -64,16 +76,16 @@ signals:
     void autopilotDisconnected();
 
 protected:
-        void resizeEvent(QResizeEvent * event);
-        void paintEvent(QPaintEvent * event);
-        MyTabbedStackWidget *ftw;
+    void resizeEvent(QResizeEvent *event);
+    void paintEvent(QPaintEvent *event);
+    MyTabbedStackWidget *ftw;
 
 private:
-        UAVDataObject* oplinkStatusObj;
-        int lastTabIndex;
-        // A timer that timesout the connction to the OPLink.
-        QTimer *oplinkTimeout;
-        bool oplinkConnected;
+    UAVDataObject *oplinkStatusObj;
+    int lastTabIndex;
+    // A timer that timesout the connction to the OPLink.
+    QTimer *oplinkTimeout;
+    bool oplinkConnected;
 };
 
 #endif // CONFIGGADGETWIDGET_H

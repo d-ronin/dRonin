@@ -29,11 +29,13 @@
 
 #include "abstractwizardpage.h"
 
-namespace Ui {
+namespace Ui
+{
 class NotYetImplementedPage;
 }
 
-class NotYetImplementedPage : public AbstractWizardPage {
+class NotYetImplementedPage : public AbstractWizardPage
+{
     Q_OBJECT
 
 public:

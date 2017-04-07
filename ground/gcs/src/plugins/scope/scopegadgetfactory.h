@@ -53,7 +53,6 @@ public:
 public slots:
 
 signals:
-
 };
 
 #endif // SCOPEGADGETFACTORY_H_

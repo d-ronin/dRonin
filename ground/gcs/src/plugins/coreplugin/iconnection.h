@@ -3,7 +3,8 @@
  *
  * @file       iconnection.h
  * @author     The OpenPilot Team, http://www.openpilot.org Copyright (C) 2010.
- *             Parts by Nokia Corporation (qt-info@nokia.com) Copyright (C) 2009.
+ *             Parts by Nokia Corporation (qt-info@nokia.com) Copyright (C)
+ *2009.
  * @addtogroup GCSPlugins GCS Plugins
  * @{
  * @addtogroup CorePlugin Core Plugin
@@ -29,13 +30,14 @@
 #define ICONNECTION_H
 
 #include <QObject>
-#include <QtCore/QStringList>
 #include <QtCore/QIODevice>
+#include <QtCore/QStringList>
 
 #include "core_global.h"
 #include "idevice.h"
 
-namespace Core {
+namespace Core
+{
 
 /**
 *   An IConnection object define a "type of connection",
@@ -49,7 +51,7 @@ public:
     /**
     *   Return the list of devices found on the system
     */
-    virtual QList <IDevice *> availableDevices() = 0;
+    virtual QList<IDevice *> availableDevices() = 0;
 
     /**
     *   Open a device, and return a QIODevice interface from it
@@ -68,7 +70,7 @@ public:
     /**
     *   Short name to display in a combo box
     */
-    virtual QString shortName() {return connectionName();}
+    virtual QString shortName() { return connectionName(); }
 
     /**
      * Manage whether the plugin is allowed to poll for devices
@@ -78,7 +80,8 @@ public:
     virtual void resumePolling() {}
 
     /**
-     * @brief Used to flag that the device wants that we try to reconnect if it gets disconnected
+     * @brief Used to flag that the device wants that we try to reconnect if it
+     * gets disconnected
      * Currently this should be used only with bluetooth devices
      * @return true if the device want's us to try to reconnect it
      */
@@ -86,11 +89,12 @@ public:
 
 signals:
     /**
-    *   Available devices list has changed, signal it to connection manager (and whoever wants to know)
+    *   Available devices list has changed, signal it to connection manager (and
+    * whoever wants to know)
     */
     void availableDevChanged(IConnection *);
 };
 
-} //namespace Core
+} // namespace Core
 
 #endif // ICONNECTION_H

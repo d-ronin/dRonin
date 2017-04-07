@@ -45,8 +45,9 @@ class LevellingUtil : public QObject
     Q_OBJECT
 public:
     explicit LevellingUtil(long measurementCount, long measurementRate);
-    explicit LevellingUtil(long accelMeasurementCount, long accelMeasurementRate,
-                           long gyroMeasurementCount, long gyroMeasurementRate);
+    explicit LevellingUtil(long accelMeasurementCount,
+                           long accelMeasurementRate, long gyroMeasurementCount,
+                           long gyroMeasurementRate);
 
 signals:
     void progress(long current, long total);
@@ -58,8 +59,8 @@ public slots:
     void abort();
 
 private slots:
-    void gyroMeasurementsUpdated(UAVObject * obj);
-    void accelMeasurementsUpdated(UAVObject * obj);
+    void gyroMeasurementsUpdated(UAVObject *obj);
+    void accelMeasurementsUpdated(UAVObject *obj);
     void timeout();
 
 private:

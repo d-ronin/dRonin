@@ -36,13 +36,12 @@ class BrotronicsPlugin : public ExtensionSystem::IPlugin
     Q_PLUGIN_METADATA(IID "org.dronin.plugins.Brotronics")
 
 public:
-   BrotronicsPlugin();
-   ~BrotronicsPlugin();
+    BrotronicsPlugin();
+    ~BrotronicsPlugin();
 
-   void extensionsInitialized();
-   bool initialize(const QStringList & arguments, QString * errorString);
-   void shutdown();
-
+    void extensionsInitialized();
+    bool initialize(const QStringList &arguments, QString *errorString);
+    void shutdown();
 };
 
 #endif // BROTRONICSPLUGIN_H

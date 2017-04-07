@@ -32,14 +32,13 @@
 #ifndef IPconnectionPLUGIN_H
 #define IPconnectionPLUGIN_H
 
-#include "ipconnection_global.h"
-#include "ipconnectionoptionspage.h"
-#include "ipconnectionconfiguration.h"
 #include "coreplugin/iconnection.h"
+#include "ipconnection_global.h"
+#include "ipconnectionconfiguration.h"
+#include "ipconnectionoptionspage.h"
 #include "ipdevice.h"
 #include <extensionsystem/iplugin.h>
 //#include <QtCore/QSettings>
-
 
 class QAbstractSocket;
 class QTcpSocket;
@@ -51,15 +50,14 @@ class IConnection;
 *   Plugin will add a instance of this class to the pool,
 *   so the connection manager can use it.
 */
-class IPconnection_EXPORT IPConnection
-    : public Core::IConnection
+class IPconnection_EXPORT IPConnection : public Core::IConnection
 {
     Q_OBJECT
 public:
     IPConnection();
     virtual ~IPConnection();
 
-    virtual QList <Core::IDevice*> availableDevices();
+    virtual QList<Core::IDevice *> availableDevices();
     virtual QIODevice *openDevice(Core::IDevice *deviceName);
     virtual void closeDevice(const QString &deviceName);
 
@@ -80,9 +78,7 @@ private:
     QString errorMsg;
 };
 
-
-class IPconnection_EXPORT IPConnectionPlugin
-    : public ExtensionSystem::IPlugin
+class IPconnection_EXPORT IPConnectionPlugin : public ExtensionSystem::IPlugin
 {
     Q_OBJECT
     Q_PLUGIN_METADATA(IID "org.dronin.plugins.IPConnection")
@@ -90,12 +86,12 @@ public:
     IPConnectionPlugin();
     ~IPConnectionPlugin();
 
-    virtual bool initialize(const QStringList &arguments, QString *error_message);
+    virtual bool initialize(const QStringList &arguments,
+                            QString *error_message);
     virtual void extensionsInitialized();
 
 private:
     IPConnection *m_connection;
 };
-
 
 #endif // IPconnectionPLUGIN_H

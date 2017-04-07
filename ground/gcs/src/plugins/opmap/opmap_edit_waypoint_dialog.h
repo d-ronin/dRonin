@@ -7,7 +7,7 @@
  * @{
  * @addtogroup OPMapPlugin OpenPilot Map Plugin
  * @{
- * @brief The OpenPilot Map plugin 
+ * @brief The OpenPilot Map plugin
  *****************************************************************************/
 /*
  * This program is free software; you can redistribute it and/or modify
@@ -27,12 +27,13 @@
 #ifndef OPMAP_EDIT_WAYPOINT_DIALOG_H
 #define OPMAP_EDIT_WAYPOINT_DIALOG_H
 
-#include <QDialog>
-#include <QDataWidgetMapper>
-#include "opmapcontrol/opmapcontrol.h"
 #include "../pathplanner/flightdatamodel.h"
-namespace Ui {
-    class opmap_edit_waypoint_dialog;
+#include "opmapcontrol/opmapcontrol.h"
+#include <QDataWidgetMapper>
+#include <QDialog>
+namespace Ui
+{
+class opmap_edit_waypoint_dialog;
 }
 using namespace mapcontrol;
 
@@ -40,7 +41,8 @@ class opmap_edit_waypoint_dialog : public QWidget
 {
     Q_OBJECT
 public:
-    opmap_edit_waypoint_dialog(QWidget *parent,QAbstractItemModel * model,QItemSelectionModel * selection);
+    opmap_edit_waypoint_dialog(QWidget *parent, QAbstractItemModel *model,
+                               QItemSelectionModel *selection);
     ~opmap_edit_waypoint_dialog();
 
     /**
@@ -53,8 +55,8 @@ public:
 private:
     Ui::opmap_edit_waypoint_dialog *ui;
     QDataWidgetMapper *mapper;
-    QAbstractItemModel * model;
-    QItemSelectionModel * itemSelection;
+    QAbstractItemModel *model;
+    QItemSelectionModel *itemSelection;
 private slots:
 
 private slots:
@@ -65,7 +67,7 @@ private slots:
     void on_pushButton_clicked();
     void on_pushButton_2_clicked();
     void enableEditWidgets(bool);
-    void currentRowChanged(QModelIndex,QModelIndex);
+    void currentRowChanged(QModelIndex, QModelIndex);
 };
 
 #endif // OPMAP_EDIT_WAYPOINT_DIALOG_H

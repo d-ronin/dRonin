@@ -22,16 +22,18 @@ using namespace Core;
 
 class PfdQmlGadgetConfiguration : public IUAVGadgetConfiguration
 {
-Q_OBJECT
+    Q_OBJECT
 public:
-    explicit PfdQmlGadgetConfiguration(QString classId, QSettings* qSettings = 0, QObject *parent = 0);
+    explicit PfdQmlGadgetConfiguration(QString classId,
+                                       QSettings *qSettings = 0,
+                                       QObject *parent = 0);
 
-    void setQmlFile(const QString &fileName) { m_qmlFile=fileName; }
+    void setQmlFile(const QString &fileName) { m_qmlFile = fileName; }
 
     QString qmlFile() const { return m_qmlFile; }
     QVariantMap settings() const { return m_settings; }
 
-    void saveConfig(QSettings* settings) const;
+    void saveConfig(QSettings *settings) const;
     IUAVGadgetConfiguration *clone();
 
 private:

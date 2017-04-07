@@ -35,13 +35,12 @@ class AeroQuadPlugin : public ExtensionSystem::IPlugin
     Q_PLUGIN_METADATA(IID "org.dronin.plugins.AeroQuad")
 
 public:
-   AeroQuadPlugin();
-   ~AeroQuadPlugin();
+    AeroQuadPlugin();
+    ~AeroQuadPlugin();
 
-   void extensionsInitialized();
-   bool initialize(const QStringList & arguments, QString * errorString);
-   void shutdown();
-
+    void extensionsInitialized();
+    bool initialize(const QStringList &arguments, QString *errorString);
+    void shutdown();
 };
 
 #endif // AEROQUADPLUGIN_H

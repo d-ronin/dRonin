@@ -27,24 +27,26 @@
 #ifndef WAYPOINT_DIALOG_H
 #define WAYPOINT_DIALOG_H
 
+#include "flightdatamodel.h"
 #include <QComboBox>
-#include <QDialog>
 #include <QDataWidgetMapper>
+#include <QDialog>
 #include <QItemDelegate>
 #include <QItemSelectionModel>
-#include "flightdatamodel.h"
 
 class Ui_waypoint_dialog;
 
 /**
- * @brief The WaypointDialog class creates a dialog for editing the properties of a single waypoint
+ * @brief The WaypointDialog class creates a dialog for editing the properties
+ * of a single waypoint
  */
 class PATHPLANNER_EXPORT WaypointDialog : public QDialog
 {
     Q_OBJECT
 
 public:
-    WaypointDialog(QWidget *parent, QAbstractItemModel *model, QItemSelectionModel * selection);
+    WaypointDialog(QWidget *parent, QAbstractItemModel *model,
+                   QItemSelectionModel *selection);
     ~WaypointDialog();
 
     //! Edit the requested waypoint, show dialog if it is not showing
@@ -54,7 +56,8 @@ private slots:
     //! Called when the data widget selector index changes
     void currentIndexChanged(int index);
 
-    //! Updates the UI to display the available options (e.g. radius) when mode changes
+    //! Updates the UI to display the available options (e.g. radius) when mode
+    //! changes
     void setupModeWidgets();
 
     //! Close the dialog, abort any changes
@@ -70,12 +73,12 @@ private slots:
     void onNextButton_clicked();
 
     //! When the selector changes pass the update to the data mapper
-    void currentRowChanged(QModelIndex,QModelIndex);
+    void currentRowChanged(QModelIndex, QModelIndex);
 
     //! Enable or disable the controls based on the lock control
     void enableEditWidgets();
-private:
 
+private:
     //! The handle to the UI
     Ui_waypoint_dialog *ui;
 
@@ -86,7 +89,7 @@ private:
     QAbstractItemModel *model;
 
     //! Indicates which waypoint is selected for editing
-    QItemSelectionModel * itemSelection;
+    QItemSelectionModel *itemSelection;
 
     //! Store the current waypoint index
     int index;

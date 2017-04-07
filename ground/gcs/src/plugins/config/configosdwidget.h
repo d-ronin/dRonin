@@ -28,33 +28,33 @@
 
 #include "ui_osd.h"
 
-#include "uavobjectwidgetutils/configtaskwidget.h"
 #include "extensionsystem/pluginmanager.h"
-#include "uavobjectmanager.h"
 #include "uavobject.h"
+#include "uavobjectmanager.h"
+#include "uavobjectwidgetutils/configtaskwidget.h"
 
-#include "onscreendisplaysettings.h"
 #include "manualcontrolcommand.h"
 #include "manualcontrolsettings.h"
+#include "onscreendisplaysettings.h"
 
 #include "onscreendisplaypagesettings.h"
 #include "onscreendisplaypagesettings2.h"
 #include "onscreendisplaypagesettings3.h"
 #include "onscreendisplaypagesettings4.h"
 
-
-namespace Ui {
-    class Osd;
-    class OsdPage;
+namespace Ui
+{
+class Osd;
+class OsdPage;
 }
 
-class ConfigOsdWidget: public ConfigTaskWidget
+class ConfigOsdWidget : public ConfigTaskWidget
 {
     Q_OBJECT
 
 public:
-        ConfigOsdWidget(QWidget *parent = 0);
-        ~ConfigOsdWidget();
+    ConfigOsdWidget(QWidget *parent = 0);
+    ~ConfigOsdWidget();
 
 private slots:
     void movePageSlider();
@@ -79,35 +79,36 @@ private slots:
     void getCustomText();
 
 private:
-    void setupOsdPage(Ui::OsdPage * page, QWidget * page_widget, UAVObject * settings);
+    void setupOsdPage(Ui::OsdPage *page, QWidget *page_widget,
+                      UAVObject *settings);
     void copyOsdPage(int to, int from);
     quint8 scaleSwitchChannel(quint8 channelNumber, quint8 switchPositions);
-    QVariant getVariantFromWidget(QWidget *widget, double scale, bool usesUnits = false);
-    bool setWidgetFromVariant(QWidget *widget, QVariant value, double scale, QString units = "");
-
+    QVariant getVariantFromWidget(QWidget *widget, double scale,
+                                  bool usesUnits = false);
+    bool setWidgetFromVariant(QWidget *widget, QVariant value, double scale,
+                              QString units = "");
 
     static QString trueString;
     static QString falseString;
 
     Ui::Osd *ui;
-    Ui::OsdPage * ui_pages[4];
+    Ui::OsdPage *ui_pages[4];
     QWidget *pages[4];
 
-    OnScreenDisplaySettings * osdSettingsObj;
-    OnScreenDisplayPageSettings * osdPageSettingsObj;
-    OnScreenDisplayPageSettings2 * osdPageSettings2Obj;
-    OnScreenDisplayPageSettings3 * osdPageSettings3Obj;
-    OnScreenDisplayPageSettings4 * osdPageSettings4Obj;
+    OnScreenDisplaySettings *osdSettingsObj;
+    OnScreenDisplayPageSettings *osdPageSettingsObj;
+    OnScreenDisplayPageSettings2 *osdPageSettings2Obj;
+    OnScreenDisplayPageSettings3 *osdPageSettings3Obj;
+    OnScreenDisplayPageSettings4 *osdPageSettings4Obj;
 
-
-    ManualControlSettings * manualSettingsObj;
+    ManualControlSettings *manualSettingsObj;
     ManualControlSettings::DataFields manualSettingsData;
-    ManualControlCommand * manualCommandObj;
+    ManualControlCommand *manualCommandObj;
     ManualControlCommand::DataFields manualCommandData;
+
 protected:
     void resizeEvent(QResizeEvent *event);
     virtual void enableControls(bool enable);
 };
 
 #endif // CONFIGOSDWIDGET_H
- 

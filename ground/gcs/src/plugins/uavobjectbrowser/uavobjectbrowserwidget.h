@@ -28,13 +28,13 @@
 #ifndef UAVOBJECTBROWSERWIDGET_H_
 #define UAVOBJECTBROWSERWIDGET_H_
 
-#include <QModelIndex>
-#include <QWidget>
-#include <QKeyEvent>
-#include <QTreeView>
-#include <QSortFilterProxyModel>
 #include "objectpersistence.h"
 #include "uavobjecttreemodel.h"
+#include <QKeyEvent>
+#include <QModelIndex>
+#include <QSortFilterProxyModel>
+#include <QTreeView>
+#include <QWidget>
 
 class QPushButton;
 class ObjectTreeItem;
@@ -47,9 +47,12 @@ public:
     TreeSortFilterProxyModel(QObject *parent);
 
 protected:
-    bool filterAcceptsRow(int source_row, const QModelIndex &source_parent) const;
-    bool filterAcceptsRowItself(int source_row, const QModelIndex &source_parent) const;
-    bool hasAcceptedChildren(int source_row, const QModelIndex &source_parent) const;
+    bool filterAcceptsRow(int source_row,
+                          const QModelIndex &source_parent) const;
+    bool filterAcceptsRowItself(int source_row,
+                                const QModelIndex &source_parent) const;
+    bool hasAcceptedChildren(int source_row,
+                             const QModelIndex &source_parent) const;
 };
 
 class UAVOBrowserTreeView : public QTreeView
@@ -60,7 +63,11 @@ public:
     void updateView(const QModelIndex &topLeft, const QModelIndex &bottomRight);
     void updateTimerPeriod(unsigned int val);
 
-    virtual void setModel(QAbstractItemModel *model){QTreeView::setModel(model); proxyModel = static_cast<TreeSortFilterProxyModel *>(model);}
+    virtual void setModel(QAbstractItemModel *model)
+    {
+        QTreeView::setModel(model);
+        proxyModel = static_cast<TreeSortFilterProxyModel *>(model);
+    }
 
     /**
      * @brief dataChanged Reimplements QTreeView::dataChanged signal
@@ -68,8 +75,9 @@ public:
      * @param bottomRight
      * @param updateFlag If true, send dataChanged signal. If false, do nothing.
      */
-    virtual void dataChanged(const QModelIndex & topLeft, const QModelIndex & bottomRight,
-                             const QVector<int> & roles = QVector<int> ());
+    virtual void dataChanged(const QModelIndex &topLeft,
+                             const QModelIndex &bottomRight,
+                             const QVector<int> &roles = QVector<int>());
 
 private slots:
     void onTimeout_updateView();
@@ -79,7 +87,6 @@ private:
     TreeSortFilterProxyModel *proxyModel;
 
     QTimer m_updateViewTimer;
-
 };
 
 class UAVObjectBrowserWidget : public QWidget
@@ -89,12 +96,33 @@ class UAVObjectBrowserWidget : public QWidget
 public:
     UAVObjectBrowserWidget(QWidget *parent = 0);
     ~UAVObjectBrowserWidget();
-    void setRecentlyUpdatedColor(QColor color) { m_recentlyUpdatedColor = color; m_model->setRecentlyUpdatedColor(color); }
-    void setManuallyChangedColor(QColor color) { m_manuallyChangedColor = color; m_model->setManuallyChangedColor(color); }
-    void setNotPresentOnHwColor(QColor color) { m_notPresentOnHwColor = color; m_model->setNotPresentOnHwColor(color); }
-    void setRecentlyUpdatedTimeout(int timeout) { m_recentlyUpdatedTimeout = timeout; m_model->setRecentlyUpdatedTimeout(timeout); }
-    void setOnlyHighlightChangedValues(bool highlight) { m_onlyHighlightChangedValues = highlight; m_model->setOnlyHighlightChangedValues(highlight); }
-    void setViewOptions(bool categorized, bool scientific, bool metadata, bool hideNotPresent);
+    void setRecentlyUpdatedColor(QColor color)
+    {
+        m_recentlyUpdatedColor = color;
+        m_model->setRecentlyUpdatedColor(color);
+    }
+    void setManuallyChangedColor(QColor color)
+    {
+        m_manuallyChangedColor = color;
+        m_model->setManuallyChangedColor(color);
+    }
+    void setNotPresentOnHwColor(QColor color)
+    {
+        m_notPresentOnHwColor = color;
+        m_model->setNotPresentOnHwColor(color);
+    }
+    void setRecentlyUpdatedTimeout(int timeout)
+    {
+        m_recentlyUpdatedTimeout = timeout;
+        m_model->setRecentlyUpdatedTimeout(timeout);
+    }
+    void setOnlyHighlightChangedValues(bool highlight)
+    {
+        m_onlyHighlightChangedValues = highlight;
+        m_model->setOnlyHighlightChangedValues(highlight);
+    }
+    void setViewOptions(bool categorized, bool scientific, bool metadata,
+                        bool hideNotPresent);
     void initialize();
     void refreshHiddenObjects();
 public slots:
@@ -107,7 +135,8 @@ private slots:
     void saveObject();
     void loadObject();
     void eraseObject();
-    void toggleUAVOButtons(const QModelIndex &current, const QModelIndex &previous);
+    void toggleUAVOButtons(const QModelIndex &current,
+                           const QModelIndex &previous);
     void viewSlot();
     void viewOptionsChangedSlot();
 
@@ -118,7 +147,9 @@ private slots:
     void searchTextCleared();
 
 signals:
-    void viewOptionsChanged(bool categorized,bool scientific,bool metadata,bool hideNotPresent);
+    void viewOptionsChanged(bool categorized, bool scientific, bool metadata,
+                            bool hideNotPresent);
+
 private:
     QPushButton *m_requestUpdate;
     QPushButton *m_sendUpdate;
@@ -134,7 +165,8 @@ private:
     QColor m_notPresentOnHwColor;
     bool m_onlyHighlightChangedValues;
 
-    void updateObjectPersistance(ObjectPersistence::OperationOptions op, UAVObject *obj);
+    void updateObjectPersistance(ObjectPersistence::OperationOptions op,
+                                 UAVObject *obj);
     void enableUAVOBrowserButtons(bool enableState);
     ObjectTreeItem *findCurrentObjectTreeItem();
     void updateThrottlePeriod(UAVObject *);

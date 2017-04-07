@@ -34,7 +34,7 @@
 class IUAVGadget;
 class QWidget;
 class QString;
-//class NotifyPluginGadgetWidget;
+// class NotifyPluginGadgetWidget;
 
 using namespace Core;
 
@@ -42,15 +42,15 @@ class NotifyPluginGadget : public Core::IUAVGadget
 {
     Q_OBJECT
 public:
-    NotifyPluginGadget(QString classId, NotifyPluginGadgetWidget *widget, QWidget *parent = 0);
+    NotifyPluginGadget(QString classId, NotifyPluginGadgetWidget *widget,
+                       QWidget *parent = 0);
     ~NotifyPluginGadget();
 
-  //  QWidget *widget() { return m_widget; }
-    void loadConfiguration(IUAVGadgetConfiguration* config);
+    //  QWidget *widget() { return m_widget; }
+    void loadConfiguration(IUAVGadgetConfiguration *config);
 
 private:
-//    NotifyPluginGadgetWidget *m_widget;
+    //    NotifyPluginGadgetWidget *m_widget;
 };
-
 
 #endif // NOTIFYPLUGINGADGET_H

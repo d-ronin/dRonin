@@ -28,7 +28,6 @@
 
 #include <coreplugin/idevice.h>
 
-
 /**
  * @brief The SerialDevice class
  *

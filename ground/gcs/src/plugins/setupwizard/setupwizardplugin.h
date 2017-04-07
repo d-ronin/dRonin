@@ -28,11 +28,12 @@
 #ifndef SETUPWIZARDPLUGIN_H
 #define SETUPWIZARDPLUGIN_H
 
-#include <extensionsystem/iplugin.h>
-#include <QWizard>
 #include "setupwizard.h"
+#include <QWizard>
+#include <extensionsystem/iplugin.h>
 
-class SetupWizardPlugin : public ExtensionSystem::IPlugin {
+class SetupWizardPlugin : public ExtensionSystem::IPlugin
+{
     Q_OBJECT
     Q_PLUGIN_METADATA(IID "org.dronin.plugins.SetupWizard")
 public:
@@ -40,7 +41,7 @@ public:
     ~SetupWizardPlugin();
 
     void extensionsInitialized();
-    bool initialize(const QStringList & arguments, QString *errorString);
+    bool initialize(const QStringList &arguments, QString *errorString);
     void shutdown();
 
 private slots:

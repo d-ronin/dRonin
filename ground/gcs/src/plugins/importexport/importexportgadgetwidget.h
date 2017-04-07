@@ -11,9 +11,9 @@
 #ifndef IMPORTEXPORTGADGETWIDGET_H
 #define IMPORTEXPORTGADGETWIDGET_H
 
-#include <QWidget>
-#include <QString>
 #include "importexport_global.h"
+#include <QString>
+#include <QWidget>
 #include <coreplugin/iconfigurableplugin.h>
 
 namespace Ui
@@ -36,15 +36,15 @@ protected:
 
 private:
     Ui::ImportExportGadgetWidget *ui;
-    void writeError(const QString&) const;
-    void exportConfiguration(const QString& fileName);
-    void importConfiguration(const QString& fileName);
-    QList<Core::IConfigurablePlugin*> getConfigurables();
+    void writeError(const QString &) const;
+    void exportConfiguration(const QString &fileName);
+    void importConfiguration(const QString &fileName);
+    QList<Core::IConfigurablePlugin *> getConfigurables();
 
-	QString filename;
+    QString filename;
 
 private slots:
-	void on_resetButton_clicked();
+    void on_resetButton_clicked();
     void on_helpButton_clicked();
     void on_importButton_clicked();
     void on_exportButton_clicked();

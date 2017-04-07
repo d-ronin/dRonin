@@ -27,18 +27,20 @@
 #ifndef UPLOADERGADGETFACTORY_H
 #define UPLOADERGADGETFACTORY_H
 
-#include <coreplugin/iuavgadgetfactory.h>
-#include "uploader_global.h"
 #include "uavobjectutil/devicedescriptorstruct.h"
+#include "uploader_global.h"
+#include <coreplugin/iuavgadgetfactory.h>
 
-namespace Core {
+namespace Core
+{
 class IUAVGadget;
 class IUAVGadgetFactory;
 }
 
 using namespace Core;
 
-namespace uploader {
+namespace uploader
+{
 
 class UPLOADER_EXPORT UploaderGadgetFactory : public Core::IUAVGadgetFactory
 {
@@ -49,10 +51,10 @@ public:
 
     Core::IUAVGadget *createGadget(QWidget *parent);
     IUAVGadgetConfiguration *createConfiguration(QSettings *qSettings);
+
 private:
 signals:
     void newBoardSeen(deviceInfo board, deviceDescriptorStruct device);
 };
-
 }
 #endif // UPLOADERGADGETFACTORY_H
