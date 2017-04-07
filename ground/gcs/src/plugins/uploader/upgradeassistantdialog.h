@@ -35,7 +35,8 @@
 #include <QMap>
 #include <QString>
 
-namespace Ui {
+namespace Ui
+{
 class UpgradeAssistant;
 }
 
@@ -44,8 +45,8 @@ class UpgradeAssistantDialog : public QDialog
     Q_OBJECT
 public:
     typedef enum {
-        STEP_FIRST=0,
-        STEP_ENTERLOADER=0,
+        STEP_FIRST = 0,
+        STEP_ENTERLOADER = 0,
         STEP_CHECKCLOUD,
         STEP_UPGRADEBOOTLOADER,
         STEP_DOWNLOADSETTINGS,
@@ -55,7 +56,7 @@ public:
         STEP_BOOT,
         STEP_IMPORT,
         STEP_DONE,
-        STEP_NUM=STEP_DONE      // STEP_DONE is not a real step with a label
+        STEP_NUM = STEP_DONE // STEP_DONE is not a real step with a label
     } UpgradeAssistantStep;
 
     explicit UpgradeAssistantDialog(QWidget *parent = 0);
@@ -63,14 +64,15 @@ public:
 
     void setOperatingMode(bool upgradingBootloader, bool blankFC);
 
-    int PromptUser(QString promptText, QString detailText, QStringList buttonText);
+    int PromptUser(QString promptText, QString detailText,
+                   QStringList buttonText);
 
-//public slots:
+    // public slots:
     void onStepChanged(UpgradeAssistantStep step);
 
 protected:
     void closeEvent(QCloseEvent *event);
-    
+
 private:
     Ui::UpgradeAssistant *ui;
 

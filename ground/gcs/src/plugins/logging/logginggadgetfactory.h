@@ -29,7 +29,8 @@
 
 #include <coreplugin/iuavgadgetfactory.h>
 
-namespace Core {
+namespace Core
+{
 class IUAVGadget;
 class IUAVGadgetFactory;
 }
@@ -44,11 +45,12 @@ public:
     LoggingGadgetFactory(QObject *parent = 0);
     ~LoggingGadgetFactory();
 
-    void setPlugin(LoggingPlugin * p) { loggingPlugin = p; };
+    void setPlugin(LoggingPlugin *p) { loggingPlugin = p; };
 
     IUAVGadget *createGadget(QWidget *parent);
+
 private:
-    LoggingPlugin * loggingPlugin;
+    LoggingPlugin *loggingPlugin;
 };
 
 #endif // LoggingGADGETFACTORY_H_

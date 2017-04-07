@@ -30,8 +30,9 @@
 
 #include <QWidget>
 
-namespace Ui {
-    class opmap_statusbar_widget;
+namespace Ui
+{
+class opmap_statusbar_widget;
 }
 
 class opmap_statusbar_widget : public QWidget

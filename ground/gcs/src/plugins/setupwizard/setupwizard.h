@@ -29,12 +29,12 @@
 #ifndef SETUPWIZARD_H
 #define SETUPWIZARD_H
 
-#include <QWizard>
-#include <coreplugin/icore.h>
-#include <coreplugin/iboardtype.h>
-#include <coreplugin/connectionmanager.h>
-#include "vehicleconfigurationsource.h"
 #include "vehicleconfigurationhelper.h"
+#include "vehicleconfigurationsource.h"
+#include <QWizard>
+#include <coreplugin/connectionmanager.h>
+#include <coreplugin/iboardtype.h>
+#include <coreplugin/icore.h>
 
 /**
  * @brief The SetupWizard class is the main interface to the setup
@@ -44,30 +44,22 @@
  * board, such as whether the input page is supported or the board can
  * be updated.
  */
-class SetupWizard : public QWizard, public VehicleConfigurationSource {
+class SetupWizard : public QWizard, public VehicleConfigurationSource
+{
     Q_OBJECT
 
 public:
     SetupWizard(QWidget *parent = 0);
     int nextId() const;
 
-    void setControllerType(Core::IBoardType* type)
-    {
-        m_controllerType = type;
-    }
-    Core::IBoardType* getControllerType() const
-    {
-        return m_controllerType;
-    }
+    void setControllerType(Core::IBoardType *type) { m_controllerType = type; }
+    Core::IBoardType *getControllerType() const { return m_controllerType; }
 
     void setVehicleType(SetupWizard::VEHICLE_TYPE type)
     {
         m_vehicleType = type;
     }
-    SetupWizard::VEHICLE_TYPE getVehicleType() const
-    {
-        return m_vehicleType;
-    }
+    SetupWizard::VEHICLE_TYPE getVehicleType() const { return m_vehicleType; }
 
     void setVehicleSubType(SetupWizard::VEHICLE_SUB_TYPE type)
     {
@@ -78,32 +70,17 @@ public:
         return m_vehicleSubType;
     }
 
-    void setInputType(Core::IBoardType::InputType type)
-    {
-        m_inputType = type;
-    }
-    Core::IBoardType::InputType getInputType() const
-    {
-        return m_inputType;
-    }
+    void setInputType(Core::IBoardType::InputType type) { m_inputType = type; }
+    Core::IBoardType::InputType getInputType() const { return m_inputType; }
 
-    void setESCType(SetupWizard::ESC_TYPE type)
-    {
-        m_escType = type;
-    }
-    SetupWizard::ESC_TYPE getESCType() const
-    {
-        return m_escType;
-    }
+    void setESCType(SetupWizard::ESC_TYPE type) { m_escType = type; }
+    SetupWizard::ESC_TYPE getESCType() const { return m_escType; }
 
     void setGPSSetting(SetupWizard::GPS_SETTING setting)
     {
         m_gpsSetting = setting;
     }
-    SetupWizard::GPS_SETTING getGPSSetting() const
-    {
-        return m_gpsSetting;
-    }
+    SetupWizard::GPS_SETTING getGPSSetting() const { return m_gpsSetting; }
 
     void setRadioSetting(SetupWizard::RADIO_SETTING setting)
     {
@@ -116,16 +93,11 @@ public:
 
     void setLevellingBias(accelGyroBias bias)
     {
-        m_calibrationBias = bias; m_calibrationPerformed = true;
+        m_calibrationBias = bias;
+        m_calibrationPerformed = true;
     }
-    bool isCalibrationPerformed() const
-    {
-        return m_calibrationPerformed;
-    }
-    accelGyroBias getCalibrationBias() const
-    {
-        return m_calibrationBias;
-    }
+    bool isCalibrationPerformed() const { return m_calibrationPerformed; }
+    accelGyroBias getCalibrationBias() const { return m_calibrationBias; }
 
     void setActuatorSettings(QList<actuatorChannelSettings> actuatorSettings)
     {
@@ -140,14 +112,8 @@ public:
         return m_actuatorSettings;
     }
 
-    void setRestartNeeded(bool needed)
-    {
-        m_restartNeeded = needed;
-    }
-    bool isRestartNeeded() const
-    {
-        return m_restartNeeded;
-    }
+    void setRestartNeeded(bool needed) { m_restartNeeded = needed; }
+    bool isRestartNeeded() const { return m_restartNeeded; }
     bool isDshot() const
     {
         switch (m_escType) {
@@ -175,16 +141,33 @@ public:
 private slots:
     void customBackClicked();
     void pageChanged(int currId);
+
 private:
-    enum { PAGE_START, PAGE_CONTROLLER, PAGE_VEHICLES, PAGE_MULTI, PAGE_FIXEDWING,
-           PAGE_HELI, PAGE_SURFACE, PAGE_INPUT, PAGE_INPUT_NOT_SUPPORTED, PAGE_OUTPUT,
-           PAGE_BIAS_CALIBRATION, PAGE_OUTPUT_CALIBRATION, PAGE_SAVE, PAGE_SUMMARY,
-           PAGE_NOTYETIMPLEMENTED, PAGE_BOARDTYPE_UNKNOWN, PAGE_REBOOT, PAGE_END };
+    enum {
+        PAGE_START,
+        PAGE_CONTROLLER,
+        PAGE_VEHICLES,
+        PAGE_MULTI,
+        PAGE_FIXEDWING,
+        PAGE_HELI,
+        PAGE_SURFACE,
+        PAGE_INPUT,
+        PAGE_INPUT_NOT_SUPPORTED,
+        PAGE_OUTPUT,
+        PAGE_BIAS_CALIBRATION,
+        PAGE_OUTPUT_CALIBRATION,
+        PAGE_SAVE,
+        PAGE_SUMMARY,
+        PAGE_NOTYETIMPLEMENTED,
+        PAGE_BOARDTYPE_UNKNOWN,
+        PAGE_REBOOT,
+        PAGE_END
+    };
     void createPages();
     bool saveHardwareSettings() const;
     bool canAutoUpdate() const;
 
-    Core::IBoardType* m_controllerType;
+    Core::IBoardType *m_controllerType;
     VEHICLE_TYPE m_vehicleType;
     VEHICLE_SUB_TYPE m_vehicleSubType;
     Core::IBoardType::InputType m_inputType;

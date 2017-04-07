@@ -3,7 +3,8 @@
  *
  * @file       command_p.h
  * @author     The OpenPilot Team, http://www.openpilot.org Copyright (C) 2010.
- *             Parts by Nokia Corporation (qt-info@nokia.com) Copyright (C) 2009.
+ *             Parts by Nokia Corporation (qt-info@nokia.com) Copyright (C)
+ *2009.
  * @addtogroup GCSPlugins GCS Plugins
  * @{
  * @addtogroup CorePlugin Core Plugin
@@ -11,33 +12,35 @@
  * @brief The Core GCS plugin
  *****************************************************************************/
 /*
- * This program is free software; you can redistribute it and/or modify 
- * it under the terms of the GNU General Public License as published by 
- * the Free Software Foundation; either version 3 of the License, or 
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 3 of the License, or
  * (at your option) any later version.
- * 
- * This program is distributed in the hope that it will be useful, but 
- * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY 
- * or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License 
+ *
+ * This program is distributed in the hope that it will be useful, but
+ * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
+ * or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License
  * for more details.
- * 
- * You should have received a copy of the GNU General Public License along 
+ *
+ * You should have received a copy of the GNU General Public License along
  * with this program; if not, see <http://www.gnu.org/licenses/>
  */
 
 #ifndef COMMAND_P_H
 #define COMMAND_P_H
 
-#include "command.h"
 #include "actionmanager_p.h"
+#include "command.h"
 
+#include <QKeySequence>
 #include <QtCore/QList>
 #include <QtCore/QMultiMap>
 #include <QtCore/QPointer>
-#include <QKeySequence>
 
-namespace Core {
-namespace Internal {
+namespace Core
+{
+namespace Internal
+{
 
 class CommandPrivate : public Core::Command
 {
@@ -98,6 +101,7 @@ public:
     bool setCurrentContext(const QList<int> &context);
 
     bool isActive() const;
+
 private:
     QList<int> m_context;
     QShortcut *m_shortcut;
@@ -124,7 +128,7 @@ public:
 
 protected:
     void updateToolTipWithKeySequence();
-    
+
     QAction *m_action;
     QList<CommandLocation> m_locations;
     QString m_toolTip;
@@ -148,7 +152,7 @@ private slots:
 private:
     QPointer<QAction> m_currentAction;
     QList<int> m_context;
-    QMap<int, QPointer<QAction> > m_contextActionMap;
+    QMap<int, QPointer<QAction>> m_contextActionMap;
     bool m_active;
     bool m_contextInitialized;
 };

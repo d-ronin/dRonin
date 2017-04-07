@@ -12,55 +12,55 @@
  * @brief      The UAVUObjects GCS plugin
  *****************************************************************************/
 /*
- * This program is free software; you can redistribute it and/or modify 
- * it under the terms of the GNU General Public License as published by 
- * the Free Software Foundation; either version 3 of the License, or 
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 3 of the License, or
  * (at your option) any later version.
- * 
- * This program is distributed in the hope that it will be useful, but 
- * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY 
- * or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License 
+ *
+ * This program is distributed in the hope that it will be useful, but
+ * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
+ * or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License
  * for more details.
- * 
- * You should have received a copy of the GNU General Public License along 
+ *
+ * You should have received a copy of the GNU General Public License along
  * with this program; if not, see <http://www.gnu.org/licenses/>
  */
 #ifndef UAVDATAOBJECT_H
 #define UAVDATAOBJECT_H
 
-#include "uavobjects_global.h"
+#include "uavmetaobject.h"
 #include "uavobject.h"
 #include "uavobjectfield.h"
-#include "uavmetaobject.h"
+#include "uavobjects_global.h"
 #include <QList>
 
-class UAVOBJECTS_EXPORT UAVDataObject: public UAVObject
+class UAVOBJECTS_EXPORT UAVDataObject : public UAVObject
 {
     Q_OBJECT
 
 public:
-    UAVDataObject(quint32 objID, bool isSingleInst, bool isSet, const QString& name);
-    void initialize(quint32 instID, UAVMetaObject* mobj);
-    void initialize(UAVMetaObject* mobj);
+    UAVDataObject(quint32 objID, bool isSingleInst, bool isSet,
+                  const QString &name);
+    void initialize(quint32 instID, UAVMetaObject *mobj);
+    void initialize(UAVMetaObject *mobj);
     bool isSettings();
-    void setMetadata(const Metadata& mdata);
+    void setMetadata(const Metadata &mdata);
     Metadata getMetadata();
-    UAVMetaObject* getMetaObject();
-    virtual UAVDataObject* clone(quint32 instID = 0) = 0;
-    virtual UAVDataObject* dirtyClone() = 0;
+    UAVMetaObject *getMetaObject();
+    virtual UAVDataObject *clone(quint32 instID = 0) = 0;
+    virtual UAVDataObject *dirtyClone() = 0;
 
     bool getIsPresentOnHardware() const;
     void setIsPresentOnHardware(bool value);
 
 signals:
-    void presentOnHardwareChanged(UAVDataObject*);
+    void presentOnHardwareChanged(UAVDataObject *);
     void presentOnHardwareChanged(bool present);
 
 private:
-    UAVMetaObject* mobj;
+    UAVMetaObject *mobj;
     bool isSet;
     bool isPresentOnHardware;
-
 };
 
 #endif // UAVDATAOBJECT_H

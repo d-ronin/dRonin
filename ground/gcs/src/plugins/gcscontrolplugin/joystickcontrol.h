@@ -27,14 +27,15 @@
 #ifndef JOYSTICKCONTROL_H
 #define JOYSTICKCONTROL_H
 
-#include <QWidget>
-#include <QGraphicsView>
-#include <QtSvg/QSvgRenderer>
-#include <QtSvg/QGraphicsSvgItem>
 #include "manualcontrolcommand.h"
+#include <QGraphicsView>
+#include <QWidget>
+#include <QtSvg/QGraphicsSvgItem>
+#include <QtSvg/QSvgRenderer>
 
-namespace Ui {
-    class JoystickControl;
+namespace Ui
+{
+class JoystickControl;
 }
 
 class JoystickControl : public QGraphicsView
@@ -59,10 +60,10 @@ signals:
     void positionClicked(double x, double y);
 
 private:
-     QSvgRenderer *m_renderer;
-     QGraphicsSvgItem *m_background;
-     QGraphicsSvgItem *m_joystickArea;
-     QGraphicsSvgItem *m_joystickEnd;
+    QSvgRenderer *m_renderer;
+    QGraphicsSvgItem *m_background;
+    QGraphicsSvgItem *m_joystickArea;
+    QGraphicsSvgItem *m_joystickEnd;
 };
 
 #endif // JOYSTICKCONTROL_H

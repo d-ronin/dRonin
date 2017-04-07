@@ -8,7 +8,7 @@
  * @{
  * @addtogroup DialPlugin Dial Plugin
  * @{
- * @brief Plots flight information rotary style dials 
+ * @brief Plots flight information rotary style dials
  *****************************************************************************/
 /*
  * This program is free software; you can redistribute it and/or modify
@@ -28,30 +28,33 @@
 #ifndef DIALGADGETOPTIONSPAGE_H
 #define DIALGADGETOPTIONSPAGE_H
 
-#include "coreplugin/dialogs/ioptionspage.h"
 #include "QString"
-#include <QStringList>
+#include "coreplugin/dialogs/ioptionspage.h"
 #include <QDebug>
 #include <QFont>
 #include <QFontDialog>
+#include <QStringList>
 
-namespace Core {
+namespace Core
+{
 class IUAVGadgetConfiguration;
 }
 
 class DialGadgetConfiguration;
 
-namespace Ui {
-    class DialGadgetOptionsPage;
+namespace Ui
+{
+class DialGadgetOptionsPage;
 }
 
 using namespace Core;
 
 class DialGadgetOptionsPage : public IOptionsPage
 {
-Q_OBJECT
+    Q_OBJECT
 public:
-    explicit DialGadgetOptionsPage(DialGadgetConfiguration *config, QObject *parent = 0);
+    explicit DialGadgetOptionsPage(DialGadgetConfiguration *config,
+                                   QObject *parent = 0);
 
     QWidget *createPage(QWidget *parent);
     void apply();

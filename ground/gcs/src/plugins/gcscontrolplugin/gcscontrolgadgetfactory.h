@@ -27,11 +27,12 @@
 #ifndef GCSControlGADGETFACTORY_H_
 #define GCSControlGADGETFACTORY_H_
 
-#include <coreplugin/iuavgadgetfactory.h>
 #include "gcscontrolgadgetconfiguration.h"
 #include "gcscontrolgadgetoptionspage.h"
+#include <coreplugin/iuavgadgetfactory.h>
 
-namespace Core {
+namespace Core
+{
 class IUAVGadget;
 class IUAVGadgetFactory;
 }
@@ -48,7 +49,6 @@ public:
     IUAVGadget *createGadget(QWidget *parent);
     IUAVGadgetConfiguration *createConfiguration(QSettings *qSettings);
     IOptionsPage *createOptionsPage(IUAVGadgetConfiguration *config);
-
 };
 
 #endif // GCSControlGADGETFACTORY_H_

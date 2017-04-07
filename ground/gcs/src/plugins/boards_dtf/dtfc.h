@@ -29,7 +29,7 @@
  * must be maintained in each individual source file that is a derivative work
  * of this source file; otherwise redistribution is prohibited.
  */
- 
+
 #ifndef DTFC_H
 #define DTFC_H
 
@@ -49,7 +49,8 @@ public:
     virtual int queryMaxGyroRate();
 
     //! Determine if this board supports configuring the receiver
-    virtual bool isInputConfigurationSupported(Core::IBoardType::InputType type);
+    virtual bool
+    isInputConfigurationSupported(Core::IBoardType::InputType type);
 
     /**
     * Configure the board to use an receiver input type on a port number
@@ -77,9 +78,10 @@ public:
      * @brief getConnectionDiagram get the connection diagram for this board
      * @return a string with the name of the resource for this board diagram
      */
-    virtual QString getConnectionDiagram() { return ":/dtf/images/dtfc-connection.svg"; }
-
+    virtual QString getConnectionDiagram()
+    {
+        return ":/dtf/images/dtfc-connection.svg";
+    }
 };
-
 
 #endif // DTFC_H

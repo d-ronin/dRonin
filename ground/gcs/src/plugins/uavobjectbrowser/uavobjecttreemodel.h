@@ -14,17 +14,17 @@
  * @brief The UAVObject Browser gadget plugin
  *****************************************************************************/
 /*
- * This program is free software; you can redistribute it and/or modify 
- * it under the terms of the GNU General Public License as published by 
- * the Free Software Foundation; either version 3 of the License, or 
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 3 of the License, or
  * (at your option) any later version.
- * 
- * This program is distributed in the hope that it will be useful, but 
- * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY 
- * or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License 
+ *
+ * This program is distributed in the hope that it will be useful, but
+ * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
+ * or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License
  * for more details.
- * 
- * You should have received a copy of the GNU General Public License along 
+ *
+ * You should have received a copy of the GNU General Public License along
  * with this program; if not, see <http://www.gnu.org/licenses/>
  *
  * Additional note on redistribution: The copyright and license notices above
@@ -37,10 +37,10 @@
 
 #include "treeitem.h"
 #include <QAbstractItemModel>
-#include <QtCore/QMap>
-#include <QtCore/QList>
 #include <QColor>
 #include <QFont>
+#include <QtCore/QList>
+#include <QtCore/QMap>
 
 class TopTreeItem;
 class ObjectTreeItem;
@@ -55,13 +55,14 @@ class QTimer;
 
 class UAVObjectTreeModel : public QAbstractItemModel
 {
-Q_OBJECT
+    Q_OBJECT
 public:
-    explicit UAVObjectTreeModel(QObject *parent = 0, bool useScientificNotation=false);
+    explicit UAVObjectTreeModel(QObject *parent = 0,
+                                bool useScientificNotation = false);
     ~UAVObjectTreeModel();
 
     QVariant data(const QModelIndex &index, int role) const;
-    bool setData(const QModelIndex &index, const QVariant & value, int role);
+    bool setData(const QModelIndex &index, const QVariant &value, int role);
     Qt::ItemFlags flags(const QModelIndex &index) const;
     QVariant headerData(int section, Qt::Orientation orientation,
                         int role = Qt::DisplayRole) const;
@@ -71,37 +72,52 @@ public:
     int rowCount(const QModelIndex &parent = QModelIndex()) const;
     int columnCount(const QModelIndex &parent = QModelIndex()) const;
 
-    TopTreeItem* getSettingsTree(){return m_settingsTree;}
-    TopTreeItem* getNonSettingsTree(){return m_nonSettingsTree;}
+    TopTreeItem *getSettingsTree() { return m_settingsTree; }
+    TopTreeItem *getNonSettingsTree() { return m_nonSettingsTree; }
 
-    void setRecentlyUpdatedColor(QColor color) { m_recentlyUpdatedColor = color; }
-    void setManuallyChangedColor(QColor color) { m_manuallyChangedColor = color; }
+    void setRecentlyUpdatedColor(QColor color)
+    {
+        m_recentlyUpdatedColor = color;
+    }
+    void setManuallyChangedColor(QColor color)
+    {
+        m_manuallyChangedColor = color;
+    }
     void setNotPresentOnHwColor(QColor color) { m_notPresentOnHwColor = color; }
-    void setRecentlyUpdatedTimeout(int timeout) {
+    void setRecentlyUpdatedTimeout(int timeout)
+    {
         m_recentlyUpdatedTimeout = timeout;
         TreeItem::setHighlightTime(timeout);
     }
-    void setOnlyHighlightChangedValues(bool highlight) {m_onlyHighlightChangedValues = highlight; }
+    void setOnlyHighlightChangedValues(bool highlight)
+    {
+        m_onlyHighlightChangedValues = highlight;
+    }
 
     QList<QModelIndex> getMetaDataIndexes();
     QList<QModelIndex> getDataObjectIndexes();
 
-    QModelIndex getIndex(int indexRow, int indexCol, TopTreeItem *topTreeItem){return createIndex(indexRow, indexCol, topTreeItem);}
+    QModelIndex getIndex(int indexRow, int indexCol, TopTreeItem *topTreeItem)
+    {
+        return createIndex(indexRow, indexCol, topTreeItem);
+    }
 
 signals:
     void presentOnHardwareChanged();
 public slots:
     void newObject(UAVObject *obj);
-    void initializeModel(bool categorize = true, bool useScientificFloatNotation = true);
-    void instanceRemove(UAVObject*);
+    void initializeModel(bool categorize = true,
+                         bool useScientificFloatNotation = true);
+    void instanceRemove(UAVObject *);
 private slots:
     void highlightUpdatedObject(UAVObject *obj);
-    void updateHighlight(TreeItem*);
+    void updateHighlight(TreeItem *);
     void updateCurrentTime();
-    void presentOnHardwareChangedCB(UAVDataObject*);
+    void presentOnHardwareChangedCB(UAVDataObject *);
 
 private:
-    void setupModelData(UAVObjectManager *objManager, bool categorize = true, bool useScientificFloatNotation = true);
+    void setupModelData(UAVObjectManager *objManager, bool categorize = true,
+                        bool useScientificFloatNotation = true);
     QModelIndex index(TreeItem *item);
     void addDataObject(UAVDataObject *obj, bool categorize = true);
     MetaObjectTreeItem *addMetaObject(UAVMetaObject *obj, TreeItem *parent);

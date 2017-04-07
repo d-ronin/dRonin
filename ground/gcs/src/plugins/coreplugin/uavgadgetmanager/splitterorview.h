@@ -3,7 +3,8 @@
  *
  * @file       splitterorview.h
  * @author     The OpenPilot Team, http://www.openpilot.org Copyright (C) 2010.
- *             Parts by Nokia Corporation (qt-info@nokia.com) Copyright (C) 2009.
+ *             Parts by Nokia Corporation (qt-info@nokia.com) Copyright (C)
+ *2009.
  * @addtogroup GCSPlugins GCS Plugins
  * @{
  * @addtogroup CorePlugin Core Plugin
@@ -28,20 +29,23 @@
 #ifndef SPLITTERORVIEW_H
 #define SPLITTERORVIEW_H
 
-#include <QWidget>
-#include <QMouseEvent>
 #include "uavgadgetmanager.h"
 #include "uavgadgetview.h"
+#include <QMouseEvent>
+#include <QWidget>
 
-namespace Core {
+namespace Core
+{
 
-namespace Internal {
+namespace Internal
+{
 
-class SplitterOrView  : public QWidget
+class SplitterOrView : public QWidget
 {
     Q_OBJECT
 public:
-    SplitterOrView(UAVGadgetManager *uavGadgetManager, Core::IUAVGadget *uavGadget = 0, bool restoring = false);
+    SplitterOrView(UAVGadgetManager *uavGadgetManager,
+                   Core::IUAVGadget *uavGadget = 0, bool restoring = false);
     ~SplitterOrView();
 
     void split(Qt::Orientation orientation, bool restoring = false);
@@ -50,17 +54,23 @@ public:
     inline bool isView() const { return m_view != 0; }
 
     inline bool isSplitter() const { return m_splitter != 0; }
-    inline Core::IUAVGadget *gadget() const { return m_view ? m_view->gadget() : 0; }
-    inline bool hasGadget(Core::IUAVGadget *uavGadget) const { return m_view && m_view->hasGadget(uavGadget); }
+    inline Core::IUAVGadget *gadget() const
+    {
+        return m_view ? m_view->gadget() : 0;
+    }
+    inline bool hasGadget(Core::IUAVGadget *uavGadget) const
+    {
+        return m_view && m_view->hasGadget(uavGadget);
+    }
     inline bool hasGadget() const { return m_view && (m_view->gadget() != 0); }
     inline UAVGadgetView *view() const { return m_view; }
     inline QSplitter *splitter() const { return m_splitter; }
-    QList<Core::IUAVGadget*> gadgets();
+    QList<Core::IUAVGadget *> gadgets();
     QSplitter *takeSplitter();
     UAVGadgetView *takeView();
 
-    void saveState(QSettings*) const;
-    void restoreState(QSettings*);
+    void saveState(QSettings *) const;
+    void restoreState(QSettings *);
 
     SplitterOrView *findView(Core::IUAVGadget *uavGadget);
     SplitterOrView *findView(UAVGadgetView *view);
@@ -76,12 +86,12 @@ public:
     void unsplitAll(IUAVGadget *currentGadget);
 
 protected:
-//    void paintEvent(QPaintEvent *);
+    //    void paintEvent(QPaintEvent *);
     void mousePressEvent(QMouseEvent *e);
 
 private slots:
     // Called when the user moves the splitter, and updates our m_sizes.
-    void onSplitterMoved( int pos, int index );
+    void onSplitterMoved(int pos, int index);
 
 private:
     void unsplitAll_helper();
@@ -90,7 +100,8 @@ private:
     // The gadget manager that controls us.
     QPointer<UAVGadgetManager> m_uavGadgetManager;
 
-    // Our layout, we use stacked so we can change stuff without visual artifacts (I think...)
+    // Our layout, we use stacked so we can change stuff without visual
+    // artifacts (I think...)
     QPointer<QStackedLayout> m_layout;
 
     // Our view, if we are a view (showing 1 gadget) and not a splitter.
@@ -99,11 +110,10 @@ private:
     // Out splitter, if we are a splitter.
     QPointer<QSplitter> m_splitter;
 
-    // The splitter sizes. We keep our own copy of these, since after loading they can't realiably be retrieved.
+    // The splitter sizes. We keep our own copy of these, since after loading
+    // they can't realiably be retrieved.
     QList<int> m_sizes;
 };
-
-
 }
 }
 #endif // SPLITTERORVIEW_H

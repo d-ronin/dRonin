@@ -29,7 +29,8 @@
 
 #include <coreplugin/iuavgadget.h>
 
-namespace Core {
+namespace Core
+{
 class IUAVGadget;
 }
 
@@ -41,18 +42,19 @@ class PathPlannerGadget : public Core::IUAVGadget
 {
     Q_OBJECT
 public:
-    PathPlannerGadget(QString classId, PathPlannerGadgetWidget *widget, QWidget *parent = 0);
+    PathPlannerGadget(QString classId, PathPlannerGadgetWidget *widget,
+                      QWidget *parent = 0);
     ~PathPlannerGadget();
 
     QList<int> context() const { return m_context; }
     QWidget *widget() { return m_widget; }
     QString contextHelpId() const { return QString(); }
 
-    void loadConfiguration(IUAVGadgetConfiguration* config);
+    void loadConfiguration(IUAVGadgetConfiguration *config);
+
 private:
     QWidget *m_widget;
-	QList<int> m_context;
+    QList<int> m_context;
 };
-
 
 #endif // PathPlannerGADGET_H_

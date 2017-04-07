@@ -36,13 +36,14 @@ class SystemHealthPlugin : public ExtensionSystem::IPlugin
     Q_OBJECT
     Q_PLUGIN_METADATA(IID "org.dronin.plugins.SystemHealthGadget")
 public:
-        SystemHealthPlugin();
-        ~SystemHealthPlugin();
+    SystemHealthPlugin();
+    ~SystemHealthPlugin();
 
-   void extensionsInitialized();
-   bool initialize(const QStringList & arguments, QString * errorString);
-   void shutdown();
+    void extensionsInitialized();
+    bool initialize(const QStringList &arguments, QString *errorString);
+    void shutdown();
+
 private:
-   SystemHealthGadgetFactory *mf;
+    SystemHealthGadgetFactory *mf;
 };
 #endif /* SYSTEMHEALTHPLUGIN_H_ */

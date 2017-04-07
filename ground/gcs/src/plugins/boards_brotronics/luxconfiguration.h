@@ -23,21 +23,21 @@
  * with this program; if not, see <http://www.gnu.org/licenses/>
  */
 
-
 #ifndef LUXCONFIGURATION_H
 #define LUXCONFIGURATION_H
 
-#include <QPixmap>
 #include "configtaskwidget.h"
+#include <QPixmap>
 
-namespace Ui {
+namespace Ui
+{
 class LuxConfiguration;
 }
 
 class LuxConfiguration : public ConfigTaskWidget
 {
     Q_OBJECT
-    
+
 public:
     explicit LuxConfiguration(QWidget *parent = 0);
     ~LuxConfiguration();

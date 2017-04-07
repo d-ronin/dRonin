@@ -26,18 +26,17 @@
 #ifndef CONFIGSTABILIZATIONWIDGET_H
 #define CONFIGSTABILIZATIONWIDGET_H
 
-#include "ui_stabilization.h"
 #include "../uavobjectwidgetutils/configtaskwidget.h"
 #include "extensionsystem/pluginmanager.h"
-#include "uavobjectmanager.h"
-#include "uavobject.h"
 #include "stabilizationsettings.h"
-#include <QWidget>
+#include "uavobject.h"
+#include "uavobjectmanager.h"
+#include "ui_stabilization.h"
 #include <QTimer>
+#include <QWidget>
 #include <expocurve.h>
 
-
-class ConfigStabilizationWidget: public ConfigTaskWidget
+class ConfigStabilizationWidget : public ConfigTaskWidget
 {
     Q_OBJECT
 
@@ -59,7 +58,7 @@ private slots:
     void linkCheckBoxes(int value);
     void ratesLink(int value);
 
-    void processLinkedWidgets(QWidget*);
+    void processLinkedWidgets(QWidget *);
     void setMaximums();
     void derivedValuesChanged();
     void sourceValuesChanged();

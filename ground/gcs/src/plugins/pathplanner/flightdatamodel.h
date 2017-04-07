@@ -27,54 +27,63 @@
 #ifndef FlightDataModel_H
 #define FlightDataModel_H
 
-#include <QAbstractTableModel>
 #include "pathplanner_global.h"
+#include <QAbstractTableModel>
 
 /**
  * @brief The PathPlanData struct is the internal representation
  * of the waypoints. Notice this is in absolute terms, not NED.
  */
-struct PathPlanData
-{
+struct PathPlanData {
     QString wpDescription; //!< Description for the waypoint
     double latPosition;    //!< Latitude of the waypoint
     double lngPosition;    //!< Longitude of the waypoint
     double altitude;       //!< Altitude of the waypoint (m above ellipsoid)
     float velocity;        //!< Velocity associated with this waypoint
     int mode;              //!< Navigation mode for this waypoint
-    float mode_params;     //!< Optional parameters associated with this waypoint
-    bool locked;           //!< Lock a waypoint
+    float mode_params; //!< Optional parameters associated with this waypoint
+    bool locked;       //!< Lock a waypoint
 };
 
 class PATHPLANNER_EXPORT FlightDataModel : public QAbstractTableModel
 {
     Q_OBJECT
 public:
-
     //! The column names
-    enum PathPlanDataEnum
-    {
-        LATPOSITION,LNGPOSITION,ALTITUDE,
-        NED_NORTH, NED_EAST, NED_DOWN,
-        VELOCITY,MODE,MODE_PARAMS,LOCKED, WPDESCRIPTION,
+    enum PathPlanDataEnum {
+        LATPOSITION,
+        LNGPOSITION,
+        ALTITUDE,
+        NED_NORTH,
+        NED_EAST,
+        NED_DOWN,
+        VELOCITY,
+        MODE,
+        MODE_PARAMS,
+        LOCKED,
+        WPDESCRIPTION,
         LASTCOLUMN
     };
 
     FlightDataModel(QObject *parent);
-    int rowCount(const QModelIndex &parent = QModelIndex()) const ;
+    int rowCount(const QModelIndex &parent = QModelIndex()) const;
     int columnCount(const QModelIndex &parent = QModelIndex()) const;
     QVariant data(const QModelIndex &index, int role = Qt::DisplayRole) const;
-    QVariant headerData(int section, Qt::Orientation orientation, int role) const;
+    QVariant headerData(int section, Qt::Orientation orientation,
+                        int role) const;
     void fixupValidationErrors();
 
-    bool setData(const QModelIndex & index, const QVariant & value, int role = Qt::EditRole);
-    Qt::ItemFlags flags(const QModelIndex & index) const ;
-    bool insertRows ( int row, int count, const QModelIndex & parent = QModelIndex() );
-    bool removeRows ( int row, int count, const QModelIndex & parent = QModelIndex() );
+    bool setData(const QModelIndex &index, const QVariant &value,
+                 int role = Qt::EditRole);
+    Qt::ItemFlags flags(const QModelIndex &index) const;
+    bool insertRows(int row, int count,
+                    const QModelIndex &parent = QModelIndex());
+    bool removeRows(int row, int count,
+                    const QModelIndex &parent = QModelIndex());
     bool writeToFile(QString filename);
     void readFromFile(QString fileName);
 
-    static QMap<int,QString> modeNames;
+    static QMap<int, QString> modeNames;
 
     //! Replace a model data with another model
     bool replaceData(FlightDataModel *newModel);
@@ -84,7 +93,7 @@ public:
 
 private:
     QList<PathPlanData *> dataStorage;
-    
+
     bool valPaused;
 
     //! NED representation of a location

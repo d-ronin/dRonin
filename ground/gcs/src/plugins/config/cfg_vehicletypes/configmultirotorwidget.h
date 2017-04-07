@@ -26,26 +26,27 @@
 #ifndef CONFIGMULTIROTORWIDGET_H
 #define CONFIGMULTIROTORWIDGET_H
 
-#include "ui_airframe.h"
 #include "../uavobjectwidgetutils/configtaskwidget.h"
 #include "cfg_vehicletypes/vehicleconfig.h"
+#include "ui_airframe.h"
 
 #include "extensionsystem/pluginmanager.h"
-#include "uavobjectmanager.h"
 #include "uavobject.h"
+#include "uavobjectmanager.h"
 #include "uavtalk/telemetrymanager.h"
-#include <QWidget>
-#include <QList>
 #include <QItemDelegate>
+#include <QList>
+#include <QWidget>
 
 class Ui_Widget;
 
-class ConfigMultiRotorWidget: public VehicleConfig
+class ConfigMultiRotorWidget : public VehicleConfig
 {
     Q_OBJECT
 
 public:
-    ConfigMultiRotorWidget(Ui_AircraftWidget *aircraft = 0, QWidget *parent = 0);
+    ConfigMultiRotorWidget(Ui_AircraftWidget *aircraft = 0,
+                           QWidget *parent = 0);
     ~ConfigMultiRotorWidget();
 
     friend class ConfigVehicleTypeWidget;
@@ -60,12 +61,13 @@ private:
     bool setupHexa(bool pLayout);
     bool setupOcto();
     bool setupMultiRotorMixer(double mixerFactors[8][3]);
-    void setupMotors(QList<QString> motorList, SystemSettings::AirframeTypeOptions vehicle);
+    void setupMotors(QList<QString> motorList,
+                     SystemSettings::AirframeTypeOptions vehicle);
     void setupQuadMotor(int channel, double roll, double pitch, double yaw);
 
     float invertMotors;
 
-    virtual void ResetActuators(GUIConfigDataUnion* configData);
+    virtual void ResetActuators(GUIConfigDataUnion *configData);
     static QStringList getChannelDescriptions();
     static const QString CHANNELBOXNAME;
     static const QString CHANNELLABELNAME;
@@ -75,16 +77,15 @@ private:
 
 private slots:
     virtual void setupUI(SystemSettings::AirframeTypeOptions airframeType);
-    void refreshAirframeWidgetsValues(SystemSettings::AirframeTypeOptions frameType);
-    virtual SystemSettings::AirframeTypeOptions updateConfigObjectsFromWidgets();
+    void
+    refreshAirframeWidgetsValues(SystemSettings::AirframeTypeOptions frameType);
+    virtual SystemSettings::AirframeTypeOptions
+    updateConfigObjectsFromWidgets();
     virtual bool throwConfigError(int numMotors);
 
 protected:
-
 signals:
     void configurationChanged();
-
 };
-
 
 #endif // CONFIGMULTIROTORWIDGET_H

@@ -31,27 +31,26 @@
 #ifndef UAVSETTINGSIMPORTEXPORT_H
 #define UAVSETTINGSIMPORTEXPORT_H
 
-#include <extensionsystem/iplugin.h>
 #include "uavobjectutil/uavobjectutilmanager.h"
 #include "uavsettingsimportexport_global.h"
 #include "uavsettingsimportexportmanager.h"
-class UAVSETTINGSIMPORTEXPORT_EXPORT UAVSettingsImportExportPlugin : public ExtensionSystem::IPlugin
+#include <extensionsystem/iplugin.h>
+class UAVSETTINGSIMPORTEXPORT_EXPORT UAVSettingsImportExportPlugin
+        : public ExtensionSystem::IPlugin
 {
     Q_OBJECT
     Q_PLUGIN_METADATA(IID "org.dronin.plugins.uavsettingsimportexport")
 
 public:
-   UAVSettingsImportExportPlugin();
-   ~UAVSettingsImportExportPlugin();
+    UAVSettingsImportExportPlugin();
+    ~UAVSettingsImportExportPlugin();
 
-   void extensionsInitialized();
-   bool initialize(const QStringList & arguments, QString * errorString);
-   void shutdown();
+    void extensionsInitialized();
+    bool initialize(const QStringList &arguments, QString *errorString);
+    void shutdown();
+
 private:
-   UAVSettingsImportExportManager *mf;
-
-
-
+    UAVSettingsImportExportManager *mf;
 };
 
 #endif // UAVSETTINGSIMPORTEXPORT_H

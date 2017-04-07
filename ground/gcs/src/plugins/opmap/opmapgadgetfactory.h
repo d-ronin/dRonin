@@ -30,9 +30,10 @@
 
 #include <coreplugin/iuavgadgetfactory.h>
 
-namespace Core {
-    class IUAVGadget;
-    class IUAVGadgetFactory;
+namespace Core
+{
+class IUAVGadget;
+class IUAVGadgetFactory;
 }
 
 using namespace Core;

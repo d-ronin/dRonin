@@ -29,8 +29,8 @@
 #define SCOPEGADGETCONFIGURATION_H
 
 #include "scopesconfig.h"
-#include <coreplugin/iuavgadgetconfiguration.h>
 #include "ui_scopegadgetoptionspage.h"
+#include <coreplugin/iuavgadgetconfiguration.h>
 
 #include <QVector>
 
@@ -38,25 +38,24 @@
 
 using namespace Core;
 
-
 class ScopeGadgetConfiguration : public IUAVGadgetConfiguration
 {
     Q_OBJECT
 public:
-    explicit ScopeGadgetConfiguration(QString classId, QSettings* qSettings = 0, QObject *parent = 0);
+    explicit ScopeGadgetConfiguration(QString classId, QSettings *qSettings = 0,
+                                      QObject *parent = 0);
     ~ScopeGadgetConfiguration();
 
-    //configurations getter functions
-    ScopeConfig* getScope(){return m_scope;}
+    // configurations getter functions
+    ScopeConfig *getScope() { return m_scope; }
 
-    void saveConfig(QSettings* settings) const; //THIS SEEMS TO BE UNUSED
-    IUAVGadgetConfiguration* clone();
+    void saveConfig(QSettings *settings) const; // THIS SEEMS TO BE UNUSED
+    IUAVGadgetConfiguration *clone();
 
     void applyGuiConfiguration(Ui::ScopeGadgetOptionsPage *options_page);
 
 private:
     ScopeConfig *m_scope;
-
 };
 
 #endif // SCOPEGADGETCONFIGURATION_H

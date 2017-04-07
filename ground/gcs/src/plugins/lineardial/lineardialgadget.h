@@ -7,7 +7,7 @@
  * @{
  * @addtogroup LinearDialPlugin Linear Dial Plugin
  * @{
- * @brief Impliments a gadget that displays linear gauges 
+ * @brief Impliments a gadget that displays linear gauges
  *****************************************************************************/
 /*
  * This program is free software; you can redistribute it and/or modify
@@ -27,8 +27,8 @@
 #ifndef LINEARDIALGADGET_H_
 #define LINEARDIALGADGET_H_
 
-#include <coreplugin/iuavgadget.h>
 #include "lineardialgadgetwidget.h"
+#include <coreplugin/iuavgadget.h>
 
 class IUAVGadget;
 class QWidget;
@@ -41,15 +41,15 @@ class LineardialGadget : public Core::IUAVGadget
 {
     Q_OBJECT
 public:
-    LineardialGadget(QString classId, LineardialGadgetWidget *widget, QWidget *parent = 0);
+    LineardialGadget(QString classId, LineardialGadgetWidget *widget,
+                     QWidget *parent = 0);
     ~LineardialGadget();
 
     QWidget *widget() { return m_widget; }
-    void loadConfiguration(IUAVGadgetConfiguration* config);
+    void loadConfiguration(IUAVGadgetConfiguration *config);
 
 private:
     LineardialGadgetWidget *m_widget;
 };
-
 
 #endif // LINEARDIALGADGET_H_

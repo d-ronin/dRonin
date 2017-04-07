@@ -27,20 +27,22 @@
 #ifndef IPconnectionCONFIGURATION_H
 #define IPconnectionCONFIGURATION_H
 
-#include <coreplugin/iuavgadgetconfiguration.h>
-#include <QString>
-#include <QSettings>
-#include <QVector>
 #include <QMetaType>
+#include <QSettings>
+#include <QString>
+#include <QVector>
+#include <coreplugin/iuavgadgetconfiguration.h>
 
 using namespace Core;
 
 class IPConnectionConfiguration : public IUAVGadgetConfiguration
 {
-Q_OBJECT
+    Q_OBJECT
 
 public:
-    explicit IPConnectionConfiguration(QString classId, QSettings* qSettings = 0, QObject *parent = 0);
+    explicit IPConnectionConfiguration(QString classId,
+                                       QSettings *qSettings = 0,
+                                       QObject *parent = 0);
 
     virtual ~IPConnectionConfiguration();
     void saveConfig() const;
@@ -57,10 +59,10 @@ public:
         QString hostname = "localhost";
         int port = 9000;
 
-        inline bool operator==(const Host& rhs) const {
-            return protocol == rhs.protocol
-                    && port == rhs.port
-                    && hostname == rhs.hostname;
+        inline bool operator==(const Host &rhs) const
+        {
+            return protocol == rhs.protocol && port == rhs.port &&
+                   hostname == rhs.hostname;
         }
     };
 

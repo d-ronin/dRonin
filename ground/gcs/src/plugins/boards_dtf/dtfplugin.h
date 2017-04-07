@@ -29,7 +29,7 @@
  * must be maintained in each individual source file that is a derivative work
  * of this source file; otherwise redistribution is prohibited.
  */
- 
+
 #ifndef DTFPLUGIN_H
 #define DTFPLUGIN_H
 
@@ -41,13 +41,12 @@ class DTFPlugin : public ExtensionSystem::IPlugin
     Q_PLUGIN_METADATA(IID "TauLabs.plugins.DTF" FILE "dtfuhf.json")
 
 public:
-   DTFPlugin();
-   ~DTFPlugin();
+    DTFPlugin();
+    ~DTFPlugin();
 
-   void extensionsInitialized();
-   bool initialize(const QStringList & arguments, QString * errorString);
-   void shutdown();
-
+    void extensionsInitialized();
+    bool initialize(const QStringList &arguments, QString *errorString);
+    void shutdown();
 };
 
 #endif // DTFPLUGIN_H

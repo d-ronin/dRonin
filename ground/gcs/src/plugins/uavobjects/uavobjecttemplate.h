@@ -9,29 +9,29 @@
  * @{
  * @addtogroup UAVObjectsPlugin UAVObjects Plugin
  * @{
- *   
- * @note       Object definition file: $(XMLFILE). 
+ *
+ * @note       Object definition file: $(XMLFILE).
  *             This is an automatically generated file.
  *             DO NOT modify manually.
  *
- * @brief      The UAVUObjects GCS plugin 
+ * @brief      The UAVUObjects GCS plugin
  *****************************************************************************/
-/* 
- * This program is free software; you can redistribute it and/or modify 
- * it under the terms of the GNU General Public License as published by 
- * the Free Software Foundation; either version 3 of the License, or 
+/*
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 3 of the License, or
  * (at your option) any later version.
- * 
- * This program is distributed in the hope that it will be useful, but 
- * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY 
- * or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License 
+ *
+ * This program is distributed in the hope that it will be useful, but
+ * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
+ * or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License
  * for more details.
- * 
- * You should have received a copy of the GNU General Public License along 
+ *
+ * You should have received a copy of the GNU General Public License along
  * with this program; if not, see <http://www.gnu.org/licenses/>
  */
-#ifndef $(NAMEUC)_H
-#define $(NAMEUC)_H
+#ifndef $(NAMEUC) _H
+#define $(NAMEUC) _H
 
 #include "uavdataobject.h"
 #include "uavobjectmanager.h"
@@ -40,28 +40,28 @@
 
 $(PARENT_INCLUDES)
 
-class UAVOBJECTS_EXPORT $(NAME): public UAVDataObject
+class UAVOBJECTS_EXPORT $(NAME) : public UAVDataObject
 {
     Q_OBJECT
-$(PROPERTIES)
-$(ENUMS)
+    $(PROPERTIES)
+    $(ENUMS)
 
 public:
-    // Field structure
+// Field structure
 #ifdef _MSC_VER
 #pragma pack(push, 1)
-__declspec(align(4)) typedef struct {
-$(DATAFIELDS)
-   } DataFields;
+    __declspec(align(4)) typedef struct {
+        $(DATAFIELDS)
+    } DataFields;
 #pragma pack(pop)
 #else
     typedef struct {
-$(DATAFIELDS)
+        $(DATAFIELDS)
     } __attribute__((packed)) __attribute__((aligned(4))) DataFields;
 #endif
     // Field information
-$(DATAFIELDINFO)
-  
+    $(DATAFIELDINFO)
+
     // Constants
     static const quint32 OBJID = $(OBJIDHEX);
     static const QString NAME;
@@ -76,30 +76,32 @@ $(DATAFIELDINFO)
     $(NAME)();
 
     DataFields getData();
-    void setData(const DataFields& data);
+    void setData(const DataFields &data);
     Metadata getDefaultMetadata();
-    UAVDataObject* clone(quint32 instID);
-    UAVDataObject* dirtyClone();
-	
-    static $(NAME)* GetInstance(UAVObjectManager* objMngr, quint32 instID = 0);
-    static qint32 getNumInstances(UAVObjectManager* objMngr) {return objMngr->getNumInstances(OBJID);}
+    UAVDataObject *clone(quint32 instID);
+    UAVDataObject *dirtyClone();
 
-$(PROPERTY_GETTERS)
+    static $(NAME) * GetInstance(UAVObjectManager *objMngr, quint32 instID = 0);
+    static qint32 getNumInstances(UAVObjectManager *objMngr)
+    {
+        return objMngr->getNumInstances(OBJID);
+    }
+
+    $(PROPERTY_GETTERS)
 
 public slots:
-$(PROPERTY_SETTERS)
+    $(PROPERTY_SETTERS)
 
 signals:
-$(PROPERTY_NOTIFICATIONS)
+    $(PROPERTY_NOTIFICATIONS)
 
 private slots:
     void emitNotifications();
-	
+
 private:
     DataFields data;
 
     void setDefaultFieldValues();
-
 };
 
 #endif // $(NAMEUC)_H

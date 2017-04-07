@@ -31,7 +31,8 @@
 
 class DebugGadgetFactory;
 
-class DebugPlugin : public ExtensionSystem::IPlugin {
+class DebugPlugin : public ExtensionSystem::IPlugin
+{
     Q_OBJECT
     Q_PLUGIN_METADATA(IID "org.dronin.plugins.Debug")
 
@@ -40,8 +41,9 @@ public:
     ~DebugPlugin();
 
     void extensionsInitialized();
-    bool initialize(const QStringList & arguments, QString *errorString);
+    bool initialize(const QStringList &arguments, QString *errorString);
     void shutdown();
+
 private:
     DebugGadgetFactory *mf;
 };

@@ -43,7 +43,8 @@ public:
     virtual QString getHwUAVO();
 
     //! Determine if this board supports configuring the receiver
-    virtual bool isInputConfigurationSupported(Core::IBoardType::InputType type);
+    virtual bool
+    isInputConfigurationSupported(Core::IBoardType::InputType type);
 
     /**
      * Configure the board to use an receiver input type on a port number
@@ -62,6 +63,5 @@ public:
     virtual int queryMaxGyroRate();
     virtual QStringList getAdcNames();
 };
-
 
 #endif // QUANTON_H

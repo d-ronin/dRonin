@@ -26,26 +26,26 @@
 #ifndef CONFIGVEHICLETYPEWIDGET_H
 #define CONFIGVEHICLETYPEWIDGET_H
 
-#include "ui_airframe.h"
 #include "../uavobjectwidgetutils/configtaskwidget.h"
 #include "extensionsystem/pluginmanager.h"
-#include "uavobjectmanager.h"
 #include "uavobject.h"
+#include "uavobjectmanager.h"
 #include "uavtalk/telemetrymanager.h"
+#include "ui_airframe.h"
 
 #include "cfg_vehicletypes/configccpmwidget.h"
 #include "cfg_vehicletypes/configfixedwingwidget.h"
-#include "cfg_vehicletypes/configmultirotorwidget.h"
 #include "cfg_vehicletypes/configgroundvehiclewidget.h"
+#include "cfg_vehicletypes/configmultirotorwidget.h"
 #include "cfg_vehicletypes/vehicleconfig.h"
 
-#include <QWidget>
-#include <QList>
 #include <QItemDelegate>
+#include <QList>
+#include <QWidget>
 
 class Ui_Widget;
 
-class ConfigVehicleTypeWidget: public ConfigTaskWidget
+class ConfigVehicleTypeWidget : public ConfigTaskWidget
 {
     Q_OBJECT
 private:
@@ -73,9 +73,10 @@ private:
 
     void updateCustomAirframeUI();
     void addToDirtyMonitor();
-    void resetField(UAVObjectField * field);
+    void resetField(UAVObjectField *field);
 
-    //void setMixerChannel(int channelNumber, bool channelIsMotor, QList<double> vector);
+    // void setMixerChannel(int channelNumber, bool channelIsMotor,
+    // QList<double> vector);
 
     QStringList channelNames;
     QStringList mixerTypes;
@@ -87,14 +88,14 @@ private:
 
 private slots:
 
-    virtual void refreshWidgetsValues(UAVObject * o=NULL);
+    virtual void refreshWidgetsValues(UAVObject *o = NULL);
     virtual void updateObjectsFromWidgets();
 
-    void setComboCurrentIndex(QComboBox* box, int index);
+    void setComboCurrentIndex(QComboBox *box, int index);
 
     void doSetupAirframeUI(int frameType);
     void setupAirframeUI(SystemSettings::AirframeTypeOptions frameType);
-	
+
     void toggleAileron2(int index);
     void toggleElevator2(int index);
     void toggleRudder2(int index);
@@ -109,8 +110,6 @@ private slots:
 protected:
     void showEvent(QShowEvent *event);
     void resizeEvent(QResizeEvent *event);
-
-
 };
 
 class SpinBoxDelegate : public QItemDelegate
@@ -128,7 +127,8 @@ public:
                       const QModelIndex &index) const;
 
     void updateEditorGeometry(QWidget *editor,
-        const QStyleOptionViewItem &option, const QModelIndex &index) const;
+                              const QStyleOptionViewItem &option,
+                              const QModelIndex &index) const;
 };
 
 #endif // CONFIGVEHICLETYPEWIDGET_H

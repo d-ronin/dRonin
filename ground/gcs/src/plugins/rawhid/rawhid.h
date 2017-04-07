@@ -39,15 +39,15 @@
 #include <coreplugin/iconnection.h>
 
 #include "hidapi/hidapi.h"
-#include "usbmonitor.h"
 #include "usbdevice.h"
+#include "usbmonitor.h"
 
 //#define RAW_HID_DEBUG
 #ifdef RAW_HID_DEBUG
-#define RAW_HID_QXTLOG_DEBUG(...) qDebug()<<__VA_ARGS__
-#else  // RAW_HID_DEBUG
+#define RAW_HID_QXTLOG_DEBUG(...) qDebug() << __VA_ARGS__
+#else // RAW_HID_DEBUG
 #define RAW_HID_QXTLOG_DEBUG(...)
-#endif	// RAW_HID_DEBUG
+#endif // RAW_HID_DEBUG
 
 /**
 *   Thread to desynchronize reading from the device
@@ -86,7 +86,6 @@ protected:
     bool m_running;
 };
 
-
 // *********************************************************************************
 
 /**
@@ -124,7 +123,7 @@ protected:
     hid_device *m_handle;
 
     bool m_running;
-}; 
+};
 
 // *********************************************************************************
 
@@ -134,7 +133,7 @@ protected:
 */
 class RAWHID_EXPORT RawHID : public QIODevice
 {
-	Q_OBJECT
+    Q_OBJECT
 
 public:
     RawHID();

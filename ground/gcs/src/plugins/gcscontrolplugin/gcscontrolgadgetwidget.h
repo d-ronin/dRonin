@@ -7,7 +7,7 @@
  * @{
  * @addtogroup GCSControlGadgetPlugin GCSControl Gadget Plugin
  * @{
- * @brief A place holder gadget plugin 
+ * @brief A place holder gadget plugin
  *****************************************************************************/
 /*
  * This program is free software; you can redistribute it and/or modify
@@ -27,10 +27,10 @@
 #ifndef GCSControlGADGETWIDGET_H_
 #define GCSControlGADGETWIDGET_H_
 
-#include "manualcontrolsettings.h"
 #include "manualcontrolcommand.h"
-#include <QMap>
+#include "manualcontrolsettings.h"
 #include <QLabel>
+#include <QMap>
 
 #define UDP_PORT 2323
 
@@ -50,10 +50,13 @@ public:
     bool getUDPControl(void);
 
 signals:
-    //! Emitted whenever the UI is clicked on to indicate the new stick positions
-    void sticksChanged(double leftX, double leftY, double rightX, double rightY);
+    //! Emitted whenever the UI is clicked on to indicate the new stick
+    //! positions
+    void sticksChanged(double leftX, double leftY, double rightX,
+                       double rightY);
     void controlEnabled(bool);
-    void flightModeChangedLocaly(ManualControlSettings::FlightModePositionOptions);
+    void flightModeChangedLocaly(
+            ManualControlSettings::FlightModePositionOptions);
 public slots:
     //! Signals from parent gadget indicating change from the remote system
     void updateSticks(double leftX, double leftY, double rightX, double rightY);
@@ -71,8 +74,9 @@ protected slots:
 
 private:
     Ui_GCSControl *m_gcscontrol;
-    double leftX,leftY,rightX,rightY;
-    QMap<QString,ManualControlSettings::FlightModePositionOptions> flightModesMap;
+    double leftX, leftY, rightX, rightY;
+    QMap<QString, ManualControlSettings::FlightModePositionOptions>
+            flightModesMap;
 };
 
 #endif /* GCSControlGADGETWIDGET_H_ */

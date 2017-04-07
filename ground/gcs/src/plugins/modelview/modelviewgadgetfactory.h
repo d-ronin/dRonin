@@ -29,14 +29,16 @@
 
 #include <coreplugin/iuavgadgetfactory.h>
 
-namespace Core {
+namespace Core
+{
 class IUAVGadget;
 class IUAVGadgetFactory;
 }
 
 using namespace Core;
 
-class ModelViewGadgetFactory : public Core::IUAVGadgetFactory {
+class ModelViewGadgetFactory : public Core::IUAVGadgetFactory
+{
     Q_OBJECT
 public:
     ModelViewGadgetFactory(QObject *parent = 0);

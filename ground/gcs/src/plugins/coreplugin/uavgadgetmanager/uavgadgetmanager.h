@@ -3,7 +3,8 @@
  *
  * @file       uavgadgetmanager.h
  * @author     The OpenPilot Team, http://www.openpilot.org Copyright (C) 2010.
- *             Parts by Nokia Corporation (qt-info@nokia.com) Copyright (C) 2009.
+ *             Parts by Nokia Corporation (qt-info@nokia.com) Copyright (C)
+ *2009.
  * @addtogroup GCSPlugins GCS Plugins
  * @{
  * @addtogroup CorePlugin Core Plugin
@@ -33,23 +34,25 @@
 #include <coreplugin/icorelistener.h>
 #include <coreplugin/imode.h>
 
+#include <QIcon>
 #include <QWidget>
 #include <QtCore/QList>
 #include <QtCore/QPointer>
 #include <QtCore/QSettings>
-#include <QIcon>
 
 QT_BEGIN_NAMESPACE
 class QModelIndex;
 QT_END_NAMESPACE
 
-namespace Core {
+namespace Core
+{
 
 class IContext;
 class ICore;
 class IUAVGadget;
 
-namespace Internal {
+namespace Internal
+{
 
 class UAVGadgetView;
 class SplitterOrView;
@@ -61,8 +64,9 @@ class CORE_EXPORT UAVGadgetManager : public IMode
     Q_OBJECT
 
 public:
-
-    explicit UAVGadgetManager(ICore *core, QString name, QIcon icon, int priority, QString uniqueName, QWidget *parent);
+    explicit UAVGadgetManager(ICore *core, QString name, QIcon icon,
+                              int priority, QString uniqueName,
+                              QWidget *parent);
     virtual ~UAVGadgetManager();
 
     // IMode
@@ -80,11 +84,11 @@ public:
 
     IUAVGadget *currentGadget() const;
 
-    void saveState(QSettings*) const;
-    bool restoreState(QSettings* qSettings);
+    void saveState(QSettings *) const;
+    bool restoreState(QSettings *qSettings);
 
-    void saveSettings(QSettings* qs);
-    void readSettings(QSettings* qs);
+    void saveSettings(QSettings *qs);
+    void readSettings(QSettings *qs);
     bool toolbarsShown() { return m_showToolbars; }
 
 signals:
@@ -96,7 +100,6 @@ private slots:
     void handleContextChange(Core::IContext *context);
     void updateUavGadgetMenus();
     void modeChanged(Core::IMode *mode);
-
 
 public slots:
     void split(Qt::Orientation orientation);
@@ -125,7 +128,7 @@ private:
     int m_priority;
     QString m_uniqueName;
     QByteArray m_uniqueNameBA;
-    const char* m_uniqueModeName;
+    const char *m_uniqueModeName;
     QWidget *m_widget;
 
     friend class Core::Internal::SplitterOrView;

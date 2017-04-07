@@ -37,12 +37,13 @@ class TelemetrySchedulerPlugin : public ExtensionSystem::IPlugin
 
 public:
     TelemetrySchedulerPlugin();
-   ~TelemetrySchedulerPlugin();
+    ~TelemetrySchedulerPlugin();
 
-   void extensionsInitialized();
-   bool initialize(const QStringList & arguments, QString * errorString);
-   void shutdown();
+    void extensionsInitialized();
+    bool initialize(const QStringList &arguments, QString *errorString);
+    void shutdown();
+
 private:
-   TelemetrySchedulerGadgetFactory *mf;
+    TelemetrySchedulerGadgetFactory *mf;
 };
 #endif /* TELEMETRYSCHEDULERPLUGIN_H_ */

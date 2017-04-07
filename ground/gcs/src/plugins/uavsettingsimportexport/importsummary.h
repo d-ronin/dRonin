@@ -26,20 +26,19 @@
 #ifndef IMPORTSUMMARY_H
 #define IMPORTSUMMARY_H
 
-#include <QDialog>
-#include <QCheckBox>
-#include <QDesktopServices>
-#include <QUrl>
-#include "ui_importsummarydialog.h"
+#include "extensionsystem/pluginmanager.h"
 #include "uavdataobject.h"
 #include "uavobjectmanager.h"
-#include "extensionsystem/pluginmanager.h"
 #include "uavobjectutil/uavobjectutilmanager.h"
+#include "ui_importsummarydialog.h"
+#include <QCheckBox>
+#include <QDesktopServices>
+#include <QDialog>
+#include <QUrl>
 
-
-
-namespace Ui {
-    class ImportSummaryDialog;
+namespace Ui
+{
+class ImportSummaryDialog;
 }
 
 class ImportSummaryDialog : public QDialog
@@ -47,10 +46,10 @@ class ImportSummaryDialog : public QDialog
     Q_OBJECT
 
 public:
-    ImportSummaryDialog(QWidget *parent=0, bool quiet=false);
+    ImportSummaryDialog(QWidget *parent = 0, bool quiet = false);
     ~ImportSummaryDialog();
     void addLine(QString objectName, QString text, bool status);
-    void setUAVOSettings(UAVObjectManager* obj);
+    void setUAVOSettings(UAVObjectManager *obj);
     int numLines() const;
 
 protected:
@@ -59,7 +58,7 @@ protected:
 
 private:
     Ui::ImportSummaryDialog *ui;
-    UAVObjectManager* importedObjects;
+    UAVObjectManager *importedObjects;
     bool quiet;
 
 public slots:
@@ -69,7 +68,6 @@ private slots:
     void doTheApplySaving();
     void setCheckedState(int state);
     void openHelp();
-
 };
 
 #endif // IMPORTSUMMARY_H

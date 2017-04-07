@@ -38,7 +38,6 @@
 #ifndef SCOPEGADGETWIDGET_H_
 #define SCOPEGADGETWIDGET_H_
 
-
 class ScopeConfig;
 class UAVDataObject;
 
@@ -49,32 +48,36 @@ class UAVDataObject;
 #include "qwt/src/qwt_plot_layout.h"
 #include "qwt/src/qwt_scale_draw.h"
 
-#include "uavobject.h"
 #include "plotdata.h"
+#include "uavobject.h"
 
-#include <QTimer>
 #include <QTime>
+#include <QTimer>
 #include <QVector>
 
 /*!
-  \brief This class is used to render the time values on the horizontal axis for the
+  \brief This class is used to render the time values on the horizontal axis for
+  the
   ChronoPlot.
   */
 class TimeScaleDraw : public QwtScaleDraw
 {
 public:
-    TimeScaleDraw() {
-        //baseTime = QDateTime::currentDateTime().toTime_t();
+    TimeScaleDraw()
+    {
+        // baseTime = QDateTime::currentDateTime().toTime_t();
     }
-    virtual QwtText label(double v) const {
+    virtual QwtText label(double v) const
+    {
         uint seconds = (uint)(v);
         QDateTime upTime = QDateTime::fromTime_t(seconds);
-        QTime timePart = upTime.time().addMSecs((v - seconds )* 1000);
+        QTime timePart = upTime.time().addMSecs((v - seconds) * 1000);
         upTime.setTime(timePart);
         return upTime.toLocalTime().toString("hh:mm:ss");
     }
+
 private:
-//    double baseTime;
+    //    double baseTime;
 };
 
 class ScopeGadgetWidget : public QwtPlot
@@ -85,12 +88,16 @@ public:
     ScopeGadgetWidget(QWidget *parent = 0);
     ~ScopeGadgetWidget();
 
-    QString getUavObjectFieldUnits(QString uavObjectName, QString uavObjectFieldName);
-    void connectUAVO(UAVDataObject* obj);
+    QString getUavObjectFieldUnits(QString uavObjectName,
+                                   QString uavObjectFieldName);
+    void connectUAVO(UAVDataObject *obj);
 
-    void setScope(ScopeConfig *val){m_scope = val;}
-    QMap<QString, PlotData*> getDataSources(){return m_dataSources;}
-    void insertDataSources(QString stringVal, PlotData* dataVal){m_dataSources.insert(stringVal, dataVal);}
+    void setScope(ScopeConfig *val) { m_scope = val; }
+    QMap<QString, PlotData *> getDataSources() { return m_dataSources; }
+    void insertDataSources(QString stringVal, PlotData *dataVal)
+    {
+        m_dataSources.insert(stringVal, dataVal);
+    }
 
     void addLegend();
     void deleteLegend();
@@ -98,7 +105,7 @@ public:
     void startTimer(int);
     QwtPlotGrid *m_grid;
     QwtLegend *m_legend;
-    void setScopeName(QString val) {scopeName = val;}
+    void setScopeName(QString val) { scopeName = val; }
 
 protected:
     void mousePressEvent(QMouseEvent *e);
@@ -109,9 +116,9 @@ protected:
     void showEvent(QShowEvent *event);
 
 private slots:
-    void uavObjectReceived(UAVObject*);
+    void uavObjectReceived(UAVObject *);
     void replotNewData();
-    void showCurve(const QVariant & itemInfo, bool on, int index);
+    void showCurve(const QVariant &itemInfo, bool on, int index);
     void startPlotting();
     void stopPlotting();
     void popUpMenu(const QPoint &mousePosition);
@@ -122,12 +129,11 @@ private slots:
 private:
     int m_refreshInterval;
     ScopeConfig *m_scope;
-    QMap<QString, PlotData*> m_dataSources;
+    QMap<QString, PlotData *> m_dataSources;
     double m_xWindowSize;
     static QTimer *replotTimer;
     QList<QString> m_connectedUAVObjects;
     QString scopeName;
 };
-
 
 #endif /* SCOPEGADGETWIDGET_H_ */

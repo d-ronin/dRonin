@@ -28,24 +28,25 @@
 #ifndef SMARTSAVEBUTTON_H
 #define SMARTSAVEBUTTON_H
 
-#include "uavtalk/telemetrymanager.h"
 #include "extensionsystem/pluginmanager.h"
-#include "uavobjectmanager.h"
 #include "uavobject.h"
-#include <QPushButton>
-#include <QList>
-#include <QEventLoop>
+#include "uavobjectmanager.h"
 #include "uavobjectutilmanager.h"
-#include <QObject>
+#include "uavtalk/telemetrymanager.h"
 #include <QDebug>
-class smartSaveButton:public QObject
+#include <QEventLoop>
+#include <QList>
+#include <QObject>
+#include <QPushButton>
+class smartSaveButton : public QObject
 {
-    enum buttonTypeEnum {save_button,apply_button};
+    enum buttonTypeEnum { save_button, apply_button };
+
 public:
     Q_OBJECT
 public:
     smartSaveButton();
-    void addButtons(QPushButton * save,QPushButton * apply);
+    void addButtons(QPushButton *save, QPushButton *apply);
     void setObjects(QList<UAVDataObject *>);
     void addObject(UAVDataObject *);
     void addObject(UAVDataObject *, bool);
@@ -67,23 +68,22 @@ public slots:
 private slots:
     void processClick();
     void processOperation(QPushButton *button, bool save);
-    void transaction_finished(UAVObject* obj, bool result);
-    void saving_finished(int,bool);
+    void transaction_finished(UAVObject *obj, bool result);
+    void saving_finished(int, bool);
 
 private:
     quint32 current_objectID;
-    UAVDataObject * current_object;
+    UAVDataObject *current_object;
     bool upload_result;
     bool save_result;
     QEventLoop loop;
     QList<UAVDataObject *> objects;
-    QMap<QPushButton *,buttonTypeEnum> buttonList;
+    QMap<QPushButton *, buttonTypeEnum> buttonList;
     QMap<UAVDataObject *, bool> mandatoryList;
+
 protected:
 public slots:
     void enableControls(bool value);
-
 };
-
 
 #endif // SMARTSAVEBUTTON_H

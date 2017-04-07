@@ -28,17 +28,19 @@
 #ifndef OUTPUTCALIBRATIONPAGE_H
 #define OUTPUTCALIBRATIONPAGE_H
 
-#include <QtSvg>
 #include "abstractwizardpage.h"
-#include "setupwizard.h"
 #include "outputcalibrationutil.h"
+#include "setupwizard.h"
 #include "vehicleconfigurationhelper.h"
+#include <QtSvg>
 
-namespace Ui {
+namespace Ui
+{
 class OutputCalibrationPage;
 }
 
-class OutputCalibrationPage : public AbstractWizardPage {
+class OutputCalibrationPage : public AbstractWizardPage
+{
     Q_OBJECT
 
 public:
@@ -79,7 +81,8 @@ private:
     void setupVehicleHighlightedPart();
     void setWizardPage();
     void enableButtons(bool enable);
-    void onStartButtonToggle(QAbstractButton *button, quint16 channel, quint16 value, quint16 safeValue, QSlider *slider);
+    void onStartButtonToggle(QAbstractButton *button, quint16 channel,
+                             quint16 value, quint16 safeValue, QSlider *slider);
     bool checkAlarms();
     void debugLogChannelValues();
     quint16 getCurrentChannel();

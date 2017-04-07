@@ -4,7 +4,8 @@
  * @file       iboardtype.h
  * @author     dRonin, http://dRonin.org/, Copyright (C) 2016
  * @author     Tau Labs, http://taulabs.org, Copyright (C) 2012-2014
- *             Parts by Nokia Corporation (qt-info@nokia.com) Copyright (C) 2009.
+ *             Parts by Nokia Corporation (qt-info@nokia.com) Copyright (C)
+ *2009.
  * @addtogroup GCSPlugins GCS Plugins
  * @{
  * @addtogroup CorePlugin Core Plugin
@@ -33,20 +34,25 @@
 #define IBOARDTYPE_H
 
 #include <QObject>
-#include <QtCore/QStringList>
 #include <QPixmap>
+#include <QtCore/QStringList>
 
 #include "core_global.h"
 
-namespace Core {
+namespace Core
+{
 
 /**
-*   An IBoardType object defines an autopilot or more generally a hardware device,
-*   that is supported by the GCS. It provides basic information to the GCS to detect
+*   An IBoardType object defines an autopilot or more generally a hardware
+* device,
+*   that is supported by the GCS. It provides basic information to the GCS to
+* detect
 *   and use this board type.
 *
-*   Note: at present (2012), the GCS only supports autopilots, and assumes they will
-*         talk with UAVTalk. Further down the line, GCS will be able to support additional
+*   Note: at present (2012), the GCS only supports autopilots, and assumes they
+* will
+*         talk with UAVTalk. Further down the line, GCS will be able to support
+* additional
 *         protocols, as well as other device types (beacons, other).
 */
 class CORE_EXPORT IBoardType : public QObject
@@ -54,11 +60,11 @@ class CORE_EXPORT IBoardType : public QObject
     Q_OBJECT
 
 public:
-     /**
-     * @brief The USBInfo struct
-     * TODO: finalize what we will put there, not everything
-     *       is relevant.
-     */
+    /**
+    * @brief The USBInfo struct
+    * TODO: finalize what we will put there, not everything
+    *       is relevant.
+    */
     struct USBInfo {
         QString serialNumber;
         QString manufacturer;
@@ -69,13 +75,13 @@ public:
         int productID = 0;
         int bcdDevice = 0;
 
-        USBInfo(int vendorID, int productID, int bcdDevice) {
+        USBInfo(int vendorID, int productID, int bcdDevice)
+        {
             this->vendorID = vendorID;
             this->productID = productID;
             this->bcdDevice = bcdDevice;
         }
     };
-
 
     /**
      * Short description of the board / friendly name
@@ -88,15 +94,20 @@ public:
     virtual QString boardDescription() = 0;
 
     //! Types of capabilities boards can support
-    enum BoardCapabilities {BOARD_CAPABILITIES_GYROS, BOARD_CAPABILITIES_ACCELS,
-                            BOARD_CAPABILITIES_MAGS, BOARD_CAPABILITIES_BAROS,
-                            BOARD_CAPABILITIES_RADIO, BOARD_CAPABILITIES_OSD,
-                            BOARD_CAPABILITIES_UPGRADEABLE,
+    enum BoardCapabilities {
+        BOARD_CAPABILITIES_GYROS,
+        BOARD_CAPABILITIES_ACCELS,
+        BOARD_CAPABILITIES_MAGS,
+        BOARD_CAPABILITIES_BAROS,
+        BOARD_CAPABILITIES_RADIO,
+        BOARD_CAPABILITIES_OSD,
+        BOARD_CAPABILITIES_UPGRADEABLE,
     };
 
     /**
      * @brief Query capabilities of the board.
-     * @return true if board supports the capability that is requested (from BoardCapabilities)
+     * @return true if board supports the capability that is requested (from
+     * BoardCapabilities)
      *
      */
     virtual bool queryCapabilities(BoardCapabilities capability) = 0;
@@ -113,7 +124,7 @@ public:
      * @return matrix of channel bank names
      *
      */
-    virtual QVector< QVector<int> > getChannelBanks(){return channelBanks;}
+    virtual QVector<QVector<int>> getChannelBanks() { return channelBanks; }
 
     /**
      * @brief getBoardPicture
@@ -133,7 +144,8 @@ public:
 
     /**
      * Get USB VendorID.
-     * \deprecated use firmwareUSBInfo or bootloaderUSBInfo instead (shouldn't be filtering based on VID alone anyway since we don't own a VID
+     * \deprecated use firmwareUSBInfo or bootloaderUSBInfo instead (shouldn't
+     * be filtering based on VID alone anyway since we don't own a VID
      */
     QList<int> getVendorIDs();
 
@@ -141,7 +153,11 @@ public:
     int getBoardType() { return boardType; }
 
     //! Return a custom configuration widget, if one is provided
-    virtual QWidget *getBoardConfiguration(QWidget * /*parent*/ = 0, bool /*connected*/ = true) { return NULL; }
+    virtual QWidget *getBoardConfiguration(QWidget * /*parent*/ = 0,
+                                           bool /*connected*/ = true)
+    {
+        return NULL;
+    }
 
     /***** methods related to configuring specific boards *****/
 
@@ -166,7 +182,11 @@ public:
     virtual int minBootLoaderVersion() { return 0; }
 
     //! Determine if this board supports configuring the receiver
-    virtual bool isInputConfigurationSupported(InputType type = INPUT_TYPE_ANY) { Q_UNUSED(type); return false; }
+    virtual bool isInputConfigurationSupported(InputType type = INPUT_TYPE_ANY)
+    {
+        Q_UNUSED(type);
+        return false;
+    }
 
     /**
      * @brief Configure the board to use an receiver input type on a port number
@@ -211,9 +231,13 @@ public:
      */
     enum LinkMode { LINK_TELEM, LINK_TELEM_PPM, LINK_PPM };
 
-    virtual bool bindRadio(quint32 /*id*/, quint32 /*baud_rate*/, float /*rf_power*/,
-                           Core::IBoardType::LinkMode /*linkMode*/, quint8 /*min*/,
-                           quint8 /*max*/) { return false; }
+    virtual bool bindRadio(quint32 /*id*/, quint32 /*baud_rate*/,
+                           float /*rf_power*/,
+                           Core::IBoardType::LinkMode /*linkMode*/,
+                           quint8 /*min*/, quint8 /*max*/)
+    {
+        return false;
+    }
 
     /**
      * Check whether the board has USB
@@ -249,7 +273,10 @@ protected:
     };
 
     void addFirmwareUSBInfo(USBInfo info) { m_firmwareUSBInfo.append(info); }
-    void addBootloaderUSBInfo(USBInfo info) { m_bootloaderUSBInfo.append(info); }
+    void addBootloaderUSBInfo(USBInfo info)
+    {
+        m_bootloaderUSBInfo.append(info);
+    }
 
     QList<USBInfo> m_firmwareUSBInfo;
     QList<USBInfo> m_bootloaderUSBInfo;
@@ -258,10 +285,9 @@ protected:
     qint32 boardType;
 
     //! The channel groups that are driven by timers
-    QVector< QVector<qint32> > channelBanks;
-
+    QVector<QVector<qint32>> channelBanks;
 };
 
-} //namespace Core
+} // namespace Core
 
 #endif // IBOARDTYPE_H

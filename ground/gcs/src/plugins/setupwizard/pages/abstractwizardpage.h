@@ -29,11 +29,12 @@
 #ifndef ABSTRACTWIZARDPAGE_H
 #define ABSTRACTWIZARDPAGE_H
 
-#include <QWizardPage>
 #include "setupwizard.h"
+#include <QWizardPage>
 #include <coreplugin/iboardtype.h>
 
-class AbstractWizardPage : public QWizardPage {
+class AbstractWizardPage : public QWizardPage
+{
     Q_OBJECT
 protected:
     explicit AbstractWizardPage(SetupWizard *wizard, QWidget *parent = 0);
@@ -42,12 +43,9 @@ private:
     SetupWizard *m_wizard;
 
 public:
-    SetupWizard *getWizard() const
-    {
-        return m_wizard;
-    }
+    SetupWizard *getWizard() const { return m_wizard; }
 
-    Core::IBoardType* getControllerType() const;
+    Core::IBoardType *getControllerType() const;
 };
 
 #endif // ABSTRACTWIZARDPAGE_H

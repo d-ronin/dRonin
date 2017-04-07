@@ -28,8 +28,8 @@
 #define DEVICEDESCRIPTORSTRUCT_H
 
 #include "uavobjectutil_global.h"
-#include <QString>
 #include <QPixmap>
+#include <QString>
 
 class UAVOBJECTUTIL_EXPORT deviceDescriptorStruct
 {

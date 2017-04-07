@@ -29,11 +29,12 @@
 
 #include <coreplugin/iuavgadget.h>
 
-namespace Core {
+namespace Core
+{
 class IUAVGadget;
 }
-//class QWidget;
-//class QString;
+// class QWidget;
+// class QString;
 class LoggingGadgetWidget;
 
 using namespace Core;
@@ -42,18 +43,19 @@ class LoggingGadget : public Core::IUAVGadget
 {
     Q_OBJECT
 public:
-    LoggingGadget(QString classId, LoggingGadgetWidget *widget, QWidget *parent = 0);
+    LoggingGadget(QString classId, LoggingGadgetWidget *widget,
+                  QWidget *parent = 0);
     ~LoggingGadget();
 
     QList<int> context() const { return m_context; }
     QWidget *widget() { return m_widget; }
     QString contextHelpId() const { return QString(); }
 
-    void loadConfiguration(IUAVGadgetConfiguration* config);
-private:
-        QWidget *m_widget;
-	QList<int> m_context;
-};
+    void loadConfiguration(IUAVGadgetConfiguration *config);
 
+private:
+    QWidget *m_widget;
+    QList<int> m_context;
+};
 
 #endif // LoggingGADGET_H_

@@ -27,27 +27,26 @@
 #ifndef USAGESTATSPLUGIN_H_
 #define USAGESTATSPLUGIN_H_
 
+#include "debuggadget/debugengine.h"
+#include "uavobjectutil/devicedescriptorstruct.h"
+#include "uploader/uploader_global.h"
+#include <QAbstractButton>
+#include <QDateTime>
+#include <QEventLoop>
+#include <QNetworkAccessManager>
+#include <QNetworkReply>
+#include <QUuid>
 #include <coreplugin/iconfigurableplugin.h>
 #include <coreplugin/icorelistener.h>
 #include <extensionsystem/iplugin.h>
-#include "uploader/uploader_global.h"
-#include "uavobjectutil/devicedescriptorstruct.h"
-#include "debuggadget/debugengine.h"
-#include <QDateTime>
-#include <QAbstractButton>
-#include <QNetworkReply>
-#include <QNetworkAccessManager>
-#include <QEventLoop>
-#include <QUuid>
 
 using namespace uploader;
-struct boardLog
-{
+struct boardLog {
     QDateTime time;
     deviceInfo board;
     deviceDescriptorStruct device;
 };
-enum widgetType {WIDGET_BUTTON, WIDGET_SLIDER, WIDGET_TAB};
+enum widgetType { WIDGET_BUTTON, WIDGET_SLIDER, WIDGET_TAB };
 typedef struct widgetActionInfoType {
     widgetType type;
     QDateTime time;
@@ -67,7 +66,8 @@ typedef struct debugMessageStruct {
     QString function;
 } DebugMessage;
 
-class UsageStatsPlugin :  public Core::IConfigurablePlugin {
+class UsageStatsPlugin : public Core::IConfigurablePlugin
+{
     Q_OBJECT
     Q_PLUGIN_METADATA(IID "org.dronin.plugins.UsageStats")
 
@@ -90,6 +90,7 @@ public:
     QString getInstallationUUID() const;
 public slots:
     void updateSettings();
+
 private:
     ExtensionSystem::PluginManager *pluginManager;
     QList<boardLog> boardLogList;
@@ -110,13 +111,16 @@ private slots:
     void onButtonClicked();
     void onSliderValueChanged(int);
     void onTabCurrentChanged(int);
-    void onDebugMessage(DebugEngine::Level, const QString &, const QString &, const int, const QString &);
+    void onDebugMessage(DebugEngine::Level, const QString &, const QString &,
+                        const int, const QString &);
 };
-class AppCloseHook : public Core::ICoreListener {
+class AppCloseHook : public Core::ICoreListener
+{
     Q_OBJECT
 public:
     AppCloseHook(UsageStatsPlugin *parent);
     bool coreAboutToClose();
+
 private:
     UsageStatsPlugin *m_parent;
 };

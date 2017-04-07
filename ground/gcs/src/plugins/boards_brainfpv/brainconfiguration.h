@@ -28,17 +28,18 @@
 #ifndef BRAINCONFIGURATION_H
 #define BRAINCONFIGURATION_H
 
-#include <QPixmap>
 #include "configtaskwidget.h"
+#include <QPixmap>
 
-namespace Ui {
+namespace Ui
+{
 class BrainConfiguration;
 }
 
 class BrainConfiguration : public ConfigTaskWidget
 {
     Q_OBJECT
-    
+
 public:
     explicit BrainConfiguration(QWidget *parent = 0);
     ~BrainConfiguration();

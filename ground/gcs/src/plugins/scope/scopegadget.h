@@ -25,15 +25,14 @@
  * with this program; if not, see <http://www.gnu.org/licenses/>
  */
 
-
 #ifndef SCOPEGADGET_H_
 #define SCOPEGADGET_H_
 
-#include <coreplugin/iuavgadget.h>
 #include "scopegadgetwidget.h"
+#include <coreplugin/iuavgadget.h>
 
 class IUAVGadget;
-//class QList<int>;
+// class QList<int>;
 class QWidget;
 class QString;
 class ScopeGadgetWidget;
@@ -44,20 +43,15 @@ class ScopeGadget : public Core::IUAVGadget
 {
     Q_OBJECT
 public:
-    ScopeGadget(QString classId, ScopeGadgetWidget *widget, QWidget *parent = 0);
+    ScopeGadget(QString classId, ScopeGadgetWidget *widget,
+                QWidget *parent = 0);
     ~ScopeGadget();
 
-    void loadConfiguration(IUAVGadgetConfiguration* config);
+    void loadConfiguration(IUAVGadgetConfiguration *config);
 
-    QList<int> context() const {
-        return m_context;
-    }
-    QWidget *widget() {
-        return scopeGadgetWidget;
-    }
-    QString contextHelpId() const {
-        return QString();
-    }
+    QList<int> context() const { return m_context; }
+    QWidget *widget() { return scopeGadgetWidget; }
+    QString contextHelpId() const { return QString(); }
 
 private:
     ScopeGadgetWidget *scopeGadgetWidget;
@@ -65,6 +59,5 @@ private:
 
     bool configLoaded;
 };
-
 
 #endif // SCOPEGADGET_H_

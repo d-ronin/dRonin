@@ -30,14 +30,16 @@
 
 #include <coreplugin/iuavgadgetfactory.h>
 
-namespace Core {
+namespace Core
+{
 class IUAVGadget;
 class IUAVGadgetFactory;
 }
 
 using namespace Core;
 
-class DebugGadgetFactory : public IUAVGadgetFactory {
+class DebugGadgetFactory : public IUAVGadgetFactory
+{
     Q_OBJECT
 public:
     DebugGadgetFactory(QObject *parent = 0);

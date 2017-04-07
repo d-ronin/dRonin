@@ -26,19 +26,23 @@
 #ifndef IDEVICE_H
 #define IDEVICE_H
 
-#include <QObject>
 #include "core_global.h"
+#include <QObject>
 
-
-namespace Core {
+namespace Core
+{
 
 /**
-*   The IDevice interface class is used by the connection manager and plugins that
-* provide connections to contain plugin-specific info for a given device: for a USB
-* device, that will be PID/VID/Serial number, for serial devices, that will be the
+*   The IDevice interface class is used by the connection manager and plugins
+* that
+* provide connections to contain plugin-specific info for a given device: for a
+* USB
+* device, that will be PID/VID/Serial number, for serial devices, that will be
+* the
 * port name, etc.
 *
-*  As such, this interface is minimal - only short and display name - , it is up to
+*  As such, this interface is minimal - only short and display name - , it is up
+* to
 *  the plugins to define additional methods/properties they need and use dynamic
 *  casting when getting device objects back from the connection manager.
 *
@@ -47,12 +51,10 @@ class CORE_EXPORT IDevice : public QObject
 {
     Q_OBJECT
 public:
-
-
     QString getName() const { return name; }
     void setName(QString theName) { name = theName; }
     QString getDisplayName() const { return displayName; }
-    void setDisplayName( QString dn ) { displayName = dn; }
+    void setDisplayName(QString dn) { displayName = dn; }
 
     /*
     bool operator==(const IDevice *idv) const {
@@ -60,17 +62,15 @@ public:
     }
     */
 
-    bool equals(const IDevice *idv) const {
-        return name == idv->getName()  && displayName == idv->getDisplayName();
+    bool equals(const IDevice *idv) const
+    {
+        return name == idv->getName() && displayName == idv->getDisplayName();
     }
 
 private:
     QString name;
     QString displayName;
-
-
 };
-
 }
 
 #endif // IDEVICE_H

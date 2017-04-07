@@ -25,13 +25,14 @@ class PfdQmlPlugin : public ExtensionSystem::IPlugin
     Q_OBJECT
     Q_PLUGIN_METADATA(IID "org.dronin.plugins.PfdQml")
 public:
-   PfdQmlPlugin();
-   ~PfdQmlPlugin();
+    PfdQmlPlugin();
+    ~PfdQmlPlugin();
 
-   void extensionsInitialized();
-   bool initialize(const QStringList &arguments, QString *errorString);
-   void shutdown();
+    void extensionsInitialized();
+    bool initialize(const QStringList &arguments, QString *errorString);
+    void shutdown();
+
 private:
-   PfdQmlGadgetFactory *mf;
+    PfdQmlGadgetFactory *mf;
 };
 #endif /* PFDQMLPLUGIN_H_ */

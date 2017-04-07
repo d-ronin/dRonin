@@ -3,25 +3,26 @@
  *
  * @file       actionmanager_p.h
  * @author     The OpenPilot Team, http://www.openpilot.org Copyright (C) 2010.
- *             Parts by Nokia Corporation (qt-info@nokia.com) Copyright (C) 2009.
+ *             Parts by Nokia Corporation (qt-info@nokia.com) Copyright (C)
+ *2009.
  * @addtogroup GCSPlugins GCS Plugins
  * @{
  * @addtogroup CorePlugin Core Plugin
  * @{
  * @brief The Core GCS plugin
  *****************************************************************************/
-/* 
- * This program is free software; you can redistribute it and/or modify 
- * it under the terms of the GNU General Public License as published by 
- * the Free Software Foundation; either version 3 of the License, or 
+/*
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 3 of the License, or
  * (at your option) any later version.
- * 
- * This program is distributed in the hope that it will be useful, but 
- * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY 
- * or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License 
+ *
+ * This program is distributed in the hope that it will be useful, but
+ * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
+ * or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License
  * for more details.
- * 
- * You should have received a copy of the GNU General Public License along 
+ *
+ * You should have received a copy of the GNU General Public License along
  * with this program; if not, see <http://www.gnu.org/licenses/>
  */
 
@@ -30,25 +31,26 @@
 
 #include <coreplugin/actionmanager/actionmanager.h>
 
-#include <QtCore/QMap>
 #include <QtCore/QHash>
+#include <QtCore/QMap>
 #include <QtCore/QMultiHash>
 
 QT_BEGIN_NAMESPACE
 class QSettings;
 QT_END_NAMESPACE
 
-struct CommandLocation
-{
+struct CommandLocation {
     int m_container;
     int m_position;
 };
 
-namespace Core {
+namespace Core
+{
 
 class UniqueIDManager;
 
-namespace Internal {
+namespace Internal
+{
 
 class ActionContainerPrivate;
 class MainWindow;
@@ -78,14 +80,14 @@ public:
 
     void readSettings(QSettings *settings);
 
-    //ActionManager Interface
+    // ActionManager Interface
     ActionContainer *createMenu(const QString &id);
     ActionContainer *createMenuBar(const QString &id);
 
     Command *registerAction(QAction *action, const QString &id,
-        const QList<int> &context);
+                            const QList<int> &context);
     Command *registerShortcut(QShortcut *shortcut, const QString &id,
-        const QList<int> &context);
+                              const QList<int> &context);
 
     Core::Command *command(const QString &id) const;
     Core::ActionContainer *actionContainer(const QString &id) const;
@@ -93,9 +95,9 @@ public:
 private:
     bool hasContext(QList<int> context) const;
     Command *registerOverridableAction(QAction *action, const QString &id,
-        bool checkUnique);
+                                       bool checkUnique);
 
-    static ActionManagerPrivate* m_instance;
+    static ActionManagerPrivate *m_instance;
     QList<int> m_defaultGroups;
 
     typedef QHash<int, CommandPrivate *> IdCmdMap;
@@ -104,9 +106,9 @@ private:
     typedef QHash<int, ActionContainerPrivate *> IdContainerMap;
     IdContainerMap m_idContainerMap;
 
-//    typedef QMap<int, int> GlobalGroupMap;
-//    GlobalGroupMap m_globalgroups;
-//
+    //    typedef QMap<int, int> GlobalGroupMap;
+    //    GlobalGroupMap m_globalgroups;
+    //
     QList<int> m_context;
 
     MainWindow *m_mainWnd;

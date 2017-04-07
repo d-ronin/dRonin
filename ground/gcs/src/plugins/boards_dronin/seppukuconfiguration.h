@@ -30,8 +30,8 @@
 #ifndef SEPPUKUCONFIGURATION_H
 #define SEPPUKUCONFIGURATION_H
 
-#include <QSvgRenderer>
 #include <QGraphicsSvgItem>
+#include <QSvgRenderer>
 
 #include "configtaskwidget.h"
 #include "ui_seppuku.h"
@@ -55,7 +55,8 @@ private:
     QGraphicsSvgItem *addGraphicsElement(const QString &elementId);
     void resizeEvent(QResizeEvent *event);
     void showEvent(QShowEvent *event);
-    void setMessage(const QString &name, const QString &msg = QString(), const QString &severity = QString("warning"));
+    void setMessage(const QString &name, const QString &msg = QString(),
+                    const QString &severity = QString("warning"));
 
 private slots:
     void magChanged(const QString &newVal);

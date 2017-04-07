@@ -26,23 +26,22 @@
 #ifndef CONFIGGADGETFACTORY_H
 #define CONFIGGADGETFACTORY_H
 
-#include <coreplugin/iuavgadgetfactory.h>
-#include "configgadgetwidget.h"
 #include "config_global.h"
+#include "configgadgetwidget.h"
+#include <coreplugin/iuavgadgetfactory.h>
 
-
-namespace Core {
+namespace Core
+{
 class IUAVGadget;
 class IUAVGadgetFactory;
 }
 
 using namespace Core;
 
-class CONFIG_EXPORT ConfigGadgetFactory:  public Core::IUAVGadgetFactory
+class CONFIG_EXPORT ConfigGadgetFactory : public Core::IUAVGadgetFactory
 {
-   Q_OBJECT
+    Q_OBJECT
 public:
-
     ConfigGadgetFactory(QObject *parent = 0);
     ~ConfigGadgetFactory();
 
@@ -54,7 +53,7 @@ public slots:
     void startInputWizard();
 
 private:
-    ConfigGadgetWidget* gadgetWidget;
+    ConfigGadgetWidget *gadgetWidget;
 };
 
 #endif // CONFIGGADGETFACTORY_H

@@ -10,44 +10,47 @@
  * @brief The Core GCS plugin
  *****************************************************************************/
 /*
- * This program is free software; you can redistribute it and/or modify 
- * it under the terms of the GNU General Public License as published by 
- * the Free Software Foundation; either version 3 of the License, or 
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 3 of the License, or
  * (at your option) any later version.
- * 
- * This program is distributed in the hope that it will be useful, but 
- * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY 
- * or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License 
+ *
+ * This program is distributed in the hope that it will be useful, but
+ * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
+ * or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License
  * for more details.
- * 
- * You should have received a copy of the GNU General Public License along 
+ *
+ * You should have received a copy of the GNU General Public License along
  * with this program; if not, see <http://www.gnu.org/licenses/>
  */
 
 #ifndef WORKSPACESETTINGS_H
 #define WORKSPACESETTINGS_H
 
-#include <coreplugin/dialogs/ioptionspage.h>
+#include <QTabWidget>
 #include <QtCore/QObject>
 #include <QtCore/QStringList>
-#include <QTabWidget>
+#include <coreplugin/dialogs/ioptionspage.h>
 
 class QSettings;
 
-namespace Core {
+namespace Core
+{
 
-    class ModeManager;
-    class IMode;
+class ModeManager;
+class IMode;
 
-namespace Internal {
+namespace Internal
+{
 
-namespace Ui {
-    class WorkspaceSettings;
+namespace Ui
+{
+class WorkspaceSettings;
 }
 
 class WorkspaceSettings : public IOptionsPage
 {
-Q_OBJECT
+    Q_OBJECT
 public:
     WorkspaceSettings(QObject *parent = 0);
     ~WorkspaceSettings();
@@ -61,12 +64,12 @@ public:
     QWidget *createPage(QWidget *parent);
     void apply();
     void finish();
-    void readSettings(QSettings* qs);
-    void saveSettings(QSettings* qs);
-    int numberOfWorkspaces() const { return m_numberOfWorkspaces;}
-    QString iconName(int i) const { return m_iconNames.at(i);}
-    QString name(int i) const { return m_names.at(i);}
-    QString modeName(int i) const { return m_modeNames.at(i);}
+    void readSettings(QSettings *qs);
+    void saveSettings(QSettings *qs);
+    int numberOfWorkspaces() const { return m_numberOfWorkspaces; }
+    QString iconName(int i) const { return m_iconNames.at(i); }
+    QString name(int i) const { return m_names.at(i); }
+    QString modeName(int i) const { return m_modeNames.at(i); }
 
 signals:
     void tabBarSettingsApplied(QTabWidget::TabPosition pos, bool movable);
@@ -76,7 +79,7 @@ public slots:
     void numberOfWorkspacesChanged(int value);
     void textEdited(QString string);
     void iconChanged();
-    void newModeOrder(QVector<IMode*> modes);
+    void newModeOrder(QVector<IMode *> modes);
 
 private:
     Ui::WorkspaceSettings *m_page;

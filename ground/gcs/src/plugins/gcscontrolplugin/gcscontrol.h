@@ -28,22 +28,23 @@
 
 #include <extensionsystem/iplugin.h>
 
+#include "QTimer"
+#include "extensionsystem/pluginmanager.h"
 #include "gcscontrol_global.h"
+#include "gcscontrolgadgetfactory.h"
+#include "gcsreceiver.h"
 #include "manualcontrolsettings.h"
 #include "uavobjectmanager.h"
-#include "gcsreceiver.h"
-#include "extensionsystem/pluginmanager.h"
-#include "QTimer"
-#include "gcscontrolgadgetfactory.h"
 
-class GCSCONTROLSHARED_EXPORT GCSControl : public ExtensionSystem::IPlugin {
+class GCSCONTROLSHARED_EXPORT GCSControl : public ExtensionSystem::IPlugin
+{
     Q_OBJECT
     Q_PLUGIN_METADATA(IID "org.dronin.plugins.GCSControlPlugin")
 public:
     GCSControl();
     ~GCSControl();
     void extensionsInitialized();
-    bool initialize(const QStringList & arguments, QString *errorString);
+    bool initialize(const QStringList &arguments, QString *errorString);
     void shutdown();
 
 #if defined(USE_SDL)
@@ -52,7 +53,8 @@ public:
 public slots:
     bool beginGCSControl();
     bool endGCSControl();
-    bool setFlightMode(ManualControlSettings::FlightModePositionOptions flightMode);
+    bool
+    setFlightMode(ManualControlSettings::FlightModePositionOptions flightMode);
     bool setThrottle(float value);
     bool setRoll(float value);
     bool setPitch(float value);

@@ -29,13 +29,13 @@
 
 #include "plotdata.h"
 
-#include <QTimer>
 #include <QTime>
+#include <QTimer>
 #include <QVector>
 
-
 /**
- * @brief The Plot3dData class Base class that keeps the data for each curve in the plot.
+ * @brief The Plot3dData class Base class that keeps the data for each curve in
+ * the plot.
  */
 class Plot3dData : public PlotData
 {
@@ -45,18 +45,23 @@ public:
     Plot3dData(QString uavObject, QString uavField);
     ~Plot3dData();
 
-    QVector<double>* zData;
-    QVector<double>* zDataHistory;
-    QVector<double>* timeDataHistory;
+    QVector<double> *zData;
+    QVector<double> *zDataHistory;
+    QVector<double> *timeDataHistory;
 
-    void setZMinimum(double val){zMinimum=val;}
-    void setZMaximum(double val){zMaximum=val;}
+    void setZMinimum(double val) { zMinimum = val; }
+    void setZMaximum(double val) { zMaximum = val; }
 
-    double getZMinimum(){return zMinimum;}
-    double getZMaximum(){return zMaximum;}
+    double getZMinimum() { return zMinimum; }
+    double getZMaximum() { return zMaximum; }
 
-    virtual void setUpdatedFlagToTrue(){dataUpdated = true;}
-    virtual bool readAndResetUpdatedFlag(){bool tmp = dataUpdated; dataUpdated = false; return tmp;}
+    virtual void setUpdatedFlagToTrue() { dataUpdated = true; }
+    virtual bool readAndResetUpdatedFlag()
+    {
+        bool tmp = dataUpdated;
+        dataUpdated = false;
+        return tmp;
+    }
 
 protected:
     double zMinimum;
@@ -65,7 +70,5 @@ protected:
 private:
     bool dataUpdated;
 };
-
-
 
 #endif // PLOTDATA3D_H

@@ -28,20 +28,22 @@
 #ifndef COORDINATORPAGE_H
 #define COORDINATORPAGE_H
 
+#include "radioprobepage.h"
+#include "rfmbindwizard.h"
 #include <QMap>
+#include <coreplugin/connectionmanager.h>
 #include <coreplugin/iboardtype.h>
 #include <coreplugin/icore.h>
-#include <coreplugin/connectionmanager.h>
-#include "rfmbindwizard.h"
-#include "radioprobepage.h"
 
 #include <uavobject.h>
 
-namespace Ui {
+namespace Ui
+{
 class CoordinatorPage;
 }
 
-class CoordinatorPage : public RadioProbePage {
+class CoordinatorPage : public RadioProbePage
+{
     Q_OBJECT
 
 public:
@@ -61,7 +63,6 @@ private slots:
 
     //! Bind this board to the coordinator
     bool configureCoordinator();
-
 };
 
 #endif // COORDINATORPAGE_H

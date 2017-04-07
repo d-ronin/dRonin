@@ -28,9 +28,9 @@
 #ifndef UAVOBJECTBROWSER_H_
 #define UAVOBJECTBROWSER_H_
 
-#include <coreplugin/iuavgadget.h>
-#include "uavobjectbrowserwidget.h"
 #include "uavobjectbrowserconfiguration.h"
+#include "uavobjectbrowserwidget.h"
+#include <coreplugin/iuavgadget.h>
 
 class IUAVGadget;
 class QWidget;
@@ -43,17 +43,19 @@ class UAVObjectBrowser : public Core::IUAVGadget
 {
     Q_OBJECT
 public:
-    UAVObjectBrowser(QString classId, UAVObjectBrowserWidget *widget, QWidget *parent = 0);
+    UAVObjectBrowser(QString classId, UAVObjectBrowserWidget *widget,
+                     QWidget *parent = 0);
     ~UAVObjectBrowser();
 
     QWidget *widget() { return m_widget; }
-    void loadConfiguration(IUAVGadgetConfiguration* config);
+    void loadConfiguration(IUAVGadgetConfiguration *config);
 private slots:
-    void viewOptionsChangedSlot(bool categorized, bool scientific, bool metadata, bool showNotPresent);
+    void viewOptionsChangedSlot(bool categorized, bool scientific,
+                                bool metadata, bool showNotPresent);
+
 private:
     UAVObjectBrowserWidget *m_widget;
     UAVObjectBrowserConfiguration *m_config;
 };
-
 
 #endif // UAVOBJECTBROWSER_H_

@@ -11,26 +11,26 @@
  * @brief The Hardware In The Loop plugin
  *****************************************************************************/
 /*
- * This program is free software; you can redistribute it and/or modify 
- * it under the terms of the GNU General Public License as published by 
- * the Free Software Foundation; either version 3 of the License, or 
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 3 of the License, or
  * (at your option) any later version.
- * 
- * This program is distributed in the hope that it will be useful, but 
- * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY 
- * or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License 
+ *
+ * This program is distributed in the hope that it will be useful, but
+ * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
+ * or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License
  * for more details.
- * 
- * You should have received a copy of the GNU General Public License along 
+ *
+ * You should have received a copy of the GNU General Public License along
  * with this program; if not, see <http://www.gnu.org/licenses/>
  */
 
 #ifndef HITLCONFIGURATION_H
 #define HITLCONFIGURATION_H
 
-#include <coreplugin/iuavgadgetconfiguration.h>
 #include <QColor>
 #include <QString>
+#include <coreplugin/iuavgadgetconfiguration.h>
 
 #include <simulator.h>
 
@@ -39,24 +39,28 @@ using namespace Core;
 class HITLConfiguration : public IUAVGadgetConfiguration
 {
 
-	Q_OBJECT
+    Q_OBJECT
 
-	Q_PROPERTY(SimulatorSettings settings READ Settings WRITE setSimulatorSettings)
+    Q_PROPERTY(
+            SimulatorSettings settings READ Settings WRITE setSimulatorSettings)
 
 public:
-    explicit HITLConfiguration(QString classId, QSettings* qSettings = 0, QObject *parent = 0);
+    explicit HITLConfiguration(QString classId, QSettings *qSettings = 0,
+                               QObject *parent = 0);
 
-    void saveConfig(QSettings* settings) const;
+    void saveConfig(QSettings *settings) const;
     IUAVGadgetConfiguration *clone();
 
-	SimulatorSettings Settings() const { return settings; }
+    SimulatorSettings Settings() const { return settings; }
 
 public slots:
-	void setSimulatorSettings (const SimulatorSettings& params ) { settings = params; }
-
+    void setSimulatorSettings(const SimulatorSettings &params)
+    {
+        settings = params;
+    }
 
 private:
-	SimulatorSettings settings;
+    SimulatorSettings settings;
 };
 
 #endif // HITLCONFIGURATION_H

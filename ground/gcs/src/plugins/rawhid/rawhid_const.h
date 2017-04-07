@@ -27,10 +27,10 @@
 #ifndef RAWHID_CONST_H
 #define RAWHID_CONST_H
 
-static const int USB_MAX_DEVICES    = 10;
+static const int USB_MAX_DEVICES = 10;
 
-static const int USB_USAGE_PAGE     = 0xFF9C;
-static const int USB_USAGE          = 0x0001;
+static const int USB_USAGE_PAGE = 0xFF9C;
+static const int USB_USAGE = 0x0001;
 
 static const int USB_DEV_SERIAL_LEN = 24;
 

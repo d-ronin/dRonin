@@ -10,18 +10,18 @@
  * @{
  * @brief The Core GCS plugin
  *****************************************************************************/
-/* 
- * This program is free software; you can redistribute it and/or modify 
- * it under the terms of the GNU General Public License as published by 
- * the Free Software Foundation; either version 3 of the License, or 
+/*
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 3 of the License, or
  * (at your option) any later version.
- * 
- * This program is distributed in the hope that it will be useful, but 
- * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY 
- * or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License 
+ *
+ * This program is distributed in the hope that it will be useful, but
+ * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
+ * or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License
  * for more details.
- * 
- * You should have received a copy of the GNU General Public License along 
+ *
+ * You should have received a copy of the GNU General Public License along
  * with this program; if not, see <http://www.gnu.org/licenses/>
  *
  * Additional note on redistribution: The copyright and license notices above
@@ -32,18 +32,19 @@
 #ifndef IUAVGADGETCONFIGURATION_H
 #define IUAVGADGETCONFIGURATION_H
 
-#include <coreplugin/core_global.h>
-#include <coreplugin/uavconfiginfo.h>
 #include <QObject>
 #include <QSettings>
+#include <coreplugin/core_global.h>
+#include <coreplugin/uavconfiginfo.h>
 
-namespace Core {
+namespace Core
+{
 
 class UAVConfigInfo;
 
 class CORE_EXPORT IUAVGadgetConfiguration : public QObject
 {
-Q_OBJECT
+    Q_OBJECT
 public:
     explicit IUAVGadgetConfiguration(QString classId, QObject *parent = 0);
     QString classId() { return m_classId; }
@@ -55,8 +56,12 @@ public:
     void setLocked(bool locked) { m_locked = locked; }
 
     virtual void saveConfig() const {};
-    virtual void saveConfig(QSettings* /*settings*/) const {};
-    virtual void saveConfig(QSettings* settings, UAVConfigInfo* /*configInfo*/) const { saveConfig(settings); }
+    virtual void saveConfig(QSettings * /*settings*/) const {};
+    virtual void saveConfig(QSettings *settings,
+                            UAVConfigInfo * /*configInfo*/) const
+    {
+        saveConfig(settings);
+    }
 
     virtual IUAVGadgetConfiguration *clone() = 0;
 
@@ -69,7 +74,6 @@ private:
     QString m_classId;
     QString m_name;
     QString m_provisionalName;
-
 };
 
 } // namespace Core

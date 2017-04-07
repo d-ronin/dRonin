@@ -28,20 +28,19 @@
 #ifndef EXPOCURVE_H
 #define EXPOCURVE_H
 
-
 #include <QWidget>
 #ifndef QWT_DLL
-    #define QWT_DLL
+#define QWT_DLL
 #endif
 #include "qwt/src/qwt.h"
-#include "qwt/src/qwt_plot.h"
-#include "qwt/src/qwt_plot_curve.h"
-#include "qwt/src/qwt_scale_draw.h"
-#include "qwt/src/qwt_scale_widget.h"
-#include "qwt/src/qwt_plot_grid.h"
 #include "qwt/src/qwt_legend.h"
 #include "qwt/src/qwt_legend_label.h"
+#include "qwt/src/qwt_plot.h"
+#include "qwt/src/qwt_plot_curve.h"
+#include "qwt/src/qwt_plot_grid.h"
 #include "qwt/src/qwt_plot_marker.h"
+#include "qwt/src/qwt_scale_draw.h"
+#include "qwt/src/qwt_scale_widget.h"
 #include "qwt/src/qwt_symbol.h"
 
 class ExpoCurve : public QwtPlot
@@ -51,14 +50,14 @@ public:
     explicit ExpoCurve(QWidget *parent = 0);
 
     typedef struct ExpoPlotElements {
-      QwtPlotCurve Curve;
+        QwtPlotCurve Curve;
     } ExpoPlotElements_t;
 
     void init();
 
     //! Show expo data for one of the stick channels
     void plotData(int value, int max, int exponent,
-            ExpoPlotElements_t &plot_elements);
+                  ExpoPlotElements_t &plot_elements);
 
 public slots:
 
@@ -72,12 +71,11 @@ public slots:
     void plotDataYaw(int value, int max, int exponent);
 
     //! Show/Hide a expo curve and markers
-    void showCurve(const QVariant & itemInfo, bool on, int index);
+    void showCurve(const QVariant &itemInfo, bool on, int index);
 
 signals:
 
 private:
-
     int steps;
     int curve_cnt;
     double *x_data;

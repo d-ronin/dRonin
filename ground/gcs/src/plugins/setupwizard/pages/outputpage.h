@@ -30,11 +30,13 @@
 
 #include "abstractwizardpage.h"
 
-namespace Ui {
+namespace Ui
+{
 class OutputPage;
 }
 
-class OutputPage : public AbstractWizardPage {
+class OutputPage : public AbstractWizardPage
+{
     Q_OBJECT
 
 public:
@@ -43,7 +45,8 @@ public:
     bool validatePage();
 
 private:
-    void setOutputRanges(quint16 minPulse, quint16 neutralPulse, quint16 maxPulse);
+    void setOutputRanges(quint16 minPulse, quint16 neutralPulse,
+                         quint16 maxPulse);
     Ui::OutputPage *ui;
 };
 

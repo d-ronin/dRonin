@@ -28,8 +28,8 @@
 #ifndef HITL_H
 #define HITL_H
 
-#include <coreplugin/iuavgadget.h>
 #include "hitlwidget.h"
+#include <coreplugin/iuavgadget.h>
 
 class IUAVGadget;
 class QWidget;
@@ -41,18 +41,17 @@ class HITLGadget : public Core::IUAVGadget
 {
     Q_OBJECT
 public:
-	HITLGadget(QString classId, HITLWidget *widget, QWidget *parent = 0);
-	~HITLGadget();
+    HITLGadget(QString classId, HITLWidget *widget, QWidget *parent = 0);
+    ~HITLGadget();
 
     QWidget *widget() { return m_widget; }
-    void loadConfiguration(IUAVGadgetConfiguration* config);
+    void loadConfiguration(IUAVGadgetConfiguration *config);
 
 signals:
-	void changeConfiguration();
+    void changeConfiguration();
 
 private:
-	HITLWidget* m_widget;
+    HITLWidget *m_widget;
 };
-
 
 #endif // HITL_H

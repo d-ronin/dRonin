@@ -27,20 +27,17 @@
 #ifndef SCOPES2D_H
 #define SCOPES2D_H
 
-
-#include "scopesconfig.h"
 #include "scopes2d/plotdata2d.h"
+#include "scopesconfig.h"
 
-#include <coreplugin/iuavgadgetconfiguration.h>
 #include "ui_scopegadgetoptionspage.h"
-
+#include <coreplugin/iuavgadgetconfiguration.h>
 
 // This struct holds the configuration for individual 2D data sources
-struct Plot2dCurveConfiguration
-{
+struct Plot2dCurveConfiguration {
     QString uavObjectName;
     QString uavFieldName;
-    int yScalePower; //This is the power to which each value must be raised
+    int yScalePower; // This is the power to which each value must be raised
     QRgb color;
     unsigned int yMeanSamples;
     QString mathFunction;
@@ -57,13 +54,13 @@ public:
      * @brief The Plot2dType enum Defines the different type of plots.
      */
     enum Plot2dType {
-        NO2DPLOT, //Signifies that there is no 2D plot configured
+        NO2DPLOT, // Signifies that there is no 2D plot configured
         SCATTERPLOT2D,
         HISTOGRAM,
         POLARPLOT
     };
 
-    virtual int getScopeDimensions(){return PLOT2D;}
+    virtual int getScopeDimensions() { return PLOT2D; }
 
 private:
 };

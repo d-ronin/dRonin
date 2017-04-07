@@ -32,36 +32,39 @@
 
 #include "qwt/src/qwt_plot_histogram.h"
 
-
-#include <QTimer>
 #include <QTime>
+#include <QTimer>
 #include <QVector>
 
-
 /**
- * @brief The HistogramData class The histogram plot has a variable sized buffer of data,
+ * @brief The HistogramData class The histogram plot has a variable sized buffer
+ * of data,
  *  where the data is for a specified histogram data set.
  */
 class HistogramData : public Plot2dData
 {
     Q_OBJECT
 public:
-    HistogramData(QString uavObject, QString uavField, double binWidth, uint numberOfBins);
+    HistogramData(QString uavObject, QString uavField, double binWidth,
+                  uint numberOfBins);
     ~HistogramData() {}
 
-    bool append(UAVObject* obj);
+    bool append(UAVObject *obj);
 
-    virtual void removeStaleData(){}
+    virtual void removeStaleData() {}
     virtual void plotNewData(PlotData *, ScopeConfig *, ScopeGadgetWidget *);
     virtual void deletePlots(PlotData *);
     void clearPlots();
 
-    QwtIntervalSeriesData *getIntervalSeriesData(){return intervalSeriesData;}
-    void setHistogram(QwtPlotHistogram *val){histogram = val;}
+    QwtIntervalSeriesData *getIntervalSeriesData()
+    {
+        return intervalSeriesData;
+    }
+    void setHistogram(QwtPlotHistogram *val) { histogram = val; }
 
 private:
     QwtPlotHistogram *histogram;
-    QVector<QwtIntervalSample> *histogramBins; //Used for histograms
+    QVector<QwtIntervalSample> *histogramBins; // Used for histograms
     QVector<QwtInterval> *histogramInterval;
     QwtIntervalSeriesData *intervalSeriesData;
 
@@ -69,7 +72,6 @@ private:
     uint numberOfBins;
 
 private slots:
-
 };
 
 #endif // HISTOGRAMDATA_H

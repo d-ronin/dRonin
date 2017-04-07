@@ -28,20 +28,22 @@
 #ifndef COORDINATEDPAGE_H
 #define COORDINATEDPAGE_H
 
+#include "radioprobepage.h"
+#include "rfmbindwizard.h"
 #include <QMap>
+#include <coreplugin/connectionmanager.h>
 #include <coreplugin/iboardtype.h>
 #include <coreplugin/icore.h>
-#include <coreplugin/connectionmanager.h>
-#include "rfmbindwizard.h"
-#include "radioprobepage.h"
 
 #include <uavobject.h>
 
-namespace Ui {
+namespace Ui
+{
 class CoordinatedPage;
 }
 
-class CoordinatedPage : public RadioProbePage {
+class CoordinatedPage : public RadioProbePage
+{
     Q_OBJECT
 
 public:

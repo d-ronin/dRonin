@@ -3,7 +3,8 @@
  *
  * @file       uavgadgetview.h
  * @author     The OpenPilot Team, http://www.openpilot.org Copyright (C) 2010.
- *             Parts by Nokia Corporation (qt-info@nokia.com) Copyright (C) 2009.
+ *             Parts by Nokia Corporation (qt-info@nokia.com) Copyright (C)
+ *2009.
  * @author     Tau Labs, http://taulabs.org, Copyright (C) 2014
  * @author     dRonin, http://dRonin.org/, Copyright (C) 2015
  * @addtogroup GCSPlugins GCS Plugins
@@ -30,16 +31,15 @@
 #ifndef UAVGADGETVIEW_H
 #define UAVGADGETVIEW_H
 
-#include <QtCore/QList>
-#include <QtCore/QString>
-#include <QtCore/QSettings>
-#include <QWidget>
 #include <QAction>
 #include <QSplitter>
-#include <QVBoxLayout>
 #include <QStackedLayout>
+#include <QVBoxLayout>
+#include <QWidget>
+#include <QtCore/QList>
 #include <QtCore/QPointer>
-
+#include <QtCore/QSettings>
+#include <QtCore/QString>
 
 QT_BEGIN_NAMESPACE
 class QComboBox;
@@ -48,24 +48,27 @@ class QLabel;
 class QVBoxLayout;
 QT_END_NAMESPACE
 
-namespace Utils {
+namespace Utils
+{
 class StyledBar;
 }
 
-namespace Core {
+namespace Core
+{
 
 class IUAVGadget;
 class UAVGadgetManager;
 
-namespace Internal {
-
+namespace Internal
+{
 
 class UAVGadgetView : public QWidget
 {
     Q_OBJECT
 
 public:
-    UAVGadgetView(UAVGadgetManager *uavGadgetManager, IUAVGadget *uavGadget = 0, QWidget *parent = 0, bool restoring = false);
+    UAVGadgetView(UAVGadgetManager *uavGadgetManager, IUAVGadget *uavGadget = 0,
+                  QWidget *parent = 0, bool restoring = false);
     virtual ~UAVGadgetView();
     void selectionActivated(int index, bool forceLoadConfiguration);
     void removeGadget();
@@ -97,7 +100,6 @@ private:
     int m_defaultIndex;
     QLabel *m_activeLabel;
 };
-
 }
 }
 #endif // UAVGADGETVIEW_H

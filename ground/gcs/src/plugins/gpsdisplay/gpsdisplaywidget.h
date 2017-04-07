@@ -27,16 +27,17 @@
 #ifndef GPSDISPLAYWIDGET_H_
 #define GPSDISPLAYWIDGET_H_
 
-#include "ui_gpsdisplaywidget.h"
 #include "gpsconstellationwidget.h"
 #include "uavobject.h"
+#include "ui_gpsdisplaywidget.h"
 #include <QGraphicsView>
-#include <QtSvg/QSvgRenderer>
 #include <QtSvg/QGraphicsSvgItem>
+#include <QtSvg/QSvgRenderer>
 
 class Ui_GpsDisplayWidget;
 
-class GpsDisplayWidget : public QWidget, public Ui_GpsDisplayWidget {
+class GpsDisplayWidget : public QWidget, public Ui_GpsDisplayWidget
+{
     Q_OBJECT
 
 public:

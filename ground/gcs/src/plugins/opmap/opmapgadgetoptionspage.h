@@ -32,21 +32,24 @@
 
 class OPMapGadgetConfiguration;
 
-namespace Core {
-    class IUAVGadgetConfiguration;
+namespace Core
+{
+class IUAVGadgetConfiguration;
 }
 
-namespace Ui {
-    class OPMapGadgetOptionsPage;
+namespace Ui
+{
+class OPMapGadgetOptionsPage;
 }
 
 using namespace Core;
 
 class OPMapGadgetOptionsPage : public IOptionsPage
 {
-Q_OBJECT
+    Q_OBJECT
 public:
-    explicit OPMapGadgetOptionsPage(OPMapGadgetConfiguration *config, QObject *parent = 0);
+    explicit OPMapGadgetOptionsPage(OPMapGadgetConfiguration *config,
+                                    QObject *parent = 0);
 
     QWidget *createPage(QWidget *parent);
     void apply();

@@ -37,24 +37,26 @@ using namespace Core;
   */
 class SerialPluginConfiguration : public IUAVGadgetConfiguration
 {
-Q_OBJECT
+    Q_OBJECT
 public:
-    explicit SerialPluginConfiguration(QString classId, QSettings* qSettings = 0, QObject *parent = 0);
+    explicit SerialPluginConfiguration(QString classId,
+                                       QSettings *qSettings = 0,
+                                       QObject *parent = 0);
     QString speed() { return m_speed; }
     bool reconnect() { return m_reconnect; }
-    void saveConfig(QSettings* settings) const;
+    void saveConfig(QSettings *settings) const;
     IUAVGadgetConfiguration *clone();
     void savesettings() const;
     void restoresettings();
     virtual ~SerialPluginConfiguration();
+
 private:
     QString m_speed;
     bool m_reconnect;
-    QSettings* settings;
+    QSettings *settings;
 public slots:
     void setSpeed(QString speed) { m_speed = speed; }
     void setReconnect(bool reconnect) { m_reconnect = reconnect; }
-
 };
 
 #endif // SERIALPLUGINCONFIGURATION_H

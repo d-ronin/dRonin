@@ -28,49 +28,41 @@
 #define MODELVIEWGADGETOPTIONSPAGE_H
 
 #include "coreplugin/dialogs/ioptionspage.h"
-#include <QLabel>
 #include <QFileDialog>
-#include <QPushButton>
 #include <QHBoxLayout>
+#include <QLabel>
+#include <QPushButton>
 #include <QVBoxLayout>
 
 class ModelViewGadgetConfiguration;
 class QFileDialog;
-namespace Core {
+namespace Core
+{
 class IUAVGadgetConfiguration;
 }
-namespace Ui {
+namespace Ui
+{
 class ModelViewOptionsPage;
 }
 
 using namespace Core;
 
-class ModelViewGadgetOptionsPage : public IOptionsPage {
+class ModelViewGadgetOptionsPage : public IOptionsPage
+{
     Q_OBJECT
 public:
-    explicit ModelViewGadgetOptionsPage(ModelViewGadgetConfiguration *config, QObject *parent = 0);
-    QString id() const
-    {
-        return "";
-    }
-    QString trName() const
-    {
-        return "";
-    }
-    QString category() const
-    {
-        return "";
-    }
-    QString trCategory() const
-    {
-        return "";
-    }
+    explicit ModelViewGadgetOptionsPage(ModelViewGadgetConfiguration *config,
+                                        QObject *parent = 0);
+    QString id() const { return ""; }
+    QString trName() const { return ""; }
+    QString category() const { return ""; }
+    QString trCategory() const { return ""; }
 
     QWidget *createPage(QWidget *parent);
     void apply();
     void finish();
-private:
 
+private:
 signals:
 
 public slots:

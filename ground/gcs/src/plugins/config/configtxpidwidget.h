@@ -26,8 +26,8 @@
 #ifndef CONFIGTXPIDWIDGET_H
 #define CONFIGTXPIDWIDGET_H
 
-#include "ui_txpid.h"
 #include "configtaskwidget.h"
+#include "ui_txpid.h"
 
 class ConfigTxPIDWidget : public ConfigTaskWidget
 {
@@ -36,6 +36,7 @@ class ConfigTxPIDWidget : public ConfigTaskWidget
 public:
     ConfigTxPIDWidget(QWidget *parent = 0);
     ~ConfigTxPIDWidget();
+
 private:
     Ui_TxPIDWidget *m_txpid;
 

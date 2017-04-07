@@ -28,17 +28,19 @@
 #ifndef MULTIPAGE_H
 #define MULTIPAGE_H
 
+#include <QList>
 #include <QtSvg/QGraphicsSvgItem>
 #include <QtSvg/QSvgRenderer>
-#include <QList>
 
 #include "abstractwizardpage.h"
 
-namespace Ui {
+namespace Ui
+{
 class MultiPage;
 }
 
-class MultiPage : public AbstractWizardPage {
+class MultiPage : public AbstractWizardPage
+{
     Q_OBJECT
 
 public:

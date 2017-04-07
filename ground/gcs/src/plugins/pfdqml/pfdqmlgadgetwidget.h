@@ -27,7 +27,7 @@ class PfdQmlGadgetWidget : public QQuickView
 
 public:
     PfdQmlGadgetWidget(QWindow *parent = 0);
-   ~PfdQmlGadgetWidget();
+    ~PfdQmlGadgetWidget();
     void setQmlFile(QString fn);
 
 public slots:

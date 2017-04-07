@@ -28,10 +28,11 @@
 #ifndef ABSTRACTWIZARDPAGE_H
 #define ABSTRACTWIZARDPAGE_H
 
-#include <QWizardPage>
 #include "rfmbindwizard.h"
+#include <QWizardPage>
 
-class AbstractWizardPage : public QWizardPage {
+class AbstractWizardPage : public QWizardPage
+{
     Q_OBJECT
 protected:
     explicit AbstractWizardPage(RfmBindWizard *wizard, QWidget *parent = 0);
@@ -40,10 +41,7 @@ private:
     RfmBindWizard *m_wizard;
 
 public:
-    RfmBindWizard *getWizard() const
-    {
-        return m_wizard;
-    }
+    RfmBindWizard *getWizard() const { return m_wizard; }
 };
 
 #endif // ABSTRACTWIZARDPAGE_H

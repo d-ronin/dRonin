@@ -27,28 +27,26 @@
 #ifndef TELEMETRYPARSER_H
 #define TELEMETRYPARSER_H
 
+#include "extensionsystem/pluginmanager.h"
+#include "gpsparser.h"
+#include "uavobject.h"
+#include "uavobjectmanager.h"
 #include <QObject>
 #include <QtCore>
-#include "extensionsystem/pluginmanager.h"
-#include "uavobjectmanager.h"
-#include "uavobject.h"
-#include "gpsparser.h"
 
-
-class TelemetryParser: public GPSParser
+class TelemetryParser : public GPSParser
 {
 
     Q_OBJECT
-    
+
 public:
-   TelemetryParser(QObject *parent = 0);
-   ~TelemetryParser();
+    TelemetryParser(QObject *parent = 0);
+    ~TelemetryParser();
 
 public slots:
-   void updateGPS(UAVObject* object1);
-   void updateTime(UAVObject* object1);
-   void updateSats(UAVObject* object1);
-
+    void updateGPS(UAVObject *object1);
+    void updateTime(UAVObject *object1);
+    void updateSats(UAVObject *object1);
 };
 
 #endif // TELEMETRYPARSER_H

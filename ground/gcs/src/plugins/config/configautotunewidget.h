@@ -27,26 +27,25 @@
 #ifndef CONFIGAUTOTUNE_H
 #define CONFIGAUTOTUNE_H
 
-#include "ui_autotune.h"
-#include "ui_autotuneproperties.h"
-#include "ui_autotunesliders.h"
-#include "ui_autotunefinalpage.h"
 #include "../uavobjectwidgetutils/configtaskwidget.h"
-#include "extensionsystem/pluginmanager.h"
-#include "uavobjectmanager.h"
-#include "uavobject.h"
 #include "actuatorsettings.h"
+#include "extensionsystem/pluginmanager.h"
 #include "stabilizationsettings.h"
 #include "systemident.h"
-#include <QWidget>
+#include "uavobject.h"
+#include "uavobjectmanager.h"
+#include "ui_autotune.h"
+#include "ui_autotunefinalpage.h"
+#include "ui_autotuneproperties.h"
+#include "ui_autotunesliders.h"
 #include <QTimer>
+#include <QWidget>
 #include <QWizardPage>
 #include <QtNetwork/QNetworkReply>
 
 #include "configgadgetwidget.h"
 
-struct AutotunedValues
-{
+struct AutotunedValues {
     // Inputs
     float damping;
     float noiseSens;
@@ -69,28 +68,27 @@ struct AutotunedValues
 };
 
 class AutotuneMeasuredPropertiesPage : public QWizardPage,
-        private Ui::AutotuneProperties
+                                       private Ui::AutotuneProperties
 {
     Q_OBJECT
 
 public:
-    explicit AutotuneMeasuredPropertiesPage(QWidget *parent,
-            SystemIdent::DataFields &systemIdentData);
+    explicit AutotuneMeasuredPropertiesPage(
+            QWidget *parent, SystemIdent::DataFields &systemIdentData);
     void initializePage();
 
 private:
     SystemIdent::DataFields sysIdent;
 };
 
-class AutotuneSlidersPage : public QWizardPage,
-        private Ui::AutotuneSliders
+class AutotuneSlidersPage : public QWizardPage, private Ui::AutotuneSliders
 {
     Q_OBJECT
 
 public:
     explicit AutotuneSlidersPage(QWidget *parent,
-            SystemIdent::DataFields &systemIdentData,
-            struct AutotunedValues *autoValues);
+                                 SystemIdent::DataFields &systemIdentData,
+                                 struct AutotunedValues *autoValues);
 
     bool isComplete() const;
 
@@ -105,8 +103,7 @@ private slots:
     void resetSliders();
 };
 
-class AutotuneFinalPage : public QWizardPage,
-        public Ui::AutotuneFinalPage
+class AutotuneFinalPage : public QWizardPage, public Ui::AutotuneFinalPage
 {
     Q_OBJECT
 
@@ -122,14 +119,14 @@ public:
 
 private:
     Ui_AutotuneWidget *m_autotune;
-    UAVObjectUtilManager* utilMngr;
+    UAVObjectUtilManager *utilMngr;
     ConfigGadgetWidget *parentConfigWidget;
     static const QString databaseUrl;
 
     QString systemIdentValid(SystemIdent::DataFields &data, bool *okToContinue);
 
     QJsonDocument getResultsJson(AutotuneFinalPage *autotuneShareForm,
-            struct AutotunedValues *av);
+                                 struct AutotunedValues *av);
 
     void stuffShareForm(AutotuneFinalPage *autotuneShareForm);
     void persistShareForm(AutotuneFinalPage *autotuneShareForm);

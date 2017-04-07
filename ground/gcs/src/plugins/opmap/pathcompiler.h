@@ -31,25 +31,33 @@
 #include <uavobjectmanager.h>
 #include <waypoint.h>
 
-// TODO: Make this a singleton class and separate from map library.  Not sure of the proper design pattern in Qt.
+// TODO: Make this a singleton class and separate from map library.  Not sure of
+// the proper design pattern in Qt.
 // factory? static variables?
 
 /**
   * This class is a two way adapter between a visualization of a path and the
-  * UAVObject representation on the flight controller.  It also can support multiple
-  * ways of converting a path from what the user clicked to the underlying representation
+  * UAVObject representation on the flight controller.  It also can support
+ * multiple
+  * ways of converting a path from what the user clicked to the underlying
+ * representation
   * to achieve the desired end flight trajectory
   *
   * So the chain of data for the map lib is:
   *    FC <-> PathCompiler <-> OPMapGadget <-> OPMapLib
   *
-  * The goal is that PathCompiler be as state free as is possible.  Eventually for more
-  * complicated path compilation this will probably not be achievable.  That means it
-  * should not cache a copy of waypoints locally if that can be avoided (i.e. it should
+  * The goal is that PathCompiler be as state free as is possible.  Eventually
+ * for more
+  * complicated path compilation this will probably not be achievable.  That
+ * means it
+  * should not cache a copy of waypoints locally if that can be avoided (i.e. it
+ * should
   * refer directly to what is stored on the FC).
   *
-  * For the visualization to have the ability to manipulate the path though it needs to
-  * be able to map unambiguously from the graphical items to the internal waypoints. It
+  * For the visualization to have the ability to manipulate the path though it
+ * needs to
+  * be able to map unambiguously from the graphical items to the internal
+ * waypoints. It
   * must cache a lookup from the graphical item to the index from this tool.
   */
 class PathCompiler : public QObject
@@ -65,12 +73,15 @@ public:
     int loadPath(QString filename = NULL);
 
     //! Waypoint representation that is exchanged between visualization
-    class waypoint {
+    class waypoint
+    {
     public:
         waypoint() {}
 
-        const bool operator==(const waypoint other) {
-            return (other.latitude == latitude) && (other.longitude == longitude);
+        const bool operator==(const waypoint other)
+        {
+            return (other.latitude == latitude) &&
+                   (other.longitude == longitude);
         }
 
         double latitude;
@@ -80,7 +91,7 @@ public:
 
 private:
     //! Helper method to get uavobject manager
-    UAVObjectManager * getObjectManager();
+    UAVObjectManager *getObjectManager();
 
     //! Convert a UAVO waypoint to the local structure
     struct PathCompiler::waypoint UavoToInternal(Waypoint::DataFields);
@@ -88,7 +99,7 @@ private:
     //! Convert a UAVO waypoint to the local structure
     Waypoint::DataFields InternalToUavo(waypoint);
 
-    QList <waypoint> previousWaypoints;
+    QList<waypoint> previousWaypoints;
 signals:
     /**
       * Indicates something changed the waypoints and the map should
@@ -99,15 +110,17 @@ signals:
 public slots:
     /**
       * These are slots that the visualization can call to manipulate the path.
-      * It is an important design detail that the visualiation _not_ attempt to maintain
-      * the list of waypoints itself.  This starts the slippery of moving the path logic
+      * It is an important design detail that the visualiation _not_ attempt to
+     * maintain
+      * the list of waypoints itself.  This starts the slippery of moving the
+     * path logic
       * into the view.
       */
 
     /**
       * Called when new instances are registered
       */
-    void doNewInstance(UAVObject*);
+    void doNewInstance(UAVObject *);
 
     /**
       * add a waypoint

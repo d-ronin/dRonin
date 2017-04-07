@@ -32,30 +32,30 @@
 #ifndef CONFIGATTITUDEWIDGET_H
 #define CONFIGATTITUDEWIDGET_H
 
-#include "ui_attitude.h"
 #include "calibration.h"
+#include "ui_attitude.h"
 
+#include "calibration.h"
 #include "configtaskwidget.h"
 #include "extensionsystem/pluginmanager.h"
-#include "uavobjectmanager.h"
 #include "uavobject.h"
-#include "calibration.h"
-#include <QWidget>
-#include <QSvgRenderer>
+#include "uavobjectmanager.h"
 #include <QGraphicsSvgItem>
 #include <QList>
+#include <QSvgRenderer>
 #include <QTimer>
+#include <QWidget>
 
 class Ui_Widget;
 
-class ConfigAttitudeWidget: public ConfigTaskWidget
+class ConfigAttitudeWidget : public ConfigTaskWidget
 {
     Q_OBJECT
 
 public:
     ConfigAttitudeWidget(QWidget *parent = 0);
     ~ConfigAttitudeWidget();
-    
+
 protected:
     void showEvent(QShowEvent *event);
     void resizeEvent(QResizeEvent *event);
@@ -79,7 +79,7 @@ private:
 
 private slots:
     //! Overriden method from the configTaskWidget to update UI
-    virtual void refreshWidgetsValues(UAVObject * obj=NULL);
+    virtual void refreshWidgetsValues(UAVObject *obj = NULL);
 
     //! Display the plane in various positions
     void displayPlane(int i);
@@ -88,7 +88,6 @@ private slots:
     void do_SetDirty();
     void configureSixPoint();
     void onCalibrationBusy(bool busy);
-
 };
 
 #endif // CONFIGATTITUDEWIDGET_H

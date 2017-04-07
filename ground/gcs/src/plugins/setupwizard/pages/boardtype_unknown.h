@@ -30,7 +30,8 @@
 
 #include "abstractwizardpage.h"
 
-namespace Ui {
+namespace Ui
+{
 class BoardtypeUnknown;
 }
 
@@ -38,7 +39,8 @@ class BoardtypeUnknown;
  * @brief The BoardtypeUnknown class tells the user this board type
  * is unknown and unsupported.
  */
-class BoardtypeUnknown : public AbstractWizardPage {
+class BoardtypeUnknown : public AbstractWizardPage
+{
     Q_OBJECT
 
 public:

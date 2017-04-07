@@ -32,11 +32,13 @@
 #include "abstractwizardpage.h"
 #include "calibration.h"
 
-namespace Ui {
+namespace Ui
+{
 class BiasCalibrationPage;
 }
 
-class BiasCalibrationPage : public AbstractWizardPage {
+class BiasCalibrationPage : public AbstractWizardPage
+{
     Q_OBJECT
 
 public:

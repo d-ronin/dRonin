@@ -21,14 +21,14 @@
 #ifndef VEHICLETRIM_H
 #define VEHICLETRIM_H
 
-#include <uavobjectmanager.h>
 #include <extensionsystem/pluginmanager.h>
-#include <uavobject.h>
 #include <tempcompcurve.h>
+#include <uavobject.h>
+#include <uavobjectmanager.h>
 
 #include <QObject>
-#include <QTimer>
 #include <QString>
+#include <QTimer>
 
 /**
  * @brief The VehicleTrim class is a UI free algorithm that can be connected
@@ -44,13 +44,13 @@ public:
     explicit VehicleTrim();
     ~VehicleTrim();
 
-    enum actuatorTrimMessages{
+    enum actuatorTrimMessages {
         ACTUATOR_TRIM_SUCCESS,
         ACTUATOR_TRIM_FAILED_DUE_TO_MISSING_RECEIVER,
         ACTUATOR_TRIM_FAILED_DUE_TO_FLIGHTMODE
     };
 
-    enum autopilotLevelBiasMessages{
+    enum autopilotLevelBiasMessages {
         AUTOPILOT_LEVEL_SUCCESS,
         AUTOPILOT_LEVEL_FAILED_DUE_TO_MISSING_RECEIVER,
         AUTOPILOT_LEVEL_FAILED_DUE_TO_ARMED_STATE,
@@ -62,19 +62,16 @@ public:
     actuatorTrimMessages setTrimActuators();
 
 private:
-
 signals:
 
-    //! Indicate that a trim process has successfully completed and the results saved to UAVO
+    //! Indicate that a trim process has successfully completed and the results
+    //! saved to UAVO
     void trimCompleted();
 
 private:
-
 protected:
-
     //! Get the object manager
-    UAVObjectManager* getObjectManager();
-
+    UAVObjectManager *getObjectManager();
 };
 
 #endif // VEHICLETRIM_H
