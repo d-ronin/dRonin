@@ -26,7 +26,6 @@
  */
 
 #include "systemhealthgadgetwidget.h"
-#include "utils/stylehelper.h"
 #include "extensionsystem/pluginmanager.h"
 #include "uavobjectmanager.h"
 #include "systemalarms.h"
@@ -138,7 +137,6 @@ SystemHealthGadgetWidget::~SystemHealthGadgetWidget()
 
 void SystemHealthGadgetWidget::setSystemFile(QString dfn)
 {
-    setBackgroundBrush(QBrush(Utils::StyleHelper::baseColor()));
    if (QFile::exists(dfn)) {
        m_renderer->load(dfn);
        if(m_renderer->isValid()) {

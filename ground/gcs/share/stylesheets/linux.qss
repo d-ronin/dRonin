@@ -1,11 +1,5 @@
 QListWidget {font-size: 11px;}
 MixerCurveWidget {font-size: 12px;}
-Utils--StyledBar { background-color: qlineargradient(spread:pad, x1:0, y1:0, x2:0, y2:1, stop:0 rgba(0, 0, 0, 255), stop:1 rgba(200, 200, 200, 255));}
- 
-
-
-
-
 
 	QGroupBox 	{
 		border: 1px solid gray;
@@ -21,13 +15,6 @@ Utils--StyledBar { background-color: qlineargradient(spread:pad, x1:0, y1:0, x2:
 		padding: 0 3px;
 		
 		}
-
-	QTabWidget::pane { /* The tab widget frame */	
-		margin: 1px,1px,1px,1px;
-		border: 2px solid rgb(196,196,196);
-		border-radius: 5px;
-		padding: 0px;
-		} 
 
 	QSlider::groove:horizontal {
 		border: 1px solid rgb(196,196,196);
@@ -115,3 +102,12 @@ Utils--StyledBar { background-color: qlineargradient(spread:pad, x1:0, y1:0, x2:
 		border: 1px solid #444;
 		border-radius: 4px;
 		}
+
+/* Approximate QListView style in comboboxes to system one in Linux/Ubuntu. */
+Utils--StyledBar QComboBox QListView {
+	background: palette(Window);
+}
+
+Utils--StyledBar QComboBox QListView::item {
+	padding: 4px;
+}

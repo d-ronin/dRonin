@@ -29,8 +29,6 @@
 
 #include "styledbar.h"
 
-#include "stylehelper.h"
-
 #include <QVariant>
 #include <QPainter>
 #include <QPixmapCache>

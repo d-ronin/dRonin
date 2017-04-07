@@ -1,0 +1,111 @@
+/* Guess what. */
+QMainWindow {
+}
+
+#MainContentFrame {
+	background: palette(Midlight);
+	padding-bottom: 5px;
+	border-top: 1px solid #606060;
+}
+
+MyTabWidget::pane > QFrame {
+	/* Inside */
+	background: palette(Window);
+	border: 3px solid palette(Window);
+}
+
+MyTabWidget::pane {
+	/* Outside */
+	border: 0px;
+}
+
+/* Main tabbed content pane's tab bar */
+MyTabWidget::tab-bar {
+	left: 9px;
+}
+
+MyTabWidget > QTabBar::tab {
+	min-height: 36px;
+	max-height: 36px;
+}
+
+SystemHealthGadgetWidget, PfdQmlGadgetWidget, LineardialGadgetWidget, ModelViewGadgetWidget > *, OPMapGadgetWidget, DialGadgetWidget {
+	background: #303030;
+	border: 1px solid #505050;
+}
+
+#frameStatusBar, #frameTopBar, #frameMapControls {
+	background: #303030;
+}
+
+#frameTopBar > QLabel, #frameStatusBar > QLabel {
+	color: white;
+}
+
+#OPMap_Widget > QLabel {
+	color: #ffffff;
+}
+
+#frameTopBar > QToolButton, #frameMapControls > QToolButton {
+	background: #505050;
+	color: white;
+	border: 1px solid #606060;
+}
+
+#frameTopBar > QToolButton:disabled, #frameMapControls > QToolButton:disabled {
+	background: #303030;
+	color: #505050;
+	border: 1px solid #505050;
+}
+
+#frameTopBar > QToolButton:hover, #frameMapControls > QToolButton:hover {
+}
+
+#frameTopBar > QToolButton:pressed, #frameMapControls > QToolButton:pressed {
+	background: #e67e22;
+	color: black;
+	border: 1px solid #f39c12;
+}
+
+#frameTopBar > QToolButton:checked, #frameMapControls > QToolButton:checked {
+	background: #f39c12;
+	color: black;
+	border: 1px solid #f1c40f;
+}
+
+Utils--StyledBar {
+	background: #505050;
+	min-height: 24px;
+	max-height: 24px;
+}
+
+Utils--StyledBar QComboBox {
+	border: 0px;
+	background: transparent;
+	color: white;
+	height: 22px;
+}
+
+Utils--StyledBar QComboBox:!editable {
+	color: #808080;
+}
+
+Utils--StyledBar QComboBox:hover {
+	background: #707070;
+}
+
+Utils--StyledBar QComboBox::drop-down {
+	border: 0px;
+}
+
+Utils--StyledBar QComboBox::down-arrow:enabled {
+	image: url(:/core/images/dropdown_button.png);
+	width: 7px;
+	height: 7px;
+}
+
+Utils--StyledBar QComboBox::down-arrow:disabled {
+	image: url(:/core/images/dropdown_button_dis.png);
+	width: 7px;
+	height: 7px;
+}

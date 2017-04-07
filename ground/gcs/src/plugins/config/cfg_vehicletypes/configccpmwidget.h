@@ -62,7 +62,7 @@ public:
     friend class ConfigVehicleTypeWidget;
 
 private:
-        Ui_ccpmWidget *m_ccpm;
+        Ui_CcpmWidget *m_ccpm;
         QGraphicsSvgItem *SwashplateImg;
         QGraphicsSvgItem *CurveImg;
         QGraphicsSvgItem *Servos[CCPM_MAX_SWASH_SERVOS];

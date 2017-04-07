@@ -46,7 +46,6 @@
 
 #include <math.h>
 
-#include "utils/stylehelper.h"
 #include "utils/homelocationutil.h"
 #include "utils/worldmagmodel.h"
 
@@ -92,7 +91,7 @@ const int max_update_rate_list[] = {100, 200, 500, 1000, 2000, 5000};           
 
 
 // constructor
-OPMapGadgetWidget::OPMapGadgetWidget(QWidget *parent) : QWidget(parent)
+OPMapGadgetWidget::OPMapGadgetWidget(QWidget *parent) : QFrame(parent)
 {
     // **************
 
@@ -158,7 +157,6 @@ OPMapGadgetWidget::OPMapGadgetWidget(QWidget *parent) : QWidget(parent)
     m_map = new mapcontrol::TLMapWidget();	// create the map object
 
     m_map->setFrameStyle(QFrame::NoFrame);      // no border frame
-    m_map->setBackgroundBrush(QBrush(Utils::StyleHelper::baseColor())); // tile background
 
     m_map->configuration->DragButton = Qt::LeftButton;  // use the left mouse button for map dragging
 

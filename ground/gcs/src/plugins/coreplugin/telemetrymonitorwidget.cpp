@@ -33,9 +33,9 @@
 
 TelemetryMonitorWidget::TelemetryMonitorWidget(QWidget *parent) : QGraphicsView(parent)
 {
-    setMinimumSize(200,parent->height());
-    setMaximumSize(200,parent->height());
-    setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Expanding);
+    setMinimumSize(200, parent->height());
+    setMaximumSize(200, parent->height());
+    setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
     setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
     setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
     setAlignment(Qt::AlignCenter);
@@ -46,7 +46,7 @@ TelemetryMonitorWidget::TelemetryMonitorWidget(QWidget *parent) : QGraphicsView(
     setWindowFlags(Qt::FramelessWindowHint);
 
     // This comes from the size of the image
-    QGraphicsScene *scene = new QGraphicsScene(0,0,1040,110, this);
+    QGraphicsScene *scene = new QGraphicsScene(0, 0, 1240, 144, this);
 
     renderer = new QSvgRenderer();
     if (renderer->load(QString(":/core/images/tx-rx.svg"))) {
@@ -61,7 +61,7 @@ TelemetryMonitorWidget::TelemetryMonitorWidget(QWidget *parent) : QGraphicsView(
         QMatrix Matrix;
         QTransform trans;
 
-        for (int i=0; i<NODE_NUMELEM; i++) {
+        for (int i = 0; i < NODE_NUMELEM; i++) {
             name = QString("tx%0").arg(i);
             if (renderer->elementExists(name)) {
                 trans.reset();
@@ -69,11 +69,11 @@ TelemetryMonitorWidget::TelemetryMonitorWidget(QWidget *parent) : QGraphicsView(
                 pt->setSharedRenderer(renderer);
                 pt->setElementId(name);
                 pt->setParentItem(graph);
-                orig=renderer->boundsOnElement(name);
+                orig = renderer->boundsOnElement(name);
                 Matrix = renderer->matrixForElement(name);
-                orig=Matrix.mapRect(orig);
-                trans.translate(orig.x(),orig.y());
-                pt->setTransform(trans,false);
+                orig = Matrix.mapRect(orig);
+                trans.translate(orig.x(), orig.y());
+                pt->setTransform(trans, false);
                 txNodes.append(pt);
             }
 
@@ -84,37 +84,38 @@ TelemetryMonitorWidget::TelemetryMonitorWidget(QWidget *parent) : QGraphicsView(
                 pt->setSharedRenderer(renderer);
                 pt->setElementId(name);
                 pt->setParentItem(graph);
-                orig=renderer->boundsOnElement(name);
+                orig = renderer->boundsOnElement(name);
                 Matrix = renderer->matrixForElement(name);
-                orig=Matrix.mapRect(orig);
-                trans.translate(orig.x(),orig.y());
-                pt->setTransform(trans,false);
+                orig = Matrix.mapRect(orig);
+                trans.translate(orig.x(), orig.y());
+                pt->setTransform(trans, false);
                 rxNodes.append(pt);
             }
         }
         scene->addItem(graph);
         txSpeed = new QGraphicsTextItem();
         txSpeed->setDefaultTextColor(Qt::white);
-        txSpeed->setFont(QFont("Helvetica",22,2));
+        txSpeed->setFont(QFont("Helvetica", 30, 2));
         txSpeed->setParentItem(graph);
-        orig=renderer->boundsOnElement("txPH");
+        orig = renderer->boundsOnElement("txPH");
         Matrix = renderer->matrixForElement("txPH");
-        orig=Matrix.mapRect(orig);
+        orig = Matrix.mapRect(orig);
         trans.reset();
-        trans.translate(orig.x(),orig.y());
-        txSpeed->setTransform(trans,false);
+        trans.translate(orig.x(), orig.y() - 8);
+        txSpeed->setTransform(trans, false);
         rxSpeed = new QGraphicsTextItem();
         rxSpeed->setDefaultTextColor(Qt::white);
-        rxSpeed->setFont(QFont("Helvetica",22,2));
+        rxSpeed->setFont(QFont("Helvetica", 30, 2));
         rxSpeed->setParentItem(graph);
         trans.reset();
-        orig=renderer->boundsOnElement("rxPH");
+        orig = renderer->boundsOnElement("rxPH");
         Matrix = renderer->matrixForElement("rxPH");
-        orig=Matrix.mapRect(orig);
-        trans.translate(orig.x(),orig.y());
-        rxSpeed->setTransform(trans,false);
+        orig = Matrix.mapRect(orig);
+        trans.translate(orig.x(), orig.y() - 8);
+        rxSpeed->setTransform(trans, false);
 
         scene->setSceneRect(graph->boundingRect());
+
         setScene(scene);
     }
 
@@ -175,7 +176,7 @@ void TelemetryMonitorWidget::showTelemetry()
     rxIndex = (rxValue-minValue)/(maxValue-minValue) * NODE_NUMELEM;
 
     if (m_connected)
-        this->setToolTip(QString("Tx: %0 bytes/sec\nRx: %1 bytes/sec").arg(txValue).arg(rxValue));
+        this->setToolTip(QString("Tx: %0 bytes/sec\nRx: %1 bytes/sec").arg(txValue, 0, 'f', 0).arg(rxValue, 0, 'f', 0));
     else
         this->setToolTip(QString("Disconnected"));
 
@@ -194,10 +195,10 @@ void TelemetryMonitorWidget::showTelemetry()
         node->update();
     }
 
-    txSpeed->setPlainText(QString("%0").arg(txValue));
+    txSpeed->setPlainText(QString::number(txValue, 'f', 0));
     txSpeed->setVisible(m_connected);
 
-    rxSpeed->setPlainText(QString("%0").arg(rxValue));
+    rxSpeed->setPlainText(QString::number(rxValue, 'f', 0));
     rxSpeed->setVisible(m_connected);
 
     update();
@@ -214,9 +215,6 @@ void TelemetryMonitorWidget::resizeEvent(QResizeEvent* event)
 {
     Q_UNUSED(event);
 
-    // This offset is required because the widget is not centered while
-    // it is a child of the connection selector widget
-    graph->setPos(0,-20);
     fitInView(graph, Qt::KeepAspectRatio);
 }
 

@@ -4,7 +4,7 @@
 #include <QWidget>
 #include "configinputwidget.h"
 namespace Ui {
-    class inputChannelForm;
+    class InputChannelForm;
 }
 
 class inputChannelForm : public ConfigTaskWidget
@@ -26,7 +26,7 @@ private slots:
     void reverseChannel();
 
 private:
-    Ui::inputChannelForm *ui;
+    Ui::InputChannelForm *ui;
     ChannelFunc m_chanType;
     QSpinBox *sbChannelCurrent;
 };

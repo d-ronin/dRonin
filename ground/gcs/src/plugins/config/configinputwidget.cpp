@@ -43,7 +43,6 @@
 #include <QDesktopServices>
 #include <QUrl>
 #include <QMessageBox>
-#include <utils/stylehelper.h>
 #include <QMessageBox>
 
 #include <extensionsystem/pluginmanager.h>

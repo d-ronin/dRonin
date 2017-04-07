@@ -29,8 +29,6 @@
 
 #include "generalsettings.h"
 
-#include <utils/stylehelper.h>
-#include <utils/qtcolorbutton.h>
 #include <coreplugin/icore.h>
 #include <QMessageBox>
 #include <QtCore/QDir>
@@ -39,7 +37,6 @@
 #include <QDialog>
 #include "ui_generalsettings.h"
 
-using namespace Utils;
 using namespace Core::Internal;
 
 GeneralSettings::GeneralSettings():
@@ -134,14 +131,11 @@ QWidget *GeneralSettings::createPage(QWidget *parent)
     m_page->cbUseUDPMirror->setChecked(m_useUDPMirror);
     m_page->cbExpertMode->setChecked(m_useExpertMode);
     m_page->cbSessionMessaging->setChecked(m_useSessionManaging);
-    m_page->colorButton->setColor(StyleHelper::baseColor());
     m_page->proxyTypeCB->setCurrentIndex(m_page->proxyTypeCB->findData(m_proxyType));
     m_page->portLE->setText(QString::number(m_proxyPort));
     m_page->hostNameLE->setText(m_proxyHostname);
     m_page->userLE->setText(m_proxyUser);
     m_page->passwordLE->setText(m_proxyPassword);
-    connect(m_page->resetButton, SIGNAL(clicked()),
-            this, SLOT(resetInterfaceColor()));
 
     return w;
 }
@@ -151,7 +145,6 @@ void GeneralSettings::apply()
     int currentIndex = m_page->languageBox->currentIndex();
     setLanguage(m_page->languageBox->itemData(currentIndex, Qt::UserRole).toString());
     // Apply the new base color if accepted
-    StyleHelper::setBaseColor(m_page->colorButton->color());
 
     m_saveSettingsOnExit = m_page->checkBoxSaveOnExit->isChecked();
     m_useUDPMirror = m_page->cbUseUDPMirror->isChecked();
@@ -232,11 +225,6 @@ void GeneralSettings::saveSettings(QSettings* qs)
     qs->setValue(QLatin1String("escs"), m_escs);
     qs->setValue(QLatin1String("props"), m_props);
     qs->endGroup();
-}
-
-void GeneralSettings::resetInterfaceColor()
-{
-    m_page->colorButton->setColor(0x666666);
 }
 
 void GeneralSettings::showHelpForExternalEditor()

@@ -87,7 +87,6 @@ public:
 signals:
     void generalSettingsChanged();
 private slots:
-    void resetInterfaceColor();
     void resetLanguage();
     void showHelpForExternalEditor();
     void slotAutoConnect(int);    

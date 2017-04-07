@@ -54,7 +54,6 @@
 #include "icorelistener.h"
 #include "iconfigurableplugin.h"
 #include <QStyleFactory>
-#include "manhattanstyle.h"
 #include "settingsdialog.h"
 #include "uniqueidmanager.h"
 #include "versiondialog.h"
@@ -63,7 +62,6 @@
 #include "dialogs/iwizard.h"
 #include <utils/hostosinfo.h>
 #include <utils/pathchooser.h>
-#include <utils/stylehelper.h>
 #include <utils/xmlconfig.h>
 #include <utils/pathutils.h>
 
@@ -178,7 +176,7 @@ MainWindow::MainWindow() :
             }
         }
     }
-    qApp->setStyle(new ManhattanStyle(baseName));
+    qApp->setStyle(QStyleFactory::create(baseName));
 
 
     setDockNestingEnabled(true);
@@ -189,12 +187,26 @@ MainWindow::MainWindow() :
     registerDefaultContainers();
     registerDefaultActions();
 
-    m_modeStack = new MyTabWidget(this);
+    QGridLayout *gridLayout = new QGridLayout();
+    gridLayout->setSizeConstraint(QLayout::SetNoConstraint);
+
+    m_contentFrame = new QFrame(this);
+    m_contentFrame->setObjectName(QString("MainContentFrame"));
+    m_contentFrame->setLayout(gridLayout);
+
+    m_modeStack = new MyTabWidget(m_contentFrame);
     m_modeStack->setIconSize(QSize(24, 24));
     m_modeStack->setTabPosition(QTabWidget::South);
     m_modeStack->setMovable(false);
     m_modeStack->setMinimumWidth(512);
+    m_modeStack->setMinimumHeight(384);
+    m_modeStack->setMaximumWidth(16777215);
+    m_modeStack->setMaximumHeight(16777215);
+    m_modeStack->setSizePolicy(QSizePolicy::MinimumExpanding, QSizePolicy::MinimumExpanding);
     m_modeStack->setElideMode(Qt::ElideRight);
+
+    gridLayout->addWidget(m_modeStack, 0, 0);
+    gridLayout->setContentsMargins(0, 0, 0, 0);
 
     m_globalMessaging = new GlobalMessaging(this);
 
@@ -204,7 +216,7 @@ MainWindow::MainWindow() :
 
     m_boardManager = new BoardManager();
 
-    setCentralWidget(m_modeStack);
+    setCentralWidget(m_contentFrame);
 
     connect(QApplication::instance(), SIGNAL(focusChanged(QWidget*,QWidget*)),
             this, SLOT(updateFocusWidget(QWidget*,QWidget*)));
@@ -295,7 +307,7 @@ bool MainWindow::init(QString *errorMessage)
     return true;
 }
 
-void MainWindow::modeChanged(Core::IMode */*mode*/)
+void MainWindow::modeChanged(Core::IMode * /*mode*/)
 {
 
 }
@@ -363,8 +375,7 @@ void MainWindow::extensionsInitialized()
     qs->beginGroup("General");
     m_config_description=qs->value("Description","none").toString();
     m_config_details=qs->value("Details","none").toString();
-    m_config_stylesheet=qs->value("StyleSheet","none").toString();
-    loadStyleSheet(m_config_stylesheet);
+    loadStyleSheet();
     qs->endGroup();
     m_uavGadgetInstanceManager = new UAVGadgetInstanceManager(this);
     connect(m_uavGadgetInstanceManager,SIGNAL(splashMessages(QString)),this,SIGNAL(splashMessages(QString)));
@@ -387,7 +398,24 @@ void MainWindow::extensionsInitialized()
     emit m_coreImpl->coreOpened();
 }
 
-void MainWindow::loadStyleSheet(QString name) {
+void MainWindow::readStyleSheet(QFile *file, QString name, QString *style) {
+    QString tmp;
+    if (file->open(QFile::ReadOnly)) {
+        /* QTextStream... */
+        QTextStream styleIn(file);
+        /* ...read file to a string. */
+        tmp = styleIn.readAll();
+        file->close();
+        style->append(tmp);
+        emit splashMessages(QString(tr("Loading stylesheet %1")).arg(name));
+        qDebug() << "Loaded stylesheet:" << name;
+    }
+    else {
+        qDebug() << "Failed to openstylesheet file" << name;
+    }
+}
+
+void MainWindow::loadStyleSheet() {
     /* Let's use QFile and point to a resource... */
     QDir directory(QCoreApplication::applicationDirPath());
 #ifdef Q_OS_MAC
@@ -398,29 +426,25 @@ void MainWindow::loadStyleSheet(QString name) {
     directory.cd("share");
 #endif
     directory.cd("stylesheets");
+    QFile global(directory.absolutePath() + QDir::separator() + "global.qss");
 #ifdef Q_OS_MAC
-    QFile data(directory.absolutePath()+QDir::separator()+name+"_macos.qss");
+    QFile data(directory.absolutePath() + QDir::separator() + "macos.qss");
 #elif defined(Q_OS_LINUX)
-    QFile data(directory.absolutePath()+QDir::separator()+name+"_linux.qss");
+    QFile data(directory.absolutePath() + QDir::separator() + "linux.qss");
 #else
-    QFile data(directory.absolutePath()+QDir::separator()+name+"_windows.qss");
+    QFile data(directory.absolutePath() + QDir::separator() + "windows.qss");
 #endif
     QString style;
     /* ...to open the file */
-    if(data.open(QFile::ReadOnly)) {
-        /* QTextStream... */
-        QTextStream styleIn(&data);
-        /* ...read file to a string. */
-        style = styleIn.readAll();
-        data.close();
-        /* We'll use qApp macro to get the QApplication pointer
-         * and set the style sheet application wide. */
+
+    readStyleSheet(&global, "Global", &style);
+    readStyleSheet(&data, "OS", &style);
+
+    if (style.length() > 0) {
         qApp->setStyleSheet(style);
-        emit splashMessages(QString(tr("Loading stylesheet %1")).arg(name));
-        qDebug()<<"Loaded stylesheet:" << directory.absolutePath() << name;
+    } else {
+        qDebug() << "No stylesheets loaded.";
     }
-    else
-        qDebug()<<"Failed to openstylesheet file" << directory.absolutePath() << name;
 }
 
 void MainWindow::closeEvent(QCloseEvent *event)
@@ -1141,7 +1165,6 @@ void MainWindow::createWorkspaces(QSettings* qs, bool diffOnly) {
 
 static const char *settingsGroup = "MainWindow";
 static const char *geometryKey = "Geometry";
-static const char *colorKey = "Color";
 static const char *maxKey = "Maximized";
 static const char *fullScreenKey = "FullScreen";
 static const char *modePriorities = "ModePriorities";
@@ -1162,8 +1185,6 @@ void MainWindow::readSettings(QSettings* qs, bool workspaceDiffOnly)
     m_actionManager->readSettings(qs);
 
     qs->beginGroup(QLatin1String(settingsGroup));
-
-    Utils::StyleHelper::setBaseColor(qs->value(QLatin1String(colorKey)).value<QColor>());
 
     const QVariant geom = qs->value(QLatin1String(geometryKey));
     if (geom.isValid()) {
@@ -1207,8 +1228,6 @@ void MainWindow::saveSettings(QSettings* qs)
 
     qs->beginGroup(QLatin1String(settingsGroup));
 
-    qs->setValue(QLatin1String(colorKey), Utils::StyleHelper::baseColor());
-
     if (windowState() & (Qt::WindowMaximized | Qt::WindowFullScreen)) {
         qs->setValue(QLatin1String(maxKey), (bool) (windowState() & Qt::WindowMaximized));
         qs->setValue(QLatin1String(fullScreenKey), (bool) (windowState() & Qt::WindowFullScreen));
@@ -1237,7 +1256,6 @@ void MainWindow::saveSettings(QSettings* qs)
     qs->beginGroup("General");
     qs->setValue("Description",m_config_description);
     qs->setValue("Details",m_config_details);
-    qs->setValue("StyleSheet",m_config_stylesheet);
     qs->endGroup();
 }
 

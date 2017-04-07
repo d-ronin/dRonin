@@ -28,7 +28,6 @@
 #include <math.h>
 
 #include "lineardialgadgetwidget.h"
-#include <utils/stylehelper.h>
 #include <QFileDialog>
 #include <QDebug>
 
@@ -153,7 +152,6 @@ void LineardialGadgetWidget::updateIndex(UAVObject *object1) {
 void LineardialGadgetWidget::setDialFile(QString dfn)
 {
     QGraphicsScene *l_scene = scene();
-    setBackgroundBrush(QBrush(Utils::StyleHelper::baseColor()));
    if (QFile::exists(dfn) && m_renderer->load(dfn) && m_renderer->isValid() )
    {
           l_scene->clear(); // Beware: clear also deletes all objects

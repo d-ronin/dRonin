@@ -24,7 +24,6 @@ SOURCES += \
     qtcolorbutton.cpp \
     treewidgetcolumnstretcher.cpp \
     styledbar.cpp \
-    stylehelper.cpp \
     coordinateconversions.cpp \
     pathutils.cpp \
     worldmagmodel.cpp \
@@ -50,7 +49,6 @@ HEADERS += utils_global.h \
     treewidgetcolumnstretcher.h \
     qtcassert.h \
     styledbar.h \
-    stylehelper.h \
     coordinateconversions.h \
     pathutils.h \
     worldmagmodel.h \

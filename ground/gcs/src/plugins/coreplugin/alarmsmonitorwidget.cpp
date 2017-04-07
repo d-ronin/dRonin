@@ -27,7 +27,7 @@
 #include <coreplugin/icore.h>
 #include <globalmessaging.h>
 
-#define DIMMED_SYMBOL 0.1
+#define DIMMED_SYMBOL 0.25
 
 AlarmsMonitorWidget::AlarmsMonitorWidget():hasErrors(false),hasWarnings(false),hasInfos(false),needsUpdate(false)
 {
@@ -41,70 +41,70 @@ void AlarmsMonitorWidget::init(QSvgRenderer *renderer,QGraphicsSvgItem *graph)
     error_sym->setParentItem(graph);
     error_txt = new QGraphicsTextItem();
     error_txt->setDefaultTextColor(Qt::white);
-    error_txt->setFont(QFont("Helvetica",22,2));
+    error_txt->setFont(QFont("Helvetica", 24, 2));
     error_txt->setParentItem(graph);
     error_txt->setPlainText("0");
 
-    QRectF orig=renderer->boundsOnElement("error_sym");
+    QRectF orig = renderer->boundsOnElement("error_sym");
     QMatrix Matrix = renderer->matrixForElement("error_sym");
-    orig=Matrix.mapRect(orig);
+    orig = Matrix.mapRect(orig);
     QTransform trans;
-    trans.translate(orig.x(),orig.y());
-    error_sym->setTransform(trans,false);
+    trans.translate(orig.x(), orig.y());
+    error_sym->setTransform(trans, false);
     trans.reset();
-    int refY=orig.y();
-    trans.translate(orig.x()+orig.width()-5,refY);
-    error_txt->setTransform(trans,false);
+    int refY = orig.y();
+    trans.translate(orig.x() + orig.width() + 1, refY);
+    error_txt->setTransform(trans, false);
     trans.reset();
 
-    info_sym=new QGraphicsSvgItem();
+    info_sym = new QGraphicsSvgItem();
     info_sym->setSharedRenderer(renderer);
     info_sym->setElementId("info_sym");
     info_sym->setParentItem(graph);
     info_txt = new QGraphicsTextItem();
     info_txt->setDefaultTextColor(Qt::white);
-    info_txt->setFont(QFont("Helvetica",22,2));
+    info_txt->setFont(QFont("Helvetica", 24, 2));
     info_txt->setParentItem(graph);
     info_txt->setPlainText("0");
-    orig=renderer->boundsOnElement("info_sym");
+    orig = renderer->boundsOnElement("info_sym");
     Matrix = renderer->matrixForElement("info_sym");
-    orig=Matrix.mapRect(orig);
-    trans.translate(orig.x(),orig.y());
-    info_sym->setTransform(trans,false);
+    orig = Matrix.mapRect(orig);
+    trans.translate(orig.x(), orig.y());
+    info_sym->setTransform(trans, false);
     trans.reset();
-    trans.translate(orig.x()-5+orig.width(),refY);
-    info_txt->setTransform(trans,false);
+    trans.translate(orig.x() + 3 + orig.width(), refY);
+    info_txt->setTransform(trans, false);
     trans.reset();
 
-    warning_sym=new QGraphicsSvgItem();
+    warning_sym = new QGraphicsSvgItem();
     warning_sym->setSharedRenderer(renderer);
     warning_sym->setElementId("warning_sym");
     warning_sym->setParentItem(graph);
     warning_txt = new QGraphicsTextItem();
     warning_txt->setDefaultTextColor(Qt::white);
-    warning_txt->setFont(QFont("Helvetica",22,2));
+    warning_txt->setFont(QFont("Helvetica", 24, 2));
     warning_txt->setParentItem(graph);
     warning_txt->setPlainText("0");
-    orig=renderer->boundsOnElement("warning_sym");
+    orig = renderer->boundsOnElement("warning_sym");
     Matrix = renderer->matrixForElement("warning_sym");
-    orig=Matrix.mapRect(orig);
-    trans.translate(orig.x(),orig.y());
-    warning_sym->setTransform(trans,false);
+    orig = Matrix.mapRect(orig);
+    trans.translate(orig.x(), orig.y());
+    warning_sym->setTransform(trans, false);
     trans.reset();
-    trans.translate(orig.x()+orig.width()-20,refY);
-    warning_txt->setTransform(trans,false);
+    trans.translate(orig.x() + orig.width() - 23, refY);
+    warning_txt->setTransform(trans, false);
     trans.reset();
-    error_sym->setOpacity(0.1);
-    warning_sym->setOpacity(0.1);
-    info_sym->setOpacity(0.1);
-    error_txt->setOpacity(0.1);
-    warning_txt->setOpacity(0.1);
-    info_txt->setOpacity(0.1);
+    error_sym->setOpacity(DIMMED_SYMBOL);
+    warning_sym->setOpacity(DIMMED_SYMBOL);
+    info_sym->setOpacity(DIMMED_SYMBOL);
+    error_txt->setOpacity(DIMMED_SYMBOL);
+    warning_txt->setOpacity(DIMMED_SYMBOL);
+    info_txt->setOpacity(DIMMED_SYMBOL);
 
-    connect(&alertTimer,SIGNAL(timeout()),this,SLOT(processAlerts()));
-    connect(Core::ICore::instance()->globalMessaging(),SIGNAL(newMessage(GlobalMessage*)),this,SLOT(updateMessages()));
-    connect(Core::ICore::instance()->globalMessaging(),SIGNAL(deletedMessage()),this,SLOT(updateMessages()));
-    connect(Core::ICore::instance()->globalMessaging(),SIGNAL(changedMessage(GlobalMessage*)),this,SLOT(updateNeeded()));
+    connect(&alertTimer, SIGNAL(timeout()), this, SLOT(processAlerts()));
+    connect(Core::ICore::instance()->globalMessaging(), SIGNAL(newMessage(GlobalMessage*)), this, SLOT(updateMessages()));
+    connect(Core::ICore::instance()->globalMessaging(), SIGNAL(deletedMessage()), this, SLOT(updateMessages()));
+    connect(Core::ICore::instance()->globalMessaging(), SIGNAL(changedMessage(GlobalMessage*)), this, SLOT(updateNeeded()));
 
     alertTimer.start(1000);
 

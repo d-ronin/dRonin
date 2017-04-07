@@ -43,7 +43,7 @@
  */
 DefaultHwSettingsWidget::DefaultHwSettingsWidget(UAVObject *settingsObj, QWidget *parent) :
         ConfigTaskWidget(parent),
-        defaultHWSettingsWidget(new Ui_defaulthwsettings)
+        defaultHWSettingsWidget(new Ui_DefaultHwSettings)
 {
     Q_ASSERT(settingsObj);
 
