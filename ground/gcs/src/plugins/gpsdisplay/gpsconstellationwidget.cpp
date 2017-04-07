@@ -51,7 +51,7 @@ GpsConstellationWidget::GpsConstellationWidget(QWidget *parent) : QGraphicsView(
     setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
 
     QSvgRenderer *renderer = new QSvgRenderer();
-    renderer->load(QString(":/gpsgadget/images/gpsEarth.svg"));
+    renderer->load(QString(":/gpsgadget/images/gpsSky.svg"));
 
     world = new QGraphicsSvgItem();
     world->setSharedRenderer(renderer);
@@ -71,12 +71,12 @@ GpsConstellationWidget::GpsConstellationWidget(QWidget *parent) : QGraphicsView(
 
         satIcons[i] = new QGraphicsSvgItem(world);
         satIcons[i]->setSharedRenderer(renderer);
-        satIcons[i]->setElementId("sat-notSeen");
+        satIcons[i]->setElementId("gpssatellite");
         satIcons[i]->hide();
 
         satTexts[i] = new QGraphicsSimpleTextItem("##",satIcons[i]);
         satTexts[i]->setBrush(QColor("Black"));
-        satTexts[i]->setFont(QFont("Courier"));
+        satTexts[i]->setFont(QFont("Courier", -1, QFont::Bold));
     }
 }
 
@@ -123,14 +123,26 @@ void GpsConstellationWidget::updateSat(int index, int prn, int elevation, int az
     satellites[index][3] = snr;
 
     if (prn && elevation >= 0) {
+        /* From ublox 8 receiver manual; summary of all SV numbering schemes */
+        if (prn <= 32) {
+            satIcons[index]->setElementId("gpssatellite");
+        } else if ((prn >= 120) && (prn <= 158)) {
+            satIcons[index]->setElementId("sbassatellite");
+        } else {
+            satIcons[index]->setElementId("othersat");
+        }
+
         QPointF opd = polarToCoord(elevation,azimuth);
         opd += QPointF(-satIcons[index]->boundingRect().center().x(),
                        -satIcons[index]->boundingRect().center().y());
         satIcons[index]->setTransform(QTransform::fromTranslate(opd.x(),opd.y()), false);
+
         if (snr) {
-            satIcons[index]->setElementId("satellite");
+            satIcons[index]->setOpacity(1.0);
+            satIcons[index]->setZValue(1.0);
         } else {
-            satIcons[index]->setElementId("sat-notSeen");
+            satIcons[index]->setOpacity(0.53);
+            satIcons[index]->setZValue(0);
         }
         satIcons[index]->show();
 
@@ -143,7 +155,7 @@ void GpsConstellationWidget::updateSat(int index, int prn, int elevation, int az
         QRectF textRect = satTexts[index]->boundingRect();
 
         QTransform matrix;
-        qreal scale = 0.70 * (iconRect.width() / textRect.width());
+        qreal scale = 0.65 * (iconRect.width() / textRect.width());
         matrix.translate(iconRect.width()/2, iconRect.height()/2);
         matrix.scale(scale,scale);
         matrix.translate(-textRect.width()/2,-textRect.height()/2);

@@ -302,7 +302,16 @@ static void parse_ubx_nav_svinfo (const struct UBX_NAV_SVINFO *svinfo)
 		svdata.Azimuth[chan] 	= svinfo->sv[i].azim;
 		svdata.Elevation[chan] 	= svinfo->sv[i].elev;
 		svdata.PRN[chan] 	= svinfo->sv[i].svid;
-		svdata.SNR[chan] 	= svinfo->sv[i].cno;
+
+		/* Scale to the range used by NMEA GPSes.. a cno >50 is
+		 * extremely improbable.  This makes the display in GCS more
+		 * consistent between NMEA and UBX GPSes.
+		 */
+		if (svinfo->sv[chan].cno < 66) {
+			svdata.SNR[chan] 	= svinfo->sv[i].cno * 3 / 2;
+		} else {
+			svdata.SNR[chan]        = 99;
+		}
 
 		chan++;
 	}

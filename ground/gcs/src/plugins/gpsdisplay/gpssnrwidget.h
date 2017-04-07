@@ -14,16 +14,18 @@ signals:
 
 public slots:
     void updateSat(int index, int prn, int elevation, int azimuth, int snr);
+    void satellitesDone();
 
 private:
     static const int MAX_SATELLITES = 32;
+    static const int MAX_SHOWN_SATELLITES = 18;
     int satellites[MAX_SATELLITES][4];
     QGraphicsScene *scene;
-    QGraphicsRectItem *boxes[MAX_SATELLITES];
-    QGraphicsSimpleTextItem *satTexts[MAX_SATELLITES];
-    QGraphicsSimpleTextItem *satSNRs[MAX_SATELLITES];
+    QGraphicsRectItem *boxes[MAX_SHOWN_SATELLITES];
+    QGraphicsSimpleTextItem *satTexts[MAX_SHOWN_SATELLITES];
+    QGraphicsSimpleTextItem *satSNRs[MAX_SHOWN_SATELLITES];
 
-    void drawSat(int index);
+    void drawSat(int drawIndex, int index);
 
 protected:
     void showEvent(QShowEvent *event);

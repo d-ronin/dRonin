@@ -121,4 +121,6 @@ void TelemetryParser::updateSats( UAVObject* object1) {
                        azimuth->getValue(i).toInt(), snr->getValue(i).toInt());
     }
 
+    emit satellitesDone();
+
 }
