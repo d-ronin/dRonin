@@ -19,6 +19,10 @@ MyTabWidget::pane {
 	border: 0px;
 }
 
+MyTabWidget::pane QTabWidget > QWidget {
+	background: palette(Window);
+}
+
 /* Main tabbed content pane's tab bar */
 MyTabWidget::tab-bar {
 	left: 9px;
