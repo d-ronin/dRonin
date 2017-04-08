@@ -133,7 +133,7 @@ RawHIDWriteThread::~RawHIDWriteThread()
 
 void RawHIDWriteThread::run()
 {
-    connect(this, SIGNAL(finished()), this, SLOT(deleteLater()));
+    connect(this, &QThread::finished, this, &QObject::deleteLater);
 
     int retry = 0;
     while(m_running)
@@ -265,7 +265,7 @@ bool RawHID::open(OpenMode mode)
         m_readThread = new RawHIDReadThread(m_handle);
 
         // Plumb through read thread's ready read signal to our clients
-        connect(m_readThread, SIGNAL(readyToRead()), this, SLOT(sendReadyRead()));
+        connect(m_readThread, &RawHIDReadThread::readyToRead, this, &RawHID::sendReadyRead);
 
         m_readThread->start();
         m_writeThread->start();

@@ -48,7 +48,7 @@
 UsageStatsPlugin::UsageStatsPlugin(): sendUsageStats(true), sendPrivateData(true), installationUUID(""), debugLogLevel(DebugEngine::WARNING)
 {
     loop = new QEventLoop(this);
-    connect(&netMngr, SIGNAL(finished(QNetworkReply*)), loop, SLOT(quit()));
+    connect(&netMngr, &QNetworkAccessManager::finished, loop, &QEventLoop::quit);
 }
 
 UsageStatsPlugin::~UsageStatsPlugin()
@@ -104,14 +104,14 @@ void UsageStatsPlugin::extensionsInitialized()
 {
     pluginManager = ExtensionSystem::PluginManager::instance();
     Q_ASSERT(pluginManager);
-    connect(pluginManager, SIGNAL(pluginsLoadEnded()), this, SLOT(pluginsLoadEnded()));
+    connect(pluginManager, &ExtensionSystem::PluginManager::pluginsLoadEnded, this, &UsageStatsPlugin::pluginsLoadEnded);
 }
 
 bool UsageStatsPlugin::coreAboutToClose()
 {
     if(!sendUsageStats)
         return true;
-    QTimer::singleShot(10000, loop, SLOT(quit()));
+    QTimer::singleShot(10000, loop, &QEventLoop::quit);
     QUrl url("http://dronin-autotown.appspot.com/usageStats");
     QNetworkRequest request(url);
     request.setHeader(QNetworkRequest::ContentTypeHeader, "application/json; charset=utf-8");
@@ -130,16 +130,16 @@ void UsageStatsPlugin::updateSettings()
     UploaderGadgetFactory *uploader = pluginManager->getObject<UploaderGadgetFactory>();
     QMainWindow *mw = Core::ICore::instance()->mainWindow();
     if (sendUsageStats) {
-        connect(DebugEngine::getInstance(), SIGNAL(message(DebugEngine::Level, const QString &, const QString &, const int, const QString &)),
-                this, SLOT(onDebugMessage(DebugEngine::Level, const QString &, const QString &, const int, const QString &)),
+        connect(DebugEngine::getInstance(), &DebugEngine::message,
+                this, &UsageStatsPlugin::onDebugMessage,
                 static_cast<Qt::ConnectionType>(Qt::QueuedConnection | Qt::UniqueConnection) /* sigh */);
         if (uploader)
-            connect(uploader, SIGNAL(newBoardSeen(deviceInfo, deviceDescriptorStruct)), this, SLOT(addNewBoardSeen(deviceInfo, deviceDescriptorStruct)), Qt::UniqueConnection);
+            connect(uploader, &uploader::UploaderGadgetFactory::newBoardSeen, this, &UsageStatsPlugin::addNewBoardSeen, Qt::UniqueConnection);
         if (mw)
             searchForWidgets(mw, true);
     } else {
         if (uploader)
-            disconnect(uploader, SIGNAL(newBoardSeen(deviceInfo, deviceDescriptorStruct)), this, SLOT(addNewBoardSeen(deviceInfo, deviceDescriptorStruct)));
+            disconnect(uploader, &uploader::UploaderGadgetFactory::newBoardSeen, this, &UsageStatsPlugin::addNewBoardSeen);
         if (mw)
             searchForWidgets(mw, false);
     }
@@ -164,26 +164,26 @@ void UsageStatsPlugin::searchForWidgets(QObject *mw, bool conn)
         QTabBar *tab = qobject_cast<QTabBar*>(obj);
         if(button) {
             if(conn) {
-                connect(button, SIGNAL(clicked(bool)), this, SLOT(onButtonClicked()), Qt::UniqueConnection);
+                connect(button, &QAbstractButton::clicked, this, &UsageStatsPlugin::onButtonClicked, Qt::UniqueConnection);
             }
             else {
-                disconnect(button, SIGNAL(clicked(bool)), this, SLOT(onButtonClicked()));
+                disconnect(button, &QAbstractButton::clicked, this, &UsageStatsPlugin::onButtonClicked);
             }
         }
         else if(slider && !bar) {
             if(conn) {
-                connect(slider, SIGNAL(valueChanged(int)), this, SLOT(onSliderValueChanged(int)), Qt::UniqueConnection);
+                connect(slider, &QAbstractSlider::valueChanged, this, &UsageStatsPlugin::onSliderValueChanged, Qt::UniqueConnection);
             }
             else {
-                disconnect(slider, SIGNAL(valueChanged(int)), this, SLOT(onSliderValueChanged(int)));
+                disconnect(slider, &QAbstractSlider::valueChanged, this, &UsageStatsPlugin::onSliderValueChanged);
             }
         }
         else if (tab) {
             if(conn) {
-                connect(tab, SIGNAL(currentChanged(int)), this, SLOT(onTabCurrentChanged(int)), Qt::UniqueConnection);
+                connect(tab, &QTabBar::currentChanged, this, &UsageStatsPlugin::onTabCurrentChanged, Qt::UniqueConnection);
             }
             else {
-                disconnect(tab, SIGNAL(currentChanged(int)), this, SLOT(onTabCurrentChanged(int)));
+                disconnect(tab, &QTabBar::currentChanged, this, &UsageStatsPlugin::onTabCurrentChanged);
             }
         }
         else {

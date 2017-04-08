@@ -28,14 +28,19 @@
 #include "modelmapproxy.h"
 #include "../pathplanner/waypointdialog.h"
 
-ModelMapProxy::ModelMapProxy(QObject *parent,TLMapWidget *map, FlightDataModel *model,QItemSelectionModel * selectionModel):QObject(parent),myMap(map),model(model),selection(selectionModel)
+ModelMapProxy::ModelMapProxy(QObject *parent, TLMapWidget *map, FlightDataModel *model,
+                             QItemSelectionModel *selectionModel)
+    : QObject(parent), myMap(map), model(model), selection(selectionModel)
 {
-    connect(model,SIGNAL(rowsInserted(const QModelIndex&,int,int)),this,SLOT(rowsInserted(const QModelIndex&,int,int)));
-    connect(model,SIGNAL(rowsRemoved(const QModelIndex&,int,int)),this,SLOT(rowsRemoved(const QModelIndex&,int,int)));
-    connect(selection,SIGNAL(currentRowChanged(QModelIndex,QModelIndex)),this,SLOT(currentRowChanged(QModelIndex,QModelIndex)));
-    connect(model,SIGNAL(dataChanged(QModelIndex,QModelIndex)),this,SLOT(dataChanged(QModelIndex,QModelIndex)));
-    connect(myMap,SIGNAL(selectedWPChanged(QList<WayPointItem*>)),this,SLOT(selectedWPChanged(QList<WayPointItem*>)));
-    connect(myMap,SIGNAL(WPManualCoordChange(WayPointItem*)),this,SLOT(WPValuesChanged(WayPointItem*)));
+    connect(model, &QAbstractItemModel::rowsInserted, this, &ModelMapProxy::rowsInserted);
+    connect(model, &QAbstractItemModel::rowsRemoved, this, &ModelMapProxy::rowsRemoved);
+    connect(selection, &QItemSelectionModel::currentRowChanged,
+            this, &ModelMapProxy::currentRowChanged);
+    connect(model, &QAbstractItemModel::dataChanged, this, &ModelMapProxy::dataChanged);
+    connect(myMap, &mapcontrol::TLMapWidget::selectedWPChanged,
+            this, &ModelMapProxy::selectedWPChanged);
+    connect(myMap, &mapcontrol::TLMapWidget::WPManualCoordChange,
+            this, &ModelMapProxy::WPValuesChanged);
 }
 
 /**

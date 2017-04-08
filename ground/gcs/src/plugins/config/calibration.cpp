@@ -101,7 +101,7 @@ void Calibration::connectSensor(sensor_type sensor, bool con)
             Q_ASSERT(accels);
 
             assignUpdateRate(accels, SENSOR_UPDATE_PERIOD);
-            connect(accels, SIGNAL(objectUpdated(UAVObject*)), this, SLOT(dataUpdated(UAVObject *)));
+            connect(accels, &UAVObject::objectUpdated, this, &Calibration::dataUpdated);
         }
             break;
 
@@ -111,7 +111,7 @@ void Calibration::connectSensor(sensor_type sensor, bool con)
             Q_ASSERT(mag);
 
             assignUpdateRate(mag, SENSOR_UPDATE_PERIOD);
-            connect(mag, SIGNAL(objectUpdated(UAVObject*)), this, SLOT(dataUpdated(UAVObject *)));
+            connect(mag, &UAVObject::objectUpdated, this, &Calibration::dataUpdated);
         }
             break;
 
@@ -121,7 +121,7 @@ void Calibration::connectSensor(sensor_type sensor, bool con)
             Q_ASSERT(gyros);
 
             assignUpdateRate(gyros, SENSOR_UPDATE_PERIOD);
-            connect(gyros, SIGNAL(objectUpdated(UAVObject*)), this, SLOT(dataUpdated(UAVObject *)));
+            connect(gyros, &UAVObject::objectUpdated, this, &Calibration::dataUpdated);
         }
             break;
 
@@ -133,7 +133,7 @@ void Calibration::connectSensor(sensor_type sensor, bool con)
             Accels * accels = Accels::GetInstance(getObjectManager());
             Q_ASSERT(accels);
 
-            disconnect(accels, SIGNAL(objectUpdated(UAVObject*)), this, SLOT(dataUpdated(UAVObject *)));
+            disconnect(accels, &UAVObject::objectUpdated, this, &Calibration::dataUpdated);
         }
             break;
 
@@ -142,7 +142,7 @@ void Calibration::connectSensor(sensor_type sensor, bool con)
             Magnetometer * mag = Magnetometer::GetInstance(getObjectManager());
             Q_ASSERT(mag);
 
-            disconnect(mag, SIGNAL(objectUpdated(UAVObject*)), this, SLOT(dataUpdated(UAVObject *)));
+            disconnect(mag, &UAVObject::objectUpdated, this, &Calibration::dataUpdated);
         }
             break;
 
@@ -151,7 +151,7 @@ void Calibration::connectSensor(sensor_type sensor, bool con)
             Gyros * gyros = Gyros::GetInstance(getObjectManager());
             Q_ASSERT(gyros);
 
-            disconnect(gyros, SIGNAL(objectUpdated(UAVObject*)), this, SLOT(dataUpdated(UAVObject *)));
+            disconnect(gyros, &UAVObject::objectUpdated, this, &Calibration::dataUpdated);
         }
             break;
 
@@ -173,8 +173,10 @@ void Calibration::assignUpdateRate(UAVObject* obj, quint32 updatePeriod)
     UAVObject::SetFlightTelemetryUpdateMode(mdata, UAVObject::UPDATEMODE_THROTTLED);
     mdata.flightTelemetryUpdatePeriod = static_cast<quint16>(updatePeriod);
     QEventLoop loop;
-    QTimer::singleShot(META_OPERATIONS_TIMEOUT, &loop, SLOT(quit()));
-    connect(dobj->getMetaObject(), SIGNAL(transactionCompleted(UAVObject*,bool)), &loop, SLOT(quit()));
+    QTimer::singleShot(META_OPERATIONS_TIMEOUT, &loop, &QEventLoop::quit);
+    connect(dobj->getMetaObject(),
+            QOverload<UAVObject *, bool>::of(&UAVDataObject::transactionCompleted),
+            &loop, &QEventLoop::quit);
     // Show the UI is blocking
     emit calibrationBusy(true);
     obj->setMetadata(mdata);
@@ -219,7 +221,7 @@ void Calibration::dataUpdated(UAVObject * obj) {
             emit showYawOrientationMessage(tr("Orientation computed"));
             emit toggleControls(true);
             emit yawOrientationProgressChanged(0);
-            disconnect(&timer,SIGNAL(timeout()),this,SLOT(timeout()));
+            disconnect(&timer, &QTimer::timeout, this, &Calibration::timeout);
         }
         break;
     case LEVELING:
@@ -236,7 +238,7 @@ void Calibration::dataUpdated(UAVObject * obj) {
             emit showLevelingMessage(tr("Level computed"));
             emit toggleControls(true);
             emit levelingProgressChanged(0);
-            disconnect(&timer,SIGNAL(timeout()),this,SLOT(timeout()));
+            disconnect(&timer, &QTimer::timeout, this, &Calibration::timeout);
         }
         break;
     case SIX_POINT_COLLECT1:
@@ -248,7 +250,7 @@ void Calibration::dataUpdated(UAVObject * obj) {
             emit showSixPointMessage(tr("Rotate left side down and press Save Position..."));
             emit toggleSavePosition(true);
             emit updatePlane(2);
-            disconnect(&timer,SIGNAL(timeout()),this,SLOT(timeout()));
+            disconnect(&timer, &QTimer::timeout, this, &Calibration::timeout);
         }
         break;
     case SIX_POINT_COLLECT2:
@@ -258,7 +260,7 @@ void Calibration::dataUpdated(UAVObject * obj) {
             emit showSixPointMessage(tr("Rotate upside down and press Save Position..."));
             emit toggleSavePosition(true);
             emit updatePlane(3);
-            disconnect(&timer,SIGNAL(timeout()),this,SLOT(timeout()));
+            disconnect(&timer, &QTimer::timeout, this, &Calibration::timeout);
         }
         break;
     case SIX_POINT_COLLECT3:
@@ -268,7 +270,7 @@ void Calibration::dataUpdated(UAVObject * obj) {
             emit showSixPointMessage(tr("Point right side down and press Save Position..."));
             emit toggleSavePosition(true);
             emit updatePlane(4);
-            disconnect(&timer,SIGNAL(timeout()),this,SLOT(timeout()));
+            disconnect(&timer, &QTimer::timeout, this, &Calibration::timeout);
         }
         break;
     case SIX_POINT_COLLECT4:
@@ -278,7 +280,7 @@ void Calibration::dataUpdated(UAVObject * obj) {
             emit showSixPointMessage(tr("Point nose up and press Save Position..."));
             emit toggleSavePosition(true);
             emit updatePlane(5);
-            disconnect(&timer,SIGNAL(timeout()),this,SLOT(timeout()));
+            disconnect(&timer, &QTimer::timeout, this, &Calibration::timeout);
         }
         break;
     case SIX_POINT_COLLECT5:
@@ -288,7 +290,7 @@ void Calibration::dataUpdated(UAVObject * obj) {
             emit showSixPointMessage(tr("Point nose down and press Save Position..."));
             emit toggleSavePosition(true);
             emit updatePlane(6);
-            disconnect(&timer,SIGNAL(timeout()),this,SLOT(timeout()));
+            disconnect(&timer, &QTimer::timeout, this, &Calibration::timeout);
         }
         break;
     case SIX_POINT_COLLECT6:
@@ -300,7 +302,7 @@ void Calibration::dataUpdated(UAVObject * obj) {
             // the meta data to prevent coming here multiple times
 
             calibration_state = IDLE;
-            disconnect(&timer,SIGNAL(timeout()),this,SLOT(timeout()));
+            disconnect(&timer, &QTimer::timeout, this, &Calibration::timeout);
 
             // All data collected.  Disconnect and reset all UAVOs, and compute value
             connectSensor(GYRO, false);
@@ -335,7 +337,7 @@ void Calibration::dataUpdated(UAVObject * obj) {
                                             QString(tr("Magnetometer scale, in [-]: x=%4, y=%5, z=%6")).arg(sensorSettingsData.MagScale[SensorSettings::MAGSCALE_X], -9).arg(sensorSettingsData.MagScale[SensorSettings::MAGSCALE_Y], -9).arg(sensorSettingsData.MagScale[SensorSettings::MAGSCALE_Z], -9);
                 }
 
-                // Emit SIGNAL containing calibration success message
+                // Emit signal containing calibration success message
                 emit showSixPointMessage(QString(tr("Calibration succeeded")) + QString("\n") + accelCalibrationResults + QString("\n") + magCalibrationResults);
             }
             else{
@@ -434,7 +436,7 @@ void Calibration::timeout()
     emit updatePlane(0);
     emit toggleControls(true);
 
-    disconnect(&timer,SIGNAL(timeout()),this,SLOT(timeout()));
+    disconnect(&timer,&QTimer::timeout,this,&Calibration::timeout);
 
     QMessageBox msgBox;
     msgBox.setText(tr("Calibration timed out before receiving required updates."));
@@ -465,7 +467,7 @@ void Calibration::doStartOrientation() {
     // Set up timeout timer
     timer.setSingleShot(true);
     timer.start(8000 + (NUM_SENSOR_UPDATES_YAW_ORIENTATION * SENSOR_UPDATE_PERIOD));
-    connect(&timer,SIGNAL(timeout()),this,SLOT(timeout()));
+    connect(&timer,&QTimer::timeout,this,&Calibration::timeout);
 }
 
 //! Start collecting data while vehicle is level
@@ -516,7 +518,7 @@ void Calibration::doStartLeveling() {
     // Set up timeout timer
     timer.setSingleShot(true);
     timer.start(8000 + (NUM_SENSOR_UPDATES_LEVELING * SENSOR_UPDATE_PERIOD));
-    connect(&timer,SIGNAL(timeout()),this,SLOT(timeout()));
+    connect(&timer,&QTimer::timeout,this,&Calibration::timeout);
 }
 
 /**
@@ -632,7 +634,7 @@ void Calibration::doCancelSixPoint(){
     emit toggleSavePosition(false);
     emit updatePlane(0);
     emit sixPointProgressChanged(0);
-    disconnect(&timer,SIGNAL(timeout()),this,SLOT(timeout()));
+    disconnect(&timer,&QTimer::timeout,this,&Calibration::timeout);
 
     emit showSixPointMessage(tr("Calibration canceled."));
 
@@ -684,7 +686,7 @@ void Calibration::doSaveSixPointPosition()
     // Set up timeout timer
     timer.setSingleShot(true);
     timer.start(8000 + (NUM_SENSOR_UPDATES_SIX_POINT * SENSOR_UPDATE_PERIOD));
-    connect(&timer,SIGNAL(timeout()),this,SLOT(timeout()));
+    connect(&timer,&QTimer::timeout,this,&Calibration::timeout);
 }
 
 /**
@@ -725,7 +727,7 @@ void Calibration::doStartTempCal()
     // Set up timeout timer
     timer.setSingleShot(true);
     timer.start(1800000);
-    connect(&timer,SIGNAL(timeout()),this,SLOT(timeout()));
+    connect(&timer,&QTimer::timeout,this,&Calibration::timeout);
 }
 
 /**
@@ -745,7 +747,7 @@ void Calibration::doAcceptTempCal()
         emit toggleControls(true);
 
         timer.stop();
-        disconnect(&timer,SIGNAL(timeout()),this,SLOT(timeout()));
+        disconnect(&timer,&QTimer::timeout,this,&Calibration::timeout);
 
         computeTempCal();
     }
@@ -779,7 +781,7 @@ void Calibration::doCancelTempCalPoint()
         emit toggleControls(true);
 
         timer.stop();
-        disconnect(&timer,SIGNAL(timeout()),this,SLOT(timeout()));
+        disconnect(&timer,&QTimer::timeout,this,&Calibration::timeout);
     }
 }
 
@@ -816,7 +818,7 @@ bool Calibration::storeYawOrientationMeasurement(UAVObject *obj)
     // If we have enough samples, then stop sampling and compute the biases
     if (accel_accum_x.size() >= NUM_SENSOR_UPDATES_YAW_ORIENTATION) {
         timer.stop();
-        disconnect(&timer,SIGNAL(timeout()),this,SLOT(timeout()));
+        disconnect(&timer,&QTimer::timeout,this,&Calibration::timeout);
 
         // Get the existing attitude settings
         AttitudeSettings *attitudeSettings = AttitudeSettings::GetInstance(getObjectManager());
@@ -881,7 +883,7 @@ bool Calibration::storeLevelingMeasurement(UAVObject *obj) {
     // If we have enough samples, then stop sampling and compute the biases
     if (accel_accum_x.size() >= NUM_SENSOR_UPDATES_LEVELING && gyro_accum_x.size() >= NUM_SENSOR_UPDATES_LEVELING) {
         timer.stop();
-        disconnect(&timer,SIGNAL(timeout()),this,SLOT(timeout()));
+        disconnect(&timer,&QTimer::timeout,this,&Calibration::timeout);
 
         double x_gyro_bias = listMean(gyro_accum_x);
         double y_gyro_bias = listMean(gyro_accum_y);
@@ -1168,7 +1170,7 @@ void Calibration::updateTempCompCalibrationDisplay()
 int Calibration::computeTempCal()
 {
     timer.stop();
-    disconnect(&timer,SIGNAL(timeout()),this,SLOT(timeout()));
+    disconnect(&timer,&QTimer::timeout,this,&Calibration::timeout);
 
     // Reenable gyro bias correction
     AttitudeSettings *attitudeSettings = AttitudeSettings::GetInstance(getObjectManager());
@@ -1529,8 +1531,8 @@ int Calibration::SixPointInConstFieldCal( double ConstMag, double x[6], double y
 void Calibration::setMetadata(QMap<QString, UAVObject::Metadata> metaList)
 {
     QEventLoop loop;
-    QTimer::singleShot(META_OPERATIONS_TIMEOUT, &loop, SLOT(quit()));
-    connect(getObjectUtilManager(), SIGNAL(completedMetadataWrite(bool)), &loop, SLOT(quit()));
+    QTimer::singleShot(META_OPERATIONS_TIMEOUT, &loop, &QEventLoop::quit);
+    connect(getObjectUtilManager(), &UAVObjectUtilManager::completedMetadataWrite, &loop, &QEventLoop::quit);
     // Show the UI is blocking
     emit calibrationBusy(true);
     // Set new metadata

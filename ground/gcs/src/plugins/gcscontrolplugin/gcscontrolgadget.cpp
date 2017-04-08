@@ -39,17 +39,22 @@ GCSControlGadget::GCSControlGadget(QString classId, GCSControlGadgetWidget *widg
         m_widget(widget),
         controlsMode(0)
 {
-    connect(getManualControlCommand(),SIGNAL(objectUpdated(UAVObject*)),this,SLOT(manualControlCommandUpdated(UAVObject*)));
-    connect(widget,SIGNAL(sticksChanged(double,double,double,double)),this,SLOT(sticksChangedLocally(double,double,double,double)));
-    connect(widget,SIGNAL(controlEnabled(bool)), this, SLOT(enableControl(bool)));
-    connect(this,SIGNAL(sticksChangedRemotely(double,double,double,double)),widget,SLOT(updateSticks(double,double,double,double)));
-    connect(widget,SIGNAL(flightModeChangedLocaly(ManualControlSettings::FlightModePositionOptions)),this,SLOT(flightModeChanged(ManualControlSettings::FlightModePositionOptions)));
+    connect(getManualControlCommand(), &UAVObject::objectUpdated,
+            this, &GCSControlGadget::manualControlCommandUpdated);
+    connect(widget, &GCSControlGadgetWidget::sticksChanged,
+            this, &GCSControlGadget::sticksChangedLocally);
+    connect(widget, &GCSControlGadgetWidget::controlEnabled,
+            this, &GCSControlGadget::enableControl);
+    connect(this, &GCSControlGadget::sticksChangedRemotely,
+            widget, &GCSControlGadgetWidget::updateSticks);
+    connect(widget, &GCSControlGadgetWidget::flightModeChangedLocaly,
+            this, &GCSControlGadget::flightModeChanged);
 
     manualControlCommandUpdated(getManualControlCommand());
 
     control_sock = new QUdpSocket(this);
 
-    connect(control_sock,SIGNAL(readyRead()),this,SLOT(readUDPCommand()));
+    connect(control_sock,&QIODevice::readyRead,this,&GCSControlGadget::readUDPCommand);
 
     joystickTime.start();
 

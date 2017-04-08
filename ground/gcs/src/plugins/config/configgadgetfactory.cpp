@@ -62,7 +62,7 @@ Core::IUAVGadget* ConfigGadgetFactory::createGadget(QWidget *parent)
     ac->appendGroup("Wizard");
     ac->addAction(cmd, "Wizard");
 
-    connect(cmd->action(), SIGNAL(triggered(bool)), this, SLOT(startInputWizard()));
+    connect(cmd->action(), &QAction::triggered, this, &ConfigGadgetFactory::startInputWizard);
 
     return new ConfigGadget(QString("ConfigGadget"), gadgetWidget, parent);
 }

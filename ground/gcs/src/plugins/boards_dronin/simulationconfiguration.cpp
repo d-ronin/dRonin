@@ -41,7 +41,7 @@ SimulationConfiguration::SimulationConfiguration(QWidget *parent) :
 
     UAVObject *hwSim = getObjectManager()->getObject(HwSimulation::NAME);
     Q_ASSERT(hwSim);
-    connect(hwSim, SIGNAL(objectUpdated(UAVObject*)), this, SLOT(onLedStateUpdated(UAVObject*)));
+    connect(hwSim, &UAVObject::objectUpdated, this, &SimulationConfiguration::onLedStateUpdated);
 }
 
 SimulationConfiguration::~SimulationConfiguration()

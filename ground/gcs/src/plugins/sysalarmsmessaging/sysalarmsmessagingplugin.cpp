@@ -49,7 +49,7 @@ void SysAlarmsMessagingPlugin::extensionsInitialized()
     ExtensionSystem::PluginManager *pm = ExtensionSystem::PluginManager::instance();
     UAVObjectManager *objManager = pm->getObject<UAVObjectManager>();
     SystemAlarms* obj = dynamic_cast<SystemAlarms*>(objManager->getObject(QString("SystemAlarms")));
-    connect(obj, SIGNAL(objectUpdated(UAVObject*)), this, SLOT(updateAlarms(UAVObject*)));
+    connect(obj, &UAVObject::objectUpdated, this, &SysAlarmsMessagingPlugin::updateAlarms);
 
 }
 
@@ -78,7 +78,7 @@ bool SysAlarmsMessagingPlugin::initialize(const QStringList &arguments, QString 
         }
     }
     TelemetryManager* telMngr = pm->getObject<TelemetryManager>();
-    connect(telMngr, SIGNAL(disconnected()), this, SLOT(onAutopilotDisconnect()));
+    connect(telMngr, &TelemetryManager::disconnected, this, &SysAlarmsMessagingPlugin::onAutopilotDisconnect);
     return true;
 }
 

@@ -160,19 +160,32 @@ QWidget* ScopeGadgetOptionsPage::createPage(QWidget *parent)
 
 
     //Connect signals to slots
-    connect(options_page->cmbXAxisScatterplot2d, SIGNAL(currentIndexChanged(QString)), this, SLOT(on_cmbXAxisScatterplot2d_currentIndexChanged(QString)));
-    connect(options_page->cmb2dPlotType, SIGNAL(currentIndexChanged(QString)), this, SLOT(on_cmb2dPlotType_currentIndexChanged(QString)));
-    connect(options_page->cmb3dPlotType, SIGNAL(currentIndexChanged(QString)), this, SLOT(on_cmb3dPlotType_currentIndexChanged(QString)));
-    connect(options_page->cmbUAVObjects, SIGNAL(currentIndexChanged(QString)), this, SLOT(on_cmbUAVObjects_currentIndexChanged(QString)));
-    connect(options_page->cmbUAVObjectsSpectrogram, SIGNAL(currentIndexChanged(QString)), this, SLOT(on_cmbUAVObjectsSpectrogram_currentIndexChanged(QString)));
-    connect(options_page->btnAdd2dCurve, SIGNAL(clicked()), this, SLOT(on_btnAdd2dCurve_clicked()));
-    connect(options_page->btnApply2dCurve, SIGNAL(clicked()), this, SLOT(on_btnApply2dCurve_clicked()));
-    connect(options_page->btnRemove2dCurve, SIGNAL(clicked()), this, SLOT(on_btnRemove2dCurve_clicked()));
-    connect(options_page->lst2dCurves, SIGNAL(currentRowChanged(int)), this, SLOT(on_lst2dCurves_currentRowChanged(int)));
-    connect(options_page->btnColor, SIGNAL(clicked()), this, SLOT(on_btnColor_clicked()));
-    connect(options_page->mathFunctionComboBox, SIGNAL(currentIndexChanged(int)), this, SLOT(on_mathFunctionComboBox_currentIndexChanged(int)));
-    connect(options_page->cmbSpectrogramSource, SIGNAL(currentIndexChanged(QString)), this, SLOT(on_cmbSpectrogramSource_currentIndexChanged(QString)));
-    connect(options_page->lst2dCurves, SIGNAL(itemClicked(QListWidgetItem *)), this, SLOT(on_lst2dItem_clicked(QListWidgetItem *)));
+    connect(options_page->cmbXAxisScatterplot2d, QOverload<const QString &>::of(&QComboBox::currentIndexChanged),
+            this, &ScopeGadgetOptionsPage::on_cmbXAxisScatterplot2d_currentIndexChanged);
+    connect(options_page->cmb2dPlotType, QOverload<const QString &>::of(&QComboBox::currentIndexChanged),
+            this, &ScopeGadgetOptionsPage::on_cmb2dPlotType_currentIndexChanged);
+    connect(options_page->cmb3dPlotType, QOverload<const QString &>::of(&QComboBox::currentIndexChanged),
+            this, &ScopeGadgetOptionsPage::on_cmb3dPlotType_currentIndexChanged);
+    connect(options_page->cmbUAVObjects, QOverload<const QString &>::of(&QComboBox::currentIndexChanged),
+            this, &ScopeGadgetOptionsPage::on_cmbUAVObjects_currentIndexChanged);
+    connect(options_page->cmbUAVObjectsSpectrogram, QOverload<const QString &>::of(&QComboBox::currentIndexChanged),
+            this, &ScopeGadgetOptionsPage::on_cmbUAVObjectsSpectrogram_currentIndexChanged);
+    connect(options_page->btnAdd2dCurve, &QAbstractButton::clicked,
+            this, &ScopeGadgetOptionsPage::on_btnAdd2dCurve_clicked);
+    connect(options_page->btnApply2dCurve, &QAbstractButton::clicked,
+            this, &ScopeGadgetOptionsPage::on_btnApply2dCurve_clicked);
+    connect(options_page->btnRemove2dCurve, &QAbstractButton::clicked,
+            this, &ScopeGadgetOptionsPage::on_btnRemove2dCurve_clicked);
+    connect(options_page->lst2dCurves, &QListWidget::currentRowChanged,
+            this, &ScopeGadgetOptionsPage::on_lst2dCurves_currentRowChanged);
+    connect(options_page->btnColor, &QAbstractButton::clicked,
+            this, &ScopeGadgetOptionsPage::on_btnColor_clicked);
+    connect(options_page->mathFunctionComboBox, QOverload<int>::of(&QComboBox::currentIndexChanged),
+            this, &ScopeGadgetOptionsPage::on_mathFunctionComboBox_currentIndexChanged);
+    connect(options_page->cmbSpectrogramSource, QOverload<const QString &>::of(&QComboBox::currentIndexChanged),
+            this, &ScopeGadgetOptionsPage::on_cmbSpectrogramSource_currentIndexChanged);
+    connect(options_page->lst2dCurves, &QListWidget::itemClicked,
+            this, &ScopeGadgetOptionsPage::on_lst2dItem_clicked);
 
     // Configuration the GUI elements to reflect the scope settings
     if(m_config)

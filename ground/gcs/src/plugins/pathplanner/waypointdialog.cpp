@@ -34,13 +34,14 @@ WaypointDialog::WaypointDialog(QWidget *parent, QAbstractItemModel *model,QItemS
     model(model), itemSelection(selection)
 {
     ui->setupUi(this);
-    connect(ui->cbMode,SIGNAL(currentIndexChanged(int)),this,SLOT(setupModeWidgets()));
+    connect(ui->cbMode, QOverload<int>::of(&QComboBox::currentIndexChanged),
+            this, &WaypointDialog::setupModeWidgets);
 
     // Connect up the buttons
-    connect(ui->pushButtonOK, SIGNAL(clicked()), this, SLOT(onOkButton_clicked()));
-    connect(ui->pushButtonCancel, SIGNAL(clicked()), this, SLOT(onCancelButton_clicked()));
-    connect(ui->pushButtonPrevious, SIGNAL(clicked()), this, SLOT(onPreviousButton_clicked()));
-    connect(ui->pushButtonNext, SIGNAL(clicked()), this, SLOT(onNextButton_clicked()));
+    connect(ui->pushButtonOK, &QAbstractButton::clicked, this, &WaypointDialog::onOkButton_clicked);
+    connect(ui->pushButtonCancel, &QAbstractButton::clicked, this, &WaypointDialog::onCancelButton_clicked);
+    connect(ui->pushButtonPrevious, &QAbstractButton::clicked, this, &WaypointDialog::onPreviousButton_clicked);
+    connect(ui->pushButtonNext, &QAbstractButton::clicked, this, &WaypointDialog::onNextButton_clicked);
 
     mapper = new QDataWidgetMapper(this);
 
@@ -48,7 +49,7 @@ WaypointDialog::WaypointDialog(QWidget *parent, QAbstractItemModel *model,QItemS
     delegate->loadComboBox(ui->cbMode);
 
     mapper->setItemDelegate(delegate);
-    connect (mapper,SIGNAL(currentIndexChanged(int)),this,SLOT(currentIndexChanged(int)));
+    connect(mapper, &QDataWidgetMapper::currentIndexChanged, this, &WaypointDialog::currentIndexChanged);
     mapper->setModel(model);
     mapper->setSubmitPolicy(QDataWidgetMapper::AutoSubmit);
     mapper->addMapping(ui->doubleSpinBoxLatitude,FlightDataModel::LATPOSITION);
@@ -64,20 +65,20 @@ WaypointDialog::WaypointDialog(QWidget *parent, QAbstractItemModel *model,QItemS
     mapper->addMapping(ui->checkBoxLocked,FlightDataModel::LOCKED);
 
     // Make sure the model catches updates from the check box
-    //connect(ui->checkBoxLocked,SIGNAL(toggled(bool)),mapper,SLOT(submit()));
-    connect(ui->checkBoxLocked, SIGNAL(stateChanged(int)), mapper, SLOT(submit()));
+    connect(ui->checkBoxLocked, &QCheckBox::stateChanged, mapper, &QDataWidgetMapper::submit);
 
     mapper->setCurrentIndex(selection->currentIndex().row());
 
     // Support locking the controls when locked
     enableEditWidgets();
-    connect(model,SIGNAL(dataChanged(QModelIndex,QModelIndex)),this,SLOT(enableEditWidgets()));
+    connect(model,&QAbstractItemModel::dataChanged,this,&WaypointDialog::enableEditWidgets);
 
     // This means whenever the model changes we show those changes.  Since the update is on
     // auto submit changes are still permitted.
-    connect(model, SIGNAL(dataChanged(QModelIndex,QModelIndex)), mapper, SLOT(revert()));
+    connect(model, &QAbstractItemModel::dataChanged, mapper, &QDataWidgetMapper::revert);
 
-    connect(itemSelection,SIGNAL(currentRowChanged(QModelIndex,QModelIndex)),this,SLOT(currentRowChanged(QModelIndex,QModelIndex)));
+    connect(itemSelection, &QItemSelectionModel::currentRowChanged,
+            this, &WaypointDialog::currentRowChanged);
 
     setModal(true);
 }

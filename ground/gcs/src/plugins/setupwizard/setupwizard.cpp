@@ -326,12 +326,12 @@ void SetupWizard::createPages()
 
     setStartId(PAGE_START);
 
-    connect(button(QWizard::CustomButton1), SIGNAL(clicked()), this, SLOT(customBackClicked()));
+    connect(button(QWizard::CustomButton1), &QAbstractButton::clicked, this, &SetupWizard::customBackClicked);
     setButtonText(QWizard::CustomButton1, buttonText(QWizard::BackButton));
     QList<QWizard::WizardButton> button_layout;
     button_layout << QWizard::Stretch << QWizard::CustomButton1 << QWizard::NextButton << QWizard::CancelButton << QWizard::FinishButton;
     setButtonLayout(button_layout);
-    connect(this, SIGNAL(currentIdChanged(int)), this, SLOT(pageChanged(int)));
+    connect(this, &QWizard::currentIdChanged, this, &SetupWizard::pageChanged);
 }
 
 void SetupWizard::customBackClicked()

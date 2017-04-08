@@ -32,7 +32,7 @@ UAVObjectBrowser::UAVObjectBrowser(QString classId, UAVObjectBrowserWidget *widg
         m_widget(widget),
         m_config(NULL)
 {
-    connect(m_widget,SIGNAL(viewOptionsChanged(bool,bool,bool,bool)),this,SLOT(viewOptionsChangedSlot(bool,bool,bool,bool)));
+    connect(m_widget,&UAVObjectBrowserWidget::viewOptionsChanged,this,&UAVObjectBrowser::viewOptionsChangedSlot);
 }
 
 UAVObjectBrowser::~UAVObjectBrowser()

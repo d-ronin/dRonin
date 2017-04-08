@@ -34,6 +34,7 @@
 #include <QDebug>
 #include <QFont>
 #include <QFontDialog>
+#include <QComboBox>
 
 namespace Core {
 class IUAVGadgetConfiguration;
@@ -62,11 +63,10 @@ private:
     DialGadgetConfiguration *m_config;
     QFont font;
 
+    void uavoChanged(QComboBox *widget, const QString &uavo);
+
 private slots:
     void on_fontPicker_clicked();
-    void on_uavObject1_currentIndexChanged(QString val);
-    void on_uavObject2_currentIndexChanged(QString val);
-    void on_uavObject3_currentIndexChanged(QString val);
 };
 
 #endif // DIALGADGETOPTIONSPAGE_H

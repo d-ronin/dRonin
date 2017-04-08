@@ -61,7 +61,7 @@ DialGadgetWidget::DialGadgetWidget(QWidget *parent) : QGraphicsView(parent)
 	beSmooth = false;
 
     // This timer mechanism makes needles rotate smoothly
-    connect(&dialTimer, SIGNAL(timeout()), this, SLOT(rotateNeedles()));
+    connect(&dialTimer, &QTimer::timeout, this, &DialGadgetWidget::rotateNeedles);
 }
 
 DialGadgetWidget::~DialGadgetWidget()
@@ -76,11 +76,11 @@ void DialGadgetWidget::connectNeedles(QString object1, QString nfield1,
                                           QString object2, QString nfield2,
                                           QString object3, QString nfield3) {
     if (obj1 != NULL)
-        disconnect(obj1,SIGNAL(objectUpdated(UAVObject*)),this,SLOT(updateNeedle1(UAVObject*)));
+        disconnect(obj1,&UAVObject::objectUpdated,this,&DialGadgetWidget::updateNeedle1);
     if (obj2 != NULL)
-        disconnect(obj2,SIGNAL(objectUpdated(UAVObject*)),this,SLOT(updateNeedle2(UAVObject*)));
+        disconnect(obj2,&UAVObject::objectUpdated,this,&DialGadgetWidget::updateNeedle2);
     if (obj3 != NULL)
-        disconnect(obj3,SIGNAL(objectUpdated(UAVObject*)),this,SLOT(updateNeedle3(UAVObject*)));
+        disconnect(obj3,&UAVObject::objectUpdated,this,&DialGadgetWidget::updateNeedle3);
 
     ExtensionSystem::PluginManager *pm = ExtensionSystem::PluginManager::instance();
     UAVObjectManager *objManager = pm->getObject<UAVObjectManager>();
@@ -90,7 +90,7 @@ void DialGadgetWidget::connectNeedles(QString object1, QString nfield1,
         obj1 = dynamic_cast<UAVDataObject*>( objManager->getObject(object1) );
         if (obj1 != NULL ) {
             // qDebug() << "Connected Object 1 (" << object1 << ").";
-            connect(obj1, SIGNAL(objectUpdated(UAVObject*)), this, SLOT(updateNeedle1(UAVObject*)));
+            connect(obj1, &UAVObject::objectUpdated, this, &DialGadgetWidget::updateNeedle1);
             if(nfield1.contains("-"))
             {
                 QStringList fieldSubfield = nfield1.split("-", QString::SkipEmptyParts);
@@ -113,7 +113,7 @@ void DialGadgetWidget::connectNeedles(QString object1, QString nfield1,
         obj2 = dynamic_cast<UAVDataObject*>( objManager->getObject(object2) );
         if (obj2 != NULL ) {
             // qDebug() << "Connected Object 2 (" << object2 << ").";
-            connect(obj2, SIGNAL(objectUpdated(UAVObject*)), this, SLOT(updateNeedle2(UAVObject*)));
+            connect(obj2, &UAVObject::objectUpdated, this, &DialGadgetWidget::updateNeedle2);
             if(nfield2.contains("-"))
             {
                 QStringList fieldSubfield = nfield2.split("-", QString::SkipEmptyParts);
@@ -136,7 +136,7 @@ void DialGadgetWidget::connectNeedles(QString object1, QString nfield1,
         obj3 = dynamic_cast<UAVDataObject*>( objManager->getObject(object3) );
         if (obj3 != NULL ) {
             // qDebug() << "Connected Object 3 (" << object3 << ").";
-            connect(obj3, SIGNAL(objectUpdated(UAVObject*)), this, SLOT(updateNeedle3(UAVObject*)));
+            connect(obj3, &UAVObject::objectUpdated, this, &DialGadgetWidget::updateNeedle3);
             if(nfield3.contains("-"))
             {
                 QStringList fieldSubfield = nfield3.split("-", QString::SkipEmptyParts);

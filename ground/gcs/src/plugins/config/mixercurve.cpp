@@ -63,19 +63,20 @@ MixerCurve::MixerCurve(QWidget *parent) :
 
     // wire up our signals
 
-    connect(m_mixerUI->CurveType, SIGNAL(currentIndexChanged(int)), this, SLOT(CurveTypeChanged()));
-    connect(m_mixerUI->ResetCurve, SIGNAL(clicked()), this, SLOT(ResetCurve()));
-    connect(m_mixerUI->PopupCurve, SIGNAL(clicked()),this,SLOT(PopupCurve()));
-    connect(m_mixerUI->GenerateCurve, SIGNAL(clicked()), this, SLOT(GenerateCurve()));
-    connect(m_curve, SIGNAL(curveUpdated()), this, SLOT(UpdateSettingsTable()));
-    connect(m_curve, SIGNAL(commandActivated(MixerNode*)),this, SLOT(CommandActivated(MixerNode*)));
-    connect(m_settings, SIGNAL(cellChanged(int,int)), this, SLOT(SettingsTableChanged()));
-    connect(m_mixerUI->CurveMin, SIGNAL(valueChanged(double)), this, SLOT(CurveMinChanged(double)));
-    connect(m_mixerUI->CurveMax, SIGNAL(valueChanged(double)), this, SLOT(CurveMaxChanged(double)));
-    connect(m_mixerUI->CurveStep, SIGNAL(valueChanged(double)), this, SLOT(GenerateCurve()));
-
-
-
+    connect(m_mixerUI->CurveType, QOverload<int>::of(&QComboBox::currentIndexChanged),
+            this, &MixerCurve::CurveTypeChanged);
+    connect(m_mixerUI->ResetCurve, &QAbstractButton::clicked, this, &MixerCurve::ResetCurve);
+    connect(m_mixerUI->PopupCurve, &QAbstractButton::clicked,this,&MixerCurve::PopupCurve);
+    connect(m_mixerUI->GenerateCurve, &QAbstractButton::clicked, this, &MixerCurve::GenerateCurve);
+    connect(m_curve, &MixerCurveWidget::curveUpdated, this, &MixerCurve::UpdateSettingsTable);
+    connect(m_curve, &MixerCurveWidget::commandActivated,this, &MixerCurve::CommandActivated);
+    connect(m_settings, &QTableWidget::cellChanged, this, &MixerCurve::SettingsTableChanged);
+    connect(m_mixerUI->CurveMin, QOverload<double>::of(&QDoubleSpinBox::valueChanged),
+            this, &MixerCurve::CurveMinChanged);
+    connect(m_mixerUI->CurveMax, QOverload<double>::of(&QDoubleSpinBox::valueChanged),
+            this, &MixerCurve::CurveMaxChanged);
+    connect(m_mixerUI->CurveStep, QOverload<double>::of(&QDoubleSpinBox::valueChanged),
+            this, &MixerCurve::GenerateCurve);
 }
 
 MixerCurve::~MixerCurve()

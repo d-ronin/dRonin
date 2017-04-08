@@ -308,7 +308,7 @@ int main(int argc, char **argv)
     CustomSplash splash(pixmap);
     if(!parser.isSet(versionOption) && !parser.isSet(helpOption)) {
         splash.show();
-        splash.showMessage("Loading translations",Qt::AlignCenter | Qt::AlignBottom,Qt::black);
+        splash.showMessage("Loading translations");
         qApp->processEvents();
     }
     const QString &gcsTranslationsPath = QCoreApplication::applicationDirPath()
@@ -334,7 +334,7 @@ int main(int argc, char **argv)
     const QStringList pluginPaths = getPluginPaths();
     pluginManager.setPluginPaths(pluginPaths);
 
-    splash.showMessage("Parsing command line options",Qt::AlignCenter | Qt::AlignBottom,Qt::black);
+    splash.showMessage("Parsing command line options");
     qApp->processEvents();
     QStringList parsingErrors = pluginManager.parseOptions(parser.values(pluginOption), parser.values(doTestsOption), parser.values(noLoadOption));
     if(!parsingErrors.isEmpty()) {
@@ -353,7 +353,7 @@ int main(int argc, char **argv)
         }
     }
     if(!parser.isSet(versionOption) && !parser.isSet(helpOption)) {
-        splash.showMessage(QLatin1String("Checking core plugin"),Qt::AlignCenter | Qt::AlignBottom,Qt::black);
+        splash.showMessage(QLatin1String("Checking core plugin"));
         qApp->processEvents();
     }
     if (!coreplugin) {
@@ -375,9 +375,12 @@ int main(int argc, char **argv)
         return 0;
     }
 
-    QObject::connect(&pluginManager,SIGNAL(splashMessages(QString)),&splash,SLOT(showMessage(const QString)));
-    QObject::connect(&pluginManager,SIGNAL(hideSplash()),&splash,SLOT(hide()));
-    QObject::connect(&pluginManager,SIGNAL(showSplash()),&splash,SLOT(show()));
+    QObject::connect(&pluginManager, &ExtensionSystem::PluginManager::splashMessages,
+                     &splash, &CustomSplash::showMessage);
+    QObject::connect(&pluginManager, &ExtensionSystem::PluginManager::hideSplash,
+            &splash, &CustomSplash::hide);
+    QObject::connect(&pluginManager, &ExtensionSystem::PluginManager::showSplash,
+                     &splash, &CustomSplash::show);
 
     pluginManager.loadPlugins();
     {

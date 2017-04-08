@@ -37,7 +37,7 @@ TauLinkGadgetWidget::TauLinkGadgetWidget(QWidget *parent) : ConfigTaskWidget(par
     rfm22bStatusObj = dynamic_cast<UAVDataObject*>(objManager->getObject("RFM22BStatus"));
 
     if (rfm22bStatusObj != NULL ) {
-        connect(rfm22bStatusObj, SIGNAL(objectUpdated(UAVObject*)), this, SLOT(updateStatus(UAVObject*)));
+        connect(rfm22bStatusObj, &UAVObject::objectUpdated, this, &TauLinkGadgetWidget::updateStatus);
         rfm22bStatusObj->requestUpdate();
 
         autoLoadWidgets();

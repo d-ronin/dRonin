@@ -46,7 +46,7 @@ SerialConnection::SerialConnection()
 
     m_optionspage = new SerialPluginOptionsPage(m_config,this);
 
-    connect(&periodicTimer, SIGNAL(timeout()), this, SLOT(periodic()));
+    connect(&periodicTimer, &QTimer::timeout, this, &SerialConnection::periodic);
     periodicTimer.start(1000);
 }
 

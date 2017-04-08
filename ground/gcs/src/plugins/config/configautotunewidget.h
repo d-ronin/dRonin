@@ -136,7 +136,8 @@ private:
     void checkNewAutotune();
 
 private slots:
-    void openAutotuneDialog(bool autoOpened = false);
+    void openAutotuneDialog();
+    void openAutotuneDialog(bool autoOpened);
 
     void atConnected();
     void atDisconnected();

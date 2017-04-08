@@ -55,12 +55,11 @@ IPConnection::IPConnection()
 
     m_optionspage = new IPConnectionOptionsPage(m_config,this);
 
-    //just signal whenever we have a device event...
-    QMainWindow *mw = Core::ICore::instance()->mainWindow();
-    QObject::connect(mw, SIGNAL(deviceChange()),
-                     this, SLOT(onEnumerationChanged()));
-    QObject::connect(m_optionspage, SIGNAL(availableDevChanged()),
-                     this, SLOT(onEnumerationChanged()));
+    // only way our devices change is through the options page
+    QObject::connect(m_optionspage, &IPConnectionOptionsPage::availableDevChanged,
+                     this, &IPConnection::onEnumerationChanged);
+    // we loaded some devices from configuration file...
+    onEnumerationChanged();
 }
 
 IPConnection::~IPConnection()

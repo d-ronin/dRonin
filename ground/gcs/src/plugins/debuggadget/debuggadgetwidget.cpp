@@ -44,11 +44,9 @@ DebugGadgetWidget::DebugGadgetWidget(QWidget *parent) : QLabel(parent)
     m_config = new Ui_Form();
     m_config->setupUi(this);
     DebugEngine *de = DebugEngine::getInstance();
-    connect(de, SIGNAL(message(DebugEngine::Level, const QString &, const QString &, const int, const QString &)),
-                this, SLOT(message(DebugEngine::Level, const QString &, const QString &, const int, const QString &)),
-                Qt::QueuedConnection);
-    connect(m_config->saveToFile, SIGNAL(clicked()), this, SLOT(saveLog()));
-    connect(m_config->clearLog, SIGNAL(clicked()), this, SLOT(clearLog()));
+    connect(de, &DebugEngine::message, this, &DebugGadgetWidget::message, Qt::QueuedConnection);
+    connect(m_config->saveToFile, &QAbstractButton::clicked, this, &DebugGadgetWidget::saveLog);
+    connect(m_config->clearLog, &QAbstractButton::clicked, this, &DebugGadgetWidget::clearLog);
 }
 
 DebugGadgetWidget::~DebugGadgetWidget()

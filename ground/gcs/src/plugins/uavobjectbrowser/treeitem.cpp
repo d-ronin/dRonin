@@ -43,7 +43,7 @@ HighLightManager::HighLightManager(long checkingInterval, QTime *currentTime)
 {
     // Start the timer and connect it to the callback
     m_expirationTimer.start(checkingInterval);
-    connect(&m_expirationTimer, SIGNAL(timeout()), this, SLOT(checkItemsExpired()));
+    connect(&m_expirationTimer, &QTimer::timeout, this, &HighLightManager::checkItemsExpired);
 
     if (currentTime == NULL)
         m_currentTime = new QTime;

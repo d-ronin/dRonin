@@ -31,8 +31,9 @@
 UsageStatsOptionPage::UsageStatsOptionPage(QObject *parent) :
     IOptionsPage(parent)
 {
-    m_config=qobject_cast<UsageStatsPlugin *>(parent);
-    connect(this,SIGNAL(settingsUpdated()),m_config,SLOT(updateSettings()));
+    m_config = qobject_cast<UsageStatsPlugin *>(parent);
+    connect(this, &UsageStatsOptionPage::settingsUpdated,
+            m_config, &UsageStatsPlugin::updateSettings);
 }
 UsageStatsOptionPage::~UsageStatsOptionPage()
 {

@@ -68,14 +68,14 @@ bool ConfigPlugin::initialize(const QStringList& args, QString *errMsg)
     ac->appendGroup("Utilities");
     ac->addAction(cmd, "Utilities");
 
-    connect(cmd->action(), SIGNAL(triggered(bool)), this, SLOT(eraseAllSettings()));
+    connect(cmd->action(), &QAction::triggered, this, &ConfigPlugin::eraseAllSettings);
 
     // *********************
     // Listen to autopilot connection events
     ExtensionSystem::PluginManager *pm = ExtensionSystem::PluginManager::instance();
     TelemetryManager* telMngr = pm->getObject<TelemetryManager>();
-    connect(telMngr, SIGNAL(connected()), this, SLOT(onAutopilotConnect()));
-    connect(telMngr, SIGNAL(disconnected()), this, SLOT(onAutopilotDisconnect()));
+    connect(telMngr, &TelemetryManager::connected, this, &ConfigPlugin::onAutopilotConnect);
+    connect(telMngr, &TelemetryManager::disconnected, this, &ConfigPlugin::onAutopilotDisconnect);
 
     // And check whether by any chance we are not already connected
     if (telMngr->isConnected())
@@ -149,7 +149,7 @@ void ConfigPlugin::eraseAllSettings()
     ObjectPersistence* objper = ObjectPersistence::GetInstance(getObjectManager());
     Q_ASSERT(objper);
 
-    connect(objper, SIGNAL(objectUpdated(UAVObject*)), this, SLOT(eraseDone(UAVObject *)));
+    connect(objper, &UAVObject::objectUpdated, this, &ConfigPlugin::eraseDone);
 
     ObjectPersistence::DataFields data = objper->getData();
     data.Operation = ObjectPersistence::OPERATION_FULLERASE;
@@ -158,7 +158,7 @@ void ConfigPlugin::eraseAllSettings()
     // based on UAVO meta data
     objper->setData(data);
     objper->updated();
-    QTimer::singleShot(FLASH_ERASE_TIMEOUT_MS,this,SLOT(eraseFailed()));
+    QTimer::singleShot(FLASH_ERASE_TIMEOUT_MS,this,&ConfigPlugin::eraseFailed);
 
 }
 
@@ -169,7 +169,7 @@ void ConfigPlugin::eraseFailed()
 
     ObjectPersistence* objper = ObjectPersistence::GetInstance(getObjectManager());
 
-    disconnect(objper, SIGNAL(objectUpdated(UAVObject*)), this, SLOT(eraseDone(UAVObject *)));
+    disconnect(objper, &UAVObject::objectUpdated, this, &ConfigPlugin::eraseDone);
     QMessageBox msgBox;
     msgBox.setText(tr("Error trying to erase settings."));
     msgBox.setInformativeText(tr("Power-cycle your board after removing all blades. Settings might be inconsistent."));
@@ -190,7 +190,7 @@ void ConfigPlugin::eraseDone(UAVObject * obj)
         return;
     }
 
-    disconnect(objper, SIGNAL(objectUpdated(UAVObject*)), this, SLOT(eraseDone(UAVObject *)));
+    disconnect(objper, &UAVObject::objectUpdated, this, &ConfigPlugin::eraseDone);
     if (data.Operation == ObjectPersistence::OPERATION_COMPLETED) {
         settingsErased = true;
         msgBox.setText(tr("Settings are now erased."));

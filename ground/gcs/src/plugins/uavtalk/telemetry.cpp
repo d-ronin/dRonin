@@ -94,17 +94,17 @@ Telemetry::Telemetry(UAVTalk* utalk, UAVObjectManager* objMngr)
         registerObject(objs[objidx][0]); // we only need to register one instance per object type
     }
     // Listen to new object creations
-    connect(objMngr, SIGNAL(newObject(UAVObject*)), this, SLOT(newObject(UAVObject*)));
-    connect(objMngr, SIGNAL(newInstance(UAVObject*)), this, SLOT(newInstance(UAVObject*)));
+    connect(objMngr, &UAVObjectManager::newObject, this, &Telemetry::newObject);
+    connect(objMngr, &UAVObjectManager::newInstance, this, &Telemetry::newInstance);
     // Listen to transaction completions
-    connect(utalk, SIGNAL(ackReceived(UAVObject*)), this, SLOT(transactionSuccess(UAVObject*)));
-    connect(utalk, SIGNAL(nackReceived(UAVObject*)), this, SLOT(transactionFailure(UAVObject*)));
+    connect(utalk, &UAVTalk::ackReceived, this, &Telemetry::transactionSuccess);
+    connect(utalk, &UAVTalk::nackReceived, this, &Telemetry::transactionFailure);
     // Get GCS stats object
     gcsStatsObj = GCSTelemetryStats::GetInstance(objMngr);
     // Setup and start the periodic timer
     timeToNextUpdateMs = 0;
     updateTimer = new QTimer(this);
-    connect(updateTimer, SIGNAL(timeout()), this, SLOT(processPeriodicUpdates()));
+    connect(updateTimer, &QTimer::timeout, this, &Telemetry::processPeriodicUpdates);
     updateTimer->start(1000);
     // Setup and start the stats timer
     txErrors = 0;
@@ -187,24 +187,24 @@ void Telemetry::connectToObjectInstances(UAVObject* obj, quint32 eventMask)
         // Connect only the selected events
         if ( (eventMask&EV_UNPACKED) != 0)
         {
-            connect(objs[n], SIGNAL(objectUnpacked(UAVObject*)), this, SLOT(objectUnpacked(UAVObject*)));
+            connect(objs[n], &UAVObject::objectUnpacked, this, &Telemetry::objectUnpacked);
         }
         if ( (eventMask&EV_UPDATED) != 0)
         {
-            connect(objs[n], SIGNAL(objectUpdatedAuto(UAVObject*)), this, SLOT(objectUpdatedAuto(UAVObject*)));
+            connect(objs[n], &UAVObject::objectUpdatedAuto, this, &Telemetry::objectUpdatedAuto);
         }
         if ( (eventMask&EV_UPDATED_MANUAL) != 0)
         {
-            connect(objs[n], SIGNAL(objectUpdatedManual(UAVObject*)), this, SLOT(objectUpdatedManual(UAVObject*)));
+            connect(objs[n], &UAVObject::objectUpdatedManual, this, &Telemetry::objectUpdatedManual);
         }
         if ( (eventMask&EV_UPDATED_PERIODIC) != 0)
         {
-            connect(objs[n], SIGNAL(objectUpdatedPeriodic(UAVObject*)), this, SLOT(objectUpdatedPeriodic(UAVObject*)));
+            connect(objs[n], &UAVObject::objectUpdatedPeriodic, this, &Telemetry::objectUpdatedPeriodic);
         }
         if ( (eventMask&EV_UPDATE_REQ) != 0)
         {
-            connect(objs[n], SIGNAL(updateRequested(UAVObject*)), this, SLOT(updateRequested(UAVObject*)));
-            connect(objs[n], SIGNAL(updateAllInstancesRequested(UAVObject*)), this, SLOT(updateAllInstancesRequested(UAVObject*)));
+            connect(objs[n], &UAVObject::updateRequested, this, &Telemetry::updateRequested);
+            connect(objs[n], &UAVObject::updateAllInstancesRequested, this, &Telemetry::updateAllInstancesRequested);
         }
     }
 }
@@ -696,7 +696,7 @@ ObjectTransactionInfo::ObjectTransactionInfo(QObject* parent):QObject(parent)
     // Setup transaction timer
     timer = new QTimer(this);
     timer->stop();
-    connect(timer, SIGNAL(timeout()), this, SLOT(timeout()));
+    connect(timer, &QTimer::timeout, this, &ObjectTransactionInfo::timeout);
 }
 
 ObjectTransactionInfo::~ObjectTransactionInfo()

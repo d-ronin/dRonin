@@ -47,8 +47,8 @@ RawHIDConnection::RawHIDConnection()
     m_usbMonitor = USBMonitor::instance();
 
     m_signalFilter = new USBSignalFilter(-1, -1, -1, USBMonitor::Running);
-    connect(m_signalFilter, SIGNAL(deviceDiscovered()), this, SLOT(onDeviceConnected()));
-    connect(m_signalFilter, SIGNAL(deviceRemoved()), this, SLOT(onDeviceDisconnected()));
+    connect(m_signalFilter, &USBSignalFilter::deviceDiscovered, this, &RawHIDConnection::onDeviceConnected);
+    connect(m_signalFilter, &USBSignalFilter::deviceRemoved, this, &RawHIDConnection::onDeviceDisconnected);
 }
 
 RawHIDConnection::~RawHIDConnection()

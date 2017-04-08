@@ -113,36 +113,45 @@ QWidget *DialGadgetOptionsPage::createPage(QWidget *parent)
         // Now load the object field values - 1st check that the object saved in the config still exists
         UAVDataObject* obj = dynamic_cast<UAVDataObject*>( objManager->getObject(m_config->getN1DataObject()) );
         if (obj != NULL ) {
-                on_uavObject1_currentIndexChanged(m_config->getN1DataObject());
-                // And set the highlighed value from the settings:
-                options_page->objectField1->setCurrentIndex(options_page->objectField1->findText(m_config->getN1ObjField()));
+            uavoChanged(options_page->objectField1, m_config->getN1DataObject());
+            // And set the highlighed value from the settings:
+            options_page->objectField1->setCurrentIndex(options_page->objectField1->findText(m_config->getN1ObjField()));
         }
     }
-    connect(options_page->uavObject1, SIGNAL(currentIndexChanged(QString)), this, SLOT(on_uavObject1_currentIndexChanged(QString)));
+    connect(options_page->uavObject1, QOverload<const QString &>::of(&QComboBox::currentIndexChanged),
+            this, [this](const QString &val) {
+        uavoChanged(options_page->objectField1, val);
+    });
 
     if(options_page->uavObject2->findText(m_config->getN2DataObject())!=-1){
         options_page->uavObject2->setCurrentIndex(options_page->uavObject2->findText(m_config->getN2DataObject()));
         // Now load the object field values:
         UAVDataObject* obj = dynamic_cast<UAVDataObject*>( objManager->getObject(m_config->getN2DataObject()));
         if (obj != NULL ) {
-            on_uavObject2_currentIndexChanged(m_config->getN2DataObject());
+            uavoChanged(options_page->objectField2, m_config->getN2DataObject());
             options_page->objectField2->setCurrentIndex(options_page->objectField2->findText(m_config->getN2ObjField()));
         }
     }
-    connect(options_page->uavObject2, SIGNAL(currentIndexChanged(QString)), this, SLOT(on_uavObject2_currentIndexChanged(QString)));
+    connect(options_page->uavObject2, QOverload<const QString &>::of(&QComboBox::currentIndexChanged),
+            this, [this](const QString &val) {
+        uavoChanged(options_page->objectField2, val);
+    });
 
     if(options_page->uavObject3->findText(m_config->getN3DataObject())!=-1){
         options_page->uavObject3->setCurrentIndex(options_page->uavObject3->findText(m_config->getN3DataObject()));
         // Now load the object field values:
         UAVDataObject* obj = dynamic_cast<UAVDataObject*>( objManager->getObject(m_config->getN3DataObject()));
         if (obj != NULL ) {
-            on_uavObject3_currentIndexChanged(m_config->getN3DataObject());
-                options_page->objectField3->setCurrentIndex(options_page->objectField3->findText(m_config->getN3ObjField()));
+            uavoChanged(options_page->objectField3, m_config->getN3DataObject());
+            options_page->objectField3->setCurrentIndex(options_page->objectField3->findText(m_config->getN3ObjField()));
         }
     }
-    connect(options_page->uavObject3, SIGNAL(currentIndexChanged(QString)), this, SLOT(on_uavObject3_currentIndexChanged(QString)));
+    connect(options_page->uavObject3, QOverload<const QString &>::of(&QComboBox::currentIndexChanged),
+            this, [this](const QString &val) {
+        uavoChanged(options_page->objectField3, val);
+    });
 
-    connect(options_page->fontPicker, SIGNAL(clicked()), this, SLOT(on_fontPicker_clicked()));
+    connect(options_page->fontPicker, &QAbstractButton::clicked, this, &DialGadgetOptionsPage::on_fontPicker_clicked);
 
     return optionsPageWidget;
 }
@@ -193,79 +202,32 @@ void DialGadgetOptionsPage::on_fontPicker_clicked()
      font = QFontDialog::getFont(&ok, QFont("Arial", 12), qobject_cast<QWidget*>(this));
 }
 
-
-/*
-  Fills in the field1 combo box when value is changed in the
-  object1 field
-*/
-void DialGadgetOptionsPage::on_uavObject1_currentIndexChanged(QString val) {
-    options_page->objectField1->clear();
+/**
+ * @brief Fills in the field combo box when value is changed in the object field
+ * @param widget Object name widget
+ * @param uavo Name of selected object
+ */
+void DialGadgetOptionsPage::uavoChanged(QComboBox *widget, const QString &uavo)
+{
     ExtensionSystem::PluginManager *pm = ExtensionSystem::PluginManager::instance();
     UAVObjectManager *objManager = pm->getObject<UAVObjectManager>();
-    UAVDataObject* obj = dynamic_cast<UAVDataObject*>( objManager->getObject(val) );
-    QList<UAVObjectField*> fieldList = obj->getFields();
-    foreach (UAVObjectField* field, fieldList) {
-        if(field->getType() == UAVObjectField::STRING || field->getType() == UAVObjectField::ENUM )
-            continue;
-        if(field->getElementNames().count() > 1)
-        {
-            foreach(QString elemName , field->getElementNames())
-            {
-                options_page->objectField1->addItem(field->getName() + "-" + elemName);
-            }
-        }
-        else
-            options_page->objectField1->addItem(field->getName());
+
+    UAVDataObject* obj = dynamic_cast<UAVDataObject *>(objManager->getObject(uavo));
+    if (!obj) {
+        qWarning() << "Invalid object" << uavo;
+        return;
     }
-}
 
-/*
-  Fills in the field2 combo box when value is changed in the
-  object2 field
-*/
-void DialGadgetOptionsPage::on_uavObject2_currentIndexChanged(QString val) {
-    options_page->objectField2->clear();
-    ExtensionSystem::PluginManager *pm = ExtensionSystem::PluginManager::instance();
-    UAVObjectManager *objManager = pm->getObject<UAVObjectManager>();
-    UAVDataObject* obj = dynamic_cast<UAVDataObject*>( objManager->getObject(val) );
-    QList<UAVObjectField*> fieldList = obj->getFields();
-    foreach (UAVObjectField* field, fieldList) {
-        if(field->getType() == UAVObjectField::STRING || field->getType() == UAVObjectField::ENUM )
+    widget->clear();
+    for (auto field : obj->getFields()) {
+        if (field->getType() == UAVObjectField::STRING || field->getType() == UAVObjectField::ENUM )
             continue;
-        if(field->getElementNames().count() > 1)
-        {
-            foreach(QString elemName , field->getElementNames())
-            {
-                options_page->objectField2->addItem(field->getName() + "-" + elemName);
-            }
+        if (field->getElementNames().count() > 1) {
+            for (const QString &elemName : field->getElementNames())
+                widget->addItem(field->getName() + "-" + elemName);
         }
         else
-            options_page->objectField2->addItem(field->getName());
-    }
-}
-
-/*
-  Fills in the field3 combo box when value is changed in the
-  object3 field
-*/
-void DialGadgetOptionsPage::on_uavObject3_currentIndexChanged(QString val) {
-    options_page->objectField3->clear();
-    ExtensionSystem::PluginManager *pm = ExtensionSystem::PluginManager::instance();
-    UAVObjectManager *objManager = pm->getObject<UAVObjectManager>();
-    UAVDataObject* obj = dynamic_cast<UAVDataObject*>( objManager->getObject(val) );
-    QList<UAVObjectField*> fieldList = obj->getFields();
-    foreach (UAVObjectField* field, fieldList) {
-        if(field->getType() == UAVObjectField::STRING || field->getType() == UAVObjectField::ENUM )
-            continue;
-        if(field->getElementNames().count() > 1)
-        {
-            foreach(QString elemName , field->getElementNames())
-            {
-                options_page->objectField3->addItem(field->getName() + "-" + elemName);
-            }
-        }
-        else
-            options_page->objectField3->addItem(field->getName());
+            widget->addItem(field->getName());
     }
 }
 

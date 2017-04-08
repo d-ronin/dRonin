@@ -64,7 +64,7 @@ bool RfmBindWizardPlugin::initialize(const QStringList & args, QString *errMsg)
     ac->appendGroup("Bind Wizard");
     ac->addAction(cmd, "Bind Wizard");
 
-    connect(cmd->action(), SIGNAL(triggered(bool)), this, SLOT(showBindWizard()));
+    connect(cmd->action(), &QAction::triggered, this, &RfmBindWizardPlugin::showBindWizard);
     return true;
 }
 
@@ -79,7 +79,7 @@ void RfmBindWizardPlugin::showBindWizard()
     if (!bindWizardRunning) {
         bindWizardRunning = true;
         RfmBindWizard *m_wiz = new RfmBindWizard();
-        connect(m_wiz, SIGNAL(finished(int)), this, SLOT(bindWizardTerminated()));
+        connect(m_wiz, &QDialog::finished, this, &RfmBindWizardPlugin::bindWizardTerminated);
         m_wiz->setAttribute(Qt::WA_DeleteOnClose, true);
         m_wiz->setWindowFlags(m_wiz->windowFlags() | Qt::WindowStaysOnTopHint);
         m_wiz->show();

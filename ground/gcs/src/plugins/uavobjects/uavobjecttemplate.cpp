@@ -62,8 +62,7 @@ $(FIELDSINIT)
     // Set the Category of this object type
     setCategory(CATEGORY);
 
-    connect(this, SIGNAL(objectUpdated(UAVObject*)),
-            SLOT(emitNotifications()));
+    connect(this, &$(NAME)::objectUpdated, this, &$(NAME)::emitNotifications);
 }
 
 /**
@@ -111,8 +110,7 @@ void $(NAME)::setData(const DataFields& data)
     // Get metadata
     Metadata mdata = getMetadata();
     // Update object if the access mode permits
-    if ( UAVObject::GetGcsAccess(mdata) == ACCESS_READWRITE )
-    {
+    if (UAVObject::GetGcsAccess(mdata) == ACCESS_READWRITE) {
         this->data = data;
         emit objectUpdatedAuto(this); // trigger object updated event
         emit objectUpdated(this);

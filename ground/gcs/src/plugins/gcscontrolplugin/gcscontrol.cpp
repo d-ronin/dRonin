@@ -42,7 +42,7 @@ GCSControl::GCSControl():hasControl(false)
     Q_ASSERT(firstInstance);//There should only be one instance of this class
     firstInstance = false;
     receiverActivity.setInterval(100);
-    connect(&receiverActivity,SIGNAL(timeout()),this,SLOT(receiverActivitySlot()));
+    connect(&receiverActivity, &QTimer::timeout, this, &GCSControl::receiverActivitySlot);
 }
 
 void GCSControl::extensionsInitialized()
@@ -144,7 +144,7 @@ bool GCSControl::beginGCSControl()
     manControlSettingsUAVO->setFlightModeNumber(1);
     manControlSettingsUAVO->setFlightModePosition(0,ManualControlSettings::FLIGHTMODEPOSITION_STABILIZED1);
     manControlSettingsUAVO->updated();
-    connect(manControlSettingsUAVO,SIGNAL(objectUpdated(UAVObject*)),this,SLOT(objectsUpdated(UAVObject*)));
+    connect(manControlSettingsUAVO,&UAVObject::objectUpdated,this,&GCSControl::objectsUpdated);
     hasControl = true;
     for(quint8 x = 0; x < GCSReceiver::CHANNEL_NUMELEM; ++x)
         setChannel(x,0);
@@ -159,7 +159,7 @@ bool GCSControl::endGCSControl()
 {
     if(!hasControl)
         return false;
-    disconnect(manControlSettingsUAVO,SIGNAL(objectUpdated(UAVObject*)),this,SLOT(objectsUpdated(UAVObject*)));
+    disconnect(manControlSettingsUAVO,&UAVObject::objectUpdated,this,&GCSControl::objectsUpdated);
     manControlSettingsUAVO->setData(dataBackup);
     manControlSettingsUAVO->setMetadata(metaBackup);
     manControlSettingsUAVO->updated();

@@ -67,19 +67,29 @@ UAVObjectBrowserWidget::UAVObjectBrowserWidget(QWidget *parent) : QWidget(parent
     treeView->setObjectName(QString::fromUtf8("treeView"));
     m_browser->verticalLayout->addWidget(treeView);
 
-    connect(m_browser->saveSDButton, SIGNAL(clicked()), this, SLOT(saveObject()));
-    connect(m_browser->readSDButton, SIGNAL(clicked()), this, SLOT(loadObject()));
-    connect(m_browser->eraseSDButton, SIGNAL(clicked()), this, SLOT(eraseObject()));
-    connect(m_browser->sendButton, SIGNAL(clicked()), this, SLOT(sendUpdate()));
-    connect(m_browser->requestButton, SIGNAL(clicked()), this, SLOT(requestUpdate()));
-    connect(m_browser->viewSettingsButton,SIGNAL(clicked()),this,SLOT(viewSlot()));
+    connect(m_browser->saveSDButton, &QAbstractButton::clicked,
+            this, &UAVObjectBrowserWidget::saveObject);
+    connect(m_browser->readSDButton, &QAbstractButton::clicked,
+            this, &UAVObjectBrowserWidget::loadObject);
+    connect(m_browser->eraseSDButton, &QAbstractButton::clicked,
+            this, &UAVObjectBrowserWidget::eraseObject);
+    connect(m_browser->sendButton, &QAbstractButton::clicked,
+            this, &UAVObjectBrowserWidget::sendUpdate);
+    connect(m_browser->requestButton, &QAbstractButton::clicked,
+            this, &UAVObjectBrowserWidget::requestUpdate);
+    connect(m_browser->viewSettingsButton,&QAbstractButton::clicked,
+            this,&UAVObjectBrowserWidget::viewSlot);
 
 
-    connect((QTreeView*) treeView, SIGNAL(collapsed(QModelIndex)), this, SLOT(onTreeItemCollapsed(QModelIndex) ));
-    connect((QTreeView*) treeView, SIGNAL(expanded(QModelIndex)), this, SLOT(onTreeItemExpanded(QModelIndex) ));
+    connect(treeView, &QTreeView::collapsed,
+            this, &UAVObjectBrowserWidget::onTreeItemCollapsed);
+    connect(treeView, &QTreeView::expanded,
+            this, &UAVObjectBrowserWidget::onTreeItemExpanded);
 
-    connect(m_browser->le_searchField, SIGNAL(textChanged(QString)), this, SLOT(searchTextChanged(QString)));
-    connect(m_browser->bn_clearSearchField, SIGNAL(clicked()), this, SLOT(searchTextCleared()));
+    connect(m_browser->le_searchField, &QLineEdit::textChanged,
+            this, &UAVObjectBrowserWidget::searchTextChanged);
+    connect(m_browser->bn_clearSearchField, &QAbstractButton::clicked,
+            this, &UAVObjectBrowserWidget::searchTextCleared);
 
     // Set browser buttons to disabled
     enableUAVOBrowserButtons(false);
@@ -264,7 +274,7 @@ void UAVObjectBrowserWidget::setViewOptions(bool categorized, bool scientific, b
 }
 
 /**
- * @brief Initializes the model and makes the necessary SIGNAL/SLOT connections
+ * @brief Initializes the model and makes the necessary signal/slot connections
  *
  */
 void UAVObjectBrowserWidget::initialize()
@@ -285,15 +295,15 @@ void UAVObjectBrowserWidget::initialize()
     treeView->setItemDelegate(m_delegate);
 
     // Connect signals
-    connect(treeView->selectionModel(), SIGNAL(currentChanged(QModelIndex,QModelIndex)), this, SLOT(toggleUAVOButtons(QModelIndex,QModelIndex)));
+    connect(treeView->selectionModel(), &QItemSelectionModel::currentChanged, this, &UAVObjectBrowserWidget::toggleUAVOButtons);
 
     showMetaData(m_viewoptions->cbMetaData->isChecked());
     refreshHiddenObjects();
-    connect(m_viewoptions->cbScientific, SIGNAL(toggled(bool)), this, SLOT(viewOptionsChangedSlot()));
-    connect(m_viewoptions->cbCategorized, SIGNAL(toggled(bool)), this, SLOT(viewOptionsChangedSlot()));
-    connect(m_viewoptions->cbHideNotPresent,SIGNAL(toggled(bool)),this,SLOT(showNotPresent(bool)));
-    connect(m_viewoptions->cbMetaData, SIGNAL(toggled(bool)), this, SLOT(showMetaData(bool)));
-    connect(m_model,SIGNAL(presentOnHardwareChanged()),this, SLOT(doRefreshHiddenObjects()), (Qt::ConnectionType) (Qt::UniqueConnection | Qt::QueuedConnection));
+    connect(m_viewoptions->cbScientific, &QAbstractButton::toggled, this, &UAVObjectBrowserWidget::viewOptionsChangedSlot);
+    connect(m_viewoptions->cbCategorized, &QAbstractButton::toggled, this, &UAVObjectBrowserWidget::viewOptionsChangedSlot);
+    connect(m_viewoptions->cbHideNotPresent,&QAbstractButton::toggled,this,&UAVObjectBrowserWidget::showNotPresent);
+    connect(m_viewoptions->cbMetaData, &QAbstractButton::toggled, this, &UAVObjectBrowserWidget::showMetaData);
+    connect(m_model,&UAVObjectTreeModel::presentOnHardwareChanged,this, &UAVObjectBrowserWidget::doRefreshHiddenObjects, (Qt::ConnectionType) (Qt::UniqueConnection | Qt::QueuedConnection));
 }
 
 /**
@@ -330,7 +340,7 @@ void UAVObjectBrowserWidget::showMetaData(bool show)
 }
 
 /**
- * @brief fires the viewOptionsChanged SIGNAL with the current values.
+ * @brief fires the viewOptionsChanged signal with the current values.
  */
 void UAVObjectBrowserWidget::refreshViewOptions()
 {
@@ -579,13 +589,13 @@ void UAVObjectBrowserWidget::viewOptionsChangedSlot()
     m_model->initializeModel(m_viewoptions->cbCategorized->isChecked(), m_viewoptions->cbScientific->isChecked());
 
     // Reset proxy model
-    disconnect(treeView->selectionModel(), SIGNAL(currentChanged(QModelIndex,QModelIndex)), this, SLOT(toggleUAVOButtons(QModelIndex,QModelIndex)));
+    disconnect(treeView->selectionModel(), &QItemSelectionModel::currentChanged, this, &UAVObjectBrowserWidget::toggleUAVOButtons);
     delete proxyModel;
     proxyModel = new TreeSortFilterProxyModel(this);
     proxyModel->setSourceModel(m_model);
     treeView->setModel(proxyModel);
     searchTextChanged(m_browser->le_searchField->text());
-    connect(treeView->selectionModel(), SIGNAL(currentChanged(QModelIndex,QModelIndex)), this, SLOT(toggleUAVOButtons(QModelIndex,QModelIndex)));
+    connect(treeView->selectionModel(), &QItemSelectionModel::currentChanged, this, &UAVObjectBrowserWidget::toggleUAVOButtons);
 
     showMetaData(m_viewoptions->cbMetaData->isChecked());
     refreshHiddenObjects();
@@ -655,7 +665,7 @@ UAVOBrowserTreeView::UAVOBrowserTreeView(unsigned int updateTimerPeriod) : QTree
     m_updateViewTimer.start(updateTimerPeriod);
 
     // Connect the timer
-    connect(&m_updateViewTimer, SIGNAL(timeout()), this, SLOT(onTimeout_updateView()));
+    connect(&m_updateViewTimer, &QTimer::timeout, this, &UAVOBrowserTreeView::onTimeout_updateView);
 }
 
 void UAVOBrowserTreeView::updateTimerPeriod(unsigned int val)
@@ -677,7 +687,7 @@ void UAVOBrowserTreeView::updateTimerPeriod(unsigned int val)
 
 
 /**
- * @brief UAVOBrowserTreeView::onTimeout_updateView On timeout, emits dataChanged() SIGNAL. Origingally,
+ * @brief UAVOBrowserTreeView::onTimeout_updateView On timeout, emits dataChanged() signal. Origingally,
  * this was intended to only function on the the data tree indices that had changed since last timeout,
  * but QTreeView does not respect the limits in dataChanged, instead redrawing the entire tree at each
  * update.

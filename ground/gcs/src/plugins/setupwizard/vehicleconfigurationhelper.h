@@ -122,8 +122,8 @@ private:
     void setupOctoCopter();
 
 private slots:
-    void uAVOTransactionCompleted(UAVObject *object, bool success);
-    void uAVOTransactionCompleted(int oid, bool success);
+    void uavoTransactionCompleted(UAVObject *object, bool success);
+    void uavoTransactionCompleted(int oid, bool success);
     void saveChangesTimeout();
 };
 

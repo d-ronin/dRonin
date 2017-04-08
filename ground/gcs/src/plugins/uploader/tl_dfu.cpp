@@ -92,7 +92,7 @@ bool DFUObject::StartUpload(qint32 const & numberOfBytes, dfu_partition_label co
 
     int result = SendData(message);
     QEventLoop m_eventloop;
-    QTimer::singleShot(500,&m_eventloop, SLOT(quit()));
+    QTimer::singleShot(500,&m_eventloop, &QEventLoop::quit);
     m_eventloop.exec();
     TL_DFU_QXTLOG_DEBUG(QString("%0 bytes sent").arg(result));
     if(result > 0)
@@ -458,12 +458,12 @@ retry:
     // a new one.
     CloseBootloaderComs();
 
-    QTimer::singleShot(200,&m_eventloop, SLOT(quit()));
+    QTimer::singleShot(200,&m_eventloop, &QEventLoop::quit);
     m_eventloop.exec();
     hid_init();
     m_hidHandle = hid_open_path(port.path.toLatin1());
     if (m_hidHandle) {
-        QTimer::singleShot(200,&m_eventloop, SLOT(quit()));
+        QTimer::singleShot(200,&m_eventloop, &QEventLoop::quit);
         m_eventloop.exec();
         AbortOperation();
         if(!EnterDFU()) {

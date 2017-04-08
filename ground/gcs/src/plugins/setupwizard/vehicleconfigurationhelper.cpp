@@ -498,9 +498,12 @@ bool VehicleConfigurationHelper::saveChangesToController(bool save)
     QTimer innerTimeoutTimer;
     innerTimeoutTimer.setSingleShot(true);
 
-    connect(utilMngr, SIGNAL(saveCompleted(int, bool)), this, SLOT(uAVOTransactionCompleted(int, bool)));
-    connect(&innerTimeoutTimer, SIGNAL(timeout()), &m_eventLoop, SLOT(quit()));
-    connect(&outerTimeoutTimer, SIGNAL(timeout()), this, SLOT(saveChangesTimeout()));
+    connect(utilMngr, &UAVObjectUtilManager::saveCompleted,
+            this, QOverload<int, bool>::of(&VehicleConfigurationHelper::uavoTransactionCompleted));
+    connect(&innerTimeoutTimer, &QTimer::timeout,
+            &m_eventLoop, &QEventLoop::quit);
+    connect(&outerTimeoutTimer, &QTimer::timeout,
+            this, &VehicleConfigurationHelper::saveChangesTimeout);
 
     outerTimeoutTimer.start(OUTER_TIMEOUT);
     for (int i = 0; i < m_modifiedObjects.count(); i++) {
@@ -513,7 +516,9 @@ bool VehicleConfigurationHelper::saveChangesToController(bool save)
 
             m_currentTransactionObjectID = obj->getObjID();
 
-            connect(obj, SIGNAL(transactionCompleted(UAVObject *, bool)), this, SLOT(uAVOTransactionCompleted(UAVObject *, bool)));
+            connect(obj, QOverload<UAVObject *, bool>::of(&UAVObject::transactionCompleted),
+                    this, QOverload<UAVObject *, bool>::of(
+                        &VehicleConfigurationHelper::uavoTransactionCompleted));
             while (!m_transactionOK && !m_transactionTimeout) {
                 // Allow the transaction to take some time
                 innerTimeoutTimer.start(INNER_TIMEOUT);
@@ -525,7 +530,9 @@ bool VehicleConfigurationHelper::saveChangesToController(bool save)
                 }
                 innerTimeoutTimer.stop();
             }
-            disconnect(obj, SIGNAL(transactionCompleted(UAVObject *, bool)), this, SLOT(uAVOTransactionCompleted(UAVObject *, bool)));
+            disconnect(obj, QOverload<UAVObject *, bool>::of(&UAVObject::transactionCompleted),
+                       this, QOverload<UAVObject *, bool>::of(
+                           &VehicleConfigurationHelper::uavoTransactionCompleted));
             if (m_transactionOK) {
                 qDebug() << "Object " << obj->getName() << " was successfully updated.";
                 if (save) {
@@ -562,16 +569,19 @@ bool VehicleConfigurationHelper::saveChangesToController(bool save)
     }
 
     outerTimeoutTimer.stop();
-    disconnect(&outerTimeoutTimer, SIGNAL(timeout()), this, SLOT(saveChangesTimeout()));
-    disconnect(&innerTimeoutTimer, SIGNAL(timeout()), &m_eventLoop, SLOT(quit()));
-    disconnect(utilMngr, SIGNAL(saveCompleted(int, bool)), this, SLOT(uAVOTransactionCompleted(int, bool)));
+    disconnect(&outerTimeoutTimer, &QTimer::timeout,
+               this, &VehicleConfigurationHelper::saveChangesTimeout);
+    disconnect(&innerTimeoutTimer, &QTimer::timeout,
+               &m_eventLoop, &QEventLoop::quit);
+    disconnect(utilMngr, &UAVObjectUtilManager::saveCompleted,
+               this, QOverload<int, bool>::of(&VehicleConfigurationHelper::uavoTransactionCompleted));
 
     qDebug() << "Finished saving modified objects to controller. Success = " << m_transactionOK;
 
     return m_transactionOK;
 }
 
-void VehicleConfigurationHelper::uAVOTransactionCompleted(int oid, bool success)
+void VehicleConfigurationHelper::uavoTransactionCompleted(int oid, bool success)
 {
     if (oid == m_currentTransactionObjectID) {
         m_transactionOK = success;
@@ -579,10 +589,10 @@ void VehicleConfigurationHelper::uAVOTransactionCompleted(int oid, bool success)
     }
 }
 
-void VehicleConfigurationHelper::uAVOTransactionCompleted(UAVObject *object, bool success)
+void VehicleConfigurationHelper::uavoTransactionCompleted(UAVObject *object, bool success)
 {
     if (object) {
-        uAVOTransactionCompleted(object->getObjID(), success);
+        uavoTransactionCompleted(object->getObjID(), success);
     }
 }
 

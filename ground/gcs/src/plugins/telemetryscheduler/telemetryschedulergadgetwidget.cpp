@@ -83,22 +83,33 @@ TelemetrySchedulerGadgetWidget::TelemetrySchedulerGadgetWidget(QWidget *parent) 
     m_telemetryeditor->gridLayout->removeWidget(m_telemetryeditor->tableWidgetDummy);
     m_telemetryeditor->tableWidgetDummy->setVisible(false);
     m_telemetryeditor->gridLayout->addWidget(telemetryScheduleView, row, col, rowSpan, colSpan);
-    connect(m_telemetryeditor->hideNotPresent, SIGNAL(clicked(bool)), this, SLOT(onHideNotPresent(bool)));
+    connect(m_telemetryeditor->hideNotPresent, &QAbstractButton::clicked,
+            this, &TelemetrySchedulerGadgetWidget::onHideNotPresent);
     // Sets the fields in the table to spinboxes
     SpinBoxDelegate *delegate = new SpinBoxDelegate();
     telemetryScheduleView->setItemDelegate(delegate);
 
     // Connect the before setting any signals
-    connect(m_telemetryeditor->bnSaveTelemetryToFile, SIGNAL(clicked()), this, SLOT(saveTelemetryToFile()));
-    connect(m_telemetryeditor->bnLoadTelemetryFromFile, SIGNAL(clicked()), this, SLOT(loadTelemetryFromFile()));
-    connect(m_telemetryeditor->bnApplySchedule, SIGNAL(clicked()), this, SLOT(applySchedule()));
-    connect(m_telemetryeditor->bnSaveSchedule, SIGNAL(clicked()), this, SLOT(saveSchedule()));
-    connect(m_telemetryeditor->bnAddTelemetryColumn, SIGNAL(clicked()), this, SLOT(addTelemetryColumn()));
-    connect(m_telemetryeditor->bnRemoveTelemetryColumn, SIGNAL(clicked()), this, SLOT(removeTelemetryColumn()));
-    connect(schedulerModel, SIGNAL(itemChanged(QStandardItem *)), this, SLOT(dataModel_itemChanged(QStandardItem *)));
-    connect(telemetryScheduleView->horizontalHeader(), SIGNAL(sectionDoubleClicked(int)), this, SLOT(changeHorizontalHeader(int)));
-    connect(telemetryScheduleView->verticalHeader(), SIGNAL(sectionDoubleClicked(int)), this, SLOT(changeVerticalHeader(int)));
-    connect(telemetryScheduleView, SIGNAL(customContextMenuRequested(QPoint)), this, SLOT(customMenuRequested(QPoint)));
+    connect(m_telemetryeditor->bnSaveTelemetryToFile, &QAbstractButton::clicked,
+            this, &TelemetrySchedulerGadgetWidget::saveTelemetryToFile);
+    connect(m_telemetryeditor->bnLoadTelemetryFromFile, &QAbstractButton::clicked,
+            this, &TelemetrySchedulerGadgetWidget::loadTelemetryFromFile);
+    connect(m_telemetryeditor->bnApplySchedule, &QAbstractButton::clicked,
+            this, &TelemetrySchedulerGadgetWidget::applySchedule);
+    connect(m_telemetryeditor->bnSaveSchedule, &QAbstractButton::clicked,
+            this, &TelemetrySchedulerGadgetWidget::saveSchedule);
+    connect(m_telemetryeditor->bnAddTelemetryColumn, &QAbstractButton::clicked,
+            this, &TelemetrySchedulerGadgetWidget::addTelemetryColumn);
+    connect(m_telemetryeditor->bnRemoveTelemetryColumn, &QAbstractButton::clicked,
+            this, &TelemetrySchedulerGadgetWidget::removeTelemetryColumn);
+    connect(schedulerModel, &SchedulerModel::itemChanged,
+            this, QOverload<QStandardItem *>::of(&TelemetrySchedulerGadgetWidget::dataModel_itemChanged));
+    connect(telemetryScheduleView->horizontalHeader(), &QHeaderView::sectionDoubleClicked,
+            this, &TelemetrySchedulerGadgetWidget::changeHorizontalHeader);
+    connect(telemetryScheduleView->verticalHeader(), &QHeaderView::sectionDoubleClicked,
+            this, &TelemetrySchedulerGadgetWidget::changeVerticalHeader);
+    connect(telemetryScheduleView, &QWidget::customContextMenuRequested,
+            this, &TelemetrySchedulerGadgetWidget::customMenuRequested);
     telemetryScheduleView->setContextMenuPolicy(Qt::CustomContextMenu);
 
     // Generate the list of UAVOs on left side
@@ -110,7 +121,10 @@ TelemetrySchedulerGadgetWidget::TelemetrySchedulerGadgetWidget(QWidget *parent) 
     foreach (QVector<UAVDataObject*> list, objList) {
             if(!list.first()->isSettings()) {
                 strList.append(list.first()->getName());
-                connect(list.first(), SIGNAL(presentOnHardwareChanged(UAVDataObject*)), this, SLOT(uavoPresentOnHardwareChanged(UAVDataObject*)), Qt::UniqueConnection);
+                connect(qobject_cast<UAVDataObject *>(list.first()),
+                        QOverload<UAVDataObject *>::of(&UAVDataObject::presentOnHardwareChanged),
+                        this, &TelemetrySchedulerGadgetWidget::uavoPresentOnHardwareChanged,
+                        Qt::UniqueConnection);
             }
     }
     strList.sort(Qt::CaseInsensitive);
@@ -162,7 +176,7 @@ TelemetrySchedulerGadgetWidget::TelemetrySchedulerGadgetWidget(QWidget *parent) 
         UAVDataObject *dobj = dynamic_cast<UAVDataObject*>(obj);
         Q_ASSERT(dobj);
         UAVMetaObject *mobj = dobj->getMetaObject();
-        connect(mobj, SIGNAL(objectUpdated(UAVObject*)), this, SLOT(updateCurrentColumn(UAVObject*)));
+        connect(mobj, &UAVObject::objectUpdated, this, &TelemetrySchedulerGadgetWidget::updateCurrentColumn);
 
         // Updates the "Current" column with the live value
         updateCurrentColumn(mobj);
@@ -416,12 +430,12 @@ QList<UAVMetaObject*> TelemetrySchedulerGadgetWidget::applySchedule()
     // Set new metadata
     if(sender() == m_telemetryeditor->bnApplySchedule)
     {
-        connect(getObjectUtilManager(), SIGNAL(completedMetadataWrite(bool)), this, SLOT(onCompletedMetadataWrite(bool)));
+        connect(getObjectUtilManager(), &UAVObjectUtilManager::completedMetadataWrite, this, &TelemetrySchedulerGadgetWidget::onCompletedMetadataWrite);
         m_telemetryeditor->bnApplySchedule->setIcon(QIcon(":/uploader/images/system-run.svg"));
     }
     else
     {
-        connect(getObjectUtilManager(), SIGNAL(completedMetadataWrite(bool)), this, SLOT(onSavedSchedule(bool)));
+        connect(getObjectUtilManager(), &UAVObjectUtilManager::completedMetadataWrite, this, &TelemetrySchedulerGadgetWidget::onSavedSchedule);
         m_telemetryeditor->bnSaveSchedule->setIcon(QIcon(":/uploader/images/system-run.svg"));
     }
     m_telemetryeditor->bnApplySchedule->setEnabled(false);
@@ -441,7 +455,7 @@ void TelemetrySchedulerGadgetWidget::saveSchedule()
 
 void TelemetrySchedulerGadgetWidget::onSavedSchedule(bool value)
 {
-    disconnect(getObjectUtilManager(), SIGNAL(completedMetadataWrite(bool)), this, SLOT(onSavedSchedule(bool)));
+    disconnect(getObjectUtilManager(), &UAVObjectUtilManager::completedMetadataWrite, this, &TelemetrySchedulerGadgetWidget::onSavedSchedule);
     if(metaObjectsToSave.isEmpty())
     {
         m_telemetryeditor->bnSaveSchedule->setIcon(QIcon(":/uploader/images/dialog-apply.svg"));
@@ -452,7 +466,7 @@ void TelemetrySchedulerGadgetWidget::onSavedSchedule(bool value)
         m_telemetryeditor->bnSaveSchedule->setIcon(QIcon(":/uploader/images/process-stop.svg"));
         return;
     }
-    connect(getObjectUtilManager(), SIGNAL(saveCompleted(int,bool)), this, SLOT(onCompletedMetadataSave(int, bool)));
+    connect(getObjectUtilManager(), &UAVObjectUtilManager::saveCompleted, this, &TelemetrySchedulerGadgetWidget::onCompletedMetadataSave);
     onCompletedMetadataSave(-1,true);
     foreach (UAVMetaObject* meta, metaObjectsToSave)
     {
@@ -468,7 +482,7 @@ void TelemetrySchedulerGadgetWidget::onCompletedMetadataWrite(bool value)
         m_telemetryeditor->bnApplySchedule->setIcon(QIcon(":/uploader/images/process-stop.svg"));
     m_telemetryeditor->bnApplySchedule->setEnabled(true);
     m_telemetryeditor->bnSaveSchedule->setEnabled(true);
-    disconnect(getObjectUtilManager(), SIGNAL(completedMetadataWrite(bool)), this, SLOT(onCompletedMetadataWrite(bool)));
+    disconnect(getObjectUtilManager(), &UAVObjectUtilManager::completedMetadataWrite, this, &TelemetrySchedulerGadgetWidget::onCompletedMetadataWrite);
 }
 
 void TelemetrySchedulerGadgetWidget::onCompletedMetadataSave(int id, bool result)
@@ -499,7 +513,7 @@ void TelemetrySchedulerGadgetWidget::onCompletedMetadataSave(int id, bool result
             m_telemetryeditor->bnSaveSchedule->setIcon(QIcon(":/uploader/images/process-stop.svg"));
         m_telemetryeditor->bnApplySchedule->setEnabled(true);
         m_telemetryeditor->bnSaveSchedule->setEnabled(true);
-        disconnect(getObjectUtilManager(), SIGNAL(saveCompleted(int,bool)), this, SLOT(onCompletedMetadataSave(int, bool)));
+        disconnect(getObjectUtilManager(), &UAVObjectUtilManager::saveCompleted, this, &TelemetrySchedulerGadgetWidget::onCompletedMetadataSave);
     }
 }
 
@@ -1054,11 +1068,11 @@ QFrozenTableViewWithCopyPaste::QFrozenTableViewWithCopyPaste(QAbstractItemModel 
     init();
 
     //connect the headers and scrollbars of both tableviews together
-    connect(horizontalHeader(),SIGNAL(sectionResized(int,int,int)), this, SLOT(updateSectionWidth(int,int,int)));
-    connect(verticalHeader(),SIGNAL(sectionResized(int,int,int)), this, SLOT(updateSectionHeight(int,int,int)));
+    connect(horizontalHeader(),&QHeaderView::sectionResized, this, &QFrozenTableViewWithCopyPaste::updateSectionWidth);
+    connect(verticalHeader(),&QHeaderView::sectionResized, this, &QFrozenTableViewWithCopyPaste::updateSectionHeight);
 
-    connect(frozenTableView->horizontalScrollBar(), SIGNAL(valueChanged(int)), horizontalScrollBar(), SLOT(setValue(int)));
-    connect(horizontalScrollBar(), SIGNAL(valueChanged(int)), frozenTableView->horizontalScrollBar(), SLOT(setValue(int)));
+    connect(frozenTableView->horizontalScrollBar(), &QAbstractSlider::valueChanged, horizontalScrollBar(), &QAbstractSlider::setValue);
+    connect(horizontalScrollBar(), &QAbstractSlider::valueChanged, frozenTableView->horizontalScrollBar(), &QAbstractSlider::setValue);
 }
 
 QFrozenTableViewWithCopyPaste::~QFrozenTableViewWithCopyPaste()

@@ -58,7 +58,6 @@ BrainConfiguration::BrainConfiguration(QWidget *parent) :
     // using objrelation dynamic property
     autoLoadWidgets();
 
-    connect(ui->help,SIGNAL(clicked()),this,SLOT(openHelp()));
     //enableControls(false);
     enableControls(true);
     populateWidgets();

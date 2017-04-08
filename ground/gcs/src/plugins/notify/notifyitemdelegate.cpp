@@ -55,12 +55,16 @@ QWidget *NotifyItemDelegate::createEditor(QWidget* parent, const QStyleOptionVie
     } else {
         if (eExpireTimer == index.column()) {
             QSpinBox* editor = new QSpinBox(parent);
-            connect(editor, SIGNAL(editingFinished()), this, SLOT(commitAndCloseEditor()));
+            connect(editor, &QAbstractSpinBox::editingFinished,
+                    this, &NotifyItemDelegate::commitAndCloseEditor);
             return editor;
         } else {
             if (eTurnOn == index.column()) {
-                QCheckBox* editor = new QCheckBox(parent);
-                connect(editor, SIGNAL(editingFinished()), this, SLOT(commitAndCloseEditor()));
+                QCheckBox *editor = new QCheckBox(parent);
+                /**
+                 * @todo Signal does not exist... this config page needs MAJOR help in general :/
+                 */
+                //connect(editor, SIGNAL(editingFinished()), this, SLOT(commitAndCloseEditor()));
                 return editor;
             }
         }

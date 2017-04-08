@@ -58,7 +58,7 @@ private:
       update();
     }
 public slots:
-    void showMessage(const QString &message, int alignment = Qt::AlignCenter | Qt::AlignBottom, const QColor & color = Qt::black );
+    void showMessage(const QString &message);
     void close();
 protected:
     void drawContents(QPainter *painter);

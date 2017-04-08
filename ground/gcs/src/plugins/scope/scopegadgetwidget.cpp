@@ -78,17 +78,17 @@ ScopeGadgetWidget::ScopeGadgetWidget(QWidget *parent) : QwtPlot(parent),
     //Set up the timer that replots data. Only set up one timer for entire class.
     if (replotTimer == NULL)
         replotTimer = new QTimer();
-    connect(replotTimer, SIGNAL(timeout()), this, SLOT(replotNewData()));
+    connect(replotTimer, &QTimer::timeout, this, &ScopeGadgetWidget::replotNewData);
 
     // Listen to telemetry connection/disconnection events, no point in
     // running the scopes if we are not connected and not replaying logs.
     // Also listen to disconnect actions from the user
     Core::ConnectionManager *cm = Core::ICore::instance()->connectionManager();
-    connect(cm, SIGNAL(deviceAboutToDisconnect()), this, SLOT(stopPlotting()));
-    connect(cm, SIGNAL(deviceConnected(QIODevice*)), this, SLOT(startPlotting()));
+    connect(cm, &Core::ConnectionManager::deviceAboutToDisconnect, this, &ScopeGadgetWidget::stopPlotting);
+    connect(cm, &Core::ConnectionManager::deviceConnected, this, &ScopeGadgetWidget::startPlotting);
 
     setContextMenuPolicy(Qt::CustomContextMenu);
-    connect(this, SIGNAL(customContextMenuRequested(const QPoint &)), this, SLOT(popUpMenu(const QPoint &)));
+    connect(this, &QWidget::customContextMenuRequested, this, &ScopeGadgetWidget::popUpMenu);
 }
 
 /**
@@ -102,7 +102,7 @@ ScopeGadgetWidget::~ScopeGadgetWidget()
     foreach (QString uavObjName, m_connectedUAVObjects)
     {
         UAVDataObject *obj = dynamic_cast<UAVDataObject*>(objManager->getObject(uavObjName));
-        disconnect(obj, SIGNAL(objectUpdated(UAVObject*)), this, SLOT(uavObjectReceived(UAVObject*)));
+        disconnect(obj, &UAVObject::objectUpdated, this, &ScopeGadgetWidget::uavObjectReceived);
     }
 
     // Clear the plot
@@ -119,16 +119,16 @@ void ScopeGadgetWidget::popUpMenu(const QPoint &mousePosition)
     QAction *action = menu.addAction(tr("Clear"));
 
     // Add clear plot item to menu
-    connect(action, SIGNAL(triggered(bool)), this, SLOT(clearPlot()));
+    connect(action, &QAction::triggered, this, &ScopeGadgetWidget::clearPlot);
     action = menu.addAction(tr("Copy to Clipboard"));
 
     // Add copy to clipboard item to menu
-    connect(action, SIGNAL(triggered(bool)), this, SLOT(copyToClipboardAsImage()));
+    connect(action, &QAction::triggered, this, &ScopeGadgetWidget::copyToClipboardAsImage);
     menu.addSeparator();
 
     // Add options dialog to clipboard
     action = menu.addAction(tr("Options..."));
-    connect(action, SIGNAL(triggered(bool)), this, SLOT(showOptionDialog()));
+    connect(action, &QAction::triggered, this, &ScopeGadgetWidget::showOptionDialog);
 
     // Show the menu
     menu.exec(QCursor::pos());
@@ -293,8 +293,6 @@ void ScopeGadgetWidget::deleteLegend()
     if (!legend())
         return;
 
-    disconnect(this, SIGNAL(legendChecked(QwtPlotItem *, bool)), this, 0);
-
     delete m_legend;
     m_legend = NULL;
     insertLegend(NULL, QwtPlot::TopLegend);
@@ -333,7 +331,7 @@ void ScopeGadgetWidget::addLegend()
             ((QwtLegendLabel *)w)->setChecked(!on);
     }
 
-    connect(m_legend, SIGNAL(checked(const QVariant &, bool, int)), this, SLOT(showCurve(QVariant,bool,int)));
+    connect(m_legend, &QwtLegend::checked, this, &ScopeGadgetWidget::showCurve);
 }
 
 
@@ -458,7 +456,7 @@ void ScopeGadgetWidget::connectUAVO(UAVDataObject* obj){
     //Link to the new signal data only if this UAVObject has not been connected yet
     if (!m_connectedUAVObjects.contains(obj->getName())) {
         m_connectedUAVObjects.append(obj->getName());
-        connect(obj, SIGNAL(objectUpdated(UAVObject*)), this, SLOT(uavObjectReceived(UAVObject*)));
+        connect(obj, &UAVObject::objectUpdated, this, &ScopeGadgetWidget::uavObjectReceived);
     }
 
 }

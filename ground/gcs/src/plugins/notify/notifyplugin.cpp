@@ -73,7 +73,7 @@ void SoundNotifyPlugin::extensionsInitialized()
     Core::ICore::instance()->readSettings(this);
 
     ExtensionSystem::PluginManager* pm = ExtensionSystem::PluginManager::instance();
-    connect(pm, SIGNAL(objectAdded(QObject*)), this, SLOT(onTelemetryManagerAdded(QObject*)));
+    connect(pm, &ExtensionSystem::PluginManager::objectAdded, this, &SoundNotifyPlugin::onTelemetryManagerAdded);
     _toRemoveNotifications.clear();
     connectNotifications();
 } 
@@ -127,7 +127,7 @@ void SoundNotifyPlugin::onTelemetryManagerAdded(QObject* obj)
 {
     telMngr = qobject_cast<TelemetryManager *>(obj);
     if (telMngr)
-        connect(telMngr, SIGNAL(disconnected()), this, SLOT(onAutopilotDisconnect()));
+        connect(telMngr, &TelemetryManager::disconnected, this, &SoundNotifyPlugin::onAutopilotDisconnect);
 }
 
 void SoundNotifyPlugin::shutdown()
@@ -149,9 +149,9 @@ void SoundNotifyPlugin::resetNotification(void)
     //first, reject empty args and unknown fields.
     foreach(NotificationItem* ntf, _notificationList) {
         ntf->disposeTimer();
-        disconnect(ntf->getTimer(), SIGNAL(timeout()), this, SLOT(on_timerRepeated_Notification()));
+        disconnect(ntf->getTimer(), &QTimer::timeout, this, &SoundNotifyPlugin::on_timerRepeated_Notification);
         ntf->disposeExpireTimer();
-        disconnect(ntf->getExpireTimer(), SIGNAL(timeout()), this, SLOT(on_timerRepeated_Notification()));
+        disconnect(ntf->getExpireTimer(), &QTimer::timeout, this, &SoundNotifyPlugin::on_timerRepeated_Notification);
     }
 }
 
@@ -174,7 +174,7 @@ void SoundNotifyPlugin::connectNotifications()
 {
     foreach(UAVDataObject* obj,lstNotifiedUAVObjects) {
         if (obj != NULL)
-            disconnect(obj,SIGNAL(objectUpdated(UAVObject*)),this,SLOT(on_arrived_Notification(UAVObject*)));
+            disconnect(obj,&UAVObject::objectUpdated,this,&SoundNotifyPlugin::on_arrived_Notification);
     }
     if (phonon.mo != NULL) {
         delete phonon.mo;
@@ -206,8 +206,8 @@ void SoundNotifyPlugin::connectNotifications()
             if (!lstNotifiedUAVObjects.contains(obj)) {
                 lstNotifiedUAVObjects.append(obj);
 
-                connect(obj, SIGNAL(objectUpdated(UAVObject*)),
-                        this, SLOT(on_arrived_Notification(UAVObject*)),
+                connect(obj, &UAVObject::objectUpdated,
+                        this, &SoundNotifyPlugin::on_arrived_Notification,
                         Qt::QueuedConnection);
             }
         } else {
@@ -219,8 +219,8 @@ void SoundNotifyPlugin::connectNotifications()
     // set notification message to current event
     phonon.mo = new QMediaPlayer;
     phonon.firstPlay = true;
-    connect(phonon.mo, SIGNAL(stateChanged(QMediaPlayer::State)),
-        this, SLOT(stateChanged(QMediaPlayer::State)));
+    connect(phonon.mo, &QMediaPlayer::stateChanged,
+        this, &SoundNotifyPlugin::stateChanged);
 }
 
 void SoundNotifyPlugin::on_arrived_Notification(UAVObject *object)
@@ -254,8 +254,8 @@ void SoundNotifyPlugin::on_arrived_Notification(UAVObject *object)
 
         checkNotificationRule(ntf, object);
     }
-    connect(object, SIGNAL(objectUpdated(UAVObject*)),
-            this, SLOT(on_arrived_Notification(UAVObject*)), Qt::UniqueConnection);
+    connect(object, &UAVObject::objectUpdated,
+            this, &SoundNotifyPlugin::on_arrived_Notification, Qt::UniqueConnection);
 }
 
 
@@ -434,8 +434,8 @@ void SoundNotifyPlugin::checkNotificationRule(NotificationItem* notification, UA
             //QxtTimer::singleShot(notification->getExpireTimeout()*1000, this, SLOT(expirationTimerHandler(NotificationItem*)), qVariantFromValue(notification));
             _pendingNotifications.append(notification);
             notification->startExpireTimer();
-            connect(notification->getExpireTimer(), SIGNAL(timeout()),
-                    this, SLOT(on_expiredTimer_Notification()), Qt::UniqueConnection);
+            connect(notification->getExpireTimer(), &QTimer::timeout,
+                    this, &SoundNotifyPlugin::on_expiredTimer_Notification, Qt::UniqueConnection);
         }
     }
 }
@@ -485,8 +485,8 @@ bool SoundNotifyPlugin::playNotification(NotificationItem* notification)
                 }
 
                 notification->startTimer(timer_value);
-                connect(notification->getTimer(), SIGNAL(timeout()),
-                        this, SLOT(on_timerRepeated_Notification()), Qt::UniqueConnection);
+                connect(notification->getTimer(), &QTimer::timeout,
+                        this, &SoundNotifyPlugin::on_timerRepeated_Notification, Qt::UniqueConnection);
             }
         }
         phonon.mo->stop();

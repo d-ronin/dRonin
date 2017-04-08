@@ -56,8 +56,8 @@ UpgradeAssistantDialog::UpgradeAssistantDialog(QWidget *parent) :
         originalText[i] = new QString(stepLabels[i]->text());
     }
 
-    connect(ui->buttonBox, SIGNAL(rejected()), this,
-            SLOT(reject()));
+    connect(ui->buttonBox, &QDialogButtonBox::rejected, this,
+            &QDialog::reject);
 }
 
 UpgradeAssistantDialog::~UpgradeAssistantDialog()

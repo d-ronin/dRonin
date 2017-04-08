@@ -51,7 +51,7 @@ ConfigModuleWidget::ConfigModuleWidget(QWidget *parent) : ConfigTaskWidget(paren
     // override anything set in .ui file by Qt Designer
     ui->moduleTab->setCurrentIndex(0);
 
-    connect(this, SIGNAL(autoPilotConnected()), this, SLOT(recheckTabs()));
+    connect(this, &ConfigTaskWidget::autoPilotConnected, this, &ConfigModuleWidget::recheckTabs);
 
     // Populate UAVO strings
     AirspeedSettings *airspeedSettings;
@@ -67,24 +67,37 @@ ConfigModuleWidget::ConfigModuleWidget(QWidget *parent) : ConfigTaskWidget(paren
     ui->cbCameraStab->setDisabled(true);
 
     // Connect auto-cell detection logic
-    connect(ui->gbAutoCellDetection, SIGNAL(toggled(bool)), this, SLOT(autoCellDetectionToggled(bool)));
-    connect(ui->sbMaxCellVoltage, SIGNAL(valueChanged(double)), this, SLOT(maxCellVoltageChanged(double)));
+    connect(ui->gbAutoCellDetection, &QGroupBox::toggled,
+            this, &ConfigModuleWidget::autoCellDetectionToggled);
+    connect(ui->sbMaxCellVoltage, QOverload<double>::of(&QDoubleSpinBox::valueChanged),
+            this, &ConfigModuleWidget::maxCellVoltageChanged);
 
     // Connect the voltage and current checkboxes, such that the ADC pins are toggled and vice versa
-    connect(ui->gb_measureVoltage, SIGNAL(toggled(bool)), this, SLOT(toggleBatteryMonitoringPin()));
-    connect(ui->gb_measureCurrent, SIGNAL(toggled(bool)), this, SLOT(toggleBatteryMonitoringPin()));
-    connect(ui->cbVoltagePin, SIGNAL(currentIndexChanged(int)), this, SLOT(toggleBatteryMonitoringGb()));
-    connect(ui->cbCurrentPin, SIGNAL(currentIndexChanged(int)), this, SLOT(toggleBatteryMonitoringGb()));
+    connect(ui->gb_measureVoltage, &QGroupBox::toggled,
+            this, &ConfigModuleWidget::toggleBatteryMonitoringPin);
+    connect(ui->gb_measureCurrent, &QGroupBox::toggled,
+            this, &ConfigModuleWidget::toggleBatteryMonitoringPin);
+    connect(ui->cbVoltagePin, QOverload<int>::of(&QComboBox::currentIndexChanged),
+            this, &ConfigModuleWidget::toggleBatteryMonitoringGb);
+    connect(ui->cbCurrentPin, QOverload<int>::of(&QComboBox::currentIndexChanged),
+            this, &ConfigModuleWidget::toggleBatteryMonitoringGb);
 
     // connect the voltage ratio and factor boxes so they update each other when edited
-    connect(ui->sb_voltageRatio, SIGNAL(editingFinished()), this, SLOT(updateVoltageRatio()));
-    connect(ui->sb_voltageFactor, SIGNAL(editingFinished()), this, SLOT(updateVoltageFactor()));
-    connect(FlightBatterySettings::GetInstance(getObjectManager()), SIGNAL(SensorCalibrationFactor_VoltageChanged(float)), this, SLOT(updateVoltageFactorFromUavo(float)));
+    connect(ui->sb_voltageRatio, &QAbstractSpinBox::editingFinished,
+            this, &ConfigModuleWidget::updateVoltageRatio);
+    connect(ui->sb_voltageFactor, &QAbstractSpinBox::editingFinished,
+            this, &ConfigModuleWidget::updateVoltageFactor);
+    connect(FlightBatterySettings::GetInstance(getObjectManager()),
+            &FlightBatterySettings::SensorCalibrationFactor_VoltageChanged,
+            this, &ConfigModuleWidget::updateVoltageFactorFromUavo);
 
     // Connect Airspeed Settings
-    connect(airspeedSettings, SIGNAL(objectUpdated(UAVObject*)), this, SLOT(updateAirspeedGroupbox(UAVObject *)));
-    connect(ui->gb_airspeedGPS, SIGNAL(clicked(bool)), this, SLOT(enableAirspeedTypeGPS(bool)));
-    connect(ui->gb_airspeedPitot, SIGNAL(clicked(bool)), this, SLOT(enableAirspeedTypePitot(bool)));
+    connect(airspeedSettings, &UAVObject::objectUpdated,
+            this, &ConfigModuleWidget::updateAirspeedGroupbox);
+    connect(ui->gb_airspeedGPS, &QGroupBox::clicked,
+            this, &ConfigModuleWidget::enableAirspeedTypeGPS);
+    connect(ui->gb_airspeedPitot, &QGroupBox::clicked,
+            this, &ConfigModuleWidget::enableAirspeedTypePitot);
 
     setupLedTab();
 
@@ -140,28 +153,34 @@ void ConfigModuleWidget::recheckTabs()
     ui->cbUAVOFrSkySPortBridge->setChecked(false);
     setDirty(dirty);
 
-    UAVObject * obj;
+    UAVObject *obj;
 
     obj = getObjectManager()->getObject(AirspeedSettings::NAME);
-    connect(obj, SIGNAL(transactionCompleted(UAVObject*,bool)), this, SLOT(objectUpdated(UAVObject*,bool)), Qt::UniqueConnection);
+    connect(obj, QOverload<UAVObject *, bool>::of(&UAVObject::transactionCompleted),
+            this, &ConfigModuleWidget::objectUpdated, Qt::UniqueConnection);
     obj->requestUpdate();
 
     obj = getObjectManager()->getObject(FlightBatterySettings::NAME);
-    connect(obj, SIGNAL(transactionCompleted(UAVObject*,bool)), this, SLOT(objectUpdated(UAVObject*,bool)), Qt::UniqueConnection);
+    connect(obj, QOverload<UAVObject *, bool>::of(&UAVObject::transactionCompleted),
+            this, &ConfigModuleWidget::objectUpdated, Qt::UniqueConnection);
     obj->requestUpdate();
 
     obj = getObjectManager()->getObject(HoTTSettings::NAME);
-    connect(obj, SIGNAL(transactionCompleted(UAVObject*,bool)), this, SLOT(objectUpdated(UAVObject*,bool)), Qt::UniqueConnection);
+    connect(obj, QOverload<UAVObject *, bool>::of(&UAVObject::transactionCompleted),
+            this, &ConfigModuleWidget::objectUpdated, Qt::UniqueConnection);
+
     TaskInfo *taskInfo = qobject_cast<TaskInfo *>(getObjectManager()->getObject(TaskInfo::NAME));
     if (taskInfo && taskInfo->getIsPresentOnHardware()) {
-        connect(taskInfo, SIGNAL(transactionCompleted(UAVObject *, bool)), obj, SLOT(requestUpdate()), Qt::UniqueConnection);
+        connect(taskInfo, QOverload<UAVObject *, bool>::of(&UAVObject::transactionCompleted),
+                obj, &UAVObject::requestUpdate, Qt::UniqueConnection);
         taskInfo->requestUpdate();
     } else {
         obj->requestUpdate();
     }
 
     obj = getObjectManager()->getObject(LoggingSettings::NAME);
-    connect(obj, SIGNAL(transactionCompleted(UAVObject*,bool)), this, SLOT(objectUpdated(UAVObject*,bool)), Qt::UniqueConnection);
+    connect(obj, QOverload<UAVObject *, bool>::of(&UAVObject::transactionCompleted),
+            this, &ConfigModuleWidget::objectUpdated, Qt::UniqueConnection);
     obj->requestUpdate();
 
     // This requires re-evaluation so that board connection doesn't re-enable

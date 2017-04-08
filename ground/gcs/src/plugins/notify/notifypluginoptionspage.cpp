@@ -89,13 +89,13 @@ QWidget *NotifyPluginOptionsPage::createPage(QWidget * /* parent */)
     _optionsPage->SoundDirectoryPathChooser->setExpectedKind(Utils::PathChooser::Directory);
     _optionsPage->SoundDirectoryPathChooser->setPromptDialogTitle(tr("Choose sound collection directory"));
 
-    connect(_optionsPage->SoundDirectoryPathChooser, SIGNAL(changed(const QString&)),
-            this, SLOT(on_clicked_buttonSoundFolder(const QString&)));
-    connect(_optionsPage->SoundCollectionList, SIGNAL(currentIndexChanged (int)),
-            this, SLOT(on_changedIndex_soundLanguage(int)));
+    connect(_optionsPage->SoundDirectoryPathChooser, &Utils::PathChooser::changed,
+            this, &NotifyPluginOptionsPage::on_clicked_buttonSoundFolder);
+    connect(_optionsPage->SoundCollectionList, QOverload<int>::of(&QComboBox::currentIndexChanged),
+            this, &NotifyPluginOptionsPage::on_changedIndex_soundLanguage);
 
-    connect(this, SIGNAL(updateNotifications(QList<NotificationItem*>)),
-        _owner, SLOT(updateNotificationList(QList<NotificationItem*>)));
+    connect(this, &NotifyPluginOptionsPage::updateNotifications,
+        _owner, &SoundNotifyPlugin::updateNotificationList);
     //connect(this, SIGNAL(resetNotification()),owner, SLOT(resetNotification()));
 
     _privListNotifications = _owner->getListNotifications();
@@ -127,11 +127,12 @@ void NotifyPluginOptionsPage::apply()
 
 void NotifyPluginOptionsPage::finish()
 {
-    disconnect(_optionsPage->UAVObjectField, SIGNAL(currentIndexChanged(QString)),
-               this, SLOT(on_changedIndex_UAVField(QString)));
+    disconnect(_optionsPage->UAVObjectField,
+               QOverload<const QString &>::of(&QComboBox::currentIndexChanged),
+               this, &NotifyPluginOptionsPage::on_changedIndex_UAVField);
 
-    disconnect(_testSound, SIGNAL(stateChanged(QMediaPlayer::State)),
-               this, SLOT(on_changed_playButtonText(QMediaPlayer::State)));
+    disconnect(_testSound, &QMediaPlayer::stateChanged,
+               this, &NotifyPluginOptionsPage::on_changed_playButtonText);
     if (_testSound) {
         _testSound->stop();
     }
@@ -144,21 +145,21 @@ void NotifyPluginOptionsPage::initButtons()
     _optionsPage->buttonModify->setEnabled(false);
     _optionsPage->buttonDelete->setEnabled(false);
     _optionsPage->buttonPlayNotification->setEnabled(false);
-    connect(_optionsPage->buttonAdd, SIGNAL(pressed()),
-            this, SLOT(on_clicked_buttonAddNotification()));
-    connect(_optionsPage->buttonDelete, SIGNAL(pressed()),
-            this, SLOT(on_clicked_buttonDeleteNotification()));
-    connect(_optionsPage->buttonModify, SIGNAL(pressed()),
-            this, SLOT(on_clicked_buttonModifyNotification()));
-    connect(_optionsPage->buttonPlayNotification, SIGNAL(clicked()),
-            this, SLOT(on_clicked_buttonTestSoundNotification()));
+    connect(_optionsPage->buttonAdd, &QAbstractButton::pressed,
+            this, &NotifyPluginOptionsPage::on_clicked_buttonAddNotification);
+    connect(_optionsPage->buttonDelete, &QAbstractButton::pressed,
+            this, &NotifyPluginOptionsPage::on_clicked_buttonDeleteNotification);
+    connect(_optionsPage->buttonModify, &QAbstractButton::pressed,
+            this, &NotifyPluginOptionsPage::on_clicked_buttonModifyNotification);
+    connect(_optionsPage->buttonPlayNotification, &QAbstractButton::clicked,
+            this, &NotifyPluginOptionsPage::on_clicked_buttonTestSoundNotification);
 }
 
 void NotifyPluginOptionsPage::initPhononPlayer()
 {
     _testSound = new QMediaPlayer;
-    connect(_testSound,SIGNAL(stateChanged(QMediaPlayer::State)),
-        this,SLOT(on_changed_playButtonText(QMediaPlayer::State)));
+    connect(_testSound,&QMediaPlayer::stateChanged,
+        this,&NotifyPluginOptionsPage::on_changed_playButtonText);
 }
 
 void NotifyPluginOptionsPage::initRulesTable()
@@ -168,10 +169,10 @@ void NotifyPluginOptionsPage::initRulesTable()
     _notifyRulesModel.reset(new NotifyTableModel(_privListNotifications));
     _notifyRulesSelection = new QItemSelectionModel(_notifyRulesModel.data());
 
-    connect(_notifyRulesSelection, SIGNAL(selectionChanged ( const QItemSelection &, const QItemSelection & )),
-            this, SLOT(on_changedSelection_notifyTable( const QItemSelection & , const QItemSelection & )));
-    connect(this, SIGNAL(entryUpdated(int)),
-            _notifyRulesModel.data(), SLOT(entryUpdated(int)));
+    connect(_notifyRulesSelection, &QItemSelectionModel::selectionChanged,
+            this, &NotifyPluginOptionsPage::on_changedSelection_notifyTable);
+    connect(this, &NotifyPluginOptionsPage::entryUpdated,
+            _notifyRulesModel.data(), &NotifyTableModel::entryUpdated);
 
     _optionsPage->notifyRulesView->setModel(_notifyRulesModel.data());
     _optionsPage->notifyRulesView->setSelectionModel(_notifyRulesSelection);
@@ -246,8 +247,9 @@ void NotifyPluginOptionsPage::addDynamicField(UAVObjectField* objField)
         return;
     }
 
-    disconnect(_dynamicFieldCondition, SIGNAL(currentIndexChanged(QString)),
-               this, SLOT(on_changedIndex_rangeValue(QString)));
+    disconnect(_dynamicFieldCondition,
+               QOverload<const QString &>::of(&QComboBox::currentIndexChanged),
+               this, &NotifyPluginOptionsPage::on_changedIndex_rangeValue);
 
     _dynamicFieldCondition->clear();
     _dynamicFieldCondition->addItems(NotifyPluginOptionsPage::conditionValues);
@@ -260,8 +262,9 @@ void NotifyPluginOptionsPage::addDynamicField(UAVObjectField* objField)
         return;
     _dynamicFieldCondition->setCurrentIndex(_dynamicFieldCondition->findText(NotifyPluginOptionsPage::conditionValues.at(cond)));
 
-            connect(_dynamicFieldCondition, SIGNAL(currentIndexChanged(QString)),
-                    this, SLOT(on_changedIndex_rangeValue(QString)));
+            connect(_dynamicFieldCondition,
+                    QOverload<const QString &>::of(&QComboBox::currentIndexChanged),
+                    this, &NotifyPluginOptionsPage::on_changedIndex_rangeValue);
 
     addDynamicFieldWidget(objField);
 }
@@ -372,10 +375,12 @@ void NotifyPluginOptionsPage::getOptionsPageValues(NotificationItem* notificatio
 void NotifyPluginOptionsPage::updateConfigView(NotificationItem* notification)
 {
     Q_ASSERT(notification);
-    disconnect(_optionsPage->UAVObject, SIGNAL(currentIndexChanged(QString)),
-            this, SLOT(on_changedIndex_UAVObject(QString)));
-    disconnect(_optionsPage->UAVObjectField, SIGNAL(currentIndexChanged(QString)),
-            this, SLOT(on_changedIndex_UAVField(QString)));
+    disconnect(_optionsPage->UAVObject,
+               QOverload<const QString &>::of(&QComboBox::currentIndexChanged),
+               this, &NotifyPluginOptionsPage::on_changedIndex_UAVObject);
+    disconnect(_optionsPage->UAVObjectField,
+               QOverload<const QString &>::of(&QComboBox::currentIndexChanged),
+               this, &NotifyPluginOptionsPage::on_changedIndex_UAVField);
 
     QString path = notification->getSoundCollectionPath();
     if (path.isEmpty()) {
@@ -445,10 +450,12 @@ void NotifyPluginOptionsPage::updateConfigView(NotificationItem* notification)
 
     setDynamicFieldValue(notification);
 
-    connect(_optionsPage->UAVObject, SIGNAL(currentIndexChanged(QString)),
-            this, SLOT(on_changedIndex_UAVObject(QString)));
-    connect(_optionsPage->UAVObjectField, SIGNAL(currentIndexChanged(QString)),
-            this, SLOT(on_changedIndex_UAVField(QString)));
+    connect(_optionsPage->UAVObject,
+            QOverload<const QString &>::of(&QComboBox::currentIndexChanged),
+            this, &NotifyPluginOptionsPage::on_changedIndex_UAVObject);
+    connect(_optionsPage->UAVObjectField,
+            QOverload<const QString &>::of(&QComboBox::currentIndexChanged),
+            this, &NotifyPluginOptionsPage::on_changedIndex_UAVField);
 
 }
 
@@ -478,12 +485,16 @@ void NotifyPluginOptionsPage::on_changedIndex_UAVObject(QString val)
         return;
     }
     QList<UAVObjectField*> fieldList = _currUAVObject->getFields();
-    disconnect(_optionsPage->UAVObjectField, SIGNAL(currentIndexChanged(QString)), this, SLOT(on_changedIndex_UAVField(QString)));
+    disconnect(_optionsPage->UAVObjectField,
+               QOverload<const QString &>::of(&QComboBox::currentIndexChanged),
+               this, &NotifyPluginOptionsPage::on_changedIndex_UAVField);
     _optionsPage->UAVObjectField->clear();
     foreach (UAVObjectField* field, fieldList) {
             _optionsPage->UAVObjectField->addItem(field->getName());
     }
-    connect(_optionsPage->UAVObjectField, SIGNAL(currentIndexChanged(QString)), this, SLOT(on_changedIndex_UAVField(QString)));
+    connect(_optionsPage->UAVObjectField,
+            QOverload<const QString &>::of(&QComboBox::currentIndexChanged),
+            this, &NotifyPluginOptionsPage::on_changedIndex_UAVField);
     _selectedNotification->setObjectField(fieldList.at(0)->getName());
     addDynamicField(fieldList.at(0));
 }
