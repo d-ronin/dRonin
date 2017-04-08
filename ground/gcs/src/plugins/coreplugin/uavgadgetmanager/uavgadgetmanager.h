@@ -51,8 +51,8 @@ class IUAVGadget;
 
 namespace Internal {
 
-class UAVGadgetView;
-class SplitterOrView;
+    class UAVGadgetView;
+    class SplitterOrView;
 
 } // namespace Internal
 
@@ -61,8 +61,8 @@ class CORE_EXPORT UAVGadgetManager : public IMode
     Q_OBJECT
 
 public:
-
-    explicit UAVGadgetManager(ICore *core, QString name, QIcon icon, int priority, QString uniqueName, QWidget *parent);
+    explicit UAVGadgetManager(ICore *core, QString name, QIcon icon, int priority,
+                              QString uniqueName, QWidget *parent);
     virtual ~UAVGadgetManager();
 
     // IMode
@@ -80,11 +80,11 @@ public:
 
     IUAVGadget *currentGadget() const;
 
-    void saveState(QSettings*) const;
-    bool restoreState(QSettings* qSettings);
+    void saveState(QSettings *) const;
+    bool restoreState(QSettings *qSettings);
 
-    void saveSettings(QSettings* qs);
-    void readSettings(QSettings* qs);
+    void saveSettings(QSettings *qs);
+    void readSettings(QSettings *qs);
     bool toolbarsShown() { return m_showToolbars; }
 
 signals:
@@ -96,7 +96,6 @@ private slots:
     void handleContextChange(Core::IContext *context);
     void updateUavGadgetMenus();
     void modeChanged(Core::IMode *mode);
-
 
 public slots:
     void split(Qt::Orientation orientation);
@@ -125,7 +124,7 @@ private:
     int m_priority;
     QString m_uniqueName;
     QByteArray m_uniqueNameBA;
-    const char* m_uniqueModeName;
+    const char *m_uniqueModeName;
     QWidget *m_widget;
 
     friend class Core::Internal::SplitterOrView;

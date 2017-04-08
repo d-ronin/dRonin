@@ -40,27 +40,26 @@
 #include <extensionsystem/pluginmanager.h>
 #include <coreplugin/generalsettings.h>
 
-ConfigCameraStabilizationWidget::ConfigCameraStabilizationWidget(QWidget *parent) : ConfigTaskWidget(parent)
+ConfigCameraStabilizationWidget::ConfigCameraStabilizationWidget(QWidget *parent)
+    : ConfigTaskWidget(parent)
 {
     m_camerastabilization = new Ui_CameraStabilizationWidget();
     m_camerastabilization->setupUi(this);
-    
-    addApplySaveButtons(m_camerastabilization->camerastabilizationSaveRAM,m_camerastabilization->camerastabilizationSaveSD);
-    
-    ExtensionSystem::PluginManager *pm=ExtensionSystem::PluginManager::instance();
-    Core::Internal::GeneralSettings * settings=pm->getObject<Core::Internal::GeneralSettings>();
-    if(!settings->useExpertMode())
+
+    addApplySaveButtons(m_camerastabilization->camerastabilizationSaveRAM,
+                        m_camerastabilization->camerastabilizationSaveSD);
+
+    ExtensionSystem::PluginManager *pm = ExtensionSystem::PluginManager::instance();
+    Core::Internal::GeneralSettings *settings = pm->getObject<Core::Internal::GeneralSettings>();
+    if (!settings->useExpertMode())
         m_camerastabilization->camerastabilizationSaveRAM->setVisible(false);
-    
-    
 
     // These widgets don't have direct relation to UAVObjects
     // and need special processing
     QComboBox *outputs[] = {
-        m_camerastabilization->rollChannel,
-        m_camerastabilization->pitchChannel,
+        m_camerastabilization->rollChannel, m_camerastabilization->pitchChannel,
         m_camerastabilization->yawChannel,
-        
+
     };
     const int NUM_OUTPUTS = sizeof(outputs) / sizeof(outputs[0]);
 
@@ -69,7 +68,7 @@ ConfigCameraStabilizationWidget::ConfigCameraStabilizationWidget(QWidget *parent
         outputs[i]->clear();
         outputs[i]->addItem("None");
         for (quint32 j = 0; j < ActuatorCommand::CHANNEL_NUMELEM; j++)
-            outputs[i]->addItem(QString("Channel %1").arg(j+1));
+            outputs[i]->addItem(QString("Channel %1").arg(j + 1));
     }
 
     // Load UAVObjects to widget relations from UI file
@@ -101,7 +100,7 @@ ConfigCameraStabilizationWidget::ConfigCameraStabilizationWidget(QWidget *parent
 
 ConfigCameraStabilizationWidget::~ConfigCameraStabilizationWidget()
 {
-   // Do nothing
+    // Do nothing
 }
 
 /*
@@ -121,7 +120,8 @@ void ConfigCameraStabilizationWidget::refreshWidgetsValues(UAVObject *obj)
     ModuleSettings::DataFields moduleSettingsData = moduleSettings->getData();
 
     m_camerastabilization->enableCameraStabilization->setChecked(
-        moduleSettingsData.AdminState[ModuleSettings::ADMINSTATE_CAMERASTAB] == ModuleSettings::ADMINSTATE_ENABLED);
+        moduleSettingsData.AdminState[ModuleSettings::ADMINSTATE_CAMERASTAB]
+        == ModuleSettings::ADMINSTATE_ENABLED);
 
     // Load mixer outputs which are mapped to camera controls
     MixerSettings *mixerSettings = MixerSettings::GetInstance(getObjectManager());
@@ -130,24 +130,17 @@ void ConfigCameraStabilizationWidget::refreshWidgetsValues(UAVObject *obj)
     // TODO: Need to reformat object so types are an
     // array themselves.  This gets really awkward
     quint8 *mixerTypes[] = {
-        &mixerSettingsData.Mixer1Type,
-        &mixerSettingsData.Mixer2Type,
-        &mixerSettingsData.Mixer3Type,
-        &mixerSettingsData.Mixer4Type,
-        &mixerSettingsData.Mixer5Type,
-        &mixerSettingsData.Mixer6Type,
-        &mixerSettingsData.Mixer7Type,
-        &mixerSettingsData.Mixer8Type,
-        &mixerSettingsData.Mixer9Type,
-        &mixerSettingsData.Mixer10Type,
+        &mixerSettingsData.Mixer1Type, &mixerSettingsData.Mixer2Type,
+        &mixerSettingsData.Mixer3Type, &mixerSettingsData.Mixer4Type,
+        &mixerSettingsData.Mixer5Type, &mixerSettingsData.Mixer6Type,
+        &mixerSettingsData.Mixer7Type, &mixerSettingsData.Mixer8Type,
+        &mixerSettingsData.Mixer9Type, &mixerSettingsData.Mixer10Type,
     };
     const int NUM_MIXERS = sizeof(mixerTypes) / sizeof(mixerTypes[0]);
 
-    QComboBox *outputs[] = {
-        m_camerastabilization->rollChannel,
-        m_camerastabilization->pitchChannel,
-        m_camerastabilization->yawChannel
-    };
+    QComboBox *outputs[] = { m_camerastabilization->rollChannel,
+                             m_camerastabilization->pitchChannel,
+                             m_camerastabilization->yawChannel };
     const int NUM_OUTPUTS = sizeof(outputs) / sizeof(outputs[0]);
 
     for (int i = 0; i < NUM_OUTPUTS; i++) {
@@ -155,8 +148,8 @@ void ConfigCameraStabilizationWidget::refreshWidgetsValues(UAVObject *obj)
         // Then search for any mixer channels set to this
         outputs[i]->setCurrentIndex(0);
         for (int j = 0; j < NUM_MIXERS; j++)
-            if (*mixerTypes[j] == (MixerSettings::MIXER1TYPE_CAMERAROLL + i) &&
-                    outputs[i]->currentIndex() != (j + 1))
+            if (*mixerTypes[j] == (MixerSettings::MIXER1TYPE_CAMERAROLL + i)
+                && outputs[i]->currentIndex() != (j + 1))
                 outputs[i]->setCurrentIndex(j + 1);
     }
 
@@ -175,8 +168,9 @@ void ConfigCameraStabilizationWidget::updateObjectsFromWidgets()
     // Save state of the module enable checkbox first.
     // Do not use setData() member on whole object, if possible, since it triggers
     // unnessesary UAVObect update.
-    quint8 enableModule = m_camerastabilization->enableCameraStabilization->isChecked() ?
-            (ModuleSettings::ADMINSTATE_ENABLED) : (ModuleSettings::ADMINSTATE_DISABLED);
+    quint8 enableModule = m_camerastabilization->enableCameraStabilization->isChecked()
+        ? (ModuleSettings::ADMINSTATE_ENABLED)
+        : (ModuleSettings::ADMINSTATE_DISABLED);
     ModuleSettings *moduleSettings = ModuleSettings::GetInstance(getObjectManager());
     moduleSettings->setAdminState(ModuleSettings::ADMINSTATE_CAMERASTAB, enableModule);
 
@@ -188,24 +182,17 @@ void ConfigCameraStabilizationWidget::updateObjectsFromWidgets()
     // TODO: Need to reformat object so types are an
     // array themselves.  This gets really awkward
     quint8 *mixerTypes[] = {
-        &mixerSettingsData.Mixer1Type,
-        &mixerSettingsData.Mixer2Type,
-        &mixerSettingsData.Mixer3Type,
-        &mixerSettingsData.Mixer4Type,
-        &mixerSettingsData.Mixer5Type,
-        &mixerSettingsData.Mixer6Type,
-        &mixerSettingsData.Mixer7Type,
-        &mixerSettingsData.Mixer8Type,
-        &mixerSettingsData.Mixer9Type,
-        &mixerSettingsData.Mixer10Type,
+        &mixerSettingsData.Mixer1Type, &mixerSettingsData.Mixer2Type,
+        &mixerSettingsData.Mixer3Type, &mixerSettingsData.Mixer4Type,
+        &mixerSettingsData.Mixer5Type, &mixerSettingsData.Mixer6Type,
+        &mixerSettingsData.Mixer7Type, &mixerSettingsData.Mixer8Type,
+        &mixerSettingsData.Mixer9Type, &mixerSettingsData.Mixer10Type,
     };
     const int NUM_MIXERS = sizeof(mixerTypes) / sizeof(mixerTypes[0]);
 
-    QComboBox *outputs[] = {
-        m_camerastabilization->rollChannel,
-        m_camerastabilization->pitchChannel,
-        m_camerastabilization->yawChannel
-    };
+    QComboBox *outputs[] = { m_camerastabilization->rollChannel,
+                             m_camerastabilization->pitchChannel,
+                             m_camerastabilization->yawChannel };
     const int NUM_OUTPUTS = sizeof(outputs) / sizeof(outputs[0]);
 
     m_camerastabilization->message->setText("");
@@ -218,12 +205,13 @@ void ConfigCameraStabilizationWidget::updateObjectsFromWidgets()
             int mixerNum = outputs[i]->currentIndex() - 1;
 
             if ((mixerNum >= 0) && // Short circuit in case of none
-                (*mixerTypes[mixerNum] != MixerSettings::MIXER1TYPE_DISABLED) &&
-                (*mixerTypes[mixerNum] != MixerSettings::MIXER1TYPE_CAMERAROLL + i) ) {
+                (*mixerTypes[mixerNum] != MixerSettings::MIXER1TYPE_DISABLED)
+                && (*mixerTypes[mixerNum] != MixerSettings::MIXER1TYPE_CAMERAROLL + i)) {
                 // If the mixer channel already mapped to something, it should not be
                 // used for camera output, we reset it to none
                 outputs[i]->setCurrentIndex(0);
-                m_camerastabilization->message->setText("One of the channels is already assigned, reverted to none");
+                m_camerastabilization->message->setText(
+                    "One of the channels is already assigned, reverted to none");
 
                 // Loop again or we may have inconsistent widget and UAVObject
                 widgetUpdated = true;
@@ -239,7 +227,7 @@ void ConfigCameraStabilizationWidget::updateObjectsFromWidgets()
                     *mixerTypes[mixerNum] = MixerSettings::MIXER1TYPE_CAMERAROLL + i;
             }
         }
-    } while(widgetUpdated);
+    } while (widgetUpdated);
 
     // FIXME: Should not use setData() to prevent double updates.
     // It should be refactored after the reformatting of MixerSettings UAVObject.
@@ -262,16 +250,16 @@ void ConfigCameraStabilizationWidget::defaultRequestedSlot(int group)
     // But if you want, you could use the dirtyClone() function to get default
     // values of an object and then use them to set a widget state.
     //
-    //HwSettings *hwSettings = HwSettings::GetInstance(getObjectManager());
-    //HwSettings *hwSettingsDefault=(HwSettings*)hwSettings->dirtyClone();
-    //HwSettings::DataFields hwSettingsData = hwSettingsDefault->getData();
-    //m_camerastabilization->enableCameraStabilization->setChecked(
-    //    hwSettingsData.OptionalModules[HwSettings::OPTIONALMODULES_CAMERASTAB] == HwSettings::OPTIONALMODULES_ENABLED);
+    // HwSettings *hwSettings = HwSettings::GetInstance(getObjectManager());
+    // HwSettings *hwSettingsDefault=(HwSettings*)hwSettings->dirtyClone();
+    // HwSettings::DataFields hwSettingsData = hwSettingsDefault->getData();
+    // m_camerastabilization->enableCameraStabilization->setChecked(
+    //    hwSettingsData.OptionalModules[HwSettings::OPTIONALMODULES_CAMERASTAB] ==
+    //    HwSettings::OPTIONALMODULES_ENABLED);
 
     // For outputs we set them all to none, so don't use any UAVObject to get defaults
     QComboBox *outputs[] = {
-        m_camerastabilization->rollChannel,
-        m_camerastabilization->pitchChannel,
+        m_camerastabilization->rollChannel, m_camerastabilization->pitchChannel,
         m_camerastabilization->yawChannel,
     };
     const int NUM_OUTPUTS = sizeof(outputs) / sizeof(outputs[0]);

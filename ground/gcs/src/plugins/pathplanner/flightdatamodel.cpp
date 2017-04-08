@@ -35,10 +35,11 @@
 #include "../plugins/uavobjects/uavobjectmanager.h"
 #include "../plugins/uavobjects/uavobject.h"
 
-QMap<int,QString> FlightDataModel::modeNames = QMap<int, QString>();
+QMap<int, QString> FlightDataModel::modeNames = QMap<int, QString>();
 
 //! Initialize an empty flight plan
-FlightDataModel::FlightDataModel(QObject *parent) : QAbstractTableModel(parent)
+FlightDataModel::FlightDataModel(QObject *parent)
+    : QAbstractTableModel(parent)
 {
     valPaused = false;
 
@@ -56,7 +57,7 @@ FlightDataModel::FlightDataModel(QObject *parent) : QAbstractTableModel(parent)
 }
 
 //! Return the number of waypoints
-int FlightDataModel::rowCount(const QModelIndex &/*parent*/) const
+int FlightDataModel::rowCount(const QModelIndex & /*parent*/) const
 {
     return dataStorage.length();
 }
@@ -77,25 +78,23 @@ int FlightDataModel::columnCount(const QModelIndex &parent) const
  */
 QVariant FlightDataModel::data(const QModelIndex &index, int role) const
 {
-    if (role == Qt::DisplayRole || role==Qt::EditRole || role==Qt::UserRole)
-    {
+    if (role == Qt::DisplayRole || role == Qt::EditRole || role == Qt::UserRole) {
 
-        if(!index.isValid() || index.row() > dataStorage.length()-1)
+        if (!index.isValid() || index.row() > dataStorage.length() - 1)
             return QVariant::Invalid;
 
-        PathPlanData * row=dataStorage.at(index.row());
+        PathPlanData *row = dataStorage.at(index.row());
 
         // For the case of mode we want the model to normally return the string value
         // associated with that enum for display purposes.  However in the case of
         // Qt::UserRole this should fall through and return the numerical value of
         // the enum
-        if (index.column() == (int) FlightDataModel::MODE && role == Qt::DisplayRole) {
+        if (index.column() == (int)FlightDataModel::MODE && role == Qt::DisplayRole) {
             return modeNames.value(row->mode);
         }
 
         struct FlightDataModel::NED NED;
-        switch(index.column())
-        {
+        switch (index.column()) {
         case WPDESCRIPTION:
             return row->wpDescription;
         case LATPOSITION:
@@ -135,45 +134,41 @@ QVariant FlightDataModel::data(const QModelIndex &index, int role) const
  * @return
  */
 QVariant FlightDataModel::headerData(int section, Qt::Orientation orientation, int role) const
- {
-     if (role == Qt::DisplayRole)
-     {
-         if(orientation==Qt::Vertical)
-         {
-             return QString::number(section+1);
-         }
-         else if (orientation == Qt::Horizontal) {
-             switch (section)
-             {
-             case WPDESCRIPTION:
-                 return QString("Description");
-             case LATPOSITION:
-                 return QString("Latitude");
-             case LNGPOSITION:
-                 return QString("Longitude");
-             case ALTITUDE:
-                 return QString("Altitude");
-             case NED_NORTH:
-                 return QString("Relative North");
-             case NED_EAST:
-                 return QString("Relative East");
-             case NED_DOWN:
-                 return QString("Relative Down");
-             case VELOCITY:
-                 return QString("Velocity");
-             case MODE:
-                 return QString("Mode");
-             case MODE_PARAMS:
-                 return QString("Mode parameters");
-             case LOCKED:
-                 return QString("Locked");
-             default:
-                 return QVariant::Invalid;
-             }
-         }
-     }
+{
+    if (role == Qt::DisplayRole) {
+        if (orientation == Qt::Vertical) {
+            return QString::number(section + 1);
+        } else if (orientation == Qt::Horizontal) {
+            switch (section) {
+            case WPDESCRIPTION:
+                return QString("Description");
+            case LATPOSITION:
+                return QString("Latitude");
+            case LNGPOSITION:
+                return QString("Longitude");
+            case ALTITUDE:
+                return QString("Altitude");
+            case NED_NORTH:
+                return QString("Relative North");
+            case NED_EAST:
+                return QString("Relative East");
+            case NED_DOWN:
+                return QString("Relative Down");
+            case VELOCITY:
+                return QString("Velocity");
+            case MODE:
+                return QString("Mode");
+            case MODE_PARAMS:
+                return QString("Mode parameters");
+            case LOCKED:
+                return QString("Locked");
+            default:
+                return QVariant::Invalid;
+            }
+        }
+    }
 
-     return QAbstractTableModel::headerData(section, orientation, role);
+    return QAbstractTableModel::headerData(section, orientation, role);
 }
 
 /**
@@ -185,38 +180,36 @@ QVariant FlightDataModel::headerData(int section, Qt::Orientation orientation, i
  */
 bool FlightDataModel::setData(const QModelIndex &index, const QVariant &value, int role)
 {
-    if (index.isValid() && role == Qt::EditRole)
-    {
+    if (index.isValid() && role == Qt::EditRole) {
         PathPlanData *row = dataStorage.at(index.row());
 
         // Do not allow changing any values except locked when the column is locked
-        if (row->locked && index.column() != (int) FlightDataModel::LOCKED)
+        if (row->locked && index.column() != (int)FlightDataModel::LOCKED)
             return false;
 
         struct FlightDataModel::NED NED;
         QModelIndex otherIndex;
-        switch(index.column())
-        {
+        switch (index.column()) {
         case WPDESCRIPTION:
-            row->wpDescription=value.toString();
+            row->wpDescription = value.toString();
             break;
         case LATPOSITION:
-            row->latPosition=value.toDouble();
+            row->latPosition = value.toDouble();
             // Indicate this also changed the north
             otherIndex = this->index(index.row(), FlightDataModel::NED_NORTH);
-            emit dataChanged(otherIndex,otherIndex);
+            emit dataChanged(otherIndex, otherIndex);
             break;
         case LNGPOSITION:
-            row->lngPosition=value.toDouble();
+            row->lngPosition = value.toDouble();
             // Indicate this also changed the east
             otherIndex = this->index(index.row(), FlightDataModel::NED_EAST);
-            emit dataChanged(otherIndex,otherIndex);
+            emit dataChanged(otherIndex, otherIndex);
             break;
         case ALTITUDE:
-            row->altitude=value.toDouble();
+            row->altitude = value.toDouble();
             // Indicate this also changed the NED down
             otherIndex = this->index(index.row(), FlightDataModel::NED_DOWN);
-            emit dataChanged(otherIndex,otherIndex);
+            emit dataChanged(otherIndex, otherIndex);
             break;
         case NED_NORTH:
             NED = getNED(row);
@@ -224,7 +217,7 @@ bool FlightDataModel::setData(const QModelIndex &index, const QVariant &value, i
             setNED(row, NED);
             // Indicate this also changed the latitude
             otherIndex = this->index(index.row(), FlightDataModel::LATPOSITION);
-            emit dataChanged(otherIndex,otherIndex);
+            emit dataChanged(otherIndex, otherIndex);
             break;
         case NED_EAST:
             NED = getNED(index.row());
@@ -232,7 +225,7 @@ bool FlightDataModel::setData(const QModelIndex &index, const QVariant &value, i
             setNED(row, NED);
             // Indicate this also changed the longitude
             otherIndex = this->index(index.row(), FlightDataModel::LNGPOSITION);
-            emit dataChanged(otherIndex,otherIndex);
+            emit dataChanged(otherIndex, otherIndex);
             break;
         case NED_DOWN:
             NED = getNED(index.row());
@@ -240,16 +233,16 @@ bool FlightDataModel::setData(const QModelIndex &index, const QVariant &value, i
             setNED(row, NED);
             // Indicate this also changed the altitude
             otherIndex = this->index(index.row(), FlightDataModel::ALTITUDE);
-            emit dataChanged(otherIndex,otherIndex);
+            emit dataChanged(otherIndex, otherIndex);
             break;
         case VELOCITY:
-            row->velocity=value.toFloat();
+            row->velocity = value.toFloat();
             break;
         case MODE:
-            row->mode=value.toInt();
+            row->mode = value.toInt();
             break;
         case MODE_PARAMS:
-            row->mode_params=value.toFloat();
+            row->mode_params = value.toFloat();
             break;
         case LOCKED:
             row->locked = value.toBool();
@@ -260,7 +253,7 @@ bool FlightDataModel::setData(const QModelIndex &index, const QVariant &value, i
 
         fixupValidationErrors();
 
-        emit dataChanged(index,index);
+        emit dataChanged(index, index);
         return true;
     }
     return false;
@@ -270,19 +263,18 @@ bool FlightDataModel::setData(const QModelIndex &index, const QVariant &value, i
  * @brief FlightDataModel::flags Tell QT MVC which flags are supported for items
  * @return That the item is selectable, editable and enabled
  */
-Qt::ItemFlags FlightDataModel::flags(const QModelIndex & index) const
+Qt::ItemFlags FlightDataModel::flags(const QModelIndex &index) const
 {
     // Locked is always editable
-    if (index.column() == (int) FlightDataModel::LOCKED)
-        return Qt::ItemIsSelectable |  Qt::ItemIsEditable | Qt::ItemIsEnabled;
+    if (index.column() == (int)FlightDataModel::LOCKED)
+        return Qt::ItemIsSelectable | Qt::ItemIsEditable | Qt::ItemIsEnabled;
 
     // Suppress editable flag if row is locked
     PathPlanData *row = dataStorage.at(index.row());
     if (row->locked)
         return Qt::ItemIsSelectable | Qt::ItemIsEnabled;
 
-    return Qt::ItemIsSelectable |  Qt::ItemIsEditable | Qt::ItemIsEnabled;
-
+    return Qt::ItemIsSelectable | Qt::ItemIsEditable | Qt::ItemIsEnabled;
 }
 
 /**
@@ -291,34 +283,32 @@ Qt::ItemFlags FlightDataModel::flags(const QModelIndex & index) const
  * @param count How many to add
  * @return
  */
-bool FlightDataModel::insertRows(int row, int count, const QModelIndex &/*parent*/)
+bool FlightDataModel::insertRows(int row, int count, const QModelIndex & /*parent*/)
 {
-    PathPlanData * data;
-    beginInsertRows(QModelIndex(),row,row+count-1);
-    for(int x=0; x<count;++x)
-    {
+    PathPlanData *data;
+    beginInsertRows(QModelIndex(), row, row + count - 1);
+    for (int x = 0; x < count; ++x) {
         // Initialize new internal representation
-        data=new PathPlanData;
-        data->latPosition=0;
-        data->lngPosition=0;
+        data = new PathPlanData;
+        data->latPosition = 0;
+        data->lngPosition = 0;
 
         // If there is a previous waypoint, initialize some of the fields to that value
-        if(rowCount() > 0)
-        {
-            PathPlanData * prevRow = dataStorage.at(rowCount()-1);
-            data->altitude    = prevRow->altitude;
-            data->velocity    = prevRow->velocity;
-            data->mode        = prevRow->mode;
+        if (rowCount() > 0) {
+            PathPlanData *prevRow = dataStorage.at(rowCount() - 1);
+            data->altitude = prevRow->altitude;
+            data->velocity = prevRow->velocity;
+            data->mode = prevRow->mode;
             data->mode_params = prevRow->mode_params;
-            data->locked      = prevRow->locked;
+            data->locked = prevRow->locked;
         } else {
-            data->altitude    = 0;
-            data->velocity    = 0;
-            data->mode        = Waypoint::MODE_VECTOR;
+            data->altitude = 0;
+            data->velocity = 0;
+            data->mode = Waypoint::MODE_VECTOR;
             data->mode_params = 0;
-            data->locked      = false;
+            data->locked = false;
         }
-        dataStorage.insert(row,data);
+        dataStorage.insert(row, data);
     }
 
     endInsertRows();
@@ -332,13 +322,12 @@ bool FlightDataModel::insertRows(int row, int count, const QModelIndex &/*parent
  * @param count How many to remove
  * @return True if succeeded, otherwise false
  */
-bool FlightDataModel::removeRows(int row, int count, const QModelIndex &/*parent*/)
+bool FlightDataModel::removeRows(int row, int count, const QModelIndex & /*parent*/)
 {
-    if(row<0)
+    if (row < 0)
         return false;
-    beginRemoveRows(QModelIndex(),row,row+count-1);
-    for(int x=0; x<count;++x)
-    {
+    beginRemoveRows(QModelIndex(), row, row + count - 1);
+    for (int x = 0; x < count; ++x) {
         delete dataStorage.at(row);
         dataStorage.removeAt(row);
     }
@@ -394,54 +383,53 @@ bool FlightDataModel::writeToFile(QString fileName)
     QDomElement wpts = doc.createElement("waypoints");
     root.appendChild(wpts);
 
-    foreach(PathPlanData * obj,dataStorage)
-    {
+    foreach (PathPlanData *obj, dataStorage) {
 
         double NED[3];
-        double LLA[3] = {obj->latPosition, obj->lngPosition, obj->altitude};
+        double LLA[3] = { obj->latPosition, obj->lngPosition, obj->altitude };
         Utils::CoordinateConversions().LLA2NED_HomeLLA(LLA, homeLLA, NED);
 
         QDomElement waypoint = doc.createElement("waypoint");
-        waypoint.setAttribute("number",dataStorage.indexOf(obj));
+        waypoint.setAttribute("number", dataStorage.indexOf(obj));
         wpts.appendChild(waypoint);
-        QDomElement field=doc.createElement("field");
-        field.setAttribute("value",obj->wpDescription);
-        field.setAttribute("name","description");
+        QDomElement field = doc.createElement("field");
+        field.setAttribute("value", obj->wpDescription);
+        field.setAttribute("name", "description");
         waypoint.appendChild(field);
 
-        field=doc.createElement("field");
-        field.setAttribute("value",NED[0]);
-        field.setAttribute("name","north");
+        field = doc.createElement("field");
+        field.setAttribute("value", NED[0]);
+        field.setAttribute("name", "north");
         waypoint.appendChild(field);
 
-        field=doc.createElement("field");
-        field.setAttribute("value",NED[1]);
-        field.setAttribute("name","east");
+        field = doc.createElement("field");
+        field.setAttribute("value", NED[1]);
+        field.setAttribute("name", "east");
         waypoint.appendChild(field);
 
-        field=doc.createElement("field");
-        field.setAttribute("value",NED[2]);
-        field.setAttribute("name","down");
+        field = doc.createElement("field");
+        field.setAttribute("value", NED[2]);
+        field.setAttribute("name", "down");
         waypoint.appendChild(field);
 
-        field=doc.createElement("field");
-        field.setAttribute("value",obj->velocity);
-        field.setAttribute("name","velocity");
+        field = doc.createElement("field");
+        field.setAttribute("value", obj->velocity);
+        field.setAttribute("name", "velocity");
         waypoint.appendChild(field);
 
-        field=doc.createElement("field");
-        field.setAttribute("value",obj->mode);
-        field.setAttribute("name","mode");
+        field = doc.createElement("field");
+        field.setAttribute("value", obj->mode);
+        field.setAttribute("name", "mode");
         waypoint.appendChild(field);
 
-        field=doc.createElement("field");
-        field.setAttribute("value",obj->mode_params);
-        field.setAttribute("name","mode_params");
+        field = doc.createElement("field");
+        field.setAttribute("value", obj->mode_params);
+        field.setAttribute("name", "mode_params");
         waypoint.appendChild(field);
 
-        field=doc.createElement("field");
-        field.setAttribute("value",obj->locked);
-        field.setAttribute("name","is_locked");
+        field = doc.createElement("field");
+        field.setAttribute("value", obj->locked);
+        field.setAttribute("name", "is_locked");
         waypoint.appendChild(field);
     }
     file.write(doc.toString().toLatin1());
@@ -449,7 +437,7 @@ bool FlightDataModel::writeToFile(QString fileName)
     return true;
 }
 
-void FlightDataModel::showErrorDialog(const char* title, const char* message)
+void FlightDataModel::showErrorDialog(const char *title, const char *message)
 {
     QMessageBox msgBox;
     msgBox.setText(tr(title));
@@ -459,7 +447,8 @@ void FlightDataModel::showErrorDialog(const char* title, const char* message)
     return;
 }
 
-void FlightDataModel::pauseValidation(bool pausing) {
+void FlightDataModel::pauseValidation(bool pausing)
+{
     valPaused = pausing;
 
     if (!pausing) {
@@ -469,13 +458,15 @@ void FlightDataModel::pauseValidation(bool pausing) {
 
 void FlightDataModel::fixupValidationErrors()
 {
-    struct FlightDataModel::NED prevNED = {0.0, 0.0, 0.0};
+    struct FlightDataModel::NED prevNED = { 0.0, 0.0, 0.0 };
 
     // Skip validation when there's a download from firmware in process.
-    if (valPaused) { return; }
+    if (valPaused) {
+        return;
+    }
 
     for (int i = 0; i < rowCount(); i++) {
-        PathPlanData * row = dataStorage.at(i);
+        PathPlanData *row = dataStorage.at(i);
 
         bool dirty = false;
 
@@ -483,22 +474,22 @@ void FlightDataModel::fixupValidationErrors()
 
         if (i == 0) {
             switch (row->mode) {
-                case Waypoint::MODE_CIRCLELEFT:
-                case Waypoint::MODE_CIRCLERIGHT:
-                    row->mode = Waypoint::MODE_VECTOR;
+            case Waypoint::MODE_CIRCLELEFT:
+            case Waypoint::MODE_CIRCLERIGHT:
+                row->mode = Waypoint::MODE_VECTOR;
 
-                    showErrorDialog("Waypoint corrected",
-                            "First waypoint may not be the endpoint of an arc");
-                    dirty = true;
+                showErrorDialog("Waypoint corrected",
+                                "First waypoint may not be the endpoint of an arc");
+                dirty = true;
 
-                    break;
-                default:
-                    break;
+                break;
+            default:
+                break;
             }
         }
 
-        double distance = sqrt(pow(thisNED.North - prevNED.North, 2) +
-                pow(thisNED.East - prevNED.East, 2));
+        double distance =
+            sqrt(pow(thisNED.North - prevNED.North, 2) + pow(thisNED.East - prevNED.East, 2));
 
         if (distance > 600) {
             // If the distance is more than 600m, presume it's invalid.
@@ -512,58 +503,53 @@ void FlightDataModel::fixupValidationErrors()
             setNED(row, thisNED);
             distance = 0;
 
-            showErrorDialog("Waypoint corrected",
-                    "Over-long leg shortened.");
+            showErrorDialog("Waypoint corrected", "Over-long leg shortened.");
 
             dirty = true;
         }
 
         switch (row->mode) {
-            case Waypoint::MODE_CIRCLELEFT:
-            case Waypoint::MODE_CIRCLERIGHT:
-                if (row->mode_params < (distance / 2 + 0.1f)) {
-                    row->mode_params = distance / 2 + 0.2f;
+        case Waypoint::MODE_CIRCLELEFT:
+        case Waypoint::MODE_CIRCLERIGHT:
+            if (row->mode_params < (distance / 2 + 0.1f)) {
+                row->mode_params = distance / 2 + 0.2f;
 
-                    showErrorDialog("Waypoint corrected",
-                            "Radius of circle increased to minimum");
+                showErrorDialog("Waypoint corrected", "Radius of circle increased to minimum");
 
-                    dirty = true;
-                } 
+                dirty = true;
+            }
 
-                break;
-            case Waypoint::MODE_CIRCLEPOSITIONLEFT:
-            case Waypoint::MODE_CIRCLEPOSITIONRIGHT:
-                if (row->mode_params < 0.5f) {
-                    row->mode_params = 0.5f;
+            break;
+        case Waypoint::MODE_CIRCLEPOSITIONLEFT:
+        case Waypoint::MODE_CIRCLEPOSITIONRIGHT:
+            if (row->mode_params < 0.5f) {
+                row->mode_params = 0.5f;
 
-                    showErrorDialog("Waypoint corrected",
-                            "Radius of circle increased to minimum");
+                showErrorDialog("Waypoint corrected", "Radius of circle increased to minimum");
 
-                    dirty = true;
-                } else if (row->mode_params > 300) {
-                    row->mode_params = 300;
+                dirty = true;
+            } else if (row->mode_params > 300) {
+                row->mode_params = 300;
 
-                    showErrorDialog("Waypoint corrected",
-                            "Radius of circle decreased to maximum");
+                showErrorDialog("Waypoint corrected", "Radius of circle decreased to maximum");
 
-                    dirty = true;
+                dirty = true;
+            }
 
-                }
+            break;
 
-                break;
-
-            default:
-                break;
+        default:
+            break;
         }
 
         if (dirty) {
-            /* Let anyone listening know we changed it - Fire an event for the 
+            /* Let anyone listening know we changed it - Fire an event for the
              * entire row being changed.  (Because changing NED changes lots of
              * columns) */
             QModelIndex leftIndex, rightIndex;
 
             leftIndex = this->index(i, LATPOSITION);
-            rightIndex = this->index(i, LASTCOLUMN-1);
+            rightIndex = this->index(i, LASTCOLUMN - 1);
 
             emit dataChanged(leftIndex, rightIndex);
         }
@@ -571,7 +557,6 @@ void FlightDataModel::fixupValidationErrors()
         prevNED = thisNED;
     }
 }
-    
 
 /**
  * @brief FlightDataModel::readFromFile Read into the model from a flight plan xml file
@@ -581,7 +566,7 @@ void FlightDataModel::readFromFile(QString fileName)
 {
     double HomeLLA[3];
 
-    removeRows(0,rowCount());
+    removeRows(0, rowCount());
     QFile file(fileName);
     if (!file.open(QIODevice::ReadOnly)) {
         showErrorDialog("Unable to open file", "Unable to open file");
@@ -589,12 +574,12 @@ void FlightDataModel::readFromFile(QString fileName)
     }
 
     QDomDocument doc("PathPlan");
-    QByteArray array=file.readAll();
+    QByteArray array = file.readAll();
     QString error;
 
     file.close();
 
-    if (!doc.setContent(array,&error)) {
+    if (!doc.setContent(array, &error)) {
         showErrorDialog("File Parsing Failure", "This file is not a correct XML file");
         return;
     }
@@ -608,7 +593,7 @@ void FlightDataModel::readFromFile(QString fileName)
         return;
     }
 
-    PathPlanData * data=NULL;
+    PathPlanData *data = NULL;
 
     // First of all, find the Home location saved in the file
     QDomNodeList hlist = root.elementsByTagName("homelocation");
@@ -621,11 +606,11 @@ void FlightDataModel::readFromFile(QString fileName)
     while (!homelocField.isNull()) {
         QDomElement field = homelocField.toElement();
         if (field.tagName() == "field") {
-            if (field.attribute("name")=="latitude") {
+            if (field.attribute("name") == "latitude") {
                 HomeLLA[0] = field.attribute("value").toDouble();
-            } else if (field.attribute("name")=="longitude") {
+            } else if (field.attribute("name") == "longitude") {
                 HomeLLA[1] = field.attribute("value").toDouble();
-            } else if (field.attribute("name")=="altitude") {
+            } else if (field.attribute("name") == "altitude") {
                 HomeLLA[2] = field.attribute("value").toDouble();
             }
         }
@@ -648,7 +633,7 @@ void FlightDataModel::readFromFile(QString fileName)
     while (!node.isNull()) {
         QDomElement e = node.toElement();
         if (e.tagName() == "waypoint") {
-            QDomNode fieldNode=e.firstChild();
+            QDomNode fieldNode = e.firstChild();
             data = new PathPlanData;
             double wpLLA[3];
             double wpNED[3];
@@ -656,33 +641,33 @@ void FlightDataModel::readFromFile(QString fileName)
             while (!fieldNode.isNull()) {
                 QDomElement field = fieldNode.toElement();
                 if (field.tagName() == "field") {
-                    if(field.attribute("name") == "down") {
+                    if (field.attribute("name") == "down") {
                         wpNED[2] = field.attribute("value").toDouble();
                         params++;
-                    } else if(field.attribute("name") == "description") {
-                        data->wpDescription=field.attribute("value");
+                    } else if (field.attribute("name") == "description") {
+                        data->wpDescription = field.attribute("value");
                         params++;
-                    } else if(field.attribute("name") == "north") {
+                    } else if (field.attribute("name") == "north") {
                         wpNED[0] = field.attribute("value").toDouble();
                         params++;
-                    } else if(field.attribute("name") == "east") {
+                    } else if (field.attribute("name") == "east") {
                         wpNED[1] = field.attribute("value").toDouble();
                         params++;
-                    } else if(field.attribute("name") == "velocity") {
+                    } else if (field.attribute("name") == "velocity") {
                         data->velocity = field.attribute("value").toFloat();
                         params++;
-                    } else if(field.attribute("name") == "mode") {
-                        data->mode=field.attribute("value").toInt();
+                    } else if (field.attribute("name") == "mode") {
+                        data->mode = field.attribute("value").toInt();
                         params++;
-                    } else if(field.attribute("name") == "mode_params") {
+                    } else if (field.attribute("name") == "mode_params") {
                         data->mode_params = field.attribute("value").toFloat();
                         params++;
-                    } else if(field.attribute("name") == "is_locked") {
+                    } else if (field.attribute("name") == "is_locked") {
                         data->locked = field.attribute("value").toInt();
                         params++;
                     }
                 }
-                fieldNode=fieldNode.nextSibling();
+                fieldNode = fieldNode.nextSibling();
             }
 
             // We can't really check everything in the file is fully consistent, but
@@ -700,12 +685,11 @@ void FlightDataModel::readFromFile(QString fileName)
             dataStorage.append(data);
             endInsertRows();
         }
-        node=node.nextSibling();
+        node = node.nextSibling();
     }
 
     fixupValidationErrors();
 }
-
 
 /**
  * @brief ModelUavoProxy::getHomeLocation Take care of scaling the home location UAVO to
@@ -717,7 +701,7 @@ bool FlightDataModel::getHomeLocation(double *homeLLA) const
 {
     ExtensionSystem::PluginManager *pm = ExtensionSystem::PluginManager::instance();
     Q_ASSERT(pm);
-    UAVObjectManager * objMngr = pm->getObject<UAVObjectManager>();
+    UAVObjectManager *objMngr = pm->getObject<UAVObjectManager>();
     Q_ASSERT(objMngr);
 
     HomeLocation *home = HomeLocation::GetInstance(objMngr);
@@ -742,7 +726,7 @@ bool FlightDataModel::setHomeLocation(double *homeLLA)
 {
     ExtensionSystem::PluginManager *pm = ExtensionSystem::PluginManager::instance();
     Q_ASSERT(pm);
-    UAVObjectManager * objMngr = pm->getObject<UAVObjectManager>();
+    UAVObjectManager *objMngr = pm->getObject<UAVObjectManager>();
     Q_ASSERT(objMngr);
 
     HomeLocation *home = HomeLocation::GetInstance(objMngr);
@@ -750,25 +734,24 @@ bool FlightDataModel::setHomeLocation(double *homeLLA)
         return false;
 
     // Check that home location is sensible
-    if (homeLLA[0] < -90 || homeLLA[0] > 90 || homeLLA[1] <  -180 || homeLLA[1] > 180)
+    if (homeLLA[0] < -90 || homeLLA[0] > 90 || homeLLA[1] < -180 || homeLLA[1] > 180)
         return false;
 
     HomeLocation::DataFields homeLocation = home->getData();
-    homeLocation.Latitude  = homeLLA[0]*1e7;
-    homeLocation.Longitude = homeLLA[1]*1e7;
-    homeLocation.Altitude  = homeLLA[2];
+    homeLocation.Latitude = homeLLA[0] * 1e7;
+    homeLocation.Longitude = homeLLA[1] * 1e7;
+    homeLocation.Altitude = homeLLA[2];
 
     home->setData(homeLocation);
 
     return true;
 }
 
-
 struct FlightDataModel::NED FlightDataModel::getNED(PathPlanData *row) const
 {
     double f_NED[3];
     double homeLLA[3];
-    double LLA[3] = {row->latPosition, row->lngPosition, row->altitude};
+    double LLA[3] = { row->latPosition, row->lngPosition, row->altitude };
 
     getHomeLocation(homeLLA);
     Utils::CoordinateConversions().LLA2NED_HomeLLA(LLA, homeLLA, f_NED);
@@ -788,7 +771,7 @@ struct FlightDataModel::NED FlightDataModel::getNED(PathPlanData *row) const
  */
 struct FlightDataModel::NED FlightDataModel::getNED(int index) const
 {
-    PathPlanData * row = dataStorage.at(index);
+    PathPlanData *row = dataStorage.at(index);
 
     return getNED(row);
 }
@@ -797,7 +780,7 @@ bool FlightDataModel::setNED(PathPlanData *row, struct FlightDataModel::NED NED)
 {
     double homeLLA[3];
     double LLA[3];
-    double f_NED[3] = {NED.North, NED.East, NED.Down};
+    double f_NED[3] = { NED.North, NED.East, NED.Down };
 
     getHomeLocation(homeLLA);
     Utils::CoordinateConversions().NED2LLA_HomeLLA(homeLLA, f_NED, LLA);
@@ -817,7 +800,7 @@ bool FlightDataModel::setNED(PathPlanData *row, struct FlightDataModel::NED NED)
  */
 bool FlightDataModel::setNED(int index, struct FlightDataModel::NED NED)
 {
-    PathPlanData * row = dataStorage.at(index);
+    PathPlanData *row = dataStorage.at(index);
 
     return setNED(row, NED);
 }
@@ -830,13 +813,13 @@ bool FlightDataModel::setNED(int index, struct FlightDataModel::NED NED)
 bool FlightDataModel::replaceData(FlightDataModel *newModel)
 {
     // Delete existing data
-    removeRows(0,rowCount());
+    removeRows(0, rowCount());
 
     for (int i = 0; i < newModel->rowCount(); i++) {
         insertRow(i);
         for (int j = 0; j < newModel->columnCount(); j++) {
             // Use Qt::UserRole to make sure the mode is fetched numerically
-            setData(index(i,j), newModel->data(newModel->index(i, j), Qt::UserRole));
+            setData(index(i, j), newModel->data(newModel->index(i, j), Qt::UserRole));
         }
     }
 

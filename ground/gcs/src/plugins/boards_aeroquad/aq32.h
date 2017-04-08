@@ -23,7 +23,7 @@
  * You should have received a copy of the GNU General Public License along
  * with this program; if not, see <http://www.gnu.org/licenses/>
  */
- 
+
 #ifndef AQ32_H
 #define AQ32_H
 
@@ -60,8 +60,6 @@ public:
 
     virtual int queryMaxGyroRate();
     virtual QStringList getAdcNames();
-
 };
-
 
 #endif // AQ32_H

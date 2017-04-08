@@ -27,20 +27,18 @@
 #include "taulinkgadget.h"
 #include <coreplugin/iuavgadget.h>
 
-TauLinkGadgetFactory::TauLinkGadgetFactory(QObject *parent) :
-        IUAVGadgetFactory(QString("TauLinkGadget"),
-                          tr("Tau Link"),
-                          parent)
+TauLinkGadgetFactory::TauLinkGadgetFactory(QObject *parent)
+    : IUAVGadgetFactory(QString("TauLinkGadget"), tr("Tau Link"), parent)
 {
-    tauLinkPlugin = (TauLinkPlugin *) parent;
+    tauLinkPlugin = (TauLinkPlugin *)parent;
 }
 
 TauLinkGadgetFactory::~TauLinkGadgetFactory()
 {
-
 }
 
-IUAVGadget* TauLinkGadgetFactory::createGadget(QWidget *parent) {
+IUAVGadget *TauLinkGadgetFactory::createGadget(QWidget *parent)
+{
     TauLinkGadgetWidget *gadgetWidget = new TauLinkGadgetWidget(parent);
     return new TauLinkGadget(QString("TauLinkGadget"), gadgetWidget, parent);
 }

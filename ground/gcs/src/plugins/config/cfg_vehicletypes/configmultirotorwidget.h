@@ -40,7 +40,7 @@
 
 class Ui_Widget;
 
-class ConfigMultiRotorWidget: public VehicleConfig
+class ConfigMultiRotorWidget : public VehicleConfig
 {
     Q_OBJECT
 
@@ -65,7 +65,7 @@ private:
 
     float invertMotors;
 
-    virtual void ResetActuators(GUIConfigDataUnion* configData);
+    virtual void ResetActuators(GUIConfigDataUnion *configData);
     static QStringList getChannelDescriptions();
     static const QString CHANNELBOXNAME;
     static const QString CHANNELLABELNAME;
@@ -80,11 +80,8 @@ private slots:
     virtual bool throwConfigError(int numMotors);
 
 protected:
-
 signals:
     void configurationChanged();
-
 };
-
 
 #endif // CONFIGMULTIROTORWIDGET_H

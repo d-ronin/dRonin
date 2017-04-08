@@ -29,12 +29,12 @@
 
 #include "hwlux.h"
 
-LuxConfiguration::LuxConfiguration(QWidget *parent) :
-    ConfigTaskWidget(parent),
-    ui(new Ui::LuxConfiguration)
+LuxConfiguration::LuxConfiguration(QWidget *parent)
+    : ConfigTaskWidget(parent)
+    , ui(new Ui::LuxConfiguration)
 {
     ui->setupUi(this);
-    
+
     // Load UAVObjects to widget relations from UI file
     // using objrelation dynamic property
     autoLoadWidgets();

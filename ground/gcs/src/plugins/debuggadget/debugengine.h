@@ -32,11 +32,12 @@
 #include <QObject>
 #include "debuggadget_global.h"
 
-
-class DEBUGGADGET_EXPORT DebugEngine : public QObject {
+class DEBUGGADGET_EXPORT DebugEngine : public QObject
+{
     Q_OBJECT
     // Add all missing constructor etc... to have singleton
     DebugEngine();
+
 public:
     enum Level {
         DEBUG,
@@ -49,7 +50,8 @@ public:
     static DebugEngine *getInstance();
 
 signals:
-    void message(DebugEngine::Level level, const QString &msg, const QString &file = "", const int line = 0, const QString &function = "");
+    void message(DebugEngine::Level level, const QString &msg, const QString &file = "",
+                 const int line = 0, const QString &function = "");
 };
 
 #endif // DEBUGENGINE_H

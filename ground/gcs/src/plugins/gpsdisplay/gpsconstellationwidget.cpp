@@ -32,7 +32,8 @@
 /*
  * Initialize the widget
  */
-GpsConstellationWidget::GpsConstellationWidget(QWidget *parent) : QGraphicsView(parent)
+GpsConstellationWidget::GpsConstellationWidget(QWidget *parent)
+    : QGraphicsView(parent)
 {
 
     // Create a layout, add a QGraphicsView and put the SVG inside.
@@ -45,7 +46,6 @@ GpsConstellationWidget::GpsConstellationWidget(QWidget *parent) : QGraphicsView(
     // |                    |
     // |                    |
     // |--------------------|
-
 
     setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
     setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
@@ -74,7 +74,7 @@ GpsConstellationWidget::GpsConstellationWidget(QWidget *parent) : QGraphicsView(
         satIcons[i]->setElementId("gpssatellite");
         satIcons[i]->hide();
 
-        satTexts[i] = new QGraphicsSimpleTextItem("##",satIcons[i]);
+        satTexts[i] = new QGraphicsSimpleTextItem("##", satIcons[i]);
         satTexts[i]->setBrush(QColor("Black"));
         satTexts[i]->setFont(QFont("Courier", -1, QFont::Bold));
     }
@@ -85,8 +85,8 @@ GpsConstellationWidget::~GpsConstellationWidget()
     delete scene;
     scene = 0;
 
-    //delete renderer;
-    //renderer = 0;
+    // delete renderer;
+    // renderer = 0;
 }
 
 void GpsConstellationWidget::showEvent(QShowEvent *event)
@@ -97,13 +97,12 @@ void GpsConstellationWidget::showEvent(QShowEvent *event)
     // the result is usually a ahrsbargraph that is way too small.
     fitInView(world, Qt::KeepAspectRatio);
     // Scale, can't use fitInView since that doesn't work until we're shown.
- //   qreal factor = height()/world->boundingRect().height();
-//    world->setScale(factor);
- //   setSceneRect(world->boundingRect());
-
+    //   qreal factor = height()/world->boundingRect().height();
+    //    world->setScale(factor);
+    //   setSceneRect(world->boundingRect());
 }
 
-void GpsConstellationWidget::resizeEvent(QResizeEvent* event)
+void GpsConstellationWidget::resizeEvent(QResizeEvent *event)
 {
     Q_UNUSED(event);
     fitInView(world, Qt::KeepAspectRatio);
@@ -132,10 +131,10 @@ void GpsConstellationWidget::updateSat(int index, int prn, int elevation, int az
             satIcons[index]->setElementId("othersat");
         }
 
-        QPointF opd = polarToCoord(elevation,azimuth);
+        QPointF opd = polarToCoord(elevation, azimuth);
         opd += QPointF(-satIcons[index]->boundingRect().center().x(),
                        -satIcons[index]->boundingRect().center().y());
-        satIcons[index]->setTransform(QTransform::fromTranslate(opd.x(),opd.y()), false);
+        satIcons[index]->setTransform(QTransform::fromTranslate(opd.x(), opd.y()), false);
 
         if (snr) {
             satIcons[index]->setOpacity(1.0);
@@ -148,7 +147,7 @@ void GpsConstellationWidget::updateSat(int index, int prn, int elevation, int az
 
         QRectF iconRect = satIcons[index]->boundingRect();
         QString prnString = QString().number(prn);
-        if(prnString.length() == 1) {
+        if (prnString.length() == 1) {
             prnString = "0" + prnString;
         }
         satTexts[index]->setText(prnString);
@@ -156,14 +155,13 @@ void GpsConstellationWidget::updateSat(int index, int prn, int elevation, int az
 
         QTransform matrix;
         qreal scale = 0.65 * (iconRect.width() / textRect.width());
-        matrix.translate(iconRect.width()/2, iconRect.height()/2);
-        matrix.scale(scale,scale);
-        matrix.translate(-textRect.width()/2,-textRect.height()/2);
-        satTexts[index]->setTransform(matrix,false);
+        matrix.translate(iconRect.width() / 2, iconRect.height() / 2);
+        matrix.scale(scale, scale);
+        matrix.translate(-textRect.width() / 2, -textRect.height() / 2);
+        satTexts[index]->setTransform(matrix, false);
     } else {
         satIcons[index]->hide();
     }
-
 }
 
 /**
@@ -177,19 +175,17 @@ QPointF GpsConstellationWidget::polarToCoord(int elevation, int azimuth)
     double rad_elevation;
     double rad_azimuth;
 
+    rad_elevation = M_PI * elevation / 180;
+    rad_azimuth = M_PI * azimuth / 180;
 
-    rad_elevation = M_PI*elevation/180;
-    rad_azimuth = M_PI*azimuth/180;
+    x = cos(rad_elevation) * sin(rad_azimuth);
+    y = -cos(rad_elevation) * cos(rad_azimuth);
 
-    x = cos(rad_elevation)*sin(rad_azimuth);
-    y = -cos(rad_elevation)*cos(rad_azimuth);
-
-    x = world->boundingRect().width()/2 * x;
-    y = world->boundingRect().height()/2 * y;
+    x = world->boundingRect().width() / 2 * x;
+    y = world->boundingRect().height() / 2 * y;
 
     x = (world->boundingRect().width() / 2) + x;
     y = (world->boundingRect().height() / 2) + y;
 
-    return QPointF(x,y);
-
+    return QPointF(x, y);
 }

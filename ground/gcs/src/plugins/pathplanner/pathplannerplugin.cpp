@@ -28,22 +28,21 @@
 #include <QStringList>
 #include <extensionsystem/pluginmanager.h>
 
-
 PathPlannerPlugin::PathPlannerPlugin()
 {
-   // Do nothing
+    // Do nothing
 }
 
 PathPlannerPlugin::~PathPlannerPlugin()
 {
-   // Do nothing
+    // Do nothing
 }
 
 /**
  * @brief PathPlannerPlugin::initialize Initialize the plugin which includes
  * creating the new data model
  */
-bool PathPlannerPlugin::initialize(const QStringList& args, QString *errMsg)
+bool PathPlannerPlugin::initialize(const QStringList &args, QString *errMsg)
 {
     Q_UNUSED(args);
     Q_UNUSED(errMsg);
@@ -69,12 +68,12 @@ bool PathPlannerPlugin::initialize(const QStringList& args, QString *errMsg)
 
 void PathPlannerPlugin::extensionsInitialized()
 {
-   // Do nothing
+    // Do nothing
 }
 
 void PathPlannerPlugin::shutdown()
 {
-   // Do nothing
+    // Do nothing
 }
 
 /**

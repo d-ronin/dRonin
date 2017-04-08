@@ -31,24 +31,25 @@
  * Loads a saved configuration or defaults if non exist.
  *
  */
-LineardialGadgetConfiguration::LineardialGadgetConfiguration(QString classId, QSettings* qSettings, QObject *parent) :
-    IUAVGadgetConfiguration(classId, parent),
-    dialFile("Unknown"),
-    sourceDataObject("Unknown"),
-    sourceObjectField("Unknown"),
-    minValue(0),
-    maxValue(100),
-    redMin(0),
-    redMax(33),
-    yellowMin(33),
-    yellowMax(66),
-    greenMin(66),
-    greenMax(100),
-    factor(1.00),
-    decimalPlaces(0)
+LineardialGadgetConfiguration::LineardialGadgetConfiguration(QString classId, QSettings *qSettings,
+                                                             QObject *parent)
+    : IUAVGadgetConfiguration(classId, parent)
+    , dialFile("Unknown")
+    , sourceDataObject("Unknown")
+    , sourceObjectField("Unknown")
+    , minValue(0)
+    , maxValue(100)
+    , redMin(0)
+    , redMax(33)
+    , yellowMin(33)
+    , yellowMax(66)
+    , greenMin(66)
+    , greenMax(100)
+    , factor(1.00)
+    , decimalPlaces(0)
 {
-    //if a saved configuration exists load it
-    if(qSettings != 0) {
+    // if a saved configuration exists load it
+    if (qSettings != 0) {
         QString dFile = qSettings->value("dFile").toString();
         dialFile = Utils::PathUtils().InsertDataPath(dFile);
         sourceDataObject = qSettings->value("sourceDataObject").toString();
@@ -64,7 +65,7 @@ LineardialGadgetConfiguration::LineardialGadgetConfiguration(QString classId, QS
         font = qSettings->value("font").toString();
         decimalPlaces = qSettings->value("decimalPlaces").toInt();
         factor = qSettings->value("factor").toDouble();
-	}
+    }
 }
 
 /**
@@ -74,7 +75,7 @@ LineardialGadgetConfiguration::LineardialGadgetConfiguration(QString classId, QS
 IUAVGadgetConfiguration *LineardialGadgetConfiguration::clone()
 {
     LineardialGadgetConfiguration *m = new LineardialGadgetConfiguration(this->classId());
-    m->dialFile=dialFile;
+    m->dialFile = dialFile;
     m->sourceDataObject = sourceDataObject;
     m->sourceObjectField = sourceObjectField;
     m->minValue = minValue;
@@ -96,20 +97,21 @@ IUAVGadgetConfiguration *LineardialGadgetConfiguration::clone()
  * Saves a configuration.
  *
  */
-void LineardialGadgetConfiguration::saveConfig(QSettings* qSettings) const {
-   QString dFile = Utils::PathUtils().RemoveDataPath(dialFile);
-   qSettings->setValue("dFile", dFile);
-   qSettings->setValue("sourceDataObject", sourceDataObject);
-   qSettings->setValue("sourceObjectField", sourceObjectField);
-   qSettings->setValue("minValue", minValue);
-   qSettings->setValue("maxValue", maxValue);
-   qSettings->setValue("redMin", redMin);
-   qSettings->setValue("redMax", redMax);
-   qSettings->setValue("yellowMin", yellowMin);
-   qSettings->setValue("yellowMax", yellowMax);
-   qSettings->setValue("greenMin", greenMin);
-   qSettings->setValue("greenMax", greenMax);
-   qSettings->setValue("font", font);
-   qSettings->setValue("decimalPlaces", decimalPlaces);
-   qSettings->setValue("factor", factor);
+void LineardialGadgetConfiguration::saveConfig(QSettings *qSettings) const
+{
+    QString dFile = Utils::PathUtils().RemoveDataPath(dialFile);
+    qSettings->setValue("dFile", dFile);
+    qSettings->setValue("sourceDataObject", sourceDataObject);
+    qSettings->setValue("sourceObjectField", sourceObjectField);
+    qSettings->setValue("minValue", minValue);
+    qSettings->setValue("maxValue", maxValue);
+    qSettings->setValue("redMin", redMin);
+    qSettings->setValue("redMax", redMax);
+    qSettings->setValue("yellowMin", yellowMin);
+    qSettings->setValue("yellowMax", yellowMax);
+    qSettings->setValue("greenMin", greenMin);
+    qSettings->setValue("greenMax", greenMax);
+    qSettings->setValue("font", font);
+    qSettings->setValue("decimalPlaces", decimalPlaces);
+    qSettings->setValue("factor", factor);
 }

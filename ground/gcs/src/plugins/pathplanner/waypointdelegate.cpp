@@ -27,7 +27,8 @@
 #include <waypointdelegate.h>
 #include <flightdatamodel.h>
 
-WaypointDelegate::WaypointDelegate(QObject *parent):QStyledItemDelegate(parent)
+WaypointDelegate::WaypointDelegate(QObject *parent)
+    : QStyledItemDelegate(parent)
 {
 }
 
@@ -37,15 +38,12 @@ WaypointDelegate::WaypointDelegate(QObject *parent):QStyledItemDelegate(parent)
  * control how the editor widget appears.
  * @return The widget for the index
  */
-QWidget *WaypointDelegate::createEditor(QWidget *parent,
-                                        const QStyleOptionViewItem & option,
-                                        const QModelIndex & index) const
+QWidget *WaypointDelegate::createEditor(QWidget *parent, const QStyleOptionViewItem &option,
+                                        const QModelIndex &index) const
 {
-    int column=index.column();
-    switch(column)
-    {
-    case FlightDataModel::MODE:
-    {
+    int column = index.column();
+    switch (column) {
+    case FlightDataModel::MODE: {
         QComboBox *box = new QComboBox(parent);
         loadComboBox(box);
         return box;
@@ -54,7 +52,7 @@ QWidget *WaypointDelegate::createEditor(QWidget *parent,
         break;
     }
 
-    return QStyledItemDelegate::createEditor(parent,option,index);
+    return QStyledItemDelegate::createEditor(parent, option, index);
 }
 
 /**
@@ -64,18 +62,14 @@ QWidget *WaypointDelegate::createEditor(QWidget *parent,
  */
 bool WaypointDelegate::eventFilter(QObject *object, QEvent *event)
 {
-    QComboBox * comboBox = dynamic_cast<QComboBox*>(object);
-    if (comboBox)
-    {
-        if (event->type() == QEvent::MouseButtonRelease)
-        {
+    QComboBox *comboBox = dynamic_cast<QComboBox *>(object);
+    if (comboBox) {
+        if (event->type() == QEvent::MouseButtonRelease) {
             comboBox->showPopup();
             return true;
         }
-    }
-    else
-    {
-        return QStyledItemDelegate::eventFilter( object, event );
+    } else {
+        return QStyledItemDelegate::eventFilter(object, event);
     }
     return false;
 }
@@ -86,20 +80,19 @@ bool WaypointDelegate::eventFilter(QObject *object, QEvent *event)
  * @param editor The editor dialog
  * @param index The model parameter index to use
  */
-void WaypointDelegate::setEditorData(QWidget *editor,
-                                     const QModelIndex &index) const
+void WaypointDelegate::setEditorData(QWidget *editor, const QModelIndex &index) const
 {
-    if(!index.isValid())
+    if (!index.isValid())
         return;
-    if (index.column() == (int) FlightDataModel::MODE) {
-        QComboBox *comboBox = static_cast<QComboBox*>(editor);
+    if (index.column() == (int)FlightDataModel::MODE) {
+        QComboBox *comboBox = static_cast<QComboBox *>(editor);
         Q_ASSERT(comboBox != NULL);
-        if (comboBox == NULL) return;
+        if (comboBox == NULL)
+            return;
 
         int value = index.model()->data(index, Qt::EditRole).toInt();
         comboBox->setCurrentIndex(value);
-    }
-    else
+    } else
         QStyledItemDelegate::setEditorData(editor, index);
 }
 
@@ -113,37 +106,36 @@ void WaypointDelegate::setEditorData(QWidget *editor,
 void WaypointDelegate::setModelData(QWidget *editor, QAbstractItemModel *model,
                                     const QModelIndex &index) const
 {
-    if(!index.isValid())
+    if (!index.isValid())
         return;
-    if (index.column() == (int) FlightDataModel::MODE) {
-        QComboBox *comboBox = static_cast<QComboBox*>(editor);
+    if (index.column() == (int)FlightDataModel::MODE) {
+        QComboBox *comboBox = static_cast<QComboBox *>(editor);
         Q_ASSERT(comboBox != NULL);
-        if (comboBox == NULL) return;
+        if (comboBox == NULL)
+            return;
 
         int value = comboBox->itemData(comboBox->currentIndex()).toInt();
         model->setData(index, value, Qt::EditRole);
-    }
-    else
-        QStyledItemDelegate::setModelData(editor,model,index);
+    } else
+        QStyledItemDelegate::setModelData(editor, model, index);
 }
 
 /**
  * @brief WaypointDelegate::updateEditorGeometry Update the size of the editor widget
  */
-void WaypointDelegate::updateEditorGeometry(QWidget *editor,
-                                            const QStyleOptionViewItem &option, const QModelIndex &index) const
+void WaypointDelegate::updateEditorGeometry(QWidget *editor, const QStyleOptionViewItem &option,
+                                            const QModelIndex &index) const
 {
-    if (index.column() == (int) FlightDataModel::MODE) {
+    if (index.column() == (int)FlightDataModel::MODE) {
         QRect r = option.rect;
-        r.setSize( editor->sizeHint() );
-        editor->setGeometry( r );
-    } else if (index.column() == (int) FlightDataModel::LOCKED) {
+        r.setSize(editor->sizeHint());
+        editor->setGeometry(r);
+    } else if (index.column() == (int)FlightDataModel::LOCKED) {
         // The locked combo box is wider than the column sometimes
         QRect r = option.rect;
-        r.setSize( editor->sizeHint() );
-        editor->setGeometry( r );
-    }
-    else
+        r.setSize(editor->sizeHint());
+        editor->setGeometry(r);
+    } else
         QStyledItemDelegate::updateEditorGeometry(editor, option, index);
 }
 
@@ -153,7 +145,7 @@ void WaypointDelegate::updateEditorGeometry(QWidget *editor,
  * @param locale The locale to convert the text to
  * @return
  */
-QString WaypointDelegate::displayText ( const QVariant & value, const QLocale & locale ) const
+QString WaypointDelegate::displayText(const QVariant &value, const QLocale &locale) const
 {
     return QStyledItemDelegate::displayText(value, locale);
 }

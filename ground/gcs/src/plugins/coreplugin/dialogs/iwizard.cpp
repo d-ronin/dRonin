@@ -11,17 +11,17 @@
  * @brief The Core GCS plugin
  *****************************************************************************/
 /*
- * This program is free software; you can redistribute it and/or modify 
- * it under the terms of the GNU General Public License as published by 
- * the Free Software Foundation; either version 3 of the License, or 
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 3 of the License, or
  * (at your option) any later version.
- * 
- * This program is distributed in the hope that it will be useful, but 
- * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY 
- * or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License 
+ *
+ * This program is distributed in the hope that it will be useful, but
+ * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
+ * or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License
  * for more details.
- * 
- * You should have received a copy of the GNU General Public License along 
+ *
+ * You should have received a copy of the GNU General Public License along
  * with this program; if not, see <http://www.gnu.org/licenses/>
  */
 
@@ -129,35 +129,38 @@ using namespace Core;
 
 /* A utility to find all wizards supporting a view mode and matching a predicate */
 template <class Predicate>
-    QList<IWizard*> findWizards(Predicate predicate)
+QList<IWizard *> findWizards(Predicate predicate)
 {
     // Filter all wizards
-    const QList<IWizard*> allWizards = IWizard::allWizards();
-    QList<IWizard*> rc;
-    const QList<IWizard*>::const_iterator cend = allWizards.constEnd();
-    for (QList<IWizard*>::const_iterator it = allWizards.constBegin(); it != cend; ++it)
+    const QList<IWizard *> allWizards = IWizard::allWizards();
+    QList<IWizard *> rc;
+    const QList<IWizard *>::const_iterator cend = allWizards.constEnd();
+    for (QList<IWizard *>::const_iterator it = allWizards.constBegin(); it != cend; ++it)
         if (predicate(*(*it)))
             rc.push_back(*it);
     return rc;
 }
 
-QList<IWizard*> IWizard::allWizards()
+QList<IWizard *> IWizard::allWizards()
 {
     return ExtensionSystem::PluginManager::instance()->getObjects<IWizard>();
 }
 
 // Utility to find all registered wizards of a certain kind
 
-class WizardKindPredicate {
+class WizardKindPredicate
+{
 public:
-    WizardKindPredicate(IWizard::Kind kind) : m_kind(kind) {}
+    WizardKindPredicate(IWizard::Kind kind)
+        : m_kind(kind)
+    {
+    }
     bool operator()(const IWizard &w) const { return w.kind() == m_kind; }
 private:
     const IWizard::Kind m_kind;
 };
 
-QList<IWizard*> IWizard::wizardsOfKind(Kind kind)
+QList<IWizard *> IWizard::wizardsOfKind(Kind kind)
 {
     return findWizards(WizardKindPredicate(kind));
 }
-

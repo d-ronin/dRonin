@@ -34,22 +34,21 @@
 #include "dtfc.h"
 #include <QtPlugin>
 
-
 DTFPlugin::DTFPlugin()
 {
-   // Do nothing
+    // Do nothing
 }
 
 DTFPlugin::~DTFPlugin()
 {
-   // Do nothing
+    // Do nothing
 }
 
-bool DTFPlugin::initialize(const QStringList& args, QString *errMsg)
+bool DTFPlugin::initialize(const QStringList &args, QString *errMsg)
 {
-   Q_UNUSED(args);
-   Q_UNUSED(errMsg);
-   return true;
+    Q_UNUSED(args);
+    Q_UNUSED(errMsg);
+    return true;
 }
 
 void DTFPlugin::extensionsInitialized()
@@ -58,12 +57,10 @@ void DTFPlugin::extensionsInitialized()
      * Create the board objects here.
      *
      */
-    Dtfc* dtfc = new Dtfc();
+    Dtfc *dtfc = new Dtfc();
     addAutoReleasedObject(dtfc);
-
 }
 
 void DTFPlugin::shutdown()
 {
 }
-

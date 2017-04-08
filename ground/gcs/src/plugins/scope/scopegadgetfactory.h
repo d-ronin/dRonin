@@ -31,8 +31,7 @@
 #include "scope_global.h"
 #include <coreplugin/iuavgadgetfactory.h>
 
-namespace Core
-{
+namespace Core {
 class IUAVGadget;
 class IUAVGadgetFactory;
 }
@@ -53,7 +52,6 @@ public:
 public slots:
 
 signals:
-
 };
 
 #endif // SCOPEGADGETFACTORY_H_

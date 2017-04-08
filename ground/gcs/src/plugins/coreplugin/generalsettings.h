@@ -13,17 +13,17 @@
  * @brief The Core GCS plugin
  *****************************************************************************/
 /*
- * This program is free software; you can redistribute it and/or modify 
- * it under the terms of the GNU General Public License as published by 
- * the Free Software Foundation; either version 3 of the License, or 
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 3 of the License, or
  * (at your option) any later version.
- * 
- * This program is distributed in the hope that it will be useful, but 
- * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY 
- * or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License 
+ *
+ * This program is distributed in the hope that it will be useful, but
+ * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
+ * or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License
  * for more details.
- * 
- * You should have received a copy of the GNU General Public License along 
+ *
+ * You should have received a copy of the GNU General Public License along
  * with this program; if not, see <http://www.gnu.org/licenses/>
  */
 
@@ -39,88 +39,88 @@
 namespace Core {
 namespace Internal {
 
-namespace Ui {
-    class GeneralSettings;
-}
+    namespace Ui {
+        class GeneralSettings;
+    }
 
-class CORE_EXPORT GeneralSettings : public IOptionsPage
-{
-    Q_OBJECT
+    class CORE_EXPORT GeneralSettings : public IOptionsPage
+    {
+        Q_OBJECT
 
-public:
-    GeneralSettings();
+    public:
+        GeneralSettings();
 
-    QString id() const;
-    QString trName() const;
-    QString category() const;
-    QString trCategory() const;
-    QWidget* createPage(QWidget *parent);
-    void apply();
-    void finish();
-    bool saveSettingsOnExit() const;
-    bool autoConnect() const;
-    bool autoSelect() const;
-    bool useUDPMirror() const;
-    bool useSessionManaging() const;
-    void readSettings(QSettings* qs);
-    void saveSettings(QSettings* qs);
-    bool useExpertMode() const;
-    QNetworkProxy getNetworkProxy();
-    void setObservations(QString value);
-    QString getObservations();
-    void setVehicleType(QString type);
-    QString getVehicleType();
-    void setBoardType(QString type);
-    QString getBoardType();
-    void setWeight(int weight);
-    int getWeight();
-    void setVehicleSize(int spacing);
-    int getVehicleSize();
-    void setBatteryCells(int cells);
-    int getBatteryCells();
-    void setMotors(QString motors);
-    QString getMotors();
-    void setESCs(QString escs);
-    QString getESCs();
-    void setProps(QString props);
-    QString getProps();
-signals:
-    void generalSettingsChanged();
-private slots:
-    void resetLanguage();
-    void showHelpForExternalEditor();
-    void slotAutoConnect(int);    
+        QString id() const;
+        QString trName() const;
+        QString category() const;
+        QString trCategory() const;
+        QWidget *createPage(QWidget *parent);
+        void apply();
+        void finish();
+        bool saveSettingsOnExit() const;
+        bool autoConnect() const;
+        bool autoSelect() const;
+        bool useUDPMirror() const;
+        bool useSessionManaging() const;
+        void readSettings(QSettings *qs);
+        void saveSettings(QSettings *qs);
+        bool useExpertMode() const;
+        QNetworkProxy getNetworkProxy();
+        void setObservations(QString value);
+        QString getObservations();
+        void setVehicleType(QString type);
+        QString getVehicleType();
+        void setBoardType(QString type);
+        QString getBoardType();
+        void setWeight(int weight);
+        int getWeight();
+        void setVehicleSize(int spacing);
+        int getVehicleSize();
+        void setBatteryCells(int cells);
+        int getBatteryCells();
+        void setMotors(QString motors);
+        QString getMotors();
+        void setESCs(QString escs);
+        QString getESCs();
+        void setProps(QString props);
+        QString getProps();
+    signals:
+        void generalSettingsChanged();
+    private slots:
+        void resetLanguage();
+        void showHelpForExternalEditor();
+        void slotAutoConnect(int);
 
-private:
-    void fillLanguageBox() const;
-    void fillProxyTypesBox() const;
-    QString language() const;
-    void setLanguage(const QString&);
-    Ui::GeneralSettings *m_page;
-    QString m_language;
-    bool m_saveSettingsOnExit;
-    bool m_autoConnect;
-    bool m_autoSelect;
-    bool m_useUDPMirror;
-    bool m_useExpertMode;
-    QPointer<QWidget> m_dialog;
-    QList<QTextCodec *> m_codecs;
-    int m_proxyType;
-    int m_proxyPort;
-    QString m_proxyHostname;
-    QString m_proxyUser;
-    QString m_proxyPassword;
-    QString m_observations;
-    QString m_vehicle;
-    QString m_board;
-    int m_weight;
-    int m_size;
-    int m_cells;
-    QString m_motors;
-    QString m_escs;
-    QString m_props;
-    bool m_useSessionManaging;
-};
+    private:
+        void fillLanguageBox() const;
+        void fillProxyTypesBox() const;
+        QString language() const;
+        void setLanguage(const QString &);
+        Ui::GeneralSettings *m_page;
+        QString m_language;
+        bool m_saveSettingsOnExit;
+        bool m_autoConnect;
+        bool m_autoSelect;
+        bool m_useUDPMirror;
+        bool m_useExpertMode;
+        QPointer<QWidget> m_dialog;
+        QList<QTextCodec *> m_codecs;
+        int m_proxyType;
+        int m_proxyPort;
+        QString m_proxyHostname;
+        QString m_proxyUser;
+        QString m_proxyPassword;
+        QString m_observations;
+        QString m_vehicle;
+        QString m_board;
+        int m_weight;
+        int m_size;
+        int m_cells;
+        QString m_motors;
+        QString m_escs;
+        QString m_props;
+        bool m_useSessionManaging;
+    };
 } // namespace Internal
 } // namespace Core
 

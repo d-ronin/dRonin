@@ -60,7 +60,11 @@ public:
     void updateView(const QModelIndex &topLeft, const QModelIndex &bottomRight);
     void updateTimerPeriod(unsigned int val);
 
-    virtual void setModel(QAbstractItemModel *model){QTreeView::setModel(model); proxyModel = static_cast<TreeSortFilterProxyModel *>(model);}
+    virtual void setModel(QAbstractItemModel *model)
+    {
+        QTreeView::setModel(model);
+        proxyModel = static_cast<TreeSortFilterProxyModel *>(model);
+    }
 
     /**
      * @brief dataChanged Reimplements QTreeView::dataChanged signal
@@ -68,8 +72,8 @@ public:
      * @param bottomRight
      * @param updateFlag If true, send dataChanged signal. If false, do nothing.
      */
-    virtual void dataChanged(const QModelIndex & topLeft, const QModelIndex & bottomRight,
-                             const QVector<int> & roles = QVector<int> ());
+    virtual void dataChanged(const QModelIndex &topLeft, const QModelIndex &bottomRight,
+                             const QVector<int> &roles = QVector<int>());
 
 private slots:
     void onTimeout_updateView();
@@ -79,7 +83,6 @@ private:
     TreeSortFilterProxyModel *proxyModel;
 
     QTimer m_updateViewTimer;
-
 };
 
 class UAVObjectBrowserWidget : public QWidget
@@ -89,11 +92,31 @@ class UAVObjectBrowserWidget : public QWidget
 public:
     UAVObjectBrowserWidget(QWidget *parent = 0);
     ~UAVObjectBrowserWidget();
-    void setRecentlyUpdatedColor(QColor color) { m_recentlyUpdatedColor = color; m_model->setRecentlyUpdatedColor(color); }
-    void setManuallyChangedColor(QColor color) { m_manuallyChangedColor = color; m_model->setManuallyChangedColor(color); }
-    void setNotPresentOnHwColor(QColor color) { m_notPresentOnHwColor = color; m_model->setNotPresentOnHwColor(color); }
-    void setRecentlyUpdatedTimeout(int timeout) { m_recentlyUpdatedTimeout = timeout; m_model->setRecentlyUpdatedTimeout(timeout); }
-    void setOnlyHighlightChangedValues(bool highlight) { m_onlyHighlightChangedValues = highlight; m_model->setOnlyHighlightChangedValues(highlight); }
+    void setRecentlyUpdatedColor(QColor color)
+    {
+        m_recentlyUpdatedColor = color;
+        m_model->setRecentlyUpdatedColor(color);
+    }
+    void setManuallyChangedColor(QColor color)
+    {
+        m_manuallyChangedColor = color;
+        m_model->setManuallyChangedColor(color);
+    }
+    void setNotPresentOnHwColor(QColor color)
+    {
+        m_notPresentOnHwColor = color;
+        m_model->setNotPresentOnHwColor(color);
+    }
+    void setRecentlyUpdatedTimeout(int timeout)
+    {
+        m_recentlyUpdatedTimeout = timeout;
+        m_model->setRecentlyUpdatedTimeout(timeout);
+    }
+    void setOnlyHighlightChangedValues(bool highlight)
+    {
+        m_onlyHighlightChangedValues = highlight;
+        m_model->setOnlyHighlightChangedValues(highlight);
+    }
     void setViewOptions(bool categorized, bool scientific, bool metadata, bool hideNotPresent);
     void initialize();
     void refreshHiddenObjects();
@@ -118,7 +141,8 @@ private slots:
     void searchTextCleared();
 
 signals:
-    void viewOptionsChanged(bool categorized,bool scientific,bool metadata,bool hideNotPresent);
+    void viewOptionsChanged(bool categorized, bool scientific, bool metadata, bool hideNotPresent);
+
 private:
     QPushButton *m_requestUpdate;
     QPushButton *m_sendUpdate;

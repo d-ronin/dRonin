@@ -58,9 +58,8 @@ public:
     virtual Core::IBoardType::InputType getInputType();
 
     virtual int queryMaxGyroRate();
-    virtual QWidget * getBoardConfiguration(QWidget *parent, bool connected);
+    virtual QWidget *getBoardConfiguration(QWidget *parent, bool connected);
     virtual QStringList getAdcNames();
 };
-
 
 #endif // BRAIN_H

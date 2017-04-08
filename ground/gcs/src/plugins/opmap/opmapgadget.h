@@ -47,7 +47,8 @@ public:
     ~OPMapGadget();
 
     QWidget *widget() { return m_widget; }
-    void loadConfiguration(IUAVGadgetConfiguration* m_config);
+    void loadConfiguration(IUAVGadgetConfiguration *m_config);
+
 private:
     OPMapGadgetWidget *m_widget;
     OPMapGadgetConfiguration *m_config;
@@ -55,6 +56,5 @@ private slots:
     void saveOpacity(qreal value);
     void saveDefaultLocation(double lng, double lat, double zoom);
 };
-
 
 #endif // OPMAP_GADGET_H_

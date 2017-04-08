@@ -38,7 +38,7 @@
 
 class Ui_Widget;
 
-class ConfigGroundVehicleWidget: public VehicleConfig
+class ConfigGroundVehicleWidget : public VehicleConfig
 {
     Q_OBJECT
 
@@ -55,7 +55,7 @@ private:
     bool setupGroundVehicleDifferential(SystemSettings::AirframeTypeOptions airframeType);
     bool setupGroundVehicleMotorcycle(SystemSettings::AirframeTypeOptions airframeType);
 
-    virtual void ResetActuators(GUIConfigDataUnion* configData);
+    virtual void ResetActuators(GUIConfigDataUnion *configData);
     static QStringList getChannelDescriptions();
 
 private slots:
@@ -65,8 +65,6 @@ private slots:
     virtual bool throwConfigError(SystemSettings::AirframeTypeOptions airframeType);
 
 protected:
-
 };
-
 
 #endif // CONFIGGROUNDVEHICLEWIDGET_H

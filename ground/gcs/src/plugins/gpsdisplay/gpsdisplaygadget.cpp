@@ -27,22 +27,27 @@
 #include "gpsdisplaygadget.h"
 #include "gpsdisplaywidget.h"
 
-GpsDisplayGadget::GpsDisplayGadget(QString classId, GpsDisplayWidget *widget, QWidget *parent) :
-    IUAVGadget(classId, parent),
-    m_widget(widget),
-    connected(false)
+GpsDisplayGadget::GpsDisplayGadget(QString classId, GpsDisplayWidget *widget, QWidget *parent)
+    : IUAVGadget(classId, parent)
+    , m_widget(widget)
+    , connected(false)
 {
     parser = new TelemetryParser();
 
     connect(parser, SIGNAL(sv(int)), m_widget, SLOT(setSVs(int)));
-    connect(parser, SIGNAL(position(double, double, double)), m_widget, SLOT(setPosition(double, double, double)));
-    connect(parser, SIGNAL(speedheading(double, double)), m_widget, SLOT(setSpeedHeading(double, double)));
+    connect(parser, SIGNAL(position(double, double, double)), m_widget,
+            SLOT(setPosition(double, double, double)));
+    connect(parser, SIGNAL(speedheading(double, double)), m_widget,
+            SLOT(setSpeedHeading(double, double)));
     connect(parser, SIGNAL(datetime(double, double)), m_widget, SLOT(setDateTime(double, double)));
-    connect(parser, SIGNAL(satellite(int, int, int, int, int)), m_widget->gpsSky, SLOT(updateSat(int, int, int, int, int)));
-    connect(parser, SIGNAL(satellite(int, int, int, int, int)), m_widget->gpsSnrWidget, SLOT(updateSat(int, int, int, int, int)));
+    connect(parser, SIGNAL(satellite(int, int, int, int, int)), m_widget->gpsSky,
+            SLOT(updateSat(int, int, int, int, int)));
+    connect(parser, SIGNAL(satellite(int, int, int, int, int)), m_widget->gpsSnrWidget,
+            SLOT(updateSat(int, int, int, int, int)));
     connect(parser, SIGNAL(satellitesDone()), m_widget->gpsSnrWidget, SLOT(satellitesDone()));
     connect(parser, SIGNAL(fixtype(QString)), m_widget, SLOT(setFixType(QString)));
-    connect(parser, SIGNAL(dop(double, double, double)), m_widget, SLOT(setDOP(double, double, double)));
+    connect(parser, SIGNAL(dop(double, double, double)), m_widget,
+            SLOT(setDOP(double, double, double)));
 }
 
 GpsDisplayGadget::~GpsDisplayGadget()

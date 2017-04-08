@@ -36,9 +36,7 @@
 #include "qwt/src/qwt.h"
 #include "qwt/src/qwt_plot_histogram.h"
 
-
 #define MAX_NUMBER_OF_INTERVALS 1000
-
 
 /**
  * @brief HistogramData::HistogramData
@@ -47,18 +45,19 @@
  * @param binWidth
  * @param numberOfBins
  */
-HistogramData::HistogramData(QString uavObject, QString uavField, double binWidth, uint numberOfBins) :
-    Plot2dData(uavObject, uavField),
-    histogram(0),
-    histogramBins(0),
-    histogramInterval(0),
-    intervalSeriesData(0)
+HistogramData::HistogramData(QString uavObject, QString uavField, double binWidth,
+                             uint numberOfBins)
+    : Plot2dData(uavObject, uavField)
+    , histogram(0)
+    , histogramBins(0)
+    , histogramInterval(0)
+    , intervalSeriesData(0)
 {
     this->binWidth = binWidth;
     this->numberOfBins = numberOfBins;
     scalePower = 1;
 
-    //Create histogram data set
+    // Create histogram data set
     histogramBins = new QVector<QwtIntervalSample>();
     histogramInterval = new QVector<QwtInterval>();
 
@@ -66,105 +65,106 @@ HistogramData::HistogramData(QString uavObject, QString uavField, double binWidt
     intervalSeriesData = new QwtIntervalSeriesData(*histogramBins);
 }
 
-
 /**
  * @brief HistogramScopeConfig::plotNewData Update plot with new data
  * @param scopeGadgetWidget
  */
-void HistogramData::plotNewData(PlotData* plot2dData, ScopeConfig *scopeConfig, ScopeGadgetWidget *scopeGadgetWidget)
+void HistogramData::plotNewData(PlotData *plot2dData, ScopeConfig *scopeConfig,
+                                ScopeGadgetWidget *scopeGadgetWidget)
 {
     Q_UNUSED(plot2dData);
     Q_UNUSED(scopeGadgetWidget);
     Q_UNUSED(scopeConfig);
 
-    //Plot new data
+    // Plot new data
     histogram->setData(intervalSeriesData);
     intervalSeriesData->setSamples(*histogramBins);
 }
-
 
 /**
  * @brief HistogramData::append Appends data to histogram
  * @param obj UAVO with new data
  * @return
  */
-bool HistogramData::append(UAVObject* obj)
+bool HistogramData::append(UAVObject *obj)
 {
 
-    //Empty histogram data set
+    // Empty histogram data set
     xData->clear();
     yData->clear();
 
     if (uavObjectName == obj->getName()) {
 
-        //Get the field of interest
-        UAVObjectField* field =  obj->getField(uavFieldName);
+        // Get the field of interest
+        UAVObjectField *field = obj->getField(uavFieldName);
 
-        //Bad place to do this
+        // Bad place to do this
         double step = binWidth;
-        if (step < 1e-6) //Don't allow step size to be 0.
-            step =1e-6;
+        if (step < 1e-6) // Don't allow step size to be 0.
+            step = 1e-6;
 
         if (numberOfBins > MAX_NUMBER_OF_INTERVALS)
             numberOfBins = MAX_NUMBER_OF_INTERVALS;
 
         if (field) {
-            double currentValue = valueAsDouble(obj, field, haveSubField, uavSubFieldName) * pow(10, scalePower);
+            double currentValue =
+                valueAsDouble(obj, field, haveSubField, uavSubFieldName) * pow(10, scalePower);
 
             // Extend interval, if necessary
-            if(!histogramInterval->empty()){
+            if (!histogramInterval->empty()) {
                 while (currentValue < histogramInterval->front().minValue()
-                       && histogramInterval->size() <= (int) numberOfBins){
-                    histogramInterval->prepend(QwtInterval(histogramInterval->front().minValue() - step, histogramInterval->front().minValue()));
-                    histogramBins->prepend(QwtIntervalSample(0,histogramInterval->front()));
+                       && histogramInterval->size() <= (int)numberOfBins) {
+                    histogramInterval->prepend(
+                        QwtInterval(histogramInterval->front().minValue() - step,
+                                    histogramInterval->front().minValue()));
+                    histogramBins->prepend(QwtIntervalSample(0, histogramInterval->front()));
                 }
 
                 while (currentValue > histogramInterval->back().maxValue()
-                       && histogramInterval->size() <= (int) numberOfBins){
-                    histogramInterval->append(QwtInterval(histogramInterval->back().maxValue(), histogramInterval->back().maxValue() + step));
-                    histogramBins->append(QwtIntervalSample(0,histogramInterval->back()));
+                       && histogramInterval->size() <= (int)numberOfBins) {
+                    histogramInterval->append(
+                        QwtInterval(histogramInterval->back().maxValue(),
+                                    histogramInterval->back().maxValue() + step));
+                    histogramBins->append(QwtIntervalSample(0, histogramInterval->back()));
                 }
 
                 // If the histogram reaches its max size, pop one off the end and return
                 // This is a graceful way not to lock up the GCS if the bin width
                 // is inappropriate, or if there is an extremely distant outlier.
-                if (histogramInterval->size() > (int) numberOfBins )
-                {
+                if (histogramInterval->size() > (int)numberOfBins) {
                     histogramBins->pop_back();
                     histogramInterval->pop_back();
                     return false;
                 }
 
                 // Test all intervals. This isn't particularly effecient, especially if we have just
-                // extended the interval and thus know for sure that the point lies on the extremity.
+                // extended the interval and thus know for sure that the point lies on the
+                // extremity.
                 // On top of that, some kind of search by bisection would be better.
-                for (int i=0; i < histogramInterval->size(); i++ ){
-                    if(histogramInterval->at(i).contains(currentValue)){
-                        histogramBins->replace(i, QwtIntervalSample(histogramBins->at(i).value + 1, histogramInterval->at(i)));
+                for (int i = 0; i < histogramInterval->size(); i++) {
+                    if (histogramInterval->at(i).contains(currentValue)) {
+                        histogramBins->replace(i, QwtIntervalSample(histogramBins->at(i).value + 1,
+                                                                    histogramInterval->at(i)));
                         break;
                     }
-
                 }
-            }
-            else{
+            } else {
                 // Create first interval
-                double tmp=0;
-                if (tmp < currentValue){
-                    while (tmp < currentValue){
-                        tmp+=step;
+                double tmp = 0;
+                if (tmp < currentValue) {
+                    while (tmp < currentValue) {
+                        tmp += step;
                     }
-                    histogramInterval->append(QwtInterval(tmp-step, tmp));
-                }
-                else{
-                    while (tmp > step){
-                        tmp-=step;
+                    histogramInterval->append(QwtInterval(tmp - step, tmp));
+                } else {
+                    while (tmp > step) {
+                        tmp -= step;
                     }
-                    histogramInterval->append(QwtInterval(tmp, tmp+step));
+                    histogramInterval->append(QwtInterval(tmp, tmp + step));
                 }
 
-                histogramBins->append(QwtIntervalSample(0,histogramInterval->front()));
+                histogramBins->append(QwtIntervalSample(0, histogramInterval->front()));
             }
-
 
             return true;
         }
@@ -192,7 +192,6 @@ void HistogramData::deletePlots(PlotData *histogramData)
 
     delete histogramData;
 }
-
 
 /**
  * @brief HistogramScopeConfig::clearPlots Clear all plot data

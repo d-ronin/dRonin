@@ -31,7 +31,7 @@
 #include <QWidget>
 
 namespace Ui {
-    class opmap_zoom_slider_widget;
+class opmap_zoom_slider_widget;
 }
 
 class opmap_zoom_slider_widget : public QWidget

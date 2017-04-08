@@ -38,32 +38,23 @@
 #include <QDebug>
 #include <QColorDialog>
 
-namespace Core
-{
+namespace Core {
 class IUAVGadgetConfiguration;
 }
 
 class ScopeGadgetConfiguration;
 
-namespace Ui
-{
+namespace Ui {
 class ScopeGadgetOptionsPage;
 }
 
 using namespace Core;
 
-class ScopeGadgetOptionsPage :  public IOptionsPage
+class ScopeGadgetOptionsPage : public IOptionsPage
 {
     Q_OBJECT
 public:
-    enum userRoleShift {
-        UR_UAVOBJECT,
-        UR_UAVFIELD,
-        UR_SCALE,
-        UR_COLOR,
-        UR_MEAN,
-        UR_MATHFUNCTION
-    };
+    enum userRoleShift { UR_UAVOBJECT, UR_UAVFIELD, UR_SCALE, UR_COLOR, UR_MEAN, UR_MATHFUNCTION };
 
     explicit ScopeGadgetOptionsPage(ScopeGadgetConfiguration *config, QObject *parent = 0);
 
@@ -75,14 +66,17 @@ private:
     Ui::ScopeGadgetOptionsPage *options_page;
     ScopeGadgetConfiguration *m_config;
 
-    void addPlot2dCurveConfig(QString uavObject, QString uavField, int scale, unsigned int mean, QString mathFunction, QVariant varColor);
-    void setPlot2dCurveProperties(QListWidgetItem *listWidgetItem, QString uavObject, QString uavField, int scale, unsigned int mean, QString mathFunction, QVariant varColor);
+    void addPlot2dCurveConfig(QString uavObject, QString uavField, int scale, unsigned int mean,
+                              QString mathFunction, QVariant varColor);
+    void setPlot2dCurveProperties(QListWidgetItem *listWidgetItem, QString uavObject,
+                                  QString uavField, int scale, unsigned int mean,
+                                  QString mathFunction, QVariant varColor);
     void set2dYAxisWidgetFromDataSource();
     void setButtonColor(const QColor &color);
-    bool eventFilter( QObject * obj, QEvent * evt );
+    bool eventFilter(QObject *obj, QEvent *evt);
 
     QString dataSourceStyleSheetTemplate;
-    QListWidgetItem * selectedItem;
+    QListWidgetItem *selectedItem;
 
 private slots:
     void on_lst2dCurves_currentRowChanged(int currentRow);
@@ -98,7 +92,6 @@ private slots:
     void on_cmbSpectrogramSource_currentIndexChanged(QString currentIndex);
     void on_cmb2dPlotType_currentIndexChanged(QString);
     void on_cmb3dPlotType_currentIndexChanged(QString);
-
 };
 
 #endif // SCOPEGADGETOPTIONSPAGE_H

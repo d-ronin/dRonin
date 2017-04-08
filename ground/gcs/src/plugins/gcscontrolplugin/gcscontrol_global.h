@@ -4,7 +4,7 @@
  * @author     Tau Labs, http://taulabs.org, Copyright (C) 2013
  * @addtogroup GCSPlugins GCS Plugins
  * @{
- * @addtogroup 
+ * @addtogroup
  * @{
  * @brief GCSReceiver API
  *****************************************************************************/
@@ -29,9 +29,9 @@
 #include <QtCore/qglobal.h>
 
 #if defined(GCSCONTROL_LIBRARY)
-#  define GCSCONTROLSHARED_EXPORT Q_DECL_EXPORT
+#define GCSCONTROLSHARED_EXPORT Q_DECL_EXPORT
 #else
-#  define GCSCONTROLSHARED_EXPORT Q_DECL_IMPORT
+#define GCSCONTROLSHARED_EXPORT Q_DECL_IMPORT
 #endif
 
 #endif // GCSCONTROL_GLOBAL_H

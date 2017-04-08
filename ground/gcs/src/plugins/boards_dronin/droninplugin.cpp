@@ -34,7 +34,6 @@
 #include "seppuku.h"
 #include <QtPlugin>
 
-
 DroninPlugin::DroninPlugin()
 {
 }
@@ -45,9 +44,9 @@ DroninPlugin::~DroninPlugin()
 
 bool DroninPlugin::initialize(const QStringList &arguments, QString *errorString)
 {
-   Q_UNUSED(arguments);
-   Q_UNUSED(errorString);
-   return true;
+    Q_UNUSED(arguments);
+    Q_UNUSED(errorString);
+    return true;
 }
 
 void DroninPlugin::extensionsInitialized()

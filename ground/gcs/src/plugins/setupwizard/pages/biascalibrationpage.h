@@ -36,7 +36,8 @@ namespace Ui {
 class BiasCalibrationPage;
 }
 
-class BiasCalibrationPage : public AbstractWizardPage {
+class BiasCalibrationPage : public AbstractWizardPage
+{
     Q_OBJECT
 
 public:

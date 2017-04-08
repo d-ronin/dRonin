@@ -31,7 +31,8 @@
 #include <QWizard>
 #include "rfmbindwizard.h"
 
-class RfmBindWizardPlugin : public ExtensionSystem::IPlugin {
+class RfmBindWizardPlugin : public ExtensionSystem::IPlugin
+{
     Q_OBJECT
     Q_PLUGIN_METADATA(IID "org.dronin.plugins.RfmBindWizard")
 public:
@@ -39,7 +40,7 @@ public:
     ~RfmBindWizardPlugin();
 
     void extensionsInitialized();
-    bool initialize(const QStringList & arguments, QString *errorString);
+    bool initialize(const QStringList &arguments, QString *errorString);
     void shutdown();
 
 private slots:

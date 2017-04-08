@@ -46,9 +46,11 @@ class CORE_EXPORT IUAVGadget : public IContext
 {
     Q_OBJECT
 public:
-    IUAVGadget(QString classId, QObject *parent = 0) :
-            IContext(parent),
-            m_classId(classId) { }
+    IUAVGadget(QString classId, QObject *parent = 0)
+        : IContext(parent)
+        , m_classId(classId)
+    {
+    }
 
     virtual ~IUAVGadget() {}
 
@@ -60,14 +62,14 @@ public:
     QString classId() const { return m_classId; }
 
     virtual IUAVGadgetConfiguration *activeConfiguration() { return 0; }
-    virtual void loadConfiguration(IUAVGadgetConfiguration*) { }
-    virtual void saveState(QSettings* /*qSettings*/) { }
-    virtual void restoreState(QByteArray) { }
-    virtual void restoreState(QSettings* /*qSettings*/) { }
+    virtual void loadConfiguration(IUAVGadgetConfiguration *) {}
+    virtual void saveState(QSettings * /*qSettings*/) {}
+    virtual void restoreState(QByteArray) {}
+    virtual void restoreState(QSettings * /*qSettings*/) {}
 public slots:
-    virtual void configurationChanged(IUAVGadgetConfiguration* ) { }
-    virtual void configurationAdded(IUAVGadgetConfiguration*) { }
-    virtual void configurationToBeDeleted(IUAVGadgetConfiguration*) { }
+    virtual void configurationChanged(IUAVGadgetConfiguration *) {}
+    virtual void configurationAdded(IUAVGadgetConfiguration *) {}
+    virtual void configurationToBeDeleted(IUAVGadgetConfiguration *) {}
 private slots:
 private:
     QString m_classId;

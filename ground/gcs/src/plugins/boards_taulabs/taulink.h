@@ -43,7 +43,7 @@ public:
     virtual bool queryCapabilities(BoardCapabilities capability);
     virtual QPixmap getBoardPicture();
     virtual QString getHwUAVO();
-    HwTauLink * getSettings();
+    HwTauLink *getSettings();
 
     /**
      * Get the RFM22b device ID this modem
@@ -60,8 +60,7 @@ public:
                            Core::IBoardType::LinkMode linkMode, quint8 min, quint8 max);
 
 private:
-    UAVObjectUtilManager* uavoUtilManager;
+    UAVObjectUtilManager *uavoUtilManager;
 };
-
 
 #endif // TAULINK_H

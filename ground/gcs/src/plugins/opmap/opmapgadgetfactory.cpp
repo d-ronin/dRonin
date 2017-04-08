@@ -31,8 +31,8 @@
 #include "opmapgadgetoptionspage.h"
 #include <coreplugin/iuavgadget.h>
 
-OPMapGadgetFactory::OPMapGadgetFactory(QObject *parent) :
-                IUAVGadgetFactory(QString("OPMapGadget"), tr("OPMap"), parent)
+OPMapGadgetFactory::OPMapGadgetFactory(QObject *parent)
+    : IUAVGadgetFactory(QString("OPMapGadget"), tr("OPMap"), parent)
 {
 }
 
@@ -40,7 +40,7 @@ OPMapGadgetFactory::~OPMapGadgetFactory()
 {
 }
 
-Core::IUAVGadget * OPMapGadgetFactory::createGadget(QWidget *parent)
+Core::IUAVGadget *OPMapGadgetFactory::createGadget(QWidget *parent)
 {
     OPMapGadgetWidget *gadgetWidget = new OPMapGadgetWidget(parent);
     return new OPMapGadget(QString("OPMapGadget"), gadgetWidget, parent);
@@ -51,8 +51,7 @@ IUAVGadgetConfiguration *OPMapGadgetFactory::createConfiguration(QSettings *qSet
     return new OPMapGadgetConfiguration(QString("OPMapGadget"), qSettings);
 }
 
-IOptionsPage * OPMapGadgetFactory::createOptionsPage(IUAVGadgetConfiguration *config)
+IOptionsPage *OPMapGadgetFactory::createOptionsPage(IUAVGadgetConfiguration *config)
 {
-    return new OPMapGadgetOptionsPage(qobject_cast<OPMapGadgetConfiguration*>(config));
+    return new OPMapGadgetOptionsPage(qobject_cast<OPMapGadgetConfiguration *>(config));
 }
-

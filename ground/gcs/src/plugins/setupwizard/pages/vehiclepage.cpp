@@ -28,9 +28,9 @@
 #include "vehiclepage.h"
 #include "ui_vehiclepage.h"
 
-VehiclePage::VehiclePage(SetupWizard *wizard, QWidget *parent) :
-    AbstractWizardPage(wizard, parent),
-    ui(new Ui::VehiclePage)
+VehiclePage::VehiclePage(SetupWizard *wizard, QWidget *parent)
+    : AbstractWizardPage(wizard, parent)
+    , ui(new Ui::VehiclePage)
 {
     ui->setupUi(this);
 }

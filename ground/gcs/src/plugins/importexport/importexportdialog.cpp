@@ -1,14 +1,14 @@
 #include "importexportdialog.h"
 #include "ui_importexportdialog.h"
 
-ImportExportDialog::ImportExportDialog(QWidget *parent) :
-    QDialog(parent),
-    ui(new Ui::ImportExportDialog)
+ImportExportDialog::ImportExportDialog(QWidget *parent)
+    : QDialog(parent)
+    , ui(new Ui::ImportExportDialog)
 {
     ui->setupUi(this);
     setWindowTitle(tr("Import Export Settings"));
 
-    connect( ui->widget, &ImportExportGadgetWidget::done, this, &QWidget::close);
+    connect(ui->widget, &ImportExportGadgetWidget::done, this, &QWidget::close);
 }
 
 ImportExportDialog::~ImportExportDialog()

@@ -33,7 +33,6 @@
 
 #include "rfm22bstatus.h"
 
-
 /**
  * @brief Sparky2::Sparky2
  *  This is the Sparky board definition
@@ -41,11 +40,15 @@
 Sparky2::Sparky2(void)
 {
     // Common USB IDs
-    addBootloaderUSBInfo(USBInfo(DRONIN_VID_DRONIN_BOOTLOADER, DRONIN_PID_DRONIN_BOOTLOADER, BCD_DEVICE_BOOTLOADER));
-    addFirmwareUSBInfo(USBInfo(DRONIN_VID_DRONIN_FIRMWARE, DRONIN_PID_DRONIN_FIRMWARE, BCD_DEVICE_FIRMWARE));
+    addBootloaderUSBInfo(
+        USBInfo(DRONIN_VID_DRONIN_BOOTLOADER, DRONIN_PID_DRONIN_BOOTLOADER, BCD_DEVICE_BOOTLOADER));
+    addFirmwareUSBInfo(
+        USBInfo(DRONIN_VID_DRONIN_FIRMWARE, DRONIN_PID_DRONIN_FIRMWARE, BCD_DEVICE_FIRMWARE));
     // Legacy USB IDs
-    addBootloaderUSBInfo(USBInfo(DRONIN_VID_TAULABS_SPARKY, DRONIN_PID_TAULABS_SPARKY, BCD_DEVICE_BOOTLOADER));
-    addFirmwareUSBInfo(USBInfo(DRONIN_VID_TAULABS_SPARKY, DRONIN_PID_TAULABS_SPARKY, BCD_DEVICE_FIRMWARE));
+    addBootloaderUSBInfo(
+        USBInfo(DRONIN_VID_TAULABS_SPARKY, DRONIN_PID_TAULABS_SPARKY, BCD_DEVICE_BOOTLOADER));
+    addFirmwareUSBInfo(
+        USBInfo(DRONIN_VID_TAULABS_SPARKY, DRONIN_PID_TAULABS_SPARKY, BCD_DEVICE_FIRMWARE));
 
     boardType = 0x92;
 
@@ -61,12 +64,12 @@ Sparky2::Sparky2(void)
     //  LED3 TIM8
     //  LED4 TIM8
     channelBanks.resize(6);
-    channelBanks[0] = QVector<int> () << 1 << 2;
-    channelBanks[1] = QVector<int> () << 3 << 4;
-    channelBanks[2] = QVector<int> () << 5 << 6;
-    channelBanks[3] = QVector<int> () << 7 << 8;
-    channelBanks[4] = QVector<int> () << 9 << 10;
-    channelBanks[5] = QVector<int> ();
+    channelBanks[0] = QVector<int>() << 1 << 2;
+    channelBanks[1] = QVector<int>() << 3 << 4;
+    channelBanks[2] = QVector<int>() << 5 << 6;
+    channelBanks[3] = QVector<int>() << 7 << 8;
+    channelBanks[4] = QVector<int>() << 9 << 10;
+    channelBanks[5] = QVector<int>();
 
     ExtensionSystem::PluginManager *pm = ExtensionSystem::PluginManager::instance();
     uavoUtilManager = pm->getObject<UAVObjectUtilManager>();
@@ -74,7 +77,6 @@ Sparky2::Sparky2(void)
 
 Sparky2::~Sparky2()
 {
-
 }
 
 QString Sparky2::shortName()
@@ -90,7 +92,7 @@ QString Sparky2::boardDescription()
 //! Return which capabilities this board has
 bool Sparky2::queryCapabilities(BoardCapabilities capability)
 {
-    switch(capability) {
+    switch (capability) {
     case BOARD_CAPABILITIES_GYROS:
     case BOARD_CAPABILITIES_ACCELS:
     case BOARD_CAPABILITIES_MAGS:
@@ -101,7 +103,7 @@ bool Sparky2::queryCapabilities(BoardCapabilities capability)
     default:
         break;
     }
-    
+
     return false;
 }
 
@@ -116,7 +118,7 @@ QString Sparky2::getHwUAVO()
 }
 
 //! Get the settings object
-HwSparky2 * Sparky2::getSettings()
+HwSparky2 *Sparky2::getSettings()
 {
     ExtensionSystem::PluginManager *pm = ExtensionSystem::PluginManager::instance();
     UAVObjectManager *uavoManager = pm->getObject<UAVObjectManager>();
@@ -137,7 +139,7 @@ bool Sparky2::isInputConfigurationSupported(Core::IBoardType::InputType type)
     default:
         break;
     }
-    
+
     return true;
 }
 
@@ -157,7 +159,7 @@ bool Sparky2::setInputType(Core::IBoardType::InputType type)
 
     HwSparky2::DataFields settings = hwSparky2->getData();
 
-    switch(type) {
+    switch (type) {
     case INPUT_TYPE_PPM:
         settings.RcvrPort = HwSparky2::RCVRPORT_PPM;
         break;
@@ -210,7 +212,7 @@ Core::IBoardType::InputType Sparky2::getInputType()
 
     HwSparky2::DataFields settings = hwSparky2->getData();
 
-    switch(settings.RcvrPort) {
+    switch (settings.RcvrPort) {
     case HwSparky2::RCVRPORT_PPM:
         return INPUT_TYPE_PPM;
     case HwSparky2::RCVRPORT_SBUS:
@@ -232,8 +234,8 @@ Core::IBoardType::InputType Sparky2::getInputType()
     default:
         break;
     }
-    
-    switch(settings.MainPort) {
+
+    switch (settings.MainPort) {
     case HwSparky2::MAINPORT_DSM:
         return INPUT_TYPE_DSM;
     case HwSparky2::MAINPORT_HOTTSUMD:
@@ -251,8 +253,8 @@ Core::IBoardType::InputType Sparky2::getInputType()
     default:
         break;
     }
-    
-    switch(settings.FlexiPort) {
+
+    switch (settings.FlexiPort) {
     case HwSparky2::FLEXIPORT_DSM:
         return INPUT_TYPE_DSM;
     case HwSparky2::FLEXIPORT_HOTTSUMD:
@@ -270,7 +272,7 @@ Core::IBoardType::InputType Sparky2::getInputType()
     default:
         break;
     }
-    
+
     return INPUT_TYPE_UNKNOWN;
 }
 
@@ -285,7 +287,7 @@ int Sparky2::queryMaxGyroRate()
 
     HwSparky2::DataFields settings = hwSparky2->getData();
 
-    switch(settings.GyroRange) {
+    switch (settings.GyroRange) {
     case HwSparky2::GYRORANGE_250:
         return 250;
     case HwSparky2::GYRORANGE_500:
@@ -297,10 +299,9 @@ int Sparky2::queryMaxGyroRate()
     default:
         break;
     }
-    
+
     return 500;
 }
-
 
 /**
  * Get the RFM22b device ID this modem
@@ -312,7 +313,7 @@ quint32 Sparky2::getRfmID()
     UAVObjectManager *uavoManager = pm->getObject<UAVObjectManager>();
 
     // Flight controllers are instance 1
-    RFM22BStatus *rfm22bStatus = RFM22BStatus::GetInstance(uavoManager,1);
+    RFM22BStatus *rfm22bStatus = RFM22BStatus::GetInstance(uavoManager, 1);
     Q_ASSERT(rfm22bStatus);
     RFM22BStatus::DataFields rfm22b = rfm22bStatus->getData();
 
@@ -331,7 +332,7 @@ bool Sparky2::bindRadio(quint32 id, quint32 baud_rate, float rf_power,
 
     settings.CoordID = id;
 
-    switch(baud_rate) {
+    switch (baud_rate) {
     case 9600:
         settings.MaxRfSpeed = HwSparky2::MAXRFSPEED_9600;
         break;
@@ -354,7 +355,7 @@ bool Sparky2::bindRadio(quint32 id, quint32 baud_rate, float rf_power,
 
     // Round to an integer to use a switch statement
     quint32 rf_power_100 = (rf_power * 100) + 0.5;
-    switch(rf_power_100) {
+    switch (rf_power_100) {
     case 0:
         settings.MaxRfPower = HwSparky2::MAXRFPOWER_0;
         break;
@@ -384,7 +385,7 @@ bool Sparky2::bindRadio(quint32 id, quint32 baud_rate, float rf_power,
         break;
     }
 
-    switch(linkMode) {
+    switch (linkMode) {
     case Core::IBoardType::LINK_TELEM:
         settings.Radio = HwSparky2::RADIO_TELEM;
         break;
@@ -407,5 +408,7 @@ bool Sparky2::bindRadio(quint32 id, quint32 baud_rate, float rf_power,
 
 QStringList Sparky2::getAdcNames()
 {
-    return QStringList() << "Analog CUR" << "Analog VOLT" << "DAC";
+    return QStringList() << "Analog CUR"
+                         << "Analog VOLT"
+                         << "DAC";
 }

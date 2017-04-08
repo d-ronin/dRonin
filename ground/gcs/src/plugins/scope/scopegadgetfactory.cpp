@@ -31,10 +31,8 @@
 #include "scopegadget.h"
 #include <coreplugin/iuavgadget.h>
 
-ScopeGadgetFactory::ScopeGadgetFactory(QObject *parent) :
-        IUAVGadgetFactory(QString("ScopeGadget"),
-                          tr("Scope"),
-                          parent)
+ScopeGadgetFactory::ScopeGadgetFactory(QObject *parent)
+    : IUAVGadgetFactory(QString("ScopeGadget"), tr("Scope"), parent)
 {
 }
 
@@ -42,9 +40,9 @@ ScopeGadgetFactory::~ScopeGadgetFactory()
 {
 }
 
-Core::IUAVGadget* ScopeGadgetFactory::createGadget(QWidget *parent)
+Core::IUAVGadget *ScopeGadgetFactory::createGadget(QWidget *parent)
 {
-    ScopeGadgetWidget* gadgetWidget = new ScopeGadgetWidget(parent);
+    ScopeGadgetWidget *gadgetWidget = new ScopeGadgetWidget(parent);
 
     return new ScopeGadget(QString("ScopeGadget"), gadgetWidget, parent);
 }
@@ -56,5 +54,5 @@ IUAVGadgetConfiguration *ScopeGadgetFactory::createConfiguration(QSettings *qSet
 
 IOptionsPage *ScopeGadgetFactory::createOptionsPage(IUAVGadgetConfiguration *config)
 {
-    return new ScopeGadgetOptionsPage(qobject_cast<ScopeGadgetConfiguration*>(config));
+    return new ScopeGadgetOptionsPage(qobject_cast<ScopeGadgetConfiguration *>(config));
 }

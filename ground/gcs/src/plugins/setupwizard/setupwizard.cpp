@@ -51,10 +51,16 @@
 #include "vehicleconfigurationhelper.h"
 #include "actuatorsettings.h"
 
-SetupWizard::SetupWizard(QWidget *parent) : QWizard(parent), VehicleConfigurationSource(),
-    m_controllerType(NULL),
-    m_vehicleType(VEHICLE_UNKNOWN), m_inputType(Core::IBoardType::INPUT_TYPE_UNKNOWN), m_escType(ESC_UNKNOWN),
-    m_calibrationPerformed(false), m_restartNeeded(false), m_connectionManager(0)
+SetupWizard::SetupWizard(QWidget *parent)
+    : QWizard(parent)
+    , VehicleConfigurationSource()
+    , m_controllerType(NULL)
+    , m_vehicleType(VEHICLE_UNKNOWN)
+    , m_inputType(Core::IBoardType::INPUT_TYPE_UNKNOWN)
+    , m_escType(ESC_UNKNOWN)
+    , m_calibrationPerformed(false)
+    , m_restartNeeded(false)
+    , m_connectionManager(0)
 {
     setWindowTitle(tr("dRonin Setup Wizard"));
     setOption(QWizard::IndependentPages, false);
@@ -73,8 +79,7 @@ int SetupWizard::nextId() const
     case PAGE_START:
         return PAGE_CONTROLLER;
 
-    case PAGE_CONTROLLER:
-    {
+    case PAGE_CONTROLLER: {
         ExtensionSystem::PluginManager *pm = ExtensionSystem::PluginManager::instance();
         Q_ASSERT(pm);
         UAVObjectUtilManager *utilMngr = pm->getObject<UAVObjectUtilManager>();
@@ -83,13 +88,15 @@ int SetupWizard::nextId() const
         const QString fwHash = utilMngr->getFirmwareHash();
         const QString gcsHash = utilMngr->getGcsHash();
         if (!fwHash.length() || fwHash != gcsHash) {
-            qobject_cast<BoardtypeUnknown *>(page(PAGE_BOARDTYPE_UNKNOWN))->setFailureType(BoardtypeUnknown::UNKNOWN_FIRMWARE);
+            qobject_cast<BoardtypeUnknown *>(page(PAGE_BOARDTYPE_UNKNOWN))
+                ->setFailureType(BoardtypeUnknown::UNKNOWN_FIRMWARE);
             return PAGE_BOARDTYPE_UNKNOWN;
         }
 
-        Core::IBoardType* type = getControllerType();
+        Core::IBoardType *type = getControllerType();
         if (type == NULL) {
-            qobject_cast<BoardtypeUnknown *>(page(PAGE_BOARDTYPE_UNKNOWN))->setFailureType(BoardtypeUnknown::UNKNOWN_BOARD);
+            qobject_cast<BoardtypeUnknown *>(page(PAGE_BOARDTYPE_UNKNOWN))
+                ->setFailureType(BoardtypeUnknown::UNKNOWN_BOARD);
             return PAGE_BOARDTYPE_UNKNOWN;
         }
 
@@ -98,8 +105,7 @@ int SetupWizard::nextId() const
         else
             return PAGE_INPUT_NOT_SUPPORTED;
     }
-    case PAGE_VEHICLES:
-    {
+    case PAGE_VEHICLES: {
         switch (getVehicleType()) {
         case VEHICLE_MULTI:
             return PAGE_MULTI;
@@ -139,9 +145,8 @@ int SetupWizard::nextId() const
     case PAGE_OUTPUT_CALIBRATION:
         return PAGE_SAVE;
 
-    case PAGE_SUMMARY:
-    {
-        Core::IBoardType* type = getControllerType();
+    case PAGE_SUMMARY: {
+        Core::IBoardType *type = getControllerType();
         if (type != NULL)
             return PAGE_BIAS_CALIBRATION;
         else
@@ -169,7 +174,7 @@ QString SetupWizard::getSummaryText()
     QString summary = "";
 
     summary.append("<b>").append(tr("Controller type: ")).append("</b>");
-    Core::IBoardType* type = getControllerType();
+    Core::IBoardType *type = getControllerType();
     if (type != NULL)
         summary.append(type->shortName());
     else
@@ -298,7 +303,8 @@ QString SetupWizard::getSummaryText()
     /*
        summary.append("<br>");
        summary.append("<b>").append(tr("Reboot required: ")).append("</b>");
-       summary.append(isRestartNeeded() ? tr("<font color='red'>Yes</font>") : tr("<font color='green'>No</font>"));
+       summary.append(isRestartNeeded() ? tr("<font color='red'>Yes</font>") : tr("<font
+       color='green'>No</font>"));
      */
     return summary;
 }
@@ -326,10 +332,12 @@ void SetupWizard::createPages()
 
     setStartId(PAGE_START);
 
-    connect(button(QWizard::CustomButton1), &QAbstractButton::clicked, this, &SetupWizard::customBackClicked);
+    connect(button(QWizard::CustomButton1), &QAbstractButton::clicked, this,
+            &SetupWizard::customBackClicked);
     setButtonText(QWizard::CustomButton1, buttonText(QWizard::BackButton));
     QList<QWizard::WizardButton> button_layout;
-    button_layout << QWizard::Stretch << QWizard::CustomButton1 << QWizard::NextButton << QWizard::CancelButton << QWizard::FinishButton;
+    button_layout << QWizard::Stretch << QWizard::CustomButton1 << QWizard::NextButton
+                  << QWizard::CancelButton << QWizard::FinishButton;
     setButtonLayout(button_layout);
     connect(this, &QWizard::currentIdChanged, this, &SetupWizard::pageChanged);
 }
@@ -355,4 +363,3 @@ bool SetupWizard::saveHardwareSettings() const
 
     return helper.setupHardwareSettings();
 }
-

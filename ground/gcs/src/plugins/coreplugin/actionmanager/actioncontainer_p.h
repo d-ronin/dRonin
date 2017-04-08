@@ -11,17 +11,17 @@
  * @brief The Core GCS plugin
  *****************************************************************************/
 /*
- * This program is free software; you can redistribute it and/or modify 
- * it under the terms of the GNU General Public License as published by 
- * the Free Software Foundation; either version 3 of the License, or 
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 3 of the License, or
  * (at your option) any later version.
- * 
- * This program is distributed in the hope that it will be useful, but 
- * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY 
- * or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License 
+ *
+ * This program is distributed in the hope that it will be useful, but
+ * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
+ * or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License
  * for more details.
- * 
- * You should have received a copy of the GNU General Public License along 
+ *
+ * You should have received a copy of the GNU General Public License along
  * with this program; if not, see <http://www.gnu.org/licenses/>
  */
 
@@ -36,89 +36,91 @@
 namespace Core {
 namespace Internal {
 
-class ActionContainerPrivate : public Core::ActionContainer
-{
-public:
-    ActionContainerPrivate(int id);
-    virtual ~ActionContainerPrivate() {}
+    class ActionContainerPrivate : public Core::ActionContainer
+    {
+    public:
+        ActionContainerPrivate(int id);
+        virtual ~ActionContainerPrivate() {}
 
-    void setEmptyAction(EmptyAction ea);
-    bool hasEmptyAction(EmptyAction ea) const;
+        void setEmptyAction(EmptyAction ea);
+        bool hasEmptyAction(EmptyAction ea) const;
 
-    QAction *insertLocation(const QString &group) const;
-    void appendGroup(const QString &group);
-    void addAction(Command *action, const QString &group = QString());
-    void addMenu(ActionContainer *menu, const QString &group = QString());
+        QAction *insertLocation(const QString &group) const;
+        void appendGroup(const QString &group);
+        void addAction(Command *action, const QString &group = QString());
+        void addMenu(ActionContainer *menu, const QString &group = QString());
 
-    int id() const;
+        int id() const;
 
-    QMenu *menu() const;
-    QMenuBar *menuBar() const;
+        QMenu *menu() const;
+        QMenuBar *menuBar() const;
 
-    virtual void insertAction(QAction *before, QAction *action) = 0;
-    virtual void insertMenu(QAction *before, QMenu *menu) = 0;
+        virtual void insertAction(QAction *before, QAction *action) = 0;
+        virtual void insertMenu(QAction *before, QMenu *menu) = 0;
 
-    QList<Command *> commands() const { return m_commands; }
-    QList<ActionContainer *> subContainers() const { return m_subContainers; }
-protected:
-    bool canAddAction(Command *action) const;
-    bool canAddMenu(ActionContainer *menu) const;
-    virtual bool canBeAddedToMenu() const = 0;
+        QList<Command *> commands() const { return m_commands; }
+        QList<ActionContainer *> subContainers() const { return m_subContainers; }
+    protected:
+        bool canAddAction(Command *action) const;
+        bool canAddMenu(ActionContainer *menu) const;
+        virtual bool canBeAddedToMenu() const = 0;
 
-    void addAction(Command *action, int pos, bool setpos);
-    void addMenu(ActionContainer *menu, int pos, bool setpos);
+        void addAction(Command *action, int pos, bool setpos);
+        void addMenu(ActionContainer *menu, int pos, bool setpos);
 
-private:
-    QAction *beforeAction(int pos, int *prevKey) const;
-    int calcPosition(int pos, int prevKey) const;
+    private:
+        QAction *beforeAction(int pos, int *prevKey) const;
+        int calcPosition(int pos, int prevKey) const;
 
-    QList<int> m_groups;
-    int m_data;
-    int m_id;
-    QMap<int, int> m_posmap;
-    QList<ActionContainer *> m_subContainers;
-    QList<Command *> m_commands;
-};
+        QList<int> m_groups;
+        int m_data;
+        int m_id;
+        QMap<int, int> m_posmap;
+        QList<ActionContainer *> m_subContainers;
+        QList<Command *> m_commands;
+    };
 
-class MenuActionContainer : public ActionContainerPrivate
-{
-public:
-    MenuActionContainer(int id);
+    class MenuActionContainer : public ActionContainerPrivate
+    {
+    public:
+        MenuActionContainer(int id);
 
-    void setMenu(QMenu *menu);
-    QMenu *menu() const;
+        void setMenu(QMenu *menu);
+        QMenu *menu() const;
 
-    void setLocation(const CommandLocation &location);
-    CommandLocation location() const;
+        void setLocation(const CommandLocation &location);
+        CommandLocation location() const;
 
-    void insertAction(QAction *before, QAction *action);
-    void insertMenu(QAction *before, QMenu *menu);
-    bool update();
+        void insertAction(QAction *before, QAction *action);
+        void insertMenu(QAction *before, QMenu *menu);
+        bool update();
 
-protected:
-    bool canBeAddedToMenu() const;
-private:
-    QMenu *m_menu;
-    CommandLocation m_location;
-};
+    protected:
+        bool canBeAddedToMenu() const;
 
-class MenuBarActionContainer : public ActionContainerPrivate
-{
-public:
-    MenuBarActionContainer(int id);
+    private:
+        QMenu *m_menu;
+        CommandLocation m_location;
+    };
 
-    void setMenuBar(QMenuBar *menuBar);
-    QMenuBar *menuBar() const;
+    class MenuBarActionContainer : public ActionContainerPrivate
+    {
+    public:
+        MenuBarActionContainer(int id);
 
-    void insertAction(QAction *before, QAction *action);
-    void insertMenu(QAction *before, QMenu *menu);
-    bool update();
+        void setMenuBar(QMenuBar *menuBar);
+        QMenuBar *menuBar() const;
 
-protected:
-    bool canBeAddedToMenu() const;
-private:
-    QMenuBar *m_menuBar;
-};
+        void insertAction(QAction *before, QAction *action);
+        void insertMenu(QAction *before, QMenu *menu);
+        bool update();
+
+    protected:
+        bool canBeAddedToMenu() const;
+
+    private:
+        QMenuBar *m_menuBar;
+    };
 
 } // namespace Internal
 } // namespace Core

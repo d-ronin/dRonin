@@ -46,15 +46,17 @@ Seppuku::Seppuku(void)
     boardType = 0xA1;
 
     // Common USB IDs
-    addBootloaderUSBInfo(USBInfo(DRONIN_VID_DRONIN_BOOTLOADER, DRONIN_PID_DRONIN_BOOTLOADER, BCD_DEVICE_BOOTLOADER));
-    addFirmwareUSBInfo(USBInfo(DRONIN_VID_DRONIN_FIRMWARE, DRONIN_PID_DRONIN_FIRMWARE, BCD_DEVICE_FIRMWARE));
+    addBootloaderUSBInfo(
+        USBInfo(DRONIN_VID_DRONIN_BOOTLOADER, DRONIN_PID_DRONIN_BOOTLOADER, BCD_DEVICE_BOOTLOADER));
+    addFirmwareUSBInfo(
+        USBInfo(DRONIN_VID_DRONIN_FIRMWARE, DRONIN_PID_DRONIN_FIRMWARE, BCD_DEVICE_FIRMWARE));
 
     channelBanks.resize(4);
     channelBanks.clear();
-    channelBanks << (QVector<int>() << 1 << 2);      // TIM8
-    channelBanks << (QVector<int>() << 3);           // TIM14
+    channelBanks << (QVector<int>() << 1 << 2); // TIM8
+    channelBanks << (QVector<int>() << 3); // TIM14
     channelBanks << (QVector<int>() << 4 << 5 << 6); // TIM3
-    channelBanks << (QVector<int>() << 7 << 8);      // TIM5
+    channelBanks << (QVector<int>() << 7 << 8); // TIM5
 }
 
 Seppuku::~Seppuku()
@@ -184,7 +186,10 @@ int Seppuku::queryMaxGyroRate()
 
 QStringList Seppuku::getAdcNames()
 {
-    return QStringList() << "V" << "A" << "RSSI" << "Unmarked";
+    return QStringList() << "V"
+                         << "A"
+                         << "RSSI"
+                         << "Unmarked";
 }
 
 QPixmap Seppuku::getBoardPicture()

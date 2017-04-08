@@ -48,24 +48,24 @@
 
 namespace Core {
 
-
 BoardManager::BoardManager()
 {
-
 }
 
-BoardManager::~BoardManager() {
-
+BoardManager::~BoardManager()
+{
 }
 
 void BoardManager::init()
 {
-    //register to the plugin manager so we can receive
-    //new connection object from plugins
-    QObject::connect(ExtensionSystem::PluginManager::instance(), SIGNAL(objectAdded(QObject*)), this, SLOT(objectAdded(QObject*)));
-    QObject::connect(ExtensionSystem::PluginManager::instance(), SIGNAL(aboutToRemoveObject(QObject*)), this, SLOT(aboutToRemoveObject(QObject*)));
+    // register to the plugin manager so we can receive
+    // new connection object from plugins
+    QObject::connect(ExtensionSystem::PluginManager::instance(), SIGNAL(objectAdded(QObject *)),
+                     this, SLOT(objectAdded(QObject *)));
+    QObject::connect(ExtensionSystem::PluginManager::instance(),
+                     SIGNAL(aboutToRemoveObject(QObject *)), this,
+                     SLOT(aboutToRemoveObject(QObject *)));
 }
-
 
 /**
  * @brief BoardManager::getKnownVendorIDs
@@ -84,7 +84,6 @@ QList<int> BoardManager::getKnownVendorIDs()
     return res.toList();
 }
 
-
 /**
 *   Slot called when a plugin added an object to the core pool
 *   We want to check whether this object is a BoardType and if so,
@@ -92,13 +91,13 @@ QList<int> BoardManager::getKnownVendorIDs()
 */
 void BoardManager::objectAdded(QObject *obj)
 {
-    //Check if a plugin added a board type object to the pool
+    // Check if a plugin added a board type object to the pool
     IBoardType *board = Aggregation::query<IBoardType>(obj);
-    if (!board) return;
+    if (!board)
+        return;
 
     // Keep track of the registration
     m_boardTypesList.append(board);
-
 }
 
 /**
@@ -107,9 +106,10 @@ void BoardManager::objectAdded(QObject *obj)
  */
 void BoardManager::aboutToRemoveObject(QObject *obj)
 {
-    //Check if a plugin removed a board type from the pool
+    // Check if a plugin removed a board type from the pool
     IBoardType *board = Aggregation::query<IBoardType>(obj);
-    if (!board) return;
+    if (!board)
+        return;
 
     if (m_boardTypesList.contains(board))
         m_boardTypesList.removeAt(m_boardTypesList.indexOf(board));
@@ -146,6 +146,5 @@ QList<IBoardType::USBInfo> BoardManager::getKnownBootloaderUSBInfo()
     }
     return res;
 }
-
 
 } // Core

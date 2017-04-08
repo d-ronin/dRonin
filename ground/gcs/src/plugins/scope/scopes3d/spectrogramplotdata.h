@@ -46,24 +46,30 @@ class SpectrogramData : public Plot3dData
 {
     Q_OBJECT
 public:
-    SpectrogramData(QString uavObject, QString uavField, double samplingFrequency, unsigned int windowWidth, double timeHorizon);
+    SpectrogramData(QString uavObject, QString uavField, double samplingFrequency,
+                    unsigned int windowWidth, double timeHorizon);
     ~SpectrogramData() {}
 
     /*!
       \brief Append new data to the plot
       */
-    bool append(UAVObject* obj);
+    bool append(UAVObject *obj);
 
     /*!
       \brief Removes the old data from the buffer
       */
-    virtual void removeStaleData(){}
+    virtual void removeStaleData() {}
 
     /*!
      * \brief readAndResetAutoscaleFlag reads the flag value and resets it
      * \return
      */
-    double readAndResetAutoscaleValue(){double tmpVal = autoscaleValueUpdated; autoscaleValueUpdated = 0; return tmpVal;}
+    double readAndResetAutoscaleValue()
+    {
+        double tmpVal = autoscaleValueUpdated;
+        autoscaleValueUpdated = 0;
+        return tmpVal;
+    }
 
     virtual void plotNewData(PlotData *, ScopeConfig *, ScopeGadgetWidget *);
     virtual void deletePlots(PlotData *);
@@ -72,9 +78,8 @@ public:
     virtual void setZMaximum(double val);
     void clearPlots();
 
-
-    QwtMatrixRasterData *getRasterData(){return rasterData;}
-    void setSpectrogram(QwtPlotSpectrogram *val){spectrogram = val;}
+    QwtMatrixRasterData *getRasterData() { return rasterData; }
+    void setSpectrogram(QwtPlotSpectrogram *val) { spectrogram = val; }
 
 private:
     void resetAxisRanges();
@@ -86,7 +91,7 @@ private:
     double timeHorizon;
     unsigned int windowWidth;
     double autoscaleValueUpdated;
-    ffft::FFTReal <double> *fft_object;
+    ffft::FFTReal<double> *fft_object;
     QVector<double> plotData;
     int lastInstanceIndex;
 };

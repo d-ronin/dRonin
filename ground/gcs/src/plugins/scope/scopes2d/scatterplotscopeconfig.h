@@ -29,7 +29,6 @@
 
 #include "scopes2d/scopes2dconfig.h"
 
-
 /**
  * @brief The Scatterplot2dScopeConfig class The scatterplot scope configuration
  */
@@ -40,37 +39,41 @@ public:
     /**
      * @brief The Scatterplot2dType enum Defines the different type of plots.
      */
-    enum Scatterplot2dType {
-        SERIES2D,
-        TIMESERIES2D
-    };
-
-
+    enum Scatterplot2dType { SERIES2D, TIMESERIES2D };
 
     Scatterplot2dScopeConfig();
     Scatterplot2dScopeConfig(QSettings *qSettings);
     Scatterplot2dScopeConfig(Ui::ScopeGadgetOptionsPage *options_page);
     ~Scatterplot2dScopeConfig();
 
-    virtual void saveConfiguration(QSettings* qSettings);
+    virtual void saveConfiguration(QSettings *qSettings);
     void create(QSettings qSettings);
 
-    QList<Plot2dCurveConfiguration*> getScatterplotDataSource(){return m_scatterplotSourceConfigs;}
-    void addScatterplotDataSource(Plot2dCurveConfiguration* value){m_scatterplotSourceConfigs.append(value);}
-    void replaceScatterplotDataSource(QList<Plot2dCurveConfiguration*> scatterplotSourceConfigs);
+    QList<Plot2dCurveConfiguration *> getScatterplotDataSource()
+    {
+        return m_scatterplotSourceConfigs;
+    }
+    void addScatterplotDataSource(Plot2dCurveConfiguration *value)
+    {
+        m_scatterplotSourceConfigs.append(value);
+    }
+    void replaceScatterplotDataSource(QList<Plot2dCurveConfiguration *> scatterplotSourceConfigs);
 
-    //Getter functions
-    virtual int getScopeType(){return (int) SCATTERPLOT2D;}
-    double getTimeHorizon(){return timeHorizon;}
-    virtual QList<Plot2dCurveConfiguration*> getDataSourceConfigs(){return m_scatterplotSourceConfigs;}
-    Scatterplot2dType getScatterplot2dType(){return scatterplot2dType;}
+    // Getter functions
+    virtual int getScopeType() { return (int)SCATTERPLOT2D; }
+    double getTimeHorizon() { return timeHorizon; }
+    virtual QList<Plot2dCurveConfiguration *> getDataSourceConfigs()
+    {
+        return m_scatterplotSourceConfigs;
+    }
+    Scatterplot2dType getScatterplot2dType() { return scatterplot2dType; }
 
-    //Setter functions
-    void setTimeHorizon(double val){timeHorizon = val;}
-    void setScatterplot2dType(Scatterplot2dType val){scatterplot2dType = val;}
+    // Setter functions
+    void setTimeHorizon(double val) { timeHorizon = val; }
+    void setScatterplot2dType(Scatterplot2dType val) { scatterplot2dType = val; }
     virtual void setGuiConfiguration(Ui::ScopeGadgetOptionsPage *options_page);
 
-    virtual ScopeConfig* cloneScope(ScopeConfig *Scatterplot2dScopeConfig);
+    virtual ScopeConfig *cloneScope(ScopeConfig *Scatterplot2dScopeConfig);
 
     virtual void loadConfiguration(ScopeGadgetWidget *scopeGadgetWidget);
     virtual void preparePlot(ScopeGadgetWidget *);
@@ -80,10 +83,9 @@ private:
     Scatterplot2dType scatterplot2dType;
     double timeHorizon;
 
-    QList<Plot2dCurveConfiguration*> m_scatterplotSourceConfigs;
+    QList<Plot2dCurveConfiguration *> m_scatterplotSourceConfigs;
 
 private slots:
-
 };
 
 #endif // SCATTERPLOTSCOPECONFIG_H

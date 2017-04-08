@@ -39,12 +39,11 @@ class ConfigGadgetOptionsPage : public IOptionsPage
 {
 public:
     Q_OBJECT
-    public:
-        explicit ConfigGadgetOptionsPage(ConfigGadgetConfiguration *config, QObject *parent = 0);
-        QWidget *createPage(QWidget *parent);
-        void apply();
-        void finish();
-
+public:
+    explicit ConfigGadgetOptionsPage(ConfigGadgetConfiguration *config, QObject *parent = 0);
+    QWidget *createPage(QWidget *parent);
+    void apply();
+    void finish();
 };
 
 #endif // CONFIGGADGETOPTIONSPAGE_H

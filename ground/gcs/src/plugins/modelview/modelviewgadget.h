@@ -37,21 +37,18 @@ class ModelViewGadgetWidget;
 
 using namespace Core;
 
-class ModelViewGadget : public Core::IUAVGadget {
+class ModelViewGadget : public Core::IUAVGadget
+{
     Q_OBJECT
 public:
     ModelViewGadget(QString classId, ModelViewGadgetWidget *widget, QWidget *parent = 0);
     ~ModelViewGadget();
 
-    QWidget *widget()
-    {
-        return m_widget;
-    }
+    QWidget *widget() { return m_widget; }
     void loadConfiguration(IUAVGadgetConfiguration *config);
 
 private:
     ModelViewGadgetWidget *m_widget;
 };
-
 
 #endif // MODELVIEWGADGET_H_

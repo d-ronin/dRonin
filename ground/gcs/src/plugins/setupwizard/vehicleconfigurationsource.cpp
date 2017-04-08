@@ -29,4 +29,5 @@
 #include "vehicleconfigurationsource.h"
 
 VehicleConfigurationSource::VehicleConfigurationSource()
-{}
+{
+}

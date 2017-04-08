@@ -31,7 +31,6 @@
 #include <QStringList>
 #include <extensionsystem/pluginmanager.h>
 
-
 GpsDisplayPlugin::GpsDisplayPlugin()
 {
     // Do nothing
@@ -42,7 +41,7 @@ GpsDisplayPlugin::~GpsDisplayPlugin()
     // Do nothing
 }
 
-bool GpsDisplayPlugin::initialize(const QStringList & args, QString *errMsg)
+bool GpsDisplayPlugin::initialize(const QStringList &args, QString *errMsg)
 {
     Q_UNUSED(args);
     Q_UNUSED(errMsg);

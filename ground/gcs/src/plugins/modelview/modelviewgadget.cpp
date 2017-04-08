@@ -27,10 +27,11 @@
 #include "modelviewgadgetwidget.h"
 #include "modelviewgadgetconfiguration.h"
 
-ModelViewGadget::ModelViewGadget(QString classId, ModelViewGadgetWidget *widget, QWidget *parent) :
-    IUAVGadget(classId, parent),
-    m_widget(widget)
-{}
+ModelViewGadget::ModelViewGadget(QString classId, ModelViewGadgetWidget *widget, QWidget *parent)
+    : IUAVGadget(classId, parent)
+    , m_widget(widget)
+{
+}
 
 ModelViewGadget::~ModelViewGadget()
 {

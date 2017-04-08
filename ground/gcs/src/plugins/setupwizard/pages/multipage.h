@@ -38,7 +38,8 @@ namespace Ui {
 class MultiPage;
 }
 
-class MultiPage : public AbstractWizardPage {
+class MultiPage : public AbstractWizardPage
+{
     Q_OBJECT
 
 public:

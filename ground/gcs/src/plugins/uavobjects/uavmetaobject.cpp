@@ -14,17 +14,17 @@
  * @brief      The UAVUObjects GCS plugin
  *****************************************************************************/
 /*
- * This program is free software; you can redistribute it and/or modify 
- * it under the terms of the GNU General Public License as published by 
- * the Free Software Foundation; either version 3 of the License, or 
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 3 of the License, or
  * (at your option) any later version.
- * 
- * This program is distributed in the hope that it will be useful, but 
- * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY 
- * or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License 
+ *
+ * This program is distributed in the hope that it will be useful, but
+ * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
+ * or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License
  * for more details.
- * 
- * You should have received a copy of the GNU General Public License along 
+ *
+ * You should have received a copy of the GNU General Public License along
  * with this program; if not, see <http://www.gnu.org/licenses/>
  *
  * Additional note on redistribution: The copyright and license notices above
@@ -38,23 +38,30 @@
 /**
  * Constructor
  */
-UAVMetaObject::UAVMetaObject(quint32 objID, const QString& name, UAVObject *parent):
-        UAVObject(objID, true, name)
+UAVMetaObject::UAVMetaObject(quint32 objID, const QString &name, UAVObject *parent)
+    : UAVObject(objID, true, name)
 {
     this->parent = parent;
     // Setup default metadata of metaobject (can not be changed)
     UAVObject::MetadataInitialize(ownMetadata);
     // Setup fields
     QStringList modesBitField;
-    modesBitField << tr("FlightReadOnly") << tr("GCSReadOnly") << tr("FlightTelemetryAcked") << tr("GCSTelemetryAcked") << tr("FlightUpdatePeriodic") << tr("FlightUpdateOnChange") << tr("GCSUpdatePeriodic") << tr("GCSUpdateOnChange");
-    QList<UAVObjectField*> fields;    
-    fields.append( new UAVObjectField(tr("Modes"), tr("boolean"), UAVObjectField::BITFIELD, modesBitField, QStringList(), QList<int>() ) );
-    fields.append( new UAVObjectField(tr("Flight Telemetry Update Period"), tr("ms"), UAVObjectField::UINT16, 1, QStringList(), QList<int>() ) );
-    fields.append( new UAVObjectField(tr("GCS Telemetry Update Period"), tr("ms"), UAVObjectField::UINT16, 1, QStringList(), QList<int>() ) );
-    fields.append( new UAVObjectField(tr("Logging Update Period"), tr("ms"), UAVObjectField::UINT16, 1, QStringList(), QList<int>() ) );
+    modesBitField << tr("FlightReadOnly") << tr("GCSReadOnly") << tr("FlightTelemetryAcked")
+                  << tr("GCSTelemetryAcked") << tr("FlightUpdatePeriodic")
+                  << tr("FlightUpdateOnChange") << tr("GCSUpdatePeriodic")
+                  << tr("GCSUpdateOnChange");
+    QList<UAVObjectField *> fields;
+    fields.append(new UAVObjectField(tr("Modes"), tr("boolean"), UAVObjectField::BITFIELD,
+                                     modesBitField, QStringList(), QList<int>()));
+    fields.append(new UAVObjectField(tr("Flight Telemetry Update Period"), tr("ms"),
+                                     UAVObjectField::UINT16, 1, QStringList(), QList<int>()));
+    fields.append(new UAVObjectField(tr("GCS Telemetry Update Period"), tr("ms"),
+                                     UAVObjectField::UINT16, 1, QStringList(), QList<int>()));
+    fields.append(new UAVObjectField(tr("Logging Update Period"), tr("ms"), UAVObjectField::UINT16,
+                                     1, QStringList(), QList<int>()));
     // Initialize parent
     UAVObject::initialize(0);
-    UAVObject::initializeFields(fields, (quint8*)&parentMetadata, sizeof(Metadata));
+    UAVObject::initializeFields(fields, (quint8 *)&parentMetadata, sizeof(Metadata));
     // Setup metadata of parent
     parentMetadata = parent->getDefaultMetadata();
 }
@@ -62,7 +69,7 @@ UAVMetaObject::UAVMetaObject(quint32 objID, const QString& name, UAVObject *pare
 /**
  * Get the parent object
  */
-UAVObject* UAVMetaObject::getParentObject()
+UAVObject *UAVMetaObject::getParentObject()
 {
     return parent;
 }
@@ -71,7 +78,7 @@ UAVObject* UAVMetaObject::getParentObject()
  * Set the metadata of the metaobject, this function will
  * do nothing since metaobjects have read-only metadata.
  */
-void UAVMetaObject::setMetadata(const Metadata& mdata)
+void UAVMetaObject::setMetadata(const Metadata &mdata)
 {
     Q_UNUSED(mdata);
     return; // can not update metaobject's metadata
@@ -96,7 +103,7 @@ UAVObject::Metadata UAVMetaObject::getDefaultMetadata()
 /**
  * Set the metadata held by the metaobject
  */
-void UAVMetaObject::setData(const Metadata& mdata)
+void UAVMetaObject::setData(const Metadata &mdata)
 {
     parentMetadata = mdata;
     emit objectUpdatedAuto(this); // trigger object updated event
@@ -110,5 +117,3 @@ UAVObject::Metadata UAVMetaObject::getData()
 {
     return parentMetadata;
 }
-
-

@@ -7,7 +7,7 @@
  * @{
  * @addtogroup ConsolePlugin Console Plugin
  * @{
- * @brief The Console Gadget impliments a console view 
+ * @brief The Console Gadget impliments a console view
  *****************************************************************************/
 /*
  * This program is free software; you can redistribute it and/or modify
@@ -27,9 +27,9 @@
 #include "consolegadgetwidget.h"
 #include "texteditloggerengine.h"
 
-ConsoleGadget::ConsoleGadget(QString classId, ConsoleGadgetWidget *widget, QWidget *parent) :
-        IUAVGadget(classId, parent),
-        m_widget(widget)
+ConsoleGadget::ConsoleGadget(QString classId, ConsoleGadgetWidget *widget, QWidget *parent)
+    : IUAVGadget(classId, parent)
+    , m_widget(widget)
 {
     m_logger = new TextEditLoggerEngine(widget);
     bool suitableName = false;

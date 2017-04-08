@@ -41,7 +41,7 @@ public:
     virtual bool queryCapabilities(BoardCapabilities capability);
     virtual QPixmap getBoardPicture();
     virtual QString getHwUAVO();
-    HwSparky2 * getSettings();
+    HwSparky2 *getSettings();
 
     //! Determine if this board supports configuring the receiver
     virtual bool isInputConfigurationSupported(Core::IBoardType::InputType type);
@@ -62,7 +62,10 @@ public:
      * @brief getConnectionDiagram get the connection diagram for this board
      * @return a string with the name of the resource for this board diagram
      */
-    virtual QString getConnectionDiagram() { return ":/taulabs/images/sparky-connection-diagram.svg"; }
+    virtual QString getConnectionDiagram()
+    {
+        return ":/taulabs/images/sparky-connection-diagram.svg";
+    }
 
     virtual int queryMaxGyroRate();
 
@@ -83,8 +86,7 @@ public:
     virtual QStringList getAdcNames();
 
 private:
-    UAVObjectUtilManager* uavoUtilManager;
+    UAVObjectUtilManager *uavoUtilManager;
 };
-
 
 #endif // SPARKY2_H

@@ -33,9 +33,7 @@
 #include "uavtalk/telemetrymanager.h"
 #include "objectpersistence.h"
 
-
 #include <QMessageBox>
-
 
 class ConfigGadgetFactory;
 
@@ -48,9 +46,9 @@ public:
     ConfigPlugin();
     ~ConfigPlugin();
 
-    UAVObjectManager * getObjectManager();
+    UAVObjectManager *getObjectManager();
     void extensionsInitialized();
-    bool initialize(const QStringList & arguments, QString * errorString);
+    bool initialize(const QStringList &arguments, QString *errorString);
     void shutdown();
 
 private slots:
@@ -60,13 +58,12 @@ private slots:
     void eraseDone(UAVObject *);
     void eraseFailed();
 
- private:
+private:
     ConfigGadgetFactory *cf;
-    Core::Command* cmd;
+    Core::Command *cmd;
     bool settingsErased;
 
     static const int FLASH_ERASE_TIMEOUT_MS = 45000;
-
 };
 
 #endif // CONFIGPLUGIN_H

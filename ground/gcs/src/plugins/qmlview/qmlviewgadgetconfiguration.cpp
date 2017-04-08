@@ -7,7 +7,7 @@
  * @{
  * @addtogroup OPMapPlugin QML Viewer Plugin
  * @{
- * @brief The QML Viewer Gadget 
+ * @brief The QML Viewer Gadget
  *****************************************************************************/
 /*
  * This program is free software; you can redistribute it and/or modify
@@ -31,14 +31,15 @@
  * Loads a saved configuration or defaults if non exist.
  *
  */
-QmlViewGadgetConfiguration::QmlViewGadgetConfiguration(QString classId, QSettings* qSettings, QObject *parent) :
-    IUAVGadgetConfiguration(classId, parent),
-    m_defaultDial("Unknown")
+QmlViewGadgetConfiguration::QmlViewGadgetConfiguration(QString classId, QSettings *qSettings,
+                                                       QObject *parent)
+    : IUAVGadgetConfiguration(classId, parent)
+    , m_defaultDial("Unknown")
 {
-    //if a saved configuration exists load it
-    if(qSettings != 0) {
+    // if a saved configuration exists load it
+    if (qSettings != 0) {
         QString dialFile = qSettings->value("dialFile").toString();
-        m_defaultDial=Utils::PathUtils().InsertDataPath(dialFile);
+        m_defaultDial = Utils::PathUtils().InsertDataPath(dialFile);
     }
 }
 
@@ -49,7 +50,7 @@ QmlViewGadgetConfiguration::QmlViewGadgetConfiguration(QString classId, QSetting
 IUAVGadgetConfiguration *QmlViewGadgetConfiguration::clone()
 {
     QmlViewGadgetConfiguration *m = new QmlViewGadgetConfiguration(this->classId());
-    m->m_defaultDial=m_defaultDial;
+    m->m_defaultDial = m_defaultDial;
     return m;
 }
 
@@ -57,7 +58,8 @@ IUAVGadgetConfiguration *QmlViewGadgetConfiguration::clone()
  * Saves a configuration.
  *
  */
-void QmlViewGadgetConfiguration::saveConfig(QSettings* qSettings) const {
+void QmlViewGadgetConfiguration::saveConfig(QSettings *qSettings) const
+{
     QString dialFile = Utils::PathUtils().RemoveDataPath(m_defaultDial);
     qSettings->setValue("dialFile", dialFile);
 }

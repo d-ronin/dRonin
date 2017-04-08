@@ -33,9 +33,9 @@
 #include <coreplugin/icore.h>
 #include <coreplugin/modemanager.h>
 
-ConfigGadgetFactory::ConfigGadgetFactory(QObject *parent) :
-    IUAVGadgetFactory(QString("ConfigGadget"), tr("Config Gadget"), parent),
-    gadgetWidget(0)
+ConfigGadgetFactory::ConfigGadgetFactory(QObject *parent)
+    : IUAVGadgetFactory(QString("ConfigGadget"), tr("Config Gadget"), parent)
+    , gadgetWidget(0)
 {
 }
 
@@ -43,18 +43,16 @@ ConfigGadgetFactory::~ConfigGadgetFactory()
 {
 }
 
-Core::IUAVGadget* ConfigGadgetFactory::createGadget(QWidget *parent)
+Core::IUAVGadget *ConfigGadgetFactory::createGadget(QWidget *parent)
 {
     gadgetWidget = new ConfigGadgetWidget(parent);
 
     // Add Menu entry
-    Core::ActionManager* am = Core::ICore::instance()->actionManager();
-    Core::ActionContainer* ac = am->actionContainer(Core::Constants::M_TOOLS);
+    Core::ActionManager *am = Core::ICore::instance()->actionManager();
+    Core::ActionContainer *ac = am->actionContainer(Core::Constants::M_TOOLS);
 
-    Core::Command* cmd = am->registerAction(new QAction(this),
-                                            "ConfigPlugin.ShowInputWizard",
-                                            QList<int>() <<
-                                            Core::Constants::C_GLOBAL_ID);
+    Core::Command *cmd = am->registerAction(new QAction(this), "ConfigPlugin.ShowInputWizard",
+                                            QList<int>() << Core::Constants::C_GLOBAL_ID);
     cmd->action()->setText(tr("Radio Setup Wizard"));
 
     Core::ModeManager::instance()->addAction(cmd, 1);
@@ -74,13 +72,12 @@ IUAVGadgetConfiguration *ConfigGadgetFactory::createConfiguration(QSettings *qSe
 
 IOptionsPage *ConfigGadgetFactory::createOptionsPage(IUAVGadgetConfiguration *config)
 {
-    return new ConfigGadgetOptionsPage(qobject_cast<ConfigGadgetConfiguration*>(config));
+    return new ConfigGadgetOptionsPage(qobject_cast<ConfigGadgetConfiguration *>(config));
 }
 
 void ConfigGadgetFactory::startInputWizard()
 {
-    if(gadgetWidget)
-    {
+    if (gadgetWidget) {
         Core::ModeManager::instance()->activateModeByWorkspaceName("Configuration");
         gadgetWidget->startInputWizard();
     }

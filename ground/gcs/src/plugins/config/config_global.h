@@ -31,10 +31,9 @@
 #include <QtCore/qglobal.h>
 
 #if defined(CONFIG_LIBRARY)
-#  define CONFIG_EXPORT Q_DECL_EXPORT
+#define CONFIG_EXPORT Q_DECL_EXPORT
 #else
-#  define CONFIG_EXPORT Q_DECL_IMPORT
+#define CONFIG_EXPORT Q_DECL_IMPORT
 #endif
-
 
 #endif // CONFIG_GLOBAL_H

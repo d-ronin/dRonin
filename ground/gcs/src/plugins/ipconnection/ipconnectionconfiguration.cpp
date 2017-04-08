@@ -27,8 +27,9 @@
 #include "ipconnectionconfiguration.h"
 #include <coreplugin/icore.h>
 
-IPConnectionConfiguration::IPConnectionConfiguration(QString classId, QSettings* qSettings, QObject *parent) :
-    IUAVGadgetConfiguration(classId, parent)
+IPConnectionConfiguration::IPConnectionConfiguration(QString classId, QSettings *qSettings,
+                                                     QObject *parent)
+    : IUAVGadgetConfiguration(classId, parent)
 {
     Q_UNUSED(qSettings);
 
@@ -66,7 +67,6 @@ void IPConnectionConfiguration::saveConfig() const
     settings->endArray();
     settings->endGroup();
 }
-
 
 void IPConnectionConfiguration::readConfig()
 {

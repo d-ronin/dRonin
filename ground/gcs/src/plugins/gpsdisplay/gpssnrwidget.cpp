@@ -1,7 +1,8 @@
 #include "gpssnrwidget.h"
 
-GpsSnrWidget::GpsSnrWidget(QWidget *parent) :
-        QGraphicsView(parent) {
+GpsSnrWidget::GpsSnrWidget(QWidget *parent)
+    : QGraphicsView(parent)
+{
 
     scene = new QGraphicsScene(this);
     setScene(scene);
@@ -20,28 +21,31 @@ GpsSnrWidget::GpsSnrWidget(QWidget *parent) :
         scene->addItem(boxes[i]);
         boxes[i]->hide();
 
-        satTexts[i] = new QGraphicsSimpleTextItem("##",boxes[i]);
+        satTexts[i] = new QGraphicsSimpleTextItem("##", boxes[i]);
         satTexts[i]->setBrush(QColor("White"));
         satTexts[i]->setFont(QFont("Courier", -1, QFont::ExtraBold));
 
-        satSNRs[i] = new QGraphicsSimpleTextItem("##",boxes[i]);
+        satSNRs[i] = new QGraphicsSimpleTextItem("##", boxes[i]);
         satSNRs[i]->setBrush(QColor("Black"));
         satSNRs[i]->setFont(QFont("Courier", -1, QFont::ExtraBold));
     }
 }
 
-GpsSnrWidget::~GpsSnrWidget() {
+GpsSnrWidget::~GpsSnrWidget()
+{
     delete scene;
     scene = 0;
 }
 
-void GpsSnrWidget::showEvent(QShowEvent *event) {
+void GpsSnrWidget::showEvent(QShowEvent *event)
+{
     Q_UNUSED(event)
 
     satellitesDone();
 }
 
-void GpsSnrWidget::resizeEvent(QResizeEvent* event) {
+void GpsSnrWidget::resizeEvent(QResizeEvent *event)
+{
     Q_UNUSED(event);
 
     satellitesDone();
@@ -49,27 +53,28 @@ void GpsSnrWidget::resizeEvent(QResizeEvent* event) {
 
 void GpsSnrWidget::satellitesDone()
 {
-    scene->setSceneRect(0,0, this->viewport()->width(), this->viewport()->height());
+    scene->setSceneRect(0, 0, this->viewport()->width(), this->viewport()->height());
 
     int drawIndex = 0;
 
     /* Display ones with a positive snr first; UBX driver orders this way but
      * NMEA does not
      */
-    for(int index = 0; index < MAX_SATELLITES; index++) {
+    for (int index = 0; index < MAX_SATELLITES; index++) {
         if (satellites[index][3] > 0) {
             drawSat(drawIndex++, index);
         }
     }
 
-    for(int index = 0; index < MAX_SATELLITES; index++) {
+    for (int index = 0; index < MAX_SATELLITES; index++) {
         if (satellites[index][3] <= 0) {
             drawSat(drawIndex++, index);
         }
     }
 }
 
-void GpsSnrWidget::updateSat(int index, int prn, int elevation, int azimuth, int snr) {
+void GpsSnrWidget::updateSat(int index, int prn, int elevation, int azimuth, int snr)
+{
     if (index >= MAX_SATELLITES) {
         // A bit of error checking never hurts.
         return;
@@ -82,7 +87,8 @@ void GpsSnrWidget::updateSat(int index, int prn, int elevation, int azimuth, int
     satellites[index][3] = snr;
 }
 
-void GpsSnrWidget::drawSat(int drawIndex, int index) {
+void GpsSnrWidget::drawSat(int drawIndex, int index)
+{
     if (index >= MAX_SATELLITES) {
         // A bit of error checking never hurts.
         return;
@@ -105,7 +111,7 @@ void GpsSnrWidget::drawSat(int drawIndex, int index) {
 
         // Casting to int rounds down, which is what I want.
         // Minus 2 to allow a pixel of white left and right.
-        int availableWidth = (int)((scene->width()-2) / MAX_SHOWN_SATELLITES);
+        int availableWidth = (int)((scene->width() - 2) / MAX_SHOWN_SATELLITES);
 
         // 2 pixels, one on each side.
         qreal width = availableWidth - 2;
@@ -116,12 +122,12 @@ void GpsSnrWidget::drawSat(int drawIndex, int index) {
         // Rember, 0 is at the top.
         qreal y = scene->height() - height;
         // Compensate for the extra pixel for the border.
-        boxes[index]->setRect(0,0,width-1,height-1);
-        boxes[index]->setPos(x,y);
+        boxes[index]->setRect(0, 0, width - 1, height - 1);
+        boxes[index]->setPos(x, y);
 
         QRectF boxRect = boxes[index]->boundingRect();
         QString prnString = QString().number(prn);
-        if(prnString.length() == 1) {
+        if (prnString.length() == 1) {
             prnString = "0" + prnString;
         }
         satTexts[index]->setText(prnString);
@@ -129,13 +135,13 @@ void GpsSnrWidget::drawSat(int drawIndex, int index) {
 
         QTransform matrix;
         qreal scale = 0.85 * (boxRect.width() / textRect.width());
-        matrix.translate( boxRect.width()/2, boxRect.height());
-        matrix.scale(scale,scale);
-        matrix.translate(-textRect.width()/2,-textRect.height());
-        satTexts[index]->setTransform(matrix,false);
+        matrix.translate(boxRect.width() / 2, boxRect.height());
+        matrix.scale(scale, scale);
+        matrix.translate(-textRect.width() / 2, -textRect.height());
+        satTexts[index]->setTransform(matrix, false);
 
         QString snrString = QString().number(snr);
-        if (snrString.length() ==1) { // Will probably never happen!
+        if (snrString.length() == 1) { // Will probably never happen!
             snrString = "0" + snrString;
         }
         satSNRs[index]->setText(snrString);
@@ -143,10 +149,10 @@ void GpsSnrWidget::drawSat(int drawIndex, int index) {
 
         matrix.reset();
         scale = 0.85 * (boxRect.width() / textRect.width());
-        matrix.translate( boxRect.width()/2,0);
-        matrix.scale(scale,scale);
-        matrix.translate(-textRect.width()/2,-textRect.height());
-        satSNRs[index]->setTransform(matrix,false);
+        matrix.translate(boxRect.width() / 2, 0);
+        matrix.scale(scale, scale);
+        matrix.translate(-textRect.width() / 2, -textRect.height());
+        satSNRs[index]->setTransform(matrix, false);
 
     } else {
         boxes[index]->hide();

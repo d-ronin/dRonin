@@ -30,8 +30,8 @@
 #include "uavobjectbrowseroptionspage.h"
 #include <coreplugin/iuavgadget.h>
 
-UAVObjectBrowserFactory::UAVObjectBrowserFactory(QObject *parent) :
-        IUAVGadgetFactory(QString("UAVObjectBrowser"), tr("UAVObject Browser"), parent)
+UAVObjectBrowserFactory::UAVObjectBrowserFactory(QObject *parent)
+    : IUAVGadgetFactory(QString("UAVObjectBrowser"), tr("UAVObject Browser"), parent)
 {
 }
 
@@ -39,9 +39,9 @@ UAVObjectBrowserFactory::~UAVObjectBrowserFactory()
 {
 }
 
-Core::IUAVGadget* UAVObjectBrowserFactory::createGadget(QWidget *parent)
+Core::IUAVGadget *UAVObjectBrowserFactory::createGadget(QWidget *parent)
 {
-    UAVObjectBrowserWidget* gadgetWidget = new UAVObjectBrowserWidget(parent);
+    UAVObjectBrowserWidget *gadgetWidget = new UAVObjectBrowserWidget(parent);
     return new UAVObjectBrowser(QString("UAVObjectBrowser"), gadgetWidget, parent);
 }
 
@@ -50,9 +50,7 @@ IUAVGadgetConfiguration *UAVObjectBrowserFactory::createConfiguration(QSettings 
     return new UAVObjectBrowserConfiguration(QString("UAVObjectBrowser"), qSettings);
 }
 
-
 IOptionsPage *UAVObjectBrowserFactory::createOptionsPage(IUAVGadgetConfiguration *config)
 {
-    return new UAVObjectBrowserOptionsPage(qobject_cast<UAVObjectBrowserConfiguration*>(config));
+    return new UAVObjectBrowserOptionsPage(qobject_cast<UAVObjectBrowserConfiguration *>(config));
 }
-

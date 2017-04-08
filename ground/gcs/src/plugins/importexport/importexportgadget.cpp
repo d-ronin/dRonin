@@ -30,9 +30,10 @@
 #include "importexportgadgetwidget.h"
 #include "importexportgadgetconfiguration.h"
 
-ImportExportGadget::ImportExportGadget(QString classId, ImportExportGadgetWidget *widget, QWidget *parent) :
-        IUAVGadget(classId, parent),
-        m_widget(widget)
+ImportExportGadget::ImportExportGadget(QString classId, ImportExportGadgetWidget *widget,
+                                       QWidget *parent)
+    : IUAVGadget(classId, parent)
+    , m_widget(widget)
 {
 }
 
@@ -47,9 +48,9 @@ ImportExportGadget::~ImportExportGadget()
   first time, so you have to be careful not to assume all the plugin values are initialized
   the first time you use them
  */
-void ImportExportGadget::loadConfiguration(IUAVGadgetConfiguration* config)
+void ImportExportGadget::loadConfiguration(IUAVGadgetConfiguration *config)
 {
-    m_widget->loadConfiguration(qobject_cast<ImportExportGadgetConfiguration*>(config));
+    m_widget->loadConfiguration(qobject_cast<ImportExportGadgetConfiguration *>(config));
 }
 /**
  * @}

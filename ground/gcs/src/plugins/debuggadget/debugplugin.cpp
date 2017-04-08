@@ -39,7 +39,7 @@ DebugPlugin::~DebugPlugin()
     // Do nothing
 }
 
-bool DebugPlugin::initialize(const QStringList & args, QString *errMsg)
+bool DebugPlugin::initialize(const QStringList &args, QString *errMsg)
 {
     Q_UNUSED(args);
     Q_UNUSED(errMsg);

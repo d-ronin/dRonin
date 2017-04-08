@@ -27,7 +27,6 @@
  * of this source file; otherwise redistribution is prohibited.
  */
 
-
 #ifndef DTFCCONFIGURATION_H
 #define DTFCCONFIGURATION_H
 
@@ -41,7 +40,7 @@ class DtfcConfiguration;
 class DtfcConfiguration : public ConfigTaskWidget
 {
     Q_OBJECT
-    
+
 public:
     explicit DtfcConfiguration(QWidget *parent = 0);
     ~DtfcConfiguration();

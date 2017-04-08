@@ -7,7 +7,7 @@
  * @{
  * @addtogroup LinearDialPlugin Linear Dial Plugin
  * @{
- * @brief Impliments a gadget that displays linear gauges 
+ * @brief Impliments a gadget that displays linear gauges
  *****************************************************************************/
 /*
  * This program is free software; you can redistribute it and/or modify
@@ -28,9 +28,9 @@
 #include "lineardialgadgetwidget.h"
 #include "lineardialgadgetconfiguration.h"
 
-LineardialGadget::LineardialGadget(QString classId, LineardialGadgetWidget *widget, QWidget *parent) :
-        IUAVGadget(classId, parent),
-        m_widget(widget)
+LineardialGadget::LineardialGadget(QString classId, LineardialGadgetWidget *widget, QWidget *parent)
+    : IUAVGadget(classId, parent)
+    , m_widget(widget)
 {
 }
 
@@ -45,12 +45,12 @@ LineardialGadget::~LineardialGadget()
   first time, so you have to be careful not to assume all the plugin values are initialized
   the first time you use them
  */
-void LineardialGadget::loadConfiguration(IUAVGadgetConfiguration* config)
+void LineardialGadget::loadConfiguration(IUAVGadgetConfiguration *config)
 {
-    LineardialGadgetConfiguration *m = qobject_cast<LineardialGadgetConfiguration*>(config);
+    LineardialGadgetConfiguration *m = qobject_cast<LineardialGadgetConfiguration *>(config);
     m_widget->setFactor(m->getFactor());
     m_widget->setDecimalPlaces(m->getDecimalPlaces());
-    m_widget->setRange(m->getMin(),m->getMax());
+    m_widget->setRange(m->getMin(), m->getMax());
     m_widget->setGreenRange(m->getGreenMin(), m->getGreenMax());
     m_widget->setYellowRange(m->getYellowMin(), m->getYellowMax());
     m_widget->setRedRange(m->getRedMin(), m->getRedMax());

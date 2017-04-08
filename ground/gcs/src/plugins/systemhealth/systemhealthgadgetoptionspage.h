@@ -39,16 +39,17 @@ class IUAVGadgetConfiguration;
 class SystemHealthGadgetConfiguration;
 
 namespace Ui {
-    class SystemHealthGadgetOptionsPage;
+class SystemHealthGadgetOptionsPage;
 }
 
 using namespace Core;
 
 class SystemHealthGadgetOptionsPage : public IOptionsPage
 {
-Q_OBJECT
+    Q_OBJECT
 public:
-    explicit SystemHealthGadgetOptionsPage(SystemHealthGadgetConfiguration *config, QObject *parent = 0);
+    explicit SystemHealthGadgetOptionsPage(SystemHealthGadgetConfiguration *config,
+                                           QObject *parent = 0);
 
     QWidget *createPage(QWidget *parent);
     void apply();

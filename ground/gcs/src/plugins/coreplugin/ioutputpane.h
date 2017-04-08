@@ -11,17 +11,17 @@
  * @brief The Core GCS plugin
  *****************************************************************************/
 /*
- * This program is free software; you can redistribute it and/or modify 
- * it under the terms of the GNU General Public License as published by 
- * the Free Software Foundation; either version 3 of the License, or 
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 3 of the License, or
  * (at your option) any later version.
- * 
- * This program is distributed in the hope that it will be useful, but 
- * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY 
- * or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License 
+ *
+ * This program is distributed in the hope that it will be useful, but
+ * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
+ * or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License
  * for more details.
- * 
- * You should have received a copy of the GNU General Public License along 
+ *
+ * You should have received a copy of the GNU General Public License along
  * with this program; if not, see <http://www.gnu.org/licenses/>
  */
 
@@ -44,11 +44,14 @@ class CORE_EXPORT IOutputPane : public QObject
 {
     Q_OBJECT
 public:
-    IOutputPane(QObject *parent = 0) : QObject(parent) {}
+    IOutputPane(QObject *parent = 0)
+        : QObject(parent)
+    {
+    }
     virtual ~IOutputPane() {}
 
     virtual QWidget *outputWidget(QWidget *parent) = 0;
-    virtual QList<QWidget*> toolBarWidgets() const = 0;
+    virtual QList<QWidget *> toolBarWidgets() const = 0;
     virtual QString name() const = 0;
 
     // -1 don't show in statusBar
@@ -72,34 +75,16 @@ public:
     virtual void goToNext() = 0;
     virtual void goToPrev() = 0;
 public slots:
-    void popup()
-    {
-        popup(true);
-    }
-    void popup(bool withFocus)
-    {
-        emit showPage(withFocus);
-    }
+    void popup() { popup(true); }
+    void popup(bool withFocus) { emit showPage(withFocus); }
 
-    void hide()
-    {
-        emit hidePage();
-    }
+    void hide() { emit hidePage(); }
 
-    void toggle()
-    {
-        toggle(true);
-    }
+    void toggle() { toggle(true); }
 
-    void toggle(bool withFocusIfShown)
-    {
-        emit togglePage(withFocusIfShown);
-    }
+    void toggle(bool withFocusIfShown) { emit togglePage(withFocusIfShown); }
 
-    void navigateStateChanged()
-    {
-        emit navigateStateUpdate();
-    }
+    void navigateStateChanged() { emit navigateStateUpdate(); }
 
 signals:
     void showPage(bool withFocus);

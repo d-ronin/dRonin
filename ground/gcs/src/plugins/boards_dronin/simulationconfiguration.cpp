@@ -33,9 +33,9 @@
 
 #include "hwsimulation.h"
 
-SimulationConfiguration::SimulationConfiguration(QWidget *parent) :
-    ConfigTaskWidget(parent),
-    ui(new Ui::SimulationConfiguration)
+SimulationConfiguration::SimulationConfiguration(QWidget *parent)
+    : ConfigTaskWidget(parent)
+    , ui(new Ui::SimulationConfiguration)
 {
     ui->setupUi(this);
 

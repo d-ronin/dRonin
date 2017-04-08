@@ -29,11 +29,12 @@
 
 #include "ui_modelviewoptionspage.h"
 
-
-ModelViewGadgetOptionsPage::ModelViewGadgetOptionsPage(ModelViewGadgetConfiguration *config, QObject *parent) :
-    IOptionsPage(parent),
-    m_config(config)
-{}
+ModelViewGadgetOptionsPage::ModelViewGadgetOptionsPage(ModelViewGadgetConfiguration *config,
+                                                       QObject *parent)
+    : IOptionsPage(parent)
+    , m_config(config)
+{
+}
 
 QWidget *ModelViewGadgetOptionsPage::createPage(QWidget *parent)
 {
@@ -48,11 +49,9 @@ QWidget *ModelViewGadgetOptionsPage::createPage(QWidget *parent)
     m_page->backgroundPathChooser->setPromptDialogFilter(tr("Images (*.png *.jpg *.bmp *.xpm)"));
     m_page->backgroundPathChooser->setPromptDialogTitle(tr("Choose background image"));
 
-
     m_page->modelPathChooser->setPath(m_config->acFilename());
     m_page->backgroundPathChooser->setPath(m_config->bgFilename());
     m_page->enableVbo->setChecked(m_config->vboEnabled());
-
 
     return w;
 }

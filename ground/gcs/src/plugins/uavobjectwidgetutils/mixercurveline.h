@@ -53,11 +53,11 @@ public:
 
     enum { Type = UserType + 12 };
     int type() const { return Type; }
-    
+
 protected:
     QRectF boundingRect() const;
     void paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget);
-    
+
 private:
     MixerNode *source, *dest;
 
@@ -67,4 +67,3 @@ private:
 };
 
 #endif // MIXERCURVELINE_H
-

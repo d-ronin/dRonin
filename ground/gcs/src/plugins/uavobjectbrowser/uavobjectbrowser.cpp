@@ -27,12 +27,13 @@
 #include "uavobjectbrowser.h"
 #include "uavobjectbrowserwidget.h"
 
-UAVObjectBrowser::UAVObjectBrowser(QString classId, UAVObjectBrowserWidget *widget, QWidget *parent) :
-        IUAVGadget(classId, parent),
-        m_widget(widget),
-        m_config(NULL)
+UAVObjectBrowser::UAVObjectBrowser(QString classId, UAVObjectBrowserWidget *widget, QWidget *parent)
+    : IUAVGadget(classId, parent)
+    , m_widget(widget)
+    , m_config(NULL)
 {
-    connect(m_widget,&UAVObjectBrowserWidget::viewOptionsChanged,this,&UAVObjectBrowser::viewOptionsChangedSlot);
+    connect(m_widget, &UAVObjectBrowserWidget::viewOptionsChanged, this,
+            &UAVObjectBrowser::viewOptionsChangedSlot);
 }
 
 UAVObjectBrowser::~UAVObjectBrowser()
@@ -40,27 +41,27 @@ UAVObjectBrowser::~UAVObjectBrowser()
     delete m_widget;
 }
 
-void UAVObjectBrowser::loadConfiguration(IUAVGadgetConfiguration* config)
+void UAVObjectBrowser::loadConfiguration(IUAVGadgetConfiguration *config)
 {
-    UAVObjectBrowserConfiguration *m = qobject_cast<UAVObjectBrowserConfiguration*>(config);
-    m_config=m;
+    UAVObjectBrowserConfiguration *m = qobject_cast<UAVObjectBrowserConfiguration *>(config);
+    m_config = m;
     m_widget->setRecentlyUpdatedColor(m->recentlyUpdatedColor());
     m_widget->setManuallyChangedColor(m->manuallyChangedColor());
     m_widget->setRecentlyUpdatedTimeout(m->recentlyUpdatedTimeout());
     m_widget->setOnlyHighlightChangedValues(m->onlyHighlightChangedValues());
-    m_widget->setViewOptions(m->categorizedView(),m->scientificView(),m->showMetaData(),m->hideNotPresentOnHw());
+    m_widget->setViewOptions(m->categorizedView(), m->scientificView(), m->showMetaData(),
+                             m->hideNotPresentOnHw());
     m_widget->setNotPresentOnHwColor(m->notPresentOnHwColor());
     m_widget->initialize();
 }
 
-void UAVObjectBrowser::viewOptionsChangedSlot(bool categorized, bool scientific, bool metadata, bool hideNotPresent)
+void UAVObjectBrowser::viewOptionsChangedSlot(bool categorized, bool scientific, bool metadata,
+                                              bool hideNotPresent)
 {
-    if(m_config)
-    {
+    if (m_config) {
         m_config->setCategorizedView(categorized);
         m_config->setScientificView(scientific);
         m_config->setShowMetaData(metadata);
         m_config->setHideNotPresentOnHw(hideNotPresent);
     }
 }
-

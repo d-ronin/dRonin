@@ -30,35 +30,34 @@
 #include <QStringList>
 #include <extensionsystem/pluginmanager.h>
 
-
 MagicWaypointPlugin::MagicWaypointPlugin()
 {
-   // Do nothing
+    // Do nothing
 }
 
 MagicWaypointPlugin::~MagicWaypointPlugin()
 {
-   // Do nothing
+    // Do nothing
 }
 
-bool MagicWaypointPlugin::initialize(const QStringList& args, QString *errMsg)
+bool MagicWaypointPlugin::initialize(const QStringList &args, QString *errMsg)
 {
-   Q_UNUSED(args);
-   Q_UNUSED(errMsg);
-   mf = new MagicWaypointGadgetFactory(this);
-   addAutoReleasedObject(mf);
+    Q_UNUSED(args);
+    Q_UNUSED(errMsg);
+    mf = new MagicWaypointGadgetFactory(this);
+    addAutoReleasedObject(mf);
 
-   return true;
+    return true;
 }
 
 void MagicWaypointPlugin::extensionsInitialized()
 {
-   // Do nothing
+    // Do nothing
 }
 
 void MagicWaypointPlugin::shutdown()
 {
-   // Do nothing
+    // Do nothing
 }
 
 /**

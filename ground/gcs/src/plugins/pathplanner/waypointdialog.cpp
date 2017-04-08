@@ -29,19 +29,25 @@
 #include <waypoint.h>
 #include "ui_waypoint_dialog.h"
 
-WaypointDialog::WaypointDialog(QWidget *parent, QAbstractItemModel *model,QItemSelectionModel *selection) :
-    QDialog(parent,Qt::Window), ui(new Ui_waypoint_dialog),
-    model(model), itemSelection(selection)
+WaypointDialog::WaypointDialog(QWidget *parent, QAbstractItemModel *model,
+                               QItemSelectionModel *selection)
+    : QDialog(parent, Qt::Window)
+    , ui(new Ui_waypoint_dialog)
+    , model(model)
+    , itemSelection(selection)
 {
     ui->setupUi(this);
-    connect(ui->cbMode, QOverload<int>::of(&QComboBox::currentIndexChanged),
-            this, &WaypointDialog::setupModeWidgets);
+    connect(ui->cbMode, QOverload<int>::of(&QComboBox::currentIndexChanged), this,
+            &WaypointDialog::setupModeWidgets);
 
     // Connect up the buttons
     connect(ui->pushButtonOK, &QAbstractButton::clicked, this, &WaypointDialog::onOkButton_clicked);
-    connect(ui->pushButtonCancel, &QAbstractButton::clicked, this, &WaypointDialog::onCancelButton_clicked);
-    connect(ui->pushButtonPrevious, &QAbstractButton::clicked, this, &WaypointDialog::onPreviousButton_clicked);
-    connect(ui->pushButtonNext, &QAbstractButton::clicked, this, &WaypointDialog::onNextButton_clicked);
+    connect(ui->pushButtonCancel, &QAbstractButton::clicked, this,
+            &WaypointDialog::onCancelButton_clicked);
+    connect(ui->pushButtonPrevious, &QAbstractButton::clicked, this,
+            &WaypointDialog::onPreviousButton_clicked);
+    connect(ui->pushButtonNext, &QAbstractButton::clicked, this,
+            &WaypointDialog::onNextButton_clicked);
 
     mapper = new QDataWidgetMapper(this);
 
@@ -49,20 +55,21 @@ WaypointDialog::WaypointDialog(QWidget *parent, QAbstractItemModel *model,QItemS
     delegate->loadComboBox(ui->cbMode);
 
     mapper->setItemDelegate(delegate);
-    connect(mapper, &QDataWidgetMapper::currentIndexChanged, this, &WaypointDialog::currentIndexChanged);
+    connect(mapper, &QDataWidgetMapper::currentIndexChanged, this,
+            &WaypointDialog::currentIndexChanged);
     mapper->setModel(model);
     mapper->setSubmitPolicy(QDataWidgetMapper::AutoSubmit);
-    mapper->addMapping(ui->doubleSpinBoxLatitude,FlightDataModel::LATPOSITION);
-    mapper->addMapping(ui->doubleSpinBoxLongitude,FlightDataModel::LNGPOSITION);
-    mapper->addMapping(ui->doubleSpinBoxAltitude,FlightDataModel::ALTITUDE);
-    mapper->addMapping(ui->doubleSpinBoxNorth,FlightDataModel::NED_NORTH);
-    mapper->addMapping(ui->doubleSpinBoxEast,FlightDataModel::NED_EAST);
-    mapper->addMapping(ui->doubleSpinBoxDown,FlightDataModel::NED_DOWN);
-    mapper->addMapping(ui->lineEditDescription,FlightDataModel::WPDESCRIPTION);
-    mapper->addMapping(ui->doubleSpinBoxVelocity,FlightDataModel::VELOCITY);
-    mapper->addMapping(ui->cbMode,FlightDataModel::MODE);
-    mapper->addMapping(ui->dsb_modeParams,FlightDataModel::MODE_PARAMS);
-    mapper->addMapping(ui->checkBoxLocked,FlightDataModel::LOCKED);
+    mapper->addMapping(ui->doubleSpinBoxLatitude, FlightDataModel::LATPOSITION);
+    mapper->addMapping(ui->doubleSpinBoxLongitude, FlightDataModel::LNGPOSITION);
+    mapper->addMapping(ui->doubleSpinBoxAltitude, FlightDataModel::ALTITUDE);
+    mapper->addMapping(ui->doubleSpinBoxNorth, FlightDataModel::NED_NORTH);
+    mapper->addMapping(ui->doubleSpinBoxEast, FlightDataModel::NED_EAST);
+    mapper->addMapping(ui->doubleSpinBoxDown, FlightDataModel::NED_DOWN);
+    mapper->addMapping(ui->lineEditDescription, FlightDataModel::WPDESCRIPTION);
+    mapper->addMapping(ui->doubleSpinBoxVelocity, FlightDataModel::VELOCITY);
+    mapper->addMapping(ui->cbMode, FlightDataModel::MODE);
+    mapper->addMapping(ui->dsb_modeParams, FlightDataModel::MODE_PARAMS);
+    mapper->addMapping(ui->checkBoxLocked, FlightDataModel::LOCKED);
 
     // Make sure the model catches updates from the check box
     connect(ui->checkBoxLocked, &QCheckBox::stateChanged, mapper, &QDataWidgetMapper::submit);
@@ -71,14 +78,14 @@ WaypointDialog::WaypointDialog(QWidget *parent, QAbstractItemModel *model,QItemS
 
     // Support locking the controls when locked
     enableEditWidgets();
-    connect(model,&QAbstractItemModel::dataChanged,this,&WaypointDialog::enableEditWidgets);
+    connect(model, &QAbstractItemModel::dataChanged, this, &WaypointDialog::enableEditWidgets);
 
     // This means whenever the model changes we show those changes.  Since the update is on
     // auto submit changes are still permitted.
     connect(model, &QAbstractItemModel::dataChanged, mapper, &QDataWidgetMapper::revert);
 
-    connect(itemSelection, &QItemSelectionModel::currentRowChanged,
-            this, &WaypointDialog::currentRowChanged);
+    connect(itemSelection, &QItemSelectionModel::currentRowChanged, this,
+            &WaypointDialog::currentRowChanged);
 
     setModal(true);
 }
@@ -90,12 +97,12 @@ WaypointDialog::WaypointDialog(QWidget *parent, QAbstractItemModel *model,QItemS
  */
 void WaypointDialog::currentIndexChanged(int index)
 {
-    ui->lbNumber->setText(QString::number(index+1));
-    QModelIndex idx=mapper->model()->index(index,0);
-    if(index==itemSelection->currentIndex().row())
+    ui->lbNumber->setText(QString::number(index + 1));
+    QModelIndex idx = mapper->model()->index(index, 0);
+    if (index == itemSelection->currentIndex().row())
         return;
     itemSelection->clear();
-    itemSelection->setCurrentIndex(idx,QItemSelectionModel::Select | QItemSelectionModel::Rows);
+    itemSelection->setCurrentIndex(idx, QItemSelectionModel::Select | QItemSelectionModel::Rows);
 }
 
 WaypointDialog::~WaypointDialog()
@@ -110,8 +117,7 @@ WaypointDialog::~WaypointDialog()
 void WaypointDialog::setupModeWidgets()
 {
     int mode = ui->cbMode->itemData(ui->cbMode->currentIndex()).toInt();
-    switch(mode)
-    {
+    switch (mode) {
     case Waypoint::MODE_CIRCLERIGHT:
     case Waypoint::MODE_CIRCLELEFT:
         ui->modeParams->setVisible(true);
@@ -131,11 +137,11 @@ void WaypointDialog::setupModeWidgets()
  */
 void WaypointDialog::editWaypoint(int number)
 {
-    if(!isVisible())
+    if (!isVisible())
         show();
-    if(isMinimized())
+    if (isMinimized())
         showNormal();
-    if(!isActiveWindow())
+    if (!isActiveWindow())
         activateWindow();
     raise();
     setFocus(Qt::OtherFocusReason);
@@ -188,21 +194,20 @@ void WaypointDialog::currentRowChanged(QModelIndex current, QModelIndex previous
 void WaypointDialog::enableEditWidgets()
 {
     int row = itemSelection->currentIndex().row();
-    bool value = model->data(model->index(row,FlightDataModel::LOCKED)).toBool();
-    QWidget * w;
-    foreach(QWidget * obj,this->findChildren<QWidget *>())
-    {
-        w=qobject_cast<QComboBox*>(obj);
-        if(w)
+    bool value = model->data(model->index(row, FlightDataModel::LOCKED)).toBool();
+    QWidget *w;
+    foreach (QWidget *obj, this->findChildren<QWidget *>()) {
+        w = qobject_cast<QComboBox *>(obj);
+        if (w)
             w->setEnabled(!value);
-        w=qobject_cast<QLineEdit*>(obj);
-        if(w)
+        w = qobject_cast<QLineEdit *>(obj);
+        if (w)
             w->setEnabled(!value);
-        w=qobject_cast<QDoubleSpinBox*>(obj);
-        if(w)
+        w = qobject_cast<QDoubleSpinBox *>(obj);
+        if (w)
             w->setEnabled(!value);
-        w=qobject_cast<QSpinBox*>(obj);
-        if(w)
+        w = qobject_cast<QSpinBox *>(obj);
+        if (w)
             w->setEnabled(!value);
     }
 }

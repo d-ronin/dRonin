@@ -48,11 +48,10 @@ public:
     ~UploaderGadget();
 
     QWidget *widget() { return m_widget; }
-    void loadConfiguration(IUAVGadgetConfiguration* config);
+    void loadConfiguration(IUAVGadgetConfiguration *config);
 
 private:
     UploaderGadgetWidget *m_widget;
 };
 }
 #endif // UPLOADERGADGET_H
-

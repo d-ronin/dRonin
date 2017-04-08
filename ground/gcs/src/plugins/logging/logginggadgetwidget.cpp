@@ -34,34 +34,35 @@
 #include <QPushButton>
 #include <loggingplugin.h>
 
-LoggingGadgetWidget::LoggingGadgetWidget(QWidget *parent) : QLabel(parent)
+LoggingGadgetWidget::LoggingGadgetWidget(QWidget *parent)
+    : QLabel(parent)
 {
     m_logging = new Ui_Logging();
     m_logging->setupUi(this);
 
     ExtensionSystem::PluginManager *pm = ExtensionSystem::PluginManager::instance();
     scpPlugin = pm->getObject<ScopeGadgetFactory>();
-
 }
 
 LoggingGadgetWidget::~LoggingGadgetWidget()
 {
-   // Do nothing
+    // Do nothing
 }
 
-void LoggingGadgetWidget::setPlugin(LoggingPlugin * p)
+void LoggingGadgetWidget::setPlugin(LoggingPlugin *p)
 {
     loggingPlugin = p;
-    connect(p,SIGNAL(stateChanged(QString)),this,SLOT(stateChanged(QString)));
-    connect(m_logging->playButton,SIGNAL(clicked()),p->getLogfile(),SLOT(resumeReplay()));
-    connect(m_logging->pauseButton,SIGNAL(clicked()),p->getLogfile(),SLOT(pauseReplay()));
-    connect(m_logging->playbackSpeedSpinBox,SIGNAL(valueChanged(double)),p->getLogfile(),SLOT(setReplaySpeed(double)));
-    connect(m_logging->jumpToTimeSpinBox,SIGNAL(valueChanged(double)),p->getLogfile(),SLOT(setReplayTime(double)));
+    connect(p, SIGNAL(stateChanged(QString)), this, SLOT(stateChanged(QString)));
+    connect(m_logging->playButton, SIGNAL(clicked()), p->getLogfile(), SLOT(resumeReplay()));
+    connect(m_logging->pauseButton, SIGNAL(clicked()), p->getLogfile(), SLOT(pauseReplay()));
+    connect(m_logging->playbackSpeedSpinBox, SIGNAL(valueChanged(double)), p->getLogfile(),
+            SLOT(setReplaySpeed(double)));
+    connect(m_logging->jumpToTimeSpinBox, SIGNAL(valueChanged(double)), p->getLogfile(),
+            SLOT(setReplayTime(double)));
 
     void pauseReplay();
     void resumeReplay();
 }
-
 
 void LoggingGadgetWidget::stateChanged(QString status)
 {

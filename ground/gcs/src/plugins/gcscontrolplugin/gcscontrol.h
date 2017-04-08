@@ -36,14 +36,15 @@
 #include "QTimer"
 #include "gcscontrolgadgetfactory.h"
 
-class GCSCONTROLSHARED_EXPORT GCSControl : public ExtensionSystem::IPlugin {
+class GCSCONTROLSHARED_EXPORT GCSControl : public ExtensionSystem::IPlugin
+{
     Q_OBJECT
     Q_PLUGIN_METADATA(IID "org.dronin.plugins.GCSControlPlugin")
 public:
     GCSControl();
     ~GCSControl();
     void extensionsInitialized();
-    bool initialize(const QStringList & arguments, QString *errorString);
+    bool initialize(const QStringList &arguments, QString *errorString);
     void shutdown();
 
 #if defined(USE_SDL)

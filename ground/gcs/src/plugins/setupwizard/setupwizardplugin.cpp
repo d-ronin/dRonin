@@ -38,25 +38,26 @@
 #include <QKeySequence>
 #include <coreplugin/modemanager.h>
 
-SetupWizardPlugin::SetupWizardPlugin() : wizardRunning(false)
-{}
+SetupWizardPlugin::SetupWizardPlugin()
+    : wizardRunning(false)
+{
+}
 
 SetupWizardPlugin::~SetupWizardPlugin()
-{}
+{
+}
 
-bool SetupWizardPlugin::initialize(const QStringList & args, QString *errMsg)
+bool SetupWizardPlugin::initialize(const QStringList &args, QString *errMsg)
 {
     Q_UNUSED(args);
     Q_UNUSED(errMsg);
 
     // Add Menu entry
-    Core::ActionManager *am   = Core::ICore::instance()->actionManager();
+    Core::ActionManager *am = Core::ICore::instance()->actionManager();
     Core::ActionContainer *ac = am->actionContainer(Core::Constants::M_TOOLS);
 
-    Core::Command *cmd = am->registerAction(new QAction(this),
-                                            "SetupWizardPlugin.ShowSetupWizard",
-                                            QList<int>() <<
-                                            Core::Constants::C_GLOBAL_ID);
+    Core::Command *cmd = am->registerAction(new QAction(this), "SetupWizardPlugin.ShowSetupWizard",
+                                            QList<int>() << Core::Constants::C_GLOBAL_ID);
     cmd->action()->setText(tr("Vehicle Setup Wizard"));
 
     Core::ModeManager::instance()->addAction(cmd, 1);
@@ -70,10 +71,12 @@ bool SetupWizardPlugin::initialize(const QStringList & args, QString *errMsg)
 }
 
 void SetupWizardPlugin::extensionsInitialized()
-{}
+{
+}
 
 void SetupWizardPlugin::shutdown()
-{}
+{
+}
 
 void SetupWizardPlugin::showSetupWizard()
 {

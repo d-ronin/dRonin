@@ -27,19 +27,17 @@
 #include "pathplannergadget.h"
 #include <coreplugin/iuavgadget.h>
 
-PathPlannerGadgetFactory::PathPlannerGadgetFactory(QObject *parent) :
-        IUAVGadgetFactory(QString("PathPlannerGadget"),
-                          tr("Path Planner"),
-                          parent)
+PathPlannerGadgetFactory::PathPlannerGadgetFactory(QObject *parent)
+    : IUAVGadgetFactory(QString("PathPlannerGadget"), tr("Path Planner"), parent)
 {
 }
 
 PathPlannerGadgetFactory::~PathPlannerGadgetFactory()
 {
-
 }
 
-IUAVGadget* PathPlannerGadgetFactory::createGadget(QWidget *parent) {
-    PathPlannerGadgetWidget* gadgetWidget = new PathPlannerGadgetWidget(parent);
+IUAVGadget *PathPlannerGadgetFactory::createGadget(QWidget *parent)
+{
+    PathPlannerGadgetWidget *gadgetWidget = new PathPlannerGadgetWidget(parent);
     return new PathPlannerGadget(QString("PathPlannerGadget"), gadgetWidget, parent);
 }

@@ -59,16 +59,17 @@ Q_DECLARE_METATYPE(Core::IUAVGadget *)
 using namespace Core;
 using namespace Core::Internal;
 
-UAVGadgetView::UAVGadgetView(Core::UAVGadgetManager *uavGadgetManager, IUAVGadget *uavGadget, QWidget *parent, bool restoring) :
-        QWidget(parent),
-        m_uavGadgetManager(uavGadgetManager),
-        m_uavGadget(uavGadget),
-        m_toolBar(new QWidget(this)),
-        m_defaultToolBar(new QComboBox(this)),
-        m_uavGadgetList(new QComboBox(this)),
-        m_closeButton(new QToolButton(this)),
-        m_defaultIndex(0),
-        m_activeLabel(new QLabel)
+UAVGadgetView::UAVGadgetView(Core::UAVGadgetManager *uavGadgetManager, IUAVGadget *uavGadget,
+                             QWidget *parent, bool restoring)
+    : QWidget(parent)
+    , m_uavGadgetManager(uavGadgetManager)
+    , m_uavGadget(uavGadget)
+    , m_toolBar(new QWidget(this))
+    , m_defaultToolBar(new QComboBox(this))
+    , m_uavGadgetList(new QComboBox(this))
+    , m_closeButton(new QToolButton(this))
+    , m_defaultIndex(0)
+    , m_activeLabel(new QLabel)
 {
 
     tl = new QVBoxLayout(this);
@@ -86,8 +87,7 @@ UAVGadgetView::UAVGadgetView(Core::UAVGadgetManager *uavGadgetManager, IUAVGadge
         QStringList sl = im->classIds();
         int index = 0;
         bool startFromOne = false;
-        foreach(QString classId, sl)
-        {
+        foreach (QString classId, sl) {
             if (classId == QString("EmptyGadget")) {
                 m_defaultIndex = 0;
                 startFromOne = true;
@@ -97,9 +97,10 @@ UAVGadgetView::UAVGadgetView(Core::UAVGadgetManager *uavGadgetManager, IUAVGadge
             } else {
 
                 int i = startFromOne ? 1 : 0;
-                for ( ; i < m_uavGadgetList->count(); i++)
-                {
-                    if (QString::localeAwareCompare(m_uavGadgetList->itemText(i), im->gadgetName(classId)) > 0)
+                for (; i < m_uavGadgetList->count(); i++) {
+                    if (QString::localeAwareCompare(m_uavGadgetList->itemText(i),
+                                                    im->gadgetName(classId))
+                        > 0)
                         break;
                 }
                 m_uavGadgetList->insertItem(i, im->gadgetName(classId), classId);
@@ -108,7 +109,8 @@ UAVGadgetView::UAVGadgetView(Core::UAVGadgetManager *uavGadgetManager, IUAVGadge
             ++index;
         }
 
-        m_defaultToolBar->setSizePolicy(QSizePolicy::MinimumExpanding, QSizePolicy::MinimumExpanding);
+        m_defaultToolBar->setSizePolicy(QSizePolicy::MinimumExpanding,
+                                        QSizePolicy::MinimumExpanding);
         m_activeToolBar = m_defaultToolBar;
 
         QHBoxLayout *toolBarLayout = new QHBoxLayout(m_toolBar);
@@ -145,14 +147,15 @@ UAVGadgetView::UAVGadgetView(Core::UAVGadgetManager *uavGadgetManager, IUAVGadge
 
         connect(m_uavGadgetList, SIGNAL(activated(int)), this, SLOT(doReplaceGadget(int)));
         connect(m_closeButton, SIGNAL(clicked()), this, SLOT(closeView()), Qt::QueuedConnection);
-        connect(m_uavGadgetManager, SIGNAL(currentGadgetChanged(IUAVGadget*)), this, SLOT(currentGadgetChanged(IUAVGadget*)));
+        connect(m_uavGadgetManager, SIGNAL(currentGadgetChanged(IUAVGadget *)), this,
+                SLOT(currentGadgetChanged(IUAVGadget *)));
     }
     if (m_uavGadget) {
         setGadget(m_uavGadget);
     } else {
-	if (!restoring) {
+        if (!restoring) {
             selectionActivated(m_defaultIndex, false);
-	}
+        }
     }
 }
 
@@ -242,7 +245,8 @@ void UAVGadgetView::updateToolBar()
  * @brief Function used to select the gadget to show on this view
  * @param index index of the gadget to select according to the view's dropbox items
  * @param forceLoadConfiguration should be true if it was a user selection during normal run
- * since the gadget doesn't know which configuration the user wished to load. Should be false when creating
+ * since the gadget doesn't know which configuration the user wished to load. Should be false when
+ * creating
  * a gadget which is part of a saved workspace.
  */
 void UAVGadgetView::selectionActivated(int index, bool forceLoadConfiguration)

@@ -3,7 +3,7 @@
  *
  * @file       notifyplugin.h
  * @author     The OpenPilot Team, http://www.openpilot.org Copyright (C) 2010.
- * @brief      
+ * @brief
  * @see        The GNU Public License (GPL) Version 3
  *
  * @addtogroup GCSPlugins GCS Plugins
@@ -12,24 +12,24 @@
  * @{
  * @brief A plugin to provide notifications of events in GCS
  *****************************************************************************/
-/* 
- * This program is free software; you can redistribute it and/or modify 
- * it under the terms of the GNU General Public License as published by 
- * the Free Software Foundation; either version 3 of the License, or 
+/*
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 3 of the License, or
  * (at your option) any later version.
- * 
- * This program is distributed in the hope that it will be useful, but 
- * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY 
- * or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License 
+ *
+ * This program is distributed in the hope that it will be useful, but
+ * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
+ * or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License
  * for more details.
- * 
- * You should have received a copy of the GNU General Public License along 
+ *
+ * You should have received a copy of the GNU General Public License along
  * with this program; if not, see <http://www.gnu.org/licenses/>
  */
 #ifndef SOUNDNOTIFYPLUGIN_H
 #define SOUNDNOTIFYPLUGIN_H
 
-#include <extensionsystem/iplugin.h> 
+#include <extensionsystem/iplugin.h>
 #include <coreplugin/iconfigurableplugin.h>
 #include "uavtalk/telemetrymanager.h"
 #include "uavobjectmanager.h"
@@ -42,12 +42,12 @@
 
 class NotifyPluginOptionsPage;
 
-typedef struct {
-	QMediaPlayer* mo;
-	NotificationItem* notify;
-	bool firstPlay;
+typedef struct
+{
+    QMediaPlayer *mo;
+    NotificationItem *notify;
+    bool firstPlay;
 } PhononObject, *pPhononObject;
-
 
 class SoundNotifyPlugin : public Core::IConfigurablePlugin
 {
@@ -58,30 +58,29 @@ public:
     ~SoundNotifyPlugin();
 
     void extensionsInitialized();
-    bool initialize(const QStringList & arguments, QString * errorString);
-    void readConfig( QSettings* qSettings, Core::UAVConfigInfo *configInfo);
-    void saveConfig( QSettings* qSettings, Core::UAVConfigInfo *configInfo);
+    bool initialize(const QStringList &arguments, QString *errorString);
+    void readConfig(QSettings *qSettings, Core::UAVConfigInfo *configInfo);
+    void saveConfig(QSettings *qSettings, Core::UAVConfigInfo *configInfo);
     void shutdown();
 
-
-    QList<NotificationItem*> getListNotifications() { return _notificationList; }
-    NotificationItem* getCurrentNotification(){ return &currentNotification;}
+    QList<NotificationItem *> getListNotifications() { return _notificationList; }
+    NotificationItem *getCurrentNotification() { return &currentNotification; }
 
     bool getEnableSound() const { return enableSound; }
-    void setEnableSound(bool value) {enableSound = value; }
+    void setEnableSound(bool value) { enableSound = value; }
 
 public slots:
-    void updateNotificationList(QList<NotificationItem*> list);
+    void updateNotificationList(QList<NotificationItem *> list);
 
 private:
     Q_DISABLE_COPY(SoundNotifyPlugin)
 
-    bool playNotification(NotificationItem* notification);
-    void checkNotificationRule(NotificationItem* notification, UAVObject* object);
+    bool playNotification(NotificationItem *notification);
+    void checkNotificationRule(NotificationItem *notification, UAVObject *object);
 
 private slots:
 
-    void onTelemetryManagerAdded(QObject* obj);
+    void onTelemetryManagerAdded(QObject *obj);
     void onAutopilotDisconnect();
     void connectNotifications();
     void resetNotification(void);
@@ -93,18 +92,18 @@ private slots:
 private:
     bool enableSound;
 
-    QList<UAVDataObject*> lstNotifiedUAVObjects;
-    QList<NotificationItem*> _notificationList;
-    QList<NotificationItem*> _pendingNotifications;
-    QList<NotificationItem*> _toRemoveNotifications;
+    QList<UAVDataObject *> lstNotifiedUAVObjects;
+    QList<NotificationItem *> _notificationList;
+    QList<NotificationItem *> _pendingNotifications;
+    QList<NotificationItem *> _toRemoveNotifications;
 
     NotificationItem currentNotification;
-    NotificationItem* _nowPlayingNotification;
+    NotificationItem *_nowPlayingNotification;
 
     PhononObject phonon;
-    NotifyPluginOptionsPage* mop;
-    TelemetryManager* telMngr;
+    NotifyPluginOptionsPage *mop;
+    TelemetryManager *telMngr;
     QMediaPlaylist *playlist;
-}; 
+};
 
 #endif // SOUNDNOTIFYPLUGIN_H

@@ -40,7 +40,7 @@
 #include <QTimer>
 
 class IUAVGadget;
-//class QList<int>;
+// class QList<int>;
 class QWidget;
 class QString;
 class ConfigGadgetWidget;
@@ -55,12 +55,11 @@ public:
     ConfigGadget(QString classId, ConfigGadgetWidget *widget, QWidget *parent = 0);
     ~ConfigGadget();
 
-    QWidget *widget() { return (QWidget*)m_widget; }
-    void loadConfiguration(IUAVGadgetConfiguration* config);
+    QWidget *widget() { return (QWidget *)m_widget; }
+    void loadConfiguration(IUAVGadgetConfiguration *config);
 
 private:
     ConfigGadgetWidget *m_widget;
 };
-
 
 #endif // CONFIGGADGET_H

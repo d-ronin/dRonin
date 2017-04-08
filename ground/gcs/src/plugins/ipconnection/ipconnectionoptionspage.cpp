@@ -33,10 +33,9 @@
 
 #include "ui_ipconnectionoptionspage.h"
 
-
-IPConnectionOptionsPage::IPConnectionOptionsPage(IPConnectionConfiguration *config, QObject *parent) :
-    IOptionsPage(parent),
-    m_config(config)
+IPConnectionOptionsPage::IPConnectionOptionsPage(IPConnectionConfiguration *config, QObject *parent)
+    : IOptionsPage(parent)
+    , m_config(config)
 {
 }
 
@@ -66,9 +65,8 @@ QWidget *IPConnectionOptionsPage::createPage(QWidget *parent)
     m_page->tblHosts->setItemDelegate(new IPConnectionOptionsDelegate(m_page->tblHosts));
     m_page->tblHosts->setModel(m_model);
 
-    connect(m_page->btnAdd, &QPushButton::clicked, this, [this]() {
-        m_model->insertRow(m_model->rowCount());
-    });
+    connect(m_page->btnAdd, &QPushButton::clicked, this,
+            [this]() { m_model->insertRow(m_model->rowCount()); });
 
     connect(m_page->btnRemove, &QPushButton::clicked, this, [this]() {
         const auto selection = m_page->tblHosts->selectionModel()->selectedIndexes();
@@ -100,29 +98,26 @@ void IPConnectionOptionsPage::finish()
     delete m_page;
 }
 
-
-QWidget *IPConnectionOptionsDelegate::createEditor(QWidget *parent, const QStyleOptionViewItem &option,
+QWidget *IPConnectionOptionsDelegate::createEditor(QWidget *parent,
+                                                   const QStyleOptionViewItem &option,
                                                    const QModelIndex &index) const
 {
     Q_UNUSED(option)
 
     switch (index.column()) {
-    case IPConnectionOptionsPage::ColumnProtocol:
-    {
+    case IPConnectionOptionsPage::ColumnProtocol: {
         auto editor = new QComboBox(parent);
         editor->addItem("TCP", IPConnectionConfiguration::ProtocolTcp);
         editor->addItem("UDP", IPConnectionConfiguration::ProtocolUdp);
         editor->setFrame(false);
         return editor;
     }
-    case IPConnectionOptionsPage::ColumnHostname:
-    {
+    case IPConnectionOptionsPage::ColumnHostname: {
         auto editor = new QLineEdit(parent);
         editor->setFrame(false);
         return editor;
     }
-    case IPConnectionOptionsPage::ColumnPort:
-    {
+    case IPConnectionOptionsPage::ColumnPort: {
         auto editor = new QSpinBox(parent);
         editor->setMinimum(1);
         editor->setMaximum(65535);
@@ -140,8 +135,7 @@ void IPConnectionOptionsDelegate::setEditorData(QWidget *editor, const QModelInd
     QVariant val = index.model()->data(index, Qt::EditRole);
 
     switch (index.column()) {
-    case IPConnectionOptionsPage::ColumnProtocol:
-    {
+    case IPConnectionOptionsPage::ColumnProtocol: {
         auto comboBox = static_cast<QComboBox *>(editor);
         for (int i = 0; i < comboBox->count(); i++) {
             if (comboBox->itemData(i) == val.value<IPConnectionConfiguration::Protocol>())
@@ -149,14 +143,12 @@ void IPConnectionOptionsDelegate::setEditorData(QWidget *editor, const QModelInd
         }
         break;
     }
-    case IPConnectionOptionsPage::ColumnHostname:
-    {
+    case IPConnectionOptionsPage::ColumnHostname: {
         auto lineEdit = static_cast<QLineEdit *>(editor);
         lineEdit->setText(val.toString());
         break;
     }
-    case IPConnectionOptionsPage::ColumnPort:
-    {
+    case IPConnectionOptionsPage::ColumnPort: {
         auto spinBox = static_cast<QSpinBox *>(editor);
         spinBox->setValue(val.toInt());
         break;
@@ -172,20 +164,17 @@ void IPConnectionOptionsDelegate::setModelData(QWidget *editor, QAbstractItemMod
     QVariant val;
 
     switch (index.column()) {
-    case IPConnectionOptionsPage::ColumnProtocol:
-    {
+    case IPConnectionOptionsPage::ColumnProtocol: {
         auto comboBox = static_cast<QComboBox *>(editor);
         val.setValue(QVariant::fromValue(comboBox->currentData()));
         break;
     }
-    case IPConnectionOptionsPage::ColumnHostname:
-    {
+    case IPConnectionOptionsPage::ColumnHostname: {
         auto lineEdit = static_cast<QLineEdit *>(editor);
         val.setValue(lineEdit->text());
         break;
     }
-    case IPConnectionOptionsPage::ColumnPort:
-    {
+    case IPConnectionOptionsPage::ColumnPort: {
         auto spinBox = static_cast<QSpinBox *>(editor);
         spinBox->interpretText();
         val.setValue(spinBox->value());
@@ -199,7 +188,8 @@ void IPConnectionOptionsDelegate::setModelData(QWidget *editor, QAbstractItemMod
     model->setData(index, val, Qt::EditRole);
 }
 
-void IPConnectionOptionsDelegate::updateEditorGeometry(QWidget *editor, const QStyleOptionViewItem &option,
+void IPConnectionOptionsDelegate::updateEditorGeometry(QWidget *editor,
+                                                       const QStyleOptionViewItem &option,
                                                        const QModelIndex &index) const
 {
     Q_UNUSED(index)

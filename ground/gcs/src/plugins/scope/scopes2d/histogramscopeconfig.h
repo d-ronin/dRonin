@@ -29,7 +29,6 @@
 
 #include "scopes2d/scopes2dconfig.h"
 
-
 /**
  * @brief The HistogramScopeConfig class The histogram scope configuration
  */
@@ -42,24 +41,30 @@ public:
     HistogramScopeConfig(Ui::ScopeGadgetOptionsPage *options_page);
     ~HistogramScopeConfig();
 
-    virtual void saveConfiguration(QSettings* qSettings);
+    virtual void saveConfiguration(QSettings *qSettings);
     void create(QSettings qSettings);
 
-    QList<Plot2dCurveConfiguration*> getHistogramDataSource(){return m_HistogramSourceConfigs;}
-    void addHistogramDataSource(Plot2dCurveConfiguration* value){m_HistogramSourceConfigs.append(value);}
-    void replaceHistogramDataSource(QList<Plot2dCurveConfiguration*> histogramSourceConfigs);
+    QList<Plot2dCurveConfiguration *> getHistogramDataSource() { return m_HistogramSourceConfigs; }
+    void addHistogramDataSource(Plot2dCurveConfiguration *value)
+    {
+        m_HistogramSourceConfigs.append(value);
+    }
+    void replaceHistogramDataSource(QList<Plot2dCurveConfiguration *> histogramSourceConfigs);
 
-    //Getter functions
-    virtual int getScopeType(){return (int) HISTOGRAM;}
-    double getBinWidth(){return binWidth;}
-    unsigned int getMaxNumberOfBins(){return maxNumberOfBins;}
-    virtual QList<Plot2dCurveConfiguration*> getDataSourceConfigs(){return m_HistogramSourceConfigs;}
+    // Getter functions
+    virtual int getScopeType() { return (int)HISTOGRAM; }
+    double getBinWidth() { return binWidth; }
+    unsigned int getMaxNumberOfBins() { return maxNumberOfBins; }
+    virtual QList<Plot2dCurveConfiguration *> getDataSourceConfigs()
+    {
+        return m_HistogramSourceConfigs;
+    }
 
-    //Setter functions
-    void setBinWidth(double val){binWidth = val;}
-    void setMaxNumberOfBins(unsigned int val){maxNumberOfBins = val;}
+    // Setter functions
+    void setBinWidth(double val) { binWidth = val; }
+    void setMaxNumberOfBins(unsigned int val) { maxNumberOfBins = val; }
 
-    virtual ScopeConfig* cloneScope(ScopeConfig *histogramSourceConfigs);
+    virtual ScopeConfig *cloneScope(ScopeConfig *histogramSourceConfigs);
 
     virtual void setGuiConfiguration(Ui::ScopeGadgetOptionsPage *options_page);
 
@@ -72,10 +77,9 @@ private:
     unsigned int maxNumberOfBins;
     QString units;
 
-    QList<Plot2dCurveConfiguration*> m_HistogramSourceConfigs;
+    QList<Plot2dCurveConfiguration *> m_HistogramSourceConfigs;
 
 private slots:
-
 };
 
 #endif // HISTOGRAMSCOPECONFIG_H

@@ -14,17 +14,17 @@
  * @brief The UAVObject Browser gadget plugin
  *****************************************************************************/
 /*
- * This program is free software; you can redistribute it and/or modify 
- * it under the terms of the GNU General Public License as published by 
- * the Free Software Foundation; either version 3 of the License, or 
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 3 of the License, or
  * (at your option) any later version.
- * 
- * This program is distributed in the hope that it will be useful, but 
- * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY 
- * or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License 
+ *
+ * This program is distributed in the hope that it will be useful, but
+ * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
+ * or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License
  * for more details.
- * 
- * You should have received a copy of the GNU General Public License along 
+ *
+ * You should have received a copy of the GNU General Public License along
  * with this program; if not, see <http://www.gnu.org/licenses/>
  *
  * Additional note on redistribution: The copyright and license notices above
@@ -36,7 +36,7 @@
 #include "fieldtreeitem.h"
 #include <math.h>
 
-QTime* HighLightManager::m_currentTime = NULL;
+QTime *HighLightManager::m_currentTime = NULL;
 
 /* Constructor */
 HighLightManager::HighLightManager(long checkingInterval, QTime *currentTime)
@@ -57,8 +57,7 @@ HighLightManager::HighLightManager(long checkingInterval, QTime *currentTime)
 bool HighLightManager::add(TreeItem *itemToAdd)
 {
     // Check so that the item isn't already in the list
-    if(!m_itemsList.contains(itemToAdd))
-    {
+    if (!m_itemsList.contains(itemToAdd)) {
         m_itemsList.append(itemToAdd);
         return true;
     }
@@ -84,14 +83,12 @@ bool HighLightManager::remove(TreeItem *itemToRemove)
 void HighLightManager::checkItemsExpired()
 {
     // Get a mutable iterator for the list
-    QMutableLinkedListIterator<TreeItem*> iter(m_itemsList);
+    QMutableLinkedListIterator<TreeItem *> iter(m_itemsList);
 
     // Loop over all items, check if they expired.
-    while(iter.hasNext())
-    {
-        TreeItem* item = iter.next();
-        if(item->getHiglightExpires() < *m_currentTime)
-        {
+    while (iter.hasNext()) {
+        TreeItem *item = iter.next();
+        if (item->getHiglightExpires() < *m_currentTime) {
             // If expired, call removeHighlight
             item->removeHighlight();
 
@@ -102,30 +99,31 @@ void HighLightManager::checkItemsExpired()
 }
 
 int TreeItem::m_highlightTimeMs = 500;
-QTime* TreeItem::m_currentTime = NULL;
+QTime *TreeItem::m_currentTime = NULL;
 
-TreeItem::TreeItem(const QList<QVariant> &data, TreeItem *parent) :
-        QObject(0),
-        isPresentOnHardware(true),
-        m_data(data),
-        m_parent(parent),
-        m_highlight(false),
-        m_changed(false),
-        m_updated(false),
-        m_defaultValue(true)
+TreeItem::TreeItem(const QList<QVariant> &data, TreeItem *parent)
+    : QObject(0)
+    , isPresentOnHardware(true)
+    , m_data(data)
+    , m_parent(parent)
+    , m_highlight(false)
+    , m_changed(false)
+    , m_updated(false)
+    , m_defaultValue(true)
 {
 }
 
-TreeItem::TreeItem(const QVariant &data, TreeItem *parent) :
-        QObject(0),
-        isPresentOnHardware(true),
-        m_parent(parent),
-        m_highlight(false),
-        m_changed(false),
-        m_updated(false),
-        m_defaultValue(true)
+TreeItem::TreeItem(const QVariant &data, TreeItem *parent)
+    : QObject(0)
+    , isPresentOnHardware(true)
+    , m_parent(parent)
+    , m_highlight(false)
+    , m_changed(false)
+    , m_updated(false)
+    , m_defaultValue(true)
 {
-    m_data << data << "" << "";
+    m_data << data << ""
+           << "";
 }
 
 TreeItem::~TreeItem()
@@ -164,7 +162,7 @@ int TreeItem::childCount() const
 int TreeItem::row() const
 {
     if (m_parent)
-        return m_parent->m_children.indexOf(const_cast<TreeItem*>(this));
+        return m_parent->m_children.indexOf(const_cast<TreeItem *>(this));
 
     return 0;
 }
@@ -184,20 +182,23 @@ void TreeItem::setData(QVariant value, int column)
     m_data.replace(column, value);
 }
 
-void TreeItem::update() {
-    foreach(TreeItem *child, treeChildren())
+void TreeItem::update()
+{
+    foreach (TreeItem *child, treeChildren())
         child->update();
 }
 
-void TreeItem::apply() {
-    foreach(TreeItem *child, treeChildren())
+void TreeItem::apply()
+{
+    foreach (TreeItem *child, treeChildren())
         child->apply();
 }
 
 /*
  * Called after a value has changed to trigger highlightning of tree item.
  */
-void TreeItem::setHighlight(bool highlight) {
+void TreeItem::setHighlight(bool highlight)
+{
     m_highlight = highlight;
     m_changed = false;
     if (highlight) {
@@ -208,14 +209,11 @@ void TreeItem::setHighlight(bool highlight) {
             m_highlightExpires = QTime::currentTime().addMSecs(m_highlightTimeMs);
 
         // Add to highlightmanager
-        if(m_highlightManager->add(this))
-        {
+        if (m_highlightManager->add(this)) {
             // Only emit signal if it was added
             emit updateHighlight(this);
         }
-    }
-    else if(m_highlightManager->remove(this))
-    {
+    } else if (m_highlightManager->remove(this)) {
         // Only emit signal if it was removed
         emit updateHighlight(this);
     }
@@ -223,41 +221,37 @@ void TreeItem::setHighlight(bool highlight) {
     // If we have a parent, call recursively to update highlight status of parents.
     // This will ensure that the root of a leaf that is changed also is highlighted.
     // Only updates that really changes values will trigger highlight of parents.
-    if(m_parent)
-    {
+    if (m_parent) {
         m_parent->setHighlight(highlight);
     }
 }
 
 void TreeItem::setUpdatedOnly(bool updated)
 {
-    if(this->changed() && updated)
-    {
-        m_updated=updated;
+    if (this->changed() && updated) {
+        m_updated = updated;
         m_parent->setUpdatedOnlyParent();
-    }
-    else if(!updated)
-        m_updated=false;
-    foreach(TreeItem * item,this->treeChildren())
-    {
+    } else if (!updated)
+        m_updated = false;
+    foreach (TreeItem *item, this->treeChildren()) {
         item->setUpdatedOnly(updated);
     }
 }
 
 void TreeItem::setUpdatedOnlyParent()
 {
-    FieldTreeItem * field=dynamic_cast<FieldTreeItem*>(this);
-    TopTreeItem * top=dynamic_cast<TopTreeItem*>(this);
-    if(!field && !top)
-    {
-        m_updated=true;
+    FieldTreeItem *field = dynamic_cast<FieldTreeItem *>(this);
+    TopTreeItem *top = dynamic_cast<TopTreeItem *>(this);
+    if (!field && !top) {
+        m_updated = true;
         m_parent->setUpdatedOnlyParent();
     }
 }
 
-void TreeItem::removeHighlight() {
+void TreeItem::removeHighlight()
+{
     m_highlight = false;
-    //update();
+    // update();
     emit updateHighlight(this);
 }
 

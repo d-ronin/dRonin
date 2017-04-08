@@ -38,7 +38,7 @@ class BrainConfiguration;
 class BrainConfiguration : public ConfigTaskWidget
 {
     Q_OBJECT
-    
+
 public:
     explicit BrainConfiguration(QWidget *parent = 0);
     ~BrainConfiguration();

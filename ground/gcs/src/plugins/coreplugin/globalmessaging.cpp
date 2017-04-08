@@ -30,30 +30,35 @@
 
 namespace Core {
 
-GlobalMessage::GlobalMessage(QString brief, QString description, MessageType type, QObject *parent):QObject(parent),
-    m_brief(brief),
-    m_description(description),
-    m_type(type),m_active(true)
+GlobalMessage::GlobalMessage(QString brief, QString description, MessageType type, QObject *parent)
+    : QObject(parent)
+    , m_brief(brief)
+    , m_description(description)
+    , m_type(type)
+    , m_active(true)
 {
 }
 
-GlobalMessage::GlobalMessage(MessageType type, QObject *parent):QObject(parent),m_type(type),m_active(true)
+GlobalMessage::GlobalMessage(MessageType type, QObject *parent)
+    : QObject(parent)
+    , m_type(type)
+    , m_active(true)
 {
-
 }
 
 void GlobalMessage::setActive(bool value)
 {
-    m_active=value;
+    m_active = value;
     emit changed(this);
 }
 
 GlobalMessage *GlobalMessaging::addErrorMessage(QString brief, QString description)
 {
-    GlobalMessage * message=new GlobalMessage(brief,description,ERROR,this);
-    connect(message,SIGNAL(destroyed()),this,SLOT(messageDeleted()));
-    connect(message,SIGNAL(changed(GlobalMessage*)),this,SIGNAL(changedMessage(GlobalMessage*)));
-    connect(message,SIGNAL(changed(GlobalMessage*)),this,SIGNAL(changedError(GlobalMessage*)));
+    GlobalMessage *message = new GlobalMessage(brief, description, ERROR, this);
+    connect(message, SIGNAL(destroyed()), this, SLOT(messageDeleted()));
+    connect(message, SIGNAL(changed(GlobalMessage *)), this,
+            SIGNAL(changedMessage(GlobalMessage *)));
+    connect(message, SIGNAL(changed(GlobalMessage *)), this, SIGNAL(changedError(GlobalMessage *)));
     errorList.append(message);
     emit newMessage(message);
     emit newError(message);
@@ -62,10 +67,12 @@ GlobalMessage *GlobalMessaging::addErrorMessage(QString brief, QString descripti
 
 GlobalMessage *GlobalMessaging::addWarningMessage(QString brief, QString description)
 {
-    GlobalMessage * message=new GlobalMessage(brief,description,WARNING,this);
-    connect(message,SIGNAL(destroyed()),this,SLOT(messageDeleted()));
-    connect(message,SIGNAL(changed(GlobalMessage*)),this,SIGNAL(changedMessage(GlobalMessage*)));
-    connect(message,SIGNAL(changed(GlobalMessage*)),this,SIGNAL(changedWarning(GlobalMessage*)));
+    GlobalMessage *message = new GlobalMessage(brief, description, WARNING, this);
+    connect(message, SIGNAL(destroyed()), this, SLOT(messageDeleted()));
+    connect(message, SIGNAL(changed(GlobalMessage *)), this,
+            SIGNAL(changedMessage(GlobalMessage *)));
+    connect(message, SIGNAL(changed(GlobalMessage *)), this,
+            SIGNAL(changedWarning(GlobalMessage *)));
     warningList.append(message);
     emit newMessage(message);
     emit newWarning(message);
@@ -74,23 +81,24 @@ GlobalMessage *GlobalMessaging::addWarningMessage(QString brief, QString descrip
 
 GlobalMessage *GlobalMessaging::addInfoMessage(QString brief, QString description)
 {
-    GlobalMessage * message=new GlobalMessage(brief,description,INFO,this);
-    connect(message,SIGNAL(destroyed()),this,SLOT(messageDeleted()));
-    connect(message,SIGNAL(changed(GlobalMessage*)),this,SIGNAL(changedMessage(GlobalMessage*)));
-    connect(message,SIGNAL(changed(GlobalMessage*)),this,SIGNAL(changedInfo(GlobalMessage*)));
+    GlobalMessage *message = new GlobalMessage(brief, description, INFO, this);
+    connect(message, SIGNAL(destroyed()), this, SLOT(messageDeleted()));
+    connect(message, SIGNAL(changed(GlobalMessage *)), this,
+            SIGNAL(changedMessage(GlobalMessage *)));
+    connect(message, SIGNAL(changed(GlobalMessage *)), this, SIGNAL(changedInfo(GlobalMessage *)));
     infoList.append(message);
     emit newMessage(message);
     emit newInfo(message);
     return message;
 }
 
-void GlobalMessaging::addMessage(GlobalMessage * message)
+void GlobalMessaging::addMessage(GlobalMessage *message)
 {
-    connect(message,SIGNAL(destroyed()),this,SLOT(messageDeleted()));
-    connect(message,SIGNAL(changed(GlobalMessage*)),this,SIGNAL(changedMessage(GlobalMessage*)));
-    connect(message,SIGNAL(changed(GlobalMessage*)),this,SIGNAL(changedInfo(GlobalMessage*)));
-    switch(message->getType())
-    {
+    connect(message, SIGNAL(destroyed()), this, SLOT(messageDeleted()));
+    connect(message, SIGNAL(changed(GlobalMessage *)), this,
+            SIGNAL(changedMessage(GlobalMessage *)));
+    connect(message, SIGNAL(changed(GlobalMessage *)), this, SIGNAL(changedInfo(GlobalMessage *)));
+    switch (message->getType()) {
     case ERROR:
         errorList.append(message);
         emit newError(message);
@@ -112,9 +120,8 @@ void GlobalMessaging::addMessage(GlobalMessage * message)
 QList<GlobalMessage *> GlobalMessaging::getActiveErrors()
 {
     QList<GlobalMessage *> temp;
-    foreach(GlobalMessage * message,errorList)
-    {
-        if(message->isActive())
+    foreach (GlobalMessage *message, errorList) {
+        if (message->isActive())
             temp.append(message);
     }
     return temp;
@@ -123,9 +130,8 @@ QList<GlobalMessage *> GlobalMessaging::getActiveErrors()
 QList<GlobalMessage *> GlobalMessaging::getActiveWarnings()
 {
     QList<GlobalMessage *> temp;
-    foreach(GlobalMessage * message,warningList)
-    {
-        if(message->isActive())
+    foreach (GlobalMessage *message, warningList) {
+        if (message->isActive())
             temp.append(message);
     }
     return temp;
@@ -134,9 +140,8 @@ QList<GlobalMessage *> GlobalMessaging::getActiveWarnings()
 QList<GlobalMessage *> GlobalMessaging::getActiveInfos()
 {
     QList<GlobalMessage *> temp;
-    foreach(GlobalMessage * message,infoList)
-    {
-        if(message->isActive())
+    foreach (GlobalMessage *message, infoList) {
+        if (message->isActive())
             temp.append(message);
     }
     return temp;
@@ -157,11 +162,10 @@ QList<GlobalMessage *> GlobalMessaging::getInfos()
 
 void GlobalMessaging::messageDeleted()
 {
-    GlobalMessage * message=dynamic_cast<GlobalMessage *>(sender());
-    if(!message)
+    GlobalMessage *message = dynamic_cast<GlobalMessage *>(sender());
+    if (!message)
         return;
-    switch(message->getType())
-    {
+    switch (message->getType()) {
     case ERROR:
         errorList.removeAll(message);
         emit deletedError();
@@ -180,8 +184,8 @@ void GlobalMessaging::messageDeleted()
     emit deletedMessage();
 }
 
-GlobalMessaging::GlobalMessaging(QObject *parent):QObject(parent)
+GlobalMessaging::GlobalMessaging(QObject *parent)
+    : QObject(parent)
 {
 }
-
 }

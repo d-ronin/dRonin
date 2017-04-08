@@ -37,7 +37,8 @@ namespace Ui {
 class ConfigurePage;
 }
 
-class ConfigurePage : public AbstractWizardPage {
+class ConfigurePage : public AbstractWizardPage
+{
     Q_OBJECT
 
 public:

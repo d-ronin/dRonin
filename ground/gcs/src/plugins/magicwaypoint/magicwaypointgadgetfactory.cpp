@@ -29,19 +29,17 @@
 #include <coreplugin/iuavgadget.h>
 #include <QDebug>
 
-MagicWaypointGadgetFactory::MagicWaypointGadgetFactory(QObject *parent) :
-        IUAVGadgetFactory(QString("MagicWaypointGadget"),
-                          tr("Magic Waypoint"),
-                          parent)
+MagicWaypointGadgetFactory::MagicWaypointGadgetFactory(QObject *parent)
+    : IUAVGadgetFactory(QString("MagicWaypointGadget"), tr("Magic Waypoint"), parent)
 {
 }
 
 MagicWaypointGadgetFactory::~MagicWaypointGadgetFactory()
 {
-
 }
 
-IUAVGadget* MagicWaypointGadgetFactory::createGadget(QWidget *parent) {
-    MagicWaypointGadgetWidget* gadgetWidget = new MagicWaypointGadgetWidget(parent);
+IUAVGadget *MagicWaypointGadgetFactory::createGadget(QWidget *parent)
+{
+    MagicWaypointGadgetWidget *gadgetWidget = new MagicWaypointGadgetWidget(parent);
     return new MagicWaypointGadget(QString("MagicWaypointGadget"), gadgetWidget, parent);
 }

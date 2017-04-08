@@ -39,13 +39,15 @@
 #include "sensorsettings.h"
 #include "stabilizationsettings.h"
 
-
 const float VehicleConfigurationHelper::DEFAULT_ENABLED_ACCEL_TAU = 0.1;
 
 VehicleConfigurationHelper::VehicleConfigurationHelper(VehicleConfigurationSource *configSource)
-    : m_configSource(configSource), m_uavoManager(0),
-    m_transactionOK(false), m_transactionTimeout(false), m_currentTransactionObjectID(-1),
-    m_progress(0)
+    : m_configSource(configSource)
+    , m_uavoManager(0)
+    , m_transactionOK(false)
+    , m_transactionTimeout(false)
+    , m_currentTransactionObjectID(-1)
+    , m_progress(0)
 {
     Q_ASSERT(m_configSource);
     ExtensionSystem::PluginManager *pm = ExtensionSystem::PluginManager::instance();
@@ -77,7 +79,8 @@ bool VehicleConfigurationHelper::setupVehicle(bool save)
     applyManualControlDefaults();
 
     bool result = saveChangesToController(save);
-    emit saveProgress(m_modifiedObjects.count() + 1, ++m_progress, result ? tr("Done!") : tr("Failed!"));
+    emit saveProgress(m_modifiedObjects.count() + 1, ++m_progress,
+                      result ? tr("Done!") : tr("Failed!"));
     return result;
 }
 
@@ -89,7 +92,8 @@ bool VehicleConfigurationHelper::setupHardwareSettings(bool save)
     applyManualControlDefaults();
 
     bool result = saveChangesToController(save);
-    emit saveProgress(m_modifiedObjects.count() + 1, ++m_progress, result ? tr("Done!") : tr("Failed!"));
+    emit saveProgress(m_modifiedObjects.count() + 1, ++m_progress,
+                      result ? tr("Done!") : tr("Failed!"));
     return result;
 }
 
@@ -115,7 +119,7 @@ void VehicleConfigurationHelper::clearModifiedObjects()
  */
 void VehicleConfigurationHelper::applyHardwareConfiguration()
 {
-    Core::IBoardType* boardPlugin = m_configSource->getControllerType();
+    Core::IBoardType *boardPlugin = m_configSource->getControllerType();
     Q_ASSERT(boardPlugin);
     if (!boardPlugin)
         return;
@@ -124,8 +128,8 @@ void VehicleConfigurationHelper::applyHardwareConfiguration()
     bool success = boardPlugin->setInputType(newType);
 
     if (success) {
-        UAVDataObject* hwSettings = dynamic_cast<UAVDataObject*>(
-                    m_uavoManager->getObject(boardPlugin->getHwUAVO()));
+        UAVDataObject *hwSettings =
+            dynamic_cast<UAVDataObject *>(m_uavoManager->getObject(boardPlugin->getHwUAVO()));
         Q_ASSERT(hwSettings);
         if (hwSettings)
             addModifiedObject(hwSettings, tr("Writing hardware settings"));
@@ -135,8 +139,7 @@ void VehicleConfigurationHelper::applyHardwareConfiguration()
 void VehicleConfigurationHelper::applyVehicleConfiguration()
 {
     switch (m_configSource->getVehicleType()) {
-    case VehicleConfigurationSource::VEHICLE_MULTI:
-    {
+    case VehicleConfigurationSource::VEHICLE_MULTI: {
         switch (m_configSource->getVehicleSubType()) {
         case VehicleConfigurationSource::MULTI_ROTOR_TRI_Y:
             setupTriCopter();
@@ -175,14 +178,13 @@ void VehicleConfigurationHelper::applyActuatorConfiguration()
 {
     ActuatorSettings *actSettings = ActuatorSettings::GetInstance(m_uavoManager);
 
-    Core::IBoardType* boardPlugin = m_configSource->getControllerType();
+    Core::IBoardType *boardPlugin = m_configSource->getControllerType();
     Q_ASSERT(boardPlugin);
     if (!boardPlugin)
         return;
 
     switch (m_configSource->getVehicleType()) {
-    case VehicleConfigurationSource::VEHICLE_MULTI:
-    {
+    case VehicleConfigurationSource::VEHICLE_MULTI: {
         ActuatorSettings::DataFields data = actSettings->getData();
 
         QList<actuatorChannelSettings> actuatorSettings = m_configSource->getActuatorSettings();
@@ -255,20 +257,20 @@ void VehicleConfigurationHelper::applyActuatorConfiguration()
 
         for (quint16 i = 0; i < ActuatorSettings::CHANNELMAX_NUMELEM; i++) {
             if (i < max_motors) {
-                data.ChannelMin[i]     = actuatorSettings[i].channelMin;
+                data.ChannelMin[i] = actuatorSettings[i].channelMin;
                 data.ChannelNeutral[i] = actuatorSettings[i].channelNeutral;
-                data.ChannelMax[i]     = actuatorSettings[i].channelMax;
+                data.ChannelMax[i] = actuatorSettings[i].channelMax;
 
                 // Channels are 1-indexed in boardplugin and UI. :(
-                int bankNum = boardPlugin->getBankFromOutputChannel(i+1);
+                int bankNum = boardPlugin->getBankFromOutputChannel(i + 1);
 
                 if (bankNum >= 0) {
                     data.TimerUpdateFreq[bankNum] = updateFrequency;
                 }
             } else {
-                data.ChannelMin[i]     = 0;
+                data.ChannelMin[i] = 0;
                 data.ChannelNeutral[i] = 0;
-                data.ChannelMax[i]     = 0;
+                data.ChannelMax[i] = 0;
             }
         }
 
@@ -303,12 +305,12 @@ void VehicleConfigurationHelper::applyFlighModeConfiguration()
     data.Stabilization3Settings[1] = ManualControlSettings::STABILIZATION3SETTINGS_RATE;
     data.Stabilization3Settings[2] = ManualControlSettings::STABILIZATION3SETTINGS_RATE;
     data.FlightModeNumber = 3;
-    data.FlightModePosition[0]     = ManualControlSettings::FLIGHTMODEPOSITION_LEVELING;
-    data.FlightModePosition[1]     = ManualControlSettings::FLIGHTMODEPOSITION_ACRO;
-    data.FlightModePosition[2]     = ManualControlSettings::FLIGHTMODEPOSITION_STABILIZED1;
-    data.FlightModePosition[3]     = ManualControlSettings::FLIGHTMODEPOSITION_ALTITUDEHOLD;
-    data.FlightModePosition[4]     = ManualControlSettings::FLIGHTMODEPOSITION_POSITIONHOLD;
-    data.FlightModePosition[5]     = ManualControlSettings::FLIGHTMODEPOSITION_MANUAL;
+    data.FlightModePosition[0] = ManualControlSettings::FLIGHTMODEPOSITION_LEVELING;
+    data.FlightModePosition[1] = ManualControlSettings::FLIGHTMODEPOSITION_ACRO;
+    data.FlightModePosition[2] = ManualControlSettings::FLIGHTMODEPOSITION_STABILIZED1;
+    data.FlightModePosition[3] = ManualControlSettings::FLIGHTMODEPOSITION_ALTITUDEHOLD;
+    data.FlightModePosition[4] = ManualControlSettings::FLIGHTMODEPOSITION_POSITIONHOLD;
+    data.FlightModePosition[5] = ManualControlSettings::FLIGHTMODEPOSITION_MANUAL;
     controlSettings->setData(data);
     addModifiedObject(controlSettings, tr("Writing flight mode settings"));
 }
@@ -336,7 +338,7 @@ void VehicleConfigurationHelper::applySensorBiasConfiguration()
 
 void VehicleConfigurationHelper::applyStabilizationConfiguration()
 {
-    StabilizationSettings *stabSettings    = StabilizationSettings::GetInstance(m_uavoManager);
+    StabilizationSettings *stabSettings = StabilizationSettings::GetInstance(m_uavoManager);
     Q_ASSERT(stabSettings);
 
     StabilizationSettings defaultSettings;
@@ -352,7 +354,7 @@ void VehicleConfigurationHelper::applyMixerConfiguration(mixerChannelSettings ch
     Q_ASSERT(mSettings);
 
     // Set Mixer types and values
-    QString mixerTypePattern   = "Mixer%1Type";
+    QString mixerTypePattern = "Mixer%1Type";
     QString mixerVectorPattern = "Mixer%1Vector";
     for (int i = 0; i < 10; i++) {
         UAVObjectField *field = mSettings->getField(mixerTypePattern.arg(i + 1));
@@ -373,7 +375,8 @@ void VehicleConfigurationHelper::applyMixerConfiguration(mixerChannelSettings ch
     addModifiedObject(mSettings, tr("Writing mixer settings"));
 }
 
-void VehicleConfigurationHelper::applyMultiGUISettings(SystemSettings::AirframeTypeOptions airframe, GUIConfigDataUnion guiConfig)
+void VehicleConfigurationHelper::applyMultiGUISettings(SystemSettings::AirframeTypeOptions airframe,
+                                                       GUIConfigDataUnion guiConfig)
 {
     SystemSettings *sSettings = SystemSettings::GetInstance(m_uavoManager);
 
@@ -396,7 +399,8 @@ void VehicleConfigurationHelper::applyManualControlDefaults()
     Q_ASSERT(mcSettings);
     ManualControlSettings::DataFields cData = mcSettings->getData();
 
-    ManualControlSettings::ChannelGroupsOptions channelType = ManualControlSettings::CHANNELGROUPS_PWM;
+    ManualControlSettings::ChannelGroupsOptions channelType =
+        ManualControlSettings::CHANNELGROUPS_PWM;
 
     /* For all of these -- minVal and maxVal gathered from multiple autotune
      * configuration shares.  neutVal is the true midpoint.   throtNeutVal
@@ -424,7 +428,7 @@ void VehicleConfigurationHelper::applyManualControlDefaults()
     case Core::IBoardType::INPUT_TYPE_DSM:
         // Sadly this is the worse one-- it depends upon resolution.
         // 74-950, 64-940 seen for 10 bit.  192-1856, 23-2025 for 11 bit.
-        minVal = 70; 
+        minVal = 70;
         maxVal = 940;
         channelType = ManualControlSettings::CHANNELGROUPS_DSM;
         break;
@@ -444,7 +448,8 @@ void VehicleConfigurationHelper::applyManualControlDefaults()
         channelType = ManualControlSettings::CHANNELGROUPS_TBSCROSSFIRE;
         break;
     case Core::IBoardType::INPUT_TYPE_SRXL:
-        // unfortunately Weatronic variant has different scaling, this is the range for standard impl. per protocol spec.
+        // unfortunately Weatronic variant has different scaling, this is the range for standard
+        // impl. per protocol spec.
         minVal = 585;
         maxVal = 3510;
         channelType = ManualControlSettings::CHANNELGROUPS_SRXL;
@@ -460,8 +465,7 @@ void VehicleConfigurationHelper::applyManualControlDefaults()
     qint16 neutralVal = minVal + (maxVal - minVal) / 2;
     qint16 throttleNeutralVal = static_cast<qint16>(minVal + (maxVal - minVal) * 0.04);
 
-    for (unsigned int i = 0; i < ManualControlSettings::CHANNELGROUPS_NUMELEM;
-                i++) {
+    for (unsigned int i = 0; i < ManualControlSettings::CHANNELGROUPS_NUMELEM; i++) {
         cData.ChannelGroups[i] = channelType;
         cData.ChannelNumber[i] = 0;
         cData.ChannelMin[i] = minVal;
@@ -469,12 +473,11 @@ void VehicleConfigurationHelper::applyManualControlDefaults()
         cData.ChannelNeutral[i] = neutralVal;
     }
 
-    cData.ChannelNumber[ManualControlSettings::CHANNELGROUPS_THROTTLE]   = 1;
-    cData.ChannelNeutral[ManualControlSettings::CHANNELNEUTRAL_THROTTLE] =
-            throttleNeutralVal;
-    cData.ChannelNumber[ManualControlSettings::CHANNELGROUPS_ROLL]       = 2;
-    cData.ChannelNumber[ManualControlSettings::CHANNELGROUPS_YAW]        = 3;
-    cData.ChannelNumber[ManualControlSettings::CHANNELGROUPS_PITCH]      = 4;
+    cData.ChannelNumber[ManualControlSettings::CHANNELGROUPS_THROTTLE] = 1;
+    cData.ChannelNeutral[ManualControlSettings::CHANNELNEUTRAL_THROTTLE] = throttleNeutralVal;
+    cData.ChannelNumber[ManualControlSettings::CHANNELGROUPS_ROLL] = 2;
+    cData.ChannelNumber[ManualControlSettings::CHANNELGROUPS_YAW] = 3;
+    cData.ChannelNumber[ManualControlSettings::CHANNELGROUPS_PITCH] = 4;
     cData.ChannelNumber[ManualControlSettings::CHANNELGROUPS_FLIGHTMODE] = 5;
 
     mcSettings->setData(cData);
@@ -483,13 +486,14 @@ void VehicleConfigurationHelper::applyManualControlDefaults()
 
 bool VehicleConfigurationHelper::saveChangesToController(bool save)
 {
-    qDebug() << "Saving modified objects to controller. " << m_modifiedObjects.count() << " objects in found.";
+    qDebug() << "Saving modified objects to controller. " << m_modifiedObjects.count()
+             << " objects in found.";
     const int OUTER_TIMEOUT = 3000 * 20; // 10 seconds timeout for saving all objects
     const int INNER_TIMEOUT = 2000; // 1 second timeout on every save attempt
 
     ExtensionSystem::PluginManager *pm = ExtensionSystem::PluginManager::instance();
     Q_ASSERT(pm);
-    UAVObjectUtilManager *utilMngr     = pm->getObject<UAVObjectUtilManager>();
+    UAVObjectUtilManager *utilMngr = pm->getObject<UAVObjectUtilManager>();
     Q_ASSERT(utilMngr);
 
     QTimer outerTimeoutTimer;
@@ -498,26 +502,26 @@ bool VehicleConfigurationHelper::saveChangesToController(bool save)
     QTimer innerTimeoutTimer;
     innerTimeoutTimer.setSingleShot(true);
 
-    connect(utilMngr, &UAVObjectUtilManager::saveCompleted,
-            this, QOverload<int, bool>::of(&VehicleConfigurationHelper::uavoTransactionCompleted));
-    connect(&innerTimeoutTimer, &QTimer::timeout,
-            &m_eventLoop, &QEventLoop::quit);
-    connect(&outerTimeoutTimer, &QTimer::timeout,
-            this, &VehicleConfigurationHelper::saveChangesTimeout);
+    connect(utilMngr, &UAVObjectUtilManager::saveCompleted, this,
+            QOverload<int, bool>::of(&VehicleConfigurationHelper::uavoTransactionCompleted));
+    connect(&innerTimeoutTimer, &QTimer::timeout, &m_eventLoop, &QEventLoop::quit);
+    connect(&outerTimeoutTimer, &QTimer::timeout, this,
+            &VehicleConfigurationHelper::saveChangesTimeout);
 
     outerTimeoutTimer.start(OUTER_TIMEOUT);
     for (int i = 0; i < m_modifiedObjects.count(); i++) {
         QPair<UAVDataObject *, QString> *objPair = m_modifiedObjects.at(i);
         m_transactionOK = false;
-        UAVDataObject *obj     = objPair->first;
+        UAVDataObject *obj = objPair->first;
         QString objDescription = objPair->second;
-        if (UAVObject::GetGcsAccess(obj->getMetadata()) != UAVObject::ACCESS_READONLY && obj->isSettings()) {
+        if (UAVObject::GetGcsAccess(obj->getMetadata()) != UAVObject::ACCESS_READONLY
+            && obj->isSettings()) {
             emit saveProgress(m_modifiedObjects.count() + 1, ++m_progress, objDescription);
 
             m_currentTransactionObjectID = obj->getObjID();
 
-            connect(obj, QOverload<UAVObject *, bool>::of(&UAVObject::transactionCompleted),
-                    this, QOverload<UAVObject *, bool>::of(
+            connect(obj, QOverload<UAVObject *, bool>::of(&UAVObject::transactionCompleted), this,
+                    QOverload<UAVObject *, bool>::of(
                         &VehicleConfigurationHelper::uavoTransactionCompleted));
             while (!m_transactionOK && !m_transactionTimeout) {
                 // Allow the transaction to take some time
@@ -532,7 +536,7 @@ bool VehicleConfigurationHelper::saveChangesToController(bool save)
             }
             disconnect(obj, QOverload<UAVObject *, bool>::of(&UAVObject::transactionCompleted),
                        this, QOverload<UAVObject *, bool>::of(
-                           &VehicleConfigurationHelper::uavoTransactionCompleted));
+                                 &VehicleConfigurationHelper::uavoTransactionCompleted));
             if (m_transactionOK) {
                 qDebug() << "Object " << obj->getName() << " was successfully updated.";
                 if (save) {
@@ -560,21 +564,22 @@ bool VehicleConfigurationHelper::saveChangesToController(bool save)
                 qDebug() << "Object " << obj->getName() << " was successfully saved.";
             }
         } else {
-            qDebug() << "Trying to save a UAVDataObject that is read only or is not a settings object.";
+            qDebug()
+                << "Trying to save a UAVDataObject that is read only or is not a settings object.";
         }
         if (m_transactionTimeout) {
-            qDebug() << "Transaction timed out when trying to save " << m_modifiedObjects.count() << " objects.";
+            qDebug() << "Transaction timed out when trying to save " << m_modifiedObjects.count()
+                     << " objects.";
             break;
         }
     }
 
     outerTimeoutTimer.stop();
-    disconnect(&outerTimeoutTimer, &QTimer::timeout,
-               this, &VehicleConfigurationHelper::saveChangesTimeout);
-    disconnect(&innerTimeoutTimer, &QTimer::timeout,
-               &m_eventLoop, &QEventLoop::quit);
-    disconnect(utilMngr, &UAVObjectUtilManager::saveCompleted,
-               this, QOverload<int, bool>::of(&VehicleConfigurationHelper::uavoTransactionCompleted));
+    disconnect(&outerTimeoutTimer, &QTimer::timeout, this,
+               &VehicleConfigurationHelper::saveChangesTimeout);
+    disconnect(&innerTimeoutTimer, &QTimer::timeout, &m_eventLoop, &QEventLoop::quit);
+    disconnect(utilMngr, &UAVObjectUtilManager::saveCompleted, this,
+               QOverload<int, bool>::of(&VehicleConfigurationHelper::uavoTransactionCompleted));
 
     qDebug() << "Finished saving modified objects to controller. Success = " << m_transactionOK;
 
@@ -619,7 +624,7 @@ void VehicleConfigurationHelper::resetVehicleConfig()
     }
 
     // Reset Mixer types and values
-    QString mixerTypePattern   = "Mixer%1Type";
+    QString mixerTypePattern = "Mixer%1Type";
     QString mixerVectorPattern = "Mixer%1Vector";
     for (int i = 1; i <= 10; i++) {
         UAVObjectField *field = mSettings->getField(mixerTypePattern.arg(i));
@@ -652,7 +657,6 @@ void VehicleConfigurationHelper::resetGUIData()
     addModifiedObject(sSettings, tr("Preparing vehicle settings"));
 }
 
-
 void VehicleConfigurationHelper::setupTriCopter()
 {
     // Typical vehicle setup
@@ -663,37 +667,37 @@ void VehicleConfigurationHelper::setupTriCopter()
     mixerChannelSettings channels[10];
     GUIConfigDataUnion guiSettings = getGUIConfigData();
 
-    channels[0].type      = MIXER_TYPE_MOTOR;
+    channels[0].type = MIXER_TYPE_MOTOR;
     channels[0].throttle1 = 100;
     channels[0].throttle2 = 0;
-    channels[0].roll      = 100;
-    channels[0].pitch     = 50;
+    channels[0].roll = 100;
+    channels[0].pitch = 50;
     channels[0].yaw = 0;
 
-    channels[1].type      = MIXER_TYPE_MOTOR;
+    channels[1].type = MIXER_TYPE_MOTOR;
     channels[1].throttle1 = 100;
     channels[1].throttle2 = 0;
-    channels[1].roll      = -100;
-    channels[1].pitch     = 50;
+    channels[1].roll = -100;
+    channels[1].pitch = 50;
     channels[1].yaw = 0;
 
-    channels[2].type      = MIXER_TYPE_MOTOR;
+    channels[2].type = MIXER_TYPE_MOTOR;
     channels[2].throttle1 = 100;
     channels[2].throttle2 = 0;
-    channels[2].roll      = 0;
-    channels[2].pitch     = -100;
+    channels[2].roll = 0;
+    channels[2].pitch = -100;
     channels[2].yaw = 0;
 
-    channels[3].type      = MIXER_TYPE_SERVO;
+    channels[3].type = MIXER_TYPE_SERVO;
     channels[3].throttle1 = 0;
     channels[3].throttle2 = 0;
-    channels[3].roll      = 0;
-    channels[3].pitch     = 0;
+    channels[3].roll = 0;
+    channels[3].pitch = 0;
     channels[3].yaw = 100;
 
     guiSettings.multi.VTOLMotorNW = 1;
     guiSettings.multi.VTOLMotorNE = 2;
-    guiSettings.multi.VTOLMotorS  = 3;
+    guiSettings.multi.VTOLMotorS = 3;
     guiSettings.multi.TRIYaw = 4;
 
     applyMixerConfiguration(channels);
@@ -718,35 +722,34 @@ void VehicleConfigurationHelper::setupQuadCopter()
     SystemSettings::AirframeTypeOptions frame = SystemSettings::AIRFRAMETYPE_QUADP;
 
     switch (m_configSource->getVehicleSubType()) {
-    case VehicleConfigurationSource::MULTI_ROTOR_QUAD_PLUS:
-    {
+    case VehicleConfigurationSource::MULTI_ROTOR_QUAD_PLUS: {
         frame = SystemSettings::AIRFRAMETYPE_QUADP;
-        channels[0].type      = MIXER_TYPE_MOTOR;
+        channels[0].type = MIXER_TYPE_MOTOR;
         channels[0].throttle1 = 100;
         channels[0].throttle2 = 0;
-        channels[0].roll      = 0;
-        channels[0].pitch     = 100;
+        channels[0].roll = 0;
+        channels[0].pitch = 100;
         channels[0].yaw = -50;
 
-        channels[1].type      = MIXER_TYPE_MOTOR;
+        channels[1].type = MIXER_TYPE_MOTOR;
         channels[1].throttle1 = 100;
         channels[1].throttle2 = 0;
-        channels[1].roll      = -100;
-        channels[1].pitch     = 0;
+        channels[1].roll = -100;
+        channels[1].pitch = 0;
         channels[1].yaw = 50;
 
-        channels[2].type      = MIXER_TYPE_MOTOR;
+        channels[2].type = MIXER_TYPE_MOTOR;
         channels[2].throttle1 = 100;
         channels[2].throttle2 = 0;
-        channels[2].roll      = 0;
-        channels[2].pitch     = -100;
+        channels[2].roll = 0;
+        channels[2].pitch = -100;
         channels[2].yaw = -50;
 
-        channels[3].type      = MIXER_TYPE_MOTOR;
+        channels[3].type = MIXER_TYPE_MOTOR;
         channels[3].throttle1 = 100;
         channels[3].throttle2 = 0;
-        channels[3].roll      = 100;
-        channels[3].pitch     = 0;
+        channels[3].roll = 100;
+        channels[3].pitch = 0;
         channels[3].yaw = 50;
 
         guiSettings.multi.VTOLMotorN = 1;
@@ -756,35 +759,34 @@ void VehicleConfigurationHelper::setupQuadCopter()
 
         break;
     }
-    case VehicleConfigurationSource::MULTI_ROTOR_QUAD_X:
-    {
+    case VehicleConfigurationSource::MULTI_ROTOR_QUAD_X: {
         frame = SystemSettings::AIRFRAMETYPE_QUADX;
-        channels[0].type      = MIXER_TYPE_MOTOR;
+        channels[0].type = MIXER_TYPE_MOTOR;
         channels[0].throttle1 = 100;
         channels[0].throttle2 = 0;
-        channels[0].roll      = 50;
-        channels[0].pitch     = 50;
+        channels[0].roll = 50;
+        channels[0].pitch = 50;
         channels[0].yaw = -50;
 
-        channels[1].type      = MIXER_TYPE_MOTOR;
+        channels[1].type = MIXER_TYPE_MOTOR;
         channels[1].throttle1 = 100;
         channels[1].throttle2 = 0;
-        channels[1].roll      = -50;
-        channels[1].pitch     = 50;
+        channels[1].roll = -50;
+        channels[1].pitch = 50;
         channels[1].yaw = 50;
 
-        channels[2].type      = MIXER_TYPE_MOTOR;
+        channels[2].type = MIXER_TYPE_MOTOR;
         channels[2].throttle1 = 100;
         channels[2].throttle2 = 0;
-        channels[2].roll      = -50;
-        channels[2].pitch     = -50;
+        channels[2].roll = -50;
+        channels[2].pitch = -50;
         channels[2].yaw = -50;
 
-        channels[3].type      = MIXER_TYPE_MOTOR;
+        channels[3].type = MIXER_TYPE_MOTOR;
         channels[3].throttle1 = 100;
         channels[3].throttle2 = 0;
-        channels[3].roll      = 50;
-        channels[3].pitch     = -50;
+        channels[3].roll = 50;
+        channels[3].pitch = -50;
         channels[3].yaw = 50;
 
         guiSettings.multi.VTOLMotorNW = 1;
@@ -808,167 +810,164 @@ void VehicleConfigurationHelper::setupHexaCopter()
     SystemSettings::AirframeTypeOptions frame = SystemSettings::AIRFRAMETYPE_HEXA;
 
     switch (m_configSource->getVehicleSubType()) {
-    case VehicleConfigurationSource::MULTI_ROTOR_HEXA:
-    {
+    case VehicleConfigurationSource::MULTI_ROTOR_HEXA: {
         frame = SystemSettings::AIRFRAMETYPE_HEXA;
 
-        channels[0].type      = MIXER_TYPE_MOTOR;
+        channels[0].type = MIXER_TYPE_MOTOR;
         channels[0].throttle1 = 100;
         channels[0].throttle2 = 0;
-        channels[0].roll      = 0;
-        channels[0].pitch     = 33;
+        channels[0].roll = 0;
+        channels[0].pitch = 33;
         channels[0].yaw = -33;
 
-        channels[1].type      = MIXER_TYPE_MOTOR;
+        channels[1].type = MIXER_TYPE_MOTOR;
         channels[1].throttle1 = 100;
         channels[1].throttle2 = 0;
-        channels[1].roll      = -50;
-        channels[1].pitch     = 33;
+        channels[1].roll = -50;
+        channels[1].pitch = 33;
         channels[1].yaw = 33;
 
-        channels[2].type      = MIXER_TYPE_MOTOR;
+        channels[2].type = MIXER_TYPE_MOTOR;
         channels[2].throttle1 = 100;
         channels[2].throttle2 = 0;
-        channels[2].roll      = -50;
-        channels[2].pitch     = -33;
+        channels[2].roll = -50;
+        channels[2].pitch = -33;
         channels[2].yaw = -33;
 
-        channels[3].type      = MIXER_TYPE_MOTOR;
+        channels[3].type = MIXER_TYPE_MOTOR;
         channels[3].throttle1 = 100;
         channels[3].throttle2 = 0;
-        channels[3].roll      = 0;
-        channels[3].pitch     = -33;
+        channels[3].roll = 0;
+        channels[3].pitch = -33;
         channels[3].yaw = 33;
 
-        channels[4].type      = MIXER_TYPE_MOTOR;
+        channels[4].type = MIXER_TYPE_MOTOR;
         channels[4].throttle1 = 100;
         channels[4].throttle2 = 0;
-        channels[4].roll      = 50;
-        channels[4].pitch     = -33;
+        channels[4].roll = 50;
+        channels[4].pitch = -33;
         channels[4].yaw = -33;
 
-        channels[5].type      = MIXER_TYPE_MOTOR;
+        channels[5].type = MIXER_TYPE_MOTOR;
         channels[5].throttle1 = 100;
         channels[5].throttle2 = 0;
-        channels[5].roll      = 50;
-        channels[5].pitch     = 33;
+        channels[5].roll = 50;
+        channels[5].pitch = 33;
         channels[5].yaw = 33;
 
-        guiSettings.multi.VTOLMotorN  = 1;
+        guiSettings.multi.VTOLMotorN = 1;
         guiSettings.multi.VTOLMotorNE = 2;
         guiSettings.multi.VTOLMotorSE = 3;
-        guiSettings.multi.VTOLMotorS  = 4;
+        guiSettings.multi.VTOLMotorS = 4;
         guiSettings.multi.VTOLMotorSW = 5;
         guiSettings.multi.VTOLMotorNW = 6;
 
         break;
     }
-    case VehicleConfigurationSource::MULTI_ROTOR_HEXA_COAX_Y:
-    {
+    case VehicleConfigurationSource::MULTI_ROTOR_HEXA_COAX_Y: {
         frame = SystemSettings::AIRFRAMETYPE_HEXACOAX;
 
-        channels[0].type      = MIXER_TYPE_MOTOR;
+        channels[0].type = MIXER_TYPE_MOTOR;
         channels[0].throttle1 = 100;
         channels[0].throttle2 = 0;
-        channels[0].roll      = 100;
-        channels[0].pitch     = 25;
+        channels[0].roll = 100;
+        channels[0].pitch = 25;
         channels[0].yaw = -66;
 
-        channels[1].type      = MIXER_TYPE_MOTOR;
+        channels[1].type = MIXER_TYPE_MOTOR;
         channels[1].throttle1 = 100;
         channels[1].throttle2 = 0;
-        channels[1].roll      = 100;
-        channels[1].pitch     = 25;
+        channels[1].roll = 100;
+        channels[1].pitch = 25;
         channels[1].yaw = 66;
 
-        channels[2].type      = MIXER_TYPE_MOTOR;
+        channels[2].type = MIXER_TYPE_MOTOR;
         channels[2].throttle1 = 100;
         channels[2].throttle2 = 0;
-        channels[2].roll      = -100;
-        channels[2].pitch     = 25;
+        channels[2].roll = -100;
+        channels[2].pitch = 25;
         channels[2].yaw = -66;
 
-        channels[3].type      = MIXER_TYPE_MOTOR;
+        channels[3].type = MIXER_TYPE_MOTOR;
         channels[3].throttle1 = 100;
         channels[3].throttle2 = 0;
-        channels[3].roll      = -100;
-        channels[3].pitch     = 25;
+        channels[3].roll = -100;
+        channels[3].pitch = 25;
         channels[3].yaw = 66;
 
-        channels[4].type      = MIXER_TYPE_MOTOR;
+        channels[4].type = MIXER_TYPE_MOTOR;
         channels[4].throttle1 = 100;
         channels[4].throttle2 = 0;
-        channels[4].roll      = 0;
-        channels[4].pitch     = -50;
+        channels[4].roll = 0;
+        channels[4].pitch = -50;
         channels[4].yaw = -66;
 
-        channels[5].type      = MIXER_TYPE_MOTOR;
+        channels[5].type = MIXER_TYPE_MOTOR;
         channels[5].throttle1 = 100;
         channels[5].throttle2 = 0;
-        channels[5].roll      = 0;
-        channels[5].pitch     = -50;
+        channels[5].roll = 0;
+        channels[5].pitch = -50;
         channels[5].yaw = 66;
 
         guiSettings.multi.VTOLMotorNW = 1;
-        guiSettings.multi.VTOLMotorW  = 2;
+        guiSettings.multi.VTOLMotorW = 2;
         guiSettings.multi.VTOLMotorNE = 3;
-        guiSettings.multi.VTOLMotorE  = 4;
-        guiSettings.multi.VTOLMotorS  = 5;
+        guiSettings.multi.VTOLMotorE = 4;
+        guiSettings.multi.VTOLMotorS = 5;
         guiSettings.multi.VTOLMotorSE = 6;
 
         break;
     }
-    case VehicleConfigurationSource::MULTI_ROTOR_HEXA_H:
-    {
+    case VehicleConfigurationSource::MULTI_ROTOR_HEXA_H: {
         frame = SystemSettings::AIRFRAMETYPE_HEXAX;
 
-        channels[0].type      = MIXER_TYPE_MOTOR;
+        channels[0].type = MIXER_TYPE_MOTOR;
         channels[0].throttle1 = 100;
         channels[0].throttle2 = 0;
-        channels[0].roll      = -33;
-        channels[0].pitch     = 50;
+        channels[0].roll = -33;
+        channels[0].pitch = 50;
         channels[0].yaw = -33;
 
-        channels[1].type      = MIXER_TYPE_MOTOR;
+        channels[1].type = MIXER_TYPE_MOTOR;
         channels[1].throttle1 = 100;
         channels[1].throttle2 = 0;
-        channels[1].roll      = -33;
-        channels[1].pitch     = 0;
+        channels[1].roll = -33;
+        channels[1].pitch = 0;
         channels[1].yaw = 33;
 
-        channels[2].type      = MIXER_TYPE_MOTOR;
+        channels[2].type = MIXER_TYPE_MOTOR;
         channels[2].throttle1 = 100;
         channels[2].throttle2 = 0;
-        channels[2].roll      = -33;
-        channels[2].pitch     = -50;
+        channels[2].roll = -33;
+        channels[2].pitch = -50;
         channels[2].yaw = -33;
 
-        channels[3].type      = MIXER_TYPE_MOTOR;
+        channels[3].type = MIXER_TYPE_MOTOR;
         channels[3].throttle1 = 100;
         channels[3].throttle2 = 0;
-        channels[3].roll      = -33;
-        channels[3].pitch     = -50;
+        channels[3].roll = -33;
+        channels[3].pitch = -50;
         channels[3].yaw = 33;
 
-        channels[4].type      = MIXER_TYPE_MOTOR;
+        channels[4].type = MIXER_TYPE_MOTOR;
         channels[4].throttle1 = 100;
         channels[4].throttle2 = 0;
-        channels[4].roll      = 33;
-        channels[4].pitch     = 0;
+        channels[4].roll = 33;
+        channels[4].pitch = 0;
         channels[4].yaw = -33;
 
-        channels[5].type      = MIXER_TYPE_MOTOR;
+        channels[5].type = MIXER_TYPE_MOTOR;
         channels[5].throttle1 = 100;
         channels[5].throttle2 = 0;
-        channels[5].roll      = 33;
-        channels[5].pitch     = 50;
+        channels[5].roll = 33;
+        channels[5].pitch = 50;
         channels[5].yaw = -33;
 
         guiSettings.multi.VTOLMotorNE = 1;
-        guiSettings.multi.VTOLMotorE  = 2;
+        guiSettings.multi.VTOLMotorE = 2;
         guiSettings.multi.VTOLMotorSE = 3;
         guiSettings.multi.VTOLMotorSW = 4;
-        guiSettings.multi.VTOLMotorW  = 5;
+        guiSettings.multi.VTOLMotorW = 5;
         guiSettings.multi.VTOLMotorNW = 6;
 
         break;
@@ -987,285 +986,281 @@ void VehicleConfigurationHelper::setupOctoCopter()
     SystemSettings::AirframeTypeOptions frame = SystemSettings::AIRFRAMETYPE_OCTO;
 
     switch (m_configSource->getVehicleSubType()) {
-    case VehicleConfigurationSource::MULTI_ROTOR_OCTO:
-    {
+    case VehicleConfigurationSource::MULTI_ROTOR_OCTO: {
         frame = SystemSettings::AIRFRAMETYPE_OCTO;
 
-        channels[0].type      = MIXER_TYPE_MOTOR;
+        channels[0].type = MIXER_TYPE_MOTOR;
         channels[0].throttle1 = 100;
         channels[0].throttle2 = 0;
-        channels[0].roll      = 0;
-        channels[0].pitch     = 33;
+        channels[0].roll = 0;
+        channels[0].pitch = 33;
         channels[0].yaw = -25;
 
-        channels[1].type      = MIXER_TYPE_MOTOR;
+        channels[1].type = MIXER_TYPE_MOTOR;
         channels[1].throttle1 = 100;
         channels[1].throttle2 = 0;
-        channels[1].roll      = -33;
-        channels[1].pitch     = 33;
+        channels[1].roll = -33;
+        channels[1].pitch = 33;
         channels[1].yaw = 25;
 
-        channels[2].type      = MIXER_TYPE_MOTOR;
+        channels[2].type = MIXER_TYPE_MOTOR;
         channels[2].throttle1 = 100;
         channels[2].throttle2 = 0;
-        channels[2].roll      = -33;
-        channels[2].pitch     = 0;
+        channels[2].roll = -33;
+        channels[2].pitch = 0;
         channels[2].yaw = -25;
 
-        channels[3].type      = MIXER_TYPE_MOTOR;
+        channels[3].type = MIXER_TYPE_MOTOR;
         channels[3].throttle1 = 100;
         channels[3].throttle2 = 0;
-        channels[3].roll      = -33;
-        channels[3].pitch     = -33;
+        channels[3].roll = -33;
+        channels[3].pitch = -33;
         channels[3].yaw = 25;
 
-        channels[4].type      = MIXER_TYPE_MOTOR;
+        channels[4].type = MIXER_TYPE_MOTOR;
         channels[4].throttle1 = 100;
         channels[4].throttle2 = 0;
-        channels[4].roll      = 0;
-        channels[4].pitch     = -33;
+        channels[4].roll = 0;
+        channels[4].pitch = -33;
         channels[4].yaw = -25;
 
-        channels[5].type      = MIXER_TYPE_MOTOR;
+        channels[5].type = MIXER_TYPE_MOTOR;
         channels[5].throttle1 = 100;
         channels[5].throttle2 = 0;
-        channels[5].roll      = 33;
-        channels[5].pitch     = -33;
+        channels[5].roll = 33;
+        channels[5].pitch = -33;
         channels[5].yaw = 25;
 
-        channels[6].type      = MIXER_TYPE_MOTOR;
+        channels[6].type = MIXER_TYPE_MOTOR;
         channels[6].throttle1 = 100;
         channels[6].throttle2 = 0;
-        channels[6].roll      = 33;
-        channels[6].pitch     = 0;
+        channels[6].roll = 33;
+        channels[6].pitch = 0;
         channels[6].yaw = -25;
 
-        channels[7].type      = MIXER_TYPE_MOTOR;
+        channels[7].type = MIXER_TYPE_MOTOR;
         channels[7].throttle1 = 100;
         channels[7].throttle2 = 0;
-        channels[7].roll      = 33;
-        channels[7].pitch     = 33;
+        channels[7].roll = 33;
+        channels[7].pitch = 33;
         channels[7].yaw = 25;
 
-        guiSettings.multi.VTOLMotorN  = 1;
+        guiSettings.multi.VTOLMotorN = 1;
         guiSettings.multi.VTOLMotorNE = 2;
-        guiSettings.multi.VTOLMotorE  = 3;
+        guiSettings.multi.VTOLMotorE = 3;
         guiSettings.multi.VTOLMotorSE = 4;
-        guiSettings.multi.VTOLMotorS  = 5;
+        guiSettings.multi.VTOLMotorS = 5;
         guiSettings.multi.VTOLMotorSW = 6;
-        guiSettings.multi.VTOLMotorW  = 7;
+        guiSettings.multi.VTOLMotorW = 7;
         guiSettings.multi.VTOLMotorNW = 8;
 
         break;
     }
-    case VehicleConfigurationSource::MULTI_ROTOR_OCTO_COAX_X:
-    {
+    case VehicleConfigurationSource::MULTI_ROTOR_OCTO_COAX_X: {
         frame = SystemSettings::AIRFRAMETYPE_OCTOCOAXX;
 
-        channels[0].type      = MIXER_TYPE_MOTOR;
+        channels[0].type = MIXER_TYPE_MOTOR;
         channels[0].throttle1 = 100;
         channels[0].throttle2 = 0;
-        channels[0].roll      = 50;
-        channels[0].pitch     = 50;
+        channels[0].roll = 50;
+        channels[0].pitch = 50;
         channels[0].yaw = -50;
 
-        channels[1].type      = MIXER_TYPE_MOTOR;
+        channels[1].type = MIXER_TYPE_MOTOR;
         channels[1].throttle1 = 100;
         channels[1].throttle2 = 0;
-        channels[1].roll      = 50;
-        channels[1].pitch     = 50;
+        channels[1].roll = 50;
+        channels[1].pitch = 50;
         channels[1].yaw = 50;
 
-        channels[2].type      = MIXER_TYPE_MOTOR;
+        channels[2].type = MIXER_TYPE_MOTOR;
         channels[2].throttle1 = 100;
         channels[2].throttle2 = 0;
-        channels[2].roll      = -50;
-        channels[2].pitch     = 50;
+        channels[2].roll = -50;
+        channels[2].pitch = 50;
         channels[2].yaw = -50;
 
-        channels[3].type      = MIXER_TYPE_MOTOR;
+        channels[3].type = MIXER_TYPE_MOTOR;
         channels[3].throttle1 = 100;
         channels[3].throttle2 = 0;
-        channels[3].roll      = -50;
-        channels[3].pitch     = 50;
+        channels[3].roll = -50;
+        channels[3].pitch = 50;
         channels[3].yaw = 50;
 
-        channels[4].type      = MIXER_TYPE_MOTOR;
+        channels[4].type = MIXER_TYPE_MOTOR;
         channels[4].throttle1 = 100;
         channels[4].throttle2 = 0;
-        channels[4].roll      = -50;
-        channels[4].pitch     = -50;
+        channels[4].roll = -50;
+        channels[4].pitch = -50;
         channels[4].yaw = -50;
 
-        channels[5].type      = MIXER_TYPE_MOTOR;
+        channels[5].type = MIXER_TYPE_MOTOR;
         channels[5].throttle1 = 100;
         channels[5].throttle2 = 0;
-        channels[5].roll      = -50;
-        channels[5].pitch     = -50;
+        channels[5].roll = -50;
+        channels[5].pitch = -50;
         channels[5].yaw = 50;
 
-        channels[6].type      = MIXER_TYPE_MOTOR;
+        channels[6].type = MIXER_TYPE_MOTOR;
         channels[6].throttle1 = 100;
         channels[6].throttle2 = 0;
-        channels[6].roll      = 50;
-        channels[6].pitch     = -50;
+        channels[6].roll = 50;
+        channels[6].pitch = -50;
         channels[6].yaw = -50;
 
-        channels[7].type      = MIXER_TYPE_MOTOR;
+        channels[7].type = MIXER_TYPE_MOTOR;
         channels[7].throttle1 = 100;
         channels[7].throttle2 = 0;
-        channels[7].roll      = 50;
-        channels[7].pitch     = -50;
+        channels[7].roll = 50;
+        channels[7].pitch = -50;
         channels[7].yaw = 50;
 
         guiSettings.multi.VTOLMotorNW = 1;
-        guiSettings.multi.VTOLMotorN  = 2;
+        guiSettings.multi.VTOLMotorN = 2;
         guiSettings.multi.VTOLMotorNE = 3;
-        guiSettings.multi.VTOLMotorE  = 4;
+        guiSettings.multi.VTOLMotorE = 4;
         guiSettings.multi.VTOLMotorSE = 5;
-        guiSettings.multi.VTOLMotorS  = 6;
+        guiSettings.multi.VTOLMotorS = 6;
         guiSettings.multi.VTOLMotorSW = 7;
-        guiSettings.multi.VTOLMotorW  = 8;
+        guiSettings.multi.VTOLMotorW = 8;
 
         break;
     }
-    case VehicleConfigurationSource::MULTI_ROTOR_OCTO_COAX_PLUS:
-    {
+    case VehicleConfigurationSource::MULTI_ROTOR_OCTO_COAX_PLUS: {
         frame = SystemSettings::AIRFRAMETYPE_OCTOCOAXP;
 
-        channels[0].type      = MIXER_TYPE_MOTOR;
+        channels[0].type = MIXER_TYPE_MOTOR;
         channels[0].throttle1 = 100;
         channels[0].throttle2 = 0;
-        channels[0].roll      = 0;
-        channels[0].pitch     = 100;
+        channels[0].roll = 0;
+        channels[0].pitch = 100;
         channels[0].yaw = -50;
 
-        channels[1].type      = MIXER_TYPE_MOTOR;
+        channels[1].type = MIXER_TYPE_MOTOR;
         channels[1].throttle1 = 100;
         channels[1].throttle2 = 0;
-        channels[1].roll      = 0;
-        channels[1].pitch     = 100;
+        channels[1].roll = 0;
+        channels[1].pitch = 100;
         channels[1].yaw = 50;
 
-        channels[2].type      = MIXER_TYPE_MOTOR;
+        channels[2].type = MIXER_TYPE_MOTOR;
         channels[2].throttle1 = 100;
         channels[2].throttle2 = 0;
-        channels[2].roll      = -100;
-        channels[2].pitch     = 0;
+        channels[2].roll = -100;
+        channels[2].pitch = 0;
         channels[2].yaw = -50;
 
-        channels[3].type      = MIXER_TYPE_MOTOR;
+        channels[3].type = MIXER_TYPE_MOTOR;
         channels[3].throttle1 = 100;
         channels[3].throttle2 = 0;
-        channels[3].roll      = -100;
-        channels[3].pitch     = 0;
+        channels[3].roll = -100;
+        channels[3].pitch = 0;
         channels[3].yaw = 50;
 
-        channels[4].type      = MIXER_TYPE_MOTOR;
+        channels[4].type = MIXER_TYPE_MOTOR;
         channels[4].throttle1 = 100;
         channels[4].throttle2 = 0;
-        channels[4].roll      = 0;
-        channels[4].pitch     = -100;
+        channels[4].roll = 0;
+        channels[4].pitch = -100;
         channels[4].yaw = -50;
 
-        channels[5].type      = MIXER_TYPE_MOTOR;
+        channels[5].type = MIXER_TYPE_MOTOR;
         channels[5].throttle1 = 100;
         channels[5].throttle2 = 0;
-        channels[5].roll      = 0;
-        channels[5].pitch     = -100;
+        channels[5].roll = 0;
+        channels[5].pitch = -100;
         channels[5].yaw = 50;
 
-        channels[6].type      = MIXER_TYPE_MOTOR;
+        channels[6].type = MIXER_TYPE_MOTOR;
         channels[6].throttle1 = 100;
         channels[6].throttle2 = 0;
-        channels[6].roll      = 100;
-        channels[6].pitch     = 0;
+        channels[6].roll = 100;
+        channels[6].pitch = 0;
         channels[6].yaw = -50;
 
-        channels[7].type      = MIXER_TYPE_MOTOR;
+        channels[7].type = MIXER_TYPE_MOTOR;
         channels[7].throttle1 = 100;
         channels[7].throttle2 = 0;
-        channels[7].roll      = 100;
-        channels[7].pitch     = 0;
+        channels[7].roll = 100;
+        channels[7].pitch = 0;
         channels[7].yaw = 50;
 
-        guiSettings.multi.VTOLMotorN  = 1;
+        guiSettings.multi.VTOLMotorN = 1;
         guiSettings.multi.VTOLMotorNE = 2;
-        guiSettings.multi.VTOLMotorE  = 3;
+        guiSettings.multi.VTOLMotorE = 3;
         guiSettings.multi.VTOLMotorSE = 4;
-        guiSettings.multi.VTOLMotorS  = 5;
+        guiSettings.multi.VTOLMotorS = 5;
         guiSettings.multi.VTOLMotorSW = 6;
-        guiSettings.multi.VTOLMotorW  = 7;
+        guiSettings.multi.VTOLMotorW = 7;
         guiSettings.multi.VTOLMotorNW = 8;
 
         break;
     }
-    case VehicleConfigurationSource::MULTI_ROTOR_OCTO_V:
-    {
+    case VehicleConfigurationSource::MULTI_ROTOR_OCTO_V: {
         frame = SystemSettings::AIRFRAMETYPE_OCTOV;
-        channels[0].type      = MIXER_TYPE_MOTOR;
+        channels[0].type = MIXER_TYPE_MOTOR;
         channels[0].throttle1 = 100;
         channels[0].throttle2 = 0;
-        channels[0].roll      = -25;
-        channels[0].pitch     = 8;
+        channels[0].roll = -25;
+        channels[0].pitch = 8;
         channels[0].yaw = -25;
 
-        channels[1].type      = MIXER_TYPE_MOTOR;
+        channels[1].type = MIXER_TYPE_MOTOR;
         channels[1].throttle1 = 100;
         channels[1].throttle2 = 0;
-        channels[1].roll      = -25;
-        channels[1].pitch     = 25;
+        channels[1].roll = -25;
+        channels[1].pitch = 25;
         channels[1].yaw = 25;
 
-        channels[2].type      = MIXER_TYPE_MOTOR;
+        channels[2].type = MIXER_TYPE_MOTOR;
         channels[2].throttle1 = 100;
         channels[2].throttle2 = 0;
-        channels[2].roll      = -25;
-        channels[2].pitch     = -25;
+        channels[2].roll = -25;
+        channels[2].pitch = -25;
         channels[2].yaw = -25;
 
-        channels[3].type      = MIXER_TYPE_MOTOR;
+        channels[3].type = MIXER_TYPE_MOTOR;
         channels[3].throttle1 = 100;
         channels[3].throttle2 = 0;
-        channels[3].roll      = -25;
-        channels[3].pitch     = -8;
+        channels[3].roll = -25;
+        channels[3].pitch = -8;
         channels[3].yaw = 25;
 
-        channels[4].type      = MIXER_TYPE_MOTOR;
+        channels[4].type = MIXER_TYPE_MOTOR;
         channels[4].throttle1 = 100;
         channels[4].throttle2 = 0;
-        channels[4].roll      = 25;
-        channels[4].pitch     = -8;
+        channels[4].roll = 25;
+        channels[4].pitch = -8;
         channels[4].yaw = -25;
 
-        channels[5].type      = MIXER_TYPE_MOTOR;
+        channels[5].type = MIXER_TYPE_MOTOR;
         channels[5].throttle1 = 100;
         channels[5].throttle2 = 0;
-        channels[5].roll      = 25;
-        channels[5].pitch     = -25;
+        channels[5].roll = 25;
+        channels[5].pitch = -25;
         channels[5].yaw = 25;
 
-        channels[6].type      = MIXER_TYPE_MOTOR;
+        channels[6].type = MIXER_TYPE_MOTOR;
         channels[6].throttle1 = 100;
         channels[6].throttle2 = 0;
-        channels[6].roll      = 25;
-        channels[6].pitch     = 25;
+        channels[6].roll = 25;
+        channels[6].pitch = 25;
         channels[6].yaw = -25;
 
-        channels[7].type      = MIXER_TYPE_MOTOR;
+        channels[7].type = MIXER_TYPE_MOTOR;
         channels[7].throttle1 = 100;
         channels[7].throttle2 = 0;
-        channels[7].roll      = 25;
-        channels[7].pitch     = 8;
+        channels[7].roll = 25;
+        channels[7].pitch = 8;
         channels[7].yaw = 25;
 
-        guiSettings.multi.VTOLMotorN  = 1;
+        guiSettings.multi.VTOLMotorN = 1;
         guiSettings.multi.VTOLMotorNE = 2;
-        guiSettings.multi.VTOLMotorE  = 3;
+        guiSettings.multi.VTOLMotorE = 3;
         guiSettings.multi.VTOLMotorSE = 4;
-        guiSettings.multi.VTOLMotorS  = 5;
+        guiSettings.multi.VTOLMotorS = 5;
         guiSettings.multi.VTOLMotorSW = 6;
-        guiSettings.multi.VTOLMotorW  = 7;
+        guiSettings.multi.VTOLMotorW = 7;
         guiSettings.multi.VTOLMotorNW = 8;
 
         break;

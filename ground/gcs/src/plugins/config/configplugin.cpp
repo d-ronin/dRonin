@@ -43,25 +43,23 @@ ConfigPlugin::~ConfigPlugin()
     // Do nothing
 }
 
-bool ConfigPlugin::initialize(const QStringList& args, QString *errMsg)
+bool ConfigPlugin::initialize(const QStringList &args, QString *errMsg)
 {
     Q_UNUSED(args);
     Q_UNUSED(errMsg);
     cf = new ConfigGadgetFactory(this);
     addAutoReleasedObject(cf);
 
-    Calibration* cal = new Calibration();
+    Calibration *cal = new Calibration();
     addAutoReleasedObject(cal);
 
     // Add Menu entry to erase all settings
-    Core::ActionManager* am = Core::ICore::instance()->actionManager();
-    Core::ActionContainer* ac = am->actionContainer(Core::Constants::M_TOOLS);
+    Core::ActionManager *am = Core::ICore::instance()->actionManager();
+    Core::ActionContainer *ac = am->actionContainer(Core::Constants::M_TOOLS);
 
     // Command to erase all settings from the board
-    cmd = am->registerAction(new QAction(this),
-                             "ConfigPlugin.EraseAll",
-                             QList<int>() <<
-                             Core::Constants::C_GLOBAL_ID);
+    cmd = am->registerAction(new QAction(this), "ConfigPlugin.EraseAll", QList<int>()
+                                 << Core::Constants::C_GLOBAL_ID);
     cmd->action()->setText(tr("Erase all settings from board..."));
 
     ac->menu()->addSeparator();
@@ -73,7 +71,7 @@ bool ConfigPlugin::initialize(const QStringList& args, QString *errMsg)
     // *********************
     // Listen to autopilot connection events
     ExtensionSystem::PluginManager *pm = ExtensionSystem::PluginManager::instance();
-    TelemetryManager* telMngr = pm->getObject<TelemetryManager>();
+    TelemetryManager *telMngr = pm->getObject<TelemetryManager>();
     connect(telMngr, &TelemetryManager::connected, this, &ConfigPlugin::onAutopilotConnect);
     connect(telMngr, &TelemetryManager::disconnected, this, &ConfigPlugin::onAutopilotDisconnect);
 
@@ -87,10 +85,10 @@ bool ConfigPlugin::initialize(const QStringList& args, QString *errMsg)
 /**
   * @brief Return handle to object manager
   */
-UAVObjectManager * ConfigPlugin::getObjectManager()
+UAVObjectManager *ConfigPlugin::getObjectManager()
 {
     ExtensionSystem::PluginManager *pm = ExtensionSystem::PluginManager::instance();
-    UAVObjectManager * objMngr = pm->getObject<UAVObjectManager>();
+    UAVObjectManager *objMngr = pm->getObject<UAVObjectManager>();
     Q_ASSERT(objMngr);
     return objMngr;
 }
@@ -98,7 +96,6 @@ UAVObjectManager * ConfigPlugin::getObjectManager()
 void ConfigPlugin::extensionsInitialized()
 {
     cmd->action()->setEnabled(false);
-
 }
 
 void ConfigPlugin::shutdown()
@@ -122,7 +119,6 @@ void ConfigPlugin::onAutopilotDisconnect()
     cmd->action()->setEnabled(false);
 }
 
-
 /**
   * Erase all settings from the board
   */
@@ -138,15 +134,16 @@ void ConfigPlugin::eraseAllSettings()
 
     settingsErased = false;
 
-    //TODO: Replace the second and third [in eraseDone()] pop-up dialogs with a progress indicator,
+    // TODO: Replace the second and third [in eraseDone()] pop-up dialogs with a progress indicator,
     // counter, or infinite chain of `......` tied to the original dialog box
     msgBox.setText(tr("Settings will now erase."));
-    msgBox.setInformativeText(tr("Press <OK> and then please wait until a completion box appears. This can take up to %1 seconds.").arg(FLASH_ERASE_TIMEOUT_MS/1000));
+    msgBox.setInformativeText(tr("Press <OK> and then please wait until a completion box appears. "
+                                 "This can take up to %1 seconds.")
+                                  .arg(FLASH_ERASE_TIMEOUT_MS / 1000));
     msgBox.setStandardButtons(QMessageBox::Ok);
     msgBox.exec();
 
-
-    ObjectPersistence* objper = ObjectPersistence::GetInstance(getObjectManager());
+    ObjectPersistence *objper = ObjectPersistence::GetInstance(getObjectManager());
     Q_ASSERT(objper);
 
     connect(objper, &UAVObject::objectUpdated, this, &ConfigPlugin::eraseDone);
@@ -158,8 +155,7 @@ void ConfigPlugin::eraseAllSettings()
     // based on UAVO meta data
     objper->setData(data);
     objper->updated();
-    QTimer::singleShot(FLASH_ERASE_TIMEOUT_MS,this,&ConfigPlugin::eraseFailed);
-
+    QTimer::singleShot(FLASH_ERASE_TIMEOUT_MS, this, &ConfigPlugin::eraseFailed);
 }
 
 void ConfigPlugin::eraseFailed()
@@ -167,26 +163,27 @@ void ConfigPlugin::eraseFailed()
     if (settingsErased)
         return;
 
-    ObjectPersistence* objper = ObjectPersistence::GetInstance(getObjectManager());
+    ObjectPersistence *objper = ObjectPersistence::GetInstance(getObjectManager());
 
     disconnect(objper, &UAVObject::objectUpdated, this, &ConfigPlugin::eraseDone);
     QMessageBox msgBox;
     msgBox.setText(tr("Error trying to erase settings."));
-    msgBox.setInformativeText(tr("Power-cycle your board after removing all blades. Settings might be inconsistent."));
+    msgBox.setInformativeText(
+        tr("Power-cycle your board after removing all blades. Settings might be inconsistent."));
     msgBox.setStandardButtons(QMessageBox::Ok);
     msgBox.setDefaultButton(QMessageBox::Ok);
     msgBox.exec();
 }
 
-void ConfigPlugin::eraseDone(UAVObject * obj)
+void ConfigPlugin::eraseDone(UAVObject *obj)
 {
     Q_UNUSED(obj)
     QMessageBox msgBox;
-    ObjectPersistence* objper = ObjectPersistence::GetInstance(getObjectManager());
+    ObjectPersistence *objper = ObjectPersistence::GetInstance(getObjectManager());
     ObjectPersistence::DataFields data = objper->getData();
     Q_ASSERT(obj->getInstID() == objper->getInstID());
 
-    if(data.Operation != ObjectPersistence::OPERATION_COMPLETED) {
+    if (data.Operation != ObjectPersistence::OPERATION_COMPLETED) {
         return;
     }
 
@@ -194,13 +191,14 @@ void ConfigPlugin::eraseDone(UAVObject * obj)
     if (data.Operation == ObjectPersistence::OPERATION_COMPLETED) {
         settingsErased = true;
         msgBox.setText(tr("Settings are now erased."));
-        msgBox.setInformativeText(tr("Please ensure that the status LED is flashing regularly and then power-cycle your board."));
+        msgBox.setInformativeText(tr("Please ensure that the status LED is flashing regularly and "
+                                     "then power-cycle your board."));
     } else {
         msgBox.setText(tr("Error trying to erase settings."));
-        msgBox.setInformativeText(tr("Power-cycle your board after removing all blades. Settings might be inconsistent."));
+        msgBox.setInformativeText(tr(
+            "Power-cycle your board after removing all blades. Settings might be inconsistent."));
     }
     msgBox.setStandardButtons(QMessageBox::Ok);
     msgBox.setDefaultButton(QMessageBox::Ok);
     msgBox.exec();
 }
-

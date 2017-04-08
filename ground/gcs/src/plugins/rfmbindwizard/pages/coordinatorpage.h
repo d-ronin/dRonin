@@ -41,7 +41,8 @@ namespace Ui {
 class CoordinatorPage;
 }
 
-class CoordinatorPage : public RadioProbePage {
+class CoordinatorPage : public RadioProbePage
+{
     Q_OBJECT
 
 public:
@@ -61,7 +62,6 @@ private slots:
 
     //! Bind this board to the coordinator
     bool configureCoordinator();
-
 };
 
 #endif // COORDINATORPAGE_H

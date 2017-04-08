@@ -46,7 +46,7 @@
 #include <QErrorMessage>
 #include <firmwareiapobj.h>
 
-class UAVOBJECTUTIL_EXPORT UAVObjectUtilManager: public QObject
+class UAVOBJECTUTIL_EXPORT UAVObjectUtilManager : public QObject
 {
     Q_OBJECT
 
@@ -54,20 +54,20 @@ public:
     UAVObjectUtilManager();
     ~UAVObjectUtilManager();
 
-    enum metadataSetEnum {ALL_METADATA, SETTINGS_METADATA_ONLY, NONSETTINGS_METADATA_ONLY};
+    enum metadataSetEnum { ALL_METADATA, SETTINGS_METADATA_ONLY, NONSETTINGS_METADATA_ONLY };
 
     int setHomeLocation(double LLA[3], bool save_to_sdcard);
     int getHomeLocation(bool &set, double LLA[3]);
 
     int getGPSPosition(double LLA[3]);
     int getBoardModel();
-    Core::IBoardType* getBoardType();
+    Core::IBoardType *getBoardType();
     QByteArray getBoardCPUSerial();
     quint32 getFirmwareCRC();
     QByteArray getBoardDescription();
     bool getBoardDescriptionStruct(deviceDescriptorStruct &device);
-    static bool descriptionToStructure(QByteArray desc,deviceDescriptorStruct & struc);
-    UAVObjectManager* getObjectManager();
+    static bool descriptionToStructure(QByteArray desc, deviceDescriptorStruct &struc);
+    UAVObjectManager *getObjectManager();
     void saveObjectToFlash(UAVObject *obj);
     QMap<QString, UAVObject::Metadata> readMetadata(metadataSetEnum metadataReadType);
     QMap<QString, UAVObject::Metadata> readAllNonSettingsMetadata();
@@ -77,6 +77,7 @@ public:
     int getBoardRevision();
     QString getFirmwareHash();
     QString getGcsHash();
+
 protected:
     FirmwareIAPObj::DataFields getFirmwareIap();
 signals:
@@ -85,19 +86,18 @@ signals:
 
 private:
     QQueue<UAVObject *> queue;
-    enum {IDLE, AWAITING_ACK, AWAITING_COMPLETED} saveState;
+    enum { IDLE, AWAITING_ACK, AWAITING_COMPLETED } saveState;
     void saveNextObject();
     QTimer failureTimer;
     ExtensionSystem::PluginManager *pm;
     UAVObjectManager *obm;
-    QMap<UAVDataObject*, UAVObject::Metadata> metadataSendlist;
+    QMap<UAVDataObject *, UAVObject::Metadata> metadataSendlist;
     bool metadataSendSuccess;
 private slots:
-    void objectPersistenceTransactionCompleted(UAVObject* obj, bool success);
-    void objectPersistenceUpdated(UAVObject * obj);
+    void objectPersistenceTransactionCompleted(UAVObject *obj, bool success);
+    void objectPersistenceUpdated(UAVObject *obj);
     void objectPersistenceOperationFailed();
-    void metadataTransactionCompleted(UAVObject*, bool);
+    void metadataTransactionCompleted(UAVObject *, bool);
 };
-
 
 #endif

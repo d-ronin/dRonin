@@ -31,8 +31,10 @@
 #include "vehicleconfigurationhelper.h"
 #include "manualcontrolsettings.h"
 
-OutputCalibrationUtil::OutputCalibrationUtil(QObject *parent) :
-    QObject(parent), m_outputChannel(-1), m_safeValue(1000)
+OutputCalibrationUtil::OutputCalibrationUtil(QObject *parent)
+    : QObject(parent)
+    , m_outputChannel(-1)
+    , m_safeValue(1000)
 {
     ExtensionSystem::PluginManager *pm = ExtensionSystem::PluginManager::instance();
 
@@ -50,17 +52,17 @@ void OutputCalibrationUtil::startChannelOutput(quint16 channel, quint16 safeValu
     if (m_outputChannel < 0 && channel < ActuatorCommand::CHANNEL_NUMELEM) {
         // Start output...
         m_outputChannel = channel;
-        m_safeValue     = safeValue;
+        m_safeValue = safeValue;
 
         qDebug() << "Starting output for channel " << m_outputChannel << "...";
 
         ActuatorCommand *actuatorCommand = ActuatorCommand::GetInstance(m_uavObjectManager);
         Q_ASSERT(actuatorCommand);
-        UAVObject::Metadata metaData     = actuatorCommand->getMetadata();
+        UAVObject::Metadata metaData = actuatorCommand->getMetadata();
         m_savedActuatorCommandMetadata = metaData;
 
         // Store current data for later restore
-        m_savedActuatorCommandData     = actuatorCommand->getData();
+        m_savedActuatorCommandData = actuatorCommand->getData();
 
         // Enable actuator control from GCS...
         // Store current metadata for later restore
@@ -103,7 +105,8 @@ void OutputCalibrationUtil::setChannelOutputValue(quint16 value)
 {
     if (m_outputChannel >= 0) {
         // Set output value
-        qDebug() << "Setting output value for channel " << m_outputChannel << " to " << value << ".";
+        qDebug() << "Setting output value for channel " << m_outputChannel << " to " << value
+                 << ".";
         ActuatorCommand *actuatorCommand = ActuatorCommand::GetInstance(m_uavObjectManager);
         Q_ASSERT(actuatorCommand);
         ActuatorCommand::DataFields data = actuatorCommand->getData();
