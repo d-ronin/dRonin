@@ -81,7 +81,7 @@ UAVTalk::UAVTalk(QIODevice* iodev, UAVObjectManager* objMngr)
 
     memset(&stats, 0, sizeof(ComStats));
 
-    connect(io, SIGNAL(readyRead()), this, SLOT(processInputStream()));
+    connect(io.data(), &QIODevice::readyRead, this, &UAVTalk::processInputStream);
     ExtensionSystem::PluginManager *pm = ExtensionSystem::PluginManager::instance();
     Core::Internal::GeneralSettings * settings=pm->getObject<Core::Internal::GeneralSettings>();
     useUDPMirror=settings->useUDPMirror();
@@ -92,8 +92,8 @@ UAVTalk::UAVTalk(QIODevice* iodev, UAVObjectManager* objMngr)
         udpSocketRx=new QUdpSocket(this);
         udpSocketTx->bind(9000);
         udpSocketRx->connectToHost(QHostAddress::LocalHost,9000);
-        connect(udpSocketTx,SIGNAL(readyRead()),this,SLOT(dummyUDPRead()));
-        connect(udpSocketRx,SIGNAL(readyRead()),this,SLOT(dummyUDPRead()));
+        connect(udpSocketTx,&QIODevice::readyRead,this,&UAVTalk::dummyUDPRead);
+        connect(udpSocketRx,&QIODevice::readyRead,this,&UAVTalk::dummyUDPRead);
     }
 }
 

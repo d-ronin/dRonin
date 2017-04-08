@@ -60,7 +60,7 @@ ConnectionDiagram::ConnectionDiagram(QWidget *parent) :
     setWindowTitle(tr("Connection Diagram"));
     setupGraphicsScene();
 
-    connect(ui->saveButton, SIGNAL(clicked()), this, SLOT(saveToFile()));
+    connect(ui->saveButton, &QAbstractButton::clicked, this, &ConnectionDiagram::saveToFile);
 }
 
 ConnectionDiagram::~ConnectionDiagram()

@@ -44,7 +44,7 @@ UploaderGadgetFactory::~UploaderGadgetFactory()
 Core::IUAVGadget* UploaderGadgetFactory::createGadget(QWidget *parent)
 {
     UploaderGadgetWidget* gadgetWidget = new UploaderGadgetWidget(parent);
-    connect(gadgetWidget, SIGNAL(newBoardSeen(deviceInfo,deviceDescriptorStruct)), this, SIGNAL(newBoardSeen(deviceInfo,deviceDescriptorStruct)));
+    connect(gadgetWidget, &UploaderGadgetWidget::newBoardSeen, this, &UploaderGadgetFactory::newBoardSeen);
     return new UploaderGadget(QString("Uploader"), gadgetWidget, parent);
 }
 

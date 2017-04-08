@@ -35,7 +35,7 @@ SummaryPage::SummaryPage(SetupWizard *wizard, QWidget *parent) :
     ui(new Ui::SummaryPage)
 {
     ui->setupUi(this);
-    connect(ui->illustrationButton, SIGNAL(clicked()), this, SLOT(showDiagram()));
+    connect(ui->illustrationButton, &QAbstractButton::clicked, this, &SummaryPage::showDiagram);
 }
 
 SummaryPage::~SummaryPage()

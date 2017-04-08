@@ -81,8 +81,10 @@ public:
 signals:
     void dragRows(int position, int count);
 
-private slots:
+public slots:
     void entryUpdated(int offset);
+
+private slots:
     void dropRows(int position, int count) const;
 
 private:

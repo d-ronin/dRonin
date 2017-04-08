@@ -45,17 +45,23 @@ inputChannelForm::inputChannelForm(QWidget *parent, bool showlegend, bool showSl
     sbChannelCurrent->setMaximum(65535);
 
     // Connect slots
-    connect(ui->channelMin,SIGNAL(valueChanged(int)),this,SLOT(minMaxUpdated()));
-    connect(ui->channelMax,SIGNAL(valueChanged(int)),this,SLOT(minMaxUpdated()));
-    connect(ui->channelGroup,SIGNAL(currentIndexChanged(int)),this,SLOT(groupUpdated()));
-    connect(sbChannelCurrent, SIGNAL(valueChanged(int)), ui->channelNeutral, SLOT(setIndicatorValue(int)));
-    connect(ui->btnReverse, SIGNAL(released()), this, SLOT(reverseChannel()));
+    connect(ui->channelMin, QOverload<int>::of(&QSpinBox::valueChanged),
+            this, &inputChannelForm::minMaxUpdated);
+    connect(ui->channelMax, QOverload<int>::of(&QSpinBox::valueChanged),
+            this, &inputChannelForm::minMaxUpdated);
+    connect(ui->channelGroup, QOverload<int>::of(&QComboBox::currentIndexChanged),
+            this, &inputChannelForm::groupUpdated);
+    connect(sbChannelCurrent, QOverload<int>::of(&QSpinBox::valueChanged),
+            ui->channelNeutral, &TextBubbleSlider::setIndicatorValue);
+    connect(ui->btnReverse, &QAbstractButton::released, this, &inputChannelForm::reverseChannel);
 
     // This is awkward but since we want the UI to be a dropdown but the field is not an enum
     // so it breaks the UAUVObject widget relation of the task gadget.  Running the data through
     // a spin box fixes this
-    connect(ui->channelNumberDropdown,SIGNAL(currentIndexChanged(int)),this,SLOT(channelDropdownUpdated(int)));
-    connect(ui->channelNumber,SIGNAL(valueChanged(int)),this,SLOT(channelNumberUpdated(int)));
+    connect(ui->channelNumberDropdown, QOverload<int>::of(&QComboBox::currentIndexChanged),
+            this, &inputChannelForm::channelDropdownUpdated);
+    connect(ui->channelNumber, QOverload<int>::of(&QSpinBox::valueChanged),
+            this, &inputChannelForm::channelNumberUpdated);
 
     disableMouseWheelEvents();
 }

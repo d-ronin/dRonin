@@ -57,7 +57,7 @@ USBMonitor::USBMonitor(QObject *parent) : QObject(parent) {
 
     hid_init();
 
-    connect(&periodicTimer, SIGNAL(timeout()), this, SLOT(periodic()));
+    connect(&periodicTimer, &QTimer::timeout, this, &USBMonitor::periodic);
     periodicTimer.setSingleShot(true);
     periodicTimer.start(150);
 

@@ -31,8 +31,8 @@ OPMapGadget::OPMapGadget(QString classId, OPMapGadgetWidget *widget, QWidget *pa
         IUAVGadget(classId, parent),
     m_widget(widget),m_config(NULL)
 {
-    connect(m_widget,SIGNAL(defaultLocationAndZoomChanged(double,double,double)),this,SLOT(saveDefaultLocation(double,double,double)));
-    connect(m_widget,SIGNAL(overlayOpacityChanged(qreal)),this,SLOT(saveOpacity(qreal)));
+    connect(m_widget,&OPMapGadgetWidget::defaultLocationAndZoomChanged,this,&OPMapGadget::saveDefaultLocation);
+    connect(m_widget,&OPMapGadgetWidget::overlayOpacityChanged,this,&OPMapGadget::saveOpacity);
 }
 
 OPMapGadget::~OPMapGadget()

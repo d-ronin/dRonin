@@ -63,8 +63,10 @@ BrainRE1Configuration::BrainRE1Configuration(QWidget *parent) :
     addUAVObjectToWidgetRelation("HwBrainRE1", "IRProtocol", ui->cmbIRProtocol);
     addUAVObjectToWidgetRelation("HwBrainRE1", "IRIDILap", ui->sbILapID);
     addUAVObjectToWidgetRelation("HwBrainRE1", "IRIDTrackmate", ui->sbTrackmateID);
-    connect(ui->pbGenerateILap ,SIGNAL(clicked()) ,this, SLOT(generateILapID()));
-    connect(ui->pbGenerateTrackmate ,SIGNAL(clicked()) ,this, SLOT(generateTrackmateID()));
+    connect(ui->pbGenerateILap ,&QAbstractButton::clicked, 
+        this, &BrainRE1Configuration::generateILapID);
+    connect(ui->pbGenerateTrackmate ,&QAbstractButton::clicked,
+        this, &BrainRE1Configuration::generateTrackmateID);
 
     addUAVObjectToWidgetRelation("HwBrainRE1", "BuzzerType", ui->cmbBuzzerType);
     addUAVObjectToWidgetRelation("HwBrainRE1", "VideoSyncDetectorThreshold", ui->sbVideoSyncDetectorThreshold);
@@ -73,7 +75,6 @@ BrainRE1Configuration::BrainRE1Configuration(QWidget *parent) :
     // using objrelation dynamic property
     autoLoadWidgets();
 
-    connect(ui->help,SIGNAL(clicked()), this, SLOT(openHelp()));
     enableControls(true);
     populateWidgets();
     refreshWidgetsValues();

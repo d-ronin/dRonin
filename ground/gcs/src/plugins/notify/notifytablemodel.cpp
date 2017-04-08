@@ -41,7 +41,7 @@ NotifyTableModel::NotifyTableModel(QList<NotificationItem*>& parentList, QObject
 	, _list(parentList)
 {
 	_headerStrings << "Name" << "Repeats" << "Lifetime,sec" << "Mute";
-	connect(this, SIGNAL(dragRows(int, int)), this, SLOT(dropRows(int, int)));
+	connect(this, &NotifyTableModel::dragRows, this, &NotifyTableModel::dropRows);
 }
 
 

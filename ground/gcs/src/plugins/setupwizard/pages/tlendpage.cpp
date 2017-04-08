@@ -37,7 +37,7 @@ TLEndPage::TLEndPage(SetupWizard *wizard, QWidget *parent) :
 {
     ui->setupUi(this);
     setFinalPage(true);
-    connect(ui->inputWizardButton, SIGNAL(clicked()), this, SLOT(openInputWizard()));
+    connect(ui->inputWizardButton, &QAbstractButton::clicked, this, &TLEndPage::openInputWizard);
 }
 
 TLEndPage::~TLEndPage()

@@ -80,9 +80,12 @@ ConfigAutotuneWidget::ConfigAutotuneWidget(ConfigGadgetWidget *parent) :
     ExtensionSystem::PluginManager *pm = ExtensionSystem::PluginManager::instance();
     utilMngr = pm->getObject<UAVObjectUtilManager>();
 
-    connect(this, SIGNAL(autoPilotConnected()), this, SLOT(atConnected()), Qt::QueuedConnection);
-    connect(this, SIGNAL(autoPilotDisconnected()), this, SLOT(atDisconnected()), Qt::QueuedConnection);
-    connect(m_autotune->adjustTune, SIGNAL(pressed()), this, SLOT(openAutotuneDialog()));
+    connect(this, &ConfigTaskWidget::autoPilotConnected,
+            this, &ConfigAutotuneWidget::atConnected, Qt::QueuedConnection);
+    connect(this, &ConfigTaskWidget::autoPilotDisconnected,
+            this, &ConfigAutotuneWidget::atDisconnected, Qt::QueuedConnection);
+    connect(m_autotune->adjustTune, &QPushButton::pressed,
+            this, QOverload<>::of(&ConfigAutotuneWidget::openAutotuneDialog));
 
     m_autotune->adjustTune->setEnabled(isAutopilotConnected());
 }
@@ -391,6 +394,11 @@ void ConfigAutotuneWidget::stuffShareForm(AutotuneFinalPage *autotuneShareForm)
 
 }
 
+void ConfigAutotuneWidget::openAutotuneDialog()
+{
+    openAutotuneDialog(false);
+}
+
 void ConfigAutotuneWidget::openAutotuneDialog(bool autoOpened)
 {
     QWizard wizard(NULL, Qt::Dialog | Qt::CustomizeWindowHint |
@@ -547,12 +555,12 @@ AutotuneSlidersPage::AutotuneSlidersPage(QWidget *parent,
     av = autoValues;
 
     // connect sliders to computation
-    connect(rateDamp, SIGNAL(valueChanged(int)), this, SLOT(compute()));
-    connect(rateNoise, SIGNAL(valueChanged(int)), this, SLOT(compute()));
-    connect(cbUseYaw, SIGNAL(toggled(bool)), this, SLOT(compute()));
-    connect(cbUseOuterKi, SIGNAL(toggled(bool)), this, SLOT(compute()));
+    connect(rateDamp, &QAbstractSlider::valueChanged, this, &AutotuneSlidersPage::compute);
+    connect(rateNoise, &QAbstractSlider::valueChanged, this, &AutotuneSlidersPage::compute);
+    connect(cbUseYaw, &QAbstractButton::toggled, this, &AutotuneSlidersPage::compute);
+    connect(cbUseOuterKi, &QAbstractButton::toggled, this, &AutotuneSlidersPage::compute);
 
-    connect(btnResetSliders, SIGNAL(pressed()), this, SLOT(resetSliders()));
+    connect(btnResetSliders, &QAbstractButton::pressed, this, &AutotuneSlidersPage::resetSliders);
 
     compute();
 }

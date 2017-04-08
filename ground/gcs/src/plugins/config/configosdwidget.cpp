@@ -52,10 +52,11 @@ ConfigOsdWidget::ConfigOsdWidget(QWidget *parent) : ConfigTaskWidget(parent)
     manualSettingsObj = ManualControlSettings::GetInstance(getObjectManager());
 
     // connect signals to set/get custom OSD text
-    connect(ui->applyButton, SIGNAL(clicked()), this, SLOT(setCustomText()));
-    connect(ui->saveButton, SIGNAL(clicked()), this, SLOT(setCustomText()));
-    connect(ui->reloadButton, SIGNAL(clicked()), this, SLOT(getCustomText()));
-    connect(osdSettingsObj, SIGNAL(CustomText_0Changed(quint8)), this, SLOT(getCustomText()));
+    connect(ui->applyButton, &QAbstractButton::clicked, this, &ConfigOsdWidget::setCustomText);
+    connect(ui->saveButton, &QAbstractButton::clicked, this, &ConfigOsdWidget::setCustomText);
+    connect(ui->reloadButton, &QAbstractButton::clicked, this, &ConfigOsdWidget::getCustomText);
+    connect(osdSettingsObj, &OnScreenDisplaySettings::CustomText_0Changed,
+            this, &ConfigOsdWidget::getCustomText);
 
     // setup the OSD widgets
     QString osdSettingsName = osdSettingsObj->getName();
@@ -94,8 +95,10 @@ ConfigOsdWidget::ConfigOsdWidget(QWidget *parent) : ConfigTaskWidget(parent)
     addUAVObjectToWidgetRelation(osdSettingsName, "RssiWarnThreshold", ui->RssiWarnThreshold);
     addUAVObjectToWidgetRelation(osdSettingsName, "StatsDisplayDuration", ui->cb_stats_duration);
 
-    connect(ManualControlCommand::GetInstance(getObjectManager()),SIGNAL(objectUpdated(UAVObject*)),this,SLOT(movePageSlider()));
-    connect(OnScreenDisplaySettings::GetInstance(getObjectManager()),SIGNAL(objectUpdated(UAVObject*)),this,SLOT(updatePositionSlider()));
+    connect(ManualControlCommand::GetInstance(getObjectManager()), &UAVObject::objectUpdated,
+            this, &ConfigOsdWidget::movePageSlider);
+    connect(OnScreenDisplaySettings::GetInstance(getObjectManager()), &UAVObject::objectUpdated,
+            this, &ConfigOsdWidget::updatePositionSlider);
 
     // Load UAVObjects to widget relations from UI file
     // using objrelation dynamic property
@@ -121,9 +124,12 @@ ConfigOsdWidget::ConfigOsdWidget(QWidget *parent) : ConfigTaskWidget(parent)
     ui_pages[0]->copyButton2->setText("Copy Page 3");
     ui_pages[0]->copyButton3->setText("Copy Page 4");
 
-    connect(ui_pages[0]->copyButton1, SIGNAL(released()), this, SLOT(handle_button_0_1()));
-    connect(ui_pages[0]->copyButton2, SIGNAL(released()), this, SLOT(handle_button_0_2()));
-    connect(ui_pages[0]->copyButton3, SIGNAL(released()), this, SLOT(handle_button_0_3()));
+    connect(ui_pages[0]->copyButton1, &QAbstractButton::released,
+            this, &ConfigOsdWidget::handle_button_0_1);
+    connect(ui_pages[0]->copyButton2, &QAbstractButton::released,
+            this, &ConfigOsdWidget::handle_button_0_2);
+    connect(ui_pages[0]->copyButton3, &QAbstractButton::released,
+            this, &ConfigOsdWidget::handle_button_0_3);
 
     ui_pages[1] = new Ui::OsdPage();
     osdPageSettings2Obj = OnScreenDisplayPageSettings2::GetInstance(getObjectManager());
@@ -133,9 +139,12 @@ ConfigOsdWidget::ConfigOsdWidget(QWidget *parent) : ConfigTaskWidget(parent)
     ui_pages[1]->copyButton2->setText("Copy Page 3");
     ui_pages[1]->copyButton3->setText("Copy Page 4");
 
-    connect(ui_pages[1]->copyButton1, SIGNAL(released()), this, SLOT(handle_button_1_0()));
-    connect(ui_pages[1]->copyButton2, SIGNAL(released()), this, SLOT(handle_button_1_2()));
-    connect(ui_pages[1]->copyButton3, SIGNAL(released()), this, SLOT(handle_button_1_3()));
+    connect(ui_pages[1]->copyButton1, &QAbstractButton::released,
+            this, &ConfigOsdWidget::handle_button_1_0);
+    connect(ui_pages[1]->copyButton2, &QAbstractButton::released,
+            this, &ConfigOsdWidget::handle_button_1_2);
+    connect(ui_pages[1]->copyButton3, &QAbstractButton::released,
+            this, &ConfigOsdWidget::handle_button_1_3);
 
     ui_pages[2] = new Ui::OsdPage();
     osdPageSettings3Obj = OnScreenDisplayPageSettings3::GetInstance(getObjectManager());
@@ -145,9 +154,12 @@ ConfigOsdWidget::ConfigOsdWidget(QWidget *parent) : ConfigTaskWidget(parent)
     ui_pages[2]->copyButton2->setText("Copy Page 2");
     ui_pages[2]->copyButton3->setText("Copy Page 4");
 
-    connect(ui_pages[2]->copyButton1, SIGNAL(released()), this, SLOT(handle_button_2_0()));
-    connect(ui_pages[2]->copyButton2, SIGNAL(released()), this, SLOT(handle_button_2_1()));
-    connect(ui_pages[2]->copyButton3, SIGNAL(released()), this, SLOT(handle_button_2_3()));
+    connect(ui_pages[2]->copyButton1, &QAbstractButton::released,
+            this, &ConfigOsdWidget::handle_button_2_0);
+    connect(ui_pages[2]->copyButton2, &QAbstractButton::released,
+            this, &ConfigOsdWidget::handle_button_2_1);
+    connect(ui_pages[2]->copyButton3, &QAbstractButton::released,
+            this, &ConfigOsdWidget::handle_button_2_3);
 
     ui_pages[3] = new Ui::OsdPage();
     osdPageSettings4Obj = OnScreenDisplayPageSettings4::GetInstance(getObjectManager());
@@ -157,9 +169,12 @@ ConfigOsdWidget::ConfigOsdWidget(QWidget *parent) : ConfigTaskWidget(parent)
     ui_pages[3]->copyButton2->setText("Copy Page 2");
     ui_pages[3]->copyButton3->setText("Copy Page 3");
 
-    connect(ui_pages[3]->copyButton1, SIGNAL(released()), this, SLOT(handle_button_3_0()));
-    connect(ui_pages[3]->copyButton2, SIGNAL(released()), this, SLOT(handle_button_3_1()));
-    connect(ui_pages[3]->copyButton3, SIGNAL(released()), this, SLOT(handle_button_3_2()));
+    connect(ui_pages[3]->copyButton1, &QAbstractButton::released,
+            this, &ConfigOsdWidget::handle_button_3_0);
+    connect(ui_pages[3]->copyButton2, &QAbstractButton::released,
+            this, &ConfigOsdWidget::handle_button_3_1);
+    connect(ui_pages[3]->copyButton3, &QAbstractButton::released,
+            this, &ConfigOsdWidget::handle_button_3_2);
 }
 
 ConfigOsdWidget::~ConfigOsdWidget()

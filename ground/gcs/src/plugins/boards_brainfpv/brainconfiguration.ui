@@ -575,6 +575,11 @@
        <property name="flat">
         <bool>true</bool>
        </property>
+       <property name="objrelation" stdset="0">
+        <stringlist notr="true">
+         <string>button:help</string>
+        </stringlist>
+       </property>
       </widget>
      </item>
      <item>

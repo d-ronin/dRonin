@@ -71,7 +71,7 @@ bool ImportExportPlugin::initialize(const QStringList& args, QString *errMsg)
     ac->addAction(cmd, Core::Constants::G_FILE_SAVE);
 
 
-    connect(cmd->action(), SIGNAL(triggered(bool)), this, SLOT(importExport()));
+    connect(cmd->action(), &QAction::triggered, this, &ImportExportPlugin::importExport);
 
     return true;
 }

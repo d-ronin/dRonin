@@ -62,10 +62,10 @@ MetadataDialog::MetadataDialog(UAVObject::Metadata mdata, QWidget *parent) :
     metadata_editor.cmbGCSTelemetryMode->addItem("Manual", UAVObject::UPDATEMODE_MANUAL);
 
     // Connect the before setting any signals
-    connect(metadata_editor.bnApplyMetadata, SIGNAL(clicked()), this, SLOT(saveApplyMetadata()));
-    connect(metadata_editor.bnSaveMetadata, SIGNAL(clicked()), this, SLOT(saveApplyMetadata()));
-    connect(metadata_editor.bnCancel, SIGNAL(clicked()), this, SLOT(cancelChanges()));
-    connect(metadata_editor.bnResetToDefaults, SIGNAL(clicked()), this, SLOT(resetMetadataToDefaults()));
+    connect(metadata_editor.bnApplyMetadata, &QAbstractButton::clicked, this, &MetadataDialog::saveApplyMetadata);
+    connect(metadata_editor.bnSaveMetadata, &QAbstractButton::clicked, this, &MetadataDialog::saveApplyMetadata);
+    connect(metadata_editor.bnCancel, &QAbstractButton::clicked, this, &MetadataDialog::cancelChanges);
+    connect(metadata_editor.bnResetToDefaults, &QAbstractButton::clicked, this, &MetadataDialog::resetMetadataToDefaults);
 
     // Fill buttons and check boxes
     fillWidgets();

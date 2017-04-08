@@ -47,7 +47,8 @@ MultiPage::MultiPage(SetupWizard *wizard, QWidget *parent) :
 
     // Default to Quad X since it is the most common setup
     ui->typeCombo->setCurrentIndex(1);
-    connect(ui->typeCombo, SIGNAL(currentIndexChanged(int)), this, SLOT(updateImageAndDescription()));
+    connect(ui->typeCombo, QOverload<int>::of(&QComboBox::currentIndexChanged),
+            this, &MultiPage::updateImageAndDescription);
     ui->typeGraphicsView->setSceneRect(m_multiPic->boundingRect());
     ui->typeGraphicsView->fitInView(m_multiPic, Qt::KeepAspectRatio);
 }

@@ -126,7 +126,7 @@ bool ModelUavoProxy::modelToObjects()
         if(newInstance)
         {
             QEventLoop m_eventloop;
-            QTimer::singleShot(800, &m_eventloop, SLOT(quit()));
+            QTimer::singleShot(800, &m_eventloop, &QEventLoop::quit);
             m_eventloop.exec();
         }
     }
@@ -163,27 +163,31 @@ bool ModelUavoProxy::modelToObjects()
 bool ModelUavoProxy::robustUpdate(Waypoint::DataFields data, int instance)
 {
     Waypoint *wp = Waypoint::GetInstance(objManager, instance);
-    connect(wp, SIGNAL(transactionCompleted(UAVObject*,bool)), this, SLOT(waypointTransactionCompleted(UAVObject *, bool)));
+    connect(wp, QOverload<UAVObject *, bool>::of(&Waypoint::transactionCompleted),
+            this, &ModelUavoProxy::waypointTransactionCompleted);
+
     for (int i = 0; i < 10; i++) {
             QEventLoop m_eventloop;
-            QTimer::singleShot(1000, &m_eventloop, SLOT(quit()));
-            connect(this, SIGNAL(waypointTransactionSucceeded()), &m_eventloop, SLOT(quit()));
-            connect(this, SIGNAL(waypointTransactionFailed()), &m_eventloop, SLOT(quit()));
+            QTimer::singleShot(1000, &m_eventloop, &QEventLoop::quit);
+            connect(this, &ModelUavoProxy::waypointTransactionSucceeded, &m_eventloop, &QEventLoop::quit);
+            connect(this, &ModelUavoProxy::waypointTransactionFailed, &m_eventloop, &QEventLoop::quit);
             waypointTransactionResult.insert(instance, false);
             wp->setData(data);
             wp->updated();
             m_eventloop.exec();
             if (waypointTransactionResult.value(instance)) {
-                disconnect(wp, SIGNAL(transactionCompleted(UAVObject*,bool)), this, SLOT(waypointTransactionCompleted(UAVObject *, bool)));
+                disconnect(wp, QOverload<UAVObject *, bool>::of(&Waypoint::transactionCompleted),
+                           this, &ModelUavoProxy::waypointTransactionCompleted);
                 return true;
             }
 
             // Wait a second for next attempt
-            QTimer::singleShot(500, &m_eventloop, SLOT(quit()));
+            QTimer::singleShot(500, &m_eventloop, &QEventLoop::quit);
             m_eventloop.exec();
     }
 
-    disconnect(wp, SIGNAL(transactionCompleted(UAVObject*,bool)), this, SLOT(waypointTransactionCompleted(UAVObject *, bool)));
+    disconnect(wp, QOverload<UAVObject *, bool>::of(&Waypoint::transactionCompleted),
+               this, &ModelUavoProxy::waypointTransactionCompleted);
 
     // None of the attempt got an ack
     return false;

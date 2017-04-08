@@ -93,7 +93,8 @@ ConfigCameraStabilizationWidget::ConfigCameraStabilizationWidget(QWidget *parent
     addUAVObject("MixerSettings", &reloadGroups);
 
     // To set special widgets to defaults when requested
-    connect(this, SIGNAL(defaultRequested(int)), this, SLOT(defaultRequestedSlot(int)));
+    connect(this, &ConfigTaskWidget::defaultRequested, this,
+            &ConfigCameraStabilizationWidget::defaultRequestedSlot);
 
     disableMouseWheelEvents();
 }

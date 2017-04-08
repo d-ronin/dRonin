@@ -53,7 +53,7 @@ ModelViewGadgetWidget::ModelViewGadgetWidget(QWidget *parent)
     , bgFilename(fallbackBgFilename)
     , vboEnable(false)
 {
-    connect(&m_GlView, SIGNAL(updateOpenGL()), this, SLOT(updateGL()));
+    connect(&m_GlView, &GLC_Viewport::updateOpenGL, this, &QGLWidget::updateGL);
     setSizePolicy(QSizePolicy::MinimumExpanding, QSizePolicy::MinimumExpanding);
 
     m_Light.setPosition(4000.0, 40000.0, 80000.0);
@@ -73,7 +73,8 @@ ModelViewGadgetWidget::ModelViewGadgetWidget(QWidget *parent)
     UAVObjectManager *objManager = pm->getObject<UAVObjectManager>();
     attState = AttitudeActual::GetInstance(objManager);
 
-    connect(&m_MotionTimer, SIGNAL(timeout()), this, SLOT(updateAttitude()));
+    connect(&m_MotionTimer, &QTimer::timeout,
+            this, QOverload<>::of(&ModelViewGadgetWidget::updateAttitude));
 }
 
 ModelViewGadgetWidget::~ModelViewGadgetWidget()

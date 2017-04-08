@@ -127,8 +127,10 @@ QWidget *OPMapGadgetOptionsPage::createPage(QWidget *parent)
         }
     }
 
-    connect(m_page->pushButtonCacheDefaults, SIGNAL(clicked()), this, SLOT(on_pushButtonCacheDefaults_clicked()));
-    connect(m_page->providerComboBox, SIGNAL(currentIndexChanged(int)), this, SLOT(on_providerComboBox_changed()));
+    connect(m_page->pushButtonCacheDefaults, &QAbstractButton::clicked,
+            this, &OPMapGadgetOptionsPage::on_pushButtonCacheDefaults_clicked);
+    connect(m_page->providerComboBox, QOverload<int>::of(&QComboBox::currentIndexChanged),
+            this, &OPMapGadgetOptionsPage::on_providerComboBox_changed);
 
     //Dynamically configure page
     on_providerComboBox_changed();

@@ -215,23 +215,32 @@ ConfigVehicleTypeWidget::ConfigVehicleTypeWidget(QWidget *parent) : ConfigTaskWi
     m_heli->setupUI(SystemSettings::AIRFRAMETYPE_HELICP);
 
 	//Connect aircraft type selection dropbox to callback function
-    connect(m_aircraft->aircraftType, SIGNAL(currentIndexChanged(int)), this, SLOT(switchAirframeType(int)));
+    connect(m_aircraft->aircraftType, QOverload<int>::of(&QComboBox::currentIndexChanged),
+            this, &ConfigVehicleTypeWidget::switchAirframeType);
 	
 	//Connect airframe selection dropbox to callback functions
-    connect(m_aircraft->fixedWingType, SIGNAL(currentIndexChanged(int)), this, SLOT(doSetupAirframeUI(int)));
-    connect(m_aircraft->multirotorFrameType, SIGNAL(currentIndexChanged(int)), this, SLOT(doSetupAirframeUI(int)));
-    connect(m_aircraft->groundVehicleType, SIGNAL(currentIndexChanged(int)), this, SLOT(doSetupAirframeUI(int)));
-    //mdl connect(m_heli->m_ccpm->ccpmType, SIGNAL(currentIndexChanged(QString)), this, SLOT(setupAirframeUI(QString)));
+    connect(m_aircraft->fixedWingType, QOverload<int>::of(&QComboBox::currentIndexChanged),
+            this, &ConfigVehicleTypeWidget::doSetupAirframeUI);
+    connect(m_aircraft->multirotorFrameType, QOverload<int>::of(&QComboBox::currentIndexChanged),
+            this, &ConfigVehicleTypeWidget::doSetupAirframeUI);
+    connect(m_aircraft->groundVehicleType, QOverload<int>::of(&QComboBox::currentIndexChanged),
+            this, &ConfigVehicleTypeWidget::doSetupAirframeUI);
+    //connect(m_heli->m_ccpm->ccpmType, QOverload<const QString &>::of(&QComboBox::currentIndexChanged),
+    //        this, &ConfigCcpmWidget::setupAirframeUI);
 
     //Connect the multirotor motor reverse checkbox
-    connect(m_aircraft->MultirotorRevMixercheckBox, SIGNAL(clicked(bool)), this, SLOT(reverseMultirotorMotor()));
+    connect(m_aircraft->MultirotorRevMixercheckBox, &QAbstractButton::clicked,
+            this, &ConfigVehicleTypeWidget::reverseMultirotorMotor);
 
     // Connect actuator and level bias buttons to slots
-    connect(m_aircraft->bnLevelTrim, SIGNAL(clicked()), this, SLOT(bnLevelTrim_clicked()));
-    connect(m_aircraft->bnServoTrim, SIGNAL(clicked()), this, SLOT(bnServoTrim_clicked()));
+    connect(m_aircraft->bnLevelTrim, &QAbstractButton::clicked,
+            this, &ConfigVehicleTypeWidget::bnLevelTrim_clicked);
+    connect(m_aircraft->bnServoTrim, &QAbstractButton::clicked,
+            this, &ConfigVehicleTypeWidget::bnServoTrim_clicked);
 
     // Connect the help pushbutton
-    connect(m_aircraft->airframeHelp, SIGNAL(clicked()), this, SLOT(openHelp()));
+    connect(m_aircraft->airframeHelp, &QAbstractButton::clicked,
+            this, &ConfigVehicleTypeWidget::openHelp);
     enableControls(false);
     refreshWidgetsValues();
     addToDirtyMonitor();

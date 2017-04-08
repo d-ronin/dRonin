@@ -37,8 +37,8 @@ TelemetryManager::TelemetryManager() :
     objMngr = pm->getObject<UAVObjectManager>();
 
     settings = pm->getObject<Core::Internal::GeneralSettings>();
-    connect(settings, SIGNAL(generalSettingsChanged()), this, SLOT(onGeneralSettingsChanged()));
-    connect(pm, SIGNAL(pluginsLoadEnded()), this, SLOT(onGeneralSettingsChanged()));
+    connect(settings, &Core::Internal::GeneralSettings::generalSettingsChanged, this, &TelemetryManager::onGeneralSettingsChanged);
+    connect(pm, &ExtensionSystem::PluginManager::pluginsLoadEnded, this, &TelemetryManager::onGeneralSettingsChanged);
 }
 
 TelemetryManager::~TelemetryManager()
@@ -55,8 +55,8 @@ void TelemetryManager::start(QIODevice *dev)
     utalk = new UAVTalk(dev, objMngr);
     telemetry = new Telemetry(utalk, objMngr);
     telemetryMon = new TelemetryMonitor(objMngr, telemetry, sessions);
-    connect(telemetryMon, SIGNAL(connected()), this, SLOT(onConnect()));
-    connect(telemetryMon, SIGNAL(disconnected()), this, SLOT(onDisconnect()));
+    connect(telemetryMon, &TelemetryMonitor::connected, this, &TelemetryManager::onConnect);
+    connect(telemetryMon, &TelemetryMonitor::disconnected, this, &TelemetryManager::onDisconnect);
 }
 
 void TelemetryManager::stop()

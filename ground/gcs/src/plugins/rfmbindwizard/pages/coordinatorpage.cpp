@@ -43,8 +43,8 @@ CoordinatorPage::CoordinatorPage(RfmBindWizard *wizard, QWidget *parent) :
     ui->setupUi(this);
     ui->setCoordinator->setEnabled(false);
 
-    connect(ui->setCoordinator, SIGNAL(clicked()), this, SLOT(configureCoordinator()));    
-    connect(this, SIGNAL(probeChanged(bool)), this, SLOT(updateProbe(bool)));
+    connect(ui->setCoordinator, &QAbstractButton::clicked, this, &CoordinatorPage::configureCoordinator);    
+    connect(this, &RadioProbePage::probeChanged, this, &CoordinatorPage::updateProbe);
 }
 
 CoordinatorPage::~CoordinatorPage()

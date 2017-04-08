@@ -55,12 +55,12 @@ SystemHealthGadgetWidget::SystemHealthGadgetWidget(QWidget *parent) : QGraphicsV
     UAVObjectManager *objManager = pm->getObject<UAVObjectManager>();
 
     SystemAlarms* obj = SystemAlarms::GetInstance(objManager);
-    connect(obj, SIGNAL(objectUpdated(UAVObject*)), this, SLOT(updateAlarms(UAVObject*)));
+    connect(obj, &UAVObject::objectUpdated, this, &SystemHealthGadgetWidget::updateAlarms);
 
     // Listen to autopilot connection events
     TelemetryManager* telMngr = pm->getObject<TelemetryManager>();
-    connect(telMngr, SIGNAL(connected()), this, SLOT(onAutopilotConnect()));
-    connect(telMngr, SIGNAL(disconnected()), this, SLOT(onAutopilotDisconnect()));
+    connect(telMngr, &TelemetryManager::connected, this, &SystemHealthGadgetWidget::onAutopilotConnect);
+    connect(telMngr, &TelemetryManager::disconnected, this, &SystemHealthGadgetWidget::onAutopilotDisconnect);
 
     setToolTip(tr("Displays flight system errors. Click on an alarm for more information."));
 }

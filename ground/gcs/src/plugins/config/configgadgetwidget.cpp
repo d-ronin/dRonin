@@ -70,7 +70,7 @@ ConfigGadgetWidget::ConfigGadgetWidget(QWidget *parent) : QWidget(parent)
     chunk = 0;
     lastTabIndex = ConfigGadgetWidget::hardware;
 
-    QTimer::singleShot(500, this, SLOT(deferredLoader()));
+    QTimer::singleShot(500, this, &ConfigGadgetWidget::deferredLoader);
 }
 
 void ConfigGadgetWidget::deferredLoader()
@@ -182,21 +182,21 @@ void ConfigGadgetWidget::deferredLoader()
 
     ExtensionSystem::PluginManager *pm = ExtensionSystem::PluginManager::instance();
     TelemetryManager* telMngr = pm->getObject<TelemetryManager>();
-    connect(telMngr, SIGNAL(connected()), this, SLOT(onAutopilotConnect()));
-    connect(telMngr, SIGNAL(disconnected()), this, SLOT(onAutopilotDisconnect()));
+    connect(telMngr, &TelemetryManager::connected, this, &ConfigGadgetWidget::onAutopilotConnect);
+    connect(telMngr, &TelemetryManager::disconnected, this, &ConfigGadgetWidget::onAutopilotDisconnect);
 
     // And check whether by any chance we are not already connected
     if (telMngr->isConnected()) {
         onAutopilotConnect();    
     }
 
-    connect(ftw,SIGNAL(currentAboutToShow(int,bool*)),this,SLOT(tabAboutToChange(int,bool*)));//,Qt::BlockingQueuedConnection);
+    connect(ftw,&MyTabbedStackWidget::currentAboutToShow,this,&ConfigGadgetWidget::tabAboutToChange);//,Qt::BlockingQueuedConnection);
     return;
     }
 
     chunk++;
 
-    QTimer::singleShot(0, this, SLOT(deferredLoader()));
+    QTimer::singleShot(0, this, &ConfigGadgetWidget::deferredLoader);
 }
 
 void ConfigGadgetWidget::paintEvent(QPaintEvent *event)

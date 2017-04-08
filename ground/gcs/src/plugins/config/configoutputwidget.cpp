@@ -53,6 +53,7 @@
 #include <extensionsystem/pluginmanager.h>
 #include <coreplugin/generalsettings.h>
 #include <coreplugin/modemanager.h>
+#include <coreplugin/imode.h>
 
 ConfigOutputWidget::ConfigOutputWidget(QWidget *parent) : ConfigTaskWidget(parent)
 {
@@ -68,19 +69,19 @@ ConfigOutputWidget::ConfigOutputWidget(QWidget *parent) : ConfigTaskWidget(paren
      * Import/export:
      */
     UAVSettingsImportExportManager * importexportplugin =  pm->getObject<UAVSettingsImportExportManager>();
-    connect(importexportplugin,SIGNAL(importAboutToBegin()),this,SLOT(stopTests()));
+    connect(importexportplugin,&UAVSettingsImportExportManager::importAboutToBegin,this,&ConfigOutputWidget::stopTests);
 
     /* Board connection/disconnection: */
     TelemetryManager* telMngr = pm->getObject<TelemetryManager>();
-    connect(telMngr, SIGNAL(connected()), this, SLOT(stopTests()));
-    connect(telMngr, SIGNAL(disconnected()), this, SLOT(stopTests()));
+    connect(telMngr, &TelemetryManager::connected, this, &ConfigOutputWidget::stopTests);
+    connect(telMngr, &TelemetryManager::disconnected, this, &ConfigOutputWidget::stopTests);
 
     /* When we go into wizards, etc.. time to stop this too. */
     Core::ModeManager *modeMngr = Core::ModeManager::instance();
-    connect(modeMngr, SIGNAL(currentModeAboutToChange(Core::IMode *)), this,
-		SLOT(stopTests()));
-    connect(modeMngr, SIGNAL(currentModeChanged(Core::IMode *)), this,
-		SLOT(stopTests()));
+    connect(modeMngr, &Core::ModeManager::currentModeAboutToChange, this,
+		&ConfigOutputWidget::stopTests);
+    connect(modeMngr, &Core::ModeManager::currentModeChanged, this,
+		&ConfigOutputWidget::stopTests);
 
     // NOTE: we have channel indices from 0 to 9, but the convention for OP is Channel 1 to Channel 10.
     // Register for ActuatorSettings changes:
@@ -89,18 +90,18 @@ ConfigOutputWidget::ConfigOutputWidget(QWidget *parent) : ConfigTaskWidget(paren
         OutputChannelForm *outputForm = new OutputChannelForm(i, this, i==0);
         m_config->channelLayout->addWidget(outputForm);
 
-        connect(m_config->channelOutTest, SIGNAL(toggled(bool)), outputForm, SLOT(enableChannelTest(bool)));
-        connect(outputForm, SIGNAL(channelChanged(int,int)), this, SLOT(sendChannelTest(int,int)));
+        connect(m_config->channelOutTest, &QAbstractButton::toggled, outputForm, &OutputChannelForm::enableChannelTest);
+        connect(outputForm, &OutputChannelForm::channelChanged, this, &ConfigOutputWidget::sendChannelTest);
 
-        connect(outputForm, SIGNAL(formChanged()), this, SLOT(do_SetDirty()));
+        connect(outputForm, &OutputChannelForm::formChanged, this, &ConfigOutputWidget::do_SetDirty);
     }
 
-    connect(m_config->channelOutTest, SIGNAL(toggled(bool)), this, SLOT(runChannelTests(bool)));
-    connect(m_config->calibrateESC, SIGNAL(clicked()), this, SLOT(startESCCalibration()));
+    connect(m_config->channelOutTest, &QAbstractButton::toggled, this, &ConfigOutputWidget::runChannelTests);
+    connect(m_config->calibrateESC, &QAbstractButton::clicked, this, &ConfigOutputWidget::startESCCalibration);
 
     // Configure the task widget
     // Connect the help button
-    connect(m_config->outputHelp, SIGNAL(clicked()), this, SLOT(openHelp()));
+    connect(m_config->outputHelp, &QAbstractButton::clicked, this, &ConfigOutputWidget::openHelp);
 
     addApplySaveButtons(m_config->saveRCOutputToRAM,m_config->saveRCOutputToSD);
 
@@ -128,17 +129,16 @@ ConfigOutputWidget::ConfigOutputWidget(QWidget *parent) : ConfigTaskWidget(paren
     for (rateIter = rateList.begin(); rateIter != rateList.end(); rateIter++) {
         QComboBox *rate = *rateIter;
 
-        connect(rate, SIGNAL(currentIndexChanged(int)), this, SLOT(refreshWidgetRanges()));
+        connect(rate, QOverload<int>::of(&QComboBox::currentIndexChanged),
+                this, &ConfigOutputWidget::refreshWidgetRanges);
     }
-
-    disconnect(this, SLOT(refreshWidgetsValues(UAVObject*)));
 
     UAVObjectManager *objManager = pm->getObject<UAVObjectManager>();
     UAVObject* obj = objManager->getObject(QString("ActuatorCommand"));
     if(UAVObject::GetGcsTelemetryUpdateMode(obj->getMetadata()) == UAVObject::UPDATEMODE_ONCHANGE)
         this->setEnabled(false);
-    connect(SystemSettings::GetInstance(objManager), SIGNAL(objectUpdated(UAVObject*)),this,SLOT(assignOutputChannels(UAVObject*)));
-
+    connect(SystemSettings::GetInstance(objManager), &UAVObject::objectUpdated,
+            this, &ConfigOutputWidget::assignOutputChannels);
 
     refreshWidgetsValues();
 }
@@ -307,8 +307,8 @@ bool showOutputChannelSelectWindow(bool (&selectedChannels)[ActuatorCommand::CHA
     layout.addLayout(&horizontalLayout);
 
     // Connect buttons with dialog slots
-    dialog.connect(&buttonOk, SIGNAL(clicked()), &dialog, SLOT(accept()));
-    dialog.connect(&buttonCancel, SIGNAL(clicked()), &dialog, SLOT(reject()));
+    dialog.connect(&buttonOk, &QAbstractButton::clicked, &dialog, &QDialog::accept);
+    dialog.connect(&buttonCancel, &QAbstractButton::clicked, &dialog, &QDialog::reject);
 
     // Show dialog
     dialog.setLayout(&layout);
@@ -381,7 +381,7 @@ void ConfigOutputWidget::startESCCalibration()
 
     QTimer timeout;
     timeout.setSingleShot(true);
-    connect(&timeout, SIGNAL(timeout()), &loop, SLOT(quit()));
+    connect(&timeout, &QTimer::timeout, &loop, &QEventLoop::quit);
     timeout.start(1250);        // 1.25 seconds
     loop.exec();
 

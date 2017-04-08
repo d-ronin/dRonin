@@ -8,7 +8,7 @@ ImportExportDialog::ImportExportDialog(QWidget *parent) :
     ui->setupUi(this);
     setWindowTitle(tr("Import Export Settings"));
 
-    connect( ui->widget, SIGNAL(done()), this, SLOT(close()));
+    connect( ui->widget, &ImportExportGadgetWidget::done, this, &QWidget::close);
 }
 
 ImportExportDialog::~ImportExportDialog()

@@ -70,6 +70,9 @@ public:
     bool getEnableSound() const { return enableSound; }
     void setEnableSound(bool value) {enableSound = value; }
 
+public slots:
+    void updateNotificationList(QList<NotificationItem*> list);
+
 private:
     Q_DISABLE_COPY(SoundNotifyPlugin)
 
@@ -81,7 +84,6 @@ private slots:
     void onTelemetryManagerAdded(QObject* obj);
     void onAutopilotDisconnect();
     void connectNotifications();
-    void updateNotificationList(QList<NotificationItem*> list);
     void resetNotification(void);
     void on_arrived_Notification(UAVObject *object);
     void on_timerRepeated_Notification(void);

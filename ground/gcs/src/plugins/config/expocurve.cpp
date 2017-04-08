@@ -82,7 +82,7 @@ ExpoCurve::ExpoCurve(QWidget *parent) :
     m_legend->setToolTip(tr("Click legend to show/hide expo curve"));
 
     // connect signal when clicked on legend entry to function that shows/hides the curve
-    connect(m_legend, SIGNAL(checked(const QVariant &, bool, int)), this, SLOT(showCurve(QVariant, bool, int)));
+    connect(m_legend, &QwtLegend::checked, this, &ExpoCurve::showCurve);
 
     QPalette pal = m_legend->palette();
     pal.setColor(m_legend->backgroundRole(), QColor(100, 100, 100));	// background colour

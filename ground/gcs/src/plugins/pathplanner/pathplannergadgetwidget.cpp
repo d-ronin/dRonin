@@ -73,7 +73,7 @@ void PathPlannerGadgetWidget::setModel(FlightDataModel *model, QItemSelectionMod
 
     ui->tableView->resizeColumnsToContents();
 
-    connect(proxy, SIGNAL(sendPathPlanToUavProgress(int)), this, SLOT(on_waypointSendProgress(int)));
+    connect(proxy, &ModelUavoProxy::sendPathPlanToUavProgress, this, &PathPlannerGadgetWidget::on_waypointSendProgress);
 }
 
 void PathPlannerGadgetWidget::on_tbAdd_clicked()

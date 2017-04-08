@@ -86,7 +86,7 @@ WelcomeMode::WelcomeMode(QString instUUID) :
     m_d->quickView->setSource(QUrl::fromLocalFile(fn));
     m_container = NULL;
 
-    connect(Core::ModeManager::instance(), SIGNAL(modesChanged()), this, SLOT(modesChanged()));
+    connect(Core::ModeManager::instance(), &Core::ModeManager::modesChanged, this, &WelcomeMode::modesChanged);
     modesChanged();
 }
 

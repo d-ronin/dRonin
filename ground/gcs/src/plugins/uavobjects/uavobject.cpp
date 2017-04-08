@@ -90,7 +90,7 @@ void UAVObject::initializeFields(QList<UAVObjectField*>& fields, quint8* data, q
     {
         fields[n]->initialize(data, offset, this);
         offset += fields[n]->getNumBytes();
-        connect(fields[n], SIGNAL(fieldUpdated(UAVObjectField*)), this, SLOT(fieldUpdated(UAVObjectField*)));
+        connect(fields[n], &UAVObjectField::fieldUpdated, this, &UAVObject::fieldUpdated);
     }
 }
 

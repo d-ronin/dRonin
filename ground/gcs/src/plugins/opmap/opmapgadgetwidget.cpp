@@ -177,7 +177,7 @@ OPMapGadgetWidget::OPMapGadgetWidget(QWidget *parent) : QFrame(parent)
     m_map->Home->SetToggleRefresh(true);
 
     if(m_map->Home)
-        connect(m_map->Home,SIGNAL(homedoubleclick(HomeItem*)),this,SLOT(onHomeDoubleClick(HomeItem*)));
+        connect(m_map->Home,&mapcontrol::HomeItem::homedoubleclick,this,&OPMapGadgetWidget::onHomeDoubleClick);
     m_map->UAV->SetTrailTime(uav_trail_time_list[0]);                           // seconds
     m_map->UAV->SetTrailDistance(uav_trail_distance_list[1]);                   // meters
 
@@ -211,12 +211,12 @@ OPMapGadgetWidget::OPMapGadgetWidget(QWidget *parent) : QFrame(parent)
 
     m_widget->progressBarMap->setMaximum(1);
 
-    connect(m_map, SIGNAL(zoomChanged(double, double, double)), this, SLOT(zoomChanged(double, double, double)));					// map zoom change signals
-    connect(m_map, SIGNAL(OnCurrentPositionChanged(internals::PointLatLng)), this, SLOT(OnCurrentPositionChanged(internals::PointLatLng)));    // map poisition change signals
-    connect(m_map, SIGNAL(OnTileLoadComplete()), this, SLOT(OnTileLoadComplete()));					// tile loading stop signals
-    connect(m_map, SIGNAL(OnTileLoadStart()), this, SLOT(OnTileLoadStart()));					// tile loading start signals
-    connect(m_map, SIGNAL(OnTilesStillToLoad(int)), this, SLOT(OnTilesStillToLoad(int)));				// tile loading signals
-    connect(m_map,SIGNAL(OnWayPointDoubleClicked(WayPointItem*)),this,SLOT(wpDoubleClickEvent(WayPointItem*)));
+    connect(m_map, &mapcontrol::TLMapWidget::zoomChanged, this, &OPMapGadgetWidget::zoomChanged);					// map zoom change signals
+    connect(m_map, &mapcontrol::TLMapWidget::OnCurrentPositionChanged, this, &OPMapGadgetWidget::OnCurrentPositionChanged);    // map poisition change signals
+    connect(m_map, &mapcontrol::TLMapWidget::OnTileLoadComplete, this, &OPMapGadgetWidget::OnTileLoadComplete);					// tile loading stop signals
+    connect(m_map, &mapcontrol::TLMapWidget::OnTileLoadStart, this, &OPMapGadgetWidget::OnTileLoadStart);					// tile loading start signals
+    connect(m_map, &mapcontrol::TLMapWidget::OnTilesStillToLoad, this, &OPMapGadgetWidget::OnTilesStillToLoad);				// tile loading signals
+    connect(m_map,&mapcontrol::TLMapWidget::OnWayPointDoubleClicked,this,&OPMapGadgetWidget::wpDoubleClickEvent);
 	m_map->SetCurrentPosition(m_home_position.coord);         // set the map position
 	m_map->Home->SetCoord(m_home_position.coord);             // set the HOME position
 	m_map->UAV->SetUAVPos(m_home_position.coord, 0.0);        // set the UAV position
@@ -255,7 +255,7 @@ OPMapGadgetWidget::OPMapGadgetWidget(QWidget *parent) : QFrame(parent)
             UAVDataObject *obj = dynamic_cast<UAVDataObject *>(uavo_mgr->getObject(QString("HomeLocation")));
             if (obj)
             {
-				connect(obj, SIGNAL(objectUpdated(UAVObject *)), this , SLOT(homePositionUpdated(UAVObject *)));
+				connect(obj, &UAVObject::objectUpdated, this , &OPMapGadgetWidget::homePositionUpdated);
             }
         }
 
@@ -263,8 +263,8 @@ OPMapGadgetWidget::OPMapGadgetWidget(QWidget *parent) : QFrame(parent)
         TelemetryManager *telMngr = pm->getObject<TelemetryManager>();
         if (telMngr)
         {
-            connect(telMngr, SIGNAL(connected()), this, SLOT(onTelemetryConnect()));
-            connect(telMngr, SIGNAL(disconnected()), this, SLOT(onTelemetryDisconnect()));
+            connect(telMngr, &TelemetryManager::connected, this, &OPMapGadgetWidget::onTelemetryConnect);
+            connect(telMngr, &TelemetryManager::disconnected, this, &OPMapGadgetWidget::onTelemetryDisconnect);
         }
     }
 
@@ -285,18 +285,18 @@ OPMapGadgetWidget::OPMapGadgetWidget(QWidget *parent) : QFrame(parent)
 
     m_updateTimer = new QTimer();
 	m_updateTimer->setInterval(m_maxUpdateRate);
-    connect(m_updateTimer, SIGNAL(timeout()), this, SLOT(updatePosition()));
+    connect(m_updateTimer, &QTimer::timeout, this, &OPMapGadgetWidget::updatePosition);
     m_updateTimer->start();
 
     m_statusUpdateTimer = new QTimer();
 	m_statusUpdateTimer->setInterval(200);
-	connect(m_statusUpdateTimer, SIGNAL(timeout()), this, SLOT(updateMousePos()));
+	connect(m_statusUpdateTimer, &QTimer::timeout, this, &OPMapGadgetWidget::updateMousePos);
     m_statusUpdateTimer->start();
     // **************
 
     // Connect windspeed update
     WindVelocityActual *windVelocityActual = WindVelocityActual::GetInstance(uavo_mgr);
-    connect(windVelocityActual, SIGNAL(objectUpdated(UAVObject *)), this, SLOT(updateWindspeed(UAVObject *)));
+    connect(windVelocityActual, &UAVObject::objectUpdated, this, &OPMapGadgetWidget::updateWindspeed);
 
     m_map->setFocus();
 }
@@ -1246,148 +1246,148 @@ void OPMapGadgetWidget::createActions()
     reloadAct = new QAction(tr("&Reload map"), this);
     reloadAct->setShortcut(tr("F5"));
     reloadAct->setStatusTip(tr("Reload the map tiles"));
-    connect(reloadAct, SIGNAL(triggered()), this, SLOT(onReloadAct_triggered()));
+    connect(reloadAct, &QAction::triggered, this, &OPMapGadgetWidget::onReloadAct_triggered);
     this->addAction(reloadAct);
     ripAct = new QAction(tr("&Rip map"), this);
     ripAct->setStatusTip(tr("Rip the map tiles"));
-    connect(ripAct, SIGNAL(triggered()), this, SLOT(onRipAct_triggered()));
+    connect(ripAct, &QAction::triggered, this, &OPMapGadgetWidget::onRipAct_triggered);
 
     copyMouseLatLonToClipAct = new QAction(tr("Mouse latitude and longitude"), this);
     copyMouseLatLonToClipAct->setStatusTip(tr("Copy the mouse latitude and longitude to the clipboard"));
-    connect(copyMouseLatLonToClipAct, SIGNAL(triggered()), this, SLOT(onCopyMouseLatLonToClipAct_triggered()));
+    connect(copyMouseLatLonToClipAct, &QAction::triggered, this, &OPMapGadgetWidget::onCopyMouseLatLonToClipAct_triggered);
 
     copyMouseLatToClipAct = new QAction(tr("Mouse latitude"), this);
     copyMouseLatToClipAct->setStatusTip(tr("Copy the mouse latitude to the clipboard"));
-    connect(copyMouseLatToClipAct, SIGNAL(triggered()), this, SLOT(onCopyMouseLatToClipAct_triggered()));
+    connect(copyMouseLatToClipAct, &QAction::triggered, this, &OPMapGadgetWidget::onCopyMouseLatToClipAct_triggered);
 
     copyMouseLonToClipAct = new QAction(tr("Mouse longitude"), this);
     copyMouseLonToClipAct->setStatusTip(tr("Copy the mouse longitude to the clipboard"));
-    connect(copyMouseLonToClipAct, SIGNAL(triggered()), this, SLOT(onCopyMouseLonToClipAct_triggered()));
+    connect(copyMouseLonToClipAct, &QAction::triggered, this, &OPMapGadgetWidget::onCopyMouseLonToClipAct_triggered);
 
     showCompassRoseAct = new QAction(tr("Show compass"), this);
     showCompassRoseAct->setStatusTip(tr("Show/Hide the compass"));
     showCompassRoseAct->setCheckable(true);
     showCompassRoseAct->setChecked(true);
-    connect(showCompassRoseAct, SIGNAL(toggled(bool)), this, SLOT(onShowCompassRoseAct_toggled(bool)));
+    connect(showCompassRoseAct, &QAction::toggled, this, &OPMapGadgetWidget::onShowCompassRoseAct_toggled);
 
     showWindCompassAction = new QAction(tr("Show wind compass"), this);
     showWindCompassAction->setStatusTip(tr("Show/Hide the wind compass"));
     showWindCompassAction->setCheckable(true);
     showWindCompassAction->setChecked(false);
-    connect(showWindCompassAction, SIGNAL(toggled(bool)), this, SLOT(onShowWindCompassAction_toggled(bool)));
+    connect(showWindCompassAction, &QAction::toggled, this, &OPMapGadgetWidget::onShowWindCompassAction_toggled);
 
 
     showDiagnostics = new QAction(tr("Show Diagnostics"), this);
     showDiagnostics->setStatusTip(tr("Show/Hide the diagnostics"));
     showDiagnostics->setCheckable(true);
     showDiagnostics->setChecked(false);
-    connect(showDiagnostics, SIGNAL(toggled(bool)), this, SLOT(onShowDiagnostics_toggled(bool)));
+    connect(showDiagnostics, &QAction::toggled, this, &OPMapGadgetWidget::onShowDiagnostics_toggled);
 
     showUAVInfo = new QAction(tr("Show UAV Info"), this);
     showUAVInfo->setStatusTip(tr("Show/Hide the UAV info"));
     showUAVInfo->setCheckable(true);
     showUAVInfo->setChecked(false);
-    connect(showUAVInfo, SIGNAL(toggled(bool)), this, SLOT(onShowUAVInfo_toggled(bool)));
+    connect(showUAVInfo, &QAction::toggled, this, &OPMapGadgetWidget::onShowUAVInfo_toggled);
 
     showHomeAct = new QAction(tr("Show Home"), this);
     showHomeAct->setStatusTip(tr("Show/Hide the Home location"));
     showHomeAct->setCheckable(true);
     showHomeAct->setChecked(true);
-    connect(showHomeAct, SIGNAL(toggled(bool)), this, SLOT(onShowHomeAct_toggled(bool)));
+    connect(showHomeAct, &QAction::toggled, this, &OPMapGadgetWidget::onShowHomeAct_toggled);
 
     showUAVAct = new QAction(tr("Show UAV"), this);
     showUAVAct->setStatusTip(tr("Show/Hide the UAV"));
     showUAVAct->setCheckable(true);
     showUAVAct->setChecked(true);
-    connect(showUAVAct, SIGNAL(toggled(bool)), this, SLOT(onShowUAVAct_toggled(bool)));
+    connect(showUAVAct, &QAction::toggled, this, &OPMapGadgetWidget::onShowUAVAct_toggled);
 
     changeDefaultLocalAndZoom = new QAction(tr("Set default zoom and location"), this);
     changeDefaultLocalAndZoom->setStatusTip(tr("Changes the map default zoom and location to the current values"));
-    connect(changeDefaultLocalAndZoom, SIGNAL(triggered()), this, SLOT(onChangeDefaultLocalAndZoom()));
+    connect(changeDefaultLocalAndZoom, &QAction::triggered, this, &OPMapGadgetWidget::onChangeDefaultLocalAndZoom);
 
     zoomInAct = new QAction(tr("Zoom &In"), this);
     zoomInAct->setShortcut(Qt::Key_PageUp);
     zoomInAct->setStatusTip(tr("Zoom the map in"));
-    connect(zoomInAct, SIGNAL(triggered()), this, SLOT(onGoZoomInAct_triggered()));
+    connect(zoomInAct, &QAction::triggered, this, &OPMapGadgetWidget::onGoZoomInAct_triggered);
     this->addAction(zoomInAct);
 
     zoomOutAct = new QAction(tr("Zoom &Out"), this);
     zoomOutAct->setShortcut(Qt::Key_PageDown);
     zoomOutAct->setStatusTip(tr("Zoom the map out"));
-    connect(zoomOutAct, SIGNAL(triggered()), this, SLOT(onGoZoomOutAct_triggered()));
+    connect(zoomOutAct, &QAction::triggered, this, &OPMapGadgetWidget::onGoZoomOutAct_triggered);
     this->addAction(zoomOutAct);
 
     goMouseClickAct = new QAction(tr("Go to where you right clicked the mouse"), this);
     goMouseClickAct->setStatusTip(tr("Center the map onto where you right clicked the mouse"));
-    connect(goMouseClickAct, SIGNAL(triggered()), this, SLOT(onGoMouseClickAct_triggered()));
+    connect(goMouseClickAct, &QAction::triggered, this, &OPMapGadgetWidget::onGoMouseClickAct_triggered);
 
     setHomeAct = new QAction(tr("Set the home location"), this);
     setHomeAct->setStatusTip(tr("Set the home location to where you clicked"));
-    connect(setHomeAct, SIGNAL(triggered()), this, SLOT(onSetHomeAct_triggered()));
+    connect(setHomeAct, &QAction::triggered, this, &OPMapGadgetWidget::onSetHomeAct_triggered);
 
     goHomeAct = new QAction(tr("Go to &Home location"), this);
     goHomeAct->setShortcut(tr("Ctrl+H"));
     goHomeAct->setStatusTip(tr("Center the map onto the home location"));
-    connect(goHomeAct, SIGNAL(triggered()), this, SLOT(onGoHomeAct_triggered()));
+    connect(goHomeAct, &QAction::triggered, this, &OPMapGadgetWidget::onGoHomeAct_triggered);
 
     goUAVAct = new QAction(tr("Go to &UAV location"), this);
     goUAVAct->setShortcut(tr("Ctrl+U"));
     goUAVAct->setStatusTip(tr("Center the map onto the UAV location"));
-    connect(goUAVAct, SIGNAL(triggered()), this, SLOT(onGoUAVAct_triggered()));
+    connect(goUAVAct, &QAction::triggered, this, &OPMapGadgetWidget::onGoUAVAct_triggered);
 
     followUAVpositionAct = new QAction(tr("Follow UAV position"), this);
     followUAVpositionAct->setShortcut(tr("Ctrl+F"));
     followUAVpositionAct->setStatusTip(tr("Keep the map centered onto the UAV"));
     followUAVpositionAct->setCheckable(true);
     followUAVpositionAct->setChecked(false);
-    connect(followUAVpositionAct, SIGNAL(toggled(bool)), this, SLOT(onFollowUAVpositionAct_toggled(bool)));
+    connect(followUAVpositionAct, &QAction::toggled, this, &OPMapGadgetWidget::onFollowUAVpositionAct_toggled);
 
     followUAVheadingAct = new QAction(tr("Follow UAV heading"), this);
     followUAVheadingAct->setShortcut(tr("Ctrl+F"));
     followUAVheadingAct->setStatusTip(tr("Keep the map rotation to the UAV heading"));
     followUAVheadingAct->setCheckable(true);
     followUAVheadingAct->setChecked(false);
-    connect(followUAVheadingAct, SIGNAL(toggled(bool)), this, SLOT(onFollowUAVheadingAct_toggled(bool)));
+    connect(followUAVheadingAct, &QAction::toggled, this, &OPMapGadgetWidget::onFollowUAVheadingAct_toggled);
 
     wayPointEditorAct = new QAction(tr("&Waypoint editor"), this);
     wayPointEditorAct->setShortcut(tr("Ctrl+W"));
     wayPointEditorAct->setStatusTip(tr("Open the waypoint editor"));
-    connect(wayPointEditorAct, SIGNAL(triggered()), this, SLOT(onOpenWayPointEditorAct_triggered()));
+    connect(wayPointEditorAct, &QAction::triggered, this, &OPMapGadgetWidget::onOpenWayPointEditorAct_triggered);
 
     addWayPointActFromContextMenu = new QAction(tr("&Add waypoint"), this);
     addWayPointActFromContextMenu->setShortcut(tr("Ctrl+A"));
     addWayPointActFromContextMenu->setStatusTip(tr("Add waypoint"));
-    connect(addWayPointActFromContextMenu, SIGNAL(triggered()), this, SLOT(onAddWayPointAct_triggeredFromContextMenu()));
+    connect(addWayPointActFromContextMenu, &QAction::triggered, this, &OPMapGadgetWidget::onAddWayPointAct_triggeredFromContextMenu);
 
     addWayPointActFromThis = new QAction(tr("&Add waypoint"), this);
     addWayPointActFromThis->setShortcut(tr("Ctrl+A"));
     addWayPointActFromThis->setStatusTip(tr("Add waypoint"));
-    connect(addWayPointActFromThis, SIGNAL(triggered()), this, SLOT(onAddWayPointAct_triggeredFromThis()));
+    connect(addWayPointActFromThis, &QAction::triggered, this, &OPMapGadgetWidget::onAddWayPointAct_triggeredFromThis);
     this->addAction(addWayPointActFromThis);
 
     editWayPointAct = new QAction(tr("&Edit waypoint"), this);
     editWayPointAct->setShortcut(tr("Ctrl+E"));
     editWayPointAct->setStatusTip(tr("Edit waypoint"));
-    connect(editWayPointAct, SIGNAL(triggered()), this, SLOT(onEditWayPointAct_triggered()));
+    connect(editWayPointAct, &QAction::triggered, this, &OPMapGadgetWidget::onEditWayPointAct_triggered);
 
     lockWayPointAct = new QAction(tr("&Lock waypoint"), this);
     lockWayPointAct->setStatusTip(tr("Lock/Unlock a waypoint"));
     lockWayPointAct->setCheckable(true);
     lockWayPointAct->setChecked(false);
-    connect(lockWayPointAct, SIGNAL(triggered()), this, SLOT(onLockWayPointAct_triggered()));
+    connect(lockWayPointAct, &QAction::triggered, this, &OPMapGadgetWidget::onLockWayPointAct_triggered);
 
     deleteWayPointAct = new QAction(tr("&Delete waypoint"), this);
     deleteWayPointAct->setShortcut(tr("Ctrl+D"));
     deleteWayPointAct->setStatusTip(tr("Delete waypoint"));
-    connect(deleteWayPointAct, SIGNAL(triggered()), this, SLOT(onDeleteWayPointAct_triggered()));
+    connect(deleteWayPointAct, &QAction::triggered, this, &OPMapGadgetWidget::onDeleteWayPointAct_triggered);
 
     clearWayPointsAct = new QAction(tr("&Clear waypoints"), this);
     clearWayPointsAct->setShortcut(tr("Ctrl+C"));
     clearWayPointsAct->setStatusTip(tr("Clear waypoints"));
-    connect(clearWayPointsAct, SIGNAL(triggered()), this, SLOT(onClearWayPointsAct_triggered()));
+    connect(clearWayPointsAct, &QAction::triggered, this, &OPMapGadgetWidget::onClearWayPointsAct_triggered);
 
     overlayOpacityActGroup = new QActionGroup(this);
-    connect(overlayOpacityActGroup, SIGNAL(triggered(QAction *)), this, SLOT(onOverlayOpacityActGroup_triggered(QAction *)));
+    connect(overlayOpacityActGroup, &QActionGroup::triggered, this, &OPMapGadgetWidget::onOverlayOpacityActGroup_triggered);
     overlayOpacityAct.clear();
     for (int i = 0; i <= 10; i++)
     {
@@ -1399,10 +1399,10 @@ void OPMapGadgetWidget::createActions()
 
     homeMagicWaypointAct = new QAction(tr("Home magic waypoint"), this);
     homeMagicWaypointAct->setStatusTip(tr("Move the magic waypoint to the home position"));
-    connect(homeMagicWaypointAct, SIGNAL(triggered()), this, SLOT(onHomeMagicWaypointAct_triggered()));
+    connect(homeMagicWaypointAct, &QAction::triggered, this, &OPMapGadgetWidget::onHomeMagicWaypointAct_triggered);
 
     mapModeActGroup = new QActionGroup(this);
-    connect(mapModeActGroup, SIGNAL(triggered(QAction *)), this, SLOT(onMapModeActGroup_triggered(QAction *)));
+    connect(mapModeActGroup, &QActionGroup::triggered, this, &OPMapGadgetWidget::onMapModeActGroup_triggered);
     mapModeAct.clear();
     {
         QAction *map_mode_act;
@@ -1421,7 +1421,7 @@ void OPMapGadgetWidget::createActions()
     }
 
     zoomActGroup = new QActionGroup(this);
-    connect(zoomActGroup, SIGNAL(triggered(QAction *)), this, SLOT(onZoomActGroup_triggered(QAction *)));
+    connect(zoomActGroup, &QActionGroup::triggered, this, &OPMapGadgetWidget::onZoomActGroup_triggered);
     zoomAct.clear();
 	for (int i = m_min_zoom; i <= m_max_zoom; i++)
     {
@@ -1432,7 +1432,7 @@ void OPMapGadgetWidget::createActions()
     }
 
 	maxUpdateRateActGroup = new QActionGroup(this);
-	connect(maxUpdateRateActGroup, SIGNAL(triggered(QAction *)), this, SLOT(onMaxUpdateRateActGroup_triggered(QAction *)));
+	connect(maxUpdateRateActGroup, &QActionGroup::triggered, this, &OPMapGadgetWidget::onMaxUpdateRateActGroup_triggered);
 	maxUpdateRateAct.clear();
 	list_size = sizeof(max_update_rate_list) / sizeof(max_update_rate_list[0]);
 	for (int i = 0; i < list_size; i++)
@@ -1453,10 +1453,10 @@ void OPMapGadgetWidget::createActions()
     showSafeAreaAct->setStatusTip(tr("Show/Hide the Safe Area around the home location"));
     showSafeAreaAct->setCheckable(true);
     showSafeAreaAct->setChecked(m_map->Home->ShowSafeArea());
-    connect(showSafeAreaAct, SIGNAL(toggled(bool)), this, SLOT(onShowSafeAreaAct_toggled(bool)));
+    connect(showSafeAreaAct, &QAction::toggled, this, &OPMapGadgetWidget::onShowSafeAreaAct_toggled);
 
     safeAreaActGroup = new QActionGroup(this);
-    connect(safeAreaActGroup, SIGNAL(triggered(QAction *)), this, SLOT(onSafeAreaActGroup_triggered(QAction *)));
+    connect(safeAreaActGroup, &QActionGroup::triggered, this, &OPMapGadgetWidget::onSafeAreaActGroup_triggered);
     safeAreaAct.clear();
 	list_size = sizeof(safe_area_radius_list) / sizeof(safe_area_radius_list[0]);
 	for (int i = 0; i < list_size; i++)
@@ -1473,7 +1473,7 @@ void OPMapGadgetWidget::createActions()
     // UAV trail
 
     uavTrailTypeActGroup = new QActionGroup(this);
-    connect(uavTrailTypeActGroup, SIGNAL(triggered(QAction *)), this, SLOT(onUAVTrailTypeActGroup_triggered(QAction *)));
+    connect(uavTrailTypeActGroup, &QActionGroup::triggered, this, &OPMapGadgetWidget::onUAVTrailTypeActGroup_triggered);
     uavTrailTypeAct.clear();
     QStringList uav_trail_type_list = mapcontrol::Helper::UAVTrailTypes();
     for (int i = 0; i < uav_trail_type_list.count(); i++)
@@ -1490,20 +1490,20 @@ void OPMapGadgetWidget::createActions()
     showTrailAct->setStatusTip(tr("Show/Hide the Trail dots"));
     showTrailAct->setCheckable(true);
     showTrailAct->setChecked(true);
-    connect(showTrailAct, SIGNAL(toggled(bool)), this, SLOT(onShowTrailAct_toggled(bool)));
+    connect(showTrailAct, &QAction::toggled, this, &OPMapGadgetWidget::onShowTrailAct_toggled);
 
     showTrailLineAct = new QAction(tr("Show Trail lines"), this);
     showTrailLineAct->setStatusTip(tr("Show/Hide the Trail lines"));
     showTrailLineAct->setCheckable(true);
     showTrailLineAct->setChecked(true);
-    connect(showTrailLineAct, SIGNAL(toggled(bool)), this, SLOT(onShowTrailLineAct_toggled(bool)));
+    connect(showTrailLineAct, &QAction::toggled, this, &OPMapGadgetWidget::onShowTrailLineAct_toggled);
 
     clearUAVtrailAct = new QAction(tr("Clear UAV trail"), this);
     clearUAVtrailAct->setStatusTip(tr("Clear the UAV trail"));
-    connect(clearUAVtrailAct, SIGNAL(triggered()), this, SLOT(onClearUAVtrailAct_triggered()));
+    connect(clearUAVtrailAct, &QAction::triggered, this, &OPMapGadgetWidget::onClearUAVtrailAct_triggered);
 
     uavTrailTimeActGroup = new QActionGroup(this);
-    connect(uavTrailTimeActGroup, SIGNAL(triggered(QAction *)), this, SLOT(onUAVTrailTimeActGroup_triggered(QAction *)));
+    connect(uavTrailTimeActGroup, &QActionGroup::triggered, this, &OPMapGadgetWidget::onUAVTrailTimeActGroup_triggered);
     uavTrailTimeAct.clear();
 	list_size = sizeof(uav_trail_time_list) / sizeof(uav_trail_time_list[0]);
 	for (int i = 0; i < list_size; i++)
@@ -1517,7 +1517,7 @@ void OPMapGadgetWidget::createActions()
     }
 
     uavTrailDistanceActGroup = new QActionGroup(this);
-    connect(uavTrailDistanceActGroup, SIGNAL(triggered(QAction *)), this, SLOT(onUAVTrailDistanceActGroup_triggered(QAction *)));
+    connect(uavTrailDistanceActGroup, &QActionGroup::triggered, this, &OPMapGadgetWidget::onUAVTrailDistanceActGroup_triggered);
     uavTrailDistanceAct.clear();
 	list_size = sizeof(uav_trail_distance_list) / sizeof(uav_trail_distance_list[0]);
 	for (int i = 0; i < list_size; i++)

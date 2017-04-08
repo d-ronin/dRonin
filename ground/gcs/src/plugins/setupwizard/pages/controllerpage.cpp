@@ -42,16 +42,17 @@ ControllerPage::ControllerPage(SetupWizard *wizard, QWidget *parent) :
 
     m_connectionManager = getWizard()->getConnectionManager();
     Q_ASSERT(m_connectionManager);
-    connect(m_connectionManager, SIGNAL(availableDevicesChanged(QLinkedList<Core::DevListItem>)), this, SLOT(devicesChanged(QLinkedList<Core::DevListItem>)));
+    connect(m_connectionManager, &Core::ConnectionManager::availableDevicesChanged,
+            this, &ControllerPage::devicesChanged);
 
     ExtensionSystem::PluginManager *pluginManager = ExtensionSystem::PluginManager::instance();
     Q_ASSERT(pluginManager);
     m_telemtryManager = pluginManager->getObject<TelemetryManager>();
     Q_ASSERT(m_telemtryManager);
-    connect(m_telemtryManager, SIGNAL(connected()), this, SLOT(connectionStatusChanged()));
-    connect(m_telemtryManager, SIGNAL(disconnected()), this, SLOT(connectionStatusChanged()));
+    connect(m_telemtryManager, &TelemetryManager::connected, this, &ControllerPage::connectionStatusChanged);
+    connect(m_telemtryManager, &TelemetryManager::disconnected, this, &ControllerPage::connectionStatusChanged);
 
-    connect(ui->connectButton, SIGNAL(clicked()), this, SLOT(connectDisconnect()));
+    connect(ui->connectButton, &QAbstractButton::clicked, this, &ControllerPage::connectDisconnect);
 
     setupDeviceList();
 }

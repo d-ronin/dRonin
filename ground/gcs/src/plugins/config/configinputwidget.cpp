@@ -139,12 +139,12 @@ ConfigInputWidget::ConfigInputWidget(QWidget *parent) : ConfigTaskWidget(parent)
 
     addUAVObjectToWidgetRelation("ManualControlSettings", "Deadband", m_config->deadband, 0, 0.01f);
 
-    connect(m_config->configurationWizard,SIGNAL(clicked()),this,SLOT(goToWizard()));
-    connect(m_config->runCalibration,SIGNAL(toggled(bool)),this, SLOT(simpleCalibration(bool)));
+    connect(m_config->configurationWizard,&QAbstractButton::clicked,this,&ConfigInputWidget::goToWizard);
+    connect(m_config->runCalibration,&QAbstractButton::toggled,this, &ConfigInputWidget::simpleCalibration);
 
-    connect(m_config->wzNext,SIGNAL(clicked()),this,SLOT(wzNext()));
-    connect(m_config->wzCancel,SIGNAL(clicked()),this,SLOT(wzCancel()));
-    connect(m_config->wzBack,SIGNAL(clicked()),this,SLOT(wzBack()));
+    connect(m_config->wzNext,&QAbstractButton::clicked,this,&ConfigInputWidget::wzNext);
+    connect(m_config->wzCancel,&QAbstractButton::clicked,this,&ConfigInputWidget::wzCancel);
+    connect(m_config->wzBack,&QAbstractButton::clicked,this,&ConfigInputWidget::wzBack);
 
     m_config->stackedWidget->setCurrentIndex(0);
     addUAVObjectToWidgetRelation("ManualControlSettings","FlightModePosition",m_config->fmsModePos1,0,1,true);
@@ -169,8 +169,8 @@ ConfigInputWidget::ConfigInputWidget(QWidget *parent) : ConfigTaskWidget(parent)
     addUAVObjectToWidgetRelation("ManualControlSettings","Stabilization3Reprojection",m_config->fmsSsPos3Rep);
 
     // connect this before the widgets are populated to ensure it always fires
-    connect( ManualControlCommand::GetInstance(getObjectManager()),SIGNAL(objectUpdated(UAVObject*)),this,SLOT(moveFMSlider()));
-    connect( ManualControlSettings::GetInstance(getObjectManager()),SIGNAL(objectUpdated(UAVObject*)),this,SLOT(updatePositionSlider()));
+    connect( ManualControlCommand::GetInstance(getObjectManager()),&UAVObject::objectUpdated,this,&ConfigInputWidget::moveFMSlider);
+    connect( ManualControlSettings::GetInstance(getObjectManager()),&UAVObject::objectUpdated,this,&ConfigInputWidget::updatePositionSlider);
 
     // check reprojection settings
     const QStringList axes({"Roll", "Pitch", "Yaw", "Rep"});
@@ -178,23 +178,32 @@ ConfigInputWidget::ConfigInputWidget(QWidget *parent) : ConfigTaskWidget(parent)
         foreach (const QString &axis, axes) {
             QComboBox *child = this->findChild<QComboBox *>(QString("fmsSsPos%1%2").arg(i).arg(axis));
             if (child)
-                connect(child, SIGNAL(currentTextChanged(QString)), this, SLOT(checkReprojection()));
+                connect(child, &QComboBox::currentTextChanged, this, &ConfigInputWidget::checkReprojection);
         }
     }
 
     // check things that affect arming config
     fillArmingComboBox();
     ActuatorSettings *actuatorSettings = qobject_cast<ActuatorSettings *>(getObjectManager()->getObject(ActuatorSettings::NAME));
-    if (actuatorSettings)
-        connect(actuatorSettings, SIGNAL(objectUpdated(UAVObject *)), this, SLOT(checkArmingConfig()));
-    connect(m_config->cbArmMethod, SIGNAL(currentIndexChanged(int)), this, SLOT(checkArmingConfig()));
-    connect(m_config->cbThrottleCheck, SIGNAL(stateChanged(int)), this, SLOT(checkArmingConfig()));
-    connect(m_config->cbCalibrateGyros, SIGNAL(stateChanged(int)), this, SLOT(checkArmingConfig()));
-    connect(m_config->sbThrottleTimeout, SIGNAL(valueChanged(int)), this, SLOT(checkArmingConfig()));
-    connect(m_config->sbFailsafeTimeout, SIGNAL(valueChanged(int)), this, SLOT(checkArmingConfig()));
-    connect(m_config->cbFailsafeTimeout, SIGNAL(stateChanged(int)), this, SLOT(timeoutCheckboxChanged()));
-    connect(m_config->cbThrottleTimeout, SIGNAL(stateChanged(int)), this, SLOT(timeoutCheckboxChanged()));
-    connect(ManualControlSettings::GetInstance(getObjectManager()), SIGNAL(objectUpdated(UAVObject *)), this, SLOT(updateArmingConfig(UAVObject *)));
+    connect(actuatorSettings, &UAVObject::objectUpdated,
+            this, &ConfigInputWidget::checkArmingConfig);
+    connect(m_config->cbArmMethod, QOverload<int>::of(&QComboBox::currentIndexChanged),
+            this, &ConfigInputWidget::checkArmingConfig);
+    connect(m_config->cbThrottleCheck, &QCheckBox::stateChanged,
+            this, &ConfigInputWidget::checkArmingConfig);
+    connect(m_config->cbCalibrateGyros, &QCheckBox::stateChanged,
+            this, &ConfigInputWidget::checkArmingConfig);
+    connect(m_config->sbThrottleTimeout, QOverload<int>::of(&QSpinBox::valueChanged),
+            this, &ConfigInputWidget::checkArmingConfig);
+    connect(m_config->sbFailsafeTimeout, QOverload<int>::of(&QSpinBox::valueChanged),
+            this, &ConfigInputWidget::checkArmingConfig);
+    connect(m_config->cbFailsafeTimeout, &QCheckBox::stateChanged,
+            this, &ConfigInputWidget::timeoutCheckboxChanged);
+    connect(m_config->cbThrottleTimeout, &QCheckBox::stateChanged,
+            this, &ConfigInputWidget::timeoutCheckboxChanged);
+    connect(ManualControlSettings::GetInstance(getObjectManager()), &UAVObject::objectUpdated,
+            this, &ConfigInputWidget::updateArmingConfig);
+
     // create a hidden widget so uavo->widget relation can take care of some of the work
     cbArmingOption = new QComboBox(this);
     cbArmingOption->setVisible(false);
@@ -208,7 +217,7 @@ ConfigInputWidget::ConfigInputWidget(QWidget *parent) : ConfigTaskWidget(parent)
     populateWidgets();
     refreshWidgetsValues();
     // Connect the help button
-    connect(m_config->inputHelp, SIGNAL(clicked()), this, SLOT(openHelp()));
+    connect(m_config->inputHelp, &QAbstractButton::clicked, this, &ConfigInputWidget::openHelp);
 
     m_config->graphicsView->setScene(new QGraphicsScene(this));
     m_config->graphicsView->setViewportUpdateMode(QGraphicsView::FullViewportUpdate);
@@ -345,7 +354,7 @@ ConfigInputWidget::ConfigInputWidget(QWidget *parent) : ConfigTaskWidget(parent)
     m_config->graphicsView->fitInView(m_txMainBody, Qt::KeepAspectRatio );
     m_config->graphicsView->setStyleSheet("background: transparent");
     animate=new QTimer(this);
-    connect(animate,SIGNAL(timeout()),this,SLOT(moveTxControls()));
+    connect(animate,&QTimer::timeout,this,&ConfigInputWidget::moveTxControls);
 
     heliChannelOrder << ManualControlSettings::CHANNELGROUPS_COLLECTIVE <<
                         ManualControlSettings::CHANNELGROUPS_THROTTLE <<
@@ -402,7 +411,7 @@ void ConfigInputWidget::openHelp()
 void ConfigInputWidget::goToWizard()
 {
     // Monitor for connection loss to reset wizard safely
-    connect(telMngr, SIGNAL(disconnected()), this, SLOT(wzCancel()));
+    connect(telMngr, &TelemetryManager::disconnected, this, &ConfigInputWidget::wzCancel);
 
     QMessageBox msgBox;
     msgBox.setText(tr("Arming Settings will be set to Always Disarmed for your safety."));
@@ -431,7 +440,7 @@ void ConfigInputWidget::goToWizard()
 
 void ConfigInputWidget::wzCancel()
 {
-    disconnect(telMngr, SIGNAL(disconnected()), this, SLOT(wzCancel()));
+    disconnect(telMngr, &TelemetryManager::disconnected, this, &ConfigInputWidget::wzCancel);
 
     dimOtherControls(false);
     manualCommandObj->setMetadata(manualCommandObj->getDefaultMetadata());
@@ -488,7 +497,7 @@ void ConfigInputWidget::wzNext()
         wizardSetUpStep(wizardFinish);
         break;
     case wizardFinish:
-        disconnect(telMngr, SIGNAL(disconnected()), this, SLOT(wzCancel()));
+        disconnect(telMngr, &TelemetryManager::disconnected, this, &ConfigInputWidget::wzCancel);
 
         wizardStep=wizardNone;
         m_config->stackedWidget->setCurrentIndex(0);
@@ -620,7 +629,7 @@ void ConfigInputWidget::wizardSetUpStep(enum wizardSteps step)
         currentChannelNum=-1;
         nextChannel();
         manualSettingsData=manualSettingsObj->getData();
-        connect(receiverActivityObj, SIGNAL(objectUpdated(UAVObject*)), this, SLOT(identifyControls()));
+        connect(receiverActivityObj, &UAVObject::objectUpdated, this, &ConfigInputWidget::identifyControls);
         fastMdata();
         m_config->wzNext->setEnabled(false);
         break;
@@ -646,8 +655,8 @@ void ConfigInputWidget::wizardSetUpStep(enum wizardSteps step)
                 manualSettingsData.ChannelMax[i] = manualSettingsData.ChannelNeutral[i] - INITIAL_OFFSET;
             }
         }
-        connect(manualCommandObj, SIGNAL(objectUpdated(UAVObject*)), this, SLOT(identifyLimits()));
-        connect(manualCommandObj, SIGNAL(objectUpdated(UAVObject*)), this, SLOT(moveSticks()));
+        connect(manualCommandObj, &UAVObject::objectUpdated, this, &ConfigInputWidget::identifyLimits);
+        connect(manualCommandObj, &UAVObject::objectUpdated, this, &ConfigInputWidget::moveSticks);
 
         // Disable next.  When range on all channels is sufficient, enable it
         m_config->wzNext->setEnabled(false);
@@ -670,10 +679,10 @@ void ConfigInputWidget::wizardSetUpStep(enum wizardSteps step)
                 extraWidgets.append(cb);
                 m_config->checkBoxesLayout->layout()->addWidget(cb);
 
-                connect(cb,SIGNAL(toggled(bool)),this,SLOT(invertControls()));
+                connect(cb,&QAbstractButton::toggled,this,&ConfigInputWidget::invertControls);
             }
         }
-        connect(manualCommandObj, SIGNAL(objectUpdated(UAVObject*)), this, SLOT(moveSticks()));
+        connect(manualCommandObj, &UAVObject::objectUpdated, this, &ConfigInputWidget::moveSticks);
         m_config->wzText->setText(QString(tr("Please check the picture below and correct all the sticks which show an inverted movement, press next when ready.")));
         fastMdata();
         break;
@@ -685,15 +694,15 @@ void ConfigInputWidget::wizardSetUpStep(enum wizardSteps step)
         flightStatusObj->requestUpdate();
         detectFailsafe();
         failsafeDetection = FS_AWAITING_CONNECTION;
-        connect(flightStatusObj, SIGNAL(objectUpdated(UAVObject*)), this, SLOT(detectFailsafe()));
+        connect(flightStatusObj, &UAVObject::objectUpdated, this, &ConfigInputWidget::detectFailsafe);
         m_config->wzNext->setEnabled(false);
         m_config->graphicsView->setVisible(false);
         m_config->bypassFailsafeGroup->setVisible(true);
-        connect(m_config->cbBypassFailsafe,SIGNAL(toggled(bool)), this, SLOT(detectFailsafe()));
+        connect(m_config->cbBypassFailsafe,&QAbstractButton::toggled, this, &ConfigInputWidget::detectFailsafe);
         break;
     case wizardFinish:
         dimOtherControls(false);
-        connect(manualCommandObj, SIGNAL(objectUpdated(UAVObject*)), this, SLOT(moveSticks()));
+        connect(manualCommandObj, &UAVObject::objectUpdated, this, &ConfigInputWidget::moveSticks);
         m_config->wzText->setText(QString(tr("You have completed this wizard, please check below if the picture mimics your sticks movement.\n"
                                              "These new settings aren't saved to the board yet, after pressing next you will go to the Arming Settings "
                                              "screen where you can set your desired arming sequence and save the configuration.")));
@@ -752,7 +761,7 @@ void ConfigInputWidget::wizardTearDownStep(enum wizardSteps step)
         extraWidgets.clear();
         break;
     case wizardIdentifySticks:
-        disconnect(receiverActivityObj, SIGNAL(objectUpdated(UAVObject*)), this, SLOT(identifyControls()));
+        disconnect(receiverActivityObj, &UAVObject::objectUpdated, this, &ConfigInputWidget::identifyControls);
         m_config->wzNext->setEnabled(true);
         setTxMovement(nothing);
         break;
@@ -777,8 +786,8 @@ void ConfigInputWidget::wizardTearDownStep(enum wizardSteps step)
         setTxMovement(nothing);
         break;
     case wizardIdentifyLimits:
-        disconnect(manualCommandObj, SIGNAL(objectUpdated(UAVObject*)), this, SLOT(identifyLimits()));
-        disconnect(manualCommandObj, SIGNAL(objectUpdated(UAVObject*)), this, SLOT(moveSticks()));
+        disconnect(manualCommandObj, &UAVObject::objectUpdated, this, &ConfigInputWidget::identifyLimits);
+        disconnect(manualCommandObj, &UAVObject::objectUpdated, this, &ConfigInputWidget::moveSticks);
         manualSettingsObj->setData(manualSettingsData);
         setTxMovement(nothing);
         break;
@@ -789,25 +798,25 @@ void ConfigInputWidget::wizardTearDownStep(enum wizardSteps step)
             QCheckBox * cb=qobject_cast<QCheckBox *>(wd);
             if(cb)
             {
-                disconnect(cb,SIGNAL(toggled(bool)),this,SLOT(invertControls()));
+                disconnect(cb,&QAbstractButton::toggled,this,&ConfigInputWidget::invertControls);
                 delete cb;
             }
         }
         extraWidgets.clear();
-        disconnect(manualCommandObj, SIGNAL(objectUpdated(UAVObject*)), this, SLOT(moveSticks()));
+        disconnect(manualCommandObj, &UAVObject::objectUpdated, this, &ConfigInputWidget::moveSticks);
         break;
     case wizardVerifyFailsafe:
         dimOtherControls(false);
         extraWidgets.clear();
-        disconnect(flightStatusObj, SIGNAL(objectUpdated(UAVObject*)), this, SLOT(detectFailsafe()));
+        disconnect(flightStatusObj, &UAVObject::objectUpdated, this, &ConfigInputWidget::detectFailsafe);
         m_config->graphicsView->setVisible(true);
         m_config->bypassFailsafeGroup->setVisible(false);
-        disconnect(m_config->cbBypassFailsafe,SIGNAL(toggled(bool)), this, SLOT(detectFailsafe()));
+        disconnect(m_config->cbBypassFailsafe,&QAbstractButton::toggled, this, &ConfigInputWidget::detectFailsafe);
         break;
     case wizardFinish:
         dimOtherControls(false);
         setTxMovement(nothing);
-        disconnect(manualCommandObj, SIGNAL(objectUpdated(UAVObject*)), this, SLOT(moveSticks()));
+        disconnect(manualCommandObj, &UAVObject::objectUpdated, this, &ConfigInputWidget::moveSticks);
         restoreMdata();
         break;
     default:
@@ -995,7 +1004,7 @@ void ConfigInputWidget::identifyControls()
 
     // Wait to ensure that the user is no longer moving the sticks. Empricially,
     // this delay works well across a broad range of users and transmitters.
-    QTimer::singleShot(CHANNEL_IDENTIFICATION_WAIT_TIME_MS, this, SLOT(wzNext()));
+    QTimer::singleShot(CHANNEL_IDENTIFICATION_WAIT_TIME_MS, this, &ConfigInputWidget::wzNext);
 }
 
 void ConfigInputWidget::identifyLimits()
@@ -1730,7 +1739,7 @@ void ConfigInputWidget::simpleCalibration(bool enable)
 
         fastMdata();
 
-        connect(manualCommandObj, SIGNAL(objectUnpacked(UAVObject*)), this, SLOT(updateCalibration()));
+        connect(manualCommandObj, &UAVObject::objectUnpacked, this, &ConfigInputWidget::updateCalibration);
     } else {
         m_config->configurationWizard->setEnabled(true);
 
@@ -1759,7 +1768,7 @@ void ConfigInputWidget::simpleCalibration(bool enable)
 
         manualSettingsObj->setData(manualSettingsData);
 
-        disconnect(manualCommandObj, SIGNAL(objectUnpacked(UAVObject*)), this, SLOT(updateCalibration()));
+        disconnect(manualCommandObj, &UAVObject::objectUnpacked, this, &ConfigInputWidget::updateCalibration);
     }
 }
 

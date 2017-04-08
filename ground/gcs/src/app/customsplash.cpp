@@ -93,15 +93,15 @@ void CustomSplash::setprogressBarColor(const QColor &progressBarColor)
 * @param alignment alignment of the text
 * @param color color of the text
 */
-void CustomSplash::showMessage(const QString &message, int alignment, const QColor &color)
-{
-    QSplashScreen::showMessage(message,alignment,color);
+void CustomSplash::showMessage(const QString &message)
+{   
+    QSplashScreen::showMessage(message, Qt::AlignCenter | Qt::AlignBottom);
+
     int last_duration = settings.value(QString::number(message_number),0).toInt();
-    if(last_duration == 0)
-        setProgress(progress()+10);
-    else
-    {
-        int total_duration = settings.value("total",5000).toInt();
+    if (last_duration == 0) {
+        setProgress(progress() + 10);
+    } else {
+        int total_duration = settings.value("total", 5000).toInt();
         int value = last_duration * 100 / total_duration;
         setProgress(value);
     }

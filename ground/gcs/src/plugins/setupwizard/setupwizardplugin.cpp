@@ -65,7 +65,7 @@ bool SetupWizardPlugin::initialize(const QStringList & args, QString *errMsg)
     ac->appendGroup("Wizard");
     ac->addAction(cmd, "Wizard");
 
-    connect(cmd->action(), SIGNAL(triggered(bool)), this, SLOT(showSetupWizard()));
+    connect(cmd->action(), &QAction::triggered, this, &SetupWizardPlugin::showSetupWizard);
     return true;
 }
 
@@ -82,7 +82,7 @@ void SetupWizardPlugin::showSetupWizard()
 
         wizardRunning = true;
         SetupWizard *m_wiz = new SetupWizard();
-        connect(m_wiz, SIGNAL(finished(int)), this, SLOT(wizardTerminated()));
+        connect(m_wiz, &QDialog::finished, this, &SetupWizardPlugin::wizardTerminated);
         m_wiz->setAttribute(Qt::WA_DeleteOnClose, true);
         m_wiz->setWindowFlags(m_wiz->windowFlags() | Qt::WindowStaysOnTopHint);
         m_wiz->show();

@@ -62,10 +62,10 @@ bool UAVTalkPlugin::initialize(const QStringList & arguments, QString * errorStr
 
     // Connect to connection manager so we get notified when the user connect to his device
     Core::ConnectionManager *cm = Core::ICore::instance()->connectionManager();
-    QObject::connect(cm, SIGNAL(deviceConnected(QIODevice *)),
-                     this, SLOT(onDeviceConnect(QIODevice *)));
-    QObject::connect(cm, SIGNAL(deviceAboutToDisconnect()),
-                     this, SLOT(onDeviceDisconnect()));
+    QObject::connect(cm, &Core::ConnectionManager::deviceConnected,
+                     this, &UAVTalkPlugin::onDeviceConnect);
+    QObject::connect(cm, &Core::ConnectionManager::deviceAboutToDisconnect,
+                     this, &UAVTalkPlugin::onDeviceDisconnect);
     return true;
 }
 

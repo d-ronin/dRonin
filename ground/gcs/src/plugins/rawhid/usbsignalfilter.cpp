@@ -75,8 +75,10 @@ USBSignalFilter::USBSignalFilter(int vid, int pid, int boardModel, int runState)
     if (vid != -1)
         m_vid.append(vid);
 
-    connect(USBMonitor::instance(), SIGNAL(deviceDiscovered(USBPortInfo)), this, SLOT(m_deviceDiscovered(USBPortInfo)), Qt::QueuedConnection);
-    connect(USBMonitor::instance(), SIGNAL(deviceRemoved(USBPortInfo)), this, SLOT(m_deviceRemoved(USBPortInfo)), Qt::QueuedConnection);
+    connect(USBMonitor::instance(), &USBMonitor::deviceDiscovered,
+            this, &USBSignalFilter::m_deviceDiscovered, Qt::QueuedConnection);
+    connect(USBMonitor::instance(), &USBMonitor::deviceRemoved,
+            this, &USBSignalFilter::m_deviceRemoved, Qt::QueuedConnection);
 }
 
 USBSignalFilter::USBSignalFilter(QList<int> vid, int pid, int boardModel, int runState):
@@ -85,6 +87,8 @@ USBSignalFilter::USBSignalFilter(QList<int> vid, int pid, int boardModel, int ru
     m_boardModel(boardModel),
     m_runState(runState)
 {
-    connect(USBMonitor::instance(), SIGNAL(deviceDiscovered(USBPortInfo)), this, SLOT(m_deviceDiscovered(USBPortInfo)), Qt::QueuedConnection);
-    connect(USBMonitor::instance(), SIGNAL(deviceRemoved(USBPortInfo)), this, SLOT(m_deviceRemoved(USBPortInfo)), Qt::QueuedConnection);
+    connect(USBMonitor::instance(), &USBMonitor::deviceDiscovered,
+            this, &USBSignalFilter::m_deviceDiscovered, Qt::QueuedConnection);
+    connect(USBMonitor::instance(), &USBMonitor::deviceRemoved,
+            this, &USBSignalFilter::m_deviceRemoved, Qt::QueuedConnection);
 }

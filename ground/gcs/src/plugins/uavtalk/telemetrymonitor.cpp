@@ -76,7 +76,7 @@ TelemetryMonitor::TelemetryMonitor(UAVObjectManager* objMngr, Telemetry* tel, QH
     sessionObj = SessionManaging::GetInstance(objMngr);
 
     // Listen for flight stats updates
-    connect(flightStatsObj, SIGNAL(objectUpdated(UAVObject*)), this, SLOT(flightStatsUpdated(UAVObject*)));
+    connect(flightStatsObj, &UAVObject::objectUpdated, this, &TelemetryMonitor::flightStatsUpdated);
 
     // Start update timer
     statsTimer = new QTimer(this);
@@ -86,18 +86,18 @@ TelemetryMonitor::TelemetryMonitor(UAVObjectManager* objMngr, Telemetry* tel, QH
     objectRetrieveTimeout->setSingleShot(true);
     sessionInitialRetrieveTimeout = new QTimer(this);
     sessionInitialRetrieveTimeout->setSingleShot(true);
-    connect(statsTimer, SIGNAL(timeout()), this, SLOT(processStatsUpdates()));
-    connect(sessionRetrieveTimeout,SIGNAL(timeout()),this,SLOT(sessionRetrieveTimeoutCB()));
-    connect(sessionInitialRetrieveTimeout,SIGNAL(timeout()),this,SLOT(sessionInitialRetrieveTimeoutCB()));
-    connect(objectRetrieveTimeout,SIGNAL(timeout()),this,SLOT(objectRetrieveTimeoutCB()));
+    connect(statsTimer, &QTimer::timeout, this, &TelemetryMonitor::processStatsUpdates);
+    connect(sessionRetrieveTimeout,&QTimer::timeout,this,&TelemetryMonitor::sessionRetrieveTimeoutCB);
+    connect(sessionInitialRetrieveTimeout,&QTimer::timeout,this,&TelemetryMonitor::sessionInitialRetrieveTimeoutCB);
+    connect(objectRetrieveTimeout,&QTimer::timeout,this,&TelemetryMonitor::objectRetrieveTimeoutCB);
     statsTimer->start(STATS_CONNECT_PERIOD_MS);
 
     Core::ConnectionManager *cm = Core::ICore::instance()->connectionManager();
-    connect(this,SIGNAL(connected()),cm,SLOT(telemetryConnected()));
-    connect(this,SIGNAL(disconnected()),cm,SLOT(telemetryDisconnected()));
-    connect(this,SIGNAL(telemetryUpdated(double,double)),cm,SLOT(telemetryUpdated(double,double)));
-    connect(sessionObj,SIGNAL(objectUnpacked(UAVObject*)),this,SLOT(sessionObjUnpackedCB(UAVObject*)));
-    connect(objMngr,SIGNAL(newInstance(UAVObject*)),this,SLOT(newInstanceSlot(UAVObject*)));
+    connect(this,&TelemetryMonitor::connected,cm,&Core::ConnectionManager::telemetryConnected);
+    connect(this,&TelemetryMonitor::disconnected,cm,&Core::ConnectionManager::telemetryDisconnected);
+    connect(this,&TelemetryMonitor::telemetryUpdated,cm,&Core::ConnectionManager::telemetryUpdated);
+    connect(sessionObj,&UAVObject::objectUnpacked,this,&TelemetryMonitor::sessionObjUnpackedCB);
+    connect(objMngr,&UAVObjectManager::newInstance,this,&TelemetryMonitor::newInstanceSlot);
 
     ExtensionSystem::PluginManager* pm = ExtensionSystem::PluginManager::instance();
     settings=pm->getObject<Core::Internal::GeneralSettings>();
@@ -263,7 +263,8 @@ void TelemetryMonitor::retrieveNextObject()
     UAVObject* obj = queue.dequeue();
     // Connect to object
     TELEMETRYMONITOR_QXTLOG_DEBUG(QString("%0 requestiong %1 from board INSTID:%2").arg(Q_FUNC_INFO).arg(obj->getName()).arg(obj->getInstID()));
-    connect(obj, SIGNAL(transactionCompleted(UAVObject*,bool)), this, SLOT(transactionCompleted(UAVObject*,bool)));
+    connect(obj, QOverload<UAVObject *, bool>::of(&UAVObject::transactionCompleted),
+            this, &TelemetryMonitor::transactionCompleted);
     // Request update
     obj->requestUpdateAllInstances();
 }
@@ -324,7 +325,8 @@ void TelemetryMonitor::checkSessionObjNacked(UAVObject *obj, bool success, bool 
 {
     Q_UNUSED(obj);
     Q_UNUSED(success);
-    disconnect(sessionObj,SIGNAL(transactionCompleted(UAVObject*,bool,bool)),this, SLOT(checkSessionObjNacked(UAVObject*, bool, bool)));
+    disconnect(sessionObj, QOverload<UAVObject *, bool, bool>::of(&UAVObject::transactionCompleted),
+               this, &TelemetryMonitor::checkSessionObjNacked);
     if(!nacked)
         return;
     if(connectionStatus == CON_INITIALIZING)
@@ -653,7 +655,9 @@ void TelemetryMonitor::processStatsUpdates()
         {
             connectionStatus = CON_INITIALIZING;
             sessionInitialRetrieveTimeout->start(SESSION_INITIAL_RETRIEVE_TIMEOUT);
-            connect(sessionObj,SIGNAL(transactionCompleted(UAVObject*,bool,bool)),this, SLOT(checkSessionObjNacked(UAVObject*, bool, bool)),Qt::UniqueConnection);
+            connect(sessionObj,
+                    QOverload<UAVObject *, bool, bool>::of(&UAVObject::transactionCompleted),
+                    this, &TelemetryMonitor::checkSessionObjNacked, Qt::UniqueConnection);
             sessionObj->requestUpdate();
             isManaged = true;
         }

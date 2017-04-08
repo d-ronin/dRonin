@@ -70,13 +70,13 @@ UploaderGadgetWidget::UploaderGadgetWidget(QWidget *parent):QWidget(parent),
 
     //Setup partition manager actions
     QAction *action = new QAction("Save to file",this);
-    connect(action, SIGNAL(triggered()), this, SLOT(onPartitionSave()));
+    connect(action, &QAction::triggered, this, &UploaderGadgetWidget::onPartitionSave);
     m_widget->partitionBrowserTW->addAction(action);
     action = new QAction("Flash from file",this);
-    connect(action, SIGNAL(triggered()), this, SLOT(onPartitionFlash()));
+    connect(action, &QAction::triggered, this, &UploaderGadgetWidget::onPartitionFlash);
     m_widget->partitionBrowserTW->addAction(action);
     action = new QAction("Erase",this);
-    connect(action, SIGNAL(triggered()), this, SLOT(onPartitionErase()));
+    connect(action, &QAction::triggered, this, &UploaderGadgetWidget::onPartitionErase);
     m_widget->partitionBrowserTW->addAction(action);
     m_widget->partitionBrowserTW->setContextMenuPolicy(Qt::ActionsContextMenu);
 
@@ -100,36 +100,36 @@ UploaderGadgetWidget::UploaderGadgetWidget(QWidget *parent):QWidget(parent),
      * that ultimately stop the telemetry manager, so we don't want to be
      * invoked from its components and return into it.
      */
-    connect(telMngr, SIGNAL(connected()), this, SLOT(onAutopilotConnect()), Qt::QueuedConnection);
-    connect(telMngr, SIGNAL(disconnected()), this, SLOT(onAutopilotDisconnect()), Qt::QueuedConnection);
+    connect(telMngr, &TelemetryManager::connected, this, &UploaderGadgetWidget::onAutopilotConnect, Qt::QueuedConnection);
+    connect(telMngr, &TelemetryManager::disconnected, this, &UploaderGadgetWidget::onAutopilotDisconnect, Qt::QueuedConnection);
     firmwareIap = FirmwareIAPObj::GetInstance(obm);
 
-    connect(firmwareIap, SIGNAL(objectUpdated(UAVObject*)), this, SLOT(onIAPUpdated()), Qt::QueuedConnection);
+    connect(firmwareIap, &UAVObject::objectUpdated, this, &UploaderGadgetWidget::onIAPUpdated, Qt::QueuedConnection);
 
     //Connect button signals to slots
-    connect(m_widget->openButton, SIGNAL(clicked()), this, SLOT(onLoadFirmwareButtonClick()));
-    connect(m_widget->rescueButton, SIGNAL(clicked()), this, SLOT(onRescueButtonClick()));
-    connect(m_widget->flashButton, SIGNAL(clicked()), this, SLOT(onFlashButtonClick()));
-    connect(m_widget->bootButton, SIGNAL(clicked()), this, SLOT(onBootButtonClick()));
-    connect(m_widget->safeBootButton, SIGNAL(clicked()), this, SLOT(onBootButtonClick()));
-    connect(m_widget->exportConfigButton, SIGNAL(clicked()), this, SLOT(onExportButtonClick()));
+    connect(m_widget->openButton, &QAbstractButton::clicked, this, &UploaderGadgetWidget::onLoadFirmwareButtonClick);
+    connect(m_widget->rescueButton, &QAbstractButton::clicked, this, &UploaderGadgetWidget::onRescueButtonClick);
+    connect(m_widget->flashButton, &QAbstractButton::clicked, this, &UploaderGadgetWidget::onFlashButtonClick);
+    connect(m_widget->bootButton, &QAbstractButton::clicked, this, &UploaderGadgetWidget::onBootButtonClick);
+    connect(m_widget->safeBootButton, &QAbstractButton::clicked, this, &UploaderGadgetWidget::onBootButtonClick);
+    connect(m_widget->exportConfigButton, &QAbstractButton::clicked, this, &UploaderGadgetWidget::onExportButtonClick);
 
-    connect(m_widget->pbHelp, SIGNAL(clicked()),this,SLOT(openHelp()));
+    connect(m_widget->pbHelp, &QAbstractButton::clicked,this,&UploaderGadgetWidget::openHelp);
     Core::BoardManager* brdMgr = Core::ICore::instance()->boardManager();
 
     //Setup usb discovery signals for boards in bl state
     usbFilterBL = new USBSignalFilter(brdMgr->getKnownVendorIDs(),-1,-1,USBMonitor::Bootloader);
     usbFilterUP = new USBSignalFilter(brdMgr->getKnownVendorIDs(),-1,-1,USBMonitor::Upgrader);
 
-    connect(usbFilterBL, SIGNAL(deviceRemoved()), this, SLOT(onBootloaderRemoved()), Qt::QueuedConnection);
+    connect(usbFilterBL, &USBSignalFilter::deviceRemoved, this, &UploaderGadgetWidget::onBootloaderRemoved, Qt::QueuedConnection);
 
-    connect(usbFilterBL, SIGNAL(deviceDiscovered()), this, SLOT(onBootloaderDetected()), Qt::QueuedConnection);
+    connect(usbFilterBL, &USBSignalFilter::deviceDiscovered, this, &UploaderGadgetWidget::onBootloaderDetected, Qt::QueuedConnection);
 
-    connect(usbFilterUP, SIGNAL(deviceRemoved()), this, SLOT(onBootloaderRemoved()), Qt::QueuedConnection);
+    connect(usbFilterUP, &USBSignalFilter::deviceRemoved, this, &UploaderGadgetWidget::onBootloaderRemoved, Qt::QueuedConnection);
 
-    connect(usbFilterUP, SIGNAL(deviceDiscovered()), this, SLOT(onBootloaderDetected()), Qt::QueuedConnection);
+    connect(usbFilterUP, &USBSignalFilter::deviceDiscovered, this, &UploaderGadgetWidget::onBootloaderDetected, Qt::QueuedConnection);
 
-    connect(&dfu, SIGNAL(operationProgress(QString,int)), this, SLOT(onStatusUpdate(QString, int)));
+    connect(&dfu, &tl_dfu::DFUObject::operationProgress, this, &UploaderGadgetWidget::onStatusUpdate);
 
     conMngr = Core::ICore::instance()->connectionManager();
 
@@ -429,7 +429,7 @@ bool UploaderGadgetWidget::flashFirmware(QByteArray &firmwareImage)
 
     QTimer timeout;
 
-    connect(&timeout, SIGNAL(timeout()), &loop, SLOT(quit()));
+    connect(&timeout, &QTimer::timeout, &loop, &QEventLoop::quit);
 
     timeout.setSingleShot(true);
     timeout.start(120000);      // Very long out of caution. Current Brain
@@ -533,8 +533,9 @@ void UploaderGadgetWidget::haltOrReset(bool halting)
     timeout.setSingleShot(true);
     firmwareIap->setBoardRevision(0);
     firmwareIap->setBoardType(0);
-    connect(&timeout, SIGNAL(timeout()), &loop, SLOT(quit()));
-    connect(firmwareIap,SIGNAL(transactionCompleted(UAVObject*,bool)), &loop, SLOT(quit()));
+    connect(&timeout, &QTimer::timeout, &loop, &QEventLoop::quit);
+    connect(firmwareIap, QOverload<UAVObject *, bool>::of(&FirmwareIAPObj::transactionCompleted),
+            &loop, &QEventLoop::quit);
     int magicValue = 1122;
     int magicStep = 1111;
     for(int i = 0; i < 3; ++i)
@@ -567,7 +568,7 @@ void UploaderGadgetWidget::haltOrReset(bool halting)
         loop.exec();
         timeout.stop();
         conMngr->suspendPolling();
-        onRescueTimer(true);
+        startRescue();
     } else {
         setUploaderStatus(uploader::DISCONNECTED);
         conMngr->disconnectDevice();
@@ -591,7 +592,7 @@ void UploaderGadgetWidget::onRescueButtonClick()
     conMngr->suspendPolling();
     setUploaderStatus(uploader::ENTERING_LOADER);
     setStatusInfo(tr("Please connect the board with USB with no external power applied"), uploader::STATUSICON_INFO);
-    onRescueTimer(true);
+    startRescue();
 }
 
 bool UploaderGadgetWidget::downloadSettings() {
@@ -602,7 +603,7 @@ bool UploaderGadgetWidget::downloadSettings() {
 
     bool operationSuccess = false;
 
-    connect(&timeout, SIGNAL(timeout()), &loop, SLOT(quit()));
+    connect(&timeout, &QTimer::timeout, &loop, &QEventLoop::quit);
 
     /* disconnects when loop comes out of scope */
     connect(&dfu, &DFUObject::downloadFinished, &loop, [&] (bool status) {
@@ -682,8 +683,8 @@ int UploaderGadgetWidget::isCloudReleaseAvailable(QString srcRelease) {
     QTimer timeout;
     timeout.setSingleShot(true);
 
-    connect(&timeout, SIGNAL(timeout()), &loop, SLOT(quit()));
-    connect(reply, SIGNAL(finished()), &loop, SLOT(quit()));
+    connect(&timeout, &QTimer::timeout, &loop, &QEventLoop::quit);
+    connect(reply, &QNetworkReply::finished, &loop, &QEventLoop::quit);
     timeout.start(20000);       /* 20 seconds */
     loop.exec();
 
@@ -752,8 +753,8 @@ bool UploaderGadgetWidget::tradeSettingsWithCloud(QString srcRelease,
     QTimer timeout;
     timeout.setSingleShot(true);
 
-    connect(&timeout, SIGNAL(timeout()), &loop, SLOT(quit()));
-    connect(reply, SIGNAL(finished()), &loop, SLOT(quit()));
+    connect(&timeout, &QTimer::timeout, &loop, &QEventLoop::quit);
+    connect(reply, &QNetworkReply::finished, &loop, &QEventLoop::quit);
     timeout.start(20000);       /* 20 seconds */
     loop.exec();
 
@@ -817,7 +818,7 @@ void UploaderGadgetWidget::stepChangeAndDelay(QEventLoop &loop, int delayMs,
     QTimer delay;
 
     delay.setSingleShot(true);
-    connect(&delay, SIGNAL(timeout()), &loop, SLOT(quit()));
+    connect(&delay, &QTimer::timeout, &loop, &QEventLoop::quit);
 
     delay.start(delayMs);
     loop.exec();
@@ -843,7 +844,7 @@ void UploaderGadgetWidget::doUpgradeOperation(bool blankFC, tl_dfu::device &dev)
 
     struct deviceInfo board = currentBoard;
 
-    connect(&timeout, SIGNAL(timeout()), &loop, SLOT(quit()));
+    connect(&timeout, &QTimer::timeout, &loop, &QEventLoop::quit);
     connect(&m_dialog, &UpgradeAssistantDialog::finished, &loop, [&] (int result) {
         (void) result;
         aborted = true;
@@ -1469,46 +1470,49 @@ void UploaderGadgetWidget::onBootloaderRemoved()
     }
 }
 
+void UploaderGadgetWidget::startRescue()
+{
+    setStatusInfo(tr("Trying to detect bootloader"), uploader::STATUSICON_INFO);
+    m_widget->progressBar->setValue(100);
+
+    connect(&rescueTimer, &QTimer::timeout, this,
+            &UploaderGadgetWidget::onRescueTimer, Qt::UniqueConnection);
+    rescueTimer.start(200);
+
+    connect(usbFilterBL, &USBSignalFilter::deviceDiscovered,
+            this, &UploaderGadgetWidget::onDeviceDiscovered, Qt::UniqueConnection);
+    connect(usbFilterUP, &USBSignalFilter::deviceDiscovered,
+            this, &UploaderGadgetWidget::onDeviceDiscovered, Qt::UniqueConnection);
+}
+
 /**
  * @brief slot called by a timer created by itself or by the onRescueButton
  * @param start true if the rescue timer is to be started
  */
-void UploaderGadgetWidget::onRescueTimer(bool start)
+void UploaderGadgetWidget::onRescueTimer()
 {
-    static int progress;
-    static QTimer timer;
+    m_widget->progressBar->setValue(m_widget->progressBar->value() - 1);
 
-    if((sender() == usbFilterBL) || (sender() == usbFilterUP))
-    {
-        timer.stop();
-        m_widget->progressBar->setValue(0);
-        disconnect(usbFilterBL, SIGNAL(deviceDiscovered()), this, SLOT(onRescueTimer()));
-        disconnect(usbFilterUP, SIGNAL(deviceDiscovered()), this, SLOT(onRescueTimer()));
-        return;
-    }
-    if(start)
-    {
-        setStatusInfo(tr("Trying to detect bootloader"), uploader::STATUSICON_INFO);
-        progress = 100;
-        connect(&timer, SIGNAL(timeout()), this, SLOT(onRescueTimer()),Qt::UniqueConnection);
-        timer.start(200);
-        connect(usbFilterBL, SIGNAL(deviceDiscovered()), this, SLOT(onRescueTimer()), Qt::UniqueConnection);
-        connect(usbFilterUP, SIGNAL(deviceDiscovered()), this, SLOT(onRescueTimer()), Qt::UniqueConnection);
-    }
-    else
-    {
-        progress -= 1;
-    }
-    m_widget->progressBar->setValue(progress);
-    if(progress == 0)
-    {
-        disconnect(usbFilterBL, SIGNAL(deviceDiscovered()), this, SLOT(onRescueTimer()));
-        disconnect(usbFilterUP, SIGNAL(deviceDiscovered()), this, SLOT(onRescueTimer()));
-        timer.disconnect();
+    if (m_widget->progressBar->value() <= 0) {
+        disconnect(usbFilterBL, &USBSignalFilter::deviceDiscovered,
+                   this, &UploaderGadgetWidget::onDeviceDiscovered);
+        disconnect(usbFilterUP, &USBSignalFilter::deviceDiscovered,
+                   this, &UploaderGadgetWidget::onDeviceDiscovered);
+        rescueTimer.disconnect();
         setStatusInfo(tr("Failed to detect bootloader"), uploader::STATUSICON_FAIL);
         setUploaderStatus(uploader::DISCONNECTED);
         conMngr->resumePolling();
     }
+}
+
+void UploaderGadgetWidget::onDeviceDiscovered()
+{
+    rescueTimer.stop();
+    m_widget->progressBar->setValue(0);
+    disconnect(usbFilterBL, &USBSignalFilter::deviceDiscovered,
+               this, &UploaderGadgetWidget::onDeviceDiscovered);
+    disconnect(usbFilterUP, &USBSignalFilter::deviceDiscovered,
+               this, &UploaderGadgetWidget::onDeviceDiscovered);
 }
 
 /**

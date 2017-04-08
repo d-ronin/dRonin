@@ -68,19 +68,27 @@ OutputChannelForm::OutputChannelForm(const int index, QWidget *parent, const boo
     ui.actuatorNumber->setText(QString("%1:").arg(m_index+1));
 
     // Register for ActuatorSettings changes:
-    connect(ui.actuatorMin, SIGNAL(editingFinished()), this, SLOT(setChannelRange()));
-    connect(ui.actuatorMax, SIGNAL(editingFinished()), this, SLOT(setChannelRange()));
-    connect(ui.pb_reverseActuator, SIGNAL(clicked()), this, SLOT(reverseChannel()));
+    connect(ui.actuatorMin, &QAbstractSpinBox::editingFinished,
+            this, &OutputChannelForm::setChannelRange);
+    connect(ui.actuatorMax, &QAbstractSpinBox::editingFinished,
+            this, &OutputChannelForm::setChannelRange);
+    connect(ui.pb_reverseActuator, &QAbstractButton::clicked,
+            this, &OutputChannelForm::reverseChannel);
 
     // Connect the channel out sliders to our signal in order to send updates in test mode
-    connect(ui.actuatorNeutral, SIGNAL(valueChanged(int)), this, SLOT(sendChannelTest(int)));
+    connect(ui.actuatorNeutral, &QAbstractSlider::valueChanged,
+            this, &OutputChannelForm::sendChannelTest);
 
     // Connect UI elements to dirty/clean (i.e. changed/unchanged) signal/slot
-    connect(ui.actuatorMin, SIGNAL(valueChanged(int)), this, SLOT(notifyFormChanged()));
-    connect(ui.actuatorMax, SIGNAL(valueChanged(int)), this, SLOT(notifyFormChanged()));
-    connect(ui.actuatorNeutral, SIGNAL(sliderReleased()), this, SLOT(notifyFormChanged()));
+    connect(ui.actuatorMin, QOverload<int>::of(&QSpinBox::valueChanged),
+            this, &OutputChannelForm::notifyFormChanged);
+    connect(ui.actuatorMax, QOverload<int>::of(&QSpinBox::valueChanged),
+            this, &OutputChannelForm::notifyFormChanged);
+    connect(ui.actuatorNeutral, &QAbstractSlider::sliderReleased,
+            this, &OutputChannelForm::notifyFormChanged);
     ui.actuatorLink->setChecked(false);
-    connect(ui.actuatorLink, SIGNAL(toggled(bool)), this, SLOT(linkToggled(bool)));
+    connect(ui.actuatorLink, &QAbstractButton::toggled,
+            this, &OutputChannelForm::linkToggled);
 
     disableMouseWheelEvents();
 }

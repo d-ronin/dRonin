@@ -73,13 +73,14 @@ private slots:
     void onExportButtonClick();
     void onBootloaderDetected();
     void onBootloaderRemoved();
-    void onRescueTimer(bool start = false);
+    void onRescueTimer();
     void onStatusUpdate(QString, int);
     void onPartitionSave();
     void onPartitionFlash();
     void onPartitionErase();
     void onBootButtonClick();
     void openHelp();
+    void onDeviceDiscovered();
 private:
     void FirmwareOnDeviceClear(bool clear);
     void FirmwareLoadedClear(bool clear);
@@ -100,6 +101,7 @@ private:
     bool FirmwareCheckForUpdate(deviceDescriptorStruct device);
     void triggerPartitionDownload(int index);
     void haltOrReset(bool halting);
+    void startRescue();
     bool tradeSettingsWithCloud(QString srcRelease, QString ancestor,
             bool upgrading = false, QByteArray *settingsOut = NULL);
     int isCloudReleaseAvailable(QString srcRelease);
@@ -141,6 +143,7 @@ private:
 
     uploader::UploaderStatus uploaderStatus;
     QByteArray tempArray;
+    QTimer rescueTimer;
 
     const QString exportUrl = QString("http://dronin-autotown.appspot.com/convert");
     const QString hasRevUrl = QString("http://dronin-autotown.appspot.com/uavos/%1");

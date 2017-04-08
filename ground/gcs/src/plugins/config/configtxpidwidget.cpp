@@ -45,9 +45,10 @@ ConfigTxPIDWidget::ConfigTxPIDWidget(QWidget *parent) : ConfigTaskWidget(parent)
     // Cannot use addUAVObjectToWidgetRelation() for OptionaModules enum because
     // QCheckBox returns bool (0 or -1) and this value is then set to enum instead
     // or enum options
-    connect(ModuleSettings::GetInstance(getObjectManager()), SIGNAL(objectUpdated(UAVObject *)), this, SLOT(refreshValues()));
-    connect(m_txpid->Apply, SIGNAL(clicked()), this, SLOT(applySettings()));
-    connect(m_txpid->Save, SIGNAL(clicked()), this, SLOT(saveSettings()));
+    connect(ModuleSettings::GetInstance(getObjectManager()), &UAVObject::objectUpdated,
+            this, &ConfigTxPIDWidget::refreshValues);
+    connect(m_txpid->Apply, &QAbstractButton::clicked, this, &ConfigTxPIDWidget::applySettings);
+    connect(m_txpid->Save, &QAbstractButton::clicked, this, &ConfigTxPIDWidget::saveSettings);
 
     addUAVObjectToWidgetRelation("TxPIDSettings", "PIDs", m_txpid->PID1, TxPIDSettings::PIDS_INSTANCE1);
     addUAVObjectToWidgetRelation("TxPIDSettings", "PIDs", m_txpid->PID2, TxPIDSettings::PIDS_INSTANCE2);

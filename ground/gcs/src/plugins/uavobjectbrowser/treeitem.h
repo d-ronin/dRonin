@@ -294,7 +294,8 @@ public:
         if(dobj)
         {
             ObjectTreeItem::setObject(obj);
-            connect(dobj, SIGNAL(presentOnHardwareChanged(UAVDataObject*)), this, SLOT(doRefreshHiddenObjects(UAVDataObject*)));
+            connect(dobj, QOverload<UAVDataObject *>::of(&UAVDataObject::presentOnHardwareChanged),
+                    this, &DataObjectTreeItem::doRefreshHiddenObjects);
             doRefreshHiddenObjects(dobj);
         }
         else
