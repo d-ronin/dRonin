@@ -2,7 +2,7 @@
  ******************************************************************************
  * @addtogroup Bootloader Bootloaders
  * @{
- * @addtogroup spf3e SP Racing F3E support files
+ * @addtogroup SPRF3E SP Racing F3 Evo
  * @{
  *
  * @file       sprf3e/bl/pios_config.h

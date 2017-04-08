@@ -2,7 +2,7 @@
  ******************************************************************************
  * @addtogroup Targets Target Boards
  * @{
- * @addtogroup sprf3e SP Racing F3E support files
+ * @addtogroup SPRF3E SP Racing F3 Evo
  * @{
  *
  * @file       sprf3e/board-info/pios_board.c
@@ -54,10 +54,8 @@ uintptr_t pios_com_debug_id;
 
 uintptr_t pios_com_aux_id;
 uintptr_t pios_com_telem_rf_id;
-uintptr_t pios_com_can_id;
 uintptr_t pios_uavo_settings_fs_id;
 uintptr_t pios_internal_adc_id;
-uintptr_t pios_can_id;
 uintptr_t pios_com_openlog_logging_id;
 
 /**
@@ -227,45 +225,45 @@ void PIOS_Board_Init(void)
 
 	uint8_t hw_uart3;
 	HwSprf3eUart3Get(&hw_uart3);
-	PIOS_HAL_ConfigurePort(hw_uart3,              // port_type
-                         &pios_uart3_cfg,         // usart_port_cfg
-                         &pios_usart_com_driver,  // com_driver
-                         NULL,                    // i2c_id
-                         NULL,                    // i2c_cfg
-                         NULL,                    // ppm_cfg
-                         NULL,                    // pwm_cfg
-                         PIOS_LED_ALARM,          // led_id
-                         &pios_uart3_dsm_aux_cfg, // dsm_cfg
-                         hw_DSMxMode,             // dsm_mode
-                         NULL);                   // sbus_cfg
+	PIOS_HAL_ConfigurePort(hw_uart3,		// port_type
+			&pios_uart3_cfg,		// usart_port_cfg
+			&pios_usart_com_driver,		// com_driver
+			NULL,				// i2c_id
+			NULL,				// i2c_cfg
+			NULL,				// ppm_cfg
+			NULL,				// pwm_cfg
+			PIOS_LED_ALARM,			// led_id
+			&pios_uart3_dsm_aux_cfg,	// dsm_cfg
+			hw_DSMxMode,			// dsm_mode
+			NULL);				// sbus_cfg
 
 	uint8_t hw_uart2;
 	HwSprf3eUart2Get(&hw_uart2);
-	PIOS_HAL_ConfigurePort(hw_uart2,              // port_type
-                         &pios_uart2_cfg,         // usart_port_cfg
-                         &pios_usart_com_driver,  // com_driver
-                         NULL,                    // i2c_id
-                         NULL,                    // i2c_cfg
-                         &pios_ppm_cfg,           // ppm_cfg
-                         NULL,                    // pwm_cfg
-                         PIOS_LED_ALARM,          // led_id
-                         &pios_uart2_dsm_aux_cfg, // dsm_cfg
-                         hw_DSMxMode,             // dsm_mode
-                         NULL);                   // sbus_cfg
+	PIOS_HAL_ConfigurePort(hw_uart2,		// port_type
+			&pios_uart2_cfg,		// usart_port_cfg
+			&pios_usart_com_driver,		// com_driver
+			NULL,				// i2c_id
+			NULL,				// i2c_cfg
+			&pios_ppm_cfg,			// ppm_cfg
+			NULL,				// pwm_cfg
+			PIOS_LED_ALARM,			// led_id
+			&pios_uart2_dsm_aux_cfg,	// dsm_cfg
+			hw_DSMxMode,			// dsm_mode
+			NULL);				// sbus_cfg
 
 	uint8_t hw_uart1;
 	HwSprf3eUart1Get(&hw_uart1);
-	PIOS_HAL_ConfigurePort(hw_uart1,             // port_type
-                         &pios_uart1_cfg,  // usart_port_cfg
-                         &pios_usart_com_driver,  // com_driver
-                         NULL,                    // i2c_id
-                         NULL,                    // i2c_cfg
-                         NULL,                    // ppm_cfg
-                         NULL,                    // pwm_cfg
-                         PIOS_LED_ALARM,          // led_id
-                         &pios_uart1_dsm_aux_cfg, // dsm_cfg
-                         hw_DSMxMode,             // dsm_mode
-                         NULL);                   // sbus_cfg
+	PIOS_HAL_ConfigurePort(hw_uart1,		// port_type
+			&pios_uart1_cfg,		// usart_port_cfg
+			&pios_usart_com_driver,		// com_driver
+			NULL,				// i2c_id
+			NULL,				// i2c_cfg
+			NULL,				// ppm_cfg
+			NULL,				// pwm_cfg
+			PIOS_LED_ALARM,			// led_id
+			&pios_uart1_dsm_aux_cfg,	// dsm_cfg
+			hw_DSMxMode,			// dsm_mode
+			NULL);				// sbus_cfg
 
 #if defined(PIOS_INCLUDE_GCSRCVR)
 	GCSReceiverInitialize();
@@ -299,164 +297,122 @@ void PIOS_Board_Init(void)
 #if defined(PIOS_INCLUDE_BMP280)
 #include "pios_bmp280.h"
 #include "pios_bmp280_priv.h"
-  uint8_t hw_baro;
-  HwSprf3eBarometerGet(&hw_baro);
-    switch(hw_baro) {
-        case HWSPRF3E_BAROMETER_BMP280:
-        	if (PIOS_HAL_ConfigureExternalBaro(hw_baro,
-			       &pios_i2c_internal_id, &pios_i2c_internal_cfg))
-      			PIOS_SENSORS_SetMissing(PIOS_SENSOR_BARO);
-
-/*        	if ((PIOS_BMP280_Init(&pios_bmp280_cfg, pios_i2c_internal_id) != 0)
-			       || (PIOS_BMP280_Test() != 0))
-		           PIOS_HAL_CriticalError(PIOS_LED_ALARM, PIOS_HAL_PANIC_BARO);
-    			PIOS_SENSORS_SetMissing(PIOS_SENSOR_BARO);*/
-          break;
-    }
+	uint8_t hw_baro;
+	HwSprf3eBarometerGet(&hw_baro);
+	switch(hw_baro) {
+		case HWSPRF3E_BAROMETER_BMP280:
+		if (PIOS_HAL_ConfigureExternalBaro(hw_baro,
+			&pios_i2c_internal_id, &pios_i2c_internal_cfg))
+			PIOS_SENSORS_SetMissing(PIOS_SENSOR_BARO);
+		break;
+	}
 	PIOS_WDG_Clear();
 #endif
 
 #if defined(PIOS_INCLUDE_MPU9250_SPI)
 #if !defined(PIOS_INCLUDE_SPI)
-    #error MPU9250_SPI requires SPI
+	#error MPU9250_SPI requires SPI
 #endif
-  uint8_t hw_mag;
+	uint8_t hw_mag;
 	uint8_t hw_orientation;
-  HwSprf3eMagnetometerGet(&hw_mag);
+	HwSprf3eMagnetometerGet(&hw_mag);
 	HwSprf3eExtMagOrientationGet(&hw_orientation);
 
-    switch(hw_mag) {
-    		case HWSPRF3E_MAGNETOMETER_INTERNAL:
-          pios_mpu9250_cfg.use_magnetometer=true;
-          break;
-        case HWSPRF3E_MAGNETOMETER_NONE:
-          pios_mpu9250_cfg.use_magnetometer=false;
-          break;
-        case HWSHARED_MAG_EXTERNALHMC5883:
-          pios_mpu9250_cfg.use_magnetometer=false;
+	switch(hw_mag) {
+		case HWSPRF3E_MAGNETOMETER_INTERNAL:
+			pios_mpu9250_cfg.use_magnetometer=true;
+			break;
+		case HWSPRF3E_MAGNETOMETER_NONE:
+			pios_mpu9250_cfg.use_magnetometer=false;
+			break;
+		case HWSHARED_MAG_EXTERNALHMC5883:
+			pios_mpu9250_cfg.use_magnetometer=false;
 #if defined(PIOS_INCLUDE_I2C)
-          PIOS_WDG_Clear();
-          if (PIOS_HAL_ConfigureExternalMag(hw_mag, hw_orientation,
-			       &pios_i2c_internal_id, &pios_i2c_internal_cfg))
-//             		      if (PIOS_HMC5883_Init(pios_i2c_internal_id, &pios_hmc5883_external_cfg))
-            PIOS_SENSORS_SetMissing(PIOS_SENSOR_MAG);
-/*		      if (PIOS_HMC5883_Test())
-            PIOS_SENSORS_SetMissing(PIOS_SENSOR_MAG);
-
-		      enum pios_hmc5883_orientation hmc5883_orientation = 
-			      (hw_orientation == HWSHARED_MAGORIENTATION_TOP0DEGCW)      ? PIOS_HMC5883_TOP_0DEG      : 
-			      (hw_orientation == HWSHARED_MAGORIENTATION_TOP90DEGCW)     ? PIOS_HMC5883_TOP_90DEG     : 
-			      (hw_orientation == HWSHARED_MAGORIENTATION_TOP180DEGCW)    ? PIOS_HMC5883_TOP_180DEG    : 
-			      (hw_orientation == HWSHARED_MAGORIENTATION_TOP270DEGCW)    ? PIOS_HMC5883_TOP_270DEG    : 
-			      (hw_orientation == HWSHARED_MAGORIENTATION_BOTTOM0DEGCW)   ? PIOS_HMC5883_BOTTOM_0DEG   : 
-			      (hw_orientation == HWSHARED_MAGORIENTATION_BOTTOM90DEGCW)  ? PIOS_HMC5883_BOTTOM_90DEG  : 
-			      (hw_orientation == HWSHARED_MAGORIENTATION_BOTTOM180DEGCW) ? PIOS_HMC5883_BOTTOM_180DEG : 
-			      (hw_orientation == HWSHARED_MAGORIENTATION_BOTTOM270DEGCW) ? PIOS_HMC5883_BOTTOM_270DEG : 
-			      pios_hmc5883_external_cfg.Default_Orientation;
-
-		        PIOS_HMC5883_SetOrientation(hmc5883_orientation);*/
-            PIOS_WDG_Clear();
-  	        break;
+			PIOS_WDG_Clear();
+			if (PIOS_HAL_ConfigureExternalMag(hw_mag, hw_orientation,
+				&pios_i2c_internal_id, &pios_i2c_internal_cfg))
+				PIOS_SENSORS_SetMissing(PIOS_SENSOR_MAG);
+			PIOS_WDG_Clear();
 #else
-    			PIOS_SENSORS_SetMissing(PIOS_SENSOR_MAG);
+			PIOS_SENSORS_SetMissing(PIOS_SENSOR_MAG);
 #endif // PIOS_INCLUDE_I2C
-          break;
-      	case HWSHARED_MAG_EXTERNALHMC5983:
-          pios_mpu9250_cfg.use_magnetometer=false;
+			break;
+		case HWSHARED_MAG_EXTERNALHMC5983:
+			pios_mpu9250_cfg.use_magnetometer=false;
 #ifdef PIOS_INCLUDE_HMC5983_I2C
-          PIOS_WDG_Clear();
-          if (PIOS_HAL_ConfigureExternalMag(hw_mag, hw_orientation,
-			       &pios_i2c_internal_id, &pios_i2c_internal_cfg))
-//             		      if (PIOS_HMC5883_Init(pios_i2c_internal_id, &pios_hmc5883_external_cfg))
-            PIOS_SENSORS_SetMissing(PIOS_SENSOR_MAG);
-/*		      if (PIOS_HMC5983_Init(pios_i2c_internal_id, 0, &pios_hmc5983_external_cfg))
-      			PIOS_SENSORS_SetMissing(PIOS_SENSOR_MAG);
-
-		      if (PIOS_HMC5983_Test())
-      			PIOS_SENSORS_SetMissing(PIOS_SENSOR_MAG);
-
-		      enum pios_hmc5983_orientation hmc5983_orientation = 
-			      (hw_orientation == HWSHARED_MAGORIENTATION_TOP0DEGCW)      ? PIOS_HMC5983_TOP_0DEG      : 
-      			(hw_orientation == HWSHARED_MAGORIENTATION_TOP90DEGCW)     ? PIOS_HMC5983_TOP_90DEG     : 
-      			(hw_orientation == HWSHARED_MAGORIENTATION_TOP180DEGCW)    ? PIOS_HMC5983_TOP_180DEG    : 
-      			(hw_orientation == HWSHARED_MAGORIENTATION_TOP270DEGCW)    ? PIOS_HMC5983_TOP_270DEG    : 
-      			(hw_orientation == HWSHARED_MAGORIENTATION_BOTTOM0DEGCW)   ? PIOS_HMC5983_BOTTOM_0DEG   : 
-      			(hw_orientation == HWSHARED_MAGORIENTATION_BOTTOM90DEGCW)  ? PIOS_HMC5983_BOTTOM_90DEG  : 
-      			(hw_orientation == HWSHARED_MAGORIENTATION_BOTTOM180DEGCW) ? PIOS_HMC5983_BOTTOM_180DEG : 
-      			(hw_orientation == HWSHARED_MAGORIENTATION_BOTTOM270DEGCW) ? PIOS_HMC5983_BOTTOM_270DEG : 
-      			pios_hmc5983_external_cfg.Orientation;
-
-        		PIOS_HMC5983_SetOrientation(hmc5983_orientation);*/
-            PIOS_WDG_Clear();
-        		break;
+			PIOS_WDG_Clear();
+			if (PIOS_HAL_ConfigureExternalMag(hw_mag, hw_orientation,
+				&pios_i2c_internal_id, &pios_i2c_internal_cfg))
+				PIOS_SENSORS_SetMissing(PIOS_SENSOR_MAG);
+			PIOS_WDG_Clear();
 #else
-    			PIOS_SENSORS_SetMissing(PIOS_SENSOR_MAG);
+			PIOS_SENSORS_SetMissing(PIOS_SENSOR_MAG);
 #endif /* PIOS_INCLUDE_HMC5983_I2C */
-          break;
-    }    
+			break;
+	}
 
-    if (PIOS_MPU9250_SPI_Init(pios_spi_gyro_id, 0, &pios_mpu9250_cfg) != 0)
-        PIOS_HAL_CriticalError(PIOS_LED_ALARM, PIOS_HAL_PANIC_IMU);
+	if (PIOS_MPU9250_SPI_Init(pios_spi_gyro_id, 0, &pios_mpu9250_cfg) != 0)
+		PIOS_HAL_CriticalError(PIOS_LED_ALARM, PIOS_HAL_PANIC_IMU);
 
-    // To be safe map from UAVO enum to driver enum
-    uint8_t hw_gyro_range;
-    HwSprf3eGyroRangeGet(&hw_gyro_range);
-    switch(hw_gyro_range) {
-        case HWSPRF3E_GYRORANGE_250:
-            PIOS_MPU9250_SetGyroRange(PIOS_MPU60X0_SCALE_250_DEG);
-            break;
-        case HWSPRF3E_GYRORANGE_500:
-            PIOS_MPU9250_SetGyroRange(PIOS_MPU60X0_SCALE_500_DEG);
-            break;
-        case HWSPRF3E_GYRORANGE_1000:
-            PIOS_MPU9250_SetGyroRange(PIOS_MPU60X0_SCALE_1000_DEG);
-            break;
-        case HWSPRF3E_GYRORANGE_2000:
-            PIOS_MPU9250_SetGyroRange(PIOS_MPU60X0_SCALE_2000_DEG);
-            break;
-    }
+	// To be safe map from UAVO enum to driver enum
+	uint8_t hw_gyro_range;
+	HwSprf3eGyroRangeGet(&hw_gyro_range);
+	switch(hw_gyro_range) {
+		case HWSPRF3E_GYRORANGE_250:
+			PIOS_MPU9250_SetGyroRange(PIOS_MPU60X0_SCALE_250_DEG);
+			break;
+		case HWSPRF3E_GYRORANGE_500:
+			PIOS_MPU9250_SetGyroRange(PIOS_MPU60X0_SCALE_500_DEG);
+			break;
+		case HWSPRF3E_GYRORANGE_1000:
+			PIOS_MPU9250_SetGyroRange(PIOS_MPU60X0_SCALE_1000_DEG);
+			break;
+		case HWSPRF3E_GYRORANGE_2000:
+			PIOS_MPU9250_SetGyroRange(PIOS_MPU60X0_SCALE_2000_DEG);
+			break;
+	}
 
-    uint8_t hw_accel_range;
-    HwSprf3eAccelRangeGet(&hw_accel_range);
-    switch(hw_accel_range) {
-        case HWSPRF3E_ACCELRANGE_2G:
-            PIOS_MPU9250_SetAccelRange(PIOS_MPU60X0_ACCEL_2G);
-            break;
-        case HWSPRF3E_ACCELRANGE_4G:
-            PIOS_MPU9250_SetAccelRange(PIOS_MPU60X0_ACCEL_4G);
-            break;
-        case HWSPRF3E_ACCELRANGE_8G:
-            PIOS_MPU9250_SetAccelRange(PIOS_MPU60X0_ACCEL_8G);
-            break;
-        case HWSPRF3E_ACCELRANGE_16G:
-            PIOS_MPU9250_SetAccelRange(PIOS_MPU60X0_ACCEL_16G);
-            break;
-    }
+	uint8_t hw_accel_range;
+	HwSprf3eAccelRangeGet(&hw_accel_range);
+	switch(hw_accel_range) {
+		case HWSPRF3E_ACCELRANGE_2G:
+			PIOS_MPU9250_SetAccelRange(PIOS_MPU60X0_ACCEL_2G);
+			break;
+		case HWSPRF3E_ACCELRANGE_4G:
+			PIOS_MPU9250_SetAccelRange(PIOS_MPU60X0_ACCEL_4G);
+			break;
+		case HWSPRF3E_ACCELRANGE_8G:
+			PIOS_MPU9250_SetAccelRange(PIOS_MPU60X0_ACCEL_8G);
+			break;
+		case HWSPRF3E_ACCELRANGE_16G:
+			PIOS_MPU9250_SetAccelRange(PIOS_MPU60X0_ACCEL_16G);
+			break;
+	}
 
-    // the filter has to be set before rate else divisor calculation will fail
-    uint8_t hw_mpu9250_dlpf;
-    HwSprf3eMPU9250GyroLPFGet(&hw_mpu9250_dlpf);
-    enum pios_mpu9250_gyro_filter mpu9250_gyro_lpf = \
-        (hw_mpu9250_dlpf == HWSPRF3E_MPU9250GYROLPF_184) ? PIOS_MPU9250_GYRO_LOWPASS_184_HZ : \
-        (hw_mpu9250_dlpf == HWSPRF3E_MPU9250GYROLPF_92) ? PIOS_MPU9250_GYRO_LOWPASS_92_HZ : \
-        (hw_mpu9250_dlpf == HWSPRF3E_MPU9250GYROLPF_41) ? PIOS_MPU9250_GYRO_LOWPASS_41_HZ : \
-        (hw_mpu9250_dlpf == HWSPRF3E_MPU9250GYROLPF_20) ? PIOS_MPU9250_GYRO_LOWPASS_20_HZ : \
-        (hw_mpu9250_dlpf == HWSPRF3E_MPU9250GYROLPF_10) ? PIOS_MPU9250_GYRO_LOWPASS_10_HZ : \
-        (hw_mpu9250_dlpf == HWSPRF3E_MPU9250GYROLPF_5) ? PIOS_MPU9250_GYRO_LOWPASS_5_HZ : \
-        pios_mpu9250_cfg.default_gyro_filter;
-    PIOS_MPU9250_SetGyroLPF(mpu9250_gyro_lpf);
+	// the filter has to be set before rate else divisor calculation will fail
+	uint8_t hw_mpu9250_dlpf;
+	HwSprf3eMPU9250GyroLPFGet(&hw_mpu9250_dlpf);
+	enum pios_mpu9250_gyro_filter mpu9250_gyro_lpf = \
+		(hw_mpu9250_dlpf == HWSPRF3E_MPU9250GYROLPF_184) ? PIOS_MPU9250_GYRO_LOWPASS_184_HZ : \
+		(hw_mpu9250_dlpf == HWSPRF3E_MPU9250GYROLPF_92) ? PIOS_MPU9250_GYRO_LOWPASS_92_HZ : \
+		(hw_mpu9250_dlpf == HWSPRF3E_MPU9250GYROLPF_41) ? PIOS_MPU9250_GYRO_LOWPASS_41_HZ : \
+		(hw_mpu9250_dlpf == HWSPRF3E_MPU9250GYROLPF_20) ? PIOS_MPU9250_GYRO_LOWPASS_20_HZ : \
+		(hw_mpu9250_dlpf == HWSPRF3E_MPU9250GYROLPF_10) ? PIOS_MPU9250_GYRO_LOWPASS_10_HZ : \
+		(hw_mpu9250_dlpf == HWSPRF3E_MPU9250GYROLPF_5) ? PIOS_MPU9250_GYRO_LOWPASS_5_HZ : \
+		pios_mpu9250_cfg.default_gyro_filter;
+	PIOS_MPU9250_SetGyroLPF(mpu9250_gyro_lpf);
 
-    HwSprf3eMPU9250AccelLPFGet(&hw_mpu9250_dlpf);
-    enum pios_mpu9250_accel_filter mpu9250_accel_lpf = \
-        (hw_mpu9250_dlpf == HWSPRF3E_MPU9250ACCELLPF_460) ? PIOS_MPU9250_ACCEL_LOWPASS_460_HZ : \
-        (hw_mpu9250_dlpf == HWSPRF3E_MPU9250ACCELLPF_184) ? PIOS_MPU9250_ACCEL_LOWPASS_184_HZ : \
-        (hw_mpu9250_dlpf == HWSPRF3E_MPU9250ACCELLPF_92) ? PIOS_MPU9250_ACCEL_LOWPASS_92_HZ : \
-        (hw_mpu9250_dlpf == HWSPRF3E_MPU9250ACCELLPF_41) ? PIOS_MPU9250_ACCEL_LOWPASS_41_HZ : \
-        (hw_mpu9250_dlpf == HWSPRF3E_MPU9250ACCELLPF_20) ? PIOS_MPU9250_ACCEL_LOWPASS_20_HZ : \
-        (hw_mpu9250_dlpf == HWSPRF3E_MPU9250ACCELLPF_10) ? PIOS_MPU9250_ACCEL_LOWPASS_10_HZ : \
-        (hw_mpu9250_dlpf == HWSPRF3E_MPU9250ACCELLPF_5) ? PIOS_MPU9250_ACCEL_LOWPASS_5_HZ : \
-        pios_mpu9250_cfg.default_accel_filter;
-    PIOS_MPU9250_SetAccelLPF(mpu9250_accel_lpf);
+	HwSprf3eMPU9250AccelLPFGet(&hw_mpu9250_dlpf);
+	enum pios_mpu9250_accel_filter mpu9250_accel_lpf = \
+		(hw_mpu9250_dlpf == HWSPRF3E_MPU9250ACCELLPF_460) ? PIOS_MPU9250_ACCEL_LOWPASS_460_HZ : \
+		(hw_mpu9250_dlpf == HWSPRF3E_MPU9250ACCELLPF_184) ? PIOS_MPU9250_ACCEL_LOWPASS_184_HZ : \
+		(hw_mpu9250_dlpf == HWSPRF3E_MPU9250ACCELLPF_92) ? PIOS_MPU9250_ACCEL_LOWPASS_92_HZ : \
+		(hw_mpu9250_dlpf == HWSPRF3E_MPU9250ACCELLPF_41) ? PIOS_MPU9250_ACCEL_LOWPASS_41_HZ : \
+		(hw_mpu9250_dlpf == HWSPRF3E_MPU9250ACCELLPF_20) ? PIOS_MPU9250_ACCEL_LOWPASS_20_HZ : \
+		(hw_mpu9250_dlpf == HWSPRF3E_MPU9250ACCELLPF_10) ? PIOS_MPU9250_ACCEL_LOWPASS_10_HZ : \
+		(hw_mpu9250_dlpf == HWSPRF3E_MPU9250ACCELLPF_5) ? PIOS_MPU9250_ACCEL_LOWPASS_5_HZ : \
+		pios_mpu9250_cfg.default_accel_filter;
+	PIOS_MPU9250_SetAccelLPF(mpu9250_accel_lpf);
 #endif /* PIOS_INCLUDE_MPU9250_SPI */
 
 	//I2C is slow, sensor init as well, reset watchdog to prevent reset here

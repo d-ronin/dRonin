@@ -2,7 +2,7 @@
  ******************************************************************************
  * @addtogroup Targets Target Boards
  * @{
- * @addtogroup spf3e SP Racing F3E support files
+ * @addtogroup SPRF3E SP Racing F3 Evo
  * @{
  *
  * @file       sprf3e/board-info/pios_config.h
@@ -63,7 +63,6 @@
 
 
 /* Flags that alter behaviors - mostly to lower resources for CC */
-//??#define PIOS_INCLUDE_INITCALL           /* Include init call structures */
 #define AUTOTUNE_AVERAGING_MODE
 
 /* Alarm Thresholds */

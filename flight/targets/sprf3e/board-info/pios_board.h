@@ -2,7 +2,7 @@
  ******************************************************************************
  * @addtogroup Targets Target Boards
  * @{
- * @addtogroup spf3e SP Racing F3E support files
+ * @addtogroup SPRF3E SP Racing F3 Evo
  * @{
  *
  * @file       sprf3e/board-info/pios_board.h
