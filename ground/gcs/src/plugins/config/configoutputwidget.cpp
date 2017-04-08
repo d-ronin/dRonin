@@ -535,6 +535,7 @@ void ConfigOutputWidget::refreshWidgetRanges()
                     break;
                 case RATE_DSHOT300:
                 case RATE_DSHOT600:
+                case RATE_DSHOT900:
                 case RATE_DSHOT1200:
                     // 1-47 reserved for commands
                     minPulseWidth = 48;
@@ -615,6 +616,7 @@ QString ConfigOutputWidget::timerFreqToString(quint32 freq) const {
         {RATE_SYNCPWM, tr("SyncPWM")},
         {RATE_DSHOT300, tr("Dshot300")},
         {RATE_DSHOT600, tr("Dshot600")},
+        {RATE_DSHOT900, tr("Dshot900")},
         {RATE_DSHOT1200, tr("Dshot1200")},
     };
     return mapping.value(freq, QString::number(freq));
@@ -625,6 +627,7 @@ quint32 ConfigOutputWidget::timerStringToFreq(QString str) const {
         {tr("SyncPWM"), RATE_SYNCPWM},
         {tr("Dshot300"), RATE_DSHOT300},
         {tr("Dshot600"), RATE_DSHOT600},
+        {tr("Dshot900"), RATE_DSHOT900},
         {tr("Dshot1200"), RATE_DSHOT1200},
     };
     return mapping.value(str, str.toUInt());

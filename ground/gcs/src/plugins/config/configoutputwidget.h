@@ -52,6 +52,7 @@ private:
         RATE_SYNCPWM = 0,
         RATE_DSHOT300 = 65532,
         RATE_DSHOT600 = 65533,
+        RATE_DSHOT900 = 65531,
         RATE_DSHOT1200 = 65534,
     };
 

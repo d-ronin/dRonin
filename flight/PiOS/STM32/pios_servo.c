@@ -64,6 +64,7 @@ enum channel_mode {
 	SYNC_PWM,
 	SYNC_DSHOT_300,
 	SYNC_DSHOT_600,
+	SYNC_DSHOT_900,
 	SYNC_DSHOT_1200
 } __attribute__((packed));
 
@@ -162,6 +163,9 @@ static void ChannelSetup_DShot(int j, uint16_t rate)
 			break;
 		case SHOT_DSHOT600:
 			output_channels[j].mode = SYNC_DSHOT_600;
+			break;
+		case SHOT_DSHOT900:
+			output_channels[j].mode = SYNC_DSHOT_900;
 			break;
 		case SHOT_DSHOT1200:
 			output_channels[j].mode = SYNC_DSHOT_1200;
@@ -374,6 +378,7 @@ int PIOS_Servo_SetMode(const uint16_t *out_rate, const int banks, const uint16_t
 
 		case SHOT_DSHOT300:
 		case SHOT_DSHOT600:
+		case SHOT_DSHOT900:
 		case SHOT_DSHOT1200:
 			dshot_in_use = true;
 
@@ -390,6 +395,7 @@ int PIOS_Servo_SetMode(const uint16_t *out_rate, const int banks, const uint16_t
 				switch (rate) {
 				case SHOT_DSHOT300:
 				case SHOT_DSHOT600:
+				case SHOT_DSHOT900:
 				case SHOT_DSHOT1200:
 					ChannelSetup_DShot(j, rate);
 					break;
@@ -454,6 +460,7 @@ void PIOS_Servo_SetFraction(uint8_t servo, uint16_t fraction,
 	switch (output_channels[servo].mode) {
 		case SYNC_DSHOT_300:
 		case SYNC_DSHOT_600:
+		case SYNC_DSHOT_900:
 		case SYNC_DSHOT_1200:
 			/* Expect a 0 to 2047 range!
 			 * Don't bother with min/max tomfoolery here.
@@ -510,6 +517,7 @@ void PIOS_Servo_Set(uint8_t servo, float position)
 	switch (output_channels[servo].mode) {
 		case SYNC_DSHOT_300:
 		case SYNC_DSHOT_600:
+		case SYNC_DSHOT_900:
 		case SYNC_DSHOT_1200:
 			/* Expect a 0 to 2047 range! */
 			if (position > 2047) {
@@ -560,6 +568,7 @@ static int DSHOT_Update()
 		switch (chan->mode) {
 			case SYNC_DSHOT_300:
 			case SYNC_DSHOT_600:
+			case SYNC_DSHOT_900:
 			case SYNC_DSHOT_1200:
 				break;
 			default:
@@ -627,6 +636,11 @@ static int DSHOT_Update()
 			time_0   = PIOS_INLINEDELAY_NsToCycles(500);
 			time_1   = PIOS_INLINEDELAY_NsToCycles(1083);
 			time_tot = PIOS_INLINEDELAY_NsToCycles(1667);
+			break;
+		case SYNC_DSHOT_900:
+			time_0   = PIOS_INLINEDELAY_NsToCycles(333);
+			time_1   = PIOS_INLINEDELAY_NsToCycles(722);
+			time_tot = PIOS_INLINEDELAY_NsToCycles(1111);
 			break;
 		case SYNC_DSHOT_1200:
 			time_0   = PIOS_INLINEDELAY_NsToCycles(250);
