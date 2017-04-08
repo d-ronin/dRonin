@@ -19,6 +19,10 @@ MyTabWidget::pane {
 	border: 0px;
 }
 
+MyTabWidget::pane QTabWidget > QWidget {
+	background: palette(Window);
+}
+
 /* Main tabbed content pane's tab bar */
 MyTabWidget::tab-bar {
 	left: 9px;
@@ -108,4 +112,19 @@ Utils--StyledBar QComboBox::down-arrow:disabled {
 	image: url(:/core/images/dropdown_button_dis.png);
 	width: 7px;
 	height: 7px;
+}
+
+/* Close button for Edit gadgets */
+Utils--StyledBar > QToolButton {
+	background: #505050;
+}
+
+Utils--StyledBar > QToolButton:hover {
+	background: #707070;
+	border: 0px;
+}
+
+Utils--StyledBar > QToolButton:pressed {
+	background: #606060;
+	border: 0px;
 }
