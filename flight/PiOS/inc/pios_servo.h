@@ -39,7 +39,8 @@ enum pios_servo_shot_type {
 	SHOT_ONESHOT = 0,
 	SHOT_DSHOT300 = 65532,
 	SHOT_DSHOT600 = 65533,
-	SHOT_DSHOT1200 = 65534
+	SHOT_DSHOT1200 = 65534,
+	SHOT_DSHOT900 = 65531,
 };
 
 struct pios_servo_callbacks {

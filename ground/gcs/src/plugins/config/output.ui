@@ -267,6 +267,11 @@ Leave at 50Hz for fixed wing.</string>
                 </item>
                 <item>
                  <property name="text">
+                  <string>Dshot900</string>
+                 </property>
+                </item>
+                <item>
+                 <property name="text">
                   <string>Dshot1200</string>
                  </property>
                 </item>
@@ -377,6 +382,11 @@ Leave at 50Hz for fixed wing.</string>
                 <item>
                  <property name="text">
                   <string>Dshot600</string>
+                 </property>
+                </item>
+                <item>
+                 <property name="text">
+                  <string>Dshot900</string>
                  </property>
                 </item>
                 <item>
@@ -495,6 +505,11 @@ Leave at 50Hz for fixed wing.</string>
                 </item>
                 <item>
                  <property name="text">
+                  <string>Dshot900</string>
+                 </property>
+                </item>
+                <item>
+                 <property name="text">
                   <string>Dshot1200</string>
                  </property>
                 </item>
@@ -605,6 +620,11 @@ Leave at 50Hz for fixed wing.</string>
                 <item>
                  <property name="text">
                   <string>Dshot600</string>
+                 </property>
+                </item>
+                <item>
+                 <property name="text">
+                  <string>Dshot900</string>
                  </property>
                 </item>
                 <item>
@@ -729,6 +749,11 @@ Leave at 50Hz for fixed wing.</string>
                 </item>
                 <item>
                  <property name="text">
+                  <string>Dshot900</string>
+                 </property>
+                </item>
+                <item>
+                 <property name="text">
                   <string>Dshot1200</string>
                  </property>
                 </item>
@@ -842,6 +867,11 @@ Leave at 50Hz for fixed wing.</string>
                 <item>
                  <property name="text">
                   <string>Dshot600</string>
+                 </property>
+                </item>
+                <item>
+                 <property name="text">
+                  <string>Dshot900</string>
                  </property>
                 </item>
                 <item>
