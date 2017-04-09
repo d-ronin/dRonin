@@ -33,7 +33,8 @@
 
 #include <QDebug>
 
-const double VehicleConfig::mixerRange = 127.0;
+const double VehicleConfig::mixerScale = 128.0;
+const double VehicleConfig::mixerRange = 256.0; /* For now cap to 2x in UI */
 
 VehicleConfig::VehicleConfig(QWidget *parent)
     : ConfigTaskWidget(parent)
@@ -184,6 +185,9 @@ void VehicleConfig::resetMixerVector(UAVDataObject *mixer, int channel)
         setMixerVectorValue(mixer, channel, MixerSettings::MIXER1VECTOR_PITCH, 0);
         setMixerVectorValue(mixer, channel, MixerSettings::MIXER1VECTOR_ROLL, 0);
         setMixerVectorValue(mixer, channel, MixerSettings::MIXER1VECTOR_YAW, 0);
+        setMixerVectorValue(mixer, channel, MixerSettings::MIXER1VECTOR_ACCESSORY0, 0);
+        setMixerVectorValue(mixer, channel, MixerSettings::MIXER1VECTOR_ACCESSORY1, 0);
+        setMixerVectorValue(mixer, channel, MixerSettings::MIXER1VECTOR_ACCESSORY2, 0);
     }
 }
 

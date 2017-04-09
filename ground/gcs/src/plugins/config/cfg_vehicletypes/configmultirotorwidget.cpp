@@ -565,7 +565,7 @@ SystemSettings::AirframeTypeOptions ConfigMultiRotorWidget::updateConfigObjectsF
         if (channel > -1) {
             setMixerType(mixerSettings, channel, MixerSettings::MIXER1TYPE_SERVO);
             setMixerVectorValue(mixerSettings, channel, MixerSettings::MIXER1VECTOR_YAW,
-                                mixerRange);
+                                mixerScale);
         }
 
         m_aircraft->mrStatusLabel->setText(tr("Configuration OK"));
@@ -603,14 +603,14 @@ void ConfigMultiRotorWidget::refreshAirframeWidgetsValues(
         channel = m_aircraft->multiMotorChannelBox1->currentIndex() - 1;
         if (channel > -1) {
             value = getMixerVectorValue(mixerSettings, channel, MixerSettings::MIXER1VECTOR_PITCH);
-            m_aircraft->mrPitchMixLevel->setValue(qRound(value / (mixerRange / 100.0)));
+            m_aircraft->mrPitchMixLevel->setValue(qRound(value / (mixerScale / 100.0)));
 
             value = getMixerVectorValue(mixerSettings, channel, MixerSettings::MIXER1VECTOR_YAW);
-            setYawMixLevel(-qRound(value / (mixerRange / 100.0)));
+            setYawMixLevel(-qRound(value / (mixerScale / 100.0)));
 
             channel = m_aircraft->multiMotorChannelBox2->currentIndex() - 1;
             value = getMixerVectorValue(mixerSettings, channel, MixerSettings::MIXER1VECTOR_ROLL);
-            m_aircraft->mrRollMixLevel->setValue(-qRound(value / (mixerRange / 100.0)));
+            m_aircraft->mrRollMixLevel->setValue(-qRound(value / (mixerScale / 100.0)));
         }
     } else if (frameType == SystemSettings::AIRFRAMETYPE_QUADX) {
         // Motors 1/2/3/4 are: NW / NE / SE / SW
@@ -625,13 +625,13 @@ void ConfigMultiRotorWidget::refreshAirframeWidgetsValues(
         channel = m_aircraft->multiMotorChannelBox1->currentIndex() - 1;
         if (channel > -1) {
             value = getMixerVectorValue(mixerSettings, channel, MixerSettings::MIXER1VECTOR_PITCH);
-            m_aircraft->mrPitchMixLevel->setValue(qRound(value / (mixerRange / 100.0)));
+            m_aircraft->mrPitchMixLevel->setValue(qRound(value / (mixerScale / 100.0)));
 
             value = getMixerVectorValue(mixerSettings, channel, MixerSettings::MIXER1VECTOR_YAW);
-            setYawMixLevel(-qRound(value / (mixerRange / 100.0)));
+            setYawMixLevel(-qRound(value / (mixerScale / 100.0)));
 
             value = getMixerVectorValue(mixerSettings, channel, MixerSettings::MIXER1VECTOR_ROLL);
-            m_aircraft->mrRollMixLevel->setValue(qRound(value / (mixerRange / 100.0)));
+            m_aircraft->mrRollMixLevel->setValue(qRound(value / (mixerScale / 100.0)));
         }
 
     } else if (frameType == SystemSettings::AIRFRAMETYPE_HEXA) {
@@ -651,15 +651,15 @@ void ConfigMultiRotorWidget::refreshAirframeWidgetsValues(
         channel = m_aircraft->multiMotorChannelBox1->currentIndex() - 1;
         if (channel > -1) {
             value = getMixerVectorValue(mixerSettings, channel, MixerSettings::MIXER1VECTOR_PITCH);
-            m_aircraft->mrPitchMixLevel->setValue(qRound(value / (mixerRange / 100.0)));
+            m_aircraft->mrPitchMixLevel->setValue(qRound(value / (mixerScale / 100.0)));
 
             value = getMixerVectorValue(mixerSettings, channel, MixerSettings::MIXER1VECTOR_YAW);
-            setYawMixLevel(-qRound(value / (mixerRange / 100.0)));
+            setYawMixLevel(-qRound(value / (mixerScale / 100.0)));
 
             // change channels
             channel = m_aircraft->multiMotorChannelBox2->currentIndex() - 1;
             value = getMixerVectorValue(mixerSettings, channel, MixerSettings::MIXER1VECTOR_ROLL);
-            m_aircraft->mrRollMixLevel->setValue(-qRound(value / (mixerRange / 100.0)));
+            m_aircraft->mrRollMixLevel->setValue(-qRound(value / (mixerScale / 100.0)));
         }
 
     } else if (frameType == SystemSettings::AIRFRAMETYPE_HEXAX) {
@@ -679,14 +679,14 @@ void ConfigMultiRotorWidget::refreshAirframeWidgetsValues(
         channel = m_aircraft->multiMotorChannelBox1->currentIndex() - 1;
         if (channel > -1) {
             value = getMixerVectorValue(mixerSettings, channel, MixerSettings::MIXER1VECTOR_PITCH);
-            m_aircraft->mrPitchMixLevel->setValue(qRound(value / (mixerRange / 100.0)));
+            m_aircraft->mrPitchMixLevel->setValue(qRound(value / (mixerScale / 100.0)));
 
             value = getMixerVectorValue(mixerSettings, channel, MixerSettings::MIXER1VECTOR_YAW);
-            setYawMixLevel(-qRound(value / (mixerRange / 100.0)));
+            setYawMixLevel(-qRound(value / (mixerScale / 100.0)));
 
             channel = m_aircraft->multiMotorChannelBox2->currentIndex() - 1;
             value = getMixerVectorValue(mixerSettings, channel, MixerSettings::MIXER1VECTOR_ROLL);
-            m_aircraft->mrRollMixLevel->setValue(-qRound(value / (mixerRange / 100.0)));
+            m_aircraft->mrRollMixLevel->setValue(-qRound(value / (mixerScale / 100.0)));
         }
     } else if (frameType == SystemSettings::AIRFRAMETYPE_HEXACOAX) {
         // Motors 1/2/3 4/5/6 are: NW/W NE/E S/SE
@@ -704,14 +704,14 @@ void ConfigMultiRotorWidget::refreshAirframeWidgetsValues(
         channel = m_aircraft->multiMotorChannelBox1->currentIndex() - 1;
         if (channel > -1) {
             value = getMixerVectorValue(mixerSettings, channel, MixerSettings::MIXER1VECTOR_PITCH);
-            m_aircraft->mrPitchMixLevel->setValue(qRound(2 * value / (mixerRange / 100.0)));
+            m_aircraft->mrPitchMixLevel->setValue(qRound(2 * value / (mixerScale / 100.0)));
 
             channel = m_aircraft->multiMotorChannelBox2->currentIndex() - 1;
             value = getMixerVectorValue(mixerSettings, channel, MixerSettings::MIXER1VECTOR_YAW);
-            setYawMixLevel(qRound(value / (mixerRange / 100.0)));
+            setYawMixLevel(qRound(value / (mixerScale / 100.0)));
 
             value = getMixerVectorValue(mixerSettings, channel, MixerSettings::MIXER1VECTOR_ROLL);
-            m_aircraft->mrRollMixLevel->setValue(qRound(value / (mixerRange / 100.0)));
+            m_aircraft->mrRollMixLevel->setValue(qRound(value / (mixerScale / 100.0)));
         }
     } else if (frameType == SystemSettings::AIRFRAMETYPE_OCTO
                || frameType == SystemSettings::AIRFRAMETYPE_OCTOV
@@ -735,45 +735,45 @@ void ConfigMultiRotorWidget::refreshAirframeWidgetsValues(
             if (frameType == SystemSettings::AIRFRAMETYPE_OCTO) {
                 value =
                     getMixerVectorValue(mixerSettings, channel, MixerSettings::MIXER1VECTOR_PITCH);
-                m_aircraft->mrPitchMixLevel->setValue(qRound(value / (mixerRange / 100.0)));
+                m_aircraft->mrPitchMixLevel->setValue(qRound(value / (mixerScale / 100.0)));
 
                 value =
                     getMixerVectorValue(mixerSettings, channel, MixerSettings::MIXER1VECTOR_YAW);
-                setYawMixLevel(-qRound(value / (mixerRange / 100.0)));
+                setYawMixLevel(-qRound(value / (mixerScale / 100.0)));
 
                 // change channels
                 channel = m_aircraft->multiMotorChannelBox2->currentIndex() - 1;
                 value =
                     getMixerVectorValue(mixerSettings, channel, MixerSettings::MIXER1VECTOR_ROLL);
-                m_aircraft->mrRollMixLevel->setValue(-qRound(value / (mixerRange / 100.0)));
+                m_aircraft->mrRollMixLevel->setValue(-qRound(value / (mixerScale / 100.0)));
             } else if (frameType == SystemSettings::AIRFRAMETYPE_OCTOV) {
                 value =
                     getMixerVectorValue(mixerSettings, channel, MixerSettings::MIXER1VECTOR_PITCH);
-                m_aircraft->mrPitchMixLevel->setValue(qRound(value / (mixerRange / 100.0)));
+                m_aircraft->mrPitchMixLevel->setValue(qRound(value / (mixerScale / 100.0)));
 
                 value =
                     getMixerVectorValue(mixerSettings, channel, MixerSettings::MIXER1VECTOR_YAW);
-                setYawMixLevel(-qRound(value / (mixerRange / 100.0)));
+                setYawMixLevel(-qRound(value / (mixerScale / 100.0)));
 
                 // change channels
                 channel = m_aircraft->multiMotorChannelBox2->currentIndex() - 1;
                 value =
                     getMixerVectorValue(mixerSettings, channel, MixerSettings::MIXER1VECTOR_ROLL);
-                m_aircraft->mrRollMixLevel->setValue(-qRound(value / (mixerRange / 100.0)));
+                m_aircraft->mrRollMixLevel->setValue(-qRound(value / (mixerScale / 100.0)));
             } else if (frameType == SystemSettings::AIRFRAMETYPE_OCTOCOAXP) {
                 value =
                     getMixerVectorValue(mixerSettings, channel, MixerSettings::MIXER1VECTOR_PITCH);
-                m_aircraft->mrPitchMixLevel->setValue(qRound(value / (mixerRange / 100.0)));
+                m_aircraft->mrPitchMixLevel->setValue(qRound(value / (mixerScale / 100.0)));
 
                 value =
                     getMixerVectorValue(mixerSettings, channel, MixerSettings::MIXER1VECTOR_YAW);
-                setYawMixLevel(-qRound(value / (mixerRange / 100.0)));
+                setYawMixLevel(-qRound(value / (mixerScale / 100.0)));
 
                 // change channels
                 channel = m_aircraft->multiMotorChannelBox3->currentIndex() - 1;
                 value =
                     getMixerVectorValue(mixerSettings, channel, MixerSettings::MIXER1VECTOR_ROLL);
-                m_aircraft->mrRollMixLevel->setValue(-qRound(value / (mixerRange / 100.0)));
+                m_aircraft->mrRollMixLevel->setValue(-qRound(value / (mixerScale / 100.0)));
             }
         }
     } else if (frameType == SystemSettings::AIRFRAMETYPE_OCTOCOAXX) {
@@ -794,13 +794,13 @@ void ConfigMultiRotorWidget::refreshAirframeWidgetsValues(
         channel = m_aircraft->multiMotorChannelBox1->currentIndex() - 1;
         if (channel > -1) {
             value = getMixerVectorValue(mixerSettings, channel, MixerSettings::MIXER1VECTOR_PITCH);
-            m_aircraft->mrPitchMixLevel->setValue(qRound(value / (mixerRange / 100.0)));
+            m_aircraft->mrPitchMixLevel->setValue(qRound(value / (mixerScale / 100.0)));
 
             value = getMixerVectorValue(mixerSettings, channel, MixerSettings::MIXER1VECTOR_YAW);
-            setYawMixLevel(-qRound(value / (mixerRange / 100.0)));
+            setYawMixLevel(-qRound(value / (mixerScale / 100.0)));
 
             value = getMixerVectorValue(mixerSettings, channel, MixerSettings::MIXER1VECTOR_ROLL);
-            m_aircraft->mrRollMixLevel->setValue(qRound(value / (mixerRange / 100.0)));
+            m_aircraft->mrRollMixLevel->setValue(qRound(value / (mixerScale / 100.0)));
         }
     } else if (frameType == SystemSettings::AIRFRAMETYPE_TRI) {
         // Motors 1 to 8 are N / NE / E / etc
@@ -814,10 +814,10 @@ void ConfigMultiRotorWidget::refreshAirframeWidgetsValues(
         channel = m_aircraft->multiMotorChannelBox1->currentIndex() - 1;
         if (channel > -1) {
             value = getMixerVectorValue(mixerSettings, channel, MixerSettings::MIXER1VECTOR_PITCH);
-            m_aircraft->mrPitchMixLevel->setValue(qRound(2 * value / (mixerRange / 100.0)));
+            m_aircraft->mrPitchMixLevel->setValue(qRound(2 * value / (mixerScale / 100.0)));
 
             value = getMixerVectorValue(mixerSettings, channel, MixerSettings::MIXER1VECTOR_ROLL);
-            m_aircraft->mrRollMixLevel->setValue(qRound(value / (mixerRange / 100.0)));
+            m_aircraft->mrRollMixLevel->setValue(qRound(value / (mixerScale / 100.0)));
         }
     }
 
@@ -835,13 +835,14 @@ void ConfigMultiRotorWidget::setupQuadMotor(int channel, double pitch, double ro
     setMixerType(mixerSettings, channel, MixerSettings::MIXER1TYPE_MOTOR);
 
     setMixerVectorValue(mixerSettings, channel, MixerSettings::MIXER1VECTOR_THROTTLECURVE1,
-                        mixerRange);
+                        mixerScale);
     setMixerVectorValue(mixerSettings, channel, MixerSettings::MIXER1VECTOR_THROTTLECURVE2, 0);
     setMixerVectorValue(mixerSettings, channel, MixerSettings::MIXER1VECTOR_ROLL,
-                        roll * mixerRange);
+                        qRound(roll * mixerScale));
     setMixerVectorValue(mixerSettings, channel, MixerSettings::MIXER1VECTOR_PITCH,
-                        pitch * mixerRange);
-    setMixerVectorValue(mixerSettings, channel, MixerSettings::MIXER1VECTOR_YAW, yaw * mixerRange);
+                        qRound(pitch * mixerScale));
+    setMixerVectorValue(mixerSettings, channel, MixerSettings::MIXER1VECTOR_YAW,
+                        qRound(yaw * mixerScale));
 }
 
 /**

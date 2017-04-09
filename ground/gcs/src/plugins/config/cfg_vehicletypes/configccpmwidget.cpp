@@ -642,7 +642,7 @@ void ConfigCcpmWidget::UpdateMixer()
                 // Generate the mixer vector
                 if (i == 0) { // main motor-engine
                     m_ccpm->ccpmAdvancedSettingsTable->item(i, 1)->setText(
-                        QString("%1").arg(mixerRange)); // ThrottleCurve1
+                        QString("%1").arg(mixerScale)); // ThrottleCurve1
                     m_ccpm->ccpmAdvancedSettingsTable->item(i, 2)->setText(
                         QString("%1").arg(0)); // ThrottleCurve2
                     m_ccpm->ccpmAdvancedSettingsTable->item(i, 3)->setText(
@@ -653,7 +653,7 @@ void ConfigCcpmWidget::UpdateMixer()
                     if (TypeText.compare(QString::fromUtf8("Coax 2 Servo 90º"), Qt::CaseInsensitive)
                         == 0)
                         m_ccpm->ccpmAdvancedSettingsTable->item(i, 5)->setText(
-                            QString("%1").arg(-mixerRange)); // Yaw
+                            QString("%1").arg(-mixerScale)); // Yaw
                     else
                         m_ccpm->ccpmAdvancedSettingsTable->item(i, 5)->setText(
                             QString("%1").arg(0)); // Yaw
@@ -662,14 +662,14 @@ void ConfigCcpmWidget::UpdateMixer()
                     if (TypeText.compare(QString::fromUtf8("Coax 2 Servo 90º"), Qt::CaseInsensitive)
                         == 0) {
                         m_ccpm->ccpmAdvancedSettingsTable->item(i, 1)->setText(
-                            QString("%1").arg(mixerRange)); // ThrottleCurve1
+                            QString("%1").arg(mixerScale)); // ThrottleCurve1
                         m_ccpm->ccpmAdvancedSettingsTable->item(i, 5)->setText(
-                            QString("%1").arg(mixerRange)); // Yaw
+                            QString("%1").arg(mixerScale)); // Yaw
                     } else {
                         m_ccpm->ccpmAdvancedSettingsTable->item(i, 1)->setText(
                             QString("%1").arg(0)); // ThrottleCurve1
                         m_ccpm->ccpmAdvancedSettingsTable->item(i, 5)->setText(
-                            QString("%1").arg(mixerRange)); // Yaw
+                            QString("%1").arg(mixerScale)); // Yaw
                     }
 
                     m_ccpm->ccpmAdvancedSettingsTable->item(i, 2)->setText(
@@ -683,13 +683,13 @@ void ConfigCcpmWidget::UpdateMixer()
                     m_ccpm->ccpmAdvancedSettingsTable->item(i, 1)->setText(
                         QString("%1").arg(0)); // ThrottleCurve1
                     m_ccpm->ccpmAdvancedSettingsTable->item(i, 2)->setText(QString("%1").arg(
-                        (int)(mixerRange * CollectiveConstant))); // ThrottleCurve2
+                        (int)(mixerScale * CollectiveConstant))); // ThrottleCurve2
                     m_ccpm->ccpmAdvancedSettingsTable->item(i, 3)->setText(QString("%1").arg(
-                        (int)(mixerRange * RollConstant
+                        (int)(mixerScale * RollConstant
                               * sin((180 + config.heli.CorrectionAngle + ThisAngle[i])
                                     * DEG2RAD)))); // Roll
                     m_ccpm->ccpmAdvancedSettingsTable->item(i, 4)->setText(
-                        QString("%1").arg((int)(mixerRange * PitchConstant
+                        QString("%1").arg((int)(mixerScale * PitchConstant
                                                 * cos((config.heli.CorrectionAngle + ThisAngle[i])
                                                       * DEG2RAD)))); // Pitch
                     m_ccpm->ccpmAdvancedSettingsTable->item(i, 5)->setText(
