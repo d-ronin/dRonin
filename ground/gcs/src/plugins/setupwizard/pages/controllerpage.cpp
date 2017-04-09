@@ -34,24 +34,27 @@
 #include <extensionsystem/pluginmanager.h>
 #include <uavobjectutil/uavobjectutilmanager.h>
 
-ControllerPage::ControllerPage(SetupWizard *wizard, QWidget *parent) :
-    AbstractWizardPage(wizard, parent),
-    ui(new Ui::ControllerPage)
+ControllerPage::ControllerPage(SetupWizard *wizard, QWidget *parent)
+    : AbstractWizardPage(wizard, parent)
+    , ui(new Ui::ControllerPage)
 {
     ui->setupUi(this);
 
     m_connectionManager = getWizard()->getConnectionManager();
     Q_ASSERT(m_connectionManager);
-    connect(m_connectionManager, SIGNAL(availableDevicesChanged(QLinkedList<Core::DevListItem>)), this, SLOT(devicesChanged(QLinkedList<Core::DevListItem>)));
+    connect(m_connectionManager, &Core::ConnectionManager::availableDevicesChanged, this,
+            &ControllerPage::devicesChanged);
 
     ExtensionSystem::PluginManager *pluginManager = ExtensionSystem::PluginManager::instance();
     Q_ASSERT(pluginManager);
     m_telemtryManager = pluginManager->getObject<TelemetryManager>();
     Q_ASSERT(m_telemtryManager);
-    connect(m_telemtryManager, SIGNAL(connected()), this, SLOT(connectionStatusChanged()));
-    connect(m_telemtryManager, SIGNAL(disconnected()), this, SLOT(connectionStatusChanged()));
+    connect(m_telemtryManager, &TelemetryManager::connected, this,
+            &ControllerPage::connectionStatusChanged);
+    connect(m_telemtryManager, &TelemetryManager::disconnected, this,
+            &ControllerPage::connectionStatusChanged);
 
-    connect(ui->connectButton, SIGNAL(clicked()), this, SLOT(connectDisconnect()));
+    connect(ui->connectButton, &QAbstractButton::clicked, this, &ControllerPage::connectDisconnect);
 
     setupDeviceList();
 }
@@ -64,7 +67,7 @@ ControllerPage::~ControllerPage()
 void ControllerPage::initializePage()
 {
     if (anyControllerConnected()) {
-        Core::IBoardType* type = getControllerType();
+        Core::IBoardType *type = getControllerType();
         setControllerType(type);
     } else {
         setControllerType(NULL);
@@ -74,13 +77,14 @@ void ControllerPage::initializePage()
 
 bool ControllerPage::isComplete() const
 {
-    Core::IBoardType* type = getControllerType();
+    Core::IBoardType *type = getControllerType();
 
     if (type == NULL)
         return false;
 
-    return !type->isUSBSupported() ||
-           m_connectionManager->getCurrentDevice().getConName().startsWith("USB:", Qt::CaseInsensitive);
+    return !type->isUSBSupported()
+        || m_connectionManager->getCurrentDevice().getConName().startsWith("USB:",
+                                                                           Qt::CaseInsensitive);
 }
 
 bool ControllerPage::validatePage()
@@ -111,8 +115,9 @@ void ControllerPage::setControllerType(Core::IBoardType *board)
 void ControllerPage::devicesChanged(QLinkedList<Core::DevListItem> devices)
 {
     // Get the selected item before the update if any
-    QString currSelectedDeviceName = ui->deviceCombo->currentIndex() != -1 ?
-                                     ui->deviceCombo->itemData(ui->deviceCombo->currentIndex(), Qt::ToolTipRole).toString() : "";
+    QString currSelectedDeviceName = ui->deviceCombo->currentIndex() != -1
+        ? ui->deviceCombo->itemData(ui->deviceCombo->currentIndex(), Qt::ToolTipRole).toString()
+        : "";
 
     // Clear the box
     ui->deviceCombo->clear();
@@ -121,12 +126,13 @@ void ControllerPage::devicesChanged(QLinkedList<Core::DevListItem> devices)
     int i = 0;
 
     // Loop and fill the combo with items from connectionmanager
-    foreach(Core::DevListItem deviceItem, devices) {
+    foreach (Core::DevListItem deviceItem, devices) {
         ui->deviceCombo->addItem(deviceItem.getConName());
         QString deviceName = (const QString)deviceItem.getConName();
         ui->deviceCombo->setItemData(ui->deviceCombo->count() - 1, deviceName, Qt::ToolTipRole);
         if (!deviceName.startsWith("USB:", Qt::CaseInsensitive)) {
-            ui->deviceCombo->setItemData(ui->deviceCombo->count() - 1, QVariant(0), Qt::UserRole - 1);
+            ui->deviceCombo->setItemData(ui->deviceCombo->count() - 1, QVariant(0),
+                                         Qt::UserRole - 1);
         }
         if (currSelectedDeviceName != "" && currSelectedDeviceName == deviceName) {
             indexOfSelectedItem = i;
@@ -154,7 +160,8 @@ void ControllerPage::connectionStatusChanged()
         }
 
         setControllerType(getControllerType());
-        qDebug() << "Connection status changed: Connected, controller type: " << getControllerType();
+        qDebug() << "Connection status changed: Connected, controller type: "
+                 << getControllerType();
     } else {
         ui->deviceCombo->setEnabled(true);
         ui->connectButton->setText(tr("Connect"));
@@ -169,7 +176,9 @@ void ControllerPage::connectDisconnect()
     if (m_connectionManager->isConnected()) {
         m_connectionManager->disconnectDevice();
     } else {
-        m_connectionManager->connectDevice(m_connectionManager->findDevice(ui->deviceCombo->itemData(ui->deviceCombo->currentIndex(), Qt::ToolTipRole).toString()));
+        m_connectionManager->connectDevice(m_connectionManager->findDevice(
+            ui->deviceCombo->itemData(ui->deviceCombo->currentIndex(), Qt::ToolTipRole)
+                .toString()));
     }
     emit completeChanged();
 }

@@ -31,9 +31,9 @@
 #include <QDebug>
 #include <stdio.h>
 
-#define PROGRESS_BAR_WIDTH  150
+#define PROGRESS_BAR_WIDTH 150
 #define PROGRESS_BAR_HEIGHT 12
-#define TEXT_BACKGROUND_WIDTH  496
+#define TEXT_BACKGROUND_WIDTH 496
 #define TEXT_BACKGROUND_HEIGHT 20
 
 /**
@@ -41,32 +41,44 @@
 * @param pixmap picture to show on splashscreen, should be png transparent background.
 * @param f window flags.
 */
-CustomSplash::CustomSplash(const QPixmap &pixmap, Qt::WindowFlags f):
-    QSplashScreen(pixmap,f),m_progress(0),m_progress_bar_color(QColor(217, 118, 0, 255)),message_number(0)
+CustomSplash::CustomSplash(const QPixmap &pixmap, Qt::WindowFlags f)
+    : QSplashScreen(pixmap, f)
+    , m_progress(0)
+    , m_progress_bar_color(QColor(217, 118, 0, 255))
+    , message_number(0)
 {
     QPixmap original_scaled = pixmap.scaledToHeight(180, Qt::SmoothTransformation);
-    QPixmap pix(500,180);
-    pix.fill(QColor(255,0,0,0));
+    QPixmap pix(500, 180);
+    pix.fill(QColor(255, 0, 0, 0));
     QPainter p(&pix);
-    p.drawPixmap(pix.rect().center().x()-original_scaled.width()/2,0,original_scaled);
+    p.drawPixmap(pix.rect().center().x() - original_scaled.width() / 2, 0, original_scaled);
     p.end();
     this->setPixmap(pix);
     this->setCursor(Qt::BusyCursor);
-    resize(500,240);
+    resize(500, 240);
     time.start();
     settings.beginGroup("splashscreen");
 }
 
 void CustomSplash::drawContents(QPainter *painter)
 {
-    painter->setRenderHints(QPainter::Antialiasing | QPainter::TextAntialiasing | QPainter::SmoothPixmapTransform);
+    painter->setRenderHints(QPainter::Antialiasing | QPainter::TextAntialiasing
+                            | QPainter::SmoothPixmapTransform);
     painter->setBrush(QBrush(QColor(222, 222, 222, 200)));
-    painter->drawRoundedRect(QRect(this->rect().center().x()-PROGRESS_BAR_WIDTH/2,this->rect().bottom()-PROGRESS_BAR_HEIGHT-30,PROGRESS_BAR_WIDTH,PROGRESS_BAR_HEIGHT), 5,5);
-    painter->drawRoundedRect(QRect(this->rect().center().x()-TEXT_BACKGROUND_WIDTH/2,this->rect().bottom()-2-TEXT_BACKGROUND_HEIGHT,TEXT_BACKGROUND_WIDTH,TEXT_BACKGROUND_HEIGHT), 5,5);
+    painter->drawRoundedRect(QRect(this->rect().center().x() - PROGRESS_BAR_WIDTH / 2,
+                                   this->rect().bottom() - PROGRESS_BAR_HEIGHT - 30,
+                                   PROGRESS_BAR_WIDTH, PROGRESS_BAR_HEIGHT),
+                             5, 5);
+    painter->drawRoundedRect(QRect(this->rect().center().x() - TEXT_BACKGROUND_WIDTH / 2,
+                                   this->rect().bottom() - 2 - TEXT_BACKGROUND_HEIGHT,
+                                   TEXT_BACKGROUND_WIDTH, TEXT_BACKGROUND_HEIGHT),
+                             5, 5);
     QSplashScreen::drawContents(painter);
     painter->setBrush(QBrush(m_progress_bar_color));
-    painter->drawRoundedRect(QRect(this->rect().center().x()-PROGRESS_BAR_WIDTH/2,this->rect().bottom()-PROGRESS_BAR_HEIGHT-30,PROGRESS_BAR_WIDTH * m_progress / 100 ,PROGRESS_BAR_HEIGHT), 5,5);
-
+    painter->drawRoundedRect(QRect(this->rect().center().x() - PROGRESS_BAR_WIDTH / 2,
+                                   this->rect().bottom() - PROGRESS_BAR_HEIGHT - 30,
+                                   PROGRESS_BAR_WIDTH * m_progress / 100, PROGRESS_BAR_HEIGHT),
+                             5, 5);
 }
 
 /**
@@ -93,19 +105,19 @@ void CustomSplash::setprogressBarColor(const QColor &progressBarColor)
 * @param alignment alignment of the text
 * @param color color of the text
 */
-void CustomSplash::showMessage(const QString &message, int alignment, const QColor &color)
+void CustomSplash::showMessage(const QString &message)
 {
-    QSplashScreen::showMessage(message,alignment,color);
-    int last_duration = settings.value(QString::number(message_number),0).toInt();
-    if(last_duration == 0)
-        setProgress(progress()+10);
-    else
-    {
-        int total_duration = settings.value("total",5000).toInt();
+    QSplashScreen::showMessage(message, Qt::AlignCenter | Qt::AlignBottom);
+
+    int last_duration = settings.value(QString::number(message_number), 0).toInt();
+    if (last_duration == 0) {
+        setProgress(progress() + 10);
+    } else {
+        int total_duration = settings.value("total", 5000).toInt();
         int value = last_duration * 100 / total_duration;
         setProgress(value);
     }
-    settings.setValue(QString::number(message_number),time.elapsed());
+    settings.setValue(QString::number(message_number), time.elapsed());
     ++message_number;
 
     QCoreApplication::processEvents();
@@ -127,8 +139,8 @@ void CustomSplash::show()
 void CustomSplash::close()
 {
     setProgress(100);
-    settings.setValue(QString::number(message_number),time.elapsed());
-    settings.setValue("total",time.elapsed());
+    settings.setValue(QString::number(message_number), time.elapsed());
+    settings.setValue("total", time.elapsed());
     settings.endGroup();
     QSplashScreen::close();
 }

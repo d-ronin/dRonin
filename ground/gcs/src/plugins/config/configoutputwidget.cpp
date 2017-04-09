@@ -53,56 +53,64 @@
 #include <extensionsystem/pluginmanager.h>
 #include <coreplugin/generalsettings.h>
 #include <coreplugin/modemanager.h>
+#include <coreplugin/imode.h>
 
-ConfigOutputWidget::ConfigOutputWidget(QWidget *parent) : ConfigTaskWidget(parent)
+ConfigOutputWidget::ConfigOutputWidget(QWidget *parent)
+    : ConfigTaskWidget(parent)
 {
     m_config = new Ui_OutputWidget();
     m_config->setupUi(this);
-    
-    ExtensionSystem::PluginManager *pm=ExtensionSystem::PluginManager::instance();
-    Core::Internal::GeneralSettings * settings=pm->getObject<Core::Internal::GeneralSettings>();
-    if(!settings->useExpertMode())
+
+    ExtensionSystem::PluginManager *pm = ExtensionSystem::PluginManager::instance();
+    Core::Internal::GeneralSettings *settings = pm->getObject<Core::Internal::GeneralSettings>();
+    if (!settings->useExpertMode())
         m_config->saveRCOutputToRAM->setVisible(false);
 
     /* There's lots of situations where it's unsafe to run tests.
      * Import/export:
      */
-    UAVSettingsImportExportManager * importexportplugin =  pm->getObject<UAVSettingsImportExportManager>();
-    connect(importexportplugin,SIGNAL(importAboutToBegin()),this,SLOT(stopTests()));
+    UAVSettingsImportExportManager *importexportplugin =
+        pm->getObject<UAVSettingsImportExportManager>();
+    connect(importexportplugin, &UAVSettingsImportExportManager::importAboutToBegin, this,
+            &ConfigOutputWidget::stopTests);
 
     /* Board connection/disconnection: */
-    TelemetryManager* telMngr = pm->getObject<TelemetryManager>();
-    connect(telMngr, SIGNAL(connected()), this, SLOT(stopTests()));
-    connect(telMngr, SIGNAL(disconnected()), this, SLOT(stopTests()));
+    TelemetryManager *telMngr = pm->getObject<TelemetryManager>();
+    connect(telMngr, &TelemetryManager::connected, this, &ConfigOutputWidget::stopTests);
+    connect(telMngr, &TelemetryManager::disconnected, this, &ConfigOutputWidget::stopTests);
 
     /* When we go into wizards, etc.. time to stop this too. */
     Core::ModeManager *modeMngr = Core::ModeManager::instance();
-    connect(modeMngr, SIGNAL(currentModeAboutToChange(Core::IMode *)), this,
-		SLOT(stopTests()));
-    connect(modeMngr, SIGNAL(currentModeChanged(Core::IMode *)), this,
-		SLOT(stopTests()));
+    connect(modeMngr, &Core::ModeManager::currentModeAboutToChange, this,
+            &ConfigOutputWidget::stopTests);
+    connect(modeMngr, &Core::ModeManager::currentModeChanged, this, &ConfigOutputWidget::stopTests);
 
-    // NOTE: we have channel indices from 0 to 9, but the convention for OP is Channel 1 to Channel 10.
+    // NOTE: we have channel indices from 0 to 9, but the convention for OP is Channel 1 to Channel
+    // 10.
     // Register for ActuatorSettings changes:
-    for (unsigned int i = 0; i < ActuatorCommand::CHANNEL_NUMELEM; i++)
-    {
-        OutputChannelForm *outputForm = new OutputChannelForm(i, this, i==0);
+    for (unsigned int i = 0; i < ActuatorCommand::CHANNEL_NUMELEM; i++) {
+        OutputChannelForm *outputForm = new OutputChannelForm(i, this, i == 0);
         m_config->channelLayout->addWidget(outputForm);
 
-        connect(m_config->channelOutTest, SIGNAL(toggled(bool)), outputForm, SLOT(enableChannelTest(bool)));
-        connect(outputForm, SIGNAL(channelChanged(int,int)), this, SLOT(sendChannelTest(int,int)));
+        connect(m_config->channelOutTest, &QAbstractButton::toggled, outputForm,
+                &OutputChannelForm::enableChannelTest);
+        connect(outputForm, &OutputChannelForm::channelChanged, this,
+                &ConfigOutputWidget::sendChannelTest);
 
-        connect(outputForm, SIGNAL(formChanged()), this, SLOT(do_SetDirty()));
+        connect(outputForm, &OutputChannelForm::formChanged, this,
+                &ConfigOutputWidget::do_SetDirty);
     }
 
-    connect(m_config->channelOutTest, SIGNAL(toggled(bool)), this, SLOT(runChannelTests(bool)));
-    connect(m_config->calibrateESC, SIGNAL(clicked()), this, SLOT(startESCCalibration()));
+    connect(m_config->channelOutTest, &QAbstractButton::toggled, this,
+            &ConfigOutputWidget::runChannelTests);
+    connect(m_config->calibrateESC, &QAbstractButton::clicked, this,
+            &ConfigOutputWidget::startESCCalibration);
 
     // Configure the task widget
     // Connect the help button
-    connect(m_config->outputHelp, SIGNAL(clicked()), this, SLOT(openHelp()));
+    connect(m_config->outputHelp, &QAbstractButton::clicked, this, &ConfigOutputWidget::openHelp);
 
-    addApplySaveButtons(m_config->saveRCOutputToRAM,m_config->saveRCOutputToSD);
+    addApplySaveButtons(m_config->saveRCOutputToRAM, m_config->saveRCOutputToSD);
 
     // Track the ActuatorSettings object
     addUAVObject("ActuatorSettings");
@@ -119,26 +127,25 @@ ConfigOutputWidget::ConfigOutputWidget(QWidget *parent) : ConfigTaskWidget(paren
     // Cache all the combo boxes and labels
     lblList.clear();
     lblList << m_config->chBank1 << m_config->chBank2 << m_config->chBank3 << m_config->chBank4
-               << m_config->chBank5 << m_config->chBank6;
+            << m_config->chBank5 << m_config->chBank6;
     rateList.clear();
     rateList << m_config->cb_outputRate1 << m_config->cb_outputRate2 << m_config->cb_outputRate3
-               << m_config->cb_outputRate4 << m_config->cb_outputRate5 << m_config->cb_outputRate6;
+             << m_config->cb_outputRate4 << m_config->cb_outputRate5 << m_config->cb_outputRate6;
 
-    QList<QComboBox*>::iterator rateIter;
+    QList<QComboBox *>::iterator rateIter;
     for (rateIter = rateList.begin(); rateIter != rateList.end(); rateIter++) {
         QComboBox *rate = *rateIter;
 
-        connect(rate, SIGNAL(currentIndexChanged(int)), this, SLOT(refreshWidgetRanges()));
+        connect(rate, QOverload<int>::of(&QComboBox::currentIndexChanged), this,
+                &ConfigOutputWidget::refreshWidgetRanges);
     }
 
-    disconnect(this, SLOT(refreshWidgetsValues(UAVObject*)));
-
     UAVObjectManager *objManager = pm->getObject<UAVObjectManager>();
-    UAVObject* obj = objManager->getObject(QString("ActuatorCommand"));
-    if(UAVObject::GetGcsTelemetryUpdateMode(obj->getMetadata()) == UAVObject::UPDATEMODE_ONCHANGE)
+    UAVObject *obj = objManager->getObject(QString("ActuatorCommand"));
+    if (UAVObject::GetGcsTelemetryUpdateMode(obj->getMetadata()) == UAVObject::UPDATEMODE_ONCHANGE)
         this->setEnabled(false);
-    connect(SystemSettings::GetInstance(objManager), SIGNAL(objectUpdated(UAVObject*)),this,SLOT(assignOutputChannels(UAVObject*)));
-
+    connect(SystemSettings::GetInstance(objManager), &UAVObject::objectUpdated, this,
+            &ConfigOutputWidget::assignOutputChannels);
 
     refreshWidgetsValues();
 }
@@ -146,7 +153,7 @@ ConfigOutputWidget::ConfigOutputWidget(QWidget *parent) : ConfigTaskWidget(paren
 void ConfigOutputWidget::enableControls(bool enable)
 {
     ConfigTaskWidget::enableControls(enable);
-    if(!enable)
+    if (!enable)
         m_config->channelOutTest->setChecked(false);
     m_config->channelOutTest->setEnabled(enable);
     m_config->calibrateESC->setEnabled(enable);
@@ -155,7 +162,7 @@ void ConfigOutputWidget::enableControls(bool enable)
 
 ConfigOutputWidget::~ConfigOutputWidget()
 {
-   // Do nothing
+    // Do nothing
 }
 
 // ************************************
@@ -166,12 +173,16 @@ ConfigOutputWidget::~ConfigOutputWidget()
   */
 void ConfigOutputWidget::runChannelTests(bool state)
 {
-    SystemAlarms * systemAlarmsObj = SystemAlarms::GetInstance(getObjectManager());
+    SystemAlarms *systemAlarmsObj = SystemAlarms::GetInstance(getObjectManager());
     SystemAlarms::DataFields systemAlarms = systemAlarmsObj->getData();
 
-    if(state && ((systemAlarms.Alarm[SystemAlarms::ALARM_ACTUATOR] == SystemAlarms::ALARM_ERROR) || (systemAlarms.Alarm[SystemAlarms::ALARM_ACTUATOR] == SystemAlarms::ALARM_CRITICAL))) {
+    if (state && ((systemAlarms.Alarm[SystemAlarms::ALARM_ACTUATOR] == SystemAlarms::ALARM_ERROR)
+                  || (systemAlarms.Alarm[SystemAlarms::ALARM_ACTUATOR]
+                      == SystemAlarms::ALARM_CRITICAL))) {
         QMessageBox mbox;
-        mbox.setText(QString(tr("The actuator module is in an error state.  This can also occur because there are no inputs.  Please fix these before testing outputs.")));
+        mbox.setText(
+            QString(tr("The actuator module is in an error state.  This can also occur because "
+                       "there are no inputs.  Please fix these before testing outputs.")));
         mbox.setStandardButtons(QMessageBox::Ok);
         mbox.exec();
 
@@ -183,44 +194,41 @@ void ConfigOutputWidget::runChannelTests(bool state)
     }
 
     // Confirm this is definitely what they want
-    if(state) {
+    if (state) {
         QMessageBox mbox;
-        mbox.setText(QString(tr("This option will start your motors by the amount selected on the sliders regardless of transmitter.  It is recommended to remove any blades from motors.  Are you sure you want to do this?")));
+        mbox.setText(QString(tr("This option will start your motors by the amount selected on the "
+                                "sliders regardless of transmitter.  It is recommended to remove "
+                                "any blades from motors.  Are you sure you want to do this?")));
         mbox.setStandardButtons(QMessageBox::Yes | QMessageBox::No);
         int retval = mbox.exec();
-        if(retval != QMessageBox::Yes) {
+        if (retval != QMessageBox::Yes) {
             state = false;
             m_config->channelOutTest->setChecked(false);
             return;
         }
     }
 
-    ActuatorCommand * obj = ActuatorCommand::GetInstance(getObjectManager());
+    ActuatorCommand *obj = ActuatorCommand::GetInstance(getObjectManager());
     UAVObject::Metadata mdata = obj->getMetadata();
-    if (state)
-    {
+    if (state) {
         accInitialData = mdata;
         UAVObject::SetFlightAccess(mdata, UAVObject::ACCESS_READONLY);
         UAVObject::SetFlightTelemetryUpdateMode(mdata, UAVObject::UPDATEMODE_ONCHANGE);
         UAVObject::SetGcsTelemetryAcked(mdata, false);
         UAVObject::SetGcsTelemetryUpdateMode(mdata, UAVObject::UPDATEMODE_ONCHANGE);
         mdata.gcsTelemetryUpdatePeriod = 100;
-    }
-    else
-    {
+    } else {
         mdata = accInitialData; // Restore metadata
     }
     obj->setMetadata(mdata);
     obj->updated();
-
 }
 
-OutputChannelForm* ConfigOutputWidget::getOutputChannelForm(const int index) const
+OutputChannelForm *ConfigOutputWidget::getOutputChannelForm(const int index) const
 {
-    QList<OutputChannelForm*> outputChannelForms = findChildren<OutputChannelForm*>();
-    foreach(OutputChannelForm *outputChannelForm, outputChannelForms)
-    {
-        if( outputChannelForm->index() == index)
+    QList<OutputChannelForm *> outputChannelForms = findChildren<OutputChannelForm *>();
+    foreach (OutputChannelForm *outputChannelForm, outputChannelForms) {
+        if (outputChannelForm->index() == index)
             return outputChannelForm;
     }
 
@@ -229,7 +237,8 @@ OutputChannelForm* ConfigOutputWidget::getOutputChannelForm(const int index) con
 }
 
 /**
- * @brief ConfigOutputWidget::assignOutputChannels Sets the output channel form text and min/max values
+ * @brief ConfigOutputWidget::assignOutputChannels Sets the output channel form text and min/max
+ * values
  * @param actuatorSettings UAVO input
  */
 void ConfigOutputWidget::assignOutputChannels(UAVObject *obj)
@@ -244,9 +253,8 @@ void ConfigOutputWidget::assignOutputChannels(UAVObject *obj)
     QStringList ChannelDesc = ConfigVehicleTypeWidget::getChannelDescriptions();
 
     // Find all output forms in the tab, and set the text and min/max values
-    QList<OutputChannelForm*> outputChannelForms = findChildren<OutputChannelForm*>();
-    foreach(OutputChannelForm *outputChannelForm, outputChannelForms)
-    {
+    QList<OutputChannelForm *> outputChannelForms = findChildren<OutputChannelForm *>();
+    foreach (OutputChannelForm *outputChannelForm, outputChannelForms) {
         outputChannelForm->setAssignment(ChannelDesc[outputChannelForm->index()]);
 
         // init min,max,neutral
@@ -270,7 +278,7 @@ void ConfigOutputWidget::sendChannelTest(int index, int value)
     if (!m_config->channelOutTest->isChecked())
         return;
 
-    if(index < 0 || (unsigned)index >= ActuatorCommand::CHANNEL_NUMELEM)
+    if (index < 0 || (unsigned)index >= ActuatorCommand::CHANNEL_NUMELEM)
         return;
 
     ActuatorCommand *actuatorCommand = ActuatorCommand::GetInstance(getObjectManager());
@@ -288,13 +296,13 @@ bool showOutputChannelSelectWindow(bool (&selectedChannels)[ActuatorCommand::CHA
     // Build up dialog
     QDialog dialog;
     QVBoxLayout layout;
-    QCheckBox* checkBoxes[ActuatorCommand::CHANNEL_NUMELEM];
+    QCheckBox *checkBoxes[ActuatorCommand::CHANNEL_NUMELEM];
     QLabel infoLabel("Select output channels to calibrate: ");
     layout.addWidget(&infoLabel);
-    for (unsigned int i = 0; i < ActuatorCommand::CHANNEL_NUMELEM; i++)
-    {
+    for (unsigned int i = 0; i < ActuatorCommand::CHANNEL_NUMELEM; i++) {
         checkBoxes[i] = new QCheckBox();
-        checkBoxes[i]->setText(QString("Channel ") + QString::number(i+1) + QString("  (") + ChannelDesc[i] + QString(")"));
+        checkBoxes[i]->setText(QString("Channel ") + QString::number(i + 1) + QString("  (")
+                               + ChannelDesc[i] + QString(")"));
         checkBoxes[i]->setChecked(false);
         layout.addWidget(checkBoxes[i]);
     }
@@ -307,19 +315,17 @@ bool showOutputChannelSelectWindow(bool (&selectedChannels)[ActuatorCommand::CHA
     layout.addLayout(&horizontalLayout);
 
     // Connect buttons with dialog slots
-    dialog.connect(&buttonOk, SIGNAL(clicked()), &dialog, SLOT(accept()));
-    dialog.connect(&buttonCancel, SIGNAL(clicked()), &dialog, SLOT(reject()));
+    dialog.connect(&buttonOk, &QAbstractButton::clicked, &dialog, &QDialog::accept);
+    dialog.connect(&buttonCancel, &QAbstractButton::clicked, &dialog, &QDialog::reject);
 
     // Show dialog
     dialog.setLayout(&layout);
     int retCode = dialog.exec();
-    if (retCode == dialog.Accepted)
-    {
+    if (retCode == dialog.Accepted) {
         for (unsigned int i = 0; i < ActuatorCommand::CHANNEL_NUMELEM; i++)
             selectedChannels[i] = checkBoxes[i]->isChecked();
         return true;
-    }
-    else
+    } else
         return false;
 }
 
@@ -329,18 +335,20 @@ bool showOutputChannelSelectWindow(bool (&selectedChannels)[ActuatorCommand::CHA
 void ConfigOutputWidget::startESCCalibration()
 {
     bool channelsToCalibrate[ActuatorCommand::CHANNEL_NUMELEM];
-    if(!showOutputChannelSelectWindow(channelsToCalibrate))
+    if (!showOutputChannelSelectWindow(channelsToCalibrate))
         return;
 
     QMessageBox mbox;
-    mbox.setText(QString(tr("Starting ESC calibration.<br/><b>Please remove all propellers and disconnect battery from ESCs.</b>")));
+    mbox.setText(QString(tr("Starting ESC calibration.<br/><b>Please remove all propellers and "
+                            "disconnect battery from ESCs.</b>")));
     mbox.setStandardButtons(QMessageBox::Ok | QMessageBox::Cancel);
     mbox.setDefaultButton(QMessageBox::Cancel);
-    
-    if (mbox.exec() != QMessageBox::Ok) return;
+
+    if (mbox.exec() != QMessageBox::Ok)
+        return;
 
     // Get access to actuator command (for setting actual value)
-    ActuatorCommand * actuatorCommand = ActuatorCommand::GetInstance(getObjectManager());
+    ActuatorCommand *actuatorCommand = ActuatorCommand::GetInstance(getObjectManager());
     Q_ASSERT(actuatorCommand);
     ActuatorCommand::DataFields actuatorCommandFields = actuatorCommand->getData();
     UAVObject::Metadata mdata = actuatorCommand->getMetadata();
@@ -366,8 +374,7 @@ void ConfigOutputWidget::startESCCalibration()
     // Set output for motors to nil to disarm
     // Should not be necessary; battery is supposed to be disconnected, etc.
     // But this makes it moderately safer if the user does not obey.
-    for (unsigned int i = 0; i < ActuatorCommand::CHANNEL_NUMELEM; i++)
-    {
+    for (unsigned int i = 0; i < ActuatorCommand::CHANNEL_NUMELEM; i++) {
         // Check if the output channel was selected
         if (!channelsToCalibrate[i])
             continue;
@@ -381,13 +388,12 @@ void ConfigOutputWidget::startESCCalibration()
 
     QTimer timeout;
     timeout.setSingleShot(true);
-    connect(&timeout, SIGNAL(timeout()), &loop, SLOT(quit()));
-    timeout.start(1250);        // 1.25 seconds
+    connect(&timeout, &QTimer::timeout, &loop, &QEventLoop::quit);
+    timeout.start(1250); // 1.25 seconds
     loop.exec();
 
     // Increase output for all motors
-    for (unsigned int i = 0; i < ActuatorCommand::CHANNEL_NUMELEM; i++)
-    {
+    for (unsigned int i = 0; i < ActuatorCommand::CHANNEL_NUMELEM; i++) {
         // Check if the output channel was selected
         if (!channelsToCalibrate[i])
             continue;
@@ -398,12 +404,12 @@ void ConfigOutputWidget::startESCCalibration()
     actuatorCommand->setData(actuatorCommandFields);
 
     mbox.setText(QString(tr("Motors outputs were increased to maximum. "
-                            "Reconnect the battery and wait for notification from ESCs that they recognized high throttle position.<br/>"
+                            "Reconnect the battery and wait for notification from ESCs that they "
+                            "recognized high throttle position.<br/>"
                             "<b>Immediately after that proceed to next step.</b>")));
     if (mbox.exec() == QMessageBox::Ok) {
         // Decrease output for all motors
-        for (unsigned int i = 0; i < ActuatorCommand::CHANNEL_NUMELEM; i++)
-        {
+        for (unsigned int i = 0; i < ActuatorCommand::CHANNEL_NUMELEM; i++) {
             // Check if the output channel was selected
             if (!channelsToCalibrate[i])
                 continue;
@@ -413,14 +419,15 @@ void ConfigOutputWidget::startESCCalibration()
             // we give verbatim as the minimum, and small amounts of jitter
             // can cause the motor to tick over.
             double range = actuatorSettingsData.ChannelMax[i] - actuatorSettingsData.ChannelMin[i];
-            actuatorCommandFields.Channel[i] = actuatorSettingsData.ChannelMin[i] + std::copysign(std::min(5.0, std::abs(range) / 40.0 + 0.5), range);
+            actuatorCommandFields.Channel[i] = actuatorSettingsData.ChannelMin[i]
+                + std::copysign(std::min(5.0, std::abs(range) / 40.0 + 0.5), range);
         }
         actuatorCommand->setData(actuatorCommandFields);
 
-
         mbox.setStandardButtons(QMessageBox::Ok);
         mbox.setDefaultButton(QMessageBox::Ok);
-        mbox.setText(QString(tr("Motors outputs were decreased to minimum.<br/>Wait for notification from ESCs that calibration is finished.")));
+        mbox.setText(QString(tr("Motors outputs were decreased to minimum.<br/>Wait for "
+                                "notification from ESCs that calibration is finished.")));
         mbox.exec();
     }
 
@@ -429,7 +436,6 @@ void ConfigOutputWidget::startESCCalibration()
     actuatorCommand->updated();
 }
 
-
 /********************************
   *  Output settings
   *******************************/
@@ -437,7 +443,7 @@ void ConfigOutputWidget::startESCCalibration()
 /**
   Request the current config from the board (RC Output)
   */
-void ConfigOutputWidget::refreshWidgetsValues(UAVObject * obj)
+void ConfigOutputWidget::refreshWidgetsValues(UAVObject *obj)
 {
     Q_UNUSED(obj);
 
@@ -450,12 +456,13 @@ void ConfigOutputWidget::refreshWidgetsValues(UAVObject * obj)
     assignOutputChannels(actuatorSettings);
 
     // Get the SpinWhileArmed setting
-    m_config->spinningArmed->setChecked(actuatorSettingsData.MotorsSpinWhileArmed == ActuatorSettings::MOTORSSPINWHILEARMED_TRUE);
+    m_config->spinningArmed->setChecked(actuatorSettingsData.MotorsSpinWhileArmed
+                                        == ActuatorSettings::MOTORSSPINWHILEARMED_TRUE);
 
     // Get Output rates for all channel banks
     ExtensionSystem::PluginManager *pm = ExtensionSystem::PluginManager::instance();
     Q_ASSERT(pm);
-    UAVObjectUtilManager* utilMngr = pm->getObject<UAVObjectUtilManager>();
+    UAVObjectUtilManager *utilMngr = pm->getObject<UAVObjectUtilManager>();
     if (utilMngr) {
         Core::IBoardType *board = utilMngr->getBoardType();
         if (board != NULL) {
@@ -463,19 +470,19 @@ void ConfigOutputWidget::refreshWidgetsValues(UAVObject * obj)
 
             // First reset & disable all channel fields/outputs, then repopulate (because
             // we might be for instance connecting various board types one after another)
-            for (int i=0; i < 6; i++) {
+            for (int i = 0; i < 6; i++) {
                 lblList.at(i)->setText("-");
                 rateList.at(i)->setEnabled(false);
             }
 
             // Now repopulate based on board capabilities:
-            for (int i=0; i < banks.length(); i++) {
+            for (int i = 0; i < banks.length(); i++) {
                 lblList.at(i)->setText(banks.at(i));
-                QComboBox* ccmb = rateList.at(i);
+                QComboBox *ccmb = rateList.at(i);
                 ccmb->setEnabled(true);
 
                 QString setting = timerFreqToString(actuatorSettingsData.TimerUpdateFreq[i]);
-                if (ccmb->findText(setting)==-1) {
+                if (ccmb->findText(setting) == -1) {
                     ccmb->addItem(setting);
                 }
                 ccmb->setCurrentIndex(ccmb->findText(setting));
@@ -486,9 +493,8 @@ void ConfigOutputWidget::refreshWidgetsValues(UAVObject * obj)
     m_config->motorCurveFit->setValue(actuatorSettingsData.MotorInputOutputCurveFit);
 
     // Get Channel ranges:
-    QList<OutputChannelForm*> outputChannelForms = findChildren<OutputChannelForm*>();
-    foreach(OutputChannelForm *outputChannelForm, outputChannelForms)
-    {
+    QList<OutputChannelForm *> outputChannelForms = findChildren<OutputChannelForm *>();
+    foreach (OutputChannelForm *outputChannelForm, outputChannelForms) {
         quint32 minValue = actuatorSettingsData.ChannelMin[outputChannelForm->index()];
         quint32 maxValue = actuatorSettingsData.ChannelMax[outputChannelForm->index()];
 
@@ -503,24 +509,24 @@ void ConfigOutputWidget::refreshWidgetsValues(UAVObject * obj)
 
 void ConfigOutputWidget::refreshWidgetRanges()
 {
-    QList<OutputChannelForm*> outputChannelForms = findChildren<OutputChannelForm*>();
+    QList<OutputChannelForm *> outputChannelForms = findChildren<OutputChannelForm *>();
 
     ExtensionSystem::PluginManager *pm = ExtensionSystem::PluginManager::instance();
     Q_ASSERT(pm);
-    UAVObjectUtilManager* utilMngr = pm->getObject<UAVObjectUtilManager>();
+    UAVObjectUtilManager *utilMngr = pm->getObject<UAVObjectUtilManager>();
 
     if (utilMngr) {
         Core::IBoardType *board = utilMngr->getBoardType();
         if (board != NULL) {
-            QVector< QVector<qint32> > banks = board->getChannelBanks();
+            QVector<QVector<qint32>> banks = board->getChannelBanks();
 
-            for (int i=0; i < banks.size() ; i++) {
+            for (int i = 0; i < banks.size(); i++) {
                 QVector<int> bank = banks[i];
 
                 // Pull out the parameters relating to this bank, and
                 // calculate the maximum value.
                 //
-                QComboBox* ccmb = rateList.at(i);
+                QComboBox *ccmb = rateList.at(i);
                 quint32 timerFreq = timerStringToFreq(ccmb->currentText());
 
                 // First saturate at the timer period and UAVO maximum value.
@@ -560,7 +566,8 @@ void ConfigOutputWidget::refreshWidgetRanges()
                         // Don't like the bogus index adjustments
                         if (outputChannelForm->index() != (channel - 1))
                             continue;
-                        outputChannelForm->updateChannelLimits(minPulseWidth, static_cast<int>(maxPulseWidth), digital);
+                        outputChannelForm->updateChannelLimits(
+                            minPulseWidth, static_cast<int>(maxPulseWidth), digital);
                     }
                 }
             }
@@ -577,31 +584,38 @@ void ConfigOutputWidget::updateObjectsFromWidgets()
 
     ActuatorSettings *actuatorSettings = ActuatorSettings::GetInstance(getObjectManager());
     Q_ASSERT(actuatorSettings);
-    if(actuatorSettings) {
+    if (actuatorSettings) {
         ActuatorSettings::DataFields actuatorSettingsData = actuatorSettings->getData();
-        QList<OutputChannelForm*> outputChannelForms = findChildren<OutputChannelForm*>();
+        QList<OutputChannelForm *> outputChannelForms = findChildren<OutputChannelForm *>();
 
-        foreach(OutputChannelForm *outputChannelForm, outputChannelForms)
-        {
+        foreach (OutputChannelForm *outputChannelForm, outputChannelForms) {
             actuatorSettingsData.ChannelMax[outputChannelForm->index()] = outputChannelForm->max();
             actuatorSettingsData.ChannelMin[outputChannelForm->index()] = outputChannelForm->min();
-            actuatorSettingsData.ChannelNeutral[outputChannelForm->index()] = outputChannelForm->neutral();
+            actuatorSettingsData.ChannelNeutral[outputChannelForm->index()] =
+                outputChannelForm->neutral();
         }
 
         // Set update rates
-        actuatorSettingsData.TimerUpdateFreq[0] = timerStringToFreq(m_config->cb_outputRate1->currentText());
-        actuatorSettingsData.TimerUpdateFreq[1] = timerStringToFreq(m_config->cb_outputRate2->currentText());
-        actuatorSettingsData.TimerUpdateFreq[2] = timerStringToFreq(m_config->cb_outputRate3->currentText());
-        actuatorSettingsData.TimerUpdateFreq[3] = timerStringToFreq(m_config->cb_outputRate4->currentText());
-        actuatorSettingsData.TimerUpdateFreq[4] = timerStringToFreq(m_config->cb_outputRate5->currentText());
-        actuatorSettingsData.TimerUpdateFreq[5] = timerStringToFreq(m_config->cb_outputRate6->currentText());
+        actuatorSettingsData.TimerUpdateFreq[0] =
+            timerStringToFreq(m_config->cb_outputRate1->currentText());
+        actuatorSettingsData.TimerUpdateFreq[1] =
+            timerStringToFreq(m_config->cb_outputRate2->currentText());
+        actuatorSettingsData.TimerUpdateFreq[2] =
+            timerStringToFreq(m_config->cb_outputRate3->currentText());
+        actuatorSettingsData.TimerUpdateFreq[3] =
+            timerStringToFreq(m_config->cb_outputRate4->currentText());
+        actuatorSettingsData.TimerUpdateFreq[4] =
+            timerStringToFreq(m_config->cb_outputRate5->currentText());
+        actuatorSettingsData.TimerUpdateFreq[5] =
+            timerStringToFreq(m_config->cb_outputRate6->currentText());
 
         actuatorSettingsData.MotorInputOutputCurveFit = m_config->motorCurveFit->value();
 
-        if(m_config->spinningArmed->isChecked() == true)
+        if (m_config->spinningArmed->isChecked() == true)
             actuatorSettingsData.MotorsSpinWhileArmed = ActuatorSettings::MOTORSSPINWHILEARMED_TRUE;
         else
-            actuatorSettingsData.MotorsSpinWhileArmed = ActuatorSettings::MOTORSSPINWHILEARMED_FALSE;
+            actuatorSettingsData.MotorsSpinWhileArmed =
+                ActuatorSettings::MOTORSSPINWHILEARMED_FALSE;
 
         // Apply settings
         actuatorSettings->setData(actuatorSettingsData);
@@ -610,29 +624,33 @@ void ConfigOutputWidget::updateObjectsFromWidgets()
     refreshWidgetRanges();
 }
 
-QString ConfigOutputWidget::timerFreqToString(quint32 freq) const {
+QString ConfigOutputWidget::timerFreqToString(quint32 freq) const
+{
     static const QMap<quint32, QString> mapping{
-        {RATE_SYNCPWM, tr("SyncPWM")},
-        {RATE_DSHOT300, tr("Dshot300")},
-        {RATE_DSHOT600, tr("Dshot600")},
-        {RATE_DSHOT1200, tr("Dshot1200")},
+        { RATE_SYNCPWM, tr("SyncPWM") },
+        { RATE_DSHOT300, tr("Dshot300") },
+        { RATE_DSHOT600, tr("Dshot600") },
+        { RATE_DSHOT1200, tr("Dshot1200") },
     };
     return mapping.value(freq, QString::number(freq));
 }
 
-quint32 ConfigOutputWidget::timerStringToFreq(QString str) const {
+quint32 ConfigOutputWidget::timerStringToFreq(QString str) const
+{
     static const QMap<QString, quint32> mapping{
-        {tr("SyncPWM"), RATE_SYNCPWM},
-        {tr("Dshot300"), RATE_DSHOT300},
-        {tr("Dshot600"), RATE_DSHOT600},
-        {tr("Dshot1200"), RATE_DSHOT1200},
+        { tr("SyncPWM"), RATE_SYNCPWM },
+        { tr("Dshot300"), RATE_DSHOT300 },
+        { tr("Dshot600"), RATE_DSHOT600 },
+        { tr("Dshot1200"), RATE_DSHOT1200 },
     };
     return mapping.value(str, str.toUInt());
 }
 
 void ConfigOutputWidget::openHelp()
 {
-    QDesktopServices::openUrl( QUrl("https://github.com/d-ronin/dRonin/wiki/OnlineHelp:-Output-Configuration", QUrl::StrictMode) );
+    QDesktopServices::openUrl(
+        QUrl("https://github.com/d-ronin/dRonin/wiki/OnlineHelp:-Output-Configuration",
+             QUrl::StrictMode));
 }
 
 void ConfigOutputWidget::tabSwitchingAway()

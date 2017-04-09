@@ -36,72 +36,71 @@
  * @param qSettings Settings file
  * @param parent
  */
-ScopeGadgetConfiguration::ScopeGadgetConfiguration(QString classId, QSettings* qSettings, QObject *parent) :
-        IUAVGadgetConfiguration(classId, parent),
-        m_scope(0)
+ScopeGadgetConfiguration::ScopeGadgetConfiguration(QString classId, QSettings *qSettings,
+                                                   QObject *parent)
+    : IUAVGadgetConfiguration(classId, parent)
+    , m_scope(0)
 {
-    //Default for scopes
+    // Default for scopes
     int refreshInterval = 50;
 
-    //if a saved configuration exists load it
-    if(qSettings != 0)
-    {
+    // if a saved configuration exists load it
+    if (qSettings != 0) {
 
-        PlotDimensions plotDimensions =  (PlotDimensions) qSettings->value("plotDimensions").toInt();
+        PlotDimensions plotDimensions = (PlotDimensions)qSettings->value("plotDimensions").toInt();
 
-        switch (plotDimensions)
-        {
+        switch (plotDimensions) {
         case PLOT2D:
-        default:
-        {
-            //Start reading new XML block
+        default: {
+            // Start reading new XML block
             qSettings->beginGroup(QString("plot2d"));
 
-            Scopes2dConfig::Plot2dType plot2dType = (Scopes2dConfig::Plot2dType) qSettings->value("plot2dType").toUInt();
-            switch (plot2dType){
+            Scopes2dConfig::Plot2dType plot2dType =
+                (Scopes2dConfig::Plot2dType)qSettings->value("plot2dType").toUInt();
+            switch (plot2dType) {
             case Scopes2dConfig::HISTOGRAM: {
                 m_scope = new HistogramScopeConfig(qSettings);
                 break;
-                }
+            }
             case Scopes2dConfig::SCATTERPLOT2D:
             default: {
                 m_scope = new Scatterplot2dScopeConfig(qSettings);
                 break;
-                }
+            }
             }
 
-            //Stop reading XML block
+            // Stop reading XML block
             qSettings->endGroup();
 
             break;
-            }
+        }
         case PLOT3D: {
-            //Start reading new XML block
+            // Start reading new XML block
             qSettings->beginGroup(QString("plot3d"));
 
-            Scopes3dConfig::Plot3dType plot3dType = (Scopes3dConfig::Plot3dType) qSettings->value("plot3dType").toUInt(); //<--TODO: This requires that the enum values be defined at 0,1,...n
-            switch (plot3dType){
+            Scopes3dConfig::Plot3dType plot3dType =
+                (Scopes3dConfig::Plot3dType)qSettings->value("plot3dType")
+                    .toUInt(); //<--TODO: This requires that the enum values be defined at 0,1,...n
+            switch (plot3dType) {
             default:
             case Scopes3dConfig::SPECTROGRAM: {
                 m_scope = new SpectrogramScopeConfig(qSettings);
                 break;
-                }
+            }
             }
 
-            //Stop reading XML block
+            // Stop reading XML block
             qSettings->endGroup();
 
             break;
-            }
+        }
         }
         m_scope->setRefreshInterval(refreshInterval);
-    }
-    else{
+    } else {
         // Default config is just a simple 2D scatterplot
         m_scope = new Scatterplot2dScopeConfig();
     }
 }
-
 
 /**
  * @brief ScopeGadgetConfiguration::applyGuiConfiguration Uses GUI information to create new scopes
@@ -109,40 +108,39 @@ ScopeGadgetConfiguration::ScopeGadgetConfiguration(QString classId, QSettings* q
  */
 void ScopeGadgetConfiguration::applyGuiConfiguration(Ui::ScopeGadgetOptionsPage *options_page)
 {
-    //Default for scopes
+    // Default for scopes
     int refreshInterval = 50;
 
-    if(options_page->tabWidget2d3d->currentWidget() == options_page->tabPlot2d)
-    {   //--- 2D ---//
-        Scopes2dConfig::Plot2dType plot2dType = (Scopes2dConfig::Plot2dType) options_page->cmb2dPlotType->itemData(options_page->cmb2dPlotType->currentIndex()).toUInt(); //This is safe because the item data is defined from the enum.
-        switch (plot2dType){
+    if (options_page->tabWidget2d3d->currentWidget() == options_page->tabPlot2d) { //--- 2D ---//
+        Scopes2dConfig::Plot2dType plot2dType =
+            (Scopes2dConfig::Plot2dType)options_page->cmb2dPlotType
+                ->itemData(options_page->cmb2dPlotType->currentIndex())
+                .toUInt(); // This is safe because the item data is defined from the enum.
+        switch (plot2dType) {
         case Scopes2dConfig::HISTOGRAM: {
             m_scope = new HistogramScopeConfig(options_page);
             break;
-            }
+        }
         case Scopes2dConfig::SCATTERPLOT2D:
         default: {
             m_scope = new Scatterplot2dScopeConfig(options_page);
             break;
-            }
+        }
         }
 
-    }
-    else if(options_page->tabWidget2d3d->currentWidget() == options_page->tabPlot3d)
-    {   //--- 3D ---//
+    } else if (options_page->tabWidget2d3d->currentWidget()
+               == options_page->tabPlot3d) { //--- 3D ---//
 
-        if (options_page->stackedWidget3dPlots->currentWidget() == options_page->sw3dSpectrogramStack)
-        {
+        if (options_page->stackedWidget3dPlots->currentWidget()
+            == options_page->sw3dSpectrogramStack) {
             m_scope = new SpectrogramScopeConfig(options_page);
-        }
-        else if (options_page->stackedWidget3dPlots->currentWidget() == options_page->sw3dTimeSeriesStack)
-        {
+        } else if (options_page->stackedWidget3dPlots->currentWidget()
+                   == options_page->sw3dTimeSeriesStack) {
         }
     }
 
     m_scope->setRefreshInterval(refreshInterval);
 }
-
 
 /**
  * @brief ScopeGadgetConfiguration::~ScopeGadgetConfiguration Destructor clears 2D and 3D plot data
@@ -151,7 +149,6 @@ ScopeGadgetConfiguration::~ScopeGadgetConfiguration()
 {
 }
 
-
 /**
  * @brief ScopeGadgetConfiguration::clone Clones a configuration.
  * @return
@@ -159,17 +156,18 @@ ScopeGadgetConfiguration::~ScopeGadgetConfiguration()
 IUAVGadgetConfiguration *ScopeGadgetConfiguration::clone()
 {
     ScopeGadgetConfiguration *m = new ScopeGadgetConfiguration(this->classId());
-    m->m_scope=this->getScope()->cloneScope(m_scope);
+    m->m_scope = this->getScope()->cloneScope(m_scope);
 
     return m;
 }
 
-
 /**
- * @brief ScopeGadgetConfiguration::saveConfig Saves a configuration. //REDEFINES saveConfig CHILD BEHAVIOR?
+ * @brief ScopeGadgetConfiguration::saveConfig Saves a configuration. //REDEFINES saveConfig CHILD
+ * BEHAVIOR?
  * @param qSettings
  */
-void ScopeGadgetConfiguration::saveConfig(QSettings* qSettings) const {
+void ScopeGadgetConfiguration::saveConfig(QSettings *qSettings) const
+{
     qSettings->setValue("plotDimensions", m_scope->getScopeDimensions());
     qSettings->setValue("refreshInterval", m_scope->getRefreshInterval());
 

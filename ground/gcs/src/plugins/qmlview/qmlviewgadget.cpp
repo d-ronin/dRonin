@@ -8,7 +8,7 @@
  * @{
  * @addtogroup OPMapPlugin QML Viewer Plugin
  * @{
- * @brief The QML Viewer Gadget 
+ * @brief The QML Viewer Gadget
  *****************************************************************************/
 /*
  * This program is free software; you can redistribute it and/or modify
@@ -29,12 +29,12 @@
 #include "qmlviewgadgetwidget.h"
 #include "qmlviewgadgetconfiguration.h"
 
-QmlViewGadget::QmlViewGadget(QString classId, QmlViewGadgetWidget *widget, QWidget *parent) :
-        IUAVGadget(classId, parent),
-        m_widget(widget)
+QmlViewGadget::QmlViewGadget(QString classId, QmlViewGadgetWidget *widget, QWidget *parent)
+    : IUAVGadget(classId, parent)
+    , m_widget(widget)
 {
     m_container = NULL;
-    m_parent    = parent;
+    m_parent = parent;
 }
 
 QmlViewGadget::~QmlViewGadget()
@@ -48,8 +48,8 @@ QmlViewGadget::~QmlViewGadget()
   first time, so you have to be careful not to assume all the plugin values are initialized
   the first time you use them
  */
-void QmlViewGadget::loadConfiguration(IUAVGadgetConfiguration* config)
+void QmlViewGadget::loadConfiguration(IUAVGadgetConfiguration *config)
 {
-    QmlViewGadgetConfiguration *m = qobject_cast<QmlViewGadgetConfiguration*>(config);
+    QmlViewGadgetConfiguration *m = qobject_cast<QmlViewGadgetConfiguration *>(config);
     m_widget->setQmlFile(m->dialFile());
 }

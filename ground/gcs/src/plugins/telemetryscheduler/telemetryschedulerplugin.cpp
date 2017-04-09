@@ -29,35 +29,34 @@
 #include <QStringList>
 #include <extensionsystem/pluginmanager.h>
 
-
 TelemetrySchedulerPlugin::TelemetrySchedulerPlugin()
 {
-   // Do nothing
+    // Do nothing
 }
 
 TelemetrySchedulerPlugin::~TelemetrySchedulerPlugin()
 {
-   // Do nothing
+    // Do nothing
 }
 
-bool TelemetrySchedulerPlugin::initialize(const QStringList& args, QString *errMsg)
+bool TelemetrySchedulerPlugin::initialize(const QStringList &args, QString *errMsg)
 {
-   Q_UNUSED(args);
-   Q_UNUSED(errMsg);
-   mf = new TelemetrySchedulerGadgetFactory(this);
-   addAutoReleasedObject(mf);
+    Q_UNUSED(args);
+    Q_UNUSED(errMsg);
+    mf = new TelemetrySchedulerGadgetFactory(this);
+    addAutoReleasedObject(mf);
 
-   return true;
+    return true;
 }
 
 void TelemetrySchedulerPlugin::extensionsInitialized()
 {
-   // Do nothing
+    // Do nothing
 }
 
 void TelemetrySchedulerPlugin::shutdown()
 {
-   // Do nothing
+    // Do nothing
 }
 
 /**

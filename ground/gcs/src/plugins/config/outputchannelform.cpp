@@ -31,33 +31,33 @@
 #include "configoutputwidget.h"
 #include "actuatorsettings.h"
 
-OutputChannelForm::OutputChannelForm(const int index, QWidget *parent, const bool showLegend) :
-        ConfigTaskWidget(parent),
-        ui(),
-        m_index(index),
-        m_inChannelTest(false),
-        limitMin(1000),
-        limitMax(2000),
-        minMaxFixed(false)
+OutputChannelForm::OutputChannelForm(const int index, QWidget *parent, const bool showLegend)
+    : ConfigTaskWidget(parent)
+    , ui()
+    , m_index(index)
+    , m_inChannelTest(false)
+    , limitMin(1000)
+    , limitMax(2000)
+    , minMaxFixed(false)
 {
     ui.setupUi(this);
-
 
     ActuatorSettings *actuatorSettings = ActuatorSettings::GetInstance(getObjectManager());
     Q_ASSERT(actuatorSettings);
 
-    if(!showLegend)
-    {
+    if (!showLegend) {
         // Remove legend
-        QGridLayout *grid_layout = dynamic_cast<QGridLayout*>(layout());
+        QGridLayout *grid_layout = dynamic_cast<QGridLayout *>(layout());
         Q_ASSERT(grid_layout);
-        for (int col = 0; col < grid_layout->columnCount(); col++)
-        { // remove every item in first row
+        for (int col = 0; col < grid_layout->columnCount();
+             col++) { // remove every item in first row
             QLayoutItem *item = grid_layout->itemAtPosition(0, col);
-            if (!item) continue;
+            if (!item)
+                continue;
             // get widget from layout item
             QWidget *legend_widget = item->widget();
-            if (!legend_widget) continue;
+            if (!legend_widget)
+                continue;
             // delete widget
             grid_layout->removeWidget(legend_widget);
             delete legend_widget;
@@ -65,22 +65,29 @@ OutputChannelForm::OutputChannelForm(const int index, QWidget *parent, const boo
     }
 
     // The convention is Channel 1 to Channel 10.
-    ui.actuatorNumber->setText(QString("%1:").arg(m_index+1));
+    ui.actuatorNumber->setText(QString("%1:").arg(m_index + 1));
 
     // Register for ActuatorSettings changes:
-    connect(ui.actuatorMin, SIGNAL(editingFinished()), this, SLOT(setChannelRange()));
-    connect(ui.actuatorMax, SIGNAL(editingFinished()), this, SLOT(setChannelRange()));
-    connect(ui.pb_reverseActuator, SIGNAL(clicked()), this, SLOT(reverseChannel()));
+    connect(ui.actuatorMin, &QAbstractSpinBox::editingFinished, this,
+            &OutputChannelForm::setChannelRange);
+    connect(ui.actuatorMax, &QAbstractSpinBox::editingFinished, this,
+            &OutputChannelForm::setChannelRange);
+    connect(ui.pb_reverseActuator, &QAbstractButton::clicked, this,
+            &OutputChannelForm::reverseChannel);
 
     // Connect the channel out sliders to our signal in order to send updates in test mode
-    connect(ui.actuatorNeutral, SIGNAL(valueChanged(int)), this, SLOT(sendChannelTest(int)));
+    connect(ui.actuatorNeutral, &QAbstractSlider::valueChanged, this,
+            &OutputChannelForm::sendChannelTest);
 
     // Connect UI elements to dirty/clean (i.e. changed/unchanged) signal/slot
-    connect(ui.actuatorMin, SIGNAL(valueChanged(int)), this, SLOT(notifyFormChanged()));
-    connect(ui.actuatorMax, SIGNAL(valueChanged(int)), this, SLOT(notifyFormChanged()));
-    connect(ui.actuatorNeutral, SIGNAL(sliderReleased()), this, SLOT(notifyFormChanged()));
+    connect(ui.actuatorMin, QOverload<int>::of(&QSpinBox::valueChanged), this,
+            &OutputChannelForm::notifyFormChanged);
+    connect(ui.actuatorMax, QOverload<int>::of(&QSpinBox::valueChanged), this,
+            &OutputChannelForm::notifyFormChanged);
+    connect(ui.actuatorNeutral, &QAbstractSlider::sliderReleased, this,
+            &OutputChannelForm::notifyFormChanged);
     ui.actuatorLink->setChecked(false);
-    connect(ui.actuatorLink, SIGNAL(toggled(bool)), this, SLOT(linkToggled(bool)));
+    connect(ui.actuatorLink, &QAbstractButton::toggled, this, &OutputChannelForm::linkToggled);
 
     disableMouseWheelEvents();
 }
@@ -99,22 +106,18 @@ void OutputChannelForm::enableChannelTest(bool state)
         return;
     m_inChannelTest = state;
 
-    if(m_inChannelTest)
-    {
+    if (m_inChannelTest) {
         // Prevent users from changing the minimum & maximum ranges while
         // moving the sliders. Thanks Ivan for the tip :)
         ui.actuatorMin->setEnabled(false);
         ui.actuatorMax->setEnabled(false);
         ui.pb_reverseActuator->setEnabled(false);
-    }
-    else
-    {
+    } else {
         ui.actuatorMin->setEnabled(!minMaxFixed);
         ui.actuatorMax->setEnabled(!minMaxFixed);
         ui.pb_reverseActuator->setEnabled(!minMaxFixed);
     }
 }
-
 
 /**
  * Toggles the channel linked state for use in testing mode
@@ -127,28 +130,28 @@ void OutputChannelForm::linkToggled(bool state)
         return; // we are not in Test Output mode
 
     // find the minimum slider value for the linked ones
-    if (!parent()) return;
+    if (!parent())
+        return;
     int min = 10000;
     int linked_count = 0;
-    QList<OutputChannelForm*> outputChannelForms = parent()->findChildren<OutputChannelForm*>();
+    QList<OutputChannelForm *> outputChannelForms = parent()->findChildren<OutputChannelForm *>();
     // set the linked channels of the parent widget to the same value
-    foreach(OutputChannelForm *outputChannelForm, outputChannelForms)
-    {
+    foreach (OutputChannelForm *outputChannelForm, outputChannelForms) {
         if (!outputChannelForm->ui.actuatorLink->checkState())
             continue;
         if (this == outputChannelForm)
             continue;
         int value = outputChannelForm->ui.actuatorNeutral->value();
-        if(min > value) min = value;
+        if (min > value)
+            min = value;
         linked_count++;
     }
 
     if (linked_count <= 0)
-        return;		// no linked channels
+        return; // no linked channels
 
     // set the linked channels to the same value
-    foreach(OutputChannelForm *outputChannelForm, outputChannelForms)
-    {
+    foreach (OutputChannelForm *outputChannelForm, outputChannelForms) {
         if (!outputChannelForm->ui.actuatorLink->checkState())
             continue;
         outputChannelForm->ui.actuatorNeutral->setValue(min);
@@ -196,18 +199,16 @@ void OutputChannelForm::setNeutral(int value)
 
 void OutputChannelForm::alignFields()
 {
-    int actuatorWidth=0;
+    int actuatorWidth = 0;
 
-    foreach(OutputChannelForm * form,parent()->findChildren<OutputChannelForm*>())
-    {
+    foreach (OutputChannelForm *form, parent()->findChildren<OutputChannelForm *>()) {
         actuatorWidth = fmax(actuatorWidth, form->ui.actuatorMin->minimumSize().width());
         actuatorWidth = fmax(actuatorWidth, form->ui.actuatorMin->sizeHint().width());
         actuatorWidth = fmax(actuatorWidth, form->ui.actuatorMax->minimumSize().width());
         actuatorWidth = fmax(actuatorWidth, form->ui.actuatorMax->sizeHint().width());
     }
 
-    foreach(OutputChannelForm * form,parent()->findChildren<OutputChannelForm*>())
-    {
+    foreach (OutputChannelForm *form, parent()->findChildren<OutputChannelForm *>()) {
         form->ui.actuatorMin->setMinimumSize(actuatorWidth, 0);
         form->ui.actuatorMax->setMinimumSize(actuatorWidth, 0);
     }
@@ -220,17 +221,16 @@ void OutputChannelForm::setAssignment(const QString &assignment)
 {
     ui.actuatorName->setText(assignment);
     QFontMetrics metrics(ui.actuatorName->font());
-    int width=metrics.width(assignment)+1;
-    foreach(OutputChannelForm * form,parent()->findChildren<OutputChannelForm*>())
-    {
-        if(form==this)
+    int width = metrics.width(assignment) + 1;
+    foreach (OutputChannelForm *form, parent()->findChildren<OutputChannelForm *>()) {
+        if (form == this)
             continue;
-        if(form->ui.actuatorName->minimumSize().width()<width)
-            form->ui.actuatorName->setMinimumSize(width,0);
+        if (form->ui.actuatorName->minimumSize().width() < width)
+            form->ui.actuatorName->setMinimumSize(width, 0);
         else
-            width=form->ui.actuatorName->minimumSize().width();
+            width = form->ui.actuatorName->minimumSize().width();
     }
-    ui.actuatorName->setMinimumSize(width,0);
+    ui.actuatorName->setMinimumSize(width, 0);
 }
 
 /**
@@ -254,7 +254,7 @@ void OutputChannelForm::setChannelRange()
     } else {
         // when the min and max is equal, disable this slider to prevent crash
         // from Qt bug: https://bugreports.qt.io/browse/QTBUG-43398
-        ui.actuatorNeutral->setRange(ui.actuatorMin->value()-1, ui.actuatorMin->value()+1);
+        ui.actuatorNeutral->setRange(ui.actuatorMin->value() - 1, ui.actuatorMin->value() + 1);
         ui.actuatorNeutral->setEnabled(false);
         setNeutral(ui.actuatorMin->value());
     }
@@ -280,7 +280,6 @@ void OutputChannelForm::reverseChannel()
     setChannelRange();
 }
 
-
 /**
  * Inverts the slider when the output channel is reversed
  */
@@ -290,7 +289,7 @@ void OutputChannelForm::reverseChannel()
 void OutputChannelForm::updateSlider()
 {
     // Invert the slider
-    if(ui.actuatorMin->value() > ui.actuatorMax->value()) {
+    if (ui.actuatorMin->value() > ui.actuatorMax->value()) {
         ui.actuatorNeutral->setInvertedAppearance(true);
 
         // Set the QSlider groove colors so that the fill is on the side of the minimum value
@@ -306,7 +305,6 @@ void OutputChannelForm::updateSlider()
     ui.actuatorNeutral->setStyle(QApplication::style());
 }
 
-
 /**
  * Emits the channel value which will be sent to the UAV to move the servo.
  * Returns immediately if we are not in testing mode.
@@ -319,14 +317,15 @@ void OutputChannelForm::sendChannelTest(int value)
     if (!ob)
         return;
 
-    if (ui.actuatorLink->checkState() && parent())
-    {	// the channel is linked to other channels
-        QList<OutputChannelForm*> outputChannelForms = parent()->findChildren<OutputChannelForm*>();
+    if (ui.actuatorLink->checkState() && parent()) { // the channel is linked to other channels
+        QList<OutputChannelForm *> outputChannelForms =
+            parent()->findChildren<OutputChannelForm *>();
         // set the linked channels of the parent widget to the same value
-        foreach(OutputChannelForm *outputChannelForm, outputChannelForms)
-        {
-            if (this == outputChannelForm) continue;
-            if (!outputChannelForm->ui.actuatorLink->checkState()) continue;
+        foreach (OutputChannelForm *outputChannelForm, outputChannelForms) {
+            if (this == outputChannelForm)
+                continue;
+            if (!outputChannelForm->ui.actuatorLink->checkState())
+                continue;
 
             int val = in_value;
             if (val < outputChannelForm->ui.actuatorNeutral->minimum())
@@ -334,14 +333,15 @@ void OutputChannelForm::sendChannelTest(int value)
             if (val > outputChannelForm->ui.actuatorNeutral->maximum())
                 val = outputChannelForm->ui.actuatorNeutral->maximum();
 
-            if (outputChannelForm->ui.actuatorNeutral->value() == val) continue;
+            if (outputChannelForm->ui.actuatorNeutral->value() == val)
+                continue;
 
             outputChannelForm->ui.actuatorNeutral->setValue(val);
         }
     }
 
     if (!m_inChannelTest)
-        return;	// we are not in Test Output mode
+        return; // we are not in Test Output mode
 
     emit channelChanged(index(), value);
 }
@@ -352,7 +352,7 @@ void OutputChannelForm::sendChannelTest(int value)
 void OutputChannelForm::notifyFormChanged()
 {
     // If we are not in Test Output mode, set form as dirty
-    if (!m_inChannelTest){
+    if (!m_inChannelTest) {
         emit formChanged();
     }
 
@@ -366,7 +366,8 @@ void OutputChannelForm::updateChannelLimits(int minPulse, int maxPulse, bool dig
     minMaxFixed = digitalProtocol;
 
     if (digitalProtocol) {
-        // digital protocol like Dshot, fix min to 0, max to maxPulse, and neutral range goes between minPulse and maxPulse
+        // digital protocol like Dshot, fix min to 0, max to maxPulse, and neutral range goes
+        // between minPulse and maxPulse
         ui.actuatorMin->setRange(0, 0);
         ui.actuatorMax->setRange(limitMax, limitMax);
     } else {

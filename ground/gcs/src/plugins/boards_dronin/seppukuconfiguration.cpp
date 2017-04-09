@@ -29,17 +29,18 @@
 
 #include "seppukuconfiguration.h"
 
-SeppukuConfiguration::SeppukuConfiguration(QWidget *parent) :
-    ConfigTaskWidget(parent),
-    ui(new Ui::Seppuku),
-    m_background(Q_NULLPTR)
+SeppukuConfiguration::SeppukuConfiguration(QWidget *parent)
+    : ConfigTaskWidget(parent)
+    , ui(new Ui::Seppuku)
+    , m_background(Q_NULLPTR)
 {
     ui->setupUi(this);
 
     setupGraphicsScene();
 
     connect(ui->cbMag, &QComboBox::currentTextChanged, this, &SeppukuConfiguration::magChanged);
-    connect(ui->cbOutputs, &QComboBox::currentTextChanged, this, &SeppukuConfiguration::outputsChanged);
+    connect(ui->cbOutputs, &QComboBox::currentTextChanged, this,
+            &SeppukuConfiguration::outputsChanged);
     connect(ui->cbRcvrPort, &QComboBox::currentTextChanged, this, &SeppukuConfiguration::checkRcvr);
     connect(ui->cbUart1, &QComboBox::currentTextChanged, this, &SeppukuConfiguration::checkDsm);
     connect(ui->cbUart3, &QComboBox::currentTextChanged, this, &SeppukuConfiguration::checkUart3);
@@ -149,7 +150,8 @@ void SeppukuConfiguration::checkExtMag()
     bool uartExt = ui->cbUart3->currentText() == "I2C";
 
     if (extMag && !uartExt)
-        setMessage("ExtMag", tr("External magnetometer selected but UART3 not configured as I2C!"), "error");
+        setMessage("ExtMag", tr("External magnetometer selected but UART3 not configured as I2C!"),
+                   "error");
     else if (uartExt && !extMag)
         setMessage("ExtMag", tr("UART3 configured as I2C but external magnetometer not selected."));
     else
@@ -186,14 +188,21 @@ void SeppukuConfiguration::checkRcvr(const QString &newVal)
     bool dsm = newVal.contains("DSM");
     bool enabled = newVal != "Disabled";
     if (dsm)
-        setMessage("RxPower", tr("Please remember to solder ONLY the 3V3 receiver voltage jumper under the board."), "info");
+        setMessage(
+            "RxPower",
+            tr("Please remember to solder ONLY the 3V3 receiver voltage jumper under the board."),
+            "info");
     else if (enabled)
-        setMessage("RxPower", tr("Please remember to solder ONE of the receiver voltage jumpers under the board."), "info");
+        setMessage(
+            "RxPower",
+            tr("Please remember to solder ONE of the receiver voltage jumpers under the board."),
+            "info");
     else
         setMessage("RxPower");
 }
 
-void SeppukuConfiguration::setMessage(const QString &name, const QString &msg, const QString &severity)
+void SeppukuConfiguration::setMessage(const QString &name, const QString &msg,
+                                      const QString &severity)
 {
     QLabel *lbl = ui->gbMessages->findChild<QLabel *>(name);
     if (msg.length()) {

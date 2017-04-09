@@ -35,7 +35,8 @@ class OutputChannelForm : public ConfigTaskWidget
     Q_OBJECT
 
 public:
-    explicit OutputChannelForm(const int index, QWidget *parent = NULL, const bool showLegend = false);
+    explicit OutputChannelForm(const int index, QWidget *parent = NULL,
+                               const bool showLegend = false);
     ~OutputChannelForm();
     friend class ConfigOnputWidget;
 

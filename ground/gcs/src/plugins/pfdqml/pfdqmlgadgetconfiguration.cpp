@@ -20,14 +20,15 @@
  * Loads a saved configuration or defaults if non exist.
  *
  */
-PfdQmlGadgetConfiguration::PfdQmlGadgetConfiguration(QString classId, QSettings *qSettings, QObject *parent) :
-    IUAVGadgetConfiguration(classId, parent),
-    m_qmlFile("Unknown")
+PfdQmlGadgetConfiguration::PfdQmlGadgetConfiguration(QString classId, QSettings *qSettings,
+                                                     QObject *parent)
+    : IUAVGadgetConfiguration(classId, parent)
+    , m_qmlFile("Unknown")
 {
-    //if a saved configuration exists load it
-    if(qSettings != 0) {
+    // if a saved configuration exists load it
+    if (qSettings != 0) {
         m_qmlFile = qSettings->value("qmlFile").toString();
-        m_qmlFile=Utils::PathUtils().InsertDataPath(m_qmlFile);
+        m_qmlFile = Utils::PathUtils().InsertDataPath(m_qmlFile);
 
         foreach (const QString &key, qSettings->childKeys()) {
             m_settings.insert(key, qSettings->value(key));
@@ -52,7 +53,8 @@ IUAVGadgetConfiguration *PfdQmlGadgetConfiguration::clone()
  * Saves a configuration.
  *
  */
-void PfdQmlGadgetConfiguration::saveConfig(QSettings* qSettings) const {
+void PfdQmlGadgetConfiguration::saveConfig(QSettings *qSettings) const
+{
     QString qmlFile = Utils::PathUtils().RemoveDataPath(m_qmlFile);
     qSettings->setValue("qmlFile", qmlFile);
 }

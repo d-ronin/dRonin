@@ -40,7 +40,6 @@
 #include <QStackedLayout>
 #include <QtCore/QPointer>
 
-
 QT_BEGIN_NAMESPACE
 class QComboBox;
 class QToolButton;
@@ -59,45 +58,44 @@ class UAVGadgetManager;
 
 namespace Internal {
 
+    class UAVGadgetView : public QWidget
+    {
+        Q_OBJECT
 
-class UAVGadgetView : public QWidget
-{
-    Q_OBJECT
+    public:
+        UAVGadgetView(UAVGadgetManager *uavGadgetManager, IUAVGadget *uavGadget = 0,
+                      QWidget *parent = 0, bool restoring = false);
+        virtual ~UAVGadgetView();
+        void selectionActivated(int index, bool forceLoadConfiguration);
+        void removeGadget();
+        IUAVGadget *gadget() const;
+        void setGadget(IUAVGadget *uavGadget);
+        bool hasGadget(IUAVGadget *uavGadget) const;
+        int indexOfClassId(QString classId);
+        void showToolbar(bool show);
 
-public:
-    UAVGadgetView(UAVGadgetManager *uavGadgetManager, IUAVGadget *uavGadget = 0, QWidget *parent = 0, bool restoring = false);
-    virtual ~UAVGadgetView();
-    void selectionActivated(int index, bool forceLoadConfiguration);
-    void removeGadget();
-    IUAVGadget *gadget() const;
-    void setGadget(IUAVGadget *uavGadget);
-    bool hasGadget(IUAVGadget *uavGadget) const;
-    int indexOfClassId(QString classId);
-    void showToolbar(bool show);
+    public slots:
+        void closeView();
+        void doReplaceGadget(int index);
 
-public slots:
-    void closeView();
-    void doReplaceGadget(int index);
+    private slots:
+        void currentGadgetChanged(IUAVGadget *gadget);
 
-private slots:
-    void currentGadgetChanged(IUAVGadget *gadget);
-
-private:
-    void updateToolBar();
-    QPointer<UAVGadgetManager> m_uavGadgetManager;
-    QPointer<IUAVGadget> m_uavGadget;
-    QWidget *m_toolBar;
-    QComboBox *m_defaultToolBar;
-    QWidget *m_currentToolBar;
-    QWidget *m_activeToolBar;
-    QComboBox *m_uavGadgetList;
-    QToolButton *m_closeButton;
-    Utils::StyledBar *m_top;
-    QVBoxLayout *tl; // top layout
-    int m_defaultIndex;
-    QLabel *m_activeLabel;
-};
-
+    private:
+        void updateToolBar();
+        QPointer<UAVGadgetManager> m_uavGadgetManager;
+        QPointer<IUAVGadget> m_uavGadget;
+        QWidget *m_toolBar;
+        QComboBox *m_defaultToolBar;
+        QWidget *m_currentToolBar;
+        QWidget *m_activeToolBar;
+        QComboBox *m_uavGadgetList;
+        QToolButton *m_closeButton;
+        Utils::StyledBar *m_top;
+        QVBoxLayout *tl; // top layout
+        int m_defaultIndex;
+        QLabel *m_activeLabel;
+    };
 }
 }
 #endif // UAVGADGETVIEW_H

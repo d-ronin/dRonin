@@ -26,4 +26,3 @@
  */
 
 #include "iconnection.h"
-

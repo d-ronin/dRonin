@@ -11,17 +11,17 @@
  * @brief The Core GCS plugin
  *****************************************************************************/
 /*
- * This program is free software; you can redistribute it and/or modify 
- * it under the terms of the GNU General Public License as published by 
- * the Free Software Foundation; either version 3 of the License, or 
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 3 of the License, or
  * (at your option) any later version.
- * 
- * This program is distributed in the hope that it will be useful, but 
- * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY 
- * or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License 
+ *
+ * This program is distributed in the hope that it will be useful, but
+ * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
+ * or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License
  * for more details.
- * 
- * You should have received a copy of the GNU General Public License along 
+ *
+ * You should have received a copy of the GNU General Public License along
  * with this program; if not, see <http://www.gnu.org/licenses/>
  */
 
@@ -43,8 +43,8 @@
 using namespace Core::Internal;
 
 PluginDialog::PluginDialog(QWidget *parent)
-    : QDialog(parent),
-      m_view(new ExtensionSystem::PluginView(ExtensionSystem::PluginManager::instance(), this))
+    : QDialog(parent)
+    , m_view(new ExtensionSystem::PluginView(ExtensionSystem::PluginManager::instance(), this))
 {
     QVBoxLayout *vl = new QVBoxLayout(this);
     vl->addWidget(m_view);
@@ -69,10 +69,10 @@ PluginDialog::PluginDialog(QWidget *parent)
     setWindowTitle(tr("Installed Plugins"));
     setWindowIcon(QIcon(":/core/images/pluginicon.png"));
 
-    connect(m_view, SIGNAL(currentPluginChanged(ExtensionSystem::PluginSpec*)),
-            this, SLOT(updateButtons()));
-    connect(m_view, SIGNAL(pluginActivated(ExtensionSystem::PluginSpec*)),
-            this, SLOT(openDetails(ExtensionSystem::PluginSpec*)));
+    connect(m_view, SIGNAL(currentPluginChanged(ExtensionSystem::PluginSpec *)), this,
+            SLOT(updateButtons()));
+    connect(m_view, SIGNAL(pluginActivated(ExtensionSystem::PluginSpec *)), this,
+            SLOT(openDetails(ExtensionSystem::PluginSpec *)));
     connect(m_detailsButton, SIGNAL(clicked()), this, SLOT(openDetails()));
     connect(m_errorDetailsButton, SIGNAL(clicked()), this, SLOT(openErrorDetails()));
     connect(m_closeButton, SIGNAL(clicked()), this, SLOT(accept()));
@@ -91,7 +91,6 @@ void PluginDialog::updateButtons()
     }
 }
 
-
 void PluginDialog::openDetails()
 {
     openDetails(m_view->currentPlugin());
@@ -108,7 +107,8 @@ void PluginDialog::openDetails(ExtensionSystem::PluginSpec *spec)
     ExtensionSystem::PluginDetailsView *details = new ExtensionSystem::PluginDetailsView(&dialog);
     layout->addWidget(details);
     details->update(spec);
-    QDialogButtonBox *buttons = new QDialogButtonBox(QDialogButtonBox::Close, Qt::Horizontal, &dialog);
+    QDialogButtonBox *buttons =
+        new QDialogButtonBox(QDialogButtonBox::Close, Qt::Horizontal, &dialog);
     layout->addWidget(buttons);
     connect(buttons, SIGNAL(accepted()), &dialog, SLOT(accept()));
     connect(buttons, SIGNAL(rejected()), &dialog, SLOT(reject()));
@@ -128,11 +128,11 @@ void PluginDialog::openErrorDetails()
     ExtensionSystem::PluginErrorView *errors = new ExtensionSystem::PluginErrorView(&dialog);
     layout->addWidget(errors);
     errors->update(spec);
-    QDialogButtonBox *buttons = new QDialogButtonBox(QDialogButtonBox::Close, Qt::Horizontal, &dialog);
+    QDialogButtonBox *buttons =
+        new QDialogButtonBox(QDialogButtonBox::Close, Qt::Horizontal, &dialog);
     layout->addWidget(buttons);
     connect(buttons, SIGNAL(accepted()), &dialog, SLOT(accept()));
     connect(buttons, SIGNAL(rejected()), &dialog, SLOT(reject()));
     dialog.resize(500, 300);
     dialog.exec();
 }
-

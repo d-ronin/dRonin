@@ -33,18 +33,18 @@
 class OPMapGadgetConfiguration;
 
 namespace Core {
-    class IUAVGadgetConfiguration;
+class IUAVGadgetConfiguration;
 }
 
 namespace Ui {
-    class OPMapGadgetOptionsPage;
+class OPMapGadgetOptionsPage;
 }
 
 using namespace Core;
 
 class OPMapGadgetOptionsPage : public IOptionsPage
 {
-Q_OBJECT
+    Q_OBJECT
 public:
     explicit OPMapGadgetOptionsPage(OPMapGadgetConfiguration *config, QObject *parent = 0);
 

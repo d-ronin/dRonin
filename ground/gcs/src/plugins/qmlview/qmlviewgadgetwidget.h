@@ -7,7 +7,7 @@
  * @{
  * @addtogroup OPMapPlugin QML Viewer Plugin
  * @{
- * @brief The QML Viewer Gadget 
+ * @brief The QML Viewer Gadget
  *****************************************************************************/
 /*
  * This program is free software; you can redistribute it and/or modify
@@ -45,16 +45,16 @@ class QmlViewGadgetWidget : public QQuickView
 
 public:
     QmlViewGadgetWidget(QWindow *parent = 0);
-   ~QmlViewGadgetWidget();
-   void setQmlFile(QString fn);
+    ~QmlViewGadgetWidget();
+    void setQmlFile(QString fn);
 
-   void enableSmoothUpdates(bool flag) { beSmooth = flag; }
+    void enableSmoothUpdates(bool flag) { beSmooth = flag; }
 
 protected:
     void mouseReleaseEvent(QMouseEvent *event);
 
 private:
-   bool beSmooth;
-   QString m_fn;
+    bool beSmooth;
+    QString m_fn;
 };
 #endif /* QmlViewGADGETWIDGET_H_ */

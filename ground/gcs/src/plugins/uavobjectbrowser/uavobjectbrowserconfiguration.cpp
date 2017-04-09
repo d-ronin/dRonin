@@ -11,46 +11,48 @@
  * @brief The UAVObject Browser gadget plugin
  *****************************************************************************/
 /*
- * This program is free software; you can redistribute it and/or modify 
- * it under the terms of the GNU General Public License as published by 
- * the Free Software Foundation; either version 3 of the License, or 
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 3 of the License, or
  * (at your option) any later version.
- * 
- * This program is distributed in the hope that it will be useful, but 
- * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY 
- * or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License 
+ *
+ * This program is distributed in the hope that it will be useful, but
+ * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
+ * or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License
  * for more details.
- * 
- * You should have received a copy of the GNU General Public License along 
+ *
+ * You should have received a copy of the GNU General Public License along
  * with this program; if not, see <http://www.gnu.org/licenses/>
  */
 
 #include "uavobjectbrowserconfiguration.h"
 
-UAVObjectBrowserConfiguration::UAVObjectBrowserConfiguration(QString classId, QSettings* qSettings, QObject *parent) :
-    IUAVGadgetConfiguration(classId, parent),
-    m_recentlyUpdatedColor(QColor(255, 230, 230)),
-    m_manuallyChangedColor(QColor(230, 230, 255)),
-    m_notPresentOnHwColor(QColor(170,170,170)),
-    m_recentlyUpdatedTimeout(500),
-    m_onlyHighlightChangedValues(false),
-    m_useCategorizedView(false),
-    m_useScientificView(false),
-    m_showMetaData(false),
-    m_hideNotPresentOnHw(false)
+UAVObjectBrowserConfiguration::UAVObjectBrowserConfiguration(QString classId, QSettings *qSettings,
+                                                             QObject *parent)
+    : IUAVGadgetConfiguration(classId, parent)
+    , m_recentlyUpdatedColor(QColor(255, 230, 230))
+    , m_manuallyChangedColor(QColor(230, 230, 255))
+    , m_notPresentOnHwColor(QColor(170, 170, 170))
+    , m_recentlyUpdatedTimeout(500)
+    , m_onlyHighlightChangedValues(false)
+    , m_useCategorizedView(false)
+    , m_useScientificView(false)
+    , m_showMetaData(false)
+    , m_hideNotPresentOnHw(false)
 {
-    //if a saved configuration exists load it
-    if(qSettings != 0) {
+    // if a saved configuration exists load it
+    if (qSettings != 0) {
         QColor recent = qSettings->value("recentlyUpdatedColor").value<QColor>();
         QColor manual = qSettings->value("manuallyChangedColor").value<QColor>();
-        QColor present = qSettings->value("notPresentOnHwColor", QColor(170,170,170)).value<QColor>();
+        QColor present =
+            qSettings->value("notPresentOnHwColor", QColor(170, 170, 170)).value<QColor>();
         int timeout = qSettings->value("recentlyUpdatedTimeout").toInt();
         bool highlight = qSettings->value("onlyHighlightChangedValues").toBool();
 
         m_useCategorizedView = qSettings->value("CategorizedView").toBool();
         m_useScientificView = qSettings->value("ScientificView").toBool();
         m_showMetaData = qSettings->value("showMetaData").toBool();
-        m_hideNotPresentOnHw = qSettings->value("hideNotPresentOnHw",false).toBool();
+        m_hideNotPresentOnHw = qSettings->value("hideNotPresentOnHw", false).toBool();
         m_recentlyUpdatedColor = recent;
         m_manuallyChangedColor = manual;
         m_notPresentOnHwColor = present;
@@ -78,7 +80,8 @@ IUAVGadgetConfiguration *UAVObjectBrowserConfiguration::clone()
  * Saves a configuration.
  *
  */
-void UAVObjectBrowserConfiguration::saveConfig(QSettings* qSettings) const {
+void UAVObjectBrowserConfiguration::saveConfig(QSettings *qSettings) const
+{
     qSettings->setValue("recentlyUpdatedColor", m_recentlyUpdatedColor);
     qSettings->setValue("manuallyChangedColor", m_manuallyChangedColor);
     qSettings->setValue("notPresentOnHwColor", m_notPresentOnHwColor);

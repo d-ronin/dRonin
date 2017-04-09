@@ -30,10 +30,8 @@
 #include "systemhealthgadgetoptionspage.h"
 #include <coreplugin/iuavgadget.h>
 
-SystemHealthGadgetFactory::SystemHealthGadgetFactory(QObject *parent) :
-        IUAVGadgetFactory(QString("SystemHealthGadget"),
-                          tr("System Health"),
-                          parent)
+SystemHealthGadgetFactory::SystemHealthGadgetFactory(QObject *parent)
+    : IUAVGadgetFactory(QString("SystemHealthGadget"), tr("System Health"), parent)
 {
 }
 
@@ -41,9 +39,9 @@ SystemHealthGadgetFactory::~SystemHealthGadgetFactory()
 {
 }
 
-Core::IUAVGadget* SystemHealthGadgetFactory::createGadget(QWidget *parent)
+Core::IUAVGadget *SystemHealthGadgetFactory::createGadget(QWidget *parent)
 {
-    SystemHealthGadgetWidget* gadgetWidget = new SystemHealthGadgetWidget(parent);
+    SystemHealthGadgetWidget *gadgetWidget = new SystemHealthGadgetWidget(parent);
     return new SystemHealthGadget(QString("SystemHealthGadget"), gadgetWidget, parent);
 }
 
@@ -54,6 +52,6 @@ IUAVGadgetConfiguration *SystemHealthGadgetFactory::createConfiguration(QSetting
 
 IOptionsPage *SystemHealthGadgetFactory::createOptionsPage(IUAVGadgetConfiguration *config)
 {
-    return new SystemHealthGadgetOptionsPage(qobject_cast<SystemHealthGadgetConfiguration*>(config));
+    return new SystemHealthGadgetOptionsPage(
+        qobject_cast<SystemHealthGadgetConfiguration *>(config));
 }
-

@@ -35,16 +35,18 @@
 
 #include "kmlexport.h"
 
-QString KmlExport::dateTimeFormat="yyyy-MM-ddThh:mm:ssZ"; // XML Schema time format. Required by KML specification
+QString KmlExport::dateTimeFormat =
+    "yyyy-MM-ddThh:mm:ssZ"; // XML Schema time format. Required by KML specification
 const double ColorMap_Jet[256][3] = COLORMAP_JET;
 
-#define maxVelocity 20 // Vehicle velocity which corresponds to maximum color in color map. This shouldn't be hardcoded
+#define maxVelocity                                                                                \
+    20 // Vehicle velocity which corresponds to maximum color in color map. This shouldn't be
+       // hardcoded
 #define numberOfWallAxes 5 // Number of wall axes to plot. This shouldn't be hardcoded
 #define wallAxesSeparation 20 // Wall axes separation height in [m]. This shouldn't be hardcoded
 
-
-KmlExport::KmlExport(QString inputLogFileName, QString outputKmlFileName) :
-    outputFileName(outputKmlFileName)
+KmlExport::KmlExport(QString inputLogFileName, QString outputKmlFileName)
+    : outputFileName(outputKmlFileName)
 {
     logFile.setFileName(inputLogFileName);
 
@@ -68,9 +70,12 @@ KmlExport::KmlExport(QString inputLogFileName, QString outputKmlFileName) :
 
     // Connect position actual. This is the trigger event for plotting a new
     // KML placemark.
-    connect(positionActual, SIGNAL(objectUpdated(UAVObject *)), this, SLOT(positionActualUpdated(UAVObject *)), Qt::DirectConnection);
-    connect(homeLocation, SIGNAL(objectUpdated(UAVObject *)), this, SLOT(homeLocationUpdated(UAVObject *)), Qt::DirectConnection);
-    connect(gpsPosition, SIGNAL(objectUpdated(UAVObject *)), this, SLOT(gpsPositionUpdated(UAVObject *)), Qt::DirectConnection);
+    connect(positionActual, SIGNAL(objectUpdated(UAVObject *)), this,
+            SLOT(positionActualUpdated(UAVObject *)), Qt::DirectConnection);
+    connect(homeLocation, SIGNAL(objectUpdated(UAVObject *)), this,
+            SLOT(homeLocationUpdated(UAVObject *)), Qt::DirectConnection);
+    connect(gpsPosition, SIGNAL(objectUpdated(UAVObject *)), this,
+            SLOT(gpsPositionUpdated(UAVObject *)), Qt::DirectConnection);
 
     // Get the factory singleton to create KML elements.
     factory = KmlFactory::GetFactory();
@@ -96,12 +101,11 @@ KmlExport::KmlExport(QString inputLogFileName, QString outputKmlFileName) :
     document->add_styleselector(wallAxesStyle);
 
     // Create an array of lines which will make the wall axes.
-    for (int i=0; i<numberOfWallAxes; i++){
+    for (int i = 0; i < numberOfWallAxes; i++) {
         CoordinatesPtr coordinates = factory->CreateCoordinates();
         wallAxes.append(coordinates);
     }
 }
-
 
 /**
  * @brief KmlExport::exportToKML Triggers logfile export to KML.
@@ -110,14 +114,14 @@ bool KmlExport::exportToKML()
 {
     bool ret = open();
     if (!ret) {
-        qDebug () << "Logfile failed to open during KML export";
+        qDebug() << "Logfile failed to open during KML export";
         return false;
     }
 
     // Parses logfile and generates KML document
     ret = preparseLogFile();
     if (!ret) {
-        qDebug () << "Logfile preparsing failed";
+        qDebug() << "Logfile preparsing failed";
         return false;
     }
 
@@ -150,7 +154,7 @@ bool KmlExport::exportToKML()
 
     // Add wall axes to <Document>
     FolderPtr folder = factory->CreateFolder();
-    for (int i=0; i<numberOfWallAxes; i++) {
+    for (int i = 0; i < numberOfWallAxes; i++) {
         LineStringPtr linestring = factory->CreateLineString();
         linestring->set_extrude(false); // Do not extrude to ground
         linestring->set_altitudemode(kmldom::ALTITUDEMODE_ABSOLUTE);
@@ -170,7 +174,7 @@ bool KmlExport::exportToKML()
 
     // Create <kml> and give it <Document>.
     KmlPtr kml = factory->CreateKml();
-    kml->set_feature(document);  // kml takes ownership.
+    kml->set_feature(document); // kml takes ownership.
 
     // Serialize to XML
     std::string kml_data = kmldom::SerializePretty(kml);
@@ -179,25 +183,24 @@ bool KmlExport::exportToKML()
     if (QFileInfo(outputFileName).suffix().toLower() == "kmz") {
         if (!kmlengine::KmzFile::WriteKmz(outputFileName.toStdString().c_str(), kml_data)) {
             qDebug() << "KMZ write failed: " << outputFileName;
-            QMessageBox::critical(new QWidget(),"KMZ write failed", "Failed to write KMZ file.");
+            QMessageBox::critical(new QWidget(), "KMZ write failed", "Failed to write KMZ file.");
             return false;
         }
     } else if (QFileInfo(outputFileName).suffix().toLower() == "kml") {
         if (!kmlbase::File::WriteStringToFile(kml_data, outputFileName.toStdString())) {
             qDebug() << "KML write failed: " << outputFileName;
-            QMessageBox::critical(new QWidget(),"KML write failed", "Failed to write KML file.");
+            QMessageBox::critical(new QWidget(), "KML write failed", "Failed to write KML file.");
             return false;
         }
     } else {
         qDebug() << "Write failed. Invalid file name:" << outputFileName;
-        QMessageBox::critical(new QWidget(),"Write failed", "Failed to write file. Invalid filename");
+        QMessageBox::critical(new QWidget(), "Write failed",
+                              "Failed to write file. Invalid filename");
         return false;
     }
 
-
     return true;
 }
-
 
 /**
  * @brief KmlExport::open Opens the logfile and ensures it's sane
@@ -209,53 +212,68 @@ bool KmlExport::open()
         logFile.close();
     }
 
-    //Open log file as  ReadOnly
-    if(logFile.open(QIODevice::ReadOnly) == false)
-    {
+    // Open log file as  ReadOnly
+    if (logFile.open(QIODevice::ReadOnly) == false) {
         qDebug() << "Unable to open " << logFile.fileName() << " for logging";
         return false;
     }
 
-    logFile.readLine(); //Read first line of log file. This assumes that the logfile is of the new format.
-    QString logGitHashString=logFile.readLine().trimmed(); //Read second line of log file. This assumes that the logfile is of the new format.
-    QString logUAVOHashString=logFile.readLine().trimmed(); //Read third line of log file. This assumes that the logfile is of the new format.
+    logFile.readLine(); // Read first line of log file. This assumes that the logfile is of the new
+                        // format.
+    QString logGitHashString = logFile.readLine().trimmed(); // Read second line of log file. This
+                                                             // assumes that the logfile is of the
+                                                             // new format.
+    QString logUAVOHashString = logFile.readLine().trimmed(); // Read third line of log file. This
+                                                              // assumes that the logfile is of the
+                                                              // new format.
     QString gitHash = QString::fromLatin1(Core::Constants::GCS_REVISION_STR);
-    QString uavoHash = QString::fromLatin1(Core::Constants::UAVOSHA1_STR).replace("\"{ ", "").replace(" }\"", "").replace(",", "").replace("0x", ""); // See comment above for necessity for string replacements
+    QString uavoHash =
+        QString::fromLatin1(Core::Constants::UAVOSHA1_STR)
+            .replace("\"{ ", "")
+            .replace(" }\"", "")
+            .replace(",", "")
+            .replace("0x", ""); // See comment above for necessity for string replacements
 
-    if(logUAVOHashString != uavoHash){
+    if (logUAVOHashString != uavoHash) {
         QMessageBox msgBox;
         msgBox.setText("Likely log file incompatibility.");
-        msgBox.setInformativeText(QString("The log file was made with branch %1, UAVO hash %2. GCS will attempt to export the file.").arg(logGitHashString).arg(logUAVOHashString));
+        msgBox.setInformativeText(QString("The log file was made with branch %1, UAVO hash %2. GCS "
+                                          "will attempt to export the file.")
+                                      .arg(logGitHashString)
+                                      .arg(logUAVOHashString));
         msgBox.exec();
-    }
-    else if(logGitHashString != gitHash){
+    } else if (logGitHashString != gitHash) {
         QMessageBox msgBox;
         msgBox.setText("Possible log file incompatibility.");
-        msgBox.setInformativeText(QString("The log file was made with branch %1. GCS will attempt to export the file.").arg(logGitHashString));
+        msgBox.setInformativeText(
+            QString("The log file was made with branch %1. GCS will attempt to export the file.")
+                .arg(logGitHashString));
         msgBox.exec();
     }
 
-    QString tmpLine=logFile.readLine(); //Look for the header/body separation string.
-    int cnt=0;
-    while (tmpLine!="##\n" && cnt < 10 && !logFile.atEnd()){
-        tmpLine=logFile.readLine().trimmed();
+    QString tmpLine = logFile.readLine(); // Look for the header/body separation string.
+    int cnt = 0;
+    while (tmpLine != "##\n" && cnt < 10 && !logFile.atEnd()) {
+        tmpLine = logFile.readLine().trimmed();
         cnt++;
     }
 
-    //Check if we reached the end of the file before finding the separation string
-    if (cnt >=10 || logFile.atEnd()){
+    // Check if we reached the end of the file before finding the separation string
+    if (cnt >= 10 || logFile.atEnd()) {
         QMessageBox msgBox;
         msgBox.setText("Corrupted file.");
-        msgBox.setInformativeText("GCS cannot find the separation byte. GCS will attempt to export the file."); //<--TODO: add hyperlink to webpage with better description.
+        msgBox.setInformativeText("GCS cannot find the separation byte. GCS will attempt to export "
+                                  "the file."); //<--TODO: add hyperlink to webpage with better
+                                                //description.
         msgBox.exec();
 
-        //Since we could not find the file separator, we need to return to the beginning of the file
+        // Since we could not find the file separator, we need to return to the beginning of the
+        // file
         logFile.seek(0);
     }
 
     return true;
 }
-
 
 /**
  * @brief KmlExport::preparseLogFile Ensures that the logfile has data to export
@@ -263,36 +281,44 @@ bool KmlExport::open()
  */
 bool KmlExport::preparseLogFile()
 {
-    //Read all log timestamps into array
-    timestampBuffer.clear(); //Save beginning of log for later use
+    // Read all log timestamps into array
+    timestampBuffer.clear(); // Save beginning of log for later use
     timestampPos.clear();
     quint64 logFileStartIdx = logFile.pos();
     quint32 lastTimeStamp = 0;
 
-    while (!logFile.atEnd()){
+    while (!logFile.atEnd()) {
         qint64 dataSize;
 
-        //Get time stamp position
+        // Get time stamp position
         timestampPos.append(logFile.pos());
 
-        //Read timestamp and logfile packet size
-        logFile.read((char *) &lastTimeStamp, sizeof(lastTimeStamp));
-        logFile.read((char *) &dataSize, sizeof(dataSize));
+        // Read timestamp and logfile packet size
+        logFile.read((char *)&lastTimeStamp, sizeof(lastTimeStamp));
+        logFile.read((char *)&dataSize, sizeof(dataSize));
 
-        //Check if dataSize sync bytes are correct.
-        //TODO: LIKELY AS NOT, THIS WILL FAIL TO RESYNC BECAUSE THERE IS TOO LITTLE INFORMATION IN THE STRING OF SIX 0x00
-        if ((dataSize & 0xFFFFFFFFFFFF0000)!=0){
-            qDebug() << "Wrong sync byte. At file location 0x"  << QString("%1").arg(logFile.pos(),0,16) << "Got 0x" << QString("%1").arg(dataSize & 0xFFFFFFFFFFFF0000,0,16) << ", but expected 0x""00"".";
-            logFile.seek(timestampPos.last()+1);
+        // Check if dataSize sync bytes are correct.
+        // TODO: LIKELY AS NOT, THIS WILL FAIL TO RESYNC BECAUSE THERE IS TOO LITTLE INFORMATION IN
+        // THE STRING OF SIX 0x00
+        if ((dataSize & 0xFFFFFFFFFFFF0000) != 0) {
+            qDebug() << "Wrong sync byte. At file location 0x"
+                     << QString("%1").arg(logFile.pos(), 0, 16) << "Got 0x"
+                     << QString("%1").arg(dataSize & 0xFFFFFFFFFFFF0000, 0, 16)
+                     << ", but expected 0x"
+                        "00"
+                        ".";
+            logFile.seek(timestampPos.last() + 1);
             timestampPos.pop_back();
             continue;
         }
 
-        //Check if timestamps are sequential.
-        if (!timestampBuffer.isEmpty() && lastTimeStamp < timestampBuffer.last()){
+        // Check if timestamps are sequential.
+        if (!timestampBuffer.isEmpty() && lastTimeStamp < timestampBuffer.last()) {
             QMessageBox msgBox;
             msgBox.setText("Corrupted file.");
-            msgBox.setInformativeText("Timestamps are not sequential. Playback may have unexpected behavior"); //<--TODO: add hyperlink to webpage with better description.
+            msgBox.setInformativeText("Timestamps are not sequential. Playback may have unexpected "
+                                      "behavior"); //<--TODO: add hyperlink to webpage with better
+                                                   //description.
             msgBox.exec();
 
             qDebug() << "Timestamp: " << timestampBuffer.last() << " " << lastTimeStamp;
@@ -300,11 +326,11 @@ bool KmlExport::preparseLogFile()
 
         timestampBuffer.append(lastTimeStamp);
 
-        logFile.seek(timestampPos.last()+sizeof(lastTimeStamp)+sizeof(dataSize)+dataSize);
+        logFile.seek(timestampPos.last() + sizeof(lastTimeStamp) + sizeof(dataSize) + dataSize);
     }
 
-    //Check if any timestamps were successfully read
-    if (timestampBuffer.size() == 0){
+    // Check if any timestamps were successfully read
+    if (timestampBuffer.size() == 0) {
         QMessageBox msgBox;
         msgBox.setText("Empty logfile.");
         msgBox.setInformativeText("No log data can be found.");
@@ -314,12 +340,11 @@ bool KmlExport::preparseLogFile()
         return false;
     }
 
-    //Reset to log beginning, including the timestamp.
+    // Reset to log beginning, including the timestamp.
     logFile.seek(logFileStartIdx);
 
     return true;
 }
-
 
 /**
  * @brief KmlExport::stopExport Called to stop the export. Currently only closes
@@ -332,7 +357,6 @@ bool KmlExport::stopExport()
     return true;
 }
 
-
 /**
  * @brief KmlExport::parseLogFile Parses logfile and exports results to KML file
  */
@@ -341,25 +365,26 @@ void KmlExport::parseLogFile()
     qint64 packetSize;
     quint32 timeStampIdx;
 
-    //Read packets
-    while (!logFile.atEnd())
-    {
-        if(logFile.bytesAvailable() < 4) {
+    // Read packets
+    while (!logFile.atEnd()) {
+        if (logFile.bytesAvailable() < 4) {
             break;
         }
 
-        //Read timestamp and logfile packet size
-        logFile.read((char *) &timeStamp, sizeof(timeStamp));
-        logFile.read((char *) &packetSize, sizeof(packetSize));
+        // Read timestamp and logfile packet size
+        logFile.read((char *)&timeStamp, sizeof(timeStamp));
+        logFile.read((char *)&packetSize, sizeof(packetSize));
 
-        if (packetSize<1 || packetSize>(1024*1024)) {
+        if (packetSize < 1 || packetSize > (1024 * 1024)) {
             qDebug() << "Error: Logfile corrupted! Unlikely packet size: " << packetSize << "\n";
-            QMessageBox::critical(new QWidget(),"Corrupted file", "Incorrect packet size. Stopping export. Data up to this point will be saved.");
+            QMessageBox::critical(
+                new QWidget(), "Corrupted file",
+                "Incorrect packet size. Stopping export. Data up to this point will be saved.");
 
             break;
         }
 
-        if(logFile.bytesAvailable() < packetSize) {
+        if (logFile.bytesAvailable() < packetSize) {
             break;
         }
 
@@ -367,9 +392,11 @@ void KmlExport::parseLogFile()
         QByteArray dataBuffer;
         dataBuffer.append(logFile.read(packetSize));
 
-        // Parse the packet. This operation passes the data to the kmlTalk object, which internally parses the data
-        // and then emits objectUpdated(UAVObject *) signals. These signals are connected to in the KmlExport constructor.
-        for (int i=0; i < dataBuffer.size(); i++) {
+        // Parse the packet. This operation passes the data to the kmlTalk object, which internally
+        // parses the data
+        // and then emits objectUpdated(UAVObject *) signals. These signals are connected to in the
+        // KmlExport constructor.
+        for (int i = 0; i < dataBuffer.size(); i++) {
             kmlTalk->processInputByte(dataBuffer[i]);
         }
 
@@ -379,9 +406,9 @@ void KmlExport::parseLogFile()
     stopExport();
 }
 
-
 /**
- * @brief KmlExport::createCustomBalloonStyle Creates a custom balloon stye, using an arrow as an icon.
+ * @brief KmlExport::createCustomBalloonStyle Creates a custom balloon stye, using an arrow as an
+ * icon.
  * @return Returns the custom balloon style.
  */
 StyleMapPtr KmlExport::createCustomBalloonStyle()
@@ -469,7 +496,6 @@ StyleMapPtr KmlExport::createCustomBalloonStyle()
 
     return styleMap;
 }
-
 
 /**
  * @brief KmlExport::createGroundTrackStyle Creates a custom style for the ground track.
@@ -582,10 +608,8 @@ StyleMapPtr KmlExport::createWallAxesStyle()
 
     styleMap->set_id("ts_1_tb");
 
-
     return styleMap;
 }
-
 
 /**
  * @brief KmlExport::CreateLineStringPlacemark Adds a line segment which is colored according to the
@@ -594,11 +618,13 @@ StyleMapPtr KmlExport::createWallAxesStyle()
  * @param endPoint End point point along line
  * @return Returns the placemark containing the line segment
  */
-PlacemarkPtr KmlExport::CreateLineStringPlacemark(const LLAVCoordinates &startPoint, const LLAVCoordinates &endPoint, quint32 newPlacemarkTime)
+PlacemarkPtr KmlExport::CreateLineStringPlacemark(const LLAVCoordinates &startPoint,
+                                                  const LLAVCoordinates &endPoint,
+                                                  quint32 newPlacemarkTime)
 {
     CoordinatesPtr coordinates = factory->CreateCoordinates();
     coordinates->add_latlngalt(startPoint.latitude, startPoint.longitude, startPoint.altitude);
-    coordinates->add_latlngalt(endPoint.latitude,   endPoint.longitude,   endPoint.altitude);
+    coordinates->add_latlngalt(endPoint.latitude, endPoint.longitude, endPoint.altitude);
 
     LineStringPtr linestring = factory->CreateLineString();
     linestring->set_extrude(true); // Extrude to ground
@@ -607,14 +633,13 @@ PlacemarkPtr KmlExport::CreateLineStringPlacemark(const LLAVCoordinates &startPo
 
     StyleMapPtr styleMap = factory->CreateStyleMap();
 
-
     // Add custom balloon style (gets rid of "Directions to here...")
     // https://groups.google.com/forum/?fromgroups#!topic/kml-support-getting-started/2CqF9oiynRY
     BalloonStylePtr balloonStyle = factory->CreateBalloonStyle();
     balloonStyle->set_text("$[description]");
 
     {
-        double currentVelocity = (startPoint.groundspeed + endPoint.groundspeed)/2;
+        double currentVelocity = (startPoint.groundspeed + endPoint.groundspeed) / 2;
 
         // Set the linestyle. The color is a function of speed.
         LineStylePtr lineStyle = factory->CreateLineStyle();
@@ -637,7 +662,7 @@ PlacemarkPtr KmlExport::CreateLineStringPlacemark(const LLAVCoordinates &startPo
     }
 
     {
-        double currentVelocity = (startPoint.groundspeed + endPoint.groundspeed)/2;
+        double currentVelocity = (startPoint.groundspeed + endPoint.groundspeed) / 2;
 
         // Set the linestyle. The color is a function of speed.
         LineStylePtr lineStyle = factory->CreateLineStyle();
@@ -667,13 +692,19 @@ PlacemarkPtr KmlExport::CreateLineStringPlacemark(const LLAVCoordinates &startPo
 
     // Create the timespan
     TimeSpanPtr timeSpan = factory->CreateTimeSpan();
-    QDateTime startTime = QDateTime::currentDateTimeUtc().addMSecs(newPlacemarkTime); // FIXME: Make this a function of the true time, preferably gotten from the GPS
+    QDateTime startTime =
+        QDateTime::currentDateTimeUtc().addMSecs(newPlacemarkTime); // FIXME: Make this a function
+                                                                    // of the true time, preferably
+                                                                    // gotten from the GPS
     QDateTime endTime = QDateTime::currentDateTimeUtc().addMSecs(newPlacemarkTime);
     timeSpan->set_begin(startTime.toString(dateTimeFormat).toStdString());
     timeSpan->set_end(endTime.toString(dateTimeFormat).toStdString());
 
     // Set the name
-    QDateTime trackTime = QDateTime::currentDateTimeUtc().addMSecs(newPlacemarkTime); // FIXME: Make it a function of the realtime preferably gotten from the GPS
+    QDateTime trackTime =
+        QDateTime::currentDateTimeUtc().addMSecs(newPlacemarkTime); // FIXME: Make it a function of
+                                                                    // the realtime preferably
+                                                                    // gotten from the GPS
     placemark->set_name(trackTime.toString(dateTimeFormat).toStdString());
 
     // Add a nice description to the track placemark
@@ -685,7 +716,6 @@ PlacemarkPtr KmlExport::CreateLineStringPlacemark(const LLAVCoordinates &startPo
     return placemark;
 }
 
-
 /**
  * @brief KmlExport::createTimespanPlacemark Creates a timespan placemark, which allows the
  * trajectory to be played forward in time. The placemark also contains pertinent data about
@@ -695,11 +725,13 @@ PlacemarkPtr KmlExport::CreateLineStringPlacemark(const LLAVCoordinates &startPo
  * @param newPlacemarkTime
  * @return Returns the placemark containing the timespan
  */
-PlacemarkPtr KmlExport::createTimespanPlacemark(const LLAVCoordinates &timestampPoint, quint32 lastPlacemarkTime, quint32 newPlacemarkTime)
+PlacemarkPtr KmlExport::createTimespanPlacemark(const LLAVCoordinates &timestampPoint,
+                                                quint32 lastPlacemarkTime, quint32 newPlacemarkTime)
 {
     // Create coordinates
     CoordinatesPtr coordinates = factory->CreateCoordinates();
-    coordinates->add_latlngalt(timestampPoint.latitude, timestampPoint.longitude, timestampPoint.altitude);
+    coordinates->add_latlngalt(timestampPoint.latitude, timestampPoint.longitude,
+                               timestampPoint.altitude);
 
     // Create point, using previous coordinates
     PointPtr point = factory->CreatePoint();
@@ -709,7 +741,10 @@ PlacemarkPtr KmlExport::createTimespanPlacemark(const LLAVCoordinates &timestamp
 
     // Create the timespan
     TimeSpanPtr timeSpan = factory->CreateTimeSpan();
-    QDateTime startTime = QDateTime::currentDateTimeUtc().addMSecs(lastPlacemarkTime); // FIXME: Make it a function of the realtime preferably gotten from the GPS
+    QDateTime startTime =
+        QDateTime::currentDateTimeUtc().addMSecs(lastPlacemarkTime); // FIXME: Make it a function of
+                                                                     // the realtime preferably
+                                                                     // gotten from the GPS
     QDateTime endTime = QDateTime::currentDateTimeUtc().addMSecs(newPlacemarkTime);
     timeSpan->set_begin(startTime.toString(dateTimeFormat).toStdString());
     timeSpan->set_end(endTime.toString(dateTimeFormat).toStdString());
@@ -719,9 +754,12 @@ PlacemarkPtr KmlExport::createTimespanPlacemark(const LLAVCoordinates &timestamp
     AirspeedActual::DataFields airspeedActualData = airspeedActual->getData();
     IconStylePtr iconStyle = factory->CreateIconStyle();
     iconStyle->set_color(mapVelocity2Color(airspeedActualData.CalibratedAirspeed));
-    iconStyle->set_heading(attitudeActualData.Yaw + 180); //Adding 180 degrees because the arrow art points down, i.e. south.
+    iconStyle->set_heading(
+        attitudeActualData.Yaw
+        + 180); // Adding 180 degrees because the arrow art points down, i.e. south.
 
-    // Create a line style. This defines the style for the "legs" connecting the points to the ground.
+    // Create a line style. This defines the style for the "legs" connecting the points to the
+    // ground.
     LineStylePtr lineStyle = factory->CreateLineStyle();
     lineStyle->set_color(mapVelocity2Color(timestampPoint.groundspeed));
 
@@ -747,7 +785,6 @@ PlacemarkPtr KmlExport::createTimespanPlacemark(const LLAVCoordinates &timestamp
     return placemark;
 }
 
-
 /**
  * @brief KmlExport::mapVelocity2Color Maps a velocity magnitude onto a color.
  * @param velocity Vehicle velocity in [m/s]
@@ -756,14 +793,14 @@ PlacemarkPtr KmlExport::createTimespanPlacemark(const LLAVCoordinates &timestamp
  */
 kmlbase::Color32 KmlExport::mapVelocity2Color(double velocity, quint8 alpha)
 {
-    quint8 colorMapIdx = fmin(fabs(velocity/maxVelocity), 1) * 255;
-    quint8 r = round(ColorMap_Jet[colorMapIdx][0]*255); // Colormap is in [0,1], so it needs to be scaled to [0,255]
-    quint8 g = round(ColorMap_Jet[colorMapIdx][1]*255);
-    quint8 b = round(ColorMap_Jet[colorMapIdx][2]*255);
+    quint8 colorMapIdx = fmin(fabs(velocity / maxVelocity), 1) * 255;
+    quint8 r = round(ColorMap_Jet[colorMapIdx][0]
+                     * 255); // Colormap is in [0,1], so it needs to be scaled to [0,255]
+    quint8 g = round(ColorMap_Jet[colorMapIdx][1] * 255);
+    quint8 b = round(ColorMap_Jet[colorMapIdx][2] * 255);
 
     return kmlbase::Color32(alpha, b, g, r);
 }
-
 
 /**
  * @brief KmlExport::positionActualUpdated Triggers on PositionActual UAVO
@@ -780,8 +817,8 @@ void KmlExport::positionActualUpdated(UAVObject *obj)
         return;
 
     // Only plot positional data if we have a lock
-    if (gpsPositionData.Status != GPSPosition::STATUS_FIX2D &&
-            gpsPositionData.Status != GPSPosition::STATUS_FIX3D)
+    if (gpsPositionData.Status != GPSPosition::STATUS_FIX2D
+        && gpsPositionData.Status != GPSPosition::STATUS_FIX3D)
         return;
 
     AirspeedActual::DataFields airspeedActualData = airspeedActual->getData();
@@ -791,8 +828,9 @@ void KmlExport::positionActualUpdated(UAVObject *obj)
     LLAVCoordinates newPoint;
 
     // Convert NED data to LLA data
-    double homeLLA[3]={homeLocationData.Latitude/1e7, homeLocationData.Longitude/1e7, homeLocationData.Altitude};
-    double NED[3]={positionActualData.North, positionActualData.East, positionActualData.Down};
+    double homeLLA[3] = { homeLocationData.Latitude / 1e7, homeLocationData.Longitude / 1e7,
+                          homeLocationData.Altitude };
+    double NED[3] = { positionActualData.North, positionActualData.East, positionActualData.Down };
     double LLA[3];
     Utils::CoordinateConversions().NED2LLA_HomeLLA(homeLLA, NED, LLA);
 
@@ -800,12 +838,18 @@ void KmlExport::positionActualUpdated(UAVObject *obj)
     newPoint.latitude = LLA[0];
     newPoint.longitude = LLA[1];
     newPoint.altitude = LLA[2];
-    newPoint.groundspeed = sqrt(velocityActualData.North*velocityActualData.North + velocityActualData.East*velocityActualData.East);
+    newPoint.groundspeed = sqrt(velocityActualData.North * velocityActualData.North
+                                + velocityActualData.East * velocityActualData.East);
 
     // Update UAV info string
     informationString.clear();
-    informationString.append(QString("Latitude: %1 deg\nLongitude: %2 deg\nAltitude: %3 m\nAirspeed: %4 m/s\nGroundspeed: %5 m/s\n").arg(newPoint.latitude)
-                             .arg(newPoint.longitude).arg(newPoint.altitude).arg(airspeedActualData.CalibratedAirspeed).arg(newPoint.groundspeed));
+    informationString.append(QString("Latitude: %1 deg\nLongitude: %2 deg\nAltitude: %3 "
+                                     "m\nAirspeed: %4 m/s\nGroundspeed: %5 m/s\n")
+                                 .arg(newPoint.latitude)
+                                 .arg(newPoint.longitude)
+                                 .arg(newPoint.altitude)
+                                 .arg(airspeedActualData.CalibratedAirspeed)
+                                 .arg(newPoint.groundspeed));
 
     // In case this is the first time through, copy data and exit
     static bool firstPoint;
@@ -821,8 +865,9 @@ void KmlExport::positionActualUpdated(UAVObject *obj)
     }
 
     // Create wall axes
-    for (int i=0; i<numberOfWallAxes; i++){
-        wallAxes[i]->add_latlngalt(newPoint.latitude, newPoint.longitude, i*wallAxesSeparation + homeLocationData.Altitude);
+    for (int i = 0; i < numberOfWallAxes; i++) {
+        wallAxes[i]->add_latlngalt(newPoint.latitude, newPoint.longitude,
+                                   i * wallAxesSeparation + homeLocationData.Altitude);
     }
 
     // Create colored tracks and add to the KML document
@@ -832,7 +877,8 @@ void KmlExport::positionActualUpdated(UAVObject *obj)
     // Every 2 seconds generate a time stamp
     if (timeStamp - lastPlacemarkTime > 2000) {
 
-        PlacemarkPtr newPlacemarkTimestamp = createTimespanPlacemark(newPoint, lastPlacemarkTime, timeStamp);
+        PlacemarkPtr newPlacemarkTimestamp =
+            createTimespanPlacemark(newPoint, lastPlacemarkTime, timeStamp);
         timestampFolder->add_feature(newPlacemarkTimestamp);
         lastPlacemarkTime = timeStamp;
     }
@@ -842,7 +888,6 @@ void KmlExport::positionActualUpdated(UAVObject *obj)
     oldPoint.longitude = newPoint.longitude;
     oldPoint.altitude = newPoint.altitude;
     oldPoint.groundspeed = newPoint.groundspeed;
-
 }
 
 void KmlExport::homeLocationUpdated(UAVObject *obj)

@@ -43,15 +43,12 @@ public:
     ImportExportGadget(QString classId, ImportExportGadgetWidget *widget, QWidget *parent = 0);
     ~ImportExportGadget();
 
-    QWidget *widget() {
-        return m_widget;
-    }
-    void loadConfiguration(IUAVGadgetConfiguration* config);
+    QWidget *widget() { return m_widget; }
+    void loadConfiguration(IUAVGadgetConfiguration *config);
 
 private:
     ImportExportGadgetWidget *m_widget;
 };
-
 
 #endif // IMPORTEXPORTGADGET_H_
 

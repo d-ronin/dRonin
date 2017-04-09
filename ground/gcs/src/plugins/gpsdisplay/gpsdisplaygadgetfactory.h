@@ -36,7 +36,8 @@ class IUAVGadgetFactory;
 
 using namespace Core;
 
-class GpsDisplayGadgetFactory : public IUAVGadgetFactory {
+class GpsDisplayGadgetFactory : public IUAVGadgetFactory
+{
     Q_OBJECT
 public:
     GpsDisplayGadgetFactory(QObject *parent = 0);

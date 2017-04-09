@@ -57,15 +57,16 @@
 
 //#define CONF_ATUNE_DEBUG
 #ifdef CONF_ATUNE_DEBUG
-#define CONF_ATUNE_QXTLOG_DEBUG(...) qDebug()<<__VA_ARGS__
-#else  // CONF_ATUNE_DEBUG
+#define CONF_ATUNE_QXTLOG_DEBUG(...) qDebug() << __VA_ARGS__
+#else // CONF_ATUNE_DEBUG
 #define CONF_ATUNE_QXTLOG_DEBUG(...)
-#endif	// CONF_ATUNE_DEBUG
+#endif // CONF_ATUNE_DEBUG
 
-const QString ConfigAutotuneWidget::databaseUrl = QString("http://dronin-autotown.appspot.com/storeTune");
+const QString ConfigAutotuneWidget::databaseUrl =
+    QString("http://dronin-autotown.appspot.com/storeTune");
 
-ConfigAutotuneWidget::ConfigAutotuneWidget(ConfigGadgetWidget *parent) :
-    ConfigTaskWidget(parent)
+ConfigAutotuneWidget::ConfigAutotuneWidget(ConfigGadgetWidget *parent)
+    : ConfigTaskWidget(parent)
 {
     parentConfigWidget = parent;
     m_autotune = new Ui_AutotuneWidget();
@@ -80,19 +81,24 @@ ConfigAutotuneWidget::ConfigAutotuneWidget(ConfigGadgetWidget *parent) :
     ExtensionSystem::PluginManager *pm = ExtensionSystem::PluginManager::instance();
     utilMngr = pm->getObject<UAVObjectUtilManager>();
 
-    connect(this, SIGNAL(autoPilotConnected()), this, SLOT(atConnected()), Qt::QueuedConnection);
-    connect(this, SIGNAL(autoPilotDisconnected()), this, SLOT(atDisconnected()), Qt::QueuedConnection);
-    connect(m_autotune->adjustTune, SIGNAL(pressed()), this, SLOT(openAutotuneDialog()));
+    connect(this, &ConfigTaskWidget::autoPilotConnected, this, &ConfigAutotuneWidget::atConnected,
+            Qt::QueuedConnection);
+    connect(this, &ConfigTaskWidget::autoPilotDisconnected, this,
+            &ConfigAutotuneWidget::atDisconnected, Qt::QueuedConnection);
+    connect(m_autotune->adjustTune, &QPushButton::pressed, this,
+            QOverload<>::of(&ConfigAutotuneWidget::openAutotuneDialog));
 
     m_autotune->adjustTune->setEnabled(isAutopilotConnected());
 }
 
-void ConfigAutotuneWidget::atConnected() {
+void ConfigAutotuneWidget::atConnected()
+{
     m_autotune->adjustTune->setEnabled(true);
     checkNewAutotune();
 }
 
-void ConfigAutotuneWidget::atDisconnected() {
+void ConfigAutotuneWidget::atDisconnected()
+{
     m_autotune->adjustTune->setEnabled(false);
 }
 
@@ -120,14 +126,14 @@ void ConfigAutotuneWidget::checkNewAutotune()
     }
 }
 
-QString ConfigAutotuneWidget::systemIdentValid(SystemIdent::DataFields &data,
-        bool *okToContinue)
+QString ConfigAutotuneWidget::systemIdentValid(SystemIdent::DataFields &data, bool *okToContinue)
 {
     if (data.Tau == 0) {
         // Invalid / no tune.
 
         *okToContinue = false;
-        return tr("<span style=\"color: red\">It doesn't appear an autotune was successfully completed and saved; we are unable to continue.</span>");
+        return tr("<span style=\"color: red\">It doesn't appear an autotune was successfully "
+                  "completed and saved; we are unable to continue.</span>");
     }
 
     QString retVal;
@@ -139,7 +145,8 @@ QString ConfigAutotuneWidget::systemIdentValid(SystemIdent::DataFields &data,
         // 333 * 60 = 20000 give or take a bit, with most other platforms way
         // more.  If you don't get this many, it doesn't make sense.
 
-        retVal.append(tr("Error: Too few measurements were obtained to successfully autotune this craft."));
+        retVal.append(
+            tr("Error: Too few measurements were obtained to successfully autotune this craft."));
         retVal.append("<br/>");
         *okToContinue = false;
     }
@@ -148,18 +155,22 @@ QString ConfigAutotuneWidget::systemIdentValid(SystemIdent::DataFields &data,
         // Greater than 12.5% points spilled / not processed.  You're not going
         // to have a good time.
 
-        retVal.append(tr("Error: Many measurements were lost because the flight controller was unable to keep up with the tuning process."));
+        retVal.append(tr("Error: Many measurements were lost because the flight controller was "
+                         "unable to keep up with the tuning process."));
         retVal.append("<br/>");
         *okToContinue = false;
     } else if (data.NumSpilledPts > 10) {
         // We shouldn't spill points at all.  Warn!
-        retVal.append(tr("Warning: Some measurements were lost because the flight controller was unable to keep up with the tuning process."));
+        retVal.append(tr("Warning: Some measurements were lost because the flight controller was "
+                         "unable to keep up with the tuning process."));
         retVal.append("<br/>");
     }
 
     if (data.Tau < -5.3) {
         // Too low of tau to be plausible. (5ms)
-        retVal.append(tr("Error: Autotune did not measure valid values for this craft (low tau).  Consider slightly lowering the starting roll/pitch rate P values or slightly decreasing Motor Input/Output Curve Fit on the output pane."));
+        retVal.append(tr("Error: Autotune did not measure valid values for this craft (low tau).  "
+                         "Consider slightly lowering the starting roll/pitch rate P values or "
+                         "slightly decreasing Motor Input/Output Curve Fit on the output pane."));
         retVal.append("<br/>");
         *okToContinue = false;
     } else if (data.Tau < -4.9) {
@@ -174,13 +185,15 @@ QString ConfigAutotuneWidget::systemIdentValid(SystemIdent::DataFields &data,
 
     // Lowest valid gains seen have been 7.9, with most values in the range 9..11
     if (data.Beta[SystemIdent::BETA_ROLL] < 7.25) {
-        retVal.append(tr("Error: Autotune did not measure valid values for this craft (low roll gain)."));
+        retVal.append(
+            tr("Error: Autotune did not measure valid values for this craft (low roll gain)."));
         retVal.append("<br/>");
         *okToContinue = false;
     }
 
     if (data.Beta[SystemIdent::BETA_PITCH] < 7.25) {
-        retVal.append(tr("Error: Autotune did not measure valid values for this craft (low pitch gain)."));
+        retVal.append(
+            tr("Error: Autotune did not measure valid values for this craft (low pitch gain)."));
         retVal.append("<br/>");
         *okToContinue = false;
     }
@@ -191,10 +204,12 @@ QString ConfigAutotuneWidget::systemIdentValid(SystemIdent::DataFields &data,
         if (retVal.isEmpty()) {
             retVal.append(tr("Everything checks out, and we're ready to proceed!"));
         } else {
-            retVal.append(tr("<br/>These warnings may result in an invalid tune.  Proceed with caution."));
+            retVal.append(
+                tr("<br/>These warnings may result in an invalid tune.  Proceed with caution."));
         }
     } else {
-        retVal.append(tr("<br/>Unable to complete the autotune process because of the above error(s)."));
+        retVal.append(
+            tr("<br/>Unable to complete the autotune process because of the above error(s)."));
     }
 
     return retVal;
@@ -204,8 +219,8 @@ QString ConfigAutotuneWidget::systemIdentValid(SystemIdent::DataFields &data,
  * @brief ConfigAutotuneWidget::generateResultsJson
  * @return QJsonDocument containing autotune result data
  */
-QJsonDocument ConfigAutotuneWidget::getResultsJson(
-        AutotuneFinalPage *autotuneShareForm, struct AutotunedValues *av)
+QJsonDocument ConfigAutotuneWidget::getResultsJson(AutotuneFinalPage *autotuneShareForm,
+                                                   struct AutotunedValues *av)
 {
     deviceDescriptorStruct firmware;
     utilMngr->getBoardDescriptionStruct(firmware);
@@ -214,11 +229,13 @@ QJsonDocument ConfigAutotuneWidget::getResultsJson(
 
     QJsonObject json;
     json["dataVersion"] = 3;
-    json["uniqueId"] = QString(QCryptographicHash::hash(utilMngr->getBoardCPUSerial(), QCryptographicHash::Sha256).toHex());
+    json["uniqueId"] =
+        QString(QCryptographicHash::hash(utilMngr->getBoardCPUSerial(), QCryptographicHash::Sha256)
+                    .toHex());
 
     QJsonObject vehicle, fw;
     Core::IBoardType *board = utilMngr->getBoardType();
-    if(board) {
+    if (board) {
         fw["board"] = board->shortName();
     }
 
@@ -255,8 +272,8 @@ QJsonDocument ConfigAutotuneWidget::getResultsJson(
     // hw settings object
     ExtensionSystem::PluginManager *pm = ExtensionSystem::PluginManager::instance();
     if (pm != NULL) {
-        UAVObjectUtilManager* uavoUtilManager = pm->getObject<UAVObjectUtilManager>();
-        Core::IBoardType* board = uavoUtilManager->getBoardType();
+        UAVObjectUtilManager *uavoUtilManager = pm->getObject<UAVObjectUtilManager>();
+        Core::IBoardType *board = uavoUtilManager->getBoardType();
         if (board != NULL) {
             QString hwSettingsName = board->getHwUAVO();
 
@@ -312,7 +329,7 @@ QJsonDocument ConfigAutotuneWidget::getResultsJson(
 
     QJsonObject gains;
     QJsonObject roll_gain, pitch_gain, yaw_gain, outer_gain;
-    roll_gain["kp"] = av->kp[0]; 
+    roll_gain["kp"] = av->kp[0];
     roll_gain["ki"] = av->ki[0];
     roll_gain["kd"] = av->kd[0];
     gains["roll"] = roll_gain;
@@ -367,7 +384,7 @@ void ConfigAutotuneWidget::stuffShareForm(AutotuneFinalPage *autotuneShareForm)
     autotuneShareForm->acBatteryCells->setCurrentText(QString::number(settings->getBatteryCells()));
 
     SystemSettings *sysSettings = SystemSettings::GetInstance(getObjectManager());
-    if(sysSettings) {
+    if (sysSettings) {
         UAVObjectField *frameType = sysSettings->getField("AirframeType");
         if (frameType) {
             autotuneShareForm->acType->clear();
@@ -375,7 +392,7 @@ void ConfigAutotuneWidget::stuffShareForm(AutotuneFinalPage *autotuneShareForm)
 
             QString currentFrameType;
             currentFrameType = frameType->getValue().toString();
-            if(!currentFrameType.isNull()) {
+            if (!currentFrameType.isNull()) {
                 autotuneShareForm->acType->setEditable(false);
                 autotuneShareForm->acType->setCurrentText(currentFrameType);
             }
@@ -384,17 +401,21 @@ void ConfigAutotuneWidget::stuffShareForm(AutotuneFinalPage *autotuneShareForm)
 
     Core::IBoardType *board = utilMngr->getBoardType();
 
-    if(board) {
+    if (board) {
         autotuneShareForm->acBoard->setText(board->shortName());
         autotuneShareForm->acBoard->setEnabled(false);
     }
+}
 
+void ConfigAutotuneWidget::openAutotuneDialog()
+{
+    openAutotuneDialog(false);
 }
 
 void ConfigAutotuneWidget::openAutotuneDialog(bool autoOpened)
 {
-    QWizard wizard(NULL, Qt::Dialog | Qt::CustomizeWindowHint |
-            Qt::WindowTitleHint | Qt::WindowCloseButtonHint);
+    QWizard wizard(NULL, Qt::Dialog | Qt::CustomizeWindowHint | Qt::WindowTitleHint
+                       | Qt::WindowCloseButtonHint);
 
     wizard.setPixmap(QWizard::BackgroundPixmap, QPixmap(":/configgadget/images/autotunebg.png"));
 
@@ -409,9 +430,13 @@ void ConfigAutotuneWidget::openAutotuneDialog(bool autoOpened)
     beginning->setTitle(tr("Examining autotune..."));
 
     if (autoOpened) {
-        beginning->setSubTitle(tr("It looks like you have run a new autotune since you last connected to the flight controller.  This wizard will assist you in applying a set of autotune measurements to your aircraft."));
+        beginning->setSubTitle(
+            tr("It looks like you have run a new autotune since you last connected to the flight "
+               "controller.  This wizard will assist you in applying a set of autotune "
+               "measurements to your aircraft."));
     } else {
-        beginning->setSubTitle(tr("This wizard will assist you in applying a set of autotune measurements to your aircraft."));
+        beginning->setSubTitle(tr("This wizard will assist you in applying a set of autotune "
+                                  "measurements to your aircraft."));
     }
 
     QLabel *status = new QLabel(initialWarnings);
@@ -421,7 +446,7 @@ void ConfigAutotuneWidget::openAutotuneDialog(bool autoOpened)
     layout->addWidget(status);
     beginning->setLayout(layout);
 
-    // Keep a cancel button, even on OS X. 
+    // Keep a cancel button, even on OS X.
     wizard.setOption(QWizard::NoCancelButton, false);
 
     wizard.setMinimumSize(735, 600);
@@ -449,9 +474,10 @@ void ConfigAutotuneWidget::openAutotuneDialog(bool autoOpened)
 
     if (dataValid && (wizard.result() == QDialog::Accepted) && av.converged) {
         // Apply and save data to board.
-        StabilizationSettings *stabilizationSettings = StabilizationSettings::GetInstance(getObjectManager());
+        StabilizationSettings *stabilizationSettings =
+            StabilizationSettings::GetInstance(getObjectManager());
         Q_ASSERT(stabilizationSettings);
-        if(!stabilizationSettings)
+        if (!stabilizationSettings)
             return;
 
         StabilizationSettings::DataFields stabData = stabilizationSettings->getData();
@@ -490,7 +516,8 @@ void ConfigAutotuneWidget::openAutotuneDialog(bool autoOpened)
             // Do this in the background, completely async.
             QUrl url(databaseUrl);
             QNetworkRequest request(url);
-            request.setHeader(QNetworkRequest::ContentTypeHeader, "application/json; charset=utf-8");
+            request.setHeader(QNetworkRequest::ContentTypeHeader,
+                              "application/json; charset=utf-8");
             QNetworkAccessManager *manager = new QNetworkAccessManager(this);
             QNetworkReply *reply = manager->post(request, json.toJson());
             connect(reply, &QNetworkReply::finished, reply, &QNetworkReply::deleteLater);
@@ -498,9 +525,9 @@ void ConfigAutotuneWidget::openAutotuneDialog(bool autoOpened)
     }
 }
 
-AutotuneMeasuredPropertiesPage::AutotuneMeasuredPropertiesPage(QWidget *parent,
-        SystemIdent::DataFields &systemIdentData) :
-    QWizardPage(parent)
+AutotuneMeasuredPropertiesPage::AutotuneMeasuredPropertiesPage(
+    QWidget *parent, SystemIdent::DataFields &systemIdentData)
+    : QWizardPage(parent)
 {
     setupUi(this);
 
@@ -509,37 +536,27 @@ AutotuneMeasuredPropertiesPage::AutotuneMeasuredPropertiesPage(QWidget *parent,
 
 void AutotuneMeasuredPropertiesPage::initializePage()
 {
-    measuredRollGain->setText(
-            QString::number(sysIdent.Beta[SystemIdent::BETA_ROLL], 'f', 2));
-    measuredPitchGain->setText(
-            QString::number(sysIdent.Beta[SystemIdent::BETA_PITCH], 'f', 2));
-    measuredYawGain->setText(
-            QString::number(sysIdent.Beta[SystemIdent::BETA_YAW], 'f', 2));
+    measuredRollGain->setText(QString::number(sysIdent.Beta[SystemIdent::BETA_ROLL], 'f', 2));
+    measuredPitchGain->setText(QString::number(sysIdent.Beta[SystemIdent::BETA_PITCH], 'f', 2));
+    measuredYawGain->setText(QString::number(sysIdent.Beta[SystemIdent::BETA_YAW], 'f', 2));
 
-    measuredRollBias->setText(
-            QString::number(sysIdent.Bias[SystemIdent::BIAS_ROLL], 'f', 3));
-    measuredPitchBias->setText(
-            QString::number(sysIdent.Bias[SystemIdent::BIAS_PITCH], 'f', 3));
-    measuredYawBias->setText(
-            QString::number(sysIdent.Bias[SystemIdent::BIAS_YAW], 'f', 3));
+    measuredRollBias->setText(QString::number(sysIdent.Bias[SystemIdent::BIAS_ROLL], 'f', 3));
+    measuredPitchBias->setText(QString::number(sysIdent.Bias[SystemIdent::BIAS_PITCH], 'f', 3));
+    measuredYawBias->setText(QString::number(sysIdent.Bias[SystemIdent::BIAS_YAW], 'f', 3));
 
     double tau = exp(sysIdent.Tau);
 
     rollTau->setText(QString::number(tau, 'f', 4));
     pitchTau->setText(QString::number(tau, 'f', 4));
 
-    measuredRollNoise->setText(
-            QString::number(sysIdent.Noise[SystemIdent::NOISE_ROLL], 'f', 2));
-    measuredPitchNoise->setText(
-            QString::number(sysIdent.Noise[SystemIdent::NOISE_PITCH], 'f', 2));
-    measuredYawNoise->setText(
-            QString::number(sysIdent.Noise[SystemIdent::NOISE_YAW], 'f', 2));
+    measuredRollNoise->setText(QString::number(sysIdent.Noise[SystemIdent::NOISE_ROLL], 'f', 2));
+    measuredPitchNoise->setText(QString::number(sysIdent.Noise[SystemIdent::NOISE_PITCH], 'f', 2));
+    measuredYawNoise->setText(QString::number(sysIdent.Noise[SystemIdent::NOISE_YAW], 'f', 2));
 }
 
-AutotuneSlidersPage::AutotuneSlidersPage(QWidget *parent,
-        SystemIdent::DataFields &systemIdentData,
-        struct AutotunedValues *autoValues) :
-    QWizardPage(parent)
+AutotuneSlidersPage::AutotuneSlidersPage(QWidget *parent, SystemIdent::DataFields &systemIdentData,
+                                         struct AutotunedValues *autoValues)
+    : QWizardPage(parent)
 {
     setupUi(this);
 
@@ -547,12 +564,12 @@ AutotuneSlidersPage::AutotuneSlidersPage(QWidget *parent,
     av = autoValues;
 
     // connect sliders to computation
-    connect(rateDamp, SIGNAL(valueChanged(int)), this, SLOT(compute()));
-    connect(rateNoise, SIGNAL(valueChanged(int)), this, SLOT(compute()));
-    connect(cbUseYaw, SIGNAL(toggled(bool)), this, SLOT(compute()));
-    connect(cbUseOuterKi, SIGNAL(toggled(bool)), this, SLOT(compute()));
+    connect(rateDamp, &QAbstractSlider::valueChanged, this, &AutotuneSlidersPage::compute);
+    connect(rateNoise, &QAbstractSlider::valueChanged, this, &AutotuneSlidersPage::compute);
+    connect(cbUseYaw, &QAbstractButton::toggled, this, &AutotuneSlidersPage::compute);
+    connect(cbUseOuterKi, &QAbstractButton::toggled, this, &AutotuneSlidersPage::compute);
 
-    connect(btnResetSliders, SIGNAL(pressed()), this, SLOT(resetSliders()));
+    connect(btnResetSliders, &QAbstractButton::pressed, this, &AutotuneSlidersPage::resetSliders);
 
     compute();
 }
@@ -565,7 +582,8 @@ void AutotuneSlidersPage::resetSliders()
     compute();
 }
 
-bool AutotuneSlidersPage::isComplete() const {
+bool AutotuneSlidersPage::isComplete() const
+{
     return av->converged;
 }
 
@@ -573,7 +591,7 @@ void AutotuneSlidersPage::setText(QLabel *lbl, double value, int precision)
 {
     if (value < 0) {
         lbl->setText("–");
-    } else { 
+    } else {
         lbl->setText(QString::number(value, 'f', precision));
     }
 }
@@ -611,7 +629,7 @@ void AutotuneSlidersPage::compute()
     bool doYaw = cbUseYaw->isChecked();
     bool doOuterKi = cbUseOuterKi->isChecked();
 
-    double wn = 1/tau, wn_last = 1/tau + 10;
+    double wn = 1 / tau, wn_last = 1 / tau + 10;
     double tau_d = 0, tau_d_last = 1000;
 
     const int iteration_limit = 100, stability_limit = 5;
@@ -620,12 +638,16 @@ void AutotuneSlidersPage::compute()
     int stable_iterations = 0;
 
     while (!converged && (++iterations <= iteration_limit)) {
-        double tau_d_roll = (2*damp*tau*wn - 1)/(4*tau*damp*damp*wn*wn - 2*damp*wn - tau*wn*wn + exp(beta_roll)*ghf);
-        double tau_d_pitch = (2*damp*tau*wn - 1)/(4*tau*damp*damp*wn*wn - 2*damp*wn - tau*wn*wn + exp(beta_pitch)*ghf);
+        double tau_d_roll =
+            (2 * damp * tau * wn - 1) / (4 * tau * damp * damp * wn * wn - 2 * damp * wn
+                                         - tau * wn * wn + exp(beta_roll) * ghf);
+        double tau_d_pitch =
+            (2 * damp * tau * wn - 1) / (4 * tau * damp * damp * wn * wn - 2 * damp * wn
+                                         - tau * wn * wn + exp(beta_pitch) * ghf);
 
         // Select the slowest filter property
         tau_d = (tau_d_roll > tau_d_pitch) ? tau_d_roll : tau_d_pitch;
-        wn = (tau + tau_d) / (tau*tau_d) / (2 * damp + 2);
+        wn = (tau + tau_d) / (tau * tau_d) / (2 * damp + 2);
 
         // check for convergence
         if (fabs(tau_d - tau_d_last) <= 0.00001 && fabs(wn - wn_last) <= 0.00001) {
@@ -641,14 +663,14 @@ void AutotuneSlidersPage::compute()
     av->iterations = iterations;
     av->converged = converged;
 
-    av->derivativeCutoff = 1 / (2*M_PI*tau_d);
+    av->derivativeCutoff = 1 / (2 * M_PI * tau_d);
     av->naturalFreq = wn / 2 / M_PI;
 
     // Set the real pole position. The first pole is quite slow, which
     // prevents the integral being too snappy and driving too much
     // overshoot.
-    const double a = ((tau+tau_d) / tau / tau_d - 2 * damp * wn) / 20.0;
-    const double b = ((tau+tau_d) / tau / tau_d - 2 * damp * wn - a);
+    const double a = ((tau + tau_d) / tau / tau_d - 2 * damp * wn) / 20.0;
+    const double b = ((tau + tau_d) / tau / tau_d - 2 * damp * wn - a);
 
     CONF_ATUNE_QXTLOG_DEBUG("ghf: ", ghf);
     CONF_ATUNE_QXTLOG_DEBUG("wn: ", wn, "tau_d: ", tau_d);
@@ -658,7 +680,7 @@ void AutotuneSlidersPage::compute()
     // inner loop as a single order lpf. Set the outer loop to be
     // critically damped;
     const double zeta_o = 1.3;
-    av->outerKp = 1 / 4.0 / (zeta_o * zeta_o) / (1/wn);
+    av->outerKp = 1 / 4.0 / (zeta_o * zeta_o) / (1 / wn);
 
     // Except, if this is very high, we may be slew rate limited and pick
     // up oscillation that way.  Fix it with very soft clamping.
@@ -671,7 +693,7 @@ void AutotuneSlidersPage::compute()
     }
 
     if (doOuterKi) {
-        av->outerKp *= 0.95;	// Pick up some margin.
+        av->outerKp *= 0.95; // Pick up some margin.
         // Add a zero at 1/15th the innermost bandwidth.
         av->outerKi = 0.75 * av->outerKp / (2 * M_PI * tau * 15.0);
     } else {
@@ -686,8 +708,8 @@ void AutotuneSlidersPage::compute()
         double kd;
 
         ki = a * b * wn * wn * tau * tau_d / beta;
-        kp = tau * tau_d * ((a+b)*wn*wn + 2*a*b*damp*wn) / beta - ki*tau_d;
-        kd = (tau * tau_d * (a*b + wn*wn + (a+b)*2*damp*wn) - 1) / beta - kp * tau_d;
+        kp = tau * tau_d * ((a + b) * wn * wn + 2 * a * b * damp * wn) / beta - ki * tau_d;
+        kd = (tau * tau_d * (a * b + wn * wn + (a + b) * 2 * damp * wn) - 1) / beta - kp * tau_d;
 
         av->kp[i] = kp;
         av->ki[i] = ki;
@@ -707,12 +729,15 @@ void AutotuneSlidersPage::compute()
         av->ki[2] = 0.8 * av->ki[0] * scale;
         av->kd[2] = 0.8 * av->kd[0] * scale;
     } else {
-        av->kp[2] = -1;  av->ki[2] = -1;  av->kd[2] = -1;
+        av->kp[2] = -1;
+        av->ki[2] = -1;
+        av->kd[2] = -1;
     }
 
     // handle non-convergence case.  Takes precedence over all else.
     if (!converged) {
-        lblWarnings->setText(tr("<span style=\"color: red\">Error:</span> Tune didn't converge!  Check noise and damping sliders."));
+        lblWarnings->setText(tr("<span style=\"color: red\">Error:</span> Tune didn't converge!  "
+                                "Check noise and damping sliders."));
     }
 
     emit completeChanged();
@@ -737,13 +762,12 @@ void AutotuneSlidersPage::compute()
     lblNoise->setText(QString::number(ghf * 100, 'f', 1) + " %");
 }
 
-AutotuneFinalPage::AutotuneFinalPage(QWidget *parent) :
-    QWizardPage(parent)
+AutotuneFinalPage::AutotuneFinalPage(QWidget *parent)
+    : QWizardPage(parent)
 {
     setupUi(this);
 
 #ifdef Q_OS_MAC
-    lblCongrats->setText(lblCongrats->text().replace(tr("\"Finish\""),
-                tr("\"Done\"")));
+    lblCongrats->setText(lblCongrats->text().replace(tr("\"Finish\""), tr("\"Done\"")));
 #endif
 }

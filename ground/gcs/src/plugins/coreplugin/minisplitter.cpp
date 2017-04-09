@@ -11,17 +11,17 @@
  * @brief The Core GCS plugin
  *****************************************************************************/
 /*
- * This program is free software; you can redistribute it and/or modify 
- * it under the terms of the GNU General Public License as published by 
- * the Free Software Foundation; either version 3 of the License, or 
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 3 of the License, or
  * (at your option) any later version.
- * 
- * This program is distributed in the hope that it will be useful, but 
- * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY 
- * or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License 
+ *
+ * This program is distributed in the hope that it will be useful, but
+ * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
+ * or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License
  * for more details.
- * 
- * You should have received a copy of the GNU General Public License along 
+ *
+ * You should have received a copy of the GNU General Public License along
  * with this program; if not, see <http://www.gnu.org/licenses/>
  */
 
@@ -34,19 +34,20 @@
 namespace Core {
 namespace Internal {
 
-class MiniSplitterHandle : public QSplitterHandle
-{
-public:
-    MiniSplitterHandle(Qt::Orientation orientation, QSplitter *parent)
-            : QSplitterHandle(orientation, parent)
+    class MiniSplitterHandle : public QSplitterHandle
     {
-        setMask(QRegion(contentsRect()));
-        setAttribute(Qt::WA_MouseNoMask, true);
-    }
-protected:
-    void resizeEvent(QResizeEvent *event);
-    void paintEvent(QPaintEvent *event);
-};
+    public:
+        MiniSplitterHandle(Qt::Orientation orientation, QSplitter *parent)
+            : QSplitterHandle(orientation, parent)
+        {
+            setMask(QRegion(contentsRect()));
+            setAttribute(Qt::WA_MouseNoMask, true);
+        }
+
+    protected:
+        void resizeEvent(QResizeEvent *event);
+        void paintEvent(QPaintEvent *event);
+    };
 
 } // namespace Internal
 } // namespace Core
@@ -75,7 +76,7 @@ void MiniSplitterHandle::resizeEvent(QResizeEvent *event)
 void MiniSplitterHandle::paintEvent(QPaintEvent *event)
 {
     QPainter painter(this);
-    painter.fillRect(event->rect(), QColor(48,48,48));
+    painter.fillRect(event->rect(), QColor(48, 48, 48));
 }
 
 QSplitterHandle *MiniSplitter::createHandle()

@@ -28,14 +28,14 @@
 #include "gpsdisplaygadget.h"
 #include <coreplugin/iuavgadget.h>
 
-GpsDisplayGadgetFactory::GpsDisplayGadgetFactory(QObject *parent) :
-    IUAVGadgetFactory(QString("GpsDisplayGadget"),
-                      tr("GPS Display"),
-                      parent)
-{}
+GpsDisplayGadgetFactory::GpsDisplayGadgetFactory(QObject *parent)
+    : IUAVGadgetFactory(QString("GpsDisplayGadget"), tr("GPS Display"), parent)
+{
+}
 
 GpsDisplayGadgetFactory::~GpsDisplayGadgetFactory()
-{}
+{
+}
 
 Core::IUAVGadget *GpsDisplayGadgetFactory::createGadget(QWidget *parent)
 {

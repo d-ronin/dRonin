@@ -29,9 +29,9 @@
 #include "uavobjectmanager.h"
 #include "uavobject.h"
 
-TauLinkGadget::TauLinkGadget(QString classId, TauLinkGadgetWidget *widget, QWidget *parent) :
-        IUAVGadget(classId, parent),
-        m_widget(widget)
+TauLinkGadget::TauLinkGadget(QString classId, TauLinkGadgetWidget *widget, QWidget *parent)
+    : IUAVGadget(classId, parent)
+    , m_widget(widget)
 {
 }
 
@@ -40,7 +40,7 @@ TauLinkGadget::~TauLinkGadget()
     delete m_widget;
 }
 
-void TauLinkGadget::loadConfiguration(IUAVGadgetConfiguration* config)
+void TauLinkGadget::loadConfiguration(IUAVGadgetConfiguration *config)
 {
     Q_UNUSED(config);
 }

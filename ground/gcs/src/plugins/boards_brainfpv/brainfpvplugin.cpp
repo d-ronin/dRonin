@@ -30,22 +30,21 @@
 #include "brainre1.h"
 #include <QtPlugin>
 
-
 BrainFPVPlugin::BrainFPVPlugin()
 {
-   // Do nothing
+    // Do nothing
 }
 
 BrainFPVPlugin::~BrainFPVPlugin()
 {
-   // Do nothing
+    // Do nothing
 }
 
-bool BrainFPVPlugin::initialize(const QStringList& args, QString *errMsg)
+bool BrainFPVPlugin::initialize(const QStringList &args, QString *errMsg)
 {
-   Q_UNUSED(args);
-   Q_UNUSED(errMsg);
-   return true;
+    Q_UNUSED(args);
+    Q_UNUSED(errMsg);
+    return true;
 }
 
 void BrainFPVPlugin::extensionsInitialized()
@@ -54,13 +53,12 @@ void BrainFPVPlugin::extensionsInitialized()
      * Create the board objects here.
      *
      */
-    Brain* brain = new Brain();
+    Brain *brain = new Brain();
     addAutoReleasedObject(brain);
-    BrainRE1* brainre1 = new BrainRE1();
+    BrainRE1 *brainre1 = new BrainRE1();
     addAutoReleasedObject(brainre1);
 }
 
 void BrainFPVPlugin::shutdown()
 {
 }
-

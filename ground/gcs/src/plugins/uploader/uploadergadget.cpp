@@ -28,9 +28,9 @@
 
 namespace uploader {
 
-UploaderGadget::UploaderGadget(QString classId,  UploaderGadgetWidget *widget, QWidget *parent) :
-        IUAVGadget(classId, parent),
-        m_widget(widget)
+UploaderGadget::UploaderGadget(QString classId, UploaderGadgetWidget *widget, QWidget *parent)
+    : IUAVGadget(classId, parent)
+    , m_widget(widget)
 {
 }
 
@@ -42,9 +42,8 @@ UploaderGadget::~UploaderGadget()
  * Loads a configuration.
  *
  */
-void UploaderGadget::loadConfiguration(IUAVGadgetConfiguration* config)
+void UploaderGadget::loadConfiguration(IUAVGadgetConfiguration *config)
 {
     Q_UNUSED(config);
 }
-
 }

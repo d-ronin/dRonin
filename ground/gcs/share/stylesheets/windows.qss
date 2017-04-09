@@ -1,18 +1,7 @@
 QListWidget {font-size: 11px;}
 
 	QGroupBox 	{
-		border: 1px solid gray;
-		border-radius: 5px;
-		margin-top: 1ex; /* leave space at the top for the title */
-		font-size: 11px;
 		font-weight: bold;
-		}
-
-	QGroupBox::title {
-		subcontrol-origin: margin;
-		subcontrol-position: top left; /* position at the top center */
-		padding: 0 3px;
-		
 		}
 
 	QSlider::groove:horizontal {

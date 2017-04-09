@@ -35,7 +35,8 @@
 
 Q_DECLARE_METATYPE(Core::IBoardType::LinkMode)
 
-class RfmBindWizard : public QWizard {
+class RfmBindWizard : public QWizard
+{
     Q_OBJECT
 
 public:
@@ -80,7 +81,6 @@ private slots:
     void pageChanged(int currId);
 
 private:
-
     /**
      * This wizard will do the following steps:
      * 1. give an introduction

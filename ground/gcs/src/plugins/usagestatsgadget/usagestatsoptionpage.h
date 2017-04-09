@@ -32,25 +32,25 @@
 
 class UsageStatsPlugin;
 namespace Core {
-    class IUAVGadgetConfiguration;
+class IUAVGadgetConfiguration;
 }
 
 namespace Ui {
-    class UsageStatsOptionPage;
+class UsageStatsOptionPage;
 }
 
 using namespace Core;
 
 class UsageStatsOptionPage : public IOptionsPage
 {
-Q_OBJECT
+    Q_OBJECT
 public:
     UsageStatsOptionPage(QObject *parent = 0);
     virtual ~UsageStatsOptionPage();
 
     QString id() const { return QLatin1String("settings"); }
     QString trName() const { return tr("settings"); }
-    QString category() const { return "Usage Statistics";}
+    QString category() const { return "Usage Statistics"; }
     QString trCategory() const { return "Usage Statistics"; }
 
     QWidget *createPage(QWidget *parent);
@@ -61,7 +61,7 @@ signals:
 private slots:
 private:
     Ui::UsageStatsOptionPage *m_page;
-    UsageStatsPlugin * m_config;
+    UsageStatsPlugin *m_config;
 };
 
 #endif // USAGESTATSOPTIONPAGE_H

@@ -27,9 +27,9 @@
 #include "tlstartpage.h"
 #include "ui_startpage.h"
 
-TLStartPage::TLStartPage(RfmBindWizard *wizard, QWidget *parent) :
-    AbstractWizardPage(wizard, parent),
-    ui(new Ui::StartPage)
+TLStartPage::TLStartPage(RfmBindWizard *wizard, QWidget *parent)
+    : AbstractWizardPage(wizard, parent)
+    , ui(new Ui::StartPage)
 {
     ui->setupUi(this);
     setFont(QFont("Ubuntu", 2));

@@ -13,17 +13,17 @@
  * @brief The Core GCS plugin
  *****************************************************************************/
 /*
- * This program is free software; you can redistribute it and/or modify 
- * it under the terms of the GNU General Public License as published by 
- * the Free Software Foundation; either version 3 of the License, or 
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 3 of the License, or
  * (at your option) any later version.
- * 
- * This program is distributed in the hope that it will be useful, but 
- * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY 
- * or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License 
+ *
+ * This program is distributed in the hope that it will be useful, but
+ * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
+ * or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License
  * for more details.
- * 
- * You should have received a copy of the GNU General Public License along 
+ *
+ * You should have received a copy of the GNU General Public License along
  * with this program; if not, see <http://www.gnu.org/licenses/>
  */
 
@@ -39,16 +39,16 @@
 
 using namespace Core::Internal;
 
-GeneralSettings::GeneralSettings():
-    m_saveSettingsOnExit(true),
-    m_autoConnect(true),
-    m_autoSelect(true),
-    m_useUDPMirror(false),
-    m_useExpertMode(false),
-    m_dialog(0),
-    m_proxyType(QNetworkProxy::NoProxy),
-    m_proxyPort(0),
-    m_useSessionManaging(true)
+GeneralSettings::GeneralSettings()
+    : m_saveSettingsOnExit(true)
+    , m_autoConnect(true)
+    , m_autoSelect(true)
+    , m_useUDPMirror(false)
+    , m_useExpertMode(false)
+    , m_dialog(0)
+    , m_proxyType(QNetworkProxy::NoProxy)
+    , m_proxyPort(0)
+    , m_useSessionManaging(true)
 {
 }
 
@@ -77,7 +77,7 @@ static bool hasQmFilesForLocale(const QString &locale, const QString &creatorTrP
     static const QString qtTrPath = QLibraryInfo::location(QLibraryInfo::TranslationsPath);
 
     const QString trFile = QLatin1String("qt_") + locale + QLatin1String(".qm");
-    return QFile::exists(qtTrPath+'/'+trFile) || QFile::exists(creatorTrPath+'/'+trFile);
+    return QFile::exists(qtTrPath + '/' + trFile) || QFile::exists(creatorTrPath + '/' + trFile);
 }
 
 void GeneralSettings::fillLanguageBox() const
@@ -91,17 +91,18 @@ void GeneralSettings::fillLanguageBox() const
         m_page->languageBox->setCurrentIndex(m_page->languageBox->count() - 1);
 
     const QString creatorTrPath =
-            Core::ICore::instance()->resourcePath() + QLatin1String("/translations");
-    const QStringList languageFiles = QDir(creatorTrPath).entryList(QStringList(QLatin1String("dronin*.qm")));
+        Core::ICore::instance()->resourcePath() + QLatin1String("/translations");
+    const QStringList languageFiles =
+        QDir(creatorTrPath).entryList(QStringList(QLatin1String("dronin*.qm")));
 
-    Q_FOREACH(const QString &languageFile, languageFiles)
-    {
-        int start = languageFile.indexOf(QLatin1Char('_'))+1;
+    Q_FOREACH (const QString &languageFile, languageFiles) {
+        int start = languageFile.indexOf(QLatin1Char('_')) + 1;
         int end = languageFile.lastIndexOf(QLatin1Char('.'));
-        const QString locale = languageFile.mid(start, end-start);
+        const QString locale = languageFile.mid(start, end - start);
         // no need to show a language that creator will not load anyway
         if (hasQmFilesForLocale(locale, creatorTrPath)) {
-            m_page->languageBox->addItem(QLocale::languageToString(QLocale(locale).language()), locale);
+            m_page->languageBox->addItem(QLocale::languageToString(QLocale(locale).language()),
+                                         locale);
             if (locale == currentLocale)
                 m_page->languageBox->setCurrentIndex(m_page->languageBox->count() - 1);
         }
@@ -124,7 +125,7 @@ QWidget *GeneralSettings::createPage(QWidget *parent)
     m_page->setupUi(w);
     fillLanguageBox();
     fillProxyTypesBox();
-    connect(m_page->checkAutoConnect,SIGNAL(stateChanged(int)),this,SLOT(slotAutoConnect(int)));
+    connect(m_page->checkAutoConnect, SIGNAL(stateChanged(int)), this, SLOT(slotAutoConnect(int)));
     m_page->checkBoxSaveOnExit->setChecked(m_saveSettingsOnExit);
     m_page->checkAutoConnect->setChecked(m_autoConnect);
     m_page->checkAutoSelect->setChecked(m_autoSelect);
@@ -157,7 +158,7 @@ void GeneralSettings::apply()
     m_proxyHostname = m_page->hostNameLE->text();
     m_proxyUser = m_page->userLE->text();
     m_proxyPassword = m_page->passwordLE->text();
-    QNetworkProxy::setApplicationProxy (getNetworkProxy());
+    QNetworkProxy::setApplicationProxy(getNetworkProxy());
     emit generalSettingsChanged();
 }
 
@@ -166,21 +167,23 @@ void GeneralSettings::finish()
     delete m_page;
 }
 
-void GeneralSettings::readSettings(QSettings* qs)
+void GeneralSettings::readSettings(QSettings *qs)
 {
     qs->beginGroup(QLatin1String("General"));
-    m_language = qs->value(QLatin1String("OverrideLanguage"),QLocale::system().name()).toString();
-    m_saveSettingsOnExit = qs->value(QLatin1String("SaveSettingsOnExit"),m_saveSettingsOnExit).toBool();
-    m_autoConnect = qs->value(QLatin1String("AutoConnect"),m_autoConnect).toBool();
-    m_autoSelect = qs->value(QLatin1String("AutoSelect"),m_autoSelect).toBool();
-    m_useUDPMirror = qs->value(QLatin1String("UDPMirror"),m_useUDPMirror).toBool();
-    m_useExpertMode = qs->value(QLatin1String("ExpertMode"),m_useExpertMode).toBool();
-    m_useSessionManaging = qs->value(QLatin1String("UseSessionManaging"), m_useSessionManaging).toBool();
-    m_proxyType = qs->value(QLatin1String("proxytype"),m_proxyType).toInt();
-    m_proxyPort = qs->value(QLatin1String("proxyport"),m_proxyPort).toInt();
-    m_proxyHostname = qs->value(QLatin1String("proxyhostname"),m_proxyHostname).toString();
-    m_proxyUser = qs->value(QLatin1String("proxyuser"),m_proxyUser).toString();
-    m_proxyPassword = qs->value(QLatin1String("proxypassword"),m_proxyPassword).toString();
+    m_language = qs->value(QLatin1String("OverrideLanguage"), QLocale::system().name()).toString();
+    m_saveSettingsOnExit =
+        qs->value(QLatin1String("SaveSettingsOnExit"), m_saveSettingsOnExit).toBool();
+    m_autoConnect = qs->value(QLatin1String("AutoConnect"), m_autoConnect).toBool();
+    m_autoSelect = qs->value(QLatin1String("AutoSelect"), m_autoSelect).toBool();
+    m_useUDPMirror = qs->value(QLatin1String("UDPMirror"), m_useUDPMirror).toBool();
+    m_useExpertMode = qs->value(QLatin1String("ExpertMode"), m_useExpertMode).toBool();
+    m_useSessionManaging =
+        qs->value(QLatin1String("UseSessionManaging"), m_useSessionManaging).toBool();
+    m_proxyType = qs->value(QLatin1String("proxytype"), m_proxyType).toInt();
+    m_proxyPort = qs->value(QLatin1String("proxyport"), m_proxyPort).toInt();
+    m_proxyHostname = qs->value(QLatin1String("proxyhostname"), m_proxyHostname).toString();
+    m_proxyUser = qs->value(QLatin1String("proxyuser"), m_proxyUser).toString();
+    m_proxyPassword = qs->value(QLatin1String("proxypassword"), m_proxyPassword).toString();
     m_observations = qs->value(QLatin1String("observations"), "").toString();
     m_vehicle = qs->value(QLatin1String("vehicle"), "").toString();
     m_board = qs->value(QLatin1String("board"), "").toString();
@@ -194,7 +197,7 @@ void GeneralSettings::readSettings(QSettings* qs)
     emit generalSettingsChanged();
 }
 
-void GeneralSettings::saveSettings(QSettings* qs)
+void GeneralSettings::saveSettings(QSettings *qs)
 {
     qs->beginGroup(QLatin1String("General"));
 
@@ -252,8 +255,9 @@ void GeneralSettings::setLanguage(const QString &locale)
 {
     if (m_language != locale) {
         if (!locale.isEmpty()) {
-        QMessageBox::information((QWidget*)Core::ICore::instance()->mainWindow(), tr("Restart required"),
-                                 tr("The language change will take effect after a restart of the GCS."));
+            QMessageBox::information(
+                (QWidget *)Core::ICore::instance()->mainWindow(), tr("Restart required"),
+                tr("The language change will take effect after a restart of the GCS."));
         }
         m_language = locale;
     }
@@ -291,7 +295,8 @@ bool GeneralSettings::useExpertMode() const
 
 QNetworkProxy GeneralSettings::getNetworkProxy()
 {
-    return QNetworkProxy((QNetworkProxy::ProxyType)m_proxyType, m_proxyHostname, m_proxyPort, m_proxyUser, m_proxyPassword);
+    return QNetworkProxy((QNetworkProxy::ProxyType)m_proxyType, m_proxyHostname, m_proxyPort,
+                         m_proxyUser, m_proxyPassword);
 }
 
 void GeneralSettings::setObservations(QString value)
@@ -329,53 +334,64 @@ void GeneralSettings::setWeight(int weight)
     m_weight = weight;
 }
 
-int GeneralSettings::getWeight() {
+int GeneralSettings::getWeight()
+{
     return m_weight;
 }
 
-void GeneralSettings::setVehicleSize(int size) {
+void GeneralSettings::setVehicleSize(int size)
+{
     m_size = size;
 }
 
-int GeneralSettings::getVehicleSize() {
+int GeneralSettings::getVehicleSize()
+{
     return m_size;
 }
 
-void GeneralSettings::setBatteryCells(int cells) {
+void GeneralSettings::setBatteryCells(int cells)
+{
     m_cells = cells;
 }
 
-int GeneralSettings::getBatteryCells() {
+int GeneralSettings::getBatteryCells()
+{
     return m_cells;
 }
 
-void GeneralSettings::setMotors(QString motors) {
+void GeneralSettings::setMotors(QString motors)
+{
     m_motors = motors;
 }
 
-QString GeneralSettings::getMotors() {
+QString GeneralSettings::getMotors()
+{
     return m_motors;
 }
 
-void GeneralSettings::setESCs(QString escs) {
+void GeneralSettings::setESCs(QString escs)
+{
     m_escs = escs;
 }
 
-QString GeneralSettings::getESCs() {
+QString GeneralSettings::getESCs()
+{
     return m_escs;
 }
 
-void GeneralSettings::setProps(QString props) {
+void GeneralSettings::setProps(QString props)
+{
     m_props = props;
 }
 
-QString GeneralSettings::getProps() {
+QString GeneralSettings::getProps()
+{
     return m_props;
 }
 
 void GeneralSettings::slotAutoConnect(int value)
 {
-    if (value==Qt::Checked)
+    if (value == Qt::Checked)
         m_page->checkAutoSelect->setEnabled(false);
     else
         m_page->checkAutoSelect->setEnabled(true);

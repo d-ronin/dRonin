@@ -7,7 +7,7 @@
  * @{
  * @addtogroup EmptyGadgetPlugin Empty Gadget Plugin
  * @{
- * @brief A place holder gadget plugin 
+ * @brief A place holder gadget plugin
  *****************************************************************************/
 /*
  * This program is free software; you can redistribute it and/or modify
@@ -32,8 +32,8 @@
 namespace Core {
 class IUAVGadget;
 }
-//class QWidget;
-//class QString;
+// class QWidget;
+// class QString;
 class EmptyGadgetWidget;
 
 using namespace Core;
@@ -50,9 +50,8 @@ public:
     QString contextHelpId() const { return QString(); }
 
 private:
-        QWidget *m_widget;
-	QList<int> m_context;
+    QWidget *m_widget;
+    QList<int> m_context;
 };
-
 
 #endif // EMPTYGADGET_H_

@@ -37,25 +37,26 @@
 #include <QKeySequence>
 #include <coreplugin/modemanager.h>
 
-RfmBindWizardPlugin::RfmBindWizardPlugin() : bindWizardRunning(false)
-{}
+RfmBindWizardPlugin::RfmBindWizardPlugin()
+    : bindWizardRunning(false)
+{
+}
 
 RfmBindWizardPlugin::~RfmBindWizardPlugin()
-{}
+{
+}
 
-bool RfmBindWizardPlugin::initialize(const QStringList & args, QString *errMsg)
+bool RfmBindWizardPlugin::initialize(const QStringList &args, QString *errMsg)
 {
     Q_UNUSED(args);
     Q_UNUSED(errMsg);
 
     // Add Menu entry
-    Core::ActionManager *am   = Core::ICore::instance()->actionManager();
+    Core::ActionManager *am = Core::ICore::instance()->actionManager();
     Core::ActionContainer *ac = am->actionContainer(Core::Constants::M_TOOLS);
 
-    Core::Command *cmd = am->registerAction(new QAction(this),
-                                            "RfmBindWizardPlugin.ShowBindWizard",
-                                            QList<int>() <<
-                                            Core::Constants::C_GLOBAL_ID);
+    Core::Command *cmd = am->registerAction(new QAction(this), "RfmBindWizardPlugin.ShowBindWizard",
+                                            QList<int>() << Core::Constants::C_GLOBAL_ID);
     cmd->action()->setText(tr("Rfm Bind Wizard"));
 
     Core::ModeManager::instance()->addAction(cmd, 1);
@@ -64,22 +65,24 @@ bool RfmBindWizardPlugin::initialize(const QStringList & args, QString *errMsg)
     ac->appendGroup("Bind Wizard");
     ac->addAction(cmd, "Bind Wizard");
 
-    connect(cmd->action(), SIGNAL(triggered(bool)), this, SLOT(showBindWizard()));
+    connect(cmd->action(), &QAction::triggered, this, &RfmBindWizardPlugin::showBindWizard);
     return true;
 }
 
 void RfmBindWizardPlugin::extensionsInitialized()
-{}
+{
+}
 
 void RfmBindWizardPlugin::shutdown()
-{}
+{
+}
 
 void RfmBindWizardPlugin::showBindWizard()
 {
     if (!bindWizardRunning) {
         bindWizardRunning = true;
         RfmBindWizard *m_wiz = new RfmBindWizard();
-        connect(m_wiz, SIGNAL(finished(int)), this, SLOT(bindWizardTerminated()));
+        connect(m_wiz, &QDialog::finished, this, &RfmBindWizardPlugin::bindWizardTerminated);
         m_wiz->setAttribute(Qt::WA_DeleteOnClose, true);
         m_wiz->setWindowFlags(m_wiz->windowFlags() | Qt::WindowStaysOnTopHint);
         m_wiz->show();

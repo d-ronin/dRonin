@@ -8,7 +8,7 @@
  * @{
  * @addtogroup OPMapPlugin QML Viewer Plugin
  * @{
- * @brief The QML Viewer Gadget 
+ * @brief The QML Viewer Gadget
  *****************************************************************************/
 /*
  * This program is free software; you can redistribute it and/or modify
@@ -39,17 +39,17 @@
 #include <QQmlEngine>
 #include <QQmlContext>
 
-QmlViewGadgetWidget::QmlViewGadgetWidget(QWindow *parent) :
-   QQuickView(parent)
+QmlViewGadgetWidget::QmlViewGadgetWidget(QWindow *parent)
+    : QQuickView(parent)
 {
     setResizeMode(SizeRootObjectToView);
 
     ExtensionSystem::PluginManager *pm = ExtensionSystem::PluginManager::instance();
     UAVObjectManager *objManager = pm->getObject<UAVObjectManager>();
 
-    QVector<QVector<UAVObject*>> objects = objManager->getObjectsVector();
+    QVector<QVector<UAVObject *>> objects = objManager->getObjectsVector();
 
-    foreach (const QVector<UAVObject*> &objInst, objects)
+    foreach (const QVector<UAVObject *> &objInst, objects)
         engine()->rootContext()->setContextProperty(objInst.at(0)->getName(), objInst.at(0));
 
     engine()->rootContext()->setContextProperty("qmlWidget", this);
@@ -69,14 +69,14 @@ void QmlViewGadgetWidget::setQmlFile(QString fn)
 
     engine()->clearComponentCache();
 
-    //it's necessary to allow qml side to query svg element position
+    // it's necessary to allow qml side to query svg element position
     engine()->rootContext()->setContextProperty("svgRenderer", svgProvider);
     engine()->setBaseUrl(QUrl::fromLocalFile(fn));
 
     qDebug() << Q_FUNC_INFO << fn;
     setSource(QUrl::fromLocalFile(fn));
 
-    foreach(const QQmlError &error, errors()) {
+    foreach (const QQmlError &error, errors()) {
         qDebug() << error.description();
     }
 }
@@ -90,4 +90,3 @@ void QmlViewGadgetWidget::mouseReleaseEvent(QMouseEvent *event)
 
     QQuickView::mouseReleaseEvent(event);
 }
-

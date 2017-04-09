@@ -37,18 +37,18 @@
 #include "qwt/src/qwt_plot.h"
 #include "qwt/src/qwt_plot_curve.h"
 
-
 /**
  * @brief Scatterplot2dScopeConfig::plotNewData Update plot with new data
  * @param scopeGadgetWidget
  */
-void TimeSeriesPlotData::plotNewData(PlotData *plot2dData, ScopeConfig *scopeConfig, ScopeGadgetWidget *scopeGadgetWidget)
+void TimeSeriesPlotData::plotNewData(PlotData *plot2dData, ScopeConfig *scopeConfig,
+                                     ScopeGadgetWidget *scopeGadgetWidget)
 {
     Q_UNUSED(plot2dData);
     Q_UNUSED(scopeConfig);
     Q_UNUSED(scopeGadgetWidget);
 
-    //Plot new data
+    // Plot new data
     if (readAndResetUpdatedFlag() == true)
         curve->setSamples(*xData, *yData);
 
@@ -59,79 +59,78 @@ void TimeSeriesPlotData::plotNewData(PlotData *plot2dData, ScopeConfig *scopeCon
     scopeGadgetWidget->setAxisScale(QwtPlot::xBottom, toTime - m_xWindowSize, toTime);
 }
 
-
 /**
  * @brief Scatterplot2dScopeConfig::plotNewData Update plot with new data
  * @param scopeGadgetWidget
  */
-void SeriesPlotData::plotNewData(PlotData *plot2dData, ScopeConfig *scopeConfig, ScopeGadgetWidget *scopeGadgetWidget)
+void SeriesPlotData::plotNewData(PlotData *plot2dData, ScopeConfig *scopeConfig,
+                                 ScopeGadgetWidget *scopeGadgetWidget)
 {
     Q_UNUSED(plot2dData);
     Q_UNUSED(scopeConfig);
     Q_UNUSED(scopeGadgetWidget);
 
-    //Plot new data
+    // Plot new data
     if (readAndResetUpdatedFlag() == true)
         curve->setSamples(*xData, *yData);
 }
-
 
 /**
  * @brief SeriesPlotData::append Appends data to series plot
  * @param obj UAVO with new data
  * @return
  */
-bool SeriesPlotData::append(UAVObject* obj)
+bool SeriesPlotData::append(UAVObject *obj)
 {
     if (uavObjectName == obj->getName()) {
 
-        //Get the field of interest
-        UAVObjectField* field =  obj->getField(uavFieldName);
+        // Get the field of interest
+        UAVObjectField *field = obj->getField(uavFieldName);
 
         if (field) {
 
-            double currentValue = valueAsDouble(obj, field, haveSubField, uavSubFieldName) * pow(10, scalePower);
+            double currentValue =
+                valueAsDouble(obj, field, haveSubField, uavSubFieldName) * pow(10, scalePower);
 
-            //Perform scope math, if necessary
-            if (mathFunction  == "Boxcar average" || mathFunction  == "Standard deviation"){
-                //Put the new value at the front
-                yDataHistory->append( currentValue );
+            // Perform scope math, if necessary
+            if (mathFunction == "Boxcar average" || mathFunction == "Standard deviation") {
+                // Put the new value at the front
+                yDataHistory->append(currentValue);
 
                 // calculate average value
                 meanSum += currentValue;
-                if(yDataHistory->size() > (int)meanSamples) {
+                if (yDataHistory->size() > (int)meanSamples) {
                     meanSum -= yDataHistory->first();
                     yDataHistory->pop_front();
                 }
 
                 // make sure to correct the sum every meanSamples steps to prevent it
                 // from running away due to floating point rounding errors
-                correctionSum+=currentValue;
+                correctionSum += currentValue;
                 if (++correctionCount >= (int)meanSamples) {
                     meanSum = correctionSum;
                     correctionSum = 0.0f;
                     correctionCount = 0;
                 }
 
-                double boxcarAvg=meanSum/yDataHistory->size();
+                double boxcarAvg = meanSum / yDataHistory->size();
 
-                if ( mathFunction  == "Standard deviation" ){
-                    //Calculate square of sample standard deviation, with Bessel's correction
-                    double stdSum=0;
-                    for (int i=0; i < yDataHistory->size(); i++){
-                        stdSum+= pow(yDataHistory->at(i)- boxcarAvg,2)/(meanSamples-1);
+                if (mathFunction == "Standard deviation") {
+                    // Calculate square of sample standard deviation, with Bessel's correction
+                    double stdSum = 0;
+                    for (int i = 0; i < yDataHistory->size(); i++) {
+                        stdSum += pow(yDataHistory->at(i) - boxcarAvg, 2) / (meanSamples - 1);
                     }
                     yData->append(sqrt(stdSum));
-                }
-                else  {
+                } else {
                     yData->append(boxcarAvg);
                 }
-            }
-            else{
-                yData->append( currentValue );
+            } else {
+                yData->append(currentValue);
             }
 
-            if (yData->size() > getXWindowSize()) { //If new data overflows the window, remove old data...
+            if (yData->size()
+                > getXWindowSize()) { // If new data overflows the window, remove old data...
                 yData->pop_front();
             } else //...otherwise, add a new y point at position xData
                 xData->insert(xData->size(), xData->size());
@@ -143,64 +142,63 @@ bool SeriesPlotData::append(UAVObject* obj)
     return false;
 }
 
-
 /**
  * @brief TimeSeriesPlotData::append Appends data to time series data
  * @param obj UAVO with new data
  * @return
  */
-bool TimeSeriesPlotData::append(UAVObject* obj)
+bool TimeSeriesPlotData::append(UAVObject *obj)
 {
     if (uavObjectName == obj->getName()) {
-        //Get the field of interest
-        UAVObjectField* field =  obj->getField(uavFieldName);
+        // Get the field of interest
+        UAVObjectField *field = obj->getField(uavFieldName);
 
         if (field) {
-            QDateTime NOW = QDateTime::currentDateTime(); //THINK ABOUT REIMPLEMENTING THIS TO SHOW UAVO TIME, NOT SYSTEM TIME
-            double currentValue = valueAsDouble(obj, field, haveSubField, uavSubFieldName) * pow(10, scalePower);
+            QDateTime NOW = QDateTime::currentDateTime(); // THINK ABOUT REIMPLEMENTING THIS TO SHOW
+                                                          // UAVO TIME, NOT SYSTEM TIME
+            double currentValue =
+                valueAsDouble(obj, field, haveSubField, uavSubFieldName) * pow(10, scalePower);
 
-            //Perform scope math, if necessary
-            if (mathFunction  == "Boxcar average" || mathFunction  == "Standard deviation"){
-                //Put the new value at the back
-                yDataHistory->append( currentValue );
+            // Perform scope math, if necessary
+            if (mathFunction == "Boxcar average" || mathFunction == "Standard deviation") {
+                // Put the new value at the back
+                yDataHistory->append(currentValue);
 
                 // calculate average value
                 meanSum += currentValue;
-                if(yDataHistory->size() > (int)meanSamples) {
+                if (yDataHistory->size() > (int)meanSamples) {
                     meanSum -= yDataHistory->first();
                     yDataHistory->pop_front();
                 }
                 // make sure to correct the sum every meanSamples steps to prevent it
                 // from running away due to floating point rounding errors
-                correctionSum+=currentValue;
+                correctionSum += currentValue;
                 if (++correctionCount >= (int)meanSamples) {
                     meanSum = correctionSum;
                     correctionSum = 0.0f;
                     correctionCount = 0;
                 }
 
-                double boxcarAvg=meanSum/yDataHistory->size();
+                double boxcarAvg = meanSum / yDataHistory->size();
 
-                if ( mathFunction  == "Standard deviation" ){
-                    //Calculate square of sample standard deviation, with Bessel's correction
-                    double stdSum=0;
-                    for (int i=0; i < yDataHistory->size(); i++){
-                        stdSum+= pow(yDataHistory->at(i)- boxcarAvg,2)/(meanSamples-1);
+                if (mathFunction == "Standard deviation") {
+                    // Calculate square of sample standard deviation, with Bessel's correction
+                    double stdSum = 0;
+                    for (int i = 0; i < yDataHistory->size(); i++) {
+                        stdSum += pow(yDataHistory->at(i) - boxcarAvg, 2) / (meanSamples - 1);
                     }
                     yData->append(sqrt(stdSum));
-                }
-                else  {
+                } else {
                     yData->append(boxcarAvg);
                 }
-            }
-            else{
-                yData->append( currentValue );
+            } else {
+                yData->append(currentValue);
             }
 
             double valueX = NOW.toTime_t() + NOW.time().msec() / 1000.0;
             xData->append(valueX);
 
-            //Remove stale data
+            // Remove stale data
             removeStaleData();
 
             return true;
@@ -209,7 +207,6 @@ bool TimeSeriesPlotData::append(UAVObject* obj)
 
     return false;
 }
-
 
 /**
  * @brief TimeSeriesPlotData::removeStaleData Removes stale data from time series plot
@@ -234,15 +231,14 @@ void TimeSeriesPlotData::removeStaleData()
     }
 }
 
-
 /**
- * @brief TimeSeriesPlotData::removeStaleDataTimeout On timer timeout, removes data that can no longer be seen on axes.
+ * @brief TimeSeriesPlotData::removeStaleDataTimeout On timer timeout, removes data that can no
+ * longer be seen on axes.
  */
 void TimeSeriesPlotData::removeStaleDataTimeout()
 {
     removeStaleData();
 }
-
 
 /**
  * @brief ScatterplotData::deletePlots Delete all plot data
@@ -254,7 +250,6 @@ void ScatterplotData::deletePlots(PlotData *scatterplotData)
     delete curve;
     delete scatterplotData;
 }
-
 
 /**
  * @brief ScatterplotData::clearPlots Clear all plot data

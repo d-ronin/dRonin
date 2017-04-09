@@ -36,6 +36,7 @@ class ConfigTxPIDWidget : public ConfigTaskWidget
 public:
     ConfigTxPIDWidget(QWidget *parent = 0);
     ~ConfigTxPIDWidget();
+
 private:
     Ui_TxPIDWidget *m_txpid;
 

@@ -38,29 +38,20 @@ class DebugGadgetWidget;
 
 using namespace Core;
 
-class DebugGadget : public Core::IUAVGadget {
+class DebugGadget : public Core::IUAVGadget
+{
     Q_OBJECT
 public:
     DebugGadget(QString classId, DebugGadgetWidget *widget, QWidget *parent = 0);
     ~DebugGadget();
 
-    QList<int> context() const
-    {
-        return m_context;
-    }
-    QWidget *widget()
-    {
-        return m_widget;
-    }
-    QString contextHelpId() const
-    {
-        return QString();
-    }
+    QList<int> context() const { return m_context; }
+    QWidget *widget() { return m_widget; }
+    QString contextHelpId() const { return QString(); }
 
 private:
     QWidget *m_widget;
     QList<int> m_context;
 };
-
 
 #endif // DEBUGGADGET_H_

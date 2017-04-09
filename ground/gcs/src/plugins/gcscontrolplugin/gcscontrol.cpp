@@ -31,24 +31,25 @@
 #include "sdlgamepad/sdlgamepad.h"
 #endif
 
-#define CHANNEL_MAX     2000
+#define CHANNEL_MAX 2000
 #define CHANNEL_NEUTRAL 1500
 #define CHANNEL_THROTNEUTRAL 1100
-#define CHANNEL_MIN     1000
+#define CHANNEL_MIN 1000
 bool GCSControl::firstInstance = true;
 
-GCSControl::GCSControl():hasControl(false)
+GCSControl::GCSControl()
+    : hasControl(false)
 {
-    Q_ASSERT(firstInstance);//There should only be one instance of this class
+    Q_ASSERT(firstInstance); // There should only be one instance of this class
     firstInstance = false;
     receiverActivity.setInterval(100);
-    connect(&receiverActivity,SIGNAL(timeout()),this,SLOT(receiverActivitySlot()));
+    connect(&receiverActivity, &QTimer::timeout, this, &GCSControl::receiverActivitySlot);
 }
 
 void GCSControl::extensionsInitialized()
 {
     ExtensionSystem::PluginManager *pm = ExtensionSystem::PluginManager::instance();
-    UAVObjectManager * objMngr = pm->getObject<UAVObjectManager>();
+    UAVObjectManager *objMngr = pm->getObject<UAVObjectManager>();
     Q_ASSERT(objMngr);
 
     manControlSettingsUAVO = ManualControlSettings::GetInstance(objMngr);
@@ -64,8 +65,6 @@ GCSControl::~GCSControl()
     removeObject(this);
 }
 
-
-
 bool GCSControl::initialize(const QStringList &arguments, QString *errorString)
 {
     Q_UNUSED(arguments);
@@ -73,7 +72,7 @@ bool GCSControl::initialize(const QStringList &arguments, QString *errorString)
 
 #if defined(USE_SDL)
     sdlGamepad = new SDLGamepad();
-    if(sdlGamepad->init()) {
+    if (sdlGamepad->init()) {
         sdlGamepad->start();
         qRegisterMetaType<QListInt16>("QListInt16");
         qRegisterMetaType<ButtonNumber>("ButtonNumber");
@@ -98,12 +97,12 @@ void GCSControl::shutdown()
  */
 bool GCSControl::beginGCSControl()
 {
-    if(hasControl)
+    if (hasControl)
         return false;
     dataBackup = manControlSettingsUAVO->getData();
     metaBackup = manControlSettingsUAVO->getMetadata();
     ManualControlSettings::Metadata meta = manControlSettingsUAVO->getDefaultMetadata();
-    UAVObject::SetGcsAccess(meta,UAVObject::ACCESS_READWRITE);
+    UAVObject::SetGcsAccess(meta, UAVObject::ACCESS_READWRITE);
 
     // No need to set flight mode, we leave that at none and directly change
     // the setting
@@ -113,22 +112,19 @@ bool GCSControl::beginGCSControl()
     // Only throttle, roll, pitch and yaw need to be configured for this
     // mode to work
     const int NUM_CHANNELS = 4;
-    const quint8 channels[NUM_CHANNELS] = {
-        ManualControlSettings::CHANNELGROUPS_THROTTLE,
-        ManualControlSettings::CHANNELGROUPS_ROLL,
-        ManualControlSettings::CHANNELGROUPS_PITCH,
-        ManualControlSettings::CHANNELGROUPS_YAW
-    };
+    const quint8 channels[NUM_CHANNELS] = { ManualControlSettings::CHANNELGROUPS_THROTTLE,
+                                            ManualControlSettings::CHANNELGROUPS_ROLL,
+                                            ManualControlSettings::CHANNELGROUPS_PITCH,
+                                            ManualControlSettings::CHANNELGROUPS_YAW };
 
-    for(quint8 i = 0; i < NUM_CHANNELS; ++i)
-    {
+    for (quint8 i = 0; i < NUM_CHANNELS; ++i) {
         quint8 x = channels[i];
 
         // Assign this channel to GCS control
         manControlSettingsUAVO->setChannelGroups(x, ManualControlSettings::CHANNELGROUPS_GCS);
 
         // Set the ranges to match what the widget produces
-        manControlSettingsUAVO->setChannelNumber(x, x+1);
+        manControlSettingsUAVO->setChannelNumber(x, x + 1);
         manControlSettingsUAVO->setChannelMax(x, CHANNEL_MAX);
 
         if (x == ManualControlSettings::CHANNELGROUPS_THROTTLE) {
@@ -142,12 +138,13 @@ bool GCSControl::beginGCSControl()
 
     manControlSettingsUAVO->setDeadband(0);
     manControlSettingsUAVO->setFlightModeNumber(1);
-    manControlSettingsUAVO->setFlightModePosition(0,ManualControlSettings::FLIGHTMODEPOSITION_STABILIZED1);
+    manControlSettingsUAVO->setFlightModePosition(
+        0, ManualControlSettings::FLIGHTMODEPOSITION_STABILIZED1);
     manControlSettingsUAVO->updated();
-    connect(manControlSettingsUAVO,SIGNAL(objectUpdated(UAVObject*)),this,SLOT(objectsUpdated(UAVObject*)));
+    connect(manControlSettingsUAVO, &UAVObject::objectUpdated, this, &GCSControl::objectsUpdated);
     hasControl = true;
-    for(quint8 x = 0; x < GCSReceiver::CHANNEL_NUMELEM; ++x)
-        setChannel(x,0);
+    for (quint8 x = 0; x < GCSReceiver::CHANNEL_NUMELEM; ++x)
+        setChannel(x, 0);
     receiverActivity.start();
     return true;
 }
@@ -157,9 +154,10 @@ bool GCSControl::beginGCSControl()
  */
 bool GCSControl::endGCSControl()
 {
-    if(!hasControl)
+    if (!hasControl)
         return false;
-    disconnect(manControlSettingsUAVO,SIGNAL(objectUpdated(UAVObject*)),this,SLOT(objectsUpdated(UAVObject*)));
+    disconnect(manControlSettingsUAVO, &UAVObject::objectUpdated, this,
+               &GCSControl::objectsUpdated);
     manControlSettingsUAVO->setData(dataBackup);
     manControlSettingsUAVO->setMetadata(metaBackup);
     manControlSettingsUAVO->updated();
@@ -170,56 +168,57 @@ bool GCSControl::endGCSControl()
 
 bool GCSControl::setFlightMode(ManualControlSettings::FlightModePositionOptions flightMode)
 {
-    if(!hasControl)
+    if (!hasControl)
         return false;
-    manControlSettingsUAVO->setFlightModePosition(0,flightMode);
+    manControlSettingsUAVO->setFlightModePosition(0, flightMode);
     manControlSettingsUAVO->updated();
-    m_gcsReceiver->setChannel(ManualControlSettings::CHANNELGROUPS_FLIGHTMODE,CHANNEL_MIN);
+    m_gcsReceiver->setChannel(ManualControlSettings::CHANNELGROUPS_FLIGHTMODE, CHANNEL_MIN);
     m_gcsReceiver->updated();
     return true;
 }
 
 bool GCSControl::setThrottle(float value)
 {
-    return setChannel(ManualControlSettings::CHANNELGROUPS_THROTTLE,value);
+    return setChannel(ManualControlSettings::CHANNELGROUPS_THROTTLE, value);
 }
 
 bool GCSControl::setRoll(float value)
 {
-    return setChannel(ManualControlSettings::CHANNELGROUPS_ROLL,value);
+    return setChannel(ManualControlSettings::CHANNELGROUPS_ROLL, value);
 }
 
 bool GCSControl::setPitch(float value)
 {
-    return setChannel(ManualControlSettings::CHANNELGROUPS_PITCH,value);
+    return setChannel(ManualControlSettings::CHANNELGROUPS_PITCH, value);
 }
 
 bool GCSControl::setYaw(float value)
 {
-    return setChannel(ManualControlSettings::CHANNELGROUPS_YAW,value);
+    return setChannel(ManualControlSettings::CHANNELGROUPS_YAW, value);
 }
 
 bool GCSControl::setChannel(quint8 channel, float value)
 {
-    if(value > 1 || value < -1 || channel > GCSReceiver::CHANNEL_NUMELEM || !hasControl)
+    if (value > 1 || value < -1 || channel > GCSReceiver::CHANNEL_NUMELEM || !hasControl)
         return false;
     quint16 pwmValue;
-    if(value >= 0)
+    if (value >= 0)
         pwmValue = (value * (float)(CHANNEL_MAX - CHANNEL_NEUTRAL)) + (float)CHANNEL_NEUTRAL;
     else
         pwmValue = (value * (float)(CHANNEL_NEUTRAL - CHANNEL_MIN)) + (float)CHANNEL_NEUTRAL;
-    m_gcsReceiver->setChannel(channel,pwmValue);
+    m_gcsReceiver->setChannel(channel, pwmValue);
     m_gcsReceiver->updated();
     return true;
 }
 
 void GCSControl::objectsUpdated(UAVObject *obj)
 {
-    qDebug()<< "GCSControl::objectsUpdated" <<"Object"<<obj->getName()<<"changed outside this class";
+    qDebug() << "GCSControl::objectsUpdated"
+             << "Object" << obj->getName() << "changed outside this class";
 }
 
 void GCSControl::receiverActivitySlot()
 {
-    if(m_gcsReceiver)
+    if (m_gcsReceiver)
         m_gcsReceiver->updated();
 }

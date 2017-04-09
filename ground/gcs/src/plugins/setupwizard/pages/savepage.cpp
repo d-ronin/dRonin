@@ -31,12 +31,13 @@
 #include "setupwizard.h"
 #include "vehicleconfigurationhelper.h"
 
-SavePage::SavePage(SetupWizard *wizard, QWidget *parent) :
-    AbstractWizardPage(wizard, parent),
-    ui(new Ui::SavePage), m_successfulWrite(false)
+SavePage::SavePage(SetupWizard *wizard, QWidget *parent)
+    : AbstractWizardPage(wizard, parent)
+    , ui(new Ui::SavePage)
+    , m_successfulWrite(false)
 {
     ui->setupUi(this);
-    connect(ui->saveButton, SIGNAL(clicked()), this, SLOT(writeToController()));
+    connect(ui->saveButton, &QAbstractButton::clicked, this, &SavePage::writeToController);
 }
 
 SavePage::~SavePage()
@@ -59,7 +60,8 @@ void SavePage::writeToController()
     if (!getWizard()->getConnectionManager()->isConnected()) {
         QMessageBox msgBox;
         msgBox.setText(tr("An OpenPilot controller must be connected to your computer to save the "
-                          "configuration.\nPlease connect your OpenPilot controller to your computer and try again."));
+                          "configuration.\nPlease connect your OpenPilot controller to your "
+                          "computer and try again."));
         msgBox.setStandardButtons(QMessageBox::Ok);
         msgBox.setDefaultButton(QMessageBox::Ok);
         msgBox.exec();
@@ -68,12 +70,14 @@ void SavePage::writeToController()
 
     enableButtons(false);
     VehicleConfigurationHelper helper(getWizard());
-    connect(&helper, SIGNAL(saveProgress(int, int, QString)), this, SLOT(saveProgress(int, int, QString)));
+    connect(&helper, &VehicleConfigurationHelper::saveProgress, this, &SavePage::saveProgress);
 
     m_successfulWrite = helper.setupVehicle();
 
-    disconnect(&helper, SIGNAL(saveProgress(int, int, QString)), this, SLOT(saveProgress(int, int, QString)));
-    ui->saveProgressLabel->setText(QString("<font color='%1'>%2</font>").arg(m_successfulWrite ? "green" : "red", ui->saveProgressLabel->text()));
+    disconnect(&helper, &VehicleConfigurationHelper::saveProgress, this, &SavePage::saveProgress);
+    ui->saveProgressLabel->setText(
+        QString("<font color='%1'>%2</font>")
+            .arg(m_successfulWrite ? "green" : "red", ui->saveProgressLabel->text()));
     enableButtons(true);
 
     emit completeChanged();

@@ -33,7 +33,7 @@ class IPathAlgorithm : public QObject
     Q_OBJECT
 public:
     explicit IPathAlgorithm(QObject *parent = 0);
-    
+
     /**
      * Verify the path is valid to run through this algorithm
      * @param[in] model the flight model to validate
@@ -57,9 +57,8 @@ public:
     virtual bool configure(QWidget *callingUi = 0) = 0;
 
 signals:
-    
+
 public slots:
-    
 };
 
 #endif // IPATHALGORITHM_H

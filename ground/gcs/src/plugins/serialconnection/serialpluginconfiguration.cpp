@@ -38,9 +38,11 @@
  * Loads a saved configuration or defaults if non exist.
  *
  */
-SerialPluginConfiguration::SerialPluginConfiguration(QString classId, QSettings* qSettings, QObject *parent) :
-    IUAVGadgetConfiguration(classId, parent),
-    m_speed("115200"), m_reconnect(true)
+SerialPluginConfiguration::SerialPluginConfiguration(QString classId, QSettings *qSettings,
+                                                     QObject *parent)
+    : IUAVGadgetConfiguration(classId, parent)
+    , m_speed("115200")
+    , m_reconnect(true)
 {
     Q_UNUSED(qSettings);
 
@@ -63,20 +65,20 @@ IUAVGadgetConfiguration *SerialPluginConfiguration::clone()
  * Saves a configuration.
  *
  */
-void SerialPluginConfiguration::saveConfig(QSettings* settings) const {
-   settings->setValue("speed", m_speed);
+void SerialPluginConfiguration::saveConfig(QSettings *settings) const
+{
+    settings->setValue("speed", m_speed);
 }
 void SerialPluginConfiguration::restoresettings()
 {
     settings->beginGroup(QLatin1String("SerialConn"));
-    QString str=(settings->value(QLatin1String("speed"), tr("")).toString());
-    if(str.isEmpty())
-        m_speed="115200";
+    QString str = (settings->value(QLatin1String("speed"), tr("")).toString());
+    if (str.isEmpty())
+        m_speed = "115200";
     else
-        m_speed=str;
+        m_speed = str;
     m_reconnect = settings->value(QLatin1String("reconnect"), tr("")).toBool();
     settings->endGroup();
-
 }
 void SerialPluginConfiguration::savesettings() const
 {

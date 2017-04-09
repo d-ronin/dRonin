@@ -40,8 +40,8 @@
 #include "uavobjectmanager.h"
 #include "attitudeactual.h"
 
-
-class ModelViewGadgetWidget : public QGLWidget {
+class ModelViewGadgetWidget : public QGLWidget
+{
     Q_OBJECT
 
 public:
@@ -68,9 +68,9 @@ private:
     void wheelEvent(QWheelEvent *e);
     void keyPressEvent(QKeyEvent *e);
 
-//////////////////////////////////////////////////////////////////////
-// Private slots Functions
-//////////////////////////////////////////////////////////////////////
+    //////////////////////////////////////////////////////////////////////
+    // Private slots Functions
+    //////////////////////////////////////////////////////////////////////
 private slots:
     void updateAttitude();
 

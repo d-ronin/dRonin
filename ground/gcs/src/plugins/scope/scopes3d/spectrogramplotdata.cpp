@@ -50,11 +50,12 @@
  * @param windowWidth
  * @param timeHorizon
  */
-SpectrogramData::SpectrogramData(QString uavObject, QString uavField, double samplingFrequency, unsigned int windowWidth, double timeHorizon)
-        : Plot3dData(uavObject, uavField),
-          spectrogram(0),
-          rasterData(0),
-          fft_object(0)
+SpectrogramData::SpectrogramData(QString uavObject, QString uavField, double samplingFrequency,
+                                 unsigned int windowWidth, double timeHorizon)
+    : Plot3dData(uavObject, uavField)
+    , spectrogram(0)
+    , rasterData(0)
+    , fft_object(0)
 {
     this->samplingFrequency = samplingFrequency;
     this->timeHorizon = timeHorizon;
@@ -62,86 +63,89 @@ SpectrogramData::SpectrogramData(QString uavObject, QString uavField, double sam
 
     // Create raster data
     rasterData = new QwtMatrixRasterData();
-    
-    if(mathFunction == "FFT") {
+
+    if (mathFunction == "FFT") {
         fft_object = new ffft::FFTReal<double>(windowWidth);
         windowWidth /= 2;
     }
 
     this->windowWidth = windowWidth;
 
-    rasterData->setValueMatrix( *zDataHistory, windowWidth );
+    rasterData->setValueMatrix(*zDataHistory, windowWidth);
 
     // Set the ranges for the plot
     resetAxisRanges();
     plotData.clear();
-    lastInstanceIndex = -1; // To keep track of missing instances. We assume communications keep packet order
+    lastInstanceIndex =
+        -1; // To keep track of missing instances. We assume communications keep packet order
 }
 
 void SpectrogramData::setXMaximum(double val)
 {
-    xMaximum=val;
+    xMaximum = val;
 
     resetAxisRanges();
 }
 
 void SpectrogramData::setYMaximum(double val)
 {
-    yMaximum=val;
+    yMaximum = val;
 
     resetAxisRanges();
 }
 
 void SpectrogramData::setZMaximum(double val)
 {
-    zMaximum=val;
+    zMaximum = val;
 
     resetAxisRanges();
 }
 
 void SpectrogramData::resetAxisRanges()
 {
-    rasterData->setInterval( Qt::XAxis, QwtInterval(xMinimum, xMaximum));
-    rasterData->setInterval( Qt::YAxis, QwtInterval(yMinimum, yMaximum));
-    rasterData->setInterval( Qt::ZAxis, QwtInterval(0, zMaximum));
+    rasterData->setInterval(Qt::XAxis, QwtInterval(xMinimum, xMaximum));
+    rasterData->setInterval(Qt::YAxis, QwtInterval(yMinimum, yMaximum));
+    rasterData->setInterval(Qt::ZAxis, QwtInterval(0, zMaximum));
 }
-
 
 /**
  * @brief SpectrogramScopeConfig::plotNewData Update plot with new data
  * @param scopeGadgetWidget
  */
-void SpectrogramData::plotNewData(PlotData *plot3dData, ScopeConfig *scopeConfig, ScopeGadgetWidget *scopeGadgetWidget)
+void SpectrogramData::plotNewData(PlotData *plot3dData, ScopeConfig *scopeConfig,
+                                  ScopeGadgetWidget *scopeGadgetWidget)
 {
     Q_UNUSED(plot3dData);
 
     removeStaleData();
 
     // Check for new data
-    if (readAndResetUpdatedFlag() == true){
+    if (readAndResetUpdatedFlag() == true) {
         // Plot new data
         rasterData->setValueMatrix(*zDataHistory, windowWidth);
 
         // Check autoscale. (For some reason, QwtSpectrogram doesn't support autoscale)
-        if (zMaximum == 0){
+        if (zMaximum == 0) {
             double newVal = readAndResetAutoscaleValue();
-            if (newVal != 0){
-                rightAxis->setColorMap( QwtInterval(0, newVal), new ColorMap(((SpectrogramScopeConfig*) scopeConfig)->getColorMap()));
-                scopeGadgetWidget->setAxisScale( QwtPlot::yRight, 0, newVal);
+            if (newVal != 0) {
+                rightAxis->setColorMap(
+                    QwtInterval(0, newVal),
+                    new ColorMap(((SpectrogramScopeConfig *)scopeConfig)->getColorMap()));
+                scopeGadgetWidget->setAxisScale(QwtPlot::yRight, 0, newVal);
             }
         }
     }
 }
-
 
 /**
  * @brief SpectrogramData::append Appends data to spectrogram
  * @param obj UAVO with new data
  * @return
  */
-bool SpectrogramData::append(UAVObject* multiObj)
+bool SpectrogramData::append(UAVObject *multiObj)
 {
-    QDateTime NOW = QDateTime::currentDateTime(); //TODO: Upgrade this to show UAVO time and not system time
+    QDateTime NOW =
+        QDateTime::currentDateTime(); // TODO: Upgrade this to show UAVO time and not system time
 
     // Check to make sure it's the correct UAVO
     if (uavObjectName == multiObj->getName()) {
@@ -151,7 +155,7 @@ bool SpectrogramData::append(UAVObject* multiObj)
             return false;
         }
 
-        //Instantiate object manager
+        // Instantiate object manager
         UAVObjectManager *objManager;
 
         ExtensionSystem::PluginManager *pm = ExtensionSystem::PluginManager::instance();
@@ -159,18 +163,18 @@ bool SpectrogramData::append(UAVObject* multiObj)
         objManager = pm->getObject<UAVObjectManager>();
         Q_ASSERT(objManager != NULL);
 
-
         // Get list of object instances
-        QVector<UAVObject*> list = objManager->getObjectInstancesVector(multiObj->getName());
+        QVector<UAVObject *> list = objManager->getObjectInstancesVector(multiObj->getName());
 
-        uint16_t newWindowWidth = list.size() * list.front()->getField(uavFieldName)->getNumElements();
+        uint16_t newWindowWidth =
+            list.size() * list.front()->getField(uavFieldName)->getNumElements();
 
         /* Check if the instance has a samples field as this will override the windowWidth
-        *  Field can be used in objects that have dynamic size 
+        *  Field can be used in objects that have dynamic size
         *  like the case of the Vibration Analysis modeule
         */
-        QList<UAVObjectField*> fieldList = multiObj->getFields();
-        foreach (UAVObjectField* field, fieldList) {
+        QList<UAVObjectField *> fieldList = multiObj->getFields();
+        foreach (UAVObjectField *field, fieldList) {
             if (field->getType() == UAVObjectField::INT16 && field->getName() == "samples") {
                 newWindowWidth = field->getValue().toDouble();
                 break;
@@ -181,7 +185,7 @@ bool SpectrogramData::append(UAVObject* multiObj)
 
         // Can happen when changing the FFTP Window Width
         if (mathFunction == "FFT") {
-            if (! ((valuesToProcess != 0) && ((valuesToProcess & (valuesToProcess - 1)) == 0))) {
+            if (!((valuesToProcess != 0) && ((valuesToProcess & (valuesToProcess - 1)) == 0))) {
                 return false;
             }
             newWindowWidth /= 2; // FFT Output is half
@@ -201,20 +205,21 @@ bool SpectrogramData::append(UAVObject* multiObj)
             qDebug() << "Spectrogram width adjusted to " << windowWidth;
         }
 
-        UAVObjectField* multiField = multiObj->getField(uavFieldName);
+        UAVObjectField *multiField = multiObj->getField(uavFieldName);
         Q_ASSERT(multiField);
-        if (multiField ) {
+        if (multiField) {
 
             // Get the field of interest
             foreach (UAVObject *obj, list) {
-                UAVObjectField* field = obj->getField(uavFieldName);
+                UAVObjectField *field = obj->getField(uavFieldName);
                 int numElements = field->getNumElements();
 
                 double scale = 1;
-                QList<UAVObjectField*> fieldList = obj->getFields();
-                foreach (UAVObjectField* field, fieldList) {
+                QList<UAVObjectField *> fieldList = obj->getFields();
+                foreach (UAVObjectField *field, fieldList) {
                     // Check if the instance has a scale field
-                    if(field->getType() == UAVObjectField::FLOAT32 && field->getName() == "scale"){
+                    if (field->getType() == UAVObjectField::FLOAT32
+                        && field->getName() == "scale") {
                         scale = field->getValue().toDouble();
                         break;
                     }
@@ -223,7 +228,8 @@ bool SpectrogramData::append(UAVObject* multiObj)
                     if (field->getType() == UAVObjectField::INT16 && field->getName() == "index") {
                         int currentIndex = field->getValue().toDouble();
                         if (currentIndex != (lastInstanceIndex + 1)) {
-                            fprintf(stderr, "Out of order index. Got %d expected %d\n", currentIndex, lastInstanceIndex + 1);
+                            fprintf(stderr, "Out of order index. Got %d expected %d\n",
+                                    currentIndex, lastInstanceIndex + 1);
                             plotData.clear();
                             lastInstanceIndex = -1; // Next index will be 0
                             return false;
@@ -234,9 +240,11 @@ bool SpectrogramData::append(UAVObject* multiObj)
                 }
 
                 for (int i = 0; i < numElements; i++) {
-                    double currentValue = field->getValue(i).toDouble() / scale;  // Get the value and scale it
+                    double currentValue =
+                        field->getValue(i).toDouble() / scale; // Get the value and scale it
 
-                    //Normally some math would go here, modifying currentValue before appending it to values
+                    // Normally some math would go here, modifying currentValue before appending it
+                    // to values
                     // .
                     // .
                     // .
@@ -247,7 +255,7 @@ bool SpectrogramData::append(UAVObject* multiObj)
 
                 // Check if we got enough values
                 // The object instance can temporarily have more values than required
-                if (plotData.size() == valuesToProcess ) {
+                if (plotData.size() == valuesToProcess) {
                     break;
                 }
             }
@@ -274,35 +282,37 @@ bool SpectrogramData::append(UAVObject* multiObj)
 
                 // Hanning Window
                 for (int i = 0; i < valuesToProcess; i++) {
-                    plotData[i] *= pow(sin(PI*i/(valuesToProcess - 1) ), 2);
+                    plotData[i] *= pow(sin(PI * i / (valuesToProcess - 1)), 2);
                 }
 
                 QVector<double> fftout(valuesToProcess);
 
                 fft_object->do_fft(&fftout[0], plotData.data()); // Do FFT
-                plotData.clear();  // Clear vector
+                plotData.clear(); // Clear vector
 
                 // Lets get the magnitude and scale it.
                 // mag = X * sqrt(re^2 + im^2)/n
-                // X (4.2) is chosen so that the magnitude presented is similar to the acceleration registered
+                // X (4.2) is chosen so that the magnitude presented is similar to the acceleration
+                // registered
                 // although this is not 100% correct, it helps users understanding the spectrogram.
-                for (unsigned int i = 0; i < valuesToProcess/2; i++) {
-                    plotData << 4.2*sqrt(pow(fftout[i], 2) + pow(fftout[valuesToProcess/2 + i], 2)) / valuesToProcess;
+                for (unsigned int i = 0; i < valuesToProcess / 2; i++) {
+                    plotData << 4.2
+                            * sqrt(pow(fftout[i], 2) + pow(fftout[valuesToProcess / 2 + i], 2))
+                            / valuesToProcess;
                 }
             }
-            
+
             // Apply autoscale if enabled
             if (zMaximum == 0) {
-				for (unsigned int i = 0; i < windowWidth; i++) {
-	                 // See if autoscale is turned on and if the value exceeds the maximum for the scope.
-	                if (plotData[i] > rasterData->interval(Qt::ZAxis).maxValue()){
-	                    // Change scope maximum and color depth
-	                    rasterData->setInterval(Qt::ZAxis, QwtInterval(0, plotData[i]) );
-	                    autoscaleValueUpdated = plotData[i];
-                	}
-            	}
-
-
+                for (unsigned int i = 0; i < windowWidth; i++) {
+                    // See if autoscale is turned on and if the value exceeds the maximum for the
+                    // scope.
+                    if (plotData[i] > rasterData->interval(Qt::ZAxis).maxValue()) {
+                        // Change scope maximum and color depth
+                        rasterData->setInterval(Qt::ZAxis, QwtInterval(0, plotData[i]));
+                        autoscaleValueUpdated = plotData[i];
+                    }
+                }
             }
 
             timeDataHistory->append(NOW.toTime_t() + NOW.time().msec() / 1000.0);
@@ -310,7 +320,7 @@ bool SpectrogramData::append(UAVObject* multiObj)
                 timeDataHistory->pop_front();
                 zDataHistory->remove(0, fminl(windowWidth, zDataHistory->size()));
             }
-            
+
             *zDataHistory << plotData;
             plotData.clear();
             lastInstanceIndex = -1; // Next index will be 0
@@ -321,7 +331,6 @@ bool SpectrogramData::append(UAVObject* multiObj)
 
     return false;
 }
-
 
 /**
  * @brief SpectrogramScopeConfig::deletePlots Delete all plot data
@@ -337,7 +346,6 @@ void SpectrogramData::deletePlots(PlotData *spectrogramData)
     delete spectrogram;
     delete spectrogramData;
 }
-
 
 /**
  * @brief SpectrogramScopeConfig::clearPlots Clear all plot data

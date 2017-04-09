@@ -43,22 +43,25 @@
 Lux::Lux(void)
 {
     // Common USB IDs
-    addBootloaderUSBInfo(USBInfo(DRONIN_VID_DRONIN_BOOTLOADER, DRONIN_PID_DRONIN_BOOTLOADER, BCD_DEVICE_BOOTLOADER));
-    addFirmwareUSBInfo(USBInfo(DRONIN_VID_DRONIN_FIRMWARE, DRONIN_PID_DRONIN_FIRMWARE, BCD_DEVICE_FIRMWARE));
+    addBootloaderUSBInfo(
+        USBInfo(DRONIN_VID_DRONIN_BOOTLOADER, DRONIN_PID_DRONIN_BOOTLOADER, BCD_DEVICE_BOOTLOADER));
+    addFirmwareUSBInfo(
+        USBInfo(DRONIN_VID_DRONIN_FIRMWARE, DRONIN_PID_DRONIN_FIRMWARE, BCD_DEVICE_FIRMWARE));
     // Legacy USB IDs
-    addBootloaderUSBInfo(USBInfo(DRONIN_VID_LUMENIER_LUX, DRONIN_PID_LUMENIER_LUX, BCD_DEVICE_BOOTLOADER));
-    addFirmwareUSBInfo(USBInfo(DRONIN_VID_LUMENIER_LUX, DRONIN_PID_LUMENIER_LUX, BCD_DEVICE_FIRMWARE));
+    addBootloaderUSBInfo(
+        USBInfo(DRONIN_VID_LUMENIER_LUX, DRONIN_PID_LUMENIER_LUX, BCD_DEVICE_BOOTLOADER));
+    addFirmwareUSBInfo(
+        USBInfo(DRONIN_VID_LUMENIER_LUX, DRONIN_PID_LUMENIER_LUX, BCD_DEVICE_FIRMWARE));
 
     boardType = 0xCA;
 
     // Define the bank of channels that are connected to a given timer
     channelBanks.resize(1);
-    channelBanks[0] = QVector<int> () << 1 << 2 << 3 << 4; // T3
+    channelBanks[0] = QVector<int>() << 1 << 2 << 3 << 4; // T3
 }
 
 Lux::~Lux()
 {
-
 }
 
 QString Lux::shortName()
@@ -74,7 +77,7 @@ QString Lux::boardDescription()
 //! Return which capabilities this board has
 bool Lux::queryCapabilities(BoardCapabilities capability)
 {
-    switch(capability) {
+    switch (capability) {
     case BOARD_CAPABILITIES_GYROS:
     case BOARD_CAPABILITIES_ACCELS:
     case BOARD_CAPABILITIES_UPGRADEABLE:
@@ -82,7 +85,7 @@ bool Lux::queryCapabilities(BoardCapabilities capability)
     default:
         break;
     }
-    
+
     return false;
 }
 
@@ -106,7 +109,7 @@ bool Lux::isInputConfigurationSupported(Core::IBoardType::InputType type)
     default:
         break;
     }
-    
+
     return true;
 }
 
@@ -126,7 +129,7 @@ bool Lux::setInputType(Core::IBoardType::InputType type)
 
     HwLux::DataFields settings = hwLux->getData();
 
-    switch(type) {
+    switch (type) {
     case INPUT_TYPE_PPM:
         // always enabled, do nothing
         break;
@@ -179,7 +182,7 @@ Core::IBoardType::InputType Lux::getInputType()
 
     HwLux::DataFields settings = hwLux->getData();
 
-    switch(settings.RxPort) {
+    switch (settings.RxPort) {
     case HwLux::RXPORT_SBUS:
         return INPUT_TYPE_SBUS;
     case HwLux::RXPORT_SBUSNONINVERTED:
@@ -199,8 +202,8 @@ Core::IBoardType::InputType Lux::getInputType()
     default:
         break;
     }
-    
-    switch(settings.Uart2) {
+
+    switch (settings.Uart2) {
     case HwLux::UART2_DSM:
         return INPUT_TYPE_DSM;
     case HwLux::UART2_SBUS:
@@ -220,8 +223,8 @@ Core::IBoardType::InputType Lux::getInputType()
     default:
         break;
     }
-    
-    switch(settings.Uart3) {
+
+    switch (settings.Uart3) {
     case HwLux::UART3_DSM:
         return INPUT_TYPE_DSM;
     case HwLux::UART3_SBUS:
@@ -241,7 +244,7 @@ Core::IBoardType::InputType Lux::getInputType()
     default:
         break;
     }
-    
+
     return INPUT_TYPE_PPM;
 }
 
@@ -256,7 +259,7 @@ int Lux::queryMaxGyroRate()
 
     HwLux::DataFields settings = hwLux->getData();
 
-    switch(settings.GyroRange) {
+    switch (settings.GyroRange) {
     case HwLux::GYRORANGE_250:
         return 250;
     case HwLux::GYRORANGE_500:
@@ -268,13 +271,15 @@ int Lux::queryMaxGyroRate()
     default:
         break;
     }
-    
+
     return 500;
 }
 
 QStringList Lux::getAdcNames()
 {
-    return QStringList() << "VBAT" << "Current" << "RSSI";
+    return QStringList() << "VBAT"
+                         << "Current"
+                         << "RSSI";
 }
 
 QWidget *Lux::getBoardConfiguration(QWidget *parent, bool connected)

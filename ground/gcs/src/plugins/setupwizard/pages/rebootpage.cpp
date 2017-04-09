@@ -28,9 +28,10 @@
 #include "rebootpage.h"
 #include "ui_rebootpage.h"
 
-RebootPage::RebootPage(SetupWizard *wizard, QWidget *parent) :
-    AbstractWizardPage(wizard, parent),
-    ui(new Ui::RebootPage), m_toggl(false)
+RebootPage::RebootPage(SetupWizard *wizard, QWidget *parent)
+    : AbstractWizardPage(wizard, parent)
+    , ui(new Ui::RebootPage)
+    , m_toggl(false)
 {
     ui->setupUi(this);
     ui->yellowLabel->setVisible(false);
@@ -39,7 +40,7 @@ RebootPage::RebootPage(SetupWizard *wizard, QWidget *parent) :
 
 RebootPage::~RebootPage()
 {
-    disconnect(&m_timer, SIGNAL(timeout()), this, SLOT(toggleLabel()));
+    disconnect(&m_timer, &QTimer::timeout, this, &RebootPage::toggleLabel);
     m_timer.stop();
     delete ui;
 }
@@ -47,7 +48,7 @@ RebootPage::~RebootPage()
 void RebootPage::initializePage()
 {
     if (!m_timer.isActive()) {
-        connect(&m_timer, SIGNAL(timeout()), this, SLOT(toggleLabel()));
+        connect(&m_timer, &QTimer::timeout, this, &RebootPage::toggleLabel);
         m_timer.setInterval(500);
         m_timer.setSingleShot(false);
         m_timer.start();

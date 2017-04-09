@@ -35,16 +35,18 @@
 #include <QTimer>
 #include <coreplugin/iboardtype.h>
 
-CoordinatorPage::CoordinatorPage(RfmBindWizard *wizard, QWidget *parent) :
-    RadioProbePage(wizard, parent), ui(new Ui::CoordinatorPage),
-    m_coordinatorConfigured(false)
+CoordinatorPage::CoordinatorPage(RfmBindWizard *wizard, QWidget *parent)
+    : RadioProbePage(wizard, parent)
+    , ui(new Ui::CoordinatorPage)
+    , m_coordinatorConfigured(false)
 {
     qDebug() << "CoordinatorPage constructor";
     ui->setupUi(this);
     ui->setCoordinator->setEnabled(false);
 
-    connect(ui->setCoordinator, SIGNAL(clicked()), this, SLOT(configureCoordinator()));    
-    connect(this, SIGNAL(probeChanged(bool)), this, SLOT(updateProbe(bool)));
+    connect(ui->setCoordinator, &QAbstractButton::clicked, this,
+            &CoordinatorPage::configureCoordinator);
+    connect(this, &RadioProbePage::probeChanged, this, &CoordinatorPage::updateProbe);
 }
 
 CoordinatorPage::~CoordinatorPage()
@@ -97,7 +99,8 @@ bool CoordinatorPage::configureCoordinator()
     getWizard()->setCoordID(rfmId);
 
     board->bindRadio(0, getWizard()->getMaxBps(), getWizard()->getMaxRfPower(),
-                     getWizard()->getLinkMode(),getWizard()->getMinChannel(), getWizard()->getMaxChannel());
+                     getWizard()->getLinkMode(), getWizard()->getMinChannel(),
+                     getWizard()->getMaxChannel());
 
     m_coordinatorConfigured = true;
     ui->setCoordinator->setEnabled(false);

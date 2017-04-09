@@ -34,7 +34,7 @@
 #include "manualcontrolcommand.h"
 
 namespace Ui {
-    class JoystickControl;
+class JoystickControl;
 }
 
 class JoystickControl : public QGraphicsView
@@ -59,10 +59,10 @@ signals:
     void positionClicked(double x, double y);
 
 private:
-     QSvgRenderer *m_renderer;
-     QGraphicsSvgItem *m_background;
-     QGraphicsSvgItem *m_joystickArea;
-     QGraphicsSvgItem *m_joystickEnd;
+    QSvgRenderer *m_renderer;
+    QGraphicsSvgItem *m_background;
+    QGraphicsSvgItem *m_joystickArea;
+    QGraphicsSvgItem *m_joystickEnd;
 };
 
 #endif // JOYSTICKCONTROL_H

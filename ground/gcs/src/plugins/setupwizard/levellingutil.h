@@ -58,8 +58,8 @@ public slots:
     void abort();
 
 private slots:
-    void gyroMeasurementsUpdated(UAVObject * obj);
-    void accelMeasurementsUpdated(UAVObject * obj);
+    void gyroMeasurementsUpdated(UAVObject *obj);
+    void accelMeasurementsUpdated(UAVObject *obj);
     void timeout();
 
 private:

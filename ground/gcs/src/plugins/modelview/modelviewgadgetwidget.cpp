@@ -25,7 +25,7 @@
  */
 #include "QtDebug"
 #ifdef __APPLE__
-    #include "OpenGL/OpenGL.h"
+#include "OpenGL/OpenGL.h"
 #endif
 #include "modelviewgadgetwidget.h"
 #include "extensionsystem/pluginmanager.h"
@@ -37,9 +37,9 @@
 #include <iostream>
 
 // Model 3d object and background image used when specific one isn't available
-const QString ModelViewGadgetWidget::fallbackAcFilename = QString(":/modelview/models/warning_sign.obj");
+const QString ModelViewGadgetWidget::fallbackAcFilename =
+    QString(":/modelview/models/warning_sign.obj");
 const QString ModelViewGadgetWidget::fallbackBgFilename = QString(":/modelview/models/black.jpg");
-
 
 ModelViewGadgetWidget::ModelViewGadgetWidget(QWidget *parent)
     : QGLWidget(new GLC_Context(QGLFormat(QGL::SampleBuffers)), parent)
@@ -53,7 +53,7 @@ ModelViewGadgetWidget::ModelViewGadgetWidget(QWidget *parent)
     , bgFilename(fallbackBgFilename)
     , vboEnable(false)
 {
-    connect(&m_GlView, SIGNAL(updateOpenGL()), this, SLOT(updateGL()));
+    connect(&m_GlView, &GLC_Viewport::updateOpenGL, this, &QGLWidget::updateGL);
     setSizePolicy(QSizePolicy::MinimumExpanding, QSizePolicy::MinimumExpanding);
 
     m_Light.setPosition(4000.0, 40000.0, 80000.0);
@@ -73,12 +73,13 @@ ModelViewGadgetWidget::ModelViewGadgetWidget(QWidget *parent)
     UAVObjectManager *objManager = pm->getObject<UAVObjectManager>();
     attState = AttitudeActual::GetInstance(objManager);
 
-    connect(&m_MotionTimer, SIGNAL(timeout()), this, SLOT(updateAttitude()));
+    connect(&m_MotionTimer, &QTimer::timeout, this,
+            QOverload<>::of(&ModelViewGadgetWidget::updateAttitude));
 }
 
 ModelViewGadgetWidget::~ModelViewGadgetWidget()
-{}
-
+{
+}
 
 void ModelViewGadgetWidget::setAcFilename(QString acf)
 {
@@ -115,11 +116,11 @@ void ModelViewGadgetWidget::reloadScene()
 //// Private functions ////
 void ModelViewGadgetWidget::initializeGL()
 {
-    // For VSYNC problem under Mac OS X
-    #if defined(Q_OS_MAC)
+// For VSYNC problem under Mac OS X
+#if defined(Q_OS_MAC)
     const GLint swapInterval = 1;
     CGLSetParameter(CGLGetCurrentContext(), kCGLCPSwapInterval, &swapInterval);
-    #endif
+#endif
 
     // OpenGL initialization
     m_GlView.initGl();
@@ -168,7 +169,7 @@ void ModelViewGadgetWidget::paintGL()
 
         // Display UI Info (orbit circle)
         m_MoverController.drawActiveMoverRep();
-    } catch(GLC_Exception &e) {
+    } catch (GLC_Exception &e) {
         qDebug() << e.what();
     }
 }
@@ -194,10 +195,9 @@ void ModelViewGadgetWidget::CreateScene()
         bgFilename = fallbackBgFilename;
     }
 
-
     try {
         m_GlView.loadBackGroundImage(bgFilename);
-    } catch(GLC_Exception e) {
+    } catch (GLC_Exception e) {
         qDebug("ModelView: background image file loading failed.");
     }
 
@@ -210,7 +210,7 @@ void ModelViewGadgetWidget::CreateScene()
         } else {
             qDebug() << "ModelView: aircraft file not found:" << acFilename;
         }
-    } catch(GLC_Exception e) {
+    } catch (GLC_Exception e) {
         qDebug("ModelView: aircraft file loading failed.");
     }
 }
@@ -238,10 +238,8 @@ void ModelViewGadgetWidget::mousePressEvent(QMouseEvent *e)
         updateGL();
         break;
     case (Qt::RightButton):
-        printf("VBO enabled: %s, VBO supported: %s, VBO used: %s\n",
-               vboEnable ? "yes" : "no",
-               GLC_State::vboSupported() ? "yes" : "no",
-               GLC_State::vboUsed() ? "yes" : "no");
+        printf("VBO enabled: %s, VBO supported: %s, VBO used: %s\n", vboEnable ? "yes" : "no",
+               GLC_State::vboSupported() ? "yes" : "no", GLC_State::vboUsed() ? "yes" : "no");
         printf("Renderer - %s \n", (char *)glGetString(GL_RENDERER));
         printf("Extensions - %s\n", (char *)glGetString(GL_EXTENSIONS));
         break;
@@ -297,7 +295,8 @@ void ModelViewGadgetWidget::keyPressEvent(QKeyEvent *e) // switch between camera
         updateGL();
     }
     if (e->key() == Qt::Key_6) {
-        m_GlView.cameraHandle()->setRightView();;
+        m_GlView.cameraHandle()->setRightView();
+        ;
         updateGL();
     }
     if (e->key() == Qt::Key_7) {
@@ -306,7 +305,8 @@ void ModelViewGadgetWidget::keyPressEvent(QKeyEvent *e) // switch between camera
         updateGL();
     }
     if (e->key() == Qt::Key_8) {
-        m_GlView.cameraHandle()->setRearView();;
+        m_GlView.cameraHandle()->setRearView();
+        ;
         updateGL();
     }
     if (e->key() == Qt::Key_9) {
@@ -326,7 +326,7 @@ void ModelViewGadgetWidget::keyPressEvent(QKeyEvent *e) // switch between camera
 //////////////////////////////////////////////////////////////////////
 void ModelViewGadgetWidget::updateAttitude()
 {
-    AttitudeActual::DataFields data  = attState->getData(); // get attitude data
+    AttitudeActual::DataFields data = attState->getData(); // get attitude data
     GLC_StructOccurence *rootObject = m_World.rootOccurence(); // get the full 3D model
     double x = data.q3;
     double y = data.q2;

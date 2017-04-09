@@ -35,7 +35,8 @@ namespace Ui {
 class EndPage;
 }
 
-class TLEndPage : public AbstractWizardPage {
+class TLEndPage : public AbstractWizardPage
+{
     Q_OBJECT
 
 public:

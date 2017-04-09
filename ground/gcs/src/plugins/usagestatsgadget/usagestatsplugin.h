@@ -47,8 +47,9 @@ struct boardLog
     deviceInfo board;
     deviceDescriptorStruct device;
 };
-enum widgetType {WIDGET_BUTTON, WIDGET_SLIDER, WIDGET_TAB};
-typedef struct widgetActionInfoType {
+enum widgetType { WIDGET_BUTTON, WIDGET_SLIDER, WIDGET_TAB };
+typedef struct widgetActionInfoType
+{
     widgetType type;
     QDateTime time;
     QString objectName;
@@ -57,7 +58,8 @@ typedef struct widgetActionInfoType {
     QString data1;
     QString data2;
 } widgetActionInfo;
-typedef struct debugMessageStruct {
+typedef struct debugMessageStruct
+{
     QDateTime time;
     int level;
     QString levelString;
@@ -67,7 +69,8 @@ typedef struct debugMessageStruct {
     QString function;
 } DebugMessage;
 
-class UsageStatsPlugin :  public Core::IConfigurablePlugin {
+class UsageStatsPlugin : public Core::IConfigurablePlugin
+{
     Q_OBJECT
     Q_PLUGIN_METADATA(IID "org.dronin.plugins.UsageStats")
 
@@ -90,6 +93,7 @@ public:
     QString getInstallationUUID() const;
 public slots:
     void updateSettings();
+
 private:
     ExtensionSystem::PluginManager *pluginManager;
     QList<boardLog> boardLogList;
@@ -110,13 +114,16 @@ private slots:
     void onButtonClicked();
     void onSliderValueChanged(int);
     void onTabCurrentChanged(int);
-    void onDebugMessage(DebugEngine::Level, const QString &, const QString &, const int, const QString &);
+    void onDebugMessage(DebugEngine::Level, const QString &, const QString &, const int,
+                        const QString &);
 };
-class AppCloseHook : public Core::ICoreListener {
+class AppCloseHook : public Core::ICoreListener
+{
     Q_OBJECT
 public:
     AppCloseHook(UsageStatsPlugin *parent);
     bool coreAboutToClose();
+
 private:
     UsageStatsPlugin *m_parent;
 };

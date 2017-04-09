@@ -7,7 +7,7 @@
  * @{
  * @addtogroup EmptyGadgetPlugin Empty Gadget Plugin
  * @{
- * @brief A place holder gadget plugin 
+ * @brief A place holder gadget plugin
  *****************************************************************************/
 /*
  * This program is free software; you can redistribute it and/or modify
@@ -32,18 +32,17 @@
 #include <QVBoxLayout>
 #include <QPushButton>
 
-EmptyGadgetWidget::EmptyGadgetWidget(QWidget *parent) : QLabel(parent)
+EmptyGadgetWidget::EmptyGadgetWidget(QWidget *parent)
+    : QLabel(parent)
 {
-    setMinimumSize(64,64);
+    setMinimumSize(64, 64);
     setSizePolicy(QSizePolicy::MinimumExpanding, QSizePolicy::MinimumExpanding);
-    this->
-    setText(tr("Choose a gadget to display in this view.\n") +
-            tr("You can also split this view in two.\n\n") +
-            tr("Maybe you first have to choose Edit Gadgets Mode in the Window menu."));
+    this->setText(tr("Choose a gadget to display in this view.\n")
+                  + tr("You can also split this view in two.\n\n")
+                  + tr("Maybe you first have to choose Edit Gadgets Mode in the Window menu."));
 }
 
 EmptyGadgetWidget::~EmptyGadgetWidget()
 {
-   // Do nothing
+    // Do nothing
 }
-

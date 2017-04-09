@@ -32,28 +32,31 @@
 #include <extensionsystem/pluginmanager.h>
 #include <uavobjectutil/uavobjectutilmanager.h>
 
-RadioProbePage::RadioProbePage(RfmBindWizard *wizard, QWidget *parent) :
-    AbstractWizardPage(wizard, parent), m_boardType(NULL), m_allowProbing(true)
+RadioProbePage::RadioProbePage(RfmBindWizard *wizard, QWidget *parent)
+    : AbstractWizardPage(wizard, parent)
+    , m_boardType(NULL)
+    , m_allowProbing(true)
 {
     m_connectionManager = getWizard()->getConnectionManager();
     Q_ASSERT(m_connectionManager);
-    connect(m_connectionManager, SIGNAL(deviceConnected(QIODevice*)), this, SLOT(connectionStatusChanged()));
-    connect(m_connectionManager, SIGNAL(deviceDisconnected()), this, SLOT(connectionStatusChanged()));
+    connect(m_connectionManager, &Core::ConnectionManager::deviceConnected, this,
+            &RadioProbePage::connectionStatusChanged);
+    connect(m_connectionManager, &Core::ConnectionManager::deviceDisconnected, this,
+            &RadioProbePage::connectionStatusChanged);
 
     ExtensionSystem::PluginManager *pm = ExtensionSystem::PluginManager::instance();
     UAVObjectManager *objMngr = pm->getObject<UAVObjectManager>();
-    QList <Core::IBoardType *> boards = pm->getObjects<Core::IBoardType>();
+    QList<Core::IBoardType *> boards = pm->getObjects<Core::IBoardType>();
 
     // Store all the board hardware settings for probing
     boardPluginMap.clear();
     foreach (Core::IBoardType *board, boards) {
-        if (board->queryCapabilities(Core::IBoardType::BOARD_CAPABILITIES_RADIO) ) {
+        if (board->queryCapabilities(Core::IBoardType::BOARD_CAPABILITIES_RADIO)) {
             UAVObject *obj = objMngr->getObject(board->getHwUAVO());
-            if (obj != NULL) {
+            if (obj) {
                 boardPluginMap.insert(obj, board);
-                connect(obj, SIGNAL(transactionCompleted(UAVObject*,bool)),
-                        this, SLOT(transactionReceived(UAVObject*,bool)),
-                        Qt::UniqueConnection);
+                connect(obj, QOverload<UAVObject *, bool>::of(&UAVObject::transactionCompleted),
+                        this, &RadioProbePage::transactionReceived, Qt::UniqueConnection);
             }
         }
     }
@@ -61,7 +64,7 @@ RadioProbePage::RadioProbePage(RfmBindWizard *wizard, QWidget *parent) :
     setBoardType(NULL);
 
     probeTimer.setInterval(500);
-    connect(&probeTimer, SIGNAL(timeout()), this, SLOT(probeRadio()));
+    connect(&probeTimer, &QTimer::timeout, this, &RadioProbePage::probeRadio);
 
     if (m_connectionManager->isConnected())
         probeTimer.start();
@@ -115,11 +118,10 @@ void RadioProbePage::probeRadio()
     // hardware settings. This is inelegant but because the
     // modem does not establish a connection with the GCS, it
     // is necessary.
-    QList <UAVObject*> objects = boardPluginMap.keys();
-    foreach (UAVObject *obj,  objects) {
+    QList<UAVObject *> objects = boardPluginMap.keys();
+    foreach (UAVObject *obj, objects) {
         obj->requestUpdate();
     }
-
 }
 
 //! Called whenever a radio board object is received

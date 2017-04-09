@@ -41,27 +41,30 @@
 Sparky::Sparky(void)
 {
     // Common USB IDs
-    addBootloaderUSBInfo(USBInfo(DRONIN_VID_DRONIN_BOOTLOADER, DRONIN_PID_DRONIN_BOOTLOADER, BCD_DEVICE_BOOTLOADER));
-    addFirmwareUSBInfo(USBInfo(DRONIN_VID_DRONIN_FIRMWARE, DRONIN_PID_DRONIN_FIRMWARE, BCD_DEVICE_FIRMWARE));
+    addBootloaderUSBInfo(
+        USBInfo(DRONIN_VID_DRONIN_BOOTLOADER, DRONIN_PID_DRONIN_BOOTLOADER, BCD_DEVICE_BOOTLOADER));
+    addFirmwareUSBInfo(
+        USBInfo(DRONIN_VID_DRONIN_FIRMWARE, DRONIN_PID_DRONIN_FIRMWARE, BCD_DEVICE_FIRMWARE));
     // Legacy USB IDs
-    addBootloaderUSBInfo(USBInfo(DRONIN_VID_TAULABS_SPARKY, DRONIN_PID_TAULABS_SPARKY, BCD_DEVICE_BOOTLOADER));
-    addFirmwareUSBInfo(USBInfo(DRONIN_VID_TAULABS_SPARKY, DRONIN_PID_TAULABS_SPARKY, BCD_DEVICE_FIRMWARE));
+    addBootloaderUSBInfo(
+        USBInfo(DRONIN_VID_TAULABS_SPARKY, DRONIN_PID_TAULABS_SPARKY, BCD_DEVICE_BOOTLOADER));
+    addFirmwareUSBInfo(
+        USBInfo(DRONIN_VID_TAULABS_SPARKY, DRONIN_PID_TAULABS_SPARKY, BCD_DEVICE_FIRMWARE));
 
     boardType = 0x88;
 
     // Define the bank of channels that are connected to a given timer
     channelBanks.resize(6);
-    channelBanks[0] = QVector<int> () << 1 << 2;      // TIM15
-    channelBanks[1] = QVector<int> () << 3;           // TIM1
-    channelBanks[2] = QVector<int> () << 4 << 7 << 9; // TIM3
-    channelBanks[3] = QVector<int> () << 5;           // TIM16
-    channelBanks[4] = QVector<int> () << 6 << 10;     // TIM2
-    channelBanks[5] = QVector<int> () << 8;           // TIM17
+    channelBanks[0] = QVector<int>() << 1 << 2; // TIM15
+    channelBanks[1] = QVector<int>() << 3; // TIM1
+    channelBanks[2] = QVector<int>() << 4 << 7 << 9; // TIM3
+    channelBanks[3] = QVector<int>() << 5; // TIM16
+    channelBanks[4] = QVector<int>() << 6 << 10; // TIM2
+    channelBanks[5] = QVector<int>() << 8; // TIM17
 }
 
 Sparky::~Sparky()
 {
-
 }
 
 QString Sparky::shortName()
@@ -77,7 +80,7 @@ QString Sparky::boardDescription()
 //! Return which capabilities this board has
 bool Sparky::queryCapabilities(BoardCapabilities capability)
 {
-    switch(capability) {
+    switch (capability) {
     case BOARD_CAPABILITIES_GYROS:
     case BOARD_CAPABILITIES_ACCELS:
     case BOARD_CAPABILITIES_MAGS:
@@ -87,7 +90,7 @@ bool Sparky::queryCapabilities(BoardCapabilities capability)
     default:
         break;
     }
-    
+
     return false;
 }
 
@@ -111,7 +114,7 @@ bool Sparky::isInputConfigurationSupported(Core::IBoardType::InputType type)
     default:
         break;
     }
-    
+
     return true;
 }
 
@@ -131,7 +134,7 @@ bool Sparky::setInputType(Core::IBoardType::InputType type)
 
     HwSparky::DataFields settings = hwSparky->getData();
 
-    switch(type) {
+    switch (type) {
     case INPUT_TYPE_PPM:
         settings.RcvrPort = HwSparky::RCVRPORT_PPM;
         break;
@@ -184,7 +187,7 @@ Core::IBoardType::InputType Sparky::getInputType()
 
     HwSparky::DataFields settings = hwSparky->getData();
 
-    switch(settings.RcvrPort) {
+    switch (settings.RcvrPort) {
     case HwSparky::RCVRPORT_PPM:
         return INPUT_TYPE_PPM;
     case HwSparky::RCVRPORT_SBUS:
@@ -206,8 +209,8 @@ Core::IBoardType::InputType Sparky::getInputType()
     default:
         break;
     }
-    
-    switch(settings.FlexiPort) {
+
+    switch (settings.FlexiPort) {
     case HwSparky::FLEXIPORT_DSM:
         return INPUT_TYPE_DSM;
     case HwSparky::FLEXIPORT_SBUS:
@@ -223,8 +226,8 @@ Core::IBoardType::InputType Sparky::getInputType()
     default:
         break;
     }
-    
-    switch(settings.MainPort) {
+
+    switch (settings.MainPort) {
     case HwSparky::MAINPORT_DSM:
         return INPUT_TYPE_DSM;
     case HwSparky::MAINPORT_SBUSNONINVERTED:
@@ -238,7 +241,7 @@ Core::IBoardType::InputType Sparky::getInputType()
     default:
         break;
     }
-    
+
     return INPUT_TYPE_UNKNOWN;
 }
 
@@ -253,7 +256,7 @@ int Sparky::queryMaxGyroRate()
 
     HwSparky::DataFields settings = hwSparky->getData();
 
-    switch(settings.GyroRange) {
+    switch (settings.GyroRange) {
     case HwSparky::GYRORANGE_250:
         return 250;
     case HwSparky::GYRORANGE_500:
@@ -265,7 +268,7 @@ int Sparky::queryMaxGyroRate()
     default:
         break;
     }
-    
+
     return 500;
 }
 
@@ -280,12 +283,19 @@ QStringList Sparky::getAdcNames()
 
     QStringList names;
     HwSparky::DataFields settings = hwSparky->getData();
-    if (settings.OutPort == HwSparky::OUTPORT_PWM82ADC || settings.OutPort == HwSparky::OUTPORT_PWM72ADCPWM_IN)
-        names << "PWM10" << "PWM9" << "Disabled";
+    if (settings.OutPort == HwSparky::OUTPORT_PWM82ADC
+        || settings.OutPort == HwSparky::OUTPORT_PWM72ADCPWM_IN)
+        names << "PWM10"
+              << "PWM9"
+              << "Disabled";
     else if (settings.OutPort == HwSparky::OUTPORT_PWM73ADC)
-        names << "PWM10" << "PWM9" << "PWM8";
+        names << "PWM10"
+              << "PWM9"
+              << "PWM8";
     else
-        names << "Disabled" << "Disabled" << "Disabled";
+        names << "Disabled"
+              << "Disabled"
+              << "Disabled";
 
     return names;
 }

@@ -6,16 +6,16 @@
 
 #include <coreplugin/iboardtype.h>
 
-inputChannelForm::inputChannelForm(QWidget *parent, bool showlegend, bool showSlider, ChannelFunc chanType):
-    ConfigTaskWidget(parent),
-    ui(new Ui::InputChannelForm),
-    m_chanType(chanType)
+inputChannelForm::inputChannelForm(QWidget *parent, bool showlegend, bool showSlider,
+                                   ChannelFunc chanType)
+    : ConfigTaskWidget(parent)
+    , ui(new Ui::InputChannelForm)
+    , m_chanType(chanType)
 {
     ui->setupUi(this);
-    
-    //The first time through the loop, keep the legend. All other times, delete it.
-    if(!showlegend)
-    {
+
+    // The first time through the loop, keep the legend. All other times, delete it.
+    if (!showlegend) {
         layout()->removeWidget(ui->legend0);
         layout()->removeWidget(ui->legend1);
         layout()->removeWidget(ui->legend2);
@@ -34,8 +34,7 @@ inputChannelForm::inputChannelForm(QWidget *parent, bool showlegend, bool showSl
         delete ui->lblReverse;
     }
 
-    if(!showSlider)
-    {
+    if (!showSlider) {
         ui->channelNeutral->setHidden(true);
     }
 
@@ -45,21 +44,26 @@ inputChannelForm::inputChannelForm(QWidget *parent, bool showlegend, bool showSl
     sbChannelCurrent->setMaximum(65535);
 
     // Connect slots
-    connect(ui->channelMin,SIGNAL(valueChanged(int)),this,SLOT(minMaxUpdated()));
-    connect(ui->channelMax,SIGNAL(valueChanged(int)),this,SLOT(minMaxUpdated()));
-    connect(ui->channelGroup,SIGNAL(currentIndexChanged(int)),this,SLOT(groupUpdated()));
-    connect(sbChannelCurrent, SIGNAL(valueChanged(int)), ui->channelNeutral, SLOT(setIndicatorValue(int)));
-    connect(ui->btnReverse, SIGNAL(released()), this, SLOT(reverseChannel()));
+    connect(ui->channelMin, QOverload<int>::of(&QSpinBox::valueChanged), this,
+            &inputChannelForm::minMaxUpdated);
+    connect(ui->channelMax, QOverload<int>::of(&QSpinBox::valueChanged), this,
+            &inputChannelForm::minMaxUpdated);
+    connect(ui->channelGroup, QOverload<int>::of(&QComboBox::currentIndexChanged), this,
+            &inputChannelForm::groupUpdated);
+    connect(sbChannelCurrent, QOverload<int>::of(&QSpinBox::valueChanged), ui->channelNeutral,
+            &TextBubbleSlider::setIndicatorValue);
+    connect(ui->btnReverse, &QAbstractButton::released, this, &inputChannelForm::reverseChannel);
 
     // This is awkward but since we want the UI to be a dropdown but the field is not an enum
     // so it breaks the UAUVObject widget relation of the task gadget.  Running the data through
     // a spin box fixes this
-    connect(ui->channelNumberDropdown,SIGNAL(currentIndexChanged(int)),this,SLOT(channelDropdownUpdated(int)));
-    connect(ui->channelNumber,SIGNAL(valueChanged(int)),this,SLOT(channelNumberUpdated(int)));
+    connect(ui->channelNumberDropdown, QOverload<int>::of(&QComboBox::currentIndexChanged), this,
+            &inputChannelForm::channelDropdownUpdated);
+    connect(ui->channelNumber, QOverload<int>::of(&QSpinBox::valueChanged), this,
+            &inputChannelForm::channelNumberUpdated);
 
     disableMouseWheelEvents();
 }
-
 
 inputChannelForm::~inputChannelForm()
 {
@@ -70,17 +74,16 @@ void inputChannelForm::setName(QString &name)
 {
     ui->channelName->setText(name);
     QFontMetrics metrics(ui->channelName->font());
-    int width=metrics.width(name)+5;
-    foreach(inputChannelForm * form,parent()->findChildren<inputChannelForm*>())
-    {
-        if(form==this)
+    int width = metrics.width(name) + 5;
+    foreach (inputChannelForm *form, parent()->findChildren<inputChannelForm *>()) {
+        if (form == this)
             continue;
-        if(form->ui->channelName->minimumSize().width()<width)
-            form->ui->channelName->setMinimumSize(width,0);
+        if (form->ui->channelName->minimumSize().width() < width)
+            form->ui->channelName->setMinimumSize(width, 0);
         else
-            width=form->ui->channelName->minimumSize().width();
+            width = form->ui->channelName->minimumSize().width();
     }
-    ui->channelName->setMinimumSize(width,0);
+    ui->channelName->setMinimumSize(width, 0);
 }
 
 /**
@@ -90,7 +93,7 @@ void inputChannelForm::minMaxUpdated()
 {
     if (ui->channelMin->value() != ui->channelMax->value()) {
         bool reverse = (ui->channelMin->value() > ui->channelMax->value());
-        if(reverse) {
+        if (reverse) {
             ui->channelNeutral->setMinimum(ui->channelMax->value());
             ui->channelNeutral->setMaximum(ui->channelMin->value());
 
@@ -107,8 +110,7 @@ void inputChannelForm::minMaxUpdated()
 
         // make sure slider is enabled (can be removed when "else" below is removed)
         ui->channelNeutral->setEnabled(true);
-    }
-    else {
+    } else {
         // when the min and max is equal, disable this slider to prevent crash
         // from Qt bug: https://bugreports.qt.io/browse/QTBUG-43398
         ui->channelNeutral->setMinimum(ui->channelMin->value() - 1);
@@ -136,102 +138,96 @@ void inputChannelForm::groupUpdated()
 
     switch (m_chanType) {
 
-    case inputChannelForm::CHANNELFUNC_RC:
-        {
-            switch (ui->channelGroup->currentIndex()) {
-            case -1: // Nothing selected
-                count = 0;
-                break;
-            case ManualControlSettings::CHANNELGROUPS_PWM:
-                count = 8; // Need to make this 6 for CC
-                break;
-            case ManualControlSettings::CHANNELGROUPS_PPM:
-            case ManualControlSettings::CHANNELGROUPS_DSM:
-                count = 12;
-                break;
-            case ManualControlSettings::CHANNELGROUPS_SBUS:
-                count = 18;
-                break;
-            case ManualControlSettings::CHANNELGROUPS_RFM22B:
-                count = 9;
-                break;
-            case ManualControlSettings::CHANNELGROUPS_OPENLRS:
-                count = 8;
-                break;
-            case ManualControlSettings::CHANNELGROUPS_GCS:
-                count = GCSReceiver::CHANNEL_NUMELEM;
-                break;
-            case ManualControlSettings::CHANNELGROUPS_HOTTSUM:
-                count = 32;
-                break;
-            case ManualControlSettings::CHANNELGROUPS_SRXL:
-                count = 16;
-                break;
-            case ManualControlSettings::CHANNELGROUPS_IBUS:
-                count = 10;
-                break;
-            case ManualControlSettings::CHANNELGROUPS_TBSCROSSFIRE:
-                count = 12;
-                break;
-            case ManualControlSettings::CHANNELGROUPS_NONE:
-                count = 0;
-                break;
-            default:
-                Q_ASSERT(0);
-            }
+    case inputChannelForm::CHANNELFUNC_RC: {
+        switch (ui->channelGroup->currentIndex()) {
+        case -1: // Nothing selected
+            count = 0;
+            break;
+        case ManualControlSettings::CHANNELGROUPS_PWM:
+            count = 8; // Need to make this 6 for CC
+            break;
+        case ManualControlSettings::CHANNELGROUPS_PPM:
+        case ManualControlSettings::CHANNELGROUPS_DSM:
+            count = 12;
+            break;
+        case ManualControlSettings::CHANNELGROUPS_SBUS:
+            count = 18;
+            break;
+        case ManualControlSettings::CHANNELGROUPS_RFM22B:
+            count = 9;
+            break;
+        case ManualControlSettings::CHANNELGROUPS_OPENLRS:
+            count = 8;
+            break;
+        case ManualControlSettings::CHANNELGROUPS_GCS:
+            count = GCSReceiver::CHANNEL_NUMELEM;
+            break;
+        case ManualControlSettings::CHANNELGROUPS_HOTTSUM:
+            count = 32;
+            break;
+        case ManualControlSettings::CHANNELGROUPS_SRXL:
+            count = 16;
+            break;
+        case ManualControlSettings::CHANNELGROUPS_IBUS:
+            count = 10;
+            break;
+        case ManualControlSettings::CHANNELGROUPS_TBSCROSSFIRE:
+            count = 12;
+            break;
+        case ManualControlSettings::CHANNELGROUPS_NONE:
+            count = 0;
+            break;
+        default:
+            Q_ASSERT(0);
         }
-        break;
+    } break;
 
-
-    case inputChannelForm::CHANNELFUNC_RSSI:
-        {
-            switch (ui->channelGroup->currentIndex()) {
-            case -1: // Nothing selected
-                count = 0;
-                break;
-            case ManualControlSettings::RSSITYPE_PWM:
-                count = 8;
-                break;
-            case ManualControlSettings::RSSITYPE_PPM:
-                count = 12;
-                break;
-            case ManualControlSettings::RSSITYPE_SBUS:
-                count = 18;
-                break;
-            case ManualControlSettings::RSSITYPE_HOTTSUM:
-                count = 32;
-                break;
-            case ManualControlSettings::RSSITYPE_ADC:
-                count = 9;
-                break;
-            case ManualControlSettings::RSSITYPE_OPENLRS:
-                count = 8;
-                break;
-            case ManualControlSettings::RSSITYPE_RFM22B:
-                count = 1;
-                break;
-            case ManualControlSettings::RSSITYPE_FRSKYPWM:
-                count = 1;
-                break;
-            case ManualControlSettings::RSSITYPE_TBSCROSSFIRE:
-                count = 12;
-                break;
-            case ManualControlSettings::RSSITYPE_NONE:
-                count = 0;
-                break;
-            default:
-                Q_ASSERT(0);
-            }
+    case inputChannelForm::CHANNELFUNC_RSSI: {
+        switch (ui->channelGroup->currentIndex()) {
+        case -1: // Nothing selected
+            count = 0;
+            break;
+        case ManualControlSettings::RSSITYPE_PWM:
+            count = 8;
+            break;
+        case ManualControlSettings::RSSITYPE_PPM:
+            count = 12;
+            break;
+        case ManualControlSettings::RSSITYPE_SBUS:
+            count = 18;
+            break;
+        case ManualControlSettings::RSSITYPE_HOTTSUM:
+            count = 32;
+            break;
+        case ManualControlSettings::RSSITYPE_ADC:
+            count = 9;
+            break;
+        case ManualControlSettings::RSSITYPE_OPENLRS:
+            count = 8;
+            break;
+        case ManualControlSettings::RSSITYPE_RFM22B:
+            count = 1;
+            break;
+        case ManualControlSettings::RSSITYPE_FRSKYPWM:
+            count = 1;
+            break;
+        case ManualControlSettings::RSSITYPE_TBSCROSSFIRE:
+            count = 12;
+            break;
+        case ManualControlSettings::RSSITYPE_NONE:
+            count = 0;
+            break;
+        default:
+            Q_ASSERT(0);
         }
-        break;
-
+    } break;
     }
 
     ui->channelNumber->setMaximum(count);
     ui->channelNumber->setMinimum(0);
 
-    if (m_chanType == inputChannelForm::CHANNELFUNC_RSSI &&
-            ui->channelGroup->currentIndex() == ManualControlSettings::RSSITYPE_ADC) {
+    if (m_chanType == inputChannelForm::CHANNELFUNC_RSSI
+        && ui->channelGroup->currentIndex() == ManualControlSettings::RSSITYPE_ADC) {
         QStringList names;
         Core::IBoardType *board = utilMngr->getBoardType();
         if (board)
@@ -250,7 +246,7 @@ void inputChannelForm::groupUpdated()
         }
     } else {
         for (int i = 0; i < count; i++)
-            ui->channelNumberDropdown->addItem(QString(tr("Chan %1").arg(i+1)));
+            ui->channelNumberDropdown->addItem(QString(tr("Chan %1").arg(i + 1)));
         if (selected > 0 && selected <= count)
             ui->channelNumberDropdown->setCurrentIndex(selected);
     }

@@ -68,29 +68,26 @@ struct AutotunedValues
     float outerKi;
 };
 
-class AutotuneMeasuredPropertiesPage : public QWizardPage,
-        private Ui::AutotuneProperties
+class AutotuneMeasuredPropertiesPage : public QWizardPage, private Ui::AutotuneProperties
 {
     Q_OBJECT
 
 public:
     explicit AutotuneMeasuredPropertiesPage(QWidget *parent,
-            SystemIdent::DataFields &systemIdentData);
+                                            SystemIdent::DataFields &systemIdentData);
     void initializePage();
 
 private:
     SystemIdent::DataFields sysIdent;
 };
 
-class AutotuneSlidersPage : public QWizardPage,
-        private Ui::AutotuneSliders
+class AutotuneSlidersPage : public QWizardPage, private Ui::AutotuneSliders
 {
     Q_OBJECT
 
 public:
-    explicit AutotuneSlidersPage(QWidget *parent,
-            SystemIdent::DataFields &systemIdentData,
-            struct AutotunedValues *autoValues);
+    explicit AutotuneSlidersPage(QWidget *parent, SystemIdent::DataFields &systemIdentData,
+                                 struct AutotunedValues *autoValues);
 
     bool isComplete() const;
 
@@ -105,8 +102,7 @@ private slots:
     void resetSliders();
 };
 
-class AutotuneFinalPage : public QWizardPage,
-        public Ui::AutotuneFinalPage
+class AutotuneFinalPage : public QWizardPage, public Ui::AutotuneFinalPage
 {
     Q_OBJECT
 
@@ -122,21 +118,21 @@ public:
 
 private:
     Ui_AutotuneWidget *m_autotune;
-    UAVObjectUtilManager* utilMngr;
+    UAVObjectUtilManager *utilMngr;
     ConfigGadgetWidget *parentConfigWidget;
     static const QString databaseUrl;
 
     QString systemIdentValid(SystemIdent::DataFields &data, bool *okToContinue);
 
-    QJsonDocument getResultsJson(AutotuneFinalPage *autotuneShareForm,
-            struct AutotunedValues *av);
+    QJsonDocument getResultsJson(AutotuneFinalPage *autotuneShareForm, struct AutotunedValues *av);
 
     void stuffShareForm(AutotuneFinalPage *autotuneShareForm);
     void persistShareForm(AutotuneFinalPage *autotuneShareForm);
     void checkNewAutotune();
 
 private slots:
-    void openAutotuneDialog(bool autoOpened = false);
+    void openAutotuneDialog();
+    void openAutotuneDialog(bool autoOpened);
 
     void atConnected();
     void atDisconnected();

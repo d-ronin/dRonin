@@ -8,7 +8,7 @@
  * @{
  * @addtogroup DialPlugin Dial Plugin
  * @{
- * @brief Plots flight information rotary style dials 
+ * @brief Plots flight information rotary style dials
  *****************************************************************************/
 /*
  * This program is free software; you can redistribute it and/or modify
@@ -32,34 +32,35 @@
  * Loads a saved configuration or defaults if non exist.
  *
  */
-DialGadgetConfiguration::DialGadgetConfiguration(QString classId, QSettings* qSettings, QObject *parent) :
-    IUAVGadgetConfiguration(classId, parent),
-    m_defaultDial("Unknown"),
-	dialBackgroundID("background"),
-    dialForegroundID("foreground"),
-    dialNeedleID1("needle"),
-    dialNeedleID2("needle2"),
-    dialNeedleID3("needle3"),
-    needle1MinValue(0),
-    needle1MaxValue(100),
-    needle2MinValue(0),
-    needle2MaxValue(100),
-    needle3MinValue(0),
-    needle3MaxValue(100),
-    needle1Factor(1),
-    needle2Factor(1),
-    needle3Factor(1),
-    needle1Move("Rotate"),
-    needle2Move("Rotate"),
-	needle3Move("Rotate"),
-	beSmooth(true)
+DialGadgetConfiguration::DialGadgetConfiguration(QString classId, QSettings *qSettings,
+                                                 QObject *parent)
+    : IUAVGadgetConfiguration(classId, parent)
+    , m_defaultDial("Unknown")
+    , dialBackgroundID("background")
+    , dialForegroundID("foreground")
+    , dialNeedleID1("needle")
+    , dialNeedleID2("needle2")
+    , dialNeedleID3("needle3")
+    , needle1MinValue(0)
+    , needle1MaxValue(100)
+    , needle2MinValue(0)
+    , needle2MaxValue(100)
+    , needle3MinValue(0)
+    , needle3MaxValue(100)
+    , needle1Factor(1)
+    , needle2Factor(1)
+    , needle3Factor(1)
+    , needle1Move("Rotate")
+    , needle2Move("Rotate")
+    , needle3Move("Rotate")
+    , beSmooth(true)
 {
-    //if a saved configuration exists load it
-    if(qSettings != 0) {
+    // if a saved configuration exists load it
+    if (qSettings != 0) {
         QString dialFile = qSettings->value("dialFile").toString();
 
-		m_defaultDial=Utils::PathUtils().InsertDataPath(dialFile);
-		dialBackgroundID = qSettings->value("dialBackgroundID").toString();
+        m_defaultDial = Utils::PathUtils().InsertDataPath(dialFile);
+        dialBackgroundID = qSettings->value("dialBackgroundID").toString();
         dialForegroundID = qSettings->value("dialForegroundID").toString();
         dialNeedleID1 = qSettings->value("dialNeedleID1").toString();
         dialNeedleID2 = qSettings->value("dialNeedleID2").toString();
@@ -83,8 +84,8 @@ DialGadgetConfiguration::DialGadgetConfiguration(QString classId, QSettings* qSe
         needle2Move = qSettings->value("needle2Move").toString();
         needle3Move = qSettings->value("needle3Move").toString();
         font = qSettings->value("font").toString();
-		beSmooth = qSettings->value("beSmooth").toBool();
-	}
+        beSmooth = qSettings->value("beSmooth").toBool();
+    }
 }
 
 /**
@@ -94,7 +95,7 @@ DialGadgetConfiguration::DialGadgetConfiguration(QString classId, QSettings* qSe
 IUAVGadgetConfiguration *DialGadgetConfiguration::clone()
 {
     DialGadgetConfiguration *m = new DialGadgetConfiguration(this->classId());
-	m->m_defaultDial=m_defaultDial;
+    m->m_defaultDial = m_defaultDial;
     m->setDialBackgroundID(dialBackgroundID);
     m->setDialForegroundID(dialForegroundID);
     m->setDialNeedleID1(dialNeedleID1);
@@ -119,7 +120,7 @@ IUAVGadgetConfiguration *DialGadgetConfiguration::clone()
     m->setN2Move(needle2Move);
     m->setN3Move(needle3Move);
     m->setFont(font);
-	m->beSmooth = beSmooth;
+    m->beSmooth = beSmooth;
 
     return m;
 }
@@ -128,11 +129,12 @@ IUAVGadgetConfiguration *DialGadgetConfiguration::clone()
  * Saves a configuration.
  *
  */
-void DialGadgetConfiguration::saveConfig(QSettings* settings) const {
+void DialGadgetConfiguration::saveConfig(QSettings *settings) const
+{
     QString dialFile = Utils::PathUtils().RemoveDataPath(m_defaultDial);
     settings->setValue("dialFile", dialFile);
 
-	settings->setValue("dialBackgroundID", dialBackgroundID);
+    settings->setValue("dialBackgroundID", dialBackgroundID);
     settings->setValue("dialForegroundID", dialForegroundID);
 
     settings->setValue("dialNeedleID1", dialNeedleID1);
@@ -163,5 +165,5 @@ void DialGadgetConfiguration::saveConfig(QSettings* settings) const {
 
     settings->setValue("font", font);
 
-	settings->setValue("beSmooth", beSmooth);
+    settings->setValue("beSmooth", beSmooth);
 }

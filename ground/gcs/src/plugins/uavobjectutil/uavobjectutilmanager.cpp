@@ -48,10 +48,10 @@
 #include <coreplugin/coreconstants.h>
 
 #ifdef UAVOBJECTUTIL_DEBUG
-  #define UAVOBJECTUTIL_QXTLOG_DEBUG(...) qDebug()<<__VA_ARGS__
-#else  // UAVOBJECTUTIL_DEBUG
-  #define UAVOBJECTUTIL_QXTLOG_DEBUG(...)
-#endif	// UAVOBJECTUTIL_DEBUG
+#define UAVOBJECTUTIL_QXTLOG_DEBUG(...) qDebug() << __VA_ARGS__
+#else // UAVOBJECTUTIL_DEBUG
+#define UAVOBJECTUTIL_QXTLOG_DEBUG(...)
+#endif // UAVOBJECTUTIL_DEBUG
 
 UAVObjectUtilManager::UAVObjectUtilManager()
 {
@@ -59,28 +59,26 @@ UAVObjectUtilManager::UAVObjectUtilManager()
     failureTimer.stop();
     failureTimer.setSingleShot(true);
     failureTimer.setInterval(1000);
-    connect(&failureTimer, SIGNAL(timeout()),this,SLOT(objectPersistenceOperationFailed()));
+    connect(&failureTimer, SIGNAL(timeout()), this, SLOT(objectPersistenceOperationFailed()));
 
     obm = NULL;
 
     pm = ExtensionSystem::PluginManager::instance();
-    if (pm)
-    {
+    if (pm) {
         obm = pm->getObject<UAVObjectManager>();
     }
 }
 
 UAVObjectUtilManager::~UAVObjectUtilManager()
 {
-	disconnect();
+    disconnect();
 }
 
-
-UAVObjectManager* UAVObjectUtilManager::getObjectManager() {
+UAVObjectManager *UAVObjectUtilManager::getObjectManager()
+{
     Q_ASSERT(obm);
     return obm;
 }
-
 
 // ******************************
 // Flash memory saving
@@ -105,7 +103,8 @@ UAVObjectManager* UAVObjectUtilManager::getObjectManager() {
  *  - Set the operation ('save' for instance)
  *  - Then update the object, which sends it over the telemetry link
  *  - Once the objectPersistence UAVO is updated, the board will in turn update it again,
- *    once the operation is completed. We need therefore to listen to updates on the objectPersistence
+ *    once the operation is completed. We need therefore to listen to updates on the
+ * objectPersistence
  *    object, and check the "Operation" field, which should be set to "completed", or "error".
  */
 void UAVObjectUtilManager::saveObjectToFlash(UAVObject *obj)
@@ -116,10 +115,9 @@ void UAVObjectUtilManager::saveObjectToFlash(UAVObject *obj)
 
     // If queue length is one, then start sending (call sendNextObject)
     // Otherwise, do nothing, because we are already sending.
-    if (queue.length()==1)
+    if (queue.length() == 1)
         saveNextObject();
 }
-
 
 /**
  * @brief UAVObjectUtilManager::saveNextObject
@@ -128,29 +126,36 @@ void UAVObjectUtilManager::saveObjectToFlash(UAVObject *obj)
  */
 void UAVObjectUtilManager::saveNextObject()
 {
-    if ( queue.isEmpty() ) {
+    if (queue.isEmpty()) {
         return;
     }
 
     Q_ASSERT(saveState == IDLE);
 
     // Get next object from the queue (don't dequeue yet)
-    UAVObject* obj = queue.head();
+    UAVObject *obj = queue.head();
     Q_ASSERT(obj);
     UAVOBJECTUTIL_QXTLOG_DEBUG(QString("Send save object request to board %0").arg(obj->getName()));
 
-    ObjectPersistence * objectPersistence = ObjectPersistence::GetInstance(getObjectManager());
+    ObjectPersistence *objectPersistence = ObjectPersistence::GetInstance(getObjectManager());
     Q_ASSERT(objectPersistence);
 
-    // "transactionCompleted" is emitted once the objectPersistence object is sent over the telemetry link.
-    // Since its metadata state that it should be ACK'ed on flight telemetry, the transactionCompleted signal
-    // will be triggered once the GCS telemetry manager receives an ACK from the flight controller, or times
+    // "transactionCompleted" is emitted once the objectPersistence object is sent over the
+    // telemetry link.
+    // Since its metadata state that it should be ACK'ed on flight telemetry, the
+    // transactionCompleted signal
+    // will be triggered once the GCS telemetry manager receives an ACK from the flight controller,
+    // or times
     // out. the success value will reflect success or failure.
-    connect(objectPersistence, SIGNAL(transactionCompleted(UAVObject*,bool)), this, SLOT(objectPersistenceTransactionCompleted(UAVObject*,bool)), Qt::UniqueConnection);
-    // After we update the objectPersistence UAVO, we need to listen to its "objectUpdated" event, which will occur
-    // once the flight controller sends this object back to the GCS, with the "Operation" field set to "Completed"
+    connect(objectPersistence, SIGNAL(transactionCompleted(UAVObject *, bool)), this,
+            SLOT(objectPersistenceTransactionCompleted(UAVObject *, bool)), Qt::UniqueConnection);
+    // After we update the objectPersistence UAVO, we need to listen to its "objectUpdated" event,
+    // which will occur
+    // once the flight controller sends this object back to the GCS, with the "Operation" field set
+    // to "Completed"
     // or "Error".
-    connect(objectPersistence, SIGNAL(objectUpdated(UAVObject*)), this, SLOT(objectPersistenceUpdated(UAVObject *)), Qt::UniqueConnection);
+    connect(objectPersistence, SIGNAL(objectUpdated(UAVObject *)), this,
+            SLOT(objectPersistenceUpdated(UAVObject *)), Qt::UniqueConnection);
     saveState = AWAITING_ACK;
     UAVOBJECTUTIL_QXTLOG_DEBUG(QString("[saveObjectToFlash] Moving on to AWAITING_ACK"));
 
@@ -161,17 +166,22 @@ void UAVObjectUtilManager::saveNextObject()
     objectPersistence->setData(data);
     objectPersistence->updated();
     // Now: we are going to get the following:
-    // - two "objectUpdated" messages (one coming from GCS, one coming from Flight, which will confirm the object
-    //   was properly received by both sides). This is because the metadata of objectPersistence has "FlightUpdateOnChange"
+    // - two "objectUpdated" messages (one coming from GCS, one coming from Flight, which will
+    // confirm the object
+    //   was properly received by both sides). This is because the metadata of objectPersistence has
+    //   "FlightUpdateOnChange"
     //   set to true.
-    //  - then one "transactionCompleted" indicating that the Flight side did not only receive the object but it did
+    //  - then one "transactionCompleted" indicating that the Flight side did not only receive the
+    //  object but it did
     //    receive it without error (that message will be triggered by reception of the ACK).
-    //  - Last we will get one last "objectUpdated" message coming from flight side, where we'll get the results of
+    //  - Last we will get one last "objectUpdated" message coming from flight side, where we'll get
+    //  the results of
     //    the objectPersistence operation we asked for (saved, other).
 }
 
 /**
-  * @brief Process the transactionCompleted message from Telemetry indicating request sent successfully
+  * @brief Process the transactionCompleted message from Telemetry indicating request sent
+ * successfully
   * @param[in] The object just transacted.  Must be ObjectPersistance
   * @param[in] success Indicates that the transaction did not time out
   *
@@ -179,7 +189,7 @@ void UAVObjectUtilManager::saveNextObject()
   * signal (saveCompleted with 'false').  After a succesful
   * transaction it will then wait for a "save completed" update from the autopilot.
   */
-void UAVObjectUtilManager::objectPersistenceTransactionCompleted(UAVObject* obj, bool success)
+void UAVObjectUtilManager::objectPersistenceTransactionCompleted(UAVObject *obj, bool success)
 {
     if (success) {
         Q_ASSERT(obj->getName().compare("ObjectPersistence") == 0);
@@ -187,18 +197,20 @@ void UAVObjectUtilManager::objectPersistenceTransactionCompleted(UAVObject* obj,
         // Two things can happen then:
         // Either the Object Save Request did actually go through, and then we should get in
         // "AWAITING_COMPLETED" mode, or the Object Save Request did _not_ go through, for example
-        // because the object does not exist and then we will never get a subsequent update - the flight firmware
+        // because the object does not exist and then we will never get a subsequent update - the
+        // flight firmware
         // does not update the objectPersistence UAVO with "Error", it just ignores the request.
         // For this reason, we will arm a 1 second timer to make provision for this and not block
         // the queue:
         saveState = AWAITING_COMPLETED;
         UAVOBJECTUTIL_QXTLOG_DEBUG(QString("[saveObjectToFlash] Moving on to AWAITING_COMPLETED"));
-        disconnect(obj, SIGNAL(transactionCompleted(UAVObject*,bool)), this, SLOT(objectPersistenceTransactionCompleted(UAVObject*,bool)));
+        disconnect(obj, SIGNAL(transactionCompleted(UAVObject *, bool)), this,
+                   SLOT(objectPersistenceTransactionCompleted(UAVObject *, bool)));
         failureTimer.start(2000); // Create a timeout
     } else {
         // Can be caused by timeout errors on sending.  Forget it and send next.
         UAVOBJECTUTIL_QXTLOG_DEBUG(QString("objectPersistenceTranscationCompleted (error))"));
-        ObjectPersistence * objectPersistence = ObjectPersistence::GetInstance(getObjectManager());
+        ObjectPersistence *objectPersistence = ObjectPersistence::GetInstance(getObjectManager());
         Q_ASSERT(objectPersistence);
 
         objectPersistence->disconnect(this);
@@ -212,7 +224,6 @@ void UAVObjectUtilManager::objectPersistenceTransactionCompleted(UAVObject* obj,
     }
 }
 
-
 /**
   * @brief Object persistence operation failed, i.e. we never got an update
   * from the board saying "completed". This method is only called when we get a timeout.
@@ -221,10 +232,10 @@ void UAVObjectUtilManager::objectPersistenceOperationFailed()
 {
     if (saveState == AWAITING_COMPLETED) {
 
-        ObjectPersistence * objectPersistence = ObjectPersistence::GetInstance(getObjectManager());
+        ObjectPersistence *objectPersistence = ObjectPersistence::GetInstance(getObjectManager());
         Q_ASSERT(objectPersistence);
 
-        UAVObject* obj = queue.dequeue(); // We can now remove the object, it failed anyway.
+        UAVObject *obj = queue.dequeue(); // We can now remove the object, it failed anyway.
         Q_ASSERT(obj);
 
         objectPersistence->disconnect(this);
@@ -234,16 +245,14 @@ void UAVObjectUtilManager::objectPersistenceOperationFailed()
 
         saveNextObject();
     }
-
 }
-
 
 /**
   * @brief Process the ObjectPersistence updated message to confirm the right object saved
   * then requests next object be saved.
   * @param[in] The object just received.  Must be ObjectPersistance
   */
-void UAVObjectUtilManager::objectPersistenceUpdated(UAVObject * obj)
+void UAVObjectUtilManager::objectPersistenceUpdated(UAVObject *obj)
 {
     Q_ASSERT(obj);
     Q_ASSERT(obj->getObjID() == ObjectPersistence::OBJID);
@@ -261,8 +270,8 @@ void UAVObjectUtilManager::objectPersistenceUpdated(UAVObject * obj)
     } else if (objectPersistence.Operation == ObjectPersistence::OPERATION_COMPLETED) {
         failureTimer.stop();
         // Check right object saved
-        UAVObject* savingObj = queue.head();
-        if (objectPersistence.ObjectID != savingObj->getObjID() ) {
+        UAVObject *savingObj = queue.head();
+        if (objectPersistence.ObjectID != savingObj->getObjID()) {
             objectPersistenceOperationFailed();
             return;
         }
@@ -276,7 +285,6 @@ void UAVObjectUtilManager::objectPersistenceUpdated(UAVObject * obj)
     }
 }
 
-
 /**
  * @brief UAVObjectUtilManager::readAllNonSettingsMetadata Convenience function for calling
  * readMetadata
@@ -287,23 +295,23 @@ QMap<QString, UAVObject::Metadata> UAVObjectUtilManager::readAllNonSettingsMetad
     return readMetadata(NONSETTINGS_METADATA_ONLY);
 }
 
-
 /**
  * @brief UAVObjectUtilManager::readMetadata Get metadata for UAVOs
  * @param metadataReadType Defines if all UAVOs are read, only settings, or only data types
  * @return QMap containing list of all requested UAVO metaadata
  */
-QMap<QString, UAVObject::Metadata> UAVObjectUtilManager::readMetadata(metadataSetEnum metadataReadType)
+QMap<QString, UAVObject::Metadata>
+UAVObjectUtilManager::readMetadata(metadataSetEnum metadataReadType)
 {
     QMap<QString, UAVObject::Metadata> metaDataList;
 
     // Save all metadata objects.
     UAVObjectManager *objManager = getObjectManager();
-    QVector< QVector<UAVDataObject*> > objList = objManager->getDataObjectsVector();
-    foreach (QVector<UAVDataObject*> list, objList) {
-        foreach (UAVDataObject* obj, list) {
+    QVector<QVector<UAVDataObject *>> objList = objManager->getDataObjectsVector();
+    foreach (QVector<UAVDataObject *> list, objList) {
+        foreach (UAVDataObject *obj, list) {
             bool updateMetadataFlag = false;
-            switch (metadataReadType){
+            switch (metadataReadType) {
             case ALL_METADATA:
                 updateMetadataFlag = true;
                 break;
@@ -319,7 +327,7 @@ QMap<QString, UAVObject::Metadata> UAVObjectUtilManager::readMetadata(metadataSe
                 break;
             }
 
-            if (updateMetadataFlag){
+            if (updateMetadataFlag) {
                 metaDataList.insert(obj->getName(), obj->getMetadata());
             }
         }
@@ -328,20 +336,20 @@ QMap<QString, UAVObject::Metadata> UAVObjectUtilManager::readMetadata(metadataSe
     return metaDataList;
 }
 
-
 /**
- * @brief UAVObjectUtilManager::setAllNonSettingsMetadata Convenience function for calling setMetadata
+ * @brief UAVObjectUtilManager::setAllNonSettingsMetadata Convenience function for calling
+ * setMetadata
  * @param metaDataList QMap containing list of all UAVO metaadata to be updated
  * @return
  */
-bool UAVObjectUtilManager::setAllNonSettingsMetadata(QMap<QString, UAVObject::Metadata> metaDataList)
+bool UAVObjectUtilManager::setAllNonSettingsMetadata(
+    QMap<QString, UAVObject::Metadata> metaDataList)
 {
     metadataSetEnum metadataSetType = NONSETTINGS_METADATA_ONLY;
     setMetadata(metaDataList, metadataSetType);
 
     return true;
 }
-
 
 /**
  * @brief UAVObjectUtilManager::setMetadata Sets the metadata for all metadata in QMap
@@ -350,16 +358,17 @@ bool UAVObjectUtilManager::setAllNonSettingsMetadata(QMap<QString, UAVObject::Me
  * or only dynamic data metadata
  * @return
  */
-bool UAVObjectUtilManager::setMetadata(QMap<QString, UAVObject::Metadata> metaDataSetList, metadataSetEnum metadataSetType)
+bool UAVObjectUtilManager::setMetadata(QMap<QString, UAVObject::Metadata> metaDataSetList,
+                                       metadataSetEnum metadataSetType)
 {
     if (!metadataSendlist.isEmpty())
         return false;
     // Load all metadata objects.
     UAVObjectManager *objManager = getObjectManager();
-    foreach (QString str, metaDataSetList.keys()){
-        UAVDataObject *obj = dynamic_cast<UAVDataObject*>(objManager->getObject(str));
+    foreach (QString str, metaDataSetList.keys()) {
+        UAVDataObject *obj = dynamic_cast<UAVDataObject *>(objManager->getObject(str));
         bool updateMetadataFlag = false;
-        switch (metadataSetType){
+        switch (metadataSetType) {
         case ALL_METADATA:
             updateMetadataFlag = true;
             break;
@@ -390,12 +399,12 @@ bool UAVObjectUtilManager::setMetadata(QMap<QString, UAVObject::Metadata> metaDa
     UAVDataObject *obj = metadataSendlist.keys().first();
 
     // Connect transaction and timeout timers before making the request
-    connect(obj->getMetaObject(), SIGNAL(transactionCompleted(UAVObject*,bool)), this, SLOT(metadataTransactionCompleted(UAVObject*,bool)), Qt::UniqueConnection);
+    connect(obj->getMetaObject(), SIGNAL(transactionCompleted(UAVObject *, bool)), this,
+            SLOT(metadataTransactionCompleted(UAVObject *, bool)), Qt::UniqueConnection);
     obj->setMetadata(metadataSendlist.value(obj));
 
     return true;
 }
-
 
 /**
  * @brief UAVObjectUtilManager::resetMetadata Resets all metadata to defaults (from XML definitions)
@@ -407,9 +416,9 @@ bool UAVObjectUtilManager::resetMetadataToDefaults()
 
     // Load all metadata object defaults
     UAVObjectManager *objManager = getObjectManager();
-    QVector< QVector<UAVDataObject*> > objList = objManager->getDataObjectsVector();
-    foreach (QVector<UAVDataObject*> list, objList) {
-        foreach (UAVDataObject* obj, list) {
+    QVector<QVector<UAVDataObject *>> objList = objManager->getDataObjectsVector();
+    foreach (QVector<UAVDataObject *> list, objList) {
+        foreach (UAVDataObject *obj, list) {
             metaDataList.insert(obj->getName(), obj->getDefaultMetadata());
         }
     }
@@ -421,39 +430,39 @@ bool UAVObjectUtilManager::resetMetadataToDefaults()
     return ret;
 }
 
-
 /**
- * @brief ConfigTaskWidget::metadataTransactionCompleted Called by the retrieved object when a transaction is completed.
+ * @brief ConfigTaskWidget::metadataTransactionCompleted Called by the retrieved object when a
+ * transaction is completed.
  * @param uavoObject
  * @param success
  */
-void UAVObjectUtilManager::metadataTransactionCompleted(UAVObject* uavoObject, bool success)
+void UAVObjectUtilManager::metadataTransactionCompleted(UAVObject *uavoObject, bool success)
 {
-    UAVMetaObject *mobj = dynamic_cast<UAVMetaObject*>(uavoObject);
-    UAVDataObject *dobj = dynamic_cast<UAVDataObject*>(mobj->getParentObject());
+    UAVMetaObject *mobj = dynamic_cast<UAVMetaObject *>(uavoObject);
+    UAVDataObject *dobj = dynamic_cast<UAVDataObject *>(mobj->getParentObject());
     Q_ASSERT(mobj);
     Q_ASSERT(dobj);
-    if (metadataSendlist.contains(dobj))
-    {
-        if (success)
-        {
-            UAVOBJECTUTIL_QXTLOG_DEBUG(QString("Writing metadata succeded on %0").arg(uavoObject->getName()));
-        }
-        else
-        {
+    if (metadataSendlist.contains(dobj)) {
+        if (success) {
+            UAVOBJECTUTIL_QXTLOG_DEBUG(
+                QString("Writing metadata succeded on %0").arg(uavoObject->getName()));
+        } else {
             // If unsuccessful
             metadataSendSuccess = false;
-            UAVOBJECTUTIL_QXTLOG_DEBUG(QString("metadata send failed").arg(metadataSendlist.keys().first()->getName()));
+            UAVOBJECTUTIL_QXTLOG_DEBUG(
+                QString("metadata send failed").arg(metadataSendlist.keys().first()->getName()));
         }
-        disconnect(mobj, SIGNAL(transactionCompleted(UAVObject*,bool)), this, SLOT(metadataTransactionCompleted(UAVObject*,bool)));
+        disconnect(mobj, SIGNAL(transactionCompleted(UAVObject *, bool)), this,
+                   SLOT(metadataTransactionCompleted(UAVObject *, bool)));
         metadataSendlist.take(dobj);
-        if(!metadataSendlist.keys().isEmpty())
-        {
-            metadataSendlist.keys().first()->setMetadata(metadataSendlist.value(metadataSendlist.keys().first()));
-            connect(metadataSendlist.keys().first()->getMetaObject(), SIGNAL(transactionCompleted(UAVObject*,bool)), this, SLOT(metadataTransactionCompleted(UAVObject*,bool)), Qt::UniqueConnection);
+        if (!metadataSendlist.keys().isEmpty()) {
+            metadataSendlist.keys().first()->setMetadata(
+                metadataSendlist.value(metadataSendlist.keys().first()));
+            connect(metadataSendlist.keys().first()->getMetaObject(),
+                    SIGNAL(transactionCompleted(UAVObject *, bool)), this,
+                    SLOT(metadataTransactionCompleted(UAVObject *, bool)), Qt::UniqueConnection);
             return;
-        }
-        else {
+        } else {
             emit completedMetadataWrite(metadataSendSuccess);
         }
     }
@@ -484,7 +493,7 @@ FirmwareIAPObj::DataFields UAVObjectUtilManager::getFirmwareIap()
 int UAVObjectUtilManager::getBoardModel()
 {
     FirmwareIAPObj::DataFields firmwareIapData = getFirmwareIap();
-    int ret=firmwareIapData.BoardType <<8;
+    int ret = firmwareIapData.BoardType << 8;
     ret = ret + firmwareIapData.BoardRevision;
     return ret;
 }
@@ -501,7 +510,7 @@ int UAVObjectUtilManager::getBoardRevision()
 Core::IBoardType *UAVObjectUtilManager::getBoardType()
 {
     int boardTypeNum = (getBoardModel() >> 8) & 0x00ff;
-    QList <Core::IBoardType *> boards = pm->getObjects<Core::IBoardType>();
+    QList<Core::IBoardType *> boards = pm->getObjects<Core::IBoardType>();
     foreach (Core::IBoardType *board, boards) {
         if (board->getBoardType() == boardTypeNum)
             return board;
@@ -542,8 +551,6 @@ QByteArray UAVObjectUtilManager::getBoardDescription()
 
     return ret;
 }
-
-
 
 // ******************************
 // HomeLocation
@@ -592,27 +599,29 @@ int UAVObjectUtilManager::getHomeLocation(bool &set, double LLA[3])
 
     set = homeLocationData.Set;
 
-    LLA[0] = homeLocationData.Latitude*1e-7;
-    LLA[1] = homeLocationData.Longitude*1e-7;
+    LLA[0] = homeLocationData.Latitude * 1e-7;
+    LLA[1] = homeLocationData.Longitude * 1e-7;
     LLA[2] = homeLocationData.Altitude;
 
-	if (LLA[0] != LLA[0]) LLA[0] = 0; // nan detection
-	else
-	if (LLA[0] >  90) LLA[0] =  90;
-	else
-	if (LLA[0] < -90) LLA[0] = -90;
+    if (LLA[0] != LLA[0])
+        LLA[0] = 0; // nan detection
+    else if (LLA[0] > 90)
+        LLA[0] = 90;
+    else if (LLA[0] < -90)
+        LLA[0] = -90;
 
-	if (LLA[1] != LLA[1]) LLA[1] = 0; // nan detection
-	else
-	if (LLA[1] >  180) LLA[1] =  180;
-	else
-	if (LLA[1] < -180) LLA[1] = -180;
+    if (LLA[1] != LLA[1])
+        LLA[1] = 0; // nan detection
+    else if (LLA[1] > 180)
+        LLA[1] = 180;
+    else if (LLA[1] < -180)
+        LLA[1] = -180;
 
-	if (LLA[2] != LLA[2]) LLA[2] = 0; // nan detection
+    if (LLA[2] != LLA[2])
+        LLA[2] = 0; // nan detection
 
-	return 0;	// OK
+    return 0; // OK
 }
-
 
 // ******************************
 // GPS
@@ -628,21 +637,24 @@ int UAVObjectUtilManager::getGPSPosition(double LLA[3])
     LLA[1] = gpsPositionData.Longitude;
     LLA[2] = gpsPositionData.Altitude;
 
-	if (LLA[0] != LLA[0]) LLA[0] = 0; // nan detection
-	else
-	if (LLA[0] >  90) LLA[0] =  90;
-	else
-	if (LLA[0] < -90) LLA[0] = -90;
+    if (LLA[0] != LLA[0])
+        LLA[0] = 0; // nan detection
+    else if (LLA[0] > 90)
+        LLA[0] = 90;
+    else if (LLA[0] < -90)
+        LLA[0] = -90;
 
-	if (LLA[1] != LLA[1]) LLA[1] = 0; // nan detection
-	else
-	if (LLA[1] >  180) LLA[1] =  180;
-	else
-	if (LLA[1] < -180) LLA[1] = -180;
+    if (LLA[1] != LLA[1])
+        LLA[1] = 0; // nan detection
+    else if (LLA[1] > 180)
+        LLA[1] = 180;
+    else if (LLA[1] < -180)
+        LLA[1] = -180;
 
-	if (LLA[2] != LLA[2]) LLA[2] = 0; // nan detection
+    if (LLA[2] != LLA[2])
+        LLA[2] = 0; // nan detection
 
-	return 0;	// OK
+    return 0; // OK
 }
 
 bool UAVObjectUtilManager::getBoardDescriptionStruct(deviceDescriptorStruct &device)
@@ -651,66 +663,67 @@ bool UAVObjectUtilManager::getBoardDescriptionStruct(deviceDescriptorStruct &dev
     return ret;
 }
 
-bool UAVObjectUtilManager::descriptionToStructure(QByteArray desc, deviceDescriptorStruct & struc)
+bool UAVObjectUtilManager::descriptionToStructure(QByteArray desc, deviceDescriptorStruct &struc)
 {
-   if (desc.startsWith("TlFw") || desc.startsWith("OpFw")) {
-       /*
-        * This looks like a binary with a description at the end
-        *  4 bytes: header: "TlFw"
-        *  4 bytes: git commit hash (short version of SHA1)
-        *  4 bytes: Unix timestamp of last git commit
-        *  2 bytes: target platform. Should follow same rule as BOARD_TYPE and BOARD_REVISION in board define files.
-        *  26 bytes: commit tag if it is there, otherwise "Unreleased". Zero-padded
-        *  20 bytes: SHA1 sum of the firmware.
-        *  20 bytes: SHA1 sum of the UAVO definition files.
-        *   8 bytes: git commit hash of common ancestor of the firmware with next
-        *  12 bytes: user defined string
-        */
+    if (desc.startsWith("TlFw") || desc.startsWith("OpFw")) {
+        /*
+         * This looks like a binary with a description at the end
+         *  4 bytes: header: "TlFw"
+         *  4 bytes: git commit hash (short version of SHA1)
+         *  4 bytes: Unix timestamp of last git commit
+         *  2 bytes: target platform. Should follow same rule as BOARD_TYPE and BOARD_REVISION in
+         * board define files.
+         *  26 bytes: commit tag if it is there, otherwise "Unreleased". Zero-padded
+         *  20 bytes: SHA1 sum of the firmware.
+         *  20 bytes: SHA1 sum of the UAVO definition files.
+         *   8 bytes: git commit hash of common ancestor of the firmware with next
+         *  12 bytes: user defined string
+         */
 
-       // Note: the ARM binary is big-endian:
-       quint32 gitCommitHash = desc.at(7) & 0xFF;
-       for (int i = 0; i < 4; i++) {
-           gitCommitHash = gitCommitHash << 8;
-           gitCommitHash += desc.at(7-i) & 0xFF;
-       }
-       struc.gitHash = QString("%1").arg(gitCommitHash, 8, 16, QChar('0'));
+        // Note: the ARM binary is big-endian:
+        quint32 gitCommitHash = desc.at(7) & 0xFF;
+        for (int i = 0; i < 4; i++) {
+            gitCommitHash = gitCommitHash << 8;
+            gitCommitHash += desc.at(7 - i) & 0xFF;
+        }
+        struc.gitHash = QString("%1").arg(gitCommitHash, 8, 16, QChar('0'));
 
-       quint64 gitAncestorHash = 0;
-       for (int i = 0; i < 8; i++) {
-           gitAncestorHash = gitAncestorHash << 8;
-           gitAncestorHash += desc.at(87-i) & 0xFF;
-       }
-       struc.nextAncestor = QString("%1").arg(gitAncestorHash, 16, 16, QChar('0'));
+        quint64 gitAncestorHash = 0;
+        for (int i = 0; i < 8; i++) {
+            gitAncestorHash = gitAncestorHash << 8;
+            gitAncestorHash += desc.at(87 - i) & 0xFF;
+        }
+        struc.nextAncestor = QString("%1").arg(gitAncestorHash, 16, 16, QChar('0'));
 
-       quint32 gitDate = desc.at(11) & 0xFF;
-       for (int i = 1; i < 4; i++) {
-           gitDate = gitDate << 8;
-           gitDate += desc.at(11-i) & 0xFF;
-       }
-       struc.gitDate = QDateTime::fromTime_t(gitDate).toUTC().toString("yyyyMMdd HH:mm");
+        quint32 gitDate = desc.at(11) & 0xFF;
+        for (int i = 1; i < 4; i++) {
+            gitDate = gitDate << 8;
+            gitDate += desc.at(11 - i) & 0xFF;
+        }
+        struc.gitDate = QDateTime::fromTime_t(gitDate).toUTC().toString("yyyyMMdd HH:mm");
 
-       QString gitTag = QString(desc.mid(14,26));
-       struc.gitTag = gitTag;
+        QString gitTag = QString(desc.mid(14, 26));
+        struc.gitTag = gitTag;
 
-       // TODO: check platform compatibility
-       QByteArray targetPlatform = desc.mid(12,2);
-       struc.boardType = (int)targetPlatform.at(0);
-       struc.boardRevision = (int)targetPlatform.at(1);
-       struc.fwHash = desc.mid(40,20);
-       struc.uavoHash = desc.mid(60,20);
+        // TODO: check platform compatibility
+        QByteArray targetPlatform = desc.mid(12, 2);
+        struc.boardType = (int)targetPlatform.at(0);
+        struc.boardRevision = (int)targetPlatform.at(1);
+        struc.fwHash = desc.mid(40, 20);
+        struc.uavoHash = desc.mid(60, 20);
 
-       // The git tag format used for releases is Release-yyyymmdd, optionally with a suffix
-       // .[0-9] to allow multiple tags on the same day e.g. if a bug is discovered immediately
-       QRegularExpression certifiedPattern("^Release-20[0-9]{6}(\\.[0-9])?$");
-       if (certifiedPattern.match(struc.gitTag).hasMatch())
-           struc.certified = true;
-       else
-           struc.certified = false;
-       struc.userDefined = desc.mid(88, 12);
+        // The git tag format used for releases is Release-yyyymmdd, optionally with a suffix
+        // .[0-9] to allow multiple tags on the same day e.g. if a bug is discovered immediately
+        QRegularExpression certifiedPattern("^Release-20[0-9]{6}(\\.[0-9])?$");
+        if (certifiedPattern.match(struc.gitTag).hasMatch())
+            struc.certified = true;
+        else
+            struc.certified = false;
+        struc.userDefined = desc.mid(88, 12);
 
-       return true;
-   }
-   return false;
+        return true;
+    }
+    return false;
 }
 
 QString UAVObjectUtilManager::getFirmwareHash()

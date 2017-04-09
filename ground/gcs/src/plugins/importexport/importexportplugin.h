@@ -38,13 +38,12 @@ public:
     ~ImportExportPlugin();
 
     void extensionsInitialized();
-    bool initialize(const QStringList & arguments, QString * errorString);
+    bool initialize(const QStringList &arguments, QString *errorString);
     void shutdown();
-private:
 
+private:
 private slots:
     void importExport();
-
 };
 #endif /* IMPORTEXPORTPLUGIN_H_ */
 /**

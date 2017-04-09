@@ -42,17 +42,17 @@ public:
     explicit TelemetryMonitorWidget(QWidget *parent = 0);
     ~TelemetryMonitorWidget();
 
-    void setMin(double min) { minValue = min;}
+    void setMin(double min) { minValue = min; }
     double getMin() { return minValue; }
-    void setMax(double max) { maxValue = max;}
+    void setMax(double max) { maxValue = max; }
     double getMax() { return maxValue; }
 
-    //number of tx/rx nodes in the graph
+    // number of tx/rx nodes in the graph
     static const int NODE_NUMELEM = 7;
-    QSvgRenderer * getRenderer(){return renderer;}
-    QGraphicsSvgItem * getBackgroundItem(){return graph;}
+    QSvgRenderer *getRenderer() { return renderer; }
+    QGraphicsSvgItem *getBackgroundItem() { return graph; }
 signals:
-    
+
 public slots:
     void connected();
     /**
@@ -68,19 +68,19 @@ protected:
     void resizeEvent(QResizeEvent *event);
 
 private:
-   QGraphicsSvgItem *graph;
-   QPointer<QGraphicsTextItem> txSpeed;
-   QPointer<QGraphicsTextItem> rxSpeed;
-   QList<QGraphicsSvgItem*> txNodes;
-   QList<QGraphicsSvgItem*> rxNodes;
-   bool   m_connected;
-   double txIndex;
-   double txValue;
-   double rxIndex;
-   double rxValue;
-   double minValue;
-   double maxValue;
-   QSvgRenderer *renderer;
+    QGraphicsSvgItem *graph;
+    QPointer<QGraphicsTextItem> txSpeed;
+    QPointer<QGraphicsTextItem> rxSpeed;
+    QList<QGraphicsSvgItem *> txNodes;
+    QList<QGraphicsSvgItem *> rxNodes;
+    bool m_connected;
+    double txIndex;
+    double txValue;
+    double rxIndex;
+    double rxValue;
+    double minValue;
+    double maxValue;
+    QSvgRenderer *renderer;
 };
 
 #endif // TELEMETRYMONITORWIDGET_H

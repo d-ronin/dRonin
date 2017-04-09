@@ -48,17 +48,23 @@ class CORE_EXPORT IUAVGadgetFactory : public QObject
 {
     Q_OBJECT
 public:
-    IUAVGadgetFactory(QString classId, QString name, QObject *parent = 0) :
-            QObject(parent),
-            m_classId(classId),
-            m_name(name),
-            m_icon(QIcon()),
-            m_singleConfigurationGadget(false) {}
+    IUAVGadgetFactory(QString classId, QString name, QObject *parent = 0)
+        : QObject(parent)
+        , m_classId(classId)
+        , m_name(name)
+        , m_icon(QIcon())
+        , m_singleConfigurationGadget(false)
+    {
+    }
     virtual ~IUAVGadgetFactory() {}
 
     virtual IUAVGadget *createGadget(QWidget *parent) = 0;
     virtual IUAVGadgetConfiguration *createConfiguration(QSettings * /*qSettings*/) { return 0; }
-    virtual IUAVGadgetConfiguration *createConfiguration(QSettings *qs, UAVConfigInfo * /*configInfo*/) { return createConfiguration(qs); }
+    virtual IUAVGadgetConfiguration *createConfiguration(QSettings *qs,
+                                                         UAVConfigInfo * /*configInfo*/)
+    {
+        return createConfiguration(qs);
+    }
     virtual IOptionsPage *createOptionsPage(IUAVGadgetConfiguration * /*config*/) { return 0; }
     QString classId() const { return m_classId; }
     QString name() const { return m_name; }

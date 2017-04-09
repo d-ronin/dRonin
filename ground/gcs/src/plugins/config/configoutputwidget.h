@@ -39,9 +39,9 @@
 class Ui_OutputWidget;
 class OutputChannelForm;
 
-class ConfigOutputWidget: public ConfigTaskWidget
+class ConfigOutputWidget : public ConfigTaskWidget
 {
-	Q_OBJECT
+    Q_OBJECT
 
 public:
     ConfigOutputWidget(QWidget *parent = 0);
@@ -59,18 +59,19 @@ private:
 
     QList<QSlider> sliders;
 
-    void updateChannelInSlider(QSlider *slider, QLabel *min, QLabel *max, QCheckBox *rev, int value);
+    void updateChannelInSlider(QSlider *slider, QLabel *min, QLabel *max, QCheckBox *rev,
+                               int value);
 
     void assignChannel(UAVDataObject *obj, QString str);
-    OutputChannelForm* getOutputChannelForm(const int index) const;
+    OutputChannelForm *getOutputChannelForm(const int index) const;
     int mccDataRate;
 
     //! List of dropdowns for the timer rate
-    QList<QComboBox*> rateList;
+    QList<QComboBox *> rateList;
     //! List of dropdowns for the timer resolution
-    QList<QComboBox*> resList;
+    QList<QComboBox *> resList;
     //! List of timer grouping labels
-    QList<QLabel*> lblList;
+    QList<QLabel *> lblList;
 
     // For naming custom rates and OneShot
     QString timerFreqToString(quint32) const;
@@ -82,7 +83,7 @@ private:
 
 private slots:
     void stopTests();
-    virtual void refreshWidgetsValues(UAVObject * obj=NULL);
+    virtual void refreshWidgetsValues(UAVObject *obj = NULL);
     void updateObjectsFromWidgets();
     void runChannelTests(bool state);
     void sendChannelTest(int index, int value);

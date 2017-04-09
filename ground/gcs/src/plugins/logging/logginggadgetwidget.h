@@ -7,7 +7,7 @@
  * @{
  * @addtogroup GCSControlGadgetPlugin GCSControl Gadget Plugin
  * @{
- * @brief A place holder gadget plugin 
+ * @brief A place holder gadget plugin
  *****************************************************************************/
 /*
  * This program is free software; you can redistribute it and/or modify
@@ -32,7 +32,6 @@
 #include "scope/scopeplugin.h"
 #include "scope/scopegadgetfactory.h"
 
-
 class Ui_Logging;
 class LoggingPlugin;
 
@@ -43,7 +42,7 @@ class LoggingGadgetWidget : public QLabel
 public:
     LoggingGadgetWidget(QWidget *parent = 0);
     ~LoggingGadgetWidget();
-    void setPlugin(LoggingPlugin * p);
+    void setPlugin(LoggingPlugin *p);
 
 protected slots:
     void stateChanged(QString status);
@@ -54,10 +53,8 @@ signals:
 
 private:
     Ui_Logging *m_logging;
-    LoggingPlugin * loggingPlugin;
-    ScopeGadgetFactory * scpPlugin;
-
-
+    LoggingPlugin *loggingPlugin;
+    ScopeGadgetFactory *scpPlugin;
 };
 
 #endif /* LoggingGADGETWIDGET_H_ */

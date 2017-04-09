@@ -54,12 +54,13 @@ class CORE_EXPORT IBoardType : public QObject
     Q_OBJECT
 
 public:
-     /**
-     * @brief The USBInfo struct
-     * TODO: finalize what we will put there, not everything
-     *       is relevant.
-     */
-    struct USBInfo {
+    /**
+    * @brief The USBInfo struct
+    * TODO: finalize what we will put there, not everything
+    *       is relevant.
+    */
+    struct USBInfo
+    {
         QString serialNumber;
         QString manufacturer;
         QString product;
@@ -69,13 +70,13 @@ public:
         int productID = 0;
         int bcdDevice = 0;
 
-        USBInfo(int vendorID, int productID, int bcdDevice) {
+        USBInfo(int vendorID, int productID, int bcdDevice)
+        {
             this->vendorID = vendorID;
             this->productID = productID;
             this->bcdDevice = bcdDevice;
         }
     };
-
 
     /**
      * Short description of the board / friendly name
@@ -88,10 +89,14 @@ public:
     virtual QString boardDescription() = 0;
 
     //! Types of capabilities boards can support
-    enum BoardCapabilities {BOARD_CAPABILITIES_GYROS, BOARD_CAPABILITIES_ACCELS,
-                            BOARD_CAPABILITIES_MAGS, BOARD_CAPABILITIES_BAROS,
-                            BOARD_CAPABILITIES_RADIO, BOARD_CAPABILITIES_OSD,
-                            BOARD_CAPABILITIES_UPGRADEABLE,
+    enum BoardCapabilities {
+        BOARD_CAPABILITIES_GYROS,
+        BOARD_CAPABILITIES_ACCELS,
+        BOARD_CAPABILITIES_MAGS,
+        BOARD_CAPABILITIES_BAROS,
+        BOARD_CAPABILITIES_RADIO,
+        BOARD_CAPABILITIES_OSD,
+        BOARD_CAPABILITIES_UPGRADEABLE,
     };
 
     /**
@@ -113,7 +118,7 @@ public:
      * @return matrix of channel bank names
      *
      */
-    virtual QVector< QVector<int> > getChannelBanks(){return channelBanks;}
+    virtual QVector<QVector<int>> getChannelBanks() { return channelBanks; }
 
     /**
      * @brief getBoardPicture
@@ -133,7 +138,8 @@ public:
 
     /**
      * Get USB VendorID.
-     * \deprecated use firmwareUSBInfo or bootloaderUSBInfo instead (shouldn't be filtering based on VID alone anyway since we don't own a VID
+     * \deprecated use firmwareUSBInfo or bootloaderUSBInfo instead (shouldn't be filtering based on
+     * VID alone anyway since we don't own a VID
      */
     QList<int> getVendorIDs();
 
@@ -141,7 +147,10 @@ public:
     int getBoardType() { return boardType; }
 
     //! Return a custom configuration widget, if one is provided
-    virtual QWidget *getBoardConfiguration(QWidget * /*parent*/ = 0, bool /*connected*/ = true) { return NULL; }
+    virtual QWidget *getBoardConfiguration(QWidget * /*parent*/ = 0, bool /*connected*/ = true)
+    {
+        return NULL;
+    }
 
     /***** methods related to configuring specific boards *****/
 
@@ -166,7 +175,11 @@ public:
     virtual int minBootLoaderVersion() { return 0; }
 
     //! Determine if this board supports configuring the receiver
-    virtual bool isInputConfigurationSupported(InputType type = INPUT_TYPE_ANY) { Q_UNUSED(type); return false; }
+    virtual bool isInputConfigurationSupported(InputType type = INPUT_TYPE_ANY)
+    {
+        Q_UNUSED(type);
+        return false;
+    }
 
     /**
      * @brief Configure the board to use an receiver input type on a port number
@@ -212,8 +225,10 @@ public:
     enum LinkMode { LINK_TELEM, LINK_TELEM_PPM, LINK_PPM };
 
     virtual bool bindRadio(quint32 /*id*/, quint32 /*baud_rate*/, float /*rf_power*/,
-                           Core::IBoardType::LinkMode /*linkMode*/, quint8 /*min*/,
-                           quint8 /*max*/) { return false; }
+                           Core::IBoardType::LinkMode /*linkMode*/, quint8 /*min*/, quint8 /*max*/)
+    {
+        return false;
+    }
 
     /**
      * Check whether the board has USB
@@ -258,10 +273,9 @@ protected:
     qint32 boardType;
 
     //! The channel groups that are driven by timers
-    QVector< QVector<qint32> > channelBanks;
-
+    QVector<QVector<qint32>> channelBanks;
 };
 
-} //namespace Core
+} // namespace Core
 
 #endif // IBOARDTYPE_H

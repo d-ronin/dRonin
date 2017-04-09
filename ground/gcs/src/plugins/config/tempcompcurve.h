@@ -40,11 +40,11 @@ class TempCompCurve : public QwtPlot
     Q_OBJECT
 public:
     explicit TempCompCurve(QWidget *parent = 0);
-    
+
     //! Show calibration data for one of the channels
     void plotData(QList<double> temp, QList<double> gyro, QList<double> coefficients);
 signals:
-    
+
 public slots:
 
 private:

@@ -49,6 +49,7 @@ signals:
 private slots:
     void m_deviceDiscovered(USBPortInfo port);
     void m_deviceRemoved(USBPortInfo port);
+
 public:
     USBSignalFilter(int vid, int pid, int boardModel, int runState);
     USBSignalFilter(QList<int> vid, int pid, int boardModel, int runState);

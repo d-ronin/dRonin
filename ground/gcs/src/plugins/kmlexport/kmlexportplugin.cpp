@@ -45,18 +45,18 @@ KmlExportPlugin::KmlExportPlugin()
 /**
  * Add KmlExport option to the tools menu
  */
-bool KmlExportPlugin::initialize(const QStringList& args, QString *errMsg)
+bool KmlExportPlugin::initialize(const QStringList &args, QString *errMsg)
 {
     Q_UNUSED(args);
     Q_UNUSED(errMsg);
 
     // Add Menu entry
-    Core::ActionManager* am = Core::ICore::instance()->actionManager();
-    Core::ActionContainer* ac = am->actionContainer(Core::Constants::M_TOOLS);
+    Core::ActionManager *am = Core::ICore::instance()->actionManager();
+    Core::ActionContainer *ac = am->actionContainer(Core::Constants::M_TOOLS);
 
     // Command to convert log file to KML
-    exportToKmlCmd = am->registerAction(new QAction(this), "KmlExport.ExportToKML",
-                             QList<int>() << Core::Constants::C_GLOBAL_ID);
+    exportToKmlCmd = am->registerAction(new QAction(this), "KmlExport.ExportToKML", QList<int>()
+                                            << Core::Constants::C_GLOBAL_ID);
     exportToKmlCmd->action()->setText("Export logfile to KML");
 
     ac->menu()->addSeparator();
@@ -75,42 +75,46 @@ bool KmlExportPlugin::initialize(const QStringList& args, QString *errMsg)
 void KmlExportPlugin::exportToKML()
 {
     // Get input file
-    QString inputFileName = QFileDialog::getOpenFileName(NULL, tr("Open file"), QString(""), tr("dRonin Log Files (*.drlog *.tll)"));
+    QString inputFileName = QFileDialog::getOpenFileName(NULL, tr("Open file"), QString(""),
+                                                         tr("dRonin Log Files (*.drlog *.tll)"));
     if (inputFileName.isEmpty())
         return;
 
     // Set up input filter.
-    QString filters = tr("Keyhole Markup Language (compressed) (*.kmz);; Keyhole Markup Language (uncompressed) (*.kml)");
+    QString filters = tr("Keyhole Markup Language (compressed) (*.kmz);; Keyhole Markup Language "
+                         "(uncompressed) (*.kml)");
     bool proceed_flag = false;
     QString outputFileName;
     QString localizedOutputFileName;
 
     // Get output file. Suggest to user that output have same base name and location as input file.
-    while(proceed_flag == false) {
-        outputFileName = QFileDialog::getSaveFileName(NULL, tr("Export log"),
-                                    inputFileName.split(".",QString::SkipEmptyParts).at(0),
-                                    filters);
+    while (proceed_flag == false) {
+        outputFileName = QFileDialog::getSaveFileName(
+            NULL, tr("Export log"), inputFileName.split(".", QString::SkipEmptyParts).at(0),
+            filters);
 
         if (outputFileName.isEmpty()) {
             qDebug() << "No KML file name given.";
             return;
         } else if (QFileInfo(outputFileName).suffix() == NULL) {
             qDebug() << "No KML file extension: " << outputFileName;
-            QMessageBox::critical(new QWidget(),"No file extension", "Filename must have .kml or .kmz extension.");
-        }
-        else if (QFileInfo(outputFileName).suffix().toLower() != "kml" &&
-                 QFileInfo(outputFileName).suffix().toLower() != "kmz") {
+            QMessageBox::critical(new QWidget(), "No file extension",
+                                  "Filename must have .kml or .kmz extension.");
+        } else if (QFileInfo(outputFileName).suffix().toLower() != "kml"
+                   && QFileInfo(outputFileName).suffix().toLower() != "kmz") {
             qDebug() << "Incorrect KML file extension: " << QFileInfo(outputFileName).suffix();
-            QMessageBox::critical(new QWidget(),"Incorrect file extension", "Filename must have .kml or .kmz extension.");
-        }
-        else if (outputFileName.toLocal8Bit() == (QByteArray)NULL) {
+            QMessageBox::critical(new QWidget(), "Incorrect file extension",
+                                  "Filename must have .kml or .kmz extension.");
+        } else if (outputFileName.toLocal8Bit() == (QByteArray)NULL) {
             qDebug() << "Unsupported characters in path: " << outputFileName;
-            QMessageBox::critical(new QWidget(),"Unsupported characters", "Not all uni-code characters are supported. Please choose a path and file name that uses only the standard latin alphabet.");
-        }
-        else {
+            QMessageBox::critical(new QWidget(), "Unsupported characters",
+                                  "Not all uni-code characters are supported. Please choose a path "
+                                  "and file name that uses only the standard latin alphabet.");
+        } else {
             proceed_flag = true;
 
-            // Due to limitations in the KML library, we must convert the output file name into local 8-bit characters.
+            // Due to limitations in the KML library, we must convert the output file name into
+            // local 8-bit characters.
             localizedOutputFileName = outputFileName.toLocal8Bit();
         }
     }

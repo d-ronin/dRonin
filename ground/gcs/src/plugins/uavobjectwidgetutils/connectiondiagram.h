@@ -45,7 +45,8 @@ namespace Ui {
 class ConnectionDiagram;
 }
 
-class UAVOBJECTWIDGETUTILS_EXPORT ConnectionDiagram : public QDialog {
+class UAVOBJECTWIDGETUTILS_EXPORT ConnectionDiagram : public QDialog
+{
     Q_OBJECT
 
 public:

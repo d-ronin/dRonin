@@ -37,7 +37,8 @@
 #include "cfg_vehicletypes/vehicleconfig.h"
 #include "actuatorsettings.h"
 
-struct mixerChannelSettings {
+struct mixerChannelSettings
+{
     int type;
     int throttle1;
     int throttle2;
@@ -45,10 +46,25 @@ struct mixerChannelSettings {
     int pitch;
     int yaw;
 
-    mixerChannelSettings() : type(), throttle1(), throttle2(), roll(), pitch(), yaw() {}
+    mixerChannelSettings()
+        : type()
+        , throttle1()
+        , throttle2()
+        , roll()
+        , pitch()
+        , yaw()
+    {
+    }
 
     mixerChannelSettings(int t, int th1, int th2, int r, int p, int y)
-        : type(t), throttle1(th1), throttle2(th2), roll(r), pitch(p), yaw(y) {}
+        : type(t)
+        , throttle1(th1)
+        , throttle2(th2)
+        , roll(r)
+        , pitch(p)
+        , yaw(y)
+    {
+    }
 };
 
 /**
@@ -60,7 +76,8 @@ struct mixerChannelSettings {
  * board type details to the board plugin and should not contain any board-specific
  * code.
  */
-class VehicleConfigurationHelper : public QObject {
+class VehicleConfigurationHelper : public QObject
+{
     Q_OBJECT
 
 public:
@@ -82,14 +99,14 @@ signals:
 
 private:
     static const int MIXER_TYPE_DISABLED = 0;
-    static const int MIXER_TYPE_MOTOR    = 1;
-    static const int MIXER_TYPE_SERVO    = 2;
+    static const int MIXER_TYPE_MOTOR = 1;
+    static const int MIXER_TYPE_SERVO = 2;
     static const float DEFAULT_ENABLED_ACCEL_TAU;
 
     VehicleConfigurationSource *m_configSource;
     UAVObjectManager *m_uavoManager;
 
-    QList<QPair<UAVDataObject *, QString> * > m_modifiedObjects;
+    QList<QPair<UAVDataObject *, QString> *> m_modifiedObjects;
     void addModifiedObject(UAVDataObject *object, QString description);
     void clearModifiedObjects();
 
@@ -104,7 +121,8 @@ private:
     void applyMixerConfiguration(mixerChannelSettings channels[]);
 
     GUIConfigDataUnion getGUIConfigData();
-    void applyMultiGUISettings(SystemSettings::AirframeTypeOptions airframe, GUIConfigDataUnion guiConfig);
+    void applyMultiGUISettings(SystemSettings::AirframeTypeOptions airframe,
+                               GUIConfigDataUnion guiConfig);
 
     bool saveChangesToController(bool save);
     QEventLoop m_eventLoop;
@@ -122,8 +140,8 @@ private:
     void setupOctoCopter();
 
 private slots:
-    void uAVOTransactionCompleted(UAVObject *object, bool success);
-    void uAVOTransactionCompleted(int oid, bool success);
+    void uavoTransactionCompleted(UAVObject *object, bool success);
+    void uavoTransactionCompleted(int oid, bool success);
     void saveChangesTimeout();
 };
 

@@ -41,25 +41,28 @@
 AQ32::AQ32(void)
 {
     // Common USB IDs
-    addBootloaderUSBInfo(USBInfo(DRONIN_VID_DRONIN_BOOTLOADER, DRONIN_PID_DRONIN_BOOTLOADER, BCD_DEVICE_BOOTLOADER));
-    addFirmwareUSBInfo(USBInfo(DRONIN_VID_DRONIN_FIRMWARE, DRONIN_PID_DRONIN_FIRMWARE, BCD_DEVICE_FIRMWARE));
+    addBootloaderUSBInfo(
+        USBInfo(DRONIN_VID_DRONIN_BOOTLOADER, DRONIN_PID_DRONIN_BOOTLOADER, BCD_DEVICE_BOOTLOADER));
+    addFirmwareUSBInfo(
+        USBInfo(DRONIN_VID_DRONIN_FIRMWARE, DRONIN_PID_DRONIN_FIRMWARE, BCD_DEVICE_FIRMWARE));
     // Legacy USB IDs
-    addBootloaderUSBInfo(USBInfo(DRONIN_VID_AEROQUAD_AQ32, DRONIN_PID_AEROQUAD_AQ32, BCD_DEVICE_BOOTLOADER));
-    addFirmwareUSBInfo(USBInfo(DRONIN_VID_AEROQUAD_AQ32, DRONIN_PID_AEROQUAD_AQ32, BCD_DEVICE_FIRMWARE));
+    addBootloaderUSBInfo(
+        USBInfo(DRONIN_VID_AEROQUAD_AQ32, DRONIN_PID_AEROQUAD_AQ32, BCD_DEVICE_BOOTLOADER));
+    addFirmwareUSBInfo(
+        USBInfo(DRONIN_VID_AEROQUAD_AQ32, DRONIN_PID_AEROQUAD_AQ32, BCD_DEVICE_FIRMWARE));
 
     boardType = 0x94;
 
     // Define the bank of channels that are connected to a given timer
     channelBanks.resize(5);
-    channelBanks[0] = QVector<int> () << 1 << 2;
-    channelBanks[1] = QVector<int> () << 3 << 4;
-    channelBanks[2] = QVector<int> () << 5 << 6;
-    channelBanks[3] = QVector<int> () << 7 << 8 << 9 <<10;
+    channelBanks[0] = QVector<int>() << 1 << 2;
+    channelBanks[1] = QVector<int>() << 3 << 4;
+    channelBanks[2] = QVector<int>() << 5 << 6;
+    channelBanks[3] = QVector<int>() << 7 << 8 << 9 << 10;
 }
 
 AQ32::~AQ32()
 {
-
 }
 
 QString AQ32::shortName()
@@ -75,7 +78,7 @@ QString AQ32::boardDescription()
 //! Return which capabilities this board has
 bool AQ32::queryCapabilities(BoardCapabilities capability)
 {
-    switch(capability) {
+    switch (capability) {
     case BOARD_CAPABILITIES_GYROS:
     case BOARD_CAPABILITIES_ACCELS:
     case BOARD_CAPABILITIES_MAGS:
@@ -85,7 +88,7 @@ bool AQ32::queryCapabilities(BoardCapabilities capability)
     default:
         break;
     }
-    
+
     return false;
 }
 
@@ -97,14 +100,14 @@ QPixmap AQ32::getBoardPicture()
 //! Determine if this board supports configuring the receiver
 bool AQ32::isInputConfigurationSupported(Core::IBoardType::InputType type)
 {
-    switch(type) {
+    switch (type) {
     case INPUT_TYPE_PWM:
     case INPUT_TYPE_UNKNOWN:
         return false;
     default:
         break;
     }
-    
+
     return true;
 }
 
@@ -129,7 +132,7 @@ bool AQ32::setInputType(Core::IBoardType::InputType type)
 
     HwAQ32::DataFields settings = hwAQ32->getData();
 
-    switch(type) {
+    switch (type) {
     case INPUT_TYPE_PPM:
         settings.RcvrPort = HwAQ32::RCVRPORT_PPM;
         break;
@@ -182,14 +185,14 @@ Core::IBoardType::InputType AQ32::getInputType()
 
     HwAQ32::DataFields settings = hwAQ32->getData();
 
-    switch(settings.RcvrPort) {
+    switch (settings.RcvrPort) {
     case HwAQ32::RCVRPORT_PPM:
         return INPUT_TYPE_PPM;
     default:
         break;
     }
-    
-    switch(settings.Uart3) {
+
+    switch (settings.Uart3) {
     case HwAQ32::UART3_HOTTSUMD:
         return INPUT_TYPE_HOTTSUMD;
     case HwAQ32::UART3_HOTTSUMH:
@@ -197,7 +200,7 @@ Core::IBoardType::InputType AQ32::getInputType()
     case HwAQ32::UART3_SBUS:
         return INPUT_TYPE_SBUS;
     case HwAQ32::UART3_SBUSNONINVERTED:
-        return INPUT_TYPE_SBUSNONINVERTED;    
+        return INPUT_TYPE_SBUSNONINVERTED;
     case HwAQ32::UART3_IBUS:
         return INPUT_TYPE_IBUS;
     case HwAQ32::UART3_SRXL:
@@ -208,7 +211,7 @@ Core::IBoardType::InputType AQ32::getInputType()
         break;
     }
 
-    switch(settings.Uart4) {
+    switch (settings.Uart4) {
     case HwAQ32::UART4_DSM:
         return INPUT_TYPE_DSM;
     case HwAQ32::UART4_HOTTSUMD:
@@ -216,7 +219,7 @@ Core::IBoardType::InputType AQ32::getInputType()
     case HwAQ32::UART4_HOTTSUMH:
         return INPUT_TYPE_HOTTSUMH;
     case HwAQ32::UART4_SBUSNONINVERTED:
-        return INPUT_TYPE_SBUSNONINVERTED;    
+        return INPUT_TYPE_SBUSNONINVERTED;
     case HwAQ32::UART4_IBUS:
         return INPUT_TYPE_IBUS;
     case HwAQ32::UART4_SRXL:
@@ -227,7 +230,7 @@ Core::IBoardType::InputType AQ32::getInputType()
         break;
     }
 
-    switch(settings.Uart6) {
+    switch (settings.Uart6) {
     case HwAQ32::UART6_DSM:
         return INPUT_TYPE_DSM;
     case HwAQ32::UART6_HOTTSUMD:
@@ -235,7 +238,7 @@ Core::IBoardType::InputType AQ32::getInputType()
     case HwAQ32::UART6_HOTTSUMH:
         return INPUT_TYPE_HOTTSUMH;
     case HwAQ32::UART6_SBUSNONINVERTED:
-        return INPUT_TYPE_SBUSNONINVERTED;    
+        return INPUT_TYPE_SBUSNONINVERTED;
     case HwAQ32::UART6_IBUS:
         return INPUT_TYPE_IBUS;
     case HwAQ32::UART6_SRXL:
@@ -260,7 +263,7 @@ int AQ32::queryMaxGyroRate()
 
     HwAQ32::DataFields settings = hwAQ32->getData();
 
-    switch(settings.GyroRange) {
+    switch (settings.GyroRange) {
     case HwAQ32::GYRORANGE_250:
         return 250;
     case HwAQ32::GYRORANGE_500:
@@ -272,7 +275,7 @@ int AQ32::queryMaxGyroRate()
     default:
         break;
     }
-    
+
     return 500;
 }
 
@@ -287,8 +290,16 @@ QStringList AQ32::getAdcNames()
 
     HwAQ32::DataFields settings = hwAQ32->getData();
     if (settings.ADCInputs == HwAQ32::ADCINPUTS_ENABLED) {
-        return QStringList() << "AI2" << "BM" << "AI3" << "AI4" << "AI5";
+        return QStringList() << "AI2"
+                             << "BM"
+                             << "AI3"
+                             << "AI4"
+                             << "AI5";
     }
 
-    return QStringList() << "Disabled" << "Disabled" << "Disabled" << "Disabled" << "Disabled";
+    return QStringList() << "Disabled"
+                         << "Disabled"
+                         << "Disabled"
+                         << "Disabled"
+                         << "Disabled";
 }

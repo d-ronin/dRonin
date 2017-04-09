@@ -44,7 +44,7 @@ class PATHPLANNER_EXPORT WaypointDialog : public QDialog
     Q_OBJECT
 
 public:
-    WaypointDialog(QWidget *parent, QAbstractItemModel *model, QItemSelectionModel * selection);
+    WaypointDialog(QWidget *parent, QAbstractItemModel *model, QItemSelectionModel *selection);
     ~WaypointDialog();
 
     //! Edit the requested waypoint, show dialog if it is not showing
@@ -70,12 +70,12 @@ private slots:
     void onNextButton_clicked();
 
     //! When the selector changes pass the update to the data mapper
-    void currentRowChanged(QModelIndex,QModelIndex);
+    void currentRowChanged(QModelIndex, QModelIndex);
 
     //! Enable or disable the controls based on the lock control
     void enableEditWidgets();
-private:
 
+private:
     //! The handle to the UI
     Ui_waypoint_dialog *ui;
 
@@ -86,7 +86,7 @@ private:
     QAbstractItemModel *model;
 
     //! Indicates which waypoint is selected for editing
-    QItemSelectionModel * itemSelection;
+    QItemSelectionModel *itemSelection;
 
     //! Store the current waypoint index
     int index;

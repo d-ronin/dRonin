@@ -44,8 +44,8 @@ Simulation::Simulation(void)
      * true in the long term...
      */
     channelBanks.resize(2);
-    channelBanks[0] = QVector<int> () << 1 << 2;      // TIM3
-    channelBanks[1] = QVector<int> () << 3 << 4 << 5 << 6; // TIM1
+    channelBanks[0] = QVector<int>() << 1 << 2; // TIM3
+    channelBanks[1] = QVector<int>() << 3 << 4 << 5 << 6; // TIM1
 }
 
 Simulation::~Simulation()
@@ -64,14 +64,14 @@ QString Simulation::boardDescription()
 
 bool Simulation::queryCapabilities(BoardCapabilities capability)
 {
-    switch(capability) {
-        case BOARD_CAPABILITIES_GYROS:
-        case BOARD_CAPABILITIES_ACCELS:
-        case BOARD_CAPABILITIES_MAGS:
-        case BOARD_CAPABILITIES_BAROS:
-            return true;
-        default:
-            return false;
+    switch (capability) {
+    case BOARD_CAPABILITIES_GYROS:
+    case BOARD_CAPABILITIES_ACCELS:
+    case BOARD_CAPABILITIES_MAGS:
+    case BOARD_CAPABILITIES_BAROS:
+        return true;
+    default:
+        return false;
     }
     return false;
 }

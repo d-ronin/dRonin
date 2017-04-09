@@ -36,7 +36,8 @@
 
 class Ui_GpsDisplayWidget;
 
-class GpsDisplayWidget : public QWidget, public Ui_GpsDisplayWidget {
+class GpsDisplayWidget : public QWidget, public Ui_GpsDisplayWidget
+{
     Q_OBJECT
 
 public:

@@ -7,7 +7,7 @@
  * @{
  * @addtogroup OPMapPlugin QML Viewer Plugin
  * @{
- * @brief The QML Viewer Gadget 
+ * @brief The QML Viewer Gadget
  *****************************************************************************/
 /*
  * This program is free software; you can redistribute it and/or modify
@@ -31,33 +31,32 @@
 #include <QStringList>
 #include <extensionsystem/pluginmanager.h>
 
-
 QmlViewPlugin::QmlViewPlugin()
 {
-   // Do nothing
+    // Do nothing
 }
 
 QmlViewPlugin::~QmlViewPlugin()
 {
-   // Do nothing
+    // Do nothing
 }
 
-bool QmlViewPlugin::initialize(const QStringList& args, QString *errMsg)
+bool QmlViewPlugin::initialize(const QStringList &args, QString *errMsg)
 {
-   Q_UNUSED(args);
-   Q_UNUSED(errMsg);
-   mf = new QmlViewGadgetFactory(this);
-   addAutoReleasedObject(mf);
+    Q_UNUSED(args);
+    Q_UNUSED(errMsg);
+    mf = new QmlViewGadgetFactory(this);
+    addAutoReleasedObject(mf);
 
-   return true;
+    return true;
 }
 
 void QmlViewPlugin::extensionsInitialized()
 {
-   // Do nothing
+    // Do nothing
 }
 
 void QmlViewPlugin::shutdown()
 {
-   // Do nothing
+    // Do nothing
 }

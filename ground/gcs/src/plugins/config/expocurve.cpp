@@ -26,54 +26,63 @@
 #include "qwt/src/qwt_painter.h"
 #include "expocurve.h"
 
-ExpoCurve::ExpoCurve(QWidget *parent) :
-    QwtPlot(parent)
+#include <QFrame>
+
+ExpoCurve::ExpoCurve(QWidget *parent)
+    : QwtPlot(parent)
 {
+    QPalette palette = parent->palette();
+
+    palette.setColor(QPalette::Foreground, palette.color(QPalette::Dark));
+    palette.setColor(QPalette::Background, palette.color(QPalette::Light));
+
     QwtPainter::setPolylineSplitting(false);
     QwtPainter::setRoundingAlignment(false);
     setMouseTracking(true);
 
     setMinimumSize(64, 64);
     setSizePolicy(QSizePolicy::MinimumExpanding, QSizePolicy::MinimumExpanding);
+    setContentsMargins(6, 0, 0, 0);
 
-    //setCanvasBackground(QColor(64, 64, 64));
+    QFrame *f = qobject_cast<QFrame *>(canvas());
+    if (f) {
+        f->setFrameStyle(QFrame::Box | QFrame::Plain);
+        f->setLineWidth(1);
+        f->setPalette(palette);
+    }
 
-    //Add grid lines
+    // Add grid lines
     QwtPlotGrid *grid = new QwtPlotGrid;
     grid->setMajorPen(QPen(Qt::gray, 0, Qt::DashLine));
     grid->setMinorPen(QPen(Qt::lightGray, 0, Qt::DotLine));
     grid->setPen(QPen(Qt::darkGray, 1, Qt::DotLine));
     grid->attach(this);
 
-
     roll_elements.Curve.setRenderHint(QwtPlotCurve::RenderAntialiased);
-    roll_elements.Curve.setPen(QPen(QColor(Qt::blue), 1.0, Qt::SolidLine,
-                Qt::FlatCap));
+    roll_elements.Curve.setPen(QPen(QColor(41, 128, 185), 1.25, Qt::SolidLine, Qt::FlatCap));
     roll_elements.Curve.attach(this);
 
     pitch_elements.Curve.setRenderHint(QwtPlotCurve::RenderAntialiased);
-    pitch_elements.Curve.setPen(QPen(QColor(Qt::red), 1.0, Qt::SolidLine,
-                Qt::FlatCap));
+    pitch_elements.Curve.setPen(QPen(QColor(192, 57, 43), 1.25, Qt::SolidLine, Qt::FlatCap));
     pitch_elements.Curve.attach(this);
 
     yaw_elements.Curve.setRenderHint(QwtPlotCurve::RenderAntialiased);
-    yaw_elements.Curve.setPen(QPen(QColor(Qt::green), 1.0, Qt::SolidLine,
-                Qt::FlatCap));
+    yaw_elements.Curve.setPen(QPen(QColor(39, 174, 96), 1.25, Qt::SolidLine, Qt::FlatCap));
     yaw_elements.Curve.attach(this);
 
     // legend
     // Show a legend at the top
     QwtLegend *m_legend = new QwtLegend(this);
     m_legend->setDefaultItemMode(QwtLegendData::Checkable);
-    //m_legend->setFrameStyle(QFrame::Box | QFrame::Sunken);
+    // m_legend->setFrameStyle(QFrame::Box | QFrame::Sunken);
     m_legend->setToolTip(tr("Click legend to show/hide expo curve"));
 
     // connect signal when clicked on legend entry to function that shows/hides the curve
-    connect(m_legend, SIGNAL(checked(const QVariant &, bool, int)), this, SLOT(showCurve(QVariant, bool, int)));
+    connect(m_legend, &QwtLegend::checked, this, &ExpoCurve::showCurve);
 
     QPalette pal = m_legend->palette();
-    pal.setColor(m_legend->backgroundRole(), QColor(100, 100, 100));	// background colour
-    pal.setColor(QPalette::Text, QColor(0, 0, 0));			// text colour
+    pal.setColor(m_legend->backgroundRole(), QColor(100, 100, 100)); // background colour
+    pal.setColor(QPalette::Text, QColor(0, 0, 0)); // text colour
     m_legend->setPalette(pal);
     m_legend->setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Expanding);
 
@@ -83,10 +92,10 @@ ExpoCurve::ExpoCurve(QWidget *parent) :
     x_data = new double[steps];
     y_data = new double[steps];
 
-    //double step = 2 * 1.0 / (steps - 1);
+    // double step = 2 * 1.0 / (steps - 1);
     double step = 1.0 / (steps - 1);
     for (int i = 0; i < steps; i++) {
-        //x_data[i] = (i * step) - 1.0;
+        // x_data[i] = (i * step) - 1.0;
         x_data[i] = (i * step);
     }
 
@@ -109,6 +118,9 @@ ExpoCurve::ExpoCurve(QWidget *parent) :
     axis_title.setText(tr("rate (deg/s)"));
     this->setAxisTitle(QwtPlot::yLeft, axis_title);
 
+    this->axisWidget(QwtPlot::xBottom)->setPalette(palette);
+    this->axisWidget(QwtPlot::yLeft)->setPalette(palette);
+
     plotDataRoll(50, 720, 50);
     plotDataPitch(50, 720, 50);
     plotDataYaw(50, 720, 30);
@@ -120,14 +132,15 @@ ExpoCurve::ExpoCurve(QWidget *parent) :
  * @param curve The curve that has to be plot (roll,nick,yaw)
  * @param mode  The mode chooses wich y-axis is used: Y_Right or Y_Left
  *
- * The math here is copied/ the same as in the expo3() function in /flight/Libraries/math/misc_math.c
+ * The math here is copied/ the same as in the expo3() function in
+ * /flight/Libraries/math/misc_math.c
  * Please be aware of changes that are made there.
  */
-void ExpoCurve::plotData(int value, int max, int exponent,
-        ExpoPlotElements_t &plot_elements)
+void ExpoCurve::plotData(int value, int max, int exponent, ExpoPlotElements_t &plot_elements)
 {
     for (int i = 0; i < steps; i++) {
-        y_data[i] = max * (x_data[i]  * ((100 - value) / 100.0) + pow(x_data[i], exponent/10.0f) * (value / 100.0));
+        y_data[i] = max * (x_data[i] * ((100 - value) / 100.0)
+                           + pow(x_data[i], exponent / 10.0f) * (value / 100.0));
     }
 
     plot_elements.Curve.setSamples(x_data, y_data, steps);
@@ -173,15 +186,17 @@ void ExpoCurve::plotDataYaw(int value, int max, int exponent)
 }
 
 /**
- * @brief ExpoCurve::showCurve The Slot function to show/hide a curve and the corresponding markers. Called from a "checked" Signal
+ * @brief ExpoCurve::showCurve The Slot function to show/hide a curve and the corresponding markers.
+ * Called from a "checked" Signal
  * @param itemInfo Info for the item of the selected legend label
  * @param on       True when the legend label is checked
- * @param index    Index of the legend label in the list of widgets that are associated with the plot item; but not used here
+ * @param index    Index of the legend label in the list of widgets that are associated with the
+ * plot item; but not used here
  */
-void ExpoCurve::showCurve(const QVariant & itemInfo, bool on, int index)
+void ExpoCurve::showCurve(const QVariant &itemInfo, bool on, int index)
 {
     Q_UNUSED(index);
-    QwtPlotItem * item = QwtPlot::infoToItem(itemInfo);
+    QwtPlotItem *item = QwtPlot::infoToItem(itemInfo);
     if (item) {
         item->setVisible(!on);
     }

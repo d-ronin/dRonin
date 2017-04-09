@@ -28,8 +28,9 @@
 #include "configurepage.h"
 #include "ui_configurepage.h"
 
-ConfigurePage::ConfigurePage(RfmBindWizard *wizard, QWidget *parent) :
-    AbstractWizardPage(wizard, parent), ui(new Ui::ConfigurePage)
+ConfigurePage::ConfigurePage(RfmBindWizard *wizard, QWidget *parent)
+    : AbstractWizardPage(wizard, parent)
+    , ui(new Ui::ConfigurePage)
 {
     ui->setupUi(this);
 
@@ -91,7 +92,7 @@ bool ConfigurePage::validatePage()
     quint8 minChannel = ui->sbMinChannel->value();
     quint8 maxChannel = ui->sbMaxChannel->value();
     enum Core::IBoardType::LinkMode linkMode;
-    linkMode = (enum Core::IBoardType::LinkMode) ui->cbLinkMode->currentData().value<int>();
+    linkMode = (enum Core::IBoardType::LinkMode)ui->cbLinkMode->currentData().value<int>();
 
     getWizard()->setMaxBps(bps);
     getWizard()->setMaxRfPower(maxRfPower);

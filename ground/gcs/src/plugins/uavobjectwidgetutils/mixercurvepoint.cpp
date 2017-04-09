@@ -46,14 +46,14 @@ MixerNode::MixerNode(MixerCurveWidget *graphWidget)
     cmdActive = false;
     vertical = false;
     cmdNode = false;
-    cmdToggle = true;    
+    cmdToggle = true;
     drawNode = true;
     drawText = true;
 
-    posColor0 = "#1c870b";  //greenish?
-    posColor1 = "#116703";  //greenish?
-    negColor0 = "#aa0000";  //red
-    negColor1 = "#aa0000";  //red
+    posColor0 = "#1c870b"; // greenish?
+    posColor1 = "#116703"; // greenish?
+    negColor0 = "#aa0000"; // red
+    negColor1 = "#aa0000"; // red
 }
 
 void MixerNode::addEdge(Edge *edge)
@@ -66,7 +66,6 @@ QList<Edge *> MixerNode::edges() const
 {
     return edgeList;
 }
-
 
 QRectF MixerNode::boundingRect() const
 {
@@ -96,13 +95,11 @@ void MixerNode::paint(QPainter *painter, const QStyleOptionGraphicsItem *option,
             if (cmdNode) {
                 gradient.setColorAt(0, cmdActive ? posColor0 : negColor0);
                 gradient.setColorAt(1, cmdActive ? posColor1 : negColor1);
-            }
-            else {
+            } else {
                 if (value() < 0) {
                     gradient.setColorAt(0, negColor0);
                     gradient.setColorAt(1, negColor1);
-                }
-                else {
+                } else {
                     gradient.setColorAt(0, posColor0);
                     gradient.setColorAt(1, posColor1);
                 }
@@ -113,37 +110,39 @@ void MixerNode::paint(QPainter *painter, const QStyleOptionGraphicsItem *option,
         painter->drawEllipse(boundingRect());
 
         if (!image.isNull())
-            painter->drawImage(boundingRect().adjusted(1,1,-1,-1), image);
+            painter->drawImage(boundingRect().adjusted(1, 1, -1, -1), image);
     }
 
     if (drawText) {
         painter->setPen(QPen(drawNode ? Qt::white : Qt::black, 0));
         if (cmdNode) {
-            painter->drawText(0,4,text);
-        }
-        else {
-            painter->drawText( (value() < 0) ? -13 : -11, 4, text);
+            painter->drawText(0, 4, text);
+        } else {
+            painter->drawText((value() < 0) ? -13 : -11, 4, text);
         }
     }
 }
 
-void MixerNode::verticalMove(bool flag){
+void MixerNode::verticalMove(bool flag)
+{
     vertical = flag;
 }
 
-void MixerNode::commandNode(bool enable){
+void MixerNode::commandNode(bool enable)
+{
     cmdNode = enable;
 }
-void MixerNode::commandText(QString text){
+void MixerNode::commandText(QString text)
+{
     cmdText = text;
 }
 
-double MixerNode::value() {
+double MixerNode::value()
+{
     double h = graph->sceneRect().height();
     double ratio = (h - pos().y()) / h;
-    return ((graph->getMax() - graph->getMin()) * ratio ) + graph->getMin();
+    return ((graph->getMax() - graph->getMin()) * ratio) + graph->getMin();
 }
-
 
 QVariant MixerNode::itemChange(GraphicsItemChange change, const QVariant &val)
 {
@@ -154,7 +153,7 @@ QVariant MixerNode::itemChange(GraphicsItemChange change, const QVariant &val)
     case ItemPositionChange: {
 
         if (!vertical)
-                break;
+            break;
 
         // Force node to move vertically
         newPos.setX(pos().x());
@@ -162,11 +161,11 @@ QVariant MixerNode::itemChange(GraphicsItemChange change, const QVariant &val)
         // Stay inside graph
         if (newPos.y() < 0)
             newPos.setY(0);
-        //qDebug() << h << " - " << newPos.y();
+        // qDebug() << h << " - " << newPos.y();
         if (newPos.y() > h)
             newPos.setY(h);
 
-          return newPos;
+        return newPos;
     }
     case ItemPositionHasChanged: {
         foreach (Edge *edge, edgeList)
@@ -188,7 +187,7 @@ void MixerNode::mousePressEvent(QGraphicsSceneMouseEvent *event)
 {
     if (cmdNode) {
         graph->cmdActivated(this);
-        //return;
+        // return;
     }
     update();
     QGraphicsItem::mousePressEvent(event);

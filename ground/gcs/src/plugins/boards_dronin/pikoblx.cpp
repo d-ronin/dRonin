@@ -44,22 +44,23 @@
 PikoBLX::PikoBLX(void)
 {
     // Common USB IDs
-    addBootloaderUSBInfo(USBInfo(DRONIN_VID_DRONIN_BOOTLOADER, DRONIN_PID_DRONIN_BOOTLOADER, BCD_DEVICE_BOOTLOADER));
-    addFirmwareUSBInfo(USBInfo(DRONIN_VID_DRONIN_FIRMWARE, DRONIN_PID_DRONIN_FIRMWARE, BCD_DEVICE_FIRMWARE));
+    addBootloaderUSBInfo(
+        USBInfo(DRONIN_VID_DRONIN_BOOTLOADER, DRONIN_PID_DRONIN_BOOTLOADER, BCD_DEVICE_BOOTLOADER));
+    addFirmwareUSBInfo(
+        USBInfo(DRONIN_VID_DRONIN_FIRMWARE, DRONIN_PID_DRONIN_FIRMWARE, BCD_DEVICE_FIRMWARE));
 
     boardType = 0xA2;
 
     // Define the bank of channels that are connected to a given timer
     channelBanks.resize(6);
-    channelBanks[0] = QVector<int> () << 1 << 2 << 3 << 4;
-    channelBanks[1] = QVector<int> () << 5 << 6;
-    channelBanks[2] = QVector<int> () << 7;
-    channelBanks[3] = QVector<int> () << 8;
+    channelBanks[0] = QVector<int>() << 1 << 2 << 3 << 4;
+    channelBanks[1] = QVector<int>() << 5 << 6;
+    channelBanks[2] = QVector<int>() << 7;
+    channelBanks[3] = QVector<int>() << 8;
 }
 
 PikoBLX::~PikoBLX()
 {
-
 }
 
 QString PikoBLX::shortName()
@@ -75,7 +76,7 @@ QString PikoBLX::boardDescription()
 //! Return which capabilities this board has
 bool PikoBLX::queryCapabilities(BoardCapabilities capability)
 {
-    switch(capability) {
+    switch (capability) {
     case BOARD_CAPABILITIES_GYROS:
     case BOARD_CAPABILITIES_ACCELS:
     case BOARD_CAPABILITIES_UPGRADEABLE:
@@ -85,7 +86,7 @@ bool PikoBLX::queryCapabilities(BoardCapabilities capability)
     default:
         break;
     }
-    
+
     return false;
 }
 
@@ -104,7 +105,7 @@ bool PikoBLX::isInputConfigurationSupported(Core::IBoardType::InputType type)
     default:
         break;
     }
-    
+
     return true;
 }
 
@@ -129,7 +130,7 @@ bool PikoBLX::setInputType(Core::IBoardType::InputType type)
 
     HwPikoBLX::DataFields settings = HwPikoBLX->getData();
 
-    switch(type) {
+    switch (type) {
     case INPUT_TYPE_PPM:
         settings.RxPort = HwPikoBLX::RXPORT_PPM;
         break;
@@ -182,7 +183,7 @@ Core::IBoardType::InputType PikoBLX::getInputType()
 
     HwPikoBLX::DataFields settings = HwPikoBLX->getData();
 
-    switch(settings.RxPort) {
+    switch (settings.RxPort) {
     case HwPikoBLX::RXPORT_PPM:
         return INPUT_TYPE_PPM;
     case HwPikoBLX::RXPORT_DSM:
@@ -205,7 +206,7 @@ Core::IBoardType::InputType PikoBLX::getInputType()
         break;
     }
 
-    switch(settings.Uart1) {
+    switch (settings.Uart1) {
     case HwPikoBLX::UART1_DSM:
         return INPUT_TYPE_DSM;
     case HwPikoBLX::UART1_SBUS:
@@ -226,7 +227,7 @@ Core::IBoardType::InputType PikoBLX::getInputType()
         break;
     }
 
-    switch(settings.Uart2) {
+    switch (settings.Uart2) {
     case HwPikoBLX::UART2_DSM:
         return INPUT_TYPE_DSM;
     case HwPikoBLX::UART2_SBUS:
@@ -246,7 +247,7 @@ Core::IBoardType::InputType PikoBLX::getInputType()
     default:
         break;
     }
-    
+
     return INPUT_TYPE_UNKNOWN;
 }
 
@@ -261,7 +262,7 @@ int PikoBLX::queryMaxGyroRate()
 
     HwPikoBLX::DataFields settings = hwPikoBLX->getData();
 
-    switch(settings.GyroRange) {
+    switch (settings.GyroRange) {
     case HwPikoBLX::GYRORANGE_250:
         return 250;
     case HwPikoBLX::GYRORANGE_500:
@@ -273,11 +274,12 @@ int PikoBLX::queryMaxGyroRate()
     default:
         break;
     }
-    
+
     return 500;
 }
 
 QStringList PikoBLX::getAdcNames()
 {
-    return QStringList() << "I" << "V";
+    return QStringList() << "I"
+                         << "V";
 }

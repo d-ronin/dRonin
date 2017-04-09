@@ -30,16 +30,19 @@
 #include "systemalarms.h"
 #include "uavobjectmanager.h"
 
-OutputCalibrationPage::OutputCalibrationPage(SetupWizard *wizard, QWidget *parent) :
-    AbstractWizardPage(wizard, parent), ui(new Ui::OutputCalibrationPage), m_vehicleBoundsItem(0),
-    m_currentWizardIndex(-1), m_calibrationUtil(0)
+OutputCalibrationPage::OutputCalibrationPage(SetupWizard *wizard, QWidget *parent)
+    : AbstractWizardPage(wizard, parent)
+    , ui(new Ui::OutputCalibrationPage)
+    , m_vehicleBoundsItem(0)
+    , m_currentWizardIndex(-1)
+    , m_calibrationUtil(0)
 {
     ui->setupUi(this);
 
     m_vehicleRenderer = new QSvgRenderer();
-    if (QFile::exists(QString(":/setupwizard/resources/multirotor-shapes.svg")) &&
-        m_vehicleRenderer->load(QString(":/setupwizard/resources/multirotor-shapes.svg")) &&
-        m_vehicleRenderer->isValid()) {
+    if (QFile::exists(QString(":/setupwizard/resources/multirotor-shapes.svg"))
+        && m_vehicleRenderer->load(QString(":/setupwizard/resources/multirotor-shapes.svg"))
+        && m_vehicleRenderer->isValid()) {
         m_vehicleScene = new QGraphicsScene(this);
         ui->vehicleView->setScene(m_vehicleScene);
     }
@@ -66,41 +69,77 @@ void OutputCalibrationPage::setupVehicle()
     switch (getWizard()->getVehicleSubType()) {
     case SetupWizard::MULTI_ROTOR_TRI_Y:
         m_wizardIndexes << 0 << 1 << 1 << 1 << 2 << 3 << 4;
-        m_vehicleElementIds << "tri" << "tri-frame" << "tri-m1" << "tri-m2" << "tri-m3" << "tri-s1";
+        m_vehicleElementIds << "tri"
+                            << "tri-frame"
+                            << "tri-m1"
+                            << "tri-m2"
+                            << "tri-m3"
+                            << "tri-s1";
         m_vehicleHighlightElementIndexes << 0 << 1 << 2 << 3 << 4 << 4 << 4;
         m_channelIndex << 0 << 0 << 1 << 2 << 3 << 3 << 3;
-        m_actuatorSettings[3].channelMin     = 1500;
+        m_actuatorSettings[3].channelMin = 1500;
         m_actuatorSettings[3].channelNeutral = 1500;
-        m_actuatorSettings[3].channelMax     = 1500;
+        m_actuatorSettings[3].channelMax = 1500;
         getWizard()->setActuatorSettings(m_actuatorSettings);
         break;
     case SetupWizard::MULTI_ROTOR_QUAD_X:
         m_wizardIndexes << 0 << 1 << 1 << 1 << 1;
-        m_vehicleElementIds << "quad-x" << "quad-x-frame" << "quad-x-m1" << "quad-x-m2" << "quad-x-m3" << "quad-x-m4";
+        m_vehicleElementIds << "quad-x"
+                            << "quad-x-frame"
+                            << "quad-x-m1"
+                            << "quad-x-m2"
+                            << "quad-x-m3"
+                            << "quad-x-m4";
         m_vehicleHighlightElementIndexes << 0 << 1 << 2 << 3 << 4;
         m_channelIndex << 0 << 0 << 1 << 2 << 3;
         break;
     case SetupWizard::MULTI_ROTOR_QUAD_PLUS:
         m_wizardIndexes << 0 << 1 << 1 << 1 << 1;
-        m_vehicleElementIds << "quad-p" << "quad-p-frame" << "quad-p-m1" << "quad-p-m2" << "quad-p-m3" << "quad-p-m4";
+        m_vehicleElementIds << "quad-p"
+                            << "quad-p-frame"
+                            << "quad-p-m1"
+                            << "quad-p-m2"
+                            << "quad-p-m3"
+                            << "quad-p-m4";
         m_vehicleHighlightElementIndexes << 0 << 1 << 2 << 3 << 4;
         m_channelIndex << 0 << 0 << 1 << 2 << 3;
         break;
     case SetupWizard::MULTI_ROTOR_HEXA:
         m_wizardIndexes << 0 << 1 << 1 << 1 << 1 << 1 << 1;
-        m_vehicleElementIds << "hexa" << "hexa-frame" << "hexa-m1" << "hexa-m2" << "hexa-m3" << "hexa-m4" << "hexa-m5" << "hexa-m6";
+        m_vehicleElementIds << "hexa"
+                            << "hexa-frame"
+                            << "hexa-m1"
+                            << "hexa-m2"
+                            << "hexa-m3"
+                            << "hexa-m4"
+                            << "hexa-m5"
+                            << "hexa-m6";
         m_vehicleHighlightElementIndexes << 0 << 1 << 2 << 3 << 4 << 5 << 6;
         m_channelIndex << 0 << 0 << 1 << 2 << 3 << 4 << 5;
         break;
     case SetupWizard::MULTI_ROTOR_HEXA_COAX_Y:
         m_wizardIndexes << 0 << 1 << 1 << 1 << 1 << 1 << 1;
-        m_vehicleElementIds << "hexa-y6" << "hexa-y6-frame" << "hexa-y6-m2" << "hexa-y6-m1" << "hexa-y6-m4" << "hexa-y6-m3" << "hexa-y6-m6" << "hexa-y6-m5";
+        m_vehicleElementIds << "hexa-y6"
+                            << "hexa-y6-frame"
+                            << "hexa-y6-m2"
+                            << "hexa-y6-m1"
+                            << "hexa-y6-m4"
+                            << "hexa-y6-m3"
+                            << "hexa-y6-m6"
+                            << "hexa-y6-m5";
         m_vehicleHighlightElementIndexes << 0 << 2 << 1 << 4 << 3 << 6 << 5;
         m_channelIndex << 0 << 0 << 1 << 2 << 3 << 4 << 5;
         break;
     case SetupWizard::MULTI_ROTOR_HEXA_H:
         m_wizardIndexes << 0 << 1 << 1 << 1 << 1 << 1 << 1;
-        m_vehicleElementIds << "hexa-h" << "hexa-h-frame" << "hexa-h-m1" << "hexa-h-m2" << "hexa-h-m3" << "hexa-h-m4" << "hexa-h-m5" << "hexa-h-m6";
+        m_vehicleElementIds << "hexa-h"
+                            << "hexa-h-frame"
+                            << "hexa-h-m1"
+                            << "hexa-h-m2"
+                            << "hexa-h-m3"
+                            << "hexa-h-m4"
+                            << "hexa-h-m5"
+                            << "hexa-h-m6";
         m_vehicleHighlightElementIndexes << 0 << 1 << 2 << 3 << 4 << 5 << 6;
         m_channelIndex << 0 << 0 << 1 << 2 << 3 << 4 << 5;
         break;
@@ -161,7 +200,7 @@ void OutputCalibrationPage::startWizard()
         ui->motorNeutralSlider->setSingleStep(1);
         break;
     case SetupWizard::ESC_ONESHOT42:
-        ui->motorNeutralSlider->setRange(125/3, 152/3);
+        ui->motorNeutralSlider->setRange(125 / 3, 152 / 3);
         ui->motorNeutralSlider->setPageStep(1);
         ui->motorNeutralSlider->setSingleStep(1);
         break;
@@ -182,7 +221,7 @@ void OutputCalibrationPage::setupVehicleHighlightedPart()
 {
     qreal dimOpaque = m_currentWizardIndex == 0 ? 1.0 : 0.3;
     qreal highlightOpaque = 1.0;
-    int highlightedIndex  = m_vehicleHighlightElementIndexes[m_currentWizardIndex];
+    int highlightedIndex = m_vehicleHighlightElementIndexes[m_currentWizardIndex];
 
     for (int i = 0; i < m_vehicleItems.size(); i++) {
         QGraphicsSvgItem *item = m_vehicleItems[i];
@@ -285,10 +324,12 @@ void OutputCalibrationPage::on_motorNeutralButton_toggled(bool checked)
 {
     ui->motorNeutralButton->setText(checked ? tr("Stop") : tr("Start"));
     quint16 channel = getCurrentChannel();
-    onStartButtonToggle(ui->motorNeutralButton, channel, m_actuatorSettings[channel].channelNeutral, m_actuatorSettings[channel].channelMin, ui->motorNeutralSlider);
+    onStartButtonToggle(ui->motorNeutralButton, channel, m_actuatorSettings[channel].channelNeutral,
+                        m_actuatorSettings[channel].channelMin, ui->motorNeutralSlider);
 }
 
-void OutputCalibrationPage::onStartButtonToggle(QAbstractButton *button, quint16 channel, quint16 value, quint16 safeValue, QSlider *slider)
+void OutputCalibrationPage::onStartButtonToggle(QAbstractButton *button, quint16 channel,
+                                                quint16 value, quint16 safeValue, QSlider *slider)
 {
     if (button->isChecked()) {
         if (checkAlarms()) {
@@ -312,7 +353,7 @@ bool OutputCalibrationPage::checkAlarms()
     UAVObjectManager *uavObjectManager = pm->getObject<UAVObjectManager>();
 
     Q_ASSERT(uavObjectManager);
-    SystemAlarms *systemAlarms    = SystemAlarms::GetInstance(uavObjectManager);
+    SystemAlarms *systemAlarms = SystemAlarms::GetInstance(uavObjectManager);
     Q_ASSERT(systemAlarms);
     SystemAlarms::DataFields data = systemAlarms->getData();
 
@@ -360,16 +401,17 @@ void OutputCalibrationPage::on_motorNeutralSlider_valueChanged(int value)
 void OutputCalibrationPage::on_servoCenterButton_toggled(bool checked)
 {
     ui->servoCenterButton->setText(checked ? tr("Stop") : tr("Start"));
-    quint16 channel   = getCurrentChannel();
+    quint16 channel = getCurrentChannel();
     quint16 safeValue = m_actuatorSettings[channel].channelNeutral;
-    onStartButtonToggle(ui->servoCenterButton, channel, safeValue, safeValue, ui->servoCenterSlider);
+    onStartButtonToggle(ui->servoCenterButton, channel, safeValue, safeValue,
+                        ui->servoCenterSlider);
 }
 
 void OutputCalibrationPage::on_servoCenterSlider_valueChanged(int position)
 {
     Q_UNUSED(position);
     if (ui->servoCenterButton->isChecked()) {
-        quint16 value   = ui->servoCenterSlider->value();
+        quint16 value = ui->servoCenterSlider->value();
         m_calibrationUtil->setChannelOutputValue(value);
         quint16 channel = getCurrentChannel();
         m_actuatorSettings[channel].channelNeutral = value;
@@ -388,9 +430,10 @@ void OutputCalibrationPage::on_servoCenterSlider_valueChanged(int position)
 void OutputCalibrationPage::on_servoMinAngleButton_toggled(bool checked)
 {
     ui->servoMinAngleButton->setText(checked ? tr("Stop") : tr("Start"));
-    quint16 channel   = getCurrentChannel();
+    quint16 channel = getCurrentChannel();
     quint16 safeValue = m_actuatorSettings[channel].channelNeutral;
-    onStartButtonToggle(ui->servoMinAngleButton, channel, m_actuatorSettings[channel].channelMin, safeValue, ui->servoMinAngleSlider);
+    onStartButtonToggle(ui->servoMinAngleButton, channel, m_actuatorSettings[channel].channelMin,
+                        safeValue, ui->servoMinAngleSlider);
 }
 
 void OutputCalibrationPage::on_servoMinAngleSlider_valueChanged(int position)
@@ -407,9 +450,10 @@ void OutputCalibrationPage::on_servoMinAngleSlider_valueChanged(int position)
 void OutputCalibrationPage::on_servoMaxAngleButton_toggled(bool checked)
 {
     ui->servoMaxAngleButton->setText(checked ? tr("Stop") : tr("Start"));
-    quint16 channel   = getCurrentChannel();
+    quint16 channel = getCurrentChannel();
     quint16 safeValue = m_actuatorSettings[channel].channelNeutral;
-    onStartButtonToggle(ui->servoMaxAngleButton, channel, m_actuatorSettings[channel].channelMax, safeValue, ui->servoMaxAngleSlider);
+    onStartButtonToggle(ui->servoMaxAngleButton, channel, m_actuatorSettings[channel].channelMax,
+                        safeValue, ui->servoMaxAngleSlider);
 }
 
 void OutputCalibrationPage::on_servoMaxAngleSlider_valueChanged(int position)

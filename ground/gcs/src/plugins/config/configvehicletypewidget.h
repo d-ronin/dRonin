@@ -45,7 +45,7 @@
 
 class Ui_Widget;
 
-class ConfigVehicleTypeWidget: public ConfigTaskWidget
+class ConfigVehicleTypeWidget : public ConfigTaskWidget
 {
     Q_OBJECT
 private:
@@ -73,9 +73,9 @@ private:
 
     void updateCustomAirframeUI();
     void addToDirtyMonitor();
-    void resetField(UAVObjectField * field);
+    void resetField(UAVObjectField *field);
 
-    //void setMixerChannel(int channelNumber, bool channelIsMotor, QList<double> vector);
+    // void setMixerChannel(int channelNumber, bool channelIsMotor, QList<double> vector);
 
     QStringList channelNames;
     QStringList mixerTypes;
@@ -87,14 +87,14 @@ private:
 
 private slots:
 
-    virtual void refreshWidgetsValues(UAVObject * o=NULL);
+    virtual void refreshWidgetsValues(UAVObject *o = NULL);
     virtual void updateObjectsFromWidgets();
 
-    void setComboCurrentIndex(QComboBox* box, int index);
+    void setComboCurrentIndex(QComboBox *box, int index);
 
     void doSetupAirframeUI(int frameType);
     void setupAirframeUI(SystemSettings::AirframeTypeOptions frameType);
-	
+
     void toggleAileron2(int index);
     void toggleElevator2(int index);
     void toggleRudder2(int index);
@@ -109,8 +109,6 @@ private slots:
 protected:
     void showEvent(QShowEvent *event);
     void resizeEvent(QResizeEvent *event);
-
-
 };
 
 class SpinBoxDelegate : public QItemDelegate
@@ -124,11 +122,10 @@ public:
                           const QModelIndex &index) const;
 
     void setEditorData(QWidget *editor, const QModelIndex &index) const;
-    void setModelData(QWidget *editor, QAbstractItemModel *model,
-                      const QModelIndex &index) const;
+    void setModelData(QWidget *editor, QAbstractItemModel *model, const QModelIndex &index) const;
 
-    void updateEditorGeometry(QWidget *editor,
-        const QStyleOptionViewItem &option, const QModelIndex &index) const;
+    void updateEditorGeometry(QWidget *editor, const QStyleOptionViewItem &option,
+                              const QModelIndex &index) const;
 };
 
 #endif // CONFIGVEHICLETYPEWIDGET_H

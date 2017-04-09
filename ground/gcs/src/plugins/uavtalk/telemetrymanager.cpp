@@ -29,16 +29,18 @@
 #include <extensionsystem/pluginmanager.h>
 #include <coreplugin/icore.h>
 
-TelemetryManager::TelemetryManager() :
-    autopilotConnected(false)
+TelemetryManager::TelemetryManager()
+    : autopilotConnected(false)
 {
     // Get UAVObjectManager instance
-    ExtensionSystem::PluginManager* pm = ExtensionSystem::PluginManager::instance();
+    ExtensionSystem::PluginManager *pm = ExtensionSystem::PluginManager::instance();
     objMngr = pm->getObject<UAVObjectManager>();
 
     settings = pm->getObject<Core::Internal::GeneralSettings>();
-    connect(settings, SIGNAL(generalSettingsChanged()), this, SLOT(onGeneralSettingsChanged()));
-    connect(pm, SIGNAL(pluginsLoadEnded()), this, SLOT(onGeneralSettingsChanged()));
+    connect(settings, &Core::Internal::GeneralSettings::generalSettingsChanged, this,
+            &TelemetryManager::onGeneralSettingsChanged);
+    connect(pm, &ExtensionSystem::PluginManager::pluginsLoadEnded, this,
+            &TelemetryManager::onGeneralSettingsChanged);
 }
 
 TelemetryManager::~TelemetryManager()
@@ -55,8 +57,8 @@ void TelemetryManager::start(QIODevice *dev)
     utalk = new UAVTalk(dev, objMngr);
     telemetry = new Telemetry(utalk, objMngr);
     telemetryMon = new TelemetryMonitor(objMngr, telemetry, sessions);
-    connect(telemetryMon, SIGNAL(connected()), this, SLOT(onConnect()));
-    connect(telemetryMon, SIGNAL(disconnected()), this, SLOT(onDisconnect()));
+    connect(telemetryMon, &TelemetryMonitor::connected, this, &TelemetryManager::onConnect);
+    connect(telemetryMon, &TelemetryMonitor::disconnected, this, &TelemetryManager::onDisconnect);
 }
 
 void TelemetryManager::stop()
@@ -86,15 +88,11 @@ void TelemetryManager::onDisconnect()
 
 void TelemetryManager::onGeneralSettingsChanged()
 {
-    if (!settings->useSessionManaging())
-    {
-        foreach(UAVObjectManager::ObjectMap map, objMngr->getObjects())
-        {
-            foreach(UAVObject* obj, map.values())
-            {
-                UAVDataObject* dobj = dynamic_cast<UAVDataObject*>(obj);
-                if(dobj)
-                {
+    if (!settings->useSessionManaging()) {
+        foreach (UAVObjectManager::ObjectMap map, objMngr->getObjects()) {
+            foreach (UAVObject *obj, map.values()) {
+                UAVDataObject *dobj = dynamic_cast<UAVDataObject *>(obj);
+                if (dobj) {
                     dobj->setIsPresentOnHardware(false);
                     dobj->setIsPresentOnHardware(true);
                 }

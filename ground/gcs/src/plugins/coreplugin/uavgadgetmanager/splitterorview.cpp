@@ -35,13 +35,13 @@
 
 #include <QtCore/QDebug>
 
-
 using namespace Core;
 using namespace Core::Internal;
 
-SplitterOrView::SplitterOrView(Core::UAVGadgetManager *uavGadgetManager, Core::IUAVGadget *uavGadget, bool restoring) :
-        m_uavGadgetManager(uavGadgetManager),
-        m_splitter(0)
+SplitterOrView::SplitterOrView(Core::UAVGadgetManager *uavGadgetManager,
+                               Core::IUAVGadget *uavGadget, bool restoring)
+    : m_uavGadgetManager(uavGadgetManager)
+    , m_splitter(0)
 {
     m_view = new UAVGadgetView(m_uavGadgetManager, uavGadget, this, restoring);
     m_layout = new QStackedLayout(this);
@@ -50,11 +50,11 @@ SplitterOrView::SplitterOrView(Core::UAVGadgetManager *uavGadgetManager, Core::I
 
 SplitterOrView::~SplitterOrView()
 {
-    if(m_view) {
+    if (m_view) {
         delete m_view;
         m_view = 0;
     }
-    if(m_splitter) {
+    if (m_splitter) {
         delete m_splitter;
         m_splitter = 0;
     }
@@ -77,7 +77,8 @@ SplitterOrView *SplitterOrView::findFirstView()
 {
     if (m_splitter) {
         for (int i = 0; i < m_splitter->count(); ++i) {
-            if (SplitterOrView *splitterOrView = qobject_cast<SplitterOrView*>(m_splitter->widget(i)))
+            if (SplitterOrView *splitterOrView =
+                    qobject_cast<SplitterOrView *>(m_splitter->widget(i)))
                 if (SplitterOrView *result = splitterOrView->findFirstView())
                     return result;
         }
@@ -95,7 +96,8 @@ SplitterOrView *SplitterOrView::findView(Core::IUAVGadget *uavGadget)
         return this;
     if (m_splitter) {
         for (int i = 0; i < m_splitter->count(); ++i) {
-            if (SplitterOrView *splitterOrView = qobject_cast<SplitterOrView*>(m_splitter->widget(i)))
+            if (SplitterOrView *splitterOrView =
+                    qobject_cast<SplitterOrView *>(m_splitter->widget(i)))
                 if (SplitterOrView *result = splitterOrView->findView(uavGadget))
                     return result;
         }
@@ -112,7 +114,8 @@ SplitterOrView *SplitterOrView::findView(UAVGadgetView *view)
         return this;
     if (m_splitter) {
         for (int i = 0; i < m_splitter->count(); ++i) {
-            if (SplitterOrView *splitterOrView = qobject_cast<SplitterOrView*>(m_splitter->widget(i)))
+            if (SplitterOrView *splitterOrView =
+                    qobject_cast<SplitterOrView *>(m_splitter->widget(i)))
                 if (SplitterOrView *result = splitterOrView->findView(view))
                     return result;
         }
@@ -120,7 +123,8 @@ SplitterOrView *SplitterOrView::findView(UAVGadgetView *view)
     return 0;
 }
 
-/* Contract: return SplitterOrView that is splitter that has as child SplitterOrView containing 'uavGadget',
+/* Contract: return SplitterOrView that is splitter that has as child SplitterOrView containing
+ * 'uavGadget',
  * or 0 if not found.
  * Implications: must return SplitterOrView that is splitter.
  */
@@ -128,7 +132,8 @@ SplitterOrView *SplitterOrView::findSplitter(Core::IUAVGadget *uavGadget)
 {
     if (m_splitter) {
         for (int i = 0; i < m_splitter->count(); ++i) {
-            if (SplitterOrView *splitterOrView = qobject_cast<SplitterOrView*>(m_splitter->widget(i))) {
+            if (SplitterOrView *splitterOrView =
+                    qobject_cast<SplitterOrView *>(m_splitter->widget(i))) {
                 if (splitterOrView->hasGadget(uavGadget))
                     return this;
                 if (SplitterOrView *result = splitterOrView->findSplitter(uavGadget))
@@ -147,7 +152,8 @@ SplitterOrView *SplitterOrView::findSplitter(SplitterOrView *child)
 {
     if (m_splitter) {
         for (int i = 0; i < m_splitter->count(); ++i) {
-            if (SplitterOrView *splitterOrView = qobject_cast<SplitterOrView*>(m_splitter->widget(i))) {
+            if (SplitterOrView *splitterOrView =
+                    qobject_cast<SplitterOrView *>(m_splitter->widget(i))) {
                 if (splitterOrView == child)
                     return this;
                 if (SplitterOrView *result = splitterOrView->findSplitter(child))
@@ -181,7 +187,8 @@ SplitterOrView *SplitterOrView::findNextView_helper(SplitterOrView *view, bool *
 
     if (m_splitter) {
         for (int i = 0; i < m_splitter->count(); ++i) {
-            if (SplitterOrView *splitterOrView = qobject_cast<SplitterOrView*>(m_splitter->widget(i))) {
+            if (SplitterOrView *splitterOrView =
+                    qobject_cast<SplitterOrView *>(m_splitter->widget(i))) {
                 if (SplitterOrView *result = splitterOrView->findNextView_helper(view, found))
                     return result;
             }
@@ -215,15 +222,16 @@ UAVGadgetView *SplitterOrView::takeView()
     return oldView;
 }
 
-QList<IUAVGadget*> SplitterOrView::gadgets()
+QList<IUAVGadget *> SplitterOrView::gadgets()
 {
-    QList<IUAVGadget*> g;
+    QList<IUAVGadget *> g;
     if (hasGadget())
         g.append(gadget());
     if (m_splitter) {
         for (int i = 0; i < m_splitter->count(); ++i) {
-            if (SplitterOrView *splitterOrView = qobject_cast<SplitterOrView*>(m_splitter->widget(i))) {
-                QList<IUAVGadget*> result = splitterOrView->gadgets();
+            if (SplitterOrView *splitterOrView =
+                    qobject_cast<SplitterOrView *>(m_splitter->widget(i))) {
+                QList<IUAVGadget *> result = splitterOrView->gadgets();
                 g.append(result);
             }
         }
@@ -237,7 +245,7 @@ void SplitterOrView::split(Qt::Orientation orientation, bool restoring)
     Q_ASSERT(!m_splitter);
     m_splitter = new MiniSplitter(this);
     m_splitter->setOrientation(orientation);
-    connect(m_splitter, SIGNAL(splitterMoved(int,int)), this, SLOT(onSplitterMoved(int,int)));
+    connect(m_splitter, SIGNAL(splitterMoved(int, int)), this, SLOT(onSplitterMoved(int, int)));
     m_layout->addWidget(m_splitter);
     Core::IUAVGadget *ourGadget = m_view->gadget();
 
@@ -260,7 +268,8 @@ void SplitterOrView::split(Qt::Orientation orientation, bool restoring)
     }
 }
 
-void SplitterOrView::onSplitterMoved( int pos, int index ) {
+void SplitterOrView::onSplitterMoved(int pos, int index)
+{
     Q_UNUSED(pos);
     Q_UNUSED(index);
     // Update when the splitter is actually moved.
@@ -288,7 +297,8 @@ void SplitterOrView::unsplitAll_helper()
     }
     if (m_splitter) {
         for (int i = 0; i < m_splitter->count(); ++i) {
-            if (SplitterOrView *splitterOrView = qobject_cast<SplitterOrView*>(m_splitter->widget(i))) {
+            if (SplitterOrView *splitterOrView =
+                    qobject_cast<SplitterOrView *>(m_splitter->widget(i))) {
                 splitterOrView->unsplitAll_helper();
             }
         }
@@ -300,7 +310,7 @@ void SplitterOrView::unsplit()
     if (!m_splitter)
         return;
     Q_ASSERT(m_splitter->count() == 1);
-    SplitterOrView *childSplitterOrView = qobject_cast<SplitterOrView*>(m_splitter->widget(0));
+    SplitterOrView *childSplitterOrView = qobject_cast<SplitterOrView *>(m_splitter->widget(0));
     QSplitter *oldSplitter = m_splitter;
     m_splitter = 0;
 
@@ -328,7 +338,8 @@ void SplitterOrView::unsplit()
     m_uavGadgetManager->setCurrentGadget(findFirstView()->gadget());
 }
 
-void SplitterOrView::saveState(QSettings* qSettings) const {
+void SplitterOrView::saveState(QSettings *qSettings) const
+{
     if (m_splitter) {
         qSettings->setValue("type", "splitter");
         qSettings->setValue("splitterOrientation", (qint32)m_splitter->orientation());
@@ -338,10 +349,10 @@ void SplitterOrView::saveState(QSettings* qSettings) const {
         }
         qSettings->setValue("splitterSizes", sizesQVariant);
         qSettings->beginGroup("side0");
-        static_cast<SplitterOrView*>(m_splitter->widget(0))->saveState(qSettings);
+        static_cast<SplitterOrView *>(m_splitter->widget(0))->saveState(qSettings);
         qSettings->endGroup();
         qSettings->beginGroup("side1");
-        static_cast<SplitterOrView*>(m_splitter->widget(1))->saveState(qSettings);
+        static_cast<SplitterOrView *>(m_splitter->widget(1))->saveState(qSettings);
         qSettings->endGroup();
     } else if (gadget()) {
         qSettings->setValue("type", "uavGadget");
@@ -352,7 +363,7 @@ void SplitterOrView::saveState(QSettings* qSettings) const {
     }
 }
 
-void SplitterOrView::restoreState(QSettings* qSettings)
+void SplitterOrView::restoreState(QSettings *qSettings)
 {
     QString mode = qSettings->value("type").toString();
     if (mode == "splitter") {
@@ -365,16 +376,16 @@ void SplitterOrView::restoreState(QSettings* qSettings)
         split((Qt::Orientation)orientation, true);
         m_splitter->setSizes(m_sizes);
         qSettings->beginGroup("side0");
-        static_cast<SplitterOrView*>(m_splitter->widget(0))->restoreState(qSettings);
+        static_cast<SplitterOrView *>(m_splitter->widget(0))->restoreState(qSettings);
         qSettings->endGroup();
         qSettings->beginGroup("side1");
-        static_cast<SplitterOrView*>(m_splitter->widget(1))->restoreState(qSettings);
+        static_cast<SplitterOrView *>(m_splitter->widget(1))->restoreState(qSettings);
         qSettings->endGroup();
     } else if (mode == "uavGadget") {
         QString classId = qSettings->value("classId").toString();
         int index = m_view->indexOfClassId(classId);
         m_view->selectionActivated(index, false);
-        if(qSettings->childGroups().contains("gadget")) {
+        if (qSettings->childGroups().contains("gadget")) {
             qSettings->beginGroup("gadget");
             gadget()->restoreState(qSettings);
             qSettings->endGroup();

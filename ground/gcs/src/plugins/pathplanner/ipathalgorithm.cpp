@@ -24,7 +24,7 @@
  */
 #include "ipathalgorithm.h"
 
-IPathAlgorithm::IPathAlgorithm(QObject *parent) :
-    QObject(parent)
+IPathAlgorithm::IPathAlgorithm(QObject *parent)
+    : QObject(parent)
 {
 }

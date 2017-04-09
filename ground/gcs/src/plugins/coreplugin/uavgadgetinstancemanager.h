@@ -10,18 +10,18 @@
  * @{
  * @brief Provides the UAVGadget instance manager
  *****************************************************************************/
-/* 
- * This program is free software; you can redistribute it and/or modify 
- * it under the terms of the GNU General Public License as published by 
- * the Free Software Foundation; either version 3 of the License, or 
+/*
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 3 of the License, or
  * (at your option) any later version.
- * 
- * This program is distributed in the hope that it will be useful, but 
- * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY 
- * or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License 
+ *
+ * This program is distributed in the hope that it will be useful, but
+ * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
+ * or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License
  * for more details.
- * 
- * You should have received a copy of the GNU General Public License along 
+ *
+ * You should have received a copy of the GNU General Public License along
  * with this program; if not, see <http://www.gnu.org/licenses/>
  */
 
@@ -37,14 +37,13 @@
 #include "uavconfiginfo.h"
 
 namespace ExtensionSystem {
-    class PluginManager;
+class PluginManager;
 }
 
-namespace Core
-{
+namespace Core {
 
 namespace Internal {
-class SettingsDialog;
+    class SettingsDialog;
 }
 
 class IUAVGadget;
@@ -55,7 +54,7 @@ class IUAVGadgetFactory;
 class CORE_EXPORT UAVGadgetInstanceManager : public QObject
 {
 
-Q_OBJECT
+    Q_OBJECT
 public:
     explicit UAVGadgetInstanceManager(QObject *parent = 0);
     ~UAVGadgetInstanceManager();
@@ -76,34 +75,35 @@ public:
 
 signals:
     void splashMessages(QString);
-    void configurationChanged(IUAVGadgetConfiguration* config);
-    void configurationAdded(IUAVGadgetConfiguration* config);
-    void configurationToBeDeleted(IUAVGadgetConfiguration* config);
-    void configurationNameChanged(IUAVGadgetConfiguration* config, QString oldName, QString newName);
+    void configurationChanged(IUAVGadgetConfiguration *config);
+    void configurationAdded(IUAVGadgetConfiguration *config);
+    void configurationToBeDeleted(IUAVGadgetConfiguration *config);
+    void configurationNameChanged(IUAVGadgetConfiguration *config, QString oldName,
+                                  QString newName);
 
 public slots:
-    void settingsDialogShown(Core::Internal::SettingsDialog* settingsDialog);
+    void settingsDialogShown(Core::Internal::SettingsDialog *settingsDialog);
     void settingsDialogRemoved();
 
 private:
     IUAVGadgetFactory *factory(QString classId) const;
     void createOptionsPages();
-    QList<IUAVGadgetConfiguration*> *configurations(QString classId) const;
+    QList<IUAVGadgetConfiguration *> *configurations(QString classId) const;
     QString suggestName(QString classId, QString name);
-    QList<IUAVGadget*> m_gadgetInstances;
-    QList<IUAVGadgetFactory*> m_factories;
-    QList<IUAVGadgetConfiguration*> m_configurations;
-    QList<IOptionsPage*> m_optionsPages;
+    QList<IUAVGadget *> m_gadgetInstances;
+    QList<IUAVGadgetFactory *> m_factories;
+    QList<IUAVGadgetConfiguration *> m_configurations;
+    QList<IOptionsPage *> m_optionsPages;
     QMap<QString, QString> m_classIdNameMap;
     QMap<QString, QIcon> m_classIdIconMap;
     QMap<QString, QStringList> m_takenNames;
-    QList<IUAVGadgetConfiguration*> m_provisionalConfigs;
-    QList<IUAVGadgetConfiguration*> m_provisionalDeletes;
-    QList<IOptionsPage*> m_provisionalOptionsPages;
+    QList<IUAVGadgetConfiguration *> m_provisionalConfigs;
+    QList<IUAVGadgetConfiguration *> m_provisionalDeletes;
+    QList<IOptionsPage *> m_provisionalOptionsPages;
     Core::Internal::SettingsDialog *m_settingsDialog;
     ExtensionSystem::PluginManager *m_pm;
-    int indexForConfig(QList<IUAVGadgetConfiguration*> configurations,
-                       QString classId, QString configName);
+    int indexForConfig(QList<IUAVGadgetConfiguration *> configurations, QString classId,
+                       QString configName);
     void readConfigs_1_1_0(QSettings *qs);
     void readConfigs_1_2_0(QSettings *qs);
 };

@@ -33,15 +33,15 @@
 
 #include "hwsimulation.h"
 
-SimulationConfiguration::SimulationConfiguration(QWidget *parent) :
-    ConfigTaskWidget(parent),
-    ui(new Ui::SimulationConfiguration)
+SimulationConfiguration::SimulationConfiguration(QWidget *parent)
+    : ConfigTaskWidget(parent)
+    , ui(new Ui::SimulationConfiguration)
 {
     ui->setupUi(this);
 
     UAVObject *hwSim = getObjectManager()->getObject(HwSimulation::NAME);
     Q_ASSERT(hwSim);
-    connect(hwSim, SIGNAL(objectUpdated(UAVObject*)), this, SLOT(onLedStateUpdated(UAVObject*)));
+    connect(hwSim, &UAVObject::objectUpdated, this, &SimulationConfiguration::onLedStateUpdated);
 }
 
 SimulationConfiguration::~SimulationConfiguration()

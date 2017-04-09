@@ -15,17 +15,17 @@
  * @brief      The UAVUObjects GCS plugin
  *****************************************************************************/
 /*
- * This program is free software; you can redistribute it and/or modify 
- * it under the terms of the GNU General Public License as published by 
- * the Free Software Foundation; either version 3 of the License, or 
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 3 of the License, or
  * (at your option) any later version.
- * 
- * This program is distributed in the hope that it will be useful, but 
- * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY 
- * or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License 
+ *
+ * This program is distributed in the hope that it will be useful, but
+ * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
+ * or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License
  * for more details.
- * 
- * You should have received a copy of the GNU General Public License along 
+ *
+ * You should have received a copy of the GNU General Public License along
  * with this program; if not, see <http://www.gnu.org/licenses/>
  *
  * Additional note on redistribution: The copyright and license notices above
@@ -38,8 +38,8 @@
 /**
  * Constructor
  */
-UAVDataObject::UAVDataObject(quint32 objID, bool isSingleInst, bool isSet,const QString& name):
-        UAVObject(objID, isSingleInst, name)
+UAVDataObject::UAVDataObject(quint32 objID, bool isSingleInst, bool isSet, const QString &name)
+    : UAVObject(objID, isSingleInst, name)
 {
     mobj = NULL;
     this->isSet = isSet;
@@ -49,7 +49,7 @@ UAVDataObject::UAVDataObject(quint32 objID, bool isSingleInst, bool isSet,const 
 /**
  * Initialize instance ID and assign a metaobject
  */
-void UAVDataObject::initialize(quint32 instID, UAVMetaObject* mobj)
+void UAVDataObject::initialize(quint32 instID, UAVMetaObject *mobj)
 {
     this->mobj = mobj;
     UAVObject::initialize(instID);
@@ -58,7 +58,7 @@ void UAVDataObject::initialize(quint32 instID, UAVMetaObject* mobj)
 /**
  * Assign a metaobject
  */
-void UAVDataObject::initialize(UAVMetaObject* mobj)
+void UAVDataObject::initialize(UAVMetaObject *mobj)
 {
     this->mobj = mobj;
 }
@@ -74,10 +74,9 @@ bool UAVDataObject::isSettings()
 /**
  * Set the object's metadata
  */
-void UAVDataObject::setMetadata(const Metadata& mdata)
+void UAVDataObject::setMetadata(const Metadata &mdata)
 {
-    if ( mobj!=NULL )
-    {
+    if (mobj != NULL) {
         mobj->setData(mdata);
     }
 }
@@ -87,12 +86,9 @@ void UAVDataObject::setMetadata(const Metadata& mdata)
  */
 UAVObject::Metadata UAVDataObject::getMetadata(void)
 {
-    if ( mobj!=NULL)
-    {
+    if (mobj != NULL) {
         return mobj->getData();
-    }
-    else
-    {
+    } else {
         return getDefaultMetadata();
     }
 }
@@ -100,7 +96,7 @@ UAVObject::Metadata UAVDataObject::getMetadata(void)
 /**
  * Get the metaobject
  */
-UAVMetaObject* UAVDataObject::getMetaObject()
+UAVMetaObject *UAVDataObject::getMetaObject()
 {
     return mobj;
 }
@@ -113,10 +109,8 @@ void UAVDataObject::setIsPresentOnHardware(bool value)
 {
     bool temp = isPresentOnHardware;
     isPresentOnHardware = value;
-    if(temp != isPresentOnHardware) {
+    if (temp != isPresentOnHardware) {
         emit presentOnHardwareChanged(this);
         emit presentOnHardwareChanged(isPresentOnHardware);
     }
 }
-
-

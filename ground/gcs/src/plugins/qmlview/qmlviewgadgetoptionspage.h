@@ -7,7 +7,7 @@
  * @{
  * @addtogroup OPMapPlugin QML Viewer Plugin
  * @{
- * @brief The QML Viewer Gadget 
+ * @brief The QML Viewer Gadget
  *****************************************************************************/
 /*
  * This program is free software; you can redistribute it and/or modify
@@ -39,14 +39,14 @@ class IUAVGadgetConfiguration;
 class QmlViewGadgetConfiguration;
 
 namespace Ui {
-    class QmlViewGadgetOptionsPage;
+class QmlViewGadgetOptionsPage;
 }
 
 using namespace Core;
 
 class QmlViewGadgetOptionsPage : public IOptionsPage
 {
-Q_OBJECT
+    Q_OBJECT
 public:
     explicit QmlViewGadgetOptionsPage(QmlViewGadgetConfiguration *config, QObject *parent = 0);
 

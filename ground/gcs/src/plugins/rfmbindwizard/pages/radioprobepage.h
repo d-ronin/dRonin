@@ -49,13 +49,13 @@ private:
 
     Core::IBoardType *m_boardType;
     Core::ConnectionManager *m_connectionManager;
-    QMap <UAVObject*, Core::IBoardType*> boardPluginMap;
+    QMap<UAVObject *, Core::IBoardType *> boardPluginMap;
     QTimer probeTimer;
     bool m_allowProbing;
 
 protected:
     //! Get the board device for probed radio board
-    Core::IBoardType* getBoardType() const;
+    Core::IBoardType *getBoardType() const;
 
     //! Stop probing once configured
     void stopProbing();
@@ -68,7 +68,7 @@ private slots:
     void probeRadio();
 
     //! Receive if a hardware object is updated
-    void transactionReceived(UAVObject*obj, bool success);
+    void transactionReceived(UAVObject *obj, bool success);
 
 signals:
     //! Indicate probing of a board has changed

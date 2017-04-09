@@ -49,7 +49,7 @@ public:
     /**
     *   Return the list of devices found on the system
     */
-    virtual QList <IDevice *> availableDevices() = 0;
+    virtual QList<IDevice *> availableDevices() = 0;
 
     /**
     *   Open a device, and return a QIODevice interface from it
@@ -68,7 +68,7 @@ public:
     /**
     *   Short name to display in a combo box
     */
-    virtual QString shortName() {return connectionName();}
+    virtual QString shortName() { return connectionName(); }
 
     /**
      * Manage whether the plugin is allowed to poll for devices
@@ -86,11 +86,12 @@ public:
 
 signals:
     /**
-    *   Available devices list has changed, signal it to connection manager (and whoever wants to know)
+    *   Available devices list has changed, signal it to connection manager (and whoever wants to
+    * know)
     */
     void availableDevChanged(IConnection *);
 };
 
-} //namespace Core
+} // namespace Core
 
 #endif // ICONNECTION_H

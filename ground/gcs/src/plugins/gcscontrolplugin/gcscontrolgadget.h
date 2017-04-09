@@ -54,21 +54,22 @@ class GCSControlGadget : public Core::IUAVGadget
 {
     Q_OBJECT
 public:
-    GCSControlGadget(QString classId, GCSControlGadgetWidget *widget, QWidget *parent = 0, QObject *plugin=0);
+    GCSControlGadget(QString classId, GCSControlGadgetWidget *widget, QWidget *parent = 0,
+                     QObject *plugin = 0);
     ~GCSControlGadget();
 
     QList<int> context() const { return m_context; }
-    QWidget *widget() { return (QWidget *) m_widget; }
+    QWidget *widget() { return (QWidget *)m_widget; }
     QString contextHelpId() const { return QString(); }
 
-    void loadConfiguration(IUAVGadgetConfiguration* config);
+    void loadConfiguration(IUAVGadgetConfiguration *config);
 
 private:
     //! Get the handle to the ManualControlCommand object
-    ManualControlCommand* getManualControlCommand();
+    ManualControlCommand *getManualControlCommand();
 
     //! Get the handle to the GCSReceiver object
-    GCSControl* getGcsControl();
+    GCSControl *getGcsControl();
 
     double constrain(double value);
 
@@ -119,6 +120,5 @@ protected slots:
     void axesValues(QListInt16 values);
 #endif
 };
-
 
 #endif // GCSControlGADGET_H_

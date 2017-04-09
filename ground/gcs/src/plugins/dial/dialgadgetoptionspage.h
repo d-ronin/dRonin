@@ -8,7 +8,7 @@
  * @{
  * @addtogroup DialPlugin Dial Plugin
  * @{
- * @brief Plots flight information rotary style dials 
+ * @brief Plots flight information rotary style dials
  *****************************************************************************/
 /*
  * This program is free software; you can redistribute it and/or modify
@@ -34,6 +34,7 @@
 #include <QDebug>
 #include <QFont>
 #include <QFontDialog>
+#include <QComboBox>
 
 namespace Core {
 class IUAVGadgetConfiguration;
@@ -42,14 +43,14 @@ class IUAVGadgetConfiguration;
 class DialGadgetConfiguration;
 
 namespace Ui {
-    class DialGadgetOptionsPage;
+class DialGadgetOptionsPage;
 }
 
 using namespace Core;
 
 class DialGadgetOptionsPage : public IOptionsPage
 {
-Q_OBJECT
+    Q_OBJECT
 public:
     explicit DialGadgetOptionsPage(DialGadgetConfiguration *config, QObject *parent = 0);
 
@@ -62,11 +63,10 @@ private:
     DialGadgetConfiguration *m_config;
     QFont font;
 
+    void uavoChanged(QComboBox *widget, const QString &uavo);
+
 private slots:
     void on_fontPicker_clicked();
-    void on_uavObject1_currentIndexChanged(QString val);
-    void on_uavObject2_currentIndexChanged(QString val);
-    void on_uavObject3_currentIndexChanged(QString val);
 };
 
 #endif // DIALGADGETOPTIONSPAGE_H

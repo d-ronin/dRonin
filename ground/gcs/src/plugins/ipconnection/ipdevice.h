@@ -29,7 +29,6 @@
 #include <coreplugin/idevice.h>
 #include "ipconnectionconfiguration.h"
 
-
 /**
  * @brief The IPDevice class
  *
@@ -37,7 +36,7 @@
 
 class IPDevice : public Core::IDevice
 {
-Q_OBJECT
+    Q_OBJECT
 
 public:
     IPDevice();

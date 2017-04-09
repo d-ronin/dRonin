@@ -32,23 +32,21 @@
 
 #include <qcolor.h>
 
-ScopeGadget::ScopeGadget(QString classId, ScopeGadgetWidget *widget, QWidget *parent) :
-        IUAVGadget(classId, parent),
-        scopeGadgetWidget(widget),
-        configLoaded(false)
+ScopeGadget::ScopeGadget(QString classId, ScopeGadgetWidget *widget, QWidget *parent)
+    : IUAVGadget(classId, parent)
+    , scopeGadgetWidget(widget)
+    , configLoaded(false)
 {
-
 }
-
 
 /**
  * @brief ScopeGadget::loadConfiguration Loads the plugin configuration
  * @param config
  */
-void ScopeGadget::loadConfiguration(IUAVGadgetConfiguration* config)
+void ScopeGadget::loadConfiguration(IUAVGadgetConfiguration *config)
 {
-    ScopeGadgetConfiguration *sgConfig = qobject_cast<ScopeGadgetConfiguration*>(config);
-    if (sgConfig == NULL) //Check that the case succeeded.
+    ScopeGadgetConfiguration *sgConfig = qobject_cast<ScopeGadgetConfiguration *>(config);
+    if (sgConfig == NULL) // Check that the case succeeded.
         return;
 
     scopeGadgetWidget->clearPlotWidget();
@@ -57,12 +55,11 @@ void ScopeGadget::loadConfiguration(IUAVGadgetConfiguration* config)
     sgConfig->getScope()->loadConfiguration(scopeGadgetWidget);
 }
 
-
 /**
  * @brief ScopeGadget::~ScopeGadget   Scope gadget destructor: deletes the
  * associated scope gadget widget too.
  */
 ScopeGadget::~ScopeGadget()
 {
-   delete scopeGadgetWidget;
+    delete scopeGadgetWidget;
 }

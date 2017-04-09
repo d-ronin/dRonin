@@ -63,5 +63,4 @@ public:
     virtual QStringList getAdcNames();
 };
 
-
 #endif // QUANTON_H

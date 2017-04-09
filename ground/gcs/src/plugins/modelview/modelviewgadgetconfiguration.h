@@ -31,37 +31,21 @@
 
 using namespace Core;
 
-class ModelViewGadgetConfiguration : public IUAVGadgetConfiguration {
+class ModelViewGadgetConfiguration : public IUAVGadgetConfiguration
+{
     Q_OBJECT
 public:
-    explicit ModelViewGadgetConfiguration(QString classId, QSettings *qSettings = 0, QObject *parent = 0);
+    explicit ModelViewGadgetConfiguration(QString classId, QSettings *qSettings = 0,
+                                          QObject *parent = 0);
 
     void saveConfig(QSettings *settings) const;
     IUAVGadgetConfiguration *clone();
-    QString acFilename()
-    {
-        return m_acFilename;
-    }
-    void setAcFilename(QString acFile)
-    {
-        m_acFilename = acFile;
-    }
-    QString bgFilename()
-    {
-        return m_bgFilename;
-    }
-    void setBgFilename(QString bgFile)
-    {
-        m_bgFilename = bgFile;
-    }
-    bool vboEnabled()
-    {
-        return m_enableVbo;
-    }
-    void setVboEnabled(bool vboEnable)
-    {
-        m_enableVbo = vboEnable;
-    }
+    QString acFilename() { return m_acFilename; }
+    void setAcFilename(QString acFile) { m_acFilename = acFile; }
+    QString bgFilename() { return m_bgFilename; }
+    void setBgFilename(QString bgFile) { m_bgFilename = bgFile; }
+    bool vboEnabled() { return m_enableVbo; }
+    void setVboEnabled(bool vboEnable) { m_enableVbo = vboEnable; }
 signals:
 
 public slots:

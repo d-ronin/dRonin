@@ -39,22 +39,21 @@
  * @param p_uavObject The plotted UAVO name
  * @param p_uavFieldName The plotted UAVO field name
  */
-Plot2dData::Plot2dData(QString p_uavObject, QString p_uavFieldName):
-    yDataHistory(0),
-    dataUpdated(false)
+Plot2dData::Plot2dData(QString p_uavObject, QString p_uavFieldName)
+    : yDataHistory(0)
+    , dataUpdated(false)
 {
     uavObjectName = p_uavObject;
 
-    if(p_uavFieldName.contains("-")) //For fields with multiple indices, '-' followed by an index indicates which one
+    if (p_uavFieldName.contains(
+            "-")) // For fields with multiple indices, '-' followed by an index indicates which one
     {
         QStringList fieldSubfield = p_uavFieldName.split("-", QString::SkipEmptyParts);
         uavFieldName = fieldSubfield.at(0);
         uavSubFieldName = fieldSubfield.at(1);
         haveSubField = true;
-    }
-    else
-    {
-        uavFieldName =  p_uavFieldName;
+    } else {
+        uavFieldName = p_uavFieldName;
         haveSubField = false;
     }
 
@@ -73,27 +72,25 @@ Plot2dData::Plot2dData(QString p_uavObject, QString p_uavFieldName):
     m_xWindowSize = 0;
 }
 
-
 /**
  * @brief Plot3dData::Plot3dData Default 3d constructor
  * @param p_uavObject The plotted UAVO name
  * @param p_uavFieldName The plotted UAVO field name
  */
-Plot3dData::Plot3dData(QString p_uavObject, QString p_uavFieldName):
-    dataUpdated(false)
+Plot3dData::Plot3dData(QString p_uavObject, QString p_uavFieldName)
+    : dataUpdated(false)
 {
     uavObjectName = p_uavObject;
 
-    if(p_uavFieldName.contains("-")) //For fields with multiple indices, '-' followed by an index indicates which one
+    if (p_uavFieldName.contains(
+            "-")) // For fields with multiple indices, '-' followed by an index indicates which one
     {
         QStringList fieldSubfield = p_uavFieldName.split("-", QString::SkipEmptyParts);
         uavFieldName = fieldSubfield.at(0);
         uavSubFieldName = fieldSubfield.at(1);
         haveSubField = true;
-    }
-    else
-    {
-        uavFieldName =  p_uavFieldName;
+    } else {
+        uavFieldName = p_uavFieldName;
         haveSubField = false;
     }
 
@@ -116,7 +113,6 @@ Plot3dData::Plot3dData(QString p_uavObject, QString p_uavFieldName):
     zMaximum = 100;
 }
 
-
 Plot2dData::~Plot2dData()
 {
     if (xData != NULL)
@@ -126,7 +122,6 @@ Plot2dData::~Plot2dData()
     if (yDataHistory != NULL)
         delete yDataHistory;
 }
-
 
 Plot3dData::~Plot3dData()
 {
@@ -142,7 +137,6 @@ Plot3dData::~Plot3dData()
         delete timeDataHistory;
 }
 
-
 /**
  * @brief valueAsDouble Fetch the value from the UAVO and return it as a double
  * @param obj UAVO
@@ -151,15 +145,17 @@ Plot3dData::~Plot3dData()
  * @param uavSubFieldName UAVO subfield, if it exists
  * @return
  */
-double PlotData::valueAsDouble(UAVObject* obj, UAVObjectField* field, bool haveSubField, QString uavSubFieldName)
+double PlotData::valueAsDouble(UAVObject *obj, UAVObjectField *field, bool haveSubField,
+                               QString uavSubFieldName)
 {
     Q_UNUSED(obj);
     QVariant value;
 
-    if(haveSubField){
-        int indexOfSubField = field->getElementNames().indexOf(QRegExp(uavSubFieldName, Qt::CaseSensitive, QRegExp::FixedString));
+    if (haveSubField) {
+        int indexOfSubField = field->getElementNames().indexOf(
+            QRegExp(uavSubFieldName, Qt::CaseSensitive, QRegExp::FixedString));
         value = field->getValue(indexOfSubField);
-    }else
+    } else
         value = field->getValue();
 
     return value.toDouble();

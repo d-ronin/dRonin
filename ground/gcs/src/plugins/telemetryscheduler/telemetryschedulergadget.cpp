@@ -30,9 +30,11 @@
 #include "uavobject.h"
 #include <QDebug>
 
-TelemetrySchedulerGadget::TelemetrySchedulerGadget(QString classId, TelemetrySchedulerGadgetWidget *widget, QWidget *parent) :
-        IUAVGadget(classId, parent),
-        m_widget(widget)
+TelemetrySchedulerGadget::TelemetrySchedulerGadget(QString classId,
+                                                   TelemetrySchedulerGadgetWidget *widget,
+                                                   QWidget *parent)
+    : IUAVGadget(classId, parent)
+    , m_widget(widget)
 {
 }
 

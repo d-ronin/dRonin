@@ -34,7 +34,8 @@ namespace Ui {
 class SurfacePage;
 }
 
-class SurfacePage : public AbstractWizardPage {
+class SurfacePage : public AbstractWizardPage
+{
     Q_OBJECT
 
 public:

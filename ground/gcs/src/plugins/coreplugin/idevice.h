@@ -29,7 +29,6 @@
 #include <QObject>
 #include "core_global.h"
 
-
 namespace Core {
 
 /**
@@ -47,12 +46,10 @@ class CORE_EXPORT IDevice : public QObject
 {
     Q_OBJECT
 public:
-
-
     QString getName() const { return name; }
     void setName(QString theName) { name = theName; }
     QString getDisplayName() const { return displayName; }
-    void setDisplayName( QString dn ) { displayName = dn; }
+    void setDisplayName(QString dn) { displayName = dn; }
 
     /*
     bool operator==(const IDevice *idv) const {
@@ -60,17 +57,15 @@ public:
     }
     */
 
-    bool equals(const IDevice *idv) const {
-        return name == idv->getName()  && displayName == idv->getDisplayName();
+    bool equals(const IDevice *idv) const
+    {
+        return name == idv->getName() && displayName == idv->getDisplayName();
     }
 
 private:
     QString name;
     QString displayName;
-
-
 };
-
 }
 
 #endif // IDEVICE_H

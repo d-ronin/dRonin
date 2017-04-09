@@ -38,7 +38,6 @@
 #include "subtrimsettings.h"
 #include "systemalarms.h"
 
-
 VehicleTrim::VehicleTrim()
 {
 }
@@ -46,7 +45,6 @@ VehicleTrim::VehicleTrim()
 VehicleTrim::~VehicleTrim()
 {
 }
-
 
 /**
  * @brief VehicleTrim::setFixedWingTrimAutopilotBias Takes the desired roll and pitch,
@@ -57,34 +55,37 @@ VehicleTrim::autopilotLevelBiasMessages VehicleTrim::setAutopilotBias()
 {
     SystemAlarms *systemAlarms = SystemAlarms::GetInstance(getObjectManager());
     FlightStatus *flightStatus = FlightStatus::GetInstance(getObjectManager());
-    StabilizationDesired *stabilizationDesired = StabilizationDesired::GetInstance(getObjectManager());
+    StabilizationDesired *stabilizationDesired =
+        StabilizationDesired::GetInstance(getObjectManager());
 
     // Get SubTrimSettings UAVO
     SubTrimSettings *subTrimSettings = SubTrimSettings::GetInstance(getObjectManager());
     SubTrimSettings::DataFields subTrimSettingsData = subTrimSettings->getData();
 
     // Check that the receiver is present
-    if (systemAlarms->getAlarm_ManualControl()  != SystemAlarms::ALARM_OK){
+    if (systemAlarms->getAlarm_ManualControl() != SystemAlarms::ALARM_OK) {
         return AUTOPILOT_LEVEL_FAILED_DUE_TO_MISSING_RECEIVER;
     }
 
     // Check that vehicle is disarmed
-    if (flightStatus->getArmed() != FlightStatus::ARMED_DISARMED){
+    if (flightStatus->getArmed() != FlightStatus::ARMED_DISARMED) {
         return AUTOPILOT_LEVEL_FAILED_DUE_TO_ARMED_STATE;
     }
 
     // Check that vehicle is in stabilized{1,2,3} flight mode
-    if (flightStatus->getFlightMode() != FlightStatus::FLIGHTMODE_LEVELING &&
-            flightStatus->getFlightMode() != FlightStatus::FLIGHTMODE_ALTITUDEHOLD &&
-            flightStatus->getFlightMode() != FlightStatus::FLIGHTMODE_STABILIZED1 &&
-            flightStatus->getFlightMode() != FlightStatus::FLIGHTMODE_STABILIZED2 &&
-            flightStatus->getFlightMode() != FlightStatus::FLIGHTMODE_STABILIZED3){
+    if (flightStatus->getFlightMode() != FlightStatus::FLIGHTMODE_LEVELING
+        && flightStatus->getFlightMode() != FlightStatus::FLIGHTMODE_ALTITUDEHOLD
+        && flightStatus->getFlightMode() != FlightStatus::FLIGHTMODE_STABILIZED1
+        && flightStatus->getFlightMode() != FlightStatus::FLIGHTMODE_STABILIZED2
+        && flightStatus->getFlightMode() != FlightStatus::FLIGHTMODE_STABILIZED3) {
         return AUTOPILOT_LEVEL_FAILED_DUE_TO_FLIGHTMODE;
     }
 
     // Check that pitch and roll axes are in attitude mode
-    if ((stabilizationDesired->getStabilizationMode_Pitch() != StabilizationDesired::STABILIZATIONMODE_ATTITUDE) ||
-            (stabilizationDesired->getStabilizationMode_Roll() != StabilizationDesired::STABILIZATIONMODE_ATTITUDE)) {
+    if ((stabilizationDesired->getStabilizationMode_Pitch()
+         != StabilizationDesired::STABILIZATIONMODE_ATTITUDE)
+        || (stabilizationDesired->getStabilizationMode_Roll()
+            != StabilizationDesired::STABILIZATIONMODE_ATTITUDE)) {
         return AUTOPILOT_LEVEL_FAILED_DUE_TO_STABILIZATIONMODE;
     }
 
@@ -100,9 +101,9 @@ VehicleTrim::autopilotLevelBiasMessages VehicleTrim::setAutopilotBias()
     return AUTOPILOT_LEVEL_SUCCESS;
 }
 
-
 /**
- * @brief VehicleTrim::setFixedWingTrimActuators Reads the servo inputs from the transmitter, and sets
+ * @brief VehicleTrim::setFixedWingTrimActuators Reads the servo inputs from the transmitter, and
+ * sets
  * these values as the neutral points.
  * @return success state
  */
@@ -110,7 +111,8 @@ VehicleTrim::actuatorTrimMessages VehicleTrim::setTrimActuators()
 {
     SystemAlarms *systemAlarms = SystemAlarms::GetInstance(getObjectManager());
     FlightStatus *flightStatus = FlightStatus::GetInstance(getObjectManager());
-    StabilizationDesired *stabilizationDesired = StabilizationDesired::GetInstance(getObjectManager());
+    StabilizationDesired *stabilizationDesired =
+        StabilizationDesired::GetInstance(getObjectManager());
 
     // Get ActuatorCommand UAVO
     ActuatorCommand *actuatorCommand = ActuatorCommand::GetInstance(getObjectManager());
@@ -121,37 +123,34 @@ VehicleTrim::actuatorTrimMessages VehicleTrim::setTrimActuators()
     ActuatorSettings::DataFields actuatorSettingsData = actuatorSettings->getData();
 
     // Check that the receiver is present
-    if (systemAlarms->getAlarm_ManualControl()  != SystemAlarms::ALARM_OK){
+    if (systemAlarms->getAlarm_ManualControl() != SystemAlarms::ALARM_OK) {
         return ACTUATOR_TRIM_FAILED_DUE_TO_MISSING_RECEIVER;
     }
 
     // Ensure that vehicle is in full manual mode
-    if (flightStatus->getFlightMode() != FlightStatus::FLIGHTMODE_MANUAL ||
-            stabilizationDesired->getStabilizationMode_Roll() != StabilizationDesired::STABILIZATIONMODE_MANUAL ||
-            stabilizationDesired->getStabilizationMode_Pitch() != StabilizationDesired::STABILIZATIONMODE_MANUAL ||
-            stabilizationDesired->getStabilizationMode_Yaw() != StabilizationDesired::STABILIZATIONMODE_MANUAL)
-    {
+    if (flightStatus->getFlightMode() != FlightStatus::FLIGHTMODE_MANUAL
+        || stabilizationDesired->getStabilizationMode_Roll()
+            != StabilizationDesired::STABILIZATIONMODE_MANUAL
+        || stabilizationDesired->getStabilizationMode_Pitch()
+            != StabilizationDesired::STABILIZATIONMODE_MANUAL
+        || stabilizationDesired->getStabilizationMode_Yaw()
+            != StabilizationDesired::STABILIZATIONMODE_MANUAL) {
         return ACTUATOR_TRIM_FAILED_DUE_TO_FLIGHTMODE;
     }
 
     // Iterate over output channel descriptions
     QStringList channelDescriptions = ConfigVehicleTypeWidget::getChannelDescriptions();
-    for(int i=0; i< channelDescriptions.length(); i++) {
-        if(channelDescriptions[i] == "FixedWingRoll1" ||
-                channelDescriptions[i] == "FixedWingRoll2")
-        {
+    for (int i = 0; i < channelDescriptions.length(); i++) {
+        if (channelDescriptions[i] == "FixedWingRoll1"
+            || channelDescriptions[i] == "FixedWingRoll2") {
             int neutral = actuatorCommandData.Channel[i];
             actuatorSettingsData.ChannelNeutral[i] = neutral;
-        }
-        else if (channelDescriptions[i] == "FixedWingPitch1" ||
-                 channelDescriptions[i] == "FixedWingPitch2")
-        {
+        } else if (channelDescriptions[i] == "FixedWingPitch1"
+                   || channelDescriptions[i] == "FixedWingPitch2") {
             int neutral = actuatorCommandData.Channel[i];
             actuatorSettingsData.ChannelNeutral[i] = neutral;
-        }
-        else if (channelDescriptions[i] == "FixedWingYaw1" ||
-                 channelDescriptions[i] == "FixedWingYaw2")
-        {
+        } else if (channelDescriptions[i] == "FixedWingYaw1"
+                   || channelDescriptions[i] == "FixedWingYaw2") {
             int neutral = actuatorCommandData.Channel[i];
             actuatorSettingsData.ChannelNeutral[i] = neutral;
         }
@@ -167,14 +166,14 @@ VehicleTrim::actuatorTrimMessages VehicleTrim::setTrimActuators()
     return ACTUATOR_TRIM_SUCCESS;
 }
 
-
 /**
  * Util function to get a pointer to the object manager
  * @return pointer to the UAVObjectManager
  */
-UAVObjectManager* VehicleTrim::getObjectManager() {
+UAVObjectManager *VehicleTrim::getObjectManager()
+{
     ExtensionSystem::PluginManager *pm = ExtensionSystem::PluginManager::instance();
-    UAVObjectManager * objMngr = pm->getObject<UAVObjectManager>();
+    UAVObjectManager *objMngr = pm->getObject<UAVObjectManager>();
     Q_ASSERT(objMngr);
     return objMngr;
 }

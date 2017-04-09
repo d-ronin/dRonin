@@ -34,9 +34,9 @@
 #include "upgradeassistantdialog.h"
 #include "ui_upgradeassistant.h"
 
-UpgradeAssistantDialog::UpgradeAssistantDialog(QWidget *parent) :
-    QDialog(parent),
-    ui(new Ui::UpgradeAssistant)
+UpgradeAssistantDialog::UpgradeAssistantDialog(QWidget *parent)
+    : QDialog(parent)
+    , ui(new Ui::UpgradeAssistant)
 {
     ui->setupUi(this);
 
@@ -52,12 +52,11 @@ UpgradeAssistantDialog::UpgradeAssistantDialog(QWidget *parent) :
     stepLabels[STEP_BOOT] = ui->lblBoot;
     stepLabels[STEP_IMPORT] = ui->lblImport;
 
-    for (int i=STEP_FIRST; i<STEP_NUM; i++) {
+    for (int i = STEP_FIRST; i < STEP_NUM; i++) {
         originalText[i] = new QString(stepLabels[i]->text());
     }
 
-    connect(ui->buttonBox, SIGNAL(rejected()), this,
-            SLOT(reject()));
+    connect(ui->buttonBox, &QDialogButtonBox::rejected, this, &QDialog::reject);
 }
 
 UpgradeAssistantDialog::~UpgradeAssistantDialog()
@@ -65,8 +64,7 @@ UpgradeAssistantDialog::~UpgradeAssistantDialog()
     delete ui;
 }
 
-void UpgradeAssistantDialog::setOperatingMode(bool upgradingBootloader,
-        bool blankFC)
+void UpgradeAssistantDialog::setOperatingMode(bool upgradingBootloader, bool blankFC)
 {
     ui->lblUpgradeBootloader->setEnabled(upgradingBootloader);
 
@@ -77,11 +75,12 @@ void UpgradeAssistantDialog::setOperatingMode(bool upgradingBootloader,
     onStepChanged(curStep);
 }
 
-int UpgradeAssistantDialog::PromptUser(
-        QString promptText, QString detailText, QStringList buttonText) {
-    int clickIndex=-1;
+int UpgradeAssistantDialog::PromptUser(QString promptText, QString detailText,
+                                       QStringList buttonText)
+{
+    int clickIndex = -1;
 
-    QList <QPushButton *> buttons;
+    QList<QPushButton *> buttons;
 
     QEventLoop loop;
 
@@ -92,11 +91,11 @@ int UpgradeAssistantDialog::PromptUser(
         buttons.append(newButt);
         ui->buttonBox->addButton(newButt, QDialogButtonBox::ActionRole);
 
-        connect(newButt, &QPushButton::clicked, &loop, [&, i] (bool checked) {
-                Q_UNUSED(checked);
-                clickIndex = i;
-                loop.exit();
-            } );
+        connect(newButt, &QPushButton::clicked, &loop, [&, i](bool checked) {
+            Q_UNUSED(checked);
+            clickIndex = i;
+            loop.exit();
+        });
 
         i++;
     }
@@ -115,7 +114,8 @@ int UpgradeAssistantDialog::PromptUser(
     }
 
     ui->lblStatus->setText(tr("Auto-upgrade running..."));
-    ui->lblDetailStatus->setText(tr("Please wait while the upgrader performs automated actions on the flight board."));
+    ui->lblDetailStatus->setText(
+        tr("Please wait while the upgrader performs automated actions on the flight board."));
 
     return clickIndex;
 }
@@ -128,7 +128,7 @@ void UpgradeAssistantDialog::onStepChanged(UpgradeAssistantStep step)
 
     int stepVal = step;
 
-    for (int i=STEP_FIRST; i<STEP_NUM; i++) {
+    for (int i = STEP_FIRST; i < STEP_NUM; i++) {
         if (i < stepVal) {
             // Ensure marked done
             if (stepLabels[i]->isEnabled()) {
@@ -149,12 +149,15 @@ void UpgradeAssistantDialog::onStepChanged(UpgradeAssistantStep step)
         ui->buttonBox->setStandardButtons(QDialogButtonBox::Close);
 
         ui->lblStatus->setText(tr("Auto-upgrade complete!"));
-        ui->lblDetailStatus->setText(tr("It may be necessary to reset your flight board (by removing and attaching power and USB) to apply settings."));
+        ui->lblDetailStatus->setText(
+            tr("It may be necessary to reset your flight board (by removing and attaching power "
+               "and USB) to apply settings."));
     } else {
         ui->buttonBox->setStandardButtons(QDialogButtonBox::Abort);
 
         ui->lblStatus->setText(tr("Auto-upgrade running..."));
-        ui->lblDetailStatus->setText(tr("Please wait while the upgrader performs automated actions on the flight board."));
+        ui->lblDetailStatus->setText(
+            tr("Please wait while the upgrader performs automated actions on the flight board."));
     }
 
     if (isVisible()) {
@@ -162,8 +165,9 @@ void UpgradeAssistantDialog::onStepChanged(UpgradeAssistantStep step)
     }
 }
 
-void UpgradeAssistantDialog::closeEvent(QCloseEvent* event) {
-    (void) event;
+void UpgradeAssistantDialog::closeEvent(QCloseEvent *event)
+{
+    (void)event;
 
     reject();
 }

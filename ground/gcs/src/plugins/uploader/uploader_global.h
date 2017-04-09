@@ -32,9 +32,16 @@
 #include <QPointer>
 #include <coreplugin/boardmanager.h>
 
-namespace uploader
-{
-typedef enum { DISCONNECTED, ENTERING_LOADER, BL_SITTING, BL_BUSY, CONNECTED_TO_TELEMETRY, UPGRADING, UPGRADING_CATCHLOADER } UploaderStatus;
+namespace uploader {
+typedef enum {
+    DISCONNECTED,
+    ENTERING_LOADER,
+    BL_SITTING,
+    BL_BUSY,
+    CONNECTED_TO_TELEMETRY,
+    UPGRADING,
+    UPGRADING_CATCHLOADER
+} UploaderStatus;
 }
 struct deviceInfo
 {
@@ -46,9 +53,9 @@ struct deviceInfo
 };
 
 #if defined(UPLOADER_LIBRARY)
-#  define UPLOADER_EXPORT Q_DECL_EXPORT
+#define UPLOADER_EXPORT Q_DECL_EXPORT
 #else
-#  define UPLOADER_EXPORT Q_DECL_IMPORT
+#define UPLOADER_EXPORT Q_DECL_IMPORT
 #endif
 
 #endif

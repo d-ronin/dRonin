@@ -45,7 +45,6 @@ private:
     int vendorID;
     int productID;
     QString path;
-
 };
 
 #endif // USBDEVICE_H

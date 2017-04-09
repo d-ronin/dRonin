@@ -11,17 +11,17 @@
  * @brief The Core GCS plugin
  *****************************************************************************/
 /*
- * This program is free software; you can redistribute it and/or modify 
- * it under the terms of the GNU General Public License as published by 
- * the Free Software Foundation; either version 3 of the License, or 
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 3 of the License, or
  * (at your option) any later version.
- * 
- * This program is distributed in the hope that it will be useful, but 
- * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY 
- * or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License 
+ *
+ * This program is distributed in the hope that it will be useful, but
+ * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
+ * or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License
  * for more details.
- * 
- * You should have received a copy of the GNU General Public License along 
+ *
+ * You should have received a copy of the GNU General Public License along
  * with this program; if not, see <http://www.gnu.org/licenses/>
  */
 
@@ -37,7 +37,7 @@
 #include <QAction>
 #include <QMenuBar>
 
-Q_DECLARE_METATYPE(Core::Internal::MenuActionContainer*)
+Q_DECLARE_METATYPE(Core::Internal::MenuActionContainer *)
 
 using namespace Core;
 using namespace Core::Internal;
@@ -150,9 +150,9 @@ using namespace Core::Internal;
 */
 
 ActionContainerPrivate::ActionContainerPrivate(int id)
-    : m_data(0), m_id(id)
+    : m_data(0)
+    , m_id(id)
 {
-
 }
 
 void ActionContainerPrivate::setEmptyAction(EmptyAction ea)
@@ -326,7 +326,8 @@ int ActionContainerPrivate::calcPosition(int pos, int prevKey) const
 */
 
 MenuActionContainer::MenuActionContainer(int id)
-    : ActionContainerPrivate(id), m_menu(0)
+    : ActionContainerPrivate(id)
+    , m_menu(0)
 {
     setEmptyAction(EA_Disable);
 }
@@ -336,7 +337,7 @@ void MenuActionContainer::setMenu(QMenu *menu)
     m_menu = menu;
 
     QVariant v;
-    qVariantSetValue<MenuActionContainer*>(v, this);
+    qVariantSetValue<MenuActionContainer *>(v, this);
 
     m_menu->menuAction()->setData(v);
 }
@@ -375,7 +376,8 @@ bool MenuActionContainer::update()
 
     foreach (ActionContainer *container, subContainers()) {
         if (container == this) {
-            qWarning() << Q_FUNC_INFO << "container" << (this->menu() ? this->menu()->title() : "") <<  "contains itself as subcontainer";
+            qWarning() << Q_FUNC_INFO << "container" << (this->menu() ? this->menu()->title() : "")
+                       << "contains itself as subcontainer";
             continue;
         }
         if (container->update()) {
@@ -405,7 +407,6 @@ bool MenuActionContainer::canBeAddedToMenu() const
     return true;
 }
 
-
 // ---------- MenuBarActionContainer ------------
 
 /*!
@@ -414,7 +415,8 @@ bool MenuActionContainer::canBeAddedToMenu() const
 */
 
 MenuBarActionContainer::MenuBarActionContainer(int id)
-    : ActionContainerPrivate(id), m_menuBar(0)
+    : ActionContainerPrivate(id)
+    , m_menuBar(0)
 {
     setEmptyAction(EA_None);
 }
@@ -446,7 +448,7 @@ bool MenuBarActionContainer::update()
 
     bool hasitems = false;
     QList<QAction *> actions = m_menuBar->actions();
-    for (int i=0; i<actions.size(); ++i) {
+    for (int i = 0; i < actions.size(); ++i) {
         if (actions.at(i)->isVisible()) {
             hasitems = true;
             break;
@@ -465,4 +467,3 @@ bool MenuBarActionContainer::canBeAddedToMenu() const
 {
     return false;
 }
-

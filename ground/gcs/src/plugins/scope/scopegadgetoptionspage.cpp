@@ -41,22 +41,20 @@
 #include <qpalette.h>
 #include <QMessageBox>
 
-
-ScopeGadgetOptionsPage::ScopeGadgetOptionsPage(ScopeGadgetConfiguration *config, QObject *parent) :
-        IOptionsPage(parent),
-        m_config(config),
-        selectedItem(0)
+ScopeGadgetOptionsPage::ScopeGadgetOptionsPage(ScopeGadgetConfiguration *config, QObject *parent)
+    : IOptionsPage(parent)
+    , m_config(config)
+    , selectedItem(0)
 {
-    //nothing to do here...
+    // nothing to do here...
 }
-
 
 /**
  * @brief ScopeGadgetOptionsPage::createPage creates options page widget (uses the UI file)
  * @param parent Parent QWidghet
  * @return Returns options page widget
  */
-QWidget* ScopeGadgetOptionsPage::createPage(QWidget *parent)
+QWidget *ScopeGadgetOptionsPage::createPage(QWidget *parent)
 {
     Q_UNUSED(parent);
 
@@ -73,14 +71,16 @@ QWidget* ScopeGadgetOptionsPage::createPage(QWidget *parent)
 
     // Set up x-axis combo box
     options_page->cmbXAxisScatterplot2d->addItem("Series", Scatterplot2dScopeConfig::SERIES2D);
-    options_page->cmbXAxisScatterplot2d->addItem("Time series", Scatterplot2dScopeConfig::TIMESERIES2D);
-
+    options_page->cmbXAxisScatterplot2d->addItem("Time series",
+                                                 Scatterplot2dScopeConfig::TIMESERIES2D);
 
     // Set up 3D plots tab
     options_page->cmb3dPlotType->addItem("Spectrogram", Scopes3dConfig::SPECTROGRAM);
 
-    options_page->cmbSpectrogramSource->addItem("Custom", SpectrogramScopeConfig::CUSTOM_SPECTROGRAM);
-    options_page->cmbSpectrogramSource->addItem("Vibration Analysis", SpectrogramScopeConfig::VIBRATIONANALYSIS);
+    options_page->cmbSpectrogramSource->addItem("Custom",
+                                                SpectrogramScopeConfig::CUSTOM_SPECTROGRAM);
+    options_page->cmbSpectrogramSource->addItem("Vibration Analysis",
+                                                SpectrogramScopeConfig::VIBRATIONANALYSIS);
 
     // Populate colormap combobox.
     options_page->cmbColorMapSpectrogram->addItem("Standard", ColorMap::STANDARD);
@@ -89,22 +89,20 @@ QWidget* ScopeGadgetOptionsPage::createPage(QWidget *parent)
     // Fills the combo boxes for the UAVObjects
     ExtensionSystem::PluginManager *pm = ExtensionSystem::PluginManager::instance();
     UAVObjectManager *objManager = pm->getObject<UAVObjectManager>();
-    QVector< QVector<UAVDataObject*> > objList = objManager->getDataObjectsVector();
+    QVector<QVector<UAVDataObject *>> objList = objManager->getDataObjectsVector();
     QStringList toAdd;
 
     QString previous = NULL;
 
-    foreach (QVector<UAVDataObject*> list, objList) {
-        foreach (UAVDataObject* obj, list) {
-	    QString name = obj->getName();
+    foreach (QVector<UAVDataObject *> list, objList) {
+        foreach (UAVDataObject *obj, list) {
+            QString name = obj->getName();
 
-            if (obj->isSingleInstance())
-            {
-		toAdd.append(name);
-            }
-            else if(name != previous)
-            { //Checks to see if we're duplicating UAVOs because of multiple instances
-		toAdd.append(name);
+            if (obj->isSingleInstance()) {
+                toAdd.append(name);
+            } else if (name != previous) { // Checks to see if we're duplicating UAVOs because of
+                                           // multiple instances
+                toAdd.append(name);
             }
 
             previous = name;
@@ -114,40 +112,43 @@ QWidget* ScopeGadgetOptionsPage::createPage(QWidget *parent)
     qSort(toAdd);
 
     foreach (QString elem, toAdd) {
-	// Before we only added items to the spectrogram if they were not
-	// single instance; assuming that was in error
-	options_page->cmbUAVObjects->addItem(elem);
-	options_page->cmbUAVObjectsSpectrogram->addItem(elem);
+        // Before we only added items to the spectrogram if they were not
+        // single instance; assuming that was in error
+        options_page->cmbUAVObjects->addItem(elem);
+        options_page->cmbUAVObjectsSpectrogram->addItem(elem);
     }
 
     QStringList mathFunctions;
-    mathFunctions << "None" << "Boxcar average" << "Standard deviation" << "FFT";
+    mathFunctions << "None"
+                  << "Boxcar average"
+                  << "Standard deviation"
+                  << "FFT";
 
     options_page->mathFunctionComboBox->addItems(mathFunctions);
     options_page->cmbMathFunctionSpectrogram->addItems(mathFunctions);
 
     // Check that an index is currently selected, and update if true
-    if(options_page->cmbUAVObjects->currentIndex() >= 0){
+    if (options_page->cmbUAVObjects->currentIndex() >= 0) {
         on_cmbUAVObjects_currentIndexChanged(options_page->cmbUAVObjects->currentText());
     }
 
     // Add scaling items
     options_page->cmbScale->addItem("10^-9", -9);
     options_page->cmbScale->addItem("10^-6", -6);
-    options_page->cmbScale->addItem("10^-5",-5);
-    options_page->cmbScale->addItem("10^-4",-4);
-    options_page->cmbScale->addItem("10^-3",-3);
-    options_page->cmbScale->addItem(".01",-2);
-    options_page->cmbScale->addItem(".1",-1);
-    options_page->cmbScale->addItem("1",0);
-    options_page->cmbScale->addItem("10",1);
-    options_page->cmbScale->addItem("100",2);
-    options_page->cmbScale->addItem("10^3",3);
-    options_page->cmbScale->addItem("10^4",4);
-    options_page->cmbScale->addItem("10^5",5);
-    options_page->cmbScale->addItem("10^6",6);
-    options_page->cmbScale->addItem("10^9",9);
-    options_page->cmbScale->addItem("10^12",12);
+    options_page->cmbScale->addItem("10^-5", -5);
+    options_page->cmbScale->addItem("10^-4", -4);
+    options_page->cmbScale->addItem("10^-3", -3);
+    options_page->cmbScale->addItem(".01", -2);
+    options_page->cmbScale->addItem(".1", -1);
+    options_page->cmbScale->addItem("1", 0);
+    options_page->cmbScale->addItem("10", 1);
+    options_page->cmbScale->addItem("100", 2);
+    options_page->cmbScale->addItem("10^3", 3);
+    options_page->cmbScale->addItem("10^4", 4);
+    options_page->cmbScale->addItem("10^5", 5);
+    options_page->cmbScale->addItem("10^6", 6);
+    options_page->cmbScale->addItem("10^9", 9);
+    options_page->cmbScale->addItem("10^12", 12);
 
     // Set default scaling to 10^0
     options_page->cmbScale->setCurrentIndex(options_page->cmbScale->findData(0));
@@ -156,52 +157,69 @@ QWidget* ScopeGadgetOptionsPage::createPage(QWidget *parent)
     options_page->btnColor->setAutoFillBackground(true);
 
     // Generate style sheet for data sources list
-    dataSourceStyleSheetTemplate = "QListView::item:selected {border: 2px solid white; background: rgba(255,255,255,50); selection-color: rgba(%1,%2,%3,255) }";
+    dataSourceStyleSheetTemplate = "QListView::item:selected {border: 2px solid white; background: "
+                                   "rgba(255,255,255,50); selection-color: rgba(%1,%2,%3,255) }";
 
-
-    //Connect signals to slots
-    connect(options_page->cmbXAxisScatterplot2d, SIGNAL(currentIndexChanged(QString)), this, SLOT(on_cmbXAxisScatterplot2d_currentIndexChanged(QString)));
-    connect(options_page->cmb2dPlotType, SIGNAL(currentIndexChanged(QString)), this, SLOT(on_cmb2dPlotType_currentIndexChanged(QString)));
-    connect(options_page->cmb3dPlotType, SIGNAL(currentIndexChanged(QString)), this, SLOT(on_cmb3dPlotType_currentIndexChanged(QString)));
-    connect(options_page->cmbUAVObjects, SIGNAL(currentIndexChanged(QString)), this, SLOT(on_cmbUAVObjects_currentIndexChanged(QString)));
-    connect(options_page->cmbUAVObjectsSpectrogram, SIGNAL(currentIndexChanged(QString)), this, SLOT(on_cmbUAVObjectsSpectrogram_currentIndexChanged(QString)));
-    connect(options_page->btnAdd2dCurve, SIGNAL(clicked()), this, SLOT(on_btnAdd2dCurve_clicked()));
-    connect(options_page->btnApply2dCurve, SIGNAL(clicked()), this, SLOT(on_btnApply2dCurve_clicked()));
-    connect(options_page->btnRemove2dCurve, SIGNAL(clicked()), this, SLOT(on_btnRemove2dCurve_clicked()));
-    connect(options_page->lst2dCurves, SIGNAL(currentRowChanged(int)), this, SLOT(on_lst2dCurves_currentRowChanged(int)));
-    connect(options_page->btnColor, SIGNAL(clicked()), this, SLOT(on_btnColor_clicked()));
-    connect(options_page->mathFunctionComboBox, SIGNAL(currentIndexChanged(int)), this, SLOT(on_mathFunctionComboBox_currentIndexChanged(int)));
-    connect(options_page->cmbSpectrogramSource, SIGNAL(currentIndexChanged(QString)), this, SLOT(on_cmbSpectrogramSource_currentIndexChanged(QString)));
-    connect(options_page->lst2dCurves, SIGNAL(itemClicked(QListWidgetItem *)), this, SLOT(on_lst2dItem_clicked(QListWidgetItem *)));
+    // Connect signals to slots
+    connect(options_page->cmbXAxisScatterplot2d,
+            QOverload<const QString &>::of(&QComboBox::currentIndexChanged), this,
+            &ScopeGadgetOptionsPage::on_cmbXAxisScatterplot2d_currentIndexChanged);
+    connect(options_page->cmb2dPlotType,
+            QOverload<const QString &>::of(&QComboBox::currentIndexChanged), this,
+            &ScopeGadgetOptionsPage::on_cmb2dPlotType_currentIndexChanged);
+    connect(options_page->cmb3dPlotType,
+            QOverload<const QString &>::of(&QComboBox::currentIndexChanged), this,
+            &ScopeGadgetOptionsPage::on_cmb3dPlotType_currentIndexChanged);
+    connect(options_page->cmbUAVObjects,
+            QOverload<const QString &>::of(&QComboBox::currentIndexChanged), this,
+            &ScopeGadgetOptionsPage::on_cmbUAVObjects_currentIndexChanged);
+    connect(options_page->cmbUAVObjectsSpectrogram,
+            QOverload<const QString &>::of(&QComboBox::currentIndexChanged), this,
+            &ScopeGadgetOptionsPage::on_cmbUAVObjectsSpectrogram_currentIndexChanged);
+    connect(options_page->btnAdd2dCurve, &QAbstractButton::clicked, this,
+            &ScopeGadgetOptionsPage::on_btnAdd2dCurve_clicked);
+    connect(options_page->btnApply2dCurve, &QAbstractButton::clicked, this,
+            &ScopeGadgetOptionsPage::on_btnApply2dCurve_clicked);
+    connect(options_page->btnRemove2dCurve, &QAbstractButton::clicked, this,
+            &ScopeGadgetOptionsPage::on_btnRemove2dCurve_clicked);
+    connect(options_page->lst2dCurves, &QListWidget::currentRowChanged, this,
+            &ScopeGadgetOptionsPage::on_lst2dCurves_currentRowChanged);
+    connect(options_page->btnColor, &QAbstractButton::clicked, this,
+            &ScopeGadgetOptionsPage::on_btnColor_clicked);
+    connect(options_page->mathFunctionComboBox, QOverload<int>::of(&QComboBox::currentIndexChanged),
+            this, &ScopeGadgetOptionsPage::on_mathFunctionComboBox_currentIndexChanged);
+    connect(options_page->cmbSpectrogramSource,
+            QOverload<const QString &>::of(&QComboBox::currentIndexChanged), this,
+            &ScopeGadgetOptionsPage::on_cmbSpectrogramSource_currentIndexChanged);
+    connect(options_page->lst2dCurves, &QListWidget::itemClicked, this,
+            &ScopeGadgetOptionsPage::on_lst2dItem_clicked);
 
     // Configuration the GUI elements to reflect the scope settings
-    if(m_config)
+    if (m_config)
         m_config->getScope()->setGuiConfiguration(options_page);
 
     // Cascading update on the UI elements
     emit on_cmb2dPlotType_currentIndexChanged(options_page->cmb2dPlotType->currentText());
     emit on_cmb3dPlotType_currentIndexChanged(options_page->cmb3dPlotType->currentText());
-    emit on_cmbUAVObjectsSpectrogram_currentIndexChanged(options_page->cmbUAVObjectsSpectrogram->currentText());
+    emit on_cmbUAVObjectsSpectrogram_currentIndexChanged(
+        options_page->cmbUAVObjectsSpectrogram->currentText());
 
-
-    //Disable mouse wheel events //TODO: DOES NOT WORK
-    foreach( QSpinBox * sp, findChildren<QSpinBox*>() ) {
-        sp->installEventFilter( this );
+    // Disable mouse wheel events //TODO: DOES NOT WORK
+    foreach (QSpinBox *sp, findChildren<QSpinBox *>()) {
+        sp->installEventFilter(this);
     }
-    foreach( QDoubleSpinBox * sp, findChildren<QDoubleSpinBox*>() ) {
-        sp->installEventFilter( this );
+    foreach (QDoubleSpinBox *sp, findChildren<QDoubleSpinBox *>()) {
+        sp->installEventFilter(this);
     }
-    foreach( QSlider * sp, findChildren<QSlider*>() ) {
-        sp->installEventFilter( this );
+    foreach (QSlider *sp, findChildren<QSlider *>()) {
+        sp->installEventFilter(this);
     }
-    foreach( QComboBox * sp, findChildren<QComboBox*>() ) {
-        sp->installEventFilter( this );
+    foreach (QComboBox *sp, findChildren<QComboBox *>()) {
+        sp->installEventFilter(this);
     }
-
 
     return optionsPageWidget;
 }
-
 
 /**
  * @brief ScopeGadgetOptionsPage::eventFilter Filters all wheel events.
@@ -209,65 +227,70 @@ QWidget* ScopeGadgetOptionsPage::createPage(QWidget *parent)
  * @param evt
  * @return
  */
-bool ScopeGadgetOptionsPage::eventFilter( QObject * obj, QEvent * evt ) {
-    //Filter all wheel events, and ignore them
-    if ( evt->type() == QEvent::Wheel &&
-         (qobject_cast<QAbstractSpinBox*>( obj ) ||
-          qobject_cast<QComboBox*>( obj ) ||
-          qobject_cast<QAbstractSlider*>( obj ) ))
-    {
+bool ScopeGadgetOptionsPage::eventFilter(QObject *obj, QEvent *evt)
+{
+    // Filter all wheel events, and ignore them
+    if (evt->type() == QEvent::Wheel
+        && (qobject_cast<QAbstractSpinBox *>(obj) || qobject_cast<QComboBox *>(obj)
+            || qobject_cast<QAbstractSlider *>(obj))) {
         evt->ignore();
         return true;
     }
-    return ScopeGadgetOptionsPage::eventFilter( obj, evt );
+    return ScopeGadgetOptionsPage::eventFilter(obj, evt);
 }
 
-void ScopeGadgetOptionsPage::on_mathFunctionComboBox_currentIndexChanged(int currentIndex){
-    if (currentIndex > 0){
+void ScopeGadgetOptionsPage::on_mathFunctionComboBox_currentIndexChanged(int currentIndex)
+{
+    if (currentIndex > 0) {
         options_page->spnMeanSamples->setEnabled(true);
-    }
-    else{
+    } else {
         options_page->spnMeanSamples->setEnabled(false);
     }
-
 }
 
-
 /**
- * @brief ScopeGadgetOptionsPage::on_cmbSpectrogramSource_currentIndexChanged Handles special data sources for the spectrogram
+ * @brief ScopeGadgetOptionsPage::on_cmbSpectrogramSource_currentIndexChanged Handles special data
+ * sources for the spectrogram
  * @param currentText
  */
 void ScopeGadgetOptionsPage::on_cmbSpectrogramSource_currentIndexChanged(QString currentText)
 {
-    if (currentText == options_page->cmbSpectrogramSource->itemText(options_page->cmbSpectrogramSource->findData(SpectrogramScopeConfig::VIBRATIONANALYSIS))){
-        int vibrationTestIdx = options_page->cmbUAVObjectsSpectrogram->findText("VibrationTestOutput");
+    if (currentText
+        == options_page->cmbSpectrogramSource->itemText(
+               options_page->cmbSpectrogramSource->findData(
+                   SpectrogramScopeConfig::VIBRATIONANALYSIS))) {
+        int vibrationTestIdx =
+            options_page->cmbUAVObjectsSpectrogram->findText("VibrationTestOutput");
         options_page->cmbUAVObjectsSpectrogram->setCurrentIndex(vibrationTestIdx);
         options_page->cmbUAVObjectsSpectrogram->setEnabled(false);
 
         // Load UAVO
-        ExtensionSystem::PluginManager* pm = ExtensionSystem::PluginManager::instance();
-        UAVObjectManager* objManager = pm->getObject<UAVObjectManager>();
-        VibrationAnalysisOutput* vibrationAnalysisOutput = VibrationAnalysisOutput::GetInstance(objManager);
-        VibrationAnalysisSettings* vibrationAnalysisSettings = VibrationAnalysisSettings::GetInstance(objManager);
-        VibrationAnalysisSettings::DataFields vibrationAnalysisSettingsData = vibrationAnalysisSettings->getData();
+        ExtensionSystem::PluginManager *pm = ExtensionSystem::PluginManager::instance();
+        UAVObjectManager *objManager = pm->getObject<UAVObjectManager>();
+        VibrationAnalysisOutput *vibrationAnalysisOutput =
+            VibrationAnalysisOutput::GetInstance(objManager);
+        VibrationAnalysisSettings *vibrationAnalysisSettings =
+            VibrationAnalysisSettings::GetInstance(objManager);
+        VibrationAnalysisSettings::DataFields vibrationAnalysisSettingsData =
+            vibrationAnalysisSettings->getData();
 
         // Set combobox field to UAVO name
-        options_page->cmbUAVObjectsSpectrogram->setCurrentIndex(options_page->cmbUAVObjectsSpectrogram->findText(vibrationAnalysisOutput->getName()));
+        options_page->cmbUAVObjectsSpectrogram->setCurrentIndex(
+            options_page->cmbUAVObjectsSpectrogram->findText(vibrationAnalysisOutput->getName()));
         // Get the window size
         int fftWindowSize;
-        switch(vibrationAnalysisSettingsData.FFTWindowSize)
-        {
+        switch (vibrationAnalysisSettingsData.FFTWindowSize) {
         default:
-        case VibrationAnalysisSettings::FFTWINDOWSIZE_16 :
+        case VibrationAnalysisSettings::FFTWINDOWSIZE_16:
             fftWindowSize = 16;
             break;
-        case VibrationAnalysisSettings::FFTWINDOWSIZE_64 :
+        case VibrationAnalysisSettings::FFTWINDOWSIZE_64:
             fftWindowSize = 64;
             break;
-        case VibrationAnalysisSettings::FFTWINDOWSIZE_256 :
+        case VibrationAnalysisSettings::FFTWINDOWSIZE_256:
             fftWindowSize = 256;
             break;
-        case VibrationAnalysisSettings::FFTWINDOWSIZE_1024 :
+        case VibrationAnalysisSettings::FFTWINDOWSIZE_1024:
             fftWindowSize = 1024;
             break;
         }
@@ -277,46 +300,44 @@ void ScopeGadgetOptionsPage::on_cmbSpectrogramSource_currentIndexChanged(QString
 
         // Set values to UAVO
         options_page->sbSpectrogramWidth->setValue(fftWindowSize / 2);
-        options_page->sbSpectrogramFrequency->setValue(1000.0f/vibrationAnalysisSettingsData.SampleRate); // Sample rate is in ms
+        options_page->sbSpectrogramFrequency->setValue(
+            1000.0f / vibrationAnalysisSettingsData.SampleRate); // Sample rate is in ms
 
         options_page->sbSpectrogramFrequency->setEnabled(false);
         options_page->sbSpectrogramWidth->setEnabled(false);
 
         options_page->cmbUavoFieldSpectrogram->clear();
 
-        UAVObject* inst = objManager->getObject(vibrationAnalysisOutput->getObjID());
+        UAVObject *inst = objManager->getObject(vibrationAnalysisOutput->getObjID());
 
-        QList<UAVObjectField*> fieldList = inst->getFields();
+        QList<UAVObjectField *> fieldList = inst->getFields();
 
-        foreach (UAVObjectField* field, fieldList) {
-            if(field->getType() == UAVObjectField::STRING || field->getType() == UAVObjectField::ENUM)
-              continue;
-            
-            if(field->getElementNames().count() > 1) {
+        foreach (UAVObjectField *field, fieldList) {
+            if (field->getType() == UAVObjectField::STRING
+                || field->getType() == UAVObjectField::ENUM)
+                continue;
+
+            if (field->getElementNames().count() > 1) {
                 options_page->cmbUavoFieldSpectrogram->addItem(field->getName());
             }
         }
-    
-    }
-    else{
+
+    } else {
         options_page->cmbUAVObjectsSpectrogram->setEnabled(true);
     }
-
 }
-
 
 /**
  * @brief ScopeGadgetOptionsPage::on_btnColor_clicked When clicked, open a color picker. If
  * a color is chosen, apply it to the QPushButton element
  */
 void ScopeGadgetOptionsPage::on_btnColor_clicked()
- {
-     QColor color = QColorDialog::getColor( QColor(options_page->btnColor->text()));
-     if (color.isValid()) {
-         setButtonColor(color);
-     }
- }
-
+{
+    QColor color = QColorDialog::getColor(QColor(options_page->btnColor->text()));
+    if (color.isValid()) {
+        setButtonColor(color);
+    }
+}
 
 /**
  * @brief ScopeGadgetOptionsPage::set2dYAxisWidgetFromDataSource Populate the widgets that
@@ -325,43 +346,48 @@ void ScopeGadgetOptionsPage::on_btnColor_clicked()
 void ScopeGadgetOptionsPage::set2dYAxisWidgetFromDataSource()
 {
     bool parseOK = false;
-    QListWidgetItem* listItem = options_page->lst2dCurves->currentItem();
+    QListWidgetItem *listItem = options_page->lst2dCurves->currentItem();
 
-    if(listItem == 0)
+    if (listItem == 0)
         return;
 
     // Fetch data from teh listItem. The data is stored by user role + offset
-    int currentIndex = options_page->cmbUAVObjects->findText( listItem->data(Qt::UserRole + UR_UAVOBJECT).toString());
+    int currentIndex = options_page->cmbUAVObjects->findText(
+        listItem->data(Qt::UserRole + UR_UAVOBJECT).toString());
     options_page->cmbUAVObjects->setCurrentIndex(currentIndex);
 
-    currentIndex = options_page->cmbUAVField->findText( listItem->data(Qt::UserRole + UR_UAVFIELD).toString());
+    currentIndex =
+        options_page->cmbUAVField->findText(listItem->data(Qt::UserRole + UR_UAVFIELD).toString());
     options_page->cmbUAVField->setCurrentIndex(currentIndex);
 
-    currentIndex = options_page->cmbScale->findData( listItem->data(Qt::UserRole + UR_SCALE), Qt::UserRole, Qt::MatchExactly);
+    currentIndex = options_page->cmbScale->findData(listItem->data(Qt::UserRole + UR_SCALE),
+                                                    Qt::UserRole, Qt::MatchExactly);
     options_page->cmbScale->setCurrentIndex(currentIndex);
 
     // Get graph color
-    QVariant varColor  = listItem->data(Qt::UserRole + UR_COLOR);
+    QVariant varColor = listItem->data(Qt::UserRole + UR_COLOR);
     int rgb = varColor.toInt(&parseOK);
     if (!parseOK)
         rgb = QColor(Qt::red).rgb();
 
     // Set button color
-    setButtonColor(QColor((QRgb) rgb));
+    setButtonColor(QColor((QRgb)rgb));
 
     // Set selected color
-    QString styleSheet = dataSourceStyleSheetTemplate.arg(QColor((QRgb) rgb).red()).arg(QColor((QRgb) rgb).green()).arg(QColor((QRgb) rgb).blue());
+    QString styleSheet = dataSourceStyleSheetTemplate.arg(QColor((QRgb)rgb).red())
+                             .arg(QColor((QRgb)rgb).green())
+                             .arg(QColor((QRgb)rgb).blue());
     options_page->lst2dCurves->setStyleSheet(styleSheet);
 
     unsigned int mean = listItem->data(Qt::UserRole + UR_MEAN).toUInt(&parseOK);
-    if(!parseOK)
+    if (!parseOK)
         mean = 1;
     options_page->spnMeanSamples->setValue(mean);
 
-    currentIndex = options_page->mathFunctionComboBox->findText( listItem->data(Qt::UserRole + UR_MATHFUNCTION).toString());
+    currentIndex = options_page->mathFunctionComboBox->findText(
+        listItem->data(Qt::UserRole + UR_MATHFUNCTION).toString());
     options_page->mathFunctionComboBox->setCurrentIndex(currentIndex);
 }
-
 
 /**
  * @brief ScopeGadgetOptionsPage::setButtonColor Sets the Color picker button background
@@ -370,12 +396,11 @@ void ScopeGadgetOptionsPage::set2dYAxisWidgetFromDataSource()
  */
 void ScopeGadgetOptionsPage::setButtonColor(const QColor &color)
 {
-    //TODO: Understand why this doesn't work when starting a new page. It only works when physically clicking on the button
+    // TODO: Understand why this doesn't work when starting a new page. It only works when
+    // physically clicking on the button
     options_page->btnColor->setText(color.name());
     options_page->btnColor->setPalette(QPalette(color));
-
 }
-
 
 /**
  * @brief ScopeGadgetOptionsPage::on_cmbUAVObjects_currentIndexChanged When a new
@@ -388,28 +413,24 @@ void ScopeGadgetOptionsPage::on_cmbUAVObjects_currentIndexChanged(QString val)
 
     ExtensionSystem::PluginManager *pm = ExtensionSystem::PluginManager::instance();
     UAVObjectManager *objManager = pm->getObject<UAVObjectManager>();
-    UAVDataObject* objData = dynamic_cast<UAVDataObject*>( objManager->getObject(val) );
+    UAVDataObject *objData = dynamic_cast<UAVDataObject *>(objManager->getObject(val));
 
     if (objData == NULL)
         return;
 
-    QList<UAVObjectField*> fieldList = objData->getFields();
-    foreach (UAVObjectField* field, fieldList) {
-        if(field->getType() == UAVObjectField::STRING || field->getType() == UAVObjectField::ENUM )
+    QList<UAVObjectField *> fieldList = objData->getFields();
+    foreach (UAVObjectField *field, fieldList) {
+        if (field->getType() == UAVObjectField::STRING || field->getType() == UAVObjectField::ENUM)
             continue;
 
-        if(field->getElementNames().count() > 1)
-        {
-            foreach(QString elemName , field->getElementNames())
-            {
+        if (field->getElementNames().count() > 1) {
+            foreach (QString elemName, field->getElementNames()) {
                 options_page->cmbUAVField->addItem(field->getName() + "-" + elemName);
             }
-        }
-        else
+        } else
             options_page->cmbUAVField->addItem(field->getName());
     }
 }
-
 
 /**
  * @brief ScopeGadgetOptionsPage::on_cmbUAVObjectsSpectrogram_currentIndexChanged When a new
@@ -423,25 +444,22 @@ void ScopeGadgetOptionsPage::on_cmbUAVObjectsSpectrogram_currentIndexChanged(QSt
 
     ExtensionSystem::PluginManager *pm = ExtensionSystem::PluginManager::instance();
     UAVObjectManager *objManager = pm->getObject<UAVObjectManager>();
-    UAVDataObject* objData = dynamic_cast<UAVDataObject*>( objManager->getObject(val) );
+    UAVDataObject *objData = dynamic_cast<UAVDataObject *>(objManager->getObject(val));
 
     if (objData == NULL)
         return;
 
-    QList<UAVObjectField*> fieldList = objData->getFields();
-    foreach (UAVObjectField* field, fieldList) {
+    QList<UAVObjectField *> fieldList = objData->getFields();
+    foreach (UAVObjectField *field, fieldList) {
 
-        if(field->getType() == UAVObjectField::STRING || field->getType() == UAVObjectField::ENUM)
+        if (field->getType() == UAVObjectField::STRING || field->getType() == UAVObjectField::ENUM)
             continue;
 
-        if(field->getElementNames().count() > 1)
-        {
-            foreach(QString elemName , field->getElementNames())
-            {
+        if (field->getElementNames().count() > 1) {
+            foreach (QString elemName, field->getElementNames()) {
                 options_page->cmbUavoFieldSpectrogram->addItem(field->getName() + "-" + elemName);
             }
-        }
-        else
+        } else
             options_page->cmbUavoFieldSpectrogram->addItem(field->getName());
     }
 
@@ -449,20 +467,18 @@ void ScopeGadgetOptionsPage::on_cmbUAVObjectsSpectrogram_currentIndexChanged(QSt
     unsigned int maxWidth = objManager->getNumInstances(objData->getObjID());
     options_page->sbSpectrogramWidth->setRange(0, maxWidth);
     options_page->sbSpectrogramWidth->setValue(maxWidth);
-
 }
 
-
 /**
- * @brief ScopeGadgetOptionsPage::apply Called when the user presses OK. Applies the current values to the scope.
+ * @brief ScopeGadgetOptionsPage::apply Called when the user presses OK. Applies the current values
+ * to the scope.
  */
 void ScopeGadgetOptionsPage::apply()
 {
-    //The GUI settings are read by the appropriate subclass
-    if(m_config)
+    // The GUI settings are read by the appropriate subclass
+    if (m_config)
         m_config->applyGuiConfiguration(options_page);
 }
-
 
 /**
  * @brief ScopeGadgetOptionsPage::on_btnAdd2dCurve_clicked Add a new data source to the 2D plot.
@@ -472,10 +488,11 @@ void ScopeGadgetOptionsPage::on_btnAdd2dCurve_clicked()
     bool parseOK = false;
     QString uavObject = options_page->cmbUAVObjects->currentText();
     QString uavField = options_page->cmbUAVField->currentText();
-    int scale = options_page->cmbScale->itemData(options_page->cmbScale->currentIndex()).toInt(&parseOK);
+    int scale =
+        options_page->cmbScale->itemData(options_page->cmbScale->currentIndex()).toInt(&parseOK);
 
-    if(!parseOK)
-       scale = 0;
+    if (!parseOK)
+        scale = 0;
 
     unsigned int mean = options_page->spnMeanSamples->value();
     QString mathFunction = options_page->mathFunctionComboBox->currentText();
@@ -486,7 +503,6 @@ void ScopeGadgetOptionsPage::on_btnAdd2dCurve_clicked()
     addPlot2dCurveConfig(uavObject, uavField, scale, mean, mathFunction, varColor);
 }
 
-
 /**
  * @brief ScopeGadgetOptionsPage::on_btnApply2dCurve_clicked Creates new data sources
  */
@@ -495,10 +511,11 @@ void ScopeGadgetOptionsPage::on_btnApply2dCurve_clicked()
     bool parseOK = false;
     QString uavObjectName = options_page->cmbUAVObjects->currentText();
     QString uavFieldName = options_page->cmbUAVField->currentText();
-    int scale = options_page->cmbScale->itemData(options_page->cmbScale->currentIndex()).toInt(&parseOK);
+    int scale =
+        options_page->cmbScale->itemData(options_page->cmbScale->currentIndex()).toInt(&parseOK);
 
-    if(!parseOK)
-       scale = 0;
+    if (!parseOK)
+        scale = 0;
 
     unsigned int mean = options_page->spnMeanSamples->value();
     QString mathFunction = options_page->mathFunctionComboBox->currentText();
@@ -507,21 +524,24 @@ void ScopeGadgetOptionsPage::on_btnApply2dCurve_clicked()
 
     // Apply curve settings
     QListWidgetItem *listWidgetItem = options_page->lst2dCurves->currentItem();
-    if(listWidgetItem == NULL){
+    if (listWidgetItem == NULL) {
         QMessageBox msgBox;
         msgBox.setText(tr("No curve selected."));
-        msgBox.setInformativeText(tr("Please select a curve or generate one with the ""+"" symbol."));
+        msgBox.setInformativeText(tr("Please select a curve or generate one with the "
+                                     "+"
+                                     " symbol."));
         msgBox.setStandardButtons(QMessageBox::Ok);
         msgBox.exec();
 
         return;
     }
 
-    qDebug() << uavObjectName << " " << uavFieldName << " " << scale << " " << mean << " " << mathFunction << " " << varColor << " ";
+    qDebug() << uavObjectName << " " << uavFieldName << " " << scale << " " << mean << " "
+             << mathFunction << " " << varColor << " ";
 
-    setPlot2dCurveProperties(listWidgetItem, uavObjectName, uavFieldName, scale, mean, mathFunction, varColor);
+    setPlot2dCurveProperties(listWidgetItem, uavObjectName, uavFieldName, scale, mean, mathFunction,
+                             varColor);
 }
-
 
 /**
  * @brief ScopeGadgetOptionsPage::on_btnRemove2dCurve_clicked Remove a curve config from the plot.
@@ -530,7 +550,6 @@ void ScopeGadgetOptionsPage::on_btnRemove2dCurve_clicked()
 {
     options_page->lst2dCurves->takeItem(options_page->lst2dCurves->currentIndex().row());
 }
-
 
 /**
  * @brief ScopeGadgetOptionsPage::addPlot2dCurveConfig Add a new curve config to the list
@@ -541,24 +560,27 @@ void ScopeGadgetOptionsPage::on_btnRemove2dCurve_clicked()
  * @param mathFunction Math function to be performed on data
  * @param varColor Plotted color
  */
-void ScopeGadgetOptionsPage::addPlot2dCurveConfig(QString uavObjectName, QString uavFieldName, int scale, unsigned int mean, QString mathFunction, QVariant varColor)
+void ScopeGadgetOptionsPage::addPlot2dCurveConfig(QString uavObjectName, QString uavFieldName,
+                                                  int scale, unsigned int mean,
+                                                  QString mathFunction, QVariant varColor)
 {
     QString listItemDisplayText = uavObjectName + "." + uavFieldName; // Generate the name
-    options_page->lst2dCurves->addItem(listItemDisplayText);  // Add the name to the list
+    options_page->lst2dCurves->addItem(listItemDisplayText); // Add the name to the list
     int itemIdx = options_page->lst2dCurves->count() - 1; // Get the index number for the new value
-    QListWidgetItem *listWidgetItem = options_page->lst2dCurves->item(itemIdx); //Find the widget item
+    QListWidgetItem *listWidgetItem =
+        options_page->lst2dCurves->item(itemIdx); // Find the widget item
 
-    //Apply all settings to curve
-    setPlot2dCurveProperties(listWidgetItem, uavObjectName, uavFieldName, scale, mean, mathFunction, varColor);
+    // Apply all settings to curve
+    setPlot2dCurveProperties(listWidgetItem, uavObjectName, uavFieldName, scale, mean, mathFunction,
+                             varColor);
 
-    //Select the row with the new name
+    // Select the row with the new name
     options_page->lst2dCurves->setCurrentRow(itemIdx);
-
 }
 
-
 /**
- * @brief ScopeGadgetOptionsPage::setPlot2dCurveProperties Set the y-axis curve properties. Overwrites
+ * @brief ScopeGadgetOptionsPage::setPlot2dCurveProperties Set the y-axis curve properties.
+ * Overwrites
  * the existing scope configuration.
  * @param listWidgetItem
  * @param uavObject UAVO name. If the name is empty, defaul to "New graph"
@@ -568,50 +590,51 @@ void ScopeGadgetOptionsPage::addPlot2dCurveConfig(QString uavObjectName, QString
  * @param mathFunction
  * @param varColor
  */
-void ScopeGadgetOptionsPage::setPlot2dCurveProperties(QListWidgetItem *listWidgetItem, QString uavObject, QString uavField, int scale, unsigned int mean, QString mathFunction, QVariant varColor)
+void ScopeGadgetOptionsPage::setPlot2dCurveProperties(QListWidgetItem *listWidgetItem,
+                                                      QString uavObject, QString uavField,
+                                                      int scale, unsigned int mean,
+                                                      QString mathFunction, QVariant varColor)
 {
     bool parseOK = false;
     QString listItemDisplayText;
     QRgb rgbColor;
 
-    if(uavObject!="")
-    {
-        //Set the properties of the newly added list item
+    if (uavObject != "") {
+        // Set the properties of the newly added list item
         listItemDisplayText = uavObject + "." + uavField;
         rgbColor = (QRgb)varColor.toInt(&parseOK);
-        if(!parseOK)
-            rgbColor = qRgb(255,0,0);
-    }
-    else{
+        if (!parseOK)
+            rgbColor = qRgb(255, 0, 0);
+    } else {
         listItemDisplayText = "New graph";
-        rgbColor = qRgb(255,0,0);
+        rgbColor = qRgb(255, 0, 0);
     }
 
     // Set text
     listWidgetItem->setText(listItemDisplayText);
 
     // Set selected color. Both color sets are necessary.
-    QColor color = QColor( rgbColor );
-    QString styleSheet = dataSourceStyleSheetTemplate.arg(QColor(rgbColor).red()).arg(QColor(rgbColor).green()).arg(QColor(rgbColor).blue());
-    listWidgetItem->setTextColor( color ); // This one sets the text color when unselected...
-    options_page->lst2dCurves->setStyleSheet(styleSheet); //.. and this one sets the text color when selected
+    QColor color = QColor(rgbColor);
+    QString styleSheet = dataSourceStyleSheetTemplate.arg(QColor(rgbColor).red())
+                             .arg(QColor(rgbColor).green())
+                             .arg(QColor(rgbColor).blue());
+    listWidgetItem->setTextColor(color); // This one sets the text color when unselected...
+    options_page->lst2dCurves->setStyleSheet(
+        styleSheet); //.. and this one sets the text color when selected
 
-    //Store some additional data for the plot curve on the list item
-    listWidgetItem->setData(Qt::UserRole + UR_UAVOBJECT,QVariant(uavObject));
-    listWidgetItem->setData(Qt::UserRole + UR_UAVFIELD,QVariant(uavField));
-    listWidgetItem->setData(Qt::UserRole + UR_SCALE,QVariant(scale));
-    listWidgetItem->setData(Qt::UserRole + UR_COLOR,varColor);
-    listWidgetItem->setData(Qt::UserRole + UR_MEAN,QVariant(mean));
-    listWidgetItem->setData(Qt::UserRole + UR_MATHFUNCTION,QVariant(mathFunction));
+    // Store some additional data for the plot curve on the list item
+    listWidgetItem->setData(Qt::UserRole + UR_UAVOBJECT, QVariant(uavObject));
+    listWidgetItem->setData(Qt::UserRole + UR_UAVFIELD, QVariant(uavField));
+    listWidgetItem->setData(Qt::UserRole + UR_SCALE, QVariant(scale));
+    listWidgetItem->setData(Qt::UserRole + UR_COLOR, varColor);
+    listWidgetItem->setData(Qt::UserRole + UR_MEAN, QVariant(mean));
+    listWidgetItem->setData(Qt::UserRole + UR_MATHFUNCTION, QVariant(mathFunction));
 }
 
-
-//TODO: Document why finish() is here and what it's supposed to do. Clearly nothing right now.
+// TODO: Document why finish() is here and what it's supposed to do. Clearly nothing right now.
 void ScopeGadgetOptionsPage::finish()
 {
-
 }
-
 
 /**
  * @brief ScopeGadgetOptionsPage::on_lst2dCurves_currentRowChanged When a different plot
@@ -625,19 +648,18 @@ void ScopeGadgetOptionsPage::on_lst2dCurves_currentRowChanged(int currentRow)
 }
 
 /**
- * @brief ScopeGadgetOptionsPage::on_cmbXAxisScatterplot2d_currentIndexChanged Updates the combobox text
+ * @brief ScopeGadgetOptionsPage::on_cmbXAxisScatterplot2d_currentIndexChanged Updates the combobox
+ * text
  * @param currentText
  */
 void ScopeGadgetOptionsPage::on_cmbXAxisScatterplot2d_currentIndexChanged(QString currentText)
 {
-    if (currentText == "Series"){
+    if (currentText == "Series") {
         options_page->spnDataSize->setSuffix(" samples");
-    }
-    else if (currentText == "Time series"){
+    } else if (currentText == "Time series") {
         options_page->spnDataSize->setSuffix(" seconds");
     }
 }
-
 
 /**
  * @brief ScopeGadgetOptionsPage::on_cmb2dPlotType_currentIndexChanged Updates the combobox text
@@ -645,34 +667,31 @@ void ScopeGadgetOptionsPage::on_cmbXAxisScatterplot2d_currentIndexChanged(QStrin
  */
 void ScopeGadgetOptionsPage::on_cmb2dPlotType_currentIndexChanged(QString currentText)
 {
-    if (currentText == "Scatter plot"){
+    if (currentText == "Scatter plot") {
         options_page->sw2dXAxis->setCurrentWidget(options_page->sw2dSeriesStack);
-        on_cmbXAxisScatterplot2d_currentIndexChanged(options_page->cmbXAxisScatterplot2d->currentText());
-    }
-    else if (currentText == "Histogram"){
+        on_cmbXAxisScatterplot2d_currentIndexChanged(
+            options_page->cmbXAxisScatterplot2d->currentText());
+    } else if (currentText == "Histogram") {
         options_page->spnMaxNumBins->setSuffix(" bins");
         options_page->sw2dXAxis->setCurrentWidget(options_page->sw2dHistogramStack);
     }
 }
 
-
 /**
- * @brief ScopeGadgetOptionsPage::on_lst2dItem_clicked If a 2d data source is clicked in the listview, toggle its selected state
+ * @brief ScopeGadgetOptionsPage::on_lst2dItem_clicked If a 2d data source is clicked in the
+ * listview, toggle its selected state
  * @param listItem
  */
-void ScopeGadgetOptionsPage::on_lst2dItem_clicked(QListWidgetItem * listItem)
+void ScopeGadgetOptionsPage::on_lst2dItem_clicked(QListWidgetItem *listItem)
 {
-    if (listItem == selectedItem)
-    {
+    if (listItem == selectedItem) {
         listItem->setSelected(false);
         options_page->lst2dCurves->setCurrentRow(-1);
         selectedItem = 0;
-    }
-    else{
+    } else {
         selectedItem = listItem;
     }
 }
-
 
 /**
  * @brief ScopeGadgetOptionsPage::on_cmb3dPlotType_currentIndexChanged
@@ -680,13 +699,14 @@ void ScopeGadgetOptionsPage::on_lst2dItem_clicked(QListWidgetItem * listItem)
  */
 void ScopeGadgetOptionsPage::on_cmb3dPlotType_currentIndexChanged(QString currentText)
 {
-    if (currentText == "Spectrogram"){
+    if (currentText == "Spectrogram") {
         options_page->stackedWidget3dPlots->setCurrentWidget(options_page->sw3dSpectrogramStack);
 
-        //Set the spectrogram source combobox to custom spectrogram by default
-        options_page->cmbSpectrogramSource->setCurrentIndex(options_page->cmbSpectrogramSource->findData(SpectrogramScopeConfig::CUSTOM_SPECTROGRAM));
-    }
-    else if (currentText == "Time series"){
+        // Set the spectrogram source combobox to custom spectrogram by default
+        options_page->cmbSpectrogramSource->setCurrentIndex(
+            options_page->cmbSpectrogramSource->findData(
+                SpectrogramScopeConfig::CUSTOM_SPECTROGRAM));
+    } else if (currentText == "Time series") {
         options_page->stackedWidget3dPlots->setCurrentWidget(options_page->sw3dTimeSeriesStack);
     }
 }

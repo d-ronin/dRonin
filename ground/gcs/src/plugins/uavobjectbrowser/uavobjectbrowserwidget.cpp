@@ -49,8 +49,9 @@
 
 #define MAXIMUM_UPDATE_PERIOD 200
 
-UAVObjectBrowserWidget::UAVObjectBrowserWidget(QWidget *parent) : QWidget(parent),
-    updatePeriod(MAXIMUM_UPDATE_PERIOD)
+UAVObjectBrowserWidget::UAVObjectBrowserWidget(QWidget *parent)
+    : QWidget(parent)
+    , updatePeriod(MAXIMUM_UPDATE_PERIOD)
 {
     // Create browser and configuration GUIs
     m_browser = new Ui_UAVObjectBrowser();
@@ -67,19 +68,26 @@ UAVObjectBrowserWidget::UAVObjectBrowserWidget(QWidget *parent) : QWidget(parent
     treeView->setObjectName(QString::fromUtf8("treeView"));
     m_browser->verticalLayout->addWidget(treeView);
 
-    connect(m_browser->saveSDButton, SIGNAL(clicked()), this, SLOT(saveObject()));
-    connect(m_browser->readSDButton, SIGNAL(clicked()), this, SLOT(loadObject()));
-    connect(m_browser->eraseSDButton, SIGNAL(clicked()), this, SLOT(eraseObject()));
-    connect(m_browser->sendButton, SIGNAL(clicked()), this, SLOT(sendUpdate()));
-    connect(m_browser->requestButton, SIGNAL(clicked()), this, SLOT(requestUpdate()));
-    connect(m_browser->viewSettingsButton,SIGNAL(clicked()),this,SLOT(viewSlot()));
+    connect(m_browser->saveSDButton, &QAbstractButton::clicked, this,
+            &UAVObjectBrowserWidget::saveObject);
+    connect(m_browser->readSDButton, &QAbstractButton::clicked, this,
+            &UAVObjectBrowserWidget::loadObject);
+    connect(m_browser->eraseSDButton, &QAbstractButton::clicked, this,
+            &UAVObjectBrowserWidget::eraseObject);
+    connect(m_browser->sendButton, &QAbstractButton::clicked, this,
+            &UAVObjectBrowserWidget::sendUpdate);
+    connect(m_browser->requestButton, &QAbstractButton::clicked, this,
+            &UAVObjectBrowserWidget::requestUpdate);
+    connect(m_browser->viewSettingsButton, &QAbstractButton::clicked, this,
+            &UAVObjectBrowserWidget::viewSlot);
 
+    connect(treeView, &QTreeView::collapsed, this, &UAVObjectBrowserWidget::onTreeItemCollapsed);
+    connect(treeView, &QTreeView::expanded, this, &UAVObjectBrowserWidget::onTreeItemExpanded);
 
-    connect((QTreeView*) treeView, SIGNAL(collapsed(QModelIndex)), this, SLOT(onTreeItemCollapsed(QModelIndex) ));
-    connect((QTreeView*) treeView, SIGNAL(expanded(QModelIndex)), this, SLOT(onTreeItemExpanded(QModelIndex) ));
-
-    connect(m_browser->le_searchField, SIGNAL(textChanged(QString)), this, SLOT(searchTextChanged(QString)));
-    connect(m_browser->bn_clearSearchField, SIGNAL(clicked()), this, SLOT(searchTextCleared()));
+    connect(m_browser->le_searchField, &QLineEdit::textChanged, this,
+            &UAVObjectBrowserWidget::searchTextChanged);
+    connect(m_browser->bn_clearSearchField, &QAbstractButton::clicked, this,
+            &UAVObjectBrowserWidget::searchTextCleared);
 
     // Set browser buttons to disabled
     enableUAVOBrowserButtons(false);
@@ -88,20 +96,18 @@ UAVObjectBrowserWidget::UAVObjectBrowserWidget(QWidget *parent) : QWidget(parent
 void UAVObjectBrowserWidget::onTreeItemExpanded(QModelIndex currentProxyIndex)
 {
     QModelIndex currentIndex = proxyModel->mapToSource(currentProxyIndex);
-    TreeItem *item = static_cast<TreeItem*>(currentIndex.internalPointer());
-    TopTreeItem *top = dynamic_cast<TopTreeItem*>(item->parent());
+    TreeItem *item = static_cast<TreeItem *>(currentIndex.internalPointer());
+    TopTreeItem *top = dynamic_cast<TopTreeItem *>(item->parent());
 
-    //Check if current tree index is the child of the top tree item
-    if (top)
-    {
-        ObjectTreeItem *objItem = dynamic_cast<ObjectTreeItem*>(item);
-        //If the cast succeeds, then this is a UAVO
-        if (objItem)
-        {
+    // Check if current tree index is the child of the top tree item
+    if (top) {
+        ObjectTreeItem *objItem = dynamic_cast<ObjectTreeItem *>(item);
+        // If the cast succeeds, then this is a UAVO
+        if (objItem) {
             UAVObject *obj = objItem->object();
             // Check for multiple instance UAVO
-            if(!obj){
-                objItem = dynamic_cast<ObjectTreeItem*>(item->getChild(0));
+            if (!obj) {
+                objItem = dynamic_cast<ObjectTreeItem *>(item->getChild(0));
                 obj = objItem->object();
             }
             Q_ASSERT(obj);
@@ -110,8 +116,8 @@ void UAVObjectBrowserWidget::onTreeItemExpanded(QModelIndex currentProxyIndex)
             // Determine fastest update
             quint16 tmpUpdatePeriod = MAXIMUM_UPDATE_PERIOD;
             int accessType = UAVObject::GetGcsTelemetryUpdateMode(mdata);
-            if (accessType != UAVObject::UPDATEMODE_MANUAL){
-                switch(accessType){
+            if (accessType != UAVObject::UPDATEMODE_MANUAL) {
+                switch (accessType) {
                 case UAVObject::UPDATEMODE_ONCHANGE:
                     tmpUpdatePeriod = 0;
                     break;
@@ -123,8 +129,8 @@ void UAVObjectBrowserWidget::onTreeItemExpanded(QModelIndex currentProxyIndex)
             }
 
             accessType = UAVObject::GetFlightTelemetryUpdateMode(mdata);
-            if (accessType != UAVObject::UPDATEMODE_MANUAL){
-                switch(accessType){
+            if (accessType != UAVObject::UPDATEMODE_MANUAL) {
+                switch (accessType) {
                 case UAVObject::UPDATEMODE_ONCHANGE:
                     tmpUpdatePeriod = 0;
                     break;
@@ -137,7 +143,7 @@ void UAVObjectBrowserWidget::onTreeItemExpanded(QModelIndex currentProxyIndex)
 
             expandedUavoItems.insert(obj->getName(), tmpUpdatePeriod);
 
-            if (tmpUpdatePeriod < updatePeriod){
+            if (tmpUpdatePeriod < updatePeriod) {
                 updatePeriod = tmpUpdatePeriod;
                 treeView->updateTimerPeriod(updatePeriod);
             }
@@ -148,42 +154,37 @@ void UAVObjectBrowserWidget::onTreeItemExpanded(QModelIndex currentProxyIndex)
 void UAVObjectBrowserWidget::onTreeItemCollapsed(QModelIndex currentProxyIndex)
 {
     QModelIndex currentIndex = proxyModel->mapToSource(currentProxyIndex);
-    TreeItem *item = static_cast<TreeItem*>(currentIndex.internalPointer());
-    TopTreeItem *top = dynamic_cast<TopTreeItem*>(item->parent());
+    TreeItem *item = static_cast<TreeItem *>(currentIndex.internalPointer());
+    TopTreeItem *top = dynamic_cast<TopTreeItem *>(item->parent());
 
-    //Check if current tree index is the child of the top tree item
-    if (top)
-    {
-        ObjectTreeItem *objItem = dynamic_cast<ObjectTreeItem*>(item);
-        //If the cast succeeds, then this is a UAVO
-        if (objItem)
-        {
+    // Check if current tree index is the child of the top tree item
+    if (top) {
+        ObjectTreeItem *objItem = dynamic_cast<ObjectTreeItem *>(item);
+        // If the cast succeeds, then this is a UAVO
+        if (objItem) {
             UAVObject *obj = objItem->object();
 
             // Check for multiple instance UAVO
-            if(!obj){
-                objItem = dynamic_cast<ObjectTreeItem*>(item->getChild(0));
+            if (!obj) {
+                objItem = dynamic_cast<ObjectTreeItem *>(item->getChild(0));
                 obj = objItem->object();
             }
             Q_ASSERT(obj);
 
-            //Remove the UAVO, getting its stored value first.
+            // Remove the UAVO, getting its stored value first.
             quint16 tmpUpdatePeriod = expandedUavoItems.value(obj->getName());
             expandedUavoItems.take(obj->getName());
 
             // Check if this was the fastest UAVO
-            if (tmpUpdatePeriod == updatePeriod){
+            if (tmpUpdatePeriod == updatePeriod) {
                 // If so, search for the new fastest UAVO
                 updatePeriod = MAXIMUM_UPDATE_PERIOD;
-                foreach(tmpUpdatePeriod, expandedUavoItems)
-                {
+                foreach (tmpUpdatePeriod, expandedUavoItems) {
                     if (tmpUpdatePeriod < updatePeriod)
                         updatePeriod = tmpUpdatePeriod;
                 }
                 treeView->updateTimerPeriod(updatePeriod);
             }
-
-
         }
     }
 }
@@ -191,23 +192,22 @@ void UAVObjectBrowserWidget::onTreeItemCollapsed(QModelIndex currentProxyIndex)
 void UAVObjectBrowserWidget::updateThrottlePeriod(UAVObject *obj)
 {
     // Test if this is a metadata object. A UAVO's metadata's object ID is the UAVO's object ID + 1
-    if ((obj->getObjID() & 0x01) == 1){
+    if ((obj->getObjID() & 0x01) == 1) {
         ExtensionSystem::PluginManager *pm = ExtensionSystem::PluginManager::instance();
         Q_ASSERT(pm);
         UAVObjectManager *objManager = pm->getObject<UAVObjectManager>();
         Q_ASSERT(objManager);
-        QVector<UAVObject*> list = objManager->getObjectInstancesVector(obj->getObjID() - 1);
+        QVector<UAVObject *> list = objManager->getObjectInstancesVector(obj->getObjID() - 1);
         obj = list.at(0);
     }
-
 
     UAVObject::Metadata mdata = obj->getMetadata();
 
     // Determine fastest update
     quint16 tmpUpdatePeriod = MAXIMUM_UPDATE_PERIOD;
     int accessType = UAVObject::GetGcsTelemetryUpdateMode(mdata);
-    if (accessType != UAVObject::UPDATEMODE_MANUAL){
-        switch(accessType){
+    if (accessType != UAVObject::UPDATEMODE_MANUAL) {
+        switch (accessType) {
         case UAVObject::UPDATEMODE_ONCHANGE:
             tmpUpdatePeriod = 0;
             break;
@@ -219,8 +219,8 @@ void UAVObjectBrowserWidget::updateThrottlePeriod(UAVObject *obj)
     }
 
     accessType = UAVObject::GetFlightTelemetryUpdateMode(mdata);
-    if (accessType != UAVObject::UPDATEMODE_MANUAL){
-        switch(accessType){
+    if (accessType != UAVObject::UPDATEMODE_MANUAL) {
+        switch (accessType) {
         case UAVObject::UPDATEMODE_ONCHANGE:
             tmpUpdatePeriod = 0;
             break;
@@ -233,10 +233,8 @@ void UAVObjectBrowserWidget::updateThrottlePeriod(UAVObject *obj)
 
     expandedUavoItems.insert(obj->getName(), tmpUpdatePeriod);
 
-
     updatePeriod = MAXIMUM_UPDATE_PERIOD;
-    foreach(tmpUpdatePeriod, expandedUavoItems)
-    {
+    foreach (tmpUpdatePeriod, expandedUavoItems) {
         if (tmpUpdatePeriod < updatePeriod)
             updatePeriod = tmpUpdatePeriod;
     }
@@ -248,14 +246,14 @@ UAVObjectBrowserWidget::~UAVObjectBrowserWidget()
     delete m_browser;
 }
 
-
 /**
  * @brief UAVObjectBrowserWidget::setViewOptions Sets the viewing options
  * @param categorized true turns on categorized view
  * @param scientific true turns on scientific notation view
  * @param metadata true turns on metadata view
  */
-void UAVObjectBrowserWidget::setViewOptions(bool categorized, bool scientific, bool metadata, bool hideNotPresent)
+void UAVObjectBrowserWidget::setViewOptions(bool categorized, bool scientific, bool metadata,
+                                            bool hideNotPresent)
 {
     m_viewoptions->cbCategorized->setChecked(categorized);
     m_viewoptions->cbMetaData->setChecked(metadata);
@@ -264,12 +262,13 @@ void UAVObjectBrowserWidget::setViewOptions(bool categorized, bool scientific, b
 }
 
 /**
- * @brief Initializes the model and makes the necessary SIGNAL/SLOT connections
+ * @brief Initializes the model and makes the necessary signal/slot connections
  *
  */
 void UAVObjectBrowserWidget::initialize()
 {
-    m_model->initializeModel(m_viewoptions->cbCategorized->isChecked(),m_viewoptions->cbScientific->isChecked());
+    m_model->initializeModel(m_viewoptions->cbCategorized->isChecked(),
+                             m_viewoptions->cbScientific->isChecked());
 
     // Create and configure the proxy model
     proxyModel = new TreeSortFilterProxyModel(this);
@@ -285,15 +284,22 @@ void UAVObjectBrowserWidget::initialize()
     treeView->setItemDelegate(m_delegate);
 
     // Connect signals
-    connect(treeView->selectionModel(), SIGNAL(currentChanged(QModelIndex,QModelIndex)), this, SLOT(toggleUAVOButtons(QModelIndex,QModelIndex)));
+    connect(treeView->selectionModel(), &QItemSelectionModel::currentChanged, this,
+            &UAVObjectBrowserWidget::toggleUAVOButtons);
 
     showMetaData(m_viewoptions->cbMetaData->isChecked());
     refreshHiddenObjects();
-    connect(m_viewoptions->cbScientific, SIGNAL(toggled(bool)), this, SLOT(viewOptionsChangedSlot()));
-    connect(m_viewoptions->cbCategorized, SIGNAL(toggled(bool)), this, SLOT(viewOptionsChangedSlot()));
-    connect(m_viewoptions->cbHideNotPresent,SIGNAL(toggled(bool)),this,SLOT(showNotPresent(bool)));
-    connect(m_viewoptions->cbMetaData, SIGNAL(toggled(bool)), this, SLOT(showMetaData(bool)));
-    connect(m_model,SIGNAL(presentOnHardwareChanged()),this, SLOT(doRefreshHiddenObjects()), (Qt::ConnectionType) (Qt::UniqueConnection | Qt::QueuedConnection));
+    connect(m_viewoptions->cbScientific, &QAbstractButton::toggled, this,
+            &UAVObjectBrowserWidget::viewOptionsChangedSlot);
+    connect(m_viewoptions->cbCategorized, &QAbstractButton::toggled, this,
+            &UAVObjectBrowserWidget::viewOptionsChangedSlot);
+    connect(m_viewoptions->cbHideNotPresent, &QAbstractButton::toggled, this,
+            &UAVObjectBrowserWidget::showNotPresent);
+    connect(m_viewoptions->cbMetaData, &QAbstractButton::toggled, this,
+            &UAVObjectBrowserWidget::showMetaData);
+    connect(m_model, &UAVObjectTreeModel::presentOnHardwareChanged, this,
+            &UAVObjectBrowserWidget::doRefreshHiddenObjects,
+            (Qt::ConnectionType)(Qt::UniqueConnection | Qt::QueuedConnection));
 }
 
 /**
@@ -302,16 +308,16 @@ void UAVObjectBrowserWidget::initialize()
 void UAVObjectBrowserWidget::refreshHiddenObjects()
 {
     QList<QModelIndex> indexList = m_model->getDataObjectIndexes();
-    foreach(QModelIndex modelIndex, indexList)
-    {
+    foreach (QModelIndex modelIndex, indexList) {
         QModelIndex proxyModelindex = proxyModel->mapFromSource(modelIndex);
 
-        TreeItem *item = static_cast<TreeItem*>(modelIndex.internalPointer());
-        if(item)
-            treeView->setRowHidden(proxyModelindex.row(), proxyModelindex.parent(), m_viewoptions->cbHideNotPresent->isChecked() && !item->getIsPresentOnHardware());
+        TreeItem *item = static_cast<TreeItem *>(modelIndex.internalPointer());
+        if (item)
+            treeView->setRowHidden(proxyModelindex.row(), proxyModelindex.parent(),
+                                   m_viewoptions->cbHideNotPresent->isChecked()
+                                       && !item->getIsPresentOnHardware());
     }
 }
-
 
 /**
  * @brief UAVObjectBrowserWidget::showMetaData Shows UAVO metadata
@@ -321,8 +327,7 @@ void UAVObjectBrowserWidget::showMetaData(bool show)
 {
     refreshViewOptions();
     QList<QModelIndex> metaIndexes = m_model->getMetaDataIndexes();
-    foreach(QModelIndex modelIndex, metaIndexes)
-    {
+    foreach (QModelIndex modelIndex, metaIndexes) {
         QModelIndex proxyModelindex = proxyModel->mapFromSource(modelIndex);
 
         treeView->setRowHidden(proxyModelindex.row(), proxyModelindex.parent(), !show);
@@ -330,11 +335,13 @@ void UAVObjectBrowserWidget::showMetaData(bool show)
 }
 
 /**
- * @brief fires the viewOptionsChanged SIGNAL with the current values.
+ * @brief fires the viewOptionsChanged signal with the current values.
  */
 void UAVObjectBrowserWidget::refreshViewOptions()
 {
-    emit viewOptionsChanged(m_viewoptions->cbCategorized->isChecked(),m_viewoptions->cbScientific->isChecked(),m_viewoptions->cbMetaData->isChecked(),m_viewoptions->cbHideNotPresent->isChecked());
+    emit viewOptionsChanged(
+        m_viewoptions->cbCategorized->isChecked(), m_viewoptions->cbScientific->isChecked(),
+        m_viewoptions->cbMetaData->isChecked(), m_viewoptions->cbHideNotPresent->isChecked());
 }
 
 /**
@@ -363,11 +370,11 @@ void UAVObjectBrowserWidget::sendUpdate()
 
     // This occurs when the selected item is not inside a UAVObject
     if (objItem == NULL) {
-       return;
+        return;
     }
 
-    UAVDataObject * dataObj=qobject_cast<UAVDataObject *>(objItem->object());
-    if(dataObj && dataObj->isSettings())
+    UAVDataObject *dataObj = qobject_cast<UAVDataObject *>(objItem->object());
+    if (dataObj && dataObj->isSettings())
         objItem->setUpdatedOnly(true);
     objItem->apply();
     UAVObject *obj = objItem->object();
@@ -378,9 +385,9 @@ void UAVObjectBrowserWidget::sendUpdate()
     updateThrottlePeriod(obj);
 }
 
-
 /**
- * @brief UAVObjectBrowserWidget::requestUpdate Requests a UAVO from board RAM. Does not affect board NVRAM.
+ * @brief UAVObjectBrowserWidget::requestUpdate Requests a UAVO from board RAM. Does not affect
+ * board NVRAM.
  */
 void UAVObjectBrowserWidget::requestUpdate()
 {
@@ -388,7 +395,7 @@ void UAVObjectBrowserWidget::requestUpdate()
 
     // This occurs when the selected item is not inside a UAVObject
     if (objItem == NULL) {
-       return;
+        return;
     }
 
     UAVObject *obj = objItem->object();
@@ -399,36 +406,36 @@ void UAVObjectBrowserWidget::requestUpdate()
     updateThrottlePeriod(obj);
 }
 
-
 /**
- * @brief UAVObjectBrowserWidget::findCurrentObjectTreeItem Finds the UAVO selected in the object tree
+ * @brief UAVObjectBrowserWidget::findCurrentObjectTreeItem Finds the UAVO selected in the object
+ * tree
  * @return Object tree item corresponding to UAVO name
  */
 ObjectTreeItem *UAVObjectBrowserWidget::findCurrentObjectTreeItem()
 {
     QModelIndex current = proxyModel->mapToSource(treeView->currentIndex());
-    TreeItem *item = static_cast<TreeItem*>(current.internalPointer());
+    TreeItem *item = static_cast<TreeItem *>(current.internalPointer());
     ObjectTreeItem *objItem = 0;
 
     // Recursively iterate over child branches until the parent UAVO branch is found
     while (item) {
-        //Attempt a dynamic cast
-        objItem = dynamic_cast<ObjectTreeItem*>(item);
+        // Attempt a dynamic cast
+        objItem = dynamic_cast<ObjectTreeItem *>(item);
 
-        //If the cast succeeds, then this is a UAVO or UAVO metada. Stop the while loop.
+        // If the cast succeeds, then this is a UAVO or UAVO metada. Stop the while loop.
         if (objItem)
             break;
 
-        //If it fails, then set item equal to the parent branch, and try again.
+        // If it fails, then set item equal to the parent branch, and try again.
         item = item->parent();
     }
 
     return objItem;
 }
 
-
 /**
- * @brief UAVObjectBrowserWidget::saveObject Save UAVO to board NVRAM. THis loads the UAVO into board RAM.
+ * @brief UAVObjectBrowserWidget::saveObject Save UAVO to board NVRAM. THis loads the UAVO into
+ * board RAM.
  */
 void UAVObjectBrowserWidget::saveObject()
 {
@@ -440,11 +447,11 @@ void UAVObjectBrowserWidget::saveObject()
 
     // This occurs when the selected item is not inside a UAVObject
     if (objItem == NULL) {
-       return;
+        return;
     }
 
-    UAVDataObject * dataObj=qobject_cast<UAVDataObject *>(objItem->object());
-    if(dataObj && dataObj->isSettings())
+    UAVDataObject *dataObj = qobject_cast<UAVDataObject *>(objItem->object());
+    if (dataObj && dataObj->isSettings())
         objItem->setUpdatedOnly(false);
     UAVObject *obj = objItem->object();
     Q_ASSERT(obj);
@@ -454,9 +461,9 @@ void UAVObjectBrowserWidget::saveObject()
     updateThrottlePeriod(obj);
 }
 
-
 /**
- * @brief UAVObjectBrowserWidget::loadObject  Retrieve UAVO from board NVRAM. This loads the UAVO into board RAM.
+ * @brief UAVObjectBrowserWidget::loadObject  Retrieve UAVO from board NVRAM. This loads the UAVO
+ * into board RAM.
  */
 void UAVObjectBrowserWidget::loadObject()
 {
@@ -465,7 +472,7 @@ void UAVObjectBrowserWidget::loadObject()
 
     // This occurs when the selected item is not inside a UAVObject
     if (objItem == NULL) {
-       return;
+        return;
     }
 
     UAVObject *obj = objItem->object();
@@ -478,7 +485,6 @@ void UAVObjectBrowserWidget::loadObject()
     updateThrottlePeriod(obj);
 }
 
-
 /**
  * @brief UAVObjectBrowserWidget::eraseObject Erases the selected UAVO from board NVRAM.
  */
@@ -488,7 +494,7 @@ void UAVObjectBrowserWidget::eraseObject()
 
     // This occurs when the selected item is not inside a UAVObject
     if (objItem == NULL) {
-       return;
+        return;
     }
 
     UAVObject *obj = objItem->object();
@@ -496,19 +502,20 @@ void UAVObjectBrowserWidget::eraseObject()
     updateObjectPersistance(ObjectPersistence::OPERATION_DELETE, obj);
 }
 
-
 /**
- * @brief UAVObjectBrowserWidget::updateObjectPersistance Sends an object persistance command to the flight controller
+ * @brief UAVObjectBrowserWidget::updateObjectPersistance Sends an object persistance command to the
+ * flight controller
  * @param op  ObjectPersistence::OperationOptions enum
  * @param obj UAVObject that will be operated on
  */
-void UAVObjectBrowserWidget::updateObjectPersistance(ObjectPersistence::OperationOptions op, UAVObject *obj)
+void UAVObjectBrowserWidget::updateObjectPersistance(ObjectPersistence::OperationOptions op,
+                                                     UAVObject *obj)
 {
     ExtensionSystem::PluginManager *pm = ExtensionSystem::PluginManager::instance();
     UAVObjectManager *objManager = pm->getObject<UAVObjectManager>();
-    ObjectPersistence* objper = dynamic_cast<ObjectPersistence*>( objManager->getObject(ObjectPersistence::NAME) );
-    if (obj != NULL)
-    {
+    ObjectPersistence *objper =
+        dynamic_cast<ObjectPersistence *>(objManager->getObject(ObjectPersistence::NAME));
+    if (obj != NULL) {
         ObjectPersistence::DataFields data;
         data.Operation = op;
         data.ObjectID = obj->getObjID();
@@ -518,30 +525,30 @@ void UAVObjectBrowserWidget::updateObjectPersistance(ObjectPersistence::Operatio
     }
 }
 
-
 /**
  * @brief UAVObjectBrowserWidget::toggleUAVOButtons Toggles the UAVO buttons depending on
  * 1) which branch of the UAVO tree is selected or 2) if there is no data in the current tree(?)
  * @param current Current model index
  * @param previous unused
  */
-void UAVObjectBrowserWidget::toggleUAVOButtons(const QModelIndex &currentProxyIndex, const QModelIndex &previousIndex)
+void UAVObjectBrowserWidget::toggleUAVOButtons(const QModelIndex &currentProxyIndex,
+                                               const QModelIndex &previousIndex)
 {
     Q_UNUSED(previousIndex);
 
     QModelIndex currentIndex = proxyModel->mapToSource(currentProxyIndex);
-    TreeItem *item = static_cast<TreeItem*>(currentIndex.internalPointer());
-    TopTreeItem *top = dynamic_cast<TopTreeItem*>(item);
-    ObjectTreeItem *data = dynamic_cast<ObjectTreeItem*>(item);
-    CategoryTreeItem *category = dynamic_cast<CategoryTreeItem*>(item);
+    TreeItem *item = static_cast<TreeItem *>(currentIndex.internalPointer());
+    TopTreeItem *top = dynamic_cast<TopTreeItem *>(item);
+    ObjectTreeItem *data = dynamic_cast<ObjectTreeItem *>(item);
+    CategoryTreeItem *category = dynamic_cast<CategoryTreeItem *>(item);
 
     bool enableState = true;
 
-    //Check if current index refers to an empty index
+    // Check if current index refers to an empty index
     if (currentIndex == QModelIndex())
         enableState = false;
 
-    //Check if current tree index is the top tree item
+    // Check if current tree index is the top tree item
     if (top || (data && !data->object()))
         enableState = false;
 
@@ -552,45 +559,47 @@ void UAVObjectBrowserWidget::toggleUAVOButtons(const QModelIndex &currentProxyIn
     enableUAVOBrowserButtons(enableState);
 }
 
-
 /**
  * @brief UAVObjectBrowserWidget::viewSlot Trigger view options dialog
  */
 void UAVObjectBrowserWidget::viewSlot()
 {
-    if(m_viewoptionsDialog->isVisible())
+    if (m_viewoptionsDialog->isVisible())
         m_viewoptionsDialog->setVisible(false);
-    else
-    {
-        QPoint pos=QCursor::pos();
-        pos.setX(pos.x()-m_viewoptionsDialog->width());
+    else {
+        QPoint pos = QCursor::pos();
+        pos.setX(pos.x() - m_viewoptionsDialog->width());
         m_viewoptionsDialog->move(pos);
         m_viewoptionsDialog->show();
     }
 }
 
-
 /**
- * @brief UAVObjectBrowserWidget::viewOptionsChangedSlot Triggers when the "view options" checkboxes are toggled
+ * @brief UAVObjectBrowserWidget::viewOptionsChangedSlot Triggers when the "view options" checkboxes
+ * are toggled
  */
 void UAVObjectBrowserWidget::viewOptionsChangedSlot()
 {
-    emit viewOptionsChanged(m_viewoptions->cbCategorized->isChecked(),m_viewoptions->cbScientific->isChecked(),m_viewoptions->cbMetaData->isChecked(),m_viewoptions->cbHideNotPresent);
-    m_model->initializeModel(m_viewoptions->cbCategorized->isChecked(), m_viewoptions->cbScientific->isChecked());
+    emit viewOptionsChanged(
+        m_viewoptions->cbCategorized->isChecked(), m_viewoptions->cbScientific->isChecked(),
+        m_viewoptions->cbMetaData->isChecked(), m_viewoptions->cbHideNotPresent);
+    m_model->initializeModel(m_viewoptions->cbCategorized->isChecked(),
+                             m_viewoptions->cbScientific->isChecked());
 
     // Reset proxy model
-    disconnect(treeView->selectionModel(), SIGNAL(currentChanged(QModelIndex,QModelIndex)), this, SLOT(toggleUAVOButtons(QModelIndex,QModelIndex)));
+    disconnect(treeView->selectionModel(), &QItemSelectionModel::currentChanged, this,
+               &UAVObjectBrowserWidget::toggleUAVOButtons);
     delete proxyModel;
     proxyModel = new TreeSortFilterProxyModel(this);
     proxyModel->setSourceModel(m_model);
     treeView->setModel(proxyModel);
     searchTextChanged(m_browser->le_searchField->text());
-    connect(treeView->selectionModel(), SIGNAL(currentChanged(QModelIndex,QModelIndex)), this, SLOT(toggleUAVOButtons(QModelIndex,QModelIndex)));
+    connect(treeView->selectionModel(), &QItemSelectionModel::currentChanged, this,
+            &UAVObjectBrowserWidget::toggleUAVOButtons);
 
     showMetaData(m_viewoptions->cbMetaData->isChecked());
     refreshHiddenObjects();
 }
-
 
 /**
  * @brief UAVObjectBrowserWidget::enableUAVOBrowserButtons Enables or disables UAVO browser buttons
@@ -622,8 +631,7 @@ void UAVObjectBrowserWidget::searchTextCleared()
 
 void UAVObjectBrowserWidget::keyPressEvent(QKeyEvent *e)
 {
-    switch(e->key())
-    {
+    switch (e->key()) {
     case Qt::Key_Escape:
         searchTextCleared();
     default:
@@ -633,8 +641,7 @@ void UAVObjectBrowserWidget::keyPressEvent(QKeyEvent *e)
 
 void UAVObjectBrowserWidget::keyReleaseEvent(QKeyEvent *e)
 {
-    switch(e->key())
-    {
+    switch (e->key()) {
     case Qt::Key_Escape:
         searchTextCleared();
     default:
@@ -642,44 +649,43 @@ void UAVObjectBrowserWidget::keyReleaseEvent(QKeyEvent *e)
     }
 }
 
-
 //============================
 
 /**
  * @brief UAVOBrowserTreeView::UAVOBrowserTreeView Constructor for reimplementation of QTreeView
  */
-UAVOBrowserTreeView::UAVOBrowserTreeView(unsigned int updateTimerPeriod) : QTreeView(),
-    m_updateTreeViewFlag(false)
+UAVOBrowserTreeView::UAVOBrowserTreeView(unsigned int updateTimerPeriod)
+    : QTreeView()
+    , m_updateTreeViewFlag(false)
 {
     // Start timer at 100ms
     m_updateViewTimer.start(updateTimerPeriod);
 
     // Connect the timer
-    connect(&m_updateViewTimer, SIGNAL(timeout()), this, SLOT(onTimeout_updateView()));
+    connect(&m_updateViewTimer, &QTimer::timeout, this, &UAVOBrowserTreeView::onTimeout_updateView);
 }
 
 void UAVOBrowserTreeView::updateTimerPeriod(unsigned int val)
 {
-    if (val == 0){
+    if (val == 0) {
         // If val == 0, disable throttling by stopping the timer.
         m_updateViewTimer.stop();
-    }
-    else
-    {
+    } else {
         // If the UAVO has a very fast data rate, then don't go the full speed.
-        if (val < 125)
-        {
+        if (val < 125) {
             val = 125; // Don't try to draw the browser faster than 8Hz.
         }
         m_updateViewTimer.start(val);
     }
 }
 
-
 /**
- * @brief UAVOBrowserTreeView::onTimeout_updateView On timeout, emits dataChanged() SIGNAL. Origingally,
- * this was intended to only function on the the data tree indices that had changed since last timeout,
- * but QTreeView does not respect the limits in dataChanged, instead redrawing the entire tree at each
+ * @brief UAVOBrowserTreeView::onTimeout_updateView On timeout, emits dataChanged() signal.
+ * Origingally,
+ * this was intended to only function on the the data tree indices that had changed since last
+ * timeout,
+ * but QTreeView does not respect the limits in dataChanged, instead redrawing the entire tree at
+ * each
  * update.
  */
 void UAVOBrowserTreeView::onTimeout_updateView()
@@ -700,16 +706,18 @@ void UAVOBrowserTreeView::onTimeout_updateView()
  * @param topLeft Top left index from data model update
  * @param bottomRight Bottom right index from data model update
  */
-void UAVOBrowserTreeView::updateView(const QModelIndex &topLeftProxy, const QModelIndex &bottomRightProxy)
+void UAVOBrowserTreeView::updateView(const QModelIndex &topLeftProxy,
+                                     const QModelIndex &bottomRightProxy)
 {
     Q_UNUSED(bottomRightProxy);
 
-    // First static_cast from *void to a tree item pointer. This is safe because we know all the indices are tree items
+    // First static_cast from *void to a tree item pointer. This is safe because we know all the
+    // indices are tree items
     QModelIndex topLeftModel = proxyModel->mapToSource(topLeftProxy);
-    TreeItem *treeItemPtr = static_cast<TreeItem*>(topLeftModel.internalPointer());
+    TreeItem *treeItemPtr = static_cast<TreeItem *>(topLeftModel.internalPointer());
 
     // Second, do a dynamic_cast in order to detect if this tree item is a data object
-    DataObjectTreeItem *dataObjectTreeItemPtr = dynamic_cast<DataObjectTreeItem*>(treeItemPtr);
+    DataObjectTreeItem *dataObjectTreeItemPtr = dynamic_cast<DataObjectTreeItem *>(treeItemPtr);
 
     if (dataObjectTreeItemPtr == NULL) {
         // Do nothing. These QModelIndices are generated by the highlight manager for individual
@@ -721,25 +729,23 @@ void UAVOBrowserTreeView::updateView(const QModelIndex &topLeftProxy, const QMod
     m_updateTreeViewFlag = true;
 }
 
-void UAVOBrowserTreeView::dataChanged(const QModelIndex & topLeft, const QModelIndex & bottomRight,
-                                      const QVector<int> & roles)
+void UAVOBrowserTreeView::dataChanged(const QModelIndex &topLeft, const QModelIndex &bottomRight,
+                                      const QVector<int> &roles)
 {
     Q_UNUSED(roles);
 
     // If the timer is active, then throttle updates...
     if (m_updateViewTimer.isActive()) {
         updateView(topLeft, bottomRight);
-    }
-    else { // ... otherwise pass them directly on to the treeview.
-       QTreeView::dataChanged(topLeft, bottomRight);
+    } else { // ... otherwise pass them directly on to the treeview.
+        QTreeView::dataChanged(topLeft, bottomRight);
     }
 }
 
-
 //============================
 
-TreeSortFilterProxyModel::TreeSortFilterProxyModel(QObject *p) :
-    QSortFilterProxyModel(p)
+TreeSortFilterProxyModel::TreeSortFilterProxyModel(QObject *p)
+    : QSortFilterProxyModel(p)
 {
     Q_ASSERT(p);
 }
@@ -755,12 +761,13 @@ TreeSortFilterProxyModel::TreeSortFilterProxyModel(QObject *p) :
  * @param sourceParent
  * @return
  */
-bool TreeSortFilterProxyModel::filterAcceptsRow(int source_row, const QModelIndex &source_parent) const
+bool TreeSortFilterProxyModel::filterAcceptsRow(int source_row,
+                                                const QModelIndex &source_parent) const
 {
     if (filterAcceptsRowItself(source_row, source_parent))
         return true;
 
-    //accept if any of the parents is accepted on it's own merits
+    // accept if any of the parents is accepted on it's own merits
     QModelIndex parent = source_parent;
     while (parent.isValid()) {
         if (filterAcceptsRowItself(parent.row(), parent.parent()))
@@ -768,7 +775,7 @@ bool TreeSortFilterProxyModel::filterAcceptsRow(int source_row, const QModelInde
         parent = parent.parent();
     }
 
-    //accept if any of the children is accepted on it's own merits
+    // accept if any of the children is accepted on it's own merits
     if (hasAcceptedChildren(source_row, source_parent)) {
         return true;
     }
@@ -776,20 +783,22 @@ bool TreeSortFilterProxyModel::filterAcceptsRow(int source_row, const QModelInde
     return false;
 }
 
-bool TreeSortFilterProxyModel::filterAcceptsRowItself(int source_row, const QModelIndex &source_parent) const
+bool TreeSortFilterProxyModel::filterAcceptsRowItself(int source_row,
+                                                      const QModelIndex &source_parent) const
 {
     return QSortFilterProxyModel::filterAcceptsRow(source_row, source_parent);
 }
 
-bool TreeSortFilterProxyModel::hasAcceptedChildren(int source_row, const QModelIndex &source_parent) const
+bool TreeSortFilterProxyModel::hasAcceptedChildren(int source_row,
+                                                   const QModelIndex &source_parent) const
 {
-    QModelIndex item = sourceModel()->index(source_row,0,source_parent);
+    QModelIndex item = sourceModel()->index(source_row, 0, source_parent);
     if (!item.isValid()) {
-        //qDebug() << "item invalid" << source_parent << source_row;
+        // qDebug() << "item invalid" << source_parent << source_row;
         return false;
     }
 
-    //check if there are children
+    // check if there are children
     int childCount = item.model()->rowCount(item);
     if (childCount == 0)
         return false;
@@ -797,7 +806,8 @@ bool TreeSortFilterProxyModel::hasAcceptedChildren(int source_row, const QModelI
     for (int i = 0; i < childCount; ++i) {
         if (filterAcceptsRowItself(i, item))
             return true;
-        //recursive call -> NOTICE that this is depth-first searching, you're probably better off with breadth first search...
+        // recursive call -> NOTICE that this is depth-first searching, you're probably better off
+        // with breadth first search...
         if (hasAcceptedChildren(i, item))
             return true;
     }

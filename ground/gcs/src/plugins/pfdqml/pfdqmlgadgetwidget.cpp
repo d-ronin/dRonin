@@ -28,27 +28,27 @@
 #include <QQmlContext>
 #include "stabilizationdesired.h"
 
-PfdQmlGadgetWidget::PfdQmlGadgetWidget(QWindow *parent) :
-    QQuickView(parent)
+PfdQmlGadgetWidget::PfdQmlGadgetWidget(QWindow *parent)
+    : QQuickView(parent)
 {
     setResizeMode(SizeRootObjectToView);
 
-    objectsToExport << "VelocityActual" <<
-                       "PositionActual" <<
-                       "AltitudeHoldDesired" <<
-                       "AttitudeActual" <<
-                       "AirspeedActual" <<
-                       "Accels" <<
-                       "Magnetometer" <<
-                       "VelocityDesired" <<
-                       "StabilizationDesired" <<
-                       "PathDesired" <<
-                       "HomeLocation" <<
-                       "Waypoint" <<
-                       "WaypointActive" <<
-                       "GPSPosition" <<
-                       "GCSTelemetryStats" <<
-                       "FlightBatteryState";
+    objectsToExport << "VelocityActual"
+                    << "PositionActual"
+                    << "AltitudeHoldDesired"
+                    << "AttitudeActual"
+                    << "AirspeedActual"
+                    << "Accels"
+                    << "Magnetometer"
+                    << "VelocityDesired"
+                    << "StabilizationDesired"
+                    << "PathDesired"
+                    << "HomeLocation"
+                    << "Waypoint"
+                    << "WaypointActive"
+                    << "GPSPosition"
+                    << "GCSTelemetryStats"
+                    << "FlightBatteryState";
 
     ExtensionSystem::PluginManager *pm = ExtensionSystem::PluginManager::instance();
     m_objManager = pm->getObject<UAVObjectManager>();
@@ -57,7 +57,7 @@ PfdQmlGadgetWidget::PfdQmlGadgetWidget(QWindow *parent) :
         exportUAVOInstance(objectName, 0);
     }
 
-    //to expose settings values
+    // to expose settings values
     engine()->rootContext()->setContextProperty("qmlWidget", this);
 }
 
@@ -65,22 +65,21 @@ PfdQmlGadgetWidget::~PfdQmlGadgetWidget()
 {
 }
 
-
 /**
- * @brief PfdQmlGadgetWidget::exportUAVOInstance Makes the UAVO available inside the QML. This works via the Q_PROPERTY()
+ * @brief PfdQmlGadgetWidget::exportUAVOInstance Makes the UAVO available inside the QML. This works
+ * via the Q_PROPERTY()
  * values in the UAVO synthetic-headers
  * @param objectName UAVObject name
  * @param instId Instance ID
  */
 void PfdQmlGadgetWidget::exportUAVOInstance(const QString &objectName, int instId)
 {
-    UAVObject* object = m_objManager->getObject(objectName, instId);
+    UAVObject *object = m_objManager->getObject(objectName, instId);
     if (object)
         engine()->rootContext()->setContextProperty(objectName, object);
     else
         qWarning() << "[PFDQML] Failed to load object" << objectName;
 }
-
 
 /**
  * @brief PfdQmlGadgetWidget::resetUAVOExport Makes the UAVO no longer available inside the QML.
@@ -89,9 +88,9 @@ void PfdQmlGadgetWidget::exportUAVOInstance(const QString &objectName, int instI
  */
 void PfdQmlGadgetWidget::resetUAVOExport(const QString &objectName, int instId)
 {
-    UAVObject* object = m_objManager->getObject(objectName, instId);
+    UAVObject *object = m_objManager->getObject(objectName, instId);
     if (object)
-        engine()->rootContext()->setContextProperty(objectName, (QObject*)NULL);
+        engine()->rootContext()->setContextProperty(objectName, (QObject *)NULL);
     else
         qWarning() << "Failed to load object" << objectName;
 }
@@ -106,13 +105,13 @@ void PfdQmlGadgetWidget::setQmlFile(QString fn)
 
     engine()->clearComponentCache();
 
-    //it's necessary to allow qml side to query svg element position
+    // it's necessary to allow qml side to query svg element position
     engine()->rootContext()->setContextProperty("svgRenderer", svgProvider);
     engine()->setBaseUrl(QUrl::fromLocalFile(fn));
 
     setSource(QUrl::fromLocalFile(fn));
 
-    foreach(const QQmlError &error, errors()) {
+    foreach (const QQmlError &error, errors()) {
         qDebug() << error.description();
     }
 }

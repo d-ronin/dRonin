@@ -33,8 +33,9 @@
 #include "extensionsystem/pluginmanager.h"
 #include "uavobjectmanager.h"
 
-InputPageNotSupported::InputPageNotSupported(SetupWizard *wizard, QWidget *parent) :
-    AbstractWizardPage(wizard, parent),
+InputPageNotSupported::InputPageNotSupported(SetupWizard *wizard, QWidget *parent)
+    : AbstractWizardPage(wizard, parent)
+    ,
 
     ui(new Ui::InputPageNotSupported)
 {

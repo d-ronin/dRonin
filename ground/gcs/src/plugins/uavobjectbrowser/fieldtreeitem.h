@@ -49,45 +49,61 @@
 
 class FieldTreeItem : public TreeItem
 {
-Q_OBJECT
+    Q_OBJECT
 public:
-    FieldTreeItem(int index, const QList<QVariant> &data, TreeItem *parent = 0) :
-            TreeItem(data, parent), m_index(index) { }
-    FieldTreeItem(int index, const QVariant &data, TreeItem *parent = 0) :
-            TreeItem(data, parent), m_index(index) { }
+    FieldTreeItem(int index, const QList<QVariant> &data, TreeItem *parent = 0)
+        : TreeItem(data, parent)
+        , m_index(index)
+    {
+    }
+    FieldTreeItem(int index, const QVariant &data, TreeItem *parent = 0)
+        : TreeItem(data, parent)
+        , m_index(index)
+    {
+    }
     bool isEditable() { return true; }
     virtual QWidget *createEditor(QWidget *parent) = 0;
     virtual QVariant getEditorValue(QWidget *editor) = 0;
     virtual void setEditorValue(QWidget *editor, QVariant value) = 0;
-    virtual void apply() { }
+    virtual void apply() {}
 protected:
     int m_index;
 };
 
 class EnumFieldTreeItem : public FieldTreeItem
 {
-Q_OBJECT
+    Q_OBJECT
 public:
     EnumFieldTreeItem(UAVObjectField *field, int index, const QList<QVariant> &data,
-                      TreeItem *parent = 0) :
-    FieldTreeItem(index, data, parent), m_enumOptions(field->getOptions()), m_field(field) { }
-    EnumFieldTreeItem(UAVObjectField *field, int index, const QVariant &data,
-                      TreeItem *parent = 0) :
-    FieldTreeItem(index, data, parent), m_enumOptions(field->getOptions()), m_field(field) { }
-    void setData(QVariant value, int column) {
+                      TreeItem *parent = 0)
+        : FieldTreeItem(index, data, parent)
+        , m_enumOptions(field->getOptions())
+        , m_field(field)
+    {
+    }
+    EnumFieldTreeItem(UAVObjectField *field, int index, const QVariant &data, TreeItem *parent = 0)
+        : FieldTreeItem(index, data, parent)
+        , m_enumOptions(field->getOptions())
+        , m_field(field)
+    {
+    }
+    void setData(QVariant value, int column)
+    {
         QStringList options = m_field->getOptions();
         QVariant tmpValue = m_field->getValue(m_index);
         int tmpValIndex = options.indexOf(tmpValue.toString());
         setChanged(tmpValIndex != value);
         TreeItem::setData(value, column);
     }
-    QString enumOptions(int index) {
-        if((index < 0) || (index >= m_enumOptions.length())) {
+    QString enumOptions(int index)
+    {
+        if ((index < 0) || (index >= m_enumOptions.length())) {
             return QString("Invalid Value (") + QString().setNum(index) + QString(")");
         }
         return m_enumOptions.at(index);
     }
-    void apply() {
+    void apply()
+    {
         int value = data(dataColumn).toInt();
         if (value == -1) {
             qDebug() << "Warning, UAVO browser field is outside range. This should never happen!";
@@ -98,7 +114,8 @@ public:
         m_field->setValue(options[value], m_index);
         setChanged(false);
     }
-    void update() {
+    void update()
+    {
         QStringList options = m_field->getOptions();
         QVariant value = m_field->getValue(m_index);
         int valIndex = options.indexOf(value.toString());
@@ -110,7 +127,8 @@ public:
         if (obj && obj->isSettings())
             setIsDefaultValue(m_field->isDefaultValue(m_index));
     }
-    QWidget *createEditor(QWidget *parent) {
+    QWidget *createEditor(QWidget *parent)
+    {
         QComboBox *editor = new QComboBox(parent);
         editor->setFocusPolicy(Qt::ClickFocus);
         foreach (QString option, m_enumOptions)
@@ -118,15 +136,18 @@ public:
         return editor;
     }
 
-    QVariant getEditorValue(QWidget *editor) {
-        QComboBox *comboBox = static_cast<QComboBox*>(editor);
+    QVariant getEditorValue(QWidget *editor)
+    {
+        QComboBox *comboBox = static_cast<QComboBox *>(editor);
         return comboBox->currentIndex();
     }
 
-    void setEditorValue(QWidget *editor, QVariant value) {
-        QComboBox *comboBox = static_cast<QComboBox*>(editor);
+    void setEditorValue(QWidget *editor, QVariant value)
+    {
+        QComboBox *comboBox = static_cast<QComboBox *>(editor);
         comboBox->setCurrentIndex(value.toInt());
     }
+
 private:
     QStringList m_enumOptions;
     UAVObjectField *m_field;
@@ -134,18 +155,24 @@ private:
 
 class IntFieldTreeItem : public FieldTreeItem
 {
-Q_OBJECT
+    Q_OBJECT
 public:
-    IntFieldTreeItem(UAVObjectField *field, int index, const QList<QVariant> &data, TreeItem *parent = 0) :
-            FieldTreeItem(index, data, parent), m_field(field) {
+    IntFieldTreeItem(UAVObjectField *field, int index, const QList<QVariant> &data,
+                     TreeItem *parent = 0)
+        : FieldTreeItem(index, data, parent)
+        , m_field(field)
+    {
         setMinMaxValues();
     }
-    IntFieldTreeItem(UAVObjectField *field, int index, const QVariant &data, TreeItem *parent = 0) :
-            FieldTreeItem(index, data, parent), m_field(field) {
+    IntFieldTreeItem(UAVObjectField *field, int index, const QVariant &data, TreeItem *parent = 0)
+        : FieldTreeItem(index, data, parent)
+        , m_field(field)
+    {
         setMinMaxValues();
     }
 
-    void setMinMaxValues() {
+    void setMinMaxValues()
+    {
         switch (m_field->getType()) {
         case UAVObjectField::INT8:
             m_minValue = QINT8MIN;
@@ -177,21 +204,24 @@ public:
         }
     }
 
-    QWidget *createEditor(QWidget *parent) {
+    QWidget *createEditor(QWidget *parent)
+    {
         QSpinBox *editor = new QSpinBox(parent);
         editor->setMinimum(m_minValue);
         editor->setMaximum(m_maxValue);
         return editor;
     }
 
-    QVariant getEditorValue(QWidget *editor) {
-        QSpinBox *spinBox = static_cast<QSpinBox*>(editor);
+    QVariant getEditorValue(QWidget *editor)
+    {
+        QSpinBox *spinBox = static_cast<QSpinBox *>(editor);
         spinBox->interpretText();
         return spinBox->value();
     }
 
-    void setEditorValue(QWidget *editor, QVariant value) {
-        QSpinBox *spinBox = static_cast<QSpinBox*>(editor);
+    void setEditorValue(QWidget *editor, QVariant value)
+    {
+        QSpinBox *spinBox = static_cast<QSpinBox *>(editor);
         switch (m_field->getType()) {
         case UAVObjectField::INT8:
         case UAVObjectField::INT16:
@@ -208,11 +238,13 @@ public:
             break;
         }
     }
-    void setData(QVariant value, int column) {
+    void setData(QVariant value, int column)
+    {
         setChanged(m_field->getValue(m_index) != value);
         TreeItem::setData(value, column);
     }
-    void apply() {
+    void apply()
+    {
         switch (m_field->getType()) {
         case UAVObjectField::INT8:
         case UAVObjectField::INT16:
@@ -230,7 +262,8 @@ public:
         }
         setChanged(false);
     }
-    void update() {
+    void update()
+    {
 
         QVariant value = m_field->getValue(m_index);
         if (data() != value || changed()) {
@@ -265,24 +298,37 @@ private:
 
 class FloatFieldTreeItem : public FieldTreeItem
 {
-Q_OBJECT
+    Q_OBJECT
 public:
-    FloatFieldTreeItem(UAVObjectField *field, int index, const QList<QVariant> &data, bool scientific = false, TreeItem *parent = 0) :
-        FieldTreeItem(index, data, parent), m_field(field), m_useScientificNotation(scientific){}
-    FloatFieldTreeItem(UAVObjectField *field, int index, const QVariant &data, bool scientific = false, TreeItem *parent = 0) :
-            FieldTreeItem(index, data, parent), m_field(field), m_useScientificNotation(scientific) { }
-    void setData(QVariant value, int column) {
+    FloatFieldTreeItem(UAVObjectField *field, int index, const QList<QVariant> &data,
+                       bool scientific = false, TreeItem *parent = 0)
+        : FieldTreeItem(index, data, parent)
+        , m_field(field)
+        , m_useScientificNotation(scientific)
+    {
+    }
+    FloatFieldTreeItem(UAVObjectField *field, int index, const QVariant &data,
+                       bool scientific = false, TreeItem *parent = 0)
+        : FieldTreeItem(index, data, parent)
+        , m_field(field)
+        , m_useScientificNotation(scientific)
+    {
+    }
+    void setData(QVariant value, int column)
+    {
         setChanged(m_field->getValue(m_index) != value);
         TreeItem::setData(value, column);
     }
-    void apply() {
+    void apply()
+    {
         m_field->setValue(data(dataColumn).toDouble(), m_index);
         setChanged(false);
         UAVDataObject *obj = qobject_cast<UAVDataObject *>(m_field->getObject());
         if (obj && obj->isSettings())
             setIsDefaultValue(m_field->isDefaultValue(m_index));
     }
-    void update() {
+    void update()
+    {
         double value = m_field->getValue(m_index).toDouble();
         if (data() != value || changed()) {
             TreeItem::setData(value);
@@ -290,48 +336,51 @@ public:
         }
     }
 
-    QWidget *createEditor(QWidget *parent) {
-        if(m_useScientificNotation) {
+    QWidget *createEditor(QWidget *parent)
+    {
+        if (m_useScientificNotation) {
             QScienceSpinBox *editor = new QScienceSpinBox(parent);
             editor->setDecimals(6);
             editor->setMinimum(-std::numeric_limits<float>::max());
             editor->setMaximum(std::numeric_limits<float>::max());
             return editor;
         } else {
-			QDoubleSpinBox *editor = new QDoubleSpinBox(parent);
-			editor->setDecimals(8);
+            QDoubleSpinBox *editor = new QDoubleSpinBox(parent);
+            editor->setDecimals(8);
             editor->setMinimum(-std::numeric_limits<float>::max());
             editor->setMaximum(std::numeric_limits<float>::max());
             return editor;
         }
     }
 
-    QVariant getEditorValue(QWidget *editor) {
-        if(m_useScientificNotation) {
-            QScienceSpinBox *spinBox = static_cast<QScienceSpinBox*>(editor);
+    QVariant getEditorValue(QWidget *editor)
+    {
+        if (m_useScientificNotation) {
+            QScienceSpinBox *spinBox = static_cast<QScienceSpinBox *>(editor);
             spinBox->interpretText();
             return spinBox->value();
         } else {
-            QDoubleSpinBox *spinBox = static_cast<QDoubleSpinBox*>(editor);
+            QDoubleSpinBox *spinBox = static_cast<QDoubleSpinBox *>(editor);
             spinBox->interpretText();
             return spinBox->value();
         }
     }
 
-    void setEditorValue(QWidget *editor, QVariant value) {
+    void setEditorValue(QWidget *editor, QVariant value)
+    {
 
-        if(m_useScientificNotation) {
-            QScienceSpinBox *spinBox = static_cast<QScienceSpinBox*>(editor);
+        if (m_useScientificNotation) {
+            QScienceSpinBox *spinBox = static_cast<QScienceSpinBox *>(editor);
             spinBox->setValue(value.toDouble());
         } else {
-            QDoubleSpinBox *spinBox = static_cast<QDoubleSpinBox*>(editor);
+            QDoubleSpinBox *spinBox = static_cast<QDoubleSpinBox *>(editor);
             spinBox->setValue(value.toDouble());
         }
     }
+
 private:
     UAVObjectField *m_field;
     bool m_useScientificNotation;
-
 };
 
 #endif // FIELDTREEITEM_H

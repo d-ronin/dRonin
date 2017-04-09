@@ -29,22 +29,21 @@
 #include "quanton.h"
 #include <QtPlugin>
 
-
 QuantecPlugin::QuantecPlugin()
 {
-   // Do nothing
+    // Do nothing
 }
 
 QuantecPlugin::~QuantecPlugin()
 {
-   // Do nothing
+    // Do nothing
 }
 
-bool QuantecPlugin::initialize(const QStringList& args, QString *errMsg)
+bool QuantecPlugin::initialize(const QStringList &args, QString *errMsg)
 {
-   Q_UNUSED(args);
-   Q_UNUSED(errMsg);
-   return true;
+    Q_UNUSED(args);
+    Q_UNUSED(errMsg);
+    return true;
 }
 
 void QuantecPlugin::extensionsInitialized()
@@ -53,12 +52,10 @@ void QuantecPlugin::extensionsInitialized()
      * Create the board objects here.
      *
      */
-    Quanton* quanton = new Quanton();
+    Quanton *quanton = new Quanton();
     addAutoReleasedObject(quanton);
-
 }
 
 void QuantecPlugin::shutdown()
 {
 }
-

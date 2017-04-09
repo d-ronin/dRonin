@@ -27,22 +27,23 @@
 #include "opmapgadget.h"
 #include "opmapgadgetwidget.h"
 
-OPMapGadget::OPMapGadget(QString classId, OPMapGadgetWidget *widget, QWidget *parent) :
-        IUAVGadget(classId, parent),
-    m_widget(widget),m_config(NULL)
+OPMapGadget::OPMapGadget(QString classId, OPMapGadgetWidget *widget, QWidget *parent)
+    : IUAVGadget(classId, parent)
+    , m_widget(widget)
+    , m_config(NULL)
 {
-    connect(m_widget,SIGNAL(defaultLocationAndZoomChanged(double,double,double)),this,SLOT(saveDefaultLocation(double,double,double)));
-    connect(m_widget,SIGNAL(overlayOpacityChanged(qreal)),this,SLOT(saveOpacity(qreal)));
+    connect(m_widget, &OPMapGadgetWidget::defaultLocationAndZoomChanged, this,
+            &OPMapGadget::saveDefaultLocation);
+    connect(m_widget, &OPMapGadgetWidget::overlayOpacityChanged, this, &OPMapGadget::saveOpacity);
 }
 
 OPMapGadget::~OPMapGadget()
 {
     delete m_widget;
 }
-void OPMapGadget::saveDefaultLocation(double lng,double lat,double zoom)
+void OPMapGadget::saveDefaultLocation(double lng, double lat, double zoom)
 {
-    if(m_config)
-    {
+    if (m_config) {
         m_config->setLatitude(lat);
         m_config->setLongitude(lng);
         m_config->setZoom(zoom);
@@ -52,14 +53,13 @@ void OPMapGadget::saveDefaultLocation(double lng,double lat,double zoom)
 
 void OPMapGadget::saveOpacity(qreal value)
 {
-    if(m_config)
-    {
+    if (m_config) {
         m_config->setOpacity(value);
     }
 }
 void OPMapGadget::loadConfiguration(IUAVGadgetConfiguration *config)
 {
-    m_config = qobject_cast<OPMapGadgetConfiguration*>(config);
+    m_config = qobject_cast<OPMapGadgetConfiguration *>(config);
     m_widget->setMapProvider(m_config->mapProvider());
     m_widget->setShowTileGridLines(m_config->showTileGridLines());
     m_widget->setAccessMode(m_config->accessMode());
@@ -74,4 +74,3 @@ void OPMapGadget::loadConfiguration(IUAVGadgetConfiguration *config)
     m_widget->setOverlayOpacity(m_config->opacity());
     m_widget->setGeoCodingLanguage(m_config->geoLanguage());
 }
-

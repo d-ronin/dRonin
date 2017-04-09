@@ -37,8 +37,11 @@
 
 using namespace uploader;
 
-RfmBindWizard::RfmBindWizard(QWidget *parent) : QWizard(parent),
-    m_ppm(false), m_maxBps(64000), m_connectionManager(0)
+RfmBindWizard::RfmBindWizard(QWidget *parent)
+    : QWizard(parent)
+    , m_ppm(false)
+    , m_maxBps(64000)
+    , m_connectionManager(0)
 {
     setWindowTitle(tr("RFM22b Binding Wizard"));
     setOption(QWizard::IndependentPages, false);
@@ -74,12 +77,14 @@ void RfmBindWizard::createPages()
 
     setStartId(PAGE_START);
 
-    connect(button(QWizard::CustomButton1), SIGNAL(clicked()), this, SLOT(customBackClicked()));
+    connect(button(QWizard::CustomButton1), &QAbstractButton::clicked, this,
+            &RfmBindWizard::customBackClicked);
     setButtonText(QWizard::CustomButton1, buttonText(QWizard::BackButton));
     QList<QWizard::WizardButton> button_layout;
-    button_layout << QWizard::Stretch << QWizard::CustomButton1 << QWizard::NextButton << QWizard::CancelButton << QWizard::FinishButton;
+    button_layout << QWizard::Stretch << QWizard::CustomButton1 << QWizard::NextButton
+                  << QWizard::CancelButton << QWizard::FinishButton;
     setButtonLayout(button_layout);
-    connect(this, SIGNAL(currentIdChanged(int)), this, SLOT(pageChanged(int)));
+    connect(this, &QWizard::currentIdChanged, this, &RfmBindWizard::pageChanged);
 }
 
 void RfmBindWizard::customBackClicked()
@@ -92,4 +97,3 @@ void RfmBindWizard::pageChanged(int currId)
     button(QWizard::CustomButton1)->setVisible(currId != PAGE_START);
     button(QWizard::CancelButton)->setVisible(currId != PAGE_END);
 }
-

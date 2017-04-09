@@ -7,7 +7,7 @@
  * @{
  * @addtogroup GCSControlGadgetPlugin GCSControl Gadget Plugin
  * @{
- * @brief A place holder gadget plugin 
+ * @brief A place holder gadget plugin
  *****************************************************************************/
 /*
  * This program is free software; you can redistribute it and/or modify
@@ -52,9 +52,9 @@ protected slots:
     void positionSelected(double north, double east);
 
 private:
-    PathDesired * getPathDesired();
-    PositionActual * getPositionActual();
-    Ui_MagicWaypoint * m_magicwaypoint;
+    PathDesired *getPathDesired();
+    PositionActual *getPositionActual();
+    Ui_MagicWaypoint *m_magicwaypoint;
 };
 
 #endif /* MagicWaypointGADGETWIDGET_H_ */

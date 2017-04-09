@@ -37,7 +37,9 @@
 #include "algorithms/pathfillet.h"
 #include "extensionsystem/pluginmanager.h"
 
-PathPlannerGadgetWidget::PathPlannerGadgetWidget(QWidget *parent) : QLabel(parent), prevModel(NULL)
+PathPlannerGadgetWidget::PathPlannerGadgetWidget(QWidget *parent)
+    : QLabel(parent)
+    , prevModel(NULL)
 {
     ui = new Ui_PathPlanner();
     ui->setupUi(this);
@@ -53,9 +55,8 @@ PathPlannerGadgetWidget::PathPlannerGadgetWidget(QWidget *parent) : QLabel(paren
 
 PathPlannerGadgetWidget::~PathPlannerGadgetWidget()
 {
-   // Do nothing
+    // Do nothing
 }
-
 
 void PathPlannerGadgetWidget::setModel(FlightDataModel *model, QItemSelectionModel *selection)
 {
@@ -73,7 +74,8 @@ void PathPlannerGadgetWidget::setModel(FlightDataModel *model, QItemSelectionMod
 
     ui->tableView->resizeColumnsToContents();
 
-    connect(proxy, SIGNAL(sendPathPlanToUavProgress(int)), this, SLOT(on_waypointSendProgress(int)));
+    connect(proxy, &ModelUavoProxy::sendPathPlanToUavProgress, this,
+            &PathPlannerGadgetWidget::on_waypointSendProgress);
 }
 
 void PathPlannerGadgetWidget::on_tbAdd_clicked()
@@ -94,7 +96,7 @@ void PathPlannerGadgetWidget::on_tbInsert_clicked()
 
 void PathPlannerGadgetWidget::on_tbReadFromFile_clicked()
 {
-    if(!model)
+    if (!model)
         return;
     QString fileName = QFileDialog::getOpenFileName(this, tr("Open File"));
     model->readFromFile(fileName);
@@ -102,7 +104,7 @@ void PathPlannerGadgetWidget::on_tbReadFromFile_clicked()
 
 void PathPlannerGadgetWidget::on_tbSaveToFile_clicked()
 {
-    if(!model)
+    if (!model)
         return;
     QString fileName = QFileDialog::getSaveFileName(this, tr("Save File"));
     model->writeToFile(fileName);
@@ -120,7 +122,7 @@ void PathPlannerGadgetWidget::on_tbDetails_clicked()
     if (pm == NULL)
         return;
 
-    WaypointDialog *dialog =  pm->getObject<WaypointDialog>();
+    WaypointDialog *dialog = pm->getObject<WaypointDialog>();
     Q_ASSERT(dialog);
     dialog->show();
 }
@@ -136,7 +138,7 @@ void PathPlannerGadgetWidget::on_tbSendToUAV_clicked()
     ui->statusPB->setValue(0);
     bool result;
     result = proxy->modelToObjects();
-    if(result)
+    if (result)
         ui->statusTL->setText("All waypoints were sent successfully");
     else
         ui->statusTL->setText("WARNING: Not all waypoints were sent successfully");
@@ -166,10 +168,10 @@ void PathPlannerGadgetWidget::on_tbFilletPath_clicked()
     if (prevModel)
         prevModel->replaceData(model);
 
-    IPathAlgorithm * algo = new PathFillet(this);
+    IPathAlgorithm *algo = new PathFillet(this);
     // Only process is successfully configured and the verification of the model succeeds
     QString err;
-    if(algo->configure(this) && algo->verifyPath(model, err)) {
+    if (algo->configure(this) && algo->verifyPath(model, err)) {
         // If unsuccessful delete the cached model
         if (!algo->processPath(model)) {
             delete prevModel;
@@ -194,10 +196,10 @@ void PathPlannerGadgetWidget::on_waypointSendProgress(int value)
 
 void PathPlannerGadgetWidget::enableButtons(bool enable)
 {
-    QList<QToolButton*> blist = this->findChildren<QToolButton*>();
-    foreach (QToolButton * button, blist) {
+    QList<QToolButton *> blist = this->findChildren<QToolButton *>();
+    foreach (QToolButton *button, blist) {
         button->setEnabled(enable);
-}
+    }
 }
 
 /**

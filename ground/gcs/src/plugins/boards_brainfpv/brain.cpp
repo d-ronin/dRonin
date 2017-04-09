@@ -42,24 +42,27 @@
 Brain::Brain(void)
 {
     // Common USB IDs
-    addBootloaderUSBInfo(USBInfo(DRONIN_VID_DRONIN_BOOTLOADER, DRONIN_PID_DRONIN_BOOTLOADER, BCD_DEVICE_BOOTLOADER));
-    addFirmwareUSBInfo(USBInfo(DRONIN_VID_DRONIN_FIRMWARE, DRONIN_PID_DRONIN_FIRMWARE, BCD_DEVICE_FIRMWARE));
+    addBootloaderUSBInfo(
+        USBInfo(DRONIN_VID_DRONIN_BOOTLOADER, DRONIN_PID_DRONIN_BOOTLOADER, BCD_DEVICE_BOOTLOADER));
+    addFirmwareUSBInfo(
+        USBInfo(DRONIN_VID_DRONIN_FIRMWARE, DRONIN_PID_DRONIN_FIRMWARE, BCD_DEVICE_FIRMWARE));
     // Legacy USB IDs
-    addBootloaderUSBInfo(USBInfo(DRONIN_VID_BRAINFPV_BRAIN, DRONIN_PID_BRAINFPV_BRAIN, BCD_DEVICE_BOOTLOADER));
-    addFirmwareUSBInfo(USBInfo(DRONIN_VID_BRAINFPV_BRAIN, DRONIN_PID_BRAINFPV_BRAIN, BCD_DEVICE_FIRMWARE));
+    addBootloaderUSBInfo(
+        USBInfo(DRONIN_VID_BRAINFPV_BRAIN, DRONIN_PID_BRAINFPV_BRAIN, BCD_DEVICE_BOOTLOADER));
+    addFirmwareUSBInfo(
+        USBInfo(DRONIN_VID_BRAINFPV_BRAIN, DRONIN_PID_BRAINFPV_BRAIN, BCD_DEVICE_FIRMWARE));
 
     boardType = 0x8A;
 
     // Define the bank of channels that are connected to a given timer
     channelBanks.resize(3);
-    channelBanks[0] = QVector<int> () << 1 << 2 << 3 << 4; // TIM5 main outputs
-    channelBanks[1] = QVector<int> () << 5 << 6 << 7 << 8; // TIM8 on receiverport
-    channelBanks[2] = QVector<int> () << 9 << 10; // TIM12 on receiverport
+    channelBanks[0] = QVector<int>() << 1 << 2 << 3 << 4; // TIM5 main outputs
+    channelBanks[1] = QVector<int>() << 5 << 6 << 7 << 8; // TIM8 on receiverport
+    channelBanks[2] = QVector<int>() << 9 << 10; // TIM12 on receiverport
 }
 
 Brain::~Brain()
 {
-
 }
 
 int Brain::minBootLoaderVersion()
@@ -80,7 +83,7 @@ QString Brain::boardDescription()
 //! Return which capabilities this board has
 bool Brain::queryCapabilities(BoardCapabilities capability)
 {
-    switch(capability) {
+    switch (capability) {
     case BOARD_CAPABILITIES_GYROS:
     case BOARD_CAPABILITIES_ACCELS:
     case BOARD_CAPABILITIES_MAGS:
@@ -91,7 +94,7 @@ bool Brain::queryCapabilities(BoardCapabilities capability)
     default:
         break;
     }
-    
+
     return false;
 }
 
@@ -108,13 +111,13 @@ QString Brain::getHwUAVO()
 //! Determine if this board supports configuring the receiver
 bool Brain::isInputConfigurationSupported(Core::IBoardType::InputType type)
 {
-    switch(type) {
+    switch (type) {
     case INPUT_TYPE_UNKNOWN:
         return false;
     default:
         break;
     }
-    
+
     return true;
 }
 
@@ -134,7 +137,7 @@ bool Brain::setInputType(Core::IBoardType::InputType type)
 
     HwBrain::DataFields settings = hwBrain->getData();
 
-    switch(type) {
+    switch (type) {
     case INPUT_TYPE_PPM:
         settings.RxPort = HwBrain::RXPORT_PPM;
         break;
@@ -190,7 +193,7 @@ Core::IBoardType::InputType Brain::getInputType()
 
     HwBrain::DataFields settings = hwBrain->getData();
 
-    switch(settings.MainPort) {
+    switch (settings.MainPort) {
     case HwBrain::MAINPORT_SBUS:
         return INPUT_TYPE_SBUS;
     case HwBrain::MAINPORT_SBUSNONINVERTED:
@@ -211,7 +214,7 @@ Core::IBoardType::InputType Brain::getInputType()
         break;
     }
 
-    switch(settings.FlxPort) {
+    switch (settings.FlxPort) {
     case HwBrain::FLXPORT_DSM:
         return INPUT_TYPE_DSM;
     case HwBrain::FLXPORT_HOTTSUMD:
@@ -228,7 +231,7 @@ Core::IBoardType::InputType Brain::getInputType()
         break;
     }
 
-    switch(settings.RxPort) {
+    switch (settings.RxPort) {
     case HwBrain::RXPORT_PPM:
     case HwBrain::RXPORT_PPMPWM:
     case HwBrain::RXPORT_PPMOUTPUTS:
@@ -240,7 +243,7 @@ Core::IBoardType::InputType Brain::getInputType()
         return INPUT_TYPE_PWM;
     case HwBrain::RXPORT_UART:
     case HwBrain::RXPORT_UARTOUTPUTS:
-        switch(settings.RxPortUsart) {
+        switch (settings.RxPortUsart) {
         case HwBrain::RXPORTUSART_DSM:
             return INPUT_TYPE_DSM;
         case HwBrain::RXPORTUSART_HOTTSUMD:
@@ -277,7 +280,7 @@ int Brain::queryMaxGyroRate()
 
     HwBrain::DataFields settings = hwBrain->getData();
 
-    switch(settings.GyroFullScale) {
+    switch (settings.GyroFullScale) {
     case HwBrain::GYROFULLSCALE_250:
         return 250;
     case HwBrain::GYROFULLSCALE_500:
@@ -289,11 +292,11 @@ int Brain::queryMaxGyroRate()
     default:
         break;
     }
-    
+
     return 2000;
 }
 
-QWidget * Brain::getBoardConfiguration(QWidget *parent, bool connected)
+QWidget *Brain::getBoardConfiguration(QWidget *parent, bool connected)
 {
     Q_UNUSED(connected);
     return new BrainConfiguration(parent);
@@ -301,5 +304,7 @@ QWidget * Brain::getBoardConfiguration(QWidget *parent, bool connected)
 
 QStringList Brain::getAdcNames()
 {
-    return QStringList() << "Sen ADC0" << "Sen ADC1" << "Sen ADC2";
+    return QStringList() << "Sen ADC0"
+                         << "Sen ADC1"
+                         << "Sen ADC2";
 }

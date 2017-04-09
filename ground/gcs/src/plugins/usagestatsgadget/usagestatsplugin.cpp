@@ -45,10 +45,14 @@
 #include <QSysInfo>
 #include "usagestatsoptionpage.h"
 
-UsageStatsPlugin::UsageStatsPlugin(): sendUsageStats(true), sendPrivateData(true), installationUUID(""), debugLogLevel(DebugEngine::WARNING)
+UsageStatsPlugin::UsageStatsPlugin()
+    : sendUsageStats(true)
+    , sendPrivateData(true)
+    , installationUUID("")
+    , debugLogLevel(DebugEngine::WARNING)
 {
     loop = new QEventLoop(this);
-    connect(&netMngr, SIGNAL(finished(QNetworkReply*)), loop, SLOT(quit()));
+    connect(&netMngr, &QNetworkAccessManager::finished, loop, &QEventLoop::quit);
 }
 
 UsageStatsPlugin::~UsageStatsPlugin()
@@ -61,10 +65,11 @@ void UsageStatsPlugin::readConfig(QSettings *qSettings, Core::UAVConfigInfo *con
     Q_UNUSED(configInfo)
     qSettings->beginGroup(QLatin1String("UsageStatistics"));
     sendUsageStats = (qSettings->value(QLatin1String("SendUsageStats"), sendUsageStats).toBool());
-    sendPrivateData = (qSettings->value(QLatin1String("SendPrivateData"), sendPrivateData).toBool());
-    //Check the Installation UUID and Generate a new one if required
+    sendPrivateData =
+        (qSettings->value(QLatin1String("SendPrivateData"), sendPrivateData).toBool());
+    // Check the Installation UUID and Generate a new one if required
     installationUUID = QUuid(qSettings->value(QLatin1String("InstallationUUID"), "").toString());
-    if (installationUUID.isNull()) { //Create new UUID
+    if (installationUUID.isNull()) { // Create new UUID
         installationUUID = QUuid::createUuid();
     }
     debugLogLevel = (qSettings->value(QLatin1String("DebugLogLevel"), debugLogLevel).toInt());
@@ -86,7 +91,6 @@ void UsageStatsPlugin::saveConfig(QSettings *qSettings, Core::UAVConfigInfo *con
 
 void UsageStatsPlugin::shutdown()
 {
-
 }
 
 bool UsageStatsPlugin::initialize(const QStringList &arguments, QString *errorString)
@@ -104,14 +108,15 @@ void UsageStatsPlugin::extensionsInitialized()
 {
     pluginManager = ExtensionSystem::PluginManager::instance();
     Q_ASSERT(pluginManager);
-    connect(pluginManager, SIGNAL(pluginsLoadEnded()), this, SLOT(pluginsLoadEnded()));
+    connect(pluginManager, &ExtensionSystem::PluginManager::pluginsLoadEnded, this,
+            &UsageStatsPlugin::pluginsLoadEnded);
 }
 
 bool UsageStatsPlugin::coreAboutToClose()
 {
-    if(!sendUsageStats)
+    if (!sendUsageStats)
         return true;
-    QTimer::singleShot(10000, loop, SLOT(quit()));
+    QTimer::singleShot(10000, loop, &QEventLoop::quit);
     QUrl url("http://dronin-autotown.appspot.com/usageStats");
     QNetworkRequest request(url);
     request.setHeader(QNetworkRequest::ContentTypeHeader, "application/json; charset=utf-8");
@@ -130,16 +135,19 @@ void UsageStatsPlugin::updateSettings()
     UploaderGadgetFactory *uploader = pluginManager->getObject<UploaderGadgetFactory>();
     QMainWindow *mw = Core::ICore::instance()->mainWindow();
     if (sendUsageStats) {
-        connect(DebugEngine::getInstance(), SIGNAL(message(DebugEngine::Level, const QString &, const QString &, const int, const QString &)),
-                this, SLOT(onDebugMessage(DebugEngine::Level, const QString &, const QString &, const int, const QString &)),
-                static_cast<Qt::ConnectionType>(Qt::QueuedConnection | Qt::UniqueConnection) /* sigh */);
+        connect(DebugEngine::getInstance(), &DebugEngine::message, this,
+                &UsageStatsPlugin::onDebugMessage,
+                static_cast<Qt::ConnectionType>(Qt::QueuedConnection
+                                                | Qt::UniqueConnection) /* sigh */);
         if (uploader)
-            connect(uploader, SIGNAL(newBoardSeen(deviceInfo, deviceDescriptorStruct)), this, SLOT(addNewBoardSeen(deviceInfo, deviceDescriptorStruct)), Qt::UniqueConnection);
+            connect(uploader, &uploader::UploaderGadgetFactory::newBoardSeen, this,
+                    &UsageStatsPlugin::addNewBoardSeen, Qt::UniqueConnection);
         if (mw)
             searchForWidgets(mw, true);
     } else {
         if (uploader)
-            disconnect(uploader, SIGNAL(newBoardSeen(deviceInfo, deviceDescriptorStruct)), this, SLOT(addNewBoardSeen(deviceInfo, deviceDescriptorStruct)));
+            disconnect(uploader, &uploader::UploaderGadgetFactory::newBoardSeen, this,
+                       &UsageStatsPlugin::addNewBoardSeen);
         if (mw)
             searchForWidgets(mw, false);
     }
@@ -158,35 +166,35 @@ void UsageStatsPlugin::addNewBoardSeen(deviceInfo board, deviceDescriptorStruct 
 void UsageStatsPlugin::searchForWidgets(QObject *mw, bool conn)
 {
     foreach (QObject *obj, mw->children()) {
-        QAbstractButton *button = qobject_cast<QAbstractButton*>(obj);
-        QAbstractSlider *slider = qobject_cast<QAbstractSlider*>(obj);
-        QScrollBar *bar = qobject_cast<QScrollBar*>(obj);
-        QTabBar *tab = qobject_cast<QTabBar*>(obj);
-        if(button) {
-            if(conn) {
-                connect(button, SIGNAL(clicked(bool)), this, SLOT(onButtonClicked()), Qt::UniqueConnection);
+        QAbstractButton *button = qobject_cast<QAbstractButton *>(obj);
+        QAbstractSlider *slider = qobject_cast<QAbstractSlider *>(obj);
+        QScrollBar *bar = qobject_cast<QScrollBar *>(obj);
+        QTabBar *tab = qobject_cast<QTabBar *>(obj);
+        if (button) {
+            if (conn) {
+                connect(button, &QAbstractButton::clicked, this, &UsageStatsPlugin::onButtonClicked,
+                        Qt::UniqueConnection);
+            } else {
+                disconnect(button, &QAbstractButton::clicked, this,
+                           &UsageStatsPlugin::onButtonClicked);
             }
-            else {
-                disconnect(button, SIGNAL(clicked(bool)), this, SLOT(onButtonClicked()));
+        } else if (slider && !bar) {
+            if (conn) {
+                connect(slider, &QAbstractSlider::valueChanged, this,
+                        &UsageStatsPlugin::onSliderValueChanged, Qt::UniqueConnection);
+            } else {
+                disconnect(slider, &QAbstractSlider::valueChanged, this,
+                           &UsageStatsPlugin::onSliderValueChanged);
             }
-        }
-        else if(slider && !bar) {
-            if(conn) {
-                connect(slider, SIGNAL(valueChanged(int)), this, SLOT(onSliderValueChanged(int)), Qt::UniqueConnection);
+        } else if (tab) {
+            if (conn) {
+                connect(tab, &QTabBar::currentChanged, this, &UsageStatsPlugin::onTabCurrentChanged,
+                        Qt::UniqueConnection);
+            } else {
+                disconnect(tab, &QTabBar::currentChanged, this,
+                           &UsageStatsPlugin::onTabCurrentChanged);
             }
-            else {
-                disconnect(slider, SIGNAL(valueChanged(int)), this, SLOT(onSliderValueChanged(int)));
-            }
-        }
-        else if (tab) {
-            if(conn) {
-                connect(tab, SIGNAL(currentChanged(int)), this, SLOT(onTabCurrentChanged(int)), Qt::UniqueConnection);
-            }
-            else {
-                disconnect(tab, SIGNAL(currentChanged(int)), this, SLOT(onTabCurrentChanged(int)));
-            }
-        }
-        else {
+        } else {
             searchForWidgets(obj, conn);
         }
     }
@@ -195,7 +203,7 @@ void UsageStatsPlugin::searchForWidgets(QObject *mw, bool conn)
 void UsageStatsPlugin::onButtonClicked()
 {
     widgetActionInfoType info;
-    QAbstractButton *button = qobject_cast<QAbstractButton*>(sender());
+    QAbstractButton *button = qobject_cast<QAbstractButton *>(sender());
     info.objectName = button->objectName();
     info.data1 = button->text();
     info.data2 = QString::number(button->isChecked());
@@ -209,7 +217,7 @@ void UsageStatsPlugin::onButtonClicked()
 void UsageStatsPlugin::onSliderValueChanged(int value)
 {
     widgetActionInfo info;
-    QAbstractSlider *slider = qobject_cast<QAbstractSlider*>(sender());
+    QAbstractSlider *slider = qobject_cast<QAbstractSlider *>(sender());
     info.objectName = slider->objectName();
     info.data1 = QString::number(value);
     info.className = slider->metaObject()->className();
@@ -222,7 +230,7 @@ void UsageStatsPlugin::onSliderValueChanged(int value)
 void UsageStatsPlugin::onTabCurrentChanged(int value)
 {
     widgetActionInfo info;
-    QTabBar *tab = qobject_cast<QTabBar*>(sender());
+    QTabBar *tab = qobject_cast<QTabBar *>(sender());
     info.objectName = tab->objectName();
     info.data2 = QString::number(value);
     info.data1 = tab->tabText(value);
@@ -233,14 +241,15 @@ void UsageStatsPlugin::onTabCurrentChanged(int value)
     widgetLogList.append(info);
 }
 
-QByteArray UsageStatsPlugin::processJson() {
+QByteArray UsageStatsPlugin::processJson()
+{
     QJsonObject json;
-    if(sendPrivateData)
+    if (sendPrivateData)
         json["shareIP"] = "true";
     else
         json["shareIP"] = "false";
-    json["gcs_version"] =  QLatin1String(Core::Constants::GCS_VERSION_LONG);
-    json["gcs_revision"] =  QLatin1String(Core::Constants::GCS_REVISION_PRETTY_STR);
+    json["gcs_version"] = QLatin1String(Core::Constants::GCS_VERSION_LONG);
+    json["gcs_revision"] = QLatin1String(Core::Constants::GCS_REVISION_PRETTY_STR);
     json["currentOS"] = QSysInfo::prettyProductName();
     json["currentArch"] = QSysInfo::currentCpuArchitecture();
     json["buildInfo"] = QSysInfo::buildAbi();
@@ -260,8 +269,11 @@ QByteArray UsageStatsPlugin::processJson() {
         b["gitHash"] = board.device.gitHash;
         b["gitTag"] = board.device.gitTag;
         b["nextAncestor"] = board.device.nextAncestor;
-        if(sendPrivateData)
-            b["UUID"] = QString(QCryptographicHash::hash(QByteArray::fromHex(board.board.cpu_serial.toUtf8()), QCryptographicHash::Sha256).toHex());
+        if (sendPrivateData)
+            b["UUID"] = QString(
+                QCryptographicHash::hash(QByteArray::fromHex(board.board.cpu_serial.toUtf8()),
+                                         QCryptographicHash::Sha256)
+                    .toHex());
         boardArray.append(b);
     }
     json["boardsSeen"] = boardArray;
@@ -328,7 +340,6 @@ void UsageStatsPlugin::setSendUsageStats(bool value)
     sendUsageStats = value;
 }
 
-
 QString UsageStatsPlugin::getInstallationUUID() const
 {
     return installationUUID.toString().remove(QRegExp("[{}]*"));
@@ -344,7 +355,8 @@ void UsageStatsPlugin::setDebugLogLevel(int value)
     debugLogLevel = value;
 }
 
-void UsageStatsPlugin::onDebugMessage(DebugEngine::Level level, const QString &msg, const QString &file, const int line, const QString &function)
+void UsageStatsPlugin::onDebugMessage(DebugEngine::Level level, const QString &msg,
+                                      const QString &file, const int line, const QString &function)
 {
     if (level < debugLogLevel)
         return;
@@ -378,7 +390,9 @@ void UsageStatsPlugin::onDebugMessage(DebugEngine::Level level, const QString &m
     debugMessageList.append(info);
 }
 
-AppCloseHook::AppCloseHook(UsageStatsPlugin *parent) : Core::ICoreListener(parent), m_parent(parent)
+AppCloseHook::AppCloseHook(UsageStatsPlugin *parent)
+    : Core::ICoreListener(parent)
+    , m_parent(parent)
 {
 }
 

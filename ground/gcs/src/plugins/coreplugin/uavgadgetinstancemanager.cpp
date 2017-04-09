@@ -10,18 +10,18 @@
  * @{
  * @brief Provides the UAVGadget instance manager
  *****************************************************************************/
-/* 
- * This program is free software; you can redistribute it and/or modify 
- * it under the terms of the GNU General Public License as published by 
- * the Free Software Foundation; either version 3 of the License, or 
+/*
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 3 of the License, or
  * (at your option) any later version.
- * 
- * This program is distributed in the hope that it will be useful, but 
- * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY 
- * or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License 
+ *
+ * This program is distributed in the hope that it will be useful, but
+ * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
+ * or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License
  * for more details.
- * 
- * You should have received a copy of the GNU General Public License along 
+ *
+ * You should have received a copy of the GNU General Public License along
  * with this program; if not, see <http://www.gnu.org/licenses/>
  */
 
@@ -41,16 +41,15 @@
 #include <QtCore/QDebug>
 #include <QMessageBox>
 
-
 using namespace Core;
 
 static const UAVConfigVersion m_versionUAVGadgetConfigurations = UAVConfigVersion("1.2.0");
 
-UAVGadgetInstanceManager::UAVGadgetInstanceManager(QObject *parent) :
-    QObject(parent)
+UAVGadgetInstanceManager::UAVGadgetInstanceManager(QObject *parent)
+    : QObject(parent)
 {
     m_pm = ExtensionSystem::PluginManager::instance();
-    QList<IUAVGadgetFactory*> factories = m_pm->getObjects<IUAVGadgetFactory>();
+    QList<IUAVGadgetFactory *> factories = m_pm->getObjects<IUAVGadgetFactory>();
     foreach (IUAVGadgetFactory *f, factories) {
         if (!m_factories.contains(f)) {
             m_factories.append(f);
@@ -69,36 +68,32 @@ UAVGadgetInstanceManager::~UAVGadgetInstanceManager()
         m_pm->removeObject(page);
         delete page;
     }
-
 }
 
 void UAVGadgetInstanceManager::readSettings(QSettings *qs)
 {
-    while ( !m_configurations.isEmpty() ){
-       emit configurationToBeDeleted(m_configurations.takeLast());
+    while (!m_configurations.isEmpty()) {
+        emit configurationToBeDeleted(m_configurations.takeLast());
     }
     qs->beginGroup("UAVGadgetConfigurations");
     UAVConfigInfo configInfo(qs);
     configInfo.setNameOfConfigurable("UAVGadgetConfigurations");
-    if ( configInfo.version() == UAVConfigVersion() ){
+    if (configInfo.version() == UAVConfigVersion()) {
         // If version is not set, assume its a old version before readable config (1.0.0).
         // however compatibility to 1.0.0 is broken.
         configInfo.setVersion("1.0.0");
     }
 
-    if ( configInfo.version() == UAVConfigVersion("1.1.0") ){
+    if (configInfo.version() == UAVConfigVersion("1.1.0")) {
         configInfo.notify(tr("Migrating UAVGadgetConfigurations from version 1.1.0 to ")
                           + m_versionUAVGadgetConfigurations.toString());
         readConfigs_1_1_0(qs); // this is fully compatible with 1.2.0
-    }
-    else if ( !configInfo.standardVersionHandlingOK(m_versionUAVGadgetConfigurations) ){
+    } else if (!configInfo.standardVersionHandlingOK(m_versionUAVGadgetConfigurations)) {
         // We are in trouble now. User wants us to quit the import, but when he saves
         // the GCS, his old config will be lost.
-        configInfo.notify(
-                tr("You might want to save your old config NOW since it might be replaced by broken one when you exit the GCS!")
-                );
-    }
-    else{
+        configInfo.notify(tr("You might want to save your old config NOW since it might be "
+                             "replaced by broken one when you exit the GCS!"));
+    } else {
         readConfigs_1_2_0(qs);
     }
 
@@ -110,8 +105,7 @@ void UAVGadgetInstanceManager::readConfigs_1_2_0(QSettings *qs)
 {
     UAVConfigInfo configInfo;
 
-    foreach (QString classId, m_classIdNameMap.keys())
-    {
+    foreach (QString classId, m_classIdNameMap.keys()) {
         IUAVGadgetFactory *f = factory(classId);
         qs->beginGroup(classId);
 
@@ -121,20 +115,19 @@ void UAVGadgetInstanceManager::readConfigs_1_2_0(QSettings *qs)
         foreach (QString configName, configs) {
             qs->beginGroup(configName);
             configInfo.read(qs);
-            configInfo.setNameOfConfigurable(classId+"-"+configName);
+            configInfo.setNameOfConfigurable(classId + "-" + configName);
             qs->beginGroup("data");
             IUAVGadgetConfiguration *config = f->createConfiguration(qs, &configInfo);
-            if (config){
+            if (config) {
                 config->setName(configName);
                 config->setProvisionalName(configName);
                 config->setLocked(configInfo.locked());
                 int idx = indexForConfig(m_configurations, classId, configName);
-                if ( idx >= 0 ){
+                if (idx >= 0) {
                     // We should replace the config, but it might be used, so just
                     // throw it out of the list. The GCS should be reinitialised soon.
                     m_configurations[idx] = config;
-                }
-                else{
+                } else {
                     m_configurations.append(config);
                 }
             }
@@ -161,8 +154,7 @@ void UAVGadgetInstanceManager::readConfigs_1_1_0(QSettings *qs)
 {
     UAVConfigInfo configInfo;
 
-    foreach (QString classId, m_classIdNameMap.keys())
-    {
+    foreach (QString classId, m_classIdNameMap.keys()) {
         IUAVGadgetFactory *f = factory(classId);
         qs->beginGroup(classId);
 
@@ -172,19 +164,18 @@ void UAVGadgetInstanceManager::readConfigs_1_1_0(QSettings *qs)
         foreach (QString configName, configs) {
             qs->beginGroup(configName);
             bool locked = qs->value("config.locked").toBool();
-            configInfo.setNameOfConfigurable(classId+"-"+configName);
+            configInfo.setNameOfConfigurable(classId + "-" + configName);
             IUAVGadgetConfiguration *config = f->createConfiguration(qs, &configInfo);
-            if (config){
+            if (config) {
                 config->setName(configName);
                 config->setProvisionalName(configName);
                 config->setLocked(locked);
                 int idx = indexForConfig(m_configurations, classId, configName);
-                if ( idx >= 0 ){
+                if (idx >= 0) {
                     // We should replace the config, but it might be used, so just
                     // throw it out of the list. The GCS should be reinitialised soon.
                     m_configurations[idx] = config;
-                }
-                else{
+                } else {
                     m_configurations.append(config);
                 }
             }
@@ -213,8 +204,7 @@ void UAVGadgetInstanceManager::saveSettings(QSettings *qs)
     configInfo = new UAVConfigInfo(m_versionUAVGadgetConfigurations, "UAVGadgetConfigurations");
     configInfo->save(qs);
     delete configInfo;
-    foreach (IUAVGadgetConfiguration *config, m_configurations)
-    {
+    foreach (IUAVGadgetConfiguration *config, m_configurations) {
         configInfo = new UAVConfigInfo(config);
         qs->beginGroup(config->classId());
         qs->beginGroup(config->name());
@@ -234,50 +224,59 @@ void UAVGadgetInstanceManager::createOptionsPages()
     // In case there are pages (import a configuration), remove them.
     // Maybe they should be deleted as well (memory-leak),
     // but this might lead to NULL-pointers?
-    while (!m_optionsPages.isEmpty()){
+    while (!m_optionsPages.isEmpty()) {
         m_pm->removeObject(m_optionsPages.takeLast());
     }
 
-    QMutableListIterator<IUAVGadgetConfiguration*> ite(m_configurations);
+    QMutableListIterator<IUAVGadgetConfiguration *> ite(m_configurations);
     while (ite.hasNext()) {
         IUAVGadgetConfiguration *config = ite.next();
         IUAVGadgetFactory *f = factory(config->classId());
         IOptionsPage *p = f->createOptionsPage(config);
         if (p) {
-            emit splashMessages(QString(tr("Loading %1 plugin options page for configuration %2").arg(config->classId()).arg(config->name())));
-            IOptionsPage *page = new UAVGadgetOptionsPageDecorator(p, config, f->isSingleConfigurationGadget());
+            emit splashMessages(QString(tr("Loading %1 plugin options page for configuration %2")
+                                            .arg(config->classId())
+                                            .arg(config->name())));
+            IOptionsPage *page =
+                new UAVGadgetOptionsPageDecorator(p, config, f->isSingleConfigurationGadget());
             page->setIcon(f->icon());
             m_optionsPages.append(page);
             m_pm->addObject(page);
-        }
-        else {
-            qWarning()
-                    << "UAVGadgetInstanceManager::createOptionsPages - failed to create options page for configuration "
-                            + config->classId() + ":" + config->name() + ", configuration will be removed.";
-            // The m_optionsPages list and m_configurations list must be in synch otherwise nasty issues happen later
+        } else {
+            qWarning() << "UAVGadgetInstanceManager::createOptionsPages - failed to create options "
+                          "page for configuration "
+                    + config->classId() + ":" + config->name() + ", configuration will be removed.";
+            // The m_optionsPages list and m_configurations list must be in synch otherwise nasty
+            // issues happen later
             // so if we fail to create an options page we must remove the associated configuration
             ite.remove();
         }
     }
 }
 
-
-IUAVGadget *UAVGadgetInstanceManager::createGadget(QString classId, QWidget *parent, bool forceLoadConfiguration)
+IUAVGadget *UAVGadgetInstanceManager::createGadget(QString classId, QWidget *parent,
+                                                   bool forceLoadConfiguration)
 {
     IUAVGadgetFactory *f = factory(classId);
     if (f) {
-        if(f->classId()!="EmptyGadget")
-            emit splashMessages(QString(tr("Creating %1 with %2 configuration").arg(f->classId()).arg(f->name())));
+        if (f->classId() != "EmptyGadget")
+            emit splashMessages(
+                QString(tr("Creating %1 with %2 configuration").arg(f->classId()).arg(f->name())));
         else
             emit splashMessages(tr("Loading EmptyGadget"));
-        QList<IUAVGadgetConfiguration*> *configs = configurations(classId);
+        QList<IUAVGadgetConfiguration *> *configs = configurations(classId);
         IUAVGadget *g = f->createGadget(parent);
         IUAVGadget *gadget = new UAVGadgetDecorator(g, configs, forceLoadConfiguration);
         m_gadgetInstances.append(gadget);
-        connect(this, SIGNAL(configurationAdded(IUAVGadgetConfiguration*)), gadget, SLOT(configurationAdded(IUAVGadgetConfiguration*)));
-        connect(this, SIGNAL(configurationChanged(IUAVGadgetConfiguration*)), gadget, SLOT(configurationChanged(IUAVGadgetConfiguration*)));
-        connect(this, SIGNAL(configurationNameChanged(IUAVGadgetConfiguration*, QString,QString)), gadget, SLOT(configurationNameChanged(IUAVGadgetConfiguration*, QString,QString)));
-        connect(this, SIGNAL(configurationToBeDeleted(IUAVGadgetConfiguration*)), gadget, SLOT(configurationToBeDeleted(IUAVGadgetConfiguration*)));
+        connect(this, SIGNAL(configurationAdded(IUAVGadgetConfiguration *)), gadget,
+                SLOT(configurationAdded(IUAVGadgetConfiguration *)));
+        connect(this, SIGNAL(configurationChanged(IUAVGadgetConfiguration *)), gadget,
+                SLOT(configurationChanged(IUAVGadgetConfiguration *)));
+        connect(this, SIGNAL(configurationNameChanged(IUAVGadgetConfiguration *, QString, QString)),
+                gadget,
+                SLOT(configurationNameChanged(IUAVGadgetConfiguration *, QString, QString)));
+        connect(this, SIGNAL(configurationToBeDeleted(IUAVGadgetConfiguration *)), gadget,
+                SLOT(configurationToBeDeleted(IUAVGadgetConfiguration *)));
         return gadget;
     }
     return 0;
@@ -301,19 +300,18 @@ void UAVGadgetInstanceManager::removeGadget(IUAVGadget *gadget)
   */
 void UAVGadgetInstanceManager::removeAllGadgets()
 {
-    foreach( IUAVGadget *gadget, m_gadgetInstances) {
+    foreach (IUAVGadget *gadget, m_gadgetInstances) {
         m_gadgetInstances.removeOne(gadget);
         delete gadget;
     }
 }
-
 
 bool UAVGadgetInstanceManager::canDeleteConfiguration(IUAVGadgetConfiguration *config)
 {
     // to be able to delete a configuration, no instance must be using it
     foreach (IUAVGadget *gadget, m_gadgetInstances) {
         if (gadget->activeConfiguration() == config) {
-          return false;
+            return false;
         }
     }
     // and it cannot be the only configuration
@@ -324,7 +322,7 @@ bool UAVGadgetInstanceManager::canDeleteConfiguration(IUAVGadgetConfiguration *c
     return false;
 }
 
-void  UAVGadgetInstanceManager::deleteConfiguration(IUAVGadgetConfiguration *config)
+void UAVGadgetInstanceManager::deleteConfiguration(IUAVGadgetConfiguration *config)
 {
     m_provisionalDeletes.append(config);
     if (m_provisionalConfigs.contains(config)) {
@@ -340,7 +338,7 @@ void  UAVGadgetInstanceManager::deleteConfiguration(IUAVGadgetConfiguration *con
     configurationNameEdited("", false);
 }
 
-void  UAVGadgetInstanceManager::cloneConfiguration(IUAVGadgetConfiguration *configToClone)
+void UAVGadgetInstanceManager::cloneConfiguration(IUAVGadgetConfiguration *configToClone)
 {
     QString name = suggestName(configToClone->classId(), configToClone->name());
 
@@ -369,7 +367,7 @@ QString UAVGadgetInstanceManager::suggestName(QString classId, QString name)
         QStringList n = name.split(" ");
         n.removeLast();
         name = n.join(" ");
-        i = num+1;
+        i = num + 1;
     }
     do {
         suggestedName = name + " " + QString::number(i);
@@ -391,7 +389,7 @@ void UAVGadgetInstanceManager::applyChanges(IUAVGadgetConfiguration *config)
             m_takenNames[config->classId()].removeAt(j);
             m_pm->removeObject(m_optionsPages.at(i));
             m_configurations.removeAt(i);
-            m_optionsPages.removeAt(i);//TODO delete
+            m_optionsPages.removeAt(i); // TODO delete
         }
         return;
     }
@@ -418,25 +416,31 @@ void UAVGadgetInstanceManager::configurationNameEdited(QString text, bool hasTex
     bool disable = false;
     foreach (IUAVGadgetConfiguration *c, m_configurations) {
         foreach (IUAVGadgetConfiguration *d, m_configurations) {
-            if (c != d && c->classId() == d->classId() && c->provisionalName() == d->provisionalName())
-            {
-                qDebug() << "Two identically named configurations: " << c->classId() << "." << c->provisionalName() << "and " << d->classId() << "." << d->provisionalName();
+            if (c != d && c->classId() == d->classId()
+                && c->provisionalName() == d->provisionalName()) {
+                qDebug() << "Two identically named configurations: " << c->classId() << "."
+                         << c->provisionalName() << "and " << d->classId() << "."
+                         << d->provisionalName();
                 disable = true;
             }
         }
         foreach (IUAVGadgetConfiguration *d, m_provisionalConfigs) {
-            if (c != d && c->classId() == d->classId() && c->provisionalName() == d->provisionalName())
-            {
-                qDebug() << "An identically named provisional and normal configuration: " << c->classId() << "." << c->provisionalName() << "and " << d->classId() << "." << d->provisionalName();
+            if (c != d && c->classId() == d->classId()
+                && c->provisionalName() == d->provisionalName()) {
+                qDebug() << "An identically named provisional and normal configuration: "
+                         << c->classId() << "." << c->provisionalName() << "and " << d->classId()
+                         << "." << d->provisionalName();
                 disable = true;
             }
         }
     }
     foreach (IUAVGadgetConfiguration *c, m_provisionalConfigs) {
         foreach (IUAVGadgetConfiguration *d, m_provisionalConfigs) {
-            if (c != d && c->classId() == d->classId() && c->provisionalName() == d->provisionalName())
-            {
-                qDebug() << "Two identically named provisional configurations: " << c->classId() << "." << c->provisionalName() << "and " << d->classId() << "." << d->provisionalName();
+            if (c != d && c->classId() == d->classId()
+                && c->provisionalName() == d->provisionalName()) {
+                qDebug() << "Two identically named provisional configurations: " << c->classId()
+                         << "." << c->provisionalName() << "and " << d->classId() << "."
+                         << d->provisionalName();
                 disable = true;
             }
         }
@@ -448,7 +452,7 @@ void UAVGadgetInstanceManager::configurationNameEdited(QString text, bool hasTex
         m_settingsDialog->updateText(text);
 }
 
-void UAVGadgetInstanceManager::settingsDialogShown(Core::Internal::SettingsDialog* settingsDialog)
+void UAVGadgetInstanceManager::settingsDialogShown(Core::Internal::SettingsDialog *settingsDialog)
 {
     foreach (QString classId, classIds())
         m_takenNames.insert(classId, configurationNames(classId));
@@ -460,7 +464,7 @@ void UAVGadgetInstanceManager::settingsDialogRemoved()
     m_takenNames.clear();
     m_provisionalConfigs.clear();
     m_provisionalDeletes.clear();
-    m_provisionalOptionsPages.clear(); //TODO delete
+    m_provisionalOptionsPages.clear(); // TODO delete
     foreach (IUAVGadgetConfiguration *config, m_configurations)
         config->setProvisionalName(config->name());
     m_settingsDialog = 0;
@@ -495,9 +499,9 @@ IUAVGadgetFactory *UAVGadgetInstanceManager::factory(QString classId) const
     return 0;
 }
 
-QList<IUAVGadgetConfiguration*> *UAVGadgetInstanceManager::configurations(QString classId) const
+QList<IUAVGadgetConfiguration *> *UAVGadgetInstanceManager::configurations(QString classId) const
 {
-    QList<IUAVGadgetConfiguration*> *configs = new QList<IUAVGadgetConfiguration*>;
+    QList<IUAVGadgetConfiguration *> *configs = new QList<IUAVGadgetConfiguration *>;
     foreach (IUAVGadgetConfiguration *config, m_configurations) {
         if (config->classId() == classId)
             configs->append(config);
@@ -505,12 +509,12 @@ QList<IUAVGadgetConfiguration*> *UAVGadgetInstanceManager::configurations(QStrin
     return configs;
 }
 
-int UAVGadgetInstanceManager::indexForConfig(QList<IUAVGadgetConfiguration*> configurations,
-                   QString classId, QString configName)
+int UAVGadgetInstanceManager::indexForConfig(QList<IUAVGadgetConfiguration *> configurations,
+                                             QString classId, QString configName)
 {
-    for ( int i=0; i<configurations.length(); ++i){
-        if ( configurations.at(i)->classId() == classId
-             && configurations.at(i)->name() == configName )
+    for (int i = 0; i < configurations.length(); ++i) {
+        if (configurations.at(i)->classId() == classId
+            && configurations.at(i)->name() == configName)
             return i;
     }
     return -1;

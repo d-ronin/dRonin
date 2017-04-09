@@ -30,22 +30,21 @@
 #include "lux.h"
 #include <QtPlugin>
 
-
 BrotronicsPlugin::BrotronicsPlugin()
 {
-   // Do nothing
+    // Do nothing
 }
 
 BrotronicsPlugin::~BrotronicsPlugin()
 {
-   // Do nothing
+    // Do nothing
 }
 
-bool BrotronicsPlugin::initialize(const QStringList& args, QString *errMsg)
+bool BrotronicsPlugin::initialize(const QStringList &args, QString *errMsg)
 {
-   Q_UNUSED(args);
-   Q_UNUSED(errMsg);
-   return true;
+    Q_UNUSED(args);
+    Q_UNUSED(errMsg);
+    return true;
 }
 
 void BrotronicsPlugin::extensionsInitialized()
@@ -54,12 +53,10 @@ void BrotronicsPlugin::extensionsInitialized()
      * Create the board objects here.
      *
      */
-    Lux* lux = new Lux();
+    Lux *lux = new Lux();
     addAutoReleasedObject(lux);
-
 }
 
 void BrotronicsPlugin::shutdown()
 {
 }
-

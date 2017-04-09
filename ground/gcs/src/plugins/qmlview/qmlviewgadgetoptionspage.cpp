@@ -7,7 +7,7 @@
  * @{
  * @addtogroup OPMapPlugin QML Viewer Plugin
  * @{
- * @brief The QML Viewer Gadget 
+ * @brief The QML Viewer Gadget
  *****************************************************************************/
 /*
  * This program is free software; you can redistribute it and/or modify
@@ -31,29 +31,27 @@
 #include "uavobjectmanager.h"
 #include "uavdataobject.h"
 
-
 #include <QFileDialog>
 #include <QtAlgorithms>
 #include <QStringList>
 
-QmlViewGadgetOptionsPage::QmlViewGadgetOptionsPage(QmlViewGadgetConfiguration *config, QObject *parent) :
-        IOptionsPage(parent),
-        m_config(config)
+QmlViewGadgetOptionsPage::QmlViewGadgetOptionsPage(QmlViewGadgetConfiguration *config,
+                                                   QObject *parent)
+    : IOptionsPage(parent)
+    , m_config(config)
 {
 }
 
-//creates options page widget (uses the UI file)
+// creates options page widget (uses the UI file)
 QWidget *QmlViewGadgetOptionsPage::createPage(QWidget *parent)
 {
     Q_UNUSED(parent);
 
     options_page = new Ui::QmlViewGadgetOptionsPage();
-    //main widget
+    // main widget
     QWidget *optionsPageWidget = new QWidget;
-    //main layout
+    // main layout
     options_page->setupUi(optionsPageWidget);
-
-
 
     // Restore the contents from the settings:
     options_page->svgSourceFile->setExpectedKind(Utils::PathChooser::File);

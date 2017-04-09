@@ -39,7 +39,7 @@ class BrainRE1Configuration;
 class BrainRE1Configuration : public ConfigTaskWidget
 {
     Q_OBJECT
-    
+
 public:
     explicit BrainRE1Configuration(QWidget *parent = 0);
     ~BrainRE1Configuration();
@@ -54,7 +54,7 @@ private slots:
 
 private:
     Ui::BrainRE1Configuration *ui;
-    HwBrainRE1 * re1_settings_obj;
+    HwBrainRE1 *re1_settings_obj;
 
     int generateRandomNumber(int max);
 };

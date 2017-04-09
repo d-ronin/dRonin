@@ -62,7 +62,10 @@ public:
     * @brief getConnectionDiagram get the connection diagram for this board
     * @return a string with the name of the resource for this board diagram
     */
-    virtual QString getConnectionDiagram() { return ":/brotronics/images/lux-connection-diagram.svg"; }
+    virtual QString getConnectionDiagram()
+    {
+        return ":/brotronics/images/lux-connection-diagram.svg";
+    }
 
     virtual QStringList getAdcNames();
 
@@ -73,8 +76,6 @@ public:
      * @return Configuration widget handle or NULL on failure
      */
     virtual QWidget *getBoardConfiguration(QWidget *parent, bool connected);
-
 };
-
 
 #endif // LUX_H

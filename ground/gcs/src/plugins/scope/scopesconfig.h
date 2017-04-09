@@ -34,7 +34,6 @@
 #ifndef SCOPESCONFIG_H
 #define SCOPESCONFIG_H
 
-
 #include "uavtalk/telemetrymanager.h"
 #include "extensionsystem/pluginmanager.h"
 #include "uavobjectmanager.h"
@@ -45,15 +44,10 @@
 #include "scopegadgetwidget.h"
 #include "ui_scopegadgetoptionspage.h"
 
-
-
 /**
  * @brief The Plot3dType enum Defines the different type of plots.
  */
-enum PlotDimensions {
-    PLOT2D,
-    PLOT3D
-};
+enum PlotDimensions { PLOT2D, PLOT3D };
 
 /**
  * @brief The ScopeConfig class The parent class for scope configuration classes
@@ -69,35 +63,37 @@ public:
     virtual void loadConfiguration(ScopeGadgetWidget *) = 0;
     virtual void setGuiConfiguration(Ui::ScopeGadgetOptionsPage *) = 0;
 
-    int getRefreshInterval(){return m_refreshInterval;}
-    void setRefreshInterval(int val){m_refreshInterval = val;}
+    int getRefreshInterval() { return m_refreshInterval; }
+    void setRefreshInterval(int val) { m_refreshInterval = val; }
 
     virtual void preparePlot(ScopeGadgetWidget *) = 0;
-    virtual ScopeConfig* cloneScope(ScopeConfig *histogramSourceConfigs) = 0;
+    virtual ScopeConfig *cloneScope(ScopeConfig *histogramSourceConfigs) = 0;
 
 protected:
-    int m_refreshInterval; //The interval to replot the curve widget. The data buffer is refresh as the data comes in.
+    int m_refreshInterval; // The interval to replot the curve widget. The data buffer is refresh as
+                           // the data comes in.
     PlotDimensions m_plotDimensions;
 
     QString getUavObjectFieldUnits(QString uavObjectName, QString uavObjectFieldName)
     {
-        //Get the uav object
+        // Get the uav object
         ExtensionSystem::PluginManager *pm = ExtensionSystem::PluginManager::instance();
         UAVObjectManager *objManager = pm->getObject<UAVObjectManager>();
-        UAVDataObject* obj = dynamic_cast<UAVDataObject*>(objManager->getObject(uavObjectName));
-        if(!obj) {
+        UAVDataObject *obj = dynamic_cast<UAVDataObject *>(objManager->getObject(uavObjectName));
+        if (!obj) {
             qDebug() << "In scope gadget, UAVObject " << uavObjectName << " is missing";
             return "";
         }
-        UAVObjectField* field = obj->getField(uavObjectFieldName);
-        if(!field) {
-            qDebug() << "In scope gadget, in fields loaded from GCS config file, field" << uavObjectFieldName << " of UAVObject " << uavObjectName << " is missing";
+        UAVObjectField *field = obj->getField(uavObjectFieldName);
+        if (!field) {
+            qDebug() << "In scope gadget, in fields loaded from GCS config file, field"
+                     << uavObjectFieldName << " of UAVObject " << uavObjectName << " is missing";
             return "";
         }
 
-        //Get the units
+        // Get the units
         QString units = field->getUnits();
-        if(units == 0)
+        if (units == 0)
             units = QString();
 
         return units;

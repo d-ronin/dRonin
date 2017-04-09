@@ -47,7 +47,7 @@ public slots:
     void setIndicatorValue(int us);
 
 protected:
-    void paintEvent ( QPaintEvent * event );
+    void paintEvent(QPaintEvent *event);
     qreal sliderPosFromValue(const int val);
 
 private:

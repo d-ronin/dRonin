@@ -31,7 +31,6 @@
 
 #include "ipconnectionplugin.h"
 
-
 #include <extensionsystem/pluginmanager.h>
 #include <coreplugin/icore.h>
 
@@ -44,30 +43,29 @@
 
 #include <QDebug>
 
-IPConnection * connection = 0;
+IPConnection *connection = 0;
 
 IPConnection::IPConnection()
 {
     ipSocket = NULL;
-    //create all our objects
+    // create all our objects
     m_config = new IPConnectionConfiguration("IP Network Telemetry", NULL, this);
     m_config->readConfig();
 
-    m_optionspage = new IPConnectionOptionsPage(m_config,this);
+    m_optionspage = new IPConnectionOptionsPage(m_config, this);
 
-    //just signal whenever we have a device event...
-    QMainWindow *mw = Core::ICore::instance()->mainWindow();
-    QObject::connect(mw, SIGNAL(deviceChange()),
-                     this, SLOT(onEnumerationChanged()));
-    QObject::connect(m_optionspage, SIGNAL(availableDevChanged()),
-                     this, SLOT(onEnumerationChanged()));
+    // only way our devices change is through the options page
+    QObject::connect(m_optionspage, &IPConnectionOptionsPage::availableDevChanged, this,
+                     &IPConnection::onEnumerationChanged);
+    // we loaded some devices from configuration file...
+    onEnumerationChanged();
 }
 
 IPConnection::~IPConnection()
-{//clean up our resources...
+{ // clean up our resources...
     if (ipSocket) {
         ipSocket->close();
-        delete(ipSocket);
+        delete (ipSocket);
     }
 }
 
@@ -91,19 +89,20 @@ QList<IDevice *> IPConnection::availableDevices()
         }
         if (!found) {
             auto dev = new IPDevice();
-            QString name = QString("%0://%1:%2")
+            QString name =
+                QString("%0://%1:%2")
                     .arg(host.protocol == IPConnectionConfiguration::ProtocolTcp ? "tcp" : "udp")
                     .arg(host.hostname)
                     .arg(host.port);
             dev->setDisplayName(name);
             dev->setName(name);
             dev->setHost(host);
-            devices.append(dev);  // TODO: memory leak, seems like an awkward interface..?
+            devices.append(dev); // TODO: memory leak, seems like an awkward interface..?
         }
     }
 
     // clear out removed devices
-    for (int i = 0; i < devices.length(); ) {
+    for (int i = 0; i < devices.length();) {
         if (!newHosts.contains(static_cast<const IPDevice *>(devices.at(i))->host())) {
             devices.at(i)->deleteLater();
             devices.removeAt(i);
@@ -138,8 +137,8 @@ QIODevice *IPConnection::openDevice(Core::IDevice *device)
     // can restart simulator immediately.
     ipSocket->bind(0, QAbstractSocket::ShareAddress);
 
-    //do sanity check on hostname and port...
-    if (!dev->host().hostname.length() || dev->host().port < 1 || dev->host().port > 65535){
+    // do sanity check on hostname and port...
+    if (!dev->host().hostname.length() || dev->host().port < 1 || dev->host().port > 65535) {
         errorMsg = tr("Please configure host and port options before opening the connection");
     } else {
         // try to connect...
@@ -165,13 +164,12 @@ QIODevice *IPConnection::openDevice(Core::IDevice *device)
 
 void IPConnection::closeDevice(const QString &)
 {
-    if (ipSocket){
+    if (ipSocket) {
         ipSocket->close();
         delete ipSocket;
         ipSocket = NULL;
     }
 }
-
 
 QString IPConnection::connectionName()
 {
@@ -183,13 +181,12 @@ QString IPConnection::shortName()
     return tr("IP");
 }
 
-
 IPConnectionPlugin::IPConnectionPlugin()
-{//no change from serial plugin
+{ // no change from serial plugin
 }
 
 IPConnectionPlugin::~IPConnectionPlugin()
-{//manually remove the options page object
+{ // manually remove the options page object
     removeObject(m_connection->optionsPage());
 }
 
@@ -203,9 +200,9 @@ bool IPConnectionPlugin::initialize(const QStringList &arguments, QString *error
     Q_UNUSED(arguments);
     Q_UNUSED(errorString);
     m_connection = new IPConnection();
-    //must manage this registration of child object ourselves
-    //if we use an autorelease here it causes the GCS to crash
-    //as it is deleting objects as the app closes...
+    // must manage this registration of child object ourselves
+    // if we use an autorelease here it causes the GCS to crash
+    // as it is deleting objects as the app closes...
     addObject(m_connection->optionsPage());
 
     return true;

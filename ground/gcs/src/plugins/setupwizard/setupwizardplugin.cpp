@@ -38,25 +38,26 @@
 #include <QKeySequence>
 #include <coreplugin/modemanager.h>
 
-SetupWizardPlugin::SetupWizardPlugin() : wizardRunning(false)
-{}
+SetupWizardPlugin::SetupWizardPlugin()
+    : wizardRunning(false)
+{
+}
 
 SetupWizardPlugin::~SetupWizardPlugin()
-{}
+{
+}
 
-bool SetupWizardPlugin::initialize(const QStringList & args, QString *errMsg)
+bool SetupWizardPlugin::initialize(const QStringList &args, QString *errMsg)
 {
     Q_UNUSED(args);
     Q_UNUSED(errMsg);
 
     // Add Menu entry
-    Core::ActionManager *am   = Core::ICore::instance()->actionManager();
+    Core::ActionManager *am = Core::ICore::instance()->actionManager();
     Core::ActionContainer *ac = am->actionContainer(Core::Constants::M_TOOLS);
 
-    Core::Command *cmd = am->registerAction(new QAction(this),
-                                            "SetupWizardPlugin.ShowSetupWizard",
-                                            QList<int>() <<
-                                            Core::Constants::C_GLOBAL_ID);
+    Core::Command *cmd = am->registerAction(new QAction(this), "SetupWizardPlugin.ShowSetupWizard",
+                                            QList<int>() << Core::Constants::C_GLOBAL_ID);
     cmd->action()->setText(tr("Vehicle Setup Wizard"));
 
     Core::ModeManager::instance()->addAction(cmd, 1);
@@ -65,15 +66,17 @@ bool SetupWizardPlugin::initialize(const QStringList & args, QString *errMsg)
     ac->appendGroup("Wizard");
     ac->addAction(cmd, "Wizard");
 
-    connect(cmd->action(), SIGNAL(triggered(bool)), this, SLOT(showSetupWizard()));
+    connect(cmd->action(), &QAction::triggered, this, &SetupWizardPlugin::showSetupWizard);
     return true;
 }
 
 void SetupWizardPlugin::extensionsInitialized()
-{}
+{
+}
 
 void SetupWizardPlugin::shutdown()
-{}
+{
+}
 
 void SetupWizardPlugin::showSetupWizard()
 {
@@ -82,7 +85,7 @@ void SetupWizardPlugin::showSetupWizard()
 
         wizardRunning = true;
         SetupWizard *m_wiz = new SetupWizard();
-        connect(m_wiz, SIGNAL(finished(int)), this, SLOT(wizardTerminated()));
+        connect(m_wiz, &QDialog::finished, this, &SetupWizardPlugin::wizardTerminated);
         m_wiz->setAttribute(Qt::WA_DeleteOnClose, true);
         m_wiz->setWindowFlags(m_wiz->windowFlags() | Qt::WindowStaysOnTopHint);
         m_wiz->show();

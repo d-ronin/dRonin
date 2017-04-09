@@ -34,7 +34,8 @@ namespace Ui {
 class SavePage;
 }
 
-class SavePage : public AbstractWizardPage {
+class SavePage : public AbstractWizardPage
+{
     Q_OBJECT
 
 public:

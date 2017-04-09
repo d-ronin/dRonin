@@ -35,8 +35,8 @@
 #include "vehicleconfigurationsource.h"
 #include "actuatorcommand.h"
 
-
-class OutputCalibrationUtil : public QObject {
+class OutputCalibrationUtil : public QObject
+{
     Q_OBJECT
 public:
     explicit OutputCalibrationUtil(QObject *parent = 0);

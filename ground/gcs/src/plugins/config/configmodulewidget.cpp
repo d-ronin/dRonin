@@ -43,7 +43,8 @@
 
 #include <QColorDialog>
 
-ConfigModuleWidget::ConfigModuleWidget(QWidget *parent) : ConfigTaskWidget(parent)
+ConfigModuleWidget::ConfigModuleWidget(QWidget *parent)
+    : ConfigTaskWidget(parent)
 {
     ui = new Ui::Modules();
     ui->setupUi(this);
@@ -51,7 +52,7 @@ ConfigModuleWidget::ConfigModuleWidget(QWidget *parent) : ConfigTaskWidget(paren
     // override anything set in .ui file by Qt Designer
     ui->moduleTab->setCurrentIndex(0);
 
-    connect(this, SIGNAL(autoPilotConnected()), this, SLOT(recheckTabs()));
+    connect(this, &ConfigTaskWidget::autoPilotConnected, this, &ConfigModuleWidget::recheckTabs);
 
     // Populate UAVO strings
     AirspeedSettings *airspeedSettings;
@@ -67,24 +68,37 @@ ConfigModuleWidget::ConfigModuleWidget(QWidget *parent) : ConfigTaskWidget(paren
     ui->cbCameraStab->setDisabled(true);
 
     // Connect auto-cell detection logic
-    connect(ui->gbAutoCellDetection, SIGNAL(toggled(bool)), this, SLOT(autoCellDetectionToggled(bool)));
-    connect(ui->sbMaxCellVoltage, SIGNAL(valueChanged(double)), this, SLOT(maxCellVoltageChanged(double)));
+    connect(ui->gbAutoCellDetection, &QGroupBox::toggled, this,
+            &ConfigModuleWidget::autoCellDetectionToggled);
+    connect(ui->sbMaxCellVoltage, QOverload<double>::of(&QDoubleSpinBox::valueChanged), this,
+            &ConfigModuleWidget::maxCellVoltageChanged);
 
     // Connect the voltage and current checkboxes, such that the ADC pins are toggled and vice versa
-    connect(ui->gb_measureVoltage, SIGNAL(toggled(bool)), this, SLOT(toggleBatteryMonitoringPin()));
-    connect(ui->gb_measureCurrent, SIGNAL(toggled(bool)), this, SLOT(toggleBatteryMonitoringPin()));
-    connect(ui->cbVoltagePin, SIGNAL(currentIndexChanged(int)), this, SLOT(toggleBatteryMonitoringGb()));
-    connect(ui->cbCurrentPin, SIGNAL(currentIndexChanged(int)), this, SLOT(toggleBatteryMonitoringGb()));
+    connect(ui->gb_measureVoltage, &QGroupBox::toggled, this,
+            &ConfigModuleWidget::toggleBatteryMonitoringPin);
+    connect(ui->gb_measureCurrent, &QGroupBox::toggled, this,
+            &ConfigModuleWidget::toggleBatteryMonitoringPin);
+    connect(ui->cbVoltagePin, QOverload<int>::of(&QComboBox::currentIndexChanged), this,
+            &ConfigModuleWidget::toggleBatteryMonitoringGb);
+    connect(ui->cbCurrentPin, QOverload<int>::of(&QComboBox::currentIndexChanged), this,
+            &ConfigModuleWidget::toggleBatteryMonitoringGb);
 
     // connect the voltage ratio and factor boxes so they update each other when edited
-    connect(ui->sb_voltageRatio, SIGNAL(editingFinished()), this, SLOT(updateVoltageRatio()));
-    connect(ui->sb_voltageFactor, SIGNAL(editingFinished()), this, SLOT(updateVoltageFactor()));
-    connect(FlightBatterySettings::GetInstance(getObjectManager()), SIGNAL(SensorCalibrationFactor_VoltageChanged(float)), this, SLOT(updateVoltageFactorFromUavo(float)));
+    connect(ui->sb_voltageRatio, &QAbstractSpinBox::editingFinished, this,
+            &ConfigModuleWidget::updateVoltageRatio);
+    connect(ui->sb_voltageFactor, &QAbstractSpinBox::editingFinished, this,
+            &ConfigModuleWidget::updateVoltageFactor);
+    connect(FlightBatterySettings::GetInstance(getObjectManager()),
+            &FlightBatterySettings::SensorCalibrationFactor_VoltageChanged, this,
+            &ConfigModuleWidget::updateVoltageFactorFromUavo);
 
     // Connect Airspeed Settings
-    connect(airspeedSettings, SIGNAL(objectUpdated(UAVObject*)), this, SLOT(updateAirspeedGroupbox(UAVObject *)));
-    connect(ui->gb_airspeedGPS, SIGNAL(clicked(bool)), this, SLOT(enableAirspeedTypeGPS(bool)));
-    connect(ui->gb_airspeedPitot, SIGNAL(clicked(bool)), this, SLOT(enableAirspeedTypePitot(bool)));
+    connect(airspeedSettings, &UAVObject::objectUpdated, this,
+            &ConfigModuleWidget::updateAirspeedGroupbox);
+    connect(ui->gb_airspeedGPS, &QGroupBox::clicked, this,
+            &ConfigModuleWidget::enableAirspeedTypeGPS);
+    connect(ui->gb_airspeedPitot, &QGroupBox::clicked, this,
+            &ConfigModuleWidget::enableAirspeedTypePitot);
 
     setupLedTab();
 
@@ -128,7 +142,8 @@ void ConfigModuleWidget::enableControls(bool enable)
 //! Query optional objects to determine which tabs can be configured
 void ConfigModuleWidget::recheckTabs()
 {
-    // clear checkboxes in-case taskinfo object doesn't exist (it will look like the last connected board's modules are still enabled)
+    // clear checkboxes in-case taskinfo object doesn't exist (it will look like the last connected
+    // board's modules are still enabled)
     bool dirty = isDirty();
     ui->cbComBridge->setChecked(false);
     ui->cbGPS->setChecked(false);
@@ -140,28 +155,34 @@ void ConfigModuleWidget::recheckTabs()
     ui->cbUAVOFrSkySPortBridge->setChecked(false);
     setDirty(dirty);
 
-    UAVObject * obj;
+    UAVObject *obj;
 
     obj = getObjectManager()->getObject(AirspeedSettings::NAME);
-    connect(obj, SIGNAL(transactionCompleted(UAVObject*,bool)), this, SLOT(objectUpdated(UAVObject*,bool)), Qt::UniqueConnection);
+    connect(obj, QOverload<UAVObject *, bool>::of(&UAVObject::transactionCompleted), this,
+            &ConfigModuleWidget::objectUpdated, Qt::UniqueConnection);
     obj->requestUpdate();
 
     obj = getObjectManager()->getObject(FlightBatterySettings::NAME);
-    connect(obj, SIGNAL(transactionCompleted(UAVObject*,bool)), this, SLOT(objectUpdated(UAVObject*,bool)), Qt::UniqueConnection);
+    connect(obj, QOverload<UAVObject *, bool>::of(&UAVObject::transactionCompleted), this,
+            &ConfigModuleWidget::objectUpdated, Qt::UniqueConnection);
     obj->requestUpdate();
 
     obj = getObjectManager()->getObject(HoTTSettings::NAME);
-    connect(obj, SIGNAL(transactionCompleted(UAVObject*,bool)), this, SLOT(objectUpdated(UAVObject*,bool)), Qt::UniqueConnection);
+    connect(obj, QOverload<UAVObject *, bool>::of(&UAVObject::transactionCompleted), this,
+            &ConfigModuleWidget::objectUpdated, Qt::UniqueConnection);
+
     TaskInfo *taskInfo = qobject_cast<TaskInfo *>(getObjectManager()->getObject(TaskInfo::NAME));
     if (taskInfo && taskInfo->getIsPresentOnHardware()) {
-        connect(taskInfo, SIGNAL(transactionCompleted(UAVObject *, bool)), obj, SLOT(requestUpdate()), Qt::UniqueConnection);
+        connect(taskInfo, QOverload<UAVObject *, bool>::of(&UAVObject::transactionCompleted), obj,
+                &UAVObject::requestUpdate, Qt::UniqueConnection);
         taskInfo->requestUpdate();
     } else {
         obj->requestUpdate();
     }
 
     obj = getObjectManager()->getObject(LoggingSettings::NAME);
-    connect(obj, SIGNAL(transactionCompleted(UAVObject*,bool)), this, SLOT(objectUpdated(UAVObject*,bool)), Qt::UniqueConnection);
+    connect(obj, QOverload<UAVObject *, bool>::of(&UAVObject::transactionCompleted), this,
+            &ConfigModuleWidget::objectUpdated, Qt::UniqueConnection);
     obj->requestUpdate();
 
     // This requires re-evaluation so that board connection doesn't re-enable
@@ -172,30 +193,41 @@ void ConfigModuleWidget::recheckTabs()
 }
 
 //! Enable appropriate tab when objects are updated
-void ConfigModuleWidget::objectUpdated(UAVObject * obj, bool success)
+void ConfigModuleWidget::objectUpdated(UAVObject *obj, bool success)
 {
     if (!obj)
         return;
 
-    ModuleSettings *moduleSettings = qobject_cast<ModuleSettings *>(getObjectManager()->getObject(ModuleSettings::NAME));
+    ModuleSettings *moduleSettings =
+        qobject_cast<ModuleSettings *>(getObjectManager()->getObject(ModuleSettings::NAME));
     Q_ASSERT(moduleSettings);
     TaskInfo *taskInfo = qobject_cast<TaskInfo *>(getObjectManager()->getObject(TaskInfo::NAME));
-    bool enableHott = (taskInfo && taskInfo->getIsPresentOnHardware()) ? (taskInfo->getRunning_UAVOHoTTBridge() == TaskInfo::RUNNING_TRUE) : true;
-    bool enableGps = (taskInfo && taskInfo->getIsPresentOnHardware()) ? (taskInfo->getRunning_GPS() == TaskInfo::RUNNING_TRUE) : true;
+    bool enableHott = (taskInfo && taskInfo->getIsPresentOnHardware())
+        ? (taskInfo->getRunning_UAVOHoTTBridge() == TaskInfo::RUNNING_TRUE)
+        : true;
+    bool enableGps = (taskInfo && taskInfo->getIsPresentOnHardware())
+        ? (taskInfo->getRunning_GPS() == TaskInfo::RUNNING_TRUE)
+        : true;
     enableGps &= moduleSettings->getIsPresentOnHardware();
 
     enableGpsTab(enableGps);
 
     QString objName = obj->getName();
     if (objName.compare(AirspeedSettings::NAME) == 0) {
-        enableAirspeedTab(success && moduleSettings->getAdminState_Airspeed() == ModuleSettings::ADMINSTATE_ENABLED);
+        enableAirspeedTab(success
+                          && moduleSettings->getAdminState_Airspeed()
+                              == ModuleSettings::ADMINSTATE_ENABLED);
     } else if (objName.compare(FlightBatterySettings::NAME) == 0) {
-        enableBatteryTab(success && moduleSettings->getAdminState_Battery() == ModuleSettings::ADMINSTATE_ENABLED);
+        enableBatteryTab(success
+                         && moduleSettings->getAdminState_Battery()
+                             == ModuleSettings::ADMINSTATE_ENABLED);
         refreshAdcNames();
     } else if (objName.compare(HoTTSettings::NAME) == 0) {
         enableHoTTTelemetryTab(success && enableHott);
     } else if (objName.compare(LoggingSettings::NAME) == 0) {
-        enableLoggingTab(success && moduleSettings->getAdminState_Logging() == ModuleSettings::ADMINSTATE_ENABLED);
+        enableLoggingTab(success
+                         && moduleSettings->getAdminState_Logging()
+                             == ModuleSettings::ADMINSTATE_ENABLED);
     }
 }
 
@@ -245,9 +277,8 @@ void ConfigModuleWidget::updateAirspeedGroupbox(UAVObject *obj)
 
     if (airspeedSettingsData.AirspeedSensorType == AirspeedSettings::AIRSPEEDSENSORTYPE_GPSONLY) {
         ui->gb_airspeedGPS->setChecked(true);
-    }
-    else {
-         ui->gb_airspeedPitot->setChecked(true);
+    } else {
+        ui->gb_airspeedPitot->setChecked(true);
     }
 }
 
@@ -257,7 +288,7 @@ void ConfigModuleWidget::updateAirspeedGroupbox(UAVObject *obj)
  */
 void ConfigModuleWidget::enableAirspeedTypeGPS(bool checked)
 {
-    if (checked){
+    if (checked) {
         AirspeedSettings *airspeedSettings;
         airspeedSettings = AirspeedSettings::GetInstance(getObjectManager());
         AirspeedSettings::DataFields airspeedSettingsData;
@@ -265,7 +296,6 @@ void ConfigModuleWidget::enableAirspeedTypeGPS(bool checked)
         airspeedSettingsData.AirspeedSensorType = AirspeedSettings::AIRSPEEDSENSORTYPE_GPSONLY;
         airspeedSettings->setData(airspeedSettingsData);
     }
-
 }
 
 /**
@@ -274,36 +304,36 @@ void ConfigModuleWidget::enableAirspeedTypeGPS(bool checked)
  */
 void ConfigModuleWidget::enableAirspeedTypePitot(bool checked)
 {
-    if (checked){
+    if (checked) {
         AirspeedSettings *airspeedSettings;
         airspeedSettings = AirspeedSettings::GetInstance(getObjectManager());
         AirspeedSettings::DataFields airspeedSettingsData;
         airspeedSettingsData = airspeedSettings->getData();
-        airspeedSettingsData.AirspeedSensorType = AirspeedSettings::AIRSPEEDSENSORTYPE_EAGLETREEAIRSPEEDV3;
+        airspeedSettingsData.AirspeedSensorType =
+            AirspeedSettings::AIRSPEEDSENSORTYPE_EAGLETREEAIRSPEEDV3;
         airspeedSettings->setData(airspeedSettingsData);
     }
-
 }
 
 //! Enable or disable the battery tab
 void ConfigModuleWidget::enableBatteryTab(bool enabled)
 {
     int idx = ui->moduleTab->indexOf(ui->tabBattery);
-    ui->moduleTab->setTabEnabled(idx,enabled);
+    ui->moduleTab->setTabEnabled(idx, enabled);
 }
 
 //! Enable or disable the airspeed tab
 void ConfigModuleWidget::enableAirspeedTab(bool enabled)
 {
     int idx = ui->moduleTab->indexOf(ui->tabAirspeed);
-    ui->moduleTab->setTabEnabled(idx,enabled);
+    ui->moduleTab->setTabEnabled(idx, enabled);
 }
 
 //! Enable or disable the HoTT telemetrie tab
 void ConfigModuleWidget::enableHoTTTelemetryTab(bool enabled)
 {
     int idx = ui->moduleTab->indexOf(ui->tabHoTTTelemetry);
-    ui->moduleTab->setTabEnabled(idx,enabled);
+    ui->moduleTab->setTabEnabled(idx, enabled);
 }
 
 //! Enable or disable the GPS tab
@@ -367,9 +397,11 @@ void ConfigModuleWidget::autoCellDetectionToggled(bool checked)
     ui->lblNumBatteryCells->setEnabled(!checked);
     if (checked) {
         if (ui->sbMaxCellVoltage->property("ValueBackup").isValid())
-            ui->sbMaxCellVoltage->setValue(ui->sbMaxCellVoltage->property("ValueBackup").toDouble());
+            ui->sbMaxCellVoltage->setValue(
+                ui->sbMaxCellVoltage->property("ValueBackup").toDouble());
         else
-            ui->sbMaxCellVoltage->setValue(4.2); // TODO: set this to default UAVO val instead of hardcoding?
+            ui->sbMaxCellVoltage->setValue(
+                4.2); // TODO: set this to default UAVO val instead of hardcoding?
     } else {
         ui->sbMaxCellVoltage->setProperty("ValueBackup", ui->sbMaxCellVoltage->value());
         ui->sbMaxCellVoltage->setValue(0.0);
@@ -397,12 +429,14 @@ void ConfigModuleWidget::setupLedTab()
         return;
 
     connect(obj, &UAVObject::objectUpdated, this, &ConfigModuleWidget::ledTabUpdate);
-    connect(ui->btnLEDDefaultColor, &QPushButton::clicked, this, &ConfigModuleWidget::ledTabSetColor);
-    connect(ui->btnLEDRange1Begin, &QPushButton::clicked, this, &ConfigModuleWidget::ledTabSetColor);
+    connect(ui->btnLEDDefaultColor, &QPushButton::clicked, this,
+            &ConfigModuleWidget::ledTabSetColor);
+    connect(ui->btnLEDRange1Begin, &QPushButton::clicked, this,
+            &ConfigModuleWidget::ledTabSetColor);
     connect(ui->btnLEDRange1End, &QPushButton::clicked, this, &ConfigModuleWidget::ledTabSetColor);
-    connect(obj, static_cast<void (UAVDataObject::*)(bool)>(&UAVDataObject::presentOnHardwareChanged), [=](bool enable) {
-        tabEnable(ui->tabLED, enable);
-    });
+    connect(obj,
+            static_cast<void (UAVDataObject::*)(bool)>(&UAVDataObject::presentOnHardwareChanged),
+            [=](bool enable) { tabEnable(ui->tabLED, enable); });
     tabEnable(ui->tabLED, obj->getIsPresentOnHardware());
 }
 
@@ -417,9 +451,18 @@ void ConfigModuleWidget::ledTabUpdate(UAVObject *obj)
 
     auto data = rgb->getData();
 
-    ui->lblLEDDefaultColor->setStyleSheet(QString("background: rgb(%0, %1, %2);").arg(data.DefaultColor[0]).arg(data.DefaultColor[1]).arg(data.DefaultColor[2]));
-    ui->lblLEDRange1Begin->setStyleSheet(QString("background: rgb(%0, %1, %2);").arg(data.RangeBaseColor[0]).arg(data.RangeBaseColor[1]).arg(data.RangeBaseColor[2]));
-    ui->lblLEDRange1End->setStyleSheet(QString("background: rgb(%0, %1, %2);").arg(data.RangeEndColor[0]).arg(data.RangeEndColor[1]).arg(data.RangeEndColor[2]));
+    ui->lblLEDDefaultColor->setStyleSheet(QString("background: rgb(%0, %1, %2);")
+                                              .arg(data.DefaultColor[0])
+                                              .arg(data.DefaultColor[1])
+                                              .arg(data.DefaultColor[2]));
+    ui->lblLEDRange1Begin->setStyleSheet(QString("background: rgb(%0, %1, %2);")
+                                             .arg(data.RangeBaseColor[0])
+                                             .arg(data.RangeBaseColor[1])
+                                             .arg(data.RangeBaseColor[2]));
+    ui->lblLEDRange1End->setStyleSheet(QString("background: rgb(%0, %1, %2);")
+                                           .arg(data.RangeEndColor[0])
+                                           .arg(data.RangeEndColor[1])
+                                           .arg(data.RangeEndColor[2]));
 }
 
 void ConfigModuleWidget::ledTabSetColor()
@@ -439,7 +482,8 @@ void ConfigModuleWidget::ledTabSetColor()
     if (!field)
         return;
 
-    const QColor initial(field->getValue(0).toInt(), field->getValue(1).toInt(), field->getValue(2).toInt());
+    const QColor initial(field->getValue(0).toInt(), field->getValue(1).toInt(),
+                         field->getValue(2).toInt());
     QColorDialog picker(initial, this);
     picker.raise();
     if (picker.exec() != QDialog::Accepted)
@@ -454,7 +498,8 @@ void ConfigModuleWidget::ledTabSetColor()
     if (!lbl)
         return;
 
-    lbl->setStyleSheet(QString("background: rgb(%0, %1, %2);").arg(col.red()).arg(col.green()).arg(col.blue()));
+    lbl->setStyleSheet(
+        QString("background: rgb(%0, %1, %2);").arg(col.red()).arg(col.green()).arg(col.blue()));
 }
 
 void ConfigModuleWidget::tabEnable(QWidget *tab, bool enable)

@@ -8,7 +8,7 @@
  * @{
  * @addtogroup DialPlugin Dial Plugin
  * @{
- * @brief Plots flight information rotary style dials 
+ * @brief Plots flight information rotary style dials
  *****************************************************************************/
 /*
  * This program is free software; you can redistribute it and/or modify
@@ -46,11 +46,10 @@ public:
     ~DialGadget();
 
     QWidget *widget() { return m_widget; }
-    void loadConfiguration(IUAVGadgetConfiguration* config);
+    void loadConfiguration(IUAVGadgetConfiguration *config);
 
 private:
     DialGadgetWidget *m_widget;
 };
-
 
 #endif // DIALGADGET_H_

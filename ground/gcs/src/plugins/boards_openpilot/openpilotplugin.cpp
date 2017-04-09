@@ -30,22 +30,21 @@
 #include "revolution.h"
 #include <QtPlugin>
 
-
 OpenPilotPlugin::OpenPilotPlugin()
 {
-   // Do nothing
+    // Do nothing
 }
 
 OpenPilotPlugin::~OpenPilotPlugin()
 {
-   // Do nothing
+    // Do nothing
 }
 
-bool OpenPilotPlugin::initialize(const QStringList& args, QString *errMsg)
+bool OpenPilotPlugin::initialize(const QStringList &args, QString *errMsg)
 {
-   Q_UNUSED(args);
-   Q_UNUSED(errMsg);
-   return true;
+    Q_UNUSED(args);
+    Q_UNUSED(errMsg);
+    return true;
 }
 
 void OpenPilotPlugin::extensionsInitialized()
@@ -54,9 +53,8 @@ void OpenPilotPlugin::extensionsInitialized()
      * Create the board objects here.
      *
      */
-    Revolution* revo = new Revolution();
+    Revolution *revo = new Revolution();
     addAutoReleasedObject(revo);
-
 }
 
 void OpenPilotPlugin::shutdown()

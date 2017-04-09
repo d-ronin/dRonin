@@ -29,19 +29,17 @@
  * of this source file; otherwise redistribution is prohibited.
  */
 
-
 #include "usbmonitor.h"
 #include <QDebug>
 
 #include "rawhid.h"
 
-
 //#define USB_MON_DEBUG
 #ifdef USB_MON_DEBUG
-#define USB_MON_QXTLOG_DEBUG(...) qDebug()<<__VA_ARGS__
-#else  // USB_MON_DEBUG
+#define USB_MON_QXTLOG_DEBUG(...) qDebug() << __VA_ARGS__
+#else // USB_MON_DEBUG
 #define USB_MON_QXTLOG_DEBUG(...)
-#endif	// USB_MON_DEBUG
+#endif // USB_MON_DEBUG
 
 #define printf USB_MON_QXTLOG_DEBUG
 
@@ -50,14 +48,16 @@ USBMonitor *USBMonitor::m_instance = 0;
 /**
   Initialize the USB monitor here
   */
-USBMonitor::USBMonitor(QObject *parent) : QObject(parent) {
+USBMonitor::USBMonitor(QObject *parent)
+    : QObject(parent)
+{
     m_instance = this;
 
     qRegisterMetaType<USBPortInfo>();
 
     hid_init();
 
-    connect(&periodicTimer, SIGNAL(timeout()), this, SLOT(periodic()));
+    connect(&periodicTimer, &QTimer::timeout, this, &USBMonitor::periodic);
     periodicTimer.setSingleShot(true);
     periodicTimer.start(150);
 
@@ -70,7 +70,8 @@ USBMonitor::~USBMonitor()
     hid_free_enumeration(prevDevList);
 }
 
-void USBMonitor::periodic() {
+void USBMonitor::periodic()
+{
     // This is here to catch recursion, from the process_pending_events in
     // hidapi on OS X.
     if (enumerating) {
@@ -86,9 +87,7 @@ void USBMonitor::periodic() {
 
     bool didAnything = false;
 
-    for (struct hid_device_info *hidDev = hidDevList;
-            hidDev != NULL;
-            hidDev = hidDev->next) {
+    for (struct hid_device_info *hidDev = hidDevList; hidDev != NULL; hidDev = hidDev->next) {
         USBPortInfo info;
 
         info.vendorID = hidDev->vendor_id;
@@ -101,7 +100,7 @@ void USBMonitor::periodic() {
 
         if (!unseenDevices.removeOne(info)) {
             newDevices.append(info);
-        } 
+        }
     }
 
     prevDevList = hidDevList;
@@ -111,7 +110,8 @@ void USBMonitor::periodic() {
     foreach (USBPortInfo item, unseenDevices) {
         didAnything = true;
 
-        qDebug() << "Removing " << item.vendorID << item.productID << item.bcdDevice << item.serialNumber << item.product << item.manufacturer;
+        qDebug() << "Removing " << item.vendorID << item.productID << item.bcdDevice
+                 << item.serialNumber << item.product << item.manufacturer;
 
         knowndevices.removeOne(item);
 
@@ -122,7 +122,8 @@ void USBMonitor::periodic() {
         if (!knowndevices.contains(item)) {
             didAnything = true;
 
-            qDebug() << "Adding " << item.vendorID << item.productID << item.bcdDevice << item.serialNumber << item.product << item.manufacturer;
+            qDebug() << "Adding " << item.vendorID << item.productID << item.bcdDevice
+                     << item.serialNumber << item.product << item.manufacturer;
 
             knowndevices.append(item);
 
@@ -155,22 +156,24 @@ QList<USBPortInfo> USBMonitor::availableDevices()
   *   On OpenPilot, the bcdDeviceLSB indicates the run state: bootloader or running.
   *   bcdDeviceMSB indicates the board model.
   */
-QList<USBPortInfo> USBMonitor::availableDevices(int vid, int pid, int bcdDeviceMSB, int bcdDeviceLSB)
+QList<USBPortInfo> USBMonitor::availableDevices(int vid, int pid, int bcdDeviceMSB,
+                                                int bcdDeviceLSB)
 {
     periodic();
 
     QList<USBPortInfo> thePortsWeWant;
 
     foreach (USBPortInfo port, knowndevices) {
-        if((port.vendorID==vid || vid==-1) && (port.productID==pid || pid==-1) && ((port.bcdDevice>>8)==bcdDeviceMSB || bcdDeviceMSB==-1) &&
-           ( (port.bcdDevice&0x00ff) ==bcdDeviceLSB || bcdDeviceLSB==-1))
+        if ((port.vendorID == vid || vid == -1) && (port.productID == pid || pid == -1)
+            && ((port.bcdDevice >> 8) == bcdDeviceMSB || bcdDeviceMSB == -1)
+            && ((port.bcdDevice & 0x00ff) == bcdDeviceLSB || bcdDeviceLSB == -1))
             thePortsWeWant.append(port);
     }
 
     return thePortsWeWant;
 }
 
-USBMonitor* USBMonitor::instance()
+USBMonitor *USBMonitor::instance()
 {
     return m_instance;
 }

@@ -29,9 +29,9 @@
 #include "ui_multipage.h"
 #include "setupwizard.h"
 
-MultiPage::MultiPage(SetupWizard *wizard, QWidget *parent) :
-    AbstractWizardPage(wizard, parent),
-    ui(new Ui::MultiPage)
+MultiPage::MultiPage(SetupWizard *wizard, QWidget *parent)
+    : AbstractWizardPage(wizard, parent)
+    , ui(new Ui::MultiPage)
 {
     ui->setupUi(this);
 
@@ -47,7 +47,8 @@ MultiPage::MultiPage(SetupWizard *wizard, QWidget *parent) :
 
     // Default to Quad X since it is the most common setup
     ui->typeCombo->setCurrentIndex(1);
-    connect(ui->typeCombo, SIGNAL(currentIndexChanged(int)), this, SLOT(updateImageAndDescription()));
+    connect(ui->typeCombo, QOverload<int>::of(&QComboBox::currentIndexChanged), this,
+            &MultiPage::updateImageAndDescription);
     ui->typeGraphicsView->setSceneRect(m_multiPic->boundingRect());
     ui->typeGraphicsView->fitInView(m_multiPic, Qt::KeepAspectRatio);
 }
@@ -65,7 +66,9 @@ void MultiPage::initializePage()
 
 bool MultiPage::validatePage()
 {
-    SetupWizard::VEHICLE_SUB_TYPE type = (SetupWizard::VEHICLE_SUB_TYPE)ui->typeCombo->itemData(ui->typeCombo->currentIndex()).toInt();
+    SetupWizard::VEHICLE_SUB_TYPE type =
+        (SetupWizard::VEHICLE_SUB_TYPE)ui->typeCombo->itemData(ui->typeCombo->currentIndex())
+            .toInt();
 
     getWizard()->setVehicleSubType(type);
     return true;
@@ -83,19 +86,28 @@ void MultiPage::resizeEvent(QResizeEvent *event)
 void MultiPage::setupMultiTypesCombo()
 {
     ui->typeCombo->addItem(tr("Tricopter"), SetupWizard::MULTI_ROTOR_TRI_Y);
-    m_descriptions << tr("The Tricopter uses three motors and one servo. The servo is used to give yaw authority to the rear motor. "
-                         "The front motors are rotating in opposite directions. The Tricopter is known for its sweeping yaw movement and "
-                         "it is very well suited for FPV since the front rotors are spread wide apart.");
+    m_descriptions << tr(
+        "The Tricopter uses three motors and one servo. The servo is used to give yaw authority to "
+        "the rear motor. "
+        "The front motors are rotating in opposite directions. The Tricopter is known for its "
+        "sweeping yaw movement and "
+        "it is very well suited for FPV since the front rotors are spread wide apart.");
 
     ui->typeCombo->addItem(tr("Quadcopter X"), SetupWizard::MULTI_ROTOR_QUAD_X);
-    m_descriptions << tr("The X Quadcopter uses four motors and is the most common multi rotor configuration. Two of the motors rotate clockwise "
-                         "and two counter clockwise. The motors positioned diagonal to each other rotate in the same direction. "
-                         "This setup is perfect for sport flying and is also commonly used for FPV platforms.");
+    m_descriptions << tr(
+        "The X Quadcopter uses four motors and is the most common multi rotor configuration. Two "
+        "of the motors rotate clockwise "
+        "and two counter clockwise. The motors positioned diagonal to each other rotate in the "
+        "same direction. "
+        "This setup is perfect for sport flying and is also commonly used for FPV platforms.");
 
     ui->typeCombo->addItem(tr("Quadcopter +"), SetupWizard::MULTI_ROTOR_QUAD_PLUS);
-    m_descriptions << tr("The Plus(+) Quadcopter uses four motors and is similar to the X Quadcopter but the forward direction is offset by 45 degrees. "
-                         "The motors front and rear rotate in clockwise and the motors right and left rotate counter-clockwise. "
-                         "This setup was one of the first to be used and is still used for sport flying. This configuration is not that well suited "
+    m_descriptions << tr("The Plus(+) Quadcopter uses four motors and is similar to the X "
+                         "Quadcopter but the forward direction is offset by 45 degrees. "
+                         "The motors front and rear rotate in clockwise and the motors right and "
+                         "left rotate counter-clockwise. "
+                         "This setup was one of the first to be used and is still used for sport "
+                         "flying. This configuration is not that well suited "
                          "for FPV since the fore rotor tend to be in the way of the camera.");
 
     ui->typeCombo->addItem(tr("Hexacopter"), SetupWizard::MULTI_ROTOR_HEXA);
@@ -126,18 +138,25 @@ void MultiPage::setupMultiTypesCombo()
 void MultiPage::updateAvailableTypes()
 {
     /*
-       QVariant enable = (getWizard()->getInputType() == SetupWizard::INPUT_PWM) ? QVariant(0) : QVariant(1 | 32);
-       ui->typeCombo->model()->setData(ui->typeCombo->model()->index(6, 0), enable, Qt::UserRole - 1);
-       ui->typeCombo->model()->setData(ui->typeCombo->model()->index(7, 0), enable, Qt::UserRole - 1);
-       ui->typeCombo->model()->setData(ui->typeCombo->model()->index(8, 0), enable, Qt::UserRole - 1);
-       ui->typeCombo->model()->setData(ui->typeCombo->model()->index(9, 0), enable, Qt::UserRole - 1);
+       QVariant enable = (getWizard()->getInputType() == SetupWizard::INPUT_PWM) ? QVariant(0) :
+       QVariant(1 | 32);
+       ui->typeCombo->model()->setData(ui->typeCombo->model()->index(6, 0), enable, Qt::UserRole -
+       1);
+       ui->typeCombo->model()->setData(ui->typeCombo->model()->index(7, 0), enable, Qt::UserRole -
+       1);
+       ui->typeCombo->model()->setData(ui->typeCombo->model()->index(8, 0), enable, Qt::UserRole -
+       1);
+       ui->typeCombo->model()->setData(ui->typeCombo->model()->index(9, 0), enable, Qt::UserRole -
+       1);
      */
 }
 
 void MultiPage::updateImageAndDescription()
 {
-    SetupWizard::VEHICLE_SUB_TYPE type = (SetupWizard::VEHICLE_SUB_TYPE)ui->typeCombo->itemData(ui->typeCombo->currentIndex()).toInt();
-    QString elementId   = "";
+    SetupWizard::VEHICLE_SUB_TYPE type =
+        (SetupWizard::VEHICLE_SUB_TYPE)ui->typeCombo->itemData(ui->typeCombo->currentIndex())
+            .toInt();
+    QString elementId = "";
     QString description = m_descriptions.at(ui->typeCombo->currentIndex());
 
     switch (type) {

@@ -42,25 +42,28 @@
 Quanton::Quanton(void)
 {
     // Common USB IDs
-    addBootloaderUSBInfo(USBInfo(DRONIN_VID_DRONIN_BOOTLOADER, DRONIN_PID_DRONIN_BOOTLOADER, BCD_DEVICE_BOOTLOADER));
-    addFirmwareUSBInfo(USBInfo(DRONIN_VID_DRONIN_FIRMWARE, DRONIN_PID_DRONIN_FIRMWARE, BCD_DEVICE_FIRMWARE));
+    addBootloaderUSBInfo(
+        USBInfo(DRONIN_VID_DRONIN_BOOTLOADER, DRONIN_PID_DRONIN_BOOTLOADER, BCD_DEVICE_BOOTLOADER));
+    addFirmwareUSBInfo(
+        USBInfo(DRONIN_VID_DRONIN_FIRMWARE, DRONIN_PID_DRONIN_FIRMWARE, BCD_DEVICE_FIRMWARE));
     // Legacy USB IDs
-    addBootloaderUSBInfo(USBInfo(DRONIN_VID_QUANTECNETWORKS_QUANTON, DRONIN_PID_QUANTECNETWORKS_QUANTON, BCD_DEVICE_BOOTLOADER));
-    addFirmwareUSBInfo(USBInfo(DRONIN_VID_QUANTECNETWORKS_QUANTON, DRONIN_PID_QUANTECNETWORKS_QUANTON, BCD_DEVICE_FIRMWARE));
+    addBootloaderUSBInfo(USBInfo(DRONIN_VID_QUANTECNETWORKS_QUANTON,
+                                 DRONIN_PID_QUANTECNETWORKS_QUANTON, BCD_DEVICE_BOOTLOADER));
+    addFirmwareUSBInfo(USBInfo(DRONIN_VID_QUANTECNETWORKS_QUANTON,
+                               DRONIN_PID_QUANTECNETWORKS_QUANTON, BCD_DEVICE_FIRMWARE));
 
     boardType = 0x86;
 
     // Define the bank of channels that are connected to a given timer
     channelBanks.resize(6);
-    channelBanks[0] = QVector<int> () << 1 << 2 << 3 << 4;
-    channelBanks[1] = QVector<int> () << 5 << 6;
-    channelBanks[2] = QVector<int> () << 7;
-    channelBanks[3] = QVector<int> () << 8;
+    channelBanks[0] = QVector<int>() << 1 << 2 << 3 << 4;
+    channelBanks[1] = QVector<int>() << 5 << 6;
+    channelBanks[2] = QVector<int>() << 7;
+    channelBanks[3] = QVector<int>() << 8;
 }
 
 Quanton::~Quanton()
 {
-
 }
 
 QString Quanton::shortName()
@@ -81,7 +84,7 @@ int Quanton::minBootLoaderVersion()
 //! Return which capabilities this board has
 bool Quanton::queryCapabilities(BoardCapabilities capability)
 {
-    switch(capability) {
+    switch (capability) {
     case BOARD_CAPABILITIES_GYROS:
     case BOARD_CAPABILITIES_ACCELS:
     case BOARD_CAPABILITIES_MAGS:
@@ -91,7 +94,7 @@ bool Quanton::queryCapabilities(BoardCapabilities capability)
     default:
         break;
     }
-    
+
     return false;
 }
 
@@ -109,7 +112,7 @@ bool Quanton::isInputConfigurationSupported(Core::IBoardType::InputType type)
     default:
         break;
     }
-    
+
     return true;
 }
 
@@ -134,7 +137,7 @@ bool Quanton::setInputType(Core::IBoardType::InputType type)
 
     HwQuanton::DataFields settings = HwQuanton->getData();
 
-    switch(type) {
+    switch (type) {
     case INPUT_TYPE_PPM:
         settings.InPort = HwQuanton::INPORT_PPM;
         break;
@@ -164,7 +167,7 @@ bool Quanton::setInputType(Core::IBoardType::InputType type)
         break;
     case INPUT_TYPE_DSM:
         settings.Uart1 = HwQuanton::UART1_DSM;
-        break;    
+        break;
     default:
         return false;
     }
@@ -190,7 +193,7 @@ Core::IBoardType::InputType Quanton::getInputType()
 
     HwQuanton::DataFields settings = HwQuanton->getData();
 
-    switch(settings.InPort) {
+    switch (settings.InPort) {
     case HwQuanton::INPORT_PPM:
     case HwQuanton::INPORT_PPMADC:
     case HwQuanton::INPORT_PPMOUTPUTS:
@@ -206,7 +209,7 @@ Core::IBoardType::InputType Quanton::getInputType()
     case HwQuanton::INPORT_PWMADC:
         return INPUT_TYPE_PWM;
     case HwQuanton::INPORT_SERIAL:
-        switch(settings.InPortSerial) {
+        switch (settings.InPortSerial) {
         case HwQuanton::INPORTSERIAL_DSM:
             return INPUT_TYPE_DSM;
         case HwQuanton::INPORTSERIAL_HOTTSUMD:
@@ -228,8 +231,8 @@ Core::IBoardType::InputType Quanton::getInputType()
     default:
         break;
     }
-    
-    switch(settings.Uart1) {
+
+    switch (settings.Uart1) {
     case HwQuanton::UART1_DSM:
         return INPUT_TYPE_DSM;
     case HwQuanton::UART1_HOTTSUMD:
@@ -248,7 +251,7 @@ Core::IBoardType::InputType Quanton::getInputType()
         break;
     }
 
-    switch(settings.Uart2) {
+    switch (settings.Uart2) {
     case HwQuanton::UART2_DSM:
         return INPUT_TYPE_DSM;
     case HwQuanton::UART2_HOTTSUMD:
@@ -269,7 +272,7 @@ Core::IBoardType::InputType Quanton::getInputType()
         break;
     }
 
-    switch(settings.Uart3) {
+    switch (settings.Uart3) {
     case HwQuanton::UART3_DSM:
         return INPUT_TYPE_DSM;
     case HwQuanton::UART3_HOTTSUMD:
@@ -287,8 +290,8 @@ Core::IBoardType::InputType Quanton::getInputType()
     default:
         break;
     }
-    
-    switch(settings.Uart4) {
+
+    switch (settings.Uart4) {
     case HwQuanton::UART4_DSM:
         return INPUT_TYPE_DSM;
     case HwQuanton::UART4_HOTTSUMD:
@@ -306,8 +309,8 @@ Core::IBoardType::InputType Quanton::getInputType()
     default:
         break;
     }
-    
-    switch(settings.Uart5) {
+
+    switch (settings.Uart5) {
     case HwQuanton::UART5_DSM:
         return INPUT_TYPE_DSM;
     case HwQuanton::UART5_HOTTSUMD:
@@ -340,7 +343,7 @@ int Quanton::queryMaxGyroRate()
 
     HwQuanton::DataFields settings = hwQuanton->getData();
 
-    switch(settings.GyroRange) {
+    switch (settings.GyroRange) {
     case HwQuanton::GYRORANGE_250:
         return 250;
     case HwQuanton::GYRORANGE_500:
@@ -352,7 +355,7 @@ int Quanton::queryMaxGyroRate()
     default:
         break;
     }
-    
+
     return 500;
 }
 
@@ -366,14 +369,16 @@ QStringList Quanton::getAdcNames()
         return QStringList();
 
     HwQuanton::DataFields settings = hwQuanton->getData();
-    if (settings.InPort == HwQuanton::INPORT_OUTPUTSADC ||
-            settings.InPort == HwQuanton::INPORT_PPMADC ||
-            settings.InPort == HwQuanton::INPORT_PPMOUTPUTSADC ||
-            settings.InPort == HwQuanton::INPORT_PPMPWMADC ||
-            settings.InPort == HwQuanton::INPORT_PWMADC ||
-            settings.InPort == HwQuanton::INPORT_PPMSERIALADC) {
-        return QStringList() << "IN 7" << "IN 8";
+    if (settings.InPort == HwQuanton::INPORT_OUTPUTSADC
+        || settings.InPort == HwQuanton::INPORT_PPMADC
+        || settings.InPort == HwQuanton::INPORT_PPMOUTPUTSADC
+        || settings.InPort == HwQuanton::INPORT_PPMPWMADC
+        || settings.InPort == HwQuanton::INPORT_PWMADC
+        || settings.InPort == HwQuanton::INPORT_PPMSERIALADC) {
+        return QStringList() << "IN 7"
+                             << "IN 8";
     }
 
-    return QStringList() << "Disabled" << "Disabled";
+    return QStringList() << "Disabled"
+                         << "Disabled";
 }

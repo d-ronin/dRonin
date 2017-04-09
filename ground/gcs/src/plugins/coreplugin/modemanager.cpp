@@ -11,17 +11,17 @@
  * @brief The Core GCS plugin
  *****************************************************************************/
 /*
- * This program is free software; you can redistribute it and/or modify 
- * it under the terms of the GNU General Public License as published by 
- * the Free Software Foundation; either version 3 of the License, or 
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 3 of the License, or
  * (at your option) any later version.
- * 
- * This program is distributed in the hope that it will be useful, but 
- * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY 
- * or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License 
+ *
+ * This program is distributed in the hope that it will be useful, but
+ * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
+ * or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License
  * for more details.
- * 
- * You should have received a copy of the GNU General Public License along 
+ *
+ * You should have received a copy of the GNU General Public License along
  * with this program; if not, see <http://www.gnu.org/licenses/>
  */
 
@@ -57,26 +57,28 @@ using namespace Core::Internal;
 
 ModeManager *ModeManager::m_instance = 0;
 
-ModeManager::ModeManager(Internal::MainWindow *mainWindow, MyTabWidget *modeStack) :
-    m_mainWindow(mainWindow),
-    m_modeStack(modeStack),
-    m_signalMapper(new QSignalMapper(this)),
-    m_isReprioritizing(false)
+ModeManager::ModeManager(Internal::MainWindow *mainWindow, MyTabWidget *modeStack)
+    : m_mainWindow(mainWindow)
+    , m_modeStack(modeStack)
+    , m_signalMapper(new QSignalMapper(this))
+    , m_isReprioritizing(false)
 {
     m_instance = this;
 
-//    connect((m_modeStack), SIGNAL(currentAboutToShow(int)), SLOT(currentTabAboutToChange(int)));
+    //    connect((m_modeStack), SIGNAL(currentAboutToShow(int)),
+    //    SLOT(currentTabAboutToChange(int)));
     connect(m_modeStack, SIGNAL(currentChanged(int)), this, SLOT(currentTabChanged(int)));
-    connect(m_modeStack, SIGNAL(tabMoved(int,int)), this, SLOT(tabMoved(int,int)));
+    connect(m_modeStack, SIGNAL(tabMoved(int, int)), this, SLOT(tabMoved(int, int)));
     connect(m_signalMapper, SIGNAL(mapped(QString)), this, SLOT(activateMode(QString)));
 }
 
 void ModeManager::init()
 {
-    QObject::connect(ExtensionSystem::PluginManager::instance(), SIGNAL(objectAdded(QObject*)),
-                     this, SLOT(objectAdded(QObject*)));
-    QObject::connect(ExtensionSystem::PluginManager::instance(), SIGNAL(aboutToRemoveObject(QObject*)),
-                     this, SLOT(aboutToRemoveObject(QObject*)));
+    QObject::connect(ExtensionSystem::PluginManager::instance(), SIGNAL(objectAdded(QObject *)),
+                     this, SLOT(objectAdded(QObject *)));
+    QObject::connect(ExtensionSystem::PluginManager::instance(),
+                     SIGNAL(aboutToRemoveObject(QObject *)), this,
+                     SLOT(aboutToRemoveObject(QObject *)));
 }
 
 void ModeManager::addWidget(QWidget *widget)
@@ -86,12 +88,12 @@ void ModeManager::addWidget(QWidget *widget)
     // We want the actionbar to stay on the bottom
     // so m_modeStack->cornerWidgetCount() -1 inserts it at the position immediately above
     // the actionbar
-//    m_modeStack->insertCornerWidget(m_modeStack->cornerWidgetCount() -1, widget);
+    //    m_modeStack->insertCornerWidget(m_modeStack->cornerWidgetCount() -1, widget);
 }
 
 IMode *ModeManager::currentMode() const
 {
-    if (m_modes.count() > m_modeStack->currentIndex() )
+    if (m_modes.count() > m_modeStack->currentIndex())
         return m_modes.at(m_modeStack->currentIndex());
     else
         m_modeStack->setCurrentIndex(0); // Fix illegal Index.
@@ -104,7 +106,7 @@ int ModeManager::indexOf(const QString &id) const
         if (m_modes.at(i)->uniqueModeName() == id)
             return i;
     }
-//    qDebug() << "Warning, no such mode:" << id;
+    //    qDebug() << "Warning, no such mode:" << id;
     return -1;
 }
 
@@ -126,8 +128,7 @@ void ModeManager::activateMode(const QString &id)
 void ModeManager::activateModeByWorkspaceName(const QString &id)
 {
     for (int i = 0; i < m_modes.count(); ++i) {
-        if (m_modes.at(i)->name() == id)
-        {
+        if (m_modes.at(i)->name() == id) {
             m_modeStack->setCurrentIndex(i);
             return;
         }
@@ -156,7 +157,8 @@ void ModeManager::objectAdded(QObject *obj)
     const QString shortcutId = QLatin1String("GCS.Mode.") + mode->uniqueModeName();
     QShortcut *shortcut = new QShortcut(m_mainWindow);
     shortcut->setWhatsThis(tr("Switch to %1 mode").arg(mode->name()));
-    Command *cmd = am->registerShortcut(shortcut, shortcutId, QList<int>() << Constants::C_GLOBAL_ID);
+    Command *cmd =
+        am->registerShortcut(shortcut, shortcutId, QList<int>() << Constants::C_GLOBAL_ID);
 
     m_modeShortcuts.insert(index, cmd);
     connect(cmd, SIGNAL(keySequenceChanged()), this, SLOT(updateModeToolTip()));
@@ -169,15 +171,16 @@ void ModeManager::objectAdded(QObject *obj)
     emit modesChanged();
 }
 
-void ModeManager::setDefaultKeyshortcuts() {
+void ModeManager::setDefaultKeyshortcuts()
+{
     for (int i = 0; i < m_modeShortcuts.size(); ++i) {
         Command *currentCmd = m_modeShortcuts.at(i);
-        bool currentlyHasDefaultSequence = (currentCmd->keySequence()
-                                            == currentCmd->defaultKeySequence());
+        bool currentlyHasDefaultSequence =
+            (currentCmd->keySequence() == currentCmd->defaultKeySequence());
 #ifdef Q_OS_MAC
-        currentCmd->setDefaultKeySequence(QKeySequence(QString("Meta+%1").arg(i+1)));
+        currentCmd->setDefaultKeySequence(QKeySequence(QString("Meta+%1").arg(i + 1)));
 #else
-        currentCmd->setDefaultKeySequence(QKeySequence(QString("Ctrl+%1").arg(i+1)));
+        currentCmd->setDefaultKeySequence(QKeySequence(QString("Ctrl+%1").arg(i + 1)));
 #endif
         if (currentlyHasDefaultSequence)
             currentCmd->setKeySequence(currentCmd->defaultKeySequence());
@@ -190,7 +193,8 @@ void ModeManager::updateModeToolTip()
     if (cmd) {
         int index = m_modeShortcuts.indexOf(cmd);
         if (index != -1)
-            m_modeStack->setTabToolTip(index, cmd->stringWithAppendedShortcut(cmd->shortcut()->whatsThis()));
+            m_modeStack->setTabToolTip(
+                index, cmd->stringWithAppendedShortcut(cmd->shortcut()->whatsThis()));
     }
 }
 
@@ -233,7 +237,7 @@ void ModeManager::addAction(Command *command, int priority, QMenu *menu)
         if (p > priority)
             ++index;
 
-//    m_actionBar->insertAction(index, command->action(), menu);
+    //    m_actionBar->insertAction(index, command->action(), menu);
 }
 
 void ModeManager::currentTabAboutToChange(int index)
@@ -247,7 +251,7 @@ void ModeManager::currentTabAboutToChange(int index)
 
 void ModeManager::currentTabChanged(int index)
 {
-//    qDebug() << "Current tab changed " << index;
+    //    qDebug() << "Current tab changed " << index;
     // Tab index changes to -1 when there is no tab left.
     if (index >= 0) {
         IMode *mode = m_modes.at(index);
@@ -279,16 +283,17 @@ void ModeManager::tabMoved(int from, int to)
     // Reprioritize, high priority means show to the left
     if (!m_isReprioritizing) {
         for (int i = 0; i < m_modes.count(); ++i) {
-            m_modes.at(i)->setPriority(100-i);
+            m_modes.at(i)->setPriority(100 - i);
         }
         emit newModeOrder(m_modes);
-    }    
+    }
 }
 
 void ModeManager::reorderModes(QMap<QString, int> priorities)
 {
     foreach (IMode *mode, m_modes)
-        mode->setPriority(priorities.value(QString(QLatin1String(mode->uniqueModeName())), mode->priority()));
+        mode->setPriority(
+            priorities.value(QString(QLatin1String(mode->uniqueModeName())), mode->priority()));
 
     m_isReprioritizing = true;
     IMode *current = currentMode();
@@ -296,13 +301,14 @@ void ModeManager::reorderModes(QMap<QString, int> priorities)
     bool swapped = false;
     do {
         swapped = false;
-        for (int i = 0; i < m_modes.count()-1; ++i) {
+        for (int i = 0; i < m_modes.count() - 1; ++i) {
             IMode *mode1 = m_modes.at(i);
-            IMode *mode2 = m_modes.at(i+1);
-//            qDebug() << "Comparing " << i << " to " << i+1 << " p1 " << mode1->priority() << " p2 " << mode2->priority();
+            IMode *mode2 = m_modes.at(i + 1);
+            //            qDebug() << "Comparing " << i << " to " << i+1 << " p1 " <<
+            //            mode1->priority() << " p2 " << mode2->priority();
             if (mode2->priority() > mode1->priority()) {
-                m_modeStack->moveTab(i, i+1);
-//                qDebug() << "Tab moved from " << i << " to " << i+1;
+                m_modeStack->moveTab(i, i + 1);
+                //                qDebug() << "Tab moved from " << i << " to " << i+1;
                 swapped = true;
             }
         }
@@ -313,11 +319,10 @@ void ModeManager::reorderModes(QMap<QString, int> priorities)
     emit newModeOrder(m_modes);
 }
 
-
 void ModeManager::setFocusToCurrentMode()
 {
     IMode *mode = currentMode();
-    QTC_ASSERT(mode, return);
+    QTC_ASSERT(mode, return );
     QWidget *widget = mode->widget();
     if (widget) {
         QWidget *focusWidget = widget->focusWidget();
@@ -330,8 +335,8 @@ void ModeManager::setFocusToCurrentMode()
 
 void ModeManager::triggerAction(const QString &actionId)
 {
-    foreach(Command * command, m_actions.keys()){
-        if(command->action()->objectName() == actionId) {
+    foreach (Command *command, m_actions.keys()) {
+        if (command->action()->objectName() == actionId) {
             command->action()->trigger();
             break;
         }

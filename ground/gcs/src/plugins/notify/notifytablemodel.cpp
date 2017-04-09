@@ -34,19 +34,20 @@
 #include <QMimeData>
 #include <QDataStream>
 
-const char* mime_type_notify_table = "openpilot/notify_plugin_table";
+const char *mime_type_notify_table = "openpilot/notify_plugin_table";
 
-NotifyTableModel::NotifyTableModel(QList<NotificationItem*>& parentList, QObject* parent)
-	: QAbstractTableModel(parent)
-	, _list(parentList)
+NotifyTableModel::NotifyTableModel(QList<NotificationItem *> &parentList, QObject *parent)
+    : QAbstractTableModel(parent)
+    , _list(parentList)
 {
-	_headerStrings << "Name" << "Repeats" << "Lifetime,sec" << "Mute";
-	connect(this, SIGNAL(dragRows(int, int)), this, SLOT(dropRows(int, int)));
+    _headerStrings << "Name"
+                   << "Repeats"
+                   << "Lifetime,sec"
+                   << "Mute";
+    connect(this, &NotifyTableModel::dragRows, this, &NotifyTableModel::dropRows);
 }
 
-
-bool NotifyTableModel::setData(const QModelIndex &index,
-							   const QVariant &value, int role)
+bool NotifyTableModel::setData(const QModelIndex &index, const QVariant &value, int role)
 {
     if (index.isValid() && role == Qt::DisplayRole) {
         if (eMessageName == index.column()) {
@@ -56,7 +57,8 @@ bool NotifyTableModel::setData(const QModelIndex &index,
     }
     if (index.isValid() && role == Qt::EditRole) {
         if (eRepeatValue == index.column())
-             _list.at(index.row())->setRetryValue(NotificationItem::retryValues.indexOf(value.toString()));
+            _list.at(index.row())
+                ->setRetryValue(NotificationItem::retryValues.indexOf(value.toString()));
         else {
             if (eExpireTimer == index.column())
                 _list.at(index.row())->setLifetime(value.toInt());
@@ -81,10 +83,8 @@ QVariant NotifyTableModel::data(const QModelIndex &index, int role) const
     if (index.row() >= _list.size())
         return QVariant();
 
-    if (role == Qt::DisplayRole || role == Qt::EditRole)
-    {
-        switch(index.column())
-        {
+    if (role == Qt::DisplayRole || role == Qt::EditRole) {
+        switch (index.column()) {
         case eMessageName:
             return _list.at(index.row())->toString();
 
@@ -100,11 +100,9 @@ QVariant NotifyTableModel::data(const QModelIndex &index, int role) const
         default:
             return QVariant();
         }
-    }
-    else
-    {
-        if (Qt::SizeHintRole == role){
-            return  QVariant(10);
+    } else {
+        if (Qt::SizeHintRole == role) {
+            return QVariant(10);
         }
     }
     return QVariant();
@@ -117,14 +115,13 @@ QVariant NotifyTableModel::headerData(int section, Qt::Orientation orientation, 
 
     if (orientation == Qt::Horizontal)
         return _headerStrings.at(section);
-    else
-        if (orientation == Qt::Vertical)
-            return QString("%1").arg(section);
+    else if (orientation == Qt::Vertical)
+        return QString("%1").arg(section);
 
     return QVariant();
 }
 
-bool NotifyTableModel::insertRows(int position, int rows, const QModelIndex& index)
+bool NotifyTableModel::insertRows(int position, int rows, const QModelIndex &index)
 {
     Q_UNUSED(index);
 
@@ -141,11 +138,11 @@ bool NotifyTableModel::insertRows(int position, int rows, const QModelIndex& ind
     return true;
 }
 
-bool NotifyTableModel::removeRows(int position, int rows, const QModelIndex& index)
+bool NotifyTableModel::removeRows(int position, int rows, const QModelIndex &index)
 {
     Q_UNUSED(index);
 
-    if ((-1 == position) || (-1 == rows) )
+    if ((-1 == position) || (-1 == rows))
         return false;
 
     beginRemoveRows(QModelIndex(), position, position + rows - 1);
@@ -164,10 +161,10 @@ void NotifyTableModel::entryUpdated(int offset)
     emit dataChanged(idx, idx);
 }
 
-void NotifyTableModel::entryAdded(NotificationItem* item)
+void NotifyTableModel::entryAdded(NotificationItem *item)
 {
     insertRows(rowCount(), 1, QModelIndex());
-    NotificationItem* tmp = _list.at(rowCount() - 1);
+    NotificationItem *tmp = _list.at(rowCount() - 1);
     _list.replace(rowCount() - 1, item);
     delete tmp;
     entryUpdated(rowCount() - 1);
@@ -185,8 +182,8 @@ QStringList NotifyTableModel::mimeTypes() const
     return types;
 }
 
-bool NotifyTableModel::dropMimeData( const QMimeData * data, Qt::DropAction action, int row,
-                   int column, const QModelIndex& parent)
+bool NotifyTableModel::dropMimeData(const QMimeData *data, Qt::DropAction action, int row,
+                                    int column, const QModelIndex &parent)
 {
     Q_UNUSED(column);
     if (action == Qt::IgnoreAction)
@@ -213,22 +210,24 @@ bool NotifyTableModel::dropMimeData( const QMimeData * data, Qt::DropAction acti
     QDataStream stream(&encodedData, QIODevice::ReadOnly);
     int rows = beginRow;
     // read next item from input MIME and drop into the table line by line
-    while(!stream.atEnd()) {
+    while (!stream.atEnd()) {
         quintptr ptr;
         stream >> ptr;
-        NotificationItem* item = reinterpret_cast<NotificationItem*>(ptr);
+        NotificationItem *item = reinterpret_cast<NotificationItem *>(ptr);
         int dragged = _list.indexOf(item);
         // we can drag item from top rows to bottom (DOWN_DIRECTION),
         // or from bottom rows to top rows (UP_DIRECTION)
         enum { UP_DIRECTION, DOWN_DIRECTION };
         int direction = (dragged < rows) ? DOWN_DIRECTION : (dragged += 1, UP_DIRECTION);
         // check drop bounds
-        if (dragged < 0 || ((dragged + 1) >= _list.size() && direction == DOWN_DIRECTION)  || dragged == rows) {
+        if (dragged < 0 || ((dragged + 1) >= _list.size() && direction == DOWN_DIRECTION)
+            || dragged == rows) {
             qNotifyDebug() << "no such item";
             continue;
         }
         // addiional check in case dropping of multiple rows
-        if(rows + direction > _list.size()) continue;
+        if (rows + direction > _list.size())
+            continue;
 
         insertRows(rows + direction, 1, QModelIndex());
         _list.replace(rows + direction, item);
@@ -243,14 +242,14 @@ bool NotifyTableModel::dropMimeData( const QMimeData * data, Qt::DropAction acti
     return true;
 }
 
-QMimeData* NotifyTableModel::mimeData(const QModelIndexList& indexes) const
+QMimeData *NotifyTableModel::mimeData(const QModelIndexList &indexes) const
 {
-    QMimeData* mimeData = new QMimeData();
+    QMimeData *mimeData = new QMimeData();
     QByteArray encodedData;
 
     QDataStream stream(&encodedData, QIODevice::WriteOnly);
     int rows = 0;
-    foreach (const QModelIndex& index, indexes) {
+    foreach (const QModelIndex &index, indexes) {
         if (!index.column()) {
             quintptr item = reinterpret_cast<quintptr>(_list.at(index.row()));
             stream << item;

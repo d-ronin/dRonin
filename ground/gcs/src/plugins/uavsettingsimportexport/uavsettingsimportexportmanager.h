@@ -43,7 +43,7 @@ class UAVSETTINGSIMPORTEXPORT_EXPORT UAVSettingsImportExportManager : public QOb
 public:
     UAVSettingsImportExportManager(QObject *parent = 0);
     ~UAVSettingsImportExportManager();
-    static bool updateObject(UAVObject *obj, QDomNode * node);
+    static bool updateObject(UAVObject *obj, QDomNode *node);
 
     bool importUAVSettings(const QByteArray &settings, bool quiet = false);
 
@@ -59,7 +59,6 @@ private:
 signals:
     void importAboutToBegin();
     void importEnded();
-
 };
 
 #endif // UAVSETTINGSIMPORTEXPORTFACTORY_H

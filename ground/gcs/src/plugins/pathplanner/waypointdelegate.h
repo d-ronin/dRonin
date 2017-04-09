@@ -36,11 +36,10 @@
  * the mode combo box to the data model.
  */
 class WaypointDelegate : public QStyledItemDelegate
- {
-        Q_OBJECT
+{
+    Q_OBJECT
 
- public:
-
+public:
     WaypointDelegate(QObject *parent = 0);
 
     //! Create the QComboxBox for the mode or pass to the default implementation
@@ -54,19 +53,17 @@ class WaypointDelegate : public QStyledItemDelegate
     void setEditorData(QWidget *editor, const QModelIndex &index) const;
 
     //! Set data in the model when the UI is changed
-    void setModelData(QWidget *editor, QAbstractItemModel *model,
-                      const QModelIndex &index) const;
+    void setModelData(QWidget *editor, QAbstractItemModel *model, const QModelIndex &index) const;
 
     //!  Update the size of the editor widget
-    void updateEditorGeometry(QWidget *editor,
-                              const QStyleOptionViewItem &option, const QModelIndex &index) const;
+    void updateEditorGeometry(QWidget *editor, const QStyleOptionViewItem &option,
+                              const QModelIndex &index) const;
 
     //! Convert the variant to a string value
-    QString displayText ( const QVariant & value, const QLocale & locale ) const;
+    QString displayText(const QVariant &value, const QLocale &locale) const;
 
     //! Populate the selections in the mode combo box
-    void loadComboBox(QComboBox * combo) const;
- };
-
+    void loadComboBox(QComboBox *combo) const;
+};
 
 #endif // WAYPOINTDELEGATE_H

@@ -43,8 +43,10 @@
 #include <coreplugin/iboardtype.h>
 #include "systemsettings.h"
 
-ConnectionDiagram::ConnectionDiagram(QWidget *parent) :
-    QDialog(parent), ui(new Ui::ConnectionDiagram), m_background(0)
+ConnectionDiagram::ConnectionDiagram(QWidget *parent)
+    : QDialog(parent)
+    , ui(new Ui::ConnectionDiagram)
+    , m_background(0)
 {
     ExtensionSystem::PluginManager *pm = ExtensionSystem::PluginManager::instance();
     utilMngr = pm->getObject<UAVObjectUtilManager>();
@@ -60,7 +62,7 @@ ConnectionDiagram::ConnectionDiagram(QWidget *parent) :
     setWindowTitle(tr("Connection Diagram"));
     setupGraphicsScene();
 
-    connect(ui->saveButton, SIGNAL(clicked()), this, SLOT(saveToFile()));
+    connect(ui->saveButton, &QAbstractButton::clicked, this, &ConnectionDiagram::saveToFile);
 }
 
 ConnectionDiagram::~ConnectionDiagram()
@@ -72,7 +74,7 @@ void ConnectionDiagram::resizeEvent(QResizeEvent *event)
 {
     QWidget::resizeEvent(event);
 
-    if(m_background != NULL)
+    if (m_background != NULL)
         ui->connectionDiagram->fitInView(m_background, Qt::KeepAspectRatio);
 }
 
@@ -80,7 +82,7 @@ void ConnectionDiagram::showEvent(QShowEvent *event)
 {
     QWidget::showEvent(event);
 
-    if(m_background != NULL)
+    if (m_background != NULL)
         ui->connectionDiagram->fitInView(m_background, Qt::KeepAspectRatio);
 }
 
@@ -142,7 +144,7 @@ void ConnectionDiagram::setupGraphicsSceneItems(QStringList elementsToShow)
             element->setOpacity(1.0);
 
             QMatrix matrix = m_renderer->matrixForElement(elementId);
-            QRectF orig    = matrix.mapRect(m_renderer->boundsOnElement(elementId));
+            QRectF orig = matrix.mapRect(m_renderer->boundsOnElement(elementId));
             element->setPos(orig.x(), orig.y());
 
             m_scene->addItem(element);
@@ -160,12 +162,14 @@ void ConnectionDiagram::saveToFile()
 
     if (m_scene) {
         QPainter painter(&image);
-        painter.setRenderHints(QPainter::Antialiasing | QPainter::TextAntialiasing | QPainter::SmoothPixmapTransform);
+        painter.setRenderHints(QPainter::Antialiasing | QPainter::TextAntialiasing
+                               | QPainter::SmoothPixmapTransform);
         m_scene->render(&painter);
     }
 
     bool success = false;
-    QString fileName = QFileDialog::getSaveFileName(this, tr("Save Connection Diagram"), "", tr("Images (*.png *.xpm *.jpg)"));
+    QString fileName = QFileDialog::getSaveFileName(this, tr("Save Connection Diagram"), "",
+                                                    tr("Images (*.png *.xpm *.jpg)"));
     if (!fileName.isEmpty()) {
         QFileInfo fn(fileName);
         if (!fn.fileName().contains('.'))
@@ -174,10 +178,12 @@ void ConnectionDiagram::saveToFile()
     }
 
     if (!success)
-        QMessageBox::warning(this, tr("Save Failed"), tr("Invalid filename provided, diagram was not saved."));
+        QMessageBox::warning(this, tr("Save Failed"),
+                             tr("Invalid filename provided, diagram was not saved."));
 }
 
-void ConnectionDiagram::addUavoFieldElements(QStringList &elements, UAVObject *obj, const QString &prefix)
+void ConnectionDiagram::addUavoFieldElements(QStringList &elements, UAVObject *obj,
+                                             const QString &prefix)
 {
     if (!obj) {
         Q_ASSERT(false);
@@ -197,17 +203,27 @@ void ConnectionDiagram::addUavoFieldElements(QStringList &elements, UAVObject *o
         quint32 nelements = field->getNumElements();
         if (nelements > 1) {
             for (quint32 i = 0; i < nelements; i++) {
-                QString val = field->getValue(i).toString().replace(QRegExp(ENUM_SPECIAL_CHARS), "").toLower();
+                QString val = field->getValue(i)
+                                  .toString()
+                                  .replace(QRegExp(ENUM_SPECIAL_CHARS), "")
+                                  .toLower();
                 elements << QString("%0%1-%2-%3-%4")
+                                .arg(prefix)
+                                .arg(obj->getName().toLower())
+                                .arg(field->getName().toLower())
+                                .arg(field->getElementName(i)
+                                         .replace(QRegExp(ENUM_SPECIAL_CHARS), "")
+                                         .toLower())
+                                .arg(val);
+            }
+        } else {
+            QString val =
+                field->getValue().toString().replace(QRegExp(ENUM_SPECIAL_CHARS), "").toLower();
+            elements << QString("%0%1-%2-%3")
                             .arg(prefix)
                             .arg(obj->getName().toLower())
                             .arg(field->getName().toLower())
-                            .arg(field->getElementName(i).replace(QRegExp(ENUM_SPECIAL_CHARS), "").toLower())
                             .arg(val);
-            }
-        } else {
-            QString val = field->getValue().toString().replace(QRegExp(ENUM_SPECIAL_CHARS), "").toLower();
-            elements << QString("%0%1-%2-%3").arg(prefix).arg(obj->getName().toLower()).arg(field->getName().toLower()).arg(val);
         }
     }
 }

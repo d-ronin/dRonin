@@ -30,7 +30,6 @@
 #include <QStringList>
 #include <extensionsystem/pluginmanager.h>
 
-
 ModelViewPlugin::ModelViewPlugin()
 {
     // Do nothing
@@ -41,7 +40,7 @@ ModelViewPlugin::~ModelViewPlugin()
     // Do nothing
 }
 
-bool ModelViewPlugin::initialize(const QStringList & args, QString *errMsg)
+bool ModelViewPlugin::initialize(const QStringList &args, QString *errMsg)
 {
     Q_UNUSED(args);
     Q_UNUSED(errMsg);

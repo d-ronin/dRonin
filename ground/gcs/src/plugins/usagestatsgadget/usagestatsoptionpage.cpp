@@ -28,11 +28,12 @@
 #include "usagestatsplugin.h"
 #include "debuggadget/debugengine.h"
 
-UsageStatsOptionPage::UsageStatsOptionPage(QObject *parent) :
-    IOptionsPage(parent)
+UsageStatsOptionPage::UsageStatsOptionPage(QObject *parent)
+    : IOptionsPage(parent)
 {
-    m_config=qobject_cast<UsageStatsPlugin *>(parent);
-    connect(this,SIGNAL(settingsUpdated()),m_config,SLOT(updateSettings()));
+    m_config = qobject_cast<UsageStatsPlugin *>(parent);
+    connect(this, &UsageStatsOptionPage::settingsUpdated, m_config,
+            &UsageStatsPlugin::updateSettings);
 }
 UsageStatsOptionPage::~UsageStatsOptionPage()
 {
@@ -45,7 +46,7 @@ QWidget *UsageStatsOptionPage::createPage(QWidget *parent)
     m_page->setupUi(w);
     m_page->cb_AllowSending->setChecked(m_config->getSendUsageStats());
     m_page->cb_AllowPrivate->setChecked(m_config->getSendPrivateData());
-    m_page->label_UUID->setText(QString("UUID: ")+m_config->getInstallationUUID());
+    m_page->label_UUID->setText(QString("UUID: ") + m_config->getInstallationUUID());
 
     m_page->cbDebugLogLevel->clear();
     m_page->cbDebugLogLevel->addItem(tr("Debug"), DebugEngine::DEBUG);
