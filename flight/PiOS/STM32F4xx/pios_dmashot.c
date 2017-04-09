@@ -1,0 +1,611 @@
+/**
+ ******************************************************************************
+ * @file       pios_dmashot.c
+ * @author     dRonin, http://dRonin.org/, Copyright (C) 2017
+ * @addtogroup PIOS PIOS Core hardware abstraction layer
+ * @{
+ * @addtogroup PIOS_DMAShot PiOS DMA-driven DShot driver
+ * @{
+ * @brief Generates DShot signal by updating timer CC registers via DMA bursts.
+ *****************************************************************************/
+/*
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful, but
+ * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
+ * or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License
+ * for more details.
+ *
+ * You should have received a copy of the GNU General Public License along
+ * with this program; if not, see <http://www.gnu.org/licenses/>
+ *
+ * Additional note on redistribution: The copyright and license notices above
+ * must be maintained in each individual source file that is a derivative work
+ * of this source file; otherwise redistribution is prohibited.
+ */
+
+#include <pios.h>
+#include "pios_dmashot.h"
+
+#define MAX_TIMERS                              8
+
+// This is to do half-word writes where appropriate. TIM2 and TIM5 are 32-bit, the rest
+// are 16-bit. Can do full word writes to 16bit regardless, but it doubles DMA buffer size
+// unnecessarily.
+union dma_buffer {
+	void *ptr;
+	uint32_t *fw;
+	uint16_t *hw;
+};
+
+// Internal structure for timer and DShot configuration.
+struct servo_timer {
+	TIM_TypeDef *timer;                                                             // What timer
+	uint32_t sysclock;                                                              // Flava Flav! Timer's clock frequency.
+
+	const struct pios_dmashot_timer_cfg *dma;                                       // DMA config
+	const struct pios_tim_channel *servo_channels[4];                               // Original channels
+
+	// Tracking used TIM channels to allocate least memory.
+	uint8_t low_channel;                                                            // Lowest known TIM channel
+	uint8_t high_channel;                                                           // Duh
+
+	uint32_t dshot_freq;                                                            // Stores the desired frequency for
+	// timer initialization
+	uint16_t duty_cycle_0;                                                          // Calculated duty cycle for 0-bit
+	uint16_t duty_cycle_1;                                                          // And for 1-bit
+
+	union dma_buffer buffer;                                                        // DMA buffer
+
+	// Total 42 bytes
+};
+
+// DShot signal is 16-bit. Use a pause before and after to delimit signal and quell the timer CC
+// when the message ends.
+#define DMASHOT_MESSAGE_WIDTH                   16
+#define DMASHOT_MESSAGE_PAUSE                   1
+#define DMASHOT_STM32_BUFFER                    (DMASHOT_MESSAGE_PAUSE + DMASHOT_MESSAGE_WIDTH + DMASHOT_MESSAGE_PAUSE)
+
+// Those values are in percent. These represent the Betaflight/BLHeli_s timing,
+// instead of the spec one. Works with KISS RE 24A though.
+#define DSHOT_DUTY_CYCLE_0                      36
+#define DSHOT_DUTY_CYCLE_1                      74
+
+#define TIMC_TO_INDEX(c)                        ((c)>>2)
+
+const struct pios_dmashot_cfg *dmashot_cfg;
+struct servo_timer **servo_timers;
+// Total 8 bytes
+
+static inline int PIOS_DMAShot_GetFIFOCadence(int num_chan)
+{
+	switch (num_chan)
+	{
+	default:
+	case 1:
+		return DMA_FIFOThreshold_1QuarterFull;
+	case 2:
+		return DMA_FIFOThreshold_HalfFull;
+	case 3:
+		return DMA_FIFOThreshold_3QuartersFull;
+	case 4:
+		return DMA_FIFOThreshold_Full;
+	}
+}
+
+static inline uint16_t PIOS_DMAShot_GetEventSource(uint8_t c)
+{
+	switch (c & 0xF0)
+	{
+	default:
+	case DMASHOT_EVENTSOURCE_UP:
+		return TIM_DMA_Update;
+	case DMASHOT_EVENTSOURCE_CCR1:
+		return TIM_DMA_CC1;
+	case DMASHOT_EVENTSOURCE_CCR2:
+		return TIM_DMA_CC2;
+	case DMASHOT_EVENTSOURCE_CCR3:
+		return TIM_DMA_CC3;
+	case DMASHOT_EVENTSOURCE_CCR4:
+		return TIM_DMA_CC4;
+	}
+}
+
+// Whether a timer is 16- or 32-bit.
+static inline bool PIOS_DMAShot_HalfWord(struct servo_timer *s_timer)
+{
+	// In STM32F4 and STM32L4, these two are 32-bit, the rest is 16-bit.
+	return (s_timer->timer == TIM2 || s_timer->timer == TIM5 ? false : true);
+}
+
+static uint32_t PIOS_DMAShot_GetPeripheralBase(TIM_TypeDef *timer, uint8_t c)
+{
+	switch (c & 0x0F)
+	{
+	default:
+	case DMASHOT_REG_CCR1:
+		return (uint32_t)&timer->CCR1;
+	case DMASHOT_REG_CCR2:
+		return (uint32_t)&timer->CCR2;
+	case DMASHOT_REG_CCR3:
+		return (uint32_t)&timer->CCR3;
+	case DMASHOT_REG_CCR4:
+		return (uint32_t)&timer->CCR4;
+	}
+}
+
+static int PIOS_DMAShot_GetNumChannels(struct servo_timer *timer)
+{
+	int channels = timer->high_channel - timer->low_channel;
+	if (channels < 0)
+		return 0;
+	return (channels >> 2) + 1;
+}
+
+/**
+ * @brief Initializes the DMAShot driver by loading the configuration.
+ * @param[in] config Configuration struct.
+ */
+void PIOS_DMAShot_Init(const struct pios_dmashot_cfg *config)
+{
+	dmashot_cfg = config;
+}
+
+/**
+ * @brief Makes sure the DMAShot driver has allocated all internal structs.
+ */
+void PIOS_DMAShot_Prepare()
+{
+	if (dmashot_cfg) {
+		if (!servo_timers) {
+			// Allocate memory
+			servo_timers = PIOS_malloc_no_dma(sizeof(struct servo_timer) * MAX_TIMERS);
+			PIOS_Assert(servo_timers);
+
+			memset(servo_timers, 0, sizeof(struct servo_timer) * MAX_TIMERS);
+		}
+		for (int i = 0; i < MAX_TIMERS; i++) {
+			if (servo_timers[i]) {
+				// Force sysclock to zero to consider this timer disabled,
+				// so that DMAShot doesn't hijack it when an user configures from DMAShot
+				// to something else.
+				servo_timers[i]->sysclock = 0;
+			}
+		}
+	}
+}
+
+// Returns the internal timer config. struct for a servo, if there is one.
+static struct servo_timer *PIOS_DMAShot_GetServoTimer(const struct pios_tim_channel *servo_channel)
+{
+	if (!servo_timers)
+		return NULL;
+
+	for (int i = 0; i < MAX_TIMERS; i++) {
+		struct servo_timer *s_timer = servo_timers[i];
+		if (!s_timer || !s_timer->timer || !s_timer->sysclock)
+			continue;
+
+		if (s_timer->timer == servo_channel->timer) return s_timer;
+	}
+
+	return NULL;
+}
+
+/**
+ * @brief Sets the throttle value of a specific servo.
+ * @param[in] servo_channel The servo to update.
+ * @param[in] throttle The desired throttle value (0-2047).
+ * @retval TRUE on success, FALSE if the channel's not set up for DMA.
+ */
+bool PIOS_DMAShot_WriteValue(const struct pios_tim_channel *servo_channel, uint16_t throttle)
+{
+	// Fail hard if writes to unconfigured channels happen. Bitbang DShot should be
+	// doing this, if it's still there.
+
+	PIOS_Assert(dmashot_cfg);
+
+	struct servo_timer *s_timer = PIOS_DMAShot_GetServoTimer(servo_channel);
+	if (!s_timer)
+		return false;
+
+	// Wriiiiiiiiiiiiiiiite!
+
+	int shift = (servo_channel->timer_chan - s_timer->low_channel) >> 2;
+
+	if (throttle > 2047)
+		throttle = 2047;
+
+	throttle <<= 5;
+	throttle |=
+			((throttle >> 4 ) & 0xf) ^
+			((throttle >> 8 ) & 0xf) ^
+			((throttle >> 12) & 0xf);
+
+	// Leading zero, trailing zero.
+	for (int i = DMASHOT_MESSAGE_PAUSE; i < DMASHOT_MESSAGE_WIDTH+DMASHOT_MESSAGE_PAUSE; i++) {
+		int addr = i * PIOS_DMAShot_GetNumChannels(s_timer) + shift;
+		if (PIOS_DMAShot_HalfWord(s_timer)) {
+			s_timer->buffer.hw[addr] = throttle & 0x8000 ? s_timer->duty_cycle_1 : s_timer->duty_cycle_0;
+		} else {
+			s_timer->buffer.fw[addr] = throttle & 0x8000 ? s_timer->duty_cycle_1 : s_timer->duty_cycle_0;
+		}
+		throttle <<= 1;
+	}
+
+	return true;
+}
+
+/**
+ * @brief Tells the DMAShot driver about a timer that needs to be set up.
+ * @param[in] timer The STM32 timer in question.
+ * @param[in] clockrate The frequency the timer's set up to run.
+ * @param[in] dshot_freq The desired DShot signal frequency (in KHz).
+ * @retval TRUE on success, FALSE when there's no configuration for the specific timer,
+                        or DMAShot isn't set up correctly.
+ */
+bool PIOS_DMAShot_RegisterTimer(TIM_TypeDef *timer, uint32_t clockrate, uint32_t dshot_freq)
+{
+	// No config, push for bitbanging.
+
+	if (!dmashot_cfg || !servo_timers)
+		return false;
+
+	// Check whether the timer is configured for DMA first. If not, bail and
+	// tell upstairs that DMA DShot is a no-go.
+
+	const struct pios_dmashot_timer_cfg *dma_config = NULL;
+
+	for (int i = 0; i < dmashot_cfg->num_timers; i++) {
+		if (dmashot_cfg->timer_cfg[i].timer == timer) {
+			dma_config = &dmashot_cfg->timer_cfg[i];
+		}
+	}
+
+	if (!dma_config)
+		return false;
+
+	// Find if there's an existing config from a previous registration,
+	// since we can't clean up due to a lack of free(). Timer/pin stuff is
+	// static anyway.
+
+	struct servo_timer *s_timer = NULL;
+
+	bool found = false;
+	for (int i = 0; i < MAX_TIMERS; i++) {
+		if (servo_timers[i] && servo_timers[i]->timer == timer) {
+			s_timer = servo_timers[i];
+			found = true;
+			break;
+		}
+	}
+
+	// Nothing found? Find free slot for timer.
+
+	if (!found) {
+		for (int i = 0; i < MAX_TIMERS; i++) {
+			if (!servo_timers[i]) {
+				s_timer = PIOS_malloc_no_dma(sizeof(struct servo_timer));
+				memset(s_timer, 0, sizeof(struct servo_timer));
+				s_timer->low_channel = TIM_Channel_4;
+				s_timer->high_channel = TIM_Channel_1;
+				servo_timers[i] = s_timer;
+				break;
+			}
+		}
+	}
+
+	// Why are we trying to register more than MAX_TIMERS, anyway?
+	PIOS_Assert(s_timer);
+
+	s_timer->timer = timer;
+	s_timer->sysclock = clockrate;
+	s_timer->dshot_freq = dshot_freq;
+	s_timer->dma = dma_config;
+
+	return true;
+}
+
+/**
+ * @brief Tells the DMAShot driver about a servo that needs to be set up.
+ * @param[in] servo_channel The servo in question.
+ * @retval TRUE on success, FALSE when the related timer isn't set up, or DMAShot
+                        isn't set up correctly.
+ */
+bool PIOS_DMAShot_RegisterServo(const struct pios_tim_channel *servo_channel)
+{
+	// Bitbang!
+	if (!dmashot_cfg || !servo_timers)
+		return false;
+
+	struct servo_timer *s_timer = PIOS_DMAShot_GetServoTimer(servo_channel);
+
+	// No timer found, bitbang!
+	if (!s_timer)
+		return false;
+
+	if (s_timer->dma->master_timer && PIOS_DMAShot_GetNumChannels(s_timer) > 0) {
+		// I'm sorry, Dave, I'm afraid I cannot do that!
+
+		// If DMA'ing to CCR, can only do one channel per timer.
+		// Tell PIOS_Servo to bitbang instead.
+		return false;
+	}
+
+	if (servo_channel->timer_chan < s_timer->low_channel) s_timer->low_channel = servo_channel->timer_chan;
+	if (servo_channel->timer_chan > s_timer->high_channel) s_timer->high_channel = servo_channel->timer_chan;
+
+	s_timer->servo_channels[TIMC_TO_INDEX(servo_channel->timer_chan)] = servo_channel;
+
+	return true;
+}
+
+/**
+ * @brief Validates any timer and servo registrations.
+ */
+void PIOS_DMAShot_Validate()
+{
+	if (!dmashot_cfg || !servo_timers)
+		return;
+
+	for (int i = 0; i < MAX_TIMERS; i++) {
+		struct servo_timer *s_timer = servo_timers[i];
+		if (!s_timer || !s_timer->timer)
+			continue;
+
+		// If after servo "registration" there's a low channel higher than the high
+		// one, something went wrong, lets ignore the timer.
+		if (s_timer->low_channel > s_timer->high_channel) {
+			s_timer->timer = NULL;
+		}
+	}
+}
+
+/**
+ * @brief Initializes the GPIO on the registered servos for DMAShot operation.
+ */
+void PIOS_DMAShot_InitializeGPIOs()
+{
+	// If there's nothing setup, fail hard. We shouldn't be getting here.
+	PIOS_Assert(dmashot_cfg && servo_timers);
+
+	for (int i = 0; i < MAX_TIMERS; i++) {
+		for (int j = 0; j < 4; j++) {
+
+			struct servo_timer *s_timer = servo_timers[i];
+			if (!s_timer || !s_timer->timer || !s_timer->sysclock)
+				continue;
+
+			const struct pios_tim_channel *servo_channel = s_timer->servo_channels[j];
+			if (servo_channel) {
+
+				GPIO_InitTypeDef gpio_cfg = servo_channel->pin.init;
+				gpio_cfg.GPIO_Speed = GPIO_High_Speed;
+				GPIO_Init(servo_channel->pin.gpio, &gpio_cfg);
+
+				GPIO_PinAFConfig(servo_channel->pin.gpio, servo_channel->pin.pin_source, servo_channel->remap);
+			}
+		}
+	}
+}
+
+static void PIOS_DMAShot_TimerSetup(TIM_TypeDef *timer, uint32_t sysclock, uint32_t dshot_freq, TIM_OCInitTypeDef *ocinit)
+{
+	TIM_TimeBaseInitTypeDef timerdef;
+
+	TIM_Cmd(timer, DISABLE);
+
+	TIM_TimeBaseStructInit(&timerdef);
+
+	timerdef.TIM_Prescaler = 0;
+	timerdef.TIM_Period = sysclock / dshot_freq;
+	timerdef.TIM_ClockDivision = TIM_CKD_DIV1;
+	timerdef.TIM_RepetitionCounter = 0;
+	timerdef.TIM_CounterMode = TIM_CounterMode_Up;
+
+	TIM_TimeBaseInit(timer, &timerdef);
+
+	TIM_OC1Init(timer, ocinit);
+	TIM_OC1PreloadConfig(timer, TIM_OCPreload_Enable);
+
+	TIM_OC2Init(timer, ocinit);
+	TIM_OC2PreloadConfig(timer, TIM_OCPreload_Enable);
+
+	TIM_OC3Init(timer, ocinit);
+	TIM_OC3PreloadConfig(timer, TIM_OCPreload_Enable);
+
+	TIM_OC4Init(timer, ocinit);
+	TIM_OC4PreloadConfig(timer, TIM_OCPreload_Enable);
+
+	// Do this, in case SyncPWM was configured before.
+	TIM_SelectOnePulseMode(timer, TIM_OPMode_Repetitive);
+}
+
+/**
+ * @brief Initializes and configures the registered timers for DMAShot operation.
+ */
+void PIOS_DMAShot_InitializeTimers(TIM_OCInitTypeDef *ocinit)
+{
+	// If there's nothing setup, fail hard. We shouldn't be getting here.
+	PIOS_Assert(dmashot_cfg && servo_timers);
+
+	for (int i = 0; i < MAX_TIMERS; i++) {
+
+		struct servo_timer *s_timer = servo_timers[i];
+		if (!s_timer || !s_timer->timer || !s_timer->sysclock)
+			continue;
+
+		if (s_timer->timer) {
+			PIOS_DMAShot_TimerSetup(s_timer->timer, s_timer->sysclock, s_timer->dshot_freq, ocinit);
+
+			int f = s_timer->sysclock / s_timer->dshot_freq;
+
+			s_timer->duty_cycle_0 = f * DSHOT_DUTY_CYCLE_0 / 100;
+			s_timer->duty_cycle_1 = f * DSHOT_DUTY_CYCLE_1 / 100;
+
+			if (s_timer->dma->master_timer)
+				PIOS_DMAShot_TimerSetup(s_timer->dma->master_timer, s_timer->sysclock, s_timer->dshot_freq, ocinit);
+		}
+	}
+}
+
+static void PIOS_DMAShot_DMASetup(struct servo_timer *s_timer)
+{
+	DMA_Cmd(s_timer->dma->stream, DISABLE);
+	while (DMA_GetCmdStatus(s_timer->dma->stream) == ENABLE) ;
+
+	DMA_DeInit(s_timer->dma->stream);
+
+	DMA_InitTypeDef dma;
+	DMA_StructInit(&dma);
+
+	dma.DMA_Channel = s_timer->dma->channel;
+	dma.DMA_Memory0BaseAddr = (uint32_t)s_timer->buffer.ptr;
+	if (s_timer->dma->master_timer) {
+		dma.DMA_PeripheralBaseAddr = PIOS_DMAShot_GetPeripheralBase(s_timer->timer, s_timer->dma->master_config);
+	} else {
+		dma.DMA_PeripheralBaseAddr = (uint32_t)(&s_timer->timer->DMAR);
+	}
+
+	if (PIOS_DMAShot_HalfWord(s_timer)) {
+		dma.DMA_MemoryDataSize = DMA_MemoryDataSize_HalfWord;
+		dma.DMA_PeripheralDataSize = DMA_PeripheralDataSize_HalfWord;
+	} else {
+		dma.DMA_MemoryDataSize = DMA_MemoryDataSize_Word;
+		dma.DMA_PeripheralDataSize = DMA_PeripheralDataSize_Word;
+	}
+
+	dma.DMA_MemoryInc = DMA_MemoryInc_Enable;
+	dma.DMA_PeripheralInc = DMA_PeripheralInc_Disable;
+
+	dma.DMA_DIR = DMA_DIR_MemoryToPeripheral;
+	dma.DMA_Mode = DMA_Mode_Normal;
+
+	dma.DMA_BufferSize = PIOS_DMAShot_GetNumChannels(s_timer) * DMASHOT_STM32_BUFFER;
+
+	dma.DMA_Priority = DMA_Priority_VeryHigh;
+	dma.DMA_MemoryBurst = DMA_MemoryBurst_Single;
+	dma.DMA_PeripheralBurst = DMA_PeripheralBurst_Single;
+
+	dma.DMA_FIFOMode = DMA_FIFOMode_Enable;
+	dma.DMA_FIFOThreshold = PIOS_DMAShot_GetFIFOCadence(PIOS_DMAShot_GetNumChannels(s_timer));
+
+	DMA_Init(s_timer->dma->stream, &dma);
+
+	// Don't do interrupts.
+	DMA_ITConfig(s_timer->dma->stream, DMA_IT_TC, DISABLE);
+}
+
+/**
+ * @brief Initializes and configures the known DMA channels for DMAShot operation.
+ */
+void PIOS_DMAShot_InitializeDMAs()
+{
+	// If there's nothing setup, fail hard. We shouldn't be getting here.
+	PIOS_Assert(dmashot_cfg && servo_timers);
+
+	for (int i = 0; i < MAX_TIMERS; i++) {
+		struct servo_timer *s_timer = servo_timers[i];
+		if (!s_timer || !s_timer->timer || !s_timer->sysclock)
+			continue;
+
+		if (!s_timer->buffer.ptr) {
+			if (PIOS_DMAShot_HalfWord(s_timer)) {
+				s_timer->buffer.ptr =
+						PIOS_malloc(PIOS_DMAShot_GetNumChannels(s_timer) * DMASHOT_STM32_BUFFER * sizeof(uint16_t));
+				memset(s_timer->buffer.ptr, 0, PIOS_DMAShot_GetNumChannels(s_timer) * DMASHOT_STM32_BUFFER * sizeof(uint16_t));
+			} else {
+				s_timer->buffer.ptr =
+						PIOS_malloc(PIOS_DMAShot_GetNumChannels(s_timer) * DMASHOT_STM32_BUFFER * sizeof(uint32_t));
+				memset(s_timer->buffer.ptr, 0, PIOS_DMAShot_GetNumChannels(s_timer) * DMASHOT_STM32_BUFFER * sizeof(uint32_t));
+			}
+		}
+
+		PIOS_DMAShot_DMASetup(s_timer);
+	}
+}
+
+/**
+ * @brief Triggers the configured DMA channels to fire and send throttle values to the timer DMAR and optional CCRx registers.
+ */
+void PIOS_DMAShot_TriggerUpdate()
+{
+	// If there's nothing setup, fail hard. We shouldn't be getting here.
+	PIOS_Assert(dmashot_cfg && servo_timers);
+
+	for (int i = 0; i < MAX_TIMERS; i++) {
+		struct servo_timer *s_timer = servo_timers[i];
+		if (!s_timer || !s_timer->timer || !s_timer->sysclock)
+			continue;
+
+		DMA_Cmd(s_timer->dma->stream, DISABLE);
+		while (DMA_GetCmdStatus(s_timer->dma->stream) == ENABLE) ;
+
+		if (s_timer->dma->master_timer) {
+			TIM_DMACmd(s_timer->dma->master_timer,
+					PIOS_DMAShot_GetEventSource(s_timer->dma->master_config),
+					DISABLE);
+			TIM_Cmd(s_timer->dma->master_timer, DISABLE);
+		} else {
+			TIM_DMACmd(s_timer->timer, TIM_DMA_Update, DISABLE);
+		}
+
+		TIM_Cmd(s_timer->timer, DISABLE);
+
+		TIM_SetCounter(s_timer->timer, 0);
+		DMA_ClearFlag(s_timer->dma->stream, s_timer->dma->tcif);
+		DMA_SetCurrDataCounter(s_timer->dma->stream, PIOS_DMAShot_GetNumChannels(s_timer) * DMASHOT_STM32_BUFFER);
+	}
+
+	// Re-enable the timers and DMA in a separate loop, to make the signals line up better.
+	for (int i = 0; i < MAX_TIMERS; i++) {
+		struct servo_timer *s_timer = servo_timers[i];
+		if (!s_timer || !s_timer->timer || !s_timer->sysclock)
+			continue;
+
+		if (s_timer->dma->master_timer) {
+			TIM_DMACmd(s_timer->dma->master_timer,
+					PIOS_DMAShot_GetEventSource(s_timer->dma->master_config),
+					ENABLE);
+			TIM_Cmd(s_timer->dma->master_timer, ENABLE);
+		} else {
+			int offset = s_timer->low_channel >> 2;
+			int transfers = (s_timer->high_channel - s_timer->low_channel) >> 2;
+			TIM_DMAConfig(s_timer->timer, TIM_DMABase_CCR1 + offset, transfers << 8);
+
+			TIM_DMACmd(s_timer->timer, TIM_DMA_Update, ENABLE);
+		}
+
+		TIM_Cmd(s_timer->timer, ENABLE);
+		DMA_Cmd(s_timer->dma->stream, ENABLE);
+	}
+}
+
+/**
+ * @brief Checks whether DMAShot is ready for use (i.e. at least one DMA configured timer).
+ * @retval TRUE on success, FALSE when there's no configuration or DMA capable timers.
+ */
+bool PIOS_DMAShot_IsReady()
+{
+	if (!dmashot_cfg || !servo_timers)
+		return false;
+
+	for (int i = 0; i < MAX_TIMERS; i++) {
+		struct servo_timer *s_timer = servo_timers[i];
+		if (s_timer && s_timer->timer && s_timer->sysclock) return true;
+	}
+
+	return false;
+}
+
+/**
+ * @brief Checks whether DMAShot has been configured.
+ * @retval TRUE on success, FALSE when there's no configuration.
+ */
+bool PIOS_DMAShot_IsConfigured()
+{
+	return dmashot_cfg != NULL;
+}

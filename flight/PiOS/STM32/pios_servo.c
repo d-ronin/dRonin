@@ -43,6 +43,10 @@
 #include "pios_irq.h"
 #endif
 
+#if defined(PIOS_INCLUDE_DMASHOT)
+#include "pios_dmashot.h"
+#endif
+
 #include "misc_math.h"
 
 /* Private variables */
@@ -64,7 +68,8 @@ enum channel_mode {
 	SYNC_PWM,
 	SYNC_DSHOT_300,
 	SYNC_DSHOT_600,
-	SYNC_DSHOT_1200
+	SYNC_DSHOT_1200,
+	SYNC_DSHOT_DMA
 } __attribute__((packed));
 
 struct dshot_info {
@@ -191,11 +196,11 @@ static void ChannelSetup_DShot(int j, uint16_t rate)
 	ds_info->pin = servo_cfg->channels[j].pin.init.GPIO_Pin;
 }
 
-static int BankSetup_DShot(struct timer_bank *bank) {
+static int BankSetup_DShot(struct timer_bank *bank)
+{
 	/*
 	 * Relatively simple configuration here.  Just seize it!
 	 */
-
 	PIOS_TIM_SetBankToGPOut(servo_tim_id, bank->timer);
 
 	return 0;
@@ -275,6 +280,12 @@ int PIOS_Servo_SetMode(const uint16_t *out_rate, const int banks, const uint16_t
 	if (!servo_cfg || banks > PIOS_SERVO_MAX_BANKS) {
 		return -10;
 	}
+
+#if defined(PIOS_INCLUDE_DMASHOT)
+	if (PIOS_DMAShot_IsConfigured()){
+		PIOS_DMAShot_Prepare();
+	}
+#endif
 
 	dshot_in_use = false;
 
@@ -375,9 +386,21 @@ int PIOS_Servo_SetMode(const uint16_t *out_rate, const int banks, const uint16_t
 		case SHOT_DSHOT300:
 		case SHOT_DSHOT600:
 		case SHOT_DSHOT1200:
-			dshot_in_use = true;
+			ret = 1;
+#if defined(PIOS_INCLUDE_DMASHOT)
+			if (PIOS_DMAShot_IsConfigured()) {
+				uint32_t freq = rate == SHOT_DSHOT1200 ? DMASHOT_1200 : rate == SHOT_DSHOT600 ? DMASHOT_600 : DMASHOT_300;
+				ret = PIOS_DMAShot_RegisterTimer(timer_banks[i].timer, max_tim_clock, freq) ? 0 : 1;
+			}
+#endif
+			if (ret) {
+				dshot_in_use = true;
 
-			ret = BankSetup_DShot(&timer_banks[i]);
+				ret = BankSetup_DShot(&timer_banks[i]);
+			}
+			if (ret) {
+				return ret;
+			}
 			break;
 		}
 
@@ -391,7 +414,15 @@ int PIOS_Servo_SetMode(const uint16_t *out_rate, const int banks, const uint16_t
 				case SHOT_DSHOT300:
 				case SHOT_DSHOT600:
 				case SHOT_DSHOT1200:
-					ChannelSetup_DShot(j, rate);
+#if defined(PIOS_INCLUDE_DMASHOT)
+					if (PIOS_DMAShot_IsConfigured() && PIOS_DMAShot_RegisterServo(chan)) {
+						output_channels[j].mode = SYNC_DSHOT_DMA;
+					} else {
+						ChannelSetup_DShot(j, rate);
+					}
+#else
+						ChannelSetup_DShot(j, rate);
+#endif
 					break;
 				case SHOT_ONESHOT:
 					output_channels[j].i.pwm_res = timer_banks[i].clk_rate;
@@ -409,6 +440,15 @@ int PIOS_Servo_SetMode(const uint16_t *out_rate, const int banks, const uint16_t
 			}
 		}
 	}
+
+#if defined (PIOS_INCLUDE_DMASHOT)
+	if (PIOS_DMAShot_IsConfigured()) {
+		PIOS_DMAShot_Validate();
+		PIOS_DMAShot_InitializeGPIOs();
+		PIOS_DMAShot_InitializeTimers((TIM_OCInitTypeDef *)&servo_cfg->tim_oc_init);
+		PIOS_DMAShot_InitializeDMAs();
+	}
+#endif
 
 	return 0;
 }
@@ -459,6 +499,13 @@ void PIOS_Servo_SetFraction(uint8_t servo, uint16_t fraction,
 			 * Don't bother with min/max tomfoolery here.
 			 */
 			output_channels[servo].i.dshot.value = fraction >> 5;
+			return;
+		case SYNC_DSHOT_DMA:
+#if defined(PIOS_INCLUDE_DMASHOT)
+			if (PIOS_DMAShot_IsConfigured()) {
+				PIOS_DMAShot_WriteValue(&servo_cfg->channels[servo], fraction >> 5);
+			}
+#endif
 			return;
 		default:
 			break;
@@ -511,15 +558,19 @@ void PIOS_Servo_Set(uint8_t servo, float position)
 		case SYNC_DSHOT_300:
 		case SYNC_DSHOT_600:
 		case SYNC_DSHOT_1200:
-			/* Expect a 0 to 2047 range! */
-			if (position > 2047) {
-				output_channels[servo].i.dshot.value = 2047;
-			} else if (position < 0) {
-				output_channels[servo].i.dshot.value = 0;
-			} else {
-				output_channels[servo].i.dshot.value = position;
-			}
+			if (position > 2047)
+				position = 2047;
+			else if (position < 0)
+				position = 0;
 
+			output_channels[servo].i.dshot.value = position;
+			return;
+		case SYNC_DSHOT_DMA:
+#if defined(PIOS_INCLUDE_DMASHOT)
+			if (PIOS_DMAShot_IsConfigured()) {
+				PIOS_DMAShot_WriteValue(&servo_cfg->channels[servo], position);
+			}
+#endif
 			return;
 		default:
 			break;
@@ -724,6 +775,7 @@ void PIOS_Servo_Update(void)
 	// If some banks are oneshot and some are dshot (why would you do this?)
 	// get the oneshots firing first.
 	for (uint8_t i = 0; i < servo_cfg->num_channels; i++) {
+
 		if (output_channels[i].mode != SYNC_PWM) {
 			continue;
 		}
@@ -737,6 +789,13 @@ void PIOS_Servo_Update(void)
 			TIM_Cmd(chan->timer, ENABLE);
 		}
 	}
+
+#if defined(PIOS_INCLUDE_DMASHOT)
+	// Do it before bitbanging, so the updates line up +/-.
+	if (PIOS_DMAShot_IsReady()) {
+		PIOS_DMAShot_TriggerUpdate();
+	}
+#endif
 
 	if (dshot_in_use) {
 		if (DSHOT_Update()) {
